@@ -11,6 +11,8 @@ filesets:
   files_rtl_generic:
     depend:
     - openhwgroup.org:ip:cv32e40p
+    - pulp-platform.org:ip:fpnew
+    - pulp-platform.org::common_cells
     files:
     - hw/core-v-mini-mcu/core-v-mini-mcu.sv
     - hw/core-v-mini-mcu/mm_ram.sv
@@ -43,8 +45,6 @@ targets:
   default: &default_target
     filesets:
     - files_rtl_generic
-    - target_lint? (rtl-behavioral)
-    - target_model-lib? (rtl-behavioral)
     toplevel: [core_v_mcu]
 
   sim:

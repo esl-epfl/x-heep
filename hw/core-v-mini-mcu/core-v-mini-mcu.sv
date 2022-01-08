@@ -10,7 +10,7 @@
 
 // Contributor: Robert Balas <balasr@student.ethz.ch>
 
-module core-v-mini-mcu #(
+module core_v_mini_mcu #(
     parameter INSTR_RDATA_WIDTH = 32,
     parameter RAM_ADDR_WIDTH = 20,
     parameter BOOT_ADDR = 'h180,
