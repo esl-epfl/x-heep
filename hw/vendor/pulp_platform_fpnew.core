@@ -1,0 +1,31 @@
+CAPI=2:
+
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name: "pulp-platform.org:ip:fpnew"
+
+filesets:
+  rtl:
+    depend:
+    - pulp-platform.org::common_cells
+    files:
+    - pulp_platform_fpnew/src/fpnew_pkg.sv
+    - pulp_platform_fpnew/src/fpnew_cast_multi.sv
+    - pulp_platform_fpnew/src/fpnew_classifier.sv
+    - pulp_platform_fpnew/src/fpnew_divsqrt_multi.sv
+    - pulp_platform_fpnew/src/fpnew_fma.sv
+    - pulp_platform_fpnew/src/fpnew_fma_multi.sv
+    - pulp_platform_fpnew/src/fpnew_noncomp.sv
+    - pulp_platform_fpnew/src/fpnew_opgroup_block.sv
+    - pulp_platform_fpnew/src/fpnew_opgroup_fmt_slice.sv
+    - pulp_platform_fpnew/src/fpnew_opgroup_multifmt_slice.sv
+    - pulp_platform_fpnew/src/fpnew_rounding.sv
+    - pulp_platform_fpnew/src/fpnew_top.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - rtl
