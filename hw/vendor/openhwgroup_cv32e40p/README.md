@@ -12,9 +12,9 @@ when it has been contributed to [OpenHW Group](https://www.openhwgroup.org/).
 
 ## Documentation
 
-The CV32E40P user manual can be found in this 
-[repository](https://github.com/openhwgroup/core-v-docs/tree/master/cores/cv32e40p
-). 
+The CV32E40P user manual can be found in the _docs_ folder and it is
+captured in reStructuredText, rendered to html using [Sphinx](https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html).
+These documents are viewable using readthedocs and can be viewed [here](https://docs.openhwgroup.org/projects/cv32e40p-user-manual/).
 
 ## Verification
 The verification environment for the CV32E40P is _not_ in this Repository.  There is a small, simple testbench here which is
@@ -48,6 +48,8 @@ coding style guide](https://github.com/lowRISC/style-guides/blob/master/VerilogC
 
 To get started, please check out the ["Good First Issue"
  list](https://github.com/openhwgroup/cv32e40p/issues?q=is%3Aissue+is%3Aopen+-label%3Astatus%3Aresolved+label%3A%22good+first+issue%22).
+
+The RTL code has been formatted with ["Verible"](https://github.com/google/verible) v0.0-1149-g7eae750.
 
 ## Issues and Troubleshooting
 
