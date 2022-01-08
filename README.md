@@ -20,3 +20,5 @@ $ source activate core-v-mini-mcu
 pip3 install --user -r python-requirements.txt
 ```
 
+Add '--root user_builds' to set your build foders for the pip packages
+and add that folder to the PATH variable
