@@ -1,0 +1,66 @@
+CAPI=2:
+
+# Copyright 2022 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name: openhwgroup.org:systems:core-v-mini-mcu
+description: CORE-V MINI-MCU Top.
+
+filesets:
+  files_rtl_generic:
+    depend:
+    - openhwgroup.org:ip:cv32e40p
+    files:
+    - hw/core-v-mini-mcu/core-v-mini-mcu.sv
+    - hw/core-v-mini-mcu/mm_ram.sv
+    - hw/core-v-mini-mcu/wrappers/cv32e40p_fp_wrapper.sv
+    file_type: systemVerilogSource
+
+  rtl-simulation:
+    files:
+    - hw/simulation/dp_ram.sv
+    file_type: systemVerilogSource
+
+  tb-rtl:
+    files:
+    - tb/tb_top.sv
+    file_type: systemVerilogSource
+
+  # Waiver file, without which the model lib will not build.
+  verilator-waiver:
+    files:
+    - rtl/core-v-mcu/verilator.waiver
+    file_type: vlt
+
+parameters:
+  PULP_XPULP:
+    datatype: int
+    paramtype: vlogparam
+    default: 0
+
+targets:
+  default: &default_target
+    filesets:
+    - files_rtl_generic
+    - target_lint? (rtl-behavioral)
+    - target_model-lib? (rtl-behavioral)
+    toplevel: [core_v_mcu]
+
+  sim:
+    <<: *default_target
+    default_tool: modelsim
+    filesets_append:
+    - rtl-simulation
+    - tb-rtl
+    toplevel:
+    - tb_top
+    parameters:
+    - PULP_XPULP=0
+    tools:
+      modelsim:
+        vlog_options:
+        - -override_timescale 1ns/1ps
+        - -suppress vlog-2583
+        - -suppress vlog-2577
+        - -pedanticerrors
