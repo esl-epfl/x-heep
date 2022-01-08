@@ -1,0 +1,76 @@
+CAPI=2:
+
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name: "openhwgroup.org:ip:cv32e40p"
+description: "OpenHW Group RISC-V Core CV32E40P"
+
+filesets:
+  files_rtl:
+    files:
+    - openhwgroup_cv32e40p/rtl/include/cv32e40p_apu_core_pkg.sv
+    - openhwgroup_cv32e40p/rtl/include/cv32e40p_fpu_pkg.sv
+    - openhwgroup_cv32e40p/rtl/include/cv32e40p_pkg.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_alu.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_alu_div.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_ff_one.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_popcnt.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_compressed_decoder.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_controller.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_cs_registers.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_decoder.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_int_controller.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_ex_stage.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_hwloop_regs.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_id_stage.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_if_stage.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_load_store_unit.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_mult.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_prefetch_buffer.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_prefetch_controller.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_obi_interface.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_aligner.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_sleep_unit.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_core.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_apu_disp.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_fifo.sv
+    file_type: systemVerilogSource
+
+  files_sim:
+    files:
+    - openhwgroup_cv32e40p/bhv/cv32e40p_sim_clock_gate.sv
+    file_type: systemVerilogSource
+
+  ff_regfile:
+    files:
+    - openhwgroup_cv32e40p/rtl/cv32e40p_register_file_ff.sv
+    file_type: systemVerilogSource
+
+  latch_regfile:
+    files:
+    - openhwgroup_cv32e40p/rtl/cv32e40p_register_file_latch.sv
+    file_type: systemVerilogSource
+
+parameters:
+  CV32E40P_TRACE_EXECUTION:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
+
+  CV32E40P_APU_TRACE:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
+
+targets:
+  default:
+    filesets:
+    - files_rtl
+    - target_sim? (ff_regfile)
+    - target_sim? (files_sim)
+    - target_lint? (files_sim)
+    - target_model-lib? (files_sim)
+    - tool_vivado? (ff_regfile)
+    - tool_verilator? (ff_regfile)
