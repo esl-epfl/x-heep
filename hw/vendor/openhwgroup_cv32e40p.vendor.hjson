@@ -20,5 +20,6 @@
     ".gitlab-ci.yml",
     ".dir-locals.el",
     "cv32e40p_manifest.flist",
+    "docs",
   ]
 }
