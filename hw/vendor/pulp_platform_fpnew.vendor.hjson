@@ -10,8 +10,6 @@
     rev: "0fc3620978a500303ce94811eec7839e427dc995",
   },
 
-  patch_dir: "patches/pulp_platform_fpnew",
-
   exclude_from_upstream: [
     "src/common_cells",
     "src/fpu_div_sqrt_mvp",
