@@ -53,6 +53,12 @@ filesets:
     - openhwgroup_cv32e40p/rtl/cv32e40p_register_file_latch.sv
     file_type: systemVerilogSource
 
+  files_wrap:
+    files:
+    - openhwgroup_cv32e40p/bhv/cv32e40p_wrapper.sv
+    - openhwgroup_cv32e40p/bhv/cv32e40p_core_log.sv
+    file_type: systemVerilogSource
+
 parameters:
   CV32E40P_TRACE_EXECUTION:
     datatype: bool
@@ -70,6 +76,7 @@ targets:
     - files_rtl
     - target_sim? (ff_regfile)
     - target_sim? (files_sim)
+    - target_sim? (files_wrap)
     - target_lint? (files_sim)
     - target_model-lib? (files_sim)
     - tool_vivado? (ff_regfile)
