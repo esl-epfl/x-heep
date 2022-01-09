@@ -29,7 +29,7 @@ This repository relies on [vendor](https://docs.opentitan.org/doc/ug/vendor_hw/)
 In the ./util folder, the vendor.py scripts implements what is describeb above.
 
 
-## Running Questasim
+## Compiling for Questasim
 
 ```
 $ fusesoc --cores-root . run --no-export --target=sim --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
@@ -38,3 +38,31 @@ First set the env variable MODEL_TECH to your Questasim bin folder.
 
 Questasim version must be >= Questasim 2019.3
 
+## Compiling Software
+
+
+First set the RISCV env variable to the compiler folder (without the `/bin` included).
+
+Then go to the ./sw folder and type:
+
+```
+make applications/hello_world/hello_world.hex
+```
+
+This will create the executable file to be loaded in your target system (ASIC, FPGA, Questasim, Verilator, etc).
+
+## Running Software on Questasim tool
+
+Go to your target system built folder, e.g.
+
+```
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim/
+```
+
+Then type:
+
+```
+make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
+```
+
+Replace the  `.hex` file with your own application if you want to run another pre-compiled application.

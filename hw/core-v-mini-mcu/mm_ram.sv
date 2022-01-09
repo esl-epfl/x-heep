@@ -479,13 +479,13 @@ module mm_ram #(
 
     assign instr_rdata_o = ram_instr_rdata;
 
-    ram_data_req     = data_req_dec;
-    ram_data_addr    = data_addr_dec;
-    ram_data_gnt     = ram_amoshimd_data_gnt;
-    core_data_rdata  = data_req_dec;
-    ram_data_wdata   = data_wdata_dec;
-    ram_data_we      = data_we_dec;
-    ram_data_be      = data_be_dec;
+    assign ram_data_req     = data_req_dec;
+    assign ram_data_addr    = data_addr_dec;
+    assign ram_data_gnt     = ram_amoshimd_data_gnt;
+    assign core_data_rdata  = data_req_dec;
+    assign ram_data_wdata   = data_wdata_dec;
+    assign ram_data_we      = data_we_dec;
+    assign ram_data_be      = data_be_dec;
   // signature range
   always_ff @(posedge clk_i, negedge rst_ni) begin
     if (~rst_ni) begin
