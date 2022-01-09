@@ -10,15 +10,14 @@
 // specific language governing permissions and limitations under the License.
 
 module dp_ram #(
-    parameter ADDR_WIDTH = 8,
-    parameter INSTR_RDATA_WIDTH = 128
+    parameter ADDR_WIDTH = 8
 ) (
     input logic clk_i,
 
     input  logic                         en_a_i,
     input  logic [       ADDR_WIDTH-1:0] addr_a_i,
     input  logic [                 31:0] wdata_a_i,
-    output logic [INSTR_RDATA_WIDTH-1:0] rdata_a_o,
+    output logic [                 31:0] rdata_a_o,
     input  logic                         we_a_i,
     input  logic [                  3:0] be_a_i,
 
@@ -40,7 +39,7 @@ module dp_ram #(
   always_comb addr_b_int = {addr_b_i[ADDR_WIDTH-1:2], 2'b0};
 
   always @(posedge clk_i) begin
-    for (int i = 0; i < INSTR_RDATA_WIDTH / 8; i++) begin
+    for (int i = 0; i < 32 / 8; i++) begin
       rdata_a_o[(i*8)+:8] <= mem[addr_a_int+i];
     end
 

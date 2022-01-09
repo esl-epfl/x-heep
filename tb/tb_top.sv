@@ -14,7 +14,6 @@
 //              Jeremy Bennett <jeremy.bennett@embecosm.com>
 
 module tb_top #(
-    parameter INSTR_RDATA_WIDTH = 32,
     parameter RAM_ADDR_WIDTH = 22,
     parameter BOOT_ADDR = 'h180,
     parameter PULP_XPULP = 0,
@@ -143,7 +142,6 @@ module tb_top #(
 
   // wrapper for riscv, the memory system and stdout peripheral
   core_v_mini_mcu #(
-      .INSTR_RDATA_WIDTH(INSTR_RDATA_WIDTH),
       .RAM_ADDR_WIDTH   (RAM_ADDR_WIDTH),
       .BOOT_ADDR        (BOOT_ADDR),
       .PULP_XPULP       (PULP_XPULP),
@@ -162,11 +160,5 @@ module tb_top #(
       .exit_value_o  (exit_value)
   );
 
-`ifndef VERILATOR
-  initial begin
-    assert (INSTR_RDATA_WIDTH == 32)
-    else $fatal("invalid INSTR_RDATA_WIDTH, choose 32");
-  end
-`endif
 
 endmodule  // tb_top

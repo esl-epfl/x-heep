@@ -11,7 +11,6 @@
 // Contributor: Robert Balas <balasr@student.ethz.ch>
 
 module core_v_mini_mcu #(
-    parameter INSTR_RDATA_WIDTH = 32,
     parameter RAM_ADDR_WIDTH = 20,
     parameter BOOT_ADDR = 'h180,
     parameter PULP_XPULP = 0,
@@ -38,7 +37,7 @@ module core_v_mini_mcu #(
   logic                               instr_gnt;
   logic                               instr_rvalid;
   logic [                 31:0]       instr_addr;
-  logic [INSTR_RDATA_WIDTH-1:0]       instr_rdata;
+  logic [                 31:0]       instr_rdata;
 
   logic                               data_req;
   logic                               data_gnt;
@@ -48,7 +47,6 @@ module core_v_mini_mcu #(
   logic [                  3:0]       data_be;
   logic [                 31:0]       data_rdata;
   logic [                 31:0]       data_wdata;
-  logic [                  5:0]       data_atop = 6'b0;
 
   // signals to debug unit
   logic                               debug_req_i;
@@ -167,14 +165,13 @@ module core_v_mini_mcu #(
 
   // this handles read to RAM and memory mapped pseudo peripherals
   mm_ram #(
-      .RAM_ADDR_WIDTH(RAM_ADDR_WIDTH),
-      .INSTR_RDATA_WIDTH(INSTR_RDATA_WIDTH)
+      .RAM_ADDR_WIDTH(RAM_ADDR_WIDTH)
   ) ram_i (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       .instr_req_i   (instr_req),
-      .instr_addr_i  (instr_addr[RAM_ADDR_WIDTH-1:0]),
+      .instr_addr_i  (instr_addr),
       .instr_rdata_o (instr_rdata),
       .instr_rvalid_o(instr_rvalid),
       .instr_gnt_o   (instr_gnt),
@@ -187,7 +184,6 @@ module core_v_mini_mcu #(
       .data_rdata_o (data_rdata),
       .data_rvalid_o(data_rvalid),
       .data_gnt_o   (data_gnt),
-      .data_atop_i  (data_atop),
 
       .irq_id_i (irq_id_out),
       .irq_ack_i(irq_ack),
