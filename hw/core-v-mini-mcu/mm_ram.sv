@@ -451,83 +451,6 @@ module mm_ram #(
       $display("write addr=0x%08x: data=0x%08x", data_addr_i, data_wdata_i);
   end
 
-  // the amo shim has a different encoding of atomics
-  always_comb begin
-    // axi_master_aw_lock_o   = 1'b0;
-    // axi_master_ar_lock_o   = 1'b0;
-    ram_data_atop_conv = 4'h0;
-    // inv_wdata                 = 1'b0;
-
-    if (ram_data_atop[5] == 1'b1) begin
-      unique case (ram_data_atop[4:0])
-        AMO_LR: begin  // atomic load-reserved
-          //axi_master_ar_lock_o = 1'b1; // TODO: not supported
-          ram_data_atop_conv = 4'hB;
-        end
-        AMO_SC: begin  // atomic store-conditional
-          //axi_master_aw_lock_o = 1'b1; // TODO: not supported
-          ram_data_atop_conv = 4'hC;
-        end
-        AMO_SWAP: begin
-          ram_data_atop_conv = 4'h1;
-        end
-        AMO_ADD: begin
-          ram_data_atop_conv = 4'h2;
-        end
-        AMO_XOR: begin
-          ram_data_atop_conv = 4'h5;
-        end
-        AMO_AND: begin
-          ram_data_atop_conv = 4'h3;
-          //inv_wdata = 1'b1; // Invert data to emulate an AND with a clear
-        end
-        AMO_OR: begin
-          ram_data_atop_conv = 4'h4;
-        end
-        AMO_MIN: begin
-          ram_data_atop_conv = 4'h8;
-        end
-        AMO_MAX: begin
-          ram_data_atop_conv = 4'h6;
-        end
-        AMO_MINU: begin
-          ram_data_atop_conv = 4'h9;
-        end
-        AMO_MAXU: begin
-          ram_data_atop_conv = 4'h7;
-        end
-        default: begin
-        end
-      endcase
-    end
-  end
-
-  // Governs atomic memory operations. Sits in front of the RAM model
-  amo_shim #(
-      .AddrMemWidth(32)
-  ) i_amo_shim (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      .in_req_i  (ram_data_req),
-      .in_gnt_o  (ram_amoshimd_data_gnt),
-      .in_add_i  (32'(ram_data_addr)),
-      .in_amo_i  (ram_data_atop_conv),
-      .in_wen_i  (ram_data_we),
-      .in_wdata_i(64'(ram_data_wdata)),
-      .in_be_i   (8'(ram_data_be)),
-      .in_rdata_o(tmp_ram_data_rdata),
-
-      .out_req_o  (ram_amoshimd_data_req),
-      .out_add_o  (ram_amoshimd_data_addr),
-      .out_wen_o  (ram_amoshimd_data_we),
-      .out_wdata_o(ram_amoshimd_data_wdata),
-      .out_be_o   (ram_amoshimd_data_be),
-      .out_rdata_i(ram_amoshimd_data_rdata)
-  );
-
-  assign ram_data_rdata = tmp_ram_data_rdata[31:0];
-
   // instantiate the ram
   dp_ram #(
       .ADDR_WIDTH(RAM_ADDR_WIDTH),
@@ -535,24 +458,34 @@ module mm_ram #(
   ) dp_ram_i (
       .clk_i(clk_i),
 
-      .en_a_i  (ram_instr_req),
-      .addr_a_i(ram_instr_addr),
+      .en_a_i  (instr_req_i),
+      .addr_a_i(instr_addr_i),
 
       .wdata_a_i('0),  // Not writing so ignored
       .rdata_a_o(ram_instr_rdata),
       .we_a_i   ('0),
       .be_a_i   (4'b1111),  // Always want 32-bits
 
-      .en_b_i   (ram_amoshimd_data_req),
-      .addr_b_i (ram_amoshimd_data_addr[RAM_ADDR_WIDTH-1:0]),
+      .en_b_i   (data_req_dec),
+      .addr_b_i (data_addr_dec),
       .wdata_b_i(ram_amoshimd_data_wdata[31:0]),
       .rdata_b_o(tmp_ram_amoshimd_data_rdata),
       .we_b_i   (ram_amoshimd_data_we),
       .be_b_i   (ram_amoshimd_data_be[3:0])
   );
 
-  assign ram_amoshimd_data_rdata = 64'(tmp_ram_amoshimd_data_rdata);
+    assign instr_gnt_o   = instr_req_i;
+    assign data_gnt_o    = data_req_dec | perip_gnt;
 
+    assign instr_rdata_o = ram_instr_rdata;
+
+    ram_data_req     = data_req_dec;
+    ram_data_addr    = data_addr_dec;
+    ram_data_gnt     = ram_amoshimd_data_gnt;
+    core_data_rdata  = data_req_dec;
+    ram_data_wdata   = data_wdata_dec;
+    ram_data_we      = data_we_dec;
+    ram_data_be      = data_be_dec;
   // signature range
   always_ff @(posedge clk_i, negedge rst_ni) begin
     if (~rst_ni) begin
@@ -585,129 +518,12 @@ module mm_ram #(
     end
   end
 
-  assign instr_gnt_o = ram_instr_gnt;
-  assign data_gnt_o  = ram_data_gnt | perip_gnt;
-
-  // RANDOM STALL MUX
-  always_comb begin
-    ram_instr_req    = instr_req_i;
-    ram_instr_addr   = instr_addr_i;
-    ram_instr_gnt    = instr_req_i;
-    core_instr_rdata = ram_instr_rdata;
-
-    ram_data_req     = data_req_dec;
-    ram_data_addr    = data_addr_dec;
-    ram_data_gnt     = ram_amoshimd_data_gnt;
-    core_data_rdata  = ram_data_rdata;
-    ram_data_wdata   = data_wdata_dec;
-    ram_data_we      = data_we_dec;
-    ram_data_be      = data_be_dec;
-
-    if (rnd_stall_regs[0]) begin
-      ram_instr_req = rnd_stall_instr_req;
-      ram_instr_gnt = rnd_stall_instr_gnt;
-    end
-    if (rnd_stall_regs[1]) begin
-      ram_data_req = rnd_stall_data_req;
-      ram_data_gnt = rnd_stall_data_gnt;
-    end
-  end
 
   // IRQ SIGNALS ROUTING
-  assign irq_software_o = irq_rnd_lines.irq_software;
-  assign irq_timer_o    = irq_rnd_lines.irq_timer | irq_timer_q;
-  assign irq_external_o = irq_rnd_lines.irq_external;
-  assign irq_fast_o     = irq_rnd_lines.irq_fast;
+  assign irq_software_o = '0;
+  assign irq_timer_o    = '0;
+  assign irq_external_o = '0;
+  assign irq_fast_o     = '0;
 
-
-  riscv_rvalid_stall instr_rvalid_stall_i (
-      .clk_i        (clk_i),
-      .rst_ni       (rst_ni),
-      .req_i        (instr_req_i),
-      .gnt_i        (instr_gnt_o),
-      .we_i         (1'b0),
-      .rdata_i      (ram_instr_rdata),
-      .rdata_o      (instr_rdata_o),
-      .rvalid_o     (instr_rvalid_o),
-      .en_stall_i   (rnd_stall_regs[0][0]),
-      .stall_mode_i (rnd_stall_regs[2]),
-      .max_stall_i  (rnd_stall_regs[4]),
-      .valid_stall_i(rnd_stall_regs[8])
-  );
-
-  riscv_rvalid_stall data_rvalid_stall_i (
-      .clk_i        (clk_i),
-      .rst_ni       (rst_ni),
-      .req_i        (data_req_i),
-      .gnt_i        (data_gnt_o),
-      .we_i         (data_we_i),
-      .rdata_i      (data_rdata_mux),
-      .rdata_o      (data_rdata_o),
-      .rvalid_o     (data_rvalid_o),
-      .en_stall_i   (rnd_stall_regs[1][0]),
-      .stall_mode_i (rnd_stall_regs[3]),
-      .max_stall_i  (rnd_stall_regs[5]),
-      .valid_stall_i(rnd_stall_regs[9])
-  );
-
-  riscv_gnt_stall #(
-      .DATA_WIDTH    (INSTR_RDATA_WIDTH),
-      .RAM_ADDR_WIDTH(RAM_ADDR_WIDTH)
-  ) instr_gnt_stall_i (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      .grant_mem_i (rnd_stall_instr_req),
-      .grant_core_o(rnd_stall_instr_gnt),
-
-      .req_core_i(instr_req_i),
-      .req_mem_o (rnd_stall_instr_req),
-
-      .en_stall_i  (rnd_stall_regs[0][0]),
-      .stall_mode_i(rnd_stall_regs[2]),
-      .max_stall_i (rnd_stall_regs[4]),
-      .gnt_stall_i (rnd_stall_regs[8])
-  );
-
-  riscv_gnt_stall #(
-      .DATA_WIDTH    (32),
-      .RAM_ADDR_WIDTH(RAM_ADDR_WIDTH)
-  ) data_gnt_stall_i (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      .grant_mem_i (rnd_stall_data_req),
-      .grant_core_o(rnd_stall_data_gnt),
-
-      .req_core_i(data_req_i),
-      .req_mem_o (rnd_stall_data_req),
-
-      .en_stall_i  (rnd_stall_regs[1][0]),
-      .stall_mode_i(rnd_stall_regs[3]),
-      .max_stall_i (rnd_stall_regs[5]),
-      .gnt_stall_i (rnd_stall_regs[9])
-  );
-
-`ifndef VERILATOR
-  cv32e40p_random_interrupt_generator random_interrupt_generator_i (
-      .rst_ni          (rst_ni),
-      .clk_i           (clk_i),
-      .irq_i           (1'b0),
-      .irq_ack_i       (irq_ack_i),
-      .irq_ack_o       (),
-      .irq_rnd_lines_o (irq_rnd_lines),
-      .irq_mode_i      (rnd_stall_regs[10]),
-      .irq_min_cycles_i(rnd_stall_regs[11]),
-      .irq_max_cycles_i(rnd_stall_regs[12]),
-      .irq_min_id_i    (IRQ_MIN_ID),
-      .irq_max_id_i    (IRQ_MAX_ID),
-      .irq_act_id_o    (),
-      .irq_id_we_o     (),
-      .irq_pc_id_i     (pc_core_id_i),
-      .irq_pc_trig_i   (rnd_stall_regs[13]),
-      .irq_lines_i     (rnd_stall_regs[14][31:0])
-  );
-
-`endif
 
 endmodule  // ram
