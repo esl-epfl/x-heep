@@ -29,7 +29,13 @@ filesets:
     - tb/tb_top.sv
     file_type: systemVerilogSource
 
-  # Waiver file, without which the model lib will not build.
+  # Scripts for hooks
+  post_run_modelsim_scripts:
+    files:
+    - ci/scripts/post_build_modelsim_vopt.sh
+    file_type: user
+
+   # Waiver file, without which the model lib will not build.
   verilator-waiver:
     files:
     - rtl/core-v-mcu/verilator.waiver
@@ -40,6 +46,14 @@ parameters:
     datatype: int
     paramtype: vlogparam
     default: 0
+
+# A script to modify Verilator pre-build to generate a library, not an
+# executable.
+scripts:
+  post_build_modelsim_scripts:
+    cmd:
+    - sh
+    - ../../../ci/scripts/post_build_modelsim_vopt.sh
 
 targets:
   default: &default_target
@@ -53,8 +67,10 @@ targets:
     filesets_append:
     - rtl-simulation
     - tb-rtl
-    toplevel:
-    - tb_top
+    - post_run_modelsim_scripts
+    toplevel: [tb_top_vopt]
+    hooks:
+      post_build: [post_build_modelsim_scripts]
     parameters:
     - PULP_XPULP=0
     tools:
