@@ -38,7 +38,7 @@ filesets:
    # Waiver file, without which the model lib will not build.
   verilator-waiver:
     files:
-    - rtl/core-v-mcu/verilator.waiver
+    - rtl/core-v-mini-mcu/verilator.waiver
     file_type: vlt
 
 parameters:
@@ -46,6 +46,14 @@ parameters:
     datatype: int
     paramtype: vlogparam
     default: 0
+  RAM_ADDR_WIDTH:
+    datatype: int
+    paramtype: vlogparam
+    default: 22
+  SYNTHESIS:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
 
 # A script to modify Verilator pre-build to generate a library, not an
 # executable.
@@ -59,9 +67,36 @@ targets:
   default: &default_target
     filesets:
     - files_rtl_generic
-    toplevel: [core_v_mcu]
+    toplevel: [core_v_mini_mcu]
 
   sim:
+    <<: *default_target
+    default_tool: modelsim
+    filesets_append:
+    - rtl-simulation
+    - tb-rtl
+    toplevel: [tb_top]
+    parameters:
+    - PULP_XPULP=0
+    tools:
+      modelsim:
+        vlog_options:
+        - -override_timescale 1ns/1ps
+        - -suppress vlog-2583
+        - -suppress vlog-2577
+        - -pedanticerrors
+      xsim:
+        xelab_options:
+        - --define XSIM
+        - --incr
+        - -dup_entity_as_module
+        - -relax
+        - --O0
+        - -v 2
+        - -timescale 1ns/1ps
+        xsim_options:
+
+  sim_opt:
     <<: *default_target
     default_tool: modelsim
     filesets_append:
@@ -80,3 +115,18 @@ targets:
         - -suppress vlog-2583
         - -suppress vlog-2577
         - -pedanticerrors
+
+  nexys-a7-100t:
+    <<: *default_target
+    default_tool: vivado
+    description: Digilent Nexys-A7-100T Board
+    parameters:
+    - PULP_XPULP=0
+    - RAM_ADDR_WIDTH=8
+    - SYNTHESIS=true
+    filesets_append:
+    - rtl-simulation
+    tools:
+      vivado:
+        part: xc7a100tcsg324-1
+    toplevel: [core_v_mini_mcu]

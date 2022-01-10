@@ -170,6 +170,7 @@ module mm_ram #(
 
         end else if (data_addr_i == 32'h2000_0010) begin
           // halt and dump signature
+`ifndef SYNTHESIS
           automatic string sig_file;
           automatic bit use_sig_file;
           automatic integer sig_fd;
@@ -179,12 +180,12 @@ module mm_ram #(
           if ($value$plusargs("signature=%s", sig_file)) begin
             sig_fd = $fopen(sig_file, "w");
             if (sig_fd == 0) begin
-`ifndef VERILATOR
+  `ifndef VERILATOR
               errno = $ferror(sig_fd, error_str);
               $error(error_str);
-`else
+  `else
               $error("can't open file");
-`endif
+  `endif
               use_sig_file = 1'b0;
             end else begin
               use_sig_file = 1'b1;
@@ -200,6 +201,7 @@ module mm_ram #(
                         dp_ram_i.mem[addr+1], dp_ram_i.mem[addr+0]);
             end
           end
+`endif
           // end simulation
           exit_valid_o = '1;
           exit_value_o = '0;
@@ -235,6 +237,7 @@ module mm_ram #(
     end
   end
 
+`ifndef SYNTHESIS
 `ifndef VERILATOR
   // signal out of bound writes
   out_of_bounds_write :
@@ -277,7 +280,7 @@ module mm_ram #(
     end
   end
 
-
+`endif
 
   // Control timer. We need one to have some kind of timeout for tests that
   // get stuck in some loop. The riscv-tests also mandate that. Enable timer
@@ -309,11 +312,13 @@ module mm_ram #(
     end
   end
 
+`ifndef SYNTHESIS
   // show writes if requested
   always_ff @(posedge clk_i, negedge rst_ni) begin : verbose_writes
     if ($test$plusargs("verbose") && data_req_i && data_we_i)
       $display("write addr=0x%08x: data=0x%08x", data_addr_i, data_wdata_i);
   end
+`endif
 
   // instantiate the ram
   dp_ram #(

@@ -74,10 +74,7 @@ targets:
   default:
     filesets:
     - files_rtl
-    - target_sim? (ff_regfile)
+    - files_wrap
+    - ff_regfile
     - target_sim? (files_sim)
-    - target_sim? (files_wrap)
-    - target_lint? (files_sim)
-    - target_model-lib? (files_sim)
-    - tool_vivado? (ff_regfile)
-    - tool_verilator? (ff_regfile)
+    - target_sim_opt? (files_sim)
