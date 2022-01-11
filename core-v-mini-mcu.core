@@ -30,7 +30,7 @@ filesets:
     file_type: systemVerilogSource
 
   # Scripts for hooks
-  post_run_modelsim_scripts:
+  post_build_modelsim_scripts:
     files:
     - ci/scripts/post_build_modelsim_vopt.sh
     file_type: user
@@ -89,10 +89,11 @@ targets:
         xelab_options:
         - --define XSIM
         - --incr
-        - -dup_entity_as_module
         - -relax
         - --O0
         - -v 2
+        - --degub typical
+        - --mt 64
         - -timescale 1ns/1ps
         xsim_options:
 
@@ -102,7 +103,7 @@ targets:
     filesets_append:
     - rtl-simulation
     - tb-rtl
-    - post_run_modelsim_scripts
+    - post_build_modelsim_scripts
     toplevel: [tb_top_vopt]
     hooks:
       post_build: [post_build_modelsim_scripts]
