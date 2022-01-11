@@ -1,0 +1,50 @@
+From 189552b8b94304a727f9bad132f3afa9941abca8 Mon Sep 17 00:00:00 2001
+From: Florian Zaruba <florian@openhwgroup.org>
+Date: Thu, 22 Apr 2021 11:37:52 +0200
+Subject: [PATCH] verilator: Fix lint regression
+
+Signed-off-by: <florian@openhwgroup.org>
+---
+ src/deprecated/pad_functional.sv | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/deprecated/pad_functional.sv b/src/deprecated/pad_functional.sv
+index 720b332..6ac75f5 100644
+--- a/src/deprecated/pad_functional.sv
++++ b/src/deprecated/pad_functional.sv
+@@ -35,13 +35,14 @@ module pad_functional_pd (
+     1   0/1 Z   1   | -   X
+ 
+ */
+-
++  `ifndef VERILATOR
+   wire   PAD_wi;
+ 
+   bufif0 (PAD, I, OEN);
+   buf    (O, PAD);
+   bufif0 (PAD_wi, 1'b0, PEN);
+   rpmos  (PAD, PAD_wi, 1'b0);
++  `endif
+ 
+ endmodule
+ 
+@@ -71,12 +72,13 @@ module pad_functional_pu (
+     1   0/1 Z   1   | -   X
+ 
+ */
+-
++  `ifndef VERILATOR
+   wire   PAD_wi;
+ 
+   bufif0 (PAD, I, OEN);
+   buf    (O, PAD);
+   bufif0 (PAD_wi, 1'b1, PEN);
+   rpmos  (PAD, PAD_wi, 1'b0);
++  `endif
+ 
+-endmodule
+\ No newline at end of file
++endmodule
+-- 
+2.25.1.377.g2d2118b814
+

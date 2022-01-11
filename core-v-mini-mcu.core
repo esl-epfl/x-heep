@@ -20,8 +20,8 @@ filesets:
     file_type: systemVerilogSource
 
   rtl-simulation:
-    files:
-    - hw/simulation/dp_ram.sv
+    depend:
+    - pulp-platform.org::tech_cells_generic
     file_type: systemVerilogSource
 
   tb-rtl:

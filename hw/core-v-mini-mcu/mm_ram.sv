@@ -56,6 +56,9 @@ module mm_ram #(
   localparam int IRQ_MAX_ID = 31;
   localparam int IRQ_MIN_ID = 26;
 
+  localparam int NumByteWords = 2**RAM_ADDR_WIDTH;
+  localparam int NumWordWords = 2**RAM_ADDR_WIDTH/4;
+
   typedef enum logic [1:0] {
     T_RAM,
     T_PER,
@@ -194,11 +197,11 @@ module mm_ram #(
 
           $display("Dumping signature");
           for (logic [31:0] addr = sig_begin_q; addr < sig_end_q; addr += 4) begin
-            $display("%x%x%x%x", dp_ram_i.mem[addr+3], dp_ram_i.mem[addr+2], dp_ram_i.mem[addr+1],
-                     dp_ram_i.mem[addr+0]);
+            $display("%x%x%x%x", ram1_i.sram[addr+3], ram1_i.sram[addr+2], ram1_i.sram[addr+1],
+                     ram1_i.sram[addr+0]);
             if (use_sig_file) begin
-              $fdisplay(sig_fd, "%x%x%x%x", dp_ram_i.mem[addr+3], dp_ram_i.mem[addr+2],
-                        dp_ram_i.mem[addr+1], dp_ram_i.mem[addr+0]);
+              $fdisplay(sig_fd, "%x%x%x%x", ram1_i.sram[addr+3], ram1_i.sram[addr+2],
+                        ram1_i.sram[addr+1], ram1_i.sram[addr+0]);
             end
           end
 `endif
@@ -320,27 +323,42 @@ module mm_ram #(
   end
 `endif
 
-  // instantiate the ram
-  dp_ram #(
-      .ADDR_WIDTH(RAM_ADDR_WIDTH)
-  ) dp_ram_i (
-      .clk_i(clk_i),
 
-      .en_a_i    (instr_req_i),
-      .addr_a_i  (instr_addr_i[RAM_ADDR_WIDTH-1:0]),
-
-      .wdata_a_i ('0),  // Not writing so ignored
-      .rdata_a_o (instr_rdata_o),
-      .we_a_i    ('0),
-      .be_a_i    (4'b1111),  // Always want 32-bits
-
-      .en_b_i    (data_req_dec),
-      .addr_b_i  (data_addr_dec[RAM_ADDR_WIDTH-1:0]),
-      .wdata_b_i (data_wdata_dec),
-      .rdata_b_o (data_rdata_o),
-      .we_b_i    (data_we_dec),
-      .be_b_i    (data_be_dec)
+  tc_sram #(
+    .NumWords(NumWordWords/2),
+    .DataWidth(32'd32),
+    .NumPorts(32'd1)
+  ) ram0_i (
+    .clk_i  (clk_i),
+    .rst_ni (rst_ni),
+    .req_i  (instr_req_i),
+    .we_i   (1'b0),
+    .addr_i (instr_addr_i[RAM_ADDR_WIDTH-1-1:2]),
+    .wdata_i('0),
+    .be_i   (4'b1111),
+    // output ports
+    .rdata_o(instr_rdata_o)
   );
+
+
+  tc_sram #(
+    .NumWords(NumWordWords/2),
+    .DataWidth(32'd32),
+    .NumPorts(32'd1)
+  ) ram1_i (
+    .clk_i  (clk_i),
+    .rst_ni (rst_ni),
+    .req_i  (data_req_dec),
+    .we_i   (data_we_dec),
+    .addr_i (data_addr_dec[RAM_ADDR_WIDTH-1-1:2]),
+    .wdata_i(data_wdata_dec),
+    .be_i   (data_be_dec),
+    // output ports
+    .rdata_o(data_rdata_o)
+  );
+
+
+
 
   assign instr_gnt_o   = instr_req_i;
   assign data_gnt_o    = data_req_dec | perip_gnt;

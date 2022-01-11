@@ -1,0 +1,20 @@
+// Copyright 2020 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+{
+  name: "pulp_platform_tech_cells_generic",
+  target_dir: "pulp_platform_tech_cells_generic",
+
+  upstream: {
+    url: "https://github.com/pulp-platform/tech_cells_generic.git",
+    rev: "8ed192c7be993bc8daba5467284a76539e5cfac6",
+  },
+
+  patch_dir: "patches/pulp_platform_tech_cells_generic",
+
+  exclude_from_upstream: [
+    "scripts",
+    "ips_list.yml",
+    "Bender.yml"
+  ]
+}

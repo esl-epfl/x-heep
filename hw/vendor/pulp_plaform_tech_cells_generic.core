@@ -1,0 +1,34 @@
+CAPI=2:
+
+name: pulp-platform.org::tech_cells_generic
+
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  rtl_sim:
+    files:
+    - pulp_platform_tech_cells_generic/src/deprecated/cluster_clk_cells.sv
+    - pulp_platform_tech_cells_generic/src/deprecated/cluster_pwr_cells.sv
+    - pulp_platform_tech_cells_generic/src/deprecated/generic_memory.sv
+    - pulp_platform_tech_cells_generic/src/deprecated/generic_rom.sv
+    - pulp_platform_tech_cells_generic/src/deprecated/pulp_buffer.sv
+    - pulp_platform_tech_cells_generic/src/deprecated/pulp_clk_cells.sv
+    - pulp_platform_tech_cells_generic/src/deprecated/pulp_pwr_cells.sv
+    - pulp_platform_tech_cells_generic/src/rtl/tc_clk.sv
+    - pulp_platform_tech_cells_generic/src/rtl/tc_sram.sv
+    - pulp_platform_tech_cells_generic/src/tc_pwr.sv
+    file_type: systemVerilogSource
+
+  rtl_primitives:
+    files:
+    - pulp_platform_tech_cells_generic/src/deprecated/pad_functional.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - rtl_primitives
+    - target_sim? (rtl_sim)
+    - target_sim_opt? (rtl_sim)

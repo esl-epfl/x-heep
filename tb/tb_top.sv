@@ -67,14 +67,32 @@ module tb_top #(
   // doesn't do more than an infinite loop with some I/O
   initial begin : load_prog
     automatic string firmware;
-    automatic int prog_size = 6;
+
+    logic [7:0] stimuli [];
+    int i,j;
 
     if ($value$plusargs("firmware=%s", firmware)) begin
+
+      wait(rst_n==1'b1);
+
       if ($test$plusargs("verbose"))
         $display("[TESTBENCH] %t: loading firmware %0s ...", $time, firmware);
-      $readmemh(firmware, wrapper_i.ram_i.dp_ram_i.mem);
 
-    end else begin
+      stimuli = new[2**RAM_ADDR_WIDTH-1];
+
+      $readmemh(firmware,stimuli);
+
+      for(i=0;i<2**(RAM_ADDR_WIDTH-1);i=i+4) begin
+          wrapper_i.ram_i.ram0_i.sram[i/4] = {stimuli[i+3],stimuli[i+2],stimuli[i+1],stimuli[i]};
+      end
+      for(j=0;j<2**(RAM_ADDR_WIDTH-1);j=j+4) begin
+          wrapper_i.ram_i.ram1_i.sram[j/4] = {stimuli[i+3],stimuli[i+2],stimuli[i+1],stimuli[i]};
+          i = i + 4;
+      end
+
+      stimuli.delete;
+
+      end else begin
       $display("No firmware specified");
       $finish;
     end
@@ -99,6 +117,10 @@ module tb_top #(
 
     // start running
     #RESET_DEL rst_n = 1'b1;
+
+
+
+
     if ($test$plusargs("verbose")) $display("reset deasserted", $time);
 
   end : reset_gen
