@@ -11,7 +11,6 @@
 // Contributor: Robert Balas <balasr@student.ethz.ch>
 
 module core_v_mini_mcu #(
-    parameter RAM_ADDR_WIDTH = 20,
     parameter BOOT_ADDR = 'h180,
     parameter PULP_XPULP = 0,
     parameter PULP_CLUSTER = 0,
@@ -31,6 +30,7 @@ module core_v_mini_mcu #(
 );
 
   import cv32e40p_apu_core_pkg::*;
+  localparam NUM_BYTES = 2**16; //must be 2**22, it is not a parameter!!!
 
   // signals connecting core to memory
   logic                               instr_req;
@@ -165,7 +165,7 @@ module core_v_mini_mcu #(
 
   // this handles read to RAM and memory mapped pseudo peripherals
   mm_ram #(
-      .RAM_ADDR_WIDTH(RAM_ADDR_WIDTH)
+      .NUM_BYTES(NUM_BYTES)
   ) ram_i (
       .clk_i (clk_i),
       .rst_ni(rst_ni),

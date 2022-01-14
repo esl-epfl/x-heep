@@ -22,6 +22,8 @@ filesets:
   rtl-simulation:
     depend:
     - pulp-platform.org::tech_cells_generic
+    files:
+    - hw/simulation/sram_wrapper.sv
     file_type: systemVerilogSource
 
   tb-rtl:
@@ -35,21 +37,11 @@ filesets:
     - ci/scripts/post_build_modelsim_vopt.sh
     file_type: user
 
-   # Waiver file, without which the model lib will not build.
-  verilator-waiver:
-    files:
-    - rtl/core-v-mini-mcu/verilator.waiver
-    file_type: vlt
-
 parameters:
   PULP_XPULP:
     datatype: int
     paramtype: vlogparam
     default: 0
-  RAM_ADDR_WIDTH:
-    datatype: int
-    paramtype: vlogparam
-    default: 22
   SYNTHESIS:
     datatype: bool
     paramtype: vlogdefine
@@ -123,7 +115,6 @@ targets:
     description: Digilent Nexys-A7-100T Board
     parameters:
     - PULP_XPULP=0
-    - RAM_ADDR_WIDTH=8
     - SYNTHESIS=true
     filesets_append:
     - rtl-simulation

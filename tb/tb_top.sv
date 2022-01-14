@@ -14,7 +14,6 @@
 //              Jeremy Bennett <jeremy.bennett@embecosm.com>
 
 module tb_top #(
-    parameter RAM_ADDR_WIDTH = 22,
     parameter BOOT_ADDR = 'h180,
     parameter PULP_XPULP = 0,
     parameter PULP_CLUSTER = 0,
@@ -69,7 +68,9 @@ module tb_top #(
     automatic string firmware;
 
     logic [7:0] stimuli [];
-    int i,j;
+    int i,j, NumBytes;
+
+    NumBytes = core_v_mini_mcu_i.NUM_BYTES;
 
     if ($value$plusargs("firmware=%s", firmware)) begin
 
@@ -78,15 +79,15 @@ module tb_top #(
       if ($test$plusargs("verbose"))
         $display("[TESTBENCH] %t: loading firmware %0s ...", $time, firmware);
 
-      stimuli = new[2**RAM_ADDR_WIDTH-1];
+      stimuli = new[NumBytes];
 
       $readmemh(firmware,stimuli);
 
-      for(i=0;i<2**(RAM_ADDR_WIDTH-1);i=i+4) begin
-          wrapper_i.ram_i.ram0_i.sram[i/4] = {stimuli[i+3],stimuli[i+2],stimuli[i+1],stimuli[i]};
+      for(i=0;i<NumBytes/2;i=i+4) begin
+          core_v_mini_mcu_i.ram_i.ram0_i.tc_ram_i.sram[i/4] = {stimuli[i+3],stimuli[i+2],stimuli[i+1],stimuli[i]};
       end
-      for(j=0;j<2**(RAM_ADDR_WIDTH-1);j=j+4) begin
-          wrapper_i.ram_i.ram1_i.sram[j/4] = {stimuli[i+3],stimuli[i+2],stimuli[i+1],stimuli[i]};
+      for(j=0;j<NumBytes/2;j=j+4) begin
+          core_v_mini_mcu_i.ram_i.ram1_i.tc_ram_i.sram[j/4] = {stimuli[i+3],stimuli[i+2],stimuli[i+1],stimuli[i]};
           i = i + 4;
       end
 
@@ -164,7 +165,6 @@ module tb_top #(
 
   // wrapper for riscv, the memory system and stdout peripheral
   core_v_mini_mcu #(
-      .RAM_ADDR_WIDTH   (RAM_ADDR_WIDTH),
       .BOOT_ADDR        (BOOT_ADDR),
       .PULP_XPULP       (PULP_XPULP),
       .PULP_CLUSTER     (PULP_CLUSTER),
@@ -172,7 +172,7 @@ module tb_top #(
       .PULP_ZFINX       (PULP_ZFINX),
       .NUM_MHPMCOUNTERS (NUM_MHPMCOUNTERS),
       .DM_HALTADDRESS   (DM_HALTADDRESS)
-  ) wrapper_i (
+  ) core_v_mini_mcu_i (
       .clk_i         (clk),
       .rst_ni        (rst_n),
       .fetch_enable_i(fetch_enable),

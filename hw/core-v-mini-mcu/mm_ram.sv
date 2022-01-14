@@ -16,7 +16,7 @@
 // processor core and some pseudo peripherals
 
 module mm_ram #(
-    parameter RAM_ADDR_WIDTH = 16
+    parameter NUM_BYTES = 2**22
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -56,8 +56,8 @@ module mm_ram #(
   localparam int IRQ_MAX_ID = 31;
   localparam int IRQ_MIN_ID = 26;
 
-  localparam int NumByteWords = 2**RAM_ADDR_WIDTH;
-  localparam int NumWordWords = 2**RAM_ADDR_WIDTH/4;
+  localparam int NumWords  = NUM_BYTES/4;
+  localparam int AddrWidth = $clog2(NUM_BYTES);
 
   typedef enum logic [1:0] {
     T_RAM,
@@ -139,7 +139,7 @@ module mm_ram #(
 
     if (data_req_i) begin
       if (data_we_i) begin  // handle writes
-        if (data_addr_i < 2 ** RAM_ADDR_WIDTH) begin  // TODO: fail here if requesting atop or smth?
+        if (data_addr_i < 2 ** AddrWidth) begin  // TODO: fail here if requesting atop or smth?
           data_req_dec   = data_req_i;
           data_addr_dec  = data_addr_i;
           data_wdata_dec = data_wdata_i;
@@ -197,11 +197,11 @@ module mm_ram #(
 
           $display("Dumping signature");
           for (logic [31:0] addr = sig_begin_q; addr < sig_end_q; addr += 4) begin
-            $display("%x%x%x%x", ram1_i.sram[addr+3], ram1_i.sram[addr+2], ram1_i.sram[addr+1],
-                     ram1_i.sram[addr+0]);
+            $display("%x%x%x%x", ram1_i.tc_ram_i.sram[addr+3], ram1_i.tc_ram_i.sram[addr+2], ram1_i.tc_ram_i.sram[addr+1],
+                     ram1_i.tc_ram_i.sram[addr+0]);
             if (use_sig_file) begin
-              $fdisplay(sig_fd, "%x%x%x%x", ram1_i.sram[addr+3], ram1_i.sram[addr+2],
-                        ram1_i.sram[addr+1], ram1_i.sram[addr+0]);
+              $fdisplay(sig_fd, "%x%x%x%x", ram1_i.tc_ram_i.sram[addr+3], ram1_i.tc_ram_i.sram[addr+2],
+                        ram1_i.tc_ram_i.sram[addr+1], ram1_i.tc_ram_i.sram[addr+0]);
             end
           end
 `endif
@@ -225,7 +225,7 @@ module mm_ram #(
         end
 
       end else begin  // handle reads
-        if (data_addr_i < 2 ** RAM_ADDR_WIDTH) begin
+        if (data_addr_i < 2 ** AddrWidth) begin
           data_req_dec   = data_req_i;
           data_addr_dec  = data_addr_i;
           data_wdata_dec = data_wdata_i;
@@ -246,7 +246,7 @@ module mm_ram #(
   out_of_bounds_write :
   assert property
     (@(posedge clk_i) disable iff (~rst_ni)
-     (data_req_i && data_we_i |-> data_addr_i < 2 ** RAM_ADDR_WIDTH
+     (data_req_i && data_we_i |-> data_addr_i < 2 ** AddrWidth
       || data_addr_i == 32'h1000_0000
       || data_addr_i == 32'h1500_0000
       || data_addr_i == 32'h1500_0004
@@ -324,16 +324,15 @@ module mm_ram #(
 `endif
 
 
-  tc_sram #(
-    .NumWords(NumWordWords/2),
-    .DataWidth(32'd32),
-    .NumPorts(32'd1)
+  sram_wrapper #(
+    .NumWords(NumWords/2),
+    .DataWidth(32'd32)
   ) ram0_i (
     .clk_i  (clk_i),
     .rst_ni (rst_ni),
     .req_i  (instr_req_i),
     .we_i   (1'b0),
-    .addr_i (instr_addr_i[RAM_ADDR_WIDTH-1-1:2]),
+    .addr_i (instr_addr_i[AddrWidth-1-1:2]),
     .wdata_i('0),
     .be_i   (4'b1111),
     // output ports
@@ -341,16 +340,15 @@ module mm_ram #(
   );
 
 
-  tc_sram #(
-    .NumWords(NumWordWords/2),
-    .DataWidth(32'd32),
-    .NumPorts(32'd1)
+  sram_wrapper #(
+    .NumWords(NumWords/2),
+    .DataWidth(32'd32)
   ) ram1_i (
     .clk_i  (clk_i),
     .rst_ni (rst_ni),
     .req_i  (data_req_dec),
     .we_i   (data_we_dec),
-    .addr_i (data_addr_dec[RAM_ADDR_WIDTH-1-1:2]),
+    .addr_i (data_addr_dec[AddrWidth-1-1:2]),
     .wdata_i(data_wdata_dec),
     .be_i   (data_be_dec),
     // output ports
