@@ -179,13 +179,18 @@ module tb_top #(
       .DM_HALTADDRESS   (DM_HALTADDRESS)
 `endif
   ) core_v_mini_mcu_i (
-      .clk_i         (clk),
-      .rst_ni        (rst_n),
-      .fetch_enable_i(fetch_enable),
-      .tests_passed_o(tests_passed),
-      .tests_failed_o(tests_failed),
-      .exit_valid_o  (exit_valid),
-      .exit_value_o  (exit_value)
+      .clk_i         ( clk          ),
+      .rst_ni        ( rst_n        ),
+      .fetch_enable_i( fetch_enable ),
+      .tests_passed_o( tests_passed ),
+      .tests_failed_o( tests_failed ),
+      .exit_valid_o  ( exit_valid   ),
+      .exit_value_o  ( exit_value   ),
+      .jtag_tck_i    ( jtag_tck     ),
+      .jtag_trst_ni  ( jtag_trst_n  ),
+      .jtag_tms_i    ( jtag_tms     ),
+      .jtag_tdi_i    ( jtag_tdi     ),
+      .jtag_tdo_o    ( jtag_tdo     )
   );
 
 
