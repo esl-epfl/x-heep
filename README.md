@@ -87,6 +87,34 @@ make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.h
 Replace the  `.hex` file with your own application if you want to run another pre-compiled application.
 
 
-## FPGA Flow
+## FPGA Xilinx Nexys-A7 100T Flow
 
-Work In Progress
+Work In Progress and untested!!!
+
+To build and program the bitstream for your FPGA with vivado, type:
+
+```
+$ fusesoc --cores-root . run --no-export --target=nexys-a7-100t --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildvivado.log
+```
+
+If you only need the synthesis implementation:
+
+```
+$ fusesoc --cores-root . build --no-export --target=nexys-a7-100t --setup openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildvivado.log
+```
+
+then
+
+```
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/nexys-a7-100t-vivado/
+make synth
+```
+
+at the end of the synthesis, you can export your netlist typing:
+
+```
+vivado -notrace -mode batch -source ../../../hw/fpga/scripts/export_verilog_netlist.tcl
+```
+
+
+Only Vivado 2019.1.1 has been tried.

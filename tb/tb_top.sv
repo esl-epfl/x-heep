@@ -70,7 +70,11 @@ module tb_top #(
     logic [7:0] stimuli [];
     int i,j, NumBytes;
 
+`ifndef FPGA_NETLIST
     NumBytes = core_v_mini_mcu_i.NUM_BYTES;
+`else
+    NumBytes = 2**16;
+`endif
 
     if ($value$plusargs("firmware=%s", firmware)) begin
 
@@ -165,6 +169,7 @@ module tb_top #(
 
   // wrapper for riscv, the memory system and stdout peripheral
   core_v_mini_mcu #(
+`ifndef FPGA_NETLIST
       .BOOT_ADDR        (BOOT_ADDR),
       .PULP_XPULP       (PULP_XPULP),
       .PULP_CLUSTER     (PULP_CLUSTER),
@@ -172,6 +177,7 @@ module tb_top #(
       .PULP_ZFINX       (PULP_ZFINX),
       .NUM_MHPMCOUNTERS (NUM_MHPMCOUNTERS),
       .DM_HALTADDRESS   (DM_HALTADDRESS)
+`endif
   ) core_v_mini_mcu_i (
       .clk_i         (clk),
       .rst_ni        (rst_n),

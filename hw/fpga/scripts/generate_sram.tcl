@@ -1,8 +1,6 @@
 
 set ipName xilinx_mem_gen_0
 
-create_project $ipName . -part xc7a100tcsg324-1
-
 create_ip -name blk_mem_gen -vendor xilinx.com -library ip -version 8.4 -module_name $ipName
 
 set_property -dict [list CONFIG.Enable_32bit_Address {false} \
@@ -11,7 +9,7 @@ set_property -dict [list CONFIG.Enable_32bit_Address {false} \
                         CONFIG.Algorithm {Minimum_Area}  \
                         CONFIG.Primitive {2kx9}  \
                         CONFIG.Write_Width_A {32}  \
-                        CONFIG.Write_Depth_A {32768}  \
+                        CONFIG.Write_Depth_A {8192}  \
                         CONFIG.Read_Width_A {32}  \
                         CONFIG.Enable_A {Use_ENA_Pin}  \
                         CONFIG.Write_Width_B {32}  \
@@ -20,10 +18,10 @@ set_property -dict [list CONFIG.Enable_32bit_Address {false} \
                         CONFIG.Use_RSTA_Pin {false}  \
                         CONFIG.EN_SAFETY_CKT {false}] [get_ips $ipName]
 
-generate_target {instantiation_template} [get_ips $ipName]
+#generate_target {instantiation_template} [get_ips $ipName]
 
-export_ip_user_files -of_objects [get_ips $ipName] -no_script -sync -force -quiet
+#export_ip_user_files -of_objects [get_ips $ipName] -no_script -sync -force -quiet
 
 create_ip_run [get_ips $ipName]
-
-launch_runs -jobs 8 ${ipName}_synth_1
+launch_run -jobs 8 ${ipName}_synth_1
+wait_on_run ${ipName}_synth_1

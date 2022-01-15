@@ -31,20 +31,34 @@ filesets:
     - hw/fpga/sram_wrapper.sv
     file_type: systemVerilogSource
 
+  ip-fpga:
+    files:
+    - hw/fpga/scripts/generate_sram.tcl
+    file_type: tclSource
+
+  xdc-fpga:
+    files:
+    - hw/fpga/constraints/pin_assign.xdc
+    - hw/fpga/constraints/constraints.xdc
+    file_type: xdc
+
   tb-rtl:
     files:
     - tb/tb_top.sv
     file_type: systemVerilogSource
+
+  netlist-fpga:
+    files:
+    - build/openhwgroup.org_systems_core-v-mini-mcu_0/nexys-a7-100t-vivado/core_v_mini_mcu_xiling_postsynth.v
+    file_type: verilogSource
+
 
   # Scripts for hooks
   post_build_modelsim_scripts:
     files:
     - ci/scripts/post_build_modelsim_vopt.sh
     file_type: user
-  pre_build_nexys_a7_100t_scripts:
-    files:
-    - hw/fpga/scripts/generate_ips.sh
-    file_type: user
+
 
 parameters:
   PULP_XPULP:
@@ -55,18 +69,16 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     default: false
+  FPGA_NETLIST:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
 
-# A script to modify Verilator pre-build to generate a library, not an
-# executable.
 scripts:
   post_build_modelsim_scripts:
     cmd:
     - sh
     - ../../../ci/scripts/post_build_modelsim_vopt.sh
-  pre_build_nexys_a7_100t_scripts:
-    cmd:
-    - sh
-    - ../../../hw/fpga/scripts/generate_ips.sh
 
 targets:
   default: &default_target
@@ -90,17 +102,6 @@ targets:
         - -suppress vlog-2583
         - -suppress vlog-2577
         - -pedanticerrors
-      xsim:
-        xelab_options:
-        - --define XSIM
-        - --incr
-        - -relax
-        - --O0
-        - -v 2
-        - --degub typical
-        - --mt 64
-        - -timescale 1ns/1ps
-        xsim_options:
 
   sim_opt:
     <<: *default_target
@@ -128,9 +129,8 @@ targets:
     description: Digilent Nexys-A7-100T Board
     filesets_append:
     - rtl-fpga
-    - pre_build_nexys_a7_100t_scripts
-    hooks:
-      pre_build: [pre_build_nexys_a7_100t_scripts]
+    - ip-fpga
+    - xdc-fpga
     parameters:
     - PULP_XPULP=0
     - SYNTHESIS=true
@@ -138,3 +138,22 @@ targets:
       vivado:
         part: xc7a100tcsg324-1
     toplevel: [core_v_mini_mcu]
+
+  sim_nexys_netlist:
+    filesets:
+    - netlist-fpga
+    - tb-rtl
+    - post_build_modelsim_scripts
+    toplevel: [tb_top_vopt]
+    hooks:
+      post_build: [post_build_modelsim_scripts]
+    parameters:
+    - PULP_XPULP=0
+    - FPGA_NETLIST=true
+    tools:
+      modelsim:
+        vlog_options:
+        - -override_timescale 1ns/1ps
+        - -suppress vlog-2583
+        - -suppress vlog-2577
+        - -pedanticerrors

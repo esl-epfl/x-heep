@@ -16,7 +16,7 @@
 // processor core and some pseudo peripherals
 
 module mm_ram #(
-    parameter NUM_BYTES = 2**22
+    parameter NUM_BYTES = 2**16
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -323,7 +323,6 @@ module mm_ram #(
   end
 `endif
 
-
   sram_wrapper #(
     .NumWords(NumWords/2),
     .DataWidth(32'd32)
@@ -340,6 +339,7 @@ module mm_ram #(
   );
 
 
+  //8Kwords per bank (32KB)
   sram_wrapper #(
     .NumWords(NumWords/2),
     .DataWidth(32'd32)

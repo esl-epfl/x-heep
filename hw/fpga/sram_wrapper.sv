@@ -31,9 +31,10 @@ module sram_wrapper #(
     .ena     (req_i),
     .wea     ({4{req_i & we_i}} & be_i ),
     .addra   (addr_i),
-    .din     (wdata_i),
+    .dina    (wdata_i),
     // output ports
-    .dout   (rdata_o)
+    .douta  (rdata_o)
   );
+
 
 endmodule

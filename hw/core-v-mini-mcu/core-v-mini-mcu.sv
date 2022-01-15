@@ -30,7 +30,7 @@ module core_v_mini_mcu #(
 );
 
   import cv32e40p_apu_core_pkg::*;
-  localparam NUM_BYTES = 2**16; //must be 2**22, it is not a parameter!!!
+  localparam NUM_BYTES = 2**16; //must be 2**16, it is not a parameter!!!
 
   // signals connecting core to memory
   logic                               instr_req;

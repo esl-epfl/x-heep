@@ -38,7 +38,7 @@ filesets:
     - openhwgroup_cv32e40p/rtl/cv32e40p_fifo.sv
     file_type: systemVerilogSource
 
-  files_sim:
+  files_clk_gate:
     files:
     - openhwgroup_cv32e40p/bhv/cv32e40p_sim_clock_gate.sv
     file_type: systemVerilogSource
@@ -76,5 +76,6 @@ targets:
     - files_rtl
     - files_wrap
     - ff_regfile
-    - target_sim? (files_sim)
-    - target_sim_opt? (files_sim)
+    - target_sim? (files_clk_gate)
+    - target_sim_opt? (files_clk_gate)
+    - target_nexys-a7-100t? (files_clk_gate)
