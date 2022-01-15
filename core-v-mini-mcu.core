@@ -13,6 +13,7 @@ filesets:
     - openhwgroup.org:ip:cv32e40p
     - pulp-platform.org:ip:fpnew
     - pulp-platform.org::common_cells
+    - pulp-platform.org::riscv_dbg
     files:
     - hw/core-v-mini-mcu/core-v-mini-mcu.sv
     - hw/core-v-mini-mcu/mm_ram.sv
@@ -56,7 +57,7 @@ filesets:
   # Scripts for hooks
   post_build_modelsim_scripts:
     files:
-    - ci/scripts/post_build_modelsim_vopt.sh
+    - scripts/post_build_modelsim_vopt.sh
     file_type: user
 
 
@@ -78,7 +79,7 @@ scripts:
   post_build_modelsim_scripts:
     cmd:
     - sh
-    - ../../../ci/scripts/post_build_modelsim_vopt.sh
+    - ../../../scripts/post_build_modelsim_vopt.sh
 
 targets:
   default: &default_target

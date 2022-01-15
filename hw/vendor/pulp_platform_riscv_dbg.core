@@ -1,0 +1,31 @@
+CAPI=2:
+
+name: pulp-platform.org::riscv_dbg
+
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  rtl:
+    depend:
+    - pulp-platform.org::tech_cells_generic
+    - pulp-platform.org::common_cells
+    files:
+    - pulp_platform_riscv_dbg/debug_rom/debug_rom.sv
+    - pulp_platform_riscv_dbg/debug_rom/debug_rom_one_scratch.sv
+    - pulp_platform_riscv_dbg/src/dm_pkg.sv
+    - pulp_platform_riscv_dbg/src/dm_csrs.sv
+    - pulp_platform_riscv_dbg/src/dmi_cdc.sv
+    - pulp_platform_riscv_dbg/src/dmi_jtag.sv
+    - pulp_platform_riscv_dbg/src/dmi_jtag_tap.sv
+    - pulp_platform_riscv_dbg/src/dm_mem.sv
+    - pulp_platform_riscv_dbg/src/dm_obi_top.sv
+    - pulp_platform_riscv_dbg/src/dm_sba.sv
+    - pulp_platform_riscv_dbg/src/dm_top.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - rtl
