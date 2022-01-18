@@ -1,0 +1,25 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+{
+  name: "pulp_platform_cluster_interconnect",
+  target_dir: "pulp_platform_cluster_interconnect",
+
+  upstream: {
+    url: "git@github.com:pulp-platform/cluster_interconnect.git",
+    rev: "7d0a4f8acae71a583a6713cab5554e60b9bb8d27",
+  },
+
+  exclude_from_upstream: [
+    "rtl/variable_latency_interconnect",
+    "rtl/peripheral_interco",
+    "rtl/core_demux",
+    "rtl/low_latency_interco",
+    "tb",
+    "Bender.yml",
+    "src_files.yml"
+    "doc"
+  ]
+
+
+}

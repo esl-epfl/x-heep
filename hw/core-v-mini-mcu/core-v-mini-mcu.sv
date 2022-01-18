@@ -175,6 +175,8 @@ module core_v_mini_mcu #(
       .core_instr_resp_o ( core_instr_resp  ),
       .core_data_req_i   ( core_data_req    ),
       .core_data_resp_o  ( core_data_resp   ),
+      .debug_data_req_i  ( '0               ),
+      .debug_data_resp_o (                  ),
 
       .irq_id_i (irq_id_out),
       .irq_ack_i(irq_ack),

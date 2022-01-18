@@ -29,5 +29,4 @@ package obi_pkg;
     logic [31:0] rdata;
   } obi_resp_t;
 
-
 endpackage

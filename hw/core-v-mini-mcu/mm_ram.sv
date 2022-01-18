@@ -15,7 +15,7 @@
 // This maps the dp_ram module to the instruction and data ports of the RI5CY
 // processor core and some pseudo peripherals
 
-module mm_ram import obi_pkg::*; #(
+module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
     parameter NUM_BYTES = 2**16
 ) (
     input logic clk_i,
@@ -27,21 +27,26 @@ module mm_ram import obi_pkg::*; #(
     input  obi_req_t     core_data_req_i,
     output obi_resp_t    core_data_resp_o,
 
-    input logic [4:0]  irq_id_i,
-    input logic        irq_ack_i,
+    input  obi_req_t     debug_data_req_i,
+    output obi_resp_t    debug_data_resp_o,
 
-    output logic        irq_software_o,
-    output logic        irq_timer_o,
-    output logic        irq_external_o,
-    output logic [15:0] irq_fast_o,
+    input logic [4:0]    irq_id_i,
+    input logic          irq_ack_i,
 
-    input logic [31:0] pc_core_id_i,
+    output logic         irq_software_o,
+    output logic         irq_timer_o,
+    output logic         irq_external_o,
+    output logic [15:0]  irq_fast_o,
 
-    output logic        tests_passed_o,
-    output logic        tests_failed_o,
-    output logic        exit_valid_o,
-    output logic [31:0] exit_value_o
+    input logic [31:0]   pc_core_id_i,
+
+    output logic         tests_passed_o,
+    output logic         tests_failed_o,
+    output logic         exit_valid_o,
+    output logic [31:0]  exit_value_o
 );
+
+  import core_v_mini_mcu_pkg::*;
 
   localparam int TIMER_IRQ_ID = 7;
   localparam int IRQ_MAX_ID = 31;
@@ -57,23 +62,18 @@ module mm_ram import obi_pkg::*; #(
   } transaction_t;
   transaction_t transaction, transaction_q;
 
-  class rand_default_gnt;
-    rand logic gnt;
-  endclass : rand_default_gnt
+  obi_req_t[core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0]   master_req;
+  obi_resp_t[core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0]  master_resp;
+  obi_req_t[core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0]    slave_req;
+  obi_resp_t[core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0]   slave_resp;
+
+  obi_req_t   ram0_req;
+  obi_resp_t  ram0_resp;
+  obi_req_t   ram1_req;
+  obi_resp_t  ram1_resp;
 
   // signals for handshake
   logic data_rvalid_q;
-  logic instr_rvalid_q;
-
-  logic data_req_dec;
-  logic [31:0] data_wdata_dec;
-  logic [31:0] data_addr_dec;
-  logic data_we_dec;
-  logic [3:0] data_be_dec;
-
-  logic [31:0] ram_instr_rdata;
-  logic ram_instr_req;
-  logic ram_instr_gnt;
 
   logic perip_gnt;
 
@@ -106,6 +106,28 @@ module mm_ram import obi_pkg::*; #(
 
   Interrupts_tb_t irq_rnd_lines;
 
+ assign master_req[0]     = core_instr_req_i;
+ assign master_req[1]     = core_data_req_i;
+ assign master_req[2]     = debug_data_req_i;
+
+ assign core_instr_resp_o = master_resp[core_v_mini_mcu_pkg::RAM0_IDX];
+ always_comb
+ begin
+   core_data_resp_o         = master_resp[core_v_mini_mcu_pkg::RAM1_IDX];
+   core_data_resp_o.gnt     = slave_req[core_v_mini_mcu_pkg::RAM1_IDX].req | perip_gnt;
+   core_data_resp_o.rvalid  = data_rvalid_q;
+ end
+ assign debug_data_resp_o   =  master_resp[core_v_mini_mcu_pkg::DEBUG_IDX];
+
+ assign ram0_req                                  = slave_req[core_v_mini_mcu_pkg::RAM0_IDX];
+ assign slave_resp[core_v_mini_mcu_pkg::RAM0_IDX] = ram0_resp;
+
+ assign ram1_req                                  = slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
+ assign slave_resp[core_v_mini_mcu_pkg::RAM1_IDX] = ram1_resp;
+
+ assign slave_resp[2] = '0;
+ assign slave_resp[3] = '0;
+
   // handle the mapping of read and writes to either memory or pseudo
   // peripherals (currently just a redirection of writes to stdout)
   always_comb begin
@@ -114,11 +136,6 @@ module mm_ram import obi_pkg::*; #(
     exit_value_o    = 0;
     exit_valid_o    = '0;
     perip_gnt       = '0;
-    data_req_dec    = '0;
-    data_addr_dec   = '0;
-    data_wdata_dec  = '0;
-    data_we_dec     = '0;
-    data_be_dec     = '0;
     print_wdata     = '0;
     print_valid     = '0;
     timer_wdata     = '0;
@@ -130,14 +147,7 @@ module mm_ram import obi_pkg::*; #(
 
     if (core_data_req_i.req) begin
       if (core_data_req_i.we) begin  // handle writes
-        if (core_data_req_i.addr < 2 ** AddrWidth) begin  // TODO: fail here if requesting atop or smth?
-          data_req_dec   = core_data_req_i.req;
-          data_addr_dec  = core_data_req_i.addr;
-          data_wdata_dec = core_data_req_i.wdata;
-          data_we_dec    = core_data_req_i.we;
-          data_be_dec    = core_data_req_i.be;
-          transaction    = T_RAM;
-        end else if (core_data_req_i.addr == 32'h1000_0000) begin
+        if (core_data_req_i.addr == 32'h1000_0000) begin
           print_wdata = core_data_req_i.wdata;
           print_valid = core_data_req_i.req;
           perip_gnt   = 1'b1;
@@ -211,22 +221,22 @@ module mm_ram import obi_pkg::*; #(
           timer_val_valid = '1;
           perip_gnt = 1'b1;
 
-        end else begin
+        end else if (core_data_req_i.addr[31:0] < NUM_BYTES) begin
+          transaction     = T_RAM;
           // out of bounds write
         end
 
       end else begin  // handle reads
-        if (core_data_req_i.addr < 2 ** AddrWidth) begin
-          data_req_dec   = core_data_req_i.req;
-          data_addr_dec  = core_data_req_i.addr;
-          data_wdata_dec = core_data_req_i.wdata;
-          data_we_dec    = core_data_req_i.we;
-          data_be_dec    = core_data_req_i.be;
-          transaction    = T_RAM;
-        end else if (core_data_req_i.addr[31:00] == 32'h1500_1000) begin
+        if (core_data_req_i.addr[31:0] == 32'h1500_1000) begin
           transaction = T_PER;
           perip_gnt   = 1'b1;
-        end else transaction = T_ERR;
+        end else if (core_data_req_i.addr[31:0] < NUM_BYTES) begin
+          // out of bounds write
+          transaction     = T_RAM;
+        end else begin
+          transaction = T_ERR;
+          $display("core add is %08x and max should be %08x",core_data_req_i.addr, 2**NUM_BYTES );
+        end
       end
     end
   end
@@ -246,7 +256,10 @@ module mm_ram import obi_pkg::*; #(
       || core_data_req_i.addr == 32'h2000_0008
       || core_data_req_i.addr == 32'h2000_000c
       || core_data_req_i.addr == 32'h2000_0010
-      || core_data_req_i.addr[31:16] == 16'h1600))
+      || (core_data_req_i.addr >= DEBUG_START_ADDRESS && core_data_req_i.addr < DEBUG_END_ADDRESS)
+     )
+
+     )
   else $fatal("out of bounds write to %08x with %08x", core_data_req_i.addr, core_data_req_i.wdata);
 `endif
 
@@ -314,22 +327,35 @@ module mm_ram import obi_pkg::*; #(
   end
 `endif
 
+
+  system_xbar system_xbar_i
+  (
+      .clk_i(clk_i),
+      .rst_ni(rst_ni),
+      .master_req_i(master_req),
+      .master_resp_o(master_resp),
+      .slave_req_o(slave_req),
+      .slave_resp_i(slave_resp)
+  );
+
+  assign ram0_resp.gnt = ram0_req.req;
   sram_wrapper #(
     .NumWords(NumWords/2),
     .DataWidth(32'd32)
   ) ram0_i (
     .clk_i  (clk_i),
     .rst_ni (rst_ni),
-    .req_i  (core_instr_req_i.req),
-    .we_i   (1'b0),
-    .addr_i (core_instr_req_i.addr[AddrWidth-1-1:2]),
-    .wdata_i('0),
-    .be_i   (4'b1111),
+    .req_i  (ram0_req.req),
+    .we_i   (ram0_req.we),
+    .addr_i (ram0_req.addr[AddrWidth-1-1:2]),
+    .wdata_i(ram0_req.wdata),
+    .be_i   (ram0_req.be),
     // output ports
-    .rdata_o(core_instr_resp_o.rdata)
+    .rdata_o(ram0_resp.rdata)
   );
 
 
+  assign ram1_resp.gnt = ram1_req.req;
   //8Kwords per bank (32KB)
   sram_wrapper #(
     .NumWords(NumWords/2),
@@ -337,33 +363,22 @@ module mm_ram import obi_pkg::*; #(
   ) ram1_i (
     .clk_i  (clk_i),
     .rst_ni (rst_ni),
-    .req_i  (data_req_dec),
-    .we_i   (data_we_dec),
-    .addr_i (data_addr_dec[AddrWidth-1-1:2]),
-    .wdata_i(data_wdata_dec),
-    .be_i   (data_be_dec),
+    .req_i  (ram1_req.req),
+    .we_i   (ram1_req.we),
+    .addr_i (ram1_req.addr[AddrWidth-1-1:2]),
+    .wdata_i(ram1_req.wdata),
+    .be_i   (ram1_req.be),
     // output ports
-    .rdata_o(core_data_resp_o.rdata)
+    .rdata_o(ram1_resp.rdata)
   );
-
-
-
-
-  assign core_instr_resp_o.gnt = core_instr_req_i.req;
-  assign core_data_resp_o.gnt  = data_req_dec | perip_gnt;
 
   always_ff @(posedge clk_i, negedge rst_ni) begin
     if (~rst_ni) begin
       data_rvalid_q  <= '0;
-      instr_rvalid_q <= '0;
     end else begin
       data_rvalid_q  <= core_data_resp_o.gnt;
-      instr_rvalid_q <= core_instr_resp_o.gnt;
     end
   end
-
-  assign core_instr_resp_o.rvalid   = instr_rvalid_q;
-  assign core_data_resp_o.rvalid    = data_rvalid_q;
 
   // signature range
   always_ff @(posedge clk_i, negedge rst_ni) begin

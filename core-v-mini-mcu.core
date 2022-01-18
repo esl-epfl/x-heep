@@ -13,11 +13,15 @@ filesets:
     - openhwgroup.org:ip:cv32e40p
     - pulp-platform.org:ip:fpnew
     - pulp-platform.org::common_cells
+    - pulp-platform.org::cluster_interconnect
     - pulp-platform.org::riscv_dbg
     files:
+    - hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
     - hw/core-v-mini-mcu/include/obi_pkg.sv
+    - hw/core-v-mini-mcu/include/addr_map_rule_pkg.sv
     - hw/core-v-mini-mcu/core-v-mini-mcu.sv
     - hw/core-v-mini-mcu/mm_ram.sv
+    - hw/core-v-mini-mcu/system_xbar.sv
     - hw/core-v-mini-mcu/wrappers/cv32e40p_fp_wrapper.sv
     file_type: systemVerilogSource
 
