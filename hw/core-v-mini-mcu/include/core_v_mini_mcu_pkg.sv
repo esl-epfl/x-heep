@@ -18,6 +18,7 @@ package core_v_mini_mcu_pkg;
   parameter SYSTEM_XBAR_NMASTER = 3;
   parameter SYSTEM_XBAR_NSLAVE  = 4;
 
+  //slave mmap and idx
   parameter RAM0_START_ADDRESS  = 32'h00000000;
   parameter RAM0_SIZE           = 32'h00008000;
   parameter RAM0_END_ADDRESS    = RAM0_START_ADDRESS + RAM0_SIZE;
@@ -37,6 +38,11 @@ package core_v_mini_mcu_pkg;
   parameter ERROR_SIZE          = 32'h00000001;
   parameter ERROR_END_ADDRESS   = ERROR_START_ADDRESS + ERROR_SIZE;
   parameter ERROR_IDX           = 3;
+
+  //master mmap and idx
+  parameter CORE_INSTR_IDX      = 0;
+  parameter CORE_DATA_IDX       = 1;
+  parameter DEBUG_MASTER_IDX    = 2;
 
 
 endpackage

@@ -27,8 +27,11 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
     input  obi_req_t     core_data_req_i,
     output obi_resp_t    core_data_resp_o,
 
-    input  obi_req_t     debug_data_req_i,
-    output obi_resp_t    debug_data_resp_o,
+    input  obi_req_t     debug_master_req_i,
+    output obi_resp_t    debug_master_resp_o,
+
+    output obi_req_t     debug_slave_req_o,
+    input  obi_resp_t    debug_slave_resp_i,
 
     input logic [4:0]    irq_id_i,
     input logic          irq_ack_i,
@@ -106,27 +109,31 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
 
   Interrupts_tb_t irq_rnd_lines;
 
- assign master_req[0]     = core_instr_req_i;
- assign master_req[1]     = core_data_req_i;
- assign master_req[2]     = debug_data_req_i;
+  //master req
+  assign master_req[core_v_mini_mcu_pkg::CORE_INSTR_IDX]   = core_instr_req_i;
+  assign master_req[core_v_mini_mcu_pkg::CORE_DATA_IDX]    = core_data_req_i;
+  assign master_req[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX] = debug_master_req_i;
 
- assign core_instr_resp_o = master_resp[core_v_mini_mcu_pkg::RAM0_IDX];
- always_comb
- begin
-   core_data_resp_o         = master_resp[core_v_mini_mcu_pkg::RAM1_IDX];
-   core_data_resp_o.gnt     = slave_req[core_v_mini_mcu_pkg::RAM1_IDX].req | perip_gnt;
-   core_data_resp_o.rvalid  = data_rvalid_q;
- end
- assign debug_data_resp_o   =  master_resp[core_v_mini_mcu_pkg::DEBUG_IDX];
+  //master resp
+  assign core_instr_resp_o   = master_resp[core_v_mini_mcu_pkg::CORE_INSTR_IDX];
+  always_comb
+  begin
+    core_data_resp_o         = master_resp[core_v_mini_mcu_pkg::CORE_DATA_IDX];
+    core_data_resp_o.gnt     = master_resp[core_v_mini_mcu_pkg::CORE_DATA_IDX].gnt | perip_gnt;
+    core_data_resp_o.rvalid  = data_rvalid_q;
+  end
+  assign debug_master_resp_o =  master_resp[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX];
 
- assign ram0_req                                  = slave_req[core_v_mini_mcu_pkg::RAM0_IDX];
- assign slave_resp[core_v_mini_mcu_pkg::RAM0_IDX] = ram0_resp;
+  //slave req
+  assign ram0_req                                   = slave_req[core_v_mini_mcu_pkg::RAM0_IDX];
+  assign ram1_req                                   = slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
+  assign debug_slave_req_o                          = slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
 
- assign ram1_req                                  = slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
- assign slave_resp[core_v_mini_mcu_pkg::RAM1_IDX] = ram1_resp;
-
- assign slave_resp[2] = '0;
- assign slave_resp[3] = '0;
+  //slave resp
+  assign slave_resp[core_v_mini_mcu_pkg::RAM0_IDX]  = ram0_resp;
+  assign slave_resp[core_v_mini_mcu_pkg::RAM1_IDX]  = ram1_resp;
+  assign slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX] = debug_slave_resp_i;
+  assign slave_resp[3]                              = '0;
 
   // handle the mapping of read and writes to either memory or pseudo
   // peripherals (currently just a redirection of writes to stdout)
@@ -224,6 +231,9 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
         end else if (core_data_req_i.addr[31:0] < NUM_BYTES) begin
           transaction     = T_RAM;
           // out of bounds write
+        end else if ((core_data_req_i.addr >= DEBUG_START_ADDRESS && core_data_req_i.addr < DEBUG_END_ADDRESS)) begin
+          transaction = T_PER;
+          //grant from debug
         end
 
       end else begin  // handle reads
@@ -233,9 +243,12 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
         end else if (core_data_req_i.addr[31:0] < NUM_BYTES) begin
           // out of bounds write
           transaction     = T_RAM;
+        end else if ((core_data_req_i.addr >= DEBUG_START_ADDRESS && core_data_req_i.addr < DEBUG_END_ADDRESS)) begin
+          transaction = T_PER;
+          //grant from debug
         end else begin
           transaction = T_ERR;
-          $display("core add is %08x and max should be %08x",core_data_req_i.addr, 2**NUM_BYTES );
+          $display("core add is %08x and max should be %08x",core_data_req_i.addr, NUM_BYTES );
         end
       end
     end

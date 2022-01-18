@@ -11,13 +11,13 @@
 // Contributor: Robert Balas <balasr@student.ethz.ch>
 
 module core_v_mini_mcu #(
+    parameter JTAG_IDCODE = 32'h10001c05,
     parameter BOOT_ADDR = 'h180,
     parameter PULP_XPULP = 0,
     parameter PULP_CLUSTER = 0,
     parameter FPU = 0,
     parameter PULP_ZFINX = 0,
-    parameter NUM_MHPMCOUNTERS = 1,
-    parameter DM_HALTADDRESS = 32'h1A110800
+    parameter NUM_MHPMCOUNTERS = 1
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -35,9 +35,12 @@ module core_v_mini_mcu #(
     output logic        exit_valid_o
 );
 
+  import core_v_mini_mcu_pkg::*;
   import obi_pkg::*;
   import cv32e40p_apu_core_pkg::*;
-  localparam NUM_BYTES = 2**16; //must be 2**16, it is not a parameter!!!
+
+  localparam NUM_BYTES      = 2**16; //must be 2**16, it is not a parameter!!!
+  localparam DM_HALTADDRESS = core_v_mini_mcu_pkg::DEBUG_START_ADDRESS + 32'h00000800; //debug rom code (section .text in linker) starts at 0x800
 
   // signals connecting core to memory
 
@@ -45,9 +48,13 @@ module core_v_mini_mcu #(
   obi_resp_t    core_instr_resp;
   obi_req_t     core_data_req;
   obi_resp_t    core_data_resp;
+  obi_req_t     debug_master_req;
+  obi_resp_t    debug_master_resp;
+  obi_req_t     debug_slave_req;
+  obi_resp_t    debug_slave_resp;
 
   // signals to debug unit
-  logic                               debug_req_i;
+  logic                               core_debug_req;
 
   // irq signals
   logic                               irq_ack;
@@ -77,8 +84,6 @@ module core_v_mini_mcu #(
   assign core_instr_req.wdata = '0;
   assign core_instr_req.we    = '0;
   assign core_instr_req.be    = 4'b1111;
-
-  assign debug_req_i          = 1'b0;
 
   // instantiate the core
   cv32e40p_wrapper #(
@@ -128,7 +133,7 @@ module core_v_mini_mcu #(
       .irq_ack_o           (irq_ack),
       .irq_id_o            (irq_id_out),
 
-      .debug_req_i         (debug_req_i),
+      .debug_req_i         (core_debug_req),
       .debug_havereset_o   (),
       .debug_running_o     (),
       .debug_halted_o      (),
@@ -164,6 +169,28 @@ module core_v_mini_mcu #(
     end
   endgenerate
 
+
+  debug_subsystem #(
+      .JTAG_IDCODE(JTAG_IDCODE)
+  ) debug_subsystem_i (
+    .clk_i               ( clk_i            ),
+    .rst_ni              ( rst_ni           ),
+
+    .jtag_tck_i          ( jtag_tck_i       ),
+    .jtag_tms_i          ( jtag_tms_i       ),
+    .jtag_trst_ni        ( jtag_trst_ni     ),
+    .jtag_tdi_i          ( jtag_tdi_i       ),
+    .jtag_tdo_o          ( jtag_tdo_o       ),
+
+    .core_debug_req_o    ( core_debug_req   ),
+
+    .debug_slave_req_i   ( debug_slave_req   ),
+    .debug_slave_resp_o  ( debug_slave_resp  ),
+    .debug_master_req_o  ( debug_master_req  ),
+    .debug_master_resp_i ( debug_master_resp )
+
+  );
+
   // this handles read to RAM and memory mapped pseudo peripherals
   mm_ram #(
       .NUM_BYTES(NUM_BYTES)
@@ -175,8 +202,11 @@ module core_v_mini_mcu #(
       .core_instr_resp_o ( core_instr_resp  ),
       .core_data_req_i   ( core_data_req    ),
       .core_data_resp_o  ( core_data_resp   ),
-      .debug_data_req_i  ( '0               ),
-      .debug_data_resp_o (                  ),
+      .debug_master_req_i  ( debug_master_req ),
+      .debug_master_resp_o ( debug_master_resp ),
+
+      .debug_slave_req_o  ( debug_slave_req ),
+      .debug_slave_resp_i ( debug_slave_resp ),
 
       .irq_id_i (irq_id_out),
       .irq_ack_i(irq_ack),
