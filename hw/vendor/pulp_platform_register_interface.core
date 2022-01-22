@@ -1,0 +1,18 @@
+CAPI=2:
+
+name: pulp-platform.org::register_interface
+
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    files:
+    - pulp_platform_register_interface/src/reg_intf.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl
