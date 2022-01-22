@@ -1,0 +1,75 @@
+CAPI=2:
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# XXX: Split this core into multiple smaller ones.
+name: "lowrisc:prim:all:0.1"
+description: "Primitives"
+filesets:
+  files_rtl:
+    depend:
+      - lowrisc:prim:assert
+      - lowrisc:prim:util
+      - lowrisc:prim:diff_decode # for prim_alert_sender/receiver
+      - lowrisc:prim:pad_wrapper
+      - lowrisc:prim:prim_pkg
+      - lowrisc:prim:clock_mux2
+      - lowrisc:prim:buf
+      - lowrisc:prim:flop
+      - lowrisc:prim:flop_en
+      - lowrisc:prim:flop_2sync
+      - lowrisc:prim:arbiter
+      - lowrisc:prim:fifo
+      - lowrisc:prim:alert
+      - lowrisc:prim:subreg
+      - lowrisc:prim:cipher
+      - lowrisc:prim:xor2
+    files:
+      - rtl/prim_clock_gating_sync.sv
+      - rtl/prim_esc_pkg.sv
+      - rtl/prim_esc_receiver.sv
+      - rtl/prim_esc_sender.sv
+      - rtl/prim_sram_arbiter.sv
+      - rtl/prim_slicer.sv
+      - rtl/prim_sync_reqack.sv
+      - rtl/prim_sync_reqack_data.sv
+      - rtl/prim_sync_slow_fast.sv
+      - rtl/prim_keccak.sv
+      - rtl/prim_packer.sv
+      - rtl/prim_packer_fifo.sv
+      - rtl/prim_gate_gen.sv
+      - rtl/prim_pulse_sync.sv
+      - rtl/prim_filter.sv
+      - rtl/prim_filter_ctr.sv
+      - rtl/prim_intr_hw.sv
+    file_type: systemVerilogSource
+
+  files_verilator_waiver:
+    depend:
+      # common waivers
+      - lowrisc:lint:common
+    files:
+      - lint/prim.vlt
+    file_type: vlt
+
+  files_ascentlint_waiver:
+    depend:
+      # common waivers
+      - lowrisc:lint:common
+    files:
+      - lint/prim.waiver
+    file_type: waiver
+
+  files_veriblelint_waiver:
+    depend:
+      # common waivers
+      - lowrisc:lint:common
+
+targets:
+  default:
+    filesets:
+      - tool_verilator   ? (files_verilator_waiver)
+      - tool_ascentlint  ? (files_ascentlint_waiver)
+      - tool_veriblelint ? (files_veriblelint_waiver)
+      - files_rtl

@@ -1,0 +1,30 @@
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# waiver file for prim
+
+# prim_assert
+waive -rules {UNDEF_MACRO_REF} -location {prim_assert.sv} -regexp {Macro definition for 'ASSERT_RPT' includes expansion of undefined macro '__(FILE|LINE)__'} \
+      -comment "This is an UVM specific macro inside our assertion shortcuts"
+# unfortunately most tools do not support line wrapping within the declaration of macro functions, hence we have to waive
+# line length violations.
+waive -rules {LINE_LENGTH} -location {prim_assert.sv} -msg {Line length of} \
+      -comment "Some macros cannot be line-wrapped, as some tools do not support that."
+
+# prim_packer
+waive -rules INTEGER           -location {prim_packer.sv} -msg {'i' of type int used as a non-constant value} \
+      -comment "This assigns int i (signed) to a multibit logic variable (unsigned), which is fine"
+
+# prim_packer_fifo
+waive -rules {ZERO_REP} -location {prim_packer_fifo.sv} -regexp {Replication count is zero in .*DepthW.*} \
+      -comment "If InW equals OutW, DepthW is zero"
+
+# TL-UL fifo
+waive -rules {HIER_BRANCH_NOT_READ} -location {tlul_fifo_sync.sv} -regexp {Connected net '(clk_i|rst_ni)' at prim_fifo_sync.sv:.* is not read from in module 'prim_fifo_sync'} \
+      -comment "In passthrough mode, clk and reset are not read form within this module"
+
+# primitivies: prim_ram_2p_wrapper
+#
+#waive -rules NOT_READ -location {prim_ram_*_wrapper*} -regexp {(a|b)_rdata_(q|d)\[38} \
+#      -comment "Syndrome is not going out to the interface"

@@ -1,0 +1,8 @@
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+waive -rules {CONST_FF} -location {prim_generic_otp.sv} -msg {Flip-flop 'err_q[3]' is driven by constant zero} \
+      -comment "Due to the error encoding, this bit is always constant in this module."
+
