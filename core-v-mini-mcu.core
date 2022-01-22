@@ -15,6 +15,8 @@ filesets:
     - pulp-platform.org::common_cells
     - pulp-platform.org::cluster_interconnect
     - pulp-platform.org::riscv_dbg
+    - pulp-platform.org::register_interface
+    - lowrisc:ip:uart:0.1
     files:
     - hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
     - hw/core-v-mini-mcu/include/obi_pkg.sv
@@ -80,7 +82,13 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     default: false
-
+  # Make the parameter known to FuseSoC to enable overrides from the
+  # command line. If not overwritten, use the generic technology library.
+  PRIM_DEFAULT_IMPL:
+    datatype: str
+    paramtype: vlogdefine
+    description: Primitives implementation to use, e.g. "prim_pkg::ImplGeneric".
+    default: prim_pkg::ImplGeneri
 scripts:
   post_build_modelsim_scripts:
     cmd:

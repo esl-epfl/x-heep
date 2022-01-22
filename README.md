@@ -118,3 +118,74 @@ vivado -notrace -mode batch -source ../../../hw/fpga/scripts/export_verilog_netl
 
 
 Only Vivado 2019.1.1 has been tried.
+
+
+## OpenTitan IPs
+
+These are ips cloned from OpenTitan.
+Via the `regtool` application, OpenTitan generates `rtl`, `header` files and more.
+Please referes to its documentation available at: https://docs.opentitan.org/doc/rm/register_tool/
+
+## Modified Generator
+
+OpenTitan generates peripherals that are compliant to the TUL bus.
+However, in this project we rely on https://github.com/pulp-platform/register_interface
+to generate a different bus interface. The register_interface repository contains an OpenTitan
+version that has been patched to cope with the register interface instead of the TUL one.
+
+## Generate the UART IP
+
+From the core-v-mini-mcu root folder:
+
+```
+$ cd hw/vendor/hw/ip/uart
+$ ../../../../pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py -r -t rtl data/uart.hjson
+```
+
+Then, manually modify the uart.sv file as:
+
+Replace:
+
+```
+`include "prim_assert.sv"
+module uart (
+```
+with
+
+```
+`include "common_cells/assertions.svh"
+
+module uart #(
+    parameter type reg_req_t = logic,
+    parameter type reg_rsp_t = logic
+) (
+```
+
+then
+
+```
+input  tlul_pkg::tl_h2d_t tl_i,
+output tlul_pkg::tl_d2h_t tl_o,
+```
+
+with
+
+```
+input  reg_req_t reg_req_i,
+output reg_rsp_t reg_rsp_o,
+```
+
+and on the instance ports of the uart_reg_top module, this
+
+```
+.tl_i,
+.tl_o,
+```
+with:
+
+```
+.reg_req_i,
+.reg_rsp_o,
+```
+
+TODO: script this
