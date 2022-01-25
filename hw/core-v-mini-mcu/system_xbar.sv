@@ -11,18 +11,10 @@ module system_xbar import obi_pkg::*; import addr_map_rule_pkg::*; import core_v
 
 );
 
-    localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] ADDR_RULES = '{
-        '{ idx: core_v_mini_mcu_pkg::RAM0_IDX  , start_addr: core_v_mini_mcu_pkg::RAM0_START_ADDRESS  , end_addr: core_v_mini_mcu_pkg::RAM0_END_ADDRESS  } ,
-        '{ idx: core_v_mini_mcu_pkg::RAM1_IDX  , start_addr: core_v_mini_mcu_pkg::RAM1_START_ADDRESS  , end_addr: core_v_mini_mcu_pkg::RAM1_END_ADDRESS  } ,
-        '{ idx: core_v_mini_mcu_pkg::PERIPHERAL_IDX , start_addr: core_v_mini_mcu_pkg::PERIPHERAL_START_ADDRESS , end_addr: core_v_mini_mcu_pkg::PERIPHERAL_END_ADDRESS } ,
-        '{ idx: core_v_mini_mcu_pkg::ERROR_IDX , start_addr: core_v_mini_mcu_pkg::ERROR_START_ADDRESS , end_addr: core_v_mini_mcu_pkg::ERROR_END_ADDRESS }
-    };
-
-    localparam int unsigned PORT_SEL_WIDTH          = $clog2(core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE);
-    localparam logic [PORT_SEL_WIDTH-1:0] ERROR_IDX = core_v_mini_mcu_pkg::ERROR_IDX;
+    localparam logic [core_v_mini_mcu_pkg::XBAR_PORT_SEL_WIDTH-1:0] ERROR_IDX = core_v_mini_mcu_pkg::ERROR_IDX;
 
     //Address Decoder
-    logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] [PORT_SEL_WIDTH-1:0] port_sel;
+    logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] [core_v_mini_mcu_pkg::XBAR_PORT_SEL_WIDTH-1:0] port_sel;
 
     logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0]       master_req_req;
     logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0]       master_req_wen;
@@ -53,12 +45,12 @@ module system_xbar import obi_pkg::*; import addr_map_rule_pkg::*; import core_v
         ) addr_decode_i
          (
             .addr_i(master_req_i[i].addr),
-            .addr_map_i(ADDR_RULES),
+            .addr_map_i(core_v_mini_mcu_pkg::XBAR_ADDR_RULES),
             .idx_o(port_sel[i]),
             .dec_valid_o(),
             .dec_error_o(),
             .en_default_idx_i(1'b1),
-            .default_idx_i()
+            .default_idx_i(ERROR_IDX)
         );
     end
 

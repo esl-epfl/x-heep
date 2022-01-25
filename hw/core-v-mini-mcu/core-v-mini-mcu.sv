@@ -52,9 +52,11 @@ module core_v_mini_mcu #(
   obi_resp_t    debug_master_resp;
   obi_req_t     debug_slave_req;
   obi_resp_t    debug_slave_resp;
+  obi_req_t     peripheral_slave_req;
+  obi_resp_t    peripheral_slave_resp;
 
   // signals to debug unit
-  logic                               core_debug_req;
+  logic                               debug_core_req;
 
   // irq signals
   logic                               irq_ack;
@@ -133,7 +135,7 @@ module core_v_mini_mcu #(
       .irq_ack_o           (irq_ack),
       .irq_id_o            (irq_id_out),
 
-      .debug_req_i         (core_debug_req),
+      .debug_req_i         (debug_core_req),
       .debug_havereset_o   (),
       .debug_running_o     (),
       .debug_halted_o      (),
@@ -182,12 +184,34 @@ module core_v_mini_mcu #(
     .jtag_tdi_i          ( jtag_tdi_i       ),
     .jtag_tdo_o          ( jtag_tdo_o       ),
 
-    .core_debug_req_o    ( core_debug_req   ),
+    .debug_core_req_o    ( debug_core_req   ),
 
     .debug_slave_req_i   ( debug_slave_req   ),
     .debug_slave_resp_o  ( debug_slave_resp  ),
     .debug_master_req_o  ( debug_master_req  ),
     .debug_master_resp_i ( debug_master_resp )
+
+  );
+
+  peripheral_subsystem peripheral_subsystem_i
+  (
+    .clk_i,
+    .rst_ni,
+
+    .slave_req_i(peripheral_slave_req),
+    .slave_resp_o(peripheral_slave_resp),
+
+    .uart_rx_i('0),
+    .uart_tx_o(),
+    .uart_tx_en_o(),
+    .uart_intr_tx_watermark_o() ,
+    .uart_intr_rx_watermark_o() ,
+    .uart_intr_tx_empty_o()  ,
+    .uart_intr_rx_overflow_o()  ,
+    .uart_intr_rx_frame_err_o() ,
+    .uart_intr_rx_break_err_o() ,
+    .uart_intr_rx_timeout_o()   ,
+    .uart_intr_rx_parity_err_o()
 
   );
 
@@ -207,6 +231,9 @@ module core_v_mini_mcu #(
 
       .debug_slave_req_o  ( debug_slave_req ),
       .debug_slave_resp_i ( debug_slave_resp ),
+
+      .peripheral_slave_req_o  ( peripheral_slave_req ),
+      .peripheral_slave_resp_i ( peripheral_slave_resp ),
 
       .irq_id_i (irq_id_out),
       .irq_ack_i(irq_ack),

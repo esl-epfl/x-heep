@@ -15,8 +15,10 @@
 
 package core_v_mini_mcu_pkg;
 
+  import addr_map_rule_pkg::*;
+
   localparam SYSTEM_XBAR_NMASTER      = 3;
-  localparam SYSTEM_XBAR_NSLAVE       = 4;
+  localparam SYSTEM_XBAR_NSLAVE       = 5;
 
   //master idx
   localparam CORE_INSTR_IDX           = 0;
@@ -39,27 +41,38 @@ package core_v_mini_mcu_pkg;
   localparam RAM1_END_ADDRESS         = RAM1_START_ADDRESS + RAM1_SIZE;
   localparam RAM1_IDX                 = 2;
 
+  localparam DEBUG_START_ADDRESS      = 32'h10000000;
+  localparam DEBUG_SIZE               = 32'h100000;
+  localparam DEBUG_END_ADDRESS        = DEBUG_START_ADDRESS + DEBUG_SIZE;
+  localparam DEBUG_IDX                = 3;
+
   localparam PERIPHERAL_START_ADDRESS = 32'h20000000;
-  localparam PERIPHERAL_SIZE          = 32'h10000;
+  localparam PERIPHERAL_SIZE          = 32'h100000;
   localparam PERIPHERAL_END_ADDRESS   = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE;
-  localparam PERIPHERAL_IDX           = 3;
+  localparam PERIPHERAL_IDX           = 4;
 
-      //slave encoder
-      localparam SYSTEM_NPERIPHERALS      = 2;
+  localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
+      '{ idx: RAM0_IDX,       start_addr: RAM0_START_ADDRESS,       end_addr: RAM0_END_ADDRESS  },
+      '{ idx: RAM1_IDX,       start_addr: RAM1_START_ADDRESS,       end_addr: RAM1_END_ADDRESS  },
+      '{ idx: DEBUG_IDX,      start_addr: DEBUG_START_ADDRESS,      end_addr: DEBUG_END_ADDRESS },
+      '{ idx: PERIPHERAL_IDX, start_addr: PERIPHERAL_START_ADDRESS, end_addr: PERIPHERAL_END_ADDRESS },
+      '{ idx: ERROR_IDX,      start_addr: ERROR_START_ADDRESS,      end_addr: ERROR_END_ADDRESS }
+  };
 
-      localparam DEBUG_START_ADDRESS      = PERIPHERAL_START_ADDRESS + 32'h000000;
-      localparam DEBUG_SIZE               = 32'h100000;
-      localparam DEBUG_END_ADDRESS        = DEBUG_START_ADDRESS + DEBUG_SIZE;
-      localparam DEBUG_IDX                = 0;
+  localparam int unsigned XBAR_PORT_SEL_WIDTH = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(SYSTEM_XBAR_NSLAVE) : 32'd1;
 
-      localparam UART_START_ADDRESS       = PERIPHERAL_START_ADDRESS + 32'h100000;
-      localparam UART_SIZE                = 32'h010000;
-      localparam UART_END_ADDRESS         = UART_START_ADDRESS + UART_SIZE;
-      localparam UART_IDX                 = 1;
+  //slave encoder
+  localparam SYSTEM_NPERIPHERALS      = 1;
 
+  localparam UART_START_ADDRESS       = PERIPHERAL_START_ADDRESS + 32'h000000;
+  localparam UART_SIZE                = 32'h010000;
+  localparam UART_END_ADDRESS         = UART_START_ADDRESS + UART_SIZE;
+  localparam UART_IDX                 = 0;
 
+  localparam addr_map_rule_t [SYSTEM_NPERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
+      '{ idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS }
+  };
 
-
-
+  localparam int unsigned PERIPHERALS_PORT_SEL_WIDTH = PERIPHERALS_ADDR_RULES > 1 ? $clog2(PERIPHERALS_ADDR_RULES) : 32'd1;
 
 endpackage

@@ -18,13 +18,15 @@ filesets:
     - pulp-platform.org::register_interface
     - lowrisc:ip:uart:0.1
     files:
-    - hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
-    - hw/core-v-mini-mcu/include/obi_pkg.sv
     - hw/core-v-mini-mcu/include/addr_map_rule_pkg.sv
+    - hw/core-v-mini-mcu/include/obi_pkg.sv
+    - hw/core-v-mini-mcu/include/reg_pkg.sv
+    - hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
     - hw/core-v-mini-mcu/core-v-mini-mcu.sv
     - hw/core-v-mini-mcu/mm_ram.sv
     - hw/core-v-mini-mcu/system_xbar.sv
     - hw/core-v-mini-mcu/debug_subsystem.sv
+    - hw/core-v-mini-mcu/peripheral_subsystem.sv
     - hw/core-v-mini-mcu/wrappers/cv32e40p_fp_wrapper.sv
     file_type: systemVerilogSource
 

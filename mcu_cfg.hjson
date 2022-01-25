@@ -5,22 +5,19 @@
 // Peripherals configuration for core-v-mini-mcu.
 {
 
+    debug: {
+        address: 0x10000000,
+        length:  0x100000,
+    },
+
     // peripherals
     peripherals: {
         address: 0x20000000,
-        length:  0x10000,
-
-        debug: {
-            offset:  0x000000,
-            length:  0x100000,
-        }
-
+        length:  0x100000,
         uart: {
-            offset:  0x100000,
+            offset:  0x000000,
             length:  0x010000,
         }
-
-
     },
 
 

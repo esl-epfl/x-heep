@@ -83,24 +83,27 @@ def main():
     outdir = args.outdir
     outdir.mkdir(parents=True, exist_ok=True)
 
+    debug_start_address = string2int(obj['debug']['address'])
+    if int(debug_start_address, 16) < int('10000', 16):
+        exit("debug start address must be greater than 0x10000")
+
+    debug_size_address = string2int(obj['debug']['length'])
+
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
         exit("peripheral start address must be greater than 0x10000")
 
     peripheral_size_address = string2int(obj['peripherals']['length'])
 
-    debug_start_offset = string2int(obj['peripherals']['debug']['offset'])
-    debug_size_address = string2int(obj['peripherals']['debug']['length'])
-
     uart_start_offset  = string2int(obj['peripherals']['uart']['offset'])
     uart_size_address  = string2int(obj['peripherals']['uart']['length'])
 
 
     kwargs = {
+        "debug_start_address"      : debug_start_address,
+        "debug_size_address"       : debug_size_address,
         "peripheral_start_address" : peripheral_start_address,
         "peripheral_size_address"  : peripheral_size_address,
-        "debug_start_offset"       : debug_start_offset,
-        "debug_size_address"       : debug_size_address,
         "uart_start_offset"        : uart_start_offset,
         "uart_size_address"        : uart_size_address,
     }

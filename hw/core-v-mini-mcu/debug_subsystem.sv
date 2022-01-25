@@ -10,7 +10,7 @@ module debug_subsystem import obi_pkg::*; #(
     input  logic         jtag_tdi_i,
     output logic         jtag_tdo_o,
 
-    output logic         core_debug_req_o,
+    output logic         debug_core_req_o,
 
     input  obi_req_t     debug_slave_req_i,
     output obi_resp_t    debug_slave_resp_o,
@@ -63,7 +63,7 @@ module debug_subsystem import obi_pkg::*; #(
      .testmode_i        ( 1'b0                        ),
      .ndmreset_o        (                             ),
      .dmactive_o        (                             ),
-     .debug_req_o       ( core_debug_req_o            ),
+     .debug_req_o       ( debug_core_req_o            ),
      .unavailable_i     ( ~(32'h01)                   ),
      .hartinfo_i        ( hartinfo                    ),
 

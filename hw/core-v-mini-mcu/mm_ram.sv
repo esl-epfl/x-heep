@@ -33,6 +33,9 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
     output obi_req_t     debug_slave_req_o,
     input  obi_resp_t    debug_slave_resp_i,
 
+    output obi_req_t     peripheral_slave_req_o,
+    input  obi_resp_t    peripheral_slave_resp_i,
+
     input logic [4:0]    irq_id_i,
     input logic          irq_ack_i,
 
@@ -127,12 +130,14 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
   //slave req
   assign ram0_req                                   = slave_req[core_v_mini_mcu_pkg::RAM0_IDX];
   assign ram1_req                                   = slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
-  assign debug_slave_req_o                          = slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
+  assign debug_slave_req_o                          = slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
+  assign peripheral_slave_req_o                     = slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
 
   //slave resp
   assign slave_resp[core_v_mini_mcu_pkg::RAM0_IDX]       = ram0_resp;
   assign slave_resp[core_v_mini_mcu_pkg::RAM1_IDX]       = ram1_resp;
-  assign slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = debug_slave_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX]      = debug_slave_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::ERROR_IDX]      = '0;
 
   // handle the mapping of read and writes to either memory or pseudo
