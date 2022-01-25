@@ -14,7 +14,7 @@ module system_xbar import obi_pkg::*; import addr_map_rule_pkg::*; import core_v
     localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] ADDR_RULES = '{
         '{ idx: core_v_mini_mcu_pkg::RAM0_IDX  , start_addr: core_v_mini_mcu_pkg::RAM0_START_ADDRESS  , end_addr: core_v_mini_mcu_pkg::RAM0_END_ADDRESS  } ,
         '{ idx: core_v_mini_mcu_pkg::RAM1_IDX  , start_addr: core_v_mini_mcu_pkg::RAM1_START_ADDRESS  , end_addr: core_v_mini_mcu_pkg::RAM1_END_ADDRESS  } ,
-        '{ idx: core_v_mini_mcu_pkg::DEBUG_IDX , start_addr: core_v_mini_mcu_pkg::DEBUG_START_ADDRESS , end_addr: core_v_mini_mcu_pkg::DEBUG_END_ADDRESS } ,
+        '{ idx: core_v_mini_mcu_pkg::PERIPHERAL_IDX , start_addr: core_v_mini_mcu_pkg::PERIPHERAL_START_ADDRESS , end_addr: core_v_mini_mcu_pkg::PERIPHERAL_END_ADDRESS } ,
         '{ idx: core_v_mini_mcu_pkg::ERROR_IDX , start_addr: core_v_mini_mcu_pkg::ERROR_START_ADDRESS , end_addr: core_v_mini_mcu_pkg::ERROR_END_ADDRESS }
     };
 

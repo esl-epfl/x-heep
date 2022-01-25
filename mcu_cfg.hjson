@@ -1,0 +1,27 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Solderpad Hardware License, Version 0.51, see LICENSE for details.
+// SPDX-License-Identifier: SHL-0.51
+// Derived from Occamy: https://github.com/pulp-platform/snitch/blob/master/hw/system/occamy/src/occamy_cfg.hjson
+// Peripherals configuration for core-v-mini-mcu.
+{
+
+    // peripherals
+    peripherals: {
+        address: 0x20000000,
+        length:  0x10000,
+
+        debug: {
+            offset:  0x000000,
+            length:  0x100000,
+        }
+
+        uart: {
+            offset:  0x100000,
+            length:  0x010000,
+        }
+
+
+    },
+
+
+}

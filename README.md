@@ -142,6 +142,12 @@ $ cd hw/vendor/hw/ip/uart
 $ ../../../../pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py -r -t rtl data/uart.hjson
 ```
 
+Youu can also genereta the C header file as follow:
+
+```
+$../../../../pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py --cdefines -o uart.h  data/uart.hjson
+```
+
 Then, manually modify the uart.sv file as:
 
 Replace:
@@ -187,5 +193,28 @@ with:
 .reg_req_i,
 .reg_rsp_o,
 ```
+
+In addition, in the file `uart.core`, change this:
+
+```
+filesets:
+  files_rtl:
+    depend:
+      - lowrisc:constants:top_pkg
+      - lowrisc:prim:all
+      - lowrisc:ip:tlul
+```
+
+to this:
+
+```
+filesets:
+  files_rtl:
+    depend:
+      - lowrisc:prim:all
+      - pulp-platform.org::register_interface
+```
+
+and add `lowrisc:ip:uart:0.1` to the `core-v-mini-mcu.core` `depend` section.
 
 TODO: script this
