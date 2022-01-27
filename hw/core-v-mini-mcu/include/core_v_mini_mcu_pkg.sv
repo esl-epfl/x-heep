@@ -62,14 +62,21 @@ package core_v_mini_mcu_pkg;
   localparam int unsigned XBAR_PORT_SEL_WIDTH = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(SYSTEM_XBAR_NSLAVE) : 32'd1;
 
   //slave encoder
-  localparam SYSTEM_NPERIPHERALS      = 1;
+  localparam SYSTEM_NPERIPHERALS      = 2;
 
-  localparam UART_START_ADDRESS       = PERIPHERAL_START_ADDRESS + 32'h000000;
-  localparam UART_SIZE                = 32'h010000;
-  localparam UART_END_ADDRESS         = UART_START_ADDRESS + UART_SIZE;
-  localparam UART_IDX                 = 0;
+  localparam SOC_CTRL_IDX_START_ADDRESS  = PERIPHERAL_START_ADDRESS + 32'h0000000;
+  localparam SOC_CTRL_IDX_SIZE           = 32'h0010000;
+  localparam SOC_CTRL_IDX_END_ADDRESS    = SOC_CTRL_IDX_START_ADDRESS + SOC_CTRL_IDX_SIZE;
+  localparam SOC_CTRL_IDX                = 0;
+
+  localparam UART_START_ADDRESS          = PERIPHERAL_START_ADDRESS + 32'h0010000;
+  localparam UART_SIZE                   = 32'h0010000;
+  localparam UART_END_ADDRESS            = UART_START_ADDRESS + UART_SIZE;
+  localparam UART_IDX                    = 1;
+
 
   localparam addr_map_rule_t [SYSTEM_NPERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
+      '{ idx: SOC_CTRL_IDX, start_addr: SOC_CTRL_IDX_START_ADDRESS, end_addr: SOC_CTRL_IDX_END_ADDRESS },
       '{ idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS }
   };
 

@@ -218,3 +218,9 @@ filesets:
 and add `lowrisc:ip:uart:0.1` to the `core-v-mini-mcu.core` `depend` section.
 
 TODO: script this
+
+## Change Peripheral Memory Map
+
+```
+python ./util/mcu_gen.py --cfg mcu_cfg.hjson --outdir ./hw/core-v-mini-mcu/include/ --pkg-sv ./hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
+```

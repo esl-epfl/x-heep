@@ -38,14 +38,16 @@ module uart #(
   uart_reg2hw_t reg2hw;
   uart_hw2reg_t hw2reg;
 
-  uart_reg_top u_reg (
+  uart_reg_top #(
+    .reg_req_t(reg_req_t),
+    .reg_rsp_t(reg_rsp_t)
+  ) u_reg (
     .clk_i,
     .rst_ni,
     .reg_req_i,
     .reg_rsp_o,
     .reg2hw,
     .hw2reg,
-    .intg_err_o (),
     .devmode_i  (1'b1)
   );
 

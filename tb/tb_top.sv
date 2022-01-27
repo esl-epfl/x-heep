@@ -19,8 +19,7 @@ module tb_top #(
     parameter PULP_CLUSTER = 0,
     parameter FPU = 0,
     parameter PULP_ZFINX = 0,
-    parameter NUM_MHPMCOUNTERS = 1,
-    parameter DM_HALTADDRESS = 32'h1A110800
+    parameter NUM_MHPMCOUNTERS = 1
 );
 
   // comment to record execution trace
@@ -123,9 +122,6 @@ module tb_top #(
     // start running
     #RESET_DEL rst_n = 1'b1;
 
-
-
-
     if ($test$plusargs("verbose")) $display("reset deasserted", $time);
 
   end : reset_gen
@@ -175,8 +171,7 @@ module tb_top #(
       .PULP_CLUSTER     (PULP_CLUSTER),
       .FPU              (FPU),
       .PULP_ZFINX       (PULP_ZFINX),
-      .NUM_MHPMCOUNTERS (NUM_MHPMCOUNTERS),
-      .DM_HALTADDRESS   (DM_HALTADDRESS)
+      .NUM_MHPMCOUNTERS (NUM_MHPMCOUNTERS)
 `endif
   ) core_v_mini_mcu_i (
       .clk_i         ( clk          ),

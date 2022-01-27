@@ -201,6 +201,11 @@ module core_v_mini_mcu #(
     .slave_req_i(peripheral_slave_req),
     .slave_resp_o(peripheral_slave_resp),
 
+    .tests_passed_o(tests_passed_o),
+    .tests_failed_o(tests_failed_o),
+    .exit_valid_o  (exit_valid_o),
+    .exit_value_o  (exit_value_o),
+
     .uart_rx_i('0),
     .uart_tx_o(),
     .uart_tx_en_o(),
@@ -244,12 +249,7 @@ module core_v_mini_mcu #(
       .irq_external_o(irq_external),
       .irq_fast_o    (irq_fast),
 
-      .pc_core_id_i(wrapper_i.core_i.pc_id),
-
-      .tests_passed_o(tests_passed_o),
-      .tests_failed_o(tests_failed_o),
-      .exit_valid_o  (exit_valid_o),
-      .exit_value_o  (exit_value_o)
+      .pc_core_id_i(wrapper_i.core_i.pc_id)
   );
 
 endmodule  // cv32e40p_tb_subsystem

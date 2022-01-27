@@ -28,8 +28,11 @@ extern int errno;
 #define STDOUT_REG 0x10000000
 /* write test result of program to this reg */
 #define RESULT_REG 0x20000000
+/* write exit valid of program to this reg */
+#define EXIT_VALID_REG 0x20000004
 /* write exit value of program to this reg */
-#define EXIT_REG 0x20000004
+#define EXIT_REG 0x20000008
+
 
 #define STDOUT_FILENO 1
 
@@ -97,6 +100,7 @@ int _execve(const char *name, char *const argv[], char *const env[])
 void _exit(int exit_status)
 {
     *(volatile int *)EXIT_REG = exit_status;
+    *(volatile int *)EXIT_VALID_REG = 1;
     asm volatile("wfi");
 }
 

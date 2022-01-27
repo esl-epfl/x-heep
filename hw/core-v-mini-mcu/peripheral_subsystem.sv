@@ -6,6 +6,12 @@ module peripheral_subsystem import obi_pkg::*;
     input  obi_req_t    slave_req_i,
     output obi_resp_t   slave_resp_o,
 
+    //SOC CTRL
+    output logic         tests_passed_o,
+    output logic         tests_failed_o,
+    output logic         exit_valid_o,
+    output logic [31:0]  exit_value_o,
+
     //UART
     input               uart_rx_i,
     output logic        uart_tx_o,
@@ -84,8 +90,8 @@ module peripheral_subsystem import obi_pkg::*;
     );
 
     uart #(
-      .req_t(reg_pkg::reg_req_t),
-      .rsp_t(reg_pkg::reg_rsp_t)
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
     ) uart_i (
         .clk_i,
         .rst_ni,
@@ -94,14 +100,28 @@ module peripheral_subsystem import obi_pkg::*;
         .cio_rx_i(uart_rx_i),
         .cio_tx_o(uart_tx_o),
         .cio_tx_en_o(uart_tx_en_o),
-        .uart_intr_tx_watermark_o(intr_tx_watermark_o),
-        .uart_intr_rx_watermark_o(intr_rx_watermark_o),
-        .uart_intr_tx_empty_o(intr_tx_empty_o),
-        .uart_intr_rx_overflow_o(intr_rx_overflow_o),
-        .uart_intr_rx_frame_err_o(intr_rx_frame_err_o),
-        .uart_intr_rx_break_err_o(intr_rx_break_err_o),
-        .uart_intr_rx_timeout_o(intr_rx_timeout_o),
-        .uart_intr_rx_parity_err_o(intr_rx_parity_err_o)
-  );
+        .intr_tx_watermark_o(uart_intr_tx_watermark_o),
+        .intr_rx_watermark_o(uart_intr_rx_watermark_o),
+        .intr_tx_empty_o(uart_intr_tx_empty_o),
+        .intr_rx_overflow_o(uart_intr_rx_overflow_o),
+        .intr_rx_frame_err_o(uart_intr_rx_frame_err_o),
+        .intr_rx_break_err_o(uart_intr_rx_break_err_o),
+        .intr_rx_timeout_o(uart_intr_rx_timeout_o),
+        .intr_rx_parity_err_o(uart_intr_rx_parity_err_o)
+    );
+
+    soc_ctrl #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+    ) soc_ctrl_i (
+       .clk_i,
+       .rst_ni,
+       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
+       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
+       .tests_passed_o,
+       .tests_failed_o,
+       .exit_valid_o,
+       .exit_value_o
+    );
 
 endmodule : peripheral_subsystem

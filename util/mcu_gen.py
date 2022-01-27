@@ -98,6 +98,8 @@ def main():
     uart_start_offset  = string2int(obj['peripherals']['uart']['offset'])
     uart_size_address  = string2int(obj['peripherals']['uart']['length'])
 
+    soc_ctrl_start_offset  = string2int(obj['peripherals']['soc_ctrl']['offset'])
+    soc_ctrl_size_address  = string2int(obj['peripherals']['soc_ctrl']['length'])
 
     kwargs = {
         "debug_start_address"      : debug_start_address,
@@ -106,6 +108,8 @@ def main():
         "peripheral_size_address"  : peripheral_size_address,
         "uart_start_offset"        : uart_start_offset,
         "uart_size_address"        : uart_size_address,
+        "soc_ctrl_start_offset"    : soc_ctrl_start_offset,
+        "soc_ctrl_size_address"    : soc_ctrl_size_address,
     }
 
     ###########

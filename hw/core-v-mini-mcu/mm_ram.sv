@@ -44,12 +44,7 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
     output logic         irq_external_o,
     output logic [15:0]  irq_fast_o,
 
-    input logic [31:0]   pc_core_id_i,
-
-    output logic         tests_passed_o,
-    output logic         tests_failed_o,
-    output logic         exit_valid_o,
-    output logic [31:0]  exit_value_o
+    input logic [31:0]   pc_core_id_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -143,10 +138,6 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
   // handle the mapping of read and writes to either memory or pseudo
   // peripherals (currently just a redirection of writes to stdout)
   always_comb begin
-    tests_passed_o  = '0;
-    tests_failed_o  = '0;
-    exit_value_o    = 0;
-    exit_valid_o    = '0;
     perip_gnt       = '0;
     print_wdata     = '0;
     print_valid     = '0;
@@ -163,66 +154,6 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
           print_wdata = core_data_req_i.wdata;
           print_valid = core_data_req_i.req;
           perip_gnt   = 1'b1;
-
-        end else if (core_data_req_i.addr == 32'h2000_0000) begin
-          if (core_data_req_i.wdata == 123456789) tests_passed_o = '1;
-          else if (core_data_req_i.wdata == 1) tests_failed_o = '1;
-          perip_gnt = 1'b1;
-
-        end else if (core_data_req_i.addr == 32'h2000_0004) begin
-          exit_valid_o = '1;
-          exit_value_o = core_data_req_i.wdata;
-          perip_gnt    = 1'b1;
-
-        end else if (core_data_req_i.addr == 32'h2000_0008) begin
-          // sets signature begin
-          sig_begin_d = core_data_req_i.wdata;
-          perip_gnt   = 1'b1;
-
-        end else if (core_data_req_i.addr == 32'h2000_000C) begin
-          // sets signature end
-          sig_end_d = core_data_req_i.wdata;
-          perip_gnt = 1'b1;
-
-        end else if (core_data_req_i.addr == 32'h2000_0010) begin
-          // halt and dump signature
-`ifndef SYNTHESIS
-          automatic string sig_file;
-          automatic bit use_sig_file;
-          automatic integer sig_fd;
-          automatic integer errno;
-          automatic string error_str;
-
-          if ($value$plusargs("signature=%s", sig_file)) begin
-            sig_fd = $fopen(sig_file, "w");
-            if (sig_fd == 0) begin
-  `ifndef VERILATOR
-              errno = $ferror(sig_fd, error_str);
-              $error(error_str);
-  `else
-              $error("can't open file");
-  `endif
-              use_sig_file = 1'b0;
-            end else begin
-              use_sig_file = 1'b1;
-            end
-          end
-
-          $display("Dumping signature");
-          for (logic [31:0] addr = sig_begin_q; addr < sig_end_q; addr += 4) begin
-            $display("%x%x%x%x", ram1_i.tc_ram_i.sram[addr+3], ram1_i.tc_ram_i.sram[addr+2], ram1_i.tc_ram_i.sram[addr+1],
-                     ram1_i.tc_ram_i.sram[addr+0]);
-            if (use_sig_file) begin
-              $fdisplay(sig_fd, "%x%x%x%x", ram1_i.tc_ram_i.sram[addr+3], ram1_i.tc_ram_i.sram[addr+2],
-                        ram1_i.tc_ram_i.sram[addr+1], ram1_i.tc_ram_i.sram[addr+0]);
-            end
-          end
-`endif
-          // end simulation
-          exit_valid_o = '1;
-          exit_value_o = '0;
-          perip_gnt    = 1'b1;
-
         end else if (core_data_req_i.addr == 32'h1500_0000) begin
           timer_wdata = core_data_req_i.wdata;
           timer_reg_valid = '1;
@@ -236,7 +167,7 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
         end else if (core_data_req_i.addr[31:0] < NUM_BYTES) begin
           transaction     = T_RAM;
           // out of bounds write
-        end else if ((core_data_req_i.addr >= DEBUG_START_ADDRESS && core_data_req_i.addr < DEBUG_END_ADDRESS)) begin
+        end else if ((core_data_req_i.addr >=  PERIPHERAL_START_ADDRESS && core_data_req_i.addr < PERIPHERAL_END_ADDRESS)) begin
           transaction = T_PER;
           //grant from debug
         end
@@ -248,7 +179,7 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
         end else if (core_data_req_i.addr[31:0] < NUM_BYTES) begin
           // out of bounds write
           transaction     = T_RAM;
-        end else if ((core_data_req_i.addr >= DEBUG_START_ADDRESS && core_data_req_i.addr < DEBUG_END_ADDRESS)) begin
+        end else if ((core_data_req_i.addr >= PERIPHERAL_START_ADDRESS && core_data_req_i.addr < PERIPHERAL_END_ADDRESS)) begin
           transaction = T_PER;
           //grant from debug
         end else begin
@@ -269,12 +200,7 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
       || core_data_req_i.addr == 32'h1000_0000
       || core_data_req_i.addr == 32'h1500_0000
       || core_data_req_i.addr == 32'h1500_0004
-      || core_data_req_i.addr == 32'h2000_0000
-      || core_data_req_i.addr == 32'h2000_0004
-      || core_data_req_i.addr == 32'h2000_0008
-      || core_data_req_i.addr == 32'h2000_000c
-      || core_data_req_i.addr == 32'h2000_0010
-      || (core_data_req_i.addr >= DEBUG_START_ADDRESS && core_data_req_i.addr < DEBUG_END_ADDRESS)
+      || (core_data_req_i.addr >= PERIPHERAL_START_ADDRESS && core_data_req_i.addr < PERIPHERAL_END_ADDRESS)
      )
 
      )

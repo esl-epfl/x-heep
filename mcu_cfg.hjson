@@ -14,9 +14,13 @@
     peripherals: {
         address: 0x20000000,
         length:  0x100000,
+        soc_ctrl: {
+            offset:  0x0000000,
+            length:  0x0010000,
+        },
         uart: {
-            offset:  0x000000,
-            length:  0x010000,
+            offset:  0x0010000,
+            length:  0x0010000,
         }
     },
 
