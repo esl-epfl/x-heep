@@ -181,17 +181,21 @@ input  reg_req_t reg_req_i,
 output reg_rsp_t reg_rsp_o,
 ```
 
-and on the instance ports of the uart_reg_top module, this
+Change the instance of the uart_reg_top module like this:
 
 ```
-.tl_i,
-.tl_o,
-```
-with:
-
-```
-.reg_req_i,
-.reg_rsp_o,
+  uart_reg_top #(
+    .reg_req_t(reg_req_t),
+    .reg_rsp_t(reg_rsp_t)
+  ) u_reg (
+    .clk_i,
+    .rst_ni,
+    .reg_req_i,
+    .reg_rsp_o,
+    .reg2hw,
+    .hw2reg,
+    .devmode_i  (1'b1)
+  );
 ```
 
 In addition, in the file `uart.core`, change this:
@@ -217,7 +221,21 @@ filesets:
 
 and add `lowrisc:ip:uart:0.1` to the `core-v-mini-mcu.core` `depend` section.
 
-TODO: script this
+Open the file `hw/vendor/hw/ip/lint/common.core` and delete this:
+
+```
+files_check_tool_requirements:
+  depend:
+   - lowrisc:tool:check_tool_requirements
+```
+
+and this:
+
+```
+- files_check_tool_requirements
+```
+
+TODO: script this and update git apply
 
 ## Change Peripheral Memory Map
 

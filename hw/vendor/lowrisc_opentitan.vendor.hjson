@@ -42,7 +42,6 @@
     "hw/dv",
     "hw/formal",
     "hw/_index.md",
-    "hw/lint",
     "hw/Makefile",
     "hw/syn",
     "hw/top_earlgrey",

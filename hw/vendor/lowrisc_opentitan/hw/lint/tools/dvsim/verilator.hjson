@@ -1,0 +1,11 @@
+// Copyright lowRISC contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  tool: "verilator"
+
+  // Verilator lint-specific results parsing script that is called after running lint
+  report_cmd: "{lint_root}/tools/{tool}/parse-lint-report.py "
+  report_opts: ["--logpath={build_log}",
+                "--reppath={build_dir}/results.hjson"]
+}
