@@ -21,35 +21,35 @@ package core_v_mini_mcu_pkg;
   localparam SYSTEM_XBAR_NSLAVE       = 5;
 
   //master idx
-  localparam CORE_INSTR_IDX           = 0;
-  localparam CORE_DATA_IDX            = 1;
-  localparam DEBUG_MASTER_IDX         = 2;
+  localparam logic [31:0] CORE_INSTR_IDX           = 0;
+  localparam logic [31:0] CORE_DATA_IDX            = 1;
+  localparam logic [31:0] DEBUG_MASTER_IDX         = 2;
 
   //slave mmap and idx
-  localparam ERROR_START_ADDRESS      = 32'hBADACCE5;
-  localparam ERROR_SIZE               = 32'h00000001;
-  localparam ERROR_END_ADDRESS        = ERROR_START_ADDRESS + ERROR_SIZE;
-  localparam ERROR_IDX                = 0;
+  localparam logic[31:0] ERROR_START_ADDRESS      = 32'hBADACCE5;
+  localparam logic[31:0] ERROR_SIZE               = 32'h00000001;
+  localparam logic[31:0] ERROR_END_ADDRESS        = ERROR_START_ADDRESS + ERROR_SIZE;
+  localparam logic[31:0] ERROR_IDX                = 32'd0;
 
-  localparam RAM0_START_ADDRESS       = 32'h00000000;
-  localparam RAM0_SIZE                = 32'h00008000;
-  localparam RAM0_END_ADDRESS         = RAM0_START_ADDRESS + RAM0_SIZE;
-  localparam RAM0_IDX                 = 1;
+  localparam logic[31:0] RAM0_START_ADDRESS       = 32'h00000000;
+  localparam logic[31:0] RAM0_SIZE                = 32'h00008000;
+  localparam logic[31:0] RAM0_END_ADDRESS         = RAM0_START_ADDRESS + RAM0_SIZE;
+  localparam logic[31:0] RAM0_IDX                 = 32'd1;
 
-  localparam RAM1_START_ADDRESS       = 32'h00008000;
-  localparam RAM1_SIZE                = 32'h00008000;
-  localparam RAM1_END_ADDRESS         = RAM1_START_ADDRESS + RAM1_SIZE;
-  localparam RAM1_IDX                 = 2;
+  localparam logic[31:0] RAM1_START_ADDRESS       = 32'h00008000;
+  localparam logic[31:0] RAM1_SIZE                = 32'h00008000;
+  localparam logic[31:0] RAM1_END_ADDRESS         = RAM1_START_ADDRESS + RAM1_SIZE;
+  localparam logic[31:0] RAM1_IDX                 = 32'd2;
 
-  localparam DEBUG_START_ADDRESS      = 32'h10000000;
-  localparam DEBUG_SIZE               = 32'h100000;
-  localparam DEBUG_END_ADDRESS        = DEBUG_START_ADDRESS + DEBUG_SIZE;
-  localparam DEBUG_IDX                = 3;
+  localparam logic[31:0] DEBUG_START_ADDRESS      = 32'h10000000;
+  localparam logic[31:0] DEBUG_SIZE               = 32'h100000;
+  localparam logic[31:0] DEBUG_END_ADDRESS        = DEBUG_START_ADDRESS + DEBUG_SIZE;
+  localparam logic[31:0] DEBUG_IDX                = 32'd3;
 
-  localparam PERIPHERAL_START_ADDRESS = 32'h20000000;
-  localparam PERIPHERAL_SIZE          = 32'h100000;
-  localparam PERIPHERAL_END_ADDRESS   = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE;
-  localparam PERIPHERAL_IDX           = 4;
+  localparam logic[31:0] PERIPHERAL_START_ADDRESS = 32'h20000000;
+  localparam logic[31:0] PERIPHERAL_SIZE          = 32'h100000;
+  localparam logic[31:0] PERIPHERAL_END_ADDRESS   = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE;
+  localparam logic[31:0] PERIPHERAL_IDX           = 32'd4;
 
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{ idx: RAM0_IDX,       start_addr: RAM0_START_ADDRESS,       end_addr: RAM0_END_ADDRESS  },
@@ -64,15 +64,15 @@ package core_v_mini_mcu_pkg;
   //slave encoder
   localparam SYSTEM_NPERIPHERALS      = 2;
 
-  localparam SOC_CTRL_IDX_START_ADDRESS  = PERIPHERAL_START_ADDRESS + 32'h0000000;
-  localparam SOC_CTRL_IDX_SIZE           = 32'h0010000;
-  localparam SOC_CTRL_IDX_END_ADDRESS    = SOC_CTRL_IDX_START_ADDRESS + SOC_CTRL_IDX_SIZE;
-  localparam SOC_CTRL_IDX                = 0;
+  localparam logic[31:0] SOC_CTRL_IDX_START_ADDRESS  = PERIPHERAL_START_ADDRESS + 32'h0000000;
+  localparam logic[31:0] SOC_CTRL_IDX_SIZE           = 32'h0010000;
+  localparam logic[31:0] SOC_CTRL_IDX_END_ADDRESS    = SOC_CTRL_IDX_START_ADDRESS + SOC_CTRL_IDX_SIZE;
+  localparam logic[31:0] SOC_CTRL_IDX                = 32'd0;
 
-  localparam UART_START_ADDRESS          = PERIPHERAL_START_ADDRESS + 32'h0010000;
-  localparam UART_SIZE                   = 32'h0010000;
-  localparam UART_END_ADDRESS            = UART_START_ADDRESS + UART_SIZE;
-  localparam UART_IDX                    = 1;
+  localparam logic[31:0] UART_START_ADDRESS          = PERIPHERAL_START_ADDRESS + 32'h0010000;
+  localparam logic[31:0] UART_SIZE                   = 32'h0010000;
+  localparam logic[31:0] UART_END_ADDRESS            = UART_START_ADDRESS + UART_SIZE;
+  localparam logic[31:0] UART_IDX                    = 32'd1;
 
 
   localparam addr_map_rule_t [SYSTEM_NPERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{

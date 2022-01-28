@@ -1,0 +1,9 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule DECLFILENAME -file "*/src/stream_intf.sv" -match "Filename 'stream_intf' does not match IFACE name: 'STREAM_DV'"
+lint_off -rule DECLFILENAME -file "*/src/cb_filter.sv" -match "Filename 'cb_filter' does not match MODULE name: 'hash_block'"
+lint_off -rule DECLFILENAME -file "*/src/cdc_fifo_gray.sv" -match "Filename 'cdc_fifo_gray' does not match MODULE name: 'cdc_fifo_gray_src'"

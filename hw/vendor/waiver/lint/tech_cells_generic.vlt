@@ -1,0 +1,9 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule DECLFILENAME -file "*/src/reg_intf.sv" -match "Filename 'reg_intf' does not match IFACE name: 'REG_BUS'*"
+lint_off -rule DECLFILENAME -file "*/src/rtl/tc_clk.sv" -match "Filename 'tc_clk' does not match MODULE name: 'tc_clk_and2'*"
+lint_off -rule DECLFILENAME -file "*/src/tc_pwr.sv" -match "Filename 'tc_pwr' does not match MODULE name: 'tc_pwr_level_shifter_in'*"

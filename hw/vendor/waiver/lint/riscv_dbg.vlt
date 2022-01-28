@@ -1,0 +1,8 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule DECLFILENAME -file "*/src/dm_pkg.sv" -match "Filename 'dm_pkg' does not match PACKAGE name: 'dm'*"
+lint_off -rule UNUSED -file "*/src/dm_pkg.sv" -match "Bits of signal are not used: *"

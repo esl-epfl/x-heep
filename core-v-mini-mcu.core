@@ -18,12 +18,13 @@ filesets:
     - pulp-platform.org::register_interface
     - openhwgroup.org:ip:soc_ctrl
     - lowrisc:ip:uart:0.1
+    - openhwgroup.org:ip:verilator_waiver
     files:
     - hw/core-v-mini-mcu/include/addr_map_rule_pkg.sv
     - hw/core-v-mini-mcu/include/obi_pkg.sv
     - hw/core-v-mini-mcu/include/reg_pkg.sv
     - hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
-    - hw/core-v-mini-mcu/core-v-mini-mcu.sv
+    - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/mm_ram.sv
     - hw/core-v-mini-mcu/system_xbar.sv
     - hw/core-v-mini-mcu/debug_subsystem.sv
@@ -109,8 +110,10 @@ targets:
     default_tool: modelsim
     filesets_append:
     - rtl-simulation
-    - tb-rtl
-    toplevel: [tb_top]
+    - tool_modelsim? (tb-rtl)
+    toplevel:
+    - tool_modelsim? (tb_top)
+    - tool_verilator? (cv32e40p_core)
     parameters:
     - PULP_XPULP=0
     tools:
@@ -120,6 +123,18 @@ targets:
         - -suppress vlog-2583
         - -suppress vlog-2577
         - -pedanticerrors
+      verilator:
+        mode: cc
+        verilator_options:
+          - '--trace'
+          - '--trace-fst' # this requires -DVM_TRACE_FMT_FST in CFLAGS below!
+          - '--trace-structs'
+          - '--trace-params'
+          - '--trace-max-array 1024'
+          - '-CFLAGS "-std=c++11 -Wall -DTOPLEVEL_NAME=cv32e40p_core -g"'
+          - '-LDFLAGS "-pthread -lutil -lelf"'
+          - "-Wall"
+          - "-Wwarn-IMPERFECTSCH"
 
   sim_opt:
     <<: *default_target
