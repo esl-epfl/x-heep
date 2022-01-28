@@ -49,9 +49,9 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
 
   import core_v_mini_mcu_pkg::*;
 
-  localparam int TIMER_IRQ_ID = 7;
-  localparam int IRQ_MAX_ID = 31;
-  localparam int IRQ_MIN_ID = 26;
+  localparam logic [4:0] TIMER_IRQ_ID = 7;
+  localparam logic [4:0] IRQ_MAX_ID = 31;
+  localparam logic [4:0] IRQ_MIN_ID = 26;
 
   localparam int NumWords  = NUM_BYTES/4;
   localparam int AddrWidth = $clog2(NUM_BYTES);
@@ -218,7 +218,7 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
   // print to stdout pseudo peripheral
   always_ff @(posedge clk_i, negedge rst_ni) begin : print_peripheral
     if (print_valid) begin
-      if ($test$plusargs("verbose")) begin
+      if ($test$plusargs("verbose")!=0) begin
         if (32 <= print_wdata && print_wdata < 128) $display("OUT: '%c'", print_wdata[7:0]);
         else $display("OUT: %3d", print_wdata);
 
@@ -266,7 +266,7 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
 `ifndef SYNTHESIS
   // show writes if requested
   always_ff @(posedge clk_i, negedge rst_ni) begin : verbose_writes
-    if ($test$plusargs("verbose") && core_data_req_i.req && core_data_req_i.we)
+    if ($test$plusargs("verbose")!=0 && core_data_req_i.req && core_data_req_i.we)
       $display("write addr=0x%08x: data=0x%08x", core_data_req_i.addr, core_data_req_i.wdata);
   end
 `endif

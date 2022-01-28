@@ -161,13 +161,13 @@ module core_v_mini_mcu #(
           .apu_rflags_o  (apu_rflags)
       );
     end else begin
-      assign apu_gnt_o      = '0;
-      assign apu_operands_i = '0;
-      assign apu_op_i       = '0;
-      assign apu_flags_i    = '0;
-      assign apu_rvalid_o   = '0;
-      assign apu_rdata_o    = '0;
-      assign apu_rflags_o   = '0;
+      assign apu_gnt      = '0;
+      assign apu_operands = '0;
+      assign apu_op       = '0;
+      assign apu_flags    = '0;
+      assign apu_rvalid   = '0;
+      assign apu_rdata    = '0;
+      assign apu_rflags   = '0;
     end
   endgenerate
 

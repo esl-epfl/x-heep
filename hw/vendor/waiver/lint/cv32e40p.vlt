@@ -86,7 +86,7 @@ lint_off -rule WIDTH -file "*/rtl/cv32e40p_alu.sv" -match "Operator ASSIGN expec
 lint_off -rule WIDTH -file "*/rtl/cv32e40p_id_stage.sv" -match "Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's UNSIGNED generates 5 bits."
 lint_off -rule WIDTH -file "*/rtl/cv32e40p_id_stage.sv" -match "Operator ASSIGNDLY expects 6 bits on the Assign RHS, but Assign RHS's CONST '5'h0' generates 5 bits."
 lint_off -rule WIDTH -file "*/rtl/cv32e40p_cs_registers.sv" -match "Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's VARREF 'tinfo_types' generates 16 bits."
-lint_off -rule UNUSED -file "*/rtl/cv32e40p_*.sv" -match "*"
+lint_off -rule UNUSED -file "*cv32e40p_*.sv" -match "*"
 lint_off -rule CASEINCOMPLETE -file "*/rtl/cv32e40p_*.sv" -match "Case values*"
 lint_off -rule UNOPTFLAT -file "*/rtl/cv32e40p_*.sv" -match "Signal unoptimizable: Feedback to clock or circular logic: '*'"
 lint_off -rule IMPERFECTSCH -file "*/rtl/cv32e40p_*.sv" -match "Imperfect scheduling of variable: '*'"

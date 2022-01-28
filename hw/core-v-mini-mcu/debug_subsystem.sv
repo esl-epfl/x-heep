@@ -64,7 +64,7 @@ module debug_subsystem import obi_pkg::*; #(
      .ndmreset_o        (                             ),
      .dmactive_o        (                             ),
      .debug_req_o       ( debug_core_req_o            ),
-     .unavailable_i     ( ~(32'h01)                   ),
+     .unavailable_i     ( ~(1'b01)                    ),
      .hartinfo_i        ( hartinfo                    ),
 
      .slave_req_i       ( debug_slave_req_i.req       ),

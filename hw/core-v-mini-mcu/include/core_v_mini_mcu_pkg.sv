@@ -80,6 +80,6 @@ package core_v_mini_mcu_pkg;
       '{ idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS }
   };
 
-  localparam int unsigned PERIPHERALS_PORT_SEL_WIDTH = PERIPHERALS_ADDR_RULES > 1 ? $clog2(PERIPHERALS_ADDR_RULES) : 32'd1;
+  localparam int unsigned PERIPHERALS_PORT_SEL_WIDTH = SYSTEM_NPERIPHERALS > 1 ? $clog2(SYSTEM_NPERIPHERALS) : 32'd1;
 
 endpackage

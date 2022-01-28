@@ -49,6 +49,12 @@ module tb_top #(
 
   // signals for ri5cy
   logic               fetch_enable;
+  logic               jtag_tck    ;
+  logic               jtag_trst_n ;
+  logic               jtag_tms    ;
+  logic               jtag_tdi    ;
+  logic               jtag_tdo    ;
+
 
   // make the core start fetching instruction immediately
   assign fetch_enable = '1;

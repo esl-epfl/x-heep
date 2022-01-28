@@ -5,4 +5,5 @@
 `verilator_config
 
 lint_off -rule DECLFILENAME -file "*/src/dm_pkg.sv" -match "Filename 'dm_pkg' does not match PACKAGE name: 'dm'*"
-lint_off -rule UNUSED -file "*/src/dm_pkg.sv" -match "Bits of signal are not used: *"
+lint_off -rule UNUSED -file "*/src/dm*.sv" -match "*"
+lint_off -rule UNUSED -file "*/debug*.sv" -match "*"

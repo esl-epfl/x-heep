@@ -15,6 +15,8 @@ filesets:
     - lint/fpnew.vlt
     - lint/tech_cells_generic.vlt
     - lint/riscv_dbg.vlt
+    - lint/register_interface.vlt
+    - lint/uart.vlt
     file_type: vlt
 
 

@@ -11,8 +11,6 @@ module system_xbar import obi_pkg::*; import addr_map_rule_pkg::*; import core_v
 
 );
 
-    localparam logic [core_v_mini_mcu_pkg::XBAR_PORT_SEL_WIDTH-1:0] ERROR_IDX = core_v_mini_mcu_pkg::ERROR_IDX;
-
     //Address Decoder
     logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] [core_v_mini_mcu_pkg::XBAR_PORT_SEL_WIDTH-1:0] port_sel;
 
@@ -50,7 +48,7 @@ module system_xbar import obi_pkg::*; import addr_map_rule_pkg::*; import core_v
             .dec_valid_o(),
             .dec_error_o(),
             .en_default_idx_i(1'b1),
-            .default_idx_i(ERROR_IDX)
+            .default_idx_i(core_v_mini_mcu_pkg::ERROR_IDX)
         );
     end
 
