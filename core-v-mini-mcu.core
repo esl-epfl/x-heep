@@ -19,6 +19,7 @@ filesets:
     - openhwgroup.org:ip:soc_ctrl
     - lowrisc:ip:uart:0.1
     files:
+    - tb/tb_util.svh: {is_include_file: true}
     - hw/core-v-mini-mcu/include/addr_map_rule_pkg.sv
     - hw/core-v-mini-mcu/include/obi_pkg.sv
     - hw/core-v-mini-mcu/include/reg_pkg.sv
@@ -61,11 +62,6 @@ filesets:
     - hw/fpga/constraints/pin_assign.xdc
     - hw/fpga/constraints/constraints.xdc
     file_type: xdc
-
-  tb-util:
-    files:
-    - tb/tb_util.svh: {is_include_file: true}
-    file_type: systemVerilogSource
 
   tb-rtl:
     files:
@@ -127,7 +123,6 @@ targets:
     default_tool: modelsim
     filesets_append:
     - rtl-simulation
-    - tb-util
     - tool_modelsim? (tb-rtl)
     - tool_verilator? (files_verilator_waiver)
     - tool_verilator? (tb-verilator)

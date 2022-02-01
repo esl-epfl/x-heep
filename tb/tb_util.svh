@@ -2,6 +2,7 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+`ifndef SYNTHESIS
 // Task for loading 'mem' with SystemVerilog system task $readmemh()
 export "DPI-C" task tb_util_ReadMemh;
 export "DPI-C" task tb_util_WriteToSram0;
@@ -30,3 +31,4 @@ task tb_util_WriteToSram1;
   input [7:0]   val0;
   ram_i.ram1_i.tc_ram_i.sram[addr] = {val3, val2, val1, val0};
 endtask
+`endif

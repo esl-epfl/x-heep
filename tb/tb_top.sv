@@ -72,14 +72,11 @@ module tb_top #(
   initial begin : load_prog
     automatic string firmware;
 
-    logic [7:0] stimuli [];
+
+    logic [7:0] stimuli [2**16];
     int i,j, NumBytes;
 
-`ifndef FPGA_NETLIST
-    NumBytes = core_v_mini_mcu_i.NUM_BYTES;
-`else
     NumBytes = 2**16;
-`endif
 
     if ($value$plusargs("firmware=%s", firmware)) begin
 
@@ -88,19 +85,17 @@ module tb_top #(
       if ($test$plusargs("verbose"))
         $display("[TESTBENCH] %t: loading firmware %0s ...", $time, firmware);
 
-      stimuli = new[NumBytes];
+      core_v_mini_mcu_i.tb_util_ReadMemh(firmware, stimuli);
 
-      $readmemh(firmware,stimuli);
+      $display("azz stimuli[15] is %x",stimuli[15]);
 
       for(i=0;i<NumBytes/2;i=i+4) begin
-          core_v_mini_mcu_i.ram_i.ram0_i.tc_ram_i.sram[i/4] = {stimuli[i+3],stimuli[i+2],stimuli[i+1],stimuli[i]};
+          core_v_mini_mcu_i.tb_util_WriteToSram0(i/4, stimuli[i+3],stimuli[i+2],stimuli[i+1],stimuli[i]);
       end
       for(j=0;j<NumBytes/2;j=j+4) begin
-          core_v_mini_mcu_i.ram_i.ram1_i.tc_ram_i.sram[j/4] = {stimuli[i+3],stimuli[i+2],stimuli[i+1],stimuli[i]};
+          core_v_mini_mcu_i.tb_util_WriteToSram1(j/4, stimuli[i+3],stimuli[i+2],stimuli[i+1],stimuli[i]);
           i = i + 4;
       end
-
-      stimuli.delete;
 
       end else begin
       $display("No firmware specified");
