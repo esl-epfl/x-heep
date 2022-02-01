@@ -42,9 +42,7 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
     output logic         irq_software_o,
     output logic         irq_timer_o,
     output logic         irq_external_o,
-    output logic [15:0]  irq_fast_o,
-
-    input logic [31:0]   pc_core_id_i
+    output logic [15:0]  irq_fast_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -316,6 +314,7 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
     .rdata_o(ram1_resp.rdata)
   );
 
+
   always_ff @(posedge clk_i, negedge rst_ni) begin
     if (~rst_ni) begin
       data_rvalid_q  <= '0;
@@ -349,6 +348,5 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
   assign irq_timer_o    = '0;
   assign irq_external_o = '0;
   assign irq_fast_o     = '0;
-
 
 endmodule  // ram

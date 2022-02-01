@@ -35,6 +35,8 @@ module core_v_mini_mcu #(
     output logic        exit_valid_o
 );
 
+  `include "tb_util.svh"
+
   import core_v_mini_mcu_pkg::*;
   import obi_pkg::*;
   import cv32e40p_apu_core_pkg::*;
@@ -94,7 +96,7 @@ module core_v_mini_mcu #(
       .FPU             (FPU),
       .PULP_ZFINX      (PULP_ZFINX),
       .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS)
-  ) wrapper_i (
+  ) cv32e40p_wrapper_i (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
@@ -247,9 +249,7 @@ module core_v_mini_mcu #(
       .irq_software_o(irq_software),
       .irq_timer_o   (irq_timer),
       .irq_external_o(irq_external),
-      .irq_fast_o    (irq_fast),
-
-      .pc_core_id_i(wrapper_i.core_i.pc_id)
+      .irq_fast_o    (irq_fast)
   );
 
 endmodule  // cv32e40p_tb_subsystem

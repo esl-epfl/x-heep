@@ -62,10 +62,20 @@ filesets:
     - hw/fpga/constraints/constraints.xdc
     file_type: xdc
 
+  tb-util:
+    files:
+    - tb/tb_util.svh: {is_include_file: true}
+    file_type: systemVerilogSource
+
   tb-rtl:
     files:
     - tb/tb_top.sv
     file_type: systemVerilogSource
+
+  tb-verilator:
+    files:
+    - tb/tb_top.cpp
+    file_type: cppSource
 
   netlist-fpga:
     files:
@@ -117,8 +127,10 @@ targets:
     default_tool: modelsim
     filesets_append:
     - rtl-simulation
-    - tb-rtl
+    - tb-util
+    - tool_modelsim? (tb-rtl)
     - tool_verilator? (files_verilator_waiver)
+    - tool_verilator? (tb-verilator)
     toplevel:
     - tool_modelsim? (tb_top)
     - tool_verilator? (core_v_mini_mcu)
@@ -134,12 +146,16 @@ targets:
       verilator:
         mode: cc
         verilator_options:
+          - '--cc'
           - '--trace'
           - '--trace-fst' # this requires -DVM_TRACE_FMT_FST in CFLAGS below!
           - '--trace-structs'
           - '--trace-params'
           - '--trace-max-array 1024'
-          - '-CFLAGS "-std=c++11 -Wall -DTOPLEVEL_NAME=cv32e40p_core -g"'
+          - '--x-assign unique'
+          - '--x-initial unique'
+          - '--exe tb_top.cpp'
+          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
 
