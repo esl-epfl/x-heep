@@ -13,6 +13,7 @@
 
 vluint64_t sim_time = 0;
 
+
 std::string getCmdOption(int argc, char* argv[], const std::string& option)
 {
     std::string cmd;
@@ -41,10 +42,12 @@ void runCycles(unsigned int ncycles, Vcore_v_mini_mcu *dut, VerilatedFstC *m_tra
 int main (int argc, char * argv[])
 {
 
-  std::string firmware;
+  std::string firmware, arg_max_sim_time;
   svLogicVecVal stimuli[65536]; //2^16
   svLogicVecVal addr;
-  int i,j;
+  unsigned int max_sim_time;
+  bool run_all = false;
+  int i,j, exit_val;
 
   Verilated::commandArgs(argc, argv);
 
@@ -64,6 +67,17 @@ int main (int argc, char * argv[])
   } else {
     std::cout<<"[TESTBENCH]: loading firmware  "<<firmware<<std::endl;
   }
+
+  arg_max_sim_time = getCmdOption(argc, argv, "+max_sim_time=");
+  max_sim_time     = 0;
+  if(arg_max_sim_time.empty()){
+    std::cout<<"[TESTBENCH]: No Max time specified"<<std::endl;
+    run_all = true;
+  } else {
+    max_sim_time = stoi(arg_max_sim_time);
+    std::cout<<"[TESTBENCH]: Max Times is  "<<max_sim_time<<std::endl;
+  }
+
 
   svSetScope(svGetScopeFromName("TOP.core_v_mini_mcu"));
   svScope scope = svGetScope();
@@ -106,11 +120,22 @@ int main (int argc, char * argv[])
   runCycles(1, dut, m_trace);
   std::cout<<"Memory Loaded"<< std::endl;
 
-  runCycles(20, dut, m_trace);
-  std::cout<<"OK Loaded"<< std::endl;
+  if(run_all==false) {
+    runCycles(max_sim_time, dut, m_trace);
+  } else {
+    while(dut->exit_valid_o==1) {
+      runCycles(500, dut, m_trace);
+    }
+  }
+
+  if(dut->exit_valid_o==1) {
+    std::cout<<"Program Finished with value "<<dut->exit_value_o<<std::endl;
+    exit_val = EXIT_SUCCESS;
+  } else exit_val = EXIT_FAILURE;
 
   m_trace->close();
   delete dut;
-  exit(EXIT_SUCCESS);
+
+  exit(exit_val);
 
 }
