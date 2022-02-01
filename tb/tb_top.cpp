@@ -123,7 +123,7 @@ int main (int argc, char * argv[])
   if(run_all==false) {
     runCycles(max_sim_time, dut, m_trace);
   } else {
-    while(dut->exit_valid_o==1) {
+    while(dut->exit_valid_o!=1) {
       runCycles(500, dut, m_trace);
     }
   }
