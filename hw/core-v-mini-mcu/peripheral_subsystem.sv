@@ -27,12 +27,16 @@ module peripheral_subsystem import obi_pkg::*;
 
     import core_v_mini_mcu_pkg::*;
     import reg_pkg::*;
+    import tlul_pkg::*;
 
     reg_pkg::reg_req_t peripheral_req;
     reg_pkg::reg_rsp_t peripheral_rsp;
 
     reg_pkg::reg_req_t [core_v_mini_mcu_pkg::SYSTEM_NPERIPHERALS-1:0] peripheral_slv_req;
     reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::SYSTEM_NPERIPHERALS-1:0] peripheral_slv_rsp;
+
+    tlul_pkg::tl_h2d_t uart_tl_h2d;
+    tlul_pkg::tl_d2h_t uart_tl_d2h;
 
     //Address Decoder
     logic [core_v_mini_mcu_pkg::PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
@@ -87,14 +91,20 @@ module peripheral_subsystem import obi_pkg::*;
         .out_rsp_i(peripheral_slv_rsp)
     );
 
-    uart #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
-    ) uart_i (
+    reg_to_tlul reg_to_tlul_i
+    (
+      .tl_o(uart_tl_h2d),
+      .tl_i(uart_tl_d2h),
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::UART_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::UART_IDX])
+
+    );
+
+    uart uart_i (
         .clk_i,
         .rst_ni,
-        .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::UART_IDX]),
-        .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::UART_IDX]),
+        .tl_i(uart_tl_h2d),
+        .tl_o(uart_tl_d2h),
         .cio_rx_i(uart_rx_i),
         .cio_tx_o(uart_tx_o),
         .cio_tx_en_o(uart_tx_en_o),

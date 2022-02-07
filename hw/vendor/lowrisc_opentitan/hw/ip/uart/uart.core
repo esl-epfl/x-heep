@@ -7,8 +7,9 @@ description: "uart"
 filesets:
   files_rtl:
     depend:
+      - lowrisc:constants:top_pkg
       - lowrisc:prim:all
-      - pulp-platform.org::register_interface
+      - lowrisc:ip:tlul
     files:
       - rtl/uart_reg_pkg.sv
       - rtl/uart_reg_top.sv

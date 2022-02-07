@@ -1,0 +1,16 @@
+CAPI=2:
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+name: "lowrisc:ip:tlul:0.1"
+description: "Transition core for TL-UL (deprecated)"
+
+filesets:
+  files_rtl:
+    depend:
+      - lowrisc:tlul:adapter_reg
+
+targets:
+  default:
+    filesets:
+      - files_rtl

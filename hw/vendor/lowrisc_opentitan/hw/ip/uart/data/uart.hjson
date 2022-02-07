@@ -4,7 +4,7 @@
 { name: "uart",
   clock_primary: "clk_i",
   bus_interfaces: [
-    { protocol: "reg_iface", direction: "device" }
+    { protocol: "tlul", direction: "device" }
   ],
   available_input_list: [
     { name: "rx", desc: "Serial receive bit" }

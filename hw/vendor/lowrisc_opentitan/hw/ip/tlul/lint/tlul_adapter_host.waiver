@@ -1,0 +1,14 @@
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# waiver file for TLUL elements lint
+
+waive -rules {HIER_BRANCH_NOT_READ INPUT_NOT_READ} \
+      -location {tlul_adapter_host.sv} \
+      -regexp {'(clk_i|rst_ni)' is not read from} \
+      -comment "These 2 signals are only used by assertions"
+waive -rules {HIER_NET_NOT_READ INPUT_NOT_READ} \
+      -location {tlul_adapter_host.sv} \
+      -regexp {'tl_i.d_(error|opcode|param|sink|size|source|user)' is not read from} \
+      -comment "Not all fields of response needed"
