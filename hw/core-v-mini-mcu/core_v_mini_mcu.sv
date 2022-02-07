@@ -29,8 +29,6 @@ module core_v_mini_mcu #(
     output logic        jtag_tdo_o,
 
     input  logic        fetch_enable_i,
-    output logic        tests_passed_o,
-    output logic        tests_failed_o,
     output logic [31:0] exit_value_o,
     output logic        exit_valid_o
 );
@@ -52,6 +50,11 @@ module core_v_mini_mcu #(
   obi_resp_t    core_data_resp;
   obi_req_t     debug_master_req;
   obi_resp_t    debug_master_resp;
+
+  obi_req_t     ram0_slave_req;
+  obi_resp_t    ram0_slave_resp;
+  obi_req_t     ram1_slave_req;
+  obi_resp_t    ram1_slave_resp;
   obi_req_t     debug_slave_req;
   obi_resp_t    debug_slave_resp;
   obi_req_t     peripheral_slave_req;
@@ -195,6 +198,41 @@ module core_v_mini_mcu #(
 
   );
 
+  system_bus #(
+      .NUM_BYTES(NUM_BYTES)
+  ) system_bus_i (
+    .clk_i (clk_i),
+    .rst_ni(rst_ni),
+
+    .core_instr_req_i        ( core_instr_req        ),
+    .core_instr_resp_o       ( core_instr_resp       ),
+    .core_data_req_i         ( core_data_req         ),
+    .core_data_resp_o        ( core_data_resp        ),
+    .debug_master_req_i      ( debug_master_req      ),
+    .debug_master_resp_o     ( debug_master_resp     ),
+
+    .ram0_req_o              ( ram0_slave_req        ),
+    .ram0_resp_i             ( ram0_slave_resp       ),
+    .ram1_req_o              ( ram1_slave_req        ),
+    .ram1_resp_i             ( ram1_slave_resp       ),
+    .debug_slave_req_o       ( debug_slave_req       ),
+    .debug_slave_resp_i      ( debug_slave_resp      ),
+    .peripheral_slave_req_o  ( peripheral_slave_req  ),
+    .peripheral_slave_resp_i ( peripheral_slave_resp )
+
+  );
+
+  memory_subsystem #(
+      .NUM_BYTES(NUM_BYTES)
+  ) memory_subsystem_i (
+    .clk_i,
+    .rst_ni,
+    .ram0_req_i(ram0_slave_req),
+    .ram0_resp_o(ram0_slave_resp),
+    .ram1_req_i(ram1_slave_req),
+    .ram1_resp_o(ram1_slave_resp)
+  );
+
   peripheral_subsystem peripheral_subsystem_i
   (
     .clk_i,
@@ -203,8 +241,6 @@ module core_v_mini_mcu #(
     .slave_req_i(peripheral_slave_req),
     .slave_resp_o(peripheral_slave_resp),
 
-    .tests_passed_o(tests_passed_o),
-    .tests_failed_o(tests_failed_o),
     .exit_valid_o  (exit_valid_o),
     .exit_value_o  (exit_value_o),
 
@@ -219,37 +255,14 @@ module core_v_mini_mcu #(
     .uart_intr_rx_break_err_o() ,
     .uart_intr_rx_timeout_o()   ,
     .uart_intr_rx_parity_err_o()
-
   );
 
-  // this handles read to RAM and memory mapped pseudo peripherals
-  mm_ram #(
-      .NUM_BYTES(NUM_BYTES)
-  ) ram_i (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+  assign irq_ack      = '0;
+  assign irq_id_out   = '0;
+  assign irq_software = '0;
+  assign irq_timer    = '0;
+  assign irq_external = '0;
+  assign irq_fast     = '0;
 
-      .core_instr_req_i  ( core_instr_req   ),
-      .core_instr_resp_o ( core_instr_resp  ),
-      .core_data_req_i   ( core_data_req    ),
-      .core_data_resp_o  ( core_data_resp   ),
-      .debug_master_req_i  ( debug_master_req ),
-      .debug_master_resp_o ( debug_master_resp ),
-
-      .debug_slave_req_o  ( debug_slave_req ),
-      .debug_slave_resp_i ( debug_slave_resp ),
-
-      .peripheral_slave_req_o  ( peripheral_slave_req ),
-      .peripheral_slave_resp_i ( peripheral_slave_resp ),
-
-      .irq_id_i (irq_id_out),
-      .irq_ack_i(irq_ack),
-
-      // output irq lines to Core
-      .irq_software_o(irq_software),
-      .irq_timer_o   (irq_timer),
-      .irq_external_o(irq_external),
-      .irq_fast_o    (irq_fast)
-  );
 
 endmodule  // cv32e40p_tb_subsystem

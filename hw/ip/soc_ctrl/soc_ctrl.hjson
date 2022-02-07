@@ -8,14 +8,6 @@
   ],
   regwidth: "32",
   registers: [
-    { name: "SCRATCH_REG",
-      desc: "Scratch Register - Used by testbench to check if tests passed",
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-          { bits: "31:0", name: "SCRATCH", desc: "Scratch Reg" }
-      ]
-    },
     { name:     "EXIT_VALID",
       desc:     "Exit Valid - Used to write exit valid bit",
       swaccess: "rw",

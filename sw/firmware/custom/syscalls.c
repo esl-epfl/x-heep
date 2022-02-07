@@ -26,12 +26,10 @@ extern int errno;
 
 /* write to this reg for outputting strings */
 #define STDOUT_REG 0x10000000
-/* write test result of program to this reg */
-#define RESULT_REG 0x20000000
 /* write exit valid of program to this reg */
-#define EXIT_VALID_REG 0x20000004
+#define EXIT_VALID_REG 0x20000000
 /* write exit value of program to this reg */
-#define EXIT_REG 0x20000008
+#define EXIT_REG 0x20000004
 
 
 #define STDOUT_FILENO 1

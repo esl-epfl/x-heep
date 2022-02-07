@@ -25,7 +25,8 @@ filesets:
     - hw/core-v-mini-mcu/include/reg_pkg.sv
     - hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
-    - hw/core-v-mini-mcu/mm_ram.sv
+    - hw/core-v-mini-mcu/memory_subsystem.sv
+    - hw/core-v-mini-mcu/system_bus.sv
     - hw/core-v-mini-mcu/system_xbar.sv
     - hw/core-v-mini-mcu/debug_subsystem.sv
     - hw/core-v-mini-mcu/peripheral_subsystem.sv

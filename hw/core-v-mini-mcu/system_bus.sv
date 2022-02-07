@@ -8,19 +8,19 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
-// RAM and MM wrapper for RI5CY
+// System bus for core-v-mini-mcu
 // Contributor: Jeremy Bennett <jeremy.bennett@embecosm.com>
 //              Robert Balas <balasr@student.ethz.ch>
-//
-// This maps the dp_ram module to the instruction and data ports of the RI5CY
-// processor core and some pseudo peripherals
+//              Davide Schiavone <davide@openhwgroup.org>
 
-module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
+
+module system_bus import obi_pkg::*; import addr_map_rule_pkg::*; #(
     parameter NUM_BYTES = 2**16
 ) (
     input logic clk_i,
     input logic rst_ni,
 
+    //Masters
     input  obi_req_t     core_instr_req_i,
     output obi_resp_t    core_instr_resp_o,
 
@@ -30,29 +30,23 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
     input  obi_req_t     debug_master_req_i,
     output obi_resp_t    debug_master_resp_o,
 
+    //Slaves
+    output obi_req_t     ram0_req_o,
+    input  obi_resp_t    ram0_resp_i,
+
+    output obi_req_t     ram1_req_o,
+    input  obi_resp_t    ram1_resp_i,
+
     output obi_req_t     debug_slave_req_o,
     input  obi_resp_t    debug_slave_resp_i,
 
     output obi_req_t     peripheral_slave_req_o,
-    input  obi_resp_t    peripheral_slave_resp_i,
+    input  obi_resp_t    peripheral_slave_resp_i
 
-    input logic [4:0]    irq_id_i,
-    input logic          irq_ack_i,
-
-    output logic         irq_software_o,
-    output logic         irq_timer_o,
-    output logic         irq_external_o,
-    output logic [15:0]  irq_fast_o
 );
 
   import core_v_mini_mcu_pkg::*;
 
-  localparam logic [4:0] TIMER_IRQ_ID = 7;
-  localparam logic [4:0] IRQ_MAX_ID = 31;
-  localparam logic [4:0] IRQ_MIN_ID = 26;
-
-  localparam int NumWords  = NUM_BYTES/4;
-  localparam int AddrWidth = $clog2(NUM_BYTES);
 
   typedef enum logic [1:0] {
     T_RAM,
@@ -65,11 +59,6 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
   obi_resp_t[core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0]  master_resp;
   obi_req_t[core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0]    slave_req;
   obi_resp_t[core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0]   slave_resp;
-
-  obi_req_t   ram0_req;
-  obi_resp_t  ram0_resp;
-  obi_req_t   ram1_req;
-  obi_resp_t  ram1_resp;
 
   // signals for handshake
   logic data_rvalid_q;
@@ -85,25 +74,9 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
   logic [31:0] sig_begin_d, sig_begin_q;
 
   // signals to timer
-  logic [31:0] timer_irq_mask_q;
   logic [31:0] timer_cnt_q;
-  logic        irq_timer_q;
-  logic        timer_reg_valid;
   logic        timer_val_valid;
   logic [31:0] timer_wdata;
-
-
-  // IRQ related internal signals
-
-  // struct irq_lines
-  typedef struct packed {
-    logic irq_software;
-    logic irq_timer;
-    logic irq_external;
-    logic [15:0] irq_fast;
-  } Interrupts_tb_t;
-
-  Interrupts_tb_t irq_rnd_lines;
 
   //master req
   assign master_req[core_v_mini_mcu_pkg::CORE_INSTR_IDX]   = core_instr_req_i;
@@ -121,14 +94,14 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
   assign debug_master_resp_o =  master_resp[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX];
 
   //slave req
-  assign ram0_req                                   = slave_req[core_v_mini_mcu_pkg::RAM0_IDX];
-  assign ram1_req                                   = slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
-  assign debug_slave_req_o                          = slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
-  assign peripheral_slave_req_o                     = slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
+  assign ram0_req_o                                      = slave_req[core_v_mini_mcu_pkg::RAM0_IDX];
+  assign ram1_req_o                                      = slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
+  assign debug_slave_req_o                               = slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
+  assign peripheral_slave_req_o                          = slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
 
   //slave resp
-  assign slave_resp[core_v_mini_mcu_pkg::RAM0_IDX]       = ram0_resp;
-  assign slave_resp[core_v_mini_mcu_pkg::RAM1_IDX]       = ram1_resp;
+  assign slave_resp[core_v_mini_mcu_pkg::RAM0_IDX]       = ram0_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::RAM1_IDX]       = ram1_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX]      = debug_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::ERROR_IDX]      = '0;
@@ -140,7 +113,6 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
     print_wdata     = '0;
     print_valid     = '0;
     timer_wdata     = '0;
-    timer_reg_valid = '0;
     timer_val_valid = '0;
     sig_end_d       = sig_end_q;
     sig_begin_d     = sig_begin_q;
@@ -154,7 +126,6 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
           perip_gnt   = 1'b1;
         end else if (core_data_req_i.addr == 32'h1500_0000) begin
           timer_wdata = core_data_req_i.wdata;
-          timer_reg_valid = '1;
           perip_gnt    = 1'b1;
 
         end else if (core_data_req_i.addr == 32'h1500_0004) begin
@@ -238,25 +209,15 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
   // 1 to 0, and interrupt request (irq_q) is made (masked by timer_irq_mask_q).
   always_ff @(posedge clk_i, negedge rst_ni) begin : tb_timer
     if (~rst_ni) begin
-      timer_irq_mask_q <= '0;
       timer_cnt_q      <= '0;
-      irq_timer_q      <= '0;
     end else begin
-      // set timer irq mask
-      if (timer_reg_valid) begin
-        timer_irq_mask_q <= timer_wdata;
 
         // write timer value
-      end else if (timer_val_valid) begin
+      if (timer_val_valid) begin
         timer_cnt_q <= timer_wdata;
 
       end else begin
         if (timer_cnt_q > 0) timer_cnt_q <= timer_cnt_q - 1;
-
-        if (timer_cnt_q == 1) irq_timer_q <= 1'b1 && timer_irq_mask_q[TIMER_IRQ_ID];
-
-        if (irq_ack_i == 1'b1 && irq_id_i == TIMER_IRQ_ID) irq_timer_q <= '0;
-
       end
     end
   end
@@ -280,39 +241,6 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
       .slave_resp_i(slave_resp)
   );
 
-  assign ram0_resp.gnt = ram0_req.req;
-  sram_wrapper #(
-    .NumWords(NumWords/2),
-    .DataWidth(32'd32)
-  ) ram0_i (
-    .clk_i  (clk_i),
-    .rst_ni (rst_ni),
-    .req_i  (ram0_req.req),
-    .we_i   (ram0_req.we),
-    .addr_i (ram0_req.addr[AddrWidth-1-1:2]),
-    .wdata_i(ram0_req.wdata),
-    .be_i   (ram0_req.be),
-    // output ports
-    .rdata_o(ram0_resp.rdata)
-  );
-
-
-  assign ram1_resp.gnt = ram1_req.req;
-  //8Kwords per bank (32KB)
-  sram_wrapper #(
-    .NumWords(NumWords/2),
-    .DataWidth(32'd32)
-  ) ram1_i (
-    .clk_i  (clk_i),
-    .rst_ni (rst_ni),
-    .req_i  (ram1_req.req),
-    .we_i   (ram1_req.we),
-    .addr_i (ram1_req.addr[AddrWidth-1-1:2]),
-    .wdata_i(ram1_req.wdata),
-    .be_i   (ram1_req.be),
-    // output ports
-    .rdata_o(ram1_resp.rdata)
-  );
 
 
   always_ff @(posedge clk_i, negedge rst_ni) begin
@@ -342,11 +270,5 @@ module mm_ram import obi_pkg::*; import addr_map_rule_pkg::*; #(
     end
   end
 
-
-  // IRQ SIGNALS ROUTING
-  assign irq_software_o = '0;
-  assign irq_timer_o    = '0;
-  assign irq_external_o = '0;
-  assign irq_fast_o     = '0;
 
 endmodule  // ram

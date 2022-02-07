@@ -16,15 +16,12 @@ extern "C" {
 // Register width
 #define SOC_CTRL_PARAM_REG_WIDTH 32
 
-// Scratch Register - Used by testbench to check if tests passed
-#define SOC_CTRL_SCRATCH_REG_REG_OFFSET 0x0
-
 // Exit Valid - Used to write exit valid bit
-#define SOC_CTRL_EXIT_VALID_REG_OFFSET 0x4
+#define SOC_CTRL_EXIT_VALID_REG_OFFSET 0x0
 #define SOC_CTRL_EXIT_VALID_EXIT_VALID_BIT 0
 
 // Exit Value - Used to write exit value register
-#define SOC_CTRL_EXIT_VALUE_REG_OFFSET 0x8
+#define SOC_CTRL_EXIT_VALUE_REG_OFFSET 0x4
 
 #ifdef __cplusplus
 }  // extern "C"

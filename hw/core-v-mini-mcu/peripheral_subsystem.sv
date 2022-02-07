@@ -7,8 +7,6 @@ module peripheral_subsystem import obi_pkg::*;
     output obi_resp_t   slave_resp_o,
 
     //SOC CTRL
-    output logic         tests_passed_o,
-    output logic         tests_failed_o,
     output logic         exit_valid_o,
     output logic [31:0]  exit_value_o,
 
@@ -118,8 +116,6 @@ module peripheral_subsystem import obi_pkg::*;
        .rst_ni,
        .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
        .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
-       .tests_passed_o,
-       .tests_failed_o,
        .exit_valid_o,
        .exit_value_o
     );

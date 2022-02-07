@@ -20,7 +20,7 @@ task tb_util_WriteToSram0;
   input [7:0]   val2;
   input [7:0]   val1;
   input [7:0]   val0;
-  ram_i.ram0_i.tc_ram_i.sram[addr] = {val3, val2, val1, val0};
+  memory_subsystem_i.ram0_i.tc_ram_i.sram[addr] = {val3, val2, val1, val0};
 endtask
 
 task tb_util_WriteToSram1;
@@ -29,6 +29,6 @@ task tb_util_WriteToSram1;
   input [7:0]   val2;
   input [7:0]   val1;
   input [7:0]   val0;
-  ram_i.ram1_i.tc_ram_i.sram[addr] = {val3, val2, val1, val0};
+  memory_subsystem_i.ram1_i.tc_ram_i.sram[addr] = {val3, val2, val1, val0};
 endtask
 `endif

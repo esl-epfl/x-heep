@@ -10,7 +10,7 @@
 module soc_ctrl_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 4
+    parameter int AW = 3
 ) (
   input clk_i,
   input rst_ni,
@@ -67,9 +67,6 @@ module soc_ctrl_reg_top #(
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
   //        or <reg>_{wd|we|qs} if field == 1 or 0
-  logic [31:0] scratch_reg_qs;
-  logic [31:0] scratch_reg_wd;
-  logic scratch_reg_we;
   logic exit_valid_qs;
   logic exit_valid_wd;
   logic exit_valid_we;
@@ -78,33 +75,6 @@ module soc_ctrl_reg_top #(
   logic exit_value_we;
 
   // Register instances
-  // R[scratch_reg]: V(False)
-
-  prim_subreg #(
-    .DW      (32),
-    .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_scratch_reg (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (scratch_reg_we),
-    .wd     (scratch_reg_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.scratch_reg.q ),
-
-    // to register interface (read)
-    .qs     (scratch_reg_qs)
-  );
-
-
   // R[exit_valid]: V(False)
 
   prim_subreg #(
@@ -161,12 +131,11 @@ module soc_ctrl_reg_top #(
 
 
 
-  logic [2:0] addr_hit;
+  logic [1:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[0] = (reg_addr == SOC_CTRL_SCRATCH_REG_OFFSET);
-    addr_hit[1] = (reg_addr == SOC_CTRL_EXIT_VALID_OFFSET);
-    addr_hit[2] = (reg_addr == SOC_CTRL_EXIT_VALUE_OFFSET);
+    addr_hit[0] = (reg_addr == SOC_CTRL_EXIT_VALID_OFFSET);
+    addr_hit[1] = (reg_addr == SOC_CTRL_EXIT_VALUE_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -175,17 +144,13 @@ module soc_ctrl_reg_top #(
   always_comb begin
     wr_err = (reg_we &
               ((addr_hit[0] & (|(SOC_CTRL_PERMIT[0] & ~reg_be))) |
-               (addr_hit[1] & (|(SOC_CTRL_PERMIT[1] & ~reg_be))) |
-               (addr_hit[2] & (|(SOC_CTRL_PERMIT[2] & ~reg_be)))));
+               (addr_hit[1] & (|(SOC_CTRL_PERMIT[1] & ~reg_be)))));
   end
 
-  assign scratch_reg_we = addr_hit[0] & reg_we & !reg_error;
-  assign scratch_reg_wd = reg_wdata[31:0];
-
-  assign exit_valid_we = addr_hit[1] & reg_we & !reg_error;
+  assign exit_valid_we = addr_hit[0] & reg_we & !reg_error;
   assign exit_valid_wd = reg_wdata[0];
 
-  assign exit_value_we = addr_hit[2] & reg_we & !reg_error;
+  assign exit_value_we = addr_hit[1] & reg_we & !reg_error;
   assign exit_value_wd = reg_wdata[31:0];
 
   // Read data return
@@ -193,14 +158,10 @@ module soc_ctrl_reg_top #(
     reg_rdata_next = '0;
     unique case (1'b1)
       addr_hit[0]: begin
-        reg_rdata_next[31:0] = scratch_reg_qs;
-      end
-
-      addr_hit[1]: begin
         reg_rdata_next[0] = exit_valid_qs;
       end
 
-      addr_hit[2]: begin
+      addr_hit[1]: begin
         reg_rdata_next[31:0] = exit_value_qs;
       end
 

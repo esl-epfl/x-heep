@@ -178,8 +178,6 @@ module tb_top #(
       .clk_i         ( clk          ),
       .rst_ni        ( rst_n        ),
       .fetch_enable_i( fetch_enable ),
-      .tests_passed_o( tests_passed ),
-      .tests_failed_o( tests_failed ),
       .exit_valid_o  ( exit_valid   ),
       .exit_value_o  ( exit_value   ),
       .jtag_tck_i    ( jtag_tck     ),
