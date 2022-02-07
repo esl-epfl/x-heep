@@ -11,13 +11,9 @@
 // Contributor: Robert Balas <balasr@student.ethz.ch>
 
 module core_v_mini_mcu #(
-    parameter JTAG_IDCODE = 32'h10001c05,
-    parameter BOOT_ADDR = 'h180,
     parameter PULP_XPULP = 0,
-    parameter PULP_CLUSTER = 0,
-    parameter FPU = 0,
-    parameter PULP_ZFINX = 0,
-    parameter NUM_MHPMCOUNTERS = 1
+    parameter FPU        = 0,
+    parameter PULP_ZFINX = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -41,6 +37,11 @@ module core_v_mini_mcu #(
 
   localparam NUM_BYTES      = 2**16; //must be 2**16, it is not a parameter!!!
   localparam DM_HALTADDRESS = core_v_mini_mcu_pkg::DEBUG_START_ADDRESS + 32'h00000800; //debug rom code (section .text in linker) starts at 0x800
+
+  localparam JTAG_IDCODE      = 32'h10001c05;
+  localparam BOOT_ADDR        = 'h180;
+  localparam NUM_MHPMCOUNTERS = 1;
+
 
   // signals connecting core to memory
 
@@ -71,110 +72,28 @@ module core_v_mini_mcu #(
   logic                               irq_external;
   logic [                 15:0]       irq_fast;
 
-  logic                               core_sleep_o;
 
-  // APU Core to FP Wrapper
-  logic                               apu_req;
-  logic [    APU_NARGS_CPU-1:0][31:0] apu_operands;
-  logic [      APU_WOP_CPU-1:0]       apu_op;
-  logic [ APU_NDSFLAGS_CPU-1:0]       apu_flags;
-
-
-  // APU FP Wrapper to Core
-  logic                               apu_gnt;
-  logic                               apu_rvalid;
-  logic [                 31:0]       apu_rdata;
-  logic [ APU_NUSFLAGS_CPU-1:0]       apu_rflags;
-
-
-
-  assign core_instr_req.wdata = '0;
-  assign core_instr_req.we    = '0;
-  assign core_instr_req.be    = 4'b1111;
-
-  // instantiate the core
-  cv32e40p_wrapper #(
-      .PULP_XPULP      (PULP_XPULP),
-      .PULP_CLUSTER    (PULP_CLUSTER),
-      .FPU             (FPU),
-      .PULP_ZFINX      (PULP_ZFINX),
-      .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS)
-  ) cv32e40p_wrapper_i (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      .pulp_clock_en_i     (1'b1),
-      .scan_cg_en_i        (1'b0),
-
-      .boot_addr_i         (BOOT_ADDR),
-      .mtvec_addr_i        (32'h0),
-      .dm_halt_addr_i      (DM_HALTADDRESS),
-      .hart_id_i           (32'h0),
-      .dm_exception_addr_i (32'h0),
-
-      .instr_addr_o        (core_instr_req.addr),
-      .instr_req_o         (core_instr_req.req),
-      .instr_rdata_i       (core_instr_resp.rdata),
-      .instr_gnt_i         (core_instr_resp.gnt),
-      .instr_rvalid_i      (core_instr_resp.rvalid),
-
-      .data_addr_o         (core_data_req.addr),
-      .data_wdata_o        (core_data_req.wdata),
-      .data_we_o           (core_data_req.we),
-      .data_req_o          (core_data_req.req),
-      .data_be_o           (core_data_req.be),
-      .data_rdata_i        (core_data_resp.rdata),
-      .data_gnt_i          (core_data_resp.gnt),
-      .data_rvalid_i       (core_data_resp.rvalid),
-
-      .apu_req_o           (apu_req),
-      .apu_gnt_i           (apu_gnt),
-      .apu_operands_o      (apu_operands),
-      .apu_op_o            (apu_op),
-      .apu_flags_o         (apu_flags),
-      .apu_rvalid_i        (apu_rvalid),
-      .apu_result_i        (apu_rdata),
-      .apu_flags_i         (apu_rflags),
-
-      .irq_i               ({irq_fast, 4'b0, irq_external, 3'b0, irq_timer, 3'b0, irq_software, 3'b0}),
-      .irq_ack_o           (irq_ack),
-      .irq_id_o            (irq_id_out),
-
-      .debug_req_i         (debug_core_req),
-      .debug_havereset_o   (),
-      .debug_running_o     (),
-      .debug_halted_o      (),
-
-      .fetch_enable_i      (fetch_enable_i),
-      .core_sleep_o        (core_sleep_o)
+  cpu_subsystem #(
+    .BOOT_ADDR        (BOOT_ADDR),
+    .PULP_XPULP       (PULP_XPULP),
+    .FPU              (FPU),
+    .PULP_ZFINX       (PULP_ZFINX),
+    .NUM_MHPMCOUNTERS (NUM_MHPMCOUNTERS),
+    .DM_HALTADDRESS   (DM_HALTADDRESS)
+  ) cpu_subsystem_i (
+      // Clock and Reset
+      .clk_i,
+      .rst_ni,
+      .core_instr_req_o(core_instr_req),
+      .core_instr_resp_i(core_instr_resp),
+      .core_data_req_o(core_data_req),
+      .core_data_resp_i(core_data_resp),
+      .irq_i({irq_fast, 4'b0, irq_external, 3'b0, irq_timer, 3'b0, irq_software, 3'b0}),
+      .irq_ack_o(irq_ack),
+      .irq_id_o(irq_id_out),
+      .debug_req_i(debug_core_req),
+      .fetch_enable_i(fetch_enable_i)
   );
-
-
-
-  generate
-    if (FPU) begin
-      cv32e40p_fp_wrapper fp_wrapper_i (
-          .clk_i         (clk_i),
-          .rst_ni        (rst_ni),
-          .apu_req_i     (apu_req),
-          .apu_gnt_o     (apu_gnt),
-          .apu_operands_i(apu_operands),
-          .apu_op_i      (apu_op),
-          .apu_flags_i   (apu_flags),
-          .apu_rvalid_o  (apu_rvalid),
-          .apu_rdata_o   (apu_rdata),
-          .apu_rflags_o  (apu_rflags)
-      );
-    end else begin
-      assign apu_gnt      = '0;
-      assign apu_operands = '0;
-      assign apu_op       = '0;
-      assign apu_flags    = '0;
-      assign apu_rvalid   = '0;
-      assign apu_rdata    = '0;
-      assign apu_rflags   = '0;
-    end
-  endgenerate
 
 
   debug_subsystem #(
@@ -257,8 +176,6 @@ module core_v_mini_mcu #(
     .uart_intr_rx_parity_err_o()
   );
 
-  assign irq_ack      = '0;
-  assign irq_id_out   = '0;
   assign irq_software = '0;
   assign irq_timer    = '0;
   assign irq_external = '0;
