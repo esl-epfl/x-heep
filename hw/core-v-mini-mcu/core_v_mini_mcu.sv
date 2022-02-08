@@ -35,7 +35,7 @@ module core_v_mini_mcu #(
   import obi_pkg::*;
   import cv32e40p_apu_core_pkg::*;
 
-  localparam NUM_BYTES      = 2**16; //must be 2**16, it is not a parameter!!!
+  localparam NUM_BYTES      = core_v_mini_mcu_pkg::MEM_SIZE;
   localparam DM_HALTADDRESS = core_v_mini_mcu_pkg::DEBUG_START_ADDRESS + 32'h00000800; //debug rom code (section .text in linker) starts at 0x800
 
   localparam JTAG_IDCODE      = 32'h10001c05;

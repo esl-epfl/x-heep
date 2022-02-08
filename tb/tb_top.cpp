@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <iostream>
 
+
 vluint64_t sim_time = 0;
 
 
@@ -42,8 +43,9 @@ void runCycles(unsigned int ncycles, Vcore_v_mini_mcu *dut, VerilatedFstC *m_tra
 int main (int argc, char * argv[])
 {
 
+  unsigned int SRAM_SIZE;
   std::string firmware, arg_max_sim_time;
-  svLogicVecVal stimuli[65536]; //2^16
+  svLogicVecVal *stimuli;
   svLogicVecVal addr;
   unsigned int max_sim_time;
   bool run_all = false;
@@ -86,6 +88,9 @@ int main (int argc, char * argv[])
     exit(EXIT_FAILURE);
   }
 
+  dut->tb_get_MemSize(&SRAM_SIZE);
+  stimuli = new svLogicVecVal[SRAM_SIZE];
+
   dut->tb_util_ReadMemh(firmware.c_str(),stimuli);
 
   dut->clk_i          = 0;
@@ -107,11 +112,11 @@ int main (int argc, char * argv[])
   runCycles(1, dut, m_trace);
   std::cout<<"Reset Released"<< std::endl;
 
-  for(i=0;i<65536/2;i+=4) {
+  for(i=0;i<SRAM_SIZE/2;i+=4) {
       addr.aval = i/4;
       dut->tb_util_WriteToSram0(&addr,&stimuli[i+3],&stimuli[i+2],&stimuli[i+1],&stimuli[i]);
   }
-  for(j=0;j<65536/2;j=j+4) {
+  for(j=0;j<SRAM_SIZE/2;j=j+4) {
       addr.aval = j/4;
       dut->tb_util_WriteToSram1(&addr,&stimuli[i+3],&stimuli[i+2],&stimuli[i+1],&stimuli[i]);
       i = i + 4;

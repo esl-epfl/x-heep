@@ -70,10 +70,12 @@ module tb_top #(
     automatic string firmware;
 
 
-    logic [7:0] stimuli [2**16];
+    logic [7:0] stimuli [];
     int i,j, NumBytes;
 
-    NumBytes = 2**16;
+    NumBytes = core_v_mini_mcu_i.tb_get_MemSize();
+
+    stimuli  = new [NumBytes];
 
     if ($value$plusargs("firmware=%s", firmware)) begin
 
@@ -83,8 +85,6 @@ module tb_top #(
         $display("[TESTBENCH] %t: loading firmware %0s ...", $time, firmware);
 
       core_v_mini_mcu_i.tb_util_ReadMemh(firmware, stimuli);
-
-      $display("azz stimuli[15] is %x",stimuli[15]);
 
       for(i=0;i<NumBytes/2;i=i+4) begin
           core_v_mini_mcu_i.tb_util_WriteToSram0(i/4, stimuli[i+3],stimuli[i+2],stimuli[i+1],stimuli[i]);

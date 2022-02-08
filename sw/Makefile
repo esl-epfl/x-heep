@@ -48,6 +48,5 @@ applications/hello_world/hello_world.elf: applications/hello_world/hello_world.c
 		firmware/custom/crt0.S \
 		$^ firmware/custom/syscalls.c firmware/custom/vectors.S \
 		-I $(RISCV)/riscv32-corev-elf/include \
-		-I mem_stall \
 		-L $(RISCV)/riscv32-corev-elf/lib \
 		-lc -lm -lgcc

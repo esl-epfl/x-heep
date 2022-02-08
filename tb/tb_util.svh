@@ -7,12 +7,22 @@
 export "DPI-C" task tb_util_ReadMemh;
 export "DPI-C" task tb_util_WriteToSram0;
 export "DPI-C" task tb_util_WriteToSram1;
+export "DPI-C" task tb_get_MemSize;
+
+import core_v_mini_mcu_pkg::*;
+
+
+task tb_get_MemSize;
+  output int mem_size;
+  mem_size = core_v_mini_mcu_pkg::MEM_SIZE;
+endtask
 
 task tb_util_ReadMemh;
   input  string file;
-  output logic [7:0] stimuli [2**16];
+  output logic [7:0] stimuli[core_v_mini_mcu_pkg::MEM_SIZE];
   $readmemh(file,stimuli);
 endtask
+
 
 task tb_util_WriteToSram0;
   input integer addr;
