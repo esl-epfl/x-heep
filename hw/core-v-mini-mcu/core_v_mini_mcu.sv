@@ -1,14 +1,6 @@
-// Copyright 2018 Robert Balas <balasr@student.ethz.ch>
-// Copyright and related rights are licensed under the Solderpad Hardware
-// License, Version 0.51 (the "License"); you may not use this file except in
-// compliance with the License.  You may obtain a copy of the License at
-// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
-// or agreed to in writing, software, hardware and materials distributed under
-// this License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the
-// specific language governing permissions and limitations under the License.
-
-// Contributor: Robert Balas <balasr@student.ethz.ch>
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 module core_v_mini_mcu #(
     parameter PULP_XPULP = 0,
@@ -28,8 +20,6 @@ module core_v_mini_mcu #(
     output logic [31:0] exit_value_o,
     output logic        exit_valid_o
 );
-
-  `include "tb_util.svh"
 
   import core_v_mini_mcu_pkg::*;
   import obi_pkg::*;
@@ -182,4 +172,4 @@ module core_v_mini_mcu #(
   assign irq_fast     = '0;
 
 
-endmodule  // cv32e40p_tb_subsystem
+endmodule  // core_v_mini_mcu

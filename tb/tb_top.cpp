@@ -2,11 +2,10 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-
 #include "verilated.h"
 #include "verilated_fst_c.h"
-#include "Vcore_v_mini_mcu.h"
-#include "Vcore_v_mini_mcu__Syms.h"
+#include "Vtestharness.h"
+#include "Vtestharness__Syms.h"
 
 #include <stdlib.h>
 #include <iostream>
@@ -31,7 +30,7 @@ std::string getCmdOption(int argc, char* argv[], const std::string& option)
      return cmd;
 }
 
-void runCycles(unsigned int ncycles, Vcore_v_mini_mcu *dut, VerilatedFstC *m_trace){
+void runCycles(unsigned int ncycles, Vtestharness *dut, VerilatedFstC *m_trace){
   for(unsigned int i = 0; i < ncycles; i++) {
     dut->clk_i ^= 1;
     dut->eval();
@@ -52,7 +51,7 @@ int main (int argc, char * argv[])
   Verilated::commandArgs(argc, argv);
 
   // Instantiate the model
-  Vcore_v_mini_mcu *dut = new Vcore_v_mini_mcu;
+  Vtestharness *dut = new Vtestharness;
 
   // Open VCD
   Verilated::traceEverOn (true);
@@ -79,7 +78,7 @@ int main (int argc, char * argv[])
   }
 
 
-  svSetScope(svGetScopeFromName("TOP.core_v_mini_mcu"));
+  svSetScope(svGetScopeFromName("TOP.testharness"));
   svScope scope = svGetScope();
   if (!scope) {
     std::cout<<"Warning: svGetScope failed"<< std::endl;

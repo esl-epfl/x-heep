@@ -12,7 +12,7 @@ $ conda env create -f environment.yml
 Activate the environment with
 
 ```bash
-$ source activate core-v-mini-mcu
+$ conda activate core-v-mini-mcu
 ```
 2. Install the required Python tools:
 
@@ -123,7 +123,7 @@ $ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
 Then type:
 
 ```
-$ ./Vcore_v_mini_mcu +firmware=../../../sw/applications/hello_world/hello_world.hex
+$ ./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex
 ```
 
 Replace the  `.hex` file with your own application if you want to run another pre-compiled application.

@@ -19,7 +19,6 @@ filesets:
     - openhwgroup.org:ip:soc_ctrl
     - lowrisc:ip:uart:0.1
     files:
-    - tb/tb_util.svh: {is_include_file: true}
     - hw/core-v-mini-mcu/include/addr_map_rule_pkg.sv
     - hw/core-v-mini-mcu/include/obi_pkg.sv
     - hw/core-v-mini-mcu/include/reg_pkg.sv
@@ -68,11 +67,15 @@ filesets:
 
   tb-rtl:
     files:
+    - tb/tb_util.svh: {is_include_file: true}
+    - tb/testharness.sv
     - tb/tb_top.sv
     file_type: systemVerilogSource
 
   tb-verilator:
     files:
+    - tb/tb_util.svh: {is_include_file: true}
+    - tb/testharness.sv
     - tb/tb_top.cpp
     file_type: cppSource
 
@@ -131,7 +134,7 @@ targets:
     - tool_verilator? (tb-verilator)
     toplevel:
     - tool_modelsim? (tb_top)
-    - tool_verilator? (core_v_mini_mcu)
+    - tool_verilator? (testharness)
     parameters:
     - PULP_XPULP=0
     tools:
