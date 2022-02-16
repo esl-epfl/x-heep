@@ -1,3 +1,7 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
 module debug_subsystem import obi_pkg::*; #(
   parameter JTAG_IDCODE = 32'h10001c05
 )(

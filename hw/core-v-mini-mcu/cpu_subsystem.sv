@@ -1,3 +1,7 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
 module cpu_subsystem import obi_pkg::*; #(
     parameter BOOT_ADDR     = 'h180,
     parameter PULP_XPULP    =  0,                   // PULP ISA Extension (incl. custom CSRs and hardware loop, excl. p.elw)
