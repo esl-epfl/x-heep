@@ -190,3 +190,9 @@ Only Vivado 2019.1.1 has been tried.
 ```
 $ python ./util/mcu_gen.py --cfg mcu_cfg.hjson --outdir ./hw/core-v-mini-mcu/include/ --pkg-sv ./hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
 ```
+
+## Files are formatted with Verible
+
+We use version v0.0-1824-ga3b5bedf
+
+See: [Install Verible](https://docs.opentitan.org/doc/ug/install_instructions/)
