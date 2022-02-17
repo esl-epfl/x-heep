@@ -130,10 +130,12 @@ targets:
     filesets_append:
     - rtl-simulation
     - tool_modelsim? (tb-rtl)
+    - tool_vcs? (tb-rtl)
     - tool_verilator? (files_verilator_waiver)
     - tool_verilator? (tb-verilator)
     toplevel:
     - tool_modelsim? (tb_top)
+    - tool_vcs? (tb_top)
     - tool_verilator? (testharness)
     parameters:
     - PULP_XPULP=0
@@ -144,6 +146,10 @@ targets:
         - -suppress vlog-2583
         - -suppress vlog-2577
         - -pedanticerrors
+      vcs:
+        vcs_options:
+         - -assert disable_cover
+         - -assert svaext
       verilator:
         mode: cc
         verilator_options:

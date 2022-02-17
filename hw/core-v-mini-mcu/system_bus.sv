@@ -167,7 +167,7 @@ module system_bus
   out_of_bounds_write :
   assert property
     (@(posedge clk_i) disable iff (~rst_ni)
-     (core_data_req_i.req && core_data_req_i.we |-> core_data_req_i.addr < 2 ** AddrWidth
+     (core_data_req_i.req && core_data_req_i.we |-> core_data_req_i.addr < core_v_mini_mcu_pkg::MEM_SIZE
       || core_data_req_i.addr == 32'h1000_0000
       || core_data_req_i.addr == 32'h1500_0000
       || core_data_req_i.addr == 32'h1500_0004

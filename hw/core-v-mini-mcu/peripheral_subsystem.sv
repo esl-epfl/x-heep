@@ -48,7 +48,8 @@ module peripheral_subsystem
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
-      .rsp_t(reg_pkg::reg_rsp_t)
+      .rsp_t(reg_pkg::reg_rsp_t),
+      .IW(1)
   ) periph_to_reg_i (
       .clk_i,
       .rst_ni,

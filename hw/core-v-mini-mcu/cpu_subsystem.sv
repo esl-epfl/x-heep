@@ -129,9 +129,6 @@ module cpu_subsystem
       );
     end else begin
       assign apu_gnt      = '0;
-      assign apu_operands = '0;
-      assign apu_op       = '0;
-      assign apu_flags    = '0;
       assign apu_rvalid   = '0;
       assign apu_rdata    = '0;
       assign apu_rflags   = '0;
