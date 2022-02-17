@@ -20,44 +20,43 @@ task tb_getMemSize;
 endtask
 
 task tb_readHEX;
-  input  string file;
+  input string file;
   output logic [7:0] stimuli[core_v_mini_mcu_pkg::MEM_SIZE];
-  $readmemh(file,stimuli);
+  $readmemh(file, stimuli);
 endtask
 
 task tb_loadHEX;
-  input  string file;
+  input string file;
   logic [7:0] stimuli[core_v_mini_mcu_pkg::MEM_SIZE];
-  int i,j,NumBytes;
+  int i, j, NumBytes;
 
-  tb_readHEX(file,stimuli);
+  tb_readHEX(file, stimuli);
   tb_getMemSize(NumBytes);
 
-  for(i=0;i<NumBytes/2;i=i+4) begin
-      tb_writetoSram0(i/4, stimuli[i+3],stimuli[i+2],stimuli[i+1],stimuli[i]);
+  for (i = 0; i < NumBytes / 2; i = i + 4) begin
+    tb_writetoSram0(i / 4, stimuli[i+3], stimuli[i+2], stimuli[i+1], stimuli[i]);
   end
-  for(j=0;j<NumBytes/2;j=j+4) begin
-      tb_writetoSram1(j/4, stimuli[i+3],stimuli[i+2],stimuli[i+1],stimuli[i]);
-      i = i + 4;
+  for (j = 0; j < NumBytes / 2; j = j + 4) begin
+    tb_writetoSram1(j / 4, stimuli[i+3], stimuli[i+2], stimuli[i+1], stimuli[i]);
+    i = i + 4;
   end
 endtask
 
 task tb_writetoSram;
   input integer addr;
-  input logic [31:0]  val;
+  input logic [31:0] val;
   output integer retval;
   int mem_size;
   tb_getMemSize(mem_size);
-  if(|(addr & 32'h03)) begin
+  if (|(addr & 32'h03)) begin
     retval = 1;
     $error("Only word-aligned memory access are supported");
-  end
-  else begin
-    if(addr<mem_size/2) begin
-      tb_writetoSram0(addr,val[31:24],val[23:16],val[15:8],val[7:0]);
+  end else begin
+    if (addr < mem_size / 2) begin
+      tb_writetoSram0(addr, val[31:24], val[23:16], val[15:8], val[7:0]);
       retval = 0;
-    end else if(addr<mem_size) begin
-      tb_writetoSram1(addr,val[31:24],val[23:16],val[15:8],val[7:0]);
+    end else if (addr < mem_size) begin
+      tb_writetoSram1(addr, val[31:24], val[23:16], val[15:8], val[7:0]);
       retval = 0;
     end else begin
       retval = 1;
@@ -68,19 +67,19 @@ endtask
 
 task tb_writetoSram0;
   input integer addr;
-  input [7:0]   val3;
-  input [7:0]   val2;
-  input [7:0]   val1;
-  input [7:0]   val0;
+  input [7:0] val3;
+  input [7:0] val2;
+  input [7:0] val1;
+  input [7:0] val0;
   core_v_mini_mcu_i.memory_subsystem_i.ram0_i.tc_ram_i.sram[addr] = {val3, val2, val1, val0};
 endtask
 
 task tb_writetoSram1;
   input integer addr;
-  input [7:0]   val3;
-  input [7:0]   val2;
-  input [7:0]   val1;
-  input [7:0]   val0;
+  input [7:0] val3;
+  input [7:0] val2;
+  input [7:0] val1;
+  input [7:0] val0;
   core_v_mini_mcu_i.memory_subsystem_i.ram1_i.tc_ram_i.sram[addr] = {val3, val2, val1, val0};
 endtask
 

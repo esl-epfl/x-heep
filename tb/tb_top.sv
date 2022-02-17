@@ -33,11 +33,11 @@ module tb_top #(
 
   // signals for ri5cy
   logic               fetch_enable;
-  logic               jtag_tck    ;
-  logic               jtag_trst_n ;
-  logic               jtag_tms    ;
-  logic               jtag_tdi    ;
-  logic               jtag_tdo    ;
+  logic               jtag_tck;
+  logic               jtag_trst_n;
+  logic               jtag_tms;
+  logic               jtag_tdi;
+  logic               jtag_tdo;
 
 
   // make the core start fetching instruction immediately
@@ -58,12 +58,12 @@ module tb_top #(
 
     if ($value$plusargs("firmware=%s", firmware)) begin
 
-      wait(rst_n==1'b1);
+      wait (rst_n == 1'b1);
 
       if ($test$plusargs("verbose"))
         $display("[TESTBENCH] %t: loading firmware %0s ...", $time, firmware);
-        testharness.tb_loadHEX(firmware);
-      end else begin
+      testharness.tb_loadHEX(firmware);
+    end else begin
       $display("No firmware specified");
       $finish;
     end
@@ -124,20 +124,20 @@ module tb_top #(
 
   // wrapper for riscv, the memory system and stdout peripheral
   testharness #(
-      .PULP_XPULP       (PULP_XPULP),
-      .FPU              (FPU),
-      .PULP_ZFINX       (PULP_ZFINX)
+      .PULP_XPULP(PULP_XPULP),
+      .FPU       (FPU),
+      .PULP_ZFINX(PULP_ZFINX)
   ) testharness_i (
-      .clk_i         ( clk          ),
-      .rst_ni        ( rst_n        ),
-      .fetch_enable_i( fetch_enable ),
-      .exit_valid_o  ( exit_valid   ),
-      .exit_value_o  ( exit_value   ),
-      .jtag_tck_i    ( jtag_tck     ),
-      .jtag_trst_ni  ( jtag_trst_n  ),
-      .jtag_tms_i    ( jtag_tms     ),
-      .jtag_tdi_i    ( jtag_tdi     ),
-      .jtag_tdo_o    ( jtag_tdo     )
+      .clk_i         (clk),
+      .rst_ni        (rst_n),
+      .fetch_enable_i(fetch_enable),
+      .exit_valid_o  (exit_valid),
+      .exit_value_o  (exit_value),
+      .jtag_tck_i    (jtag_tck),
+      .jtag_trst_ni  (jtag_trst_n),
+      .jtag_tms_i    (jtag_tms),
+      .jtag_tdi_i    (jtag_tdi),
+      .jtag_tdo_o    (jtag_tdo)
   );
 
 
