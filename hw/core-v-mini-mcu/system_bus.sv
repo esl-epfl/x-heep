@@ -14,34 +14,37 @@
 //              Davide Schiavone <davide@openhwgroup.org>
 
 
-module system_bus import obi_pkg::*; import addr_map_rule_pkg::*; #(
-    parameter NUM_BYTES = 2**16
+module system_bus
+  import obi_pkg::*;
+  import addr_map_rule_pkg::*;
+#(
+    parameter NUM_BYTES = 2 ** 16
 ) (
     input logic clk_i,
     input logic rst_ni,
 
     //Masters
-    input  obi_req_t     core_instr_req_i,
-    output obi_resp_t    core_instr_resp_o,
+    input  obi_req_t  core_instr_req_i,
+    output obi_resp_t core_instr_resp_o,
 
-    input  obi_req_t     core_data_req_i,
-    output obi_resp_t    core_data_resp_o,
+    input  obi_req_t  core_data_req_i,
+    output obi_resp_t core_data_resp_o,
 
-    input  obi_req_t     debug_master_req_i,
-    output obi_resp_t    debug_master_resp_o,
+    input  obi_req_t  debug_master_req_i,
+    output obi_resp_t debug_master_resp_o,
 
     //Slaves
-    output obi_req_t     ram0_req_o,
-    input  obi_resp_t    ram0_resp_i,
+    output obi_req_t  ram0_req_o,
+    input  obi_resp_t ram0_resp_i,
 
-    output obi_req_t     ram1_req_o,
-    input  obi_resp_t    ram1_resp_i,
+    output obi_req_t  ram1_req_o,
+    input  obi_resp_t ram1_resp_i,
 
-    output obi_req_t     debug_slave_req_o,
-    input  obi_resp_t    debug_slave_resp_i,
+    output obi_req_t  debug_slave_req_o,
+    input  obi_resp_t debug_slave_resp_i,
 
-    output obi_req_t     peripheral_slave_req_o,
-    input  obi_resp_t    peripheral_slave_resp_i
+    output obi_req_t  peripheral_slave_req_o,
+    input  obi_resp_t peripheral_slave_resp_i
 
 );
 
@@ -79,32 +82,31 @@ module system_bus import obi_pkg::*; import addr_map_rule_pkg::*; #(
   logic [31:0] timer_wdata;
 
   //master req
-  assign master_req[core_v_mini_mcu_pkg::CORE_INSTR_IDX]   = core_instr_req_i;
-  assign master_req[core_v_mini_mcu_pkg::CORE_DATA_IDX]    = core_data_req_i;
+  assign master_req[core_v_mini_mcu_pkg::CORE_INSTR_IDX] = core_instr_req_i;
+  assign master_req[core_v_mini_mcu_pkg::CORE_DATA_IDX] = core_data_req_i;
   assign master_req[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX] = debug_master_req_i;
 
   //master resp
-  assign core_instr_resp_o   = master_resp[core_v_mini_mcu_pkg::CORE_INSTR_IDX];
-  always_comb
-  begin
-    core_data_resp_o         = master_resp[core_v_mini_mcu_pkg::CORE_DATA_IDX];
-    core_data_resp_o.gnt     = master_resp[core_v_mini_mcu_pkg::CORE_DATA_IDX].gnt | perip_gnt;
-    core_data_resp_o.rvalid  = data_rvalid_q;
+  assign core_instr_resp_o = master_resp[core_v_mini_mcu_pkg::CORE_INSTR_IDX];
+  always_comb begin
+    core_data_resp_o        = master_resp[core_v_mini_mcu_pkg::CORE_DATA_IDX];
+    core_data_resp_o.gnt    = master_resp[core_v_mini_mcu_pkg::CORE_DATA_IDX].gnt | perip_gnt;
+    core_data_resp_o.rvalid = data_rvalid_q;
   end
-  assign debug_master_resp_o =  master_resp[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX];
+  assign debug_master_resp_o = master_resp[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX];
 
   //slave req
-  assign ram0_req_o                                      = slave_req[core_v_mini_mcu_pkg::RAM0_IDX];
-  assign ram1_req_o                                      = slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
-  assign debug_slave_req_o                               = slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
-  assign peripheral_slave_req_o                          = slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
+  assign ram0_req_o = slave_req[core_v_mini_mcu_pkg::RAM0_IDX];
+  assign ram1_req_o = slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
+  assign debug_slave_req_o = slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
+  assign peripheral_slave_req_o = slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
 
   //slave resp
-  assign slave_resp[core_v_mini_mcu_pkg::RAM0_IDX]       = ram0_resp_i;
-  assign slave_resp[core_v_mini_mcu_pkg::RAM1_IDX]       = ram1_resp_i;
-  assign slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX]      = debug_slave_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::RAM0_IDX] = ram0_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::RAM1_IDX] = ram1_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX] = debug_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
-  assign slave_resp[core_v_mini_mcu_pkg::ERROR_IDX]      = '0;
+  assign slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = '0;
 
   // handle the mapping of read and writes to either memory or pseudo
   // peripherals (currently just a redirection of writes to stdout)
@@ -126,7 +128,7 @@ module system_bus import obi_pkg::*; import addr_map_rule_pkg::*; #(
           perip_gnt   = 1'b1;
         end else if (core_data_req_i.addr == 32'h1500_0000) begin
           timer_wdata = core_data_req_i.wdata;
-          perip_gnt    = 1'b1;
+          perip_gnt   = 1'b1;
 
         end else if (core_data_req_i.addr == 32'h1500_0004) begin
           timer_wdata = core_data_req_i.wdata;
@@ -134,7 +136,7 @@ module system_bus import obi_pkg::*; import addr_map_rule_pkg::*; #(
           perip_gnt = 1'b1;
 
         end else if (core_data_req_i.addr[31:0] < NUM_BYTES) begin
-          transaction     = T_RAM;
+          transaction = T_RAM;
           // out of bounds write
         end else if ((core_data_req_i.addr >=  PERIPHERAL_START_ADDRESS && core_data_req_i.addr < PERIPHERAL_END_ADDRESS)) begin
           transaction = T_PER;
@@ -147,13 +149,13 @@ module system_bus import obi_pkg::*; import addr_map_rule_pkg::*; #(
           perip_gnt   = 1'b1;
         end else if (core_data_req_i.addr[31:0] < NUM_BYTES) begin
           // out of bounds write
-          transaction     = T_RAM;
+          transaction = T_RAM;
         end else if ((core_data_req_i.addr >= PERIPHERAL_START_ADDRESS && core_data_req_i.addr < PERIPHERAL_END_ADDRESS)) begin
           transaction = T_PER;
           //grant from debug
         end else begin
           transaction = T_ERR;
-          $display("core add is %08x and max should be %08x",core_data_req_i.addr, NUM_BYTES );
+          $display("core add is %08x and max should be %08x", core_data_req_i.addr, NUM_BYTES);
         end
       end
     end
@@ -187,7 +189,7 @@ module system_bus import obi_pkg::*; import addr_map_rule_pkg::*; #(
   // print to stdout pseudo peripheral
   always_ff @(posedge clk_i, negedge rst_ni) begin : print_peripheral
     if (print_valid) begin
-      if ($test$plusargs("verbose")!=0) begin
+      if ($test$plusargs("verbose") != 0) begin
         if (32 <= print_wdata && print_wdata < 128) $display("OUT: '%c'", print_wdata[7:0]);
         else $display("OUT: %3d", print_wdata);
 
@@ -209,10 +211,10 @@ module system_bus import obi_pkg::*; import addr_map_rule_pkg::*; #(
   // 1 to 0, and interrupt request (irq_q) is made (masked by timer_irq_mask_q).
   always_ff @(posedge clk_i, negedge rst_ni) begin : tb_timer
     if (~rst_ni) begin
-      timer_cnt_q      <= '0;
+      timer_cnt_q <= '0;
     end else begin
 
-        // write timer value
+      // write timer value
       if (timer_val_valid) begin
         timer_cnt_q <= timer_wdata;
 
@@ -225,14 +227,13 @@ module system_bus import obi_pkg::*; import addr_map_rule_pkg::*; #(
 `ifndef SYNTHESIS
   // show writes if requested
   always_ff @(posedge clk_i, negedge rst_ni) begin : verbose_writes
-    if ($test$plusargs("verbose")!=0 && core_data_req_i.req && core_data_req_i.we)
+    if ($test$plusargs("verbose") != 0 && core_data_req_i.req && core_data_req_i.we)
       $display("write addr=0x%08x: data=0x%08x", core_data_req_i.addr, core_data_req_i.wdata);
   end
 `endif
 
 
-  system_xbar system_xbar_i
-  (
+  system_xbar system_xbar_i (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
       .master_req_i(master_req),
@@ -245,9 +246,9 @@ module system_bus import obi_pkg::*; import addr_map_rule_pkg::*; #(
 
   always_ff @(posedge clk_i, negedge rst_ni) begin
     if (~rst_ni) begin
-      data_rvalid_q  <= '0;
+      data_rvalid_q <= '0;
     end else begin
-      data_rvalid_q  <= core_data_resp_o.gnt;
+      data_rvalid_q <= core_data_resp_o.gnt;
     end
   end
 

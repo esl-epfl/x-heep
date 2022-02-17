@@ -9,31 +9,31 @@
 // specific language governing permissions and limitations under the License.
 
 module sram_wrapper #(
-  parameter int unsigned NumWords     = 32'd1024, // Number of Words in data array
-  parameter int unsigned DataWidth    = 32'd32,  // Data signal width
-  // DEPENDENT PARAMETERS, DO NOT OVERWRITE!
-  parameter int unsigned AddrWidth = (NumWords > 32'd1) ? $clog2(NumWords) : 32'd1
+    parameter int unsigned NumWords = 32'd1024,  // Number of Words in data array
+    parameter int unsigned DataWidth = 32'd32,  // Data signal width
+    // DEPENDENT PARAMETERS, DO NOT OVERWRITE!
+    parameter int unsigned AddrWidth = (NumWords > 32'd1) ? $clog2(NumWords) : 32'd1
 ) (
-  input  logic                 clk_i,      // Clock
-  input  logic                 rst_ni,     // Asynchronous reset active low
-  // input ports
-  input  logic                 req_i,      // request
-  input  logic                 we_i,       // write enable
-  input  logic [AddrWidth-1:0] addr_i,     // request address
-  input  logic [31:0]          wdata_i,    // write data
-  input  logic [3:0]           be_i,       // write byte enable
-  // output ports
-  output logic [31:0]          rdata_o     // read data
+    input  logic                 clk_i,    // Clock
+    input  logic                 rst_ni,   // Asynchronous reset active low
+    // input ports
+    input  logic                 req_i,    // request
+    input  logic                 we_i,     // write enable
+    input  logic [AddrWidth-1:0] addr_i,   // request address
+    input  logic [         31:0] wdata_i,  // write data
+    input  logic [          3:0] be_i,     // write byte enable
+    // output ports
+    output logic [         31:0] rdata_o   // read data
 );
 
   xilinx_mem_gen_0 tc_ram_i (
-    .clka    (clk_i),
-    .ena     (req_i),
-    .wea     ({4{req_i & we_i}} & be_i ),
-    .addra   (addr_i),
-    .dina    (wdata_i),
-    // output ports
-    .douta  (rdata_o)
+      .clka (clk_i),
+      .ena  (req_i),
+      .wea  ({4{req_i & we_i}} & be_i),
+      .addra(addr_i),
+      .dina (wdata_i),
+      // output ports
+      .douta(rdata_o)
   );
 
 

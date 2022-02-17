@@ -2,8 +2,10 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-module cpu_subsystem import obi_pkg::*; #(
-    parameter BOOT_ADDR     = 'h180,
+module cpu_subsystem
+  import obi_pkg::*;
+#(
+    parameter BOOT_ADDR = 'h180,
     parameter PULP_XPULP    =  0,                   // PULP ISA Extension (incl. custom CSRs and hardware loop, excl. p.elw)
     parameter FPU = 0,  // Floating Point Unit (interfaced via APU interface)
     parameter PULP_ZFINX = 0,  // Float-in-General Purpose registers
@@ -23,30 +25,30 @@ module cpu_subsystem import obi_pkg::*; #(
     input  obi_resp_t core_data_resp_i,
 
     // Interrupt inputs
-    input  logic [31:0] irq_i,  // CLINT interrupts + CLINT extension interrupts
+    input  logic [31:0] irq_i,      // CLINT interrupts + CLINT extension interrupts
     output logic        irq_ack_o,
     output logic [ 4:0] irq_id_o,
 
     // Debug Interface
-    input  logic debug_req_i,
+    input logic debug_req_i,
 
     // CPU Control Signals
-    input  logic fetch_enable_i
+    input logic fetch_enable_i
 );
 
   import cv32e40p_apu_core_pkg::*;
   // APU Core to FP Wrapper
-  logic                               apu_req;
-  logic [    APU_NARGS_CPU-1:0][31:0] apu_operands;
-  logic [      APU_WOP_CPU-1:0]       apu_op;
-  logic [ APU_NDSFLAGS_CPU-1:0]       apu_flags;
+  logic                              apu_req;
+  logic [   APU_NARGS_CPU-1:0][31:0] apu_operands;
+  logic [     APU_WOP_CPU-1:0]       apu_op;
+  logic [APU_NDSFLAGS_CPU-1:0]       apu_flags;
 
 
   // APU FP Wrapper to Core
-  logic                               apu_gnt;
-  logic                               apu_rvalid;
-  logic [                 31:0]       apu_rdata;
-  logic [ APU_NUSFLAGS_CPU-1:0]       apu_rflags;
+  logic                              apu_gnt;
+  logic                              apu_rvalid;
+  logic [                31:0]       apu_rdata;
+  logic [APU_NUSFLAGS_CPU-1:0]       apu_rflags;
 
 
 
@@ -65,50 +67,50 @@ module cpu_subsystem import obi_pkg::*; #(
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
-      .pulp_clock_en_i     (1'b1),
-      .scan_cg_en_i        (1'b0),
+      .pulp_clock_en_i(1'b1),
+      .scan_cg_en_i   (1'b0),
 
-      .boot_addr_i         (BOOT_ADDR),
-      .mtvec_addr_i        (32'h0),
-      .dm_halt_addr_i      (DM_HALTADDRESS),
-      .hart_id_i           (32'h0),
-      .dm_exception_addr_i (32'h0),
+      .boot_addr_i        (BOOT_ADDR),
+      .mtvec_addr_i       (32'h0),
+      .dm_halt_addr_i     (DM_HALTADDRESS),
+      .hart_id_i          (32'h0),
+      .dm_exception_addr_i(32'h0),
 
-      .instr_addr_o        (core_instr_req_o.addr),
-      .instr_req_o         (core_instr_req_o.req),
-      .instr_rdata_i       (core_instr_resp_i.rdata),
-      .instr_gnt_i         (core_instr_resp_i.gnt),
-      .instr_rvalid_i      (core_instr_resp_i.rvalid),
+      .instr_addr_o  (core_instr_req_o.addr),
+      .instr_req_o   (core_instr_req_o.req),
+      .instr_rdata_i (core_instr_resp_i.rdata),
+      .instr_gnt_i   (core_instr_resp_i.gnt),
+      .instr_rvalid_i(core_instr_resp_i.rvalid),
 
-      .data_addr_o         (core_data_req_o.addr),
-      .data_wdata_o        (core_data_req_o.wdata),
-      .data_we_o           (core_data_req_o.we),
-      .data_req_o          (core_data_req_o.req),
-      .data_be_o           (core_data_req_o.be),
-      .data_rdata_i        (core_data_resp_i.rdata),
-      .data_gnt_i          (core_data_resp_i.gnt),
-      .data_rvalid_i       (core_data_resp_i.rvalid),
+      .data_addr_o  (core_data_req_o.addr),
+      .data_wdata_o (core_data_req_o.wdata),
+      .data_we_o    (core_data_req_o.we),
+      .data_req_o   (core_data_req_o.req),
+      .data_be_o    (core_data_req_o.be),
+      .data_rdata_i (core_data_resp_i.rdata),
+      .data_gnt_i   (core_data_resp_i.gnt),
+      .data_rvalid_i(core_data_resp_i.rvalid),
 
-      .apu_req_o           (apu_req),
-      .apu_gnt_i           (apu_gnt),
-      .apu_operands_o      (apu_operands),
-      .apu_op_o            (apu_op),
-      .apu_flags_o         (apu_flags),
-      .apu_rvalid_i        (apu_rvalid),
-      .apu_result_i        (apu_rdata),
-      .apu_flags_i         (apu_rflags),
+      .apu_req_o     (apu_req),
+      .apu_gnt_i     (apu_gnt),
+      .apu_operands_o(apu_operands),
+      .apu_op_o      (apu_op),
+      .apu_flags_o   (apu_flags),
+      .apu_rvalid_i  (apu_rvalid),
+      .apu_result_i  (apu_rdata),
+      .apu_flags_i   (apu_rflags),
 
-      .irq_i               (irq_i),
-      .irq_ack_o           (irq_ack_o),
-      .irq_id_o            (irq_id_o),
+      .irq_i    (irq_i),
+      .irq_ack_o(irq_ack_o),
+      .irq_id_o (irq_id_o),
 
-      .debug_req_i         (debug_req_i),
-      .debug_havereset_o   (),
-      .debug_running_o     (),
-      .debug_halted_o      (),
+      .debug_req_i      (debug_req_i),
+      .debug_havereset_o(),
+      .debug_running_o  (),
+      .debug_halted_o   (),
 
-      .fetch_enable_i      (fetch_enable_i),
-      .core_sleep_o        ()
+      .fetch_enable_i(fetch_enable_i),
+      .core_sleep_o  ()
   );
 
   generate
