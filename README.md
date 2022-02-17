@@ -85,6 +85,10 @@ In the ./util folder, the vendor.py scripts implements what is describeb above.
 $ fusesoc --cores-root . run --no-export --target=sim --tool=verilator --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
 ```
 
+## Compiling for VCS
+
+TODO
+
 ## Compiling for Questasim
 
 ```
