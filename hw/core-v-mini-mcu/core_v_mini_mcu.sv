@@ -16,6 +16,9 @@ module core_v_mini_mcu #(
     input  logic jtag_tdi_i,
     output logic jtag_tdo_o,
 
+    input  logic uart_rx_i,
+    output logic uart_tx_o,
+
     input  logic        fetch_enable_i,
     output logic [31:0] exit_value_o,
     output logic        exit_valid_o
@@ -152,8 +155,8 @@ module core_v_mini_mcu #(
       .exit_valid_o(exit_valid_o),
       .exit_value_o(exit_value_o),
 
-      .uart_rx_i('0),
-      .uart_tx_o(),
+      .uart_rx_i(uart_rx_i),
+      .uart_tx_o(uart_tx_o),
       .uart_tx_en_o(),
       .uart_intr_tx_watermark_o() ,
       .uart_intr_rx_watermark_o() ,

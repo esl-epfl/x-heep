@@ -17,7 +17,8 @@ package core_v_mini_mcu_pkg;
 
   import addr_map_rule_pkg::*;
 
-  localparam MEM_SIZE                 = 2**17;
+  //must be power of two
+  localparam int unsigned MEM_SIZE    = 2**16;
 
   localparam SYSTEM_XBAR_NMASTER      = 3;
   localparam SYSTEM_XBAR_NSLAVE       = 5;
@@ -34,12 +35,12 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] ERROR_IDX                = 32'd0;
 
   localparam logic[31:0] RAM0_START_ADDRESS       = 32'h00000000;
-  localparam logic[31:0] RAM0_SIZE                = 32'h00010000;
+  localparam logic[31:0] RAM0_SIZE                = (MEM_SIZE / 2);
   localparam logic[31:0] RAM0_END_ADDRESS         = RAM0_START_ADDRESS + RAM0_SIZE;
   localparam logic[31:0] RAM0_IDX                 = 32'd1;
 
-  localparam logic[31:0] RAM1_START_ADDRESS       = 32'h00010000;
-  localparam logic[31:0] RAM1_SIZE                = 32'h00010000;
+  localparam logic[31:0] RAM1_START_ADDRESS       = (MEM_SIZE / 2);
+  localparam logic[31:0] RAM1_SIZE                = MEM_SIZE;
   localparam logic[31:0] RAM1_END_ADDRESS         = RAM1_START_ADDRESS + RAM1_SIZE;
   localparam logic[31:0] RAM1_IDX                 = 32'd2;
 

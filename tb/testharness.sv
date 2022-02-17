@@ -16,6 +16,9 @@ module testharness #(
     input  logic jtag_tdi_i,
     output logic jtag_tdo_o,
 
+    input  logic uart_rx_i,
+    output logic uart_tx_o,
+
     input  logic        fetch_enable_i,
     output logic [31:0] exit_value_o,
     output logic        exit_valid_o
