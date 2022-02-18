@@ -148,8 +148,15 @@ targets:
         - -pedanticerrors
       vcs:
         vcs_options:
+         - -override_timescale=1ns/1ps
          - -assert disable_cover
          - -assert svaext
+         - -debug_access+all
+         - -fgp
+         - -notice
+         - -ntb_opts error
+         - -race=all
+         - -V
       verilator:
         mode: cc
         verilator_options:
