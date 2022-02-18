@@ -128,10 +128,10 @@ module cpu_subsystem
           .apu_rflags_o  (apu_rflags)
       );
     end else begin
-      assign apu_gnt      = '0;
-      assign apu_rvalid   = '0;
-      assign apu_rdata    = '0;
-      assign apu_rflags   = '0;
+      assign apu_gnt    = '0;
+      assign apu_rvalid = '0;
+      assign apu_rdata  = '0;
+      assign apu_rflags = '0;
     end
   endgenerate
 

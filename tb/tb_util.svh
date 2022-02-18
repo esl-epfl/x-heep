@@ -71,7 +71,11 @@ task tb_writetoSram0;
   input [7:0] val2;
   input [7:0] val1;
   input [7:0] val0;
+`ifndef VERILATOR
+  force core_v_mini_mcu_i.memory_subsystem_i.ram0_i.tc_ram_i.sram[addr] = {val3, val2, val1, val0};
+`else
   core_v_mini_mcu_i.memory_subsystem_i.ram0_i.tc_ram_i.sram[addr] = {val3, val2, val1, val0};
+`endif
 endtask
 
 task tb_writetoSram1;
@@ -80,7 +84,11 @@ task tb_writetoSram1;
   input [7:0] val2;
   input [7:0] val1;
   input [7:0] val0;
+`ifndef VERILATOR
+  force core_v_mini_mcu_i.memory_subsystem_i.ram1_i.tc_ram_i.sram[addr] = {val3, val2, val1, val0};
+`else
   core_v_mini_mcu_i.memory_subsystem_i.ram1_i.tc_ram_i.sram[addr] = {val3, val2, val1, val0};
+`endif
 endtask
 
 

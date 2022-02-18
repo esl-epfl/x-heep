@@ -87,7 +87,9 @@ $ fusesoc --cores-root . run --no-export --target=sim --tool=verilator --setup -
 
 ## Compiling for VCS
 
-TODO
+```
+$ fusesoc --cores-root . run --no-export --target=sim --tool=vcs --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+```
 
 ## Compiling for Questasim
 
