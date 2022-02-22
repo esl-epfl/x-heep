@@ -118,7 +118,7 @@ $ make applications/hello_world/hello_world.hex
 
 This will create the executable file to be loaded in your target system (ASIC, FPGA, Questasim, Verilator, etc).
 
-## Running Software on Verilator tool
+## Running Software on Verilator
 
 Go to your target system built folder, e.g.
 
@@ -132,10 +132,22 @@ Then type:
 $ ./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex
 ```
 
-Replace the  `.hex` file with your own application if you want to run another pre-compiled application.
+## Running Software on VCS
+
+Go to your target system built folder, e.g.
+
+```
+$ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-vcs
+```
+
+Then type:
+
+```
+./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/applications/hello_world/hello_world.hex
+```
 
 
-## Running Software on Questasim tool
+## Running Software on Questasim
 
 Go to your target system built folder, e.g.
 
@@ -156,9 +168,6 @@ Then type:
 ```
 $ make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
 ```
-
-Replace the  `.hex` file with your own application if you want to run another pre-compiled application.
-
 
 ## FPGA Xilinx Nexys-A7 100T Flow
 
