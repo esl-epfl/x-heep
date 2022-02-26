@@ -65,17 +65,21 @@ filesets:
     - hw/fpga/constraints/constraints.xdc
     file_type: xdc
 
-  tb-rtl:
+  tb-harness:
+    depend:
+    - lowrisc:dv_dpi:uartdpi
     files:
     - tb/tb_util.svh: {is_include_file: true}
     - tb/testharness.sv
+    file_type: systemVerilogSource
+
+  tb-sv:
+    files:
     - tb/tb_top.sv
     file_type: systemVerilogSource
 
   tb-verilator:
     files:
-    - tb/tb_util.svh: {is_include_file: true}
-    - tb/testharness.sv
     - tb/tb_top.cpp
     file_type: cppSource
 
@@ -129,8 +133,9 @@ targets:
     default_tool: modelsim
     filesets_append:
     - rtl-simulation
-    - tool_modelsim? (tb-rtl)
-    - tool_vcs? (tb-rtl)
+    - tb-harness
+    - tool_modelsim? (tb-sv)
+    - tool_vcs? (tb-sv)
     - tool_verilator? (files_verilator_waiver)
     - tool_verilator? (tb-verilator)
     toplevel:

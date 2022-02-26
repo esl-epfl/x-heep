@@ -1,0 +1,13 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule WIDTH -file "*hw/dv/dpi/uartdpi/uartdpi.sv" -match "Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's FUNCREF 'uartdpi_read' generates 8 bits.*"
+
+lint_off -rule WIDTH -file "*hw/dv/dpi/uartdpi/uartdpi.sv" -match "Logical operator IF expects 1 bit on the If, but If's FUNCREF 'uartdpi_can_read' generates 32 bits.*"
+
+lint_off -rule WIDTH -file "*hw/dv/dpi/uartdpi/uartdpi.sv" -match "Operator TASKREF 'uartdpi_write' expects 32 bits on the Function Argument, but Function Argument's VARREF 'rxsymbol' generates 8 bits.*"
+
+lint_off -rule UNUSED -file "*hw/dv/dpi/uartdpi/uartdpi.sv" -match "Bits of signal are not used: 'c'[31:8]*"

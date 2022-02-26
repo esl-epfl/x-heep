@@ -17,6 +17,7 @@ filesets:
     - lint/riscv_dbg.vlt
     - lint/register_interface.vlt
     - lint/uart.vlt
+    - lint/uartdpi.vlt
     file_type: vlt
 
 

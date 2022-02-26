@@ -43,10 +43,14 @@ CUSTOM_GCC_FLAGS           =
 applications/hello_world/hello_world.elf: applications/hello_world/hello_world.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
-		-T firmware/custom/link.ld \
+		-T linker/link.ld \
 		-static \
-		firmware/custom/crt0.S \
-		$^ firmware/custom/syscalls.c firmware/custom/vectors.S \
+		device/lib/crt/crt0.S \
+		$^ device/lib/runtime/syscalls.c device/lib/crt/vectors.S \
 		-I $(RISCV)/riscv32-corev-elf/include \
 		-L $(RISCV)/riscv32-corev-elf/lib \
 		-lc -lm -lgcc
+
+clean:
+	rm -rf applications/*/*.elf \
+	rm -rf applications/*/*.hex
