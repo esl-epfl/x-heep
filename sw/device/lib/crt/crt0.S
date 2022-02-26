@@ -56,6 +56,7 @@ _start:
 .global _fini
 .type   _fini, @function
 _init:
+	call init
 _fini:
  /* These don't have to do anything since we use init_array/fini_array. Prevent
     missing symbol error */

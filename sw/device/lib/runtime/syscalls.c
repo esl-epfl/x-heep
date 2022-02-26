@@ -21,6 +21,10 @@
 #include <newlib.h>
 #include <unistd.h>
 #include <errno.h>
+#include "../drivers/uart.h"
+#include "core_v_mini_mcu.h"
+#include "error.h"
+
 #undef errno
 extern int errno;
 
@@ -239,10 +243,18 @@ ssize_t _write(int file, const void *ptr, size_t len)
         return -1;
     }
 
-    const void *eptr = ptr + len;
-    while (ptr != eptr)
-        *(volatile int *)STDOUT_REG = *(char *)(ptr++);
-    return len;
+    uart_t uart;
+    uart.base_addr   = mmio_region_from_addr((uintptr_t)UART_START_ADDRESS);
+    uart.baudrate    = 7200;
+    uart.clk_freq_hz = 1;
+
+    if (uart_init(&uart) != kErrorOk) {
+        errno = ENOSYS;
+        return -1;
+    }
+
+    return uart_write(&uart,(uint8_t *)ptr,len);
+
 }
 
 extern char __heap_start[];

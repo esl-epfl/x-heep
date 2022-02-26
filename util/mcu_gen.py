@@ -58,13 +58,17 @@ def main():
                         metavar="PKG_SV",
                         help="Name of top-level package file (output)")
 
+    parser.add_argument("--header-c",
+                        metavar="HEADER_C",
+                        help="Name of header file (output)")
+
     parser.add_argument("-v",
                         "--verbose",
                         help="increase output verbosity",
                         action="store_true")
 
     args = parser.parse_args()
-
+    print(args)
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -115,7 +119,11 @@ def main():
     ###########
     # Package #
     ###########
-    write_template(args.pkg_sv, outdir, **kwargs)
+    if args.pkg_sv != None:
+        write_template(args.pkg_sv, outdir, **kwargs)
+
+    if args.header_c != None:
+        write_template(args.header_c, outdir, **kwargs)
 
 
 if __name__ == "__main__":
