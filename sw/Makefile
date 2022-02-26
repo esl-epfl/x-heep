@@ -49,6 +49,7 @@ LIB_DRIVERS                = $(wildcard device/lib/drivers/*.c)
 applications/hello_world/hello_world.elf: applications/hello_world/hello_world.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
+		-DHOST_BUILD \
 		-T linker/link.ld \
 		-static \
 		$(LIB_CRT) \
