@@ -110,9 +110,7 @@ module core_v_mini_mcu #(
 
   );
 
-  system_bus #(
-      .NUM_BYTES(NUM_BYTES)
-  ) system_bus_i (
+  system_bus system_bus_i (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 

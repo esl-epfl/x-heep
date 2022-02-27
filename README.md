@@ -200,10 +200,26 @@ $ vivado -notrace -mode batch -source ../../../hw/fpga/scripts/export_verilog_ne
 
 Only Vivado 2019.1.1 has been tried.
 
+## UART DPI
+
+We use the LowRISC OpenTitan [UART DPI](https://github.com/lowRISC/opentitan/tree/master/hw/dv/dpi/uartdpi) to simulated the UART peripheral. Read how to interact with it in the Section "Interact with the simulated UART" [here](https://docs.opentitan.org/doc/ug/getting_started_verilator/).
+The output of the UART DPI module is printed in the `uart0.log` file in the simulation folder.
+
+For example, to see the "hello world!" output of the Verilator simulation:
+
+```
+$ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
+$ ./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex
+$ cat uart0.log
+```
+
 ## Change Peripheral Memory Map
 
 ```
 $ python ./util/mcu_gen.py --cfg mcu_cfg.hjson --outdir ./hw/core-v-mini-mcu/include/ --pkg-sv ./hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
+```
+```
+python ./util/mcu_gen.py --cfg mcu_cfg.hjson --outdir ./sw/device/lib/runtime/ --header-c ./sw/device/lib/runtime/core_v_mini_mcu.h.tpl
 ```
 
 ## Files are formatted with Verible

@@ -13,7 +13,7 @@ extern "C" {
 #define DEBUG_SIZE 0x${debug_size_address}
 #define DEBUG_END_ADDRESS (DEBUG_START_ADDRESS + DEBUG_SIZE)
 
-#define PERIPHERAL_START_ADDRESS 0x${debug_start_address}
+#define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}
 #define PERIPHERAL_SIZE 0x${peripheral_size_address}
 #define PERIPHERAL_END_ADDRESS (PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE)
 

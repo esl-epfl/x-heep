@@ -48,9 +48,9 @@ module testharness #(
   );
 
   uartdpi #(
-      .BAUD('d115_200),
+      .BAUD('d7200),
       // Frequency shouldn't matter since we are sending with the same clock.
-      .FREQ('d500_000),
+      .FREQ('d125_000),
       .NAME("uart0")
   ) i_uart0 (
       .clk_i,

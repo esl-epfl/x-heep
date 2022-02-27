@@ -246,7 +246,7 @@ ssize_t _write(int file, const void *ptr, size_t len)
     uart_t uart;
     uart.base_addr   = mmio_region_from_addr((uintptr_t)UART_START_ADDRESS);
     uart.baudrate    = 7200;
-    uart.clk_freq_hz = 1;
+    uart.clk_freq_hz = 125*1000;
 
     if (uart_init(&uart) != kErrorOk) {
         errno = ENOSYS;

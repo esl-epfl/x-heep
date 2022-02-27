@@ -63,4 +63,6 @@ applications/hello_world/hello_world.elf: applications/hello_world/hello_world.c
 
 clean:
 	rm -rf applications/*/*.elf \
-	rm -rf applications/*/*.hex
+	rm -rf applications/*/*.hex \
+	rm -rf applications/*/*.dis \
+	rm -rf applications/*/*.dump
