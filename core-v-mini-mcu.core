@@ -161,6 +161,9 @@ targets:
          - -notice
          - -ntb_opts error
          - -race=all
+         - -xlrm uniq_prior_final
+         - -CFLAGS "-std=c++14 -pthread"
+         - -LDFLAGS "-pthread -lutil"
          - -V
       verilator:
         mode: cc
