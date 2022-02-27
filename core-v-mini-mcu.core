@@ -158,6 +158,7 @@ targets:
          - -assert svaext
          - -debug_access+all
          - -fgp
+         - -kdb
          - -notice
          - -ntb_opts error
          - -race=all

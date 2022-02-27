@@ -82,10 +82,12 @@ module system_bus
   assign slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = '0;
 
 `ifndef SYNTHESIS
-  always_comb begin
-    if (error_slave_req.req) begin
-      $display("%t Out of bound memory access 0x%08x", $time, error_slave_req.addr);
-      $stop;
+  always_ff @(posedge clk_i) begin : check_out_of_bound
+    if(rst_ni) begin
+      if (error_slave_req.req) begin
+        $display("%t Out of bound memory access 0x%08x", $time, error_slave_req.addr);
+        $stop;
+      end
     end
   end
 
