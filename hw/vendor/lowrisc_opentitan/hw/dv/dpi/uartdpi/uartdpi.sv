@@ -82,11 +82,12 @@ module uartdpi #(
     end
   end
 
-
+`ifndef VCS
   initial begin
     // Prevent falling edges of rx_i before reset causing spurious characters
     seen_reset = 0;
   end
+`endif
 
   // RX
   reg rxactive;

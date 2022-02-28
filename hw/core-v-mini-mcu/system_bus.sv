@@ -79,7 +79,7 @@ module system_bus
   assign slave_resp[core_v_mini_mcu_pkg::RAM1_IDX] = ram1_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX] = debug_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
-  assign slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = '0;
+  assign slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
 
 `ifndef SYNTHESIS
   always_ff @(posedge clk_i, negedge rst_ni) begin : check_out_of_bound
