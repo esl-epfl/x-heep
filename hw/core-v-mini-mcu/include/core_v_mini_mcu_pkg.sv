@@ -73,9 +73,9 @@ package core_v_mini_mcu_pkg;
   //slave encoder
   localparam SYSTEM_NPERIPHERALS = 2;
 
-  localparam logic [31:0] SOC_CTRL_IDX_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0000000;
-  localparam logic [31:0] SOC_CTRL_IDX_SIZE = 32'h0010000;
-  localparam logic [31:0] SOC_CTRL_IDX_END_ADDRESS = SOC_CTRL_IDX_START_ADDRESS + SOC_CTRL_IDX_SIZE;
+  localparam logic [31:0] SOC_CTRL_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0000000;
+  localparam logic [31:0] SOC_CTRL_SIZE = 32'h0010000;
+  localparam logic [31:0] SOC_CTRL_END_ADDRESS = SOC_CTRL_START_ADDRESS + SOC_CTRL_SIZE;
   localparam logic [31:0] SOC_CTRL_IDX = 32'd0;
 
   localparam logic [31:0] UART_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0010000;
@@ -85,11 +85,7 @@ package core_v_mini_mcu_pkg;
 
 
   localparam addr_map_rule_t [SYSTEM_NPERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
-      '{
-          idx: SOC_CTRL_IDX,
-          start_addr: SOC_CTRL_IDX_START_ADDRESS,
-          end_addr: SOC_CTRL_IDX_END_ADDRESS
-      },
+      '{idx: SOC_CTRL_IDX, start_addr: SOC_CTRL_START_ADDRESS, end_addr: SOC_CTRL_END_ADDRESS},
       '{idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS}
   };
 

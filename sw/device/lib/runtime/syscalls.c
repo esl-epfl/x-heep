@@ -22,19 +22,12 @@
 #include <unistd.h>
 #include <errno.h>
 #include "../drivers/uart.h"
+#include "../drivers/soc_ctrl.h"
 #include "core_v_mini_mcu.h"
 #include "error.h"
 
 #undef errno
 extern int errno;
-
-/* write to this reg for outputting strings */
-#define STDOUT_REG 0x10000000
-/* write exit valid of program to this reg */
-#define EXIT_VALID_REG 0x20000000
-/* write exit value of program to this reg */
-#define EXIT_REG 0x20000004
-
 
 #define STDOUT_FILENO 1
 
@@ -54,8 +47,7 @@ extern int errno;
 void unimplemented_syscall()
 {
     const char *p = "Unimplemented system call called!\n";
-    while (*p)
-        *(volatile int *)STDOUT_REG = *(p++);
+    _write(STDOUT_FILENO, p, strlen(p));
 }
 
 int nanosleep(const struct timespec *rqtp, struct timespec *rmtp)
@@ -101,8 +93,11 @@ int _execve(const char *name, char *const argv[], char *const env[])
 
 void _exit(int exit_status)
 {
-    *(volatile int *)EXIT_REG = exit_status;
-    *(volatile int *)EXIT_VALID_REG = 1;
+    soc_ctrl_t soc_ctrl;
+    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+    soc_ctrl_set_exit_value(&soc_ctrl, exit_status);
+    soc_ctrl_set_valid(&soc_ctrl, (uint8_t)1);
+
     asm volatile("wfi");
 }
 

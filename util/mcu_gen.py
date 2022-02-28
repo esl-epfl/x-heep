@@ -68,7 +68,7 @@ def main():
                         action="store_true")
 
     args = parser.parse_args()
-    print(args)
+
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
