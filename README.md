@@ -63,7 +63,7 @@ $ make install
 Then, set the `PATH` env variable to as:
 
 ```
-$ export PATH=/home/yourusername/tools/verilator/$VERILATOR_VERSION:$PATH
+$ export PATH=/home/yourusername/tools/verilator/$VERILATOR_VERSION/bin:$PATH
 ```
 
 In general, have a look at the [Install Verilator](https://docs.opentitan.org/doc/ug/install_instructions/#verilator) section of the OpenTitan documentation.
