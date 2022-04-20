@@ -1,0 +1,21 @@
+CAPI=2:
+
+name: "example:ip:slow_memory"
+description: "OpenHW Group core-v-mini-mcu slow memory example"
+
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+      - pulp-platform.org::tech_cells_generic
+    files:
+    - rtl/slow_memory.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl

@@ -37,6 +37,7 @@ filesets:
   rtl-simulation:
     depend:
     - pulp-platform.org::tech_cells_generic
+    - example:ip:slow_memory
     files:
     - hw/simulation/sram_wrapper.sv
     file_type: systemVerilogSource
@@ -47,6 +48,7 @@ filesets:
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.vlt
     - hw/ip/soc_ctrl/soc_ctrl.vlt
+    - hw/ip_examples/slow_memory/slow_memory.vlt
     file_type: vlt
 
   rtl-fpga:

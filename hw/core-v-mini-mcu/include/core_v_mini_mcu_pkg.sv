@@ -21,7 +21,7 @@ package core_v_mini_mcu_pkg;
   localparam int unsigned MEM_SIZE = 2 ** 16;
 
   localparam SYSTEM_XBAR_NMASTER = 3;
-  localparam SYSTEM_XBAR_NSLAVE = 5;
+  localparam SYSTEM_XBAR_NSLAVE = 6;
 
   //master idx
   localparam logic [31:0] CORE_INSTR_IDX = 0;
@@ -54,6 +54,11 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] PERIPHERAL_END_ADDRESS = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE;
   localparam logic [31:0] PERIPHERAL_IDX = 32'd4;
 
+  localparam logic [31:0] SLOW_MEMORY_START_ADDRESS = 32'h30000000;
+  localparam logic [31:0] SLOW_MEMORY_SIZE = 32'h200;
+  localparam logic [31:0] SLOW_MEMORY_END_ADDRESS = SLOW_MEMORY_START_ADDRESS + SLOW_MEMORY_SIZE;
+  localparam logic [31:0] SLOW_MEMORY_IDX = 32'd5;
+
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{idx: RAM0_IDX, start_addr: RAM0_START_ADDRESS, end_addr: RAM0_END_ADDRESS},
       '{idx: RAM1_IDX, start_addr: RAM1_START_ADDRESS, end_addr: RAM1_END_ADDRESS},
@@ -62,6 +67,11 @@ package core_v_mini_mcu_pkg;
           idx: PERIPHERAL_IDX,
           start_addr: PERIPHERAL_START_ADDRESS,
           end_addr: PERIPHERAL_END_ADDRESS
+      },
+      '{
+          idx: SLOW_MEMORY_IDX,
+          start_addr: SLOW_MEMORY_START_ADDRESS,
+          end_addr: SLOW_MEMORY_END_ADDRESS
       },
       '{idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS}
   };

@@ -93,6 +93,9 @@ def main():
 
     debug_size_address = string2int(obj['debug']['length'])
 
+    slow_memory_start_address = string2int(obj['slow_memory']['address'])
+    slow_memory_size_address = string2int(obj['slow_memory']['length'])
+
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
         exit("peripheral start address must be greater than 0x10000")
@@ -114,6 +117,8 @@ def main():
         "uart_size_address"        : uart_size_address,
         "soc_ctrl_start_offset"    : soc_ctrl_start_offset,
         "soc_ctrl_size_address"    : soc_ctrl_size_address,
+        "slow_memory_start_address": slow_memory_start_address,
+        "slow_memory_size_address" : slow_memory_size_address,
     }
 
     ###########

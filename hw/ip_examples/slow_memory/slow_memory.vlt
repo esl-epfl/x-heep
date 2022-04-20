@@ -1,0 +1,9 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule UNUSED -file "*/slow_memory/rtl/slow_memory.sv" -match "Bits of signal are not used: 'random1'[31:1]*"
+lint_off -rule UNUSED -file "*/slow_memory/rtl/slow_memory.sv" -match "Bits of signal are not used: 'random2'[31:5]*"
+

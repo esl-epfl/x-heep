@@ -42,7 +42,11 @@ module system_bus
     input  obi_resp_t debug_slave_resp_i,
 
     output obi_req_t  peripheral_slave_req_o,
-    input  obi_resp_t peripheral_slave_resp_i
+    input  obi_resp_t peripheral_slave_resp_i,
+
+    output obi_req_t  slow_ram_req_o,
+    input  obi_resp_t slow_ram_resp_i
+
 
 );
 
@@ -72,6 +76,7 @@ module system_bus
   assign ram1_req_o = slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
   assign debug_slave_req_o = slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
   assign peripheral_slave_req_o = slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
+  assign slow_ram_req_o = slave_req[core_v_mini_mcu_pkg::SLOW_MEMORY_IDX];
   assign error_slave_req = slave_req[core_v_mini_mcu_pkg::ERROR_IDX];
 
   //slave resp
@@ -79,6 +84,7 @@ module system_bus
   assign slave_resp[core_v_mini_mcu_pkg::RAM1_IDX] = ram1_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX] = debug_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::SLOW_MEMORY_IDX] = slow_ram_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
 
 `ifndef SYNTHESIS

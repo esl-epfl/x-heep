@@ -53,6 +53,8 @@ module core_v_mini_mcu #(
   obi_resp_t        debug_slave_resp;
   obi_req_t         peripheral_slave_req;
   obi_resp_t        peripheral_slave_resp;
+  obi_req_t         slow_ram_slave_req;
+  obi_resp_t        slow_ram_slave_resp;
 
   // signals to debug unit
   logic             debug_core_req;
@@ -128,7 +130,9 @@ module core_v_mini_mcu #(
       .debug_slave_req_o      (debug_slave_req),
       .debug_slave_resp_i     (debug_slave_resp),
       .peripheral_slave_req_o (peripheral_slave_req),
-      .peripheral_slave_resp_i(peripheral_slave_resp)
+      .peripheral_slave_resp_i(peripheral_slave_resp),
+      .slow_ram_req_o         (slow_ram_slave_req),
+      .slow_ram_resp_i        (slow_ram_slave_resp)
 
   );
 
@@ -164,6 +168,23 @@ module core_v_mini_mcu #(
       .uart_intr_rx_break_err_o() ,
       .uart_intr_rx_timeout_o()   ,
       .uart_intr_rx_parity_err_o()
+  );
+
+  slow_memory #(
+      .NumWords (128),
+      .DataWidth(32'd32)
+  ) slow_ram_i (
+      .clk_i  (clk_i),
+      .rst_ni (rst_ni),
+      .req_i  (slow_ram_slave_req.req),
+      .we_i   (slow_ram_slave_req.we),
+      .addr_i (slow_ram_slave_req.addr[8:2]),
+      .wdata_i(slow_ram_slave_req.wdata),
+      .be_i   (slow_ram_slave_req.be),
+      // output ports
+      .rready_o(slow_ram_slave_resp.gnt),
+      .rdata_o(slow_ram_slave_resp.rdata),
+      .rvalid_o(slow_ram_slave_resp.rvalid)
   );
 
   assign irq_software = '0;

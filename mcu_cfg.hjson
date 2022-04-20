@@ -24,5 +24,9 @@
         }
     },
 
+    slow_memory: {
+        address: 0x30000000,
+        length:  0x200,
+    },
 
 }
