@@ -17,7 +17,7 @@ module slow_memory #(
     input  logic [         31:0] wdata_i,   // write data
     input  logic [          3:0] be_i,      // write byte enable
     // output ports
-    output logic                 rready_o,  // memory is ready
+    output logic                 gnt_o,  // memory is ready
     output logic [         31:0] rdata_o,   // read data
     output logic                 rvalid_o   // read data is valid
 );
@@ -79,7 +79,7 @@ module slow_memory #(
 
 
   always_comb begin
-    rready_o  = 1'b0;
+    gnt_o  = 1'b0;
     rvalid_o  = rvalid_q;
     state_n   = state_q;
     counter_n = counter_q - 1;
@@ -90,8 +90,8 @@ module slow_memory #(
       READY: begin
         rvalid_n = 1'b0;
         if (req_i) begin
-          rready_o = random1[0];
-          if (rready_o) begin
+          gnt_o = random1[0];
+          if (gnt_o) begin
             state_n   = WAIT_RVALID;
             counter_n = random2[4:0] + 1;
             mem_req_n <= req_i;

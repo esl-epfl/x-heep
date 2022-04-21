@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: git@github.com:pulp-platform/cluster_interconnect.git
-    rev: 7d0a4f8acae71a583a6713cab5554e60b9bb8d27
+    url: https://github.com/davideschiavone/cluster_interconnect
+    rev: 312de0f7ced9fb5d963b3d4162fef5c9258300e2
   }
 }
