@@ -19,7 +19,7 @@ module system_xbar
 );
 
   //Address Decoder
-  logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] [core_v_mini_mcu_pkg::XBAR_PORT_SEL_WIDTH-1:0] port_sel;
+  logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] [core_v_mini_mcu_pkg::LOG_SYSTEM_XBAR_NSLAVE-1:0] port_sel;
 
   logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] master_req_req;
   logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] master_req_wen;

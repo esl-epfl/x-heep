@@ -23,6 +23,13 @@ package core_v_mini_mcu_pkg;
   localparam SYSTEM_XBAR_NMASTER = 3;
   localparam SYSTEM_XBAR_NSLAVE = 6;
 
+  localparam int unsigned LOG_SYSTEM_XBAR_NMASTER = SYSTEM_XBAR_NMASTER > 1 ? $clog2(
+      SYSTEM_XBAR_NMASTER
+  ) : 32'd1;
+  localparam int unsigned LOG_SYSTEM_XBAR_NSLAVE = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(
+      SYSTEM_XBAR_NSLAVE
+  ) : 32'd1;
+
   //master idx
   localparam logic [31:0] CORE_INSTR_IDX = 0;
   localparam logic [31:0] CORE_DATA_IDX = 1;
@@ -75,10 +82,6 @@ package core_v_mini_mcu_pkg;
       },
       '{idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS}
   };
-
-  localparam int unsigned XBAR_PORT_SEL_WIDTH = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(
-      SYSTEM_XBAR_NSLAVE
-  ) : 32'd1;
 
   //slave encoder
   localparam SYSTEM_NPERIPHERALS = 2;
