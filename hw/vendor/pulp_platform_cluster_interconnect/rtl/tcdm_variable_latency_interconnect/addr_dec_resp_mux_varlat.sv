@@ -48,7 +48,7 @@ if (NumOut == unsigned'(1)) begin : gen_one_output
   assign gnt_o     = gnt_i[0];
   assign req_o[0]  = req_i;
   assign rdata_o   = rdata_i[0];
-  assign vld_o     = vld_i[0];
+  assign vld_o     = vld_i[0] & valid_inflight_q;
 
   // address decoder
   always_comb begin : p_addr_dec
@@ -110,7 +110,7 @@ end else begin : gen_several_outputs
   logic [$clog2(NumOut)-1:0] bank_sel_d, bank_sel_q;
 
   assign rdata_o = rdata_i[bank_sel_q];
-  assign vld_o = vld_i[bank_sel_q];
+  assign vld_o = vld_i[bank_sel_q] & valid_inflight_q;
   assign bank_sel_d = add_i;
 
   always_ff @(posedge clk_i or negedge rst_ni) begin : p_valid_inflight

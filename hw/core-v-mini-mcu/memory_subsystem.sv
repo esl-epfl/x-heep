@@ -33,7 +33,7 @@ module memory_subsystem
 
 
   assign ram0_resp_o.gnt = ram0_req_i.req;
-  assign ram1_resp_o.rvalid = ram0_valid_q;
+  assign ram0_resp_o.rvalid = ram0_valid_q;
 
   //16Kwords per bank (64KB)
   sram_wrapper #(
