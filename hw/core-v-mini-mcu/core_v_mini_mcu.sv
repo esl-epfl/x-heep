@@ -182,7 +182,7 @@ module core_v_mini_mcu #(
       .wdata_i(slow_ram_slave_req.wdata),
       .be_i   (slow_ram_slave_req.be),
       // output ports
-      .rready_o(slow_ram_slave_resp.gnt),
+      .gnt_o(slow_ram_slave_resp.gnt),
       .rdata_o(slow_ram_slave_resp.rdata),
       .rvalid_o(slow_ram_slave_resp.rvalid)
   );
