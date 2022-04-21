@@ -22,13 +22,13 @@ module system_xbar
   logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] [core_v_mini_mcu_pkg::LOG_SYSTEM_XBAR_NSLAVE-1:0] port_sel;
 
   logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] master_req_req;
-  logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] master_req_wen;
   logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] master_resp_gnt;
   logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] master_resp_rvalid;
   logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0][31:0] master_resp_rdata;
 
   logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0] slave_req_req;
   logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0] slave_resp_gnt;
+  logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0] slave_resp_rvalid;
   logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0][31:0] slave_resp_rdata;
 
   //Aggregated Request Data (from Master -> slaves)
@@ -61,7 +61,6 @@ module system_xbar
   //unroll obi struct
   for (genvar i = 0; i < core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER; i++) begin : gen_unroll_master
     assign master_req_req[i] = master_req_i[i].req;
-    assign master_req_wen[i] = ~master_req_i[i].we;
     assign master_req_out_data[i] = {
       master_req_i[i].we, master_req_i[i].be, master_req_i[i].addr, master_req_i[i].wdata
     };
@@ -74,23 +73,20 @@ module system_xbar
     assign {slave_req_o[i].we, slave_req_o[i].be, slave_req_o[i].addr, slave_req_o[i].wdata} = slave_req_out_data[i];
     assign slave_resp_rdata[i] = slave_resp_i[i].rdata;
     assign slave_resp_gnt[i] = slave_resp_i[i].gnt;
-    //slave_resp_i[i] valid are ignored as it is assumed the rvalid is 1 one cycle after gnt
+    assign slave_resp_rvalid[i] = slave_resp_i[i].rvalid;
   end
 
   //Crossbar instantiation
-  xbar #(
+  xbar_varlat #(
       .NumIn(core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER),
       .NumOut(core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE),
       .ReqDataWidth(REQ_AGG_DATA_WIDTH),
-      .RespDataWidth(RESP_AGG_DATA_WIDTH),
-      .RespLat(1),  //slave valid is generated from here
-      .WriteRespOn(1)
+      .RespDataWidth(RESP_AGG_DATA_WIDTH)
   ) i_xbar (
       .clk_i,
       .rst_ni,
       .req_i  (master_req_req),
       .add_i  (port_sel),
-      .wen_i  (master_req_wen),
       .wdata_i(master_req_out_data),
       .gnt_o  (master_resp_gnt),
       .rdata_o(master_resp_rdata),
@@ -98,6 +94,7 @@ module system_xbar
       .vld_o  (master_resp_rvalid),
       .gnt_i  (slave_resp_gnt),
       .req_o  (slave_req_req),
+      .vld_i  (slave_resp_rvalid),
       .wdata_o(slave_req_out_data),
       .rdata_i(slave_resp_rdata)
   );
