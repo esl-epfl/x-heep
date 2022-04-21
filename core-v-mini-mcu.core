@@ -238,3 +238,14 @@ targets:
         - -suppress vlog-2583
         - -suppress vlog-2577
         - -pedanticerrors
+
+  dc_shell:
+    <<: *default_target
+    default_tool: design_compiler
+    description: Design Compiler Script
+    filesets_append:
+    - rtl-simulation
+    parameters:
+    - PULP_XPULP=0
+    - SYNTHESIS=true
+    toplevel: [core_v_mini_mcu]

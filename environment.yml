@@ -1,4 +1,4 @@
-name: core-v-mini-mcu
+name: core-v-mini-mcu-dceda
 channels:
   - defaults
 dependencies:
