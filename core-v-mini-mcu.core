@@ -255,4 +255,4 @@ targets:
         report_dir:
         - report
         dc_script:
-        - ../../../scripts/synthesis/dc_script.tcl
+        - dc_script.tcl
