@@ -242,11 +242,11 @@ targets:
     <<: *default_target
     default_tool: design_compiler
     description: Design Compiler Script
-    filesets_append:
-    - rtl-simulation
     parameters:
     - PULP_XPULP=0
     - SYNTHESIS=true
+    parameters:
+      - PRIM_DEFAULT_IMPL=prim_pkg::your_target_technology
     toplevel: [core_v_mini_mcu]
     tools:
       design_compiler:
