@@ -20,6 +20,11 @@ module system_xbar
 
 );
 
+  //Aggregated Request Data (from Master -> slaves)
+  //WE + BE + ADDR + WDATA
+  localparam int unsigned REQ_AGG_DATA_WIDTH = 1 + 4 + 32 + 32;
+  localparam int unsigned RESP_AGG_DATA_WIDTH = 32;
+
   //Address Decoder
   logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] [core_v_mini_mcu_pkg::LOG_SYSTEM_XBAR_NSLAVE-1:0] port_sel;
 
@@ -42,10 +47,6 @@ module system_xbar
   logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0] slave_resp_rvalid;
   logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0][31:0] slave_resp_rdata;
 
-  //Aggregated Request Data (from Master -> slaves)
-  //WE + BE + ADDR + WDATA
-  localparam int unsigned REQ_AGG_DATA_WIDTH = 1 + 4 + 32 + 32;
-  localparam int unsigned RESP_AGG_DATA_WIDTH = 32;
 
   logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0][REQ_AGG_DATA_WIDTH-1:0] master_req_out_data;
   logic [ core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0][REQ_AGG_DATA_WIDTH-1:0] slave_req_out_data;
