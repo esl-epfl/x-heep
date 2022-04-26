@@ -119,7 +119,7 @@ end else begin : gen_several_outputs
       bank_sel_q <= '0;
     end else begin
       valid_inflight_q <= valid_inflight_d;
-      if(valid_inflight_d)
+      if(req_i & gnt_o)
         bank_sel_q <= bank_sel_d;
     end
   end
