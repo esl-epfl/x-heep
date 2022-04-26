@@ -48,7 +48,6 @@ if (NumOut == unsigned'(1)) begin : gen_one_output
 
   assign data_o[0] = data_i;
   assign gnt_o     = gnt_i[0];
-  assign req_o[0]  = req_i;
   assign rdata_o   = rdata_i[0];
   assign vld_o     = vld_i[0] & valid_inflight_q;
 
