@@ -93,6 +93,7 @@ module system_xbar
 
     //Crossbar instantiation
     xbar_varlat #(
+        .AggregateGnt(1),
         .NumIn(core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER),
         .NumOut(core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE),
         .ReqDataWidth(REQ_AGG_DATA_WIDTH),
@@ -159,6 +160,15 @@ module system_xbar
 
     // 1toM Crossbar instantiation
     xbar_varlat #(
+        /*
+          AggregateGnt should be 0 when a single master is actually aggregating multiple master requests.
+          This is not needed when a real-single master is used or multiple masters are used as the
+          rr_arb_tree dispatches the grant to each corresponding master.
+          Whereas, when the xbar_varlat is used with a single master, which is shared among severals
+          (as in this case as an output of another xbar_varlat), the rr_arb_tree gives all the grant to the
+          shared single master, thus granting transactions that should not be granted
+        */
+        .AggregateGnt(0),
         .NumIn(1),
         .NumOut(core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE),
         .ReqDataWidth(REQ_AGG_DATA_WIDTH),

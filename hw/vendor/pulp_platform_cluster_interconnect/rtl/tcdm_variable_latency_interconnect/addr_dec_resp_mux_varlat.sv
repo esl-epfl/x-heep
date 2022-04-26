@@ -14,6 +14,7 @@
 // Description: address decoder and response mux for full crossbar.
 
 module addr_dec_resp_mux_varlat #(
+    parameter int unsigned AggregateGnt  = 1,
     parameter int unsigned NumOut        = 32,
     parameter int unsigned ReqDataWidth  = 32,
     parameter int unsigned RespDataWidth = 32,
@@ -95,7 +96,7 @@ end else begin : gen_several_outputs
       if(vld_o) begin
         valid_inflight_d = 1'b0;
         if(req_i) begin
-          req_o[add_i]     = req_i;
+          req_o[add_i] = req_i;
           valid_inflight_d = req_i & gnt_o;
         end
       end
@@ -105,8 +106,7 @@ end else begin : gen_several_outputs
   // connect data outputs
   assign data_o = {NumOut{data_i}};
 
-  // aggregate grant signals
-  assign gnt_o = |gnt_i;
+  assign gnt_o = AggregateGnt == 1 ? |gnt_i : gnt_i[add_i];
 
   logic [$clog2(NumOut)-1:0] bank_sel_d, bank_sel_q;
 

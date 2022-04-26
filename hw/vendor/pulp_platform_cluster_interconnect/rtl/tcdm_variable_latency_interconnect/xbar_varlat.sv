@@ -14,6 +14,7 @@
 // Description: Full crossbar, implemented as logarithmic interconnect.
 
 module xbar_varlat #(
+  parameter int unsigned AggregateGnt    = 1,    // aggregate gnt, i.e. gnt_o = |gnt_i see (*) for examples
   parameter int unsigned NumIn           = 4,    // number of requestors
   parameter int unsigned NumOut          = 4,    // number of targets
   parameter int unsigned ReqDataWidth    = 32,   // word width of data
@@ -43,6 +44,20 @@ module xbar_varlat #(
   input  logic [NumOut-1:0][RespDataWidth-1:0]  rdata_i    // data response (for load commands)
 );
 
+
+/*
+  (*):
+  AggregateGnt should be 0 when a single master is actually aggregating multiple master requests,
+  for example, in the case the single master is the output of another xbar_varlat.
+
+  This is not needed when a real-single master is used or multiple masters are used as the
+  rr_arb_tree dispatches the grant to each corresponding master.
+
+  Whereas, when the xbar_varlat is used with a single master, which is shared among severals
+  as desbribed above, the rr_arb_tree gives all the grant signals to the
+  shared single master, thus granting transactions that should not be granted
+*/
+
 ////////////////////////////////////////////////////////////////////////
 // inter-level wires
 ////////////////////////////////////////////////////////////////////////
@@ -57,6 +72,7 @@ logic [NumIn-1:0][NumOut-1:0] ma_gnt, ma_req;
 ////////////////////////////////////////////////////////////////////////
 for (genvar j = 0; unsigned'(j) < NumIn; j++) begin : gen_inputs
   addr_dec_resp_mux_varlat #(
+    .AggregateGnt  ( AggregateGnt  ),
     .NumOut        ( NumOut        ),
     .ReqDataWidth  ( ReqDataWidth  ),
     .RespDataWidth ( RespDataWidth )

@@ -9,6 +9,6 @@
   upstream:
   {
     url: https://github.com/davideschiavone/cluster_interconnect
-    rev: 6b35e4f71776de0239185a313ee14149ff716951
+    rev: 0e5513016a905ed293f7351762c5e668011cc060
   }
 }
