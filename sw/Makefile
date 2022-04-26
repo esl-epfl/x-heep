@@ -59,7 +59,7 @@ applications/hello_world/hello_world.elf: applications/hello_world/hello_world.c
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		-I device/lib/ \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
-		-lc -lm -lgcc
+		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
 clean:
 	rm -rf applications/*/*.elf \
