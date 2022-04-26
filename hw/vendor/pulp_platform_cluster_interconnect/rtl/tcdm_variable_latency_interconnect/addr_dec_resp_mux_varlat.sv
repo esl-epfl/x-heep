@@ -54,6 +54,7 @@ if (NumOut == unsigned'(1)) begin : gen_one_output
   // address decoder
   always_comb begin : p_addr_dec
     valid_inflight_d = valid_inflight_q;
+    req_o[0] = '0;
     if (~valid_inflight_q) begin
       req_o[0] = req_i;
       valid_inflight_d = req_i & gnt_o;
@@ -85,6 +86,7 @@ end else begin : gen_several_outputs
 
   // address decoder
   always_comb begin : p_addr_dec
+    req_o = '0;
     valid_inflight_d = valid_inflight_q;
     if (~valid_inflight_q) begin
       req_o[add_i]     = req_i;
