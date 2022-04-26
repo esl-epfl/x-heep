@@ -18,15 +18,17 @@ module xbar_varlat #(
   parameter int unsigned NumOut          = 4,    // number of targets
   parameter int unsigned ReqDataWidth    = 32,   // word width of data
   parameter int unsigned RespDataWidth   = 32,   // word width of data
-  parameter bit          ExtPrio         = 1'b0  // use external arbiter priority flags
+  parameter bit          ExtPrio         = 1'b0,  // use external arbiter priority flags
+  parameter int unsigned LogNumOut       = NumOut > 1 ? $clog2(NumOut) : 1,
+  parameter int unsigned LogNumIn        = NumIn > 1 ? $clog2(NumIn) : 1
 ) (
   input  logic                                  clk_i,
   input  logic                                  rst_ni,
   // external prio flag input
-  input  logic [NumOut-1:0][$clog2(NumIn)-1:0]  rr_i,      // external prio input
+  input  logic [NumOut-1:0][LogNumIn-1:0]       rr_i,      // external prio input
   // master side
   input  logic [NumIn-1:0]                      req_i,     // request signal
-  input  logic [NumIn-1:0][$clog2(NumOut)-1:0]  add_i,     // bank Address
+  input  logic [NumIn-1:0][LogNumOut-1:0]       add_i,     // bank Address
   input  logic [NumIn-1:0][ReqDataWidth-1:0]    wdata_i,   // write data
   output logic [NumIn-1:0]                      gnt_o,     // grant (combinationally dependent on req_i and add_i)
   output logic [NumIn-1:0]                      vld_o,     // response valid, also asserted if write responses are enabled

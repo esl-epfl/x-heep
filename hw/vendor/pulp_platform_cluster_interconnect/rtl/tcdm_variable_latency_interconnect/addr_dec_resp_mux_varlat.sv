@@ -16,13 +16,14 @@
 module addr_dec_resp_mux_varlat #(
     parameter int unsigned NumOut        = 32,
     parameter int unsigned ReqDataWidth  = 32,
-    parameter int unsigned RespDataWidth = 32
+    parameter int unsigned RespDataWidth = 32,
+    parameter int unsigned LogNumOut    = NumOut > 1 ? $clog2(NumOut) : 1
 ) (
   input  logic                                  clk_i,
   input  logic                                  rst_ni,
   // master side
   input  logic                                  req_i,    // request from this master
-  input  logic [$clog2(NumOut)-1:0]             add_i,    // bank selection index to be decoded
+  input  logic [LogNumOut-1:0]                  add_i,    // bank selection index to be decoded
   input  logic [ReqDataWidth-1:0]               data_i,   // data to be transported to slaves
   output logic                                  gnt_o,    // grant to master
   output logic                                  vld_o,    // read/write response

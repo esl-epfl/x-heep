@@ -18,6 +18,7 @@ filesets:
     - lint/register_interface.vlt
     - lint/uart.vlt
     - lint/uartdpi.vlt
+    - lint/cluster_interconnect.vlt
     file_type: vlt
 
 
