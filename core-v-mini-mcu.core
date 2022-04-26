@@ -90,7 +90,6 @@ filesets:
     - build/openhwgroup.org_systems_core-v-mini-mcu_0/nexys-a7-100t-vivado/core_v_mini_mcu_xiling_postsynth.v
     file_type: verilogSource
 
-
   # Scripts for hooks
   post_build_modelsim_scripts:
     files:
@@ -238,3 +237,22 @@ targets:
         - -suppress vlog-2583
         - -suppress vlog-2577
         - -pedanticerrors
+
+  asic_synthesis:
+    <<: *default_target
+    default_tool: design_compiler
+    description: Design Compiler Script
+    parameters:
+    - PULP_XPULP=0
+    - SYNTHESIS=true
+    parameters:
+      - PRIM_DEFAULT_IMPL=prim_pkg::your_target_technology
+    toplevel: [core_v_mini_mcu]
+    tools:
+      design_compiler:
+        script_dir:
+        - ../../../scripts/synthesis/dc_shell
+        report_dir:
+        - report
+        dc_script:
+        - dc_script.tcl

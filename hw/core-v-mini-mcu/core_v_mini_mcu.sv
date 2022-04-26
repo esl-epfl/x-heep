@@ -170,6 +170,7 @@ module core_v_mini_mcu #(
       .uart_intr_rx_parity_err_o()
   );
 
+`ifndef SYNTHESIS
   slow_memory #(
       .NumWords (128),
       .DataWidth(32'd32)
@@ -186,6 +187,11 @@ module core_v_mini_mcu #(
       .rdata_o(slow_ram_slave_resp.rdata),
       .rvalid_o(slow_ram_slave_resp.rvalid)
   );
+`else
+   assign slow_ram_slave_resp.gnt = '0;
+   assign slow_ram_slave_resp.rdata = '0;
+   assign slow_ram_slave_resp.rvalid = '0;
+`endif
 
   assign irq_software = '0;
   assign irq_timer    = '0;

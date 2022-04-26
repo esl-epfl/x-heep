@@ -9,5 +9,5 @@ jsonref==0.2
 # Development version with OT-specific changes
 git+https://github.com/lowRISC/fusesoc.git@ot#egg=fusesoc >= 1.11.0
 
-# Development version with OT-specific changes
-git+https://github.com/lowRISC/edalize.git@ot#egg=edalize >= 0.2.0
+# Install edalize by hand as pip install git+https://github.com/davideschiavone/edalize.git
+git+https://github.com/davideschiavone/edalize.git

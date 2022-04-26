@@ -54,7 +54,7 @@ module system_xbar
         .dec_valid_o(),
         .dec_error_o(),
         .en_default_idx_i(1'b1),
-        .default_idx_i(core_v_mini_mcu_pkg::ERROR_IDX)
+        .default_idx_i(core_v_mini_mcu_pkg::ERROR_IDX[LOG_SYSTEM_XBAR_NSLAVE-1:0])
     );
   end
 
