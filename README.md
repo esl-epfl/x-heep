@@ -80,33 +80,6 @@ $ sudo apt-get install -y gtkwave
 This repository relies on [vendor](https://docs.opentitan.org/doc/ug/vendor_hw/) to add new IPs.
 In the ./util folder, the vendor.py scripts implements what is describeb above.
 
-## Compiling for Verilator
-
-```
-$ fusesoc --cores-root . run --no-export --target=sim --tool=verilator --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
-```
-
-## Compiling for VCS
-
-```
-$ fusesoc --cores-root . run --no-export --target=sim --tool=vcs --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
-```
-
-## Compiling for Questasim
-
-```
-$ fusesoc --cores-root . run --no-export --target=sim --tool=modelsim --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
-```
-First set the env variable `MODEL_TECH` to your Questasim bin folder.
-
-Questasim version must be >= Questasim 2019.3
-
-You can also use vopt by running:
-
-```
-$ fusesoc --cores-root . run --no-export --target=sim_opt --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
-```
-
 ## Compiling Software
 
 Don't forget to set the `RISCV` env variable to the compiler folder (without the `/bin` included).
@@ -117,60 +90,109 @@ Then go to the `./sw` folder and type:
 $ make applications/hello_world/hello_world.hex
 ```
 
-This will create the executable file to be loaded in your target system (ASIC, FPGA, Questasim, Verilator, etc).
+This will create the executable file to be loaded in your target system (ASIC, FPGA, Simulation).
 
-## Running Software on Verilator
+## Simulating
 
-Go to your target system built folder, e.g.
+This project supports simulation with Verilator, Synopsys VCS, and Siemens Questasim.
+
+### Compiling for Verilator
+
+To simulate your application with Verilator, first compile the HDL:
+
+```
+$ fusesoc --cores-root . run --no-export --target=sim --tool=verilator --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+```
+
+then, go to your target system built folder
 
 ```
 $ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
 ```
 
-Then type:
+and type to run your compiled software:
 
 ```
 $ ./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex
 ```
 
-## Running Software on VCS
+### Compiling for VCS
 
-Go to your target system built folder, e.g.
+To simulate your application with VCS, first compile the HDL:
+
+```
+$ fusesoc --cores-root . run --no-export --target=sim --tool=vcs --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+```
+
+then, go to your target system built folder
 
 ```
 $ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-vcs
 ```
 
-Then type:
+and type to run your compiled software:
 
 ```
-./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/applications/hello_world/hello_world.hex
+$ ./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/applications/hello_world/hello_world.hex
 ```
 
+### Compiling for Questasim
 
-## Running Software on Questasim
+To simulate your application with Questasim, first set the env variable `MODEL_TECH` to your Questasim bin folder, then compile the HDL:
 
-Go to your target system built folder, e.g.
+```
+$ fusesoc --cores-root . run --no-export --target=sim --tool=modelsim --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+```
+
+then, go to your target system built folder
 
 ```
 $ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim/
 ```
 
-or
-
-```
-$ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim_opt-modelsim/
-```
-
-for the vopt version target.
-
-Then type:
+and type to run your compiled software:
 
 ```
 $ make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
 ```
 
-## FPGA Xilinx Nexys-A7 100T Flow
+You can also use vopt for HDL optimized compilation:
+
+```
+$ fusesoc --cores-root . run --no-export --target=sim_opt --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+```
+
+then go to
+
+```
+$ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim_opt-modelsim/
+```
+and 
+
+```
+$ make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
+```
+Questasim version must be >= Questasim 2019.3
+
+### UART DPI
+
+To simulate the UART, we use the LowRISC OpenTitan [UART DPI](https://github.com/lowRISC/opentitan/tree/master/hw/dv/dpi/uartdpi). 
+Read how to interact with it in the Section "Interact with the simulated UART" [here](https://docs.opentitan.org/doc/ug/getting_started_verilator/).
+The output of the UART DPI module is printed in the `uart0.log` file in the simulation folder.
+
+For example, to see the "hello world!" output of the Verilator simulation:
+
+```
+$ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
+$ ./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex
+$ cat uart0.log
+```
+
+## Emulation
+
+This project supports emulation on FPGAs (work in progress).
+
+### Xilinx Nexys-A7 100T Flow
 
 Work In Progress and untested!!!
 
@@ -183,7 +205,7 @@ $ fusesoc --cores-root . run --no-export --target=nexys-a7-100t --setup --build 
 If you only need the synthesis implementation:
 
 ```
-$ fusesoc --cores-root . build --no-export --target=nexys-a7-100t --setup openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildvivado.log
+$ fusesoc --cores-root . run --no-export --target=nexys-a7-100t --setup openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildvivado.log
 ```
 
 then
@@ -193,7 +215,7 @@ $ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/nexys-a7-100t-vivado/
 $ make synth
 ```
 
-at the end of the synthesis, you can export your netlist typing:
+at the end of the synthesis, you can export your netlist by typing:
 
 ```
 $ vivado -notrace -mode batch -source ../../../hw/fpga/scripts/export_verilog_netlist.tcl
@@ -201,18 +223,23 @@ $ vivado -notrace -mode batch -source ../../../hw/fpga/scripts/export_verilog_ne
 
 Only Vivado 2019.1.1 has been tried.
 
-## UART DPI
+## ASIC Implementation
 
-We use the LowRISC OpenTitan [UART DPI](https://github.com/lowRISC/opentitan/tree/master/hw/dv/dpi/uartdpi) to simulated the UART peripheral. Read how to interact with it in the Section "Interact with the simulated UART" [here](https://docs.opentitan.org/doc/ug/getting_started_verilator/).
-The output of the UART DPI module is printed in the `uart0.log` file in the simulation folder.
+This project can be implemented using standard cells based ASIC flow. (work in progress)
 
-For example, to see the "hello world!" output of the Verilator simulation:
+### Synthesis with Synopsys Design Compiler
+
+First, you need to provide technology-dependent implementations of some of the cells which require specific instantiation.
+
+Then, please provide a set_libs.tcl and set_constraints.tcl scripts to set link and target libraries, and constraints as the clock.
+
+To generate and run synthesis scripts with DC, execute:
 
 ```
-$ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
-$ ./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex
-$ cat uart0.log
+$ fusesoc --cores-root . run --no-export --target=asic_synthesis --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
 ```
+
+This relies on a fork of [edalize](https://github.com/davideschiavone/edalize) that contains templates for Design Compiler.
 
 ## Change Peripheral Memory Map
 
