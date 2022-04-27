@@ -14,19 +14,22 @@
 // Description: Full crossbar, implemented as logarithmic interconnect.
 
 module xbar_varlat #(
+  parameter int unsigned AggregateGnt    = 1,    // aggregate gnt, i.e. gnt_o = |gnt_i see (*) for examples
   parameter int unsigned NumIn           = 4,    // number of requestors
   parameter int unsigned NumOut          = 4,    // number of targets
   parameter int unsigned ReqDataWidth    = 32,   // word width of data
   parameter int unsigned RespDataWidth   = 32,   // word width of data
-  parameter bit          ExtPrio         = 1'b0  // use external arbiter priority flags
+  parameter bit          ExtPrio         = 1'b0,  // use external arbiter priority flags
+  parameter int unsigned LogNumOut       = NumOut > 1 ? $clog2(NumOut) : 1,
+  parameter int unsigned LogNumIn        = NumIn > 1 ? $clog2(NumIn) : 1
 ) (
   input  logic                                  clk_i,
   input  logic                                  rst_ni,
   // external prio flag input
-  input  logic [NumOut-1:0][$clog2(NumIn)-1:0]  rr_i,      // external prio input
+  input  logic [NumOut-1:0][LogNumIn-1:0]       rr_i,      // external prio input
   // master side
   input  logic [NumIn-1:0]                      req_i,     // request signal
-  input  logic [NumIn-1:0][$clog2(NumOut)-1:0]  add_i,     // bank Address
+  input  logic [NumIn-1:0][LogNumOut-1:0]       add_i,     // bank Address
   input  logic [NumIn-1:0][ReqDataWidth-1:0]    wdata_i,   // write data
   output logic [NumIn-1:0]                      gnt_o,     // grant (combinationally dependent on req_i and add_i)
   output logic [NumIn-1:0]                      vld_o,     // response valid, also asserted if write responses are enabled
@@ -40,6 +43,20 @@ module xbar_varlat #(
   /* verilator lint_on UNOPTFLAT */
   input  logic [NumOut-1:0][RespDataWidth-1:0]  rdata_i    // data response (for load commands)
 );
+
+
+/*
+  (*):
+  AggregateGnt should be 0 when a single master is actually aggregating multiple master requests,
+  for example, in the case the single master is the output of another xbar_varlat.
+
+  This is not needed when a real-single master is used or multiple masters are used as the
+  rr_arb_tree dispatches the grant to each corresponding master.
+
+  Whereas, when the xbar_varlat is used with a single master, which is shared among severals
+  as desbribed above, the rr_arb_tree gives all the grant signals to the
+  shared single master, thus granting transactions that should not be granted
+*/
 
 ////////////////////////////////////////////////////////////////////////
 // inter-level wires
@@ -55,6 +72,7 @@ logic [NumIn-1:0][NumOut-1:0] ma_gnt, ma_req;
 ////////////////////////////////////////////////////////////////////////
 for (genvar j = 0; unsigned'(j) < NumIn; j++) begin : gen_inputs
   addr_dec_resp_mux_varlat #(
+    .AggregateGnt  ( AggregateGnt  ),
     .NumOut        ( NumOut        ),
     .ReqDataWidth  ( ReqDataWidth  ),
     .RespDataWidth ( RespDataWidth )

@@ -188,9 +188,9 @@ module core_v_mini_mcu #(
       .rvalid_o(slow_ram_slave_resp.rvalid)
   );
 `else
-   assign slow_ram_slave_resp.gnt = '0;
-   assign slow_ram_slave_resp.rdata = '0;
-   assign slow_ram_slave_resp.rvalid = '0;
+  assign slow_ram_slave_resp.gnt = '0;
+  assign slow_ram_slave_resp.rdata = '0;
+  assign slow_ram_slave_resp.rvalid = '0;
 `endif
 
   assign irq_software = '0;

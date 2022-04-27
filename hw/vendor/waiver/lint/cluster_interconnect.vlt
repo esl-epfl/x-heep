@@ -1,0 +1,8 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule UNUSED -file "*rtl/tcdm_variable_latency_interconnect/xbar_varlat.sv" -match "Signal is not used: 'rr_i'*"
+lint_off -rule UNUSED -file "*rtl/tcdm_variable_latency_interconnect/addr_dec_resp_mux_varlat.sv" -match "Signal is not used: 'add_i'*"

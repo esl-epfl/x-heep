@@ -30,6 +30,13 @@ package core_v_mini_mcu_pkg;
       SYSTEM_XBAR_NSLAVE
   ) : 32'd1;
 
+  typedef enum logic {
+    NtoM,
+    onetoM
+  } bus_type_e;
+
+  localparam bus_type_e BusType = onetoM;
+
   //master idx
   localparam logic [31:0] CORE_INSTR_IDX = 0;
   localparam logic [31:0] CORE_DATA_IDX = 1;
