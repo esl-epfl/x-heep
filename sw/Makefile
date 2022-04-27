@@ -61,6 +61,22 @@ applications/hello_world/hello_world.elf: applications/hello_world/hello_world.c
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
+applications/matadd/matadd.elf: applications/matadd/matadd.c
+	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
+		$(CUSTOM_GCC_FLAGS) \
+		-DHOST_BUILD \
+		-T linker/link.ld \
+		-static \
+		$(LIB_CRT) \
+		$^ $(LIB_RUNTIME) \
+		$(LIB_BASE) \
+		$(LIB_DRIVERS) \
+		-I $(RISCV)/riscv32-unknown-elf/include \
+		-I device/lib/ \
+		-L $(RISCV)/riscv32-unknown-elf/lib \
+		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
+
+
 clean:
 	rm -rf applications/*/*.elf \
 	rm -rf applications/*/*.hex \

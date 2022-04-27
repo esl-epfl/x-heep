@@ -8,8 +8,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "sw/device/lib/base/csr_registers.h"
-#include "sw/device/lib/base/stdasm.h"
+#include "csr_registers.h"
+#include "stdasm.h"
 
 #ifdef __cplusplus
 extern "C" {
