@@ -17,8 +17,7 @@ set DB_MEM {}
 
 # target library
 set target_library      {}
-lappend target_library  $DB_STDCELLS
-lappend target_library  $DB_MEM
+set target_library  "$DB_STDCELLS $DB_MEM"
 
 # link library
 set link_library "* $target_library"
