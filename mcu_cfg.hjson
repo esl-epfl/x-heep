@@ -5,6 +5,10 @@
 // Peripherals configuration for core-v-mini-mcu.
 {
 
+    cpu_type: cv32e20
+
+    bus_type: onetoM
+
     debug: {
         address: 0x10000000,
         length:  0x100000,

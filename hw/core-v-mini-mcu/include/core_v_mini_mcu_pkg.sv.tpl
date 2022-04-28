@@ -17,6 +17,13 @@ package core_v_mini_mcu_pkg;
 
   import addr_map_rule_pkg::*;
 
+  typedef enum logic {
+    cv32e40p,
+    cv32e20
+  } cpu_type_e;
+
+  localparam cpu_type_e CpuType = ${cpu_type};
+
   //must be power of two
   localparam int unsigned MEM_SIZE = 2**16;
 
@@ -31,7 +38,7 @@ package core_v_mini_mcu_pkg;
     onetoM
   } bus_type_e;
 
-  localparam bus_type_e BusType = onetoM;
+  localparam bus_type_e BusType = ${bus_type};
 
   //master idx
   localparam logic [31:0] CORE_INSTR_IDX = 0;

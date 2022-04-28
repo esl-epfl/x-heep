@@ -1,0 +1,130 @@
+diff --git a/ibex_core.core b/ibex_core.core
+index caf06034..918b4dfd 100644
+--- a/ibex_core.core
++++ b/ibex_core.core
+@@ -10,10 +10,7 @@ filesets:
+     depend:
+       - lowrisc:prim:assert
+       - lowrisc:prim:clock_gating
+-      - lowrisc:prim:lfsr
+       - lowrisc:ibex:ibex_pkg
+-      - lowrisc:ibex:ibex_icache
+-      - lowrisc:dv:dv_fcov_macros
+     files:
+       - rtl/ibex_alu.sv
+       - rtl/ibex_branch_predict.sv
+@@ -148,7 +145,6 @@ targets:
+       - tool_verilator ? (files_lint_verilator)
+       - tool_veriblelint ? (files_lint_verible)
+       - files_rtl
+-      - files_check_tool_requirements
+     toplevel: ibex_core
+     parameters:
+       - tool_vivado ? (FPGA_XILINX=true)
+diff --git a/rtl/ibex_controller.sv b/rtl/ibex_controller.sv
+index 8641253a..f4c53c37 100644
+--- a/rtl/ibex_controller.sv
++++ b/rtl/ibex_controller.sv
+@@ -8,7 +8,6 @@
+  */
+ 
+ `include "prim_assert.sv"
+-`include "dv_fcov_macros.svh"
+ 
+ module ibex_controller #(
+   parameter bit WritebackStage  = 0,
+@@ -820,7 +819,7 @@ module ibex_controller #(
+   //////////
+   // FCOV //
+   //////////
+-
++/*
+   `DV_FCOV_SIGNAL(logic, interrupt_taken, (ctrl_fsm_cs != IRQ_TAKEN) & (ctrl_fsm_ns == IRQ_TAKEN))
+   `DV_FCOV_SIGNAL(logic, debug_entry_if,
+       (ctrl_fsm_cs != DBG_TAKEN_IF) & (ctrl_fsm_ns == DBG_TAKEN_IF))
+@@ -828,7 +827,7 @@ module ibex_controller #(
+       (ctrl_fsm_cs != DBG_TAKEN_ID) & (ctrl_fsm_ns == DBG_TAKEN_ID))
+   `DV_FCOV_SIGNAL(logic, pipe_flush, (ctrl_fsm_cs != FLUSH) & (ctrl_fsm_ns == FLUSH))
+   `DV_FCOV_SIGNAL(logic, debug_req, debug_req_i & ~debug_mode_q)
+-
++*/
+   ////////////////
+   // Assertions //
+   ////////////////
+diff --git a/rtl/ibex_id_stage.sv b/rtl/ibex_id_stage.sv
+index a00f6bf6..17e75e55 100644
+--- a/rtl/ibex_id_stage.sv
++++ b/rtl/ibex_id_stage.sv
+@@ -15,7 +15,6 @@
+  */
+ 
+ `include "prim_assert.sv"
+-`include "dv_fcov_macros.svh"
+ 
+ module ibex_id_stage #(
+   parameter bit               RV32E           = 0,
+@@ -1061,14 +1060,14 @@ module ibex_id_stage #(
+   //////////
+   // FCOV //
+   //////////
+-
++/*
+   `DV_FCOV_SIGNAL_GEN_IF(logic, rf_rd_wb_hz,
+     (gen_stall_mem.rf_rd_a_hz | gen_stall_mem.rf_rd_b_hz) & instr_valid_i, WritebackStage)
+   `DV_FCOV_SIGNAL(logic, branch_taken,
+     instr_executing & (id_fsm_q == FIRST_CYCLE) & branch_decision_i)
+   `DV_FCOV_SIGNAL(logic, branch_not_taken,
+     instr_executing & (id_fsm_q == FIRST_CYCLE) & ~branch_decision_i)
+-
++*/
+   ////////////////
+   // Assertions //
+   ////////////////
+diff --git a/rtl/ibex_load_store_unit.sv b/rtl/ibex_load_store_unit.sv
+index 14de33bf..113bfc9d 100644
+--- a/rtl/ibex_load_store_unit.sv
++++ b/rtl/ibex_load_store_unit.sv
+@@ -12,7 +12,6 @@
+  */
+ 
+ `include "prim_assert.sv"
+-`include "dv_fcov_macros.svh"
+ 
+ module ibex_load_store_unit
+ (
+@@ -502,10 +501,10 @@ module ibex_load_store_unit
+   //////////
+   // FCOV //
+   //////////
+-
++/*
+   `DV_FCOV_SIGNAL(logic, ls_error_exception, (load_err_o | store_err_o) & ~pmp_err_q)
+   `DV_FCOV_SIGNAL(logic, ls_pmp_exception, (load_err_o | store_err_o) & pmp_err_q)
+-
++*/
+   ////////////////
+   // Assertions //
+   ////////////////
+diff --git a/rtl/ibex_wb_stage.sv b/rtl/ibex_wb_stage.sv
+index d0a23600..042b880a 100644
+--- a/rtl/ibex_wb_stage.sv
++++ b/rtl/ibex_wb_stage.sv
+@@ -12,7 +12,6 @@
+  */
+ 
+ `include "prim_assert.sv"
+-`include "dv_fcov_macros.svh"
+ 
+ module ibex_wb_stage #(
+   parameter bit ResetAll       = 1'b0,
+@@ -207,8 +206,8 @@ module ibex_wb_stage #(
+   assign rf_wdata_wb_o = ({32{rf_wdata_wb_mux_we[0]}} & rf_wdata_wb_mux[0]) |
+                          ({32{rf_wdata_wb_mux_we[1]}} & rf_wdata_wb_mux[1]);
+   assign rf_we_wb_o    = |rf_wdata_wb_mux_we;
+-
++/*
+   `DV_FCOV_SIGNAL_GEN_IF(logic, wb_valid, g_writeback_stage.wb_valid_q, WritebackStage)
+-
++*/
+   `ASSERT(RFWriteFromOneSourceOnly, $onehot0(rf_wdata_wb_mux_we))
+ endmodule

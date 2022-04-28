@@ -87,6 +87,11 @@ def main():
     outdir = args.outdir
     outdir.mkdir(parents=True, exist_ok=True)
 
+
+    cpu_type = obj['cpu_type']
+
+    bus_type = obj['bus_type']
+
     debug_start_address = string2int(obj['debug']['address'])
     if int(debug_start_address, 16) < int('10000', 16):
         exit("debug start address must be greater than 0x10000")
@@ -109,6 +114,8 @@ def main():
     soc_ctrl_size_address  = string2int(obj['peripherals']['soc_ctrl']['length'])
 
     kwargs = {
+        "cpu_type"                 : cpu_type,
+        "bus_type"                 : bus_type,
         "debug_start_address"      : debug_start_address,
         "debug_size_address"       : debug_size_address,
         "peripheral_start_address" : peripheral_start_address,
