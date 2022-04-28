@@ -62,6 +62,11 @@ filesets:
     - hw/fpga/scripts/generate_sram.tcl
     file_type: tclSource
 
+  ip-asic:
+    depend:
+    - technology::prim_mytech
+
+
   xdc-fpga:
     files:
     - hw/fpga/constraints/pin_assign.xdc
@@ -246,6 +251,8 @@ targets:
     parameters:
     - PULP_XPULP=0
     - SYNTHESIS=true
+    filesets_append:
+    - ip-asic
     parameters:
       - PRIM_DEFAULT_IMPL=prim_pkg::your_target_technology
     toplevel: [core_v_mini_mcu]
