@@ -43,8 +43,9 @@ int main (int argc, char * argv[])
 {
 
   unsigned int SRAM_SIZE;
-  std::string firmware, arg_max_sim_time;
+  std::string firmware, arg_max_sim_time, arg_openocd;
   unsigned int max_sim_time;
+  bool use_openocd;
   bool run_all = false;
   int i,j, exit_val;
 
@@ -59,10 +60,20 @@ int main (int argc, char * argv[])
   dut->trace (m_trace, 99);
   m_trace->open ("waveform.vcd");
 
+  arg_openocd = getCmdOption(argc, argv, "+openOCD=");
+  use_openocd = false;
+  if(arg_openocd.empty()){
+    std::cout<<"[TESTBENCH]: No OpenOCD is used"<<std::endl;
+  } else {
+    std::cout<<"[TESTBENCH]: OpenOCD is used"<<std::endl;
+    use_openocd = true;
+  }
+
   firmware = getCmdOption(argc, argv, "+firmware=");
   if(firmware.empty()){
     std::cout<<"[TESTBENCH]: No firmware  specified"<<std::endl;
-    exit(EXIT_FAILURE);
+    if(use_openocd==false)
+      exit(EXIT_FAILURE);
   } else {
     std::cout<<"[TESTBENCH]: loading firmware  "<<firmware<<std::endl;
   }
@@ -76,7 +87,6 @@ int main (int argc, char * argv[])
     max_sim_time = stoi(arg_max_sim_time);
     std::cout<<"[TESTBENCH]: Max Times is  "<<max_sim_time<<std::endl;
   }
-
 
   svSetScope(svGetScopeFromName("TOP.testharness"));
   svScope scope = svGetScope();
@@ -104,10 +114,14 @@ int main (int argc, char * argv[])
   runCycles(1, dut, m_trace);
   std::cout<<"Reset Released"<< std::endl;
 
-  dut->tb_loadHEX(firmware.c_str());
+  if(use_openocd==false) {
+    dut->tb_loadHEX(firmware.c_str());
 
-  runCycles(1, dut, m_trace);
-  std::cout<<"Memory Loaded"<< std::endl;
+    runCycles(1, dut, m_trace);
+    std::cout<<"Memory Loaded"<< std::endl;
+  } else {
+    std::cout<<"Waiting for GDB"<< std::endl;
+  }
 
   if(run_all==false) {
     runCycles(max_sim_time, dut, m_trace);

@@ -79,7 +79,14 @@ filesets:
     files:
     - tb/tb_util.svh: {is_include_file: true}
     - tb/testharness.sv
+    - tb/SimJTAG.sv
     file_type: systemVerilogSource
+
+  remote_bitbang:
+    files:
+    - tb/remote_bitbang/sim_jtag.c:  { file_type: cppSource }
+    - tb/remote_bitbang/remote_bitbang.c: { file_type: cppSource }
+    - tb/remote_bitbang/remote_bitbang.h: { file_type: cppSource, is_include_file: true }
 
   tb-sv:
     files:
@@ -145,6 +152,7 @@ targets:
     - tool_vcs? (tb-sv)
     - tool_verilator? (files_verilator_waiver)
     - tool_verilator? (tb-verilator)
+    - tool_verilator? (remote_bitbang)
     toplevel:
     - tool_modelsim? (tb_top)
     - tool_vcs? (tb_top)
