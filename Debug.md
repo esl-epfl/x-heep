@@ -14,8 +14,8 @@ After extracting the files,
 
 ```
 $ cd openocd-0.11.0-rc2
-$ ./configure --enable-ftdi --enable-remote-bitbang && make
-$ sudo make install
+$ ./configure --enable-ftdi --enable-remote-bitbang --prefix=/home/yourusername/tools/openocd && make
+$ make install
 ```
 
 3. Compile the remote_bitbang Server
