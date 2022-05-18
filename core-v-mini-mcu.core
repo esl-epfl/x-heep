@@ -166,6 +166,7 @@ targets:
         - -suppress vlog-2583
         - -suppress vlog-2577
         - -pedanticerrors
+        - -define MODELSIM
       vcs:
         vcs_options:
          - -override_timescale=1ns/1ps

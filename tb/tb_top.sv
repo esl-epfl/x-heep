@@ -62,7 +62,7 @@ module tb_top #(
 
       if ($test$plusargs("verbose"))
         $display("[TESTBENCH] %t: loading firmware %0s ...", $time, firmware);
-      testharness.tb_loadHEX(firmware);
+      testharness_i.tb_loadHEX(firmware);
     end else begin
       $display("No firmware specified");
       $finish;
