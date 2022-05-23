@@ -8,7 +8,7 @@ $ sudo apt install pkg-config libusb-1.0-0-dev
 
 2. Install openOCD
 
-Download  `openOCD` from https://sourceforge.net/projects/openocd/files/openocd/
+Download `openOCD` from https://sourceforge.net/projects/openocd/files/openocd/
 Version 0.11.0-rc2.
 After extracting the files,
 
@@ -16,6 +16,12 @@ After extracting the files,
 $ cd openocd-0.11.0-rc2
 $ ./configure --enable-ftdi --enable-remote-bitbang --prefix=/home/yourusername/tools/openocd && make
 $ make install
+```
+
+Add to `PATH` `openOCD`:
+
+```
+$ export PATH=/home/yourusername/tools/openocd/bin:$PATH
 ```
 
 3. Compile the remote_bitbang Server
@@ -73,7 +79,7 @@ Check the waveform of the JTAG on Modelsim if you like.
 In a 3rd shell, conenct gdb as:
 
 ```
-/home/username/tools/riscv/bin/riscv32-unknown-elf-gdb ./sw/applications/hello_world/hello_world.elf
+/home/yourusername/tools/riscv/bin/riscv32-unknown-elf-gdb ./sw/applications/hello_world/hello_world.elf
 ```
 
 Once GDB starts, do the following 3 commands:
