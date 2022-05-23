@@ -81,7 +81,7 @@ module tlul_fifo_async #(
                      tl_d_i.d_error }),
     .rvalid_o      (tl_h_o.d_valid),
     .rready_i      (tl_h_i.d_ready),
-    .rdata_o       ({rspfifo_tl_h_d_opcode,,
+    .rdata_o       ({rspfifo_tl_h_d_opcode,
                      tl_h_o.d_param ,
                      tl_h_o.d_size  ,
                      tl_h_o.d_source,
