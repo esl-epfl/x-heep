@@ -74,12 +74,15 @@ filesets:
     file_type: xdc
 
   tb-harness:
-    depend:
-    - lowrisc:dv_dpi:uartdpi
     files:
     - tb/tb_util.svh: {is_include_file: true}
     - tb/testharness.sv
     - tb/SimJTAG.sv
+    file_type: systemVerilogSource
+
+  systemverilog_only_uart:
+    files:
+    - hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi.sv
     file_type: systemVerilogSource
 
   remote_bitbang:
@@ -106,9 +109,23 @@ filesets:
   # Scripts for hooks
   post_build_modelsim_scripts:
     files:
-    - scripts/post_build_modelsim_vopt.sh
+    - scripts/sim/modelsim/post_build_modelsim_vopt.sh
     file_type: user
 
+  pre_build_remote_bitbang:
+    files:
+    - scripts/sim/compile_remote_bitbang.sh
+    file_type: user
+
+  pre_build_uartdpi:
+    files:
+    - scripts/sim/compile_uart_dpi.sh
+    file_type: user
+
+  pre_patch_modelsim_Makefile:
+    files:
+    - scripts/sim/modelsim/patch_modelsim_Makefile.py
+    file_type: user
 
 parameters:
   PULP_XPULP:
@@ -134,7 +151,19 @@ scripts:
   post_build_modelsim_scripts:
     cmd:
     - sh
-    - ../../../scripts/post_build_modelsim_vopt.sh
+    - ../../../scripts/sim/modelsim/post_build_modelsim_vopt.sh
+  pre_build_remote_bitbang:
+    cmd:
+    - sh
+    - ../../../scripts/sim/compile_remote_bitbang.sh
+  pre_build_uartdpi:
+    cmd:
+    - sh
+    - ../../../scripts/sim/compile_uart_dpi.sh
+  pre_patch_modelsim_Makefile:
+    cmd:
+    - python
+    - ../../../scripts/sim/modelsim/patch_modelsim_Makefile.py
 
 targets:
   default: &default_target
@@ -148,8 +177,16 @@ targets:
     filesets_append:
     - rtl-simulation
     - tb-harness
+    - tool_verilator? (lowrisc:dv_dpi:uartdpi)
+    - tool_modelsim? (systemverilog_only_uart)
+    - tool_vcs? (systemverilog_only_uart)
     - tool_modelsim? (tb-sv)
     - tool_vcs? (tb-sv)
+    - tool_modelsim? (pre_build_remote_bitbang)
+    - tool_modelsim? (pre_build_uartdpi)
+    - tool_modelsim? (pre_patch_modelsim_Makefile)
+    - tool_vcs? (pre_build_remote_bitbang)
+    - tool_vcs? (pre_build_uartdpi)
     - tool_verilator? (files_verilator_waiver)
     - tool_verilator? (tb-verilator)
     - tool_verilator? (remote_bitbang)
@@ -157,6 +194,11 @@ targets:
     - tool_modelsim? (tb_top)
     - tool_vcs? (tb_top)
     - tool_verilator? (testharness)
+    hooks:
+      pre_build:
+        - tool_modelsim? (pre_build_uartdpi)
+        - tool_modelsim? (pre_build_remote_bitbang)
+        - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
     parameters:
     - PULP_XPULP=0
     tools:
@@ -167,6 +209,8 @@ targets:
         - -suppress vlog-2577
         - -pedanticerrors
         - -define MODELSIM
+        vsim_options:
+        - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi ../../../tb/remote_bitbang/librbs
       vcs:
         vcs_options:
          - -override_timescale=1ns/1ps
@@ -187,7 +231,7 @@ targets:
         verilator_options:
           - '--cc'
           - '--trace'
-          - '--trace-fst' # this requires -DVM_TRACE_FMT_FST in CFLAGS below!
+          - '--trace-fst'
           - '--trace-structs'
           - '--trace-params'
           - '--trace-max-array 1024'
