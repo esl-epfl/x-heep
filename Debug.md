@@ -1,9 +1,16 @@
 ## Prerequisite
 
-1. Install the required apt tools:
+1. Install the required linux tools:
 
 ```
 $ sudo apt install pkg-config libusb-1.0-0-dev
+```
+
+You need at least gcc>10, so in case you do not have it:
+
+```
+$ sudo apt install gcc-10 g++-10
+$ sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
 ```
 
 2. Install openOCD
@@ -24,37 +31,32 @@ Add to `PATH` `openOCD`:
 $ export PATH=/home/yourusername/tools/openocd/bin:$PATH
 ```
 
-3. Compile the remote_bitbang Server
-
-(TODO: this should be done with FuseSoc)
-
-```
-$ cd tb/remote_bitbang
-$ make all
-```
-
-You need at least gcc>10, so in case you do not have it:
-
-```
-$ sudo apt install gcc-10 g++-10
-$ sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
-```
 ## Simulating
 
 You need 3 shells to do this job.
 
 Now we are going to Simulate debugging with core-v-mini-mcu.
 In this setup, OpenOCD communicates with the remote bitbang server by means of DPIs.
-The remote bitbang server is simplemented in the folder ./tb/remote_bitbang that has been previously compiled.
+The remote bitbang server is simplemented in the folder ./tb/remote_bitbang and it will be compiled using fusesoc.
 
 ### Questasim
 
-Compile the model as describe in the main Guide, then:
+To simulate your application with Questasim using the remote_bitbang server, you need to compile you system adding the flag `use_jtag_dpi`:
 
 ```
-$ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim
-$ vsim -64 -gui tb_top_vopt +firmware=../../../sw/applications/hello_world/hello_world.hex -sv_lib ../../../tb/remote_bitbang/librbs
-$ run -all
+$ fusesoc --cores-root . run --no-export --target=sim --tool=modelsim --setup --build --flag use_jtag_dpi openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+```
+
+then, go to your target system built folder
+
+```
+$ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim/
+```
+
+and type to run your compiled software:
+
+```
+$ make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
 ```
 
 Now the remote bitbang server should print in your shell:

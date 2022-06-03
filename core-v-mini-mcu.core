@@ -132,6 +132,10 @@ parameters:
     datatype: int
     paramtype: vlogparam
     default: 0
+  JTAG_DPI:
+    datatype: int
+    paramtype: vlogparam
+    default: 0
   SYNTHESIS:
     datatype: bool
     paramtype: vlogdefine
@@ -201,6 +205,8 @@ targets:
         - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
     parameters:
     - PULP_XPULP=0
+    - use_jtag_dpi? (JTAG_DPI=1)
+    - "!use_jtag_dpi? (JTAG_DPI=0)"
     tools:
       modelsim:
         vlog_options:
@@ -210,7 +216,8 @@ targets:
         - -pedanticerrors
         - -define MODELSIM
         vsim_options:
-        - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi -sv_lib ../../../tb/remote_bitbang/librbs
+        - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi
+        - -sv_lib ../../../tb/remote_bitbang/librbs
       vcs:
         vcs_options:
          - -override_timescale=1ns/1ps
@@ -262,6 +269,8 @@ targets:
      post_build: [post_build_modelsim_scripts]
     parameters:
     - PULP_XPULP=0
+    - use_jtag_dpi? (JTAG_DPI=1)
+    - "!use_jtag_dpi? (JTAG_DPI=0)"
     tools:
       modelsim:
         vlog_options:

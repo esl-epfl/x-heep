@@ -5,7 +5,8 @@
 module testharness #(
     parameter PULP_XPULP = 0,
     parameter FPU        = 0,
-    parameter PULP_ZFINX = 0
+    parameter PULP_ZFINX = 0,
+    parameter JTAG_DPI = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -24,7 +25,7 @@ module testharness #(
 
   logic uart_rx;
   logic uart_tx;
-  logic sim_jtag_enable = 1'b1;
+  logic sim_jtag_enable = (JTAG_DPI == 1);
   logic sim_jtag_tck;
   logic sim_jtag_tms;
   logic sim_jtag_trst;
