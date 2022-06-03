@@ -74,10 +74,11 @@ filesets:
     file_type: xdc
 
   tb-harness:
+    depend:
+    - pulp-platform.org::pulpissimo_simjtag
     files:
     - tb/tb_util.svh: {is_include_file: true}
     - tb/testharness.sv
-    - tb/SimJTAG.sv
     file_type: systemVerilogSource
 
   systemverilog_only_uart:
@@ -86,10 +87,8 @@ filesets:
     file_type: systemVerilogSource
 
   remote_bitbang:
-    files:
-    - tb/remote_bitbang/sim_jtag.c:  { file_type: cppSource }
-    - tb/remote_bitbang/remote_bitbang.c: { file_type: cppSource }
-    - tb/remote_bitbang/remote_bitbang.h: { file_type: cppSource, is_include_file: true }
+    depend:
+    - pulp-platform.org::pulpissimo_remote_bitbang
 
   tb-sv:
     files:
@@ -217,7 +216,7 @@ targets:
         - -define MODELSIM
         vsim_options:
         - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi
-        - -sv_lib ../../../tb/remote_bitbang/librbs
+        - -sv_lib ../../../hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang/librbs
       vcs:
         vcs_options:
          - -override_timescale=1ns/1ps

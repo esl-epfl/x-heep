@@ -187,6 +187,9 @@ $ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
 $ ./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex
 $ cat uart0.log
 ```
+## Debug
+
+Follow the [Debug](./Debug.md) guide to debug core-v-mini-mcu.
 
 ## Emulation
 
