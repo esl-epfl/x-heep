@@ -83,10 +83,12 @@ module uartdpi #(
   end
 
 `ifndef VCS
+`ifndef MODELSIM
   initial begin
     // Prevent falling edges of rx_i before reset causing spurious characters
     seen_reset = 0;
   end
+`endif
 `endif
 
   // RX

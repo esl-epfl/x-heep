@@ -5,7 +5,8 @@
 module testharness #(
     parameter PULP_XPULP = 0,
     parameter FPU        = 0,
-    parameter PULP_ZFINX = 0
+    parameter PULP_ZFINX = 0,
+    parameter JTAG_DPI = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -24,6 +25,13 @@ module testharness #(
 
   logic uart_rx;
   logic uart_tx;
+  logic sim_jtag_enable = (JTAG_DPI == 1);
+  logic sim_jtag_tck;
+  logic sim_jtag_tms;
+  logic sim_jtag_trst;
+  logic sim_jtag_tdi;
+  logic sim_jtag_tdo;
+  logic sim_jtag_trstn;
 
   core_v_mini_mcu #(
       .PULP_XPULP(PULP_XPULP),
@@ -33,11 +41,11 @@ module testharness #(
       .clk_i,
       .rst_ni,
 
-      .jtag_tck_i,
-      .jtag_tms_i,
-      .jtag_trst_ni,
-      .jtag_tdi_i,
-      .jtag_tdo_o,
+      .jtag_tck_i(sim_jtag_tck),
+      .jtag_tms_i(sim_jtag_tms),
+      .jtag_trst_ni(sim_jtag_trstn),
+      .jtag_tdi_i(sim_jtag_tdi),
+      .jtag_tdo_o(sim_jtag_tdo),
 
       .uart_rx_i(uart_rx),
       .uart_tx_o(uart_tx),
@@ -57,6 +65,24 @@ module testharness #(
       .rst_ni,
       .tx_o(uart_rx),
       .rx_i(uart_tx)
+  );
+
+  // jtag calls from dpi
+  SimJTAG #(
+    .TICK_DELAY(1),
+    .PORT      (4567)
+  ) i_sim_jtag (
+    .clock          (clk_i),
+    .reset          (~rst_ni),
+    .enable         (sim_jtag_enable),
+    .init_done      (rst_ni),
+    .jtag_TCK       (sim_jtag_tck),
+    .jtag_TMS       (sim_jtag_tms),
+    .jtag_TDI       (sim_jtag_tdi),
+    .jtag_TRSTn     (sim_jtag_trstn),
+    .jtag_TDO_data  (sim_jtag_tdo),
+    .jtag_TDO_driven(1'b1),
+    .exit           ( )
   );
 
 endmodule  // testharness

@@ -5,7 +5,8 @@
 module tb_top #(
     parameter PULP_XPULP = 0,
     parameter FPU        = 0,
-    parameter PULP_ZFINX = 0
+    parameter PULP_ZFINX = 0,
+    parameter JTAG_DPI   = 0
 );
 
   // comment to record execution trace
@@ -62,7 +63,7 @@ module tb_top #(
 
       if ($test$plusargs("verbose"))
         $display("[TESTBENCH] %t: loading firmware %0s ...", $time, firmware);
-      testharness.tb_loadHEX(firmware);
+      testharness_i.tb_loadHEX(firmware);
     end else begin
       $display("No firmware specified");
       $finish;
@@ -126,7 +127,8 @@ module tb_top #(
   testharness #(
       .PULP_XPULP(PULP_XPULP),
       .FPU       (FPU),
-      .PULP_ZFINX(PULP_ZFINX)
+      .PULP_ZFINX(PULP_ZFINX),
+      .JTAG_DPI(JTAG_DPI)
   ) testharness_i (
       .clk_i         (clk),
       .rst_ni        (rst_n),
