@@ -73,20 +73,26 @@ filesets:
     - hw/fpga/constraints/constraints.xdc
     file_type: xdc
 
-  tb-harness:
+  systemverilog_only_simjtag:
     depend:
     - pulp-platform.org::pulpissimo_simjtag
+
+  tb-harness:
     files:
     - tb/tb_util.svh: {is_include_file: true}
     - tb/testharness.sv
     file_type: systemVerilogSource
+
+  uartdpi:
+    depend:
+    - lowrisc:dv_dpi:uartdpi
 
   systemverilog_only_uart:
     files:
     - hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi.sv
     file_type: systemVerilogSource
 
-  remote_bitbang:
+  remote_bitbang_dpi:
     depend:
     - pulp-platform.org::pulpissimo_remote_bitbang
 
@@ -180,7 +186,7 @@ targets:
     filesets_append:
     - rtl-simulation
     - tb-harness
-    - tool_verilator? (lowrisc:dv_dpi:uartdpi)
+    - tool_verilator? (uartdpi)
     - tool_modelsim? (systemverilog_only_uart)
     - tool_vcs? (systemverilog_only_uart)
     - tool_modelsim? (tb-sv)
@@ -192,7 +198,9 @@ targets:
     - tool_vcs? (pre_build_uartdpi)
     - tool_verilator? (files_verilator_waiver)
     - tool_verilator? (tb-verilator)
-    - tool_verilator? (remote_bitbang)
+    - tool_verilator? (remote_bitbang_dpi)
+    - tool_modelsim? (systemverilog_only_simjtag)
+    - tool_vcs? (systemverilog_only_simjtag)
     toplevel:
     - tool_modelsim? (tb_top)
     - tool_vcs? (tb_top)

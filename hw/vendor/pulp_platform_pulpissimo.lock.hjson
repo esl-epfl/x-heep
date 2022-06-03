@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/pulp-platform/pulpissimo.git
-    rev: ea5df7507e8f5f2394faa1f0b2497275d47c6587
+    url: https://github.com/davideschiavone/pulpissimo.git
+    rev: 4c0f9e754b43cf4aaf0690b2e22c45a4904c3027
   }
 }

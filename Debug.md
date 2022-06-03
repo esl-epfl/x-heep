@@ -30,6 +30,11 @@ Add to `PATH` `openOCD`:
 ```
 $ export PATH=/home/yourusername/tools/openocd/bin:$PATH
 ```
+## TODOs
+
+As today the testbench does not have a way to select whether to boot from JTAG or not, so the CPU starts executing the program even before openOCD connects,
+and so the simulation ends. Use a software which containts a `while(1)` to be sure the simulation is still in place once openOCD and GDB connects.
+This will be replaced.
 
 ## Simulating
 
@@ -38,6 +43,26 @@ You need 3 shells to do this job.
 Now we are going to Simulate debugging with core-v-mini-mcu.
 In this setup, OpenOCD communicates with the remote bitbang server by means of DPIs.
 The remote bitbang server is simplemented in the folder ./hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang and it will be compiled using fusesoc.
+
+### Verilator
+
+To simulate your application with Questasim using the remote_bitbang server, you need to compile you system adding the flag `use_jtag_dpi`:
+
+```
+$ fusesoc --cores-root . run --no-export --target=sim --tool=verilator --setup --build --flag use_jtag_dpi openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+```
+
+then, go to your target system built folder
+
+```
+$ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
+```
+
+and type to run your compiled software:
+
+```
+$ ./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex"
+```
 
 ### Questasim
 
@@ -58,8 +83,9 @@ and type to run your compiled software:
 ```
 $ make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
 ```
+### Remote bitbang server started
 
-Now the remote bitbang server should print in your shell:
+Once the Verilator or Questasim simulation started, the remote bitbang server should print in your shell:
 
 ```
 JTAG remote bitbang server is ready
@@ -106,10 +132,10 @@ Start address 0x00000180, load size 4788
 Transfer rate: 67 bytes/sec, 798 bytes/write.
 ```
 
-Now you can play with [gdb](
+Now you can play with `gdb`
 
-e.g:
+e.g: Ask for the content of register `a0`
 
 ```
-(gdb) info registers
+(gdb) i r a0
 ```
