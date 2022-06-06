@@ -2,7 +2,7 @@ Minimal configuration of a core-v-mcu
 
 ## Prerequisite
 
-1. [optional] If you wish to install the Conda enviroment with python 3.9:
+1. If you wish to install the Conda enviroment with python 3.9:
 
 ```bash
 $ conda update conda
