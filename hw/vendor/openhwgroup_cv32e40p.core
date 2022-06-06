@@ -78,4 +78,3 @@ targets:
     - ff_regfile
     - target_sim? (files_clk_gate)
     - target_sim_opt? (files_clk_gate)
-    - target_nexys-a7-100t? (files_clk_gate)

@@ -224,7 +224,7 @@ at the end of the synthesis, you can export your netlist by typing:
 $ vivado -notrace -mode batch -source ../../../hw/fpga/scripts/export_verilog_netlist.tcl
 ```
 
-Only Vivado 2019.1.1 has been tried.
+Only Vivado 2021.2 has been tried.
 
 ## ASIC Implementation
 
