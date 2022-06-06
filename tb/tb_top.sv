@@ -128,7 +128,7 @@ module tb_top #(
       .PULP_XPULP(PULP_XPULP),
       .FPU       (FPU),
       .PULP_ZFINX(PULP_ZFINX),
-      .JTAG_DPI(JTAG_DPI)
+      .JTAG_DPI  (JTAG_DPI)
   ) testharness_i (
       .clk_i         (clk),
       .rst_ni        (rst_n),

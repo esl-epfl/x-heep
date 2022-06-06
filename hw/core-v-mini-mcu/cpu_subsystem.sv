@@ -58,7 +58,7 @@ module cpu_subsystem
         .rst_ni(rst_ni),
 
         .hart_id_i  (32'h0),
-        .boot_addr_i(BOOT_ADDR -'h80),
+        .boot_addr_i(BOOT_ADDR - 'h80),
 
 
         .instr_addr_o  (core_instr_req_o.addr),
