@@ -2,7 +2,8 @@ Minimal configuration of a core-v-mcu
 
 ## Prerequisite
 
-1. If you wish to install the Conda enviroment with python 3.9:
+1. Install [Conda](https://phoenixnap.com/kb/how-to-install-anaconda-ubuntu-18-04-or-20-04) as described in the link, 
+and create the Conda enviroment with python 3.8:
 
 ```bash
 $ conda update conda
