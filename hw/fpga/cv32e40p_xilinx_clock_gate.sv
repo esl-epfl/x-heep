@@ -16,10 +16,10 @@ module cv32e40p_clock_gate (
 );
 
   xilinx_clk_gating clk_gate_i (
-    .clk_i,
-    .en_i,
-    .test_en_i(scan_cg_en_i),
-    .clk_o
+      .clk_i,
+      .en_i,
+      .test_en_i(scan_cg_en_i),
+      .clk_o
   );
 
 endmodule  // cv32e40p_clock_gate
