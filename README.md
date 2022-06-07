@@ -206,6 +206,12 @@ To build and program the bitstream for your FPGA with vivado, type:
 $ fusesoc --cores-root . run --no-export --target=nexys-a7-100t --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildvivado.log
 ```
 
+or add the flag `use_bscane_xilinx` to use the native Xilinx scanchain:
+
+```
+$ fusesoc --cores-root . run --no-export --target=nexys-a7-100t --setup --build --flag use_bscane_xilinx openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildvivado.log
+```
+
 If you only need the synthesis implementation:
 
 ```
@@ -251,7 +257,7 @@ This relies on a fork of [edalize](https://github.com/davideschiavone/edalize) t
 $ python ./util/mcu_gen.py --cfg mcu_cfg.hjson --outdir ./hw/core-v-mini-mcu/include/ --pkg-sv ./hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
 ```
 ```
-python ./util/mcu_gen.py --cfg mcu_cfg.hjson --outdir ./sw/device/lib/runtime/ --header-c ./sw/device/lib/runtime/core_v_mini_mcu.h.tpl
+$ python ./util/mcu_gen.py --cfg mcu_cfg.hjson --outdir ./sw/device/lib/runtime/ --header-c ./sw/device/lib/runtime/core_v_mini_mcu.h.tpl
 ```
 
 ## Files are formatted with Verible

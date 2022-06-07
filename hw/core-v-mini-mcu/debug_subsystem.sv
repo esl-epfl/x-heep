@@ -93,6 +93,8 @@ module debug_subsystem
       .master_be_o    (debug_master_req_o.be),
       .master_gnt_i   (debug_master_resp_i.gnt),
       .master_rvalid_i(debug_master_resp_i.rvalid),
+      .master_err_i (1'b0),
+      .master_other_err_i (1'b0),
       .master_rdata_i (debug_master_resp_i.rdata),
 
       .dmi_rst_ni      (rst_ni),
