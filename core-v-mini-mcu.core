@@ -54,11 +54,13 @@ filesets:
 
   rtl-fpga:
     files:
+    - hw/fpga/core_v_mini_mcu_wrapper.sv
     - hw/fpga/sram_wrapper.sv
     file_type: systemVerilogSource
 
   ip-fpga:
     files:
+    - hw/fpga/scripts/generate_clk_wizard.tcl:  { file_type: tclSource }
     - hw/fpga/scripts/generate_sram.tcl:  { file_type: tclSource }
     - hw/fpga/prim_xilinx_clk.sv:  { file_type: systemVerilogSource }
     - hw/fpga/cv32e40p_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
@@ -67,11 +69,16 @@ filesets:
     depend:
     - technology::prim_mytech
 
-
-  xdc-fpga:
+  xdc-fpga-nexys:
     files:
-    - hw/fpga/constraints/pin_assign.xdc
-    - hw/fpga/constraints/constraints.xdc
+    - hw/fpga/constraints/nexys/pin_assign.xdc
+    - hw/fpga/constraints/nexys/constraints.xdc
+    file_type: xdc
+
+  xdc-fpga-pynq-z2:
+    files:
+    - hw/fpga/constraints/pynq-z2/pin_assign.xdc
+    - hw/fpga/constraints/pynq-z2/constraints.xdc
     file_type: xdc
 
   systemverilog_only_simjtag:
@@ -297,7 +304,7 @@ targets:
     filesets_append:
     - rtl-fpga
     - ip-fpga
-    - xdc-fpga
+    - xdc-fpga-nexys
     parameters:
     - PULP_XPULP=0
     - SYNTHESIS=true
@@ -305,6 +312,22 @@ targets:
       vivado:
         part: xc7a100tcsg324-1
     toplevel: [core_v_mini_mcu]
+
+  pynq-z2:
+    <<: *default_target
+    default_tool: vivado
+    description: TUL Pynq-Z2 Board
+    filesets_append:
+    - rtl-fpga
+    - ip-fpga
+    - xdc-fpga-pynq-z2
+    parameters:
+    - PULP_XPULP=0
+    - SYNTHESIS=true
+    tools:
+      vivado:
+        part: xc7z020clg400-1
+    toplevel: [core_v_mini_mcu_wrapper]
 
   sim_nexys_netlist:
     filesets:
