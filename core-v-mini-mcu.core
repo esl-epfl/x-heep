@@ -54,13 +54,13 @@ filesets:
 
   rtl-fpga:
     files:
-    - hw/fpga/core_v_mini_mcu_wrapper.sv
+    - hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv
     - hw/fpga/sram_wrapper.sv
     file_type: systemVerilogSource
 
   ip-fpga:
     files:
-    - hw/fpga/scripts/generate_clk_wizard.tcl:  { file_type: tclSource }
+    - hw/fpga/scripts/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
     - hw/fpga/scripts/generate_sram.tcl:  { file_type: tclSource }
     - hw/fpga/prim_xilinx_clk.sv:  { file_type: systemVerilogSource }
     - hw/fpga/cv32e40p_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
@@ -327,7 +327,7 @@ targets:
     tools:
       vivado:
         part: xc7z020clg400-1
-    toplevel: [core_v_mini_mcu_wrapper]
+    toplevel: [xilinx_core_v_mini_mcu_wrapper]
 
   sim_nexys_netlist:
     filesets:

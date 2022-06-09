@@ -2,7 +2,7 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-module core_v_mini_mcu_wrapper #(
+module xilinx_core_v_mini_mcu_wrapper #(
     parameter PULP_XPULP = 0,
     parameter FPU        = 0,
     parameter PULP_ZFINX = 0
@@ -28,7 +28,7 @@ module core_v_mini_mcu_wrapper #(
   logic      [31:0] exit_value;
 
 
-  clk_wizard_wrapper clk_wizard_wrapper_i (
+  xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
       .clk_125MHz (clk_i),
       .clk_out1_0 (clk_gen)
   );
