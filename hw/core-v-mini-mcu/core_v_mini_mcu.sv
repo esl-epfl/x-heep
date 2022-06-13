@@ -2,14 +2,14 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-module core_v_mini_mcu 
+module core_v_mini_mcu
   import obi_pkg::*;
 #(
-    parameter PULP_XPULP = 0,
-    parameter FPU        = 0,
-    parameter PULP_ZFINX = 0,
+    parameter PULP_XPULP       = 0,
+    parameter FPU              = 0,
+    parameter PULP_ZFINX       = 0,
     parameter EXT_XBAR_NMASTER = 0,
-    parameter EXT_XBAR_NSLAVE = 0,
+    parameter EXT_XBAR_NSLAVE  = 0,
     parameter EXT_NPERIPHERALS = 0
 ) (
     input logic clk_i,
@@ -24,8 +24,8 @@ module core_v_mini_mcu
     input  logic [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
     output logic [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
 
-    output logic [ EXT_XBAR_NSLAVE-1:0] ext_xbar_slave_req_o,
-    input  logic [ EXT_XBAR_NSLAVE-1:0] ext_xbar_slave_resp_i,
+    output logic [EXT_XBAR_NSLAVE-1:0] ext_xbar_slave_req_o,
+    input  logic [EXT_XBAR_NSLAVE-1:0] ext_xbar_slave_resp_i,
 
     output obi_req_t [EXT_NPERIPHERALS-1:0] ext_peripheral_slave_req_o,
     input  obi_req_t [EXT_NPERIPHERALS-1:0] ext_peripheral_slave_resp_i,
@@ -47,8 +47,6 @@ module core_v_mini_mcu
   localparam JTAG_IDCODE = 32'h10001c05;
   localparam BOOT_ADDR = 'h180;
   localparam NUM_MHPMCOUNTERS = 1;
-
-  assign ext_peripheral_slave_req_o = peripheral_slave_req;
 
   // signals connecting core to memory
 
@@ -127,20 +125,20 @@ module core_v_mini_mcu
   );
 
   system_bus #(
-      .EXT_XBAR_NMASTER (EXT_XBAR_NMASTER),
+      .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER),
       .EXT_XBAR_NSLAVE (EXT_XBAR_NSLAVE)
-    ) system_bus_i (
+  ) system_bus_i (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
-      .core_instr_req_i   (core_instr_req),
-      .core_instr_resp_o  (core_instr_resp),
-      .core_data_req_i    (core_data_req),
-      .core_data_resp_o   (core_data_resp),
-      .debug_master_req_i (debug_master_req),
-      .debug_master_resp_o(debug_master_resp),
+      .core_instr_req_i      (core_instr_req),
+      .core_instr_resp_o     (core_instr_resp),
+      .core_data_req_i       (core_data_req),
+      .core_data_resp_o      (core_data_resp),
+      .debug_master_req_i    (debug_master_req),
+      .debug_master_resp_o   (debug_master_resp),
       .ext_xbar_master_req_i (ext_xbar_master_req_i),
-      .ext_xbar_master_resp_o (ext_xbar_master_resp_o),
+      .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
 
       .ram0_req_o             (ram0_slave_req),
       .ram0_resp_i            (ram0_slave_resp),
@@ -152,8 +150,8 @@ module core_v_mini_mcu
       .peripheral_slave_resp_i(peripheral_slave_resp),
       .slow_ram_req_o         (slow_ram_slave_req),
       .slow_ram_resp_i        (slow_ram_slave_resp),
-      .ext_xbar_slave_req_o (ext_xbar_slave_req_o),
-      .ext_xbar_slave_resp_i (ext_xbar_slave_resp_i)
+      .ext_xbar_slave_req_o   (ext_xbar_slave_req_o),
+      .ext_xbar_slave_resp_i  (ext_xbar_slave_resp_i)
   );
 
   memory_subsystem #(
@@ -174,8 +172,8 @@ module core_v_mini_mcu
       .slave_req_i (peripheral_slave_req),
       .slave_resp_o(peripheral_slave_resp),
 
-      .ext_slave_req_o  (ext_peripheral_slave_req_o)
-      .ext_slave_resp_i (ext_peripheral_slave_resp_i),
+      .ext_slave_req_o (ext_peripheral_slave_req_o),
+      .ext_slave_resp_i(ext_peripheral_slave_resp_i),
 
       .exit_valid_o(exit_valid_o),
       .exit_value_o(exit_value_o),

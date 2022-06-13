@@ -5,7 +5,7 @@
 module peripheral_subsystem
   import obi_pkg::*;
 #(
-    parameter EXT_NPERIPHERALS = 0,
+    parameter EXT_NPERIPHERALS = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -13,7 +13,7 @@ module peripheral_subsystem
     input  obi_req_t  slave_req_i,
     output obi_resp_t slave_resp_o,
 
-    output obi_req_t [EXT_NPERIPHERALS-1:0] ext_slave_req_o,
+    output obi_req_t  [EXT_NPERIPHERALS-1:0] ext_slave_req_o,
     input  obi_resp_t [EXT_NPERIPHERALS-1:0] ext_slave_resp_i,
 
     //SOC CTRL
@@ -52,11 +52,11 @@ module peripheral_subsystem
   logic [core_v_mini_mcu_pkg::PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
   // External peripheral slaves connection
-  for (genvar i = 0; i < EXT_NPERIPHERALS; i++) begin : gen_ext_master_resp_map
+  for (genvar i = 0; i < EXT_NPERIPHERALS; i++) begin : gen_ext_slave_req_map
     assign ext_slave_req_o[i] = peripheral_slv_req[core_v_mini_mcu_pkg::SYSTEM_NPERIPHERALS+i];
   end
-  for (genvar i = 0; i < EXT_NPERIPHERALS; i++) begin : gen_ext_master_resp_map
-    assign peripheral_slv_req[core_v_mini_mcu_pkg::SYSTEM_NPERIPHERALS+i] = ext_slave_resp_i[i];
+  for (genvar i = 0; i < EXT_NPERIPHERALS; i++) begin : gen_ext_slave_resp_map
+    assign peripheral_slv_rsp[core_v_mini_mcu_pkg::SYSTEM_NPERIPHERALS+i] = ext_slave_resp_i[i];
   end
 
   periph_to_reg #(
@@ -82,8 +82,8 @@ module peripheral_subsystem
   );
 
   addr_decode #(
-      .NoIndices(core_v_mini_mcu_pkg::SYSTEM_NPERIPHERALS+EXT_NPERIPHERALS),
-      .NoRules(core_v_mini_mcu_pkg::SYSTEM_NPERIPHERALS+EXT_NPERIPHERALS),
+      .NoIndices(core_v_mini_mcu_pkg::SYSTEM_NPERIPHERALS + EXT_NPERIPHERALS),
+      .NoRules(core_v_mini_mcu_pkg::SYSTEM_NPERIPHERALS + EXT_NPERIPHERALS),
       .addr_t(logic [31:0]),
       .rule_t(addr_map_rule_pkg::addr_map_rule_t)
   ) i_addr_decode_soc_regbus_periph_xbar (
@@ -97,7 +97,7 @@ module peripheral_subsystem
   );
 
   reg_demux #(
-      .NoPorts(core_v_mini_mcu_pkg::SYSTEM_NPERIPHERALS+EXT_NPERIPHERALS),
+      .NoPorts(core_v_mini_mcu_pkg::SYSTEM_NPERIPHERALS + EXT_NPERIPHERALS),
       .req_t  (reg_pkg::reg_req_t),
       .rsp_t  (reg_pkg::reg_rsp_t)
   ) reg_demux_i (

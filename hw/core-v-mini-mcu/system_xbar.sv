@@ -9,7 +9,7 @@ module system_xbar
 #(
     parameter core_v_mini_mcu_pkg::bus_type_e BUS_TYPE = core_v_mini_mcu_pkg::BusType,
     parameter XBAR_NMASTER = 3,
-    parameter XBAR_NSLAVE = 6,
+    parameter XBAR_NSLAVE = 6
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -22,12 +22,8 @@ module system_xbar
 
 );
 
-  localparam int unsigned LOG_XBAR_NMASTER = XBAR_NMASTER > 1 ? $clog2(
-      XBAR_NMASTER
-  ) : 32'd1;
-  localparam int unsigned LOG_XBAR_NSLAVE = XBAR_NSLAVE > 1 ? $clog2(
-      XBAR_NSLAVE
-  ) : 32'd1;
+  localparam int unsigned LOG_XBAR_NMASTER = XBAR_NMASTER > 1 ? $clog2(XBAR_NMASTER) : 32'd1;
+  localparam int unsigned LOG_XBAR_NSLAVE = XBAR_NSLAVE > 1 ? $clog2(XBAR_NSLAVE) : 32'd1;
 
   //Aggregated Request Data (from Master -> slaves)
   //WE + BE + ADDR + WDATA
@@ -35,7 +31,7 @@ module system_xbar
   localparam int unsigned RESP_AGG_DATA_WIDTH = 32;
 
   //Address Decoder
-  logic [XBAR_NMASTER-1:0] [LOG_XBAR_NSLAVE-1:0] port_sel;
+  logic [XBAR_NMASTER-1:0][LOG_XBAR_NSLAVE-1:0] port_sel;
 
   logic [0:0][LOG_XBAR_NSLAVE-1:0] port_sel_onetom;
   logic [0:0] neck_req_req;
@@ -58,7 +54,7 @@ module system_xbar
 
 
   logic [XBAR_NMASTER-1:0][REQ_AGG_DATA_WIDTH-1:0] master_req_out_data;
-  logic [ XBAR_NSLAVE-1:0][REQ_AGG_DATA_WIDTH-1:0] slave_req_out_data;
+  logic [XBAR_NSLAVE-1:0][REQ_AGG_DATA_WIDTH-1:0] slave_req_out_data;
 
   if (BUS_TYPE == NtoM) begin : gen_addr_decoders_NtoM
     for (genvar i = 0; i < XBAR_NMASTER; i++) begin : gen_addr_decoders

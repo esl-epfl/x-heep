@@ -19,8 +19,8 @@ module system_bus
   import addr_map_rule_pkg::*;
 #(
     parameter EXT_XBAR_NMASTER = 0,
-    parameter EXT_XBAR_NSLAVE = 0
-) (    
+    parameter EXT_XBAR_NSLAVE  = 0
+) (
     input logic clk_i,
     input logic rst_ni,
 
@@ -95,7 +95,7 @@ module system_bus
   assign error_slave_req = slave_req[core_v_mini_mcu_pkg::ERROR_IDX];
 
   for (genvar i = 0; i < EXT_XBAR_NSLAVE; i++) begin : gen_ext_slave_req_map
-    assign ext_xbar_slave_req_o[i] = slave_req[SYSTEM_XBAR_SLAVE+i];
+    assign ext_xbar_slave_req_o[i] = slave_req[core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE+i];
   end
 
   //slave resp
@@ -107,7 +107,7 @@ module system_bus
   assign slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
 
   for (genvar i = 0; i < EXT_XBAR_NSLAVE; i++) begin : gen_ext_slave_resp_map
-    assign slave_resp[SYSTEM_XBAR_SLAVE+i] = ext_xbar_slave_resp_i[i];
+    assign slave_resp[core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE+i] = ext_xbar_slave_resp_i[i];
   end
 
 `ifndef SYNTHESIS
