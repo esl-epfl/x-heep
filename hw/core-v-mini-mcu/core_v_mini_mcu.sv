@@ -4,13 +4,15 @@
 
 module core_v_mini_mcu
   import obi_pkg::*;
+  import addr_map_rule_pkg::*;
 #(
-    parameter PULP_XPULP       = 0,
-    parameter FPU              = 0,
-    parameter PULP_ZFINX       = 0,
-    parameter EXT_XBAR_NMASTER = 0,
-    parameter EXT_XBAR_NSLAVE  = 0,
-    parameter EXT_NPERIPHERALS = 0
+    parameter                                                          PULP_XPULP          = 0,
+    parameter                                                          FPU                 = 0,
+    parameter                                                          PULP_ZFINX          = 0,
+    parameter                                                          EXT_XBAR_NMASTER    = 0,
+    parameter                                                          EXT_XBAR_NSLAVE     = 0,
+    parameter                                                          EXT_NPERIPHERALS    = 0,
+    parameter addr_map_rule_pkg::addr_map_rule_t [EXT_XBAR_NSLAVE-1:0] EXT_XBAR_ADDR_RULES = 0
 ) (
     input logic clk_i,
     input logic rst_ni,

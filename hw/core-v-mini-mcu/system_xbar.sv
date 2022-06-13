@@ -9,7 +9,8 @@ module system_xbar
 #(
     parameter core_v_mini_mcu_pkg::bus_type_e BUS_TYPE = core_v_mini_mcu_pkg::BusType,
     parameter XBAR_NMASTER = 3,
-    parameter XBAR_NSLAVE = 6
+    parameter XBAR_NSLAVE = 6,
+    parameter addr_map_rule_pkg::addr_map_rule_t [XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -66,7 +67,7 @@ module system_xbar
           .rule_t(addr_map_rule_pkg::addr_map_rule_t)
       ) addr_decode_i (
           .addr_i(master_req_i[i].addr),
-          .addr_map_i(core_v_mini_mcu_pkg::XBAR_ADDR_RULES),
+          .addr_map_i(XBAR_ADDR_RULES),
           .idx_o(port_sel[i]),
           .dec_valid_o(),
           .dec_error_o(),
@@ -156,7 +157,7 @@ module system_xbar
         .rule_t(addr_map_rule_pkg::addr_map_rule_t)
     ) addr_decode_i (
         .addr_i(neck_req.addr),
-        .addr_map_i(core_v_mini_mcu_pkg::XBAR_ADDR_RULES),
+        .addr_map_i(XBAR_ADDR_RULES),
         .idx_o(port_sel_onetom[0]),
         .dec_valid_o(),
         .dec_error_o(),

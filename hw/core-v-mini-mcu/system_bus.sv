@@ -19,7 +19,8 @@ module system_bus
   import addr_map_rule_pkg::*;
 #(
     parameter EXT_XBAR_NMASTER = 0,
-    parameter EXT_XBAR_NSLAVE  = 0
+    parameter EXT_XBAR_NSLAVE = 0,
+    parameter addr_map_rule_pkg::addr_map_rule_t [EXT_XBAR_NSLAVE-1:0] EXT_XBAR_ADDR_RULES = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -127,7 +128,9 @@ module system_bus
   end
 `endif
 
-  system_xbar system_xbar_i (
+  system_xbar #(
+      .XBAR_ADDR_RULES({EXT_XBAR_ADDR_RULES, SYSTEM_XBAR_ADDR_RULES})
+  ) system_xbar_i (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
       .master_req_i(master_req),

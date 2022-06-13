@@ -76,7 +76,7 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] SLOW_MEMORY_END_ADDRESS = SLOW_MEMORY_START_ADDRESS + SLOW_MEMORY_SIZE;
   localparam logic[31:0] SLOW_MEMORY_IDX = 32'd5;
 
-  localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
+  localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] SYSTEM_XBAR_ADDR_RULES = '{
       '{ idx: RAM0_IDX, start_addr: RAM0_START_ADDRESS, end_addr: RAM0_END_ADDRESS },
       '{ idx: RAM1_IDX, start_addr: RAM1_START_ADDRESS, end_addr: RAM1_END_ADDRESS },
       '{ idx: DEBUG_IDX, start_addr: DEBUG_START_ADDRESS, end_addr: DEBUG_END_ADDRESS },
