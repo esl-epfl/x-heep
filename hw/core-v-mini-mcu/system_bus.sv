@@ -35,8 +35,8 @@ module system_bus
     input  obi_req_t  debug_master_req_i,
     output obi_resp_t debug_master_resp_o,
 
-    input  logic [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
-    output logic [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
+    input  obi_req_t  [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
+    output obi_resp_t [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
 
     //Slaves
     output obi_req_t  ram0_req_o,
@@ -51,11 +51,11 @@ module system_bus
     output obi_req_t  peripheral_slave_req_o,
     input  obi_resp_t peripheral_slave_resp_i,
 
-    output obi_req_t  slow_ram_req_o,
-    input  obi_resp_t slow_ram_resp_i,
+    // output obi_req_t  slow_ram_req_o,
+    // input  obi_resp_t slow_ram_resp_i,
 
-    output logic [EXT_XBAR_NSLAVE-1:0] ext_xbar_slave_req_o,
-    input  logic [EXT_XBAR_NSLAVE-1:0] ext_xbar_slave_resp_i
+    output obi_req_t  [EXT_XBAR_NSLAVE-1:0] ext_xbar_slave_req_o,
+    input  obi_resp_t [EXT_XBAR_NSLAVE-1:0] ext_xbar_slave_resp_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -92,7 +92,7 @@ module system_bus
   assign ram1_req_o = slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
   assign debug_slave_req_o = slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
   assign peripheral_slave_req_o = slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
-  assign slow_ram_req_o = slave_req[core_v_mini_mcu_pkg::SLOW_MEMORY_IDX];
+  // assign slow_ram_req_o = slave_req[core_v_mini_mcu_pkg::SLOW_MEMORY_IDX];
   assign error_slave_req = slave_req[core_v_mini_mcu_pkg::ERROR_IDX];
 
   for (genvar i = 0; i < EXT_XBAR_NSLAVE; i++) begin : gen_ext_slave_req_map
@@ -104,7 +104,7 @@ module system_bus
   assign slave_resp[core_v_mini_mcu_pkg::RAM1_IDX] = ram1_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX] = debug_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
-  assign slave_resp[core_v_mini_mcu_pkg::SLOW_MEMORY_IDX] = slow_ram_resp_i;
+  // assign slave_resp[core_v_mini_mcu_pkg::SLOW_MEMORY_IDX] = slow_ram_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
 
   for (genvar i = 0; i < EXT_XBAR_NSLAVE; i++) begin : gen_ext_slave_resp_map

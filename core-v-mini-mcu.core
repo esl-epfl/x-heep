@@ -87,6 +87,7 @@ filesets:
   tb-harness:
     files:
     - tb/tb_util.svh: {is_include_file: true}
+    - tb/testharness_pkg.sv
     - tb/testharness.sv
     file_type: systemVerilogSource
 

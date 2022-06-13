@@ -23,6 +23,9 @@ module testharness #(
 
   `include "tb_util.svh"
 
+  import obi_pkg::*;
+  import testharness_pkg::*;
+
   logic uart_rx;
   logic uart_tx;
   logic sim_jtag_enable = (JTAG_DPI == 1);
@@ -33,10 +36,26 @@ module testharness #(
   logic sim_jtag_tdo;
   logic sim_jtag_trstn;
 
+  // External master/slave ports and peripherals
+  obi_req_t [EXT_XBAR_NMASTER-1:0] master_req;
+  obi_resp_t [EXT_XBAR_NMASTER-1:0] master_resp;
+  obi_req_t [EXT_XBAR_NSLAVE-1:0] slave_req;
+  obi_resp_t [EXT_XBAR_NSLAVE-1:0] slave_resp;
+  obi_req_t [EXT_NPERIPHERALS-1:0] periph_slave_req;
+  obi_resp_t [EXT_NPERIPHERALS-1:0] periph_slave_resp;
+
+  obi_req_t slow_ram_slave_req;
+  obi_resp_t slow_ram_slave_resp;
+
   core_v_mini_mcu #(
-      .PULP_XPULP(PULP_XPULP),
-      .FPU       (FPU),
-      .PULP_ZFINX(PULP_ZFINX)
+      .PULP_XPULP                (PULP_XPULP),
+      .FPU                       (FPU),
+      .PULP_ZFINX                (PULP_ZFINX),
+      .EXT_XBAR_NMASTER          (testharness_pkg::EXT_XBAR_NMASTER),
+      .EXT_XBAR_NSLAVE           (testharness_pkg::EXT_XBAR_NSLAVE),
+      .EXT_NPERIPHERALS          (testharness_pkg::EXT_NPERIPHERALS),
+      .EXT_XBAR_ADDR_RULES       (testharness_pkg::EXT_XBAR_ADDR_RULES),
+      .EXT_PERIPHERALS_ADDR_RULES(testharness_pkg::EXT_PERIPHERALS_ADDR_RULES)
   ) core_v_mini_mcu_i (
       .clk_i,
       .rst_ni,
@@ -46,6 +65,13 @@ module testharness #(
       .jtag_trst_ni(sim_jtag_trstn),
       .jtag_tdi_i  (sim_jtag_tdi),
       .jtag_tdo_o  (sim_jtag_tdo),
+
+      .ext_xbar_master_req_i(master_req),
+      .ext_xbar_master_resp_o(master_resp),
+      .ext_xbar_slave_req_o(slave_req),
+      .ext_xbar_slave_resp_i(slave_resp),
+      .ext_peripheral_slave_req_o(periph_slave_req),
+      .ext_peripheral_slave_resp_i(periph_slave_resp),
 
       .uart_rx_i(uart_rx),
       .uart_tx_o(uart_tx),
@@ -83,6 +109,26 @@ module testharness #(
       .jtag_TDO_data  (sim_jtag_tdo),
       .jtag_TDO_driven(1'b1),
       .exit           ()
+  );
+
+  assign slow_ram_slave_req = slave_req[testharness_pkg::SLOW_MEMORY_IDX];
+  assign slave_resp[testharness_pkg::SLOW_MEMORY_IDX] = slow_ram_slave_resp;
+
+  slow_memory #(
+      .NumWords (128),
+      .DataWidth(32'd32)
+  ) slow_ram_i (
+      .clk_i  (clk_i),
+      .rst_ni (rst_ni),
+      .req_i  (slow_ram_slave_req.req),
+      .we_i   (slow_ram_slave_req.we),
+      .addr_i (slow_ram_slave_req.addr[8:2]),
+      .wdata_i(slow_ram_slave_req.wdata),
+      .be_i   (slow_ram_slave_req.be),
+      // output ports
+      .gnt_o(slow_ram_slave_resp.gnt),
+      .rdata_o(slow_ram_slave_resp.rdata),
+      .rvalid_o(slow_ram_slave_resp.rvalid)
   );
 
 endmodule  // testharness

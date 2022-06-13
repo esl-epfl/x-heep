@@ -6,13 +6,14 @@ module core_v_mini_mcu
   import obi_pkg::*;
   import addr_map_rule_pkg::*;
 #(
-    parameter                                                          PULP_XPULP          = 0,
-    parameter                                                          FPU                 = 0,
-    parameter                                                          PULP_ZFINX          = 0,
-    parameter                                                          EXT_XBAR_NMASTER    = 0,
-    parameter                                                          EXT_XBAR_NSLAVE     = 0,
-    parameter                                                          EXT_NPERIPHERALS    = 0,
-    parameter addr_map_rule_pkg::addr_map_rule_t [EXT_XBAR_NSLAVE-1:0] EXT_XBAR_ADDR_RULES = 0
+    parameter PULP_XPULP = 0,
+    parameter FPU = 0,
+    parameter PULP_ZFINX = 0,
+    parameter EXT_XBAR_NMASTER = 0,
+    parameter EXT_XBAR_NSLAVE = 0,
+    parameter EXT_NPERIPHERALS = 0,
+    parameter addr_map_rule_pkg::addr_map_rule_t [EXT_XBAR_NSLAVE-1:0] EXT_XBAR_ADDR_RULES = 0,
+    parameter addr_map_rule_pkg::addr_map_rule_t [EXT_NPERIPHERALS-1:0] EXT_PERIPHERALS_ADDR_RULES = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -23,11 +24,11 @@ module core_v_mini_mcu
     input  logic jtag_tdi_i,
     output logic jtag_tdo_o,
 
-    input  logic [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
-    output logic [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
+    input  obi_req_t  [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
+    output obi_resp_t [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
 
-    output logic [EXT_XBAR_NSLAVE-1:0] ext_xbar_slave_req_o,
-    input  logic [EXT_XBAR_NSLAVE-1:0] ext_xbar_slave_resp_i,
+    output obi_req_t  [EXT_XBAR_NSLAVE-1:0] ext_xbar_slave_req_o,
+    input  obi_resp_t [EXT_XBAR_NSLAVE-1:0] ext_xbar_slave_resp_i,
 
     output obi_req_t [EXT_NPERIPHERALS-1:0] ext_peripheral_slave_req_o,
     input  obi_req_t [EXT_NPERIPHERALS-1:0] ext_peripheral_slave_resp_i,
@@ -67,8 +68,8 @@ module core_v_mini_mcu
   obi_resp_t        debug_slave_resp;
   obi_req_t         peripheral_slave_req;
   obi_resp_t        peripheral_slave_resp;
-  obi_req_t         slow_ram_slave_req;
-  obi_resp_t        slow_ram_slave_resp;
+  // obi_req_t         slow_ram_slave_req;
+  // obi_resp_t        slow_ram_slave_resp;
 
   // signals to debug unit
   logic             debug_core_req;
@@ -150,8 +151,8 @@ module core_v_mini_mcu
       .debug_slave_resp_i     (debug_slave_resp),
       .peripheral_slave_req_o (peripheral_slave_req),
       .peripheral_slave_resp_i(peripheral_slave_resp),
-      .slow_ram_req_o         (slow_ram_slave_req),
-      .slow_ram_resp_i        (slow_ram_slave_resp),
+      // .slow_ram_req_o         (slow_ram_slave_req),
+      // .slow_ram_resp_i        (slow_ram_slave_resp),
       .ext_xbar_slave_req_o   (ext_xbar_slave_req_o),
       .ext_xbar_slave_resp_i  (ext_xbar_slave_resp_i)
   );
@@ -167,7 +168,9 @@ module core_v_mini_mcu
       .ram1_resp_o(ram1_slave_resp)
   );
 
-  peripheral_subsystem peripheral_subsystem_i (
+  peripheral_subsystem #(
+      .EXT_PERIPHERALS_ADDR_RULES(EXT_PERIPHERALS_ADDR_RULES)
+  ) peripheral_subsystem_i (
       .clk_i,
       .rst_ni,
 
@@ -193,28 +196,28 @@ module core_v_mini_mcu
       .uart_intr_rx_parity_err_o()
   );
 
-`ifndef SYNTHESIS
-  slow_memory #(
-      .NumWords (128),
-      .DataWidth(32'd32)
-  ) slow_ram_i (
-      .clk_i  (clk_i),
-      .rst_ni (rst_ni),
-      .req_i  (slow_ram_slave_req.req),
-      .we_i   (slow_ram_slave_req.we),
-      .addr_i (slow_ram_slave_req.addr[8:2]),
-      .wdata_i(slow_ram_slave_req.wdata),
-      .be_i   (slow_ram_slave_req.be),
-      // output ports
-      .gnt_o(slow_ram_slave_resp.gnt),
-      .rdata_o(slow_ram_slave_resp.rdata),
-      .rvalid_o(slow_ram_slave_resp.rvalid)
-  );
-`else
-  assign slow_ram_slave_resp.gnt = '0;
-  assign slow_ram_slave_resp.rdata = '0;
-  assign slow_ram_slave_resp.rvalid = '0;
-`endif
+  // `ifndef SYNTHESIS
+  //   slow_memory #(
+  //       .NumWords (128),
+  //       .DataWidth(32'd32)
+  //   ) slow_ram_i (
+  //       .clk_i  (clk_i),
+  //       .rst_ni (rst_ni),
+  //       .req_i  (slow_ram_slave_req.req),
+  //       .we_i   (slow_ram_slave_req.we),
+  //       .addr_i (slow_ram_slave_req.addr[8:2]),
+  //       .wdata_i(slow_ram_slave_req.wdata),
+  //       .be_i   (slow_ram_slave_req.be),
+  //       // output ports
+  //       .gnt_o(slow_ram_slave_resp.gnt),
+  //       .rdata_o(slow_ram_slave_resp.rdata),
+  //       .rvalid_o(slow_ram_slave_resp.rvalid)
+  //   );
+  // `else
+  //   assign slow_ram_slave_resp.gnt = '0;
+  //   assign slow_ram_slave_resp.rdata = '0;
+  //   assign slow_ram_slave_resp.rvalid = '0;
+  // `endif
 
   assign irq_software = '0;
   assign irq_timer    = '0;
