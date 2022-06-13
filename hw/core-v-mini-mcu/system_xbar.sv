@@ -7,18 +7,27 @@ module system_xbar
   import addr_map_rule_pkg::*;
   import core_v_mini_mcu_pkg::*;
 #(
-    parameter core_v_mini_mcu_pkg::bus_type_e BUS_TYPE = core_v_mini_mcu_pkg::BusType
+    parameter core_v_mini_mcu_pkg::bus_type_e BUS_TYPE = core_v_mini_mcu_pkg::BusType,
+    parameter XBAR_NMASTER = 3,
+    parameter XBAR_NSLAVE = 6,
 ) (
     input logic clk_i,
     input logic rst_ni,
 
-    input  obi_req_t  [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] master_req_i,
-    output obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] master_resp_o,
+    input  obi_req_t  [XBAR_NMASTER-1:0] master_req_i,
+    output obi_resp_t [XBAR_NMASTER-1:0] master_resp_o,
 
-    output obi_req_t  [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0] slave_req_o,
-    input  obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0] slave_resp_i
+    output obi_req_t  [XBAR_NSLAVE-1:0] slave_req_o,
+    input  obi_resp_t [XBAR_NSLAVE-1:0] slave_resp_i
 
 );
+
+  localparam int unsigned LOG_XBAR_NMASTER = XBAR_NMASTER > 1 ? $clog2(
+      XBAR_NMASTER
+  ) : 32'd1;
+  localparam int unsigned LOG_XBAR_NSLAVE = XBAR_NSLAVE > 1 ? $clog2(
+      XBAR_NSLAVE
+  ) : 32'd1;
 
   //Aggregated Request Data (from Master -> slaves)
   //WE + BE + ADDR + WDATA
@@ -26,9 +35,9 @@ module system_xbar
   localparam int unsigned RESP_AGG_DATA_WIDTH = 32;
 
   //Address Decoder
-  logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] [core_v_mini_mcu_pkg::LOG_SYSTEM_XBAR_NSLAVE-1:0] port_sel;
+  logic [XBAR_NMASTER-1:0] [LOG_XBAR_NSLAVE-1:0] port_sel;
 
-  logic [0:0][core_v_mini_mcu_pkg::LOG_SYSTEM_XBAR_NSLAVE-1:0] port_sel_onetom;
+  logic [0:0][LOG_XBAR_NSLAVE-1:0] port_sel_onetom;
   logic [0:0] neck_req_req;
   logic [0:0] neck_resp_gnt;
   logic [0:0] neck_resp_rvalid;
@@ -37,26 +46,26 @@ module system_xbar
   logic [0:0][REQ_AGG_DATA_WIDTH-1:0] neck_req_out_data;
 
 
-  logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] master_req_req;
-  logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] master_resp_gnt;
-  logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] master_resp_rvalid;
-  logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0][31:0] master_resp_rdata;
+  logic [XBAR_NMASTER-1:0] master_req_req;
+  logic [XBAR_NMASTER-1:0] master_resp_gnt;
+  logic [XBAR_NMASTER-1:0] master_resp_rvalid;
+  logic [XBAR_NMASTER-1:0][31:0] master_resp_rdata;
 
-  logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0] slave_req_req;
-  logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0] slave_resp_gnt;
-  logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0] slave_resp_rvalid;
-  logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0][31:0] slave_resp_rdata;
+  logic [XBAR_NSLAVE-1:0] slave_req_req;
+  logic [XBAR_NSLAVE-1:0] slave_resp_gnt;
+  logic [XBAR_NSLAVE-1:0] slave_resp_rvalid;
+  logic [XBAR_NSLAVE-1:0][31:0] slave_resp_rdata;
 
 
-  logic [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0][REQ_AGG_DATA_WIDTH-1:0] master_req_out_data;
-  logic [ core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0][REQ_AGG_DATA_WIDTH-1:0] slave_req_out_data;
+  logic [XBAR_NMASTER-1:0][REQ_AGG_DATA_WIDTH-1:0] master_req_out_data;
+  logic [ XBAR_NSLAVE-1:0][REQ_AGG_DATA_WIDTH-1:0] slave_req_out_data;
 
   if (BUS_TYPE == NtoM) begin : gen_addr_decoders_NtoM
-    for (genvar i = 0; i < core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER; i++) begin : gen_addr_decoders
+    for (genvar i = 0; i < XBAR_NMASTER; i++) begin : gen_addr_decoders
       addr_decode #(
           /// Highest index which can happen in a rule.
-          .NoIndices(core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE),
-          .NoRules(core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE),
+          .NoIndices(XBAR_NSLAVE),
+          .NoRules(XBAR_NSLAVE),
           .addr_t(logic [31:0]),
           .rule_t(addr_map_rule_pkg::addr_map_rule_t)
       ) addr_decode_i (
@@ -66,13 +75,13 @@ module system_xbar
           .dec_valid_o(),
           .dec_error_o(),
           .en_default_idx_i(1'b1),
-          .default_idx_i(core_v_mini_mcu_pkg::ERROR_IDX[LOG_SYSTEM_XBAR_NSLAVE-1:0])
+          .default_idx_i(core_v_mini_mcu_pkg::ERROR_IDX[LOG_XBAR_NSLAVE-1:0])
       );
     end
   end
 
   //unroll obi struct
-  for (genvar i = 0; i < core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER; i++) begin : gen_unroll_master
+  for (genvar i = 0; i < XBAR_NMASTER; i++) begin : gen_unroll_master
     assign master_req_req[i] = master_req_i[i].req;
     assign master_req_out_data[i] = {
       master_req_i[i].we, master_req_i[i].be, master_req_i[i].addr, master_req_i[i].wdata
@@ -81,7 +90,7 @@ module system_xbar
     assign master_resp_o[i].rdata = master_resp_rdata[i];
     assign master_resp_o[i].rvalid = master_resp_rvalid[i];
   end
-  for (genvar i = 0; i < core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE; i++) begin : gen_unroll_slave
+  for (genvar i = 0; i < XBAR_NSLAVE; i++) begin : gen_unroll_slave
     assign slave_req_o[i].req = slave_req_req[i];
     assign {slave_req_o[i].we, slave_req_o[i].be, slave_req_o[i].addr, slave_req_o[i].wdata} = slave_req_out_data[i];
     assign slave_resp_rdata[i] = slave_resp_i[i].rdata;
@@ -95,8 +104,8 @@ module system_xbar
     //Crossbar instantiation
     xbar_varlat #(
         .AggregateGnt(1),
-        .NumIn(core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER),
-        .NumOut(core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE),
+        .NumIn(XBAR_NMASTER),
+        .NumOut(XBAR_NSLAVE),
         .ReqDataWidth(REQ_AGG_DATA_WIDTH),
         .RespDataWidth(RESP_AGG_DATA_WIDTH)
     ) i_xbar (
@@ -120,7 +129,7 @@ module system_xbar
 
     // Nto1 Crossbar instantiation
     xbar_varlat #(
-        .NumIn(core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER),
+        .NumIn(XBAR_NMASTER),
         .NumOut(1),
         .ReqDataWidth(REQ_AGG_DATA_WIDTH),
         .RespDataWidth(RESP_AGG_DATA_WIDTH)
@@ -145,8 +154,8 @@ module system_xbar
 
     addr_decode #(
         /// Highest index which can happen in a rule.
-        .NoIndices(core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE),
-        .NoRules(core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE),
+        .NoIndices(XBAR_NSLAVE),
+        .NoRules(XBAR_NSLAVE),
         .addr_t(logic [31:0]),
         .rule_t(addr_map_rule_pkg::addr_map_rule_t)
     ) addr_decode_i (
@@ -156,7 +165,7 @@ module system_xbar
         .dec_valid_o(),
         .dec_error_o(),
         .en_default_idx_i(1'b1),
-        .default_idx_i(core_v_mini_mcu_pkg::ERROR_IDX[LOG_SYSTEM_XBAR_NSLAVE-1:0])
+        .default_idx_i(core_v_mini_mcu_pkg::ERROR_IDX[LOG_XBAR_NSLAVE-1:0])
     );
 
     // 1toM Crossbar instantiation
@@ -171,7 +180,7 @@ module system_xbar
         */
         .AggregateGnt(0),
         .NumIn(1),
-        .NumOut(core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE),
+        .NumOut(XBAR_NSLAVE),
         .ReqDataWidth(REQ_AGG_DATA_WIDTH),
         .RespDataWidth(RESP_AGG_DATA_WIDTH)
     ) i_xbar_slave (
