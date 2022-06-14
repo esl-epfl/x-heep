@@ -36,6 +36,7 @@
       desc:     "Register set to 1 when copy is done.",
       swaccess: "ro",
       hwaccess: "hrw",
+      resval:   1,
       fields: [
         { bits: "31:0", name: "DONE", desc: "Copy done" }
       ]
