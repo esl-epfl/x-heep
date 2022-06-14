@@ -78,7 +78,6 @@ filesets:
   xdc-fpga-pynq-z2:
     files:
     - hw/fpga/constraints/pynq-z2/pin_assign.xdc
-    - hw/fpga/constraints/pynq-z2/constraints.xdc
     file_type: xdc
 
   systemverilog_only_simjtag:
