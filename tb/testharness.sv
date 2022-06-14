@@ -37,25 +37,31 @@ module testharness #(
   logic sim_jtag_trstn;
 
   // External master/slave ports and peripherals
-  obi_req_t [EXT_XBAR_NMASTER-1:0] master_req;
-  obi_resp_t [EXT_XBAR_NMASTER-1:0] master_resp;
-  obi_req_t [EXT_XBAR_NSLAVE-1:0] slave_req;
-  obi_resp_t [EXT_XBAR_NSLAVE-1:0] slave_resp;
-  obi_req_t [EXT_NPERIPHERALS-1:0] periph_slave_req;
-  obi_resp_t [EXT_NPERIPHERALS-1:0] periph_slave_resp;
+  obi_req_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_req;
+  obi_resp_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_resp;
+  obi_req_t slave_req;
+  obi_resp_t slave_resp;
+  obi_req_t periph_slave_req;
+  obi_resp_t periph_slave_resp;
 
   obi_req_t slow_ram_slave_req;
   obi_resp_t slow_ram_slave_resp;
 
+  assign master_req[0].req = 0;
+  assign master_req[0].we = 0;
+  assign master_req[0].be = 0;
+  assign master_req[0].addr = 0;
+  assign master_req[0].wdata = 0;
+
+  assign periph_slave_resp.gnt = 0;
+  assign periph_slave_resp.rvalid = 0;
+  assign periph_slave_resp.rdata = 0;
+
   core_v_mini_mcu #(
-      .PULP_XPULP                (PULP_XPULP),
-      .FPU                       (FPU),
-      .PULP_ZFINX                (PULP_ZFINX),
-      .EXT_XBAR_NMASTER          (testharness_pkg::EXT_XBAR_NMASTER),
-      .EXT_XBAR_NSLAVE           (testharness_pkg::EXT_XBAR_NSLAVE),
-      .EXT_NPERIPHERALS          (testharness_pkg::EXT_NPERIPHERALS),
-      .EXT_XBAR_ADDR_RULES       (testharness_pkg::EXT_XBAR_ADDR_RULES),
-      .EXT_PERIPHERALS_ADDR_RULES(testharness_pkg::EXT_PERIPHERALS_ADDR_RULES)
+      .PULP_XPULP      (PULP_XPULP),
+      .FPU             (FPU),
+      .PULP_ZFINX      (PULP_ZFINX),
+      .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER)
   ) core_v_mini_mcu_i (
       .clk_i,
       .rst_ni,
@@ -111,8 +117,8 @@ module testharness #(
       .exit           ()
   );
 
-  assign slow_ram_slave_req = slave_req[testharness_pkg::SLOW_MEMORY_IDX];
-  assign slave_resp[testharness_pkg::SLOW_MEMORY_IDX] = slow_ram_slave_resp;
+  assign slow_ram_slave_req = slave_req;
+  assign slave_resp = slow_ram_slave_resp;
 
   slow_memory #(
       .NumWords (128),

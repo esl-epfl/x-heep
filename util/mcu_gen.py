@@ -98,14 +98,20 @@ def main():
 
     debug_size_address = string2int(obj['debug']['length'])
 
-    slow_memory_start_address = string2int(obj['slow_memory']['address'])
-    slow_memory_size_address = string2int(obj['slow_memory']['length'])
+    ext_slave_start_address = string2int(obj['ext_slaves']['address'])
+    ext_slave_size_address = string2int(obj['ext_slaves']['length'])
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
         exit("peripheral start address must be greater than 0x10000")
 
     peripheral_size_address = string2int(obj['peripherals']['length'])
+
+    ext_peripheral_start_address = string2int(obj['ext_peripherals']['address'])
+    if int(ext_peripheral_start_address, 16) < int('10000', 16):
+        exit("external peripheral start address must be greater than 0x10000")
+
+    ext_peripheral_size_address = string2int(obj['ext_peripherals']['length'])
 
     uart_start_offset  = string2int(obj['peripherals']['uart']['offset'])
     uart_size_address  = string2int(obj['peripherals']['uart']['length'])
@@ -114,18 +120,20 @@ def main():
     soc_ctrl_size_address  = string2int(obj['peripherals']['soc_ctrl']['length'])
 
     kwargs = {
-        "cpu_type"                 : cpu_type,
-        "bus_type"                 : bus_type,
-        "debug_start_address"      : debug_start_address,
-        "debug_size_address"       : debug_size_address,
-        "peripheral_start_address" : peripheral_start_address,
-        "peripheral_size_address"  : peripheral_size_address,
-        "uart_start_offset"        : uart_start_offset,
-        "uart_size_address"        : uart_size_address,
-        "soc_ctrl_start_offset"    : soc_ctrl_start_offset,
-        "soc_ctrl_size_address"    : soc_ctrl_size_address,
-        "slow_memory_start_address": slow_memory_start_address,
-        "slow_memory_size_address" : slow_memory_size_address,
+        "cpu_type"                     : cpu_type,
+        "bus_type"                     : bus_type,
+        "debug_start_address"          : debug_start_address,
+        "debug_size_address"           : debug_size_address,
+        "peripheral_start_address"     : peripheral_start_address,
+        "peripheral_size_address"      : peripheral_size_address,
+        "ext_peripheral_start_address" : ext_peripheral_start_address,
+        "ext_peripheral_size_address"  : ext_peripheral_size_address,
+        "uart_start_offset"            : uart_start_offset,
+        "uart_size_address"            : uart_size_address,
+        "soc_ctrl_start_offset"        : soc_ctrl_start_offset,
+        "soc_ctrl_size_address"        : soc_ctrl_size_address,
+        "ext_slave_start_address"      : ext_slave_start_address,
+        "ext_slave_size_address"       : ext_slave_size_address,
     }
 
     ###########

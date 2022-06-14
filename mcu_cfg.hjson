@@ -28,9 +28,14 @@
         }
     },
 
-    slow_memory: {
+    ext_peripherals: {
         address: 0x30000000,
-        length:  0x200,
+        length:  0x100000,
+    },
+
+    ext_slaves: {
+        address: 0x40000000,
+        length:  0x1000000,
     },
 
 }
