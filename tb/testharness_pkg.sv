@@ -14,7 +14,7 @@ package testharness_pkg;
   localparam logic [31:0] EXT_MASTER0_IDX = 0;
 
   //slave mmap and idx
-  localparam logic [31:0] SLOW_MEMORY_START_ADDRESS = 32'h30000000;
+  localparam logic [31:0] SLOW_MEMORY_START_ADDRESS = core_v_mini_mcu_pkg::EXT_SLAVE_START_ADDRESS;
   localparam logic [31:0] SLOW_MEMORY_SIZE = 32'h200;
   localparam logic [31:0] SLOW_MEMORY_END_ADDRESS = SLOW_MEMORY_START_ADDRESS + SLOW_MEMORY_SIZE;
   localparam logic [31:0] SLOW_MEMORY_IDX = 32'd0;
@@ -31,8 +31,8 @@ package testharness_pkg;
   localparam EXT_NPERIPHERALS = 1;
 
   // Memcopy controller (external peripheral example)
-  localparam logic [31:0] MEMCOPY_CTRL_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0020000;
-  localparam logic [31:0] MEMCOPY_CTRL_SIZE = 32'h0010000;
+  localparam logic [31:0] MEMCOPY_CTRL_START_ADDRESS = core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS + 32'h0020000;
+  localparam logic [31:0] MEMCOPY_CTRL_SIZE = 32'h10;
   localparam logic [31:0] MEMCOPY_CTRL_END_ADDRESS = MEMCOPY_CTRL_START_ADDRESS + MEMCOPY_CTRL_SIZE;
   localparam logic [31:0] MEMCOPY_CTRL_IDX = 32'd0;
 

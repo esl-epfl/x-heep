@@ -47,15 +47,15 @@ module testharness #(
   obi_req_t slow_ram_slave_req;
   obi_resp_t slow_ram_slave_resp;
 
-  assign master_req[0].req = 0;
-  assign master_req[0].we = 0;
-  assign master_req[0].be = 0;
-  assign master_req[0].addr = 0;
-  assign master_req[0].wdata = 0;
+  // assign master_req[0].req = 0;
+  // assign master_req[0].we = 0;
+  // assign master_req[0].be = 0;
+  // assign master_req[0].addr = 0;
+  // assign master_req[0].wdata = 0;
 
-  assign periph_slave_resp.gnt = 0;
-  assign periph_slave_resp.rvalid = 0;
-  assign periph_slave_resp.rdata = 0;
+  // assign periph_slave_resp.gnt = 0;
+  // assign periph_slave_resp.rvalid = 0;
+  // assign periph_slave_resp.rdata = 0;
 
   core_v_mini_mcu #(
       .PULP_XPULP      (PULP_XPULP),
@@ -135,6 +135,15 @@ module testharness #(
       .gnt_o(slow_ram_slave_resp.gnt),
       .rdata_o(slow_ram_slave_resp.rdata),
       .rvalid_o(slow_ram_slave_resp.rvalid)
+  );
+
+  peripheral_external peripheral_external_i (
+      .clk_i        (clk_i),
+      .rst_ni       (rst_ni),
+      .slave_req_i  (periph_slave_req),
+      .slave_resp_o (periph_slave_resp),
+      .master_req_o (master_req[testharness_pkg::EXT_MASTER0_IDX]),
+      .master_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX])
   );
 
 endmodule  // testharness
