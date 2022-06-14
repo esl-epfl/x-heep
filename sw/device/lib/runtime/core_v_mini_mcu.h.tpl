@@ -17,6 +17,14 @@ extern "C" {
 #define PERIPHERAL_SIZE 0x${peripheral_size_address}
 #define PERIPHERAL_END_ADDRESS (PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE)
 
+#define EXT_PERIPHERAL_START_ADDRESS 0x${ext_peripheral_start_address}
+#define EXT_PERIPHERAL_SIZE 0x${ext_peripheral_size_address}
+#define EXT_PERIPHERAL_END_ADDRESS (EXT_PERIPHERAL_START_ADDRESS + EXT_PERIPHERAL_SIZE)
+
+#define EXT_SLAVE_START_ADDRESS 0x${ext_slave_start_address}
+#define EXT_SLAVE_SIZE 0x${ext_slave_size_address}
+#define EXT_SLAVE_END_ADDRESS (EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE)
+
 #define SOC_CTRL_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${soc_ctrl_start_offset})
 #define SOC_CTRL_SIZE 0x${soc_ctrl_size_address}
 #define SOC_CTRL_END_ADDRESS (SOC_CTRL_IDX_START_ADDRESS + SOC_CTRL_IDX_SIZE)
