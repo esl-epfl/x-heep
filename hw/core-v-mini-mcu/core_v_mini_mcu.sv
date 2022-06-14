@@ -161,7 +161,7 @@ module core_v_mini_mcu
       .ram1_resp_o(ram1_slave_resp)
   );
 
-  peripheral_subsystem #() peripheral_subsystem_i (
+  peripheral_subsystem peripheral_subsystem_i (
       .clk_i,
       .rst_ni,
 
