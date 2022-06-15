@@ -49,8 +49,8 @@ module peripheral_subsystem
   //Address Decoder
   logic [PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
-  assign ext_peripheral_slave_req_o  = peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPH_IDX];
-  assign ext_peripheral_slave_resp_i = peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPH_IDX];
+  assign ext_peripheral_slave_req_o = peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPH_IDX];
+  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPH_IDX] = ext_peripheral_slave_resp_i;
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),

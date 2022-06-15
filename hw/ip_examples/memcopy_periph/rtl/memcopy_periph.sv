@@ -40,13 +40,14 @@ module memcopy_periph #(
   logic                          data_rvalid;
   logic                   [31:0] data_rdata;
 
-  enum logic [1:0] {
+  enum logic [2:0] {
     MEMCOPY_FSM_IDLE,
     MEMCOPY_FSM_READ,
+    MEMCOPY_FSM_RVALID,
     MEMCOPY_FSM_WRITE,
     MEMCOPY_FSM_DONE
   }
-      memcopy_fsm_state, memcopy_fsm_n_state;
+  memcopy_fsm_state, memcopy_fsm_n_state;
 
   assign master_req_o.req = data_req;
   assign master_req_o.we = data_we;
@@ -163,10 +164,19 @@ module memcopy_periph #(
 
           // Wait for grant before next step
           if (data_gnt == 1'b1) begin
-            memcopy_fsm_n_state = MEMCOPY_FSM_WRITE;
+            memcopy_fsm_n_state = MEMCOPY_FSM_RVALID;
           end else begin
             memcopy_fsm_n_state = MEMCOPY_FSM_READ;
           end
+        end
+      end
+
+      MEMCOPY_FSM_RVALID: begin
+        // Wait for rvalid otherwise we might have a grant for write but we haven't buffer the next data yet
+        if (data_rvalid == 1'b1) begin
+          memcopy_fsm_n_state = MEMCOPY_FSM_WRITE;
+        end else begin
+          memcopy_fsm_n_state = MEMCOPY_FSM_RVALID;
         end
       end
 

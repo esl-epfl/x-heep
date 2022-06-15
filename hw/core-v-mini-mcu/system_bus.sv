@@ -57,8 +57,8 @@ module system_bus
 
   obi_req_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+EXT_XBAR_NMASTER-1:0]   master_req;
   obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+EXT_XBAR_NMASTER-1:0]  master_resp;
-  obi_req_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE:0]    slave_req;
-  obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE:0]   slave_resp;
+  obi_req_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0]    slave_req;
+  obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0]   slave_resp;
   obi_req_t  error_slave_req;
   obi_resp_t error_slave_resp;
 

@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 
     // Put some data to initialize the memory addresses
     for(int i=0; i<COPY_SIZE; i++) {
-        *src_ptr = i;
+        *src_ptr++ = i;
     }
 
     // memcopy peripheral structure to access the registers

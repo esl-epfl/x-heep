@@ -88,7 +88,6 @@ applications/example_external_peripheral/example_external_peripheral.elf: applic
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		-I device/lib/ \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
-		-Wl,-Map=applications/example_external_peripheral/example_external_peripheral.map \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
 clean:

@@ -143,7 +143,9 @@ module core_v_mini_mcu
       .debug_slave_req_o      (debug_slave_req),
       .debug_slave_resp_i     (debug_slave_resp),
       .peripheral_slave_req_o (peripheral_slave_req),
-      .peripheral_slave_resp_i(peripheral_slave_resp)
+      .peripheral_slave_resp_i(peripheral_slave_resp),
+      .ext_xbar_slave_req_o   (ext_xbar_slave_req_o),
+      .ext_xbar_slave_resp_i  (ext_xbar_slave_resp_i)
   );
 
   memory_subsystem #(
