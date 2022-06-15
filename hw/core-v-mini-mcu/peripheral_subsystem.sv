@@ -44,7 +44,7 @@ module peripheral_subsystem
   tlul_pkg::tl_d2h_t uart_tl_d2h;
 
   //Address Decoder
-  logic [SYSTEM_PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
+  logic [PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
@@ -75,7 +75,7 @@ module peripheral_subsystem
       .rule_t(addr_map_rule_pkg::addr_map_rule_t)
   ) i_addr_decode_soc_regbus_periph_xbar (
       .addr_i(peripheral_req.addr),
-      .addr_map_i(core_v_mini_mcu_pkg::SYSTEM_PERIPHERALS_ADDR_RULES),
+      .addr_map_i(core_v_mini_mcu_pkg::PERIPHERALS_ADDR_RULES),
       .idx_o(peripheral_select),
       .dec_valid_o(),
       .dec_error_o(),

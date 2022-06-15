@@ -47,16 +47,6 @@ module testharness #(
   obi_req_t slow_ram_slave_req;
   obi_resp_t slow_ram_slave_resp;
 
-  // assign master_req[0].req = 0;
-  // assign master_req[0].we = 0;
-  // assign master_req[0].be = 0;
-  // assign master_req[0].addr = 0;
-  // assign master_req[0].wdata = 0;
-
-  // assign periph_slave_resp.gnt = 0;
-  // assign periph_slave_resp.rvalid = 0;
-  // assign periph_slave_resp.rdata = 0;
-
   core_v_mini_mcu #(
       .PULP_XPULP      (PULP_XPULP),
       .FPU             (FPU),

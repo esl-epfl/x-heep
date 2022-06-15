@@ -4,7 +4,6 @@
 
 module core_v_mini_mcu
   import obi_pkg::*;
-  import addr_map_rule_pkg::*;
 #(
     parameter PULP_XPULP = 0,
     parameter FPU = 0,

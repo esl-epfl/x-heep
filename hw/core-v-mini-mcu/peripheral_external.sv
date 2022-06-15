@@ -17,7 +17,6 @@ module peripheral_external
 
   import testharness_pkg::*;
   import reg_pkg::*;
-  import tlul_pkg::*;
 
   reg_pkg::reg_req_t peripheral_req;
   reg_pkg::reg_rsp_t peripheral_rsp;
@@ -25,8 +24,6 @@ module peripheral_external
   reg_pkg::reg_req_t [testharness_pkg::EXT_NPERIPHERALS-1:0] peripheral_slv_req;
   reg_pkg::reg_rsp_t [testharness_pkg::EXT_NPERIPHERALS-1:0] peripheral_slv_rsp;
 
-  tlul_pkg::tl_h2d_t uart_tl_h2d;
-  tlul_pkg::tl_d2h_t uart_tl_d2h;
 
   //Address Decoder
   logic [EXT_PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
