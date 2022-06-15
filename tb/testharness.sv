@@ -114,7 +114,7 @@ module testharness #(
   assign slow_ram_slave_req = slave_req;
   assign slave_resp = slow_ram_slave_resp;
 
-// `ifdef EXTERNAL_DEVICES
+`ifndef NO_EXTERNAL_DEVICES
   // External xbar slave memory example
   slow_memory #(
       .NumWords (128),
@@ -150,18 +150,18 @@ module testharness #(
       .master_req_o(master_req[testharness_pkg::EXT_MASTER0_IDX]),
       .master_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX])
   );
-// `else
-//   assign slow_ram_slave_resp.gnt = '0;
-//   assign slow_ram_slave_resp.rdata = '0;
-//   assign slow_ram_slave_resp.rvalid = '0;
+`else
+  assign slow_ram_slave_resp.gnt = '0;
+  assign slow_ram_slave_resp.rdata = '0;
+  assign slow_ram_slave_resp.rvalid = '0;
 
-//   assign memcopy_periph_rsp.error = '0;
-//   assign memcopy_periph_rsp.ready = '0;
-//   assign memcopy_periph_rsp.rdata = '0;
+  assign memcopy_periph_rsp.error = '0;
+  assign memcopy_periph_rsp.ready = '0;
+  assign memcopy_periph_rsp.rdata = '0;
 
-//   assign master_resp[testharness_pkg::EXT_MASTER0_IDX].gnt = '0;
-//   assign master_resp[testharness_pkg::EXT_MASTER0_IDX].rvalid = '0;
-//   assign master_resp[testharness_pkg::EXT_MASTER0_IDX].rdata = '0;
-// `endif
+  assign master_resp[testharness_pkg::EXT_MASTER0_IDX].gnt = '0;
+  assign master_resp[testharness_pkg::EXT_MASTER0_IDX].rvalid = '0;
+  assign master_resp[testharness_pkg::EXT_MASTER0_IDX].rdata = '0;
+`endif
 
 endmodule  // testharness
