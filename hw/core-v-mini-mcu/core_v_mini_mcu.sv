@@ -4,6 +4,7 @@
 
 module core_v_mini_mcu
   import obi_pkg::*;
+  import reg_pkg::*;
 #(
     parameter PULP_XPULP = 0,
     parameter FPU = 0,
@@ -25,8 +26,8 @@ module core_v_mini_mcu
     output obi_req_t  ext_xbar_slave_req_o,
     input  obi_resp_t ext_xbar_slave_resp_i,
 
-    output obi_req_t  ext_peripheral_slave_req_o,
-    input  obi_resp_t ext_peripheral_slave_resp_i,
+    output reg_req_t ext_peripheral_slave_req_o,
+    input  reg_rsp_t ext_peripheral_slave_resp_i,
 
     input  logic uart_rx_i,
     output logic uart_tx_o,
@@ -135,18 +136,14 @@ module core_v_mini_mcu
       .ext_xbar_master_req_i (ext_xbar_master_req_i),
       .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
 
-      .ram0_req_o                 (ram0_slave_req),
-      .ram0_resp_i                (ram0_slave_resp),
-      .ram1_req_o                 (ram1_slave_req),
-      .ram1_resp_i                (ram1_slave_resp),
-      .debug_slave_req_o          (debug_slave_req),
-      .debug_slave_resp_i         (debug_slave_resp),
-      .peripheral_slave_req_o     (peripheral_slave_req),
-      .peripheral_slave_resp_i    (peripheral_slave_resp),
-      .ext_peripheral_slave_req_o (ext_peripheral_slave_req_o),
-      .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i),
-      .ext_xbar_slave_req_o       (ext_xbar_slave_req_o),
-      .ext_xbar_slave_resp_i      (ext_xbar_slave_resp_i)
+      .ram0_req_o             (ram0_slave_req),
+      .ram0_resp_i            (ram0_slave_resp),
+      .ram1_req_o             (ram1_slave_req),
+      .ram1_resp_i            (ram1_slave_resp),
+      .debug_slave_req_o      (debug_slave_req),
+      .debug_slave_resp_i     (debug_slave_resp),
+      .peripheral_slave_req_o (peripheral_slave_req),
+      .peripheral_slave_resp_i(peripheral_slave_resp)
   );
 
   memory_subsystem #(
@@ -180,7 +177,10 @@ module core_v_mini_mcu
       .uart_intr_rx_frame_err_o() ,
       .uart_intr_rx_break_err_o() ,
       .uart_intr_rx_timeout_o()   ,
-      .uart_intr_rx_parity_err_o()
+      .uart_intr_rx_parity_err_o(),
+
+      .ext_peripheral_slave_req_o (ext_peripheral_slave_req_o),
+      .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i)
   );
 
   assign irq_software = '0;

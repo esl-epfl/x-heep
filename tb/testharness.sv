@@ -24,6 +24,7 @@ module testharness #(
   `include "tb_util.svh"
 
   import obi_pkg::*;
+  import reg_pkg::*;
   import testharness_pkg::*;
 
   logic uart_rx;
@@ -36,14 +37,17 @@ module testharness #(
   logic sim_jtag_tdo;
   logic sim_jtag_trstn;
 
-  // External master/slave ports and peripherals
+  // External xbar master/slave and peripheral ports
   obi_req_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_req;
   obi_resp_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_resp;
   obi_req_t slave_req;
   obi_resp_t slave_resp;
-  obi_req_t periph_slave_req;
-  obi_resp_t periph_slave_resp;
-
+  reg_req_t periph_slave_req;
+  reg_rsp_t periph_slave_resp;
+  // External peripheral example port
+  reg_req_t memcopy_periph_req;
+  reg_rsp_t memcopy_periph_rsp;
+  // External xbar slave example port
   obi_req_t slow_ram_slave_req;
   obi_resp_t slow_ram_slave_resp;
 
@@ -110,6 +114,7 @@ module testharness #(
   assign slow_ram_slave_req = slave_req;
   assign slave_resp = slow_ram_slave_resp;
 
+  // External xbar slave memory example
   slow_memory #(
       .NumWords (128),
       .DataWidth(32'd32)
@@ -127,13 +132,22 @@ module testharness #(
       .rvalid_o(slow_ram_slave_resp.rvalid)
   );
 
-  peripheral_external peripheral_external_i (
-      .clk_i        (clk_i),
-      .rst_ni       (rst_ni),
-      .slave_req_i  (periph_slave_req),
-      .slave_resp_o (periph_slave_resp),
-      .master_req_o (master_req[testharness_pkg::EXT_MASTER0_IDX]),
-      .master_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX])
+  assign memcopy_periph_req = periph_slave_req;
+  assign periph_slave_resp  = memcopy_periph_rsp;
+
+  // External peripheral example with master port to access memory
+  memcopy_periph #(
+      .reg_req_t (reg_pkg::reg_req_t),
+      .reg_rsp_t (reg_pkg::reg_rsp_t),
+      .obi_req_t (obi_pkg::obi_req_t),
+      .obi_resp_t(obi_pkg::obi_resp_t)
+  ) memcopy_periph_i (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(memcopy_periph_req),
+      .reg_rsp_o(memcopy_periph_rsp),
+      .master_req_o(master_req_o),
+      .master_resp_i(master_resp_i)
   );
 
 endmodule  // testharness

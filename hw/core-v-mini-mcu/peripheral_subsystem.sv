@@ -4,6 +4,7 @@
 
 module peripheral_subsystem
   import obi_pkg::*;
+  import reg_pkg::*;
 (
     input logic clk_i,
     input logic rst_ni,
@@ -26,12 +27,14 @@ module peripheral_subsystem
     output logic uart_intr_rx_frame_err_o,
     output logic uart_intr_rx_break_err_o,
     output logic uart_intr_rx_timeout_o,
-    output logic uart_intr_rx_parity_err_o
+    output logic uart_intr_rx_parity_err_o,
 
+    //External peripheral(s)
+    output reg_req_t ext_peripheral_slave_req_o,
+    input  reg_rsp_t ext_peripheral_slave_resp_i
 );
 
   import core_v_mini_mcu_pkg::*;
-  import reg_pkg::*;
   import tlul_pkg::*;
 
   reg_pkg::reg_req_t peripheral_req;
@@ -45,6 +48,9 @@ module peripheral_subsystem
 
   //Address Decoder
   logic [PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
+
+  assign ext_peripheral_slave_req_o  = peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPH_IDX];
+  assign ext_peripheral_slave_resp_i = peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPH_IDX];
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
