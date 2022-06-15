@@ -19,17 +19,17 @@
 MAKE			= make
 
 # riscv toolchain install path
-RISCV                    ?= ~/.riscv
+RISCV		    ?= ~/.riscv
 RISCV_EXE_PREFIX         = $(RISCV)/bin/riscv32-unknown-elf-
 
 # GCC configuration
 CUSTOM_GCC_FLAGS           =
 
-LIB_CRT                    = $(wildcard device/lib/crt/*.S)
-LIB_BASE                   = $(wildcard device/lib/base/*.c)
+LIB_CRT		    = $(wildcard device/lib/crt/*.S)
+LIB_BASE		   = $(wildcard device/lib/base/*.c)
 LIB_BASE_FREESTD           = device/lib/base/freestanding
-LIB_RUNTIME                = $(wildcard device/lib/runtime/*.c)
-LIB_DRIVERS                = $(wildcard device/lib/drivers/*.c)
+LIB_RUNTIME		= $(wildcard device/lib/runtime/*.c)
+LIB_DRIVERS		= $(wildcard device/lib/drivers/*.c)
 
 # rules to generate hex (loadable by simulators) from elf
 %.hex: %.elf
@@ -40,7 +40,6 @@ LIB_DRIVERS                = $(wildcard device/lib/drivers/*.c)
 
 %.dump: %.elf
 	$(RISCV_EXE_PREFIX)objdump -xD $^ > $@
-
 
 # Running custom programs:
 # This is an example for running a Hello World in the testbench
@@ -76,6 +75,21 @@ applications/matadd/matadd.elf: applications/matadd/matadd.c
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
+applications/example_external_peripheral/example_external_peripheral.elf: applications/example_external_peripheral/example_external_peripheral.c
+	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
+		$(CUSTOM_GCC_FLAGS) \
+		-DHOST_BUILD \
+		-T linker/link.ld \
+		-static \
+		$(LIB_CRT) \
+		$^ $(LIB_RUNTIME) \
+		$(LIB_BASE) \
+		$(LIB_DRIVERS) \
+		-I $(RISCV)/riscv32-unknown-elf/include \
+		-I device/lib/ \
+		-L $(RISCV)/riscv32-unknown-elf/lib \
+		-Wl,-Map=applications/example_external_peripheral/example_external_peripheral.map \
+		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
 clean:
 	rm -rf applications/*/*.elf \

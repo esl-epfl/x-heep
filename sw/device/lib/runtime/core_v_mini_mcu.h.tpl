@@ -17,10 +17,6 @@ extern "C" {
 #define PERIPHERAL_SIZE 0x${peripheral_size_address}
 #define PERIPHERAL_END_ADDRESS (PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE)
 
-#define EXT_PERIPHERAL_START_ADDRESS 0x${ext_peripheral_start_address}
-#define EXT_PERIPHERAL_SIZE 0x${ext_peripheral_size_address}
-#define EXT_PERIPHERAL_END_ADDRESS (EXT_PERIPHERAL_START_ADDRESS + EXT_PERIPHERAL_SIZE)
-
 #define EXT_SLAVE_START_ADDRESS 0x${ext_slave_start_address}
 #define EXT_SLAVE_SIZE 0x${ext_slave_size_address}
 #define EXT_SLAVE_END_ADDRESS (EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE)
@@ -32,6 +28,10 @@ extern "C" {
 #define UART_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${uart_start_offset})
 #define UART_SIZE 0x${uart_size_address}
 #define UART_END_ADDRESS (UART_START_ADDRESS + UART_SIZE)
+
+#define EXT_PERIPHERAL_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${ext_periph_start_offset})
+#define EXT_PERIPHERAL_SIZE 0x${ext_periph_size_address}
+#define EXT_PERIPHERAL_END_ADDRESS (EXT_PERIPHERAL_START_ADDRESS + EXT_PERIPHERAL_SIZE)
 
 #ifdef __cplusplus
 }  // extern "C"
