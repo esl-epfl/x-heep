@@ -59,7 +59,10 @@ module memcopy_periph #(
   assign data_rdata = master_resp_i.rdata;
 
   assign hw2reg.done.de = memcopy_done | memcopy_start;
-  assign hw2reg.done.d = memcopy_done == 1'b1 ? 1'b1 : 1'b0;
+  assign hw2reg.done.d  = memcopy_done == 1'b1 ? 1'b1 : 1'b0;
+
+  assign hw2reg.cnt_start.de = memcopy_start;
+  assign hw2reg.cnt_start.d  = 32'h0;
 
   // Memcopy pulse start when cnt_start register is written
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_copy_start
@@ -67,7 +70,7 @@ module memcopy_periph #(
       memcopy_start <= 1'b0;
     end else begin
       if (memcopy_start == 1'b0 && reg2hw.done.q == 1'b1) begin
-        memcopy_start <= |reg2hw.cnt_start; // This always trigger when done is one make it writable to reset it
+        memcopy_start <= |reg2hw.cnt_start;
       end else if (memcopy_start == 1'b1) begin
         memcopy_start <= 1'b0;
       end

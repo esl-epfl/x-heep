@@ -27,7 +27,7 @@
     { name:     "CNT_START",
       desc:     "Number of data to copy - Once a value is written, the copy starts",
       swaccess: "rw",
-      hwaccess: "hro",
+      hwaccess: "hrw",
       fields: [
         { bits: "31:0", name: "CNT_START", desc: "Counter and start" }
       ]
