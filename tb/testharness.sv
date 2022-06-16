@@ -115,7 +115,7 @@ module testharness #(
   assign slave_resp = slow_ram_slave_resp;
 
   assign memcopy_periph_req = periph_slave_req;
-  assign periph_slave_resp  = memcopy_periph_rsp;
+  assign periph_slave_resp = memcopy_periph_rsp;
 
 `ifdef USE_EXTERNAL_DEVICE_EXAMPLE
   // External xbar slave memory example
