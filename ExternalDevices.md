@@ -63,11 +63,11 @@ Memcopy - example external peripheral
 Memcopy launched...
 Memcopy finished
 MEMCOPY SUCCESS
-'''
+```
 
 ## Add an external master/slave or peripheral
 
-1. Master(s): use the obi_pkg (import obi_pkg::*;) to create your master_req output port (obi_req_t) and master_resp input port (obi_resp_t). Adjust the EXT_XBAR_NMASTER parameter accordingly.
+1. Master(s): use the obi_pkg (import obi_pkg::\*;) to create your master_req output port (obi_req_t) and master_resp input port (obi_resp_t). Adjust the EXT_XBAR_NMASTER parameter accordingly.
 
 2. Slave(s): similar to adding a master but you have a slave_req input port (obi_req_t) and slave_resp output port (obi_resp_t). If multiple slaves are used, add a decoding stage for address dispatching.
 
