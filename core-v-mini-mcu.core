@@ -151,7 +151,7 @@ parameters:
     datatype: int
     paramtype: vlogparam
     default: 0
-  NO_EXTERNAL_DEVICES:
+  USE_EXTERNAL_DEVICE_EXAMPLE:
     datatype: bool
     paramtype: vlogdefine
     default: false
@@ -228,7 +228,7 @@ targets:
     - PULP_XPULP=0
     - use_jtag_dpi? (JTAG_DPI=1)
     - "!use_jtag_dpi? (JTAG_DPI=0)"
-    - no_external_devices? (NO_EXTERNAL_DEVICES=true)
+    - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
     tools:
       modelsim:
         vlog_options:
@@ -295,7 +295,7 @@ targets:
     - PULP_XPULP=0
     - use_jtag_dpi? (JTAG_DPI=1)
     - "!use_jtag_dpi? (JTAG_DPI=0)"
-    - no_external_devices? (NO_EXTERNAL_DEVICES=true)
+    - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
     tools:
       modelsim:
         vlog_options:

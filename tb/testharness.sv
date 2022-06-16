@@ -114,7 +114,10 @@ module testharness #(
   assign slow_ram_slave_req = slave_req;
   assign slave_resp = slow_ram_slave_resp;
 
-`ifndef NO_EXTERNAL_DEVICES
+  assign memcopy_periph_req = periph_slave_req;
+  assign periph_slave_resp  = memcopy_periph_rsp;
+
+`ifdef USE_EXTERNAL_DEVICE_EXAMPLE
   // External xbar slave memory example
   slow_memory #(
       .NumWords (128),
@@ -132,9 +135,6 @@ module testharness #(
       .rdata_o(slow_ram_slave_resp.rdata),
       .rvalid_o(slow_ram_slave_resp.rvalid)
   );
-
-  assign memcopy_periph_req = periph_slave_req;
-  assign periph_slave_resp  = memcopy_periph_rsp;
 
   // External peripheral example with master port to access memory
   memcopy_periph #(
@@ -159,9 +159,11 @@ module testharness #(
   assign memcopy_periph_rsp.ready = '0;
   assign memcopy_periph_rsp.rdata = '0;
 
-  assign master_resp[testharness_pkg::EXT_MASTER0_IDX].gnt = '0;
-  assign master_resp[testharness_pkg::EXT_MASTER0_IDX].rvalid = '0;
-  assign master_resp[testharness_pkg::EXT_MASTER0_IDX].rdata = '0;
+  assign master_req[testharness_pkg::EXT_MASTER0_IDX].req = '0;
+  assign master_req[testharness_pkg::EXT_MASTER0_IDX].we = '0;
+  assign master_req[testharness_pkg::EXT_MASTER0_IDX].be = '0;
+  assign master_req[testharness_pkg::EXT_MASTER0_IDX].addr = '0;
+  assign master_req[testharness_pkg::EXT_MASTER0_IDX].wdata = '0;
 `endif
 
 endmodule  // testharness
