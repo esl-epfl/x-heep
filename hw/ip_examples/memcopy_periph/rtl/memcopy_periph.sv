@@ -47,7 +47,7 @@ module memcopy_periph #(
     MEMCOPY_FSM_WRITE,
     MEMCOPY_FSM_DONE
   }
-  memcopy_fsm_state, memcopy_fsm_n_state;
+      memcopy_fsm_state, memcopy_fsm_n_state;
 
   assign master_req_o.req = data_req;
   assign master_req_o.we = data_we;
