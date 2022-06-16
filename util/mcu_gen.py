@@ -107,6 +107,9 @@ def main():
 
     peripheral_size_address = string2int(obj['peripherals']['length'])
 
+    spi_host_start_offset  = string2int(obj['peripherals']['spi_host']['offset'])
+    spi_host_size_address  = string2int(obj['peripherals']['spi_host']['length'])
+
     uart_start_offset  = string2int(obj['peripherals']['uart']['offset'])
     uart_size_address  = string2int(obj['peripherals']['uart']['length'])
 
@@ -120,6 +123,8 @@ def main():
         "debug_size_address"       : debug_size_address,
         "peripheral_start_address" : peripheral_start_address,
         "peripheral_size_address"  : peripheral_size_address,
+        "spi_host_start_offset"    : spi_host_start_offset,
+        "spi_host_size_address"    : spi_host_size_address,
         "uart_start_offset"        : uart_start_offset,
         "uart_size_address"        : uart_size_address,
         "soc_ctrl_start_offset"    : soc_ctrl_start_offset,

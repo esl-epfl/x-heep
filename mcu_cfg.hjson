@@ -26,6 +26,10 @@
             offset:  0x0010000,
             length:  0x0010000,
         }
+        spi_host: {
+            offset:  0x0020000,
+            length:  0x0010000,
+        }
     },
 
     slow_memory: {

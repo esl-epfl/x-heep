@@ -86,7 +86,7 @@ package core_v_mini_mcu_pkg;
   };
 
   //slave encoder
-  localparam SYSTEM_NPERIPHERALS = 2;
+  localparam SYSTEM_NPERIPHERALS = 3;
 
   localparam logic[31:0] SOC_CTRL_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${soc_ctrl_start_offset};
   localparam logic[31:0] SOC_CTRL_SIZE = 32'h${soc_ctrl_size_address};
@@ -98,12 +98,19 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] UART_END_ADDRESS = UART_START_ADDRESS + UART_SIZE;
   localparam logic[31:0] UART_IDX = 32'd1;
 
+  localparam logic[31:0] SPI_HOST_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${spi_host_start_offset};
+  localparam logic[31:0] SPI_HOST_SIZE = 32'h${spi_host_size_address};
+  localparam logic[31:0] SPI_HOST_END_ADDRESS = SPI_HOST_START_ADDRESS + SPI_HOST_SIZE;
+  localparam logic[31:0] SPI_HOST_IDX = 32'd2;
 
   localparam addr_map_rule_t [SYSTEM_NPERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
       '{ idx: SOC_CTRL_IDX, start_addr: SOC_CTRL_START_ADDRESS, end_addr: SOC_CTRL_END_ADDRESS },
-      '{ idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS }
+      '{ idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS },
+      '{ idx: SPI_HOST_IDX, start_addr: SPI_HOST_START_ADDRESS, end_addr: SPI_HOST_END_ADDRESS }
   };
 
   localparam int unsigned PERIPHERALS_PORT_SEL_WIDTH = SYSTEM_NPERIPHERALS > 1 ? $clog2(SYSTEM_NPERIPHERALS) : 32'd1;
+
+  localparam int NumSPICS = 4;
 
 endpackage

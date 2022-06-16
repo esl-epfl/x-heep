@@ -1,0 +1,38 @@
+diff --git a/hw/ip/spi_host/rtl/spi_host.sv b/hw/ip/spi_host/rtl/spi_host.sv
+index 6694d3bc7..34bd56f00 100644
+--- a/hw/ip/spi_host/rtl/spi_host.sv
++++ b/hw/ip/spi_host/rtl/spi_host.sv
+@@ -16,8 +16,6 @@ module spi_host
+   input              clk_core_i,
+   input              rst_core_ni,
+ 
+-  input              lc_ctrl_pkg::lc_tx_t scanmode_i,
+-
+   // Register interface
+   input              tlul_pkg::tl_h2d_t tl_i,
+   output             tlul_pkg::tl_d2h_t tl_o,
+@@ -129,12 +127,6 @@ module spi_host
+   assign passthrough_o.s = cio_sd_i;
+   assign sd_i            = cio_sd_i;
+ 
+-  // TODO: REMOVE THIS CODE
+-  // Temp tie-offs to silence lint warnings
+-  logic unused_scan;
+-
+-  assign unused_scan = ^scanmode_i;
+-
+   assign hw2reg.status.byteorder.d  = ByteOrder;
+   assign hw2reg.status.byteorder.de = 1'b1;
+ 
+diff --git a/hw/ip/spi_host/spi_host.core b/hw/ip/spi_host/spi_host.core
+index dd97bff66..12c8efa07 100644
+--- a/hw/ip/spi_host/spi_host.core
++++ b/hw/ip/spi_host/spi_host.core
+@@ -10,7 +10,6 @@ filesets:
+     depend:
+       - lowrisc:constants:top_pkg
+       - lowrisc:prim:all
+-      - lowrisc:ip:lc_ctrl
+       - lowrisc:ip:tlul
+       - lowrisc:ip:spi_device_pkg
+     files:

@@ -167,7 +167,16 @@ module core_v_mini_mcu #(
       .uart_intr_rx_frame_err_o() ,
       .uart_intr_rx_break_err_o() ,
       .uart_intr_rx_timeout_o()   ,
-      .uart_intr_rx_parity_err_o()
+      .uart_intr_rx_parity_err_o(),
+
+      // SPI Interface
+      .spi_sck_o(),
+      .spi_sck_en_o(),
+      .spi_csb_o(),
+      .spi_csb_en_o(),
+      .spi_sd_o(),
+      .spi_sd_en_o(),
+      .spi_sd_i()
   );
 
 `ifndef SYNTHESIS
