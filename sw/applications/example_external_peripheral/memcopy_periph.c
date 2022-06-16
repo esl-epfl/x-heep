@@ -2,13 +2,11 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-#include "memcopy_periph.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
-#include "../base/mmio.h"
-
+#include "memcopy_periph.h"
 #include "memcopy_periph_regs.h"  // Generated.
 
 void memcopy_periph_set_read_ptr(const memcopy_periph_t *memcopy_periph, uint32_t read_ptr) {

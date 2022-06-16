@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "drivers/memcopy_periph.h"
+#include "memcopy_periph.h"
 #include "runtime/core_v_mini_mcu.h"
 
 #define COPY_SIZE 10

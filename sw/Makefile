@@ -76,7 +76,7 @@ applications/matadd/matadd.elf: applications/matadd/matadd.c
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/example_external_peripheral/example_external_peripheral.elf: applications/example_external_peripheral/example_external_peripheral.c
+applications/example_external_peripheral/example_external_peripheral.elf: applications/example_external_peripheral/example_external_peripheral.c applications/example_external_peripheral/memcopy_periph.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
