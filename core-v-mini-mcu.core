@@ -18,6 +18,7 @@ filesets:
     - pulp-platform.org::register_interface
     - openhwgroup.org:ip:soc_ctrl
     - lowrisc:ip:uart:0.1
+    - example:ip:memcopy_periph
     - lowrisc:ibex:ibex_core:0.1
     files:
     - hw/core-v-mini-mcu/include/addr_map_rule_pkg.sv
@@ -49,6 +50,7 @@ filesets:
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.vlt
     - hw/ip/soc_ctrl/soc_ctrl.vlt
+    - hw/ip_examples/memcopy_periph/memcopy_periph.vlt
     - hw/ip_examples/slow_memory/slow_memory.vlt
     file_type: vlt
 
@@ -87,6 +89,7 @@ filesets:
   tb-harness:
     files:
     - tb/tb_util.svh: {is_include_file: true}
+    - tb/testharness_pkg.sv
     - tb/testharness.sv
     file_type: systemVerilogSource
 
@@ -148,6 +151,10 @@ parameters:
     datatype: int
     paramtype: vlogparam
     default: 0
+  USE_EXTERNAL_DEVICE_EXAMPLE:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
   SYNTHESIS:
     datatype: bool
     paramtype: vlogdefine
@@ -221,6 +228,7 @@ targets:
     - PULP_XPULP=0
     - use_jtag_dpi? (JTAG_DPI=1)
     - "!use_jtag_dpi? (JTAG_DPI=0)"
+    - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
     tools:
       modelsim:
         vlog_options:
@@ -268,12 +276,14 @@ targets:
     default_tool: modelsim
     filesets_append:
     - rtl-simulation
+    - tb-harness
     - tb-sv
     - systemverilog_only_uart
     - pre_build_remote_bitbang
     - pre_build_uartdpi
     - pre_patch_modelsim_Makefile
     - post_build_modelsim_scripts
+    - systemverilog_only_simjtag
     toplevel: [tb_top_vopt]
     hooks:
      pre_build:
@@ -285,6 +295,7 @@ targets:
     - PULP_XPULP=0
     - use_jtag_dpi? (JTAG_DPI=1)
     - "!use_jtag_dpi? (JTAG_DPI=0)"
+    - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
     tools:
       modelsim:
         vlog_options:
@@ -294,7 +305,8 @@ targets:
         - -pedanticerrors
         - -define MODELSIM
         vsim_options:
-        - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi -sv_lib ../../../tb/remote_bitbang/librbs
+        - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi
+        - -sv_lib ../../../hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang/librbs
 
   nexys-a7-100t:
     <<: *default_target
