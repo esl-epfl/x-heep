@@ -29,13 +29,13 @@ module peripheral_subsystem
     output logic uart_intr_rx_parity_err_o,
 
     // SPI Interface
-    output logic             spi_sck_o,
-    output logic             spi_sck_en_o,
+    output logic                               spi_sck_o,
+    output logic                               spi_sck_en_o,
     output logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_o,
     output logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_en_o,
-    output logic [3:0]       spi_sd_o,
-    output logic [3:0]       spi_sd_en_o,
-    input        [3:0]       spi_sd_i
+    output logic [                        3:0] spi_sd_o,
+    output logic [                        3:0] spi_sd_en_o,
+    input        [                        3:0] spi_sd_i
 
 );
 
@@ -52,8 +52,8 @@ module peripheral_subsystem
   tlul_pkg::tl_h2d_t uart_tl_h2d;
   tlul_pkg::tl_d2h_t uart_tl_d2h;
 
-  tlul_pkg::tl_h2d_t  spi_host_tl_h2d;
-  tlul_pkg::tl_d2h_t  spi_host_tl_d2h;
+  tlul_pkg::tl_h2d_t spi_host_tl_h2d;
+  tlul_pkg::tl_d2h_t spi_host_tl_d2h;
   //Address Decoder
   logic [core_v_mini_mcu_pkg::PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
@@ -123,25 +123,24 @@ module peripheral_subsystem
   );
 
 
-  spi_host spi_host_i
-  (
-     .clk_i,
-     .rst_ni,
-     .clk_core_i(clk_i),
-     .rst_core_ni(rst_ni),
-     .tl_i(spi_host_tl_h2d),
-     .tl_o(uart_tl_d2h),
-     .cio_sck_o(spi_sck_o),
-     .cio_sck_en_o(spi_sck_en_o),
-     .cio_csb_o(spi_csb_o),
-     .cio_csb_en_o(spi_csb_en_o),
-     .cio_sd_o(spi_sd_o),
-     .cio_sd_en_o(spi_sd_en_o),
-     .cio_sd_i(spi_sd_i),
-     .passthrough_i('0),
-     .passthrough_o(),
-     .intr_error_o(),
-     .intr_spi_event_o()
+  spi_host spi_host_i (
+      .clk_i,
+      .rst_ni,
+      .clk_core_i(clk_i),
+      .rst_core_ni(rst_ni),
+      .tl_i(spi_host_tl_h2d),
+      .tl_o(uart_tl_d2h),
+      .cio_sck_o(spi_sck_o),
+      .cio_sck_en_o(spi_sck_en_o),
+      .cio_csb_o(spi_csb_o),
+      .cio_csb_en_o(spi_csb_en_o),
+      .cio_sd_o(spi_sd_o),
+      .cio_sd_en_o(spi_sd_en_o),
+      .cio_sd_i(spi_sd_i),
+      .passthrough_i('0),
+      .passthrough_o(),
+      .intr_error_o(),
+      .intr_spi_event_o()
   );
 
   uart uart_i (
