@@ -71,11 +71,11 @@ MEMCOPY SUCCESS
 
 2. Slave(s): similar to adding a master but you have a slave_req input port (obi_req_t) and slave_resp output port (obi_resp_t). If multiple slaves are used, add a decoding stage for address dispatching.
 
-3. Peripheral slave(s): use the reg_pkg (import obi_pkg::*;) to create your slave_periph_req input port (reg_req_t) and slave_resp output port (reg_rsp_t). If multiple peripheral slaves are used, add a decoding stage for addresses dispatching.
+3. Peripheral slave(s): use the reg_pkg (import obi_pkg::\*;) to create your slave_periph_req input port (reg_req_t) and slave_resp output port (reg_rsp_t). If multiple peripheral slaves are used, add a decoding stage for addresses dispatching.
 
 To create and maintain a peripheral unit efficiently, use the reggen tool:
 
-1. Define the registers of your peripheral in a hjson file (read the documentation [here](https://docs.opentitan.org/doc/rm/register_tool/)
+1. Define the registers of your peripheral in a hjson file (read the documentation [here](https://docs.opentitan.org/doc/rm/register_tool/)).
 
 2. Launch the regtool.py script to generate SystemVerilog RTL code and a C header file.
 
