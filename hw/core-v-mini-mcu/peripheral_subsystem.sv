@@ -43,6 +43,9 @@ module peripheral_subsystem
   tlul_pkg::tl_h2d_t uart_tl_h2d;
   tlul_pkg::tl_d2h_t uart_tl_d2h;
 
+  tlul_pkg::tl_h2d_t rv_timer_tl_h2d;
+  tlul_pkg::tl_d2h_t rv_timer_tl_d2h;
+
   //Address Decoder
   logic [core_v_mini_mcu_pkg::PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
@@ -97,12 +100,11 @@ module peripheral_subsystem
       .out_rsp_i(peripheral_slv_rsp)
   );
 
-  reg_to_tlul reg_to_tlul_i (
+  reg_to_tlul uart_reg_to_tlul_i (
       .tl_o(uart_tl_h2d),
       .tl_i(uart_tl_d2h),
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::UART_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::UART_IDX])
-
   );
 
   uart uart_i (
@@ -133,6 +135,21 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
       .exit_valid_o,
       .exit_value_o
+  );
+
+  reg_to_tlul rv_timer_reg_to_tlul_i (
+      .tl_o(rv_timer_tl_h2d),
+      .tl_i(rv_timer_tl_d2h),
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::RV_TIMER_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_IDX])
+  );
+
+  rv_timer rv_timer_i (
+      .clk_i,
+      .rst_ni,
+      .tl_i(rv_timer_tl_h2d),
+      .tl_o(rv_timer_tl_d2h),
+      .intr_timer_expired_0_0_o()
   );
 
 endmodule : peripheral_subsystem

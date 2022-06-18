@@ -25,6 +25,10 @@ extern "C" {
 #define UART_SIZE 0x0010000
 #define UART_END_ADDRESS (UART_START_ADDRESS + UART_SIZE)
 
+#define RV_TIMER_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x0020000)
+#define RV_TIMER_SIZE 0x0010000
+#define RV_TIMER_END_ADDRESS (RV_TIMER_START_ADDRESS + RV_TIMER_SIZE)
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus

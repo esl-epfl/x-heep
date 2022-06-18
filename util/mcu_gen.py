@@ -113,6 +113,9 @@ def main():
     soc_ctrl_start_offset  = string2int(obj['peripherals']['soc_ctrl']['offset'])
     soc_ctrl_size_address  = string2int(obj['peripherals']['soc_ctrl']['length'])
 
+    rv_timer_start_offset  = string2int(obj['peripherals']['rv_timer']['offset'])
+    rv_timer_size_address  = string2int(obj['peripherals']['rv_timer']['length'])
+
     kwargs = {
         "cpu_type"                 : cpu_type,
         "bus_type"                 : bus_type,
@@ -124,6 +127,8 @@ def main():
         "uart_size_address"        : uart_size_address,
         "soc_ctrl_start_offset"    : soc_ctrl_start_offset,
         "soc_ctrl_size_address"    : soc_ctrl_size_address,
+        "rv_timer_start_offset"    : rv_timer_start_offset,
+        "rv_timer_size_address"    : rv_timer_size_address,
         "slow_memory_start_address": slow_memory_start_address,
         "slow_memory_size_address" : slow_memory_size_address,
     }

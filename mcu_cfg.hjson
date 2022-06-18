@@ -25,6 +25,10 @@
         uart: {
             offset:  0x0010000,
             length:  0x0010000,
+        },
+        rv_timer: {
+            offset:  0x0020000,
+            length:  0x0010000,
         }
     },
 
