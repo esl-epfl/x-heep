@@ -7,19 +7,21 @@
 
   upstream: {
     url: "https://github.com/openhwgroup/cv32e40p.git",
-    rev: "4b61f9489e296405d420c890cabe2962866d888d",
+    rev: "52113dcc79b4d2bc6d79827fa8dad9ec34734c6c",
   },
 
   patch_dir: "patches/openhwgroup_cv32e40p",
 
   exclude_from_upstream: [
     "ci",
+    ".github",
     "example_tb",
     "CONTRIBUTING.md",
     "Bender.yml",
     ".gitlab-ci.yml",
     ".dir-locals.el",
     "cv32e40p_manifest.flist",
+    "cv32e40p_fpu_manifest.flist",
     "docs",
     "rtl/vendor",
     "scripts",

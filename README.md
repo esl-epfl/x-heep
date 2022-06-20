@@ -251,7 +251,7 @@ This relies on a fork of [edalize](https://github.com/davideschiavone/edalize) t
 $ python ./util/mcu_gen.py --cfg mcu_cfg.hjson --outdir ./hw/core-v-mini-mcu/include/ --pkg-sv ./hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
 ```
 ```
-python ./util/mcu_gen.py --cfg mcu_cfg.hjson --outdir ./sw/device/lib/runtime/ --header-c ./sw/device/lib/runtime/core_v_mini_mcu.h.tpl
+$ python ./util/mcu_gen.py --cfg mcu_cfg.hjson --outdir ./sw/device/lib/runtime/ --header-c ./sw/device/lib/runtime/core_v_mini_mcu.h.tpl
 ```
 
 ## Files are formatted with Verible

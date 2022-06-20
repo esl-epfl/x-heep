@@ -36,6 +36,7 @@ filesets:
     - openhwgroup_cv32e40p/rtl/cv32e40p_core.sv
     - openhwgroup_cv32e40p/rtl/cv32e40p_apu_disp.sv
     - openhwgroup_cv32e40p/rtl/cv32e40p_fifo.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_wrapper.sv
     file_type: systemVerilogSource
 
   files_clk_gate:
@@ -55,7 +56,7 @@ filesets:
 
   files_wrap:
     files:
-    - openhwgroup_cv32e40p/bhv/cv32e40p_wrapper.sv
+    - openhwgroup_cv32e40p/bhv/cv32e40p_tb_wrapper.sv
     - openhwgroup_cv32e40p/bhv/cv32e40p_core_log.sv: {is_include_file: true}
     file_type: systemVerilogSource
 
