@@ -155,28 +155,15 @@ module cpu_subsystem
     assign irq_id_o  = '0;
 
   end else begin : gen_cv32e40p
-    import cv32e40p_apu_core_pkg::*;
-    // APU Core to FP Wrapper
-    logic                              apu_req;
-    logic [   APU_NARGS_CPU-1:0][31:0] apu_operands;
-    logic [     APU_WOP_CPU-1:0]       apu_op;
-    logic [APU_NDSFLAGS_CPU-1:0]       apu_flags;
-
-
-    // APU FP Wrapper to Core
-    logic                              apu_gnt;
-    logic                              apu_rvalid;
-    logic [                31:0]       apu_rdata;
-    logic [APU_NUSFLAGS_CPU-1:0]       apu_rflags;
 
     // instantiate the core
-    cv32e40p_wrapper #(
+    cv32e40p_tb_wrapper #(
         .PULP_XPULP      (PULP_XPULP),
         .PULP_CLUSTER    (0),
         .FPU             (FPU),
         .PULP_ZFINX      (PULP_ZFINX),
         .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS)
-    ) cv32e40p_wrapper_i (
+    ) cv32e40p_tb_wrapper_i (
         .clk_i (clk_i),
         .rst_ni(rst_ni),
 
@@ -204,15 +191,6 @@ module cpu_subsystem
         .data_gnt_i   (core_data_resp_i.gnt),
         .data_rvalid_i(core_data_resp_i.rvalid),
 
-        .apu_req_o     (apu_req),
-        .apu_gnt_i     (apu_gnt),
-        .apu_operands_o(apu_operands),
-        .apu_op_o      (apu_op),
-        .apu_flags_o   (apu_flags),
-        .apu_rvalid_i  (apu_rvalid),
-        .apu_result_i  (apu_rdata),
-        .apu_flags_i   (apu_rflags),
-
         .irq_i    (irq_i),
         .irq_ack_o(irq_ack_o),
         .irq_id_o (irq_id_o),
@@ -225,26 +203,6 @@ module cpu_subsystem
         .fetch_enable_i(fetch_enable_i),
         .core_sleep_o  ()
     );
-
-    if (FPU) begin
-      cv32e40p_fp_wrapper fp_wrapper_i (
-          .clk_i         (clk_i),
-          .rst_ni        (rst_ni),
-          .apu_req_i     (apu_req),
-          .apu_gnt_o     (apu_gnt),
-          .apu_operands_i(apu_operands),
-          .apu_op_i      (apu_op),
-          .apu_flags_i   (apu_flags),
-          .apu_rvalid_o  (apu_rvalid),
-          .apu_rdata_o   (apu_rdata),
-          .apu_rflags_o  (apu_rflags)
-      );
-    end else begin
-      assign apu_gnt    = '0;
-      assign apu_rvalid = '0;
-      assign apu_rdata  = '0;
-      assign apu_rflags = '0;
-    end
 
   end
 

@@ -37,3 +37,24 @@ jobs:
       run: |
         util/format-verible
         util/git-diff.py --error-msg "::error ::Found differences, run util/format-verible before committing."
+
+  #####################
+  # Vendor Up-to-Date #
+  #####################
+  # Check that all vendored sources are up-to-date.
+  check-vendor:
+    name: Vendor Up-to-Date
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Install requirements
+      run: pip install -r python-requirements.txt
+    - name: Re-vendor and diff
+      run: |
+        find . \
+            -name '*.vendor.hjson' \
+            | xargs -n1 util/vendor.py --verbose \
+            && util/git-diff.py --error-msg "::error ::Found differences, please re-vendor."
