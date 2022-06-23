@@ -75,10 +75,10 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] PERIPHERAL_END_ADDRESS = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE;
   localparam logic [31:0] PERIPHERAL_IDX = 32'd4;
 
-  localparam logic [31:0] SLOW_MEMORY_START_ADDRESS = 32'h30000000;
-  localparam logic [31:0] SLOW_MEMORY_SIZE = 32'h200;
-  localparam logic [31:0] SLOW_MEMORY_END_ADDRESS = SLOW_MEMORY_START_ADDRESS + SLOW_MEMORY_SIZE;
-  localparam logic [31:0] SLOW_MEMORY_IDX = 32'd5;
+  localparam logic [31:0] EXT_SLAVE_START_ADDRESS = 32'h30000000;
+  localparam logic [31:0] EXT_SLAVE_SIZE = 32'h1000000;
+  localparam logic [31:0] EXT_SLAVE_END_ADDRESS = EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE;
+  localparam logic [31:0] EXT_SLAVE_IDX = 32'd5;
 
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{idx: RAM0_IDX, start_addr: RAM0_START_ADDRESS, end_addr: RAM0_END_ADDRESS},
@@ -90,15 +90,15 @@ package core_v_mini_mcu_pkg;
           end_addr: PERIPHERAL_END_ADDRESS
       },
       '{
-          idx: SLOW_MEMORY_IDX,
-          start_addr: SLOW_MEMORY_START_ADDRESS,
-          end_addr: SLOW_MEMORY_END_ADDRESS
+          idx: EXT_SLAVE_IDX,
+          start_addr: EXT_SLAVE_START_ADDRESS,
+          end_addr: EXT_SLAVE_END_ADDRESS
       },
       '{idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS}
   };
 
   //slave encoder
-  localparam SYSTEM_NPERIPHERALS = 2;
+  localparam SYSTEM_NPERIPHERALS = 3;
 
   localparam logic [31:0] SOC_CTRL_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0000000;
   localparam logic [31:0] SOC_CTRL_SIZE = 32'h0010000;
@@ -110,10 +110,20 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] UART_END_ADDRESS = UART_START_ADDRESS + UART_SIZE;
   localparam logic [31:0] UART_IDX = 32'd1;
 
+  localparam logic [31:0] EXT_PERIPH_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0020000;
+  localparam logic [31:0] EXT_PERIPH_SIZE = 32'h0010000;
+  localparam logic [31:0] EXT_PERIPH_END_ADDRESS = EXT_PERIPH_START_ADDRESS + EXT_PERIPH_SIZE;
+  localparam logic [31:0] EXT_PERIPH_IDX = 32'd2;
+
 
   localparam addr_map_rule_t [SYSTEM_NPERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
       '{idx: SOC_CTRL_IDX, start_addr: SOC_CTRL_START_ADDRESS, end_addr: SOC_CTRL_END_ADDRESS},
-      '{idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS}
+      '{idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS},
+      '{
+          idx: EXT_PERIPH_IDX,
+          start_addr: EXT_PERIPH_START_ADDRESS,
+          end_addr: EXT_PERIPH_END_ADDRESS
+      }
   };
 
   localparam int unsigned PERIPHERALS_PORT_SEL_WIDTH = SYSTEM_NPERIPHERALS > 1 ? $clog2(

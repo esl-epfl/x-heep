@@ -18,6 +18,7 @@ filesets:
     - pulp-platform.org::register_interface
     - openhwgroup.org:ip:soc_ctrl
     - lowrisc:ip:uart:0.1
+    - example:ip:memcopy_periph
     - lowrisc:ibex:ibex_core:0.1
     files:
     - hw/core-v-mini-mcu/include/addr_map_rule_pkg.sv
@@ -49,16 +50,19 @@ filesets:
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.vlt
     - hw/ip/soc_ctrl/soc_ctrl.vlt
+    - hw/ip_examples/memcopy_periph/memcopy_periph.vlt
     - hw/ip_examples/slow_memory/slow_memory.vlt
     file_type: vlt
 
   rtl-fpga:
     files:
+    - hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv
     - hw/fpga/sram_wrapper.sv
     file_type: systemVerilogSource
 
   ip-fpga:
     files:
+    - hw/fpga/scripts/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
     - hw/fpga/scripts/generate_sram.tcl:  { file_type: tclSource }
     - hw/fpga/prim_xilinx_clk.sv:  { file_type: systemVerilogSource }
     - hw/fpga/cv32e40p_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
@@ -67,11 +71,15 @@ filesets:
     depend:
     - technology::prim_mytech
 
-
-  xdc-fpga:
+  xdc-fpga-nexys:
     files:
-    - hw/fpga/constraints/pin_assign.xdc
-    - hw/fpga/constraints/constraints.xdc
+    - hw/fpga/constraints/nexys/pin_assign.xdc
+    - hw/fpga/constraints/nexys/constraints.xdc
+    file_type: xdc
+
+  xdc-fpga-pynq-z2:
+    files:
+    - hw/fpga/constraints/pynq-z2/pin_assign.xdc
     file_type: xdc
 
   systemverilog_only_simjtag:
@@ -81,6 +89,7 @@ filesets:
   tb-harness:
     files:
     - tb/tb_util.svh: {is_include_file: true}
+    - tb/testharness_pkg.sv
     - tb/testharness.sv
     file_type: systemVerilogSource
 
@@ -142,6 +151,10 @@ parameters:
     datatype: int
     paramtype: vlogparam
     default: 0
+  USE_EXTERNAL_DEVICE_EXAMPLE:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
   SYNTHESIS:
     datatype: bool
     paramtype: vlogdefine
@@ -215,6 +228,7 @@ targets:
     - PULP_XPULP=0
     - use_jtag_dpi? (JTAG_DPI=1)
     - "!use_jtag_dpi? (JTAG_DPI=0)"
+    - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
     tools:
       modelsim:
         vlog_options:
@@ -262,12 +276,14 @@ targets:
     default_tool: modelsim
     filesets_append:
     - rtl-simulation
+    - tb-harness
     - tb-sv
     - systemverilog_only_uart
     - pre_build_remote_bitbang
     - pre_build_uartdpi
     - pre_patch_modelsim_Makefile
     - post_build_modelsim_scripts
+    - systemverilog_only_simjtag
     toplevel: [tb_top_vopt]
     hooks:
      pre_build:
@@ -279,6 +295,7 @@ targets:
     - PULP_XPULP=0
     - use_jtag_dpi? (JTAG_DPI=1)
     - "!use_jtag_dpi? (JTAG_DPI=0)"
+    - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
     tools:
       modelsim:
         vlog_options:
@@ -288,7 +305,8 @@ targets:
         - -pedanticerrors
         - -define MODELSIM
         vsim_options:
-        - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi -sv_lib ../../../tb/remote_bitbang/librbs
+        - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi
+        - -sv_lib ../../../hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang/librbs
 
   nexys-a7-100t:
     <<: *default_target
@@ -297,7 +315,7 @@ targets:
     filesets_append:
     - rtl-fpga
     - ip-fpga
-    - xdc-fpga
+    - xdc-fpga-nexys
     parameters:
     - PULP_XPULP=0
     - SYNTHESIS=true
@@ -305,6 +323,22 @@ targets:
       vivado:
         part: xc7a100tcsg324-1
     toplevel: [core_v_mini_mcu]
+
+  pynq-z2:
+    <<: *default_target
+    default_tool: vivado
+    description: TUL Pynq-Z2 Board
+    filesets_append:
+    - rtl-fpga
+    - ip-fpga
+    - xdc-fpga-pynq-z2
+    parameters:
+    - PULP_XPULP=0
+    - SYNTHESIS=true
+    tools:
+      vivado:
+        part: xc7z020clg400-1
+    toplevel: [xilinx_core_v_mini_mcu_wrapper]
 
   sim_nexys_netlist:
     filesets:

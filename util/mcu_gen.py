@@ -98,8 +98,8 @@ def main():
 
     debug_size_address = string2int(obj['debug']['length'])
 
-    slow_memory_start_address = string2int(obj['slow_memory']['address'])
-    slow_memory_size_address = string2int(obj['slow_memory']['length'])
+    ext_slave_start_address = string2int(obj['ext_slaves']['address'])
+    ext_slave_size_address = string2int(obj['ext_slaves']['length'])
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
@@ -113,6 +113,9 @@ def main():
     soc_ctrl_start_offset  = string2int(obj['peripherals']['soc_ctrl']['offset'])
     soc_ctrl_size_address  = string2int(obj['peripherals']['soc_ctrl']['length'])
 
+    ext_periph_start_offset  = string2int(obj['peripherals']['ext_periph']['offset'])
+    ext_periph_size_address  = string2int(obj['peripherals']['ext_periph']['length'])
+
     kwargs = {
         "cpu_type"                 : cpu_type,
         "bus_type"                 : bus_type,
@@ -120,12 +123,14 @@ def main():
         "debug_size_address"       : debug_size_address,
         "peripheral_start_address" : peripheral_start_address,
         "peripheral_size_address"  : peripheral_size_address,
+        "ext_slave_start_address"  : ext_slave_start_address,
+        "ext_slave_size_address"   : ext_slave_size_address,
         "uart_start_offset"        : uart_start_offset,
         "uart_size_address"        : uart_size_address,
         "soc_ctrl_start_offset"    : soc_ctrl_start_offset,
         "soc_ctrl_size_address"    : soc_ctrl_size_address,
-        "slow_memory_start_address": slow_memory_start_address,
-        "slow_memory_size_address" : slow_memory_size_address,
+        "ext_periph_start_offset"  : ext_periph_start_offset,
+        "ext_periph_size_address"  : ext_periph_size_address,
     }
 
     ###########

@@ -17,7 +17,9 @@
 module system_bus
   import obi_pkg::*;
   import addr_map_rule_pkg::*;
-(
+#(
+    parameter EXT_XBAR_NMASTER = 0
+) (
     input logic clk_i,
     input logic rst_ni,
 
@@ -30,6 +32,9 @@ module system_bus
 
     input  obi_req_t  debug_master_req_i,
     output obi_resp_t debug_master_resp_o,
+
+    input  obi_req_t  [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
+    output obi_resp_t [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
 
     //Slaves
     output obi_req_t  ram0_req_o,
@@ -44,18 +49,16 @@ module system_bus
     output obi_req_t  peripheral_slave_req_o,
     input  obi_resp_t peripheral_slave_resp_i,
 
-    output obi_req_t  slow_ram_req_o,
-    input  obi_resp_t slow_ram_resp_i
-
-
+    output obi_req_t  ext_xbar_slave_req_o,
+    input  obi_resp_t ext_xbar_slave_resp_i
 );
 
   import core_v_mini_mcu_pkg::*;
 
-  obi_req_t[core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0]   master_req;
-  obi_resp_t[core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0]  master_resp;
-  obi_req_t[core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0]    slave_req;
-  obi_resp_t[core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0]   slave_resp;
+  obi_req_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+EXT_XBAR_NMASTER-1:0]   master_req;
+  obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+EXT_XBAR_NMASTER-1:0]  master_resp;
+  obi_req_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0]    slave_req;
+  obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0]   slave_resp;
   obi_req_t  error_slave_req;
   obi_resp_t error_slave_resp;
 
@@ -66,17 +69,25 @@ module system_bus
   assign master_req[core_v_mini_mcu_pkg::CORE_DATA_IDX] = core_data_req_i;
   assign master_req[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX] = debug_master_req_i;
 
+  for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin : gen_ext_master_req_map
+    assign master_req[core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+i] = ext_xbar_master_req_i[i];
+  end
+
   //master resp
   assign core_instr_resp_o = master_resp[core_v_mini_mcu_pkg::CORE_INSTR_IDX];
   assign core_data_resp_o = master_resp[core_v_mini_mcu_pkg::CORE_DATA_IDX];
   assign debug_master_resp_o = master_resp[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX];
+
+  for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin : gen_ext_master_resp_map
+    assign ext_xbar_master_resp_o[i] = master_resp[core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+i];
+  end
 
   //slave req
   assign ram0_req_o = slave_req[core_v_mini_mcu_pkg::RAM0_IDX];
   assign ram1_req_o = slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
   assign debug_slave_req_o = slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
   assign peripheral_slave_req_o = slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
-  assign slow_ram_req_o = slave_req[core_v_mini_mcu_pkg::SLOW_MEMORY_IDX];
+  assign ext_xbar_slave_req_o = slave_req[core_v_mini_mcu_pkg::EXT_SLAVE_IDX];
   assign error_slave_req = slave_req[core_v_mini_mcu_pkg::ERROR_IDX];
 
   //slave resp
@@ -84,7 +95,7 @@ module system_bus
   assign slave_resp[core_v_mini_mcu_pkg::RAM1_IDX] = ram1_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX] = debug_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
-  assign slave_resp[core_v_mini_mcu_pkg::SLOW_MEMORY_IDX] = slow_ram_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::EXT_SLAVE_IDX] = ext_xbar_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
 
 `ifndef SYNTHESIS
@@ -104,7 +115,10 @@ module system_bus
   end
 `endif
 
-  system_xbar system_xbar_i (
+  system_xbar #(
+      .XBAR_NMASTER(core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER + EXT_XBAR_NMASTER),
+      .XBAR_NSLAVE (core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE)
+  ) system_xbar_i (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
       .master_req_i(master_req),
