@@ -206,6 +206,12 @@ To build and program the bitstream for your FPGA with vivado, type:
 $ fusesoc --cores-root . run --no-export --target=nexys-a7-100t --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildvivado.log
 ```
 
+or add the flag `use_bscane_xilinx` to use the native Xilinx scanchain:
+
+```
+$ fusesoc --cores-root . run --no-export --target=nexys-a7-100t --setup --build --flag use_bscane_xilinx openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildvivado.log
+```
+
 If you only need the synthesis implementation:
 
 ```

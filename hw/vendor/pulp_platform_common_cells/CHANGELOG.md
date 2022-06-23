@@ -4,7 +4,57 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 1.24.1 - 2022-04-13
+### Fixed
+- Fix typos in `Bender.yml` and `src_files.yml`
+
+## 1.24.0 - 2022-03-31
+### Added
+- Add `edge_propagator_ack`: Edge/pulse propagator with sender-synchronous receive-acknowledge
+  output.  `edge_propagator` is now implemented by instantiating `edge_propagator_ack`.
+- Add `4phase_cdc`: A 4 phase handshaking CDC that allows glitch-free resetting (used internally in the new clearable CDC IPs).
+- Add one-sided clearable and/or async resettable flavors of 2phase CDC (`cdc_2phase_clearable`) and gray-counting FIFO CDCs (`cdc_fifo_gray_clearable`).
+- Add reset CDC controller `cdc_reset_ctrl` that supports reset/synchronous clear sequencing across clock domain crossings (used internally in clearable CDC IPs).
+- Add `clk_int_div` arbitrary integer clock divider with *at-runtime*
+  configurable divider selection and glitch-free, 50%duty cycle output clock.
+- Add an assertion to the `lzc` to verify parameters.
+
+### Fixed
+- Correct reset polarity in assertions in `isochronous_4phase_handshake` and `isochronous_spill_register`
+- Fix compatibility of `sub_per_hash` constructs with Verilator
+
+### Changed
+- Add `dont_touch` and `async_reg` attribute to FFs in `sync` cell.
+- Improved reset behavior documentation (in module header) of existing CDC IPs.
+- Deprecated flawed `clk_div` module and add elaboration warning message that
+  will be shown for existing designs (can be disabled with optional
+  instantiation parameter).
+- Add optional `Seed` parameter to `stream_delay` module
+- Update `tech_cells_generic` to `0.2.9`
+
+## 1.23.0 - 2021-09-05
+### Added
+- Add `cc_onehot`
+- `isochronous_4phase_handshake`: Isochronous clock domain crossing cutting all paths using a 4-phase handshake.
+- Changed `isochronous_spill_register_tb` to `isochronous_crossing_tb` also covering the `isochronous_4phase_handshake`
+  module.
+- Make reset value of `sync` module parameterizable.
+
+### Changed
+- `id_queue`: Allow simultaneous input and output requests in `FULL_BW` mode
+
+## 1.22.1 - 2021-06-14
+### Fixed
+- Remove breaking change of `spill_register`
+
+## 1.22.0 - 2021-06-09
+### Added
+- Add `spill_register_flushable`
+
+### Changed
+- `registers.svh`: Merge explicit and implicit register variants into `` `FF `` and `` `FFL `` macros
+- `rr_arb_tree`: Allow flushing locked decision
+- Improved `verific` compatibility
 
 ## 1.21.0 - 2021-01-28
 ### Changed
