@@ -13,21 +13,13 @@ package memcopy_periph_reg_pkg;
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {
-    logic [31:0] q;
-  } memcopy_periph_reg2hw_ptr_read_reg_t;
+  typedef struct packed {logic [31:0] q;} memcopy_periph_reg2hw_ptr_read_reg_t;
 
-  typedef struct packed {
-    logic [31:0] q;
-  } memcopy_periph_reg2hw_ptr_write_reg_t;
+  typedef struct packed {logic [31:0] q;} memcopy_periph_reg2hw_ptr_write_reg_t;
 
-  typedef struct packed {
-    logic [31:0] q;
-  } memcopy_periph_reg2hw_cnt_start_reg_t;
+  typedef struct packed {logic [31:0] q;} memcopy_periph_reg2hw_cnt_start_reg_t;
 
-  typedef struct packed {
-    logic [31:0] q;
-  } memcopy_periph_reg2hw_done_reg_t;
+  typedef struct packed {logic [31:0] q;} memcopy_periph_reg2hw_done_reg_t;
 
   typedef struct packed {
     logic [31:0] d;
@@ -41,23 +33,23 @@ package memcopy_periph_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    memcopy_periph_reg2hw_ptr_read_reg_t ptr_read; // [127:96]
-    memcopy_periph_reg2hw_ptr_write_reg_t ptr_write; // [95:64]
-    memcopy_periph_reg2hw_cnt_start_reg_t cnt_start; // [63:32]
-    memcopy_periph_reg2hw_done_reg_t done; // [31:0]
+    memcopy_periph_reg2hw_ptr_read_reg_t ptr_read;  // [127:96]
+    memcopy_periph_reg2hw_ptr_write_reg_t ptr_write;  // [95:64]
+    memcopy_periph_reg2hw_cnt_start_reg_t cnt_start;  // [63:32]
+    memcopy_periph_reg2hw_done_reg_t done;  // [31:0]
   } memcopy_periph_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    memcopy_periph_hw2reg_cnt_start_reg_t cnt_start; // [65:33]
-    memcopy_periph_hw2reg_done_reg_t done; // [32:0]
+    memcopy_periph_hw2reg_cnt_start_reg_t cnt_start;  // [65:33]
+    memcopy_periph_hw2reg_done_reg_t done;  // [32:0]
   } memcopy_periph_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] MEMCOPY_PERIPH_PTR_READ_OFFSET = 4'h 0;
-  parameter logic [BlockAw-1:0] MEMCOPY_PERIPH_PTR_WRITE_OFFSET = 4'h 4;
-  parameter logic [BlockAw-1:0] MEMCOPY_PERIPH_CNT_START_OFFSET = 4'h 8;
-  parameter logic [BlockAw-1:0] MEMCOPY_PERIPH_DONE_OFFSET = 4'h c;
+  parameter logic [BlockAw-1:0] MEMCOPY_PERIPH_PTR_READ_OFFSET = 4'h0;
+  parameter logic [BlockAw-1:0] MEMCOPY_PERIPH_PTR_WRITE_OFFSET = 4'h4;
+  parameter logic [BlockAw-1:0] MEMCOPY_PERIPH_CNT_START_OFFSET = 4'h8;
+  parameter logic [BlockAw-1:0] MEMCOPY_PERIPH_DONE_OFFSET = 4'hc;
 
   // Register index
   typedef enum int {
@@ -68,11 +60,11 @@ package memcopy_periph_reg_pkg;
   } memcopy_periph_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] MEMCOPY_PERIPH_PERMIT [4] = '{
-    4'b 1111, // index[0] MEMCOPY_PERIPH_PTR_READ
-    4'b 1111, // index[1] MEMCOPY_PERIPH_PTR_WRITE
-    4'b 1111, // index[2] MEMCOPY_PERIPH_CNT_START
-    4'b 1111  // index[3] MEMCOPY_PERIPH_DONE
+  parameter logic [3:0] MEMCOPY_PERIPH_PERMIT[4] = '{
+      4'b1111,  // index[0] MEMCOPY_PERIPH_PTR_READ
+      4'b1111,  // index[1] MEMCOPY_PERIPH_PTR_WRITE
+      4'b1111,  // index[2] MEMCOPY_PERIPH_CNT_START
+      4'b1111  // index[3] MEMCOPY_PERIPH_DONE
   };
 
 endpackage
