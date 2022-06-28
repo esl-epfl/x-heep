@@ -76,9 +76,9 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] EXT_SLAVE_END_ADDRESS = EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE;
   localparam logic[31:0] EXT_SLAVE_IDX = 32'd5;
 
-  localparam logic[31:0] SPI_FLASH_START_ADDRESS = 32'h${SPI_FLASH_start_address};
-  localparam logic[31:0] SPI_FLASH_END_ADDRESS = SPI_FLASH_START6ADDRESS + SPI_FLASH_SIZE;
-  localparam logic[31:0] SPI_FLASH_SIZE = 32'h${SPI_FLASH_size_address};
+  localparam logic[31:0] SPI_FLASH_START_ADDRESS = 32'h${spi_flash_start_address};
+  localparam logic[31:0] SPI_FLASH_SIZE = 32'h${spi_flash_size_address};
+  localparam logic[31:0] SPI_FLASH_END_ADDRESS = SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE;
   localparam logic[31:0] SPI_FLASH_IDX = 32'd6;
 
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{

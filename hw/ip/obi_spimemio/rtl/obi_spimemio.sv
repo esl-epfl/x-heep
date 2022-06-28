@@ -5,9 +5,9 @@
 */
 
 module obi_spimemio
-import obi_intf::*;
+//import obi_intf::*;
 import obi_pkg::*;
-import Picorv32mem_intf::*;
+//import Picorv32mem_intf::*;
 ( 
     input clk, nrst,
 

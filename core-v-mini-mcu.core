@@ -20,10 +20,12 @@ filesets:
     - lowrisc:ip:uart:0.1
     - example:ip:memcopy_periph
     - lowrisc:ibex:ibex_core:0.1
+    - ::picorv32_spimemio:0-r1
+    - :obi-spimemio:0.1.0
     files:
     - hw/core-v-mini-mcu/include/addr_map_rule_pkg.sv
-    - hw/core-v-mini-mcu/include/obi_pkg.sv
-    - hw/core-v-mini-mcu/include/reg_pkg.sv
+    - hw/core-v-mini-mcu/include/obi_pkg.sv: {is_include_file: true}
+    - hw/core-v-mini-mcu/include/reg_pkg.sv: {is_include_file: true}
     - hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
@@ -105,6 +107,10 @@ filesets:
   remote_bitbang_dpi:
     depend:
     - pulp-platform.org::pulpissimo_remote_bitbang
+
+  spiflash_model:
+    depend:
+    - ::spiflash:0
 
   tb-sv:
     files:
@@ -215,6 +221,7 @@ targets:
     - tool_verilator? (remote_bitbang_dpi)
     - tool_modelsim? (systemverilog_only_simjtag)
     - tool_vcs? (systemverilog_only_simjtag)
+    - tool_modelsim? (spiflash_model)
     toplevel:
     - tool_modelsim? (tb_top)
     - tool_vcs? (tb_top)

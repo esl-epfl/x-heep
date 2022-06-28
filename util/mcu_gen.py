@@ -116,6 +116,9 @@ def main():
     ext_periph_start_offset  = string2int(obj['peripherals']['ext_periph']['offset'])
     ext_periph_size_address  = string2int(obj['peripherals']['ext_periph']['length'])
 
+    spi_flash_start_address  = string2int(obj['spi_flash']['address'])
+    spi_flash_size_address  = string2int(obj['spi_flash']['length'])
+
     kwargs = {
         "cpu_type"                 : cpu_type,
         "bus_type"                 : bus_type,
@@ -131,6 +134,8 @@ def main():
         "soc_ctrl_size_address"    : soc_ctrl_size_address,
         "ext_periph_start_offset"  : ext_periph_start_offset,
         "ext_periph_size_address"  : ext_periph_size_address,
+        "spi_flash_start_address"  : spi_flash_start_address,
+        "spi_flash_size_address"   : spi_flash_size_address,
     }
 
     ###########

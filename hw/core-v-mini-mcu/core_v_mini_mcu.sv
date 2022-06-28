@@ -36,23 +36,23 @@ module core_v_mini_mcu
     output logic [31:0] exit_value_o,
     output logic        exit_valid_o,
 
-    output flash_csb,
-    output flash_clk,
+    output logic flash_csb,
+    output logic flash_clk,
 
-    output flash_io0_oe,
-    output flash_io1_oe,
-    output flash_io2_oe,
-    output flash_io3_oe,
+    output logic flash_io0_oe,
+    output logic flash_io1_oe,
+    output logic flash_io2_oe,
+    output logic flash_io3_oe,
 
-    output flash_io0_do,
-    output flash_io1_do,
-    output flash_io2_do,
-    output flash_io3_do,
+    output logic flash_io0_do,
+    output logic flash_io1_do,
+    output logic flash_io2_do,
+    output logic flash_io3_do,
 
-    input flash_io0_di,
-    input flash_io1_di,
-    input flash_io2_di,
-    input flash_io3_di
+    input logic flash_io0_di,
+    input logic flash_io1_di,
+    input logic flash_io2_di,
+    input logic flash_io3_di
 );
 
   import core_v_mini_mcu_pkg::*;

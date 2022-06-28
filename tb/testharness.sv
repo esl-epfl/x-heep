@@ -117,6 +117,18 @@ module testharness #(
   assign memcopy_periph_req = periph_slave_req;
   assign periph_slave_resp = memcopy_periph_rsp;
 
+`ifdef MODELSIM
+spiflash flash_1(
+	.csb(csb),
+	.clk(clk),
+	.io0(io0), // MOSI
+	.io1(io1), // MISO
+	.io2(io2),
+	.io3(io3)
+    );
+    
+`endif
+
 `ifdef USE_EXTERNAL_DEVICE_EXAMPLE
   // External xbar slave memory example
   slow_memory #(

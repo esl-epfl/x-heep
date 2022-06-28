@@ -1,4 +1,4 @@
-.// Copyright(// Copyright) 2022 OpenHW Group
+// Copyright(// Copyright) 2022 OpenHW Group
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
@@ -34,23 +34,23 @@ module peripheral_subsystem
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
     // SPI Flash
-    output flash_csb,
-	output flash_clk,
+    output logic flash_csb,
+	output logic flash_clk,
 
-	output flash_io0_oe,
-	output flash_io1_oe,
-	output flash_io2_oe,
-	output flash_io3_oe,
+	output logic flash_io0_oe,
+	output logic flash_io1_oe,
+	output logic flash_io2_oe,
+	output logic flash_io3_oe,
 
-	output flash_io0_do,
-	output flash_io1_do,
-	output flash_io2_do,
-	output flash_io3_do,
+	output logic flash_io0_do,
+	output logic flash_io1_do,
+	output logic flash_io2_do,
+	output logic flash_io3_do,
 
-	input  flash_io0_di,
-	input  flash_io1_di,
-	input  flash_io2_di,
-	input  flash_io3_di,
+	input  logic flash_io0_di,
+	input  logic flash_io1_di,
+	input  logic flash_io2_di,
+	input  logic flash_io3_di,
 
     input   [3:0] cfgreg_we,
 	input  [31:0] cfgreg_di,
@@ -184,12 +184,12 @@ module peripheral_subsystem
 	.flash_io1_di(flash_io1_di),
 	.flash_io2_di(flash_io2_di),
 	.flash_io3_di(flash_io3_di),
-    .cfgreg_we(cfgreg_we),
-	.cfgreg_di(cfgreg_di),
-	.cfgreg_do(cfgreg_do),
+    .cfgreg_we('0), //TODO: attach to register 
+	.cfgreg_di('0),
+	.cfgreg_do(),
     .spimemio_req_i(spimemio_req_i), 
     .spimemio_resp_o(spimemio_resp_o)
-  )
+  );
 
 
 endmodule : peripheral_subsystem

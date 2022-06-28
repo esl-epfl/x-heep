@@ -7,9 +7,13 @@ filesets:
   rtl:
     depend:
       - picorv32_spimemio
-    files : 
+    files: 
       - rtl/obi_intf.sv
       - rtl/obi2picorv32mem.sv
       - rtl/obi_spimemio.sv
     file_type: systemVerilogSource
 
+targets:
+  default:
+    filesets:
+    - rtl

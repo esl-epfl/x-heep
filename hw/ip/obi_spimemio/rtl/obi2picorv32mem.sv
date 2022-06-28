@@ -5,8 +5,6 @@
 */
 
 module obi2picorv32mem 
-import obi_intf::*,
-import Picorv32mem_intf::*;
 (
     PICORV32_BUS.core P32,
     SIMPLE_OBI_BUS.slave OBI,
@@ -24,7 +22,7 @@ import Picorv32mem_intf::*;
         WRITE_BYTE_0 = 4'b0001
     } picorv_request_t;
 
-    enum logic {
+    enum logic [1:0] {
     IDLE,
     READ,
     WRITE
@@ -45,42 +43,43 @@ end
 
 always_comb begin : fsm
     // default values
-    addr_buf_next <= addr_buf;
-    state_next <= state;
-    P32.valid <= 1'b0;
-    P32.addr <= '0;
-    P32.wdata <= '0;
-    P32.wstrb <= READ_MEM;
-    OBI.gnt <= 1'b0;
-    OBI.rvalid <= 1'b0;
-    OBI.rdata <= '0;
+    addr_buf_next = addr_buf;
+    state_next = state;
+    P32.valid = 1'b0;
+    P32.addr = '0;
+    P32.wdata = '0;
+    P32.wstrb = READ_MEM;
+    OBI.gnt = 1'b0;
+    OBI.rvalid = 1'b0;
+    OBI.rdata = '0;
     // fsm
     case(state)
         IDLE: begin
             if (OBI.req) begin
                 if (OBI.we == 1'b1) begin
-                    state_next <= WRITE;
-                end else begin
-                    state_next <= READ;
-                    P32.addr <= OBI.addr; 
-                    addr_buf_next <= OBI.addr; 
-                    P32.valid <= 1'b1;
+                    state_next = WRITE;
                     OBI.gnt <= 1'b1;
+                end else begin
+                    state_next = READ;
+                    P32.addr = OBI.addr; 
+                    addr_buf_next = OBI.addr; 
+                    P32.valid = 1'b1;
+                    OBI.gnt = 1'b1;
                 end
             end
         end 
         READ: begin
-            P32.addr <= addr_buf;
+            P32.addr = addr_buf;
             if (P32.ready) begin
-                state_next <= IDLE;
-                OBI.rdata <= P32.rdata;
-                OBI.rvalid <= 1'b1;
+                state_next = IDLE;
+                OBI.rdata = P32.rdata;
+                OBI.rvalid = 1'b1;
             end
             // Todo: add contineous read w/o idle
         end
         WRITE: begin
             state_next <= IDLE;
-            OBI.gnt <= 1'b1;
+            OBI.rvalid = 1'b1;
             // Todo: add write.
         end
     endcase
