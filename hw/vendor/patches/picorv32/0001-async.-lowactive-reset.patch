@@ -1,0 +1,44 @@
+From 249271daa12c36bb822183a3cc43dc80832c4231 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?M=C3=BCller=20Christoph=20Thomas?=
+ <christoph.mueller@epfl.ch>
+Date: Thu, 23 Jun 2022 16:32:08 +0200
+Subject: [PATCH] async. lowactive reset
+
+---
+ picosoc/spimemio.v | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/picosoc/spimemio.v b/picosoc/spimemio.v
+index b4ee446..d780948 100644
+--- a/picosoc/spimemio.v
++++ b/picosoc/spimemio.v
+@@ -96,7 +96,7 @@ module spimemio (
+ 	assign cfgreg_do[4] = flash_clk;
+ 	assign cfgreg_do[3:0] = {flash_io3_di, flash_io2_di, flash_io1_di, flash_io0_di};
+ 
+-	always @(posedge clk) begin
++	always @(posedge clk or negedge resetn) begin
+ 		softreset <= !config_en || cfgreg_we;
+ 		if (!resetn) begin
+ 			softreset <= 1;
+@@ -204,7 +204,7 @@ module spimemio (
+ 
+ 	reg [3:0] state;
+ 
+-	always @(posedge clk) begin
++	always @(posedge clk or negedge resetn) begin
+ 		xfer_resetn <= 1;
+ 		din_valid <= 0;
+ 
+@@ -532,7 +532,7 @@ module spimemio_xfer (
+ 		end
+ 	end
+ 
+-	always @(posedge clk) begin
++	always @(posedge clk or negedge resetn) begin
+ 		if (!resetn) begin
+ 			fetch <= 1;
+ 			last_fetch <= 1;
+-- 
+2.30.1
+

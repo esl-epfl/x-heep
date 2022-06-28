@@ -1,4 +1,4 @@
-// Copyright 2022 OpenHW Group
+.// Copyright(// Copyright) 2022 OpenHW Group
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
@@ -31,7 +31,33 @@ module peripheral_subsystem
 
     //External peripheral(s)
     output reg_req_t ext_peripheral_slave_req_o,
-    input  reg_rsp_t ext_peripheral_slave_resp_i
+    input  reg_rsp_t ext_peripheral_slave_resp_i,
+
+    // SPI Flash
+    output flash_csb,
+	output flash_clk,
+
+	output flash_io0_oe,
+	output flash_io1_oe,
+	output flash_io2_oe,
+	output flash_io3_oe,
+
+	output flash_io0_do,
+	output flash_io1_do,
+	output flash_io2_do,
+	output flash_io3_do,
+
+	input  flash_io0_di,
+	input  flash_io1_di,
+	input  flash_io2_di,
+	input  flash_io3_di,
+
+    input   [3:0] cfgreg_we,
+	input  [31:0] cfgreg_di,
+	output [31:0] cfgreg_do,
+
+    input  obi_req_t  spimemio_req_i,
+    output obi_resp_t spimemio_resp_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -140,5 +166,30 @@ module peripheral_subsystem
       .exit_valid_o,
       .exit_value_o
   );
+
+  obi_spimemio spi_flash_i (
+    .clk(clk_i),
+    .nrst(rst_ni),
+	.flash_csb(flash_csb),
+	.flash_clk(flash_clk),
+	.flash_io0_oe(flash_io0_oe),
+	.flash_io1_oe(flash_io1_oe),
+	.flash_io2_oe(flash_io2_oe),
+	.flash_io3_oe(flash_io3_oe),
+	.flash_io0_do(flash_io0_do),
+	.flash_io1_do(flash_io1_do),
+	.flash_io2_do(flash_io2_do),
+	.flash_io3_do(flash_io3_do),
+	.flash_io0_di(flash_io0_di),
+	.flash_io1_di(flash_io1_di),
+	.flash_io2_di(flash_io2_di),
+	.flash_io3_di(flash_io3_di),
+    .cfgreg_we(cfgreg_we),
+	.cfgreg_di(cfgreg_di),
+	.cfgreg_do(cfgreg_do),
+    .spimemio_req_i(spimemio_req_i), 
+    .spimemio_resp_o(spimemio_resp_o)
+  )
+
 
 endmodule : peripheral_subsystem

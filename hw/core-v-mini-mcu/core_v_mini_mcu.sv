@@ -34,7 +34,25 @@ module core_v_mini_mcu
 
     input  logic        fetch_enable_i,
     output logic [31:0] exit_value_o,
-    output logic        exit_valid_o
+    output logic        exit_valid_o,
+
+    output flash_csb,
+    output flash_clk,
+
+    output flash_io0_oe,
+    output flash_io1_oe,
+    output flash_io2_oe,
+    output flash_io3_oe,
+
+    output flash_io0_do,
+    output flash_io1_do,
+    output flash_io2_do,
+    output flash_io3_do,
+
+    input flash_io0_di,
+    input flash_io1_di,
+    input flash_io2_di,
+    input flash_io3_di
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -60,6 +78,9 @@ module core_v_mini_mcu
   obi_resp_t        ram0_slave_resp;
   obi_req_t         ram1_slave_req;
   obi_resp_t        ram1_slave_resp;
+  obi_req_t         spi_flash_slave_req;
+  obi_resp_t        spi_flash_slave_resp;
+
   obi_req_t         debug_slave_req;
   obi_resp_t        debug_slave_resp;
   obi_req_t         peripheral_slave_req;
@@ -140,6 +161,8 @@ module core_v_mini_mcu
       .ram0_resp_i            (ram0_slave_resp),
       .ram1_req_o             (ram1_slave_req),
       .ram1_resp_i            (ram1_slave_resp),
+      .spi_flash_slave_req_o  (spi_flash_slave_req),
+      .spi_flash_slave_resp_i (spi_flash_slave_resp),
       .debug_slave_req_o      (debug_slave_req),
       .debug_slave_resp_i     (debug_slave_resp),
       .peripheral_slave_req_o (peripheral_slave_req),
@@ -158,6 +181,8 @@ module core_v_mini_mcu
       .ram1_req_i (ram1_slave_req),
       .ram1_resp_o(ram1_slave_resp)
   );
+
+
 
   peripheral_subsystem peripheral_subsystem_i (
       .clk_i,
@@ -182,7 +207,28 @@ module core_v_mini_mcu
       .uart_intr_rx_parity_err_o(),
 
       .ext_peripheral_slave_req_o (ext_peripheral_slave_req_o),
-      .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i)
+      .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i),
+
+      .flash_csb(flash_csb),
+      .flash_clk(flash_clk),
+
+      .flash_io0_oe(flash_io0_oe),
+      .flash_io1_oe(flash_io1_oe),
+      .flash_io2_oe(flash_io2_oe),
+      .flash_io3_oe(flash_io3_oe),
+
+      .flash_io0_do(flash_io0_do),
+      .flash_io1_do(flash_io1_do),
+      .flash_io2_do(flash_io2_do),
+      .flash_io3_do(flash_io3_do),
+
+      .flash_io0_di(flash_io0_di),
+      .flash_io1_di(flash_io1_di),
+      .flash_io2_di(flash_io2_di),
+      .flash_io3_di(flash_io3_di),
+
+      .spimemio_req_i (spi_flash_slave_req),
+      .spimemio_resp_o(spi_flash_slave_resp)
   );
 
   assign irq_software = '0;

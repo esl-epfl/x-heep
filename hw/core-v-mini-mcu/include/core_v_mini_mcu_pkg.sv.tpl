@@ -28,7 +28,7 @@ package core_v_mini_mcu_pkg;
   localparam int unsigned MEM_SIZE = 2**16;
 
   localparam SYSTEM_XBAR_NMASTER = 3;
-  localparam SYSTEM_XBAR_NSLAVE = 6;
+  localparam SYSTEM_XBAR_NSLAVE = 7;
 
   localparam int unsigned LOG_SYSTEM_XBAR_NMASTER = SYSTEM_XBAR_NMASTER > 1 ? $clog2(SYSTEM_XBAR_NMASTER) : 32'd1;
   localparam int unsigned LOG_SYSTEM_XBAR_NSLAVE = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(SYSTEM_XBAR_NSLAVE) : 32'd1;
@@ -76,12 +76,18 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] EXT_SLAVE_END_ADDRESS = EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE;
   localparam logic[31:0] EXT_SLAVE_IDX = 32'd5;
 
+  localparam logic[31:0] SPI_FLASH_START_ADDRESS = 32'h${SPI_FLASH_start_address};
+  localparam logic[31:0] SPI_FLASH_END_ADDRESS = SPI_FLASH_START6ADDRESS + SPI_FLASH_SIZE;
+  localparam logic[31:0] SPI_FLASH_SIZE = 32'h${SPI_FLASH_size_address};
+  localparam logic[31:0] SPI_FLASH_IDX = 32'd6;
+
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{ idx: RAM0_IDX, start_addr: RAM0_START_ADDRESS, end_addr: RAM0_END_ADDRESS },
       '{ idx: RAM1_IDX, start_addr: RAM1_START_ADDRESS, end_addr: RAM1_END_ADDRESS },
       '{ idx: DEBUG_IDX, start_addr: DEBUG_START_ADDRESS, end_addr: DEBUG_END_ADDRESS },
       '{ idx: PERIPHERAL_IDX, start_addr: PERIPHERAL_START_ADDRESS, end_addr: PERIPHERAL_END_ADDRESS },
       '{ idx: EXT_SLAVE_IDX, start_addr: EXT_SLAVE_START_ADDRESS, end_addr: EXT_SLAVE_END_ADDRESS },
+      '{ idx: SPI_FLASH_IDX, start_addr: SPI_FLASH_START_ADDRESS, end_addr: SPI_FLASH_END_ADDRESS },
       '{ idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS }
   };
 
