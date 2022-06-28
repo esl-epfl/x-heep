@@ -1,5 +1,8 @@
-
+# Copyright 2022 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 # Define design macros
+
 set design_name      xilinx_clk_wizard
 set in_clk_freq_MHz  125
 set out_clk_freq_MHz 20

@@ -1,3 +1,6 @@
+# Copyright 2022 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 set_property PACKAGE_PIN H16 [get_ports clk_i]
 set_property PACKAGE_PIN M20 [get_ports rst_ni]

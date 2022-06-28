@@ -1,6 +1,6 @@
-// Copyright 2022 OpenHW Group
-// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
-// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
 
 #ifndef _DRIVERS_MEMCOPY_PERIPH_H_
 #define _DRIVERS_MEMCOPY_PERIPH_H_
