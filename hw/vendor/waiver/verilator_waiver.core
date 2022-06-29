@@ -19,6 +19,7 @@ filesets:
     - lint/uart.vlt
     - lint/uartdpi.vlt
     - lint/cluster_interconnect.vlt
+    - lint/picorv32.vlt
     file_type: vlt
 
 

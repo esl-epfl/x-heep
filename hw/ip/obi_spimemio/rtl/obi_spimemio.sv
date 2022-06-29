@@ -5,87 +5,77 @@
 */
 
 module obi_spimemio
-//import obi_intf::*;
 import obi_pkg::*;
-//import Picorv32mem_intf::*;
-( 
-    input clk, nrst,
+(
+    input logic clk_i,
+    input logic rst_ni,
 
-	output flash_csb,
-	output flash_clk,
+	output logic flash_csb_o,
+	output logic flash_clk_o,
 
-	output flash_io0_oe,
-	output flash_io1_oe,
-	output flash_io2_oe,
-	output flash_io3_oe,
+	output logic flash_io0_oe_o,
+	output logic flash_io1_oe_o,
+	output logic flash_io2_oe_o,
+	output logic flash_io3_oe_o,
 
-	output flash_io0_do,
-	output flash_io1_do,
-	output flash_io2_do,
-	output flash_io3_do,
+	output logic flash_io0_do_o,
+	output logic flash_io1_do_o,
+	output logic flash_io2_do_o,
+	output logic flash_io3_do_o,
 
-	input  flash_io0_di,
-	input  flash_io1_di,
-	input  flash_io2_di,
-	input  flash_io3_di,
+	input  logic flash_io0_di_i,
+	input  logic flash_io1_di_i,
+	input  logic flash_io2_di_i,
+	input  logic flash_io3_di_i,
 
-    input   [3:0] cfgreg_we,
-	input  [31:0] cfgreg_di,
-	output [31:0] cfgreg_do,
+    input  logic  [3:0] cfgreg_we,
+	input  logic [31:0] cfgreg_di,
+	output logic [31:0] cfgreg_do,
 
     input  obi_req_t  spimemio_req_i,
     output obi_resp_t spimemio_resp_o
 );
 
-// interface instances
-PICORV32_BUS(clk, nrst) P32; 
-SIMPLE_OBI_BUS(clk,nrst) OBI;
+import picorv32_pkg::*;
 
-always_comb begin : 
-    OBI.req <= spimemio_req_i.req;
-    OBI.we  <= spimemio_req_i.we;
-    OBI.be  <= spimemio_req_i.be;
-    OBI.addr <= spimemio_req_i.addr;
-    OBI.wdata  <= spimemio_req_i.wdata;
-
-    spimemio_resp_o.gnt <= OBI.gnt;
-    spimemio_resp_o.rvalid <= OBI.rvalid;
-    spimemio_resp_o.rdata <= OBI.rdata;
-end
-
-obi2picorv32mem o2p32 (
-    .P32 (P32),
-    .OBI (OBI),
-    .clk(clk),
-    .nrst(nrst)
+obi_to_picorv32 obi_to_picorv32_i (
+    .clk_i(clk_i),
+    .rst_ni(rst_ni),
+    .picorv32_req_o(picorv32_req),
+    .picorv32_resp_i(picorv32_resp),
+    .obi_req_i(spimemio_req_i),
+    .obi_resp_o(spimemio_resp_o)
 );
 
-spimemio memio (
-    .clk (P32.clk),
-    .resetn (P32.nrst),
+  picorv32_req_t picorv32_req;
+  picorv32_resp_t picorv32_resp;
 
-    .valid (P32.valid),
-    .ready (P32.ready),
-    .addr (P32.addr),
-    .rdata (P32.rdata),
+spimemio spimemio_i (
+    .clk (clk_i),
+    .resetn (rst_ni),
 
-    .flash_csb (flash_csb),
-	.flash_clk (flash_clk),
+    .valid (picorv32_req.valid),
+    .ready (picorv32_resp.ready),
+    .addr (picorv32_req.addr[23:0]),
+    .rdata (picorv32_resp.rdata),
 
-	.flash_io0_oe (flash_io0_oe),
-	.flash_io1_oe (flash_io1_oe),
-	.flash_io2_oe (flash_io2_oe),
-	.flash_io3_oe (flash_io3_oe),
+    .flash_csb (flash_csb_o),
+    .flash_clk (flash_clk_o),
 
-	.flash_io0_do (flash_io0_do),
-	.flash_io1_do (flash_io1_do),
-	.flash_io2_do (flash_io2_do),
-	.flash_io3_do (flash_io3_do),
+    .flash_io0_oe (flash_io0_oe_o),
+    .flash_io1_oe (flash_io1_oe_o),
+    .flash_io2_oe (flash_io2_oe_o),
+    .flash_io3_oe (flash_io3_oe_o),
 
-	.flash_io0_di (flash_io0_di),
-	.flash_io1_di (flash_io1_di),
-	.flash_io2_di (flash_io2_di),
-	.flash_io3_di (flash_io3_di),
+    .flash_io0_do (flash_io0_do_o),
+    .flash_io1_do (flash_io1_do_o),
+    .flash_io2_do (flash_io2_do_o),
+    .flash_io3_do (flash_io3_do_o),
+
+    .flash_io0_di (flash_io0_di_i),
+    .flash_io1_di (flash_io1_di_i),
+    .flash_io2_di (flash_io2_di_i),
+    .flash_io3_di (flash_io3_di_i),
 
     .cfgreg_we (cfgreg_we),
     .cfgreg_di (cfgreg_di),

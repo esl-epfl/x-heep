@@ -36,23 +36,23 @@ module core_v_mini_mcu
     output logic [31:0] exit_value_o,
     output logic        exit_valid_o,
 
-    output logic flash_csb,
-    output logic flash_clk,
+    output logic flash_csb_o,
+    output logic flash_clk_o,
 
-    output logic flash_io0_oe,
-    output logic flash_io1_oe,
-    output logic flash_io2_oe,
-    output logic flash_io3_oe,
+    output logic flash_io0_oe_o,
+    output logic flash_io1_oe_o,
+    output logic flash_io2_oe_o,
+    output logic flash_io3_oe_o,
 
-    output logic flash_io0_do,
-    output logic flash_io1_do,
-    output logic flash_io2_do,
-    output logic flash_io3_do,
+    output logic flash_io0_do_o,
+    output logic flash_io1_do_o,
+    output logic flash_io2_do_o,
+    output logic flash_io3_do_o,
 
-    input logic flash_io0_di,
-    input logic flash_io1_di,
-    input logic flash_io2_di,
-    input logic flash_io3_di
+    input logic flash_io0_di_i,
+    input logic flash_io1_di_i,
+    input logic flash_io2_di_i,
+    input logic flash_io3_di_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -209,23 +209,23 @@ module core_v_mini_mcu
       .ext_peripheral_slave_req_o (ext_peripheral_slave_req_o),
       .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i),
 
-      .flash_csb(flash_csb),
-      .flash_clk(flash_clk),
+      .flash_csb_o,
+      .flash_clk_o,
 
-      .flash_io0_oe(flash_io0_oe),
-      .flash_io1_oe(flash_io1_oe),
-      .flash_io2_oe(flash_io2_oe),
-      .flash_io3_oe(flash_io3_oe),
+      .flash_io0_oe_o,
+      .flash_io1_oe_o,
+      .flash_io2_oe_o,
+      .flash_io3_oe_o,
 
-      .flash_io0_do(flash_io0_do),
-      .flash_io1_do(flash_io1_do),
-      .flash_io2_do(flash_io2_do),
-      .flash_io3_do(flash_io3_do),
+      .flash_io0_do_o,
+      .flash_io1_do_o,
+      .flash_io2_do_o,
+      .flash_io3_do_o,
 
-      .flash_io0_di(flash_io0_di),
-      .flash_io1_di(flash_io1_di),
-      .flash_io2_di(flash_io2_di),
-      .flash_io3_di(flash_io3_di),
+      .flash_io0_di_i,
+      .flash_io1_di_i,
+      .flash_io2_di_i,
+      .flash_io3_di_i,
 
       .spimemio_req_i (spi_flash_slave_req),
       .spimemio_resp_o(spi_flash_slave_resp)

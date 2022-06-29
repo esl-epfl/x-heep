@@ -8,8 +8,8 @@ filesets:
     depend:
       - picorv32_spimemio
     files: 
-      - rtl/obi_intf.sv
-      - rtl/obi2picorv32mem.sv
+      - rtl/picorv32_pkg.sv
+      - rtl/obi_to_picorv32.sv
       - rtl/obi_spimemio.sv
     file_type: systemVerilogSource
 
