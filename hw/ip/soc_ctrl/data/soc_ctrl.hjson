@@ -24,5 +24,13 @@
         { bits: "31:0", name: "EXIT_VALUE", desc: "Exit Value Reg" }
       ]
     }
+    { name:     "BOOT_SELECT",
+      desc:     "Boot Select Value - Used to decide whether to boot from JTAG or FLASH",
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "0", name: "BOOT_SELECT", desc: "Boot Select Reg" }
+      ]
+    }
    ]
 }

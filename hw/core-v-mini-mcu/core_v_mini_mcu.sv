@@ -14,6 +14,8 @@ module core_v_mini_mcu
     input logic clk_i,
     input logic rst_ni,
 
+    input logic boot_select_i,
+
     input  logic jtag_tck_i,
     input  logic jtag_tms_i,
     input  logic jtag_trst_ni,
@@ -187,6 +189,8 @@ module core_v_mini_mcu
   peripheral_subsystem peripheral_subsystem_i (
       .clk_i,
       .rst_ni,
+
+      .boot_select_i,
 
       .slave_req_i (peripheral_slave_req),
       .slave_resp_o(peripheral_slave_resp),

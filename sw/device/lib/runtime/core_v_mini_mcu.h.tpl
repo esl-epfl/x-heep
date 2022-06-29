@@ -33,6 +33,12 @@ extern "C" {
 #define EXT_PERIPHERAL_SIZE 0x${ext_periph_size_address}
 #define EXT_PERIPHERAL_END_ADDRESS (EXT_PERIPHERAL_START_ADDRESS + EXT_PERIPHERAL_SIZE)
 
+#define SPI_FLASH_START_ADDRESS 0x${spi_flash_start_address}
+#define SPI_FLASH_SIZE 0x${spi_flash_size_address}
+#define SPI_FLASH_END_ADDRESS (SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE)
+
+
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus

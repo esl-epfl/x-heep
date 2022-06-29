@@ -11,6 +11,8 @@ module soc_ctrl #(
     input clk_i,
     input rst_ni,
 
+    input logic boot_select_i,
+
     // Bus Interface
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
@@ -22,6 +24,10 @@ module soc_ctrl #(
   import soc_ctrl_reg_pkg::*;
 
   soc_ctrl_reg2hw_t reg2hw;
+  soc_ctrl_hw2reg_t hw2reg;
+
+  assign hw2reg.boot_select.de = 1'b1;
+  assign hw2reg.boot_select.de = boot_select_i;
 
   soc_ctrl_reg_top #(
       .reg_req_t(reg_req_t),
@@ -32,6 +38,7 @@ module soc_ctrl #(
       .reg_req_i,
       .reg_rsp_o,
       .reg2hw,
+      .hw2reg,
       .devmode_i(1'b1)
   );
 

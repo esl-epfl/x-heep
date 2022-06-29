@@ -10,7 +10,7 @@
 module soc_ctrl_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 3
+    parameter int AW = 4
 ) (
     input clk_i,
     input rst_ni,
@@ -18,6 +18,7 @@ module soc_ctrl_reg_top #(
     output reg_rsp_t reg_rsp_o,
     // To HW
     output soc_ctrl_reg_pkg::soc_ctrl_reg2hw_t reg2hw,  // Write
+    input soc_ctrl_reg_pkg::soc_ctrl_hw2reg_t hw2reg,  // Read
 
 
     // Config
@@ -73,6 +74,7 @@ module soc_ctrl_reg_top #(
   logic [31:0] exit_value_qs;
   logic [31:0] exit_value_wd;
   logic exit_value_we;
+  logic boot_select_qs;
 
   // Register instances
   // R[exit_valid]: V(False)
@@ -129,13 +131,40 @@ module soc_ctrl_reg_top #(
   );
 
 
+  // R[boot_select]: V(False)
+
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RO"),
+      .RESVAL  (1'h0)
+  ) u_boot_select (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      .we(1'b0),
+      .wd('0),
+
+      // from internal hardware
+      .de(hw2reg.boot_select.de),
+      .d (hw2reg.boot_select.d),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.boot_select.q),
+
+      // to register interface (read)
+      .qs(boot_select_qs)
+  );
 
 
-  logic [1:0] addr_hit;
+
+
+  logic [2:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == SOC_CTRL_EXIT_VALID_OFFSET);
     addr_hit[1] = (reg_addr == SOC_CTRL_EXIT_VALUE_OFFSET);
+    addr_hit[2] = (reg_addr == SOC_CTRL_BOOT_SELECT_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -144,7 +173,8 @@ module soc_ctrl_reg_top #(
   always_comb begin
     wr_err = (reg_we &
               ((addr_hit[0] & (|(SOC_CTRL_PERMIT[0] & ~reg_be))) |
-               (addr_hit[1] & (|(SOC_CTRL_PERMIT[1] & ~reg_be)))));
+               (addr_hit[1] & (|(SOC_CTRL_PERMIT[1] & ~reg_be))) |
+               (addr_hit[2] & (|(SOC_CTRL_PERMIT[2] & ~reg_be)))));
   end
 
   assign exit_valid_we = addr_hit[0] & reg_we & !reg_error;
@@ -163,6 +193,10 @@ module soc_ctrl_reg_top #(
 
       addr_hit[1]: begin
         reg_rdata_next[31:0] = exit_value_qs;
+      end
+
+      addr_hit[2]: begin
+        reg_rdata_next[0] = boot_select_qs;
       end
 
       default: begin

@@ -11,6 +11,7 @@ module testharness #(
     input logic clk_i,
     input logic rst_ni,
 
+    input  logic        boot_select_i,
     input  logic        jtag_tck_i,
     input  logic        jtag_tms_i,
     input  logic        jtag_trst_ni,
@@ -95,6 +96,8 @@ module testharness #(
   ) core_v_mini_mcu_i (
       .clk_i,
       .rst_ni,
+
+      .boot_select_i,
 
       .jtag_tck_i  (sim_jtag_tck),
       .jtag_tms_i  (sim_jtag_tms),

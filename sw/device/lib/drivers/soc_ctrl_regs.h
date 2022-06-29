@@ -23,6 +23,10 @@ extern "C" {
 // Exit Value - Used to write exit value register
 #define SOC_CTRL_EXIT_VALUE_REG_OFFSET 0x4
 
+// Boot Select Value - Used to decide whether to boot from JTAG or FLASH
+#define SOC_CTRL_BOOT_SELECT_REG_OFFSET 0x8
+#define SOC_CTRL_BOOT_SELECT_BOOT_SELECT_BIT 0
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif
