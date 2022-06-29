@@ -7,7 +7,7 @@
 package soc_ctrl_reg_pkg;
 
   // Address widths within the block
-  parameter int BlockAw = 3;
+  parameter int BlockAw = 4;
 
   ////////////////////////////
   // Typedefs for registers //
@@ -17,26 +17,42 @@ package soc_ctrl_reg_pkg;
 
   typedef struct packed {logic [31:0] q;} soc_ctrl_reg2hw_exit_value_reg_t;
 
+  typedef struct packed {logic q;} soc_ctrl_reg2hw_boot_select_reg_t;
+
+  typedef struct packed {
+    logic d;
+    logic de;
+  } soc_ctrl_hw2reg_boot_select_reg_t;
+
   // Register -> HW type
   typedef struct packed {
-    soc_ctrl_reg2hw_exit_valid_reg_t exit_valid;  // [32:32]
-    soc_ctrl_reg2hw_exit_value_reg_t exit_value;  // [31:0]
+    soc_ctrl_reg2hw_exit_valid_reg_t  exit_valid;   // [33:33]
+    soc_ctrl_reg2hw_exit_value_reg_t  exit_value;   // [32:1]
+    soc_ctrl_reg2hw_boot_select_reg_t boot_select;  // [0:0]
   } soc_ctrl_reg2hw_t;
 
+  // HW -> register type
+  typedef struct packed {
+    soc_ctrl_hw2reg_boot_select_reg_t boot_select;  // [1:0]
+  } soc_ctrl_hw2reg_t;
+
   // Register offsets
-  parameter logic [BlockAw-1:0] SOC_CTRL_EXIT_VALID_OFFSET = 3'h0;
-  parameter logic [BlockAw-1:0] SOC_CTRL_EXIT_VALUE_OFFSET = 3'h4;
+  parameter logic [BlockAw-1:0] SOC_CTRL_EXIT_VALID_OFFSET = 4'h0;
+  parameter logic [BlockAw-1:0] SOC_CTRL_EXIT_VALUE_OFFSET = 4'h4;
+  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_SELECT_OFFSET = 4'h8;
 
   // Register index
   typedef enum int {
     SOC_CTRL_EXIT_VALID,
-    SOC_CTRL_EXIT_VALUE
+    SOC_CTRL_EXIT_VALUE,
+    SOC_CTRL_BOOT_SELECT
   } soc_ctrl_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] SOC_CTRL_PERMIT[2] = '{
+  parameter logic [3:0] SOC_CTRL_PERMIT[3] = '{
       4'b0001,  // index[0] SOC_CTRL_EXIT_VALID
-      4'b1111  // index[1] SOC_CTRL_EXIT_VALUE
+      4'b1111,  // index[1] SOC_CTRL_EXIT_VALUE
+      4'b0001  // index[2] SOC_CTRL_BOOT_SELECT
   };
 
 endpackage
