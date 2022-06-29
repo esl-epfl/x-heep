@@ -5,8 +5,8 @@
 */
 
 module obi_to_picorv32
-    import obi_pkg::*;
-    import picorv32_pkg::*;
+  import obi_pkg::*;
+  import picorv32_pkg::*;
 (
     input logic clk_i,
     input logic rst_ni,
@@ -14,29 +14,30 @@ module obi_to_picorv32
     input  obi_req_t  obi_req_i,
     output obi_resp_t obi_resp_o,
 
-    output  picorv32_req_t  picorv32_req_o,
+    output picorv32_req_t  picorv32_req_o,
     input  picorv32_resp_t picorv32_resp_i
 
 );
-    typedef enum logic [3:0] {
-        READ_MEM = 4'b0000,
-        WRITE_WORD = 4'b1111,
-        WRITE_HALFWORD_1 = 4'b1100,
-        WRITE_HALFWORD_0 = 4'b0011,
-        WRITE_BYTE_3 = 4'b1000,
-        WRITE_BYTE_2 = 4'b0100,
-        WRITE_BYTE_1 = 4'b0010,
-        WRITE_BYTE_0 = 4'b0001
-    } picorv_request_e;
+  typedef enum logic [3:0] {
+    READ_MEM = 4'b0000,
+    WRITE_WORD = 4'b1111,
+    WRITE_HALFWORD_1 = 4'b1100,
+    WRITE_HALFWORD_0 = 4'b0011,
+    WRITE_BYTE_3 = 4'b1000,
+    WRITE_BYTE_2 = 4'b0100,
+    WRITE_BYTE_1 = 4'b0010,
+    WRITE_BYTE_0 = 4'b0001
+  } picorv_request_e;
 
-    enum logic [1:0] {
-        IDLE,
-        READ,
-        WRITE
-    } state, state_next;
+  enum logic [1:0] {
+    IDLE,
+    READ,
+    WRITE
+  }
+      state, state_next;
 
 
-    logic [31:0] addr_buf, addr_buf_next;
+  logic [31:0] addr_buf, addr_buf_next;
 
 
   always_ff @(posedge clk_i or negedge rst_ni) begin : ram_valid_q
@@ -50,7 +51,7 @@ module obi_to_picorv32
   end
 
 
-always_comb begin : fsm
+  always_comb begin : fsm
     // default values
     addr_buf_next = addr_buf;
     state_next = state;
@@ -62,40 +63,40 @@ always_comb begin : fsm
     obi_resp_o.rvalid = 1'b0;
     obi_resp_o.rdata = picorv32_resp_i.rdata;
     // fsm
-    case(state)
-        IDLE: begin
-            if (obi_req_i.req) begin
-                if (obi_req_i.we == 1'b1) begin
-                    state_next = WRITE;
-                    obi_resp_o.gnt = 1'b1;
-                end else begin
-                    state_next = READ;
-                    picorv32_req_o.addr = obi_req_i.addr;
-                    addr_buf_next = obi_req_i.addr;
-                    picorv32_req_o.valid = 1'b1;
-                    obi_resp_o.gnt = 1'b1;
-                end
-            end
-        end 
-        READ: begin
-            picorv32_req_o.addr = addr_buf;
-            if (picorv32_resp_i.ready) begin
-                state_next = IDLE;
-                obi_resp_o.rvalid = 1'b1;
-            end
-            // Todo: add contineous read w/o idle
+    case (state)
+      IDLE: begin
+        if (obi_req_i.req) begin
+          if (obi_req_i.we == 1'b1) begin
+            state_next = WRITE;
+            obi_resp_o.gnt = 1'b1;
+          end else begin
+            state_next = READ;
+            picorv32_req_o.addr = obi_req_i.addr;
+            addr_buf_next = obi_req_i.addr;
+            picorv32_req_o.valid = 1'b1;
+            obi_resp_o.gnt = 1'b1;
+          end
         end
-        WRITE: begin
-            state_next = IDLE;
-            obi_resp_o.rvalid = 1'b1;
-            // Todo: add write.
+      end
+      READ: begin
+        picorv32_req_o.addr = addr_buf;
+        if (picorv32_resp_i.ready) begin
+          state_next = IDLE;
+          obi_resp_o.rvalid = 1'b1;
         end
-        default: begin
-            state_next = IDLE;
-        end
+        // Todo: add contineous read w/o idle
+      end
+      WRITE: begin
+        state_next = IDLE;
+        obi_resp_o.rvalid = 1'b1;
+        // Todo: add write.
+      end
+      default: begin
+        state_next = IDLE;
+      end
 
     endcase
 
-end
+  end
 
 endmodule

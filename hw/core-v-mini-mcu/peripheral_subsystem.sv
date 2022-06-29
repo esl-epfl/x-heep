@@ -47,10 +47,10 @@ module peripheral_subsystem
     output logic flash_io2_do_o,
     output logic flash_io3_do_o,
 
-    input  logic flash_io0_di_i,
-    input  logic flash_io1_di_i,
-    input  logic flash_io2_di_i,
-    input  logic flash_io3_di_i,
+    input logic flash_io0_di_i,
+    input logic flash_io1_di_i,
+    input logic flash_io2_di_i,
+    input logic flash_io3_di_i,
 
     input  obi_req_t  spimemio_req_i,
     output obi_resp_t spimemio_resp_o
@@ -164,27 +164,27 @@ module peripheral_subsystem
   );
 
   obi_spimemio obi_spimemio_i (
-    .clk_i,
-    .rst_ni,
-    .flash_csb_o,
-    .flash_clk_o,
-    .flash_io0_oe_o,
-    .flash_io1_oe_o,
-    .flash_io2_oe_o,
-    .flash_io3_oe_o,
-    .flash_io0_do_o,
-    .flash_io1_do_o,
-    .flash_io2_do_o,
-    .flash_io3_do_o,
-    .flash_io0_di_i,
-    .flash_io1_di_i,
-    .flash_io2_di_i,
-    .flash_io3_di_i,
-    .cfgreg_we('0), //TODO: attach to register 
-    .cfgreg_di('0),
-    .cfgreg_do(),
-    .spimemio_req_i(spimemio_req_i), 
-    .spimemio_resp_o(spimemio_resp_o)
+      .clk_i,
+      .rst_ni,
+      .flash_csb_o,
+      .flash_clk_o,
+      .flash_io0_oe_o,
+      .flash_io1_oe_o,
+      .flash_io2_oe_o,
+      .flash_io3_oe_o,
+      .flash_io0_do_o,
+      .flash_io1_do_o,
+      .flash_io2_do_o,
+      .flash_io3_do_o,
+      .flash_io0_di_i,
+      .flash_io1_di_i,
+      .flash_io2_di_i,
+      .flash_io3_di_i,
+      .cfgreg_we('0),  //TODO: attach to register 
+      .cfgreg_di('0),
+      .cfgreg_do(),
+      .spimemio_req_i(spimemio_req_i),
+      .spimemio_resp_o(spimemio_resp_o)
   );
 
 
