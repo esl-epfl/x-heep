@@ -51,6 +51,42 @@ module testharness #(
   obi_req_t slow_ram_slave_req;
   obi_resp_t slow_ram_slave_resp;
 
+
+  logic flash_csb;
+  logic flash_clk;
+
+  logic flash_io0_oe;
+  logic flash_io1_oe;
+  logic flash_io2_oe;
+  logic flash_io3_oe;
+
+  logic flash_io0_do;
+  logic flash_io1_do;
+  logic flash_io2_do;
+  logic flash_io3_do;
+
+  logic flash_io0_di;
+  logic flash_io1_di;
+  logic flash_io2_di;
+  logic flash_io3_di;
+
+  wire flash_io0_io;
+  wire flash_io1_io;
+  wire flash_io2_io;
+  wire flash_io3_io;
+
+  //TODO: fix with PAD
+  assign flash_io0_io = (flash_io0_oe) ? flash_io0_do : 1'bz;
+  assign flash_io1_io = (flash_io1_oe) ? flash_io1_do : 1'bz;
+  assign flash_io2_io = (flash_io2_oe) ? flash_io2_do : 1'bz;
+  assign flash_io3_io = (flash_io3_oe) ? flash_io3_do : 1'bz;
+
+  assign flash_io0_di = flash_io0_io;
+  assign flash_io1_di = flash_io1_io;
+  assign flash_io2_di = flash_io2_io;
+  assign flash_io3_di = flash_io3_io;
+
+
   core_v_mini_mcu #(
       .PULP_XPULP      (PULP_XPULP),
       .FPU             (FPU),
@@ -75,6 +111,24 @@ module testharness #(
 
       .uart_rx_i(uart_rx),
       .uart_tx_o(uart_tx),
+
+      .flash_csb_o(flash_csb),
+      .flash_clk_o(flash_clk),
+
+      .flash_io0_oe_o(flash_io0_oe),
+      .flash_io1_oe_o(flash_io1_oe),
+      .flash_io2_oe_o(flash_io2_oe),
+      .flash_io3_oe_o(flash_io3_oe),
+
+      .flash_io0_do_o(flash_io0_do),
+      .flash_io1_do_o(flash_io1_do),
+      .flash_io2_do_o(flash_io2_do),
+      .flash_io3_do_o(flash_io3_do),
+
+      .flash_io0_di_i(flash_io0_di),
+      .flash_io1_di_i(flash_io1_di),
+      .flash_io2_di_i(flash_io2_di),
+      .flash_io3_di_i(flash_io3_di),
 
       .fetch_enable_i,
       .exit_value_o,
@@ -118,15 +172,15 @@ module testharness #(
   assign periph_slave_resp = memcopy_periph_rsp;
 
 `ifdef MODELSIM
-spiflash flash_1(
-	.csb(csb),
-	.clk(clk),
-	.io0(io0), // MOSI
-	.io1(io1), // MISO
-	.io2(io2),
-	.io3(io3)
-    );
-    
+  spiflash flash_1 (
+      .csb(csb),
+      .clk(clk),
+      .io0(io0),  // MOSI
+      .io1(io1),  // MISO
+      .io2(io2),
+      .io3(io3)
+  );
+
 `endif
 
 `ifdef USE_EXTERNAL_DEVICE_EXAMPLE
