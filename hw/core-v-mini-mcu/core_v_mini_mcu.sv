@@ -64,7 +64,7 @@ module core_v_mini_mcu
   localparam DM_HALTADDRESS = core_v_mini_mcu_pkg::DEBUG_START_ADDRESS + 32'h00000800; //debug rom code (section .text in linker) starts at 0x800
 
   localparam JTAG_IDCODE = 32'h10001c05;
-  localparam BOOT_ADDR = 'h180;
+  localparam BOOT_ADDR = core_v_mini_mcu_pkg::BOOTROM_START_ADDRESS;
   localparam NUM_MHPMCOUNTERS = 1;
 
   // signals connecting core to memory

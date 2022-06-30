@@ -93,7 +93,16 @@ task tb_writetoSram1;
 `endif
 endtask
 
+task tb_write_to_exit_loop;
+  input [7:0] value;
 
+`ifdef VCS
+  force core_v_mini_mcu_i.peripheral_subsystem_i.soc_ctrl_i.soc_ctrl_reg_top_i.u_boot_exit_loop.d = value[0];
+  release core_v_mini_mcu_i.peripheral_subsystem_i.soc_ctrl_i.soc_ctrl_reg_top_i.u_boot_exit_loop.d;
+`else
+  core_v_mini_mcu_i.peripheral_subsystem_i.soc_ctrl_i.soc_ctrl_reg_top_i.u_boot_exit_loop.d = value[0];
+`endif
+endtask
 
 
 `endif

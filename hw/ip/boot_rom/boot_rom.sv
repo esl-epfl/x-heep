@@ -17,7 +17,6 @@
 module boot_rom
   import reg_pkg::*;
 (
-    input  logic     clk_i,
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o
 );
@@ -37,27 +36,12 @@ module boot_rom
     32'h200005b7
   };
 
-  logic [$clog2(RomSize)-1:0] addr_q, addr_n;
+  logic [$clog2(RomSize)-1:0] addr;
 
-  assign addr_n = reg_req_i.addr[$clog2(RomSize)-1+3:3];
+  assign addr = reg_req_i.addr[$clog2(RomSize)-1+2:2];
 
-  assign reg_rsp_o.error = addr_n > RomSize - 1 && reg_req_i.valid;
+  assign reg_rsp_o.error = addr > RomSize - 1 && reg_req_i.valid;
   assign reg_rsp_o.ready = 1'b1;
-
-
-  always_ff @(posedge clk_i) begin
-    if (reg_req_i.valid) begin
-      addr_q <= addr_n;
-    end
-  end
-
-  // this prevents spurious Xes from propagating into
-  // the speculative fetch stage of the core
-  always_comb begin : p_outmux
-    reg_rsp_o.rdata = '0;
-    if (addr_q < $clog2(RomSize)'(RomSize)) begin
-      reg_rsp_o.rdata = mem[addr_q];
-    end
-  end
+  assign reg_rsp_o.rdata = mem[addr];
 
 endmodule
