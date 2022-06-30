@@ -12,7 +12,7 @@ Disassembly of section .text:
 0000000c <_jump_to_debug_rom>:
    c:	00c5c503          	lbu	a0,12(a1)
   10:	fe0508e3          	beqz	a0,0 <entry>
-  14:	0105c583          	lbu	a1,16(a1)
+  14:	0105a583          	lw	a1,16(a1)
   18:	000580e7          	jalr	a1
 
 0000001c <_jump_to_flash>:

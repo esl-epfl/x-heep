@@ -26,8 +26,21 @@ module soc_ctrl #(
   soc_ctrl_reg2hw_t reg2hw;
   soc_ctrl_hw2reg_t hw2reg;
 
+  logic testbench_set_exit_loop[1];
+  //forced by simlation for preloading, do not touch
+  //only arrays can be "forced" in verilator, thus array of 1 element is done
+  //At synthesis time this signal will get removed
+  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_
+    if (~rst_ni) begin
+      testbench_set_exit_loop[0] <= '0;
+    end
+  end
+
   assign hw2reg.boot_select.de = 1'b1;
-  assign hw2reg.boot_select.de = boot_select_i;
+  assign hw2reg.boot_select.d = boot_select_i;
+
+  assign hw2reg.boot_exit_loop.d = testbench_set_exit_loop[0];
+  assign hw2reg.boot_exit_loop.de = testbench_set_exit_loop[0];
 
   soc_ctrl_reg_top #(
       .reg_req_t(reg_req_t),

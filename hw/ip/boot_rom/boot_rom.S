@@ -22,7 +22,7 @@ _jump_to_debug_rom:
        lbu a0, SOC_CTRL_BOOT_EXIT_LOOP_REG_OFFSET(a1)
        //check whether exit_loop flag is 1, otherwise jump back to entry
        beqz a0, entry
-       lbu a1, SOC_CTRL_BOOT_ADDRESS_REG_OFFSET(a1)
+       lw a1, SOC_CTRL_BOOT_ADDRESS_REG_OFFSET(a1)
        jalr a1
 
 _jump_to_flash:

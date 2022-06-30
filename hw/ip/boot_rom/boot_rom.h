@@ -8,7 +8,7 @@ uint32_t reset_vec[reset_vec_size] = {
     0x00051a63,
     0x00c5c503,
     0xfe0508e3,
-    0x0105c583,
+    0x0105a583,
     0x000580e7,
     0x400005b7,
     0x000580e7

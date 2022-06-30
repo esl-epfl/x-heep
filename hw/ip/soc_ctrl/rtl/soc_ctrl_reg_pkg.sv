@@ -19,6 +19,8 @@ package soc_ctrl_reg_pkg;
 
   typedef struct packed {logic q;} soc_ctrl_reg2hw_boot_select_reg_t;
 
+  typedef struct packed {logic q;} soc_ctrl_reg2hw_boot_exit_loop_reg_t;
+
   typedef struct packed {logic [31:0] q;} soc_ctrl_reg2hw_boot_address_reg_t;
 
   typedef struct packed {
@@ -26,17 +28,24 @@ package soc_ctrl_reg_pkg;
     logic de;
   } soc_ctrl_hw2reg_boot_select_reg_t;
 
+  typedef struct packed {
+    logic d;
+    logic de;
+  } soc_ctrl_hw2reg_boot_exit_loop_reg_t;
+
   // Register -> HW type
   typedef struct packed {
-    soc_ctrl_reg2hw_exit_valid_reg_t   exit_valid;    // [65:65]
-    soc_ctrl_reg2hw_exit_value_reg_t   exit_value;    // [64:33]
-    soc_ctrl_reg2hw_boot_select_reg_t  boot_select;   // [32:32]
+    soc_ctrl_reg2hw_exit_valid_reg_t exit_valid;  // [66:66]
+    soc_ctrl_reg2hw_exit_value_reg_t exit_value;  // [65:34]
+    soc_ctrl_reg2hw_boot_select_reg_t boot_select;  // [33:33]
+    soc_ctrl_reg2hw_boot_exit_loop_reg_t boot_exit_loop;  // [32:32]
     soc_ctrl_reg2hw_boot_address_reg_t boot_address;  // [31:0]
   } soc_ctrl_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    soc_ctrl_hw2reg_boot_select_reg_t boot_select;  // [1:0]
+    soc_ctrl_hw2reg_boot_select_reg_t boot_select;  // [3:2]
+    soc_ctrl_hw2reg_boot_exit_loop_reg_t boot_exit_loop;  // [1:0]
   } soc_ctrl_hw2reg_t;
 
   // Register offsets

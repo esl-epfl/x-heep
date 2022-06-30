@@ -178,12 +178,12 @@ module soc_ctrl_reg_top #(
       .wd(boot_exit_loop_wd),
 
       // from internal hardware
-      .de(1'b0),
-      .d ('0),
+      .de(hw2reg.boot_exit_loop.de),
+      .d (hw2reg.boot_exit_loop.d),
 
       // to internal hardware
       .qe(),
-      .q (),
+      .q (reg2hw.boot_exit_loop.q),
 
       // to register interface (read)
       .qs(boot_exit_loop_qs)
@@ -195,7 +195,7 @@ module soc_ctrl_reg_top #(
   prim_subreg #(
       .DW      (32),
       .SWACCESS("RW"),
-      .RESVAL  (32'h0)
+      .RESVAL  (32'h180)
   ) u_boot_address (
       .clk_i (clk_i),
       .rst_ni(rst_ni),

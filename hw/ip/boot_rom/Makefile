@@ -25,4 +25,4 @@ all: $(boot_rom)
 	$(OBJDUMP) -d $< --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.text.init --section=.data  > $@
 
 clean:
-	rm -f *.img *.dump *.bin *.sv
+	rm -f *.img *.bin *.sv

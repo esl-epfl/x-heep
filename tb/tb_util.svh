@@ -10,9 +10,9 @@ export "DPI-C" task tb_writetoSram0;
 export "DPI-C" task tb_writetoSram1;
 export "DPI-C" task tb_writetoSram;
 export "DPI-C" task tb_getMemSize;
+export "DPI-C" task tb_set_exit_loop;
 
 import core_v_mini_mcu_pkg::*;
-
 
 task tb_getMemSize;
   output int mem_size;
@@ -93,14 +93,12 @@ task tb_writetoSram1;
 `endif
 endtask
 
-task tb_write_to_exit_loop;
-  input [7:0] value;
-
+task tb_set_exit_loop;
 `ifdef VCS
-  force core_v_mini_mcu_i.peripheral_subsystem_i.soc_ctrl_i.soc_ctrl_reg_top_i.u_boot_exit_loop.d = value[0];
-  release core_v_mini_mcu_i.peripheral_subsystem_i.soc_ctrl_i.soc_ctrl_reg_top_i.u_boot_exit_loop.d;
+  force core_v_mini_mcu_i.peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop[0] = 1'b1;
+  release core_v_mini_mcu_i.peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop[0];
 `else
-  core_v_mini_mcu_i.peripheral_subsystem_i.soc_ctrl_i.soc_ctrl_reg_top_i.u_boot_exit_loop.d = value[0];
+  core_v_mini_mcu_i.peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop[0] = 1'b1;
 `endif
 endtask
 
