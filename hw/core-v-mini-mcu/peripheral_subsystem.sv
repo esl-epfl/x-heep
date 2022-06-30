@@ -190,5 +190,10 @@ module peripheral_subsystem
       .spimemio_resp_o(spimemio_resp_o)
   );
 
+  boot_rom boot_rom_i (
+      .clk_i,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::BOOTROM_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::BOOTROM_IDX])
+  );
 
 endmodule : peripheral_subsystem

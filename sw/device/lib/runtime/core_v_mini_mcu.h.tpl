@@ -29,6 +29,10 @@ extern "C" {
 #define UART_SIZE 0x${uart_size_address}
 #define UART_END_ADDRESS (UART_START_ADDRESS + UART_SIZE)
 
+#define BOOTROM_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${bootrom_start_offset})
+#define BOOTROM_SIZE 0x${bootrom_size_address}
+#define BOOTROM_END_ADDRESS (BOOTROM_START_ADDRESS + BOOTROM_SIZE)
+
 #define EXT_PERIPHERAL_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${ext_periph_start_offset})
 #define EXT_PERIPHERAL_SIZE 0x${ext_periph_size_address}
 #define EXT_PERIPHERAL_END_ADDRESS (EXT_PERIPHERAL_START_ADDRESS + EXT_PERIPHERAL_SIZE)

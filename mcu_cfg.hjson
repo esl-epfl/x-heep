@@ -26,8 +26,12 @@
             offset:  0x0010000,
             length:  0x0010000,
         },
-        ext_periph: {
+        bootrom: {
             offset:  0x0020000,
+            length:  0x0000100,
+        },
+        ext_periph: {
+            offset:  0x0030000,
             length:  0x0010000,
         }
     },
@@ -39,7 +43,7 @@
 
     spi_flash: {
         address: 0x40000000,
-        length: 0x1000000,
+        length:  0x1000000,
     },
 
 }

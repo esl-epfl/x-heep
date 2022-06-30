@@ -10,7 +10,7 @@ description: CORE-V MINI-MCU Top.
 filesets:
   files_rtl_generic:
     depend:
-    - esl-epfl:x-heep:packages
+    - x-heep::packages
     - openhwgroup.org:ip:cv32e40p
     - pulp-platform.org:ip:fpnew
     - pulp-platform.org::common_cells
@@ -23,6 +23,7 @@ filesets:
     - lowrisc:ibex:ibex_core:0.1
     - ::picorv32_spimemio:0-r1
     - :obi-spimemio:0.1.0
+    - x-heep:ip:boot_rom
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
@@ -49,6 +50,7 @@ filesets:
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.vlt
     - hw/ip/soc_ctrl/soc_ctrl.vlt
+    - hw/ip/boot_rom/boot_rom.vlt
     - hw/ip/obi_spimemio/obi_spimemio.vlt
     - hw/ip_examples/memcopy_periph/memcopy_periph.vlt
     - hw/ip_examples/slow_memory/slow_memory.vlt

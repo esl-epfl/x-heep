@@ -107,11 +107,14 @@ def main():
 
     peripheral_size_address = string2int(obj['peripherals']['length'])
 
+    soc_ctrl_start_offset  = string2int(obj['peripherals']['soc_ctrl']['offset'])
+    soc_ctrl_size_address  = string2int(obj['peripherals']['soc_ctrl']['length'])
+
     uart_start_offset  = string2int(obj['peripherals']['uart']['offset'])
     uart_size_address  = string2int(obj['peripherals']['uart']['length'])
 
-    soc_ctrl_start_offset  = string2int(obj['peripherals']['soc_ctrl']['offset'])
-    soc_ctrl_size_address  = string2int(obj['peripherals']['soc_ctrl']['length'])
+    bootrom_start_offset  = string2int(obj['peripherals']['bootrom']['offset'])
+    bootrom_size_address  = string2int(obj['peripherals']['bootrom']['length'])
 
     ext_periph_start_offset  = string2int(obj['peripherals']['ext_periph']['offset'])
     ext_periph_size_address  = string2int(obj['peripherals']['ext_periph']['length'])
@@ -128,10 +131,12 @@ def main():
         "peripheral_size_address"  : peripheral_size_address,
         "ext_slave_start_address"  : ext_slave_start_address,
         "ext_slave_size_address"   : ext_slave_size_address,
-        "uart_start_offset"        : uart_start_offset,
-        "uart_size_address"        : uart_size_address,
         "soc_ctrl_start_offset"    : soc_ctrl_start_offset,
         "soc_ctrl_size_address"    : soc_ctrl_size_address,
+        "uart_start_offset"        : uart_start_offset,
+        "uart_size_address"        : uart_size_address,
+        "bootrom_start_offset"     : bootrom_start_offset,
+        "bootrom_size_address"     : bootrom_size_address,
         "ext_periph_start_offset"  : ext_periph_start_offset,
         "ext_periph_size_address"  : ext_periph_size_address,
         "spi_flash_start_address"  : spi_flash_start_address,

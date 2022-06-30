@@ -32,5 +32,21 @@
         { bits: "0", name: "BOOT_SELECT", desc: "Boot Select Reg" }
       ]
     }
+    { name:     "BOOT_EXIT_LOOP",
+      desc:     "Boot Exit Loop Value - Set externally (e.g. JTAG, TESTBENCH, or another MASTER) to make the CPU jump to the main function entry",
+      swaccess: "rw",
+      hwaccess: "none",
+      fields: [
+        { bits: "0", name: "BOOT_EXIT_LOOP", desc: "Boot Exit Reg" }
+      ]
+    }
+    { name:     "BOOT_ADDRESS",
+      desc:     "Boot Address Value - Used in the boot rom or power-on-reset functions",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "BOOT_ADDRESS", desc: "Boot Address Reg" }
+      ]
+    }
    ]
 }

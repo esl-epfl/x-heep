@@ -1,6 +1,6 @@
 CAPI=2:
 
-name: "esl-epfl:x-heep:packages"
+name: "x-heep::packages"
 description: "toplevel packages of x-heep"
 
 # Copyright 2022 EPFL

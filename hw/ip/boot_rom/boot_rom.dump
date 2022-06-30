@@ -1,0 +1,20 @@
+
+boot_rom.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <entry>:
+   0:	200005b7          	lui	a1,0x20000
+   4:	0085c503          	lbu	a0,8(a1) # 20000008 <_end+0x1fffffe4>
+   8:	00051a63          	bnez	a0,1c <_jump_to_flash>
+
+0000000c <_jump_to_debug_rom>:
+   c:	00c5c503          	lbu	a0,12(a1)
+  10:	fe0508e3          	beqz	a0,0 <entry>
+  14:	0105c583          	lbu	a1,16(a1)
+  18:	000580e7          	jalr	a1
+
+0000001c <_jump_to_flash>:
+  1c:	400005b7          	lui	a1,0x40000
+  20:	000580e7          	jalr	a1 # 40000000 <_end+0x3fffffdc>

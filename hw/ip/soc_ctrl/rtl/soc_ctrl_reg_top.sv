@@ -10,7 +10,7 @@
 module soc_ctrl_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 4
+    parameter int AW = 5
 ) (
     input clk_i,
     input rst_ni,
@@ -75,6 +75,12 @@ module soc_ctrl_reg_top #(
   logic [31:0] exit_value_wd;
   logic exit_value_we;
   logic boot_select_qs;
+  logic boot_exit_loop_qs;
+  logic boot_exit_loop_wd;
+  logic boot_exit_loop_we;
+  logic [31:0] boot_address_qs;
+  logic [31:0] boot_address_wd;
+  logic boot_address_we;
 
   // Register instances
   // R[exit_valid]: V(False)
@@ -157,14 +163,70 @@ module soc_ctrl_reg_top #(
   );
 
 
+  // R[boot_exit_loop]: V(False)
+
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_boot_exit_loop (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(boot_exit_loop_we),
+      .wd(boot_exit_loop_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (),
+
+      // to register interface (read)
+      .qs(boot_exit_loop_qs)
+  );
 
 
-  logic [2:0] addr_hit;
+  // R[boot_address]: V(False)
+
+  prim_subreg #(
+      .DW      (32),
+      .SWACCESS("RW"),
+      .RESVAL  (32'h0)
+  ) u_boot_address (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(boot_address_we),
+      .wd(boot_address_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.boot_address.q),
+
+      // to register interface (read)
+      .qs(boot_address_qs)
+  );
+
+
+
+
+  logic [4:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == SOC_CTRL_EXIT_VALID_OFFSET);
     addr_hit[1] = (reg_addr == SOC_CTRL_EXIT_VALUE_OFFSET);
     addr_hit[2] = (reg_addr == SOC_CTRL_BOOT_SELECT_OFFSET);
+    addr_hit[3] = (reg_addr == SOC_CTRL_BOOT_EXIT_LOOP_OFFSET);
+    addr_hit[4] = (reg_addr == SOC_CTRL_BOOT_ADDRESS_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -174,7 +236,9 @@ module soc_ctrl_reg_top #(
     wr_err = (reg_we &
               ((addr_hit[0] & (|(SOC_CTRL_PERMIT[0] & ~reg_be))) |
                (addr_hit[1] & (|(SOC_CTRL_PERMIT[1] & ~reg_be))) |
-               (addr_hit[2] & (|(SOC_CTRL_PERMIT[2] & ~reg_be)))));
+               (addr_hit[2] & (|(SOC_CTRL_PERMIT[2] & ~reg_be))) |
+               (addr_hit[3] & (|(SOC_CTRL_PERMIT[3] & ~reg_be))) |
+               (addr_hit[4] & (|(SOC_CTRL_PERMIT[4] & ~reg_be)))));
   end
 
   assign exit_valid_we = addr_hit[0] & reg_we & !reg_error;
@@ -182,6 +246,12 @@ module soc_ctrl_reg_top #(
 
   assign exit_value_we = addr_hit[1] & reg_we & !reg_error;
   assign exit_value_wd = reg_wdata[31:0];
+
+  assign boot_exit_loop_we = addr_hit[3] & reg_we & !reg_error;
+  assign boot_exit_loop_wd = reg_wdata[0];
+
+  assign boot_address_we = addr_hit[4] & reg_we & !reg_error;
+  assign boot_address_wd = reg_wdata[31:0];
 
   // Read data return
   always_comb begin
@@ -197,6 +267,14 @@ module soc_ctrl_reg_top #(
 
       addr_hit[2]: begin
         reg_rdata_next[0] = boot_select_qs;
+      end
+
+      addr_hit[3]: begin
+        reg_rdata_next[0] = boot_exit_loop_qs;
+      end
+
+      addr_hit[4]: begin
+        reg_rdata_next[31:0] = boot_address_qs;
       end
 
       default: begin
