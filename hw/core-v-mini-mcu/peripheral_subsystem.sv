@@ -79,13 +79,13 @@ module peripheral_subsystem
   assign intr_vector[8] = uart_intr_rx_parity_err;
 
   // Assign external interrupts
-  for (genvar i=0; i<EXT_NINTERRUPT-1; i++) begin
+  for (genvar i=0; i<EXT_NINTERRUPT; i++) begin
     // assign intr_vector[i+rv_plic_reg_pkg::NumSrc] = intr_vector_ext_i[i];
     assign intr_vector[i+9] = intr_vector_ext_i[i];
   end
 
   // REMOVE ONCE PLIC HJSON IS UPDATED
-  for (genvar i=9+EXT_NINTERRUPT; i<rv_plic_reg_pkg::NumSrc-1; i++) begin
+  for (genvar i=9+EXT_NINTERRUPT; i<rv_plic_reg_pkg::NumSrc; i++) begin
     assign intr_vector[i] = 1'b0;
   end
 

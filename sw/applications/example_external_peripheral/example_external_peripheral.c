@@ -7,6 +7,8 @@
 
 #include "memcopy_periph.h"
 #include "runtime/core_v_mini_mcu.h"
+#include "drivers/rv_plic.h"
+#include "drivers/rv_plic_regs.h"
 
 #define COPY_SIZE 10
 
@@ -14,8 +16,37 @@ int main(int argc, char *argv[])
 {
     printf("Memcopy - example external peripheral\n");
 
-    // printf("Set the PLIC\n");
-    // memcopy_periph_t memcopy_periph;
+    printf("Init the PLIC... ");
+    // memcopy peripheral structure to access the registers
+    dif_plic_params_t rv_plic_params;
+    dif_plic_t rv_plic;
+    dif_plic_result_t plic_res;
+
+    rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)PLIC_START_ADDRESS);
+    plic_res = dif_plic_init(rv_plic_params, &rv_plic);
+
+    if (plic_res == kDifPlicOk) {
+        printf("Success\n");
+    } else {
+        printf("Fail\n;");
+    }
+
+    printf("Set MEMCOPY interrupt priority to 1... ");
+    // Set memcopy priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
+    plic_res = dif_plic_irq_set_priority(&rv_plic, MEMCOPY_INTR_DONE, 1);
+    if (plic_res == kDifPlicOk) {
+        printf("Success\n");
+    } else {
+        printf("Fail\n;");
+    }
+
+    printf("Enable MEMCOPY interrupt... ");
+    plic_res = dif_plic_irq_set_enabled(&rv_plic, MEMCOPY_INTR_DONE, 0, kDifPlicToggleEnabled);
+    if (plic_res == kDifPlicOk) {
+        printf("Success\n");
+    } else {
+        printf("Fail\n;");
+    }
 
     // Use the stack
     int32_t original_data[COPY_SIZE];
@@ -41,9 +72,30 @@ int main(int argc, char *argv[])
     printf("Memcopy launched...\n");
     memcopy_periph_set_cnt_start(&memcopy_periph, (uint32_t) COPY_SIZE);
     // Poll done register to know when memcopy is finished
-    while (memcopy_periph_get_done(&memcopy_periph) == 0);
+    // while (memcopy_periph_get_done(&memcopy_periph) == 0);
+    asm volatile("wfi");
 
     printf("Memcopy finished\n");
+
+    dif_plic_irq_id_t intr_num;
+    printf("Claim interrupt... ");
+    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
+    if (plic_res == kDifPlicOk) {
+        printf("Success\n");
+    } else {
+        printf("Fail\n;");
+    }
+    printf("PLIC - CC0: %ld\n", intr_num);
+
+    printf("Complete interrupt... ");
+    plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
+    if (plic_res == kDifPlicOk) {
+        printf("Success\n");
+    } else {
+        printf("Fail\n;");
+    }
+    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
+    printf("PLIC - CC0: %ld\n", intr_num);
 
     // Reinitialized the read pointer to the original address
     src_ptr = original_data;

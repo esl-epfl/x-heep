@@ -37,6 +37,17 @@ extern "C" {
 #define PLIC_SIZE 0x${plic_size_address}
 #define PLIC_END_ADDRESS (PLIC_START_ADDRESS + PLIC_SIZE)
 
+#define NULL_INTR ${null_intr}
+#define UART_INTR_TX_WATERMARK ${uart_intr_tx_watermark}
+#define UART_INTR_RX_WATERMARK ${uart_intr_rx_watermark}
+#define UART_INTR_TX_EMPT ${uart_intr_tx_empty}
+#define UART_INTR_RX_OVERFLOW ${uart_intr_rx_overflow}
+#define UART_INTR_RX_FRAME_ERR ${uart_intr_rx_frame_err}
+#define UART_INTR_RX_BREAK_ERR ${uart_intr_rx_break_err}
+#define UART_INTR_RX_TIMEOUT ${uart_intr_rx_timeout}
+#define UART_INTR_RX_PARITY_ERR ${uart_intr_rx_parity_err}
+#define MEMCOPY_INTR_DONE ${memcopy_intr_done}
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus
