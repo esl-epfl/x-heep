@@ -33,7 +33,7 @@ module core_v_mini_mcu
     input  logic uart_rx_i,
     output logic uart_tx_o,
 
-    input  logic [EXT_NINTERRUPT-1:0] intr_vector_ext_i,
+    input logic [EXT_NINTERRUPT-1:0] intr_vector_ext_i,
 
     input  logic        fetch_enable_i,
     output logic [31:0] exit_value_o,
@@ -186,8 +186,8 @@ module core_v_mini_mcu
       .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i)
   );
 
-  assign irq_timer    = '0;
-  assign irq_fast     = '0;
+  assign irq_timer = '0;
+  assign irq_fast  = '0;
 
 
 endmodule  // core_v_mini_mcu

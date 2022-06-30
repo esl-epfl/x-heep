@@ -58,8 +58,9 @@ int main(int argc, char *argv[])
     }
 
     // Enable interrupt on processor side
-    // Set mie.MEIE bit to one to enable machine-level external interrupts
+    // Enable global interrupt for machine-level interrupts
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    // Set mie.MEIE bit to one to enable machine-level external interrupts
     const uint32_t mask = 1 << 11;//IRQ_EXT_ENABLE_OFFSET;
     CSR_SET_BITS(CSR_REG_MIE, mask);
     external_intr_flag = 0;
@@ -88,7 +89,9 @@ int main(int argc, char *argv[])
     printf("Memcopy launched...\n");
     memcopy_periph_set_cnt_start(&memcopy_periph, (uint32_t) COPY_SIZE);
     // Wait copy is done
-    wait_for_interrupt();
+    while(external_intr_flag==0) {
+        wait_for_interrupt();
+    }
 
     printf("Memcopy finished\n");
 
@@ -100,7 +103,6 @@ int main(int argc, char *argv[])
     } else {
         printf("Fail\n;");
     }
-    printf("PLIC - CC0: %ld\n", intr_num);
 
     printf("Complete interrupt... ");
     plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
@@ -109,8 +111,6 @@ int main(int argc, char *argv[])
     } else {
         printf("Fail\n;");
     }
-    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
-    printf("PLIC - CC0: %ld\n", intr_num);
 
     // Reinitialized the read pointer to the original address
     src_ptr = original_data;

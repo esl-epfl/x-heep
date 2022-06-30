@@ -61,14 +61,14 @@ module peripheral_subsystem
   logic [rv_plic_reg_pkg::NumTarget-1:0] irq_plic;
   logic [rv_plic_reg_pkg::NumSrc-1:0] intr_vector;
 
-  logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] irq_id [rv_plic_reg_pkg::NumTarget];
-  logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] unused_irq_id [rv_plic_reg_pkg::NumTarget];
+  logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] irq_id[rv_plic_reg_pkg::NumTarget];
+  logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] unused_irq_id[rv_plic_reg_pkg::NumTarget];
 
   // this avoids lint errors
-  assign unused_irq_id = irq_id;
+  assign unused_irq_id  = irq_id;
 
   // Assign internal interrupts
-  assign intr_vector[0] = 1'b 0; // ID [0] is a special case and must be tied to zero.
+  assign intr_vector[0] = 1'b0;  // ID [0] is a special case and must be tied to zero.
   assign intr_vector[1] = uart_intr_tx_watermark;
   assign intr_vector[2] = uart_intr_rx_watermark;
   assign intr_vector[3] = uart_intr_tx_empty;
@@ -79,13 +79,13 @@ module peripheral_subsystem
   assign intr_vector[8] = uart_intr_rx_parity_err;
 
   // Assign external interrupts
-  for (genvar i=0; i<EXT_NINTERRUPT; i++) begin
+  for (genvar i = 0; i < EXT_NINTERRUPT; i++) begin
     // assign intr_vector[i+rv_plic_reg_pkg::NumSrc] = intr_vector_ext_i[i];
     assign intr_vector[i+9] = intr_vector_ext_i[i];
   end
 
   // REMOVE ONCE PLIC HJSON IS UPDATED
-  for (genvar i=9+EXT_NINTERRUPT; i<rv_plic_reg_pkg::NumSrc; i++) begin
+  for (genvar i = 9 + EXT_NINTERRUPT; i < rv_plic_reg_pkg::NumSrc; i++) begin
     assign intr_vector[i] = 1'b0;
   end
 

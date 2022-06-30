@@ -61,7 +61,7 @@ module testharness #(
       .FPU             (FPU),
       .PULP_ZFINX      (PULP_ZFINX),
       .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER),
-      .EXT_NINTERRUPT(testharness_pkg::EXT_NINTERRUPT)
+      .EXT_NINTERRUPT  (testharness_pkg::EXT_NINTERRUPT)
   ) core_v_mini_mcu_i (
       .clk_i,
       .rst_ni,
