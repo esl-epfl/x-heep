@@ -28,7 +28,7 @@ vector_table:
 	j __no_irq_handler
 	j __no_irq_handler
 	j __no_irq_handler
-	j __no_irq_handler
+	j external_irq_handler
 	j __no_irq_handler
 	j __no_irq_handler
 	j __no_irq_handler

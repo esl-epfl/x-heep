@@ -5,12 +5,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "memcopy_periph.h"
+#include "base/csr.h"
+#include "runtime/hart.h"
+#include "runtime/handler.h"
 #include "runtime/core_v_mini_mcu.h"
 #include "drivers/rv_plic.h"
 #include "drivers/rv_plic_regs.h"
+#include "memcopy_periph.h"
 
 #define COPY_SIZE 10
+
+int8_t external_intr_flag;
+
+void external_irq_handler(void) {
+    external_intr_flag = 1;
+}
 
 int main(int argc, char *argv[])
 {
@@ -48,6 +57,13 @@ int main(int argc, char *argv[])
         printf("Fail\n;");
     }
 
+    // Enable interrupt on processor side
+    // Set mie.MEIE bit to one to enable machine-level external interrupts
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    const uint32_t mask = 1 << 11;//IRQ_EXT_ENABLE_OFFSET;
+    CSR_SET_BITS(CSR_REG_MIE, mask);
+    external_intr_flag = 0;
+
     // Use the stack
     int32_t original_data[COPY_SIZE];
     int32_t copied_data[COPY_SIZE];
@@ -71,9 +87,8 @@ int main(int argc, char *argv[])
     memcopy_periph_set_write_ptr(&memcopy_periph, (uint32_t) copied_data);
     printf("Memcopy launched...\n");
     memcopy_periph_set_cnt_start(&memcopy_periph, (uint32_t) COPY_SIZE);
-    // Poll done register to know when memcopy is finished
-    // while (memcopy_periph_get_done(&memcopy_periph) == 0);
-    asm volatile("wfi");
+    // Wait copy is done
+    wait_for_interrupt();
 
     printf("Memcopy finished\n");
 
