@@ -116,8 +116,8 @@ def main():
     ext_periph_start_offset  = string2int(obj['peripherals']['ext_periph']['offset'])
     ext_periph_size_address  = string2int(obj['peripherals']['ext_periph']['length'])
 
-    plic_periph_start_offset  = string2int(obj['peripherals']['plic_periph']['offset'])
-    plic_periph_size_address  = string2int(obj['peripherals']['plic_periph']['length'])
+    plic_start_offset  = string2int(obj['peripherals']['plic']['offset'])
+    plic_size_address  = string2int(obj['peripherals']['plic']['length'])
 
     kwargs = {
         "cpu_type"                 : cpu_type,
@@ -134,8 +134,8 @@ def main():
         "soc_ctrl_size_address"    : soc_ctrl_size_address,
         "ext_periph_start_offset"  : ext_periph_start_offset,
         "ext_periph_size_address"  : ext_periph_size_address,
-        "plic_periph_start_offset" : plic_periph_start_offset,
-        "plic_periph_size_address" : plic_periph_size_address,
+        "plic_start_offset"        : plic_start_offset,
+        "plic_size_address"        : plic_size_address,
     }
 
     ###########

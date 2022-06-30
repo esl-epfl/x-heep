@@ -52,8 +52,9 @@ module testharness #(
   obi_resp_t slow_ram_slave_resp;
   // External interrupts
   logic [testharness_pkg::EXT_NINTERRUPT-1:0] intr_vector_ext;
+  logic memcopy_intr;
 
-  assign intr_vector_ext[0] = memcopy_intr_o;
+  assign intr_vector_ext[0] = memcopy_intr;
 
   core_v_mini_mcu #(
       .PULP_XPULP      (PULP_XPULP),
@@ -156,7 +157,7 @@ module testharness #(
       .reg_rsp_o(memcopy_periph_rsp),
       .master_req_o(master_req[testharness_pkg::EXT_MASTER0_IDX]),
       .master_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX]),
-      .memcopy_intr_o,
+      .memcopy_intr_o(memcopy_intr)
   );
 `else
   assign slow_ram_slave_resp.gnt = '0;
@@ -172,6 +173,8 @@ module testharness #(
   assign master_req[testharness_pkg::EXT_MASTER0_IDX].be = '0;
   assign master_req[testharness_pkg::EXT_MASTER0_IDX].addr = '0;
   assign master_req[testharness_pkg::EXT_MASTER0_IDX].wdata = '0;
+
+  assign memcopy_intr = '0;
 `endif
 
 endmodule  // testharness

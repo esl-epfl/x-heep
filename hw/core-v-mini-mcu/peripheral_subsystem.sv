@@ -21,6 +21,7 @@ module peripheral_subsystem
     //UART
     input  logic uart_rx_i,
     output logic uart_tx_o,
+    output logic uart_tx_en_o,
 
     //PLIC
     input  logic [EXT_NINTERRUPT-1:0] intr_vector_ext_i,
@@ -45,32 +46,47 @@ module peripheral_subsystem
   tlul_pkg::tl_h2d_t uart_tl_h2d;
   tlul_pkg::tl_d2h_t uart_tl_d2h;
 
+  logic uart_intr_tx_watermark;
+  logic uart_intr_rx_watermark;
+  logic uart_intr_tx_empty;
+  logic uart_intr_rx_overflow;
+  logic uart_intr_rx_frame_err;
+  logic uart_intr_rx_break_err;
+  logic uart_intr_rx_timeout;
+  logic uart_intr_rx_parity_err;
+
   tlul_pkg::tl_h2d_t plic_tl_h2d;
   tlul_pkg::tl_d2h_t plic_tl_d2h;
 
   logic [rv_plic_reg_pkg::NumTarget-1:0] irq_plic;
   logic [rv_plic_reg_pkg::NumSrc-1:0] intr_vector;
 
-  logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] irq_id_o [rv_plic_reg_pkg::NumTarget];
+  logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] irq_id [rv_plic_reg_pkg::NumTarget];
   logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] unused_irq_id [rv_plic_reg_pkg::NumTarget];
 
   // this avoids lint errors
   assign unused_irq_id = irq_id;
 
   // Assign internal interrupts
-  assign intr_vector[0] = 0;
-  assign intr_vector[1] = uart_intr_tx_watermark_o;
-  assign intr_vector[2] = uart_intr_rx_watermark_o;
-  assign intr_vector[3] = uart_intr_tx_empty_o;
-  assign intr_vector[4] = uart_intr_rx_overflow_o;
-  assign intr_vector[5] = uart_intr_rx_frame_err_o;
-  assign intr_vector[6] = uart_intr_rx_break_err_o;
-  assign intr_vector[7] = uart_intr_rx_timeout_o;
-  assign intr_vector[8] = uart_intr_rx_parity_err_o;
+  assign intr_vector[0] = 1'b 0; // ID [0] is a special case and must be tied to zero.
+  assign intr_vector[1] = uart_intr_tx_watermark;
+  assign intr_vector[2] = uart_intr_rx_watermark;
+  assign intr_vector[3] = uart_intr_tx_empty;
+  assign intr_vector[4] = uart_intr_rx_overflow;
+  assign intr_vector[5] = uart_intr_rx_frame_err;
+  assign intr_vector[6] = uart_intr_rx_break_err;
+  assign intr_vector[7] = uart_intr_rx_timeout;
+  assign intr_vector[8] = uart_intr_rx_parity_err;
 
   // Assign external interrupts
   for (genvar i=0; i<EXT_NINTERRUPT-1; i++) begin
-    assign intr_vector[i+rv_plic_reg_pkg::NumSrc] = intr_vector_ext_i[j];
+    // assign intr_vector[i+rv_plic_reg_pkg::NumSrc] = intr_vector_ext_i[i];
+    assign intr_vector[i+9] = intr_vector_ext_i[i];
+  end
+
+  // REMOVE ONCE PLIC HJSON IS UPDATED
+  for (genvar i=9+EXT_NINTERRUPT; i<rv_plic_reg_pkg::NumSrc-1; i++) begin
+    assign intr_vector[i] = 1'b0;
   end
 
   //Address Decoder
@@ -154,14 +170,14 @@ module peripheral_subsystem
       .cio_rx_i(uart_rx_i),
       .cio_tx_o(uart_tx_o),
       .cio_tx_en_o(uart_tx_en_o),
-      .intr_tx_watermark_o(uart_intr_tx_watermark_o),
-      .intr_rx_watermark_o(uart_intr_rx_watermark_o),
-      .intr_tx_empty_o(uart_intr_tx_empty_o),
-      .intr_rx_overflow_o(uart_intr_rx_overflow_o),
-      .intr_rx_frame_err_o(uart_intr_rx_frame_err_o),
-      .intr_rx_break_err_o(uart_intr_rx_break_err_o),
-      .intr_rx_timeout_o(uart_intr_rx_timeout_o),
-      .intr_rx_parity_err_o(uart_intr_rx_parity_err_o)
+      .intr_tx_watermark_o(uart_intr_tx_watermark),
+      .intr_rx_watermark_o(uart_intr_rx_watermark),
+      .intr_tx_empty_o(uart_intr_tx_empty),
+      .intr_rx_overflow_o(uart_intr_rx_overflow),
+      .intr_rx_frame_err_o(uart_intr_rx_frame_err),
+      .intr_rx_break_err_o(uart_intr_rx_break_err),
+      .intr_rx_timeout_o(uart_intr_rx_timeout),
+      .intr_rx_parity_err_o(uart_intr_rx_parity_err)
   );
 
   soc_ctrl #(

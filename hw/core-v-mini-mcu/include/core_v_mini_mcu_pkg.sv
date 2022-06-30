@@ -103,17 +103,17 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] EXT_PERIPH_END_ADDRESS = EXT_PERIPH_START_ADDRESS + EXT_PERIPH_SIZE;
   localparam logic[31:0] EXT_PERIPH_IDX = 32'd2;
 
-  localparam logic[31:0] PLIC_PERIPH_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0030000;
-  localparam logic[31:0] PLIC_PERIPH_SIZE = 32'h0010000;
-  localparam logic[31:0] PLIC_PERIPH_END_ADDRESS = PLIC_PERIPH_START_ADDRESS + PLIC_PERIPH_SIZE;
-  localparam logic[31:0] PLIC_PERIPH_IDX = 32'd3;
+  localparam logic[31:0] PLIC_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0030000;
+  localparam logic[31:0] PLIC_SIZE = 32'h0010000;
+  localparam logic[31:0] PLIC_END_ADDRESS = PLIC_START_ADDRESS + PLIC_SIZE;
+  localparam logic[31:0] PLIC_IDX = 32'd3;
 
 
   localparam addr_map_rule_t [SYSTEM_NPERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
       '{ idx: SOC_CTRL_IDX, start_addr: SOC_CTRL_START_ADDRESS, end_addr: SOC_CTRL_END_ADDRESS },
       '{ idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS },
       '{ idx: EXT_PERIPH_IDX, start_addr: EXT_PERIPH_START_ADDRESS, end_addr: EXT_PERIPH_END_ADDRESS },
-      '{ idx: PLIC_PERIPH_IDX, start_addr: PLIC_PERIPH_START_ADDRESS, end_addr: PLIC_PERIPH_END_ADDRESS }
+      '{ idx: PLIC_IDX, start_addr: PLIC_START_ADDRESS, end_addr: PLIC_END_ADDRESS }
   };
 
   localparam int unsigned PERIPHERALS_PORT_SEL_WIDTH = SYSTEM_NPERIPHERALS > 1 ? $clog2(SYSTEM_NPERIPHERALS) : 32'd1;

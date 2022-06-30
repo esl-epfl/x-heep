@@ -30,7 +30,7 @@
             offset:  0x0020000,
             length:  0x0010000,
         },
-        plic_periph: {
+        plic: {
             offset:  0x0030000,
             length:  0x0010000,
         }

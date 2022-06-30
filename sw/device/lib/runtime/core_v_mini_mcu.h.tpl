@@ -33,9 +33,9 @@ extern "C" {
 #define EXT_PERIPHERAL_SIZE 0x${ext_periph_size_address}
 #define EXT_PERIPHERAL_END_ADDRESS (EXT_PERIPHERAL_START_ADDRESS + EXT_PERIPHERAL_SIZE)
 
-#define PLIC_PERIPHERAL_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${plic_periph_start_offset})
-#define PLIC_PERIPHERAL_SIZE 0x${plic_periph_size_address}
-#define PLIC_PERIPHERAL_END_ADDRESS (PLIC_PERIPHERAL_START_ADDRESS + PLIC_PERIPHERAL_SIZE)
+#define PLIC_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${plic_start_offset})
+#define PLIC_SIZE 0x${plic_size_address}
+#define PLIC_END_ADDRESS (PLIC_START_ADDRESS + PLIC_SIZE)
 
 #ifdef __cplusplus
 }  // extern "C"
