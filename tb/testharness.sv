@@ -50,12 +50,17 @@ module testharness #(
   // External xbar slave example port
   obi_req_t slow_ram_slave_req;
   obi_resp_t slow_ram_slave_resp;
+  // External interrupts
+  logic [testharness_pkg::EXT_NINTERRUPT-1:0] intr_vector_ext;
+
+  assign intr_vector_ext[0] = memcopy_intr_o;
 
   core_v_mini_mcu #(
       .PULP_XPULP      (PULP_XPULP),
       .FPU             (FPU),
       .PULP_ZFINX      (PULP_ZFINX),
-      .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER)
+      .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER),
+      .EXT_NINTERRUPT(testharness_pkg::EXT_NINTERRUPT)
   ) core_v_mini_mcu_i (
       .clk_i,
       .rst_ni,
@@ -75,6 +80,8 @@ module testharness #(
 
       .uart_rx_i(uart_rx),
       .uart_tx_o(uart_tx),
+
+      .intr_vector_ext_i(intr_vector_ext),
 
       .fetch_enable_i,
       .exit_value_o,
@@ -148,7 +155,8 @@ module testharness #(
       .reg_req_i(memcopy_periph_req),
       .reg_rsp_o(memcopy_periph_rsp),
       .master_req_o(master_req[testharness_pkg::EXT_MASTER0_IDX]),
-      .master_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX])
+      .master_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX]),
+      .memcopy_intr_o,
   );
 `else
   assign slow_ram_slave_resp.gnt = '0;

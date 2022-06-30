@@ -14,6 +14,9 @@ int main(int argc, char *argv[])
 {
     printf("Memcopy - example external peripheral\n");
 
+    // printf("Set the PLIC\n");
+    // memcopy_periph_t memcopy_periph;
+
     // Use the stack
     int32_t original_data[COPY_SIZE];
     int32_t copied_data[COPY_SIZE];
