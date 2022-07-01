@@ -7,3 +7,7 @@
 lint_off -rule DECLFILENAME -file "*/src/dm_pkg.sv" -match "Filename 'dm_pkg' does not match PACKAGE name: 'dm'*"
 lint_off -rule UNUSED -file "*/src/dm*.sv" -match "*"
 lint_off -rule UNUSED -file "*/debug*.sv" -match "*"
+lint_off -rule DECLFILENAME -file "*/src/cdc_reset_ctrlr.sv" -match "Filename 'cdc_reset_ctrlr' does not match MODULE name: 'cdc_reset_ctrlr_half'*"
+lint_off -rule DECLFILENAME -file "*/src/cdc_fifo_gray_clearable.sv" -match "Filename 'cdc_fifo_gray_clearable' does not match MODULE name: 'cdc_fifo_gray_src_clearable'*"
+lint_off -rule WIDTH -file "*/src/cdc_2phase_clearable.sv" -match "Logical operator GENIF expects 1 bit on the If, but If's VARREF 'CLEAR_ON_ASYNC_RESET' generates 32 bits.*"
+lint_off -rule UNOPTFLAT -file "*/src/cdc_4phase.sv" -match "Signal unoptimizable*"

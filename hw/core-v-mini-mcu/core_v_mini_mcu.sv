@@ -2,10 +2,14 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-module core_v_mini_mcu #(
+module core_v_mini_mcu
+  import obi_pkg::*;
+  import reg_pkg::*;
+#(
     parameter PULP_XPULP = 0,
-    parameter FPU        = 0,
-    parameter PULP_ZFINX = 0
+    parameter FPU = 0,
+    parameter PULP_ZFINX = 0,
+    parameter EXT_XBAR_NMASTER = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -16,6 +20,15 @@ module core_v_mini_mcu #(
     input  logic jtag_tdi_i,
     output logic jtag_tdo_o,
 
+    input  obi_req_t  [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
+    output obi_resp_t [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
+
+    output obi_req_t  ext_xbar_slave_req_o,
+    input  obi_resp_t ext_xbar_slave_resp_i,
+
+    output reg_req_t ext_peripheral_slave_req_o,
+    input  reg_rsp_t ext_peripheral_slave_resp_i,
+
     input  logic uart_rx_i,
     output logic uart_tx_o,
 
@@ -25,7 +38,6 @@ module core_v_mini_mcu #(
 );
 
   import core_v_mini_mcu_pkg::*;
-  import obi_pkg::*;
   import cv32e40p_apu_core_pkg::*;
 
   localparam NUM_BYTES = core_v_mini_mcu_pkg::MEM_SIZE;
@@ -34,7 +46,6 @@ module core_v_mini_mcu #(
   localparam JTAG_IDCODE = 32'h10001c05;
   localparam BOOT_ADDR = 'h180;
   localparam NUM_MHPMCOUNTERS = 1;
-
 
   // signals connecting core to memory
 
@@ -53,8 +64,6 @@ module core_v_mini_mcu #(
   obi_resp_t        debug_slave_resp;
   obi_req_t         peripheral_slave_req;
   obi_resp_t        peripheral_slave_resp;
-  obi_req_t         slow_ram_slave_req;
-  obi_resp_t        slow_ram_slave_resp;
 
   // signals to debug unit
   logic             debug_core_req;
@@ -112,16 +121,20 @@ module core_v_mini_mcu #(
 
   );
 
-  system_bus system_bus_i (
+  system_bus #(
+      .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER)
+  ) system_bus_i (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
-      .core_instr_req_i   (core_instr_req),
-      .core_instr_resp_o  (core_instr_resp),
-      .core_data_req_i    (core_data_req),
-      .core_data_resp_o   (core_data_resp),
-      .debug_master_req_i (debug_master_req),
-      .debug_master_resp_o(debug_master_resp),
+      .core_instr_req_i      (core_instr_req),
+      .core_instr_resp_o     (core_instr_resp),
+      .core_data_req_i       (core_data_req),
+      .core_data_resp_o      (core_data_resp),
+      .debug_master_req_i    (debug_master_req),
+      .debug_master_resp_o   (debug_master_resp),
+      .ext_xbar_master_req_i (ext_xbar_master_req_i),
+      .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
 
       .ram0_req_o             (ram0_slave_req),
       .ram0_resp_i            (ram0_slave_resp),
@@ -131,9 +144,8 @@ module core_v_mini_mcu #(
       .debug_slave_resp_i     (debug_slave_resp),
       .peripheral_slave_req_o (peripheral_slave_req),
       .peripheral_slave_resp_i(peripheral_slave_resp),
-      .slow_ram_req_o         (slow_ram_slave_req),
-      .slow_ram_resp_i        (slow_ram_slave_resp)
-
+      .ext_xbar_slave_req_o   (ext_xbar_slave_req_o),
+      .ext_xbar_slave_resp_i  (ext_xbar_slave_resp_i)
   );
 
   memory_subsystem #(
@@ -176,31 +188,11 @@ module core_v_mini_mcu #(
       .spi_csb_en_o(),
       .spi_sd_o(),
       .spi_sd_en_o(),
-      .spi_sd_i()
-  );
+      .spi_sd_i(),
 
-`ifndef SYNTHESIS
-  slow_memory #(
-      .NumWords (128),
-      .DataWidth(32'd32)
-  ) slow_ram_i (
-      .clk_i  (clk_i),
-      .rst_ni (rst_ni),
-      .req_i  (slow_ram_slave_req.req),
-      .we_i   (slow_ram_slave_req.we),
-      .addr_i (slow_ram_slave_req.addr[8:2]),
-      .wdata_i(slow_ram_slave_req.wdata),
-      .be_i   (slow_ram_slave_req.be),
-      // output ports
-      .gnt_o(slow_ram_slave_resp.gnt),
-      .rdata_o(slow_ram_slave_resp.rdata),
-      .rvalid_o(slow_ram_slave_resp.rvalid)
+      .ext_peripheral_slave_req_o (ext_peripheral_slave_req_o),
+      .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i)
   );
-`else
-  assign slow_ram_slave_resp.gnt = '0;
-  assign slow_ram_slave_resp.rdata = '0;
-  assign slow_ram_slave_resp.rvalid = '0;
-`endif
 
   assign irq_software = '0;
   assign irq_timer    = '0;

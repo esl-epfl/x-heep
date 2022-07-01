@@ -8,18 +8,18 @@ module slow_memory #(
     // DEPENDENT PARAMETERS, DO NOT OVERWRITE!
     parameter int unsigned AddrWidth = (NumWords > 32'd1) ? $clog2(NumWords) : 32'd1
 ) (
-    input  logic                 clk_i,     // Clock
-    input  logic                 rst_ni,    // Asynchronous reset active low
+    input  logic                 clk_i,    // Clock
+    input  logic                 rst_ni,   // Asynchronous reset active low
     // input ports
-    input  logic                 req_i,     // request
-    input  logic                 we_i,      // write enable
-    input  logic [AddrWidth-1:0] addr_i,    // request address
-    input  logic [         31:0] wdata_i,   // write data
-    input  logic [          3:0] be_i,      // write byte enable
+    input  logic                 req_i,    // request
+    input  logic                 we_i,     // write enable
+    input  logic [AddrWidth-1:0] addr_i,   // request address
+    input  logic [         31:0] wdata_i,  // write data
+    input  logic [          3:0] be_i,     // write byte enable
     // output ports
-    output logic                 gnt_o,  // memory is ready
-    output logic [         31:0] rdata_o,   // read data
-    output logic                 rvalid_o   // read data is valid
+    output logic                 gnt_o,    // memory is ready
+    output logic [         31:0] rdata_o,  // read data
+    output logic                 rvalid_o  // read data is valid
 );
 
 
@@ -79,11 +79,11 @@ module slow_memory #(
 
 
   always_comb begin
-    gnt_o  = 1'b0;
-    rvalid_o  = rvalid_q;
-    state_n   = state_q;
+    gnt_o = 1'b0;
+    rvalid_o = rvalid_q;
+    state_n = state_q;
     counter_n = counter_q - 1;
-    rvalid_n  = rvalid_q;
+    rvalid_n = rvalid_q;
 
     unique case (state_q)
 
