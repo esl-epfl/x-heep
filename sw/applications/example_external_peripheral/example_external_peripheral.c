@@ -17,7 +17,7 @@
 
 int8_t external_intr_flag;
 
-void external_irq_handler(void) {
+void handler_irq_external(void) {
     external_intr_flag = 1;
 }
 
