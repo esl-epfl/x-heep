@@ -1,0 +1,9 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule ASSIGNDLY -file "*tb/SimJTAG.sv" -match "Unsupported: Ignoring delay*"
+lint_off -rule UNUSED -file "*tb/SimJTAG.sv" -match "*"
+lint_off -rule BLKSEQ -file "*tb/SimJTAG.sv" -match "*"
