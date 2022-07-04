@@ -1,0 +1,9 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule WIDTH -file "*/rtl/rv_plic.sv" -match "Operator ASSIGNW expects 5 bits on the Assign RHS, but Assign RHS's SEL generates 6 bits."
+lint_off -rule WIDTH -file "*/rtl/rv_plic.sv" -match "Operator ASSIGNW expects 6 bits on the Assign RHS, but Assign RHS's ARRAYSEL generates 5 bits."
+lint_off -rule WIDTH -file "*/rtl/rv_plic.sv" -match "Output port connection 'irq_id_o' expects 6 bits on the pin connection, but pin connection's ARRAYSEL generates 5 bits."
