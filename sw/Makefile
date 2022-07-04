@@ -29,7 +29,9 @@ LIB_CRT                    = $(wildcard device/lib/crt/*.S)
 LIB_BASE                   = $(wildcard device/lib/base/*.c)
 LIB_BASE_FREESTD           = device/lib/base/freestanding
 LIB_RUNTIME                = $(wildcard device/lib/runtime/*.c)
-LIB_DRIVERS                = $(wildcard device/lib/drivers/*.c)
+LIB_DRIVERS                = $(wildcard device/lib/drivers/soc_ctrl/*.c)
+LIB_DRIVERS                += $(wildcard device/lib/drivers/uart/*.c)
+LIB_DRIVERS                += $(wildcard device/lib/drivers/rv_timer/*.c)
 
 # rules to generate hex (loadable by simulators) from elf
 %.hex: %.elf

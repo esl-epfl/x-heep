@@ -1,6 +1,6 @@
-// Copyright 2022 OpenHW Group
-// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
-// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
 
 #ifndef _DRIVERS_SOC_CTRL_H_
 #define _DRIVERS_SOC_CTRL_H_
@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "../base/mmio.h"
+#include "../../base/mmio.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,9 +1,6 @@
-// Copyright lowRISC contributors.
+// Copyright EPFL contributors.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
-
-// Modified version for core-v-mini-mcu
-// original at: https://github.com/lowRISC/opentitan/blob/master/sw/
 
 #ifndef _DRIVERS_UART_H_
 #define _DRIVERS_UART_H_
@@ -11,8 +8,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "../base/mmio.h"
-#include "../runtime/error.h"
+#include "../../base/mmio.h"
+#include "../../runtime/error.h"
 
 #ifdef __cplusplus
 extern "C" {
