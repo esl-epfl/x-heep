@@ -26,8 +26,10 @@ module peripheral_subsystem
     output logic uart_intr_rx_frame_err_o,
     output logic uart_intr_rx_break_err_o,
     output logic uart_intr_rx_timeout_o,
-    output logic uart_intr_rx_parity_err_o
+    output logic uart_intr_rx_parity_err_o,
 
+    //RV TIMER
+    output logic rv_timer_irq_timer_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -149,7 +151,7 @@ module peripheral_subsystem
       .rst_ni,
       .tl_i(rv_timer_tl_h2d),
       .tl_o(rv_timer_tl_d2h),
-      .intr_timer_expired_0_0_o()
+      .intr_timer_expired_0_0_o(rv_timer_irq_timer_o)
   );
 
 endmodule : peripheral_subsystem

@@ -167,7 +167,9 @@ module core_v_mini_mcu #(
       .uart_intr_rx_frame_err_o() ,
       .uart_intr_rx_break_err_o() ,
       .uart_intr_rx_timeout_o()   ,
-      .uart_intr_rx_parity_err_o()
+      .uart_intr_rx_parity_err_o(),
+
+      .rv_timer_irq_timer_o(irq_timer)
   );
 
 `ifndef SYNTHESIS
@@ -194,7 +196,6 @@ module core_v_mini_mcu #(
 `endif
 
   assign irq_software = '0;
-  assign irq_timer    = '0;
   assign irq_external = '0;
   assign irq_fast     = '0;
 
