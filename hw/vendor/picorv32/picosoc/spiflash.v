@@ -102,8 +102,10 @@ module spiflash (
 	reg [7:0] memory [0:16*1024*1024-1];
 
 	reg [1023:0] firmware_file;
+	reg result;
 	initial begin
-		if (!$value$plusargs("firmware=%s", firmware_file))
+		result = $value$plusargs("firmware=%s", firmware_file);
+		if (!result)
 			firmware_file = "firmware.hex";
 		$readmemh(firmware_file, memory);
 	end

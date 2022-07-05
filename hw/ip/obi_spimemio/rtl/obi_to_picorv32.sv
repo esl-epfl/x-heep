@@ -80,6 +80,7 @@ module obi_to_picorv32
       end
       READ: begin
         picorv32_req_o.addr = addr_buf;
+        picorv32_req_o.valid = 1'b1;
         if (picorv32_resp_i.ready) begin
           state_next = IDLE;
           obi_resp_o.rvalid = 1'b1;

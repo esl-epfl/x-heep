@@ -98,7 +98,7 @@ module testharness #(
       .rst_ni,
 
       .boot_select_i,
-
+      
       .jtag_tck_i  (sim_jtag_tck),
       .jtag_tms_i  (sim_jtag_tms),
       .jtag_trst_ni(sim_jtag_trstn),
@@ -176,14 +176,13 @@ module testharness #(
 
 `ifdef MODELSIM
   spiflash flash_1 (
-      .csb(csb),
-      .clk(clk),
-      .io0(io0),  // MOSI
-      .io1(io1),  // MISO
-      .io2(io2),
-      .io3(io3)
+      .csb(flash_csb),
+      .clk(flash_clk),
+      .io0(flash_io0_io),  // MOSI
+      .io1(flash_io1_io),  // MISO
+      .io2(flash_io2_io),
+      .io3(flash_io3_io)
   );
-
 `endif
 
 `ifdef USE_EXTERNAL_DEVICE_EXAMPLE

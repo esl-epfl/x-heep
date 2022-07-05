@@ -26,6 +26,7 @@ RISCV_EXE_PREFIX         = $(RISCV)/bin/riscv32-unknown-elf-
 CUSTOM_GCC_FLAGS           =
 
 LIB_CRT                    = $(wildcard device/lib/crt/*.S)
+LIB_CRT_SPIFLASH           = $(wildcard device/lib/crt_spiflash/*.S)
 LIB_BASE                   = $(wildcard device/lib/base/*.c)
 LIB_BASE_FREESTD           = device/lib/base/freestanding
 LIB_RUNTIME                = $(wildcard device/lib/runtime/*.c)
@@ -34,6 +35,9 @@ LIB_DRIVERS                = $(wildcard device/lib/drivers/*.c)
 # rules to generate hex (loadable by simulators) from elf
 %.hex: %.elf
 	$(RISCV_EXE_PREFIX)objcopy -O verilog $< $@
+
+%.flash.hex: %.flash.elf
+	$(RISCV_EXE_PREFIX)objcopy -O verilog --adjust-vma=-0x40000000 $< $@
 
 %.dis: %.elf
 	$(RISCV_EXE_PREFIX)objdump -S $^ > $@
@@ -60,6 +64,22 @@ applications/hello_world/hello_world.elf: applications/hello_world/hello_world.c
 		-I device/lib/ \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
+
+applications/hello_world/hello_world.flash.elf: applications/hello_world/hello_world.c
+	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
+		$(CUSTOM_GCC_FLAGS) \
+		-DHOST_BUILD \
+		-T linker/link_spiflash.ld \
+		-static \
+		$(LIB_CRT_SPIFLASH) \
+		$^ $(LIB_RUNTIME) \
+		$(LIB_BASE) \
+		$(LIB_DRIVERS) \
+		-I $(RISCV)/riscv32-unknown-elf/include \
+		-I device/lib/ \
+		-L $(RISCV)/riscv32-unknown-elf/lib \
+		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
+
 
 applications/matadd/matadd.elf: applications/matadd/matadd.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
