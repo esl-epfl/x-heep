@@ -38,16 +38,18 @@ module obi_to_picorv32
       state, state_next;
 
 
-  logic [31:0] addr_buf, addr_buf_next;
+  logic [31:0] addr_buf, addr_buf_next, rdata_buf, rdata_buf_next;
 
 
   always_ff @(posedge clk_i or negedge rst_ni) begin : ram_valid_q
     if (!rst_ni) begin
       state <= IDLE;
       addr_buf <= '0;
+      rdata_buf <= '0;
     end else begin
       state <= state_next;
       addr_buf <= addr_buf_next;
+      rdata_buf <= rdata_buf_next;
     end
   end
 
@@ -62,7 +64,8 @@ module obi_to_picorv32
     picorv32_req_o.wstrb = READ_MEM;
     obi_resp_o.gnt = 1'b0;
     obi_resp_o.rvalid = 1'b0;
-    obi_resp_o.rdata = picorv32_resp_i.rdata;
+    obi_resp_o.rdata = rdata_buf;
+    rdata_buf_next = picorv32_resp_i.rdata;
     // fsm
     case (state)
       IDLE: begin
