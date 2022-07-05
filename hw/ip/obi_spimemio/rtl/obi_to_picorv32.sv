@@ -32,7 +32,8 @@ module obi_to_picorv32
   enum logic [1:0] {
     IDLE,
     READ,
-    WRITE
+    WRITE,
+    GIVE_VALID
   }
       state, state_next;
 
@@ -82,8 +83,7 @@ module obi_to_picorv32
         picorv32_req_o.addr = addr_buf;
         picorv32_req_o.valid = 1'b1;
         if (picorv32_resp_i.ready) begin
-          state_next = IDLE;
-          obi_resp_o.rvalid = 1'b1;
+          state_next = GIVE_VALID;
         end
         // Todo: add contineous read w/o idle
       end
@@ -92,6 +92,11 @@ module obi_to_picorv32
         obi_resp_o.rvalid = 1'b1;
         // Todo: add write.
       end
+      GIVE_VALID: begin
+          state_next = IDLE;
+          obi_resp_o.rvalid = 1'b1;
+      end
+
       default: begin
         state_next = IDLE;
       end
