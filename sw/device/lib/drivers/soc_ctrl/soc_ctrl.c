@@ -1,13 +1,13 @@
-// Copyright 2022 OpenHW Group
-// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
-// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
 
 #include "soc_ctrl.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
-#include "../base/mmio.h"
+#include "../../base/mmio.h"
 
 #include "soc_ctrl_regs.h"  // Generated.
 

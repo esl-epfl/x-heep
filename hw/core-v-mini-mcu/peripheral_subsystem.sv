@@ -30,7 +30,10 @@ module peripheral_subsystem
 
     //External peripheral(s)
     output reg_req_t ext_peripheral_slave_req_o,
-    input  reg_rsp_t ext_peripheral_slave_resp_i
+    input  reg_rsp_t ext_peripheral_slave_resp_i,
+
+    //RV TIMER
+    output logic rv_timer_irq_timer_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -88,6 +91,9 @@ module peripheral_subsystem
   for (genvar i = 9 + EXT_NINTERRUPT; i < rv_plic_reg_pkg::NumSrc; i++) begin
     assign intr_vector[i] = 1'b0;
   end
+
+  tlul_pkg::tl_h2d_t rv_timer_tl_h2d;
+  tlul_pkg::tl_d2h_t rv_timer_tl_d2h;
 
   //Address Decoder
   logic [PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
@@ -151,7 +157,6 @@ module peripheral_subsystem
       .tl_i(uart_tl_d2h),
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::UART_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::UART_IDX])
-
   );
 
   reg_to_tlul reg_to_tlul_plic_i (
@@ -201,6 +206,21 @@ module peripheral_subsystem
       .irq_o(irq_plic_o),
       .irq_id_o(irq_id),
       .msip_o(msip_o)
+  );
+
+  reg_to_tlul rv_timer_reg_to_tlul_i (
+      .tl_o(rv_timer_tl_h2d),
+      .tl_i(rv_timer_tl_d2h),
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::RV_TIMER_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_IDX])
+  );
+
+  rv_timer rv_timer_i (
+      .clk_i,
+      .rst_ni,
+      .tl_i(rv_timer_tl_h2d),
+      .tl_o(rv_timer_tl_d2h),
+      .intr_timer_expired_0_0_o(rv_timer_irq_timer_o)
   );
 
 endmodule : peripheral_subsystem

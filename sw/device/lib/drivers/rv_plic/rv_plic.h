@@ -20,8 +20,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "../base/mmio.h"
-#include "../base/macros.h"
+#include "../../base/mmio.h"
+#include "../../base/macros.h"
 
 #ifdef __cplusplus
 extern "C" {
