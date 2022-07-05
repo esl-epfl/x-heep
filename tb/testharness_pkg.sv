@@ -29,6 +29,7 @@ package testharness_pkg;
 
   //slave encoder
   localparam EXT_NPERIPHERALS = 1;
+  localparam EXT_NINTERRUPT = 1;
 
   // Memcopy controller (external peripheral example)
   localparam logic [31:0] MEMCOPY_CTRL_START_ADDRESS = core_v_mini_mcu_pkg::EXT_PERIPH_START_ADDRESS + 32'h0020000;

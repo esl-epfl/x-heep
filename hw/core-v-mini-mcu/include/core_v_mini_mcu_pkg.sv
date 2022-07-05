@@ -108,7 +108,7 @@ package core_v_mini_mcu_pkg;
   };
 
   //slave encoder
-  localparam SYSTEM_NPERIPHERALS = 4;
+  localparam SYSTEM_NPERIPHERALS = 5;
 
   localparam logic [31:0] SOC_CTRL_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0000000;
   localparam logic [31:0] SOC_CTRL_SIZE = 32'h0010000;
@@ -125,15 +125,22 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] BOOTROM_END_ADDRESS = BOOTROM_START_ADDRESS + BOOTROM_SIZE;
   localparam logic [31:0] BOOTROM_IDX = 32'd2;
 
-  localparam logic [31:0] EXT_PERIPH_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0030000;
+  localparam logic [31:0] PLIC_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0030000;
+  localparam logic [31:0] PLIC_SIZE = 32'h0010000;
+  localparam logic [31:0] PLIC_END_ADDRESS = PLIC_START_ADDRESS + PLIC_SIZE;
+  localparam logic [31:0] PLIC_IDX = 32'd3;
+
+  localparam logic [31:0] EXT_PERIPH_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0040000;
   localparam logic [31:0] EXT_PERIPH_SIZE = 32'h0010000;
   localparam logic [31:0] EXT_PERIPH_END_ADDRESS = EXT_PERIPH_START_ADDRESS + EXT_PERIPH_SIZE;
-  localparam logic [31:0] EXT_PERIPH_IDX = 32'd3;
+  localparam logic [31:0] EXT_PERIPH_IDX = SYSTEM_NPERIPHERALS - 1;
+
 
   localparam addr_map_rule_t [SYSTEM_NPERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
       '{idx: SOC_CTRL_IDX, start_addr: SOC_CTRL_START_ADDRESS, end_addr: SOC_CTRL_END_ADDRESS},
       '{idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS},
       '{idx: BOOTROM_IDX, start_addr: BOOTROM_START_ADDRESS, end_addr: BOOTROM_END_ADDRESS},
+      '{idx: PLIC_IDX, start_addr: PLIC_START_ADDRESS, end_addr: PLIC_END_ADDRESS},
       '{
           idx: EXT_PERIPH_IDX,
           start_addr: EXT_PERIPH_START_ADDRESS,

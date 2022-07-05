@@ -20,6 +20,8 @@ filesets:
     - lint/uartdpi.vlt
     - lint/cluster_interconnect.vlt
     - lint/picorv32.vlt
+    - lint/pulpissimo.vlt
+    - lint/rv_plic.vlt
     file_type: vlt
 
 

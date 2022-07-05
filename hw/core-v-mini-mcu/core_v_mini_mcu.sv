@@ -9,7 +9,8 @@ module core_v_mini_mcu
     parameter PULP_XPULP = 0,
     parameter FPU = 0,
     parameter PULP_ZFINX = 0,
-    parameter EXT_XBAR_NMASTER = 0
+    parameter EXT_XBAR_NMASTER = 0,
+    parameter EXT_NINTERRUPT = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -33,6 +34,8 @@ module core_v_mini_mcu
 
     input  logic uart_rx_i,
     output logic uart_tx_o,
+
+    input logic [EXT_NINTERRUPT-1:0] intr_vector_ext_i,
 
     input  logic        fetch_enable_i,
     output logic [31:0] exit_value_o,
@@ -184,9 +187,9 @@ module core_v_mini_mcu
       .ram1_resp_o(ram1_slave_resp)
   );
 
-
-
-  peripheral_subsystem peripheral_subsystem_i (
+  peripheral_subsystem #(
+      .EXT_NINTERRUPT(EXT_NINTERRUPT)
+  ) peripheral_subsystem_i (
       .clk_i,
       .rst_ni,
 
@@ -201,14 +204,10 @@ module core_v_mini_mcu
       .uart_rx_i(uart_rx_i),
       .uart_tx_o(uart_tx_o),
       .uart_tx_en_o(),
-      .uart_intr_tx_watermark_o() ,
-      .uart_intr_rx_watermark_o() ,
-      .uart_intr_tx_empty_o()  ,
-      .uart_intr_rx_overflow_o()  ,
-      .uart_intr_rx_frame_err_o() ,
-      .uart_intr_rx_break_err_o() ,
-      .uart_intr_rx_timeout_o()   ,
-      .uart_intr_rx_parity_err_o(),
+
+      .intr_vector_ext_i,
+      .irq_plic_o(irq_external),
+      .msip_o(irq_software),
 
       .ext_peripheral_slave_req_o (ext_peripheral_slave_req_o),
       .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i),
@@ -235,10 +234,8 @@ module core_v_mini_mcu
       .spimemio_resp_o(spi_flash_slave_resp)
   );
 
-  assign irq_software = '0;
-  assign irq_timer    = '0;
-  assign irq_external = '0;
-  assign irq_fast     = '0;
+  assign irq_timer = '0;
+  assign irq_fast  = '0;
 
 
 endmodule  // core_v_mini_mcu

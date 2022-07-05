@@ -31,22 +31,22 @@ module xilinx_core_v_mini_mcu_wrapper #(
   logic        clk_gen;
   logic [31:0] exit_value;
 
-  logic [3:0] spi_flash_di;
-  logic [3:0] spi_flash_do;
-  logic [3:0] spi_flash_oe;
-  
+  logic [ 3:0] spi_flash_di;
+  logic [ 3:0] spi_flash_do;
+  logic [ 3:0] spi_flash_oe;
+
 
   // IOBUF: bidirectional pads for the data pins of the QSPI flash
   genvar i;
   generate
-    for (i=1; i<=3; i=i+1) begin : generate_block_identifier
-        IOBUF qspi_iobuf (
-        .T  ( spi_flash_oe[i] ),
-        .I  ( spi_flash_do[i] ),
-        .O  ( spi_flash_di[i] ),
-        .IO ( spi_flash_dio[i])
-        );
-    end 
+    for (i = 1; i <= 3; i = i + 1) begin : generate_block_identifier
+      IOBUF qspi_iobuf (
+          .T (spi_flash_oe[i]),
+          .I (spi_flash_do[i]),
+          .O (spi_flash_di[i]),
+          .IO(spi_flash_dio[i])
+      );
+    end
   endgenerate
 
 
@@ -85,8 +85,8 @@ module xilinx_core_v_mini_mcu_wrapper #(
       .flash_io2_di_i(spi_flash_di[2]),
       .flash_io3_di_i(spi_flash_di[3]),
 
-      .exit_value_o  (exit_value),
-      .exit_valid_o  (exit_valid_o)
+      .exit_value_o(exit_value),
+      .exit_valid_o(exit_valid_o)
   );
 
   assign exit_value_o = exit_value[0];

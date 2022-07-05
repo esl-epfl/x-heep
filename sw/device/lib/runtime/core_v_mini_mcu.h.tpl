@@ -21,6 +21,10 @@ extern "C" {
 #define EXT_SLAVE_SIZE 0x${ext_slave_size_address}
 #define EXT_SLAVE_END_ADDRESS (EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE)
 
+#define SPI_FLASH_START_ADDRESS 0x${spi_flash_start_address}
+#define SPI_FLASH_SIZE 0x${spi_flash_size_address}
+#define SPI_FLASH_END_ADDRESS (SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE)
+
 #define SOC_CTRL_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${soc_ctrl_start_offset})
 #define SOC_CTRL_SIZE 0x${soc_ctrl_size_address}
 #define SOC_CTRL_END_ADDRESS (SOC_CTRL_IDX_START_ADDRESS + SOC_CTRL_IDX_SIZE)
@@ -33,14 +37,24 @@ extern "C" {
 #define BOOTROM_SIZE 0x${bootrom_size_address}
 #define BOOTROM_END_ADDRESS (BOOTROM_START_ADDRESS + BOOTROM_SIZE)
 
+#define PLIC_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${plic_start_offset})
+#define PLIC_SIZE 0x${plic_size_address}
+#define PLIC_END_ADDRESS (PLIC_START_ADDRESS + PLIC_SIZE)
+
 #define EXT_PERIPHERAL_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${ext_periph_start_offset})
 #define EXT_PERIPHERAL_SIZE 0x${ext_periph_size_address}
 #define EXT_PERIPHERAL_END_ADDRESS (EXT_PERIPHERAL_START_ADDRESS + EXT_PERIPHERAL_SIZE)
 
-#define SPI_FLASH_START_ADDRESS 0x${spi_flash_start_address}
-#define SPI_FLASH_SIZE 0x${spi_flash_size_address}
-#define SPI_FLASH_END_ADDRESS (SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE)
-
+#define NULL_INTR ${null_intr}
+#define UART_INTR_TX_WATERMARK ${uart_intr_tx_watermark}
+#define UART_INTR_RX_WATERMARK ${uart_intr_rx_watermark}
+#define UART_INTR_TX_EMPT ${uart_intr_tx_empty}
+#define UART_INTR_RX_OVERFLOW ${uart_intr_rx_overflow}
+#define UART_INTR_RX_FRAME_ERR ${uart_intr_rx_frame_err}
+#define UART_INTR_RX_BREAK_ERR ${uart_intr_rx_break_err}
+#define UART_INTR_RX_TIMEOUT ${uart_intr_rx_timeout}
+#define UART_INTR_RX_PARITY_ERR ${uart_intr_rx_parity_err}
+#define MEMCOPY_INTR_DONE ${memcopy_intr_done}
 
 
 #ifdef __cplusplus

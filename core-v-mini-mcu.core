@@ -19,7 +19,7 @@ filesets:
     - pulp-platform.org::register_interface
     - openhwgroup.org:ip:soc_ctrl
     - lowrisc:ip:uart:0.1
-    - example:ip:memcopy_periph
+    - lowrisc:ip:rv_plic_example:0.1
     - lowrisc:ibex:ibex_core:0.1
     - ::picorv32_spimemio:0-r1
     - :obi-spimemio:0.1.0
@@ -39,10 +39,13 @@ filesets:
   rtl-simulation:
     depend:
     - pulp-platform.org::tech_cells_generic
-    - example:ip:slow_memory
     files:
     - hw/simulation/sram_wrapper.sv
     file_type: systemVerilogSource
+
+  tb-utils:
+    depend:
+    - x-heep::tb-utils
 
   files_verilator_waiver:
     depend:
@@ -52,8 +55,6 @@ filesets:
     - hw/ip/soc_ctrl/soc_ctrl.vlt
     - hw/ip/boot_rom/boot_rom.vlt
     - hw/ip/obi_spimemio/obi_spimemio.vlt
-    - hw/ip_examples/memcopy_periph/memcopy_periph.vlt
-    - hw/ip_examples/slow_memory/slow_memory.vlt
     file_type: vlt
 
   rtl-fpga:
@@ -83,44 +84,6 @@ filesets:
     files:
     - hw/fpga/constraints/pynq-z2/pin_assign.xdc
     file_type: xdc
-
-  systemverilog_only_simjtag:
-    depend:
-    - pulp-platform.org::pulpissimo_simjtag
-
-  tb-harness:
-    files:
-    - tb/tb_util.svh: {is_include_file: true}
-    - tb/testharness_pkg.sv
-    - tb/testharness.sv
-    file_type: systemVerilogSource
-
-  uartdpi:
-    depend:
-    - lowrisc:dv_dpi:uartdpi
-
-  systemverilog_only_uart:
-    files:
-    - hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi.sv
-    file_type: systemVerilogSource
-
-  remote_bitbang_dpi:
-    depend:
-    - pulp-platform.org::pulpissimo_remote_bitbang
-
-  spiflash_model:
-    depend:
-    - ::spiflash:0
-
-  tb-sv:
-    files:
-    - tb/tb_top.sv
-    file_type: systemVerilogSource
-
-  tb-verilator:
-    files:
-    - tb/tb_top.cpp
-    file_type: cppSource
 
   netlist-fpga:
     files:
@@ -205,23 +168,13 @@ targets:
     default_tool: modelsim
     filesets_append:
     - rtl-simulation
-    - tb-harness
-    - tool_verilator? (uartdpi)
-    - tool_modelsim? (systemverilog_only_uart)
-    - tool_vcs? (systemverilog_only_uart)
-    - tool_modelsim? (tb-sv)
-    - tool_vcs? (tb-sv)
+    - tb-utils
+    - tool_verilator? (files_verilator_waiver)
     - tool_modelsim? (pre_build_remote_bitbang)
     - tool_modelsim? (pre_build_uartdpi)
     - tool_modelsim? (pre_patch_modelsim_Makefile)
     - tool_vcs? (pre_build_remote_bitbang)
     - tool_vcs? (pre_build_uartdpi)
-    - tool_verilator? (files_verilator_waiver)
-    - tool_verilator? (tb-verilator)
-    - tool_verilator? (remote_bitbang_dpi)
-    - tool_modelsim? (systemverilog_only_simjtag)
-    - tool_vcs? (systemverilog_only_simjtag)
-    - tool_modelsim? (spiflash_model)
     toplevel:
     - tool_modelsim? (tb_top)
     - tool_vcs? (tb_top)
@@ -283,9 +236,7 @@ targets:
     default_tool: modelsim
     filesets_append:
     - rtl-simulation
-    - tb-harness
-    - tb-sv
-    - systemverilog_only_uart
+    - tb-utils
     - pre_build_remote_bitbang
     - pre_build_uartdpi
     - pre_patch_modelsim_Makefile

@@ -51,6 +51,11 @@ module testharness #(
   // External xbar slave example port
   obi_req_t slow_ram_slave_req;
   obi_resp_t slow_ram_slave_resp;
+  // External interrupts
+  logic [testharness_pkg::EXT_NINTERRUPT-1:0] intr_vector_ext;
+  logic memcopy_intr;
+
+  assign intr_vector_ext[0] = memcopy_intr;
 
 
   logic flash_csb;
@@ -71,10 +76,10 @@ module testharness #(
   logic flash_io2_di;
   logic flash_io3_di;
 
-  wire flash_io0_io;
-  wire flash_io1_io;
-  wire flash_io2_io;
-  wire flash_io3_io;
+  wire  flash_io0_io;
+  wire  flash_io1_io;
+  wire  flash_io2_io;
+  wire  flash_io3_io;
 
   //TODO: fix with PAD
   assign flash_io0_io = (flash_io0_oe) ? flash_io0_do : 1'bz;
@@ -92,13 +97,14 @@ module testharness #(
       .PULP_XPULP      (PULP_XPULP),
       .FPU             (FPU),
       .PULP_ZFINX      (PULP_ZFINX),
-      .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER)
+      .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER),
+      .EXT_NINTERRUPT  (testharness_pkg::EXT_NINTERRUPT)
   ) core_v_mini_mcu_i (
       .clk_i,
       .rst_ni,
 
       .boot_select_i,
-      
+
       .jtag_tck_i  (sim_jtag_tck),
       .jtag_tms_i  (sim_jtag_tms),
       .jtag_trst_ni(sim_jtag_trstn),
@@ -132,6 +138,8 @@ module testharness #(
       .flash_io1_di_i(flash_io1_di),
       .flash_io2_di_i(flash_io2_di),
       .flash_io3_di_i(flash_io3_di),
+
+      .intr_vector_ext_i(intr_vector_ext),
 
       .fetch_enable_i,
       .exit_value_o,
@@ -216,7 +224,8 @@ module testharness #(
       .reg_req_i(memcopy_periph_req),
       .reg_rsp_o(memcopy_periph_rsp),
       .master_req_o(master_req[testharness_pkg::EXT_MASTER0_IDX]),
-      .master_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX])
+      .master_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX]),
+      .memcopy_intr_o(memcopy_intr)
   );
 `else
   assign slow_ram_slave_resp.gnt = '0;
@@ -232,6 +241,8 @@ module testharness #(
   assign master_req[testharness_pkg::EXT_MASTER0_IDX].be = '0;
   assign master_req[testharness_pkg::EXT_MASTER0_IDX].addr = '0;
   assign master_req[testharness_pkg::EXT_MASTER0_IDX].wdata = '0;
+
+  assign memcopy_intr = '0;
 `endif
 
 endmodule  // testharness

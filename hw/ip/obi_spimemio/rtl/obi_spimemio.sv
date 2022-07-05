@@ -40,7 +40,7 @@ module obi_spimemio
 
   picorv32_req_t  picorv32_req;
   picorv32_resp_t picorv32_resp;
-  
+
   obi_to_picorv32 obi_to_picorv32_i (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
@@ -50,7 +50,7 @@ module obi_spimemio
       .obi_resp_o(spimemio_resp_o)
   );
 
-  
+
 
   spimemio spimemio_i (
       .clk(clk_i),

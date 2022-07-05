@@ -30,10 +30,14 @@
             offset:  0x0020000,
             length:  0x0000100,
         },
-        ext_periph: {
+        plic: {
             offset:  0x0030000,
             length:  0x0010000,
         }
+        ext_periph: {
+            offset:  0x0040000,
+            length:  0x0010000,
+        },
     },
 
     ext_slaves: {
@@ -45,5 +49,20 @@
         address: 0x40000000,
         length:  0x1000000,
     },
+
+
+    interrupts: {
+        // always zero
+        null_intr:               0,
+        uart_intr_tx_watermark:  1,
+        uart_intr_rx_watermark:  2,
+        uart_intr_tx_empty:      3,
+        uart_intr_rx_overflow:   4,
+        uart_intr_rx_frame_err:  5,
+        uart_intr_rx_break_err:  6,
+        uart_intr_rx_timeout:    7,
+        uart_intr_rx_parity_err: 8,
+        memcopy_intr_done:       9,
+    }
 
 }

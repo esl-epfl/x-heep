@@ -116,11 +116,25 @@ def main():
     bootrom_start_offset  = string2int(obj['peripherals']['bootrom']['offset'])
     bootrom_size_address  = string2int(obj['peripherals']['bootrom']['length'])
 
+    spi_flash_start_address  = string2int(obj['spi_flash']['address'])
+    spi_flash_size_address  = string2int(obj['spi_flash']['length'])
+
+    plic_start_offset  = string2int(obj['peripherals']['plic']['offset'])
+    plic_size_address  = string2int(obj['peripherals']['plic']['length'])
+
     ext_periph_start_offset  = string2int(obj['peripherals']['ext_periph']['offset'])
     ext_periph_size_address  = string2int(obj['peripherals']['ext_periph']['length'])
 
-    spi_flash_start_address  = string2int(obj['spi_flash']['address'])
-    spi_flash_size_address  = string2int(obj['spi_flash']['length'])
+    null_intr = obj['interrupts']['null_intr']
+    uart_intr_tx_watermark = obj['interrupts']['uart_intr_tx_watermark']
+    uart_intr_rx_watermark = obj['interrupts']['uart_intr_rx_watermark']
+    uart_intr_tx_empty = obj['interrupts']['uart_intr_tx_empty']
+    uart_intr_rx_overflow = obj['interrupts']['uart_intr_rx_overflow']
+    uart_intr_rx_frame_err = obj['interrupts']['uart_intr_rx_frame_err']
+    uart_intr_rx_break_err = obj['interrupts']['uart_intr_rx_break_err']
+    uart_intr_rx_timeout = obj['interrupts']['uart_intr_rx_timeout']
+    uart_intr_rx_parity_err = obj['interrupts']['uart_intr_rx_parity_err']
+    memcopy_intr_done = obj['interrupts']['memcopy_intr_done']
 
     kwargs = {
         "cpu_type"                 : cpu_type,
@@ -137,10 +151,22 @@ def main():
         "uart_size_address"        : uart_size_address,
         "bootrom_start_offset"     : bootrom_start_offset,
         "bootrom_size_address"     : bootrom_size_address,
-        "ext_periph_start_offset"  : ext_periph_start_offset,
-        "ext_periph_size_address"  : ext_periph_size_address,
         "spi_flash_start_address"  : spi_flash_start_address,
         "spi_flash_size_address"   : spi_flash_size_address,
+        "plic_start_offset"        : plic_start_offset,
+        "plic_size_address"        : plic_size_address,
+        "ext_periph_start_offset"  : ext_periph_start_offset,
+        "ext_periph_size_address"  : ext_periph_size_address,
+        "null_intr"                : null_intr,
+        "uart_intr_tx_watermark"   : uart_intr_tx_watermark,
+        "uart_intr_rx_watermark"   : uart_intr_rx_watermark,
+        "uart_intr_tx_empty"       : uart_intr_tx_empty,
+        "uart_intr_rx_overflow"    : uart_intr_rx_overflow,
+        "uart_intr_rx_frame_err"   : uart_intr_rx_frame_err,
+        "uart_intr_rx_break_err"   : uart_intr_rx_break_err,
+        "uart_intr_rx_timeout"     : uart_intr_rx_timeout,
+        "uart_intr_rx_parity_err"  : uart_intr_rx_parity_err,
+        "memcopy_intr_done"        : memcopy_intr_done,
     }
 
     ###########
