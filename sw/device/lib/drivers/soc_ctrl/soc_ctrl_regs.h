@@ -1,4 +1,4 @@
-// Generated register defines for SOC_CTRL
+// Generated register defines for soc_ctrl
 
 // Copyright information found in source file:
 // Copyright lowRISC contributors.

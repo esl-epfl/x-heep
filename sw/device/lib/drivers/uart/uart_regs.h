@@ -1,4 +1,4 @@
-// Generated register defines for UART
+// Generated register defines for uart
 
 // Copyright information found in source file:
 // Copyright lowRISC contributors.

@@ -1,4 +1,4 @@
-// Generated register defines for RV_TIMER
+// Generated register defines for rv_timer
 
 // Copyright information found in source file:
 // Copyright lowRISC contributors.
