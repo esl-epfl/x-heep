@@ -31,7 +31,13 @@ module peripheral_subsystem
 
     //External peripheral(s)
     output reg_req_t ext_peripheral_slave_req_o,
-    input  reg_rsp_t ext_peripheral_slave_resp_i
+    input  reg_rsp_t ext_peripheral_slave_resp_i,
+
+    //GPIO
+    input  logic [31:0] cio_gpio_i,
+    output logic [31:0] cio_gpio_o,
+    output logic [31:0] cio_gpio_en_o,
+    output logic [31:0] intr_gpio_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -45,6 +51,9 @@ module peripheral_subsystem
 
   tlul_pkg::tl_h2d_t uart_tl_h2d;
   tlul_pkg::tl_d2h_t uart_tl_d2h;
+
+  tlul_pkg::tl_h2d_t gpio_tl_h2d;
+  tlul_pkg::tl_d2h_t gpio_tl_d2h;
 
   //Address Decoder
   logic [PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
@@ -103,12 +112,11 @@ module peripheral_subsystem
       .out_rsp_i(peripheral_slv_rsp)
   );
 
-  reg_to_tlul reg_to_tlul_i (
+  reg_to_tlul reg_to_tlul_uart_i (
       .tl_o(uart_tl_h2d),
       .tl_i(uart_tl_d2h),
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::UART_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::UART_IDX])
-
   );
 
   uart uart_i (
@@ -139,6 +147,24 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
       .exit_valid_o,
       .exit_value_o
+  );
+
+  reg_to_tlul reg_to_tlul_gpio_i (
+      .tl_o(gpio_tl_h2d),
+      .tl_i(gpio_tl_d2h),
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::GPIO_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_IDX])
+  );
+
+  gpio gpio_i (
+      .clk_i,
+      .rst_ni,
+      .tl_i(gpio_tl_h2d),
+      .tl_o(gpio_tl_d2h),
+      .cio_gpio_i(cio_gpio_i),
+      .cio_gpio_o(cio_gpio_o),
+      .cio_gpio_en_o(cio_gpio_en_o),
+      .intr_gpio_o(intr_gpio_o)
   );
 
 endmodule : peripheral_subsystem

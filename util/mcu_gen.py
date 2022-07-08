@@ -116,6 +116,9 @@ def main():
     ext_periph_start_offset  = string2int(obj['peripherals']['ext_periph']['offset'])
     ext_periph_size_address  = string2int(obj['peripherals']['ext_periph']['length'])
 
+    gpio_start_offset  = string2int(obj['peripherals']['gpio']['offset'])
+    gpio_size_address  = string2int(obj['peripherals']['gpio']['length'])
+
     kwargs = {
         "cpu_type"                 : cpu_type,
         "bus_type"                 : bus_type,
@@ -131,6 +134,8 @@ def main():
         "soc_ctrl_size_address"    : soc_ctrl_size_address,
         "ext_periph_start_offset"  : ext_periph_start_offset,
         "ext_periph_size_address"  : ext_periph_size_address,
+        "gpio_start_offset"        : gpio_start_offset,
+        "gpio_size_address"        : gpio_size_address,
     }
 
     ###########

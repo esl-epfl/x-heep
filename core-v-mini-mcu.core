@@ -20,6 +20,7 @@ filesets:
     - lowrisc:ip:uart:0.1
     - example:ip:memcopy_periph
     - lowrisc:ibex:ibex_core:0.1
+    - lowrisc:ip:gpio:0.1
     files:
     - hw/core-v-mini-mcu/include/addr_map_rule_pkg.sv
     - hw/core-v-mini-mcu/include/obi_pkg.sv

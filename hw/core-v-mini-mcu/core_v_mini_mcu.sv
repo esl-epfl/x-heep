@@ -32,6 +32,10 @@ module core_v_mini_mcu
     input  logic uart_rx_i,
     output logic uart_tx_o,
 
+    input  logic [31:0] gpio_i,
+    output logic [31:0] gpio_o,
+    output logic [31:0] gpio_en_o,
+
     input  logic        fetch_enable_i,
     output logic [31:0] exit_value_o,
     output logic        exit_valid_o
@@ -182,7 +186,12 @@ module core_v_mini_mcu
       .uart_intr_rx_parity_err_o(),
 
       .ext_peripheral_slave_req_o (ext_peripheral_slave_req_o),
-      .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i)
+      .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i),
+
+      .cio_gpio_i(gpio_i),
+      .cio_gpio_o(gpio_o),
+      .cio_gpio_en_o(gpio_en_o),
+      .intr_gpio_o()
   );
 
   assign irq_software = '0;

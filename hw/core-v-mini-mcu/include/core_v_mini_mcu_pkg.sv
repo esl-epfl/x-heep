@@ -98,7 +98,7 @@ package core_v_mini_mcu_pkg;
   };
 
   //slave encoder
-  localparam SYSTEM_NPERIPHERALS = 3;
+  localparam SYSTEM_NPERIPHERALS = 4;
 
   localparam logic [31:0] SOC_CTRL_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0000000;
   localparam logic [31:0] SOC_CTRL_SIZE = 32'h0010000;
@@ -115,6 +115,11 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] EXT_PERIPH_END_ADDRESS = EXT_PERIPH_START_ADDRESS + EXT_PERIPH_SIZE;
   localparam logic [31:0] EXT_PERIPH_IDX = 32'd2;
 
+  localparam logic [31:0] GPIO_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0030000;
+  localparam logic [31:0] GPIO_SIZE = 32'h0010000;
+  localparam logic [31:0] GPIO_END_ADDRESS = GPIO_START_ADDRESS + GPIO_SIZE;
+  localparam logic [31:0] GPIO_IDX = 32'd3;
+
 
   localparam addr_map_rule_t [SYSTEM_NPERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
       '{idx: SOC_CTRL_IDX, start_addr: SOC_CTRL_START_ADDRESS, end_addr: SOC_CTRL_END_ADDRESS},
@@ -123,7 +128,8 @@ package core_v_mini_mcu_pkg;
           idx: EXT_PERIPH_IDX,
           start_addr: EXT_PERIPH_START_ADDRESS,
           end_addr: EXT_PERIPH_END_ADDRESS
-      }
+      },
+      '{idx: GPIO_IDX, start_addr: GPIO_START_ADDRESS, end_addr: GPIO_END_ADDRESS}
   };
 
   localparam int unsigned PERIPHERALS_PORT_SEL_WIDTH = SYSTEM_NPERIPHERALS > 1 ? $clog2(
