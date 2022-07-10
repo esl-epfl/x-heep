@@ -21,6 +21,8 @@ filesets:
     - lowrisc:ip:uart:0.1
     - lowrisc:ip:rv_plic_example:0.1
     - lowrisc:ibex:ibex_core:0.1
+    - lowrisc:ip:rv_timer:0.1
+    - lowrisc:ip:gpio:0.1
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv

@@ -7,7 +7,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "../base/mmio.h"
+#include "../../base/mmio.h"
 
 #include "soc_ctrl_regs.h"  // Generated.
 
