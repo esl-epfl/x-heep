@@ -1,11 +1,11 @@
 // Generated register defines for memcopy_periph
 
 // Copyright information found in source file:
-// Copyright 2022 OpenHW Group
+// Copyright EPFL contributors.
 
 // Licensing information found in source file:
-// None
-// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
 
 #ifndef _MEMCOPY_PERIPH_REG_DEFS_
 #define _MEMCOPY_PERIPH_REG_DEFS_
@@ -25,7 +25,7 @@ extern "C" {
 // Number of data to copy - Once a value is written, the copy starts
 #define MEMCOPY_PERIPH_CNT_START_REG_OFFSET 0x8
 
-// Register set to 1 when copy is done.
+// Register set to 1 when copy is done
 #define MEMCOPY_PERIPH_DONE_REG_OFFSET 0xc
 
 #ifdef __cplusplus

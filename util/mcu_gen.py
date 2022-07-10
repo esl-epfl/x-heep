@@ -116,6 +116,23 @@ def main():
     ext_periph_start_offset  = string2int(obj['peripherals']['ext_periph']['offset'])
     ext_periph_size_address  = string2int(obj['peripherals']['ext_periph']['length'])
 
+    plic_start_offset  = string2int(obj['peripherals']['plic']['offset'])
+    plic_size_address  = string2int(obj['peripherals']['plic']['length'])
+
+    null_intr = obj['interrupts']['null_intr']
+    uart_intr_tx_watermark = obj['interrupts']['uart_intr_tx_watermark']
+    uart_intr_rx_watermark = obj['interrupts']['uart_intr_rx_watermark']
+    uart_intr_tx_empty = obj['interrupts']['uart_intr_tx_empty']
+    uart_intr_rx_overflow = obj['interrupts']['uart_intr_rx_overflow']
+    uart_intr_rx_frame_err = obj['interrupts']['uart_intr_rx_frame_err']
+    uart_intr_rx_break_err = obj['interrupts']['uart_intr_rx_break_err']
+    uart_intr_rx_timeout = obj['interrupts']['uart_intr_rx_timeout']
+    uart_intr_rx_parity_err = obj['interrupts']['uart_intr_rx_parity_err']
+    memcopy_intr_done = obj['interrupts']['memcopy_intr_done']
+
+    rv_timer_start_offset  = string2int(obj['peripherals']['rv_timer']['offset'])
+    rv_timer_size_address  = string2int(obj['peripherals']['rv_timer']['length'])
+
     gpio_start_offset  = string2int(obj['peripherals']['gpio']['offset'])
     gpio_size_address  = string2int(obj['peripherals']['gpio']['length'])
 
@@ -134,6 +151,22 @@ def main():
         "soc_ctrl_size_address"    : soc_ctrl_size_address,
         "ext_periph_start_offset"  : ext_periph_start_offset,
         "ext_periph_size_address"  : ext_periph_size_address,
+        "plic_start_offset"        : plic_start_offset,
+        "plic_size_address"        : plic_size_address,
+        "null_intr"                : null_intr,
+        "uart_intr_tx_watermark"   : uart_intr_tx_watermark,
+        "uart_intr_rx_watermark"   : uart_intr_rx_watermark,
+        "uart_intr_tx_empty"       : uart_intr_tx_empty,
+        "uart_intr_rx_overflow"    : uart_intr_rx_overflow,
+        "uart_intr_rx_frame_err"   : uart_intr_rx_frame_err,
+        "uart_intr_rx_break_err"   : uart_intr_rx_break_err,
+        "uart_intr_rx_timeout"     : uart_intr_rx_timeout,
+        "uart_intr_rx_parity_err"  : uart_intr_rx_parity_err,
+        "memcopy_intr_done"        : memcopy_intr_done,
+        "rv_timer_start_offset"    : rv_timer_start_offset,
+        "rv_timer_size_address"    : rv_timer_size_address,
+        "slow_memory_start_address": slow_memory_start_address,
+        "slow_memory_size_address" : slow_memory_size_address,
         "gpio_start_offset"        : gpio_start_offset,
         "gpio_size_address"        : gpio_size_address,
     }

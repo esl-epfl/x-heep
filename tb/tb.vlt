@@ -1,0 +1,9 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule UNUSED -file "*tb/testharness.sv" -match "*"
+lint_off -rule UNDRIVEN -file "*tb/testharness.sv" -match "Signal is not driven: 'jtag_tdo_o'*"
+lint_off -rule SYNCASYNCNET -file "*tb/testharness.sv" -match "*"

@@ -1,4 +1,4 @@
-// Copyright 2022 OpenHW Group
+// Copyright 2022 EPFL
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
@@ -15,7 +15,9 @@ module memcopy_periph #(
     output reg_rsp_t reg_rsp_o,
 
     output obi_req_t  master_req_o,
-    input  obi_resp_t master_resp_i
+    input  obi_resp_t master_resp_i,
+
+    output memcopy_intr_o
 );
 
   import memcopy_periph_reg_pkg::*;
@@ -58,6 +60,8 @@ module memcopy_periph #(
   assign data_gnt = master_resp_i.gnt;
   assign data_rvalid = master_resp_i.rvalid;
   assign data_rdata = master_resp_i.rdata;
+
+  assign memcopy_intr_o = memcopy_done;
 
   assign hw2reg.done.de = memcopy_done | memcopy_start;
   assign hw2reg.done.d = memcopy_done == 1'b1 ? 1'b1 : 1'b0;

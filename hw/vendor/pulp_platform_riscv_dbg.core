@@ -18,14 +18,25 @@ filesets:
     - pulp_platform_riscv_dbg/src/dm_csrs.sv
     - pulp_platform_riscv_dbg/src/dmi_cdc.sv
     - pulp_platform_riscv_dbg/src/dmi_jtag.sv
-    - pulp_platform_riscv_dbg/src/dmi_jtag_tap.sv
     - pulp_platform_riscv_dbg/src/dm_mem.sv
     - pulp_platform_riscv_dbg/src/dm_obi_top.sv
     - pulp_platform_riscv_dbg/src/dm_sba.sv
     - pulp_platform_riscv_dbg/src/dm_top.sv
     file_type: systemVerilogSource
 
+  bscane-tap:
+    files:
+    - pulp_platform_riscv_dbg/src/dmi_bscane_tap.sv
+    file_type: systemVerilogSource
+
+  rtl-tap:
+    files:
+    - pulp_platform_riscv_dbg/src/dmi_jtag_tap.sv
+    file_type: systemVerilogSource
+
 targets:
   default:
     filesets:
     - rtl
+    - "use_bscane_xilinx? (bscane-tap)"
+    - "!use_bscane_xilinx? (rtl-tap)"

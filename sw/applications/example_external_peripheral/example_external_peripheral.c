@@ -1,18 +1,69 @@
-// Copyright 2022 OpenHW Group
-// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
-// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "memcopy_periph.h"
+#include "base/csr.h"
+#include "runtime/hart.h"
+#include "runtime/handler.h"
 #include "runtime/core_v_mini_mcu.h"
+#include "drivers/rv_plic.h"
+#include "drivers/rv_plic_regs.h"
+#include "memcopy_periph.h"
 
 #define COPY_SIZE 10
+
+int8_t external_intr_flag;
+
+void handler_irq_external(void) {
+    external_intr_flag = 1;
+}
 
 int main(int argc, char *argv[])
 {
     printf("Memcopy - example external peripheral\n");
+
+    printf("Init the PLIC... ");
+    // memcopy peripheral structure to access the registers
+    dif_plic_params_t rv_plic_params;
+    dif_plic_t rv_plic;
+    dif_plic_result_t plic_res;
+
+    rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)PLIC_START_ADDRESS);
+    plic_res = dif_plic_init(rv_plic_params, &rv_plic);
+
+    if (plic_res == kDifPlicOk) {
+        printf("Success\n");
+    } else {
+        printf("Fail\n;");
+    }
+
+    printf("Set MEMCOPY interrupt priority to 1... ");
+    // Set memcopy priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
+    plic_res = dif_plic_irq_set_priority(&rv_plic, MEMCOPY_INTR_DONE, 1);
+    if (plic_res == kDifPlicOk) {
+        printf("Success\n");
+    } else {
+        printf("Fail\n;");
+    }
+
+    printf("Enable MEMCOPY interrupt... ");
+    plic_res = dif_plic_irq_set_enabled(&rv_plic, MEMCOPY_INTR_DONE, 0, kDifPlicToggleEnabled);
+    if (plic_res == kDifPlicOk) {
+        printf("Success\n");
+    } else {
+        printf("Fail\n;");
+    }
+
+    // Enable interrupt on processor side
+    // Enable global interrupt for machine-level interrupts
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    // Set mie.MEIE bit to one to enable machine-level external interrupts
+    const uint32_t mask = 1 << 11;//IRQ_EXT_ENABLE_OFFSET;
+    CSR_SET_BITS(CSR_REG_MIE, mask);
+    external_intr_flag = 0;
 
     // Use the stack
     int32_t original_data[COPY_SIZE];
@@ -37,10 +88,29 @@ int main(int argc, char *argv[])
     memcopy_periph_set_write_ptr(&memcopy_periph, (uint32_t) copied_data);
     printf("Memcopy launched...\n");
     memcopy_periph_set_cnt_start(&memcopy_periph, (uint32_t) COPY_SIZE);
-    // Poll done register to know when memcopy is finished
-    while (memcopy_periph_get_done(&memcopy_periph) == 0);
+    // Wait copy is done
+    while(external_intr_flag==0) {
+        wait_for_interrupt();
+    }
 
     printf("Memcopy finished\n");
+
+    dif_plic_irq_id_t intr_num;
+    printf("Claim interrupt... ");
+    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
+    if (plic_res == kDifPlicOk) {
+        printf("Success\n");
+    } else {
+        printf("Fail\n;");
+    }
+
+    printf("Complete interrupt... ");
+    plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
+    if (plic_res == kDifPlicOk) {
+        printf("Success\n");
+    } else {
+        printf("Fail\n;");
+    }
 
     // Reinitialized the read pointer to the original address
     src_ptr = original_data;
