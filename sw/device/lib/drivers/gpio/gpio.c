@@ -5,9 +5,9 @@
 // Modified version for core-v-mini-mcu
 // original at: https://github.com/lowRISC/opentitan/blob/master/sw/
 
-#include "./gpio.h"
+#include "gpio.h"
 
-#include "./gpio_regs.h"  // Generated.
+#include "gpio_regs.h"  // Generated.
 
 /**
  * Gives the mask that corresponds to the given bit index.

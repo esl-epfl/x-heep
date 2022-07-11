@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include <stdnoreturn.h>
 
-#include "../base/stdasm.h"
+#include "stdasm.h"
 
 /**
  * @file
