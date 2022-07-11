@@ -183,11 +183,12 @@ module core_v_mini_mcu
       .msip_o(irq_software),
 
       .ext_peripheral_slave_req_o (ext_peripheral_slave_req_o),
-      .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i)
+      .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i),
+
+      .rv_timer_irq_timer_o(irq_timer)
   );
 
-  assign irq_timer = '0;
-  assign irq_fast  = '0;
+  assign irq_fast = '0;
 
 
 endmodule  // core_v_mini_mcu

@@ -48,6 +48,10 @@ extern "C" {
 #define UART_INTR_RX_PARITY_ERR ${uart_intr_rx_parity_err}
 #define MEMCOPY_INTR_DONE ${memcopy_intr_done}
 
+#define RV_TIMER_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${rv_timer_start_offset})
+#define RV_TIMER_SIZE 0x${rv_timer_size_address}
+#define RV_TIMER_END_ADDRESS (RV_TIMER_START_ADDRESS + RV_TIMER_SIZE)
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus

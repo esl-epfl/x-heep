@@ -130,6 +130,9 @@ def main():
     uart_intr_rx_parity_err = obj['interrupts']['uart_intr_rx_parity_err']
     memcopy_intr_done = obj['interrupts']['memcopy_intr_done']
 
+    rv_timer_start_offset  = string2int(obj['peripherals']['rv_timer']['offset'])
+    rv_timer_size_address  = string2int(obj['peripherals']['rv_timer']['length'])
+
     kwargs = {
         "cpu_type"                 : cpu_type,
         "bus_type"                 : bus_type,
@@ -157,6 +160,10 @@ def main():
         "uart_intr_rx_timeout"     : uart_intr_rx_timeout,
         "uart_intr_rx_parity_err"  : uart_intr_rx_parity_err,
         "memcopy_intr_done"        : memcopy_intr_done,
+        "rv_timer_start_offset"    : rv_timer_start_offset,
+        "rv_timer_size_address"    : rv_timer_size_address,
+        "slow_memory_start_address": slow_memory_start_address,
+        "slow_memory_size_address" : slow_memory_size_address,
     }
 
     ###########
