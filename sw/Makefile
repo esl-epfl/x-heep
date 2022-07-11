@@ -33,6 +33,7 @@ LIB_DRIVERS                = $(wildcard device/lib/drivers/soc_ctrl/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/uart/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/rv_plic/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/rv_timer/*.c)
+LIB_DRIVERS                += $(wildcard device/lib/drivers/gpio/*.c)
 
 # rules to generate hex (loadable by simulators) from elf
 %.hex: %.elf

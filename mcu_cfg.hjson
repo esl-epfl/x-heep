@@ -37,6 +37,10 @@
         rv_timer: {
             offset:  0x0040000,
             length:  0x0010000,
+        },
+        gpio: {
+            offset:  0x0050000,
+            length:  0x0010000,
         }
     },
 

@@ -35,6 +35,10 @@ module core_v_mini_mcu
 
     input logic [EXT_NINTERRUPT-1:0] intr_vector_ext_i,
 
+    input  logic [31:0] gpio_i,
+    output logic [31:0] gpio_o,
+    output logic [31:0] gpio_en_o,
+
     input  logic        fetch_enable_i,
     output logic [31:0] exit_value_o,
     output logic        exit_valid_o
@@ -185,7 +189,11 @@ module core_v_mini_mcu
       .ext_peripheral_slave_req_o (ext_peripheral_slave_req_o),
       .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i),
 
-      .rv_timer_irq_timer_o(irq_timer)
+      .rv_timer_irq_timer_o(irq_timer),
+
+      .cio_gpio_i(gpio_i),
+      .cio_gpio_o(gpio_o),
+      .cio_gpio_en_o(gpio_en_o)
   );
 
   assign irq_fast = '0;

@@ -133,6 +133,9 @@ def main():
     rv_timer_start_offset  = string2int(obj['peripherals']['rv_timer']['offset'])
     rv_timer_size_address  = string2int(obj['peripherals']['rv_timer']['length'])
 
+    gpio_start_offset  = string2int(obj['peripherals']['gpio']['offset'])
+    gpio_size_address  = string2int(obj['peripherals']['gpio']['length'])
+
     kwargs = {
         "cpu_type"                 : cpu_type,
         "bus_type"                 : bus_type,
@@ -162,8 +165,8 @@ def main():
         "memcopy_intr_done"        : memcopy_intr_done,
         "rv_timer_start_offset"    : rv_timer_start_offset,
         "rv_timer_size_address"    : rv_timer_size_address,
-        "slow_memory_start_address": slow_memory_start_address,
-        "slow_memory_size_address" : slow_memory_size_address,
+        "gpio_start_offset"        : gpio_start_offset,
+        "gpio_size_address"        : gpio_size_address,
     }
 
     ###########
