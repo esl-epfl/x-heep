@@ -5,11 +5,14 @@
 module xilinx_core_v_mini_mcu_wrapper #(
     parameter PULP_XPULP = 0,
     parameter FPU        = 0,
-    parameter PULP_ZFINX = 0
+    parameter PULP_ZFINX = 0,
+    parameter CLK_LED_COUNT_LENGTH = 27
 ) (
     input logic clk_i,
-    input logic rst_ni,
-
+    input logic rst_i,
+    output logic rst_led,
+    output logic clk_led,
+    output logic clk_out,
     input  logic jtag_tck_i,
     input  logic jtag_tms_i,
     input  logic jtag_trst_ni,
@@ -20,6 +23,7 @@ module xilinx_core_v_mini_mcu_wrapper #(
     output logic uart_tx_o,
 
     input  logic fetch_enable_i,
+    input  logic boot_select_i,
     output logic exit_value_o,
     output logic exit_valid_o,
 
@@ -34,7 +38,27 @@ module xilinx_core_v_mini_mcu_wrapper #(
   logic [ 3:0] spi_flash_di;
   logic [ 3:0] spi_flash_do;
   logic [ 3:0] spi_flash_oe;
+  logic rst_ni;
+  logic [CLK_LED_COUNT_LENGTH - 1:0] clk_count;
 
+  // low active reset
+  assign rst_ni = !rst_i;
+  // reset LED
+  assign rst_led = rst_ni;
+
+  // counter to blink an LED
+  assign clk_led = clk_count[CLK_LED_COUNT_LENGTH - 1];
+
+  always_ff @(posedge clk_gen or negedge rst_ni) begin : clk_count_process
+    if (!rst_ni) begin
+      clk_count <= '0;
+    end else begin
+      clk_count <= clk_count + 1;
+    end
+  end    
+
+  // clock output for debugging
+  assign clk_out = clk_gen;
 
   // IOBUF: bidirectional pads for the data pins of the QSPI flash
   genvar i;
@@ -60,12 +84,13 @@ module xilinx_core_v_mini_mcu_wrapper #(
       .rst_ni        (rst_ni),
       .jtag_tck_i    (jtag_tck_i),
       .jtag_tms_i    (jtag_tms_i),
-      .jtag_trst_ni  (jtag_trst_ni),
+      .jtag_trst_ni  (rst_ni),
       .jtag_tdi_i    (jtag_tdi_i),
       .jtag_tdo_o    (jtag_tdo_o),
       .uart_rx_i     (uart_rx_i),
       .uart_tx_o     (uart_tx_o),
       .fetch_enable_i(fetch_enable_i),
+      .boot_select_i (boot_select_i),
 
       .flash_csb_o(spi_flash_cs),
       .flash_clk_o(spi_flash_clk),

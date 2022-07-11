@@ -39,6 +39,7 @@ filesets:
   rtl-simulation:
     depend:
     - pulp-platform.org::tech_cells_generic
+    - ::spiflash:0
     files:
     - hw/simulation/sram_wrapper.sv
     file_type: systemVerilogSource
