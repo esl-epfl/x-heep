@@ -51,11 +51,6 @@ filesets:
     - tb/tb_top.sv
     file_type: systemVerilogSource
 
-  tb-verilator:
-    files:
-    - tb/tb_top.cpp
-    file_type: cppSource
-
 targets:
   default: &default_target
     filesets:
@@ -67,7 +62,6 @@ targets:
     - tool_modelsim? (tb-sv)
     - tool_vcs? (tb-sv)
     - tool_verilator? (files_verilator_waiver)
-    - tool_verilator? (tb-verilator)
     - tool_verilator? (remote_bitbang_dpi)
     - tool_modelsim? (systemverilog_only_simjtag)
     - tool_vcs? (systemverilog_only_simjtag)
