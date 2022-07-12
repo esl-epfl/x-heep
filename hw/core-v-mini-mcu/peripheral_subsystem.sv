@@ -63,7 +63,7 @@ module peripheral_subsystem
   logic uart_intr_rx_timeout;
   logic uart_intr_rx_parity_err;
 
-  logic [31:0] intr_gpio;
+  logic [31:0] gpio_intr;
 
   tlul_pkg::tl_h2d_t plic_tl_h2d;
   tlul_pkg::tl_d2h_t plic_tl_d2h;
@@ -87,7 +87,7 @@ module peripheral_subsystem
   assign intr_vector[6] = uart_intr_rx_break_err;
   assign intr_vector[7] = uart_intr_rx_timeout;
   assign intr_vector[8] = uart_intr_rx_parity_err;
-  assign intr_vector[40:9] = intr_gpio;
+  assign intr_vector[40:9] = gpio_intr;
 
   // Assign external interrupts
   for (genvar i = 0; i < EXT_NINTERRUPT; i++) begin
@@ -249,7 +249,7 @@ module peripheral_subsystem
       .cio_gpio_i(cio_gpio_i),
       .cio_gpio_o(cio_gpio_o),
       .cio_gpio_en_o(cio_gpio_en_o),
-      .intr_gpio_o(intr_gpio)
+      .intr_gpio_o(gpio_intr)
   );
 
 endmodule : peripheral_subsystem
