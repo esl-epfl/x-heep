@@ -9,7 +9,7 @@
 
 #include <stddef.h>
 
-#include "../../base/bitfield.h"
+#include "bitfield.h"
 #include "rv_timer_regs.h"  // Generated.
 
 /**

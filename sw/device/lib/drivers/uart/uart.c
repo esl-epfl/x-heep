@@ -10,9 +10,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "../../base/bitfield.h"
-#include "../../base/mmio.h"
-#include "../../runtime/error.h"
+#include "bitfield.h"
+#include "mmio.h"
+#include "error.h"
 
 #include "uart_regs.h"  // Generated.
 

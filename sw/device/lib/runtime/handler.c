@@ -4,8 +4,8 @@
 
 #include "handler.h"
 
-#include "../base/csr.h"
-#include "../base/stdasm.h"
+#include "csr.h"
+#include "stdasm.h"
 
 /**
  * Return value of mtval

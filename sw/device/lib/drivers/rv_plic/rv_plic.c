@@ -8,8 +8,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "../../base/bitfield.h"
-#include "../../base/mmio.h"
+#include "bitfield.h"
+#include "mmio.h"
 
 #include "rv_plic_regs.h"  // Generated.
 

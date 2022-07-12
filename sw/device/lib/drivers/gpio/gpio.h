@@ -16,7 +16,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "../../base/mmio.h"
+#include "mmio.h"
 
 #ifdef __cplusplus
 extern "C" {
