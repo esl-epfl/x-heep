@@ -46,11 +46,6 @@ filesets:
     depend:
     - pulp-platform.org::pulpissimo_remote_bitbang
 
-  tb-sv:
-    files:
-    - tb/tb_top.sv
-    file_type: systemVerilogSource
-
 targets:
   default: &default_target
     filesets:
@@ -59,8 +54,6 @@ targets:
     - tool_verilator? (uartdpi)
     - tool_modelsim? (systemverilog_only_uart)
     - tool_vcs? (systemverilog_only_uart)
-    - tool_modelsim? (tb-sv)
-    - tool_vcs? (tb-sv)
     - tool_verilator? (files_verilator_waiver)
     - tool_verilator? (remote_bitbang_dpi)
     - tool_modelsim? (systemverilog_only_simjtag)
