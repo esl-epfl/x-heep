@@ -84,16 +84,8 @@ package core_v_mini_mcu_pkg;
       '{idx: RAM0_IDX, start_addr: RAM0_START_ADDRESS, end_addr: RAM0_END_ADDRESS},
       '{idx: RAM1_IDX, start_addr: RAM1_START_ADDRESS, end_addr: RAM1_END_ADDRESS},
       '{idx: DEBUG_IDX, start_addr: DEBUG_START_ADDRESS, end_addr: DEBUG_END_ADDRESS},
-      '{
-          idx: PERIPHERAL_IDX,
-          start_addr: PERIPHERAL_START_ADDRESS,
-          end_addr: PERIPHERAL_END_ADDRESS
-      },
-      '{
-          idx: EXT_SLAVE_IDX,
-          start_addr: EXT_SLAVE_START_ADDRESS,
-          end_addr: EXT_SLAVE_END_ADDRESS
-      },
+      '{idx: PERIPHERAL_IDX, start_addr: PERIPHERAL_START_ADDRESS, end_addr: PERIPHERAL_END_ADDRESS},
+      '{idx: EXT_SLAVE_IDX, start_addr: EXT_SLAVE_START_ADDRESS,end_addr: EXT_SLAVE_END_ADDRESS},
       '{idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS}
   };
 
@@ -123,7 +115,7 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] RV_TIMER_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0040000;
   localparam logic [31:0] RV_TIMER_SIZE = 32'h0010000;
   localparam logic [31:0] RV_TIMER_END_ADDRESS = RV_TIMER_START_ADDRESS + RV_TIMER_SIZE;
-  localparam logic [31:0] RV_TIMER_IDX = 32'd2;
+  localparam logic [31:0] RV_TIMER_IDX = 32'd4;
 
   localparam logic [31:0] GPIO_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0050000;
   localparam logic [31:0] GPIO_SIZE = 32'h0010000;
@@ -133,11 +125,7 @@ package core_v_mini_mcu_pkg;
   localparam addr_map_rule_t [SYSTEM_NPERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
       '{idx: SOC_CTRL_IDX, start_addr: SOC_CTRL_START_ADDRESS, end_addr: SOC_CTRL_END_ADDRESS},
       '{idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS},
-      '{
-          idx: EXT_PERIPH_IDX,
-          start_addr: EXT_PERIPH_START_ADDRESS,
-          end_addr: EXT_PERIPH_END_ADDRESS
-      },
+      '{idx: EXT_PERIPH_IDX, start_addr: EXT_PERIPH_START_ADDRESS, end_addr: EXT_PERIPH_END_ADDRESS},
       '{idx: PLIC_IDX, start_addr: PLIC_START_ADDRESS, end_addr: PLIC_END_ADDRESS},
       '{idx: RV_TIMER_IDX, start_addr: RV_TIMER_START_ADDRESS, end_addr: RV_TIMER_END_ADDRESS},
       '{idx: GPIO_IDX, start_addr: GPIO_START_ADDRESS, end_addr: GPIO_END_ADDRESS}

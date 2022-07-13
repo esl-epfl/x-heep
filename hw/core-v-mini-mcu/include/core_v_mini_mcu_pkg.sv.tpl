@@ -111,7 +111,7 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] RV_TIMER_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${rv_timer_start_offset};
   localparam logic [31:0] RV_TIMER_SIZE = 32'h${rv_timer_size_address};
   localparam logic [31:0] RV_TIMER_END_ADDRESS = RV_TIMER_START_ADDRESS + RV_TIMER_SIZE;
-  localparam logic [31:0] RV_TIMER_IDX = 32'd2;
+  localparam logic [31:0] RV_TIMER_IDX = 32'd4;
 
   localparam logic[31:0] GPIO_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${gpio_start_offset};
   localparam logic[31:0] GPIO_SIZE = 32'h${gpio_size_address};

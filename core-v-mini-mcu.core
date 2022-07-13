@@ -108,6 +108,16 @@ filesets:
     - scripts/sim/modelsim/patch_modelsim_Makefile.py
     file_type: user
 
+  tb-verilator:
+    files:
+    - tb/tb_top.cpp
+    file_type: cppSource
+
+  tb-sv:
+    files:
+    - tb/tb_top.sv
+    file_type: systemVerilogSource
+
 parameters:
   PULP_XPULP:
     datatype: int
@@ -172,6 +182,9 @@ targets:
     - tool_modelsim? (pre_patch_modelsim_Makefile)
     - tool_vcs? (pre_build_remote_bitbang)
     - tool_vcs? (pre_build_uartdpi)
+    - tool_verilator? (tb-verilator)
+    - tool_modelsim? (tb-sv)
+    - tool_vcs? (tb-sv)
     toplevel:
     - tool_modelsim? (tb_top)
     - tool_vcs? (tb_top)
