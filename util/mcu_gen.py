@@ -162,8 +162,6 @@ def main():
         "memcopy_intr_done"        : memcopy_intr_done,
         "rv_timer_start_offset"    : rv_timer_start_offset,
         "rv_timer_size_address"    : rv_timer_size_address,
-        "slow_memory_start_address": slow_memory_start_address,
-        "slow_memory_size_address" : slow_memory_size_address,
     }
 
     ###########

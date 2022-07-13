@@ -111,7 +111,7 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] RV_TIMER_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${rv_timer_start_offset};
   localparam logic [31:0] RV_TIMER_SIZE = 32'h${rv_timer_size_address};
   localparam logic [31:0] RV_TIMER_END_ADDRESS = RV_TIMER_START_ADDRESS + RV_TIMER_SIZE;
-  localparam logic [31:0] RV_TIMER_IDX = 32'd2;
+  localparam logic [31:0] RV_TIMER_IDX = 32'd4;
 
   localparam addr_map_rule_t [SYSTEM_NPERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
       '{ idx: SOC_CTRL_IDX, start_addr: SOC_CTRL_START_ADDRESS, end_addr: SOC_CTRL_END_ADDRESS },
