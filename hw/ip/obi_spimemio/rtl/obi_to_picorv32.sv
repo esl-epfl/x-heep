@@ -75,9 +75,7 @@ module obi_to_picorv32
             obi_resp_o.gnt = 1'b1;
           end else begin
             state_next = READ;
-            picorv32_req_o.addr = obi_req_i.addr;
             addr_buf_next = obi_req_i.addr;
-            picorv32_req_o.valid = 1'b1;
             obi_resp_o.gnt = 1'b1;
           end
         end

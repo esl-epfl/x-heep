@@ -159,7 +159,7 @@ We use the `Digilet HS2` cable with the `FT232HQ` (chip)[https://www.ftdichip.co
 
 Connect the HS2 cable to the FPGA.
 
-If you execute `lsubs`, you should see something like:
+If you execute `lsusb`, you should see something like:
 
 ```
 Bus 001 Device 004: ID 0403:6014 Future Technology Devices International, Ltd FT232H Single HS USB-UART/FIFO IC
