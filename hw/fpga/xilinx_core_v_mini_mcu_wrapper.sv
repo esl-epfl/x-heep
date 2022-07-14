@@ -21,8 +21,7 @@ module xilinx_core_v_mini_mcu_wrapper
     input  logic uart_rx_i,
     output logic uart_tx_o,
 
-    input  logic gpio_i,
-    output logic gpio_o,
+    inout logic [31:0] gpio_io,
 
     input  logic fetch_enable_i,
     output logic exit_value_o,
@@ -31,8 +30,6 @@ module xilinx_core_v_mini_mcu_wrapper
 
   logic        clk_gen;
   logic [31:0] exit_value;
-  logic [31:0] gpio_in;
-  logic [31:0] gpio_out;
 
   xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
       .clk_125MHz(clk_i),
@@ -56,17 +53,12 @@ module xilinx_core_v_mini_mcu_wrapper
       .uart_rx_i(uart_rx_i),
       .uart_tx_o(uart_tx_o),
       .intr_vector_ext_i(),
-      .gpio_i(gpio_in),
-      .gpio_o(gpio_out),
-      .gpio_en_o(),
+      .gpio_io(gpio_io),
       .fetch_enable_i(fetch_enable_i),
       .exit_value_o(exit_value),
       .exit_valid_o(exit_valid_o)
   );
 
   assign exit_value_o = exit_value[0];
-  assign gpio_in[0] = gpio_i;
-  assign gpio_in[31:1] = '0;
-  assign gpio_o = gpio_out[0];
 
 endmodule

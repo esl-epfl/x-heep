@@ -35,9 +35,7 @@ module core_v_mini_mcu
 
     input logic [EXT_NINTERRUPT-1:0] intr_vector_ext_i,
 
-    input  logic [31:0] gpio_i,
-    output logic [31:0] gpio_o,
-    output logic [31:0] gpio_en_o,
+    inout logic [31:0] gpio_io,
 
     input  logic        fetch_enable_i,
     output logic [31:0] exit_value_o,
@@ -82,6 +80,11 @@ module core_v_mini_mcu
   logic             irq_timer;
   logic             irq_external;
   logic      [15:0] irq_fast;
+
+  // gpio signals
+  logic      [31:0] gpio_in;
+  logic      [31:0] gpio_out;
+  logic      [31:0] gpio_en;
 
 
   cpu_subsystem #(
@@ -191,12 +194,24 @@ module core_v_mini_mcu
 
       .rv_timer_irq_timer_o(irq_timer),
 
-      .cio_gpio_i(gpio_i),
-      .cio_gpio_o(gpio_o),
-      .cio_gpio_en_o(gpio_en_o)
+      .cio_gpio_i(gpio_in),
+      .cio_gpio_o(gpio_out),
+      .cio_gpio_en_o(gpio_en)
   );
 
   assign irq_fast = '0;
+
+  genvar i;
+  generate
+    for (i = 0; i < 32; i++) begin
+      pad_cell #() pad_cell_i (
+          .gpio_i(gpio_out[i]),
+          .gpio_en_i(gpio_en[i]),
+          .gpio_o(gpio_in[i]),
+          .pad_io(gpio_io[i])
+      );
+    end
+  endgenerate
 
 
 endmodule  // core_v_mini_mcu
