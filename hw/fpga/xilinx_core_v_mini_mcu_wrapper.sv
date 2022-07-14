@@ -27,9 +27,9 @@ module xilinx_core_v_mini_mcu_wrapper #(
     output logic exit_value_o,
     output logic exit_valid_o,
 
-    inout wire [3:0] spi_flash_dio,
-    output wire spi_flash_cs,
-    output wire spi_flash_clk
+    inout tri [3:0] spi_flash_dio,
+    output logic spi_flash_cs,
+    output logic spi_flash_clk
 );
 
   logic        clk_gen;
@@ -63,7 +63,7 @@ module xilinx_core_v_mini_mcu_wrapper #(
   // IOBUF: bidirectional pads for the data pins of the QSPI flash
   genvar i;
   generate
-    for (i = 1; i <= 3; i = i + 1) begin : generate_block_identifier
+    for (i = 0; i <= 3; i = i + 1) begin : generate_block_identifier
       IOBUF qspi_iobuf (
           .T (spi_flash_oe[i]),
           .I (spi_flash_do[i]),
