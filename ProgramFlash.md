@@ -81,8 +81,27 @@ then go to
 build/openhwgroup.org_systems_core-v-mini-mcu_0/pynq-z2-vivado
 ```
 
-
 Open Vivado, open the Hardware Manager --> Open Target --> Autoconnect --> Program Device
 
 and choose the file `openhwgroup.org_systems_core-v-mini-mcu_0.bit`
+
+
+Program the FLASH as:
+
+Reset the bitstream of the FPGA, then
+
+```
+./iceprog -d i:0x0403:0x6011 -I B ../../core-v-mini-mcu/sw/applications/hello_world/hello_world.hex
+```
+
+you can read the content of the FLASH as:
+
+```
+./iceprog -d i:0x0403:0x6011 -I B -r flash_content.txt
+```
+
+remember to have the jumper in, and then out after programming the FLASH to disconnect the FTDI chip.
+
+
+then re-load the bitstream of the FPGA.
 
