@@ -95,7 +95,8 @@
     "hw/ip/edn",
     "hw/ip/entropy_src",
     "hw/ip/flash_ctrl",
-    "hw/ip/gpio",
+    "hw/ip/gpio/doc",
+    "hw/ip/gpio/dv",
     "hw/ip/hmac",
     "hw/ip/i2c",
     "hw/ip/_index",.md
