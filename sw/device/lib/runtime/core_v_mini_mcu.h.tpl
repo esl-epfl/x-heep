@@ -46,11 +46,47 @@ extern "C" {
 #define UART_INTR_RX_BREAK_ERR ${uart_intr_rx_break_err}
 #define UART_INTR_RX_TIMEOUT ${uart_intr_rx_timeout}
 #define UART_INTR_RX_PARITY_ERR ${uart_intr_rx_parity_err}
+#define GPIO_INTR_0 ${gpio_intr_0}
+#define GPIO_INTR_1 ${gpio_intr_1}
+#define GPIO_INTR_2 ${gpio_intr_2}
+#define GPIO_INTR_3 ${gpio_intr_3}
+#define GPIO_INTR_4 ${gpio_intr_4}
+#define GPIO_INTR_5 ${gpio_intr_5}
+#define GPIO_INTR_6 ${gpio_intr_6}
+#define GPIO_INTR_7 ${gpio_intr_7}
+#define GPIO_INTR_8 ${gpio_intr_8}
+#define GPIO_INTR_9 ${gpio_intr_9}
+#define GPIO_INTR_10 ${gpio_intr_10}
+#define GPIO_INTR_11 ${gpio_intr_11}
+#define GPIO_INTR_12 ${gpio_intr_12}
+#define GPIO_INTR_13 ${gpio_intr_13}
+#define GPIO_INTR_14 ${gpio_intr_14}
+#define GPIO_INTR_15 ${gpio_intr_15}
+#define GPIO_INTR_16 ${gpio_intr_16}
+#define GPIO_INTR_17 ${gpio_intr_17}
+#define GPIO_INTR_18 ${gpio_intr_18}
+#define GPIO_INTR_19 ${gpio_intr_19}
+#define GPIO_INTR_20 ${gpio_intr_20}
+#define GPIO_INTR_21 ${gpio_intr_21}
+#define GPIO_INTR_22 ${gpio_intr_22}
+#define GPIO_INTR_23 ${gpio_intr_23}
+#define GPIO_INTR_24 ${gpio_intr_24}
+#define GPIO_INTR_25 ${gpio_intr_25}
+#define GPIO_INTR_26 ${gpio_intr_26}
+#define GPIO_INTR_27 ${gpio_intr_27}
+#define GPIO_INTR_28 ${gpio_intr_28}
+#define GPIO_INTR_29 ${gpio_intr_29}
+#define GPIO_INTR_30 ${gpio_intr_30}
+#define GPIO_INTR_31 ${gpio_intr_31}
 #define MEMCOPY_INTR_DONE ${memcopy_intr_done}
 
 #define RV_TIMER_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${rv_timer_start_offset})
 #define RV_TIMER_SIZE 0x${rv_timer_size_address}
 #define RV_TIMER_END_ADDRESS (RV_TIMER_START_ADDRESS + RV_TIMER_SIZE)
+
+#define GPIO_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${gpio_start_offset})
+#define GPIO_SIZE 0x${gpio_size_address}
+#define GPIO_END_ADDRESS (GPIO_START_ADDRESS + GPIO_SIZE)
 
 #ifdef __cplusplus
 }  // extern "C"

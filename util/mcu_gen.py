@@ -128,10 +128,45 @@ def main():
     uart_intr_rx_break_err = obj['interrupts']['uart_intr_rx_break_err']
     uart_intr_rx_timeout = obj['interrupts']['uart_intr_rx_timeout']
     uart_intr_rx_parity_err = obj['interrupts']['uart_intr_rx_parity_err']
+    gpio_intr_0 = obj['interrupts']['gpio_intr_0']
+    gpio_intr_1 = obj['interrupts']['gpio_intr_1']
+    gpio_intr_2 = obj['interrupts']['gpio_intr_2']
+    gpio_intr_3 = obj['interrupts']['gpio_intr_3']
+    gpio_intr_4 = obj['interrupts']['gpio_intr_4']
+    gpio_intr_5 = obj['interrupts']['gpio_intr_5']
+    gpio_intr_6 = obj['interrupts']['gpio_intr_6']
+    gpio_intr_7 = obj['interrupts']['gpio_intr_7']
+    gpio_intr_8 = obj['interrupts']['gpio_intr_8']
+    gpio_intr_9 = obj['interrupts']['gpio_intr_9']
+    gpio_intr_10 = obj['interrupts']['gpio_intr_10']
+    gpio_intr_11 = obj['interrupts']['gpio_intr_11']
+    gpio_intr_12 = obj['interrupts']['gpio_intr_12']
+    gpio_intr_13 = obj['interrupts']['gpio_intr_13']
+    gpio_intr_14 = obj['interrupts']['gpio_intr_14']
+    gpio_intr_15 = obj['interrupts']['gpio_intr_15']
+    gpio_intr_16 = obj['interrupts']['gpio_intr_16']
+    gpio_intr_17 = obj['interrupts']['gpio_intr_17']
+    gpio_intr_18 = obj['interrupts']['gpio_intr_18']
+    gpio_intr_19 = obj['interrupts']['gpio_intr_19']
+    gpio_intr_20 = obj['interrupts']['gpio_intr_20']
+    gpio_intr_21 = obj['interrupts']['gpio_intr_21']
+    gpio_intr_22 = obj['interrupts']['gpio_intr_22']
+    gpio_intr_23 = obj['interrupts']['gpio_intr_23']
+    gpio_intr_24 = obj['interrupts']['gpio_intr_24']
+    gpio_intr_25 = obj['interrupts']['gpio_intr_25']
+    gpio_intr_26 = obj['interrupts']['gpio_intr_26']
+    gpio_intr_27 = obj['interrupts']['gpio_intr_27']
+    gpio_intr_28 = obj['interrupts']['gpio_intr_28']
+    gpio_intr_29 = obj['interrupts']['gpio_intr_29']
+    gpio_intr_30 = obj['interrupts']['gpio_intr_30']
+    gpio_intr_31 = obj['interrupts']['gpio_intr_31']
     memcopy_intr_done = obj['interrupts']['memcopy_intr_done']
 
     rv_timer_start_offset  = string2int(obj['peripherals']['rv_timer']['offset'])
     rv_timer_size_address  = string2int(obj['peripherals']['rv_timer']['length'])
+
+    gpio_start_offset  = string2int(obj['peripherals']['gpio']['offset'])
+    gpio_size_address  = string2int(obj['peripherals']['gpio']['length'])
 
     kwargs = {
         "cpu_type"                 : cpu_type,
@@ -159,9 +194,43 @@ def main():
         "uart_intr_rx_break_err"   : uart_intr_rx_break_err,
         "uart_intr_rx_timeout"     : uart_intr_rx_timeout,
         "uart_intr_rx_parity_err"  : uart_intr_rx_parity_err,
+        "gpio_intr_0"              : gpio_intr_0,
+        "gpio_intr_1"              : gpio_intr_1,
+        "gpio_intr_2"              : gpio_intr_2,
+        "gpio_intr_3"              : gpio_intr_3,
+        "gpio_intr_4"              : gpio_intr_4,
+        "gpio_intr_5"              : gpio_intr_5,
+        "gpio_intr_6"              : gpio_intr_6,
+        "gpio_intr_7"              : gpio_intr_7,
+        "gpio_intr_8"              : gpio_intr_8,
+        "gpio_intr_9"              : gpio_intr_9,
+        "gpio_intr_10"             : gpio_intr_10,
+        "gpio_intr_11"             : gpio_intr_11,
+        "gpio_intr_12"             : gpio_intr_12,
+        "gpio_intr_13"             : gpio_intr_13,
+        "gpio_intr_14"             : gpio_intr_14,
+        "gpio_intr_15"             : gpio_intr_15,
+        "gpio_intr_16"             : gpio_intr_16,
+        "gpio_intr_17"             : gpio_intr_17,
+        "gpio_intr_18"             : gpio_intr_18,
+        "gpio_intr_19"             : gpio_intr_19,
+        "gpio_intr_20"             : gpio_intr_20,
+        "gpio_intr_21"             : gpio_intr_21,
+        "gpio_intr_22"             : gpio_intr_22,
+        "gpio_intr_23"             : gpio_intr_23,
+        "gpio_intr_24"             : gpio_intr_24,
+        "gpio_intr_25"             : gpio_intr_25,
+        "gpio_intr_26"             : gpio_intr_26,
+        "gpio_intr_27"             : gpio_intr_27,
+        "gpio_intr_28"             : gpio_intr_28,
+        "gpio_intr_29"             : gpio_intr_29,
+        "gpio_intr_30"             : gpio_intr_30,
+        "gpio_intr_31"             : gpio_intr_31,
         "memcopy_intr_done"        : memcopy_intr_done,
         "rv_timer_start_offset"    : rv_timer_start_offset,
         "rv_timer_size_address"    : rv_timer_size_address,
+        "gpio_start_offset"        : gpio_start_offset,
+        "gpio_size_address"        : gpio_size_address,
     }
 
     ###########

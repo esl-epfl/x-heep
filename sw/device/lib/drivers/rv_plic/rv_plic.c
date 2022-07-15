@@ -8,8 +8,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "../../base/bitfield.h"
-#include "../../base/mmio.h"
+#include "bitfield.h"
+#include "mmio.h"
 
 #include "rv_plic_regs.h"  // Generated.
 
@@ -56,7 +56,7 @@ static uint8_t plic_irq_bit_index(dif_plic_irq_id_t irq) {
  */
 static ptrdiff_t plic_irq_enable_base_for_target(dif_plic_target_t target) {
   ptrdiff_t range = RV_PLIC_IE0_MULTIREG_COUNT * sizeof(uint32_t);
-  return RV_PLIC_IE0_REG_OFFSET + (range * target);
+  return RV_PLIC_IE0_0_REG_OFFSET + (range * target);
 }
 
 /**
@@ -98,7 +98,7 @@ static plic_reg_info_t plic_irq_enable_reg_info(dif_plic_irq_id_t irq,
 static plic_reg_info_t plic_irq_trigger_type_reg_info(dif_plic_irq_id_t irq) {
   ptrdiff_t offset = plic_offset_from_reg0(irq);
   return (plic_reg_info_t){
-      .offset = RV_PLIC_LE_REG_OFFSET + offset,
+      .offset = RV_PLIC_LE_0_REG_OFFSET + offset,
       .bit_index = plic_irq_bit_index(irq),
   };
 }
@@ -109,7 +109,7 @@ static plic_reg_info_t plic_irq_trigger_type_reg_info(dif_plic_irq_id_t irq) {
 static plic_reg_info_t plic_irq_pending_reg_info(dif_plic_irq_id_t irq) {
   ptrdiff_t offset = plic_offset_from_reg0(irq);
   return (plic_reg_info_t){
-      .offset = RV_PLIC_IP_REG_OFFSET + offset,
+      .offset = RV_PLIC_IP_0_REG_OFFSET + offset,
       .bit_index = plic_irq_bit_index(irq),
   };
 }
@@ -136,7 +136,7 @@ static ptrdiff_t plic_priority_reg_offset(dif_plic_irq_id_t irq) {
 static void plic_reset(const dif_plic_t *plic) {
   // Clear all of the Level/Edge registers.
   for (int i = 0; i < RV_PLIC_LE_MULTIREG_COUNT; ++i) {
-    ptrdiff_t offset = RV_PLIC_LE_REG_OFFSET + (i * sizeof(uint32_t));
+    ptrdiff_t offset = RV_PLIC_LE_0_REG_OFFSET + (i * sizeof(uint32_t));
     mmio_region_write32(plic->params.base_addr, offset, 0);
   }
 

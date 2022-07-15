@@ -33,6 +33,11 @@ LIB_DRIVERS                = $(wildcard device/lib/drivers/soc_ctrl/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/uart/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/rv_plic/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/rv_timer/*.c)
+LIB_DRIVERS                += $(wildcard device/lib/drivers/gpio/*.c)
+INC_FOLDERS                 = $(sort $(dir $(wildcard device/lib/drivers/*/)))
+INC_FOLDERS                += $(sort $(dir $(wildcard device/lib/base/*/)))
+INC_FOLDERS                += $(sort $(dir $(wildcard device/lib/runtime/*/)))
+INC_FOLDERS_GCC             = $(addprefix -I ,$(INC_FOLDERS))
 
 # rules to generate hex (loadable by simulators) from elf
 %.hex: %.elf
@@ -54,13 +59,13 @@ applications/hello_world/hello_world.elf: applications/hello_world/hello_world.c
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
 		-T linker/link.ld \
+		-I $(RISCV)/riscv32-unknown-elf/include \
+		$(INC_FOLDERS_GCC) \
 		-static \
 		$(LIB_CRT) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
-		-I $(RISCV)/riscv32-unknown-elf/include \
-		-I device/lib/ \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
@@ -69,13 +74,13 @@ applications/matadd/matadd.elf: applications/matadd/matadd.c
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
 		-T linker/link.ld \
+		-I $(RISCV)/riscv32-unknown-elf/include \
+		$(INC_FOLDERS_GCC) \
 		-static \
 		$(LIB_CRT) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
-		-I $(RISCV)/riscv32-unknown-elf/include \
-		-I device/lib/ \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
@@ -84,13 +89,28 @@ applications/example_external_peripheral/example_external_peripheral.elf: applic
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
 		-T linker/link.ld \
+		-I $(RISCV)/riscv32-unknown-elf/include \
+		$(INC_FOLDERS_GCC) \
 		-static \
 		$(LIB_CRT) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
+		-L $(RISCV)/riscv32-unknown-elf/lib \
+		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
+
+applications/example_gpio_cnt/example_gpio_cnt.elf: applications/example_gpio_cnt/example_gpio_cnt.c
+	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
+		$(CUSTOM_GCC_FLAGS) \
+		-DHOST_BUILD \
+		-T linker/link.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
-		-I device/lib/ \
+		$(INC_FOLDERS_GCC) \
+		-static \
+		$(LIB_CRT) \
+		$^ $(LIB_RUNTIME) \
+		$(LIB_BASE) \
+		$(LIB_DRIVERS) \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 

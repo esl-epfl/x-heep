@@ -11,8 +11,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "../../base/mmio.h"
-#include "../../runtime/error.h"
+#include "mmio.h"
+#include "error.h"
 
 #ifdef __cplusplus
 extern "C" {
