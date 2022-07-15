@@ -21,6 +21,7 @@ filesets:
     - lint/cluster_interconnect.vlt
     - lint/pulpissimo.vlt
     - lint/rv_plic.vlt
+    - lint/spi_device.vlt
     file_type: vlt
 
 

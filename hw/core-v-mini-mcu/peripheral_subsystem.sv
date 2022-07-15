@@ -273,7 +273,7 @@ module peripheral_subsystem
       .clk_core_i(clk_i),
       .rst_core_ni(rst_ni),
       .tl_i(spi_host_tl_h2d),
-      .tl_o(uart_tl_d2h),
+      .tl_o(spi_host_tl_d2h),
       .cio_sck_o(spi_sck_o),
       .cio_sck_en_o(spi_sck_en_o),
       .cio_csb_o(spi_csb_o),

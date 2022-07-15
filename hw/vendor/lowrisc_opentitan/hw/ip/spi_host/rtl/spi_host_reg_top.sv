@@ -50,10 +50,7 @@ module spi_host_reg_top (
   tlul_pkg::tl_h2d_t tl_reg_h2d;
   tlul_pkg::tl_d2h_t tl_reg_d2h;
 
-  // integrity error output is permanent and should be used for alert generation
-  // register errors are transactional
-  assign intg_err_o = 1'b0;
-
+  assign intg_err_o = '0;
 
   tlul_pkg::tl_h2d_t tl_socket_h2d [2];
   tlul_pkg::tl_d2h_t tl_socket_d2h [2];
