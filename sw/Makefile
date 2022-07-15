@@ -66,7 +66,7 @@ applications/hello_world/hello_world.elf: applications/hello_world/hello_world.c
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
 applications/hello_world/hello_world.flash.elf: applications/hello_world/hello_world.c
-	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
+	$(RISCV_EXE_PREFIX)gcc -march=rv32im -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
 		-T linker/link_spiflash.ld \
