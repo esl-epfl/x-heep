@@ -36,7 +36,7 @@ module testharness #(
   logic sim_jtag_tdi;
   logic sim_jtag_tdo;
   logic sim_jtag_trstn;
-  logic [31:0] gpio;
+  wire [31:0] gpio;
 
   // External xbar master/slave and peripheral ports
   obi_req_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_req;
