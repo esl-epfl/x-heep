@@ -27,7 +27,7 @@ module xilinx_core_v_mini_mcu_wrapper #(
     output logic exit_value_o,
     output logic exit_valid_o,
 
-    inout tri [3:0] spi_flash_dio,
+    inout  logic [3:0] spi_flash_dio,
     output logic spi_flash_cs,
     output logic spi_flash_clk
 );
@@ -65,7 +65,7 @@ module xilinx_core_v_mini_mcu_wrapper #(
   generate
     for (i = 0; i <= 3; i = i + 1) begin : generate_block_identifier
       IOBUF qspi_iobuf (
-          .T (spi_flash_oe[i]),
+          .T (~spi_flash_oe[i]),
           .I (spi_flash_do[i]),
           .O (spi_flash_di[i]),
           .IO(spi_flash_dio[i])
