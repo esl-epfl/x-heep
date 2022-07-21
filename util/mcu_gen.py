@@ -54,6 +54,18 @@ def main():
                         help="Target directory.")
     # Parse arguments.
 
+    parser.add_argument("--cpu",
+                        metavar="ARCH",
+                        nargs='?',
+                        default="",
+                        help="CPU type (default value from cfg file)")
+
+    parser.add_argument("--bus",
+                        metavar="BUS_TYPE",
+                        nargs='?',
+                        default="",
+                        help="Bus type (default value from cfg file)")
+
     parser.add_argument("--pkg-sv",
                         metavar="PKG_SV",
                         help="Name of top-level package file (output)")
@@ -88,9 +100,9 @@ def main():
     outdir.mkdir(parents=True, exist_ok=True)
 
 
-    cpu_type = obj['cpu_type']
+    cpu_type = args.cpu if args.cpu != None else obj['cpu_type']
 
-    bus_type = obj['bus_type']
+    bus_type = args.bus if args.bus != None else obj['bus_type']
 
     debug_start_address = string2int(obj['debug']['address'])
     if int(debug_start_address, 16) < int('10000', 16):
