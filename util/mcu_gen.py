@@ -55,13 +55,13 @@ def main():
     # Parse arguments.
 
     parser.add_argument("--cpu",
-                        metavar="ARCH",
+                        metavar="cv32e20,cv32e40p",
                         nargs='?',
                         default="",
                         help="CPU type (default value from cfg file)")
 
     parser.add_argument("--bus",
-                        metavar="BUS_TYPE",
+                        metavar="onetoM,NtoM",
                         nargs='?',
                         default="",
                         help="Bus type (default value from cfg file)")
