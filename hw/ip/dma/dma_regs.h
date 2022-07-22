@@ -22,14 +22,11 @@ extern "C" {
 // Output data pointer
 #define DMA_PTR_OUT_REG_OFFSET 0x4
 
-// Type of data to transfer (1, 2, or 4 bytes)
-#define DMA_DATA_TYPE_REG_OFFSET 0x8
-
-// Number of data to copy - Once a value is written, the copy starts
-#define DMA_DMA_START_REG_OFFSET 0xc
+// Number of bytes to copy - Once a value is written, the copy starts
+#define DMA_DMA_START_REG_OFFSET 0x8
 
 // Register set to 1 when copy is done
-#define DMA_DONE_REG_OFFSET 0x10
+#define DMA_DONE_REG_OFFSET 0xc
 
 #ifdef __cplusplus
 }  // extern "C"
