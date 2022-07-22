@@ -10,7 +10,7 @@
 module dma_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 5
+    parameter int AW = 4
 ) (
     input clk_i,
     input rst_ni,
@@ -74,9 +74,6 @@ module dma_reg_top #(
   logic [31:0] ptr_out_qs;
   logic [31:0] ptr_out_wd;
   logic ptr_out_we;
-  logic [31:0] data_type_qs;
-  logic [31:0] data_type_wd;
-  logic data_type_we;
   logic [31:0] dma_start_qs;
   logic [31:0] dma_start_wd;
   logic dma_start_we;
@@ -137,33 +134,6 @@ module dma_reg_top #(
   );
 
 
-  // R[data_type]: V(False)
-
-  prim_subreg #(
-      .DW      (32),
-      .SWACCESS("RW"),
-      .RESVAL  (32'h4)
-  ) u_data_type (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(data_type_we),
-      .wd(data_type_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.data_type.q),
-
-      // to register interface (read)
-      .qs(data_type_qs)
-  );
-
-
   // R[dma_start]: V(False)
 
   prim_subreg #(
@@ -219,14 +189,13 @@ module dma_reg_top #(
 
 
 
-  logic [4:0] addr_hit;
+  logic [3:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == DMA_PTR_IN_OFFSET);
     addr_hit[1] = (reg_addr == DMA_PTR_OUT_OFFSET);
-    addr_hit[2] = (reg_addr == DMA_DATA_TYPE_OFFSET);
-    addr_hit[3] = (reg_addr == DMA_DMA_START_OFFSET);
-    addr_hit[4] = (reg_addr == DMA_DONE_OFFSET);
+    addr_hit[2] = (reg_addr == DMA_DMA_START_OFFSET);
+    addr_hit[3] = (reg_addr == DMA_DONE_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -237,8 +206,7 @@ module dma_reg_top #(
               ((addr_hit[0] & (|(DMA_PERMIT[0] & ~reg_be))) |
                (addr_hit[1] & (|(DMA_PERMIT[1] & ~reg_be))) |
                (addr_hit[2] & (|(DMA_PERMIT[2] & ~reg_be))) |
-               (addr_hit[3] & (|(DMA_PERMIT[3] & ~reg_be))) |
-               (addr_hit[4] & (|(DMA_PERMIT[4] & ~reg_be)))));
+               (addr_hit[3] & (|(DMA_PERMIT[3] & ~reg_be)))));
   end
 
   assign ptr_in_we = addr_hit[0] & reg_we & !reg_error;
@@ -247,10 +215,7 @@ module dma_reg_top #(
   assign ptr_out_we = addr_hit[1] & reg_we & !reg_error;
   assign ptr_out_wd = reg_wdata[31:0];
 
-  assign data_type_we = addr_hit[2] & reg_we & !reg_error;
-  assign data_type_wd = reg_wdata[31:0];
-
-  assign dma_start_we = addr_hit[3] & reg_we & !reg_error;
+  assign dma_start_we = addr_hit[2] & reg_we & !reg_error;
   assign dma_start_wd = reg_wdata[31:0];
 
   // Read data return
@@ -266,14 +231,10 @@ module dma_reg_top #(
       end
 
       addr_hit[2]: begin
-        reg_rdata_next[31:0] = data_type_qs;
-      end
-
-      addr_hit[3]: begin
         reg_rdata_next[31:0] = dma_start_qs;
       end
 
-      addr_hit[4]: begin
+      addr_hit[3]: begin
         reg_rdata_next[31:0] = done_qs;
       end
 

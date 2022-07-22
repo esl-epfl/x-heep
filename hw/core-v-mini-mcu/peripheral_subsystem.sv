@@ -65,10 +65,10 @@ module peripheral_subsystem
     output logic cio_sda_en_o,
 
     // DMA
-    input  obi_req_t  dma_master0_ch0_req_i,
-    output obi_resp_t dma_master0_ch0_resp_o,
-    input  obi_req_t  dma_master1_ch0_req_i,
-    output obi_resp_t dma_master1_ch0_resp_o
+    output obi_req_t  dma_master0_ch0_req_o,
+    input  obi_resp_t dma_master0_ch0_resp_i,
+    output obi_req_t  dma_master1_ch0_req_o,
+    input  obi_resp_t dma_master1_ch0_resp_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -105,6 +105,9 @@ module peripheral_subsystem
   logic uart_intr_rx_timeout;
   logic uart_intr_rx_parity_err;
   logic [31:0] gpio_intr;
+
+  logic dma_intr;
+
   logic [rv_plic_reg_pkg::NumTarget-1:0] irq_plic;
   logic [rv_plic_reg_pkg::NumSrc-1:0] intr_vector;
   logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] irq_id[rv_plic_reg_pkg::NumTarget];
@@ -397,10 +400,10 @@ module peripheral_subsystem
       .rst_ni,
       .reg_req_i (peripheral_slv_req[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
       .reg_rsp_o (peripheral_slv_rsp[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
-      .dma_master0_ch0_req_i,
-      .dma_master0_ch0_resp_o,
-      .dma_master1_ch0_req_i,
-      .dma_master1_ch0_resp_o,
+      .dma_master0_ch0_req_o,
+      .dma_master0_ch0_resp_i,
+      .dma_master1_ch0_req_o,
+      .dma_master1_ch0_resp_i,
       .dma_intr_o(dma_intr)
   );
 

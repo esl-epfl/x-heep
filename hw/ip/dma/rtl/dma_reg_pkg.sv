@@ -7,7 +7,7 @@
 package dma_reg_pkg;
 
   // Address widths within the block
-  parameter int BlockAw = 5;
+  parameter int BlockAw = 4;
 
   ////////////////////////////
   // Typedefs for registers //
@@ -16,8 +16,6 @@ package dma_reg_pkg;
   typedef struct packed {logic [31:0] q;} dma_reg2hw_ptr_in_reg_t;
 
   typedef struct packed {logic [31:0] q;} dma_reg2hw_ptr_out_reg_t;
-
-  typedef struct packed {logic [31:0] q;} dma_reg2hw_data_type_reg_t;
 
   typedef struct packed {logic [31:0] q;} dma_reg2hw_dma_start_reg_t;
 
@@ -35,9 +33,8 @@ package dma_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    dma_reg2hw_ptr_in_reg_t ptr_in;  // [159:128]
-    dma_reg2hw_ptr_out_reg_t ptr_out;  // [127:96]
-    dma_reg2hw_data_type_reg_t data_type;  // [95:64]
+    dma_reg2hw_ptr_in_reg_t ptr_in;  // [127:96]
+    dma_reg2hw_ptr_out_reg_t ptr_out;  // [95:64]
     dma_reg2hw_dma_start_reg_t dma_start;  // [63:32]
     dma_reg2hw_done_reg_t done;  // [31:0]
   } dma_reg2hw_t;
@@ -49,28 +46,25 @@ package dma_reg_pkg;
   } dma_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] DMA_PTR_IN_OFFSET = 5'h0;
-  parameter logic [BlockAw-1:0] DMA_PTR_OUT_OFFSET = 5'h4;
-  parameter logic [BlockAw-1:0] DMA_DATA_TYPE_OFFSET = 5'h8;
-  parameter logic [BlockAw-1:0] DMA_DMA_START_OFFSET = 5'hc;
-  parameter logic [BlockAw-1:0] DMA_DONE_OFFSET = 5'h10;
+  parameter logic [BlockAw-1:0] DMA_PTR_IN_OFFSET = 4'h0;
+  parameter logic [BlockAw-1:0] DMA_PTR_OUT_OFFSET = 4'h4;
+  parameter logic [BlockAw-1:0] DMA_DMA_START_OFFSET = 4'h8;
+  parameter logic [BlockAw-1:0] DMA_DONE_OFFSET = 4'hc;
 
   // Register index
   typedef enum int {
     DMA_PTR_IN,
     DMA_PTR_OUT,
-    DMA_DATA_TYPE,
     DMA_DMA_START,
     DMA_DONE
   } dma_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] DMA_PERMIT[5] = '{
+  parameter logic [3:0] DMA_PERMIT[4] = '{
       4'b1111,  // index[0] DMA_PTR_IN
       4'b1111,  // index[1] DMA_PTR_OUT
-      4'b1111,  // index[2] DMA_DATA_TYPE
-      4'b1111,  // index[3] DMA_DMA_START
-      4'b1111  // index[4] DMA_DONE
+      4'b1111,  // index[2] DMA_DMA_START
+      4'b1111  // index[3] DMA_DONE
   };
 
 endpackage
