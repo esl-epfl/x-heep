@@ -1,0 +1,23 @@
+CAPI=2:
+
+name: "example:ip:memcopy_periph"
+description: "OpenHW Group core-v-mini-mcu external memcopy peripheral example"
+
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+      - pulp-platform.org::common_cells
+    files:
+    - rtl/memcopy_periph_reg_pkg.sv
+    - rtl/memcopy_periph_reg_top.sv
+    - rtl/memcopy_periph.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl
