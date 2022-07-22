@@ -102,8 +102,13 @@ extern "C" {
 #define GPIO_INTR_29 38
 #define GPIO_INTR_30 39
 #define GPIO_INTR_31 40
-#define MEMCOPY_INTR_DONE 41
+#define DMA_INTR_DONE 41
+#define MEMCOPY_INTR_DONE 42
 
+
+#define DMA_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x0060000)
+#define DMA_SIZE 0x0010000
+#define DMA_END_ADDRESS (DMA_START_ADDRESS + DMA_SIZE)
 
 #ifdef __cplusplus
 }  // extern "C"

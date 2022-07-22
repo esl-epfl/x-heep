@@ -181,6 +181,7 @@ def main():
     gpio_intr_29 = obj['interrupts']['gpio_intr_29']
     gpio_intr_30 = obj['interrupts']['gpio_intr_30']
     gpio_intr_31 = obj['interrupts']['gpio_intr_31']
+    dma_intr_done = obj['interrupts']['dma_intr_done']
     memcopy_intr_done = obj['interrupts']['memcopy_intr_done']
 
     kwargs = {
@@ -255,6 +256,7 @@ def main():
         "gpio_intr_29"             : gpio_intr_29,
         "gpio_intr_30"             : gpio_intr_30,
         "gpio_intr_31"             : gpio_intr_31,
+        "dma_intr_done"            : dma_intr_done,
         "memcopy_intr_done"        : memcopy_intr_done,
     }
 
