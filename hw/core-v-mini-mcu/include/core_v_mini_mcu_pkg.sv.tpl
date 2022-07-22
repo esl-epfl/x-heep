@@ -94,7 +94,7 @@ package core_v_mini_mcu_pkg;
   };
 
   //slave encoder
-  localparam SYSTEM_NPERIPHERALS = 10;
+  localparam SYSTEM_NPERIPHERALS = 11;
 
   localparam logic[31:0] EXT_PERIPH_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${ext_periph_start_offset};
   localparam logic[31:0] EXT_PERIPH_SIZE = 32'h${ext_periph_size_address};
@@ -149,7 +149,7 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] DMA_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${dma_start_offset};
   localparam logic[31:0] DMA_SIZE = 32'h${dma_size_address};
   localparam logic[31:0] DMA_END_ADDRESS = DMA_START_ADDRESS + DMA_SIZE;
-  localparam logic[31:0] DMA_IDX = 32'd9;
+  localparam logic[31:0] DMA_IDX = 32'd10;
 
   localparam addr_map_rule_t [SYSTEM_NPERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
       '{ idx: EXT_PERIPH_IDX, start_addr: EXT_PERIPH_START_ADDRESS, end_addr: EXT_PERIPH_END_ADDRESS },

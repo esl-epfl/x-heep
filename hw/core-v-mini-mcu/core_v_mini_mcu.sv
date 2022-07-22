@@ -252,7 +252,7 @@ module core_v_mini_mcu
       .cio_scl_en_o(cio_scl_en),
       .cio_sda_i(cio_sda_in),
       .cio_sda_o(cio_sda_out),
-      .cio_sda_en_o(cio_sda_en)
+      .cio_sda_en_o(cio_sda_en),
 
       .dma_master0_ch0_req_o (dma_master0_ch0_req),
       .dma_master0_ch0_resp_i(dma_master0_ch0_resp),

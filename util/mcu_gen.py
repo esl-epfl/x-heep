@@ -212,6 +212,7 @@ def main():
     intr_acq_overflow = obj['interrupts']['intr_acq_overflow']
     intr_ack_stop = obj['interrupts']['intr_ack_stop']
     intr_host_timeout = obj['interrupts']['intr_host_timeout']
+    dma_intr_done = obj['interrupts']['dma_intr_done']
     memcopy_intr_done = obj['interrupts']['memcopy_intr_done']
 
     kwargs = {
@@ -304,6 +305,7 @@ def main():
         "intr_acq_overflow"        : intr_acq_overflow,
         "intr_ack_stop"            : intr_ack_stop,
         "intr_host_timeout"        : intr_host_timeout,
+        "dma_intr_done"            : dma_intr_done,
         "memcopy_intr_done"        : memcopy_intr_done,
     }
 

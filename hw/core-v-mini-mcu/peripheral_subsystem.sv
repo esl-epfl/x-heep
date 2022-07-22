@@ -170,7 +170,7 @@ module peripheral_subsystem
 
   // REMOVE ONCE PLIC HJSON IS UPDATED
   for (genvar i = 58 + EXT_NINTERRUPT; i < rv_plic_reg_pkg::NumSrc; i++) begin
-    assign intr_vector[i+42] = 1'b0;
+    assign intr_vector[i] = 1'b0;
   end
 
   //Address Decoder
