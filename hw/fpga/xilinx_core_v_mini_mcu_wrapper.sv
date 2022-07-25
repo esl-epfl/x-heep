@@ -3,13 +3,13 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 module xilinx_core_v_mini_mcu_wrapper #(
-    parameter PULP_XPULP = 0,
-    parameter FPU        = 0,
-    parameter PULP_ZFINX = 0,
+    parameter PULP_XPULP           = 0,
+    parameter FPU                  = 0,
+    parameter PULP_ZFINX           = 0,
     parameter CLK_LED_COUNT_LENGTH = 27
 ) (
-    input logic clk_i,
-    input logic rst_i,
+    input  logic clk_i,
+    input  logic rst_i,
     output logic rst_led,
     output logic clk_led,
     output logic clk_out,
@@ -27,27 +27,27 @@ module xilinx_core_v_mini_mcu_wrapper #(
     output logic exit_value_o,
     output logic exit_valid_o,
 
-    inout  logic [3:0] spi_flash_dio,
+    inout logic [3:0] spi_flash_dio,
     output logic spi_flash_cs,
     output logic spi_flash_clk
 );
 
-  logic        clk_gen;
-  logic [31:0] exit_value;
+  logic                              clk_gen;
+  logic [                      31:0] exit_value;
 
-  logic [ 3:0] spi_flash_di;
-  logic [ 3:0] spi_flash_do;
-  logic [ 3:0] spi_flash_oe;
-  logic rst_ni;
+  logic [                       3:0] spi_flash_di;
+  logic [                       3:0] spi_flash_do;
+  logic [                       3:0] spi_flash_oe;
+  logic                              rst_ni;
   logic [CLK_LED_COUNT_LENGTH - 1:0] clk_count;
 
   // low active reset
-  assign rst_ni = !rst_i;
+  assign rst_ni  = !rst_i;
   // reset LED
   assign rst_led = rst_ni;
 
   // counter to blink an LED
-  assign clk_led = clk_count[CLK_LED_COUNT_LENGTH - 1];
+  assign clk_led = clk_count[CLK_LED_COUNT_LENGTH-1];
 
   always_ff @(posedge clk_gen or negedge rst_ni) begin : clk_count_process
     if (!rst_ni) begin
@@ -55,7 +55,7 @@ module xilinx_core_v_mini_mcu_wrapper #(
     end else begin
       clk_count <= clk_count + 1;
     end
-  end    
+  end
 
   // clock output for debugging
   assign clk_out = clk_gen;
