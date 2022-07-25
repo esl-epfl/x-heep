@@ -102,7 +102,7 @@ This project supports simulation with Verilator, Synopsys VCS, and Siemens Quest
 To simulate your application with Verilator, first compile the HDL:
 
 ```
-$ fusesoc --cores-root . run --no-export --target=sim --tool=verilator --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+$ make verilator-sim
 ```
 
 then, go to your target system built folder
@@ -122,7 +122,7 @@ $ ./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex
 To simulate your application with VCS, first compile the HDL:
 
 ```
-$ fusesoc --cores-root . run --no-export --target=sim --tool=vcs --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+$ make vcs-sim
 ```
 
 then, go to your target system built folder
@@ -142,7 +142,7 @@ $ ./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/applications
 To simulate your application with Questasim, first set the env variable `MODEL_TECH` to your Questasim bin folder, then compile the HDL:
 
 ```
-$ fusesoc --cores-root . run --no-export --target=sim --tool=modelsim --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+$ make questasim-sim
 ```
 
 then, go to your target system built folder
@@ -160,7 +160,7 @@ $ make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world
 You can also use vopt for HDL optimized compilation:
 
 ```
-$ fusesoc --cores-root . run --no-export --target=sim_opt --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+$ make questasim-sim-opt
 ```
 
 then go to
