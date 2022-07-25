@@ -22,6 +22,8 @@ filesets:
     - lint/picorv32.vlt
     - lint/pulpissimo.vlt
     - lint/rv_plic.vlt
+    - lint/spi_device.vlt
+    - lint/spi_host.vlt
     file_type: vlt
 
 

@@ -11,7 +11,8 @@ module soc_ctrl #(
     input clk_i,
     input rst_ni,
 
-    input logic boot_select_i,
+    input  logic boot_select_i,
+    output logic use_spimemio_o,
 
     // Bus Interface
     input  reg_req_t reg_req_i,
@@ -55,7 +56,8 @@ module soc_ctrl #(
       .devmode_i(1'b1)
   );
 
-  assign exit_valid_o = reg2hw.exit_valid.q;
-  assign exit_value_o = reg2hw.exit_value.q;
+  assign exit_valid_o   = reg2hw.exit_valid.q;
+  assign exit_value_o   = reg2hw.exit_value.q;
+  assign use_spimemio_o = reg2hw.use_spimemio.q;
 
 endmodule : soc_ctrl

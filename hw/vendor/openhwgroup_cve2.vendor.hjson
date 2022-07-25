@@ -43,7 +43,7 @@
     "ibex_top.core",
     "ibex_top_tracing.core",
     "ibex_tracer.core",
-
+    "tool_requirements.py"
   ]
 }
 

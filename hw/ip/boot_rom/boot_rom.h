@@ -3,7 +3,7 @@
 const int reset_vec_size = 12;
 
 uint32_t reset_vec[reset_vec_size] = {
-    0x200005b7,
+    0x200105b7,
     0x0085c503,
     0x00051a63,
     0x00c5c503,

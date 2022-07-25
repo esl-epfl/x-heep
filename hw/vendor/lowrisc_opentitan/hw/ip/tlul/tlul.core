@@ -8,6 +8,7 @@ description: "Transition core for TL-UL (deprecated)"
 filesets:
   files_rtl:
     depend:
+      - lowrisc:tlul:socket_1n
       - lowrisc:tlul:adapter_reg
 
 targets:

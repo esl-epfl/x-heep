@@ -21,6 +21,9 @@ filesets:
     - lowrisc:ip:uart:0.1
     - lowrisc:ip:rv_plic_example:0.1
     - lowrisc:ibex:ibex_core:0.1
+    - lowrisc:ip:rv_timer:0.1
+    - lowrisc:ip:gpio:0.1
+    - lowrisc:ip:spi_host:0.1
     - yosyshq:picorv32_spimemio:0-r1
     - x-heep:obi_spimemio:0.1.0
     - x-heep:ip:boot_rom
@@ -30,10 +33,10 @@ filesets:
     - hw/core-v-mini-mcu/memory_subsystem.sv
     - hw/core-v-mini-mcu/system_bus.sv
     - hw/core-v-mini-mcu/system_xbar.sv
+    - hw/core-v-mini-mcu/spi_subsystem.sv
     - hw/core-v-mini-mcu/debug_subsystem.sv
     - hw/core-v-mini-mcu/peripheral_subsystem.sv
     - hw/core-v-mini-mcu/reg_to_tlul.sv
-    - hw/core-v-mini-mcu/wrappers/cv32e40p_fp_wrapper.sv
     file_type: systemVerilogSource
 
   rtl-simulation:
@@ -41,6 +44,7 @@ filesets:
     - pulp-platform.org::tech_cells_generic
     files:
     - hw/simulation/sram_wrapper.sv
+    - hw/simulation/pad_cell.sv
     file_type: systemVerilogSource
 
   tb-utils:
@@ -69,6 +73,7 @@ filesets:
     - hw/fpga/scripts/generate_sram.tcl:  { file_type: tclSource }
     - hw/fpga/prim_xilinx_clk.sv:  { file_type: systemVerilogSource }
     - hw/fpga/cv32e40p_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
+    - hw/fpga/pad_cell_xilinx.sv:  { file_type: systemVerilogSource }
 
   ip-asic:
     depend:
@@ -110,6 +115,16 @@ filesets:
     files:
     - scripts/sim/modelsim/patch_modelsim_Makefile.py
     file_type: user
+
+  tb-verilator:
+    files:
+    - tb/tb_top.cpp
+    file_type: cppSource
+
+  tb-sv:
+    files:
+    - tb/tb_top.sv
+    file_type: systemVerilogSource
 
 parameters:
   PULP_XPULP:
@@ -161,20 +176,23 @@ targets:
   default: &default_target
     filesets:
     - files_rtl_generic
+    - target_sim ? (rtl-simulation)
+    - target_sim ? (tool_verilator? (files_verilator_waiver))
     toplevel: [core_v_mini_mcu]
 
   sim:
     <<: *default_target
     default_tool: modelsim
     filesets_append:
-    - rtl-simulation
     - tb-utils
-    - tool_verilator? (files_verilator_waiver)
     - tool_modelsim? (pre_build_remote_bitbang)
     - tool_modelsim? (pre_build_uartdpi)
     - tool_modelsim? (pre_patch_modelsim_Makefile)
     - tool_vcs? (pre_build_remote_bitbang)
     - tool_vcs? (pre_build_uartdpi)
+    - tool_verilator? (tb-verilator)
+    - tool_modelsim? (tb-sv)
+    - tool_vcs? (tb-sv)
     toplevel:
     - tool_modelsim? (tb_top)
     - tool_vcs? (tb_top)

@@ -1,12 +1,11 @@
 diff --git a/hw/ip/tlul/tlul.core b/hw/ip/tlul/tlul.core
-index ca3fd9d6c..65d7624a8 100644
+index ca3fd9d6c..40ec62207 100644
 --- a/hw/ip/tlul/tlul.core
 +++ b/hw/ip/tlul/tlul.core
-@@ -8,11 +8,7 @@ description: "Transition core for TL-UL (deprecated)"
- filesets:
+@@ -9,10 +9,7 @@ filesets:
    files_rtl:
      depend:
--      - lowrisc:tlul:socket_1n
+       - lowrisc:tlul:socket_1n
 -      - lowrisc:tlul:socket_m1
 -      - lowrisc:tlul:adapter_sram
        - lowrisc:tlul:adapter_reg

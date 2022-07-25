@@ -7,6 +7,11 @@ OBJCOPY?=$(RISCV)/bin/riscv32-unknown-elf-objcopy
 OBJDUMP?=$(RISCV)/bin/riscv32-unknown-elf-objdump
 PYTHON?=python
 
+INC_FOLDERS                 = $(sort $(dir $(wildcard ../../../sw/device/lib/drivers/*/)))
+INC_FOLDERS                += $(sort $(dir $(wildcard ../../../sw/device/lib/base/*/)))
+INC_FOLDERS                += $(sort $(dir $(wildcard ../../../sw/device/lib/runtime/*/)))
+INC_FOLDERS_GCC             = $(addprefix -I ,$(INC_FOLDERS))
+
 all: $(boot_rom)
 
 %.sv: %.img
@@ -19,7 +24,7 @@ all: $(boot_rom)
 	$(OBJCOPY) -O binary $< $@
 
 %.elf: $(findstring boot_rom, $(boot_rom)).S link.ld
-	$(GCC) -I../../../sw/device/lib/runtime/ -I../../../sw/device/lib/drivers/ -Tlink.ld $< -nostdlib -fPIC -static -Wl,--no-gc-sections -o $@
+	$(GCC) $(INC_FOLDERS_GCC) -Tlink.ld $< -nostdlib -fPIC -static -Wl,--no-gc-sections -o $@
 
 %.dump: %.elf
 	$(OBJDUMP) -d $< --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.text.init --section=.data  > $@

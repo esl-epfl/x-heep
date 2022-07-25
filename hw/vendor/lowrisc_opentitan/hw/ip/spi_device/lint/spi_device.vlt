@@ -1,0 +1,10 @@
+// Copyright lowRISC contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// waiver file for spi_device
+
+`verilator_config
+
+// The mode_i input is not currently used: we only support FwMode at the moment.
+lint_off -rule UNUSED -file "*/rtl/spi_fwmode.sv" -match "Signal is not used: 'mode_i'"

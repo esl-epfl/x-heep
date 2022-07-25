@@ -36,7 +36,7 @@ module boot_rom
     32'h00c5c503,
     32'h00051a63,
     32'h0085c503,
-    32'h200005b7
+    32'h200105b7
   };
 
   logic [$clog2(RomSize)-1:0] addr;
