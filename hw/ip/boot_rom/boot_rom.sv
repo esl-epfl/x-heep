@@ -21,11 +21,14 @@ module boot_rom
     output reg_rsp_t reg_rsp_o
 );
 
-  localparam int unsigned RomSize = 9;
+  localparam int unsigned RomSize = 12;
 
   logic [RomSize-1:0][31:0] mem;
   assign mem = {
+    32'h00000013,
+    32'h00000013,
     32'h000580e7,
+    32'h22458593,
     32'h400005b7,
     32'h000580e7,
     32'h0105a583,

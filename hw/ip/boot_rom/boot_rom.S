@@ -27,4 +27,8 @@ _jump_to_debug_rom:
 
 _jump_to_flash:
        lui a1, SPI_FLASH_START_ADDRESS_20bit
+       addi a1, a1, SEXT_IMM(0x224)
        jalr a1
+       //leave some nops otherwise prefetcher out of bound
+       nop
+       nop
