@@ -5,16 +5,21 @@
 // Module to manage TX FIFO window for Serial Peripheral Interface (SPI) host IP.
 //
 
-module spi_host_window (
+`include "common_cells/assertions.svh"
+
+module spi_host_window #(
+  parameter type reg_req_t = logic,
+  parameter type reg_rsp_t = logic
+)(
   input  clk_i,
   input  rst_ni,
-  input  tlul_pkg::tl_h2d_t win_i,
-  output tlul_pkg::tl_d2h_t win_o,
+  input  reg_req_t          win_i,
+  output reg_rsp_t          win_o,
   output logic [31:0]       tx_data_o,
   output logic [3:0]        tx_be_o,
   output logic              tx_valid_o,
   input        [31:0]       rx_data_i,
-  output                    rx_ready_o
+  output logic              rx_ready_o
 );
 
   localparam int AW=spi_host_reg_pkg::BlockAw;
@@ -27,21 +32,20 @@ module spi_host_window (
   assign win_error = (tx_valid_o || rx_ready_o) &&
                      (addr != spi_host_reg_pkg::SPI_HOST_DATA_OFFSET);
 
-  tlul_adapter_reg #(
-    .RegAw(AW),
-    .RegDw(DW)
-  ) u_adapter (
-    .clk_i,
-    .rst_ni,
-    .tl_i      (win_i),
-    .tl_o      (win_o),
-    .we_o      (tx_valid_o),
-    .re_o      (rx_ready_o),
-    .addr_o    (addr),
-    .wdata_o   (tx_data_o),
-    .be_o      (tx_be_o),
-    .rdata_i   (rx_data_i),
-    .error_i   (win_error)
-  );
+  // Check that our regbus data is 32 bit wide
+`ASSERT_INIT(RegbusIs32Bit, $bits(win_i.wdata) == 32)
+
+  // We are already a regbus, so no stateful adapter should be needed here
+  // TODO @(paulsc, zarubaf): check this assumption!
+  // Request
+  assign tx_valid_o   = win_i.valid & win_i.write;    // write-enable
+  assign rx_ready_o   = win_i.valid & ~win_i.write;   // read-enable
+  assign addr         = win_i.addr;
+  assign tx_data_o    = win_i.wdata;
+  assign tx_be_o      = win_i.wstrb;
+  // Response: always ready, else over/underflow error reported in regfile
+  assign win_o.rdata  = rx_data_i;
+  assign win_o.error  = win_error;
+  assign win_o.ready  = 1'b1;
 
 endmodule : spi_host_window

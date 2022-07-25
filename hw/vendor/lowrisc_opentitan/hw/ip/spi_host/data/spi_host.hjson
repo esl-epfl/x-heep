@@ -7,7 +7,7 @@
   reset_primary: "rst_ni",
   other_reset_list: [ "rst_core_ni" ],
   bus_interfaces: [
-    { protocol: "tlul", direction: "device" }
+    { protocol: "reg_iface", direction: "device" }
   ],
   inter_signal_list: [
     { struct:  "passthrough",
@@ -34,7 +34,7 @@
     { name: "NumCS",
       desc: "The number of active-low chip select (cs_n) lines to create.",
       type: "int",
-      default: "1"
+      default: "2"
     },
     { name: "TxDepth",
       desc: "The size of the Tx FIFO (in words)",
@@ -72,6 +72,13 @@
                information.'''
     }
   ],
+  alert_list: [
+    { name: "fatal_fault",
+      desc: '''
+      This fatal alert is triggered when a fatal TL-UL bus integrity fault is detected.
+      '''
+    }
+  ],
   registers: [
     { name: "CONTROL",
       desc: "Control register",
@@ -91,17 +98,6 @@
                    In the current implementation, the CDC FIFOs are drained not reset.
                    Therefore software must confirm that both FIFO's empty before releasing
                    clearing this bit.''',
-          resval: "0x0"
-        },
-        { bits: "29",
-          name: "PASSTHRU",
-          desc: '''Enables Pass-through mode, wherein the SPI_HOST IP surrenders
-                   control of the SPI bus to another block. In this mode the
-                   `sck`, `cs_n` and `sd` signals are no longer driven by
-                   the SPI_HOST IP, rather they are multiplexed out to match the
-                   on-chip inputs `pt_sck_i`, `pt_cs_n_i`, `pt_sden_i`, `pt_sdo_i`,
-                   and `pt_sdi_o`.  (Since the `sd` bus is bidirectional, there are
-                   separate input, output and tri-state controls for this bus.)''',
           resval: "0x0"
         },
         { bits: "15:8",
@@ -312,8 +308,8 @@
     { name: "COMMAND",
       desc: '''Command Register
 
-               Parameters specific to each command segment.  One common register for all
-               devices''',
+               Parameters specific to each command segment.  Unlike the `CONFIGOPTS` multi-register,
+               there is only one command register for controlling all attached SPI devices''',
       swaccess: "rw",
       hwaccess: "hro",
       hwqe: "true",
@@ -321,7 +317,7 @@
         { bits: "13:12",
           name: "DIRECTION",
           desc: '''The direction for the following command: "0" = Dummy cycles
-                   (no TX/RX). "1" = Rx only, "2" = Tx only, "3" Bidirectional
+                   (no TX/RX). "1" = Rx only, "2" = Tx only, "3" = Bidirectional
                    Tx/Rx (Standard SPI mode only).'''
           resval: "0x0"
         }

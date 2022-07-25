@@ -31,12 +31,6 @@ module spi_subsystem
 
 );
 
-
-  import tlul_pkg::*;
-
-  tlul_pkg::tl_h2d_t                               spi_host_tl_h2d;
-  tlul_pkg::tl_d2h_t                               spi_host_tl_d2h;
-
   // OpenTitan SPI Interface
   logic                                            ot_spi_sck;
   logic                                            ot_spi_sck_en;
@@ -81,7 +75,8 @@ module spi_subsystem
 
   //YosysHQ SPI
   assign yo_spi_sck_en = 1'b1;
-  assign yo_spi_csb_en = 1'b1;
+  assign yo_spi_csb_en = 2'b01;
+  assign yo_spi_csb[1] = 1'b1;
 
   obi_spimemio obi_spimemio_i (
       .clk_i,
@@ -107,21 +102,17 @@ module spi_subsystem
       .spimemio_resp_o(spimemio_resp_o)
   );
 
-  //OpenTitan SPI
-  reg_to_tlul reg_to_tlul_spi_host_i (
-      .tl_o(spi_host_tl_h2d),
-      .tl_i(spi_host_tl_d2h),
-      .reg_req_i,
-      .reg_rsp_o
-  );
-
-  spi_host spi_host_i (
+  //OpenTitan SPI Snitch Version
+  spi_host #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) spi_host_i (
       .clk_i,
       .rst_ni,
       .clk_core_i(clk_i),
       .rst_core_ni(rst_ni),
-      .tl_i(spi_host_tl_h2d),
-      .tl_o(spi_host_tl_d2h),
+      .reg_req_i,
+      .reg_rsp_o,
       .cio_sck_o(ot_spi_sck),
       .cio_sck_en_o(ot_spi_sck_en),
       .cio_csb_o(ot_spi_csb),
@@ -129,8 +120,6 @@ module spi_subsystem
       .cio_sd_o(ot_spi_sd_out),
       .cio_sd_en_o(ot_spi_sd_en),
       .cio_sd_i(ot_spi_sd_in),
-      .passthrough_i('0),
-      .passthrough_o(),
       .intr_error_o(),
       .intr_spi_event_o()
   );

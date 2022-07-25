@@ -40,7 +40,7 @@ module testharness #(
   wire [31:0] gpio;
 
   wire [3:0] spi_sd_io;
-  logic spi_csb;
+  logic [1:0] spi_csb;
   logic spi_sck;
 
   // External xbar master/slave and peripheral ports
@@ -187,7 +187,7 @@ module testharness #(
 
 `ifndef VERILATOR
   spiflash flash_1 (
-      .csb(spi_csb),
+      .csb(spi_csb[0]),
       .clk(spi_sck),
       .io0(spi_sd_io[0]),  // MOSI
       .io1(spi_sd_io[1]),  // MISO

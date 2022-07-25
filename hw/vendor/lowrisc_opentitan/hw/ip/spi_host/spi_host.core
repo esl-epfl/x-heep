@@ -8,10 +8,8 @@ description: "SPI_HOST DV"
 filesets:
   files_rtl:
     depend:
-      - lowrisc:constants:top_pkg
       - lowrisc:prim:all
-      - lowrisc:ip:tlul
-      - lowrisc:ip:spi_device_pkg
+      - pulp-platform.org::register_interface
     files:
       - rtl/spi_host_reg_pkg.sv
       - rtl/spi_host_cmd_pkg.sv
