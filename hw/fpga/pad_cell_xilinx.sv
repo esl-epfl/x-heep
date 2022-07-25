@@ -12,7 +12,7 @@ module pad_cell #(
 );
 
   IOBUF qspi_iobuf (
-      .T (gpio_en_i),
+      .T (~gpio_en_i),
       .I (gpio_i),
       .O (gpio_o),
       .IO(pad_io)

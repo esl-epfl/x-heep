@@ -11,13 +11,16 @@ module pad_cell #(
     inout logic pad_io
 );
 
+  logic pad;
+
   assign gpio_o = pad_io;
+  assign pad_io = pad;
 
   always_comb begin
     if (gpio_en_i == 1'b1) begin
-      pad_io = gpio_i;
+      pad = gpio_i;
     end else begin
-      pad_io = 1'bz;
+      pad = 1'bz;
     end
   end
 
