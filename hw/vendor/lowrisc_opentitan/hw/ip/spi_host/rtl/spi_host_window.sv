@@ -7,7 +7,8 @@
 
 `include "common_cells/assertions.svh"
 
-module spi_host_window #(
+module spi_host_window
+#(
   parameter type reg_req_t = logic,
   parameter type reg_rsp_t = logic
 )(

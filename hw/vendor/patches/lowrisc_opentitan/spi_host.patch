@@ -1920,17 +1920,18 @@ index 992bd34f7..468bbda91 100644
    // Buffer the rx_data outputs to simplify three-way flow control
    // between fsm, shift reg and byte_merge.
 diff --git a/hw/ip/spi_host/rtl/spi_host_window.sv b/hw/ip/spi_host/rtl/spi_host_window.sv
-index 768a93d6f..dec360906 100644
+index 768a93d6f..7ec505e93 100644
 --- a/hw/ip/spi_host/rtl/spi_host_window.sv
 +++ b/hw/ip/spi_host/rtl/spi_host_window.sv
-@@ -5,16 +5,21 @@
+@@ -5,16 +5,22 @@
  // Module to manage TX FIFO window for Serial Peripheral Interface (SPI) host IP.
  //
  
 -module spi_host_window (
 +`include "common_cells/assertions.svh"
 +
-+module spi_host_window #(
++module spi_host_window
++#(
 +  parameter type reg_req_t = logic,
 +  parameter type reg_rsp_t = logic
 +)(
@@ -1949,7 +1950,7 @@ index 768a93d6f..dec360906 100644
  );
  
    localparam int AW=spi_host_reg_pkg::BlockAw;
-@@ -27,21 +32,20 @@ module spi_host_window (
+@@ -27,21 +33,20 @@ module spi_host_window (
    assign win_error = (tx_valid_o || rx_ready_o) &&
                       (addr != spi_host_reg_pkg::SPI_HOST_DATA_OFFSET);
  
@@ -1987,15 +1988,15 @@ index 768a93d6f..dec360906 100644
  
  endmodule : spi_host_window
 diff --git a/hw/ip/spi_host/spi_host.core b/hw/ip/spi_host/spi_host.core
-index dd97bff66..ab6e8ea5b 100644
+index dd97bff66..dc42065fc 100644
 --- a/hw/ip/spi_host/spi_host.core
 +++ b/hw/ip/spi_host/spi_host.core
-@@ -8,11 +8,7 @@ description: "SPI_HOST DV"
+@@ -8,11 +8,8 @@ description: "SPI_HOST DV"
  filesets:
    files_rtl:
      depend:
 -      - lowrisc:constants:top_pkg
--      - lowrisc:prim:all
+       - lowrisc:prim:all
 -      - lowrisc:ip:lc_ctrl
 -      - lowrisc:ip:tlul
 -      - lowrisc:ip:spi_device_pkg
