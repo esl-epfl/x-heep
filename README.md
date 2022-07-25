@@ -85,24 +85,26 @@ In the ./util folder, the vendor.py scripts implements what is describeb above.
 
 You can compile the example applications and the platform using the Makefile. Type 'make help' for more information.
 
-To generate, compile and execute the helloword example with verilator type:
+## Generate core-v-mini-mcu package
+
+First, you have to generate the SystemVerilog package of the core-v-mini-mcu:
 
 ```
-make run-hellworld
+make mcu-gen-sv mcu-gen-c
 ```
 
-# Compiling with the tools
+To change the default cpu type (i.e., cv32e20) and the default bus type (i.e., onetoM) type:
 
-You can also compile the software and the platform manually.
+```
+make mcu-gen-sv mcu-gen-c CPU=cv32e40p BUS=NtoM
+```
 
 ## Compiling Software
 
 Don't forget to set the `RISCV` env variable to the compiler folder (without the `/bin` included).
 
-Then go to the `./sw` folder and type:
-
 ```
-make applications/hello_world/hello_world.hex
+make app-helloworld
 ```
 
 This will create the executable file to be loaded in your target system (ASIC, FPGA, Simulation).
@@ -116,7 +118,7 @@ This project supports simulation with Verilator, Synopsys VCS, and Siemens Quest
 To simulate your application with Verilator, first compile the HDL:
 
 ```
-fusesoc --cores-root . run --no-export --target=sim --tool=verilator --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+make verilator-sim
 ```
 
 then, go to your target system built folder
@@ -131,12 +133,19 @@ and type to run your compiled software:
 ./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex
 ```
 
+or to execute all these three steps type:
+
+```
+make run-helloworld
+```
+
+
 ### Compiling for VCS
 
 To simulate your application with VCS, first compile the HDL:
 
 ```
-fusesoc --cores-root . run --no-export --target=sim --tool=vcs --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+make vcs-sim
 ```
 
 then, go to your target system built folder
@@ -156,7 +165,7 @@ and type to run your compiled software:
 To simulate your application with Questasim, first set the env variable `MODEL_TECH` to your Questasim bin folder, then compile the HDL:
 
 ```
-fusesoc --cores-root . run --no-export --target=sim --tool=modelsim --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+make questasim-sim
 ```
 
 then, go to your target system built folder
@@ -217,19 +226,19 @@ Work In Progress and untested!!!
 To build and program the bitstream for your FPGA with vivado, type:
 
 ```
-fusesoc --cores-root . run --no-export --target=nexys-a7-100t --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildvivado.log
+make vivado-fpga FPGA_BOARD=nexys-a7-100t
 ```
 
 or add the flag `use_bscane_xilinx` to use the native Xilinx scanchain:
 
 ```
-fusesoc --cores-root . run --no-export --target=nexys-a7-100t --setup --build --flag use_bscane_xilinx openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildvivado.log
+make vivado-fpga FPGA_BOARD=nexys-a7-100t FUSESOC_FLAGS=--flag=use_bscane_xilinx
 ```
 
 If you only need the synthesis implementation:
 
 ```
-fusesoc --cores-root . run --no-export --target=nexys-a7-100t --setup openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildvivado.log
+vivado-fpga-nobuild FPGA_BOARD=nexys-a7-100t
 ```
 
 then
@@ -260,25 +269,11 @@ Then, please provide a set_libs.tcl and set_constraints.tcl scripts to set link 
 To generate and run synthesis scripts with DC, execute:
 
 ```
-fusesoc --cores-root . run --no-export --target=asic_synthesis --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+make asic
 ```
 
 This relies on a fork of [edalize](https://github.com/davideschiavone/edalize) that contains templates for Design Compiler.
 
-# PLATFORM RTL
-
-## Generate core-v-mini-mcu package
-
-This SystemVerilog package is generated automatically when the Makefile is used. You can use the make targets 'mcu-gen-sv' and 'mcu-gen-c' or use the commands:
-
-```
-python ./util/mcu_gen.py --cfg mcu_cfg.hjson --outdir ./hw/core-v-mini-mcu/include/ --pkg-sv ./hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
-```
-```
-python ./util/mcu_gen.py --cfg mcu_cfg.hjson --outdir ./sw/device/lib/runtime/ --header-c ./sw/device/lib/runtime/core_v_mini_mcu.h.tpl
-```
-
-Type 'make help' to see how to change the cpu type and the bus type.
 
 ## Files are formatted with Verible
 
