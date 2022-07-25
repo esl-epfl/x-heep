@@ -48,9 +48,8 @@ vcs-sim: mcu-gen-sv mcu-gen-c verible
 	fusesoc --cores-root . run --no-export --target=sim --tool=vcs $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
 
 run-helloworld: verilator-sim app-helloworld
-# run-helloworld:
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
-	./Vtestharness +firmware=../. ./../sw/applications/hello_world/hello_world.hex; \
+	./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex; \
 	cat uart0.log; \
 	cd ../../..;
 
