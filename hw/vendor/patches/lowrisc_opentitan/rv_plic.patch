@@ -10619,3 +10619,14 @@ index 55b63815f..91ece677e 100644
    localparam int PrioWidth = $clog2(MAX_PRIO+1)   // derived parameter
  ) (
    input clk_i,
+
+diff --git a/hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/lint/rv_plic.vlt b/hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/lint/rv_plic.vlt
+index 1579f93..98097b7 100644
+--- a/hw/ip/rv_plic/lint/rv_plic.vlt
++++ b/hw/ip/rv_plic/lint/rv_plic.vlt
+@@ -14,3 +14,5 @@
+ split_var -module "rv_plic_target" -var "is_tree"
+ split_var -module "rv_plic_target" -var "id_tree"
+ split_var -module "rv_plic_target" -var "max_tree"
++
++lint_off -rule UNOPTFLAT -file "*/rtl/rv_plic.sv" -match "*testharness.core_v_mini_mcu_i.peripheral_subsystem_i.rv_plic_i.reg2hw*"
