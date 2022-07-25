@@ -182,7 +182,7 @@ module testharness #(
   assign memcopy_periph_req = periph_slave_req;
   assign periph_slave_resp = memcopy_periph_rsp;
 
-`ifdef MODELSIM
+`ifndef VERILATOR
   spiflash flash_1 (
       .csb(flash_csb),
       .clk(flash_clk),

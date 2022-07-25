@@ -21,8 +21,8 @@ filesets:
     - lowrisc:ip:uart:0.1
     - lowrisc:ip:rv_plic_example:0.1
     - lowrisc:ibex:ibex_core:0.1
-    - ::picorv32_spimemio:0-r1
-    - :obi-spimemio:0.1.0
+    - yosyshq:picorv32_spimemio:0-r1
+    - x-heep:obi_spimemio:0.1.0
     - x-heep:ip:boot_rom
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
@@ -39,7 +39,6 @@ filesets:
   rtl-simulation:
     depend:
     - pulp-platform.org::tech_cells_generic
-    - ::spiflash:0
     files:
     - hw/simulation/sram_wrapper.sv
     file_type: systemVerilogSource
