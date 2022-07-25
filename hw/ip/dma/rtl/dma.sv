@@ -98,14 +98,14 @@ module dma #(
   assign hw2reg.dma_start.d = 32'h0;
 
   // DMA pulse start when dma_start register is written
-  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_copy_start
+  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start
     if (~rst_ni) begin
       dma_start <= 1'b0;
     end else begin
-      if (dma_start == 1'b0 && reg2hw.done.q == 1'b1) begin
-        dma_start <= |reg2hw.dma_start;
-      end else if (dma_start == 1'b1) begin
+      if (dma_start == 1'b1) begin
         dma_start <= 1'b0;
+      end else begin
+        dma_start <= |reg2hw.dma_start.q;
       end
     end
   end
@@ -144,7 +144,7 @@ module dma #(
       if (dma_start == 1'b1) begin
         dma_cnt <= reg2hw.dma_start.q;
       end else if (data_in_gnt == 1'b1) begin
-        dma_cnt <= dma_cnt - 32'h4;
+        dma_cnt <= dma_cnt - 32'h1;
       end
     end
   end
