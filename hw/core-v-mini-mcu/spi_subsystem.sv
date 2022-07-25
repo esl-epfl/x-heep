@@ -32,22 +32,22 @@ module spi_subsystem
 );
 
   // OpenTitan SPI Interface
-  logic                                            ot_spi_sck;
-  logic                                            ot_spi_sck_en;
-  logic              [spi_host_reg_pkg::NumCS-1:0] ot_spi_csb;
-  logic              [spi_host_reg_pkg::NumCS-1:0] ot_spi_csb_en;
-  logic              [                        3:0] ot_spi_sd_out;
-  logic              [                        3:0] ot_spi_sd_en;
-  logic              [                        3:0] ot_spi_sd_in;
+  logic                               ot_spi_sck;
+  logic                               ot_spi_sck_en;
+  logic [spi_host_reg_pkg::NumCS-1:0] ot_spi_csb;
+  logic [spi_host_reg_pkg::NumCS-1:0] ot_spi_csb_en;
+  logic [                        3:0] ot_spi_sd_out;
+  logic [                        3:0] ot_spi_sd_en;
+  logic [                        3:0] ot_spi_sd_in;
 
   // YosysHW SPI Interface
-  logic                                            yo_spi_sck;
-  logic                                            yo_spi_sck_en;
-  logic              [spi_host_reg_pkg::NumCS-1:0] yo_spi_csb;
-  logic              [spi_host_reg_pkg::NumCS-1:0] yo_spi_csb_en;
-  logic              [                        3:0] yo_spi_sd_out;
-  logic              [                        3:0] yo_spi_sd_en;
-  logic              [                        3:0] yo_spi_sd_in;
+  logic                               yo_spi_sck;
+  logic                               yo_spi_sck_en;
+  logic [spi_host_reg_pkg::NumCS-1:0] yo_spi_csb;
+  logic [spi_host_reg_pkg::NumCS-1:0] yo_spi_csb_en;
+  logic [                        3:0] yo_spi_sd_out;
+  logic [                        3:0] yo_spi_sd_en;
+  logic [                        3:0] yo_spi_sd_in;
 
   //Multiplexer
   always_comb begin
