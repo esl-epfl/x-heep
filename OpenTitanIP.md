@@ -27,6 +27,6 @@ From the core-v-mini-mcu root folder:
 ```
 $ cd hw/ip/soc_ctrl
 $ ./../../vendor/pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py -r -t rtl data/soc_ctrl.hjson
-./../../vendor/pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py --cdefines -o ../../../sw/device/lib/drivers/soc_ctrl_regs.h data/soc_ctrl.hjson
+./../../vendor/pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py --cdefines -o ../../../sw/device/lib/drivers/soc_ctrl/soc_ctrl_regs.h data/soc_ctrl.hjson
 ```
 

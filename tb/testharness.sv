@@ -37,6 +37,11 @@ module testharness #(
   logic sim_jtag_tdi;
   logic sim_jtag_tdo;
   logic sim_jtag_trstn;
+  wire [31:0] gpio;
+
+  wire [3:0] spi_sd_io;
+  logic spi_csb;
+  logic spi_sck;
 
   // External xbar master/slave and peripheral ports
   obi_req_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_req;
@@ -56,42 +61,6 @@ module testharness #(
   logic memcopy_intr;
 
   assign intr_vector_ext[0] = memcopy_intr;
-
-
-  logic flash_csb;
-  logic flash_clk;
-
-  logic flash_io0_oe;
-  logic flash_io1_oe;
-  logic flash_io2_oe;
-  logic flash_io3_oe;
-
-  logic flash_io0_do;
-  logic flash_io1_do;
-  logic flash_io2_do;
-  logic flash_io3_do;
-
-  logic flash_io0_di;
-  logic flash_io1_di;
-  logic flash_io2_di;
-  logic flash_io3_di;
-
-  wire  flash_io0_io;
-  wire  flash_io1_io;
-  wire  flash_io2_io;
-  wire  flash_io3_io;
-
-  //TODO: fix with PAD
-  assign flash_io0_io = (flash_io0_oe) ? flash_io0_do : 1'bz;
-  assign flash_io1_io = (flash_io1_oe) ? flash_io1_do : 1'bz;
-  assign flash_io2_io = (flash_io2_oe) ? flash_io2_do : 1'bz;
-  assign flash_io3_io = (flash_io3_oe) ? flash_io3_do : 1'bz;
-
-  assign flash_io0_di = flash_io0_io;
-  assign flash_io1_di = flash_io1_io;
-  assign flash_io2_di = flash_io2_io;
-  assign flash_io3_di = flash_io3_io;
-
 
   core_v_mini_mcu #(
       .PULP_XPULP      (PULP_XPULP),
@@ -121,29 +90,18 @@ module testharness #(
       .uart_rx_i(uart_rx),
       .uart_tx_o(uart_tx),
 
-      .flash_csb_o(flash_csb),
-      .flash_clk_o(flash_clk),
-
-      .flash_io0_oe_o(flash_io0_oe),
-      .flash_io1_oe_o(flash_io1_oe),
-      .flash_io2_oe_o(flash_io2_oe),
-      .flash_io3_oe_o(flash_io3_oe),
-
-      .flash_io0_do_o(flash_io0_do),
-      .flash_io1_do_o(flash_io1_do),
-      .flash_io2_do_o(flash_io2_do),
-      .flash_io3_do_o(flash_io3_do),
-
-      .flash_io0_di_i(flash_io0_di),
-      .flash_io1_di_i(flash_io1_di),
-      .flash_io2_di_i(flash_io2_di),
-      .flash_io3_di_i(flash_io3_di),
-
       .intr_vector_ext_i(intr_vector_ext),
+
+      .gpio_io(gpio),
 
       .fetch_enable_i,
       .exit_value_o,
-      .exit_valid_o
+      .exit_valid_o,
+
+      .spi_sd_io(spi_sd_io),
+      .spi_csb_o(spi_csb),
+      .spi_sck_o(spi_sck)
+
   );
 
   uartdpi #(
@@ -182,17 +140,6 @@ module testharness #(
   assign memcopy_periph_req = periph_slave_req;
   assign periph_slave_resp = memcopy_periph_rsp;
 
-`ifndef VERILATOR
-  spiflash flash_1 (
-      .csb(flash_csb),
-      .clk(flash_clk),
-      .io0(flash_io0_io),  // MOSI
-      .io1(flash_io1_io),  // MISO
-      .io2(flash_io2_io),
-      .io3(flash_io3_io)
-  );
-`endif
-
 `ifdef USE_EXTERNAL_DEVICE_EXAMPLE
   // External xbar slave memory example
   slow_memory #(
@@ -227,6 +174,28 @@ module testharness #(
       .master_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX]),
       .memcopy_intr_o(memcopy_intr)
   );
+
+  // GPIO counter example
+  gpio_cnt #(
+      .CntMax(32'd2048)
+  ) gpio_cnt_i (
+      .clk_i,
+      .rst_ni,
+      .gpio_i(gpio[30]),
+      .gpio_o(gpio[31])
+  );
+
+`ifndef VERILATOR
+  spiflash flash_1 (
+      .csb(spi_csb),
+      .clk(spi_sck),
+      .io0(spi_sd_io[0]),  // MOSI
+      .io1(spi_sd_io[1]),  // MISO
+      .io2(spi_sd_io[2]),
+      .io3(spi_sd_io[3])
+  );
+`endif
+
 `else
   assign slow_ram_slave_resp.gnt = '0;
   assign slow_ram_slave_resp.rdata = '0;

@@ -95,7 +95,8 @@
     "hw/ip/edn",
     "hw/ip/entropy_src",
     "hw/ip/flash_ctrl",
-    "hw/ip/gpio",
+    "hw/ip/gpio/doc",
+    "hw/ip/gpio/dv",
     "hw/ip/hmac",
     "hw/ip/i2c",
     "hw/ip/_index",.md
@@ -114,8 +115,6 @@
     "hw/ip/rstmgr",
     "hw/ip/rv_core_ibex",
     "hw/ip/rv_dm",
-    "hw/ip/spi_device",
-    "hw/ip/spi_host",
     "hw/ip/sram_ctrl",
     "hw/ip/sysrst_ctrl",
     "hw/ip/trial1",

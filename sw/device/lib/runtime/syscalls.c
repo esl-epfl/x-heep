@@ -21,8 +21,8 @@
 #include <newlib.h>
 #include <unistd.h>
 #include <errno.h>
-#include "../drivers/uart.h"
-#include "../drivers/soc_ctrl.h"
+#include "uart.h"
+#include "soc_ctrl.h"
 #include "core_v_mini_mcu.h"
 #include "error.h"
 

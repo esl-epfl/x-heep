@@ -37,27 +37,15 @@ module core_v_mini_mcu
 
     input logic [EXT_NINTERRUPT-1:0] intr_vector_ext_i,
 
+    inout logic [31:0] gpio_io,
+
     input  logic        fetch_enable_i,
     output logic [31:0] exit_value_o,
     output logic        exit_valid_o,
 
-    output logic flash_csb_o,
-    output logic flash_clk_o,
-
-    output logic flash_io0_oe_o,
-    output logic flash_io1_oe_o,
-    output logic flash_io2_oe_o,
-    output logic flash_io3_oe_o,
-
-    output logic flash_io0_do_o,
-    output logic flash_io1_do_o,
-    output logic flash_io2_do_o,
-    output logic flash_io3_do_o,
-
-    input logic flash_io0_di_i,
-    input logic flash_io1_di_i,
-    input logic flash_io2_di_i,
-    input logic flash_io3_di_i
+    inout logic [3:0] spi_sd_io,
+    output logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_o,
+    output logic spi_sck_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -72,36 +60,49 @@ module core_v_mini_mcu
 
   // signals connecting core to memory
 
-  obi_req_t         core_instr_req;
-  obi_resp_t        core_instr_resp;
-  obi_req_t         core_data_req;
-  obi_resp_t        core_data_resp;
-  obi_req_t         debug_master_req;
-  obi_resp_t        debug_master_resp;
+  obi_req_t                                core_instr_req;
+  obi_resp_t                               core_instr_resp;
+  obi_req_t                                core_data_req;
+  obi_resp_t                               core_data_resp;
+  obi_req_t                                debug_master_req;
+  obi_resp_t                               debug_master_resp;
 
-  obi_req_t         ram0_slave_req;
-  obi_resp_t        ram0_slave_resp;
-  obi_req_t         ram1_slave_req;
-  obi_resp_t        ram1_slave_resp;
-  obi_req_t         spi_flash_slave_req;
-  obi_resp_t        spi_flash_slave_resp;
+  obi_req_t                                ram0_slave_req;
+  obi_resp_t                               ram0_slave_resp;
+  obi_req_t                                ram1_slave_req;
+  obi_resp_t                               ram1_slave_resp;
+  obi_req_t                                spi_flash_slave_req;
+  obi_resp_t                               spi_flash_slave_resp;
 
-  obi_req_t         debug_slave_req;
-  obi_resp_t        debug_slave_resp;
-  obi_req_t         peripheral_slave_req;
-  obi_resp_t        peripheral_slave_resp;
+  obi_req_t                                debug_slave_req;
+  obi_resp_t                               debug_slave_resp;
+  obi_req_t                                peripheral_slave_req;
+  obi_resp_t                               peripheral_slave_resp;
 
   // signals to debug unit
-  logic             debug_core_req;
+  logic                                    debug_core_req;
 
   // irq signals
-  logic             irq_ack;
-  logic      [ 4:0] irq_id_out;
-  logic             irq_software;
-  logic             irq_timer;
-  logic             irq_external;
-  logic      [15:0] irq_fast;
+  logic                                    irq_ack;
+  logic      [                        4:0] irq_id_out;
+  logic                                    irq_software;
+  logic                                    irq_timer;
+  logic                                    irq_external;
+  logic      [                       15:0] irq_fast;
 
+  // gpio signals
+  logic      [                       31:0] gpio_in;
+  logic      [                       31:0] gpio_out;
+  logic      [                       31:0] gpio_en;
+
+  // spi signals
+  logic                                    spi_sck;
+  logic                                    spi_sck_en;
+  logic      [spi_host_reg_pkg::NumCS-1:0] spi_csb;
+  logic      [spi_host_reg_pkg::NumCS-1:0] spi_csb_en;
+  logic      [                        3:0] spi_sd_out;
+  logic      [                        3:0] spi_sd_en;
+  logic      [                        3:0] spi_sd_in;
 
   cpu_subsystem #(
       .BOOT_ADDR       (BOOT_ADDR),
@@ -212,30 +213,70 @@ module core_v_mini_mcu
       .ext_peripheral_slave_req_o (ext_peripheral_slave_req_o),
       .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i),
 
-      .flash_csb_o,
-      .flash_clk_o,
-
-      .flash_io0_oe_o,
-      .flash_io1_oe_o,
-      .flash_io2_oe_o,
-      .flash_io3_oe_o,
-
-      .flash_io0_do_o,
-      .flash_io1_do_o,
-      .flash_io2_do_o,
-      .flash_io3_do_o,
-
-      .flash_io0_di_i,
-      .flash_io1_di_i,
-      .flash_io2_di_i,
-      .flash_io3_di_i,
+      // SPI Interface
+      .spi_sck_o(spi_sck),
+      .spi_sck_en_o(spi_sck_en),
+      .spi_csb_o(spi_csb),
+      .spi_csb_en_o(spi_csb_en),
+      .spi_sd_o(spi_sd_out),
+      .spi_sd_en_o(spi_sd_en),
+      .spi_sd_i(spi_sd_in),
 
       .spimemio_req_i (spi_flash_slave_req),
-      .spimemio_resp_o(spi_flash_slave_resp)
+      .spimemio_resp_o(spi_flash_slave_resp),
+
+      .rv_timer_irq_timer_o(irq_timer),
+
+      .cio_gpio_i(gpio_in),
+      .cio_gpio_o(gpio_out),
+      .cio_gpio_en_o(gpio_en)
   );
 
-  assign irq_timer = '0;
-  assign irq_fast  = '0;
+  assign irq_fast = '0;
+
+  genvar i;
+  generate
+    for (i = 0; i < 32; i++) begin
+      pad_cell #() pad_cell_gpio_i (
+          .gpio_i(gpio_out[i]),
+          .gpio_en_i(gpio_en[i]),
+          .gpio_o(gpio_in[i]),
+          .pad_io(gpio_io[i])
+      );
+    end
+  endgenerate
+
+
+  pad_cell pad_cell_spi_sck_i (
+      .gpio_i(spi_sck),
+      .gpio_en_i(spi_sck_en),
+      .gpio_o(),
+      .pad_io(spi_sck_o)
+  );
+
+  genvar k;
+  generate
+    for (k = 0; k < spi_host_reg_pkg::NumCS; k++) begin
+      pad_cell pad_cell_spi_csb_i (
+          .gpio_i(spi_csb[k]),
+          .gpio_en_i(spi_csb_en[k]),
+          .gpio_o(),
+          .pad_io(spi_csb_o[k])
+      );
+    end
+  endgenerate
+
+  genvar j;
+  generate
+    for (j = 0; j < 4; j++) begin
+      pad_cell #() pad_cell_sd_i (
+          .gpio_i(spi_sd_out[j]),
+          .gpio_en_i(spi_sd_en[j]),
+          .gpio_o(spi_sd_in[j]),
+          .pad_io(spi_sd_io[j])
+      );
+    end
+  endgenerate
 
 
 endmodule  // core_v_mini_mcu

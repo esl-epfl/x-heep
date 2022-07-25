@@ -49,5 +49,15 @@
         { bits: "31:0", name: "BOOT_ADDRESS", desc: "Boot Address Reg" }
       ]
     }
+    { name:     "USE_SPIMEMIO",
+      desc:     "Spi Module Select Value - Used to decide whether to use the SPI from Yosys or OpenTitan",
+      resval:   "0x1"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "USE_SPIMEMIO", desc: "Spi Select Reg" }
+      ]
+    }
+
    ]
 }

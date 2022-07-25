@@ -101,11 +101,17 @@ def main():
     ext_slave_start_address = string2int(obj['ext_slaves']['address'])
     ext_slave_size_address = string2int(obj['ext_slaves']['length'])
 
+    spi_flash_start_address  = string2int(obj['spi_flash']['address'])
+    spi_flash_size_address  = string2int(obj['spi_flash']['length'])
+
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
         exit("peripheral start address must be greater than 0x10000")
 
     peripheral_size_address = string2int(obj['peripherals']['length'])
+
+    ext_periph_start_offset  = string2int(obj['peripherals']['ext_periph']['offset'])
+    ext_periph_size_address  = string2int(obj['peripherals']['ext_periph']['length'])
 
     soc_ctrl_start_offset  = string2int(obj['peripherals']['soc_ctrl']['offset'])
     soc_ctrl_size_address  = string2int(obj['peripherals']['soc_ctrl']['length'])
@@ -113,17 +119,20 @@ def main():
     uart_start_offset  = string2int(obj['peripherals']['uart']['offset'])
     uart_size_address  = string2int(obj['peripherals']['uart']['length'])
 
-    bootrom_start_offset  = string2int(obj['peripherals']['bootrom']['offset'])
-    bootrom_size_address  = string2int(obj['peripherals']['bootrom']['length'])
-
-    spi_flash_start_address  = string2int(obj['spi_flash']['address'])
-    spi_flash_size_address  = string2int(obj['spi_flash']['length'])
-
     plic_start_offset  = string2int(obj['peripherals']['plic']['offset'])
     plic_size_address  = string2int(obj['peripherals']['plic']['length'])
 
-    ext_periph_start_offset  = string2int(obj['peripherals']['ext_periph']['offset'])
-    ext_periph_size_address  = string2int(obj['peripherals']['ext_periph']['length'])
+    rv_timer_start_offset  = string2int(obj['peripherals']['rv_timer']['offset'])
+    rv_timer_size_address  = string2int(obj['peripherals']['rv_timer']['length'])
+
+    gpio_start_offset  = string2int(obj['peripherals']['gpio']['offset'])
+    gpio_size_address  = string2int(obj['peripherals']['gpio']['length'])
+
+    spi_host_start_offset  = string2int(obj['peripherals']['spi_host']['offset'])
+    spi_host_size_address  = string2int(obj['peripherals']['spi_host']['length'])
+
+    bootrom_start_offset  = string2int(obj['peripherals']['bootrom']['offset'])
+    bootrom_size_address  = string2int(obj['peripherals']['bootrom']['length'])
 
     null_intr = obj['interrupts']['null_intr']
     uart_intr_tx_watermark = obj['interrupts']['uart_intr_tx_watermark']
@@ -134,6 +143,38 @@ def main():
     uart_intr_rx_break_err = obj['interrupts']['uart_intr_rx_break_err']
     uart_intr_rx_timeout = obj['interrupts']['uart_intr_rx_timeout']
     uart_intr_rx_parity_err = obj['interrupts']['uart_intr_rx_parity_err']
+    gpio_intr_0 = obj['interrupts']['gpio_intr_0']
+    gpio_intr_1 = obj['interrupts']['gpio_intr_1']
+    gpio_intr_2 = obj['interrupts']['gpio_intr_2']
+    gpio_intr_3 = obj['interrupts']['gpio_intr_3']
+    gpio_intr_4 = obj['interrupts']['gpio_intr_4']
+    gpio_intr_5 = obj['interrupts']['gpio_intr_5']
+    gpio_intr_6 = obj['interrupts']['gpio_intr_6']
+    gpio_intr_7 = obj['interrupts']['gpio_intr_7']
+    gpio_intr_8 = obj['interrupts']['gpio_intr_8']
+    gpio_intr_9 = obj['interrupts']['gpio_intr_9']
+    gpio_intr_10 = obj['interrupts']['gpio_intr_10']
+    gpio_intr_11 = obj['interrupts']['gpio_intr_11']
+    gpio_intr_12 = obj['interrupts']['gpio_intr_12']
+    gpio_intr_13 = obj['interrupts']['gpio_intr_13']
+    gpio_intr_14 = obj['interrupts']['gpio_intr_14']
+    gpio_intr_15 = obj['interrupts']['gpio_intr_15']
+    gpio_intr_16 = obj['interrupts']['gpio_intr_16']
+    gpio_intr_17 = obj['interrupts']['gpio_intr_17']
+    gpio_intr_18 = obj['interrupts']['gpio_intr_18']
+    gpio_intr_19 = obj['interrupts']['gpio_intr_19']
+    gpio_intr_20 = obj['interrupts']['gpio_intr_20']
+    gpio_intr_21 = obj['interrupts']['gpio_intr_21']
+    gpio_intr_22 = obj['interrupts']['gpio_intr_22']
+    gpio_intr_23 = obj['interrupts']['gpio_intr_23']
+    gpio_intr_24 = obj['interrupts']['gpio_intr_24']
+    gpio_intr_25 = obj['interrupts']['gpio_intr_25']
+    gpio_intr_26 = obj['interrupts']['gpio_intr_26']
+    gpio_intr_27 = obj['interrupts']['gpio_intr_27']
+    gpio_intr_28 = obj['interrupts']['gpio_intr_28']
+    gpio_intr_29 = obj['interrupts']['gpio_intr_29']
+    gpio_intr_30 = obj['interrupts']['gpio_intr_30']
+    gpio_intr_31 = obj['interrupts']['gpio_intr_31']
     memcopy_intr_done = obj['interrupts']['memcopy_intr_done']
 
     kwargs = {
@@ -145,18 +186,24 @@ def main():
         "peripheral_size_address"  : peripheral_size_address,
         "ext_slave_start_address"  : ext_slave_start_address,
         "ext_slave_size_address"   : ext_slave_size_address,
+        "spi_flash_start_address"  : spi_flash_start_address,
+        "spi_flash_size_address"   : spi_flash_size_address,
+        "ext_periph_start_offset"  : ext_periph_start_offset,
+        "ext_periph_size_address"  : ext_periph_size_address,
         "soc_ctrl_start_offset"    : soc_ctrl_start_offset,
         "soc_ctrl_size_address"    : soc_ctrl_size_address,
         "uart_start_offset"        : uart_start_offset,
         "uart_size_address"        : uart_size_address,
-        "bootrom_start_offset"     : bootrom_start_offset,
-        "bootrom_size_address"     : bootrom_size_address,
-        "spi_flash_start_address"  : spi_flash_start_address,
-        "spi_flash_size_address"   : spi_flash_size_address,
         "plic_start_offset"        : plic_start_offset,
         "plic_size_address"        : plic_size_address,
-        "ext_periph_start_offset"  : ext_periph_start_offset,
-        "ext_periph_size_address"  : ext_periph_size_address,
+        "rv_timer_start_offset"    : rv_timer_start_offset,
+        "rv_timer_size_address"    : rv_timer_size_address,
+        "gpio_start_offset"        : gpio_start_offset,
+        "gpio_size_address"        : gpio_size_address,
+        "spi_host_start_offset"    : spi_host_start_offset,
+        "spi_host_size_address"    : spi_host_size_address,
+        "bootrom_start_offset"     : bootrom_start_offset,
+        "bootrom_size_address"     : bootrom_size_address,
         "null_intr"                : null_intr,
         "uart_intr_tx_watermark"   : uart_intr_tx_watermark,
         "uart_intr_rx_watermark"   : uart_intr_rx_watermark,
@@ -166,6 +213,38 @@ def main():
         "uart_intr_rx_break_err"   : uart_intr_rx_break_err,
         "uart_intr_rx_timeout"     : uart_intr_rx_timeout,
         "uart_intr_rx_parity_err"  : uart_intr_rx_parity_err,
+        "gpio_intr_0"              : gpio_intr_0,
+        "gpio_intr_1"              : gpio_intr_1,
+        "gpio_intr_2"              : gpio_intr_2,
+        "gpio_intr_3"              : gpio_intr_3,
+        "gpio_intr_4"              : gpio_intr_4,
+        "gpio_intr_5"              : gpio_intr_5,
+        "gpio_intr_6"              : gpio_intr_6,
+        "gpio_intr_7"              : gpio_intr_7,
+        "gpio_intr_8"              : gpio_intr_8,
+        "gpio_intr_9"              : gpio_intr_9,
+        "gpio_intr_10"             : gpio_intr_10,
+        "gpio_intr_11"             : gpio_intr_11,
+        "gpio_intr_12"             : gpio_intr_12,
+        "gpio_intr_13"             : gpio_intr_13,
+        "gpio_intr_14"             : gpio_intr_14,
+        "gpio_intr_15"             : gpio_intr_15,
+        "gpio_intr_16"             : gpio_intr_16,
+        "gpio_intr_17"             : gpio_intr_17,
+        "gpio_intr_18"             : gpio_intr_18,
+        "gpio_intr_19"             : gpio_intr_19,
+        "gpio_intr_20"             : gpio_intr_20,
+        "gpio_intr_21"             : gpio_intr_21,
+        "gpio_intr_22"             : gpio_intr_22,
+        "gpio_intr_23"             : gpio_intr_23,
+        "gpio_intr_24"             : gpio_intr_24,
+        "gpio_intr_25"             : gpio_intr_25,
+        "gpio_intr_26"             : gpio_intr_26,
+        "gpio_intr_27"             : gpio_intr_27,
+        "gpio_intr_28"             : gpio_intr_28,
+        "gpio_intr_29"             : gpio_intr_29,
+        "gpio_intr_30"             : gpio_intr_30,
+        "gpio_intr_31"             : gpio_intr_31,
         "memcopy_intr_done"        : memcopy_intr_done,
     }
 

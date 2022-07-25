@@ -1,0 +1,107 @@
+diff --git a/hw/ip/spi_host/rtl/spi_host.sv b/hw/ip/spi_host/rtl/spi_host.sv
+index 6694d3bc7..34bd56f00 100644
+--- a/hw/ip/spi_host/rtl/spi_host.sv
++++ b/hw/ip/spi_host/rtl/spi_host.sv
+@@ -16,8 +16,6 @@ module spi_host
+   input              clk_core_i,
+   input              rst_core_ni,
+ 
+-  input              lc_ctrl_pkg::lc_tx_t scanmode_i,
+-
+   // Register interface
+   input              tlul_pkg::tl_h2d_t tl_i,
+   output             tlul_pkg::tl_d2h_t tl_o,
+@@ -129,12 +127,6 @@ module spi_host
+   assign passthrough_o.s = cio_sd_i;
+   assign sd_i            = cio_sd_i;
+ 
+-  // TODO: REMOVE THIS CODE
+-  // Temp tie-offs to silence lint warnings
+-  logic unused_scan;
+-
+-  assign unused_scan = ^scanmode_i;
+-
+   assign hw2reg.status.byteorder.d  = ByteOrder;
+   assign hw2reg.status.byteorder.de = 1'b1;
+ 
+diff --git a/hw/ip/spi_host/rtl/spi_host_reg_top.sv b/hw/ip/spi_host/rtl/spi_host_reg_top.sv
+index be224877f..28ff541a6 100644
+--- a/hw/ip/spi_host/rtl/spi_host_reg_top.sv
++++ b/hw/ip/spi_host/rtl/spi_host_reg_top.sv
+@@ -50,35 +50,7 @@ module spi_host_reg_top (
+   tlul_pkg::tl_h2d_t tl_reg_h2d;
+   tlul_pkg::tl_d2h_t tl_reg_d2h;
+ 
+-  // incoming payload check
+-  logic intg_err;
+-  tlul_cmd_intg_chk u_chk (
+-    .tl_i,
+-    .err_o(intg_err)
+-  );
+-
+-  logic intg_err_q;
+-  always_ff @(posedge clk_i or negedge rst_ni) begin
+-    if (!rst_ni) begin
+-      intg_err_q <= '0;
+-    end else if (intg_err) begin
+-      intg_err_q <= 1'b1;
+-    end
+-  end
+-
+-  // integrity error output is permanent and should be used for alert generation
+-  // register errors are transactional
+-  assign intg_err_o = intg_err_q | intg_err;
+-
+-  // outgoing integrity generation
+-  tlul_pkg::tl_d2h_t tl_o_pre;
+-  tlul_rsp_intg_gen #(
+-    .EnableRspIntgGen(1),
+-    .EnableDataIntgGen(1)
+-  ) u_rsp_intg_gen (
+-    .tl_i(tl_o_pre),
+-    .tl_o
+-  );
++  assign intg_err_o = '0;
+ 
+   tlul_pkg::tl_h2d_t tl_socket_h2d [2];
+   tlul_pkg::tl_d2h_t tl_socket_d2h [2];
+@@ -107,7 +79,7 @@ module spi_host_reg_top (
+     .clk_i,
+     .rst_ni,
+     .tl_h_i (tl_i),
+-    .tl_h_o (tl_o_pre),
++    .tl_h_o (tl_o),
+     .tl_d_o (tl_socket_h2d),
+     .tl_d_i (tl_socket_d2h),
+     .dev_select_i (reg_steer)
+@@ -121,9 +93,6 @@ module spi_host_reg_top (
+     if (tl_i.a_address[AW-1:0] >= 32 && tl_i.a_address[AW-1:0] < 36) begin
+       reg_steer = 0;
+     end
+-    if (intg_err) begin
+-      reg_steer = 1;
+-    end
+   end
+ 
+   tlul_adapter_reg #(
+@@ -147,7 +116,7 @@ module spi_host_reg_top (
+   );
+ 
+   assign reg_rdata = reg_rdata_next ;
+-  assign reg_error = (devmode_i & addrmiss) | wr_err | intg_err;
++  assign reg_error = (devmode_i & addrmiss) | wr_err;
+ 
+   // Define SW related signals
+   // Format: <reg>_<field>_{wd|we|qs}
+diff --git a/hw/ip/spi_host/spi_host.core b/hw/ip/spi_host/spi_host.core
+index dd97bff66..12c8efa07 100644
+--- a/hw/ip/spi_host/spi_host.core
++++ b/hw/ip/spi_host/spi_host.core
+@@ -10,7 +10,6 @@ filesets:
+     depend:
+       - lowrisc:constants:top_pkg
+       - lowrisc:prim:all
+-      - lowrisc:ip:lc_ctrl
+       - lowrisc:ip:tlul
+       - lowrisc:ip:spi_device_pkg
+     files:

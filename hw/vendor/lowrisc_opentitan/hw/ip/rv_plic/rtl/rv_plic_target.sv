@@ -19,7 +19,7 @@ module rv_plic_target #(
   parameter int MAX_PRIO = 7,
 
   // Local param (Do not change this through parameter
-  localparam int SrcWidth  = $clog2(N_SOURCE+1),  // derived parameter
+  localparam int SrcWidth  = 6,  // derived parameter
   localparam int PrioWidth = $clog2(MAX_PRIO+1)   // derived parameter
 ) (
   input clk_i,
