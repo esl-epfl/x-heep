@@ -2,17 +2,20 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 {
-  name: "picorv32",
-  target_dir: "picorv32",
+  name: "yosyshq_picorv32",
+  target_dir: "yosyshq_picorv32",
 
   upstream: {
     url: "https://github.com/YosysHQ/picorv32.git",
     rev: "f00a88c36eaab478b64ee27d8162e421049bcc66",
   },
 
-  patch_dir: "patches/picorv32",
+  patch_dir: "patches/yosyshq_picorv32",
 
   exclude_from_upstream: [
+    "picorv32.v",
+    "picorv32.core",
+    "COPYING",
     "dhrystone",
     "firmware",
     "scripts",
