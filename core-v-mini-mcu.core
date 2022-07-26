@@ -181,6 +181,7 @@ targets:
     filesets:
     - files_rtl_generic
     - target_sim ? (rtl-simulation)
+    - target_sim_opt ? (rtl-simulation)
     - target_sim ? (tool_verilator? (files_verilator_waiver))
     toplevel: [core_v_mini_mcu]
 
@@ -257,11 +258,11 @@ targets:
     <<: *default_target
     default_tool: modelsim
     filesets_append:
-    - rtl-simulation
     - tb-utils
     - pre_build_remote_bitbang
     - pre_build_uartdpi
     - pre_patch_modelsim_Makefile
+    - post_build_modelsim_scripts
     - tb-sv
     toplevel: [tb_top_vopt]
     hooks:
