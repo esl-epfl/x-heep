@@ -32,7 +32,7 @@ _jump_to_flash:
        addi a0, zero, 1
        sw a0, OBI_SPIMEMIO_START_SPIMEM_REG_OFFSET(a1)
        lui a1, SPI_FLASH_START_ADDRESS_20bit
-       addi a1, a1, SEXT_IMM(0x224)
+       addi a1, a1, SEXT_IMM(0x180)
        jalr a1
        //leave some nops otherwise prefetcher out of bound
        nop
