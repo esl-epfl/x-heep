@@ -24,49 +24,42 @@ dif_plic_result_t plic_res;
 dif_plic_irq_id_t intr_num;
 
 void handler_irq_external(void) {
-    // // Claim/clear interrupt
+    // Claim/clear interrupt
     plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
     if (plic_res == kDifPlicOk && intr_num == DMA_INTR_DONE) {
         dma_intr_flag = 1;
     }
 }
 
-int32_t __attribute__((section(".cp_data.copied_data"))) copied_data[COPY_SIZE];
-
 int main(int argc, char *argv[])
 {
     printf("--- DMA EXAMPLE ---\n");
 
-    printf("Init the PLIC... ");
-    // dma peripheral structure to access the registers
-    // dif_plic_params_t rv_plic_params;
-    // dif_plic_t rv_plic;
-    // dif_plic_result_t plic_res;
-
+    printf("Init the PLIC...");
     rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)PLIC_START_ADDRESS);
     plic_res = dif_plic_init(rv_plic_params, &rv_plic);
 
     if (plic_res == kDifPlicOk) {
-        printf("Success\n");
+        printf("success\n");
     } else {
-        printf("Fail\n;");
+        printf("fail\n;");
     }
 
-    printf("Set DMA interrupt priority to 1... ");
+    printf("Set DMA interrupt priority to 1...");
     // Set dma priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
     plic_res = dif_plic_irq_set_priority(&rv_plic, DMA_INTR_DONE, 1);
     if (plic_res == kDifPlicOk) {
-        printf("Success\n");
+        printf("success\n");
     } else {
-        printf("Fail\n;");
+        printf("fail\n;");
     }
 
-    printf("Enable DMA interrupt... ");
+    printf("Enable DMA interrupt...");
     plic_res = dif_plic_irq_set_enabled(&rv_plic, DMA_INTR_DONE, 0, kDifPlicToggleEnabled);
     if (plic_res == kDifPlicOk) {
-        printf("Success\n");
+        printf("success\n");
     } else {
-        printf("Fail\n;");
+        printf("fail\n;");
     }
 
     // Enable interrupt on processor side
@@ -79,10 +72,10 @@ int main(int argc, char *argv[])
 
     // Use the stack
     int32_t original_data[COPY_SIZE];
-    // int32_t copied_data[COPY_SIZE];
+    int32_t copied_data[COPY_SIZE];
     // Or use the slow sram ip example for data
     // int32_t original_data = EXT_SLAVE_START_ADDRESS;
-    // int32_t copied_data = EXT_SLAVE_START_ADDRESS;
+    // int32_t copied_data = EXT_SLAVE_START_ADDRESS+COPY_SIZE;
 
     volatile uint32_t *src_ptr = original_data;
     volatile uint32_t *dest_ptr = copied_data;
@@ -104,15 +97,14 @@ int main(int argc, char *argv[])
     while(dma_intr_flag==0) {
         wait_for_interrupt();
     }
-
     printf("finished\n");
 
-    printf("Complete interrupt... ");
+    printf("Complete interrupt...");
     plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
     if (plic_res == kDifPlicOk && intr_num == DMA_INTR_DONE) {
-        printf("Success\n");
+        printf("success\n");
     } else {
-        printf("Fail\n;");
+        printf("fail\n;");
     }
 
     // Reinitialized the read pointer to the original address
