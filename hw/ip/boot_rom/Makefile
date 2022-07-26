@@ -12,7 +12,7 @@ INC_FOLDERS                += $(sort $(dir $(wildcard ../../../sw/device/lib/bas
 INC_FOLDERS                += $(sort $(dir $(wildcard ../../../sw/device/lib/runtime/*/)))
 INC_FOLDERS_GCC             = $(addprefix -I ,$(INC_FOLDERS))
 
-all: $(boot_rom)
+all: $(boot_rom) boot_rom.dump
 
 %.sv: %.img
 	$(PYTHON) gen_rom.py $<
@@ -30,4 +30,4 @@ all: $(boot_rom)
 	$(OBJDUMP) -d $< --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.text.init --section=.data  > $@
 
 clean:
-	rm -f *.img *.bin *.sv
+	rm -f *.img *.bin *.sv .*dump
