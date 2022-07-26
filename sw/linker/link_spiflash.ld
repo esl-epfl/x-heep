@@ -1,3 +1,4 @@
+ENTRY(_start)
 
 MEMORY
 {
@@ -6,8 +7,10 @@ MEMORY
 }
 
 SECTIONS {
+
     /* we want a fixed entry point */
     PROVIDE(__boot_address = 0x40000180);
+
     /* stack and heap related settings */
     __stack_size = DEFINED(__stack_size) ? __stack_size : 0x1000;
     PROVIDE(__stack_size = __stack_size);
@@ -19,6 +22,15 @@ SECTIONS {
       PROVIDE(_vector_start = .);
       KEEP(*(.vectors));
     } >FLASH
+
+
+    /* crt0 init code */
+    .init (__boot_address):
+    {
+        KEEP (*(SORT_NONE(.init)))
+	KEEP (*(.text.start))
+    } >FLASH
+
     
     /* The program code and other data goes into FLASH */
     .text :

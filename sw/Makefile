@@ -78,13 +78,13 @@ applications/hello_world/hello_world.flash.elf: applications/hello_world/hello_w
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
 		-T linker/link_spiflash.ld \
+		-I $(RISCV)/riscv32-unknown-elf/include \
+		$(INC_FOLDERS_GCC) \
 		-static \
 		$(LIB_CRT_SPIFLASH) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
-		-I $(RISCV)/riscv32-unknown-elf/include \
-		-I device/lib/ \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
@@ -128,6 +128,22 @@ applications/example_gpio_cnt/example_gpio_cnt.elf: applications/example_gpio_cn
 		$(INC_FOLDERS_GCC) \
 		-static \
 		$(LIB_CRT) \
+		$^ $(LIB_RUNTIME) \
+		$(LIB_BASE) \
+		$(LIB_DRIVERS) \
+		-L $(RISCV)/riscv32-unknown-elf/lib \
+		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
+
+
+applications/gpio_pmw/gpio_pmw.flash.elf: applications/gpio_pmw/gpio_pmw.c
+	$(RISCV_EXE_PREFIX)gcc -march=rv32im -o $@ -w -Os -g -nostdlib \
+		$(CUSTOM_GCC_FLAGS) \
+		-DHOST_BUILD \
+		-T linker/link_spiflash.ld \
+		-I $(RISCV)/riscv32-unknown-elf/include \
+		$(INC_FOLDERS_GCC) \
+		-static \
+		$(LIB_CRT_SPIFLASH) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
