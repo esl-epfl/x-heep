@@ -17,8 +17,18 @@
 
 int8_t dma_intr_flag;
 
+// Interrupt controller variables
+dif_plic_params_t rv_plic_params;
+dif_plic_t rv_plic;
+dif_plic_result_t plic_res;
+dif_plic_irq_id_t intr_num;
+
 void handler_irq_external(void) {
-    dma_intr_flag = 1;
+    // // Claim/clear interrupt
+    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
+    if (plic_res == kDifPlicOk && intr_num == DMA_INTR_DONE) {
+        dma_intr_flag = 1;
+    }
 }
 
 int32_t __attribute__((section(".cp_data.copied_data"))) copied_data[COPY_SIZE];
@@ -29,9 +39,9 @@ int main(int argc, char *argv[])
 
     printf("Init the PLIC... ");
     // dma peripheral structure to access the registers
-    dif_plic_params_t rv_plic_params;
-    dif_plic_t rv_plic;
-    dif_plic_result_t plic_res;
+    // dif_plic_params_t rv_plic_params;
+    // dif_plic_t rv_plic;
+    // dif_plic_result_t plic_res;
 
     rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)PLIC_START_ADDRESS);
     plic_res = dif_plic_init(rv_plic_params, &rv_plic);
@@ -88,29 +98,18 @@ int main(int argc, char *argv[])
 
     dma_set_read_ptr(&dma, (uint32_t) original_data);
     dma_set_write_ptr(&dma, (uint32_t) copied_data);
-    printf("DMA launched...\n");
-    if (dma_intr_flag==0) {
-        dma_set_cnt_start(&dma, (uint32_t) COPY_SIZE);
-    }
+    printf("DMA launched...");
+    dma_set_cnt_start(&dma, (uint32_t) COPY_SIZE);
     // Wait copy is done
     while(dma_intr_flag==0) {
         wait_for_interrupt();
     }
 
-    printf("DMA finished\n");
-
-    dif_plic_irq_id_t intr_num;
-    printf("Claim interrupt... ");
-    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
-    if (plic_res == kDifPlicOk) {
-        printf("Success\n");
-    } else {
-        printf("Fail\n;");
-    }
+    printf("finished\n");
 
     printf("Complete interrupt... ");
     plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-    if (plic_res == kDifPlicOk) {
+    if (plic_res == kDifPlicOk && intr_num == DMA_INTR_DONE) {
         printf("Success\n");
     } else {
         printf("Fail\n;");
@@ -131,9 +130,9 @@ int main(int argc, char *argv[])
     }
 
     if (errors == 0) {
-        printf("DMA SUCCESS\n");
+        printf("DMA TRANSFER SUCCESS\n");
     } else {
-        printf("DMA FAILURE (%d/%d errors)\n", errors, COPY_SIZE);
+        printf("DMA TRANSFER FAILURE: %d errors out of %d words copied\n", errors, COPY_SIZE);
     }
 
     return EXIT_SUCCESS;
