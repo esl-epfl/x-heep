@@ -298,6 +298,7 @@ index c4eb99935..e9e29052a 100644
        ],
        tags: [// CC register value is related to IP
               "excl:CsrNonInitTests:CsrExclCheck"],
+
 diff --git a/hw/ip/rv_plic/rtl/rv_plic.sv b/hw/ip/rv_plic/rtl/rv_plic.sv
 index 3761e7058..dbd0ea544 100644
 --- a/hw/ip/rv_plic/rtl/rv_plic.sv
@@ -356,17 +357,6 @@ index 3761e7058..dbd0ea544 100644
      assign ie[0][s] = reg2hw.ie0[s].q;
    end
  
-@@ -137,8 +171,8 @@ module rv_plic import rv_plic_reg_pkg::*; #(
-   assign claim_re[0]    = reg2hw.cc0.re;
-   assign claim_id[0]    = irq_id_o[0];
-   assign complete_we[0] = reg2hw.cc0.qe;
--  assign complete_id[0] = reg2hw.cc0.q;
--  assign hw2reg.cc0.d   = cc_id[0];
-+  assign complete_id[0] = reg2hw.cc0.q[5:0];
-+  assign hw2reg.cc0.d[5:0]   = cc_id[0];
- 
-   ///////////////////
-   // MSIP register //
 @@ -148,7 +182,7 @@ module rv_plic import rv_plic_reg_pkg::*; #(
    ////////
    // IP //
@@ -392,6 +382,7 @@ index 3761e7058..dbd0ea544 100644
 +    .intg_err_o (),
      .devmode_i  (1'b1)
    );
+
  
 diff --git a/hw/ip/rv_plic/rtl/rv_plic_reg_pkg.sv b/hw/ip/rv_plic/rtl/rv_plic_reg_pkg.sv
 index e4ffbc217..c1590b54e 100644
@@ -970,6 +961,8 @@ index e4ffbc217..c1590b54e 100644
    };
  
  endpackage
+
+
 diff --git a/hw/ip/rv_plic/rtl/rv_plic_reg_top.sv b/hw/ip/rv_plic/rtl/rv_plic_reg_top.sv
 index ea99b2386..8867905fb 100644
 --- a/hw/ip/rv_plic/rtl/rv_plic_reg_top.sv
