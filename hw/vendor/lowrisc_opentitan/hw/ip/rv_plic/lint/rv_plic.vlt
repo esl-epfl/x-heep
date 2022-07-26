@@ -14,5 +14,3 @@
 split_var -module "rv_plic_target" -var "is_tree"
 split_var -module "rv_plic_target" -var "id_tree"
 split_var -module "rv_plic_target" -var "max_tree"
-
-lint_off -rule UNOPTFLAT -file "*/rtl/rv_plic.sv" -match "*testharness.core_v_mini_mcu_i.peripheral_subsystem_i.rv_plic_i.reg2hw*"

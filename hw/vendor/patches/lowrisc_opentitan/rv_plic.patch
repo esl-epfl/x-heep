@@ -1,5 +1,19 @@
+diff --git a/hw/ip/rv_plic/data/rv_plic.hjson.tpl b/hw/ip/rv_plic/data/rv_plic.hjson.tpl
+index b73389a..3c88af7 100644
+--- a/hw/ip/rv_plic/data/rv_plic.hjson.tpl
++++ b/hw/ip/rv_plic/data/rv_plic.hjson.tpl
+@@ -105,7 +105,7 @@
+       hwqe: "true",
+       hwre: "true",
+       fields: [
+-        { bits: "${(src).bit_length()-1}:0" }
++        { bits: "${(src-1).bit_length()-1}:0" }
+       ],
+       tags: [// CC register value is related to IP
+              "excl:CsrNonInitTests:CsrExclCheck"],
+
 diff --git a/hw/ip/rv_plic/data/rv_plic.hjson b/hw/ip/rv_plic/data/rv_plic.hjson
-index c4eb99935..e9e29052a 100644
+index c4eb999..4136644 100644
 --- a/hw/ip/rv_plic/data/rv_plic.hjson
 +++ b/hw/ip/rv_plic/data/rv_plic.hjson
 @@ -19,7 +19,7 @@
@@ -289,20 +303,11 @@ index c4eb99935..e9e29052a 100644
      { multireg: {
          name: "IE0",
          desc: "Interrupt Enable for Target 0",
-@@ -343,7 +605,7 @@
-       hwqe: "true",
-       hwre: "true",
-       fields: [
--        { bits: "5:0" }
-+        { bits: "6:0" }
-       ],
-       tags: [// CC register value is related to IP
-              "excl:CsrNonInitTests:CsrExclCheck"],
 
-diff --git a/hw/ip/rv_plic/rtl/rv_plic.sv b/hw/ip/rv_plic/rtl/rv_plic.sv
-index 3761e7058..dbd0ea544 100644
---- a/hw/ip/rv_plic/rtl/rv_plic.sv
-+++ b/hw/ip/rv_plic/rtl/rv_plic.sv
+diff --git a/hw/ip/rv_plic/data/rv_plic.sv.tpl b/hw/ip/rv_plic/data/rv_plic.sv.tpl
+index 24b7398..8ca471d 100644
+--- a/hw/ip/rv_plic/data/rv_plic.sv.tpl
++++ b/hw/ip/rv_plic/data/rv_plic.sv.tpl
 @@ -14,6 +14,8 @@
  // Verilog parameter
  //   MAX_PRIO: Maximum value of interrupt priority
@@ -312,7 +317,12 @@ index 3761e7058..dbd0ea544 100644
  module rv_plic import rv_plic_reg_pkg::*; #(
    // derived parameter
    localparam int SRCW    = $clog2(NumSrc)
-@@ -118,11 +120,43 @@ module rv_plic import rv_plic_reg_pkg::*; #(
+
+diff --git a/hw/ip/rv_plic/rtl/rv_plic.sv b/hw/ip/rv_plic/rtl/rv_plic.sv
+index 3761e70..6b985ca 100644
+--- a/hw/ip/rv_plic/rtl/rv_plic.sv
++++ b/hw/ip/rv_plic/rtl/rv_plic.sv
+@@ -118,11 +118,43 @@ module rv_plic import rv_plic_reg_pkg::*; #(
    assign prio[29] = reg2hw.prio29.q;
    assign prio[30] = reg2hw.prio30.q;
    assign prio[31] = reg2hw.prio31.q;
@@ -357,7 +367,7 @@ index 3761e7058..dbd0ea544 100644
      assign ie[0][s] = reg2hw.ie0[s].q;
    end
  
-@@ -148,7 +182,7 @@ module rv_plic import rv_plic_reg_pkg::*; #(
+@@ -148,7 +180,7 @@ module rv_plic import rv_plic_reg_pkg::*; #(
    ////////
    // IP //
    ////////
@@ -366,7 +376,7 @@ index 3761e7058..dbd0ea544 100644
      assign hw2reg.ip[s].de = 1'b1; // Always write
      assign hw2reg.ip[s].d  = ip[s];
    end
-@@ -156,7 +190,7 @@ module rv_plic import rv_plic_reg_pkg::*; #(
+@@ -156,7 +188,7 @@ module rv_plic import rv_plic_reg_pkg::*; #(
    ///////////////////////////////////
    // Detection:: 0: Level, 1: Edge //
    ///////////////////////////////////
@@ -375,655 +385,56 @@ index 3761e7058..dbd0ea544 100644
      assign le[s] = reg2hw.le[s].q;
    end
  
-@@ -216,6 +250,7 @@ module rv_plic import rv_plic_reg_pkg::*; #(
+@@ -216,6 +248,7 @@ module rv_plic import rv_plic_reg_pkg::*; #(
      .reg2hw,
      .hw2reg,
  
 +    .intg_err_o (),
      .devmode_i  (1'b1)
    );
-
  
-diff --git a/hw/ip/rv_plic/rtl/rv_plic_reg_pkg.sv b/hw/ip/rv_plic/rtl/rv_plic_reg_pkg.sv
-index e4ffbc217..c1590b54e 100644
---- a/hw/ip/rv_plic/rtl/rv_plic_reg_pkg.sv
-+++ b/hw/ip/rv_plic/rtl/rv_plic_reg_pkg.sv
-@@ -7,11 +7,12 @@
- package rv_plic_reg_pkg;
- 
-   // Param list
--  parameter int NumSrc = 32;
-+  parameter int NumSrc = 64;
-   parameter int NumTarget = 1;
-+  parameter int PrioWidth = 3;
- 
-   // Address widths within the block
--  parameter int BlockAw = 9;
-+  parameter int BlockAw = 10;
- 
-   ////////////////////////////
-   // Typedefs for registers //
-@@ -149,6 +150,134 @@ package rv_plic_reg_pkg;
-     logic [2:0]  q;
-   } rv_plic_reg2hw_prio31_reg_t;
- 
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio32_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio33_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio34_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio35_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio36_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio37_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio38_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio39_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio40_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio41_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio42_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio43_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio44_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio45_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio46_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio47_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio48_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio49_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio50_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio51_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio52_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio53_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio54_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio55_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio56_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio57_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio58_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio59_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio60_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio61_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio62_reg_t;
-+
-+  typedef struct packed {
-+    logic [2:0]  q;
-+  } rv_plic_reg2hw_prio63_reg_t;
-+
-   typedef struct packed {
-     logic        q;
-   } rv_plic_reg2hw_ie0_mreg_t;
-@@ -158,7 +287,7 @@ package rv_plic_reg_pkg;
-   } rv_plic_reg2hw_threshold0_reg_t;
- 
-   typedef struct packed {
--    logic [5:0]  q;
-+    logic [6:0]  q;
-     logic        qe;
-     logic        re;
-   } rv_plic_reg2hw_cc0_reg_t;
-@@ -173,103 +302,172 @@ package rv_plic_reg_pkg;
-   } rv_plic_hw2reg_ip_mreg_t;
- 
-   typedef struct packed {
--    logic [5:0]  d;
-+    logic [6:0]  d;
-   } rv_plic_hw2reg_cc0_reg_t;
- 
-   // Register -> HW type
-   typedef struct packed {
--    rv_plic_reg2hw_le_mreg_t [31:0] le; // [171:140]
--    rv_plic_reg2hw_prio0_reg_t prio0; // [139:137]
--    rv_plic_reg2hw_prio1_reg_t prio1; // [136:134]
--    rv_plic_reg2hw_prio2_reg_t prio2; // [133:131]
--    rv_plic_reg2hw_prio3_reg_t prio3; // [130:128]
--    rv_plic_reg2hw_prio4_reg_t prio4; // [127:125]
--    rv_plic_reg2hw_prio5_reg_t prio5; // [124:122]
--    rv_plic_reg2hw_prio6_reg_t prio6; // [121:119]
--    rv_plic_reg2hw_prio7_reg_t prio7; // [118:116]
--    rv_plic_reg2hw_prio8_reg_t prio8; // [115:113]
--    rv_plic_reg2hw_prio9_reg_t prio9; // [112:110]
--    rv_plic_reg2hw_prio10_reg_t prio10; // [109:107]
--    rv_plic_reg2hw_prio11_reg_t prio11; // [106:104]
--    rv_plic_reg2hw_prio12_reg_t prio12; // [103:101]
--    rv_plic_reg2hw_prio13_reg_t prio13; // [100:98]
--    rv_plic_reg2hw_prio14_reg_t prio14; // [97:95]
--    rv_plic_reg2hw_prio15_reg_t prio15; // [94:92]
--    rv_plic_reg2hw_prio16_reg_t prio16; // [91:89]
--    rv_plic_reg2hw_prio17_reg_t prio17; // [88:86]
--    rv_plic_reg2hw_prio18_reg_t prio18; // [85:83]
--    rv_plic_reg2hw_prio19_reg_t prio19; // [82:80]
--    rv_plic_reg2hw_prio20_reg_t prio20; // [79:77]
--    rv_plic_reg2hw_prio21_reg_t prio21; // [76:74]
--    rv_plic_reg2hw_prio22_reg_t prio22; // [73:71]
--    rv_plic_reg2hw_prio23_reg_t prio23; // [70:68]
--    rv_plic_reg2hw_prio24_reg_t prio24; // [67:65]
--    rv_plic_reg2hw_prio25_reg_t prio25; // [64:62]
--    rv_plic_reg2hw_prio26_reg_t prio26; // [61:59]
--    rv_plic_reg2hw_prio27_reg_t prio27; // [58:56]
--    rv_plic_reg2hw_prio28_reg_t prio28; // [55:53]
--    rv_plic_reg2hw_prio29_reg_t prio29; // [52:50]
--    rv_plic_reg2hw_prio30_reg_t prio30; // [49:47]
--    rv_plic_reg2hw_prio31_reg_t prio31; // [46:44]
--    rv_plic_reg2hw_ie0_mreg_t [31:0] ie0; // [43:12]
--    rv_plic_reg2hw_threshold0_reg_t threshold0; // [11:9]
--    rv_plic_reg2hw_cc0_reg_t cc0; // [8:1]
-+    rv_plic_reg2hw_le_mreg_t [63:0] le; // [332:269]
-+    rv_plic_reg2hw_prio0_reg_t prio0; // [268:266]
-+    rv_plic_reg2hw_prio1_reg_t prio1; // [265:263]
-+    rv_plic_reg2hw_prio2_reg_t prio2; // [262:260]
-+    rv_plic_reg2hw_prio3_reg_t prio3; // [259:257]
-+    rv_plic_reg2hw_prio4_reg_t prio4; // [256:254]
-+    rv_plic_reg2hw_prio5_reg_t prio5; // [253:251]
-+    rv_plic_reg2hw_prio6_reg_t prio6; // [250:248]
-+    rv_plic_reg2hw_prio7_reg_t prio7; // [247:245]
-+    rv_plic_reg2hw_prio8_reg_t prio8; // [244:242]
-+    rv_plic_reg2hw_prio9_reg_t prio9; // [241:239]
-+    rv_plic_reg2hw_prio10_reg_t prio10; // [238:236]
-+    rv_plic_reg2hw_prio11_reg_t prio11; // [235:233]
-+    rv_plic_reg2hw_prio12_reg_t prio12; // [232:230]
-+    rv_plic_reg2hw_prio13_reg_t prio13; // [229:227]
-+    rv_plic_reg2hw_prio14_reg_t prio14; // [226:224]
-+    rv_plic_reg2hw_prio15_reg_t prio15; // [223:221]
-+    rv_plic_reg2hw_prio16_reg_t prio16; // [220:218]
-+    rv_plic_reg2hw_prio17_reg_t prio17; // [217:215]
-+    rv_plic_reg2hw_prio18_reg_t prio18; // [214:212]
-+    rv_plic_reg2hw_prio19_reg_t prio19; // [211:209]
-+    rv_plic_reg2hw_prio20_reg_t prio20; // [208:206]
-+    rv_plic_reg2hw_prio21_reg_t prio21; // [205:203]
-+    rv_plic_reg2hw_prio22_reg_t prio22; // [202:200]
-+    rv_plic_reg2hw_prio23_reg_t prio23; // [199:197]
-+    rv_plic_reg2hw_prio24_reg_t prio24; // [196:194]
-+    rv_plic_reg2hw_prio25_reg_t prio25; // [193:191]
-+    rv_plic_reg2hw_prio26_reg_t prio26; // [190:188]
-+    rv_plic_reg2hw_prio27_reg_t prio27; // [187:185]
-+    rv_plic_reg2hw_prio28_reg_t prio28; // [184:182]
-+    rv_plic_reg2hw_prio29_reg_t prio29; // [181:179]
-+    rv_plic_reg2hw_prio30_reg_t prio30; // [178:176]
-+    rv_plic_reg2hw_prio31_reg_t prio31; // [175:173]
-+    rv_plic_reg2hw_prio32_reg_t prio32; // [172:170]
-+    rv_plic_reg2hw_prio33_reg_t prio33; // [169:167]
-+    rv_plic_reg2hw_prio34_reg_t prio34; // [166:164]
-+    rv_plic_reg2hw_prio35_reg_t prio35; // [163:161]
-+    rv_plic_reg2hw_prio36_reg_t prio36; // [160:158]
-+    rv_plic_reg2hw_prio37_reg_t prio37; // [157:155]
-+    rv_plic_reg2hw_prio38_reg_t prio38; // [154:152]
-+    rv_plic_reg2hw_prio39_reg_t prio39; // [151:149]
-+    rv_plic_reg2hw_prio40_reg_t prio40; // [148:146]
-+    rv_plic_reg2hw_prio41_reg_t prio41; // [145:143]
-+    rv_plic_reg2hw_prio42_reg_t prio42; // [142:140]
-+    rv_plic_reg2hw_prio43_reg_t prio43; // [139:137]
-+    rv_plic_reg2hw_prio44_reg_t prio44; // [136:134]
-+    rv_plic_reg2hw_prio45_reg_t prio45; // [133:131]
-+    rv_plic_reg2hw_prio46_reg_t prio46; // [130:128]
-+    rv_plic_reg2hw_prio47_reg_t prio47; // [127:125]
-+    rv_plic_reg2hw_prio48_reg_t prio48; // [124:122]
-+    rv_plic_reg2hw_prio49_reg_t prio49; // [121:119]
-+    rv_plic_reg2hw_prio50_reg_t prio50; // [118:116]
-+    rv_plic_reg2hw_prio51_reg_t prio51; // [115:113]
-+    rv_plic_reg2hw_prio52_reg_t prio52; // [112:110]
-+    rv_plic_reg2hw_prio53_reg_t prio53; // [109:107]
-+    rv_plic_reg2hw_prio54_reg_t prio54; // [106:104]
-+    rv_plic_reg2hw_prio55_reg_t prio55; // [103:101]
-+    rv_plic_reg2hw_prio56_reg_t prio56; // [100:98]
-+    rv_plic_reg2hw_prio57_reg_t prio57; // [97:95]
-+    rv_plic_reg2hw_prio58_reg_t prio58; // [94:92]
-+    rv_plic_reg2hw_prio59_reg_t prio59; // [91:89]
-+    rv_plic_reg2hw_prio60_reg_t prio60; // [88:86]
-+    rv_plic_reg2hw_prio61_reg_t prio61; // [85:83]
-+    rv_plic_reg2hw_prio62_reg_t prio62; // [82:80]
-+    rv_plic_reg2hw_prio63_reg_t prio63; // [79:77]
-+    rv_plic_reg2hw_ie0_mreg_t [63:0] ie0; // [76:13]
-+    rv_plic_reg2hw_threshold0_reg_t threshold0; // [12:10]
-+    rv_plic_reg2hw_cc0_reg_t cc0; // [9:1]
-     rv_plic_reg2hw_msip0_reg_t msip0; // [0:0]
-   } rv_plic_reg2hw_t;
- 
-   // HW -> register type
-   typedef struct packed {
--    rv_plic_hw2reg_ip_mreg_t [31:0] ip; // [69:6]
--    rv_plic_hw2reg_cc0_reg_t cc0; // [5:0]
-+    rv_plic_hw2reg_ip_mreg_t [63:0] ip; // [134:7]
-+    rv_plic_hw2reg_cc0_reg_t cc0; // [6:0]
-   } rv_plic_hw2reg_t;
- 
-   // Register offsets
--  parameter logic [BlockAw-1:0] RV_PLIC_IP_OFFSET = 9'h 0;
--  parameter logic [BlockAw-1:0] RV_PLIC_LE_OFFSET = 9'h 4;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO0_OFFSET = 9'h 8;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO1_OFFSET = 9'h c;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO2_OFFSET = 9'h 10;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO3_OFFSET = 9'h 14;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO4_OFFSET = 9'h 18;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO5_OFFSET = 9'h 1c;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO6_OFFSET = 9'h 20;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO7_OFFSET = 9'h 24;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO8_OFFSET = 9'h 28;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO9_OFFSET = 9'h 2c;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO10_OFFSET = 9'h 30;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO11_OFFSET = 9'h 34;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO12_OFFSET = 9'h 38;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO13_OFFSET = 9'h 3c;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO14_OFFSET = 9'h 40;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO15_OFFSET = 9'h 44;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO16_OFFSET = 9'h 48;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO17_OFFSET = 9'h 4c;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO18_OFFSET = 9'h 50;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO19_OFFSET = 9'h 54;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO20_OFFSET = 9'h 58;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO21_OFFSET = 9'h 5c;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO22_OFFSET = 9'h 60;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO23_OFFSET = 9'h 64;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO24_OFFSET = 9'h 68;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO25_OFFSET = 9'h 6c;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO26_OFFSET = 9'h 70;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO27_OFFSET = 9'h 74;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO28_OFFSET = 9'h 78;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO29_OFFSET = 9'h 7c;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO30_OFFSET = 9'h 80;
--  parameter logic [BlockAw-1:0] RV_PLIC_PRIO31_OFFSET = 9'h 84;
--  parameter logic [BlockAw-1:0] RV_PLIC_IE0_OFFSET = 9'h 100;
--  parameter logic [BlockAw-1:0] RV_PLIC_THRESHOLD0_OFFSET = 9'h 104;
--  parameter logic [BlockAw-1:0] RV_PLIC_CC0_OFFSET = 9'h 108;
--  parameter logic [BlockAw-1:0] RV_PLIC_MSIP0_OFFSET = 9'h 10c;
-+  parameter logic [BlockAw-1:0] RV_PLIC_IP_0_OFFSET = 10'h 0;
-+  parameter logic [BlockAw-1:0] RV_PLIC_IP_1_OFFSET = 10'h 4;
-+  parameter logic [BlockAw-1:0] RV_PLIC_LE_0_OFFSET = 10'h 8;
-+  parameter logic [BlockAw-1:0] RV_PLIC_LE_1_OFFSET = 10'h c;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO0_OFFSET = 10'h 10;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO1_OFFSET = 10'h 14;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO2_OFFSET = 10'h 18;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO3_OFFSET = 10'h 1c;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO4_OFFSET = 10'h 20;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO5_OFFSET = 10'h 24;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO6_OFFSET = 10'h 28;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO7_OFFSET = 10'h 2c;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO8_OFFSET = 10'h 30;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO9_OFFSET = 10'h 34;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO10_OFFSET = 10'h 38;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO11_OFFSET = 10'h 3c;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO12_OFFSET = 10'h 40;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO13_OFFSET = 10'h 44;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO14_OFFSET = 10'h 48;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO15_OFFSET = 10'h 4c;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO16_OFFSET = 10'h 50;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO17_OFFSET = 10'h 54;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO18_OFFSET = 10'h 58;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO19_OFFSET = 10'h 5c;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO20_OFFSET = 10'h 60;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO21_OFFSET = 10'h 64;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO22_OFFSET = 10'h 68;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO23_OFFSET = 10'h 6c;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO24_OFFSET = 10'h 70;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO25_OFFSET = 10'h 74;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO26_OFFSET = 10'h 78;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO27_OFFSET = 10'h 7c;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO28_OFFSET = 10'h 80;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO29_OFFSET = 10'h 84;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO30_OFFSET = 10'h 88;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO31_OFFSET = 10'h 8c;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO32_OFFSET = 10'h 90;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO33_OFFSET = 10'h 94;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO34_OFFSET = 10'h 98;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO35_OFFSET = 10'h 9c;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO36_OFFSET = 10'h a0;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO37_OFFSET = 10'h a4;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO38_OFFSET = 10'h a8;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO39_OFFSET = 10'h ac;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO40_OFFSET = 10'h b0;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO41_OFFSET = 10'h b4;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO42_OFFSET = 10'h b8;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO43_OFFSET = 10'h bc;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO44_OFFSET = 10'h c0;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO45_OFFSET = 10'h c4;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO46_OFFSET = 10'h c8;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO47_OFFSET = 10'h cc;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO48_OFFSET = 10'h d0;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO49_OFFSET = 10'h d4;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO50_OFFSET = 10'h d8;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO51_OFFSET = 10'h dc;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO52_OFFSET = 10'h e0;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO53_OFFSET = 10'h e4;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO54_OFFSET = 10'h e8;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO55_OFFSET = 10'h ec;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO56_OFFSET = 10'h f0;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO57_OFFSET = 10'h f4;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO58_OFFSET = 10'h f8;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO59_OFFSET = 10'h fc;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO60_OFFSET = 10'h 100;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO61_OFFSET = 10'h 104;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO62_OFFSET = 10'h 108;
-+  parameter logic [BlockAw-1:0] RV_PLIC_PRIO63_OFFSET = 10'h 10c;
-+  parameter logic [BlockAw-1:0] RV_PLIC_IE0_0_OFFSET = 10'h 200;
-+  parameter logic [BlockAw-1:0] RV_PLIC_IE0_1_OFFSET = 10'h 204;
-+  parameter logic [BlockAw-1:0] RV_PLIC_THRESHOLD0_OFFSET = 10'h 208;
-+  parameter logic [BlockAw-1:0] RV_PLIC_CC0_OFFSET = 10'h 20c;
-+  parameter logic [BlockAw-1:0] RV_PLIC_MSIP0_OFFSET = 10'h 210;
- 
-   // Reset values for hwext registers and their fields
--  parameter logic [5:0] RV_PLIC_CC0_RESVAL = 6'h 0;
-+  parameter logic [6:0] RV_PLIC_CC0_RESVAL = 7'h 0;
- 
-   // Register index
-   typedef enum int {
--    RV_PLIC_IP,
--    RV_PLIC_LE,
-+    RV_PLIC_IP_0,
-+    RV_PLIC_IP_1,
-+    RV_PLIC_LE_0,
-+    RV_PLIC_LE_1,
-     RV_PLIC_PRIO0,
-     RV_PLIC_PRIO1,
-     RV_PLIC_PRIO2,
-@@ -302,52 +500,120 @@ package rv_plic_reg_pkg;
-     RV_PLIC_PRIO29,
-     RV_PLIC_PRIO30,
-     RV_PLIC_PRIO31,
--    RV_PLIC_IE0,
-+    RV_PLIC_PRIO32,
-+    RV_PLIC_PRIO33,
-+    RV_PLIC_PRIO34,
-+    RV_PLIC_PRIO35,
-+    RV_PLIC_PRIO36,
-+    RV_PLIC_PRIO37,
-+    RV_PLIC_PRIO38,
-+    RV_PLIC_PRIO39,
-+    RV_PLIC_PRIO40,
-+    RV_PLIC_PRIO41,
-+    RV_PLIC_PRIO42,
-+    RV_PLIC_PRIO43,
-+    RV_PLIC_PRIO44,
-+    RV_PLIC_PRIO45,
-+    RV_PLIC_PRIO46,
-+    RV_PLIC_PRIO47,
-+    RV_PLIC_PRIO48,
-+    RV_PLIC_PRIO49,
-+    RV_PLIC_PRIO50,
-+    RV_PLIC_PRIO51,
-+    RV_PLIC_PRIO52,
-+    RV_PLIC_PRIO53,
-+    RV_PLIC_PRIO54,
-+    RV_PLIC_PRIO55,
-+    RV_PLIC_PRIO56,
-+    RV_PLIC_PRIO57,
-+    RV_PLIC_PRIO58,
-+    RV_PLIC_PRIO59,
-+    RV_PLIC_PRIO60,
-+    RV_PLIC_PRIO61,
-+    RV_PLIC_PRIO62,
-+    RV_PLIC_PRIO63,
-+    RV_PLIC_IE0_0,
-+    RV_PLIC_IE0_1,
-     RV_PLIC_THRESHOLD0,
-     RV_PLIC_CC0,
-     RV_PLIC_MSIP0
-   } rv_plic_id_e;
- 
-   // Register width information to check illegal writes
--  parameter logic [3:0] RV_PLIC_PERMIT [38] = '{
--    4'b 1111, // index[ 0] RV_PLIC_IP
--    4'b 1111, // index[ 1] RV_PLIC_LE
--    4'b 0001, // index[ 2] RV_PLIC_PRIO0
--    4'b 0001, // index[ 3] RV_PLIC_PRIO1
--    4'b 0001, // index[ 4] RV_PLIC_PRIO2
--    4'b 0001, // index[ 5] RV_PLIC_PRIO3
--    4'b 0001, // index[ 6] RV_PLIC_PRIO4
--    4'b 0001, // index[ 7] RV_PLIC_PRIO5
--    4'b 0001, // index[ 8] RV_PLIC_PRIO6
--    4'b 0001, // index[ 9] RV_PLIC_PRIO7
--    4'b 0001, // index[10] RV_PLIC_PRIO8
--    4'b 0001, // index[11] RV_PLIC_PRIO9
--    4'b 0001, // index[12] RV_PLIC_PRIO10
--    4'b 0001, // index[13] RV_PLIC_PRIO11
--    4'b 0001, // index[14] RV_PLIC_PRIO12
--    4'b 0001, // index[15] RV_PLIC_PRIO13
--    4'b 0001, // index[16] RV_PLIC_PRIO14
--    4'b 0001, // index[17] RV_PLIC_PRIO15
--    4'b 0001, // index[18] RV_PLIC_PRIO16
--    4'b 0001, // index[19] RV_PLIC_PRIO17
--    4'b 0001, // index[20] RV_PLIC_PRIO18
--    4'b 0001, // index[21] RV_PLIC_PRIO19
--    4'b 0001, // index[22] RV_PLIC_PRIO20
--    4'b 0001, // index[23] RV_PLIC_PRIO21
--    4'b 0001, // index[24] RV_PLIC_PRIO22
--    4'b 0001, // index[25] RV_PLIC_PRIO23
--    4'b 0001, // index[26] RV_PLIC_PRIO24
--    4'b 0001, // index[27] RV_PLIC_PRIO25
--    4'b 0001, // index[28] RV_PLIC_PRIO26
--    4'b 0001, // index[29] RV_PLIC_PRIO27
--    4'b 0001, // index[30] RV_PLIC_PRIO28
--    4'b 0001, // index[31] RV_PLIC_PRIO29
--    4'b 0001, // index[32] RV_PLIC_PRIO30
--    4'b 0001, // index[33] RV_PLIC_PRIO31
--    4'b 1111, // index[34] RV_PLIC_IE0
--    4'b 0001, // index[35] RV_PLIC_THRESHOLD0
--    4'b 0001, // index[36] RV_PLIC_CC0
--    4'b 0001  // index[37] RV_PLIC_MSIP0
-+  parameter logic [3:0] RV_PLIC_PERMIT [73] = '{
-+    4'b 1111, // index[ 0] RV_PLIC_IP_0
-+    4'b 1111, // index[ 1] RV_PLIC_IP_1
-+    4'b 1111, // index[ 2] RV_PLIC_LE_0
-+    4'b 1111, // index[ 3] RV_PLIC_LE_1
-+    4'b 0001, // index[ 4] RV_PLIC_PRIO0
-+    4'b 0001, // index[ 5] RV_PLIC_PRIO1
-+    4'b 0001, // index[ 6] RV_PLIC_PRIO2
-+    4'b 0001, // index[ 7] RV_PLIC_PRIO3
-+    4'b 0001, // index[ 8] RV_PLIC_PRIO4
-+    4'b 0001, // index[ 9] RV_PLIC_PRIO5
-+    4'b 0001, // index[10] RV_PLIC_PRIO6
-+    4'b 0001, // index[11] RV_PLIC_PRIO7
-+    4'b 0001, // index[12] RV_PLIC_PRIO8
-+    4'b 0001, // index[13] RV_PLIC_PRIO9
-+    4'b 0001, // index[14] RV_PLIC_PRIO10
-+    4'b 0001, // index[15] RV_PLIC_PRIO11
-+    4'b 0001, // index[16] RV_PLIC_PRIO12
-+    4'b 0001, // index[17] RV_PLIC_PRIO13
-+    4'b 0001, // index[18] RV_PLIC_PRIO14
-+    4'b 0001, // index[19] RV_PLIC_PRIO15
-+    4'b 0001, // index[20] RV_PLIC_PRIO16
-+    4'b 0001, // index[21] RV_PLIC_PRIO17
-+    4'b 0001, // index[22] RV_PLIC_PRIO18
-+    4'b 0001, // index[23] RV_PLIC_PRIO19
-+    4'b 0001, // index[24] RV_PLIC_PRIO20
-+    4'b 0001, // index[25] RV_PLIC_PRIO21
-+    4'b 0001, // index[26] RV_PLIC_PRIO22
-+    4'b 0001, // index[27] RV_PLIC_PRIO23
-+    4'b 0001, // index[28] RV_PLIC_PRIO24
-+    4'b 0001, // index[29] RV_PLIC_PRIO25
-+    4'b 0001, // index[30] RV_PLIC_PRIO26
-+    4'b 0001, // index[31] RV_PLIC_PRIO27
-+    4'b 0001, // index[32] RV_PLIC_PRIO28
-+    4'b 0001, // index[33] RV_PLIC_PRIO29
-+    4'b 0001, // index[34] RV_PLIC_PRIO30
-+    4'b 0001, // index[35] RV_PLIC_PRIO31
-+    4'b 0001, // index[36] RV_PLIC_PRIO32
-+    4'b 0001, // index[37] RV_PLIC_PRIO33
-+    4'b 0001, // index[38] RV_PLIC_PRIO34
-+    4'b 0001, // index[39] RV_PLIC_PRIO35
-+    4'b 0001, // index[40] RV_PLIC_PRIO36
-+    4'b 0001, // index[41] RV_PLIC_PRIO37
-+    4'b 0001, // index[42] RV_PLIC_PRIO38
-+    4'b 0001, // index[43] RV_PLIC_PRIO39
-+    4'b 0001, // index[44] RV_PLIC_PRIO40
-+    4'b 0001, // index[45] RV_PLIC_PRIO41
-+    4'b 0001, // index[46] RV_PLIC_PRIO42
-+    4'b 0001, // index[47] RV_PLIC_PRIO43
-+    4'b 0001, // index[48] RV_PLIC_PRIO44
-+    4'b 0001, // index[49] RV_PLIC_PRIO45
-+    4'b 0001, // index[50] RV_PLIC_PRIO46
-+    4'b 0001, // index[51] RV_PLIC_PRIO47
-+    4'b 0001, // index[52] RV_PLIC_PRIO48
-+    4'b 0001, // index[53] RV_PLIC_PRIO49
-+    4'b 0001, // index[54] RV_PLIC_PRIO50
-+    4'b 0001, // index[55] RV_PLIC_PRIO51
-+    4'b 0001, // index[56] RV_PLIC_PRIO52
-+    4'b 0001, // index[57] RV_PLIC_PRIO53
-+    4'b 0001, // index[58] RV_PLIC_PRIO54
-+    4'b 0001, // index[59] RV_PLIC_PRIO55
-+    4'b 0001, // index[60] RV_PLIC_PRIO56
-+    4'b 0001, // index[61] RV_PLIC_PRIO57
-+    4'b 0001, // index[62] RV_PLIC_PRIO58
-+    4'b 0001, // index[63] RV_PLIC_PRIO59
-+    4'b 0001, // index[64] RV_PLIC_PRIO60
-+    4'b 0001, // index[65] RV_PLIC_PRIO61
-+    4'b 0001, // index[66] RV_PLIC_PRIO62
-+    4'b 0001, // index[67] RV_PLIC_PRIO63
-+    4'b 1111, // index[68] RV_PLIC_IE0_0
-+    4'b 1111, // index[69] RV_PLIC_IE0_1
-+    4'b 0001, // index[70] RV_PLIC_THRESHOLD0
-+    4'b 0001, // index[71] RV_PLIC_CC0
-+    4'b 0001  // index[72] RV_PLIC_MSIP0
-   };
- 
- endpackage
-
-
 diff --git a/hw/ip/rv_plic/rtl/rv_plic_reg_top.sv b/hw/ip/rv_plic/rtl/rv_plic_reg_top.sv
-index ea99b2386..8867905fb 100644
+index ea99b23..9a895b0 100644
 --- a/hw/ip/rv_plic/rtl/rv_plic_reg_top.sv
 +++ b/hw/ip/rv_plic/rtl/rv_plic_reg_top.sv
-@@ -25,7 +25,7 @@ module rv_plic_reg_top (
+@@ -4,12 +4,14 @@
+ //
+ // Register Top module auto-generated by `reggen`
+ 
++
+ `include "prim_assert.sv"
+ 
+-module rv_plic_reg_top (
++module rv_plic_reg_top #(
++    parameter int AW = 10
++) (
+   input clk_i,
+   input rst_ni,
+-
+   input  tlul_pkg::tl_h2d_t tl_i,
+   output tlul_pkg::tl_d2h_t tl_o,
+   // To HW
+@@ -25,7 +27,6 @@ module rv_plic_reg_top (
  
    import rv_plic_reg_pkg::* ;
  
 -  localparam int AW = 9;
-+  localparam int AW = 10;
    localparam int DW = 32;
    localparam int DBW = DW/8;                    // Byte Width
  
-@@ -45,38 +45,10 @@ module rv_plic_reg_top (
-   tlul_pkg::tl_h2d_t tl_reg_h2d;
-   tlul_pkg::tl_d2h_t tl_reg_d2h;
- 
--  // incoming payload check
--  logic intg_err;
--  tlul_cmd_intg_chk u_chk (
--    .tl_i,
--    .err_o(intg_err)
--  );
--
--  logic intg_err_q;
--  always_ff @(posedge clk_i or negedge rst_ni) begin
--    if (!rst_ni) begin
--      intg_err_q <= '0;
--    end else if (intg_err) begin
--      intg_err_q <= 1'b1;
--    end
--  end
--
--  // integrity error output is permanent and should be used for alert generation
--  // register errors are transactional
--  assign intg_err_o = intg_err_q | intg_err;
--
--  // outgoing integrity generation
--  tlul_pkg::tl_d2h_t tl_o_pre;
--  tlul_rsp_intg_gen #(
--    .EnableRspIntgGen(1),
--    .EnableDataIntgGen(1)
--  ) u_rsp_intg_gen (
--    .tl_i(tl_o_pre),
--    .tl_o
--  );
-+  assign intg_err_o = '0;
- 
+@@ -78,6 +79,7 @@ module rv_plic_reg_top (
    assign tl_reg_h2d = tl_i;
--  assign tl_o_pre   = tl_reg_d2h;
-+  assign tl_o = tl_reg_d2h;
+   assign tl_o_pre   = tl_reg_d2h;
  
++
    tlul_adapter_reg #(
      .RegAw(AW),
-@@ -99,139 +71,267 @@ module rv_plic_reg_top (
-   );
- 
+     .RegDw(DW),
+@@ -101,137 +103,266 @@ module rv_plic_reg_top (
    assign reg_rdata = reg_rdata_next ;
--  assign reg_error = (devmode_i & addrmiss) | wr_err | intg_err;
-+  assign reg_error = (devmode_i & addrmiss) | wr_err;
+   assign reg_error = (devmode_i & addrmiss) | wr_err | intg_err;
  
++
    // Define SW related signals
    // Format: <reg>_<field>_{wd|we|qs}
    //        or <reg>_{wd|we|qs} if field == 1 or 0
@@ -1414,7 +825,7 @@ index ea99b2386..8867905fb 100644
    logic [2:0] prio0_qs;
    logic [2:0] prio0_wd;
    logic prio0_we;
-@@ -328,107 +428,299 @@ module rv_plic_reg_top (
+@@ -328,102 +459,294 @@ module rv_plic_reg_top (
    logic [2:0] prio31_qs;
    logic [2:0] prio31_wd;
    logic prio31_we;
@@ -1805,14 +1216,7 @@ index ea99b2386..8867905fb 100644
    logic [2:0] threshold0_qs;
    logic [2:0] threshold0_wd;
    logic threshold0_we;
--  logic [5:0] cc0_qs;
--  logic [5:0] cc0_wd;
-+  logic [6:0] cc0_qs;
-+  logic [6:0] cc0_wd;
-   logic cc0_we;
-   logic cc0_re;
-   logic msip0_qs;
-@@ -438,14 +730,14 @@ module rv_plic_reg_top (
+@@ -438,14 +761,14 @@ module rv_plic_reg_top (
    // Register instances
  
    // Subregister 0 of Multireg ip
@@ -1829,7 +1233,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -461,7 +753,7 @@ module rv_plic_reg_top (
+@@ -461,7 +784,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -1838,7 +1242,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -470,7 +762,7 @@ module rv_plic_reg_top (
+@@ -470,7 +793,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -1847,7 +1251,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -486,7 +778,7 @@ module rv_plic_reg_top (
+@@ -486,7 +809,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -1856,7 +1260,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -495,7 +787,7 @@ module rv_plic_reg_top (
+@@ -495,7 +818,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -1865,7 +1269,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -511,7 +803,7 @@ module rv_plic_reg_top (
+@@ -511,7 +834,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -1874,7 +1278,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -520,7 +812,7 @@ module rv_plic_reg_top (
+@@ -520,7 +843,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -1883,7 +1287,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -536,7 +828,7 @@ module rv_plic_reg_top (
+@@ -536,7 +859,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -1892,7 +1296,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -545,7 +837,7 @@ module rv_plic_reg_top (
+@@ -545,7 +868,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -1901,7 +1305,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -561,7 +853,7 @@ module rv_plic_reg_top (
+@@ -561,7 +884,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -1910,7 +1314,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -570,7 +862,7 @@ module rv_plic_reg_top (
+@@ -570,7 +893,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -1919,7 +1323,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -586,7 +878,7 @@ module rv_plic_reg_top (
+@@ -586,7 +909,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -1928,7 +1332,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -595,7 +887,7 @@ module rv_plic_reg_top (
+@@ -595,7 +918,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -1937,7 +1341,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -611,7 +903,7 @@ module rv_plic_reg_top (
+@@ -611,7 +934,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -1946,7 +1350,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -620,7 +912,7 @@ module rv_plic_reg_top (
+@@ -620,7 +943,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -1955,7 +1359,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -636,7 +928,7 @@ module rv_plic_reg_top (
+@@ -636,7 +959,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -1964,7 +1368,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -645,7 +937,7 @@ module rv_plic_reg_top (
+@@ -645,7 +968,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -1973,7 +1377,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -661,7 +953,7 @@ module rv_plic_reg_top (
+@@ -661,7 +984,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -1982,7 +1386,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -670,7 +962,7 @@ module rv_plic_reg_top (
+@@ -670,7 +993,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -1991,7 +1395,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -686,7 +978,7 @@ module rv_plic_reg_top (
+@@ -686,7 +1009,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2000,7 +1404,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -695,7 +987,7 @@ module rv_plic_reg_top (
+@@ -695,7 +1018,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2009,7 +1413,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -711,7 +1003,7 @@ module rv_plic_reg_top (
+@@ -711,7 +1034,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2018,7 +1422,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -720,7 +1012,7 @@ module rv_plic_reg_top (
+@@ -720,7 +1043,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2027,7 +1431,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -736,7 +1028,7 @@ module rv_plic_reg_top (
+@@ -736,7 +1059,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2036,7 +1440,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -745,7 +1037,7 @@ module rv_plic_reg_top (
+@@ -745,7 +1068,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2045,7 +1449,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -761,7 +1053,7 @@ module rv_plic_reg_top (
+@@ -761,7 +1084,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2054,7 +1458,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -770,7 +1062,7 @@ module rv_plic_reg_top (
+@@ -770,7 +1093,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2063,7 +1467,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -786,7 +1078,7 @@ module rv_plic_reg_top (
+@@ -786,7 +1109,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2072,7 +1476,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -795,7 +1087,7 @@ module rv_plic_reg_top (
+@@ -795,7 +1118,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2081,7 +1485,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -811,7 +1103,7 @@ module rv_plic_reg_top (
+@@ -811,7 +1134,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2090,7 +1494,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -820,7 +1112,7 @@ module rv_plic_reg_top (
+@@ -820,7 +1143,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2099,7 +1503,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -836,7 +1128,7 @@ module rv_plic_reg_top (
+@@ -836,7 +1159,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2108,7 +1512,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -845,7 +1137,7 @@ module rv_plic_reg_top (
+@@ -845,7 +1168,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2117,7 +1521,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -861,7 +1153,7 @@ module rv_plic_reg_top (
+@@ -861,7 +1184,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2126,7 +1530,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -870,7 +1162,7 @@ module rv_plic_reg_top (
+@@ -870,7 +1193,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2135,7 +1539,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -886,7 +1178,7 @@ module rv_plic_reg_top (
+@@ -886,7 +1209,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2144,7 +1548,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -895,7 +1187,7 @@ module rv_plic_reg_top (
+@@ -895,7 +1218,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2153,7 +1557,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -911,7 +1203,7 @@ module rv_plic_reg_top (
+@@ -911,7 +1234,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2162,7 +1566,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -920,7 +1212,7 @@ module rv_plic_reg_top (
+@@ -920,7 +1243,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2171,7 +1575,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -936,7 +1228,7 @@ module rv_plic_reg_top (
+@@ -936,7 +1259,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2180,7 +1584,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -945,7 +1237,7 @@ module rv_plic_reg_top (
+@@ -945,7 +1268,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2189,7 +1593,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -961,7 +1253,7 @@ module rv_plic_reg_top (
+@@ -961,7 +1284,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2198,7 +1602,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -970,7 +1262,7 @@ module rv_plic_reg_top (
+@@ -970,7 +1293,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2207,7 +1611,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -986,7 +1278,7 @@ module rv_plic_reg_top (
+@@ -986,7 +1309,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2216,7 +1620,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -995,7 +1287,7 @@ module rv_plic_reg_top (
+@@ -995,7 +1318,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2225,7 +1629,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -1011,7 +1303,7 @@ module rv_plic_reg_top (
+@@ -1011,7 +1334,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2234,7 +1638,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -1020,7 +1312,7 @@ module rv_plic_reg_top (
+@@ -1020,7 +1343,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2243,7 +1647,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -1036,7 +1328,7 @@ module rv_plic_reg_top (
+@@ -1036,7 +1359,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2252,7 +1656,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -1045,7 +1337,7 @@ module rv_plic_reg_top (
+@@ -1045,7 +1368,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2261,7 +1665,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -1061,7 +1353,7 @@ module rv_plic_reg_top (
+@@ -1061,7 +1384,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2270,7 +1674,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -1070,7 +1362,7 @@ module rv_plic_reg_top (
+@@ -1070,7 +1393,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2279,7 +1683,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -1086,7 +1378,7 @@ module rv_plic_reg_top (
+@@ -1086,7 +1409,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2288,7 +1692,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -1095,7 +1387,7 @@ module rv_plic_reg_top (
+@@ -1095,7 +1418,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2297,7 +1701,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -1111,7 +1403,7 @@ module rv_plic_reg_top (
+@@ -1111,7 +1434,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2306,7 +1710,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -1120,7 +1412,7 @@ module rv_plic_reg_top (
+@@ -1120,7 +1443,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2315,7 +1719,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -1136,7 +1428,7 @@ module rv_plic_reg_top (
+@@ -1136,7 +1459,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2324,7 +1728,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -1145,7 +1437,7 @@ module rv_plic_reg_top (
+@@ -1145,7 +1468,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2333,7 +1737,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -1161,7 +1453,7 @@ module rv_plic_reg_top (
+@@ -1161,7 +1484,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2342,7 +1746,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -1170,7 +1462,7 @@ module rv_plic_reg_top (
+@@ -1170,7 +1493,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2351,7 +1755,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -1186,7 +1478,7 @@ module rv_plic_reg_top (
+@@ -1186,7 +1509,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2360,7 +1764,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -1195,7 +1487,7 @@ module rv_plic_reg_top (
+@@ -1195,7 +1518,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2369,7 +1773,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -1211,7 +1503,7 @@ module rv_plic_reg_top (
+@@ -1211,7 +1534,7 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -2378,7 +1782,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -1220,7 +1512,7 @@ module rv_plic_reg_top (
+@@ -1220,7 +1543,7 @@ module rv_plic_reg_top (
      .DW      (1),
      .SWACCESS("RO"),
      .RESVAL  (1'h0)
@@ -2387,7 +1791,7 @@ index ea99b2386..8867905fb 100644
      .clk_i   (clk_i    ),
      .rst_ni  (rst_ni  ),
  
-@@ -1236,677 +1528,4038 @@ module rv_plic_reg_top (
+@@ -1236,677 +1559,4038 @@ module rv_plic_reg_top (
      .q      (),
  
      // to register interface (read)
@@ -3263,11 +2667,13 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
 -    .de     (1'b0),
+-    .d      ('0  ),
 +    .de     (hw2reg.ip[56].de),
 +    .d      (hw2reg.ip[56].d ),
-+
-+    // to internal hardware
-+    .qe     (),
+ 
+     // to internal hardware
+     .qe     (),
+-    .q      (reg2hw.le[24].q ),
 +    .q      (),
 +
 +    // to register interface (read)
@@ -6651,11 +6057,10 @@ index ea99b2386..8867905fb 100644
 +
 +    // from internal hardware
 +    .de     (1'b0),
-     .d      ('0  ),
- 
-     // to internal hardware
-     .qe     (),
--    .q      (reg2hw.le[24].q ),
++    .d      ('0  ),
++
++    // to internal hardware
++    .qe     (),
 +    .q      (reg2hw.prio56.q ),
  
      // to register interface (read)
@@ -6686,7 +6091,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -1914,25 +5567,26 @@ module rv_plic_reg_top (
+@@ -1914,25 +5598,26 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -6721,7 +6126,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -1940,25 +5594,26 @@ module rv_plic_reg_top (
+@@ -1940,25 +5625,26 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -6756,7 +6161,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -1966,25 +5621,26 @@ module rv_plic_reg_top (
+@@ -1966,25 +5652,26 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -6791,7 +6196,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -1992,25 +5648,26 @@ module rv_plic_reg_top (
+@@ -1992,25 +5679,26 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -6826,7 +6231,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2018,25 +5675,26 @@ module rv_plic_reg_top (
+@@ -2018,25 +5706,26 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -6861,7 +6266,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2044,25 +5702,26 @@ module rv_plic_reg_top (
+@@ -2044,25 +5733,26 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -6896,7 +6301,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2070,27 +5729,29 @@ module rv_plic_reg_top (
+@@ -2070,27 +5760,29 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -6934,7 +6339,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2098,26 +5759,25 @@ module rv_plic_reg_top (
+@@ -2098,26 +5790,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -6969,7 +6374,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2125,26 +5785,25 @@ module rv_plic_reg_top (
+@@ -2125,26 +5816,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7004,7 +6409,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2152,26 +5811,25 @@ module rv_plic_reg_top (
+@@ -2152,26 +5842,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7039,7 +6444,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2179,26 +5837,25 @@ module rv_plic_reg_top (
+@@ -2179,26 +5868,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7074,7 +6479,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2206,26 +5863,25 @@ module rv_plic_reg_top (
+@@ -2206,26 +5894,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7109,7 +6514,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2233,26 +5889,25 @@ module rv_plic_reg_top (
+@@ -2233,26 +5920,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7144,7 +6549,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2260,26 +5915,25 @@ module rv_plic_reg_top (
+@@ -2260,26 +5946,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7179,7 +6584,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2287,26 +5941,25 @@ module rv_plic_reg_top (
+@@ -2287,26 +5972,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7214,7 +6619,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2314,26 +5967,25 @@ module rv_plic_reg_top (
+@@ -2314,26 +5998,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7249,7 +6654,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2341,26 +5993,25 @@ module rv_plic_reg_top (
+@@ -2341,26 +6024,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7284,7 +6689,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2368,26 +6019,25 @@ module rv_plic_reg_top (
+@@ -2368,26 +6050,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7319,7 +6724,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2395,26 +6045,25 @@ module rv_plic_reg_top (
+@@ -2395,26 +6076,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7354,7 +6759,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2422,26 +6071,25 @@ module rv_plic_reg_top (
+@@ -2422,26 +6102,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7389,7 +6794,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2449,26 +6097,25 @@ module rv_plic_reg_top (
+@@ -2449,26 +6128,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7424,7 +6829,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2476,26 +6123,25 @@ module rv_plic_reg_top (
+@@ -2476,26 +6154,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7459,7 +6864,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2503,26 +6149,25 @@ module rv_plic_reg_top (
+@@ -2503,26 +6180,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7494,7 +6899,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2530,26 +6175,25 @@ module rv_plic_reg_top (
+@@ -2530,26 +6206,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7529,7 +6934,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2557,26 +6201,25 @@ module rv_plic_reg_top (
+@@ -2557,26 +6232,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7564,7 +6969,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2584,26 +6227,25 @@ module rv_plic_reg_top (
+@@ -2584,26 +6258,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7599,7 +7004,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2611,26 +6253,25 @@ module rv_plic_reg_top (
+@@ -2611,26 +6284,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7634,7 +7039,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2638,26 +6279,25 @@ module rv_plic_reg_top (
+@@ -2638,26 +6310,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7669,7 +7074,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2665,26 +6305,25 @@ module rv_plic_reg_top (
+@@ -2665,26 +6336,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7704,7 +7109,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2692,26 +6331,25 @@ module rv_plic_reg_top (
+@@ -2692,26 +6362,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7739,7 +7144,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2719,26 +6357,25 @@ module rv_plic_reg_top (
+@@ -2719,26 +6388,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7774,7 +7179,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2746,26 +6383,25 @@ module rv_plic_reg_top (
+@@ -2746,26 +6414,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7809,7 +7214,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2773,26 +6409,25 @@ module rv_plic_reg_top (
+@@ -2773,26 +6440,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7844,7 +7249,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2800,26 +6435,25 @@ module rv_plic_reg_top (
+@@ -2800,26 +6466,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7879,7 +7284,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2827,26 +6461,25 @@ module rv_plic_reg_top (
+@@ -2827,26 +6492,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7914,7 +7319,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2854,26 +6487,25 @@ module rv_plic_reg_top (
+@@ -2854,26 +6518,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7949,7 +7354,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2881,26 +6513,25 @@ module rv_plic_reg_top (
+@@ -2881,26 +6544,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -7984,7 +7389,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2908,26 +6539,25 @@ module rv_plic_reg_top (
+@@ -2908,26 +6570,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8019,7 +7424,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2935,29 +6565,28 @@ module rv_plic_reg_top (
+@@ -2935,29 +6596,28 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8057,7 +7462,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2965,25 +6594,25 @@ module rv_plic_reg_top (
+@@ -2965,25 +6625,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8089,7 +7494,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -2991,25 +6620,25 @@ module rv_plic_reg_top (
+@@ -2991,25 +6651,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8121,7 +7526,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3017,25 +6646,25 @@ module rv_plic_reg_top (
+@@ -3017,25 +6677,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8153,7 +7558,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3043,25 +6672,25 @@ module rv_plic_reg_top (
+@@ -3043,25 +6703,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8185,7 +7590,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3069,25 +6698,25 @@ module rv_plic_reg_top (
+@@ -3069,25 +6729,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8217,7 +7622,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3095,25 +6724,25 @@ module rv_plic_reg_top (
+@@ -3095,25 +6755,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8249,7 +7654,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3121,25 +6750,25 @@ module rv_plic_reg_top (
+@@ -3121,25 +6781,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8281,7 +7686,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3147,25 +6776,25 @@ module rv_plic_reg_top (
+@@ -3147,25 +6807,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8313,7 +7718,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3173,25 +6802,25 @@ module rv_plic_reg_top (
+@@ -3173,25 +6833,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8345,7 +7750,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3199,25 +6828,25 @@ module rv_plic_reg_top (
+@@ -3199,25 +6859,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8377,7 +7782,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3225,25 +6854,25 @@ module rv_plic_reg_top (
+@@ -3225,25 +6885,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8409,7 +7814,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3251,25 +6880,25 @@ module rv_plic_reg_top (
+@@ -3251,25 +6911,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8441,7 +7846,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3277,25 +6906,25 @@ module rv_plic_reg_top (
+@@ -3277,25 +6937,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8473,7 +7878,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3303,25 +6932,25 @@ module rv_plic_reg_top (
+@@ -3303,25 +6963,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8505,7 +7910,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3329,25 +6958,25 @@ module rv_plic_reg_top (
+@@ -3329,25 +6989,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8537,7 +7942,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3355,25 +6984,25 @@ module rv_plic_reg_top (
+@@ -3355,25 +7015,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8569,7 +7974,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3381,25 +7010,25 @@ module rv_plic_reg_top (
+@@ -3381,25 +7041,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8601,7 +8006,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3407,25 +7036,25 @@ module rv_plic_reg_top (
+@@ -3407,25 +7067,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8633,7 +8038,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3433,25 +7062,25 @@ module rv_plic_reg_top (
+@@ -3433,25 +7093,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8665,7 +8070,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3459,25 +7088,25 @@ module rv_plic_reg_top (
+@@ -3459,25 +7119,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8697,7 +8102,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3485,25 +7114,25 @@ module rv_plic_reg_top (
+@@ -3485,25 +7145,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8729,7 +8134,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3511,25 +7140,25 @@ module rv_plic_reg_top (
+@@ -3511,25 +7171,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8761,7 +8166,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3537,25 +7166,25 @@ module rv_plic_reg_top (
+@@ -3537,25 +7197,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8793,7 +8198,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3563,25 +7192,25 @@ module rv_plic_reg_top (
+@@ -3563,25 +7223,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8825,7 +8230,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3589,25 +7218,25 @@ module rv_plic_reg_top (
+@@ -3589,25 +7249,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8857,7 +8262,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3615,25 +7244,25 @@ module rv_plic_reg_top (
+@@ -3615,25 +7275,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8889,7 +8294,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3641,25 +7270,25 @@ module rv_plic_reg_top (
+@@ -3641,25 +7301,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8921,7 +8326,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3667,25 +7296,25 @@ module rv_plic_reg_top (
+@@ -3667,25 +7327,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8953,7 +8358,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3693,25 +7322,25 @@ module rv_plic_reg_top (
+@@ -3693,25 +7353,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -8985,7 +8390,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3719,25 +7348,25 @@ module rv_plic_reg_top (
+@@ -3719,25 +7379,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -9017,7 +8422,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3745,25 +7374,25 @@ module rv_plic_reg_top (
+@@ -3745,25 +7405,25 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -9049,7 +8454,7 @@ index ea99b2386..8867905fb 100644
  
      // from internal hardware
      .de     (1'b0),
-@@ -3771,10 +7400,10 @@ module rv_plic_reg_top (
+@@ -3771,10 +7431,10 @@ module rv_plic_reg_top (
  
      // to internal hardware
      .qe     (),
@@ -9062,16 +8467,7 @@ index ea99b2386..8867905fb 100644
    );
  
  
-@@ -3809,7 +7438,7 @@ module rv_plic_reg_top (
-   // R[cc0]: V(True)
- 
-   prim_subreg_ext #(
--    .DW    (6)
-+    .DW    (7)
-   ) u_cc0 (
-     .re     (cc0_re),
-     .we     (cc0_we),
-@@ -3851,47 +7480,82 @@ module rv_plic_reg_top (
+@@ -3851,47 +7511,82 @@ module rv_plic_reg_top (
  
  
  
@@ -9193,7 +8589,7 @@ index ea99b2386..8867905fb 100644
    end
  
    assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
-@@ -3936,305 +7600,628 @@ module rv_plic_reg_top (
+@@ -3936,305 +7631,628 @@ module rv_plic_reg_top (
                 (addr_hit[34] & (|(RV_PLIC_PERMIT[34] & ~reg_be))) |
                 (addr_hit[35] & (|(RV_PLIC_PERMIT[35] & ~reg_be))) |
                 (addr_hit[36] & (|(RV_PLIC_PERMIT[36] & ~reg_be))) |
@@ -9264,178 +8660,178 @@ index ea99b2386..8867905fb 100644
 +
 +  assign le_0_le_8_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_8_wd = reg_wdata[8];
- 
--  assign le_le_1_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_1_wd = reg_wdata[1];
++
 +  assign le_0_le_9_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_9_wd = reg_wdata[9];
- 
--  assign le_le_2_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_2_wd = reg_wdata[2];
++
 +  assign le_0_le_10_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_10_wd = reg_wdata[10];
- 
--  assign le_le_3_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_3_wd = reg_wdata[3];
++
 +  assign le_0_le_11_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_11_wd = reg_wdata[11];
- 
--  assign le_le_4_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_4_wd = reg_wdata[4];
++
 +  assign le_0_le_12_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_12_wd = reg_wdata[12];
- 
--  assign le_le_5_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_5_wd = reg_wdata[5];
++
 +  assign le_0_le_13_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_13_wd = reg_wdata[13];
  
--  assign le_le_6_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_6_wd = reg_wdata[6];
+-  assign le_le_1_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_1_wd = reg_wdata[1];
 +  assign le_0_le_14_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_14_wd = reg_wdata[14];
  
--  assign le_le_7_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_7_wd = reg_wdata[7];
+-  assign le_le_2_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_2_wd = reg_wdata[2];
 +  assign le_0_le_15_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_15_wd = reg_wdata[15];
  
--  assign le_le_8_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_8_wd = reg_wdata[8];
+-  assign le_le_3_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_3_wd = reg_wdata[3];
 +  assign le_0_le_16_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_16_wd = reg_wdata[16];
  
--  assign le_le_9_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_9_wd = reg_wdata[9];
+-  assign le_le_4_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_4_wd = reg_wdata[4];
 +  assign le_0_le_17_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_17_wd = reg_wdata[17];
  
--  assign le_le_10_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_10_wd = reg_wdata[10];
+-  assign le_le_5_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_5_wd = reg_wdata[5];
 +  assign le_0_le_18_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_18_wd = reg_wdata[18];
  
--  assign le_le_11_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_11_wd = reg_wdata[11];
+-  assign le_le_6_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_6_wd = reg_wdata[6];
 +  assign le_0_le_19_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_19_wd = reg_wdata[19];
  
--  assign le_le_12_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_12_wd = reg_wdata[12];
+-  assign le_le_7_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_7_wd = reg_wdata[7];
 +  assign le_0_le_20_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_20_wd = reg_wdata[20];
  
--  assign le_le_13_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_13_wd = reg_wdata[13];
+-  assign le_le_8_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_8_wd = reg_wdata[8];
 +  assign le_0_le_21_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_21_wd = reg_wdata[21];
  
--  assign le_le_14_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_14_wd = reg_wdata[14];
+-  assign le_le_9_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_9_wd = reg_wdata[9];
 +  assign le_0_le_22_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_22_wd = reg_wdata[22];
  
--  assign le_le_15_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_15_wd = reg_wdata[15];
+-  assign le_le_10_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_10_wd = reg_wdata[10];
 +  assign le_0_le_23_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_23_wd = reg_wdata[23];
  
--  assign le_le_16_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_16_wd = reg_wdata[16];
+-  assign le_le_11_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_11_wd = reg_wdata[11];
 +  assign le_0_le_24_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_24_wd = reg_wdata[24];
  
--  assign le_le_17_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_17_wd = reg_wdata[17];
+-  assign le_le_12_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_12_wd = reg_wdata[12];
 +  assign le_0_le_25_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_25_wd = reg_wdata[25];
  
--  assign le_le_18_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_18_wd = reg_wdata[18];
+-  assign le_le_13_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_13_wd = reg_wdata[13];
 +  assign le_0_le_26_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_26_wd = reg_wdata[26];
  
--  assign le_le_19_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_19_wd = reg_wdata[19];
+-  assign le_le_14_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_14_wd = reg_wdata[14];
 +  assign le_0_le_27_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_27_wd = reg_wdata[27];
  
--  assign le_le_20_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_20_wd = reg_wdata[20];
+-  assign le_le_15_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_15_wd = reg_wdata[15];
 +  assign le_0_le_28_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_28_wd = reg_wdata[28];
  
--  assign le_le_21_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_21_wd = reg_wdata[21];
+-  assign le_le_16_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_16_wd = reg_wdata[16];
 +  assign le_0_le_29_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_29_wd = reg_wdata[29];
  
--  assign le_le_22_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_22_wd = reg_wdata[22];
+-  assign le_le_17_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_17_wd = reg_wdata[17];
 +  assign le_0_le_30_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_30_wd = reg_wdata[30];
  
--  assign le_le_23_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_23_wd = reg_wdata[23];
+-  assign le_le_18_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_18_wd = reg_wdata[18];
 +  assign le_0_le_31_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_0_le_31_wd = reg_wdata[31];
  
--  assign le_le_24_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_24_wd = reg_wdata[24];
+-  assign le_le_19_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_19_wd = reg_wdata[19];
 +  assign le_1_le_32_we = addr_hit[3] & reg_we & !reg_error;
 +  assign le_1_le_32_wd = reg_wdata[0];
  
--  assign le_le_25_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_25_wd = reg_wdata[25];
+-  assign le_le_20_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_20_wd = reg_wdata[20];
 +  assign le_1_le_33_we = addr_hit[3] & reg_we & !reg_error;
 +  assign le_1_le_33_wd = reg_wdata[1];
  
--  assign le_le_26_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_26_wd = reg_wdata[26];
+-  assign le_le_21_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_21_wd = reg_wdata[21];
 +  assign le_1_le_34_we = addr_hit[3] & reg_we & !reg_error;
 +  assign le_1_le_34_wd = reg_wdata[2];
  
--  assign le_le_27_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_27_wd = reg_wdata[27];
+-  assign le_le_22_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_22_wd = reg_wdata[22];
 +  assign le_1_le_35_we = addr_hit[3] & reg_we & !reg_error;
 +  assign le_1_le_35_wd = reg_wdata[3];
  
--  assign le_le_28_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_28_wd = reg_wdata[28];
+-  assign le_le_23_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_23_wd = reg_wdata[23];
 +  assign le_1_le_36_we = addr_hit[3] & reg_we & !reg_error;
 +  assign le_1_le_36_wd = reg_wdata[4];
  
--  assign le_le_29_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_29_wd = reg_wdata[29];
+-  assign le_le_24_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_24_wd = reg_wdata[24];
 +  assign le_1_le_37_we = addr_hit[3] & reg_we & !reg_error;
 +  assign le_1_le_37_wd = reg_wdata[5];
  
--  assign le_le_30_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_30_wd = reg_wdata[30];
+-  assign le_le_25_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_25_wd = reg_wdata[25];
 +  assign le_1_le_38_we = addr_hit[3] & reg_we & !reg_error;
 +  assign le_1_le_38_wd = reg_wdata[6];
  
--  assign le_le_31_we = addr_hit[1] & reg_we & !reg_error;
--  assign le_le_31_wd = reg_wdata[31];
+-  assign le_le_26_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_26_wd = reg_wdata[26];
 +  assign le_1_le_39_we = addr_hit[3] & reg_we & !reg_error;
 +  assign le_1_le_39_wd = reg_wdata[7];
  
--  assign prio0_we = addr_hit[2] & reg_we & !reg_error;
+-  assign le_le_27_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_27_wd = reg_wdata[27];
 +  assign le_1_le_40_we = addr_hit[3] & reg_we & !reg_error;
 +  assign le_1_le_40_wd = reg_wdata[8];
-+
+ 
+-  assign le_le_28_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_28_wd = reg_wdata[28];
 +  assign le_1_le_41_we = addr_hit[3] & reg_we & !reg_error;
 +  assign le_1_le_41_wd = reg_wdata[9];
-+
+ 
+-  assign le_le_29_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_29_wd = reg_wdata[29];
 +  assign le_1_le_42_we = addr_hit[3] & reg_we & !reg_error;
 +  assign le_1_le_42_wd = reg_wdata[10];
-+
+ 
+-  assign le_le_30_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_30_wd = reg_wdata[30];
 +  assign le_1_le_43_we = addr_hit[3] & reg_we & !reg_error;
 +  assign le_1_le_43_wd = reg_wdata[11];
-+
+ 
+-  assign le_le_31_we = addr_hit[1] & reg_we & !reg_error;
+-  assign le_le_31_wd = reg_wdata[31];
 +  assign le_1_le_44_we = addr_hit[3] & reg_we & !reg_error;
 +  assign le_1_le_44_wd = reg_wdata[12];
-+
+ 
+-  assign prio0_we = addr_hit[2] & reg_we & !reg_error;
 +  assign le_1_le_45_we = addr_hit[3] & reg_we & !reg_error;
 +  assign le_1_le_45_wd = reg_wdata[13];
 +
@@ -9648,178 +9044,178 @@ index ea99b2386..8867905fb 100644
 +
 +  assign prio40_we = addr_hit[44] & reg_we & !reg_error;
 +  assign prio40_wd = reg_wdata[2:0];
- 
--  assign ie0_e_1_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_1_wd = reg_wdata[1];
++
 +  assign prio41_we = addr_hit[45] & reg_we & !reg_error;
 +  assign prio41_wd = reg_wdata[2:0];
- 
--  assign ie0_e_2_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_2_wd = reg_wdata[2];
++
 +  assign prio42_we = addr_hit[46] & reg_we & !reg_error;
 +  assign prio42_wd = reg_wdata[2:0];
- 
--  assign ie0_e_3_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_3_wd = reg_wdata[3];
++
 +  assign prio43_we = addr_hit[47] & reg_we & !reg_error;
 +  assign prio43_wd = reg_wdata[2:0];
- 
--  assign ie0_e_4_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_4_wd = reg_wdata[4];
++
 +  assign prio44_we = addr_hit[48] & reg_we & !reg_error;
 +  assign prio44_wd = reg_wdata[2:0];
- 
--  assign ie0_e_5_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_5_wd = reg_wdata[5];
++
 +  assign prio45_we = addr_hit[49] & reg_we & !reg_error;
 +  assign prio45_wd = reg_wdata[2:0];
  
--  assign ie0_e_6_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_6_wd = reg_wdata[6];
+-  assign ie0_e_1_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_1_wd = reg_wdata[1];
 +  assign prio46_we = addr_hit[50] & reg_we & !reg_error;
 +  assign prio46_wd = reg_wdata[2:0];
  
--  assign ie0_e_7_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_7_wd = reg_wdata[7];
+-  assign ie0_e_2_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_2_wd = reg_wdata[2];
 +  assign prio47_we = addr_hit[51] & reg_we & !reg_error;
 +  assign prio47_wd = reg_wdata[2:0];
  
--  assign ie0_e_8_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_8_wd = reg_wdata[8];
+-  assign ie0_e_3_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_3_wd = reg_wdata[3];
 +  assign prio48_we = addr_hit[52] & reg_we & !reg_error;
 +  assign prio48_wd = reg_wdata[2:0];
  
--  assign ie0_e_9_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_9_wd = reg_wdata[9];
+-  assign ie0_e_4_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_4_wd = reg_wdata[4];
 +  assign prio49_we = addr_hit[53] & reg_we & !reg_error;
 +  assign prio49_wd = reg_wdata[2:0];
  
--  assign ie0_e_10_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_10_wd = reg_wdata[10];
+-  assign ie0_e_5_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_5_wd = reg_wdata[5];
 +  assign prio50_we = addr_hit[54] & reg_we & !reg_error;
 +  assign prio50_wd = reg_wdata[2:0];
  
--  assign ie0_e_11_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_11_wd = reg_wdata[11];
+-  assign ie0_e_6_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_6_wd = reg_wdata[6];
 +  assign prio51_we = addr_hit[55] & reg_we & !reg_error;
 +  assign prio51_wd = reg_wdata[2:0];
  
--  assign ie0_e_12_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_12_wd = reg_wdata[12];
+-  assign ie0_e_7_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_7_wd = reg_wdata[7];
 +  assign prio52_we = addr_hit[56] & reg_we & !reg_error;
 +  assign prio52_wd = reg_wdata[2:0];
  
--  assign ie0_e_13_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_13_wd = reg_wdata[13];
+-  assign ie0_e_8_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_8_wd = reg_wdata[8];
 +  assign prio53_we = addr_hit[57] & reg_we & !reg_error;
 +  assign prio53_wd = reg_wdata[2:0];
  
--  assign ie0_e_14_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_14_wd = reg_wdata[14];
+-  assign ie0_e_9_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_9_wd = reg_wdata[9];
 +  assign prio54_we = addr_hit[58] & reg_we & !reg_error;
 +  assign prio54_wd = reg_wdata[2:0];
  
--  assign ie0_e_15_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_15_wd = reg_wdata[15];
+-  assign ie0_e_10_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_10_wd = reg_wdata[10];
 +  assign prio55_we = addr_hit[59] & reg_we & !reg_error;
 +  assign prio55_wd = reg_wdata[2:0];
  
--  assign ie0_e_16_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_16_wd = reg_wdata[16];
+-  assign ie0_e_11_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_11_wd = reg_wdata[11];
 +  assign prio56_we = addr_hit[60] & reg_we & !reg_error;
 +  assign prio56_wd = reg_wdata[2:0];
  
--  assign ie0_e_17_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_17_wd = reg_wdata[17];
+-  assign ie0_e_12_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_12_wd = reg_wdata[12];
 +  assign prio57_we = addr_hit[61] & reg_we & !reg_error;
 +  assign prio57_wd = reg_wdata[2:0];
  
--  assign ie0_e_18_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_18_wd = reg_wdata[18];
+-  assign ie0_e_13_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_13_wd = reg_wdata[13];
 +  assign prio58_we = addr_hit[62] & reg_we & !reg_error;
 +  assign prio58_wd = reg_wdata[2:0];
  
--  assign ie0_e_19_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_19_wd = reg_wdata[19];
+-  assign ie0_e_14_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_14_wd = reg_wdata[14];
 +  assign prio59_we = addr_hit[63] & reg_we & !reg_error;
 +  assign prio59_wd = reg_wdata[2:0];
  
--  assign ie0_e_20_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_20_wd = reg_wdata[20];
+-  assign ie0_e_15_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_15_wd = reg_wdata[15];
 +  assign prio60_we = addr_hit[64] & reg_we & !reg_error;
 +  assign prio60_wd = reg_wdata[2:0];
  
--  assign ie0_e_21_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_21_wd = reg_wdata[21];
+-  assign ie0_e_16_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_16_wd = reg_wdata[16];
 +  assign prio61_we = addr_hit[65] & reg_we & !reg_error;
 +  assign prio61_wd = reg_wdata[2:0];
  
--  assign ie0_e_22_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_22_wd = reg_wdata[22];
+-  assign ie0_e_17_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_17_wd = reg_wdata[17];
 +  assign prio62_we = addr_hit[66] & reg_we & !reg_error;
 +  assign prio62_wd = reg_wdata[2:0];
  
--  assign ie0_e_23_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_23_wd = reg_wdata[23];
+-  assign ie0_e_18_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_18_wd = reg_wdata[18];
 +  assign prio63_we = addr_hit[67] & reg_we & !reg_error;
 +  assign prio63_wd = reg_wdata[2:0];
  
--  assign ie0_e_24_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_24_wd = reg_wdata[24];
+-  assign ie0_e_19_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_19_wd = reg_wdata[19];
 +  assign ie0_0_e_0_we = addr_hit[68] & reg_we & !reg_error;
 +  assign ie0_0_e_0_wd = reg_wdata[0];
  
--  assign ie0_e_25_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_25_wd = reg_wdata[25];
+-  assign ie0_e_20_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_20_wd = reg_wdata[20];
 +  assign ie0_0_e_1_we = addr_hit[68] & reg_we & !reg_error;
 +  assign ie0_0_e_1_wd = reg_wdata[1];
  
--  assign ie0_e_26_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_26_wd = reg_wdata[26];
+-  assign ie0_e_21_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_21_wd = reg_wdata[21];
 +  assign ie0_0_e_2_we = addr_hit[68] & reg_we & !reg_error;
 +  assign ie0_0_e_2_wd = reg_wdata[2];
  
--  assign ie0_e_27_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_27_wd = reg_wdata[27];
+-  assign ie0_e_22_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_22_wd = reg_wdata[22];
 +  assign ie0_0_e_3_we = addr_hit[68] & reg_we & !reg_error;
 +  assign ie0_0_e_3_wd = reg_wdata[3];
  
--  assign ie0_e_28_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_28_wd = reg_wdata[28];
+-  assign ie0_e_23_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_23_wd = reg_wdata[23];
 +  assign ie0_0_e_4_we = addr_hit[68] & reg_we & !reg_error;
 +  assign ie0_0_e_4_wd = reg_wdata[4];
  
--  assign ie0_e_29_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_29_wd = reg_wdata[29];
+-  assign ie0_e_24_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_24_wd = reg_wdata[24];
 +  assign ie0_0_e_5_we = addr_hit[68] & reg_we & !reg_error;
 +  assign ie0_0_e_5_wd = reg_wdata[5];
  
--  assign ie0_e_30_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_30_wd = reg_wdata[30];
+-  assign ie0_e_25_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_25_wd = reg_wdata[25];
 +  assign ie0_0_e_6_we = addr_hit[68] & reg_we & !reg_error;
 +  assign ie0_0_e_6_wd = reg_wdata[6];
  
--  assign ie0_e_31_we = addr_hit[34] & reg_we & !reg_error;
--  assign ie0_e_31_wd = reg_wdata[31];
+-  assign ie0_e_26_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_26_wd = reg_wdata[26];
 +  assign ie0_0_e_7_we = addr_hit[68] & reg_we & !reg_error;
 +  assign ie0_0_e_7_wd = reg_wdata[7];
  
--  assign threshold0_we = addr_hit[35] & reg_we & !reg_error;
+-  assign ie0_e_27_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_27_wd = reg_wdata[27];
 +  assign ie0_0_e_8_we = addr_hit[68] & reg_we & !reg_error;
 +  assign ie0_0_e_8_wd = reg_wdata[8];
-+
+ 
+-  assign ie0_e_28_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_28_wd = reg_wdata[28];
 +  assign ie0_0_e_9_we = addr_hit[68] & reg_we & !reg_error;
 +  assign ie0_0_e_9_wd = reg_wdata[9];
-+
+ 
+-  assign ie0_e_29_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_29_wd = reg_wdata[29];
 +  assign ie0_0_e_10_we = addr_hit[68] & reg_we & !reg_error;
 +  assign ie0_0_e_10_wd = reg_wdata[10];
-+
+ 
+-  assign ie0_e_30_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_30_wd = reg_wdata[30];
 +  assign ie0_0_e_11_we = addr_hit[68] & reg_we & !reg_error;
 +  assign ie0_0_e_11_wd = reg_wdata[11];
-+
+ 
+-  assign ie0_e_31_we = addr_hit[34] & reg_we & !reg_error;
+-  assign ie0_e_31_wd = reg_wdata[31];
 +  assign ie0_0_e_12_we = addr_hit[68] & reg_we & !reg_error;
 +  assign ie0_0_e_12_wd = reg_wdata[12];
-+
+ 
+-  assign threshold0_we = addr_hit[35] & reg_we & !reg_error;
 +  assign ie0_0_e_13_we = addr_hit[68] & reg_we & !reg_error;
 +  assign ie0_0_e_13_wd = reg_wdata[13];
 +
@@ -9977,10 +9373,9 @@ index ea99b2386..8867905fb 100644
    assign threshold0_wd = reg_wdata[2:0];
  
 -  assign cc0_we = addr_hit[36] & reg_we & !reg_error;
--  assign cc0_wd = reg_wdata[5:0];
--  assign cc0_re = addr_hit[36] & reg_re & !reg_error;
 +  assign cc0_we = addr_hit[71] & reg_we & !reg_error;
-+  assign cc0_wd = reg_wdata[6:0];
+   assign cc0_wd = reg_wdata[5:0];
+-  assign cc0_re = addr_hit[36] & reg_re & !reg_error;
 +  assign cc0_re = addr_hit[71] & reg_re & !reg_error;
  
 -  assign msip0_we = addr_hit[37] & reg_we & !reg_error;
@@ -9988,7 +9383,7 @@ index ea99b2386..8867905fb 100644
    assign msip0_wd = reg_wdata[0];
  
    // Read data return
-@@ -4242,247 +8229,480 @@ module rv_plic_reg_top (
+@@ -4242,247 +8260,480 @@ module rv_plic_reg_top (
      reg_rdata_next = '0;
      unique case (1'b1)
        addr_hit[0]: begin
@@ -10592,15 +9987,587 @@ index ea99b2386..8867905fb 100644
 +      end
 +
 +      addr_hit[71]: begin
-+        reg_rdata_next[6:0] = cc0_qs;
++        reg_rdata_next[5:0] = cc0_qs;
 +      end
 +
 +      addr_hit[72]: begin
          reg_rdata_next[0] = msip0_qs;
        end
  
+@@ -4507,10 +8758,9 @@ module rv_plic_reg_top (
+ 
+   `ASSERT(reAfterRv, $rose(reg_re || reg_we) |=> tl_o.d_valid)
+ 
+-  `ASSERT(en2addrHit, (reg_we || reg_re) |-> $onehot0(addr_hit))
+-
+   // this is formulated as an assumption such that the FPV testbenches do disprove this
+   // property by mistake
+   //`ASSUME(reqParity, tl_reg_h2d.a_valid |-> tl_reg_h2d.a_user.chk_en == tlul_pkg::CheckDis)
++  `ASSERT(en2addrHit, (reg_we || reg_re) |-> $onehot0(addr_hit))
+ 
+ endmodule
+
+diff --git a/hw/ip/rv_plic/rtl/rv_plic_reg_pkg.sv b/hw/ip/rv_plic/rtl/rv_plic_reg_pkg.sv
+index e4ffbc2..8d36b33 100644
+--- a/hw/ip/rv_plic/rtl/rv_plic_reg_pkg.sv
++++ b/hw/ip/rv_plic/rtl/rv_plic_reg_pkg.sv
+@@ -7,11 +7,12 @@
+ package rv_plic_reg_pkg;
+ 
+   // Param list
+-  parameter int NumSrc = 32;
++  parameter int NumSrc = 64;
+   parameter int NumTarget = 1;
++  parameter int PrioWidth = 3;
+ 
+   // Address widths within the block
+-  parameter int BlockAw = 9;
++  parameter int BlockAw = 10;
+ 
+   ////////////////////////////
+   // Typedefs for registers //
+@@ -149,6 +150,134 @@ package rv_plic_reg_pkg;
+     logic [2:0]  q;
+   } rv_plic_reg2hw_prio31_reg_t;
+ 
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio32_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio33_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio34_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio35_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio36_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio37_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio38_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio39_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio40_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio41_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio42_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio43_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio44_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio45_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio46_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio47_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio48_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio49_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio50_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio51_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio52_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio53_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio54_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio55_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio56_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio57_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio58_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio59_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio60_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio61_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio62_reg_t;
++
++  typedef struct packed {
++    logic [2:0]  q;
++  } rv_plic_reg2hw_prio63_reg_t;
++
+   typedef struct packed {
+     logic        q;
+   } rv_plic_reg2hw_ie0_mreg_t;
+@@ -178,40 +307,72 @@ package rv_plic_reg_pkg;
+ 
+   // Register -> HW type
+   typedef struct packed {
+-    rv_plic_reg2hw_le_mreg_t [31:0] le; // [171:140]
+-    rv_plic_reg2hw_prio0_reg_t prio0; // [139:137]
+-    rv_plic_reg2hw_prio1_reg_t prio1; // [136:134]
+-    rv_plic_reg2hw_prio2_reg_t prio2; // [133:131]
+-    rv_plic_reg2hw_prio3_reg_t prio3; // [130:128]
+-    rv_plic_reg2hw_prio4_reg_t prio4; // [127:125]
+-    rv_plic_reg2hw_prio5_reg_t prio5; // [124:122]
+-    rv_plic_reg2hw_prio6_reg_t prio6; // [121:119]
+-    rv_plic_reg2hw_prio7_reg_t prio7; // [118:116]
+-    rv_plic_reg2hw_prio8_reg_t prio8; // [115:113]
+-    rv_plic_reg2hw_prio9_reg_t prio9; // [112:110]
+-    rv_plic_reg2hw_prio10_reg_t prio10; // [109:107]
+-    rv_plic_reg2hw_prio11_reg_t prio11; // [106:104]
+-    rv_plic_reg2hw_prio12_reg_t prio12; // [103:101]
+-    rv_plic_reg2hw_prio13_reg_t prio13; // [100:98]
+-    rv_plic_reg2hw_prio14_reg_t prio14; // [97:95]
+-    rv_plic_reg2hw_prio15_reg_t prio15; // [94:92]
+-    rv_plic_reg2hw_prio16_reg_t prio16; // [91:89]
+-    rv_plic_reg2hw_prio17_reg_t prio17; // [88:86]
+-    rv_plic_reg2hw_prio18_reg_t prio18; // [85:83]
+-    rv_plic_reg2hw_prio19_reg_t prio19; // [82:80]
+-    rv_plic_reg2hw_prio20_reg_t prio20; // [79:77]
+-    rv_plic_reg2hw_prio21_reg_t prio21; // [76:74]
+-    rv_plic_reg2hw_prio22_reg_t prio22; // [73:71]
+-    rv_plic_reg2hw_prio23_reg_t prio23; // [70:68]
+-    rv_plic_reg2hw_prio24_reg_t prio24; // [67:65]
+-    rv_plic_reg2hw_prio25_reg_t prio25; // [64:62]
+-    rv_plic_reg2hw_prio26_reg_t prio26; // [61:59]
+-    rv_plic_reg2hw_prio27_reg_t prio27; // [58:56]
+-    rv_plic_reg2hw_prio28_reg_t prio28; // [55:53]
+-    rv_plic_reg2hw_prio29_reg_t prio29; // [52:50]
+-    rv_plic_reg2hw_prio30_reg_t prio30; // [49:47]
+-    rv_plic_reg2hw_prio31_reg_t prio31; // [46:44]
+-    rv_plic_reg2hw_ie0_mreg_t [31:0] ie0; // [43:12]
++    rv_plic_reg2hw_le_mreg_t [63:0] le; // [331:268]
++    rv_plic_reg2hw_prio0_reg_t prio0; // [267:265]
++    rv_plic_reg2hw_prio1_reg_t prio1; // [264:262]
++    rv_plic_reg2hw_prio2_reg_t prio2; // [261:259]
++    rv_plic_reg2hw_prio3_reg_t prio3; // [258:256]
++    rv_plic_reg2hw_prio4_reg_t prio4; // [255:253]
++    rv_plic_reg2hw_prio5_reg_t prio5; // [252:250]
++    rv_plic_reg2hw_prio6_reg_t prio6; // [249:247]
++    rv_plic_reg2hw_prio7_reg_t prio7; // [246:244]
++    rv_plic_reg2hw_prio8_reg_t prio8; // [243:241]
++    rv_plic_reg2hw_prio9_reg_t prio9; // [240:238]
++    rv_plic_reg2hw_prio10_reg_t prio10; // [237:235]
++    rv_plic_reg2hw_prio11_reg_t prio11; // [234:232]
++    rv_plic_reg2hw_prio12_reg_t prio12; // [231:229]
++    rv_plic_reg2hw_prio13_reg_t prio13; // [228:226]
++    rv_plic_reg2hw_prio14_reg_t prio14; // [225:223]
++    rv_plic_reg2hw_prio15_reg_t prio15; // [222:220]
++    rv_plic_reg2hw_prio16_reg_t prio16; // [219:217]
++    rv_plic_reg2hw_prio17_reg_t prio17; // [216:214]
++    rv_plic_reg2hw_prio18_reg_t prio18; // [213:211]
++    rv_plic_reg2hw_prio19_reg_t prio19; // [210:208]
++    rv_plic_reg2hw_prio20_reg_t prio20; // [207:205]
++    rv_plic_reg2hw_prio21_reg_t prio21; // [204:202]
++    rv_plic_reg2hw_prio22_reg_t prio22; // [201:199]
++    rv_plic_reg2hw_prio23_reg_t prio23; // [198:196]
++    rv_plic_reg2hw_prio24_reg_t prio24; // [195:193]
++    rv_plic_reg2hw_prio25_reg_t prio25; // [192:190]
++    rv_plic_reg2hw_prio26_reg_t prio26; // [189:187]
++    rv_plic_reg2hw_prio27_reg_t prio27; // [186:184]
++    rv_plic_reg2hw_prio28_reg_t prio28; // [183:181]
++    rv_plic_reg2hw_prio29_reg_t prio29; // [180:178]
++    rv_plic_reg2hw_prio30_reg_t prio30; // [177:175]
++    rv_plic_reg2hw_prio31_reg_t prio31; // [174:172]
++    rv_plic_reg2hw_prio32_reg_t prio32; // [171:169]
++    rv_plic_reg2hw_prio33_reg_t prio33; // [168:166]
++    rv_plic_reg2hw_prio34_reg_t prio34; // [165:163]
++    rv_plic_reg2hw_prio35_reg_t prio35; // [162:160]
++    rv_plic_reg2hw_prio36_reg_t prio36; // [159:157]
++    rv_plic_reg2hw_prio37_reg_t prio37; // [156:154]
++    rv_plic_reg2hw_prio38_reg_t prio38; // [153:151]
++    rv_plic_reg2hw_prio39_reg_t prio39; // [150:148]
++    rv_plic_reg2hw_prio40_reg_t prio40; // [147:145]
++    rv_plic_reg2hw_prio41_reg_t prio41; // [144:142]
++    rv_plic_reg2hw_prio42_reg_t prio42; // [141:139]
++    rv_plic_reg2hw_prio43_reg_t prio43; // [138:136]
++    rv_plic_reg2hw_prio44_reg_t prio44; // [135:133]
++    rv_plic_reg2hw_prio45_reg_t prio45; // [132:130]
++    rv_plic_reg2hw_prio46_reg_t prio46; // [129:127]
++    rv_plic_reg2hw_prio47_reg_t prio47; // [126:124]
++    rv_plic_reg2hw_prio48_reg_t prio48; // [123:121]
++    rv_plic_reg2hw_prio49_reg_t prio49; // [120:118]
++    rv_plic_reg2hw_prio50_reg_t prio50; // [117:115]
++    rv_plic_reg2hw_prio51_reg_t prio51; // [114:112]
++    rv_plic_reg2hw_prio52_reg_t prio52; // [111:109]
++    rv_plic_reg2hw_prio53_reg_t prio53; // [108:106]
++    rv_plic_reg2hw_prio54_reg_t prio54; // [105:103]
++    rv_plic_reg2hw_prio55_reg_t prio55; // [102:100]
++    rv_plic_reg2hw_prio56_reg_t prio56; // [99:97]
++    rv_plic_reg2hw_prio57_reg_t prio57; // [96:94]
++    rv_plic_reg2hw_prio58_reg_t prio58; // [93:91]
++    rv_plic_reg2hw_prio59_reg_t prio59; // [90:88]
++    rv_plic_reg2hw_prio60_reg_t prio60; // [87:85]
++    rv_plic_reg2hw_prio61_reg_t prio61; // [84:82]
++    rv_plic_reg2hw_prio62_reg_t prio62; // [81:79]
++    rv_plic_reg2hw_prio63_reg_t prio63; // [78:76]
++    rv_plic_reg2hw_ie0_mreg_t [63:0] ie0; // [75:12]
+     rv_plic_reg2hw_threshold0_reg_t threshold0; // [11:9]
+     rv_plic_reg2hw_cc0_reg_t cc0; // [8:1]
+     rv_plic_reg2hw_msip0_reg_t msip0; // [0:0]
+@@ -219,57 +380,94 @@ package rv_plic_reg_pkg;
+ 
+   // HW -> register type
+   typedef struct packed {
+-    rv_plic_hw2reg_ip_mreg_t [31:0] ip; // [69:6]
++    rv_plic_hw2reg_ip_mreg_t [63:0] ip; // [133:6]
+     rv_plic_hw2reg_cc0_reg_t cc0; // [5:0]
+   } rv_plic_hw2reg_t;
+ 
+   // Register offsets
+-  parameter logic [BlockAw-1:0] RV_PLIC_IP_OFFSET = 9'h 0;
+-  parameter logic [BlockAw-1:0] RV_PLIC_LE_OFFSET = 9'h 4;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO0_OFFSET = 9'h 8;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO1_OFFSET = 9'h c;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO2_OFFSET = 9'h 10;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO3_OFFSET = 9'h 14;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO4_OFFSET = 9'h 18;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO5_OFFSET = 9'h 1c;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO6_OFFSET = 9'h 20;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO7_OFFSET = 9'h 24;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO8_OFFSET = 9'h 28;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO9_OFFSET = 9'h 2c;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO10_OFFSET = 9'h 30;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO11_OFFSET = 9'h 34;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO12_OFFSET = 9'h 38;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO13_OFFSET = 9'h 3c;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO14_OFFSET = 9'h 40;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO15_OFFSET = 9'h 44;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO16_OFFSET = 9'h 48;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO17_OFFSET = 9'h 4c;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO18_OFFSET = 9'h 50;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO19_OFFSET = 9'h 54;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO20_OFFSET = 9'h 58;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO21_OFFSET = 9'h 5c;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO22_OFFSET = 9'h 60;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO23_OFFSET = 9'h 64;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO24_OFFSET = 9'h 68;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO25_OFFSET = 9'h 6c;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO26_OFFSET = 9'h 70;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO27_OFFSET = 9'h 74;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO28_OFFSET = 9'h 78;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO29_OFFSET = 9'h 7c;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO30_OFFSET = 9'h 80;
+-  parameter logic [BlockAw-1:0] RV_PLIC_PRIO31_OFFSET = 9'h 84;
+-  parameter logic [BlockAw-1:0] RV_PLIC_IE0_OFFSET = 9'h 100;
+-  parameter logic [BlockAw-1:0] RV_PLIC_THRESHOLD0_OFFSET = 9'h 104;
+-  parameter logic [BlockAw-1:0] RV_PLIC_CC0_OFFSET = 9'h 108;
+-  parameter logic [BlockAw-1:0] RV_PLIC_MSIP0_OFFSET = 9'h 10c;
++  parameter logic [BlockAw-1:0] RV_PLIC_IP_0_OFFSET = 10'h 0;
++  parameter logic [BlockAw-1:0] RV_PLIC_IP_1_OFFSET = 10'h 4;
++  parameter logic [BlockAw-1:0] RV_PLIC_LE_0_OFFSET = 10'h 8;
++  parameter logic [BlockAw-1:0] RV_PLIC_LE_1_OFFSET = 10'h c;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO0_OFFSET = 10'h 10;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO1_OFFSET = 10'h 14;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO2_OFFSET = 10'h 18;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO3_OFFSET = 10'h 1c;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO4_OFFSET = 10'h 20;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO5_OFFSET = 10'h 24;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO6_OFFSET = 10'h 28;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO7_OFFSET = 10'h 2c;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO8_OFFSET = 10'h 30;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO9_OFFSET = 10'h 34;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO10_OFFSET = 10'h 38;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO11_OFFSET = 10'h 3c;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO12_OFFSET = 10'h 40;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO13_OFFSET = 10'h 44;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO14_OFFSET = 10'h 48;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO15_OFFSET = 10'h 4c;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO16_OFFSET = 10'h 50;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO17_OFFSET = 10'h 54;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO18_OFFSET = 10'h 58;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO19_OFFSET = 10'h 5c;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO20_OFFSET = 10'h 60;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO21_OFFSET = 10'h 64;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO22_OFFSET = 10'h 68;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO23_OFFSET = 10'h 6c;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO24_OFFSET = 10'h 70;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO25_OFFSET = 10'h 74;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO26_OFFSET = 10'h 78;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO27_OFFSET = 10'h 7c;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO28_OFFSET = 10'h 80;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO29_OFFSET = 10'h 84;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO30_OFFSET = 10'h 88;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO31_OFFSET = 10'h 8c;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO32_OFFSET = 10'h 90;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO33_OFFSET = 10'h 94;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO34_OFFSET = 10'h 98;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO35_OFFSET = 10'h 9c;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO36_OFFSET = 10'h a0;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO37_OFFSET = 10'h a4;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO38_OFFSET = 10'h a8;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO39_OFFSET = 10'h ac;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO40_OFFSET = 10'h b0;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO41_OFFSET = 10'h b4;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO42_OFFSET = 10'h b8;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO43_OFFSET = 10'h bc;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO44_OFFSET = 10'h c0;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO45_OFFSET = 10'h c4;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO46_OFFSET = 10'h c8;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO47_OFFSET = 10'h cc;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO48_OFFSET = 10'h d0;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO49_OFFSET = 10'h d4;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO50_OFFSET = 10'h d8;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO51_OFFSET = 10'h dc;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO52_OFFSET = 10'h e0;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO53_OFFSET = 10'h e4;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO54_OFFSET = 10'h e8;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO55_OFFSET = 10'h ec;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO56_OFFSET = 10'h f0;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO57_OFFSET = 10'h f4;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO58_OFFSET = 10'h f8;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO59_OFFSET = 10'h fc;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO60_OFFSET = 10'h 100;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO61_OFFSET = 10'h 104;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO62_OFFSET = 10'h 108;
++  parameter logic [BlockAw-1:0] RV_PLIC_PRIO63_OFFSET = 10'h 10c;
++  parameter logic [BlockAw-1:0] RV_PLIC_IE0_0_OFFSET = 10'h 200;
++  parameter logic [BlockAw-1:0] RV_PLIC_IE0_1_OFFSET = 10'h 204;
++  parameter logic [BlockAw-1:0] RV_PLIC_THRESHOLD0_OFFSET = 10'h 208;
++  parameter logic [BlockAw-1:0] RV_PLIC_CC0_OFFSET = 10'h 20c;
++  parameter logic [BlockAw-1:0] RV_PLIC_MSIP0_OFFSET = 10'h 210;
+ 
+   // Reset values for hwext registers and their fields
+   parameter logic [5:0] RV_PLIC_CC0_RESVAL = 6'h 0;
+ 
+   // Register index
+   typedef enum int {
+-    RV_PLIC_IP,
+-    RV_PLIC_LE,
++    RV_PLIC_IP_0,
++    RV_PLIC_IP_1,
++    RV_PLIC_LE_0,
++    RV_PLIC_LE_1,
+     RV_PLIC_PRIO0,
+     RV_PLIC_PRIO1,
+     RV_PLIC_PRIO2,
+@@ -302,52 +500,120 @@ package rv_plic_reg_pkg;
+     RV_PLIC_PRIO29,
+     RV_PLIC_PRIO30,
+     RV_PLIC_PRIO31,
+-    RV_PLIC_IE0,
++    RV_PLIC_PRIO32,
++    RV_PLIC_PRIO33,
++    RV_PLIC_PRIO34,
++    RV_PLIC_PRIO35,
++    RV_PLIC_PRIO36,
++    RV_PLIC_PRIO37,
++    RV_PLIC_PRIO38,
++    RV_PLIC_PRIO39,
++    RV_PLIC_PRIO40,
++    RV_PLIC_PRIO41,
++    RV_PLIC_PRIO42,
++    RV_PLIC_PRIO43,
++    RV_PLIC_PRIO44,
++    RV_PLIC_PRIO45,
++    RV_PLIC_PRIO46,
++    RV_PLIC_PRIO47,
++    RV_PLIC_PRIO48,
++    RV_PLIC_PRIO49,
++    RV_PLIC_PRIO50,
++    RV_PLIC_PRIO51,
++    RV_PLIC_PRIO52,
++    RV_PLIC_PRIO53,
++    RV_PLIC_PRIO54,
++    RV_PLIC_PRIO55,
++    RV_PLIC_PRIO56,
++    RV_PLIC_PRIO57,
++    RV_PLIC_PRIO58,
++    RV_PLIC_PRIO59,
++    RV_PLIC_PRIO60,
++    RV_PLIC_PRIO61,
++    RV_PLIC_PRIO62,
++    RV_PLIC_PRIO63,
++    RV_PLIC_IE0_0,
++    RV_PLIC_IE0_1,
+     RV_PLIC_THRESHOLD0,
+     RV_PLIC_CC0,
+     RV_PLIC_MSIP0
+   } rv_plic_id_e;
+ 
+   // Register width information to check illegal writes
+-  parameter logic [3:0] RV_PLIC_PERMIT [38] = '{
+-    4'b 1111, // index[ 0] RV_PLIC_IP
+-    4'b 1111, // index[ 1] RV_PLIC_LE
+-    4'b 0001, // index[ 2] RV_PLIC_PRIO0
+-    4'b 0001, // index[ 3] RV_PLIC_PRIO1
+-    4'b 0001, // index[ 4] RV_PLIC_PRIO2
+-    4'b 0001, // index[ 5] RV_PLIC_PRIO3
+-    4'b 0001, // index[ 6] RV_PLIC_PRIO4
+-    4'b 0001, // index[ 7] RV_PLIC_PRIO5
+-    4'b 0001, // index[ 8] RV_PLIC_PRIO6
+-    4'b 0001, // index[ 9] RV_PLIC_PRIO7
+-    4'b 0001, // index[10] RV_PLIC_PRIO8
+-    4'b 0001, // index[11] RV_PLIC_PRIO9
+-    4'b 0001, // index[12] RV_PLIC_PRIO10
+-    4'b 0001, // index[13] RV_PLIC_PRIO11
+-    4'b 0001, // index[14] RV_PLIC_PRIO12
+-    4'b 0001, // index[15] RV_PLIC_PRIO13
+-    4'b 0001, // index[16] RV_PLIC_PRIO14
+-    4'b 0001, // index[17] RV_PLIC_PRIO15
+-    4'b 0001, // index[18] RV_PLIC_PRIO16
+-    4'b 0001, // index[19] RV_PLIC_PRIO17
+-    4'b 0001, // index[20] RV_PLIC_PRIO18
+-    4'b 0001, // index[21] RV_PLIC_PRIO19
+-    4'b 0001, // index[22] RV_PLIC_PRIO20
+-    4'b 0001, // index[23] RV_PLIC_PRIO21
+-    4'b 0001, // index[24] RV_PLIC_PRIO22
+-    4'b 0001, // index[25] RV_PLIC_PRIO23
+-    4'b 0001, // index[26] RV_PLIC_PRIO24
+-    4'b 0001, // index[27] RV_PLIC_PRIO25
+-    4'b 0001, // index[28] RV_PLIC_PRIO26
+-    4'b 0001, // index[29] RV_PLIC_PRIO27
+-    4'b 0001, // index[30] RV_PLIC_PRIO28
+-    4'b 0001, // index[31] RV_PLIC_PRIO29
+-    4'b 0001, // index[32] RV_PLIC_PRIO30
+-    4'b 0001, // index[33] RV_PLIC_PRIO31
+-    4'b 1111, // index[34] RV_PLIC_IE0
+-    4'b 0001, // index[35] RV_PLIC_THRESHOLD0
+-    4'b 0001, // index[36] RV_PLIC_CC0
+-    4'b 0001  // index[37] RV_PLIC_MSIP0
++  parameter logic [3:0] RV_PLIC_PERMIT [73] = '{
++    4'b 1111, // index[ 0] RV_PLIC_IP_0
++    4'b 1111, // index[ 1] RV_PLIC_IP_1
++    4'b 1111, // index[ 2] RV_PLIC_LE_0
++    4'b 1111, // index[ 3] RV_PLIC_LE_1
++    4'b 0001, // index[ 4] RV_PLIC_PRIO0
++    4'b 0001, // index[ 5] RV_PLIC_PRIO1
++    4'b 0001, // index[ 6] RV_PLIC_PRIO2
++    4'b 0001, // index[ 7] RV_PLIC_PRIO3
++    4'b 0001, // index[ 8] RV_PLIC_PRIO4
++    4'b 0001, // index[ 9] RV_PLIC_PRIO5
++    4'b 0001, // index[10] RV_PLIC_PRIO6
++    4'b 0001, // index[11] RV_PLIC_PRIO7
++    4'b 0001, // index[12] RV_PLIC_PRIO8
++    4'b 0001, // index[13] RV_PLIC_PRIO9
++    4'b 0001, // index[14] RV_PLIC_PRIO10
++    4'b 0001, // index[15] RV_PLIC_PRIO11
++    4'b 0001, // index[16] RV_PLIC_PRIO12
++    4'b 0001, // index[17] RV_PLIC_PRIO13
++    4'b 0001, // index[18] RV_PLIC_PRIO14
++    4'b 0001, // index[19] RV_PLIC_PRIO15
++    4'b 0001, // index[20] RV_PLIC_PRIO16
++    4'b 0001, // index[21] RV_PLIC_PRIO17
++    4'b 0001, // index[22] RV_PLIC_PRIO18
++    4'b 0001, // index[23] RV_PLIC_PRIO19
++    4'b 0001, // index[24] RV_PLIC_PRIO20
++    4'b 0001, // index[25] RV_PLIC_PRIO21
++    4'b 0001, // index[26] RV_PLIC_PRIO22
++    4'b 0001, // index[27] RV_PLIC_PRIO23
++    4'b 0001, // index[28] RV_PLIC_PRIO24
++    4'b 0001, // index[29] RV_PLIC_PRIO25
++    4'b 0001, // index[30] RV_PLIC_PRIO26
++    4'b 0001, // index[31] RV_PLIC_PRIO27
++    4'b 0001, // index[32] RV_PLIC_PRIO28
++    4'b 0001, // index[33] RV_PLIC_PRIO29
++    4'b 0001, // index[34] RV_PLIC_PRIO30
++    4'b 0001, // index[35] RV_PLIC_PRIO31
++    4'b 0001, // index[36] RV_PLIC_PRIO32
++    4'b 0001, // index[37] RV_PLIC_PRIO33
++    4'b 0001, // index[38] RV_PLIC_PRIO34
++    4'b 0001, // index[39] RV_PLIC_PRIO35
++    4'b 0001, // index[40] RV_PLIC_PRIO36
++    4'b 0001, // index[41] RV_PLIC_PRIO37
++    4'b 0001, // index[42] RV_PLIC_PRIO38
++    4'b 0001, // index[43] RV_PLIC_PRIO39
++    4'b 0001, // index[44] RV_PLIC_PRIO40
++    4'b 0001, // index[45] RV_PLIC_PRIO41
++    4'b 0001, // index[46] RV_PLIC_PRIO42
++    4'b 0001, // index[47] RV_PLIC_PRIO43
++    4'b 0001, // index[48] RV_PLIC_PRIO44
++    4'b 0001, // index[49] RV_PLIC_PRIO45
++    4'b 0001, // index[50] RV_PLIC_PRIO46
++    4'b 0001, // index[51] RV_PLIC_PRIO47
++    4'b 0001, // index[52] RV_PLIC_PRIO48
++    4'b 0001, // index[53] RV_PLIC_PRIO49
++    4'b 0001, // index[54] RV_PLIC_PRIO50
++    4'b 0001, // index[55] RV_PLIC_PRIO51
++    4'b 0001, // index[56] RV_PLIC_PRIO52
++    4'b 0001, // index[57] RV_PLIC_PRIO53
++    4'b 0001, // index[58] RV_PLIC_PRIO54
++    4'b 0001, // index[59] RV_PLIC_PRIO55
++    4'b 0001, // index[60] RV_PLIC_PRIO56
++    4'b 0001, // index[61] RV_PLIC_PRIO57
++    4'b 0001, // index[62] RV_PLIC_PRIO58
++    4'b 0001, // index[63] RV_PLIC_PRIO59
++    4'b 0001, // index[64] RV_PLIC_PRIO60
++    4'b 0001, // index[65] RV_PLIC_PRIO61
++    4'b 0001, // index[66] RV_PLIC_PRIO62
++    4'b 0001, // index[67] RV_PLIC_PRIO63
++    4'b 1111, // index[68] RV_PLIC_IE0_0
++    4'b 1111, // index[69] RV_PLIC_IE0_1
++    4'b 0001, // index[70] RV_PLIC_THRESHOLD0
++    4'b 0001, // index[71] RV_PLIC_CC0
++    4'b 0001  // index[72] RV_PLIC_MSIP0
+   };
+ 
+ endpackage
+
 diff --git a/hw/ip/rv_plic/rtl/rv_plic_target.sv b/hw/ip/rv_plic/rtl/rv_plic_target.sv
-index 55b63815f..91ece677e 100644
+index 55b6381..91ece67 100644
 --- a/hw/ip/rv_plic/rtl/rv_plic_target.sv
 +++ b/hw/ip/rv_plic/rtl/rv_plic_target.sv
 @@ -19,7 +19,7 @@ module rv_plic_target #(
@@ -10612,14 +10579,3 @@ index 55b63815f..91ece677e 100644
    localparam int PrioWidth = $clog2(MAX_PRIO+1)   // derived parameter
  ) (
    input clk_i,
-
-diff --git a/hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/lint/rv_plic.vlt b/hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/lint/rv_plic.vlt
-index 1579f93..98097b7 100644
---- a/hw/ip/rv_plic/lint/rv_plic.vlt
-+++ b/hw/ip/rv_plic/lint/rv_plic.vlt
-@@ -14,3 +14,5 @@
- split_var -module "rv_plic_target" -var "is_tree"
- split_var -module "rv_plic_target" -var "id_tree"
- split_var -module "rv_plic_target" -var "max_tree"
-+
-+lint_off -rule UNOPTFLAT -file "*/rtl/rv_plic.sv" -match "*testharness.core_v_mini_mcu_i.peripheral_subsystem_i.rv_plic_i.reg2hw*"
