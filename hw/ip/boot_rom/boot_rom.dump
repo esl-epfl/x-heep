@@ -6,7 +6,7 @@ Disassembly of section .text:
 
 00000000 <entry>:
    0:	200105b7          	lui	a1,0x20010
-   4:	0085c503          	lbu	a0,8(a1) # 20010008 <_end+0x2000ffd8>
+   4:	0085c503          	lbu	a0,8(a1) # 20010008 <_end+0x2000ffcc>
    8:	00051a63          	bnez	a0,1c <_jump_to_flash>
 
 0000000c <_jump_to_debug_rom>:
@@ -16,8 +16,11 @@ Disassembly of section .text:
   18:	000580e7          	jalr	a1
 
 0000001c <_jump_to_flash>:
-  1c:	400005b7          	lui	a1,0x40000
-  20:	22458593          	addi	a1,a1,548 # 40000224 <_end+0x400001f4>
-  24:	000580e7          	jalr	a1
-  28:	00000013          	nop
-  2c:	00000013          	nop
+  1c:	200685b7          	lui	a1,0x20068
+  20:	00100513          	li	a0,1
+  24:	00a5a023          	sw	a0,0(a1) # 20068000 <_end+0x20067fc4>
+  28:	400005b7          	lui	a1,0x40000
+  2c:	22458593          	addi	a1,a1,548 # 40000224 <_end+0x400001e8>
+  30:	000580e7          	jalr	a1
+  34:	00000013          	nop
+  38:	00000013          	nop
