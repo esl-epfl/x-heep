@@ -32,7 +32,7 @@ typedef enum exc_id {
 // You only need to use this ABI for handlers that are the first function called
 // in an interrupt handler. Subsequent functions can just use the regular RISC-V
 // calling convention.
-#define INTERRUPT_HANDLER_ABI // __attribute__((aligned(4), interrupt))
+#define INTERRUPT_HANDLER_ABI __attribute__((aligned(4), interrupt))
 
 // The following `handler_*` functions have weak definitions, provided by
 // `handler.c`. This weak definition can be overriden at link-time by providing
