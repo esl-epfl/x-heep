@@ -28,7 +28,7 @@ package core_v_mini_mcu_pkg;
   localparam int unsigned MEM_SIZE = 2 ** 16;
 
   localparam SYSTEM_XBAR_NMASTER = 3;
-  localparam SYSTEM_XBAR_NSLAVE = 6;
+  localparam SYSTEM_XBAR_NSLAVE = 7;
 
   localparam int unsigned LOG_SYSTEM_XBAR_NMASTER = SYSTEM_XBAR_NMASTER > 1 ? $clog2(
       SYSTEM_XBAR_NMASTER
@@ -80,6 +80,11 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] EXT_SLAVE_END_ADDRESS = EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE;
   localparam logic [31:0] EXT_SLAVE_IDX = 32'd5;
 
+  localparam logic [31:0] SPI_FLASH_START_ADDRESS = 32'h40000000;
+  localparam logic [31:0] SPI_FLASH_SIZE = 32'h1000000;
+  localparam logic [31:0] SPI_FLASH_END_ADDRESS = SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE;
+  localparam logic [31:0] SPI_FLASH_IDX = 32'd6;
+
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{idx: RAM0_IDX, start_addr: RAM0_START_ADDRESS, end_addr: RAM0_END_ADDRESS},
       '{idx: RAM1_IDX, start_addr: RAM1_START_ADDRESS, end_addr: RAM1_END_ADDRESS},
@@ -94,26 +99,31 @@ package core_v_mini_mcu_pkg;
           start_addr: EXT_SLAVE_START_ADDRESS,
           end_addr: EXT_SLAVE_END_ADDRESS
       },
+      '{
+          idx: SPI_FLASH_IDX,
+          start_addr: SPI_FLASH_START_ADDRESS,
+          end_addr: SPI_FLASH_END_ADDRESS
+      },
       '{idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS}
   };
 
   //slave encoder
-  localparam SYSTEM_NPERIPHERALS = 6;
+  localparam SYSTEM_NPERIPHERALS = 9;
 
-  localparam logic [31:0] SOC_CTRL_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0000000;
-  localparam logic [31:0] SOC_CTRL_SIZE = 32'h0010000;
-  localparam logic [31:0] SOC_CTRL_END_ADDRESS = SOC_CTRL_START_ADDRESS + SOC_CTRL_SIZE;
-  localparam logic [31:0] SOC_CTRL_IDX = 32'd0;
-
-  localparam logic [31:0] UART_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0010000;
-  localparam logic [31:0] UART_SIZE = 32'h0010000;
-  localparam logic [31:0] UART_END_ADDRESS = UART_START_ADDRESS + UART_SIZE;
-  localparam logic [31:0] UART_IDX = 32'd1;
-
-  localparam logic [31:0] EXT_PERIPH_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0020000;
+  localparam logic [31:0] EXT_PERIPH_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0000000;
   localparam logic [31:0] EXT_PERIPH_SIZE = 32'h0010000;
   localparam logic [31:0] EXT_PERIPH_END_ADDRESS = EXT_PERIPH_START_ADDRESS + EXT_PERIPH_SIZE;
-  localparam logic [31:0] EXT_PERIPH_IDX = 32'd2;
+  localparam logic [31:0] EXT_PERIPH_IDX = 32'd0;
+
+  localparam logic [31:0] SOC_CTRL_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0010000;
+  localparam logic [31:0] SOC_CTRL_SIZE = 32'h0010000;
+  localparam logic [31:0] SOC_CTRL_END_ADDRESS = SOC_CTRL_START_ADDRESS + SOC_CTRL_SIZE;
+  localparam logic [31:0] SOC_CTRL_IDX = 32'd1;
+
+  localparam logic [31:0] UART_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0020000;
+  localparam logic [31:0] UART_SIZE = 32'h0000100;
+  localparam logic [31:0] UART_END_ADDRESS = UART_START_ADDRESS + UART_SIZE;
+  localparam logic [31:0] UART_IDX = 32'd2;
 
   localparam logic [31:0] PLIC_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0030000;
   localparam logic [31:0] PLIC_SIZE = 32'h0010000;
@@ -130,17 +140,40 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] GPIO_END_ADDRESS = GPIO_START_ADDRESS + GPIO_SIZE;
   localparam logic [31:0] GPIO_IDX = 32'd5;
 
+  localparam logic [31:0] SPI_HOST_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0060000;
+  localparam logic [31:0] SPI_HOST_SIZE = 32'h0008000;
+  localparam logic [31:0] SPI_HOST_END_ADDRESS = SPI_HOST_START_ADDRESS + SPI_HOST_SIZE;
+  localparam logic [31:0] SPI_HOST_IDX = 32'd6;
+
+  localparam logic [31:0] SPI_MEMIO_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0068000;
+  localparam logic [31:0] SPI_MEMIO_SIZE = 32'h0008000;
+  localparam logic [31:0] SPI_MEMIO_END_ADDRESS = SPI_MEMIO_START_ADDRESS + SPI_MEMIO_SIZE;
+  localparam logic [31:0] SPI_MEMIO_IDX = 32'd7;
+
+  localparam logic [31:0] BOOTROM_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0070000;
+  localparam logic [31:0] BOOTROM_SIZE = 32'h0010000;
+  localparam logic [31:0] BOOTROM_END_ADDRESS = BOOTROM_START_ADDRESS + BOOTROM_SIZE;
+  localparam logic [31:0] BOOTROM_IDX = 32'd8;
+
+
   localparam addr_map_rule_t [SYSTEM_NPERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
-      '{idx: SOC_CTRL_IDX, start_addr: SOC_CTRL_START_ADDRESS, end_addr: SOC_CTRL_END_ADDRESS},
-      '{idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS},
       '{
           idx: EXT_PERIPH_IDX,
           start_addr: EXT_PERIPH_START_ADDRESS,
           end_addr: EXT_PERIPH_END_ADDRESS
       },
+      '{idx: SOC_CTRL_IDX, start_addr: SOC_CTRL_START_ADDRESS, end_addr: SOC_CTRL_END_ADDRESS},
+      '{idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS},
       '{idx: PLIC_IDX, start_addr: PLIC_START_ADDRESS, end_addr: PLIC_END_ADDRESS},
       '{idx: RV_TIMER_IDX, start_addr: RV_TIMER_START_ADDRESS, end_addr: RV_TIMER_END_ADDRESS},
-      '{idx: GPIO_IDX, start_addr: GPIO_START_ADDRESS, end_addr: GPIO_END_ADDRESS}
+      '{idx: GPIO_IDX, start_addr: GPIO_START_ADDRESS, end_addr: GPIO_END_ADDRESS},
+      '{idx: SPI_HOST_IDX, start_addr: SPI_HOST_START_ADDRESS, end_addr: SPI_HOST_END_ADDRESS},
+      '{
+          idx: SPI_MEMIO_IDX,
+          start_addr: SPI_MEMIO_START_ADDRESS,
+          end_addr: SPI_MEMIO_END_ADDRESS
+      },
+      '{idx: BOOTROM_IDX, start_addr: BOOTROM_START_ADDRESS, end_addr: BOOTROM_END_ADDRESS}
   };
 
   localparam int unsigned PERIPHERALS_PORT_SEL_WIDTH = SYSTEM_NPERIPHERALS > 1 ? $clog2(

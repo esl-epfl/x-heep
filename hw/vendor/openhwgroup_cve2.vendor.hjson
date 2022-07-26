@@ -6,8 +6,8 @@
   target_dir: "openhwgroup_cv32e20",
 
   upstream: {
-    url: "https://github.com/openhwgroup/cve2.git",
-    rev: "2f1e188346decdef988ee7cfafc7d44e8d256e7c",
+    url: "https://github.com/davideschiavone/cve2.git",
+    rev: "be70b262f6ade7c14e022272af6c609f739a8d4b",
   },
 
   patch_dir: "patches/openhwgroup_cv32e20",
@@ -43,7 +43,7 @@
     "ibex_top.core",
     "ibex_top_tracing.core",
     "ibex_tracer.core",
-
+    "tool_requirements.py"
   ]
 }
 

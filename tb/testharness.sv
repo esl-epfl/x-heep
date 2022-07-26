@@ -11,6 +11,7 @@ module testharness #(
     input logic clk_i,
     input logic rst_ni,
 
+    input  logic        boot_select_i,
     input  logic        jtag_tck_i,
     input  logic        jtag_tms_i,
     input  logic        jtag_trst_ni,
@@ -37,6 +38,10 @@ module testharness #(
   logic sim_jtag_tdo;
   logic sim_jtag_trstn;
   wire [31:0] gpio;
+
+  wire [3:0] spi_sd_io;
+  wire [1:0] spi_csb;
+  wire spi_sck;
 
   // External xbar master/slave and peripheral ports
   obi_req_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_req;
@@ -67,6 +72,8 @@ module testharness #(
       .clk_i,
       .rst_ni,
 
+      .boot_select_i,
+
       .jtag_tck_i  (sim_jtag_tck),
       .jtag_tms_i  (sim_jtag_tms),
       .jtag_trst_ni(sim_jtag_trstn),
@@ -89,7 +96,12 @@ module testharness #(
 
       .fetch_enable_i,
       .exit_value_o,
-      .exit_valid_o
+      .exit_valid_o,
+
+      .spi_sd_io(spi_sd_io),
+      .spi_csb_o(spi_csb),
+      .spi_sck_o(spi_sck)
+
   );
 
   uartdpi #(
@@ -127,7 +139,6 @@ module testharness #(
 
   assign memcopy_periph_req = periph_slave_req;
   assign periph_slave_resp = memcopy_periph_rsp;
-
 
 `ifdef USE_EXTERNAL_DEVICE_EXAMPLE
   // External xbar slave memory example
@@ -173,6 +184,18 @@ module testharness #(
       .gpio_i(gpio[30]),
       .gpio_o(gpio[31])
   );
+
+`ifndef VERILATOR
+  spiflash flash_1 (
+      .csb(spi_csb[0]),
+      .clk(spi_sck),
+      .io0(spi_sd_io[0]),  // MOSI
+      .io1(spi_sd_io[1]),  // MISO
+      .io2(spi_sd_io[2]),
+      .io3(spi_sd_io[3])
+  );
+`endif
+
 `else
   assign slow_ram_slave_resp.gnt = '0;
   assign slow_ram_slave_resp.rdata = '0;

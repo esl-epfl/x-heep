@@ -23,16 +23,20 @@ filesets:
     - lowrisc:ibex:ibex_core:0.1
     - lowrisc:ip:rv_timer:0.1
     - lowrisc:ip:gpio:0.1
+    - lowrisc:ip:spi_host:0.1
+    - yosyshq:picorv32_spimemio:0-r1
+    - x-heep:obi_spimemio:0.1.0
+    - x-heep:ip:boot_rom
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
     - hw/core-v-mini-mcu/memory_subsystem.sv
     - hw/core-v-mini-mcu/system_bus.sv
     - hw/core-v-mini-mcu/system_xbar.sv
+    - hw/core-v-mini-mcu/spi_subsystem.sv
     - hw/core-v-mini-mcu/debug_subsystem.sv
     - hw/core-v-mini-mcu/peripheral_subsystem.sv
     - hw/core-v-mini-mcu/reg_to_tlul.sv
-    - hw/core-v-mini-mcu/wrappers/cv32e40p_fp_wrapper.sv
     file_type: systemVerilogSource
 
   rtl-simulation:
@@ -53,6 +57,8 @@ filesets:
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.vlt
     - hw/ip/soc_ctrl/soc_ctrl.vlt
+    - hw/ip/boot_rom/boot_rom.vlt
+    - hw/ip/obi_spimemio/obi_spimemio.vlt
     file_type: vlt
 
   rtl-fpga:
@@ -126,6 +132,10 @@ parameters:
     paramtype: vlogparam
     default: 0
   JTAG_DPI:
+    datatype: int
+    paramtype: vlogparam
+    default: 0
+  BOOT_SEL:
     datatype: int
     paramtype: vlogparam
     default: 0
@@ -252,8 +262,7 @@ targets:
     - pre_build_remote_bitbang
     - pre_build_uartdpi
     - pre_patch_modelsim_Makefile
-    - post_build_modelsim_scripts
-    - systemverilog_only_simjtag
+    - tb-sv
     toplevel: [tb_top_vopt]
     hooks:
      pre_build:
@@ -266,6 +275,8 @@ targets:
     - use_jtag_dpi? (JTAG_DPI=1)
     - "!use_jtag_dpi? (JTAG_DPI=0)"
     - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
+    - boot_from_flash? (BOOT_SEL=1)
+    - "!boot_from_flash? (BOOT_SEL=0)"
     tools:
       modelsim:
         vlog_options:
