@@ -1,7 +1,16 @@
 diff --git a/picosoc/spimemio.v b/picosoc/spimemio.v
-index b4ee446..95b3a3a 100644
+index b4ee446..ae200e0 100644
 --- a/picosoc/spimemio.v
 +++ b/picosoc/spimemio.v
+@@ -19,7 +19,7 @@
+ 
+ module spimemio (
+ 	input clk, resetn,
+-
++	input start_spi_i,
+ 	input valid,
+ 	output ready,
+ 	input [23:0] addr,
 @@ -96,8 +96,7 @@ module spimemio (
  	assign cfgreg_do[4] = flash_clk;
  	assign cfgreg_do[3:0] = {flash_io3_di, flash_io2_di, flash_io1_di, flash_io0_di};
@@ -97,7 +106,7 @@ index b4ee446..95b3a3a 100644
 +
 +				case (state)
 +					0: begin
-+						din_valid <= 1;
++						din_valid <= start_spi_i;
 +						din_data <= 8'h ff;
 +						din_tag <= 0;
 +						if (din_ready) begin

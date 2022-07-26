@@ -19,7 +19,7 @@
 
 module spimemio (
 	input clk, resetn,
-
+	input start_spi_i,
 	input valid,
 	output ready,
 	input [23:0] addr,
@@ -248,7 +248,7 @@ module spimemio (
 
 				case (state)
 					0: begin
-						din_valid <= 1;
+						din_valid <= start_spi_i;
 						din_data <= 8'h ff;
 						din_tag <= 0;
 						if (din_ready) begin

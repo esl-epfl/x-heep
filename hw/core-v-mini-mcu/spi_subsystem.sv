@@ -15,10 +15,13 @@ module spi_subsystem
     //memory mapped spi
     input  obi_req_t  spimemio_req_i,
     output obi_resp_t spimemio_resp_o,
+    //yosys spi configuration
+    input  reg_req_t  yo_reg_req_i,
+    output reg_rsp_t  yo_reg_rsp_o,
 
     //opentitan spi configuration
-    input  reg_req_t reg_req_i,
-    output reg_rsp_t reg_rsp_o,
+    input  reg_req_t ot_reg_req_i,
+    output reg_rsp_t ot_reg_rsp_o,
 
     // SPI Interface
     output logic                               spi_sck_o,
@@ -72,7 +75,6 @@ module spi_subsystem
     end
   end
 
-
   //YosysHQ SPI
   assign yo_spi_sck_en = 1'b1;
   assign yo_spi_csb_en = 2'b01;
@@ -95,9 +97,8 @@ module spi_subsystem
       .flash_io1_di_i(yo_spi_sd_in[1]),
       .flash_io2_di_i(yo_spi_sd_in[2]),
       .flash_io3_di_i(yo_spi_sd_in[3]),
-      .cfgreg_we('0),  //TODO: attach to register
-      .cfgreg_di('0),
-      .cfgreg_do(),
+      .reg_req_i(yo_reg_req_i),
+      .reg_rsp_o(yo_reg_rsp_o),
       .spimemio_req_i(spimemio_req_i),
       .spimemio_resp_o(spimemio_resp_o)
   );
@@ -111,8 +112,8 @@ module spi_subsystem
       .rst_ni,
       .clk_core_i(clk_i),
       .rst_core_ni(rst_ni),
-      .reg_req_i,
-      .reg_rsp_o,
+      .reg_req_i(ot_reg_req_i),
+      .reg_rsp_o(ot_reg_rsp_o),
       .cio_sck_o(ot_spi_sck),
       .cio_sck_en_o(ot_spi_sck_en),
       .cio_csb_o(ot_spi_csb),

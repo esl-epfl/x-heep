@@ -53,6 +53,10 @@ extern "C" {
 #define SPI_HOST_SIZE 0x${spi_host_size_address}
 #define SPI_HOST_END_ADDRESS (SPI_HOST_START_ADDRESS + SPI_HOST_SIZE)
 
+#define SPI_MEMIO_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${spi_memio_start_offset})
+#define SPI_MEMIO_SIZE 0x${spi_memio_size_address}
+#define SPI_MEMIO_END_ADDRESS (SPI_MEMIO_START_ADDRESS + SPI_MEMIO_SIZE)
+
 #define BOOTROM_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${bootrom_start_offset})
 #define BOOTROM_SIZE 0x${bootrom_size_address}
 #define BOOTROM_END_ADDRESS (BOOTROM_START_ADDRESS + BOOTROM_SIZE)

@@ -34,8 +34,8 @@ module xilinx_core_v_mini_mcu_wrapper
 
 
     inout logic [3:0] spi_sd_io,
-    output logic spi_csb_o,
-    output logic spi_sck_o
+    inout logic spi_csb_o,
+    inout logic spi_sck_o
 );
 
   logic                               clk_gen;

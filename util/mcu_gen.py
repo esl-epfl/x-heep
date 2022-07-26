@@ -131,6 +131,9 @@ def main():
     spi_host_start_offset  = string2int(obj['peripherals']['spi_host']['offset'])
     spi_host_size_address  = string2int(obj['peripherals']['spi_host']['length'])
 
+    spi_memio_start_offset  = string2int(obj['peripherals']['spi_memio']['offset'])
+    spi_memio_size_address  = string2int(obj['peripherals']['spi_memio']['length'])
+
     bootrom_start_offset  = string2int(obj['peripherals']['bootrom']['offset'])
     bootrom_size_address  = string2int(obj['peripherals']['bootrom']['length'])
 
@@ -202,6 +205,8 @@ def main():
         "gpio_size_address"        : gpio_size_address,
         "spi_host_start_offset"    : spi_host_start_offset,
         "spi_host_size_address"    : spi_host_size_address,
+        "spi_memio_start_offset"   : spi_memio_start_offset,
+        "spi_memio_size_address"   : spi_memio_size_address,
         "bootrom_start_offset"     : bootrom_start_offset,
         "bootrom_size_address"     : bootrom_size_address,
         "null_intr"                : null_intr,

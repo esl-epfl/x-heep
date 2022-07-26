@@ -135,6 +135,10 @@ parameters:
     datatype: int
     paramtype: vlogparam
     default: 0
+  BOOT_SEL:
+    datatype: int
+    paramtype: vlogparam
+    default: 0
   USE_EXTERNAL_DEVICE_EXAMPLE:
     datatype: bool
     paramtype: vlogdefine
@@ -258,8 +262,7 @@ targets:
     - pre_build_remote_bitbang
     - pre_build_uartdpi
     - pre_patch_modelsim_Makefile
-    - post_build_modelsim_scripts
-    - systemverilog_only_simjtag
+    - tb-sv
     toplevel: [tb_top_vopt]
     hooks:
      pre_build:
@@ -272,6 +275,8 @@ targets:
     - use_jtag_dpi? (JTAG_DPI=1)
     - "!use_jtag_dpi? (JTAG_DPI=0)"
     - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
+    - boot_from_flash? (BOOT_SEL=1)
+    - "!boot_from_flash? (BOOT_SEL=0)"
     tools:
       modelsim:
         vlog_options:

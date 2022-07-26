@@ -46,7 +46,12 @@
 
         spi_host: {
             offset:  0x0060000,
-            length:  0x0010000,
+            length:  0x0008000,
+        },
+
+        spi_memio: {
+            offset:  0x0068000,
+            length:  0x0008000,
         },
 
         bootrom: {

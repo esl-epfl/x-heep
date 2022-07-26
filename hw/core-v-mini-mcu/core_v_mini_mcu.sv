@@ -44,8 +44,8 @@ module core_v_mini_mcu
     output logic        exit_valid_o,
 
     inout logic [3:0] spi_sd_io,
-    output logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_o,
-    output logic spi_sck_o
+    inout logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_o,
+    inout logic spi_sck_o
 );
 
   import core_v_mini_mcu_pkg::*;

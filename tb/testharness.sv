@@ -40,8 +40,8 @@ module testharness #(
   wire [31:0] gpio;
 
   wire [3:0] spi_sd_io;
-  logic [1:0] spi_csb;
-  logic spi_sck;
+  wire [1:0] spi_csb;
+  wire spi_sck;
 
   // External xbar master/slave and peripheral ports
   obi_req_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_req;
