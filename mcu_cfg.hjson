@@ -15,37 +15,42 @@
     },
 
     // peripherals
-    peripherals: {
+    on_off_peripherals: {
         address: 0x20000000,
+        length:  0x100000,
+        uart: {
+            offset:  0x0000000,
+            length:  0x0010000,
+        },
+        ext_periph: {
+            offset:  0x0010000,
+            length:  0x0010000,
+        },
+        plic: {
+            offset:  0x0020000,
+            length:  0x0010000,
+        },
+        gpio: {
+            offset:  0x0030000,
+            length:  0x0010000,
+        }
+    },
+
+    always_on_peripherals: {
+        address: 0x30000000,
         length:  0x100000,
         soc_ctrl: {
             offset:  0x0000000,
             length:  0x0010000,
         },
-        uart: {
-            offset:  0x0010000,
-            length:  0x0010000,
-        },
-        ext_periph: {
-            offset:  0x0020000,
-            length:  0x0010000,
-        },
-        plic: {
-            offset:  0x0030000,
-            length:  0x0010000,
-        },
         rv_timer: {
-            offset:  0x0040000,
-            length:  0x0010000,
-        },
-        gpio: {
-            offset:  0x0050000,
+            offset:  0x0010000,
             length:  0x0010000,
         }
     },
 
     ext_slaves: {
-        address: 0x30000000,
+        address: 0x40000000,
         length:  0x1000000,
     },
 

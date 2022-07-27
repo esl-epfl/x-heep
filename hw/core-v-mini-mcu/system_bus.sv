@@ -46,8 +46,11 @@ module system_bus
     output obi_req_t  debug_slave_req_o,
     input  obi_resp_t debug_slave_resp_i,
 
-    output obi_req_t  peripheral_slave_req_o,
-    input  obi_resp_t peripheral_slave_resp_i,
+    output obi_req_t  on_off_periph_slave_req_o,
+    input  obi_resp_t on_off_periph_slave_resp_i,
+
+    output obi_req_t  always_on_periph_slave_req_o,
+    input  obi_resp_t always_on_periph_slave_resp_i,
 
     output obi_req_t  ext_xbar_slave_req_o,
     input  obi_resp_t ext_xbar_slave_resp_i
@@ -86,7 +89,8 @@ module system_bus
   assign ram0_req_o = slave_req[core_v_mini_mcu_pkg::RAM0_IDX];
   assign ram1_req_o = slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
   assign debug_slave_req_o = slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
-  assign peripheral_slave_req_o = slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
+  assign on_off_periph_slave_req_o = slave_req[core_v_mini_mcu_pkg::ON_OFF_PERIPH_IDX];
+  assign always_on_periph_slave_req_o = slave_req[core_v_mini_mcu_pkg::ALWAYS_ON_PERIPH_IDX];
   assign ext_xbar_slave_req_o = slave_req[core_v_mini_mcu_pkg::EXT_SLAVE_IDX];
   assign error_slave_req = slave_req[core_v_mini_mcu_pkg::ERROR_IDX];
 
@@ -94,7 +98,8 @@ module system_bus
   assign slave_resp[core_v_mini_mcu_pkg::RAM0_IDX] = ram0_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::RAM1_IDX] = ram1_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX] = debug_slave_resp_i;
-  assign slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::ON_OFF_PERIPH_IDX] = on_off_periph_slave_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::ALWAYS_ON_PERIPH_IDX] = always_on_periph_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::EXT_SLAVE_IDX] = ext_xbar_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
 

@@ -67,8 +67,10 @@ module core_v_mini_mcu
   obi_resp_t        ram1_slave_resp;
   obi_req_t         debug_slave_req;
   obi_resp_t        debug_slave_resp;
-  obi_req_t         peripheral_slave_req;
-  obi_resp_t        peripheral_slave_resp;
+  obi_req_t         on_off_periph_slave_req;
+  obi_resp_t        on_off_periph_slave_resp;
+  obi_req_t         always_on_periph_slave_req;
+  obi_resp_t        always_on_periph_slave_resp;
 
   // signals to debug unit
   logic             debug_core_req;
@@ -146,16 +148,18 @@ module core_v_mini_mcu
       .ext_xbar_master_req_i (ext_xbar_master_req_i),
       .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
 
-      .ram0_req_o             (ram0_slave_req),
-      .ram0_resp_i            (ram0_slave_resp),
-      .ram1_req_o             (ram1_slave_req),
-      .ram1_resp_i            (ram1_slave_resp),
-      .debug_slave_req_o      (debug_slave_req),
-      .debug_slave_resp_i     (debug_slave_resp),
-      .peripheral_slave_req_o (peripheral_slave_req),
-      .peripheral_slave_resp_i(peripheral_slave_resp),
-      .ext_xbar_slave_req_o   (ext_xbar_slave_req_o),
-      .ext_xbar_slave_resp_i  (ext_xbar_slave_resp_i)
+      .ram0_req_o                   (ram0_slave_req),
+      .ram0_resp_i                  (ram0_slave_resp),
+      .ram1_req_o                   (ram1_slave_req),
+      .ram1_resp_i                  (ram1_slave_resp),
+      .debug_slave_req_o            (debug_slave_req),
+      .debug_slave_resp_i           (debug_slave_resp),
+      .on_off_periph_slave_req_o    (on_off_periph_slave_req),
+      .on_off_periph_slave_resp_i   (on_off_periph_slave_resp),
+      .always_on_periph_slave_req_o (always_on_periph_slave_req),
+      .always_on_periph_slave_resp_i(always_on_periph_slave_resp),
+      .ext_xbar_slave_req_o         (ext_xbar_slave_req_o),
+      .ext_xbar_slave_resp_i        (ext_xbar_slave_resp_i)
   );
 
   memory_subsystem #(
@@ -169,17 +173,14 @@ module core_v_mini_mcu
       .ram1_resp_o(ram1_slave_resp)
   );
 
-  peripheral_subsystem #(
+  on_off_periph_subsystem #(
       .EXT_NINTERRUPT(EXT_NINTERRUPT)
-  ) peripheral_subsystem_i (
+  ) on_off_periph_subsystem_i (
       .clk_i,
       .rst_ni,
 
-      .slave_req_i (peripheral_slave_req),
-      .slave_resp_o(peripheral_slave_resp),
-
-      .exit_valid_o(exit_valid_o),
-      .exit_value_o(exit_value_o),
+      .slave_req_i (on_off_periph_slave_req),
+      .slave_resp_o(on_off_periph_slave_resp),
 
       .uart_rx_i(uart_rx_i),
       .uart_tx_o(uart_tx_o),
@@ -192,11 +193,22 @@ module core_v_mini_mcu
       .ext_peripheral_slave_req_o (ext_peripheral_slave_req_o),
       .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i),
 
-      .rv_timer_irq_timer_o(irq_timer),
-
       .cio_gpio_i(gpio_in),
       .cio_gpio_o(gpio_out),
       .cio_gpio_en_o(gpio_en)
+  );
+
+  always_on_periph_subsystem #() always_on_periph_subsystem_i (
+      .clk_i,
+      .rst_ni,
+
+      .slave_req_i (always_on_periph_slave_req),
+      .slave_resp_o(always_on_periph_slave_resp),
+
+      .exit_valid_o(exit_valid_o),
+      .exit_value_o(exit_value_o),
+
+      .rv_timer_irq_timer_o(irq_timer)
   );
 
   assign irq_fast = '0;

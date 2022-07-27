@@ -30,7 +30,8 @@ filesets:
     - hw/core-v-mini-mcu/system_bus.sv
     - hw/core-v-mini-mcu/system_xbar.sv
     - hw/core-v-mini-mcu/debug_subsystem.sv
-    - hw/core-v-mini-mcu/peripheral_subsystem.sv
+    - hw/core-v-mini-mcu/on_off_periph_subsystem.sv
+    - hw/core-v-mini-mcu/always_on_periph_subsystem.sv
     - hw/core-v-mini-mcu/reg_to_tlul.sv
     - hw/core-v-mini-mcu/wrappers/cv32e40p_fp_wrapper.sv
     file_type: systemVerilogSource

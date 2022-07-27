@@ -13,29 +13,41 @@ extern "C" {
 #define DEBUG_SIZE 0x${debug_size_address}
 #define DEBUG_END_ADDRESS (DEBUG_START_ADDRESS + DEBUG_SIZE)
 
-#define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}
-#define PERIPHERAL_SIZE 0x${peripheral_size_address}
-#define PERIPHERAL_END_ADDRESS (PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE)
+#define ON_OFF_PERIPH_START_ADDRESS 0x${on_off_periph_start_address}
+#define ON_OFF_PERIPH_SIZE 0x${on_off_periph_size_address}
+#define ON_OFF_PERIPH_END_ADDRESS (ON_OFF_PERIPH_START_ADDRESS + ON_OFF_PERIPH_SIZE)
+
+#define UART_START_ADDRESS (ON_OFF_PERIPH_START_ADDRESS + 0x${uart_start_offset})
+#define UART_SIZE 0x${uart_size_address}
+#define UART_END_ADDRESS (UART_START_ADDRESS + UART_SIZE)
+
+#define EXT_PERIPHERAL_START_ADDRESS (ON_OFF_PERIPH_START_ADDRESS + 0x${ext_periph_start_offset})
+#define EXT_PERIPHERAL_SIZE 0x${ext_periph_size_address}
+#define EXT_PERIPHERAL_END_ADDRESS (EXT_PERIPHERAL_START_ADDRESS + EXT_PERIPHERAL_SIZE)
+
+#define PLIC_START_ADDRESS (ON_OFF_PERIPH_START_ADDRESS + 0x${plic_start_offset})
+#define PLIC_SIZE 0x${plic_size_address}
+#define PLIC_END_ADDRESS (PLIC_START_ADDRESS + PLIC_SIZE)
+
+#define GPIO_START_ADDRESS (ON_OFF_PERIPH_START_ADDRESS + 0x${gpio_start_offset})
+#define GPIO_SIZE 0x${gpio_size_address}
+#define GPIO_END_ADDRESS (GPIO_START_ADDRESS + GPIO_SIZE)
+
+#define ALWAYS_ON_PERIPH_START_ADDRESS 0x${always_on_periph_start_address}
+#define ALWAYS_ON_PERIPH_SIZE 0x${always_on_periph_size_address}
+#define ALWAYS_ON_PERIPH_END_ADDRESS (ALWAYS_ON_PERIPH_START_ADDRESS + ALWAYS_ON_PERIPH_SIZE)
+
+#define SOC_CTRL_START_ADDRESS (ALWAYS_ON_PERIPH_START_ADDRESS + 0x${soc_ctrl_start_offset})
+#define SOC_CTRL_SIZE 0x${soc_ctrl_size_address}
+#define SOC_CTRL_END_ADDRESS (SOC_CTRL_IDX_START_ADDRESS + SOC_CTRL_IDX_SIZE)
+
+#define RV_TIMER_START_ADDRESS (ALWAYS_ON_PERIPH_START_ADDRESS + 0x${rv_timer_start_offset})
+#define RV_TIMER_SIZE 0x${rv_timer_size_address}
+#define RV_TIMER_END_ADDRESS (RV_TIMER_START_ADDRESS + RV_TIMER_SIZE)
 
 #define EXT_SLAVE_START_ADDRESS 0x${ext_slave_start_address}
 #define EXT_SLAVE_SIZE 0x${ext_slave_size_address}
 #define EXT_SLAVE_END_ADDRESS (EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE)
-
-#define SOC_CTRL_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${soc_ctrl_start_offset})
-#define SOC_CTRL_SIZE 0x${soc_ctrl_size_address}
-#define SOC_CTRL_END_ADDRESS (SOC_CTRL_IDX_START_ADDRESS + SOC_CTRL_IDX_SIZE)
-
-#define UART_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${uart_start_offset})
-#define UART_SIZE 0x${uart_size_address}
-#define UART_END_ADDRESS (UART_START_ADDRESS + UART_SIZE)
-
-#define EXT_PERIPHERAL_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${ext_periph_start_offset})
-#define EXT_PERIPHERAL_SIZE 0x${ext_periph_size_address}
-#define EXT_PERIPHERAL_END_ADDRESS (EXT_PERIPHERAL_START_ADDRESS + EXT_PERIPHERAL_SIZE)
-
-#define PLIC_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${plic_start_offset})
-#define PLIC_SIZE 0x${plic_size_address}
-#define PLIC_END_ADDRESS (PLIC_START_ADDRESS + PLIC_SIZE)
 
 #define NULL_INTR ${null_intr}
 #define UART_INTR_TX_WATERMARK ${uart_intr_tx_watermark}
@@ -79,14 +91,6 @@ extern "C" {
 #define GPIO_INTR_30 ${gpio_intr_30}
 #define GPIO_INTR_31 ${gpio_intr_31}
 #define MEMCOPY_INTR_DONE ${memcopy_intr_done}
-
-#define RV_TIMER_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${rv_timer_start_offset})
-#define RV_TIMER_SIZE 0x${rv_timer_size_address}
-#define RV_TIMER_END_ADDRESS (RV_TIMER_START_ADDRESS + RV_TIMER_SIZE)
-
-#define GPIO_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${gpio_start_offset})
-#define GPIO_SIZE 0x${gpio_size_address}
-#define GPIO_END_ADDRESS (GPIO_START_ADDRESS + GPIO_SIZE)
 
 #ifdef __cplusplus
 }  // extern "C"
