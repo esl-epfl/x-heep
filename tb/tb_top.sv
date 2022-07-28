@@ -59,7 +59,11 @@ module tb_top #(
 
     wait (rst_n == 1'b1);
 
-    if (JTAG_DPI == 0 || BOOT_SEL == 1) begin
+    if (JTAG_DPI == 1) begin
+      if ($test$plusargs("verbose")) $display("[TESTBENCH] %t: waiting for GDB...", $time);
+    end else if (BOOT_SEL == 1) begin
+      if ($test$plusargs("verbose")) $display("[TESTBENCH] %t: booting from flash...", $time);
+    end else begin
       if ($value$plusargs("firmware=%s", firmware)) begin
         if ($test$plusargs("verbose"))
           $display("[TESTBENCH] %t: loading firmware %0s ...", $time, firmware);
@@ -69,11 +73,9 @@ module tb_top #(
           if ($test$plusargs("verbose"))
             $display("[TESTBENCH] %t: memory loaded", $time);
       end else begin
-        $display("No firmware specified");
+        $display("[TESTBENCH] %t: no firmware specified", $time);
         $finish;
       end
-    end else begin
-      if ($test$plusargs("verbose")) $display("Waiting for GDB");
     end
   end
 
