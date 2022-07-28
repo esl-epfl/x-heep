@@ -33,6 +33,12 @@ module system_bus
     input  obi_req_t  debug_master_req_i,
     output obi_resp_t debug_master_resp_o,
 
+    input  obi_req_t  dma_master0_ch0_req_i,
+    output obi_resp_t dma_master0_ch0_resp_o,
+
+    input  obi_req_t  dma_master1_ch0_req_i,
+    output obi_resp_t dma_master1_ch0_resp_o,
+
     input  obi_req_t  [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
 
@@ -71,6 +77,8 @@ module system_bus
   assign master_req[core_v_mini_mcu_pkg::CORE_INSTR_IDX] = core_instr_req_i;
   assign master_req[core_v_mini_mcu_pkg::CORE_DATA_IDX] = core_data_req_i;
   assign master_req[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX] = debug_master_req_i;
+  assign master_req[core_v_mini_mcu_pkg::DMA_MASTER0_CH0_IDX] = dma_master0_ch0_req_i;
+  assign master_req[core_v_mini_mcu_pkg::DMA_MASTER1_CH0_IDX] = dma_master1_ch0_req_i;
 
   for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin : gen_ext_master_req_map
     assign master_req[core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+i] = ext_xbar_master_req_i[i];
@@ -80,6 +88,8 @@ module system_bus
   assign core_instr_resp_o = master_resp[core_v_mini_mcu_pkg::CORE_INSTR_IDX];
   assign core_data_resp_o = master_resp[core_v_mini_mcu_pkg::CORE_DATA_IDX];
   assign debug_master_resp_o = master_resp[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX];
+  assign dma_master0_ch0_resp_o = master_resp[core_v_mini_mcu_pkg::DMA_MASTER0_CH0_IDX];
+  assign dma_master1_ch0_resp_o = master_resp[core_v_mini_mcu_pkg::DMA_MASTER1_CH0_IDX];
 
   for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin : gen_ext_master_resp_map
     assign ext_xbar_master_resp_o[i] = master_resp[core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+i];

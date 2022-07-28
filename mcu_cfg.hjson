@@ -116,7 +116,8 @@
         gpio_intr_29:            38,
         gpio_intr_30:            39,
         gpio_intr_31:            40,
-        memcopy_intr_done:       41,
+        dma_intr_done:           41,
+        memcopy_intr_done:       42,
     }
 
 }
