@@ -11,14 +11,8 @@ module peripheral_subsystem
     input logic clk_i,
     input logic rst_ni,
 
-    input logic boot_select_i,
-
     input  obi_req_t  slave_req_i,
     output obi_resp_t slave_resp_o,
-
-    //SOC CTRL
-    output logic        exit_valid_o,
-    output logic [31:0] exit_value_o,
 
     //UART
     input  logic uart_rx_i,
@@ -33,9 +27,6 @@ module peripheral_subsystem
     //External peripheral(s)
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
-
-    //RV TIMER
-    output logic rv_timer_irq_timer_o,
 
     //GPIO
     input  logic [31:0] cio_gpio_i,
@@ -53,8 +44,8 @@ module peripheral_subsystem
     output logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_en_o,
     output logic [                        3:0] spi_sd_o,
     output logic [                        3:0] spi_sd_en_o,
-    input  logic [                        3:0] spi_sd_i
-
+    input  logic [                        3:0] spi_sd_i,
+    input  logic                               use_spimemio_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -64,17 +55,14 @@ module peripheral_subsystem
   reg_pkg::reg_req_t peripheral_req;
   reg_pkg::reg_rsp_t peripheral_rsp;
 
-  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::SYSTEM_NPERIPHERALS-1:0] peripheral_slv_req;
-  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::SYSTEM_NPERIPHERALS-1:0] peripheral_slv_rsp;
+  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::ON_OFF_PERIPHERALS-1:0] peripheral_slv_req;
+  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::ON_OFF_PERIPHERALS-1:0] peripheral_slv_rsp;
 
   tlul_pkg::tl_h2d_t uart_tl_h2d;
   tlul_pkg::tl_d2h_t uart_tl_d2h;
 
   tlul_pkg::tl_h2d_t plic_tl_h2d;
   tlul_pkg::tl_d2h_t plic_tl_d2h;
-
-  tlul_pkg::tl_h2d_t rv_timer_tl_h2d;
-  tlul_pkg::tl_d2h_t rv_timer_tl_d2h;
 
   tlul_pkg::tl_h2d_t gpio_tl_h2d;
   tlul_pkg::tl_d2h_t gpio_tl_d2h;
@@ -88,11 +76,10 @@ module peripheral_subsystem
   logic uart_intr_rx_timeout;
   logic uart_intr_rx_parity_err;
   logic [31:0] gpio_intr;
-  logic [rv_plic_reg_pkg::NumTarget-1:0] irq_plic;
+
   logic [rv_plic_reg_pkg::NumSrc-1:0] intr_vector;
   logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] irq_id[rv_plic_reg_pkg::NumTarget];
   logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] unused_irq_id[rv_plic_reg_pkg::NumTarget];
-  logic use_spimemio;
 
   // this avoids lint errors
   assign unused_irq_id = irq_id;
@@ -121,7 +108,7 @@ module peripheral_subsystem
   end
 
   //Address Decoder
-  logic [PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
+  logic [ON_OFF_PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
   assign ext_peripheral_slave_req_o = peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPH_IDX];
   assign peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPH_IDX] = ext_peripheral_slave_resp_i;
@@ -149,13 +136,13 @@ module peripheral_subsystem
   );
 
   addr_decode #(
-      .NoIndices(core_v_mini_mcu_pkg::SYSTEM_NPERIPHERALS),
-      .NoRules(core_v_mini_mcu_pkg::SYSTEM_NPERIPHERALS),
+      .NoIndices(core_v_mini_mcu_pkg::ON_OFF_PERIPHERALS),
+      .NoRules(core_v_mini_mcu_pkg::ON_OFF_PERIPHERALS),
       .addr_t(logic [31:0]),
       .rule_t(addr_map_rule_pkg::addr_map_rule_t)
   ) i_addr_decode_soc_regbus_periph_xbar (
       .addr_i(peripheral_req.addr),
-      .addr_map_i(core_v_mini_mcu_pkg::PERIPHERALS_ADDR_RULES),
+      .addr_map_i(core_v_mini_mcu_pkg::ON_OFF_PERIPHERALS_ADDR_RULES),
       .idx_o(peripheral_select),
       .dec_valid_o(),
       .dec_error_o(),
@@ -164,7 +151,7 @@ module peripheral_subsystem
   );
 
   reg_demux #(
-      .NoPorts(core_v_mini_mcu_pkg::SYSTEM_NPERIPHERALS),
+      .NoPorts(core_v_mini_mcu_pkg::ON_OFF_PERIPHERALS),
       .req_t  (reg_pkg::reg_req_t),
       .rsp_t  (reg_pkg::reg_rsp_t)
   ) reg_demux_i (
@@ -202,20 +189,6 @@ module peripheral_subsystem
       .intr_rx_parity_err_o(uart_intr_rx_parity_err)
   );
 
-  soc_ctrl #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
-  ) soc_ctrl_i (
-      .clk_i,
-      .rst_ni,
-      .boot_select_i,
-      .use_spimemio_o(use_spimemio),
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
-      .exit_valid_o,
-      .exit_value_o
-  );
-
   reg_to_tlul reg_to_tlul_plic_i (
       .tl_o(plic_tl_h2d),
       .tl_i(plic_tl_d2h),
@@ -234,19 +207,28 @@ module peripheral_subsystem
       .msip_o(msip_o)
   );
 
-  reg_to_tlul rv_timer_reg_to_tlul_i (
-      .tl_o(rv_timer_tl_h2d),
-      .tl_i(rv_timer_tl_d2h),
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::RV_TIMER_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_IDX])
-  );
-
-  rv_timer rv_timer_i (
+  spi_subsystem spi_subsystem_i (
       .clk_i,
       .rst_ni,
-      .tl_i(rv_timer_tl_h2d),
-      .tl_o(rv_timer_tl_d2h),
-      .intr_timer_expired_0_0_o(rv_timer_irq_timer_o)
+      .use_spimemio_i,
+      .spimemio_req_i,
+      .spimemio_resp_o,
+      .yo_reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
+      .yo_reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
+      .ot_reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
+      .ot_reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
+      .spi_sck_o,
+      .spi_sck_en_o,
+      .spi_csb_o,
+      .spi_csb_en_o,
+      .spi_sd_o,
+      .spi_sd_en_o,
+      .spi_sd_i
+  );
+
+  boot_rom boot_rom_i (
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::BOOTROM_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::BOOTROM_IDX])
   );
 
   reg_to_tlul reg_to_tlul_gpio_i (
@@ -266,39 +248,5 @@ module peripheral_subsystem
       .cio_gpio_en_o(cio_gpio_en_o),
       .intr_gpio_o(gpio_intr)
   );
-
-  spi_subsystem spi_subsystem_i (
-      .clk_i,
-      .rst_ni,
-
-      .use_spimemio_i(use_spimemio),
-
-      //memory mapped spi
-      .spimemio_req_i,
-      .spimemio_resp_o,
-      //yosys spi configuration
-      .yo_reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
-      .yo_reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
-
-      //opentitan spi configuration
-      .ot_reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
-      .ot_reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
-
-      // SPI Interface
-      .spi_sck_o,
-      .spi_sck_en_o,
-      .spi_csb_o,
-      .spi_csb_en_o,
-      .spi_sd_o,
-      .spi_sd_en_o,
-      .spi_sd_i
-  );
-
-
-  boot_rom boot_rom_i (
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::BOOTROM_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::BOOTROM_IDX])
-  );
-
 
 endmodule : peripheral_subsystem

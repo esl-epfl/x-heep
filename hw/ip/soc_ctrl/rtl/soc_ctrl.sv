@@ -11,12 +11,12 @@ module soc_ctrl #(
     input clk_i,
     input rst_ni,
 
-    input  logic boot_select_i,
-    output logic use_spimemio_o,
-
     // Bus Interface
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
+
+    input  logic boot_select_i,
+    output logic use_spimemio_o,
 
     output logic        exit_valid_o,
     output logic [31:0] exit_value_o

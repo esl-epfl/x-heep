@@ -1,0 +1,24 @@
+CAPI=2:
+
+name: "openhwgroup.org:ip:power_manager"
+description: "OpenHW Group core-v-mini-mcu power manager"
+
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+      - lowrisc:prim:all
+      - pulp-platform.org::register_interface
+    files:
+    - rtl/power_manager_reg_pkg.sv
+    - rtl/power_manager_reg_top.sv
+    - rtl/power_manager.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl
