@@ -27,7 +27,7 @@ package core_v_mini_mcu_pkg;
   //must be power of two
   localparam int unsigned MEM_SIZE = 2**16;
 
-  localparam SYSTEM_XBAR_NMASTER = 3;
+  localparam SYSTEM_XBAR_NMASTER = 5;
   localparam SYSTEM_XBAR_NSLAVE = 7;
 
   localparam int unsigned LOG_SYSTEM_XBAR_NMASTER = SYSTEM_XBAR_NMASTER > 1 ? $clog2(SYSTEM_XBAR_NMASTER) : 32'd1;
@@ -44,6 +44,8 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] CORE_INSTR_IDX = 0;
   localparam logic [31:0] CORE_DATA_IDX = 1;
   localparam logic [31:0] DEBUG_MASTER_IDX = 2;
+  localparam logic [31:0] DMA_MASTER0_CH0_IDX = 3;
+  localparam logic [31:0] DMA_MASTER1_CH0_IDX = 4;
 
   //slave mmap and idx
   localparam logic[31:0] ERROR_START_ADDRESS = 32'hBADACCE5;

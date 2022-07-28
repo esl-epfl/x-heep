@@ -135,7 +135,8 @@
         intr_acq_overflow:       54,
         intr_ack_stop:           55,
         intr_host_timeout:       56,
-        memcopy_intr_done:       57,
+        dma_intr_done:           57,
+        memcopy_intr_done:       58
     }
 
 }
