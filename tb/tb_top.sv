@@ -59,16 +59,28 @@ module tb_top #(
   initial begin : load_prog
     automatic string firmware;
 
-    if ($value$plusargs("firmware=%s", firmware)) begin
+    wait (rst_n == 1'b1);
 
-      wait (rst_n == 1'b1);
-
+    if (JTAG_DPI==0 && BOOT_SEL==0) begin
+      if ($value$plusargs("firmware=%s", firmware)) begin
+        if ($test$plusargs("verbose"))
+          $display("[TESTBENCH] %t: loading firmware %0s ...", $time, firmware);
+        testharness_i.tb_loadHEX(firmware);
+        #CLK_PHASE_HI
+        testharness_i.tb_set_exit_loop();
+        #CLK_PHASE_LO
+        if ($test$plusargs("verbose"))
+          $display("[TESTBENCH] %t: memory loaded", $time);
+      end else begin
+        $display("No firmware specified");
+        $finish;
+      end
+    end else if (JTAG_DPI==1) begin
       if ($test$plusargs("verbose"))
-        $display("[TESTBENCH] %t: loading firmware %0s ...", $time, firmware);
-      testharness_i.tb_loadHEX(firmware);
-    end else begin
-      $display("No firmware specified");
-      $finish;
+        $display("Waiting for GDB");
+    end else if (BOOT_SEL==1) begin
+      if ($test$plusargs("verbose"))
+        $display("Booting from flash");
     end
   end
 
