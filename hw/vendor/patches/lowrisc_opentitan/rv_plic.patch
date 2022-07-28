@@ -319,10 +319,19 @@ index 24b7398..8ca471d 100644
    localparam int SRCW    = $clog2(NumSrc)
 
 diff --git a/hw/ip/rv_plic/rtl/rv_plic.sv b/hw/ip/rv_plic/rtl/rv_plic.sv
-index 3761e70..6b985ca 100644
+index 3761e70..6111089 100644
 --- a/hw/ip/rv_plic/rtl/rv_plic.sv
 +++ b/hw/ip/rv_plic/rtl/rv_plic.sv
-@@ -118,11 +118,43 @@ module rv_plic import rv_plic_reg_pkg::*; #(
+@@ -14,6 +14,8 @@
+ // Verilog parameter
+ //   MAX_PRIO: Maximum value of interrupt priority
+ 
++`include "prim_assert.sv"
++
+ module rv_plic import rv_plic_reg_pkg::*; #(
+   // derived parameter
+   localparam int SRCW    = $clog2(NumSrc)
+@@ -118,11 +120,43 @@ module rv_plic import rv_plic_reg_pkg::*; #(
    assign prio[29] = reg2hw.prio29.q;
    assign prio[30] = reg2hw.prio30.q;
    assign prio[31] = reg2hw.prio31.q;
@@ -367,7 +376,7 @@ index 3761e70..6b985ca 100644
      assign ie[0][s] = reg2hw.ie0[s].q;
    end
  
-@@ -148,7 +180,7 @@ module rv_plic import rv_plic_reg_pkg::*; #(
+@@ -148,7 +182,7 @@ module rv_plic import rv_plic_reg_pkg::*; #(
    ////////
    // IP //
    ////////
@@ -376,7 +385,7 @@ index 3761e70..6b985ca 100644
      assign hw2reg.ip[s].de = 1'b1; // Always write
      assign hw2reg.ip[s].d  = ip[s];
    end
-@@ -156,7 +188,7 @@ module rv_plic import rv_plic_reg_pkg::*; #(
+@@ -156,7 +190,7 @@ module rv_plic import rv_plic_reg_pkg::*; #(
    ///////////////////////////////////
    // Detection:: 0: Level, 1: Edge //
    ///////////////////////////////////
@@ -385,14 +394,14 @@ index 3761e70..6b985ca 100644
      assign le[s] = reg2hw.le[s].q;
    end
  
-@@ -216,6 +248,7 @@ module rv_plic import rv_plic_reg_pkg::*; #(
+@@ -216,6 +250,7 @@ module rv_plic import rv_plic_reg_pkg::*; #(
      .reg2hw,
      .hw2reg,
  
 +    .intg_err_o (),
      .devmode_i  (1'b1)
    );
- 
+
 diff --git a/hw/ip/rv_plic/rtl/rv_plic_reg_top.sv b/hw/ip/rv_plic/rtl/rv_plic_reg_top.sv
 index ea99b23..9a895b0 100644
 --- a/hw/ip/rv_plic/rtl/rv_plic_reg_top.sv
