@@ -12,39 +12,39 @@ module power_manager_reg_top #(
     parameter type reg_rsp_t = logic,
     parameter int AW = 2
 ) (
-  input clk_i,
-  input rst_ni,
-  input  reg_req_t reg_req_i,
-  output reg_rsp_t reg_rsp_o,
-  // To HW
-  output power_manager_reg_pkg::power_manager_reg2hw_t reg2hw, // Write
+    input clk_i,
+    input rst_ni,
+    input reg_req_t reg_req_i,
+    output reg_rsp_t reg_rsp_o,
+    // To HW
+    output power_manager_reg_pkg::power_manager_reg2hw_t reg2hw,  // Write
 
 
-  // Config
-  input devmode_i // If 1, explicit error return for unmapped register access
+    // Config
+    input devmode_i  // If 1, explicit error return for unmapped register access
 );
 
-  import power_manager_reg_pkg::* ;
+  import power_manager_reg_pkg::*;
 
   localparam int DW = 32;
-  localparam int DBW = DW/8;                    // Byte Width
+  localparam int DBW = DW / 8;  // Byte Width
 
   // register signals
   logic           reg_we;
   logic           reg_re;
-  logic [AW-1:0]  reg_addr;
-  logic [DW-1:0]  reg_wdata;
+  logic [ AW-1:0] reg_addr;
+  logic [ DW-1:0] reg_wdata;
   logic [DBW-1:0] reg_be;
-  logic [DW-1:0]  reg_rdata;
+  logic [ DW-1:0] reg_rdata;
   logic           reg_error;
 
-  logic          addrmiss, wr_err;
+  logic addrmiss, wr_err;
 
   logic [DW-1:0] reg_rdata_next;
 
   // Below register interface can be changed
-  reg_req_t  reg_intf_req;
-  reg_rsp_t  reg_intf_rsp;
+  reg_req_t reg_intf_req;
+  reg_rsp_t reg_intf_rsp;
 
 
   assign reg_intf_req = reg_req_i;
@@ -60,7 +60,7 @@ module power_manager_reg_top #(
   assign reg_intf_rsp.error = reg_error;
   assign reg_intf_rsp.ready = 1'b1;
 
-  assign reg_rdata = reg_rdata_next ;
+  assign reg_rdata = reg_rdata_next;
   assign reg_error = (devmode_i & addrmiss) | wr_err;
 
 
@@ -75,27 +75,27 @@ module power_manager_reg_top #(
   // R[power_gate_core]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_power_gate_core (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (power_gate_core_we),
-    .wd     (power_gate_core_wd),
+      // from register interface
+      .we(power_gate_core_we),
+      .wd(power_gate_core_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.power_gate_core.q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.power_gate_core.q),
 
-    // to register interface (read)
-    .qs     (power_gate_core_qs)
+      // to register interface (read)
+      .qs(power_gate_core_qs)
   );
 
 
@@ -107,12 +107,11 @@ module power_manager_reg_top #(
     addr_hit[0] = (reg_addr == POWER_MANAGER_POWER_GATE_CORE_OFFSET);
   end
 
-  assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
+  assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
 
   // Check sub-word write is permitted
   always_comb begin
-    wr_err = (reg_we &
-              ((addr_hit[0] & (|(POWER_MANAGER_PERMIT[0] & ~reg_be)))));
+    wr_err = (reg_we & ((addr_hit[0] & (|(POWER_MANAGER_PERMIT[0] & ~reg_be)))));
   end
 
   assign power_gate_core_we = addr_hit[0] & reg_we & !reg_error;

@@ -130,6 +130,6 @@ module ao_peripheral_subsystem
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
       .power_gate_core_o
-);
+  );
 
 endmodule : ao_peripheral_subsystem

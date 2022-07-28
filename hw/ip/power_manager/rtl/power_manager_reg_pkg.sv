@@ -13,26 +13,22 @@ package power_manager_reg_pkg;
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {
-    logic        q;
-  } power_manager_reg2hw_power_gate_core_reg_t;
+  typedef struct packed {logic q;} power_manager_reg2hw_power_gate_core_reg_t;
 
   // Register -> HW type
   typedef struct packed {
-    power_manager_reg2hw_power_gate_core_reg_t power_gate_core; // [0:0]
+    power_manager_reg2hw_power_gate_core_reg_t power_gate_core;  // [0:0]
   } power_manager_reg2hw_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] POWER_MANAGER_POWER_GATE_CORE_OFFSET = 2'h 0;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_POWER_GATE_CORE_OFFSET = 2'h0;
 
   // Register index
-  typedef enum int {
-    POWER_MANAGER_POWER_GATE_CORE
-  } power_manager_id_e;
+  typedef enum int {POWER_MANAGER_POWER_GATE_CORE} power_manager_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] POWER_MANAGER_PERMIT [1] = '{
-    4'b 0001  // index[0] POWER_MANAGER_POWER_GATE_CORE
+  parameter logic [3:0] POWER_MANAGER_PERMIT[1] = '{
+      4'b0001  // index[0] POWER_MANAGER_POWER_GATE_CORE
   };
 
 endpackage

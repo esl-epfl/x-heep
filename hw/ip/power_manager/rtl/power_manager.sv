@@ -35,6 +35,6 @@ module power_manager #(
       .devmode_i(1'b1)
   );
 
-  assign power_gate_core_o   = reg2hw.power_gate_core.q;
+  assign power_gate_core_o = reg2hw.power_gate_core.q;
 
 endmodule : power_manager
