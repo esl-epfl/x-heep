@@ -137,6 +137,9 @@ def main():
     rv_timer_start_offset  = string2int(obj['always_on_peripherals']['rv_timer']['offset'])
     rv_timer_size_address  = string2int(obj['always_on_peripherals']['rv_timer']['length'])
 
+    power_manager_start_offset  = string2int(obj['always_on_peripherals']['power_manager']['offset'])
+    power_manager_size_address  = string2int(obj['always_on_peripherals']['power_manager']['length'])
+
     ext_slave_start_address = string2int(obj['ext_slaves']['address'])
     ext_slave_size_address = string2int(obj['ext_slaves']['length'])
 
@@ -213,6 +216,8 @@ def main():
         "soc_ctrl_size_address"          : soc_ctrl_size_address,
         "rv_timer_start_offset"          : rv_timer_start_offset,
         "rv_timer_size_address"          : rv_timer_size_address,
+        "power_manager_start_offset"     : power_manager_start_offset,
+        "power_manager_size_address"     : power_manager_size_address,
         "ext_slave_start_address"        : ext_slave_start_address,
         "ext_slave_size_address"         : ext_slave_size_address,
         "spi_flash_start_address"        : spi_flash_start_address,

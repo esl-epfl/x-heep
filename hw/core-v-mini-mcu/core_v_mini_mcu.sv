@@ -45,7 +45,9 @@ module core_v_mini_mcu
 
     inout logic [3:0] spi_sd_io,
     inout logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_o,
-    inout logic spi_sck_o
+    inout logic spi_sck_o,
+
+    output logic power_gate_core_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -226,7 +228,8 @@ module core_v_mini_mcu
       .use_spimemio_o(use_spimemio),
       .exit_valid_o(exit_valid_o),
       .exit_value_o(exit_value_o),
-      .rv_timer_irq_timer_o(irq_timer)
+      .rv_timer_irq_timer_o(irq_timer),
+      .power_gate_core_o
   );
 
   assign irq_fast = '0;

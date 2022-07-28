@@ -19,7 +19,10 @@ module ao_peripheral_subsystem
     output logic [31:0] exit_value_o,
 
     //RV TIMER
-    output logic rv_timer_irq_timer_o
+    output logic rv_timer_irq_timer_o,
+
+    // POWER MANAGER
+    output logic power_gate_core_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -117,5 +120,16 @@ module ao_peripheral_subsystem
       .tl_o(rv_timer_tl_d2h),
       .intr_timer_expired_0_0_o(rv_timer_irq_timer_o)
   );
+
+  power_manager #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) power_manager_i (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
+      .power_gate_core_o
+);
 
 endmodule : ao_peripheral_subsystem

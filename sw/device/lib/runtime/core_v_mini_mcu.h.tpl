@@ -57,6 +57,10 @@ extern "C" {
 #define RV_TIMER_SIZE 0x${rv_timer_size_address}
 #define RV_TIMER_END_ADDRESS (RV_TIMER_START_ADDRESS + RV_TIMER_SIZE)
 
+#define POWER_MANAGER_START_ADDRESS (ALWAYS_ON_PERIPH_START_ADDRESS + 0x${power_manager_start_offset})
+#define POWER_MANAGER_SIZE 0x${power_manager_size_address}
+#define POWER_MANAGER_END_ADDRESS (POWER_MANAGER_START_ADDRESS + POWER_MANAGER_SIZE)
+
 #define EXT_SLAVE_START_ADDRESS 0x${ext_slave_start_address}
 #define EXT_SLAVE_SIZE 0x${ext_slave_size_address}
 #define EXT_SLAVE_END_ADDRESS (EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE)

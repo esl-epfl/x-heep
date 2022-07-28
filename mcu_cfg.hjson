@@ -58,6 +58,10 @@
         rv_timer: {
             offset:  0x0010000,
             length:  0x0010000,
+        },
+        power_manager: {
+            offset:  0x0020000,
+            length:  0x0010000,
         }
     },
 

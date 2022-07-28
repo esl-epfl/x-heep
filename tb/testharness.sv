@@ -43,6 +43,8 @@ module testharness #(
   wire [1:0] spi_csb;
   wire spi_sck;
 
+  wire power_gate_core;
+
   // External xbar master/slave and peripheral ports
   obi_req_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_req;
   obi_resp_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_resp;
@@ -100,8 +102,9 @@ module testharness #(
 
       .spi_sd_io(spi_sd_io),
       .spi_csb_o(spi_csb),
-      .spi_sck_o(spi_sck)
+      .spi_sck_o(spi_sck),
 
+      .power_gate_core_o(power_gate_core)
   );
 
   uartdpi #(

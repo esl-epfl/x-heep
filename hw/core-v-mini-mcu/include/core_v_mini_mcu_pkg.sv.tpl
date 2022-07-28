@@ -99,7 +99,7 @@ package core_v_mini_mcu_pkg;
 
   //slave encoder
   localparam ON_OFF_PERIPHERALS = 7;
-  localparam ALWAYS_ON_PERIPHERALS = 2;
+  localparam ALWAYS_ON_PERIPHERALS = 3;
 
   localparam logic[31:0] UART_START_ADDRESS = ON_OFF_PERIPH_START_ADDRESS + 32'h${uart_start_offset};
   localparam logic[31:0] UART_SIZE = 32'h${uart_size_address};
@@ -146,6 +146,11 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] RV_TIMER_END_ADDRESS = RV_TIMER_START_ADDRESS + RV_TIMER_SIZE;
   localparam logic [31:0] RV_TIMER_IDX = 32'd1;
 
+  localparam logic [31:0] POWER_MANAGER_START_ADDRESS = ALWAYS_ON_PERIPH_START_ADDRESS + 32'h${power_manager_start_offset};
+  localparam logic [31:0] POWER_MANAGER_SIZE = 32'h${power_manager_size_address};
+  localparam logic [31:0] POWER_MANAGER_END_ADDRESS = POWER_MANAGER_START_ADDRESS + POWER_MANAGER_SIZE;
+  localparam logic [31:0] POWER_MANAGER_IDX = 32'd2;
+
   localparam addr_map_rule_t [ON_OFF_PERIPHERALS-1:0] ON_OFF_PERIPHERALS_ADDR_RULES = '{
 
       '{ idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS },
@@ -161,7 +166,8 @@ package core_v_mini_mcu_pkg;
 
   localparam addr_map_rule_t [ALWAYS_ON_PERIPHERALS-1:0] ALWAYS_ON_PERIPHERALS_ADDR_RULES = '{
       '{ idx: SOC_CTRL_IDX, start_addr: SOC_CTRL_START_ADDRESS, end_addr: SOC_CTRL_END_ADDRESS },
-      '{ idx: RV_TIMER_IDX, start_addr: RV_TIMER_START_ADDRESS, end_addr: RV_TIMER_END_ADDRESS }
+      '{ idx: RV_TIMER_IDX, start_addr: RV_TIMER_START_ADDRESS, end_addr: RV_TIMER_END_ADDRESS },
+      '{ idx: POWER_MANAGER_IDX, start_addr: POWER_MANAGER_START_ADDRESS, end_addr: POWER_MANAGER_END_ADDRESS }
   };
 
   localparam int unsigned ALWAYS_ON_PERIPHERALS_PORT_SEL_WIDTH = ALWAYS_ON_PERIPHERALS > 1 ? $clog2(ALWAYS_ON_PERIPHERALS) : 32'd1;
