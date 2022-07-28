@@ -8,11 +8,9 @@
 .PHONY: clean help
 
 # Generates mcu files
-mcu-gen-sv: verible
+mcu-gen: verible
 	python util/mcu_gen.py --cfg mcu_cfg.hjson --outdir hw/core-v-mini-mcu/include --cpu $(CPU) --bus $(BUS) --pkg-sv hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
-
-mcu-gen-c:
-	python util/mcu_gen.py --cfg mcu_cfg.hjson --outdir sw/device/lib/runtime --cpu $(CPU) --bus $(BUS) --pkg-sv sw/device/lib/runtime/core_v_mini_mcu.h.tpl
+	python util/mcu_gen.py --cfg mcu_cfg.hjson --outdir sw/device/lib/runtime --cpu $(CPU) --bus $(BUS) --pkg-sv sw/device/lib/runtime/core_v_mini_mcu.h.tpl	
 
 # Display mcu_gen.py help
 mcu-gen-help:
@@ -22,16 +20,16 @@ mcu-gen-help:
 verible:
 	util/format-verible;
 
-app-helloworld: mcu-gen-c
+app-helloworld:
 	$(MAKE) -C sw applications/hello_world/hello_world.hex
 
-app-matadd: mcu-gen-c
+app-matadd:
 	$(MAKE) -C sw applications/matadd/matadd.hex
 
-app-ext-periph: mcu-gen-c
+app-ext-periph:
 	$(MAKE) -C sw applications/example_external_peripheral/example_external_peripheral.hex
 
-app-gpio-cnt: mcu-gen-c
+app-gpio-cnt:
 	$(MAKE) -C sw applications/example_gpio_cnt/example_gpio_cnt.hex
 
 # Tools specific fusesoc call
@@ -49,7 +47,7 @@ questasim-sim-opt:
 vcs-sim:
 	fusesoc --cores-root . run --no-export --target=sim --tool=vcs $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
 
-run-helloworld: mcu-gen-sv mcu-gen-c verilator-sim app-helloworld
+run-helloworld: mcu-gen verilator-sim app-helloworld
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
 	./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex; \
 	cat uart0.log; \

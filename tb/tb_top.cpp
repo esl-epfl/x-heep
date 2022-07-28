@@ -119,7 +119,6 @@ int main (int argc, char * argv[])
   dut->jtag_trst_ni   = 0;
   dut->jtag_tdi_i     = 0;
   dut->fetch_enable_i = 1;
-  dut->boot_select_i  = boot_sel;
 
   dut->eval();
   m_trace->dump(sim_time);

@@ -41,8 +41,6 @@ module tb_top #(
   logic               jtag_tdi;
   logic               jtag_tdo;
 
-  logic               boot_select;
-
   // make the core start fetching instruction immediately
   assign fetch_enable = '1;
 
@@ -133,17 +131,15 @@ module tb_top #(
   end
 
   // wrapper for riscv, the memory system and stdout peripheral
-
-  assign boot_select = (BOOT_SEL == 1) ? 1'b1 : 1'b0;
   testharness #(
       .PULP_XPULP(PULP_XPULP),
       .FPU       (FPU),
       .PULP_ZFINX(PULP_ZFINX),
       .JTAG_DPI  (JTAG_DPI)
+      .BOOT_SEL  (BOOT_SEL)
   ) testharness_i (
       .clk_i         (clk),
       .rst_ni        (rst_n),
-      .boot_select_i (boot_select),
       .fetch_enable_i(fetch_enable),
       .exit_valid_o  (exit_valid),
       .exit_value_o  (exit_value),

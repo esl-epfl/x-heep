@@ -87,16 +87,16 @@ You can compile the example applications and the platform using the Makefile. Ty
 
 ## Generate core-v-mini-mcu package
 
-First, you have to generate the SystemVerilog package of the core-v-mini-mcu:
+First, you have to generate the SystemVerilog package and C header file of the core-v-mini-mcu:
 
 ```
-make mcu-gen-sv mcu-gen-c
+make mcu-gen
 ```
 
 To change the default cpu type (i.e., cv32e20) and the default bus type (i.e., onetoM) type:
 
 ```
-make mcu-gen-sv mcu-gen-c CPU=cv32e40p BUS=NtoM
+make mcu-gen CPU=cv32e40p BUS=NtoM
 ```
 
 ## Compiling Software
