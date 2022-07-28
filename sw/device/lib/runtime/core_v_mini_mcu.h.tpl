@@ -29,6 +29,18 @@ extern "C" {
 #define PLIC_SIZE 0x${plic_size_address}
 #define PLIC_END_ADDRESS (PLIC_START_ADDRESS + PLIC_SIZE)
 
+#define SPI_HOST_START_ADDRESS (ON_OFF_PERIPH_START_ADDRESS + 0x${spi_host_start_offset})
+#define SPI_HOST_SIZE 0x${spi_host_size_address}
+#define SPI_HOST_END_ADDRESS (SPI_HOST_START_ADDRESS + SPI_HOST_SIZE)
+
+#define SPI_MEMIO_START_ADDRESS (ON_OFF_PERIPH_START_ADDRESS + 0x${spi_memio_start_offset})
+#define SPI_MEMIO_SIZE 0x${spi_memio_size_address}
+#define SPI_MEMIO_END_ADDRESS (SPI_MEMIO_START_ADDRESS + SPI_MEMIO_SIZE)
+
+#define BOOTROM_START_ADDRESS (ON_OFF_PERIPH_START_ADDRESS + 0x${bootrom_start_offset})
+#define BOOTROM_SIZE 0x${bootrom_size_address}
+#define BOOTROM_END_ADDRESS (BOOTROM_START_ADDRESS + BOOTROM_SIZE)
+
 #define GPIO_START_ADDRESS (ON_OFF_PERIPH_START_ADDRESS + 0x${gpio_start_offset})
 #define GPIO_SIZE 0x${gpio_size_address}
 #define GPIO_END_ADDRESS (GPIO_START_ADDRESS + GPIO_SIZE)
@@ -48,6 +60,10 @@ extern "C" {
 #define EXT_SLAVE_START_ADDRESS 0x${ext_slave_start_address}
 #define EXT_SLAVE_SIZE 0x${ext_slave_size_address}
 #define EXT_SLAVE_END_ADDRESS (EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE)
+
+#define SPI_FLASH_START_ADDRESS 0x${spi_flash_start_address}
+#define SPI_FLASH_SIZE 0x${spi_flash_size_address}
+#define SPI_FLASH_END_ADDRESS (SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE)
 
 #define NULL_INTR ${null_intr}
 #define UART_INTR_TX_WATERMARK ${uart_intr_tx_watermark}

@@ -33,7 +33,7 @@ $ export PATH=/home/yourusername/tools/openocd/bin:$PATH
 ## TODOs
 
 As today the testbench does not have a way to select whether to boot from JTAG or not, so the CPU starts executing the program even before openOCD connects,
-and so the simulation ends. Use a software which containts a `while(1)` to be sure the simulation is still in place once openOCD and GDB connects.
+and so the simulation ends. Use a software which containts a `while(1)` to be sure the simulation is still in place once openOCD and `gdb` connects.
 This will be replaced.
 
 ## Simulating
@@ -61,7 +61,7 @@ $ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
 and type to run your compiled software:
 
 ```
-$ ./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex"
+$ ./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex +openOCD=true
 ```
 
 ### Questasim
@@ -110,7 +110,7 @@ In a 3rd shell, conenct gdb as:
 /home/yourusername/tools/riscv/bin/riscv32-unknown-elf-gdb ./sw/applications/hello_world/hello_world.elf
 ```
 
-Once GDB starts, do the following 3 commands:
+Once `gdb` starts, do the following 3 commands:
 ```
 (gdb) set remotetimeout 2000
 (gdb) target remote localhost:3333
@@ -119,7 +119,7 @@ Once GDB starts, do the following 3 commands:
 
 Keep in mind that this takes a lot of time due to the simulation time.
 
-The output of GDB should be something like:
+The output of `gdb` should be something like:
 
 ```
 Loading section .vectors, size 0x100 lma 0x0
@@ -132,6 +132,13 @@ Start address 0x00000180, load size 4788
 Transfer rate: 67 bytes/sec, 798 bytes/write.
 ```
 
+`gdb` automatically set the `program counter` to start from `_start`, check with:
+
+```
+(gdb) i r pc
+```
+It should give you `0x180`.
+
 Now you can play with `gdb`
 
 e.g: Ask for the content of register `a0`
@@ -139,13 +146,20 @@ e.g: Ask for the content of register `a0`
 ```
 (gdb) i r a0
 ```
+or just run the entire execution with the continue command and then check the `uart0.log` to see the printed hello world string:
+
+```
+continue
+```
+
+
 ## Debugging on FPGA
 
 We use the `Digilet HS2` cable with the `FT232HQ` (chip)[https://www.ftdichip.com/Support/Documents/TechnicalNotes/TN_100_USB_VID-PID_Guidelines.pdf] which has Vendor ID `0x0403` and Product ID `0x6014`.
 
 Connect the HS2 cable to the FPGA.
 
-If you execute `lsubs`, you should see something like:
+If you execute `lsusb`, you should see something like:
 
 ```
 Bus 001 Device 004: ID 0403:6014 Future Technology Devices International, Ltd FT232H Single HS USB-UART/FIFO IC

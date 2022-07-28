@@ -30,8 +30,20 @@
             offset:  0x0020000,
             length:  0x0010000,
         },
-        gpio: {
+        spi_host: {
             offset:  0x0030000,
+            length:  0x0008000,
+        },
+        spi_memio: {
+            offset:  0x0038000,
+            length:  0x0008000,
+        },
+        bootrom: {
+            offset:  0x0040000,
+            length:  0x0010000,
+        },
+        gpio: {
+            offset:  0x0050000,
             length:  0x0010000,
         }
     },
@@ -53,6 +65,12 @@
         address: 0x40000000,
         length:  0x1000000,
     },
+
+    spi_flash: {
+        address: 0xF0000000,
+        length:  0x1000000,
+    },
+
 
     interrupts: {
         // always zero

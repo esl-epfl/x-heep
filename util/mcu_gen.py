@@ -98,9 +98,6 @@ def main():
 
     debug_size_address = string2int(obj['debug']['length'])
 
-    ext_slave_start_address = string2int(obj['ext_slaves']['address'])
-    ext_slave_size_address = string2int(obj['ext_slaves']['length'])
-
     on_off_periph_start_address = string2int(obj['on_off_peripherals']['address'])
     if int(on_off_periph_start_address, 16) < int('10000', 16):
         exit("on off periph start address must be greater than 0x10000")
@@ -116,6 +113,15 @@ def main():
     plic_start_offset  = string2int(obj['on_off_peripherals']['plic']['offset'])
     plic_size_address  = string2int(obj['on_off_peripherals']['plic']['length'])
 
+    spi_host_start_offset  = string2int(obj['on_off_peripherals']['spi_host']['offset'])
+    spi_host_size_address  = string2int(obj['on_off_peripherals']['spi_host']['length'])
+
+    spi_memio_start_offset  = string2int(obj['on_off_peripherals']['spi_memio']['offset'])
+    spi_memio_size_address  = string2int(obj['on_off_peripherals']['spi_memio']['length'])
+
+    bootrom_start_offset  = string2int(obj['on_off_peripherals']['bootrom']['offset'])
+    bootrom_size_address  = string2int(obj['on_off_peripherals']['bootrom']['length'])
+
     gpio_start_offset  = string2int(obj['on_off_peripherals']['gpio']['offset'])
     gpio_size_address  = string2int(obj['on_off_peripherals']['gpio']['length'])
 
@@ -130,6 +136,12 @@ def main():
 
     rv_timer_start_offset  = string2int(obj['always_on_peripherals']['rv_timer']['offset'])
     rv_timer_size_address  = string2int(obj['always_on_peripherals']['rv_timer']['length'])
+
+    ext_slave_start_address = string2int(obj['ext_slaves']['address'])
+    ext_slave_size_address = string2int(obj['ext_slaves']['length'])
+
+    spi_flash_start_address  = string2int(obj['spi_flash']['address'])
+    spi_flash_size_address  = string2int(obj['spi_flash']['length'])
 
     null_intr = obj['interrupts']['null_intr']
     uart_intr_tx_watermark = obj['interrupts']['uart_intr_tx_watermark']
@@ -181,18 +193,30 @@ def main():
         "debug_size_address"             : debug_size_address,
         "on_off_periph_start_address"    : on_off_periph_start_address,
         "on_off_periph_size_address"     : on_off_periph_size_address,
-        "always_on_periph_start_address" : always_on_periph_start_address,
-        "always_on_periph_size_address"  : always_on_periph_size_address,
-        "ext_slave_start_address"        : ext_slave_start_address,
-        "ext_slave_size_address"         : ext_slave_size_address,
         "uart_start_offset"              : uart_start_offset,
         "uart_size_address"              : uart_size_address,
-        "soc_ctrl_start_offset"          : soc_ctrl_start_offset,
-        "soc_ctrl_size_address"          : soc_ctrl_size_address,
         "ext_periph_start_offset"        : ext_periph_start_offset,
         "ext_periph_size_address"        : ext_periph_size_address,
         "plic_start_offset"              : plic_start_offset,
         "plic_size_address"              : plic_size_address,
+        "spi_host_start_offset"          : spi_host_start_offset,
+        "spi_host_size_address"          : spi_host_size_address,
+        "spi_memio_start_offset"         : spi_memio_start_offset,
+        "spi_memio_size_address"         : spi_memio_size_address,
+        "bootrom_start_offset"           : bootrom_start_offset,
+        "bootrom_size_address"           : bootrom_size_address,
+        "gpio_start_offset"              : gpio_start_offset,
+        "gpio_size_address"              : gpio_size_address,
+        "always_on_periph_start_address" : always_on_periph_start_address,
+        "always_on_periph_size_address"  : always_on_periph_size_address,
+        "soc_ctrl_start_offset"          : soc_ctrl_start_offset,
+        "soc_ctrl_size_address"          : soc_ctrl_size_address,
+        "rv_timer_start_offset"          : rv_timer_start_offset,
+        "rv_timer_size_address"          : rv_timer_size_address,
+        "ext_slave_start_address"        : ext_slave_start_address,
+        "ext_slave_size_address"         : ext_slave_size_address,
+        "spi_flash_start_address"        : spi_flash_start_address,
+        "spi_flash_size_address"         : spi_flash_size_address,
         "null_intr"                      : null_intr,
         "uart_intr_tx_watermark"         : uart_intr_tx_watermark,
         "uart_intr_rx_watermark"         : uart_intr_rx_watermark,
@@ -235,10 +259,6 @@ def main():
         "gpio_intr_30"                   : gpio_intr_30,
         "gpio_intr_31"                   : gpio_intr_31,
         "memcopy_intr_done"              : memcopy_intr_done,
-        "rv_timer_start_offset"          : rv_timer_start_offset,
-        "rv_timer_size_address"          : rv_timer_size_address,
-        "gpio_start_offset"              : gpio_start_offset,
-        "gpio_size_address"              : gpio_size_address,
     }
 
     ###########

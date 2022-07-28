@@ -28,7 +28,7 @@ package core_v_mini_mcu_pkg;
   localparam int unsigned MEM_SIZE = 2**16;
 
   localparam SYSTEM_XBAR_NMASTER = 3;
-  localparam SYSTEM_XBAR_NSLAVE = 7;
+  localparam SYSTEM_XBAR_NSLAVE = 8;
 
   localparam int unsigned LOG_SYSTEM_XBAR_NMASTER = SYSTEM_XBAR_NMASTER > 1 ? $clog2(SYSTEM_XBAR_NMASTER) : 32'd1;
   localparam int unsigned LOG_SYSTEM_XBAR_NSLAVE = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(SYSTEM_XBAR_NSLAVE) : 32'd1;
@@ -81,18 +81,24 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] EXT_SLAVE_END_ADDRESS = EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE;
   localparam logic[31:0] EXT_SLAVE_IDX = 32'd6;
 
+  localparam logic[31:0] SPI_FLASH_START_ADDRESS = 32'h${ext_slave_start_address};
+  localparam logic[31:0] SPI_FLASH_SIZE = 32'h${ext_slave_size_address};
+  localparam logic[31:0] SPI_FLASH_END_ADDRESS = SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE;
+  localparam logic[31:0] SPI_FLASH_IDX = 32'd7;
+
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
+      '{ idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS },
       '{ idx: RAM0_IDX, start_addr: RAM0_START_ADDRESS, end_addr: RAM0_END_ADDRESS },
       '{ idx: RAM1_IDX, start_addr: RAM1_START_ADDRESS, end_addr: RAM1_END_ADDRESS },
       '{ idx: DEBUG_IDX, start_addr: DEBUG_START_ADDRESS, end_addr: DEBUG_END_ADDRESS },
       '{ idx: ON_OFF_PERIPH_IDX, start_addr: ON_OFF_PERIPH_START_ADDRESS, end_addr: ON_OFF_PERIPH_END_ADDRESS },
       '{ idx: ALWAYS_ON_PERIPH_IDX, start_addr: ALWAYS_ON_PERIPH_START_ADDRESS, end_addr: ALWAYS_ON_PERIPH_END_ADDRESS },
       '{ idx: EXT_SLAVE_IDX, start_addr: EXT_SLAVE_START_ADDRESS, end_addr: EXT_SLAVE_END_ADDRESS },
-      '{ idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS }
+      '{ idx: SPI_FLASH_IDX, start_addr: SPI_FLASH_START_ADDRESS, end_addr: SPI_FLASH_END_ADDRESS }
   };
 
   //slave encoder
-  localparam ON_OFF_PERIPHERALS = 4;
+  localparam ON_OFF_PERIPHERALS = 7;
   localparam ALWAYS_ON_PERIPHERALS = 2;
 
   localparam logic[31:0] UART_START_ADDRESS = ON_OFF_PERIPH_START_ADDRESS + 32'h${uart_start_offset};
@@ -110,10 +116,25 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] PLIC_END_ADDRESS = PLIC_START_ADDRESS + PLIC_SIZE;
   localparam logic[31:0] PLIC_IDX = 32'd2;
 
+  localparam logic[31:0] SPI_HOST_START_ADDRESS = ON_OFF_PERIPH_START_ADDRESS + 32'h${spi_host_start_offset};
+  localparam logic[31:0] SPI_HOST_SIZE = 32'h${spi_host_size_address};
+  localparam logic[31:0] SPI_HOST_END_ADDRESS = SPI_HOST_START_ADDRESS + SPI_HOST_SIZE;
+  localparam logic[31:0] SPI_HOST_IDX = 32'd3;
+
+  localparam logic[31:0] SPI_MEMIO_START_ADDRESS = ON_OFF_PERIPH_START_ADDRESS + 32'h${spi_memio_start_offset};
+  localparam logic[31:0] SPI_MEMIO_SIZE = 32'h${spi_memio_size_address};
+  localparam logic[31:0] SPI_MEMIO_END_ADDRESS = SPI_MEMIO_START_ADDRESS + SPI_MEMIO_SIZE;
+  localparam logic[31:0] SPI_MEMIO_IDX = 32'd4;
+
+  localparam logic[31:0] BOOTROM_START_ADDRESS = ON_OFF_PERIPH_START_ADDRESS + 32'h${bootrom_start_offset};
+  localparam logic[31:0] BOOTROM_SIZE = 32'h${bootrom_size_address};
+  localparam logic[31:0] BOOTROM_END_ADDRESS = BOOTROM_START_ADDRESS + BOOTROM_SIZE;
+  localparam logic[31:0] BOOTROM_IDX = 32'd5;
+
   localparam logic[31:0] GPIO_START_ADDRESS = ON_OFF_PERIPH_START_ADDRESS + 32'h${gpio_start_offset};
   localparam logic[31:0] GPIO_SIZE = 32'h${gpio_size_address};
   localparam logic[31:0] GPIO_END_ADDRESS = GPIO_START_ADDRESS + GPIO_SIZE;
-  localparam logic[31:0] GPIO_IDX = 32'd3;
+  localparam logic[31:0] GPIO_IDX = 32'd6;
 
   localparam logic[31:0] SOC_CTRL_START_ADDRESS = ALWAYS_ON_PERIPH_START_ADDRESS + 32'h${soc_ctrl_start_offset};
   localparam logic[31:0] SOC_CTRL_SIZE = 32'h${soc_ctrl_size_address};
@@ -126,9 +147,13 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] RV_TIMER_IDX = 32'd1;
 
   localparam addr_map_rule_t [ON_OFF_PERIPHERALS-1:0] ON_OFF_PERIPHERALS_ADDR_RULES = '{
+
       '{ idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS },
       '{ idx: EXT_PERIPH_IDX, start_addr: EXT_PERIPH_START_ADDRESS, end_addr: EXT_PERIPH_END_ADDRESS },
       '{ idx: PLIC_IDX, start_addr: PLIC_START_ADDRESS, end_addr: PLIC_END_ADDRESS },
+      '{ idx: SPI_HOST_IDX, start_addr: SPI_HOST_START_ADDRESS, end_addr: SPI_HOST_END_ADDRESS },
+      '{ idx: SPI_MEMIO_IDX, start_addr: SPI_MEMIO_START_ADDRESS, end_addr: SPI_MEMIO_END_ADDRESS },
+      '{ idx: BOOTROM_IDX, start_addr: BOOTROM_START_ADDRESS, end_addr: BOOTROM_END_ADDRESS },
       '{ idx: GPIO_IDX, start_addr: GPIO_START_ADDRESS, end_addr: GPIO_END_ADDRESS }
   };
 

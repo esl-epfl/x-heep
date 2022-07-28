@@ -43,12 +43,11 @@ int main (int argc, char * argv[])
 {
 
   unsigned int SRAM_SIZE;
-  std::string firmware, arg_max_sim_time, arg_openocd;
+  std::string firmware, arg_max_sim_time, arg_openocd, arg_boot_sel;
   unsigned int max_sim_time;
   bool use_openocd;
   bool run_all = false;
-  int i,j, exit_val;
-
+  int i,j, exit_val, boot_sel;
   Verilated::commandArgs(argc, argv);
 
   // Instantiate the model
@@ -88,6 +87,24 @@ int main (int argc, char * argv[])
     std::cout<<"[TESTBENCH]: Max Times is  "<<max_sim_time<<std::endl;
   }
 
+  arg_boot_sel = getCmdOption(argc, argv, "+boot_sel=");
+  boot_sel     = 0;
+  if(arg_boot_sel.empty()){
+    std::cout<<"[TESTBENCH]: No Boot Option specified, using jtag"<<std::endl;
+    boot_sel = 0;
+  } else {
+    if(arg_boot_sel.compare("flash") == 0) {
+      boot_sel = 1;
+      std::cout<<"[TESTBENCH]: Booting from flash"<<std::endl;
+    } else if(arg_boot_sel.compare("jtag") == 0) {
+      boot_sel = 0;
+      std::cout<<"[TESTBENCH]: Booting from jtag"<<std::endl;
+    } else {
+      std::cout<<"[TESTBENCH]: Wrong Boot Option specified (jtag, flash) - using jtag"<<std::endl;
+      boot_sel = 0;
+    }
+  }
+
   svSetScope(svGetScopeFromName("TOP.testharness"));
   svScope scope = svGetScope();
   if (!scope) {
@@ -102,6 +119,7 @@ int main (int argc, char * argv[])
   dut->jtag_trst_ni   = 0;
   dut->jtag_tdi_i     = 0;
   dut->fetch_enable_i = 1;
+  dut->boot_select_i  = boot_sel;
 
   dut->eval();
   m_trace->dump(sim_time);
@@ -114,9 +132,11 @@ int main (int argc, char * argv[])
   runCycles(1, dut, m_trace);
   std::cout<<"Reset Released"<< std::endl;
 
-  if(use_openocd==false) {
+  //dont need to exit from boot loop if using OpenOCD or Boot from Flash
+  if(use_openocd==false || boot_sel == 1) {
     dut->tb_loadHEX(firmware.c_str());
-
+    runCycles(1, dut, m_trace);
+    dut->tb_set_exit_loop();
     runCycles(1, dut, m_trace);
     std::cout<<"Memory Loaded"<< std::endl;
   } else {

@@ -2,7 +2,7 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-module always_on_periph_subsystem
+module ao_peripheral_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
 (
@@ -13,6 +13,8 @@ module always_on_periph_subsystem
     output obi_resp_t slave_resp_o,
 
     //SOC CTRL
+    input  logic        boot_select_i,
+    output logic        use_spimemio_o,
     output logic        exit_valid_o,
     output logic [31:0] exit_value_o,
 
@@ -95,6 +97,8 @@ module always_on_periph_subsystem
       .rst_ni,
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
+      .boot_select_i,
+      .use_spimemio_o,
       .exit_valid_o,
       .exit_value_o
   );
@@ -114,4 +118,4 @@ module always_on_periph_subsystem
       .intr_timer_expired_0_0_o(rv_timer_irq_timer_o)
   );
 
-endmodule : always_on_periph_subsystem
+endmodule : ao_peripheral_subsystem

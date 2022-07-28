@@ -47,6 +47,20 @@ filesets:
     depend:
     - pulp-platform.org::pulpissimo_remote_bitbang
 
+  cypress_flash:
+    depend:
+    - ::spiflash:0
+
+  tb-sv:
+    files:
+    - tb/tb_top.sv
+    file_type: systemVerilogSource
+
+  tb-verilator:
+    files:
+    - tb/tb_top.cpp
+    file_type: cppSource
+
 targets:
   default: &default_target
     filesets:
@@ -59,6 +73,8 @@ targets:
     - tool_verilator? (remote_bitbang_dpi)
     - tool_modelsim? (systemverilog_only_simjtag)
     - tool_vcs? (systemverilog_only_simjtag)
+    - tool_modelsim? (cypress_flash)
+    - tool_vcs? (cypress_flash)
     toplevel:
     - tool_modelsim? (tb_top)
     - tool_vcs? (tb_top)
