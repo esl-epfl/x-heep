@@ -108,7 +108,7 @@ package core_v_mini_mcu_pkg;
   };
 
   //slave encoder
-  localparam SYSTEM_NPERIPHERALS = 9;
+  localparam SYSTEM_NPERIPHERALS = 10;
 
   localparam logic [31:0] EXT_PERIPH_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0000000;
   localparam logic [31:0] EXT_PERIPH_SIZE = 32'h0010000;
@@ -155,6 +155,10 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] BOOTROM_END_ADDRESS = BOOTROM_START_ADDRESS + BOOTROM_SIZE;
   localparam logic [31:0] BOOTROM_IDX = 32'd8;
 
+  localparam logic [31:0] DMA_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h0080000;
+  localparam logic [31:0] DMA_SIZE = 32'h0010000;
+  localparam logic [31:0] DMA_END_ADDRESS = DMA_START_ADDRESS + DMA_SIZE;
+  localparam logic [31:0] DMA_IDX = 32'd9;
 
   localparam addr_map_rule_t [SYSTEM_NPERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
       '{
@@ -173,7 +177,8 @@ package core_v_mini_mcu_pkg;
           start_addr: SPI_MEMIO_START_ADDRESS,
           end_addr: SPI_MEMIO_END_ADDRESS
       },
-      '{idx: BOOTROM_IDX, start_addr: BOOTROM_START_ADDRESS, end_addr: BOOTROM_END_ADDRESS}
+      '{idx: BOOTROM_IDX, start_addr: BOOTROM_START_ADDRESS, end_addr: BOOTROM_END_ADDRESS},
+      '{idx: DMA_IDX, start_addr: DMA_START_ADDRESS, end_addr: DMA_END_ADDRESS}
   };
 
   localparam int unsigned PERIPHERALS_PORT_SEL_WIDTH = SYSTEM_NPERIPHERALS > 1 ? $clog2(
