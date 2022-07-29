@@ -92,8 +92,8 @@ int main(int argc, char *argv[])
     dma_set_read_ptr(&dma, (uint32_t) original_data);
     dma_set_write_ptr(&dma, (uint32_t) copied_data);
     printf("DMA launched...");
-    // Give number of bytes to transfer
-    dma_set_cnt_start(&dma, (uint32_t) (COPY_SIZE*4));
+    // Give number of words to transfer
+    dma_set_cnt_start(&dma, (uint32_t) COPY_SIZE);
     // Wait copy is done
     while(dma_intr_flag==0) {
         wait_for_interrupt();
