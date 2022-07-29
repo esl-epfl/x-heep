@@ -144,7 +144,7 @@ module dma #(
       if (dma_start == 1'b1) begin
         dma_cnt <= reg2hw.dma_start.q;
       end else if (data_in_gnt == 1'b1) begin
-        dma_cnt <= dma_cnt - 32'h1;
+        dma_cnt <= dma_cnt - 32'h4;
       end
     end
   end

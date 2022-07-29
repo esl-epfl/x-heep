@@ -10,19 +10,19 @@
   regwidth: "32",
   registers: [
     { name:     "PTR_IN",
-      desc:     "Input data pointer",
+      desc:     "Input data pointer (word aligned)",
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "PTR_IN", desc: "Input data pointer" }
+        { bits: "31:0", name: "PTR_IN", desc: "Input data pointer (word aligned)" }
       ]
     },
     { name:     "PTR_OUT",
-      desc:     "Output data pointer",
+      desc:     "Output data pointer (word aligned)",
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "PTR_OUT", desc: "Output data pointer" }
+        { bits: "31:0", name: "PTR_OUT", desc: "Output data pointer (word aligned)" }
       ]
     },
     { name:     "DMA_START",
