@@ -1,0 +1,46 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{ name: "dma",
+  clock_primary: "clk_i",
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ],
+  regwidth: "32",
+  registers: [
+    { name:     "PTR_IN",
+      desc:     "Input data pointer (word aligned)",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "PTR_IN", desc: "Input data pointer (word aligned)" }
+      ]
+    },
+    { name:     "PTR_OUT",
+      desc:     "Output data pointer (word aligned)",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "PTR_OUT", desc: "Output data pointer (word aligned)" }
+      ]
+    },
+    { name:     "DMA_START",
+      desc:     "Number of words (4 bytes) to copy - Once a value is written, the copy starts",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0", name: "DMA_START", desc: "DMA counter and start" }
+      ]
+    },
+    { name:     "DONE",
+      desc:     "Register set to 1 when copy is done",
+      swaccess: "ro",
+      hwaccess: "hrw",
+      resval:   1,
+      fields: [
+        { bits: "31:0", name: "DONE", desc: "Copy done" }
+      ]
+    }
+   ]
+}

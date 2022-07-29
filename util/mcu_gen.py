@@ -136,6 +136,9 @@ def main():
 
     bootrom_start_offset  = string2int(obj['peripherals']['bootrom']['offset'])
     bootrom_size_address  = string2int(obj['peripherals']['bootrom']['length'])
+    
+    dma_start_offset  = string2int(obj['peripherals']['dma']['offset'])
+    dma_size_address  = string2int(obj['peripherals']['dma']['length'])
 
     null_intr = obj['interrupts']['null_intr']
     uart_intr_tx_watermark = obj['interrupts']['uart_intr_tx_watermark']
@@ -178,6 +181,7 @@ def main():
     gpio_intr_29 = obj['interrupts']['gpio_intr_29']
     gpio_intr_30 = obj['interrupts']['gpio_intr_30']
     gpio_intr_31 = obj['interrupts']['gpio_intr_31']
+    dma_intr_done = obj['interrupts']['dma_intr_done']
     memcopy_intr_done = obj['interrupts']['memcopy_intr_done']
 
     kwargs = {
@@ -209,6 +213,8 @@ def main():
         "spi_memio_size_address"   : spi_memio_size_address,
         "bootrom_start_offset"     : bootrom_start_offset,
         "bootrom_size_address"     : bootrom_size_address,
+        "dma_start_offset"         : dma_start_offset,
+        "dma_size_address"         : dma_size_address,
         "null_intr"                : null_intr,
         "uart_intr_tx_watermark"   : uart_intr_tx_watermark,
         "uart_intr_rx_watermark"   : uart_intr_rx_watermark,
@@ -250,6 +256,7 @@ def main():
         "gpio_intr_29"             : gpio_intr_29,
         "gpio_intr_30"             : gpio_intr_30,
         "gpio_intr_31"             : gpio_intr_31,
+        "dma_intr_done"            : dma_intr_done,
         "memcopy_intr_done"        : memcopy_intr_done,
     }
 

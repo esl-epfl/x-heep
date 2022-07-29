@@ -171,8 +171,8 @@ module rv_plic import rv_plic_reg_pkg::*; #(
   assign claim_re[0]    = reg2hw.cc0.re;
   assign claim_id[0]    = irq_id_o[0];
   assign complete_we[0] = reg2hw.cc0.qe;
-  assign complete_id[0] = reg2hw.cc0.q[5:0];
-  assign hw2reg.cc0.d[5:0]   = cc_id[0];
+  assign complete_id[0] = reg2hw.cc0.q;
+  assign hw2reg.cc0.d   = cc_id[0];
 
   ///////////////////
   // MSIP register //

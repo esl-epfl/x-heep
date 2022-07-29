@@ -61,6 +61,10 @@ extern "C" {
 #define BOOTROM_SIZE 0x${bootrom_size_address}
 #define BOOTROM_END_ADDRESS (BOOTROM_START_ADDRESS + BOOTROM_SIZE)
 
+#define DMA_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${dma_start_offset})
+#define DMA_SIZE 0x${dma_size_address}
+#define DMA_END_ADDRESS (DMA_START_ADDRESS + DMA_SIZE)
+
 #define NULL_INTR ${null_intr}
 #define UART_INTR_TX_WATERMARK ${uart_intr_tx_watermark}
 #define UART_INTR_RX_WATERMARK ${uart_intr_rx_watermark}
@@ -102,8 +106,8 @@ extern "C" {
 #define GPIO_INTR_29 ${gpio_intr_29}
 #define GPIO_INTR_30 ${gpio_intr_30}
 #define GPIO_INTR_31 ${gpio_intr_31}
+#define DMA_INTR_DONE ${dma_intr_done}
 #define MEMCOPY_INTR_DONE ${memcopy_intr_done}
-
 
 #ifdef __cplusplus
 }  // extern "C"

@@ -11,11 +11,11 @@
 #include "core_v_mini_mcu.h"
 #include "rv_plic.h"
 #include "rv_plic_regs.h"
-#include "memcopy_periph.h"
+#include "dma.h"
 
 #define COPY_SIZE 10
 
-int8_t external_intr_flag;
+int8_t dma_intr_flag;
 
 // Interrupt controller variables
 dif_plic_params_t rv_plic_params;
@@ -26,14 +26,14 @@ dif_plic_irq_id_t intr_num;
 void handler_irq_external(void) {
     // Claim/clear interrupt
     plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
-    if (plic_res == kDifPlicOk && intr_num == MEMCOPY_INTR_DONE) {
-        external_intr_flag = 1;
+    if (plic_res == kDifPlicOk && intr_num == DMA_INTR_DONE) {
+        dma_intr_flag = 1;
     }
 }
 
 int main(int argc, char *argv[])
 {
-    printf("--- MEMCOPY EXAMPLE - external peripheral ---\n");
+    printf("--- DMA EXAMPLE ---\n");
 
     printf("Init the PLIC...");
     rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)PLIC_START_ADDRESS);
@@ -45,21 +45,21 @@ int main(int argc, char *argv[])
         printf("fail\n;");
     }
 
-    printf("Set MEMCOPY interrupt priority to 1...");
-    // Set memcopy priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
-    plic_res = dif_plic_irq_set_priority(&rv_plic, MEMCOPY_INTR_DONE, 1);
+    printf("Set DMA interrupt priority to 1...");
+    // Set dma priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
+    plic_res = dif_plic_irq_set_priority(&rv_plic, DMA_INTR_DONE, 1);
     if (plic_res == kDifPlicOk) {
         printf("success\n");
     } else {
         printf("fail\n;");
     }
 
-    printf("Enable MEMCOPY interrupt...");
-    plic_res = dif_plic_irq_set_enabled(&rv_plic, MEMCOPY_INTR_DONE, 0, kDifPlicToggleEnabled);
+    printf("Enable DMA interrupt...");
+    plic_res = dif_plic_irq_set_enabled(&rv_plic, DMA_INTR_DONE, 0, kDifPlicToggleEnabled);
     if (plic_res == kDifPlicOk) {
-        printf("Success\n");
+        printf("success\n");
     } else {
-        printf("Fail\n;");
+        printf("fail\n;");
     }
 
     // Enable interrupt on processor side
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     // Set mie.MEIE bit to one to enable machine-level external interrupts
     const uint32_t mask = 1 << 11;//IRQ_EXT_ENABLE_OFFSET;
     CSR_SET_BITS(CSR_REG_MIE, mask);
-    external_intr_flag = 0;
+    dma_intr_flag = 0;
 
     // Use the stack
     int32_t original_data[COPY_SIZE];
@@ -85,23 +85,24 @@ int main(int argc, char *argv[])
         *src_ptr++ = i;
     }
 
-    // memcopy peripheral structure to access the registers
-    memcopy_periph_t memcopy_periph;
-    memcopy_periph.base_addr = mmio_region_from_addr((uintptr_t)EXT_PERIPHERAL_START_ADDRESS);
+    // dma peripheral structure to access the registers
+    dma_t dma;
+    dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
 
-    memcopy_periph_set_read_ptr(&memcopy_periph, (uint32_t) original_data);
-    memcopy_periph_set_write_ptr(&memcopy_periph, (uint32_t) copied_data);
-    printf("Memcopy launched...");
-    memcopy_periph_set_cnt_start(&memcopy_periph, (uint32_t) COPY_SIZE);
+    dma_set_read_ptr(&dma, (uint32_t) original_data);
+    dma_set_write_ptr(&dma, (uint32_t) copied_data);
+    printf("DMA launched...");
+    // Give number of words to transfer
+    dma_set_cnt_start(&dma, (uint32_t) COPY_SIZE);
     // Wait copy is done
-    while(external_intr_flag==0) {
+    while(dma_intr_flag==0) {
         wait_for_interrupt();
     }
     printf("finished\n");
 
     printf("Complete interrupt...");
     plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-    if (plic_res == kDifPlicOk && intr_num == MEMCOPY_INTR_DONE) {
+    if (plic_res == kDifPlicOk && intr_num == DMA_INTR_DONE) {
         printf("success\n");
     } else {
         printf("fail\n;");
@@ -122,9 +123,9 @@ int main(int argc, char *argv[])
     }
 
     if (errors == 0) {
-        printf("MEMCOPY SUCCESS\n");
+        printf("DMA TRANSFER SUCCESS\n");
     } else {
-        printf("MEMCOPY FAILURE: %d errors out of %d words copied\n", errors, COPY_SIZE);
+        printf("DMA TRANSFER FAILURE: %d errors out of %d words copied\n", errors, COPY_SIZE);
     }
 
     return EXIT_SUCCESS;
