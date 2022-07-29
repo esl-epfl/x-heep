@@ -26,7 +26,7 @@ module tb_top #(
   logic               rst_n = 'b0;
 
   // Boot selection (0:jtag or 1:flash)
-  int boot_sel;
+  int                 boot_sel;
 
   // cycle counter
   int unsigned        cycle_cnt_q;
@@ -90,10 +90,8 @@ module tb_top #(
 
     if (JTAG_DPI == 0 || boot_sel == 1) begin
       testharness_i.tb_loadHEX(firmware);
-      #CLK_PHASE_HI
-      testharness_i.tb_set_exit_loop();
-      #CLK_PHASE_LO
-        if ($test$plusargs("verbose")) $display("[TESTBENCH] %t: memory loaded", $time);
+      #CLK_PHASE_HI testharness_i.tb_set_exit_loop();
+      #CLK_PHASE_LO if ($test$plusargs("verbose")) $display("[TESTBENCH] %t: memory loaded", $time);
     end else begin
       if ($test$plusargs("verbose")) $display("[TESTBENCH] %t: waiting for GDB...", $time);
     end
