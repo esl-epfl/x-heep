@@ -6,8 +6,7 @@ module tb_top #(
     parameter PULP_XPULP = 0,
     parameter FPU        = 0,
     parameter PULP_ZFINX = 0,
-    parameter JTAG_DPI   = 0,
-    parameter BOOT_SEL   = 0
+    parameter JTAG_DPI   = 0
 );
 
   // comment to record execution trace
@@ -26,6 +25,9 @@ module tb_top #(
   logic               clk = 'b1;
   logic               rst_n = 'b0;
 
+  // Boot selection (0:jtag or 1:flash)
+  int                 boot_sel;
+
   // cycle counter
   int unsigned        cycle_cnt_q;
 
@@ -41,8 +43,6 @@ module tb_top #(
   logic               jtag_tdi;
   logic               jtag_tdo;
 
-  logic               boot_select;
-
   // make the core start fetching instruction immediately
   assign fetch_enable = '1;
 
@@ -57,18 +57,43 @@ module tb_top #(
   // we either load the provided firmware or execute a small test program that
   // doesn't do more than an infinite loop with some I/O
   initial begin : load_prog
-    automatic string firmware;
+    automatic string firmware, arg_boot_sel;
 
     if ($value$plusargs("firmware=%s", firmware)) begin
-
-      wait (rst_n == 1'b1);
-
-      if ($test$plusargs("verbose"))
-        $display("[TESTBENCH] %t: loading firmware %0s ...", $time, firmware);
-      testharness_i.tb_loadHEX(firmware);
+      $display("[TESTBENCH]: loading firmware %0s", firmware);
     end else begin
-      $display("No firmware specified");
-      $finish;
+      $display("[TESTBENCH]: no firmware specified");
+      if (JTAG_DPI == 0) begin
+        $finish;
+      end
+    end
+
+    boot_sel = 0;
+    if ($test$plusargs("boot_sel")) begin
+      $value$plusargs("boot_sel=%s", arg_boot_sel);
+      if (arg_boot_sel == "flash") begin
+        $display("[TESTBENCH]: Booting from flash");
+        boot_sel = 1;
+      end else if (arg_boot_sel == "jtag") begin
+        $display("[TESTBENCH]: Booting from jtag");
+        boot_sel = 0;
+      end else begin
+        $display("[TESTBENCH]: Wrong Boot Option specified (jtag, flash) - using jtag");
+        boot_sel = 0;
+      end
+    end else begin
+      $display("[TESTBENCH]: No Boot Option specified, using jtag");
+      boot_sel = 0;
+    end
+
+    wait (rst_n == 1'b1);
+
+    if (JTAG_DPI == 0 || boot_sel == 1) begin
+      testharness_i.tb_loadHEX(firmware);
+      #CLK_PHASE_HI testharness_i.tb_set_exit_loop();
+      #CLK_PHASE_LO if ($test$plusargs("verbose")) $display("[TESTBENCH] %t: memory loaded", $time);
+    end else begin
+      if ($test$plusargs("verbose")) $display("[TESTBENCH] %t: waiting for GDB...", $time);
     end
   end
 
@@ -126,8 +151,6 @@ module tb_top #(
   end
 
   // wrapper for riscv, the memory system and stdout peripheral
-
-  assign boot_select = (BOOT_SEL == 1) ? 1'b1 : 1'b0;
   testharness #(
       .PULP_XPULP(PULP_XPULP),
       .FPU       (FPU),
@@ -136,7 +159,7 @@ module tb_top #(
   ) testharness_i (
       .clk_i         (clk),
       .rst_ni        (rst_n),
-      .boot_select_i (boot_select),
+      .boot_select_i (boot_sel),
       .fetch_enable_i(fetch_enable),
       .exit_valid_o  (exit_valid),
       .exit_value_o  (exit_value),

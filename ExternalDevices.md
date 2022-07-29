@@ -33,7 +33,7 @@ By default, the external device example RTL code is disabled. Run fusesoc with t
 For example, compile for Verilator with:
 
 ```
-fusesoc --cores-root . run --no-export --target=sim --tool=verilator --flag=use_external_device_example --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+make verilator-sim FUSESOC_FLAGS="--flag=use_external_device_example"
 ```
 
 then, go to your target system built folder
