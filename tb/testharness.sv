@@ -6,11 +6,12 @@ module testharness #(
     parameter PULP_XPULP = 0,
     parameter FPU        = 0,
     parameter PULP_ZFINX = 0,
-    parameter JTAG_DPI   = 0,
-    parameter BOOT_SEL   = 0
+    parameter JTAG_DPI   = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
+
+    input logic boot_select_i,
 
     input  logic        jtag_tck_i,
     input  logic        jtag_tms_i,
@@ -43,8 +44,6 @@ module testharness #(
   wire [1:0] spi_csb;
   wire spi_sck;
 
-  logic boot_select = (BOOT_SEL == 1) ? 1'b1 : 1'b0;
-
   // External xbar master/slave and peripheral ports
   obi_req_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_req;
   obi_resp_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_resp;
@@ -74,7 +73,7 @@ module testharness #(
       .clk_i,
       .rst_ni,
 
-      .boot_select_i(boot_select),
+      .boot_select_i,
 
       .jtag_tck_i  (sim_jtag_tck),
       .jtag_tms_i  (sim_jtag_tms),
