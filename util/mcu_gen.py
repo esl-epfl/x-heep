@@ -98,47 +98,47 @@ def main():
 
     debug_size_address = string2int(obj['debug']['length'])
 
-    on_off_periph_start_address = string2int(obj['on_off_peripherals']['address'])
-    if int(on_off_periph_start_address, 16) < int('10000', 16):
-        exit("on off periph start address must be greater than 0x10000")
+    ao_peripheral_start_address = string2int(obj['ao_peripherals']['address'])
+    if int(ao_peripheral_start_address, 16) < int('10000', 16):
+        exit("always on peripheral start address must be greater than 0x10000")
 
-    on_off_periph_size_address = string2int(obj['on_off_peripherals']['length'])
+    ao_peripheral_size_address = string2int(obj['ao_peripherals']['length'])
 
-    uart_start_offset  = string2int(obj['on_off_peripherals']['uart']['offset'])
-    uart_size_address  = string2int(obj['on_off_peripherals']['uart']['length'])
+    soc_ctrl_start_offset  = string2int(obj['ao_peripherals']['soc_ctrl']['offset'])
+    soc_ctrl_size_address  = string2int(obj['ao_peripherals']['soc_ctrl']['length'])
 
-    ext_periph_start_offset  = string2int(obj['on_off_peripherals']['ext_periph']['offset'])
-    ext_periph_size_address  = string2int(obj['on_off_peripherals']['ext_periph']['length'])
+    bootrom_start_offset  = string2int(obj['ao_peripherals']['bootrom']['offset'])
+    bootrom_size_address  = string2int(obj['ao_peripherals']['bootrom']['length'])
 
-    plic_start_offset  = string2int(obj['on_off_peripherals']['plic']['offset'])
-    plic_size_address  = string2int(obj['on_off_peripherals']['plic']['length'])
+    spi_host_start_offset  = string2int(obj['ao_peripherals']['spi_host']['offset'])
+    spi_host_size_address  = string2int(obj['ao_peripherals']['spi_host']['length'])
 
-    spi_host_start_offset  = string2int(obj['on_off_peripherals']['spi_host']['offset'])
-    spi_host_size_address  = string2int(obj['on_off_peripherals']['spi_host']['length'])
+    spi_memio_start_offset  = string2int(obj['ao_peripherals']['spi_memio']['offset'])
+    spi_memio_size_address  = string2int(obj['ao_peripherals']['spi_memio']['length'])
 
-    spi_memio_start_offset  = string2int(obj['on_off_peripherals']['spi_memio']['offset'])
-    spi_memio_size_address  = string2int(obj['on_off_peripherals']['spi_memio']['length'])
+    power_manager_start_offset  = string2int(obj['ao_peripherals']['power_manager']['offset'])
+    power_manager_size_address  = string2int(obj['ao_peripherals']['power_manager']['length'])
 
-    bootrom_start_offset  = string2int(obj['on_off_peripherals']['bootrom']['offset'])
-    bootrom_size_address  = string2int(obj['on_off_peripherals']['bootrom']['length'])
+    rv_timer_start_offset  = string2int(obj['ao_peripherals']['rv_timer']['offset'])
+    rv_timer_size_address  = string2int(obj['ao_peripherals']['rv_timer']['length'])
 
-    gpio_start_offset  = string2int(obj['on_off_peripherals']['gpio']['offset'])
-    gpio_size_address  = string2int(obj['on_off_peripherals']['gpio']['length'])
+    peripheral_start_address = string2int(obj['peripherals']['address'])
+    if int(peripheral_start_address, 16) < int('10000', 16):
+        exit("peripheral start address must be greater than 0x10000")
 
-    always_on_periph_start_address = string2int(obj['always_on_peripherals']['address'])
-    if int(always_on_periph_start_address, 16) < int('10000', 16):
-        exit("always on periph start address must be greater than 0x10000")
+    peripheral_size_address = string2int(obj['peripherals']['length'])
 
-    always_on_periph_size_address = string2int(obj['always_on_peripherals']['length'])
+    plic_start_offset  = string2int(obj['peripherals']['plic']['offset'])
+    plic_size_address  = string2int(obj['peripherals']['plic']['length'])
 
-    soc_ctrl_start_offset  = string2int(obj['always_on_peripherals']['soc_ctrl']['offset'])
-    soc_ctrl_size_address  = string2int(obj['always_on_peripherals']['soc_ctrl']['length'])
+    uart_start_offset  = string2int(obj['peripherals']['uart']['offset'])
+    uart_size_address  = string2int(obj['peripherals']['uart']['length'])
 
-    rv_timer_start_offset  = string2int(obj['always_on_peripherals']['rv_timer']['offset'])
-    rv_timer_size_address  = string2int(obj['always_on_peripherals']['rv_timer']['length'])
+    gpio_start_offset  = string2int(obj['peripherals']['gpio']['offset'])
+    gpio_size_address  = string2int(obj['peripherals']['gpio']['length'])
 
-    power_manager_start_offset  = string2int(obj['always_on_peripherals']['power_manager']['offset'])
-    power_manager_size_address  = string2int(obj['always_on_peripherals']['power_manager']['length'])
+    ext_periph_start_offset  = string2int(obj['peripherals']['ext_periph']['offset'])
+    ext_periph_size_address  = string2int(obj['peripherals']['ext_periph']['length'])
 
     ext_slave_start_address = string2int(obj['ext_slaves']['address'])
     ext_slave_size_address = string2int(obj['ext_slaves']['length'])
@@ -194,30 +194,30 @@ def main():
         "bus_type"                       : bus_type,
         "debug_start_address"            : debug_start_address,
         "debug_size_address"             : debug_size_address,
-        "on_off_periph_start_address"    : on_off_periph_start_address,
-        "on_off_periph_size_address"     : on_off_periph_size_address,
-        "uart_start_offset"              : uart_start_offset,
-        "uart_size_address"              : uart_size_address,
-        "ext_periph_start_offset"        : ext_periph_start_offset,
-        "ext_periph_size_address"        : ext_periph_size_address,
-        "plic_start_offset"              : plic_start_offset,
-        "plic_size_address"              : plic_size_address,
+        "ao_peripheral_start_address"    : ao_peripheral_start_address,
+        "ao_peripheral_size_address"     : ao_peripheral_size_address,
+        "soc_ctrl_start_offset"          : soc_ctrl_start_offset,
+        "soc_ctrl_size_address"          : soc_ctrl_size_address,
+        "bootrom_start_offset"           : bootrom_start_offset,
+        "bootrom_size_address"           : bootrom_size_address,
         "spi_host_start_offset"          : spi_host_start_offset,
         "spi_host_size_address"          : spi_host_size_address,
         "spi_memio_start_offset"         : spi_memio_start_offset,
         "spi_memio_size_address"         : spi_memio_size_address,
-        "bootrom_start_offset"           : bootrom_start_offset,
-        "bootrom_size_address"           : bootrom_size_address,
-        "gpio_start_offset"              : gpio_start_offset,
-        "gpio_size_address"              : gpio_size_address,
-        "always_on_periph_start_address" : always_on_periph_start_address,
-        "always_on_periph_size_address"  : always_on_periph_size_address,
-        "soc_ctrl_start_offset"          : soc_ctrl_start_offset,
-        "soc_ctrl_size_address"          : soc_ctrl_size_address,
-        "rv_timer_start_offset"          : rv_timer_start_offset,
-        "rv_timer_size_address"          : rv_timer_size_address,
         "power_manager_start_offset"     : power_manager_start_offset,
         "power_manager_size_address"     : power_manager_size_address,
+        "rv_timer_start_offset"          : rv_timer_start_offset,
+        "rv_timer_size_address"          : rv_timer_size_address,
+        "peripheral_start_address"       : peripheral_start_address,
+        "peripheral_size_address"        : peripheral_size_address,
+        "plic_start_offset"              : plic_start_offset,
+        "plic_size_address"              : plic_size_address,
+        "uart_start_offset"              : uart_start_offset,
+        "uart_size_address"              : uart_size_address,
+        "gpio_start_offset"              : gpio_start_offset,
+        "gpio_size_address"              : gpio_size_address,
+        "ext_periph_start_offset"        : ext_periph_start_offset,
+        "ext_periph_size_address"        : ext_periph_size_address,
         "ext_slave_start_address"        : ext_slave_start_address,
         "ext_slave_size_address"         : ext_slave_size_address,
         "spi_flash_start_address"        : spi_flash_start_address,

@@ -11,70 +11,68 @@
 
     debug: {
         address: 0x10000000,
-        length:  0x100000,
+        length:  0x00100000,
     },
 
-    // peripherals
-    on_off_peripherals: {
+    ao_peripherals: {
         address: 0x20000000,
-        length:  0x100000,
-        uart: {
-            offset:  0x0000000,
-            length:  0x0010000,
-        },
-        ext_periph: {
-            offset:  0x0010000,
-            length:  0x0010000,
-        },
-        plic: {
-            offset:  0x0020000,
-            length:  0x0010000,
-        },
-        spi_host: {
-            offset:  0x0030000,
-            length:  0x0008000,
-        },
-        spi_memio: {
-            offset:  0x0038000,
-            length:  0x0008000,
+        length:  0x00100000,
+        soc_ctrl: {
+            offset:  0x00000000,
+            length:  0x00010000,
         },
         bootrom: {
-            offset:  0x0040000,
-            length:  0x0010000,
+            offset:  0x00010000,
+            length:  0x00010000,
         },
-        gpio: {
-            offset:  0x0050000,
-            length:  0x0010000,
-        }
-    },
-
-    always_on_peripherals: {
-        address: 0x30000000,
-        length:  0x100000,
-        soc_ctrl: {
-            offset:  0x0000000,
-            length:  0x0010000,
+        spi_host: {
+            offset:  0x00020000,
+            length:  0x00008000,
         },
-        rv_timer: {
-            offset:  0x0010000,
-            length:  0x0010000,
+        spi_memio: {
+            offset:  0x00028000,
+            length:  0x00008000,
         },
         power_manager: {
-            offset:  0x0020000,
-            length:  0x0010000,
-        }
+            offset:  0x00030000,
+            length:  0x00010000,
+        },
+        rv_timer: {
+            offset:  0x00040000,
+            length:  0x00010000,
+        },
+    },
+
+    peripherals: {
+        address: 0x30000000,
+        length:  0x00100000,
+        plic: {
+            offset:  0x00000000,
+            length:  0x00010000,
+        },
+        uart: {
+            offset:  0x00010000,
+            length:  0x00010000,
+        },
+        gpio: {
+            offset:  0x00020000,
+            length:  0x00010000,
+        },
+        ext_periph: {
+            offset:  0x00030000,
+            length:  0x00010000,
+        },
     },
 
     ext_slaves: {
         address: 0x40000000,
-        length:  0x1000000,
+        length:  0x01000000,
     },
 
     spi_flash: {
         address: 0xF0000000,
-        length:  0x1000000,
+        length:  0x01000000,
     },
-
 
     interrupts: {
         // always zero

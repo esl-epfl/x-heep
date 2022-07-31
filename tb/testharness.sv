@@ -65,46 +65,37 @@ module testharness #(
   assign intr_vector_ext[0] = memcopy_intr;
 
   core_v_mini_mcu #(
-      .PULP_XPULP      (PULP_XPULP),
-      .FPU             (FPU),
-      .PULP_ZFINX      (PULP_ZFINX),
+      .PULP_XPULP(PULP_XPULP),
+      .FPU(FPU),
+      .PULP_ZFINX(PULP_ZFINX),
       .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER),
-      .EXT_NINTERRUPT  (testharness_pkg::EXT_NINTERRUPT)
+      .EXT_NINTERRUPT(testharness_pkg::EXT_NINTERRUPT)
   ) core_v_mini_mcu_i (
       .clk_i,
       .rst_ni,
-
-      .boot_select_i,
-
-      .jtag_tck_i  (sim_jtag_tck),
-      .jtag_tms_i  (sim_jtag_tms),
+      .jtag_tck_i(sim_jtag_tck),
+      .jtag_tms_i(sim_jtag_tms),
       .jtag_trst_ni(sim_jtag_trstn),
-      .jtag_tdi_i  (sim_jtag_tdi),
-      .jtag_tdo_o  (sim_jtag_tdo),
-
+      .jtag_tdi_i(sim_jtag_tdi),
+      .jtag_tdo_o(sim_jtag_tdo),
       .ext_xbar_master_req_i(master_req),
       .ext_xbar_master_resp_o(master_resp),
       .ext_xbar_slave_req_o(slave_req),
       .ext_xbar_slave_resp_i(slave_resp),
-      .ext_peripheral_slave_req_o(periph_slave_req),
-      .ext_peripheral_slave_resp_i(periph_slave_resp),
-
-      .uart_rx_i(uart_rx),
-      .uart_tx_o(uart_tx),
-
-      .intr_vector_ext_i(intr_vector_ext),
-
-      .gpio_io(gpio),
-
       .fetch_enable_i,
+      .boot_select_i,
       .exit_value_o,
       .exit_valid_o,
-
       .spi_sd_io(spi_sd_io),
       .spi_csb_o(spi_csb),
       .spi_sck_o(spi_sck),
-
-      .power_gate_core_o(power_gate_core)
+      .power_gate_core_o(power_gate_core),
+      .intr_vector_ext_i(intr_vector_ext),
+      .uart_rx_i(uart_rx),
+      .uart_tx_o(uart_tx),
+      .gpio_io(gpio),
+      .ext_peripheral_slave_req_o(periph_slave_req),
+      .ext_peripheral_slave_resp_i(periph_slave_resp)
   );
 
   uartdpi #(
@@ -124,17 +115,17 @@ module testharness #(
       .TICK_DELAY(1),
       .PORT      (4567)
   ) i_sim_jtag (
-      .clock          (clk_i),
-      .reset          (~rst_ni),
-      .enable         (sim_jtag_enable),
-      .init_done      (rst_ni),
-      .jtag_TCK       (sim_jtag_tck),
-      .jtag_TMS       (sim_jtag_tms),
-      .jtag_TDI       (sim_jtag_tdi),
-      .jtag_TRSTn     (sim_jtag_trstn),
-      .jtag_TDO_data  (sim_jtag_tdo),
+      .clock(clk_i),
+      .reset(~rst_ni),
+      .enable(sim_jtag_enable),
+      .init_done(rst_ni),
+      .jtag_TCK(sim_jtag_tck),
+      .jtag_TMS(sim_jtag_tms),
+      .jtag_TDI(sim_jtag_tdi),
+      .jtag_TRSTn(sim_jtag_trstn),
+      .jtag_TDO_data(sim_jtag_tdo),
       .jtag_TDO_driven(1'b1),
-      .exit           ()
+      .exit()
   );
 
   assign slow_ram_slave_req = slave_req;
@@ -149,13 +140,13 @@ module testharness #(
       .NumWords (128),
       .DataWidth(32'd32)
   ) slow_ram_i (
-      .clk_i  (clk_i),
-      .rst_ni (rst_ni),
-      .req_i  (slow_ram_slave_req.req),
-      .we_i   (slow_ram_slave_req.we),
-      .addr_i (slow_ram_slave_req.addr[8:2]),
+      .clk_i(clk_i),
+      .rst_ni(rst_ni),
+      .req_i(slow_ram_slave_req.req),
+      .we_i(slow_ram_slave_req.we),
+      .addr_i(slow_ram_slave_req.addr[8:2]),
       .wdata_i(slow_ram_slave_req.wdata),
-      .be_i   (slow_ram_slave_req.be),
+      .be_i(slow_ram_slave_req.be),
       // output ports
       .gnt_o(slow_ram_slave_resp.gnt),
       .rdata_o(slow_ram_slave_resp.rdata),

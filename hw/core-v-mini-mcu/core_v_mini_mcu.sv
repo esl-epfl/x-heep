@@ -15,31 +15,19 @@ module core_v_mini_mcu
     input logic clk_i,
     input logic rst_ni,
 
-    input logic boot_select_i,
-
     input  logic jtag_tck_i,
     input  logic jtag_tms_i,
     input  logic jtag_trst_ni,
     input  logic jtag_tdi_i,
     output logic jtag_tdo_o,
 
-    input  obi_req_t  [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
+    input obi_req_t [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
-
-    output obi_req_t  ext_xbar_slave_req_o,
-    input  obi_resp_t ext_xbar_slave_resp_i,
-
-    output reg_req_t ext_peripheral_slave_req_o,
-    input  reg_rsp_t ext_peripheral_slave_resp_i,
-
-    input  logic uart_rx_i,
-    output logic uart_tx_o,
-
-    input logic [EXT_NINTERRUPT-1:0] intr_vector_ext_i,
-
-    inout logic [31:0] gpio_io,
+    output obi_req_t ext_xbar_slave_req_o,
+    input obi_resp_t ext_xbar_slave_resp_i,
 
     input  logic        fetch_enable_i,
+    input  logic        boot_select_i,
     output logic [31:0] exit_value_o,
     output logic        exit_valid_o,
 
@@ -47,7 +35,17 @@ module core_v_mini_mcu
     inout logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_o,
     inout logic spi_sck_o,
 
-    output logic power_gate_core_o
+    output logic power_gate_core_o,
+
+    input logic [EXT_NINTERRUPT-1:0] intr_vector_ext_i,
+
+    input  logic uart_rx_i,
+    output logic uart_tx_o,
+
+    inout logic [31:0] gpio_io,
+
+    output reg_req_t ext_peripheral_slave_req_o,
+    input  reg_rsp_t ext_peripheral_slave_resp_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -77,10 +75,10 @@ module core_v_mini_mcu
   obi_resp_t                               spi_flash_slave_resp;
   obi_req_t                                debug_slave_req;
   obi_resp_t                               debug_slave_resp;
-  obi_req_t                                on_off_periph_slave_req;
-  obi_resp_t                               on_off_periph_slave_resp;
-  obi_req_t                                always_on_periph_slave_req;
-  obi_resp_t                               always_on_periph_slave_resp;
+  obi_req_t                                ao_peripheral_slave_req;
+  obi_resp_t                               ao_peripheral_slave_resp;
+  obi_req_t                                peripheral_slave_req;
+  obi_resp_t                               peripheral_slave_resp;
 
   // signals to debug unit
   logic                                    debug_core_req;
@@ -149,6 +147,17 @@ module core_v_mini_mcu
       .debug_master_resp_i(debug_master_resp)
   );
 
+  memory_subsystem #(
+      .NUM_BYTES(NUM_BYTES)
+  ) memory_subsystem_i (
+      .clk_i,
+      .rst_ni,
+      .ram0_req_i (ram0_slave_req),
+      .ram0_resp_o(ram0_slave_resp),
+      .ram1_req_i (ram1_slave_req),
+      .ram1_resp_o(ram1_slave_resp)
+  );
+
   system_bus #(
       .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER)
   ) system_bus_i (
@@ -168,45 +177,24 @@ module core_v_mini_mcu
       .ram1_resp_i(ram1_slave_resp),
       .debug_slave_req_o(debug_slave_req),
       .debug_slave_resp_i(debug_slave_resp),
-      .on_off_periph_slave_req_o(on_off_periph_slave_req),
-      .on_off_periph_slave_resp_i(on_off_periph_slave_resp),
-      .always_on_periph_slave_req_o(always_on_periph_slave_req),
-      .always_on_periph_slave_resp_i(always_on_periph_slave_resp),
-      .ext_xbar_slave_req_o(ext_xbar_slave_req_o),
-      .ext_xbar_slave_resp_i(ext_xbar_slave_resp_i),
+      .ao_peripheral_slave_req_o(ao_peripheral_slave_req),
+      .ao_peripheral_slave_resp_i(ao_peripheral_slave_resp),
+      .peripheral_slave_req_o(peripheral_slave_req),
+      .peripheral_slave_resp_i(peripheral_slave_resp),
       .spi_flash_slave_req_o(spi_flash_slave_req),
-      .spi_flash_slave_resp_i(spi_flash_slave_resp)
+      .spi_flash_slave_resp_i(spi_flash_slave_resp),
+      .ext_xbar_slave_req_o(ext_xbar_slave_req_o),
+      .ext_xbar_slave_resp_i(ext_xbar_slave_resp_i)
   );
 
-  memory_subsystem #(
-      .NUM_BYTES(NUM_BYTES)
-  ) memory_subsystem_i (
+  ao_peripheral_subsystem ao_peripheral_subsystem_i (
       .clk_i,
       .rst_ni,
-      .ram0_req_i (ram0_slave_req),
-      .ram0_resp_o(ram0_slave_resp),
-      .ram1_req_i (ram1_slave_req),
-      .ram1_resp_o(ram1_slave_resp)
-  );
-
-  peripheral_subsystem #(
-      .EXT_NINTERRUPT(EXT_NINTERRUPT)
-  ) peripheral_subsystem_i (
-      .clk_i,
-      .rst_ni,
-      .slave_req_i(on_off_periph_slave_req),
-      .slave_resp_o(on_off_periph_slave_resp),
-      .uart_rx_i(uart_rx_i),
-      .uart_tx_o(uart_tx_o),
-      .uart_tx_en_o(),
-      .intr_vector_ext_i,
-      .irq_plic_o(irq_external),
-      .msip_o(irq_software),
-      .ext_peripheral_slave_req_o(ext_peripheral_slave_req_o),
-      .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i),
-      .cio_gpio_i(gpio_in),
-      .cio_gpio_o(gpio_out),
-      .cio_gpio_en_o(gpio_en),
+      .slave_req_i(ao_peripheral_slave_req),
+      .slave_resp_o(ao_peripheral_slave_resp),
+      .boot_select_i,
+      .exit_valid_o,
+      .exit_value_o,
       .spimemio_req_i(spi_flash_slave_req),
       .spimemio_resp_o(spi_flash_slave_resp),
       .spi_sck_o(spi_sck),
@@ -216,20 +204,28 @@ module core_v_mini_mcu
       .spi_sd_o(spi_sd_out),
       .spi_sd_en_o(spi_sd_en),
       .spi_sd_i(spi_sd_in),
-      .use_spimemio_i(use_spimemio)
+      .power_gate_core_o,
+      .rv_timer_irq_timer_o(irq_timer)
   );
 
-  ao_peripheral_subsystem ao_peripheral_subsystem_i (
+  peripheral_subsystem #(
+      .EXT_NINTERRUPT(EXT_NINTERRUPT)
+  ) peripheral_subsystem_i (
       .clk_i,
       .rst_ni,
-      .slave_req_i(always_on_periph_slave_req),
-      .slave_resp_o(always_on_periph_slave_resp),
-      .boot_select_i,
-      .use_spimemio_o(use_spimemio),
-      .exit_valid_o(exit_valid_o),
-      .exit_value_o(exit_value_o),
-      .rv_timer_irq_timer_o(irq_timer),
-      .power_gate_core_o
+      .slave_req_i(peripheral_slave_req),
+      .slave_resp_o(peripheral_slave_resp),
+      .intr_vector_ext_i,
+      .irq_plic_o(irq_external),
+      .msip_o(irq_software),
+      .uart_rx_i,
+      .uart_tx_o,
+      .uart_tx_en_o(),
+      .cio_gpio_i(gpio_in),
+      .cio_gpio_o(gpio_out),
+      .cio_gpio_en_o(gpio_en),
+      .ext_peripheral_slave_req_o,
+      .ext_peripheral_slave_resp_i
   );
 
   assign irq_fast = '0;
