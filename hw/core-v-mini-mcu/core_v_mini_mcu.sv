@@ -70,6 +70,18 @@ module core_v_mini_mcu
   obi_resp_t                               ram0_slave_resp;
   obi_req_t                                ram1_slave_req;
   obi_resp_t                               ram1_slave_resp;
+  obi_req_t                                ram2_slave_req;
+  obi_resp_t                               ram2_slave_resp;
+  obi_req_t                                ram3_slave_req;
+  obi_resp_t                               ram3_slave_resp;
+  obi_req_t                                ram4_slave_req;
+  obi_resp_t                               ram4_slave_resp;
+  obi_req_t                                ram5_slave_req;
+  obi_resp_t                               ram5_slave_resp;
+  obi_req_t                                ram6_slave_req;
+  obi_resp_t                               ram6_slave_resp;
+  obi_req_t                                ram7_slave_req;
+  obi_resp_t                               ram7_slave_resp;
 
   obi_req_t                                spi_flash_slave_req;
   obi_resp_t                               spi_flash_slave_resp;
@@ -109,12 +121,12 @@ module core_v_mini_mcu
   logic                                    use_spimemio;
 
   cpu_subsystem #(
-      .BOOT_ADDR       (BOOT_ADDR),
-      .PULP_XPULP      (PULP_XPULP),
-      .FPU             (FPU),
-      .PULP_ZFINX      (PULP_ZFINX),
+      .BOOT_ADDR(BOOT_ADDR),
+      .PULP_XPULP(PULP_XPULP),
+      .FPU(FPU),
+      .PULP_ZFINX(PULP_ZFINX),
       .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS),
-      .DM_HALTADDRESS  (DM_HALTADDRESS)
+      .DM_HALTADDRESS(DM_HALTADDRESS)
   ) cpu_subsystem_i (
       // Clock and Reset
       .clk_i,
@@ -155,7 +167,19 @@ module core_v_mini_mcu
       .ram0_req_i (ram0_slave_req),
       .ram0_resp_o(ram0_slave_resp),
       .ram1_req_i (ram1_slave_req),
-      .ram1_resp_o(ram1_slave_resp)
+      .ram1_resp_o(ram1_slave_resp),
+      .ram2_req_i (ram2_slave_req),
+      .ram2_resp_o(ram2_slave_resp),
+      .ram3_req_i (ram3_slave_req),
+      .ram3_resp_o(ram3_slave_resp),
+      .ram4_req_i (ram4_slave_req),
+      .ram4_resp_o(ram4_slave_resp),
+      .ram5_req_i (ram5_slave_req),
+      .ram5_resp_o(ram5_slave_resp),
+      .ram6_req_i (ram6_slave_req),
+      .ram6_resp_o(ram6_slave_resp),
+      .ram7_req_i (ram7_slave_req),
+      .ram7_resp_o(ram7_slave_resp)
   );
 
   system_bus #(
@@ -175,6 +199,18 @@ module core_v_mini_mcu
       .ram0_resp_i(ram0_slave_resp),
       .ram1_req_o(ram1_slave_req),
       .ram1_resp_i(ram1_slave_resp),
+      .ram2_req_o(ram2_slave_req),
+      .ram2_resp_i(ram2_slave_resp),
+      .ram3_req_o(ram3_slave_req),
+      .ram3_resp_i(ram3_slave_resp),
+      .ram4_req_o(ram4_slave_req),
+      .ram4_resp_i(ram4_slave_resp),
+      .ram5_req_o(ram5_slave_req),
+      .ram5_resp_i(ram5_slave_resp),
+      .ram6_req_o(ram6_slave_req),
+      .ram6_resp_i(ram6_slave_resp),
+      .ram7_req_o(ram7_slave_req),
+      .ram7_resp_i(ram7_slave_resp),
       .debug_slave_req_o(debug_slave_req),
       .debug_slave_resp_i(debug_slave_resp),
       .ao_peripheral_slave_req_o(ao_peripheral_slave_req),

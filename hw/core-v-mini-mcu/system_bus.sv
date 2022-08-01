@@ -43,6 +43,24 @@ module system_bus
     output obi_req_t  ram1_req_o,
     input  obi_resp_t ram1_resp_i,
 
+    output obi_req_t  ram2_req_o,
+    input  obi_resp_t ram2_resp_i,
+
+    output obi_req_t  ram3_req_o,
+    input  obi_resp_t ram3_resp_i,
+
+    output obi_req_t  ram4_req_o,
+    input  obi_resp_t ram4_resp_i,
+
+    output obi_req_t  ram5_req_o,
+    input  obi_resp_t ram5_resp_i,
+
+    output obi_req_t  ram6_req_o,
+    input  obi_resp_t ram6_resp_i,
+
+    output obi_req_t  ram7_req_o,
+    input  obi_resp_t ram7_resp_i,
+
     output obi_req_t  debug_slave_req_o,
     input  obi_resp_t debug_slave_resp_i,
 
@@ -92,6 +110,12 @@ module system_bus
   assign error_slave_req = slave_req[core_v_mini_mcu_pkg::ERROR_IDX];
   assign ram0_req_o = slave_req[core_v_mini_mcu_pkg::RAM0_IDX];
   assign ram1_req_o = slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
+  assign ram2_req_o = slave_req[core_v_mini_mcu_pkg::RAM2_IDX];
+  assign ram3_req_o = slave_req[core_v_mini_mcu_pkg::RAM3_IDX];
+  assign ram4_req_o = slave_req[core_v_mini_mcu_pkg::RAM4_IDX];
+  assign ram5_req_o = slave_req[core_v_mini_mcu_pkg::RAM5_IDX];
+  assign ram6_req_o = slave_req[core_v_mini_mcu_pkg::RAM6_IDX];
+  assign ram7_req_o = slave_req[core_v_mini_mcu_pkg::RAM7_IDX];
   assign debug_slave_req_o = slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
   assign ao_peripheral_slave_req_o = slave_req[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX];
   assign peripheral_slave_req_o = slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
@@ -102,6 +126,12 @@ module system_bus
   assign slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
   assign slave_resp[core_v_mini_mcu_pkg::RAM0_IDX] = ram0_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::RAM1_IDX] = ram1_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::RAM2_IDX] = ram2_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::RAM3_IDX] = ram3_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::RAM4_IDX] = ram4_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::RAM5_IDX] = ram5_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::RAM6_IDX] = ram6_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::RAM7_IDX] = ram7_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX] = debug_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX] = ao_peripheral_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
