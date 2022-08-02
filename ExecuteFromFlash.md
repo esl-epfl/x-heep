@@ -1,3 +1,5 @@
+# Execute Code from FLASH
+
 ## Boot Procedure
 
 The microcontroller has a boot rom where the RISC-V CPU jumps to 
@@ -91,7 +93,6 @@ make applications/hello_world/hello_world.flash.hex
 or
 make applications/gpio_toggle/gpio_toggle.flash.hex
 ```
-
 Then, when launching the simulation, pass the argument `boot_sel=1` 
 to set the `boot_sel_i` input to `1` and `execute_from_flash=1` to set the 
 `execute_from_flash_i` input to `1`.
@@ -99,6 +100,10 @@ to set the `boot_sel_i` input to `1` and `execute_from_flash=1` to set the
 ```
 make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.flash.hex boot_sel=1 execute_from_flash=1"
 ```
+
+If you are using FPGAs or ASIC, make sure to program the FLASH first.
+
+Follow the [ProgramFlash](./ProgramFlash.md) guide to program the FLASH.
 
 
 ### SPI Flash Loading Boot Procedure
