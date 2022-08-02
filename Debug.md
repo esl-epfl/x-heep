@@ -3,14 +3,14 @@
 1. Install the required linux tools:
 
 ```
-$ sudo apt install pkg-config libftdi1-2 libusb-1.0-4
+sudo apt install pkg-config libftdi1-2 libusb-1.0-4
 ```
 
 You need at least gcc>10, so in case you do not have it:
 
 ```
-$ sudo apt install gcc-10 g++-10
-$ sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
+sudo apt install gcc-10 g++-10
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
 ```
 
 2. Install openOCD
@@ -20,15 +20,15 @@ Version 0.11.0-rc2.
 After extracting the files,
 
 ```
-$ cd openocd-0.11.0-rc2
-$ ./configure --enable-ftdi --enable-remote-bitbang --prefix=/home/yourusername/tools/openocd && make
-$ make install
+cd openocd-0.11.0-rc2
+./configure --enable-ftdi --enable-remote-bitbang --prefix=/home/yourusername/tools/openocd && make
+make install
 ```
 
 Add to `PATH` `openOCD`:
 
 ```
-$ export PATH=/home/yourusername/tools/openocd/bin:$PATH
+export PATH=/home/yourusername/tools/openocd/bin:$PATH
 ```
 ## TODOs
 
@@ -49,19 +49,19 @@ The remote bitbang server is simplemented in the folder ./hw/vendor/pulp_platfor
 To simulate your application with Questasim using the remote_bitbang server, you need to compile you system adding the flag `use_jtag_dpi`:
 
 ```
-$ fusesoc --cores-root . run --no-export --target=sim --tool=verilator --setup --build --flag use_jtag_dpi openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+make verilator-sim FUSESOC_FLAGS="--flag use_jtag_dpi"
 ```
 
 then, go to your target system built folder
 
 ```
-$ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
 ```
 
 and type to run your compiled software:
 
 ```
-$ ./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex +openOCD=true
+./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex +openOCD=true
 ```
 
 ### Questasim
@@ -69,19 +69,19 @@ $ ./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex 
 To simulate your application with Questasim using the remote_bitbang server, you need to compile you system adding the flag `use_jtag_dpi`:
 
 ```
-$ fusesoc --cores-root . run --no-export --target=sim --tool=modelsim --setup --build --flag use_jtag_dpi openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+make questasim-sim FUSESOC_FLAGS="--flag=use_jtag_dpi"
 ```
 
 then, go to your target system built folder
 
 ```
-$ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim/
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim/
 ```
 
 and type to run your compiled software:
 
 ```
-$ make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
+make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
 ```
 ### Remote bitbang server started
 

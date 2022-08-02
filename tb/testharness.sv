@@ -11,7 +11,8 @@ module testharness #(
     input logic clk_i,
     input logic rst_ni,
 
-    input  logic        boot_select_i,
+    input logic boot_select_i,
+
     input  logic        jtag_tck_i,
     input  logic        jtag_tms_i,
     input  logic        jtag_trst_ni,
