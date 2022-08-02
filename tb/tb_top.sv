@@ -88,7 +88,7 @@ module tb_top #(
 
     wait (rst_n == 1'b1);
 
-    if (JTAG_DPI == 0 || boot_sel == 1) begin
+      if (JTAG_DPI == 0 && boot_sel == 0) begin
       testharness_i.tb_loadHEX(firmware);
       #CLK_PHASE_HI testharness_i.tb_set_exit_loop();
       #CLK_PHASE_LO if ($test$plusargs("verbose")) $display("[TESTBENCH] %t: memory loaded", $time);
