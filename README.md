@@ -215,6 +215,10 @@ cat uart0.log
 
 Follow the [Debug](./Debug.md) guide to debug core-v-mini-mcu.
 
+## Execute From Flash
+
+Follow the [ExecuteFromFlash](./ExecuteFromFlash.md) guide to exxecute code directly from the FLASH with modelsim, FPGA, or ASIC.
+
 ## Emulation
 
 This project supports emulation on FPGAs (work in progress).
