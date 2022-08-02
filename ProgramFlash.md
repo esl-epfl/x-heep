@@ -1,3 +1,5 @@
+## Program the FLASH
+
 Install the required linux tools:
 
 ```
@@ -72,7 +74,7 @@ You may want to unplug and plug back the USB cable and repeat the iceprog comman
 Build the FPGA bistream as
 
 ```
-fusesoc --cores-root . run --no-export --target=pynq-z2 --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildvivado.log
+make vivado-fpga FPGA_BOARD=pynq-z2
 ```
 
 then go to
