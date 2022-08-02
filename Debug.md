@@ -30,12 +30,6 @@ Add to `PATH` `openOCD`:
 ```
 export PATH=/home/yourusername/tools/openocd/bin:$PATH
 ```
-## TODOs
-
-As today the testbench does not have a way to select whether to boot from JTAG or not, so the CPU starts executing the program even before openOCD connects,
-and so the simulation ends. Use a software which containts a `while(1)` to be sure the simulation is still in place once openOCD and `gdb` connects.
-This will be replaced.
-
 ## Simulating
 
 You need 3 shells to do this job.
