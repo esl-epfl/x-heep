@@ -1,0 +1,108 @@
+upf_version 2.0
+set_design_top core_v_mini_mcu_i
+set_scope .
+
+
+##########################################
+# CPU_SUBSYSTEM POWER DOMAIN
+##########################################
+
+# 1] Create Power Domains
+create_power_domain PD_CPU_SUBSYSTEM -elements {cpu_subsystem_i}
+
+# 2] Create Supply Ports for PD
+create_supply_port VSS_CPU_SUBSYSTEM -domain PD_CPU_SUBSYSTEM
+
+# 3) Create Supply Nets for PD
+create_supply_net VDD_1d0_CPU_SUBSYSTEM -domain PD_CPU_SUBSYSTEM
+create_supply_net VSS_CPU_SUBSYSTEM -domain PD_CPU_SUBSYSTEM
+
+# 4) Connect Supply Nets to top level Supply Ports
+connect_supply_net VSS_CPU_SUBSYSTEM -ports VSS_CPU_SUBSYSTEM
+
+# 5) Create Supply Net output from Power Switch
+create_supply_net VDD_1d0_SW_CPU_SUBSYSTEM -domain PD_CPU_SUBSYSTEM
+
+# 6) Set Power Supply Nets for PD
+set_domain_supply_net PD_CPU_SUBSYSTEM \
+    -primary_power_net VDD_1d0_SW_CPU_SUBSYSTEM \
+    -primary_ground_net VSS_CPU_SUBSYSTEM
+
+# 7) ON/OFF Logic for Power Switch
+create_power_switch cpu_subsystem_sw_i \
+    -domain PD_CPU_SUBSYSTEM \
+    -output_supply_port {vout_p VDD_1d0_SW_CPU_SUBSYSTEM} \
+    -input_supply_port {vin_p VDD_1d0_CPU_SUBSYSTEM} \
+    -control_port {ctrl_p cpu_subsystem_pwr_sw_i} \
+    -on_state {normal_working vin_p {ctrl_p}} \
+    -off_state {off_state {!ctrl_p}}
+
+
+##########################################
+# PERIPHERAL_SUBSYSTEM POWER DOMAIN
+##########################################
+
+# 1] Create Power Domains
+create_power_domain PD_PERIPHERAL_SUBSYSTEM -elements {peripheral_subsystem_i}
+
+# 2] Create Supply Ports for PD
+create_supply_port VSS_PERIPHERAL_SUBSYSTEM -domain PD_PERIPHERAL_SUBSYSTEM
+
+# 3) Create Supply Nets for PD
+create_supply_net VDD_1d0_PERIPHERAL_SUBSYSTEM -domain PD_PERIPHERAL_SUBSYSTEM
+create_supply_net VSS_PERIPHERAL_SUBSYSTEM -domain PD_PERIPHERAL_SUBSYSTEM
+
+# 4) Connect Supply Nets to top level Supply Ports
+connect_supply_net VSS_PERIPHERAL_SUBSYSTEM -ports VSS_PERIPHERAL_SUBSYSTEM
+
+# 5) Create Supply Net output from Power Switch
+create_supply_net VDD_1d0_SW_PERIPHERAL_SUBSYSTEM -domain PD_PERIPHERAL_SUBSYSTEM
+
+# 6) Set Power Supply Nets for PD
+set_domain_supply_net PD_PERIPHERAL_SUBSYSTEM \
+    -primary_power_net VDD_1d0_SW_PERIPHERAL_SUBSYSTEM \
+    -primary_ground_net VSS_PERIPHERAL_SUBSYSTEM
+
+# 7) ON/OFF Logic for Power Switch
+create_power_switch peripheral_subsystem_sw_i \
+    -domain PD_PERIPHERAL_SUBSYSTEM \
+    -output_supply_port {vout_p VDD_1d0_SW_PERIPHERAL_SUBSYSTEM} \
+    -input_supply_port {vin_p VDD_1d0_PERIPHERAL_SUBSYSTEM} \
+    -control_port {ctrl_p peripheral_subsystem_pwr_sw_i} \
+    -on_state {normal_working vin_p {ctrl_p}} \
+    -off_state {off_state {!ctrl_p}}
+
+
+#################################
+# RAM7 POWER DOMAIN
+#################################
+
+# 1] Create Power Domains
+create_power_domain PD_RAM7 -elements {memory_subsystem_i/ram7_i}
+
+# 2] Create Supply Ports for PD
+create_supply_port VSS_RAM7 -domain PD_RAM7
+
+# 3) Create Supply Nets for PD
+create_supply_net VDD_1d0_RAM7 -domain PD_RAM7
+create_supply_net VSS_RAM7 -domain PD_RAM7
+
+# 4) Connect Supply Nets to top level Supply Ports
+connect_supply_net VSS_RAM7 -ports VSS_RAM7
+
+# 5) Create Supply Net output from Power Switch
+create_supply_net VDD_1d0_SW_RAM7 -domain PD_RAM7
+
+# 6) Set Power Supply Nets for PD
+set_domain_supply_net PD_RAM7 \
+    -primary_power_net VDD_1d0_SW_RAM7 \
+    -primary_ground_net VSS_RAM7
+
+# 7) ON/OFF Logic for Power Switch
+create_power_switch ram7_sw_i \
+    -domain PD_RAM7 \
+    -output_supply_port {vout_p VDD_1d0_SW_RAM7} \
+    -input_supply_port {vin_p VDD_1d0_RAM7} \
+    -control_port {ctrl_p ram7_pwr_sw_i} \
+    -on_state {normal_working vin_p {ctrl_p}} \
+    -off_state {off_state {!ctrl_p}}

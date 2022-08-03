@@ -45,7 +45,11 @@ module core_v_mini_mcu
     inout logic [31:0] gpio_io,
 
     output reg_req_t ext_peripheral_slave_req_o,
-    input  reg_rsp_t ext_peripheral_slave_resp_i
+    input  reg_rsp_t ext_peripheral_slave_resp_i,
+
+    input logic cpu_subsystem_pwr_sw_i,
+    input logic peripheral_subsystem_pwr_sw_i,
+    input logic ram7_pwr_sw_i
 );
 
   import core_v_mini_mcu_pkg::*;

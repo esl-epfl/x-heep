@@ -2,6 +2,8 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+import UPF::*;
+
 module testharness #(
     parameter PULP_XPULP = 0,
     parameter FPU        = 0,
@@ -64,6 +66,27 @@ module testharness #(
 
   assign intr_vector_ext[0] = memcopy_intr;
 
+  logic cpu_subsystem_pwr_sw;
+  logic peripheral_subsystem_pwr_sw;
+  logic ram7_pwr_sw;
+
+  initial
+  begin
+      $display($time, "All Power Supply ON");
+
+      status = supply_on("/core_v_mini_mcu_i/VDD_1d0_CPU_SUBSYSTEM", 1.0);
+      status = supply_on("/core_v_mini_mcu_i/VSS_CPU_SUBSYSTEM", 0);
+      cpu_subsystem_pwr_sw = 1;
+
+      status = supply_on("/core_v_mini_mcu_i/VDD_1d0_PERIPHERAL_SUBSYSTEM", 1.0);
+      status = supply_on("/core_v_mini_mcu_i/VSS_PERIPHERAL_SUBSYSTEM", 0);
+      peripheral_subsystem_pwr_sw = 1;
+
+      status = supply_on("/core_v_mini_mcu_i/VDD_1d0_RAM7", 1.0);
+      status = supply_on("/core_v_mini_mcu_i/VSS_RAM7", 0);
+      ram7_pwr_sw = 1;
+   end
+
   core_v_mini_mcu #(
       .PULP_XPULP(PULP_XPULP),
       .FPU(FPU),
@@ -95,7 +118,10 @@ module testharness #(
       .uart_tx_o(uart_tx),
       .gpio_io(gpio),
       .ext_peripheral_slave_req_o(periph_slave_req),
-      .ext_peripheral_slave_resp_i(periph_slave_resp)
+      .ext_peripheral_slave_resp_i(periph_slave_resp),
+      .cpu_subsystem_pwr_sw_i(cpu_subsystem_pwr_sw),
+      .peripheral_subsystem_pwr_sw_i(peripheral_subsystem_pwr_sw),
+      .ram7_pwr_sw_i(ram7_pwr_sw)
   );
 
   uartdpi #(
