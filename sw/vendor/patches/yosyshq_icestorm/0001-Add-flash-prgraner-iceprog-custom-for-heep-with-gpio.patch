@@ -1,0 +1,542 @@
+From 8f2c07efbcc2509cd59bc53ea3b1988af5853735 Mon Sep 17 00:00:00 2001
+From: rurodrig <ruben.rodriguezalvarez@epfl.ch>
+Date: Thu, 4 Aug 2022 00:47:32 +0200
+Subject: [PATCH] Add flash prgraner iceprog custom for heep with gpio example
+
+---
+ iceprog/gpio_pmw.flash.hex | 320 +++++++++++++++++++++++++++++++++++++
+ iceprog/iceprog.c          | 106 +++++++++---
+ iceprog/mpsse.c            |   9 ++
+ 3 files changed, 415 insertions(+), 20 deletions(-)
+ create mode 100755 iceprog/gpio_pmw.flash.hex
+
+diff --git a/iceprog/gpio_pmw.flash.hex b/iceprog/gpio_pmw.flash.hex
+new file mode 100755
+index 0000000..b1fab10
+--- /dev/null
++++ b/iceprog/gpio_pmw.flash.hex
+@@ -0,0 +1,320 @@
++@00000000
++6F 00 80 22 6F 00 40 21 6F 00 00 21 6F 00 C0 20
++6F 00 80 20 6F 00 40 20 6F 00 00 20 6F 00 C0 1F
++6F 00 80 1F 6F 00 40 1F 6F 00 00 1F 6F 00 C0 1E
++6F 00 80 1E 6F 00 40 1E 6F 00 00 1E 6F 00 C0 1D
++6F 00 80 1D 6F 00 40 1D 6F 00 00 1D 6F 00 C0 1C
++6F 00 80 1C 6F 00 40 1C 6F 00 00 1C 6F 00 C0 1B
++6F 00 80 1B 6F 00 40 1B 6F 00 00 1B 6F 00 C0 1A
++6F 00 80 1A 6F 00 40 1A 6F 00 00 1A 6F 00 40 22
++6F 00 80 19 6F 00 40 19 6F 00 00 19 6F 00 C0 18
++6F 00 80 18 6F 00 40 18 6F 00 00 18 6F 00 C0 17
++6F 00 80 17 6F 00 40 17 6F 00 00 17 6F 00 C0 16
++6F 00 80 16 6F 00 40 16 6F 00 00 16 6F 00 C0 15
++6F 00 80 15 6F 00 40 15 6F 00 00 15 6F 00 C0 14
++6F 00 80 14 6F 00 40 14 6F 00 00 14 6F 00 C0 13
++6F 00 80 13 6F 00 40 13 6F 00 00 13 6F 00 C0 12
++6F 00 80 12 6F 00 40 12 6F 00 00 12 6F 00 C0 11
++@00000180
++97 01 00 C0 93 81 01 6E 17 21 00 C0 13 01 81 F8
++13 05 C0 06 13 06 80 10 33 06 A6 40 93 05 00 00
++EF 00 80 06 17 15 00 00 13 05 C5 21 93 05 00 00
++13 06 C0 06 63 DC C5 00 83 26 05 00 23 A0 D5 00
++13 05 45 00 93 85 45 00 E3 C8 C5 FE 17 05 00 00
++13 05 45 E3 13 65 15 00 73 10 55 30 17 05 00 00
++13 05 A5 25 EF 00 00 22 EF 00 00 28 03 25 01 00
++93 05 41 00 13 06 00 00 EF 00 C0 0A 6F 00 20 21
++EF 00 80 0E 67 80 00 00
++@00000208
++2A 83 11 C6 23 00 B3 00 7D 16 05 03 65 FE 82 80
++17 15 00 00 13 05 15 12 EF 00 C0 37 6F F0 5F FF
++F3 22 20 34 93 92 12 00 93 D2 12 00 13 03 20 00
++63 8C 62 02 13 03 B0 00 63 88 62 00 13 03 30 00
++63 8C 62 00 6F 00 40 03 17 15 00 00 13 05 35 08
++EF 00 40 34 6F 00 40 03 17 15 00 00 13 05 45 09
++EF 00 40 33 6F 00 40 02 17 15 00 00 13 05 45 03
++EF 00 40 32 6F 00 40 01 17 15 00 00 13 05 65 09
++EF 00 40 31 6F 00 40 00 73 25 10 34 13 05 45 00
++73 10 15 34 73 00 20 30 73 00 20 30 B7 07 04 00
++93 87 47 00 37 07 05 20 23 20 F7 02 B7 06 05 20
++37 06 04 00 23 AA F6 00 13 07 80 3E 13 00 00 00
++13 07 F7 FF E3 1C 07 FE 23 AA C6 00 13 07 80 3E
++13 00 00 00 13 07 F7 FF E3 1C 07 FE 6F F0 9F FD
++13 05 00 00 67 80 00 00 13 05 F0 FF 67 80 00 00
++B7 07 01 20 23 A2 A7 00 13 07 10 00 23 80 E7 00
++73 00 50 10 B7 27 00 00 23 A2 F5 00 13 05 00 00
++67 80 00 00 13 05 F5 FF 13 35 15 00 67 80 00 00
++13 05 00 00 67 80 00 00 13 05 00 00 67 80 00 00
++93 07 10 00 63 0A F5 00 13 07 80 05 23 2C E0 0E
++13 05 F0 FF 67 80 00 00 B7 07 02 20 23 A6 07 00
++13 07 30 00 23 AE E7 00 23 A2 07 02 23 A6 07 02
++23 A2 07 00 13 07 F0 FF 23 A0 E7 00 37 07 ED EB
++13 07 17 00 23 A6 E7 00 23 A2 07 00 B3 86 C5 00
++37 07 02 20 63 96 B6 00 13 05 06 00 67 80 00 00
++03 C5 05 00 83 27 07 01 93 F7 17 00 E3 9C 07 FE
++23 2C A7 00 83 27 07 01 93 D7 37 00 93 F7 17 00
++E3 8A 07 FE 93 85 15 00 6F F0 DF FC 37 17 00 00
++93 07 00 06 93 06 80 10 13 07 87 10 13 06 05 00
++03 A5 07 00 63 80 E6 02 B3 06 C5 00 63 F8 E6 00
++B3 86 C6 00 23 A0 D7 00 67 80 00 00 23 A0 E7 00
++67 80 00 00 13 05 00 00 67 80 00 00 AA 85 81 46
++01 46 01 45 85 A1 41 11 B7 17 00 40 22 C4 06 C6
++93 87 87 8E 2A 84 99 C3 81 45 D9 21 B7 17 00 40
++03 A5 C7 3B 1C 55 91 C3 82 97 22 85 D1 35 41 11
++22 C4 13 07 00 00 13 04 00 00 19 8C 26 C2 06 C6
++09 84 93 04 00 00 11 E4 B2 40 22 44 92 44 41 01
++82 80 7D 14 93 17 24 00 A6 97 9C 43 82 97 E5 B7
++41 11 22 C4 26 C2 93 07 00 00 13 04 00 00 1D 8C
++4A C0 06 C6 09 84 93 04 00 00 01 49 63 13 89 02
++93 07 00 00 13 04 00 00 1D 8C 09 84 93 04 00 00
++01 49 63 1D 89 00 B2 40 22 44 92 44 02 49 41 01
++82 80 9C 40 05 09 91 04 82 97 C9 BF 9C 40 05 09
++91 04 82 97 F9 BF 01 11 26 CA 4A C8 06 CE 22 CC
++4E C6 52 C4 AA 84 2E 89 09 C5 1C 4D 99 E3 EF 00
++80 76 9C 4C 80 44 81 E7 26 85 EF 00 C0 75 B7 17
++00 40 93 87 C7 37 63 1C F4 02 C0 40 83 57 C4 00
++A1 8B B1 C7 1C 48 A1 C7 FD 59 29 4A 1C 44 83 45
++09 00 FD 17 B1 E9 1C C4 63 DE 07 06 22 86 A9 45
++26 85 41 22 FD 57 63 08 F5 02 29 45 35 A0 B7 17
++00 40 93 87 C7 39 63 14 F4 00 80 44 C1 B7 B7 17
++00 40 93 87 C7 35 E3 1B F4 FA C0 44 45 BF A2 85
++26 85 29 2C 55 D9 7D 55 F2 40 62 44 D2 44 42 49
++B2 49 22 4A 05 61 82 80 1C C4 05 09 63 D7 07 00
++18 4C 63 CB E7 00 63 89 45 01 1C 40 13 87 17 00
++18 C0 23 80 B7 00 59 B7 22 86 26 85 19 2A E3 1F
++35 F7 D1 B7 1C 40 13 87 17 00 18 C0 29 47 23 80
++E7 00 61 B7 AA 85 03 25 40 06 31 BF 41 11 22 C4
++2E 84 8C 41 26 C2 06 C6 AA 84 91 C1 C5 3F A2 85
++22 44 B2 40 26 85 92 44 41 01 6F 00 D0 16 83 27
++40 06 63 87 A7 0C 5C 51 01 11 22 CC 06 CE 26 CA
++4A C8 4E C6 2A 84 81 CF DC 47 81 44 13 09 00 08
++D1 E3 5C 50 8C 43 81 C5 22 85 EF 00 D0 13 4C 48
++81 C5 22 85 EF 00 30 13 4C 50 81 C5 22 85 EF 00
++90 12 0C 5C 81 C5 22 85 EF 00 F0 11 4C 5C 81 C5
++22 85 EF 00 50 11 2C 40 81 C5 22 85 EF 00 B0 10
++6C 4C 81 C5 22 85 EF 00 10 10 2C 4C 81 C5 22 85
++EF 00 70 0F 4C 58 81 C5 22 85 EF 00 D0 0E 1C 4C
++A9 C3 1C 54 22 85 82 97 2C 44 85 CD 22 85 62 44
++F2 40 D2 44 42 49 B2 49 05 61 89 B7 A6 95 8C 41
++91 E9 91 04 5C 50 CC 47 E3 9A 24 FF 22 85 EF 00
++90 0B 85 BF 83 A9 05 00 22 85 EF 00 D0 0A CE 85
++C5 B7 F2 40 62 44 D2 44 42 49 B2 49 05 61 82 80
++82 80 01 11 22 CC 26 CA 4A C8 06 CE 4E C6 AA 84
++2E 89 32 84 01 C5 1C 4D 91 E3 71 23 B7 17 00 40
++93 87 C7 37 63 19 F4 06 C0 40 1C 4C 1C C4 83 57
++C4 00 A1 8B C9 C3 1C 48 BD CF 1C 48 08 40 93 79
++F9 0F 13 79 F9 0F 1D 8D 5C 48 63 46 F5 00 A2 85
++26 85 21 21 2D E5 1C 44 05 05 FD 17 1C C4 1C 40
++13 87 17 00 18 C0 23 80 37 01 5C 48 63 89 A7 00
++83 57 C4 00 85 8B 81 CB A9 47 63 16 F9 00 A2 85
++26 85 E1 2E 0D ED F2 40 62 44 D2 44 B2 49 4A 85
++42 49 05 61 82 80 B7 17 00 40 93 87 C7 39 63 14
++F4 00 80 44 59 B7 B7 17 00 40 93 87 C7 35 E3 1E
++F4 F6 C0 44 9D BF A2 85 26 85 09 28 3D DD 7D 59
++D9 B7 2E 86 AA 85 03 25 40 06 25 BF 41 11 26 C2
++83 24 40 06 22 C4 4A C0 06 C6 2A 89 2E 84 89 C4
++9C 4C 99 E3 26 85 C1 21 B7 17 00 40 93 87 C7 37
++63 17 F4 02 C0 40 83 17 C4 00 13 97 07 01 93 F6
++87 00 41 83 B5 EA 93 76 07 01 95 EA 25 47 23 20
++E9 00 93 E7 07 04 23 16 F4 00 7D 55 79 A8 B7 17
++00 40 93 87 C7 39 63 14 F4 00 80 44 E9 B7 B7 17
++00 40 93 87 C7 35 E3 10 F4 FC C0 44 6D BF 11 8B
++15 C7 4C 58 91 C9 93 07 44 04 63 85 F5 00 4A 85
++EF 00 60 74 23 2A 04 02 83 57 C4 00 23 22 04 00
++93 F7 B7 FD 23 16 F4 00 1C 48 1C C0 83 57 C4 00
++93 E7 87 00 23 16 F4 00 1C 48 81 EF 83 57 C4 00
++13 07 00 20 93 F7 07 28 63 85 E7 00 A2 85 4A 85
++AD 25 83 17 C4 00 13 97 07 01 93 F6 17 00 41 83
++9D C2 54 48 23 24 04 00 B3 06 D0 40 14 CC 14 48
++01 45 81 E6 13 77 07 08 29 FF B2 40 22 44 92 44
++02 49 41 01 82 80 93 76 27 00 01 46 91 E2 50 48
++10 C4 F1 BF 83 27 C0 0F AA 88 8D E3 13 05 C0 06
++23 2E A0 0E 13 03 00 00 93 07 C0 06 63 08 03 00
++83 27 00 00 23 24 F5 08 93 07 C0 06 D8 43 7D 48
++7D 55 63 46 E8 04 63 8D 08 02 03 A8 87 08 63 00
++08 04 13 15 27 00 42 95 10 C1 03 23 08 10 05 46
++33 16 E6 00 33 63 C3 00 23 20 68 10 23 20 D5 08
++89 46 63 97 D8 00 83 26 48 10 D1 8E 23 22 D8 10
++93 06 17 00 0A 07 D4 C3 BA 97 8C C7 01 45 82 80
++79 71 5A C8 56 CA 5E C6 62 C4 06 D6 22 D4 26 D2
++4A D0 4E CE 52 CC 66 C2 AA 8B AE 8A 13 0B C0 0F
++05 4C 83 24 0B 00 81 CC C0 40 83 A9 84 08 13 09
++F4 FF 0A 04 33 8A 89 00 26 94 63 5F 09 00 B2 50
++22 54 92 54 02 59 F2 49 62 4A D2 4A 42 4B B2 4B
++22 4C 92 4C 45 61 82 80 63 8C 0A 00 63 96 09 00
++7D 19 71 1A 71 14 D1 BF 83 27 CA 07 E3 9A 57 FF
++D8 40 5C 40 7D 17 63 18 27 03 23 A2 24 01 ED D3
++83 AC 44 00 63 88 09 00 83 A6 09 10 33 17 2C 01
++F9 8E 89 EE 82 97 D8 40 83 27 0B 00 E3 13 97 F9
++E3 80 F4 FC BD BF 23 22 04 00 D1 BF 83 A6 49 10
++83 25 CA FF 75 8F 01 E7 5E 85 82 97 E9 BF 2E 85
++82 97 D1 BF 83 D7 C5 00 01 11 22 CC 26 CA 06 CE
++4A C8 4E C6 13 F7 87 00 AA 84 2E 84 75 E3 D8 41
++63 47 E0 00 B8 41 63 44 E0 00 01 45 75 A8 58 54
++6D DF 85 66 03 A9 04 00 F5 8F 23 A0 04 00 0C 50
++A5 CF 68 48 83 57 C4 00 91 8B 99 C7 5C 40 1D 8D
++5C 58 99 C3 3C 40 1D 8D 5C 54 0C 50 2A 86 81 46
++26 85 82 97 FD 57 03 57 C4 00 63 1D F5 00 94 40
++F5 47 63 E2 D7 08 B7 07 C0 DF F9 17 B3 D7 D7 40
++85 8B B5 EB 1C 48 23 22 04 00 1C C0 85 67 7D 8F
++19 C7 FD 57 63 14 F5 00 9C 40 91 E3 68 C8 4C 58
++23 A0 24 01 D9 D1 93 07 44 04 63 84 F5 00 26 85
++D9 29 23 2A 04 02 95 BF 85 46 01 46 26 85 02 97
++FD 57 E3 11 F5 F8 9C 40 B5 DF 75 47 63 85 E7 00
++59 47 63 95 E7 00 23 A0 24 01 81 BF 83 57 C4 00
++93 E7 07 04 23 16 F4 00 F2 40 62 44 D2 44 42 49
++B2 49 05 61 82 80 13 67 07 04 23 16 E4 00 ED B7
++83 A9 05 01 E3 83 09 F2 03 A9 05 00 8D 8B 23 A0
++35 01 33 09 39 41 01 47 91 E3 D8 49 18 C4 E3 56
++20 F1 1C 54 0C 50 CA 86 4E 86 26 85 82 97 63 4A
++A0 00 83 57 C4 00 7D 55 93 E7 07 04 23 16 F4 00
++65 B7 AA 99 33 09 A9 40 D9 BF 9C 49 B9 CF 01 11
++22 CC 06 CE 2A 84 11 C5 1C 4D 81 E7 2E C6 25 2A
++B2 45 B7 17 00 40 93 87 C7 37 63 9B F5 00 4C 40
++83 97 C5 00 95 C7 22 85 62 44 F2 40 05 61 59 B5
++B7 17 00 40 93 87 C7 39 63 94 F5 00 0C 44 CD B7
++B7 17 00 40 93 87 C7 35 E3 9C F5 FC 4C 44 C9 BF
++F2 40 62 44 01 45 05 61 82 80 01 45 82 80 AA 85
++11 E9 B7 17 00 40 03 A5 C7 3B B7 15 00 40 93 85
++25 AF 8D A4 03 25 40 06 49 B7 01 45 82 80 41 11
++22 C4 06 C6 2A 84 23 16 B5 00 23 17 C5 00 23 20
++05 00 23 22 05 00 23 24 05 00 23 22 05 06 23 28
++05 00 23 2A 05 00 23 2C 05 00 21 46 81 45 13 05
++C5 05 EF F0 EF E5 B7 17 00 40 93 87 C7 0C 5C D0
++B7 17 00 40 93 87 07 10 1C D4 B7 17 00 40 93 87
++E7 14 5C D4 B7 17 00 40 93 87 47 18 B2 40 00 D0
++1C D8 22 44 41 01 82 80 B7 15 00 40 93 85 25 AF
++D5 A2 01 45 82 80 41 11 26 C2 93 07 80 06 93 84
++F5 FF B3 84 F4 02 4A C0 2E 89 22 C4 06 C6 93 85
++44 07 C9 26 2A 84 01 CD 23 20 05 00 23 22 25 01
++31 05 08 C4 13 86 84 06 81 45 EF F0 6F DE B2 40
++22 85 22 44 92 44 02 49 41 01 82 80 B7 17 00 40
++03 A5 C7 3B 55 B7 1C 4D BD E3 41 11 B7 17 00 40
++22 C4 06 C6 93 87 07 BE 1C D5 B7 17 00 40 83 A7
++C7 3B 23 24 05 04 23 26 05 04 23 28 05 04 2A 84
++63 14 F5 00 85 47 1C CD 22 85 1D 28 48 C0 22 85
++05 28 08 C4 22 85 2D 20 48 C4 48 40 01 46 91 45
++FD 35 08 44 05 46 A5 45 DD 35 48 44 09 46 C9 45
++F9 3D 85 47 B2 40 1C CC 22 44 41 01 82 80 82 80
++41 11 B7 17 00 40 26 C2 83 A4 C7 3B 4A C0 06 C6
++9C 4C 22 C4 2A 89 99 E3 26 85 B5 3F 93 84 84 04
++80 44 DC 40 FD 17 63 D6 07 00 9C 40 B9 CF 84 40
++C5 BF 03 17 C4 00 39 E7 C1 77 85 07 23 22 04 06
++23 20 04 00 23 22 04 00 23 24 04 00 5C C4 23 28
++04 00 23 2A 04 00 23 2C 04 00 21 46 81 45 13 05
++C4 05 EF F0 EF CF 23 2A 04 02 23 2C 04 02 23 24
++04 04 23 26 04 04 B2 40 22 85 22 44 92 44 02 49
++41 01 82 80 13 04 84 06 71 BF 91 45 4A 85 65 3D
++88 C0 2A 84 49 FD B1 47 23 20 F9 00 E9 BF 82 80
++82 80 82 80 82 80 03 25 40 06 B7 15 00 40 93 85
++25 B7 01 A8 03 25 40 06 B7 15 00 40 93 85 A5 BE
++09 A0 01 11 22 CC 4A C8 4E C6 56 C2 5A C0 06 CE
++26 CA 52 C4 AE 89 13 04 85 04 01 49 85 4A 7D 5B
++04 44 03 2A 44 00 7D 1A 63 5F 0A 00 00 40 6D F8
++F2 40 62 44 D2 44 B2 49 22 4A 92 4A 02 4B 4A 85
++42 49 05 61 82 80 83 D7 C4 00 63 FA FA 00 83 97
++E4 00 63 86 67 01 26 85 82 99 33 69 A9 00 93 84
++84 06 D1 B7 79 71 22 D4 4A D0 4E CE 52 CC 5A C8
++5E C6 06 D6 26 D2 56 CA 2A 89 2E 8A 13 04 85 04
++81 49 05 4B FD 5B 04 44 83 2A 44 00 FD 1A 63 D0
++0A 02 00 40 6D F8 B2 50 22 54 92 54 02 59 62 4A
++D2 4A 42 4B B2 4B 4E 85 F2 49 45 61 82 80 83 D7
++C4 00 63 7B FB 00 83 97 E4 00 63 87 77 01 A6 85
++4A 85 02 9A B3 E9 A9 00 93 84 84 06 C1 B7 59 71
++A2 D4 2E 84 83 95 E5 00 A6 D2 CA D0 86 D6 B2 84
++36 89 63 D4 05 02 83 57 C4 00 93 F7 07 08 85 CF
++81 47 13 07 00 04 B6 50 26 54 23 20 F9 00 98 C0
++06 59 96 54 01 45 65 61 82 80 30 00 8D 2E E3 4C
++05 FC 32 47 BD 67 F9 8F 79 77 BA 97 93 B7 17 00
++13 07 00 40 C9 BF 81 47 E5 BF 83 D7 C5 00 01 11
++22 CC 06 CE 26 CA 4A C8 89 8B 2E 84 89 CF 93 07
++74 04 1C C0 1C C8 85 47 5C C8 F2 40 62 44 D2 44
++42 49 05 61 82 80 74 00 30 00 AA 84 8D 3F A2 45
++2A 89 26 85 01 22 01 ED 83 17 C4 00 13 F7 07 20
++69 FF F1 9B 93 E7 27 00 23 16 F4 00 C9 B7 B7 17
++00 40 93 87 07 BE 9C D4 83 57 C4 00 08 C0 08 C8
++93 E7 07 08 23 16 F4 00 A2 47 5C C8 B2 47 89 CF
++83 15 E4 00 26 85 19 26 01 C9 83 57 C4 00 F1 9B
++93 E7 17 00 23 16 F4 00 83 57 C4 00 33 E5 27 01
++23 16 A4 00 59 B7 D1 CD 83 A7 C5 FF 01 11 22 CC
++06 CE 13 84 C5 FF 63 D3 07 00 3E 94 2A C6 2D 26
++83 27 00 10 32 45 89 EB 23 22 04 00 23 20 80 10
++62 44 F2 40 05 61 11 AE 63 7D F4 00 10 40 B3 06
++C4 00 63 96 D7 00 94 43 DC 43 B2 96 14 C0 5C C0
++F1 BF 3E 87 DC 43 99 C3 E3 7D F4 FE 14 43 33 06
++D7 00 63 1F 86 00 10 40 B2 96 14 C3 33 06 D7 00
++E3 90 C7 FC 90 43 DC 43 B2 96 14 C3 5C C3 4D BF
++63 75 C4 00 B1 47 1C C1 65 B7 10 40 B3 06 C4 00
++63 96 D7 00 94 43 DC 43 B2 96 14 C0 5C C0 40 C3
++41 BF 82 80 01 11 26 CA 93 84 35 00 F1 98 4A C8
++06 CE 22 CC 4E C6 A1 04 B1 47 2A 89 63 F2 F4 04
++B1 44 63 E1 B4 04 4A 85 41 24 13 07 00 10 18 43
++93 06 00 10 3A 84 31 E0 13 04 40 10 1C 40 89 E7
++81 45 4A 85 51 28 08 C0 A6 85 4A 85 71 20 FD 59
++63 18 35 07 B1 47 23 20 F9 00 4A 85 B9 24 31 A0
++E3 D1 04 FC B1 47 23 20 F9 00 01 45 F2 40 62 44
++D2 44 42 49 B2 49 05 61 82 80 1C 40 85 8F 63 CE
++07 02 2D 46 63 76 F6 00 1C C0 3E 94 04 C0 29 A0
++5C 40 63 12 87 02 9C C2 4A 85 01 2C 13 05 B4 00
++93 07 44 00 61 99 33 07 F5 40 E3 01 F5 FC 3A 94
++89 8F 1C C0 65 BF 5C C3 C5 B7 22 87 40 40 A5 BF
++13 04 35 00 71 98 E3 03 85 FC B3 05 A4 40 4A 85
++21 20 E3 1D 35 FB BD BF 41 11 22 C4 26 C2 2A 84
++2E 85 06 C6 23 2C 00 0E EF F0 4F B1 FD 57 63 16
++F5 00 83 27 80 0F 91 C3 1C C0 B2 40 22 44 92 44
++41 01 82 80 41 11 22 C4 2E 84 83 95 E5 00 06 C6
++71 2A 63 49 05 00 7C 48 AA 97 7C C8 B2 40 22 44
++41 01 82 80 83 57 C4 00 7D 77 7D 17 F9 8F 23 16
++F4 00 ED B7 01 45 82 80 83 D7 C5 00 01 11 22 CC
++26 CA 4A C8 4E C6 06 CE 93 F7 07 10 AA 84 2E 84
++32 89 B6 89 91 C7 83 95 E5 00 89 46 01 46 29 2A
++83 57 C4 00 7D 77 7D 17 F9 8F 83 15 E4 00 23 16
++F4 00 62 44 F2 40 CE 86 4A 86 B2 49 42 49 26 85
++D2 44 05 61 3D A8 41 11 22 C4 2E 84 83 95 E5 00
++06 C6 DD 20 7D 57 83 57 C4 00 63 1B E5 00 7D 77
++7D 17 F9 8F 23 16 F4 00 B2 40 22 44 41 01 82 80
++05 67 D9 8F 23 16 F4 00 68 C8 FD B7 83 95 E5 00
++0D A8 41 11 22 C4 26 C2 2A 84 2E 85 B2 85 36 86
++06 C6 23 2C 00 0E EF F0 AF 99 FD 57 63 16 F5 00
++83 27 80 0F 91 C3 1C C0 B2 40 22 44 92 44 41 01
++82 80 41 11 22 C4 26 C2 2A 84 2E 85 06 C6 23 2C
++00 0E EF F0 6F 92 FD 57 63 16 F5 00 83 27 80 0F
++91 C3 1C C0 B2 40 22 44 92 44 41 01 82 80 41 11
++22 C4 26 C2 2A 84 2E 85 B2 85 06 C6 23 2C 00 0E
++EF F0 4F 91 FD 57 63 16 F5 00 83 27 80 0F 91 C3
++1C C0 B2 40 22 44 92 44 41 01 82 80 41 11 22 C4
++26 C2 2A 84 2E 85 06 C6 23 2C 00 0E EF F0 8F 8F
++FD 57 63 16 F5 00 83 27 80 0F 91 C3 1C C0 B2 40
++22 44 92 44 41 01 82 80 41 11 22 C4 26 C2 2A 84
++2E 85 B2 85 36 86 06 C6 23 2C 00 0E EF F0 4F 8D
++FD 57 63 16 F5 00 83 27 80 0F 91 C3 1C C0 B2 40
++22 44 92 44 41 01 82 80 82 80 82 80 41 11 22 C4
++26 C2 2A 84 2E 85 B2 85 36 86 06 C6 23 2C 00 0E
++EF F0 8F 8A FD 57 63 16 F5 00 83 27 80 0F 91 C3
++1C C0 B2 40 22 44 92 44 41 01 82 80 69 6C 6C 65
++67 61 6C 20 69 6E 73 74 72 75 63 74 69 6F 6E 20
++65 78 63 65 70 74 69 6F 6E 20 68 61 6E 64 6C 65
++72 20 65 6E 74 65 72 65 64 0A 00 65 63 61 6C 6C
++20 65 78 63 65 70 74 69 6F 6E 20 68 61 6E 64 6C
++65 72 20 65 6E 74 65 72 65 64 0A 00 65 62 72 65
++61 6B 20 65 78 63 65 70 74 69 6F 6E 20 68 61 6E
++64 6C 65 72 20 65 6E 74 65 72 65 64 0A 00 75 6E
++6B 6E 6F 77 6E 20 65 78 63 65 70 74 69 6F 6E 20
++68 61 6E 64 6C 65 72 20 65 6E 74 65 72 65 64 0A
++00 6E 6F 20 65 78 63 65 70 74 69 6F 6E 20 68 61
++6E 64 6C 65 72 20 69 6E 73 74 61 6C 6C 65 64 0A
++00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++00 00 00 00 00 00 00 00
++@000013C0
++00 00 00 00 7C 13 00 40 9C 13 00 40 5C 13 00 40
++00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++08 01 00 00 00 00 00 00 E8 08 00 40
+diff --git a/iceprog/iceprog.c b/iceprog/iceprog.c
+index 8ee6443..38e308f 100644
+--- a/iceprog/iceprog.c
++++ b/iceprog/iceprog.c
+@@ -506,6 +506,7 @@ static void help(const char *progname)
+ 	fprintf(stderr, "  -s                    slow SPI (50 kHz instead of 6 MHz)\n");
+ 	fprintf(stderr, "  -k                    keep flash in powered up state (i.e. skip power down command)\n");
+ 	fprintf(stderr, "  -v                    verbose output\n");
++	fprintf(stderr, "  -T                    Pause before writing/reading\n");
+ 	fprintf(stderr, "  -i [4,32,64]          select erase block size [default: 64k]\n");
+ 	fprintf(stderr, "\n");
+ 	fprintf(stderr, "Mode of operation:\n");
+@@ -587,6 +588,8 @@ int main(int argc, char **argv)
+ 	const char *devstr = NULL;
+ 	int ifnum = 0;
+ 
++	bool stop_spi = false;
++
+ #ifdef _WIN32
+ 	_setmode(_fileno(stdin), _O_BINARY);
+ 	_setmode(_fileno(stdout), _O_BINARY);
+@@ -600,7 +603,7 @@ int main(int argc, char **argv)
+ 	/* Decode command line parameters */
+ 	int opt;
+ 	char *endptr;
+-	while ((opt = getopt_long(argc, argv, "d:i:I:rR:e:o:cbnStQvspXk", long_options, NULL)) != -1) {
++	while ((opt = getopt_long(argc, argv, "d:i:I:rR:e:o:cbnStQvTspXk", long_options, NULL)) != -1) {
+ 		switch (opt) {
+ 		case 'd': /* device string */
+ 			devstr = optarg;
+@@ -696,6 +699,9 @@ int main(int argc, char **argv)
+ 		case 'v': /* provide verbose output */
+ 			verbose = true;
+ 			break;
++		case 'T': /* Stop at writing / reading */
++			stop_spi = true;
++			break;
+ 		case 's': /* use slow SPI clock */
+ 			slow_clock = true;
+ 			break;
+@@ -997,22 +1003,59 @@ int main(int argc, char **argv)
+ 				}
+ 			}
+ 
++			if(stop_spi){
++				/* To debug writing of values with the logic analyzer*/
++				printf("Stoped before writting. Press ENTER to continue\n");
++				getchar();
++			}
++
+ 			if (!erase_mode)
+ 			{
+ 				fprintf(stderr, "programming..\n");
+ 
+-				for (int rc, addr = 0; true; addr += rc) {
+-					uint8_t buffer[256];
+-					int page_size = 256 - (rw_offset + addr) % 256;
+-					rc = fread(buffer, 1, page_size, f);
+-					if (rc <= 0)
++				char * line_buffer = NULL;
++				int rc, addr = 0;
++				size_t len = 0;
++				uint8_t buffer[256];
++				int count = 0;
++				while (true) {					
++					rc = getline(&line_buffer, &len, f);
++					if (rc <= 0){
++						if(count > 0){
++							flash_write_enable();
++							flash_prog(addr, buffer, count);
++							flash_wait();
++							count = 0;
++						}
+ 						break;
++					}
++					if(line_buffer[0] == '@'){
++						if(count > 0){
++							flash_write_enable();
++							flash_prog(addr, buffer, count);
++							flash_wait();
++							count = 0;
++						}
++						sscanf(line_buffer + 1 , "%8x" , &addr);
++					}else{
++						int c = 0;
++						while( (c*3+3) < rc){
++							sscanf(line_buffer + c*3 , "%2hhx " , buffer + count);
++							count++;
++							if((addr + count)%256 == 0){
++								flash_write_enable();
++								flash_prog(addr, buffer, count);
++								flash_wait();
++								addr += count;
++								count = 0;
++							}
++							c++;
++						}
++					}
+ 					fprintf(stderr, "                      \r");
+-					fprintf(stderr, "addr 0x%06X %3ld%%\r", rw_offset + addr, 100 * addr / file_size);
+-					flash_write_enable();
+-					flash_prog(rw_offset + addr, buffer, rc);
+-					flash_wait();
++					fprintf(stderr, "addr 0x%06X %3ld%%\r", addr, 100 * addr / file_size);
+ 				}
++				free(line_buffer);
+ 				fprintf(stderr, "                      \r");
+ 				fprintf(stderr, "done.\n");
+ 
+@@ -1026,6 +1069,12 @@ int main(int argc, char **argv)
+ 		// ---------------------------------------------------------
+ 
+ 		if (read_mode) {
++			if(stop_spi){
++				/* Just to debug reading of values with the logic analyzer*/
++				printf("Stoped before writting. Press ENTER to continue\n");
++				getchar();
++			}
++
+ 			fprintf(stderr, "reading..\n");
+ 			for (int addr = 0; addr < read_size; addr += 256) {
+ 				uint8_t buffer[256];
+@@ -1037,23 +1086,40 @@ int main(int argc, char **argv)
+ 			fprintf(stderr, "                      \r");
+ 			fprintf(stderr, "done.\n");
+ 		} else if (!erase_mode && !disable_verify) {
++
+ 			fprintf(stderr, "reading..\n");
+-			for (int addr = 0; true; addr += 256) {
+-				uint8_t buffer_flash[256], buffer_file[256];
+-				int rc = fread(buffer_file, 1, 256, f);
++
++			char * line_buffer = NULL;
++			int rc, addr = 0;
++			size_t len = 0;
++			uint8_t buffer_flash[256], buffer_file[256];
++			while (true) {					
++				rc = getline(&line_buffer, &len, f);
+ 				if (rc <= 0)
+ 					break;
+-				fprintf(stderr, "                      \r");
+-				fprintf(stderr, "addr 0x%06X %3ld%%\r", rw_offset + addr, 100 * addr / file_size);
+-				flash_read(rw_offset + addr, buffer_flash, rc);
+-				if (memcmp(buffer_file, buffer_flash, rc)) {
+-					fprintf(stderr, "Found difference between flash and file!\n");
+-					mpsse_error(3);
++				if(line_buffer[0] == '@'){
++					sscanf(line_buffer + 1 , "%8x" , &addr);
++				}else{
++					int c = 0;
++					while( (c*3+3) < rc){
++						sscanf(line_buffer + c*3 , "%2hhx " , buffer_file + c);
++						c++;
++					}
++					flash_read(addr, buffer_flash, c);
++					if (memcmp(buffer_file, buffer_flash, c)) {
++						fprintf(stderr, "Found difference between flash and file!\n");
++						free(line_buffer);
++						mpsse_error(3);
++					}
++					addr += c;
+ 				}
++				fprintf(stderr, "                      \r");
++				fprintf(stderr, "addr 0x%06X %3ld%%\r", addr, 100 * addr / file_size);
+ 			}
+-
++			free(line_buffer);
+ 			fprintf(stderr, "                      \r");
+ 			fprintf(stderr, "VERIFY OK\n");
++
+ 		}
+ 
+ 
+diff --git a/iceprog/mpsse.c b/iceprog/mpsse.c
+index 80d462f..71c9ee6 100644
+--- a/iceprog/mpsse.c
++++ b/iceprog/mpsse.c
+@@ -309,6 +309,12 @@ void mpsse_init(int ifnum, const char *devstr, bool slow_clock)
+ 
+ 	mpsse_ftdic_open = true;
+ 
++	/* Reset the BITMODE. Set all pins to output. */
++	if (ftdi_set_bitmode(&mpsse_ftdic, 0x00, BITMODE_RESET) < 0) {
++		fprintf(stderr, "Failed to set BITMODE_RESET on iCE FTDI USB device.\n");
++		mpsse_error(2);
++	}
++
+ 	if (ftdi_usb_reset(&mpsse_ftdic)) {
+ 		fprintf(stderr, "Failed to reset iCE FTDI USB device.\n");
+ 		mpsse_error(2);
+@@ -358,6 +364,9 @@ void mpsse_close(void)
+ {
+ 	ftdi_set_latency_timer(&mpsse_ftdic, mpsse_ftdi_latency);
+ 	ftdi_disable_bitbang(&mpsse_ftdic);
++
++	ftdi_set_bitmode(&mpsse_ftdic, 0x00,  BITMODE_BITBANG);
++
+ 	ftdi_usb_close(&mpsse_ftdic);
+ 	ftdi_deinit(&mpsse_ftdic);
+ }
+\ No newline at end of file
+-- 
+2.17.1
+
