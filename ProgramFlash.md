@@ -1,4 +1,4 @@
-## Program the FLASH
+## Program the FLASH on the EPFL Programmer
 
 Install the required linux tools:
 
@@ -9,7 +9,7 @@ $ sudo apt install pkg-config libftdi1-2 libusb-1.0-4
 Compile the iceprog program by doing
 
 ```
-cd iceprog
+cd sw/vendor/yosyshq_icestorm/iceprog
 make
 ```
 
@@ -71,39 +71,40 @@ You may also need to run `sudo usermod -a -G plugdev yourusername` and restart t
 You may want to unplug and plug back the USB cable and repeat the iceprog command.
 
 
-Build the FPGA bistream as
+Reset the bitstream of the FPGA, and build it as
 
 ```
 make vivado-fpga FPGA_BOARD=pynq-z2
 ```
 
-then go to
+You need to reset the bitstream to avoid conflicts when programming the FLASH from the FTDI chip.
+
+
+Generate the C program you want to execute as described in the [ExecuteFromFlash](ExecuteFromFlash.md),
+
+then program the FLASH as:
 
 ```
-build/openhwgroup.org_systems_core-v-mini-mcu_0/pynq-z2-vivado
+./iceprog -d i:0x0403:0x6011 -I B ../../core-v-mini-mcu/sw/applications/hello_world/hello_world.flash.hex
+```
+
+You can read the content of the FLASH as:
+
+```
+./iceprog -d i:0x0403:0x6011 -I B -r flash_content.txt
+xxd flash_content.txt > flash_content.dump.txt
+```
+
+Now program the FPGA with the x-heep bitstream:
+
+
+```
+cd build/openhwgroup.org_systems_core-v-mini-mcu_0/pynq-z2-vivado
 ```
 
 Open Vivado, open the Hardware Manager --> Open Target --> Autoconnect --> Program Device
 
 and choose the file `openhwgroup.org_systems_core-v-mini-mcu_0.bit`
 
-
-Program the FLASH as:
-
-Reset the bitstream of the FPGA, then
-
-```
-./iceprog -d i:0x0403:0x6011 -I B ../../core-v-mini-mcu/sw/applications/hello_world/hello_world.hex
-```
-
-you can read the content of the FLASH as:
-
-```
-./iceprog -d i:0x0403:0x6011 -I B -r flash_content.txt
-```
-
-remember to have the jumper in, and then out after programming the FLASH to disconnect the FTDI chip.
-
-
-then re-load the bitstream of the FPGA.
-
+Remember to set the `boot_sel_i` and `execute_from_flash_i` switches to 1.
+Reset the logic (so the x-heep reset and not the bitstream reset) and enjoy.
