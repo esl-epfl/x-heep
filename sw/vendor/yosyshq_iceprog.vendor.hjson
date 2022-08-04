@@ -14,7 +14,6 @@
 
   exclude_from_upstream: [
     "CodeOfConduct",
-    "config.mk",
     "COPYING",
     "docs",
     "examples",
