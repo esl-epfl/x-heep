@@ -69,22 +69,20 @@ module testharness #(
   logic cpu_subsystem_pwr_sw;
   logic peripheral_subsystem_pwr_sw;
   logic ram7_pwr_sw;
+  bit status;
 
-  initial begin
-    $display($time, "All Power Supply ON");
+  initial
+  begin
+      $display($time, "All Power Supply ON");
 
-    status = supply_on("/core_v_mini_mcu_i/VDD_1d0_CPU_SUBSYSTEM", 1.0);
-    status = supply_on("/core_v_mini_mcu_i/VSS_CPU_SUBSYSTEM", 0);
-    cpu_subsystem_pwr_sw = 1;
+      status = supply_on("VDD", 1.0);
+      status = supply_on("VSS", 0);
+      cpu_subsystem_pwr_sw = 0;
 
-    status = supply_on("/core_v_mini_mcu_i/VDD_1d0_PERIPHERAL_SUBSYSTEM", 1.0);
-    status = supply_on("/core_v_mini_mcu_i/VSS_PERIPHERAL_SUBSYSTEM", 0);
-    peripheral_subsystem_pwr_sw = 1;
+      for(int i=0;i<100;i++) @(posedge clk_i);
 
-    status = supply_on("/core_v_mini_mcu_i/VDD_1d0_RAM7", 1.0);
-    status = supply_on("/core_v_mini_mcu_i/VSS_RAM7", 0);
-    ram7_pwr_sw = 1;
-  end
+      cpu_subsystem_pwr_sw = 1;
+   end
 
   core_v_mini_mcu #(
       .PULP_XPULP(PULP_XPULP),
