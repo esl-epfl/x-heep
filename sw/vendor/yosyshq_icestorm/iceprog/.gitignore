@@ -1,0 +1,4 @@
+iceprog
+*.exe
+*.o
+*.d
