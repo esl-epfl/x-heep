@@ -106,15 +106,15 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] PERIPHERAL_END_ADDRESS = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE - 1;
   localparam logic[31:0] PERIPHERAL_IDX = 32'd11;
 
-  localparam logic[31:0] SPI_FLASH_START_ADDRESS = 32'h${ext_slave_start_address};
-  localparam logic[31:0] SPI_FLASH_SIZE = 32'h${ext_slave_size_address};
-  localparam logic[31:0] SPI_FLASH_END_ADDRESS = SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE - 1;
-  localparam logic[31:0] SPI_FLASH_IDX = 32'd12;
-
   localparam logic[31:0] EXT_SLAVE_START_ADDRESS = 32'h${ext_slave_start_address};
   localparam logic[31:0] EXT_SLAVE_SIZE = 32'h${ext_slave_size_address};
   localparam logic[31:0] EXT_SLAVE_END_ADDRESS = EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE - 1;
-  localparam logic[31:0] EXT_SLAVE_IDX = 32'd13;
+  localparam logic[31:0] EXT_SLAVE_IDX = 32'd12;
+
+  localparam logic[31:0] SPI_FLASH_START_ADDRESS = 32'h${spi_flash_start_address};
+  localparam logic[31:0] SPI_FLASH_SIZE = 32'h${spi_flash_size_address};
+  localparam logic[31:0] SPI_FLASH_END_ADDRESS = SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE - 1;
+  localparam logic[31:0] SPI_FLASH_IDX = 32'd13;
 
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{ idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS },
@@ -129,8 +129,8 @@ package core_v_mini_mcu_pkg;
       '{ idx: DEBUG_IDX, start_addr: DEBUG_START_ADDRESS, end_addr: DEBUG_END_ADDRESS },
       '{ idx: AO_PERIPHERAL_IDX, start_addr: AO_PERIPHERAL_START_ADDRESS, end_addr: AO_PERIPHERAL_END_ADDRESS },
       '{ idx: PERIPHERAL_IDX, start_addr: PERIPHERAL_START_ADDRESS, end_addr: PERIPHERAL_END_ADDRESS },
-      '{ idx: SPI_FLASH_IDX, start_addr: SPI_FLASH_START_ADDRESS, end_addr: SPI_FLASH_END_ADDRESS },
-      '{ idx: EXT_SLAVE_IDX, start_addr: EXT_SLAVE_START_ADDRESS, end_addr: EXT_SLAVE_END_ADDRESS }
+      '{ idx: EXT_SLAVE_IDX, start_addr: EXT_SLAVE_START_ADDRESS, end_addr: EXT_SLAVE_END_ADDRESS },
+      '{ idx: SPI_FLASH_IDX, start_addr: SPI_FLASH_START_ADDRESS, end_addr: SPI_FLASH_END_ADDRESS }
   };
 
   //slave encoder

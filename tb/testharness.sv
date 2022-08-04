@@ -70,22 +70,21 @@ module testharness #(
   logic peripheral_subsystem_pwr_sw;
   logic ram7_pwr_sw;
 
-  initial
-  begin
-      $display($time, "All Power Supply ON");
+  initial begin
+    $display($time, "All Power Supply ON");
 
-      status = supply_on("/core_v_mini_mcu_i/VDD_1d0_CPU_SUBSYSTEM", 1.0);
-      status = supply_on("/core_v_mini_mcu_i/VSS_CPU_SUBSYSTEM", 0);
-      cpu_subsystem_pwr_sw = 1;
+    status = supply_on("/core_v_mini_mcu_i/VDD_1d0_CPU_SUBSYSTEM", 1.0);
+    status = supply_on("/core_v_mini_mcu_i/VSS_CPU_SUBSYSTEM", 0);
+    cpu_subsystem_pwr_sw = 1;
 
-      status = supply_on("/core_v_mini_mcu_i/VDD_1d0_PERIPHERAL_SUBSYSTEM", 1.0);
-      status = supply_on("/core_v_mini_mcu_i/VSS_PERIPHERAL_SUBSYSTEM", 0);
-      peripheral_subsystem_pwr_sw = 1;
+    status = supply_on("/core_v_mini_mcu_i/VDD_1d0_PERIPHERAL_SUBSYSTEM", 1.0);
+    status = supply_on("/core_v_mini_mcu_i/VSS_PERIPHERAL_SUBSYSTEM", 0);
+    peripheral_subsystem_pwr_sw = 1;
 
-      status = supply_on("/core_v_mini_mcu_i/VDD_1d0_RAM7", 1.0);
-      status = supply_on("/core_v_mini_mcu_i/VSS_RAM7", 0);
-      ram7_pwr_sw = 1;
-   end
+    status = supply_on("/core_v_mini_mcu_i/VDD_1d0_RAM7", 1.0);
+    status = supply_on("/core_v_mini_mcu_i/VSS_RAM7", 0);
+    ram7_pwr_sw = 1;
+  end
 
   core_v_mini_mcu #(
       .PULP_XPULP(PULP_XPULP),

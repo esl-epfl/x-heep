@@ -102,7 +102,7 @@ package core_v_mini_mcu_pkg;
 
   localparam logic [31:0] AO_PERIPHERAL_START_ADDRESS = 32'h20000000;
   localparam logic [31:0] AO_PERIPHERAL_SIZE = 32'h00100000;
-  localparam logic[31:0] AO_PERIPHERAL_END_ADDRESS = AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE - 1;
+  localparam logic [31:0] AO_PERIPHERAL_END_ADDRESS = AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE - 1;
   localparam logic [31:0] AO_PERIPHERAL_IDX = 32'd10;
 
   localparam logic [31:0] PERIPHERAL_START_ADDRESS = 32'h30000000;
@@ -110,15 +110,15 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] PERIPHERAL_END_ADDRESS = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE - 1;
   localparam logic [31:0] PERIPHERAL_IDX = 32'd11;
 
-  localparam logic [31:0] SPI_FLASH_START_ADDRESS = 32'h40000000;
-  localparam logic [31:0] SPI_FLASH_SIZE = 32'h01000000;
-  localparam logic [31:0] SPI_FLASH_END_ADDRESS = SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE - 1;
-  localparam logic [31:0] SPI_FLASH_IDX = 32'd12;
-
   localparam logic [31:0] EXT_SLAVE_START_ADDRESS = 32'h40000000;
   localparam logic [31:0] EXT_SLAVE_SIZE = 32'h01000000;
   localparam logic [31:0] EXT_SLAVE_END_ADDRESS = EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE - 1;
-  localparam logic [31:0] EXT_SLAVE_IDX = 32'd13;
+  localparam logic [31:0] EXT_SLAVE_IDX = 32'd12;
+
+  localparam logic [31:0] SPI_FLASH_START_ADDRESS = 32'hF0000000;
+  localparam logic [31:0] SPI_FLASH_SIZE = 32'h01000000;
+  localparam logic [31:0] SPI_FLASH_END_ADDRESS = SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE - 1;
+  localparam logic [31:0] SPI_FLASH_IDX = 32'd13;
 
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS},
@@ -142,11 +142,11 @@ package core_v_mini_mcu_pkg;
           end_addr: PERIPHERAL_END_ADDRESS
       },
       '{
-          idx: SPI_FLASH_IDX,
-          start_addr: SPI_FLASH_START_ADDRESS,
-          end_addr: SPI_FLASH_END_ADDRESS
+          idx: EXT_SLAVE_IDX,
+          start_addr: EXT_SLAVE_START_ADDRESS,
+          end_addr: EXT_SLAVE_END_ADDRESS
       },
-      '{idx: EXT_SLAVE_IDX, start_addr: EXT_SLAVE_START_ADDRESS, end_addr: EXT_SLAVE_END_ADDRESS}
+      '{idx: SPI_FLASH_IDX, start_addr: SPI_FLASH_START_ADDRESS, end_addr: SPI_FLASH_END_ADDRESS}
   };
 
   //slave encoder
