@@ -1,0 +1,33 @@
+// Copyright 2022 EPFL <ruben.rodriguezalvarez@epfl.ch>
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+{
+  name: "yosyshq_icetorm",
+  target_dir: "yosyshq_icestorm",
+
+  upstream: {
+    url: "https://github.com/YosysHQ/icestorm.git",
+    rev: "2bc541743ada3542c6da36a50e66303b9cbd2059",
+  },
+
+  patch_dir: "patches/yosyshq_icestorm",
+
+  exclude_from_upstream: [
+    "CodeOfConduct",
+    "COPYING",
+    "docs",
+    "examples",
+    "icebox",
+    "icebram",
+    "icecompr",
+    "icefuzz",
+    "icemulti",
+    "icepack",
+    "icepll",
+    "icetime",
+    "Makefile",
+    "README",
+    "testbench*"
+  ]
+}
+

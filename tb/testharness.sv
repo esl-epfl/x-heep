@@ -13,7 +13,8 @@ module testharness #(
     input logic clk_i,
     input logic rst_ni,
 
-    input  logic        boot_select_i,
+    input logic boot_select_i,
+
     input  logic        jtag_tck_i,
     input  logic        jtag_tms_i,
     input  logic        jtag_trst_ni,
@@ -69,20 +70,19 @@ module testharness #(
   logic cpu_subsystem_pwr_sw;
   logic peripheral_subsystem_pwr_sw;
   logic ram7_pwr_sw;
-  bit status;
+  bit   status;
 
-  initial
-  begin
-      $display($time, "All Power Supply ON");
+  initial begin
+    $display($time, "All Power Supply ON");
 
-      status = supply_on("VDD", 1.0);
-      status = supply_on("VSS", 0);
-      cpu_subsystem_pwr_sw = 0;
+    status = supply_on("VDD", 1.0);
+    status = supply_on("VSS", 0);
+    cpu_subsystem_pwr_sw = 0;
 
-      for(int i=0;i<100;i++) @(posedge clk_i);
+    for (int i = 0; i < 100; i++) @(posedge clk_i);
 
-      cpu_subsystem_pwr_sw = 1;
-   end
+    cpu_subsystem_pwr_sw = 1;
+  end
 
   core_v_mini_mcu #(
       .PULP_XPULP(PULP_XPULP),

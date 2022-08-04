@@ -1,0 +1,201 @@
+diff --git a/iceprog/iceprog.c b/iceprog/iceprog.c
+index 8ee6443..38e308f 100644
+--- a/iceprog/iceprog.c
++++ b/iceprog/iceprog.c
+@@ -506,6 +506,7 @@ static void help(const char *progname)
+ 	fprintf(stderr, "  -s                    slow SPI (50 kHz instead of 6 MHz)\n");
+ 	fprintf(stderr, "  -k                    keep flash in powered up state (i.e. skip power down command)\n");
+ 	fprintf(stderr, "  -v                    verbose output\n");
++	fprintf(stderr, "  -T                    Pause before writing/reading\n");
+ 	fprintf(stderr, "  -i [4,32,64]          select erase block size [default: 64k]\n");
+ 	fprintf(stderr, "\n");
+ 	fprintf(stderr, "Mode of operation:\n");
+@@ -587,6 +588,8 @@ int main(int argc, char **argv)
+ 	const char *devstr = NULL;
+ 	int ifnum = 0;
+ 
++	bool stop_spi = false;
++
+ #ifdef _WIN32
+ 	_setmode(_fileno(stdin), _O_BINARY);
+ 	_setmode(_fileno(stdout), _O_BINARY);
+@@ -600,7 +603,7 @@ int main(int argc, char **argv)
+ 	/* Decode command line parameters */
+ 	int opt;
+ 	char *endptr;
+-	while ((opt = getopt_long(argc, argv, "d:i:I:rR:e:o:cbnStQvspXk", long_options, NULL)) != -1) {
++	while ((opt = getopt_long(argc, argv, "d:i:I:rR:e:o:cbnStQvTspXk", long_options, NULL)) != -1) {
+ 		switch (opt) {
+ 		case 'd': /* device string */
+ 			devstr = optarg;
+@@ -696,6 +699,9 @@ int main(int argc, char **argv)
+ 		case 'v': /* provide verbose output */
+ 			verbose = true;
+ 			break;
++		case 'T': /* Stop at writing / reading */
++			stop_spi = true;
++			break;
+ 		case 's': /* use slow SPI clock */
+ 			slow_clock = true;
+ 			break;
+@@ -997,22 +1003,59 @@ int main(int argc, char **argv)
+ 				}
+ 			}
+ 
++			if(stop_spi){
++				/* To debug writing of values with the logic analyzer*/
++				printf("Stoped before writting. Press ENTER to continue\n");
++				getchar();
++			}
++
+ 			if (!erase_mode)
+ 			{
+ 				fprintf(stderr, "programming..\n");
+ 
+-				for (int rc, addr = 0; true; addr += rc) {
+-					uint8_t buffer[256];
+-					int page_size = 256 - (rw_offset + addr) % 256;
+-					rc = fread(buffer, 1, page_size, f);
+-					if (rc <= 0)
++				char * line_buffer = NULL;
++				int rc, addr = 0;
++				size_t len = 0;
++				uint8_t buffer[256];
++				int count = 0;
++				while (true) {					
++					rc = getline(&line_buffer, &len, f);
++					if (rc <= 0){
++						if(count > 0){
++							flash_write_enable();
++							flash_prog(addr, buffer, count);
++							flash_wait();
++							count = 0;
++						}
+ 						break;
++					}
++					if(line_buffer[0] == '@'){
++						if(count > 0){
++							flash_write_enable();
++							flash_prog(addr, buffer, count);
++							flash_wait();
++							count = 0;
++						}
++						sscanf(line_buffer + 1 , "%8x" , &addr);
++					}else{
++						int c = 0;
++						while( (c*3+3) < rc){
++							sscanf(line_buffer + c*3 , "%2hhx " , buffer + count);
++							count++;
++							if((addr + count)%256 == 0){
++								flash_write_enable();
++								flash_prog(addr, buffer, count);
++								flash_wait();
++								addr += count;
++								count = 0;
++							}
++							c++;
++						}
++					}
+ 					fprintf(stderr, "                      \r");
+-					fprintf(stderr, "addr 0x%06X %3ld%%\r", rw_offset + addr, 100 * addr / file_size);
+-					flash_write_enable();
+-					flash_prog(rw_offset + addr, buffer, rc);
+-					flash_wait();
++					fprintf(stderr, "addr 0x%06X %3ld%%\r", addr, 100 * addr / file_size);
+ 				}
++				free(line_buffer);
+ 				fprintf(stderr, "                      \r");
+ 				fprintf(stderr, "done.\n");
+ 
+@@ -1026,6 +1069,12 @@ int main(int argc, char **argv)
+ 		// ---------------------------------------------------------
+ 
+ 		if (read_mode) {
++			if(stop_spi){
++				/* Just to debug reading of values with the logic analyzer*/
++				printf("Stoped before writting. Press ENTER to continue\n");
++				getchar();
++			}
++
+ 			fprintf(stderr, "reading..\n");
+ 			for (int addr = 0; addr < read_size; addr += 256) {
+ 				uint8_t buffer[256];
+@@ -1037,23 +1086,40 @@ int main(int argc, char **argv)
+ 			fprintf(stderr, "                      \r");
+ 			fprintf(stderr, "done.\n");
+ 		} else if (!erase_mode && !disable_verify) {
++
+ 			fprintf(stderr, "reading..\n");
+-			for (int addr = 0; true; addr += 256) {
+-				uint8_t buffer_flash[256], buffer_file[256];
+-				int rc = fread(buffer_file, 1, 256, f);
++
++			char * line_buffer = NULL;
++			int rc, addr = 0;
++			size_t len = 0;
++			uint8_t buffer_flash[256], buffer_file[256];
++			while (true) {					
++				rc = getline(&line_buffer, &len, f);
+ 				if (rc <= 0)
+ 					break;
+-				fprintf(stderr, "                      \r");
+-				fprintf(stderr, "addr 0x%06X %3ld%%\r", rw_offset + addr, 100 * addr / file_size);
+-				flash_read(rw_offset + addr, buffer_flash, rc);
+-				if (memcmp(buffer_file, buffer_flash, rc)) {
+-					fprintf(stderr, "Found difference between flash and file!\n");
+-					mpsse_error(3);
++				if(line_buffer[0] == '@'){
++					sscanf(line_buffer + 1 , "%8x" , &addr);
++				}else{
++					int c = 0;
++					while( (c*3+3) < rc){
++						sscanf(line_buffer + c*3 , "%2hhx " , buffer_file + c);
++						c++;
++					}
++					flash_read(addr, buffer_flash, c);
++					if (memcmp(buffer_file, buffer_flash, c)) {
++						fprintf(stderr, "Found difference between flash and file!\n");
++						free(line_buffer);
++						mpsse_error(3);
++					}
++					addr += c;
+ 				}
++				fprintf(stderr, "                      \r");
++				fprintf(stderr, "addr 0x%06X %3ld%%\r", addr, 100 * addr / file_size);
+ 			}
+-
++			free(line_buffer);
+ 			fprintf(stderr, "                      \r");
+ 			fprintf(stderr, "VERIFY OK\n");
++
+ 		}
+ 
+ 
+diff --git a/iceprog/mpsse.c b/iceprog/mpsse.c
+index 80d462f..71c9ee6 100644
+--- a/iceprog/mpsse.c
++++ b/iceprog/mpsse.c
+@@ -309,6 +309,12 @@ void mpsse_init(int ifnum, const char *devstr, bool slow_clock)
+ 
+ 	mpsse_ftdic_open = true;
+ 
++	/* Reset the BITMODE. Set all pins to output. */
++	if (ftdi_set_bitmode(&mpsse_ftdic, 0x00, BITMODE_RESET) < 0) {
++		fprintf(stderr, "Failed to set BITMODE_RESET on iCE FTDI USB device.\n");
++		mpsse_error(2);
++	}
++
+ 	if (ftdi_usb_reset(&mpsse_ftdic)) {
+ 		fprintf(stderr, "Failed to reset iCE FTDI USB device.\n");
+ 		mpsse_error(2);
+@@ -358,6 +364,9 @@ void mpsse_close(void)
+ {
+ 	ftdi_set_latency_timer(&mpsse_ftdic, mpsse_ftdi_latency);
+ 	ftdi_disable_bitbang(&mpsse_ftdic);
++
++	ftdi_set_bitmode(&mpsse_ftdic, 0x00,  BITMODE_BITBANG);
++
+ 	ftdi_usb_close(&mpsse_ftdic);
+ 	ftdi_deinit(&mpsse_ftdic);
+ }
+\ No newline at end of file

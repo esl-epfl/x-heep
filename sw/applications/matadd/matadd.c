@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "base/csr.h"
+#include "csr.h"
 #include "matrixAdd32.h"
 
 #define DEBUG_OUTPUT
