@@ -143,7 +143,7 @@ e.g: Ask for the content of register `a0`
 or just run the entire execution with the continue command and then check the `uart0.log` to see the printed hello world string:
 
 ```
-continue
+(gdb) continue
 ```
 
 

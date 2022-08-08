@@ -221,44 +221,29 @@ Follow the [ExecuteFromFlash](./ExecuteFromFlash.md) guide to exxecute code dire
 
 ## Emulation
 
-This project supports emulation on FPGAs (work in progress).
+This project supports emulation on FPGAs.
 
-### Xilinx Nexys-A7 100T Flow
+### Xilinx Pynq-Z2 Flow
 
-Work In Progress and untested!!!
 
 To build and program the bitstream for your FPGA with vivado, type:
 
 ```
-make vivado-fpga FPGA_BOARD=nexys-a7-100t
+make vivado-fpga FPGA_BOARD=pynq-z2
 ```
 
 or add the flag `use_bscane_xilinx` to use the native Xilinx scanchain:
 
 ```
-make vivado-fpga FPGA_BOARD=nexys-a7-100t FUSESOC_FLAGS=--flag=use_bscane_xilinx
-```
-
-If you only need the synthesis implementation:
-
-```
-vivado-fpga-nobuild FPGA_BOARD=nexys-a7-100t
-```
-
-then
-
-```
-cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/nexys-a7-100t-vivado/
-make synth
-```
-
-at the end of the synthesis, you can export your netlist by typing:
-
-```
-vivado -notrace -mode batch -source ../../../hw/fpga/scripts/export_verilog_netlist.tcl
+make vivado-fpga FPGA_BOARD=pynq-z2 FUSESOC_FLAGS=--flag=use_bscane_xilinx
 ```
 
 Only Vivado 2021.2 has been tried.
+
+To run SW, follow the [Debug](./Debug.md) guide 
+to load the binaries with the HS2 cable over JTAG, 
+or follow the [ExecuteFromFlash](./ExecuteFromFlash.md) 
+guide if you have a FLASH attached to the FPGA.
 
 # ASIC Implementation
 
