@@ -48,7 +48,7 @@ module i2c_reg_top (
   assign intg_err_o = '0;
 
   assign tl_reg_h2d = tl_i;
-  assign tl_o   = tl_reg_d2h;
+  assign tl_o = tl_reg_d2h;
 
   tlul_adapter_reg #(
     .RegAw(AW),
