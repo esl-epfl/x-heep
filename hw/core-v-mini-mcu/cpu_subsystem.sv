@@ -32,11 +32,15 @@ module cpu_subsystem
     output logic [ 4:0] irq_id_o,
 
     // Debug Interface
-    input logic debug_req_i,
+    input logic debug_req_i
 
-    // CPU Control Signals
-    input logic fetch_enable_i
 );
+
+
+  // CPU Control Signals
+  logic fetch_enable;
+
+  assign fetch_enable = 1'b1;
 
   assign core_instr_req_o.wdata = '0;
   assign core_instr_req_o.we    = '0;
@@ -110,7 +114,7 @@ module cpu_subsystem
         .crash_dump_o(),
         .double_fault_seen_o(),
 
-        .fetch_enable_i({3'b0, fetch_enable_i}),
+        .fetch_enable_i({3'b0, fetch_enable}),
         .alert_minor_o(),
         .alert_major_o(),
         .icache_inval_o(),
@@ -200,7 +204,7 @@ module cpu_subsystem
         .debug_running_o  (),
         .debug_halted_o   (),
 
-        .fetch_enable_i(fetch_enable_i),
+        .fetch_enable_i(fetch_enable),
         .core_sleep_o  ()
     );
 

@@ -27,7 +27,7 @@ module xilinx_core_v_mini_mcu_wrapper
 
     inout logic [31:0] gpio_io,
 
-    input  logic fetch_enable_i,
+    input  logic execute_from_flash_i,
     input  logic boot_select_i,
     output logic exit_value_o,
     output logic exit_valid_o,
@@ -93,8 +93,8 @@ module xilinx_core_v_mini_mcu_wrapper
 
       .gpio_io(gpio_io),
 
-      .fetch_enable_i(fetch_enable_i),
-      .boot_select_i (boot_select_i),
+      .execute_from_flash_i(execute_from_flash_i),
+      .boot_select_i(boot_select_i),
 
       .spi_sd_io(spi_sd_io),
       .spi_csb_o(spi_csb),

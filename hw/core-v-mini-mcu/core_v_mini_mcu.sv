@@ -16,6 +16,7 @@ module core_v_mini_mcu
     input logic rst_ni,
 
     input logic boot_select_i,
+    input logic execute_from_flash_i,
 
     input  logic jtag_tck_i,
     input  logic jtag_tms_i,
@@ -39,7 +40,6 @@ module core_v_mini_mcu
 
     inout logic [31:0] gpio_io,
 
-    input  logic        fetch_enable_i,
     output logic [31:0] exit_value_o,
     output logic        exit_valid_o,
 
@@ -122,8 +122,7 @@ module core_v_mini_mcu
       .irq_i({irq_fast, 4'b0, irq_external, 3'b0, irq_timer, 3'b0, irq_software, 3'b0}),
       .irq_ack_o(irq_ack),
       .irq_id_o(irq_id_out),
-      .debug_req_i(debug_core_req),
-      .fetch_enable_i(fetch_enable_i)
+      .debug_req_i(debug_core_req)
   );
 
 
@@ -195,6 +194,7 @@ module core_v_mini_mcu
       .rst_ni,
 
       .boot_select_i,
+      .execute_from_flash_i,
 
       .slave_req_i (peripheral_slave_req),
       .slave_resp_o(peripheral_slave_resp),

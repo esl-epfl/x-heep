@@ -9,7 +9,7 @@ set_property -dict {PACKAGE_PIN N16 IOSTANDARD LVCMOS33} [get_ports clk_led]
 set_property -dict {PACKAGE_PIN W9 IOSTANDARD LVCMOS33}  [get_ports clk_out]
 set_property -dict {PACKAGE_PIN R14 IOSTANDARD LVCMOS33} [get_ports exit_valid_o]
 set_property -dict {PACKAGE_PIN P14 IOSTANDARD LVCMOS33} [get_ports exit_value_o]
-set_property -dict {PACKAGE_PIN M19 IOSTANDARD LVCMOS33} [get_ports fetch_enable_i]
+set_property -dict {PACKAGE_PIN M19 IOSTANDARD LVCMOS33} [get_ports execute_from_flash_i]
 set_property -dict {PACKAGE_PIN M20 IOSTANDARD LVCMOS33} [get_ports boot_select_i]
 
 ## Pmoda

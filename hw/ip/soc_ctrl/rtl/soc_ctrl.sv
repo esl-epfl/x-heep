@@ -11,7 +11,9 @@ module soc_ctrl #(
     input clk_i,
     input rst_ni,
 
-    input  logic boot_select_i,
+    input logic boot_select_i,
+    input logic execute_from_flash_i,
+
     output logic use_spimemio_o,
 
     // Bus Interface
@@ -39,6 +41,9 @@ module soc_ctrl #(
 
   assign hw2reg.boot_select.de = 1'b1;
   assign hw2reg.boot_select.d = boot_select_i;
+
+  assign hw2reg.use_spimemio.de = 1'b1;
+  assign hw2reg.use_spimemio.d = execute_from_flash_i;
 
   assign hw2reg.boot_exit_loop.d = testbench_set_exit_loop[0];
   assign hw2reg.boot_exit_loop.de = testbench_set_exit_loop[0];
