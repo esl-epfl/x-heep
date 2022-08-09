@@ -60,8 +60,13 @@ It should print:
 
 ```
 Memcopy - example external peripheral
+Init the PLIC... Success
+Set MEMCOPY interrupt priority to 1... Success
+Enable MEMCOPY interrupt... Success
 Memcopy launched...
 Memcopy finished
+Claim interrupt... Success
+Complete interrupt... Success
 MEMCOPY SUCCESS
 ```
 
