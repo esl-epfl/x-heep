@@ -61,6 +61,10 @@ extern "C" {
 #define BOOTROM_SIZE 0x${bootrom_size_address}
 #define BOOTROM_END_ADDRESS (BOOTROM_START_ADDRESS + BOOTROM_SIZE)
 
+#define I2C_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${i2c_start_offset})
+#define I2C_SIZE 0x${i2c_size_address}
+#define I2C_END_ADDRESS (I2C_START_ADDRESS + I2C_SIZE)
+
 #define NULL_INTR ${null_intr}
 #define UART_INTR_TX_WATERMARK ${uart_intr_tx_watermark}
 #define UART_INTR_RX_WATERMARK ${uart_intr_rx_watermark}
@@ -102,8 +106,23 @@ extern "C" {
 #define GPIO_INTR_29 ${gpio_intr_29}
 #define GPIO_INTR_30 ${gpio_intr_30}
 #define GPIO_INTR_31 ${gpio_intr_31}
+#define INTR_FMT_WATERMARK ${intr_fmt_watermark}
+#define INTR_RX_WATERMARK ${intr_rx_watermark}
+#define INTR_FMT_OVERFLOW ${intr_fmt_overflow}
+#define INTR_RX_OVERFLOW ${intr_rx_overflow}
+#define INTR_NAK ${intr_nak}
+#define INTR_SCL_INTERFERENCE ${intr_scl_interference}
+#define INTR_SDA_INTERFERENCE ${intr_sda_interference}
+#define INTR_STRETCH_TIMEOUT ${intr_stretch_timeout}
+#define INTR_SDA_UNSTABLE ${intr_sda_unstable}
+#define INTR_TRANS_COMPLETE ${intr_trans_complete}
+#define INTR_TX_EMPTY ${intr_tx_empty}
+#define INTR_TX_NONEMPTY ${intr_tx_nonempty}
+#define INTR_TX_OVERFLOW ${intr_tx_overflow}
+#define INTR_ACQ_OVERFLOW ${intr_acq_overflow}
+#define INTR_ACK_STOP ${intr_ack_stop}
+#define INTR_HOST_TIMEOUT ${intr_host_timeout}
 #define MEMCOPY_INTR_DONE ${memcopy_intr_done}
-
 
 #ifdef __cplusplus
 }  // extern "C"

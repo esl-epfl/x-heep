@@ -98,7 +98,8 @@
     "hw/ip/gpio/doc",
     "hw/ip/gpio/dv",
     "hw/ip/hmac",
-    "hw/ip/i2c",
+    "hw/ip/i2c/doc",
+    "hw/ip/i2c/dv",
     "hw/ip/_index",.md
     "hw/ip/keymgr",
     "hw/ip/kmac",

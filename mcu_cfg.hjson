@@ -58,6 +58,10 @@
             offset:  0x0070000,
             length:  0x0010000,
         },
+        i2c: {
+            offset:  0x0080000,
+            length:  0x0010000,
+        },
 
     },
 
@@ -115,7 +119,23 @@
         gpio_intr_29:            38,
         gpio_intr_30:            39,
         gpio_intr_31:            40,
-        memcopy_intr_done:       41,
+        intr_fmt_watermark:      41,
+        intr_rx_watermark:       42,
+        intr_fmt_overflow:       43,
+        intr_rx_overflow:        44,
+        intr_nak:                45,
+        intr_scl_interference:   46,
+        intr_sda_interference:   47,
+        intr_stretch_timeout:    48,
+        intr_sda_unstable:       49,
+        intr_trans_complete:     50,
+        intr_tx_empty:           51,
+        intr_tx_nonempty:        52,
+        intr_tx_overflow:        53,
+        intr_acq_overflow:       54,
+        intr_ack_stop:           55,
+        intr_host_timeout:       56,
+        memcopy_intr_done:       57,
     }
 
 }

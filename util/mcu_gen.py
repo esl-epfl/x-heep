@@ -149,6 +149,9 @@ def main():
     bootrom_start_offset  = string2int(obj['peripherals']['bootrom']['offset'])
     bootrom_size_address  = string2int(obj['peripherals']['bootrom']['length'])
 
+    i2c_start_offset  = string2int(obj['peripherals']['i2c']['offset'])
+    i2c_size_address  = string2int(obj['peripherals']['i2c']['length'])
+
     null_intr = obj['interrupts']['null_intr']
     uart_intr_tx_watermark = obj['interrupts']['uart_intr_tx_watermark']
     uart_intr_rx_watermark = obj['interrupts']['uart_intr_rx_watermark']
@@ -190,6 +193,22 @@ def main():
     gpio_intr_29 = obj['interrupts']['gpio_intr_29']
     gpio_intr_30 = obj['interrupts']['gpio_intr_30']
     gpio_intr_31 = obj['interrupts']['gpio_intr_31']
+    intr_fmt_watermark = obj['interrupts']['intr_fmt_watermark']
+    intr_rx_watermark = obj['interrupts']['intr_rx_watermark']
+    intr_fmt_overflow = obj['interrupts']['intr_fmt_overflow']
+    intr_rx_overflow = obj['interrupts']['intr_rx_overflow']
+    intr_nak = obj['interrupts']['intr_nak']
+    intr_scl_interference = obj['interrupts']['intr_scl_interference']
+    intr_sda_interference = obj['interrupts']['intr_sda_interference']
+    intr_stretch_timeout = obj['interrupts']['intr_stretch_timeout']
+    intr_sda_unstable = obj['interrupts']['intr_sda_unstable']
+    intr_trans_complete = obj['interrupts']['intr_trans_complete']
+    intr_tx_empty = obj['interrupts']['intr_tx_empty']
+    intr_tx_nonempty = obj['interrupts']['intr_tx_nonempty']
+    intr_tx_overflow = obj['interrupts']['intr_tx_overflow']
+    intr_acq_overflow = obj['interrupts']['intr_acq_overflow']
+    intr_ack_stop = obj['interrupts']['intr_ack_stop']
+    intr_host_timeout = obj['interrupts']['intr_host_timeout']
     memcopy_intr_done = obj['interrupts']['memcopy_intr_done']
 
     kwargs = {
@@ -221,6 +240,8 @@ def main():
         "spi_memio_size_address"   : spi_memio_size_address,
         "bootrom_start_offset"     : bootrom_start_offset,
         "bootrom_size_address"     : bootrom_size_address,
+        "i2c_start_offset"         : i2c_start_offset,
+        "i2c_size_address"         : i2c_size_address,
         "null_intr"                : null_intr,
         "uart_intr_tx_watermark"   : uart_intr_tx_watermark,
         "uart_intr_rx_watermark"   : uart_intr_rx_watermark,
@@ -262,6 +283,22 @@ def main():
         "gpio_intr_29"             : gpio_intr_29,
         "gpio_intr_30"             : gpio_intr_30,
         "gpio_intr_31"             : gpio_intr_31,
+        "intr_fmt_watermark"       : intr_fmt_watermark,
+        "intr_rx_watermark"        : intr_rx_watermark,
+        "intr_fmt_overflow"        : intr_fmt_overflow,
+        "intr_rx_overflow"         : intr_rx_overflow,
+        "intr_nak"                 : intr_nak,
+        "intr_scl_interference"    : intr_scl_interference,
+        "intr_sda_interference"    : intr_sda_interference,
+        "intr_stretch_timeout"     : intr_stretch_timeout,
+        "intr_sda_unstable"        : intr_sda_unstable,
+        "intr_trans_complete"      : intr_trans_complete,
+        "intr_tx_empty"            : intr_tx_empty,
+        "intr_tx_nonempty"         : intr_tx_nonempty,
+        "intr_tx_overflow"         : intr_tx_overflow,
+        "intr_acq_overflow"        : intr_acq_overflow,
+        "intr_ack_stop"            : intr_ack_stop,
+        "intr_host_timeout"        : intr_host_timeout,
         "memcopy_intr_done"        : memcopy_intr_done,
     }
 
