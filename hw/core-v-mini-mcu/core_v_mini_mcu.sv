@@ -45,7 +45,10 @@ module core_v_mini_mcu
 
     inout logic [3:0] spi_sd_io,
     inout logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_o,
-    inout logic spi_sck_o
+    inout logic spi_sck_o,
+
+    inout logic i2c_scl_io,
+    inout logic i2c_sda_io
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -103,6 +106,13 @@ module core_v_mini_mcu
   logic      [                        3:0] spi_sd_out;
   logic      [                        3:0] spi_sd_en;
   logic      [                        3:0] spi_sd_in;
+
+  logic                                    cio_scl_in;
+  logic                                    cio_scl_out;
+  logic                                    cio_scl_en;
+  logic                                    cio_sda_in;
+  logic                                    cio_sda_out;
+  logic                                    cio_sda_en;
 
   cpu_subsystem #(
       .BOOT_ADDR       (BOOT_ADDR),
@@ -229,7 +239,14 @@ module core_v_mini_mcu
 
       .cio_gpio_i(gpio_in),
       .cio_gpio_o(gpio_out),
-      .cio_gpio_en_o(gpio_en)
+      .cio_gpio_en_o(gpio_en),
+
+      .cio_scl_i(cio_scl_in),
+      .cio_scl_o(cio_scl_out),
+      .cio_scl_en_o(cio_scl_en),
+      .cio_sda_i(cio_sda_in),
+      .cio_sda_o(cio_sda_out),
+      .cio_sda_en_o(cio_sda_en)
   );
 
   assign irq_fast = '0;
@@ -277,6 +294,20 @@ module core_v_mini_mcu
       );
     end
   endgenerate
+
+  pad_cell pad_cell_i2c_scl_i (
+      .gpio_i(cio_scl_out),
+      .gpio_en_i(cio_scl_en),
+      .gpio_o(cio_scl_in),
+      .pad_io(i2c_scl_io)
+  );
+
+  pad_cell pad_cell_i2c_sda_i (
+      .gpio_i(cio_sda_out),
+      .gpio_en_i(cio_sda_en),
+      .gpio_o(cio_sda_in),
+      .pad_io(i2c_sda_io)
+  );
 
 
 endmodule  // core_v_mini_mcu

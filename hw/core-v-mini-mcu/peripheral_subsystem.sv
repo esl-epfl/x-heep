@@ -53,8 +53,15 @@ module peripheral_subsystem
     output logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_en_o,
     output logic [                        3:0] spi_sd_o,
     output logic [                        3:0] spi_sd_en_o,
-    input  logic [                        3:0] spi_sd_i
+    input  logic [                        3:0] spi_sd_i,
 
+    // I2C Interface
+    input  logic cio_scl_i,
+    output logic cio_scl_o,
+    output logic cio_scl_en_o,
+    input  logic cio_sda_i,
+    output logic cio_sda_o,
+    output logic cio_sda_en_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -79,6 +86,9 @@ module peripheral_subsystem
   tlul_pkg::tl_h2d_t gpio_tl_h2d;
   tlul_pkg::tl_d2h_t gpio_tl_d2h;
 
+  tlul_pkg::tl_h2d_t i2c_tl_h2d;
+  tlul_pkg::tl_d2h_t i2c_tl_d2h;
+
   logic uart_intr_tx_watermark;
   logic uart_intr_rx_watermark;
   logic uart_intr_tx_empty;
@@ -93,6 +103,22 @@ module peripheral_subsystem
   logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] irq_id[rv_plic_reg_pkg::NumTarget];
   logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] unused_irq_id[rv_plic_reg_pkg::NumTarget];
   logic use_spimemio;
+  logic intr_fmt_watermark;
+  logic intr_rx_watermark;
+  logic intr_fmt_overflow;
+  logic intr_rx_overflow;
+  logic intr_nak;
+  logic intr_scl_interference;
+  logic intr_sda_interference;
+  logic intr_stretch_timeout;
+  logic intr_sda_unstable;
+  logic intr_trans_complete;
+  logic intr_tx_empty;
+  logic intr_tx_nonempty;
+  logic intr_tx_overflow;
+  logic intr_acq_overflow;
+  logic intr_ack_stop;
+  logic intr_host_timeout;
 
   // this avoids lint errors
   assign unused_irq_id = irq_id;
@@ -108,15 +134,31 @@ module peripheral_subsystem
   assign intr_vector[7] = uart_intr_rx_timeout;
   assign intr_vector[8] = uart_intr_rx_parity_err;
   assign intr_vector[40:9] = gpio_intr;
+  assign intr_vector[41] = intr_fmt_watermark;
+  assign intr_vector[42] = intr_rx_watermark;
+  assign intr_vector[43] = intr_fmt_overflow;
+  assign intr_vector[44] = intr_rx_overflow;
+  assign intr_vector[45] = intr_nak;
+  assign intr_vector[46] = intr_scl_interference;
+  assign intr_vector[47] = intr_sda_interference;
+  assign intr_vector[48] = intr_stretch_timeout;
+  assign intr_vector[49] = intr_sda_unstable;
+  assign intr_vector[50] = intr_trans_complete;
+  assign intr_vector[51] = intr_tx_empty;
+  assign intr_vector[52] = intr_tx_nonempty;
+  assign intr_vector[53] = intr_tx_overflow;
+  assign intr_vector[54] = intr_acq_overflow;
+  assign intr_vector[55] = intr_ack_stop;
+  assign intr_vector[56] = intr_host_timeout;
 
   // Assign external interrupts
   for (genvar i = 0; i < EXT_NINTERRUPT; i++) begin
     // assign intr_vector[i+rv_plic_reg_pkg::NumSrc] = intr_vector_ext_i[i];
-    assign intr_vector[i+41] = intr_vector_ext_i[i];
+    assign intr_vector[i+57] = intr_vector_ext_i[i];
   end
 
   // REMOVE ONCE PLIC HJSON IS UPDATED
-  for (genvar i = 41 + EXT_NINTERRUPT; i < rv_plic_reg_pkg::NumSrc; i++) begin
+  for (genvar i = 57 + EXT_NINTERRUPT; i < rv_plic_reg_pkg::NumSrc; i++) begin
     assign intr_vector[i] = 1'b0;
   end
 
@@ -265,6 +307,42 @@ module peripheral_subsystem
       .cio_gpio_o(cio_gpio_o),
       .cio_gpio_en_o(cio_gpio_en_o),
       .intr_gpio_o(gpio_intr)
+  );
+
+  reg_to_tlul reg_to_tlul_i2c_i (
+      .tl_o(i2c_tl_h2d),
+      .tl_i(i2c_tl_d2h),
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::I2C_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2C_IDX])
+  );
+
+  i2c i2c_i (
+      .clk_i,
+      .rst_ni,
+      .tl_i(i2c_tl_h2d),
+      .tl_o(i2c_tl_d2h),
+      .cio_scl_i,
+      .cio_scl_o,
+      .cio_scl_en_o,
+      .cio_sda_i,
+      .cio_sda_o,
+      .cio_sda_en_o,
+      .intr_fmt_watermark_o(intr_fmt_watermark),
+      .intr_rx_watermark_o(intr_rx_watermark),
+      .intr_fmt_overflow_o(intr_fmt_overflow),
+      .intr_rx_overflow_o(intr_rx_overflow),
+      .intr_nak_o(intr_nak),
+      .intr_scl_interference_o(intr_scl_interference),
+      .intr_sda_interference_o(intr_sda_interference),
+      .intr_stretch_timeout_o(intr_stretch_timeout),
+      .intr_sda_unstable_o(intr_sda_unstable),
+      .intr_trans_complete_o(intr_trans_complete),
+      .intr_tx_empty_o(intr_tx_empty),
+      .intr_tx_nonempty_o(intr_tx_nonempty),
+      .intr_tx_overflow_o(intr_tx_overflow),
+      .intr_acq_overflow_o(intr_acq_overflow),
+      .intr_ack_stop_o(intr_ack_stop),
+      .intr_host_timeout_o(intr_host_timeout)
   );
 
   spi_subsystem spi_subsystem_i (

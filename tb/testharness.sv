@@ -101,8 +101,10 @@ module testharness #(
 
       .spi_sd_io(spi_sd_io),
       .spi_csb_o(spi_csb),
-      .spi_sck_o(spi_sck)
+      .spi_sck_o(spi_sck),
 
+      .i2c_scl_io(),
+      .i2c_sda_io()
   );
 
   uartdpi #(
