@@ -35,6 +35,11 @@ package soc_ctrl_reg_pkg;
     logic de;
   } soc_ctrl_hw2reg_boot_exit_loop_reg_t;
 
+  typedef struct packed {
+    logic d;
+    logic de;
+  } soc_ctrl_hw2reg_use_spimemio_reg_t;
+
   // Register -> HW type
   typedef struct packed {
     soc_ctrl_reg2hw_exit_valid_reg_t exit_valid;  // [67:67]
@@ -47,8 +52,9 @@ package soc_ctrl_reg_pkg;
 
   // HW -> register type
   typedef struct packed {
-    soc_ctrl_hw2reg_boot_select_reg_t boot_select;  // [3:2]
-    soc_ctrl_hw2reg_boot_exit_loop_reg_t boot_exit_loop;  // [1:0]
+    soc_ctrl_hw2reg_boot_select_reg_t boot_select;  // [5:4]
+    soc_ctrl_hw2reg_boot_exit_loop_reg_t boot_exit_loop;  // [3:2]
+    soc_ctrl_hw2reg_use_spimemio_reg_t use_spimemio;  // [1:0]
   } soc_ctrl_hw2reg_t;
 
   // Register offsets

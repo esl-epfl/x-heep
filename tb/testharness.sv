@@ -12,13 +12,13 @@ module testharness #(
     input logic rst_ni,
 
     input logic boot_select_i,
+    input logic execute_from_flash_i,
 
     input  logic        jtag_tck_i,
     input  logic        jtag_tms_i,
     input  logic        jtag_trst_ni,
     input  logic        jtag_tdi_i,
     output logic        jtag_tdo_o,
-    input  logic        fetch_enable_i,
     output logic [31:0] exit_value_o,
     output logic        exit_valid_o
 );
@@ -95,7 +95,7 @@ module testharness #(
 
       .gpio_io(gpio),
 
-      .fetch_enable_i,
+      .execute_from_flash_i,
       .exit_value_o,
       .exit_valid_o,
 

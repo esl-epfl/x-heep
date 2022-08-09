@@ -43,11 +43,11 @@ int main (int argc, char * argv[])
 {
 
   unsigned int SRAM_SIZE;
-  std::string firmware, arg_max_sim_time, arg_openocd, arg_boot_sel;
+  std::string firmware, arg_max_sim_time, arg_openocd, arg_boot_sel, arg_execute_from_flash;
   unsigned int max_sim_time;
   bool use_openocd;
   bool run_all = false;
-  int i,j, exit_val, boot_sel;
+  int i,j, exit_val, boot_sel, execute_from_flash;
   Verilated::commandArgs(argc, argv);
 
   // Instantiate the model
@@ -90,19 +90,28 @@ int main (int argc, char * argv[])
   arg_boot_sel = getCmdOption(argc, argv, "+boot_sel=");
   boot_sel     = 0;
   if(arg_boot_sel.empty()){
-    std::cout<<"[TESTBENCH]: No Boot Option specified, using jtag"<<std::endl;
+    std::cout<<"[TESTBENCH]: No Boot Option specified, using jtag (boot_sel=0)"<<std::endl;
     boot_sel = 0;
   } else {
-    if(arg_boot_sel.compare("flash") == 0) {
+    if(arg_boot_sel.compare("1") == 0) {
       boot_sel = 1;
       std::cout<<"[TESTBENCH]: Booting from flash"<<std::endl;
-    } else if(arg_boot_sel.compare("jtag") == 0) {
+    } else if(arg_boot_sel.compare("0") == 0) {
       boot_sel = 0;
       std::cout<<"[TESTBENCH]: Booting from jtag"<<std::endl;
     } else {
-      std::cout<<"[TESTBENCH]: Wrong Boot Option specified (jtag, flash) - using jtag"<<std::endl;
+      std::cout<<"[TESTBENCH]: Wrong Boot Option specified (jtag, flash) - using jtag (boot_sel=0)"<<std::endl;
       boot_sel = 0;
     }
+  }
+
+  arg_boot_sel = getCmdOption(argc, argv, "+execute_from_flash=");
+  execute_from_flash = 1;
+
+  if(boot_sel == 1) {
+    std::cout<<"[TESTBENCH]: ERROR: Executing from SPI is not supported (yet) in Verilator"<<std::endl;
+    std::cout<<"exit simulation..."<<std::endl;
+    return -1;
   }
 
   svSetScope(svGetScopeFromName("TOP.testharness"));
@@ -112,13 +121,14 @@ int main (int argc, char * argv[])
     exit(EXIT_FAILURE);
   }
 
-  dut->clk_i          = 0;
-  dut->rst_ni         = 0;
-  dut->jtag_tck_i     = 0;
-  dut->jtag_tms_i     = 0;
-  dut->jtag_trst_ni   = 0;
-  dut->jtag_tdi_i     = 0;
-  dut->fetch_enable_i = 1;
+  dut->clk_i                = 0;
+  dut->rst_ni               = 0;
+  dut->jtag_tck_i           = 0;
+  dut->jtag_tms_i           = 0;
+  dut->jtag_trst_ni         = 0;
+  dut->jtag_tdi_i           = 0;
+  dut->execute_from_flash_i = execute_from_flash;
+  dut->boot_select_i        = boot_sel;
 
   dut->eval();
   m_trace->dump(sim_time);

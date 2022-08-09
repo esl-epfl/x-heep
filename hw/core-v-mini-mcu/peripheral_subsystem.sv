@@ -12,6 +12,7 @@ module peripheral_subsystem
     input logic rst_ni,
 
     input logic boot_select_i,
+    input logic execute_from_flash_i,
 
     input  obi_req_t  slave_req_i,
     output obi_resp_t slave_resp_o,
@@ -251,6 +252,7 @@ module peripheral_subsystem
       .clk_i,
       .rst_ni,
       .boot_select_i,
+      .execute_from_flash_i,
       .use_spimemio_o(use_spimemio),
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
