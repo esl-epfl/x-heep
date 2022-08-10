@@ -25,6 +25,7 @@
 #include "soc_ctrl.h"
 #include "core_v_mini_mcu.h"
 #include "error.h"
+#include "x-heep.h"
 
 #undef errno
 extern int errno;
@@ -240,9 +241,15 @@ ssize_t _write(int file, const void *ptr, size_t len)
 
     uart_t uart;
     uart.base_addr   = mmio_region_from_addr((uintptr_t)UART_START_ADDRESS);
-    uart.baudrate    = 7200;
-    uart.clk_freq_hz = 125*1000;
-
+    uart.baudrate    = 115200;
+#ifdef TARGET_SIM
+    #pragma message ( "fake clock frequency is used" )
+    //for simulation we are providing the Khz value to make the simulation faster
+    //the testharness uartdpi module also gets the Khz value instead of the Hz
+    uart.clk_freq_hz = REFERENCE_CLOCK_KHz*1000;
+#else
+    uart.clk_freq_hz = REFERENCE_CLOCK_KHz*1000;
+#endif
     if (uart_init(&uart) != kErrorOk) {
         errno = ENOSYS;
         return -1;

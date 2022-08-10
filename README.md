@@ -107,6 +107,13 @@ Don't forget to set the `RISCV` env variable to the compiler folder (without the
 make app-helloworld
 ```
 
+or for FPGAs,
+
+```
+make app-helloworld TARGET=pynq-z2
+```
+
+
 This will create the executable file to be loaded in your target system (ASIC, FPGA, Simulation).
 
 ## Simulating
