@@ -109,7 +109,7 @@ module testharness #(
   );
 
   uartdpi #(
-      .BAUD('d115200),
+      .BAUD('d256000),
       .FREQ(CLK_FREQUENCY*1000), //Hz
       .NAME("uart0")
   ) i_uart0 (
