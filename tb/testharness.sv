@@ -7,7 +7,7 @@ module testharness #(
     parameter FPU           = 0,
     parameter PULP_ZFINX    = 0,
     parameter JTAG_DPI      = 0,
-    parameter CLK_FREQUENCY = 'd100_000 //KHz
+    parameter CLK_FREQUENCY = 'd100_000  //KHz
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -110,7 +110,7 @@ module testharness #(
 
   uartdpi #(
       .BAUD('d256000),
-      .FREQ(CLK_FREQUENCY*1000), //Hz
+      .FREQ(CLK_FREQUENCY * 1000),  //Hz
       .NAME("uart0")
   ) i_uart0 (
       .clk_i,
