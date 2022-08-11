@@ -115,10 +115,10 @@ module cpu_subsystem
         .double_fault_seen_o(),
 
         .fetch_enable_i(fetch_enable),
-        .alert_minor_o(),
-        .alert_major_o(),
+        .alert_minor_o (),
+        .alert_major_o (),
         .icache_inval_o(),
-        .core_sleep_o()
+        .core_sleep_o  ()
     );
 
     cv32e40p_register_file #(
