@@ -122,7 +122,7 @@ int main (int argc, char * argv[])
   }
 
   dut->clk_i                = 0;
-  dut->rst_ni               = 0;
+  dut->rst_ni               = 1;
   dut->jtag_tck_i           = 0;
   dut->jtag_tms_i           = 0;
   dut->jtag_trst_ni         = 0;
@@ -134,6 +134,10 @@ int main (int argc, char * argv[])
   m_trace->dump(sim_time);
   sim_time++;
 
+  dut->rst_ni               = 1;
+  //this creates the negedge
+  runCycles(5, dut, m_trace);
+  dut->rst_ni               = 0;
   runCycles(20, dut, m_trace);
 
 

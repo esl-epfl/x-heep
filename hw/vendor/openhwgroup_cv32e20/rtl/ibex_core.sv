@@ -140,11 +140,11 @@ module ibex_core import ibex_pkg::*; #(
 
   // CPU Control Signals
   // SEC_CM: FETCH.CTRL.LC_GATED
-  input  fetch_enable_t                fetch_enable_i,
+  input  logic                         fetch_enable_i,
   output logic                         alert_minor_o,
   output logic                         alert_major_o,
   output logic                         icache_inval_o,
-  output logic                         core_busy_o
+  output logic                         core_sleep_o
 );
 
   localparam int unsigned PMP_NUM_CHAN      = 3;
@@ -350,13 +350,42 @@ module ibex_core import ibex_pkg::*; #(
   // for RVFI
   logic        illegal_insn_id, unused_illegal_insn_id; // ID stage sees an illegal instruction
 
-  //////////////////////
-  // Clock management //
-  //////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////
+  //   ____ _            _      __  __                                                   _    //
+  //  / ___| | ___   ___| | __ |  \/  | __ _ _ __   __ _  __ _  ___ _ __ ___   ___ _ __ | |_  //
+  // | |   | |/ _ \ / __| |/ / | |\/| |/ _` | '_ \ / _` |/ _` |/ _ \ '_ ` _ \ / _ \ '_ \| __| //
+  // | |___| | (_) | (__|   <  | |  | | (_| | | | | (_| | (_| |  __/ | | | | |  __/ | | | |_  //
+  //  \____|_|\___/ \___|_|\_\ |_|  |_|\__,_|_| |_|\__,_|\__, |\___|_| |_| |_|\___|_| |_|\__| //
+  //                                                     |___/                                //
+  //////////////////////////////////////////////////////////////////////////////////////////////
 
-  // Before going to sleep, wait for I- and D-side
-  // interfaces to finish ongoing operations.
-  assign core_busy_o = ctrl_busy | if_busy | lsu_busy;
+  logic clk;
+  logic fetch_enable;
+  logic wake_from_sleep;
+
+  cve2_sleep_unit sleep_unit_i (
+      // Clock, reset interface
+      .clk_ungated_i(clk_i),  // Ungated clock
+      .rst_n        (rst_ni),
+      .clk_gated_o  (clk),  // Gated clock
+      .scan_cg_en_i (1'b0),
+
+      // Core sleep
+      .core_sleep_o(core_sleep_o),
+
+      // Fetch enable
+      .fetch_enable_i(fetch_enable_i),
+      .fetch_enable_o(fetch_enable),
+
+      // Core status
+      .if_busy_i  (if_busy),
+      .ctrl_busy_i(ctrl_busy),
+      .lsu_busy_i (lsu_busy),
+
+      // WFI wake
+      .wake_from_sleep_i(wake_from_sleep)
+  );
+
 
   //////////////
   // IF stage //
@@ -377,7 +406,7 @@ module ibex_core import ibex_pkg::*; #(
     .RndCnstLfsrPerm   ( RndCnstLfsrPerm   ),
     .BranchPredictor  (BranchPredictor)
   ) if_stage_i (
-    .clk_i (clk_i),
+    .clk_i (clk),
     .rst_ni(rst_ni),
 
     .boot_addr_i(boot_addr_i),
@@ -456,26 +485,8 @@ module ibex_core import ibex_pkg::*; #(
   // available
   assign perf_iside_wait = id_in_ready & ~instr_valid_id;
 
-  // Multi-bit fetch enable used when SecureIbex == 1. When SecureIbex == 0 only use the bottom-bit
-  // of fetch_enable_i. Ensure the multi-bit encoding has the bottom bit set for on and unset for
-  // off so FetchEnableOn/FetchEnableOff can be used without needing to know the value of
-  // SecureIbex.
-  `ASSERT_INIT(FetchEnableSecureOnBottomBitSet,    FetchEnableOn[0] == 1'b1)
-  `ASSERT_INIT(FetchEnableSecureOffBottomBitClear, FetchEnableOff[0] == 1'b0)
-
   // fetch_enable_i can be used to stop the core fetching new instructions
-  if (SecureIbex) begin : g_instr_req_gated_secure
-    // For secure Ibex fetch_enable_i must be a specific multi-bit pattern to enable instruction
-    // fetch
-    // SEC_CM: FETCH.CTRL.LC_GATED
-    assign instr_req_gated = instr_req_int & (fetch_enable_i == FetchEnableOn);
-  end else begin : g_instr_req_gated_non_secure
-    // For non secure Ibex only the bottom bit of fetch enable is considered
-    logic unused_fetch_enable;
-    assign unused_fetch_enable = ^fetch_enable_i[$bits(fetch_enable_t)-1:1];
-
-    assign instr_req_gated = instr_req_int & fetch_enable_i[0];
-  end
+  assign instr_req_gated = instr_req_int & fetch_enable;
 
   //////////////
   // ID stage //
@@ -490,7 +501,8 @@ module ibex_core import ibex_pkg::*; #(
     .WritebackStage (WritebackStage),
     .BranchPredictor(BranchPredictor)
   ) id_stage_i (
-    .clk_i (clk_i),
+
+    .clk_i(clk),
     .rst_ni(rst_ni),
 
     // Processor Enable
@@ -599,6 +611,9 @@ module ibex_core import ibex_pkg::*; #(
     .debug_ebreaku_i    (debug_ebreaku),
     .trigger_match_i    (trigger_match),
 
+    // Wakeup Signal
+    .wake_from_sleep_o(wake_from_sleep),
+
     // write data to commit in the register file
     .result_ex_i(result_ex),
     .csr_rdata_i(csr_rdata),
@@ -645,7 +660,7 @@ module ibex_core import ibex_pkg::*; #(
     .RV32B          (RV32B),
     .BranchTargetALU(BranchTargetALU)
   ) ex_block_i (
-    .clk_i (clk_i),
+    .clk_i (clk),
     .rst_ni(rst_ni),
 
     // ALU signal from ID stage
@@ -693,7 +708,7 @@ module ibex_core import ibex_pkg::*; #(
   assign lsu_resp_err = lsu_load_err | lsu_store_err;
 
   ibex_load_store_unit load_store_unit_i (
-    .clk_i (clk_i),
+    .clk_i (clk),
     .rst_ni(rst_ni),
 
     // data interface
@@ -742,7 +757,7 @@ module ibex_core import ibex_pkg::*; #(
     .ResetAll       ( ResetAll       ),
     .WritebackStage(WritebackStage)
   ) wb_stage_i (
-    .clk_i                   (clk_i),
+    .clk_i                   (clk),
     .rst_ni                  (rst_ni),
     .en_wb_i                 (en_wb),
     .instr_type_wb_i         (instr_type_wb),
@@ -928,7 +943,7 @@ module ibex_core import ibex_pkg::*; #(
     .RV32M            (RV32M),
     .RV32B            (RV32B)
   ) cs_registers_i (
-    .clk_i (clk_i),
+    .clk_i (clk),
     .rst_ni(rst_ni),
 
     // Hart ID from outside
