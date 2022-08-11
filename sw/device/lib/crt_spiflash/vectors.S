@@ -17,37 +17,45 @@
 .section .vectors, "ax"
 .option norvc
 vector_table:
-	j sw_irq_handler
+	//  0 : exception Handler and user software interrupt
+	j handler_exception
+	//  1 : supervisor software interrupt
 	j __no_irq_handler
+	//  2 : unmapped
 	j __no_irq_handler
+	//  3 : machine software interrupt handler
+	j handler_irq_software
+	//  4 : user timer interrupt
 	j __no_irq_handler
+	//  5 : supervisor timer interrupt
 	j __no_irq_handler
+	//  6 : unmapped
 	j __no_irq_handler
+	//  7 : machine timer interrupt handler
+	j handler_irq_timer
+	//  8 : user external interrupt
 	j __no_irq_handler
+	//  9 : supervisor external interrupt
 	j __no_irq_handler
+	// 10 : unmapped
 	j __no_irq_handler
+	// 11 : machine external interrupt handler
+	j handler_irq_external
+	// 12 : unmapped
 	j __no_irq_handler
+	// 13 : unmapped
 	j __no_irq_handler
+	// 14 : unmapped
 	j __no_irq_handler
+	// 15 : unmapped
 	j __no_irq_handler
+	// vendor interrupts: on Ibex interrupt ids 30-16 are the "fast" interrupts
+	.rept 15
 	j __no_irq_handler
+	.endr
+	// vendor interrupts: on Ibex interrupt id 31 is for non-maskable interrupts
 	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
-	j __no_irq_handler
+	// 64-32 : not connected on Ibex
 	j verification_irq_handler
 	j __no_irq_handler
 	j __no_irq_handler
