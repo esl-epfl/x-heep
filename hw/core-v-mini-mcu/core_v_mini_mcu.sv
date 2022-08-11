@@ -47,9 +47,7 @@ module core_v_mini_mcu
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
-    input logic cpu_subsystem_pwr_sw_i,
-    input logic peripheral_subsystem_pwr_sw_i,
-    input logic ram7_pwr_sw_i
+    input logic cpu_subsystem_pwr_sw_i
 );
 
   import core_v_mini_mcu_pkg::*;

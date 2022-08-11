@@ -64,25 +64,18 @@ module testharness #(
   // External interrupts
   logic [testharness_pkg::EXT_NINTERRUPT-1:0] intr_vector_ext;
   logic memcopy_intr;
+  logic cpu_subsystem_pwr_sw;
 
   assign intr_vector_ext[0] = memcopy_intr;
 
-  logic cpu_subsystem_pwr_sw;
-  logic peripheral_subsystem_pwr_sw;
-  logic ram7_pwr_sw;
-  bit   status;
-
+`ifdef USE_UPF
   initial begin
-    $display($time, "All Power Supply ON");
-
-    status = supply_on("VDD", 1.0);
-    status = supply_on("VSS", 0);
+    $display($time, "All Power Supply ON.");
+    supply_on("VDD", 1.0);
+    supply_on("VSS", 0);
     cpu_subsystem_pwr_sw = 0;
-
-    for (int i = 0; i < 100; i++) @(posedge clk_i);
-
-    cpu_subsystem_pwr_sw = 1;
   end
+`endif
 
   core_v_mini_mcu #(
       .PULP_XPULP(PULP_XPULP),
@@ -116,9 +109,7 @@ module testharness #(
       .gpio_io(gpio),
       .ext_peripheral_slave_req_o(periph_slave_req),
       .ext_peripheral_slave_resp_i(periph_slave_resp),
-      .cpu_subsystem_pwr_sw_i(cpu_subsystem_pwr_sw),
-      .peripheral_subsystem_pwr_sw_i(peripheral_subsystem_pwr_sw),
-      .ram7_pwr_sw_i(ram7_pwr_sw)
+      .cpu_subsystem_pwr_sw_i(cpu_subsystem_pwr_sw)
   );
 
   uartdpi #(
