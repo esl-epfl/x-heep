@@ -240,6 +240,15 @@ make vivado-fpga FPGA_BOARD=pynq-z2 FUSESOC_FLAGS=--flag=use_bscane_xilinx
 
 Only Vivado 2021.2 has been tried.
 
+To program the bitstream, open Vivado,
+
+```
+open --> Hardware Manager --> Open Target --> Autoconnect --> Program Device
+```
+
+and choose the file `openhwgroup.org_systems_core-v-mini-mcu_0.bit`
+
+
 To run SW, follow the [Debug](./Debug.md) guide 
 to load the binaries with the HS2 cable over JTAG, 
 or follow the [ExecuteFromFlash](./ExecuteFromFlash.md) 
