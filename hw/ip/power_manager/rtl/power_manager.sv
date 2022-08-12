@@ -16,12 +16,25 @@ module power_manager #(
     output reg_rsp_t reg_rsp_o,
 
     // Power gate core signal
-    output logic power_gate_core_o
+    input logic rv_timer_irq_i,
+    output logic power_gate_core_o,
+    output logic cpu_subsystem_rst_no
 );
 
   import power_manager_reg_pkg::*;
 
   power_manager_reg2hw_t reg2hw;
+
+  logic [31:0] curr_cnt, next_cnt;
+
+  typedef enum logic [1:0] {
+    IDLE,
+    PW_OFF_RST_ON,
+    PW_ON_RST_ON,
+    PW_ON_RST_OFF
+  } fsm_state;
+
+  fsm_state curr_state, next_state;
 
   power_manager_reg_top #(
       .reg_req_t(reg_req_t),
@@ -35,6 +48,73 @@ module power_manager #(
       .devmode_i(1'b1)
   );
 
-  assign power_gate_core_o = reg2hw.power_gate_core.q;
+  // FSM seq logic
+  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_
+    if (~rst_ni) begin
+      curr_state <= IDLE;
+      curr_cnt   <= 32'd0;
+    end else begin
+      curr_state <= next_state;
+      curr_cnt   <= next_cnt;
+    end
+  end
+
+  // FSM comb logic
+  always_comb begin
+
+    next_state = curr_state;
+    next_cnt = curr_cnt;
+
+    unique case (curr_state)
+
+      IDLE: begin
+        power_gate_core_o = 1'b0;
+        cpu_subsystem_rst_no = 1'b1;
+
+        if (reg2hw.power_gate_core.q == 1'b1) begin
+          next_state = PW_OFF_RST_ON;
+        end
+      end
+
+      PW_OFF_RST_ON: begin
+        power_gate_core_o = 1'b1;
+        cpu_subsystem_rst_no = 1'b0;
+
+        if (rv_timer_irq_i == 1'b1) begin
+          next_state = PW_ON_RST_ON;
+        end
+      end
+
+      PW_ON_RST_ON: begin
+        power_gate_core_o = 1'b0;
+        cpu_subsystem_rst_no = 1'b0;
+
+        if (curr_cnt == 32'd20) begin
+          next_state = PW_ON_RST_OFF;
+          next_cnt   = 32'd0;
+        end else begin
+          next_cnt = curr_cnt + 32'd1;
+        end
+      end
+
+      PW_ON_RST_OFF: begin
+        power_gate_core_o = 1'b0;
+        cpu_subsystem_rst_no = 1'b1;
+
+        if (reg2hw.power_gate_core.q == 1'b0) begin
+          next_state = IDLE;
+        end
+      end
+
+      default: begin
+        power_gate_core_o = 1'b0;
+        cpu_subsystem_rst_no = 1'b1;
+        next_state = IDLE;
+        next_cnt = 32'd0;
+      end
+
+    endcase
+
+  end
 
 endmodule : power_manager

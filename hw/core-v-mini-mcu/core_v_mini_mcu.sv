@@ -35,8 +35,6 @@ module core_v_mini_mcu
     inout logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_o,
     inout logic spi_sck_o,
 
-    output logic power_gate_core_o,
-
     input logic [EXT_NINTERRUPT-1:0] intr_vector_ext_i,
 
     input  logic uart_rx_i,
@@ -45,9 +43,7 @@ module core_v_mini_mcu
     inout logic [31:0] gpio_io,
 
     output reg_req_t ext_peripheral_slave_req_o,
-    input  reg_rsp_t ext_peripheral_slave_resp_i,
-
-    input logic cpu_subsystem_pwr_sw_i
+    input  reg_rsp_t ext_peripheral_slave_resp_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -122,6 +118,11 @@ module core_v_mini_mcu
   // soc ctrl
   logic                                    use_spimemio;
 
+  // power manager
+  logic                                    power_gate_core;
+  logic                                    cpu_subsystem_rst_n;
+  logic                                    tmp_cpu_subsystem_rst_n;
+
   cpu_subsystem #(
       .BOOT_ADDR(BOOT_ADDR),
       .PULP_XPULP(PULP_XPULP),
@@ -132,7 +133,7 @@ module core_v_mini_mcu
   ) cpu_subsystem_i (
       // Clock and Reset
       .clk_i,
-      .rst_ni,
+      .rst_ni(cpu_subsystem_rst_n),
       .core_instr_req_o(core_instr_req),
       .core_instr_resp_i(core_instr_resp),
       .core_data_req_o(core_data_req),
@@ -242,9 +243,12 @@ module core_v_mini_mcu
       .spi_sd_o(spi_sd_out),
       .spi_sd_en_o(spi_sd_en),
       .spi_sd_i(spi_sd_in),
-      .power_gate_core_o,
+      .power_gate_core_o(power_gate_core),
+      .cpu_subsystem_rst_no(tmp_cpu_subsystem_rst_n),
       .rv_timer_irq_timer_o(irq_timer)
   );
+
+  assign cpu_subsystem_rst_n = rst_ni & tmp_cpu_subsystem_rst_n;
 
   peripheral_subsystem #(
       .EXT_NINTERRUPT(EXT_NINTERRUPT)

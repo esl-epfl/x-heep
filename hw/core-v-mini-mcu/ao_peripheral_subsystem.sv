@@ -32,6 +32,7 @@ module ao_peripheral_subsystem
 
     // POWER MANAGER
     output logic power_gate_core_o,
+    output logic cpu_subsystem_rst_no,
 
     //RV TIMER
     output logic rv_timer_irq_timer_o
@@ -53,6 +54,7 @@ module ao_peripheral_subsystem
   logic [AO_PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
   logic use_spimemio;
+  logic rv_timer_irq_timer;
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
@@ -151,7 +153,9 @@ module ao_peripheral_subsystem
       .rst_ni,
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
-      .power_gate_core_o
+      .rv_timer_irq_i(rv_timer_irq_timer),
+      .power_gate_core_o,
+      .cpu_subsystem_rst_no
   );
 
   reg_to_tlul rv_timer_reg_to_tlul_i (
@@ -166,7 +170,9 @@ module ao_peripheral_subsystem
       .rst_ni,
       .tl_i(rv_timer_tl_h2d),
       .tl_o(rv_timer_tl_d2h),
-      .intr_timer_expired_0_0_o(rv_timer_irq_timer_o)
+      .intr_timer_expired_0_0_o(rv_timer_irq_timer)
   );
+
+  assign rv_timer_irq_timer_o = rv_timer_irq_timer;
 
 endmodule : ao_peripheral_subsystem

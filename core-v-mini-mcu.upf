@@ -50,6 +50,6 @@ create_power_switch switch_PD_CPU \
     -domain             PD_CPU \
     -input_supply_port  {sw_in     VDD} \
     -output_supply_port {sw_out    VDD_CPU} \
-    -control_port       {sw_ctrl  cpu_subsystem_pwr_sw_i} \
+    -control_port       {sw_ctrl   power_gate_core} \
     -on_state           {on_state  sw_in {!sw_ctrl}} \
     -off_state          {off_state {sw_ctrl}}

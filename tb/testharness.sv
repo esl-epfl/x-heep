@@ -2,7 +2,9 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+`ifdef USE_UPF
 import UPF::*;
+`endif
 
 module testharness #(
     parameter PULP_XPULP = 0,
@@ -46,8 +48,6 @@ module testharness #(
   wire [1:0] spi_csb;
   wire spi_sck;
 
-  wire power_gate_core;
-
   // External xbar master/slave and peripheral ports
   obi_req_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_req;
   obi_resp_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_resp;
@@ -64,7 +64,6 @@ module testharness #(
   // External interrupts
   logic [testharness_pkg::EXT_NINTERRUPT-1:0] intr_vector_ext;
   logic memcopy_intr;
-  logic cpu_subsystem_pwr_sw;
 
   assign intr_vector_ext[0] = memcopy_intr;
 
@@ -73,7 +72,6 @@ module testharness #(
     $display($time, "All Power Supply ON.");
     supply_on("VDD", 1.0);
     supply_on("VSS", 0);
-    cpu_subsystem_pwr_sw = 0;
   end
 `endif
 
@@ -102,14 +100,12 @@ module testharness #(
       .spi_sd_io(spi_sd_io),
       .spi_csb_o(spi_csb),
       .spi_sck_o(spi_sck),
-      .power_gate_core_o(power_gate_core),
       .intr_vector_ext_i(intr_vector_ext),
       .uart_rx_i(uart_rx),
       .uart_tx_o(uart_tx),
       .gpio_io(gpio),
       .ext_peripheral_slave_req_o(periph_slave_req),
-      .ext_peripheral_slave_resp_i(periph_slave_resp),
-      .cpu_subsystem_pwr_sw_i(cpu_subsystem_pwr_sw)
+      .ext_peripheral_slave_resp_i(periph_slave_resp)
   );
 
   uartdpi #(
