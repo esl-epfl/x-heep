@@ -85,7 +85,7 @@ Generate the C program you want to execute as described in the [ExecuteFromFlash
 then program the FLASH as:
 
 ```
-./iceprog -d i:0x0403:0x6011 -I B ../../core-v-mini-mcu/sw/applications/hello_world/hello_world.flash.hex
+./iceprog -d i:0x0403:0x6011 -I B ../../../applications/hello_world/hello_world.flash.hex
 ```
 
 You can read the content of the FLASH as:
