@@ -3,10 +3,11 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 module testharness #(
-    parameter PULP_XPULP = 0,
-    parameter FPU        = 0,
-    parameter PULP_ZFINX = 0,
-    parameter JTAG_DPI   = 0
+    parameter PULP_XPULP    = 0,
+    parameter FPU           = 0,
+    parameter PULP_ZFINX    = 0,
+    parameter JTAG_DPI      = 0,
+    parameter CLK_FREQUENCY = 'd100_000  //KHz
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -108,9 +109,8 @@ module testharness #(
   );
 
   uartdpi #(
-      .BAUD('d7200),
-      // Frequency shouldn't matter since we are sending with the same clock.
-      .FREQ('d125_000),
+      .BAUD('d256000),
+      .FREQ(CLK_FREQUENCY * 1000),  //Hz
       .NAME("uart0")
   ) i_uart0 (
       .clk_i,
