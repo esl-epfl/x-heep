@@ -8,6 +8,7 @@
  */
 
 `include "prim_assert.sv"
+//`include "dv_fcov_macros.svh"
 
 module ibex_controller #(
   parameter bit WritebackStage  = 0,
@@ -83,6 +84,9 @@ module ibex_controller #(
   input  logic                  debug_ebreakm_i,
   input  logic                  debug_ebreaku_i,
   input  logic                  trigger_match_i,
+
+  // Wakeup Signal
+  output logic                  wake_from_sleep_o,
 
   output logic                  csr_save_if_o,
   output logic                  csr_save_id_o,
@@ -437,12 +441,13 @@ module ibex_controller #(
 
         // normal execution flow
         // in debug mode or single step mode we leave immediately (wfi=nop)
-        if (irq_nm_i || irq_pending_i || debug_req_i || debug_mode_q || debug_single_step_i) begin
-          ctrl_fsm_ns = FIRST_FETCH;
+        if (wake_from_sleep_o) begin
+          ctrl_fsm_ns  = FIRST_FETCH;
         end else begin
           // Make sure clock remains disabled.
           ctrl_busy_o = 1'b0;
         end
+
       end
 
       FIRST_FETCH: begin
@@ -816,18 +821,21 @@ module ibex_controller #(
     end
   end
 
+  assign wake_from_sleep_o = irq_nm_i || irq_pending_i || debug_req_i || debug_mode_q || debug_single_step_i;
+
+
   //////////
   // FCOV //
   //////////
-/*
-  `DV_FCOV_SIGNAL(logic, interrupt_taken, (ctrl_fsm_cs != IRQ_TAKEN) & (ctrl_fsm_ns == IRQ_TAKEN))
-  `DV_FCOV_SIGNAL(logic, debug_entry_if,
-      (ctrl_fsm_cs != DBG_TAKEN_IF) & (ctrl_fsm_ns == DBG_TAKEN_IF))
-  `DV_FCOV_SIGNAL(logic, debug_entry_id,
-      (ctrl_fsm_cs != DBG_TAKEN_ID) & (ctrl_fsm_ns == DBG_TAKEN_ID))
-  `DV_FCOV_SIGNAL(logic, pipe_flush, (ctrl_fsm_cs != FLUSH) & (ctrl_fsm_ns == FLUSH))
-  `DV_FCOV_SIGNAL(logic, debug_req, debug_req_i & ~debug_mode_q)
-*/
+
+  //`DV_FCOV_SIGNAL(logic, interrupt_taken, (ctrl_fsm_cs != IRQ_TAKEN) & (ctrl_fsm_ns == IRQ_TAKEN))
+  //`DV_FCOV_SIGNAL(logic, debug_entry_if,
+  //    (ctrl_fsm_cs != DBG_TAKEN_IF) & (ctrl_fsm_ns == DBG_TAKEN_IF))
+  //`DV_FCOV_SIGNAL(logic, debug_entry_id,
+  //    (ctrl_fsm_cs != DBG_TAKEN_ID) & (ctrl_fsm_ns == DBG_TAKEN_ID))
+  //`DV_FCOV_SIGNAL(logic, pipe_flush, (ctrl_fsm_cs != FLUSH) & (ctrl_fsm_ns == FLUSH))
+  //`DV_FCOV_SIGNAL(logic, debug_req, debug_req_i & ~debug_mode_q)
+
   ////////////////
   // Assertions //
   ////////////////

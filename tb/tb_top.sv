@@ -14,6 +14,7 @@ module tb_top #(
 
   const time          CLK_PHASE_HI = 5ns;
   const time          CLK_PHASE_LO = 5ns;
+  const int           CLK_FREQUENCY_KHz = 100_000;
   const time          CLK_PERIOD = CLK_PHASE_HI + CLK_PHASE_LO;
 
   const time          STIM_APPLICATION_DEL = CLK_PERIOD * 0.1;
@@ -174,10 +175,11 @@ module tb_top #(
 
   // wrapper for riscv, the memory system and stdout peripheral
   testharness #(
-      .PULP_XPULP(PULP_XPULP),
-      .FPU       (FPU),
-      .PULP_ZFINX(PULP_ZFINX),
-      .JTAG_DPI  (JTAG_DPI)
+      .PULP_XPULP   (PULP_XPULP),
+      .FPU          (FPU),
+      .PULP_ZFINX   (PULP_ZFINX),
+      .JTAG_DPI     (JTAG_DPI),
+      .CLK_FREQUENCY(CLK_FREQUENCY_KHz)
   ) testharness_i (
       .clk_i               (clk),
       .rst_ni              (rst_n),

@@ -12,6 +12,7 @@ filesets:
     depend:
     - x-heep::packages
     - openhwgroup.org:ip:cv32e40p
+    - openhwgroup.org:ip:cve2
     - pulp-platform.org:ip:fpnew
     - pulp-platform.org::common_cells
     - pulp-platform.org::cluster_interconnect
@@ -20,7 +21,6 @@ filesets:
     - openhwgroup.org:ip:soc_ctrl
     - lowrisc:ip:uart:0.1
     - lowrisc:ip:rv_plic_example:0.1
-    - lowrisc:ibex:ibex_core:0.1
     - lowrisc:ip:rv_timer:0.1
     - lowrisc:ip:gpio:0.1
     - lowrisc:ip:spi_host:0.1
@@ -74,6 +74,7 @@ filesets:
     - hw/fpga/scripts/generate_sram.tcl:  { file_type: tclSource }
     - hw/fpga/prim_xilinx_clk.sv:  { file_type: systemVerilogSource }
     - hw/fpga/cv32e40p_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
+    - hw/fpga/cve2_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
     - hw/fpga/pad_cell_xilinx.sv:  { file_type: systemVerilogSource }
 
   ip-asic:

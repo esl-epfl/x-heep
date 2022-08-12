@@ -12,6 +12,7 @@
  */
 
 `include "prim_assert.sv"
+//`include "dv_fcov_macros.svh"
 
 module ibex_load_store_unit
 (
@@ -501,10 +502,10 @@ module ibex_load_store_unit
   //////////
   // FCOV //
   //////////
-/*
-  `DV_FCOV_SIGNAL(logic, ls_error_exception, (load_err_o | store_err_o) & ~pmp_err_q)
-  `DV_FCOV_SIGNAL(logic, ls_pmp_exception, (load_err_o | store_err_o) & pmp_err_q)
-*/
+
+  //`DV_FCOV_SIGNAL(logic, ls_error_exception, (load_err_o | store_err_o) & ~pmp_err_q)
+  //`DV_FCOV_SIGNAL(logic, ls_pmp_exception, (load_err_o | store_err_o) & pmp_err_q)
+
   ////////////////
   // Assertions //
   ////////////////

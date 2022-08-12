@@ -13,7 +13,7 @@ cd sw/vendor/yosyshq_icestorm/iceprog
 make
 ```
 
-Plug a micro-USB into the EPFL programmer, and connect the EPFL programmer to the Pynq-z2 FPGA PMODs.
+Plug a micro-USB into the `EPFL programmer`, and connect the EPFL programmer to the Pynq-z2 FPGA PMODs.
 
 We use the the `FT4232H` which has Vendor ID `0x0403` and Product ID `0x6011`.
 
@@ -85,7 +85,7 @@ Generate the C program you want to execute as described in the [ExecuteFromFlash
 then program the FLASH as:
 
 ```
-./iceprog -d i:0x0403:0x6011 -I B ../../core-v-mini-mcu/sw/applications/hello_world/hello_world.flash.hex
+./iceprog -d i:0x0403:0x6011 -I B ../../../applications/hello_world/hello_world.flash.hex
 ```
 
 You can read the content of the FLASH as:
@@ -101,10 +101,6 @@ Now program the FPGA with the x-heep bitstream:
 ```
 cd build/openhwgroup.org_systems_core-v-mini-mcu_0/pynq-z2-vivado
 ```
-
-Open Vivado, open the Hardware Manager --> Open Target --> Autoconnect --> Program Device
-
-and choose the file `openhwgroup.org_systems_core-v-mini-mcu_0.bit`
 
 Remember to set the `boot_sel_i` and `execute_from_flash_i` switches to 1.
 Reset the logic (so the x-heep reset and not the bitstream reset) and enjoy.
