@@ -84,7 +84,6 @@ filesets:
   xdc-fpga-nexys:
     files:
     - hw/fpga/constraints/nexys/pin_assign.xdc
-    - hw/fpga/constraints/nexys/constraints.xdc
     file_type: xdc
 
   xdc-fpga-pynq-z2:
@@ -300,7 +299,7 @@ targets:
     tools:
       vivado:
         part: xc7a100tcsg324-1
-    toplevel: [core_v_mini_mcu]
+    toplevel: [xilinx_core_v_mini_mcu_wrapper]
 
   pynq-z2:
     <<: *default_target
