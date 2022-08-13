@@ -53,22 +53,22 @@ set_property -dict { PACKAGE_PIN U17   IOSTANDARD LVCMOS33 } [get_ports { gpio_i
 #set_property -dict { PACKAGE_PIN N16   IOSTANDARD LVCMOS33 } [get_ports { LED17_R }]; #IO_L11N_T1_SRCC_14 Sch=led17_r
 
 ##7 segment display
-#set_property -dict { PACKAGE_PIN T10   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[8] }]; #IO_L24N_T3_A00_D16_14 Sch=ca
-#set_property -dict { PACKAGE_PIN R10   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[9] }]; #IO_25_14 Sch=cb
-#set_property -dict { PACKAGE_PIN K16   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[10] }]; #IO_25_15 Sch=cc
-#set_property -dict { PACKAGE_PIN K13   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[11] }]; #IO_L17P_T2_A26_15 Sch=cd
-#set_property -dict { PACKAGE_PIN P15   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[12] }]; #IO_L13P_T2_MRCC_14 Sch=ce
-#set_property -dict { PACKAGE_PIN T11   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[13] }]; #IO_L19P_T3_A10_D26_14 Sch=cf
-#set_property -dict { PACKAGE_PIN L18   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[14] }]; #IO_L4P_T0_D04_14 Sch=cg
-#set_property -dict { PACKAGE_PIN H15   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[15] }]; #IO_L19N_T3_A21_VREF_15 Sch=dp
-#set_property -dict { PACKAGE_PIN J17   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[16] }]; #IO_L23P_T3_FOE_B_15 Sch=an[0]
-#set_property -dict { PACKAGE_PIN J18   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[17] }]; #IO_L23N_T3_FWE_B_15 Sch=an[1]
-#set_property -dict { PACKAGE_PIN T9    IOSTANDARD LVCMOS33 } [get_ports { gpio_io[18] }]; #IO_L24P_T3_A01_D17_14 Sch=an[2]
-#set_property -dict { PACKAGE_PIN J14   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[19] }]; #IO_L19P_T3_A22_15 Sch=an[3]
-#set_property -dict { PACKAGE_PIN P14   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[20] }]; #IO_L8N_T1_D12_14 Sch=an[4]
-#set_property -dict { PACKAGE_PIN T14   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[21] }]; #IO_L14P_T2_SRCC_14 Sch=an[5]
-#set_property -dict { PACKAGE_PIN K2    IOSTANDARD LVCMOS33 } [get_ports { gpio_io[22] }]; #IO_L23P_T3_35 Sch=an[6]
-#set_property -dict { PACKAGE_PIN U13   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[23] }]; #IO_L23N_T3_A02_D18_14 Sch=an[7]
+set_property -dict { PACKAGE_PIN T10   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[8] }]; #IO_L24N_T3_A00_D16_14 Sch=ca
+set_property -dict { PACKAGE_PIN R10   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[9] }]; #IO_25_14 Sch=cb
+set_property -dict { PACKAGE_PIN K16   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[10] }]; #IO_25_15 Sch=cc
+set_property -dict { PACKAGE_PIN K13   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[11] }]; #IO_L17P_T2_A26_15 Sch=cd
+set_property -dict { PACKAGE_PIN P15   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[12] }]; #IO_L13P_T2_MRCC_14 Sch=ce
+set_property -dict { PACKAGE_PIN T11   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[13] }]; #IO_L19P_T3_A10_D26_14 Sch=cf
+set_property -dict { PACKAGE_PIN L18   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[14] }]; #IO_L4P_T0_D04_14 Sch=cg
+set_property -dict { PACKAGE_PIN H15   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[15] }]; #IO_L19N_T3_A21_VREF_15 Sch=dp
+set_property -dict { PACKAGE_PIN J17   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[16] }]; #IO_L23P_T3_FOE_B_15 Sch=an[0]
+set_property -dict { PACKAGE_PIN J18   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[17] }]; #IO_L23N_T3_FWE_B_15 Sch=an[1]
+set_property -dict { PACKAGE_PIN T9    IOSTANDARD LVCMOS33 } [get_ports { gpio_io[18] }]; #IO_L24P_T3_A01_D17_14 Sch=an[2]
+set_property -dict { PACKAGE_PIN J14   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[19] }]; #IO_L19P_T3_A22_15 Sch=an[3]
+set_property -dict { PACKAGE_PIN P14   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[20] }]; #IO_L8N_T1_D12_14 Sch=an[4]
+set_property -dict { PACKAGE_PIN T14   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[21] }]; #IO_L14P_T2_SRCC_14 Sch=an[5]
+set_property -dict { PACKAGE_PIN K2    IOSTANDARD LVCMOS33 } [get_ports { gpio_io[22] }]; #IO_L23P_T3_35 Sch=an[6]
+set_property -dict { PACKAGE_PIN U13   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[23] }]; #IO_L23N_T3_A02_D18_14 Sch=an[7]
 
 ##CPU Reset Button
 set_property -dict { PACKAGE_PIN C12   IOSTANDARD LVCMOS33 } [get_ports { rst_i }]; #IO_L3P_T0_DQS_AD1P_15 Sch=cpu_resetn
