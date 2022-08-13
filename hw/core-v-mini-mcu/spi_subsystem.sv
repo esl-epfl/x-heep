@@ -125,4 +125,16 @@ module spi_subsystem
       .intr_spi_event_o()
   );
 
+`ifndef SYNTHESIS
+
+  always_ff @(posedge clk_i) begin : yosys_spi_write
+    if (spimemio_req_i.req && spimemio_req_i.we) begin
+      $error("%t: Writing to Yosys OBI SPI port", $time);
+      $finish;
+    end
+  end
+
+`endif
+
+
 endmodule  // spi_subsystem
