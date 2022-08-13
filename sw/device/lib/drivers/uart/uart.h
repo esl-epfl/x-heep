@@ -76,6 +76,11 @@ size_t uart_write(const uart_t *uart, const uint8_t *data, size_t len);
  * @param len Length of the buffer to write.
  * @return Number of bytes written.
  */
+
+size_t uart_getchar(const uart_t *uart, uint8_t *data);
+
+size_t uart_read(const uart_t *uart, const uint8_t *data, size_t len);
+
 size_t uart_sink(void *uart, const char *data, size_t len);
 
 #ifdef __cplusplus
