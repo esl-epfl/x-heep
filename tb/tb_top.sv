@@ -27,9 +27,9 @@ module tb_top #(
   logic               rst_n = 'b0;
 
   // Boot selection (0:jtag or 1:flash)
-  int                 boot_sel;
+  logic               boot_sel;
   // SPI selection (0:ot-qspi or 1:memory mapped flash, only valid if boot_sel is 1)
-  int                 execute_from_flash;
+  logic               execute_from_flash;
 
   // cycle counter
   int unsigned        cycle_cnt_q;
