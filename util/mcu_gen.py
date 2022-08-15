@@ -148,6 +148,9 @@ def main():
 
     bootrom_start_offset  = string2int(obj['peripherals']['bootrom']['offset'])
     bootrom_size_address  = string2int(obj['peripherals']['bootrom']['length'])
+    
+    dma_start_offset  = string2int(obj['peripherals']['dma']['offset'])
+    dma_size_address  = string2int(obj['peripherals']['dma']['length'])
 
     i2c_start_offset  = string2int(obj['peripherals']['i2c']['offset'])
     i2c_size_address  = string2int(obj['peripherals']['i2c']['length'])
@@ -209,6 +212,7 @@ def main():
     intr_acq_overflow = obj['interrupts']['intr_acq_overflow']
     intr_ack_stop = obj['interrupts']['intr_ack_stop']
     intr_host_timeout = obj['interrupts']['intr_host_timeout']
+    dma_intr_done = obj['interrupts']['dma_intr_done']
     memcopy_intr_done = obj['interrupts']['memcopy_intr_done']
 
     kwargs = {
@@ -242,6 +246,8 @@ def main():
         "bootrom_size_address"     : bootrom_size_address,
         "i2c_start_offset"         : i2c_start_offset,
         "i2c_size_address"         : i2c_size_address,
+        "dma_start_offset"         : dma_start_offset,
+        "dma_size_address"         : dma_size_address,
         "null_intr"                : null_intr,
         "uart_intr_tx_watermark"   : uart_intr_tx_watermark,
         "uart_intr_rx_watermark"   : uart_intr_rx_watermark,
@@ -299,6 +305,7 @@ def main():
         "intr_acq_overflow"        : intr_acq_overflow,
         "intr_ack_stop"            : intr_ack_stop,
         "intr_host_timeout"        : intr_host_timeout,
+        "dma_intr_done"            : dma_intr_done,
         "memcopy_intr_done"        : memcopy_intr_done,
     }
 

@@ -42,18 +42,15 @@
         gpio: {
             offset:  0x0050000,
             length:  0x0010000,
-        }
-
+        },
         spi_host: {
             offset:  0x0060000,
             length:  0x0008000,
         },
-
         spi_memio: {
             offset:  0x0068000,
             length:  0x0008000,
         },
-
         bootrom: {
             offset:  0x0070000,
             length:  0x0010000,
@@ -62,7 +59,10 @@
             offset:  0x0080000,
             length:  0x0010000,
         },
-
+        dma: {
+            offset:  0x0090000,
+            length:  0x0010000,
+        }
     },
 
     ext_slaves: {
@@ -135,7 +135,8 @@
         intr_acq_overflow:       54,
         intr_ack_stop:           55,
         intr_host_timeout:       56,
-        memcopy_intr_done:       57,
+        dma_intr_done:           57,
+        memcopy_intr_done:       58
     }
 
 }

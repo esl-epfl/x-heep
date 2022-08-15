@@ -38,6 +38,7 @@ LIB_DRIVERS                += $(wildcard device/lib/drivers/rv_plic/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/rv_timer/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/gpio/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/i2c/*.c)
+LIB_DRIVERS                += $(wildcard device/lib/drivers/dma/*.c)
 INC_FOLDERS                = $(sort $(dir $(wildcard device/target/$(TARGET)/)))
 INC_FOLDERS                += $(sort $(dir $(wildcard device/lib/base/)))
 INC_FOLDERS                += $(sort $(dir $(wildcard device/lib/drivers/*/)))
@@ -167,6 +168,22 @@ applications/gpio_pmw/gpio_pmw.flash.elf: applications/gpio_pmw/gpio_pmw.c
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
+		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
+
+applications/dma_example/dma_example.elf: applications/dma_example/dma_example.c
+	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
+		$(CUSTOM_GCC_FLAGS) \
+		-DHOST_BUILD \
+		-T linker/link.ld \
+		-I $(RISCV)/riscv32-unknown-elf/include \
+		$(INC_FOLDERS_GCC) \
+		-static \
+		$(LIB_CRT) \
+		$^ $(LIB_RUNTIME) \
+		$(LIB_BASE) \
+		$(LIB_DRIVERS) \
+		-L $(RISCV)/riscv32-unknown-elf/lib \
+		-Wl,-Map=dma_example.map \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
 

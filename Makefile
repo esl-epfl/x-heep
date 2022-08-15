@@ -34,6 +34,9 @@ app-ext-periph:
 app-gpio-cnt:
 	$(MAKE) -C sw applications/example_gpio_cnt/example_gpio_cnt.hex TARGET=$(TARGET)
 
+app-dma:
+	$(MAKE) -C sw applications/dma_example/dma_example.hex TARGET=$(TARGET)
+
 # Tools specific fusesoc call
 
 # Simulation
