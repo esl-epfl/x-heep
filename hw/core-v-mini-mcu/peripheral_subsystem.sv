@@ -6,7 +6,7 @@ module peripheral_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
 #(
-    parameter EXT_NINTERRUPT = 0
+    parameter NEXT_INT = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -27,9 +27,9 @@ module peripheral_subsystem
     output logic uart_tx_en_o,
 
     //PLIC
-    input  logic [EXT_NINTERRUPT-1:0] intr_vector_ext_i,
-    output logic                      irq_plic_o,
-    output logic                      msip_o,
+    input  logic [NEXT_INT-1:0] intr_vector_ext_i,
+    output logic                irq_plic_o,
+    output logic                msip_o,
 
     //External peripheral(s)
     output reg_req_t ext_peripheral_slave_req_o,
@@ -163,14 +163,9 @@ module peripheral_subsystem
   assign intr_vector[57] = dma_intr;
 
 
-  // REMOVE ONCE PLIC HJSON IS UPDATED
-  for (genvar i = 0; i < EXT_NINTERRUPT; i++) begin
-    assign intr_vector[i+58] = intr_vector_ext_i[i];
-  end
-
-  // REMOVE ONCE PLIC HJSON IS UPDATED
-  for (genvar i = 58 + EXT_NINTERRUPT; i < rv_plic_reg_pkg::NumSrc; i++) begin
-    assign intr_vector[i] = 1'b0;
+  // External interrupts assignement
+  for (genvar i = 0; i < NEXT_INT; i++) begin
+    assign intr_vector[i+PLIC_USED_NINT] = intr_vector_ext_i[i];
   end
 
   //Address Decoder

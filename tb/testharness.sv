@@ -59,7 +59,7 @@ module testharness #(
   obi_req_t slow_ram_slave_req;
   obi_resp_t slow_ram_slave_resp;
   // External interrupts
-  logic [6-1:0] intr_vector_ext;
+  logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext;
   logic memcopy_intr;
 
   // If more external interrupt lines are needed the PLIC has to be regenerated with more interrupt sources
