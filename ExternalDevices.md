@@ -23,9 +23,7 @@ One example using the external ports is provided where:
 To run the external device example, first compile the software example:
 
 ```
-cd sw
-make applications/example_external_peripheral/example_external_peripheral.hex
-cd ..
+make app-ext-periph
 ```
 
 By default, the external device example RTL code is disabled. Run fusesoc with the '--flag=use_external_device_example' option to enable it. This example is available for the sim and sim_opt targets.
