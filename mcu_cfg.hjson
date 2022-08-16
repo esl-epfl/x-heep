@@ -77,9 +77,6 @@
 
 
     interrupts: {
-        plic_intr_src:           64,
-        plic_used_intr:          58,
-        // List of PLIC interrupt sources
         // First one is always zero
         null_intr:               0,
         uart_intr_tx_watermark:  1,

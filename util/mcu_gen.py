@@ -155,9 +155,6 @@ def main():
     i2c_start_offset  = string2int(obj['peripherals']['i2c']['offset'])
     i2c_size_address  = string2int(obj['peripherals']['i2c']['length'])
 
-    plic_intr_src = obj['interrupts']['plic_intr_src']
-    plic_used_intr = obj['interrupts']['plic_used_intr']
-
     null_intr = obj['interrupts']['null_intr']
     uart_intr_tx_watermark = obj['interrupts']['uart_intr_tx_watermark']
     uart_intr_rx_watermark = obj['interrupts']['uart_intr_rx_watermark']
@@ -258,8 +255,6 @@ def main():
         "i2c_size_address"         : i2c_size_address,
         "dma_start_offset"         : dma_start_offset,
         "dma_size_address"         : dma_size_address,
-        "plic_intr_src"            : plic_intr_src,
-        "plic_used_intr"           : plic_used_intr,
         "null_intr"                : null_intr,
         "uart_intr_tx_watermark"   : uart_intr_tx_watermark,
         "uart_intr_rx_watermark"   : uart_intr_rx_watermark,

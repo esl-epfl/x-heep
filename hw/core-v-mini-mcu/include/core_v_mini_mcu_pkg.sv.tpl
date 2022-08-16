@@ -168,8 +168,8 @@ package core_v_mini_mcu_pkg;
   localparam int unsigned PERIPHERALS_PORT_SEL_WIDTH = SYSTEM_NPERIPHERALS > 1 ? $clog2(SYSTEM_NPERIPHERALS) : 32'd1;
 
   // Interrupts
-  localparam PLIC_NINT = ${plic_intr_src};
-  localparam PLIC_USED_NINT = ${plic_used_intr};
+  localparam PLIC_NINT = 64;
+  localparam PLIC_USED_NINT = 58;
   localparam NEXT_INT = PLIC_NINT - PLIC_USED_NINT;
 
 endpackage
