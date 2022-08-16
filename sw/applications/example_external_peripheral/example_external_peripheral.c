@@ -26,7 +26,7 @@ dif_plic_irq_id_t intr_num;
 void handler_irq_external(void) {
     // Claim/clear interrupt
     plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
-    if (plic_res == kDifPlicOk && intr_num == MEMCOPY_INTR_DONE) {
+    if (plic_res == kDifPlicOk && intr_num == EXT_INTR_0) {
         external_intr_flag = 1;
     }
 }
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 
     printf("Set MEMCOPY interrupt priority to 1...");
     // Set memcopy priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
-    plic_res = dif_plic_irq_set_priority(&rv_plic, MEMCOPY_INTR_DONE, 1);
+    plic_res = dif_plic_irq_set_priority(&rv_plic, EXT_INTR_0, 1);
     if (plic_res == kDifPlicOk) {
         printf("success\n");
     } else {
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     }
 
     printf("Enable MEMCOPY interrupt...");
-    plic_res = dif_plic_irq_set_enabled(&rv_plic, MEMCOPY_INTR_DONE, 0, kDifPlicToggleEnabled);
+    plic_res = dif_plic_irq_set_enabled(&rv_plic, EXT_INTR_0, 0, kDifPlicToggleEnabled);
     if (plic_res == kDifPlicOk) {
         printf("Success\n");
     } else {
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 
     printf("Complete interrupt...");
     plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-    if (plic_res == kDifPlicOk && intr_num == MEMCOPY_INTR_DONE) {
+    if (plic_res == kDifPlicOk && intr_num == EXT_INTR_0) {
         printf("success\n");
     } else {
         printf("fail\n;");

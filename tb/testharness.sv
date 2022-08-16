@@ -59,17 +59,22 @@ module testharness #(
   obi_req_t slow_ram_slave_req;
   obi_resp_t slow_ram_slave_resp;
   // External interrupts
-  logic [testharness_pkg::EXT_NINTERRUPT-1:0] intr_vector_ext;
+  logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext;
   logic memcopy_intr;
 
+  // If more external interrupt lines are needed the PLIC has to be regenerated with more interrupt sources
   assign intr_vector_ext[0] = memcopy_intr;
+  assign intr_vector_ext[1] = 1'b0;
+  assign intr_vector_ext[2] = 1'b0;
+  assign intr_vector_ext[3] = 1'b0;
+  assign intr_vector_ext[4] = 1'b0;
+  assign intr_vector_ext[5] = 1'b0;
 
   core_v_mini_mcu #(
       .PULP_XPULP      (PULP_XPULP),
       .FPU             (FPU),
       .PULP_ZFINX      (PULP_ZFINX),
-      .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER),
-      .EXT_NINTERRUPT  (testharness_pkg::EXT_NINTERRUPT)
+      .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER)
   ) core_v_mini_mcu_i (
       .clk_i,
       .rst_ni,

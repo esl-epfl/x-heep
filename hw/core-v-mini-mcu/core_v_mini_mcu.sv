@@ -9,8 +9,7 @@ module core_v_mini_mcu
     parameter PULP_XPULP = 0,
     parameter FPU = 0,
     parameter PULP_ZFINX = 0,
-    parameter EXT_XBAR_NMASTER = 0,
-    parameter EXT_NINTERRUPT = 0
+    parameter EXT_XBAR_NMASTER = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -36,7 +35,7 @@ module core_v_mini_mcu
     input  logic uart_rx_i,
     output logic uart_tx_o,
 
-    input logic [EXT_NINTERRUPT-1:0] intr_vector_ext_i,
+    input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
 
     inout logic [31:0] gpio_io,
 
@@ -204,7 +203,7 @@ module core_v_mini_mcu
   );
 
   peripheral_subsystem #(
-      .EXT_NINTERRUPT(EXT_NINTERRUPT)
+      .NEXT_INT(NEXT_INT)
   ) peripheral_subsystem_i (
       .clk_i,
       .rst_ni,

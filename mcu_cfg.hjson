@@ -77,7 +77,7 @@
 
 
     interrupts: {
-        // always zero
+        // First one is always zero
         null_intr:               0,
         uart_intr_tx_watermark:  1,
         uart_intr_rx_watermark:  2,
@@ -136,7 +136,13 @@
         intr_ack_stop:           55,
         intr_host_timeout:       56,
         dma_intr_done:           57,
-        memcopy_intr_done:       58
+        // Interrupt lines available for external interrupt sources
+        ext_intr_0:              58,
+        ext_intr_1:              59,
+        ext_intr_2:              60,
+        ext_intr_3:              61,
+        ext_intr_4:              62,
+        ext_intr_5:              63
     }
 
 }
