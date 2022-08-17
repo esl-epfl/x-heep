@@ -64,6 +64,7 @@ system_error_t uart_init(const uart_t *uart) {
   reg = bitfield_field32_write(reg, UART_CTRL_NCO_FIELD, nco_masked);
   reg = bitfield_bit32_write(reg, UART_CTRL_TX_BIT, true);
   reg = bitfield_bit32_write(reg, UART_CTRL_PARITY_EN_BIT, false);
+  reg = bitfield_bit32_write(reg, UART_CTRL_RX_BIT, true);
   mmio_region_write32(uart->base_addr, UART_CTRL_REG_OFFSET, reg);
 
   // Disable interrupts.
@@ -81,6 +82,11 @@ static bool uart_tx_idle(const uart_t *uart) {
   return bitfield_bit32_read(reg, UART_STATUS_TXIDLE_BIT);
 }
 
+static bool uart_rx_empty(const uart_t *uart) {
+  uint32_t reg = mmio_region_read32(uart->base_addr, UART_STATUS_REG_OFFSET);
+  return bitfield_bit32_read(reg, UART_STATUS_RXEMPTY_BIT);
+}
+
 void uart_putchar(const uart_t *uart, uint8_t byte) {
   // If the transmit FIFO is full, wait.
   while (uart_tx_full(uart)) {
@@ -93,6 +99,21 @@ void uart_putchar(const uart_t *uart, uint8_t byte) {
   }
 }
 
+static uint8_t uart_rx_fifo_read(const uart_t *uart) {
+  uint32_t reg = mmio_region_read32(uart->base_addr, UART_RDATA_REG_OFFSET);
+
+  return bitfield_field32_read(reg, UART_RDATA_RDATA_FIELD);
+}
+
+/**
+* Read 1 byte from the RX FIFO.
+*/
+size_t uart_getchar(const uart_t *uart, uint8_t *data) {
+  while (uart_rx_empty(uart));
+  *data = uart_rx_fifo_read(uart);
+  return 1;
+}
+
 /**
  * Write `len` bytes to the UART TX FIFO.
  */
@@ -100,6 +121,19 @@ size_t uart_write(const uart_t *uart, const uint8_t *data, size_t len) {
   size_t total = len;
   while (len) {
     uart_putchar(uart, *data);
+    data++;
+    len--;
+  }
+  return total;
+}
+
+/**
+ * Read `len` bytes from the UART RX FIFO.
+ */
+size_t uart_read(const uart_t *uart, const uint8_t *data, size_t len) {
+  size_t total = len;
+  while (len) {
+    uart_getchar(uart, data);
     data++;
     len--;
   }

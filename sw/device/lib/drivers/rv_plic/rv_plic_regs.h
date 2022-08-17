@@ -707,7 +707,7 @@ extern "C" {
 
 // Claim interrupt by read, complete interrupt by write for Target 0.
 #define RV_PLIC_CC0_REG_OFFSET 0x20c
-#define RV_PLIC_CC0_CC0_MASK 0x7f
+#define RV_PLIC_CC0_CC0_MASK 0x3f
 #define RV_PLIC_CC0_CC0_OFFSET 0
 #define RV_PLIC_CC0_CC0_FIELD \
   ((bitfield_field32_t) { .mask = RV_PLIC_CC0_CC0_MASK, .index = RV_PLIC_CC0_CC0_OFFSET })

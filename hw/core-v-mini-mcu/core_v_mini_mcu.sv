@@ -9,8 +9,7 @@ module core_v_mini_mcu
     parameter PULP_XPULP = 0,
     parameter FPU = 0,
     parameter PULP_ZFINX = 0,
-    parameter EXT_XBAR_NMASTER = 0,
-    parameter EXT_NINTERRUPT = 0
+    parameter EXT_XBAR_NMASTER = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -36,7 +35,7 @@ module core_v_mini_mcu
     input  logic uart_rx_i,
     output logic uart_tx_o,
 
-    input logic [EXT_NINTERRUPT-1:0] intr_vector_ext_i,
+    input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
 
     inout logic [31:0] gpio_io,
 
@@ -62,13 +61,16 @@ module core_v_mini_mcu
   localparam NUM_MHPMCOUNTERS = 1;
 
   // signals connecting core to memory
-
   obi_req_t                                core_instr_req;
   obi_resp_t                               core_instr_resp;
   obi_req_t                                core_data_req;
   obi_resp_t                               core_data_resp;
   obi_req_t                                debug_master_req;
   obi_resp_t                               debug_master_resp;
+  obi_req_t                                dma_master0_ch0_req;
+  obi_resp_t                               dma_master0_ch0_resp;
+  obi_req_t                                dma_master1_ch0_req;
+  obi_resp_t                               dma_master1_ch0_resp;
 
   obi_req_t                                ram0_slave_req;
   obi_resp_t                               ram0_slave_resp;
@@ -76,7 +78,6 @@ module core_v_mini_mcu
   obi_resp_t                               ram1_slave_resp;
   obi_req_t                                spi_flash_slave_req;
   obi_resp_t                               spi_flash_slave_resp;
-
   obi_req_t                                debug_slave_req;
   obi_resp_t                               debug_slave_resp;
   obi_req_t                                peripheral_slave_req;
@@ -169,6 +170,10 @@ module core_v_mini_mcu
       .core_data_resp_o      (core_data_resp),
       .debug_master_req_i    (debug_master_req),
       .debug_master_resp_o   (debug_master_resp),
+      .dma_master0_ch0_req_i (dma_master0_ch0_req),
+      .dma_master0_ch0_resp_o(dma_master0_ch0_resp),
+      .dma_master1_ch0_req_i (dma_master1_ch0_req),
+      .dma_master1_ch0_resp_o(dma_master1_ch0_resp),
       .ext_xbar_master_req_i (ext_xbar_master_req_i),
       .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
 
@@ -198,7 +203,7 @@ module core_v_mini_mcu
   );
 
   peripheral_subsystem #(
-      .EXT_NINTERRUPT(EXT_NINTERRUPT)
+      .NEXT_INT(NEXT_INT)
   ) peripheral_subsystem_i (
       .clk_i,
       .rst_ni,
@@ -246,7 +251,12 @@ module core_v_mini_mcu
       .cio_scl_en_o(cio_scl_en),
       .cio_sda_i(cio_sda_in),
       .cio_sda_o(cio_sda_out),
-      .cio_sda_en_o(cio_sda_en)
+      .cio_sda_en_o(cio_sda_en),
+
+      .dma_master0_ch0_req_o (dma_master0_ch0_req),
+      .dma_master0_ch0_resp_i(dma_master0_ch0_resp),
+      .dma_master1_ch0_req_o (dma_master1_ch0_req),
+      .dma_master1_ch0_resp_i(dma_master1_ch0_resp)
   );
 
   assign irq_fast = '0;

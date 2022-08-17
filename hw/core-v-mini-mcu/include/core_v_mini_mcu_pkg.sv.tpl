@@ -27,7 +27,7 @@ package core_v_mini_mcu_pkg;
   //must be power of two
   localparam int unsigned MEM_SIZE = 2**16;
 
-  localparam SYSTEM_XBAR_NMASTER = 3;
+  localparam SYSTEM_XBAR_NMASTER = 5;
   localparam SYSTEM_XBAR_NSLAVE = 7;
 
   localparam int unsigned LOG_SYSTEM_XBAR_NMASTER = SYSTEM_XBAR_NMASTER > 1 ? $clog2(SYSTEM_XBAR_NMASTER) : 32'd1;
@@ -44,6 +44,8 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] CORE_INSTR_IDX = 0;
   localparam logic [31:0] CORE_DATA_IDX = 1;
   localparam logic [31:0] DEBUG_MASTER_IDX = 2;
+  localparam logic [31:0] DMA_MASTER0_CH0_IDX = 3;
+  localparam logic [31:0] DMA_MASTER1_CH0_IDX = 4;
 
   //slave mmap and idx
   localparam logic[31:0] ERROR_START_ADDRESS = 32'hBADACCE5;
@@ -92,7 +94,7 @@ package core_v_mini_mcu_pkg;
   };
 
   //slave encoder
-  localparam SYSTEM_NPERIPHERALS = 10;
+  localparam SYSTEM_NPERIPHERALS = 11;
 
   localparam logic[31:0] EXT_PERIPH_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${ext_periph_start_offset};
   localparam logic[31:0] EXT_PERIPH_SIZE = 32'h${ext_periph_size_address};
@@ -144,6 +146,11 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] I2C_END_ADDRESS = I2C_START_ADDRESS + I2C_SIZE;
   localparam logic[31:0] I2C_IDX = 32'd9;
 
+  localparam logic[31:0] DMA_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${dma_start_offset};
+  localparam logic[31:0] DMA_SIZE = 32'h${dma_size_address};
+  localparam logic[31:0] DMA_END_ADDRESS = DMA_START_ADDRESS + DMA_SIZE;
+  localparam logic[31:0] DMA_IDX = 32'd10;
+
   localparam addr_map_rule_t [SYSTEM_NPERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
       '{ idx: EXT_PERIPH_IDX, start_addr: EXT_PERIPH_START_ADDRESS, end_addr: EXT_PERIPH_END_ADDRESS },
       '{ idx: SOC_CTRL_IDX, start_addr: SOC_CTRL_START_ADDRESS, end_addr: SOC_CTRL_END_ADDRESS },
@@ -154,9 +161,15 @@ package core_v_mini_mcu_pkg;
       '{ idx: SPI_HOST_IDX, start_addr: SPI_HOST_START_ADDRESS, end_addr: SPI_HOST_END_ADDRESS },
       '{ idx: SPI_MEMIO_IDX, start_addr: SPI_MEMIO_START_ADDRESS, end_addr: SPI_MEMIO_END_ADDRESS },
       '{ idx: BOOTROM_IDX, start_addr: BOOTROM_START_ADDRESS, end_addr: BOOTROM_END_ADDRESS },
-      '{ idx: I2C_IDX, start_addr: I2C_START_ADDRESS, end_addr: I2C_END_ADDRESS }
+      '{ idx: I2C_IDX, start_addr: I2C_START_ADDRESS, end_addr: I2C_END_ADDRESS },
+      '{ idx: DMA_IDX, start_addr: DMA_START_ADDRESS, end_addr: DMA_END_ADDRESS }
   };
 
   localparam int unsigned PERIPHERALS_PORT_SEL_WIDTH = SYSTEM_NPERIPHERALS > 1 ? $clog2(SYSTEM_NPERIPHERALS) : 32'd1;
+
+  // Interrupts
+  localparam PLIC_NINT = 64;
+  localparam PLIC_USED_NINT = 58;
+  localparam NEXT_INT = PLIC_NINT - PLIC_USED_NINT;
 
 endpackage

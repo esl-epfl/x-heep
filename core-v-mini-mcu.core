@@ -28,6 +28,7 @@ filesets:
     - yosyshq:picorv32_spimemio:0-r1
     - x-heep:obi_spimemio:0.1.0
     - x-heep:ip:boot_rom
+    - x-heep:ip:dma
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
@@ -60,6 +61,7 @@ filesets:
     - hw/ip/soc_ctrl/soc_ctrl.vlt
     - hw/ip/boot_rom/boot_rom.vlt
     - hw/ip/obi_spimemio/obi_spimemio.vlt
+    - hw/ip/dma/dma.vlt
     file_type: vlt
 
   rtl-fpga:
@@ -84,7 +86,6 @@ filesets:
   xdc-fpga-nexys:
     files:
     - hw/fpga/constraints/nexys/pin_assign.xdc
-    - hw/fpga/constraints/nexys/constraints.xdc
     file_type: xdc
 
   xdc-fpga-pynq-z2:
@@ -300,7 +301,7 @@ targets:
     tools:
       vivado:
         part: xc7a100tcsg324-1
-    toplevel: [core_v_mini_mcu]
+    toplevel: [xilinx_core_v_mini_mcu_wrapper]
 
   pynq-z2:
     <<: *default_target

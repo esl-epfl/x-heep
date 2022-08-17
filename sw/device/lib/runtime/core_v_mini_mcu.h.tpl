@@ -65,6 +65,10 @@ extern "C" {
 #define I2C_SIZE 0x${i2c_size_address}
 #define I2C_END_ADDRESS (I2C_START_ADDRESS + I2C_SIZE)
 
+#define DMA_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${dma_start_offset})
+#define DMA_SIZE 0x${dma_size_address}
+#define DMA_END_ADDRESS (DMA_START_ADDRESS + DMA_SIZE)
+
 #define NULL_INTR ${null_intr}
 #define UART_INTR_TX_WATERMARK ${uart_intr_tx_watermark}
 #define UART_INTR_RX_WATERMARK ${uart_intr_rx_watermark}
@@ -122,7 +126,15 @@ extern "C" {
 #define INTR_ACQ_OVERFLOW ${intr_acq_overflow}
 #define INTR_ACK_STOP ${intr_ack_stop}
 #define INTR_HOST_TIMEOUT ${intr_host_timeout}
-#define MEMCOPY_INTR_DONE ${memcopy_intr_done}
+#define DMA_INTR_DONE ${dma_intr_done}
+
+// Interrupt lines available for external interrupt sources
+#define EXT_INTR_0 ${ext_intr_0}
+#define EXT_INTR_1 ${ext_intr_1}
+#define EXT_INTR_2 ${ext_intr_2}
+#define EXT_INTR_3 ${ext_intr_3}
+#define EXT_INTR_4 ${ext_intr_4}
+#define EXT_INTR_5 ${ext_intr_5}
 
 #ifdef __cplusplus
 }  // extern "C"

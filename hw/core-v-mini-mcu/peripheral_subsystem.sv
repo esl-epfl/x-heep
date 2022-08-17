@@ -6,7 +6,7 @@ module peripheral_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
 #(
-    parameter EXT_NINTERRUPT = 0
+    parameter NEXT_INT = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -27,9 +27,9 @@ module peripheral_subsystem
     output logic uart_tx_en_o,
 
     //PLIC
-    input  logic [EXT_NINTERRUPT-1:0] intr_vector_ext_i,
-    output logic                      irq_plic_o,
-    output logic                      msip_o,
+    input  logic [NEXT_INT-1:0] intr_vector_ext_i,
+    output logic                irq_plic_o,
+    output logic                msip_o,
 
     //External peripheral(s)
     output reg_req_t ext_peripheral_slave_req_o,
@@ -62,7 +62,13 @@ module peripheral_subsystem
     output logic cio_scl_en_o,
     input  logic cio_sda_i,
     output logic cio_sda_o,
-    output logic cio_sda_en_o
+    output logic cio_sda_en_o,
+
+    // DMA
+    output obi_req_t  dma_master0_ch0_req_o,
+    input  obi_resp_t dma_master0_ch0_resp_i,
+    output obi_req_t  dma_master1_ch0_req_o,
+    input  obi_resp_t dma_master1_ch0_resp_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -99,6 +105,9 @@ module peripheral_subsystem
   logic uart_intr_rx_timeout;
   logic uart_intr_rx_parity_err;
   logic [31:0] gpio_intr;
+
+  logic dma_intr;
+
   logic [rv_plic_reg_pkg::NumTarget-1:0] irq_plic;
   logic [rv_plic_reg_pkg::NumSrc-1:0] intr_vector;
   logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] irq_id[rv_plic_reg_pkg::NumTarget];
@@ -151,16 +160,12 @@ module peripheral_subsystem
   assign intr_vector[54] = intr_acq_overflow;
   assign intr_vector[55] = intr_ack_stop;
   assign intr_vector[56] = intr_host_timeout;
+  assign intr_vector[57] = dma_intr;
 
-  // Assign external interrupts
-  for (genvar i = 0; i < EXT_NINTERRUPT; i++) begin
-    // assign intr_vector[i+rv_plic_reg_pkg::NumSrc] = intr_vector_ext_i[i];
-    assign intr_vector[i+57] = intr_vector_ext_i[i];
-  end
 
-  // REMOVE ONCE PLIC HJSON IS UPDATED
-  for (genvar i = 57 + EXT_NINTERRUPT; i < rv_plic_reg_pkg::NumSrc; i++) begin
-    assign intr_vector[i] = 1'b0;
+  // External interrupts assignement
+  for (genvar i = 0; i < NEXT_INT; i++) begin
+    assign intr_vector[i+PLIC_USED_NINT] = intr_vector_ext_i[i];
   end
 
   //Address Decoder
@@ -380,5 +385,21 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::BOOTROM_IDX])
   );
 
+  dma #(
+      .reg_req_t (reg_pkg::reg_req_t),
+      .reg_rsp_t (reg_pkg::reg_rsp_t),
+      .obi_req_t (obi_pkg::obi_req_t),
+      .obi_resp_t(obi_pkg::obi_resp_t)
+  ) dma_i (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i (peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
+      .reg_rsp_o (peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
+      .dma_master0_ch0_req_o,
+      .dma_master0_ch0_resp_i,
+      .dma_master1_ch0_req_o,
+      .dma_master1_ch0_resp_i,
+      .dma_intr_o(dma_intr)
+  );
 
 endmodule : peripheral_subsystem

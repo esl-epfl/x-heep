@@ -148,6 +148,9 @@ def main():
 
     bootrom_start_offset  = string2int(obj['peripherals']['bootrom']['offset'])
     bootrom_size_address  = string2int(obj['peripherals']['bootrom']['length'])
+    
+    dma_start_offset  = string2int(obj['peripherals']['dma']['offset'])
+    dma_size_address  = string2int(obj['peripherals']['dma']['length'])
 
     i2c_start_offset  = string2int(obj['peripherals']['i2c']['offset'])
     i2c_size_address  = string2int(obj['peripherals']['i2c']['length'])
@@ -209,7 +212,15 @@ def main():
     intr_acq_overflow = obj['interrupts']['intr_acq_overflow']
     intr_ack_stop = obj['interrupts']['intr_ack_stop']
     intr_host_timeout = obj['interrupts']['intr_host_timeout']
-    memcopy_intr_done = obj['interrupts']['memcopy_intr_done']
+    dma_intr_done = obj['interrupts']['dma_intr_done']
+
+    # Interrupt lines available for external interrupt sources
+    ext_intr_0 = obj['interrupts']['ext_intr_0']
+    ext_intr_1 = obj['interrupts']['ext_intr_1']
+    ext_intr_2 = obj['interrupts']['ext_intr_2']
+    ext_intr_3 = obj['interrupts']['ext_intr_3']
+    ext_intr_4 = obj['interrupts']['ext_intr_4']
+    ext_intr_5 = obj['interrupts']['ext_intr_5']
 
     kwargs = {
         "cpu_type"                 : cpu_type,
@@ -242,6 +253,8 @@ def main():
         "bootrom_size_address"     : bootrom_size_address,
         "i2c_start_offset"         : i2c_start_offset,
         "i2c_size_address"         : i2c_size_address,
+        "dma_start_offset"         : dma_start_offset,
+        "dma_size_address"         : dma_size_address,
         "null_intr"                : null_intr,
         "uart_intr_tx_watermark"   : uart_intr_tx_watermark,
         "uart_intr_rx_watermark"   : uart_intr_rx_watermark,
@@ -299,7 +312,13 @@ def main():
         "intr_acq_overflow"        : intr_acq_overflow,
         "intr_ack_stop"            : intr_ack_stop,
         "intr_host_timeout"        : intr_host_timeout,
-        "memcopy_intr_done"        : memcopy_intr_done,
+        "dma_intr_done"            : dma_intr_done,
+        "ext_intr_0"               : ext_intr_0,
+        "ext_intr_1"               : ext_intr_1,
+        "ext_intr_2"               : ext_intr_2,
+        "ext_intr_3"               : ext_intr_3,
+        "ext_intr_4"               : ext_intr_4,
+        "ext_intr_5"               : ext_intr_5,
     }
 
     ###########
