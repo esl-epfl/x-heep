@@ -1,4 +1,33 @@
+# Repo folder structure
+
+    .
+    ├── .github/workflows       
+    ├── ci/scripts              
+    ├── hw      
+    │   ├── asic          
+    │   ├── core-v-mini-mcu
+    │   ├── fpga          
+    │   ├── ip
+    │   ├── ip_examples
+    │   ├── simulation   
+    │   └── vendor         
+    ├── scripts     
+    │   ├── sim   
+    │   └── synthesis              
+    ├── sw       
+    │   ├── applications          
+    │   ├── device/lib
+    │   ├── linker  
+    │   └── vendor              
+    ├── tb
+    ├── util
+    └── README.md
+    
+============================
+
 Minimal configuration of a core-v-mcu
+
+============================
 
 # Prerequisite
 
@@ -76,6 +105,18 @@ sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
 sudo apt-get install -y gtkwave
 ```
 
+## Files are formatted with Verible
+
+We use version v0.0-1824-ga3b5bedf
+
+See: [Install Verible](https://docs.opentitan.org/doc/ug/install_instructions/)
+
+To format your RTL code type:
+
+```
+make verible
+```
+
 # Adding external IPs
 
 This repository relies on [vendor](https://docs.opentitan.org/doc/ug/vendor_hw/) to add new IPs.
@@ -106,6 +147,13 @@ Don't forget to set the `RISCV` env variable to the compiler folder (without the
 ```
 make app-helloworld
 ```
+
+or for FPGAs,
+
+```
+make app-helloworld TARGET=pynq-z2
+```
+
 
 This will create the executable file to be loaded in your target system (ASIC, FPGA, Simulation).
 
@@ -240,6 +288,15 @@ make vivado-fpga FPGA_BOARD=pynq-z2 FUSESOC_FLAGS=--flag=use_bscane_xilinx
 
 Only Vivado 2021.2 has been tried.
 
+To program the bitstream, open Vivado,
+
+```
+open --> Hardware Manager --> Open Target --> Autoconnect --> Program Device
+```
+
+and choose the file `openhwgroup.org_systems_core-v-mini-mcu_0.bit`
+
+
 To run SW, follow the [Debug](./Debug.md) guide 
 to load the binaries with the HS2 cable over JTAG, 
 or follow the [ExecuteFromFlash](./ExecuteFromFlash.md) 
@@ -263,15 +320,3 @@ make asic
 
 This relies on a fork of [edalize](https://github.com/davideschiavone/edalize) that contains templates for Design Compiler.
 
-
-## Files are formatted with Verible
-
-We use version v0.0-1824-ga3b5bedf
-
-See: [Install Verible](https://docs.opentitan.org/doc/ug/install_instructions/)
-
-To format your RTL code type:
-
-```
-make verible
-```

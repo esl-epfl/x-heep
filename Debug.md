@@ -149,9 +149,16 @@ or just run the entire execution with the continue command and then check the `u
 
 ## Debugging on FPGA
 
-We use the `Digilet HS2` cable with the `FT232HQ` (chip)[https://www.ftdichip.com/Support/Documents/TechnicalNotes/TN_100_USB_VID-PID_Guidelines.pdf] which has Vendor ID `0x0403` and Product ID `0x6014`.
+We can use either the `Digilet HS2` cable with the `FT232HQ` [chip](https://www.ftdichip.com/Support/Documents/TechnicalNotes/TN_100_USB_VID-PID_Guidelines.pdf) which has Vendor ID `0x0403` and Product ID `0x6014`, or the EPFL Programmer (described in
+[ProgramFlash](./ProgramFlash.md)) which has the `FT4232H` which has Vendor ID `0x0403` and Product ID `0x6011`.
 
-Connect the HS2 cable to the FPGA.
+Connect the HS2 cable to the FPGA or the EPFL PRogrammer.
+
+For the HS2 Cable, follow the next Section.
+If you want to install the `FT4232H` chip, follow the guide at [ProgramFlash](./ProgramFlash.md).
+
+### HS2 Cable Install
+
 
 If you execute `lsusb`, you should see something like:
 
@@ -168,11 +175,21 @@ and by executing `dmesg --time-format iso | grep FTDI` you should see something 
 ```
 The date and time will of course be different, and the tty device number may also be different (ttyUBS1, ttyUSB2, etc).
 
-Now run `openOCD` with the its the configuration file specific for that cable:
+
+### Run openOCD
+
+Now run `openOCD` with the its the configuration file specific for the HS2 cable:
 
 ```
 openocd -f ./tb/core-v-mini-mcu-nexsys-hs2.cfg
 ```
+
+or with the EPFL Programmer
+
+```
+openocd -f ./tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg
+```
+
 
 If you get this error:
 
@@ -180,7 +197,7 @@ If you get this error:
 libusb_open() failed with LIBUSB_ERROR_ACCESS
 ```
 
-create a file called `60-hs2.rules` in the folder `/etc/udev/rules.d/` (you need sudo permits).
+For the HS2 cable, create a file called `60-hs2.rules` in the folder `/etc/udev/rules.d/` (you need sudo permits).
 
 Write the following text in the created file to describe the attributes of the FT232HQ chip:
 
@@ -188,5 +205,7 @@ Write the following text in the created file to describe the attributes of the F
 # HS2
 ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6014", MODE="664", GROUP="plugdev"
 ```
+
+Otherwise for the EPFL Programmer, follow [ProgramFlash](./ProgramFlash.md).
 
 You may also need to run `sudo usermod -a -G plugdev yourusername` and restart the utility with `sudo udevadm control --reload`.

@@ -14,6 +14,7 @@ module ao_peripheral_subsystem
 
     //SOC CTRL
     input  logic        boot_select_i,
+    input  logic        execute_from_flash_i,
     output logic        exit_valid_o,
     output logic [31:0] exit_value_o,
 
@@ -35,7 +36,14 @@ module ao_peripheral_subsystem
     output logic cpu_subsystem_rst_no,
 
     //RV TIMER
-    output logic rv_timer_irq_timer_o
+    output logic rv_timer_irq_timer_o,
+
+    // DMA
+    output obi_req_t  dma_master0_ch0_req_o,
+    input  obi_resp_t dma_master0_ch0_resp_i,
+    output obi_req_t  dma_master1_ch0_req_o,
+    input  obi_resp_t dma_master1_ch0_resp_i,
+    output logic      dma_intr_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -116,6 +124,7 @@ module ao_peripheral_subsystem
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
       .boot_select_i,
+      .execute_from_flash_i,
       .use_spimemio_o(use_spimemio),
       .exit_valid_o,
       .exit_value_o
@@ -174,5 +183,22 @@ module ao_peripheral_subsystem
   );
 
   assign rv_timer_irq_timer_o = rv_timer_irq_timer;
+
+  dma #(
+      .reg_req_t (reg_pkg::reg_req_t),
+      .reg_rsp_t (reg_pkg::reg_rsp_t),
+      .obi_req_t (obi_pkg::obi_req_t),
+      .obi_resp_t(obi_pkg::obi_resp_t)
+  ) dma_i (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
+      .dma_master0_ch0_req_o,
+      .dma_master0_ch0_resp_i,
+      .dma_master1_ch0_req_o,
+      .dma_master1_ch0_resp_i,
+      .dma_intr_o
+  );
 
 endmodule : ao_peripheral_subsystem

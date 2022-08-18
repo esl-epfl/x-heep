@@ -27,7 +27,7 @@ module xilinx_core_v_mini_mcu_wrapper
 
     inout logic [31:0] gpio_io,
 
-    input  logic fetch_enable_i,
+    input  logic execute_from_flash_i,
     input  logic boot_select_i,
     output logic exit_value_o,
     output logic exit_valid_o,
@@ -35,7 +35,10 @@ module xilinx_core_v_mini_mcu_wrapper
 
     inout logic [3:0] spi_sd_io,
     inout logic spi_csb_o,
-    inout logic spi_sck_o
+    inout logic spi_sck_o,
+
+    inout logic i2c_scl_io,
+    inout logic i2c_sda_io
 );
 
   logic                               clk_gen;
@@ -93,15 +96,18 @@ module xilinx_core_v_mini_mcu_wrapper
 
       .gpio_io(gpio_io),
 
-      .fetch_enable_i(fetch_enable_i),
-      .boot_select_i (boot_select_i),
+      .execute_from_flash_i(execute_from_flash_i),
+      .boot_select_i(boot_select_i),
 
       .spi_sd_io(spi_sd_io),
       .spi_csb_o(spi_csb),
       .spi_sck_o(spi_sck_o),
 
       .exit_value_o(exit_value),
-      .exit_valid_o(exit_valid_o)
+      .exit_valid_o(exit_valid_o),
+
+      .i2c_scl_io,
+      .i2c_sda_io
   );
 
   assign exit_value_o = exit_value[0];

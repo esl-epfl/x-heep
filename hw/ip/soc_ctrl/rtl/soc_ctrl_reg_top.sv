@@ -82,8 +82,6 @@ module soc_ctrl_reg_top #(
   logic [31:0] boot_address_wd;
   logic boot_address_we;
   logic use_spimemio_qs;
-  logic use_spimemio_wd;
-  logic use_spimemio_we;
 
   // Register instances
   // R[exit_valid]: V(False)
@@ -224,19 +222,18 @@ module soc_ctrl_reg_top #(
 
   prim_subreg #(
       .DW      (1),
-      .SWACCESS("RW"),
+      .SWACCESS("RO"),
       .RESVAL  (1'h1)
   ) u_use_spimemio (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
-      // from register interface
-      .we(use_spimemio_we),
-      .wd(use_spimemio_wd),
+      .we(1'b0),
+      .wd('0),
 
       // from internal hardware
-      .de(1'b0),
-      .d ('0),
+      .de(hw2reg.use_spimemio.de),
+      .d (hw2reg.use_spimemio.d),
 
       // to internal hardware
       .qe(),
@@ -284,9 +281,6 @@ module soc_ctrl_reg_top #(
 
   assign boot_address_we = addr_hit[4] & reg_we & !reg_error;
   assign boot_address_wd = reg_wdata[31:0];
-
-  assign use_spimemio_we = addr_hit[5] & reg_we & !reg_error;
-  assign use_spimemio_wd = reg_wdata[0];
 
   // Read data return
   always_comb begin

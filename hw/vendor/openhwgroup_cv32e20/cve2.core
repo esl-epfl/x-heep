@@ -2,14 +2,14 @@ CAPI=2:
 # Copyright lowRISC contributors.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
-name: "lowrisc:ibex:ibex_core:0.1"
-description: "Ibex CPU Core Components"
+
+name: "openhwgroup.org:ip:cve2"
+description: "OpenHW Group RISC-V Core CVE2"
 
 filesets:
   files_rtl:
     depend:
       - lowrisc:prim:assert
-      - lowrisc:prim:clock_gating
       - lowrisc:ibex:ibex_pkg
     files:
       - rtl/ibex_alu.sv
@@ -32,6 +32,7 @@ filesets:
       - rtl/ibex_wb_stage.sv
       - rtl/ibex_dummy_instr.sv
       - rtl/ibex_core.sv
+      - rtl/cve2_sleep_unit.sv
       - rtl/ibex_pmp_reset_default.svh: {is_include_file: true}
     file_type: systemVerilogSource
 
@@ -43,9 +44,10 @@ filesets:
     files:
       - lint/verible_waiver.vbw: {file_type: veribleLintWaiver}
 
-  files_check_tool_requirements:
-    depend:
-     - lowrisc:tool:check_tool_requirements
+  files_clk_gate:
+    files:
+    - bhv/cve2_sim_clock_gate.sv
+    file_type: systemVerilogSource
 
 parameters:
   RVFI:
@@ -145,6 +147,8 @@ targets:
       - tool_verilator ? (files_lint_verilator)
       - tool_veriblelint ? (files_lint_verible)
       - files_rtl
+      - target_sim? (files_clk_gate)
+      - target_sim_opt? (files_clk_gate)
     toplevel: ibex_core
     parameters:
       - tool_vivado ? (FPGA_XILINX=true)

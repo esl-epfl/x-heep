@@ -134,6 +134,9 @@ def main():
     rv_timer_start_offset  = string2int(obj['ao_peripherals']['rv_timer']['offset'])
     rv_timer_size_address  = string2int(obj['ao_peripherals']['rv_timer']['length'])
 
+    dma_start_offset  = string2int(obj['ao_peripherals']['dma']['offset'])
+    dma_size_address  = string2int(obj['ao_peripherals']['dma']['length'])
+
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
         exit("peripheral start address must be greater than 0x10000")
@@ -148,6 +151,9 @@ def main():
 
     gpio_start_offset  = string2int(obj['peripherals']['gpio']['offset'])
     gpio_size_address  = string2int(obj['peripherals']['gpio']['length'])
+
+    i2c_start_offset  = string2int(obj['peripherals']['i2c']['offset'])
+    i2c_size_address  = string2int(obj['peripherals']['i2c']['length'])
 
     ext_periph_start_offset  = string2int(obj['peripherals']['ext_periph']['offset'])
     ext_periph_size_address  = string2int(obj['peripherals']['ext_periph']['length'])
@@ -199,7 +205,29 @@ def main():
     gpio_intr_29 = obj['interrupts']['gpio_intr_29']
     gpio_intr_30 = obj['interrupts']['gpio_intr_30']
     gpio_intr_31 = obj['interrupts']['gpio_intr_31']
-    memcopy_intr_done = obj['interrupts']['memcopy_intr_done']
+    intr_fmt_watermark = obj['interrupts']['intr_fmt_watermark']
+    intr_rx_watermark = obj['interrupts']['intr_rx_watermark']
+    intr_fmt_overflow = obj['interrupts']['intr_fmt_overflow']
+    intr_rx_overflow = obj['interrupts']['intr_rx_overflow']
+    intr_nak = obj['interrupts']['intr_nak']
+    intr_scl_interference = obj['interrupts']['intr_scl_interference']
+    intr_sda_interference = obj['interrupts']['intr_sda_interference']
+    intr_stretch_timeout = obj['interrupts']['intr_stretch_timeout']
+    intr_sda_unstable = obj['interrupts']['intr_sda_unstable']
+    intr_trans_complete = obj['interrupts']['intr_trans_complete']
+    intr_tx_empty = obj['interrupts']['intr_tx_empty']
+    intr_tx_nonempty = obj['interrupts']['intr_tx_nonempty']
+    intr_tx_overflow = obj['interrupts']['intr_tx_overflow']
+    intr_acq_overflow = obj['interrupts']['intr_acq_overflow']
+    intr_ack_stop = obj['interrupts']['intr_ack_stop']
+    intr_host_timeout = obj['interrupts']['intr_host_timeout']
+    dma_intr_done = obj['interrupts']['dma_intr_done']
+    ext_intr_0 = obj['interrupts']['ext_intr_0']
+    ext_intr_1 = obj['interrupts']['ext_intr_1']
+    ext_intr_2 = obj['interrupts']['ext_intr_2']
+    ext_intr_3 = obj['interrupts']['ext_intr_3']
+    ext_intr_4 = obj['interrupts']['ext_intr_4']
+    ext_intr_5 = obj['interrupts']['ext_intr_5']
 
     kwargs = {
         "cpu_type"                       : cpu_type,
@@ -220,6 +248,8 @@ def main():
         "power_manager_size_address"     : power_manager_size_address,
         "rv_timer_start_offset"          : rv_timer_start_offset,
         "rv_timer_size_address"          : rv_timer_size_address,
+        "dma_start_offset"               : dma_start_offset,
+        "dma_size_address"               : dma_size_address,
         "peripheral_start_address"       : peripheral_start_address,
         "peripheral_size_address"        : peripheral_size_address,
         "plic_start_offset"              : plic_start_offset,
@@ -228,6 +258,8 @@ def main():
         "uart_size_address"              : uart_size_address,
         "gpio_start_offset"              : gpio_start_offset,
         "gpio_size_address"              : gpio_size_address,
+        "i2c_start_offset"               : i2c_start_offset,
+        "i2c_size_address"               : i2c_size_address,
         "ext_periph_start_offset"        : ext_periph_start_offset,
         "ext_periph_size_address"        : ext_periph_size_address,
         "ext_slave_start_address"        : ext_slave_start_address,
@@ -275,7 +307,29 @@ def main():
         "gpio_intr_29"                   : gpio_intr_29,
         "gpio_intr_30"                   : gpio_intr_30,
         "gpio_intr_31"                   : gpio_intr_31,
-        "memcopy_intr_done"              : memcopy_intr_done,
+        "intr_fmt_watermark"       : intr_fmt_watermark,
+        "intr_rx_watermark"        : intr_rx_watermark,
+        "intr_fmt_overflow"        : intr_fmt_overflow,
+        "intr_rx_overflow"         : intr_rx_overflow,
+        "intr_nak"                 : intr_nak,
+        "intr_scl_interference"    : intr_scl_interference,
+        "intr_sda_interference"    : intr_sda_interference,
+        "intr_stretch_timeout"     : intr_stretch_timeout,
+        "intr_sda_unstable"        : intr_sda_unstable,
+        "intr_trans_complete"      : intr_trans_complete,
+        "intr_tx_empty"            : intr_tx_empty,
+        "intr_tx_nonempty"         : intr_tx_nonempty,
+        "intr_tx_overflow"         : intr_tx_overflow,
+        "intr_acq_overflow"        : intr_acq_overflow,
+        "intr_ack_stop"            : intr_ack_stop,
+        "intr_host_timeout"        : intr_host_timeout,
+        "dma_intr_done"            : dma_intr_done,
+        "ext_intr_0"               : ext_intr_0,
+        "ext_intr_1"               : ext_intr_1,
+        "ext_intr_2"               : ext_intr_2,
+        "ext_intr_3"               : ext_intr_3,
+        "ext_intr_4"               : ext_intr_4,
+        "ext_intr_5"               : ext_intr_5,
     }
 
     ###########

@@ -12,8 +12,9 @@ module tb_top #(
   // comment to record execution trace
   //`define TRACE_EXECUTION
 
-  const time          CLK_PHASE_HI = 5ns;
-  const time          CLK_PHASE_LO = 5ns;
+  const time CLK_PHASE_HI = 5ns;
+  const time CLK_PHASE_LO = 5ns;
+  localparam CLK_FREQUENCY_KHz = 100_000;
   const time          CLK_PERIOD = CLK_PHASE_HI + CLK_PHASE_LO;
 
   const time          STIM_APPLICATION_DEL = CLK_PERIOD * 0.1;
@@ -26,7 +27,9 @@ module tb_top #(
   logic               rst_n = 'b0;
 
   // Boot selection (0:jtag or 1:flash)
-  int                 boot_sel;
+  logic               boot_sel;
+  // SPI selection (0:ot-qspi or 1:memory mapped flash, only valid if boot_sel is 1)
+  logic               execute_from_flash;
 
   // cycle counter
   int unsigned        cycle_cnt_q;
@@ -35,16 +38,12 @@ module tb_top #(
   logic               exit_valid;
   logic        [31:0] exit_value;
 
-  // signals for ri5cy
-  logic               fetch_enable;
+  // jtag signals
   logic               jtag_tck;
   logic               jtag_trst_n;
   logic               jtag_tms;
   logic               jtag_tdi;
   logic               jtag_tdo;
-
-  // make the core start fetching instruction immediately
-  assign fetch_enable = '1;
 
   // allow vcd dump
   initial begin
@@ -57,7 +56,7 @@ module tb_top #(
   // we either load the provided firmware or execute a small test program that
   // doesn't do more than an infinite loop with some I/O
   initial begin : load_prog
-    automatic string firmware, arg_boot_sel;
+    automatic string firmware, arg_boot_sel, arg_execute_from_flash;
 
     if ($value$plusargs("firmware=%s", firmware)) begin
       $display("[TESTBENCH]: loading firmware %0s", firmware);
@@ -71,20 +70,44 @@ module tb_top #(
     boot_sel = 0;
     if ($test$plusargs("boot_sel")) begin
       $value$plusargs("boot_sel=%s", arg_boot_sel);
-      if (arg_boot_sel == "flash") begin
+      if (arg_boot_sel == "1") begin
         $display("[TESTBENCH]: Booting from flash");
         boot_sel = 1;
-      end else if (arg_boot_sel == "jtag") begin
+      end else if (arg_boot_sel == "0") begin
         $display("[TESTBENCH]: Booting from jtag");
         boot_sel = 0;
       end else begin
-        $display("[TESTBENCH]: Wrong Boot Option specified (jtag, flash) - using jtag");
+        $display(
+            "[TESTBENCH]: Wrong Boot Option specified (jtag, flash) - using jtag (boot_sel=0)");
         boot_sel = 0;
       end
     end else begin
-      $display("[TESTBENCH]: No Boot Option specified, using jtag");
+      $display("[TESTBENCH]: No Boot Option specified, using jtag (boot_sel=0)");
       boot_sel = 0;
     end
+
+    execute_from_flash = 1;
+    if (boot_sel == 1) begin
+      if ($test$plusargs("execute_from_flash")) begin
+        $value$plusargs("execute_from_flash=%s", arg_execute_from_flash);
+        if (arg_execute_from_flash == "1") begin
+          $display("[TESTBENCH]: Using YosysHQ memory mapped SPI");
+          execute_from_flash = 1;
+        end else if (arg_execute_from_flash == "0") begin
+          $display("[TESTBENCH]: Using OpenTitan SPI");
+          execute_from_flash = 0;
+        end else begin
+          $display(
+              "[TESTBENCH]: Wrong SPI Option specified (execute from flash, load flash in-memory) - using execute from flash (execute_from_flash=1)");
+          execute_from_flash = 1;
+        end
+      end else begin
+        $display(
+            "[TESTBENCH]: No SPI Option specified, using execute from flash (execute_from_flash=1)");
+        execute_from_flash = 1;
+      end
+    end
+
 
     wait (rst_n == 1'b1);
 
@@ -152,22 +175,23 @@ module tb_top #(
 
   // wrapper for riscv, the memory system and stdout peripheral
   testharness #(
-      .PULP_XPULP(PULP_XPULP),
-      .FPU       (FPU),
-      .PULP_ZFINX(PULP_ZFINX),
-      .JTAG_DPI  (JTAG_DPI)
+      .PULP_XPULP   (PULP_XPULP),
+      .FPU          (FPU),
+      .PULP_ZFINX   (PULP_ZFINX),
+      .JTAG_DPI     (JTAG_DPI),
+      .CLK_FREQUENCY(CLK_FREQUENCY_KHz)
   ) testharness_i (
-      .clk_i         (clk),
-      .rst_ni        (rst_n),
-      .boot_select_i (boot_sel),
-      .fetch_enable_i(fetch_enable),
-      .exit_valid_o  (exit_valid),
-      .exit_value_o  (exit_value),
-      .jtag_tck_i    (jtag_tck),
-      .jtag_trst_ni  (jtag_trst_n),
-      .jtag_tms_i    (jtag_tms),
-      .jtag_tdi_i    (jtag_tdi),
-      .jtag_tdo_o    (jtag_tdo)
+      .clk_i               (clk),
+      .rst_ni              (rst_n),
+      .boot_select_i       (boot_sel),
+      .execute_from_flash_i(execute_from_flash),
+      .exit_valid_o        (exit_valid),
+      .exit_value_o        (exit_value),
+      .jtag_tck_i          (jtag_tck),
+      .jtag_trst_ni        (jtag_trst_n),
+      .jtag_tms_i          (jtag_tms),
+      .jtag_tdi_i          (jtag_tdi),
+      .jtag_tdo_o          (jtag_tdo)
   );
 
 

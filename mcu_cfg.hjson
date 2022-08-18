@@ -41,6 +41,10 @@
             offset:  0x00040000,
             length:  0x00010000,
         },
+        dma: {
+            offset:  0x00050000,
+            length:  0x00010000,
+        },
     },
 
     peripherals: {
@@ -58,8 +62,12 @@
             offset:  0x00020000,
             length:  0x00010000,
         },
-        ext_periph: {
+        i2c: {
             offset:  0x00030000,
+            length:  0x00010000,
+        },
+        ext_periph: {
+            offset:  0x00040000,
             length:  0x00010000,
         },
     },
@@ -75,7 +83,7 @@
     },
 
     interrupts: {
-        // always zero
+        // First one is always zero
         null_intr:               0,
         uart_intr_tx_watermark:  1,
         uart_intr_rx_watermark:  2,
@@ -117,7 +125,29 @@
         gpio_intr_29:            38,
         gpio_intr_30:            39,
         gpio_intr_31:            40,
-        memcopy_intr_done:       41,
+        intr_fmt_watermark:      41,
+        intr_rx_watermark:       42,
+        intr_fmt_overflow:       43,
+        intr_rx_overflow:        44,
+        intr_nak:                45,
+        intr_scl_interference:   46,
+        intr_sda_interference:   47,
+        intr_stretch_timeout:    48,
+        intr_sda_unstable:       49,
+        intr_trans_complete:     50,
+        intr_tx_empty:           51,
+        intr_tx_nonempty:        52,
+        intr_tx_overflow:        53,
+        intr_acq_overflow:       54,
+        intr_ack_stop:           55,
+        intr_host_timeout:       56,
+        dma_intr_done:           57,
+        ext_intr_0:              58,
+        ext_intr_1:              59,
+        ext_intr_2:              60,
+        ext_intr_3:              61,
+        ext_intr_4:              62,
+        ext_intr_5:              63
     }
 
 }

@@ -7,7 +7,7 @@ module cpu_subsystem
   import core_v_mini_mcu_pkg::*;
 #(
     parameter BOOT_ADDR = 'h180,
-    parameter PULP_XPULP    =  0,                   // PULP ISA Extension (incl. custom CSRs and hardware loop, excl. p.elw)
+    parameter PULP_XPULP =  0, // PULP ISA Extension (incl. custom CSRs and hardware loop, excl. p.elw)
     parameter FPU = 0,  // Floating Point Unit (interfaced via APU interface)
     parameter PULP_ZFINX = 0,  // Float-in-General Purpose registers
     parameter NUM_MHPMCOUNTERS = 1,
@@ -32,11 +32,15 @@ module cpu_subsystem
     output logic [ 4:0] irq_id_o,
 
     // Debug Interface
-    input logic debug_req_i,
+    input logic debug_req_i
 
-    // CPU Control Signals
-    input logic fetch_enable_i
 );
+
+
+  // CPU Control Signals
+  logic fetch_enable;
+
+  assign fetch_enable = 1'b1;
 
   assign core_instr_req_o.wdata = '0;
   assign core_instr_req_o.we    = '0;
@@ -59,7 +63,6 @@ module cpu_subsystem
 
         .hart_id_i  (32'h0),
         .boot_addr_i(BOOT_ADDR),
-
 
         .instr_addr_o  (core_instr_req_o.addr),
         .instr_req_o   (core_instr_req_o.req),
@@ -110,11 +113,11 @@ module cpu_subsystem
         .crash_dump_o(),
         .double_fault_seen_o(),
 
-        .fetch_enable_i({3'b0, fetch_enable_i}),
-        .alert_minor_o(),
-        .alert_major_o(),
+        .fetch_enable_i(fetch_enable),
+        .alert_minor_o (),
+        .alert_major_o (),
         .icache_inval_o(),
-        .core_busy_o()
+        .core_sleep_o  ()
     );
 
     cv32e40p_register_file #(
@@ -200,7 +203,7 @@ module cpu_subsystem
         .debug_running_o  (),
         .debug_halted_o   (),
 
-        .fetch_enable_i(fetch_enable_i),
+        .fetch_enable_i(fetch_enable),
         .core_sleep_o  ()
     );
 

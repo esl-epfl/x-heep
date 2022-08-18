@@ -17,40 +17,45 @@
 
 int8_t external_intr_flag;
 
+// Interrupt controller variables
+dif_plic_params_t rv_plic_params;
+dif_plic_t rv_plic;
+dif_plic_result_t plic_res;
+dif_plic_irq_id_t intr_num;
+
 void handler_irq_external(void) {
-    external_intr_flag = 1;
+    // Claim/clear interrupt
+    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
+    if (plic_res == kDifPlicOk && intr_num == EXT_INTR_0) {
+        external_intr_flag = 1;
+    }
 }
 
 int main(int argc, char *argv[])
 {
-    printf("Memcopy - example external peripheral\n");
+    printf("--- MEMCOPY EXAMPLE - external peripheral ---\n");
 
-    printf("Init the PLIC... ");
-    // memcopy peripheral structure to access the registers
-    dif_plic_params_t rv_plic_params;
-    dif_plic_t rv_plic;
-    dif_plic_result_t plic_res;
-
+    printf("Init the PLIC...");
     rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)PLIC_START_ADDRESS);
     plic_res = dif_plic_init(rv_plic_params, &rv_plic);
 
     if (plic_res == kDifPlicOk) {
-        printf("Success\n");
+        printf("success\n");
     } else {
-        printf("Fail\n;");
+        printf("fail\n;");
     }
 
-    printf("Set MEMCOPY interrupt priority to 1... ");
+    printf("Set MEMCOPY interrupt priority to 1...");
     // Set memcopy priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
-    plic_res = dif_plic_irq_set_priority(&rv_plic, MEMCOPY_INTR_DONE, 1);
+    plic_res = dif_plic_irq_set_priority(&rv_plic, EXT_INTR_0, 1);
     if (plic_res == kDifPlicOk) {
-        printf("Success\n");
+        printf("success\n");
     } else {
-        printf("Fail\n;");
+        printf("fail\n;");
     }
 
-    printf("Enable MEMCOPY interrupt... ");
-    plic_res = dif_plic_irq_set_enabled(&rv_plic, MEMCOPY_INTR_DONE, 0, kDifPlicToggleEnabled);
+    printf("Enable MEMCOPY interrupt...");
+    plic_res = dif_plic_irq_set_enabled(&rv_plic, EXT_INTR_0, 0, kDifPlicToggleEnabled);
     if (plic_res == kDifPlicOk) {
         printf("Success\n");
     } else {
@@ -70,7 +75,7 @@ int main(int argc, char *argv[])
     int32_t copied_data[COPY_SIZE];
     // Or use the slow sram ip example for data
     // int32_t original_data = EXT_SLAVE_START_ADDRESS;
-    // int32_t copied_data = EXT_SLAVE_START_ADDRESS;
+    // int32_t copied_data = EXT_SLAVE_START_ADDRESS+COPY_SIZE;
 
     volatile uint32_t *src_ptr = original_data;
     volatile uint32_t *dest_ptr = copied_data;
@@ -86,30 +91,20 @@ int main(int argc, char *argv[])
 
     memcopy_periph_set_read_ptr(&memcopy_periph, (uint32_t) original_data);
     memcopy_periph_set_write_ptr(&memcopy_periph, (uint32_t) copied_data);
-    printf("Memcopy launched...\n");
+    printf("Memcopy launched...");
     memcopy_periph_set_cnt_start(&memcopy_periph, (uint32_t) COPY_SIZE);
     // Wait copy is done
     while(external_intr_flag==0) {
         wait_for_interrupt();
     }
+    printf("finished\n");
 
-    printf("Memcopy finished\n");
-
-    dif_plic_irq_id_t intr_num;
-    printf("Claim interrupt... ");
-    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
-    if (plic_res == kDifPlicOk) {
-        printf("Success\n");
-    } else {
-        printf("Fail\n;");
-    }
-
-    printf("Complete interrupt... ");
+    printf("Complete interrupt...");
     plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-    if (plic_res == kDifPlicOk) {
-        printf("Success\n");
+    if (plic_res == kDifPlicOk && intr_num == EXT_INTR_0) {
+        printf("success\n");
     } else {
-        printf("Fail\n;");
+        printf("fail\n;");
     }
 
     // Reinitialized the read pointer to the original address
@@ -129,7 +124,7 @@ int main(int argc, char *argv[])
     if (errors == 0) {
         printf("MEMCOPY SUCCESS\n");
     } else {
-        printf("MEMCOPY FAILURE (%d/%d errors)\n", errors, COPY_SIZE);
+        printf("MEMCOPY FAILURE: %d errors out of %d words copied\n", errors, COPY_SIZE);
     }
 
     return EXIT_SUCCESS;

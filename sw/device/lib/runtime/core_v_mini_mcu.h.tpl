@@ -41,6 +41,10 @@ extern "C" {
 #define RV_TIMER_SIZE 0x${rv_timer_size_address}
 #define RV_TIMER_END_ADDRESS (RV_TIMER_START_ADDRESS + RV_TIMER_SIZE)
 
+#define DMA_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${dma_start_offset})
+#define DMA_SIZE 0x${dma_size_address}
+#define DMA_END_ADDRESS (DMA_START_ADDRESS + DMA_SIZE)
+
 #define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}
 #define PERIPHERAL_SIZE 0x${peripheral_size_address}
 #define PERIPHERAL_END_ADDRESS (PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE)
@@ -56,6 +60,10 @@ extern "C" {
 #define GPIO_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${gpio_start_offset})
 #define GPIO_SIZE 0x${gpio_size_address}
 #define GPIO_END_ADDRESS (GPIO_START_ADDRESS + GPIO_SIZE)
+
+#define I2C_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${i2c_start_offset})
+#define I2C_SIZE 0x${i2c_size_address}
+#define I2C_END_ADDRESS (I2C_START_ADDRESS + I2C_SIZE)
 
 #define EXT_PERIPHERAL_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${ext_periph_start_offset})
 #define EXT_PERIPHERAL_SIZE 0x${ext_periph_size_address}
@@ -110,7 +118,29 @@ extern "C" {
 #define GPIO_INTR_29 ${gpio_intr_29}
 #define GPIO_INTR_30 ${gpio_intr_30}
 #define GPIO_INTR_31 ${gpio_intr_31}
-#define MEMCOPY_INTR_DONE ${memcopy_intr_done}
+#define INTR_FMT_WATERMARK ${intr_fmt_watermark}
+#define INTR_RX_WATERMARK ${intr_rx_watermark}
+#define INTR_FMT_OVERFLOW ${intr_fmt_overflow}
+#define INTR_RX_OVERFLOW ${intr_rx_overflow}
+#define INTR_NAK ${intr_nak}
+#define INTR_SCL_INTERFERENCE ${intr_scl_interference}
+#define INTR_SDA_INTERFERENCE ${intr_sda_interference}
+#define INTR_STRETCH_TIMEOUT ${intr_stretch_timeout}
+#define INTR_SDA_UNSTABLE ${intr_sda_unstable}
+#define INTR_TRANS_COMPLETE ${intr_trans_complete}
+#define INTR_TX_EMPTY ${intr_tx_empty}
+#define INTR_TX_NONEMPTY ${intr_tx_nonempty}
+#define INTR_TX_OVERFLOW ${intr_tx_overflow}
+#define INTR_ACQ_OVERFLOW ${intr_acq_overflow}
+#define INTR_ACK_STOP ${intr_ack_stop}
+#define INTR_HOST_TIMEOUT ${intr_host_timeout}
+#define DMA_INTR_DONE ${dma_intr_done}
+#define EXT_INTR_0 ${ext_intr_0}
+#define EXT_INTR_1 ${ext_intr_1}
+#define EXT_INTR_2 ${ext_intr_2}
+#define EXT_INTR_3 ${ext_intr_3}
+#define EXT_INTR_4 ${ext_intr_4}
+#define EXT_INTR_5 ${ext_intr_5}
 
 #ifdef __cplusplus
 }  // extern "C"

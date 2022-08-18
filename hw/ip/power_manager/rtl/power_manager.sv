@@ -16,7 +16,7 @@ module power_manager #(
     output reg_rsp_t reg_rsp_o,
 
     // Power gate core signal
-    input logic rv_timer_irq_i,
+    input  logic rv_timer_irq_i,
     output logic power_gate_core_o,
     output logic cpu_subsystem_rst_no
 );
@@ -63,7 +63,7 @@ module power_manager #(
   always_comb begin
 
     next_state = curr_state;
-    next_cnt = curr_cnt;
+    next_cnt   = curr_cnt;
 
     unique case (curr_state)
 

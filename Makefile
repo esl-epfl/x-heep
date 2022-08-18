@@ -7,6 +7,8 @@
 
 .PHONY: clean help
 
+TARGET                   ?= sim
+
 # Generates mcu files
 mcu-gen: verible
 	python util/mcu_gen.py --cfg mcu_cfg.hjson --outdir hw/core-v-mini-mcu/include --cpu $(CPU) --bus $(BUS) --pkg-sv hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
@@ -21,16 +23,19 @@ verible:
 	util/format-verible;
 
 app-helloworld:
-	$(MAKE) -C sw applications/hello_world/hello_world.hex
+	$(MAKE) -C sw applications/hello_world/hello_world.hex  TARGET=$(TARGET)
 
 app-matadd:
-	$(MAKE) -C sw applications/matadd/matadd.hex
+	$(MAKE) -C sw applications/matadd/matadd.hex TARGET=$(TARGET)
 
 app-ext-periph:
-	$(MAKE) -C sw applications/example_external_peripheral/example_external_peripheral.hex
+	$(MAKE) -C sw applications/example_external_peripheral/example_external_peripheral.hex TARGET=$(TARGET)
 
 app-gpio-cnt:
-	$(MAKE) -C sw applications/example_gpio_cnt/example_gpio_cnt.hex
+	$(MAKE) -C sw applications/example_gpio_cnt/example_gpio_cnt.hex TARGET=$(TARGET)
+
+app-dma:
+	$(MAKE) -C sw applications/dma_example/dma_example.hex TARGET=$(TARGET)
 
 # Tools specific fusesoc call
 
