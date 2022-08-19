@@ -10,7 +10,7 @@
 #include <stdint.h>
 
 #include "mmio.h"
-#include "spi_regs.h"
+#include "spi_host_regs.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -85,7 +85,7 @@ typedef struct spi_command {
 /**
  * Read the TX FIFO depth register.
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @return TX FIFO depth.
  */
 volatile uint8_t spi_get_tx_queue_depth(const spi_host_t *spi);
@@ -93,7 +93,7 @@ volatile uint8_t spi_get_tx_queue_depth(const spi_host_t *spi);
 /**
  * Read the TX channel status register.
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @return TX channel status structure.
  */
 volatile spi_ch_status_t spi_get_tx_channel_status(const spi_host_t *spi);
@@ -101,7 +101,7 @@ volatile spi_ch_status_t spi_get_tx_channel_status(const spi_host_t *spi);
 /**
  * Read the RX FIFO depth register.
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @return RX FIFO depth.
  */
 volatile uint8_t spi_get_rx_queue_depth(const spi_host_t *spi);
@@ -109,7 +109,7 @@ volatile uint8_t spi_get_rx_queue_depth(const spi_host_t *spi);
 /**
  * Read the RX channel status register.
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @return RX channel status structure.
  */
 volatile spi_ch_status_t spi_get_rx_channel_status(const spi_host_t *spi);
@@ -117,7 +117,7 @@ volatile spi_ch_status_t spi_get_rx_channel_status(const spi_host_t *spi);
 /**
  * Read the Chip Select (CS) ID register.
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @return Chip Select (CS) ID.
  */
 volatile uint32_t spi_get_csid(const spi_host_t *spi);
@@ -125,21 +125,21 @@ volatile uint32_t spi_get_csid(const spi_host_t *spi);
 /**
  * Reset the SPI from software.
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  */
 void spi_sw_reset(const spi_host_t *spi);
 
 /**
  * Enable the SPI host.
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  */
 void spi_set_enable(const spi_host_t *spi, bool enable);
 
 /**
  * Set the transmit queue watermark level (to enable interrupt triggering).
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @param watermark Queue/fifo trigger level (minimum level).
  */
 void spi_set_tx_watermark(const spi_host_t *spi, uint8_t watermark);
@@ -147,7 +147,7 @@ void spi_set_tx_watermark(const spi_host_t *spi, uint8_t watermark);
 /**
  * Set the receive queue watermark level (to enable interrupt triggering).
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @param watermark Queue/fifo trigger level (maximum level).
  */
 void spi_set_rx_watermark(const spi_host_t *spi, uint8_t watermark);
@@ -155,7 +155,7 @@ void spi_set_rx_watermark(const spi_host_t *spi, uint8_t watermark);
 /**
  * Set the requirement of a target device (i.e., a slave).
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @param csid Chip Select (CS) ID.
  * @param conf_reg Slave transmission configuration.
  */
@@ -164,7 +164,7 @@ void spi_set_configopts(const spi_host_t *spi, uint32_t csid, uint32_t conf_reg)
 /**
  * Select which device to target with the next command.
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @param csid Chip Select (SC) ID.
  */
 void spi_set_csid(const spi_host_t *spi, uint32_t csid);
@@ -172,7 +172,7 @@ void spi_set_csid(const spi_host_t *spi, uint32_t csid);
 /**
  * Set the next command (one for all attached SPI devices).
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @param cmd_reg Command register value (Length, speed, ...).
  */
 void spi_set_command(const spi_host_t *spi, uint32_t cmd_reg);
@@ -180,7 +180,7 @@ void spi_set_command(const spi_host_t *spi, uint32_t cmd_reg);
 /**
  * Write one word to the TX FIFO.
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @param wdata Data to write.
  */
 void spi_write_word(const spi_host_t *spi, uint32_t wdata);
@@ -188,7 +188,7 @@ void spi_write_word(const spi_host_t *spi, uint32_t wdata);
 /**
  * Read one word to the RX FIFO.
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @param rdata Read data.
  */
 void spi_read_word(const spi_host_t *spi, uint32_t* dst);
@@ -196,7 +196,7 @@ void spi_read_word(const spi_host_t *spi, uint32_t* dst);
 /**
  * Reads a chunk of data from RX FIFO (which must contains at least 128B!).
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @param dst Read data destination pointer.
  */
 void spi_read_chunk_32B(const spi_host_t *spi, uint32_t* dst);
@@ -206,7 +206,7 @@ void spi_read_chunk_32B(const spi_host_t *spi, uint32_t* dst);
 /**
  * Read SPI status register
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) volatile uint32_t spi_get_status(const spi_host_t *spi) {
     return mmio_region_read32(spi->base_addr, SPI_HOST_STATUS_REG_OFFSET);
@@ -215,7 +215,7 @@ static inline __attribute__((always_inline)) volatile uint32_t spi_get_status(co
 /**
  * Read SPI active bit from status register
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) volatile bool spi_get_active(const spi_host_t *spi) {
     volatile uint32_t status_reg = spi_get_status(spi);
@@ -225,7 +225,7 @@ static inline __attribute__((always_inline)) volatile bool spi_get_active(const 
 /**
  * Read SPI ready bit from status register
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) volatile bool spi_get_ready(const spi_host_t *spi) {
     volatile uint32_t status_reg = spi_get_status(spi);
@@ -235,7 +235,7 @@ static inline __attribute__((always_inline)) volatile bool spi_get_ready(const s
 // /**
 //  * Get SPI handler
 //  *
-//  * @param spi Pointer to spi_host_t represting the target SPI.
+//  * @param spi Pointer to spi_host_t representing the target SPI.
 //  */
 // static inline __attribute__((always_inline)) __attribute__((const)) volatile spi_host_t spi_get_handle(const uintptr_t base_addr) {
 //     spi_host_t spi = {
@@ -250,7 +250,7 @@ static inline __attribute__((always_inline)) volatile bool spi_get_ready(const s
 /**
  * Wait SPI is ready to receive commands.
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_ready(const spi_host_t *spi) {
     while (!spi_get_ready(spi));
@@ -259,7 +259,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_ready(const spi_h
 /**
  * Wait TX FIFO reach watermark.
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(const spi_host_t *spi) {
     while (!mmio_region_get_bit32(spi->base_addr, SPI_HOST_STATUS_REG_OFFSET, SPI_HOST_STATUS_TXWM_BIT));
@@ -268,7 +268,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(cons
 /**
  * Wait RX FIFO reach watermark.
  *
- * @param spi Pointer to spi_host_t represting the target SPI.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_rx_watermark(const spi_host_t *spi) {
     while (!mmio_region_get_bit32(spi->base_addr, SPI_HOST_STATUS_REG_OFFSET, SPI_HOST_STATUS_RXWM_BIT));

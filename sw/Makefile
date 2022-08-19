@@ -39,8 +39,12 @@ LIB_DRIVERS                += $(wildcard device/lib/drivers/rv_timer/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/gpio/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/i2c/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/dma/*.c)
+<<<<<<< HEAD
 LIB_DRIVERS                += $(wildcard device/lib/drivers/power_manager/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/spi/*.c)
+=======
+LIB_DRIVERS                += $(wildcard device/lib/drivers/spi_host/*.c)
+>>>>>>> 4583afc (File renaming and SPI host example app update.)
 INC_FOLDERS                = $(sort $(dir $(wildcard device/target/$(TARGET)/)))
 INC_FOLDERS                += $(sort $(dir $(wildcard device/lib/base/)))
 INC_FOLDERS                += $(sort $(dir $(wildcard device/lib/drivers/*/)))
@@ -185,7 +189,7 @@ applications/dma_example/dma_example.elf: applications/dma_example/dma_example.c
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
-		-Wl,-Map=dma_example.map \
+		-Wl,-Map=applications/dma_example/dma_example.map \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
 applications/example_power_gating_core/example_power_gating_core.elf: applications/example_power_gating_core/example_power_gating_core.c
@@ -203,7 +207,7 @@ applications/example_power_gating_core/example_power_gating_core.elf: applicatio
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/spi_ot_test/spi_ot_test.elf: applications/spi_ot_test/spi_ot_test.c
+applications/spi_host_example/spi_host_example.elf: applications/spi_host_example/spi_host_example.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
@@ -216,6 +220,7 @@ applications/spi_ot_test/spi_ot_test.elf: applications/spi_ot_test/spi_ot_test.c
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
+		-Wl,-Map=applications/spi_host_example/spi_host_example.map \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
 clean:

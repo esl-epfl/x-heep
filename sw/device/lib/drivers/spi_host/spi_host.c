@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-#include "spi.h"
+#include "spi_host.h"
 
 #include "mmio.h"
 #include "bitfield.h"
