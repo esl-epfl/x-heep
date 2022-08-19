@@ -292,15 +292,15 @@ static inline __attribute__((always_inline)) void spi_wait_for_rx_watermark(cons
  * @param configopts Target device configuation structure.
  */
 static inline __attribute__((always_inline)) __attribute__((const)) uint32_t spi_create_configopts(const spi_configopts_t configopts) {
-    uint32_t co_reg = 0;
-    co_reg = bitfield_field32_write(co_reg, SPI_HOST_CONFIGOPTS_0_CLKDIV_0_FIELD, configopts.clkdiv);
-    co_reg = bitfield_field32_write(co_reg, SPI_HOST_CONFIGOPTS_0_CSNIDLE_0_FIELD, configopts.csnidle);
-    co_reg = bitfield_field32_write(co_reg, SPI_HOST_CONFIGOPTS_0_CSNTRAIL_0_FIELD, configopts.csntrail);
-    co_reg = bitfield_field32_write(co_reg, SPI_HOST_CONFIGOPTS_0_CSNLEAD_0_FIELD, configopts.csnlead);
-    co_reg = bitfield_bit32_write(co_reg, SPI_HOST_CONFIGOPTS_0_FULLCYC_0_BIT, configopts.fullcyc);
-    co_reg = bitfield_bit32_write(co_reg, SPI_HOST_CONFIGOPTS_0_CPHA_0_BIT, configopts.cpha);
-    co_reg = bitfield_bit32_write(co_reg, SPI_HOST_CONFIGOPTS_0_CPOL_0_BIT, configopts.cpol);
-    return co_reg;
+    uint32_t conf_reg = 0;
+    conf_reg = bitfield_field32_write(conf_reg, SPI_HOST_CONFIGOPTS_0_CLKDIV_0_FIELD, configopts.clkdiv);
+    conf_reg = bitfield_field32_write(conf_reg, SPI_HOST_CONFIGOPTS_0_CSNIDLE_0_FIELD, configopts.csnidle);
+    conf_reg = bitfield_field32_write(conf_reg, SPI_HOST_CONFIGOPTS_0_CSNTRAIL_0_FIELD, configopts.csntrail);
+    conf_reg = bitfield_field32_write(conf_reg, SPI_HOST_CONFIGOPTS_0_CSNLEAD_0_FIELD, configopts.csnlead);
+    conf_reg = bitfield_bit32_write(conf_reg, SPI_HOST_CONFIGOPTS_0_FULLCYC_0_BIT, configopts.fullcyc);
+    conf_reg = bitfield_bit32_write(conf_reg, SPI_HOST_CONFIGOPTS_0_CPHA_0_BIT, configopts.cpha);
+    conf_reg = bitfield_bit32_write(conf_reg, SPI_HOST_CONFIGOPTS_0_CPOL_0_BIT, configopts.cpol);
+    return conf_reg;
 }
 
 /**

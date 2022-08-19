@@ -23,12 +23,6 @@ volatile spi_ch_status_t spi_get_tx_channel_status(const spi_host_t *spi) {
         .wm = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_TXWM_BIT)
     };
     return ch_status;
-    // return (spi_ch_status_t){
-    //     .empty = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_TXEMPTY_BIT),
-    //     .full = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_TXFULL_BIT),
-    //     .stall = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_TXSTALL_BIT),
-    //     .wm = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_TXWM_BIT)
-    // };
 }
 
 volatile uint8_t spi_get_rx_queue_depth(const spi_host_t *spi) {
@@ -45,12 +39,6 @@ volatile spi_ch_status_t spi_get_rx_channel_status(const spi_host_t *spi) {
         .wm = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_RXWM_BIT)
     };
     return ch_status;
-    // return (spi_ch_status_t){
-    //     .empty = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_RXEMPTY_BIT),
-    //     .full = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_RXFULL_BIT),
-    //     .stall = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_RXSTALL_BIT),
-    //     .wm = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_RXWM_BIT)
-    // };
 }
 
 volatile uint32_t spi_get_csid(const spi_host_t *spi) {
