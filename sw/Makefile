@@ -269,6 +269,7 @@ applications/spi_host_example/spi_host_example.elf: applications/spi_host_exampl
 		$(LIB_DRIVERS) \
 		-Wl,-Map=applications/spi_host_example/spi_host_example.map \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
+		-Wl,-Map=applications/spi_host_example/spi_host_example.map \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
 clean:
