@@ -248,8 +248,8 @@ def main():
     plic_start_offset  = string2int(obj['peripherals']['plic']['offset'])
     plic_size_address  = string2int(obj['peripherals']['plic']['length'])
 
-    uart_start_offset  = string2int(obj['peripherals']['uart']['offset'])
-    uart_size_address  = string2int(obj['peripherals']['uart']['length'])
+    spi_flash_start_address  = string2int(obj['spi_flash']['address'])
+    spi_flash_size_address  = string2int(obj['spi_flash']['length'])
 
     gpio_start_offset  = string2int(obj['peripherals']['gpio']['offset'])
     gpio_size_address  = string2int(obj['peripherals']['gpio']['length'])
