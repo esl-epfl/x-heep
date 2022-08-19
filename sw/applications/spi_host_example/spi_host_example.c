@@ -7,24 +7,69 @@
 #include <stdlib.h>
 
 #include "core_v_mini_mcu.h"
+#include "csr.h"
+#include "hart.h"
+#include "handler.h"
+#include "rv_plic.h"
+#include "rv_plic_regs.h"
 #include "soc_ctrl.h"
 #include "spi_host.h"
 
 // Simple example to check the SPI host peripheral is working. It checks the ram and flash have the same content
 #define DATA_CHUNK_ADDR 0x00008000
 
+int8_t spi_intr_flag;
+
+// Interrupt controller variables
+dif_plic_params_t rv_plic_params;
+dif_plic_t rv_plic;
+dif_plic_result_t plic_res;
+dif_plic_irq_id_t intr_num;
+
+spi_host_t spi_host;
+
+void handler_irq_external(void) {
+    // Claim/clear interrupt
+    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
+    if (plic_res == kDifPlicOk && intr_num == SPI_INTR_EVENT) {
+        spi_intr_flag = 1;
+        // Disable SPI interrupt otherwise it stays on until RX FIFO is read
+        dif_plic_irq_set_enabled(&rv_plic, SPI_INTR_EVENT, 0, kDifPlicToggleDisabled);
+    }
+}
+
 int main(int argc, char *argv[])
 {
-    spi_host_t spi_host;
+    // spi_host_t spi_host;
     spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
 
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
+    // Init the PLIC
+    rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)PLIC_START_ADDRESS);
+    plic_res = dif_plic_init(rv_plic_params, &rv_plic);
+    // Set SPI interrupt priority to 1
+    plic_res = dif_plic_irq_set_priority(&rv_plic, SPI_INTR_EVENT, 1);
+    // Enable SPI interrupt
+    plic_res = dif_plic_irq_set_enabled(&rv_plic, SPI_INTR_EVENT, 0, kDifPlicToggleEnabled);
+    // Enable interrupt on processor side
+    // Enable global interrupt for machine-level interrupts
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    // Set mie.MEIE bit to one to enable machine-level external interrupts
+    const uint32_t mask = 1 << 11;//IRQ_EXT_ENABLE_OFFSET;
+    CSR_SET_BITS(CSR_REG_MIE, mask);
+    spi_intr_flag = 0;
+
     // Select SPI host as SPI output
     soc_ctrl_select_spi_host(&soc_ctrl);
-
+    // Enable SPI host device
     spi_set_enable(&spi_host, true);
+
+    // Enable event interrupt
+    spi_enable_evt_intr(&spi_host, true);
+    // Enable RX watermark interrupt
+    spi_enable_rxwm_intr(&spi_host, true);
 
     // Configure chip 0 (flash memory)
     // Max 50 MHz core SPI clock --> Max 25 MHz SCK
@@ -84,8 +129,17 @@ int main(int argc, char *argv[])
     });
     spi_set_command(&spi_host, cmd_read_rx);
     spi_wait_for_ready(&spi_host);
-    // Wait transaction is finished
-    spi_wait_for_rx_watermark(&spi_host);
+
+    // Wait transaction is finished (polling register)
+    // or wait for SPI interrupt
+    // spi_wait_for_rx_watermark(&spi_host);
+    while(spi_intr_flag==0) {
+        wait_for_interrupt();
+    }
+
+    // Complete interrupt
+    plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
+
     // Read data from SPI RX FIFO
     spi_read_chunk_32B(&spi_host, flash_data);
 
