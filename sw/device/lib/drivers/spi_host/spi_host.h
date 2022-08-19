@@ -133,6 +133,7 @@ void spi_sw_reset(const spi_host_t *spi);
  * Enable the SPI host.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
+ * @param enable SPI enable register value.
  */
 void spi_set_enable(const spi_host_t *spi, bool enable);
 
@@ -201,6 +202,32 @@ void spi_read_word(const spi_host_t *spi, uint32_t* dst);
  */
 void spi_read_chunk_32B(const spi_host_t *spi, uint32_t* dst);
 
+/**
+ * Enable SPI event interrupt
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ * @param enable SPI event interrupt bit value.
+ */
+void spi_enable_evt_intr(const spi_host_t *spi, bool enable);
+
+/**
+ * Reads a chunk of data from RX FIFO (which must contains at least 128B!).
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ * @param enable SPI error interrupt bit value.
+ */
+void spi_enable_error_intr(const spi_host_t *spi, bool enable);
+
+/**
+ * Reads a chunk of data from RX FIFO (which must contains at least 128B!).
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ * @param enable SPI RX watermark interrupt bit value.
+ */
+void spi_enable_rxwm_intr(const spi_host_t *spi, bool enable);
+
+
+
 // Inline functions
 
 /**
@@ -231,21 +258,6 @@ static inline __attribute__((always_inline)) volatile bool spi_get_ready(const s
     volatile uint32_t status_reg = spi_get_status(spi);
     return bitfield_bit32_read(status_reg, SPI_HOST_STATUS_READY_BIT);
 }
-
-// /**
-//  * Get SPI handler
-//  *
-//  * @param spi Pointer to spi_host_t representing the target SPI.
-//  */
-// static inline __attribute__((always_inline)) __attribute__((const)) volatile spi_host_t spi_get_handle(const uintptr_t base_addr) {
-//     spi_host_t spi = {
-//         .base_addr = mmio_region_from_addr(base_addr),
-//     };
-//     return spi;
-//     // return (spi_host_t){
-//     //     .mmio = mmio_region_from_addr(spi_base),
-//     // };
-// }
 
 /**
  * Wait SPI is ready to receive commands.

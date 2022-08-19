@@ -323,7 +323,7 @@ module peripheral_subsystem
 
       // SPI HOST interrupt
       .spi_intr_error_o(spi_intr_error),
-      .spi_intr_event_o(spi_intr_event),
+      .spi_intr_event_o(spi_intr_event)
   );
 
 

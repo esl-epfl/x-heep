@@ -76,12 +76,11 @@ module testharness #(
 
   always_comb begin
     // All interrupt lines set to zero by default
-    for (int i = 0; i < NEXT_INT; i++) begin
-      assign intr_vector_ext[i] = 1'b0;
+    for (int i = 0; i < core_v_mini_mcu_pkg::NEXT_INT; i++) begin
+      intr_vector_ext[i] = 1'b0;
     end
-
-    // Re-assign the interrupt actually used here
-    assign intr_vector_ext[0] = memcopy_intr;
+    // Re-assign the interrupt lines used here
+    intr_vector_ext[0] = memcopy_intr;
   end
 
 `ifdef USE_UPF
