@@ -1,27 +1,26 @@
-// Generated register defines for power_manager
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-// Copyright information found in source file:
-// Copyright lowRISC contributors.
+#ifndef _POWER_MANAGER_H_
+#define _POWER_MANAGER_H_
 
-// Licensing information found in source file:
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
-// SPDX-License-Identifier: Apache-2.0
+#include <stddef.h>
+#include <stdint.h>
 
-#ifndef _POWER_MANAGER_REG_DEFS_
-#define _POWER_MANAGER_REG_DEFS_
+#include "mmio.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-// Register width
-#define POWER_MANAGER_PARAM_REG_WIDTH 32
 
-// Used to power gate the core
-#define POWER_MANAGER_POWER_GATE_CORE_REG_OFFSET 0x0
-#define POWER_MANAGER_POWER_GATE_CORE_POWER_GATE_CORE_BIT 0
+/**
+ * Power gate the core
+ */
+void power_gate_core(void);
 
 #ifdef __cplusplus
-}  // extern "C"
+}
 #endif
-#endif  // _POWER_MANAGER_REG_DEFS_
-// End generated register defines for power_manager
+
+#endif  // _POWER_MANAGER_H_

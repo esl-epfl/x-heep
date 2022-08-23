@@ -32,8 +32,10 @@ module cpu_subsystem
     output logic [ 4:0] irq_id_o,
 
     // Debug Interface
-    input logic debug_req_i
+    input logic debug_req_i,
 
+    // sleep
+    output logic core_sleep_o
 );
 
 
@@ -117,7 +119,7 @@ module cpu_subsystem
         .alert_minor_o (),
         .alert_major_o (),
         .icache_inval_o(),
-        .core_sleep_o  ()
+        .core_sleep_o
     );
 
     cv32e40p_register_file #(

@@ -2,6 +2,8 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+/* verilator lint_off UNUSED */
+
 `include "common_cells/assertions.svh"
 
 module power_manager #(
@@ -17,6 +19,7 @@ module power_manager #(
 
     // Power gate core signal
     input  logic rv_timer_irq_i,
+    input  logic core_sleep_i,
     output logic power_gate_core_o,
     output logic cpu_subsystem_rst_no
 );
@@ -26,6 +29,8 @@ module power_manager #(
   power_manager_reg2hw_t reg2hw;
 
   logic [31:0] curr_cnt, next_cnt;
+
+  assign power_gate_core_o = 1'b0;
 
   typedef enum logic [1:0] {
     IDLE,
@@ -68,16 +73,16 @@ module power_manager #(
     unique case (curr_state)
 
       IDLE: begin
-        power_gate_core_o = 1'b0;
+        // power_gate_core_o = 1'b0;
         cpu_subsystem_rst_no = 1'b1;
 
-        if (reg2hw.power_gate_core.q == 1'b1) begin
+        if (reg2hw.power_gate_core.q == 1'b1 && core_sleep_i == 1'b1) begin
           next_state = PW_OFF_RST_ON;
         end
       end
 
       PW_OFF_RST_ON: begin
-        power_gate_core_o = 1'b1;
+        // power_gate_core_o = 1'b1;
         cpu_subsystem_rst_no = 1'b0;
 
         if (rv_timer_irq_i == 1'b1) begin
@@ -86,7 +91,7 @@ module power_manager #(
       end
 
       PW_ON_RST_ON: begin
-        power_gate_core_o = 1'b0;
+        // power_gate_core_o = 1'b0;
         cpu_subsystem_rst_no = 1'b0;
 
         if (curr_cnt == 32'd20) begin
@@ -98,7 +103,7 @@ module power_manager #(
       end
 
       PW_ON_RST_OFF: begin
-        power_gate_core_o = 1'b0;
+        // power_gate_core_o = 1'b0;
         cpu_subsystem_rst_no = 1'b1;
 
         if (reg2hw.power_gate_core.q == 1'b0) begin
@@ -107,7 +112,7 @@ module power_manager #(
       end
 
       default: begin
-        power_gate_core_o = 1'b0;
+        // power_gate_core_o = 1'b0;
         cpu_subsystem_rst_no = 1'b1;
         next_state = IDLE;
         next_cnt = 32'd0;

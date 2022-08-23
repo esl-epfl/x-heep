@@ -17,5 +17,313 @@
         { bits: "0", name: "POWER_GATE_CORE", desc: "Power Gate Core Reg" }
       ]
     }
+
+    { name:     "WAKEUP_STATE",
+      desc:     "Wake-up state of the system",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "WAKEUP_STATE", desc: "Wake-up state Reg" }
+      ]
+    }
+
+    { name:     "RESTORE_ADDRESS",
+      desc:     "Restore xddress value",
+      resval:   "0x00000330"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "RESTORE_XDDRESS", desc: "Restore xddress Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X0",
+      desc:     "Core reg x0 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X0", desc: "Core reg x0 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X1",
+      desc:     "Core reg x1 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X1", desc: "Core reg x1 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X2",
+      desc:     "Core reg x2 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X2", desc: "Core reg x2 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X3",
+      desc:     "Core reg x3 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X3", desc: "Core reg x3 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X4",
+      desc:     "Core reg x4 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X4", desc: "Core reg x4 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X5",
+      desc:     "Core reg x5 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X5", desc: "Core reg x5 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X6",
+      desc:     "Core reg x6 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X6", desc: "Core reg x6 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X7",
+      desc:     "Core reg x7 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X7", desc: "Core reg x7 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X8",
+      desc:     "Core reg x8 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X8", desc: "Core reg x8 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X9",
+      desc:     "Core reg x9 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X9", desc: "Core reg x9 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X10",
+      desc:     "Core reg x10 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X10", desc: "Core reg x10 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X11",
+      desc:     "Core reg x11 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X11", desc: "Core reg x11 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X12",
+      desc:     "Core reg x12 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X12", desc: "Core reg x12 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X13",
+      desc:     "Core reg x13 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X13", desc: "Core reg x13 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X14",
+      desc:     "Core reg x14 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X14", desc: "Core reg x14 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X15",
+      desc:     "Core reg x15 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X15", desc: "Core reg x15 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X16",
+      desc:     "Core reg x16 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X16", desc: "Core reg x16 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X17",
+      desc:     "Core reg x17 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X17", desc: "Core reg x17 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X18",
+      desc:     "Core reg x18 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X18", desc: "Core reg x18Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X19",
+      desc:     "Core reg x19 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X19", desc: "Core reg x19 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X20",
+      desc:     "Core reg x20 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X20", desc: "Core reg x20 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X21",
+      desc:     "Core reg x21 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X21", desc: "Core reg x21 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X22",
+      desc:     "Core reg x22 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X22", desc: "Core reg x22 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X23",
+      desc:     "Core reg x23 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X23", desc: "Core reg x23 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X24",
+      desc:     "Core reg x24 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X24", desc: "Core reg x24 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X25",
+      desc:     "Core reg x25 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X25", desc: "Core reg x25 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X26",
+      desc:     "Core reg x26 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X26", desc: "Core reg x26 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X27",
+      desc:     "Core reg x27 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X27", desc: "Core reg x27 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X28",
+      desc:     "Core reg x28 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X28", desc: "Core reg x28 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X29",
+      desc:     "Core reg x29 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X29", desc: "Core reg x29 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X30",
+      desc:     "Core reg x30 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X30", desc: "Core reg x30 Reg" }
+      ]
+    }
+    { name:     "CORE_REG_X31",
+      desc:     "Core reg x31 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_REG_X31", desc: "Core reg x31 Reg" }
+      ]
+    }
    ]
 }

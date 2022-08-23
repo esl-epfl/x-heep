@@ -105,6 +105,9 @@ module core_v_mini_mcu
   // signals to debug unit
   logic                                    debug_core_req;
 
+  // core
+  logic                                    core_sleep;
+
   // irq signals
   logic                                    irq_ack;
   logic      [                        4:0] irq_id_out;
@@ -160,7 +163,8 @@ module core_v_mini_mcu
       .irq_i({irq_fast, 4'b0, irq_external, 3'b0, irq_timer, 3'b0, irq_software, 3'b0}),
       .irq_ack_o(irq_ack),
       .irq_id_o(irq_id_out),
-      .debug_req_i(debug_core_req)
+      .debug_req_i(debug_core_req),
+      .core_sleep_o(core_sleep)
   );
 
   assign irq_fast = '0;
@@ -268,6 +272,7 @@ module core_v_mini_mcu
       .spi_sd_o(spi_sd_out),
       .spi_sd_en_o(spi_sd_en),
       .spi_sd_i(spi_sd_in),
+      .core_sleep_i(core_sleep),
       .power_gate_core_o(power_gate_core),
       .cpu_subsystem_rst_no(tmp_cpu_subsystem_rst_n),
       .rv_timer_irq_timer_o(irq_timer),
