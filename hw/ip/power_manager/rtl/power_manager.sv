@@ -17,7 +17,7 @@ module power_manager #(
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
-    // Power gate core signal
+    // Power gate signal
     input  logic rv_timer_irq_i,
     input  logic core_sleep_i,
     output logic power_gate_core_o,
@@ -27,10 +27,14 @@ module power_manager #(
   import power_manager_reg_pkg::*;
 
   power_manager_reg2hw_t reg2hw;
+  power_manager_hw2reg_t hw2reg;
 
   logic [31:0] curr_cnt, next_cnt;
 
   assign power_gate_core_o = 1'b0;
+
+  assign hw2reg.intr_state.d = rv_timer_irq_i;
+  assign hw2reg.intr_state.de = 1'b1;
 
   typedef enum logic [1:0] {
     IDLE,
@@ -50,6 +54,7 @@ module power_manager #(
       .reg_req_i,
       .reg_rsp_o,
       .reg2hw,
+      .hw2reg,
       .devmode_i(1'b1)
   );
 
@@ -85,7 +90,11 @@ module power_manager #(
         // power_gate_core_o = 1'b1;
         cpu_subsystem_rst_no = 1'b0;
 
-        if (rv_timer_irq_i == 1'b1) begin
+        if (reg2hw.en_wait_for_intr.q == 1'b1) begin
+          if (reg2hw.intr_state.q == 1'b1) begin
+            next_state = PW_ON_RST_ON;
+          end
+        end else begin
           next_state = PW_ON_RST_ON;
         end
       end
@@ -106,7 +115,7 @@ module power_manager #(
         // power_gate_core_o = 1'b0;
         cpu_subsystem_rst_no = 1'b1;
 
-        if (reg2hw.power_gate_core.q == 1'b0) begin
+        if (reg2hw.power_gate_core.q == 1'b0 && reg2hw.intr_state.q == 1'b0) begin
           next_state = IDLE;
         end
       end

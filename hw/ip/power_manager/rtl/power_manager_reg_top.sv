@@ -19,6 +19,7 @@ module power_manager_reg_top #(
     output reg_rsp_t reg_rsp_o,
     // To HW
     output power_manager_reg_pkg::power_manager_reg2hw_t reg2hw,  // Write
+    input power_manager_reg_pkg::power_manager_hw2reg_t hw2reg,  // Read
 
 
     // Config
@@ -77,9 +78,6 @@ module power_manager_reg_top #(
   logic [31:0] restore_address_qs;
   logic [31:0] restore_address_wd;
   logic restore_address_we;
-  logic [31:0] core_reg_x0_qs;
-  logic [31:0] core_reg_x0_wd;
-  logic core_reg_x0_we;
   logic [31:0] core_reg_x1_qs;
   logic [31:0] core_reg_x1_wd;
   logic core_reg_x1_we;
@@ -173,6 +171,12 @@ module power_manager_reg_top #(
   logic [31:0] core_reg_x31_qs;
   logic [31:0] core_reg_x31_wd;
   logic core_reg_x31_we;
+  logic en_wait_for_intr_qs;
+  logic en_wait_for_intr_wd;
+  logic en_wait_for_intr_we;
+  logic intr_state_qs;
+  logic intr_state_wd;
+  logic intr_state_we;
 
   // Register instances
   // R[power_gate_core]: V(False)
@@ -234,7 +238,7 @@ module power_manager_reg_top #(
   prim_subreg #(
       .DW      (32),
       .SWACCESS("RW"),
-      .RESVAL  (32'h330)
+      .RESVAL  (32'h0)
   ) u_restore_address (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -253,33 +257,6 @@ module power_manager_reg_top #(
 
       // to register interface (read)
       .qs(restore_address_qs)
-  );
-
-
-  // R[core_reg_x0]: V(False)
-
-  prim_subreg #(
-      .DW      (32),
-      .SWACCESS("RW"),
-      .RESVAL  (32'h0)
-  ) u_core_reg_x0 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(core_reg_x0_we),
-      .wd(core_reg_x0_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.core_reg_x0.q),
-
-      // to register interface (read)
-      .qs(core_reg_x0_qs)
   );
 
 
@@ -1120,46 +1097,101 @@ module power_manager_reg_top #(
   );
 
 
+  // R[en_wait_for_intr]: V(False)
+
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_en_wait_for_intr (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(en_wait_for_intr_we),
+      .wd(en_wait_for_intr_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.en_wait_for_intr.q),
+
+      // to register interface (read)
+      .qs(en_wait_for_intr_qs)
+  );
 
 
-  logic [34:0] addr_hit;
+  // R[intr_state]: V(False)
+
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_intr_state (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(intr_state_we),
+      .wd(intr_state_wd),
+
+      // from internal hardware
+      .de(hw2reg.intr_state.de),
+      .d (hw2reg.intr_state.d),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.intr_state.q),
+
+      // to register interface (read)
+      .qs(intr_state_qs)
+  );
+
+
+
+
+  logic [35:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == POWER_MANAGER_POWER_GATE_CORE_OFFSET);
     addr_hit[1] = (reg_addr == POWER_MANAGER_WAKEUP_STATE_OFFSET);
     addr_hit[2] = (reg_addr == POWER_MANAGER_RESTORE_ADDRESS_OFFSET);
-    addr_hit[3] = (reg_addr == POWER_MANAGER_CORE_REG_X0_OFFSET);
-    addr_hit[4] = (reg_addr == POWER_MANAGER_CORE_REG_X1_OFFSET);
-    addr_hit[5] = (reg_addr == POWER_MANAGER_CORE_REG_X2_OFFSET);
-    addr_hit[6] = (reg_addr == POWER_MANAGER_CORE_REG_X3_OFFSET);
-    addr_hit[7] = (reg_addr == POWER_MANAGER_CORE_REG_X4_OFFSET);
-    addr_hit[8] = (reg_addr == POWER_MANAGER_CORE_REG_X5_OFFSET);
-    addr_hit[9] = (reg_addr == POWER_MANAGER_CORE_REG_X6_OFFSET);
-    addr_hit[10] = (reg_addr == POWER_MANAGER_CORE_REG_X7_OFFSET);
-    addr_hit[11] = (reg_addr == POWER_MANAGER_CORE_REG_X8_OFFSET);
-    addr_hit[12] = (reg_addr == POWER_MANAGER_CORE_REG_X9_OFFSET);
-    addr_hit[13] = (reg_addr == POWER_MANAGER_CORE_REG_X10_OFFSET);
-    addr_hit[14] = (reg_addr == POWER_MANAGER_CORE_REG_X11_OFFSET);
-    addr_hit[15] = (reg_addr == POWER_MANAGER_CORE_REG_X12_OFFSET);
-    addr_hit[16] = (reg_addr == POWER_MANAGER_CORE_REG_X13_OFFSET);
-    addr_hit[17] = (reg_addr == POWER_MANAGER_CORE_REG_X14_OFFSET);
-    addr_hit[18] = (reg_addr == POWER_MANAGER_CORE_REG_X15_OFFSET);
-    addr_hit[19] = (reg_addr == POWER_MANAGER_CORE_REG_X16_OFFSET);
-    addr_hit[20] = (reg_addr == POWER_MANAGER_CORE_REG_X17_OFFSET);
-    addr_hit[21] = (reg_addr == POWER_MANAGER_CORE_REG_X18_OFFSET);
-    addr_hit[22] = (reg_addr == POWER_MANAGER_CORE_REG_X19_OFFSET);
-    addr_hit[23] = (reg_addr == POWER_MANAGER_CORE_REG_X20_OFFSET);
-    addr_hit[24] = (reg_addr == POWER_MANAGER_CORE_REG_X21_OFFSET);
-    addr_hit[25] = (reg_addr == POWER_MANAGER_CORE_REG_X22_OFFSET);
-    addr_hit[26] = (reg_addr == POWER_MANAGER_CORE_REG_X23_OFFSET);
-    addr_hit[27] = (reg_addr == POWER_MANAGER_CORE_REG_X24_OFFSET);
-    addr_hit[28] = (reg_addr == POWER_MANAGER_CORE_REG_X25_OFFSET);
-    addr_hit[29] = (reg_addr == POWER_MANAGER_CORE_REG_X26_OFFSET);
-    addr_hit[30] = (reg_addr == POWER_MANAGER_CORE_REG_X27_OFFSET);
-    addr_hit[31] = (reg_addr == POWER_MANAGER_CORE_REG_X28_OFFSET);
-    addr_hit[32] = (reg_addr == POWER_MANAGER_CORE_REG_X29_OFFSET);
-    addr_hit[33] = (reg_addr == POWER_MANAGER_CORE_REG_X30_OFFSET);
-    addr_hit[34] = (reg_addr == POWER_MANAGER_CORE_REG_X31_OFFSET);
+    addr_hit[3] = (reg_addr == POWER_MANAGER_CORE_REG_X1_OFFSET);
+    addr_hit[4] = (reg_addr == POWER_MANAGER_CORE_REG_X2_OFFSET);
+    addr_hit[5] = (reg_addr == POWER_MANAGER_CORE_REG_X3_OFFSET);
+    addr_hit[6] = (reg_addr == POWER_MANAGER_CORE_REG_X4_OFFSET);
+    addr_hit[7] = (reg_addr == POWER_MANAGER_CORE_REG_X5_OFFSET);
+    addr_hit[8] = (reg_addr == POWER_MANAGER_CORE_REG_X6_OFFSET);
+    addr_hit[9] = (reg_addr == POWER_MANAGER_CORE_REG_X7_OFFSET);
+    addr_hit[10] = (reg_addr == POWER_MANAGER_CORE_REG_X8_OFFSET);
+    addr_hit[11] = (reg_addr == POWER_MANAGER_CORE_REG_X9_OFFSET);
+    addr_hit[12] = (reg_addr == POWER_MANAGER_CORE_REG_X10_OFFSET);
+    addr_hit[13] = (reg_addr == POWER_MANAGER_CORE_REG_X11_OFFSET);
+    addr_hit[14] = (reg_addr == POWER_MANAGER_CORE_REG_X12_OFFSET);
+    addr_hit[15] = (reg_addr == POWER_MANAGER_CORE_REG_X13_OFFSET);
+    addr_hit[16] = (reg_addr == POWER_MANAGER_CORE_REG_X14_OFFSET);
+    addr_hit[17] = (reg_addr == POWER_MANAGER_CORE_REG_X15_OFFSET);
+    addr_hit[18] = (reg_addr == POWER_MANAGER_CORE_REG_X16_OFFSET);
+    addr_hit[19] = (reg_addr == POWER_MANAGER_CORE_REG_X17_OFFSET);
+    addr_hit[20] = (reg_addr == POWER_MANAGER_CORE_REG_X18_OFFSET);
+    addr_hit[21] = (reg_addr == POWER_MANAGER_CORE_REG_X19_OFFSET);
+    addr_hit[22] = (reg_addr == POWER_MANAGER_CORE_REG_X20_OFFSET);
+    addr_hit[23] = (reg_addr == POWER_MANAGER_CORE_REG_X21_OFFSET);
+    addr_hit[24] = (reg_addr == POWER_MANAGER_CORE_REG_X22_OFFSET);
+    addr_hit[25] = (reg_addr == POWER_MANAGER_CORE_REG_X23_OFFSET);
+    addr_hit[26] = (reg_addr == POWER_MANAGER_CORE_REG_X24_OFFSET);
+    addr_hit[27] = (reg_addr == POWER_MANAGER_CORE_REG_X25_OFFSET);
+    addr_hit[28] = (reg_addr == POWER_MANAGER_CORE_REG_X26_OFFSET);
+    addr_hit[29] = (reg_addr == POWER_MANAGER_CORE_REG_X27_OFFSET);
+    addr_hit[30] = (reg_addr == POWER_MANAGER_CORE_REG_X28_OFFSET);
+    addr_hit[31] = (reg_addr == POWER_MANAGER_CORE_REG_X29_OFFSET);
+    addr_hit[32] = (reg_addr == POWER_MANAGER_CORE_REG_X30_OFFSET);
+    addr_hit[33] = (reg_addr == POWER_MANAGER_CORE_REG_X31_OFFSET);
+    addr_hit[34] = (reg_addr == POWER_MANAGER_EN_WAIT_FOR_INTR_OFFSET);
+    addr_hit[35] = (reg_addr == POWER_MANAGER_INTR_STATE_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -1201,7 +1233,8 @@ module power_manager_reg_top #(
                (addr_hit[31] & (|(POWER_MANAGER_PERMIT[31] & ~reg_be))) |
                (addr_hit[32] & (|(POWER_MANAGER_PERMIT[32] & ~reg_be))) |
                (addr_hit[33] & (|(POWER_MANAGER_PERMIT[33] & ~reg_be))) |
-               (addr_hit[34] & (|(POWER_MANAGER_PERMIT[34] & ~reg_be)))));
+               (addr_hit[34] & (|(POWER_MANAGER_PERMIT[34] & ~reg_be))) |
+               (addr_hit[35] & (|(POWER_MANAGER_PERMIT[35] & ~reg_be)))));
   end
 
   assign power_gate_core_we = addr_hit[0] & reg_we & !reg_error;
@@ -1213,101 +1246,104 @@ module power_manager_reg_top #(
   assign restore_address_we = addr_hit[2] & reg_we & !reg_error;
   assign restore_address_wd = reg_wdata[31:0];
 
-  assign core_reg_x0_we = addr_hit[3] & reg_we & !reg_error;
-  assign core_reg_x0_wd = reg_wdata[31:0];
-
-  assign core_reg_x1_we = addr_hit[4] & reg_we & !reg_error;
+  assign core_reg_x1_we = addr_hit[3] & reg_we & !reg_error;
   assign core_reg_x1_wd = reg_wdata[31:0];
 
-  assign core_reg_x2_we = addr_hit[5] & reg_we & !reg_error;
+  assign core_reg_x2_we = addr_hit[4] & reg_we & !reg_error;
   assign core_reg_x2_wd = reg_wdata[31:0];
 
-  assign core_reg_x3_we = addr_hit[6] & reg_we & !reg_error;
+  assign core_reg_x3_we = addr_hit[5] & reg_we & !reg_error;
   assign core_reg_x3_wd = reg_wdata[31:0];
 
-  assign core_reg_x4_we = addr_hit[7] & reg_we & !reg_error;
+  assign core_reg_x4_we = addr_hit[6] & reg_we & !reg_error;
   assign core_reg_x4_wd = reg_wdata[31:0];
 
-  assign core_reg_x5_we = addr_hit[8] & reg_we & !reg_error;
+  assign core_reg_x5_we = addr_hit[7] & reg_we & !reg_error;
   assign core_reg_x5_wd = reg_wdata[31:0];
 
-  assign core_reg_x6_we = addr_hit[9] & reg_we & !reg_error;
+  assign core_reg_x6_we = addr_hit[8] & reg_we & !reg_error;
   assign core_reg_x6_wd = reg_wdata[31:0];
 
-  assign core_reg_x7_we = addr_hit[10] & reg_we & !reg_error;
+  assign core_reg_x7_we = addr_hit[9] & reg_we & !reg_error;
   assign core_reg_x7_wd = reg_wdata[31:0];
 
-  assign core_reg_x8_we = addr_hit[11] & reg_we & !reg_error;
+  assign core_reg_x8_we = addr_hit[10] & reg_we & !reg_error;
   assign core_reg_x8_wd = reg_wdata[31:0];
 
-  assign core_reg_x9_we = addr_hit[12] & reg_we & !reg_error;
+  assign core_reg_x9_we = addr_hit[11] & reg_we & !reg_error;
   assign core_reg_x9_wd = reg_wdata[31:0];
 
-  assign core_reg_x10_we = addr_hit[13] & reg_we & !reg_error;
+  assign core_reg_x10_we = addr_hit[12] & reg_we & !reg_error;
   assign core_reg_x10_wd = reg_wdata[31:0];
 
-  assign core_reg_x11_we = addr_hit[14] & reg_we & !reg_error;
+  assign core_reg_x11_we = addr_hit[13] & reg_we & !reg_error;
   assign core_reg_x11_wd = reg_wdata[31:0];
 
-  assign core_reg_x12_we = addr_hit[15] & reg_we & !reg_error;
+  assign core_reg_x12_we = addr_hit[14] & reg_we & !reg_error;
   assign core_reg_x12_wd = reg_wdata[31:0];
 
-  assign core_reg_x13_we = addr_hit[16] & reg_we & !reg_error;
+  assign core_reg_x13_we = addr_hit[15] & reg_we & !reg_error;
   assign core_reg_x13_wd = reg_wdata[31:0];
 
-  assign core_reg_x14_we = addr_hit[17] & reg_we & !reg_error;
+  assign core_reg_x14_we = addr_hit[16] & reg_we & !reg_error;
   assign core_reg_x14_wd = reg_wdata[31:0];
 
-  assign core_reg_x15_we = addr_hit[18] & reg_we & !reg_error;
+  assign core_reg_x15_we = addr_hit[17] & reg_we & !reg_error;
   assign core_reg_x15_wd = reg_wdata[31:0];
 
-  assign core_reg_x16_we = addr_hit[19] & reg_we & !reg_error;
+  assign core_reg_x16_we = addr_hit[18] & reg_we & !reg_error;
   assign core_reg_x16_wd = reg_wdata[31:0];
 
-  assign core_reg_x17_we = addr_hit[20] & reg_we & !reg_error;
+  assign core_reg_x17_we = addr_hit[19] & reg_we & !reg_error;
   assign core_reg_x17_wd = reg_wdata[31:0];
 
-  assign core_reg_x18_we = addr_hit[21] & reg_we & !reg_error;
+  assign core_reg_x18_we = addr_hit[20] & reg_we & !reg_error;
   assign core_reg_x18_wd = reg_wdata[31:0];
 
-  assign core_reg_x19_we = addr_hit[22] & reg_we & !reg_error;
+  assign core_reg_x19_we = addr_hit[21] & reg_we & !reg_error;
   assign core_reg_x19_wd = reg_wdata[31:0];
 
-  assign core_reg_x20_we = addr_hit[23] & reg_we & !reg_error;
+  assign core_reg_x20_we = addr_hit[22] & reg_we & !reg_error;
   assign core_reg_x20_wd = reg_wdata[31:0];
 
-  assign core_reg_x21_we = addr_hit[24] & reg_we & !reg_error;
+  assign core_reg_x21_we = addr_hit[23] & reg_we & !reg_error;
   assign core_reg_x21_wd = reg_wdata[31:0];
 
-  assign core_reg_x22_we = addr_hit[25] & reg_we & !reg_error;
+  assign core_reg_x22_we = addr_hit[24] & reg_we & !reg_error;
   assign core_reg_x22_wd = reg_wdata[31:0];
 
-  assign core_reg_x23_we = addr_hit[26] & reg_we & !reg_error;
+  assign core_reg_x23_we = addr_hit[25] & reg_we & !reg_error;
   assign core_reg_x23_wd = reg_wdata[31:0];
 
-  assign core_reg_x24_we = addr_hit[27] & reg_we & !reg_error;
+  assign core_reg_x24_we = addr_hit[26] & reg_we & !reg_error;
   assign core_reg_x24_wd = reg_wdata[31:0];
 
-  assign core_reg_x25_we = addr_hit[28] & reg_we & !reg_error;
+  assign core_reg_x25_we = addr_hit[27] & reg_we & !reg_error;
   assign core_reg_x25_wd = reg_wdata[31:0];
 
-  assign core_reg_x26_we = addr_hit[29] & reg_we & !reg_error;
+  assign core_reg_x26_we = addr_hit[28] & reg_we & !reg_error;
   assign core_reg_x26_wd = reg_wdata[31:0];
 
-  assign core_reg_x27_we = addr_hit[30] & reg_we & !reg_error;
+  assign core_reg_x27_we = addr_hit[29] & reg_we & !reg_error;
   assign core_reg_x27_wd = reg_wdata[31:0];
 
-  assign core_reg_x28_we = addr_hit[31] & reg_we & !reg_error;
+  assign core_reg_x28_we = addr_hit[30] & reg_we & !reg_error;
   assign core_reg_x28_wd = reg_wdata[31:0];
 
-  assign core_reg_x29_we = addr_hit[32] & reg_we & !reg_error;
+  assign core_reg_x29_we = addr_hit[31] & reg_we & !reg_error;
   assign core_reg_x29_wd = reg_wdata[31:0];
 
-  assign core_reg_x30_we = addr_hit[33] & reg_we & !reg_error;
+  assign core_reg_x30_we = addr_hit[32] & reg_we & !reg_error;
   assign core_reg_x30_wd = reg_wdata[31:0];
 
-  assign core_reg_x31_we = addr_hit[34] & reg_we & !reg_error;
+  assign core_reg_x31_we = addr_hit[33] & reg_we & !reg_error;
   assign core_reg_x31_wd = reg_wdata[31:0];
+
+  assign en_wait_for_intr_we = addr_hit[34] & reg_we & !reg_error;
+  assign en_wait_for_intr_wd = reg_wdata[0];
+
+  assign intr_state_we = addr_hit[35] & reg_we & !reg_error;
+  assign intr_state_wd = reg_wdata[0];
 
   // Read data return
   always_comb begin
@@ -1326,131 +1362,135 @@ module power_manager_reg_top #(
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[31:0] = core_reg_x0_qs;
-      end
-
-      addr_hit[4]: begin
         reg_rdata_next[31:0] = core_reg_x1_qs;
       end
 
-      addr_hit[5]: begin
+      addr_hit[4]: begin
         reg_rdata_next[31:0] = core_reg_x2_qs;
       end
 
-      addr_hit[6]: begin
+      addr_hit[5]: begin
         reg_rdata_next[31:0] = core_reg_x3_qs;
       end
 
-      addr_hit[7]: begin
+      addr_hit[6]: begin
         reg_rdata_next[31:0] = core_reg_x4_qs;
       end
 
-      addr_hit[8]: begin
+      addr_hit[7]: begin
         reg_rdata_next[31:0] = core_reg_x5_qs;
       end
 
-      addr_hit[9]: begin
+      addr_hit[8]: begin
         reg_rdata_next[31:0] = core_reg_x6_qs;
       end
 
-      addr_hit[10]: begin
+      addr_hit[9]: begin
         reg_rdata_next[31:0] = core_reg_x7_qs;
       end
 
-      addr_hit[11]: begin
+      addr_hit[10]: begin
         reg_rdata_next[31:0] = core_reg_x8_qs;
       end
 
-      addr_hit[12]: begin
+      addr_hit[11]: begin
         reg_rdata_next[31:0] = core_reg_x9_qs;
       end
 
-      addr_hit[13]: begin
+      addr_hit[12]: begin
         reg_rdata_next[31:0] = core_reg_x10_qs;
       end
 
-      addr_hit[14]: begin
+      addr_hit[13]: begin
         reg_rdata_next[31:0] = core_reg_x11_qs;
       end
 
-      addr_hit[15]: begin
+      addr_hit[14]: begin
         reg_rdata_next[31:0] = core_reg_x12_qs;
       end
 
-      addr_hit[16]: begin
+      addr_hit[15]: begin
         reg_rdata_next[31:0] = core_reg_x13_qs;
       end
 
-      addr_hit[17]: begin
+      addr_hit[16]: begin
         reg_rdata_next[31:0] = core_reg_x14_qs;
       end
 
-      addr_hit[18]: begin
+      addr_hit[17]: begin
         reg_rdata_next[31:0] = core_reg_x15_qs;
       end
 
-      addr_hit[19]: begin
+      addr_hit[18]: begin
         reg_rdata_next[31:0] = core_reg_x16_qs;
       end
 
-      addr_hit[20]: begin
+      addr_hit[19]: begin
         reg_rdata_next[31:0] = core_reg_x17_qs;
       end
 
-      addr_hit[21]: begin
+      addr_hit[20]: begin
         reg_rdata_next[31:0] = core_reg_x18_qs;
       end
 
-      addr_hit[22]: begin
+      addr_hit[21]: begin
         reg_rdata_next[31:0] = core_reg_x19_qs;
       end
 
-      addr_hit[23]: begin
+      addr_hit[22]: begin
         reg_rdata_next[31:0] = core_reg_x20_qs;
       end
 
-      addr_hit[24]: begin
+      addr_hit[23]: begin
         reg_rdata_next[31:0] = core_reg_x21_qs;
       end
 
-      addr_hit[25]: begin
+      addr_hit[24]: begin
         reg_rdata_next[31:0] = core_reg_x22_qs;
       end
 
-      addr_hit[26]: begin
+      addr_hit[25]: begin
         reg_rdata_next[31:0] = core_reg_x23_qs;
       end
 
-      addr_hit[27]: begin
+      addr_hit[26]: begin
         reg_rdata_next[31:0] = core_reg_x24_qs;
       end
 
-      addr_hit[28]: begin
+      addr_hit[27]: begin
         reg_rdata_next[31:0] = core_reg_x25_qs;
       end
 
-      addr_hit[29]: begin
+      addr_hit[28]: begin
         reg_rdata_next[31:0] = core_reg_x26_qs;
       end
 
-      addr_hit[30]: begin
+      addr_hit[29]: begin
         reg_rdata_next[31:0] = core_reg_x27_qs;
       end
 
-      addr_hit[31]: begin
+      addr_hit[30]: begin
         reg_rdata_next[31:0] = core_reg_x28_qs;
       end
 
-      addr_hit[32]: begin
+      addr_hit[31]: begin
         reg_rdata_next[31:0] = core_reg_x29_qs;
       end
 
-      addr_hit[33]: begin
+      addr_hit[32]: begin
         reg_rdata_next[31:0] = core_reg_x30_qs;
       end
 
-      addr_hit[34]: begin
+      addr_hit[33]: begin
         reg_rdata_next[31:0] = core_reg_x31_qs;
+      end
+
+      addr_hit[34]: begin
+        reg_rdata_next[0] = en_wait_for_intr_qs;
+      end
+
+      addr_hit[35]: begin
+        reg_rdata_next[0] = intr_state_qs;
       end
 
       default: begin

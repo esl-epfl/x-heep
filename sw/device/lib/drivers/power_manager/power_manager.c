@@ -11,7 +11,7 @@
 
 #include "power_manager_regs.h"  // Generated.
 
-void power_gate_core(void)
+void power_gate_core_asm(void)
 {
     asm volatile (
 
@@ -34,7 +34,7 @@ void power_gate_core(void)
 
         // write CORE_REG_Xn[31:0] = Xn
         "lui a0,0x20030\n"
-        "addi a1, a0, 0x10\n"
+        "addi a1, a0, 0xc\n"
         "sw x1,  0(a1)\n"
         "sw x2,  4(a1)\n"
         "sw x3,  8(a1)\n"
@@ -99,7 +99,7 @@ void power_gate_core(void)
 
         // read CORE_REG_Xn = 1
         "lui a0,0x20030\n"
-        "addi a1, a0, 0x10\n"
+        "addi a1, a0, 0xc\n"
         "lw x1,  0(a1)\n"
         "lw x2,  4(a1)\n"
         "lw x3,  8(a1)\n"
@@ -134,4 +134,26 @@ void power_gate_core(void)
     );
 
     return;
+}
+
+power_manager_result_t power_gate_core(const power_manager_t *power_manager, power_manager_sel_intr_t sel_intr)
+{
+    if (sel_intr == kTimer)
+    {
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EN_WAIT_FOR_INTR_REG_OFFSET), 0x1);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_INTR_STATE_REG_OFFSET), 0x0);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RESTORE_ADDRESS_REG_OFFSET), 0x00000348);
+
+        power_gate_core_asm();
+
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EN_WAIT_FOR_INTR_REG_OFFSET), 0x0);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_INTR_STATE_REG_OFFSET), 0x0);
+    }
+    else
+    {
+        printf("Error: interrupt source not available.\n");
+        return kPowerManagerError;
+    }
+
+    return kPowerManagerOk;
 }

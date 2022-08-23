@@ -30,20 +30,11 @@
 
     { name:     "RESTORE_ADDRESS",
       desc:     "Restore xddress value",
-      resval:   "0x00000330"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "31:0", name: "RESTORE_XDDRESS", desc: "Restore xddress Reg" }
-      ]
-    }
-    { name:     "CORE_REG_X0",
-      desc:     "Core reg x0 value",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "CORE_REG_X0", desc: "Core reg x0 Reg" }
+        { bits: "31:0", name: "RESTORE_XDDRESS", desc: "Restore xddress Reg" }
       ]
     }
     { name:     "CORE_REG_X1",
@@ -323,6 +314,24 @@
       hwaccess: "hro",
       fields: [
         { bits: "31:0", name: "CORE_REG_X31", desc: "Core reg x31 Reg" }
+      ]
+    }
+    { name:     "EN_WAIT_FOR_INTR",
+      desc:     "Enable wait for interrupt",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "EN_WAIT_FOR_INTR", desc: "Enable wait for interrupt" }
+      ]
+    }
+    { name:     "INTR_STATE",
+      desc:     "Interrupt state",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "0", name: "INTR_STATE", desc: "Interrupt state Reg" }
       ]
     }
    ]
