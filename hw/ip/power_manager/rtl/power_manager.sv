@@ -31,8 +31,6 @@ module power_manager #(
 
   logic [31:0] curr_cnt, next_cnt;
 
-  assign power_gate_core_o = 1'b0;
-
   assign hw2reg.intr_state.d = rv_timer_irq_i;
   assign hw2reg.intr_state.de = 1'b1;
 
@@ -78,7 +76,7 @@ module power_manager #(
     unique case (curr_state)
 
       IDLE: begin
-        // power_gate_core_o = 1'b0;
+        power_gate_core_o = 1'b0;
         cpu_subsystem_rst_no = 1'b1;
 
         if (reg2hw.power_gate_core.q == 1'b1 && core_sleep_i == 1'b1) begin
@@ -87,7 +85,7 @@ module power_manager #(
       end
 
       PW_OFF_RST_ON: begin
-        // power_gate_core_o = 1'b1;
+        power_gate_core_o = 1'b1;
         cpu_subsystem_rst_no = 1'b0;
 
         if (reg2hw.en_wait_for_intr.q == 1'b1) begin
@@ -100,7 +98,7 @@ module power_manager #(
       end
 
       PW_ON_RST_ON: begin
-        // power_gate_core_o = 1'b0;
+        power_gate_core_o = 1'b0;
         cpu_subsystem_rst_no = 1'b0;
 
         if (curr_cnt == 32'd20) begin
@@ -112,7 +110,7 @@ module power_manager #(
       end
 
       PW_ON_RST_OFF: begin
-        // power_gate_core_o = 1'b0;
+        power_gate_core_o = 1'b0;
         cpu_subsystem_rst_no = 1'b1;
 
         if (reg2hw.power_gate_core.q == 1'b0 && reg2hw.intr_state.q == 1'b0) begin
@@ -121,7 +119,7 @@ module power_manager #(
       end
 
       default: begin
-        // power_gate_core_o = 1'b0;
+        power_gate_core_o = 1'b0;
         cpu_subsystem_rst_no = 1'b1;
         next_state = IDLE;
         next_cnt = 32'd0;
