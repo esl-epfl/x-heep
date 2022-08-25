@@ -82,6 +82,9 @@ module soc_ctrl_reg_top #(
   logic [31:0] boot_address_wd;
   logic boot_address_we;
   logic use_spimemio_qs;
+  logic [31:0] system_frequency_hz_qs;
+  logic [31:0] system_frequency_hz_wd;
+  logic system_frequency_hz_we;
 
   // Register instances
   // R[exit_valid]: V(False)
@@ -244,9 +247,36 @@ module soc_ctrl_reg_top #(
   );
 
 
+  // R[system_frequency_hz]: V(False)
+
+  prim_subreg #(
+      .DW      (32),
+      .SWACCESS("RW"),
+      .RESVAL  (32'h1)
+  ) u_system_frequency_hz (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(system_frequency_hz_we),
+      .wd(system_frequency_hz_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (),
+
+      // to register interface (read)
+      .qs(system_frequency_hz_qs)
+  );
 
 
-  logic [5:0] addr_hit;
+
+
+  logic [6:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == SOC_CTRL_EXIT_VALID_OFFSET);
@@ -255,6 +285,7 @@ module soc_ctrl_reg_top #(
     addr_hit[3] = (reg_addr == SOC_CTRL_BOOT_EXIT_LOOP_OFFSET);
     addr_hit[4] = (reg_addr == SOC_CTRL_BOOT_ADDRESS_OFFSET);
     addr_hit[5] = (reg_addr == SOC_CTRL_USE_SPIMEMIO_OFFSET);
+    addr_hit[6] = (reg_addr == SOC_CTRL_SYSTEM_FREQUENCY_HZ_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -267,7 +298,8 @@ module soc_ctrl_reg_top #(
                (addr_hit[2] & (|(SOC_CTRL_PERMIT[2] & ~reg_be))) |
                (addr_hit[3] & (|(SOC_CTRL_PERMIT[3] & ~reg_be))) |
                (addr_hit[4] & (|(SOC_CTRL_PERMIT[4] & ~reg_be))) |
-               (addr_hit[5] & (|(SOC_CTRL_PERMIT[5] & ~reg_be)))));
+               (addr_hit[5] & (|(SOC_CTRL_PERMIT[5] & ~reg_be))) |
+               (addr_hit[6] & (|(SOC_CTRL_PERMIT[6] & ~reg_be)))));
   end
 
   assign exit_valid_we = addr_hit[0] & reg_we & !reg_error;
@@ -281,6 +313,9 @@ module soc_ctrl_reg_top #(
 
   assign boot_address_we = addr_hit[4] & reg_we & !reg_error;
   assign boot_address_wd = reg_wdata[31:0];
+
+  assign system_frequency_hz_we = addr_hit[6] & reg_we & !reg_error;
+  assign system_frequency_hz_wd = reg_wdata[31:0];
 
   // Read data return
   always_comb begin
@@ -308,6 +343,10 @@ module soc_ctrl_reg_top #(
 
       addr_hit[5]: begin
         reg_rdata_next[0] = use_spimemio_qs;
+      end
+
+      addr_hit[6]: begin
+        reg_rdata_next[31:0] = system_frequency_hz_qs;
       end
 
       default: begin

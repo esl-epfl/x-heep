@@ -40,6 +40,10 @@ extern "C" {
 #define SOC_CTRL_USE_SPIMEMIO_REG_OFFSET 0x14
 #define SOC_CTRL_USE_SPIMEMIO_USE_SPIMEMIO_BIT 0
 
+// System Frequency Value - Used to know and set at which frequency the
+// system is running (in Hz)
+#define SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET 0x18
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif
