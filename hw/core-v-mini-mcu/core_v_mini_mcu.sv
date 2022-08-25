@@ -75,18 +75,6 @@ module core_v_mini_mcu
   obi_resp_t                               ram0_slave_resp;
   obi_req_t                                ram1_slave_req;
   obi_resp_t                               ram1_slave_resp;
-  obi_req_t                                ram2_slave_req;
-  obi_resp_t                               ram2_slave_resp;
-  obi_req_t                                ram3_slave_req;
-  obi_resp_t                               ram3_slave_resp;
-  obi_req_t                                ram4_slave_req;
-  obi_resp_t                               ram4_slave_resp;
-  obi_req_t                                ram5_slave_req;
-  obi_resp_t                               ram5_slave_resp;
-  obi_req_t                                ram6_slave_req;
-  obi_resp_t                               ram6_slave_resp;
-  obi_req_t                                ram7_slave_req;
-  obi_resp_t                               ram7_slave_resp;
 
   // debug signals
   obi_req_t                                debug_slave_req;
@@ -191,44 +179,32 @@ module core_v_mini_mcu
   ) system_bus_i (
       .clk_i,
       .rst_ni,
-      .core_instr_req_i          (core_instr_req),
-      .core_instr_resp_o         (core_instr_resp),
-      .core_data_req_i           (core_data_req),
-      .core_data_resp_o          (core_data_resp),
-      .debug_master_req_i        (debug_master_req),
-      .debug_master_resp_o       (debug_master_resp),
-      .dma_master0_ch0_req_i     (dma_master0_ch0_req),
-      .dma_master0_ch0_resp_o    (dma_master0_ch0_resp),
-      .dma_master1_ch0_req_i     (dma_master1_ch0_req),
-      .dma_master1_ch0_resp_o    (dma_master1_ch0_resp),
-      .ext_xbar_master_req_i     (ext_xbar_master_req_i),
-      .ext_xbar_master_resp_o    (ext_xbar_master_resp_o),
-      .ram0_req_o                (ram0_slave_req),
-      .ram0_resp_i               (ram0_slave_resp),
-      .ram1_req_o                (ram1_slave_req),
-      .ram1_resp_i               (ram1_slave_resp),
-      .ram2_req_o                (ram2_slave_req),
-      .ram2_resp_i               (ram2_slave_resp),
-      .ram3_req_o                (ram3_slave_req),
-      .ram3_resp_i               (ram3_slave_resp),
-      .ram4_req_o                (ram4_slave_req),
-      .ram4_resp_i               (ram4_slave_resp),
-      .ram5_req_o                (ram5_slave_req),
-      .ram5_resp_i               (ram5_slave_resp),
-      .ram6_req_o                (ram6_slave_req),
-      .ram6_resp_i               (ram6_slave_resp),
-      .ram7_req_o                (ram7_slave_req),
-      .ram7_resp_i               (ram7_slave_resp),
-      .debug_slave_req_o         (debug_slave_req),
-      .debug_slave_resp_i        (debug_slave_resp),
-      .ao_peripheral_slave_req_o (ao_peripheral_slave_req),
+      .core_instr_req_i(core_instr_req),
+      .core_instr_resp_o(core_instr_resp),
+      .core_data_req_i(core_data_req),
+      .core_data_resp_o(core_data_resp),
+      .debug_master_req_i(debug_master_req),
+      .debug_master_resp_o(debug_master_resp),
+      .dma_master0_ch0_req_i(dma_master0_ch0_req),
+      .dma_master0_ch0_resp_o(dma_master0_ch0_resp),
+      .dma_master1_ch0_req_i(dma_master1_ch0_req),
+      .dma_master1_ch0_resp_o(dma_master1_ch0_resp),
+      .ext_xbar_master_req_i(ext_xbar_master_req_i),
+      .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
+      .ram0_req_o(ram0_slave_req),
+      .ram0_resp_i(ram0_slave_resp),
+      .ram1_req_o(ram1_slave_req),
+      .ram1_resp_i(ram1_slave_resp),
+      .debug_slave_req_o(debug_slave_req),
+      .debug_slave_resp_i(debug_slave_resp),
+      .ao_peripheral_slave_req_o(ao_peripheral_slave_req),
       .ao_peripheral_slave_resp_i(ao_peripheral_slave_resp),
-      .peripheral_slave_req_o    (peripheral_slave_req),
-      .peripheral_slave_resp_i   (peripheral_slave_resp),
-      .spi_flash_slave_req_o     (spi_flash_slave_req),
-      .spi_flash_slave_resp_i    (spi_flash_slave_resp),
-      .ext_xbar_slave_req_o      (ext_xbar_slave_req_o),
-      .ext_xbar_slave_resp_i     (ext_xbar_slave_resp_i)
+      .peripheral_slave_req_o(peripheral_slave_req),
+      .peripheral_slave_resp_i(peripheral_slave_resp),
+      .spi_flash_slave_req_o(spi_flash_slave_req),
+      .spi_flash_slave_resp_i(spi_flash_slave_resp),
+      .ext_xbar_slave_req_o(ext_xbar_slave_req_o),
+      .ext_xbar_slave_resp_i(ext_xbar_slave_resp_i)
   );
 
   memory_subsystem #(
@@ -239,19 +215,7 @@ module core_v_mini_mcu
       .ram0_req_i (ram0_slave_req),
       .ram0_resp_o(ram0_slave_resp),
       .ram1_req_i (ram1_slave_req),
-      .ram1_resp_o(ram1_slave_resp),
-      .ram2_req_i (ram2_slave_req),
-      .ram2_resp_o(ram2_slave_resp),
-      .ram3_req_i (ram3_slave_req),
-      .ram3_resp_o(ram3_slave_resp),
-      .ram4_req_i (ram4_slave_req),
-      .ram4_resp_o(ram4_slave_resp),
-      .ram5_req_i (ram5_slave_req),
-      .ram5_resp_o(ram5_slave_resp),
-      .ram6_req_i (ram6_slave_req),
-      .ram6_resp_o(ram6_slave_resp),
-      .ram7_req_i (ram7_slave_req),
-      .ram7_resp_o(ram7_slave_resp)
+      .ram1_resp_o(ram1_slave_resp)
   );
 
   ao_peripheral_subsystem ao_peripheral_subsystem_i (
