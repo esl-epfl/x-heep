@@ -31,7 +31,7 @@ module power_manager #(
 
   logic [31:0] curr_cnt, next_cnt;
 
-  assign hw2reg.intr_state.d = rv_timer_irq_i;
+  assign hw2reg.intr_state.d  = rv_timer_irq_i;
   assign hw2reg.intr_state.de = 1'b1;
 
   typedef enum logic [1:0] {

@@ -200,7 +200,6 @@ applications/example_power_gating_core/example_power_gating_core.elf: applicatio
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
-		-Wl,-Map=dma_example.map \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
 
