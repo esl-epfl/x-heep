@@ -48,7 +48,7 @@ _start:
 
 /* set the frequency */
    li a0, SOC_CTRL_START_ADDRESS
-   li a2, REFERENCE_CLOCK_KHz
+   li a2, REFERENCE_CLOCK_Hz
    sw a2, SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET(a0)
 
 /* call main */
