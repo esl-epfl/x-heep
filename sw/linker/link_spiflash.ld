@@ -2,8 +2,8 @@ ENTRY(_start)
 
 MEMORY
 {
-    FLASH (rx)      : ORIGIN = 0x40000000, LENGTH = 0x10000000 /* entire flash, 16 MB */
-    RAM (xrw)       : ORIGIN = 0x00000000, LENGTH = 0x10000
+    FLASH (rx)      : ORIGIN = 0x40000000, LENGTH = 0x1000000 /* entire flash, 16 MB */
+    RAM (xrw)       : ORIGIN = 0x00000004, LENGTH = 0x000FFFC /* entire ram, 64 KB */
 }
 
 SECTIONS {
