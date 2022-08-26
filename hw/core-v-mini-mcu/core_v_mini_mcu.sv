@@ -11,17 +11,17 @@ module core_v_mini_mcu
     parameter PULP_ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0
 ) (
-    input logic clk_i,
-    input logic rst_ni,
+    inout logic clk_i,
+    inout logic rst_ni,
 
-    input logic boot_select_i,
-    input logic execute_from_flash_i,
+    inout logic boot_select_i,
+    inout logic execute_from_flash_i,
 
-    input  logic jtag_tck_i,
-    input  logic jtag_tms_i,
-    input  logic jtag_trst_ni,
-    input  logic jtag_tdi_i,
-    output logic jtag_tdo_o,
+    inout logic jtag_tck_i,
+    inout logic jtag_tms_i,
+    inout logic jtag_trst_ni,
+    inout logic jtag_tdi_i,
+    inout logic jtag_tdo_o,
 
     input  obi_req_t  [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
@@ -32,15 +32,15 @@ module core_v_mini_mcu
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
-    input  logic uart_rx_i,
-    output logic uart_tx_o,
+    inout logic uart_rx_i,
+    inout logic uart_tx_o,
 
     input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
 
     inout logic [31:0] gpio_io,
 
     output logic [31:0] exit_value_o,
-    output logic        exit_valid_o,
+    inout  logic        exit_valid_o,
 
     inout logic [3:0] spi_sd_io,
     inout logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_o,
@@ -115,6 +115,14 @@ module core_v_mini_mcu
   logic                                    cio_sda_out;
   logic                                    cio_sda_en;
 
+  logic clk, rst_n, boot_select, execute_from_flash, exit_valid;
+  logic jtag_tck;
+  logic jtag_tms;
+  logic jtag_trst_n;
+  logic jtag_tdi;
+  logic jtag_tdo;
+  logic uart_rx, uart_tx;
+
   cpu_subsystem #(
       .BOOT_ADDR       (BOOT_ADDR),
       .PULP_XPULP      (PULP_XPULP),
@@ -124,8 +132,8 @@ module core_v_mini_mcu
       .DM_HALTADDRESS  (DM_HALTADDRESS)
   ) cpu_subsystem_i (
       // Clock and Reset
-      .clk_i,
-      .rst_ni,
+      .clk_i(clk),
+      .rst_ni(rst_n),
       .core_instr_req_o(core_instr_req),
       .core_instr_resp_i(core_instr_resp),
       .core_data_req_o(core_data_req),
@@ -140,14 +148,14 @@ module core_v_mini_mcu
   debug_subsystem #(
       .JTAG_IDCODE(JTAG_IDCODE)
   ) debug_subsystem_i (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+      .clk_i (clk),
+      .rst_ni(rst_n),
 
-      .jtag_tck_i  (jtag_tck_i),
-      .jtag_tms_i  (jtag_tms_i),
-      .jtag_trst_ni(jtag_trst_ni),
-      .jtag_tdi_i  (jtag_tdi_i),
-      .jtag_tdo_o  (jtag_tdo_o),
+      .jtag_tck_i  (jtag_tck),
+      .jtag_tms_i  (jtag_tms),
+      .jtag_trst_ni(jtag_trst_n),
+      .jtag_tdi_i  (jtag_tdi),
+      .jtag_tdo_o  (jtag_tdo),
 
       .debug_core_req_o(debug_core_req),
 
@@ -161,8 +169,8 @@ module core_v_mini_mcu
   system_bus #(
       .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER)
   ) system_bus_i (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+      .clk_i (clk),
+      .rst_ni(rst_n),
 
       .core_instr_req_i      (core_instr_req),
       .core_instr_resp_o     (core_instr_resp),
@@ -194,31 +202,31 @@ module core_v_mini_mcu
   memory_subsystem #(
       .NUM_BYTES(NUM_BYTES)
   ) memory_subsystem_i (
-      .clk_i,
-      .rst_ni,
-      .ram0_req_i (ram0_slave_req),
+      .clk_i(clk),
+      .rst_ni(rst_n),
+      .ram0_req_i(ram0_slave_req),
       .ram0_resp_o(ram0_slave_resp),
-      .ram1_req_i (ram1_slave_req),
+      .ram1_req_i(ram1_slave_req),
       .ram1_resp_o(ram1_slave_resp)
   );
 
   peripheral_subsystem #(
       .NEXT_INT(NEXT_INT)
   ) peripheral_subsystem_i (
-      .clk_i,
-      .rst_ni,
+      .clk_i (clk),
+      .rst_ni(rst_n),
 
-      .boot_select_i,
-      .execute_from_flash_i,
+      .boot_select_i(boot_select),
+      .execute_from_flash_i(execute_from_flash),
 
       .slave_req_i (peripheral_slave_req),
       .slave_resp_o(peripheral_slave_resp),
 
-      .exit_valid_o(exit_valid_o),
+      .exit_valid_o(exit_valid),
       .exit_value_o(exit_value_o),
 
-      .uart_rx_i(uart_rx_i),
-      .uart_tx_o(uart_tx_o),
+      .uart_rx_i(uart_rx),
+      .uart_tx_o(uart_tx),
       .uart_tx_en_o(),
 
       .intr_vector_ext_i,
@@ -261,63 +269,76 @@ module core_v_mini_mcu
 
   assign irq_fast = '0;
 
-  genvar i;
-  generate
-    for (i = 0; i < 32; i++) begin
-      pad_cell #() pad_cell_gpio_i (
-          .gpio_i(gpio_out[i]),
-          .gpio_en_i(gpio_en[i]),
-          .gpio_o(gpio_in[i]),
-          .pad_io(gpio_io[i])
-      );
-    end
-  endgenerate
 
+  pad_ring pad_ring_i (
+      .clk_i,
+      .rst_ni,
 
-  pad_cell pad_cell_spi_sck_i (
-      .gpio_i(spi_sck),
-      .gpio_en_i(spi_sck_en),
-      .gpio_o(),
-      .pad_io(spi_sck_o)
+      .boot_select_i,
+      .execute_from_flash_i,
+
+      .jtag_tck_i,
+      .jtag_tms_i,
+      .jtag_trst_ni,
+      .jtag_tdi_i,
+      .jtag_tdo_o,
+
+      .uart_rx_i,
+      .uart_tx_o,
+
+      .exit_valid_o,
+
+      .gpio_io,
+
+      .spi_sd_io,
+      .spi_csb_o,
+      .spi_sck_o,
+
+      .i2c_scl_io,
+      .i2c_sda_io,
+
+      .clk_o (clk),
+      .rst_no(rst_n),
+
+      .boot_select_o(boot_select),
+      .execute_from_flash_o(execute_from_flash),
+
+      .jtag_tck_o  (jtag_tck),
+      .jtag_tms_o  (jtag_tms),
+      .jtag_trst_no(jtag_trst_n),
+      .jtag_tdi_o  (jtag_tdi),
+      .jtag_tdo_i  (jtag_tdo),
+
+      .uart_rx_o(uart_rx),
+      .uart_tx_i(uart_tx),
+
+      .exit_valid_i(exit_valid),
+
+      .gpio_out_i(gpio_out),
+      .gpio_oe_i (gpio_en),
+      .gpio_in_o (gpio_in),
+
+      .spi_sck_i(spi_sck),
+      .spi_sck_en_i(spi_sck_en),
+
+      .spi_csb_i(spi_csb),
+      .spi_csb_oe_i(spi_csb_en),
+
+      .spi_sd_i(spi_sd_out),
+      .spi_sd_oe_i(spi_sd_en),
+      .spi_sd_o(spi_sd_in),
+
+      .i2c_scl_i(cio_scl_out),
+      .i2c_sda_i(cio_sda_out),
+
+      .i2c_scl_oe_i(cio_scl_en),
+      .i2c_sda_oe_i(cio_sda_en),
+
+      .i2c_scl_o(cio_scl_in),
+      .i2c_sda_o(cio_sda_in)
+
   );
 
-  genvar k;
-  generate
-    for (k = 0; k < spi_host_reg_pkg::NumCS; k++) begin
-      pad_cell pad_cell_spi_csb_i (
-          .gpio_i(spi_csb[k]),
-          .gpio_en_i(spi_csb_en[k]),
-          .gpio_o(),
-          .pad_io(spi_csb_o[k])
-      );
-    end
-  endgenerate
-
-  genvar j;
-  generate
-    for (j = 0; j < 4; j++) begin
-      pad_cell #() pad_cell_sd_i (
-          .gpio_i(spi_sd_out[j]),
-          .gpio_en_i(spi_sd_en[j]),
-          .gpio_o(spi_sd_in[j]),
-          .pad_io(spi_sd_io[j])
-      );
-    end
-  endgenerate
-
-  pad_cell pad_cell_i2c_scl_i (
-      .gpio_i(cio_scl_out),
-      .gpio_en_i(cio_scl_en),
-      .gpio_o(cio_scl_in),
-      .pad_io(i2c_scl_io)
-  );
-
-  pad_cell pad_cell_i2c_sda_i (
-      .gpio_i(cio_sda_out),
-      .gpio_en_i(cio_sda_en),
-      .gpio_o(cio_sda_in),
-      .pad_io(i2c_sda_io)
-  );
 
 
 endmodule  // core_v_mini_mcu

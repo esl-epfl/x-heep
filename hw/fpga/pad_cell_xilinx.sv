@@ -4,17 +4,17 @@
 
 module pad_cell #(
 ) (
-    input  logic gpio_i,
-    input  logic gpio_en_i,
-    output logic gpio_o,
+    input  logic pad_in_i,
+    input  logic pad_oe_i,
+    output logic pad_out_o,
 
     inout logic pad_io
 );
 
   IOBUF qspi_iobuf (
-      .T (~gpio_en_i),
-      .I (gpio_i),
-      .O (gpio_o),
+      .T (~pad_oe_i),
+      .I (pad_in_i),
+      .O (pad_out_o),
       .IO(pad_io)
   );
 

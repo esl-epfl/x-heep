@@ -15,35 +15,35 @@ module tb_top #(
   const time CLK_PHASE_HI = 5ns;
   const time CLK_PHASE_LO = 5ns;
   localparam CLK_FREQUENCY_KHz = 100_000;
-  const time          CLK_PERIOD = CLK_PHASE_HI + CLK_PHASE_LO;
+  const time               CLK_PERIOD = CLK_PHASE_HI + CLK_PHASE_LO;
 
-  const time          STIM_APPLICATION_DEL = CLK_PERIOD * 0.1;
-  const time          RESP_ACQUISITION_DEL = CLK_PERIOD * 0.9;
-  const time          RESET_DEL = STIM_APPLICATION_DEL;
-  const int           RESET_WAIT_CYCLES = 4;
+  const time               STIM_APPLICATION_DEL = CLK_PERIOD * 0.1;
+  const time               RESP_ACQUISITION_DEL = CLK_PERIOD * 0.9;
+  const time               RESET_DEL = STIM_APPLICATION_DEL;
+  const int                RESET_WAIT_CYCLES = 4;
 
   // clock and reset for tb
-  logic               clk = 'b1;
-  logic               rst_n = 'b0;
+  wire clk = 'b1;
+  wire rst_n = 'b0;
 
   // Boot selection (0:jtag or 1:flash)
-  logic               boot_sel;
+  wire                     boot_sel;
   // SPI selection (0:ot-qspi or 1:memory mapped flash, only valid if boot_sel is 1)
-  logic               execute_from_flash;
+  wire                     execute_from_flash;
 
   // cycle counter
-  int unsigned        cycle_cnt_q;
+  int unsigned             cycle_cnt_q;
 
   // testbench result
-  logic               exit_valid;
-  logic        [31:0] exit_value;
+  wire                     exit_valid;
+  logic             [31:0] exit_value;
 
   // jtag signals
-  logic               jtag_tck;
-  logic               jtag_trst_n;
-  logic               jtag_tms;
-  logic               jtag_tdi;
-  logic               jtag_tdo;
+  wire                     jtag_tck;
+  wire                     jtag_trst_n;
+  wire                     jtag_tms;
+  wire                     jtag_tdi;
+  wire                     jtag_tdo;
 
   // allow vcd dump
   initial begin

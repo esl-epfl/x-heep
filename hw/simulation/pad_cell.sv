@@ -4,21 +4,21 @@
 
 module pad_cell #(
 ) (
-    input  logic gpio_i,
-    input  logic gpio_en_i,
-    output logic gpio_o,
+    input  logic pad_in_i,
+    input  logic pad_oe_i,
+    output logic pad_out_o,
 
     inout logic pad_io
 );
 
   logic pad;
 
-  assign gpio_o = pad_io;
+  assign pad_out_o = pad_io;
   assign pad_io = pad;
 
   always_comb begin
-    if (gpio_en_i == 1'b1) begin
-      pad = gpio_i;
+    if (pad_oe_i == 1'b1) begin
+      pad = pad_in_i;
     end else begin
       pad = 1'bz;
     end

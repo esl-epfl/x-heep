@@ -9,19 +9,19 @@ module testharness #(
     parameter JTAG_DPI      = 0,
     parameter CLK_FREQUENCY = 'd100_000  //KHz
 ) (
-    input logic clk_i,
-    input logic rst_ni,
+    inout logic clk_i,
+    inout logic rst_ni,
 
-    input logic boot_select_i,
-    input logic execute_from_flash_i,
+    inout logic boot_select_i,
+    inout logic execute_from_flash_i,
 
-    input  logic        jtag_tck_i,
-    input  logic        jtag_tms_i,
-    input  logic        jtag_trst_ni,
-    input  logic        jtag_tdi_i,
-    output logic        jtag_tdo_o,
+    inout  logic        jtag_tck_i,
+    inout  logic        jtag_tms_i,
+    inout  logic        jtag_trst_ni,
+    inout  logic        jtag_tdi_i,
+    inout  logic        jtag_tdo_o,
     output logic [31:0] exit_value_o,
-    output logic        exit_valid_o
+    inout  logic        exit_valid_o
 );
 
   `include "tb_util.svh"
@@ -30,15 +30,15 @@ module testharness #(
   import reg_pkg::*;
   import testharness_pkg::*;
 
-  logic uart_rx;
-  logic uart_tx;
+  wire uart_rx;
+  wire uart_tx;
   logic sim_jtag_enable = (JTAG_DPI == 1);
-  logic sim_jtag_tck;
-  logic sim_jtag_tms;
-  logic sim_jtag_trst;
-  logic sim_jtag_tdi;
-  logic sim_jtag_tdo;
-  logic sim_jtag_trstn;
+  wire sim_jtag_tck;
+  wire sim_jtag_tms;
+  wire sim_jtag_trst;
+  wire sim_jtag_tdi;
+  wire sim_jtag_tdo;
+  wire sim_jtag_trstn;
   wire [31:0] gpio;
 
   wire [3:0] spi_sd_io;
