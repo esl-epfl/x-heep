@@ -12,8 +12,9 @@ extern "C" {
 #endif  // __cplusplus
 
 
-#define REFERENCE_CLOCK_KHz 20000
+#define REFERENCE_CLOCK_KHz   20000
 #define TARGET_PYNQ_Z2
+#define UART_BAUDRATE_DEFAULT 115200
 
 
 #ifdef __cplusplus

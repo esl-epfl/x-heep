@@ -12,8 +12,9 @@ extern "C" {
 #endif  // __cplusplus
 
 
-#define REFERENCE_CLOCK_KHz 100000
+#define REFERENCE_CLOCK_KHz   100000
 #define TARGET_SIM
+#define UART_BAUDRATE_DEFAULT 256000
 
 
 #ifdef __cplusplus
