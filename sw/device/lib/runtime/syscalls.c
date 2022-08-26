@@ -239,10 +239,13 @@ ssize_t _write(int file, const void *ptr, size_t len)
         return -1;
     }
 
+    soc_ctrl_t soc_ctrl;
+    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+
     uart_t uart;
     uart.base_addr   = mmio_region_from_addr((uintptr_t)UART_START_ADDRESS);
-    uart.baudrate    = 256000;
-    uart.clk_freq_hz = REFERENCE_CLOCK_KHz*1000;
+    uart.baudrate    = UART_BAUDRATE;
+    uart.clk_freq_hz = soc_ctrl_get_frequency(&soc_ctrl);
 
     if (uart_init(&uart) != kErrorOk) {
         errno = ENOSYS;

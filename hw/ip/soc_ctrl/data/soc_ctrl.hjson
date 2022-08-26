@@ -58,6 +58,15 @@
         { bits: "0", name: "USE_SPIMEMIO", desc: "Spi Select Reg" }
       ]
     }
+    { name:     "SYSTEM_FREQUENCY_HZ",
+      desc:     "System Frequency Value - Used to know and set at which frequency the system is running (in Hz)",
+      resval:   "0x1"
+      swaccess: "rw",
+      hwaccess: "none",
+      fields: [
+        { bits: "31:0", name: "SYSTEM_FREQUENCY_HZ", desc: "Contains the value in Hz of the frequency the system is running" }
+      ]
+    }
 
    ]
 }
