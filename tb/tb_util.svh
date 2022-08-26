@@ -37,7 +37,7 @@ task tb_loadHEX;
     j++;
   end
   j = 0;
-  for (i = 1 * NumBytes / 2; i < 2 * (NumBytes / 8); i = i + 4) begin
+  for (i = 1 * NumBytes / 2; i < 2 * (NumBytes / 2); i = i + 4) begin
     tb_writetoSram1(j, stimuli[i+3], stimuli[i+2], stimuli[i+1], stimuli[i]);
     j++;
   end

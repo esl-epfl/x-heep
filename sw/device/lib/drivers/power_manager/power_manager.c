@@ -113,8 +113,8 @@ void power_gate_core_asm(void)
 
         // write RESTORE_ADDRESS[31:0] = PC
         "lui a0, %[base_address_20bit]\n"
-        "la a1, wakeup\n"
-        "sw a1, %[power_manager_restore_address_reg_offset](a0)\n"
+        "la  a1, wakeup\n"
+        "sw  a1, %[power_manager_restore_address_reg_offset](a0)\n"
 
         // wait for interrupt
         "wfi\n"
@@ -130,11 +130,11 @@ void power_gate_core_asm(void)
         // write POWER_GATE_CORE[0] = 0
         "wakeup:"
         // "lui a5,0x20030\n"
-        "li  a1, 0\n"
-        "sw  a1, %[power_manager_power_gate_core_reg_offset](a0)\n"
+        "li a1, 0\n"
+        "sw a1, %[power_manager_power_gate_core_reg_offset](a0)\n"
 
         // write WAKEUP_STATE[0] = 0
-        "sw  a1, %[power_manager_wakeup_state_reg_offset](a0)\n"
+        "sw a1, %[power_manager_wakeup_state_reg_offset](a0)\n"
 
         // write RESTORE_ADDRESS[31:0] = 0
         "sw x0, %[power_manager_restore_address_reg_offset](a0)\n" : : \
