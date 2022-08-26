@@ -13,7 +13,7 @@ extern "C" {
 
 
 #define REFERENCE_CLOCK_Hz 100*1000*1000
-#define UART_BOUDRATE 256000
+#define UART_BAUDRATE 256000
 #define TARGET_SIM
 
 
