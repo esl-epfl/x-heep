@@ -39,6 +39,12 @@ void soc_ctrl_set_valid(const soc_ctrl_t *soc_ctrl, uint8_t valid);
  */
 void soc_ctrl_set_exit_value(const soc_ctrl_t *soc_ctrl, uint32_t exit_value);
 
+
+uint32_t soc_ctrl_get_frequency(const soc_ctrl_t *soc_ctrl);
+
+void soc_ctrl_set_frequency(const soc_ctrl_t *soc_ctrl, uint32_t frequency);
+
+
 #ifdef __cplusplus
 }
 #endif

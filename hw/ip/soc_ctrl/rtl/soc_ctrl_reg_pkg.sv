@@ -64,6 +64,7 @@ package soc_ctrl_reg_pkg;
   parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_EXIT_LOOP_OFFSET = 5'hc;
   parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_ADDRESS_OFFSET = 5'h10;
   parameter logic [BlockAw-1:0] SOC_CTRL_USE_SPIMEMIO_OFFSET = 5'h14;
+  parameter logic [BlockAw-1:0] SOC_CTRL_SYSTEM_FREQUENCY_HZ_OFFSET = 5'h18;
 
   // Register index
   typedef enum int {
@@ -72,17 +73,19 @@ package soc_ctrl_reg_pkg;
     SOC_CTRL_BOOT_SELECT,
     SOC_CTRL_BOOT_EXIT_LOOP,
     SOC_CTRL_BOOT_ADDRESS,
-    SOC_CTRL_USE_SPIMEMIO
+    SOC_CTRL_USE_SPIMEMIO,
+    SOC_CTRL_SYSTEM_FREQUENCY_HZ
   } soc_ctrl_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] SOC_CTRL_PERMIT[6] = '{
+  parameter logic [3:0] SOC_CTRL_PERMIT[7] = '{
       4'b0001,  // index[0] SOC_CTRL_EXIT_VALID
       4'b1111,  // index[1] SOC_CTRL_EXIT_VALUE
       4'b0001,  // index[2] SOC_CTRL_BOOT_SELECT
       4'b0001,  // index[3] SOC_CTRL_BOOT_EXIT_LOOP
       4'b1111,  // index[4] SOC_CTRL_BOOT_ADDRESS
-      4'b0001  // index[5] SOC_CTRL_USE_SPIMEMIO
+      4'b0001,  // index[5] SOC_CTRL_USE_SPIMEMIO
+      4'b1111  // index[6] SOC_CTRL_SYSTEM_FREQUENCY_HZ
   };
 
 endpackage

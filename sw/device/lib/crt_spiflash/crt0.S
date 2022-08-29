@@ -9,6 +9,10 @@
  * http://www.opensource.org/licenses.
  */
 
+#include "x-heep.h"
+#include "core_v_mini_mcu.h"
+#include "soc_ctrl_regs.h"
+
 /* Entry point for bare metal programs */
 .section .text.start
 .global _start
@@ -54,6 +58,11 @@ _start:
 	la a0, __libc_fini_array
 	call atexit
 	call __libc_init_array
+
+/* set the frequency */
+   li a0, SOC_CTRL_START_ADDRESS
+   li a2, REFERENCE_CLOCK_Hz
+   sw a2, SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET(a0)
 
 /* call main */
 	lw a0, 0(sp)                    /* a0 = argc */
