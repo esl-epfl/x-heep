@@ -11,11 +11,29 @@ module pad_cell #(
     inout logic pad_io
 );
 
-  IOBUF xilinx_iobuf_i (
-      .T (~pad_oe_i),
-      .I (pad_in_i),
-      .O (pad_out_o),
-      .IO(pad_io)
-  );
+  generate
+
+    if (PadType == "inout") begin
+
+      IOBUF xilinx_iobuf_i (
+          .T (~pad_oe_i),
+          .I (pad_in_i),
+          .O (pad_out_o),
+          .IO(pad_io)
+      );
+
+    end else if (PadType == "input") begin
+
+      assign pad_out_o = pad_io;
+
+    end else if (PadType == "output") begin
+
+      assign pad_out_o = 1'b0;
+      assign pad_io = pad_in_i;
+
+    end
+  endgenerate
+
+
 
 endmodule
