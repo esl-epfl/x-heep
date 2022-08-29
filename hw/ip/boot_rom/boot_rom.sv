@@ -17,8 +17,8 @@
 module boot_rom
   import reg_pkg::*;
 (
-    input  reg_req_t reg_req_i,
-    output reg_rsp_t reg_rsp_o
+  input  reg_req_t     reg_req_i,
+  output reg_rsp_t     reg_rsp_o
 );
   import core_v_mini_mcu_pkg::*;
 
