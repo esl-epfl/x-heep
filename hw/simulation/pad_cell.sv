@@ -37,8 +37,7 @@ module pad_cell #(
 
 `ifndef SYNTHESIS
       // Check that you never want to drive an input PAD
-      always_comb
-      begin
+      always_comb begin
         if (pad_oe_i != 1'b0) begin
           $error("%t: input PAD OE equal to 1", $time);
           $stop;
