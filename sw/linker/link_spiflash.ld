@@ -16,7 +16,7 @@ SECTIONS {
     PROVIDE(__stack_size = __stack_size);
     __heap_size = DEFINED(__heap_size) ? __heap_size : 0x1000;
 
- /* interrupt vectors */
+    /* interrupt vectors */
     .vectors (ORIGIN(FLASH)):
     {
       PROVIDE(_vector_start = .);
@@ -53,9 +53,10 @@ SECTIONS {
     The program executes knowing that the data is in the RAM
     but the loader puts the initial values in the FLASH (inidata).
     It is one task of the startup to copy the initial values from FLASH to RAM. */
-    .data : AT ( _sidata )
+    .data : 
     {
         . = ALIGN(4);
+        _sidata = LOADADDR(.data);
         _sdata = .;        /* create a global symbol at data start; used by startup code in order to initialise the .data section in RAM */
         _ram_start = .;    /* create a global symbol at ram start for garbage collector */
         . = ALIGN(4);
@@ -67,7 +68,7 @@ SECTIONS {
         *(.sdata*)          /* .sdata* sections */
         . = ALIGN(4);
         _edata = .;        /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
-    } >RAM
+    } >RAM AT >FLASH
 
     /* Uninitialized data section */
     .bss :
