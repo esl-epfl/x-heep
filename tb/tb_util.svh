@@ -28,7 +28,6 @@ endtask
 task tb_loadHEX;
   input string file;
   //whether to use debug to write to memories
-  input logic debug_master;
   logic [7:0] stimuli[core_v_mini_mcu_pkg::MEM_SIZE];
   int i, j, NumBytes;
   logic [31:0] addr;
@@ -64,11 +63,11 @@ task tb_loadHEX;
 
   end
 
-    release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_req_o;
-    release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_addr_o;
-    release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_we_o;
-    release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_be_o;
-    release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_wdata_o;
+  release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_req_o;
+  release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_addr_o;
+  release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_we_o;
+  release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_be_o;
+  release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_wdata_o;
 
 `else
 
