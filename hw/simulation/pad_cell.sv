@@ -35,16 +35,14 @@ module pad_cell #(
       assign pad_io = pad;
       assign pad = 1'bz;
 
-`ifndef VERILATOR
+`ifndef SYNTHESIS
       // Check that you never want to drive an input PAD
-      property p_drive_input_pad;
-        (pad_oe_i == 1'b0);
-      endproperty
-      a_p_drive_input_pad :
-      assert property (p_drive_input_pad)
-      else begin
-        $error("%t: input PAD OE equal to 1", $time);
-        $stop;
+      always_comb
+      begin
+        if (pad_oe_i != 1'b0) begin
+          $error("%t: input PAD OE equal to 1", $time);
+          $stop;
+        end
       end
 `endif
 
