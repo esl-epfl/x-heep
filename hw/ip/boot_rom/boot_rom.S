@@ -4,16 +4,18 @@
 #include "soc_ctrl_regs.h"
 #include "spimem_regs.h"
 #include "power_manager_regs.h"
+#include "spi_host_regs.h"
 
 #define SOC_CTRL_START_ADDRESS_20bit (SOC_CTRL_START_ADDRESS >> 12)
 #define SPI_FLASH_START_ADDRESS_20bit (SPI_FLASH_START_ADDRESS >> 12)
 #define SPI_MEMIO_START_ADDRESS_20bit (SPI_MEMIO_START_ADDRESS >> 12)
 #define POWER_MANAGER_START_ADDRESS_20bit (POWER_MANAGER_START_ADDRESS >> 12)
+#define SPI_HOST_START_ADDRESS_20bit (SPI_HOST_START_ADDRESS >> 12)
 
 #define SEXT_IMM(x) ((x) | (-(((x) >> 11) & 1) << 11))
 
-        .option norvc
-        .global entry
+       .option norvc
+       .global entry
 
 entry:
        // Check if recovering from sleep state
@@ -30,19 +32,206 @@ boot:
        bnez a0, _jump_to_flash
 
 _jump_to_debug_rom:
-       lbu a0, SOC_CTRL_BOOT_EXIT_LOOP_REG_OFFSET(a1)
-       //check whether exit_loop flag is 1, otherwise jump back to entry
-       beqz a0, entry
-       lw a1, SOC_CTRL_BOOT_ADDRESS_REG_OFFSET(a1)
-       jalr a1
+       lbu    a0, SOC_CTRL_BOOT_EXIT_LOOP_REG_OFFSET(a1)
+       // Check whether exit_loop flag is 1, otherwise jump back to entry
+       beqz   a0, entry
+       lw     a1, SOC_CTRL_BOOT_ADDRESS_REG_OFFSET(a1)
+       jalr   a1
 
 _jump_to_flash:
-       lui a1, SPI_MEMIO_START_ADDRESS_20bit
-       addi a0, zero, 1
-       sw a0, OBI_SPIMEMIO_START_SPIMEM_REG_OFFSET(a1)
-       lui a1, SPI_FLASH_START_ADDRESS_20bit
-       addi a1, a1, SEXT_IMM(0x180)
-       jalr a1
-       //leave some nop otherwise prefetcher out of bound
+       lbu    a0, SOC_CTRL_USE_SPIMEMIO_REG_OFFSET(a1)
+       beqz   a0, _copy_from_flash
+
+_execute_from_flash:
+       lui    a1, SPI_MEMIO_START_ADDRESS_20bit
+       addi   a0, zero, 1
+       sw     a0, OBI_SPIMEMIO_START_SPIMEM_REG_OFFSET(a1)
+       lui    a1, SPI_FLASH_START_ADDRESS_20bit
+       addi   a1, a1, SEXT_IMM(0x180)
+       jalr   a1
+       // Leave some nops otherwise prefetcher out of bound
+       nop
+       nop
+
+_copy_from_flash:
+       lui    a1, SPI_HOST_START_ADDRESS_20bit
+       // Enable spi
+       lui    a0, 0x80000
+       lw     a4, SPI_HOST_CONTROL_REG_OFFSET(a1)
+       or     a4, a4, a0
+       sw     a4, SPI_HOST_CONTROL_REG_OFFSET(a1)
+       // Create config_opt: 0x0FFF0001
+       lui    a4, 0xfff0
+       addi   a4, a4, 1
+       sw     a4, SPI_HOST_CONFIGOPTS_0_REG_OFFSET(a1)
+       // Set spi csid
+       li     a0, 0
+       sw     a0, SPI_HOST_CSID_REG_OFFSET(a1)
+       // Set spi receiver watermark to 3
+       lw     a4, SPI_HOST_CONTROL_REG_OFFSET(a1)
+       andi   a4, a4, -256 # ~SPI_HOST_CONTROL_RX_WATERMARK_MASK
+       ori    a4, a4, 3
+       sw     a4, SPI_HOST_CONTROL_REG_OFFSET(a1)
+
+       // Power up flash (0xab flash command)
+       li     a4, 0xab
+       sw     a4, SPI_HOST_DATA_REG_OFFSET(a1)
+
+       // Power up command: 0x00002003 (transmit 4 words)
+       lui    a4, 0x2
+       addi   a4, a4, 3
+       sw     a4, SPI_HOST_COMMAND_REG_OFFSET(a1)
+       // Wait spi is ready for next command
+_wait_spi_ready_cmd_pwr:
+       lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
+       bgez   a4, _wait_spi_ready_cmd_pwr
+
+       // Fill TX FIFO with TX data (read command 0x03 + 3B address 0x000)
+       li     a4, 0x03
+       sw     a4, SPI_HOST_DATA_REG_OFFSET(a1)
+_wait_spi_ready_read_init:
+       lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
+       bgez   a4, _wait_spi_ready_read_init
+
+       // Read command: 0x00002002
+       // Read 3 words @0x0000: source address, copy size, and ram destination address
+       li     a4, 0x2002
+       sw     a4, SPI_HOST_COMMAND_REG_OFFSET(a1)
+_wait_spi_ready_read_init_cmd:
+       lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
+       bgez   a4, _wait_spi_ready_read_init_cmd
+
+       // Poll spi status register and check rxwm bit
+_wait_spi_rxwm_init:
+       lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
+       srli   a4, a4, SPI_HOST_STATUS_RXWM_BIT
+       andi   a4, a4, 1
+       beqz   a4, _wait_spi_rxwm_init
+
+       // Load the three words
+       lw     a2, SPI_HOST_DATA_REG_OFFSET(a1) # src ptr (flash)
+       lw     a3, SPI_HOST_DATA_REG_OFFSET(a1) # copy size
+       lw     s1, SPI_HOST_DATA_REG_OFFSET(a1) # dst ptr (ram)
+
+       // Set spi receiver watermark to 8
+       lw     a5, SPI_HOST_CONTROL_REG_OFFSET(a1)
+       andi   a5, a5, -256 # ~SPI_HOST_CONTROL_RX_WATERMARK_MASK
+       ori    a5, a5, 8
+       sw     a5, SPI_HOST_CONTROL_REG_OFFSET(a1)
+
+       // Create read command (0x03) + 3B address with source address read from flash
+       slli   a2, a2, 8
+       addi   a2, a2, 0x03
+       sw     a2, SPI_HOST_DATA_REG_OFFSET(a1)
+_wait_spi_ready_read_prog:
+       lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
+       bgez   a5, _wait_spi_ready_read_prog
+
+       // For loop until the copy from flash to ram is done
+       // Try first to do as much as 256-bytes copies as possible
+       mv     s0, a3
+       li     s6, 256
+       lui    s5, 0x1
+       addi   s5, s5, 767 # spi cmd: rxonly + stdspeed + csaat + 255 bytes
+_32B_chunk_loop:
+       blt    s6, s0, _read_32B_chunk
+
+       // Read remaining bytes
+       lui    a5, 0x1
+       ori    a5, a5, 511
+       sw     a5, SPI_HOST_COMMAND_REG_OFFSET(a1)
+_wait_spi_ready_remaining_bytes:
+       lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
+       bgez   a5, _wait_spi_ready_remaining_bytes
+       li     s0, 0
+       li     s4, 32
+       j      _last_bytes_read_start
+
+_read_32B_chunk:
+       sw     s5, SPI_HOST_COMMAND_REG_OFFSET(a1)
+_wait_spi_ready_read_32B_chunk:
+       lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
+       bgez   a5, _wait_spi_ready_read_32B_chunk
+
+       addi   s7, s1, 1024 # add 32*32 to dst ptr
+_wait_spi_rxwm_8_words:
+       lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
+       srli   a5, a5, 0x14
+       andi   a5, a5, 1 # SPI_HOST_STATUS_RXWM_BIT
+       beqz   a5, _wait_spi_rxwm_8_words
+       // Read 32B (8 words) from RX FIFO
+       lw     a7, SPI_HOST_DATA_REG_OFFSET(a1)
+       lw     t0, SPI_HOST_DATA_REG_OFFSET(a1)
+       lw     t1, SPI_HOST_DATA_REG_OFFSET(a1)
+       lw     t2, SPI_HOST_DATA_REG_OFFSET(a1)
+       lw     t3, SPI_HOST_DATA_REG_OFFSET(a1)
+       lw     t4, SPI_HOST_DATA_REG_OFFSET(a1)
+       lw     t5, SPI_HOST_DATA_REG_OFFSET(a1)
+       lw     t6, SPI_HOST_DATA_REG_OFFSET(a1)
+       sw     a7, 0(s1)
+       sw     t0, 4(s1)
+       sw     t1, 8(s1)
+       sw     t2, 12(s1)
+       sw     t3, 16(s1)
+       sw     t4, 20(s1)
+       sw     t5, 24(s1)
+       sw     t6, 28(s1)
+       addi   s1, s1, 32
+       bne    s1, s7, _wait_spi_rxwm_8_words
+       addi   s0, s0, -256
+       j      _32B_chunk_loop
+
+_wait_spi_rxwm_8_words_1:
+       lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
+       srli   a5, a5, 0x14
+       andi   a5, a5, 1 # SPI_HOST_STATUS_RXWM_BIT
+       beqz   a5, _wait_spi_rxwm_8_words_1
+       // Read 32B (8 words) from RX FIFO
+       lw     a7, SPI_HOST_DATA_REG_OFFSET(a1)
+       lw     t0, SPI_HOST_DATA_REG_OFFSET(a1)
+       lw     t1, SPI_HOST_DATA_REG_OFFSET(a1)
+       lw     t2, SPI_HOST_DATA_REG_OFFSET(a1)
+       lw     t3, SPI_HOST_DATA_REG_OFFSET(a1)
+       lw     t4, SPI_HOST_DATA_REG_OFFSET(a1)
+       lw     t5, SPI_HOST_DATA_REG_OFFSET(a1)
+       lw     t6, SPI_HOST_DATA_REG_OFFSET(a1)
+       sw     a7, 0(s1)
+       sw     t0, 4(s1)
+       sw     t1, 8(s1)
+       sw     t2, 12(s1)
+       sw     t3, 16(s1)
+       sw     t4, 20(s1)
+       sw     t5, 24(s1)
+       sw     t6, 28(s1)
+       addi   s0, s0, -32
+_last_bytes_read_start:
+       addi   s1, s1, 32 # dst ptr move 32B further
+       bltu   s4, s0, _wait_spi_rxwm_8_words_1
+       
+       // Update RX watermark with remaining words (<=8)
+       lw     a4, SPI_HOST_CONTROL_REG_OFFSET(a1)
+       andi   a4, a4, -256 # ~SPI_HOST_CONTROL_RX_WATERMARK_MASK
+       srli   a5, s0, 0x2 # 4 bytes = 1 word
+       or     a5, a5, a4
+       sw     a5, SPI_HOST_CONTROL_REG_OFFSET(a1)
+       _wait_spi_rxwm_n_words:
+       lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
+       srli   a5, a5, 0x14
+       andi   a5, a5, 1 # SPI_HOST_STATUS_RXWM_BIT
+       beqz   a5, _wait_spi_rxwm_n_words
+_remaining_bytes_loop:
+       bnez   s0,_spi_read_word
+       // Copy from flash to ram finished, jump to ram boot address
+       lui    a1, SOC_CTRL_START_ADDRESS_20bit
+       lw     a1, SOC_CTRL_BOOT_ADDRESS_REG_OFFSET(a1)
+       jalr   a1
+
+_spi_read_word:
+       lw     a7, SPI_HOST_DATA_REG_OFFSET(a1)
+       sw     a7, 0(s1)
+       addi   s0, s0, -4
+       addi   s1, s1, 4
+       j      _remaining_bytes_loop
+       // Leave some nops otherwise prefetcher out of bound
        nop
        nop
