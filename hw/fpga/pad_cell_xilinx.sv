@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 module pad_cell #(
+    parameter string PadType = "inout"  //inout, input, output
 ) (
     input  logic pad_in_i,
     input  logic pad_oe_i,

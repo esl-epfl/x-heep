@@ -53,13 +53,10 @@ module xilinx_core_v_mini_mcu_wrapper
   logic [ CLK_LED_COUNT_LENGTH - 1:0] clk_count;
 
   // low active reset
-  assign rst_n = !rst_i;
+  assign rst_n   = !rst_i;
 
   // reset LED for debugging
-  OBUF xilinx_rst_led_i (
-      .I(rst_n),
-      .O(rst_led)
-  );
+  assign rst_led = rst_n;
 
   // counter to blink an LED
   assign clk_led = clk_count[CLK_LED_COUNT_LENGTH-1];
@@ -73,10 +70,7 @@ module xilinx_core_v_mini_mcu_wrapper
   end
 
   // clock output for debugging
-  OBUF xilinx_clk_gen_i (
-      .I(clk_gen),
-      .O(clk_out)
-  );
+  assign clk_out = clk_gen;
 
   xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
       .clk_125MHz(clk_i),

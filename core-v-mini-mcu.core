@@ -87,6 +87,7 @@ filesets:
   xdc-fpga-nexys:
     files:
     - hw/fpga/constraints/nexys/pin_assign.xdc
+    - hw/fpga/constraints/nexys/constraints.xdc
     file_type: xdc
 
   xdc-fpga-pynq-z2:
