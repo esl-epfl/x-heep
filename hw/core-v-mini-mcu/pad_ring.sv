@@ -73,7 +73,7 @@ module pad_ring
     output logic i2c_sda_o
 
 );
-
+  /*
   pad_cell pad_cell_clk_i (
       .pad_in_i(1'b0),
       .pad_oe_i(1'b0),
@@ -87,6 +87,10 @@ module pad_ring
       .pad_out_o(rst_no),
       .pad_io(rst_ni)
   );
+*/
+
+  assign clk_o  = clk_i;
+  assign rst_no = rst_ni;
 
   pad_cell pad_cell_boot_sel_i (
       .pad_in_i(1'b0),

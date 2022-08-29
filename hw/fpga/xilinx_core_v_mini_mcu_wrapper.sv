@@ -11,27 +11,31 @@ module xilinx_core_v_mini_mcu_wrapper
     parameter PULP_ZFINX           = 0,
     parameter CLK_LED_COUNT_LENGTH = 27
 ) (
-    input  logic clk_i,
-    input  logic rst_i,
+
+    inout logic clk_i,
+    inout logic rst_i,
+
+    //visibility signals
     output logic rst_led,
     output logic clk_led,
     output logic clk_out,
-    input  logic jtag_tck_i,
-    input  logic jtag_tms_i,
-    input  logic jtag_trst_ni,
-    input  logic jtag_tdi_i,
-    output logic jtag_tdo_o,
 
-    input  logic uart_rx_i,
-    output logic uart_tx_o,
+    inout logic boot_select_i,
+    inout logic execute_from_flash_i,
+
+    inout logic jtag_tck_i,
+    inout logic jtag_tms_i,
+    inout logic jtag_trst_ni,
+    inout logic jtag_tdi_i,
+    inout logic jtag_tdo_o,
+
+    inout logic uart_rx_i,
+    inout logic uart_tx_o,
 
     inout logic [31:0] gpio_io,
 
-    input  logic execute_from_flash_i,
-    input  logic boot_select_i,
     output logic exit_value_o,
-    output logic exit_valid_o,
-
+    inout  logic exit_valid_o,
 
     inout logic [3:0] spi_sd_io,
     inout logic spi_csb_o,
@@ -39,24 +43,29 @@ module xilinx_core_v_mini_mcu_wrapper
 
     inout logic i2c_scl_io,
     inout logic i2c_sda_io
+
 );
 
-  logic                               clk_gen;
+  wire                                clk_gen;
   logic [                       31:0] exit_value;
   logic [spi_host_reg_pkg::NumCS-1:0] spi_csb;
-  logic                               rst_ni;
+  wire                                rst_n;
   logic [ CLK_LED_COUNT_LENGTH - 1:0] clk_count;
 
   // low active reset
-  assign rst_ni  = !rst_i;
-  // reset LED
-  assign rst_led = rst_ni;
+  assign rst_n = !rst_i;
+
+  // reset LED for debugging
+  OBUF xilinx_rst_led_i (
+      .I(rst_n),
+      .O(rst_led)
+  );
 
   // counter to blink an LED
   assign clk_led = clk_count[CLK_LED_COUNT_LENGTH-1];
 
-  always_ff @(posedge clk_gen or negedge rst_ni) begin : clk_count_process
-    if (!rst_ni) begin
+  always_ff @(posedge clk_gen or negedge rst_n) begin : clk_count_process
+    if (!rst_n) begin
       clk_count <= '0;
     end else begin
       clk_count <= clk_count + 1;
@@ -64,7 +73,10 @@ module xilinx_core_v_mini_mcu_wrapper
   end
 
   // clock output for debugging
-  assign clk_out = clk_gen;
+  OBUF xilinx_clk_gen_i (
+      .I(clk_gen),
+      .O(clk_out)
+  );
 
   xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
       .clk_125MHz(clk_i),
@@ -74,25 +86,25 @@ module xilinx_core_v_mini_mcu_wrapper
   core_v_mini_mcu core_v_mini_mcu_i (
 
       .clk_i (clk_gen),
-      .rst_ni(rst_ni),
+      .rst_ni(rst_n),
 
       .jtag_tck_i  (jtag_tck_i),
       .jtag_tms_i  (jtag_tms_i),
-      .jtag_trst_ni(rst_ni),
+      .jtag_trst_ni(jtag_trst_ni),
       .jtag_tdi_i  (jtag_tdi_i),
       .jtag_tdo_o  (jtag_tdo_o),
 
-      .ext_xbar_master_req_i(),
+      .ext_xbar_master_req_i('0),
       .ext_xbar_master_resp_o(),
       .ext_xbar_slave_req_o(),
-      .ext_xbar_slave_resp_i(),
+      .ext_xbar_slave_resp_i('0),
       .ext_peripheral_slave_req_o(),
-      .ext_peripheral_slave_resp_i(),
+      .ext_peripheral_slave_resp_i('0),
 
       .uart_rx_i(uart_rx_i),
       .uart_tx_o(uart_tx_o),
 
-      .intr_vector_ext_i(),
+      .intr_vector_ext_i('0),
 
       .gpio_io(gpio_io),
 

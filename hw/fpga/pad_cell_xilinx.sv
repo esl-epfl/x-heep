@@ -11,7 +11,7 @@ module pad_cell #(
     inout logic pad_io
 );
 
-  IOBUF qspi_iobuf (
+  IOBUF xilinx_iobuf_i (
       .T (~pad_oe_i),
       .I (pad_in_i),
       .O (pad_out_o),
