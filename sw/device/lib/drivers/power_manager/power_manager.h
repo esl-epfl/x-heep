@@ -33,7 +33,7 @@ typedef enum power_manager_sel_intr {
  * Initialization parameters for POWER MANAGER.
  *
  */
-typedef struct soc_ctrl {
+typedef struct power_manager {
   /**
    * The base address for the power_manager hardware registers.
    */

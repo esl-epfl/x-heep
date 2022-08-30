@@ -10,6 +10,7 @@
 #include "core_v_mini_mcu.h"
 #include "rv_timer.h"
 #include "power_manager.h"
+#include "soc_ctrl.h"
 
 static rv_timer_t timer;
 static const uint64_t kTickFreqHz = 1000 * 1000; // 1 MHz
@@ -18,11 +19,17 @@ static power_manager_t power_manager;
 
 int main(int argc, char *argv[])
 {
+
+    //Get current Frequency
+    soc_ctrl_t soc_ctrl;
+    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+    uint32_t freq_hz = soc_ctrl_get_frequency(&soc_ctrl);
+
     // Setup rv_timer
     mmio_region_t timer_reg = mmio_region_from_addr(RV_TIMER_START_ADDRESS);
     rv_timer_init(timer_reg, (rv_timer_config_t){.hart_count = 1, .comparator_count = 1}, &timer);
     rv_timer_tick_params_t tick_params;
-    rv_timer_approximate_tick_params(100000000, kTickFreqHz, &tick_params);
+    rv_timer_approximate_tick_params(freq_hz, kTickFreqHz, &tick_params);
     rv_timer_set_tick_params(&timer, 0, tick_params);
     rv_timer_irq_enable(&timer, 0, 0, kRvTimerEnabled);
     rv_timer_arm(&timer, 0, 0, 1024);
@@ -36,6 +43,7 @@ int main(int argc, char *argv[])
     if (power_gate_core(&power_manager, kTimer) != kPowerManagerOk)
     {
         printf("Error: power manager fail.\n");
+        return EXIT_FAILURE;
     }
 
     /* write something to stdout */

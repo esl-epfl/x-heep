@@ -13,7 +13,7 @@
 
 #include "power_manager_regs.h"  // Generated.
 
-void power_gate_core_asm(void)
+void power_gate_core_asm()
 {
 
     asm volatile (
@@ -240,7 +240,6 @@ power_manager_result_t power_gate_core(const power_manager_t *power_manager, pow
     }
     else
     {
-        printf("Error: interrupt source not available.\n");
         return kPowerManagerError;
     }
 
