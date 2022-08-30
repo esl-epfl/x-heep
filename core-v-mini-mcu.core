@@ -19,7 +19,6 @@ filesets:
     - pulp-platform.org::riscv_dbg
     - pulp-platform.org::register_interface
     - openhwgroup.org:ip:soc_ctrl
-    - openhwgroup.org:ip:power_manager
     - lowrisc:ip:uart:0.1
     - lowrisc:ip:rv_plic_example:0.1
     - lowrisc:ip:rv_timer:0.1
@@ -30,6 +29,7 @@ filesets:
     - x-heep:obi_spimemio:0.1.0
     - x-heep:ip:boot_rom
     - x-heep:ip:dma
+    - x-heep:ip:power_manager
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
@@ -64,6 +64,7 @@ filesets:
     - hw/ip/boot_rom/boot_rom.vlt
     - hw/ip/obi_spimemio/obi_spimemio.vlt
     - hw/ip/dma/dma.vlt
+    - hw/ip/power_manager/power_manager.vlt
     file_type: vlt
 
   rtl-fpga:

@@ -334,5 +334,42 @@
         { bits: "0", name: "INTR_STATE", desc: "Interrupt state Reg" }
       ]
     }
+    { name:     "CPU_RESET_ASSERT_COUNTER",
+      desc:     "Counter before resetting the CPU",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CPU_RESET_ASSERT_COUNTER", desc: "CPU counter before resetting" }
+      ]
+    }
+    { name:     "CPU_RESET_DEASSERT_COUNTER",
+      desc:     "Counter before unreset the CPU",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CPU_RESET_DEASSERT_COUNTER", desc: "CPU counter before unresetting" }
+      ]
+    }
+    { name:     "CPU_SWITCH_OFF_COUNTER",
+      desc:     "Counter before switching off the CPU",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CPU_SWITCH_OFF_COUNTER", desc: "CPU counter before switching off" }
+      ]
+    }
+    { name:     "CPU_SWITCH_ON_COUNTER",
+      desc:     "Counter before switching on the CPU",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CPU_SWITCH_ON_COUNTER", desc: "CPU counter before switching on" }
+      ]
+    }
+
    ]
 }

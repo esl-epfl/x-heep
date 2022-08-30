@@ -128,6 +128,18 @@ extern "C" {
 #define POWER_MANAGER_INTR_STATE_REG_OFFSET 0x8c
 #define POWER_MANAGER_INTR_STATE_INTR_STATE_BIT 0
 
+// Counter before resetting the CPU
+#define POWER_MANAGER_CPU_RESET_ASSERT_COUNTER_REG_OFFSET 0x90
+
+// Counter before unreset the CPU
+#define POWER_MANAGER_CPU_RESET_DEASSERT_COUNTER_REG_OFFSET 0x94
+
+// Counter before switching off the CPU
+#define POWER_MANAGER_CPU_SWITCH_OFF_COUNTER_REG_OFFSET 0x98
+
+// Counter before switching on the CPU
+#define POWER_MANAGER_CPU_SWITCH_ON_COUNTER_REG_OFFSET 0x9c
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif

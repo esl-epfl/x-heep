@@ -1,9 +1,9 @@
 CAPI=2:
 
-name: "openhwgroup.org:ip:power_manager"
-description: "OpenHW Group core-v-mini-mcu power manager"
+name: "x-heep:ip:power_manager"
+description: "x-heep power manager"
 
-# Copyright 2021 OpenHW Group
+# Copyright 2022 EPFL
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
