@@ -170,6 +170,30 @@ module power_manager_reg_top #(
   logic [31:0] core_reg_x31_qs;
   logic [31:0] core_reg_x31_wd;
   logic core_reg_x31_we;
+  logic [31:0] core_csr_c0_qs;
+  logic [31:0] core_csr_c0_wd;
+  logic core_csr_c0_we;
+  logic [31:0] core_csr_c1_qs;
+  logic [31:0] core_csr_c1_wd;
+  logic core_csr_c1_we;
+  logic [31:0] core_csr_c2_qs;
+  logic [31:0] core_csr_c2_wd;
+  logic core_csr_c2_we;
+  logic [31:0] core_csr_c3_qs;
+  logic [31:0] core_csr_c3_wd;
+  logic core_csr_c3_we;
+  logic [31:0] core_csr_c4_qs;
+  logic [31:0] core_csr_c4_wd;
+  logic core_csr_c4_we;
+  logic [31:0] core_csr_c5_qs;
+  logic [31:0] core_csr_c5_wd;
+  logic core_csr_c5_we;
+  logic [31:0] core_csr_c6_qs;
+  logic [31:0] core_csr_c6_wd;
+  logic core_csr_c6_we;
+  logic [31:0] core_csr_c7_qs;
+  logic [31:0] core_csr_c7_wd;
+  logic core_csr_c7_we;
   logic en_wait_for_intr_qs;
   logic en_wait_for_intr_wd;
   logic en_wait_for_intr_we;
@@ -1108,6 +1132,222 @@ module power_manager_reg_top #(
   );
 
 
+  // R[core_csr_c0]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_core_csr_c0 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (core_csr_c0_we),
+    .wd     (core_csr_c0_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.core_csr_c0.q ),
+
+    // to register interface (read)
+    .qs     (core_csr_c0_qs)
+  );
+
+
+  // R[core_csr_c1]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_core_csr_c1 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (core_csr_c1_we),
+    .wd     (core_csr_c1_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.core_csr_c1.q ),
+
+    // to register interface (read)
+    .qs     (core_csr_c1_qs)
+  );
+
+
+  // R[core_csr_c2]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_core_csr_c2 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (core_csr_c2_we),
+    .wd     (core_csr_c2_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.core_csr_c2.q ),
+
+    // to register interface (read)
+    .qs     (core_csr_c2_qs)
+  );
+
+
+  // R[core_csr_c3]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_core_csr_c3 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (core_csr_c3_we),
+    .wd     (core_csr_c3_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.core_csr_c3.q ),
+
+    // to register interface (read)
+    .qs     (core_csr_c3_qs)
+  );
+
+
+  // R[core_csr_c4]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_core_csr_c4 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (core_csr_c4_we),
+    .wd     (core_csr_c4_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.core_csr_c4.q ),
+
+    // to register interface (read)
+    .qs     (core_csr_c4_qs)
+  );
+
+
+  // R[core_csr_c5]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_core_csr_c5 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (core_csr_c5_we),
+    .wd     (core_csr_c5_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.core_csr_c5.q ),
+
+    // to register interface (read)
+    .qs     (core_csr_c5_qs)
+  );
+
+
+  // R[core_csr_c6]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_core_csr_c6 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (core_csr_c6_we),
+    .wd     (core_csr_c6_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.core_csr_c6.q ),
+
+    // to register interface (read)
+    .qs     (core_csr_c6_qs)
+  );
+
+
+  // R[core_csr_c7]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_core_csr_c7 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (core_csr_c7_we),
+    .wd     (core_csr_c7_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.core_csr_c7.q ),
+
+    // to register interface (read)
+    .qs     (core_csr_c7_qs)
+  );
+
+
   // R[en_wait_for_intr]: V(False)
 
   prim_subreg #(
@@ -1272,7 +1512,7 @@ module power_manager_reg_top #(
 
 
 
-  logic [39:0] addr_hit;
+  logic [47:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[ 0] = (reg_addr == POWER_MANAGER_POWER_GATE_CORE_OFFSET);
@@ -1309,12 +1549,20 @@ module power_manager_reg_top #(
     addr_hit[31] = (reg_addr == POWER_MANAGER_CORE_REG_X29_OFFSET);
     addr_hit[32] = (reg_addr == POWER_MANAGER_CORE_REG_X30_OFFSET);
     addr_hit[33] = (reg_addr == POWER_MANAGER_CORE_REG_X31_OFFSET);
-    addr_hit[34] = (reg_addr == POWER_MANAGER_EN_WAIT_FOR_INTR_OFFSET);
-    addr_hit[35] = (reg_addr == POWER_MANAGER_INTR_STATE_OFFSET);
-    addr_hit[36] = (reg_addr == POWER_MANAGER_CPU_RESET_ASSERT_COUNTER_OFFSET);
-    addr_hit[37] = (reg_addr == POWER_MANAGER_CPU_RESET_DEASSERT_COUNTER_OFFSET);
-    addr_hit[38] = (reg_addr == POWER_MANAGER_CPU_SWITCH_OFF_COUNTER_OFFSET);
-    addr_hit[39] = (reg_addr == POWER_MANAGER_CPU_SWITCH_ON_COUNTER_OFFSET);
+    addr_hit[34] = (reg_addr == POWER_MANAGER_CORE_CSR_C0_OFFSET);
+    addr_hit[35] = (reg_addr == POWER_MANAGER_CORE_CSR_C1_OFFSET);
+    addr_hit[36] = (reg_addr == POWER_MANAGER_CORE_CSR_C2_OFFSET);
+    addr_hit[37] = (reg_addr == POWER_MANAGER_CORE_CSR_C3_OFFSET);
+    addr_hit[38] = (reg_addr == POWER_MANAGER_CORE_CSR_C4_OFFSET);
+    addr_hit[39] = (reg_addr == POWER_MANAGER_CORE_CSR_C5_OFFSET);
+    addr_hit[40] = (reg_addr == POWER_MANAGER_CORE_CSR_C6_OFFSET);
+    addr_hit[41] = (reg_addr == POWER_MANAGER_CORE_CSR_C7_OFFSET);
+    addr_hit[42] = (reg_addr == POWER_MANAGER_EN_WAIT_FOR_INTR_OFFSET);
+    addr_hit[43] = (reg_addr == POWER_MANAGER_INTR_STATE_OFFSET);
+    addr_hit[44] = (reg_addr == POWER_MANAGER_CPU_RESET_ASSERT_COUNTER_OFFSET);
+    addr_hit[45] = (reg_addr == POWER_MANAGER_CPU_RESET_DEASSERT_COUNTER_OFFSET);
+    addr_hit[46] = (reg_addr == POWER_MANAGER_CPU_SWITCH_OFF_COUNTER_OFFSET);
+    addr_hit[47] = (reg_addr == POWER_MANAGER_CPU_SWITCH_ON_COUNTER_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -1361,7 +1609,15 @@ module power_manager_reg_top #(
                (addr_hit[36] & (|(POWER_MANAGER_PERMIT[36] & ~reg_be))) |
                (addr_hit[37] & (|(POWER_MANAGER_PERMIT[37] & ~reg_be))) |
                (addr_hit[38] & (|(POWER_MANAGER_PERMIT[38] & ~reg_be))) |
-               (addr_hit[39] & (|(POWER_MANAGER_PERMIT[39] & ~reg_be)))));
+               (addr_hit[39] & (|(POWER_MANAGER_PERMIT[39] & ~reg_be))) |
+               (addr_hit[40] & (|(POWER_MANAGER_PERMIT[40] & ~reg_be))) |
+               (addr_hit[41] & (|(POWER_MANAGER_PERMIT[41] & ~reg_be))) |
+               (addr_hit[42] & (|(POWER_MANAGER_PERMIT[42] & ~reg_be))) |
+               (addr_hit[43] & (|(POWER_MANAGER_PERMIT[43] & ~reg_be))) |
+               (addr_hit[44] & (|(POWER_MANAGER_PERMIT[44] & ~reg_be))) |
+               (addr_hit[45] & (|(POWER_MANAGER_PERMIT[45] & ~reg_be))) |
+               (addr_hit[46] & (|(POWER_MANAGER_PERMIT[46] & ~reg_be))) |
+               (addr_hit[47] & (|(POWER_MANAGER_PERMIT[47] & ~reg_be)))));
   end
 
   assign power_gate_core_we = addr_hit[0] & reg_we & !reg_error;
@@ -1466,22 +1722,46 @@ module power_manager_reg_top #(
   assign core_reg_x31_we = addr_hit[33] & reg_we & !reg_error;
   assign core_reg_x31_wd = reg_wdata[31:0];
 
-  assign en_wait_for_intr_we = addr_hit[34] & reg_we & !reg_error;
+  assign core_csr_c0_we = addr_hit[34] & reg_we & !reg_error;
+  assign core_csr_c0_wd = reg_wdata[31:0];
+
+  assign core_csr_c1_we = addr_hit[35] & reg_we & !reg_error;
+  assign core_csr_c1_wd = reg_wdata[31:0];
+
+  assign core_csr_c2_we = addr_hit[36] & reg_we & !reg_error;
+  assign core_csr_c2_wd = reg_wdata[31:0];
+
+  assign core_csr_c3_we = addr_hit[37] & reg_we & !reg_error;
+  assign core_csr_c3_wd = reg_wdata[31:0];
+
+  assign core_csr_c4_we = addr_hit[38] & reg_we & !reg_error;
+  assign core_csr_c4_wd = reg_wdata[31:0];
+
+  assign core_csr_c5_we = addr_hit[39] & reg_we & !reg_error;
+  assign core_csr_c5_wd = reg_wdata[31:0];
+
+  assign core_csr_c6_we = addr_hit[40] & reg_we & !reg_error;
+  assign core_csr_c6_wd = reg_wdata[31:0];
+
+  assign core_csr_c7_we = addr_hit[41] & reg_we & !reg_error;
+  assign core_csr_c7_wd = reg_wdata[31:0];
+
+  assign en_wait_for_intr_we = addr_hit[42] & reg_we & !reg_error;
   assign en_wait_for_intr_wd = reg_wdata[0];
 
-  assign intr_state_we = addr_hit[35] & reg_we & !reg_error;
+  assign intr_state_we = addr_hit[43] & reg_we & !reg_error;
   assign intr_state_wd = reg_wdata[0];
 
-  assign cpu_reset_assert_counter_we = addr_hit[36] & reg_we & !reg_error;
+  assign cpu_reset_assert_counter_we = addr_hit[44] & reg_we & !reg_error;
   assign cpu_reset_assert_counter_wd = reg_wdata[31:0];
 
-  assign cpu_reset_deassert_counter_we = addr_hit[37] & reg_we & !reg_error;
+  assign cpu_reset_deassert_counter_we = addr_hit[45] & reg_we & !reg_error;
   assign cpu_reset_deassert_counter_wd = reg_wdata[31:0];
 
-  assign cpu_switch_off_counter_we = addr_hit[38] & reg_we & !reg_error;
+  assign cpu_switch_off_counter_we = addr_hit[46] & reg_we & !reg_error;
   assign cpu_switch_off_counter_wd = reg_wdata[31:0];
 
-  assign cpu_switch_on_counter_we = addr_hit[39] & reg_we & !reg_error;
+  assign cpu_switch_on_counter_we = addr_hit[47] & reg_we & !reg_error;
   assign cpu_switch_on_counter_wd = reg_wdata[31:0];
 
   // Read data return
@@ -1625,26 +1905,58 @@ module power_manager_reg_top #(
       end
 
       addr_hit[34]: begin
-        reg_rdata_next[0] = en_wait_for_intr_qs;
+        reg_rdata_next[31:0] = core_csr_c0_qs;
       end
 
       addr_hit[35]: begin
-        reg_rdata_next[0] = intr_state_qs;
+        reg_rdata_next[31:0] = core_csr_c1_qs;
       end
 
       addr_hit[36]: begin
-        reg_rdata_next[31:0] = cpu_reset_assert_counter_qs;
+        reg_rdata_next[31:0] = core_csr_c2_qs;
       end
 
       addr_hit[37]: begin
-        reg_rdata_next[31:0] = cpu_reset_deassert_counter_qs;
+        reg_rdata_next[31:0] = core_csr_c3_qs;
       end
 
       addr_hit[38]: begin
-        reg_rdata_next[31:0] = cpu_switch_off_counter_qs;
+        reg_rdata_next[31:0] = core_csr_c4_qs;
       end
 
       addr_hit[39]: begin
+        reg_rdata_next[31:0] = core_csr_c5_qs;
+      end
+
+      addr_hit[40]: begin
+        reg_rdata_next[31:0] = core_csr_c6_qs;
+      end
+
+      addr_hit[41]: begin
+        reg_rdata_next[31:0] = core_csr_c7_qs;
+      end
+
+      addr_hit[42]: begin
+        reg_rdata_next[0] = en_wait_for_intr_qs;
+      end
+
+      addr_hit[43]: begin
+        reg_rdata_next[0] = intr_state_qs;
+      end
+
+      addr_hit[44]: begin
+        reg_rdata_next[31:0] = cpu_reset_assert_counter_qs;
+      end
+
+      addr_hit[45]: begin
+        reg_rdata_next[31:0] = cpu_reset_deassert_counter_qs;
+      end
+
+      addr_hit[46]: begin
+        reg_rdata_next[31:0] = cpu_switch_off_counter_qs;
+      end
+
+      addr_hit[47]: begin
         reg_rdata_next[31:0] = cpu_switch_on_counter_qs;
       end
 

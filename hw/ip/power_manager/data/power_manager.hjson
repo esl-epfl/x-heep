@@ -316,6 +316,79 @@
         { bits: "31:0", name: "CORE_REG_X31", desc: "Core reg x31 Reg" }
       ]
     }
+    { name:     "CORE_CSR_C0",
+      desc:     "Core csr c0 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_C0", desc: "Core reg c0 Reg" }
+      ]
+    }
+    { name:     "CORE_CSR_C1",
+      desc:     "Core csr c1 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_C1", desc: "Core reg c1 Reg" }
+      ]
+    }
+    { name:     "CORE_CSR_C2",
+      desc:     "Core csr c2 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_C2", desc: "Core reg c2 Reg" }
+      ]
+    }
+    { name:     "CORE_CSR_C3",
+      desc:     "Core csr c3 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_C3", desc: "Core reg c3 Reg" }
+      ]
+    }
+    { name:     "CORE_CSR_C4",
+      desc:     "Core csr c4 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_C4", desc: "Core reg c4 Reg" }
+      ]
+    }
+    { name:     "CORE_CSR_C5",
+      desc:     "Core csr c5 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_C5", desc: "Core reg c5 Reg" }
+      ]
+    }
+    { name:     "CORE_CSR_C6",
+      desc:     "Core csr c6 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_C6", desc: "Core reg c6 Reg" }
+      ]
+    }
+    { name:     "CORE_CSR_C7",
+      desc:     "Core csr c7 value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_C7", desc: "Core reg c7 Reg" }
+      ]
+    }
+
     { name:     "EN_WAIT_FOR_INTR",
       desc:     "Enable wait for interrupt",
       resval:   "0x00000000"
