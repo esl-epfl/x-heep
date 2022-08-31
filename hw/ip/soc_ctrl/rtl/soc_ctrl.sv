@@ -25,6 +25,8 @@ module soc_ctrl #(
 
   import soc_ctrl_reg_pkg::*;
 
+  logic enable_spi_sel;
+
   soc_ctrl_reg2hw_t reg2hw;
   soc_ctrl_hw2reg_t hw2reg;
 

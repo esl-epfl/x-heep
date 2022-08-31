@@ -1,55 +1,63 @@
-// Generated register defines for soc_ctrl
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-// Copyright information found in source file:
-// Copyright lowRISC contributors.
+#ifndef _DRIVERS_SOC_CTRL_H_
+#define _DRIVERS_SOC_CTRL_H_
 
-// Licensing information found in source file:
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
-// SPDX-License-Identifier: Apache-2.0
+#include <stddef.h>
+#include <stdint.h>
 
-#ifndef _SOC_CTRL_REG_DEFS_
-#define _SOC_CTRL_REG_DEFS_
+#include "mmio.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-// Register width
-#define SOC_CTRL_PARAM_REG_WIDTH 32
 
-// Exit Valid - Used to write exit valid bit
-#define SOC_CTRL_EXIT_VALID_REG_OFFSET 0x0
-#define SOC_CTRL_EXIT_VALID_EXIT_VALID_BIT 0
+/**
+ * Initialization parameters for SOC CTRL.
+ *
+ */
+typedef struct soc_ctrl {
+  /**
+   * The base address for the soc_ctrl hardware registers.
+   */
+  mmio_region_t base_addr;
+} soc_ctrl_t;
 
-// Exit Value - Used to write exit value register
-#define SOC_CTRL_EXIT_VALUE_REG_OFFSET 0x4
+/**
+ * Write a to valid register of the SOC CTRL.
+ * @param soc_ctrl Pointer to soc_ctrl_t represting the target SOC CTRL.
+ * @param valid (1 or 0) data to write.
+ */
+void soc_ctrl_set_valid(const soc_ctrl_t *soc_ctrl, uint8_t valid);
 
-// Boot Select Value - Used to decide whether to boot from JTAG or FLASH
-#define SOC_CTRL_BOOT_SELECT_REG_OFFSET 0x8
-#define SOC_CTRL_BOOT_SELECT_BOOT_SELECT_BIT 0
+/**
+ * Write a the exit value of the SOC CTRL.
+ * @param soc_ctrl Pointer to soc_ctrl_t represting the target SOC CTRL.
+ * @param exit value data to write.
+ */
+void soc_ctrl_set_exit_value(const soc_ctrl_t *soc_ctrl, uint32_t exit_value);
 
-// Boot Exit Loop Value - Set externally (e.g. JTAG, TESTBENCH, or another
-// MASTER) to make the CPU jump to the main function entry
-#define SOC_CTRL_BOOT_EXIT_LOOP_REG_OFFSET 0xc
-#define SOC_CTRL_BOOT_EXIT_LOOP_BOOT_EXIT_LOOP_BIT 0
 
-// Boot Address Value - Used in the boot rom or power-on-reset functions
-#define SOC_CTRL_BOOT_ADDRESS_REG_OFFSET 0x10
+uint32_t soc_ctrl_get_frequency(const soc_ctrl_t *soc_ctrl);
 
-// Spi Module Select Value - Used to decide whether to use the SPI from Yosys
-// or OpenTitan
-#define SOC_CTRL_USE_SPIMEMIO_REG_OFFSET 0x14
-#define SOC_CTRL_USE_SPIMEMIO_USE_SPIMEMIO_BIT 0
+void soc_ctrl_set_frequency(const soc_ctrl_t *soc_ctrl, uint32_t frequency);
 
-// Enable Spi module selection from software
-#define SOC_CTRL_ENABLE_SPI_SEL_REG_OFFSET 0x18
-#define SOC_CTRL_ENABLE_SPI_SEL_ENABLE_SPI_SEL_BIT 0
+/**
+ * Select SPI MEMIO as SPI output
+ * @param soc_ctrl Pointer to soc_ctrl_t represting the target SOC CTRL.
+ */
+void soc_ctrl_select_spi_memio(const soc_ctrl_t *soc_ctrl);
 
-// System Frequency Value - Used to know and set at which frequency the
-// system is running (in Hz)
-#define SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET 0x1c
+/**
+ * Select SPI HOST as SPI output
+ * @param soc_ctrl Pointer to soc_ctrl_t represting the target SOC CTRL.
+ */
+void soc_ctrl_select_spi_host(const soc_ctrl_t *soc_ctrl);
 
 #ifdef __cplusplus
-}  // extern "C"
+}
 #endif
-#endif  // _SOC_CTRL_REG_DEFS_
-// End generated register defines for soc_ctrl
+
+#endif  // OPENTITAN_SW_DEVICE_SILICON_CREATOR_LIB_DRIVERS_SOC CTRL_H_
