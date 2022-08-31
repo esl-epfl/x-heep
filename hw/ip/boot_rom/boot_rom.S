@@ -47,11 +47,8 @@ _execute_from_flash:
        addi   a0, zero, 1
        sw     a0, OBI_SPIMEMIO_START_SPIMEM_REG_OFFSET(a1)
        lui    a1, SPI_FLASH_START_ADDRESS_20bit
-       addi   a1, a1, SEXT_IMM(0x180)
+       addi   a1, a1, SEXT_IMM(0x180+0x10)
        jalr   a1
-       // Leave some nops otherwise prefetcher out of bound
-       nop
-       nop
 
 _copy_from_flash:
        lui    a1, SPI_HOST_START_ADDRESS_20bit
@@ -76,7 +73,6 @@ _copy_from_flash:
        // Power up flash (0xab flash command)
        li     a4, 0xab
        sw     a4, SPI_HOST_DATA_REG_OFFSET(a1)
-
        // Power up command: 0x00002003 (transmit 4 words)
        lui    a4, 0x2
        addi   a4, a4, 3
@@ -86,32 +82,41 @@ _wait_spi_ready_cmd_pwr:
        lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
        bgez   a4, _wait_spi_ready_cmd_pwr
 
+
        // Fill TX FIFO with TX data (read command 0x03 + 3B address 0x000)
        li     a4, 0x03
        sw     a4, SPI_HOST_DATA_REG_OFFSET(a1)
-_wait_spi_ready_read_init:
+_wait_spi_ready_tx_init:
+       nop    # otherwise ready bit check is too fast
        lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
-       bgez   a4, _wait_spi_ready_read_init
-
-       // Read command: 0x00002002
-       // Read 3 words @0x0000: source address, copy size, and ram destination address
-       li     a4, 0x2002
+       bgez   a4, _wait_spi_ready_tx_init
+       // Read command: 0x00002203
+       lui    a4, 0x2
+       addi   a4, a4, 515 # spi cmd: txonly + stdspeed + csaat + 4B
        sw     a4, SPI_HOST_COMMAND_REG_OFFSET(a1)
 _wait_spi_ready_read_init_cmd:
+       nop    # otherwise ready bit check is too fast
        lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
        bgez   a4, _wait_spi_ready_read_init_cmd
-
+       // Read 3 words @0x0000: source address, copy size, and ram destination address
+       lui    a4, 0x1
+       addi   a4, a4, 11 # spi cmd: rxonly + stdspeed + 3 words (12B)
+       sw     a4, SPI_HOST_COMMAND_REG_OFFSET(a1)
+_wait_spi_ready_rx_cmd:
+       nop    # otherwise ready bit check is too fast
+       lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
+       bgez   a4, _wait_spi_ready_rx_cmd
        // Poll spi status register and check rxwm bit
 _wait_spi_rxwm_init:
        lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
        srli   a4, a4, SPI_HOST_STATUS_RXWM_BIT
        andi   a4, a4, 1
        beqz   a4, _wait_spi_rxwm_init
-
        // Load the three words
        lw     a2, SPI_HOST_DATA_REG_OFFSET(a1) # src ptr (flash)
        lw     a3, SPI_HOST_DATA_REG_OFFSET(a1) # copy size
        lw     s1, SPI_HOST_DATA_REG_OFFSET(a1) # dst ptr (ram)
+
 
        // Set spi receiver watermark to 8
        lw     a5, SPI_HOST_CONTROL_REG_OFFSET(a1)
@@ -120,12 +125,49 @@ _wait_spi_rxwm_init:
        sw     a5, SPI_HOST_CONTROL_REG_OFFSET(a1)
 
        // Create read command (0x03) + 3B address with source address read from flash
-       slli   a2, a2, 8
-       addi   a2, a2, 0x03
+       // Reverse 3B address
+       // andi   a4, a2, 0xFF
+       // slli   a4, a4, 16
+       // lui    s0, 0xFF0
+       // and    s0, a2, s0
+       // srli   s0, s0, 16
+       // li     a5, 0xFF
+       // slli   a5, a5, 16
+       // and    a2, a2, a5
+       // and    a2, a2, a4
+       // and    a2, a2, s0
+       // slli   a2, a2, 8
+
+       // ((x << 24) | (((x>>16)<<24)>>16) |  (((x<<16)>>24)<<16))
+       slli   a4, a2, 24
+
+       srli   s0, a2, 16
+       slli   s0, s0, 24
+       srli   s0, s0, 16
+
+       slli   a5, a2, 16
+       srli   a5, a5, 24
+       slli   a5, a5, 16
+
+       or     a4, a4, s0
+       or     a2, a4, a5
+
+       or     a2, a2, 0x03
+
        sw     a2, SPI_HOST_DATA_REG_OFFSET(a1)
 _wait_spi_ready_read_prog:
+       nop    # otherwise ready bit check is too fast
        lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
        bgez   a5, _wait_spi_ready_read_prog
+       // Read command: 0x00002203
+       lui    a4, 0x2
+       addi   a4, a4, 515 # spi cmd: txonly + stdspeed + csaat + 4B
+       sw     a4, SPI_HOST_COMMAND_REG_OFFSET(a1)
+_wait_spi_ready_copy_cmd:
+       nop    # otherwise ready bit check is too fast
+       lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
+       bgez   a4, _wait_spi_ready_copy_cmd
+
 
        // For loop until the copy from flash to ram is done
        // Try first to do as much as 256-bytes copies as possible
@@ -141,6 +183,7 @@ _32B_chunk_loop:
        ori    a5, a5, 511
        sw     a5, SPI_HOST_COMMAND_REG_OFFSET(a1)
 _wait_spi_ready_remaining_bytes:
+       nop    # otherwise ready bit check is too fast
        lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
        bgez   a5, _wait_spi_ready_remaining_bytes
        li     s0, 0
@@ -150,6 +193,7 @@ _wait_spi_ready_remaining_bytes:
 _read_32B_chunk:
        sw     s5, SPI_HOST_COMMAND_REG_OFFSET(a1)
 _wait_spi_ready_read_32B_chunk:
+       nop    # otherwise ready bit check is too fast
        lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
        bgez   a5, _wait_spi_ready_read_32B_chunk
 
@@ -214,7 +258,7 @@ _last_bytes_read_start:
        srli   a5, s0, 0x2 # 4 bytes = 1 word
        or     a5, a5, a4
        sw     a5, SPI_HOST_CONTROL_REG_OFFSET(a1)
-       _wait_spi_rxwm_n_words:
+_wait_spi_rxwm_n_words:
        lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
        srli   a5, a5, 0x14
        andi   a5, a5, 1 # SPI_HOST_STATUS_RXWM_BIT
