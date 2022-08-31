@@ -187,7 +187,6 @@ targets:
     filesets:
     - files_rtl_generic
     - target_sim ? (rtl-simulation)
-    - target_sim_opt ? (rtl-simulation)
     - target_sim ? (tool_verilator? (files_verilator_waiver))
     toplevel: [core_v_mini_mcu]
 
@@ -260,41 +259,6 @@ targets:
           - '-CFLAGS "-std=c++11 -Wall -g -fpermissive"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
-
-  sim_opt:
-    <<: *default_target
-    default_tool: modelsim
-    filesets_append:
-    - tb-utils
-    - pre_build_remote_bitbang
-    - pre_build_uartdpi
-    - pre_patch_modelsim_Makefile
-    - post_build_modelsim_scripts
-    - tb-sv
-    toplevel: [tb_top_vopt]
-    hooks:
-     pre_build:
-        - pre_build_uartdpi
-        - pre_build_remote_bitbang
-        - pre_patch_modelsim_Makefile # this is required by Questa 2020 on
-     post_build: [post_build_modelsim_scripts]
-    parameters:
-    - PULP_XPULP=0
-    - use_jtag_dpi? (JTAG_DPI=1)
-    - "!use_jtag_dpi? (JTAG_DPI=0)"
-    - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
-    - use_upf? (USE_UPF=true)
-    tools:
-      modelsim:
-        vlog_options:
-        - -override_timescale 1ns/1ps
-        - -suppress vlog-2583
-        - -suppress vlog-2577
-        - -pedanticerrors
-        - -define MODELSIM
-        vsim_options:
-        - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi
-        - -sv_lib ../../../hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang/librbs
 
   nexys-a7-100t:
     <<: *default_target
