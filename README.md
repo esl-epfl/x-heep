@@ -242,8 +242,21 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim_opt-modelsim/
 and 
 
 ```
-make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
+make run RUN_OPT=1 PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
 ```
+
+You can also compile with the UPF power domain description as:
+
+```
+make questasim-sim-opt-upf
+```
+
+and then execute software as:
+
+```
+make run RUN_OPT=1 RUN_UPF=1 PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
+```
+
 Questasim version must be >= Questasim 2019.3
 
 ### UART DPI

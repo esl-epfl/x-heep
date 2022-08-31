@@ -15,15 +15,15 @@ string_replaced.append('$(VSIM) -c -do \"edalize_main.tcl\" -do \"exit\"')
 string_replaced.append('$(VSIM) -do run.tcl')
 string_replaced.append('VSIM ?= $(MODEL_TECH)/vsim' + "\n" + \
                        'VOPT ?= $(MODEL_TECH)/vopt'+ "\n");
-string_replaced.append('RUN_OPT ?= '+ "\n" + \
-                       'ifdef $(RUN_OPT)'+ "\n" + \
-                       '    TOPLEVEL      := tb_top_top' + "\n" + \
+string_replaced.append('RUN_OPT = '+ "\n" + \
+                       'ifdef RUN_OPT'+ "\n" + \
+                       '    TOPLEVEL      := tb_top_vopt' + "\n" + \
                        'else'+ "\n" + \
                        '    TOPLEVEL      := tb_top' + "\n" + \
                        'endif'+ "\n\n" \
-                       'RUN_UPF_OPTIONS ?='+ "\n" + \
+                       'RUN_UPF_OPTIONS ='+ "\n" + \
                        'RUN_UPF ?= '+ "\n" + \
-                       'ifdef $(RUN_UPF)'+ "\n" + \
+                       'ifdef RUN_UPF'+ "\n" + \
                        '    RUN_UPF_OPTIONS := -pa' + "\n" + \
                        'endif'+ "\n\n");
 string_replaced.append('EXTRA_OPTIONS ?= $(VSIM_OPTIONS) $(addprefix -g,$(PARAMETERS)) $(addprefix +,$(PLUSARGS)) $(RUN_UPF_OPTIONS)')
@@ -38,8 +38,6 @@ string_toappend.append('opt:' + "\n\t" + \
 
 string_toappend.append('opt-upf:' + "\n\t" + \
                        '$(VOPT) -work work -suppress vopt-9653 -debugdb -fsmdebug -pedanticerrors -pa_upf ../../../core-v-mini-mcu.upf -pa_top "/tb_top/testharness_i/core_v_mini_mcu_i" -pa_lib work -pa_enable=highlight+debug +acc=npr $(addprefix -G,$(PARAMETERS)) $(TOPLEVEL) -o $(TOPLEVEL)_vopt' + "\n");
-
-
 
 # opening a text file
 fileIn = open("Makefile.orig", "r")
@@ -65,3 +63,7 @@ for string in string_toappend:
 # closing text file
 fileIn.close()
 fileOut.close()
+
+fileRun = open("run.tcl", "w")
+fileRun.write("run -all; quit -code [expr [coverage attribute -name TESTSTATUS -concise] >= 2 ? [coverage attribute -name TESTSTATUS -concise] : 0]; exit")
+fileRun.close()
