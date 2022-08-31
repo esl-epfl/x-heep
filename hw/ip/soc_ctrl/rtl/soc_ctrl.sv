@@ -8,8 +8,8 @@ module soc_ctrl #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic
 ) (
-    input clk_i,
-    input rst_ni,
+    input logic clk_i,
+    input logic rst_ni,
 
     // Bus Interface
     input  reg_req_t reg_req_i,

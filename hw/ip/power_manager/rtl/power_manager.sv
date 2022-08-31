@@ -2,16 +2,14 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-/* verilator lint_off UNUSED */
-
 `include "common_cells/assertions.svh"
 
 module power_manager #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic
 ) (
-    input clk_i,
-    input rst_ni,
+    input logic clk_i,
+    input logic rst_ni,
 
     // Bus Interface
     input  reg_req_t reg_req_i,
@@ -20,7 +18,7 @@ module power_manager #(
     // Power gate signal
     input  logic rv_timer_irq_i,
     input  logic core_sleep_i,
-    output logic power_gate_core_o,
+    output logic cpu_subsystem_powergate_switch_o,
     output logic cpu_subsystem_rst_no
 );
 
@@ -29,19 +27,9 @@ module power_manager #(
   power_manager_reg2hw_t reg2hw;
   power_manager_hw2reg_t hw2reg;
 
-  logic [31:0] curr_cnt, next_cnt;
-
   assign hw2reg.intr_state.d  = rv_timer_irq_i;
   assign hw2reg.intr_state.de = 1'b1;
 
-  typedef enum logic [1:0] {
-    IDLE,
-    PW_OFF_RST_ON,
-    PW_ON_RST_ON,
-    PW_ON_RST_OFF
-  } fsm_state;
-
-  fsm_state curr_state, next_state;
 
   power_manager_reg_top #(
       .reg_req_t(reg_req_t),
@@ -56,77 +44,123 @@ module power_manager #(
       .devmode_i(1'b1)
   );
 
-  // FSM seq logic
-  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_
-    if (~rst_ni) begin
-      curr_state <= IDLE;
-      curr_cnt   <= 32'd0;
-    end else begin
-      curr_state <= next_state;
-      curr_cnt   <= next_cnt;
-    end
-  end
 
-  // FSM comb logic
-  always_comb begin
+  logic cpu_reset_counter_start_switch_off, cpu_reset_counter_expired_switch_off;
+  logic cpu_reset_counter_start_switch_on, cpu_reset_counter_expired_switch_on;
 
-    next_state = curr_state;
-    next_cnt   = curr_cnt;
+  reg_to_counter #(
+      .DW(32),
+      .ExpireValue('0)
+  ) reg_to_counter_cpu_reset_assert_i (
+      .clk_i,
+      .rst_ni,
 
-    unique case (curr_state)
+      .stop_i (reg2hw.cpu_counters_stop.cpu_reset_assert_stop_bit_counter.q),
+      .start_i(cpu_reset_counter_start_switch_off),
+      .done_o (cpu_reset_counter_expired_switch_off),
 
-      IDLE: begin
-        power_gate_core_o = 1'b0;
-        cpu_subsystem_rst_no = 1'b1;
+      .hw2reg_d_o (hw2reg.cpu_reset_assert_counter.d),
+      .hw2reg_de_o(hw2reg.cpu_reset_assert_counter.de),
 
-        if (reg2hw.power_gate_core.q == 1'b1 && core_sleep_i == 1'b1) begin
-          next_state = PW_OFF_RST_ON;
-        end
-      end
+      .hw2reg_q_i(reg2hw.cpu_reset_assert_counter.q)
 
-      PW_OFF_RST_ON: begin
-        power_gate_core_o = 1'b1;
-        cpu_subsystem_rst_no = 1'b0;
+  );
 
-        if (reg2hw.en_wait_for_intr.q == 1'b1) begin
-          if (reg2hw.intr_state.q == 1'b1) begin
-            next_state = PW_ON_RST_ON;
-          end
-        end else begin
-          next_state = PW_ON_RST_ON;
-        end
-      end
+  reg_to_counter #(
+      .DW(32),
+      .ExpireValue('0)
+  ) reg_to_counter_cpu_reset_deassert_i (
+      .clk_i,
+      .rst_ni,
 
-      PW_ON_RST_ON: begin
-        power_gate_core_o = 1'b0;
-        cpu_subsystem_rst_no = 1'b0;
+      .stop_i (reg2hw.cpu_counters_stop.cpu_reset_deassert_stop_bit_counter.q),
+      .start_i(cpu_reset_counter_start_switch_on),
+      .done_o (cpu_reset_counter_expired_switch_on),
 
-        if (curr_cnt == 32'd20) begin
-          next_state = PW_ON_RST_OFF;
-          next_cnt   = 32'd0;
-        end else begin
-          next_cnt = curr_cnt + 32'd1;
-        end
-      end
+      .hw2reg_d_o (hw2reg.cpu_reset_deassert_counter.d),
+      .hw2reg_de_o(hw2reg.cpu_reset_deassert_counter.de),
 
-      PW_ON_RST_OFF: begin
-        power_gate_core_o = 1'b0;
-        cpu_subsystem_rst_no = 1'b1;
+      .hw2reg_q_i(reg2hw.cpu_reset_deassert_counter.q)
 
-        if (reg2hw.power_gate_core.q == 1'b0 && reg2hw.intr_state.q == 1'b0) begin
-          next_state = IDLE;
-        end
-      end
+  );
 
-      default: begin
-        power_gate_core_o = 1'b0;
-        cpu_subsystem_rst_no = 1'b1;
-        next_state = IDLE;
-        next_cnt = 32'd0;
-      end
+  power_manager_counter_sequence #(.ONOFF_AT_RESET(0)) power_manager_counter_sequence_cpu_reset_i (
+      .clk_i,
+      .rst_ni,
 
-    endcase
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.power_gate_core.q && core_sleep_i),
+      .start_on_sequence_i (reg2hw.en_wait_for_intr.q && reg2hw.intr_state.q),
 
-  end
+      // counter to switch on and off signals
+      .counter_expired_switch_off_i(cpu_reset_counter_expired_switch_off),
+      .counter_expired_switch_on_i (cpu_reset_counter_expired_switch_on),
+
+      .counter_start_switch_off_o(cpu_reset_counter_start_switch_off),
+      .counter_start_switch_on_o (cpu_reset_counter_start_switch_on),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(cpu_subsystem_rst_no)
+  );
+
+
+  logic cpu_powergate_counter_start_switch_off, cpu_powergate_counter_expired_switch_off;
+  logic cpu_powergate_counter_start_switch_on, cpu_powergate_counter_expired_switch_on;
+
+  reg_to_counter #(
+      .DW(32),
+      .ExpireValue('0)
+  ) reg_to_counter_cpu_powergate_switch_off_i (
+      .clk_i,
+      .rst_ni,
+
+      .stop_i (reg2hw.cpu_counters_stop.cpu_switch_off_stop_bit_counter.q),
+      .start_i(cpu_powergate_counter_start_switch_off),
+      .done_o (cpu_powergate_counter_expired_switch_off),
+
+      .hw2reg_d_o (hw2reg.cpu_switch_off_counter.d),
+      .hw2reg_de_o(hw2reg.cpu_switch_off_counter.de),
+
+      .hw2reg_q_i(reg2hw.cpu_switch_off_counter.q)
+
+  );
+
+  reg_to_counter #(
+      .DW(32),
+      .ExpireValue('0)
+  ) reg_to_counter_cpu_powergate_switch_on_i (
+      .clk_i,
+      .rst_ni,
+
+      .stop_i (reg2hw.cpu_counters_stop.cpu_switch_on_stop_bit_counter.q),
+      .start_i(cpu_powergate_counter_start_switch_on),
+      .done_o (cpu_powergate_counter_expired_switch_on),
+
+      .hw2reg_d_o (hw2reg.cpu_switch_on_counter.d),
+      .hw2reg_de_o(hw2reg.cpu_switch_on_counter.de),
+
+      .hw2reg_q_i(reg2hw.cpu_switch_on_counter.q)
+
+  );
+
+  power_manager_counter_sequence power_manager_counter_sequence_cpu_powergate_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.power_gate_core.q && core_sleep_i),
+      .start_on_sequence_i (reg2hw.en_wait_for_intr.q && reg2hw.intr_state.q),
+
+      // counter to switch on and off signals
+      .counter_expired_switch_off_i(cpu_powergate_counter_expired_switch_off),
+      .counter_expired_switch_on_i (cpu_powergate_counter_expired_switch_on),
+
+      .counter_start_switch_off_o(cpu_powergate_counter_start_switch_off),
+      .counter_start_switch_on_o (cpu_powergate_counter_start_switch_on),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(cpu_subsystem_powergate_switch_o)
+  );
+
 
 endmodule : power_manager

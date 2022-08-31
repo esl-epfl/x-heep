@@ -411,7 +411,7 @@
       desc:     "Counter before resetting the CPU",
       resval:   "0x00000000"
       swaccess: "rw",
-      hwaccess: "hro",
+      hwaccess: "hrw",
       fields: [
         { bits: "31:0", name: "CPU_RESET_ASSERT_COUNTER", desc: "CPU counter before resetting" }
       ]
@@ -420,7 +420,7 @@
       desc:     "Counter before unreset the CPU",
       resval:   "0x00000000"
       swaccess: "rw",
-      hwaccess: "hro",
+      hwaccess: "hrw",
       fields: [
         { bits: "31:0", name: "CPU_RESET_DEASSERT_COUNTER", desc: "CPU counter before unresetting" }
       ]
@@ -429,7 +429,7 @@
       desc:     "Counter before switching off the CPU",
       resval:   "0x00000000"
       swaccess: "rw",
-      hwaccess: "hro",
+      hwaccess: "hrw",
       fields: [
         { bits: "31:0", name: "CPU_SWITCH_OFF_COUNTER", desc: "CPU counter before switching off" }
       ]
@@ -438,9 +438,21 @@
       desc:     "Counter before switching on the CPU",
       resval:   "0x00000000"
       swaccess: "rw",
-      hwaccess: "hro",
+      hwaccess: "hrw",
       fields: [
         { bits: "31:0", name: "CPU_SWITCH_ON_COUNTER", desc: "CPU counter before switching on" }
+      ]
+    }
+    { name:     "CPU_COUNTERS_STOP",
+      desc:     "Bits to stop the counters keeping the done_o signal high",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "CPU_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the CPU_RESET_ASSERT_COUNTER counter" }
+        { bits: "1", name: "CPU_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the CPU_RESET_DEASSERT_COUNTER counter" }
+        { bits: "2", name: "CPU_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the CPU_SWITCH_OFF_COUNTER counter" }
+        { bits: "3", name: "CPU_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the CPU_SWITCH_ON_COUNTER counter" }
       ]
     }
 

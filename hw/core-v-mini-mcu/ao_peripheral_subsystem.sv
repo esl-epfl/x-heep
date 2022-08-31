@@ -33,7 +33,7 @@ module ao_peripheral_subsystem
 
     // POWER MANAGER
     input  logic core_sleep_i,
-    output logic power_gate_core_o,
+    output logic cpu_subsystem_powergate_switch_o,
     output logic cpu_subsystem_rst_no,
 
     //RV TIMER
@@ -165,7 +165,7 @@ module ao_peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
       .rv_timer_irq_i(rv_timer_irq_timer),
       .core_sleep_i,
-      .power_gate_core_o,
+      .cpu_subsystem_powergate_switch_o,
       .cpu_subsystem_rst_no
   );
 

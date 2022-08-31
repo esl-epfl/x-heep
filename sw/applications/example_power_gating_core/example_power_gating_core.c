@@ -39,8 +39,20 @@ int main(int argc, char *argv[])
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
     power_manager.base_addr = power_manager_reg;
 
+
+    power_manager_cpu_counters_t power_manager_cpu_counters;
+    // the reset_on must be greater thatn powergate_on (i.e. first turn on, then you deassert the reset)
+    // the reset_off must be greater thatn powergate_off (i.e. first turn off, then you reset)
+
+    // reset_off, reset_on, powergate_off, powergate_on
+    if (power_gate_cpu_counters_init(&power_manager_cpu_counters, 40, 40, 30, 30) != kPowerManagerOk)
+    {
+        printf("Error: power manager fail. Check the reset and powergate counters value\n");
+        return EXIT_FAILURE;
+    }
+
     // Power gate the core and wait for rv_timer interrupt
-    if (power_gate_core(&power_manager, kTimer) != kPowerManagerOk)
+    if (power_gate_core(&power_manager, kTimer, &power_manager_cpu_counters) != kPowerManagerOk)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;

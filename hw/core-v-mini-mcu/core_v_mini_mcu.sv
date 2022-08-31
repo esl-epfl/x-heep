@@ -119,7 +119,7 @@ module core_v_mini_mcu
   logic      [                        3:0] spi_sd_in;
 
   // power manager
-  logic                                    power_gate_core;
+  logic                                    cpu_subsystem_powergate_switch;
   logic                                    cpu_subsystem_rst_n;
   logic                                    tmp_cpu_subsystem_rst_n;
 
@@ -237,7 +237,7 @@ module core_v_mini_mcu
       .spi_sd_en_o(spi_sd_en),
       .spi_sd_i(spi_sd_in),
       .core_sleep_i(core_sleep),
-      .power_gate_core_o(power_gate_core),
+      .cpu_subsystem_powergate_switch_o(cpu_subsystem_powergate_switch),
       .cpu_subsystem_rst_no(tmp_cpu_subsystem_rst_n),
       .rv_timer_irq_timer_o(irq_timer),
       .dma_master0_ch0_req_o(dma_master0_ch0_req),
