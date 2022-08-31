@@ -29,7 +29,7 @@ module soc_ctrl #(
   soc_ctrl_hw2reg_t hw2reg;
 
   logic testbench_set_exit_loop[1];
-  //forced by simlation for preloading, do not touch
+  //forced by simulation for preloading, do not touch
   //only arrays can be "forced" in verilator, thus array of 1 element is done
   //At synthesis time this signal will get removed
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_
@@ -41,7 +41,7 @@ module soc_ctrl #(
   assign hw2reg.boot_select.de = 1'b1;
   assign hw2reg.boot_select.d = boot_select_i;
 
-  assign hw2reg.use_spimemio.de = 1'b1;
+  assign hw2reg.use_spimemio.de = ~enable_spi_sel;
   assign hw2reg.use_spimemio.d = execute_from_flash_i;
 
   assign hw2reg.boot_exit_loop.d = testbench_set_exit_loop[0];
@@ -63,5 +63,6 @@ module soc_ctrl #(
   assign exit_valid_o   = reg2hw.exit_valid.q;
   assign exit_value_o   = reg2hw.exit_value.q;
   assign use_spimemio_o = reg2hw.use_spimemio.q;
+  assign enable_spi_sel = reg2hw.enable_spi_sel.q;
 
 endmodule : soc_ctrl

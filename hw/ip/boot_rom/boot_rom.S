@@ -267,8 +267,17 @@ _remaining_bytes_loop:
        bnez   s0,_spi_read_word
        // Copy from flash to ram finished, jump to ram boot address
        lui    a1, SOC_CTRL_START_ADDRESS_20bit
-       lw     a1, SOC_CTRL_BOOT_ADDRESS_REG_OFFSET(a1)
-       jalr   a1
+       // Enable SPI selection
+       li     a0, 1
+       sw     a0, SOC_CTRL_ENABLE_SPI_SEL_REG_OFFSET(a1)
+       // Select SPIMEMIO
+       sw     a0, SOC_CTRL_USE_SPIMEMIO_REG_OFFSET(a1)
+       // Load boram boot address
+       lw     a2, SOC_CTRL_BOOT_ADDRESS_REG_OFFSET(a1)
+       // Enable SPIMEMIO for data section copy in crt0
+       lui    a1, SPI_MEMIO_START_ADDRESS_20bit
+       sw     a0, OBI_SPIMEMIO_START_SPIMEM_REG_OFFSET(a1)
+       jalr   a2
 
 _spi_read_word:
        lw     a7, SPI_HOST_DATA_REG_OFFSET(a1)
