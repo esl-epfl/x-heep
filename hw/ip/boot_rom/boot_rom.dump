@@ -31,7 +31,7 @@ Disassembly of section .text:
   3c:	00100513          	li	a0,1
   40:	00a5a023          	sw	a0,0(a1) # 20028000 <_end+0x20027d30>
   44:	400005b7          	lui	a1,0x40000
-  48:	19058593          	addi	a1,a1,400 # 40000190 <_end+0x3ffffec0>
+  48:	18058593          	addi	a1,a1,384 # 40000180 <_end+0x3ffffeb0>
   4c:	000580e7          	jalr	a1
 
 00000050 <_copy_from_flash>:
