@@ -84,7 +84,9 @@ module power_manager #(
 
   );
 
-  power_manager_counter_sequence #(.ONOFF_AT_RESET(0)) power_manager_counter_sequence_cpu_reset_i (
+  power_manager_counter_sequence #(
+      .ONOFF_AT_RESET(0)
+  ) power_manager_counter_sequence_cpu_reset_i (
       .clk_i,
       .rst_ni,
 
