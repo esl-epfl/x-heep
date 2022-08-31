@@ -93,7 +93,6 @@ int main(int argc, char *argv[])
     spi_set_rx_watermark(&spi_host, 8);
 
     uint32_t *flash_data_ptr = flash_data[0];
-    // uint32_t* data_dst = flash_data;
 
     // Power up flash
     const uint32_t powerup_byte_cmd = 0xab;
@@ -108,7 +107,9 @@ int main(int argc, char *argv[])
     spi_set_command(&spi_host, cmd_powerup);
     spi_wait_for_ready(&spi_host);
 
-    const uint32_t read_byte_cmd = ((DATA_CHUNK_ADDR << 8) | 0x03); //0x03;
+    volatile uint32_t data_addr = DATA_CHUNK_ADDR;
+
+    const uint32_t read_byte_cmd = ((DATA_CHUNK_ADDR << 8) | 0x03);
 
     // Fill TX FIFO with TX data (read command + 3B address)
     spi_write_word(&spi_host, read_byte_cmd);
@@ -159,59 +160,12 @@ int main(int argc, char *argv[])
     spi_set_command(&spi_host, cmd_read_rx);
     spi_wait_for_ready(&spi_host);
 
-    // // For SPI boot
-    // volatile uint32_t copy_size = 1048;
-    // uint32_t copy_left;
-    // for (int copy_left = copy_size; copy_left > 256; copy_left-=256)
-    // {
-    //     const uint32_t cmd_read_chunck_rx = spi_create_command((spi_command_t){
-    //         .len        = 255,
-    //         .csaat      = true,
-    //         .speed      = kSpiSpeedStandard,
-    //         .direction  = kSpiDirRxOnly
-    //     });
-    //     spi_set_command(&spi_host, cmd_read_chunck_rx);
-    //     spi_wait_for_ready(&spi_host);
-
-    //     // Read 32-Byte every time from flash to ram
-    //     for (int k = 0; k < 256/8; k++) {
-    //         spi_wait_for_rx_watermark(&spi_host);
-    //         spi_read_chunk_32B(&spi_host, flash_data_ptr);
-    //         flash_data_ptr+=8;
-    //     }
-    // }
-    // const uint32_t cmd_read_last_rx = spi_create_command((spi_command_t){
-    //     .len        = copy_left-1,
-    //     .csaat      = false,
-    //     .speed      = kSpiSpeedStandard,
-    //     .direction  = kSpiDirRxOnly
-    // });
-    // spi_set_command(&spi_host, cmd_read_last_rx);
-    // spi_wait_for_ready(&spi_host);
-    // // Read 32-Byte every time from flash to ram
-    // for (; copy_left > 32; copy_left-=32)
-    // {
-    //     spi_wait_for_rx_watermark(&spi_host);
-    //     spi_read_chunk_32B(&spi_host, flash_data_ptr);
-    //     flash_data_ptr+=8;
-    // }
-
-    // // Set RX watermark to remaining words
-    // spi_set_rx_watermark(&spi_host, copy_left>>2);
-    // spi_wait_for_rx_watermark(&spi_host);
-    // for (; copy_left > 0; copy_left-=4)
-    // {
-    //     spi_read_word(&spi_host, flash_data_ptr);
-    //     flash_data_ptr+=1;
-    // }
-
-
     // Wait transaction is finished (polling register)
+    // spi_wait_for_rx_watermark(&spi_host);
     // or wait for SPI interrupt
-    spi_wait_for_rx_watermark(&spi_host);
-    // while(spi_intr_flag==0) {
-    //     wait_for_interrupt();
-    // }
+    while(spi_intr_flag==0) {
+        wait_for_interrupt();
+    }
 
     // Complete interrupt
     plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
