@@ -6,14 +6,14 @@ Disassembly of section .text:
 
 00000000 <entry>:
    0:	200305b7          	lui	a1,0x20030
-   4:	0045c503          	lbu	a0,4(a1) # 20030004 <_end+0x2002fd48>
+   4:	0045c503          	lbu	a0,4(a1) # 20030004 <_end+0x2002fd34>
    8:	00050663          	beqz	a0,14 <boot>
    c:	0085a503          	lw	a0,8(a1)
   10:	000500e7          	jalr	a0
 
 00000014 <boot>:
   14:	200005b7          	lui	a1,0x20000
-  18:	0085c503          	lbu	a0,8(a1) # 20000008 <_end+0x1ffffd4c>
+  18:	0085c503          	lbu	a0,8(a1) # 20000008 <_end+0x1ffffd38>
   1c:	00051a63          	bnez	a0,30 <_jump_to_flash>
 
 00000020 <_jump_to_debug_rom>:
@@ -29,19 +29,19 @@ Disassembly of section .text:
 00000038 <_execute_from_flash>:
   38:	200285b7          	lui	a1,0x20028
   3c:	00100513          	li	a0,1
-  40:	00a5a023          	sw	a0,0(a1) # 20028000 <_end+0x20027d44>
+  40:	00a5a023          	sw	a0,0(a1) # 20028000 <_end+0x20027d30>
   44:	400005b7          	lui	a1,0x40000
-  48:	19058593          	addi	a1,a1,400 # 40000190 <_end+0x3ffffed4>
+  48:	19058593          	addi	a1,a1,400 # 40000190 <_end+0x3ffffec0>
   4c:	000580e7          	jalr	a1
 
 00000050 <_copy_from_flash>:
   50:	200205b7          	lui	a1,0x20020
   54:	80000537          	lui	a0,0x80000
-  58:	0105a703          	lw	a4,16(a1) # 20020010 <_end+0x2001fd54>
+  58:	0105a703          	lw	a4,16(a1) # 20020010 <_end+0x2001fd40>
   5c:	00a76733          	or	a4,a4,a0
   60:	00e5a823          	sw	a4,16(a1)
   64:	0fff0737          	lui	a4,0xfff0
-  68:	00170713          	addi	a4,a4,1 # fff0001 <_end+0xffefd45>
+  68:	00170713          	addi	a4,a4,1 # fff0001 <_end+0xffefd31>
   6c:	00e5ac23          	sw	a4,24(a1)
   70:	00000513          	li	a0,0
   74:	02a5a023          	sw	a0,32(a1)
@@ -52,7 +52,7 @@ Disassembly of section .text:
   88:	0ab00713          	li	a4,171
   8c:	02e5a423          	sw	a4,40(a1)
   90:	00002737          	lui	a4,0x2
-  94:	00370713          	addi	a4,a4,3 # 2003 <_end+0x1d47>
+  94:	00370713          	addi	a4,a4,3 # 2003 <_end+0x1d33>
   98:	02e5a223          	sw	a4,36(a1)
 
 0000009c <_wait_spi_ready_cmd_pwr>:
@@ -66,7 +66,7 @@ Disassembly of section .text:
   b0:	0145a703          	lw	a4,20(a1)
   b4:	fe075ce3          	bgez	a4,ac <_wait_spi_ready_tx_init>
   b8:	00002737          	lui	a4,0x2
-  bc:	20370713          	addi	a4,a4,515 # 2203 <_end+0x1f47>
+  bc:	20370713          	addi	a4,a4,515 # 2203 <_end+0x1f33>
   c0:	02e5a223          	sw	a4,36(a1)
 
 000000c4 <_wait_spi_ready_read_init_cmd>:
@@ -74,7 +74,7 @@ Disassembly of section .text:
   c8:	0145a703          	lw	a4,20(a1)
   cc:	fe075ce3          	bgez	a4,c4 <_wait_spi_ready_read_init_cmd>
   d0:	00001737          	lui	a4,0x1
-  d4:	00b70713          	addi	a4,a4,11 # 100b <_end+0xd4f>
+  d4:	00b70713          	addi	a4,a4,11 # 100b <_end+0xd3b>
   d8:	02e5a223          	sw	a4,36(a1)
 
 000000dc <_wait_spi_ready_rx_cmd>:
@@ -111,7 +111,7 @@ Disassembly of section .text:
  144:	0145a783          	lw	a5,20(a1)
  148:	fe07dce3          	bgez	a5,140 <_wait_spi_ready_read_prog>
  14c:	00002737          	lui	a4,0x2
- 150:	20370713          	addi	a4,a4,515 # 2203 <_end+0x1f47>
+ 150:	20370713          	addi	a4,a4,515 # 2203 <_end+0x1f33>
  154:	02e5a223          	sw	a4,36(a1)
 
 00000158 <_wait_spi_ready_copy_cmd>:
@@ -121,7 +121,7 @@ Disassembly of section .text:
  164:	00068413          	mv	s0,a3
  168:	10000b13          	li	s6,256
  16c:	00001ab7          	lui	s5,0x1
- 170:	2ffa8a93          	addi	s5,s5,767 # 12ff <_end+0x1043>
+ 170:	2ffa8a93          	addi	s5,s5,767 # 12ff <_end+0x102f>
 
 00000174 <_32B_chunk_loop>:
  174:	028b4463          	blt	s6,s0,19c <_read_32B_chunk>
@@ -211,16 +211,21 @@ Disassembly of section .text:
  28c:	fe078ae3          	beqz	a5,280 <_wait_spi_rxwm_n_words>
 
 00000290 <_remaining_bytes_loop>:
- 290:	00041863          	bnez	s0,2a0 <_spi_read_word>
+ 290:	02041263          	bnez	s0,2b4 <_spi_read_word>
  294:	200005b7          	lui	a1,0x20000
- 298:	0105a583          	lw	a1,16(a1) # 20000010 <_end+0x1ffffd54>
- 29c:	000580e7          	jalr	a1
+ 298:	00100513          	li	a0,1
+ 29c:	00a5ac23          	sw	a0,24(a1) # 20000018 <_end+0x1ffffd48>
+ 2a0:	00a5aa23          	sw	a0,20(a1)
+ 2a4:	0105a603          	lw	a2,16(a1)
+ 2a8:	200285b7          	lui	a1,0x20028
+ 2ac:	00a5a023          	sw	a0,0(a1) # 20028000 <_end+0x20027d30>
+ 2b0:	000600e7          	jalr	a2
 
-000002a0 <_spi_read_word>:
- 2a0:	0285a883          	lw	a7,40(a1)
- 2a4:	0114a023          	sw	a7,0(s1)
- 2a8:	ffc40413          	addi	s0,s0,-4
- 2ac:	00448493          	addi	s1,s1,4
- 2b0:	fe1ff06f          	j	290 <_remaining_bytes_loop>
- 2b4:	00000013          	nop
- 2b8:	00000013          	nop
+000002b4 <_spi_read_word>:
+ 2b4:	0285a883          	lw	a7,40(a1)
+ 2b8:	0114a023          	sw	a7,0(s1)
+ 2bc:	ffc40413          	addi	s0,s0,-4
+ 2c0:	00448493          	addi	s1,s1,4
+ 2c4:	fcdff06f          	j	290 <_remaining_bytes_loop>
+ 2c8:	00000013          	nop
+ 2cc:	00000013          	nop
