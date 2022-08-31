@@ -180,13 +180,13 @@ _32B_chunk_loop:
 
        // Read remaining bytes
        lui    a5, 0x1
-       ori    a5, a5, 511
+       addi   a4, s0, -1
+       or     a5, a5, a4 # spi cmd: rxonly + stdspeed + remaining bytes (s0-1)
        sw     a5, SPI_HOST_COMMAND_REG_OFFSET(a1)
 _wait_spi_ready_remaining_bytes:
        nop    # otherwise ready bit check is too fast
        lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
        bgez   a5, _wait_spi_ready_remaining_bytes
-       li     s0, 0
        li     s4, 32
        j      _last_bytes_read_start
 
@@ -197,7 +197,7 @@ _wait_spi_ready_read_32B_chunk:
        lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
        bgez   a5, _wait_spi_ready_read_32B_chunk
 
-       addi   s7, s1, 1024 # add 32*32 to dst ptr
+       addi   s7, s1, 256 # add 32*8 (256 bytes) to dst ptr
 _wait_spi_rxwm_8_words:
        lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
        srli   a5, a5, 0x14
@@ -248,8 +248,8 @@ _wait_spi_rxwm_8_words_1:
        sw     t5, 24(s1)
        sw     t6, 28(s1)
        addi   s0, s0, -32
-_last_bytes_read_start:
        addi   s1, s1, 32 # dst ptr move 32B further
+_last_bytes_read_start:
        bltu   s4, s0, _wait_spi_rxwm_8_words_1
        
        // Update RX watermark with remaining words (<=8)
