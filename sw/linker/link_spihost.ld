@@ -32,7 +32,7 @@ SECTIONS {
     KEEP(*(.vectors));
   } >RAM0 AT >FLASH_PROG
 
-  /* Fill section to avoid error while booting with SPI host (copy from flash to ram) */
+  /* Fill section to avoid 'X' while booting with SPI host (copy from flash to ram) */
   .fill :
   {
     LONG(0xDEADBEEF);
@@ -126,7 +126,7 @@ SECTIONS {
     . = ALIGN(4);
     _ebss = .;         /* define a global symbol at bss end; used by startup code */
     __BSS_END__ = .;
-  } >RAM0 AT >FLASH_PROG
+  } >RAM0
 
   /* The compiler uses this to access data in the .sdata, .data, .sbss and .bss
    sections with fewer instructions (relaxation). This reduces code size. */
@@ -138,7 +138,7 @@ SECTIONS {
     PROVIDE(__heap_start = .);
     . = __heap_size;
     PROVIDE(__heap_end = .);
-  } >RAM0 AT >FLASH_PROG
+  } >RAM0
 
   /* stack: we should consider putting this further to the top of the address
   space */
@@ -148,5 +148,5 @@ SECTIONS {
     . = __stack_size;
     PROVIDE(_sp = .);
     PROVIDE(__stack_end = .);
-  } >RAM0 AT >FLASH_PROG
+  } >RAM0
 }

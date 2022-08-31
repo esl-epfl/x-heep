@@ -117,7 +117,6 @@ applications/hello_world/hello_world.spihost.elf: applications/hello_world/hello
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-
 applications/matadd/matadd.elf: applications/matadd/matadd.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
