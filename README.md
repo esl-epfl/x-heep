@@ -248,7 +248,7 @@ make run RUN_OPT=1 PLUSARGS="c firmware=../../../sw/applications/hello_world/hel
 You can also compile with the UPF power domain description as:
 
 ```
-make questasim-sim-opt-upf
+make questasim-sim-opt-upf FUSESOC_FLAGS="--flag=use_upf"
 ```
 
 and then execute software as:
@@ -257,7 +257,7 @@ and then execute software as:
 make run RUN_OPT=1 RUN_UPF=1 PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
 ```
 
-Questasim version must be >= Questasim 2019.3
+Questasim version must be >= Questasim 2020.4
 
 ### UART DPI
 

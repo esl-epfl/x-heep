@@ -76,7 +76,7 @@ module testharness #(
 
 `ifdef USE_UPF
   initial begin
-    $display($time, "All Power Supply ON.");
+    $display("%t: All Power Supply ON", $time);
     supply_on("VDD", 1.0);
     supply_on("VSS", 0);
   end
