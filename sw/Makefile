@@ -58,6 +58,9 @@ INC_FOLDERS_GCC             = $(addprefix -I ,$(INC_FOLDERS))
 %.flash.hex: %.flash.elf
 	$(RISCV_EXE_PREFIX)objcopy -O verilog --adjust-vma=-0x40000000 $< $@
 
+%.spihost.hex: %.spihost.elf
+	$(RISCV_EXE_PREFIX)objcopy -O verilog --adjust-vma=-0x40000000 $< $@
+
 %.dis: %.elf
 	$(RISCV_EXE_PREFIX)objdump -S $^ > $@
 
