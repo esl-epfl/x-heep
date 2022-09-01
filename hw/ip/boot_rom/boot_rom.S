@@ -14,7 +14,6 @@
 
 #define SEXT_IMM(x) ((x) | (-(((x) >> 11) & 1) << 11))
 
-       .option norvc
        .global entry
 
 entry:
