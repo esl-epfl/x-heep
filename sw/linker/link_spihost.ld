@@ -7,9 +7,8 @@ ENTRY(_start)
 
 MEMORY
 {
-    FLASH_BOOT (rx) : ORIGIN = 0x40000000, LENGTH = 0x0000010 /* 16 bytes reserved for booting */
-    FLASH_PROG (rx) : ORIGIN = 0x40000010, LENGTH = 0x0FFFFF0 /* entire remaining flash */
-    RAM0 (rxw)      : ORIGIN = 0x00000000, LENGTH = 0x10000 /* entire ram, 64 KB */
+    FLASH (rx) : ORIGIN = 0x40000000, LENGTH = 0x1000000 /* entire remaining flash */
+    RAM0 (rxw) : ORIGIN = 0x00000000, LENGTH = 0x10000   /* entire ram, 64 KB */
 }
 
 SECTIONS {
@@ -22,22 +21,22 @@ SECTIONS {
   PROVIDE(__stack_size = __stack_size);
   __heap_size = DEFINED(__heap_size) ? __heap_size : 0x1000;
 
-  .spi_boot (ORIGIN(FLASH_BOOT)) :
+  .spi_boot (ORIGIN(FLASH)) :
   {
-    LONG(ORIGIN(FLASH_PROG)); /*  flash source pointer */
-    LONG(_etext); /* spi booting copy size in bytes */
-    LONG(0x00000000); /* ram destination pointer */
-    LONG(0x00000000); /* reserved */
-  } >FLASH_BOOT
+    LONG(LOADADDR(.vectors)); /* flash source pointer */
+    LONG(_etext);             /* spi booting copy size in bytes */
+    LONG(ADDR(.vectors));     /* ram destination pointer */
+    LONG(0x00000000);         /* reserved */
+  } >FLASH
 
   /* interrupt vectors */
   .vectors (ORIGIN(RAM0)) :
   {
     PROVIDE(_vector_start = .);
     KEEP(*(.vectors));
-  } >RAM0 AT >FLASH_PROG
+  } >RAM0 AT >FLASH
 
-  /* Fill section to avoid 'X' while booting with SPI host (copy from flash to ram) */
+  /* Fill section to avoid 'X' in simulation when booting with SPI host (copy from flash to ram) */
   .fill :
   {
     LONG(0xDEADBEEF);
@@ -71,16 +70,16 @@ SECTIONS {
     LONG(0xDEADBEEF);
     LONG(0xDEADBEEF);
     LONG(0xDEADBEEF);
-  } >RAM0 AT >FLASH_PROG
+  } >RAM0 AT >FLASH
 
   /* crt0 init code */
   .init (__boot_address) :
   {
     KEEP (*(SORT_NONE(.init)));
     KEEP (*(.text.start));
-  } >RAM0 AT >FLASH_PROG
+  } >RAM0 AT >FLASH
   
-  /* The program code and other data goes into FLASH_PROG */
+  /* The program code and other data goes into FLASH */
   .text :
   {
     . = ALIGN(4);
@@ -92,14 +91,14 @@ SECTIONS {
     *(.srodata*)       /* .rodata* sections (constants, strings, etc.) */
     . = ALIGN(4);
     _etext = .;        /* define a global symbol at end of code */
-  } >RAM0 AT >FLASH_PROG
+  } >RAM0 AT >FLASH
 
    
 
   /* This is the initialized data section
   The program executes knowing that the data is in the RAM
-  but the loader puts the initial values in the FLASH_PROG (inidata).
-  It is one task of the startup to copy the initial values from FLASH_PROG to RAM. */
+  but the loader puts the initial values in the FLASH (inidata).
+  It is one task of the startup to copy the initial values from FLASH to RAM. */
   .data : 
   {
     . = ALIGN(4);
@@ -115,7 +114,7 @@ SECTIONS {
     *(.sdata*)          /* .sdata* sections */
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
-  } >RAM0 AT >FLASH_PROG
+  } >RAM0 AT >FLASH
 
   /* Uninitialized data section */
   .bss :
