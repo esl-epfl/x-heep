@@ -27,11 +27,49 @@ endtask
 
 task tb_loadHEX;
   input string file;
+  //whether to use debug to write to memories
   logic [7:0] stimuli[core_v_mini_mcu_pkg::MEM_SIZE];
   int i, j, NumBytes;
+  logic [31:0] addr;
 
   tb_readHEX(file, stimuli);
   tb_getMemSize(NumBytes);
+
+`ifndef VERILATOR
+  for (i = 0; i < NumBytes; i = i + 4) begin
+
+    @(posedge core_v_mini_mcu_i.clk_i);
+    addr = i;
+    #1;
+    // write to memory
+    force core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_req_o = 1'b1;
+    force core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_addr_o = addr;
+    force core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_we_o = 1'b1;
+    force core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_be_o = 4'b1111;
+    force core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_wdata_o = {
+      stimuli[i+3], stimuli[i+2], stimuli[i+1], stimuli[i]
+    };
+
+    wait (core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_gnt_i);
+
+    @(posedge core_v_mini_mcu_i.clk_i);
+
+    #1;
+    force core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_req_o = 1'b0;
+
+    wait (core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_rvalid_i);
+
+    #1;
+
+  end
+
+  release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_req_o;
+  release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_addr_o;
+  release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_we_o;
+  release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_be_o;
+  release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_wdata_o;
+
+`else
 
   for (i = 0; i < NumBytes / 2; i = i + 4) begin
     tb_writetoSram0(i / 4, stimuli[i+3], stimuli[i+2], stimuli[i+1], stimuli[i]);
@@ -40,6 +78,8 @@ task tb_loadHEX;
     tb_writetoSram1(j / 4, stimuli[i+3], stimuli[i+2], stimuli[i+1], stimuli[i]);
     i = i + 4;
   end
+`endif
+
 endtask
 
 task tb_writetoSram;
