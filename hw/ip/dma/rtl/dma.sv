@@ -22,6 +22,8 @@ module dma #(
     output obi_req_t  dma_master1_ch0_req_o,
     input  obi_resp_t dma_master1_ch0_resp_i,
 
+    input logic spi_rx_wm_i,
+
     output dma_intr_o
 );
 
@@ -105,7 +107,7 @@ module dma #(
       if (dma_start == 1'b1) begin
         dma_start <= 1'b0;
       end else begin
-        dma_start <= |reg2hw.dma_start.q;
+        dma_start <= |reg2hw.dma_start.q & (~reg2hw.spi_mode.q | spi_rx_wm_i);
       end
     end
   end
@@ -118,7 +120,7 @@ module dma #(
       if (dma_start == 1'b1) begin
         read_ptr_reg <= reg2hw.ptr_in.q;
       end else if (data_in_gnt == 1'b1) begin
-        read_ptr_reg <= read_ptr_reg + 32'h4;
+        read_ptr_reg <= read_ptr_reg + reg2hw.src_ptr_inc.q;
       end
     end
   end
@@ -131,7 +133,7 @@ module dma #(
       if (dma_start == 1'b1) begin
         write_ptr_reg <= reg2hw.ptr_out.q;
       end else if (data_out_gnt == 1'b1) begin
-        write_ptr_reg <= write_ptr_reg + 32'h4;
+        write_ptr_reg <= write_ptr_reg + reg2hw.dst_ptr_inc.q;
       end
     end
   end

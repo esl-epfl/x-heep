@@ -53,6 +53,27 @@ void dma_set_cnt_start(const dma_t *dma, uint32_t copy_size);
  */
 int32_t dma_get_done(const dma_t *dma);
 
+/**
+ * Write to src_ptr_inc register of the DMA.
+ * @param dma Pointer to dma_t represting the target DMA.
+ * @param read_ptr_inc Increment of source pointer (Default: 4).
+ */
+void dma_set_read_ptr_inc(const dma_t *dma, uint32_t read_ptr_inc);
+
+/**
+ * Write to dst_ptr_inc register of the DMA.
+ * @param dma Pointer to dma_t represting the target DMA.
+ * @param write_ptr_inc Increment of destination pointer (Default: 4).
+ */
+void dma_set_write_ptr_inc(const dma_t *dma, uint32_t write_ptr_inc);
+
+/**
+ * Write to spi_mode register of the DMA.
+ * @param dma Pointer to dma_t represting the target DMA.
+ * @param spi_mode 0: mem to mem - 1: spi to mem (Default: 0).
+ */
+void dma_set_spi_mode(const dma_t *dma, uint32_t spi_mode);
+
 #ifdef __cplusplus
 }
 #endif

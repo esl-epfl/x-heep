@@ -70,6 +70,8 @@ module ao_peripheral_subsystem
   logic use_spimemio;
   logic rv_timer_irq_timer;
 
+  logic spi_rx_wm;
+
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -158,6 +160,7 @@ module ao_peripheral_subsystem
       .spi_sd_o,
       .spi_sd_en_o,
       .spi_sd_i,
+      .spi_rx_wm_o(spi_rx_wm),
       .spi_intr_error_o,
       .spi_intr_event_o
   );

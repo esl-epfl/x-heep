@@ -29,6 +29,18 @@ extern "C" {
 // Register set to 1 when copy is done
 #define DMA_DONE_REG_OFFSET 0xc
 
+// Increment number of source pointer every time a word is copied from source
+#define DMA_SRC_PTR_INC_REG_OFFSET 0x10
+
+// Increment number of source pointer every time a word is copied to
+// destination
+#define DMA_DST_PTR_INC_REG_OFFSET 0x14
+
+// Register set to 1 when copy from SPI, it waits for the spi watermark to
+// start the transaction
+#define DMA_SPI_MODE_REG_OFFSET 0x18
+#define DMA_SPI_MODE_SPI_MODE_BIT 0
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif

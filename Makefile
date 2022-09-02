@@ -43,6 +43,12 @@ app-gpio-cnt:
 app-dma:
 	$(MAKE) -C sw applications/dma_example/dma_example.hex TARGET=$(TARGET)
 
+app-spi-host:
+	$(MAKE) -C sw applications/spi_host_example/spi_host_example.hex TARGET=$(TARGET)
+
+app-spi-host-dma:
+	$(MAKE) -C sw applications/spi_host_dma_example/spi_host_dma_example.hex TARGET=$(TARGET)
+
 # Tools specific fusesoc call
 
 # Simulation

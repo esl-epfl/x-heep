@@ -32,6 +32,9 @@ module spi_host
   output logic [3:0]       cio_sd_en_o,
   input        [3:0]       cio_sd_i,
 
+  // DMA Interface
+  output logic             rx_wm_o,
+
   output logic             intr_error_o,
   output logic             intr_spi_event_o
 );
@@ -251,6 +254,8 @@ module spi_host
 
   logic        tx_empty, tx_full, tx_wm;
   logic        rx_empty, rx_full, rx_wm;
+
+  assign rx_wm_o    = rx_wm;
 
   assign rx_watermark = reg2hw.control.rx_watermark.q;
   assign tx_watermark = reg2hw.control.tx_watermark.q;
