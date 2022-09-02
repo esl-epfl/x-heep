@@ -13,6 +13,7 @@ extern "C" {
 #define DEBUG_SIZE 0x${debug_size_address}
 #define DEBUG_END_ADDRESS (DEBUG_START_ADDRESS + DEBUG_SIZE)
 
+//always-on peripherals
 #define AO_PERIPHERAL_START_ADDRESS 0x${ao_peripheral_start_address}
 #define AO_PERIPHERAL_SIZE 0x${ao_peripheral_size_address}
 #define AO_PERIPHERAL_END_ADDRESS (AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE)
@@ -41,10 +42,11 @@ extern "C" {
 #define RV_TIMER_SIZE 0x${rv_timer_size_address}
 #define RV_TIMER_END_ADDRESS (RV_TIMER_START_ADDRESS + RV_TIMER_SIZE)
 
-#define DMA_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${dma_start_offset})
+#define DMA_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${dma_start_offset})
 #define DMA_SIZE 0x${dma_size_address}
 #define DMA_END_ADDRESS (DMA_START_ADDRESS + DMA_SIZE)
 
+//switch-on/off peripherals
 #define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}
 #define PERIPHERAL_SIZE 0x${peripheral_size_address}
 #define PERIPHERAL_END_ADDRESS (PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE)

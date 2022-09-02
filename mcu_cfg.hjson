@@ -72,15 +72,16 @@
         },
     },
 
-    ext_slaves: {
+    spi_flash: {
         address: 0x40000000,
         length:  0x01000000,
     },
 
-    spi_flash: {
+    ext_slaves: {
         address: 0xF0000000,
         length:  0x01000000,
     },
+
 
     interrupts: {
         // First one is always zero

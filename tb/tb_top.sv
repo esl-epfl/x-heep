@@ -15,35 +15,39 @@ module tb_top #(
   const time CLK_PHASE_HI = 5ns;
   const time CLK_PHASE_LO = 5ns;
   localparam CLK_FREQUENCY_KHz = 100_000;
-  const time          CLK_PERIOD = CLK_PHASE_HI + CLK_PHASE_LO;
+  const time CLK_PERIOD = CLK_PHASE_HI + CLK_PHASE_LO;
 
-  const time          STIM_APPLICATION_DEL = CLK_PERIOD * 0.1;
-  const time          RESP_ACQUISITION_DEL = CLK_PERIOD * 0.9;
-  const time          RESET_DEL = STIM_APPLICATION_DEL;
-  const int           RESET_WAIT_CYCLES = 4;
+  const time STIM_APPLICATION_DEL = CLK_PERIOD * 0.1;
+  const time RESP_ACQUISITION_DEL = CLK_PERIOD * 0.9;
+  const time RESET_DEL = STIM_APPLICATION_DEL;
+  const int  RESET_WAIT_CYCLES = 4;
 
   // clock and reset for tb
-  logic               clk = 'b1;
-  logic               rst_n = 'b0;
+  logic      clk = 'b1;
+  logic      rst_n = 'b0;
+  // wire for inout connections
+  wire clk_w, rst_n_w;
 
   // Boot selection (0:jtag or 1:flash)
-  logic               boot_sel;
+  logic boot_sel;
   // SPI selection (0:ot-qspi or 1:memory mapped flash, only valid if boot_sel is 1)
-  logic               execute_from_flash;
+  logic execute_from_flash;
+  // wire for inout connections
+  wire boot_sel_w, execute_from_flash_w;
 
   // cycle counter
   int unsigned        cycle_cnt_q;
 
   // testbench result
-  logic               exit_valid;
+  wire                exit_valid;
   logic        [31:0] exit_value;
 
   // jtag signals
-  logic               jtag_tck;
-  logic               jtag_trst_n;
-  logic               jtag_tms;
-  logic               jtag_tdi;
-  logic               jtag_tdo;
+  wire                jtag_tck;
+  wire                jtag_trst_n;
+  wire                jtag_tms;
+  wire                jtag_tdi;
+  wire                jtag_tdo;
 
   // allow vcd dump
   initial begin
@@ -173,6 +177,11 @@ module tb_top #(
     end
   end
 
+  assign clk_w = clk;
+  assign rst_n_w = rst_n;
+  assign boot_sel_w = boot_sel;
+  assign execute_from_flash_w = execute_from_flash;
+
   // wrapper for riscv, the memory system and stdout peripheral
   testharness #(
       .PULP_XPULP   (PULP_XPULP),
@@ -181,10 +190,10 @@ module tb_top #(
       .JTAG_DPI     (JTAG_DPI),
       .CLK_FREQUENCY(CLK_FREQUENCY_KHz)
   ) testharness_i (
-      .clk_i               (clk),
-      .rst_ni              (rst_n),
-      .boot_select_i       (boot_sel),
-      .execute_from_flash_i(execute_from_flash),
+      .clk_i               (clk_w),
+      .rst_ni              (rst_n_w),
+      .boot_select_i       (boot_sel_w),
+      .execute_from_flash_i(execute_from_flash_w),
       .exit_valid_o        (exit_valid),
       .exit_value_o        (exit_value),
       .jtag_tck_i          (jtag_tck),
