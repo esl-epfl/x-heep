@@ -121,7 +121,6 @@ module core_v_mini_mcu
   // power manager
   logic                                    cpu_subsystem_powergate_switch;
   logic                                    cpu_subsystem_rst_n;
-  logic                                    tmp_cpu_subsystem_rst_n;
 
   // I2C
   logic                                    i2c_scl_in;
@@ -238,7 +237,7 @@ module core_v_mini_mcu
       .spi_sd_i(spi_sd_in),
       .core_sleep_i(core_sleep),
       .cpu_subsystem_powergate_switch_o(cpu_subsystem_powergate_switch),
-      .cpu_subsystem_rst_no(tmp_cpu_subsystem_rst_n),
+      .cpu_subsystem_rst_no(cpu_subsystem_rst_n),
       .rv_timer_irq_timer_o(irq_timer),
       .dma_master0_ch0_req_o(dma_master0_ch0_req),
       .dma_master0_ch0_resp_i(dma_master0_ch0_resp),
@@ -246,8 +245,6 @@ module core_v_mini_mcu
       .dma_master1_ch0_resp_i(dma_master1_ch0_resp),
       .dma_intr_o(dma_intr)
   );
-
-  assign cpu_subsystem_rst_n = rst_ni & tmp_cpu_subsystem_rst_n;
 
   peripheral_subsystem #(
       .NEXT_INT(NEXT_INT)

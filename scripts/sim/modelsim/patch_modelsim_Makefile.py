@@ -37,7 +37,12 @@ string_toappend.append('opt:' + "\n\t" + \
                        '$(VOPT) -work work -debugdb -fsmdebug -pedanticerrors +acc=npr $(addprefix -G,$(PARAMETERS)) $(TOPLEVEL) -o $(TOPLEVEL)_vopt' + "\n\n");
 
 string_toappend.append('opt-upf:' + "\n\t" + \
-                       '$(VOPT) -work work -suppress vopt-9653 -debugdb -fsmdebug -pedanticerrors -pa_upf ../../../core-v-mini-mcu.upf -pa_top "/tb_top/testharness_i/core_v_mini_mcu_i" -pa_lib work -pa_enable=highlight+debug +acc=npr $(addprefix -G,$(PARAMETERS)) $(TOPLEVEL) -o $(TOPLEVEL)_vopt' + "\n");
+                       '$(VOPT) -work work -debugdb -fsmdebug ' + \
+                         '-pa_genrpt=pa+de+cell+conn+pst+srcsink ' + \
+                         '-pa_enable=vsim_msgs+highlight+debug ' + \
+                         '-pa_checks=s+ul+i+p+cp+upc+ugc ' + \
+                         '-pa_upf ../../../core-v-mini-mcu.upf -pa_top "/tb_top/testharness_i/core_v_mini_mcu_i" -pa_lib work +acc=npr $(addprefix -G,$(PARAMETERS)) $(TOPLEVEL) -o $(TOPLEVEL)_vopt' + "\n");
+
 
 # opening a text file
 fileIn = open("Makefile.orig", "r")

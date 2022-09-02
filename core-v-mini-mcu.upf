@@ -1,7 +1,7 @@
 upf_version 2.1
+
 set_design_top core_v_mini_mcu
 set_scope .
-
 
 #####################
 ##  POWER DOMAINS  ##
@@ -15,12 +15,14 @@ create_power_domain PD_CPU -elements {cpu_subsystem_i}
 ##  POWER STATES  ##
 ####################
 
-add_power_state -supply PD_TOP.primary -state state_top_ao -supply_expr {power=={FULL_ON 1.0} && ground=={FULL_ON 0.0}}
-add_power_state -domain PD_TOP -state OFF -illegal -state state_top_ao -logic_expr {PD_TOP.primary == state_top_ao}
+add_power_state PD_CPU.primary -state CPU_ON \
+    {-supply_expr {power == `{FULL_ON, 1.2} && ground == `{FULL_ON, 0.0}}}
 
-add_power_state -supply PD_CPU.primary \
-    -state state_cpu_on -supply_expr {power=={FULL_ON 1.0} && ground=={FULL_ON 0.0}} \
-    -state state_cpu_off -supply_expr {power==OFF && ground=={FULL_ON 0.0}}
+add_power_state PD_CPU.primary -state CPU_OFF \
+    {-supply_expr {power == `{OFF} && ground == `{FULL_ON, 0.0}}} -simstate CORRUPT
+
+add_power_state PD_TOP.primary -state TOP_ON \
+    {-supply_expr {power == `{FULL_ON, 1.2} && ground == `{FULL_ON, 0.0}}}
 
 
 ###################
@@ -46,6 +48,7 @@ create_supply_set PD_CPU.primary -function {power VDD_CPU} -function {ground VSS
 ##  SWITCHES  ##
 ################
 
+
 create_power_switch switch_PD_CPU \
     -supply_set         PD_TOP.primary \
     -domain             PD_CPU \
@@ -60,7 +63,13 @@ create_power_switch switch_PD_CPU \
 ##  ISOLATION  ##
 #################
 
-set_isolation iso_cpu -domain PD_CPU \
-    -isolation_supply PD_TOP.primary \
-    -isolation_signal {cpu_subsystem_powergate_switch} -isolation_sense low \
-    -location parent -clamp_value 0 -source PD_CPU.primary -sink PD_TOP.primary
+set_isolation cpu_iso \
+    -domain PD_CPU \
+    -isolation_power_net VDD \
+    -isolation_ground_net VSS \
+    -isolation_signal cpu_subsystem_powergate_switch \
+    -isolation_sense low \
+    -clamp_value 0 \
+    -applies_to both \
+    -name_prefix cpu_iso_cell \
+    -location parent
