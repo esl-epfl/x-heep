@@ -78,4 +78,3 @@ targets:
     - files_wrap
     - ff_regfile
     - target_sim? (files_clk_gate)
-    - target_sim_opt? (files_clk_gate)

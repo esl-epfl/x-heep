@@ -51,7 +51,6 @@ module memory_subsystem
       .rdata_o(ram0_resp_o.rdata)
   );
 
-
   assign ram1_resp_o.gnt = ram1_req_i.req;
   assign ram1_resp_o.rvalid = ram1_valid_q;
 
@@ -70,7 +69,5 @@ module memory_subsystem
       // output ports
       .rdata_o(ram1_resp_o.rdata)
   );
-
-
 
 endmodule

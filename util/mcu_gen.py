@@ -110,11 +110,32 @@ def main():
 
     debug_size_address = string2int(obj['debug']['length'])
 
-    ext_slave_start_address = string2int(obj['ext_slaves']['address'])
-    ext_slave_size_address = string2int(obj['ext_slaves']['length'])
+    ao_peripheral_start_address = string2int(obj['ao_peripherals']['address'])
+    if int(ao_peripheral_start_address, 16) < int('10000', 16):
+        exit("always on peripheral start address must be greater than 0x10000")
 
-    spi_flash_start_address  = string2int(obj['spi_flash']['address'])
-    spi_flash_size_address  = string2int(obj['spi_flash']['length'])
+    ao_peripheral_size_address = string2int(obj['ao_peripherals']['length'])
+
+    soc_ctrl_start_offset  = string2int(obj['ao_peripherals']['soc_ctrl']['offset'])
+    soc_ctrl_size_address  = string2int(obj['ao_peripherals']['soc_ctrl']['length'])
+
+    bootrom_start_offset  = string2int(obj['ao_peripherals']['bootrom']['offset'])
+    bootrom_size_address  = string2int(obj['ao_peripherals']['bootrom']['length'])
+
+    spi_host_start_offset  = string2int(obj['ao_peripherals']['spi_host']['offset'])
+    spi_host_size_address  = string2int(obj['ao_peripherals']['spi_host']['length'])
+
+    spi_memio_start_offset  = string2int(obj['ao_peripherals']['spi_memio']['offset'])
+    spi_memio_size_address  = string2int(obj['ao_peripherals']['spi_memio']['length'])
+
+    power_manager_start_offset  = string2int(obj['ao_peripherals']['power_manager']['offset'])
+    power_manager_size_address  = string2int(obj['ao_peripherals']['power_manager']['length'])
+
+    rv_timer_start_offset  = string2int(obj['ao_peripherals']['rv_timer']['offset'])
+    rv_timer_size_address  = string2int(obj['ao_peripherals']['rv_timer']['length'])
+
+    dma_start_offset  = string2int(obj['ao_peripherals']['dma']['offset'])
+    dma_size_address  = string2int(obj['ao_peripherals']['dma']['length'])
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
@@ -122,38 +143,26 @@ def main():
 
     peripheral_size_address = string2int(obj['peripherals']['length'])
 
-    ext_periph_start_offset  = string2int(obj['peripherals']['ext_periph']['offset'])
-    ext_periph_size_address  = string2int(obj['peripherals']['ext_periph']['length'])
-
-    soc_ctrl_start_offset  = string2int(obj['peripherals']['soc_ctrl']['offset'])
-    soc_ctrl_size_address  = string2int(obj['peripherals']['soc_ctrl']['length'])
+    plic_start_offset  = string2int(obj['peripherals']['plic']['offset'])
+    plic_size_address  = string2int(obj['peripherals']['plic']['length'])
 
     uart_start_offset  = string2int(obj['peripherals']['uart']['offset'])
     uart_size_address  = string2int(obj['peripherals']['uart']['length'])
 
-    plic_start_offset  = string2int(obj['peripherals']['plic']['offset'])
-    plic_size_address  = string2int(obj['peripherals']['plic']['length'])
-
-    rv_timer_start_offset  = string2int(obj['peripherals']['rv_timer']['offset'])
-    rv_timer_size_address  = string2int(obj['peripherals']['rv_timer']['length'])
-
     gpio_start_offset  = string2int(obj['peripherals']['gpio']['offset'])
     gpio_size_address  = string2int(obj['peripherals']['gpio']['length'])
 
-    spi_host_start_offset  = string2int(obj['peripherals']['spi_host']['offset'])
-    spi_host_size_address  = string2int(obj['peripherals']['spi_host']['length'])
-
-    spi_memio_start_offset  = string2int(obj['peripherals']['spi_memio']['offset'])
-    spi_memio_size_address  = string2int(obj['peripherals']['spi_memio']['length'])
-
-    bootrom_start_offset  = string2int(obj['peripherals']['bootrom']['offset'])
-    bootrom_size_address  = string2int(obj['peripherals']['bootrom']['length'])
-    
-    dma_start_offset  = string2int(obj['peripherals']['dma']['offset'])
-    dma_size_address  = string2int(obj['peripherals']['dma']['length'])
-
     i2c_start_offset  = string2int(obj['peripherals']['i2c']['offset'])
     i2c_size_address  = string2int(obj['peripherals']['i2c']['length'])
+
+    ext_periph_start_offset  = string2int(obj['peripherals']['ext_periph']['offset'])
+    ext_periph_size_address  = string2int(obj['peripherals']['ext_periph']['length'])
+
+    ext_slave_start_address = string2int(obj['ext_slaves']['address'])
+    ext_slave_size_address = string2int(obj['ext_slaves']['length'])
+
+    spi_flash_start_address  = string2int(obj['spi_flash']['address'])
+    spi_flash_size_address  = string2int(obj['spi_flash']['length'])
 
     null_intr = obj['interrupts']['null_intr']
     uart_intr_tx_watermark = obj['interrupts']['uart_intr_tx_watermark']
@@ -213,8 +222,6 @@ def main():
     intr_ack_stop = obj['interrupts']['intr_ack_stop']
     intr_host_timeout = obj['interrupts']['intr_host_timeout']
     dma_intr_done = obj['interrupts']['dma_intr_done']
-
-    # Interrupt lines available for external interrupt sources
     ext_intr_0 = obj['interrupts']['ext_intr_0']
     ext_intr_1 = obj['interrupts']['ext_intr_1']
     ext_intr_2 = obj['interrupts']['ext_intr_2']
@@ -223,79 +230,83 @@ def main():
     ext_intr_5 = obj['interrupts']['ext_intr_5']
 
     kwargs = {
-        "cpu_type"                 : cpu_type,
-        "bus_type"                 : bus_type,
-        "debug_start_address"      : debug_start_address,
-        "debug_size_address"       : debug_size_address,
-        "peripheral_start_address" : peripheral_start_address,
-        "peripheral_size_address"  : peripheral_size_address,
-        "ext_slave_start_address"  : ext_slave_start_address,
-        "ext_slave_size_address"   : ext_slave_size_address,
-        "spi_flash_start_address"  : spi_flash_start_address,
-        "spi_flash_size_address"   : spi_flash_size_address,
-        "ext_periph_start_offset"  : ext_periph_start_offset,
-        "ext_periph_size_address"  : ext_periph_size_address,
-        "soc_ctrl_start_offset"    : soc_ctrl_start_offset,
-        "soc_ctrl_size_address"    : soc_ctrl_size_address,
-        "uart_start_offset"        : uart_start_offset,
-        "uart_size_address"        : uart_size_address,
-        "plic_start_offset"        : plic_start_offset,
-        "plic_size_address"        : plic_size_address,
-        "rv_timer_start_offset"    : rv_timer_start_offset,
-        "rv_timer_size_address"    : rv_timer_size_address,
-        "gpio_start_offset"        : gpio_start_offset,
-        "gpio_size_address"        : gpio_size_address,
-        "spi_host_start_offset"    : spi_host_start_offset,
-        "spi_host_size_address"    : spi_host_size_address,
-        "spi_memio_start_offset"   : spi_memio_start_offset,
-        "spi_memio_size_address"   : spi_memio_size_address,
-        "bootrom_start_offset"     : bootrom_start_offset,
-        "bootrom_size_address"     : bootrom_size_address,
-        "i2c_start_offset"         : i2c_start_offset,
-        "i2c_size_address"         : i2c_size_address,
-        "dma_start_offset"         : dma_start_offset,
-        "dma_size_address"         : dma_size_address,
-        "null_intr"                : null_intr,
-        "uart_intr_tx_watermark"   : uart_intr_tx_watermark,
-        "uart_intr_rx_watermark"   : uart_intr_rx_watermark,
-        "uart_intr_tx_empty"       : uart_intr_tx_empty,
-        "uart_intr_rx_overflow"    : uart_intr_rx_overflow,
-        "uart_intr_rx_frame_err"   : uart_intr_rx_frame_err,
-        "uart_intr_rx_break_err"   : uart_intr_rx_break_err,
-        "uart_intr_rx_timeout"     : uart_intr_rx_timeout,
-        "uart_intr_rx_parity_err"  : uart_intr_rx_parity_err,
-        "gpio_intr_0"              : gpio_intr_0,
-        "gpio_intr_1"              : gpio_intr_1,
-        "gpio_intr_2"              : gpio_intr_2,
-        "gpio_intr_3"              : gpio_intr_3,
-        "gpio_intr_4"              : gpio_intr_4,
-        "gpio_intr_5"              : gpio_intr_5,
-        "gpio_intr_6"              : gpio_intr_6,
-        "gpio_intr_7"              : gpio_intr_7,
-        "gpio_intr_8"              : gpio_intr_8,
-        "gpio_intr_9"              : gpio_intr_9,
-        "gpio_intr_10"             : gpio_intr_10,
-        "gpio_intr_11"             : gpio_intr_11,
-        "gpio_intr_12"             : gpio_intr_12,
-        "gpio_intr_13"             : gpio_intr_13,
-        "gpio_intr_14"             : gpio_intr_14,
-        "gpio_intr_15"             : gpio_intr_15,
-        "gpio_intr_16"             : gpio_intr_16,
-        "gpio_intr_17"             : gpio_intr_17,
-        "gpio_intr_18"             : gpio_intr_18,
-        "gpio_intr_19"             : gpio_intr_19,
-        "gpio_intr_20"             : gpio_intr_20,
-        "gpio_intr_21"             : gpio_intr_21,
-        "gpio_intr_22"             : gpio_intr_22,
-        "gpio_intr_23"             : gpio_intr_23,
-        "gpio_intr_24"             : gpio_intr_24,
-        "gpio_intr_25"             : gpio_intr_25,
-        "gpio_intr_26"             : gpio_intr_26,
-        "gpio_intr_27"             : gpio_intr_27,
-        "gpio_intr_28"             : gpio_intr_28,
-        "gpio_intr_29"             : gpio_intr_29,
-        "gpio_intr_30"             : gpio_intr_30,
-        "gpio_intr_31"             : gpio_intr_31,
+        "cpu_type"                       : cpu_type,
+        "bus_type"                       : bus_type,
+        "debug_start_address"            : debug_start_address,
+        "debug_size_address"             : debug_size_address,
+        "ao_peripheral_start_address"    : ao_peripheral_start_address,
+        "ao_peripheral_size_address"     : ao_peripheral_size_address,
+        "soc_ctrl_start_offset"          : soc_ctrl_start_offset,
+        "soc_ctrl_size_address"          : soc_ctrl_size_address,
+        "bootrom_start_offset"           : bootrom_start_offset,
+        "bootrom_size_address"           : bootrom_size_address,
+        "spi_host_start_offset"          : spi_host_start_offset,
+        "spi_host_size_address"          : spi_host_size_address,
+        "spi_memio_start_offset"         : spi_memio_start_offset,
+        "spi_memio_size_address"         : spi_memio_size_address,
+        "power_manager_start_offset"     : power_manager_start_offset,
+        "power_manager_size_address"     : power_manager_size_address,
+        "rv_timer_start_offset"          : rv_timer_start_offset,
+        "rv_timer_size_address"          : rv_timer_size_address,
+        "dma_start_offset"               : dma_start_offset,
+        "dma_size_address"               : dma_size_address,
+        "peripheral_start_address"       : peripheral_start_address,
+        "peripheral_size_address"        : peripheral_size_address,
+        "plic_start_offset"              : plic_start_offset,
+        "plic_size_address"              : plic_size_address,
+        "uart_start_offset"              : uart_start_offset,
+        "uart_size_address"              : uart_size_address,
+        "gpio_start_offset"              : gpio_start_offset,
+        "gpio_size_address"              : gpio_size_address,
+        "i2c_start_offset"               : i2c_start_offset,
+        "i2c_size_address"               : i2c_size_address,
+        "ext_periph_start_offset"        : ext_periph_start_offset,
+        "ext_periph_size_address"        : ext_periph_size_address,
+        "ext_slave_start_address"        : ext_slave_start_address,
+        "ext_slave_size_address"         : ext_slave_size_address,
+        "spi_flash_start_address"        : spi_flash_start_address,
+        "spi_flash_size_address"         : spi_flash_size_address,
+        "null_intr"                      : null_intr,
+        "uart_intr_tx_watermark"         : uart_intr_tx_watermark,
+        "uart_intr_rx_watermark"         : uart_intr_rx_watermark,
+        "uart_intr_tx_empty"             : uart_intr_tx_empty,
+        "uart_intr_rx_overflow"          : uart_intr_rx_overflow,
+        "uart_intr_rx_frame_err"         : uart_intr_rx_frame_err,
+        "uart_intr_rx_break_err"         : uart_intr_rx_break_err,
+        "uart_intr_rx_timeout"           : uart_intr_rx_timeout,
+        "uart_intr_rx_parity_err"        : uart_intr_rx_parity_err,
+        "gpio_intr_0"                    : gpio_intr_0,
+        "gpio_intr_1"                    : gpio_intr_1,
+        "gpio_intr_2"                    : gpio_intr_2,
+        "gpio_intr_3"                    : gpio_intr_3,
+        "gpio_intr_4"                    : gpio_intr_4,
+        "gpio_intr_5"                    : gpio_intr_5,
+        "gpio_intr_6"                    : gpio_intr_6,
+        "gpio_intr_7"                    : gpio_intr_7,
+        "gpio_intr_8"                    : gpio_intr_8,
+        "gpio_intr_9"                    : gpio_intr_9,
+        "gpio_intr_10"                   : gpio_intr_10,
+        "gpio_intr_11"                   : gpio_intr_11,
+        "gpio_intr_12"                   : gpio_intr_12,
+        "gpio_intr_13"                   : gpio_intr_13,
+        "gpio_intr_14"                   : gpio_intr_14,
+        "gpio_intr_15"                   : gpio_intr_15,
+        "gpio_intr_16"                   : gpio_intr_16,
+        "gpio_intr_17"                   : gpio_intr_17,
+        "gpio_intr_18"                   : gpio_intr_18,
+        "gpio_intr_19"                   : gpio_intr_19,
+        "gpio_intr_20"                   : gpio_intr_20,
+        "gpio_intr_21"                   : gpio_intr_21,
+        "gpio_intr_22"                   : gpio_intr_22,
+        "gpio_intr_23"                   : gpio_intr_23,
+        "gpio_intr_24"                   : gpio_intr_24,
+        "gpio_intr_25"                   : gpio_intr_25,
+        "gpio_intr_26"                   : gpio_intr_26,
+        "gpio_intr_27"                   : gpio_intr_27,
+        "gpio_intr_28"                   : gpio_intr_28,
+        "gpio_intr_29"                   : gpio_intr_29,
+        "gpio_intr_30"                   : gpio_intr_30,
+        "gpio_intr_31"                   : gpio_intr_31,
         "intr_fmt_watermark"       : intr_fmt_watermark,
         "intr_rx_watermark"        : intr_rx_watermark,
         "intr_fmt_overflow"        : intr_fmt_overflow,

@@ -11,70 +11,76 @@
 
     debug: {
         address: 0x10000000,
-        length:  0x100000,
+        length:  0x00100000,
     },
 
-    // peripherals
-    peripherals: {
+    ao_peripherals: {
         address: 0x20000000,
-        length:  0x100000,
-
-        ext_periph: {
-            offset:  0x0000000,
-            length:  0x0010000,
-        }
+        length:  0x00100000,
         soc_ctrl: {
-            offset:  0x0010000,
-            length:  0x0010000,
-        },
-        uart: {
-            offset:  0x0020000,
-            length:  0x0000100,
-        },
-        plic: {
-            offset:  0x0030000,
-            length:  0x0010000,
-        },
-        rv_timer: {
-            offset:  0x0040000,
-            length:  0x0010000,
-        },
-        gpio: {
-            offset:  0x0050000,
-            length:  0x0010000,
-        },
-        spi_host: {
-            offset:  0x0060000,
-            length:  0x0008000,
-        },
-        spi_memio: {
-            offset:  0x0068000,
-            length:  0x0008000,
+            offset:  0x00000000,
+            length:  0x00010000,
         },
         bootrom: {
-            offset:  0x0070000,
-            length:  0x0010000,
+            offset:  0x00010000,
+            length:  0x00010000,
         },
-        i2c: {
-            offset:  0x0080000,
-            length:  0x0010000,
+        spi_host: {
+            offset:  0x00020000,
+            length:  0x00008000,
+        },
+        spi_memio: {
+            offset:  0x00028000,
+            length:  0x00008000,
+        },
+        power_manager: {
+            offset:  0x00030000,
+            length:  0x00010000,
+        },
+        rv_timer: {
+            offset:  0x00040000,
+            length:  0x00010000,
         },
         dma: {
-            offset:  0x0090000,
-            length:  0x0010000,
-        }
+            offset:  0x00050000,
+            length:  0x00010000,
+        },
+    },
+
+    peripherals: {
+        address: 0x30000000,
+        length:  0x00100000,
+        plic: {
+            offset:  0x00000000,
+            length:  0x00010000,
+        },
+        uart: {
+            offset:  0x00010000,
+            length:  0x00010000,
+        },
+        gpio: {
+            offset:  0x00020000,
+            length:  0x00010000,
+        },
+        i2c: {
+            offset:  0x00030000,
+            length:  0x00010000,
+        },
+        ext_periph: {
+            offset:  0x00040000,
+            length:  0x00010000,
+        },
     },
 
     ext_slaves: {
-        address: 0x30000000,
-        length:  0x1000000,
+        address: 0x40000000,
+        length:  0x01000000,
     },
 
     spi_flash: {
-        address: 0x40000000,
-        length:  0x1000000,
+        address: 0xF0000000,
+        length:  0x01000000,
     },
-
 
     interrupts: {
         // First one is always zero
@@ -136,7 +142,6 @@
         intr_ack_stop:           55,
         intr_host_timeout:       56,
         dma_intr_done:           57,
-        // Interrupt lines available for external interrupt sources
         ext_intr_0:              58,
         ext_intr_1:              59,
         ext_intr_2:              60,

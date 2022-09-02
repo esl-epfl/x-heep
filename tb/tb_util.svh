@@ -135,12 +135,10 @@ endtask
 
 task tb_set_exit_loop;
 `ifdef VCS
-  force core_v_mini_mcu_i.peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop[0] = 1'b1;
-  release core_v_mini_mcu_i.peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop[0];
+  force core_v_mini_mcu_i.ao_peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop[0] = 1'b1;
+  release core_v_mini_mcu_i.ao_peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop[0];
 `else
-  core_v_mini_mcu_i.peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop[0] = 1'b1;
+  core_v_mini_mcu_i.ao_peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop[0] = 1'b1;
 `endif
 endtask
-
-
 `endif
