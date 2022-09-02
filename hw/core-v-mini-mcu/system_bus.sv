@@ -12,7 +12,7 @@
 // Contributor: Jeremy Bennett <jeremy.bennett@embecosm.com>
 //              Robert Balas <balasr@student.ethz.ch>
 //              Davide Schiavone <davide@openhwgroup.org>
-
+//              Simone Machetti <simone.machetti@epfl.ch>
 
 module system_bus
   import obi_pkg::*;
@@ -52,23 +52,26 @@ module system_bus
     output obi_req_t  debug_slave_req_o,
     input  obi_resp_t debug_slave_resp_i,
 
+    output obi_req_t  ao_peripheral_slave_req_o,
+    input  obi_resp_t ao_peripheral_slave_resp_i,
+
     output obi_req_t  peripheral_slave_req_o,
     input  obi_resp_t peripheral_slave_resp_i,
 
-    output obi_req_t  ext_xbar_slave_req_o,
-    input  obi_resp_t ext_xbar_slave_resp_i,
-
     output obi_req_t  spi_flash_slave_req_o,
-    input  obi_resp_t spi_flash_slave_resp_i
+    input  obi_resp_t spi_flash_slave_resp_i,
+
+    output obi_req_t  ext_xbar_slave_req_o,
+    input  obi_resp_t ext_xbar_slave_resp_i
 );
 
   import core_v_mini_mcu_pkg::*;
 
-  obi_req_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+EXT_XBAR_NMASTER-1:0]   master_req;
-  obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+EXT_XBAR_NMASTER-1:0]  master_resp;
-  obi_req_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0]    slave_req;
-  obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0]   slave_resp;
-  obi_req_t  error_slave_req;
+  obi_req_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+EXT_XBAR_NMASTER-1:0] master_req;
+  obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+EXT_XBAR_NMASTER-1:0] master_resp;
+  obi_req_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0] slave_req;
+  obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NSLAVE-1:0] slave_resp;
+  obi_req_t error_slave_req;
   obi_resp_t error_slave_resp;
 
   assign error_slave_resp = '0;
@@ -96,22 +99,24 @@ module system_bus
   end
 
   //slave req
+  assign error_slave_req = slave_req[core_v_mini_mcu_pkg::ERROR_IDX];
   assign ram0_req_o = slave_req[core_v_mini_mcu_pkg::RAM0_IDX];
   assign ram1_req_o = slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
-  assign spi_flash_slave_req_o = slave_req[core_v_mini_mcu_pkg::SPI_FLASH_IDX];
   assign debug_slave_req_o = slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
+  assign ao_peripheral_slave_req_o = slave_req[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX];
   assign peripheral_slave_req_o = slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
+  assign spi_flash_slave_req_o = slave_req[core_v_mini_mcu_pkg::SPI_FLASH_IDX];
   assign ext_xbar_slave_req_o = slave_req[core_v_mini_mcu_pkg::EXT_SLAVE_IDX];
-  assign error_slave_req = slave_req[core_v_mini_mcu_pkg::ERROR_IDX];
 
   //slave resp
+  assign slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
   assign slave_resp[core_v_mini_mcu_pkg::RAM0_IDX] = ram0_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::RAM1_IDX] = ram1_resp_i;
-  assign slave_resp[core_v_mini_mcu_pkg::SPI_FLASH_IDX] = spi_flash_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX] = debug_slave_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX] = ao_peripheral_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::SPI_FLASH_IDX] = spi_flash_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::EXT_SLAVE_IDX] = ext_xbar_slave_resp_i;
-  assign slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
 
 `ifndef SYNTHESIS
   always_ff @(posedge clk_i, negedge rst_ni) begin : check_out_of_bound

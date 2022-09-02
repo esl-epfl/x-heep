@@ -10,8 +10,6 @@
     rev: "5039e60cdea6a76282576ca7e93a35ee9a3ff2e9",
   },
 
-  patch_dir: "patches/openhwgroup_cv32e20",
-
   exclude_from_upstream: [
     "ci",
     "dv",

@@ -190,7 +190,7 @@ module dma #(
           dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
         end else begin
           dma_read_fsm_n_state = DMA_READ_FSM_ON;
-          // Wait if fifo is full and 
+          // Wait if fifo is full and
           if (fifo_full == 1'b0) begin
             data_in_req  = 1'b1;
             data_in_we   = 1'b0;
@@ -231,7 +231,7 @@ module dma #(
           dma_done = 1'b1;
         end else begin
           dma_write_fsm_n_state = DMA_WRITE_FSM_ON;
-          // Wait if fifo is full and 
+          // Wait if fifo is full and
           if (fifo_empty == 1'b0) begin
             data_out_req  = 1'b1;
             data_out_we   = 1'b1;
@@ -276,4 +276,3 @@ module dma #(
   );
 
 endmodule : dma
-
