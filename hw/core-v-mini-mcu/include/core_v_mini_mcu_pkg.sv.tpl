@@ -57,7 +57,7 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] ERROR_IDX = 32'd0;
 
 % for bank in range(ram_numbanks):
-  localparam logic [31:0] RAM${bank}_START_ADDRESS = 32'h${'{:08x}'.format(int(ram_start_address) + bank*32*1024)};
+  localparam logic [31:0] RAM${bank}_START_ADDRESS = 32'h${'{:08X}'.format(int(ram_start_address) + bank*32*1024)};
   localparam logic [31:0] RAM${bank}_SIZE = 32'h${hex(32*1024)[2:]};
   localparam logic [31:0] RAM${bank}_END_ADDRESS = RAM${bank}_START_ADDRESS + RAM${bank}_SIZE;
   localparam logic [31:0] RAM${bank}_IDX = 32'd${bank + 1};

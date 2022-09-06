@@ -15,6 +15,20 @@
         length:  0x00010000, this is 512KB, minimum size is 32KB, i.e. (0x00010000)
     },
 
+    linker_script: {
+        #value used for the on-chip linker script, the on-flash linker script is generated using FLASH values and the whole RAM values
+        onchip_ls: {
+            code: {
+                address: 0x00000000,
+                lenght: 0x00008000, #32KB
+            }
+            data: {
+                address: 0x00008000,
+                lenght: whatisleft, #keyword used to calculate the size as: ram.length - code.lenght
+            }
+        },
+    }
+
     debug: {
         address: 0x10000000,
         length:  0x00100000,

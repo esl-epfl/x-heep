@@ -2,8 +2,8 @@ ENTRY(_start)
 
 MEMORY
 {
-    FLASH (rx)      : ORIGIN = 0x40000000, LENGTH = 0x01000000
-    RAM (xrw)       : ORIGIN = 0x00000004, LENGTH = 0x0000FFFC
+    FLASH (rx)      : ORIGIN = 0x${spi_flash_start_address}, LENGTH = 0x${spi_flash_size_address}
+    RAM (xrw)       : ORIGIN = 0x${'{:08X}'.format(int(ram_start_address,16) + 4)}, LENGTH = 0x${'{:08X}'.format(int(ram_size_address,16) - 4)}
 }
 
 SECTIONS {
@@ -31,7 +31,7 @@ SECTIONS {
 	KEEP (*(.text.start))
     } >FLASH
 
-
+    
     /* The program code and other data goes into FLASH */
     .text :
     {
@@ -46,13 +46,13 @@ SECTIONS {
         _etext = .;        /* define a global symbol at end of code */
     } >FLASH
 
-
+   
 
     /* This is the initialized data section
     The program executes knowing that the data is in the RAM
     but the loader puts the initial values in the FLASH (inidata).
     It is one task of the startup to copy the initial values from FLASH to RAM. */
-    .data :
+    .data : 
     {
         . = ALIGN(4);
         _sidata = LOADADDR(.data);

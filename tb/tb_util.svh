@@ -75,12 +75,12 @@ task tb_loadHEX;
   stimuli_counter = 0;
   for (i = 0; i < NumBytes / NumBanks; i = i + 4) begin
     tb_writetoSram0(i / 4, stimuli[stimuli_counter+3], stimuli[stimuli_counter+2],
-                   stimuli[stimuli_counter+1], stimuli[stimuli_counter]);
+                    stimuli[stimuli_counter+1], stimuli[stimuli_counter]);
     stimuli_counter = stimuli_counter + 4;
   end
   for (i = 0; i < NumBytes / NumBanks; i = i + 4) begin
     tb_writetoSram1(i / 4, stimuli[stimuli_counter+3], stimuli[stimuli_counter+2],
-                   stimuli[stimuli_counter+1], stimuli[stimuli_counter]);
+                    stimuli[stimuli_counter+1], stimuli[stimuli_counter]);
     stimuli_counter = stimuli_counter + 4;
   end
 
