@@ -31,6 +31,12 @@ package core_v_mini_mcu_pkg;
 
   localparam bus_type_e BusType = ${bus_type};
 
+  typedef enum logic [1:0] {
+    inout_pad,
+    input_pad,
+    output_pad
+  } pad_type_e;
+
   //master idx
   localparam logic [31:0] CORE_INSTR_IDX = 0;
   localparam logic [31:0] CORE_DATA_IDX = 1;

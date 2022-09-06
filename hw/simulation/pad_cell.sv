@@ -2,8 +2,10 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-module pad_cell #(
-    parameter string PadType = "inout"  //inout, input, output
+module pad_cell
+  import core_v_mini_mcu_pkg::*;
+#(
+    parameter pad_type_e PadType = INOUT_PAD  //inout, input, output
 ) (
     input  logic pad_in_i,
     input  logic pad_oe_i,
@@ -16,7 +18,7 @@ module pad_cell #(
 
   generate
 
-    if (PadType == "inout") begin
+    if (PadType == INOUT_PAD) begin
 
       assign pad_out_o = pad_io;
       assign pad_io = pad;
@@ -29,7 +31,7 @@ module pad_cell #(
         end
       end
 
-    end else if (PadType == "input") begin
+    end else if (PadType == INPUT_PAD) begin
 
       assign pad_out_o = pad_io;
       assign pad_io = pad;
@@ -45,7 +47,7 @@ module pad_cell #(
       end
 `endif
 
-    end else if (PadType == "output") begin
+    end else if (PadType == OUTPUT_PAD) begin
 
       assign pad_out_o = 1'b0;
       assign pad_io = pad;
