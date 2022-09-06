@@ -41,7 +41,10 @@ module peripheral_subsystem
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
-    input logic dma_intr_i
+    // Always-on domain peripherals' interrupts
+    input logic dma_intr_i,
+    input logic spi_intr_error_i,
+    input logic spi_intr_event_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -99,9 +102,6 @@ module peripheral_subsystem
   logic intr_ack_stop;
   logic intr_host_timeout;
 
-  logic spi_intr_error;
-  logic spi_intr_event;
-
   // this avoids lint errors
   assign unused_irq_id = irq_id;
 
@@ -132,9 +132,9 @@ module peripheral_subsystem
   assign intr_vector[54] = intr_acq_overflow;
   assign intr_vector[55] = intr_ack_stop;
   assign intr_vector[56] = intr_host_timeout;
-  assign intr_vector[57] = dma_intr;
-  assign intr_vector[58] = spi_intr_error;
-  assign intr_vector[59] = spi_intr_event;
+  assign intr_vector[57] = dma_intr_i;
+  assign intr_vector[58] = spi_intr_error_i;
+  assign intr_vector[59] = spi_intr_event_i;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin
@@ -293,60 +293,6 @@ module peripheral_subsystem
       .intr_acq_overflow_o(intr_acq_overflow),
       .intr_ack_stop_o(intr_ack_stop),
       .intr_host_timeout_o(intr_host_timeout)
-  );
-
-  spi_subsystem spi_subsystem_i (
-      .clk_i,
-      .rst_ni,
-
-      .use_spimemio_i(use_spimemio),
-
-      //memory mapped spi
-      .spimemio_req_i,
-      .spimemio_resp_o,
-      //yosys spi configuration
-      .yo_reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
-      .yo_reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
-
-      //opentitan spi configuration
-      .ot_reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
-      .ot_reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
-
-      // SPI Interface
-      .spi_sck_o,
-      .spi_sck_en_o,
-      .spi_csb_o,
-      .spi_csb_en_o,
-      .spi_sd_o,
-      .spi_sd_en_o,
-      .spi_sd_i,
-
-      // SPI HOST interrupt
-      .spi_intr_error_o(spi_intr_error),
-      .spi_intr_event_o(spi_intr_event)
-  );
-
-
-  boot_rom boot_rom_i (
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::BOOTROM_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::BOOTROM_IDX])
-  );
-
-  dma #(
-      .reg_req_t (reg_pkg::reg_req_t),
-      .reg_rsp_t (reg_pkg::reg_rsp_t),
-      .obi_req_t (obi_pkg::obi_req_t),
-      .obi_resp_t(obi_pkg::obi_resp_t)
-  ) dma_i (
-      .clk_i,
-      .rst_ni,
-      .reg_req_i (peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
-      .reg_rsp_o (peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
-      .dma_master0_ch0_req_o,
-      .dma_master0_ch0_resp_i,
-      .dma_master1_ch0_req_o,
-      .dma_master1_ch0_resp_i,
-      .dma_intr_o(dma_intr)
   );
 
 endmodule : peripheral_subsystem

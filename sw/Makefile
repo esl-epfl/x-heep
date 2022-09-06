@@ -39,12 +39,9 @@ LIB_DRIVERS                += $(wildcard device/lib/drivers/rv_timer/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/gpio/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/i2c/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/dma/*.c)
-<<<<<<< HEAD
 LIB_DRIVERS                += $(wildcard device/lib/drivers/power_manager/*.c)
-LIB_DRIVERS                += $(wildcard device/lib/drivers/spi/*.c)
-=======
+LIB_DRIVERS                += $(wildcard device/lib/drivers/spi_mem/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/spi_host/*.c)
->>>>>>> 4583afc (File renaming and SPI host example app update.)
 INC_FOLDERS                = $(sort $(dir $(wildcard device/target/$(TARGET)/)))
 INC_FOLDERS                += $(sort $(dir $(wildcard device/lib/base/)))
 INC_FOLDERS                += $(sort $(dir $(wildcard device/lib/drivers/*/)))

@@ -44,7 +44,9 @@ module ao_peripheral_subsystem
     input  obi_resp_t dma_master0_ch0_resp_i,
     output obi_req_t  dma_master1_ch0_req_o,
     input  obi_resp_t dma_master1_ch0_resp_i,
-    output logic      dma_intr_o
+    output logic      dma_intr_o,
+    output logic      spi_intr_error_o,
+    output logic      spi_intr_event_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -152,7 +154,9 @@ module ao_peripheral_subsystem
       .spi_csb_en_o,
       .spi_sd_o,
       .spi_sd_en_o,
-      .spi_sd_i
+      .spi_sd_i,
+      .spi_intr_error_o,
+      .spi_intr_event_o
   );
 
   power_manager #(
