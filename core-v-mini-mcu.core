@@ -83,9 +83,17 @@ filesets:
     - hw/fpga/cve2_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
     - hw/fpga/pad_cell_xilinx.sv:  { file_type: systemVerilogSource }
 
-  ip-asic:
-    depend:
-    - technology::prim_mytech
+  rtl-sky130:
+    files:
+    - hw/asic/sky130/sram_wrapper.sv
+    - hw/simulation/pad_cell_input.sv #as for now use the simulation pad_cell
+    - hw/simulation/pad_cell_output.sv #as for now use the simulation pad_cell
+    - hw/simulation/pad_cell_inout.sv #as for now use the simulation pad_cell
+    - hw/vendor/openhwgroup_cv32e20/bhv/cve2_sim_clock_gate.sv #as for now use the simulation clk gating
+    - hw/vendor/pulp_platform_tech_cells_generic/src/deprecated/pulp_clk_cells.sv #as for now use the simulation clk cells
+    - hw/vendor/pulp_platform_tech_cells_generic/src/deprecated/cluster_clk_cells.sv #as for now use the simulation clk cells
+    - hw/vendor/pulp_platform_tech_cells_generic/src/rtl/tc_clk.sv #as for now use the simulation clk cells
+    file_type: systemVerilogSource
 
   xdc-fpga-nexys:
     files:
@@ -153,6 +161,10 @@ parameters:
     paramtype: vlogdefine
     default: false
   SYNTHESIS:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
+  SV2V:
     datatype: bool
     paramtype: vlogdefine
     default: false
@@ -321,10 +333,9 @@ targets:
     parameters:
     - PULP_XPULP=0
     - SYNTHESIS=true
+    - tool_icarus? (SV2V=true)
     filesets_append:
-    - ip-asic
-    parameters:
-      - PRIM_DEFAULT_IMPL=prim_pkg::your_target_technology
+    - use_sky130? (rtl-sky130)
     toplevel: [core_v_mini_mcu]
     tools:
       design_compiler:
@@ -334,3 +345,4 @@ targets:
         - report
         dc_script:
         - dc_script.tcl
+      icarus:

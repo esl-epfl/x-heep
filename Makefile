@@ -76,6 +76,9 @@ vivado-fpga-nobuild:
 asic:
 	fusesoc --cores-root . run --no-export --target=asic_synthesis --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
 
+asic_sky130:
+	sh sv2v.sh
+
 help:
 	@echo "SIMULATION BUILD TARGETS"
 	@echo "Build for simulation :"
