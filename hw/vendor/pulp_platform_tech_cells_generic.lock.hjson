@@ -9,6 +9,6 @@
   upstream:
   {
     url: https://github.com/pulp-platform/tech_cells_generic.git
-    rev: 8ed192c7be993bc8daba5467284a76539e5cfac6
+    rev: e6226a6f374eb88fed84d4989bb3f066cb470f33
   }
 }
