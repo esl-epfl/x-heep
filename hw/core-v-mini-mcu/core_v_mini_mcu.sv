@@ -60,6 +60,13 @@ module core_v_mini_mcu
   localparam BOOT_ADDR = core_v_mini_mcu_pkg::BOOTROM_START_ADDRESS;
   localparam NUM_MHPMCOUNTERS = 1;
 
+  // Log top level parameter values
+`ifndef SYNTHESIS
+  initial begin
+    $display("[X-HEEP]: NUM_BYTES = %dKB", NUM_BYTES / 1024);
+  end
+`endif
+
   // masters signals
   obi_req_t core_instr_req;
   obi_resp_t core_instr_resp;
@@ -215,7 +222,6 @@ module core_v_mini_mcu
   );
 
   memory_subsystem #(
-      .NUM_BYTES(NUM_BYTES),
       .NUM_BANKS(core_v_mini_mcu_pkg::NUM_BANKS)
   ) memory_subsystem_i (
       .clk_i(clk),

@@ -5,7 +5,6 @@
 module memory_subsystem
   import obi_pkg::*;
 #(
-    parameter NUM_BYTES = 2 ** 16,
     parameter NUM_BANKS = 2
 ) (
     input logic clk_i,
@@ -16,7 +15,7 @@ module memory_subsystem
 );
 
   localparam int NumWords = 32 * 1014 / 4;
-  localparam int AddrWidth = $clog2(NUM_BYTES);
+  localparam int AddrWidth = $clog2(32 * 1014);
 
   logic [NUM_BANKS-1:0] ram_valid_q;
 
@@ -42,7 +41,7 @@ module memory_subsystem
         .rst_ni (rst_ni),
         .req_i  (ram_req_i[i].req),
         .we_i   (ram_req_i[i].we),
-        .addr_i (ram_req_i[i].addr[AddrWidth-1-1:2]),
+        .addr_i (ram_req_i[i].addr[AddrWidth-1:2]),
         .wdata_i(ram_req_i[i].wdata),
         .be_i   (ram_req_i[i].be),
         // output ports
