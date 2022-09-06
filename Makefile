@@ -13,6 +13,7 @@ TARGET                   ?= sim
 mcu-gen: verible
 	python util/mcu_gen.py --cfg mcu_cfg.hjson --outdir hw/core-v-mini-mcu/include --cpu $(CPU) --bus $(BUS) --pkg-sv hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
 	python util/mcu_gen.py --cfg mcu_cfg.hjson --outdir hw/core-v-mini-mcu/ --tpl-sv hw/core-v-mini-mcu/system_bus.sv.tpl
+	python util/mcu_gen.py --cfg mcu_cfg.hjson --outdir tb/ --tpl-sv tb/tb_util.svh.tpl
 	python util/mcu_gen.py --cfg mcu_cfg.hjson --outdir sw/device/lib/runtime --cpu $(CPU) --bus $(BUS) --pkg-sv sw/device/lib/runtime/core_v_mini_mcu.h.tpl	
 
 # Display mcu_gen.py help
