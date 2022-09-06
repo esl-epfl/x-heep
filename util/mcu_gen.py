@@ -70,6 +70,11 @@ def main():
                         metavar="PKG_SV",
                         help="Name of top-level package file (output)")
 
+    parser.add_argument("--tpl-sv",
+                        metavar="TPL_SV",
+                        help="Name of SystemVerilog template for your module (output)")
+
+
     parser.add_argument("--header-c",
                         metavar="HEADER_C",
                         help="Name of header file (output)")
@@ -103,6 +108,18 @@ def main():
     cpu_type = args.cpu if args.cpu != None else obj['cpu_type']
 
     bus_type = args.bus if args.bus != None else obj['bus_type']
+
+    ram_start_address = string2int(obj['ram']['address'])
+    if int(ram_start_address,16) != 0:
+        exit("ram start address must be 0 instead of " + str(ram_start_address))
+
+    ram_numbanks = int(obj['ram']['numbanks'])
+    if ram_numbanks < 1 and ram_numbanks > 16:
+        exit("ram numbanks must be between 1 and 16 instead of " + str(ram_numbanks))
+
+    ram_size_address = string2int(obj['ram']['length'])
+    if int(ram_size_address,16) != ram_numbanks*32*1024:
+        exit("ram length must be ram_numbanks*32*1024 instead of " + str(ram_size_address))
 
     debug_start_address = string2int(obj['debug']['address'])
     if int(debug_start_address, 16) < int('10000', 16):
@@ -232,6 +249,9 @@ def main():
     kwargs = {
         "cpu_type"                       : cpu_type,
         "bus_type"                       : bus_type,
+        "ram_start_address"              : ram_start_address,
+        "ram_numbanks"                   : ram_numbanks,
+        "ram_size_address"               : ram_size_address,
         "debug_start_address"            : debug_start_address,
         "debug_size_address"             : debug_size_address,
         "ao_peripheral_start_address"    : ao_peripheral_start_address,
@@ -341,6 +361,8 @@ def main():
     if args.header_c != None:
         write_template(args.header_c, outdir, **kwargs)
 
+    if args.tpl_sv != None:
+        write_template(args.tpl_sv, outdir, **kwargs)
 
 if __name__ == "__main__":
     main()

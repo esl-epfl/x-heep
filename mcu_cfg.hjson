@@ -9,6 +9,12 @@
 
     bus_type: onetoM
 
+    ram: {
+        address: 0x00000000, #only tried with 0, cannot be changed for now
+        numbanks: 2, #each bank is 32kB, cannot be changed for now
+        length:  0x00010000, this is 512KB, minimum size is 32KB, i.e. (0x00010000)
+    },
+
     debug: {
         address: 0x10000000,
         length:  0x00100000,
@@ -81,7 +87,6 @@
         address: 0xF0000000,
         length:  0x01000000,
     },
-
 
     interrupts: {
         // First one is always zero
