@@ -66,6 +66,12 @@ def main():
                         default="",
                         help="Bus type (default value from cfg file)")
 
+    parser.add_argument("--memorybanks",
+                        metavar="from 2 to 16",
+                        nargs='?',
+                        default="",
+                        help="Number of 32KB Banks (default value from cfg file)")
+
     parser.add_argument("--pkg-sv",
                         metavar="PKG_SV",
                         help="Name of top-level package file (output)")
@@ -108,22 +114,29 @@ def main():
     outdir = args.outdir
     outdir.mkdir(parents=True, exist_ok=True)
 
+    if args.cpu != None and args.cpu != '':
+        cpu_type = args.cpu
+    else:
+        cpu_type = obj['cpu_type']
 
-    cpu_type = args.cpu if args.cpu != None else obj['cpu_type']
+    if args.bus != None and args.bus != '':
+        bus_type = args.bus
+    else:
+        bus_type = obj['bus_type']
 
-    bus_type = args.bus if args.bus != None else obj['bus_type']
+    if args.memorybanks != None and args.memorybanks != '':
+        ram_numbanks = int(args.memorybanks)
+    else:
+        ram_numbanks = int(obj['ram']['numbanks'])
+
+    if ram_numbanks < 2 and ram_numbanks > 16:
+        exit("ram numbanks must be between 2 and 16 instead of " + str(ram_numbanks))
 
     ram_start_address = string2int(obj['ram']['address'])
     if int(ram_start_address,16) != 0:
         exit("ram start address must be 0 instead of " + str(ram_start_address))
 
-    ram_numbanks = int(obj['ram']['numbanks'])
-    if ram_numbanks < 2 and ram_numbanks > 16:
-        exit("ram numbanks must be between 2 and 16 instead of " + str(ram_numbanks))
-
-    ram_size_address = string2int(obj['ram']['length'])
-    if int(ram_size_address,16) != ram_numbanks*32*1024:
-        exit("ram length must be ram_numbanks*32*1024 instead of " + str(ram_size_address))
+    ram_size_address = '{:08X}'.format(ram_numbanks*32*1024)
 
     debug_start_address = string2int(obj['debug']['address'])
     if int(debug_start_address, 16) < int('10000', 16):

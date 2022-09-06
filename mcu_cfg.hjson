@@ -12,7 +12,6 @@
     ram: {
         address: 0x00000000, #only tried with 0, cannot be changed for now
         numbanks: 2, #each bank is 32kB, cannot be changed for now
-        length:  0x00010000, this is 512KB, minimum size is 32KB, i.e. (0x00010000)
     },
 
     linker_script: {
