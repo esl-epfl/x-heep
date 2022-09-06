@@ -14,8 +14,8 @@ module memory_subsystem
     output obi_resp_t [NUM_BANKS-1:0] ram_resp_o
 );
 
-  localparam int NumWords = 32 * 1014 / 4;
-  localparam int AddrWidth = $clog2(32 * 1014);
+  localparam int NumWords = 32 * 1024 / 4;
+  localparam int AddrWidth = $clog2(32 * 1024);
 
   logic [NUM_BANKS-1:0] ram_valid_q;
 
