@@ -66,6 +66,9 @@ module peripheral_subsystem
   tlul_pkg::tl_h2d_t i2c_tl_h2d;
   tlul_pkg::tl_d2h_t i2c_tl_d2h;
 
+  tlul_pkg::tl_h2d_t rv_timer_tl_h2d;
+  tlul_pkg::tl_d2h_t rv_timer_tl_d2h;
+
   logic [rv_plic_reg_pkg::NumTarget-1:0] irq_plic;
   logic [rv_plic_reg_pkg::NumSrc-1:0] intr_vector;
   logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] irq_id[rv_plic_reg_pkg::NumTarget];
@@ -288,6 +291,22 @@ module peripheral_subsystem
       .intr_acq_overflow_o(intr_acq_overflow),
       .intr_ack_stop_o(intr_ack_stop),
       .intr_host_timeout_o(intr_host_timeout)
+  );
+
+  reg_to_tlul rv_timer_reg_to_tlul_i (
+      .tl_o(rv_timer_tl_h2d),
+      .tl_i(rv_timer_tl_d2h),
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::RV_TIMER_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_IDX])
+  );
+
+  rv_timer rv_timer_i (
+      .clk_i,
+      .rst_ni,
+      .tl_i(rv_timer_tl_h2d),
+      .tl_o(rv_timer_tl_d2h),
+      .intr_timer_expired_0_0_o(),
+      .intr_timer_expired_1_0_o()
   );
 
 endmodule : peripheral_subsystem

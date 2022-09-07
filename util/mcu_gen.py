@@ -165,8 +165,8 @@ def main():
     power_manager_start_offset  = string2int(obj['ao_peripherals']['power_manager']['offset'])
     power_manager_size_address  = string2int(obj['ao_peripherals']['power_manager']['length'])
 
-    rv_timer_start_offset  = string2int(obj['ao_peripherals']['rv_timer']['offset'])
-    rv_timer_size_address  = string2int(obj['ao_peripherals']['rv_timer']['length'])
+    rv_timer_ao_start_offset  = string2int(obj['ao_peripherals']['rv_timer_ao']['offset'])
+    rv_timer_ao_size_address  = string2int(obj['ao_peripherals']['rv_timer_ao']['length'])
 
     dma_start_offset  = string2int(obj['ao_peripherals']['dma']['offset'])
     dma_size_address  = string2int(obj['ao_peripherals']['dma']['length'])
@@ -188,6 +188,9 @@ def main():
 
     i2c_start_offset  = string2int(obj['peripherals']['i2c']['offset'])
     i2c_size_address  = string2int(obj['peripherals']['i2c']['length'])
+
+    rv_timer_start_offset  = string2int(obj['peripherals']['rv_timer']['offset'])
+    rv_timer_size_address  = string2int(obj['peripherals']['rv_timer']['length'])
 
     ext_periph_start_offset  = string2int(obj['peripherals']['ext_periph']['offset'])
     ext_periph_size_address  = string2int(obj['peripherals']['ext_periph']['length'])
@@ -302,8 +305,8 @@ def main():
         "spi_memio_size_address"           : spi_memio_size_address,
         "power_manager_start_offset"       : power_manager_start_offset,
         "power_manager_size_address"       : power_manager_size_address,
-        "rv_timer_start_offset"            : rv_timer_start_offset,
-        "rv_timer_size_address"            : rv_timer_size_address,
+        "rv_timer_ao_start_offset"         : rv_timer_ao_start_offset,
+        "rv_timer_ao_size_address"         : rv_timer_ao_size_address,
         "dma_start_offset"                 : dma_start_offset,
         "dma_size_address"                 : dma_size_address,
         "peripheral_start_address"         : peripheral_start_address,
@@ -316,6 +319,8 @@ def main():
         "gpio_size_address"                : gpio_size_address,
         "i2c_start_offset"                 : i2c_start_offset,
         "i2c_size_address"                 : i2c_size_address,
+        "rv_timer_start_offset"            : rv_timer_start_offset,
+        "rv_timer_size_address"            : rv_timer_size_address,
         "ext_periph_start_offset"          : ext_periph_start_offset,
         "ext_periph_size_address"          : ext_periph_size_address,
         "ext_slave_start_address"          : ext_slave_start_address,

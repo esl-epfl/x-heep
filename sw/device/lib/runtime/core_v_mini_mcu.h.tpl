@@ -38,9 +38,9 @@ extern "C" {
 #define POWER_MANAGER_SIZE 0x${power_manager_size_address}
 #define POWER_MANAGER_END_ADDRESS (POWER_MANAGER_START_ADDRESS + POWER_MANAGER_SIZE)
 
-#define RV_TIMER_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${rv_timer_start_offset})
-#define RV_TIMER_SIZE 0x${rv_timer_size_address}
-#define RV_TIMER_END_ADDRESS (RV_TIMER_START_ADDRESS + RV_TIMER_SIZE)
+#define RV_TIMER_AO_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${rv_timer_ao_start_offset})
+#define RV_TIMER_AO_SIZE 0x${rv_timer_ao_size_address}
+#define RV_TIMER_AO_END_ADDRESS (RV_TIMER_AO_START_ADDRESS + RV_TIMER_AO_SIZE)
 
 #define DMA_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${dma_start_offset})
 #define DMA_SIZE 0x${dma_size_address}
@@ -66,6 +66,10 @@ extern "C" {
 #define I2C_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${i2c_start_offset})
 #define I2C_SIZE 0x${i2c_size_address}
 #define I2C_END_ADDRESS (I2C_START_ADDRESS + I2C_SIZE)
+
+#define RV_TIMER_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${rv_timer_start_offset})
+#define RV_TIMER_SIZE 0x${rv_timer_size_address}
+#define RV_TIMER_END_ADDRESS (RV_TIMER_START_ADDRESS + RV_TIMER_SIZE)
 
 #define EXT_PERIPHERAL_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${ext_periph_start_offset})
 #define EXT_PERIPHERAL_SIZE 0x${ext_periph_size_address}

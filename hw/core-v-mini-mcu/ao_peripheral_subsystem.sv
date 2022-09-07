@@ -37,7 +37,7 @@ module ao_peripheral_subsystem
     output logic cpu_subsystem_rst_no,
 
     //RV TIMER
-    output logic rv_timer_irq_timer_o,
+    output logic rv_timer_irq_timer_0_o,
 
     // DMA
     output obi_req_t  dma_master0_ch0_req_o,
@@ -63,7 +63,8 @@ module ao_peripheral_subsystem
   logic [AO_PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
   logic use_spimemio;
-  logic rv_timer_irq_timer;
+  logic rv_timer_irq_timer_0;
+  logic rv_timer_irq_timer_1;
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
@@ -163,7 +164,7 @@ module ao_peripheral_subsystem
       .rst_ni,
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
-      .rv_timer_irq_i(rv_timer_irq_timer),
+      .rv_timer_irq_i(rv_timer_irq_timer_0 | rv_timer_irq_timer_1),
       .core_sleep_i,
       .cpu_subsystem_powergate_switch_o,
       .cpu_subsystem_rst_no
@@ -172,8 +173,8 @@ module ao_peripheral_subsystem
   reg_to_tlul rv_timer_reg_to_tlul_i (
       .tl_o(rv_timer_tl_h2d),
       .tl_i(rv_timer_tl_d2h),
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::RV_TIMER_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_IDX])
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::RV_TIMER_AO_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_AO_IDX])
   );
 
   rv_timer rv_timer_i (
@@ -181,10 +182,11 @@ module ao_peripheral_subsystem
       .rst_ni,
       .tl_i(rv_timer_tl_h2d),
       .tl_o(rv_timer_tl_d2h),
-      .intr_timer_expired_0_0_o(rv_timer_irq_timer)
+      .intr_timer_expired_0_0_o(rv_timer_irq_timer_0),
+      .intr_timer_expired_1_0_o(rv_timer_irq_timer_1)
   );
 
-  assign rv_timer_irq_timer_o = rv_timer_irq_timer;
+  assign rv_timer_irq_timer_0_o = rv_timer_irq_timer_0;
 
   dma #(
       .reg_req_t (reg_pkg::reg_req_t),

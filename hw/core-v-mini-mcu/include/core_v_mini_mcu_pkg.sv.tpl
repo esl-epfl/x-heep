@@ -128,10 +128,10 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] POWER_MANAGER_END_ADDRESS = POWER_MANAGER_START_ADDRESS + POWER_MANAGER_SIZE;
   localparam logic [31:0] POWER_MANAGER_IDX = 32'd4;
 
-  localparam logic [31:0] RV_TIMER_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${rv_timer_start_offset};
-  localparam logic [31:0] RV_TIMER_SIZE = 32'h${rv_timer_size_address};
-  localparam logic [31:0] RV_TIMER_END_ADDRESS = RV_TIMER_START_ADDRESS + RV_TIMER_SIZE;
-  localparam logic [31:0] RV_TIMER_IDX = 32'd5;
+  localparam logic [31:0] RV_TIMER_AO_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${rv_timer_ao_start_offset};
+  localparam logic [31:0] RV_TIMER_AO_SIZE = 32'h${rv_timer_ao_size_address};
+  localparam logic [31:0] RV_TIMER_AO_END_ADDRESS = RV_TIMER_AO_START_ADDRESS + RV_TIMER_AO_SIZE;
+  localparam logic [31:0] RV_TIMER_AO_IDX = 32'd5;
 
   localparam logic[31:0] DMA_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${dma_start_offset};
   localparam logic[31:0] DMA_SIZE = 32'h${dma_size_address};
@@ -144,14 +144,14 @@ package core_v_mini_mcu_pkg;
       '{ idx: SPI_HOST_IDX, start_addr: SPI_HOST_START_ADDRESS, end_addr: SPI_HOST_END_ADDRESS },
       '{ idx: SPI_MEMIO_IDX, start_addr: SPI_MEMIO_START_ADDRESS, end_addr: SPI_MEMIO_END_ADDRESS },
       '{ idx: POWER_MANAGER_IDX, start_addr: POWER_MANAGER_START_ADDRESS, end_addr: POWER_MANAGER_END_ADDRESS },
-      '{ idx: RV_TIMER_IDX, start_addr: RV_TIMER_START_ADDRESS, end_addr: RV_TIMER_END_ADDRESS },
+      '{ idx: RV_TIMER_AO_IDX, start_addr: RV_TIMER_AO_START_ADDRESS, end_addr: RV_TIMER_AO_END_ADDRESS },
       '{ idx: DMA_IDX, start_addr: DMA_START_ADDRESS, end_addr: DMA_END_ADDRESS }
   };
 
   localparam int unsigned AO_PERIPHERALS_PORT_SEL_WIDTH = AO_PERIPHERALS > 1 ? $clog2(AO_PERIPHERALS) : 32'd1;
 
   //switch-on/off peripherals
-  localparam PERIPHERALS = 5;
+  localparam PERIPHERALS = 6;
 
   localparam logic[31:0] PLIC_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${plic_start_offset};
   localparam logic[31:0] PLIC_SIZE = 32'h${plic_size_address};
@@ -173,16 +173,22 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] I2C_END_ADDRESS = I2C_START_ADDRESS + I2C_SIZE;
   localparam logic[31:0] I2C_IDX = 32'd3;
 
+  localparam logic [31:0] RV_TIMER_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${rv_timer_start_offset};
+  localparam logic [31:0] RV_TIMER_SIZE = 32'h${rv_timer_size_address};
+  localparam logic [31:0] RV_TIMER_END_ADDRESS = RV_TIMER_START_ADDRESS + RV_TIMER_SIZE;
+  localparam logic [31:0] RV_TIMER_IDX = 32'd4;
+
   localparam logic[31:0] EXT_PERIPH_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${ext_periph_start_offset};
   localparam logic[31:0] EXT_PERIPH_SIZE = 32'h${ext_periph_size_address};
   localparam logic[31:0] EXT_PERIPH_END_ADDRESS = EXT_PERIPH_START_ADDRESS + EXT_PERIPH_SIZE;
-  localparam logic[31:0] EXT_PERIPH_IDX = 32'd4;
+  localparam logic[31:0] EXT_PERIPH_IDX = 32'd5;
 
   localparam addr_map_rule_t [PERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
       '{ idx: PLIC_IDX, start_addr: PLIC_START_ADDRESS, end_addr: PLIC_END_ADDRESS },
       '{ idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS },
       '{ idx: GPIO_IDX, start_addr: GPIO_START_ADDRESS, end_addr: GPIO_END_ADDRESS },
       '{ idx: I2C_IDX, start_addr: I2C_START_ADDRESS, end_addr: I2C_END_ADDRESS },
+      '{ idx: RV_TIMER_IDX, start_addr: RV_TIMER_START_ADDRESS, end_addr: RV_TIMER_END_ADDRESS },
       '{ idx: EXT_PERIPH_IDX, start_addr: EXT_PERIPH_START_ADDRESS, end_addr: EXT_PERIPH_END_ADDRESS }
   };
 

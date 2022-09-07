@@ -251,7 +251,7 @@ module core_v_mini_mcu
       .core_sleep_i(core_sleep),
       .cpu_subsystem_powergate_switch_o(cpu_subsystem_powergate_switch),
       .cpu_subsystem_rst_no(cpu_subsystem_rst_n),
-      .rv_timer_irq_timer_o(irq_timer),
+      .rv_timer_irq_timer_0_o(irq_timer),
       .dma_master0_ch0_req_o(dma_master0_ch0_req),
       .dma_master0_ch0_resp_i(dma_master0_ch0_resp),
       .dma_master1_ch0_req_o(dma_master1_ch0_req),

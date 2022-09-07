@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     uint32_t freq_hz = soc_ctrl_get_frequency(&soc_ctrl);
 
     // Setup rv_timer
-    mmio_region_t timer_reg = mmio_region_from_addr(RV_TIMER_START_ADDRESS);
+    mmio_region_t timer_reg = mmio_region_from_addr(RV_TIMER_AO_START_ADDRESS);
     rv_timer_init(timer_reg, (rv_timer_config_t){.hart_count = 1, .comparator_count = 1}, &timer);
     rv_timer_tick_params_t tick_params;
     rv_timer_approximate_tick_params(freq_hz, kTickFreqHz, &tick_params);
