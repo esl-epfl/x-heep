@@ -51,7 +51,18 @@ module pad_cell #(
       assign pad_io = pad;
       assign pad = pad_in_i;
 
+    end else if (PadType == "bypass_input") begin
+      // when ported to another technology, they remain like this
+      assign pad_out_o = pad_io;
+
+    end else if (PadType == "bypass_output") begin
+      // when ported to another technology, they remain like this
+      assign pad_out_o = 1'b0;
+      assign pad_io = pad;
+      assign pad = pad_in_i;
+
     end
+
   endgenerate
 
 
