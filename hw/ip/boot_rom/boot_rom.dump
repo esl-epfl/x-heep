@@ -6,14 +6,14 @@ Disassembly of section .text:
 
 00000000 <entry>:
    0:	200305b7          	lui	a1,0x20030
-   4:	0045c503          	lbu	a0,4(a1) # 20030004 <_end+0x2002fdf8>
+   4:	0045c503          	lbu	a0,4(a1) # 20030004 <_end+0x2002feea>
    8:	c119                	beqz	a0,e <boot>
    a:	4588                	lw	a0,8(a1)
    c:	9502                	jalr	a0
 
 0000000e <boot>:
    e:	200005b7          	lui	a1,0x20000
-  12:	0085c503          	lbu	a0,8(a1) # 20000008 <_end+0x1ffffdfc>
+  12:	0085c503          	lbu	a0,8(a1) # 20000008 <_end+0x1ffffeee>
   16:	e511                	bnez	a0,22 <_jump_to_flash>
 
 00000018 <_jump_to_debug_rom>:
@@ -31,7 +31,7 @@ Disassembly of section .text:
   2c:	4505                	li	a0,1
   2e:	c188                	sw	a0,0(a1)
   30:	400005b7          	lui	a1,0x40000
-  34:	18058593          	addi	a1,a1,384 # 40000180 <_end+0x3fffff74>
+  34:	18058593          	addi	a1,a1,384 # 40000180 <_end+0x40000066>
   38:	9582                	jalr	a1
 
 0000003a <_copy_from_flash>:
@@ -47,7 +47,7 @@ Disassembly of section .text:
   52:	d188                	sw	a0,32(a1)
   54:	4998                	lw	a4,16(a1)
   56:	f0077713          	andi	a4,a4,-256
-  5a:	00376713          	ori	a4,a4,3
+  5a:	00876713          	ori	a4,a4,8
   5e:	c998                	sw	a4,16(a1)
   60:	0ab00713          	li	a4,171
   64:	d598                	sw	a4,40(a1)
@@ -66,166 +66,60 @@ Disassembly of section .text:
   78:	49d8                	lw	a4,20(a1)
   7a:	fe075ee3          	bgez	a4,76 <_wait_spi_ready_tx_init>
   7e:	6709                	lui	a4,0x2
-  80:	20370713          	addi	a4,a4,515 # 2203 <_end+0x1ff7>
+  80:	20370713          	addi	a4,a4,515 # 2203 <_end+0x20e9>
   84:	d1d8                	sw	a4,36(a1)
 
-00000086 <_wait_spi_ready_read_init_cmd>:
+00000086 <_wait_spi_ready_read_prog>:
   86:	0001                	nop
-  88:	49d8                	lw	a4,20(a1)
-  8a:	fe075ee3          	bgez	a4,86 <_wait_spi_ready_read_init_cmd>
-  8e:	6705                	lui	a4,0x1
-  90:	072d                	addi	a4,a4,11
-  92:	d1d8                	sw	a4,36(a1)
+  88:	49dc                	lw	a5,20(a1)
+  8a:	fe07dee3          	bgez	a5,86 <_wait_spi_ready_read_prog>
+  8e:	4601                	li	a2,0
+  90:	40000693          	li	a3,1024
+  94:	4481                	li	s1,0
+  96:	10000b13          	li	s6,256
+  9a:	6405                	lui	s0,0x1
+  9c:	2ff40a93          	addi	s5,s0,767 # 12ff <_end+0x11e5>
 
-00000094 <_wait_spi_ready_rx_cmd>:
-  94:	0001                	nop
-  96:	49d8                	lw	a4,20(a1)
-  98:	fe075ee3          	bgez	a4,94 <_wait_spi_ready_rx_cmd>
+000000a0 <_32B_chunk_loop>:
+  a0:	00db4463          	blt	s6,a3,a8 <_read_32B_chunk>
+  a4:	0ff40a93          	addi	s5,s0,255
 
-0000009c <_wait_spi_rxwm_init>:
-  9c:	49d8                	lw	a4,20(a1)
-  9e:	8351                	srli	a4,a4,0x14
-  a0:	8b05                	andi	a4,a4,1
-  a2:	df6d                	beqz	a4,9c <_wait_spi_rxwm_init>
-  a4:	5590                	lw	a2,40(a1)
-  a6:	5594                	lw	a3,40(a1)
-  a8:	5584                	lw	s1,40(a1)
-  aa:	499c                	lw	a5,16(a1)
-  ac:	f007f793          	andi	a5,a5,-256
-  b0:	0087e793          	ori	a5,a5,8
-  b4:	c99c                	sw	a5,16(a1)
-  b6:	01861713          	slli	a4,a2,0x18
-  ba:	01065413          	srli	s0,a2,0x10
-  be:	0462                	slli	s0,s0,0x18
-  c0:	8041                	srli	s0,s0,0x10
-  c2:	01061793          	slli	a5,a2,0x10
-  c6:	83e1                	srli	a5,a5,0x18
-  c8:	07c2                	slli	a5,a5,0x10
-  ca:	8f41                	or	a4,a4,s0
-  cc:	00f76633          	or	a2,a4,a5
-  d0:	00366613          	ori	a2,a2,3
-  d4:	d590                	sw	a2,40(a1)
+000000a8 <_read_32B_chunk>:
+  a8:	0355a223          	sw	s5,36(a1) # 20020024 <_end+0x2001ff0a>
 
-000000d6 <_wait_spi_ready_read_prog>:
-  d6:	0001                	nop
-  d8:	49dc                	lw	a5,20(a1)
-  da:	fe07dee3          	bgez	a5,d6 <_wait_spi_ready_read_prog>
-  de:	6709                	lui	a4,0x2
-  e0:	20370713          	addi	a4,a4,515 # 2203 <_end+0x1ff7>
-  e4:	d1d8                	sw	a4,36(a1)
+000000ac <_wait_spi_ready_read_32B_chunk>:
+  ac:	0001                	nop
+  ae:	49dc                	lw	a5,20(a1)
+  b0:	fe07dee3          	bgez	a5,ac <_wait_spi_ready_read_32B_chunk>
+  b4:	10048b93          	addi	s7,s1,256
 
-000000e6 <_wait_spi_ready_copy_cmd>:
-  e6:	0001                	nop
-  e8:	49d8                	lw	a4,20(a1)
-  ea:	fe075ee3          	bgez	a4,e6 <_wait_spi_ready_copy_cmd>
-  ee:	8436                	mv	s0,a3
-  f0:	10000b13          	li	s6,256
-  f4:	6a85                	lui	s5,0x1
-  f6:	2ffa8a93          	addi	s5,s5,767 # 12ff <_end+0x10f3>
-
-000000fa <_32B_chunk_loop>:
-  fa:	008b4e63          	blt	s6,s0,116 <_read_32B_chunk>
-  fe:	6785                	lui	a5,0x1
- 100:	fff40713          	addi	a4,s0,-1
- 104:	8fd9                	or	a5,a5,a4
- 106:	d1dc                	sw	a5,36(a1)
-
-00000108 <_wait_spi_ready_remaining_bytes>:
- 108:	0001                	nop
- 10a:	49dc                	lw	a5,20(a1)
- 10c:	fe07dee3          	bgez	a5,108 <_wait_spi_ready_remaining_bytes>
- 110:	02000a13          	li	s4,32
- 114:	a85d                	j	1ca <_last_bytes_read_start>
-
-00000116 <_read_32B_chunk>:
- 116:	0355a223          	sw	s5,36(a1) # 20020024 <_end+0x2001fe18>
-
-0000011a <_wait_spi_ready_read_32B_chunk>:
- 11a:	0001                	nop
- 11c:	49dc                	lw	a5,20(a1)
- 11e:	fe07dee3          	bgez	a5,11a <_wait_spi_ready_read_32B_chunk>
- 122:	10048b93          	addi	s7,s1,256
-
-00000126 <_wait_spi_rxwm_8_words>:
- 126:	49dc                	lw	a5,20(a1)
- 128:	83d1                	srli	a5,a5,0x14
- 12a:	8b85                	andi	a5,a5,1
- 12c:	dfed                	beqz	a5,126 <_wait_spi_rxwm_8_words>
- 12e:	0285a883          	lw	a7,40(a1)
- 132:	0285a283          	lw	t0,40(a1)
- 136:	0285a303          	lw	t1,40(a1)
- 13a:	0285a383          	lw	t2,40(a1)
- 13e:	0285ae03          	lw	t3,40(a1)
- 142:	0285ae83          	lw	t4,40(a1)
- 146:	0285af03          	lw	t5,40(a1)
- 14a:	0285af83          	lw	t6,40(a1)
- 14e:	0114a023          	sw	a7,0(s1)
- 152:	0054a223          	sw	t0,4(s1)
- 156:	0064a423          	sw	t1,8(s1)
- 15a:	0074a623          	sw	t2,12(s1)
- 15e:	01c4a823          	sw	t3,16(s1)
- 162:	01d4aa23          	sw	t4,20(s1)
- 166:	01e4ac23          	sw	t5,24(s1)
- 16a:	01f4ae23          	sw	t6,28(s1)
- 16e:	02048493          	addi	s1,s1,32
- 172:	fb749ae3          	bne	s1,s7,126 <_wait_spi_rxwm_8_words>
- 176:	f0040413          	addi	s0,s0,-256
- 17a:	b741                	j	fa <_32B_chunk_loop>
-
-0000017c <_wait_spi_rxwm_8_words_1>:
- 17c:	49dc                	lw	a5,20(a1)
- 17e:	83d1                	srli	a5,a5,0x14
- 180:	8b85                	andi	a5,a5,1
- 182:	dfed                	beqz	a5,17c <_wait_spi_rxwm_8_words_1>
- 184:	0285a883          	lw	a7,40(a1)
- 188:	0285a283          	lw	t0,40(a1)
- 18c:	0285a303          	lw	t1,40(a1)
- 190:	0285a383          	lw	t2,40(a1)
- 194:	0285ae03          	lw	t3,40(a1)
- 198:	0285ae83          	lw	t4,40(a1)
- 19c:	0285af03          	lw	t5,40(a1)
- 1a0:	0285af83          	lw	t6,40(a1)
- 1a4:	0114a023          	sw	a7,0(s1)
- 1a8:	0054a223          	sw	t0,4(s1)
- 1ac:	0064a423          	sw	t1,8(s1)
- 1b0:	0074a623          	sw	t2,12(s1)
- 1b4:	01c4a823          	sw	t3,16(s1)
- 1b8:	01d4aa23          	sw	t4,20(s1)
- 1bc:	01e4ac23          	sw	t5,24(s1)
- 1c0:	01f4ae23          	sw	t6,28(s1)
- 1c4:	1401                	addi	s0,s0,-32
- 1c6:	02048493          	addi	s1,s1,32
-
-000001ca <_last_bytes_read_start>:
- 1ca:	fa8a69e3          	bltu	s4,s0,17c <_wait_spi_rxwm_8_words_1>
- 1ce:	4998                	lw	a4,16(a1)
- 1d0:	f0077713          	andi	a4,a4,-256
- 1d4:	00245793          	srli	a5,s0,0x2
- 1d8:	8fd9                	or	a5,a5,a4
- 1da:	c99c                	sw	a5,16(a1)
-
-000001dc <_wait_spi_rxwm_n_words>:
- 1dc:	49dc                	lw	a5,20(a1)
- 1de:	83d1                	srli	a5,a5,0x14
- 1e0:	8b85                	andi	a5,a5,1
- 1e2:	dfed                	beqz	a5,1dc <_wait_spi_rxwm_n_words>
-
-000001e4 <_remaining_bytes_loop>:
- 1e4:	e819                	bnez	s0,1fa <_spi_read_word>
- 1e6:	200005b7          	lui	a1,0x20000
- 1ea:	4505                	li	a0,1
- 1ec:	cd88                	sw	a0,24(a1)
- 1ee:	c9c8                	sw	a0,20(a1)
- 1f0:	4990                	lw	a2,16(a1)
- 1f2:	200285b7          	lui	a1,0x20028
- 1f6:	c188                	sw	a0,0(a1)
- 1f8:	9602                	jalr	a2
-
-000001fa <_spi_read_word>:
- 1fa:	0285a883          	lw	a7,40(a1) # 20028028 <_end+0x20027e1c>
- 1fe:	0114a023          	sw	a7,0(s1)
- 202:	1471                	addi	s0,s0,-4
- 204:	0491                	addi	s1,s1,4
- 206:	bff9                	j	1e4 <_remaining_bytes_loop>
- 208:	0001                	nop
- 20a:	0001                	nop
+000000b8 <_wait_spi_rxwm_8_words>:
+  b8:	49dc                	lw	a5,20(a1)
+  ba:	83d1                	srli	a5,a5,0x14
+  bc:	8b85                	andi	a5,a5,1
+  be:	dfed                	beqz	a5,b8 <_wait_spi_rxwm_8_words>
+  c0:	0285a883          	lw	a7,40(a1)
+  c4:	0285a283          	lw	t0,40(a1)
+  c8:	0285a303          	lw	t1,40(a1)
+  cc:	0285a383          	lw	t2,40(a1)
+  d0:	0285ae03          	lw	t3,40(a1)
+  d4:	0285ae83          	lw	t4,40(a1)
+  d8:	0285af03          	lw	t5,40(a1)
+  dc:	0285af83          	lw	t6,40(a1)
+  e0:	0114a023          	sw	a7,0(s1)
+  e4:	0054a223          	sw	t0,4(s1)
+  e8:	0064a423          	sw	t1,8(s1)
+  ec:	0074a623          	sw	t2,12(s1)
+  f0:	01c4a823          	sw	t3,16(s1)
+  f4:	01d4aa23          	sw	t4,20(s1)
+  f8:	01e4ac23          	sw	t5,24(s1)
+  fc:	01f4ae23          	sw	t6,28(s1)
+ 100:	02048493          	addi	s1,s1,32
+ 104:	fb749ae3          	bne	s1,s7,b8 <_wait_spi_rxwm_8_words>
+ 108:	f0068693          	addi	a3,a3,-256
+ 10c:	fad1                	bnez	a3,a0 <_32B_chunk_loop>
+ 10e:	200005b7          	lui	a1,0x20000
+ 112:	4990                	lw	a2,16(a1)
+ 114:	9602                	jalr	a2
+ 116:	0001                	nop
+ 118:	b5e5                	j	0 <entry>

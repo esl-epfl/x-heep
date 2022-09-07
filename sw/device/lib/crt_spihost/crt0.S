@@ -1,0 +1,233 @@
+/* Copyright (c) 2017  SiFive Inc. All rights reserved.
+ * Copyright (c) 2019  ETH Zürich and University of Bologna
+ * This copyrighted material is made available to anyone wishing to use,
+ * modify, copy, or redistribute it subject to the terms and conditions
+ * of the FreeBSD License.   This program is distributed in the hope that
+ * it will be useful, but WITHOUT ANY WARRANTY expressed or implied,
+ * including the implied warranties of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  A copy of this license is available at
+ * http://www.opensource.org/licenses.
+ */
+
+#include "x-heep.h"
+#include "core_v_mini_mcu.h"
+#include "soc_ctrl_regs.h"
+#include "spi_host_regs.h"
+
+#define SPI_FLASH_START_ADDRESS_20bit (SPI_FLASH_START_ADDRESS >> 12)
+#define SPI_HOST_START_ADDRESS_20bit (SPI_HOST_START_ADDRESS >> 12)
+
+/* Entry point for bare metal programs */
+.section .text.start
+.global _start
+.type _start, @function
+
+_start:
+/* initialize global pointer */
+.option push
+.option norelax
+1:	auipc  gp, %pcrel_hi(__global_pointer$)
+	addi   gp, gp, %pcrel_lo(1b)
+.option pop
+
+/* initialize stack pointer */
+	la     sp, _sp
+
+/* copy the remaining (if any) text and data sections */
+	// Setup the in/out pointers and copy size knowing 1KiB as already been copied
+	lui    a2, SPI_FLASH_START_ADDRESS_20bit # src ptr (flash)
+	addi   a2, a2, 1024
+	// This assumes ram base address is 0x00000000
+	li     s1, 1024 # dst ptr (ram)
+	la     a0, _edata
+	// Skip if everything has already been copied
+	blt    a0, s1, _init_bss
+	sub    a3, a0, 1023 # copy size in bytes (-1023 because a0 is an address and a3 the number of bytes to copy)
+
+	lui    a1, SPI_HOST_START_ADDRESS_20bit
+	// Spi should already be enabled, powered-up and TXWM to 8
+	// Address in byte reversed order (might be useless for the 1KiB address value)
+	// Highest byte is discarded(address on 3 bytes)
+	// ((x << 24) | (((x>>16)<<24)>>16) |  (((x<<16)>>24)<<16))
+	slli   a4, a2, 24
+	srli   s0, a2, 16
+	slli   s0, s0, 24
+	srli   s0, s0, 16
+	slli   a5, a2, 16
+	srli   a5, a5, 24
+	slli   a5, a5, 16
+	or     a4, a4, s0
+	or     a2, a4, a5
+	or     a2, a2, 0x03
+	sw     a2, SPI_HOST_DATA_REG_OFFSET(a1)
+
+_wait_spi_ready_read_prog:
+	nop    # otherwise ready bit check is too fast
+	lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
+	bgez   a5, _wait_spi_ready_read_prog
+	// Read command: 0x00002203
+	lui    a4, 0x2
+	addi   a4, a4, 515 # spi cmd: txonly + stdspeed + csaat + 4B
+	sw     a4, SPI_HOST_COMMAND_REG_OFFSET(a1)
+
+_wait_spi_ready_copy_cmd:
+	nop    # otherwise ready bit check is too fast
+	lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
+	bgez   a4, _wait_spi_ready_copy_cmd
+
+	// For loop until the copy from flash to ram is done
+	// Try first to do as much as 256-bytes copies as possible
+	mv     s0, a3
+	li     s6, 256
+	lui    s5, 0x1
+	addi   s5, s5, 767 # spi cmd: rxonly + stdspeed + csaat + 255 bytes
+
+_32B_chunk_loop:
+	blt    s6, s0, _read_32B_chunk
+	// Read remaining bytes
+	lui    a5, 0x1
+	addi   a4, s0, -1
+	or     a5, a5, a4 # spi cmd: rxonly + stdspeed + remaining bytes (s0-1)
+	sw     a5, SPI_HOST_COMMAND_REG_OFFSET(a1)
+
+_wait_spi_ready_remaining_bytes:
+	nop    # otherwise ready bit check is too fast
+	lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
+	bgez   a5, _wait_spi_ready_remaining_bytes
+	li     s4, 32
+	j      _last_bytes_read_start
+
+_read_32B_chunk:
+	sw     s5, SPI_HOST_COMMAND_REG_OFFSET(a1)
+
+_wait_spi_ready_read_32B_chunk:
+	nop    # otherwise ready bit check is too fast
+	lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
+	bgez   a5, _wait_spi_ready_read_32B_chunk
+	addi   s7, s1, 256 # add 32*8 (256 bytes) to dst ptr
+
+_wait_spi_rxwm_8_words:
+	lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
+	srli   a5, a5, 0x14
+	andi   a5, a5, 1 # SPI_HOST_STATUS_RXWM_BIT
+	beqz   a5, _wait_spi_rxwm_8_words
+	// Read 32B (8 words) from RX FIFO
+	lw     a7, SPI_HOST_DATA_REG_OFFSET(a1)
+	lw     t0, SPI_HOST_DATA_REG_OFFSET(a1)
+	lw     t1, SPI_HOST_DATA_REG_OFFSET(a1)
+	lw     t2, SPI_HOST_DATA_REG_OFFSET(a1)
+	lw     t3, SPI_HOST_DATA_REG_OFFSET(a1)
+	lw     t4, SPI_HOST_DATA_REG_OFFSET(a1)
+	lw     t5, SPI_HOST_DATA_REG_OFFSET(a1)
+	lw     t6, SPI_HOST_DATA_REG_OFFSET(a1)
+	sw     a7, 0(s1)
+	sw     t0, 4(s1)
+	sw     t1, 8(s1)
+	sw     t2, 12(s1)
+	sw     t3, 16(s1)
+	sw     t4, 20(s1)
+	sw     t5, 24(s1)
+	sw     t6, 28(s1)
+	addi   s1, s1, 32
+	bne    s1, s7, _wait_spi_rxwm_8_words
+	addi   s0, s0, -256
+	j      _32B_chunk_loop
+
+_wait_spi_rxwm_8_words_1:
+	lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
+	srli   a5, a5, 0x14
+	andi   a5, a5, 1 # SPI_HOST_STATUS_RXWM_BIT
+	beqz   a5, _wait_spi_rxwm_8_words_1
+	// Read 32B (8 words) from RX FIFO
+	lw     a7, SPI_HOST_DATA_REG_OFFSET(a1)
+	lw     t0, SPI_HOST_DATA_REG_OFFSET(a1)
+	lw     t1, SPI_HOST_DATA_REG_OFFSET(a1)
+	lw     t2, SPI_HOST_DATA_REG_OFFSET(a1)
+	lw     t3, SPI_HOST_DATA_REG_OFFSET(a1)
+	lw     t4, SPI_HOST_DATA_REG_OFFSET(a1)
+	lw     t5, SPI_HOST_DATA_REG_OFFSET(a1)
+	lw     t6, SPI_HOST_DATA_REG_OFFSET(a1)
+	sw     a7, 0(s1)
+	sw     t0, 4(s1)
+	sw     t1, 8(s1)
+	sw     t2, 12(s1)
+	sw     t3, 16(s1)
+	sw     t4, 20(s1)
+	sw     t5, 24(s1)
+	sw     t6, 28(s1)
+	addi   s0, s0, -32
+	addi   s1, s1, 32 # dst ptr move 32B further
+
+_last_bytes_read_start:
+	bltu   s4, s0, _wait_spi_rxwm_8_words_1
+	// Update RX watermark with remaining words (<=8)
+	lw     a4, SPI_HOST_CONTROL_REG_OFFSET(a1)
+	andi   a4, a4, -256 # ~SPI_HOST_CONTROL_RX_WATERMARK_MASK
+	srli   a5, s0, 0x2 # 4 bytes = 1 word
+	or     a5, a5, a4
+	sw     a5, SPI_HOST_CONTROL_REG_OFFSET(a1)
+
+_wait_spi_rxwm_n_words:
+	lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
+	srli   a5, a5, 0x14
+	andi   a5, a5, 1 # SPI_HOST_STATUS_RXWM_BIT
+	beqz   a5, _wait_spi_rxwm_n_words
+
+_remaining_bytes_loop:
+	bnez   s0,_spi_read_word
+	j      _init_bss
+
+_spi_read_word:
+	lw     a7, SPI_HOST_DATA_REG_OFFSET(a1)
+	sw     a7, 0(s1)
+	addi   s0, s0, -4
+	addi   s1, s1, 4
+	j      _remaining_bytes_loop
+	// Leave some nops otherwise prefetcher out of bound
+	nop
+	nop
+
+/* clear the bss segment */
+_init_bss:
+	la     a0, _sbss
+	la     a2, _ebss
+	sub    a2, a2, a0
+	li     a1, 0
+	call   memset
+
+/* set vector table address and vectored mode */
+	la     a0, _vector_start
+	ori    a0, a0, 0x1
+	csrw   mtvec, a0
+
+/* new-style constructors and destructors */
+	la     a0, __libc_fini_array
+	call   atexit
+	call   __libc_init_array
+
+/* set the frequency */
+	li    a0, SOC_CTRL_START_ADDRESS
+	li    a2, REFERENCE_CLOCK_Hz
+	sw    a2, SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET(a0)
+
+/* call main */
+	lw    a0, 0(sp)                  /* a0 = argc */
+	addi  a1, sp, __SIZEOF_POINTER__ /* a1 = argv */
+	li    a2, 0                      /* a2 = envp = NULL */
+	call  main
+	tail  exit
+
+.size _start, .-_start
+
+.global _init
+.type   _init, @function
+.global _fini
+.type   _fini, @function
+_init:
+	call init
+_fini:
+ /* These don't have to do anything since we use init_array/fini_array. Prevent
+    missing symbol error */
+	ret
+.size  _init, .-_init
+.size _fini, .-_fini

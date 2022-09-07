@@ -7,8 +7,9 @@ ENTRY(_start)
 
 MEMORY
 {
-    FLASH (rx) : ORIGIN = 0x40000000, LENGTH = 0x1000000 /* entire remaining flash */
-    RAM0 (rxw) : ORIGIN = 0x00000000, LENGTH = 0x10000   /* entire ram, 64 KB */
+    FLASH (rx)     : ORIGIN = 0x40000000, LENGTH = 0x1000000 /* entire remaining flash */
+    RAM0_BOOT (rx) : ORIGIN = 0x00000000, LENGTH = 0x400     /* hardware limit to 1 KB for crt0 */
+    RAM0 (rxw)     : ORIGIN = 0x00000000, LENGTH = 0x10000   /* reaming 63 KB */
 }
 
 SECTIONS {
@@ -20,14 +21,6 @@ SECTIONS {
   __stack_size = DEFINED(__stack_size) ? __stack_size : 0x1000;
   PROVIDE(__stack_size = __stack_size);
   __heap_size = DEFINED(__heap_size) ? __heap_size : 0x1000;
-
-  .spi_boot (ORIGIN(FLASH)) :
-  {
-    LONG(LOADADDR(.vectors)); /* flash source pointer */
-    LONG(_etext);             /* spi booting copy size in bytes */
-    LONG(ADDR(.vectors));     /* ram destination pointer */
-    LONG(0x00000000);         /* reserved */
-  } >FLASH
 
   /* interrupt vectors */
   .vectors (ORIGIN(RAM0)) :
@@ -77,7 +70,7 @@ SECTIONS {
   {
     KEEP (*(SORT_NONE(.init)));
     KEEP (*(.text.start));
-  } >RAM0 AT >FLASH
+  } >RAM0 >FLASH
   
   /* The program code and other data goes into FLASH */
   .text :
@@ -91,9 +84,8 @@ SECTIONS {
     *(.srodata*)       /* .rodata* sections (constants, strings, etc.) */
     . = ALIGN(4);
     _etext = .;        /* define a global symbol at end of code */
-  } >RAM0 AT >FLASH
+  } >RAM0
 
-   
 
   /* This is the initialized data section
   The program executes knowing that the data is in the RAM

@@ -29,6 +29,7 @@ CUSTOM_GCC_FLAGS           =
 
 LIB_CRT                    = $(wildcard device/lib/crt/*.S)
 LIB_CRT_SPIFLASH           = $(wildcard device/lib/crt_spiflash/*.S)
+LIB_CRT_SPIHOST            = $(wildcard device/lib/crt_spihost/*.S)
 LIB_BASE                   = $(wildcard device/lib/base/*.c)
 LIB_BASE_FREESTD           = device/lib/base/freestanding
 LIB_RUNTIME                = $(wildcard device/lib/runtime/*.c)
@@ -109,7 +110,7 @@ applications/hello_world/hello_world.spihost.elf: applications/hello_world/hello
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIFLASH) \
+		$(LIB_CRT_SPIHOST) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
@@ -170,7 +171,7 @@ applications/example_external_peripheral/example_external_peripheral.spihost.elf
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIFLASH) \
+		$(LIB_CRT_SPIHOST) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
@@ -215,7 +216,7 @@ applications/gpio_pmw/gpio_pmw.spihost.elf: applications/gpio_pmw/gpio_pmw.c
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIFLASH) \
+		$(LIB_CRT_SPIHOST) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
