@@ -139,9 +139,8 @@ module core_v_mini_mcu
 
   // DMA
   logic dma_intr;
-  logic                                    dma_intr;
-  logic                                    spi_intr_error;
-  logic                                    spi_intr_event;
+  logic spi_intr_error;
+  logic spi_intr_event;
 
   logic clk, rst_n, boot_select, execute_from_flash, exit_valid;
   logic jtag_tck;
