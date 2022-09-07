@@ -70,7 +70,7 @@ SECTIONS {
   {
     KEEP (*(SORT_NONE(.init)));
     KEEP (*(.text.start));
-  } >RAM0 >FLASH
+  } >RAM0 AT >FLASH
   
   /* The program code and other data goes into FLASH */
   .text :
@@ -84,7 +84,7 @@ SECTIONS {
     *(.srodata*)       /* .rodata* sections (constants, strings, etc.) */
     . = ALIGN(4);
     _etext = .;        /* define a global symbol at end of code */
-  } >RAM0
+  } >RAM0 AT >FLASH
 
 
   /* This is the initialized data section

@@ -42,7 +42,7 @@ _start:
 	la     a0, _edata
 	// Skip if everything has already been copied
 	blt    a0, s1, _init_bss
-	sub    a3, a0, 1023 # copy size in bytes (-1023 because a0 is an address and a3 the number of bytes to copy)
+	addi   a3, a0, -1024 # copy size in bytes (_edata is word aligned, so -1020 to make sure last word is copied)
 
 	lui    a1, SPI_HOST_START_ADDRESS_20bit
 	// Spi should already be enabled, powered-up and TXWM to 8
@@ -174,7 +174,7 @@ _wait_spi_rxwm_n_words:
 	beqz   a5, _wait_spi_rxwm_n_words
 
 _remaining_bytes_loop:
-	bnez   s0,_spi_read_word
+	bnez   s0, _spi_read_word
 	j      _init_bss
 
 _spi_read_word:
