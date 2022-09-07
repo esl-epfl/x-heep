@@ -8,7 +8,7 @@ ENTRY(_start)
 MEMORY
 {
     FLASH (rx)      : ORIGIN = 0x${spi_flash_start_address}, LENGTH = 0x${spi_flash_size_address}
-    RAM (xrw)       : ORIGIN = 0x${'{:08X}'.format(int(ram_start_address,16) + 4)}, LENGTH = 0x${'{:08X}'.format(int(ram_size_address,16) - 4)}
+    RAM (xrw)       : ORIGIN = 0x${'{:08X}'.format(int(ram_start_address,16))}, LENGTH = 0x${'{:08X}'.format(int(ram_size_address,16) - 4)}
 }
 
 SECTIONS {
@@ -68,7 +68,7 @@ SECTIONS {
     .init (__boot_address):
     {
         KEEP (*(SORT_NONE(.init)))
-	       KEEP (*(.text.start))
+        KEEP (*(.text.start))
     } >RAM AT >FLASH
 
     /* The program code and other data goes into FLASH */
@@ -132,18 +132,18 @@ SECTIONS {
     /* this is to define the start of the heap, and make sure we have a minimum size */
     .heap          :
     {
-     PROVIDE(__heap_start = .);
-    . = __heap_size;
-    PROVIDE(__heap_end = .);
+        PROVIDE(__heap_start = .);
+        . = __heap_size;
+        PROVIDE(__heap_end = .);
     } >RAM
 
     /* stack: we should consider putting this further to the top of the address
     space */
-  .stack         : ALIGN(16) /* this is a requirement of the ABI(?) */
-  {
-   PROVIDE(__stack_start = .);
-   . = __stack_size;
-   PROVIDE(_sp = .);
-   PROVIDE(__stack_end = .);
-  } >RAM
+    .stack         : ALIGN(16) /* this is a requirement of the ABI(?) */
+    {
+       PROVIDE(__stack_start = .);
+       . = __stack_size;
+       PROVIDE(_sp = .);
+       PROVIDE(__stack_end = .);
+    } >RAM
 }

@@ -90,7 +90,7 @@ applications/hello_world/hello_world.flash.elf: applications/hello_world/hello_w
 	$(RISCV_EXE_PREFIX)gcc -march=rv32im -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_spimemio.ld \
+		-T linker/link_spiflash.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
@@ -152,7 +152,7 @@ applications/example_external_peripheral/example_external_peripheral.flash.elf: 
 	$(RISCV_EXE_PREFIX)gcc -march=rv32im -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_spimemio.ld \
+		-T linker/link_spiflash.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
@@ -197,7 +197,7 @@ applications/gpio_pmw/gpio_pmw.flash.elf: applications/gpio_pmw/gpio_pmw.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32im -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_spimemio.ld \
+		-T linker/link_spiflash.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
