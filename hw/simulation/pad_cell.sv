@@ -52,6 +52,13 @@ module pad_cell #(
       assign pad = pad_in_i;
 
     end
+
+    end else if (PadType == "none") begin
+
+      assign pad_out_o = pad_io;
+
+    end
+
   endgenerate
 
 
