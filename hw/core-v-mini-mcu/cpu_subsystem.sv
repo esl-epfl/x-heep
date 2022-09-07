@@ -206,7 +206,7 @@ module cpu_subsystem
         .debug_halted_o   (),
 
         .fetch_enable_i(fetch_enable),
-        .core_sleep_o  ()
+        .core_sleep_o
     );
 
   end

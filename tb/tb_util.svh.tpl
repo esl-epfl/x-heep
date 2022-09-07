@@ -6,9 +6,9 @@
 // Task for loading 'mem' with SystemVerilog system task $readmemh()
 export "DPI-C" task tb_readHEX;
 export "DPI-C" task tb_loadHEX;
-export "DPI-C" task tb_writetoSram0;
-export "DPI-C" task tb_writetoSram1;
-export "DPI-C" task tb_writetoSram;
+% for bank in range(ram_numbanks):
+export "DPI-C" task tb_writetoSram${bank};
+% endfor
 export "DPI-C" task tb_getMemSize;
 export "DPI-C" task tb_set_exit_loop;
 
@@ -16,7 +16,9 @@ import core_v_mini_mcu_pkg::*;
 
 task tb_getMemSize;
   output int mem_size;
-  mem_size = core_v_mini_mcu_pkg::MEM_SIZE;
+  output int num_banks;
+  mem_size  = core_v_mini_mcu_pkg::MEM_SIZE;
+  num_banks = core_v_mini_mcu_pkg::NUM_BANKS;
 endtask
 
 task tb_readHEX;
@@ -29,11 +31,11 @@ task tb_loadHEX;
   input string file;
   //whether to use debug to write to memories
   logic [7:0] stimuli[core_v_mini_mcu_pkg::MEM_SIZE];
-  int i, j, NumBytes;
+  int i, stimuli_counter, bank, NumBytes, NumBanks;
   logic [31:0] addr;
 
   tb_readHEX(file, stimuli);
-  tb_getMemSize(NumBytes);
+  tb_getMemSize(NumBytes, NumBanks);
 
 `ifndef VERILATOR
   for (i = 0; i < NumBytes; i = i + 4) begin
@@ -71,67 +73,39 @@ task tb_loadHEX;
 
 `else
 
-  for (i = 0; i < NumBytes / 2; i = i + 4) begin
-    tb_writetoSram0(i / 4, stimuli[i+3], stimuli[i+2], stimuli[i+1], stimuli[i]);
+  stimuli_counter = 0;
+% for bank in range(ram_numbanks):
+  for (i = 0; i < NumBytes / NumBanks; i = i + 4) begin
+    tb_writetoSram${bank}(i / 4, stimuli[stimuli_counter+3], stimuli[stimuli_counter+2],
+                   stimuli[stimuli_counter+1], stimuli[stimuli_counter]);
+    stimuli_counter = stimuli_counter + 4;
   end
-  for (j = 0; j < NumBytes / 2; j = j + 4) begin
-    tb_writetoSram1(j / 4, stimuli[i+3], stimuli[i+2], stimuli[i+1], stimuli[i]);
-    i = i + 4;
-  end
+% endfor
+
 `endif
 
 endtask
 
-task tb_writetoSram;
-  input integer addr;
-  input logic [31:0] val;
-  output integer retval;
-  int mem_size;
-  tb_getMemSize(mem_size);
-  if (|(addr & 32'h03)) begin
-    retval = 1;
-    $error("Only word-aligned memory access are supported");
-  end else begin
-    if (addr < mem_size / 2) begin
-      tb_writetoSram0(addr, val[31:24], val[23:16], val[15:8], val[7:0]);
-      retval = 0;
-    end else if (addr < mem_size) begin
-      tb_writetoSram1(addr, val[31:24], val[23:16], val[15:8], val[7:0]);
-      retval = 0;
-    end else begin
-      retval = 1;
-      $error("Out Of Memory");
-    end
-  end
-endtask
-
-task tb_writetoSram0;
+% for bank in range(ram_numbanks):
+task tb_writetoSram${bank};
   input integer addr;
   input [7:0] val3;
   input [7:0] val2;
   input [7:0] val1;
   input [7:0] val0;
 `ifdef VCS
-  force core_v_mini_mcu_i.memory_subsystem_i.ram0_i.tc_ram_i.sram[addr] = {val3, val2, val1, val0};
-  release core_v_mini_mcu_i.memory_subsystem_i.ram0_i.tc_ram_i.sram[addr];
+  force core_v_mini_mcu_i.memory_subsystem_i.gen_sram[${bank}].ram_i.tc_ram_i.sram[addr] = {
+    val3, val2, val1, val0
+  };
+  release core_v_mini_mcu_i.memory_subsystem_i.gen_sram[${bank}].ram_i.tc_ram_i.sram[addr];
 `else
-  core_v_mini_mcu_i.memory_subsystem_i.ram0_i.tc_ram_i.sram[addr] = {val3, val2, val1, val0};
+  core_v_mini_mcu_i.memory_subsystem_i.gen_sram[${bank}].ram_i.tc_ram_i.sram[addr] = {
+    val3, val2, val1, val0
+  };
 `endif
 endtask
 
-task tb_writetoSram1;
-  input integer addr;
-  input [7:0] val3;
-  input [7:0] val2;
-  input [7:0] val1;
-  input [7:0] val0;
-`ifdef VCS
-  force core_v_mini_mcu_i.memory_subsystem_i.ram1_i.tc_ram_i.sram[addr] = {val3, val2, val1, val0};
-  release core_v_mini_mcu_i.memory_subsystem_i.ram1_i.tc_ram_i.sram[addr];
-`else
-  core_v_mini_mcu_i.memory_subsystem_i.ram1_i.tc_ram_i.sram[addr] = {val3, val2, val1, val0};
-`endif
-endtask
+% endfor
 
 task tb_set_exit_loop;
 `ifdef VCS

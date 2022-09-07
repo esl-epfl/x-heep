@@ -2,8 +2,8 @@ ENTRY(_start)
 
 MEMORY
 {
-    FLASH (rx)      : ORIGIN = 0x40000000, LENGTH = 0x1000000 /* entire flash, 16 MB */
-    RAM (xrw)       : ORIGIN = 0x00000004, LENGTH = 0x000FFFC /* entire ram, 64 KB */
+    FLASH (rx)      : ORIGIN = 0x${spi_flash_start_address}, LENGTH = 0x${spi_flash_size_address}
+    RAM (xrw)       : ORIGIN = 0x${'{:08X}'.format(int(ram_start_address,16) + 4)}, LENGTH = 0x${'{:08X}'.format(int(ram_size_address,16) - 4)}
 }
 
 SECTIONS {

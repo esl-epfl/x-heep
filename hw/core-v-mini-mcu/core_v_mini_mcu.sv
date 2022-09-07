@@ -60,80 +60,85 @@ module core_v_mini_mcu
   localparam BOOT_ADDR = core_v_mini_mcu_pkg::BOOTROM_START_ADDRESS;
   localparam NUM_MHPMCOUNTERS = 1;
 
+  // Log top level parameter values
+`ifndef SYNTHESIS
+  initial begin
+    $display("[X-HEEP]: NUM_BYTES = %dKB", NUM_BYTES / 1024);
+  end
+`endif
+
   // masters signals
-  obi_req_t                                core_instr_req;
-  obi_resp_t                               core_instr_resp;
-  obi_req_t                                core_data_req;
-  obi_resp_t                               core_data_resp;
-  obi_req_t                                debug_master_req;
-  obi_resp_t                               debug_master_resp;
-  obi_req_t                                dma_master0_ch0_req;
-  obi_resp_t                               dma_master0_ch0_resp;
-  obi_req_t                                dma_master1_ch0_req;
-  obi_resp_t                               dma_master1_ch0_resp;
+  obi_req_t core_instr_req;
+  obi_resp_t core_instr_resp;
+  obi_req_t core_data_req;
+  obi_resp_t core_data_resp;
+  obi_req_t debug_master_req;
+  obi_resp_t debug_master_resp;
+  obi_req_t dma_master0_ch0_req;
+  obi_resp_t dma_master0_ch0_resp;
+  obi_req_t dma_master1_ch0_req;
+  obi_resp_t dma_master1_ch0_resp;
 
   // ram signals
-  obi_req_t                                ram0_slave_req;
-  obi_resp_t                               ram0_slave_resp;
-  obi_req_t                                ram1_slave_req;
-  obi_resp_t                               ram1_slave_resp;
+  obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
+  obi_resp_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_resp;
 
   // debug signals
-  obi_req_t                                debug_slave_req;
-  obi_resp_t                               debug_slave_resp;
+  obi_req_t debug_slave_req;
+  obi_resp_t debug_slave_resp;
 
   // peripherals signals
-  obi_req_t                                ao_peripheral_slave_req;
-  obi_resp_t                               ao_peripheral_slave_resp;
-  obi_req_t                                peripheral_slave_req;
-  obi_resp_t                               peripheral_slave_resp;
+  obi_req_t ao_peripheral_slave_req;
+  obi_resp_t ao_peripheral_slave_resp;
+  obi_req_t peripheral_slave_req;
+  obi_resp_t peripheral_slave_resp;
 
   // spi flash signals
-  obi_req_t                                spi_flash_slave_req;
-  obi_resp_t                               spi_flash_slave_resp;
+  obi_req_t spi_flash_slave_req;
+  obi_resp_t spi_flash_slave_resp;
 
   // signals to debug unit
-  logic                                    debug_core_req;
+  logic debug_core_req;
 
   // core
-  logic                                    core_sleep;
+  logic core_sleep;
 
   // irq signals
-  logic                                    irq_ack;
-  logic      [                        4:0] irq_id_out;
-  logic                                    irq_software;
-  logic                                    irq_timer;
-  logic                                    irq_external;
-  logic      [                       15:0] irq_fast;
+  logic irq_ack;
+  logic [4:0] irq_id_out;
+  logic irq_software;
+  logic irq_timer;
+  logic irq_external;
+  logic [15:0] irq_fast;
 
   // gpio signals
-  logic      [                       31:0] gpio_in;
-  logic      [                       31:0] gpio_out;
-  logic      [                       31:0] gpio_en;
+  logic [31:0] gpio_in;
+  logic [31:0] gpio_out;
+  logic [31:0] gpio_en;
 
   // spi signals
-  logic                                    spi_sck;
-  logic                                    spi_sck_en;
-  logic      [spi_host_reg_pkg::NumCS-1:0] spi_csb;
-  logic      [spi_host_reg_pkg::NumCS-1:0] spi_csb_en;
-  logic      [                        3:0] spi_sd_out;
-  logic      [                        3:0] spi_sd_en;
-  logic      [                        3:0] spi_sd_in;
+  logic spi_sck;
+  logic spi_sck_en;
+  logic [spi_host_reg_pkg::NumCS-1:0] spi_csb;
+  logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_en;
+  logic [3:0] spi_sd_out;
+  logic [3:0] spi_sd_en;
+  logic [3:0] spi_sd_in;
 
   // power manager
-  logic                                    cpu_subsystem_powergate_switch;
-  logic                                    cpu_subsystem_rst_n;
+  logic cpu_subsystem_powergate_switch;
+  logic cpu_subsystem_rst_n;
 
   // I2C
-  logic                                    cio_scl_in;
-  logic                                    cio_scl_out;
-  logic                                    cio_scl_en;
-  logic                                    cio_sda_in;
-  logic                                    cio_sda_out;
-  logic                                    cio_sda_en;
+  logic cio_scl_in;
+  logic cio_scl_out;
+  logic cio_scl_en;
+  logic cio_sda_in;
+  logic cio_sda_out;
+  logic cio_sda_en;
 
   // DMA
-  logic                                    dma_intr;
+  logic dma_intr;
 
   logic clk, rst_n, boot_select, execute_from_flash, exit_valid;
   logic jtag_tck;
@@ -185,6 +190,7 @@ module core_v_mini_mcu
   );
 
   system_bus #(
+      .NUM_BANKS(core_v_mini_mcu_pkg::NUM_BANKS),
       .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER)
   ) system_bus_i (
       .clk_i                     (clk),
@@ -201,10 +207,8 @@ module core_v_mini_mcu
       .dma_master1_ch0_resp_o    (dma_master1_ch0_resp),
       .ext_xbar_master_req_i     (ext_xbar_master_req_i),
       .ext_xbar_master_resp_o    (ext_xbar_master_resp_o),
-      .ram0_req_o                (ram0_slave_req),
-      .ram0_resp_i               (ram0_slave_resp),
-      .ram1_req_o                (ram1_slave_req),
-      .ram1_resp_i               (ram1_slave_resp),
+      .ram_req_o                 (ram_slave_req),
+      .ram_resp_i                (ram_slave_resp),
       .debug_slave_req_o         (debug_slave_req),
       .debug_slave_resp_i        (debug_slave_resp),
       .ao_peripheral_slave_req_o (ao_peripheral_slave_req),
@@ -218,14 +222,12 @@ module core_v_mini_mcu
   );
 
   memory_subsystem #(
-      .NUM_BYTES(NUM_BYTES)
+      .NUM_BANKS(core_v_mini_mcu_pkg::NUM_BANKS)
   ) memory_subsystem_i (
       .clk_i(clk),
       .rst_ni(rst_n),
-      .ram0_req_i(ram0_slave_req),
-      .ram0_resp_o(ram0_slave_resp),
-      .ram1_req_i(ram1_slave_req),
-      .ram1_resp_o(ram1_slave_resp)
+      .ram_req_i(ram_slave_req),
+      .ram_resp_o(ram_slave_resp)
   );
 
   ao_peripheral_subsystem ao_peripheral_subsystem_i (

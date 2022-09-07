@@ -18,6 +18,7 @@ module system_bus
   import obi_pkg::*;
   import addr_map_rule_pkg::*;
 #(
+    parameter NUM_BANKS = 2,
     parameter EXT_XBAR_NMASTER = 0
 ) (
     input logic clk_i,
@@ -43,11 +44,8 @@ module system_bus
     output obi_resp_t [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
 
     //Slaves
-    output obi_req_t  ram0_req_o,
-    input  obi_resp_t ram0_resp_i,
-
-    output obi_req_t  ram1_req_o,
-    input  obi_resp_t ram1_resp_i,
+    output obi_req_t  [NUM_BANKS-1:0] ram_req_o,
+    input  obi_resp_t [NUM_BANKS-1:0] ram_resp_i,
 
     output obi_req_t  debug_slave_req_o,
     input  obi_resp_t debug_slave_resp_i,
@@ -100,8 +98,9 @@ module system_bus
 
   //slave req
   assign error_slave_req = slave_req[core_v_mini_mcu_pkg::ERROR_IDX];
-  assign ram0_req_o = slave_req[core_v_mini_mcu_pkg::RAM0_IDX];
-  assign ram1_req_o = slave_req[core_v_mini_mcu_pkg::RAM1_IDX];
+% for bank in range(ram_numbanks):
+  assign ram_req_o[${bank}] = slave_req[core_v_mini_mcu_pkg::RAM${bank}_IDX];
+% endfor
   assign debug_slave_req_o = slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
   assign ao_peripheral_slave_req_o = slave_req[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX];
   assign peripheral_slave_req_o = slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
@@ -110,8 +109,9 @@ module system_bus
 
   //slave resp
   assign slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
-  assign slave_resp[core_v_mini_mcu_pkg::RAM0_IDX] = ram0_resp_i;
-  assign slave_resp[core_v_mini_mcu_pkg::RAM1_IDX] = ram1_resp_i;
+% for bank in range(ram_numbanks):
+  assign slave_resp[core_v_mini_mcu_pkg::RAM${bank}_IDX] = ram_resp_i[${bank}];
+% endfor
   assign slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX] = debug_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX] = ao_peripheral_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;

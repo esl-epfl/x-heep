@@ -9,6 +9,25 @@
 
     bus_type: onetoM
 
+    ram: {
+        address: 0x00000000, #only tried with 0, cannot be changed for now
+        numbanks: 2, #each bank is 32kB, cannot be changed for now
+    },
+
+    linker_script: {
+        #value used for the on-chip linker script, the on-flash linker script is generated using FLASH values and the whole RAM values
+        onchip_ls: {
+            code: {
+                address: 0x00000000,
+                lenght: 0x00008000, #32KB
+            }
+            data: {
+                address: 0x00008000,
+                lenght: whatisleft, #keyword used to calculate the size as: ram.length - code.lenght
+            }
+        },
+    }
+
     debug: {
         address: 0x10000000,
         length:  0x00100000,
@@ -81,7 +100,6 @@
         address: 0xF0000000,
         length:  0x01000000,
     },
-
 
     interrupts: {
         // First one is always zero
