@@ -21,7 +21,7 @@
 #-------------------------------------------------------------------------
 # use fusesoc to generate files and file list
 #-------------------------------------------------------------------------
-
+git checkout hw/vendor/
 git apply sv2v_openhwgroup_cv32e40p.patch
 git apply sv2v_pulp_platform_common_cells.patch
 
@@ -104,6 +104,9 @@ yosys -L yosys_log.log -QTqp "
   hierarchy -check -top core_v_mini_mcu;
   proc; opt;
   techmap; opt;
-  write_verilog yosys_elaborated.v;
-  write_json out.json;
+  write_verilog core_v_mini_mcu_yosys_elaborated.v;
+  dfflibmap -liberty ../../../hw/asic/sky130/sky130_fd_sc_lp__ss_150C_1v65.lib;
+  abc -liberty ../../../hw/asic/sky130/sky130_fd_sc_lp__ss_150C_1v65.lib;
+  clean;
+  write_verilog core_v_mini_mcu_yosys_synth_sky130.v;
 "
