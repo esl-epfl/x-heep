@@ -21,12 +21,11 @@ module boot_rom
     output reg_rsp_t reg_rsp_o
 );
 
-  localparam int unsigned RomSize = 71;
+  localparam int unsigned RomSize = 70;
 
   logic [RomSize-1:0][31:0] mem;
   assign mem = {
-    32'h0000b5e5,
-    32'h00019602,
+    32'h00009602,
     32'h49902000,
     32'h05b7fad1,
     32'hf0068693,
@@ -102,8 +101,16 @@ module boot_rom
 
   assign addr = reg_req_i.addr[$clog2(RomSize)-1+2:2];
 
-  assign reg_rsp_o.error = addr > RomSize - 1 && reg_req_i.valid;
+  assign reg_rsp_o.error = 1'b0;
   assign reg_rsp_o.ready = 1'b1;
   assign reg_rsp_o.rdata = mem[addr];
+
+  always_comb begin
+    if (addr > RomSize - 1) begin
+      reg_rsp_o.rdata = '0;
+    end else begin
+      reg_rsp_o.rdata = mem[addr];
+    end
+  end
 
 endmodule

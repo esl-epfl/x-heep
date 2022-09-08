@@ -155,6 +155,3 @@ _wait_spi_rxwm_8_words:
        // Load ram boot address
        lw     a2, SOC_CTRL_BOOT_ADDRESS_REG_OFFSET(a1)
        jalr   a2
-       // Leave some nops otherwise prefetcher out of bound
-       nop
-       j      entry # In case we end up here

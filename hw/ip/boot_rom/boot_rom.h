@@ -1,6 +1,6 @@
 // Auto-generated code
 
-const int reset_vec_size = 71;
+const int reset_vec_size = 70;
 
 uint32_t reset_vec[reset_vec_size] = {
     0x200305b7,
@@ -72,6 +72,5 @@ uint32_t reset_vec[reset_vec_size] = {
     0xf0068693,
     0x05b7fad1,
     0x49902000,
-    0x00019602,
-    0x0000b5e5
+    0x00009602
 };

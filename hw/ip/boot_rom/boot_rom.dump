@@ -6,14 +6,14 @@ Disassembly of section .text:
 
 00000000 <entry>:
    0:	200305b7          	lui	a1,0x20030
-   4:	0045c503          	lbu	a0,4(a1) # 20030004 <_end+0x2002feea>
+   4:	0045c503          	lbu	a0,4(a1) # 20030004 <_end+0x2002feee>
    8:	c119                	beqz	a0,e <boot>
    a:	4588                	lw	a0,8(a1)
    c:	9502                	jalr	a0
 
 0000000e <boot>:
    e:	200005b7          	lui	a1,0x20000
-  12:	0085c503          	lbu	a0,8(a1) # 20000008 <_end+0x1ffffeee>
+  12:	0085c503          	lbu	a0,8(a1) # 20000008 <_end+0x1ffffef2>
   16:	e511                	bnez	a0,22 <_jump_to_flash>
 
 00000018 <_jump_to_debug_rom>:
@@ -31,7 +31,7 @@ Disassembly of section .text:
   2c:	4505                	li	a0,1
   2e:	c188                	sw	a0,0(a1)
   30:	400005b7          	lui	a1,0x40000
-  34:	18058593          	addi	a1,a1,384 # 40000180 <_end+0x40000066>
+  34:	18058593          	addi	a1,a1,384 # 40000180 <_end+0x4000006a>
   38:	9582                	jalr	a1
 
 0000003a <_copy_from_flash>:
@@ -66,7 +66,7 @@ Disassembly of section .text:
   78:	49d8                	lw	a4,20(a1)
   7a:	fe075ee3          	bgez	a4,76 <_wait_spi_ready_tx_init>
   7e:	6709                	lui	a4,0x2
-  80:	20370713          	addi	a4,a4,515 # 2203 <_end+0x20e9>
+  80:	20370713          	addi	a4,a4,515 # 2203 <_end+0x20ed>
   84:	d1d8                	sw	a4,36(a1)
 
 00000086 <_wait_spi_ready_read_prog>:
@@ -78,14 +78,14 @@ Disassembly of section .text:
   94:	4481                	li	s1,0
   96:	10000b13          	li	s6,256
   9a:	6405                	lui	s0,0x1
-  9c:	2ff40a93          	addi	s5,s0,767 # 12ff <_end+0x11e5>
+  9c:	2ff40a93          	addi	s5,s0,767 # 12ff <_end+0x11e9>
 
 000000a0 <_32B_chunk_loop>:
   a0:	00db4463          	blt	s6,a3,a8 <_read_32B_chunk>
   a4:	0ff40a93          	addi	s5,s0,255
 
 000000a8 <_read_32B_chunk>:
-  a8:	0355a223          	sw	s5,36(a1) # 20020024 <_end+0x2001ff0a>
+  a8:	0355a223          	sw	s5,36(a1) # 20020024 <_end+0x2001ff0e>
 
 000000ac <_wait_spi_ready_read_32B_chunk>:
   ac:	0001                	nop
@@ -121,5 +121,3 @@ Disassembly of section .text:
  10e:	200005b7          	lui	a1,0x20000
  112:	4990                	lw	a2,16(a1)
  114:	9602                	jalr	a2
- 116:	0001                	nop
- 118:	b5e5                	j	0 <entry>
