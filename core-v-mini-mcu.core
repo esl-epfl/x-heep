@@ -85,7 +85,7 @@ filesets:
 
   rtl-sky130:
     files:
-    - hw/asic/sky130/sram_wrapper.sv
+    # - hw/asic/sky130/sram_wrapper.sv
     - hw/simulation/pad_cell_input.sv #as for now use the simulation pad_cell
     - hw/simulation/pad_cell_output.sv #as for now use the simulation pad_cell
     - hw/simulation/pad_cell_inout.sv #as for now use the simulation pad_cell
@@ -142,6 +142,17 @@ filesets:
     files:
     - tb/tb_top.sv
     file_type: systemVerilogSource
+
+  openroad_base_files:
+    files:
+      - flow/OpenROAD/flow/Makefile : {file_type: Makefile}
+    depend:
+      - core-v-mini:util:sv2v
+
+  openroad_sky130_files:
+    files:
+      - flow/sky130/config.mk : {file_type: configFile}
+      - flow/sky130/constraint.sdc : {file_type: SDC}
 
 parameters:
   PULP_XPULP:
@@ -346,3 +357,21 @@ targets:
         dc_script:
         - dc_script.tcl
       icarus:
+
+  asic_yosys_synthesis:
+    <<: *default_target
+    default_tool: openroad
+    description: yosys
+    parameters:
+      - PULP_XPULP=0
+      - SYNTHESIS=true
+      - SV2V=true
+    filesets_append:
+      - use_sky130? (rtl-sky130)
+      - openroad_base_files
+      - openroad_sky130_files
+    toplevel: [core_v_mini_mcu]
+    tools:
+      openroad:
+        flow_path: flow/OpenROAD/flow
+        make_target: synth
