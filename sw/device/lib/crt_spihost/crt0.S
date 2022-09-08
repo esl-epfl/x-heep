@@ -183,9 +183,6 @@ _spi_read_word:
 	addi   s0, s0, -4
 	addi   s1, s1, 4
 	j      _remaining_bytes_loop
-	// Leave some nops otherwise prefetcher out of bound
-	nop
-	nop
 
 /* clear the bss segment */
 _init_bss:
