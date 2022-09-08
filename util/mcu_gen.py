@@ -229,14 +229,6 @@ def main():
     uart_intr_rx_break_err = obj['interrupts']['uart_intr_rx_break_err']
     uart_intr_rx_timeout = obj['interrupts']['uart_intr_rx_timeout']
     uart_intr_rx_parity_err = obj['interrupts']['uart_intr_rx_parity_err']
-    gpio_intr_0 = obj['interrupts']['gpio_intr_0']
-    gpio_intr_1 = obj['interrupts']['gpio_intr_1']
-    gpio_intr_2 = obj['interrupts']['gpio_intr_2']
-    gpio_intr_3 = obj['interrupts']['gpio_intr_3']
-    gpio_intr_4 = obj['interrupts']['gpio_intr_4']
-    gpio_intr_5 = obj['interrupts']['gpio_intr_5']
-    gpio_intr_6 = obj['interrupts']['gpio_intr_6']
-    gpio_intr_7 = obj['interrupts']['gpio_intr_7']
     gpio_intr_8 = obj['interrupts']['gpio_intr_8']
     gpio_intr_9 = obj['interrupts']['gpio_intr_9']
     gpio_intr_10 = obj['interrupts']['gpio_intr_10']
@@ -277,13 +269,21 @@ def main():
     intr_acq_overflow = obj['interrupts']['intr_acq_overflow']
     intr_ack_stop = obj['interrupts']['intr_ack_stop']
     intr_host_timeout = obj['interrupts']['intr_host_timeout']
-    dma_intr_done = obj['interrupts']['dma_intr_done']
     ext_intr_0 = obj['interrupts']['ext_intr_0']
     ext_intr_1 = obj['interrupts']['ext_intr_1']
     ext_intr_2 = obj['interrupts']['ext_intr_2']
     ext_intr_3 = obj['interrupts']['ext_intr_3']
     ext_intr_4 = obj['interrupts']['ext_intr_4']
     ext_intr_5 = obj['interrupts']['ext_intr_5']
+    ext_intr_6 = obj['interrupts']['ext_intr_6']
+    ext_intr_7 = obj['interrupts']['ext_intr_7']
+    ext_intr_8 = obj['interrupts']['ext_intr_8']
+    ext_intr_9 = obj['interrupts']['ext_intr_9']
+    ext_intr_10 = obj['interrupts']['ext_intr_10']
+    ext_intr_11 = obj['interrupts']['ext_intr_11']
+    ext_intr_12 = obj['interrupts']['ext_intr_12']
+    ext_intr_13 = obj['interrupts']['ext_intr_13']
+    ext_intr_14 = obj['interrupts']['ext_intr_14']
 
     kwargs = {
         "cpu_type"                         : cpu_type,
@@ -340,14 +340,6 @@ def main():
         "uart_intr_rx_break_err"           : uart_intr_rx_break_err,
         "uart_intr_rx_timeout"             : uart_intr_rx_timeout,
         "uart_intr_rx_parity_err"          : uart_intr_rx_parity_err,
-        "gpio_intr_0"                      : gpio_intr_0,
-        "gpio_intr_1"                      : gpio_intr_1,
-        "gpio_intr_2"                      : gpio_intr_2,
-        "gpio_intr_3"                      : gpio_intr_3,
-        "gpio_intr_4"                      : gpio_intr_4,
-        "gpio_intr_5"                      : gpio_intr_5,
-        "gpio_intr_6"                      : gpio_intr_6,
-        "gpio_intr_7"                      : gpio_intr_7,
         "gpio_intr_8"                      : gpio_intr_8,
         "gpio_intr_9"                      : gpio_intr_9,
         "gpio_intr_10"                     : gpio_intr_10,
@@ -388,13 +380,21 @@ def main():
         "intr_acq_overflow"                : intr_acq_overflow,
         "intr_ack_stop"                    : intr_ack_stop,
         "intr_host_timeout"                : intr_host_timeout,
-        "dma_intr_done"                    : dma_intr_done,
         "ext_intr_0"                       : ext_intr_0,
         "ext_intr_1"                       : ext_intr_1,
         "ext_intr_2"                       : ext_intr_2,
         "ext_intr_3"                       : ext_intr_3,
         "ext_intr_4"                       : ext_intr_4,
         "ext_intr_5"                       : ext_intr_5,
+        "ext_intr_6"                       : ext_intr_6,
+        "ext_intr_7"                       : ext_intr_7,
+        "ext_intr_8"                       : ext_intr_8,
+        "ext_intr_9"                       : ext_intr_9,
+        "ext_intr_10"                      : ext_intr_10,
+        "ext_intr_11"                      : ext_intr_11,
+        "ext_intr_12"                      : ext_intr_12,
+        "ext_intr_13"                      : ext_intr_13,
+        "ext_intr_14"                      : ext_intr_14,
     }
 
     ###########

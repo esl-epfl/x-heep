@@ -92,14 +92,6 @@ extern "C" {
 #define UART_INTR_RX_BREAK_ERR ${uart_intr_rx_break_err}
 #define UART_INTR_RX_TIMEOUT ${uart_intr_rx_timeout}
 #define UART_INTR_RX_PARITY_ERR ${uart_intr_rx_parity_err}
-#define GPIO_INTR_0 ${gpio_intr_0}
-#define GPIO_INTR_1 ${gpio_intr_1}
-#define GPIO_INTR_2 ${gpio_intr_2}
-#define GPIO_INTR_3 ${gpio_intr_3}
-#define GPIO_INTR_4 ${gpio_intr_4}
-#define GPIO_INTR_5 ${gpio_intr_5}
-#define GPIO_INTR_6 ${gpio_intr_6}
-#define GPIO_INTR_7 ${gpio_intr_7}
 #define GPIO_INTR_8 ${gpio_intr_8}
 #define GPIO_INTR_9 ${gpio_intr_9}
 #define GPIO_INTR_10 ${gpio_intr_10}
@@ -140,13 +132,21 @@ extern "C" {
 #define INTR_ACQ_OVERFLOW ${intr_acq_overflow}
 #define INTR_ACK_STOP ${intr_ack_stop}
 #define INTR_HOST_TIMEOUT ${intr_host_timeout}
-#define DMA_INTR_DONE ${dma_intr_done}
 #define EXT_INTR_0 ${ext_intr_0}
 #define EXT_INTR_1 ${ext_intr_1}
 #define EXT_INTR_2 ${ext_intr_2}
 #define EXT_INTR_3 ${ext_intr_3}
 #define EXT_INTR_4 ${ext_intr_4}
 #define EXT_INTR_5 ${ext_intr_5}
+#define EXT_INTR_6 ${ext_intr_6}
+#define EXT_INTR_7 ${ext_intr_7}
+#define EXT_INTR_8 ${ext_intr_8}
+#define EXT_INTR_9 ${ext_intr_9}
+#define EXT_INTR_10 ${ext_intr_10}
+#define EXT_INTR_11 ${ext_intr_11}
+#define EXT_INTR_12 ${ext_intr_12}
+#define EXT_INTR_13 ${ext_intr_13}
+#define EXT_INTR_14 ${ext_intr_14}
 
 #ifdef __cplusplus
 }  // extern "C"

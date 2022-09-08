@@ -67,12 +67,21 @@ module testharness #(
   logic memcopy_intr;
 
   // If more external interrupt lines are needed the PLIC has to be regenerated with more interrupt sources
-  assign intr_vector_ext[0] = memcopy_intr;
-  assign intr_vector_ext[1] = 1'b0;
-  assign intr_vector_ext[2] = 1'b0;
-  assign intr_vector_ext[3] = 1'b0;
-  assign intr_vector_ext[4] = 1'b0;
-  assign intr_vector_ext[5] = 1'b0;
+  assign intr_vector_ext[0]  = memcopy_intr;
+  assign intr_vector_ext[1]  = 1'b0;
+  assign intr_vector_ext[2]  = 1'b0;
+  assign intr_vector_ext[3]  = 1'b0;
+  assign intr_vector_ext[4]  = 1'b0;
+  assign intr_vector_ext[5]  = 1'b0;
+  assign intr_vector_ext[6]  = 1'b0;
+  assign intr_vector_ext[7]  = 1'b0;
+  assign intr_vector_ext[8]  = 1'b0;
+  assign intr_vector_ext[9]  = 1'b0;
+  assign intr_vector_ext[10] = 1'b0;
+  assign intr_vector_ext[11] = 1'b0;
+  assign intr_vector_ext[12] = 1'b0;
+  assign intr_vector_ext[13] = 1'b0;
+  assign intr_vector_ext[14] = 1'b0;
 
 `ifdef USE_UPF
   initial begin

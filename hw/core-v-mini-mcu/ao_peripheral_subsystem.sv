@@ -30,6 +30,7 @@ module ao_peripheral_subsystem
     output logic [                        3:0] spi_sd_o,
     output logic [                        3:0] spi_sd_en_o,
     input  logic [                        3:0] spi_sd_i,
+    output logic                               spi_intr_o,
 
     // POWER MANAGER
     input  logic core_sleep_i,
@@ -37,7 +38,8 @@ module ao_peripheral_subsystem
     output logic cpu_subsystem_rst_no,
 
     //RV TIMER
-    output logic rv_timer_irq_timer_0_o,
+    output logic rv_timer_intr_0_o,
+    output logic rv_timer_intr_1_o,
 
     // DMA
     output obi_req_t  dma_master0_ch0_req_o,
@@ -63,8 +65,8 @@ module ao_peripheral_subsystem
   logic [AO_PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
   logic use_spimemio;
-  logic rv_timer_irq_timer_0;
-  logic rv_timer_irq_timer_1;
+  logic rv_timer_intr_0;
+  logic rv_timer_intr_1;
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
@@ -153,7 +155,8 @@ module ao_peripheral_subsystem
       .spi_csb_en_o,
       .spi_sd_o,
       .spi_sd_en_o,
-      .spi_sd_i
+      .spi_sd_i,
+      .spi_intr_o
   );
 
   power_manager #(
@@ -164,7 +167,7 @@ module ao_peripheral_subsystem
       .rst_ni,
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
-      .rv_timer_irq_i(rv_timer_irq_timer_0 | rv_timer_irq_timer_1),
+      .rv_timer_irq_i(rv_timer_intr_0 | rv_timer_intr_1),
       .core_sleep_i,
       .cpu_subsystem_powergate_switch_o,
       .cpu_subsystem_rst_no
@@ -182,11 +185,12 @@ module ao_peripheral_subsystem
       .rst_ni,
       .tl_i(rv_timer_tl_h2d),
       .tl_o(rv_timer_tl_d2h),
-      .intr_timer_expired_0_0_o(rv_timer_irq_timer_0),
-      .intr_timer_expired_1_0_o(rv_timer_irq_timer_1)
+      .intr_timer_expired_0_0_o(rv_timer_intr_0),
+      .intr_timer_expired_1_0_o(rv_timer_intr_1)
   );
 
-  assign rv_timer_irq_timer_0_o = rv_timer_irq_timer_0;
+  assign rv_timer_intr_0_o = rv_timer_intr_0;
+  assign rv_timer_intr_1_o = rv_timer_intr_1;
 
   dma #(
       .reg_req_t (reg_pkg::reg_req_t),

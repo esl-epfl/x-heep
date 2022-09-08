@@ -28,6 +28,7 @@ module peripheral_subsystem
     input  logic [31:0] cio_gpio_i,
     output logic [31:0] cio_gpio_o,
     output logic [31:0] cio_gpio_en_o,
+    output logic [ 7:0] cio_gpio_intr_o,
 
     // I2C Interface
     input  logic cio_scl_i,
@@ -37,11 +38,13 @@ module peripheral_subsystem
     output logic cio_sda_o,
     output logic cio_sda_en_o,
 
+    //RV TIMER
+    output logic rv_timer_intr_0_o,
+    output logic rv_timer_intr_1_o,
+
     //External peripheral(s)
     output reg_req_t ext_peripheral_slave_req_o,
-    input  reg_rsp_t ext_peripheral_slave_resp_i,
-
-    input logic dma_intr_i
+    input  reg_rsp_t ext_peripheral_slave_resp_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -115,24 +118,23 @@ module peripheral_subsystem
   assign intr_vector[6] = uart_intr_rx_break_err;
   assign intr_vector[7] = uart_intr_rx_timeout;
   assign intr_vector[8] = uart_intr_rx_parity_err;
-  assign intr_vector[40:9] = gpio_intr;
-  assign intr_vector[41] = intr_fmt_watermark;
-  assign intr_vector[42] = intr_rx_watermark;
-  assign intr_vector[43] = intr_fmt_overflow;
-  assign intr_vector[44] = intr_rx_overflow;
-  assign intr_vector[45] = intr_nak;
-  assign intr_vector[46] = intr_scl_interference;
-  assign intr_vector[47] = intr_sda_interference;
-  assign intr_vector[48] = intr_stretch_timeout;
-  assign intr_vector[49] = intr_sda_unstable;
-  assign intr_vector[50] = intr_trans_complete;
-  assign intr_vector[51] = intr_tx_empty;
-  assign intr_vector[52] = intr_tx_nonempty;
-  assign intr_vector[53] = intr_tx_overflow;
-  assign intr_vector[54] = intr_acq_overflow;
-  assign intr_vector[55] = intr_ack_stop;
-  assign intr_vector[56] = intr_host_timeout;
-  assign intr_vector[57] = dma_intr_i;
+  assign intr_vector[32:9] = gpio_intr[31:8];
+  assign intr_vector[33] = intr_fmt_watermark;
+  assign intr_vector[34] = intr_rx_watermark;
+  assign intr_vector[35] = intr_fmt_overflow;
+  assign intr_vector[36] = intr_rx_overflow;
+  assign intr_vector[37] = intr_nak;
+  assign intr_vector[38] = intr_scl_interference;
+  assign intr_vector[39] = intr_sda_interference;
+  assign intr_vector[40] = intr_stretch_timeout;
+  assign intr_vector[41] = intr_sda_unstable;
+  assign intr_vector[42] = intr_trans_complete;
+  assign intr_vector[43] = intr_tx_empty;
+  assign intr_vector[44] = intr_tx_nonempty;
+  assign intr_vector[45] = intr_tx_overflow;
+  assign intr_vector[46] = intr_acq_overflow;
+  assign intr_vector[47] = intr_ack_stop;
+  assign intr_vector[48] = intr_host_timeout;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin
@@ -257,6 +259,8 @@ module peripheral_subsystem
       .intr_gpio_o(gpio_intr)
   );
 
+  assign cio_gpio_intr_o = gpio_intr[7:0];
+
   reg_to_tlul reg_to_tlul_i2c_i (
       .tl_o(i2c_tl_h2d),
       .tl_i(i2c_tl_d2h),
@@ -305,8 +309,8 @@ module peripheral_subsystem
       .rst_ni,
       .tl_i(rv_timer_tl_h2d),
       .tl_o(rv_timer_tl_d2h),
-      .intr_timer_expired_0_0_o(),
-      .intr_timer_expired_1_0_o()
+      .intr_timer_expired_0_0_o(rv_timer_intr_0_o),
+      .intr_timer_expired_1_0_o(rv_timer_intr_1_o)
   );
 
 endmodule : peripheral_subsystem

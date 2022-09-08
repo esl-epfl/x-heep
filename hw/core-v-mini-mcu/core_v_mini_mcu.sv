@@ -109,7 +109,7 @@ module core_v_mini_mcu
   logic irq_software;
   logic irq_timer;
   logic irq_external;
-  logic [15:0] irq_fast;
+  logic [14:0] irq_fast;
 
   // gpio signals
   logic [31:0] gpio_in;
@@ -137,9 +137,6 @@ module core_v_mini_mcu
   logic cio_sda_out;
   logic cio_sda_en;
 
-  // DMA
-  logic dma_intr;
-
   logic clk, rst_n, boot_select, execute_from_flash, exit_valid;
   logic jtag_tck;
   logic jtag_tms;
@@ -163,14 +160,14 @@ module core_v_mini_mcu
       .core_instr_resp_i(core_instr_resp),
       .core_data_req_o(core_data_req),
       .core_data_resp_i(core_data_resp),
-      .irq_i({irq_fast, 4'b0, irq_external, 3'b0, irq_timer, 3'b0, irq_software, 3'b0}),
+      .irq_i({14'b0, irq_fast, irq_external, irq_timer, irq_software}),
       .irq_ack_o(irq_ack),
       .irq_id_o(irq_id_out),
       .debug_req_i(debug_core_req),
       .core_sleep_o(core_sleep)
   );
 
-  assign irq_fast = '0;
+  assign irq_fast[14:13] = 2'b0;
 
   debug_subsystem #(
       .JTAG_IDCODE(JTAG_IDCODE)
@@ -248,15 +245,17 @@ module core_v_mini_mcu
       .spi_sd_o(spi_sd_out),
       .spi_sd_en_o(spi_sd_en),
       .spi_sd_i(spi_sd_in),
+      .spi_intr_o(irq_fast[4]),
       .core_sleep_i(core_sleep),
       .cpu_subsystem_powergate_switch_o(cpu_subsystem_powergate_switch),
       .cpu_subsystem_rst_no(cpu_subsystem_rst_n),
-      .rv_timer_irq_timer_0_o(irq_timer),
+      .rv_timer_intr_0_o(irq_timer),
+      .rv_timer_intr_1_o(irq_fast[0]),
       .dma_master0_ch0_req_o(dma_master0_ch0_req),
       .dma_master0_ch0_resp_i(dma_master0_ch0_resp),
       .dma_master1_ch0_req_o(dma_master1_ch0_req),
       .dma_master1_ch0_resp_i(dma_master1_ch0_resp),
-      .dma_intr_o(dma_intr)
+      .dma_intr_o(irq_fast[3])
   );
 
   peripheral_subsystem #(
@@ -275,15 +274,17 @@ module core_v_mini_mcu
       .cio_gpio_i(gpio_in),
       .cio_gpio_o(gpio_out),
       .cio_gpio_en_o(gpio_en),
+      .cio_gpio_intr_o(irq_fast[12:5]),
       .cio_scl_i(cio_scl_in),
       .cio_scl_o(cio_scl_out),
       .cio_scl_en_o(cio_scl_en),
       .cio_sda_i(cio_sda_in),
       .cio_sda_o(cio_sda_out),
       .cio_sda_en_o(cio_sda_en),
+      .rv_timer_intr_0_o(irq_fast[1]),
+      .rv_timer_intr_1_o(irq_fast[2]),
       .ext_peripheral_slave_req_o(ext_peripheral_slave_req_o),
-      .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i),
-      .dma_intr_i(dma_intr)
+      .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i)
   );
 
 

@@ -19,7 +19,6 @@ static power_manager_t power_manager;
 
 int main(int argc, char *argv[])
 {
-
     //Get current Frequency
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
@@ -38,7 +37,6 @@ int main(int argc, char *argv[])
     // Setup power_manager
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
     power_manager.base_addr = power_manager_reg;
-
 
     power_manager_cpu_counters_t power_manager_cpu_counters;
     // the reset_on must be greater thatn powergate_on (i.e. first turn on, then you deassert the reset)
