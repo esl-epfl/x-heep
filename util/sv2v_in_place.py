@@ -191,6 +191,13 @@ def main() -> int:
         help=("Specify the name or path of the sv2v binary. " "Defaults to 'sv2v'."),
     )
 
+    parser.add_argument(
+        "--merge",
+        "-m",
+        action="store_true",
+        help="Merge before pass through sv2v",
+    )
+
     args = parser.parse_args()
 
     if args.verbose:
@@ -217,9 +224,12 @@ def main() -> int:
     sv_paths = []
     svh_paths = []
     pkg_paths = []
+    v_paths = []
     for path in paths:
         if os.path.splitext(path)[1] == ".sv":
             sv_paths.append(path)
+        if os.path.splitext(path)[1] == ".v":
+            v_paths.append(path)
         if os.path.splitext(path)[1] == ".svh":
             svh_paths.append(path)
         if path.endswith("pkg.sv"):
@@ -230,6 +240,18 @@ def main() -> int:
             len(sv_paths), len(pkg_paths)
         )
     )
+    print("PATHS", sv_paths)
+    if args.merge:
+        with open('design.sv', 'w') as outfile:
+            for fname in sv_paths:
+                with open(fname) as infile:
+                    for line in infile:
+                        outfile.write(line)
+            for fname in v_paths:
+                with open(fname) as infile:
+                    for line in infile:
+                        outfile.write(line)
+        sv_paths = ['design.sv']
 
     try:
         transform(
