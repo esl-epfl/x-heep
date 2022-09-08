@@ -47,6 +47,7 @@ module $filename
   input  reg_req_t     reg_req_i,
   output reg_rsp_t     reg_rsp_o
 );
+  import core_v_mini_mcu_pkg::*;
 
   localparam int unsigned RomSize = $size;
 
@@ -55,10 +56,10 @@ module $filename
 $content
   };
 
-  logic [15-2:0] word_addr;
+  logic [$$clog2(core_v_mini_mcu_pkg::BOOTROM_SIZE)-1-2:0] word_addr;
   logic [$$clog2(RomSize)-1:0] rom_addr;
 
-  assign word_addr = reg_req_i.addr[15:2];
+  assign word_addr = reg_req_i.addr[$$clog2(core_v_mini_mcu_pkg::BOOTROM_SIZE)-1:2];
   assign rom_addr  = word_addr[$$clog2(RomSize)-1:0];
 
   assign reg_rsp_o.error = 1'b0;
