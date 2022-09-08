@@ -55,17 +55,17 @@ module $filename
 $content
   };
 
-  logic [31-1:0] word_addr;
+  logic [15-2:0] word_addr;
   logic [$$clog2(RomSize)-1:0] rom_addr;
 
-  assign word_addr = reg_req_i.addr[31-1+2:2];
+  assign word_addr = reg_req_i.addr[15:2];
   assign rom_addr  = word_addr[$$clog2(RomSize)-1:0];
 
   assign reg_rsp_o.error = 1'b0;
   assign reg_rsp_o.ready = 1'b1;
 
   always_comb begin
-    if (word_addr > RomSize-1) begin
+    if (word_addr > (RomSize-1)) begin
       reg_rsp_o.rdata = '0;
     end else begin
       reg_rsp_o.rdata = mem[rom_addr];
