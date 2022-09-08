@@ -220,6 +220,7 @@ module ao_peripheral_subsystem
       .dma_master0_ch0_resp_i,
       .dma_master1_ch0_req_o,
       .dma_master1_ch0_resp_i,
+      .spi_rx_wm_i(spi_rx_wm),
       .dma_intr_o
   );
 
