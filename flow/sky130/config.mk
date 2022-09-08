@@ -1,6 +1,8 @@
 export PLATFORM    = sky130hd
 
-export VERILOG_FILES = $(shell cat "files.txt")
+export VERILOG_FILES = design.sv # $(shell cat "files.txt")
+
+export ADDITIONAL_LIBS = $(wildcard ./lib/*.lib)
 
 export SDC_FILE      = ./constraint.sdc
 export ABC_AREA      = 1
