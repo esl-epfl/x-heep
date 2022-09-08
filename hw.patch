@@ -162,7 +162,7 @@ index a1b1cdc..9a07e39 100644
  
  endmodule // xbar_varlat
 diff --git a/hw/vendor/pulp_platform_common_cells/common_cells.core b/hw/vendor/pulp_platform_common_cells/common_cells.core
-index ea58a83..bf9bb2c 100644
+index ea58a83..f8d6599 100644
 --- a/hw/vendor/pulp_platform_common_cells/common_cells.core
 +++ b/hw/vendor/pulp_platform_common_cells/common_cells.core
 @@ -6,6 +6,7 @@ filesets:
@@ -178,7 +178,7 @@ index ea58a83..bf9bb2c 100644
        # Level 3
        - src/cdc_fifo_gray_clearable.sv
 -      - src/cdc_2phase_clearable.sv
-+      # - src/cdc_2phase_clearable.sv # TODO: not synthable
++      - src/cdc_2phase_clearable.sv # TODO: not synthable
        - src/stream_arbiter.sv
        - src/stream_omega_net.sv
      file_type : systemVerilogSource
@@ -263,9 +263,23 @@ index e1a67b4..07a9a41 100644
  
    // The ack_dst register changes when a new data item is accepted.
 diff --git a/hw/vendor/pulp_platform_common_cells/src/cdc_2phase_clearable.sv b/hw/vendor/pulp_platform_common_cells/src/cdc_2phase_clearable.sv
-index 21b6ddd..f67b7b0 100644
+index 21b6ddd..912d208 100644
 --- a/hw/vendor/pulp_platform_common_cells/src/cdc_2phase_clearable.sv
 +++ b/hw/vendor/pulp_platform_common_cells/src/cdc_2phase_clearable.sv
+@@ -186,11 +186,11 @@ module cdc_2phase_clearable #(
+ 
+ 
+ `ifndef VERILATOR
+-
++`ifndef SYNTHESIS
+   no_valid_i_during_clear_i : assert property (
+     @(posedge src_clk_i) disable iff (!src_rst_ni) src_clear_i |-> !src_valid_i
+   );
+-
++`endif
+ `endif
+ 
+ endmodule
 @@ -258,6 +258,7 @@ module cdc_2phase_src_clearable #(
  
  // Assertions
