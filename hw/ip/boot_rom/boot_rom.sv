@@ -97,18 +97,20 @@ module boot_rom
     32'h200305b7
   };
 
-  logic [$clog2(RomSize)-1:0] addr;
+  logic [31-1:0] word_addr;
+  logic [$clog2(RomSize)-1:0] rom_addr;
 
-  assign addr = reg_req_i.addr[$clog2(RomSize)-1+2:2];
+  assign word_addr = reg_req_i.addr[31-1+2:2];
+  assign rom_addr = word_addr[$clog2(RomSize)-1:0];
 
   assign reg_rsp_o.error = 1'b0;
   assign reg_rsp_o.ready = 1'b1;
 
   always_comb begin
-    if (addr > RomSize - 1) begin
+    if (word_addr > RomSize - 1) begin
       reg_rsp_o.rdata = '0;
     end else begin
-      reg_rsp_o.rdata = mem[addr];
+      reg_rsp_o.rdata = mem[rom_addr];
     end
   end
 
