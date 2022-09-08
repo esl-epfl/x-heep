@@ -179,7 +179,9 @@ module core_v_mini_mcu
       .core_sleep_o(core_sleep)
   );
 
-  assign irq_fast = {2'b0, gpio_intr, spi_intr, dma_intr, rv_timer_intr[2], rv_timer_intr[1], rv_timer_intr[0]};
+  assign irq_fast = {
+    2'b0, gpio_intr, spi_intr, dma_intr, rv_timer_intr[2], rv_timer_intr[1], rv_timer_intr[0]
+  };
 
   debug_subsystem #(
       .JTAG_IDCODE(JTAG_IDCODE)
