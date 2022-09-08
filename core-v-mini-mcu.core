@@ -85,7 +85,7 @@ filesets:
 
   rtl-sky130:
     files:
-    # - hw/asic/sky130/sram_wrapper.sv
+    - hw/asic/sky130/sram_wrapper.sv
     - hw/simulation/pad_cell_input.sv #as for now use the simulation pad_cell
     - hw/simulation/pad_cell_output.sv #as for now use the simulation pad_cell
     - hw/simulation/pad_cell_inout.sv #as for now use the simulation pad_cell
@@ -94,6 +94,10 @@ filesets:
     - hw/vendor/pulp_platform_tech_cells_generic/src/deprecated/cluster_clk_cells.sv #as for now use the simulation clk cells
     - hw/vendor/pulp_platform_tech_cells_generic/src/rtl/tc_clk.sv #as for now use the simulation clk cells
     file_type: systemVerilogSource
+
+  lib-sky130:
+    files:
+      - hw/asic/sky130/sky130_sram_4kbyte_1rw_32x1024_8_TT_1p8V_25C.lib : { copyto: lib/sky130_sram_4kbyte_1rw_32x1024_8_TT_1p8V_25C.lib }
 
   xdc-fpga-nexys:
     files:
@@ -368,6 +372,7 @@ targets:
       - SV2V=true
     filesets_append:
       - use_sky130? (rtl-sky130)
+      - lib-sky130
       - openroad_base_files
       - openroad_sky130_files
     toplevel: [core_v_mini_mcu]
