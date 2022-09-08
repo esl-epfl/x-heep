@@ -61,7 +61,6 @@ $content
 
   assign reg_rsp_o.error = 1'b0;
   assign reg_rsp_o.ready = 1'b1;
-  assign reg_rsp_o.rdata = mem[addr];
 
   always_comb begin
     if (addr > RomSize-1) begin
