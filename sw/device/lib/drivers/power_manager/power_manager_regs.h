@@ -146,11 +146,9 @@ extern "C" {
 
 // Enable wait for interrupt
 #define POWER_MANAGER_EN_WAIT_FOR_INTR_REG_OFFSET 0xa8
-#define POWER_MANAGER_EN_WAIT_FOR_INTR_EN_WAIT_FOR_INTR_BIT 0
 
 // Interrupt state
 #define POWER_MANAGER_INTR_STATE_REG_OFFSET 0xac
-#define POWER_MANAGER_INTR_STATE_INTR_STATE_BIT 0
 
 // Counter before resetting the CPU
 #define POWER_MANAGER_CPU_RESET_ASSERT_COUNTER_REG_OFFSET 0xb0

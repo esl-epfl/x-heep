@@ -39,8 +39,8 @@ module peripheral_subsystem
     output logic cio_sda_en_o,
 
     //RV TIMER
-    output logic rv_timer_intr_0_o,
-    output logic rv_timer_intr_1_o,
+    output logic rv_timer_2_intr_o,
+    output logic rv_timer_3_intr_o,
 
     //External peripheral(s)
     output reg_req_t ext_peripheral_slave_req_o,
@@ -304,13 +304,13 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_IDX])
   );
 
-  rv_timer rv_timer_i (
+  rv_timer rv_timer_2_3_i (
       .clk_i,
       .rst_ni,
       .tl_i(rv_timer_tl_h2d),
       .tl_o(rv_timer_tl_d2h),
-      .intr_timer_expired_0_0_o(rv_timer_intr_0_o),
-      .intr_timer_expired_1_0_o(rv_timer_intr_1_o)
+      .intr_timer_expired_0_0_o(rv_timer_2_intr_o),
+      .intr_timer_expired_1_0_o(rv_timer_3_intr_o)
   );
 
 endmodule : peripheral_subsystem

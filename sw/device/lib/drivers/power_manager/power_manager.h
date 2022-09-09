@@ -26,7 +26,23 @@ typedef enum power_manager_result {
  * Interrupt source.
  */
 typedef enum power_manager_sel_intr {
-  kTimer = 0,
+  kTimer_0 = 0,
+  kTimer_1 = 1,
+  kTimer_2 = 2,
+  kTimer_3 = 3,
+  kDma     = 4,
+  kGpio_0  = 5,
+  kGpio_1  = 6,
+  kGpio_2  = 7,
+  kGpio_3  = 8,
+  kGpio_4  = 9,
+  kGpio_5  = 10,
+  kGpio_6  = 11,
+  kGpio_7  = 12,
+  kExt_0   = 13,
+  kExt_1   = 14,
+  kExt_2   = 15,
+  kExt_3   = 16,
 } power_manager_sel_intr_t;
 
 /**

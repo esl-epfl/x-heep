@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     }
 
     // Power gate the core and wait for rv_timer interrupt
-    if (power_gate_core(&power_manager, kTimer, &power_manager_cpu_counters) != kPowerManagerOk)
+    if (power_gate_core(&power_manager, kTimer_0, &power_manager_cpu_counters) != kPowerManagerOk)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;

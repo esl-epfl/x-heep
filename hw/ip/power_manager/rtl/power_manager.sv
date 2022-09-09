@@ -15,9 +15,19 @@ module power_manager #(
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
-    // Power gate signal
-    input  logic rv_timer_irq_i,
-    input  logic core_sleep_i,
+    // Status signal
+    input logic core_sleep_i,
+
+    // Input interrupts
+    input logic                                     rv_timer_0_irq_i,
+    input logic                                     rv_timer_1_irq_i,
+    input logic                                     rv_timer_2_irq_i,
+    input logic                                     rv_timer_3_irq_i,
+    input logic                                     dma_irq_i,
+    input logic [                              7:0] gpio_irq_i,
+    input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] ext_irq_i,
+
+    // Power gating signals
     output logic cpu_subsystem_powergate_switch_o,
     output logic cpu_subsystem_rst_no
 );
@@ -27,9 +37,19 @@ module power_manager #(
   power_manager_reg2hw_t reg2hw;
   power_manager_hw2reg_t hw2reg;
 
-  assign hw2reg.intr_state.d  = rv_timer_irq_i;
-  assign hw2reg.intr_state.de = 1'b1;
+  logic start_on_sequence;
 
+  assign hw2reg.intr_state.d = {
+    4'b0,
+    ext_irq_i,
+    gpio_irq_i,
+    dma_irq_i,
+    rv_timer_3_irq_i,
+    rv_timer_2_irq_i,
+    rv_timer_1_irq_i,
+    rv_timer_0_irq_i
+  };
+  assign hw2reg.intr_state.de = 1'b1;
 
   power_manager_reg_top #(
       .reg_req_t(reg_req_t),
@@ -44,7 +64,6 @@ module power_manager #(
       .devmode_i(1'b1)
   );
 
-
   logic cpu_reset_counter_start_switch_off, cpu_reset_counter_expired_switch_off;
   logic cpu_reset_counter_start_switch_on, cpu_reset_counter_expired_switch_on;
 
@@ -54,16 +73,12 @@ module power_manager #(
   ) reg_to_counter_cpu_reset_assert_i (
       .clk_i,
       .rst_ni,
-
-      .stop_i (reg2hw.cpu_counters_stop.cpu_reset_assert_stop_bit_counter.q),
+      .stop_i(reg2hw.cpu_counters_stop.cpu_reset_assert_stop_bit_counter.q),
       .start_i(cpu_reset_counter_start_switch_off),
-      .done_o (cpu_reset_counter_expired_switch_off),
-
-      .hw2reg_d_o (hw2reg.cpu_reset_assert_counter.d),
+      .done_o(cpu_reset_counter_expired_switch_off),
+      .hw2reg_d_o(hw2reg.cpu_reset_assert_counter.d),
       .hw2reg_de_o(hw2reg.cpu_reset_assert_counter.de),
-
       .hw2reg_q_i(reg2hw.cpu_reset_assert_counter.q)
-
   );
 
   reg_to_counter #(
@@ -72,17 +87,21 @@ module power_manager #(
   ) reg_to_counter_cpu_reset_deassert_i (
       .clk_i,
       .rst_ni,
-
-      .stop_i (reg2hw.cpu_counters_stop.cpu_reset_deassert_stop_bit_counter.q),
+      .stop_i(reg2hw.cpu_counters_stop.cpu_reset_deassert_stop_bit_counter.q),
       .start_i(cpu_reset_counter_start_switch_on),
-      .done_o (cpu_reset_counter_expired_switch_on),
-
-      .hw2reg_d_o (hw2reg.cpu_reset_deassert_counter.d),
+      .done_o(cpu_reset_counter_expired_switch_on),
+      .hw2reg_d_o(hw2reg.cpu_reset_deassert_counter.d),
       .hw2reg_de_o(hw2reg.cpu_reset_deassert_counter.de),
-
       .hw2reg_q_i(reg2hw.cpu_reset_deassert_counter.q)
-
   );
+
+  always begin : power_manager_start_on_sequence_gen
+    if ((reg2hw.en_wait_for_intr.q & reg2hw.intr_state.q) == 32'b0) begin
+      start_on_sequence = 1'b0;
+    end else begin
+      start_on_sequence = 1'b1;
+    end
+  end
 
   power_manager_counter_sequence #(
       .ONOFF_AT_RESET(0)
@@ -92,7 +111,7 @@ module power_manager #(
 
       // trigger to start the sequence
       .start_off_sequence_i(reg2hw.power_gate_core.q && core_sleep_i),
-      .start_on_sequence_i (reg2hw.en_wait_for_intr.q && reg2hw.intr_state.q),
+      .start_on_sequence_i (start_on_sequence),
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(cpu_reset_counter_expired_switch_off),
@@ -115,16 +134,12 @@ module power_manager #(
   ) reg_to_counter_cpu_powergate_switch_off_i (
       .clk_i,
       .rst_ni,
-
-      .stop_i (reg2hw.cpu_counters_stop.cpu_switch_off_stop_bit_counter.q),
+      .stop_i(reg2hw.cpu_counters_stop.cpu_switch_off_stop_bit_counter.q),
       .start_i(cpu_powergate_counter_start_switch_off),
-      .done_o (cpu_powergate_counter_expired_switch_off),
-
-      .hw2reg_d_o (hw2reg.cpu_switch_off_counter.d),
+      .done_o(cpu_powergate_counter_expired_switch_off),
+      .hw2reg_d_o(hw2reg.cpu_switch_off_counter.d),
       .hw2reg_de_o(hw2reg.cpu_switch_off_counter.de),
-
       .hw2reg_q_i(reg2hw.cpu_switch_off_counter.q)
-
   );
 
   reg_to_counter #(
@@ -133,16 +148,12 @@ module power_manager #(
   ) reg_to_counter_cpu_powergate_switch_on_i (
       .clk_i,
       .rst_ni,
-
-      .stop_i (reg2hw.cpu_counters_stop.cpu_switch_on_stop_bit_counter.q),
+      .stop_i(reg2hw.cpu_counters_stop.cpu_switch_on_stop_bit_counter.q),
       .start_i(cpu_powergate_counter_start_switch_on),
-      .done_o (cpu_powergate_counter_expired_switch_on),
-
-      .hw2reg_d_o (hw2reg.cpu_switch_on_counter.d),
+      .done_o(cpu_powergate_counter_expired_switch_on),
+      .hw2reg_d_o(hw2reg.cpu_switch_on_counter.d),
       .hw2reg_de_o(hw2reg.cpu_switch_on_counter.de),
-
       .hw2reg_q_i(reg2hw.cpu_switch_on_counter.q)
-
   );
 
   power_manager_counter_sequence power_manager_counter_sequence_cpu_powergate_i (
@@ -151,7 +162,7 @@ module power_manager #(
 
       // trigger to start the sequence
       .start_off_sequence_i(reg2hw.power_gate_core.q && core_sleep_i),
-      .start_on_sequence_i (reg2hw.en_wait_for_intr.q && reg2hw.intr_state.q),
+      .start_on_sequence_i (start_on_sequence),
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(cpu_powergate_counter_expired_switch_off),
@@ -163,6 +174,5 @@ module power_manager #(
       // switch on and off signal, 1 means on
       .switch_onoff_signal_o(cpu_subsystem_powergate_switch_o)
   );
-
 
 endmodule : power_manager

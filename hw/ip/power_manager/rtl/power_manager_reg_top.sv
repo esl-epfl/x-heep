@@ -194,11 +194,11 @@ module power_manager_reg_top #(
   logic [31:0] core_csr_c7_qs;
   logic [31:0] core_csr_c7_wd;
   logic core_csr_c7_we;
-  logic en_wait_for_intr_qs;
-  logic en_wait_for_intr_wd;
+  logic [31:0] en_wait_for_intr_qs;
+  logic [31:0] en_wait_for_intr_wd;
   logic en_wait_for_intr_we;
-  logic intr_state_qs;
-  logic intr_state_wd;
+  logic [31:0] intr_state_qs;
+  logic [31:0] intr_state_wd;
   logic intr_state_we;
   logic [31:0] cpu_reset_assert_counter_qs;
   logic [31:0] cpu_reset_assert_counter_wd;
@@ -1363,9 +1363,9 @@ module power_manager_reg_top #(
   // R[en_wait_for_intr]: V(False)
 
   prim_subreg #(
-      .DW      (1),
+      .DW      (32),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (32'h0)
   ) u_en_wait_for_intr (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1390,9 +1390,9 @@ module power_manager_reg_top #(
   // R[intr_state]: V(False)
 
   prim_subreg #(
-      .DW      (1),
+      .DW      (32),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (32'h0)
   ) u_intr_state (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1867,10 +1867,10 @@ module power_manager_reg_top #(
   assign core_csr_c7_wd = reg_wdata[31:0];
 
   assign en_wait_for_intr_we = addr_hit[42] & reg_we & !reg_error;
-  assign en_wait_for_intr_wd = reg_wdata[0];
+  assign en_wait_for_intr_wd = reg_wdata[31:0];
 
   assign intr_state_we = addr_hit[43] & reg_we & !reg_error;
-  assign intr_state_wd = reg_wdata[0];
+  assign intr_state_wd = reg_wdata[31:0];
 
   assign cpu_reset_assert_counter_we = addr_hit[44] & reg_we & !reg_error;
   assign cpu_reset_assert_counter_wd = reg_wdata[31:0];
@@ -2069,11 +2069,11 @@ module power_manager_reg_top #(
       end
 
       addr_hit[42]: begin
-        reg_rdata_next[0] = en_wait_for_intr_qs;
+        reg_rdata_next[31:0] = en_wait_for_intr_qs;
       end
 
       addr_hit[43]: begin
-        reg_rdata_next[0] = intr_state_qs;
+        reg_rdata_next[31:0] = intr_state_qs;
       end
 
       addr_hit[44]: begin

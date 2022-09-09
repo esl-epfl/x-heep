@@ -165,7 +165,6 @@ module core_v_mini_mcu
       .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS),
       .DM_HALTADDRESS(DM_HALTADDRESS)
   ) cpu_subsystem_i (
-      // Clock and Reset
       .clk_i(clk),
       .rst_ni(cpu_subsystem_rst_n),
       .core_instr_req_o(core_instr_req),
@@ -263,13 +262,17 @@ module core_v_mini_mcu
       .core_sleep_i(core_sleep),
       .cpu_subsystem_powergate_switch_o(cpu_subsystem_powergate_switch),
       .cpu_subsystem_rst_no(cpu_subsystem_rst_n),
-      .rv_timer_intr_0_o(irq_timer),
-      .rv_timer_intr_1_o(rv_timer_intr[0]),
+      .rv_timer_0_intr_o(irq_timer),
+      .rv_timer_1_intr_o(rv_timer_intr[0]),
+      .rv_timer_2_intr_i(rv_timer_intr[1]),
+      .rv_timer_3_intr_i(rv_timer_intr[2]),
       .dma_master0_ch0_req_o(dma_master0_ch0_req),
       .dma_master0_ch0_resp_i(dma_master0_ch0_resp),
       .dma_master1_ch0_req_o(dma_master1_ch0_req),
       .dma_master1_ch0_resp_i(dma_master1_ch0_resp),
-      .dma_intr_o(dma_intr)
+      .dma_intr_o(dma_intr),
+      .gpio_intr_i(gpio_intr),
+      .ext_intr_i(intr_vector_ext_i)
   );
 
   peripheral_subsystem #(
@@ -295,81 +298,59 @@ module core_v_mini_mcu
       .cio_sda_i(cio_sda_in),
       .cio_sda_o(cio_sda_out),
       .cio_sda_en_o(cio_sda_en),
-      .rv_timer_intr_0_o(rv_timer_intr[1]),
-      .rv_timer_intr_1_o(rv_timer_intr[2]),
+      .rv_timer_2_intr_o(rv_timer_intr[1]),
+      .rv_timer_3_intr_o(rv_timer_intr[2]),
       .ext_peripheral_slave_req_o(ext_peripheral_slave_req_o),
       .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i)
   );
 
-
   pad_ring pad_ring_i (
       .clk_i,
       .rst_ni,
-
       .boot_select_i,
       .execute_from_flash_i,
-
       .jtag_tck_i,
       .jtag_tms_i,
       .jtag_trst_ni,
       .jtag_tdi_i,
       .jtag_tdo_o,
-
       .uart_rx_i,
       .uart_tx_o,
-
       .exit_valid_o,
-
       .gpio_io,
-
       .spi_sd_io,
       .spi_csb_o,
       .spi_sck_o,
-
       .i2c_scl_io,
       .i2c_sda_io,
-
-      .clk_o (clk),
+      .clk_o(clk),
       .rst_no(rst_n),
-
       .boot_select_o(boot_select),
       .execute_from_flash_o(execute_from_flash),
-
-      .jtag_tck_o  (jtag_tck),
-      .jtag_tms_o  (jtag_tms),
+      .jtag_tck_o(jtag_tck),
+      .jtag_tms_o(jtag_tms),
       .jtag_trst_no(jtag_trst_n),
-      .jtag_tdi_o  (jtag_tdi),
-      .jtag_tdo_i  (jtag_tdo),
-
+      .jtag_tdi_o(jtag_tdi),
+      .jtag_tdo_i(jtag_tdo),
       .uart_rx_o(uart_rx),
       .uart_tx_i(uart_tx),
-
       .exit_valid_i(exit_valid),
-
       .gpio_out_i(gpio_out),
-      .gpio_oe_i (gpio_en),
-      .gpio_in_o (gpio_in),
-
+      .gpio_oe_i(gpio_en),
+      .gpio_in_o(gpio_in),
       .spi_sck_i(spi_sck),
       .spi_sck_en_i(spi_sck_en),
-
       .spi_csb_i(spi_csb),
       .spi_csb_oe_i(spi_csb_en),
-
       .spi_sd_i(spi_sd_out),
       .spi_sd_oe_i(spi_sd_en),
       .spi_sd_o(spi_sd_in),
-
       .i2c_scl_i(cio_scl_out),
       .i2c_sda_i(cio_sda_out),
-
       .i2c_scl_oe_i(cio_scl_en),
       .i2c_sda_oe_i(cio_sda_en),
-
       .i2c_scl_o(cio_scl_in),
       .i2c_sda_o(cio_sda_in)
-
   );
-
 
 endmodule  // core_v_mini_mcu
