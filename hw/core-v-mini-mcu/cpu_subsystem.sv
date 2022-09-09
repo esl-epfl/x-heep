@@ -2,8 +2,6 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-/* verilator lint_off UNUSED */
-
 module cpu_subsystem
   import obi_pkg::*;
   import core_v_mini_mcu_pkg::*;
@@ -106,11 +104,11 @@ module cpu_subsystem
         .ic_data_rdata_i   (),
         .ic_scr_key_valid_i(),
 
-        .irq_software_i(irq_i[0]),
-        .irq_timer_i   (irq_i[1]),
-        .irq_external_i(irq_i[2]),
-        .irq_fast_i    (irq_i[17:3]),
-        .irq_nm_i      (),
+        .irq_software_i(irq_i[3]),
+        .irq_timer_i   (irq_i[7]),
+        .irq_external_i(irq_i[11]),
+        .irq_fast_i    (irq_i[30:16]),
+        .irq_nm_i      (irq_i[31]),
         .irq_pending_o (),
 
         .debug_req_i(debug_req_i),
