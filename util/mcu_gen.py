@@ -48,7 +48,6 @@ class Pad:
             '   .pad_io(' + name  + '_io),\n' + \
             '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
             ');\n\n'
-
     if pad_type == 'inout':
         self.interface += '    input logic ' + self.name + '_i,\n'
         self.interface += '    output logic ' + self.name + '_o,\n'
@@ -61,6 +60,27 @@ class Pad:
             '   .pad_io(' + name  + '_io),\n' + \
             '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
             ');\n\n'
+    if pad_type == 'bypass_output':
+        self.interface += '    input logic ' + self.name + '_i,\n'
+        self.instance = \
+            'pad_cell_bypass_output #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
+            '   .pad_in_i(' + name + '_i),\n' + \
+            '   .pad_oe_i(1\'b1),\n' + \
+            '   .pad_out_o(),\n' + \
+            '   .pad_io(' + name  + '_io),\n' + \
+            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
+            ');\n\n'
+    if pad_type == 'bypass_input':
+        self.interface += '    output logic ' + self.name + '_o,\n'
+        self.instance = \
+            'pad_cell_bypass_input #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
+            '   .pad_in_i(1\'b0),\n' + \
+            '   .pad_oe_i(1\'b0),\n' + \
+            '   .pad_out_o(' + name + '_o),\n' + \
+            '   .pad_io(' + name  + '_io),\n' + \
+            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
+            ');\n\n'
+
 
 
 # Compile a regex to trim trailing whitespaces on lines.
