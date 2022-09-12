@@ -79,19 +79,19 @@ tell fusesoc to compile the FLASH model.
 Note that the FLASH model is not compatible with **verilator**, 
 thus the simulation must be carried out with either **modelsim** or **vcs**.
 
-Make sure to compile your SW using the FLASH linker script.
+Make sure to compile your SW using the SPI FLASH linker script.
 
 In this repository, we provide two examples to try, one for FPGA/ASIC 
 only, which toggles a GPIO forever (in simulation, this would never finish),
 and the hello_world example.
 
-To use the FLASH's linker script, do:
+To use the SPI FLASH's linker script, do:
 
 ```
 cd sw
 make applications/hello_world/hello_world.flash.hex
 or
-make applications/gpio_toggle/gpio_toggle.flash.hex
+make applications/gpio_pmw/gpio_pmw.flash.hex
 ```
 Then, when launching the simulation, pass the argument `boot_sel=1` 
 to set the `boot_sel_i` input to `1` and `execute_from_flash=1` to set the 
@@ -108,7 +108,32 @@ Follow the [ProgramFlash](./ProgramFlash.md) guide to program the FLASH.
 
 ### SPI Flash Loading Boot Procedure
 
-This boot procedure has not been implemented yet.
-The idea is that the CPU configures the OpenTitan SPI
-to read from FLASH the code and write it to the on-chip SRAM, and 
-then the CPU jumps to the entry point at 0x00000180.
+In this boot procedure, when the CPU enters the boot rom, it uses the OpenTitan SPI (SPI host) to copy the first 1KB content of the FLASH (starting at address 0) to the RAM (starting at address 0). Then, the CPU jumps to the entry point at 0x00000180 (in RAM) and executes the start function of the crt0 file (which is contained inside the 1KB copied in RAM). This function checks if the code is completely copied (i.e., less or equal to 1 KB); in this case, it jumps to the main function, or, if more code needs to be copied, it uses the OpenTitan SPI to copy the remaining bytes of code.
+
+To use this mode, when targeting ASICs or FPGA bitstreams, 
+make sure you have the `boot_sel_i` input (e.g., a switch) set to 1, 
+and the `execute_from_flash_i` set to 0.
+
+Make sure to compile your SW using the SPI HOST linker script.
+
+In this repository, we provide two examples to try, one for FPGA/ASIC 
+only, which toggles a GPIO forever (in simulation, this would never finish),
+and the hello_world example.
+
+To use the SPI HOST's linker script, do:
+
+```
+cd sw
+make applications/hello_world/hello_world.spihost.hex
+or
+make applications/gpio_pmw/gpio_pmw.spihost.hex
+```
+Then, when launching the simulation, pass the argument `boot_sel=1` 
+to set the `boot_sel_i` input to `1` and `execute_from_flash=0` to set the 
+`execute_from_flash_i` input to `0`.
+
+```
+make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.spihost.hex boot_sel=1 execute_from_flash=0"
+```
+
+If you are using FPGAs or ASIC, make sure to program the FLASH first.
