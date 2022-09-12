@@ -38,8 +38,7 @@ void handler_irq_external(void) {
     }
 }
 
-// Reserve 16kB
-uint32_t flash_data[4096];
+uint32_t flash_data[8];
 
 int main(int argc, char *argv[])
 {
@@ -171,7 +170,9 @@ int main(int argc, char *argv[])
     plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
 
     // Read data from SPI RX FIFO
-    spi_read_chunk_32B(&spi_host, flash_data);
+    for (int i=0; i<8; i++) {
+        spi_read_word(&spi_host, &flash_data[i]);
+    }
 
     printf("flash vs ram...\n");
 

@@ -60,18 +60,18 @@ _start:
 	or     a2, a4, a5
 	or     a2, a2, 0x03
 	sw     a2, SPI_HOST_DATA_REG_OFFSET(a1)
+	nop    # otherwise ready bit check is too fast
 
 _wait_spi_ready_read_prog:
-	nop    # otherwise ready bit check is too fast
 	lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
 	bgez   a5, _wait_spi_ready_read_prog
 	// Read command: 0x00002203
 	lui    a4, 0x2
 	addi   a4, a4, 515 # spi cmd: txonly + stdspeed + csaat + 4B
 	sw     a4, SPI_HOST_COMMAND_REG_OFFSET(a1)
+	nop    # otherwise ready bit check is too fast
 
 _wait_spi_ready_copy_cmd:
-	nop    # otherwise ready bit check is too fast
 	lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
 	bgez   a4, _wait_spi_ready_copy_cmd
 
@@ -83,15 +83,15 @@ _wait_spi_ready_copy_cmd:
 	addi   s5, s5, 767 # spi cmd: rxonly + stdspeed + csaat + 255 bytes
 
 _32B_chunk_loop:
-	blt    s6, s0, _read_32B_chunk
+	blt    s6, a3, _read_32B_chunk
 	// Read remaining bytes
 	lui    a5, 0x1
-	addi   a4, s0, -1
-	or     a5, a5, a4 # spi cmd: rxonly + stdspeed + remaining bytes (s0-1)
+	addi   a4, a3, -1
+	or     a5, a5, a4 # spi cmd: rxonly + stdspeed + remaining bytes (a3-1)
 	sw     a5, SPI_HOST_COMMAND_REG_OFFSET(a1)
+	nop    # otherwise ready bit check is too fast
 
 _wait_spi_ready_remaining_bytes:
-	nop    # otherwise ready bit check is too fast
 	lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
 	bgez   a5, _wait_spi_ready_remaining_bytes
 	li     s4, 32
@@ -99,9 +99,9 @@ _wait_spi_ready_remaining_bytes:
 
 _read_32B_chunk:
 	sw     s5, SPI_HOST_COMMAND_REG_OFFSET(a1)
+	nop    # otherwise ready bit check is too fast
 
 _wait_spi_ready_read_32B_chunk:
-	nop    # otherwise ready bit check is too fast
 	lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
 	bgez   a5, _wait_spi_ready_read_32B_chunk
 	addi   s7, s1, 256 # add 32*8 (256 bytes) to dst ptr
@@ -111,26 +111,16 @@ _wait_spi_rxwm_8_words:
 	srli   a5, a5, 0x14
 	andi   a5, a5, 1 # SPI_HOST_STATUS_RXWM_BIT
 	beqz   a5, _wait_spi_rxwm_8_words
+	addi   a2, s1, 32 # add 32 bytes (4 words) to dst ptr
+
+_spi_fifo_read_8_words:
 	// Read 32B (8 words) from RX FIFO
 	lw     a7, SPI_HOST_DATA_REG_OFFSET(a1)
-	lw     t0, SPI_HOST_DATA_REG_OFFSET(a1)
-	lw     t1, SPI_HOST_DATA_REG_OFFSET(a1)
-	lw     t2, SPI_HOST_DATA_REG_OFFSET(a1)
-	lw     t3, SPI_HOST_DATA_REG_OFFSET(a1)
-	lw     t4, SPI_HOST_DATA_REG_OFFSET(a1)
-	lw     t5, SPI_HOST_DATA_REG_OFFSET(a1)
-	lw     t6, SPI_HOST_DATA_REG_OFFSET(a1)
 	sw     a7, 0(s1)
-	sw     t0, 4(s1)
-	sw     t1, 8(s1)
-	sw     t2, 12(s1)
-	sw     t3, 16(s1)
-	sw     t4, 20(s1)
-	sw     t5, 24(s1)
-	sw     t6, 28(s1)
-	addi   s1, s1, 32
+	addi   s1, s1, 4
+	bne    s1, a2, _spi_fifo_read_8_words
 	bne    s1, s7, _wait_spi_rxwm_8_words
-	addi   s0, s0, -256
+	addi   a3, a3, -256
 	j      _32B_chunk_loop
 
 _wait_spi_rxwm_8_words_1:
@@ -138,32 +128,23 @@ _wait_spi_rxwm_8_words_1:
 	srli   a5, a5, 0x14
 	andi   a5, a5, 1 # SPI_HOST_STATUS_RXWM_BIT
 	beqz   a5, _wait_spi_rxwm_8_words_1
+	addi   a2, s1, 32 # add 32 bytes (4 words) to dst ptr
+
+_spi_fifo_read_8_words_1:
 	// Read 32B (8 words) from RX FIFO
 	lw     a7, SPI_HOST_DATA_REG_OFFSET(a1)
-	lw     t0, SPI_HOST_DATA_REG_OFFSET(a1)
-	lw     t1, SPI_HOST_DATA_REG_OFFSET(a1)
-	lw     t2, SPI_HOST_DATA_REG_OFFSET(a1)
-	lw     t3, SPI_HOST_DATA_REG_OFFSET(a1)
-	lw     t4, SPI_HOST_DATA_REG_OFFSET(a1)
-	lw     t5, SPI_HOST_DATA_REG_OFFSET(a1)
-	lw     t6, SPI_HOST_DATA_REG_OFFSET(a1)
 	sw     a7, 0(s1)
-	sw     t0, 4(s1)
-	sw     t1, 8(s1)
-	sw     t2, 12(s1)
-	sw     t3, 16(s1)
-	sw     t4, 20(s1)
-	sw     t5, 24(s1)
-	sw     t6, 28(s1)
-	addi   s0, s0, -32
-	addi   s1, s1, 32 # dst ptr move 32B further
+	addi   s1, s1, 4
+	bne    s1, a2, _spi_fifo_read_8_words_1
+	addi   a3, a3, -32
+	//addi   s1, s1, 32 # dst ptr move 32B further
 
 _last_bytes_read_start:
-	bltu   s4, s0, _wait_spi_rxwm_8_words_1
+	bltu   s4, a3, _wait_spi_rxwm_8_words_1
 	// Update RX watermark with remaining words (<=8)
 	lw     a4, SPI_HOST_CONTROL_REG_OFFSET(a1)
 	andi   a4, a4, -256 # ~SPI_HOST_CONTROL_RX_WATERMARK_MASK
-	srli   a5, s0, 0x2 # 4 bytes = 1 word
+	srli   a5, a3, 0x2 # 4 bytes = 1 word
 	or     a5, a5, a4
 	sw     a5, SPI_HOST_CONTROL_REG_OFFSET(a1)
 
@@ -174,13 +155,13 @@ _wait_spi_rxwm_n_words:
 	beqz   a5, _wait_spi_rxwm_n_words
 
 _remaining_bytes_loop:
-	bnez   s0, _spi_read_word
+	bnez   a3, _spi_read_word
 	j      _init_bss
 
 _spi_read_word:
 	lw     a7, SPI_HOST_DATA_REG_OFFSET(a1)
 	sw     a7, 0(s1)
-	addi   s0, s0, -4
+	addi   a3, a3, -4
 	addi   s1, s1, 4
 	j      _remaining_bytes_loop
 

@@ -88,15 +88,18 @@ void spi_write_word(const spi_host_t *spi, uint32_t wdata) {
     asm volatile ("sw %[w], 0(%[fifo]);" :: [w]"r"(wdata), [fifo]"r"(fifo));
 }
 
+// void spi_read_word(const spi_host_t *spi, uint32_t* dst) {
+//     volatile uint32_t* fifo = spi->base_addr.base + SPI_HOST_DATA_REG_OFFSET;
+//     asm volatile (
+//         "lw    a7, 0 (%[fifo]);"
+//         "sw    a7, 0 (%[dst]);"
+//         :: [fifo]"r"(fifo), [dst]"r"(dst)
+//         : "a7"
+//     );
+// }
+
 void spi_read_word(const spi_host_t *spi, uint32_t* dst) {
-    volatile uint32_t* fifo = spi->base_addr.base + SPI_HOST_DATA_REG_OFFSET;
-    *dst = *fifo;
-    // asm volatile (
-    //     "lw    a7, 0 (%[fifo]);"
-    //     "sw    a7, 0 (%[dst]);"
-    //     :: [fifo]"r"(fifo), [dst]"r"(dst)
-    //     : "a7"
-    // );
+    *dst = mmio_region_read32(spi->base_addr, SPI_HOST_DATA_REG_OFFSET);
 }
 
 void spi_enable_evt_intr(const spi_host_t *spi, bool enable) {

@@ -6,14 +6,14 @@ Disassembly of section .text:
 
 00000000 <entry>:
    0:	200305b7          	lui	a1,0x20030
-   4:	0045c503          	lbu	a0,4(a1) # 20030004 <_end+0x2002feee>
+   4:	0045c503          	lbu	a0,4(a1) # 20030004 <_end+0x2002ff22>
    8:	c119                	beqz	a0,e <boot>
    a:	4588                	lw	a0,8(a1)
    c:	9502                	jalr	a0
 
 0000000e <boot>:
    e:	200005b7          	lui	a1,0x20000
-  12:	0085c503          	lbu	a0,8(a1) # 20000008 <_end+0x1ffffef2>
+  12:	0085c503          	lbu	a0,8(a1) # 20000008 <_end+0x1fffff26>
   16:	e511                	bnez	a0,22 <_jump_to_flash>
 
 00000018 <_jump_to_debug_rom>:
@@ -31,7 +31,7 @@ Disassembly of section .text:
   2c:	4505                	li	a0,1
   2e:	c188                	sw	a0,0(a1)
   30:	400005b7          	lui	a1,0x40000
-  34:	18058593          	addi	a1,a1,384 # 40000180 <_end+0x4000006a>
+  34:	18058593          	addi	a1,a1,384 # 40000180 <_end+0x4000009e>
   38:	9582                	jalr	a1
 
 0000003a <_copy_from_flash>:
@@ -60,64 +60,53 @@ Disassembly of section .text:
   6e:	fe075fe3          	bgez	a4,6c <_wait_spi_ready_cmd_pwr>
   72:	470d                	li	a4,3
   74:	d598                	sw	a4,40(a1)
-
-00000076 <_wait_spi_ready_tx_init>:
   76:	0001                	nop
+
+00000078 <_wait_spi_ready_tx_init>:
   78:	49d8                	lw	a4,20(a1)
-  7a:	fe075ee3          	bgez	a4,76 <_wait_spi_ready_tx_init>
+  7a:	fe075fe3          	bgez	a4,78 <_wait_spi_ready_tx_init>
   7e:	6709                	lui	a4,0x2
-  80:	20370713          	addi	a4,a4,515 # 2203 <_end+0x20ed>
+  80:	20370713          	addi	a4,a4,515 # 2203 <_end+0x2121>
   84:	d1d8                	sw	a4,36(a1)
-
-00000086 <_wait_spi_ready_read_prog>:
   86:	0001                	nop
+
+00000088 <_wait_spi_ready_read_prog>:
   88:	49dc                	lw	a5,20(a1)
-  8a:	fe07dee3          	bgez	a5,86 <_wait_spi_ready_read_prog>
-  8e:	4601                	li	a2,0
-  90:	40000693          	li	a3,1024
-  94:	4481                	li	s1,0
-  96:	10000b13          	li	s6,256
-  9a:	6405                	lui	s0,0x1
-  9c:	2ff40a93          	addi	s5,s0,767 # 12ff <_end+0x11e9>
+  8a:	fe07dfe3          	bgez	a5,88 <_wait_spi_ready_read_prog>
+  8e:	40000693          	li	a3,1024
+  92:	4481                	li	s1,0
+  94:	10000b13          	li	s6,256
+  98:	6405                	lui	s0,0x1
+  9a:	2ff40a93          	addi	s5,s0,767 # 12ff <_end+0x121d>
 
-000000a0 <_32B_chunk_loop>:
-  a0:	00db4463          	blt	s6,a3,a8 <_read_32B_chunk>
-  a4:	0ff40a93          	addi	s5,s0,255
+0000009e <_32B_chunk_loop>:
+  9e:	00db4463          	blt	s6,a3,a6 <_read_32B_chunk>
+  a2:	0ff40a93          	addi	s5,s0,255
 
-000000a8 <_read_32B_chunk>:
-  a8:	0355a223          	sw	s5,36(a1) # 20020024 <_end+0x2001ff0e>
+000000a6 <_read_32B_chunk>:
+  a6:	0355a223          	sw	s5,36(a1) # 20020024 <_end+0x2001ff42>
+  aa:	0001                	nop
 
 000000ac <_wait_spi_ready_read_32B_chunk>:
-  ac:	0001                	nop
-  ae:	49dc                	lw	a5,20(a1)
-  b0:	fe07dee3          	bgez	a5,ac <_wait_spi_ready_read_32B_chunk>
-  b4:	10048b93          	addi	s7,s1,256
+  ac:	49dc                	lw	a5,20(a1)
+  ae:	fe07dfe3          	bgez	a5,ac <_wait_spi_ready_read_32B_chunk>
+  b2:	10048b93          	addi	s7,s1,256
 
-000000b8 <_wait_spi_rxwm_8_words>:
-  b8:	49dc                	lw	a5,20(a1)
-  ba:	83d1                	srli	a5,a5,0x14
-  bc:	8b85                	andi	a5,a5,1
-  be:	dfed                	beqz	a5,b8 <_wait_spi_rxwm_8_words>
-  c0:	0285a883          	lw	a7,40(a1)
-  c4:	0285a283          	lw	t0,40(a1)
-  c8:	0285a303          	lw	t1,40(a1)
-  cc:	0285a383          	lw	t2,40(a1)
-  d0:	0285ae03          	lw	t3,40(a1)
-  d4:	0285ae83          	lw	t4,40(a1)
-  d8:	0285af03          	lw	t5,40(a1)
-  dc:	0285af83          	lw	t6,40(a1)
-  e0:	0114a023          	sw	a7,0(s1)
-  e4:	0054a223          	sw	t0,4(s1)
-  e8:	0064a423          	sw	t1,8(s1)
-  ec:	0074a623          	sw	t2,12(s1)
-  f0:	01c4a823          	sw	t3,16(s1)
-  f4:	01d4aa23          	sw	t4,20(s1)
-  f8:	01e4ac23          	sw	t5,24(s1)
-  fc:	01f4ae23          	sw	t6,28(s1)
- 100:	02048493          	addi	s1,s1,32
- 104:	fb749ae3          	bne	s1,s7,b8 <_wait_spi_rxwm_8_words>
- 108:	f0068693          	addi	a3,a3,-256
- 10c:	fad1                	bnez	a3,a0 <_32B_chunk_loop>
- 10e:	200005b7          	lui	a1,0x20000
- 112:	4990                	lw	a2,16(a1)
- 114:	9602                	jalr	a2
+000000b6 <_wait_spi_rxwm_8_words>:
+  b6:	49dc                	lw	a5,20(a1)
+  b8:	83d1                	srli	a5,a5,0x14
+  ba:	8b85                	andi	a5,a5,1
+  bc:	dfed                	beqz	a5,b6 <_wait_spi_rxwm_8_words>
+  be:	02048613          	addi	a2,s1,32
+
+000000c2 <_spi_fifo_read_8_words>:
+  c2:	0285a883          	lw	a7,40(a1)
+  c6:	0114a023          	sw	a7,0(s1)
+  ca:	0491                	addi	s1,s1,4
+  cc:	fec49be3          	bne	s1,a2,c2 <_spi_fifo_read_8_words>
+  d0:	ff7493e3          	bne	s1,s7,b6 <_wait_spi_rxwm_8_words>
+  d4:	f0068693          	addi	a3,a3,-256
+  d8:	f2f9                	bnez	a3,9e <_32B_chunk_loop>
+  da:	200005b7          	lui	a1,0x20000
+  de:	4990                	lw	a2,16(a1)
+  e0:	9602                	jalr	a2

@@ -85,25 +85,24 @@ _wait_spi_ready_cmd_pwr:
        // Fill TX FIFO with TX data (read command 0x03 + 3B address 0x000)
        li     a4, 0x03
        sw     a4, SPI_HOST_DATA_REG_OFFSET(a1)
+       nop    # otherwise ready bit check is too fast
 
 _wait_spi_ready_tx_init:
-       nop    # otherwise ready bit check is too fast
        lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
        bgez   a4, _wait_spi_ready_tx_init
        // Read command: 0x00002203
        lui    a4, 0x2
        addi   a4, a4, 515 # spi cmd: txonly + stdspeed + csaat + 4B
        sw     a4, SPI_HOST_COMMAND_REG_OFFSET(a1)
+       nop    # otherwise ready bit check is too fast
 
 _wait_spi_ready_read_prog:
-       nop    # otherwise ready bit check is too fast
        lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
        bgez   a5, _wait_spi_ready_read_prog
-       li     a2, 0 # src ptr (flash)
-       li     a3, 1024 # 1KiB copy size
+       li     a3, 1024 # 1KB copy size
        li     s1, 0 # dst ptr (ram)
 
-       // For loop until the 1KiB copy from flash to ram is done
+       // For loop until the 1KB copy from flash to ram is done
        // 256-bytes copies are done
        li     s6, 256
        lui    s0, 0x1
@@ -116,9 +115,9 @@ _32B_chunk_loop:
 
 _read_32B_chunk:
        sw     s5, SPI_HOST_COMMAND_REG_OFFSET(a1)
+       nop    # otherwise ready bit check is too fast
 
 _wait_spi_ready_read_32B_chunk:
-       nop    # otherwise ready bit check is too fast
        lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
        bgez   a5, _wait_spi_ready_read_32B_chunk
        addi   s7, s1, 256 # add 32*8 (256 bytes) to dst ptr
@@ -128,29 +127,19 @@ _wait_spi_rxwm_8_words:
        srli   a5, a5, 0x14
        andi   a5, a5, 1 # SPI_HOST_STATUS_RXWM_BIT
        beqz   a5, _wait_spi_rxwm_8_words
+       addi   a2, s1, 32 # add 32 bytes (4 words) to dst ptr
+
+_spi_fifo_read_8_words:
        // Read 32B (8 words) from RX FIFO
        lw     a7, SPI_HOST_DATA_REG_OFFSET(a1)
-       lw     t0, SPI_HOST_DATA_REG_OFFSET(a1)
-       lw     t1, SPI_HOST_DATA_REG_OFFSET(a1)
-       lw     t2, SPI_HOST_DATA_REG_OFFSET(a1)
-       lw     t3, SPI_HOST_DATA_REG_OFFSET(a1)
-       lw     t4, SPI_HOST_DATA_REG_OFFSET(a1)
-       lw     t5, SPI_HOST_DATA_REG_OFFSET(a1)
-       lw     t6, SPI_HOST_DATA_REG_OFFSET(a1)
        sw     a7, 0(s1)
-       sw     t0, 4(s1)
-       sw     t1, 8(s1)
-       sw     t2, 12(s1)
-       sw     t3, 16(s1)
-       sw     t4, 20(s1)
-       sw     t5, 24(s1)
-       sw     t6, 28(s1)
-       addi   s1, s1, 32
+       addi   s1, s1, 4
+       bne    s1, a2, _spi_fifo_read_8_words
        bne    s1, s7, _wait_spi_rxwm_8_words
        addi   a3, a3, -256
        bnez   a3, _32B_chunk_loop
 
-       // 1 KiB copy from flash to ram finished, jump to ram boot address
+       // 1 KB copy from flash to ram finished, jump to ram boot address
        lui    a1, SOC_CTRL_START_ADDRESS_20bit
        // Load ram boot address
        lw     a2, SOC_CTRL_BOOT_ADDRESS_REG_OFFSET(a1)
