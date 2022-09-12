@@ -26,3 +26,11 @@ uint32_t soc_ctrl_get_frequency(const soc_ctrl_t *soc_ctrl) {
 void soc_ctrl_set_frequency(const soc_ctrl_t *soc_ctrl, uint32_t frequency) {
   mmio_region_write32(soc_ctrl->base_addr, (ptrdiff_t)(SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET), frequency);
 }
+
+void soc_ctrl_select_spi_memio(const soc_ctrl_t *soc_ctrl) {
+  mmio_region_write32(soc_ctrl->base_addr, (ptrdiff_t)(SOC_CTRL_USE_SPIMEMIO_REG_OFFSET), 0x1);
+}
+
+void soc_ctrl_select_spi_host(const soc_ctrl_t *soc_ctrl) {
+  mmio_region_write32(soc_ctrl->base_addr, (ptrdiff_t)(SOC_CTRL_USE_SPIMEMIO_REG_OFFSET), 0x0);
+}

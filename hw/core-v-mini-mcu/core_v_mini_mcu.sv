@@ -139,6 +139,8 @@ module core_v_mini_mcu
 
   // DMA
   logic dma_intr;
+  logic spi_intr_error;
+  logic spi_intr_event;
 
   logic clk, rst_n, boot_select, execute_from_flash, exit_valid;
   logic jtag_tck;
@@ -256,7 +258,9 @@ module core_v_mini_mcu
       .dma_master0_ch0_resp_i(dma_master0_ch0_resp),
       .dma_master1_ch0_req_o(dma_master1_ch0_req),
       .dma_master1_ch0_resp_i(dma_master1_ch0_resp),
-      .dma_intr_o(dma_intr)
+      .dma_intr_o(dma_intr),
+      .spi_intr_error_o(spi_intr_error),
+      .spi_intr_event_o(spi_intr_event)
   );
 
   peripheral_subsystem #(
@@ -283,7 +287,9 @@ module core_v_mini_mcu
       .cio_sda_en_o(cio_sda_en),
       .ext_peripheral_slave_req_o(ext_peripheral_slave_req_o),
       .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i),
-      .dma_intr_i(dma_intr)
+      .dma_intr_i(dma_intr),
+      .spi_intr_error_i(spi_intr_error),
+      .spi_intr_event_i(spi_intr_event)
   );
 
 
