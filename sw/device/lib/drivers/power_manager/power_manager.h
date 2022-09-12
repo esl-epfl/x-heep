@@ -23,6 +23,23 @@ typedef enum power_manager_result {
 } power_manager_result_t;
 
 /**
+ * Domains.
+ */
+typedef enum power_manager_sel_domain {
+  kPeriph = 2,
+  kRam0   = 4,
+  kRam1   = 8,
+} power_manager_sel_domain_t;
+
+/**
+ * Domain states.
+ */
+typedef enum power_manager_sel_state {
+  kOn  = 0,
+  kOff = 1,
+} power_manager_sel_state_t;
+
+/**
  * Interrupt source.
  */
 typedef enum power_manager_sel_intr {
@@ -76,8 +93,7 @@ power_manager_result_t power_gate_cpu_counters_init(power_manager_cpu_counters_t
 
 power_manager_result_t power_gate_core(const power_manager_t *power_manager, power_manager_sel_intr_t sel_intr, power_manager_cpu_counters_t* cpu_counter);
 
-
-
+power_manager_result_t power_gate_domain(const power_manager_t *power_manager, power_manager_sel_domain_t sel_domain, power_manager_sel_state_t sel_state, power_manager_cpu_counters_t* cpu_counter);
 
 #ifdef __cplusplus
 }

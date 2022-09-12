@@ -19,14 +19,16 @@ void power_gate_core_asm()
 
         // write POWER_GATE_CORE[0] = 1
         "lui a0, %[base_address_20bit]\n"
-        "li  a1, 1\n"
-        "sw  a1, %[power_manager_power_gate_core_reg_offset](a0)\n"
+        "lw  a1, %[power_manager_power_gate_core_reg_offset](a0)\n"
+        "li  a2, 1\n"
+        "or  a2, a1, a2\n"
+        "sw  a2, %[power_manager_power_gate_core_reg_offset](a0)\n"
 
         // write WAKEUP_STATE[0] = 1
-        "sw  a1, %[power_manager_wakeup_state_reg_offset](a0)\n" : : \
+        "sw  a2, %[power_manager_wakeup_state_reg_offset](a0)\n" : : \
         \
         [base_address_20bit] "i" (POWER_MANAGER_START_ADDRESS >> 12), \
-        [power_manager_power_gate_core_reg_offset] "i" (POWER_MANAGER_POWER_GATE_CORE_REG_OFFSET), \
+        [power_manager_power_gate_core_reg_offset] "i" (POWER_MANAGER_POWER_GATE_DOMAIN_REG_OFFSET), \
         [power_manager_wakeup_state_reg_offset] "i" (POWER_MANAGER_WAKEUP_STATE_REG_OFFSET) \
     );
 
@@ -128,8 +130,13 @@ void power_gate_core_asm()
 
         // write POWER_GATE_CORE[0] = 0
         "wakeup:"
-        "lui a0, %[base_address_20bit]\n"
-        "sw x0, %[power_manager_power_gate_core_reg_offset](a0)\n"
+        "lui  a0, %[base_address_20bit]\n"
+        "lw   a1, %[power_manager_power_gate_core_reg_offset](a0)\n"
+        "li   a2, 0\n"
+        "not  a2, a2\n"
+        "addi a2, a2, -1\n"
+        "and  a2, a1, a2\n"
+        "sw   a2, %[power_manager_power_gate_core_reg_offset](a0)\n"
 
         // write WAKEUP_STATE[0] = 0
         "sw x0, %[power_manager_wakeup_state_reg_offset](a0)\n"
@@ -138,7 +145,7 @@ void power_gate_core_asm()
         "sw x0, %[power_manager_restore_address_reg_offset](a0)\n" : : \
         \
         [base_address_20bit] "i" (POWER_MANAGER_START_ADDRESS >> 12), \
-        [power_manager_power_gate_core_reg_offset] "i" (POWER_MANAGER_POWER_GATE_CORE_REG_OFFSET), \
+        [power_manager_power_gate_core_reg_offset] "i" (POWER_MANAGER_POWER_GATE_DOMAIN_REG_OFFSET), \
         [power_manager_wakeup_state_reg_offset] "i" (POWER_MANAGER_WAKEUP_STATE_REG_OFFSET), \
         [power_manager_restore_address_reg_offset] "i" (POWER_MANAGER_RESTORE_ADDRESS_REG_OFFSET) \
     );
@@ -228,23 +235,23 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_core(const power_ma
 {
     uint32_t reg = 0;
 
-    //set counters
+    // set counters
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_RESET_ASSERT_COUNTER_REG_OFFSET), cpu_counter->reset_off);
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_RESET_DEASSERT_COUNTER_REG_OFFSET), cpu_counter->reset_on);
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_SWITCH_OFF_COUNTER_REG_OFFSET), cpu_counter->powergate_off);
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_SWITCH_ON_COUNTER_REG_OFFSET), cpu_counter->powergate_on);
 
-    //enable wakeup timers
+    // enable wakeup timers
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EN_WAIT_FOR_INTR_REG_OFFSET), 1 << sel_intr);
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_INTR_STATE_REG_OFFSET), 0x0);
 
     power_gate_core_asm();
 
-    //clean up states
+    // clean up states
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EN_WAIT_FOR_INTR_REG_OFFSET), 0x0);
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_INTR_STATE_REG_OFFSET), 0x0);
 
-    //stop counters
+    // stop counters
     reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_RESET_ASSERT_STOP_BIT_COUNTER_BIT, true);
     reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_RESET_DEASSERT_STOP_BIT_COUNTER_BIT, true);
     reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_SWITCH_OFF_STOP_BIT_COUNTER_BIT, true);
@@ -254,18 +261,34 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_core(const power_ma
     return kPowerManagerOk;
 }
 
+power_manager_result_t power_gate_domain(const power_manager_t *power_manager, power_manager_sel_domain_t sel_domain, power_manager_sel_state_t sel_state, power_manager_cpu_counters_t* cpu_counter)
+{
+    uint32_t reg = 0;
+
+    reg = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_DOMAIN_REG_OFFSET));
+
+    if (sel_state == kOn)
+        reg = reg & ~sel_domain;
+    else
+        reg = reg | sel_domain;
+
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_DOMAIN_REG_OFFSET), reg);
+
+    return kPowerManagerOk;
+}
+
 power_manager_result_t power_gate_cpu_counters_init(power_manager_cpu_counters_t* cpu_counter, uint32_t reset_off, uint32_t reset_on, uint32_t powergate_off, uint32_t powergate_on)
 {
     // the reset_on must be greater thatn powergate_on (i.e. first turn on, then you deassert the reset)
     // the reset_off must be greater thatn powergate_off (i.e. first turn off, then you reset)
 
-    if(reset_on <= powergate_on) return kPowerManagerError;
+    if(reset_on  <= powergate_on) return kPowerManagerError;
     if(reset_off <= powergate_off) return kPowerManagerError;
 
-    cpu_counter->reset_off = reset_off;
-    cpu_counter->reset_on = reset_on;
+    cpu_counter->reset_off     = reset_off;
+    cpu_counter->reset_on      = reset_on;
     cpu_counter->powergate_off = powergate_off;
-    cpu_counter->powergate_on = powergate_on;
+    cpu_counter->powergate_on  = powergate_on;
 
     return kPowerManagerOk;
 }

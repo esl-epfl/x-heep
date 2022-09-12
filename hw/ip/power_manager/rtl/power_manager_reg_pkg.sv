@@ -15,7 +15,7 @@ package power_manager_reg_pkg;
 
   typedef struct packed {
     logic [31:0] q;
-  } power_manager_reg2hw_power_gate_core_reg_t;
+  } power_manager_reg2hw_power_gate_domain_reg_t;
 
   typedef struct packed {
     logic        q;
@@ -247,7 +247,7 @@ package power_manager_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    power_manager_reg2hw_power_gate_core_reg_t power_gate_core; // [1508:1477]
+    power_manager_reg2hw_power_gate_domain_reg_t power_gate_domain; // [1508:1477]
     power_manager_reg2hw_wakeup_state_reg_t wakeup_state; // [1476:1476]
     power_manager_reg2hw_restore_address_reg_t restore_address; // [1475:1444]
     power_manager_reg2hw_core_reg_x1_reg_t core_reg_x1; // [1443:1412]
@@ -308,7 +308,7 @@ package power_manager_reg_pkg;
   } power_manager_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] POWER_MANAGER_POWER_GATE_CORE_OFFSET = 8'h 0;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_POWER_GATE_DOMAIN_OFFSET = 8'h 0;
   parameter logic [BlockAw-1:0] POWER_MANAGER_WAKEUP_STATE_OFFSET = 8'h 4;
   parameter logic [BlockAw-1:0] POWER_MANAGER_RESTORE_ADDRESS_OFFSET = 8'h 8;
   parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X1_OFFSET = 8'h c;
@@ -360,7 +360,7 @@ package power_manager_reg_pkg;
 
   // Register index
   typedef enum int {
-    POWER_MANAGER_POWER_GATE_CORE,
+    POWER_MANAGER_POWER_GATE_DOMAIN,
     POWER_MANAGER_WAKEUP_STATE,
     POWER_MANAGER_RESTORE_ADDRESS,
     POWER_MANAGER_CORE_REG_X1,
@@ -413,7 +413,7 @@ package power_manager_reg_pkg;
 
   // Register width information to check illegal writes
   parameter logic [3:0] POWER_MANAGER_PERMIT [49] = '{
-    4'b 1111, // index[ 0] POWER_MANAGER_POWER_GATE_CORE
+    4'b 1111, // index[ 0] POWER_MANAGER_POWER_GATE_DOMAIN
     4'b 0001, // index[ 1] POWER_MANAGER_WAKEUP_STATE
     4'b 1111, // index[ 2] POWER_MANAGER_RESTORE_ADDRESS
     4'b 1111, // index[ 3] POWER_MANAGER_CORE_REG_X1

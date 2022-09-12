@@ -68,9 +68,9 @@ module power_manager_reg_top #(
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
   //        or <reg>_{wd|we|qs} if field == 1 or 0
-  logic [31:0] power_gate_core_qs;
-  logic [31:0] power_gate_core_wd;
-  logic power_gate_core_we;
+  logic [31:0] power_gate_domain_qs;
+  logic [31:0] power_gate_domain_wd;
+  logic power_gate_domain_we;
   logic wakeup_state_qs;
   logic wakeup_state_wd;
   logic wakeup_state_we;
@@ -226,19 +226,19 @@ module power_manager_reg_top #(
   logic cpu_counters_stop_cpu_switch_on_stop_bit_counter_we;
 
   // Register instances
-  // R[power_gate_core]: V(False)
+  // R[power_gate_domain]: V(False)
 
   prim_subreg #(
     .DW      (32),
     .SWACCESS("RW"),
     .RESVAL  (32'h0)
-  ) u_power_gate_core (
+  ) u_power_gate_domain (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (power_gate_core_we),
-    .wd     (power_gate_core_wd),
+    .we     (power_gate_domain_we),
+    .wd     (power_gate_domain_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -246,10 +246,10 @@ module power_manager_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.power_gate_core.q ),
+    .q      (reg2hw.power_gate_domain.q ),
 
     // to register interface (read)
-    .qs     (power_gate_core_qs)
+    .qs     (power_gate_domain_qs)
   );
 
 
@@ -1633,7 +1633,7 @@ module power_manager_reg_top #(
   logic [48:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[ 0] = (reg_addr == POWER_MANAGER_POWER_GATE_CORE_OFFSET);
+    addr_hit[ 0] = (reg_addr == POWER_MANAGER_POWER_GATE_DOMAIN_OFFSET);
     addr_hit[ 1] = (reg_addr == POWER_MANAGER_WAKEUP_STATE_OFFSET);
     addr_hit[ 2] = (reg_addr == POWER_MANAGER_RESTORE_ADDRESS_OFFSET);
     addr_hit[ 3] = (reg_addr == POWER_MANAGER_CORE_REG_X1_OFFSET);
@@ -1740,8 +1740,8 @@ module power_manager_reg_top #(
                (addr_hit[48] & (|(POWER_MANAGER_PERMIT[48] & ~reg_be)))));
   end
 
-  assign power_gate_core_we = addr_hit[0] & reg_we & !reg_error;
-  assign power_gate_core_wd = reg_wdata[31:0];
+  assign power_gate_domain_we = addr_hit[0] & reg_we & !reg_error;
+  assign power_gate_domain_wd = reg_wdata[31:0];
 
   assign wakeup_state_we = addr_hit[1] & reg_we & !reg_error;
   assign wakeup_state_wd = reg_wdata[0];
@@ -1901,7 +1901,7 @@ module power_manager_reg_top #(
     reg_rdata_next = '0;
     unique case (1'b1)
       addr_hit[0]: begin
-        reg_rdata_next[31:0] = power_gate_core_qs;
+        reg_rdata_next[31:0] = power_gate_domain_qs;
       end
 
       addr_hit[1]: begin

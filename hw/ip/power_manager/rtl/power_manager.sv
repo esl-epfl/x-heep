@@ -41,8 +41,8 @@ module power_manager #(
 
   logic start_on_sequence;
 
-  assign peripheral_subsystem_powergate_switch_o = reg2hw.power_gate_core.q[1];
-  assign memory_subsystem_banks_powergate_switches_o = reg2hw.power_gate_core.q[core_v_mini_mcu_pkg::NUM_BANKS+1:2];
+  assign peripheral_subsystem_powergate_switch_o = ~reg2hw.power_gate_domain.q[1];
+  assign memory_subsystem_banks_powergate_switches_o = ~reg2hw.power_gate_domain.q[core_v_mini_mcu_pkg::NUM_BANKS+1:2];
 
   assign hw2reg.intr_state.d = {
     4'b0,
@@ -115,7 +115,7 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_core.q[0] && core_sleep_i),
+      .start_off_sequence_i(reg2hw.power_gate_domain.q[0] && core_sleep_i),
       .start_on_sequence_i (start_on_sequence),
 
       // counter to switch on and off signals
@@ -166,7 +166,7 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_core.q[0] && core_sleep_i),
+      .start_off_sequence_i(reg2hw.power_gate_domain.q[0] && core_sleep_i),
       .start_on_sequence_i (start_on_sequence),
 
       // counter to switch on and off signals
