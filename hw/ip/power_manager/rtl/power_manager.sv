@@ -100,7 +100,7 @@ module power_manager #(
       .hw2reg_q_i(reg2hw.cpu_reset_deassert_counter.q)
   );
 
-  always begin : power_manager_start_on_sequence_gen
+  always_comb begin : power_manager_start_on_sequence_gen
     if ((reg2hw.en_wait_for_intr.q & reg2hw.intr_state.q) == 32'b0) begin
       start_on_sequence = 1'b0;
     end else begin
