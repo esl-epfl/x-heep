@@ -90,7 +90,7 @@ module tb_top #(
       boot_sel = 0;
     end
 
-    execute_from_flash = 1;
+    execute_from_flash = 0;
     if (boot_sel == 1) begin
       if ($test$plusargs("execute_from_flash")) begin
         $value$plusargs("execute_from_flash=%s", arg_execute_from_flash);

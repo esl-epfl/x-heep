@@ -30,7 +30,11 @@ module spi_subsystem
     output logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_en_o,
     output logic [                        3:0] spi_sd_o,
     output logic [                        3:0] spi_sd_en_o,
-    input  logic [                        3:0] spi_sd_i
+    input  logic [                        3:0] spi_sd_i,
+
+    // SPI HOST interrupts
+    output logic spi_intr_error_o,
+    output logic spi_intr_event_o
 
 );
 
@@ -121,8 +125,8 @@ module spi_subsystem
       .cio_sd_o(ot_spi_sd_out),
       .cio_sd_en_o(ot_spi_sd_en),
       .cio_sd_i(ot_spi_sd_in),
-      .intr_error_o(),
-      .intr_spi_event_o()
+      .intr_error_o(spi_intr_error_o),
+      .intr_spi_event_o(spi_intr_event_o)
   );
 
 `ifndef SYNTHESIS

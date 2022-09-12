@@ -141,12 +141,14 @@ extern "C" {
 #define INTR_ACK_STOP ${intr_ack_stop}
 #define INTR_HOST_TIMEOUT ${intr_host_timeout}
 #define DMA_INTR_DONE ${dma_intr_done}
+#define SPI_INTR_ERROR ${spi_intr_error}
+#define SPI_INTR_EVENT ${spi_intr_event}
+
+// Interrupt lines available for external interrupt sources
 #define EXT_INTR_0 ${ext_intr_0}
 #define EXT_INTR_1 ${ext_intr_1}
 #define EXT_INTR_2 ${ext_intr_2}
 #define EXT_INTR_3 ${ext_intr_3}
-#define EXT_INTR_4 ${ext_intr_4}
-#define EXT_INTR_5 ${ext_intr_5}
 
 % for pad in pad_list:
 #define ${pad.localparam}_ATTRIBUTE ${pad.index}

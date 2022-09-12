@@ -9,7 +9,7 @@ PYTHON?=python
 
 INC_FOLDERS                 = $(sort $(dir $(wildcard ../../../sw/device/lib/drivers/*/)))
 INC_FOLDERS                += $(sort $(dir $(wildcard ../../../sw/device/lib/base/*/)))
-INC_FOLDERS                += $(sort $(dir $(wildcard ../../../sw/device/lib/runtime/*/)))
+INC_FOLDERS                += $(sort $(dir $(wildcard ../../../sw/device/lib/runtime/)))
 INC_FOLDERS_GCC             = $(addprefix -I ,$(INC_FOLDERS))
 
 all: $(boot_rom) boot_rom.dump
@@ -18,7 +18,7 @@ all: $(boot_rom) boot_rom.dump
 	$(PYTHON) gen_rom.py $<
 
 %.img: %.bin
-	dd if=$< of=$@ bs=256 count=1
+	dd if=$< of=$@ bs=1024 count=1
 
 %.bin: %.elf
 	$(OBJCOPY) -O binary $< $@

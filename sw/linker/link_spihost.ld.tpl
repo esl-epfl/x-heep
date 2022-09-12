@@ -8,13 +8,13 @@ ENTRY(_start)
 MEMORY
 {
     FLASH (rx)      : ORIGIN = 0x${spi_flash_start_address}, LENGTH = 0x${spi_flash_size_address}
-    RAM (xrw)       : ORIGIN = 0x${'{:08X}'.format(int(ram_start_address,16) + 4)}, LENGTH = 0x${'{:08X}'.format(int(ram_size_address,16) - 4)}
+    RAM (xrw)       : ORIGIN = 0x${'{:08X}'.format(int(ram_start_address,16))}, LENGTH = 0x${'{:08X}'.format(int(ram_size_address,16) - 4)}
 }
 
 SECTIONS {
 
     /* we want a fixed entry point */
-    PROVIDE(__boot_address = 0x40000180);
+    PROVIDE(__boot_address = 0x180);
 
     /* stack and heap related settings */
     __stack_size = DEFINED(__stack_size) ? __stack_size : 0x1000;
@@ -22,21 +22,55 @@ SECTIONS {
     __heap_size = DEFINED(__heap_size) ? __heap_size : 0x1000;
 
     /* interrupt vectors */
-    .vectors (ORIGIN(FLASH)):
+    .vectors (ORIGIN(RAM)):
     {
-      PROVIDE(_vector_start = .);
-      KEEP(*(.vectors));
-    } >FLASH
+        PROVIDE(_vector_start = .);
+        KEEP(*(.vectors));
+    } >RAM AT >FLASH
 
+    /* Fill section to avoid 'X' in simulation when booting with SPI host (copy from flash to ram) */
+    .fill :
+    {
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+    } >RAM AT >FLASH
 
     /* crt0 init code */
     .init (__boot_address):
     {
         KEEP (*(SORT_NONE(.init)))
-	KEEP (*(.text.start))
-    } >FLASH
+        KEEP (*(.text.start))
+    } >RAM AT >FLASH
 
-    
     /* The program code and other data goes into FLASH */
     .text :
     {
@@ -49,7 +83,7 @@ SECTIONS {
         *(.srodata*)       /* .rodata* sections (constants, strings, etc.) */
         . = ALIGN(4);
         _etext = .;        /* define a global symbol at end of code */
-    } >FLASH
+    } >RAM AT >FLASH
 
    
 
@@ -98,18 +132,18 @@ SECTIONS {
     /* this is to define the start of the heap, and make sure we have a minimum size */
     .heap          :
     {
-     PROVIDE(__heap_start = .);
-    . = __heap_size;
-    PROVIDE(__heap_end = .);
+        PROVIDE(__heap_start = .);
+        . = __heap_size;
+        PROVIDE(__heap_end = .);
     } >RAM
 
     /* stack: we should consider putting this further to the top of the address
     space */
-  .stack         : ALIGN(16) /* this is a requirement of the ABI(?) */
-  {
-   PROVIDE(__stack_start = .);
-   . = __stack_size;
-   PROVIDE(_sp = .);
-   PROVIDE(__stack_end = .);
-  } >RAM
+    .stack         : ALIGN(16) /* this is a requirement of the ABI(?) */
+    {
+       PROVIDE(__stack_start = .);
+       . = __stack_size;
+       PROVIDE(_sp = .);
+       PROVIDE(__stack_end = .);
+    } >RAM
 }

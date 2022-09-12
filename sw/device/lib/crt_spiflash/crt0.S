@@ -51,7 +51,7 @@ _start:
 
 /* set vector table address and vectored mode */
 	la a0, _vector_start
-        ori a0, a0, 0x1
+	ori a0, a0, 0x1
 	csrw mtvec, a0
 
 /* new-style constructors and destructors */
@@ -60,9 +60,9 @@ _start:
 	call __libc_init_array
 
 /* set the frequency */
-   li a0, SOC_CTRL_START_ADDRESS
-   li a2, REFERENCE_CLOCK_Hz
-   sw a2, SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET(a0)
+	li a0, SOC_CTRL_START_ADDRESS
+	li a2, REFERENCE_CLOCK_Hz
+	sw a2, SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET(a0)
 
 /* call main */
 	lw a0, 0(sp)                    /* a0 = argc */
