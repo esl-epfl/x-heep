@@ -131,8 +131,10 @@ module core_v_mini_mcu
   logic spi_intr;
 
   // power manager
-  logic cpu_subsystem_powergate_switch;
-  logic cpu_subsystem_rst_n;
+  logic                                      cpu_subsystem_powergate_switch;
+  logic                                      peripheral_subsystem_powergate_switch;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switches;
+  logic                                      cpu_subsystem_rst_n;
 
   // rv_timer
   logic rv_timer_intr[2:0];
@@ -237,7 +239,8 @@ module core_v_mini_mcu
       .clk_i(clk),
       .rst_ni(rst_n),
       .ram_req_i(ram_slave_req),
-      .ram_resp_o(ram_slave_resp)
+      .ram_resp_o(ram_slave_resp),
+      .powergate_switches_i(memory_subsystem_banks_powergate_switches)
   );
 
   ao_peripheral_subsystem ao_peripheral_subsystem_i (
@@ -261,6 +264,8 @@ module core_v_mini_mcu
       .spi_intr_o(spi_intr),
       .core_sleep_i(core_sleep),
       .cpu_subsystem_powergate_switch_o(cpu_subsystem_powergate_switch),
+      .peripheral_subsystem_powergate_switch_o(peripheral_subsystem_powergate_switch),
+      .memory_subsystem_banks_powergate_switches_o(memory_subsystem_banks_powergate_switches),
       .cpu_subsystem_rst_no(cpu_subsystem_rst_n),
       .rv_timer_0_intr_o(irq_timer),
       .rv_timer_1_intr_o(rv_timer_intr[0]),

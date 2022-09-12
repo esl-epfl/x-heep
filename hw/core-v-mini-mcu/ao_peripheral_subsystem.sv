@@ -33,9 +33,11 @@ module ao_peripheral_subsystem
     output logic                               spi_intr_o,
 
     // POWER MANAGER
-    input  logic core_sleep_i,
-    output logic cpu_subsystem_powergate_switch_o,
-    output logic cpu_subsystem_rst_no,
+    input  logic                                      core_sleep_i,
+    output logic                                      cpu_subsystem_powergate_switch_o,
+    output logic                                      peripheral_subsystem_powergate_switch_o,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switches_o,
+    output logic                                      cpu_subsystem_rst_no,
 
     //RV TIMER
     output logic rv_timer_0_intr_o,
@@ -185,6 +187,8 @@ module ao_peripheral_subsystem
       .ext_irq_i(ext_intr_i),
       .core_sleep_i,
       .cpu_subsystem_powergate_switch_o,
+      .peripheral_subsystem_powergate_switch_o,
+      .memory_subsystem_banks_powergate_switches_o,
       .cpu_subsystem_rst_no
   );
 

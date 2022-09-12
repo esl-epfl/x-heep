@@ -13,107 +13,211 @@ package power_manager_reg_pkg;
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {logic q;} power_manager_reg2hw_power_gate_core_reg_t;
-
-  typedef struct packed {logic q;} power_manager_reg2hw_wakeup_state_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_restore_address_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x1_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x2_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x3_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x4_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x5_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x6_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x7_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x8_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x9_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x10_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x11_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x12_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x13_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x14_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x15_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x16_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x17_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x18_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x19_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x20_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x21_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x22_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x23_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x24_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x25_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x26_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x27_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x28_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x29_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x30_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_reg_x31_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_csr_c0_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_csr_c1_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_csr_c2_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_csr_c3_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_csr_c4_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_csr_c5_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_csr_c6_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_core_csr_c7_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_en_wait_for_intr_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_intr_state_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_cpu_reset_assert_counter_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_cpu_reset_deassert_counter_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_cpu_switch_off_counter_reg_t;
-
-  typedef struct packed {logic [31:0] q;} power_manager_reg2hw_cpu_switch_on_counter_reg_t;
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_power_gate_core_reg_t;
 
   typedef struct packed {
-    struct packed {logic q;} cpu_reset_assert_stop_bit_counter;
-    struct packed {logic q;} cpu_reset_deassert_stop_bit_counter;
-    struct packed {logic q;} cpu_switch_off_stop_bit_counter;
-    struct packed {logic q;} cpu_switch_on_stop_bit_counter;
+    logic        q;
+  } power_manager_reg2hw_wakeup_state_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_restore_address_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x1_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x2_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x3_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x4_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x5_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x6_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x7_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x8_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x9_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x10_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x11_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x12_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x13_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x14_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x15_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x16_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x17_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x18_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x19_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x20_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x21_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x22_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x23_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x24_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x25_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x26_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x27_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x28_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x29_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x30_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_reg_x31_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_csr_c0_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_csr_c1_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_csr_c2_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_csr_c3_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_csr_c4_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_csr_c5_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_csr_c6_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_core_csr_c7_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_en_wait_for_intr_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_intr_state_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_cpu_reset_assert_counter_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_cpu_reset_deassert_counter_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_cpu_switch_off_counter_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } power_manager_reg2hw_cpu_switch_on_counter_reg_t;
+
+  typedef struct packed {
+    struct packed {
+      logic        q;
+    } cpu_reset_assert_stop_bit_counter;
+    struct packed {
+      logic        q;
+    } cpu_reset_deassert_stop_bit_counter;
+    struct packed {
+      logic        q;
+    } cpu_switch_off_stop_bit_counter;
+    struct packed {
+      logic        q;
+    } cpu_switch_on_stop_bit_counter;
   } power_manager_reg2hw_cpu_counters_stop_reg_t;
 
   typedef struct packed {
@@ -143,116 +247,116 @@ package power_manager_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    power_manager_reg2hw_power_gate_core_reg_t power_gate_core;  // [1477:1477]
-    power_manager_reg2hw_wakeup_state_reg_t wakeup_state;  // [1476:1476]
-    power_manager_reg2hw_restore_address_reg_t restore_address;  // [1475:1444]
-    power_manager_reg2hw_core_reg_x1_reg_t core_reg_x1;  // [1443:1412]
-    power_manager_reg2hw_core_reg_x2_reg_t core_reg_x2;  // [1411:1380]
-    power_manager_reg2hw_core_reg_x3_reg_t core_reg_x3;  // [1379:1348]
-    power_manager_reg2hw_core_reg_x4_reg_t core_reg_x4;  // [1347:1316]
-    power_manager_reg2hw_core_reg_x5_reg_t core_reg_x5;  // [1315:1284]
-    power_manager_reg2hw_core_reg_x6_reg_t core_reg_x6;  // [1283:1252]
-    power_manager_reg2hw_core_reg_x7_reg_t core_reg_x7;  // [1251:1220]
-    power_manager_reg2hw_core_reg_x8_reg_t core_reg_x8;  // [1219:1188]
-    power_manager_reg2hw_core_reg_x9_reg_t core_reg_x9;  // [1187:1156]
-    power_manager_reg2hw_core_reg_x10_reg_t core_reg_x10;  // [1155:1124]
-    power_manager_reg2hw_core_reg_x11_reg_t core_reg_x11;  // [1123:1092]
-    power_manager_reg2hw_core_reg_x12_reg_t core_reg_x12;  // [1091:1060]
-    power_manager_reg2hw_core_reg_x13_reg_t core_reg_x13;  // [1059:1028]
-    power_manager_reg2hw_core_reg_x14_reg_t core_reg_x14;  // [1027:996]
-    power_manager_reg2hw_core_reg_x15_reg_t core_reg_x15;  // [995:964]
-    power_manager_reg2hw_core_reg_x16_reg_t core_reg_x16;  // [963:932]
-    power_manager_reg2hw_core_reg_x17_reg_t core_reg_x17;  // [931:900]
-    power_manager_reg2hw_core_reg_x18_reg_t core_reg_x18;  // [899:868]
-    power_manager_reg2hw_core_reg_x19_reg_t core_reg_x19;  // [867:836]
-    power_manager_reg2hw_core_reg_x20_reg_t core_reg_x20;  // [835:804]
-    power_manager_reg2hw_core_reg_x21_reg_t core_reg_x21;  // [803:772]
-    power_manager_reg2hw_core_reg_x22_reg_t core_reg_x22;  // [771:740]
-    power_manager_reg2hw_core_reg_x23_reg_t core_reg_x23;  // [739:708]
-    power_manager_reg2hw_core_reg_x24_reg_t core_reg_x24;  // [707:676]
-    power_manager_reg2hw_core_reg_x25_reg_t core_reg_x25;  // [675:644]
-    power_manager_reg2hw_core_reg_x26_reg_t core_reg_x26;  // [643:612]
-    power_manager_reg2hw_core_reg_x27_reg_t core_reg_x27;  // [611:580]
-    power_manager_reg2hw_core_reg_x28_reg_t core_reg_x28;  // [579:548]
-    power_manager_reg2hw_core_reg_x29_reg_t core_reg_x29;  // [547:516]
-    power_manager_reg2hw_core_reg_x30_reg_t core_reg_x30;  // [515:484]
-    power_manager_reg2hw_core_reg_x31_reg_t core_reg_x31;  // [483:452]
-    power_manager_reg2hw_core_csr_c0_reg_t core_csr_c0;  // [451:420]
-    power_manager_reg2hw_core_csr_c1_reg_t core_csr_c1;  // [419:388]
-    power_manager_reg2hw_core_csr_c2_reg_t core_csr_c2;  // [387:356]
-    power_manager_reg2hw_core_csr_c3_reg_t core_csr_c3;  // [355:324]
-    power_manager_reg2hw_core_csr_c4_reg_t core_csr_c4;  // [323:292]
-    power_manager_reg2hw_core_csr_c5_reg_t core_csr_c5;  // [291:260]
-    power_manager_reg2hw_core_csr_c6_reg_t core_csr_c6;  // [259:228]
-    power_manager_reg2hw_core_csr_c7_reg_t core_csr_c7;  // [227:196]
-    power_manager_reg2hw_en_wait_for_intr_reg_t en_wait_for_intr;  // [195:164]
-    power_manager_reg2hw_intr_state_reg_t intr_state;  // [163:132]
-    power_manager_reg2hw_cpu_reset_assert_counter_reg_t cpu_reset_assert_counter;  // [131:100]
-    power_manager_reg2hw_cpu_reset_deassert_counter_reg_t cpu_reset_deassert_counter;  // [99:68]
-    power_manager_reg2hw_cpu_switch_off_counter_reg_t cpu_switch_off_counter;  // [67:36]
-    power_manager_reg2hw_cpu_switch_on_counter_reg_t cpu_switch_on_counter;  // [35:4]
-    power_manager_reg2hw_cpu_counters_stop_reg_t cpu_counters_stop;  // [3:0]
+    power_manager_reg2hw_power_gate_core_reg_t power_gate_core; // [1508:1477]
+    power_manager_reg2hw_wakeup_state_reg_t wakeup_state; // [1476:1476]
+    power_manager_reg2hw_restore_address_reg_t restore_address; // [1475:1444]
+    power_manager_reg2hw_core_reg_x1_reg_t core_reg_x1; // [1443:1412]
+    power_manager_reg2hw_core_reg_x2_reg_t core_reg_x2; // [1411:1380]
+    power_manager_reg2hw_core_reg_x3_reg_t core_reg_x3; // [1379:1348]
+    power_manager_reg2hw_core_reg_x4_reg_t core_reg_x4; // [1347:1316]
+    power_manager_reg2hw_core_reg_x5_reg_t core_reg_x5; // [1315:1284]
+    power_manager_reg2hw_core_reg_x6_reg_t core_reg_x6; // [1283:1252]
+    power_manager_reg2hw_core_reg_x7_reg_t core_reg_x7; // [1251:1220]
+    power_manager_reg2hw_core_reg_x8_reg_t core_reg_x8; // [1219:1188]
+    power_manager_reg2hw_core_reg_x9_reg_t core_reg_x9; // [1187:1156]
+    power_manager_reg2hw_core_reg_x10_reg_t core_reg_x10; // [1155:1124]
+    power_manager_reg2hw_core_reg_x11_reg_t core_reg_x11; // [1123:1092]
+    power_manager_reg2hw_core_reg_x12_reg_t core_reg_x12; // [1091:1060]
+    power_manager_reg2hw_core_reg_x13_reg_t core_reg_x13; // [1059:1028]
+    power_manager_reg2hw_core_reg_x14_reg_t core_reg_x14; // [1027:996]
+    power_manager_reg2hw_core_reg_x15_reg_t core_reg_x15; // [995:964]
+    power_manager_reg2hw_core_reg_x16_reg_t core_reg_x16; // [963:932]
+    power_manager_reg2hw_core_reg_x17_reg_t core_reg_x17; // [931:900]
+    power_manager_reg2hw_core_reg_x18_reg_t core_reg_x18; // [899:868]
+    power_manager_reg2hw_core_reg_x19_reg_t core_reg_x19; // [867:836]
+    power_manager_reg2hw_core_reg_x20_reg_t core_reg_x20; // [835:804]
+    power_manager_reg2hw_core_reg_x21_reg_t core_reg_x21; // [803:772]
+    power_manager_reg2hw_core_reg_x22_reg_t core_reg_x22; // [771:740]
+    power_manager_reg2hw_core_reg_x23_reg_t core_reg_x23; // [739:708]
+    power_manager_reg2hw_core_reg_x24_reg_t core_reg_x24; // [707:676]
+    power_manager_reg2hw_core_reg_x25_reg_t core_reg_x25; // [675:644]
+    power_manager_reg2hw_core_reg_x26_reg_t core_reg_x26; // [643:612]
+    power_manager_reg2hw_core_reg_x27_reg_t core_reg_x27; // [611:580]
+    power_manager_reg2hw_core_reg_x28_reg_t core_reg_x28; // [579:548]
+    power_manager_reg2hw_core_reg_x29_reg_t core_reg_x29; // [547:516]
+    power_manager_reg2hw_core_reg_x30_reg_t core_reg_x30; // [515:484]
+    power_manager_reg2hw_core_reg_x31_reg_t core_reg_x31; // [483:452]
+    power_manager_reg2hw_core_csr_c0_reg_t core_csr_c0; // [451:420]
+    power_manager_reg2hw_core_csr_c1_reg_t core_csr_c1; // [419:388]
+    power_manager_reg2hw_core_csr_c2_reg_t core_csr_c2; // [387:356]
+    power_manager_reg2hw_core_csr_c3_reg_t core_csr_c3; // [355:324]
+    power_manager_reg2hw_core_csr_c4_reg_t core_csr_c4; // [323:292]
+    power_manager_reg2hw_core_csr_c5_reg_t core_csr_c5; // [291:260]
+    power_manager_reg2hw_core_csr_c6_reg_t core_csr_c6; // [259:228]
+    power_manager_reg2hw_core_csr_c7_reg_t core_csr_c7; // [227:196]
+    power_manager_reg2hw_en_wait_for_intr_reg_t en_wait_for_intr; // [195:164]
+    power_manager_reg2hw_intr_state_reg_t intr_state; // [163:132]
+    power_manager_reg2hw_cpu_reset_assert_counter_reg_t cpu_reset_assert_counter; // [131:100]
+    power_manager_reg2hw_cpu_reset_deassert_counter_reg_t cpu_reset_deassert_counter; // [99:68]
+    power_manager_reg2hw_cpu_switch_off_counter_reg_t cpu_switch_off_counter; // [67:36]
+    power_manager_reg2hw_cpu_switch_on_counter_reg_t cpu_switch_on_counter; // [35:4]
+    power_manager_reg2hw_cpu_counters_stop_reg_t cpu_counters_stop; // [3:0]
   } power_manager_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    power_manager_hw2reg_intr_state_reg_t intr_state;  // [164:132]
-    power_manager_hw2reg_cpu_reset_assert_counter_reg_t cpu_reset_assert_counter;  // [131:99]
-    power_manager_hw2reg_cpu_reset_deassert_counter_reg_t cpu_reset_deassert_counter;  // [98:66]
-    power_manager_hw2reg_cpu_switch_off_counter_reg_t cpu_switch_off_counter;  // [65:33]
-    power_manager_hw2reg_cpu_switch_on_counter_reg_t cpu_switch_on_counter;  // [32:0]
+    power_manager_hw2reg_intr_state_reg_t intr_state; // [164:132]
+    power_manager_hw2reg_cpu_reset_assert_counter_reg_t cpu_reset_assert_counter; // [131:99]
+    power_manager_hw2reg_cpu_reset_deassert_counter_reg_t cpu_reset_deassert_counter; // [98:66]
+    power_manager_hw2reg_cpu_switch_off_counter_reg_t cpu_switch_off_counter; // [65:33]
+    power_manager_hw2reg_cpu_switch_on_counter_reg_t cpu_switch_on_counter; // [32:0]
   } power_manager_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] POWER_MANAGER_POWER_GATE_CORE_OFFSET = 8'h0;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_WAKEUP_STATE_OFFSET = 8'h4;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_RESTORE_ADDRESS_OFFSET = 8'h8;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X1_OFFSET = 8'hc;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X2_OFFSET = 8'h10;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X3_OFFSET = 8'h14;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X4_OFFSET = 8'h18;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X5_OFFSET = 8'h1c;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X6_OFFSET = 8'h20;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X7_OFFSET = 8'h24;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X8_OFFSET = 8'h28;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X9_OFFSET = 8'h2c;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X10_OFFSET = 8'h30;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X11_OFFSET = 8'h34;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X12_OFFSET = 8'h38;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X13_OFFSET = 8'h3c;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X14_OFFSET = 8'h40;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X15_OFFSET = 8'h44;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X16_OFFSET = 8'h48;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X17_OFFSET = 8'h4c;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X18_OFFSET = 8'h50;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X19_OFFSET = 8'h54;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X20_OFFSET = 8'h58;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X21_OFFSET = 8'h5c;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X22_OFFSET = 8'h60;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X23_OFFSET = 8'h64;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X24_OFFSET = 8'h68;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X25_OFFSET = 8'h6c;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X26_OFFSET = 8'h70;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X27_OFFSET = 8'h74;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X28_OFFSET = 8'h78;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X29_OFFSET = 8'h7c;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X30_OFFSET = 8'h80;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X31_OFFSET = 8'h84;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_CSR_C0_OFFSET = 8'h88;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_CSR_C1_OFFSET = 8'h8c;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_CSR_C2_OFFSET = 8'h90;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_CSR_C3_OFFSET = 8'h94;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_CSR_C4_OFFSET = 8'h98;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_CSR_C5_OFFSET = 8'h9c;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_CSR_C6_OFFSET = 8'ha0;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_CSR_C7_OFFSET = 8'ha4;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_EN_WAIT_FOR_INTR_OFFSET = 8'ha8;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_INTR_STATE_OFFSET = 8'hac;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CPU_RESET_ASSERT_COUNTER_OFFSET = 8'hb0;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CPU_RESET_DEASSERT_COUNTER_OFFSET = 8'hb4;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CPU_SWITCH_OFF_COUNTER_OFFSET = 8'hb8;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CPU_SWITCH_ON_COUNTER_OFFSET = 8'hbc;
-  parameter logic [BlockAw-1:0] POWER_MANAGER_CPU_COUNTERS_STOP_OFFSET = 8'hc0;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_POWER_GATE_CORE_OFFSET = 8'h 0;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_WAKEUP_STATE_OFFSET = 8'h 4;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_RESTORE_ADDRESS_OFFSET = 8'h 8;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X1_OFFSET = 8'h c;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X2_OFFSET = 8'h 10;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X3_OFFSET = 8'h 14;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X4_OFFSET = 8'h 18;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X5_OFFSET = 8'h 1c;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X6_OFFSET = 8'h 20;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X7_OFFSET = 8'h 24;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X8_OFFSET = 8'h 28;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X9_OFFSET = 8'h 2c;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X10_OFFSET = 8'h 30;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X11_OFFSET = 8'h 34;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X12_OFFSET = 8'h 38;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X13_OFFSET = 8'h 3c;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X14_OFFSET = 8'h 40;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X15_OFFSET = 8'h 44;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X16_OFFSET = 8'h 48;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X17_OFFSET = 8'h 4c;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X18_OFFSET = 8'h 50;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X19_OFFSET = 8'h 54;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X20_OFFSET = 8'h 58;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X21_OFFSET = 8'h 5c;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X22_OFFSET = 8'h 60;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X23_OFFSET = 8'h 64;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X24_OFFSET = 8'h 68;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X25_OFFSET = 8'h 6c;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X26_OFFSET = 8'h 70;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X27_OFFSET = 8'h 74;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X28_OFFSET = 8'h 78;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X29_OFFSET = 8'h 7c;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X30_OFFSET = 8'h 80;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_REG_X31_OFFSET = 8'h 84;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_CSR_C0_OFFSET = 8'h 88;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_CSR_C1_OFFSET = 8'h 8c;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_CSR_C2_OFFSET = 8'h 90;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_CSR_C3_OFFSET = 8'h 94;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_CSR_C4_OFFSET = 8'h 98;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_CSR_C5_OFFSET = 8'h 9c;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_CSR_C6_OFFSET = 8'h a0;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CORE_CSR_C7_OFFSET = 8'h a4;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_EN_WAIT_FOR_INTR_OFFSET = 8'h a8;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_INTR_STATE_OFFSET = 8'h ac;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CPU_RESET_ASSERT_COUNTER_OFFSET = 8'h b0;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CPU_RESET_DEASSERT_COUNTER_OFFSET = 8'h b4;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CPU_SWITCH_OFF_COUNTER_OFFSET = 8'h b8;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CPU_SWITCH_ON_COUNTER_OFFSET = 8'h bc;
+  parameter logic [BlockAw-1:0] POWER_MANAGER_CPU_COUNTERS_STOP_OFFSET = 8'h c0;
 
   // Register index
   typedef enum int {
@@ -308,56 +412,56 @@ package power_manager_reg_pkg;
   } power_manager_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] POWER_MANAGER_PERMIT[49] = '{
-      4'b0001,  // index[ 0] POWER_MANAGER_POWER_GATE_CORE
-      4'b0001,  // index[ 1] POWER_MANAGER_WAKEUP_STATE
-      4'b1111,  // index[ 2] POWER_MANAGER_RESTORE_ADDRESS
-      4'b1111,  // index[ 3] POWER_MANAGER_CORE_REG_X1
-      4'b1111,  // index[ 4] POWER_MANAGER_CORE_REG_X2
-      4'b1111,  // index[ 5] POWER_MANAGER_CORE_REG_X3
-      4'b1111,  // index[ 6] POWER_MANAGER_CORE_REG_X4
-      4'b1111,  // index[ 7] POWER_MANAGER_CORE_REG_X5
-      4'b1111,  // index[ 8] POWER_MANAGER_CORE_REG_X6
-      4'b1111,  // index[ 9] POWER_MANAGER_CORE_REG_X7
-      4'b1111,  // index[10] POWER_MANAGER_CORE_REG_X8
-      4'b1111,  // index[11] POWER_MANAGER_CORE_REG_X9
-      4'b1111,  // index[12] POWER_MANAGER_CORE_REG_X10
-      4'b1111,  // index[13] POWER_MANAGER_CORE_REG_X11
-      4'b1111,  // index[14] POWER_MANAGER_CORE_REG_X12
-      4'b1111,  // index[15] POWER_MANAGER_CORE_REG_X13
-      4'b1111,  // index[16] POWER_MANAGER_CORE_REG_X14
-      4'b1111,  // index[17] POWER_MANAGER_CORE_REG_X15
-      4'b1111,  // index[18] POWER_MANAGER_CORE_REG_X16
-      4'b1111,  // index[19] POWER_MANAGER_CORE_REG_X17
-      4'b1111,  // index[20] POWER_MANAGER_CORE_REG_X18
-      4'b1111,  // index[21] POWER_MANAGER_CORE_REG_X19
-      4'b1111,  // index[22] POWER_MANAGER_CORE_REG_X20
-      4'b1111,  // index[23] POWER_MANAGER_CORE_REG_X21
-      4'b1111,  // index[24] POWER_MANAGER_CORE_REG_X22
-      4'b1111,  // index[25] POWER_MANAGER_CORE_REG_X23
-      4'b1111,  // index[26] POWER_MANAGER_CORE_REG_X24
-      4'b1111,  // index[27] POWER_MANAGER_CORE_REG_X25
-      4'b1111,  // index[28] POWER_MANAGER_CORE_REG_X26
-      4'b1111,  // index[29] POWER_MANAGER_CORE_REG_X27
-      4'b1111,  // index[30] POWER_MANAGER_CORE_REG_X28
-      4'b1111,  // index[31] POWER_MANAGER_CORE_REG_X29
-      4'b1111,  // index[32] POWER_MANAGER_CORE_REG_X30
-      4'b1111,  // index[33] POWER_MANAGER_CORE_REG_X31
-      4'b1111,  // index[34] POWER_MANAGER_CORE_CSR_C0
-      4'b1111,  // index[35] POWER_MANAGER_CORE_CSR_C1
-      4'b1111,  // index[36] POWER_MANAGER_CORE_CSR_C2
-      4'b1111,  // index[37] POWER_MANAGER_CORE_CSR_C3
-      4'b1111,  // index[38] POWER_MANAGER_CORE_CSR_C4
-      4'b1111,  // index[39] POWER_MANAGER_CORE_CSR_C5
-      4'b1111,  // index[40] POWER_MANAGER_CORE_CSR_C6
-      4'b1111,  // index[41] POWER_MANAGER_CORE_CSR_C7
-      4'b1111,  // index[42] POWER_MANAGER_EN_WAIT_FOR_INTR
-      4'b1111,  // index[43] POWER_MANAGER_INTR_STATE
-      4'b1111,  // index[44] POWER_MANAGER_CPU_RESET_ASSERT_COUNTER
-      4'b1111,  // index[45] POWER_MANAGER_CPU_RESET_DEASSERT_COUNTER
-      4'b1111,  // index[46] POWER_MANAGER_CPU_SWITCH_OFF_COUNTER
-      4'b1111,  // index[47] POWER_MANAGER_CPU_SWITCH_ON_COUNTER
-      4'b0001  // index[48] POWER_MANAGER_CPU_COUNTERS_STOP
+  parameter logic [3:0] POWER_MANAGER_PERMIT [49] = '{
+    4'b 1111, // index[ 0] POWER_MANAGER_POWER_GATE_CORE
+    4'b 0001, // index[ 1] POWER_MANAGER_WAKEUP_STATE
+    4'b 1111, // index[ 2] POWER_MANAGER_RESTORE_ADDRESS
+    4'b 1111, // index[ 3] POWER_MANAGER_CORE_REG_X1
+    4'b 1111, // index[ 4] POWER_MANAGER_CORE_REG_X2
+    4'b 1111, // index[ 5] POWER_MANAGER_CORE_REG_X3
+    4'b 1111, // index[ 6] POWER_MANAGER_CORE_REG_X4
+    4'b 1111, // index[ 7] POWER_MANAGER_CORE_REG_X5
+    4'b 1111, // index[ 8] POWER_MANAGER_CORE_REG_X6
+    4'b 1111, // index[ 9] POWER_MANAGER_CORE_REG_X7
+    4'b 1111, // index[10] POWER_MANAGER_CORE_REG_X8
+    4'b 1111, // index[11] POWER_MANAGER_CORE_REG_X9
+    4'b 1111, // index[12] POWER_MANAGER_CORE_REG_X10
+    4'b 1111, // index[13] POWER_MANAGER_CORE_REG_X11
+    4'b 1111, // index[14] POWER_MANAGER_CORE_REG_X12
+    4'b 1111, // index[15] POWER_MANAGER_CORE_REG_X13
+    4'b 1111, // index[16] POWER_MANAGER_CORE_REG_X14
+    4'b 1111, // index[17] POWER_MANAGER_CORE_REG_X15
+    4'b 1111, // index[18] POWER_MANAGER_CORE_REG_X16
+    4'b 1111, // index[19] POWER_MANAGER_CORE_REG_X17
+    4'b 1111, // index[20] POWER_MANAGER_CORE_REG_X18
+    4'b 1111, // index[21] POWER_MANAGER_CORE_REG_X19
+    4'b 1111, // index[22] POWER_MANAGER_CORE_REG_X20
+    4'b 1111, // index[23] POWER_MANAGER_CORE_REG_X21
+    4'b 1111, // index[24] POWER_MANAGER_CORE_REG_X22
+    4'b 1111, // index[25] POWER_MANAGER_CORE_REG_X23
+    4'b 1111, // index[26] POWER_MANAGER_CORE_REG_X24
+    4'b 1111, // index[27] POWER_MANAGER_CORE_REG_X25
+    4'b 1111, // index[28] POWER_MANAGER_CORE_REG_X26
+    4'b 1111, // index[29] POWER_MANAGER_CORE_REG_X27
+    4'b 1111, // index[30] POWER_MANAGER_CORE_REG_X28
+    4'b 1111, // index[31] POWER_MANAGER_CORE_REG_X29
+    4'b 1111, // index[32] POWER_MANAGER_CORE_REG_X30
+    4'b 1111, // index[33] POWER_MANAGER_CORE_REG_X31
+    4'b 1111, // index[34] POWER_MANAGER_CORE_CSR_C0
+    4'b 1111, // index[35] POWER_MANAGER_CORE_CSR_C1
+    4'b 1111, // index[36] POWER_MANAGER_CORE_CSR_C2
+    4'b 1111, // index[37] POWER_MANAGER_CORE_CSR_C3
+    4'b 1111, // index[38] POWER_MANAGER_CORE_CSR_C4
+    4'b 1111, // index[39] POWER_MANAGER_CORE_CSR_C5
+    4'b 1111, // index[40] POWER_MANAGER_CORE_CSR_C6
+    4'b 1111, // index[41] POWER_MANAGER_CORE_CSR_C7
+    4'b 1111, // index[42] POWER_MANAGER_EN_WAIT_FOR_INTR
+    4'b 1111, // index[43] POWER_MANAGER_INTR_STATE
+    4'b 1111, // index[44] POWER_MANAGER_CPU_RESET_ASSERT_COUNTER
+    4'b 1111, // index[45] POWER_MANAGER_CPU_RESET_DEASSERT_COUNTER
+    4'b 1111, // index[46] POWER_MANAGER_CPU_SWITCH_OFF_COUNTER
+    4'b 1111, // index[47] POWER_MANAGER_CPU_SWITCH_ON_COUNTER
+    4'b 0001  // index[48] POWER_MANAGER_CPU_COUNTERS_STOP
   };
 
 endpackage

@@ -14,7 +14,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "POWER_GATE_CORE", desc: "Power Gate Core Reg" }
+        { bits: "31:0", name: "POWER_GATE_CORE", desc: "Power Gate Core Reg" }
       ]
     }
 

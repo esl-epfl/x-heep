@@ -18,7 +18,6 @@ extern "C" {
 
 // Used to power gate the core
 #define POWER_MANAGER_POWER_GATE_CORE_REG_OFFSET 0x0
-#define POWER_MANAGER_POWER_GATE_CORE_POWER_GATE_CORE_BIT 0
 
 // Wake-up state of the system
 #define POWER_MANAGER_WAKEUP_STATE_REG_OFFSET 0x4
