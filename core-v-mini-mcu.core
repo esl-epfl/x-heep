@@ -30,6 +30,7 @@ filesets:
     - x-heep:ip:boot_rom
     - x-heep:ip:dma
     - x-heep:ip:power_manager
+    - x-heep:ip:pad_attribute
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
@@ -49,7 +50,11 @@ filesets:
     - pulp-platform.org::tech_cells_generic
     files:
     - hw/simulation/sram_wrapper.sv
-    - hw/simulation/pad_cell.sv
+    - hw/simulation/pad_cell_bypass_input.sv
+    - hw/simulation/pad_cell_bypass_output.sv
+    - hw/simulation/pad_cell_inout.sv
+    - hw/simulation/pad_cell_input.sv
+    - hw/simulation/pad_cell_output.sv
     file_type: systemVerilogSource
 
   tb-utils:
@@ -66,6 +71,7 @@ filesets:
     - hw/ip/obi_spimemio/obi_spimemio.vlt
     - hw/ip/dma/dma.vlt
     - hw/ip/power_manager/power_manager.vlt
+    - hw/ip/pad_attribute/pad_attribute.vlt
     file_type: vlt
 
   rtl-fpga:
