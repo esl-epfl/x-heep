@@ -195,14 +195,6 @@ void spi_write_word(const spi_host_t *spi, uint32_t wdata);
 void spi_read_word(const spi_host_t *spi, uint32_t* dst);
 
 /**
- * Reads a chunk of data from RX FIFO (which must contains at least 128B!).
- *
- * @param spi Pointer to spi_host_t representing the target SPI.
- * @param dst Read data destination pointer.
- */
-void spi_read_chunk_32B(const spi_host_t *spi, uint32_t* dst);
-
-/**
  * Enable SPI event interrupt
  *
  * @param spi Pointer to spi_host_t representing the target SPI.

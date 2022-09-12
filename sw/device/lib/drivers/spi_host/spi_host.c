@@ -90,36 +90,13 @@ void spi_write_word(const spi_host_t *spi, uint32_t wdata) {
 
 void spi_read_word(const spi_host_t *spi, uint32_t* dst) {
     volatile uint32_t* fifo = spi->base_addr.base + SPI_HOST_DATA_REG_OFFSET;
-    asm volatile (
-        "lw    a7, 0 (%[fifo]);"
-        "sw    a7, 0 (%[dst]);"
-        :: [fifo]"r"(fifo), [dst]"r"(dst)
-        : "a7"
-    );
-}
-
-void spi_read_chunk_32B(const spi_host_t *spi, uint32_t* dst) {
-    volatile uint32_t* fifo = spi->base_addr.base + SPI_HOST_DATA_REG_OFFSET;
-    asm volatile (
-        "lw    a7, 0 (%[fifo]);"
-        "lw    t0, 0 (%[fifo]);"
-        "lw    t1, 0 (%[fifo]);"
-        "lw    t2, 0 (%[fifo]);"
-        "lw    t3, 0 (%[fifo]);"
-        "lw    t4, 0 (%[fifo]);"
-        "lw    t5, 0 (%[fifo]);"
-        "lw    t6, 0 (%[fifo]);"
-        "sw    a7, 0 (%[dst]);"
-        "sw    t0, 4 (%[dst]);"
-        "sw    t1, 8 (%[dst]);"
-        "sw    t2, 12(%[dst]);"
-        "sw    t3, 16(%[dst]);"
-        "sw    t4, 20(%[dst]);"
-        "sw    t5, 24(%[dst]);"
-        "sw    t6, 28(%[dst]);"
-        :: [fifo]"r"(fifo), [dst]"r"(dst)
-        : "a7", "t0", "t1", "t2", "t3", "t4", "t5", "t6"
-    );
+    *dst = *fifo;
+    // asm volatile (
+    //     "lw    a7, 0 (%[fifo]);"
+    //     "sw    a7, 0 (%[dst]);"
+    //     :: [fifo]"r"(fifo), [dst]"r"(dst)
+    //     : "a7"
+    // );
 }
 
 void spi_enable_evt_intr(const spi_host_t *spi, bool enable) {
