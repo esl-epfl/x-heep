@@ -211,9 +211,9 @@ package core_v_mini_mcu_pkg;
   // if you add another register in the pad_attribute IP, then +4 does not hold anymore
   localparam addr_map_rule_t [NUM_PAD-1:0] PAD_ADDR_RULES = '{
       % for pad in pad_list[:-1]:
-      '{ idx: ${pad.index}, start_addr: (PAD_ATTRIBUTE_START_ADDRESS + ${4 * pad.index}), end_addr: (PAD_ATTRIBUTE_END_ADDRESS + ${4 * pad.index})},
+      '{ idx: ${pad.index}, start_addr: (PAD_ATTRIBUTE_START_ADDRESS + ${4 * pad.index}), end_addr: (PAD_ATTRIBUTE_START_ADDRESS + ${4 + 4 * pad.index})},
       % endfor
-      '{ idx: ${pad_list[-1].index}, start_addr: (PAD_ATTRIBUTE_START_ADDRESS + ${4 * pad_list[-1].index}), end_addr: (PAD_ATTRIBUTE_END_ADDRESS + ${4 * pad_list[-1].index})}
+      '{ idx: ${pad_list[-1].index}, start_addr: (PAD_ATTRIBUTE_START_ADDRESS + ${4 * pad_list[-1].index}), end_addr: (PAD_ATTRIBUTE_START_ADDRESS + ${4 + 4 * pad_list[-1].index})}
   };
 
 endpackage
