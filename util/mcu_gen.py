@@ -216,8 +216,8 @@ def main():
     dma_start_offset  = string2int(obj['ao_peripherals']['dma']['offset'])
     dma_size_address  = string2int(obj['ao_peripherals']['dma']['length'])
 
-    pad_start_offset  = string2int(obj['ao_peripherals']['pad']['offset'])
-    pad_size_address  = string2int(obj['ao_peripherals']['pad']['length'])
+    pad_attribute_start_offset  = string2int(obj['ao_peripherals']['pad']['offset'])
+    pad_attribute_size_address  = string2int(obj['ao_peripherals']['pad']['length'])
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
@@ -381,8 +381,8 @@ def main():
         "rv_timer_size_address"            : rv_timer_size_address,
         "dma_start_offset"                 : dma_start_offset,
         "dma_size_address"                 : dma_size_address,
-        "pad_start_offset"                 : pad_start_offset,
-        "pad_size_address"                 : pad_size_address,
+        "pad_attribute_start_offset"       : pad_attribute_start_offset,
+        "pad_attribute_size_address"       : pad_attribute_size_address,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
         "plic_start_offset"                : plic_start_offset,

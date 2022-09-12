@@ -212,8 +212,8 @@ module ao_peripheral_subsystem
   ) pad_attribute_i (
       .clk_i,
       .rst_ni,
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::PAD_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_IDX]),
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX]),
       .pad_attributes_o
   );
 

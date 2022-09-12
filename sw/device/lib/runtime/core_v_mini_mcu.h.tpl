@@ -46,6 +46,10 @@ extern "C" {
 #define DMA_SIZE 0x${dma_size_address}
 #define DMA_END_ADDRESS (DMA_START_ADDRESS + DMA_SIZE)
 
+#define PAD_ATTRIBUTE_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${pad_attribute_start_offset})
+#define PAD_ATTRIBUTE_SIZE 0x${pad_attribute_size_address}
+#define PAD_ATTRIBUTE_END_ADDRESS (PAD_ATTRIBUTE_START_ADDRESS + PAD_ATTRIBUTE_SIZE)
+
 //switch-on/off peripherals
 #define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}
 #define PERIPHERAL_SIZE 0x${peripheral_size_address}
@@ -143,6 +147,10 @@ extern "C" {
 #define EXT_INTR_3 ${ext_intr_3}
 #define EXT_INTR_4 ${ext_intr_4}
 #define EXT_INTR_5 ${ext_intr_5}
+
+% for pad in pad_list:
+#define ${pad.localparam}_ATTRIBUTE ${pad.index}
+% endfor
 
 #ifdef __cplusplus
 }  // extern "C"
