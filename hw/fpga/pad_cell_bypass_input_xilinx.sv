@@ -12,6 +12,6 @@ module pad_cell_bypass_input #(
     input logic [PADATTR-1:0] pad_attributes_i
 );
 
-    assign pad_out_o = pad_io;
+  assign pad_out_o = pad_io;
 
 endmodule
