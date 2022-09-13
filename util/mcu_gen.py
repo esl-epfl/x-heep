@@ -17,6 +17,71 @@ import csv
 from jsonref import JsonRef
 from mako.template import Template
 
+class Pad:
+  def __init__(self, name, cell_name, pad_type, index):
+    self.name = name
+    self.cell_name = cell_name
+    self.index = index
+    self.localparam = 'PAD_' + name.upper()
+    self.pad_type = pad_type
+
+
+    self.interface = '    inout logic ' + self.name + '_io,\n'
+
+    if pad_type == 'input':
+        self.interface += '    output logic ' + self.name + '_o,\n'
+        self.instance = \
+            'pad_cell_input #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
+            '   .pad_in_i(1\'b0),\n' + \
+            '   .pad_oe_i(1\'b0),\n' + \
+            '   .pad_out_o(' + name + '_o),\n' + \
+            '   .pad_io(' + name  + '_io),\n' + \
+            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
+            ');\n\n'
+    if pad_type == 'output':
+        self.interface += '    input logic ' + self.name + '_i,\n'
+        self.instance = \
+            'pad_cell_output #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
+            '   .pad_in_i(' + name + '_i),\n' + \
+            '   .pad_oe_i(1\'b1),\n' + \
+            '   .pad_out_o(),\n' + \
+            '   .pad_io(' + name  + '_io),\n' + \
+            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
+            ');\n\n'
+    if pad_type == 'inout':
+        self.interface += '    input logic ' + self.name + '_i,\n'
+        self.interface += '    output logic ' + self.name + '_o,\n'
+        self.interface += '    input logic ' + self.name + '_oe_i,\n'
+        self.instance = \
+            'pad_cell_inout #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
+            '   .pad_in_i(' + name + '_i),\n' + \
+            '   .pad_oe_i(' + name + '_oe_i),\n' + \
+            '   .pad_out_o(' + name + '_o),\n' + \
+            '   .pad_io(' + name  + '_io),\n' + \
+            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
+            ');\n\n'
+    if pad_type == 'bypass_output':
+        self.interface += '    input logic ' + self.name + '_i,\n'
+        self.instance = \
+            'pad_cell_bypass_output #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
+            '   .pad_in_i(' + name + '_i),\n' + \
+            '   .pad_oe_i(1\'b1),\n' + \
+            '   .pad_out_o(),\n' + \
+            '   .pad_io(' + name  + '_io),\n' + \
+            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
+            ');\n\n'
+    if pad_type == 'bypass_input':
+        self.interface += '    output logic ' + self.name + '_o,\n'
+        self.instance = \
+            'pad_cell_bypass_input #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
+            '   .pad_in_i(1\'b0),\n' + \
+            '   .pad_oe_i(1\'b0),\n' + \
+            '   .pad_out_o(' + name + '_o),\n' + \
+            '   .pad_io(' + name  + '_io),\n' + \
+            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
+            ');\n\n'
+
+
 
 # Compile a regex to trim trailing whitespaces on lines.
 re_trailws = re.compile(r'[ \t\r]+$', re.MULTILINE)
@@ -171,6 +236,9 @@ def main():
     dma_start_offset  = string2int(obj['ao_peripherals']['dma']['offset'])
     dma_size_address  = string2int(obj['ao_peripherals']['dma']['length'])
 
+    pad_attribute_start_offset  = string2int(obj['ao_peripherals']['pad']['offset'])
+    pad_attribute_size_address  = string2int(obj['ao_peripherals']['pad']['length'])
+
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
         exit("peripheral start address must be greater than 0x10000")
@@ -284,6 +352,33 @@ def main():
     ext_intr_2 = obj['interrupts']['ext_intr_2']
     ext_intr_3 = obj['interrupts']['ext_intr_3']
 
+
+    pads       = obj['pads']
+
+    pad_list   = []
+    pad_index_counter = 0
+
+    for key in pads:
+
+        pad_name = key
+        pad_num = pads[key]['num']
+        pad_type = pads[key]['type']
+
+        if pad_num > 1:
+            for p in range(pad_num):
+                pad_cell_name = "pad_" + key + "_" + str(p) + "_i"
+                pad_obj = Pad(pad_name + "_" + str(p), pad_cell_name, pad_type, pad_index_counter)
+                pad_index_counter = pad_index_counter + 1
+                pad_list.append(pad_obj)
+        else:
+            pad_cell_name = "pad_" + key + "_i"
+            pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_index_counter)
+            pad_index_counter = pad_index_counter + 1
+            pad_list.append(pad_obj)
+
+    num_internal_pad = pad_index_counter
+
+
     kwargs = {
         "cpu_type"                         : cpu_type,
         "bus_type"                         : bus_type,
@@ -308,6 +403,8 @@ def main():
         "rv_timer_size_address"            : rv_timer_size_address,
         "dma_start_offset"                 : dma_start_offset,
         "dma_size_address"                 : dma_size_address,
+        "pad_attribute_start_offset"       : pad_attribute_start_offset,
+        "pad_attribute_size_address"       : pad_attribute_size_address,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
         "plic_start_offset"                : plic_start_offset,
@@ -392,6 +489,8 @@ def main():
         "ext_intr_1"                       : ext_intr_1,
         "ext_intr_2"                       : ext_intr_2,
         "ext_intr_3"                       : ext_intr_3,
+        "pad_list"                         : pad_list,
+        "num_internal_pad"                 : num_internal_pad,
     }
 
     ###########

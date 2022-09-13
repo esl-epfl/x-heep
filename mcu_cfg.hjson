@@ -64,6 +64,10 @@
             offset:  0x00050000,
             length:  0x00010000,
         },
+        pad: {
+            offset:  0x00060000,
+            length:  0x00010000,
+        },
     },
 
     peripherals: {
@@ -168,6 +172,83 @@
         ext_intr_1:              61,
         ext_intr_2:              62,
         ext_intr_3:              63
+    },
+
+    pads: {
+
+        clk: {
+            num: 1,
+            type: input
+        },
+        rst: {
+            num: 1,
+            type: input
+        },
+        boot_select: {
+            num: 1,
+            type: input
+        },
+        execute_from_flash: {
+            num: 1,
+            type: input
+        },
+        jtag_tck: {
+            num: 1,
+            type: input
+        },
+        jtag_tms: {
+            num: 1,
+            type: input
+        },
+        jtag_trst: {
+            num: 1,
+            type: input
+        },
+        jtag_tdi: {
+            num: 1,
+            type: input
+        },
+        jtag_tdo: {
+            num: 1,
+            type: output
+        },
+        uart_rx: {
+            num: 1,
+            type: input
+        },
+        uart_tx: {
+            num: 1,
+            type: output
+        },
+        exit_valid: {
+            num: 1,
+            type: output
+        },
+        gpio: {
+            num: 32,
+            type: inout
+        },
+        spi_sck: {
+            num: 1,
+            type: inout
+        },
+        spi_cs: {
+            num: 2, #carefull, the x-heep uses the CS from the spi pkg, chenge it
+            type: inout
+        },
+        spi_sd: {
+            num: 4,
+            type: inout
+        },
+        i2c_scl: {
+            num: 1,
+            type: inout
+        },
+        i2c_sda: {
+            num: 1,
+            type: inout
+        }
     }
+
 
 }
