@@ -134,11 +134,15 @@ First, you have to generate the SystemVerilog package and C header file of the c
 make mcu-gen
 ```
 
-To change the default cpu type (i.e., cv32e20) and the default bus type (i.e., onetoM) type:
+To change the default cpu type (i.e., cv32e20), the default bus type (i.e., onetoM) type
+or the memory size (i.e., number of banks):
 
 ```
-make mcu-gen CPU=cv32e40p BUS=NtoM
+make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=16
 ```
+
+The last command generates x-heep with the cv32e40p core, with a parallel bus, and 16 memory banks,
+each 32KB, for a total memory of 512KB.
 
 ## Compiling Software
 
@@ -242,9 +246,22 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim_opt-modelsim/
 and 
 
 ```
-make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
+make run RUN_OPT=1 PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
 ```
-Questasim version must be >= Questasim 2019.3
+
+You can also compile with the UPF power domain description as:
+
+```
+make questasim-sim-opt-upf FUSESOC_FLAGS="--flag=use_upf"
+```
+
+and then execute software as:
+
+```
+make run RUN_OPT=1 RUN_UPF=1 PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
+```
+
+Questasim version must be >= Questasim 2020.4
 
 ### UART DPI
 

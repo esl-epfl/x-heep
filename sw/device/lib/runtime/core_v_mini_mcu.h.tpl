@@ -13,9 +13,67 @@ extern "C" {
 #define DEBUG_SIZE 0x${debug_size_address}
 #define DEBUG_END_ADDRESS (DEBUG_START_ADDRESS + DEBUG_SIZE)
 
+//always-on peripherals
+#define AO_PERIPHERAL_START_ADDRESS 0x${ao_peripheral_start_address}
+#define AO_PERIPHERAL_SIZE 0x${ao_peripheral_size_address}
+#define AO_PERIPHERAL_END_ADDRESS (AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE)
+
+#define SOC_CTRL_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${soc_ctrl_start_offset})
+#define SOC_CTRL_SIZE 0x${soc_ctrl_size_address}
+#define SOC_CTRL_END_ADDRESS (SOC_CTRL_IDX_START_ADDRESS + SOC_CTRL_IDX_SIZE)
+
+#define BOOTROM_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${bootrom_start_offset})
+#define BOOTROM_SIZE 0x${bootrom_size_address}
+#define BOOTROM_END_ADDRESS (BOOTROM_START_ADDRESS + BOOTROM_SIZE)
+
+#define SPI_HOST_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_host_start_offset})
+#define SPI_HOST_SIZE 0x${spi_host_size_address}
+#define SPI_HOST_END_ADDRESS (SPI_HOST_START_ADDRESS + SPI_HOST_SIZE)
+
+#define SPI_MEMIO_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_memio_start_offset})
+#define SPI_MEMIO_SIZE 0x${spi_memio_size_address}
+#define SPI_MEMIO_END_ADDRESS (SPI_MEMIO_START_ADDRESS + SPI_MEMIO_SIZE)
+
+#define POWER_MANAGER_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${power_manager_start_offset})
+#define POWER_MANAGER_SIZE 0x${power_manager_size_address}
+#define POWER_MANAGER_END_ADDRESS (POWER_MANAGER_START_ADDRESS + POWER_MANAGER_SIZE)
+
+#define RV_TIMER_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${rv_timer_start_offset})
+#define RV_TIMER_SIZE 0x${rv_timer_size_address}
+#define RV_TIMER_END_ADDRESS (RV_TIMER_START_ADDRESS + RV_TIMER_SIZE)
+
+#define DMA_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${dma_start_offset})
+#define DMA_SIZE 0x${dma_size_address}
+#define DMA_END_ADDRESS (DMA_START_ADDRESS + DMA_SIZE)
+
+#define PAD_ATTRIBUTE_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${pad_attribute_start_offset})
+#define PAD_ATTRIBUTE_SIZE 0x${pad_attribute_size_address}
+#define PAD_ATTRIBUTE_END_ADDRESS (PAD_ATTRIBUTE_START_ADDRESS + PAD_ATTRIBUTE_SIZE)
+
+//switch-on/off peripherals
 #define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}
 #define PERIPHERAL_SIZE 0x${peripheral_size_address}
 #define PERIPHERAL_END_ADDRESS (PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE)
+
+#define PLIC_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${plic_start_offset})
+#define PLIC_SIZE 0x${plic_size_address}
+#define PLIC_END_ADDRESS (PLIC_START_ADDRESS + PLIC_SIZE)
+
+#define UART_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${uart_start_offset})
+#define UART_SIZE 0x${uart_size_address}
+#define UART_END_ADDRESS (UART_START_ADDRESS + UART_SIZE)
+
+#define GPIO_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${gpio_start_offset})
+#define GPIO_SIZE 0x${gpio_size_address}
+#define GPIO_END_ADDRESS (GPIO_START_ADDRESS + GPIO_SIZE)
+
+#define I2C_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${i2c_start_offset})
+#define I2C_SIZE 0x${i2c_size_address}
+#define I2C_END_ADDRESS (I2C_START_ADDRESS + I2C_SIZE)
+
+#define EXT_PERIPHERAL_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${ext_periph_start_offset})
+#define EXT_PERIPHERAL_SIZE 0x${ext_periph_size_address}
+#define EXT_PERIPHERAL_END_ADDRESS (EXT_PERIPHERAL_START_ADDRESS + EXT_PERIPHERAL_SIZE)
 
 #define EXT_SLAVE_START_ADDRESS 0x${ext_slave_start_address}
 #define EXT_SLAVE_SIZE 0x${ext_slave_size_address}
@@ -24,50 +82,6 @@ extern "C" {
 #define SPI_FLASH_START_ADDRESS 0x${spi_flash_start_address}
 #define SPI_FLASH_SIZE 0x${spi_flash_size_address}
 #define SPI_FLASH_END_ADDRESS (SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE)
-
-#define EXT_PERIPHERAL_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${ext_periph_start_offset})
-#define EXT_PERIPHERAL_SIZE 0x${ext_periph_size_address}
-#define EXT_PERIPHERAL_END_ADDRESS (EXT_PERIPHERAL_START_ADDRESS + EXT_PERIPHERAL_SIZE)
-
-#define SOC_CTRL_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${soc_ctrl_start_offset})
-#define SOC_CTRL_SIZE 0x${soc_ctrl_size_address}
-#define SOC_CTRL_END_ADDRESS (SOC_CTRL_IDX_START_ADDRESS + SOC_CTRL_IDX_SIZE)
-
-#define UART_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${uart_start_offset})
-#define UART_SIZE 0x${uart_size_address}
-#define UART_END_ADDRESS (UART_START_ADDRESS + UART_SIZE)
-
-#define PLIC_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${plic_start_offset})
-#define PLIC_SIZE 0x${plic_size_address}
-#define PLIC_END_ADDRESS (PLIC_START_ADDRESS + PLIC_SIZE)
-
-#define RV_TIMER_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${rv_timer_start_offset})
-#define RV_TIMER_SIZE 0x${rv_timer_size_address}
-#define RV_TIMER_END_ADDRESS (RV_TIMER_START_ADDRESS + RV_TIMER_SIZE)
-
-#define GPIO_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${gpio_start_offset})
-#define GPIO_SIZE 0x${gpio_size_address}
-#define GPIO_END_ADDRESS (GPIO_START_ADDRESS + GPIO_SIZE)
-
-#define SPI_HOST_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${spi_host_start_offset})
-#define SPI_HOST_SIZE 0x${spi_host_size_address}
-#define SPI_HOST_END_ADDRESS (SPI_HOST_START_ADDRESS + SPI_HOST_SIZE)
-
-#define SPI_MEMIO_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${spi_memio_start_offset})
-#define SPI_MEMIO_SIZE 0x${spi_memio_size_address}
-#define SPI_MEMIO_END_ADDRESS (SPI_MEMIO_START_ADDRESS + SPI_MEMIO_SIZE)
-
-#define BOOTROM_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${bootrom_start_offset})
-#define BOOTROM_SIZE 0x${bootrom_size_address}
-#define BOOTROM_END_ADDRESS (BOOTROM_START_ADDRESS + BOOTROM_SIZE)
-
-#define I2C_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${i2c_start_offset})
-#define I2C_SIZE 0x${i2c_size_address}
-#define I2C_END_ADDRESS (I2C_START_ADDRESS + I2C_SIZE)
-
-#define DMA_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${dma_start_offset})
-#define DMA_SIZE 0x${dma_size_address}
-#define DMA_END_ADDRESS (DMA_START_ADDRESS + DMA_SIZE)
 
 #define NULL_INTR ${null_intr}
 #define UART_INTR_TX_WATERMARK ${uart_intr_tx_watermark}
@@ -127,14 +141,18 @@ extern "C" {
 #define INTR_ACK_STOP ${intr_ack_stop}
 #define INTR_HOST_TIMEOUT ${intr_host_timeout}
 #define DMA_INTR_DONE ${dma_intr_done}
+#define SPI_INTR_ERROR ${spi_intr_error}
+#define SPI_INTR_EVENT ${spi_intr_event}
 
 // Interrupt lines available for external interrupt sources
 #define EXT_INTR_0 ${ext_intr_0}
 #define EXT_INTR_1 ${ext_intr_1}
 #define EXT_INTR_2 ${ext_intr_2}
 #define EXT_INTR_3 ${ext_intr_3}
-#define EXT_INTR_4 ${ext_intr_4}
-#define EXT_INTR_5 ${ext_intr_5}
+
+% for pad in pad_list:
+#define ${pad.localparam}_ATTRIBUTE ${pad.index}
+% endfor
 
 #ifdef __cplusplus
 }  // extern "C"

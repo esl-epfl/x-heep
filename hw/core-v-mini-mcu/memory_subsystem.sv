@@ -5,72 +5,49 @@
 module memory_subsystem
   import obi_pkg::*;
 #(
-    parameter NUM_BYTES = 2 ** 16
+    parameter NUM_BANKS = 2
 ) (
     input logic clk_i,
     input logic rst_ni,
 
-    input  obi_req_t  ram0_req_i,
-    output obi_resp_t ram0_resp_o,
-    input  obi_req_t  ram1_req_i,
-    output obi_resp_t ram1_resp_o
+    input  obi_req_t  [NUM_BANKS-1:0] ram_req_i,
+    output obi_resp_t [NUM_BANKS-1:0] ram_resp_o
 );
 
-  localparam int NumWords = NUM_BYTES / 4;
-  localparam int AddrWidth = $clog2(NUM_BYTES);
+  localparam int NumWords = 32 * 1024 / 4;
+  localparam int AddrWidth = $clog2(32 * 1024);
 
-  logic ram0_valid_q, ram1_valid_q;
+  logic [NUM_BANKS-1:0] ram_valid_q;
 
-  always_ff @(posedge clk_i or negedge rst_ni) begin : ram_valid_q
-    if (!rst_ni) begin
-      ram0_valid_q <= '0;
-      ram1_valid_q <= '0;
-    end else begin
-      ram0_valid_q <= ram0_resp_o.gnt;
-      ram1_valid_q <= ram1_resp_o.gnt;
+  for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_sram
+
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+      if (!rst_ni) begin
+        ram_valid_q[i] <= '0;
+      end else begin
+        ram_valid_q[i] <= ram_resp_o[i].gnt;
+      end
     end
+
+    assign ram_resp_o[i].gnt = ram_req_i[i].req;
+    assign ram_resp_o[i].rvalid = ram_valid_q[i];
+
+    //Fixed to 8KWords per bank (32KB)
+    sram_wrapper #(
+        .NumWords (NumWords),
+        .DataWidth(32'd32)
+    ) ram_i (
+        .clk_i  (clk_i),
+        .rst_ni (rst_ni),
+        .req_i  (ram_req_i[i].req),
+        .we_i   (ram_req_i[i].we),
+        .addr_i (ram_req_i[i].addr[AddrWidth-1:2]),
+        .wdata_i(ram_req_i[i].wdata),
+        .be_i   (ram_req_i[i].be),
+        // output ports
+        .rdata_o(ram_resp_o[i].rdata)
+    );
+
   end
-
-
-  assign ram0_resp_o.gnt = ram0_req_i.req;
-  assign ram0_resp_o.rvalid = ram0_valid_q;
-
-  //16Kwords per bank (64KB)
-  sram_wrapper #(
-      .NumWords (NumWords / 2),
-      .DataWidth(32'd32)
-  ) ram0_i (
-      .clk_i  (clk_i),
-      .rst_ni (rst_ni),
-      .req_i  (ram0_req_i.req),
-      .we_i   (ram0_req_i.we),
-      .addr_i (ram0_req_i.addr[AddrWidth-1-1:2]),
-      .wdata_i(ram0_req_i.wdata),
-      .be_i   (ram0_req_i.be),
-      // output ports
-      .rdata_o(ram0_resp_o.rdata)
-  );
-
-
-  assign ram1_resp_o.gnt = ram1_req_i.req;
-  assign ram1_resp_o.rvalid = ram1_valid_q;
-
-  //16Kwords per bank (64KB)
-  sram_wrapper #(
-      .NumWords (NumWords / 2),
-      .DataWidth(32'd32)
-  ) ram1_i (
-      .clk_i  (clk_i),
-      .rst_ni (rst_ni),
-      .req_i  (ram1_req_i.req),
-      .we_i   (ram1_req_i.we),
-      .addr_i (ram1_req_i.addr[AddrWidth-1-1:2]),
-      .wdata_i(ram1_req_i.wdata),
-      .be_i   (ram1_req_i.be),
-      // output ports
-      .rdata_o(ram1_resp_o.rdata)
-  );
-
-
 
 endmodule

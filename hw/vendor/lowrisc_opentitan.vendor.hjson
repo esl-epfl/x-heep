@@ -122,6 +122,16 @@
     "hw/ip/usbdev",
     "hw/ip/usb_fs_nb_pe",
     "hw/ip/usbuart",
+    "hw/ip/prim/lint/prim_pad_wrapper.waiver",
+    "hw/ip/prim/prim_pad_attr.core",
+    "hw/ip/prim/prim_pad_wrapper.core",
+    "hw/ip/prim/prim_pad_wrapper_pkg.core",
+    "hw/ip/prim/rtl/prim_pad_wrapper_pkg.sv",
+    "hw/ip/prim_generic/lint/prim_generic_pad_wrapper.waiver",
+    "hw/ip/prim_generic/prim_generic_pad_attr.core",
+    "hw/ip/prim_generic/prim_generic_pad_wrapper.core",
+    "hw/ip/prim_generic/rtl/prim_generic_pad_attr.sv",
+    "hw/ip/prim_generic/rtl/prim_generic_pad_wrapper.sv",
   ]
 
 

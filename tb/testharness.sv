@@ -2,6 +2,10 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+`ifdef USE_UPF
+import UPF::*;
+`endif
+
 module testharness #(
     parameter PULP_XPULP    = 0,
     parameter FPU           = 0,
@@ -9,19 +13,19 @@ module testharness #(
     parameter JTAG_DPI      = 0,
     parameter CLK_FREQUENCY = 'd100_000  //KHz
 ) (
-    input logic clk_i,
-    input logic rst_ni,
+    inout logic clk_i,
+    inout logic rst_ni,
 
-    input logic boot_select_i,
-    input logic execute_from_flash_i,
+    inout logic boot_select_i,
+    inout logic execute_from_flash_i,
 
-    input  logic        jtag_tck_i,
-    input  logic        jtag_tms_i,
-    input  logic        jtag_trst_ni,
-    input  logic        jtag_tdi_i,
-    output logic        jtag_tdo_o,
+    inout  logic        jtag_tck_i,
+    inout  logic        jtag_tms_i,
+    inout  logic        jtag_trst_ni,
+    inout  logic        jtag_tdi_i,
+    inout  logic        jtag_tdo_o,
     output logic [31:0] exit_value_o,
-    output logic        exit_valid_o
+    inout  logic        exit_valid_o
 );
 
   `include "tb_util.svh"
@@ -30,15 +34,15 @@ module testharness #(
   import reg_pkg::*;
   import testharness_pkg::*;
 
-  logic uart_rx;
-  logic uart_tx;
+  wire uart_rx;
+  wire uart_tx;
   logic sim_jtag_enable = (JTAG_DPI == 1);
-  logic sim_jtag_tck;
-  logic sim_jtag_tms;
-  logic sim_jtag_trst;
-  logic sim_jtag_tdi;
-  logic sim_jtag_tdo;
-  logic sim_jtag_trstn;
+  wire sim_jtag_tck;
+  wire sim_jtag_tms;
+  wire sim_jtag_trst;
+  wire sim_jtag_tdi;
+  wire sim_jtag_tdo;
+  wire sim_jtag_trstn;
   wire [31:0] gpio;
 
   wire [3:0] spi_sd_io;
@@ -62,55 +66,55 @@ module testharness #(
   logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext;
   logic memcopy_intr;
 
-  // If more external interrupt lines are needed the PLIC has to be regenerated with more interrupt sources
-  assign intr_vector_ext[0] = memcopy_intr;
-  assign intr_vector_ext[1] = 1'b0;
-  assign intr_vector_ext[2] = 1'b0;
-  assign intr_vector_ext[3] = 1'b0;
-  assign intr_vector_ext[4] = 1'b0;
-  assign intr_vector_ext[5] = 1'b0;
+  always_comb begin
+    // All interrupt lines set to zero by default
+    for (int i = 0; i < core_v_mini_mcu_pkg::NEXT_INT; i++) begin
+      intr_vector_ext[i] = 1'b0;
+    end
+    // Re-assign the interrupt lines used here
+    intr_vector_ext[0] = memcopy_intr;
+  end
+
+`ifdef USE_UPF
+  initial begin
+    $display("%t: All Power Supply ON", $time);
+    supply_on("VDD", 1.2);
+    supply_on("VSS", 0);
+  end
+`endif
 
   core_v_mini_mcu #(
-      .PULP_XPULP      (PULP_XPULP),
-      .FPU             (FPU),
-      .PULP_ZFINX      (PULP_ZFINX),
+      .PULP_XPULP(PULP_XPULP),
+      .FPU(FPU),
+      .PULP_ZFINX(PULP_ZFINX),
       .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER)
   ) core_v_mini_mcu_i (
       .clk_i,
       .rst_ni,
-
-      .boot_select_i,
-
-      .jtag_tck_i  (sim_jtag_tck),
-      .jtag_tms_i  (sim_jtag_tms),
+      .jtag_tck_i(sim_jtag_tck),
+      .jtag_tms_i(sim_jtag_tms),
       .jtag_trst_ni(sim_jtag_trstn),
-      .jtag_tdi_i  (sim_jtag_tdi),
-      .jtag_tdo_o  (sim_jtag_tdo),
-
+      .jtag_tdi_i(sim_jtag_tdi),
+      .jtag_tdo_o(sim_jtag_tdo),
       .ext_xbar_master_req_i(master_req),
       .ext_xbar_master_resp_o(master_resp),
       .ext_xbar_slave_req_o(slave_req),
       .ext_xbar_slave_resp_i(slave_resp),
-      .ext_peripheral_slave_req_o(periph_slave_req),
-      .ext_peripheral_slave_resp_i(periph_slave_resp),
-
-      .uart_rx_i(uart_rx),
-      .uart_tx_o(uart_tx),
-
-      .intr_vector_ext_i(intr_vector_ext),
-
-      .gpio_io(gpio),
-
+      .boot_select_i,
       .execute_from_flash_i,
       .exit_value_o,
       .exit_valid_o,
-
       .spi_sd_io(spi_sd_io),
       .spi_csb_o(spi_csb),
       .spi_sck_o(spi_sck),
-
+      .intr_vector_ext_i(intr_vector_ext),
+      .uart_rx_i(uart_rx),
+      .uart_tx_o(uart_tx),
+      .gpio_io(gpio),
       .i2c_scl_io(),
-      .i2c_sda_io()
+      .i2c_sda_io(),
+      .ext_peripheral_slave_req_o(periph_slave_req),
+      .ext_peripheral_slave_resp_i(periph_slave_resp)
   );
 
   uartdpi #(
@@ -129,17 +133,17 @@ module testharness #(
       .TICK_DELAY(1),
       .PORT      (4567)
   ) i_sim_jtag (
-      .clock          (clk_i),
-      .reset          (~rst_ni),
-      .enable         (sim_jtag_enable),
-      .init_done      (rst_ni),
-      .jtag_TCK       (sim_jtag_tck),
-      .jtag_TMS       (sim_jtag_tms),
-      .jtag_TDI       (sim_jtag_tdi),
-      .jtag_TRSTn     (sim_jtag_trstn),
-      .jtag_TDO_data  (sim_jtag_tdo),
+      .clock(clk_i),
+      .reset(~rst_ni),
+      .enable(sim_jtag_enable),
+      .init_done(rst_ni),
+      .jtag_TCK(sim_jtag_tck),
+      .jtag_TMS(sim_jtag_tms),
+      .jtag_TDI(sim_jtag_tdi),
+      .jtag_TRSTn(sim_jtag_trstn),
+      .jtag_TDO_data(sim_jtag_tdo),
       .jtag_TDO_driven(1'b1),
-      .exit           ()
+      .exit()
   );
 
   assign slow_ram_slave_req = slave_req;
@@ -154,13 +158,13 @@ module testharness #(
       .NumWords (128),
       .DataWidth(32'd32)
   ) slow_ram_i (
-      .clk_i  (clk_i),
-      .rst_ni (rst_ni),
-      .req_i  (slow_ram_slave_req.req),
-      .we_i   (slow_ram_slave_req.we),
-      .addr_i (slow_ram_slave_req.addr[8:2]),
+      .clk_i(clk_i),
+      .rst_ni(rst_ni),
+      .req_i(slow_ram_slave_req.req),
+      .we_i(slow_ram_slave_req.we),
+      .addr_i(slow_ram_slave_req.addr[8:2]),
       .wdata_i(slow_ram_slave_req.wdata),
-      .be_i   (slow_ram_slave_req.be),
+      .be_i(slow_ram_slave_req.be),
       // output ports
       .gnt_o(slow_ram_slave_resp.gnt),
       .rdata_o(slow_ram_slave_resp.rdata),

@@ -9,72 +9,101 @@
 
     bus_type: onetoM
 
+    ram: {
+        address: 0x00000000, #only tried with 0, cannot be changed for now
+        numbanks: 2, #each bank is 32kB, cannot be changed for now
+    },
+
+    linker_script: {
+        #value used for the on-chip linker script, the on-flash linker script is generated using FLASH values and the whole RAM values
+        onchip_ls: {
+            code: {
+                address: 0x00000000,
+                lenght: 0x00008000, #32KB
+            }
+            data: {
+                address: 0x00008000,
+                lenght: whatisleft, #keyword used to calculate the size as: ram.length - code.lenght
+            }
+        },
+    }
+
     debug: {
         address: 0x10000000,
-        length:  0x100000,
+        length:  0x00100000,
     },
 
-    // peripherals
-    peripherals: {
+    ao_peripherals: {
         address: 0x20000000,
-        length:  0x100000,
-
-        ext_periph: {
-            offset:  0x0000000,
-            length:  0x0010000,
-        }
+        length:  0x00100000,
         soc_ctrl: {
-            offset:  0x0010000,
-            length:  0x0010000,
-        },
-        uart: {
-            offset:  0x0020000,
-            length:  0x0000100,
-        },
-        plic: {
-            offset:  0x0030000,
-            length:  0x0010000,
-        },
-        rv_timer: {
-            offset:  0x0040000,
-            length:  0x0010000,
-        },
-        gpio: {
-            offset:  0x0050000,
-            length:  0x0010000,
-        },
-        spi_host: {
-            offset:  0x0060000,
-            length:  0x0008000,
-        },
-        spi_memio: {
-            offset:  0x0068000,
-            length:  0x0008000,
+            offset:  0x00000000,
+            length:  0x00010000,
         },
         bootrom: {
-            offset:  0x0070000,
-            length:  0x0010000,
+            offset:  0x00010000,
+            length:  0x00010000,
         },
-        i2c: {
-            offset:  0x0080000,
-            length:  0x0010000,
+        spi_host: {
+            offset:  0x00020000,
+            length:  0x00008000,
+        },
+        spi_memio: {
+            offset:  0x00028000,
+            length:  0x00008000,
+        },
+        power_manager: {
+            offset:  0x00030000,
+            length:  0x00010000,
+        },
+        rv_timer: {
+            offset:  0x00040000,
+            length:  0x00010000,
         },
         dma: {
-            offset:  0x0090000,
-            length:  0x0010000,
-        }
+            offset:  0x00050000,
+            length:  0x00010000,
+        },
+        pad: {
+            offset:  0x00060000,
+            length:  0x00010000,
+        },
     },
 
-    ext_slaves: {
+    peripherals: {
         address: 0x30000000,
-        length:  0x1000000,
+        length:  0x00100000,
+        plic: {
+            offset:  0x00000000,
+            length:  0x00010000,
+        },
+        uart: {
+            offset:  0x00010000,
+            length:  0x00010000,
+        },
+        gpio: {
+            offset:  0x00020000,
+            length:  0x00010000,
+        },
+        i2c: {
+            offset:  0x00030000,
+            length:  0x00010000,
+        },
+        ext_periph: {
+            offset:  0x00040000,
+            length:  0x00010000,
+        },
     },
 
     spi_flash: {
         address: 0x40000000,
-        length:  0x1000000,
+        length:  0x01000000,
     },
 
+    ext_slaves: {
+        address: 0xF0000000,
+        length:  0x01000000,
+    },
 
     interrupts: {
         // First one is always zero
@@ -136,13 +165,90 @@
         intr_ack_stop:           55,
         intr_host_timeout:       56,
         dma_intr_done:           57,
+        spi_intr_error:          58,
+        spi_intr_event:          59,
         // Interrupt lines available for external interrupt sources
-        ext_intr_0:              58,
-        ext_intr_1:              59,
-        ext_intr_2:              60,
-        ext_intr_3:              61,
-        ext_intr_4:              62,
-        ext_intr_5:              63
+        ext_intr_0:              60,
+        ext_intr_1:              61,
+        ext_intr_2:              62,
+        ext_intr_3:              63
+    },
+
+    pads: {
+
+        clk: {
+            num: 1,
+            type: input
+        },
+        rst: {
+            num: 1,
+            type: input
+        },
+        boot_select: {
+            num: 1,
+            type: input
+        },
+        execute_from_flash: {
+            num: 1,
+            type: input
+        },
+        jtag_tck: {
+            num: 1,
+            type: input
+        },
+        jtag_tms: {
+            num: 1,
+            type: input
+        },
+        jtag_trst: {
+            num: 1,
+            type: input
+        },
+        jtag_tdi: {
+            num: 1,
+            type: input
+        },
+        jtag_tdo: {
+            num: 1,
+            type: output
+        },
+        uart_rx: {
+            num: 1,
+            type: input
+        },
+        uart_tx: {
+            num: 1,
+            type: output
+        },
+        exit_valid: {
+            num: 1,
+            type: output
+        },
+        gpio: {
+            num: 32,
+            type: inout
+        },
+        spi_sck: {
+            num: 1,
+            type: inout
+        },
+        spi_cs: {
+            num: 2, #carefull, the x-heep uses the CS from the spi pkg, chenge it
+            type: inout
+        },
+        spi_sd: {
+            num: 4,
+            type: inout
+        },
+        i2c_scl: {
+            num: 1,
+            type: inout
+        },
+        i2c_sda: {
+            num: 1,
+            type: inout
+        }
     }
+
 
 }
