@@ -6,8 +6,8 @@
   target_dir: "pulp_platform_register_interface",
 
   upstream: {
-    url: "https://github.com/pulp-platform/register_interface.git",
-    rev: "73de8e51b79f416350229b1d2420b2c527e002b8",
+    url: "https://github.com/davideschiavone/register_interface.git",
+    rev: "7f94ccb9650755691252c8f9490c607b2cd8b714",
   },
 
   exclude_from_upstream: [

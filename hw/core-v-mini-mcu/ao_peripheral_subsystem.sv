@@ -176,7 +176,17 @@ module ao_peripheral_subsystem
       .cpu_subsystem_rst_no
   );
 
-  reg_to_tlul rv_timer_reg_to_tlul_i (
+  reg_to_tlul #(
+      .req_t(reg_pkg::reg_req_t),
+      .rsp_t(reg_pkg::reg_rsp_t),
+      .tl_h2d_t(tlul_pkg::tl_h2d_t),
+      .tl_d2h_t(tlul_pkg::tl_d2h_t),
+      .tl_a_user_t(tlul_pkg::tl_a_user_t),
+      .tl_a_op_e(tlul_pkg::tl_a_op_e),
+      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
+      .PutFullData(tlul_pkg::PutFullData),
+      .Get(tlul_pkg::Get)
+  ) rv_timer_reg_to_tlul_i (
       .tl_o(rv_timer_tl_h2d),
       .tl_i(rv_timer_tl_d2h),
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::RV_TIMER_IDX]),

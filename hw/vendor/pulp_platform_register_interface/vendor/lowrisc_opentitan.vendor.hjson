@@ -10,11 +10,11 @@
     rev: "master",
   },
 
-  patch_dir: "patches",
+  patch_dir: "patches/lowrisc_opentitan",
 
   mapping: [
-      {from: 'util/regtool.py', to: 'util/regtool.py'}
-      {from: 'util/reggen', to: 'util/reggen', patch_dir: 'lowrisc_opentitan'}
+      {from: 'util/regtool.py', to: 'util/regtool.py', patch_dir: 'regtool'}
+      {from: 'util/reggen', to: 'util/reggen', patch_dir: 'reggen'}
       {from: 'util/topgen', to: 'util/topgen'}
       {from: 'hw/ip/prim/rtl/prim_subreg.sv', to: 'src/prim_subreg.sv' }
       {from: 'hw/ip/prim/rtl/prim_subreg_arb.sv', to: 'src/prim_subreg_arb.sv' }

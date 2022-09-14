@@ -198,7 +198,17 @@ module peripheral_subsystem
       .out_rsp_i(peripheral_slv_rsp)
   );
 
-  reg_to_tlul reg_to_tlul_plic_i (
+  reg_to_tlul #(
+      .req_t(reg_pkg::reg_req_t),
+      .rsp_t(reg_pkg::reg_rsp_t),
+      .tl_h2d_t(tlul_pkg::tl_h2d_t),
+      .tl_d2h_t(tlul_pkg::tl_d2h_t),
+      .tl_a_user_t(tlul_pkg::tl_a_user_t),
+      .tl_a_op_e(tlul_pkg::tl_a_op_e),
+      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
+      .PutFullData(tlul_pkg::PutFullData),
+      .Get(tlul_pkg::Get)
+  ) reg_to_tlul_plic_i (
       .tl_o(plic_tl_h2d),
       .tl_i(plic_tl_d2h),
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::PLIC_IDX]),
@@ -216,7 +226,17 @@ module peripheral_subsystem
       .msip_o(msip_o)
   );
 
-  reg_to_tlul reg_to_tlul_uart_i (
+  reg_to_tlul #(
+      .req_t(reg_pkg::reg_req_t),
+      .rsp_t(reg_pkg::reg_rsp_t),
+      .tl_h2d_t(tlul_pkg::tl_h2d_t),
+      .tl_d2h_t(tlul_pkg::tl_d2h_t),
+      .tl_a_user_t(tlul_pkg::tl_a_user_t),
+      .tl_a_op_e(tlul_pkg::tl_a_op_e),
+      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
+      .PutFullData(tlul_pkg::PutFullData),
+      .Get(tlul_pkg::Get)
+  ) reg_to_tlul_uart_i (
       .tl_o(uart_tl_h2d),
       .tl_i(uart_tl_d2h),
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::UART_IDX]),
@@ -241,7 +261,17 @@ module peripheral_subsystem
       .intr_rx_parity_err_o(uart_intr_rx_parity_err)
   );
 
-  reg_to_tlul reg_to_tlul_gpio_i (
+  reg_to_tlul #(
+      .req_t(reg_pkg::reg_req_t),
+      .rsp_t(reg_pkg::reg_rsp_t),
+      .tl_h2d_t(tlul_pkg::tl_h2d_t),
+      .tl_d2h_t(tlul_pkg::tl_d2h_t),
+      .tl_a_user_t(tlul_pkg::tl_a_user_t),
+      .tl_a_op_e(tlul_pkg::tl_a_op_e),
+      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
+      .PutFullData(tlul_pkg::PutFullData),
+      .Get(tlul_pkg::Get)
+  ) reg_to_tlul_gpio_i (
       .tl_o(gpio_tl_h2d),
       .tl_i(gpio_tl_d2h),
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::GPIO_IDX]),
@@ -259,7 +289,17 @@ module peripheral_subsystem
       .intr_gpio_o(gpio_intr)
   );
 
-  reg_to_tlul reg_to_tlul_i2c_i (
+  reg_to_tlul #(
+      .req_t(reg_pkg::reg_req_t),
+      .rsp_t(reg_pkg::reg_rsp_t),
+      .tl_h2d_t(tlul_pkg::tl_h2d_t),
+      .tl_d2h_t(tlul_pkg::tl_d2h_t),
+      .tl_a_user_t(tlul_pkg::tl_a_user_t),
+      .tl_a_op_e(tlul_pkg::tl_a_op_e),
+      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
+      .PutFullData(tlul_pkg::PutFullData),
+      .Get(tlul_pkg::Get)
+  ) reg_to_tlul_i2c_i (
       .tl_o(i2c_tl_h2d),
       .tl_i(i2c_tl_d2h),
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::I2C_IDX]),
