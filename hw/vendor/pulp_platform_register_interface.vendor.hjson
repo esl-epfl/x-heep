@@ -7,7 +7,7 @@
 
   upstream: {
     url: "https://github.com/davideschiavone/register_interface.git",
-    rev: "7f94ccb9650755691252c8f9490c607b2cd8b714",
+    rev: "002cc15b300e60f017e77d297246e6fe653c4930",
   },
 
   exclude_from_upstream: [
