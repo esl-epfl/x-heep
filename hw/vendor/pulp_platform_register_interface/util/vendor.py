@@ -298,19 +298,22 @@ class Mapping1:
         # Copy src to dst recursively. For directories, we can use
         # shutil.copytree. This doesn't support files, though, so we have to
         # check for them first.
+        # Also set patch path here as parent directory iff dst is a file.
         if from_path.is_file():
             shutil.copy(str(from_path), str(to_path))
+            patch_path = to_path.parent
         else:
             ignore = ignore_patterns(str(upstream_path), *exclude_files)
             shutil.copytree(str(from_path), str(to_path), ignore=ignore)
+            patch_path = to_path
 
         # Apply any patches to the copied files. If self.patch_dir is None,
         # there are none to apply. Otherwise, resolve it relative to patch_dir.
         if self.patch_dir is not None:
             patches = (patch_dir / self.patch_dir).glob('*.patch')
             for patch in sorted(patches):
-                log.info("Applying patch {} at {}".format(patch, to_path))
-                Mapping1.apply_patch(to_path, patch)
+                log.info("Applying patch {} at {}".format(patch, patch_path))
+                Mapping1.apply_patch(patch_path, patch)
 
 
 class Mapping:

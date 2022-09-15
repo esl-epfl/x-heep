@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 0.3.3 - 2022-08-26
+### Fixed
+- Fix `reg_mux` multiple assignments
+- Add patches from `snitch`:
+  - `vendor.py`: Add capability to patch individual files
+  - `reggen`: Fix windowing bug
+  - `reggen`: Fix solderpad license check
+
+## 0.3.2 - 2022-04-11
+### Changed
+- Bump AXI version
+
 ## 0.3.1 - 2021-06-24
 ### Fixed
 - Align AXI version in ips_list.yml with Bender.yml

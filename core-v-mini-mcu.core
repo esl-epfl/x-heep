@@ -41,7 +41,6 @@ filesets:
     - hw/core-v-mini-mcu/debug_subsystem.sv
     - hw/core-v-mini-mcu/peripheral_subsystem.sv
     - hw/core-v-mini-mcu/ao_peripheral_subsystem.sv
-    - hw/core-v-mini-mcu/reg_to_tlul.sv
     - hw/core-v-mini-mcu/pad_ring.sv
     file_type: systemVerilogSource
 
