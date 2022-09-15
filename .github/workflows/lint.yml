@@ -54,7 +54,7 @@ jobs:
       run: pip install -r python-requirements.txt
     - name: Re-vendor and diff
       run: |
-        find -path ./hw/vendor/pulp_platform_register_interface/vendor -prune -o \
+        find . \
             -name '*.vendor.hjson' \
             | xargs -n1 util/vendor.py --verbose \
             && util/git-diff.py --error-msg "::error ::Found differences, please re-vendor."

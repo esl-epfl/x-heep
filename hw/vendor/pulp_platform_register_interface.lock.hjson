@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/davideschiavone/register_interface.git
-    rev: 002cc15b300e60f017e77d297246e6fe653c4930
+    url: https://github.com/pulp-platform/register_interface.git
+    rev: cce7ae601efde1db0cd86b4befce1d1c2bc3e4d0
   }
 }
