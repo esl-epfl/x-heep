@@ -196,8 +196,8 @@ module spi_host_reg_top #(
   logic [31:0] csid_qs;
   logic [31:0] csid_wd;
   logic csid_we;
-  logic [15:0] command_len_qs;
-  logic [15:0] command_len_wd;
+  logic [23:0] command_len_qs;
+  logic [23:0] command_len_wd;
   logic command_len_we;
   logic command_csaat_qs;
   logic command_csaat_wd;
@@ -1248,11 +1248,11 @@ module spi_host_reg_top #(
 
   // R[command]: V(False)
 
-  //   F[len]: 15:0
+  //   F[len]: 23:0
   prim_subreg #(
-    .DW      (16),
+    .DW      (24),
     .SWACCESS("RW"),
-    .RESVAL  (16'h0)
+    .RESVAL  (24'h0)
   ) u_command_len (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -1274,7 +1274,7 @@ module spi_host_reg_top #(
   );
 
 
-  //   F[csaat]: 16:16
+  //   F[csaat]: 24:24
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
@@ -1300,7 +1300,7 @@ module spi_host_reg_top #(
   );
 
 
-  //   F[speed]: 18:17
+  //   F[speed]: 26:25
   prim_subreg #(
     .DW      (2),
     .SWACCESS("RW"),
@@ -1326,7 +1326,7 @@ module spi_host_reg_top #(
   );
 
 
-  //   F[direction]: 20:19
+  //   F[direction]: 28:27
   prim_subreg #(
     .DW      (2),
     .SWACCESS("RW"),
@@ -1893,16 +1893,16 @@ module spi_host_reg_top #(
   assign csid_wd = reg_wdata[31:0];
 
   assign command_len_we = addr_hit[9] & reg_we & !reg_error;
-  assign command_len_wd = reg_wdata[15:0];
+  assign command_len_wd = reg_wdata[23:0];
 
   assign command_csaat_we = addr_hit[9] & reg_we & !reg_error;
-  assign command_csaat_wd = reg_wdata[16];
+  assign command_csaat_wd = reg_wdata[24];
 
   assign command_speed_we = addr_hit[9] & reg_we & !reg_error;
-  assign command_speed_wd = reg_wdata[18:17];
+  assign command_speed_wd = reg_wdata[26:25];
 
   assign command_direction_we = addr_hit[9] & reg_we & !reg_error;
-  assign command_direction_wd = reg_wdata[20:19];
+  assign command_direction_wd = reg_wdata[28:27];
 
   assign error_enable_cmdbusy_we = addr_hit[10] & reg_we & !reg_error;
   assign error_enable_cmdbusy_wd = reg_wdata[0];
@@ -2023,10 +2023,10 @@ module spi_host_reg_top #(
       end
 
       addr_hit[9]: begin
-        reg_rdata_next[15:0] = command_len_qs;
-        reg_rdata_next[16] = command_csaat_qs;
-        reg_rdata_next[18:17] = command_speed_qs;
-        reg_rdata_next[20:19] = command_direction_qs;
+        reg_rdata_next[23:0] = command_len_qs;
+        reg_rdata_next[24] = command_csaat_qs;
+        reg_rdata_next[26:25] = command_speed_qs;
+        reg_rdata_next[28:27] = command_direction_qs;
       end
 
       addr_hit[10]: begin

@@ -8,7 +8,7 @@
 package spi_host_cmd_pkg;
 
   parameter int CSW = prim_util_pkg::vbits(spi_host_reg_pkg::NumCS);
-  parameter int CmdSize = CSW + 52;
+  parameter int CmdSize = CSW + 60;
 
   // For decoding the direction register
   typedef enum logic [1:0] {
@@ -40,7 +40,7 @@ package spi_host_cmd_pkg;
     logic [1:0] speed;
     logic       cmd_wr_en;
     logic       cmd_rd_en;
-    logic [15:0] len;
+    logic [23:0] len;
     logic       csaat;
   } segment_t;
 

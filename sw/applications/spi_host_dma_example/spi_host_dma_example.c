@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
-        .len        = (uint16_t)(COPY_DATA_SIZE*4 - 1),
+        .len        = COPY_DATA_SIZE*4 - 1,
         .csaat      = false,
         .speed      = kSpiSpeedStandard,
         .direction  = kSpiDirRxOnly
