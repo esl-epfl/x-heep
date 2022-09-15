@@ -22,7 +22,7 @@ module dma #(
     output obi_req_t  dma_master1_ch0_req_o,
     input  obi_resp_t dma_master1_ch0_resp_i,
 
-    input logic spi_rx_wm_i,
+    input logic spi_rx_empty_i,
 
     output dma_intr_o
 );
@@ -107,7 +107,7 @@ module dma #(
       if (dma_start == 1'b1) begin
         dma_start <= 1'b0;
       end else begin
-        dma_start <= |reg2hw.dma_start.q & (~reg2hw.spi_mode.q | spi_rx_wm_i);
+        dma_start <= |reg2hw.dma_start.q;
       end
     end
   end
@@ -192,8 +192,8 @@ module dma #(
           dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
         end else begin
           dma_read_fsm_n_state = DMA_READ_FSM_ON;
-          // Wait if fifo is full and
-          if (fifo_full == 1'b0) begin
+          // Wait if fifo is full and 
+          if (fifo_full == 1'b0 & ~(reg2hw.spi_mode.q & spi_rx_empty_i)) begin
             data_in_req  = 1'b1;
             data_in_we   = 1'b0;
             data_in_be   = 4'b1111;

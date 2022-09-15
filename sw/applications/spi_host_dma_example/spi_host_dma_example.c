@@ -16,8 +16,10 @@
 #include "spi_host.h"
 #include "dma.h"
 
+#define COPY_DATA_SIZE 1024*2
+
 // Simple example to check the SPI host peripheral is working. It checks the ram and flash have the same content
-#define DATA_CHUNK_ADDR 0x00008000
+#define DATA_CHUNK_ADDR 0x00000200
 
 // int8_t spi_intr_flag;
 int8_t dma_intr_flag;
@@ -45,7 +47,7 @@ void handler_irq_external(void) {
 }
 
 // Reserve 16kB
-uint32_t flash_data[4096];
+uint32_t flash_data[COPY_DATA_SIZE];
 
 int main(int argc, char *argv[])
 {
@@ -108,7 +110,7 @@ int main(int argc, char *argv[])
     dma_set_spi_mode(&dma, (uint32_t) 1); // The DMA will wait for the watermark signal to start the transaction
     dma_set_read_ptr(&dma, (uint32_t) fifo_ptr); // SPI RX FIFO addr
     dma_set_write_ptr(&dma, (uint32_t) flash_data);
-    dma_set_cnt_start(&dma, (uint32_t) 8); // Size of data received by SPI
+    dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_SIZE); // Size of data received by SPI
     // ---------------------
 
     // Configure chip 0 (flash memory)
@@ -127,7 +129,7 @@ int main(int argc, char *argv[])
     spi_set_csid(&spi_host, 0);
 
     // Set RX watermark to 8 word
-    spi_set_rx_watermark(&spi_host, 8);
+    // spi_set_rx_watermark(&spi_host, 4);
 
     // Power up flash
     const uint32_t powerup_byte_cmd = 0xab;
@@ -160,7 +162,7 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
-        .len        = 31,
+        .len        = (uint16_t)(COPY_DATA_SIZE*4 - 1),
         .csaat      = false,
         .speed      = kSpiSpeedStandard,
         .direction  = kSpiDirRxOnly
@@ -195,18 +197,20 @@ int main(int argc, char *argv[])
     printf("flash vs ram...\n");
 
     uint32_t errors = 0;
+    uint32_t count = 0;
     uint32_t* ram_ptr = DATA_CHUNK_ADDR;
     int i;
-    for (i = 0; i<8; i++) {
+    for (i = 0; i<COPY_DATA_SIZE; i++) {
         if(flash_data[i] != *ram_ptr) {
-            printf("@%x : %x != %x\n", DATA_CHUNK_ADDR+i*4, flash_data[i], *ram_ptr);
+            //printf("@%x : %x != %x\n", DATA_CHUNK_ADDR+i*4, flash_data[i], *ram_ptr);
             errors++;
         }
+        count++;
         ram_ptr++;
     }
 
     if (errors == 0) {
-        printf("success!\n");
+        printf("success! (Words checked: %d)\n", count);
     } else {
         printf("failure, %d errors!\n", errors);
     }

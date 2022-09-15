@@ -56,12 +56,12 @@ module spi_host_fsm
   logic             cmd_rd_en, cmd_rd_en_q;
   // cmd_len needs no data latching as it is only used at the very start of a command.
   // The corresponding register, cmd_len_q, would create a warning at synthesis
-  logic [8:0]       cmd_len;
+  logic [15:0]      cmd_len;
   logic             csaat;
   logic             csaat_q;
 
   logic [2:0]       bit_cntr_d, bit_cntr_q;
-  logic [8:0]       byte_cntr_d, byte_cntr_q;
+  logic [15:0]      byte_cntr_d, byte_cntr_q;
   logic [3:0]       lead_cntr_d, idle_cntr_d, trail_cntr_d;
   logic [3:0]       lead_cntr_q, idle_cntr_q, trail_cntr_q;
   logic             last_bit, last_byte;
@@ -431,9 +431,9 @@ module spi_host_fsm
                       bit_cntr_q;
 
   assign last_bit  = (bit_cntr_q == 3'h0);
-  assign last_byte = (byte_cntr_q == 9'h0);
+  assign last_byte = (byte_cntr_q == 16'h0);
 
-  assign byte_cntr_d = sw_rst_i    ? 9'h0 :
+  assign byte_cntr_d = sw_rst_i    ? 16'h0 :
                        !fsm_en     ? byte_cntr_q :
                        new_command ? cmd_len :
                        byte_ending ? byte_cntr_q - 1 :
@@ -468,7 +468,7 @@ module spi_host_fsm
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       bit_cntr_q   <= 3'h0;
-      byte_cntr_q  <= 9'h0;
+      byte_cntr_q  <= 16'h0;
       idle_cntr_q  <= 4'h0;
       lead_cntr_q  <= 4'h0;
       trail_cntr_q <= 4'h0;
