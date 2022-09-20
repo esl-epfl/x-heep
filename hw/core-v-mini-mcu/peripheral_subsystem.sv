@@ -102,9 +102,6 @@ module peripheral_subsystem
   logic intr_ack_stop;
   logic intr_host_timeout;
 
-  logic spi_intr_error;
-  logic spi_intr_event;
-
   // this avoids lint errors
   assign unused_irq_id = irq_id;
 

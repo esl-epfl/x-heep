@@ -203,32 +203,6 @@ void spi_read_word(const spi_host_t *spi, uint32_t* dst);
 void spi_enable_evt_intr(const spi_host_t *spi, bool enable);
 
 /**
- * Enables error interrupt from the SPI peripheral.
- *
- * @param spi Pointer to spi_host_t representing the target SPI.
- * @param enable SPI error interrupt bit value.
- */
-void spi_enable_error_intr(const spi_host_t *spi, bool enable);
-
-/**
- * Enables rx watermark interrupt from the SPI peripheral.
- *
- * @param spi Pointer to spi_host_t representing the target SPI.
- * @param enable SPI RX watermark interrupt bit value.
- */
-void spi_enable_rxwm_intr(const spi_host_t *spi, bool enable);
-
-
-
-/**
- * Enable SPI event interrupt
- *
- * @param spi Pointer to spi_host_t representing the target SPI.
- * @param enable SPI event interrupt bit value.
- */
-void spi_enable_evt_intr(const spi_host_t *spi, bool enable);
-
-/**
  * Reads a chunk of data from RX FIFO (which must contains at least 128B!).
  *
  * @param spi Pointer to spi_host_t representing the target SPI.

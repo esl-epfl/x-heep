@@ -46,7 +46,7 @@ _execute_from_flash:
        addi   a0, zero, 1
        sw     a0, OBI_SPIMEMIO_START_SPIMEM_REG_OFFSET(a1)
        lui    a1, SPI_FLASH_START_ADDRESS_20bit
-       addi   a1, a1, SEXT_IMM(0x180+0x10)
+       addi   a1, a1, SEXT_IMM(0x180)
        jalr   a1
 
 _copy_from_flash:
@@ -82,7 +82,6 @@ _wait_spi_ready_cmd_pwr:
        lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
        bgez   a4, _wait_spi_ready_cmd_pwr
 
-
        // Fill TX FIFO with TX data (read command 0x03 + 3B address 0x000)
        li     a4, 0x03
        sw     a4, SPI_HOST_DATA_REG_OFFSET(a1)
@@ -98,7 +97,6 @@ _wait_spi_ready_tx_init:
        nop    # otherwise ready bit check is too fast
 
 _wait_spi_ready_read_prog:
-       nop    # otherwise ready bit check is too fast
        lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
        bgez   a5, _wait_spi_ready_read_prog
        li     a3, 1024 # 1KB copy size
@@ -120,7 +118,6 @@ _read_32B_chunk:
        nop    # otherwise ready bit check is too fast
 
 _wait_spi_ready_read_32B_chunk:
-       nop    # otherwise ready bit check is too fast
        lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
        bgez   a5, _wait_spi_ready_read_32B_chunk
        addi   s7, s1, 256 # add 32*8 (256 bytes) to dst ptr
