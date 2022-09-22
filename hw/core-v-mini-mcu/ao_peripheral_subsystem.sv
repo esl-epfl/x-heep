@@ -70,7 +70,7 @@ module ao_peripheral_subsystem
   logic use_spimemio;
   logic rv_timer_irq_timer;
 
-  logic spi_rx_wm;
+  logic spi_rx_empty;
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
@@ -149,10 +149,10 @@ module ao_peripheral_subsystem
       .use_spimemio_i(use_spimemio),
       .spimemio_req_i,
       .spimemio_resp_o,
-      .yo_reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
-      .yo_reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
-      .ot_reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
-      .ot_reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
+      .yo_reg_req_i  (peripheral_slv_req[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
+      .yo_reg_rsp_o  (peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
+      .ot_reg_req_i  (peripheral_slv_req[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
+      .ot_reg_rsp_o  (peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
       .spi_sck_o,
       .spi_sck_en_o,
       .spi_csb_o,
@@ -160,7 +160,7 @@ module ao_peripheral_subsystem
       .spi_sd_o,
       .spi_sd_en_o,
       .spi_sd_i,
-      .spi_rx_wm_o(spi_rx_wm),
+      .spi_rx_empty_o(spi_rx_empty),
       .spi_intr_error_o,
       .spi_intr_event_o
   );
@@ -214,13 +214,13 @@ module ao_peripheral_subsystem
   ) dma_i (
       .clk_i,
       .rst_ni,
-      .reg_req_i  (peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
-      .reg_rsp_o  (peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
       .dma_master0_ch0_req_o,
       .dma_master0_ch0_resp_i,
       .dma_master1_ch0_req_o,
       .dma_master1_ch0_resp_i,
-      .spi_rx_wm_i(spi_rx_wm),
+      .spi_rx_empty_i(spi_rx_empty),
       .dma_intr_o
   );
 

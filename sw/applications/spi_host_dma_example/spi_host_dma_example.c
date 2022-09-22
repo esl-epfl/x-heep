@@ -16,10 +16,7 @@
 #include "spi_host.h"
 #include "dma.h"
 
-#define COPY_DATA_SIZE 1024*2
-
-// Simple example to check the SPI host peripheral is working. It checks the ram and flash have the same content
-#define DATA_CHUNK_ADDR 0x00000200
+#define COPY_DATA_SIZE 16
 
 // int8_t spi_intr_flag;
 int8_t dma_intr_flag;
@@ -35,19 +32,15 @@ spi_host_t spi_host;
 void handler_irq_external(void) {
     // Claim/clear interrupt
     plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
-    // DMA Interrupt instead of SPI
-    // if (plic_res == kDifPlicOk && intr_num == SPI_INTR_EVENT) {
-    //     spi_intr_flag = 1;
-    //     // Disable SPI interrupt otherwise it stays on until RX FIFO is read
-    //     dif_plic_irq_set_enabled(&rv_plic, SPI_INTR_EVENT, 0, kDifPlicToggleDisabled);
-    // }
+    // DMA Interrupt
     if (plic_res == kDifPlicOk && intr_num == DMA_INTR_DONE) {
         dma_intr_flag = 1;
     }
 }
 
 // Reserve 16kB
-uint32_t flash_data[COPY_DATA_SIZE];
+uint32_t flash_data[COPY_DATA_SIZE] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+uint32_t copy_data[COPY_DATA_SIZE];
 
 int main(int argc, char *argv[])
 {
@@ -64,16 +57,12 @@ int main(int argc, char *argv[])
         printf("Unable to set the PLIC\n;");
     }
 
-    // Set SPI interrupt priority to 1
-    // plic_res = dif_plic_irq_set_priority(&rv_plic, SPI_INTR_EVENT, 1);
-    // Set dma priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
+    // Set DMA priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
     plic_res = dif_plic_irq_set_priority(&rv_plic, DMA_INTR_DONE, 1);
     if (plic_res != kDifPlicOk) {
         printf("Unable to set the PLIC priority\n;");
     }
 
-    // Enable SPI interrupt
-    // plic_res = dif_plic_irq_set_enabled(&rv_plic, SPI_INTR_EVENT, 0, kDifPlicToggleEnabled);
     // Enable DMA interrupt
     plic_res = dif_plic_irq_set_enabled(&rv_plic, DMA_INTR_DONE, 0, kDifPlicToggleEnabled);
     if (plic_res != kDifPlicOk) {
@@ -94,13 +83,7 @@ int main(int argc, char *argv[])
     // Enable SPI host device
     spi_set_enable(&spi_host, true);
 
-    // Enable event interrupt
-    // spi_enable_evt_intr(&spi_host, true);
-    // Enable RX watermark interrupt
-    // spi_enable_rxwm_intr(&spi_host, true); // Only needed in the SPI event interrupt generation (is a mask)
-
     uint32_t *fifo_ptr = spi_host.base_addr.base + SPI_HOST_DATA_REG_OFFSET;
-    // uint32_t* data_dst = flash_data;
 
     // DMA CONFIGURATION --
     // dma peripheral structure to access the registers
@@ -109,8 +92,7 @@ int main(int argc, char *argv[])
     dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
     dma_set_spi_mode(&dma, (uint32_t) 1); // The DMA will wait for the watermark signal to start the transaction
     dma_set_read_ptr(&dma, (uint32_t) fifo_ptr); // SPI RX FIFO addr
-    dma_set_write_ptr(&dma, (uint32_t) flash_data);
-    dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_SIZE); // Size of data received by SPI
+    dma_set_write_ptr(&dma, (uint32_t) copy_data); // copy data address
     // ---------------------
 
     // Configure chip 0 (flash memory)
@@ -128,9 +110,6 @@ int main(int argc, char *argv[])
     spi_set_configopts(&spi_host, 0, chip_cfg);
     spi_set_csid(&spi_host, 0);
 
-    // Set RX watermark to 8 word
-    // spi_set_rx_watermark(&spi_host, 4);
-
     // Power up flash
     const uint32_t powerup_byte_cmd = 0xab;
     spi_write_word(&spi_host, powerup_byte_cmd);
@@ -144,7 +123,13 @@ int main(int argc, char *argv[])
     spi_set_command(&spi_host, cmd_powerup);
     spi_wait_for_ready(&spi_host);
 
-    const uint32_t read_byte_cmd = ((DATA_CHUNK_ADDR << 8) | 0x03); //0x03;
+    // The address bytes sent through the SPI to the Flash are in reverse order
+    uint32_t flash_data_addr = flash_data;
+    uint32_t read_byte_cmd = (flash_data_addr >> 16); 
+    read_byte_cmd = (read_byte_cmd | (flash_data_addr & 0xff00));
+    read_byte_cmd = (read_byte_cmd | ((flash_data_addr & 0xff) << 16));
+    // Add read command in the first byte sent
+    read_byte_cmd = ((read_byte_cmd << 8) | 0x03);
 
     // Fill TX FIFO with TX data (read command + 3B address)
     spi_write_word(&spi_host, read_byte_cmd);
@@ -161,6 +146,8 @@ int main(int argc, char *argv[])
     spi_set_command(&spi_host, cmd_read);
     spi_wait_for_ready(&spi_host);
 
+    dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_SIZE); // Size of data received by SPI
+
     const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
         .len        = COPY_DATA_SIZE*4 - 1,
         .csaat      = false,
@@ -172,18 +159,12 @@ int main(int argc, char *argv[])
 
     ////////////////////////////////////////////////////////////////
 
-    // Wait copy is done
+    // Wait for DMA interrupt
+    printf("Waiting for the DMA interrupt...");
     while(dma_intr_flag==0) {
         wait_for_interrupt();
     }
-
-
-    // Wait transaction is finished (polling register) -- Can I check the watermark?
-    // or wait for SPI interrupt
-    // spi_wait_for_rx_watermark(&spi_host);
-    // while(spi_intr_flag==0) {
-    //     wait_for_interrupt();
-    // }
+    printf("triggered!\n");
 
     // Complete interrupt
     plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
@@ -191,28 +172,24 @@ int main(int argc, char *argv[])
         printf("IRQ complete incorrect\n;");
     }
 
-    // Read data from SPI RX FIFO - Not needed anymore, the data has already been copied by the DMA
-    // spi_read_chunk_32B(&spi_host, flash_data);
-
+    // The data is already in memory -- Check results
     printf("flash vs ram...\n");
 
     uint32_t errors = 0;
     uint32_t count = 0;
-    uint32_t* ram_ptr = DATA_CHUNK_ADDR;
     int i;
     for (i = 0; i<COPY_DATA_SIZE; i++) {
-        if(flash_data[i] != *ram_ptr) {
-            //printf("@%x : %x != %x\n", DATA_CHUNK_ADDR+i*4, flash_data[i], *ram_ptr);
+        if(flash_data[i] != copy_data[i]) {
+            printf("@%x-@%x : %x != %x\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
             errors++;
         }
         count++;
-        ram_ptr++;
     }
 
     if (errors == 0) {
         printf("success! (Words checked: %d)\n", count);
     } else {
-        printf("failure, %d errors!\n", errors);
+        printf("failure, %d errors! (Out of %d)\n", errors, count);
     }
     return EXIT_SUCCESS;
 }

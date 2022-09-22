@@ -59,6 +59,9 @@ module dma #(
   logic               fifo_full;
   logic               fifo_empty;
 
+  logic               spi_dma_mode;
+  logic               wait_for_spi;
+
   enum logic {
     DMA_READ_FSM_IDLE,
     DMA_READ_FSM_ON
@@ -98,6 +101,9 @@ module dma #(
 
   assign hw2reg.dma_start.de = dma_start;
   assign hw2reg.dma_start.d = 32'h0;
+
+  assign spi_dma_mode = reg2hw.spi_mode.q;
+  assign wait_for_spi = spi_dma_mode & spi_rx_empty_i;
 
   // DMA pulse start when dma_start register is written
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start
@@ -193,7 +199,7 @@ module dma #(
         end else begin
           dma_read_fsm_n_state = DMA_READ_FSM_ON;
           // Wait if fifo is full and 
-          if (fifo_full == 1'b0 & ~(reg2hw.spi_mode.q & spi_rx_empty_i)) begin
+          if (fifo_full == 1'b0 && wait_for_spi == 1'b0) begin
             data_in_req  = 1'b1;
             data_in_we   = 1'b0;
             data_in_be   = 4'b1111;
