@@ -4,3 +4,6 @@
 //
 // waiver file for SPI_HOST
 
+`verilator_config
+
+lint_off -rule UNUSED -file "*/vendor/lowrisc_opentitan/hw/ip/spi_host/rtl/spi_host.sv" -match "Bits of signal are not used: 'reg2hw'[162:161]"

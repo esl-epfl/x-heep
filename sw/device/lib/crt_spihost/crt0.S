@@ -40,6 +40,7 @@ _start:
 	// This assumes ram base address is 0x00000000
 	li     s1, 1024 # dst ptr (ram)
 	la     a0, _edata
+	addi   a0, a0, -4 # _edata point to next address, so decrease it by one word
 	// Skip if everything has already been copied
 	blt    a0, s1, _init_bss
 	addi   a3, a0, -1024 # copy size in bytes (_edata is word aligned, so -1020 to make sure last word is copied)
@@ -65,9 +66,9 @@ _start:
 _wait_spi_ready_read_prog:
 	lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
 	bgez   a5, _wait_spi_ready_read_prog
-	// Read command: 0x00002203
-	lui    a4, 0x2
-	addi   a4, a4, 515 # spi cmd: txonly + stdspeed + csaat + 4B
+	// Read command: 0x11000003
+	lui    a4, 0x11000
+	addi   a4, a4, 3 # spi cmd: txonly + stdspeed + csaat + 4B
 	sw     a4, SPI_HOST_COMMAND_REG_OFFSET(a1)
 	nop    # otherwise ready bit check is too fast
 
@@ -77,15 +78,16 @@ _wait_spi_ready_copy_cmd:
 
 	// For loop until the copy from flash to ram is done
 	// Try first to do as much as 256-bytes copies as possible
-	mv     s0, a3
+	// mv     s0, a3
 	li     s6, 256
-	lui    s5, 0x1
-	addi   s5, s5, 767 # spi cmd: rxonly + stdspeed + csaat + 255 bytes
+	// Read command: 0x90000FF
+   lui    s5, 0x9000
+	addi   s5, s5, 255 # spi cmd: rxonly + stdspeed + csaat + 255 bytes
 
 _32B_chunk_loop:
 	blt    s6, a3, _read_32B_chunk
 	// Read remaining bytes
-	lui    a5, 0x1
+	lui    a5, 0x8000
 	addi   a4, a3, -1
 	or     a5, a5, a4 # spi cmd: rxonly + stdspeed + remaining bytes (a3-1)
 	sw     a5, SPI_HOST_COMMAND_REG_OFFSET(a1)
@@ -137,7 +139,6 @@ _spi_fifo_read_8_words_1:
 	addi   s1, s1, 4
 	bne    s1, a2, _spi_fifo_read_8_words_1
 	addi   a3, a3, -32
-	//addi   s1, s1, 32 # dst ptr move 32B further
 
 _last_bytes_read_start:
 	bltu   s4, a3, _wait_spi_rxwm_8_words_1

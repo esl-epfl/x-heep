@@ -32,6 +32,9 @@ module spi_subsystem
     output logic [                        3:0] spi_sd_en_o,
     input  logic [                        3:0] spi_sd_i,
 
+    // DMA Interface
+    output logic spi_rx_empty_o,
+
     // SPI HOST interrupts
     output logic spi_intr_error_o,
     output logic spi_intr_event_o
@@ -125,6 +128,7 @@ module spi_subsystem
       .cio_sd_o(ot_spi_sd_out),
       .cio_sd_en_o(ot_spi_sd_en),
       .cio_sd_i(ot_spi_sd_in),
+      .rx_empty_o(spi_rx_empty_o),
       .intr_error_o(spi_intr_error_o),
       .intr_spi_event_o(spi_intr_event_o)
   );
