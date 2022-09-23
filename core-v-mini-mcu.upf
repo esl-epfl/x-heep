@@ -12,6 +12,8 @@ create_power_domain PD_CPU -elements {cpu_subsystem_i}
 create_power_domain PD_PERIP_SUBS -elements {peripheral_subsystem_i}
 create_power_domain PD_MEM_BANK_0 -elements {memory_subsystem_i/gen_sram[0].ram_i}
 create_power_domain PD_MEM_BANK_1 -elements {memory_subsystem_i/gen_sram[1].ram_i}
+create_power_domain PD_MEM_BANK_2 -elements {memory_subsystem_i/gen_sram[2].ram_i}
+create_power_domain PD_MEM_BANK_3 -elements {memory_subsystem_i/gen_sram[3].ram_i}
 
 
 ####################
@@ -40,6 +42,18 @@ add_power_state PD_MEM_BANK_1.primary -state MEM_BANK_1_ON \
     {-supply_expr {power == `{FULL_ON, 1.2} && ground == `{FULL_ON, 0.0}}}
 
 add_power_state PD_MEM_BANK_1.primary -state MEM_BANK_1_OFF \
+    {-supply_expr {power == `{OFF} && ground == `{FULL_ON, 0.0}}} -simstate CORRUPT
+
+add_power_state PD_MEM_BANK_2.primary -state MEM_BANK_2_ON \
+    {-supply_expr {power == `{FULL_ON, 1.2} && ground == `{FULL_ON, 0.0}}}
+
+add_power_state PD_MEM_BANK_2.primary -state MEM_BANK_2_OFF \
+    {-supply_expr {power == `{OFF} && ground == `{FULL_ON, 0.0}}} -simstate CORRUPT
+
+add_power_state PD_MEM_BANK_3.primary -state MEM_BANK_3_ON \
+    {-supply_expr {power == `{FULL_ON, 1.2} && ground == `{FULL_ON, 0.0}}}
+
+add_power_state PD_MEM_BANK_3.primary -state MEM_BANK_3_OFF \
     {-supply_expr {power == `{OFF} && ground == `{FULL_ON, 0.0}}} -simstate CORRUPT
 
 add_power_state PD_TOP.primary -state TOP_ON \
@@ -73,6 +87,12 @@ create_supply_set PD_MEM_BANK_0.primary -function {power VDD_MEM_BANK_0} -functi
 create_supply_net VDD_MEM_BANK_1
 create_supply_set PD_MEM_BANK_1.primary -function {power VDD_MEM_BANK_1} -function {ground VSS} -update
 
+create_supply_net VDD_MEM_BANK_2
+create_supply_set PD_MEM_BANK_2.primary -function {power VDD_MEM_BANK_2} -function {ground VSS} -update
+
+create_supply_net VDD_MEM_BANK_3
+create_supply_set PD_MEM_BANK_3.primary -function {power VDD_MEM_BANK_3} -function {ground VSS} -update
+
 
 ################
 ##  SWITCHES  ##
@@ -101,7 +121,7 @@ create_power_switch switch_PD_MEM_BANK_0 \
     -domain             PD_MEM_BANK_0 \
     -input_supply_port  {sw_in     VDD} \
     -output_supply_port {sw_out    VDD_MEM_BANK_0} \
-    -control_port       {sw_ctrl   memory_subsystem_i/memory_subsystem_banks_powergate_switches[0]} \
+    -control_port       {sw_ctrl   memory_subsystem_banks_powergate_switches[0]} \
     -on_state           {on_state  sw_in {sw_ctrl}} \
     -off_state          {off_state {!sw_ctrl}}
 
@@ -110,7 +130,25 @@ create_power_switch switch_PD_MEM_BANK_1 \
     -domain             PD_MEM_BANK_1 \
     -input_supply_port  {sw_in     VDD} \
     -output_supply_port {sw_out    VDD_MEM_BANK_1} \
-    -control_port       {sw_ctrl   memory_subsystem_i/memory_subsystem_banks_powergate_switches[1]} \
+    -control_port       {sw_ctrl   memory_subsystem_banks_powergate_switches[1]} \
+    -on_state           {on_state  sw_in {sw_ctrl}} \
+    -off_state          {off_state {!sw_ctrl}}
+
+create_power_switch switch_PD_MEM_BANK_2 \
+    -supply_set         PD_TOP.primary \
+    -domain             PD_MEM_BANK_2 \
+    -input_supply_port  {sw_in     VDD} \
+    -output_supply_port {sw_out    VDD_MEM_BANK_2} \
+    -control_port       {sw_ctrl   memory_subsystem_banks_powergate_switches[2]} \
+    -on_state           {on_state  sw_in {sw_ctrl}} \
+    -off_state          {off_state {!sw_ctrl}}
+
+create_power_switch switch_PD_MEM_BANK_3 \
+    -supply_set         PD_TOP.primary \
+    -domain             PD_MEM_BANK_3 \
+    -input_supply_port  {sw_in     VDD} \
+    -output_supply_port {sw_out    VDD_MEM_BANK_3} \
+    -control_port       {sw_ctrl   memory_subsystem_banks_powergate_switches[3]} \
     -on_state           {on_state  sw_in {sw_ctrl}} \
     -off_state          {off_state {!sw_ctrl}}
 
@@ -145,7 +183,7 @@ set_isolation mem_bank_0_iso \
     -domain PD_MEM_BANK_0 \
     -isolation_power_net VDD \
     -isolation_ground_net VSS \
-    -isolation_signal memory_subsystem_i/memory_subsystem_banks_powergate_switches[0] \
+    -isolation_signal memory_subsystem_banks_powergate_switches[0] \
     -isolation_sense low \
     -clamp_value 0 \
     -applies_to both \
@@ -156,7 +194,29 @@ set_isolation mem_bank_1_iso \
     -domain PD_MEM_BANK_1 \
     -isolation_power_net VDD \
     -isolation_ground_net VSS \
-    -isolation_signal memory_subsystem_i/memory_subsystem_banks_powergate_switches[1] \
+    -isolation_signal memory_subsystem_banks_powergate_switches[1] \
+    -isolation_sense low \
+    -clamp_value 0 \
+    -applies_to both \
+    -name_prefix cpu_iso_cell \
+    -location parent
+
+set_isolation mem_bank_2_iso \
+    -domain PD_MEM_BANK_2 \
+    -isolation_power_net VDD \
+    -isolation_ground_net VSS \
+    -isolation_signal memory_subsystem_banks_powergate_switches[2] \
+    -isolation_sense low \
+    -clamp_value 0 \
+    -applies_to both \
+    -name_prefix cpu_iso_cell \
+    -location parent
+
+set_isolation mem_bank_3_iso \
+    -domain PD_MEM_BANK_3 \
+    -isolation_power_net VDD \
+    -isolation_ground_net VSS \
+    -isolation_signal memory_subsystem_banks_powergate_switches[3] \
     -isolation_sense low \
     -clamp_value 0 \
     -applies_to both \

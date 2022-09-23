@@ -4,9 +4,9 @@ const int reset_vec_size = 20;
 
 uint32_t reset_vec[reset_vec_size] = {
     0x200305b7,
-    0x0045c503,
+    0x0185c503,
     0x00050663,
-    0x0085a503,
+    0x01c5a503,
     0x000500e7,
     0x200005b7,
     0x0085c503,

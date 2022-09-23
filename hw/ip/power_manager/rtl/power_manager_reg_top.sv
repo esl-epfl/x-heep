@@ -10,7 +10,7 @@
 module power_manager_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 8
+    parameter int AW = 9
 ) (
   input clk_i,
   input rst_ni,
@@ -68,9 +68,24 @@ module power_manager_reg_top #(
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
   //        or <reg>_{wd|we|qs} if field == 1 or 0
-  logic [31:0] power_gate_domain_qs;
-  logic [31:0] power_gate_domain_wd;
-  logic power_gate_domain_we;
+  logic power_gate_core_qs;
+  logic power_gate_core_wd;
+  logic power_gate_core_we;
+  logic power_gate_periph_qs;
+  logic power_gate_periph_wd;
+  logic power_gate_periph_we;
+  logic power_gate_ram_block_0_qs;
+  logic power_gate_ram_block_0_wd;
+  logic power_gate_ram_block_0_we;
+  logic power_gate_ram_block_1_qs;
+  logic power_gate_ram_block_1_wd;
+  logic power_gate_ram_block_1_we;
+  logic power_gate_ram_block_2_qs;
+  logic power_gate_ram_block_2_wd;
+  logic power_gate_ram_block_2_we;
+  logic power_gate_ram_block_3_qs;
+  logic power_gate_ram_block_3_wd;
+  logic power_gate_ram_block_3_we;
   logic wakeup_state_qs;
   logic wakeup_state_wd;
   logic wakeup_state_we;
@@ -224,21 +239,141 @@ module power_manager_reg_top #(
   logic cpu_counters_stop_cpu_switch_on_stop_bit_counter_qs;
   logic cpu_counters_stop_cpu_switch_on_stop_bit_counter_wd;
   logic cpu_counters_stop_cpu_switch_on_stop_bit_counter_we;
+  logic [31:0] periph_reset_assert_counter_qs;
+  logic [31:0] periph_reset_assert_counter_wd;
+  logic periph_reset_assert_counter_we;
+  logic [31:0] periph_reset_deassert_counter_qs;
+  logic [31:0] periph_reset_deassert_counter_wd;
+  logic periph_reset_deassert_counter_we;
+  logic [31:0] periph_switch_off_counter_qs;
+  logic [31:0] periph_switch_off_counter_wd;
+  logic periph_switch_off_counter_we;
+  logic [31:0] periph_switch_on_counter_qs;
+  logic [31:0] periph_switch_on_counter_wd;
+  logic periph_switch_on_counter_we;
+  logic periph_counters_stop_periph_reset_assert_stop_bit_counter_qs;
+  logic periph_counters_stop_periph_reset_assert_stop_bit_counter_wd;
+  logic periph_counters_stop_periph_reset_assert_stop_bit_counter_we;
+  logic periph_counters_stop_periph_reset_deassert_stop_bit_counter_qs;
+  logic periph_counters_stop_periph_reset_deassert_stop_bit_counter_wd;
+  logic periph_counters_stop_periph_reset_deassert_stop_bit_counter_we;
+  logic periph_counters_stop_periph_switch_off_stop_bit_counter_qs;
+  logic periph_counters_stop_periph_switch_off_stop_bit_counter_wd;
+  logic periph_counters_stop_periph_switch_off_stop_bit_counter_we;
+  logic periph_counters_stop_periph_switch_on_stop_bit_counter_qs;
+  logic periph_counters_stop_periph_switch_on_stop_bit_counter_wd;
+  logic periph_counters_stop_periph_switch_on_stop_bit_counter_we;
+  logic [31:0] ram0_reset_assert_counter_qs;
+  logic [31:0] ram0_reset_assert_counter_wd;
+  logic ram0_reset_assert_counter_we;
+  logic [31:0] ram0_reset_deassert_counter_qs;
+  logic [31:0] ram0_reset_deassert_counter_wd;
+  logic ram0_reset_deassert_counter_we;
+  logic [31:0] ram0_switch_off_counter_qs;
+  logic [31:0] ram0_switch_off_counter_wd;
+  logic ram0_switch_off_counter_we;
+  logic [31:0] ram0_switch_on_counter_qs;
+  logic [31:0] ram0_switch_on_counter_wd;
+  logic ram0_switch_on_counter_we;
+  logic ram0_counters_stop_ram0_reset_assert_stop_bit_counter_qs;
+  logic ram0_counters_stop_ram0_reset_assert_stop_bit_counter_wd;
+  logic ram0_counters_stop_ram0_reset_assert_stop_bit_counter_we;
+  logic ram0_counters_stop_ram0_reset_deassert_stop_bit_counter_qs;
+  logic ram0_counters_stop_ram0_reset_deassert_stop_bit_counter_wd;
+  logic ram0_counters_stop_ram0_reset_deassert_stop_bit_counter_we;
+  logic ram0_counters_stop_ram0_switch_off_stop_bit_counter_qs;
+  logic ram0_counters_stop_ram0_switch_off_stop_bit_counter_wd;
+  logic ram0_counters_stop_ram0_switch_off_stop_bit_counter_we;
+  logic ram0_counters_stop_ram0_switch_on_stop_bit_counter_qs;
+  logic ram0_counters_stop_ram0_switch_on_stop_bit_counter_wd;
+  logic ram0_counters_stop_ram0_switch_on_stop_bit_counter_we;
+  logic [31:0] ram1_reset_assert_counter_qs;
+  logic [31:0] ram1_reset_assert_counter_wd;
+  logic ram1_reset_assert_counter_we;
+  logic [31:0] ram1_reset_deassert_counter_qs;
+  logic [31:0] ram1_reset_deassert_counter_wd;
+  logic ram1_reset_deassert_counter_we;
+  logic [31:0] ram1_switch_off_counter_qs;
+  logic [31:0] ram1_switch_off_counter_wd;
+  logic ram1_switch_off_counter_we;
+  logic [31:0] ram1_switch_on_counter_qs;
+  logic [31:0] ram1_switch_on_counter_wd;
+  logic ram1_switch_on_counter_we;
+  logic ram1_counters_stop_ram1_reset_assert_stop_bit_counter_qs;
+  logic ram1_counters_stop_ram1_reset_assert_stop_bit_counter_wd;
+  logic ram1_counters_stop_ram1_reset_assert_stop_bit_counter_we;
+  logic ram1_counters_stop_ram1_reset_deassert_stop_bit_counter_qs;
+  logic ram1_counters_stop_ram1_reset_deassert_stop_bit_counter_wd;
+  logic ram1_counters_stop_ram1_reset_deassert_stop_bit_counter_we;
+  logic ram1_counters_stop_ram1_switch_off_stop_bit_counter_qs;
+  logic ram1_counters_stop_ram1_switch_off_stop_bit_counter_wd;
+  logic ram1_counters_stop_ram1_switch_off_stop_bit_counter_we;
+  logic ram1_counters_stop_ram1_switch_on_stop_bit_counter_qs;
+  logic ram1_counters_stop_ram1_switch_on_stop_bit_counter_wd;
+  logic ram1_counters_stop_ram1_switch_on_stop_bit_counter_we;
+  logic [31:0] ram2_reset_assert_counter_qs;
+  logic [31:0] ram2_reset_assert_counter_wd;
+  logic ram2_reset_assert_counter_we;
+  logic [31:0] ram2_reset_deassert_counter_qs;
+  logic [31:0] ram2_reset_deassert_counter_wd;
+  logic ram2_reset_deassert_counter_we;
+  logic [31:0] ram2_switch_off_counter_qs;
+  logic [31:0] ram2_switch_off_counter_wd;
+  logic ram2_switch_off_counter_we;
+  logic [31:0] ram2_switch_on_counter_qs;
+  logic [31:0] ram2_switch_on_counter_wd;
+  logic ram2_switch_on_counter_we;
+  logic ram2_counters_stop_ram2_reset_assert_stop_bit_counter_qs;
+  logic ram2_counters_stop_ram2_reset_assert_stop_bit_counter_wd;
+  logic ram2_counters_stop_ram2_reset_assert_stop_bit_counter_we;
+  logic ram2_counters_stop_ram2_reset_deassert_stop_bit_counter_qs;
+  logic ram2_counters_stop_ram2_reset_deassert_stop_bit_counter_wd;
+  logic ram2_counters_stop_ram2_reset_deassert_stop_bit_counter_we;
+  logic ram2_counters_stop_ram2_switch_off_stop_bit_counter_qs;
+  logic ram2_counters_stop_ram2_switch_off_stop_bit_counter_wd;
+  logic ram2_counters_stop_ram2_switch_off_stop_bit_counter_we;
+  logic ram2_counters_stop_ram2_switch_on_stop_bit_counter_qs;
+  logic ram2_counters_stop_ram2_switch_on_stop_bit_counter_wd;
+  logic ram2_counters_stop_ram2_switch_on_stop_bit_counter_we;
+  logic [31:0] ram3_reset_assert_counter_qs;
+  logic [31:0] ram3_reset_assert_counter_wd;
+  logic ram3_reset_assert_counter_we;
+  logic [31:0] ram3_reset_deassert_counter_qs;
+  logic [31:0] ram3_reset_deassert_counter_wd;
+  logic ram3_reset_deassert_counter_we;
+  logic [31:0] ram3_switch_off_counter_qs;
+  logic [31:0] ram3_switch_off_counter_wd;
+  logic ram3_switch_off_counter_we;
+  logic [31:0] ram3_switch_on_counter_qs;
+  logic [31:0] ram3_switch_on_counter_wd;
+  logic ram3_switch_on_counter_we;
+  logic ram3_counters_stop_ram3_reset_assert_stop_bit_counter_qs;
+  logic ram3_counters_stop_ram3_reset_assert_stop_bit_counter_wd;
+  logic ram3_counters_stop_ram3_reset_assert_stop_bit_counter_we;
+  logic ram3_counters_stop_ram3_reset_deassert_stop_bit_counter_qs;
+  logic ram3_counters_stop_ram3_reset_deassert_stop_bit_counter_wd;
+  logic ram3_counters_stop_ram3_reset_deassert_stop_bit_counter_we;
+  logic ram3_counters_stop_ram3_switch_off_stop_bit_counter_qs;
+  logic ram3_counters_stop_ram3_switch_off_stop_bit_counter_wd;
+  logic ram3_counters_stop_ram3_switch_off_stop_bit_counter_we;
+  logic ram3_counters_stop_ram3_switch_on_stop_bit_counter_qs;
+  logic ram3_counters_stop_ram3_switch_on_stop_bit_counter_wd;
+  logic ram3_counters_stop_ram3_switch_on_stop_bit_counter_we;
 
   // Register instances
-  // R[power_gate_domain]: V(False)
+  // R[power_gate_core]: V(False)
 
   prim_subreg #(
-    .DW      (32),
+    .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (32'h0)
-  ) u_power_gate_domain (
+    .RESVAL  (1'h0)
+  ) u_power_gate_core (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (power_gate_domain_we),
-    .wd     (power_gate_domain_wd),
+    .we     (power_gate_core_we),
+    .wd     (power_gate_core_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -246,10 +381,145 @@ module power_manager_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.power_gate_domain.q ),
+    .q      (reg2hw.power_gate_core.q ),
 
     // to register interface (read)
-    .qs     (power_gate_domain_qs)
+    .qs     (power_gate_core_qs)
+  );
+
+
+  // R[power_gate_periph]: V(False)
+
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_power_gate_periph (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (power_gate_periph_we),
+    .wd     (power_gate_periph_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.power_gate_periph.q ),
+
+    // to register interface (read)
+    .qs     (power_gate_periph_qs)
+  );
+
+
+  // R[power_gate_ram_block_0]: V(False)
+
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_power_gate_ram_block_0 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (power_gate_ram_block_0_we),
+    .wd     (power_gate_ram_block_0_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.power_gate_ram_block_0.q ),
+
+    // to register interface (read)
+    .qs     (power_gate_ram_block_0_qs)
+  );
+
+
+  // R[power_gate_ram_block_1]: V(False)
+
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_power_gate_ram_block_1 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (power_gate_ram_block_1_we),
+    .wd     (power_gate_ram_block_1_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.power_gate_ram_block_1.q ),
+
+    // to register interface (read)
+    .qs     (power_gate_ram_block_1_qs)
+  );
+
+
+  // R[power_gate_ram_block_2]: V(False)
+
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_power_gate_ram_block_2 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (power_gate_ram_block_2_we),
+    .wd     (power_gate_ram_block_2_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.power_gate_ram_block_2.q ),
+
+    // to register interface (read)
+    .qs     (power_gate_ram_block_2_qs)
+  );
+
+
+  // R[power_gate_ram_block_3]: V(False)
+
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_power_gate_ram_block_3 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (power_gate_ram_block_3_we),
+    .wd     (power_gate_ram_block_3_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.power_gate_ram_block_3.q ),
+
+    // to register interface (read)
+    .qs     (power_gate_ram_block_3_qs)
   );
 
 
@@ -1628,60 +1898,1160 @@ module power_manager_reg_top #(
   );
 
 
+  // R[periph_reset_assert_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_periph_reset_assert_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (periph_reset_assert_counter_we),
+    .wd     (periph_reset_assert_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.periph_reset_assert_counter.de),
+    .d      (hw2reg.periph_reset_assert_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.periph_reset_assert_counter.q ),
+
+    // to register interface (read)
+    .qs     (periph_reset_assert_counter_qs)
+  );
 
 
-  logic [48:0] addr_hit;
+  // R[periph_reset_deassert_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_periph_reset_deassert_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (periph_reset_deassert_counter_we),
+    .wd     (periph_reset_deassert_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.periph_reset_deassert_counter.de),
+    .d      (hw2reg.periph_reset_deassert_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.periph_reset_deassert_counter.q ),
+
+    // to register interface (read)
+    .qs     (periph_reset_deassert_counter_qs)
+  );
+
+
+  // R[periph_switch_off_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_periph_switch_off_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (periph_switch_off_counter_we),
+    .wd     (periph_switch_off_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.periph_switch_off_counter.de),
+    .d      (hw2reg.periph_switch_off_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.periph_switch_off_counter.q ),
+
+    // to register interface (read)
+    .qs     (periph_switch_off_counter_qs)
+  );
+
+
+  // R[periph_switch_on_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_periph_switch_on_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (periph_switch_on_counter_we),
+    .wd     (periph_switch_on_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.periph_switch_on_counter.de),
+    .d      (hw2reg.periph_switch_on_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.periph_switch_on_counter.q ),
+
+    // to register interface (read)
+    .qs     (periph_switch_on_counter_qs)
+  );
+
+
+  // R[periph_counters_stop]: V(False)
+
+  //   F[periph_reset_assert_stop_bit_counter]: 0:0
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_periph_counters_stop_periph_reset_assert_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (periph_counters_stop_periph_reset_assert_stop_bit_counter_we),
+    .wd     (periph_counters_stop_periph_reset_assert_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.periph_counters_stop.periph_reset_assert_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (periph_counters_stop_periph_reset_assert_stop_bit_counter_qs)
+  );
+
+
+  //   F[periph_reset_deassert_stop_bit_counter]: 1:1
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_periph_counters_stop_periph_reset_deassert_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (periph_counters_stop_periph_reset_deassert_stop_bit_counter_we),
+    .wd     (periph_counters_stop_periph_reset_deassert_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.periph_counters_stop.periph_reset_deassert_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (periph_counters_stop_periph_reset_deassert_stop_bit_counter_qs)
+  );
+
+
+  //   F[periph_switch_off_stop_bit_counter]: 2:2
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_periph_counters_stop_periph_switch_off_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (periph_counters_stop_periph_switch_off_stop_bit_counter_we),
+    .wd     (periph_counters_stop_periph_switch_off_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.periph_counters_stop.periph_switch_off_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (periph_counters_stop_periph_switch_off_stop_bit_counter_qs)
+  );
+
+
+  //   F[periph_switch_on_stop_bit_counter]: 3:3
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_periph_counters_stop_periph_switch_on_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (periph_counters_stop_periph_switch_on_stop_bit_counter_we),
+    .wd     (periph_counters_stop_periph_switch_on_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.periph_counters_stop.periph_switch_on_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (periph_counters_stop_periph_switch_on_stop_bit_counter_qs)
+  );
+
+
+  // R[ram0_reset_assert_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_ram0_reset_assert_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram0_reset_assert_counter_we),
+    .wd     (ram0_reset_assert_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.ram0_reset_assert_counter.de),
+    .d      (hw2reg.ram0_reset_assert_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram0_reset_assert_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram0_reset_assert_counter_qs)
+  );
+
+
+  // R[ram0_reset_deassert_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_ram0_reset_deassert_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram0_reset_deassert_counter_we),
+    .wd     (ram0_reset_deassert_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.ram0_reset_deassert_counter.de),
+    .d      (hw2reg.ram0_reset_deassert_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram0_reset_deassert_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram0_reset_deassert_counter_qs)
+  );
+
+
+  // R[ram0_switch_off_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_ram0_switch_off_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram0_switch_off_counter_we),
+    .wd     (ram0_switch_off_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.ram0_switch_off_counter.de),
+    .d      (hw2reg.ram0_switch_off_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram0_switch_off_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram0_switch_off_counter_qs)
+  );
+
+
+  // R[ram0_switch_on_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_ram0_switch_on_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram0_switch_on_counter_we),
+    .wd     (ram0_switch_on_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.ram0_switch_on_counter.de),
+    .d      (hw2reg.ram0_switch_on_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram0_switch_on_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram0_switch_on_counter_qs)
+  );
+
+
+  // R[ram0_counters_stop]: V(False)
+
+  //   F[ram0_reset_assert_stop_bit_counter]: 0:0
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_ram0_counters_stop_ram0_reset_assert_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram0_counters_stop_ram0_reset_assert_stop_bit_counter_we),
+    .wd     (ram0_counters_stop_ram0_reset_assert_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram0_counters_stop.ram0_reset_assert_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram0_counters_stop_ram0_reset_assert_stop_bit_counter_qs)
+  );
+
+
+  //   F[ram0_reset_deassert_stop_bit_counter]: 1:1
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_ram0_counters_stop_ram0_reset_deassert_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram0_counters_stop_ram0_reset_deassert_stop_bit_counter_we),
+    .wd     (ram0_counters_stop_ram0_reset_deassert_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram0_counters_stop.ram0_reset_deassert_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram0_counters_stop_ram0_reset_deassert_stop_bit_counter_qs)
+  );
+
+
+  //   F[ram0_switch_off_stop_bit_counter]: 2:2
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_ram0_counters_stop_ram0_switch_off_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram0_counters_stop_ram0_switch_off_stop_bit_counter_we),
+    .wd     (ram0_counters_stop_ram0_switch_off_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram0_counters_stop.ram0_switch_off_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram0_counters_stop_ram0_switch_off_stop_bit_counter_qs)
+  );
+
+
+  //   F[ram0_switch_on_stop_bit_counter]: 3:3
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_ram0_counters_stop_ram0_switch_on_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram0_counters_stop_ram0_switch_on_stop_bit_counter_we),
+    .wd     (ram0_counters_stop_ram0_switch_on_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram0_counters_stop.ram0_switch_on_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram0_counters_stop_ram0_switch_on_stop_bit_counter_qs)
+  );
+
+
+  // R[ram1_reset_assert_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_ram1_reset_assert_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram1_reset_assert_counter_we),
+    .wd     (ram1_reset_assert_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.ram1_reset_assert_counter.de),
+    .d      (hw2reg.ram1_reset_assert_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram1_reset_assert_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram1_reset_assert_counter_qs)
+  );
+
+
+  // R[ram1_reset_deassert_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_ram1_reset_deassert_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram1_reset_deassert_counter_we),
+    .wd     (ram1_reset_deassert_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.ram1_reset_deassert_counter.de),
+    .d      (hw2reg.ram1_reset_deassert_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram1_reset_deassert_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram1_reset_deassert_counter_qs)
+  );
+
+
+  // R[ram1_switch_off_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_ram1_switch_off_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram1_switch_off_counter_we),
+    .wd     (ram1_switch_off_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.ram1_switch_off_counter.de),
+    .d      (hw2reg.ram1_switch_off_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram1_switch_off_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram1_switch_off_counter_qs)
+  );
+
+
+  // R[ram1_switch_on_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_ram1_switch_on_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram1_switch_on_counter_we),
+    .wd     (ram1_switch_on_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.ram1_switch_on_counter.de),
+    .d      (hw2reg.ram1_switch_on_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram1_switch_on_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram1_switch_on_counter_qs)
+  );
+
+
+  // R[ram1_counters_stop]: V(False)
+
+  //   F[ram1_reset_assert_stop_bit_counter]: 0:0
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_ram1_counters_stop_ram1_reset_assert_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram1_counters_stop_ram1_reset_assert_stop_bit_counter_we),
+    .wd     (ram1_counters_stop_ram1_reset_assert_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram1_counters_stop.ram1_reset_assert_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram1_counters_stop_ram1_reset_assert_stop_bit_counter_qs)
+  );
+
+
+  //   F[ram1_reset_deassert_stop_bit_counter]: 1:1
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_ram1_counters_stop_ram1_reset_deassert_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram1_counters_stop_ram1_reset_deassert_stop_bit_counter_we),
+    .wd     (ram1_counters_stop_ram1_reset_deassert_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram1_counters_stop.ram1_reset_deassert_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram1_counters_stop_ram1_reset_deassert_stop_bit_counter_qs)
+  );
+
+
+  //   F[ram1_switch_off_stop_bit_counter]: 2:2
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_ram1_counters_stop_ram1_switch_off_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram1_counters_stop_ram1_switch_off_stop_bit_counter_we),
+    .wd     (ram1_counters_stop_ram1_switch_off_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram1_counters_stop.ram1_switch_off_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram1_counters_stop_ram1_switch_off_stop_bit_counter_qs)
+  );
+
+
+  //   F[ram1_switch_on_stop_bit_counter]: 3:3
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_ram1_counters_stop_ram1_switch_on_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram1_counters_stop_ram1_switch_on_stop_bit_counter_we),
+    .wd     (ram1_counters_stop_ram1_switch_on_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram1_counters_stop.ram1_switch_on_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram1_counters_stop_ram1_switch_on_stop_bit_counter_qs)
+  );
+
+
+  // R[ram2_reset_assert_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_ram2_reset_assert_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram2_reset_assert_counter_we),
+    .wd     (ram2_reset_assert_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.ram2_reset_assert_counter.de),
+    .d      (hw2reg.ram2_reset_assert_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram2_reset_assert_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram2_reset_assert_counter_qs)
+  );
+
+
+  // R[ram2_reset_deassert_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_ram2_reset_deassert_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram2_reset_deassert_counter_we),
+    .wd     (ram2_reset_deassert_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.ram2_reset_deassert_counter.de),
+    .d      (hw2reg.ram2_reset_deassert_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram2_reset_deassert_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram2_reset_deassert_counter_qs)
+  );
+
+
+  // R[ram2_switch_off_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_ram2_switch_off_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram2_switch_off_counter_we),
+    .wd     (ram2_switch_off_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.ram2_switch_off_counter.de),
+    .d      (hw2reg.ram2_switch_off_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram2_switch_off_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram2_switch_off_counter_qs)
+  );
+
+
+  // R[ram2_switch_on_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_ram2_switch_on_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram2_switch_on_counter_we),
+    .wd     (ram2_switch_on_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.ram2_switch_on_counter.de),
+    .d      (hw2reg.ram2_switch_on_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram2_switch_on_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram2_switch_on_counter_qs)
+  );
+
+
+  // R[ram2_counters_stop]: V(False)
+
+  //   F[ram2_reset_assert_stop_bit_counter]: 0:0
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_ram2_counters_stop_ram2_reset_assert_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram2_counters_stop_ram2_reset_assert_stop_bit_counter_we),
+    .wd     (ram2_counters_stop_ram2_reset_assert_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram2_counters_stop.ram2_reset_assert_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram2_counters_stop_ram2_reset_assert_stop_bit_counter_qs)
+  );
+
+
+  //   F[ram2_reset_deassert_stop_bit_counter]: 1:1
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_ram2_counters_stop_ram2_reset_deassert_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram2_counters_stop_ram2_reset_deassert_stop_bit_counter_we),
+    .wd     (ram2_counters_stop_ram2_reset_deassert_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram2_counters_stop.ram2_reset_deassert_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram2_counters_stop_ram2_reset_deassert_stop_bit_counter_qs)
+  );
+
+
+  //   F[ram2_switch_off_stop_bit_counter]: 2:2
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_ram2_counters_stop_ram2_switch_off_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram2_counters_stop_ram2_switch_off_stop_bit_counter_we),
+    .wd     (ram2_counters_stop_ram2_switch_off_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram2_counters_stop.ram2_switch_off_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram2_counters_stop_ram2_switch_off_stop_bit_counter_qs)
+  );
+
+
+  //   F[ram2_switch_on_stop_bit_counter]: 3:3
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_ram2_counters_stop_ram2_switch_on_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram2_counters_stop_ram2_switch_on_stop_bit_counter_we),
+    .wd     (ram2_counters_stop_ram2_switch_on_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram2_counters_stop.ram2_switch_on_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram2_counters_stop_ram2_switch_on_stop_bit_counter_qs)
+  );
+
+
+  // R[ram3_reset_assert_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_ram3_reset_assert_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram3_reset_assert_counter_we),
+    .wd     (ram3_reset_assert_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.ram3_reset_assert_counter.de),
+    .d      (hw2reg.ram3_reset_assert_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram3_reset_assert_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram3_reset_assert_counter_qs)
+  );
+
+
+  // R[ram3_reset_deassert_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_ram3_reset_deassert_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram3_reset_deassert_counter_we),
+    .wd     (ram3_reset_deassert_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.ram3_reset_deassert_counter.de),
+    .d      (hw2reg.ram3_reset_deassert_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram3_reset_deassert_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram3_reset_deassert_counter_qs)
+  );
+
+
+  // R[ram3_switch_off_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_ram3_switch_off_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram3_switch_off_counter_we),
+    .wd     (ram3_switch_off_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.ram3_switch_off_counter.de),
+    .d      (hw2reg.ram3_switch_off_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram3_switch_off_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram3_switch_off_counter_qs)
+  );
+
+
+  // R[ram3_switch_on_counter]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_ram3_switch_on_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram3_switch_on_counter_we),
+    .wd     (ram3_switch_on_counter_wd),
+
+    // from internal hardware
+    .de     (hw2reg.ram3_switch_on_counter.de),
+    .d      (hw2reg.ram3_switch_on_counter.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram3_switch_on_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram3_switch_on_counter_qs)
+  );
+
+
+  // R[ram3_counters_stop]: V(False)
+
+  //   F[ram3_reset_assert_stop_bit_counter]: 0:0
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_ram3_counters_stop_ram3_reset_assert_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram3_counters_stop_ram3_reset_assert_stop_bit_counter_we),
+    .wd     (ram3_counters_stop_ram3_reset_assert_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram3_counters_stop.ram3_reset_assert_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram3_counters_stop_ram3_reset_assert_stop_bit_counter_qs)
+  );
+
+
+  //   F[ram3_reset_deassert_stop_bit_counter]: 1:1
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_ram3_counters_stop_ram3_reset_deassert_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram3_counters_stop_ram3_reset_deassert_stop_bit_counter_we),
+    .wd     (ram3_counters_stop_ram3_reset_deassert_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram3_counters_stop.ram3_reset_deassert_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram3_counters_stop_ram3_reset_deassert_stop_bit_counter_qs)
+  );
+
+
+  //   F[ram3_switch_off_stop_bit_counter]: 2:2
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_ram3_counters_stop_ram3_switch_off_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram3_counters_stop_ram3_switch_off_stop_bit_counter_we),
+    .wd     (ram3_counters_stop_ram3_switch_off_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram3_counters_stop.ram3_switch_off_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram3_counters_stop_ram3_switch_off_stop_bit_counter_qs)
+  );
+
+
+  //   F[ram3_switch_on_stop_bit_counter]: 3:3
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_ram3_counters_stop_ram3_switch_on_stop_bit_counter (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (ram3_counters_stop_ram3_switch_on_stop_bit_counter_we),
+    .wd     (ram3_counters_stop_ram3_switch_on_stop_bit_counter_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.ram3_counters_stop.ram3_switch_on_stop_bit_counter.q ),
+
+    // to register interface (read)
+    .qs     (ram3_counters_stop_ram3_switch_on_stop_bit_counter_qs)
+  );
+
+
+
+
+  logic [78:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[ 0] = (reg_addr == POWER_MANAGER_POWER_GATE_DOMAIN_OFFSET);
-    addr_hit[ 1] = (reg_addr == POWER_MANAGER_WAKEUP_STATE_OFFSET);
-    addr_hit[ 2] = (reg_addr == POWER_MANAGER_RESTORE_ADDRESS_OFFSET);
-    addr_hit[ 3] = (reg_addr == POWER_MANAGER_CORE_REG_X1_OFFSET);
-    addr_hit[ 4] = (reg_addr == POWER_MANAGER_CORE_REG_X2_OFFSET);
-    addr_hit[ 5] = (reg_addr == POWER_MANAGER_CORE_REG_X3_OFFSET);
-    addr_hit[ 6] = (reg_addr == POWER_MANAGER_CORE_REG_X4_OFFSET);
-    addr_hit[ 7] = (reg_addr == POWER_MANAGER_CORE_REG_X5_OFFSET);
-    addr_hit[ 8] = (reg_addr == POWER_MANAGER_CORE_REG_X6_OFFSET);
-    addr_hit[ 9] = (reg_addr == POWER_MANAGER_CORE_REG_X7_OFFSET);
-    addr_hit[10] = (reg_addr == POWER_MANAGER_CORE_REG_X8_OFFSET);
-    addr_hit[11] = (reg_addr == POWER_MANAGER_CORE_REG_X9_OFFSET);
-    addr_hit[12] = (reg_addr == POWER_MANAGER_CORE_REG_X10_OFFSET);
-    addr_hit[13] = (reg_addr == POWER_MANAGER_CORE_REG_X11_OFFSET);
-    addr_hit[14] = (reg_addr == POWER_MANAGER_CORE_REG_X12_OFFSET);
-    addr_hit[15] = (reg_addr == POWER_MANAGER_CORE_REG_X13_OFFSET);
-    addr_hit[16] = (reg_addr == POWER_MANAGER_CORE_REG_X14_OFFSET);
-    addr_hit[17] = (reg_addr == POWER_MANAGER_CORE_REG_X15_OFFSET);
-    addr_hit[18] = (reg_addr == POWER_MANAGER_CORE_REG_X16_OFFSET);
-    addr_hit[19] = (reg_addr == POWER_MANAGER_CORE_REG_X17_OFFSET);
-    addr_hit[20] = (reg_addr == POWER_MANAGER_CORE_REG_X18_OFFSET);
-    addr_hit[21] = (reg_addr == POWER_MANAGER_CORE_REG_X19_OFFSET);
-    addr_hit[22] = (reg_addr == POWER_MANAGER_CORE_REG_X20_OFFSET);
-    addr_hit[23] = (reg_addr == POWER_MANAGER_CORE_REG_X21_OFFSET);
-    addr_hit[24] = (reg_addr == POWER_MANAGER_CORE_REG_X22_OFFSET);
-    addr_hit[25] = (reg_addr == POWER_MANAGER_CORE_REG_X23_OFFSET);
-    addr_hit[26] = (reg_addr == POWER_MANAGER_CORE_REG_X24_OFFSET);
-    addr_hit[27] = (reg_addr == POWER_MANAGER_CORE_REG_X25_OFFSET);
-    addr_hit[28] = (reg_addr == POWER_MANAGER_CORE_REG_X26_OFFSET);
-    addr_hit[29] = (reg_addr == POWER_MANAGER_CORE_REG_X27_OFFSET);
-    addr_hit[30] = (reg_addr == POWER_MANAGER_CORE_REG_X28_OFFSET);
-    addr_hit[31] = (reg_addr == POWER_MANAGER_CORE_REG_X29_OFFSET);
-    addr_hit[32] = (reg_addr == POWER_MANAGER_CORE_REG_X30_OFFSET);
-    addr_hit[33] = (reg_addr == POWER_MANAGER_CORE_REG_X31_OFFSET);
-    addr_hit[34] = (reg_addr == POWER_MANAGER_CORE_CSR_C0_OFFSET);
-    addr_hit[35] = (reg_addr == POWER_MANAGER_CORE_CSR_C1_OFFSET);
-    addr_hit[36] = (reg_addr == POWER_MANAGER_CORE_CSR_C2_OFFSET);
-    addr_hit[37] = (reg_addr == POWER_MANAGER_CORE_CSR_C3_OFFSET);
-    addr_hit[38] = (reg_addr == POWER_MANAGER_CORE_CSR_C4_OFFSET);
-    addr_hit[39] = (reg_addr == POWER_MANAGER_CORE_CSR_C5_OFFSET);
-    addr_hit[40] = (reg_addr == POWER_MANAGER_CORE_CSR_C6_OFFSET);
-    addr_hit[41] = (reg_addr == POWER_MANAGER_CORE_CSR_C7_OFFSET);
-    addr_hit[42] = (reg_addr == POWER_MANAGER_EN_WAIT_FOR_INTR_OFFSET);
-    addr_hit[43] = (reg_addr == POWER_MANAGER_INTR_STATE_OFFSET);
-    addr_hit[44] = (reg_addr == POWER_MANAGER_CPU_RESET_ASSERT_COUNTER_OFFSET);
-    addr_hit[45] = (reg_addr == POWER_MANAGER_CPU_RESET_DEASSERT_COUNTER_OFFSET);
-    addr_hit[46] = (reg_addr == POWER_MANAGER_CPU_SWITCH_OFF_COUNTER_OFFSET);
-    addr_hit[47] = (reg_addr == POWER_MANAGER_CPU_SWITCH_ON_COUNTER_OFFSET);
-    addr_hit[48] = (reg_addr == POWER_MANAGER_CPU_COUNTERS_STOP_OFFSET);
+    addr_hit[ 0] = (reg_addr == POWER_MANAGER_POWER_GATE_CORE_OFFSET);
+    addr_hit[ 1] = (reg_addr == POWER_MANAGER_POWER_GATE_PERIPH_OFFSET);
+    addr_hit[ 2] = (reg_addr == POWER_MANAGER_POWER_GATE_RAM_BLOCK_0_OFFSET);
+    addr_hit[ 3] = (reg_addr == POWER_MANAGER_POWER_GATE_RAM_BLOCK_1_OFFSET);
+    addr_hit[ 4] = (reg_addr == POWER_MANAGER_POWER_GATE_RAM_BLOCK_2_OFFSET);
+    addr_hit[ 5] = (reg_addr == POWER_MANAGER_POWER_GATE_RAM_BLOCK_3_OFFSET);
+    addr_hit[ 6] = (reg_addr == POWER_MANAGER_WAKEUP_STATE_OFFSET);
+    addr_hit[ 7] = (reg_addr == POWER_MANAGER_RESTORE_ADDRESS_OFFSET);
+    addr_hit[ 8] = (reg_addr == POWER_MANAGER_CORE_REG_X1_OFFSET);
+    addr_hit[ 9] = (reg_addr == POWER_MANAGER_CORE_REG_X2_OFFSET);
+    addr_hit[10] = (reg_addr == POWER_MANAGER_CORE_REG_X3_OFFSET);
+    addr_hit[11] = (reg_addr == POWER_MANAGER_CORE_REG_X4_OFFSET);
+    addr_hit[12] = (reg_addr == POWER_MANAGER_CORE_REG_X5_OFFSET);
+    addr_hit[13] = (reg_addr == POWER_MANAGER_CORE_REG_X6_OFFSET);
+    addr_hit[14] = (reg_addr == POWER_MANAGER_CORE_REG_X7_OFFSET);
+    addr_hit[15] = (reg_addr == POWER_MANAGER_CORE_REG_X8_OFFSET);
+    addr_hit[16] = (reg_addr == POWER_MANAGER_CORE_REG_X9_OFFSET);
+    addr_hit[17] = (reg_addr == POWER_MANAGER_CORE_REG_X10_OFFSET);
+    addr_hit[18] = (reg_addr == POWER_MANAGER_CORE_REG_X11_OFFSET);
+    addr_hit[19] = (reg_addr == POWER_MANAGER_CORE_REG_X12_OFFSET);
+    addr_hit[20] = (reg_addr == POWER_MANAGER_CORE_REG_X13_OFFSET);
+    addr_hit[21] = (reg_addr == POWER_MANAGER_CORE_REG_X14_OFFSET);
+    addr_hit[22] = (reg_addr == POWER_MANAGER_CORE_REG_X15_OFFSET);
+    addr_hit[23] = (reg_addr == POWER_MANAGER_CORE_REG_X16_OFFSET);
+    addr_hit[24] = (reg_addr == POWER_MANAGER_CORE_REG_X17_OFFSET);
+    addr_hit[25] = (reg_addr == POWER_MANAGER_CORE_REG_X18_OFFSET);
+    addr_hit[26] = (reg_addr == POWER_MANAGER_CORE_REG_X19_OFFSET);
+    addr_hit[27] = (reg_addr == POWER_MANAGER_CORE_REG_X20_OFFSET);
+    addr_hit[28] = (reg_addr == POWER_MANAGER_CORE_REG_X21_OFFSET);
+    addr_hit[29] = (reg_addr == POWER_MANAGER_CORE_REG_X22_OFFSET);
+    addr_hit[30] = (reg_addr == POWER_MANAGER_CORE_REG_X23_OFFSET);
+    addr_hit[31] = (reg_addr == POWER_MANAGER_CORE_REG_X24_OFFSET);
+    addr_hit[32] = (reg_addr == POWER_MANAGER_CORE_REG_X25_OFFSET);
+    addr_hit[33] = (reg_addr == POWER_MANAGER_CORE_REG_X26_OFFSET);
+    addr_hit[34] = (reg_addr == POWER_MANAGER_CORE_REG_X27_OFFSET);
+    addr_hit[35] = (reg_addr == POWER_MANAGER_CORE_REG_X28_OFFSET);
+    addr_hit[36] = (reg_addr == POWER_MANAGER_CORE_REG_X29_OFFSET);
+    addr_hit[37] = (reg_addr == POWER_MANAGER_CORE_REG_X30_OFFSET);
+    addr_hit[38] = (reg_addr == POWER_MANAGER_CORE_REG_X31_OFFSET);
+    addr_hit[39] = (reg_addr == POWER_MANAGER_CORE_CSR_C0_OFFSET);
+    addr_hit[40] = (reg_addr == POWER_MANAGER_CORE_CSR_C1_OFFSET);
+    addr_hit[41] = (reg_addr == POWER_MANAGER_CORE_CSR_C2_OFFSET);
+    addr_hit[42] = (reg_addr == POWER_MANAGER_CORE_CSR_C3_OFFSET);
+    addr_hit[43] = (reg_addr == POWER_MANAGER_CORE_CSR_C4_OFFSET);
+    addr_hit[44] = (reg_addr == POWER_MANAGER_CORE_CSR_C5_OFFSET);
+    addr_hit[45] = (reg_addr == POWER_MANAGER_CORE_CSR_C6_OFFSET);
+    addr_hit[46] = (reg_addr == POWER_MANAGER_CORE_CSR_C7_OFFSET);
+    addr_hit[47] = (reg_addr == POWER_MANAGER_EN_WAIT_FOR_INTR_OFFSET);
+    addr_hit[48] = (reg_addr == POWER_MANAGER_INTR_STATE_OFFSET);
+    addr_hit[49] = (reg_addr == POWER_MANAGER_CPU_RESET_ASSERT_COUNTER_OFFSET);
+    addr_hit[50] = (reg_addr == POWER_MANAGER_CPU_RESET_DEASSERT_COUNTER_OFFSET);
+    addr_hit[51] = (reg_addr == POWER_MANAGER_CPU_SWITCH_OFF_COUNTER_OFFSET);
+    addr_hit[52] = (reg_addr == POWER_MANAGER_CPU_SWITCH_ON_COUNTER_OFFSET);
+    addr_hit[53] = (reg_addr == POWER_MANAGER_CPU_COUNTERS_STOP_OFFSET);
+    addr_hit[54] = (reg_addr == POWER_MANAGER_PERIPH_RESET_ASSERT_COUNTER_OFFSET);
+    addr_hit[55] = (reg_addr == POWER_MANAGER_PERIPH_RESET_DEASSERT_COUNTER_OFFSET);
+    addr_hit[56] = (reg_addr == POWER_MANAGER_PERIPH_SWITCH_OFF_COUNTER_OFFSET);
+    addr_hit[57] = (reg_addr == POWER_MANAGER_PERIPH_SWITCH_ON_COUNTER_OFFSET);
+    addr_hit[58] = (reg_addr == POWER_MANAGER_PERIPH_COUNTERS_STOP_OFFSET);
+    addr_hit[59] = (reg_addr == POWER_MANAGER_RAM0_RESET_ASSERT_COUNTER_OFFSET);
+    addr_hit[60] = (reg_addr == POWER_MANAGER_RAM0_RESET_DEASSERT_COUNTER_OFFSET);
+    addr_hit[61] = (reg_addr == POWER_MANAGER_RAM0_SWITCH_OFF_COUNTER_OFFSET);
+    addr_hit[62] = (reg_addr == POWER_MANAGER_RAM0_SWITCH_ON_COUNTER_OFFSET);
+    addr_hit[63] = (reg_addr == POWER_MANAGER_RAM0_COUNTERS_STOP_OFFSET);
+    addr_hit[64] = (reg_addr == POWER_MANAGER_RAM1_RESET_ASSERT_COUNTER_OFFSET);
+    addr_hit[65] = (reg_addr == POWER_MANAGER_RAM1_RESET_DEASSERT_COUNTER_OFFSET);
+    addr_hit[66] = (reg_addr == POWER_MANAGER_RAM1_SWITCH_OFF_COUNTER_OFFSET);
+    addr_hit[67] = (reg_addr == POWER_MANAGER_RAM1_SWITCH_ON_COUNTER_OFFSET);
+    addr_hit[68] = (reg_addr == POWER_MANAGER_RAM1_COUNTERS_STOP_OFFSET);
+    addr_hit[69] = (reg_addr == POWER_MANAGER_RAM2_RESET_ASSERT_COUNTER_OFFSET);
+    addr_hit[70] = (reg_addr == POWER_MANAGER_RAM2_RESET_DEASSERT_COUNTER_OFFSET);
+    addr_hit[71] = (reg_addr == POWER_MANAGER_RAM2_SWITCH_OFF_COUNTER_OFFSET);
+    addr_hit[72] = (reg_addr == POWER_MANAGER_RAM2_SWITCH_ON_COUNTER_OFFSET);
+    addr_hit[73] = (reg_addr == POWER_MANAGER_RAM2_COUNTERS_STOP_OFFSET);
+    addr_hit[74] = (reg_addr == POWER_MANAGER_RAM3_RESET_ASSERT_COUNTER_OFFSET);
+    addr_hit[75] = (reg_addr == POWER_MANAGER_RAM3_RESET_DEASSERT_COUNTER_OFFSET);
+    addr_hit[76] = (reg_addr == POWER_MANAGER_RAM3_SWITCH_OFF_COUNTER_OFFSET);
+    addr_hit[77] = (reg_addr == POWER_MANAGER_RAM3_SWITCH_ON_COUNTER_OFFSET);
+    addr_hit[78] = (reg_addr == POWER_MANAGER_RAM3_COUNTERS_STOP_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -1737,366 +3107,666 @@ module power_manager_reg_top #(
                (addr_hit[45] & (|(POWER_MANAGER_PERMIT[45] & ~reg_be))) |
                (addr_hit[46] & (|(POWER_MANAGER_PERMIT[46] & ~reg_be))) |
                (addr_hit[47] & (|(POWER_MANAGER_PERMIT[47] & ~reg_be))) |
-               (addr_hit[48] & (|(POWER_MANAGER_PERMIT[48] & ~reg_be)))));
+               (addr_hit[48] & (|(POWER_MANAGER_PERMIT[48] & ~reg_be))) |
+               (addr_hit[49] & (|(POWER_MANAGER_PERMIT[49] & ~reg_be))) |
+               (addr_hit[50] & (|(POWER_MANAGER_PERMIT[50] & ~reg_be))) |
+               (addr_hit[51] & (|(POWER_MANAGER_PERMIT[51] & ~reg_be))) |
+               (addr_hit[52] & (|(POWER_MANAGER_PERMIT[52] & ~reg_be))) |
+               (addr_hit[53] & (|(POWER_MANAGER_PERMIT[53] & ~reg_be))) |
+               (addr_hit[54] & (|(POWER_MANAGER_PERMIT[54] & ~reg_be))) |
+               (addr_hit[55] & (|(POWER_MANAGER_PERMIT[55] & ~reg_be))) |
+               (addr_hit[56] & (|(POWER_MANAGER_PERMIT[56] & ~reg_be))) |
+               (addr_hit[57] & (|(POWER_MANAGER_PERMIT[57] & ~reg_be))) |
+               (addr_hit[58] & (|(POWER_MANAGER_PERMIT[58] & ~reg_be))) |
+               (addr_hit[59] & (|(POWER_MANAGER_PERMIT[59] & ~reg_be))) |
+               (addr_hit[60] & (|(POWER_MANAGER_PERMIT[60] & ~reg_be))) |
+               (addr_hit[61] & (|(POWER_MANAGER_PERMIT[61] & ~reg_be))) |
+               (addr_hit[62] & (|(POWER_MANAGER_PERMIT[62] & ~reg_be))) |
+               (addr_hit[63] & (|(POWER_MANAGER_PERMIT[63] & ~reg_be))) |
+               (addr_hit[64] & (|(POWER_MANAGER_PERMIT[64] & ~reg_be))) |
+               (addr_hit[65] & (|(POWER_MANAGER_PERMIT[65] & ~reg_be))) |
+               (addr_hit[66] & (|(POWER_MANAGER_PERMIT[66] & ~reg_be))) |
+               (addr_hit[67] & (|(POWER_MANAGER_PERMIT[67] & ~reg_be))) |
+               (addr_hit[68] & (|(POWER_MANAGER_PERMIT[68] & ~reg_be))) |
+               (addr_hit[69] & (|(POWER_MANAGER_PERMIT[69] & ~reg_be))) |
+               (addr_hit[70] & (|(POWER_MANAGER_PERMIT[70] & ~reg_be))) |
+               (addr_hit[71] & (|(POWER_MANAGER_PERMIT[71] & ~reg_be))) |
+               (addr_hit[72] & (|(POWER_MANAGER_PERMIT[72] & ~reg_be))) |
+               (addr_hit[73] & (|(POWER_MANAGER_PERMIT[73] & ~reg_be))) |
+               (addr_hit[74] & (|(POWER_MANAGER_PERMIT[74] & ~reg_be))) |
+               (addr_hit[75] & (|(POWER_MANAGER_PERMIT[75] & ~reg_be))) |
+               (addr_hit[76] & (|(POWER_MANAGER_PERMIT[76] & ~reg_be))) |
+               (addr_hit[77] & (|(POWER_MANAGER_PERMIT[77] & ~reg_be))) |
+               (addr_hit[78] & (|(POWER_MANAGER_PERMIT[78] & ~reg_be)))));
   end
 
-  assign power_gate_domain_we = addr_hit[0] & reg_we & !reg_error;
-  assign power_gate_domain_wd = reg_wdata[31:0];
+  assign power_gate_core_we = addr_hit[0] & reg_we & !reg_error;
+  assign power_gate_core_wd = reg_wdata[0];
 
-  assign wakeup_state_we = addr_hit[1] & reg_we & !reg_error;
+  assign power_gate_periph_we = addr_hit[1] & reg_we & !reg_error;
+  assign power_gate_periph_wd = reg_wdata[0];
+
+  assign power_gate_ram_block_0_we = addr_hit[2] & reg_we & !reg_error;
+  assign power_gate_ram_block_0_wd = reg_wdata[0];
+
+  assign power_gate_ram_block_1_we = addr_hit[3] & reg_we & !reg_error;
+  assign power_gate_ram_block_1_wd = reg_wdata[0];
+
+  assign power_gate_ram_block_2_we = addr_hit[4] & reg_we & !reg_error;
+  assign power_gate_ram_block_2_wd = reg_wdata[0];
+
+  assign power_gate_ram_block_3_we = addr_hit[5] & reg_we & !reg_error;
+  assign power_gate_ram_block_3_wd = reg_wdata[0];
+
+  assign wakeup_state_we = addr_hit[6] & reg_we & !reg_error;
   assign wakeup_state_wd = reg_wdata[0];
 
-  assign restore_address_we = addr_hit[2] & reg_we & !reg_error;
+  assign restore_address_we = addr_hit[7] & reg_we & !reg_error;
   assign restore_address_wd = reg_wdata[31:0];
 
-  assign core_reg_x1_we = addr_hit[3] & reg_we & !reg_error;
+  assign core_reg_x1_we = addr_hit[8] & reg_we & !reg_error;
   assign core_reg_x1_wd = reg_wdata[31:0];
 
-  assign core_reg_x2_we = addr_hit[4] & reg_we & !reg_error;
+  assign core_reg_x2_we = addr_hit[9] & reg_we & !reg_error;
   assign core_reg_x2_wd = reg_wdata[31:0];
 
-  assign core_reg_x3_we = addr_hit[5] & reg_we & !reg_error;
+  assign core_reg_x3_we = addr_hit[10] & reg_we & !reg_error;
   assign core_reg_x3_wd = reg_wdata[31:0];
 
-  assign core_reg_x4_we = addr_hit[6] & reg_we & !reg_error;
+  assign core_reg_x4_we = addr_hit[11] & reg_we & !reg_error;
   assign core_reg_x4_wd = reg_wdata[31:0];
 
-  assign core_reg_x5_we = addr_hit[7] & reg_we & !reg_error;
+  assign core_reg_x5_we = addr_hit[12] & reg_we & !reg_error;
   assign core_reg_x5_wd = reg_wdata[31:0];
 
-  assign core_reg_x6_we = addr_hit[8] & reg_we & !reg_error;
+  assign core_reg_x6_we = addr_hit[13] & reg_we & !reg_error;
   assign core_reg_x6_wd = reg_wdata[31:0];
 
-  assign core_reg_x7_we = addr_hit[9] & reg_we & !reg_error;
+  assign core_reg_x7_we = addr_hit[14] & reg_we & !reg_error;
   assign core_reg_x7_wd = reg_wdata[31:0];
 
-  assign core_reg_x8_we = addr_hit[10] & reg_we & !reg_error;
+  assign core_reg_x8_we = addr_hit[15] & reg_we & !reg_error;
   assign core_reg_x8_wd = reg_wdata[31:0];
 
-  assign core_reg_x9_we = addr_hit[11] & reg_we & !reg_error;
+  assign core_reg_x9_we = addr_hit[16] & reg_we & !reg_error;
   assign core_reg_x9_wd = reg_wdata[31:0];
 
-  assign core_reg_x10_we = addr_hit[12] & reg_we & !reg_error;
+  assign core_reg_x10_we = addr_hit[17] & reg_we & !reg_error;
   assign core_reg_x10_wd = reg_wdata[31:0];
 
-  assign core_reg_x11_we = addr_hit[13] & reg_we & !reg_error;
+  assign core_reg_x11_we = addr_hit[18] & reg_we & !reg_error;
   assign core_reg_x11_wd = reg_wdata[31:0];
 
-  assign core_reg_x12_we = addr_hit[14] & reg_we & !reg_error;
+  assign core_reg_x12_we = addr_hit[19] & reg_we & !reg_error;
   assign core_reg_x12_wd = reg_wdata[31:0];
 
-  assign core_reg_x13_we = addr_hit[15] & reg_we & !reg_error;
+  assign core_reg_x13_we = addr_hit[20] & reg_we & !reg_error;
   assign core_reg_x13_wd = reg_wdata[31:0];
 
-  assign core_reg_x14_we = addr_hit[16] & reg_we & !reg_error;
+  assign core_reg_x14_we = addr_hit[21] & reg_we & !reg_error;
   assign core_reg_x14_wd = reg_wdata[31:0];
 
-  assign core_reg_x15_we = addr_hit[17] & reg_we & !reg_error;
+  assign core_reg_x15_we = addr_hit[22] & reg_we & !reg_error;
   assign core_reg_x15_wd = reg_wdata[31:0];
 
-  assign core_reg_x16_we = addr_hit[18] & reg_we & !reg_error;
+  assign core_reg_x16_we = addr_hit[23] & reg_we & !reg_error;
   assign core_reg_x16_wd = reg_wdata[31:0];
 
-  assign core_reg_x17_we = addr_hit[19] & reg_we & !reg_error;
+  assign core_reg_x17_we = addr_hit[24] & reg_we & !reg_error;
   assign core_reg_x17_wd = reg_wdata[31:0];
 
-  assign core_reg_x18_we = addr_hit[20] & reg_we & !reg_error;
+  assign core_reg_x18_we = addr_hit[25] & reg_we & !reg_error;
   assign core_reg_x18_wd = reg_wdata[31:0];
 
-  assign core_reg_x19_we = addr_hit[21] & reg_we & !reg_error;
+  assign core_reg_x19_we = addr_hit[26] & reg_we & !reg_error;
   assign core_reg_x19_wd = reg_wdata[31:0];
 
-  assign core_reg_x20_we = addr_hit[22] & reg_we & !reg_error;
+  assign core_reg_x20_we = addr_hit[27] & reg_we & !reg_error;
   assign core_reg_x20_wd = reg_wdata[31:0];
 
-  assign core_reg_x21_we = addr_hit[23] & reg_we & !reg_error;
+  assign core_reg_x21_we = addr_hit[28] & reg_we & !reg_error;
   assign core_reg_x21_wd = reg_wdata[31:0];
 
-  assign core_reg_x22_we = addr_hit[24] & reg_we & !reg_error;
+  assign core_reg_x22_we = addr_hit[29] & reg_we & !reg_error;
   assign core_reg_x22_wd = reg_wdata[31:0];
 
-  assign core_reg_x23_we = addr_hit[25] & reg_we & !reg_error;
+  assign core_reg_x23_we = addr_hit[30] & reg_we & !reg_error;
   assign core_reg_x23_wd = reg_wdata[31:0];
 
-  assign core_reg_x24_we = addr_hit[26] & reg_we & !reg_error;
+  assign core_reg_x24_we = addr_hit[31] & reg_we & !reg_error;
   assign core_reg_x24_wd = reg_wdata[31:0];
 
-  assign core_reg_x25_we = addr_hit[27] & reg_we & !reg_error;
+  assign core_reg_x25_we = addr_hit[32] & reg_we & !reg_error;
   assign core_reg_x25_wd = reg_wdata[31:0];
 
-  assign core_reg_x26_we = addr_hit[28] & reg_we & !reg_error;
+  assign core_reg_x26_we = addr_hit[33] & reg_we & !reg_error;
   assign core_reg_x26_wd = reg_wdata[31:0];
 
-  assign core_reg_x27_we = addr_hit[29] & reg_we & !reg_error;
+  assign core_reg_x27_we = addr_hit[34] & reg_we & !reg_error;
   assign core_reg_x27_wd = reg_wdata[31:0];
 
-  assign core_reg_x28_we = addr_hit[30] & reg_we & !reg_error;
+  assign core_reg_x28_we = addr_hit[35] & reg_we & !reg_error;
   assign core_reg_x28_wd = reg_wdata[31:0];
 
-  assign core_reg_x29_we = addr_hit[31] & reg_we & !reg_error;
+  assign core_reg_x29_we = addr_hit[36] & reg_we & !reg_error;
   assign core_reg_x29_wd = reg_wdata[31:0];
 
-  assign core_reg_x30_we = addr_hit[32] & reg_we & !reg_error;
+  assign core_reg_x30_we = addr_hit[37] & reg_we & !reg_error;
   assign core_reg_x30_wd = reg_wdata[31:0];
 
-  assign core_reg_x31_we = addr_hit[33] & reg_we & !reg_error;
+  assign core_reg_x31_we = addr_hit[38] & reg_we & !reg_error;
   assign core_reg_x31_wd = reg_wdata[31:0];
 
-  assign core_csr_c0_we = addr_hit[34] & reg_we & !reg_error;
+  assign core_csr_c0_we = addr_hit[39] & reg_we & !reg_error;
   assign core_csr_c0_wd = reg_wdata[31:0];
 
-  assign core_csr_c1_we = addr_hit[35] & reg_we & !reg_error;
+  assign core_csr_c1_we = addr_hit[40] & reg_we & !reg_error;
   assign core_csr_c1_wd = reg_wdata[31:0];
 
-  assign core_csr_c2_we = addr_hit[36] & reg_we & !reg_error;
+  assign core_csr_c2_we = addr_hit[41] & reg_we & !reg_error;
   assign core_csr_c2_wd = reg_wdata[31:0];
 
-  assign core_csr_c3_we = addr_hit[37] & reg_we & !reg_error;
+  assign core_csr_c3_we = addr_hit[42] & reg_we & !reg_error;
   assign core_csr_c3_wd = reg_wdata[31:0];
 
-  assign core_csr_c4_we = addr_hit[38] & reg_we & !reg_error;
+  assign core_csr_c4_we = addr_hit[43] & reg_we & !reg_error;
   assign core_csr_c4_wd = reg_wdata[31:0];
 
-  assign core_csr_c5_we = addr_hit[39] & reg_we & !reg_error;
+  assign core_csr_c5_we = addr_hit[44] & reg_we & !reg_error;
   assign core_csr_c5_wd = reg_wdata[31:0];
 
-  assign core_csr_c6_we = addr_hit[40] & reg_we & !reg_error;
+  assign core_csr_c6_we = addr_hit[45] & reg_we & !reg_error;
   assign core_csr_c6_wd = reg_wdata[31:0];
 
-  assign core_csr_c7_we = addr_hit[41] & reg_we & !reg_error;
+  assign core_csr_c7_we = addr_hit[46] & reg_we & !reg_error;
   assign core_csr_c7_wd = reg_wdata[31:0];
 
-  assign en_wait_for_intr_we = addr_hit[42] & reg_we & !reg_error;
+  assign en_wait_for_intr_we = addr_hit[47] & reg_we & !reg_error;
   assign en_wait_for_intr_wd = reg_wdata[31:0];
 
-  assign intr_state_we = addr_hit[43] & reg_we & !reg_error;
+  assign intr_state_we = addr_hit[48] & reg_we & !reg_error;
   assign intr_state_wd = reg_wdata[31:0];
 
-  assign cpu_reset_assert_counter_we = addr_hit[44] & reg_we & !reg_error;
+  assign cpu_reset_assert_counter_we = addr_hit[49] & reg_we & !reg_error;
   assign cpu_reset_assert_counter_wd = reg_wdata[31:0];
 
-  assign cpu_reset_deassert_counter_we = addr_hit[45] & reg_we & !reg_error;
+  assign cpu_reset_deassert_counter_we = addr_hit[50] & reg_we & !reg_error;
   assign cpu_reset_deassert_counter_wd = reg_wdata[31:0];
 
-  assign cpu_switch_off_counter_we = addr_hit[46] & reg_we & !reg_error;
+  assign cpu_switch_off_counter_we = addr_hit[51] & reg_we & !reg_error;
   assign cpu_switch_off_counter_wd = reg_wdata[31:0];
 
-  assign cpu_switch_on_counter_we = addr_hit[47] & reg_we & !reg_error;
+  assign cpu_switch_on_counter_we = addr_hit[52] & reg_we & !reg_error;
   assign cpu_switch_on_counter_wd = reg_wdata[31:0];
 
-  assign cpu_counters_stop_cpu_reset_assert_stop_bit_counter_we = addr_hit[48] & reg_we & !reg_error;
+  assign cpu_counters_stop_cpu_reset_assert_stop_bit_counter_we = addr_hit[53] & reg_we & !reg_error;
   assign cpu_counters_stop_cpu_reset_assert_stop_bit_counter_wd = reg_wdata[0];
 
-  assign cpu_counters_stop_cpu_reset_deassert_stop_bit_counter_we = addr_hit[48] & reg_we & !reg_error;
+  assign cpu_counters_stop_cpu_reset_deassert_stop_bit_counter_we = addr_hit[53] & reg_we & !reg_error;
   assign cpu_counters_stop_cpu_reset_deassert_stop_bit_counter_wd = reg_wdata[1];
 
-  assign cpu_counters_stop_cpu_switch_off_stop_bit_counter_we = addr_hit[48] & reg_we & !reg_error;
+  assign cpu_counters_stop_cpu_switch_off_stop_bit_counter_we = addr_hit[53] & reg_we & !reg_error;
   assign cpu_counters_stop_cpu_switch_off_stop_bit_counter_wd = reg_wdata[2];
 
-  assign cpu_counters_stop_cpu_switch_on_stop_bit_counter_we = addr_hit[48] & reg_we & !reg_error;
+  assign cpu_counters_stop_cpu_switch_on_stop_bit_counter_we = addr_hit[53] & reg_we & !reg_error;
   assign cpu_counters_stop_cpu_switch_on_stop_bit_counter_wd = reg_wdata[3];
+
+  assign periph_reset_assert_counter_we = addr_hit[54] & reg_we & !reg_error;
+  assign periph_reset_assert_counter_wd = reg_wdata[31:0];
+
+  assign periph_reset_deassert_counter_we = addr_hit[55] & reg_we & !reg_error;
+  assign periph_reset_deassert_counter_wd = reg_wdata[31:0];
+
+  assign periph_switch_off_counter_we = addr_hit[56] & reg_we & !reg_error;
+  assign periph_switch_off_counter_wd = reg_wdata[31:0];
+
+  assign periph_switch_on_counter_we = addr_hit[57] & reg_we & !reg_error;
+  assign periph_switch_on_counter_wd = reg_wdata[31:0];
+
+  assign periph_counters_stop_periph_reset_assert_stop_bit_counter_we = addr_hit[58] & reg_we & !reg_error;
+  assign periph_counters_stop_periph_reset_assert_stop_bit_counter_wd = reg_wdata[0];
+
+  assign periph_counters_stop_periph_reset_deassert_stop_bit_counter_we = addr_hit[58] & reg_we & !reg_error;
+  assign periph_counters_stop_periph_reset_deassert_stop_bit_counter_wd = reg_wdata[1];
+
+  assign periph_counters_stop_periph_switch_off_stop_bit_counter_we = addr_hit[58] & reg_we & !reg_error;
+  assign periph_counters_stop_periph_switch_off_stop_bit_counter_wd = reg_wdata[2];
+
+  assign periph_counters_stop_periph_switch_on_stop_bit_counter_we = addr_hit[58] & reg_we & !reg_error;
+  assign periph_counters_stop_periph_switch_on_stop_bit_counter_wd = reg_wdata[3];
+
+  assign ram0_reset_assert_counter_we = addr_hit[59] & reg_we & !reg_error;
+  assign ram0_reset_assert_counter_wd = reg_wdata[31:0];
+
+  assign ram0_reset_deassert_counter_we = addr_hit[60] & reg_we & !reg_error;
+  assign ram0_reset_deassert_counter_wd = reg_wdata[31:0];
+
+  assign ram0_switch_off_counter_we = addr_hit[61] & reg_we & !reg_error;
+  assign ram0_switch_off_counter_wd = reg_wdata[31:0];
+
+  assign ram0_switch_on_counter_we = addr_hit[62] & reg_we & !reg_error;
+  assign ram0_switch_on_counter_wd = reg_wdata[31:0];
+
+  assign ram0_counters_stop_ram0_reset_assert_stop_bit_counter_we = addr_hit[63] & reg_we & !reg_error;
+  assign ram0_counters_stop_ram0_reset_assert_stop_bit_counter_wd = reg_wdata[0];
+
+  assign ram0_counters_stop_ram0_reset_deassert_stop_bit_counter_we = addr_hit[63] & reg_we & !reg_error;
+  assign ram0_counters_stop_ram0_reset_deassert_stop_bit_counter_wd = reg_wdata[1];
+
+  assign ram0_counters_stop_ram0_switch_off_stop_bit_counter_we = addr_hit[63] & reg_we & !reg_error;
+  assign ram0_counters_stop_ram0_switch_off_stop_bit_counter_wd = reg_wdata[2];
+
+  assign ram0_counters_stop_ram0_switch_on_stop_bit_counter_we = addr_hit[63] & reg_we & !reg_error;
+  assign ram0_counters_stop_ram0_switch_on_stop_bit_counter_wd = reg_wdata[3];
+
+  assign ram1_reset_assert_counter_we = addr_hit[64] & reg_we & !reg_error;
+  assign ram1_reset_assert_counter_wd = reg_wdata[31:0];
+
+  assign ram1_reset_deassert_counter_we = addr_hit[65] & reg_we & !reg_error;
+  assign ram1_reset_deassert_counter_wd = reg_wdata[31:0];
+
+  assign ram1_switch_off_counter_we = addr_hit[66] & reg_we & !reg_error;
+  assign ram1_switch_off_counter_wd = reg_wdata[31:0];
+
+  assign ram1_switch_on_counter_we = addr_hit[67] & reg_we & !reg_error;
+  assign ram1_switch_on_counter_wd = reg_wdata[31:0];
+
+  assign ram1_counters_stop_ram1_reset_assert_stop_bit_counter_we = addr_hit[68] & reg_we & !reg_error;
+  assign ram1_counters_stop_ram1_reset_assert_stop_bit_counter_wd = reg_wdata[0];
+
+  assign ram1_counters_stop_ram1_reset_deassert_stop_bit_counter_we = addr_hit[68] & reg_we & !reg_error;
+  assign ram1_counters_stop_ram1_reset_deassert_stop_bit_counter_wd = reg_wdata[1];
+
+  assign ram1_counters_stop_ram1_switch_off_stop_bit_counter_we = addr_hit[68] & reg_we & !reg_error;
+  assign ram1_counters_stop_ram1_switch_off_stop_bit_counter_wd = reg_wdata[2];
+
+  assign ram1_counters_stop_ram1_switch_on_stop_bit_counter_we = addr_hit[68] & reg_we & !reg_error;
+  assign ram1_counters_stop_ram1_switch_on_stop_bit_counter_wd = reg_wdata[3];
+
+  assign ram2_reset_assert_counter_we = addr_hit[69] & reg_we & !reg_error;
+  assign ram2_reset_assert_counter_wd = reg_wdata[31:0];
+
+  assign ram2_reset_deassert_counter_we = addr_hit[70] & reg_we & !reg_error;
+  assign ram2_reset_deassert_counter_wd = reg_wdata[31:0];
+
+  assign ram2_switch_off_counter_we = addr_hit[71] & reg_we & !reg_error;
+  assign ram2_switch_off_counter_wd = reg_wdata[31:0];
+
+  assign ram2_switch_on_counter_we = addr_hit[72] & reg_we & !reg_error;
+  assign ram2_switch_on_counter_wd = reg_wdata[31:0];
+
+  assign ram2_counters_stop_ram2_reset_assert_stop_bit_counter_we = addr_hit[73] & reg_we & !reg_error;
+  assign ram2_counters_stop_ram2_reset_assert_stop_bit_counter_wd = reg_wdata[0];
+
+  assign ram2_counters_stop_ram2_reset_deassert_stop_bit_counter_we = addr_hit[73] & reg_we & !reg_error;
+  assign ram2_counters_stop_ram2_reset_deassert_stop_bit_counter_wd = reg_wdata[1];
+
+  assign ram2_counters_stop_ram2_switch_off_stop_bit_counter_we = addr_hit[73] & reg_we & !reg_error;
+  assign ram2_counters_stop_ram2_switch_off_stop_bit_counter_wd = reg_wdata[2];
+
+  assign ram2_counters_stop_ram2_switch_on_stop_bit_counter_we = addr_hit[73] & reg_we & !reg_error;
+  assign ram2_counters_stop_ram2_switch_on_stop_bit_counter_wd = reg_wdata[3];
+
+  assign ram3_reset_assert_counter_we = addr_hit[74] & reg_we & !reg_error;
+  assign ram3_reset_assert_counter_wd = reg_wdata[31:0];
+
+  assign ram3_reset_deassert_counter_we = addr_hit[75] & reg_we & !reg_error;
+  assign ram3_reset_deassert_counter_wd = reg_wdata[31:0];
+
+  assign ram3_switch_off_counter_we = addr_hit[76] & reg_we & !reg_error;
+  assign ram3_switch_off_counter_wd = reg_wdata[31:0];
+
+  assign ram3_switch_on_counter_we = addr_hit[77] & reg_we & !reg_error;
+  assign ram3_switch_on_counter_wd = reg_wdata[31:0];
+
+  assign ram3_counters_stop_ram3_reset_assert_stop_bit_counter_we = addr_hit[78] & reg_we & !reg_error;
+  assign ram3_counters_stop_ram3_reset_assert_stop_bit_counter_wd = reg_wdata[0];
+
+  assign ram3_counters_stop_ram3_reset_deassert_stop_bit_counter_we = addr_hit[78] & reg_we & !reg_error;
+  assign ram3_counters_stop_ram3_reset_deassert_stop_bit_counter_wd = reg_wdata[1];
+
+  assign ram3_counters_stop_ram3_switch_off_stop_bit_counter_we = addr_hit[78] & reg_we & !reg_error;
+  assign ram3_counters_stop_ram3_switch_off_stop_bit_counter_wd = reg_wdata[2];
+
+  assign ram3_counters_stop_ram3_switch_on_stop_bit_counter_we = addr_hit[78] & reg_we & !reg_error;
+  assign ram3_counters_stop_ram3_switch_on_stop_bit_counter_wd = reg_wdata[3];
 
   // Read data return
   always_comb begin
     reg_rdata_next = '0;
     unique case (1'b1)
       addr_hit[0]: begin
-        reg_rdata_next[31:0] = power_gate_domain_qs;
+        reg_rdata_next[0] = power_gate_core_qs;
       end
 
       addr_hit[1]: begin
-        reg_rdata_next[0] = wakeup_state_qs;
+        reg_rdata_next[0] = power_gate_periph_qs;
       end
 
       addr_hit[2]: begin
-        reg_rdata_next[31:0] = restore_address_qs;
+        reg_rdata_next[0] = power_gate_ram_block_0_qs;
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[31:0] = core_reg_x1_qs;
+        reg_rdata_next[0] = power_gate_ram_block_1_qs;
       end
 
       addr_hit[4]: begin
-        reg_rdata_next[31:0] = core_reg_x2_qs;
+        reg_rdata_next[0] = power_gate_ram_block_2_qs;
       end
 
       addr_hit[5]: begin
-        reg_rdata_next[31:0] = core_reg_x3_qs;
+        reg_rdata_next[0] = power_gate_ram_block_3_qs;
       end
 
       addr_hit[6]: begin
-        reg_rdata_next[31:0] = core_reg_x4_qs;
+        reg_rdata_next[0] = wakeup_state_qs;
       end
 
       addr_hit[7]: begin
-        reg_rdata_next[31:0] = core_reg_x5_qs;
+        reg_rdata_next[31:0] = restore_address_qs;
       end
 
       addr_hit[8]: begin
-        reg_rdata_next[31:0] = core_reg_x6_qs;
+        reg_rdata_next[31:0] = core_reg_x1_qs;
       end
 
       addr_hit[9]: begin
-        reg_rdata_next[31:0] = core_reg_x7_qs;
+        reg_rdata_next[31:0] = core_reg_x2_qs;
       end
 
       addr_hit[10]: begin
-        reg_rdata_next[31:0] = core_reg_x8_qs;
+        reg_rdata_next[31:0] = core_reg_x3_qs;
       end
 
       addr_hit[11]: begin
-        reg_rdata_next[31:0] = core_reg_x9_qs;
+        reg_rdata_next[31:0] = core_reg_x4_qs;
       end
 
       addr_hit[12]: begin
-        reg_rdata_next[31:0] = core_reg_x10_qs;
+        reg_rdata_next[31:0] = core_reg_x5_qs;
       end
 
       addr_hit[13]: begin
-        reg_rdata_next[31:0] = core_reg_x11_qs;
+        reg_rdata_next[31:0] = core_reg_x6_qs;
       end
 
       addr_hit[14]: begin
-        reg_rdata_next[31:0] = core_reg_x12_qs;
+        reg_rdata_next[31:0] = core_reg_x7_qs;
       end
 
       addr_hit[15]: begin
-        reg_rdata_next[31:0] = core_reg_x13_qs;
+        reg_rdata_next[31:0] = core_reg_x8_qs;
       end
 
       addr_hit[16]: begin
-        reg_rdata_next[31:0] = core_reg_x14_qs;
+        reg_rdata_next[31:0] = core_reg_x9_qs;
       end
 
       addr_hit[17]: begin
-        reg_rdata_next[31:0] = core_reg_x15_qs;
+        reg_rdata_next[31:0] = core_reg_x10_qs;
       end
 
       addr_hit[18]: begin
-        reg_rdata_next[31:0] = core_reg_x16_qs;
+        reg_rdata_next[31:0] = core_reg_x11_qs;
       end
 
       addr_hit[19]: begin
-        reg_rdata_next[31:0] = core_reg_x17_qs;
+        reg_rdata_next[31:0] = core_reg_x12_qs;
       end
 
       addr_hit[20]: begin
-        reg_rdata_next[31:0] = core_reg_x18_qs;
+        reg_rdata_next[31:0] = core_reg_x13_qs;
       end
 
       addr_hit[21]: begin
-        reg_rdata_next[31:0] = core_reg_x19_qs;
+        reg_rdata_next[31:0] = core_reg_x14_qs;
       end
 
       addr_hit[22]: begin
-        reg_rdata_next[31:0] = core_reg_x20_qs;
+        reg_rdata_next[31:0] = core_reg_x15_qs;
       end
 
       addr_hit[23]: begin
-        reg_rdata_next[31:0] = core_reg_x21_qs;
+        reg_rdata_next[31:0] = core_reg_x16_qs;
       end
 
       addr_hit[24]: begin
-        reg_rdata_next[31:0] = core_reg_x22_qs;
+        reg_rdata_next[31:0] = core_reg_x17_qs;
       end
 
       addr_hit[25]: begin
-        reg_rdata_next[31:0] = core_reg_x23_qs;
+        reg_rdata_next[31:0] = core_reg_x18_qs;
       end
 
       addr_hit[26]: begin
-        reg_rdata_next[31:0] = core_reg_x24_qs;
+        reg_rdata_next[31:0] = core_reg_x19_qs;
       end
 
       addr_hit[27]: begin
-        reg_rdata_next[31:0] = core_reg_x25_qs;
+        reg_rdata_next[31:0] = core_reg_x20_qs;
       end
 
       addr_hit[28]: begin
-        reg_rdata_next[31:0] = core_reg_x26_qs;
+        reg_rdata_next[31:0] = core_reg_x21_qs;
       end
 
       addr_hit[29]: begin
-        reg_rdata_next[31:0] = core_reg_x27_qs;
+        reg_rdata_next[31:0] = core_reg_x22_qs;
       end
 
       addr_hit[30]: begin
-        reg_rdata_next[31:0] = core_reg_x28_qs;
+        reg_rdata_next[31:0] = core_reg_x23_qs;
       end
 
       addr_hit[31]: begin
-        reg_rdata_next[31:0] = core_reg_x29_qs;
+        reg_rdata_next[31:0] = core_reg_x24_qs;
       end
 
       addr_hit[32]: begin
-        reg_rdata_next[31:0] = core_reg_x30_qs;
+        reg_rdata_next[31:0] = core_reg_x25_qs;
       end
 
       addr_hit[33]: begin
-        reg_rdata_next[31:0] = core_reg_x31_qs;
+        reg_rdata_next[31:0] = core_reg_x26_qs;
       end
 
       addr_hit[34]: begin
-        reg_rdata_next[31:0] = core_csr_c0_qs;
+        reg_rdata_next[31:0] = core_reg_x27_qs;
       end
 
       addr_hit[35]: begin
-        reg_rdata_next[31:0] = core_csr_c1_qs;
+        reg_rdata_next[31:0] = core_reg_x28_qs;
       end
 
       addr_hit[36]: begin
-        reg_rdata_next[31:0] = core_csr_c2_qs;
+        reg_rdata_next[31:0] = core_reg_x29_qs;
       end
 
       addr_hit[37]: begin
-        reg_rdata_next[31:0] = core_csr_c3_qs;
+        reg_rdata_next[31:0] = core_reg_x30_qs;
       end
 
       addr_hit[38]: begin
-        reg_rdata_next[31:0] = core_csr_c4_qs;
+        reg_rdata_next[31:0] = core_reg_x31_qs;
       end
 
       addr_hit[39]: begin
-        reg_rdata_next[31:0] = core_csr_c5_qs;
+        reg_rdata_next[31:0] = core_csr_c0_qs;
       end
 
       addr_hit[40]: begin
-        reg_rdata_next[31:0] = core_csr_c6_qs;
+        reg_rdata_next[31:0] = core_csr_c1_qs;
       end
 
       addr_hit[41]: begin
-        reg_rdata_next[31:0] = core_csr_c7_qs;
+        reg_rdata_next[31:0] = core_csr_c2_qs;
       end
 
       addr_hit[42]: begin
-        reg_rdata_next[31:0] = en_wait_for_intr_qs;
+        reg_rdata_next[31:0] = core_csr_c3_qs;
       end
 
       addr_hit[43]: begin
-        reg_rdata_next[31:0] = intr_state_qs;
+        reg_rdata_next[31:0] = core_csr_c4_qs;
       end
 
       addr_hit[44]: begin
-        reg_rdata_next[31:0] = cpu_reset_assert_counter_qs;
+        reg_rdata_next[31:0] = core_csr_c5_qs;
       end
 
       addr_hit[45]: begin
-        reg_rdata_next[31:0] = cpu_reset_deassert_counter_qs;
+        reg_rdata_next[31:0] = core_csr_c6_qs;
       end
 
       addr_hit[46]: begin
-        reg_rdata_next[31:0] = cpu_switch_off_counter_qs;
+        reg_rdata_next[31:0] = core_csr_c7_qs;
       end
 
       addr_hit[47]: begin
-        reg_rdata_next[31:0] = cpu_switch_on_counter_qs;
+        reg_rdata_next[31:0] = en_wait_for_intr_qs;
       end
 
       addr_hit[48]: begin
+        reg_rdata_next[31:0] = intr_state_qs;
+      end
+
+      addr_hit[49]: begin
+        reg_rdata_next[31:0] = cpu_reset_assert_counter_qs;
+      end
+
+      addr_hit[50]: begin
+        reg_rdata_next[31:0] = cpu_reset_deassert_counter_qs;
+      end
+
+      addr_hit[51]: begin
+        reg_rdata_next[31:0] = cpu_switch_off_counter_qs;
+      end
+
+      addr_hit[52]: begin
+        reg_rdata_next[31:0] = cpu_switch_on_counter_qs;
+      end
+
+      addr_hit[53]: begin
         reg_rdata_next[0] = cpu_counters_stop_cpu_reset_assert_stop_bit_counter_qs;
         reg_rdata_next[1] = cpu_counters_stop_cpu_reset_deassert_stop_bit_counter_qs;
         reg_rdata_next[2] = cpu_counters_stop_cpu_switch_off_stop_bit_counter_qs;
         reg_rdata_next[3] = cpu_counters_stop_cpu_switch_on_stop_bit_counter_qs;
+      end
+
+      addr_hit[54]: begin
+        reg_rdata_next[31:0] = periph_reset_assert_counter_qs;
+      end
+
+      addr_hit[55]: begin
+        reg_rdata_next[31:0] = periph_reset_deassert_counter_qs;
+      end
+
+      addr_hit[56]: begin
+        reg_rdata_next[31:0] = periph_switch_off_counter_qs;
+      end
+
+      addr_hit[57]: begin
+        reg_rdata_next[31:0] = periph_switch_on_counter_qs;
+      end
+
+      addr_hit[58]: begin
+        reg_rdata_next[0] = periph_counters_stop_periph_reset_assert_stop_bit_counter_qs;
+        reg_rdata_next[1] = periph_counters_stop_periph_reset_deassert_stop_bit_counter_qs;
+        reg_rdata_next[2] = periph_counters_stop_periph_switch_off_stop_bit_counter_qs;
+        reg_rdata_next[3] = periph_counters_stop_periph_switch_on_stop_bit_counter_qs;
+      end
+
+      addr_hit[59]: begin
+        reg_rdata_next[31:0] = ram0_reset_assert_counter_qs;
+      end
+
+      addr_hit[60]: begin
+        reg_rdata_next[31:0] = ram0_reset_deassert_counter_qs;
+      end
+
+      addr_hit[61]: begin
+        reg_rdata_next[31:0] = ram0_switch_off_counter_qs;
+      end
+
+      addr_hit[62]: begin
+        reg_rdata_next[31:0] = ram0_switch_on_counter_qs;
+      end
+
+      addr_hit[63]: begin
+        reg_rdata_next[0] = ram0_counters_stop_ram0_reset_assert_stop_bit_counter_qs;
+        reg_rdata_next[1] = ram0_counters_stop_ram0_reset_deassert_stop_bit_counter_qs;
+        reg_rdata_next[2] = ram0_counters_stop_ram0_switch_off_stop_bit_counter_qs;
+        reg_rdata_next[3] = ram0_counters_stop_ram0_switch_on_stop_bit_counter_qs;
+      end
+
+      addr_hit[64]: begin
+        reg_rdata_next[31:0] = ram1_reset_assert_counter_qs;
+      end
+
+      addr_hit[65]: begin
+        reg_rdata_next[31:0] = ram1_reset_deassert_counter_qs;
+      end
+
+      addr_hit[66]: begin
+        reg_rdata_next[31:0] = ram1_switch_off_counter_qs;
+      end
+
+      addr_hit[67]: begin
+        reg_rdata_next[31:0] = ram1_switch_on_counter_qs;
+      end
+
+      addr_hit[68]: begin
+        reg_rdata_next[0] = ram1_counters_stop_ram1_reset_assert_stop_bit_counter_qs;
+        reg_rdata_next[1] = ram1_counters_stop_ram1_reset_deassert_stop_bit_counter_qs;
+        reg_rdata_next[2] = ram1_counters_stop_ram1_switch_off_stop_bit_counter_qs;
+        reg_rdata_next[3] = ram1_counters_stop_ram1_switch_on_stop_bit_counter_qs;
+      end
+
+      addr_hit[69]: begin
+        reg_rdata_next[31:0] = ram2_reset_assert_counter_qs;
+      end
+
+      addr_hit[70]: begin
+        reg_rdata_next[31:0] = ram2_reset_deassert_counter_qs;
+      end
+
+      addr_hit[71]: begin
+        reg_rdata_next[31:0] = ram2_switch_off_counter_qs;
+      end
+
+      addr_hit[72]: begin
+        reg_rdata_next[31:0] = ram2_switch_on_counter_qs;
+      end
+
+      addr_hit[73]: begin
+        reg_rdata_next[0] = ram2_counters_stop_ram2_reset_assert_stop_bit_counter_qs;
+        reg_rdata_next[1] = ram2_counters_stop_ram2_reset_deassert_stop_bit_counter_qs;
+        reg_rdata_next[2] = ram2_counters_stop_ram2_switch_off_stop_bit_counter_qs;
+        reg_rdata_next[3] = ram2_counters_stop_ram2_switch_on_stop_bit_counter_qs;
+      end
+
+      addr_hit[74]: begin
+        reg_rdata_next[31:0] = ram3_reset_assert_counter_qs;
+      end
+
+      addr_hit[75]: begin
+        reg_rdata_next[31:0] = ram3_reset_deassert_counter_qs;
+      end
+
+      addr_hit[76]: begin
+        reg_rdata_next[31:0] = ram3_switch_off_counter_qs;
+      end
+
+      addr_hit[77]: begin
+        reg_rdata_next[31:0] = ram3_switch_on_counter_qs;
+      end
+
+      addr_hit[78]: begin
+        reg_rdata_next[0] = ram3_counters_stop_ram3_reset_assert_stop_bit_counter_qs;
+        reg_rdata_next[1] = ram3_counters_stop_ram3_reset_deassert_stop_bit_counter_qs;
+        reg_rdata_next[2] = ram3_counters_stop_ram3_switch_off_stop_bit_counter_qs;
+        reg_rdata_next[3] = ram3_counters_stop_ram3_switch_on_stop_bit_counter_qs;
       end
 
       default: begin

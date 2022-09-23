@@ -112,7 +112,6 @@ module core_v_mini_mcu
   logic irq_ack;
   logic [4:0] irq_id_out;
   logic irq_software;
-  logic irq_timer;
   logic irq_external;
   logic [14:0] irq_fast;
 
@@ -135,9 +134,11 @@ module core_v_mini_mcu
   logic                                      peripheral_subsystem_powergate_switch;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switches;
   logic                                      cpu_subsystem_rst_n;
+  logic                                      peripheral_subsystem_rst_n;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_rst_n;
 
   // rv_timer
-  logic rv_timer_intr[2:0];
+  logic [3:0] rv_timer_intr;
 
   // dma
   logic dma_intr;
@@ -173,7 +174,7 @@ module core_v_mini_mcu
       .core_instr_resp_i(core_instr_resp),
       .core_data_req_o(core_data_req),
       .core_data_resp_i(core_data_resp),
-      .irq_i({1'b0, irq_fast, 4'b0, irq_external, 3'b0, irq_timer, 3'b0, irq_software, 3'b0}),
+      .irq_i({1'b0, irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0}),
       .irq_ack_o(irq_ack),
       .irq_id_o(irq_id_out),
       .debug_req_i(debug_core_req),
@@ -181,7 +182,7 @@ module core_v_mini_mcu
   );
 
   assign irq_fast = {
-    2'b0, gpio_intr, spi_intr, dma_intr, rv_timer_intr[2], rv_timer_intr[1], rv_timer_intr[0]
+    2'b0, gpio_intr, spi_intr, dma_intr, rv_timer_intr[3], rv_timer_intr[2], rv_timer_intr[1]
   };
 
   debug_subsystem #(
@@ -237,10 +238,9 @@ module core_v_mini_mcu
       .NUM_BANKS(core_v_mini_mcu_pkg::NUM_BANKS)
   ) memory_subsystem_i (
       .clk_i(clk),
-      .rst_ni(rst_n),
+      .rst_ni(memory_subsystem_rst_n),
       .ram_req_i(ram_slave_req),
-      .ram_resp_o(ram_slave_resp),
-      .powergate_switches_i(memory_subsystem_banks_powergate_switches)
+      .ram_resp_o(ram_slave_resp)
   );
 
   ao_peripheral_subsystem ao_peripheral_subsystem_i (
@@ -267,10 +267,12 @@ module core_v_mini_mcu
       .peripheral_subsystem_powergate_switch_o(peripheral_subsystem_powergate_switch),
       .memory_subsystem_banks_powergate_switches_o(memory_subsystem_banks_powergate_switches),
       .cpu_subsystem_rst_no(cpu_subsystem_rst_n),
-      .rv_timer_0_intr_o(irq_timer),
-      .rv_timer_1_intr_o(rv_timer_intr[0]),
-      .rv_timer_2_intr_i(rv_timer_intr[1]),
-      .rv_timer_3_intr_i(rv_timer_intr[2]),
+      .peripheral_subsystem_rst_no(peripheral_subsystem_rst_n),
+      .memory_subsystem_rst_no(memory_subsystem_rst_n),
+      .rv_timer_0_intr_o(rv_timer_intr[0]),
+      .rv_timer_1_intr_o(rv_timer_intr[1]),
+      .rv_timer_2_intr_i(rv_timer_intr[2]),
+      .rv_timer_3_intr_i(rv_timer_intr[3]),
       .dma_master0_ch0_req_o(dma_master0_ch0_req),
       .dma_master0_ch0_resp_i(dma_master0_ch0_resp),
       .dma_master1_ch0_req_o(dma_master1_ch0_req),
@@ -284,7 +286,7 @@ module core_v_mini_mcu
       .NEXT_INT(NEXT_INT)
   ) peripheral_subsystem_i (
       .clk_i(clk),
-      .rst_ni(rst_n),
+      .rst_ni(peripheral_subsystem_rst_n),
       .slave_req_i(peripheral_slave_req),
       .slave_resp_o(peripheral_slave_resp),
       .intr_vector_ext_i,
@@ -303,8 +305,8 @@ module core_v_mini_mcu
       .cio_sda_i(cio_sda_in),
       .cio_sda_o(cio_sda_out),
       .cio_sda_en_o(cio_sda_en),
-      .rv_timer_2_intr_o(rv_timer_intr[1]),
-      .rv_timer_3_intr_o(rv_timer_intr[2]),
+      .rv_timer_2_intr_o(rv_timer_intr[2]),
+      .rv_timer_3_intr_o(rv_timer_intr[3]),
       .ext_peripheral_slave_req_o(ext_peripheral_slave_req_o),
       .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i)
   );

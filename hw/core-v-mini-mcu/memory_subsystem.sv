@@ -9,27 +9,22 @@ module memory_subsystem
 #(
     parameter NUM_BANKS = 2
 ) (
-    input logic clk_i,
-    input logic rst_ni,
+    input logic                 clk_i,
+    input logic [NUM_BANKS-1:0] rst_ni,
 
     input  obi_req_t  [NUM_BANKS-1:0] ram_req_i,
-    output obi_resp_t [NUM_BANKS-1:0] ram_resp_o,
-
-    input logic [NUM_BANKS-1:0] powergate_switches_i
+    output obi_resp_t [NUM_BANKS-1:0] ram_resp_o
 );
 
   localparam int NumWords = 32 * 1024 / 4;
   localparam int AddrWidth = $clog2(32 * 1024);
 
   logic [NUM_BANKS-1:0] ram_valid_q;
-  logic [NUM_BANKS-1:0] memory_subsystem_banks_powergate_switches;
-
-  assign memory_subsystem_banks_powergate_switches = powergate_switches_i;
 
   for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_sram
 
-    always_ff @(posedge clk_i or negedge rst_ni) begin
-      if (!rst_ni) begin
+    always_ff @(posedge clk_i or negedge rst_ni[i]) begin
+      if (!rst_ni[i]) begin
         ram_valid_q[i] <= '0;
       end else begin
         ram_valid_q[i] <= ram_resp_o[i].gnt;
@@ -45,7 +40,7 @@ module memory_subsystem
         .DataWidth(32'd32)
     ) ram_i (
         .clk_i  (clk_i),
-        .rst_ni (rst_ni),
+        .rst_ni (rst_ni[i]),
         .req_i  (ram_req_i[i].req),
         .we_i   (ram_req_i[i].we),
         .addr_i (ram_req_i[i].addr[AddrWidth-1:2]),

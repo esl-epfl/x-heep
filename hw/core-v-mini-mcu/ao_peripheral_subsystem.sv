@@ -38,6 +38,8 @@ module ao_peripheral_subsystem
     output logic                                      peripheral_subsystem_powergate_switch_o,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switches_o,
     output logic                                      cpu_subsystem_rst_no,
+    output logic                                      peripheral_subsystem_rst_no,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_rst_no,
 
     //RV TIMER
     output logic rv_timer_0_intr_o,
@@ -77,6 +79,7 @@ module ao_peripheral_subsystem
   logic use_spimemio;
   logic rv_timer_0_intr;
   logic rv_timer_1_intr;
+  logic spi_intr;
   logic dma_intr;
 
   periph_to_reg #(
@@ -156,10 +159,10 @@ module ao_peripheral_subsystem
       .use_spimemio_i(use_spimemio),
       .spimemio_req_i,
       .spimemio_resp_o,
-      .yo_reg_req_i  (peripheral_slv_req[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
-      .yo_reg_rsp_o  (peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
-      .ot_reg_req_i  (peripheral_slv_req[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
-      .ot_reg_rsp_o  (peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
+      .yo_reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
+      .yo_reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
+      .ot_reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
+      .ot_reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
       .spi_sck_o,
       .spi_sck_en_o,
       .spi_csb_o,
@@ -167,8 +170,10 @@ module ao_peripheral_subsystem
       .spi_sd_o,
       .spi_sd_en_o,
       .spi_sd_i,
-      .spi_intr_o
+      .spi_intr_o(spi_intr)
   );
+
+  assign spi_intr_o = spi_intr;
 
   power_manager #(
       .reg_req_t(reg_pkg::reg_req_t),
@@ -178,6 +183,7 @@ module ao_peripheral_subsystem
       .rst_ni,
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
+      .spi_intr_i(spi_intr),
       .rv_timer_0_irq_i(rv_timer_0_intr),
       .rv_timer_1_irq_i(rv_timer_1_intr),
       .rv_timer_2_irq_i(rv_timer_2_intr_i),
@@ -189,7 +195,9 @@ module ao_peripheral_subsystem
       .cpu_subsystem_powergate_switch_o,
       .peripheral_subsystem_powergate_switch_o,
       .memory_subsystem_banks_powergate_switches_o,
-      .cpu_subsystem_rst_no
+      .cpu_subsystem_rst_no,
+      .peripheral_subsystem_rst_no,
+      .memory_subsystem_rst_no
   );
 
   reg_to_tlul rv_timer_reg_to_tlul_i (

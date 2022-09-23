@@ -17,8 +17,8 @@
 module boot_rom
   import reg_pkg::*;
 (
-    input  reg_req_t reg_req_i,
-    output reg_rsp_t reg_rsp_o
+  input  reg_req_t     reg_req_i,
+  output reg_rsp_t     reg_rsp_o
 );
 
   localparam int unsigned RomSize = 20;
@@ -41,9 +41,9 @@ module boot_rom
     32'h0085c503,
     32'h200005b7,
     32'h000500e7,
-    32'h0085a503,
+    32'h01c5a503,
     32'h00050663,
-    32'h0045c503,
+    32'h0185c503,
     32'h200305b7
   };
 
@@ -51,7 +51,7 @@ module boot_rom
 
   assign addr = reg_req_i.addr[$clog2(RomSize)-1+2:2];
 
-  assign reg_rsp_o.error = addr > RomSize - 1 && reg_req_i.valid;
+  assign reg_rsp_o.error = addr > RomSize-1 && reg_req_i.valid;
   assign reg_rsp_o.ready = 1'b1;
   assign reg_rsp_o.rdata = mem[addr];
 
