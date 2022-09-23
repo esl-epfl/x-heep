@@ -2162,3 +2162,14 @@ index dd97bff..dc42065 100644
      files:
        - rtl/spi_host_reg_pkg.sv
        - rtl/spi_host_cmd_pkg.sv
+diff --git a/hw/ip/spi_host/lint/spi_host.vlt b/hw/ip/spi_host/lint/spi_host.vlt
+index 30197cb..f1142f5 100644
+--- a/hw/ip/spi_host/lint/spi_host.vlt
++++ b/hw/ip/spi_host/lint/spi_host.vlt
+@@ -4,3 +4,6 @@
+ //
+ // waiver file for SPI_HOST
+ 
++`verilator_config
++
++lint_off -rule UNUSED -file "*/vendor/lowrisc_opentitan/hw/ip/spi_host/rtl/spi_host.sv" -match "Bits of signal are not used: 'reg2hw'[162:161]"
