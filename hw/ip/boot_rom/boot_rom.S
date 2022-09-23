@@ -72,8 +72,8 @@ _copy_from_flash:
        // Power up flash (0xab flash command)
        li     a4, 0xab
        sw     a4, SPI_HOST_DATA_REG_OFFSET(a1)
-       // Power up command: 0x00002003 (transmit 4 words)
-       lui    a4, 0x2
+       // Power up command: 0x10000003 (transmit 4 words)
+       lui    a4, 0x10000
        addi   a4, a4, 3
        sw     a4, SPI_HOST_COMMAND_REG_OFFSET(a1)
 
@@ -90,9 +90,9 @@ _wait_spi_ready_cmd_pwr:
 _wait_spi_ready_tx_init:
        lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
        bgez   a4, _wait_spi_ready_tx_init
-       // Read command: 0x00002203
-       lui    a4, 0x2
-       addi   a4, a4, 515 # spi cmd: txonly + stdspeed + csaat + 4B
+       // Read command: 0x11000003
+       lui    a4, 0x11000
+       addi   a4, a4, 3 # spi cmd: txonly + stdspeed + csaat + 4B
        sw     a4, SPI_HOST_COMMAND_REG_OFFSET(a1)
        nop    # otherwise ready bit check is too fast
 
@@ -105,12 +105,15 @@ _wait_spi_ready_read_prog:
        // For loop until the 1KB copy from flash to ram is done
        // 256-bytes copies are done
        li     s6, 256
-       lui    s0, 0x1
-       addi   s5, s0, 767 # spi cmd: rxonly + stdspeed + csaat + 255 bytes
+       // Read command: 0x90000FF
+       lui    s0, 0x9000
+       addi   s5, s0, 255 # spi cmd: rxonly + stdspeed + csaat + 255 bytes
 
 _32B_chunk_loop:
        blt    s6, a3, _read_32B_chunk
        // End the transaction if last 256 bytes
+       // Read command: 0x80000FF
+       lui    s0, 0x8000
        addi   s5, s0, 255 # spi cmd: rxonly + stdspeed + 255 bytes
 
 _read_32B_chunk:

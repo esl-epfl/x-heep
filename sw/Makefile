@@ -288,6 +288,22 @@ applications/spi_host_dma_example/spi_host_dma_example.elf: applications/spi_hos
 		-Wl,-Map=applications/spi_host_dma_example/spi_host_dma_example.map \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
+applications/spi_host_dma_example/spi_host_dma_example.spihost.elf: applications/spi_host_dma_example/spi_host_dma_example.c
+	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
+		$(CUSTOM_GCC_FLAGS) \
+		-DHOST_BUILD \
+		-T linker/link_spihost.ld \
+		-I $(RISCV)/riscv32-unknown-elf/include \
+		$(INC_FOLDERS_GCC) \
+		-static \
+		$(LIB_CRT_SPIHOST) \
+		$^ $(LIB_RUNTIME) \
+		$(LIB_BASE) \
+		$(LIB_DRIVERS) \
+		-Wl,-Map=applications/spi_host_dma_example/spi_host_dma_example.spihost.map \
+		-L $(RISCV)/riscv32-unknown-elf/lib \
+		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
+
 clean:
 	rm -rf applications/*/*.elf \
 	rm -rf applications/*/*.hex \
