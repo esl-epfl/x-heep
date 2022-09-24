@@ -26,9 +26,9 @@ extern "C" {
 #define BOOTROM_SIZE 0x${bootrom_size_address}
 #define BOOTROM_END_ADDRESS (BOOTROM_START_ADDRESS + BOOTROM_SIZE)
 
-#define SPI_HOST_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_host_start_offset})
-#define SPI_HOST_SIZE 0x${spi_host_size_address}
-#define SPI_HOST_END_ADDRESS (SPI_HOST_START_ADDRESS + SPI_HOST_SIZE)
+#define SPI_BOOT_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_boot_start_offset})
+#define SPI_BOOT_SIZE 0x${spi_boot_size_address}
+#define SPI_BOOT_END_ADDRESS (SPI_BOOT_START_ADDRESS + SPI_BOOT_SIZE)
 
 #define SPI_MEMIO_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_memio_start_offset})
 #define SPI_MEMIO_SIZE 0x${spi_memio_size_address}
@@ -49,6 +49,10 @@ extern "C" {
 #define PAD_ATTRIBUTE_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${pad_attribute_start_offset})
 #define PAD_ATTRIBUTE_SIZE 0x${pad_attribute_size_address}
 #define PAD_ATTRIBUTE_END_ADDRESS (PAD_ATTRIBUTE_START_ADDRESS + PAD_ATTRIBUTE_SIZE)
+
+#define SPI_DMA_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_dma_start_offset})
+#define SPI_DMA_SIZE 0x${spi_dma_size_address}
+#define SPI_DMA_END_ADDRESS (SPI_DMA_START_ADDRESS + SPI_DMA_SIZE)
 
 //switch-on/off peripherals
 #define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}

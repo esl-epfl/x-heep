@@ -32,13 +32,9 @@ module spi_subsystem
     output logic [                        3:0] spi_sd_en_o,
     input  logic [                        3:0] spi_sd_i,
 
-    // DMA Interface
-    output logic spi_rx_valid_o,
-    output logic spi_tx_ready_o,
-
     // SPI HOST interrupts
-    output logic spi_intr_error_o,
-    output logic spi_intr_event_o
+    output logic spi_boot_intr_error_o,
+    output logic spi_boot_intr_event_o
 
 );
 
@@ -111,11 +107,11 @@ module spi_subsystem
       .spimemio_resp_o(spimemio_resp_o)
   );
 
-  //OpenTitan SPI Snitch Version
+  // OpenTitan SPI Snitch Version used for booting
   spi_host #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
-  ) spi_host_i (
+  ) spi_host_boot_i (
       .clk_i,
       .rst_ni,
       .clk_core_i(clk_i),
@@ -129,10 +125,10 @@ module spi_subsystem
       .cio_sd_o(ot_spi_sd_out),
       .cio_sd_en_o(ot_spi_sd_en),
       .cio_sd_i(ot_spi_sd_in),
-      .rx_valid_o(spi_rx_valid_o),
-      .tx_ready_o(spi_tx_ready_o),
-      .intr_error_o(spi_intr_error_o),
-      .intr_spi_event_o(spi_intr_event_o)
+      .rx_valid_o(),  // not used for the booting spi
+      .tx_ready_o(),  // not used for the booting spi
+      .intr_error_o(spi_boot_intr_error_o),
+      .intr_spi_event_o(spi_boot_intr_event_o)
   );
 
 `ifndef SYNTHESIS

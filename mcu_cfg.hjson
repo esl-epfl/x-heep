@@ -44,7 +44,8 @@
             offset:  0x00010000,
             length:  0x00010000,
         },
-        spi_host: {
+        # OT SPI connected to flash for booting
+        spi_boot: {
             offset:  0x00020000,
             length:  0x00008000,
         },
@@ -66,6 +67,11 @@
         },
         pad: {
             offset:  0x00060000,
+            length:  0x00010000,
+        },
+        # OT SPI connected to DMA for external devices
+        spi_dma: {
+            offset:  0x00070000,
             length:  0x00010000,
         },
     },
@@ -237,6 +243,18 @@
             type: inout
         },
         spi_sd: {
+            num: 4,
+            type: inout
+        },
+        spi_dma_sck: {
+            num: 1,
+            type: inout
+        },
+        spi_dma_cs: {
+            num: 2,
+            type: inout
+        },
+        spi_dma_sd: {
             num: 4,
             type: inout
         },

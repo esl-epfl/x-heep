@@ -15,7 +15,7 @@
 #include "spi_host_regs.h"
 
 #define SPI_FLASH_START_ADDRESS_20bit (SPI_FLASH_START_ADDRESS >> 12)
-#define SPI_HOST_START_ADDRESS_20bit (SPI_HOST_START_ADDRESS >> 12)
+#define SPI_BOOT_START_ADDRESS_20bit (SPI_BOOT_START_ADDRESS >> 12)
 
 /* Entry point for bare metal programs */
 .section .text.start
@@ -45,7 +45,7 @@ _start:
 	blt    a0, s1, _init_bss
 	addi   a3, a0, -1024 # copy size in bytes (_edata is word aligned, so -1020 to make sure last word is copied)
 
-	lui    a1, SPI_HOST_START_ADDRESS_20bit
+	lui    a1, SPI_BOOT_START_ADDRESS_20bit
 	// Spi should already be enabled, powered-up and TXWM to 8
 	// Address in byte reversed order (might be useless for the 1KiB address value)
 	// Highest byte is discarded(address on 3 bytes)

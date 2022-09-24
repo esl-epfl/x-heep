@@ -49,6 +49,10 @@ module testharness #(
   wire [1:0] spi_csb;
   wire spi_sck;
 
+  wire [3:0] spi_dma_sd_io;
+  wire [1:0] spi_dma_csb;
+  wire spi_dma_sck;
+
   // External xbar master/slave and peripheral ports
   obi_req_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_req;
   obi_resp_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_resp;
@@ -107,6 +111,9 @@ module testharness #(
       .spi_sd_io(spi_sd_io),
       .spi_csb_o(spi_csb),
       .spi_sck_o(spi_sck),
+      .spi_dma_sd_io(spi_dma_sd_io),
+      .spi_dma_csb_o(spi_dma_csb),
+      .spi_dma_sck_o(spi_dma_sck),
       .intr_vector_ext_i(intr_vector_ext),
       .uart_rx_i(uart_rx),
       .uart_tx_o(uart_tx),
@@ -205,6 +212,17 @@ module testharness #(
       .io1(spi_sd_io[1]),  // MISO
       .io2(spi_sd_io[2]),
       .io3(spi_sd_io[3])
+  );
+`endif
+
+`ifndef VERILATOR
+  spiflash flash_2 (
+      .csb(spi_dma_csb[0]),
+      .clk(spi_dma_sck),
+      .io0(spi_dma_sd_io[0]),  // MOSI
+      .io1(spi_dma_sd_io[1]),  // MISO
+      .io2(spi_dma_sd_io[2]),
+      .io3(spi_dma_sd_io[3])
   );
 `endif
 

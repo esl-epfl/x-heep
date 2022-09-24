@@ -22,7 +22,7 @@ module ao_peripheral_subsystem
     input  obi_req_t  spimemio_req_i,
     output obi_resp_t spimemio_resp_o,
 
-    // SPI Interface
+    // SPI Interface (YosysHW SPI and OpenTitan SPI multiplexed)
     output logic                               spi_sck_o,
     output logic                               spi_sck_en_o,
     output logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_o,
@@ -30,6 +30,15 @@ module ao_peripheral_subsystem
     output logic [                        3:0] spi_sd_o,
     output logic [                        3:0] spi_sd_en_o,
     input  logic [                        3:0] spi_sd_i,
+
+    // OpenTitan SPI connected to DMA
+    output logic                               spi_dma_sck_o,
+    output logic                               spi_dma_sck_en_o,
+    output logic [spi_host_reg_pkg::NumCS-1:0] spi_dma_csb_o,
+    output logic [spi_host_reg_pkg::NumCS-1:0] spi_dma_csb_en_o,
+    output logic [                        3:0] spi_dma_sd_o,
+    output logic [                        3:0] spi_dma_sd_en_o,
+    input  logic [                        3:0] spi_dma_sd_i,
 
     // POWER MANAGER
     input  logic core_sleep_i,
@@ -45,8 +54,10 @@ module ao_peripheral_subsystem
     output obi_req_t  dma_master1_ch0_req_o,
     input  obi_resp_t dma_master1_ch0_resp_i,
     output logic      dma_intr_o,
-    output logic      spi_intr_error_o,
-    output logic      spi_intr_event_o,
+    output logic      spi_boot_intr_error_o,
+    output logic      spi_boot_intr_event_o,
+    output logic      spi_dma_intr_error_o,
+    output logic      spi_dma_intr_event_o,
 
     output logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][15:0] pad_attributes_o
 
@@ -70,6 +81,7 @@ module ao_peripheral_subsystem
   logic use_spimemio;
   logic rv_timer_irq_timer;
 
+  // SPI->DMA Interface
   logic spi_rx_valid;
   logic spi_tx_ready;
 
@@ -161,10 +173,8 @@ module ao_peripheral_subsystem
       .spi_sd_o,
       .spi_sd_en_o,
       .spi_sd_i,
-      .spi_rx_valid_o(spi_rx_valid),
-      .spi_tx_ready_o(spi_tx_ready),
-      .spi_intr_error_o,
-      .spi_intr_event_o
+      .spi_boot_intr_error_o,
+      .spi_boot_intr_event_o
   );
 
   power_manager #(
@@ -237,6 +247,30 @@ module ao_peripheral_subsystem
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX]),
       .pad_attributes_o
+  );
+
+  //OpenTitan SPI Snitch Version connected to DMA
+  spi_host #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) spi_host_dma_i (
+      .clk_i,
+      .rst_ni,
+      .clk_core_i(clk_i),
+      .rst_core_ni(rst_ni),
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_DMA_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_DMA_IDX]),
+      .cio_sck_o(spi_dma_sck_o),
+      .cio_sck_en_o(spi_dma_sck_en_o),
+      .cio_csb_o(spi_dma_csb_o),
+      .cio_csb_en_o(spi_dma_csb_en_o),
+      .cio_sd_o(spi_dma_sd_o),
+      .cio_sd_en_o(spi_dma_sd_en_o),
+      .cio_sd_i(spi_dma_sd_i),
+      .rx_valid_o(spi_rx_valid),
+      .tx_ready_o(spi_tx_ready),
+      .intr_error_o(spi_dma_intr_error_o),
+      .intr_spi_event_o(spi_dma_intr_event_o)
   );
 
 

@@ -43,8 +43,10 @@ module peripheral_subsystem
 
     // Always-on domain peripherals' interrupts
     input logic dma_intr_i,
-    input logic spi_intr_error_i,
-    input logic spi_intr_event_i
+    input logic spi_boot_intr_error_i,
+    input logic spi_boot_intr_event_i,
+    input logic spi_dma_intr_error_i,
+    input logic spi_dma_intr_event_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -133,8 +135,10 @@ module peripheral_subsystem
   assign intr_vector[55] = intr_ack_stop;
   assign intr_vector[56] = intr_host_timeout;
   assign intr_vector[57] = dma_intr_i;
-  assign intr_vector[58] = spi_intr_error_i;
-  assign intr_vector[59] = spi_intr_event_i;
+  assign intr_vector[58] = spi_boot_intr_error_i;
+  assign intr_vector[59] = spi_boot_intr_event_i;
+  assign intr_vector[60] = spi_dma_intr_error_i;
+  assign intr_vector[61] = spi_dma_intr_event_i;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin

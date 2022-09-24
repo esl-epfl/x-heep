@@ -45,7 +45,7 @@ uint32_t copy_data[SPI_BYTES / 4] __attribute__ ((aligned (4)))  = { 0 };
 
 int main(int argc, char *argv[])
 {
-    spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
+    spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_DMA_START_ADDRESS);
 
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
     // Enable SPI host device
     spi_set_enable(&spi_host, true);
 
+    // SPI_DMA and SPI_HOST are the same IP so same register map
     uint32_t *fifo_ptr = spi_host.base_addr.base + SPI_HOST_DATA_REG_OFFSET;
 
     // DMA CONFIGURATION --

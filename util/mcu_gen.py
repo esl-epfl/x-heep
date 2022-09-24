@@ -221,8 +221,8 @@ def main():
     bootrom_start_offset  = string2int(obj['ao_peripherals']['bootrom']['offset'])
     bootrom_size_address  = string2int(obj['ao_peripherals']['bootrom']['length'])
 
-    spi_host_start_offset  = string2int(obj['ao_peripherals']['spi_host']['offset'])
-    spi_host_size_address  = string2int(obj['ao_peripherals']['spi_host']['length'])
+    spi_boot_start_offset  = string2int(obj['ao_peripherals']['spi_boot']['offset'])
+    spi_boot_size_address  = string2int(obj['ao_peripherals']['spi_boot']['length'])
 
     spi_memio_start_offset  = string2int(obj['ao_peripherals']['spi_memio']['offset'])
     spi_memio_size_address  = string2int(obj['ao_peripherals']['spi_memio']['length'])
@@ -238,6 +238,9 @@ def main():
 
     pad_attribute_start_offset  = string2int(obj['ao_peripherals']['pad']['offset'])
     pad_attribute_size_address  = string2int(obj['ao_peripherals']['pad']['length'])
+
+    spi_dma_start_offset  = string2int(obj['ao_peripherals']['spi_dma']['offset'])
+    spi_dma_size_address  = string2int(obj['ao_peripherals']['spi_dma']['length'])
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
@@ -393,8 +396,8 @@ def main():
         "soc_ctrl_size_address"            : soc_ctrl_size_address,
         "bootrom_start_offset"             : bootrom_start_offset,
         "bootrom_size_address"             : bootrom_size_address,
-        "spi_host_start_offset"            : spi_host_start_offset,
-        "spi_host_size_address"            : spi_host_size_address,
+        "spi_boot_start_offset"            : spi_boot_start_offset,
+        "spi_boot_size_address"            : spi_boot_size_address,
         "spi_memio_start_offset"           : spi_memio_start_offset,
         "spi_memio_size_address"           : spi_memio_size_address,
         "power_manager_start_offset"       : power_manager_start_offset,
@@ -405,6 +408,8 @@ def main():
         "dma_size_address"                 : dma_size_address,
         "pad_attribute_start_offset"       : pad_attribute_start_offset,
         "pad_attribute_size_address"       : pad_attribute_size_address,
+        "spi_dma_start_offset"             : spi_dma_start_offset,
+        "spi_dma_size_address"             : spi_dma_size_address,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
         "plic_start_offset"                : plic_start_offset,
