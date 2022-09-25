@@ -205,7 +205,8 @@ module testharness #(
   );
 
 `ifndef VERILATOR
-  spiflash flash_1 (
+  // Flash used for booting (execute from flash or copy from flash)
+  spiflash flash_boot_i (
       .csb(spi_csb[0]),
       .clk(spi_sck),
       .io0(spi_sd_io[0]),  // MOSI
@@ -216,7 +217,8 @@ module testharness #(
 `endif
 
 `ifndef VERILATOR
-  spiflash flash_2 (
+  // Flash used as an example device with an SPI interface
+  spiflash flash_device_i (
       .csb(spi_dma_csb[0]),
       .clk(spi_dma_sck),
       .io0(spi_dma_sd_io[0]),  // MOSI
