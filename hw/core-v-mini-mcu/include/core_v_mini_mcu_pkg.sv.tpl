@@ -101,7 +101,7 @@ package core_v_mini_mcu_pkg;
   };
 
   //always-on peripherals
-  localparam AO_PERIPHERALS = 8;
+  localparam AO_PERIPHERALS = 9;
 
   localparam logic[31:0] SOC_CTRL_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${soc_ctrl_start_offset};
   localparam logic[31:0] SOC_CTRL_SIZE = 32'h${soc_ctrl_size_address};
@@ -156,7 +156,8 @@ package core_v_mini_mcu_pkg;
       '{ idx: POWER_MANAGER_IDX, start_addr: POWER_MANAGER_START_ADDRESS, end_addr: POWER_MANAGER_END_ADDRESS },
       '{ idx: RV_TIMER_IDX, start_addr: RV_TIMER_START_ADDRESS, end_addr: RV_TIMER_END_ADDRESS },
       '{ idx: DMA_IDX, start_addr: DMA_START_ADDRESS, end_addr: DMA_END_ADDRESS },
-      '{ idx: PAD_ATTRIBUTE_IDX, start_addr: PAD_ATTRIBUTE_START_ADDRESS, end_addr: PAD_ATTRIBUTE_END_ADDRESS }
+      '{ idx: PAD_ATTRIBUTE_IDX, start_addr: PAD_ATTRIBUTE_START_ADDRESS, end_addr: PAD_ATTRIBUTE_END_ADDRESS },
+      '{ idx: SPI_DMA_IDX, start_addr: SPI_DMA_START_ADDRESS, end_addr: SPI_DMA_END_ADDRESS }
   };
 
   localparam int unsigned AO_PERIPHERALS_PORT_SEL_WIDTH = AO_PERIPHERALS > 1 ? $clog2(AO_PERIPHERALS) : 32'd1;
