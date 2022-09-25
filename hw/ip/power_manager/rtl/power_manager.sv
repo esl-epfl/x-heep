@@ -437,8 +437,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_ram_block_0.q),
-      .start_on_sequence_i (~reg2hw.power_gate_ram_block_0.q),
+      .start_off_sequence_i(reg2hw.power_gate_ram_block_1.q),
+      .start_on_sequence_i (~reg2hw.power_gate_ram_block_1.q),
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(ram1_reset_counter_expired_switch_off),
@@ -487,8 +487,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_ram_block_0.q),
-      .start_on_sequence_i (~reg2hw.power_gate_ram_block_0.q),
+      .start_off_sequence_i(reg2hw.power_gate_ram_block_1.q),
+      .start_on_sequence_i (~reg2hw.power_gate_ram_block_1.q),
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(ram1_powergate_counter_expired_switch_off),
@@ -543,8 +543,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_ram_block_0.q),
-      .start_on_sequence_i (~reg2hw.power_gate_ram_block_0.q),
+      .start_off_sequence_i(reg2hw.power_gate_ram_block_2.q),
+      .start_on_sequence_i (~reg2hw.power_gate_ram_block_2.q),
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(ram2_reset_counter_expired_switch_off),
@@ -593,8 +593,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_ram_block_0.q),
-      .start_on_sequence_i (~reg2hw.power_gate_ram_block_0.q),
+      .start_off_sequence_i(reg2hw.power_gate_ram_block_2.q),
+      .start_on_sequence_i (~reg2hw.power_gate_ram_block_2.q),
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(ram2_powergate_counter_expired_switch_off),
@@ -649,8 +649,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_ram_block_0.q),
-      .start_on_sequence_i (~reg2hw.power_gate_ram_block_0.q),
+      .start_off_sequence_i(reg2hw.power_gate_ram_block_3.q),
+      .start_on_sequence_i (~reg2hw.power_gate_ram_block_3.q),
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(ram3_reset_counter_expired_switch_off),
@@ -699,8 +699,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_ram_block_0.q),
-      .start_on_sequence_i (~reg2hw.power_gate_ram_block_0.q),
+      .start_off_sequence_i(reg2hw.power_gate_ram_block_3.q),
+      .start_on_sequence_i (~reg2hw.power_gate_ram_block_3.q),
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(ram3_powergate_counter_expired_switch_off),
@@ -712,5 +712,6 @@ module power_manager #(
       // switch on and off signal, 1 means on
       .switch_onoff_signal_o(memory_subsystem_banks_powergate_switches_o[3])
   );
+
 
 endmodule : power_manager

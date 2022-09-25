@@ -603,218 +603,61 @@
         { bits: "3", name: "PERIPH_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the PERIPH_DOMAIN_SWITCH_ON_COUNTER counter" }
       ]
     }
-    { name:     "RAM0_RESET_ASSERT_COUNTER",
-      desc:     "Counter before resetting the ram0 domain",
+% for bank in range(ram_numbanks):
+    { name:     "RAM${bank}_RESET_ASSERT_COUNTER",
+      desc:     "Counter before resetting the ram${bank} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "RAM0_RESET_ASSERT_COUNTER", desc: "Ram0 counter before resetting" }
+        { bits: "31:0", name: "RAM${bank}_RESET_ASSERT_COUNTER", desc: "Ram${bank} counter before resetting" }
       ]
     }
 
-    { name:     "RAM0_RESET_DEASSERT_COUNTER",
-      desc:     "Counter before unreset the ram0 domain",
+    { name:     "RAM${bank}_RESET_DEASSERT_COUNTER",
+      desc:     "Counter before unreset the ram${bank} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "RAM0_RESET_DEASSERT_COUNTER", desc: "Ram0 counter before unresetting" }
+        { bits: "31:0", name: "RAM${bank}_RESET_DEASSERT_COUNTER", desc: "Ram${bank} counter before unresetting" }
       ]
     }
 
-    { name:     "RAM0_SWITCH_OFF_COUNTER",
-      desc:     "Counter before switching off the ram0 domain",
+    { name:     "RAM${bank}_SWITCH_OFF_COUNTER",
+      desc:     "Counter before switching off the ram${bank} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "RAM0_SWITCH_OFF_COUNTER", desc: "Ram0 counter before switching off" }
+        { bits: "31:0", name: "RAM${bank}_SWITCH_OFF_COUNTER", desc: "Ram${bank} counter before switching off" }
       ]
     }
 
-    { name:     "RAM0_SWITCH_ON_COUNTER",
-      desc:     "Counter before switching on the ram0 domain",
+    { name:     "RAM${bank}_SWITCH_ON_COUNTER",
+      desc:     "Counter before switching on the ram${bank} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "RAM0_SWITCH_ON_COUNTER", desc: "Ram0 counter before switching on" }
+        { bits: "31:0", name: "RAM${bank}_SWITCH_ON_COUNTER", desc: "Ram${bank} counter before switching on" }
       ]
     }
 
-    { name:     "RAM0_COUNTERS_STOP",
+    { name:     "RAM${bank}_COUNTERS_STOP",
       desc:     "Bits to stop the counters keeping the done_o signal high",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "RAM0_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM0_DOMAIN_RESET_ASSERT_COUNTER counter" }
-        { bits: "1", name: "RAM0_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM0_DOMAIN_RESET_DEASSERT_COUNTER counter" }
-        { bits: "2", name: "RAM0_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM0_DOMAIN_SWITCH_OFF_COUNTER counter" }
-        { bits: "3", name: "RAM0_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the RAM0_DOMAIN_SWITCH_ON_COUNTER counter" }
+        { bits: "0", name: "RAM${bank}_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM${bank}_DOMAIN_RESET_ASSERT_COUNTER counter" }
+        { bits: "1", name: "RAM${bank}_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM${bank}_DOMAIN_RESET_DEASSERT_COUNTER counter" }
+        { bits: "2", name: "RAM${bank}_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM${bank}_DOMAIN_SWITCH_OFF_COUNTER counter" }
+        { bits: "3", name: "RAM${bank}_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the RAM${bank}_DOMAIN_SWITCH_ON_COUNTER counter" }
       ]
     }
 
-    { name:     "RAM1_RESET_ASSERT_COUNTER",
-      desc:     "Counter before resetting the ram1 domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM1_RESET_ASSERT_COUNTER", desc: "Ram1 counter before resetting" }
-      ]
-    }
-
-    { name:     "RAM1_RESET_DEASSERT_COUNTER",
-      desc:     "Counter before unreset the ram1 domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM1_RESET_DEASSERT_COUNTER", desc: "Ram1 counter before unresetting" }
-      ]
-    }
-
-    { name:     "RAM1_SWITCH_OFF_COUNTER",
-      desc:     "Counter before switching off the ram1 domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM1_SWITCH_OFF_COUNTER", desc: "Ram1 counter before switching off" }
-      ]
-    }
-
-    { name:     "RAM1_SWITCH_ON_COUNTER",
-      desc:     "Counter before switching on the ram1 domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM1_SWITCH_ON_COUNTER", desc: "Ram1 counter before switching on" }
-      ]
-    }
-
-    { name:     "RAM1_COUNTERS_STOP",
-      desc:     "Bits to stop the counters keeping the done_o signal high",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "0", name: "RAM1_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM1_DOMAIN_RESET_ASSERT_COUNTER counter" }
-        { bits: "1", name: "RAM1_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM1_DOMAIN_RESET_DEASSERT_COUNTER counter" }
-        { bits: "2", name: "RAM1_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM1_DOMAIN_SWITCH_OFF_COUNTER counter" }
-        { bits: "3", name: "RAM1_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the RAM1_DOMAIN_SWITCH_ON_COUNTER counter" }
-      ]
-    }
-
-    { name:     "RAM2_RESET_ASSERT_COUNTER",
-      desc:     "Counter before resetting the ram2 domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM2_RESET_ASSERT_COUNTER", desc: "Ram2 counter before resetting" }
-      ]
-    }
-
-    { name:     "RAM2_RESET_DEASSERT_COUNTER",
-      desc:     "Counter before unreset the ram2 domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM2_RESET_DEASSERT_COUNTER", desc: "Ram2 counter before unresetting" }
-      ]
-    }
-
-    { name:     "RAM2_SWITCH_OFF_COUNTER",
-      desc:     "Counter before switching off the ram2 domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM2_SWITCH_OFF_COUNTER", desc: "Ram2 counter before switching off" }
-      ]
-    }
-
-    { name:     "RAM2_SWITCH_ON_COUNTER",
-      desc:     "Counter before switching on the ram2 domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM2_SWITCH_ON_COUNTER", desc: "Ram2 counter before switching on" }
-      ]
-    }
-
-    { name:     "RAM2_COUNTERS_STOP",
-      desc:     "Bits to stop the counters keeping the done_o signal high",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "0", name: "RAM2_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM2_DOMAIN_RESET_ASSERT_COUNTER counter" }
-        { bits: "1", name: "RAM2_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM2_DOMAIN_RESET_DEASSERT_COUNTER counter" }
-        { bits: "2", name: "RAM2_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM2_DOMAIN_SWITCH_OFF_COUNTER counter" }
-        { bits: "3", name: "RAM2_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the RAM2_DOMAIN_SWITCH_ON_COUNTER counter" }
-      ]
-    }
-
-    { name:     "RAM3_RESET_ASSERT_COUNTER",
-      desc:     "Counter before resetting the ram3 domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM3_RESET_ASSERT_COUNTER", desc: "Ram3 counter before resetting" }
-      ]
-    }
-
-    { name:     "RAM3_RESET_DEASSERT_COUNTER",
-      desc:     "Counter before unreset the ram3 domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM3_RESET_DEASSERT_COUNTER", desc: "Ram3 counter before unresetting" }
-      ]
-    }
-
-    { name:     "RAM3_SWITCH_OFF_COUNTER",
-      desc:     "Counter before switching off the ram3 domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM3_SWITCH_OFF_COUNTER", desc: "Ram3 counter before switching off" }
-      ]
-    }
-
-    { name:     "RAM3_SWITCH_ON_COUNTER",
-      desc:     "Counter before switching on the ram3 domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM3_SWITCH_ON_COUNTER", desc: "Ram3 counter before switching on" }
-      ]
-    }
-
-    { name:     "RAM3_COUNTERS_STOP",
-      desc:     "Bits to stop the counters keeping the done_o signal high",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "0", name: "RAM3_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM3_DOMAIN_RESET_ASSERT_COUNTER counter" }
-        { bits: "1", name: "RAM3_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM3_DOMAIN_RESET_DEASSERT_COUNTER counter" }
-        { bits: "2", name: "RAM3_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM3_DOMAIN_SWITCH_OFF_COUNTER counter" }
-        { bits: "3", name: "RAM3_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the RAM3_DOMAIN_SWITCH_ON_COUNTER counter" }
-      ]
-    }
-
+% endfor
 
    ]
 }
