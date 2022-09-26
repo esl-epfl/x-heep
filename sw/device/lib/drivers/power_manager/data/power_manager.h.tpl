@@ -28,7 +28,7 @@ typedef enum power_manager_result {
 typedef enum power_manager_sel_domain {
   kPeriph = 0,
 % for bank in range(ram_numbanks):
-  kRam${bank}   = 1,
+  kRam${bank}   = ${bank+1},
 % endfor
 } power_manager_sel_domain_t;
 

@@ -1,7 +1,7 @@
-diff --git a/hw/ip/spi_host/data/spi_host.hjson b/hw/ip/spi_host/data/spi_host.hjson
-index ef60a96dd..b2726f2b2 100644
---- a/hw/ip/spi_host/data/spi_host.hjson
-+++ b/hw/ip/spi_host/data/spi_host.hjson
+diff --git b/hw/ip/spi_host/data/spi_host.hjson a/hw/ip/spi_host/data/spi_host.hjson
+index ef60a96..cc8e204 100644
+--- b/hw/ip/spi_host/data/spi_host.hjson
++++ a/hw/ip/spi_host/data/spi_host.hjson
 @@ -7,7 +7,7 @@
    reset_primary: "rst_ni",
    other_reset_list: [ "rst_core_ni" ],
@@ -52,7 +52,7 @@ index ef60a96dd..b2726f2b2 100644
          { bits: "15:8",
            name: "TX_WATERMARK"
            desc: '''If !!EVENT_ENABLE.TXWM is set, the IP will send
-@@ -312,8 +308,8 @@
+@@ -312,26 +308,26 @@
      { name: "COMMAND",
        desc: '''Command Register
  
@@ -63,8 +63,9 @@ index ef60a96dd..b2726f2b2 100644
        swaccess: "rw",
        hwaccess: "hro",
        hwqe: "true",
-@@ -321,7 +317,7 @@
-         { bits: "13:12",
+       fields: [
+-        { bits: "13:12",
++        { bits: "28:27",
            name: "DIRECTION",
            desc: '''The direction for the following command: "0" = Dummy cycles
 -                   (no TX/RX). "1" = Rx only, "2" = Tx only, "3" Bidirectional
@@ -72,10 +73,31 @@ index ef60a96dd..b2726f2b2 100644
                     Tx/Rx (Standard SPI mode only).'''
            resval: "0x0"
          }
-diff --git a/hw/ip/spi_host/rtl/spi_host.sv b/hw/ip/spi_host/rtl/spi_host.sv
-index 6694d3bc7..b096564eb 100644
---- a/hw/ip/spi_host/rtl/spi_host.sv
-+++ b/hw/ip/spi_host/rtl/spi_host.sv
+-        { bits: "11:10",
++        { bits: "26:25",
+           name: "SPEED",
+           desc: '''The speed for this command segment: "0" = Standard SPI. "1" = Dual SPI.
+                    "2"=Quad SPI,  "3": RESERVED.''',
+           resval: "0x0"
+         },
+-        { bits: "9",
++        { bits: "24",
+           name: "CSAAT",
+           desc: '''Chip select active after transaction.  If CSAAT = 0, the
+                    chip select line is raised immediately at the end of the
+@@ -343,7 +339,7 @@
+                    and transmitting or receiving data from the device.''',
+                    resval: "0x0"
+         },
+-        { bits: "8:0",
++        { bits: "23:0",
+           name: "LEN",
+           desc: '''Segment Length.
+ 
+diff --git b/hw/ip/spi_host/rtl/spi_host.sv a/hw/ip/spi_host/rtl/spi_host.sv
+index 6694d3b..38cd6a1 100644
+--- b/hw/ip/spi_host/rtl/spi_host.sv
++++ a/hw/ip/spi_host/rtl/spi_host.sv
 @@ -6,21 +6,22 @@
  //
  //
@@ -105,18 +127,19 @@ index 6694d3bc7..b096564eb 100644
  
    // SPI Interface
    output logic             cio_sck_o,
-@@ -31,10 +32,6 @@ module spi_host
+@@ -31,9 +32,8 @@ module spi_host
    output logic [3:0]       cio_sd_en_o,
    input        [3:0]       cio_sd_i,
  
 -  // Passthrough interface
 -  input  spi_device_pkg::passthrough_req_t passthrough_i,
 -  output spi_device_pkg::passthrough_rsp_t passthrough_o,
--
++  // DMA Interface
++  output logic             rx_empty_o,
+ 
    output logic             intr_error_o,
    output logic             intr_spi_event_o
- );
-@@ -44,96 +41,39 @@ module spi_host
+@@ -44,96 +44,39 @@ module spi_host
    spi_host_reg2hw_t reg2hw;
    spi_host_hw2reg_t hw2reg;
  
@@ -214,10 +237,6 @@ index 6694d3bc7..b096564eb 100644
 -
 -  assign passthrough_o.s = cio_sd_i;
 -  assign sd_i            = cio_sd_i;
--
--  // TODO: REMOVE THIS CODE
--  // Temp tie-offs to silence lint warnings
--  logic unused_scan;
 +  assign cio_sck_o    = sck;
 +  assign cio_sck_en_o = 1'b1;
 +  assign cio_csb_o    = csb;
@@ -225,12 +244,16 @@ index 6694d3bc7..b096564eb 100644
 +  assign cio_sd_o     = sd_out;
 +  assign cio_sd_en_o  = sd_en;
  
+-  // TODO: REMOVE THIS CODE
+-  // Temp tie-offs to silence lint warnings
+-  logic unused_scan;
+-
 -  assign unused_scan = ^scanmode_i;
 +  assign sd_i            = cio_sd_i;
  
    assign hw2reg.status.byteorder.d  = ByteOrder;
    assign hw2reg.status.byteorder.de = 1'b1;
-@@ -151,8 +91,6 @@ module spi_host
+@@ -151,8 +94,6 @@ module spi_host
    logic test_dir_inval;
    logic test_speed_inval;
  
@@ -239,7 +262,7 @@ index 6694d3bc7..b096564eb 100644
    assign test_csid_inval  = (reg2hw.csid.q >= NumCS);
  
    always_comb begin
-@@ -164,7 +102,7 @@ module spi_host
+@@ -164,7 +105,7 @@ module spi_host
          test_speed_inval = 1'b0;
        end
        Dual, Quad: begin
@@ -248,7 +271,7 @@ index 6694d3bc7..b096564eb 100644
          test_speed_inval = 1'b0;
        end
        default: begin
-@@ -191,25 +129,35 @@ module spi_host
+@@ -191,25 +132,35 @@ module spi_host
      endcase
    end
  
@@ -276,7 +299,10 @@ index 6694d3bc7..b096564eb 100644
 +    assign configopts   = reg2hw.configopts[csid];
 +    assign command.csid = csid;
 +  end : gen_multiple_devices
-+
+ 
+-  assign command.segment.len          = reg2hw.command.len.q;
+-  assign command.segment.csaat        = reg2hw.command.csaat.q;
+-  assign command.segment.speed        = reg2hw.command.speed.q;
 +  assign command.configopts.clkdiv   = configopts.clkdiv.q;
 +  assign command.configopts.csnidle  = configopts.csnidle.q;
 +  assign command.configopts.csnlead  = configopts.csnlead.q;
@@ -284,10 +310,7 @@ index 6694d3bc7..b096564eb 100644
 +  assign command.configopts.full_cyc = configopts.fullcyc.q;
 +  assign command.configopts.cpha     = configopts.cpha.q;
 +  assign command.configopts.cpol     = configopts.cpol.q;
- 
--  assign command.segment.len          = reg2hw.command.len.q;
--  assign command.segment.csaat        = reg2hw.command.csaat.q;
--  assign command.segment.speed        = reg2hw.command.speed.q;
++
 +  assign command.segment.len         = reg2hw.command.len.q;
 +  assign command.segment.csaat       = reg2hw.command.csaat.q;
 +  assign command.segment.speed       = reg2hw.command.speed.q;
@@ -296,7 +319,7 @@ index 6694d3bc7..b096564eb 100644
  
    logic [3:0] cmd_qes;
  
-@@ -272,11 +220,14 @@ module spi_host
+@@ -272,11 +223,14 @@ module spi_host
    logic        rx_valid;
    logic        rx_ready;
  
@@ -314,7 +337,16 @@ index 6694d3bc7..b096564eb 100644
      .tx_data_o  (tx_data),
      .tx_be_o    (tx_be),
      .tx_valid_o (tx_valid),
-@@ -561,8 +512,6 @@ module spi_host
+@@ -301,6 +255,8 @@ module spi_host
+   logic        tx_empty, tx_full, tx_wm;
+   logic        rx_empty, rx_full, rx_wm;
+ 
++  assign rx_empty_o = rx_empty;
++
+   assign rx_watermark = reg2hw.control.rx_watermark.q;
+   assign tx_watermark = reg2hw.control.tx_watermark.q;
+ 
+@@ -561,8 +517,6 @@ module spi_host
    );
  
  
@@ -323,10 +355,32 @@ index 6694d3bc7..b096564eb 100644
    `ASSERT_KNOWN(CioSckKnownO_A, cio_sck_o)
    `ASSERT_KNOWN(CioSckEnKnownO_A, cio_sck_en_o)
    `ASSERT_KNOWN(CioCsbKnownO_A, cio_csb_o)
-diff --git a/hw/ip/spi_host/rtl/spi_host_data_cdc.sv b/hw/ip/spi_host/rtl/spi_host_data_cdc.sv
-index 07fad09ac..347f35e21 100644
---- a/hw/ip/spi_host/rtl/spi_host_data_cdc.sv
-+++ b/hw/ip/spi_host/rtl/spi_host_data_cdc.sv
+diff --git b/hw/ip/spi_host/rtl/spi_host_cmd_pkg.sv a/hw/ip/spi_host/rtl/spi_host_cmd_pkg.sv
+index 45abc02..8729a64 100644
+--- b/hw/ip/spi_host/rtl/spi_host_cmd_pkg.sv
++++ a/hw/ip/spi_host/rtl/spi_host_cmd_pkg.sv
+@@ -8,7 +8,7 @@
+ package spi_host_cmd_pkg;
+ 
+   parameter int CSW = prim_util_pkg::vbits(spi_host_reg_pkg::NumCS);
+-  parameter int CmdSize = CSW + 45;
++  parameter int CmdSize = CSW + 60;
+ 
+   // For decoding the direction register
+   typedef enum logic [1:0] {
+@@ -40,7 +40,7 @@ package spi_host_cmd_pkg;
+     logic [1:0] speed;
+     logic       cmd_wr_en;
+     logic       cmd_rd_en;
+-    logic [8:0] len;
++    logic [23:0] len;
+     logic       csaat;
+   } segment_t;
+ 
+diff --git b/hw/ip/spi_host/rtl/spi_host_data_cdc.sv a/hw/ip/spi_host/rtl/spi_host_data_cdc.sv
+index 07fad09..347f35e 100644
+--- b/hw/ip/spi_host/rtl/spi_host_data_cdc.sv
++++ a/hw/ip/spi_host/rtl/spi_host_data_cdc.sv
 @@ -116,12 +116,12 @@ module spi_host_data_cdc #(
      assign tx_data_be_async_fifo = tx_data_be;
      assign tx_valid_async_fifo   = tx_valid_i;
@@ -357,10 +411,10 @@ index 07fad09ac..347f35e21 100644
  
      prim_fifo_sync #(
        .Width(32),
-diff --git a/hw/ip/spi_host/rtl/spi_host_fsm.sv b/hw/ip/spi_host/rtl/spi_host_fsm.sv
-index 7ad88540b..3e01bff99 100644
---- a/hw/ip/spi_host/rtl/spi_host_fsm.sv
-+++ b/hw/ip/spi_host/rtl/spi_host_fsm.sv
+diff --git b/hw/ip/spi_host/rtl/spi_host_fsm.sv a/hw/ip/spi_host/rtl/spi_host_fsm.sv
+index 7ad8854..e4b6409 100644
+--- b/hw/ip/spi_host/rtl/spi_host_fsm.sv
++++ a/hw/ip/spi_host/rtl/spi_host_fsm.sv
 @@ -5,6 +5,8 @@
  // Core Implemenation module for Serial Peripheral Interface (SPI) Host IP.
  //
@@ -370,6 +424,21 @@ index 7ad88540b..3e01bff99 100644
  module spi_host_fsm
    import spi_host_cmd_pkg::*;
  #(
+@@ -54,12 +56,12 @@ module spi_host_fsm
+   logic             cmd_rd_en, cmd_rd_en_q;
+   // cmd_len needs no data latching as it is only used at the very start of a command.
+   // The corresponding register, cmd_len_q, would create a warning at synthesis
+-  logic [8:0]       cmd_len;
++  logic [23:0]      cmd_len;
+   logic             csaat;
+   logic             csaat_q;
+ 
+   logic [2:0]       bit_cntr_d, bit_cntr_q;
+-  logic [8:0]       byte_cntr_d, byte_cntr_q;
++  logic [23:0]      byte_cntr_d, byte_cntr_q;
+   logic [3:0]       lead_cntr_d, idle_cntr_d, trail_cntr_d;
+   logic [3:0]       lead_cntr_q, idle_cntr_q, trail_cntr_q;
+   logic             last_bit, last_byte;
 @@ -84,7 +86,7 @@ module spi_host_fsm
  
    logic wr_en_internal, rd_en_internal, sample_en_internal, shift_en_internal;
@@ -620,7 +689,17 @@ index 7ad88540b..3e01bff99 100644
  
    // We can calculate byte transitions for CHPA=1 by noting
    // that in this implmentation, the sck edges have a 1-1
-@@ -376,7 +439,7 @@ module spi_host_fsm
+@@ -368,15 +431,15 @@ module spi_host_fsm
+                       bit_cntr_q;
+ 
+   assign last_bit  = (bit_cntr_q == 3'h0);
+-  assign last_byte = (byte_cntr_q == 9'h0);
++  assign last_byte = (byte_cntr_q == 24'h0);
+ 
+-  assign byte_cntr_d = sw_rst_i    ? 9'h0 :
++  assign byte_cntr_d = sw_rst_i    ? 24'h0 :
+                        !fsm_en     ? byte_cntr_q :
+                        new_command ? cmd_len :
                         byte_ending ? byte_cntr_q - 1 :
                         byte_cntr_q;
  
@@ -649,6 +728,15 @@ index 7ad88540b..3e01bff99 100644
  
    assign idle_cntr_d = sw_rst_i         ? 4'h0 :
                         !fsm_en          ? idle_cntr_q :
+@@ -405,7 +468,7 @@ module spi_host_fsm
+   always_ff @(posedge clk_i or negedge rst_ni) begin
+     if (!rst_ni) begin
+       bit_cntr_q   <= 3'h0;
+-      byte_cntr_q  <= 9'h0;
++      byte_cntr_q  <= 24'h0;
+       idle_cntr_q  <= 4'h0;
+       lead_cntr_q  <= 4'h0;
+       trail_cntr_q <= 4'h0;
 @@ -420,16 +483,16 @@ module spi_host_fsm
  
    assign wr_en_internal    = byte_starting & cmd_wr_en;
@@ -725,10 +813,10 @@ index 7ad88540b..3e01bff99 100644
 +  `ASSERT(ValidCSID_A, $isunknown(rst_ni) || (csid < NumCS), clk_i, rst_ni)
  
  endmodule
-diff --git a/hw/ip/spi_host/rtl/spi_host_reg_pkg.sv b/hw/ip/spi_host/rtl/spi_host_reg_pkg.sv
-index 29be73130..c519d9f65 100644
---- a/hw/ip/spi_host/rtl/spi_host_reg_pkg.sv
-+++ b/hw/ip/spi_host/rtl/spi_host_reg_pkg.sv
+diff --git b/hw/ip/spi_host/rtl/spi_host_reg_pkg.sv a/hw/ip/spi_host/rtl/spi_host_reg_pkg.sv
+index 29be731..8d1d510 100644
+--- b/hw/ip/spi_host/rtl/spi_host_reg_pkg.sv
++++ a/hw/ip/spi_host/rtl/spi_host_reg_pkg.sv
 @@ -8,9 +8,10 @@ package spi_host_reg_pkg;
  
    // Param list
@@ -763,7 +851,16 @@ index 29be73130..c519d9f65 100644
      struct packed {
        logic        q;
      } sw_rst;
-@@ -261,11 +264,12 @@ package spi_host_reg_pkg;
+@@ -96,7 +99,7 @@ package spi_host_reg_pkg;
+ 
+   typedef struct packed {
+     struct packed {
+-      logic [8:0]  q;
++      logic [23:0] q;
+       logic        qe;
+     } len;
+     struct packed {
+@@ -261,13 +264,14 @@ package spi_host_reg_pkg;
  
    // Register -> HW type
    typedef struct packed {
@@ -772,15 +869,19 @@ index 29be73130..c519d9f65 100644
 -    spi_host_reg2hw_intr_test_reg_t intr_test; // [119:116]
 -    spi_host_reg2hw_control_reg_t control; // [115:97]
 -    spi_host_reg2hw_configopts_mreg_t [0:0] configopts; // [96:66]
-+    spi_host_reg2hw_intr_state_reg_t intr_state; // [155:154]
-+    spi_host_reg2hw_intr_enable_reg_t intr_enable; // [153:152]
-+    spi_host_reg2hw_intr_test_reg_t intr_test; // [151:148]
-+    spi_host_reg2hw_alert_test_reg_t alert_test; // [147:146]
-+    spi_host_reg2hw_control_reg_t control; // [145:128]
-+    spi_host_reg2hw_configopts_mreg_t [1:0] configopts; // [127:66]
-     spi_host_reg2hw_csid_reg_t csid; // [65:34]
-     spi_host_reg2hw_command_reg_t command; // [33:16]
+-    spi_host_reg2hw_csid_reg_t csid; // [65:34]
+-    spi_host_reg2hw_command_reg_t command; // [33:16]
++    spi_host_reg2hw_intr_state_reg_t intr_state; // [170:169]
++    spi_host_reg2hw_intr_enable_reg_t intr_enable; // [168:167]
++    spi_host_reg2hw_intr_test_reg_t intr_test; // [166:163]
++    spi_host_reg2hw_alert_test_reg_t alert_test; // [162:161]
++    spi_host_reg2hw_control_reg_t control; // [160:143]
++    spi_host_reg2hw_configopts_mreg_t [1:0] configopts; // [142:81]
++    spi_host_reg2hw_csid_reg_t csid; // [80:49]
++    spi_host_reg2hw_command_reg_t command; // [48:16]
      spi_host_reg2hw_error_enable_reg_t error_enable; // [15:11]
+     spi_host_reg2hw_error_status_reg_t error_status; // [10:6]
+     spi_host_reg2hw_event_enable_reg_t event_enable; // [5:0]
 @@ -284,22 +288,26 @@ package spi_host_reg_pkg;
    parameter logic [BlockAw-1:0] SPI_HOST_INTR_STATE_OFFSET = 6'h 0;
    parameter logic [BlockAw-1:0] SPI_HOST_INTR_ENABLE_OFFSET = 6'h 4;
@@ -853,17 +954,17 @@ index 29be73130..c519d9f65 100644
 +    4'b 1111, // index[ 6] SPI_HOST_CONFIGOPTS_0
 +    4'b 1111, // index[ 7] SPI_HOST_CONFIGOPTS_1
 +    4'b 1111, // index[ 8] SPI_HOST_CSID
-+    4'b 0011, // index[ 9] SPI_HOST_COMMAND
++    4'b 1111, // index[ 9] SPI_HOST_COMMAND
 +    4'b 0001, // index[10] SPI_HOST_ERROR_ENABLE
 +    4'b 0001, // index[11] SPI_HOST_ERROR_STATUS
 +    4'b 0001  // index[12] SPI_HOST_EVENT_ENABLE
    };
  
  endpackage
-diff --git a/hw/ip/spi_host/rtl/spi_host_reg_top.sv b/hw/ip/spi_host/rtl/spi_host_reg_top.sv
-index be224877f..748c97e5b 100644
---- a/hw/ip/spi_host/rtl/spi_host_reg_top.sv
-+++ b/hw/ip/spi_host/rtl/spi_host_reg_top.sv
+diff --git b/hw/ip/spi_host/rtl/spi_host_reg_top.sv a/hw/ip/spi_host/rtl/spi_host_reg_top.sv
+index be22487..4f9e432 100644
+--- b/hw/ip/spi_host/rtl/spi_host_reg_top.sv
++++ a/hw/ip/spi_host/rtl/spi_host_reg_top.sv
 @@ -4,25 +4,27 @@
  //
  // Register Top module auto-generated by `reggen`
@@ -1068,7 +1169,7 @@ index be224877f..748c97e5b 100644
    logic control_sw_rst_qs;
    logic control_sw_rst_wd;
    logic control_sw_rst_we;
-@@ -196,27 +151,48 @@ module spi_host_reg_top (
+@@ -196,32 +151,53 @@ module spi_host_reg_top (
    logic status_txfull_qs;
    logic status_active_qs;
    logic status_ready_qs;
@@ -1138,6 +1239,13 @@ index be224877f..748c97e5b 100644
    logic [31:0] csid_qs;
    logic [31:0] csid_wd;
    logic csid_we;
+-  logic [8:0] command_len_qs;
+-  logic [8:0] command_len_wd;
++  logic [23:0] command_len_qs;
++  logic [23:0] command_len_wd;
+   logic command_len_we;
+   logic command_csaat_qs;
+   logic command_csaat_wd;
 @@ -422,6 +398,22 @@ module spi_host_reg_top (
    );
  
@@ -1569,6 +1677,48 @@ index be224877f..748c97e5b 100644
    );
  
  
+@@ -1097,11 +1248,11 @@ module spi_host_reg_top (
+ 
+   // R[command]: V(False)
+ 
+-  //   F[len]: 8:0
++  //   F[len]: 23:0
+   prim_subreg #(
+-    .DW      (9),
++    .DW      (24),
+     .SWACCESS("RW"),
+-    .RESVAL  (9'h0)
++    .RESVAL  (24'h0)
+   ) u_command_len (
+     .clk_i   (clk_i    ),
+     .rst_ni  (rst_ni  ),
+@@ -1123,7 +1274,7 @@ module spi_host_reg_top (
+   );
+ 
+ 
+-  //   F[csaat]: 9:9
++  //   F[csaat]: 24:24
+   prim_subreg #(
+     .DW      (1),
+     .SWACCESS("RW"),
+@@ -1149,7 +1300,7 @@ module spi_host_reg_top (
+   );
+ 
+ 
+-  //   F[speed]: 11:10
++  //   F[speed]: 26:25
+   prim_subreg #(
+     .DW      (2),
+     .SWACCESS("RW"),
+@@ -1175,7 +1326,7 @@ module spi_host_reg_top (
+   );
+ 
+ 
+-  //   F[direction]: 13:12
++  //   F[direction]: 28:27
+   prim_subreg #(
+     .DW      (2),
+     .SWACCESS("RW"),
 @@ -1625,20 +1776,22 @@ module spi_host_reg_top (
  
  
@@ -1699,20 +1849,24 @@ index be224877f..748c97e5b 100644
    assign csid_wd = reg_wdata[31:0];
  
 -  assign command_len_we = addr_hit[7] & reg_we & !reg_error;
+-  assign command_len_wd = reg_wdata[8:0];
 +  assign command_len_we = addr_hit[9] & reg_we & !reg_error;
-   assign command_len_wd = reg_wdata[8:0];
++  assign command_len_wd = reg_wdata[23:0];
  
 -  assign command_csaat_we = addr_hit[7] & reg_we & !reg_error;
+-  assign command_csaat_wd = reg_wdata[9];
 +  assign command_csaat_we = addr_hit[9] & reg_we & !reg_error;
-   assign command_csaat_wd = reg_wdata[9];
++  assign command_csaat_wd = reg_wdata[24];
  
 -  assign command_speed_we = addr_hit[7] & reg_we & !reg_error;
+-  assign command_speed_wd = reg_wdata[11:10];
 +  assign command_speed_we = addr_hit[9] & reg_we & !reg_error;
-   assign command_speed_wd = reg_wdata[11:10];
++  assign command_speed_wd = reg_wdata[26:25];
  
 -  assign command_direction_we = addr_hit[7] & reg_we & !reg_error;
+-  assign command_direction_wd = reg_wdata[13:12];
 +  assign command_direction_we = addr_hit[9] & reg_we & !reg_error;
-   assign command_direction_wd = reg_wdata[13:12];
++  assign command_direction_wd = reg_wdata[28:27];
  
 -  assign error_enable_cmdbusy_we = addr_hit[8] & reg_we & !reg_error;
 +  assign error_enable_cmdbusy_we = addr_hit[10] & reg_we & !reg_error;
@@ -1811,7 +1965,10 @@ index be224877f..748c97e5b 100644
 -        reg_rdata_next[29] = configopts_fullcyc_0_qs;
 -        reg_rdata_next[30] = configopts_cpha_0_qs;
 -        reg_rdata_next[31] = configopts_cpol_0_qs;
-+      addr_hit[6]: begin
+-      end
+-
+       addr_hit[6]: begin
+-        reg_rdata_next[31:0] = csid_qs;
 +        reg_rdata_next[15:0] = configopts_0_clkdiv_0_qs;
 +        reg_rdata_next[19:16] = configopts_0_csnidle_0_qs;
 +        reg_rdata_next[23:20] = configopts_0_csntrail_0_qs;
@@ -1821,8 +1978,11 @@ index be224877f..748c97e5b 100644
 +        reg_rdata_next[31] = configopts_0_cpol_0_qs;
        end
  
--      addr_hit[6]: begin
-+      addr_hit[7]: begin
+       addr_hit[7]: begin
+-        reg_rdata_next[8:0] = command_len_qs;
+-        reg_rdata_next[9] = command_csaat_qs;
+-        reg_rdata_next[11:10] = command_speed_qs;
+-        reg_rdata_next[13:12] = command_direction_qs;
 +        reg_rdata_next[15:0] = configopts_1_clkdiv_1_qs;
 +        reg_rdata_next[19:16] = configopts_1_csnidle_1_qs;
 +        reg_rdata_next[23:20] = configopts_1_csntrail_1_qs;
@@ -1830,21 +1990,19 @@ index be224877f..748c97e5b 100644
 +        reg_rdata_next[29] = configopts_1_fullcyc_1_qs;
 +        reg_rdata_next[30] = configopts_1_cpha_1_qs;
 +        reg_rdata_next[31] = configopts_1_cpol_1_qs;
+       end
+ 
+       addr_hit[8]: begin
++        reg_rdata_next[31:0] = csid_qs;
 +      end
 +
-+      addr_hit[8]: begin
-         reg_rdata_next[31:0] = csid_qs;
-       end
- 
--      addr_hit[7]: begin
 +      addr_hit[9]: begin
-         reg_rdata_next[8:0] = command_len_qs;
-         reg_rdata_next[9] = command_csaat_qs;
-         reg_rdata_next[11:10] = command_speed_qs;
-         reg_rdata_next[13:12] = command_direction_qs;
-       end
- 
--      addr_hit[8]: begin
++        reg_rdata_next[23:0] = command_len_qs;
++        reg_rdata_next[24] = command_csaat_qs;
++        reg_rdata_next[26:25] = command_speed_qs;
++        reg_rdata_next[28:27] = command_direction_qs;
++      end
++
 +      addr_hit[10]: begin
          reg_rdata_next[0] = error_enable_cmdbusy_qs;
          reg_rdata_next[1] = error_enable_overflow_qs;
@@ -1883,10 +2041,10 @@ index be224877f..748c97e5b 100644
 -  //`ASSUME(reqParity, tl_reg_h2d.a_valid |-> tl_reg_h2d.a_user.chk_en == tlul_pkg::CheckDis)
 -
  endmodule
-diff --git a/hw/ip/spi_host/rtl/spi_host_shift_register.sv b/hw/ip/spi_host/rtl/spi_host_shift_register.sv
-index 992bd34f7..468bbda91 100644
---- a/hw/ip/spi_host/rtl/spi_host_shift_register.sv
-+++ b/hw/ip/spi_host/rtl/spi_host_shift_register.sv
+diff --git b/hw/ip/spi_host/rtl/spi_host_shift_register.sv a/hw/ip/spi_host/rtl/spi_host_shift_register.sv
+index 992bd34..468bbda 100644
+--- b/hw/ip/spi_host/rtl/spi_host_shift_register.sv
++++ a/hw/ip/spi_host/rtl/spi_host_shift_register.sv
 @@ -5,6 +5,8 @@
  // Shift Register for Serial Peripheral Interface (SPI) Host IP.
  //
@@ -1919,10 +2077,10 @@ index 992bd34f7..468bbda91 100644
  
    // Buffer the rx_data outputs to simplify three-way flow control
    // between fsm, shift reg and byte_merge.
-diff --git a/hw/ip/spi_host/rtl/spi_host_window.sv b/hw/ip/spi_host/rtl/spi_host_window.sv
-index 768a93d6f..7ec505e93 100644
---- a/hw/ip/spi_host/rtl/spi_host_window.sv
-+++ b/hw/ip/spi_host/rtl/spi_host_window.sv
+diff --git b/hw/ip/spi_host/rtl/spi_host_window.sv a/hw/ip/spi_host/rtl/spi_host_window.sv
+index 768a93d..7ec505e 100644
+--- b/hw/ip/spi_host/rtl/spi_host_window.sv
++++ a/hw/ip/spi_host/rtl/spi_host_window.sv
 @@ -5,16 +5,22 @@
  // Module to manage TX FIFO window for Serial Peripheral Interface (SPI) host IP.
  //
@@ -1987,10 +2145,10 @@ index 768a93d6f..7ec505e93 100644
 +  assign win_o.ready  = 1'b1;
  
  endmodule : spi_host_window
-diff --git a/hw/ip/spi_host/spi_host.core b/hw/ip/spi_host/spi_host.core
-index dd97bff66..dc42065fc 100644
---- a/hw/ip/spi_host/spi_host.core
-+++ b/hw/ip/spi_host/spi_host.core
+diff --git b/hw/ip/spi_host/spi_host.core a/hw/ip/spi_host/spi_host.core
+index dd97bff..dc42065 100644
+--- b/hw/ip/spi_host/spi_host.core
++++ a/hw/ip/spi_host/spi_host.core
 @@ -8,11 +8,8 @@ description: "SPI_HOST DV"
  filesets:
    files_rtl:
@@ -2004,3 +2162,14 @@ index dd97bff66..dc42065fc 100644
      files:
        - rtl/spi_host_reg_pkg.sv
        - rtl/spi_host_cmd_pkg.sv
+diff --git a/hw/ip/spi_host/lint/spi_host.vlt b/hw/ip/spi_host/lint/spi_host.vlt
+index 30197cb..f1142f5 100644
+--- a/hw/ip/spi_host/lint/spi_host.vlt
++++ b/hw/ip/spi_host/lint/spi_host.vlt
+@@ -4,3 +4,6 @@
+ //
+ // waiver file for SPI_HOST
+ 
++`verilator_config
++
++lint_off -rule UNUSED -file "*/vendor/lowrisc_opentitan/hw/ip/spi_host/rtl/spi_host.sv" -match "Bits of signal are not used: 'reg2hw'[162:161]"

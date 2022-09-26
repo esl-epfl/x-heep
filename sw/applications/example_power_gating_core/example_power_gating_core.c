@@ -37,23 +37,7 @@ int main(int argc, char *argv[])
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
     power_manager.base_addr = power_manager_reg;
 
-    power_manager_counters_t power_manager_ram3_counters;
-    power_manager_counters_t power_manager_periph_counters;
     power_manager_counters_t power_manager_cpu_counters;
-
-    // Init ram3's counters
-    if (power_gate_counters_init(&power_manager_ram3_counters, 40, 40, 30, 30) != kPowerManagerOk)
-    {
-        printf("Error: power manager fail. Check the reset and powergate counters value\n");
-        return EXIT_FAILURE;
-    }
-
-    // Init peripheral_subsystem's counters
-    if (power_gate_counters_init(&power_manager_periph_counters, 40, 40, 30, 30) != kPowerManagerOk)
-    {
-        printf("Error: power manager fail. Check the reset and powergate counters value\n");
-        return EXIT_FAILURE;
-    }
 
     // Init cpu_subsystem's counters
     if (power_gate_counters_init(&power_manager_cpu_counters, 40, 40, 30, 30) != kPowerManagerOk)
@@ -62,38 +46,10 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    // Power off ram3
-    if (power_gate_domain(&power_manager, kRam3, kOff, &power_manager_ram3_counters) != kPowerManagerOk)
-    {
-        printf("Error: power manager fail.\n");
-        return EXIT_FAILURE;
-    }
-
-    // Power off peripheral_subsystem
-    if (power_gate_domain(&power_manager, kPeriph, kOff, &power_manager_periph_counters) != kPowerManagerOk)
-    {
-        printf("Error: power manager fail.\n");
-        return EXIT_FAILURE;
-    }
-
     rv_timer_counter_set_enabled(&timer, 0, kRvTimerEnabled);
 
     // Power off cup_subsystem and wait for rv_timer interrupt to wake-up
     if (power_gate_core(&power_manager, kTimer_0, &power_manager_cpu_counters) != kPowerManagerOk)
-    {
-        printf("Error: power manager fail.\n");
-        return EXIT_FAILURE;
-    }
-
-    // Power off ram3
-    if (power_gate_domain(&power_manager, kRam3, kOff, &power_manager_ram3_counters) != kPowerManagerOk)
-    {
-        printf("Error: power manager fail.\n");
-        return EXIT_FAILURE;
-    }
-
-    // Power on peripheral_subsystem
-    if (power_gate_domain(&power_manager, kPeriph, kOn, &power_manager_periph_counters) != kPowerManagerOk)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;

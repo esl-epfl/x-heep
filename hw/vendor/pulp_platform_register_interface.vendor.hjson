@@ -7,12 +7,13 @@
 
   upstream: {
     url: "https://github.com/pulp-platform/register_interface.git",
-    rev: "73de8e51b79f416350229b1d2420b2c527e002b8",
+    rev: "cce7ae601efde1db0cd86b4befce1d1c2bc3e4d0",
   },
 
   exclude_from_upstream: [
     ".github",
     "lint",
     "docs",
+    "vendor/lowrisc_opentitan.vendor.hjson",
   ]
 }

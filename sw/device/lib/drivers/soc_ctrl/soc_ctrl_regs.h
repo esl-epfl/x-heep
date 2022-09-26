@@ -40,9 +40,13 @@ extern "C" {
 #define SOC_CTRL_USE_SPIMEMIO_REG_OFFSET 0x14
 #define SOC_CTRL_USE_SPIMEMIO_USE_SPIMEMIO_BIT 0
 
+// Enable Spi module selection from software
+#define SOC_CTRL_ENABLE_SPI_SEL_REG_OFFSET 0x18
+#define SOC_CTRL_ENABLE_SPI_SEL_ENABLE_SPI_SEL_BIT 0
+
 // System Frequency Value - Used to know and set at which frequency the
 // system is running (in Hz)
-#define SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET 0x18
+#define SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET 0x1c
 
 #ifdef __cplusplus
 }  // extern "C"

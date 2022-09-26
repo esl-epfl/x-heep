@@ -66,9 +66,14 @@ module testharness #(
   logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext;
   logic memcopy_intr;
 
-  // If more external interrupt lines are needed the PLIC has to be regenerated with more interrupt sources
-  assign intr_vector_ext[0] = memcopy_intr;
-  assign intr_vector_ext[core_v_mini_mcu_pkg::NEXT_INT-1:1] = '0;
+  always_comb begin
+    // All interrupt lines set to zero by default
+    for (int i = 0; i < core_v_mini_mcu_pkg::NEXT_INT; i++) begin
+      intr_vector_ext[i] = 1'b0;
+    end
+    // Re-assign the interrupt lines used here
+    intr_vector_ext[0] = memcopy_intr;
+  end
 
 `ifdef USE_UPF
   initial begin

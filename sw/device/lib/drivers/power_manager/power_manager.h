@@ -28,9 +28,9 @@ typedef enum power_manager_result {
 typedef enum power_manager_sel_domain {
   kPeriph = 0,
   kRam0   = 1,
-  kRam1   = 1,
-  kRam2   = 1,
-  kRam3   = 1,
+  kRam1   = 2,
+  kRam2   = 3,
+  kRam3   = 4,
 } power_manager_sel_domain_t;
 
 /**

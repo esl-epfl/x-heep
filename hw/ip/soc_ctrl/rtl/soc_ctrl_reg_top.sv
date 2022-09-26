@@ -82,6 +82,11 @@ module soc_ctrl_reg_top #(
   logic [31:0] boot_address_wd;
   logic boot_address_we;
   logic use_spimemio_qs;
+  logic use_spimemio_wd;
+  logic use_spimemio_we;
+  logic enable_spi_sel_qs;
+  logic enable_spi_sel_wd;
+  logic enable_spi_sel_we;
   logic [31:0] system_frequency_hz_qs;
   logic [31:0] system_frequency_hz_wd;
   logic system_frequency_hz_we;
@@ -225,14 +230,15 @@ module soc_ctrl_reg_top #(
 
   prim_subreg #(
       .DW      (1),
-      .SWACCESS("RO"),
+      .SWACCESS("RW"),
       .RESVAL  (1'h1)
   ) u_use_spimemio (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
-      .we(1'b0),
-      .wd('0),
+      // from register interface
+      .we(use_spimemio_we),
+      .wd(use_spimemio_wd),
 
       // from internal hardware
       .de(hw2reg.use_spimemio.de),
@@ -244,6 +250,33 @@ module soc_ctrl_reg_top #(
 
       // to register interface (read)
       .qs(use_spimemio_qs)
+  );
+
+
+  // R[enable_spi_sel]: V(False)
+
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_enable_spi_sel (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(enable_spi_sel_we),
+      .wd(enable_spi_sel_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.enable_spi_sel.q),
+
+      // to register interface (read)
+      .qs(enable_spi_sel_qs)
   );
 
 
@@ -276,7 +309,7 @@ module soc_ctrl_reg_top #(
 
 
 
-  logic [6:0] addr_hit;
+  logic [7:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == SOC_CTRL_EXIT_VALID_OFFSET);
@@ -285,7 +318,8 @@ module soc_ctrl_reg_top #(
     addr_hit[3] = (reg_addr == SOC_CTRL_BOOT_EXIT_LOOP_OFFSET);
     addr_hit[4] = (reg_addr == SOC_CTRL_BOOT_ADDRESS_OFFSET);
     addr_hit[5] = (reg_addr == SOC_CTRL_USE_SPIMEMIO_OFFSET);
-    addr_hit[6] = (reg_addr == SOC_CTRL_SYSTEM_FREQUENCY_HZ_OFFSET);
+    addr_hit[6] = (reg_addr == SOC_CTRL_ENABLE_SPI_SEL_OFFSET);
+    addr_hit[7] = (reg_addr == SOC_CTRL_SYSTEM_FREQUENCY_HZ_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -299,7 +333,8 @@ module soc_ctrl_reg_top #(
                (addr_hit[3] & (|(SOC_CTRL_PERMIT[3] & ~reg_be))) |
                (addr_hit[4] & (|(SOC_CTRL_PERMIT[4] & ~reg_be))) |
                (addr_hit[5] & (|(SOC_CTRL_PERMIT[5] & ~reg_be))) |
-               (addr_hit[6] & (|(SOC_CTRL_PERMIT[6] & ~reg_be)))));
+               (addr_hit[6] & (|(SOC_CTRL_PERMIT[6] & ~reg_be))) |
+               (addr_hit[7] & (|(SOC_CTRL_PERMIT[7] & ~reg_be)))));
   end
 
   assign exit_valid_we = addr_hit[0] & reg_we & !reg_error;
@@ -314,7 +349,13 @@ module soc_ctrl_reg_top #(
   assign boot_address_we = addr_hit[4] & reg_we & !reg_error;
   assign boot_address_wd = reg_wdata[31:0];
 
-  assign system_frequency_hz_we = addr_hit[6] & reg_we & !reg_error;
+  assign use_spimemio_we = addr_hit[5] & reg_we & !reg_error;
+  assign use_spimemio_wd = reg_wdata[0];
+
+  assign enable_spi_sel_we = addr_hit[6] & reg_we & !reg_error;
+  assign enable_spi_sel_wd = reg_wdata[0];
+
+  assign system_frequency_hz_we = addr_hit[7] & reg_we & !reg_error;
   assign system_frequency_hz_wd = reg_wdata[31:0];
 
   // Read data return
@@ -346,6 +387,10 @@ module soc_ctrl_reg_top #(
       end
 
       addr_hit[6]: begin
+        reg_rdata_next[0] = enable_spi_sel_qs;
+      end
+
+      addr_hit[7]: begin
         reg_rdata_next[31:0] = system_frequency_hz_qs;
       end
 

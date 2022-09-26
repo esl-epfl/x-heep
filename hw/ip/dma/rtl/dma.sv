@@ -22,6 +22,8 @@ module dma #(
     output obi_req_t  dma_master1_ch0_req_o,
     input  obi_resp_t dma_master1_ch0_resp_i,
 
+    input logic spi_rx_empty_i,
+
     output dma_intr_o
 );
 
@@ -56,6 +58,9 @@ module dma #(
   logic               fifo_flush;
   logic               fifo_full;
   logic               fifo_empty;
+
+  logic               spi_dma_mode;
+  logic               wait_for_spi;
 
   enum logic {
     DMA_READ_FSM_IDLE,
@@ -97,6 +102,9 @@ module dma #(
   assign hw2reg.dma_start.de = dma_start;
   assign hw2reg.dma_start.d = 32'h0;
 
+  assign spi_dma_mode = reg2hw.spi_mode.q;
+  assign wait_for_spi = spi_dma_mode & spi_rx_empty_i;
+
   // DMA pulse start when dma_start register is written
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start
     if (~rst_ni) begin
@@ -118,7 +126,7 @@ module dma #(
       if (dma_start == 1'b1) begin
         read_ptr_reg <= reg2hw.ptr_in.q;
       end else if (data_in_gnt == 1'b1) begin
-        read_ptr_reg <= read_ptr_reg + 32'h4;
+        read_ptr_reg <= read_ptr_reg + reg2hw.src_ptr_inc.q;
       end
     end
   end
@@ -131,7 +139,7 @@ module dma #(
       if (dma_start == 1'b1) begin
         write_ptr_reg <= reg2hw.ptr_out.q;
       end else if (data_out_gnt == 1'b1) begin
-        write_ptr_reg <= write_ptr_reg + 32'h4;
+        write_ptr_reg <= write_ptr_reg + reg2hw.dst_ptr_inc.q;
       end
     end
   end
@@ -190,8 +198,8 @@ module dma #(
           dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
         end else begin
           dma_read_fsm_n_state = DMA_READ_FSM_ON;
-          // Wait if fifo is full and
-          if (fifo_full == 1'b0) begin
+          // Wait if fifo is full and 
+          if (fifo_full == 1'b0 && wait_for_spi == 1'b0) begin
             data_in_req  = 1'b1;
             data_in_we   = 1'b0;
             data_in_be   = 4'b1111;

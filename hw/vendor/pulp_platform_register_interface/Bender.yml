@@ -3,7 +3,7 @@ package:
   authors: ["Fabian Schuiki <fschuiki@iis.ee.ethz.ch>", "Florian Zaruba <zarubaf@iis.ee.ethz.ch>"]
 
 dependencies:
-  axi: { git: "https://github.com/pulp-platform/axi.git", version: 0.29.1 }
+  axi: { git: "https://github.com/pulp-platform/axi.git", version: 0.35.1 }
   common_cells: { git: "https://github.com/pulp-platform/common_cells.git", version: 1.21.0 }
 
 export_include_dirs:
@@ -23,6 +23,7 @@ sources:
   - src/reg_mux.sv
   - src/reg_to_mem.sv
   - src/reg_uniform.sv
+  - src/reg_to_tlul.sv
   - vendor/lowrisc_opentitan/src/prim_subreg_shadow.sv
   - vendor/lowrisc_opentitan/src/prim_subreg.sv
   # Level 2

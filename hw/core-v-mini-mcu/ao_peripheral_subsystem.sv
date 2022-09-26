@@ -30,9 +30,12 @@ module ao_peripheral_subsystem
     output logic [                        3:0] spi_sd_o,
     output logic [                        3:0] spi_sd_en_o,
     input  logic [                        3:0] spi_sd_i,
-    output logic                               spi_intr_o,
+    output logic                               spi_intr_error_o,
+    output logic                               spi_intr_event_o,
 
     // POWER MANAGER
+    input  logic [                               7:0] gpio_intr_i,
+    input  logic [ core_v_mini_mcu_pkg::NEXT_INT-1:0] ext_intr_i,
     input  logic                                      core_sleep_i,
     output logic                                      cpu_subsystem_powergate_switch_o,
     output logic                                      peripheral_subsystem_powergate_switch_o,
@@ -54,11 +57,8 @@ module ao_peripheral_subsystem
     input  obi_resp_t dma_master1_ch0_resp_i,
     output logic      dma_intr_o,
 
-    // GPIO
-    input logic [7:0] gpio_intr_i,
-
-    // External interrupts
-    input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] ext_intr_i
+    // PADS
+    output logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][15:0] pad_attributes_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -81,6 +81,7 @@ module ao_peripheral_subsystem
   logic rv_timer_1_intr;
   logic spi_intr;
   logic dma_intr;
+  logic spi_rx_empty;
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
@@ -170,10 +171,12 @@ module ao_peripheral_subsystem
       .spi_sd_o,
       .spi_sd_en_o,
       .spi_sd_i,
-      .spi_intr_o(spi_intr)
+      .spi_rx_empty_o(spi_rx_empty),
+      .spi_intr_error_o,
+      .spi_intr_event_o(spi_intr)
   );
 
-  assign spi_intr_o = spi_intr;
+  assign spi_intr_event_o = spi_intr;
 
   power_manager #(
       .reg_req_t(reg_pkg::reg_req_t),
@@ -200,7 +203,17 @@ module ao_peripheral_subsystem
       .memory_subsystem_rst_no
   );
 
-  reg_to_tlul rv_timer_reg_to_tlul_i (
+  reg_to_tlul #(
+      .req_t(reg_pkg::reg_req_t),
+      .rsp_t(reg_pkg::reg_rsp_t),
+      .tl_h2d_t(tlul_pkg::tl_h2d_t),
+      .tl_d2h_t(tlul_pkg::tl_d2h_t),
+      .tl_a_user_t(tlul_pkg::tl_a_user_t),
+      .tl_a_op_e(tlul_pkg::tl_a_op_e),
+      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
+      .PutFullData(tlul_pkg::PutFullData),
+      .Get(tlul_pkg::Get)
+  ) rv_timer_reg_to_tlul_i (
       .tl_o(rv_timer_tl_h2d),
       .tl_i(rv_timer_tl_d2h),
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::RV_TIMER_AO_IDX]),
@@ -233,9 +246,22 @@ module ao_peripheral_subsystem
       .dma_master0_ch0_resp_i,
       .dma_master1_ch0_req_o,
       .dma_master1_ch0_resp_i,
+      .spi_rx_empty_i(spi_rx_empty),
       .dma_intr_o(dma_intr)
   );
 
   assign dma_intr_o = dma_intr;
+
+  pad_attribute #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t),
+      .NUM_PAD  (core_v_mini_mcu_pkg::NUM_PAD)
+  ) pad_attribute_i (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX]),
+      .pad_attributes_o
+  );
 
 endmodule : ao_peripheral_subsystem
