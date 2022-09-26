@@ -17,8 +17,8 @@
 module boot_rom
   import reg_pkg::*;
 (
-  input  reg_req_t     reg_req_i,
-  output reg_rsp_t     reg_rsp_o
+    input  reg_req_t reg_req_i,
+    output reg_rsp_t reg_rsp_o
 );
   import core_v_mini_mcu_pkg::*;
 
@@ -91,13 +91,13 @@ module boot_rom
   logic [$clog2(RomSize)-1:0] rom_addr;
 
   assign word_addr = reg_req_i.addr[$clog2(core_v_mini_mcu_pkg::BOOTROM_SIZE)-1:2];
-  assign rom_addr  = word_addr[$clog2(RomSize)-1:0];
+  assign rom_addr = word_addr[$clog2(RomSize)-1:0];
 
   assign reg_rsp_o.error = 1'b0;
   assign reg_rsp_o.ready = 1'b1;
 
   always_comb begin
-    if (word_addr > (RomSize-1)) begin
+    if (word_addr > (RomSize - 1)) begin
       reg_rsp_o.rdata = '0;
     end else begin
       reg_rsp_o.rdata = mem[rom_addr];

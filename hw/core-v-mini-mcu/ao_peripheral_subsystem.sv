@@ -240,8 +240,8 @@ module ao_peripheral_subsystem
   ) dma_i (
       .clk_i,
       .rst_ni,
-      .reg_req_i (peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
-      .reg_rsp_o (peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
       .dma_master0_ch0_req_o,
       .dma_master0_ch0_resp_i,
       .dma_master1_ch0_req_o,
