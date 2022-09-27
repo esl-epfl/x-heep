@@ -291,43 +291,43 @@ module power_manager #(
 
 % for bank in range(ram_numbanks):
   // --------------------------------------------------------------------------------------
-  // RAM${bank} DOMAIN
+  // RAM_${bank} DOMAIN
   // --------------------------------------------------------------------------------------
 
-  logic ram${bank}_reset_counter_start_switch_off, ram${bank}_reset_counter_expired_switch_off;
-  logic ram${bank}_reset_counter_start_switch_on, ram${bank}_reset_counter_expired_switch_on;
+  logic ram_${bank}_reset_counter_start_switch_off, ram_${bank}_reset_counter_expired_switch_off;
+  logic ram_${bank}_reset_counter_start_switch_on, ram_${bank}_reset_counter_expired_switch_on;
 
   reg_to_counter #(
       .DW(32),
       .ExpireValue('0)
-  ) reg_to_counter_ram${bank}_reset_assert_i (
+  ) reg_to_counter_ram_${bank}_reset_assert_i (
       .clk_i,
       .rst_ni,
-      .stop_i(reg2hw.ram${bank}_counters_stop.ram${bank}_reset_assert_stop_bit_counter.q),
-      .start_i(ram${bank}_reset_counter_start_switch_off),
-      .done_o(ram${bank}_reset_counter_expired_switch_off),
-      .hw2reg_d_o(hw2reg.ram${bank}_reset_assert_counter.d),
-      .hw2reg_de_o(hw2reg.ram${bank}_reset_assert_counter.de),
-      .hw2reg_q_i(reg2hw.ram${bank}_reset_assert_counter.q)
+      .stop_i(reg2hw.ram_${bank}_counters_stop.ram_${bank}_reset_assert_stop_bit_counter.q),
+      .start_i(ram_${bank}_reset_counter_start_switch_off),
+      .done_o(ram_${bank}_reset_counter_expired_switch_off),
+      .hw2reg_d_o(hw2reg.ram_${bank}_reset_assert_counter.d),
+      .hw2reg_de_o(hw2reg.ram_${bank}_reset_assert_counter.de),
+      .hw2reg_q_i(reg2hw.ram_${bank}_reset_assert_counter.q)
   );
 
   reg_to_counter #(
       .DW(32),
       .ExpireValue('0)
-  ) reg_to_counter_ram${bank}_reset_deassert_i (
+  ) reg_to_counter_ram_${bank}_reset_deassert_i (
       .clk_i,
       .rst_ni,
-      .stop_i(reg2hw.ram${bank}_counters_stop.ram${bank}_reset_deassert_stop_bit_counter.q),
-      .start_i(ram${bank}_reset_counter_start_switch_on),
-      .done_o(ram${bank}_reset_counter_expired_switch_on),
-      .hw2reg_d_o(hw2reg.ram${bank}_reset_deassert_counter.d),
-      .hw2reg_de_o(hw2reg.ram${bank}_reset_deassert_counter.de),
-      .hw2reg_q_i(reg2hw.ram${bank}_reset_deassert_counter.q)
+      .stop_i(reg2hw.ram_${bank}_counters_stop.ram_${bank}_reset_deassert_stop_bit_counter.q),
+      .start_i(ram_${bank}_reset_counter_start_switch_on),
+      .done_o(ram_${bank}_reset_counter_expired_switch_on),
+      .hw2reg_d_o(hw2reg.ram_${bank}_reset_deassert_counter.d),
+      .hw2reg_de_o(hw2reg.ram_${bank}_reset_deassert_counter.de),
+      .hw2reg_q_i(reg2hw.ram_${bank}_reset_deassert_counter.q)
   );
 
   power_manager_counter_sequence #(
       .ONOFF_AT_RESET(0)
-  ) power_manager_counter_sequence_ram${bank}_reset_i (
+  ) power_manager_counter_sequence_ram_${bank}_reset_i (
       .clk_i,
       .rst_ni,
 
@@ -336,48 +336,48 @@ module power_manager #(
       .start_on_sequence_i (~reg2hw.power_gate_ram_block_${bank}.q),
 
       // counter to switch on and off signals
-      .counter_expired_switch_off_i(ram${bank}_reset_counter_expired_switch_off),
-      .counter_expired_switch_on_i (ram${bank}_reset_counter_expired_switch_on),
+      .counter_expired_switch_off_i(ram_${bank}_reset_counter_expired_switch_off),
+      .counter_expired_switch_on_i (ram_${bank}_reset_counter_expired_switch_on),
 
-      .counter_start_switch_off_o(ram${bank}_reset_counter_start_switch_off),
-      .counter_start_switch_on_o (ram${bank}_reset_counter_start_switch_on),
+      .counter_start_switch_off_o(ram_${bank}_reset_counter_start_switch_off),
+      .counter_start_switch_on_o (ram_${bank}_reset_counter_start_switch_on),
 
       // switch on and off signal, 1 means on
       .switch_onoff_signal_o(memory_subsystem_rst_no[${bank}])
   );
 
-  logic ram${bank}_powergate_counter_start_switch_off, ram${bank}_powergate_counter_expired_switch_off;
-  logic ram${bank}_powergate_counter_start_switch_on, ram${bank}_powergate_counter_expired_switch_on;
+  logic ram_${bank}_powergate_counter_start_switch_off, ram_${bank}_powergate_counter_expired_switch_off;
+  logic ram_${bank}_powergate_counter_start_switch_on, ram_${bank}_powergate_counter_expired_switch_on;
 
   reg_to_counter #(
       .DW(32),
       .ExpireValue('0)
-  ) reg_to_counter_ram${bank}_powergate_switch_off_i (
+  ) reg_to_counter_ram_${bank}_powergate_switch_off_i (
       .clk_i,
       .rst_ni,
-      .stop_i(reg2hw.ram${bank}_counters_stop.ram${bank}_switch_off_stop_bit_counter.q),
-      .start_i(ram${bank}_powergate_counter_start_switch_off),
-      .done_o(ram${bank}_powergate_counter_expired_switch_off),
-      .hw2reg_d_o(hw2reg.ram${bank}_switch_off_counter.d),
-      .hw2reg_de_o(hw2reg.ram${bank}_switch_off_counter.de),
-      .hw2reg_q_i(reg2hw.ram${bank}_switch_off_counter.q)
+      .stop_i(reg2hw.ram_${bank}_counters_stop.ram_${bank}_switch_off_stop_bit_counter.q),
+      .start_i(ram_${bank}_powergate_counter_start_switch_off),
+      .done_o(ram_${bank}_powergate_counter_expired_switch_off),
+      .hw2reg_d_o(hw2reg.ram_${bank}_switch_off_counter.d),
+      .hw2reg_de_o(hw2reg.ram_${bank}_switch_off_counter.de),
+      .hw2reg_q_i(reg2hw.ram_${bank}_switch_off_counter.q)
   );
 
   reg_to_counter #(
       .DW(32),
       .ExpireValue('0)
-  ) reg_to_counter_ram${bank}_powergate_switch_on_i (
+  ) reg_to_counter_ram_${bank}_powergate_switch_on_i (
       .clk_i,
       .rst_ni,
-      .stop_i(reg2hw.ram${bank}_counters_stop.ram${bank}_switch_on_stop_bit_counter.q),
-      .start_i(ram${bank}_powergate_counter_start_switch_on),
-      .done_o(ram${bank}_powergate_counter_expired_switch_on),
-      .hw2reg_d_o(hw2reg.ram${bank}_switch_on_counter.d),
-      .hw2reg_de_o(hw2reg.ram${bank}_switch_on_counter.de),
-      .hw2reg_q_i(reg2hw.ram${bank}_switch_on_counter.q)
+      .stop_i(reg2hw.ram_${bank}_counters_stop.ram_${bank}_switch_on_stop_bit_counter.q),
+      .start_i(ram_${bank}_powergate_counter_start_switch_on),
+      .done_o(ram_${bank}_powergate_counter_expired_switch_on),
+      .hw2reg_d_o(hw2reg.ram_${bank}_switch_on_counter.d),
+      .hw2reg_de_o(hw2reg.ram_${bank}_switch_on_counter.de),
+      .hw2reg_q_i(reg2hw.ram_${bank}_switch_on_counter.q)
   );
 
-  power_manager_counter_sequence power_manager_counter_sequence_ram${bank}_powergate_i (
+  power_manager_counter_sequence power_manager_counter_sequence_ram_${bank}_powergate_i (
       .clk_i,
       .rst_ni,
 
@@ -386,11 +386,11 @@ module power_manager #(
       .start_on_sequence_i (~reg2hw.power_gate_ram_block_${bank}.q),
 
       // counter to switch on and off signals
-      .counter_expired_switch_off_i(ram${bank}_powergate_counter_expired_switch_off),
-      .counter_expired_switch_on_i (ram${bank}_powergate_counter_expired_switch_on),
+      .counter_expired_switch_off_i(ram_${bank}_powergate_counter_expired_switch_off),
+      .counter_expired_switch_on_i (ram_${bank}_powergate_counter_expired_switch_on),
 
-      .counter_start_switch_off_o(ram${bank}_powergate_counter_start_switch_off),
-      .counter_start_switch_on_o (ram${bank}_powergate_counter_start_switch_on),
+      .counter_start_switch_off_o(ram_${bank}_powergate_counter_start_switch_off),
+      .counter_start_switch_on_o (ram_${bank}_powergate_counter_start_switch_on),
 
       // switch on and off signal, 1 means on
       .switch_onoff_signal_o(memory_subsystem_banks_powergate_switches_o[${bank}])

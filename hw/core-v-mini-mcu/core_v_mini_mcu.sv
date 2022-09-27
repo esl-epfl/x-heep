@@ -127,6 +127,7 @@ module core_v_mini_mcu
   logic [3:0] spi_sd_out;
   logic [3:0] spi_sd_en;
   logic [3:0] spi_sd_in;
+  logic spi_intr_error;
   logic spi_intr;
 
   // power manager
@@ -159,10 +160,6 @@ module core_v_mini_mcu
   logic cio_sda_in;
   logic cio_sda_out;
   logic cio_sda_en;
-
-  // spi
-  logic spi_intr_error;
-  logic spi_intr_event;
 
   // pads
   logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][15:0] pad_attributes;
@@ -269,7 +266,7 @@ module core_v_mini_mcu
       .spi_sd_en_o(spi_sd_en),
       .spi_sd_i(spi_sd_in),
       .spi_intr_error_o(spi_intr_error),
-      .spi_intr_event_o(spi_intr_event),
+      .spi_intr_event_o(spi_intr),
       .gpio_intr_i(gpio_intr),
       .ext_intr_i(intr_vector_ext_i),
       .core_sleep_i(core_sleep),
@@ -320,7 +317,7 @@ module core_v_mini_mcu
       .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i),
       .dma_intr_i(dma_intr),
       .spi_intr_error_i(spi_intr_error),
-      .spi_intr_event_i(spi_intr_event)
+      .spi_intr_event_i(spi_intr)
   );
 
   pad_ring pad_ring_i (

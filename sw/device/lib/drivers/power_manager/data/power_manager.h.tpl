@@ -18,17 +18,17 @@ extern "C" {
  * Results.
  */
 typedef enum power_manager_result {
-  kPowerManagerOk = 0,
-  kPowerManagerError = 1,
+  kPowerManagerOk_e    = 0,
+  kPowerManagerError_e = 1,
 } power_manager_result_t;
 
 /**
  * Domains.
  */
 typedef enum power_manager_sel_domain {
-  kPeriph = 0,
+  kPeriph_e  = 0,
 % for bank in range(ram_numbanks):
-  kRam${bank}   = ${bank+1},
+  kRam_${bank}_e   = ${bank+1},
 % endfor
 } power_manager_sel_domain_t;
 
@@ -36,32 +36,32 @@ typedef enum power_manager_sel_domain {
  * Domain states.
  */
 typedef enum power_manager_sel_state {
-  kOn  = 0,
-  kOff = 1,
+  kOn_e  = 0,
+  kOff_e = 1,
 } power_manager_sel_state_t;
 
 /**
  * Interrupt source.
  */
 typedef enum power_manager_sel_intr {
-  kSpi     = 0,
-  kTimer_0 = 1,
-  kTimer_1 = 2,
-  kTimer_2 = 3,
-  kTimer_3 = 4,
-  kDma     = 5,
-  kGpio_0  = 6,
-  kGpio_1  = 7,
-  kGpio_2  = 8,
-  kGpio_3  = 9,
-  kGpio_4  = 10,
-  kGpio_5  = 11,
-  kGpio_6  = 12,
-  kGpio_7  = 13,
-  kExt_0   = 14,
-  kExt_1   = 15,
-  kExt_2   = 16,
-  kExt_3   = 17,
+  kSpi_e     = 0,
+  kTimer_0_e = 1,
+  kTimer_1_e = 2,
+  kTimer_2_e = 3,
+  kTimer_3_e = 4,
+  kDma_e     = 5,
+  kGpio_0_e  = 6,
+  kGpio_1_e  = 7,
+  kGpio_2_e  = 8,
+  kGpio_3_e  = 9,
+  kGpio_4_e  = 10,
+  kGpio_5_e  = 11,
+  kGpio_6_e  = 12,
+  kGpio_7_e  = 13,
+  kExt_0_e   = 14,
+  kExt_1_e   = 15,
+  kExt_2_e   = 16,
+  kExt_3_e   = 17,
 } power_manager_sel_intr_t;
 
 /**

@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     power_manager_counters_t power_manager_cpu_counters;
 
     // Init cpu_subsystem's counters
-    if (power_gate_counters_init(&power_manager_cpu_counters, 40, 40, 30, 30) != kPowerManagerOk)
+    if (power_gate_counters_init(&power_manager_cpu_counters, 40, 40, 30, 30) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail. Check the reset and powergate counters value\n");
         return EXIT_FAILURE;
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     rv_timer_counter_set_enabled(&timer, 0, kRvTimerEnabled);
 
     // Power off cup_subsystem and wait for rv_timer interrupt to wake-up
-    if (power_gate_core(&power_manager, kTimer_0, &power_manager_cpu_counters) != kPowerManagerOk)
+    if (power_gate_core(&power_manager, kTimer_0_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;

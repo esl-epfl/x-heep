@@ -499,42 +499,42 @@
     }
 
     { name:     "CPU_RESET_ASSERT_COUNTER",
-      desc:     "Counter before resetting the cpu_subsystem domain",
+      desc:     "Counter before resetting the CPU domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "CPU_RESET_ASSERT_COUNTER", desc: "Cpu_subsystem counter before resetting" }
+        { bits: "31:0", name: "CPU_RESET_ASSERT_COUNTER", desc: "CPU counter before resetting" }
       ]
     }
 
     { name:     "CPU_RESET_DEASSERT_COUNTER",
-      desc:     "Counter before unreset the cpu_subsystem domain",
+      desc:     "Counter before unreset the CPU domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "CPU_RESET_DEASSERT_COUNTER", desc: "Cpu_subsystem counter before unresetting" }
+        { bits: "31:0", name: "CPU_RESET_DEASSERT_COUNTER", desc: "CPU counter before unresetting" }
       ]
     }
 
     { name:     "CPU_SWITCH_OFF_COUNTER",
-      desc:     "Counter before switching off the cpu_subsystem domain",
+      desc:     "Counter before switching off the CPU domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "CPU_SWITCH_OFF_COUNTER", desc: "Cpu_subsystem counter before switching off" }
+        { bits: "31:0", name: "CPU_SWITCH_OFF_COUNTER", desc: "CPU counter before switching off" }
       ]
     }
 
     { name:     "CPU_SWITCH_ON_COUNTER",
-      desc:     "Counter before switching on the cpu_subsystem domain",
+      desc:     "Counter before switching on the CPU domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "CPU_SWITCH_ON_COUNTER", desc: "Cpu_subsystem counter before switching on" }
+        { bits: "31:0", name: "CPU_SWITCH_ON_COUNTER", desc: "CPU counter before switching on" }
       ]
     }
 
@@ -544,50 +544,50 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "CPU_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the CPU_DOMAIN_RESET_ASSERT_COUNTER counter" }
-        { bits: "1", name: "CPU_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the CPU_DOMAIN_RESET_DEASSERT_COUNTER counter" }
-        { bits: "2", name: "CPU_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the CPU_DOMAIN_SWITCH_OFF_COUNTER counter" }
-        { bits: "3", name: "CPU_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the CPU_DOMAIN_SWITCH_ON_COUNTER counter" }
+        { bits: "0", name: "CPU_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the CPU_RESET_ASSERT_COUNTER counter" }
+        { bits: "1", name: "CPU_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the CPU_RESET_DEASSERT_COUNTER counter" }
+        { bits: "2", name: "CPU_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the CPU_SWITCH_OFF_COUNTER counter" }
+        { bits: "3", name: "CPU_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the CPU_SWITCH_ON_COUNTER counter" }
       ]
     }
 
     { name:     "PERIPH_RESET_ASSERT_COUNTER",
-      desc:     "Counter before resetting the peripheral_subsystem domain",
+      desc:     "Counter before resetting the PERIPH domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "PERIPH_RESET_ASSERT_COUNTER", desc: "Peripheral_subsystem counter before resetting" }
+        { bits: "31:0", name: "PERIPH_RESET_ASSERT_COUNTER", desc: "PERIPH counter before resetting" }
       ]
     }
 
     { name:     "PERIPH_RESET_DEASSERT_COUNTER",
-      desc:     "Counter before unreset the peripheral_subsystem domain",
+      desc:     "Counter before unreset the PERIPH domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "DOMAIN_RESET_DEASSERT_COUNTER", desc: "Peripheral_subsystem counter before unresetting" }
+        { bits: "31:0", name: "PERIPH_RESET_DEASSERT_COUNTER", desc: "PERIPH counter before unresetting" }
       ]
     }
 
     { name:     "PERIPH_SWITCH_OFF_COUNTER",
-      desc:     "Counter before switching off the peripheral_subsystem domain",
+      desc:     "Counter before switching off the PERIPH domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "PERIPH_SWITCH_OFF_COUNTER", desc: "Peripheral_subsystem counter before switching off" }
+        { bits: "31:0", name: "PERIPH_SWITCH_OFF_COUNTER", desc: "PERIPH counter before switching off" }
       ]
     }
 
     { name:     "PERIPH_SWITCH_ON_COUNTER",
-      desc:     "Counter before switching on the peripheral_subsystem domain",
+      desc:     "Counter before switching on the PERIPH domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "PERIPH_SWITCH_ON_COUNTER", desc: "Peripheral_subsystem counter before switching on" }
+        { bits: "31:0", name: "PERIPH_SWITCH_ON_COUNTER", desc: "PERIPH counter before switching on" }
       ]
     }
 
@@ -597,67 +597,67 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "PERIPH_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the PERIPH_DOMAIN_RESET_ASSERT_COUNTER counter" }
-        { bits: "1", name: "PERIPH_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the PERIPH_DOMAIN_RESET_DEASSERT_COUNTER counter" }
-        { bits: "2", name: "PERIPH_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the PERIPH_DOMAIN_SWITCH_OFF_COUNTER counter" }
-        { bits: "3", name: "PERIPH_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the PERIPH_DOMAIN_SWITCH_ON_COUNTER counter" }
+        { bits: "0", name: "PERIPH_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the PERIPH_RESET_ASSERT_COUNTER counter" }
+        { bits: "1", name: "PERIPH_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the PERIPH_RESET_DEASSERT_COUNTER counter" }
+        { bits: "2", name: "PERIPH_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the PERIPH_SWITCH_OFF_COUNTER counter" }
+        { bits: "3", name: "PERIPH_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the PERIPH_SWITCH_ON_COUNTER counter" }
       ]
     }
+
 % for bank in range(ram_numbanks):
-    { name:     "RAM${bank}_RESET_ASSERT_COUNTER",
-      desc:     "Counter before resetting the ram${bank} domain",
+    { name:     "RAM_${bank}_RESET_ASSERT_COUNTER",
+      desc:     "Counter before resetting the RAM_${bank} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "RAM${bank}_RESET_ASSERT_COUNTER", desc: "Ram${bank} counter before resetting" }
+        { bits: "31:0", name: "RAM_${bank}_RESET_ASSERT_COUNTER", desc: "RAM_${bank} counter before resetting" }
       ]
     }
 
-    { name:     "RAM${bank}_RESET_DEASSERT_COUNTER",
-      desc:     "Counter before unreset the ram${bank} domain",
+    { name:     "RAM_${bank}_RESET_DEASSERT_COUNTER",
+      desc:     "Counter before unreset the RAM_${bank} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "RAM${bank}_RESET_DEASSERT_COUNTER", desc: "Ram${bank} counter before unresetting" }
+        { bits: "31:0", name: "RAM_${bank}_RESET_DEASSERT_COUNTER", desc: "RAM_${bank} counter before unresetting" }
       ]
     }
 
-    { name:     "RAM${bank}_SWITCH_OFF_COUNTER",
-      desc:     "Counter before switching off the ram${bank} domain",
+    { name:     "RAM_${bank}_SWITCH_OFF_COUNTER",
+      desc:     "Counter before switching off the RAM_${bank} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "RAM${bank}_SWITCH_OFF_COUNTER", desc: "Ram${bank} counter before switching off" }
+        { bits: "31:0", name: "RAM_${bank}_SWITCH_OFF_COUNTER", desc: "RAM_${bank} counter before switching off" }
       ]
     }
 
-    { name:     "RAM${bank}_SWITCH_ON_COUNTER",
-      desc:     "Counter before switching on the ram${bank} domain",
+    { name:     "RAM_${bank}_SWITCH_ON_COUNTER",
+      desc:     "Counter before switching on the RAM_${bank} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "RAM${bank}_SWITCH_ON_COUNTER", desc: "Ram${bank} counter before switching on" }
+        { bits: "31:0", name: "RAM_${bank}_SWITCH_ON_COUNTER", desc: "RAM_${bank} counter before switching on" }
       ]
     }
 
-    { name:     "RAM${bank}_COUNTERS_STOP",
+    { name:     "RAM_${bank}_COUNTERS_STOP",
       desc:     "Bits to stop the counters keeping the done_o signal high",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "RAM${bank}_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM${bank}_DOMAIN_RESET_ASSERT_COUNTER counter" }
-        { bits: "1", name: "RAM${bank}_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM${bank}_DOMAIN_RESET_DEASSERT_COUNTER counter" }
-        { bits: "2", name: "RAM${bank}_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM${bank}_DOMAIN_SWITCH_OFF_COUNTER counter" }
-        { bits: "3", name: "RAM${bank}_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the RAM${bank}_DOMAIN_SWITCH_ON_COUNTER counter" }
+        { bits: "0", name: "RAM_${bank}_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_RESET_ASSERT_COUNTER counter" }
+        { bits: "1", name: "RAM_${bank}_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_RESET_DEASSERT_COUNTER counter" }
+        { bits: "2", name: "RAM_${bank}_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_SWITCH_OFF_COUNTER counter" }
+        { bits: "3", name: "RAM_${bank}_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_SWITCH_ON_COUNTER counter" }
       ]
     }
 
 % endfor
-
    ]
 }

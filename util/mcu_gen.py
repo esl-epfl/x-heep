@@ -284,9 +284,7 @@ def main():
     if ((int(linker_onchip_data_size_address,16) + int(linker_onchip_code_size_address,16)) > int(ram_size_address,16)):
         exit("The code and data section must fit in the RAM size, instead they takes " + str(linker_onchip_data_size_address + linker_onchip_code_size_address))
 
-
     spi_flash_size_address  = string2int(obj['spi_flash']['length'])
-
 
     null_intr = obj['interrupts']['null_intr']
     uart_intr_tx_watermark = obj['interrupts']['uart_intr_tx_watermark']

@@ -42,14 +42,14 @@ module peripheral_subsystem
     output logic rv_timer_2_intr_o,
     output logic rv_timer_3_intr_o,
 
-    //External peripheral(s)
-    output reg_req_t ext_peripheral_slave_req_o,
-    input  reg_rsp_t ext_peripheral_slave_resp_i,
-
     // Always-on domain peripherals' interrupts
     input logic dma_intr_i,
     input logic spi_intr_error_i,
-    input logic spi_intr_event_i
+    input logic spi_intr_event_i,
+
+    //External peripheral(s)
+    output reg_req_t ext_peripheral_slave_req_o,
+    input  reg_rsp_t ext_peripheral_slave_resp_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -93,22 +93,22 @@ module peripheral_subsystem
 
   logic [31:0] gpio_intr;
 
-  logic intr_fmt_watermark;
-  logic intr_rx_watermark;
-  logic intr_fmt_overflow;
-  logic intr_rx_overflow;
-  logic intr_nak;
-  logic intr_scl_interference;
-  logic intr_sda_interference;
-  logic intr_stretch_timeout;
-  logic intr_sda_unstable;
-  logic intr_trans_complete;
-  logic intr_tx_empty;
-  logic intr_tx_nonempty;
-  logic intr_tx_overflow;
-  logic intr_acq_overflow;
-  logic intr_ack_stop;
-  logic intr_host_timeout;
+  logic i2c_intr_fmt_watermark;
+  logic i2c_intr_rx_watermark;
+  logic i2c_intr_fmt_overflow;
+  logic i2c_intr_rx_overflow;
+  logic i2c_intr_nak;
+  logic i2c_intr_scl_interference;
+  logic i2c_intr_sda_interference;
+  logic i2c_intr_stretch_timeout;
+  logic i2c_intr_sda_unstable;
+  logic i2c_intr_trans_complete;
+  logic i2c_intr_tx_empty;
+  logic i2c_intr_tx_nonempty;
+  logic i2c_intr_tx_overflow;
+  logic i2c_intr_acq_overflow;
+  logic i2c_intr_ack_stop;
+  logic i2c_intr_host_timeout;
 
   // this avoids lint errors
   assign unused_irq_id = irq_id;
@@ -124,22 +124,22 @@ module peripheral_subsystem
   assign intr_vector[7] = uart_intr_rx_timeout;
   assign intr_vector[8] = uart_intr_rx_parity_err;
   assign intr_vector[40:9] = gpio_intr;
-  assign intr_vector[41] = intr_fmt_watermark;
-  assign intr_vector[42] = intr_rx_watermark;
-  assign intr_vector[43] = intr_fmt_overflow;
-  assign intr_vector[44] = intr_rx_overflow;
-  assign intr_vector[45] = intr_nak;
-  assign intr_vector[46] = intr_scl_interference;
-  assign intr_vector[47] = intr_sda_interference;
-  assign intr_vector[48] = intr_stretch_timeout;
-  assign intr_vector[49] = intr_sda_unstable;
-  assign intr_vector[50] = intr_trans_complete;
-  assign intr_vector[51] = intr_tx_empty;
-  assign intr_vector[52] = intr_tx_nonempty;
-  assign intr_vector[53] = intr_tx_overflow;
-  assign intr_vector[54] = intr_acq_overflow;
-  assign intr_vector[55] = intr_ack_stop;
-  assign intr_vector[56] = intr_host_timeout;
+  assign intr_vector[41] = i2c_intr_fmt_watermark;
+  assign intr_vector[42] = i2c_intr_rx_watermark;
+  assign intr_vector[43] = i2c_intr_fmt_overflow;
+  assign intr_vector[44] = i2c_intr_rx_overflow;
+  assign intr_vector[45] = i2c_intr_nak;
+  assign intr_vector[46] = i2c_intr_scl_interference;
+  assign intr_vector[47] = i2c_intr_sda_interference;
+  assign intr_vector[48] = i2c_intr_stretch_timeout;
+  assign intr_vector[49] = i2c_intr_sda_unstable;
+  assign intr_vector[50] = i2c_intr_trans_complete;
+  assign intr_vector[51] = i2c_intr_tx_empty;
+  assign intr_vector[52] = i2c_intr_tx_nonempty;
+  assign intr_vector[53] = i2c_intr_tx_overflow;
+  assign intr_vector[54] = i2c_intr_acq_overflow;
+  assign intr_vector[55] = i2c_intr_ack_stop;
+  assign intr_vector[56] = i2c_intr_host_timeout;
   assign intr_vector[57] = dma_intr_i;
   assign intr_vector[58] = spi_intr_error_i;
   assign intr_vector[59] = spi_intr_event_i;
@@ -297,6 +297,8 @@ module peripheral_subsystem
       .intr_gpio_o(gpio_intr)
   );
 
+  assign cio_gpio_intr_o = gpio_intr[7:0];
+
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -325,22 +327,22 @@ module peripheral_subsystem
       .cio_sda_i,
       .cio_sda_o,
       .cio_sda_en_o,
-      .intr_fmt_watermark_o(intr_fmt_watermark),
-      .intr_rx_watermark_o(intr_rx_watermark),
-      .intr_fmt_overflow_o(intr_fmt_overflow),
-      .intr_rx_overflow_o(intr_rx_overflow),
-      .intr_nak_o(intr_nak),
-      .intr_scl_interference_o(intr_scl_interference),
-      .intr_sda_interference_o(intr_sda_interference),
-      .intr_stretch_timeout_o(intr_stretch_timeout),
-      .intr_sda_unstable_o(intr_sda_unstable),
-      .intr_trans_complete_o(intr_trans_complete),
-      .intr_tx_empty_o(intr_tx_empty),
-      .intr_tx_nonempty_o(intr_tx_nonempty),
-      .intr_tx_overflow_o(intr_tx_overflow),
-      .intr_acq_overflow_o(intr_acq_overflow),
-      .intr_ack_stop_o(intr_ack_stop),
-      .intr_host_timeout_o(intr_host_timeout)
+      .intr_fmt_watermark_o(i2c_intr_fmt_watermark),
+      .intr_rx_watermark_o(i2c_intr_rx_watermark),
+      .intr_fmt_overflow_o(i2c_intr_fmt_overflow),
+      .intr_rx_overflow_o(i2c_intr_rx_overflow),
+      .intr_nak_o(i2c_intr_nak),
+      .intr_scl_interference_o(i2c_intr_scl_interference),
+      .intr_sda_interference_o(i2c_intr_sda_interference),
+      .intr_stretch_timeout_o(i2c_intr_stretch_timeout),
+      .intr_sda_unstable_o(i2c_intr_sda_unstable),
+      .intr_trans_complete_o(i2c_intr_trans_complete),
+      .intr_tx_empty_o(i2c_intr_tx_empty),
+      .intr_tx_nonempty_o(i2c_intr_tx_nonempty),
+      .intr_tx_overflow_o(i2c_intr_tx_overflow),
+      .intr_acq_overflow_o(i2c_intr_acq_overflow),
+      .intr_ack_stop_o(i2c_intr_ack_stop),
+      .intr_host_timeout_o(i2c_intr_host_timeout)
   );
 
   reg_to_tlul #(
