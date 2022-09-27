@@ -5,11 +5,11 @@
 // DMA assume a read request is not granted before previous request rvalid is asserted
 
 module dma #(
-    parameter int unsigned FIFO_DEPTH  = 4,
-    parameter int unsigned ADDR_FIFO_DEPTH  = (FIFO_DEPTH > 1) ? $clog2(FIFO_DEPTH) : 1,
-    parameter type reg_req_t  = logic,
-    parameter type reg_rsp_t  = logic,
-    parameter type obi_req_t  = logic,
+    parameter int unsigned FIFO_DEPTH = 4,
+    parameter int unsigned ADDR_FIFO_DEPTH = (FIFO_DEPTH > 1) ? $clog2(FIFO_DEPTH) : 1,
+    parameter type reg_req_t = logic,
+    parameter type reg_rsp_t = logic,
+    parameter type obi_req_t = logic,
     parameter type obi_resp_t = logic
 ) (
     input logic clk_i,
@@ -32,46 +32,46 @@ module dma #(
 
   import dma_reg_pkg::*;
 
-  localparam int unsigned LastFifoUsage = FIFO_DEPTH-1;
+  localparam int unsigned LastFifoUsage = FIFO_DEPTH - 1;
 
-  dma_reg2hw_t        reg2hw;
-  dma_hw2reg_t        hw2reg;
+  dma_reg2hw_t                       reg2hw;
+  dma_hw2reg_t                       hw2reg;
 
-  logic        [31:0] read_ptr_reg;
-  logic        [31:0] write_ptr_reg;
-  logic        [31:0] dma_cnt;
-  logic               dma_start;
-  logic               dma_done;
+  logic        [               31:0] read_ptr_reg;
+  logic        [               31:0] write_ptr_reg;
+  logic        [               31:0] dma_cnt;
+  logic                              dma_start;
+  logic                              dma_done;
 
-  logic  [ADDR_FIFO_DEPTH-1:0] fifo_usage;
-  logic               fifo_alm_full;
+  logic        [ADDR_FIFO_DEPTH-1:0] fifo_usage;
+  logic                              fifo_alm_full;
 
-  logic               data_in_req;
-  logic               data_in_we;
-  logic        [ 3:0] data_in_be;
-  logic        [31:0] data_in_addr;
-  logic               data_in_gnt;
-  logic               data_in_rvalid;
-  logic        [31:0] data_in_rdata;
+  logic                              data_in_req;
+  logic                              data_in_we;
+  logic        [                3:0] data_in_be;
+  logic        [               31:0] data_in_addr;
+  logic                              data_in_gnt;
+  logic                              data_in_rvalid;
+  logic        [               31:0] data_in_rdata;
 
-  logic               data_out_req;
-  logic               data_out_we;
-  logic        [ 3:0] data_out_be;
-  logic        [31:0] data_out_addr;
-  logic        [31:0] data_out_wdata;
-  logic               data_out_gnt;
-  logic               data_out_rvalid;
-  logic        [31:0] data_out_rdata;
+  logic                              data_out_req;
+  logic                              data_out_we;
+  logic        [                3:0] data_out_be;
+  logic        [               31:0] data_out_addr;
+  logic        [               31:0] data_out_wdata;
+  logic                              data_out_gnt;
+  logic                              data_out_rvalid;
+  logic        [               31:0] data_out_rdata;
 
-  logic               fifo_flush;
-  logic               fifo_full;
-  logic               fifo_empty;
+  logic                              fifo_flush;
+  logic                              fifo_full;
+  logic                              fifo_empty;
 
-  logic        [ 1:0] spi_dma_mode;
-  logic               wait_for_rx_spi;
-  logic               wait_for_tx_spi;
+  logic        [                1:0] spi_dma_mode;
+  logic                              wait_for_rx_spi;
+  logic                              wait_for_tx_spi;
 
-  logic        [ 3:0] byte_enable;
+  logic        [                3:0] byte_enable;
 
   enum logic {
     DMA_READ_FSM_IDLE,
@@ -115,8 +115,8 @@ module dma #(
 
   assign wait_for_rx_spi = spi_dma_mode == 2'h1 && ~spi_rx_valid_i;
   assign wait_for_tx_spi = spi_dma_mode == 2'h2 && ~spi_tx_ready_i;
-  
-  assign fifo_alm_full   = (fifo_usage == LastFifoUsage[ADDR_FIFO_DEPTH-1:0]);
+
+  assign fifo_alm_full = (fifo_usage == LastFifoUsage[ADDR_FIFO_DEPTH-1:0]);
 
   // DMA pulse start when dma_start register is written
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start

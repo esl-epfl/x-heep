@@ -13,37 +13,21 @@ package dma_reg_pkg;
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {
-    logic [31:0] q;
-  } dma_reg2hw_ptr_in_reg_t;
+  typedef struct packed {logic [31:0] q;} dma_reg2hw_ptr_in_reg_t;
 
-  typedef struct packed {
-    logic [31:0] q;
-  } dma_reg2hw_ptr_out_reg_t;
+  typedef struct packed {logic [31:0] q;} dma_reg2hw_ptr_out_reg_t;
 
-  typedef struct packed {
-    logic [31:0] q;
-  } dma_reg2hw_dma_start_reg_t;
+  typedef struct packed {logic [31:0] q;} dma_reg2hw_dma_start_reg_t;
 
-  typedef struct packed {
-    logic [31:0] q;
-  } dma_reg2hw_done_reg_t;
+  typedef struct packed {logic [31:0] q;} dma_reg2hw_done_reg_t;
 
-  typedef struct packed {
-    logic [31:0] q;
-  } dma_reg2hw_src_ptr_inc_reg_t;
+  typedef struct packed {logic [31:0] q;} dma_reg2hw_src_ptr_inc_reg_t;
 
-  typedef struct packed {
-    logic [31:0] q;
-  } dma_reg2hw_dst_ptr_inc_reg_t;
+  typedef struct packed {logic [31:0] q;} dma_reg2hw_dst_ptr_inc_reg_t;
 
-  typedef struct packed {
-    logic [3:0]  q;
-  } dma_reg2hw_byte_enable_reg_t;
+  typedef struct packed {logic [3:0] q;} dma_reg2hw_byte_enable_reg_t;
 
-  typedef struct packed {
-    logic [1:0]  q;
-  } dma_reg2hw_spi_mode_reg_t;
+  typedef struct packed {logic [1:0] q;} dma_reg2hw_spi_mode_reg_t;
 
   typedef struct packed {
     logic [31:0] d;
@@ -57,31 +41,31 @@ package dma_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    dma_reg2hw_ptr_in_reg_t ptr_in; // [197:166]
-    dma_reg2hw_ptr_out_reg_t ptr_out; // [165:134]
-    dma_reg2hw_dma_start_reg_t dma_start; // [133:102]
-    dma_reg2hw_done_reg_t done; // [101:70]
-    dma_reg2hw_src_ptr_inc_reg_t src_ptr_inc; // [69:38]
-    dma_reg2hw_dst_ptr_inc_reg_t dst_ptr_inc; // [37:6]
-    dma_reg2hw_byte_enable_reg_t byte_enable; // [5:2]
-    dma_reg2hw_spi_mode_reg_t spi_mode; // [1:0]
+    dma_reg2hw_ptr_in_reg_t ptr_in;  // [197:166]
+    dma_reg2hw_ptr_out_reg_t ptr_out;  // [165:134]
+    dma_reg2hw_dma_start_reg_t dma_start;  // [133:102]
+    dma_reg2hw_done_reg_t done;  // [101:70]
+    dma_reg2hw_src_ptr_inc_reg_t src_ptr_inc;  // [69:38]
+    dma_reg2hw_dst_ptr_inc_reg_t dst_ptr_inc;  // [37:6]
+    dma_reg2hw_byte_enable_reg_t byte_enable;  // [5:2]
+    dma_reg2hw_spi_mode_reg_t spi_mode;  // [1:0]
   } dma_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    dma_hw2reg_dma_start_reg_t dma_start; // [65:33]
-    dma_hw2reg_done_reg_t done; // [32:0]
+    dma_hw2reg_dma_start_reg_t dma_start;  // [65:33]
+    dma_hw2reg_done_reg_t done;  // [32:0]
   } dma_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] DMA_PTR_IN_OFFSET = 5'h 0;
-  parameter logic [BlockAw-1:0] DMA_PTR_OUT_OFFSET = 5'h 4;
-  parameter logic [BlockAw-1:0] DMA_DMA_START_OFFSET = 5'h 8;
-  parameter logic [BlockAw-1:0] DMA_DONE_OFFSET = 5'h c;
-  parameter logic [BlockAw-1:0] DMA_SRC_PTR_INC_OFFSET = 5'h 10;
-  parameter logic [BlockAw-1:0] DMA_DST_PTR_INC_OFFSET = 5'h 14;
-  parameter logic [BlockAw-1:0] DMA_BYTE_ENABLE_OFFSET = 5'h 18;
-  parameter logic [BlockAw-1:0] DMA_SPI_MODE_OFFSET = 5'h 1c;
+  parameter logic [BlockAw-1:0] DMA_PTR_IN_OFFSET = 5'h0;
+  parameter logic [BlockAw-1:0] DMA_PTR_OUT_OFFSET = 5'h4;
+  parameter logic [BlockAw-1:0] DMA_DMA_START_OFFSET = 5'h8;
+  parameter logic [BlockAw-1:0] DMA_DONE_OFFSET = 5'hc;
+  parameter logic [BlockAw-1:0] DMA_SRC_PTR_INC_OFFSET = 5'h10;
+  parameter logic [BlockAw-1:0] DMA_DST_PTR_INC_OFFSET = 5'h14;
+  parameter logic [BlockAw-1:0] DMA_BYTE_ENABLE_OFFSET = 5'h18;
+  parameter logic [BlockAw-1:0] DMA_SPI_MODE_OFFSET = 5'h1c;
 
   // Register index
   typedef enum int {
@@ -96,15 +80,15 @@ package dma_reg_pkg;
   } dma_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] DMA_PERMIT [8] = '{
-    4'b 1111, // index[0] DMA_PTR_IN
-    4'b 1111, // index[1] DMA_PTR_OUT
-    4'b 1111, // index[2] DMA_DMA_START
-    4'b 1111, // index[3] DMA_DONE
-    4'b 1111, // index[4] DMA_SRC_PTR_INC
-    4'b 1111, // index[5] DMA_DST_PTR_INC
-    4'b 0001, // index[6] DMA_BYTE_ENABLE
-    4'b 0001  // index[7] DMA_SPI_MODE
+  parameter logic [3:0] DMA_PERMIT[8] = '{
+      4'b1111,  // index[0] DMA_PTR_IN
+      4'b1111,  // index[1] DMA_PTR_OUT
+      4'b1111,  // index[2] DMA_DMA_START
+      4'b1111,  // index[3] DMA_DONE
+      4'b1111,  // index[4] DMA_SRC_PTR_INC
+      4'b1111,  // index[5] DMA_DST_PTR_INC
+      4'b0001,  // index[6] DMA_BYTE_ENABLE
+      4'b0001  // index[7] DMA_SPI_MODE
   };
 
 endpackage
