@@ -68,11 +68,18 @@ void dma_set_read_ptr_inc(const dma_t *dma, uint32_t read_ptr_inc);
 void dma_set_write_ptr_inc(const dma_t *dma, uint32_t write_ptr_inc);
 
 /**
- * Write to spi_mode register of the DMA.
+ * Sets the DMA data transfer modes when used with the SPI.
  * @param dma Pointer to dma_t represting the target DMA.
- * @param spi_mode 0: mem to mem - 1: spi to mem (Default: 0).
+ * @param spi_mode 0: mem to mem - 1: spi_rx to mem (Default: 0) - 2: mem to spi_tx.
  */
 void dma_set_spi_mode(const dma_t *dma, uint32_t spi_mode);
+
+/**
+ * Bytes mask when copying words.
+ * @param dma Pointer to dma_t represting the target DMA.
+ * @param spi_mode bytes enabled for a full ford (4 bits).
+ */
+void dma_set_byte_enable(const dma_t *dma, uint32_t byte_enable);
 
 #ifdef __cplusplus
 }

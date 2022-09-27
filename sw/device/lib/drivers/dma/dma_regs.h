@@ -36,10 +36,20 @@ extern "C" {
 // destination
 #define DMA_DST_PTR_INC_REG_OFFSET 0x14
 
-// Register set to 1 when copy from SPI, it waits for the spi watermark to
-// start the transaction
-#define DMA_SPI_MODE_REG_OFFSET 0x18
-#define DMA_SPI_MODE_SPI_MODE_BIT 0
+// Select the bytes from the word(s) being copied from source to destination
+#define DMA_BYTE_ENABLE_REG_OFFSET 0x18
+#define DMA_BYTE_ENABLE_BYTE_ENABLE_MASK 0xf
+#define DMA_BYTE_ENABLE_BYTE_ENABLE_OFFSET 0
+#define DMA_BYTE_ENABLE_BYTE_ENABLE_FIELD \
+  ((bitfield_field32_t) { .mask = DMA_BYTE_ENABLE_BYTE_ENABLE_MASK, .index = DMA_BYTE_ENABLE_BYTE_ENABLE_OFFSET })
+
+// Register to configure SPI modes: 1 - receive from SPI, 2 - send to the
+// SPI. It waits for TX and RX FIFO respectively
+#define DMA_SPI_MODE_REG_OFFSET 0x1c
+#define DMA_SPI_MODE_SPI_MODE_MASK 0x3
+#define DMA_SPI_MODE_SPI_MODE_OFFSET 0
+#define DMA_SPI_MODE_SPI_MODE_FIELD \
+  ((bitfield_field32_t) { .mask = DMA_SPI_MODE_SPI_MODE_MASK, .index = DMA_SPI_MODE_SPI_MODE_OFFSET })
 
 #ifdef __cplusplus
 }  // extern "C"

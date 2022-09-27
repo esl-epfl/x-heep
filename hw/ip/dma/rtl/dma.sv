@@ -5,6 +5,8 @@
 // DMA assume a read request is not granted before previous request rvalid is asserted
 
 module dma #(
+    parameter int unsigned FIFO_DEPTH  = 4,
+    parameter int unsigned ADDR_FIFO_DEPTH  = (FIFO_DEPTH > 1) ? $clog2(FIFO_DEPTH) : 1,
     parameter type reg_req_t  = logic,
     parameter type reg_rsp_t  = logic,
     parameter type obi_req_t  = logic,
@@ -22,12 +24,15 @@ module dma #(
     output obi_req_t  dma_master1_ch0_req_o,
     input  obi_resp_t dma_master1_ch0_resp_i,
 
-    input logic spi_rx_empty_i,
+    input logic spi_rx_valid_i,
+    input logic spi_tx_ready_i,
 
     output dma_intr_o
 );
 
   import dma_reg_pkg::*;
+
+  localparam int unsigned LastFifoUsage = FIFO_DEPTH-1;
 
   dma_reg2hw_t        reg2hw;
   dma_hw2reg_t        hw2reg;
@@ -37,6 +42,9 @@ module dma #(
   logic        [31:0] dma_cnt;
   logic               dma_start;
   logic               dma_done;
+
+  logic  [ADDR_FIFO_DEPTH-1:0] fifo_usage;
+  logic               fifo_alm_full;
 
   logic               data_in_req;
   logic               data_in_we;
@@ -59,8 +67,11 @@ module dma #(
   logic               fifo_full;
   logic               fifo_empty;
 
-  logic               spi_dma_mode;
-  logic               wait_for_spi;
+  logic        [ 1:0] spi_dma_mode;
+  logic               wait_for_rx_spi;
+  logic               wait_for_tx_spi;
+
+  logic        [ 3:0] byte_enable;
 
   enum logic {
     DMA_READ_FSM_IDLE,
@@ -102,16 +113,22 @@ module dma #(
   assign hw2reg.dma_start.de = dma_start;
   assign hw2reg.dma_start.d = 32'h0;
 
-  assign spi_dma_mode = reg2hw.spi_mode.q;
-  assign wait_for_spi = spi_dma_mode & spi_rx_empty_i;
+  assign wait_for_rx_spi = spi_dma_mode == 2'h1 && ~spi_rx_valid_i;
+  assign wait_for_tx_spi = spi_dma_mode == 2'h2 && ~spi_tx_ready_i;
+  
+  assign fifo_alm_full   = (fifo_usage == LastFifoUsage[ADDR_FIFO_DEPTH-1:0]);
 
   // DMA pulse start when dma_start register is written
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start
     if (~rst_ni) begin
       dma_start <= 1'b0;
+      byte_enable <= 4'hf;
+      spi_dma_mode <= 2'h0;
     end else begin
       if (dma_start == 1'b1) begin
         dma_start <= 1'b0;
+        byte_enable <= reg2hw.byte_enable.q;
+        spi_dma_mode <= reg2hw.spi_mode.q;
       end else begin
         dma_start <= |reg2hw.dma_start.q;
       end
@@ -199,10 +216,10 @@ module dma #(
         end else begin
           dma_read_fsm_n_state = DMA_READ_FSM_ON;
           // Wait if fifo is full and 
-          if (fifo_full == 1'b0 && wait_for_spi == 1'b0) begin
+          if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx_spi == 1'b0) begin
             data_in_req  = 1'b1;
             data_in_we   = 1'b0;
-            data_in_be   = 4'b1111;
+            data_in_be   = byte_enable;
             data_in_addr = read_ptr_reg;
           end
         end
@@ -240,10 +257,10 @@ module dma #(
         end else begin
           dma_write_fsm_n_state = DMA_WRITE_FSM_ON;
           // Wait if fifo is full and
-          if (fifo_empty == 1'b0) begin
+          if (fifo_empty == 1'b0 && wait_for_tx_spi == 1'b0) begin
             data_out_req  = 1'b1;
             data_out_we   = 1'b1;
-            data_out_be   = 4'b1111;
+            data_out_be   = byte_enable;
             data_out_addr = write_ptr_reg;
           end
         end
@@ -252,7 +269,7 @@ module dma #(
   end
 
   fifo_v3 #(
-      .DEPTH(4)
+      .DEPTH(FIFO_DEPTH)
   ) dma_fifo_i (
       .clk_i,
       .rst_ni,
@@ -261,7 +278,7 @@ module dma #(
       // status flags
       .full_o(fifo_full),
       .empty_o(fifo_empty),
-      .usage_o(),
+      .usage_o(fifo_usage),
       // as long as the queue is not full we can push new data
       .data_i(data_in_rdata),
       .push_i(data_in_rvalid),

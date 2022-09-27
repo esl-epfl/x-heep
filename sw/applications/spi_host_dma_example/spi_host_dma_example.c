@@ -17,6 +17,7 @@
 #include "dma.h"
 
 #define COPY_DATA_SIZE 16
+#define DATA_BITS 32 // 8, 16, 32
 
 // int8_t spi_intr_flag;
 int8_t dma_intr_flag;
@@ -39,11 +40,32 @@ void handler_irq_external(void) {
 }
 
 // Reserve 16kB
-uint32_t flash_data[COPY_DATA_SIZE] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+uint32_t flash_data[COPY_DATA_SIZE] = {0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98};
 uint32_t copy_data[COPY_DATA_SIZE];
 
 int main(int argc, char *argv[])
 {
+    // Change reference on RAM
+    int i;
+
+    #if DATA_BITS == 8
+
+    uint8_t *flash_ptr = (uint8_t *) flash_data;
+    for (i = 0; i<COPY_DATA_SIZE; i++){
+        flash_ptr[i*4 + 1] = 0;
+        flash_ptr[i*4 + 2] = 0;
+        flash_ptr[i*4 + 3] = 0;
+    }
+
+    #elif DATA_BITS == 16
+
+    uint16_t *flash_ptr = (uint16_t *) flash_data;
+    for (i = 0; i<COPY_DATA_SIZE; i++){
+        flash_ptr[i*2 + 1] = 0;
+    }
+
+    #endif
+
     spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
 
     soc_ctrl_t soc_ctrl;
@@ -145,6 +167,12 @@ int main(int argc, char *argv[])
     spi_set_command(&spi_host, cmd_read);
     spi_wait_for_ready(&spi_host);
 
+    #if DATA_BITS == 8
+    dma_set_byte_enable(&dma, (uint32_t)1); // 0001
+    #elif DATA_BITS == 16
+    dma_set_byte_enable(&dma, (uint32_t)3); // 0011
+    #endif
+
     dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_SIZE); // Size of data received by SPI
 
     const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
@@ -159,7 +187,7 @@ int main(int argc, char *argv[])
     ////////////////////////////////////////////////////////////////
 
     // Wait for DMA interrupt
-    printf("Waiting for the DMA interrupt...");
+    printf("Waiting for the DMA interrupt...\n");
     while(dma_intr_flag==0) {
         wait_for_interrupt();
     }
@@ -176,10 +204,9 @@ int main(int argc, char *argv[])
 
     uint32_t errors = 0;
     uint32_t count = 0;
-    int i;
     for (i = 0; i<COPY_DATA_SIZE; i++) {
         if(flash_data[i] != copy_data[i]) {
-            printf("@%x-@%x : %x != %x\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
+            printf("@%08x-@%08x : %08x != %08x\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
             errors++;
         }
         count++;
