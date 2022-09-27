@@ -42,11 +42,6 @@ module peripheral_subsystem
     output logic rv_timer_2_intr_o,
     output logic rv_timer_3_intr_o,
 
-    // Always-on domain peripherals' interrupts
-    input logic dma_intr_i,
-    input logic spi_intr_error_i,
-    input logic spi_intr_event_i,
-
     //External peripheral(s)
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i
@@ -123,26 +118,23 @@ module peripheral_subsystem
   assign intr_vector[6] = uart_intr_rx_break_err;
   assign intr_vector[7] = uart_intr_rx_timeout;
   assign intr_vector[8] = uart_intr_rx_parity_err;
-  assign intr_vector[40:9] = gpio_intr;
-  assign intr_vector[41] = i2c_intr_fmt_watermark;
-  assign intr_vector[42] = i2c_intr_rx_watermark;
-  assign intr_vector[43] = i2c_intr_fmt_overflow;
-  assign intr_vector[44] = i2c_intr_rx_overflow;
-  assign intr_vector[45] = i2c_intr_nak;
-  assign intr_vector[46] = i2c_intr_scl_interference;
-  assign intr_vector[47] = i2c_intr_sda_interference;
-  assign intr_vector[48] = i2c_intr_stretch_timeout;
-  assign intr_vector[49] = i2c_intr_sda_unstable;
-  assign intr_vector[50] = i2c_intr_trans_complete;
-  assign intr_vector[51] = i2c_intr_tx_empty;
-  assign intr_vector[52] = i2c_intr_tx_nonempty;
-  assign intr_vector[53] = i2c_intr_tx_overflow;
-  assign intr_vector[54] = i2c_intr_acq_overflow;
-  assign intr_vector[55] = i2c_intr_ack_stop;
-  assign intr_vector[56] = i2c_intr_host_timeout;
-  assign intr_vector[57] = dma_intr_i;
-  assign intr_vector[58] = spi_intr_error_i;
-  assign intr_vector[59] = spi_intr_event_i;
+  assign intr_vector[32:9] = gpio_intr[31:8];
+  assign intr_vector[33] = i2c_intr_fmt_watermark;
+  assign intr_vector[34] = i2c_intr_rx_watermark;
+  assign intr_vector[35] = i2c_intr_fmt_overflow;
+  assign intr_vector[36] = i2c_intr_rx_overflow;
+  assign intr_vector[37] = i2c_intr_nak;
+  assign intr_vector[38] = i2c_intr_scl_interference;
+  assign intr_vector[39] = i2c_intr_sda_interference;
+  assign intr_vector[40] = i2c_intr_stretch_timeout;
+  assign intr_vector[41] = i2c_intr_sda_unstable;
+  assign intr_vector[42] = i2c_intr_trans_complete;
+  assign intr_vector[43] = i2c_intr_tx_empty;
+  assign intr_vector[44] = i2c_intr_tx_nonempty;
+  assign intr_vector[45] = i2c_intr_tx_overflow;
+  assign intr_vector[46] = i2c_intr_acq_overflow;
+  assign intr_vector[47] = i2c_intr_ack_stop;
+  assign intr_vector[48] = i2c_intr_host_timeout;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin

@@ -335,15 +335,21 @@ def main():
     intr_acq_overflow = obj['interrupts']['intr_acq_overflow']
     intr_ack_stop = obj['interrupts']['intr_ack_stop']
     intr_host_timeout = obj['interrupts']['intr_host_timeout']
-    dma_intr_done = obj['interrupts']['dma_intr_done']
-    spi_intr_error = obj['interrupts']['spi_intr_error']
-    spi_intr_event = obj['interrupts']['spi_intr_event']
-
-    # Interrupt lines available for external interrupt sources
     ext_intr_0 = obj['interrupts']['ext_intr_0']
     ext_intr_1 = obj['interrupts']['ext_intr_1']
     ext_intr_2 = obj['interrupts']['ext_intr_2']
     ext_intr_3 = obj['interrupts']['ext_intr_3']
+    ext_intr_4 = obj['interrupts']['ext_intr_4']
+    ext_intr_5 = obj['interrupts']['ext_intr_5']
+    ext_intr_6 = obj['interrupts']['ext_intr_6']
+    ext_intr_7 = obj['interrupts']['ext_intr_7']
+    ext_intr_8 = obj['interrupts']['ext_intr_8']
+    ext_intr_9 = obj['interrupts']['ext_intr_9']
+    ext_intr_10 = obj['interrupts']['ext_intr_10']
+    ext_intr_11 = obj['interrupts']['ext_intr_11']
+    ext_intr_12 = obj['interrupts']['ext_intr_12']
+    ext_intr_13 = obj['interrupts']['ext_intr_13']
+    ext_intr_14 = obj['interrupts']['ext_intr_14']
 
     pads = obj['pads']
     pad_list = []
@@ -466,13 +472,21 @@ def main():
         "intr_acq_overflow"                : intr_acq_overflow,
         "intr_ack_stop"                    : intr_ack_stop,
         "intr_host_timeout"                : intr_host_timeout,
-        "dma_intr_done"                    : dma_intr_done,
-        "spi_intr_error"                   : spi_intr_error,
-        "spi_intr_event"                   : spi_intr_event,
         "ext_intr_0"                       : ext_intr_0,
         "ext_intr_1"                       : ext_intr_1,
         "ext_intr_2"                       : ext_intr_2,
         "ext_intr_3"                       : ext_intr_3,
+        "ext_intr_4"                       : ext_intr_4,
+        "ext_intr_5"                       : ext_intr_5,
+        "ext_intr_6"                       : ext_intr_6,
+        "ext_intr_7"                       : ext_intr_7,
+        "ext_intr_8"                       : ext_intr_8,
+        "ext_intr_9"                       : ext_intr_9,
+        "ext_intr_10"                      : ext_intr_10,
+        "ext_intr_11"                      : ext_intr_11,
+        "ext_intr_12"                      : ext_intr_12,
+        "ext_intr_13"                      : ext_intr_13,
+        "ext_intr_14"                      : ext_intr_14,
         "pad_list"                         : pad_list,
         "num_internal_pad"                 : num_internal_pad,
     }
