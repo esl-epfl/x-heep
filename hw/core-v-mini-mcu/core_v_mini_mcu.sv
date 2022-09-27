@@ -131,11 +131,11 @@ module core_v_mini_mcu
   logic spi_intr;
 
   // power manager
-  logic                                      cpu_subsystem_powergate_switch;
-  logic                                      peripheral_subsystem_powergate_switch;
+  logic cpu_subsystem_powergate_switch;
+  logic peripheral_subsystem_powergate_switch;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switches;
-  logic                                      cpu_subsystem_rst_n;
-  logic                                      peripheral_subsystem_rst_n;
+  logic cpu_subsystem_rst_n;
+  logic peripheral_subsystem_rst_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_rst_n;
 
   // rv_timer
@@ -178,7 +178,9 @@ module core_v_mini_mcu
       .core_instr_resp_i(core_instr_resp),
       .core_data_req_o(core_data_req),
       .core_data_resp_i(core_data_resp),
-      .irq_i({1'b0, irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0}),
+      .irq_i({
+        1'b0, irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
+      }),
       .irq_ack_o(irq_ack),
       .irq_id_o(irq_id_out),
       .debug_req_i(debug_core_req),
@@ -322,29 +324,29 @@ module core_v_mini_mcu
 
   pad_ring pad_ring_i (
       .clk_io(clk_i),
-      .clk_o (clk),
+      .clk_o(clk),
       .rst_io(rst_ni),
-      .rst_o (rst_n),
+      .rst_o(rst_n),
       .boot_select_io(boot_select_i),
-      .boot_select_o (boot_select),
+      .boot_select_o(boot_select),
       .execute_from_flash_io(execute_from_flash_i),
-      .execute_from_flash_o (execute_from_flash),
+      .execute_from_flash_o(execute_from_flash),
       .jtag_tck_io(jtag_tck_i),
-      .jtag_tck_o (jtag_tck),
+      .jtag_tck_o(jtag_tck),
       .jtag_tms_io(jtag_tms_i),
-      .jtag_tms_o (jtag_tms),
+      .jtag_tms_o(jtag_tms),
       .jtag_trst_io(jtag_trst_ni),
-      .jtag_trst_o (jtag_trst_n),
+      .jtag_trst_o(jtag_trst_n),
       .jtag_tdi_io(jtag_tdi_i),
-      .jtag_tdi_o (jtag_tdi),
+      .jtag_tdi_o(jtag_tdi),
       .jtag_tdo_io(jtag_tdo_o),
-      .jtag_tdo_i (jtag_tdo),
+      .jtag_tdo_i(jtag_tdo),
       .uart_rx_io(uart_rx_i),
-      .uart_rx_o (uart_rx),
+      .uart_rx_o(uart_rx),
       .uart_tx_io(uart_tx_o),
-      .uart_tx_i (uart_tx),
+      .uart_tx_i(uart_tx),
       .exit_valid_io(exit_valid_o),
-      .exit_valid_i (exit_valid),
+      .exit_valid_i(exit_valid),
       .gpio_0_io(gpio_io[0]),
       .gpio_0_i(gpio_out[0]),
       .gpio_0_o(gpio_in[0]),
