@@ -8,7 +8,7 @@ build/
 *.map
 *.do
 
-./core-v-mini-mcu.upf
+core-v-mini-mcu.upf
 
 # ignore the following hw automatically generated files
 tb/tb_util.svh
