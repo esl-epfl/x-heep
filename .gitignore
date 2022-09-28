@@ -8,6 +8,8 @@ build/
 *.map
 *.do
 
+./core-v-mini-mcu.upf
+
 # ignore the following hw automatically generated files
 tb/tb_util.svh
 hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
