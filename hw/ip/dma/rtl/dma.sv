@@ -40,11 +40,14 @@ module dma #(
   logic        [               31:0] read_ptr_reg;
   logic        [               31:0] write_ptr_reg;
   logic        [               31:0] dma_cnt;
+  logic        [               31:0] dma_cnt_d;
+  logic        [               31:0] dma_cnt_dec;
   logic                              dma_start;
   logic                              dma_done;
 
   logic        [Addr_Fifo_Depth-1:0] fifo_usage;
   logic                              fifo_alm_full;
+  logic                              fifo_alm_empty;
 
   logic                              data_in_req;
   logic                              data_in_we;
@@ -72,6 +75,8 @@ module dma #(
   logic                              wait_for_tx_spi;
 
   logic        [                3:0] byte_enable;
+  logic        [                3:0] byte_enable_dst;
+  logic        [                3:0] byte_enable_last;
 
   enum logic {
     DMA_READ_FSM_IDLE,
@@ -117,17 +122,18 @@ module dma #(
   assign wait_for_tx_spi = spi_dma_mode == 2'h2 && ~spi_tx_ready_i;
 
   assign fifo_alm_full = (fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
+  assign fifo_alm_empty = (fifo_usage == 1);
 
   // DMA pulse start when dma_start register is written
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start
     if (~rst_ni) begin
       dma_start <= 1'b0;
-      byte_enable <= 4'hf;
+      // byte_enable <= 4'hf;
       spi_dma_mode <= 2'h0;
     end else begin
       if (dma_start == 1'b1) begin
         dma_start <= 1'b0;
-        byte_enable <= reg2hw.byte_enable.q;
+        // byte_enable <= reg2hw.byte_enable.q;
         spi_dma_mode <= reg2hw.spi_mode.q;
       end else begin
         dma_start <= |reg2hw.dma_start.q;
@@ -169,10 +175,44 @@ module dma #(
       if (dma_start == 1'b1) begin
         dma_cnt <= reg2hw.dma_start.q;
       end else if (data_in_gnt == 1'b1) begin
-        dma_cnt <= dma_cnt - 32'h1;
+        dma_cnt <= dma_cnt_d;
       end
     end
   end
+
+  assign dma_cnt_d  = dma_cnt - dma_cnt_dec;
+  assign last_trans = (|dma_cnt_d == 1'b0);
+
+  always_comb begin
+    // If less than four bytes to copy adjust byte_enable
+    if (dma_cnt == 3) begin
+      byte_enable = 4'b0111;
+      dma_cnt_dec = 32'h3;
+    end else if (dma_cnt == 2) begin
+      byte_enable = 4'b0011;
+      dma_cnt_dec = 32'h2;
+    end else if (dma_cnt == 1) begin
+      byte_enable = 4'b0001;
+      dma_cnt_dec = 32'h1;
+    end else begin
+      byte_enable = 4'b1111;
+      dma_cnt_dec = 32'h4;
+    end
+  end
+
+  // Store the last byte enable for the write channel
+  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_byte_enable_last
+    if (~rst_ni) begin
+      byte_enable_last <= 1'b0;
+    end else begin
+      if (last_trans == 1'b1 && data_in_gnt == 1'b1) begin
+        byte_enable_last <= byte_enable;
+      end
+    end
+  end
+
+  // Make sure the fifo is almost empty and that no data will be pushed
+  assign byte_enable_dst = (fifo_alm_empty == 1'b1 && (data_in_req | data_in_rvalid) == 1'b0) ? byte_enable_last : 4'b1111;
 
   // FSM state update
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_fsm_state
@@ -219,7 +259,7 @@ module dma #(
           if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx_spi == 1'b0) begin
             data_in_req  = 1'b1;
             data_in_we   = 1'b0;
-            data_in_be   = byte_enable;
+            data_in_be   = 4'b1111;  // always read all bytes
             data_in_addr = read_ptr_reg;
           end
         end
@@ -260,7 +300,7 @@ module dma #(
           if (fifo_empty == 1'b0 && wait_for_tx_spi == 1'b0) begin
             data_out_req  = 1'b1;
             data_out_we   = 1'b1;
-            data_out_be   = byte_enable;
+            data_out_be   = byte_enable_dst;
             data_out_addr = write_ptr_reg;
           end
         end
