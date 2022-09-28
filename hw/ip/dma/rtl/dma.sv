@@ -6,7 +6,6 @@
 
 module dma #(
     parameter int unsigned FIFO_DEPTH = 4,
-    parameter int unsigned ADDR_FIFO_DEPTH = (FIFO_DEPTH > 1) ? $clog2(FIFO_DEPTH) : 1,
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
     parameter type obi_req_t = logic,
@@ -33,6 +32,7 @@ module dma #(
   import dma_reg_pkg::*;
 
   localparam int unsigned LastFifoUsage = FIFO_DEPTH - 1;
+  localparam int unsigned Addr_Fifo_Depth = (FIFO_DEPTH > 1) ? $clog2(FIFO_DEPTH) : 1;
 
   dma_reg2hw_t                       reg2hw;
   dma_hw2reg_t                       hw2reg;
@@ -43,7 +43,7 @@ module dma #(
   logic                              dma_start;
   logic                              dma_done;
 
-  logic        [ADDR_FIFO_DEPTH-1:0] fifo_usage;
+  logic        [Addr_Fifo_Depth-1:0] fifo_usage;
   logic                              fifo_alm_full;
 
   logic                              data_in_req;
@@ -116,7 +116,7 @@ module dma #(
   assign wait_for_rx_spi = spi_dma_mode == 2'h1 && ~spi_rx_valid_i;
   assign wait_for_tx_spi = spi_dma_mode == 2'h2 && ~spi_tx_ready_i;
 
-  assign fifo_alm_full = (fifo_usage == LastFifoUsage[ADDR_FIFO_DEPTH-1:0]);
+  assign fifo_alm_full = (fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
 
   // DMA pulse start when dma_start register is written
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start
@@ -215,7 +215,7 @@ module dma #(
           dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
         end else begin
           dma_read_fsm_n_state = DMA_READ_FSM_ON;
-          // Wait if fifo is full and 
+          // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
           if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx_spi == 1'b0) begin
             data_in_req  = 1'b1;
             data_in_we   = 1'b0;
@@ -256,7 +256,7 @@ module dma #(
           dma_done = 1'b1;
         end else begin
           dma_write_fsm_n_state = DMA_WRITE_FSM_ON;
-          // Wait if fifo is full and
+          // Wait if fifo is empty or if the SPI TX is not ready for new data (only in SPI mode 2).
           if (fifo_empty == 1'b0 && wait_for_tx_spi == 1'b0) begin
             data_out_req  = 1'b1;
             data_out_we   = 1'b1;

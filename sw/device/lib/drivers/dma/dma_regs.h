@@ -43,8 +43,8 @@ extern "C" {
 #define DMA_BYTE_ENABLE_BYTE_ENABLE_FIELD \
   ((bitfield_field32_t) { .mask = DMA_BYTE_ENABLE_BYTE_ENABLE_MASK, .index = DMA_BYTE_ENABLE_BYTE_ENABLE_OFFSET })
 
-// Register to configure SPI modes: 1 - receive from SPI, 2 - send to the
-// SPI. It waits for TX and RX FIFO respectively
+// SPI mode selection: disable(0), receive from SPI (1), and send to SPI (2).
+// It waits for TX and RX FIFO in modes 1 and 2, respectively.
 #define DMA_SPI_MODE_REG_OFFSET 0x1c
 #define DMA_SPI_MODE_SPI_MODE_MASK 0x3
 #define DMA_SPI_MODE_SPI_MODE_OFFSET 0
