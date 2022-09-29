@@ -3,6 +3,7 @@ upf_version 2.1
 set_design_top core_v_mini_mcu
 set_scope .
 
+
 <%text>
 #####################
 ##  POWER DOMAINS  ##
@@ -16,11 +17,15 @@ create_power_domain PD_PERIP_SUBS -elements {peripheral_subsystem_i}
 create_power_domain PD_MEM_BANK_${bank} -elements {memory_subsystem_i/gen_sram[${bank}].ram_i}
 % endfor
 
+
 <%text>
 ####################
 ##  POWER STATES  ##
 ####################
 </%text>\
+
+add_power_state PD_TOP.primary -state TOP_ON <%text>\</%text>
+    {-supply_expr {power == `{FULL_ON, 1.2} && ground == `{FULL_ON, 0.0}}}
 
 add_power_state PD_CPU.primary -state CPU_ON <%text>\</%text>
     {-supply_expr {power == `{FULL_ON, 1.2} && ground == `{FULL_ON, 0.0}}}
@@ -42,9 +47,6 @@ add_power_state PD_MEM_BANK_${bank}.primary -state MEM_BANK_${bank}_OFF <%text>\
     {-supply_expr {power == `{OFF} && ground == `{FULL_ON, 0.0}}} -simstate CORRUPT
 
 % endfor
-
-add_power_state PD_TOP.primary -state TOP_ON <%text>\</%text>
-    {-supply_expr {power == `{FULL_ON, 1.2} && ground == `{FULL_ON, 0.0}}}
 
 <%text>
 ###################
@@ -72,6 +74,7 @@ create_supply_set PD_PERIP_SUBS.primary -function {power VDD_PERIP_SUBS} -functi
 % for bank in range(ram_numbanks):
 create_supply_net VDD_MEM_BANK_${bank}
 create_supply_set PD_MEM_BANK_${bank}.primary -function {power VDD_MEM_BANK_${bank}} -function {ground VSS} -update
+
 % endfor
 
 <%text>
@@ -107,6 +110,7 @@ create_power_switch switch_PD_MEM_BANK_${bank} <%text>\</%text>
     -control_port       {sw_ctrl   memory_subsystem_banks_powergate_switches[${bank}]} <%text>\</%text>
     -on_state           {on_state  sw_in {sw_ctrl}} <%text>\</%text>
     -off_state          {off_state {!sw_ctrl}}
+
 % endfor
 
 <%text>
@@ -148,4 +152,5 @@ set_isolation mem_bank_${bank}_iso <%text>\</%text>
     -applies_to both <%text>\</%text>
     -name_prefix cpu_iso_cell <%text>\</%text>
     -location parent
+
 % endfor
