@@ -75,7 +75,7 @@ module dma #(
   logic                              wait_for_tx_spi;
 
   logic        [                3:0] byte_enable;
-  logic        [                3:0] byte_enable_dst;
+  logic        [                3:0] byte_enable_out;
   logic        [                3:0] byte_enable_last;
 
   enum logic {
@@ -128,12 +128,10 @@ module dma #(
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start
     if (~rst_ni) begin
       dma_start <= 1'b0;
-      // byte_enable <= 4'hf;
       spi_dma_mode <= 2'h0;
     end else begin
       if (dma_start == 1'b1) begin
         dma_start <= 1'b0;
-        // byte_enable <= reg2hw.byte_enable.q;
         spi_dma_mode <= reg2hw.spi_mode.q;
       end else begin
         dma_start <= |reg2hw.dma_start.q;
@@ -184,19 +182,30 @@ module dma #(
   assign last_trans = (|dma_cnt_d == 1'b0);
 
   always_comb begin
-    // If less than four bytes to copy adjust byte_enable
-    if (dma_cnt == 3) begin
-      byte_enable = 4'b0111;
+    dma_cnt_dec = 32'h4;
+    // Adjust the counter decrement to trigger the read end with dma_cnt=0
+    if (|dma_cnt[31:2] == 1'b1) begin // if dma_cnt>=4
+      dma_cnt_dec = 32'h4;
+    end else if (dma_cnt[1:0] == 3) begin
       dma_cnt_dec = 32'h3;
-    end else if (dma_cnt == 2) begin
-      byte_enable = 4'b0011;
+    end else if (dma_cnt[1:0] == 2) begin
       dma_cnt_dec = 32'h2;
-    end else if (dma_cnt == 1) begin
-      byte_enable = 4'b0001;
+    end else if (dma_cnt[1:0] == 1) begin
       dma_cnt_dec = 32'h1;
+    end
+  end
+
+  always_comb begin
+    // If less than four bytes to copy adjust byte_enable
+    // byte_enable is not used before last read so it can already take its final value
+    if (dma_cnt[1:0] == 3) begin
+      byte_enable = 4'b0111;
+    end else if (dma_cnt[1:0] == 2) begin
+      byte_enable = 4'b0011;
+    end else if (dma_cnt[1:0] == 1) begin
+      byte_enable = 4'b0001;
     end else begin
       byte_enable = 4'b1111;
-      dma_cnt_dec = 32'h4;
     end
   end
 
@@ -212,7 +221,7 @@ module dma #(
   end
 
   // Make sure the fifo is almost empty and that no data will be pushed
-  assign byte_enable_dst = (fifo_alm_empty == 1'b1 && (data_in_req | data_in_rvalid) == 1'b0) ? byte_enable_last : 4'b1111;
+  assign byte_enable_out = (fifo_alm_empty == 1'b1 && (data_in_req | data_in_rvalid) == 1'b0) ? byte_enable_last : 4'b1111;
 
   // FSM state update
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_fsm_state
@@ -300,7 +309,7 @@ module dma #(
           if (fifo_empty == 1'b0 && wait_for_tx_spi == 1'b0) begin
             data_out_req  = 1'b1;
             data_out_we   = 1'b1;
-            data_out_be   = byte_enable_dst;
+            data_out_be   = byte_enable_out;
             data_out_addr = write_ptr_reg;
           end
         end

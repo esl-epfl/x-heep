@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
     dma_set_read_ptr(&dma, (uint32_t) original_data);
     dma_set_write_ptr(&dma, (uint32_t) copied_data_32b);
-    printf("DMA 32b transactions launched\n");
+    printf("DMA 32b aligned transaction launched\n");
     // Give number of bytes to transfer
     dma_set_cnt_start(&dma, (uint32_t) 4*COPY_SIZE);
     // Wait copy is done
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 
     dma_set_read_ptr(&dma, (uint32_t) original_data);
     dma_set_write_ptr(&dma, (uint32_t) copied_data_16b);
-    printf("DMA 16b transactions launched\n");
+    printf("DMA 16b aligned transaction launched\n");
     // Give number of bytes to transfer
     // Last two bytes are not copy to check the DMA works properly
     dma_set_cnt_start(&dma, (uint32_t) 4*COPY_SIZE-2);
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 
     dma_set_read_ptr(&dma, (uint32_t) original_data);
     dma_set_write_ptr(&dma, (uint32_t) copied_data_8b);
-    printf("DMA 8b transactions launched\n");
+    printf("DMA 8b aligned transaction launched\n");
     // Give number of bytes to transfer
     // Last byte are not copy to check the DMA works properly
     dma_set_cnt_start(&dma, (uint32_t) 4*COPY_SIZE-1);
@@ -146,9 +146,9 @@ int main(int argc, char *argv[])
     }
 
     if (errors == 0) {
-        printf("DMA 32B TRANSFER SUCCESS\n");
+        printf("DMA 32B ALIGNED TRANSFER SUCCESS\n");
     } else {
-        printf("DMA 32B TRANSFER FAILURE: %d errors out of %d bytes checked\n", errors, 4*COPY_SIZE);
+        printf("DMA 32B ALIGNED TRANSFER FAILURE: %d errors out of %d bytes checked\n", errors, 4*COPY_SIZE);
     }
 
     // Check for errors in 16b copy
@@ -168,9 +168,9 @@ int main(int argc, char *argv[])
     }
 
     if (errors == 0) {
-        printf("DMA 16B TRANSFER SUCCESS\n");
+        printf("DMA 16B ALIGNED TRANSFER SUCCESS\n");
     } else {
-        printf("DMA 16B TRANSFER FAILURE: %d errors out of %d bytes checked\n", errors, 4*COPY_SIZE);
+        printf("DMA 16B ALIGNED TRANSFER FAILURE: %d errors out of %d bytes checked\n", errors, 4*COPY_SIZE);
     }
 
     // Check for errors in 8b copy
@@ -190,9 +190,9 @@ int main(int argc, char *argv[])
     }    
 
     if (errors == 0) {
-        printf("DMA 8B TRANSFER SUCCESS\n");
+        printf("DMA 8B ALIGNED TRANSFER SUCCESS\n");
     } else {
-        printf("DMA 8B TRANSFER FAILURE: %d errors out of %d bytes checked\n", errors, 4*COPY_SIZE);
+        printf("DMA 8B ALIGNED TRANSFER FAILURE: %d errors out of %d bytes checked\n", errors, 4*COPY_SIZE);
     }
 
     return EXIT_SUCCESS;
