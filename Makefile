@@ -23,7 +23,6 @@ mcu-gen:
 	python util/mcu_gen.py --cfg mcu_cfg.hjson --outdir hw/ip/power_manager/data --memorybanks $(MEMORY_BANKS) --pkg-sv hw/ip/power_manager/data/power_manager.hjson.tpl
 	bash -c "cd hw/ip/power_manager; source power_manager_gen.sh; cd ../../../"
 	python util/mcu_gen.py --cfg mcu_cfg.hjson --outdir sw/device/lib/drivers/power_manager --memorybanks $(MEMORY_BANKS) --pkg-sv sw/device/lib/drivers/power_manager/data/power_manager.h.tpl
-	python util/mcu_gen.py --cfg mcu_cfg.hjson --outdir sw/device/lib/drivers/power_manager --memorybanks $(MEMORY_BANKS) --pkg-sv sw/device/lib/drivers/power_manager/data/power_manager.c.tpl
 	python util/mcu_gen.py --cfg mcu_cfg.hjson --outdir sw/linker --memorybanks $(MEMORY_BANKS) --linker_script sw/linker/link_spihost.ld.tpl
 
 # Display mcu_gen.py help

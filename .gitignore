@@ -27,4 +27,3 @@ sw/linker/link_spiflash.ld
 sw/linker/link_spihost.ld
 sw/device/lib/drivers/power_manager/power_manager_regs.h
 sw/device/lib/drivers/power_manager/power_manager.h
-sw/device/lib/drivers/power_manager/power_manager.c
