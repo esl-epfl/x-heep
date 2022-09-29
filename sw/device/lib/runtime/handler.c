@@ -82,6 +82,84 @@ __attribute__((weak)) void handler_irq_external(void) {
   }
 }
 
+__attribute__((weak)) void handler_irq_fast_timer_1(void) {
+  printf("External IRQ triggered!\n");
+  while (1) {
+  }
+}
+
+__attribute__((weak)) void handler_irq_fast_timer_2(void) {
+  printf("External IRQ triggered!\n");
+  while (1) {
+  }
+}
+
+__attribute__((weak)) void handler_irq_fast_timer_3(void) {
+  printf("External IRQ triggered!\n");
+  while (1) {
+  }
+}
+
+__attribute__((weak)) void handler_irq_fast_dma(void) {
+  printf("External IRQ triggered!\n");
+  while (1) {
+  }
+}
+
+__attribute__((weak)) void handler_irq_fast_spi(void) {
+  printf("External IRQ triggered!\n");
+  while (1) {
+  }
+}
+
+__attribute__((weak)) void handler_irq_fast_gpio_0(void) {
+  printf("External IRQ triggered!\n");
+  while (1) {
+  }
+}
+
+__attribute__((weak)) void handler_irq_fast_gpio_1(void) {
+  printf("External IRQ triggered!\n");
+  while (1) {
+  }
+}
+
+__attribute__((weak)) void handler_irq_fast_gpio_2(void) {
+  printf("External IRQ triggered!\n");
+  while (1) {
+  }
+}
+
+__attribute__((weak)) void handler_irq_fast_gpio_3(void) {
+  printf("External IRQ triggered!\n");
+  while (1) {
+  }
+}
+
+__attribute__((weak)) void handler_irq_fast_gpio_4(void) {
+  printf("External IRQ triggered!\n");
+  while (1) {
+  }
+}
+
+__attribute__((weak)) void handler_irq_fast_gpio_5(void) {
+  printf("External IRQ triggered!\n");
+  while (1) {
+  }
+}
+
+__attribute__((weak)) void handler_irq_fast_gpio_6(void) {
+  printf("External IRQ triggered!\n");
+  while (1) {
+  }
+}
+
+__attribute__((weak)) void handler_irq_fast_gpio_7(void) {
+  printf("External IRQ triggered!\n");
+  while (1) {
+  }
+}
+
 __attribute__((weak)) void handler_instr_acc_fault(void) {
   const char fault_msg[] =
       "Instruction access fault, mtval shows fault address\n";
