@@ -84,9 +84,6 @@ module dma_reg_top #(
   logic [31:0] dst_ptr_inc_qs;
   logic [31:0] dst_ptr_inc_wd;
   logic dst_ptr_inc_we;
-  logic [3:0] byte_enable_qs;
-  logic [3:0] byte_enable_wd;
-  logic byte_enable_we;
   logic [1:0] spi_mode_qs;
   logic [1:0] spi_mode_wd;
   logic spi_mode_we;
@@ -253,33 +250,6 @@ module dma_reg_top #(
   );
 
 
-  // R[byte_enable]: V(False)
-
-  prim_subreg #(
-      .DW      (4),
-      .SWACCESS("RW"),
-      .RESVAL  (4'hf)
-  ) u_byte_enable (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(byte_enable_we),
-      .wd(byte_enable_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.byte_enable.q),
-
-      // to register interface (read)
-      .qs(byte_enable_qs)
-  );
-
-
   // R[spi_mode]: V(False)
 
   prim_subreg #(
@@ -309,7 +279,7 @@ module dma_reg_top #(
 
 
 
-  logic [7:0] addr_hit;
+  logic [6:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == DMA_PTR_IN_OFFSET);
@@ -318,8 +288,7 @@ module dma_reg_top #(
     addr_hit[3] = (reg_addr == DMA_DONE_OFFSET);
     addr_hit[4] = (reg_addr == DMA_SRC_PTR_INC_OFFSET);
     addr_hit[5] = (reg_addr == DMA_DST_PTR_INC_OFFSET);
-    addr_hit[6] = (reg_addr == DMA_BYTE_ENABLE_OFFSET);
-    addr_hit[7] = (reg_addr == DMA_SPI_MODE_OFFSET);
+    addr_hit[6] = (reg_addr == DMA_SPI_MODE_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -333,8 +302,7 @@ module dma_reg_top #(
                (addr_hit[3] & (|(DMA_PERMIT[3] & ~reg_be))) |
                (addr_hit[4] & (|(DMA_PERMIT[4] & ~reg_be))) |
                (addr_hit[5] & (|(DMA_PERMIT[5] & ~reg_be))) |
-               (addr_hit[6] & (|(DMA_PERMIT[6] & ~reg_be))) |
-               (addr_hit[7] & (|(DMA_PERMIT[7] & ~reg_be)))));
+               (addr_hit[6] & (|(DMA_PERMIT[6] & ~reg_be)))));
   end
 
   assign ptr_in_we = addr_hit[0] & reg_we & !reg_error;
@@ -352,10 +320,7 @@ module dma_reg_top #(
   assign dst_ptr_inc_we = addr_hit[5] & reg_we & !reg_error;
   assign dst_ptr_inc_wd = reg_wdata[31:0];
 
-  assign byte_enable_we = addr_hit[6] & reg_we & !reg_error;
-  assign byte_enable_wd = reg_wdata[3:0];
-
-  assign spi_mode_we = addr_hit[7] & reg_we & !reg_error;
+  assign spi_mode_we = addr_hit[6] & reg_we & !reg_error;
   assign spi_mode_wd = reg_wdata[1:0];
 
   // Read data return
@@ -387,10 +352,6 @@ module dma_reg_top #(
       end
 
       addr_hit[6]: begin
-        reg_rdata_next[3:0] = byte_enable_qs;
-      end
-
-      addr_hit[7]: begin
         reg_rdata_next[1:0] = spi_mode_qs;
       end
 

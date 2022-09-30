@@ -74,13 +74,6 @@ void dma_set_write_ptr_inc(const dma_t *dma, uint32_t write_ptr_inc);
  */
 void dma_set_spi_mode(const dma_t *dma, uint32_t spi_mode);
 
-/**
- * Bytes mask when copying words.
- * @param dma Pointer to dma_t represting the target DMA.
- * @param spi_mode bytes enabled for a full ford (4 bits).
- */
-void dma_set_byte_enable(const dma_t *dma, uint32_t byte_enable);
-
 #ifdef __cplusplus
 }
 #endif

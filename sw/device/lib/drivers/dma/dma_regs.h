@@ -22,8 +22,7 @@ extern "C" {
 // Output data pointer (word aligned)
 #define DMA_PTR_OUT_REG_OFFSET 0x4
 
-// Number of words (4 bytes) to copy - Once a value is written, the copy
-// starts
+// Number of bytes to copy - Once a value is written, the copy starts
 #define DMA_DMA_START_REG_OFFSET 0x8
 
 // Register set to 1 when copy is done
@@ -36,16 +35,9 @@ extern "C" {
 // destination
 #define DMA_DST_PTR_INC_REG_OFFSET 0x14
 
-// Select the bytes from the word(s) being copied from source to destination
-#define DMA_BYTE_ENABLE_REG_OFFSET 0x18
-#define DMA_BYTE_ENABLE_BYTE_ENABLE_MASK 0xf
-#define DMA_BYTE_ENABLE_BYTE_ENABLE_OFFSET 0
-#define DMA_BYTE_ENABLE_BYTE_ENABLE_FIELD \
-  ((bitfield_field32_t) { .mask = DMA_BYTE_ENABLE_BYTE_ENABLE_MASK, .index = DMA_BYTE_ENABLE_BYTE_ENABLE_OFFSET })
-
 // SPI mode selection: disable(0), receive from SPI (1), and send to SPI (2).
 // It waits for TX and RX FIFO in modes 1 and 2, respectively.
-#define DMA_SPI_MODE_REG_OFFSET 0x1c
+#define DMA_SPI_MODE_REG_OFFSET 0x18
 #define DMA_SPI_MODE_SPI_MODE_MASK 0x3
 #define DMA_SPI_MODE_SPI_MODE_OFFSET 0
 #define DMA_SPI_MODE_SPI_MODE_FIELD \

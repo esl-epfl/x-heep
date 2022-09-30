@@ -60,15 +60,6 @@
         { bits: "31:0", name: "DST_PTR_INC", desc: "Destination pointer increment" }
       ]
     },
-    { name:     "BYTE_ENABLE",
-      desc:     "Select the bytes from the word(s) being copied from source to destination",
-      swaccess: "rw",
-      hwaccess: "hro",
-      resval:   15,
-      fields: [
-        { bits: "3:0", name: "BYTE_ENABLE", desc: "Mask read/write bytes" }
-      ]
-    },
     { name:     "SPI_MODE",
       desc:     "SPI mode selection: disable(0), receive from SPI (1), and send to SPI (2). It waits for TX and RX FIFO in modes 1 and 2, respectively.",
       swaccess: "rw",
