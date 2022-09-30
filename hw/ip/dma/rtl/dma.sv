@@ -221,8 +221,9 @@ module dma #(
     end
   end
 
-  // Make sure the fifo is almost empty and that no data will be pushed
-  assign byte_enable_out = (fifo_alm_empty == 1'b1 && dma_cnt == 0) ? byte_enable_last : 4'b1111;
+  // Make sure the fifo is almost empty, read transfer are done and no data will be pushed to fifo
+  // This assumes rvalid is always high exactly 1 cycle after gnt is high
+  assign byte_enable_out = (fifo_alm_empty == 1'b1 && dma_cnt == 0 && data_in_rvalid == 1'b0) ? byte_enable_last : 4'b1111;
 
   // FSM state update
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_fsm_state

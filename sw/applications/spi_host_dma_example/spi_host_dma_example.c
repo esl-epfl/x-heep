@@ -40,7 +40,7 @@ void handler_irq_external(void) {
 }
 
 // Reserve memory array
-uint32_t flash_data[SPI_BYTES / 4] __attribute__ ((aligned (4))) = {0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98};
+uint32_t flash_data[SPI_BYTES / 4] __attribute__ ((aligned (4))) = {0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,0x679852fe,0xff8252bb,0x763b4521,0x6875adaa,0x09ac65bb,0x666ba334,0x44556677,0x0000ba98};
 uint32_t copy_data[SPI_BYTES / 4] __attribute__ ((aligned (4)))  = { 0 };
 
 int main(int argc, char *argv[])
@@ -55,18 +55,21 @@ int main(int argc, char *argv[])
     plic_res = dif_plic_init(rv_plic_params, &rv_plic);
     if (plic_res != kDifPlicOk) {
         printf("Unable to set the PLIC\n;");
+        return EXIT_FAILURE;
     }
 
     // Set DMA priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
     plic_res = dif_plic_irq_set_priority(&rv_plic, DMA_INTR_DONE, 1);
     if (plic_res != kDifPlicOk) {
         printf("Unable to set the PLIC priority\n;");
+        return EXIT_FAILURE;
     }
 
     // Enable DMA interrupt
     plic_res = dif_plic_irq_set_enabled(&rv_plic, DMA_INTR_DONE, 0, kDifPlicToggleEnabled);
     if (plic_res != kDifPlicOk) {
         printf("Unable to enable the PLIC irq\n;");
+        return EXIT_FAILURE;
     }
 
     // Enable interrupt on processor side
