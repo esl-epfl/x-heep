@@ -77,6 +77,7 @@ module dma #(
   logic        [                3:0] byte_enable;
   logic        [                3:0] byte_enable_out;
   logic        [                3:0] byte_enable_last;
+  logic                              last_trans;
 
   enum logic {
     DMA_READ_FSM_IDLE,
@@ -212,7 +213,7 @@ module dma #(
   // Store the last byte enable for the write channel
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_byte_enable_last
     if (~rst_ni) begin
-      byte_enable_last <= 1'b0;
+      byte_enable_last <= 4'b1111;
     end else begin
       if (last_trans == 1'b1 && data_in_gnt == 1'b1) begin
         byte_enable_last <= byte_enable;
@@ -221,7 +222,7 @@ module dma #(
   end
 
   // Make sure the fifo is almost empty and that no data will be pushed
-  assign byte_enable_out = (fifo_alm_empty == 1'b1 && dma_cnt == 1'b0) ? byte_enable_last : 4'b1111;
+  assign byte_enable_out = (fifo_alm_empty == 1'b1 && dma_cnt == 0) ? byte_enable_last : 4'b1111;
 
   // FSM state update
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_fsm_state

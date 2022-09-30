@@ -39,7 +39,7 @@ void handler_irq_external(void) {
     }
 }
 
-// Reserve 16kB
+// Reserve memory array
 uint32_t flash_data[SPI_BYTES / 4] __attribute__ ((aligned (4))) = {0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98,0x76543210,0xfedcba98};
 uint32_t copy_data[SPI_BYTES / 4] __attribute__ ((aligned (4)))  = { 0 };
 
