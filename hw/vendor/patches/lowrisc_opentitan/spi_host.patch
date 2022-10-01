@@ -94,8 +94,19 @@ index ef60a96..cc8e204 100644
            name: "LEN",
            desc: '''Segment Length.
  
+diff --git b/hw/ip/spi_host/lint/spi_host.vlt a/hw/ip/spi_host/lint/spi_host.vlt
+index 30197cb..f1142f5 100644
+--- b/hw/ip/spi_host/lint/spi_host.vlt
++++ a/hw/ip/spi_host/lint/spi_host.vlt
+@@ -4,3 +4,6 @@
+ //
+ // waiver file for SPI_HOST
+ 
++`verilator_config
++
++lint_off -rule UNUSED -file "*/vendor/lowrisc_opentitan/hw/ip/spi_host/rtl/spi_host.sv" -match "Bits of signal are not used: 'reg2hw'[162:161]"
 diff --git b/hw/ip/spi_host/rtl/spi_host.sv a/hw/ip/spi_host/rtl/spi_host.sv
-index 6694d3b..38cd6a1 100644
+index 6694d3b..6fcb6b8 100644
 --- b/hw/ip/spi_host/rtl/spi_host.sv
 +++ a/hw/ip/spi_host/rtl/spi_host.sv
 @@ -6,21 +6,22 @@
@@ -127,7 +138,7 @@ index 6694d3b..38cd6a1 100644
  
    // SPI Interface
    output logic             cio_sck_o,
-@@ -31,9 +32,8 @@ module spi_host
+@@ -31,9 +32,9 @@ module spi_host
    output logic [3:0]       cio_sd_en_o,
    input        [3:0]       cio_sd_i,
  
@@ -135,11 +146,12 @@ index 6694d3b..38cd6a1 100644
 -  input  spi_device_pkg::passthrough_req_t passthrough_i,
 -  output spi_device_pkg::passthrough_rsp_t passthrough_o,
 +  // DMA Interface
-+  output logic             rx_empty_o,
++  output logic             rx_valid_o,
++  output logic             tx_ready_o,
  
    output logic             intr_error_o,
    output logic             intr_spi_event_o
-@@ -44,96 +44,39 @@ module spi_host
+@@ -44,96 +45,39 @@ module spi_host
    spi_host_reg2hw_t reg2hw;
    spi_host_hw2reg_t hw2reg;
  
@@ -253,7 +265,7 @@ index 6694d3b..38cd6a1 100644
  
    assign hw2reg.status.byteorder.d  = ByteOrder;
    assign hw2reg.status.byteorder.de = 1'b1;
-@@ -151,8 +94,6 @@ module spi_host
+@@ -151,8 +95,6 @@ module spi_host
    logic test_dir_inval;
    logic test_speed_inval;
  
@@ -262,7 +274,7 @@ index 6694d3b..38cd6a1 100644
    assign test_csid_inval  = (reg2hw.csid.q >= NumCS);
  
    always_comb begin
-@@ -164,7 +105,7 @@ module spi_host
+@@ -164,7 +106,7 @@ module spi_host
          test_speed_inval = 1'b0;
        end
        Dual, Quad: begin
@@ -271,7 +283,7 @@ index 6694d3b..38cd6a1 100644
          test_speed_inval = 1'b0;
        end
        default: begin
-@@ -191,25 +132,35 @@ module spi_host
+@@ -191,25 +133,35 @@ module spi_host
      endcase
    end
  
@@ -319,7 +331,7 @@ index 6694d3b..38cd6a1 100644
  
    logic [3:0] cmd_qes;
  
-@@ -272,11 +223,14 @@ module spi_host
+@@ -272,11 +224,14 @@ module spi_host
    logic        rx_valid;
    logic        rx_ready;
  
@@ -337,16 +349,17 @@ index 6694d3b..38cd6a1 100644
      .tx_data_o  (tx_data),
      .tx_be_o    (tx_be),
      .tx_valid_o (tx_valid),
-@@ -301,6 +255,8 @@ module spi_host
+@@ -301,6 +256,9 @@ module spi_host
    logic        tx_empty, tx_full, tx_wm;
    logic        rx_empty, rx_full, rx_wm;
  
-+  assign rx_empty_o = rx_empty;
++  assign rx_valid_o = rx_valid;
++  assign tx_ready_o = tx_ready;
 +
    assign rx_watermark = reg2hw.control.rx_watermark.q;
    assign tx_watermark = reg2hw.control.tx_watermark.q;
  
-@@ -561,8 +517,6 @@ module spi_host
+@@ -561,8 +519,6 @@ module spi_host
    );
  
  
@@ -2162,14 +2175,3 @@ index dd97bff..dc42065 100644
      files:
        - rtl/spi_host_reg_pkg.sv
        - rtl/spi_host_cmd_pkg.sv
-diff --git a/hw/ip/spi_host/lint/spi_host.vlt b/hw/ip/spi_host/lint/spi_host.vlt
-index 30197cb..f1142f5 100644
---- a/hw/ip/spi_host/lint/spi_host.vlt
-+++ b/hw/ip/spi_host/lint/spi_host.vlt
-@@ -4,3 +4,6 @@
- //
- // waiver file for SPI_HOST
- 
-+`verilator_config
-+
-+lint_off -rule UNUSED -file "*/vendor/lowrisc_opentitan/hw/ip/spi_host/rtl/spi_host.sv" -match "Bits of signal are not used: 'reg2hw'[162:161]"

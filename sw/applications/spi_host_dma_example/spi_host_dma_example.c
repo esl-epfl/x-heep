@@ -16,7 +16,8 @@
 #include "spi_host.h"
 #include "dma.h"
 
-#define COPY_DATA_SIZE 16
+#define COPY_DATA_BYTES 15
+#define SPI_BYTES (4 * (uint32_t)((COPY_DATA_BYTES-1) / 4 + 1)) // Only sends data when an entire word has been received
 
 // int8_t spi_intr_flag;
 int8_t dma_intr_flag;
@@ -38,9 +39,9 @@ void handler_irq_external(void) {
     }
 }
 
-// Reserve 16kB
-uint32_t flash_data[COPY_DATA_SIZE] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
-uint32_t copy_data[COPY_DATA_SIZE];
+// Reserve memory array
+uint32_t flash_data[SPI_BYTES / 4] __attribute__ ((aligned (4))) = {0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,0x679852fe,0xff8252bb,0x763b4521,0x6875adaa,0x09ac65bb,0x666ba334,0x44556677,0x0000ba98};
+uint32_t copy_data[SPI_BYTES / 4] __attribute__ ((aligned (4)))  = { 0 };
 
 int main(int argc, char *argv[])
 {
@@ -54,18 +55,21 @@ int main(int argc, char *argv[])
     plic_res = dif_plic_init(rv_plic_params, &rv_plic);
     if (plic_res != kDifPlicOk) {
         printf("Unable to set the PLIC\n;");
+        return EXIT_FAILURE;
     }
 
     // Set DMA priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
     plic_res = dif_plic_irq_set_priority(&rv_plic, DMA_INTR_DONE, 1);
     if (plic_res != kDifPlicOk) {
         printf("Unable to set the PLIC priority\n;");
+        return EXIT_FAILURE;
     }
 
     // Enable DMA interrupt
     plic_res = dif_plic_irq_set_enabled(&rv_plic, DMA_INTR_DONE, 0, kDifPlicToggleEnabled);
     if (plic_res != kDifPlicOk) {
         printf("Unable to enable the PLIC irq\n;");
+        return EXIT_FAILURE;
     }
 
     // Enable interrupt on processor side
@@ -145,10 +149,8 @@ int main(int argc, char *argv[])
     spi_set_command(&spi_host, cmd_read);
     spi_wait_for_ready(&spi_host);
 
-    dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_SIZE); // Size of data received by SPI
-
     const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
-        .len        = COPY_DATA_SIZE*4 - 1,
+        .len        = SPI_BYTES - 1,
         .csaat      = false,
         .speed      = kSpiSpeedStandard,
         .direction  = kSpiDirRxOnly
@@ -156,10 +158,12 @@ int main(int argc, char *argv[])
     spi_set_command(&spi_host, cmd_read_rx);
     spi_wait_for_ready(&spi_host);
 
+    dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_BYTES); // Size of data received by SPI
+
     ////////////////////////////////////////////////////////////////
 
     // Wait for DMA interrupt
-    printf("Waiting for the DMA interrupt...");
+    printf("Waiting for the DMA interrupt...\n");
     while(dma_intr_flag==0) {
         wait_for_interrupt();
     }
@@ -174,19 +178,30 @@ int main(int argc, char *argv[])
     // The data is already in memory -- Check results
     printf("flash vs ram...\n");
 
+    int i;
     uint32_t errors = 0;
     uint32_t count = 0;
-    int i;
-    for (i = 0; i<COPY_DATA_SIZE; i++) {
-        if(flash_data[i] != copy_data[i]) {
-            printf("@%x-@%x : %x != %x\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
+    uint8_t *flash_data_8b = (uint8_t *)flash_data;
+    uint8_t *copy_data_8b = (uint8_t *)copy_data;
+    for (i = 0; i<COPY_DATA_BYTES; i++) {
+        if(flash_data_8b[i] != copy_data_8b[i]) {
+            printf("@%08x-@%08x : %02x != %02x\n" , &flash_data_8b[i] , &copy_data_8b[i], flash_data_8b[i], copy_data_8b[i]);
             errors++;
         }
         count++;
     }
+    // Check that the rest last bytes of the word have not been overwritten
+    while(i < SPI_BYTES){
+        if(copy_data_8b[i] != 0) {
+            printf("Data Overwritten @%08x : %02x != 0\n" , &copy_data_8b[i], copy_data_8b[i]);
+            errors++;
+        }
+        count++;
+        i++;
+    }
 
     if (errors == 0) {
-        printf("success! (Words checked: %d)\n", count);
+        printf("success! (Bytes checked: %d)\n", count);
     } else {
         printf("failure, %d errors! (Out of %d)\n", errors, count);
     }
