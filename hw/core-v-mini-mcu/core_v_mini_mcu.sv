@@ -283,8 +283,8 @@ module core_v_mini_mcu
       .dma_master1_ch0_req_o(dma_master1_ch0_req),
       .dma_master1_ch0_resp_i(dma_master1_ch0_resp),
       .dma_intr_o(dma_intr),
-      .spi_host_intr_error_o(spi_boot_intr_error_o),
-      .spi_host_intr_event_o(spi_boot_intr_event_o),
+      .spi_boot_intr_error_o(spi_boot_intr_error_o),
+      .spi_boot_intr_event_o(spi_boot_intr_event_o),
       .spi_dma_intr_error_o(spi_dma_intr_error),
       .spi_dma_intr_event_o(spi_dma_intr_event),
       .pad_attributes_o(pad_attributes)

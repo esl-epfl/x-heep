@@ -346,15 +346,13 @@ def main():
     intr_ack_stop = obj['interrupts']['intr_ack_stop']
     intr_host_timeout = obj['interrupts']['intr_host_timeout']
     dma_intr_done = obj['interrupts']['dma_intr_done']
-    spi_intr_error = obj['interrupts']['spi_intr_error']
-    spi_intr_event = obj['interrupts']['spi_intr_event']
-
+    spi_boot_intr_error = obj['interrupts']['spi_boot_intr_error']
+    spi_boot_intr_event = obj['interrupts']['spi_boot_intr_event']
+    spi_dma_intr_error = obj['interrupts']['spi_dma_intr_error']
+    spi_dma_intr_event = obj['interrupts']['spi_dma_intr_event']
     # Interrupt lines available for external interrupt sources
     ext_intr_0 = obj['interrupts']['ext_intr_0']
     ext_intr_1 = obj['interrupts']['ext_intr_1']
-    ext_intr_2 = obj['interrupts']['ext_intr_2']
-    ext_intr_3 = obj['interrupts']['ext_intr_3']
-
 
     pads       = obj['pads']
 
@@ -488,12 +486,12 @@ def main():
         "intr_ack_stop"                    : intr_ack_stop,
         "intr_host_timeout"                : intr_host_timeout,
         "dma_intr_done"                    : dma_intr_done,
-        "spi_intr_error"                   : spi_intr_error,
-        "spi_intr_event"                   : spi_intr_event,
+        "spi_boot_intr_error"              : spi_boot_intr_error,
+        "spi_boot_intr_event"              : spi_boot_intr_event,
+        "spi_dma_intr_error"               : spi_dma_intr_error,
+        "spi_dma_intr_event"               : spi_dma_intr_event,
         "ext_intr_0"                       : ext_intr_0,
         "ext_intr_1"                       : ext_intr_1,
-        "ext_intr_2"                       : ext_intr_2,
-        "ext_intr_3"                       : ext_intr_3,
         "pad_list"                         : pad_list,
         "num_internal_pad"                 : num_internal_pad,
     }
