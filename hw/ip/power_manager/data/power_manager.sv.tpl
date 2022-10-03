@@ -26,6 +26,7 @@ module power_manager #(
     input logic                                     rv_timer_3_irq_i,
     input logic                                     dma_irq_i,
     input logic [                              7:0] gpio_irq_i,
+    input logic                                     plic_irq_i,
     input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] ext_irq_i,
 
     // Power gating signals
@@ -46,6 +47,7 @@ module power_manager #(
 
   assign hw2reg.intr_state.d = {
     ext_irq_i,
+    plic_irq_i,
     gpio_irq_i,
     dma_irq_i,
     rv_timer_3_irq_i,

@@ -269,6 +269,7 @@ module core_v_mini_mcu
       .spi_intr_error_o(),
       .spi_intr_event_o(spi_intr),
       .gpio_intr_i(gpio_intr),
+      .plic_irq_i(irq_external),
       .ext_intr_i(intr_vector_ext_i),
       .core_sleep_i(core_sleep),
       .cpu_subsystem_powergate_switch_o(cpu_subsystem_powergate_switch),

@@ -58,10 +58,11 @@ typedef enum power_manager_sel_intr {
   kGpio_5_e  = 11,
   kGpio_6_e  = 12,
   kGpio_7_e  = 13,
-  kExt_0_e   = 14,
-  kExt_1_e   = 15,
-  kExt_2_e   = 16,
-  kExt_3_e   = 17,
+  kPlic_e    = 14,
+  kExt_0_e   = 15,
+  kExt_1_e   = 16,
+  kExt_2_e   = 17,
+  kExt_3_e   = 18,
 } power_manager_sel_intr_t;
 
 /**

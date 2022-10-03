@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
     // Wait for DMA interrupt
     printf("Waiting for the DMA interrupt...\n");
     while(dma_intr_flag==0) {
-        //wait_for_interrupt();
+        wait_for_interrupt();
     }
     printf("triggered!\n");
 

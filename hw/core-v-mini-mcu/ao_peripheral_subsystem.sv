@@ -35,6 +35,7 @@ module ao_peripheral_subsystem
 
     // POWER MANAGER
     input  logic [                               7:0] gpio_intr_i,
+    input  logic                                      plic_irq_i,
     input  logic [ core_v_mini_mcu_pkg::NEXT_INT-1:0] ext_intr_i,
     input  logic                                      core_sleep_i,
     output logic                                      cpu_subsystem_powergate_switch_o,
@@ -193,6 +194,7 @@ module ao_peripheral_subsystem
       .rv_timer_3_irq_i(rv_timer_3_intr_i),
       .dma_irq_i(dma_intr),
       .gpio_irq_i(gpio_intr_i),
+      .plic_irq_i(plic_irq_i),
       .ext_irq_i(ext_intr_i),
       .core_sleep_i,
       .cpu_subsystem_powergate_switch_o,
