@@ -44,7 +44,6 @@
             offset:  0x00010000,
             length:  0x00010000,
         },
-        # OT SPI connected to flash for booting
         spi_boot: {
             offset:  0x00020000,
             length:  0x00008000,
@@ -69,8 +68,7 @@
             offset:  0x00060000,
             length:  0x00010000,
         },
-        # OT SPI connected to DMA for external devices
-        spi_dma: {
+        spi: {
             offset:  0x00070000,
             length:  0x00010000,
         },
@@ -171,10 +169,10 @@
         intr_ack_stop:           55,
         intr_host_timeout:       56,
         dma_intr_done:           57,
-        spi_boot_intr_error:     58,
-        spi_boot_intr_event:     59,
-        spi_dma_intr_error:      60,
-        spi_dma_intr_event:      61,
+        spi_flash_intr_error:    58,
+        spi_flash_intr_event:    59,
+        spi_intr_error:          60,
+        spi_intr_event:          61,
         // Interrupt lines available for external interrupt sources
         ext_intr_0:              62,
         ext_intr_1:              63
@@ -234,27 +232,27 @@
             num: 32,
             type: inout
         },
+        spi_flash_sck: {
+            num: 1,
+            type: inout
+        },
+        spi_flash_cs: {
+            num: 2, #carefull, the x-heep uses the CS from the spi pkg, change it
+            type: inout
+        },
+        spi_flash_sd: {
+            num: 4,
+            type: inout
+        },
         spi_sck: {
             num: 1,
             type: inout
         },
         spi_cs: {
-            num: 2, #carefull, the x-heep uses the CS from the spi pkg, chenge it
-            type: inout
-        },
-        spi_sd: {
-            num: 4,
-            type: inout
-        },
-        spi_dma_sck: {
-            num: 1,
-            type: inout
-        },
-        spi_dma_cs: {
             num: 2,
             type: inout
         },
-        spi_dma_sd: {
+        spi_sd: {
             num: 4,
             type: inout
         },

@@ -50,9 +50,9 @@ extern "C" {
 #define PAD_ATTRIBUTE_SIZE 0x${pad_attribute_size_address}
 #define PAD_ATTRIBUTE_END_ADDRESS (PAD_ATTRIBUTE_START_ADDRESS + PAD_ATTRIBUTE_SIZE)
 
-#define SPI_DMA_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_dma_start_offset})
-#define SPI_DMA_SIZE 0x${spi_dma_size_address}
-#define SPI_DMA_END_ADDRESS (SPI_DMA_START_ADDRESS + SPI_DMA_SIZE)
+#define SPI_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_start_offset})
+#define SPI_SIZE 0x${spi_size_address}
+#define SPI_END_ADDRESS (SPI_START_ADDRESS + SPI_SIZE)
 
 //switch-on/off peripherals
 #define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}
@@ -145,10 +145,10 @@ extern "C" {
 #define INTR_ACK_STOP ${intr_ack_stop}
 #define INTR_HOST_TIMEOUT ${intr_host_timeout}
 #define DMA_INTR_DONE ${dma_intr_done}
-#define SPI_BOOT_INTR_ERROR ${spi_boot_intr_error}
-#define SPI_BOOT_EVENT ${spi_boot_intr_event}
-#define SPI_DMA_INTR_ERROR ${spi_dma_intr_error}
-#define SPI_DMA_EVENT ${spi_dma_intr_event}
+#define SPI_FLASH_INTR_ERROR ${spi_flash_intr_error}
+#define SPI_FLASH_INTR_EVENT ${spi_flash_intr_event}
+#define SPI_INTR_ERROR ${spi_intr_error}
+#define SPI_INTR_EVENT ${spi_intr_event}
 
 // Interrupt lines available for external interrupt sources
 #define EXT_INTR_0 ${ext_intr_0}

@@ -42,13 +42,13 @@ module core_v_mini_mcu
     output logic [31:0] exit_value_o,
     inout  logic        exit_valid_o,
 
+    inout logic [3:0] spi_flash_sd_io,
+    inout logic [spi_host_reg_pkg::NumCS-1:0] spi_flash_csb_o,
+    inout logic spi_flash_sck_o,
+
     inout logic [3:0] spi_sd_io,
     inout logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_o,
     inout logic spi_sck_o,
-
-    inout logic [3:0] spi_dma_sd_io,
-    inout logic [spi_host_reg_pkg::NumCS-1:0] spi_dma_csb_o,
-    inout logic spi_dma_sck_o,
 
     inout logic i2c_scl_io,
     inout logic i2c_sda_io
@@ -121,6 +121,15 @@ module core_v_mini_mcu
   logic [31:0] gpio_en;
 
   // SPI Interface (YosysHW SPI and OpenTitan SPI multiplexed)
+  logic spi_flash_sck;
+  logic spi_flash_sck_en;
+  logic [spi_host_reg_pkg::NumCS-1:0] spi_flash_csb;
+  logic [spi_host_reg_pkg::NumCS-1:0] spi_flash_csb_en;
+  logic [3:0] spi_flash_sd_out;
+  logic [3:0] spi_flash_sd_en;
+  logic [3:0] spi_flash_sd_in;
+
+  // OpenTitan SPI interface (connected to DMA)
   logic spi_sck;
   logic spi_sck_en;
   logic [spi_host_reg_pkg::NumCS-1:0] spi_csb;
@@ -128,15 +137,6 @@ module core_v_mini_mcu
   logic [3:0] spi_sd_out;
   logic [3:0] spi_sd_en;
   logic [3:0] spi_sd_in;
-
-  // OpenTitan SPI connected to DMA
-  logic spi_dma_sck;
-  logic spi_dma_sck_en;
-  logic [spi_host_reg_pkg::NumCS-1:0] spi_dma_csb;
-  logic [spi_host_reg_pkg::NumCS-1:0] spi_dma_csb_en;
-  logic [3:0] spi_dma_sd_out;
-  logic [3:0] spi_dma_sd_en;
-  logic [3:0] spi_dma_sd_in;
 
   // power manager
   logic cpu_subsystem_powergate_switch;
@@ -152,10 +152,10 @@ module core_v_mini_mcu
 
   // DMA
   logic dma_intr;
-  logic spi_boot_intr_error;
-  logic spi_boot_intr_event;
-  logic spi_dma_intr_error;
-  logic spi_dma_intr_event;
+  logic spi_flash_intr_error;
+  logic spi_flash_intr_event;
+  logic spi_intr_error;
+  logic spi_intr_event;
 
   logic clk, rst_n, boot_select, execute_from_flash, exit_valid;
   logic jtag_tck;
@@ -260,6 +260,13 @@ module core_v_mini_mcu
       .exit_value_o(exit_value_o),
       .spimemio_req_i(spi_flash_slave_req),
       .spimemio_resp_o(spi_flash_slave_resp),
+      .spi_flash_sck_o(spi_flash_sck),
+      .spi_flash_sck_en_o(spi_flash_sck_en),
+      .spi_flash_csb_o(spi_flash_csb),
+      .spi_flash_csb_en_o(spi_flash_csb_en),
+      .spi_flash_sd_o(spi_flash_sd_out),
+      .spi_flash_sd_en_o(spi_flash_sd_en),
+      .spi_flash_sd_i(spi_flash_sd_in),
       .spi_sck_o(spi_sck),
       .spi_sck_en_o(spi_sck_en),
       .spi_csb_o(spi_csb),
@@ -267,13 +274,6 @@ module core_v_mini_mcu
       .spi_sd_o(spi_sd_out),
       .spi_sd_en_o(spi_sd_en),
       .spi_sd_i(spi_sd_in),
-      .spi_dma_sck_o(spi_dma_sck),
-      .spi_dma_sck_en_o(spi_dma_sck_en),
-      .spi_dma_csb_o(spi_dma_csb),
-      .spi_dma_csb_en_o(spi_dma_csb_en),
-      .spi_dma_sd_o(spi_dma_sd_out),
-      .spi_dma_sd_en_o(spi_dma_sd_en),
-      .spi_dma_sd_i(spi_dma_sd_in),
       .core_sleep_i(core_sleep),
       .cpu_subsystem_powergate_switch_o(cpu_subsystem_powergate_switch),
       .cpu_subsystem_rst_no(cpu_subsystem_rst_n),
@@ -283,10 +283,10 @@ module core_v_mini_mcu
       .dma_master1_ch0_req_o(dma_master1_ch0_req),
       .dma_master1_ch0_resp_i(dma_master1_ch0_resp),
       .dma_intr_o(dma_intr),
-      .spi_boot_intr_error_o(spi_boot_intr_error_o),
-      .spi_boot_intr_event_o(spi_boot_intr_event_o),
-      .spi_dma_intr_error_o(spi_dma_intr_error),
-      .spi_dma_intr_event_o(spi_dma_intr_event),
+      .spi_flash_intr_error_o(spi_flash_intr_error_o),
+      .spi_flash_intr_event_o(spi_flash_intr_event_o),
+      .spi_intr_error_o(spi_intr_error),
+      .spi_intr_event_o(spi_intr_event),
       .pad_attributes_o(pad_attributes)
   );
 
@@ -315,10 +315,10 @@ module core_v_mini_mcu
       .ext_peripheral_slave_req_o(ext_peripheral_slave_req_o),
       .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i),
       .dma_intr_i(dma_intr),
-      .spi_boot_intr_error_i(spi_boot_intr_error),
-      .spi_boot_intr_event_i(spi_boot_intr_event),
-      .spi_dma_intr_error_i(spi_dma_intr_error),
-      .spi_dma_intr_event_i(spi_dma_intr_event)
+      .spi_flash_intr_error_i(spi_flash_intr_error),
+      .spi_flash_intr_event_i(spi_flash_intr_event),
+      .spi_intr_error_i(spi_intr_error),
+      .spi_intr_event_i(spi_intr_event)
   );
 
   pad_ring pad_ring_i (
@@ -519,6 +519,41 @@ module core_v_mini_mcu
       .gpio_31_o(gpio_in[31]),
       .gpio_31_oe_i(gpio_en[31]),
 
+      .spi_flash_sck_io(spi_flash_sck_o),
+      .spi_flash_sck_i(spi_flash_sck),
+      .spi_flash_sck_o(),
+      .spi_flash_sck_oe_i(spi_flash_sck_en),
+
+      .spi_flash_cs_0_io(spi_flash_csb_o[0]),
+      .spi_flash_cs_0_i(spi_flash_csb[0]),
+      .spi_flash_cs_0_o(),
+      .spi_flash_cs_0_oe_i(spi_flash_csb_en[0]),
+
+      .spi_flash_cs_1_io(spi_flash_csb_o[1]),
+      .spi_flash_cs_1_i(spi_flash_csb[1]),
+      .spi_flash_cs_1_o(),
+      .spi_flash_cs_1_oe_i(spi_flash_csb_en[1]),
+
+      .spi_flash_sd_0_io(spi_flash_sd_io[0]),
+      .spi_flash_sd_0_i(spi_flash_sd_out[0]),
+      .spi_flash_sd_0_o(spi_flash_sd_in[0]),
+      .spi_flash_sd_0_oe_i(spi_flash_sd_en[0]),
+
+      .spi_flash_sd_1_io(spi_flash_sd_io[1]),
+      .spi_flash_sd_1_i(spi_flash_sd_out[1]),
+      .spi_flash_sd_1_o(spi_flash_sd_in[1]),
+      .spi_flash_sd_1_oe_i(spi_flash_sd_en[1]),
+
+      .spi_flash_sd_2_io(spi_flash_sd_io[2]),
+      .spi_flash_sd_2_i(spi_flash_sd_out[2]),
+      .spi_flash_sd_2_o(spi_flash_sd_in[2]),
+      .spi_flash_sd_2_oe_i(spi_flash_sd_en[2]),
+
+      .spi_flash_sd_3_io(spi_flash_sd_io[3]),
+      .spi_flash_sd_3_i(spi_flash_sd_out[3]),
+      .spi_flash_sd_3_o(spi_flash_sd_in[3]),
+      .spi_flash_sd_3_oe_i(spi_flash_sd_en[3]),
+
       .spi_sck_io(spi_sck_o),
       .spi_sck_i(spi_sck),
       .spi_sck_o(),
@@ -553,41 +588,6 @@ module core_v_mini_mcu
       .spi_sd_3_i(spi_sd_out[3]),
       .spi_sd_3_o(spi_sd_in[3]),
       .spi_sd_3_oe_i(spi_sd_en[3]),
-
-      .spi_dma_sck_io(spi_dma_sck_o),
-      .spi_dma_sck_i(spi_dma_sck),
-      .spi_dma_sck_o(),
-      .spi_dma_sck_oe_i(spi_dma_sck_en),
-
-      .spi_dma_cs_0_io(spi_dma_csb_o[0]),
-      .spi_dma_cs_0_i(spi_dma_csb[0]),
-      .spi_dma_cs_0_o(),
-      .spi_dma_cs_0_oe_i(spi_dma_csb_en[0]),
-
-      .spi_dma_cs_1_io(spi_dma_csb_o[1]),
-      .spi_dma_cs_1_i(spi_dma_csb[1]),
-      .spi_dma_cs_1_o(),
-      .spi_dma_cs_1_oe_i(spi_dma_csb_en[1]),
-
-      .spi_dma_sd_0_io(spi_dma_sd_io[0]),
-      .spi_dma_sd_0_i(spi_dma_sd_out[0]),
-      .spi_dma_sd_0_o(spi_dma_sd_in[0]),
-      .spi_dma_sd_0_oe_i(spi_dma_sd_en[0]),
-
-      .spi_dma_sd_1_io(spi_dma_sd_io[1]),
-      .spi_dma_sd_1_i(spi_dma_sd_out[1]),
-      .spi_dma_sd_1_o(spi_dma_sd_in[1]),
-      .spi_dma_sd_1_oe_i(spi_dma_sd_en[1]),
-
-      .spi_dma_sd_2_io(spi_dma_sd_io[2]),
-      .spi_dma_sd_2_i(spi_dma_sd_out[2]),
-      .spi_dma_sd_2_o(spi_dma_sd_in[2]),
-      .spi_dma_sd_2_oe_i(spi_dma_sd_en[2]),
-
-      .spi_dma_sd_3_io(spi_dma_sd_io[3]),
-      .spi_dma_sd_3_i(spi_dma_sd_out[3]),
-      .spi_dma_sd_3_o(spi_dma_sd_in[3]),
-      .spi_dma_sd_3_oe_i(spi_dma_sd_en[3]),
 
       .i2c_scl_io(i2c_scl_io),
       .i2c_scl_i(cio_scl_out),

@@ -24,17 +24,17 @@ module spi_subsystem
     output reg_rsp_t ot_reg_rsp_o,
 
     // SPI Interface
-    output logic                               spi_sck_o,
-    output logic                               spi_sck_en_o,
-    output logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_o,
-    output logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_en_o,
-    output logic [                        3:0] spi_sd_o,
-    output logic [                        3:0] spi_sd_en_o,
-    input  logic [                        3:0] spi_sd_i,
+    output logic                               spi_flash_sck_o,
+    output logic                               spi_flash_sck_en_o,
+    output logic [spi_host_reg_pkg::NumCS-1:0] spi_flash_csb_o,
+    output logic [spi_host_reg_pkg::NumCS-1:0] spi_flash_csb_en_o,
+    output logic [                        3:0] spi_flash_sd_o,
+    output logic [                        3:0] spi_flash_sd_en_o,
+    input  logic [                        3:0] spi_flash_sd_i,
 
     // SPI HOST interrupts
-    output logic spi_boot_intr_error_o,
-    output logic spi_boot_intr_event_o
+    output logic spi_flash_intr_error_o,
+    output logic spi_flash_intr_event_o
 
 );
 
@@ -46,6 +46,8 @@ module spi_subsystem
   logic [                        3:0] ot_spi_sd_out;
   logic [                        3:0] ot_spi_sd_en;
   logic [                        3:0] ot_spi_sd_in;
+  logic                               ot_spi_intr_error;
+  logic                               ot_spi_intr_event;
 
   // YosysHW SPI Interface
   logic                               yo_spi_sck;
@@ -59,23 +61,27 @@ module spi_subsystem
   //Multiplexer
   always_comb begin
     if (!use_spimemio_i) begin
-      spi_sck_o = ot_spi_sck;
-      spi_sck_en_o = ot_spi_sck_en;
-      spi_csb_o = ot_spi_csb;
-      spi_csb_en_o = ot_spi_csb_en;
-      spi_sd_o = ot_spi_sd_out;
-      spi_sd_en_o = ot_spi_sd_en;
-      ot_spi_sd_in = spi_sd_i;
+      spi_flash_sck_o = ot_spi_sck;
+      spi_flash_sck_en_o = ot_spi_sck_en;
+      spi_flash_csb_o = ot_spi_csb;
+      spi_flash_csb_en_o = ot_spi_csb_en;
+      spi_flash_sd_o = ot_spi_sd_out;
+      spi_flash_sd_en_o = ot_spi_sd_en;
+      ot_spi_sd_in = spi_flash_sd_i;
       yo_spi_sd_in = '0;
+      spi_flash_intr_error_o = ot_spi_intr_error;
+      spi_flash_intr_event_o = ot_spi_intr_event;
     end else begin
-      spi_sck_o = yo_spi_sck;
-      spi_sck_en_o = yo_spi_sck_en;
-      spi_csb_o = yo_spi_csb;
-      spi_csb_en_o = yo_spi_csb_en;
-      spi_sd_o = yo_spi_sd_out;
-      spi_sd_en_o = yo_spi_sd_en;
+      spi_flash_sck_o = yo_spi_sck;
+      spi_flash_sck_en_o = yo_spi_sck_en;
+      spi_flash_csb_o = yo_spi_csb;
+      spi_flash_csb_en_o = yo_spi_csb_en;
+      spi_flash_sd_o = yo_spi_sd_out;
+      spi_flash_sd_en_o = yo_spi_sd_en;
       ot_spi_sd_in = '0;
-      yo_spi_sd_in = spi_sd_i;
+      yo_spi_sd_in = spi_flash_sd_i;
+      spi_flash_intr_error_o = 1'b0;
+      spi_flash_intr_event_o = 1'b0;
     end
   end
 
@@ -111,7 +117,7 @@ module spi_subsystem
   spi_host #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
-  ) spi_host_boot_i (
+  ) ot_spi_i (
       .clk_i,
       .rst_ni,
       .clk_core_i(clk_i),
@@ -127,8 +133,8 @@ module spi_subsystem
       .cio_sd_i(ot_spi_sd_in),
       .rx_valid_o(),  // not used for the booting spi
       .tx_ready_o(),  // not used for the booting spi
-      .intr_error_o(spi_boot_intr_error_o),
-      .intr_spi_event_o(spi_boot_intr_event_o)
+      .intr_error_o(ot_spi_intr_error),
+      .intr_spi_event_o(ot_spi_intr_event)
   );
 
 `ifndef SYNTHESIS

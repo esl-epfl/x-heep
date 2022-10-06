@@ -239,8 +239,8 @@ def main():
     pad_attribute_start_offset  = string2int(obj['ao_peripherals']['pad']['offset'])
     pad_attribute_size_address  = string2int(obj['ao_peripherals']['pad']['length'])
 
-    spi_dma_start_offset  = string2int(obj['ao_peripherals']['spi_dma']['offset'])
-    spi_dma_size_address  = string2int(obj['ao_peripherals']['spi_dma']['length'])
+    spi_start_offset  = string2int(obj['ao_peripherals']['spi']['offset'])
+    spi_size_address  = string2int(obj['ao_peripherals']['spi']['length'])
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
@@ -283,9 +283,6 @@ def main():
 
     if ((int(linker_onchip_data_size_address,16) + int(linker_onchip_code_size_address,16)) > int(ram_size_address,16)):
         exit("The code and data section must fit in the RAM size, instead they takes " + str(linker_onchip_data_size_address + linker_onchip_code_size_address))
-
-
-    spi_flash_size_address  = string2int(obj['spi_flash']['length'])
 
 
     null_intr = obj['interrupts']['null_intr']
@@ -346,10 +343,10 @@ def main():
     intr_ack_stop = obj['interrupts']['intr_ack_stop']
     intr_host_timeout = obj['interrupts']['intr_host_timeout']
     dma_intr_done = obj['interrupts']['dma_intr_done']
-    spi_boot_intr_error = obj['interrupts']['spi_boot_intr_error']
-    spi_boot_intr_event = obj['interrupts']['spi_boot_intr_event']
-    spi_dma_intr_error = obj['interrupts']['spi_dma_intr_error']
-    spi_dma_intr_event = obj['interrupts']['spi_dma_intr_event']
+    spi_flash_intr_error = obj['interrupts']['spi_flash_intr_error']
+    spi_flash_intr_event = obj['interrupts']['spi_flash_intr_event']
+    spi_intr_error = obj['interrupts']['spi_intr_error']
+    spi_intr_event = obj['interrupts']['spi_intr_event']
     # Interrupt lines available for external interrupt sources
     ext_intr_0 = obj['interrupts']['ext_intr_0']
     ext_intr_1 = obj['interrupts']['ext_intr_1']
@@ -406,8 +403,8 @@ def main():
         "dma_size_address"                 : dma_size_address,
         "pad_attribute_start_offset"       : pad_attribute_start_offset,
         "pad_attribute_size_address"       : pad_attribute_size_address,
-        "spi_dma_start_offset"             : spi_dma_start_offset,
-        "spi_dma_size_address"             : spi_dma_size_address,
+        "spi_start_offset"                 : spi_start_offset,
+        "spi_size_address"                 : spi_size_address,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
         "plic_start_offset"                : plic_start_offset,
@@ -486,10 +483,10 @@ def main():
         "intr_ack_stop"                    : intr_ack_stop,
         "intr_host_timeout"                : intr_host_timeout,
         "dma_intr_done"                    : dma_intr_done,
-        "spi_boot_intr_error"              : spi_boot_intr_error,
-        "spi_boot_intr_event"              : spi_boot_intr_event,
-        "spi_dma_intr_error"               : spi_dma_intr_error,
-        "spi_dma_intr_event"               : spi_dma_intr_event,
+        "spi_flash_intr_error"             : spi_flash_intr_error,
+        "spi_flash_intr_event"             : spi_flash_intr_event,
+        "spi_intr_error"                   : spi_intr_error,
+        "spi_intr_event"                   : spi_intr_event,
         "ext_intr_0"                       : ext_intr_0,
         "ext_intr_1"                       : ext_intr_1,
         "pad_list"                         : pad_list,
