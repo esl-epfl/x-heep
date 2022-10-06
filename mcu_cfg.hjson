@@ -64,8 +64,12 @@
             offset:  0x00050000,
             length:  0x00010000,
         },
-        pad: {
+        fast_intr_ctrl: {
             offset:  0x00060000,
+            length:  0x00010000,
+        },
+        pad: {
+            offset:  0x00070000,
             length:  0x00010000,
         },
     },

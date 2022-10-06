@@ -1,0 +1,58 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`include "common_cells/assertions.svh"
+
+module fast_intr_ctrl #(
+    parameter type reg_req_t = logic,
+    parameter type reg_rsp_t = logic
+) (
+    input logic clk_i,
+    input logic rst_ni,
+
+    // Bus Interface
+    input  reg_req_t reg_req_i,
+    output reg_rsp_t reg_rsp_o,
+
+    input  logic [14:0] fast_intr_i,
+    input  logic [14:0] fast_intr_o
+);
+
+  import fast_intr_ctrl_reg_pkg::*;
+
+  fast_intr_ctrl_reg2hw_t reg2hw;
+  fast_intr_ctrl_hw2reg_t hw2reg;
+
+  fast_intr_ctrl_reg_top #(
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t)
+  ) fast_intr_ctrl_reg_top_i (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i,
+      .reg_rsp_o,
+      .reg2hw,
+      .hw2reg,
+      .devmode_i(1'b1)
+  );
+
+  for (genvar i = 0; i < 15; i++) begin : gen_
+
+    always_ff @(posedge clk_i or negedge rst_ni) begin : proc_
+      if (~rst_ni | reg2hw.fast_intr_clear.q[i]) begin
+        hw2reg.fast_intr_pending.d[i] <= 1'b0;
+        hw2reg.fast_intr_pending.de <= 1'b1;
+      end else begin
+        if (fast_intr_i[i]) begin
+          hw2reg.fast_intr_pending.d[i] <= 1'b1;
+          hw2reg.fast_intr_pending.de <= 1'b1;
+        end
+      end
+    end
+
+  end
+
+  assign fast_intr_o = reg2hw.fast_intr_pending.q[14:0];
+
+endmodule : fast_intr_ctrl

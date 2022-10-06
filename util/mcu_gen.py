@@ -236,6 +236,9 @@ def main():
     dma_start_offset  = string2int(obj['ao_peripherals']['dma']['offset'])
     dma_size_address  = string2int(obj['ao_peripherals']['dma']['length'])
 
+    fast_intr_ctrl_start_offset  = string2int(obj['ao_peripherals']['fast_intr_ctrl']['offset'])
+    fast_intr_ctrl_size_address  = string2int(obj['ao_peripherals']['fast_intr_ctrl']['length'])
+
     pad_attribute_start_offset  = string2int(obj['ao_peripherals']['pad']['offset'])
     pad_attribute_size_address  = string2int(obj['ao_peripherals']['pad']['length'])
 
@@ -399,6 +402,8 @@ def main():
         "rv_timer_ao_size_address"         : rv_timer_ao_size_address,
         "dma_start_offset"                 : dma_start_offset,
         "dma_size_address"                 : dma_size_address,
+        "fast_intr_ctrl_start_offset"      : fast_intr_ctrl_start_offset,
+        "fast_intr_ctrl_size_address"      : fast_intr_ctrl_size_address,
         "pad_attribute_start_offset"       : pad_attribute_start_offset,
         "pad_attribute_size_address"       : pad_attribute_size_address,
         "peripheral_start_address"         : peripheral_start_address,

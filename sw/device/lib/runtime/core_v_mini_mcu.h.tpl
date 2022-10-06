@@ -46,6 +46,10 @@ extern "C" {
 #define DMA_SIZE 0x${dma_size_address}
 #define DMA_END_ADDRESS (DMA_START_ADDRESS + DMA_SIZE)
 
+#define FAST_INTR_CTRL_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${fast_intr_ctrl_start_offset})
+#define FAST_INTR_CTRL_SIZE 0x${fast_intr_ctrl_size_address}
+#define FAST_INTR_CTRL_END_ADDRESS (FAST_INTR_CTRL_START_ADDRESS + DMA_SIZE)
+
 #define PAD_ATTRIBUTE_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${pad_attribute_start_offset})
 #define PAD_ATTRIBUTE_SIZE 0x${pad_attribute_size_address}
 #define PAD_ATTRIBUTE_END_ADDRESS (PAD_ATTRIBUTE_START_ADDRESS + PAD_ATTRIBUTE_SIZE)

@@ -143,6 +143,9 @@ module core_v_mini_mcu
   // dma
   logic dma_intr;
 
+  // fast intr ctrl
+  logic [14:0] fast_intr;
+
   // uart
   logic uart_rx, uart_tx;
 
@@ -186,7 +189,7 @@ module core_v_mini_mcu
       .core_sleep_o(core_sleep)
   );
 
-  assign irq_fast = {
+  assign fast_intr = {
     2'b0, gpio_intr, spi_intr, dma_intr, rv_timer_intr[3], rv_timer_intr[2], rv_timer_intr[1]
   };
 
@@ -287,6 +290,8 @@ module core_v_mini_mcu
       .dma_master1_ch0_req_o(dma_master1_ch0_req),
       .dma_master1_ch0_resp_i(dma_master1_ch0_resp),
       .dma_intr_o(dma_intr),
+      .fast_intr_i(fast_intr),
+      .fast_intr_o(irq_fast),
       .pad_attributes_o(pad_attributes)
   );
 

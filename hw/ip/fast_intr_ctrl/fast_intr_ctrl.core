@@ -1,0 +1,24 @@
+CAPI=2:
+
+name: "x-heep:ip:fast_intr_ctrl"
+description: "x-heep fast intr ctrl"
+
+# Copyright 2022 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+      - lowrisc:prim:all
+      - pulp-platform.org::register_interface
+    files:
+    - rtl/fast_intr_ctrl_reg_pkg.sv
+    - rtl/fast_intr_ctrl_reg_top.sv
+    - rtl/fast_intr_ctrl.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl

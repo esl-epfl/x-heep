@@ -58,6 +58,10 @@ module ao_peripheral_subsystem
     input  obi_resp_t dma_master1_ch0_resp_i,
     output logic      dma_intr_o,
 
+    // FAST INTR CTRL
+    input  logic [14:0] fast_intr_i,
+    output logic [14:0] fast_intr_o,
+
     // PADS
     output logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][15:0] pad_attributes_o
 );
@@ -253,6 +257,18 @@ module ao_peripheral_subsystem
   );
 
   assign dma_intr_o = dma_intr;
+
+  fast_intr_ctrl #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) fast_intr_ctrl_i (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::FAST_INTR_CTRL_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::FAST_INTR_CTRL_IDX]),
+      .fast_intr_i,
+      .fast_intr_o
+  );
 
   pad_attribute #(
       .reg_req_t(reg_pkg::reg_req_t),
