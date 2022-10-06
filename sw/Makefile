@@ -53,10 +53,10 @@ INC_FOLDERS_GCC             = $(addprefix -I ,$(INC_FOLDERS))
 %.hex: %.elf
 	$(RISCV_EXE_PREFIX)objcopy -O verilog $< $@
 
-%.flash_memio.hex: %.flash_memio.elf
+%.flash_exec.hex: %.flash_exec.elf
 	$(RISCV_EXE_PREFIX)objcopy -O verilog --adjust-vma=-0x40000000 $< $@
 
-%.flash_boot.hex: %.flash_boot.elf
+%.flash_load.hex: %.flash_load.elf
 	$(RISCV_EXE_PREFIX)objcopy -O verilog --adjust-vma=-0x40000000 $< $@
 
 %.dis: %.elf
@@ -86,7 +86,7 @@ applications/hello_world/hello_world.elf: applications/hello_world/hello_world.c
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/hello_world/hello_world.flash_memio.elf: applications/hello_world/hello_world.c
+applications/hello_world/hello_world.flash_exec.elf: applications/hello_world/hello_world.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32im -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
@@ -98,11 +98,11 @@ applications/hello_world/hello_world.flash_memio.elf: applications/hello_world/h
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
-		-Wl,-Map=applications/hello_world/hello_world.flash_memio.map \
+		-Wl,-Map=applications/hello_world/hello_world.flash_exec.map \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/hello_world/hello_world.flash_boot.elf: applications/hello_world/hello_world.c
+applications/hello_world/hello_world.flash_load.elf: applications/hello_world/hello_world.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
@@ -114,7 +114,7 @@ applications/hello_world/hello_world.flash_boot.elf: applications/hello_world/he
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
-		-Wl,-Map=applications/hello_world/hello_world.flash_boot.map \
+		-Wl,-Map=applications/hello_world/hello_world.flash_load.map \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
@@ -148,7 +148,7 @@ applications/example_external_peripheral/example_external_peripheral.elf: applic
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/example_external_peripheral/example_external_peripheral.flash_memio.elf: applications/example_external_peripheral/example_external_peripheral.c applications/example_external_peripheral/memcopy_periph.c
+applications/example_external_peripheral/example_external_peripheral.flash_exec.elf: applications/example_external_peripheral/example_external_peripheral.c applications/example_external_peripheral/memcopy_periph.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32im -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
@@ -163,7 +163,7 @@ applications/example_external_peripheral/example_external_peripheral.flash_memio
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/example_external_peripheral/example_external_peripheral.flash_boot.elf: applications/example_external_peripheral/example_external_peripheral.c applications/example_external_peripheral/memcopy_periph.c
+applications/example_external_peripheral/example_external_peripheral.flash_load.elf: applications/example_external_peripheral/example_external_peripheral.c applications/example_external_peripheral/memcopy_periph.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
@@ -193,7 +193,7 @@ applications/example_gpio_cnt/example_gpio_cnt.elf: applications/example_gpio_cn
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/gpio_pmw/gpio_pmw.flash_memio.elf: applications/gpio_pmw/gpio_pmw.c
+applications/gpio_pmw/gpio_pmw.flash_exec.elf: applications/gpio_pmw/gpio_pmw.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32im -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
@@ -208,7 +208,7 @@ applications/gpio_pmw/gpio_pmw.flash_memio.elf: applications/gpio_pmw/gpio_pmw.c
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/gpio_pmw/gpio_pmw.flash_boot.elf: applications/gpio_pmw/gpio_pmw.c
+applications/gpio_pmw/gpio_pmw.flash_load.elf: applications/gpio_pmw/gpio_pmw.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
@@ -220,7 +220,7 @@ applications/gpio_pmw/gpio_pmw.flash_boot.elf: applications/gpio_pmw/gpio_pmw.c
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
-		-Wl,-Map=applications/gpio_pmw/gpio_pmw.flash_boot.map \
+		-Wl,-Map=applications/gpio_pmw/gpio_pmw.flash_load.map \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
@@ -288,7 +288,7 @@ applications/spi_host_dma_example/spi_host_dma_example.elf: applications/spi_hos
 		-Wl,-Map=applications/spi_host_dma_example/spi_host_dma_example.map \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/spi_host_dma_example/spi_host_dma_example.flash_boot.elf: applications/spi_host_dma_example/spi_host_dma_example.c
+applications/spi_host_dma_example/spi_host_dma_example.flash_load.elf: applications/spi_host_dma_example/spi_host_dma_example.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
@@ -300,7 +300,7 @@ applications/spi_host_dma_example/spi_host_dma_example.flash_boot.elf: applicati
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
-		-Wl,-Map=applications/spi_host_dma_example/spi_host_dma_example.flash_boot.map \
+		-Wl,-Map=applications/spi_host_dma_example/spi_host_dma_example.flash_load.map \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
