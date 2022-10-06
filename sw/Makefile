@@ -28,8 +28,8 @@ TARGET                   ?= sim
 CUSTOM_GCC_FLAGS           =
 
 LIB_CRT                    = $(wildcard device/lib/crt/*.S)
-LIB_CRT_SPIFLASH           = $(wildcard device/lib/crt_flash_memio/*.S)
-LIB_CRT_SPIHOST            = $(wildcard device/lib/crt_flash_boot/*.S)
+LIB_CRT_FLASH_EXEC         = $(wildcard device/lib/crt_flash_exec/*.S)
+LIB_CRT_FLASH_LOAD         = $(wildcard device/lib/crt_flash_load/*.S)
 LIB_BASE                   = $(wildcard device/lib/base/*.c)
 LIB_BASE_FREESTD           = device/lib/base/freestanding
 LIB_RUNTIME                = $(wildcard device/lib/runtime/*.c)
@@ -90,11 +90,11 @@ applications/hello_world/hello_world.flash_memio.elf: applications/hello_world/h
 	$(RISCV_EXE_PREFIX)gcc -march=rv32im -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_flash_memio.ld \
+		-T linker/link_flash_exec.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIFLASH) \
+		$(LIB_CRT_FLASH_EXEC) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
@@ -106,11 +106,11 @@ applications/hello_world/hello_world.flash_boot.elf: applications/hello_world/he
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_flash_boot.ld \
+		-T linker/link_flash_load.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIHOST) \
+		$(LIB_CRT_FLASH_LOAD) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
@@ -152,11 +152,11 @@ applications/example_external_peripheral/example_external_peripheral.flash_memio
 	$(RISCV_EXE_PREFIX)gcc -march=rv32im -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_flash_memio.ld \
+		-T linker/link_flash_exec.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIFLASH) \
+		$(LIB_CRT_FLASH_EXEC) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
@@ -167,11 +167,11 @@ applications/example_external_peripheral/example_external_peripheral.flash_boot.
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_flash_boot.ld \
+		-T linker/link_flash_load.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIHOST) \
+		$(LIB_CRT_FLASH_LOAD) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
@@ -197,11 +197,11 @@ applications/gpio_pmw/gpio_pmw.flash_memio.elf: applications/gpio_pmw/gpio_pmw.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32im -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_flash_memio.ld \
+		-T linker/link_flash_exec.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIFLASH) \
+		$(LIB_CRT_FLASH_EXEC) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
@@ -212,11 +212,11 @@ applications/gpio_pmw/gpio_pmw.flash_boot.elf: applications/gpio_pmw/gpio_pmw.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_flash_boot.ld \
+		-T linker/link_flash_load.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIHOST) \
+		$(LIB_CRT_FLASH_LOAD) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
@@ -292,11 +292,11 @@ applications/spi_host_dma_example/spi_host_dma_example.flash_boot.elf: applicati
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_flash_boot.ld \
+		-T linker/link_flash_load.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIHOST) \
+		$(LIB_CRT_FLASH_LOAD) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
