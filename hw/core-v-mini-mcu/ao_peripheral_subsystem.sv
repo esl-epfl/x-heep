@@ -84,6 +84,8 @@ module ao_peripheral_subsystem
   // SPI->DMA Interface
   logic spi_rx_valid;
   logic spi_tx_ready;
+  logic spi_flash_rx_valid;
+  logic spi_flash_tx_ready;
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
@@ -162,10 +164,10 @@ module ao_peripheral_subsystem
       .use_spimemio_i(use_spimemio),
       .spimemio_req_i,
       .spimemio_resp_o,
-      .yo_reg_req_i  (peripheral_slv_req[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
-      .yo_reg_rsp_o  (peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
-      .ot_reg_req_i  (peripheral_slv_req[core_v_mini_mcu_pkg::SPI_BOOT_IDX]),
-      .ot_reg_rsp_o  (peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_BOOT_IDX]),
+      .yo_reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
+      .yo_reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
+      .ot_reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_BOOT_IDX]),
+      .ot_reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_BOOT_IDX]),
       .spi_flash_sck_o,
       .spi_flash_sck_en_o,
       .spi_flash_csb_o,
@@ -174,7 +176,9 @@ module ao_peripheral_subsystem
       .spi_flash_sd_en_o,
       .spi_flash_sd_i,
       .spi_flash_intr_error_o,
-      .spi_flash_intr_event_o
+      .spi_flash_intr_event_o,
+      .spi_flash_rx_valid_o(spi_flash_rx_valid),
+      .spi_flash_tx_ready_o(spi_flash_tx_ready)
   );
 
   power_manager #(
@@ -234,6 +238,8 @@ module ao_peripheral_subsystem
       .dma_master1_ch0_resp_i,
       .spi_rx_valid_i(spi_rx_valid),
       .spi_tx_ready_i(spi_tx_ready),
+      .spi_flash_rx_valid_i(spi_flash_rx_valid),
+      .spi_flash_tx_ready_i(spi_flash_tx_ready),
       .dma_intr_o
   );
 

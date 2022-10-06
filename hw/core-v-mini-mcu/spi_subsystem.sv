@@ -34,7 +34,11 @@ module spi_subsystem
 
     // SPI HOST interrupts
     output logic spi_flash_intr_error_o,
-    output logic spi_flash_intr_event_o
+    output logic spi_flash_intr_event_o,
+
+    // SPI - DMA interface
+    output logic spi_flash_rx_valid_o,
+    output logic spi_flash_tx_ready_o
 
 );
 
@@ -48,6 +52,8 @@ module spi_subsystem
   logic [                        3:0] ot_spi_sd_in;
   logic                               ot_spi_intr_error;
   logic                               ot_spi_intr_event;
+  logic                               ot_spi_rx_valid;
+  logic                               ot_spi_tx_ready;
 
   // YosysHW SPI Interface
   logic                               yo_spi_sck;
@@ -71,6 +77,8 @@ module spi_subsystem
       yo_spi_sd_in = '0;
       spi_flash_intr_error_o = ot_spi_intr_error;
       spi_flash_intr_event_o = ot_spi_intr_event;
+      spi_flash_rx_valid_o = ot_spi_rx_valid;
+      spi_flash_tx_ready_o = ot_spi_tx_ready;
     end else begin
       spi_flash_sck_o = yo_spi_sck;
       spi_flash_sck_en_o = yo_spi_sck_en;
@@ -82,6 +90,8 @@ module spi_subsystem
       yo_spi_sd_in = spi_flash_sd_i;
       spi_flash_intr_error_o = 1'b0;
       spi_flash_intr_event_o = 1'b0;
+      spi_flash_rx_valid_o = 1'b0;
+      spi_flash_tx_ready_o = 1'b0;
     end
   end
 
@@ -131,8 +141,8 @@ module spi_subsystem
       .cio_sd_o(ot_spi_sd_out),
       .cio_sd_en_o(ot_spi_sd_en),
       .cio_sd_i(ot_spi_sd_in),
-      .rx_valid_o(),  // not used for the booting spi
-      .tx_ready_o(),  // not used for the booting spi
+      .rx_valid_o(ot_spi_rx_valid),
+      .tx_ready_o(ot_spi_tx_ready),
       .intr_error_o(ot_spi_intr_error),
       .intr_spi_event_o(ot_spi_intr_event)
   );

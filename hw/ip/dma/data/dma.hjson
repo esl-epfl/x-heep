@@ -61,12 +61,12 @@
       ]
     },
     { name:     "SPI_MODE",
-      desc:     "SPI mode selection: disable(0), receive from SPI (1), and send to SPI (2). It waits for TX and RX FIFO in modes 1 and 2, respectively.",
+      desc:     "SPI mode selection: disable(0), receive from SPI (1), and send to SPI (2), receive from SPI FLASH (3), and send to SPI FLASH (4). It waits for TX and RX FIFO in modes 1 and 2, respectively.",
       swaccess: "rw",
       hwaccess: "hro",
       resval:   0,
       fields: [
-        { bits: "1:0", name: "SPI_MODE", desc: "Copy/Read from SPI" }
+        { bits: "2:0", name: "SPI_MODE", desc: "Copy/Read from SPI" }
       ]
     }
    ]

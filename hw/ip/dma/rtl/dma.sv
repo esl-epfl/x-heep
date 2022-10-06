@@ -25,6 +25,8 @@ module dma #(
 
     input logic spi_rx_valid_i,
     input logic spi_tx_ready_i,
+    input logic spi_flash_rx_valid_i,
+    input logic spi_flash_tx_ready_i,
 
     output dma_intr_o
 );
@@ -70,7 +72,7 @@ module dma #(
   logic                              fifo_full;
   logic                              fifo_empty;
 
-  logic        [                1:0] spi_dma_mode;
+  logic        [                2:0] spi_dma_mode;
   logic                              wait_for_rx_spi;
   logic                              wait_for_tx_spi;
 
@@ -119,8 +121,8 @@ module dma #(
   assign hw2reg.dma_start.de = dma_start;
   assign hw2reg.dma_start.d = 32'h0;
 
-  assign wait_for_rx_spi = spi_dma_mode == 2'h1 && ~spi_rx_valid_i;
-  assign wait_for_tx_spi = spi_dma_mode == 2'h2 && ~spi_tx_ready_i;
+  assign wait_for_rx_spi = (spi_dma_mode == 2'h1 && ~spi_rx_valid_i) || (spi_dma_mode == 2'h3 && ~spi_flash_rx_valid_i);
+  assign wait_for_tx_spi = (spi_dma_mode == 2'h2 && ~spi_tx_ready_i) || (spi_dma_mode == 2'h4 && ~spi_flash_tx_ready_i);
 
   assign fifo_alm_full = (fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
   assign fifo_alm_empty = (fifo_usage == 1);
@@ -129,7 +131,7 @@ module dma #(
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start
     if (~rst_ni) begin
       dma_start <= 1'b0;
-      spi_dma_mode <= 2'h0;
+      spi_dma_mode <= 3'h0;
     end else begin
       if (dma_start == 1'b1) begin
         dma_start <= 1'b0;
