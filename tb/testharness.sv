@@ -45,6 +45,10 @@ module testharness #(
   wire sim_jtag_trstn;
   wire [31:0] gpio;
 
+  wire [3:0] spi_flash_sd_io;
+  wire [1:0] spi_flash_csb;
+  wire spi_flash_sck;
+
   wire [3:0] spi_sd_io;
   wire [1:0] spi_csb;
   wire spi_sck;
@@ -104,6 +108,9 @@ module testharness #(
       .execute_from_flash_i,
       .exit_value_o,
       .exit_valid_o,
+      .spi_flash_sd_io(spi_flash_sd_io),
+      .spi_flash_csb_o(spi_flash_csb),
+      .spi_flash_sck_o(spi_flash_sck),
       .spi_sd_io(spi_sd_io),
       .spi_csb_o(spi_csb),
       .spi_sck_o(spi_sck),
@@ -198,7 +205,20 @@ module testharness #(
   );
 
 `ifndef VERILATOR
-  spiflash flash_1 (
+  // Flash used for booting (execute from flash or copy from flash)
+  spiflash flash_boot_i (
+      .csb(spi_flash_csb[0]),
+      .clk(spi_flash_sck),
+      .io0(spi_flash_sd_io[0]),  // MOSI
+      .io1(spi_flash_sd_io[1]),  // MISO
+      .io2(spi_flash_sd_io[2]),
+      .io3(spi_flash_sd_io[3])
+  );
+`endif
+
+`ifndef VERILATOR
+  // Flash used as an example device with an SPI interface
+  spiflash flash_device_i (
       .csb(spi_csb[0]),
       .clk(spi_sck),
       .io0(spi_sd_io[0]),  // MOSI

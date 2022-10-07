@@ -56,8 +56,8 @@ module system_bus
     output obi_req_t  peripheral_slave_req_o,
     input  obi_resp_t peripheral_slave_resp_i,
 
-    output obi_req_t  spi_flash_slave_req_o,
-    input  obi_resp_t spi_flash_slave_resp_i,
+    output obi_req_t  flash_mem_slave_req_o,
+    input  obi_resp_t flash_mem_slave_resp_i,
 
     output obi_req_t  ext_xbar_slave_req_o,
     input  obi_resp_t ext_xbar_slave_resp_i
@@ -104,7 +104,7 @@ module system_bus
   assign debug_slave_req_o = slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
   assign ao_peripheral_slave_req_o = slave_req[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX];
   assign peripheral_slave_req_o = slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
-  assign spi_flash_slave_req_o = slave_req[core_v_mini_mcu_pkg::SPI_FLASH_IDX];
+  assign flash_mem_slave_req_o = slave_req[core_v_mini_mcu_pkg::FLASH_MEM_IDX];
   assign ext_xbar_slave_req_o = slave_req[core_v_mini_mcu_pkg::EXT_SLAVE_IDX];
 
   //slave resp
@@ -115,7 +115,7 @@ module system_bus
   assign slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX] = debug_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX] = ao_peripheral_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
-  assign slave_resp[core_v_mini_mcu_pkg::SPI_FLASH_IDX] = spi_flash_slave_resp_i;
+  assign slave_resp[core_v_mini_mcu_pkg::FLASH_MEM_IDX] = flash_mem_slave_resp_i;
   assign slave_resp[core_v_mini_mcu_pkg::EXT_SLAVE_IDX] = ext_xbar_slave_resp_i;
 
 `ifndef SYNTHESIS

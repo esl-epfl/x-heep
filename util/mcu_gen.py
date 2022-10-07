@@ -221,8 +221,8 @@ def main():
     bootrom_start_offset  = string2int(obj['ao_peripherals']['bootrom']['offset'])
     bootrom_size_address  = string2int(obj['ao_peripherals']['bootrom']['length'])
 
-    spi_host_start_offset  = string2int(obj['ao_peripherals']['spi_host']['offset'])
-    spi_host_size_address  = string2int(obj['ao_peripherals']['spi_host']['length'])
+    spi_flash_start_offset  = string2int(obj['ao_peripherals']['spi_flash']['offset'])
+    spi_flash_size_address  = string2int(obj['ao_peripherals']['spi_flash']['length'])
 
     spi_memio_start_offset  = string2int(obj['ao_peripherals']['spi_memio']['offset'])
     spi_memio_size_address  = string2int(obj['ao_peripherals']['spi_memio']['length'])
@@ -238,6 +238,9 @@ def main():
 
     pad_attribute_start_offset  = string2int(obj['ao_peripherals']['pad']['offset'])
     pad_attribute_size_address  = string2int(obj['ao_peripherals']['pad']['length'])
+
+    spi_start_offset  = string2int(obj['ao_peripherals']['spi']['offset'])
+    spi_size_address  = string2int(obj['ao_peripherals']['spi']['length'])
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
@@ -263,8 +266,8 @@ def main():
     ext_slave_start_address = string2int(obj['ext_slaves']['address'])
     ext_slave_size_address = string2int(obj['ext_slaves']['length'])
 
-    spi_flash_start_address  = string2int(obj['spi_flash']['address'])
-    spi_flash_size_address  = string2int(obj['spi_flash']['length'])
+    flash_mem_start_address  = string2int(obj['flash_mem']['address'])
+    flash_mem_size_address  = string2int(obj['flash_mem']['length'])
 
     linker_onchip_code_start_address  = string2int(obj['linker_script']['onchip_ls']['code']['address'])
     linker_onchip_code_size_address  = string2int(obj['linker_script']['onchip_ls']['code']['lenght'])
@@ -280,9 +283,6 @@ def main():
 
     if ((int(linker_onchip_data_size_address,16) + int(linker_onchip_code_size_address,16)) > int(ram_size_address,16)):
         exit("The code and data section must fit in the RAM size, instead they takes " + str(linker_onchip_data_size_address + linker_onchip_code_size_address))
-
-
-    spi_flash_size_address  = string2int(obj['spi_flash']['length'])
 
 
     null_intr = obj['interrupts']['null_intr']
@@ -343,15 +343,13 @@ def main():
     intr_ack_stop = obj['interrupts']['intr_ack_stop']
     intr_host_timeout = obj['interrupts']['intr_host_timeout']
     dma_intr_done = obj['interrupts']['dma_intr_done']
+    spi_flash_intr_error = obj['interrupts']['spi_flash_intr_error']
+    spi_flash_intr_event = obj['interrupts']['spi_flash_intr_event']
     spi_intr_error = obj['interrupts']['spi_intr_error']
     spi_intr_event = obj['interrupts']['spi_intr_event']
-
     # Interrupt lines available for external interrupt sources
     ext_intr_0 = obj['interrupts']['ext_intr_0']
     ext_intr_1 = obj['interrupts']['ext_intr_1']
-    ext_intr_2 = obj['interrupts']['ext_intr_2']
-    ext_intr_3 = obj['interrupts']['ext_intr_3']
-
 
     pads       = obj['pads']
 
@@ -393,8 +391,8 @@ def main():
         "soc_ctrl_size_address"            : soc_ctrl_size_address,
         "bootrom_start_offset"             : bootrom_start_offset,
         "bootrom_size_address"             : bootrom_size_address,
-        "spi_host_start_offset"            : spi_host_start_offset,
-        "spi_host_size_address"            : spi_host_size_address,
+        "spi_flash_start_offset"           : spi_flash_start_offset,
+        "spi_flash_size_address"           : spi_flash_size_address,
         "spi_memio_start_offset"           : spi_memio_start_offset,
         "spi_memio_size_address"           : spi_memio_size_address,
         "power_manager_start_offset"       : power_manager_start_offset,
@@ -405,6 +403,8 @@ def main():
         "dma_size_address"                 : dma_size_address,
         "pad_attribute_start_offset"       : pad_attribute_start_offset,
         "pad_attribute_size_address"       : pad_attribute_size_address,
+        "spi_start_offset"                 : spi_start_offset,
+        "spi_size_address"                 : spi_size_address,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
         "plic_start_offset"                : plic_start_offset,
@@ -419,8 +419,8 @@ def main():
         "ext_periph_size_address"          : ext_periph_size_address,
         "ext_slave_start_address"          : ext_slave_start_address,
         "ext_slave_size_address"           : ext_slave_size_address,
-        "spi_flash_start_address"          : spi_flash_start_address,
-        "spi_flash_size_address"           : spi_flash_size_address,
+        "flash_mem_start_address"          : flash_mem_start_address,
+        "flash_mem_size_address"           : flash_mem_size_address,
         "linker_onchip_code_start_address" : linker_onchip_code_start_address,
         "linker_onchip_code_size_address"  : linker_onchip_code_size_address,
         "linker_onchip_data_start_address" : linker_onchip_data_start_address,
@@ -483,12 +483,12 @@ def main():
         "intr_ack_stop"                    : intr_ack_stop,
         "intr_host_timeout"                : intr_host_timeout,
         "dma_intr_done"                    : dma_intr_done,
+        "spi_flash_intr_error"             : spi_flash_intr_error,
+        "spi_flash_intr_event"             : spi_flash_intr_event,
         "spi_intr_error"                   : spi_intr_error,
         "spi_intr_event"                   : spi_intr_event,
         "ext_intr_0"                       : ext_intr_0,
         "ext_intr_1"                       : ext_intr_1,
-        "ext_intr_2"                       : ext_intr_2,
-        "ext_intr_3"                       : ext_intr_3,
         "pad_list"                         : pad_list,
         "num_internal_pad"                 : num_internal_pad,
     }

@@ -26,9 +26,9 @@ extern "C" {
 #define BOOTROM_SIZE 0x${bootrom_size_address}
 #define BOOTROM_END_ADDRESS (BOOTROM_START_ADDRESS + BOOTROM_SIZE)
 
-#define SPI_HOST_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_host_start_offset})
-#define SPI_HOST_SIZE 0x${spi_host_size_address}
-#define SPI_HOST_END_ADDRESS (SPI_HOST_START_ADDRESS + SPI_HOST_SIZE)
+#define SPI_FLASH_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_flash_start_offset})
+#define SPI_FLASH_SIZE 0x${spi_flash_size_address}
+#define SPI_FLASH_END_ADDRESS (SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE)
 
 #define SPI_MEMIO_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_memio_start_offset})
 #define SPI_MEMIO_SIZE 0x${spi_memio_size_address}
@@ -49,6 +49,10 @@ extern "C" {
 #define PAD_ATTRIBUTE_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${pad_attribute_start_offset})
 #define PAD_ATTRIBUTE_SIZE 0x${pad_attribute_size_address}
 #define PAD_ATTRIBUTE_END_ADDRESS (PAD_ATTRIBUTE_START_ADDRESS + PAD_ATTRIBUTE_SIZE)
+
+#define SPI_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_start_offset})
+#define SPI_SIZE 0x${spi_size_address}
+#define SPI_END_ADDRESS (SPI_START_ADDRESS + SPI_SIZE)
 
 //switch-on/off peripherals
 #define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}
@@ -79,9 +83,9 @@ extern "C" {
 #define EXT_SLAVE_SIZE 0x${ext_slave_size_address}
 #define EXT_SLAVE_END_ADDRESS (EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE)
 
-#define SPI_FLASH_START_ADDRESS 0x${spi_flash_start_address}
-#define SPI_FLASH_SIZE 0x${spi_flash_size_address}
-#define SPI_FLASH_END_ADDRESS (SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE)
+#define FLASH_MEM_START_ADDRESS 0x${flash_mem_start_address}
+#define FLASH_MEM_SIZE 0x${flash_mem_size_address}
+#define FLASH_MEM_END_ADDRESS (FLASH_MEM_START_ADDRESS + FLASH_MEM_SIZE)
 
 #define NULL_INTR ${null_intr}
 #define UART_INTR_TX_WATERMARK ${uart_intr_tx_watermark}
@@ -141,14 +145,14 @@ extern "C" {
 #define INTR_ACK_STOP ${intr_ack_stop}
 #define INTR_HOST_TIMEOUT ${intr_host_timeout}
 #define DMA_INTR_DONE ${dma_intr_done}
+#define SPI_FLASH_INTR_ERROR ${spi_flash_intr_error}
+#define SPI_FLASH_INTR_EVENT ${spi_flash_intr_event}
 #define SPI_INTR_ERROR ${spi_intr_error}
 #define SPI_INTR_EVENT ${spi_intr_event}
 
 // Interrupt lines available for external interrupt sources
 #define EXT_INTR_0 ${ext_intr_0}
 #define EXT_INTR_1 ${ext_intr_1}
-#define EXT_INTR_2 ${ext_intr_2}
-#define EXT_INTR_3 ${ext_intr_3}
 
 % for pad in pad_list:
 #define ${pad.localparam}_ATTRIBUTE ${pad.index}

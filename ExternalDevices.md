@@ -57,14 +57,12 @@ cat uart0.log
 It should print:
 
 ```
-Memcopy - example external peripheral
-Init the PLIC... Success
-Set MEMCOPY interrupt priority to 1... Success
-Enable MEMCOPY interrupt... Success
-Memcopy launched...
-Memcopy finished
-Claim interrupt... Success
-Complete interrupt... Success
+--- MEMCOPY EXAMPLE - external peripheral ---
+Init the PLIC...success
+Set MEMCOPY interrupt priority to 1...success
+Enable MEMCOPY interrupt...Success
+Memcopy launched...finished
+Complete interrupt...success
 MEMCOPY SUCCESS
 ```
 

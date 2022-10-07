@@ -2,15 +2,15 @@
 
 #include "core_v_mini_mcu.h"
 #include "soc_ctrl_regs.h"
-#include "spi_mem_regs.h"
+#include "spi_memio_regs.h"
 #include "power_manager_regs.h"
 #include "spi_host_regs.h"
 
 #define SOC_CTRL_START_ADDRESS_20bit (SOC_CTRL_START_ADDRESS >> 12)
-#define SPI_FLASH_START_ADDRESS_20bit (SPI_FLASH_START_ADDRESS >> 12)
+#define FLASH_MEM_START_ADDRESS_20bit (FLASH_MEM_START_ADDRESS >> 12)
 #define SPI_MEMIO_START_ADDRESS_20bit (SPI_MEMIO_START_ADDRESS >> 12)
 #define POWER_MANAGER_START_ADDRESS_20bit (POWER_MANAGER_START_ADDRESS >> 12)
-#define SPI_HOST_START_ADDRESS_20bit (SPI_HOST_START_ADDRESS >> 12)
+#define SPI_FLASH_START_ADDRESS_20bit (SPI_FLASH_START_ADDRESS >> 12)
 
 #define SEXT_IMM(x) ((x) | (-(((x) >> 11) & 1) << 11))
 
@@ -45,12 +45,12 @@ _execute_from_flash:
        lui    a1, SPI_MEMIO_START_ADDRESS_20bit
        addi   a0, zero, 1
        sw     a0, OBI_SPIMEMIO_START_SPIMEM_REG_OFFSET(a1)
-       lui    a1, SPI_FLASH_START_ADDRESS_20bit
+       lui    a1, FLASH_MEM_START_ADDRESS_20bit
        addi   a1, a1, SEXT_IMM(0x180)
        jalr   a1
 
 _copy_from_flash:
-       lui    a1, SPI_HOST_START_ADDRESS_20bit
+       lui    a1, SPI_FLASH_START_ADDRESS_20bit
        // Enable spi
        lui    a0, 0x80000
        lw     a4, SPI_HOST_CONTROL_REG_OFFSET(a1)

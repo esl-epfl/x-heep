@@ -16,6 +16,9 @@
 #include "spi_host.h"
 #include "dma.h"
 
+// Un-comment this line to use the SPI FLASH instead of the default SPI
+#define USE_SPI_FLASH
+
 #define COPY_DATA_BYTES 15
 #define SPI_BYTES (4 * (uint32_t)((COPY_DATA_BYTES-1) / 4 + 1)) // Only sends data when an entire word has been received
 
@@ -45,7 +48,11 @@ uint32_t copy_data[SPI_BYTES / 4] __attribute__ ((aligned (4)))  = { 0 };
 
 int main(int argc, char *argv[])
 {
-    spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
+    #ifndef USE_SPI_FLASH
+        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_START_ADDRESS);
+    #else
+        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
+    #endif
 
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
@@ -86,6 +93,7 @@ int main(int argc, char *argv[])
     // Enable SPI host device
     spi_set_enable(&spi_host, true);
 
+    // SPI and SPI_HOST are the same IP so same register map
     uint32_t *fifo_ptr = spi_host.base_addr.base + SPI_HOST_DATA_REG_OFFSET;
 
     // DMA CONFIGURATION --
@@ -93,9 +101,21 @@ int main(int argc, char *argv[])
     dma_t dma;
     dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
     dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
-    dma_set_spi_mode(&dma, (uint32_t) 1); // The DMA will wait for the watermark signal to start the transaction
     dma_set_read_ptr(&dma, (uint32_t) fifo_ptr); // SPI RX FIFO addr
     dma_set_write_ptr(&dma, (uint32_t) copy_data); // copy data address
+
+    // Set the correct SPI-DMA mode:
+    // (0) disable
+    // (1) receive from SPI (use SPI_START_ADDRESS for spi_host pointer)
+    // (2) send to SPI (use SPI_START_ADDRESS for spi_host pointer)
+    // (3) receive from SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
+    // (4) send to SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
+    #ifndef USE_SPI_FLASH
+        dma_set_spi_mode(&dma, (uint32_t) 1); // The DMA will wait for the SPI rx FIFO valid signal
+    #else
+        dma_set_spi_mode(&dma, (uint32_t) 3); // The DMA will wait for the SPI rx FIFO valid signal
+    #endif
+
     // ---------------------
 
     // Configure chip 0 (flash memory)
