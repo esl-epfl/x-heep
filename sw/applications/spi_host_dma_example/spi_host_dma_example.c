@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 {
     // Both OT SPI can be used
     spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_START_ADDRESS);
-    // spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_BOOT_START_ADDRESS);
+    // spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
 
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
@@ -102,9 +102,9 @@ int main(int argc, char *argv[])
     // (0) disable
     // (1) receive from SPI (use SPI_START_ADDRESS for spi_host pointer)
     // (2) send to SPI (use SPI_START_ADDRESS for spi_host pointer)
-    // (3) receive from SPI FLASH (use SPI_BOOT_START_ADDRESS for spi_host pointer)
-    // (4) send to SPI FLASH (use SPI_BOOT_START_ADDRESS for spi_host pointer)
-    dma_set_spi_mode(&dma, (uint32_t) 1); // The DMA will wait for the watermark signal to start the transaction
+    // (3) receive from SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
+    // (4) send to SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
+    dma_set_spi_mode(&dma, (uint32_t) 1); // The DMA will wait for the SPI rx FIFO valid signal
     // ---------------------
 
     // Configure chip 0 (flash memory)

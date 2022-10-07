@@ -44,7 +44,7 @@
             offset:  0x00010000,
             length:  0x00010000,
         },
-        spi_boot: {
+        spi_flash: {
             offset:  0x00020000,
             length:  0x00008000,
         },
@@ -99,7 +99,7 @@
         },
     },
 
-    spi_flash: {
+    flash_mem: {
         address: 0x40000000,
         length:  0x01000000,
     },

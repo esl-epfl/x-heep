@@ -221,8 +221,8 @@ def main():
     bootrom_start_offset  = string2int(obj['ao_peripherals']['bootrom']['offset'])
     bootrom_size_address  = string2int(obj['ao_peripherals']['bootrom']['length'])
 
-    spi_boot_start_offset  = string2int(obj['ao_peripherals']['spi_boot']['offset'])
-    spi_boot_size_address  = string2int(obj['ao_peripherals']['spi_boot']['length'])
+    spi_flash_start_offset  = string2int(obj['ao_peripherals']['spi_flash']['offset'])
+    spi_flash_size_address  = string2int(obj['ao_peripherals']['spi_flash']['length'])
 
     spi_memio_start_offset  = string2int(obj['ao_peripherals']['spi_memio']['offset'])
     spi_memio_size_address  = string2int(obj['ao_peripherals']['spi_memio']['length'])
@@ -266,8 +266,8 @@ def main():
     ext_slave_start_address = string2int(obj['ext_slaves']['address'])
     ext_slave_size_address = string2int(obj['ext_slaves']['length'])
 
-    spi_flash_start_address  = string2int(obj['spi_flash']['address'])
-    spi_flash_size_address  = string2int(obj['spi_flash']['length'])
+    flash_mem_start_address  = string2int(obj['flash_mem']['address'])
+    flash_mem_size_address  = string2int(obj['flash_mem']['length'])
 
     linker_onchip_code_start_address  = string2int(obj['linker_script']['onchip_ls']['code']['address'])
     linker_onchip_code_size_address  = string2int(obj['linker_script']['onchip_ls']['code']['lenght'])
@@ -391,8 +391,8 @@ def main():
         "soc_ctrl_size_address"            : soc_ctrl_size_address,
         "bootrom_start_offset"             : bootrom_start_offset,
         "bootrom_size_address"             : bootrom_size_address,
-        "spi_boot_start_offset"            : spi_boot_start_offset,
-        "spi_boot_size_address"            : spi_boot_size_address,
+        "spi_flash_start_offset"           : spi_flash_start_offset,
+        "spi_flash_size_address"           : spi_flash_size_address,
         "spi_memio_start_offset"           : spi_memio_start_offset,
         "spi_memio_size_address"           : spi_memio_size_address,
         "power_manager_start_offset"       : power_manager_start_offset,
@@ -419,8 +419,8 @@ def main():
         "ext_periph_size_address"          : ext_periph_size_address,
         "ext_slave_start_address"          : ext_slave_start_address,
         "ext_slave_size_address"           : ext_slave_size_address,
-        "spi_flash_start_address"          : spi_flash_start_address,
-        "spi_flash_size_address"           : spi_flash_size_address,
+        "flash_mem_start_address"          : flash_mem_start_address,
+        "flash_mem_size_address"           : flash_mem_size_address,
         "linker_onchip_code_start_address" : linker_onchip_code_start_address,
         "linker_onchip_code_size_address"  : linker_onchip_code_size_address,
         "linker_onchip_data_start_address" : linker_onchip_data_start_address,

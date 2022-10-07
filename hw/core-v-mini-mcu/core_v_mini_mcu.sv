@@ -97,10 +97,6 @@ module core_v_mini_mcu
   obi_req_t peripheral_slave_req;
   obi_resp_t peripheral_slave_resp;
 
-  // spi flash signals
-  obi_req_t spi_flash_slave_req;
-  obi_resp_t spi_flash_slave_resp;
-
   // signals to debug unit
   logic debug_core_req;
 
@@ -128,6 +124,9 @@ module core_v_mini_mcu
   logic [3:0] spi_flash_sd_out;
   logic [3:0] spi_flash_sd_en;
   logic [3:0] spi_flash_sd_in;
+  // Memory Map SPI Region
+  obi_req_t flash_mem_slave_req;
+  obi_resp_t flash_mem_slave_resp;
 
   // OpenTitan SPI interface (connected to DMA)
   logic spi_sck;
@@ -234,8 +233,8 @@ module core_v_mini_mcu
       .ao_peripheral_slave_resp_i(ao_peripheral_slave_resp),
       .peripheral_slave_req_o    (peripheral_slave_req),
       .peripheral_slave_resp_i   (peripheral_slave_resp),
-      .spi_flash_slave_req_o     (spi_flash_slave_req),
-      .spi_flash_slave_resp_i    (spi_flash_slave_resp),
+      .flash_mem_slave_req_o     (flash_mem_slave_req),
+      .flash_mem_slave_resp_i    (flash_mem_slave_resp),
       .ext_xbar_slave_req_o      (ext_xbar_slave_req_o),
       .ext_xbar_slave_resp_i     (ext_xbar_slave_resp_i)
   );
@@ -258,8 +257,8 @@ module core_v_mini_mcu
       .execute_from_flash_i(execute_from_flash),
       .exit_valid_o(exit_valid),
       .exit_value_o(exit_value_o),
-      .spimemio_req_i(spi_flash_slave_req),
-      .spimemio_resp_o(spi_flash_slave_resp),
+      .spimemio_req_i(flash_mem_slave_req),
+      .spimemio_resp_o(flash_mem_slave_resp),
       .spi_flash_sck_o(spi_flash_sck),
       .spi_flash_sck_en_o(spi_flash_sck_en),
       .spi_flash_csb_o(spi_flash_csb),
