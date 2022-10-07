@@ -22,41 +22,45 @@ _start:
 /* initialize global pointer */
 .option push
 .option norelax
-1:	auipc gp, %pcrel_hi(__global_pointer$)
-	addi  gp, gp, %pcrel_lo(1b)
+1: auipc gp, %pcrel_hi(__global_pointer$)
+   addi  gp, gp, %pcrel_lo(1b)
 .option pop
 
 /* initialize stack pointer */
-	la sp, _sp
+   la sp, _sp
 
 /* set vector table address and vectored mode */
-	la a0, __vector_start
-        ori a0, a0, 0x1
-	csrw mtvec, a0
+   la a0, __vector_start
+   ori a0, a0, 0x1
+   csrw mtvec, a0
 
 /* clear the bss segment */
-	la a0, __bss_start
-	la a2, __bss_end
-	sub a2, a2, a0
-	li a1, 0
-	call memset
+   la a0, __bss_start
+   la a2, __bss_end
+   sub a2, a2, a0
+   li a1, 0
+   call memset
 
 /* new-style constructors and destructors */
-	la a0, __libc_fini_array
-	call atexit
-	call __libc_init_array
+   la a0, __libc_fini_array
+   call atexit
+   call __libc_init_array
 
 /* set the frequency */
    li a0, SOC_CTRL_START_ADDRESS
    li a2, REFERENCE_CLOCK_Hz
    sw a2, SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET(a0)
 
+#ifdef EXTERNAL_CRTO
+   #include "external_crt0.S"
+#endif
+
 /* call main */
-	lw a0, 0(sp)                    /* a0 = argc */
-	addi a1, sp, __SIZEOF_POINTER__ /* a1 = argv */
-	li a2, 0                        /* a2 = envp = NULL */
-	call main
-	tail exit
+   lw a0, 0(sp)                    /* a0 = argc */
+   addi a1, sp, __SIZEOF_POINTER__ /* a1 = argv */
+   li a2, 0                        /* a2 = envp = NULL */
+   call main
+   tail exit
 
 .size  _start, .-_start
 
@@ -65,10 +69,10 @@ _start:
 .global _fini
 .type   _fini, @function
 _init:
-	call init
+   call init
 _fini:
  /* These don't have to do anything since we use init_array/fini_array. Prevent
     missing symbol error */
-	ret
+   ret
 .size  _init, .-_init
 .size _fini, .-_fini
