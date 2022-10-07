@@ -46,8 +46,9 @@ uint32_t copy_data[SPI_BYTES / 4] __attribute__ ((aligned (4)))  = { 0 };
 int main(int argc, char *argv[])
 {
     // Both OT SPI can be used
-    spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_START_ADDRESS);
-    // spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
+    // Comment only one of the below lines and modify accordingly the call to dma_set_spi_mode())
+    // spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_START_ADDRESS);
+    spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
 
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
@@ -104,7 +105,7 @@ int main(int argc, char *argv[])
     // (2) send to SPI (use SPI_START_ADDRESS for spi_host pointer)
     // (3) receive from SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
     // (4) send to SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
-    dma_set_spi_mode(&dma, (uint32_t) 1); // The DMA will wait for the SPI rx FIFO valid signal
+    dma_set_spi_mode(&dma, (uint32_t) 3); // The DMA will wait for the SPI rx FIFO valid signal
     // ---------------------
 
     // Configure chip 0 (flash memory)

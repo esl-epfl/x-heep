@@ -14,9 +14,6 @@
 #include "soc_ctrl_regs.h"
 #include "spi_host_regs.h"
 
-#define FLASH_MEM_START_ADDRESS_20bit (FLASH_MEM_START_ADDRESS >> 12)
-#define SPI_FLASH_START_ADDRESS_20bit (SPI_FLASH_START_ADDRESS >> 12)
-
 /* Entry point for bare metal programs */
 .section .text.start
 .global _start
@@ -35,7 +32,7 @@ _start:
 
 /* copy the remaining (if any) text and data sections */
 	// Setup the in/out pointers and copy size knowing 1KiB as already been copied
-	lui    a2, FLASH_MEM_START_ADDRESS_20bit # src ptr (flash)
+	li     a2, FLASH_MEM_START_ADDRESS # src ptr (flash)
 	addi   a2, a2, 1024
 	// This assumes ram base address is 0x00000000
 	li     s1, 1024 # dst ptr (ram)
@@ -45,7 +42,7 @@ _start:
 	blt    a0, s1, _init_bss
 	addi   a3, a0, -1024 # copy size in bytes (_edata is word aligned, so -1020 to make sure last word is copied)
 
-	lui    a1, SPI_FLASH_START_ADDRESS_20bit
+	li     a1, SPI_FLASH_START_ADDRESS
 	// Spi should already be enabled, powered-up and TXWM to 8
 	// Address in byte reversed order (might be useless for the 1KiB address value)
 	// Highest byte is discarded(address on 3 bytes)
