@@ -28,7 +28,7 @@ SECTIONS {
         KEEP(*(.vectors));
     } >RAM AT >FLASH
 
-    /* Fill section to avoid 'X' in simulation when booting with SPI host (copy from flash to ram) */
+    /* this should be removed or made elegant */
     .fill :
     {
         LONG(0xDEADBEEF);
@@ -72,7 +72,7 @@ SECTIONS {
     } >RAM AT >FLASH
 
     /* The program code and other data goes into FLASH */
-    .text :
+    .text : ALIGN_WITH_INPUT
     {
         . = ALIGN(4);
         *(.text)           /* .text sections (code) */
@@ -91,7 +91,7 @@ SECTIONS {
     The program executes knowing that the data is in the RAM
     but the loader puts the initial values in the FLASH (inidata).
     It is one task of the startup to copy the initial values from FLASH to RAM. */
-    .data : 
+    .data : ALIGN_WITH_INPUT
     {
         . = ALIGN(4);
         _sidata = LOADADDR(.data);
