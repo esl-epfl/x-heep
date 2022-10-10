@@ -64,7 +64,7 @@ filesets:
 targets:
   default: &default_target
     filesets:
-    - files_examples
+    - use_external_device_example? (files_examples)
     - tb-harness
     - tool_verilator? (uartdpi)
     - tool_modelsim? (systemverilog_only_uart)

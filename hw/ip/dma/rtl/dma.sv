@@ -121,8 +121,8 @@ module dma #(
   assign hw2reg.dma_start.de = dma_start;
   assign hw2reg.dma_start.d = 32'h0;
 
-  assign wait_for_rx_spi = (spi_dma_mode == 2'h1 && ~spi_rx_valid_i) || (spi_dma_mode == 2'h3 && ~spi_flash_rx_valid_i);
-  assign wait_for_tx_spi = (spi_dma_mode == 2'h2 && ~spi_tx_ready_i) || (spi_dma_mode == 2'h4 && ~spi_flash_tx_ready_i);
+  assign wait_for_rx_spi = (spi_dma_mode == 3'h1 && ~spi_rx_valid_i) || (spi_dma_mode == 3'h3 && ~spi_flash_rx_valid_i);
+  assign wait_for_tx_spi = (spi_dma_mode == 3'h2 && ~spi_tx_ready_i) || (spi_dma_mode == 3'h4 && ~spi_flash_tx_ready_i);
 
   assign fifo_alm_full = (fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
   assign fifo_alm_empty = (fifo_usage == 1);
