@@ -28,42 +28,6 @@ SECTIONS {
         KEEP(*(.vectors));
     } >RAM AT >FLASH
 
-    /* Fill section to avoid 'X' in simulation when booting with SPI host (copy from flash to ram) */
-    .fill :
-    {
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-    } >RAM AT >FLASH
-
     /* crt0 init code */
     .init (__boot_address):
     {
@@ -72,7 +36,7 @@ SECTIONS {
     } >RAM AT >FLASH
 
     /* The program code and other data goes into FLASH */
-    .text :
+    .text : ALIGN_WITH_INPUT
     {
         . = ALIGN(4);
         *(.text)           /* .text sections (code) */
@@ -91,7 +55,7 @@ SECTIONS {
     The program executes knowing that the data is in the RAM
     but the loader puts the initial values in the FLASH (inidata).
     It is one task of the startup to copy the initial values from FLASH to RAM. */
-    .data : 
+    .data : ALIGN_WITH_INPUT
     {
         . = ALIGN(4);
         _sidata = LOADADDR(.data);
