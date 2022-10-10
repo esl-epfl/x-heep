@@ -321,6 +321,14 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_core(const power_ma
     reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_SWITCH_ON_STOP_BIT_COUNTER_BIT, true);
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_COUNTERS_STOP_REG_OFFSET), reg);
 
+    // clear fast interrupt
+    if (sel_intr >= 2 || sel_intr <= 14)
+    {
+        mmio_region_t base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
+        reg = bitfield_bit32_write(reg, sel_intr, true);
+        mmio_region_write32(base_addr, (ptrdiff_t)(0x4), reg);
+    }
+
     return kPowerManagerOk_e;
 }
 
