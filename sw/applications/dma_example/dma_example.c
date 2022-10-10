@@ -11,6 +11,7 @@
 #include "core_v_mini_mcu.h"
 #include "dma.h"
 #include "fast_intr_ctrl.h"
+#include "fast_intr_ctrl_regs.h"
 
 #define COPY_SIZE 10
 
@@ -20,8 +21,9 @@ void handler_irq_fast_dma(void)
 {
     fast_intr_ctrl_t fast_intr_ctrl;
     fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    dma_intr_flag = 1;
     clear_fast_interrupt(&fast_intr_ctrl, kDma_e);
+
+    dma_intr_flag = 1;
 }
 
 int main(int argc, char *argv[])

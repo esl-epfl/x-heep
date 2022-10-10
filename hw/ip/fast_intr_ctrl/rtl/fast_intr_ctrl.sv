@@ -16,13 +16,16 @@ module fast_intr_ctrl #(
     output reg_rsp_t reg_rsp_o,
 
     input  logic [14:0] fast_intr_i,
-    input  logic [14:0] fast_intr_o
+    output logic [14:0] fast_intr_o
 );
 
   import fast_intr_ctrl_reg_pkg::*;
 
   fast_intr_ctrl_reg2hw_t reg2hw;
   fast_intr_ctrl_hw2reg_t hw2reg;
+
+  logic [14:0] fast_intr_pending_de;
+  logic [14:0] fast_intr_clear_de;
 
   fast_intr_ctrl_reg_top #(
       .reg_req_t(reg_req_t),
@@ -39,20 +42,33 @@ module fast_intr_ctrl #(
 
   for (genvar i = 0; i < 15; i++) begin : gen_
 
-    always_ff @(posedge clk_i or negedge rst_ni) begin : proc_
-      if (~rst_ni | reg2hw.fast_intr_clear.q[i]) begin
-        hw2reg.fast_intr_pending.d[i] <= 1'b0;
-        hw2reg.fast_intr_pending.de <= 1'b1;
+    always_comb begin
+      if (reg2hw.fast_intr_clear.q[i]) begin
+        fast_intr_pending_de[i] = 1'b1;
+        hw2reg.fast_intr_pending.d[i] = 1'b0;
+        fast_intr_clear_de[i] = 1'b1;
+        hw2reg.fast_intr_clear.d[i] = 1'b0;
       end else begin
         if (fast_intr_i[i]) begin
-          hw2reg.fast_intr_pending.d[i] <= 1'b1;
-          hw2reg.fast_intr_pending.de <= 1'b1;
+          fast_intr_pending_de[i] = 1'b1;
+          hw2reg.fast_intr_pending.d[i] = 1'b1;
+          fast_intr_clear_de[i] = 1'b0;
+          hw2reg.fast_intr_clear.d[i] = 1'b0;
+        end else begin
+          fast_intr_pending_de[i] = 1'b0;
+          hw2reg.fast_intr_pending.d[i] = 1'b0;
+          fast_intr_clear_de[i] = 1'b0;
+          hw2reg.fast_intr_clear.d[i] = 1'b0;
         end
       end
     end
 
   end
 
+  assign hw2reg.fast_intr_pending.d[31:15] = 17'h00000;
+  assign hw2reg.fast_intr_clear.d[31:15] = 17'h00000;
   assign fast_intr_o = reg2hw.fast_intr_pending.q[14:0];
+  assign hw2reg.fast_intr_pending.de = | fast_intr_pending_de;
+  assign hw2reg.fast_intr_clear.de = | fast_intr_clear_de;
 
 endmodule : fast_intr_ctrl

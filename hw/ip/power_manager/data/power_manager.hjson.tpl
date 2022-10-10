@@ -100,18 +100,106 @@
     }
 
 % endfor
-% for i in range(139):
-    { name:     "CORE_CSR_C${i}",
-      desc:     "Core csr c${i} value",
+    { name:     "CORE_CSR_MSTATUS",
+      desc:     "Core csr mstatus value",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "CORE_CSR_C${i}", desc: "Core reg c${i} Reg" }
+        { bits: "31:0", name: "CORE_CSR_MSTATUS", desc: "Core reg mstatus Reg" }
       ]
     }
 
-% endfor
+    { name:     "CORE_CSR_MIE",
+      desc:     "Core csr mie value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_MIE", desc: "Core reg mie Reg" }
+      ]
+    }
+
+    { name:     "CORE_CSR_MSCRATCH",
+      desc:     "Core csr mscratch value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_MSCRATCH", desc: "Core reg mscratch Reg" }
+      ]
+    }
+
+    { name:     "CORE_CSR_MEPC",
+      desc:     "Core csr mepc value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_MEPC", desc: "Core reg mepc Reg" }
+      ]
+    }
+
+    { name:     "CORE_CSR_MCAUSE",
+      desc:     "Core csr mcause value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_MCAUSE", desc: "Core reg mcause Reg" }
+      ]
+    }
+
+    { name:     "CORE_CSR_MTVAL",
+      desc:     "Core csr mtval value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_MTVAL", desc: "Core reg mtval Reg" }
+      ]
+    }
+
+    { name:     "CORE_CSR_MTVEC",
+      desc:     "Core csr mtvec value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_MTVEC", desc: "Core reg mtvec Reg" }
+      ]
+    }
+
+    { name:     "CORE_CSR_DCSR",
+      desc:     "Core csr dcsr value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_DCSR", desc: "Core reg dcsr Reg" }
+      ]
+    }
+
+    { name:     "CORE_CSR_MCYCLE",
+      desc:     "Core csr mcycle value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_MCYCLE", desc: "Core reg mcycle Reg" }
+      ]
+    }
+
+    { name:     "CORE_CSR_MINSTRET",
+      desc:     "Core csr minstret value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "CORE_CSR_MINSTRET", desc: "Core reg minstret Reg" }
+      ]
+    }
+
     { name:     "EN_WAIT_FOR_INTR",
       desc:     "Enable wait for interrupt",
       resval:   "0x00000000"

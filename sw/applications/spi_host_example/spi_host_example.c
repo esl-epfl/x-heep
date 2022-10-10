@@ -12,6 +12,8 @@
 #include "handler.h"
 #include "soc_ctrl.h"
 #include "spi_host.h"
+#include "fast_intr_ctrl.h"
+#include "fast_intr_ctrl_regs.h"
 
 // Simple example to check the SPI host peripheral is working. It checks the ram and flash have the same content
 #define DATA_CHUNK_ADDR 0x00008000
@@ -21,6 +23,10 @@ spi_host_t spi_host;
 
 void handler_irq_fast_spi(void)
 {
+    fast_intr_ctrl_t fast_intr_ctrl;
+    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
+    clear_fast_interrupt(&fast_intr_ctrl, kSpi_e);
+
     spi_intr_flag = 1;
 }
 

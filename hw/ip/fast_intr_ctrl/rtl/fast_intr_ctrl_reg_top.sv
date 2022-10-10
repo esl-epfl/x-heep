@@ -69,8 +69,6 @@ module fast_intr_ctrl_reg_top #(
   // Format: <reg>_<field>_{wd|we|qs}
   //        or <reg>_{wd|we|qs} if field == 1 or 0
   logic [31:0] fast_intr_pending_qs;
-  logic [31:0] fast_intr_pending_wd;
-  logic fast_intr_pending_we;
   logic [31:0] fast_intr_clear_qs;
   logic [31:0] fast_intr_clear_wd;
   logic fast_intr_clear_we;
@@ -80,15 +78,14 @@ module fast_intr_ctrl_reg_top #(
 
   prim_subreg #(
     .DW      (32),
-    .SWACCESS("RW"),
+    .SWACCESS("RO"),
     .RESVAL  (32'h0)
   ) u_fast_intr_pending (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
-    // from register interface
-    .we     (fast_intr_pending_we),
-    .wd     (fast_intr_pending_wd),
+    .we     (1'b0),
+    .wd     ('0  ),
 
     // from internal hardware
     .de     (hw2reg.fast_intr_pending.de),
@@ -147,9 +144,6 @@ module fast_intr_ctrl_reg_top #(
               ((addr_hit[0] & (|(FAST_INTR_CTRL_PERMIT[0] & ~reg_be))) |
                (addr_hit[1] & (|(FAST_INTR_CTRL_PERMIT[1] & ~reg_be)))));
   end
-
-  assign fast_intr_pending_we = addr_hit[0] & reg_we & !reg_error;
-  assign fast_intr_pending_wd = reg_wdata[31:0];
 
   assign fast_intr_clear_we = addr_hit[1] & reg_we & !reg_error;
   assign fast_intr_clear_wd = reg_wdata[31:0];

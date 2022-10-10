@@ -11,7 +11,7 @@
     { name:     "FAST_INTR_PENDING",
       desc:     "Pending fast interrupt",
       resval:   "0x00000000"
-      swaccess: "rw",
+      swaccess: "ro",
       hwaccess: "hrw",
       fields: [
         { bits: "31:0", name: "FAST_INTR_PENDING", desc: "Pending Fast Interrupt Reg" }
