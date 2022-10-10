@@ -18,15 +18,10 @@ module power_manager #(
     // Status signal
     input logic core_sleep_i,
 
-    // Input interrupts
-    input logic                                     spi_intr_i,
-    input logic                                     rv_timer_0_irq_i,
-    input logic                                     rv_timer_1_irq_i,
-    input logic                                     rv_timer_2_irq_i,
-    input logic                                     rv_timer_3_irq_i,
-    input logic                                     dma_irq_i,
-    input logic [                              7:0] gpio_irq_i,
-    input logic                                     plic_irq_i,
+    // Input interrupt array
+    input logic [31:0] intr_i,
+
+    // External interrupts
     input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] ext_irq_i,
 
     // Power gating signals
@@ -47,15 +42,16 @@ module power_manager #(
 
   assign hw2reg.intr_state.d = {
     ext_irq_i,
-    plic_irq_i,
-    gpio_irq_i,
-    dma_irq_i,
-    rv_timer_3_irq_i,
-    rv_timer_2_irq_i,
-    rv_timer_1_irq_i,
-    rv_timer_0_irq_i,
-    spi_intr_i
+    intr_i[11], // plic
+    intr_i[28:21], // gpio
+    intr_i[19], // dma
+    intr_i[18], // rv_timer_3
+    intr_i[17], // rv_timer_2
+    intr_i[16], // rv_timer_1
+    intr_i[7], // rv_timer_0
+    intr_i[20] // spi
   };
+
   assign hw2reg.intr_state.de = 1'b1;
 
   power_manager_reg_top #(

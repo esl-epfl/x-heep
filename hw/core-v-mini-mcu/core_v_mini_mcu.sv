@@ -166,6 +166,9 @@ module core_v_mini_mcu
   // pads
   logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][15:0] pad_attributes;
 
+  // interrupt array
+  logic [31:0] intr;
+
   cpu_subsystem #(
       .BOOT_ADDR(BOOT_ADDR),
       .PULP_XPULP(PULP_XPULP),
@@ -180,14 +183,16 @@ module core_v_mini_mcu
       .core_instr_resp_i(core_instr_resp),
       .core_data_req_o(core_data_req),
       .core_data_resp_i(core_data_resp),
-      .irq_i({
-        1'b0, irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
-      }),
+      .irq_i(intr),
       .irq_ack_o(irq_ack),
       .irq_id_o(irq_id_out),
       .debug_req_i(debug_core_req),
       .core_sleep_o(core_sleep)
   );
+
+  assign intr = {
+    1'b0, irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
+  };
 
   assign fast_intr = {
     2'b0, gpio_intr, spi_intr, dma_intr, rv_timer_intr[3], rv_timer_intr[2], rv_timer_intr[1]
@@ -271,8 +276,7 @@ module core_v_mini_mcu
       .spi_sd_i(spi_sd_in),
       .spi_intr_error_o(),
       .spi_intr_event_o(spi_intr),
-      .gpio_intr_i(gpio_intr),
-      .plic_irq_i(irq_external),
+      .intr_i(intr),
       .ext_intr_i(intr_vector_ext_i),
       .core_sleep_i(core_sleep),
       .cpu_subsystem_powergate_switch_o(cpu_subsystem_powergate_switch),
@@ -283,8 +287,6 @@ module core_v_mini_mcu
       .memory_subsystem_rst_no(memory_subsystem_rst_n),
       .rv_timer_0_intr_o(rv_timer_intr[0]),
       .rv_timer_1_intr_o(rv_timer_intr[1]),
-      .rv_timer_2_intr_i(rv_timer_intr[2]),
-      .rv_timer_3_intr_i(rv_timer_intr[3]),
       .dma_master0_ch0_req_o(dma_master0_ch0_req),
       .dma_master0_ch0_resp_i(dma_master0_ch0_resp),
       .dma_master1_ch0_req_o(dma_master1_ch0_req),

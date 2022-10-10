@@ -34,8 +34,7 @@ module ao_peripheral_subsystem
     output logic                               spi_intr_event_o,
 
     // POWER MANAGER
-    input  logic [                               7:0] gpio_intr_i,
-    input  logic                                      plic_irq_i,
+    input  logic [                              31:0] intr_i,
     input  logic [ core_v_mini_mcu_pkg::NEXT_INT-1:0] ext_intr_i,
     input  logic                                      core_sleep_i,
     output logic                                      cpu_subsystem_powergate_switch_o,
@@ -48,8 +47,6 @@ module ao_peripheral_subsystem
     //RV TIMER
     output logic rv_timer_0_intr_o,
     output logic rv_timer_1_intr_o,
-    input  logic rv_timer_2_intr_i,
-    input  logic rv_timer_3_intr_i,
 
     // DMA
     output obi_req_t  dma_master0_ch0_req_o,
@@ -82,10 +79,6 @@ module ao_peripheral_subsystem
   logic [AO_PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
   logic use_spimemio;
-  logic rv_timer_0_intr;
-  logic rv_timer_1_intr;
-  logic spi_intr;
-  logic dma_intr;
   logic spi_rx_empty;
 
   periph_to_reg #(
@@ -178,10 +171,8 @@ module ao_peripheral_subsystem
       .spi_sd_i,
       .spi_rx_empty_o(spi_rx_empty),
       .spi_intr_error_o,
-      .spi_intr_event_o(spi_intr)
+      .spi_intr_event_o(spi_intr_event_o)
   );
-
-  assign spi_intr_event_o = spi_intr;
 
   power_manager #(
       .reg_req_t(reg_pkg::reg_req_t),
@@ -191,14 +182,7 @@ module ao_peripheral_subsystem
       .rst_ni,
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
-      .spi_intr_i(spi_intr),
-      .rv_timer_0_irq_i(rv_timer_0_intr),
-      .rv_timer_1_irq_i(rv_timer_1_intr),
-      .rv_timer_2_irq_i(rv_timer_2_intr_i),
-      .rv_timer_3_irq_i(rv_timer_3_intr_i),
-      .dma_irq_i(dma_intr),
-      .gpio_irq_i(gpio_intr_i),
-      .plic_irq_i(plic_irq_i),
+      .intr_i,
       .ext_irq_i(ext_intr_i),
       .core_sleep_i,
       .cpu_subsystem_powergate_switch_o,
@@ -231,12 +215,9 @@ module ao_peripheral_subsystem
       .rst_ni,
       .tl_i(rv_timer_tl_h2d),
       .tl_o(rv_timer_tl_d2h),
-      .intr_timer_expired_0_0_o(rv_timer_0_intr),
-      .intr_timer_expired_1_0_o(rv_timer_1_intr)
+      .intr_timer_expired_0_0_o(rv_timer_0_intr_o),
+      .intr_timer_expired_1_0_o(rv_timer_1_intr_o)
   );
-
-  assign rv_timer_0_intr_o = rv_timer_0_intr;
-  assign rv_timer_1_intr_o = rv_timer_1_intr;
 
   dma #(
       .reg_req_t (reg_pkg::reg_req_t),
@@ -253,10 +234,8 @@ module ao_peripheral_subsystem
       .dma_master1_ch0_req_o,
       .dma_master1_ch0_resp_i,
       .spi_rx_empty_i(spi_rx_empty),
-      .dma_intr_o(dma_intr)
+      .dma_intr_o
   );
-
-  assign dma_intr_o = dma_intr;
 
   fast_intr_ctrl #(
       .reg_req_t(reg_pkg::reg_req_t),
