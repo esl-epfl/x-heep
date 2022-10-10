@@ -42,14 +42,14 @@ module power_manager #(
 
   assign hw2reg.intr_state.d = {
     ext_irq_i,
-    intr_i[11], // plic
     intr_i[28:21], // gpio
+    intr_i[20], // spi
     intr_i[19], // dma
     intr_i[18], // rv_timer_3
     intr_i[17], // rv_timer_2
     intr_i[16], // rv_timer_1
-    intr_i[7], // rv_timer_0
-    intr_i[20] // spi
+    intr_i[11], // plic
+    intr_i[7] // rv_timer_0
   };
 
   assign hw2reg.intr_state.de = 1'b1;
