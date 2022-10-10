@@ -20,17 +20,21 @@
 
 int8_t spi_intr_flag;
 spi_host_t spi_host;
+uint32_t flash_data[8];
 
 void handler_irq_fast_spi(void)
 {
+    // Disable SPI interrupts
+    spi_enable_evt_intr(&spi_host, false);
+    spi_enable_rxwm_intr(&spi_host, false);
+
+    // Clear fast interrupt
     fast_intr_ctrl_t fast_intr_ctrl;
     fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
     clear_fast_interrupt(&fast_intr_ctrl, kSpi_e);
 
     spi_intr_flag = 1;
 }
-
-uint32_t flash_data[8];
 
 int main(int argc, char *argv[])
 {
@@ -150,6 +154,11 @@ int main(int argc, char *argv[])
     while(spi_intr_flag==0) {
         wait_for_interrupt();
     }
+
+    // Enable event interrupt
+    spi_enable_evt_intr(&spi_host, true);
+    // Enable RX watermark interrupt
+    spi_enable_rxwm_intr(&spi_host, true);
 
     // Read data from SPI RX FIFO
     for (int i=0; i<8; i++) {
