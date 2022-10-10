@@ -28,6 +28,42 @@ SECTIONS {
         KEEP(*(.vectors));
     } >RAM AT >FLASH
 
+    /* this should be removed or made elegant */
+    .fill :
+    {
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+        LONG(0xDEADBEEF);
+    } >RAM AT >FLASH
+
     /* crt0 init code */
     .init (__boot_address):
     {
