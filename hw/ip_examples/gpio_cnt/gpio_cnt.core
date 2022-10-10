@@ -9,8 +9,6 @@ description: "OpenHW Group X-HEEP GPIO counter example"
 
 filesets:
   files_rtl:
-    depend:
-      - pulp-platform.org::common_cells
     files:
     - rtl/gpio_cnt.sv
     file_type: systemVerilogSource
