@@ -57,10 +57,7 @@ module ao_peripheral_subsystem
     output logic      spi_flash_intr_error_o,
     output logic      spi_flash_intr_event_o,
     output logic      spi_intr_error_o,
-    output logic      spi_intr_event_o,
-
-    output logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][15:0] pad_attributes_o
-
+    output logic      spi_intr_event_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -241,18 +238,6 @@ module ao_peripheral_subsystem
       .spi_flash_rx_valid_i(spi_flash_rx_valid),
       .spi_flash_tx_ready_i(spi_flash_tx_ready),
       .dma_intr_o
-  );
-
-  pad_attribute #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t),
-      .NUM_PAD  (core_v_mini_mcu_pkg::NUM_PAD)
-  ) pad_attribute_i (
-      .clk_i,
-      .rst_ni,
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX]),
-      .pad_attributes_o
   );
 
   //OpenTitan SPI Snitch Version connected to DMA
