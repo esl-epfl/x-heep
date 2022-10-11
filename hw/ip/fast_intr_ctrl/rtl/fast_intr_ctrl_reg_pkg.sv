@@ -13,13 +13,9 @@ package fast_intr_ctrl_reg_pkg;
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {
-    logic [31:0] q;
-  } fast_intr_ctrl_reg2hw_fast_intr_pending_reg_t;
+  typedef struct packed {logic [31:0] q;} fast_intr_ctrl_reg2hw_fast_intr_pending_reg_t;
 
-  typedef struct packed {
-    logic [31:0] q;
-  } fast_intr_ctrl_reg2hw_fast_intr_clear_reg_t;
+  typedef struct packed {logic [31:0] q;} fast_intr_ctrl_reg2hw_fast_intr_clear_reg_t;
 
   typedef struct packed {
     logic [31:0] d;
@@ -33,19 +29,19 @@ package fast_intr_ctrl_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    fast_intr_ctrl_reg2hw_fast_intr_pending_reg_t fast_intr_pending; // [63:32]
-    fast_intr_ctrl_reg2hw_fast_intr_clear_reg_t fast_intr_clear; // [31:0]
+    fast_intr_ctrl_reg2hw_fast_intr_pending_reg_t fast_intr_pending;  // [63:32]
+    fast_intr_ctrl_reg2hw_fast_intr_clear_reg_t   fast_intr_clear;    // [31:0]
   } fast_intr_ctrl_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    fast_intr_ctrl_hw2reg_fast_intr_pending_reg_t fast_intr_pending; // [65:33]
-    fast_intr_ctrl_hw2reg_fast_intr_clear_reg_t fast_intr_clear; // [32:0]
+    fast_intr_ctrl_hw2reg_fast_intr_pending_reg_t fast_intr_pending;  // [65:33]
+    fast_intr_ctrl_hw2reg_fast_intr_clear_reg_t   fast_intr_clear;    // [32:0]
   } fast_intr_ctrl_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] FAST_INTR_CTRL_FAST_INTR_PENDING_OFFSET = 3'h 0;
-  parameter logic [BlockAw-1:0] FAST_INTR_CTRL_FAST_INTR_CLEAR_OFFSET = 3'h 4;
+  parameter logic [BlockAw-1:0] FAST_INTR_CTRL_FAST_INTR_PENDING_OFFSET = 3'h0;
+  parameter logic [BlockAw-1:0] FAST_INTR_CTRL_FAST_INTR_CLEAR_OFFSET = 3'h4;
 
   // Register index
   typedef enum int {
@@ -54,9 +50,9 @@ package fast_intr_ctrl_reg_pkg;
   } fast_intr_ctrl_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] FAST_INTR_CTRL_PERMIT [2] = '{
-    4'b 1111, // index[0] FAST_INTR_CTRL_FAST_INTR_PENDING
-    4'b 1111  // index[1] FAST_INTR_CTRL_FAST_INTR_CLEAR
+  parameter logic [3:0] FAST_INTR_CTRL_PERMIT[2] = '{
+      4'b1111,  // index[0] FAST_INTR_CTRL_FAST_INTR_PENDING
+      4'b1111  // index[1] FAST_INTR_CTRL_FAST_INTR_CLEAR
   };
 
 endpackage

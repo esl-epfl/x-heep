@@ -209,7 +209,14 @@ module core_v_mini_mcu
   };
 
   assign fast_intr = {
-    1'b0, gpio_intr, spi_flash_intr, spi_intr, dma_intr, rv_timer_intr[3], rv_timer_intr[2], rv_timer_intr[1]
+    1'b0,
+    gpio_intr,
+    spi_flash_intr,
+    spi_intr,
+    dma_intr,
+    rv_timer_intr[3],
+    rv_timer_intr[2],
+    rv_timer_intr[1]
   };
 
   debug_subsystem #(

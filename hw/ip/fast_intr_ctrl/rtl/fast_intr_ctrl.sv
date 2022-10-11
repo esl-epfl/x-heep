@@ -68,7 +68,7 @@ module fast_intr_ctrl #(
   assign hw2reg.fast_intr_pending.d[31:15] = 17'h00000;
   assign hw2reg.fast_intr_clear.d[31:15] = 17'h00000;
   assign fast_intr_o = reg2hw.fast_intr_pending.q[14:0];
-  assign hw2reg.fast_intr_pending.de = | fast_intr_pending_de;
-  assign hw2reg.fast_intr_clear.de = | fast_intr_clear_de;
+  assign hw2reg.fast_intr_pending.de = |fast_intr_pending_de;
+  assign hw2reg.fast_intr_clear.de = |fast_intr_clear_de;
 
 endmodule : fast_intr_ctrl
