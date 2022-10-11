@@ -361,11 +361,17 @@ def main():
         pad_name = key
         pad_num = pads[key]['num']
         pad_type = pads[key]['type']
+        try:
+            pad_offset = int(pads[key]['num_offset'])
+        except KeyError:
+            pad_offset = 0
+
+
 
         if pad_num > 1:
             for p in range(pad_num):
-                pad_cell_name = "pad_" + key + "_" + str(p) + "_i"
-                pad_obj = Pad(pad_name + "_" + str(p), pad_cell_name, pad_type, pad_index_counter)
+                pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
+                pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_index_counter)
                 pad_index_counter = pad_index_counter + 1
                 pad_list.append(pad_obj)
         else:
