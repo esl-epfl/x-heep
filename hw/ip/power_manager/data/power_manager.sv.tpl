@@ -42,7 +42,8 @@ module power_manager #(
 
   assign hw2reg.intr_state.d = {
     ext_irq_i,
-    intr_i[28:21], // gpio
+    intr_i[29:22], // gpio
+    intr_i[21], // spi_flash
     intr_i[20], // spi
     intr_i[19], // dma
     intr_i[18], // rv_timer_3

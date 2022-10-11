@@ -44,7 +44,7 @@
             offset:  0x00010000,
             length:  0x00010000,
         },
-        spi_host: {
+        spi_flash: {
             offset:  0x00020000,
             length:  0x00008000,
         },
@@ -52,24 +52,28 @@
             offset:  0x00028000,
             length:  0x00008000,
         },
-        power_manager: {
+        spi: {
             offset:  0x00030000,
             length:  0x00010000,
         },
-        rv_timer_ao: {
+        power_manager: {
             offset:  0x00040000,
             length:  0x00010000,
         },
-        dma: {
+        rv_timer_ao: {
             offset:  0x00050000,
             length:  0x00010000,
         },
-        fast_intr_ctrl: {
+        dma: {
             offset:  0x00060000,
             length:  0x00010000,
         },
-        pad: {
+        fast_intr_ctrl: {
             offset:  0x00070000,
+            length:  0x00010000,
+        },
+        pad: {
+            offset:  0x00080000,
             length:  0x00010000,
         },
     },
@@ -103,7 +107,7 @@
         },
     },
 
-    spi_flash: {
+    flash_mem: {
         address: 0x40000000,
         length:  0x01000000,
     },
@@ -233,6 +237,19 @@
         },
         gpio: {
             num: 32,
+            num_offset: 0, #first gpio is gpio0
+            type: inout
+        },
+        spi_flash_sck: {
+            num: 1,
+            type: inout
+        },
+        spi_flash_cs: {
+            num: 2, #carefull, the x-heep uses the CS from the spi pkg, change it
+            type: inout
+        },
+        spi_flash_sd: {
+            num: 4,
             type: inout
         },
         spi_sck: {
@@ -240,7 +257,7 @@
             type: inout
         },
         spi_cs: {
-            num: 2, #carefull, the x-heep uses the CS from the spi pkg, chenge it
+            num: 2,
             type: inout
         },
         spi_sd: {

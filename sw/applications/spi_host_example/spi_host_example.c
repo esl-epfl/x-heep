@@ -39,7 +39,7 @@ void handler_irq_fast_spi(void)
 int main(int argc, char *argv[])
 {
     // spi_host_t spi_host;
-    spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
+    spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_START_ADDRESS);
 
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);

@@ -5,8 +5,8 @@ boot_rom.elf:     file format elf32-littleriscv
 Disassembly of section .text:
 
 00000000 <entry>:
-   0:	200305b7          	lui	a1,0x20030
-   4:	0185c503          	lbu	a0,24(a1) # 20030018 <_end+0x2002ff2e>
+   0:	200405b7          	lui	a1,0x20040
+   4:	0185c503          	lbu	a0,24(a1) # 20040018 <_end+0x2003ff2e>
    8:	c119                	beqz	a0,e <boot>
    a:	4dc8                	lw	a0,28(a1)
    c:	9502                	jalr	a0

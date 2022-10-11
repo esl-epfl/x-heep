@@ -26,13 +26,17 @@ extern "C" {
 #define BOOTROM_SIZE 0x${bootrom_size_address}
 #define BOOTROM_END_ADDRESS (BOOTROM_START_ADDRESS + BOOTROM_SIZE)
 
-#define SPI_HOST_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_host_start_offset})
-#define SPI_HOST_SIZE 0x${spi_host_size_address}
-#define SPI_HOST_END_ADDRESS (SPI_HOST_START_ADDRESS + SPI_HOST_SIZE)
+#define SPI_FLASH_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_flash_start_offset})
+#define SPI_FLASH_SIZE 0x${spi_flash_size_address}
+#define SPI_FLASH_END_ADDRESS (SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE)
 
 #define SPI_MEMIO_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_memio_start_offset})
 #define SPI_MEMIO_SIZE 0x${spi_memio_size_address}
 #define SPI_MEMIO_END_ADDRESS (SPI_MEMIO_START_ADDRESS + SPI_MEMIO_SIZE)
+
+#define SPI_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_start_offset})
+#define SPI_SIZE 0x${spi_size_address}
+#define SPI_END_ADDRESS (SPI_START_ADDRESS + SPI_SIZE)
 
 #define POWER_MANAGER_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${power_manager_start_offset})
 #define POWER_MANAGER_SIZE 0x${power_manager_size_address}
@@ -87,9 +91,9 @@ extern "C" {
 #define EXT_SLAVE_SIZE 0x${ext_slave_size_address}
 #define EXT_SLAVE_END_ADDRESS (EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE)
 
-#define SPI_FLASH_START_ADDRESS 0x${spi_flash_start_address}
-#define SPI_FLASH_SIZE 0x${spi_flash_size_address}
-#define SPI_FLASH_END_ADDRESS (SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE)
+#define FLASH_MEM_START_ADDRESS 0x${flash_mem_start_address}
+#define FLASH_MEM_SIZE 0x${flash_mem_size_address}
+#define FLASH_MEM_END_ADDRESS (FLASH_MEM_START_ADDRESS + FLASH_MEM_SIZE)
 
 #define NULL_INTR ${null_intr}
 #define UART_INTR_TX_WATERMARK ${uart_intr_tx_watermark}

@@ -84,7 +84,7 @@ module boot_rom
     32'h05b79502,
     32'h4dc8c119,
     32'h0185c503,
-    32'h200305b7
+    32'h200405b7
   };
 
   logic [$clog2(core_v_mini_mcu_pkg::BOOTROM_SIZE)-1-2:0] word_addr;

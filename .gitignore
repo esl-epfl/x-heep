@@ -24,5 +24,7 @@ sw/device/lib/runtime/core_v_mini_mcu.h
 sw/linker/link.ld
 sw/linker/link_spiflash.ld
 sw/linker/link_spihost.ld
+sw/linker/link_flash_exec.ld
+sw/linker/link_flash_load.ld
 sw/device/lib/drivers/power_manager/power_manager_regs.h
 sw/device/lib/drivers/power_manager/power_manager.h

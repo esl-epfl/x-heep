@@ -26,28 +26,28 @@ typedef struct dma {
 } dma_t;
 
 /**
- * Write to read_ptr register of the MEMCOPY PERIPHERAL.
+ * Write to read_ptr register of the DMA
  * @param dma Pointer to dma_t represting the target MEMCOPY PERIPHERAL.
  * @param read_ptr Any valid memory address.
  */
 void dma_set_read_ptr(const dma_t *dma, uint32_t read_ptr);
 
 /**
- * Write to write_ptr register of the MEMCOPY PERIPHERAL.
+ * Write to write_ptr register of the DMA
  * @param dma Pointer to dma_t represting the target MEMCOPY PERIPHERAL.
  * @param write_ptr Any valid memory address.
  */
 void dma_set_write_ptr(const dma_t *dma, uint32_t write_ptr);
 
 /**
- * Write to cnt_start register of the MEMCOPY PERIPHERAL.
+ * Write to cnt_start register of the DMA
  * @param dma Pointer to dma_t represting the target MEMCOPY PERIPHERAL.
- * @param copy_size Number of data to be copied from read_ptr to write_ptr.
+ * @param copy_size Number of bytes to be copied from read_ptr to write_ptr.
  */
 void dma_set_cnt_start(const dma_t *dma, uint32_t copy_size);
 
 /**
- * Read from done register of the MEMCOPY PERIPHERAL.
+ * Read from done register of the DMA
  * @param dma Pointer to dma_t represting the target MEMCOPY PERIPHERAL.
  * @return done value (0: data are being copied - 1: copy done/peripheral idle)
  */
@@ -68,9 +68,9 @@ void dma_set_read_ptr_inc(const dma_t *dma, uint32_t read_ptr_inc);
 void dma_set_write_ptr_inc(const dma_t *dma, uint32_t write_ptr_inc);
 
 /**
- * Write to spi_mode register of the DMA.
+ * Sets the DMA data transfer modes when used with the SPI.
  * @param dma Pointer to dma_t represting the target DMA.
- * @param spi_mode 0: mem to mem - 1: spi to mem (Default: 0).
+ * @param spi_mode 0: mem to mem - 1: spi_rx to mem (Default: 0) - 2: mem to spi_tx.
  */
 void dma_set_spi_mode(const dma_t *dma, uint32_t spi_mode);
 

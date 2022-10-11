@@ -84,8 +84,8 @@ module dma_reg_top #(
   logic [31:0] dst_ptr_inc_qs;
   logic [31:0] dst_ptr_inc_wd;
   logic dst_ptr_inc_we;
-  logic spi_mode_qs;
-  logic spi_mode_wd;
+  logic [2:0] spi_mode_qs;
+  logic [2:0] spi_mode_wd;
   logic spi_mode_we;
 
   // Register instances
@@ -189,7 +189,7 @@ module dma_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.done.q),
+      .q (),
 
       // to register interface (read)
       .qs(done_qs)
@@ -253,9 +253,9 @@ module dma_reg_top #(
   // R[spi_mode]: V(False)
 
   prim_subreg #(
-      .DW      (1),
+      .DW      (3),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (3'h0)
   ) u_spi_mode (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -321,7 +321,7 @@ module dma_reg_top #(
   assign dst_ptr_inc_wd = reg_wdata[31:0];
 
   assign spi_mode_we = addr_hit[6] & reg_we & !reg_error;
-  assign spi_mode_wd = reg_wdata[0];
+  assign spi_mode_wd = reg_wdata[2:0];
 
   // Read data return
   always_comb begin
@@ -352,7 +352,7 @@ module dma_reg_top #(
       end
 
       addr_hit[6]: begin
-        reg_rdata_next[0] = spi_mode_qs;
+        reg_rdata_next[2:0] = spi_mode_qs;
       end
 
       default: begin

@@ -16,20 +16,20 @@
 # Author: Robert Balas (balasr@iis.ee.ethz.ch)
 
 
-MAKE			= make
+MAKE                       = make
 
 # riscv toolchain install path
-RISCV                    ?= ~/.riscv
-RISCV_EXE_PREFIX         = $(RISCV)/bin/riscv32-unknown-elf-
+RISCV                      ?= ~/.riscv
+RISCV_EXE_PREFIX           = $(RISCV)/bin/riscv32-unknown-elf-
 
-TARGET                   ?= sim
+TARGET                     ?= sim
 
 # GCC configuration
 CUSTOM_GCC_FLAGS           =
 
 LIB_CRT                    = $(wildcard device/lib/crt/*.S)
-LIB_CRT_SPIFLASH           = $(wildcard device/lib/crt_spiflash/*.S)
-LIB_CRT_SPIHOST            = $(wildcard device/lib/crt_spihost/*.S)
+LIB_CRT_FLASH_EXEC         = $(wildcard device/lib/crt_flash_exec/*.S)
+LIB_CRT_FLASH_LOAD         = $(wildcard device/lib/crt_flash_load/*.S)
 LIB_BASE                   = $(wildcard device/lib/base/*.c)
 LIB_BASE_FREESTD           = device/lib/base/freestanding
 LIB_RUNTIME                = $(wildcard device/lib/runtime/*.c)
@@ -43,6 +43,7 @@ LIB_DRIVERS                += $(wildcard device/lib/drivers/dma/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/power_manager/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/fast_intr_ctrl/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/spi_mem/*.c)
+LIB_DRIVERS                += $(wildcard device/lib/drivers/spi_memio/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/spi_host/*.c)
 INC_FOLDERS                = $(sort $(dir $(wildcard device/target/$(TARGET)/)))
 INC_FOLDERS                += $(sort $(dir $(wildcard device/lib/base/)))
@@ -54,10 +55,10 @@ INC_FOLDERS_GCC             = $(addprefix -I ,$(INC_FOLDERS))
 %.hex: %.elf
 	$(RISCV_EXE_PREFIX)objcopy -O verilog $< $@
 
-%.flash.hex: %.flash.elf
+%.flash_exec.hex: %.flash_exec.elf
 	$(RISCV_EXE_PREFIX)objcopy -O verilog --adjust-vma=-0x40000000 $< $@
 
-%.spihost.hex: %.spihost.elf
+%.flash_load.hex: %.flash_load.elf
 	$(RISCV_EXE_PREFIX)objcopy -O verilog --adjust-vma=-0x40000000 $< $@
 
 %.dis: %.elf
@@ -65,7 +66,6 @@ INC_FOLDERS_GCC             = $(addprefix -I ,$(INC_FOLDERS))
 
 %.dump: %.elf
 	$(RISCV_EXE_PREFIX)objdump -xD $^ > $@
-
 
 # Running custom programs:
 # This is an example for running a Hello World in the testbench
@@ -87,35 +87,35 @@ applications/hello_world/hello_world.elf: applications/hello_world/hello_world.c
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/hello_world/hello_world.flash.elf: applications/hello_world/hello_world.c
+applications/hello_world/hello_world.flash_exec.elf: applications/hello_world/hello_world.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32im -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_spiflash.ld \
+		-T linker/link_flash_exec.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIFLASH) \
+		$(LIB_CRT_FLASH_EXEC) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
-		-Wl,-Map=applications/hello_world/hello_world.flash.map \
+		-Wl,-Map=applications/hello_world/hello_world.flash_exec.map \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/hello_world/hello_world.spihost.elf: applications/hello_world/hello_world.c
+applications/hello_world/hello_world.flash_load.elf: applications/hello_world/hello_world.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_spihost.ld \
+		-T linker/link_flash_load.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIHOST) \
+		$(LIB_CRT_FLASH_LOAD) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
-		-Wl,-Map=applications/hello_world/hello_world.spihost.map \
+		-Wl,-Map=applications/hello_world/hello_world.flash_load.map \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
@@ -149,30 +149,30 @@ applications/example_external_peripheral/example_external_peripheral.elf: applic
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/example_external_peripheral/example_external_peripheral.flash.elf: applications/example_external_peripheral/example_external_peripheral.c applications/example_external_peripheral/memcopy_periph.c
+applications/example_external_peripheral/example_external_peripheral.flash_exec.elf: applications/example_external_peripheral/example_external_peripheral.c applications/example_external_peripheral/memcopy_periph.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32im -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_spiflash.ld \
+		-T linker/link_flash_exec.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIFLASH) \
+		$(LIB_CRT_FLASH_EXEC) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/example_external_peripheral/example_external_peripheral.spihost.elf: applications/example_external_peripheral/example_external_peripheral.c applications/example_external_peripheral/memcopy_periph.c
+applications/example_external_peripheral/example_external_peripheral.flash_load.elf: applications/example_external_peripheral/example_external_peripheral.c applications/example_external_peripheral/memcopy_periph.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_spihost.ld \
+		-T linker/link_flash_load.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIHOST) \
+		$(LIB_CRT_FLASH_LOAD) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
@@ -194,34 +194,34 @@ applications/example_gpio_cnt/example_gpio_cnt.elf: applications/example_gpio_cn
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/gpio_pmw/gpio_pmw.flash.elf: applications/gpio_pmw/gpio_pmw.c
+applications/gpio_pmw/gpio_pmw.flash_exec.elf: applications/gpio_pmw/gpio_pmw.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32im -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_spiflash.ld \
+		-T linker/link_flash_exec.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIFLASH) \
+		$(LIB_CRT_FLASH_EXEC) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/gpio_pmw/gpio_pmw.spihost.elf: applications/gpio_pmw/gpio_pmw.c
+applications/gpio_pmw/gpio_pmw.flash_load.elf: applications/gpio_pmw/gpio_pmw.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_spihost.ld \
+		-T linker/link_flash_load.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIHOST) \
+		$(LIB_CRT_FLASH_LOAD) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
-		-Wl,-Map=applications/gpio_pmw/gpio_pmw.spihost.map \
+		-Wl,-Map=applications/gpio_pmw/gpio_pmw.flash_load.map \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
@@ -319,19 +319,19 @@ applications/spi_host_dma_example/spi_host_dma_example.elf: applications/spi_hos
 		-Wl,-Map=applications/spi_host_dma_example/spi_host_dma_example.map \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/spi_host_dma_example/spi_host_dma_example.spihost.elf: applications/spi_host_dma_example/spi_host_dma_example.c
+applications/spi_host_dma_example/spi_host_dma_example.flash_load.elf: applications/spi_host_dma_example/spi_host_dma_example.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
-		-T linker/link_spihost.ld \
+		-T linker/link_flash_load.ld \
 		-I $(RISCV)/riscv32-unknown-elf/include \
 		$(INC_FOLDERS_GCC) \
 		-static \
-		$(LIB_CRT_SPIHOST) \
+		$(LIB_CRT_FLASH_LOAD) \
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
-		-Wl,-Map=applications/spi_host_dma_example/spi_host_dma_example.spihost.map \
+		-Wl,-Map=applications/spi_host_dma_example/spi_host_dma_example.flash_load.map \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
