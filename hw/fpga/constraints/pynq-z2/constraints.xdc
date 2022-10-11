@@ -1,1 +1,1 @@
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets core_v_mini_mcu_i/pad_ring_i/pad_cell_tck_i/xilinx_iobuf_i/O]
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets core_v_mini_mcu_i/pad_ring_i/pad_clk_i/pad_out_o]

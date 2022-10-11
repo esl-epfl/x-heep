@@ -37,6 +37,10 @@ module xilinx_core_v_mini_mcu_wrapper
     output logic exit_value_o,
     inout  logic exit_valid_o,
 
+    inout logic [3:0] spi_flash_sd_io,
+    inout logic spi_flash_csb_o,
+    inout logic spi_flash_sck_o,
+
     inout logic [3:0] spi_sd_io,
     inout logic spi_csb_o,
     inout logic spi_sck_o,
@@ -49,6 +53,7 @@ module xilinx_core_v_mini_mcu_wrapper
   wire                                clk_gen;
   logic [                       31:0] exit_value;
   logic [spi_host_reg_pkg::NumCS-1:0] spi_csb;
+  logic [spi_host_reg_pkg::NumCS-1:0] spi_flash_csb;
   wire                                rst_n;
   logic [ CLK_LED_COUNT_LENGTH - 1:0] clk_count;
 
@@ -105,6 +110,10 @@ module xilinx_core_v_mini_mcu_wrapper
       .execute_from_flash_i(execute_from_flash_i),
       .boot_select_i(boot_select_i),
 
+      .spi_flash_sd_io(spi_flash_sd_io),
+      .spi_flash_csb_o(spi_flash_csb),
+      .spi_flash_sck_o(spi_flash_sck_o),
+
       .spi_sd_io(spi_sd_io),
       .spi_csb_o(spi_csb),
       .spi_sck_o(spi_sck_o),
@@ -117,6 +126,7 @@ module xilinx_core_v_mini_mcu_wrapper
   );
 
   assign exit_value_o = exit_value[0];
+  assign spi_flash_csb_o = spi_flash_csb[0];
   assign spi_csb_o = spi_csb[0];
 
 endmodule
