@@ -230,6 +230,7 @@
         },
         gpio: {
             num: 32,
+            num_offset: 0, #first gpio is gpio0
             type: inout
         },
         spi_flash_sck: {
