@@ -83,12 +83,14 @@ typedef struct power_manager_counters {
    */
   uint32_t reset_off;
   uint32_t reset_on;
-  uint32_t powergate_off;
-  uint32_t powergate_on;
+  uint32_t switch_off;
+  uint32_t switch_on;
+  uint32_t iso_off;
+  uint32_t iso_on;
 
 } power_manager_counters_t;
 
-power_manager_result_t power_gate_counters_init(power_manager_counters_t* counters, uint32_t reset_off, uint32_t reset_on, uint32_t powergate_off, uint32_t powergate_on);
+power_manager_result_t power_gate_counters_init(power_manager_counters_t* counters, uint32_t reset_off, uint32_t reset_on, uint32_t switch_off, uint32_t switch_on, uint32_t iso_off, uint32_t iso_on);
 
 power_manager_result_t power_gate_core(const power_manager_t *power_manager, power_manager_sel_intr_t sel_intr, power_manager_counters_t* cpu_counters);
 

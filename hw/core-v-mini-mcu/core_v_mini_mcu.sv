@@ -145,6 +145,7 @@ module core_v_mini_mcu
 
   // power manager
   logic cpu_subsystem_powergate_switch;
+  logic cpu_subsystem_powergate_iso_o;
   logic peripheral_subsystem_powergate_switch;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switches;
   logic cpu_subsystem_rst_n;
@@ -308,6 +309,7 @@ module core_v_mini_mcu
       .ext_intr_i(intr_vector_ext_i),
       .core_sleep_i(core_sleep),
       .cpu_subsystem_powergate_switch_o(cpu_subsystem_powergate_switch),
+      .cpu_subsystem_powergate_iso_o(cpu_subsystem_powergate_iso),
       .peripheral_subsystem_powergate_switch_o(peripheral_subsystem_powergate_switch),
       .memory_subsystem_banks_powergate_switches_o(memory_subsystem_banks_powergate_switches),
       .cpu_subsystem_rst_no(cpu_subsystem_rst_n),

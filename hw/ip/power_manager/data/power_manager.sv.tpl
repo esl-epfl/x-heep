@@ -26,6 +26,7 @@ module power_manager #(
 
     // Power gating signals
     output logic                                      cpu_subsystem_powergate_switch_o,
+    output logic                                      cpu_subsystem_powergate_iso_o,
     output logic                                      peripheral_subsystem_powergate_switch_o,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switches_o,
     output logic                                      cpu_subsystem_rst_no,
@@ -163,7 +164,7 @@ module power_manager #(
       .hw2reg_q_i(reg2hw.cpu_switch_on_counter.q)
   );
 
-  power_manager_counter_sequence power_manager_counter_sequence_cpu_powergate_i (
+  power_manager_counter_sequence power_manager_counter_sequence_cpu_switch_i (
       .clk_i,
       .rst_ni,
 
@@ -180,6 +181,56 @@ module power_manager #(
 
       // switch on and off signal, 1 means on
       .switch_onoff_signal_o(cpu_subsystem_powergate_switch_o)
+  );
+
+  logic cpu_powergate_counter_start_iso_off, cpu_powergate_counter_expired_iso_off;
+  logic cpu_powergate_counter_start_iso_on, cpu_powergate_counter_expired_iso_on;
+
+  reg_to_counter #(
+      .DW(32),
+      .ExpireValue('0)
+  ) reg_to_counter_cpu_powergate_iso_off_i (
+      .clk_i,
+      .rst_ni,
+      .stop_i(reg2hw.cpu_counters_stop.cpu_iso_off_stop_bit_counter.q),
+      .start_i(cpu_powergate_counter_start_iso_off),
+      .done_o(cpu_powergate_counter_expired_iso_off),
+      .hw2reg_d_o(hw2reg.cpu_iso_off_counter.d),
+      .hw2reg_de_o(hw2reg.cpu_iso_off_counter.de),
+      .hw2reg_q_i(reg2hw.cpu_iso_off_counter.q)
+  );
+
+  reg_to_counter #(
+      .DW(32),
+      .ExpireValue('0)
+  ) reg_to_counter_cpu_powergate_iso_on_i (
+      .clk_i,
+      .rst_ni,
+      .stop_i(reg2hw.cpu_counters_stop.cpu_iso_on_stop_bit_counter.q),
+      .start_i(cpu_powergate_counter_start_iso_on),
+      .done_o(cpu_powergate_counter_expired_iso_on),
+      .hw2reg_d_o(hw2reg.cpu_iso_on_counter.d),
+      .hw2reg_de_o(hw2reg.cpu_iso_on_counter.de),
+      .hw2reg_q_i(reg2hw.cpu_iso_on_counter.q)
+  );
+
+  power_manager_counter_sequence power_manager_counter_sequence_cpu_iso_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.power_gate_core.q && core_sleep_i),
+      .start_on_sequence_i (start_on_sequence),
+
+      // counter to switch on and off signals
+      .counter_expired_switch_off_i(cpu_powergate_counter_expired_iso_off),
+      .counter_expired_switch_on_i (cpu_powergate_counter_expired_iso_on),
+
+      .counter_start_switch_off_o(cpu_powergate_counter_start_iso_off),
+      .counter_start_switch_on_o (cpu_powergate_counter_start_iso_on),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(cpu_subsystem_powergate_iso_o)
   );
 
   // --------------------------------------------------------------------------------------

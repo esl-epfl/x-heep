@@ -123,7 +123,7 @@ set_isolation cpu_iso <%text>\</%text>
     -domain PD_CPU <%text>\</%text>
     -isolation_power_net VDD <%text>\</%text>
     -isolation_ground_net VSS <%text>\</%text>
-    -isolation_signal cpu_subsystem_powergate_switch <%text>\</%text>
+    -isolation_signal cpu_subsystem_powergate_iso <%text>\</%text>
     -isolation_sense low <%text>\</%text>
     -clamp_value 0 <%text>\</%text>
     -applies_to both <%text>\</%text>
