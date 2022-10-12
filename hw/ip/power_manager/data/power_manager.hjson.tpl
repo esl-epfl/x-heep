@@ -8,6 +8,26 @@
   ],
   regwidth: "32",
   registers: [
+    { name:     "WAKEUP_STATE",
+      desc:     "Wake-up state of the system",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "WAKEUP_STATE", desc: "Wake-up state Reg" }
+      ]
+    }
+
+    { name:     "RESTORE_ADDRESS",
+      desc:     "Restore xddress value",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "RESTORE_XDDRESS", desc: "Restore xddress Reg" }
+      ]
+    }
+
     { name:     "POWER_GATE_CORE",
       desc:     "Used to power gate core",
       resval:   "0x00000000"
@@ -40,26 +60,6 @@
     }
 
 % endfor
-    { name:     "WAKEUP_STATE",
-      desc:     "Wake-up state of the system",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "0", name: "WAKEUP_STATE", desc: "Wake-up state Reg" }
-      ]
-    }
-
-    { name:     "RESTORE_ADDRESS",
-      desc:     "Restore xddress value",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "31:0", name: "RESTORE_XDDRESS", desc: "Restore xddress Reg" }
-      ]
-    }
-
 % for i in range(31):
     { name:     "CORE_REG_X${i+1}",
       desc:     "Core reg x${i+1} value",
