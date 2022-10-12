@@ -49,18 +49,18 @@ class Pad:
             'pad_cell_input #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
             '   .pad_in_i(1\'b0),\n' + \
             '   .pad_oe_i(1\'b0),\n' + \
-            '   .pad_out_o(' + name + '_o),\n' + \
-            '   .pad_io(' + name  + '_io),\n' + \
+            '   .pad_out_o(' + signal_name + 'o),\n' + \
+            '   .pad_io(' + signal_name + 'io),\n' + \
             '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
             ');\n\n'
     if pad_type == 'output':
         self.pad_ring_ctrl_interface += '    input logic ' + signal_name + 'i,'
         self.pad_ring_instance = \
             'pad_cell_output #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
-            '   .pad_in_i(' + name + '_i),\n' + \
+            '   .pad_in_i(' + signal_name + 'i),\n' + \
             '   .pad_oe_i(1\'b1),\n' + \
             '   .pad_out_o(),\n' + \
-            '   .pad_io(' + name  + '_io),\n' + \
+            '   .pad_io(' + signal_name + 'io),\n' + \
             '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
             ');\n\n'
     if pad_type == 'inout':
@@ -69,20 +69,20 @@ class Pad:
         self.pad_ring_ctrl_interface += '    input logic ' + signal_name + 'oe_i,'
         self.pad_ring_instance = \
             'pad_cell_inout #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
-            '   .pad_in_i(' + name + '_i),\n' + \
-            '   .pad_oe_i(' + name + '_oe_i),\n' + \
-            '   .pad_out_o(' + name + '_o),\n' + \
-            '   .pad_io(' + name  + '_io),\n' + \
+            '   .pad_in_i(' + signal_name + 'i),\n' + \
+            '   .pad_oe_i(' + signal_name + 'oe_i),\n' + \
+            '   .pad_out_o(' + signal_name + 'o),\n' + \
+            '   .pad_io(' + signal_name + 'io),\n' + \
             '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
             ');\n\n'
     if pad_type == 'bypass_output':
         self.pad_ring_ctrl_interface += '    input logic ' + signal_name + 'i,'
         self.pad_ring_instance = \
             'pad_cell_bypass_output #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
-            '   .pad_in_i(' + name + '_i),\n' + \
+            '   .pad_in_i(' + signal_name + 'i),\n' + \
             '   .pad_oe_i(1\'b1),\n' + \
             '   .pad_out_o(),\n' + \
-            '   .pad_io(' + name  + '_io),\n' + \
+            '   .pad_io(' + signal_name + 'io),\n' + \
             '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
             ');\n\n'
     if pad_type == 'bypass_input':
@@ -91,8 +91,8 @@ class Pad:
             'pad_cell_bypass_input #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
             '   .pad_in_i(1\'b0),\n' + \
             '   .pad_oe_i(1\'b0),\n' + \
-            '   .pad_out_o(' + name + '_o),\n' + \
-            '   .pad_io(' + name  + '_io),\n' + \
+            '   .pad_out_o(' + signal_name + 'o),\n' + \
+            '   .pad_io(' + signal_name + 'io),\n' + \
             '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
             ');\n\n'
 

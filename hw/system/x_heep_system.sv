@@ -322,7 +322,7 @@ module x_heep_system
       .i2c_sda_oe_o(i2c_sda_oe_x),
 
       //External PADs
-      .pad_req_o (pad_reg),
+      .pad_req_o (pad_req),
       .pad_resp_i(pad_resp),
 
       .exit_value_o,
@@ -569,7 +569,7 @@ module x_heep_system
   ) pad_attribute_i (
       .clk_i,
       .rst_ni,
-      .reg_req_i(pad_reg),
+      .reg_req_i(pad_req),
       .reg_rsp_o(pad_resp),
       .pad_attributes_o(pad_attributes)
   );

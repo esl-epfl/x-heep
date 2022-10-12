@@ -41,7 +41,6 @@ filesets:
     - hw/core-v-mini-mcu/debug_subsystem.sv
     - hw/core-v-mini-mcu/peripheral_subsystem.sv
     - hw/core-v-mini-mcu/ao_peripheral_subsystem.sv
-    - hw/core-v-mini-mcu/pad_ring.sv
     file_type: systemVerilogSource
 
   rtl-simulation:
@@ -54,6 +53,14 @@ filesets:
     - hw/simulation/pad_cell_inout.sv
     - hw/simulation/pad_cell_input.sv
     - hw/simulation/pad_cell_output.sv
+    file_type: systemVerilogSource
+
+  x_heep_system:
+    depend:
+    - x-heep::packages
+    files:
+    - hw/system/x_heep_system.sv
+    - hw/system/pad_ring.sv
     file_type: systemVerilogSource
 
   tb-utils:
@@ -198,6 +205,7 @@ targets:
   default: &default_target
     filesets:
     - files_rtl_generic
+    - target_sim ? (x_heep_system)
     - target_sim ? (rtl-simulation)
     - target_sim ? (tool_verilator? (files_verilator_waiver))
     toplevel: [core_v_mini_mcu]
@@ -293,6 +301,7 @@ targets:
     default_tool: vivado
     description: TUL Pynq-Z2 Board
     filesets_append:
+    - x_heep_system
     - rtl-fpga
     - ip-fpga
     - xdc-fpga-pynq-z2
