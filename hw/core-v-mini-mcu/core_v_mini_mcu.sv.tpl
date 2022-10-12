@@ -100,14 +100,6 @@ module core_v_mini_mcu
   logic cpu_subsystem_powergate_switch;
   logic cpu_subsystem_rst_n;
 
-  // I2C
-  logic cio_scl_in;
-  logic cio_scl_out;
-  logic cio_scl_en;
-  logic cio_sda_in;
-  logic cio_sda_out;
-  logic cio_sda_en;
-
   // DMA
   logic dma_intr;
   logic spi_flash_intr_error;
