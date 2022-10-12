@@ -322,6 +322,8 @@ module core_v_mini_mcu
       .dma_intr_o(dma_intr),
       .fast_intr_i(fast_intr),
       .fast_intr_o(irq_fast),
+      .ext_peripheral_slave_req_o,
+      .ext_peripheral_slave_resp_i,
       .pad_attributes_o(pad_attributes)
   );
 
@@ -349,9 +351,7 @@ module core_v_mini_mcu
       .cio_sda_o(cio_sda_out),
       .cio_sda_en_o(cio_sda_en),
       .rv_timer_2_intr_o(rv_timer_intr[2]),
-      .rv_timer_3_intr_o(rv_timer_intr[3]),
-      .ext_peripheral_slave_req_o(ext_peripheral_slave_req_o),
-      .ext_peripheral_slave_resp_i(ext_peripheral_slave_resp_i)
+      .rv_timer_3_intr_o(rv_timer_intr[3])
   );
 
   pad_ring pad_ring_i (

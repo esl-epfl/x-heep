@@ -239,6 +239,9 @@ def main():
     fast_intr_ctrl_start_offset  = string2int(obj['ao_peripherals']['fast_intr_ctrl']['offset'])
     fast_intr_ctrl_size_address  = string2int(obj['ao_peripherals']['fast_intr_ctrl']['length'])
 
+    ext_periph_start_offset  = string2int(obj['ao_peripherals']['ext_periph']['offset'])
+    ext_periph_size_address  = string2int(obj['ao_peripherals']['ext_periph']['length'])
+
     pad_attribute_start_offset  = string2int(obj['ao_peripherals']['pad']['offset'])
     pad_attribute_size_address  = string2int(obj['ao_peripherals']['pad']['length'])
 
@@ -262,9 +265,6 @@ def main():
 
     rv_timer_start_offset  = string2int(obj['peripherals']['rv_timer']['offset'])
     rv_timer_size_address  = string2int(obj['peripherals']['rv_timer']['length'])
-
-    ext_periph_start_offset  = string2int(obj['peripherals']['ext_periph']['offset'])
-    ext_periph_size_address  = string2int(obj['peripherals']['ext_periph']['length'])
 
     ext_slave_start_address = string2int(obj['ext_slaves']['address'])
     ext_slave_size_address = string2int(obj['ext_slaves']['length'])
@@ -406,6 +406,8 @@ def main():
         "dma_size_address"                 : dma_size_address,
         "fast_intr_ctrl_start_offset"      : fast_intr_ctrl_start_offset,
         "fast_intr_ctrl_size_address"      : fast_intr_ctrl_size_address,
+        "ext_periph_start_offset"          : ext_periph_start_offset,
+        "ext_periph_size_address"          : ext_periph_size_address,
         "pad_attribute_start_offset"       : pad_attribute_start_offset,
         "pad_attribute_size_address"       : pad_attribute_size_address,
         "spi_start_offset"                 : spi_start_offset,
@@ -422,8 +424,6 @@ def main():
         "i2c_size_address"                 : i2c_size_address,
         "rv_timer_start_offset"            : rv_timer_start_offset,
         "rv_timer_size_address"            : rv_timer_size_address,
-        "ext_periph_start_offset"          : ext_periph_start_offset,
-        "ext_periph_size_address"          : ext_periph_size_address,
         "ext_slave_start_address"          : ext_slave_start_address,
         "ext_slave_size_address"           : ext_slave_size_address,
         "flash_mem_start_address"          : flash_mem_start_address,

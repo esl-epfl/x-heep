@@ -68,6 +68,10 @@ module ao_peripheral_subsystem
     input  logic [14:0] fast_intr_i,
     output logic [14:0] fast_intr_o,
 
+    // EXTERNAL PERIPH
+    output reg_req_t ext_peripheral_slave_req_o,
+    input  reg_rsp_t ext_peripheral_slave_resp_i,
+
     // PADS
     output logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][15:0] pad_attributes_o
 );
@@ -79,8 +83,8 @@ module ao_peripheral_subsystem
   reg_pkg::reg_req_t peripheral_req;
   reg_pkg::reg_rsp_t peripheral_rsp;
 
-  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::AO_PERIPHERALS-1:0] peripheral_slv_req;
-  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::AO_PERIPHERALS-1:0] peripheral_slv_rsp;
+  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::AO_PERIPHERALS-1:0] ao_peripheral_slv_req;
+  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::AO_PERIPHERALS-1:0] ao_peripheral_slv_rsp;
 
   tlul_pkg::tl_h2d_t rv_timer_tl_h2d;
   tlul_pkg::tl_d2h_t rv_timer_tl_d2h;
@@ -93,6 +97,9 @@ module ao_peripheral_subsystem
   logic spi_tx_ready;
   logic spi_flash_rx_valid;
   logic spi_flash_tx_ready;
+
+  assign ext_peripheral_slave_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPH_IDX];
+  assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPH_IDX] = ext_peripheral_slave_resp_i;
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
@@ -141,8 +148,8 @@ module ao_peripheral_subsystem
       .in_select_i(peripheral_select),
       .in_req_i(peripheral_req),
       .in_rsp_o(peripheral_rsp),
-      .out_req_o(peripheral_slv_req),
-      .out_rsp_i(peripheral_slv_rsp)
+      .out_req_o(ao_peripheral_slv_req),
+      .out_rsp_i(ao_peripheral_slv_rsp)
   );
 
   soc_ctrl #(
@@ -151,8 +158,8 @@ module ao_peripheral_subsystem
   ) soc_ctrl_i (
       .clk_i,
       .rst_ni,
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
+      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
+      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
       .boot_select_i,
       .execute_from_flash_i,
       .use_spimemio_o(use_spimemio),
@@ -161,8 +168,8 @@ module ao_peripheral_subsystem
   );
 
   boot_rom boot_rom_i (
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::BOOTROM_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::BOOTROM_IDX])
+      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::BOOTROM_IDX]),
+      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::BOOTROM_IDX])
   );
 
   spi_subsystem spi_subsystem_i (
@@ -171,10 +178,10 @@ module ao_peripheral_subsystem
       .use_spimemio_i(use_spimemio),
       .spimemio_req_i,
       .spimemio_resp_o,
-      .yo_reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
-      .yo_reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
-      .ot_reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_FLASH_IDX]),
-      .ot_reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_FLASH_IDX]),
+      .yo_reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
+      .yo_reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
+      .ot_reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::SPI_FLASH_IDX]),
+      .ot_reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_FLASH_IDX]),
       .spi_flash_sck_o,
       .spi_flash_sck_en_o,
       .spi_flash_csb_o,
@@ -196,8 +203,8 @@ module ao_peripheral_subsystem
       .rst_ni,
       .clk_core_i(clk_i),
       .rst_core_ni(rst_ni),
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_IDX]),
+      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::SPI_IDX]),
+      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_IDX]),
       .cio_sck_o(spi_sck_o),
       .cio_sck_en_o(spi_sck_en_o),
       .cio_csb_o(spi_csb_o),
@@ -217,8 +224,8 @@ module ao_peripheral_subsystem
   ) power_manager_i (
       .clk_i,
       .rst_ni,
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
+      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
+      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
       .intr_i,
       .ext_irq_i(ext_intr_i),
       .core_sleep_i,
@@ -243,8 +250,8 @@ module ao_peripheral_subsystem
   ) rv_timer_reg_to_tlul_i (
       .tl_o(rv_timer_tl_h2d),
       .tl_i(rv_timer_tl_d2h),
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::RV_TIMER_AO_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_AO_IDX])
+      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::RV_TIMER_AO_IDX]),
+      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_AO_IDX])
   );
 
   rv_timer rv_timer_0_1_i (
@@ -264,8 +271,8 @@ module ao_peripheral_subsystem
   ) dma_i (
       .clk_i,
       .rst_ni,
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
+      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
+      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
       .dma_master0_ch0_req_o,
       .dma_master0_ch0_resp_i,
       .dma_master1_ch0_req_o,
@@ -283,8 +290,8 @@ module ao_peripheral_subsystem
   ) fast_intr_ctrl_i (
       .clk_i,
       .rst_ni,
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::FAST_INTR_CTRL_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::FAST_INTR_CTRL_IDX]),
+      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::FAST_INTR_CTRL_IDX]),
+      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::FAST_INTR_CTRL_IDX]),
       .fast_intr_i,
       .fast_intr_o
   );
@@ -296,8 +303,8 @@ module ao_peripheral_subsystem
   ) pad_attribute_i (
       .clk_i,
       .rst_ni,
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX]),
+      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX]),
+      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX]),
       .pad_attributes_o
   );
 

@@ -72,8 +72,12 @@
             offset:  0x00070000,
             length:  0x00010000,
         },
-        pad: {
+        ext_periph: {
             offset:  0x00080000,
+            length:  0x00010000,
+        },
+        pad: {
+            offset:  0x00090000,
             length:  0x00010000,
         },
     },
@@ -99,10 +103,6 @@
         },
         rv_timer: {
             offset:  0x00040000,
-            length:  0x00010000,
-        },
-        ext_periph: {
-            offset:  0x00050000,
             length:  0x00010000,
         },
     },

@@ -54,6 +54,10 @@ extern "C" {
 #define FAST_INTR_CTRL_SIZE 0x${fast_intr_ctrl_size_address}
 #define FAST_INTR_CTRL_END_ADDRESS (FAST_INTR_CTRL_START_ADDRESS + DMA_SIZE)
 
+#define EXT_PERIPHERAL_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${ext_periph_start_offset})
+#define EXT_PERIPHERAL_SIZE 0x${ext_periph_size_address}
+#define EXT_PERIPHERAL_END_ADDRESS (EXT_PERIPHERAL_START_ADDRESS + EXT_PERIPHERAL_SIZE)
+
 #define PAD_ATTRIBUTE_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${pad_attribute_start_offset})
 #define PAD_ATTRIBUTE_SIZE 0x${pad_attribute_size_address}
 #define PAD_ATTRIBUTE_END_ADDRESS (PAD_ATTRIBUTE_START_ADDRESS + PAD_ATTRIBUTE_SIZE)
@@ -82,10 +86,6 @@ extern "C" {
 #define RV_TIMER_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${rv_timer_start_offset})
 #define RV_TIMER_SIZE 0x${rv_timer_size_address}
 #define RV_TIMER_END_ADDRESS (RV_TIMER_START_ADDRESS + RV_TIMER_SIZE)
-
-#define EXT_PERIPHERAL_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${ext_periph_start_offset})
-#define EXT_PERIPHERAL_SIZE 0x${ext_periph_size_address}
-#define EXT_PERIPHERAL_END_ADDRESS (EXT_PERIPHERAL_START_ADDRESS + EXT_PERIPHERAL_SIZE)
 
 #define EXT_SLAVE_START_ADDRESS 0x${ext_slave_start_address}
 #define EXT_SLAVE_SIZE 0x${ext_slave_size_address}

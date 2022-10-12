@@ -40,11 +40,7 @@ module peripheral_subsystem
 
     //RV TIMER
     output logic rv_timer_2_intr_o,
-    output logic rv_timer_3_intr_o,
-
-    //External peripheral(s)
-    output reg_req_t ext_peripheral_slave_req_o,
-    input  reg_rsp_t ext_peripheral_slave_resp_i
+    output logic rv_timer_3_intr_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -143,9 +139,6 @@ module peripheral_subsystem
 
   //Address Decoder
   logic [PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
-
-  assign ext_peripheral_slave_req_o = peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPH_IDX];
-  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPH_IDX] = ext_peripheral_slave_resp_i;
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
