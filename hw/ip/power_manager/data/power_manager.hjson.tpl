@@ -28,46 +28,18 @@
       ]
     }
 
-    { name:     "POWER_GATE_RAM_BLOCK_0",
-      desc:     "Used to power gate ram block 0",
+% for bank in range(ram_numbanks):
+    { name:     "POWER_GATE_RAM_BLOCK_${bank}",
+      desc:     "Used to power gate ram block ${bank}",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "POWER_GATE_RAM_BLOCK_0", desc: "Power Gate Ram Block 0 Reg" }
+        { bits: "0", name: "POWER_GATE_RAM_BLOCK_${bank}", desc: "Power Gate Ram Block ${bank} Reg" }
       ]
     }
 
-    { name:     "POWER_GATE_RAM_BLOCK_1",
-      desc:     "Used to power gate ram block 1",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "0", name: "POWER_GATE_RAM_BLOCK_1", desc: "Power Gate Ram Block 1 Reg" }
-      ]
-    }
-
-    { name:     "POWER_GATE_RAM_BLOCK_2",
-      desc:     "Used to power gate ram block 2",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "0", name: "POWER_GATE_RAM_BLOCK_2", desc: "Power Gate Ram Block 2 Reg" }
-      ]
-    }
-
-    { name:     "POWER_GATE_RAM_BLOCK_3",
-      desc:     "Used to power gate ram block 3",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "0", name: "POWER_GATE_RAM_BLOCK_3", desc: "Power Gate Ram Block 3 Reg" }
-      ]
-    }
-
+% endfor
     { name:     "WAKEUP_STATE",
       desc:     "Wake-up state of the system",
       resval:   "0x00000000"

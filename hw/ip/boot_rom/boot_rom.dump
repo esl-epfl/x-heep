@@ -6,9 +6,9 @@ Disassembly of section .text:
 
 00000000 <entry>:
    0:	200405b7          	lui	a1,0x20040
-   4:	0185c503          	lbu	a0,24(a1) # 20040018 <_end+0x2003ff2e>
+   4:	0105c503          	lbu	a0,16(a1) # 20040010 <_end+0x2003ff26>
    8:	c119                	beqz	a0,e <boot>
-   a:	4dc8                	lw	a0,28(a1)
+   a:	49c8                	lw	a0,20(a1)
    c:	9502                	jalr	a0
 
 0000000e <boot>:
