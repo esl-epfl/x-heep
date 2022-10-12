@@ -57,7 +57,12 @@ module ao_peripheral_subsystem
     output logic      spi_flash_intr_error_o,
     output logic      spi_flash_intr_event_o,
     output logic      spi_intr_error_o,
-    output logic      spi_intr_event_o
+    output logic      spi_intr_event_o,
+
+    //External PADs
+    output reg_req_t pad_req_o,
+    input  reg_rsp_t pad_resp_i
+
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -239,6 +244,10 @@ module ao_peripheral_subsystem
       .spi_flash_tx_ready_i(spi_flash_tx_ready),
       .dma_intr_o
   );
+
+  assign pad_req_o = peripheral_slv_req[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX];
+  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX] = pad_resp_i;
+
 
   //OpenTitan SPI Snitch Version connected to DMA
   spi_host #(
