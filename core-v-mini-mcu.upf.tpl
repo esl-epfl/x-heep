@@ -107,7 +107,7 @@ create_power_switch switch_PD_MEM_BANK_${bank} <%text>\</%text>
     -domain             PD_MEM_BANK_${bank} <%text>\</%text>
     -input_supply_port  {sw_in     VDD} <%text>\</%text>
     -output_supply_port {sw_out    VDD_MEM_BANK_${bank}} <%text>\</%text>
-    -control_port       {sw_ctrl   memory_subsystem_banks_powergate_switches[${bank}]} <%text>\</%text>
+    -control_port       {sw_ctrl   memory_subsystem_banks_powergate_switch[${bank}]} <%text>\</%text>
     -on_state           {on_state  sw_in {sw_ctrl}} <%text>\</%text>
     -off_state          {off_state {!sw_ctrl}}
 
@@ -134,7 +134,7 @@ set_isolation perip_subs_iso <%text>\</%text>
     -domain PD_PERIP_SUBS <%text>\</%text>
     -isolation_power_net VDD <%text>\</%text>
     -isolation_ground_net VSS <%text>\</%text>
-    -isolation_signal peripheral_subsystem_powergate_switch <%text>\</%text>
+    -isolation_signal peripheral_subsystem_powergate_iso <%text>\</%text>
     -isolation_sense low <%text>\</%text>
     -clamp_value 0 <%text>\</%text>
     -applies_to both <%text>\</%text>
@@ -146,7 +146,7 @@ set_isolation mem_bank_${bank}_iso <%text>\</%text>
     -domain PD_MEM_BANK_${bank} <%text>\</%text>
     -isolation_power_net VDD <%text>\</%text>
     -isolation_ground_net VSS <%text>\</%text>
-    -isolation_signal memory_subsystem_banks_powergate_switches[${bank}] <%text>\</%text>
+    -isolation_signal memory_subsystem_banks_powergate_iso[${bank}] <%text>\</%text>
     -isolation_sense low <%text>\</%text>
     -clamp_value 0 <%text>\</%text>
     -applies_to both <%text>\</%text>

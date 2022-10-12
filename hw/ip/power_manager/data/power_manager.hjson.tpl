@@ -233,7 +233,7 @@
     }
 
     { name:     "CPU_ISO_OFF_COUNTER",
-      desc:     "Counter before setting off isolation of the CPU domain",
+      desc:     "Counter before setting off the isolation of the CPU domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
@@ -243,7 +243,7 @@
     }
 
     { name:     "CPU_ISO_ON_COUNTER",
-      desc:     "Counter before setting on isolation of the CPU domain",
+      desc:     "Counter before setting on the isolation of the CPU domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
@@ -307,6 +307,26 @@
       ]
     }
 
+    { name:     "PERIPH_ISO_OFF_COUNTER",
+      desc:     "Counter before setting off the isolation of the PERIPH domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0", name: "PERIPH_ISO_OFF_COUNTER", desc: "PERIPH counter before setting off isolation" }
+      ]
+    }
+
+    { name:     "PERIPH_ISO_ON_COUNTER",
+      desc:     "Counter before setting on the isolation of the PERIPH domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0", name: "PERIPH_ISO_ON_COUNTER", desc: "PERIPH counter before setting on isolation" }
+      ]
+    }
+
     { name:     "PERIPH_COUNTERS_STOP",
       desc:     "Bits to stop the counters keeping the done_o signal high",
       resval:   "0x00000000"
@@ -317,6 +337,8 @@
         { bits: "1", name: "PERIPH_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the PERIPH_RESET_DEASSERT_COUNTER counter" }
         { bits: "2", name: "PERIPH_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the PERIPH_SWITCH_OFF_COUNTER counter" }
         { bits: "3", name: "PERIPH_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the PERIPH_SWITCH_ON_COUNTER counter" }
+        { bits: "4", name: "PERIPH_ISO_OFF_STOP_BIT_COUNTER", desc: "Stop the PERIPH_ISO_OFF_COUNTER counter" }
+        { bits: "5", name: "PERIPH_ISO_ON_STOP_BIT_COUNTER", desc: "Stop the PERIPH_ISO_ON_COUNTER counter" }
       ]
     }
 
@@ -361,6 +383,26 @@
       ]
     }
 
+    { name:     "RAM_${bank}_ISO_OFF_COUNTER",
+      desc:     "Counter before setting off the isolation of the RAM_${bank} domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0", name: "RAM_${bank}_ISO_OFF_COUNTER", desc: "RAM_${bank} counter before setting off isolation" }
+      ]
+    }
+
+    { name:     "RAM_${bank}_ISO_ON_COUNTER",
+      desc:     "Counter before setting on the isolation of the RAM_${bank} domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0", name: "RAM_${bank}_ISO_ON_COUNTER", desc: "RAM_${bank} counter before setting on isolation" }
+      ]
+    }
+
     { name:     "RAM_${bank}_COUNTERS_STOP",
       desc:     "Bits to stop the counters keeping the done_o signal high",
       resval:   "0x00000000"
@@ -371,6 +413,8 @@
         { bits: "1", name: "RAM_${bank}_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_RESET_DEASSERT_COUNTER counter" }
         { bits: "2", name: "RAM_${bank}_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_SWITCH_OFF_COUNTER counter" }
         { bits: "3", name: "RAM_${bank}_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_SWITCH_ON_COUNTER counter" }
+        { bits: "4", name: "RAM_${bank}_ISO_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_ISO_OFF_COUNTER counter" }
+        { bits: "5", name: "RAM_${bank}_ISO_ON_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_ISO_ON_COUNTER counter" }
       ]
     }
 

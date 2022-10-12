@@ -145,9 +145,11 @@ module core_v_mini_mcu
 
   // power manager
   logic cpu_subsystem_powergate_switch;
-  logic cpu_subsystem_powergate_iso_o;
+  logic cpu_subsystem_powergate_iso;
   logic peripheral_subsystem_powergate_switch;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switches;
+  logic peripheral_subsystem_powergate_iso;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso;
   logic cpu_subsystem_rst_n;
   logic peripheral_subsystem_rst_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_rst_n;
@@ -311,7 +313,9 @@ module core_v_mini_mcu
       .cpu_subsystem_powergate_switch_o(cpu_subsystem_powergate_switch),
       .cpu_subsystem_powergate_iso_o(cpu_subsystem_powergate_iso),
       .peripheral_subsystem_powergate_switch_o(peripheral_subsystem_powergate_switch),
-      .memory_subsystem_banks_powergate_switches_o(memory_subsystem_banks_powergate_switches),
+      .peripheral_subsystem_powergate_iso_o(peripheral_subsystem_powergate_iso),
+      .memory_subsystem_banks_powergate_switch_o(memory_subsystem_banks_powergate_switch),
+      .memory_subsystem_banks_powergate_iso_o(memory_subsystem_banks_powergate_iso),
       .cpu_subsystem_rst_no(cpu_subsystem_rst_n),
       .peripheral_subsystem_rst_no(peripheral_subsystem_rst_n),
       .memory_subsystem_rst_no(memory_subsystem_rst_n),
