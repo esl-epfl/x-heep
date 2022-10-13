@@ -121,14 +121,6 @@ class Pad:
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'i(' + out_internal_signals + '),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'oe_i(' + oe_internal_signals + '),'
         self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'io,'
-    if self.pad_type == 'bypass_output':
-        out_internal_signals = self.signal_name + 'out_x'
-        self.internal_signals = '  logic ' + out_internal_signals + ';'
-        self.pad_ring_bonding_bonding = '    .' + self.signal_name + 'i(' + out_internal_signals + '),'
-    if self.pad_type == 'bypass_input':
-        in_internal_signals = self.signal_name + 'in_x'
-        self.internal_signals = '  logic ' + in_internal_signals + ';'
-        self.pad_ring_bonding_bonding = '    .' + self.signal_name + 'o(' + in_internal_signals + '),'
 
 
   def __init__(self, name, cell_name, pad_type, index, pad_active):
