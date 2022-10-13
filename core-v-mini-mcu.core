@@ -205,7 +205,6 @@ targets:
   default: &default_target
     filesets:
     - files_rtl_generic
-    - target_sim ? (x_heep_system)
     - target_sim ? (rtl-simulation)
     - target_sim ? (tool_verilator? (files_verilator_waiver))
     toplevel: [core_v_mini_mcu]
@@ -223,6 +222,7 @@ targets:
     - tool_verilator? (tb-verilator)
     - tool_modelsim? (tb-sv)
     - tool_vcs? (tb-sv)
+    - "!integrated_heep? (x_heep_system)"
     toplevel:
     - tool_modelsim? (tb_top)
     - tool_vcs? (tb_top)
