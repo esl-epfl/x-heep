@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+#ifdef USE_EXTERNAL_DEVICE
     // Power-gate and wake-up due to plic
     dif_plic_irq_set_priority(&rv_plic, GPIO_INTR_31, 1);
     dif_plic_irq_set_enabled(&rv_plic, GPIO_INTR_31, 0, kDifPlicToggleEnabled);
@@ -126,7 +127,7 @@ int main(int argc, char *argv[])
 
     dif_plic_irq_id_t intr_num;
     dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-
+#endif
     /* write something to stdout */
     printf("Success.\n");
     return EXIT_SUCCESS;

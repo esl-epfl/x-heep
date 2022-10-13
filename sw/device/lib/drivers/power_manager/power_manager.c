@@ -367,8 +367,6 @@ power_manager_result_t power_gate_domain(const power_manager_t *power_manager, p
     else
     {
         // set counters
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_RESET_ASSERT_COUNTER_REG_OFFSET + (0x14 * (sel_domain - 1))), domain_counters->reset_off);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_RESET_DEASSERT_COUNTER_REG_OFFSET + (0x14 * (sel_domain - 1))), domain_counters->reset_on);
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_SWITCH_OFF_COUNTER_REG_OFFSET + (0x14 * (sel_domain - 1))), domain_counters->switch_off);
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_SWITCH_ON_COUNTER_REG_OFFSET + (0x14 * (sel_domain - 1))), domain_counters->switch_on);
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_ISO_OFF_COUNTER_REG_OFFSET + (0x14 * (sel_domain - 1))), domain_counters->iso_off);
@@ -380,8 +378,6 @@ power_manager_result_t power_gate_domain(const power_manager_t *power_manager, p
             mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_RAM_BLOCK_0_REG_OFFSET + (0x4 * (sel_domain - 1))), 0x1);
 
         // stop counters
-        reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_RESET_ASSERT_STOP_BIT_COUNTER_BIT, true);
-        reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_RESET_DEASSERT_STOP_BIT_COUNTER_BIT, true);
         reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_SWITCH_OFF_STOP_BIT_COUNTER_BIT, true);
         reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_SWITCH_ON_STOP_BIT_COUNTER_BIT, true);
         reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_ISO_OFF_STOP_BIT_COUNTER_BIT, true);

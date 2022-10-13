@@ -40,7 +40,7 @@ module fast_intr_ctrl #(
       .devmode_i(1'b1)
   );
 
-  for (genvar i = 0; i < 15; i++) begin : gen_
+  for (genvar i = 0; i < 15; i++) begin : gen_fast_interrupt
 
     always_comb begin
       if (reg2hw.fast_intr_clear.q[i]) begin
@@ -65,8 +65,8 @@ module fast_intr_ctrl #(
 
   end
 
-  assign hw2reg.fast_intr_pending.d[31:15] = 17'h00000;
-  assign hw2reg.fast_intr_clear.d[31:15] = 17'h00000;
+  assign hw2reg.fast_intr_pending.d[15] = 1'b0;
+  assign hw2reg.fast_intr_clear.d[15] = 1'b0;
   assign fast_intr_o = reg2hw.fast_intr_pending.q[14:0];
   assign hw2reg.fast_intr_pending.de = |fast_intr_pending_de;
   assign hw2reg.fast_intr_clear.de = |fast_intr_clear_de;

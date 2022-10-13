@@ -14,6 +14,9 @@ static power_manager_t power_manager;
 
 int main(int argc, char *argv[])
 {
+
+
+#if MEMORY_BANKS > 2
     // Setup power_manager
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
     power_manager.base_addr = power_manager_reg;
@@ -35,7 +38,7 @@ int main(int argc, char *argv[])
     }
 
     // Wait some time
-    for (int i=0; i<100; i++);
+    for (int i=0; i<100; i++) asm volatile("nop");
 
     // Power on ram block 2
     if (power_gate_domain(&power_manager, kRam_2_e, kOn_e, &power_manager_ram_blocks_counters) != kPowerManagerOk_e)
@@ -47,4 +50,10 @@ int main(int argc, char *argv[])
     /* write something to stdout */
     printf("Success.\n");
     return EXIT_SUCCESS;
+
+#else
+    #pragma message ( "this application can run only when MEMORY_BANKS > 2" )
+    return EXIT_FAILURE;
+#endif
+
 }
