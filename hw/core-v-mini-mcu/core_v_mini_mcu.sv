@@ -152,7 +152,6 @@ module core_v_mini_mcu
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso;
   logic cpu_subsystem_rst_n;
   logic peripheral_subsystem_rst_n;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_rst_n;
 
   // rv_timer
   logic [3:0] rv_timer_intr;
@@ -275,7 +274,7 @@ module core_v_mini_mcu
       .NUM_BANKS(core_v_mini_mcu_pkg::NUM_BANKS)
   ) memory_subsystem_i (
       .clk_i(clk),
-      .rst_ni(memory_subsystem_rst_n),
+      .rst_ni(rst_n),
       .ram_req_i(ram_slave_req),
       .ram_resp_o(ram_slave_resp)
   );
@@ -318,7 +317,6 @@ module core_v_mini_mcu
       .memory_subsystem_banks_powergate_iso_o(memory_subsystem_banks_powergate_iso),
       .cpu_subsystem_rst_no(cpu_subsystem_rst_n),
       .peripheral_subsystem_rst_no(peripheral_subsystem_rst_n),
-      .memory_subsystem_rst_no(memory_subsystem_rst_n),
       .rv_timer_0_intr_o(rv_timer_intr[0]),
       .rv_timer_1_intr_o(rv_timer_intr[1]),
       .dma_master0_ch0_req_o(dma_master0_ch0_req),

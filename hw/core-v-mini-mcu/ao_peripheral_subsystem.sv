@@ -54,7 +54,6 @@ module ao_peripheral_subsystem
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_o,
     output logic                                      cpu_subsystem_rst_no,
     output logic                                      peripheral_subsystem_rst_no,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_rst_no,
 
     //RV TIMER
     output logic rv_timer_0_intr_o,
@@ -239,8 +238,7 @@ module ao_peripheral_subsystem
       .memory_subsystem_banks_powergate_switch_o,
       .memory_subsystem_banks_powergate_iso_o,
       .cpu_subsystem_rst_no,
-      .peripheral_subsystem_rst_no,
-      .memory_subsystem_rst_no
+      .peripheral_subsystem_rst_no
   );
 
   reg_to_tlul #(
