@@ -286,6 +286,21 @@ applications/example_power_gating_ram_blocks/example_power_gating_ram_blocks.elf
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
+applications/example_power_gating_ram_blocks/example_power_gating_ram_blocks.flash_load.elf: applications/example_power_gating_ram_blocks/example_power_gating_ram_blocks.c
+	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
+		$(CUSTOM_GCC_FLAGS) \
+		-DHOST_BUILD \
+		-T linker/link_flash_load.ld \
+		-I $(RISCV)/riscv32-unknown-elf/include \
+		$(INC_FOLDERS_GCC) \
+		-static \
+		$(LIB_CRT_FLASH_LOAD) \
+		$^ $(LIB_RUNTIME) \
+		$(LIB_BASE) \
+		$(LIB_DRIVERS) \
+		-L $(RISCV)/riscv32-unknown-elf/lib \
+		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
+
 applications/spi_host_example/spi_host_example.elf: applications/spi_host_example/spi_host_example.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
@@ -298,7 +313,6 @@ applications/spi_host_example/spi_host_example.elf: applications/spi_host_exampl
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
-		-Wl,-Map=applications/spi_host_example/spi_host_example.map \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-Wl,-Map=applications/spi_host_example/spi_host_example.map \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs

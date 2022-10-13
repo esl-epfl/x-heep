@@ -126,7 +126,7 @@ set_isolation cpu_iso <%text>\</%text>
     -isolation_signal cpu_subsystem_powergate_iso <%text>\</%text>
     -isolation_sense low <%text>\</%text>
     -clamp_value 0 <%text>\</%text>
-    -applies_to both <%text>\</%text>
+    -applies_to outputs <%text>\</%text>
     -name_prefix cpu_iso_cell <%text>\</%text>
     -location parent
 
@@ -137,7 +137,7 @@ set_isolation perip_subs_iso <%text>\</%text>
     -isolation_signal peripheral_subsystem_powergate_iso <%text>\</%text>
     -isolation_sense low <%text>\</%text>
     -clamp_value 0 <%text>\</%text>
-    -applies_to both <%text>\</%text>
+    -applies_to outputs <%text>\</%text>
     -name_prefix cpu_iso_cell <%text>\</%text>
     -location parent
 
@@ -149,7 +149,7 @@ set_isolation mem_bank_${bank}_iso <%text>\</%text>
     -isolation_signal memory_subsystem_banks_powergate_iso[${bank}] <%text>\</%text>
     -isolation_sense low <%text>\</%text>
     -clamp_value 0 <%text>\</%text>
-    -applies_to both <%text>\</%text>
+    -applies_to outputs <%text>\</%text>
     -name_prefix cpu_iso_cell <%text>\</%text>
     -location parent
 
