@@ -12,7 +12,7 @@ module x_heep_system
     parameter EXT_XBAR_NMASTER = 0
 ) (
 
-% for pad in pad_list:
+% for pad in total_pad_list:
 ${pad.x_heep_system_interface}
 % endfor
 
@@ -39,7 +39,7 @@ ${pad.x_heep_system_interface}
   logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][15:0] pad_attributes;
 
   //input, output pins from core_v_mini_mcu
-% for pad in pad_list:
+% for pad in total_pad_list:
 ${pad.internal_signals}
 % endfor
 
@@ -74,7 +74,7 @@ ${pad.core_v_mini_mcu_bonding}
   );
 
   pad_ring pad_ring_i (
-% for pad in pad_list:
+% for pad in total_pad_list:
 ${pad.pad_ring_bonding_bonding}
 % endfor
     .pad_attributes_i(pad_attributes)
