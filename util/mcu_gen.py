@@ -81,45 +81,12 @@ class Pad:
   def create_core_v_mini_mcu_bonding(self):
     if self.pad_type == 'input':
         in_internal_signals = self.signal_name + 'in_x'
+        self.internal_signals = '  logic ' + in_internal_signals + ';'
         self.core_v_mini_mcu_bonding = '    .' + self.signal_name + 'i(' + in_internal_signals + '),'
     if self.pad_type == 'output':
         out_internal_signals = self.signal_name + 'out_x'
-        self.core_v_mini_mcu_bonding = '    .' + self.signal_name + 'o(' + out_internal_signals + '),'
-    if self.pad_type == 'inout':
-        in_internal_signals = self.signal_name + 'in_x'
-        out_internal_signals = self.signal_name + 'out_x'
-        oe_internal_signals = self.signal_name + 'oe_x'
-        self.core_v_mini_mcu_bonding = '    .' + self.signal_name + 'i(' + in_internal_signals + '),\n'
-        self.core_v_mini_mcu_bonding += '    .' + self.signal_name + 'o(' + out_internal_signals + '),\n'
-        self.core_v_mini_mcu_bonding += '    .' + self.signal_name + 'oe_o(' + oe_internal_signals + '),'
-    if self.pad_type == 'bypass_output':
-        out_internal_signals = self.signal_name + 'out_x'
-        self.core_v_mini_mcu_bonding = '.' + self.signal_name + 'o(' + out_internal_signals + '),'
-    if self.pad_type == 'bypass_input':
-        in_internal_signals = self.signal_name + 'in_x'
-        self.core_v_mini_mcu_bonding = '.' + self.signal_name + 'i(' + in_internal_signals + '),'
-    if self.pad_type == 'bypass_inout':
-        in_internal_signals = self.signal_name + 'in_x'
-        out_internal_signals = self.signal_name + 'out_x'
-        oe_internal_signals = self.signal_name + 'oe_x'
-        self.core_v_mini_mcu_bonding = '    .' + self.signal_name + 'i(' + in_internal_signals + '),\n'
-        self.core_v_mini_mcu_bonding += '    .' + self.signal_name + 'o(' + out_internal_signals + '),\n'
-        self.core_v_mini_mcu_bonding += '    .' + self.signal_name + 'oe_o(' + oe_internal_signals + '),'
-
-  def create_pad_ring_bonding(self):
-
-    if self.pad_type == 'input':
-        in_internal_signals = self.signal_name + 'in_x'
-        self.internal_signals = '  logic ' + in_internal_signals + ';'
-        self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'i),\n'
-        self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'o(' + in_internal_signals + '),'
-        self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'i,'
-    if self.pad_type == 'output':
-        out_internal_signals = self.signal_name + 'out_x'
         self.internal_signals = '  logic ' + out_internal_signals + ';'
-        self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'o),\n'
-        self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'i(' + out_internal_signals + '),'
-        self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'o,'
+        self.core_v_mini_mcu_bonding = '    .' + self.signal_name + 'o(' + out_internal_signals + '),'
     if self.pad_type == 'inout':
         in_internal_signals = self.signal_name + 'in_x'
         out_internal_signals = self.signal_name + 'out_x'
@@ -128,6 +95,44 @@ class Pad:
                                  + out_internal_signals + ',' \
                                  + oe_internal_signals + ';'
 
+        self.core_v_mini_mcu_bonding = '    .' + self.signal_name + 'i(' + in_internal_signals + '),\n'
+        self.core_v_mini_mcu_bonding += '    .' + self.signal_name + 'o(' + out_internal_signals + '),\n'
+        self.core_v_mini_mcu_bonding += '    .' + self.signal_name + 'oe_o(' + oe_internal_signals + '),'
+    if self.pad_type == 'bypass_output':
+        out_internal_signals = self.signal_name + 'out_x'
+        self.internal_signals = '  logic ' + out_internal_signals + ';'
+        self.core_v_mini_mcu_bonding = '.' + self.signal_name + 'o(' + out_internal_signals + '),'
+    if self.pad_type == 'bypass_input':
+        in_internal_signals = self.signal_name + 'in_x'
+        self.internal_signals = '  logic ' + in_internal_signals + ';'
+        self.core_v_mini_mcu_bonding = '.' + self.signal_name + 'i(' + in_internal_signals + '),'
+    if self.pad_type == 'bypass_inout':
+        in_internal_signals = self.signal_name + 'in_x'
+        out_internal_signals = self.signal_name + 'out_x'
+        oe_internal_signals = self.signal_name + 'oe_x'
+        self.internal_signals += '  logic ' + in_internal_signals + ',' \
+                                 + out_internal_signals + ',' \
+                                 + oe_internal_signals + ';'
+        self.core_v_mini_mcu_bonding = '    .' + self.signal_name + 'i(' + in_internal_signals + '),\n'
+        self.core_v_mini_mcu_bonding += '    .' + self.signal_name + 'o(' + out_internal_signals + '),\n'
+        self.core_v_mini_mcu_bonding += '    .' + self.signal_name + 'oe_o(' + oe_internal_signals + '),'
+
+  def create_pad_ring_bonding(self):
+
+    if self.pad_type == 'input':
+        in_internal_signals = self.signal_name + 'in_x'
+        self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'i),\n'
+        self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'o(' + in_internal_signals + '),'
+        self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'i,'
+    if self.pad_type == 'output':
+        out_internal_signals = self.signal_name + 'out_x'
+        self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'o),\n'
+        self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'i(' + out_internal_signals + '),'
+        self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'o,'
+    if self.pad_type == 'inout':
+        in_internal_signals = self.signal_name + 'in_x'
+        out_internal_signals = self.signal_name + 'out_x'
+        oe_internal_signals = self.signal_name + 'oe_x'
         self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'io),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'o(' + in_internal_signals + '),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'i(' + out_internal_signals + '),\n'
