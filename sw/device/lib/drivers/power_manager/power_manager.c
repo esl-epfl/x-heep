@@ -13,6 +13,8 @@
 
 #include "power_manager_regs.h"  // Generated.
 
+#include "fast_intr_ctrl_regs.h"  // Generated.
+
 void power_gate_core_asm()
 {
     asm volatile (
@@ -330,7 +332,7 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_core(const power_ma
     {
         mmio_region_t base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
         reg = bitfield_bit32_write(reg, sel_intr, true);
-        mmio_region_write32(base_addr, (ptrdiff_t)(0x4), reg);
+        mmio_region_write32(base_addr, (ptrdiff_t)(FAST_INTR_CTRL_FAST_INTR_CLEAR_REG_OFFSET), reg);
     }
 
     return kPowerManagerOk_e;
