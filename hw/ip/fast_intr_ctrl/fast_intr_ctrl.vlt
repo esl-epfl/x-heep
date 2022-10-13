@@ -1,0 +1,9 @@
+// Copyright 2022 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule WIDTH -file "*/fast_intr_ctrl_reg_top.sv" -match "Operator ASSIGNW expects *"
+lint_off -rule UNUSED -file "*/fast_intr_ctrl.sv" -match "Bits of signal are not used: 'reg2hw'*"
+lint_off -rule UNUSED -file "*/fast_intr_ctrl.sv" -match "Bits of signal are not used: 'reg2hw'*"

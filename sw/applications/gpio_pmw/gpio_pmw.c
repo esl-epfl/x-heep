@@ -9,10 +9,8 @@
 
 #define GPIO_PMW 2
 
-
 int main(int argc, char *argv[])
 {
-
     gpio_params_t gpio_params;
     gpio_t gpio;
     gpio_result_t gpio_res;
@@ -27,7 +25,6 @@ int main(int argc, char *argv[])
       gpio_write(&gpio, GPIO_PMW, false);
       for(int i=0;i<1000;i++) asm volatile("nop");
     }
-
 
     return EXIT_SUCCESS;
 }

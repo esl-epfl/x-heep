@@ -21,7 +21,6 @@ int main()
   uint32_t errors = 0;
   unsigned int instr, cycles, ldstall, jrstall, imstall;
 
-
   CSR_WRITE(CSR_REG_MCYCLE, 0);
 
   //execute the kernel
@@ -39,15 +38,11 @@ int main()
 
 void __attribute__ ((noinline)) matrixAdd(int32_t *  A, int32_t *  B, int32_t *  C, int N, int M)
 {
-
-
   for(int i = 0; i < N; i++) {
     for(int j = 0; j < M; j++) {
       C[i*N+j] = A[i*WIDTH+j] + B[i*WIDTH+j];
     }
   }
-
-
 }
 
 uint32_t check_results(int32_t * C, int N, int M)

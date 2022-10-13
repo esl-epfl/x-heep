@@ -15,12 +15,15 @@
     { name: "timer_expired_0_0",
       desc: "raised if the timer 0_0 expired (mtimecmp >= mtime)"
     },
+    { name: "timer_expired_1_0",
+      desc: "raised if the timer 1_0 expired (mtimecmp >= mtime)"
+    },
   ],
   param_list: [
     { name: "N_HARTS",
       desc: "Number of harts",
       type: "int",
-      default: "1"
+      default: "2"
     },
     { name: "N_TIMERS",
       desc: "Number of timers per Hart",
@@ -39,10 +42,7 @@
         swaccess: "rw",
         hwaccess: "hro",
         fields: [
-          { bits: "0", name: "active",
-            desc: "If 1, timer operates",
-            tags: [// prevent timer from being enabled
-                   "excl:CsrNonInitTests:CsrExclWrite"] }
+          { bits: "0", name: "active", desc: "If 1, timer operates" }
         ],
       }
     },
@@ -110,9 +110,7 @@
         swaccess: "rw1c",
         hwaccess: "hrw",
         fields: [
-          { bits: "0", name: "IS", desc: "Interrupt status for timer",
-            tags: [// intr_state csr is affected by writes to other csrs - skip write-check
-                   "excl:CsrNonInitTests:CsrExclWriteCheck"] }
+          { bits: "0", name: "IS", desc: "Interrupt status for timer" }
         ],
       }
     },
@@ -126,9 +124,89 @@
         hwext: "true",
         hwqe: "true",
         fields: [
-          { bits: "0", name: "T", desc: "Interrupt test for timer",
-            tags: [// intr_test csr is WO which - it reads back 0s
-                   "excl:CsrNonInitTests:CsrExclWrite"] }
+          { bits: "0", name: "T", desc: "Interrupt test for timer" }
+        ]
+      }
+    },
+    { skipto: "0x200" },
+    { name: "CFG1",
+      desc: "Configuration for Hart 1",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "11:0", name: "prescale", desc: "Prescaler to generate tick" },
+        { bits: "23:16", name: "step", resval: "0x1", desc: "Incremental value for each tick" },
+      ],
+    },
+    { name: "TIMER_V_LOWER1",
+      desc: "Timer value Lower",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0", name: "v", desc: "Timer value [31:0]" },
+      ],
+    },
+    { name: "TIMER_V_UPPER1",
+      desc: "Timer value Upper",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0", name: "v", desc: "Timer value [63:32]" },
+      ],
+    },
+    { name: "COMPARE_LOWER1_0",
+      desc: "Timer value Lower",
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe: "true",
+      fields: [
+        { bits: "31:0", name: "v", resval: "0xffffffff", desc: "Timer compare value [31:0]" },
+      ],
+    },
+    { name: "COMPARE_UPPER1_0",
+      desc: "Timer value Upper",
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe: "true",
+      fields: [
+        { bits: "31:0", name: "v", resval: "0xffffffff", desc: "Timer compare value [63:32]" },
+      ],
+    },
+    { multireg: {
+        name: "INTR_ENABLE1",
+        desc: "Interrupt Enable",
+        count: "N_TIMERS",
+        cname: "TIMER",
+        swaccess: "rw",
+        hwaccess: "hro",
+        fields: [
+          { bits: "0", name: "IE", desc: "Interrupt Enable for timer" }
+        ]
+      }
+    },
+    { multireg: {
+        name: "INTR_STATE1",
+        desc: "Interrupt Status",
+        count: "N_TIMERS",
+        cname: "TIMER",
+        swaccess: "rw1c",
+        hwaccess: "hrw",
+        fields: [
+          { bits: "0", name: "IS", desc: "Interrupt status for timer" }
+        ],
+      }
+    },
+    { multireg: {
+        name: "INTR_TEST1",
+        desc: "Interrupt test register",
+        count: "N_TIMERS",
+        cname: "TIMER",
+        swaccess: "wo",
+        hwaccess: "hro",
+        hwext: "true",
+        hwqe: "true",
+        fields: [
+          { bits: "0", name: "T", desc: "Interrupt test for timer" }
         ]
       }
     },

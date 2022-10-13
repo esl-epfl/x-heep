@@ -30,6 +30,7 @@ filesets:
     - x-heep:ip:boot_rom
     - x-heep:ip:dma
     - x-heep:ip:power_manager
+    - x-heep:ip:fast_intr_ctrl
     - x-heep:ip:pad_attribute
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
@@ -77,6 +78,7 @@ filesets:
     - hw/ip/obi_spimemio/obi_spimemio.vlt
     - hw/ip/dma/dma.vlt
     - hw/ip/power_manager/power_manager.vlt
+    - hw/ip/fast_intr_ctrl/fast_intr_ctrl.vlt
     - hw/ip/pad_attribute/pad_attribute.vlt
     file_type: vlt
 

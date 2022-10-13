@@ -101,7 +101,7 @@ package core_v_mini_mcu_pkg;
   };
 
   //always-on peripherals
-  localparam AO_PERIPHERALS = 9;
+  localparam AO_PERIPHERALS = 11;
 
   localparam logic[31:0] SOC_CTRL_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${soc_ctrl_start_offset};
   localparam logic[31:0] SOC_CTRL_SIZE = 32'h${soc_ctrl_size_address};
@@ -123,41 +123,54 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] SPI_MEMIO_END_ADDRESS = SPI_MEMIO_START_ADDRESS + SPI_MEMIO_SIZE;
   localparam logic[31:0] SPI_MEMIO_IDX = 32'd3;
 
+  localparam logic[31:0] SPI_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${spi_start_offset};
+  localparam logic[31:0] SPI_SIZE = 32'h${spi_size_address};
+  localparam logic[31:0] SPI_END_ADDRESS = SPI_START_ADDRESS + SPI_SIZE;
+  localparam logic[31:0] SPI_IDX = 32'd4;
+
   localparam logic [31:0] POWER_MANAGER_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${power_manager_start_offset};
   localparam logic [31:0] POWER_MANAGER_SIZE = 32'h${power_manager_size_address};
   localparam logic [31:0] POWER_MANAGER_END_ADDRESS = POWER_MANAGER_START_ADDRESS + POWER_MANAGER_SIZE;
-  localparam logic [31:0] POWER_MANAGER_IDX = 32'd4;
+  localparam logic [31:0] POWER_MANAGER_IDX = 32'd5;
 
-  localparam logic [31:0] RV_TIMER_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${rv_timer_start_offset};
-  localparam logic [31:0] RV_TIMER_SIZE = 32'h${rv_timer_size_address};
-  localparam logic [31:0] RV_TIMER_END_ADDRESS = RV_TIMER_START_ADDRESS + RV_TIMER_SIZE;
-  localparam logic [31:0] RV_TIMER_IDX = 32'd5;
+  localparam logic [31:0] RV_TIMER_AO_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${rv_timer_ao_start_offset};
+  localparam logic [31:0] RV_TIMER_AO_SIZE = 32'h${rv_timer_ao_size_address};
+  localparam logic [31:0] RV_TIMER_AO_END_ADDRESS = RV_TIMER_AO_START_ADDRESS + RV_TIMER_AO_SIZE;
+  localparam logic [31:0] RV_TIMER_AO_IDX = 32'd6;
 
   localparam logic [31:0] DMA_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${dma_start_offset};
   localparam logic [31:0] DMA_SIZE = 32'h${dma_size_address};
   localparam logic [31:0] DMA_END_ADDRESS = DMA_START_ADDRESS + DMA_SIZE;
-  localparam logic [31:0] DMA_IDX = 32'd6;
+  localparam logic [31:0] DMA_IDX = 32'd7;
 
-  localparam logic [31:0] PAD_ATTRIBUTE_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${pad_attribute_start_offset};
-  localparam logic [31:0] PAD_ATTRIBUTE_SIZE = 32'h${pad_attribute_size_address};
-  localparam logic [31:0] PAD_ATTRIBUTE_END_ADDRESS = PAD_ATTRIBUTE_START_ADDRESS + PAD_ATTRIBUTE_SIZE;
-  localparam logic [31:0] PAD_ATTRIBUTE_IDX = 32'd7;
+  localparam logic[31:0] FAST_INTR_CTRL_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${fast_intr_ctrl_start_offset};
+  localparam logic[31:0] FAST_INTR_CTRL_SIZE = 32'h${fast_intr_ctrl_size_address};
+  localparam logic[31:0] FAST_INTR_CTRL_END_ADDRESS = FAST_INTR_CTRL_START_ADDRESS + FAST_INTR_CTRL_SIZE;
+  localparam logic[31:0] FAST_INTR_CTRL_IDX = 32'd8;
 
-  localparam logic[31:0] SPI_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${spi_start_offset};
-  localparam logic[31:0] SPI_SIZE = 32'h${spi_size_address};
-  localparam logic[31:0] SPI_END_ADDRESS = SPI_START_ADDRESS + SPI_SIZE;
-  localparam logic[31:0] SPI_IDX = 32'd8;
+  localparam logic[31:0] EXT_PERIPH_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${ext_periph_start_offset};
+  localparam logic[31:0] EXT_PERIPH_SIZE = 32'h${ext_periph_size_address};
+  localparam logic[31:0] EXT_PERIPH_END_ADDRESS = EXT_PERIPH_START_ADDRESS + EXT_PERIPH_SIZE;
+  localparam logic[31:0] EXT_PERIPH_IDX = 32'd9;
+
+  localparam logic[31:0] PAD_ATTRIBUTE_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${pad_attribute_start_offset};
+  localparam logic[31:0] PAD_ATTRIBUTE_SIZE = 32'h${pad_attribute_size_address};
+  localparam logic[31:0] PAD_ATTRIBUTE_END_ADDRESS = PAD_ATTRIBUTE_START_ADDRESS + PAD_ATTRIBUTE_SIZE;
+  localparam logic[31:0] PAD_ATTRIBUTE_IDX = 32'd10;
+
 
   localparam addr_map_rule_t [AO_PERIPHERALS-1:0] AO_PERIPHERALS_ADDR_RULES = '{
       '{ idx: SOC_CTRL_IDX, start_addr: SOC_CTRL_START_ADDRESS, end_addr: SOC_CTRL_END_ADDRESS },
       '{ idx: BOOTROM_IDX, start_addr: BOOTROM_START_ADDRESS, end_addr: BOOTROM_END_ADDRESS },
       '{ idx: SPI_FLASH_IDX, start_addr: SPI_FLASH_START_ADDRESS, end_addr: SPI_FLASH_END_ADDRESS },
       '{ idx: SPI_MEMIO_IDX, start_addr: SPI_MEMIO_START_ADDRESS, end_addr: SPI_MEMIO_END_ADDRESS },
+      '{ idx: SPI_IDX, start_addr: SPI_START_ADDRESS, end_addr: SPI_END_ADDRESS },
       '{ idx: POWER_MANAGER_IDX, start_addr: POWER_MANAGER_START_ADDRESS, end_addr: POWER_MANAGER_END_ADDRESS },
-      '{ idx: RV_TIMER_IDX, start_addr: RV_TIMER_START_ADDRESS, end_addr: RV_TIMER_END_ADDRESS },
+      '{ idx: RV_TIMER_AO_IDX, start_addr: RV_TIMER_AO_START_ADDRESS, end_addr: RV_TIMER_AO_END_ADDRESS },
       '{ idx: DMA_IDX, start_addr: DMA_START_ADDRESS, end_addr: DMA_END_ADDRESS },
-      '{ idx: PAD_ATTRIBUTE_IDX, start_addr: PAD_ATTRIBUTE_START_ADDRESS, end_addr: PAD_ATTRIBUTE_END_ADDRESS },
-      '{ idx: SPI_IDX, start_addr: SPI_START_ADDRESS, end_addr: SPI_END_ADDRESS }
+      '{ idx: FAST_INTR_CTRL_IDX, start_addr: FAST_INTR_CTRL_START_ADDRESS, end_addr: FAST_INTR_CTRL_END_ADDRESS },
+      '{ idx: EXT_PERIPH_IDX, start_addr: EXT_PERIPH_START_ADDRESS, end_addr: EXT_PERIPH_END_ADDRESS },
+      '{ idx: PAD_ATTRIBUTE_IDX, start_addr: PAD_ATTRIBUTE_START_ADDRESS, end_addr: PAD_ATTRIBUTE_END_ADDRESS }
   };
 
   localparam int unsigned AO_PERIPHERALS_PORT_SEL_WIDTH = AO_PERIPHERALS > 1 ? $clog2(AO_PERIPHERALS) : 32'd1;
@@ -185,24 +198,24 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] I2C_END_ADDRESS = I2C_START_ADDRESS + I2C_SIZE;
   localparam logic[31:0] I2C_IDX = 32'd3;
 
-  localparam logic[31:0] EXT_PERIPH_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${ext_periph_start_offset};
-  localparam logic[31:0] EXT_PERIPH_SIZE = 32'h${ext_periph_size_address};
-  localparam logic[31:0] EXT_PERIPH_END_ADDRESS = EXT_PERIPH_START_ADDRESS + EXT_PERIPH_SIZE;
-  localparam logic[31:0] EXT_PERIPH_IDX = 32'd4;
+  localparam logic [31:0] RV_TIMER_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${rv_timer_start_offset};
+  localparam logic [31:0] RV_TIMER_SIZE = 32'h${rv_timer_size_address};
+  localparam logic [31:0] RV_TIMER_END_ADDRESS = RV_TIMER_START_ADDRESS + RV_TIMER_SIZE;
+  localparam logic [31:0] RV_TIMER_IDX = 32'd4;
 
   localparam addr_map_rule_t [PERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
       '{ idx: PLIC_IDX, start_addr: PLIC_START_ADDRESS, end_addr: PLIC_END_ADDRESS },
       '{ idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS },
       '{ idx: GPIO_IDX, start_addr: GPIO_START_ADDRESS, end_addr: GPIO_END_ADDRESS },
       '{ idx: I2C_IDX, start_addr: I2C_START_ADDRESS, end_addr: I2C_END_ADDRESS },
-      '{ idx: EXT_PERIPH_IDX, start_addr: EXT_PERIPH_START_ADDRESS, end_addr: EXT_PERIPH_END_ADDRESS }
+      '{ idx: RV_TIMER_IDX, start_addr: RV_TIMER_START_ADDRESS, end_addr: RV_TIMER_END_ADDRESS }
   };
 
   localparam int unsigned PERIPHERALS_PORT_SEL_WIDTH = PERIPHERALS > 1 ? $clog2(PERIPHERALS) : 32'd1;
 
   // Interrupts
   localparam PLIC_NINT = 64;
-  localparam PLIC_USED_NINT = 62;
+  localparam PLIC_USED_NINT = 49;
   localparam NEXT_INT = PLIC_NINT - PLIC_USED_NINT;
 
 % for pad in total_pad_list:

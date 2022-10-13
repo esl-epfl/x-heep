@@ -9,9 +9,9 @@
 #include "hart.h"
 #include "handler.h"
 #include "core_v_mini_mcu.h"
-#include "rv_plic.h"
-#include "rv_plic_regs.h"
 #include "dma.h"
+#include "fast_intr_ctrl.h"
+#include "fast_intr_ctrl_regs.h"
 
 // Choose which scenarios to test
 #define TEST_4_BYTES_ALIGNED
@@ -29,49 +29,24 @@ uint32_t copied_data_1B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
 
 int8_t dma_intr_flag;
 
-// Interrupt controller variables
-dif_plic_params_t rv_plic_params;
-dif_plic_t rv_plic;
-dif_plic_result_t plic_res;
-dif_plic_irq_id_t intr_num;
+void handler_irq_fast_dma(void)
+{
+    fast_intr_ctrl_t fast_intr_ctrl;
+    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
+    clear_fast_interrupt(&fast_intr_ctrl, kDma_e);
 
-void handler_irq_external(void) {
-    // Claim/clear interrupt
-    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
-    if (plic_res == kDifPlicOk && intr_num == DMA_INTR_DONE) {
-        dma_intr_flag = 1;
-    }
+    dma_intr_flag = 1;
 }
 
 int main(int argc, char *argv[])
 {
     printf("--- DMA EXAMPLE ---\n");
 
-    rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)PLIC_START_ADDRESS);
-    plic_res = dif_plic_init(rv_plic_params, &rv_plic);
-    if (plic_res != kDifPlicOk) {
-        printf("PLIC initialization failed\n;");
-        return EXIT_FAILURE;
-    }
-
-    // Set dma priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
-    plic_res = dif_plic_irq_set_priority(&rv_plic, DMA_INTR_DONE, 1);
-    if (plic_res != kDifPlicOk) {
-        printf("Set DMA priority failed\n;");
-        return EXIT_FAILURE;
-    }
-
-    plic_res = dif_plic_irq_set_enabled(&rv_plic, DMA_INTR_DONE, 0, kDifPlicToggleEnabled);
-    if (plic_res != kDifPlicOk) {
-        printf("Enable DMA interrupt failed\n;");
-        return EXIT_FAILURE;
-    }
-
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    // Set mie.MEIE bit to one to enable machine-level external interrupts
-    const uint32_t mask = 1 << 11;//IRQ_EXT_ENABLE_OFFSET;
+    // Set mie.MEIE bit to one to enable machine-level fast dma interrupt
+    const uint32_t mask = 1 << 19;
     CSR_SET_BITS(CSR_REG_MIE, mask);
 
     // dma peripheral structure to access the registers
@@ -89,11 +64,6 @@ int main(int argc, char *argv[])
         while(dma_intr_flag==0) {
             wait_for_interrupt();
         }
-        // Complete the interrupt
-        plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-        if (plic_res != kDifPlicOk || intr_num != DMA_INTR_DONE) {
-            printf("DMA interrupt complete failed\n;");
-        }
     #endif // TEST_4_BYTES_ALIGNED
 
     #ifdef TEST_2_BYTES_ALIGNED
@@ -107,11 +77,6 @@ int main(int argc, char *argv[])
         dma_intr_flag = 0;
         while(dma_intr_flag==0) {
             wait_for_interrupt();
-        }
-        // Complete the interrupt
-        plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-        if (plic_res != kDifPlicOk || intr_num != DMA_INTR_DONE) {
-            printf("DMA interrupt complete failed\n;");
         }
     #endif // TEST_2_BYTES_ALIGNED
 
@@ -127,13 +92,8 @@ int main(int argc, char *argv[])
         while(dma_intr_flag==0) {
             wait_for_interrupt();
         }
-        // Complete the interrupt
-        plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-        if (plic_res != kDifPlicOk || intr_num != DMA_INTR_DONE) {
-            printf("DMA interrupt complete failed\n;");
-        }
     #endif // TEST_BYTE_ALIGNED
-    
+
     int32_t errors;
 
     #ifdef TEST_4_BYTES_ALIGNED

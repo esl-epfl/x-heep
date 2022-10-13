@@ -16,13 +16,13 @@
 # Author: Robert Balas (balasr@iis.ee.ethz.ch)
 
 
-MAKE			= make
+MAKE                       = make
 
 # riscv toolchain install path
-RISCV                    ?= ~/.riscv
-RISCV_EXE_PREFIX         = $(RISCV)/bin/riscv32-unknown-elf-
+RISCV                      ?= ~/.riscv
+RISCV_EXE_PREFIX           = $(RISCV)/bin/riscv32-unknown-elf-
 
-TARGET                   ?= sim
+TARGET                     ?= sim
 
 # GCC configuration
 CUSTOM_GCC_FLAGS           =
@@ -41,6 +41,8 @@ LIB_DRIVERS                += $(wildcard device/lib/drivers/gpio/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/i2c/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/dma/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/power_manager/*.c)
+LIB_DRIVERS                += $(wildcard device/lib/drivers/fast_intr_ctrl/*.c)
+LIB_DRIVERS                += $(wildcard device/lib/drivers/spi_mem/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/spi_memio/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/spi_host/*.c)
 INC_FOLDERS                = $(sort $(dir $(wildcard device/target/$(TARGET)/)))
@@ -64,7 +66,6 @@ INC_FOLDERS_GCC             = $(addprefix -I ,$(INC_FOLDERS))
 
 %.dump: %.elf
 	$(RISCV_EXE_PREFIX)objdump -xD $^ > $@
-
 
 # Running custom programs:
 # This is an example for running a Hello World in the testbench
@@ -241,6 +242,36 @@ applications/dma_example/dma_example.elf: applications/dma_example/dma_example.c
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
 applications/example_power_gating_core/example_power_gating_core.elf: applications/example_power_gating_core/example_power_gating_core.c
+	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
+		$(CUSTOM_GCC_FLAGS) \
+		-DHOST_BUILD \
+		-T linker/link.ld \
+		-I $(RISCV)/riscv32-unknown-elf/include \
+		$(INC_FOLDERS_GCC) \
+		-static \
+		$(LIB_CRT) \
+		$^ $(LIB_RUNTIME) \
+		$(LIB_BASE) \
+		$(LIB_DRIVERS) \
+		-L $(RISCV)/riscv32-unknown-elf/lib \
+		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
+
+applications/example_power_gating_periph/example_power_gating_periph.elf: applications/example_power_gating_periph/example_power_gating_periph.c
+	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
+		$(CUSTOM_GCC_FLAGS) \
+		-DHOST_BUILD \
+		-T linker/link.ld \
+		-I $(RISCV)/riscv32-unknown-elf/include \
+		$(INC_FOLDERS_GCC) \
+		-static \
+		$(LIB_CRT) \
+		$^ $(LIB_RUNTIME) \
+		$(LIB_BASE) \
+		$(LIB_DRIVERS) \
+		-L $(RISCV)/riscv32-unknown-elf/lib \
+		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
+
+applications/example_power_gating_ram_blocks/example_power_gating_ram_blocks.elf: applications/example_power_gating_ram_blocks/example_power_gating_ram_blocks.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
