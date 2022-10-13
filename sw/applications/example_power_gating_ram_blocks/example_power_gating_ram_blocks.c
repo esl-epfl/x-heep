@@ -14,6 +14,9 @@ static power_manager_t power_manager;
 
 int main(int argc, char *argv[])
 {
+
+
+#if MEMORY_BANKS > 2
     // Setup power_manager
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
     power_manager.base_addr = power_manager_reg;
@@ -47,4 +50,10 @@ int main(int argc, char *argv[])
     /* write something to stdout */
     printf("Success.\n");
     return EXIT_SUCCESS;
+
+#else
+    #pragma message ( "this application can run only when MEMORY_BANKS > 2" )
+    return EXIT_FAILURE;
+#endif
+
 }

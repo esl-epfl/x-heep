@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     }
 
     // Wait some time
-    for (int i=0; i<100; i++);
+    for (int i=0; i<100; i++) asm volatile("nop;");
 
     // Power on peripheral_subsystem
     if (power_gate_domain(&power_manager, kPeriph_e, kOn_e, &power_manager_periph_counters) != kPowerManagerOk_e)
