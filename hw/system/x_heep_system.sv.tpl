@@ -12,10 +12,6 @@ module x_heep_system
     parameter EXT_XBAR_NMASTER = 0
 ) (
 
-% for pad in total_pad_list:
-${pad.x_heep_system_interface}
-% endfor
-
     input  obi_req_t  [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
 
@@ -27,7 +23,12 @@ ${pad.x_heep_system_interface}
 
     input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
 
-    output logic [31:0] exit_value_o
+    output logic [31:0] exit_value_o,
+
+% for pad in total_pad_list:
+${pad.x_heep_system_interface}
+% endfor
+
 
 );
 

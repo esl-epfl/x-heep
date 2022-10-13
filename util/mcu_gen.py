@@ -19,6 +19,8 @@ from mako.template import Template
 
 class Pad:
 
+  def remove_comma_io_interface(self):
+    self.x_heep_system_interface = self.x_heep_system_interface.rstrip(self.x_heep_system_interface[-1])
 
   def create_pad_ring(self):
 
@@ -562,6 +564,11 @@ def main():
     total_pad_list = pad_list + external_pad_list
 
     total_pad = pad_index_counter + external_pad_index_counter
+
+    ##remove comma from last PAD io_interface
+    last_pad = total_pad_list.pop()
+    last_pad.remove_comma_io_interface()
+    total_pad_list.append(last_pad)
 
     kwargs = {
         "cpu_type"                         : cpu_type,
