@@ -82,9 +82,9 @@ module boot_rom
     32'he5110085,
     32'hc5032000,
     32'h05b79502,
-    32'h4588c119,
-    32'h0045c503,
-    32'h200305b7
+    32'h41c8c119,
+    32'h0005c503,
+    32'h200405b7
   };
 
   logic [$clog2(core_v_mini_mcu_pkg::BOOTROM_SIZE)-1-2:0] word_addr;

@@ -15,6 +15,8 @@
 #include "soc_ctrl.h"
 #include "spi_host.h"
 #include "dma.h"
+#include "fast_intr_ctrl.h"
+#include "fast_intr_ctrl_regs.h"
 
 // Un-comment this line to use the SPI FLASH instead of the default SPI
 #define USE_SPI_FLASH
@@ -22,24 +24,16 @@
 #define COPY_DATA_BYTES 15
 #define SPI_BYTES (4 * (uint32_t)((COPY_DATA_BYTES-1) / 4 + 1)) // Only sends data when an entire word has been received
 
-// int8_t spi_intr_flag;
 int8_t dma_intr_flag;
-
-// Interrupt controller variables
-dif_plic_params_t rv_plic_params;
-dif_plic_t rv_plic;
-dif_plic_result_t plic_res;
-dif_plic_irq_id_t intr_num;
-
 spi_host_t spi_host;
 
-void handler_irq_external(void) {
-    // Claim/clear interrupt
-    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
-    // DMA Interrupt
-    if (plic_res == kDifPlicOk && intr_num == DMA_INTR_DONE) {
-        dma_intr_flag = 1;
-    }
+void handler_irq_fast_dma(void)
+{
+    fast_intr_ctrl_t fast_intr_ctrl;
+    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
+    clear_fast_interrupt(&fast_intr_ctrl, kDma_e);
+
+    dma_intr_flag = 1;
 }
 
 // Reserve memory array
@@ -57,33 +51,11 @@ int main(int argc, char *argv[])
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
-    // Init the PLIC
-    rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)PLIC_START_ADDRESS);
-    plic_res = dif_plic_init(rv_plic_params, &rv_plic);
-    if (plic_res != kDifPlicOk) {
-        printf("Unable to set the PLIC\n;");
-        return EXIT_FAILURE;
-    }
-
-    // Set DMA priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
-    plic_res = dif_plic_irq_set_priority(&rv_plic, DMA_INTR_DONE, 1);
-    if (plic_res != kDifPlicOk) {
-        printf("Unable to set the PLIC priority\n;");
-        return EXIT_FAILURE;
-    }
-
-    // Enable DMA interrupt
-    plic_res = dif_plic_irq_set_enabled(&rv_plic, DMA_INTR_DONE, 0, kDifPlicToggleEnabled);
-    if (plic_res != kDifPlicOk) {
-        printf("Unable to enable the PLIC irq\n;");
-        return EXIT_FAILURE;
-    }
-
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    // Set mie.MEIE bit to one to enable machine-level external interrupts
-    const uint32_t mask = 1 << 11;// ;
+    // Set mie.MEIE bit to one to enable machine-level fast dma interrupt
+    const uint32_t mask = 1 << 19;
     CSR_SET_BITS(CSR_REG_MIE, mask);
     // spi_intr_flag = 0;
     dma_intr_flag = 0;
@@ -148,7 +120,7 @@ int main(int argc, char *argv[])
 
     // The address bytes sent through the SPI to the Flash are in reverse order
     uint32_t flash_data_addr = flash_data;
-    uint32_t read_byte_cmd = (flash_data_addr >> 16); 
+    uint32_t read_byte_cmd = (flash_data_addr >> 16);
     read_byte_cmd = (read_byte_cmd | (flash_data_addr & 0xff00));
     read_byte_cmd = (read_byte_cmd | ((flash_data_addr & 0xff) << 16));
     // Add read command in the first byte sent
@@ -188,12 +160,6 @@ int main(int argc, char *argv[])
         wait_for_interrupt();
     }
     printf("triggered!\n");
-
-    // Complete interrupt
-    plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-    if (plic_res != kDifPlicOk || intr_num != DMA_INTR_DONE) {
-        printf("IRQ complete incorrect\n;");
-    }
 
     // The data is already in memory -- Check results
     printf("flash vs ram...\n");

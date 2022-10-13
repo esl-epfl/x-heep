@@ -10,35 +10,31 @@
 #include "csr.h"
 #include "hart.h"
 #include "handler.h"
-#include "rv_plic.h"
-#include "rv_plic_regs.h"
 #include "soc_ctrl.h"
 #include "spi_host.h"
+#include "fast_intr_ctrl.h"
+#include "fast_intr_ctrl_regs.h"
 
 // Simple example to check the SPI host peripheral is working. It checks the ram and flash have the same content
 #define DATA_CHUNK_ADDR 0x00008000
 
 int8_t spi_intr_flag;
-
-// Interrupt controller variables
-dif_plic_params_t rv_plic_params;
-dif_plic_t rv_plic;
-dif_plic_result_t plic_res;
-dif_plic_irq_id_t intr_num;
-
 spi_host_t spi_host;
-
-void handler_irq_external(void) {
-    // Claim/clear interrupt
-    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
-    if (plic_res == kDifPlicOk && intr_num == SPI_INTR_EVENT) {
-        spi_intr_flag = 1;
-        // Disable SPI interrupt otherwise it stays on until RX FIFO is read
-        dif_plic_irq_set_enabled(&rv_plic, SPI_INTR_EVENT, 0, kDifPlicToggleDisabled);
-    }
-}
-
 uint32_t flash_data[8];
+
+void handler_irq_fast_spi(void)
+{
+    // Disable SPI interrupts
+    spi_enable_evt_intr(&spi_host, false);
+    spi_enable_rxwm_intr(&spi_host, false);
+
+    // Clear fast interrupt
+    fast_intr_ctrl_t fast_intr_ctrl;
+    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
+    clear_fast_interrupt(&fast_intr_ctrl, kSpi_e);
+
+    spi_intr_flag = 1;
+}
 
 int main(int argc, char *argv[])
 {
@@ -48,18 +44,11 @@ int main(int argc, char *argv[])
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
-    // Init the PLIC
-    rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)PLIC_START_ADDRESS);
-    plic_res = dif_plic_init(rv_plic_params, &rv_plic);
-    // Set SPI interrupt priority to 1
-    plic_res = dif_plic_irq_set_priority(&rv_plic, SPI_INTR_EVENT, 1);
-    // Enable SPI interrupt
-    plic_res = dif_plic_irq_set_enabled(&rv_plic, SPI_INTR_EVENT, 0, kDifPlicToggleEnabled);
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    // Set mie.MEIE bit to one to enable machine-level external interrupts
-    const uint32_t mask = 1 << 11;// ;
+    // Set mie.MEIE bit to one to enable machine-level fast spi interrupt
+    const uint32_t mask = 1 << 20;
     CSR_SET_BITS(CSR_REG_MIE, mask);
     spi_intr_flag = 0;
 
@@ -166,8 +155,10 @@ int main(int argc, char *argv[])
         wait_for_interrupt();
     }
 
-    // Complete interrupt
-    plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
+    // Enable event interrupt
+    spi_enable_evt_intr(&spi_host, true);
+    // Enable RX watermark interrupt
+    spi_enable_rxwm_intr(&spi_host, true);
 
     // Read data from SPI RX FIFO
     for (int i=0; i<8; i++) {

@@ -6,20 +6,19 @@ module spi_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
 (
-
     input logic clk_i,
     input logic rst_ni,
 
     input logic use_spimemio_i,
 
-    //memory mapped spi
+    // Memory mapped SPI
     input  obi_req_t  spimemio_req_i,
     output obi_resp_t spimemio_resp_o,
-    //yosys spi configuration
+    // Yosys SPI configuration
     input  reg_req_t  yo_reg_req_i,
     output reg_rsp_t  yo_reg_rsp_o,
 
-    //opentitan spi configuration
+    // OpenTitan SPI configuration
     input  reg_req_t ot_reg_req_i,
     output reg_rsp_t ot_reg_rsp_o,
 
@@ -39,7 +38,6 @@ module spi_subsystem
     // SPI - DMA interface
     output logic spi_flash_rx_valid_o,
     output logic spi_flash_tx_ready_o
-
 );
 
   // OpenTitan SPI Interface
@@ -64,7 +62,7 @@ module spi_subsystem
   logic [                        3:0] yo_spi_sd_en;
   logic [                        3:0] yo_spi_sd_in;
 
-  //Multiplexer
+  // Multiplexer
   always_comb begin
     if (!use_spimemio_i) begin
       spi_flash_sck_o = ot_spi_sck;
@@ -95,7 +93,7 @@ module spi_subsystem
     end
   end
 
-  //YosysHQ SPI
+  // YosysHQ SPI
   assign yo_spi_sck_en = 1'b1;
   assign yo_spi_csb_en = 2'b01;
   assign yo_spi_csb[1] = 1'b1;
@@ -157,6 +155,5 @@ module spi_subsystem
   end
 
 `endif
-
 
 endmodule  // spi_subsystem
