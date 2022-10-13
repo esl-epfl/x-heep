@@ -22,9 +22,8 @@ class Pad:
 
   def create_pad_ring(self):
 
-    self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
-    self.pad_ring_ctrl_interface = ''
     if self.pad_type == 'input':
+        self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    output logic ' + self.signal_name + 'o,'
         self.pad_ring_instance = \
             'pad_cell_input #(.PADATTR(16)) ' + self.cell_name + ' ( \n' + \
@@ -35,6 +34,7 @@ class Pad:
             '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
             ');\n\n'
     if self.pad_type == 'output':
+        self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'i,'
         self.pad_ring_instance = \
             'pad_cell_output #(.PADATTR(16)) ' + self.cell_name + ' ( \n' + \
@@ -45,6 +45,7 @@ class Pad:
             '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
             ');\n\n'
     if self.pad_type == 'inout':
+        self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'i,\n'
         self.pad_ring_ctrl_interface += '    output logic ' + self.signal_name + 'o,\n'
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'oe_i,'
@@ -72,6 +73,10 @@ class Pad:
         self.core_v_mini_mcu_interface += '    output logic ' + self.signal_name + 'o,\n'
     if self.pad_type == 'bypass_input':
         self.core_v_mini_mcu_interface += '    input logic ' + self.signal_name + 'i,\n'
+    if self.pad_type == 'bypass_inout':
+        self.core_v_mini_mcu_interface += '    output logic ' + self.signal_name + 'o,'
+        self.core_v_mini_mcu_interface += '    input logic ' + self.signal_name + 'i,'
+        self.core_v_mini_mcu_interface += '    output logic ' + self.signal_name + 'oe_o,'
 
   def create_core_v_mini_mcu_bonding(self):
     if self.pad_type == 'input':
@@ -93,6 +98,13 @@ class Pad:
     if self.pad_type == 'bypass_input':
         in_internal_signals = self.signal_name + 'in_x'
         self.core_v_mini_mcu_bonding = '.' + self.signal_name + 'i(' + in_internal_signals + '),'
+    if self.pad_type == 'bypass_inout':
+        in_internal_signals = self.signal_name + 'in_x'
+        out_internal_signals = self.signal_name + 'out_x'
+        oe_internal_signals = self.signal_name + 'oe_x'
+        self.core_v_mini_mcu_bonding = '    .' + self.signal_name + 'i(' + in_internal_signals + '),\n'
+        self.core_v_mini_mcu_bonding += '    .' + self.signal_name + 'o(' + out_internal_signals + '),\n'
+        self.core_v_mini_mcu_bonding += '    .' + self.signal_name + 'oe_o(' + oe_internal_signals + '),'
 
   def create_pad_ring_bonding(self):
 
