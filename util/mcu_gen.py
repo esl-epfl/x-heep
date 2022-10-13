@@ -518,7 +518,8 @@ def main():
             pad_list.append(pad_obj)
 
     if external_pads != None:
-        external_pad_index_counter = pad_index_counter
+        external_pad_index_counter = 0
+        external_pad_index = pad_index_counter
         for key in external_pads:
             pad_name = key
             pad_num = external_pads[key]['num']
@@ -537,17 +538,19 @@ def main():
             if pad_num > 1:
                 for p in range(pad_num):
                     pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
-                    pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, external_pad_index_counter, pad_active)
+                    pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, external_pad_index, pad_active)
                     pad_obj.create_pad_ring()
                     pad_obj.create_pad_ring_bonding()
                     external_pad_index_counter = external_pad_index_counter + 1
+                    external_pad_index = external_pad_index + 1
                     external_pad_list.append(pad_obj)
             else:
                 pad_cell_name = "pad_" + key + "_i"
-                pad_obj = Pad(pad_name, pad_cell_name, pad_type, external_pad_index_counter, pad_active)
+                pad_obj = Pad(pad_name, pad_cell_name, pad_type, external_pad_index, pad_active)
                 pad_obj.create_pad_ring()
                 pad_obj.create_pad_ring_bonding()
                 external_pad_index_counter = external_pad_index_counter + 1
+                external_pad_index = external_pad_index + 1
                 external_pad_list.append(pad_obj)
 
 
