@@ -83,79 +83,79 @@ __attribute__((weak)) void handler_irq_external(void) {
 }
 
 __attribute__((weak)) void handler_irq_fast_timer_1(void) {
-  printf("External IRQ triggered!\n");
+  printf("Fast timer 1 IRQ triggered!\n");
   while (1) {
   }
 }
 
 __attribute__((weak)) void handler_irq_fast_timer_2(void) {
-  printf("External IRQ triggered!\n");
+  printf("Fast timer 2 IRQ triggered!\n");
   while (1) {
   }
 }
 
 __attribute__((weak)) void handler_irq_fast_timer_3(void) {
-  printf("External IRQ triggered!\n");
+  printf("Fast timer 3 IRQ triggered!\n");
   while (1) {
   }
 }
 
 __attribute__((weak)) void handler_irq_fast_dma(void) {
-  printf("External IRQ triggered!\n");
+  printf("Fast dma IRQ triggered!\n");
   while (1) {
   }
 }
 
 __attribute__((weak)) void handler_irq_fast_spi(void) {
-  printf("External IRQ triggered!\n");
+  printf("Fast spi IRQ triggered!\n");
   while (1) {
   }
 }
 
 __attribute__((weak)) void handler_irq_fast_gpio_0(void) {
-  printf("External IRQ triggered!\n");
+  printf("Fast gpio 0 IRQ triggered!\n");
   while (1) {
   }
 }
 
 __attribute__((weak)) void handler_irq_fast_gpio_1(void) {
-  printf("External IRQ triggered!\n");
+  printf("Fast gpio 1 IRQ triggered!\n");
   while (1) {
   }
 }
 
 __attribute__((weak)) void handler_irq_fast_gpio_2(void) {
-  printf("External IRQ triggered!\n");
+  printf("Fast gpio 2 IRQ triggered!\n");
   while (1) {
   }
 }
 
 __attribute__((weak)) void handler_irq_fast_gpio_3(void) {
-  printf("External IRQ triggered!\n");
+  printf("Fast gpio 3 IRQ triggered!\n");
   while (1) {
   }
 }
 
 __attribute__((weak)) void handler_irq_fast_gpio_4(void) {
-  printf("External IRQ triggered!\n");
+  printf("Fast gpio 4 IRQ triggered!\n");
   while (1) {
   }
 }
 
 __attribute__((weak)) void handler_irq_fast_gpio_5(void) {
-  printf("External IRQ triggered!\n");
+  printf("Fast gpio 5 IRQ triggered!\n");
   while (1) {
   }
 }
 
 __attribute__((weak)) void handler_irq_fast_gpio_6(void) {
-  printf("External IRQ triggered!\n");
+  printf("Fast gpio 6 IRQ triggered!\n");
   while (1) {
   }
 }
 
 __attribute__((weak)) void handler_irq_fast_gpio_7(void) {
-  printf("External IRQ triggered!\n");
+  printf("Fast gpio 7 IRQ triggered!\n");
   while (1) {
   }
 }

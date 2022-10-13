@@ -48,7 +48,7 @@ typedef enum exc_id {
 INTERRUPT_HANDLER_ABI void handler_exception(void);
 
 /**
- * SW IRQ handler.
+ * Software IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
  * at link-time by providing an additional non-weak definition.
@@ -64,7 +64,7 @@ INTERRUPT_HANDLER_ABI void handler_irq_software(void);
 INTERRUPT_HANDLER_ABI void handler_irq_timer(void);
 
 /**
- * external IRQ handler.
+ * External IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
  * at link-time by providing an additional non-weak definition.
@@ -72,7 +72,7 @@ INTERRUPT_HANDLER_ABI void handler_irq_timer(void);
 INTERRUPT_HANDLER_ABI void handler_irq_external(void);
 
 /**
- * external IRQ handler.
+ * Fast timer 1 IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
  * at link-time by providing an additional non-weak definition.
@@ -80,7 +80,7 @@ INTERRUPT_HANDLER_ABI void handler_irq_external(void);
 INTERRUPT_HANDLER_ABI void handler_irq_fast_timer_1(void);
 
 /**
- * external IRQ handler.
+ * Fast timer 2 IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
  * at link-time by providing an additional non-weak definition.
@@ -88,7 +88,7 @@ INTERRUPT_HANDLER_ABI void handler_irq_fast_timer_1(void);
 INTERRUPT_HANDLER_ABI void handler_irq_fast_timer_2(void);
 
 /**
- * external IRQ handler.
+ * Fast timer 3 IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
  * at link-time by providing an additional non-weak definition.
@@ -96,7 +96,7 @@ INTERRUPT_HANDLER_ABI void handler_irq_fast_timer_2(void);
 INTERRUPT_HANDLER_ABI void handler_irq_fast_timer_3(void);
 
 /**
- * external IRQ handler.
+ * Fast dma IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
  * at link-time by providing an additional non-weak definition.
@@ -104,7 +104,7 @@ INTERRUPT_HANDLER_ABI void handler_irq_fast_timer_3(void);
 INTERRUPT_HANDLER_ABI void handler_irq_fast_dma(void);
 
 /**
- * external IRQ handler.
+ * Fast spi IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
  * at link-time by providing an additional non-weak definition.
@@ -112,7 +112,7 @@ INTERRUPT_HANDLER_ABI void handler_irq_fast_dma(void);
 INTERRUPT_HANDLER_ABI void handler_irq_fast_spi(void);
 
 /**
- * external IRQ handler.
+ * Fast gpio 0 IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
  * at link-time by providing an additional non-weak definition.
@@ -120,7 +120,7 @@ INTERRUPT_HANDLER_ABI void handler_irq_fast_spi(void);
 INTERRUPT_HANDLER_ABI void handler_irq_fast_gpio_0(void);
 
 /**
- * external IRQ handler.
+ * Fast gpio 1 IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
  * at link-time by providing an additional non-weak definition.
@@ -128,7 +128,7 @@ INTERRUPT_HANDLER_ABI void handler_irq_fast_gpio_0(void);
 INTERRUPT_HANDLER_ABI void handler_irq_fast_gpio_1(void);
 
 /**
- * external IRQ handler.
+ * Fast gpio 2 IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
  * at link-time by providing an additional non-weak definition.
@@ -136,7 +136,7 @@ INTERRUPT_HANDLER_ABI void handler_irq_fast_gpio_1(void);
 INTERRUPT_HANDLER_ABI void handler_irq_fast_gpio_2(void);
 
 /**
- * external IRQ handler.
+ * Fast gpio 3 IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
  * at link-time by providing an additional non-weak definition.
@@ -144,7 +144,7 @@ INTERRUPT_HANDLER_ABI void handler_irq_fast_gpio_2(void);
 INTERRUPT_HANDLER_ABI void handler_irq_fast_gpio_3(void);
 
 /**
- * external IRQ handler.
+ * Fast gpio 4 IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
  * at link-time by providing an additional non-weak definition.
@@ -152,7 +152,7 @@ INTERRUPT_HANDLER_ABI void handler_irq_fast_gpio_3(void);
 INTERRUPT_HANDLER_ABI void handler_irq_fast_gpio_4(void);
 
 /**
- * external IRQ handler.
+ * Fast gpio 5 IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
  * at link-time by providing an additional non-weak definition.
@@ -160,7 +160,7 @@ INTERRUPT_HANDLER_ABI void handler_irq_fast_gpio_4(void);
 INTERRUPT_HANDLER_ABI void handler_irq_fast_gpio_5(void);
 
 /**
- * external IRQ handler.
+ * Fast gpio 6 IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
  * at link-time by providing an additional non-weak definition.
@@ -168,7 +168,7 @@ INTERRUPT_HANDLER_ABI void handler_irq_fast_gpio_5(void);
 INTERRUPT_HANDLER_ABI void handler_irq_fast_gpio_6(void);
 
 /**
- * external IRQ handler.
+ * Fast gpio 7 IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
  * at link-time by providing an additional non-weak definition.
