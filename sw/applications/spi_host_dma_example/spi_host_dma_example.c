@@ -19,7 +19,7 @@
 // Un-comment this line to use the SPI FLASH instead of the default SPI
 #define USE_SPI_FLASH
 
-#define COPY_DATA_BYTES 16
+#define COPY_DATA_BYTES 256 // Flash page size = 256
 #define SPI_BYTES (4 * (uint32_t)((COPY_DATA_BYTES-1) / 4 + 1)) // Only sends data when an entire word has been received
 
 #define FLASH_ADDR 0x00008500
