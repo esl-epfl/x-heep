@@ -13,17 +13,17 @@ core-v-mini-mcu.upf
 tb/tb_util.svh
 hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
 hw/core-v-mini-mcu/system_bus.sv
-hw/core-v-mini-mcu/pad_ring.sv
+hw/system/x_heep_system.sv
+hw/system/pad_ring.sv
+tb/tb_util.svh
 hw/ip/power_manager/data/power_manager.hjson
 hw/ip/power_manager/rtl/power_manager.sv
 hw/ip/power_manager/rtl/power_manager_reg_top.sv
 hw/ip/power_manager/rtl/power_manager_reg_pkg.sv
 
-# ignore the following sw automatically generated files
+# same for the C header file and linker scripts
 sw/device/lib/runtime/core_v_mini_mcu.h
 sw/linker/link.ld
-sw/linker/link_spiflash.ld
-sw/linker/link_spihost.ld
 sw/linker/link_flash_exec.ld
 sw/linker/link_flash_load.ld
 sw/device/lib/drivers/power_manager/power_manager_regs.h

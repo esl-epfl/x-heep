@@ -44,7 +44,7 @@ module ao_peripheral_subsystem
 
     // POWER MANAGER
     input  logic [                              31:0] intr_i,
-    input  logic [ core_v_mini_mcu_pkg::NEXT_INT-1:0] ext_intr_i,
+    input  logic [ core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
     input  logic                                      core_sleep_i,
     output logic                                      cpu_subsystem_powergate_switch_o,
     output logic                                      cpu_subsystem_powergate_iso_o,
@@ -66,16 +66,17 @@ module ao_peripheral_subsystem
     input  obi_resp_t dma_master1_ch0_resp_i,
     output logic      dma_intr_o,
 
+    //External PADs
+    output reg_req_t pad_req_o,
+    input  reg_rsp_t pad_resp_i,
+
     // FAST INTR CTRL
     input  logic [14:0] fast_intr_i,
     output logic [14:0] fast_intr_o,
 
     // EXTERNAL PERIPH
     output reg_req_t ext_peripheral_slave_req_o,
-    input  reg_rsp_t ext_peripheral_slave_resp_i,
-
-    // PADS
-    output logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][15:0] pad_attributes_o
+    input  reg_rsp_t ext_peripheral_slave_resp_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -229,7 +230,7 @@ module ao_peripheral_subsystem
       .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
       .intr_i,
-      .ext_irq_i(ext_intr_i),
+      .ext_irq_i(intr_vector_ext_i),
       .core_sleep_i,
       .cpu_subsystem_powergate_switch_o,
       .cpu_subsystem_powergate_iso_o,
@@ -288,6 +289,9 @@ module ao_peripheral_subsystem
       .dma_intr_o
   );
 
+  assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX];
+  assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX] = pad_resp_i;
+
   fast_intr_ctrl #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -298,18 +302,6 @@ module ao_peripheral_subsystem
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::FAST_INTR_CTRL_IDX]),
       .fast_intr_i,
       .fast_intr_o
-  );
-
-  pad_attribute #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t),
-      .NUM_PAD  (core_v_mini_mcu_pkg::NUM_PAD)
-  ) pad_attribute_i (
-      .clk_i,
-      .rst_ni,
-      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX]),
-      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX]),
-      .pad_attributes_o
   );
 
 

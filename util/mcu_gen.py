@@ -18,67 +18,164 @@ from jsonref import JsonRef
 from mako.template import Template
 
 class Pad:
-  def __init__(self, name, cell_name, pad_type, index):
+
+  def remove_comma_io_interface(self):
+    self.x_heep_system_interface = self.x_heep_system_interface.rstrip(self.x_heep_system_interface[-1])
+
+  def create_pad_ring(self):
+    self.interface = '    inout logic ' + self.name + '_io,\n'
+
+    if self.pad_type == 'input':
+        self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
+        self.pad_ring_ctrl_interface += '    output logic ' + self.signal_name + 'o,'
+        self.pad_ring_instance = \
+            'pad_cell_input #(.PADATTR(16)) ' + self.cell_name + ' ( \n' + \
+            '   .pad_in_i(1\'b0),\n' + \
+            '   .pad_oe_i(1\'b0),\n' + \
+            '   .pad_out_o(' + self.signal_name + 'o),\n' + \
+            '   .pad_io(' + self.signal_name + 'io),\n' + \
+            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
+            ');\n\n'
+    if self.pad_type == 'output':
+        self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
+        self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'i,'
+        self.pad_ring_instance = \
+            'pad_cell_output #(.PADATTR(16)) ' + self.cell_name + ' ( \n' + \
+            '   .pad_in_i(' + self.signal_name + 'i),\n' + \
+            '   .pad_oe_i(1\'b1),\n' + \
+            '   .pad_out_o(),\n' + \
+            '   .pad_io(' + self.signal_name + 'io),\n' + \
+            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
+            ');\n\n'
+    if self.pad_type == 'inout':
+        self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
+        self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'i,\n'
+        self.pad_ring_ctrl_interface += '    output logic ' + self.signal_name + 'o,\n'
+        self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'oe_i,'
+        self.pad_ring_instance = \
+            'pad_cell_inout #(.PADATTR(16)) ' + self.cell_name + ' ( \n' + \
+            '   .pad_in_i(' + self.signal_name + 'i),\n' + \
+            '   .pad_oe_i(' + self.signal_name + 'oe_i),\n' + \
+            '   .pad_out_o(' + self.signal_name + 'o),\n' + \
+            '   .pad_io(' + self.signal_name + 'io),\n' + \
+            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
+            ');\n\n'
+
+  def create_core_v_mini_mcu_ctrl(self):
+
+    if self.pad_type == 'input':
+        self.core_v_mini_mcu_interface += '    input logic ' + self.signal_name + 'i,'
+    if self.pad_type == 'output':
+        self.core_v_mini_mcu_interface += '    output logic ' + self.signal_name + 'o,'
+    if self.pad_type == 'inout':
+        self.core_v_mini_mcu_interface += '    output logic ' + self.signal_name + 'o,'
+        self.core_v_mini_mcu_interface += '    input logic ' + self.signal_name + 'i,'
+        self.core_v_mini_mcu_interface += '    output logic ' + self.signal_name + 'oe_o,'
+    if self.pad_type == 'bypass_output':
+        self.core_v_mini_mcu_interface += '    output logic ' + self.signal_name + 'o,\n'
+    if self.pad_type == 'bypass_input':
+        self.core_v_mini_mcu_interface += '    input logic ' + self.signal_name + 'i,\n'
+    if self.pad_type == 'bypass_inout':
+        self.core_v_mini_mcu_interface += '    output logic ' + self.signal_name + 'o,'
+        self.core_v_mini_mcu_interface += '    input logic ' + self.signal_name + 'i,'
+        self.core_v_mini_mcu_interface += '    output logic ' + self.signal_name + 'oe_o,'
+
+  def create_core_v_mini_mcu_bonding(self):
+    if self.pad_type == 'input':
+        in_internal_signals = self.signal_name + 'in_x'
+        self.internal_signals = '  logic ' + in_internal_signals + ';'
+        self.core_v_mini_mcu_bonding = '    .' + self.signal_name + 'i(' + in_internal_signals + '),'
+    if self.pad_type == 'output':
+        out_internal_signals = self.signal_name + 'out_x'
+        self.internal_signals = '  logic ' + out_internal_signals + ';'
+        self.core_v_mini_mcu_bonding = '    .' + self.signal_name + 'o(' + out_internal_signals + '),'
+    if self.pad_type == 'inout':
+        in_internal_signals = self.signal_name + 'in_x'
+        out_internal_signals = self.signal_name + 'out_x'
+        oe_internal_signals = self.signal_name + 'oe_x'
+        self.internal_signals += '  logic ' + in_internal_signals + ',' \
+                                 + out_internal_signals + ',' \
+                                 + oe_internal_signals + ';'
+
+        self.core_v_mini_mcu_bonding = '    .' + self.signal_name + 'i(' + in_internal_signals + '),\n'
+        self.core_v_mini_mcu_bonding += '    .' + self.signal_name + 'o(' + out_internal_signals + '),\n'
+        self.core_v_mini_mcu_bonding += '    .' + self.signal_name + 'oe_o(' + oe_internal_signals + '),'
+    if self.pad_type == 'bypass_output':
+        out_internal_signals = self.signal_name + 'out_x'
+        self.internal_signals = '  logic ' + out_internal_signals + ';'
+        self.core_v_mini_mcu_bonding = '.' + self.signal_name + 'o(' + out_internal_signals + '),'
+    if self.pad_type == 'bypass_input':
+        in_internal_signals = self.signal_name + 'in_x'
+        self.internal_signals = '  logic ' + in_internal_signals + ';'
+        self.core_v_mini_mcu_bonding = '.' + self.signal_name + 'i(' + in_internal_signals + '),'
+    if self.pad_type == 'bypass_inout':
+        in_internal_signals = self.signal_name + 'in_x'
+        out_internal_signals = self.signal_name + 'out_x'
+        oe_internal_signals = self.signal_name + 'oe_x'
+        self.internal_signals += '  logic ' + in_internal_signals + ',' \
+                                 + out_internal_signals + ',' \
+                                 + oe_internal_signals + ';'
+        self.core_v_mini_mcu_bonding = '    .' + self.signal_name + 'i(' + in_internal_signals + '),\n'
+        self.core_v_mini_mcu_bonding += '    .' + self.signal_name + 'o(' + out_internal_signals + '),\n'
+        self.core_v_mini_mcu_bonding += '    .' + self.signal_name + 'oe_o(' + oe_internal_signals + '),'
+
+  def create_pad_ring_bonding(self):
+
+    if self.pad_type == 'input':
+        in_internal_signals = self.signal_name + 'in_x'
+        self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'i),\n'
+        self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'o(' + in_internal_signals + '),'
+        self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'i,'
+    if self.pad_type == 'output':
+        out_internal_signals = self.signal_name + 'out_x'
+        self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'o),\n'
+        self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'i(' + out_internal_signals + '),'
+        self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'o,'
+    if self.pad_type == 'inout':
+        in_internal_signals = self.signal_name + 'in_x'
+        out_internal_signals = self.signal_name + 'out_x'
+        oe_internal_signals = self.signal_name + 'oe_x'
+        self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'io),\n'
+        self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'o(' + in_internal_signals + '),\n'
+        self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'i(' + out_internal_signals + '),\n'
+        self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'oe_i(' + oe_internal_signals + '),'
+        self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'io,'
+
+
+  def __init__(self, name, cell_name, pad_type, index, pad_active):
+
+
     self.name = name
     self.cell_name = cell_name
     self.index = index
     self.localparam = 'PAD_' + name.upper()
     self.pad_type = pad_type
 
-    self.interface = '    inout logic ' + self.name + '_io,\n'
+    if('low' in pad_active):
+        self.name_active = 'n'
+    else:
+        self.name_active = ''
 
-    if pad_type == 'input':
-        self.interface += '    output logic ' + self.name + '_o,\n'
-        self.instance = \
-            'pad_cell_input #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
-            '   .pad_in_i(1\'b0),\n' + \
-            '   .pad_oe_i(1\'b0),\n' + \
-            '   .pad_out_o(' + name + '_o),\n' + \
-            '   .pad_io(' + name  + '_io),\n' + \
-            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
-            ');\n\n'
-    if pad_type == 'output':
-        self.interface += '    input logic ' + self.name + '_i,\n'
-        self.instance = \
-            'pad_cell_output #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
-            '   .pad_in_i(' + name + '_i),\n' + \
-            '   .pad_oe_i(1\'b1),\n' + \
-            '   .pad_out_o(),\n' + \
-            '   .pad_io(' + name  + '_io),\n' + \
-            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
-            ');\n\n'
-    if pad_type == 'inout':
-        self.interface += '    input logic ' + self.name + '_i,\n'
-        self.interface += '    output logic ' + self.name + '_o,\n'
-        self.interface += '    input logic ' + self.name + '_oe_i,\n'
-        self.instance = \
-            'pad_cell_inout #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
-            '   .pad_in_i(' + name + '_i),\n' + \
-            '   .pad_oe_i(' + name + '_oe_i),\n' + \
-            '   .pad_out_o(' + name + '_o),\n' + \
-            '   .pad_io(' + name  + '_io),\n' + \
-            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
-            ');\n\n'
-    if pad_type == 'bypass_output':
-        self.interface += '    input logic ' + self.name + '_i,\n'
-        self.instance = \
-            'pad_cell_bypass_output #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
-            '   .pad_in_i(' + name + '_i),\n' + \
-            '   .pad_oe_i(1\'b1),\n' + \
-            '   .pad_out_o(),\n' + \
-            '   .pad_io(' + name  + '_io),\n' + \
-            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
-            ');\n\n'
-    if pad_type == 'bypass_input':
-        self.interface += '    output logic ' + self.name + '_o,\n'
-        self.instance = \
-            'pad_cell_bypass_input #(.PADATTR(16)) ' + cell_name + ' ( \n' + \
-            '   .pad_in_i(1\'b0),\n' + \
-            '   .pad_oe_i(1\'b0),\n' + \
-            '   .pad_out_o(' + name + '_o),\n' + \
-            '   .pad_io(' + name  + '_io),\n' + \
-            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
-            ');\n\n'
+    self.signal_name = self.name + '_' + self.name_active
+
+    self.io_interface = self.signal_name + 'io'
+
+    ### Pad Ring ###
+    self.pad_ring_io_interface = ''
+    self.pad_ring_ctrl_interface = ''
+    self.pad_ring_instance = ''
+
+    ### core v mini mcu ###
+
+    self.core_v_mini_mcu_interface = ''
+
+
+    ### heep systems ###
+    self.internal_signals = ''
+    self.core_v_mini_mcu_bonding = ''
+    self.pad_ring_bonding_bonding = ''
+    self.x_heep_system_interface = ''
+
 
 # Compile a regex to trim trailing whitespaces on lines.
 re_trailws = re.compile(r'[ \t\r]+$', re.MULTILINE)
@@ -87,12 +184,16 @@ def string2int(hex_json_string):
     return (hex_json_string.split('x')[1]).split(',')[0]
 
 
-def write_template(tpl_path, outdir, **kwargs):
+def write_template(tpl_path, outdir, outfile, **kwargs):
     if tpl_path:
         tpl_path = pathlib.Path(tpl_path).absolute()
         if tpl_path.exists():
             tpl = Template(filename=str(tpl_path))
-            with open(outdir / tpl_path.with_suffix("").name, "w") as file:
+            if outfile == None:
+                filename = outdir / tpl_path.with_suffix("").name
+            else:
+                filename = outfile
+            with open(filename, "w") as file:
                 code = tpl.render_unicode(**kwargs)
                 code = re_trailws.sub("", code)
                 file.write(code)
@@ -110,10 +211,17 @@ def main():
                         help="A configuration file")
 
     parser.add_argument("--outdir",
-                        "-o",
+                        "-of",
                         type=pathlib.Path,
                         required=True,
                         help="Target directory.")
+
+    parser.add_argument("--outfile",
+                        "-o",
+                        type=pathlib.Path,
+                        required=False,
+                        help="Target filename, if omitted the template basename is taken.")
+
     # Parse arguments.
 
     parser.add_argument("--cpu",
@@ -151,6 +259,12 @@ def main():
                         metavar="LINKER_SCRIPT",
                         help="Name of the linker script (output)")
 
+    parser.add_argument("--external_pads",
+                        metavar="file",
+                        type=argparse.FileType('r'),
+                        required=False,
+                        help="Name of the hjson file contaiting extra pads")
+
     parser.add_argument("-v",
                         "--verbose",
                         help="increase output verbosity",
@@ -175,6 +289,8 @@ def main():
 
     outdir = args.outdir
     outdir.mkdir(parents=True, exist_ok=True)
+
+    outfile = args.outfile
 
     if args.cpu != None and args.cpu != '':
         cpu_type = args.cpu
@@ -352,9 +468,29 @@ def main():
     ext_intr_13 = obj['interrupts']['ext_intr_13']
     ext_intr_14 = obj['interrupts']['ext_intr_14']
 
-    pads = obj['pads']
-    pad_list = []
+
+
+    pads       = obj['pads']
+
+    # Read HJSON description of External Pads
+    if args.external_pads != None:
+        with args.external_pads as file_external_pads:
+            try:
+                srcfull = file_external_pads.read()
+                ext_pads_obj = hjson.loads(srcfull, use_decimal=True)
+                ext_pads_obj = JsonRef.replace_refs(ext_pads_obj)
+            except ValueError:
+                raise SystemExit(sys.exc_info()[1])
+
+        external_pads = ext_pads_obj['pads']
+    else:
+        external_pads = None
+
+
+    pad_list   = []
     pad_index_counter = 0
+    external_pad_list   = []
+    external_pad_index_counter = 0
 
     for key in pads:
 
@@ -365,23 +501,81 @@ def main():
             pad_offset = int(pads[key]['num_offset'])
         except KeyError:
             pad_offset = 0
+        try:
+            pad_active = pads[key]['active']
+        except KeyError:
+            pad_active = 'high'
 
         if pad_num > 1:
             for p in range(pad_num):
                 pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
-                pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_index_counter)
+                pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_index_counter, pad_active)
+                pad_obj.create_pad_ring()
+                pad_obj.create_core_v_mini_mcu_ctrl()
+                pad_obj.create_pad_ring_bonding()
+                pad_obj.create_core_v_mini_mcu_bonding()
                 pad_index_counter = pad_index_counter + 1
                 pad_list.append(pad_obj)
         else:
             pad_cell_name = "pad_" + key + "_i"
-            pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_index_counter)
+            pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_index_counter, pad_active)
+            pad_obj.create_pad_ring()
+            pad_obj.create_core_v_mini_mcu_ctrl()
+            pad_obj.create_pad_ring_bonding()
+            pad_obj.create_core_v_mini_mcu_bonding()
             pad_index_counter = pad_index_counter + 1
             pad_list.append(pad_obj)
 
-    num_internal_pad = pad_index_counter
+    if external_pads != None:
+        external_pad_index_counter = 0
+        external_pad_index = pad_index_counter
+        for key in external_pads:
+            pad_name = key
+            pad_num = external_pads[key]['num']
+            pad_type = external_pads[key]['type']
+            try:
+                pad_offset = int(external_pads[key]['num_offset'])
+            except KeyError:
+                pad_offset = 0
+            try:
+                pad_active = external_pads[key]['active']
+            except KeyError:
+                pad_active = 'high'
+
+
+
+            if pad_num > 1:
+                for p in range(pad_num):
+                    pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
+                    pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, external_pad_index, pad_active)
+                    pad_obj.create_pad_ring()
+                    pad_obj.create_pad_ring_bonding()
+                    external_pad_index_counter = external_pad_index_counter + 1
+                    external_pad_index = external_pad_index + 1
+                    external_pad_list.append(pad_obj)
+            else:
+                pad_cell_name = "pad_" + key + "_i"
+                pad_obj = Pad(pad_name, pad_cell_name, pad_type, external_pad_index, pad_active)
+                pad_obj.create_pad_ring()
+                pad_obj.create_pad_ring_bonding()
+                external_pad_index_counter = external_pad_index_counter + 1
+                external_pad_index = external_pad_index + 1
+                external_pad_list.append(pad_obj)
+
+
+    total_pad_list = []
+
+    total_pad_list = pad_list + external_pad_list
+
+    total_pad = pad_index_counter + external_pad_index_counter
+
+    ##remove comma from last PAD io_interface
+    last_pad = total_pad_list.pop()
+    last_pad.remove_comma_io_interface()
+    total_pad_list.append(last_pad)
 
     kwargs = {
-        "cpu_type"                         : cpu_type,
+         "cpu_type"                         : cpu_type,
         "bus_type"                         : bus_type,
         "ram_start_address"                : ram_start_address,
         "ram_numbanks"                     : ram_numbanks,
@@ -497,23 +691,25 @@ def main():
         "ext_intr_13"                      : ext_intr_13,
         "ext_intr_14"                      : ext_intr_14,
         "pad_list"                         : pad_list,
-        "num_internal_pad"                 : num_internal_pad,
+        "external_pad_list"                : external_pad_list,
+        "total_pad_list"                   : total_pad_list,
+        "total_pad"                        : total_pad,
     }
 
     ###########
     # Package #
     ###########
     if args.pkg_sv != None:
-        write_template(args.pkg_sv, outdir, **kwargs)
+        write_template(args.pkg_sv, outdir, outfile, **kwargs)
 
     if args.header_c != None:
-        write_template(args.header_c, outdir, **kwargs)
+        write_template(args.header_c, outdir, outfile, **kwargs)
 
     if args.tpl_sv != None:
-        write_template(args.tpl_sv, outdir, **kwargs)
+        write_template(args.tpl_sv, outdir, outfile, **kwargs)
 
     if args.linker_script != None:
-        write_template(args.linker_script, outdir, **kwargs)
+        write_template(args.linker_script, outdir, outfile, **kwargs)
 
 
 if __name__ == "__main__":

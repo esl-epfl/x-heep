@@ -218,21 +218,21 @@ package core_v_mini_mcu_pkg;
   localparam PLIC_USED_NINT = 49;
   localparam NEXT_INT = PLIC_NINT - PLIC_USED_NINT;
 
-% for pad in pad_list:
+% for pad in total_pad_list:
   localparam ${pad.localparam} = ${pad.index};
 % endfor
 
-  localparam NUM_PAD = ${num_internal_pad};
+  localparam NUM_PAD = ${total_pad};
 
   localparam int unsigned NUM_PAD_PORT_SEL_WIDTH = NUM_PAD > 1 ? $clog2(NUM_PAD) : 32'd1;
 
   // each attribute is a single 16b register mapped at 0 in the pad_attribute IP, so we use +4 to iterate over the IPs
   // if you add another register in the pad_attribute IP, then +4 does not hold anymore
   localparam addr_map_rule_t [NUM_PAD-1:0] PAD_ADDR_RULES = '{
-      % for pad in pad_list[:-1]:
+      % for pad in total_pad_list[:-1]:
       '{ idx: ${pad.index}, start_addr: (PAD_ATTRIBUTE_START_ADDRESS + ${4 * pad.index}), end_addr: (PAD_ATTRIBUTE_START_ADDRESS + ${4 + 4 * pad.index})},
       % endfor
-      '{ idx: ${pad_list[-1].index}, start_addr: (PAD_ATTRIBUTE_START_ADDRESS + ${4 * pad_list[-1].index}), end_addr: (PAD_ATTRIBUTE_START_ADDRESS + ${4 + 4 * pad_list[-1].index})}
+      '{ idx: ${total_pad_list[-1].index}, start_addr: (PAD_ATTRIBUTE_START_ADDRESS + ${4 * total_pad_list[-1].index}), end_addr: (PAD_ATTRIBUTE_START_ADDRESS + ${4 + 4 * total_pad_list[-1].index})}
   };
 
 endpackage
