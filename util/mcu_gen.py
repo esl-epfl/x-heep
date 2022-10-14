@@ -25,7 +25,6 @@ class Pad:
     self.localparam = 'PAD_' + name.upper()
     self.pad_type = pad_type
 
-
     self.interface = '    inout logic ' + self.name + '_io,\n'
 
     if pad_type == 'input':
@@ -80,8 +79,6 @@ class Pad:
             '   .pad_io(' + name  + '_io),\n' + \
             '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
             ');\n\n'
-
-
 
 # Compile a regex to trim trailing whitespaces on lines.
 re_trailws = re.compile(r'[ \t\r]+$', re.MULTILINE)
@@ -227,20 +224,26 @@ def main():
     spi_memio_start_offset  = string2int(obj['ao_peripherals']['spi_memio']['offset'])
     spi_memio_size_address  = string2int(obj['ao_peripherals']['spi_memio']['length'])
 
+    spi_start_offset  = string2int(obj['ao_peripherals']['spi']['offset'])
+    spi_size_address  = string2int(obj['ao_peripherals']['spi']['length'])
+
     power_manager_start_offset  = string2int(obj['ao_peripherals']['power_manager']['offset'])
     power_manager_size_address  = string2int(obj['ao_peripherals']['power_manager']['length'])
 
-    rv_timer_start_offset  = string2int(obj['ao_peripherals']['rv_timer']['offset'])
-    rv_timer_size_address  = string2int(obj['ao_peripherals']['rv_timer']['length'])
+    rv_timer_ao_start_offset  = string2int(obj['ao_peripherals']['rv_timer_ao']['offset'])
+    rv_timer_ao_size_address  = string2int(obj['ao_peripherals']['rv_timer_ao']['length'])
 
     dma_start_offset  = string2int(obj['ao_peripherals']['dma']['offset'])
     dma_size_address  = string2int(obj['ao_peripherals']['dma']['length'])
 
+    fast_intr_ctrl_start_offset  = string2int(obj['ao_peripherals']['fast_intr_ctrl']['offset'])
+    fast_intr_ctrl_size_address  = string2int(obj['ao_peripherals']['fast_intr_ctrl']['length'])
+
+    ext_periph_start_offset  = string2int(obj['ao_peripherals']['ext_periph']['offset'])
+    ext_periph_size_address  = string2int(obj['ao_peripherals']['ext_periph']['length'])
+
     pad_attribute_start_offset  = string2int(obj['ao_peripherals']['pad']['offset'])
     pad_attribute_size_address  = string2int(obj['ao_peripherals']['pad']['length'])
-
-    spi_start_offset  = string2int(obj['ao_peripherals']['spi']['offset'])
-    spi_size_address  = string2int(obj['ao_peripherals']['spi']['length'])
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
@@ -260,8 +263,8 @@ def main():
     i2c_start_offset  = string2int(obj['peripherals']['i2c']['offset'])
     i2c_size_address  = string2int(obj['peripherals']['i2c']['length'])
 
-    ext_periph_start_offset  = string2int(obj['peripherals']['ext_periph']['offset'])
-    ext_periph_size_address  = string2int(obj['peripherals']['ext_periph']['length'])
+    rv_timer_start_offset  = string2int(obj['peripherals']['rv_timer']['offset'])
+    rv_timer_size_address  = string2int(obj['peripherals']['rv_timer']['length'])
 
     ext_slave_start_address = string2int(obj['ext_slaves']['address'])
     ext_slave_size_address = string2int(obj['ext_slaves']['length'])
@@ -284,7 +287,6 @@ def main():
     if ((int(linker_onchip_data_size_address,16) + int(linker_onchip_code_size_address,16)) > int(ram_size_address,16)):
         exit("The code and data section must fit in the RAM size, instead they takes " + str(linker_onchip_data_size_address + linker_onchip_code_size_address))
 
-
     null_intr = obj['interrupts']['null_intr']
     uart_intr_tx_watermark = obj['interrupts']['uart_intr_tx_watermark']
     uart_intr_rx_watermark = obj['interrupts']['uart_intr_rx_watermark']
@@ -294,14 +296,6 @@ def main():
     uart_intr_rx_break_err = obj['interrupts']['uart_intr_rx_break_err']
     uart_intr_rx_timeout = obj['interrupts']['uart_intr_rx_timeout']
     uart_intr_rx_parity_err = obj['interrupts']['uart_intr_rx_parity_err']
-    gpio_intr_0 = obj['interrupts']['gpio_intr_0']
-    gpio_intr_1 = obj['interrupts']['gpio_intr_1']
-    gpio_intr_2 = obj['interrupts']['gpio_intr_2']
-    gpio_intr_3 = obj['interrupts']['gpio_intr_3']
-    gpio_intr_4 = obj['interrupts']['gpio_intr_4']
-    gpio_intr_5 = obj['interrupts']['gpio_intr_5']
-    gpio_intr_6 = obj['interrupts']['gpio_intr_6']
-    gpio_intr_7 = obj['interrupts']['gpio_intr_7']
     gpio_intr_8 = obj['interrupts']['gpio_intr_8']
     gpio_intr_9 = obj['interrupts']['gpio_intr_9']
     gpio_intr_10 = obj['interrupts']['gpio_intr_10']
@@ -342,31 +336,35 @@ def main():
     intr_acq_overflow = obj['interrupts']['intr_acq_overflow']
     intr_ack_stop = obj['interrupts']['intr_ack_stop']
     intr_host_timeout = obj['interrupts']['intr_host_timeout']
-    dma_intr_done = obj['interrupts']['dma_intr_done']
-    spi_flash_intr_error = obj['interrupts']['spi_flash_intr_error']
-    spi_flash_intr_event = obj['interrupts']['spi_flash_intr_event']
-    spi_intr_error = obj['interrupts']['spi_intr_error']
-    spi_intr_event = obj['interrupts']['spi_intr_event']
-    # Interrupt lines available for external interrupt sources
     ext_intr_0 = obj['interrupts']['ext_intr_0']
     ext_intr_1 = obj['interrupts']['ext_intr_1']
+    ext_intr_2 = obj['interrupts']['ext_intr_2']
+    ext_intr_3 = obj['interrupts']['ext_intr_3']
+    ext_intr_4 = obj['interrupts']['ext_intr_4']
+    ext_intr_5 = obj['interrupts']['ext_intr_5']
+    ext_intr_6 = obj['interrupts']['ext_intr_6']
+    ext_intr_7 = obj['interrupts']['ext_intr_7']
+    ext_intr_8 = obj['interrupts']['ext_intr_8']
+    ext_intr_9 = obj['interrupts']['ext_intr_9']
+    ext_intr_10 = obj['interrupts']['ext_intr_10']
+    ext_intr_11 = obj['interrupts']['ext_intr_11']
+    ext_intr_12 = obj['interrupts']['ext_intr_12']
+    ext_intr_13 = obj['interrupts']['ext_intr_13']
+    ext_intr_14 = obj['interrupts']['ext_intr_14']
 
-    pads       = obj['pads']
-
-    pad_list   = []
+    pads = obj['pads']
+    pad_list = []
     pad_index_counter = 0
 
     for key in pads:
 
         pad_name = key
-        pad_num = pads[key]['num']
+        pad_num  = pads[key]['num']
         pad_type = pads[key]['type']
         try:
             pad_offset = int(pads[key]['num_offset'])
         except KeyError:
             pad_offset = 0
-
-
 
         if pad_num > 1:
             for p in range(pad_num):
@@ -381,7 +379,6 @@ def main():
             pad_list.append(pad_obj)
 
     num_internal_pad = pad_index_counter
-
 
     kwargs = {
         "cpu_type"                         : cpu_type,
@@ -403,10 +400,14 @@ def main():
         "spi_memio_size_address"           : spi_memio_size_address,
         "power_manager_start_offset"       : power_manager_start_offset,
         "power_manager_size_address"       : power_manager_size_address,
-        "rv_timer_start_offset"            : rv_timer_start_offset,
-        "rv_timer_size_address"            : rv_timer_size_address,
+        "rv_timer_ao_start_offset"         : rv_timer_ao_start_offset,
+        "rv_timer_ao_size_address"         : rv_timer_ao_size_address,
         "dma_start_offset"                 : dma_start_offset,
         "dma_size_address"                 : dma_size_address,
+        "fast_intr_ctrl_start_offset"      : fast_intr_ctrl_start_offset,
+        "fast_intr_ctrl_size_address"      : fast_intr_ctrl_size_address,
+        "ext_periph_start_offset"          : ext_periph_start_offset,
+        "ext_periph_size_address"          : ext_periph_size_address,
         "pad_attribute_start_offset"       : pad_attribute_start_offset,
         "pad_attribute_size_address"       : pad_attribute_size_address,
         "spi_start_offset"                 : spi_start_offset,
@@ -421,8 +422,8 @@ def main():
         "gpio_size_address"                : gpio_size_address,
         "i2c_start_offset"                 : i2c_start_offset,
         "i2c_size_address"                 : i2c_size_address,
-        "ext_periph_start_offset"          : ext_periph_start_offset,
-        "ext_periph_size_address"          : ext_periph_size_address,
+        "rv_timer_start_offset"            : rv_timer_start_offset,
+        "rv_timer_size_address"            : rv_timer_size_address,
         "ext_slave_start_address"          : ext_slave_start_address,
         "ext_slave_size_address"           : ext_slave_size_address,
         "flash_mem_start_address"          : flash_mem_start_address,
@@ -440,14 +441,6 @@ def main():
         "uart_intr_rx_break_err"           : uart_intr_rx_break_err,
         "uart_intr_rx_timeout"             : uart_intr_rx_timeout,
         "uart_intr_rx_parity_err"          : uart_intr_rx_parity_err,
-        "gpio_intr_0"                      : gpio_intr_0,
-        "gpio_intr_1"                      : gpio_intr_1,
-        "gpio_intr_2"                      : gpio_intr_2,
-        "gpio_intr_3"                      : gpio_intr_3,
-        "gpio_intr_4"                      : gpio_intr_4,
-        "gpio_intr_5"                      : gpio_intr_5,
-        "gpio_intr_6"                      : gpio_intr_6,
-        "gpio_intr_7"                      : gpio_intr_7,
         "gpio_intr_8"                      : gpio_intr_8,
         "gpio_intr_9"                      : gpio_intr_9,
         "gpio_intr_10"                     : gpio_intr_10,
@@ -488,13 +481,21 @@ def main():
         "intr_acq_overflow"                : intr_acq_overflow,
         "intr_ack_stop"                    : intr_ack_stop,
         "intr_host_timeout"                : intr_host_timeout,
-        "dma_intr_done"                    : dma_intr_done,
-        "spi_flash_intr_error"             : spi_flash_intr_error,
-        "spi_flash_intr_event"             : spi_flash_intr_event,
-        "spi_intr_error"                   : spi_intr_error,
-        "spi_intr_event"                   : spi_intr_event,
         "ext_intr_0"                       : ext_intr_0,
         "ext_intr_1"                       : ext_intr_1,
+        "ext_intr_2"                       : ext_intr_2,
+        "ext_intr_3"                       : ext_intr_3,
+        "ext_intr_4"                       : ext_intr_4,
+        "ext_intr_5"                       : ext_intr_5,
+        "ext_intr_6"                       : ext_intr_6,
+        "ext_intr_7"                       : ext_intr_7,
+        "ext_intr_8"                       : ext_intr_8,
+        "ext_intr_9"                       : ext_intr_9,
+        "ext_intr_10"                      : ext_intr_10,
+        "ext_intr_11"                      : ext_intr_11,
+        "ext_intr_12"                      : ext_intr_12,
+        "ext_intr_13"                      : ext_intr_13,
+        "ext_intr_14"                      : ext_intr_14,
         "pad_list"                         : pad_list,
         "num_internal_pad"                 : num_internal_pad,
     }

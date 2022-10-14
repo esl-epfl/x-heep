@@ -287,6 +287,15 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const sp
 }
 
 /**
+ * Wait TX FIFO not empty.
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ */
+static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(const spi_host_t *spi) {
+    while (mmio_region_get_bit32(spi->base_addr, SPI_HOST_STATUS_REG_OFFSET, SPI_HOST_STATUS_TXEMPTY_BIT));
+}
+
+/**
  * Wait RX FIFO reach watermark.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.

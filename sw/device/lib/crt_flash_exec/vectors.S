@@ -49,10 +49,36 @@ vector_table:
 	j __no_irq_handler
 	// 15 : unmapped
 	j __no_irq_handler
-	// vendor interrupts: on Ibex interrupt ids 30-16 are the "fast" interrupts
-	.rept 15
+	// 16 : fast interrupt - timer_1
+	j handler_irq_fast_timer_1
+	// 17 : fast interrupt - timer_2
+	j handler_irq_fast_timer_2
+	// 18 : fast interrupt - timer_3
+	j handler_irq_fast_timer_3
+	// 19 : fast interrupt - dma
+	j handler_irq_fast_dma
+	// 20 : fast interrupt - spi
+	j handler_irq_fast_spi
+	// 21 : fast interrupt - spi_flash
+	j handler_irq_fast_spi_flash
+	// 22 : fast interrupt - gpio_0
+	j handler_irq_fast_gpio_0
+	// 23 : fast interrupt - gpio_1
+	j handler_irq_fast_gpio_1
+	// 24 : fast interrupt - gpio_2
+	j handler_irq_fast_gpio_2
+	// 25 : fast interrupt - gpio_3
+	j handler_irq_fast_gpio_3
+	// 26 : fast interrupt - gpio_4
+	j handler_irq_fast_gpio_4
+	// 27 : fast interrupt - gpio_5
+	j handler_irq_fast_gpio_5
+	// 28 : fast interrupt - gpio_6
+	j handler_irq_fast_gpio_6
+	// 29 : fast interrupt - gpio_7
+	j handler_irq_fast_gpio_7
+	// 30 : fast interrupt - unmapped
 	j __no_irq_handler
-	.endr
 	// vendor interrupts: on Ibex interrupt id 31 is for non-maskable interrupts
 	j __no_irq_handler
 	// 64-32 : not connected on Ibex
