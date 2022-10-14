@@ -241,7 +241,6 @@ module core_v_mini_mcu
   logic irq_ack;
   logic [4:0] irq_id_out;
   logic irq_software;
-  logic irq_timer;
   logic irq_external;
   logic [14:0] irq_fast;
 
