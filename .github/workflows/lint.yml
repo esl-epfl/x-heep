@@ -37,7 +37,7 @@ jobs:
   mcu_generator:
     name: Generates sv files
     # This job runs on Linux (fixed ubuntu version)
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
