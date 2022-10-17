@@ -38,12 +38,12 @@ module pad_control #(
   );
 
 % for pad in total_pad_list:
-  assign pad_attributes_o[${pad.localparam}] = reg2hw.pad_attribute_${pad.name}.q;
+  assign pad_attributes_o[${pad.localparam}] = reg2hw.pad_attribute_${pad.name.lower()}.q;
 % endfor
 
 
 % for pad in pad_muxed_list:
-  assign pad_muxes_o[${pad.localparam}] = reg2hw.pad_mux_${pad.name}.q;
+  assign pad_muxes_o[${pad.localparam}] = reg2hw.pad_mux_${pad.name.lower()}.q;
 % endfor
 
 endmodule : pad_control
