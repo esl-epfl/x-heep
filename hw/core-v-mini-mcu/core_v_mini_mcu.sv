@@ -32,15 +32,16 @@ module core_v_mini_mcu
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
+    output logic external_subsystem_powergate_switch_o,
+    output logic external_subsystem_powergate_iso_o,
+    output logic external_subsystem_rst_no,
+
     inout logic uart_rx_i,
     inout logic uart_tx_o,
 
     input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
 
     inout logic [31:0] gpio_io,
-
-    output logic [31:0] exit_value_o,
-    inout  logic        exit_valid_o,
 
     inout logic [3:0] spi_flash_sd_io,
     inout logic [spi_host_reg_pkg::NumCS-1:0] spi_flash_csb_o,
@@ -51,7 +52,10 @@ module core_v_mini_mcu
     inout logic spi_sck_o,
 
     inout logic i2c_scl_io,
-    inout logic i2c_sda_io
+    inout logic i2c_sda_io,
+
+    output logic [31:0] exit_value_o,
+    inout  logic        exit_valid_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -146,12 +150,13 @@ module core_v_mini_mcu
   // power manager
   logic cpu_subsystem_powergate_switch;
   logic cpu_subsystem_powergate_iso;
+  logic cpu_subsystem_rst_n;
   logic peripheral_subsystem_powergate_switch;
   logic peripheral_subsystem_powergate_iso;
+  logic peripheral_subsystem_rst_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso;
-  logic cpu_subsystem_rst_n;
-  logic peripheral_subsystem_rst_n;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_rst_n;
 
   // rv_timer
   logic [3:0] rv_timer_intr;
@@ -274,7 +279,7 @@ module core_v_mini_mcu
       .NUM_BANKS(core_v_mini_mcu_pkg::NUM_BANKS)
   ) memory_subsystem_i (
       .clk_i(clk),
-      .rst_ni(rst_n),
+      .rst_ni(memory_subsystem_banks_rst_n),
       .ram_req_i(ram_slave_req),
       .ram_resp_o(ram_slave_resp)
   );
@@ -311,12 +316,16 @@ module core_v_mini_mcu
       .core_sleep_i(core_sleep),
       .cpu_subsystem_powergate_switch_o(cpu_subsystem_powergate_switch),
       .cpu_subsystem_powergate_iso_o(cpu_subsystem_powergate_iso),
+      .cpu_subsystem_rst_no(cpu_subsystem_rst_n),
       .peripheral_subsystem_powergate_switch_o(peripheral_subsystem_powergate_switch),
       .peripheral_subsystem_powergate_iso_o(peripheral_subsystem_powergate_iso),
+      .peripheral_subsystem_rst_no(peripheral_subsystem_rst_n),
       .memory_subsystem_banks_powergate_switch_o(memory_subsystem_banks_powergate_switch),
       .memory_subsystem_banks_powergate_iso_o(memory_subsystem_banks_powergate_iso),
-      .cpu_subsystem_rst_no(cpu_subsystem_rst_n),
-      .peripheral_subsystem_rst_no(peripheral_subsystem_rst_n),
+      .memory_subsystem_banks_rst_no(memory_subsystem_banks_rst_n),
+      .external_subsystem_powergate_switch_o,
+      .external_subsystem_powergate_iso_o,
+      .external_subsystem_rst_no,
       .rv_timer_0_intr_o(rv_timer_intr[0]),
       .rv_timer_1_intr_o(rv_timer_intr[1]),
       .dma_master0_ch0_req_o(dma_master0_ch0_req),

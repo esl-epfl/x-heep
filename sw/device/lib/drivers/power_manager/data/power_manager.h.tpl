@@ -26,10 +26,11 @@ typedef enum power_manager_result {
  * Domains.
  */
 typedef enum power_manager_sel_domain {
-  kPeriph_e  = 0,
+  kPeriph_e   = 0,
 % for bank in range(ram_numbanks):
-  kRam_${bank}_e   = ${bank+1},
+  kRam_${bank}_e    = ${bank+1},
 % endfor
+  kExternal_e = ${ram_numbanks+1},
 } power_manager_sel_domain_t;
 
 /**
