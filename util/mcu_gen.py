@@ -76,39 +76,22 @@ class Pad:
                 self.core_v_mini_mcu_interface += '    input logic ' + self.signal_name_drive[i] + 'i,\n'
                 self.core_v_mini_mcu_interface += '    output logic ' + self.signal_name_drive[i] + 'oe_o,\n'
 
-
-  def create_core_v_mini_mcu_bonding(self):
-
+  def create_internal_signals(self):
     cnt = len(self.pad_type_drive)
-
-    in_internal_signals = []
-    out_internal_signals = []
-    oe_internal_signals = []
 
     for i in range(cnt):
 
 
-        in_internal_signals.append(self.signal_name_drive[i] + 'in_x')
-        out_internal_signals.append(self.signal_name_drive[i] + 'out_x')
-        oe_internal_signals.append(self.signal_name_drive[i] + 'oe_x')
+        self.in_internal_signals.append(self.signal_name_drive[i] + 'in_x')
+        self.out_internal_signals.append(self.signal_name_drive[i] + 'out_x')
+        self.oe_internal_signals.append(self.signal_name_drive[i] + 'oe_x')
 
-        self.internal_signals += '  logic ' + in_internal_signals[i] + ',' \
-                                 + out_internal_signals[i] + ',' \
-                                 + oe_internal_signals[i] + ';\n'
+        self.internal_signals += '  logic ' + self.in_internal_signals[i] + ',' \
+                                 + self.out_internal_signals[i] + ',' \
+                                 + self.oe_internal_signals[i] + ';\n'
 
-        if self.driven_manually[i] == False:
-            if self.pad_type_drive[i] == 'input' or self.pad_type_drive[i] == 'bypass_input':
-                self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'i(' + in_internal_signals[i] + '),\n'
-                self.core_v_mini_mcu_assign  += '  assign ' + out_internal_signals[i] + ' = 1\'b0;\n'
-                self.core_v_mini_mcu_assign  += '  assign ' + oe_internal_signals[i] + ' = 1\'b0;\n'
-            if self.pad_type_drive[i] == 'output' or self.pad_type_drive[i] == 'bypass_output':
-                self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'o(' + out_internal_signals[i] + '),\n'
-                self.core_v_mini_mcu_assign += '  assign ' + oe_internal_signals[i] + ' = 1\'b1;\n'
-            if self.pad_type_drive[i] == 'inout' or self.pad_type_drive[i] == 'bypass_inout':
-                self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'i(' + in_internal_signals[i] + '),\n'
-                self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'o(' + out_internal_signals[i] + '),\n'
-                self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'oe_o(' + oe_internal_signals[i] + '),\n'
-                self.core_v_mini_mcu_assign += ''
+  def create_multiplexers(self):
+    cnt = len(self.pad_type_drive)
 
     if cnt > 1:
         ###muxing
@@ -126,15 +109,43 @@ class Pad:
 
         for i in range(cnt):
             self.mux_process += '    ' + str(i) + ': begin\n' + \
-                                '      ' + pad_out_internal_signals + ' = ' + out_internal_signals[i] + ';\n' + \
-                                '      ' + pad_oe_internal_signals + ' = ' + oe_internal_signals[i] + ';\n' + \
+                                '      ' + pad_out_internal_signals + ' = ' + self.out_internal_signals[i] + ';\n' + \
+                                '      ' + pad_oe_internal_signals + ' = ' + self.oe_internal_signals[i] + ';\n' + \
                                 '    end\n'
 
         self.mux_process += '   endcase\n' + \
                             '  end\n'
 
         for i in range(cnt):
-            self.mux_process += '  assign ' + in_internal_signals[i] + '=' + pad_in_internal_signals + ';\n'
+            self.mux_process += '  assign ' + self.in_internal_signals[i] + '=' + pad_in_internal_signals + ';\n'
+
+  def create_constant_driver_assign(self):
+    cnt = len(self.pad_type_drive)
+
+    for i in range(cnt):
+
+        if self.pad_type_drive[i] == 'input' or self.pad_type_drive[i] == 'bypass_input':
+            self.constant_driver_assign += '  assign ' + self.out_internal_signals[i] + ' = 1\'b0;\n'
+            self.constant_driver_assign += '  assign ' + self.oe_internal_signals[i] + ' = 1\'b0;\n'
+        if self.pad_type_drive[i] == 'output' or self.pad_type_drive[i] == 'bypass_output':
+            self.constant_driver_assign += '  assign ' + self.oe_internal_signals[i] + ' = 1\'b1;\n'
+
+  def create_core_v_mini_mcu_bonding(self):
+
+    cnt = len(self.pad_type_drive)
+
+    for i in range(cnt):
+
+        if self.driven_manually[i] == False:
+            if self.pad_type_drive[i] == 'input' or self.pad_type_drive[i] == 'bypass_input':
+                self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'i(' + self.in_internal_signals[i] + '),\n'
+            if self.pad_type_drive[i] == 'output' or self.pad_type_drive[i] == 'bypass_output':
+                self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'o(' + self.out_internal_signals[i] + '),\n'
+            if self.pad_type_drive[i] == 'inout' or self.pad_type_drive[i] == 'bypass_inout':
+                self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'i(' + self.in_internal_signals[i] + '),\n'
+                self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'o(' + self.out_internal_signals[i] + '),\n'
+                self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'oe_o(' + self.oe_internal_signals[i] + '),\n'
+
 
   def create_pad_ring_bonding(self):
 
@@ -198,6 +209,10 @@ class Pad:
 
         self.is_muxed = True
 
+    self.in_internal_signals = []
+    self.out_internal_signals = []
+    self.oe_internal_signals = []
+
     self.io_interface = self.signal_name + 'io'
 
     ### Pad Ring ###
@@ -207,7 +222,7 @@ class Pad:
 
     ### core v mini mcu ###
     self.core_v_mini_mcu_interface = ''
-    self.core_v_mini_mcu_assign = ''
+    self.constant_driver_assign = ''
     self.mux_process = ''
 
     ### heep systems ###
@@ -532,7 +547,7 @@ def main():
     external_pad_list   = []
     external_pad_index_counter = 0
 
-    pad_core_v_mini_mcu_assign=''
+    pad_constant_driver_assign=''
     pad_mux_process=''
 
     pad_muxed_list = []
@@ -588,10 +603,13 @@ def main():
                 pad_obj.create_pad_ring()
                 pad_obj.create_core_v_mini_mcu_ctrl()
                 pad_obj.create_pad_ring_bonding()
+                pad_obj.create_internal_signals()
+                pad_obj.create_constant_driver_assign()
+                pad_obj.create_multiplexers()
                 pad_obj.create_core_v_mini_mcu_bonding()
                 pad_index_counter = pad_index_counter + 1
                 pad_list.append(pad_obj)
-                pad_core_v_mini_mcu_assign+= pad_obj.core_v_mini_mcu_assign
+                pad_constant_driver_assign+= pad_obj.constant_driver_assign
                 pad_mux_process+=pad_obj.mux_process
                 if (pad_obj.is_muxed):
                     pad_muxed_list.append(pad_obj)
@@ -602,10 +620,13 @@ def main():
             pad_obj.create_pad_ring()
             pad_obj.create_core_v_mini_mcu_ctrl()
             pad_obj.create_pad_ring_bonding()
+            pad_obj.create_internal_signals()
+            pad_obj.create_constant_driver_assign()
+            pad_obj.create_multiplexers()
             pad_obj.create_core_v_mini_mcu_bonding()
             pad_index_counter = pad_index_counter + 1
             pad_list.append(pad_obj)
-            pad_core_v_mini_mcu_assign+= pad_obj.core_v_mini_mcu_assign
+            pad_constant_driver_assign+= pad_obj.constant_driver_assign
             pad_mux_process+=pad_obj.mux_process
             if (pad_obj.is_muxed):
                 pad_muxed_list.append(pad_obj)
@@ -661,10 +682,13 @@ def main():
                     pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, external_pad_index, pad_active, pad_driven_manually, pad_mux_list)
                     pad_obj.create_pad_ring()
                     pad_obj.create_pad_ring_bonding()
+                    pad_obj.create_internal_signals()
+                    pad_obj.create_constant_driver_assign()
+                    pad_obj.create_multiplexers()
                     external_pad_index_counter = external_pad_index_counter + 1
                     external_pad_index = external_pad_index + 1
                     external_pad_list.append(pad_obj)
-                    pad_core_v_mini_mcu_assign+= pad_obj.core_v_mini_mcu_assign
+                    pad_constant_driver_assign+= pad_obj.constant_driver_assign
                     pad_mux_process+=pad_obj.mux_process
                     if (pad_obj.is_muxed):
                         pad_muxed_list.append(pad_obj)
@@ -674,10 +698,13 @@ def main():
                 pad_obj = Pad(pad_name, pad_cell_name, pad_type, external_pad_index, pad_active, pad_driven_manually, pad_mux_list)
                 pad_obj.create_pad_ring()
                 pad_obj.create_pad_ring_bonding()
+                pad_obj.create_internal_signals()
+                pad_obj.create_constant_driver_assign()
+                pad_obj.create_multiplexers()
                 external_pad_index_counter = external_pad_index_counter + 1
                 external_pad_index = external_pad_index + 1
                 external_pad_list.append(pad_obj)
-                pad_core_v_mini_mcu_assign+= pad_obj.core_v_mini_mcu_assign
+                pad_constant_driver_assign+= pad_obj.constant_driver_assign
                 pad_mux_process+=pad_obj.mux_process
                 if (pad_obj.is_muxed):
                     pad_muxed_list.append(pad_obj)
@@ -818,7 +845,7 @@ def main():
         "external_pad_list"                : external_pad_list,
         "total_pad_list"                   : total_pad_list,
         "total_pad"                        : total_pad,
-        "pad_core_v_mini_mcu_assign"       : pad_core_v_mini_mcu_assign,
+        "pad_constant_driver_assign"       : pad_constant_driver_assign,
         "pad_mux_process"                  : pad_mux_process,
         "pad_muxed_list"                   : pad_muxed_list,
         "total_pad_muxed"                  : total_pad_muxed,

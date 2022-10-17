@@ -82,7 +82,7 @@ ${pad.pad_ring_bonding_bonding}
     .pad_attributes_i(pad_attributes)
   );
 
-${pad_core_v_mini_mcu_assign}
+${pad_constant_driver_assign}
 
 ${pad_mux_process}
 
