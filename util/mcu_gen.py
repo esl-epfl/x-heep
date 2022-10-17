@@ -66,15 +66,15 @@ class Pad:
     cnt = len(self.pad_type_drive)
 
     for i in range(cnt):
-
-        if self.pad_type_drive[i] == 'input' or self.pad_type_drive[i] == 'bypass_input':
-            self.core_v_mini_mcu_interface += '    input logic ' + self.signal_name_drive[i] + 'i,\n'
-        if self.pad_type_drive[i] == 'output' or self.pad_type_drive[i] == 'bypass_output':
-            self.core_v_mini_mcu_interface += '    output logic ' + self.signal_name_drive[i] + 'o,\n'
-        if self.pad_type_drive[i] == 'inout' or self.pad_type_drive[i] == 'bypass_inout':
-            self.core_v_mini_mcu_interface += '    output logic ' + self.signal_name_drive[i] + 'o,\n'
-            self.core_v_mini_mcu_interface += '    input logic ' + self.signal_name_drive[i] + 'i,\n'
-            self.core_v_mini_mcu_interface += '    output logic ' + self.signal_name_drive[i] + 'oe_o,\n'
+        if self.driven_manually[i] == False:
+            if self.pad_type_drive[i] == 'input' or self.pad_type_drive[i] == 'bypass_input':
+                self.core_v_mini_mcu_interface += '    input logic ' + self.signal_name_drive[i] + 'i,\n'
+            if self.pad_type_drive[i] == 'output' or self.pad_type_drive[i] == 'bypass_output':
+                self.core_v_mini_mcu_interface += '    output logic ' + self.signal_name_drive[i] + 'o,\n'
+            if self.pad_type_drive[i] == 'inout' or self.pad_type_drive[i] == 'bypass_inout':
+                self.core_v_mini_mcu_interface += '    output logic ' + self.signal_name_drive[i] + 'o,\n'
+                self.core_v_mini_mcu_interface += '    input logic ' + self.signal_name_drive[i] + 'i,\n'
+                self.core_v_mini_mcu_interface += '    output logic ' + self.signal_name_drive[i] + 'oe_o,\n'
 
 
   def create_core_v_mini_mcu_bonding(self):
@@ -96,18 +96,19 @@ class Pad:
                                  + out_internal_signals[i] + ',' \
                                  + oe_internal_signals[i] + ';\n'
 
-        if self.pad_type_drive[i] == 'input' or self.pad_type_drive[i] == 'bypass_input':
-            self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'i(' + in_internal_signals[i] + '),\n'
-            self.core_v_mini_mcu_assign  += '  assign ' + out_internal_signals[i] + ' = 1\'b0;\n'
-            self.core_v_mini_mcu_assign  += '  assign ' + oe_internal_signals[i] + ' = 1\'b0;\n'
-        if self.pad_type_drive[i] == 'output' or self.pad_type_drive[i] == 'bypass_output':
-            self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'o(' + out_internal_signals[i] + '),\n'
-            self.core_v_mini_mcu_assign += '  assign ' + oe_internal_signals[i] + ' = 1\'b1;\n'
-        if self.pad_type_drive[i] == 'inout' or self.pad_type_drive[i] == 'bypass_inout':
-            self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'i(' + in_internal_signals[i] + '),\n'
-            self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'o(' + out_internal_signals[i] + '),\n'
-            self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'oe_o(' + oe_internal_signals[i] + '),\n'
-            self.core_v_mini_mcu_assign += ''
+        if self.driven_manually[i] == False:
+            if self.pad_type_drive[i] == 'input' or self.pad_type_drive[i] == 'bypass_input':
+                self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'i(' + in_internal_signals[i] + '),\n'
+                self.core_v_mini_mcu_assign  += '  assign ' + out_internal_signals[i] + ' = 1\'b0;\n'
+                self.core_v_mini_mcu_assign  += '  assign ' + oe_internal_signals[i] + ' = 1\'b0;\n'
+            if self.pad_type_drive[i] == 'output' or self.pad_type_drive[i] == 'bypass_output':
+                self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'o(' + out_internal_signals[i] + '),\n'
+                self.core_v_mini_mcu_assign += '  assign ' + oe_internal_signals[i] + ' = 1\'b1;\n'
+            if self.pad_type_drive[i] == 'inout' or self.pad_type_drive[i] == 'bypass_inout':
+                self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'i(' + in_internal_signals[i] + '),\n'
+                self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'o(' + out_internal_signals[i] + '),\n'
+                self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'oe_o(' + oe_internal_signals[i] + '),\n'
+                self.core_v_mini_mcu_assign += ''
 
     if cnt > 1:
         ###muxing
@@ -163,7 +164,7 @@ class Pad:
         self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'io,'
 
 
-  def __init__(self, name, cell_name, pad_type, index, pad_active, pad_mux_list):
+  def __init__(self, name, cell_name, pad_type, index, pad_active, pad_driven_manually, pad_mux_list):
 
 
     self.name = name
@@ -181,16 +182,20 @@ class Pad:
 
     self.signal_name_drive = []
     self.pad_type_drive    = []
+    self.driven_manually   = []
 
     self.is_muxed = False
 
     if(len(pad_mux_list) == 0):
         self.signal_name_drive.append(self.signal_name)
         self.pad_type_drive.append(pad_type)
+        self.driven_manually.append(pad_driven_manually)
     else:
         for pad_mux in pad_mux_list:
             self.signal_name_drive.append(pad_mux.signal_name)
             self.pad_type_drive.append(pad_mux.pad_type)
+            self.driven_manually.append(pad_driven_manually)
+
         self.is_muxed = True
 
     self.io_interface = self.signal_name + 'io'
@@ -553,6 +558,12 @@ def main():
         except KeyError:
             pad_mux_list_hjson = []
 
+        try:
+            pad_driven_manually = pads[key]['driven_manually']
+        except KeyError:
+            pad_driven_manually = False
+
+
         pad_mux_list = []
 
         for pad_mux in pad_mux_list_hjson:
@@ -562,13 +573,18 @@ def main():
             except KeyError:
                 pad_active_mux = 'high'
 
-            p = Pad(pad_mux, '', pads[key]['mux'][pad_mux]['type'], 0, pad_active_mux, [])
+            try:
+                pad_active_mux_driven_manually = pads[key]['mux'][pad_mux]['driven_manually']
+            except KeyError:
+                pad_active_mux_driven_manually = False
+
+            p = Pad(pad_mux, '', pads[key]['mux'][pad_mux]['type'], 0, pad_active_mux, pad_active_mux_driven_manually, [])
             pad_mux_list.append(p)
 
         if pad_num > 1:
             for p in range(pad_num):
                 pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
-                pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_index_counter, pad_active, pad_mux_list)
+                pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_index_counter, pad_active, pad_driven_manually, pad_mux_list)
                 pad_obj.create_pad_ring()
                 pad_obj.create_core_v_mini_mcu_ctrl()
                 pad_obj.create_pad_ring_bonding()
@@ -582,7 +598,7 @@ def main():
 
         else:
             pad_cell_name = "pad_" + key + "_i"
-            pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_index_counter, pad_active, pad_mux_list)
+            pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_index_counter, pad_active, pad_driven_manually, pad_mux_list)
             pad_obj.create_pad_ring()
             pad_obj.create_core_v_mini_mcu_ctrl()
             pad_obj.create_pad_ring_bonding()
@@ -613,14 +629,36 @@ def main():
                 pad_active = 'high'
 
             try:
-                pad_mux_list = pads[key]['mux']
+                pad_mux_list_hjson = external_pads[key]['mux']
             except KeyError:
-                pad_mux_list = []
+                pad_mux_list_hjson = []
+
+            try:
+                pad_driven_manually = external_pads[key]['driven_manually']
+            except KeyError:
+                pad_driven_manually = False
+
+            pad_mux_list = []
+
+            for pad_mux in pad_mux_list_hjson:
+
+                try:
+                    pad_active_mux = external_pads[key]['mux'][pad_mux]['active']
+                except KeyError:
+                    pad_active_mux = 'high'
+
+                try:
+                    pad_active_mux_driven_manually = external_pads[key]['mux'][pad_mux]['driven_manually']
+                except KeyError:
+                    pad_active_mux_driven_manually = False
+
+                p = Pad(pad_mux, '', external_pads[key]['mux'][pad_mux]['type'], 0, pad_active_mux, pad_active_mux_driven_manually, [])
+                pad_mux_list.append(p)
 
             if pad_num > 1:
                 for p in range(pad_num):
                     pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
-                    pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, external_pad_index, pad_active, pad_mux_list)
+                    pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, external_pad_index, pad_active, pad_driven_manually, pad_mux_list)
                     pad_obj.create_pad_ring()
                     pad_obj.create_pad_ring_bonding()
                     external_pad_index_counter = external_pad_index_counter + 1
@@ -633,7 +671,7 @@ def main():
 
             else:
                 pad_cell_name = "pad_" + key + "_i"
-                pad_obj = Pad(pad_name, pad_cell_name, pad_type, external_pad_index, pad_active, pad_mux_list)
+                pad_obj = Pad(pad_name, pad_cell_name, pad_type, external_pad_index, pad_active, pad_driven_manually, pad_mux_list)
                 pad_obj.create_pad_ring()
                 pad_obj.create_pad_ring_bonding()
                 external_pad_index_counter = external_pad_index_counter + 1
