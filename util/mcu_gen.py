@@ -200,6 +200,9 @@ class Pad:
 
     self.is_muxed = False
 
+    self.is_driven_manually = pad_driven_manually
+    self.do_skip_declaration = pad_skip_declaration
+
     if(len(pad_mux_list) == 0):
         self.signal_name_drive.append(self.signal_name)
         self.pad_type_drive.append(pad_type)
@@ -209,8 +212,8 @@ class Pad:
         for pad_mux in pad_mux_list:
             self.signal_name_drive.append(pad_mux.signal_name)
             self.pad_type_drive.append(pad_mux.pad_type)
-            self.driven_manually.append(pad_driven_manually)
-            self.skip_declaration.append(pad_skip_declaration)
+            self.driven_manually.append(pad_mux.is_driven_manually)
+            self.skip_declaration.append(pad_mux.do_skip_declaration)
 
         self.is_muxed = True
 
@@ -579,12 +582,18 @@ def main():
             pad_mux_list_hjson = []
 
         try:
-            pad_driven_manually = pads[key]['driven_manually']
+            if ('True' in pads[key]['driven_manually']):
+                pad_driven_manually = True
+            else:
+                pad_driven_manually = False
         except KeyError:
             pad_driven_manually = False
 
         try:
-            pad_skip_declaration = pads[key]['skip_declaration']
+            if ('True' in pads[key]['skip_declaration']):
+                pad_skip_declaration = True
+            else:
+                pad_skip_declaration = False
         except KeyError:
             pad_skip_declaration = False
 
@@ -598,14 +607,21 @@ def main():
                 pad_active_mux = 'high'
 
             try:
-                pad_driven_manually_mux = pads[key]['mux'][pad_mux]['driven_manually']
+                if ('True' in pads[key]['mux'][pad_mux]['driven_manually']):
+                    pad_driven_manually_mux = True
+                else:
+                    pad_driven_manually_mux = False
             except KeyError:
                 pad_driven_manually_mux = False
 
             try:
-                pad_skip_declaration_mux = pads[key]['mux'][pad_mux]['skip_declaration']
+                if ('True' in pads[key]['mux'][pad_mux]['skip_declaration']):
+                    pad_skip_declaration_mux = True
+                else:
+                    pad_skip_declaration_mux = False
             except KeyError:
                 pad_skip_declaration_mux = False
+
 
             p = Pad(pad_mux, '', pads[key]['mux'][pad_mux]['type'], 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [])
             pad_mux_list.append(p)
@@ -669,12 +685,18 @@ def main():
                 pad_mux_list_hjson = []
 
             try:
-                pad_driven_manually = external_pads[key]['driven_manually']
+                if ('True' in external_pads[key]['driven_manually']):
+                    pad_driven_manually = True
+                else:
+                    pad_driven_manually = False
             except KeyError:
                 pad_driven_manually = False
 
             try:
-                pad_skip_declaration = external_pads[key]['skip_declaration']
+                if ('True' in external_pads[key]['skip_declaration']):
+                    pad_skip_declaration = True
+                else:
+                    pad_skip_declaration = False
             except KeyError:
                 pad_skip_declaration = False
 
@@ -689,14 +711,21 @@ def main():
                     pad_active_mux = 'high'
 
                 try:
-                    pad_driven_manually_mux = external_pads[key]['mux'][pad_mux]['driven_manually']
+                    if ('True' in external_pads[key]['mux'][pad_mux]['driven_manually']):
+                        pad_driven_manually_mux = True
+                    else:
+                        pad_driven_manually_mux = False
                 except KeyError:
                     pad_driven_manually_mux = False
 
                 try:
-                    pad_skip_declaration_mux = external_pads[key]['mux'][pad_mux]['skip_declaration']
+                    if ('True' in external_pads[key]['mux'][pad_mux]['skip_declaration']):
+                        pad_skip_declaration_mux = True
+                    else:
+                        pad_skip_declaration_mux = False
                 except KeyError:
                     pad_skip_declaration_mux = False
+
 
                 p = Pad(pad_mux, '', external_pads[key]['mux'][pad_mux]['type'], 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [])
                 pad_mux_list.append(p)
