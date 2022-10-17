@@ -15,6 +15,9 @@
 #include "fast_intr_ctrl.h"
 #include "fast_intr_ctrl_regs.h"
 
+// Un-comment this line to use the SPI FLASH instead of the default SPI
+// #define USE_SPI_FLASH
+
 // Simple example to check the SPI host peripheral is working. It checks the ram and flash have the same content
 #define DATA_CHUNK_ADDR 0x00008000
 
@@ -36,10 +39,28 @@ void handler_irq_fast_spi(void)
     spi_intr_flag = 1;
 }
 
+void handler_irq_fast_spi_flash(void)
+{
+    // Disable SPI interrupts
+    spi_enable_evt_intr(&spi_host, false);
+    spi_enable_rxwm_intr(&spi_host, false);
+
+    // Clear fast interrupt
+    fast_intr_ctrl_t fast_intr_ctrl;
+    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
+    clear_fast_interrupt(&fast_intr_ctrl, kSpiFlash);
+
+    spi_intr_flag = 1;
+}
+
 int main(int argc, char *argv[])
 {
     // spi_host_t spi_host;
-    spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_START_ADDRESS);
+    #ifndef USE_SPI_FLASH
+        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_START_ADDRESS);
+    #else
+        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
+    #endif
 
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
@@ -48,7 +69,11 @@ int main(int argc, char *argv[])
     // Enable global interrupt for machine-level interrupts
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     // Set mie.MEIE bit to one to enable machine-level fast spi interrupt
-    const uint32_t mask = 1 << 20;
+    #ifndef USE_SPI_FLASH
+        const uint32_t mask = 1 << 20;
+    #else
+        const uint32_t mask = 1 << 21;
+    #endif
     CSR_SET_BITS(CSR_REG_MIE, mask);
     spi_intr_flag = 0;
 
@@ -151,8 +176,11 @@ int main(int argc, char *argv[])
     // Wait transaction is finished (polling register)
     // spi_wait_for_rx_watermark(&spi_host);
     // or wait for SPI interrupt
+    printf("Waiting for SPI...\n");
     while(spi_intr_flag==0) {
-        wait_for_interrupt();
+        // spi_wait_for_rx_watermark(&spi_host);
+        // spi_intr_flag = 1;
+        // wait_for_interrupt();
     }
 
     // Enable event interrupt

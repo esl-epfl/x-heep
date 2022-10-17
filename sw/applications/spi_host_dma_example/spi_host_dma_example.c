@@ -24,7 +24,7 @@
 #define COPY_DATA_BYTES 256 // Flash page size = 256
 #define SPI_BYTES (4 * (uint32_t)((COPY_DATA_BYTES-1) / 4 + 1)) // Only sends data when an entire word has been received
 
-#define FLASH_ADDR 0x00008500
+#define FLASH_ADDR 0x00008500 // 256B data alignment
 
 int8_t spi_intr_flag;
 int8_t dma_intr_flag;
@@ -50,7 +50,7 @@ void handler_irq_fast_spi_flash(void)
     // Clear fast interrupt
     fast_intr_ctrl_t fast_intr_ctrl;
     fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kSpi_e);
+    clear_fast_interrupt(&fast_intr_ctrl, kSpiFlash);
     spi_intr_flag = 1;
 }
 
@@ -84,8 +84,12 @@ int main(int argc, char *argv[])
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    // Set mie.MEIE bit to one to enable machine-level fast dma interrupt
-    const uint32_t mask = 1 << 19;
+    // Set mie.MEIE bit to one to enable machine-level fast spi interrupt
+    #ifndef USE_SPI_FLASH
+        const uint32_t mask = 1 << 20;
+    #else
+        const uint32_t mask = 1 << 21;
+    #endif
     CSR_SET_BITS(CSR_REG_MIE, mask);
     spi_intr_flag = 0;
 
@@ -180,20 +184,6 @@ int main(int argc, char *argv[])
 
     printf("Write cmd...\n");
 
-    // // Erase memory
-    // const uint32_t write_byte_cmd = 0xD8; // ((FLASH_ADDR << 8) | 0x02);
-    // spi_write_word(&spi_host, write_byte_cmd);
-    // const uint32_t cmd_write = spi_create_command((spi_command_t){
-    //     .len        = 3,
-    //     .csaat      = false,
-    //     .speed      = kSpiSpeedStandard,
-    //     .direction  = kSpiDirTxOnly
-    // });
-    // spi_set_command(&spi_host, cmd_write);
-    // spi_wait_for_ready(&spi_host); 
-
-    // --
-
     // Write command
     const uint32_t write_byte_cmd = ((FLASH_ADDR << 8) | 0x02); // Program Page + addr
     spi_write_word(&spi_host, write_byte_cmd);
@@ -218,9 +208,9 @@ int main(int argc, char *argv[])
     // (3) receive from SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
     // (4) send to SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
     #ifndef USE_SPI_FLASH
-        dma_set_spi_mode(&dma, (uint32_t) 2); // The DMA will wait for the SPI tx FIFO ready signal
+        dma_set_spi_mode(&dma, (uint32_t) 2); // The DMA will wait for the SPI TX FIFO ready signal
     #else
-        dma_set_spi_mode(&dma, (uint32_t) 4); // The DMA will wait for the SPI tx FIFO ready signal
+        dma_set_spi_mode(&dma, (uint32_t) 4); // The DMA will wait for the SPI FLASH TX FIFO ready signal
     #endif
     dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_BYTES); // Size of data received by SPI
 
@@ -275,6 +265,10 @@ int main(int argc, char *argv[])
     printf("Reading...\n");
 
     /////////////// READ /////////////////
+
+    // Set mie.MEIE bit to one to enable machine-level fast dma interrupt
+    const uint32_t mask2 = 1 << 19;
+    CSR_SET_BITS(CSR_REG_MIE, mask2);
 
     // The address bytes sent through the SPI to the Flash are in reverse order
     // Add read command in the first byte sent
