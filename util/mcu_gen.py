@@ -86,9 +86,10 @@ class Pad:
         self.out_internal_signals.append(self.signal_name_drive[i] + 'out_x')
         self.oe_internal_signals.append(self.signal_name_drive[i] + 'oe_x')
 
-        self.internal_signals += '  logic ' + self.in_internal_signals[i] + ',' \
-                                 + self.out_internal_signals[i] + ',' \
-                                 + self.oe_internal_signals[i] + ';\n'
+        if (self.skip_declaration[i] == False):
+            self.internal_signals += '  logic ' + self.in_internal_signals[i] + ',' \
+                                     + self.out_internal_signals[i] + ',' \
+                                     + self.oe_internal_signals[i] + ';\n'
 
   def create_multiplexers(self):
     cnt = len(self.pad_type_drive)
@@ -124,11 +125,12 @@ class Pad:
 
     for i in range(cnt):
 
-        if self.pad_type_drive[i] == 'input' or self.pad_type_drive[i] == 'bypass_input':
-            self.constant_driver_assign += '  assign ' + self.out_internal_signals[i] + ' = 1\'b0;\n'
-            self.constant_driver_assign += '  assign ' + self.oe_internal_signals[i] + ' = 1\'b0;\n'
-        if self.pad_type_drive[i] == 'output' or self.pad_type_drive[i] == 'bypass_output':
-            self.constant_driver_assign += '  assign ' + self.oe_internal_signals[i] + ' = 1\'b1;\n'
+        if (self.skip_declaration[i] == False):
+            if self.pad_type_drive[i] == 'input' or self.pad_type_drive[i] == 'bypass_input':
+                self.constant_driver_assign += '  assign ' + self.out_internal_signals[i] + ' = 1\'b0;\n'
+                self.constant_driver_assign += '  assign ' + self.oe_internal_signals[i] + ' = 1\'b0;\n'
+            if self.pad_type_drive[i] == 'output' or self.pad_type_drive[i] == 'bypass_output':
+                self.constant_driver_assign += '  assign ' + self.oe_internal_signals[i] + ' = 1\'b1;\n'
 
   def create_core_v_mini_mcu_bonding(self):
 
@@ -175,7 +177,7 @@ class Pad:
         self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'io,'
 
 
-  def __init__(self, name, cell_name, pad_type, index, pad_active, pad_driven_manually, pad_mux_list):
+  def __init__(self, name, cell_name, pad_type, index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list):
 
 
     self.name = name
@@ -194,6 +196,7 @@ class Pad:
     self.signal_name_drive = []
     self.pad_type_drive    = []
     self.driven_manually   = []
+    self.skip_declaration  = []
 
     self.is_muxed = False
 
@@ -201,11 +204,13 @@ class Pad:
         self.signal_name_drive.append(self.signal_name)
         self.pad_type_drive.append(pad_type)
         self.driven_manually.append(pad_driven_manually)
+        self.skip_declaration.append(pad_skip_declaration)
     else:
         for pad_mux in pad_mux_list:
             self.signal_name_drive.append(pad_mux.signal_name)
             self.pad_type_drive.append(pad_mux.pad_type)
             self.driven_manually.append(pad_driven_manually)
+            self.skip_declaration.append(pad_skip_declaration)
 
         self.is_muxed = True
 
@@ -578,6 +583,10 @@ def main():
         except KeyError:
             pad_driven_manually = False
 
+        try:
+            pad_skip_declaration = pads[key]['skip_declaration']
+        except KeyError:
+            pad_skip_declaration = False
 
         pad_mux_list = []
 
@@ -589,17 +598,22 @@ def main():
                 pad_active_mux = 'high'
 
             try:
-                pad_active_mux_driven_manually = pads[key]['mux'][pad_mux]['driven_manually']
+                pad_driven_manually_mux = pads[key]['mux'][pad_mux]['driven_manually']
             except KeyError:
-                pad_active_mux_driven_manually = False
+                pad_driven_manually_mux = False
 
-            p = Pad(pad_mux, '', pads[key]['mux'][pad_mux]['type'], 0, pad_active_mux, pad_active_mux_driven_manually, [])
+            try:
+                pad_skip_declaration_mux = pads[key]['mux'][pad_mux]['skip_declaration']
+            except KeyError:
+                pad_skip_declaration_mux = False
+
+            p = Pad(pad_mux, '', pads[key]['mux'][pad_mux]['type'], 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [])
             pad_mux_list.append(p)
 
         if pad_num > 1:
             for p in range(pad_num):
                 pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
-                pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_index_counter, pad_active, pad_driven_manually, pad_mux_list)
+                pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list)
                 pad_obj.create_pad_ring()
                 pad_obj.create_core_v_mini_mcu_ctrl()
                 pad_obj.create_pad_ring_bonding()
@@ -616,7 +630,7 @@ def main():
 
         else:
             pad_cell_name = "pad_" + key + "_i"
-            pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_index_counter, pad_active, pad_driven_manually, pad_mux_list)
+            pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list)
             pad_obj.create_pad_ring()
             pad_obj.create_core_v_mini_mcu_ctrl()
             pad_obj.create_pad_ring_bonding()
@@ -659,6 +673,12 @@ def main():
             except KeyError:
                 pad_driven_manually = False
 
+            try:
+                pad_skip_declaration = external_pads[key]['skip_declaration']
+            except KeyError:
+                pad_skip_declaration = False
+
+
             pad_mux_list = []
 
             for pad_mux in pad_mux_list_hjson:
@@ -669,17 +689,22 @@ def main():
                     pad_active_mux = 'high'
 
                 try:
-                    pad_active_mux_driven_manually = external_pads[key]['mux'][pad_mux]['driven_manually']
+                    pad_driven_manually_mux = external_pads[key]['mux'][pad_mux]['driven_manually']
                 except KeyError:
-                    pad_active_mux_driven_manually = False
+                    pad_driven_manually_mux = False
 
-                p = Pad(pad_mux, '', external_pads[key]['mux'][pad_mux]['type'], 0, pad_active_mux, pad_active_mux_driven_manually, [])
+                try:
+                    pad_skip_declaration_mux = external_pads[key]['mux'][pad_mux]['skip_declaration']
+                except KeyError:
+                    pad_skip_declaration_mux = False
+
+                p = Pad(pad_mux, '', external_pads[key]['mux'][pad_mux]['type'], 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [])
                 pad_mux_list.append(p)
 
             if pad_num > 1:
                 for p in range(pad_num):
                     pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
-                    pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, external_pad_index, pad_active, pad_driven_manually, pad_mux_list)
+                    pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration_mux, pad_mux_list)
                     pad_obj.create_pad_ring()
                     pad_obj.create_pad_ring_bonding()
                     pad_obj.create_internal_signals()
@@ -695,7 +720,7 @@ def main():
 
             else:
                 pad_cell_name = "pad_" + key + "_i"
-                pad_obj = Pad(pad_name, pad_cell_name, pad_type, external_pad_index, pad_active, pad_driven_manually, pad_mux_list)
+                pad_obj = Pad(pad_name, pad_cell_name, pad_type, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration_mux, pad_mux_list)
                 pad_obj.create_pad_ring()
                 pad_obj.create_pad_ring_bonding()
                 pad_obj.create_internal_signals()
