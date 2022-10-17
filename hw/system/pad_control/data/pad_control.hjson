@@ -9,56 +9,6 @@
   regwidth: "32",
   registers: [
 
-    { name:     "PAD_MUX_UART_RX",
-      desc:     "Used to mux pad UART_RX",
-      resval:   "0x0"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "3:0", name: "PAD_MUX_UART_RX", desc: "Pad Mux UART_RX Reg" }
-      ]
-    }
-
-    { name:     "PAD_MUX_UART_TX",
-      desc:     "Used to mux pad UART_TX",
-      resval:   "0x0"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "3:0", name: "PAD_MUX_UART_TX", desc: "Pad Mux UART_TX Reg" }
-      ]
-    }
-
-    { name:     "PAD_MUX_EXIT_VALID",
-      desc:     "Used to mux pad EXIT_VALID",
-      resval:   "0x0"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "3:0", name: "PAD_MUX_EXIT_VALID", desc: "Pad Mux EXIT_VALID Reg" }
-      ]
-    }
-
-    { name:     "PAD_MUX_I2C_SCL",
-      desc:     "Used to mux pad I2C_SCL",
-      resval:   "0x0"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "3:0", name: "PAD_MUX_I2C_SCL", desc: "Pad Mux I2C_SCL Reg" }
-      ]
-    }
-
-    { name:     "PAD_MUX_I2C_SDA",
-      desc:     "Used to mux pad I2C_SDA",
-      resval:   "0x0"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "3:0", name: "PAD_MUX_I2C_SDA", desc: "Pad Mux I2C_SDA Reg" }
-      ]
-    }
-
 
     { name:     "PAD_ATTRIBUTE_CLK",
       desc:     "clk Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
@@ -430,6 +380,76 @@
       ]
     }
 
+    { name:     "PAD_ATTRIBUTE_GPIO_25",
+      desc:     "gpio_25 Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
+      resval:   "0x00"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "7:0", name: "PAD_ATTRIBUTE_GPIO_25", desc: "Pad Attribute GPIO_25 Reg" }
+      ]
+    }
+
+    { name:     "PAD_ATTRIBUTE_GPIO_26",
+      desc:     "gpio_26 Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
+      resval:   "0x00"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "7:0", name: "PAD_ATTRIBUTE_GPIO_26", desc: "Pad Attribute GPIO_26 Reg" }
+      ]
+    }
+
+    { name:     "PAD_ATTRIBUTE_GPIO_27",
+      desc:     "gpio_27 Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
+      resval:   "0x00"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "7:0", name: "PAD_ATTRIBUTE_GPIO_27", desc: "Pad Attribute GPIO_27 Reg" }
+      ]
+    }
+
+    { name:     "PAD_ATTRIBUTE_GPIO_28",
+      desc:     "gpio_28 Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
+      resval:   "0x00"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "7:0", name: "PAD_ATTRIBUTE_GPIO_28", desc: "Pad Attribute GPIO_28 Reg" }
+      ]
+    }
+
+    { name:     "PAD_ATTRIBUTE_GPIO_29",
+      desc:     "gpio_29 Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
+      resval:   "0x00"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "7:0", name: "PAD_ATTRIBUTE_GPIO_29", desc: "Pad Attribute GPIO_29 Reg" }
+      ]
+    }
+
+    { name:     "PAD_ATTRIBUTE_GPIO_30",
+      desc:     "gpio_30 Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
+      resval:   "0x00"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "7:0", name: "PAD_ATTRIBUTE_GPIO_30", desc: "Pad Attribute GPIO_30 Reg" }
+      ]
+    }
+
+    { name:     "PAD_ATTRIBUTE_GPIO_31",
+      desc:     "gpio_31 Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
+      resval:   "0x00"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "7:0", name: "PAD_ATTRIBUTE_GPIO_31", desc: "Pad Attribute GPIO_31 Reg" }
+      ]
+    }
+
     { name:     "PAD_ATTRIBUTE_SPI_FLASH_SCK",
       desc:     "spi_flash_sck Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
       resval:   "0x00"
@@ -507,6 +527,26 @@
       hwaccess: "hro",
       fields: [
         { bits: "7:0", name: "PAD_ATTRIBUTE_SPI_SCK", desc: "Pad Attribute SPI_SCK Reg" }
+      ]
+    }
+
+    { name:     "PAD_ATTRIBUTE_SPI_CS_0",
+      desc:     "spi_cs_0 Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
+      resval:   "0x00"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "7:0", name: "PAD_ATTRIBUTE_SPI_CS_0", desc: "Pad Attribute SPI_CS_0 Reg" }
+      ]
+    }
+
+    { name:     "PAD_ATTRIBUTE_SPI_CS_1",
+      desc:     "spi_cs_1 Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
+      resval:   "0x00"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "7:0", name: "PAD_ATTRIBUTE_SPI_CS_1", desc: "Pad Attribute SPI_CS_1 Reg" }
       ]
     }
 

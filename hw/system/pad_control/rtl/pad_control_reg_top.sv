@@ -67,21 +67,6 @@ module pad_control_reg_top #(
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
   //        or <reg>_{wd|we|qs} if field == 1 or 0
-  logic [3:0] pad_mux_uart_rx_qs;
-  logic [3:0] pad_mux_uart_rx_wd;
-  logic pad_mux_uart_rx_we;
-  logic [3:0] pad_mux_uart_tx_qs;
-  logic [3:0] pad_mux_uart_tx_wd;
-  logic pad_mux_uart_tx_we;
-  logic [3:0] pad_mux_exit_valid_qs;
-  logic [3:0] pad_mux_exit_valid_wd;
-  logic pad_mux_exit_valid_we;
-  logic [3:0] pad_mux_i2c_scl_qs;
-  logic [3:0] pad_mux_i2c_scl_wd;
-  logic pad_mux_i2c_scl_we;
-  logic [3:0] pad_mux_i2c_sda_qs;
-  logic [3:0] pad_mux_i2c_sda_wd;
-  logic pad_mux_i2c_sda_we;
   logic [7:0] pad_attribute_clk_qs;
   logic [7:0] pad_attribute_clk_wd;
   logic pad_attribute_clk_we;
@@ -193,6 +178,27 @@ module pad_control_reg_top #(
   logic [7:0] pad_attribute_gpio_24_qs;
   logic [7:0] pad_attribute_gpio_24_wd;
   logic pad_attribute_gpio_24_we;
+  logic [7:0] pad_attribute_gpio_25_qs;
+  logic [7:0] pad_attribute_gpio_25_wd;
+  logic pad_attribute_gpio_25_we;
+  logic [7:0] pad_attribute_gpio_26_qs;
+  logic [7:0] pad_attribute_gpio_26_wd;
+  logic pad_attribute_gpio_26_we;
+  logic [7:0] pad_attribute_gpio_27_qs;
+  logic [7:0] pad_attribute_gpio_27_wd;
+  logic pad_attribute_gpio_27_we;
+  logic [7:0] pad_attribute_gpio_28_qs;
+  logic [7:0] pad_attribute_gpio_28_wd;
+  logic pad_attribute_gpio_28_we;
+  logic [7:0] pad_attribute_gpio_29_qs;
+  logic [7:0] pad_attribute_gpio_29_wd;
+  logic pad_attribute_gpio_29_we;
+  logic [7:0] pad_attribute_gpio_30_qs;
+  logic [7:0] pad_attribute_gpio_30_wd;
+  logic pad_attribute_gpio_30_we;
+  logic [7:0] pad_attribute_gpio_31_qs;
+  logic [7:0] pad_attribute_gpio_31_wd;
+  logic pad_attribute_gpio_31_we;
   logic [7:0] pad_attribute_spi_flash_sck_qs;
   logic [7:0] pad_attribute_spi_flash_sck_wd;
   logic pad_attribute_spi_flash_sck_we;
@@ -217,6 +223,12 @@ module pad_control_reg_top #(
   logic [7:0] pad_attribute_spi_sck_qs;
   logic [7:0] pad_attribute_spi_sck_wd;
   logic pad_attribute_spi_sck_we;
+  logic [7:0] pad_attribute_spi_cs_0_qs;
+  logic [7:0] pad_attribute_spi_cs_0_wd;
+  logic pad_attribute_spi_cs_0_we;
+  logic [7:0] pad_attribute_spi_cs_1_qs;
+  logic [7:0] pad_attribute_spi_cs_1_wd;
+  logic pad_attribute_spi_cs_1_we;
   logic [7:0] pad_attribute_spi_sd_0_qs;
   logic [7:0] pad_attribute_spi_sd_0_wd;
   logic pad_attribute_spi_sd_0_we;
@@ -237,141 +249,6 @@ module pad_control_reg_top #(
   logic pad_attribute_i2c_sda_we;
 
   // Register instances
-  // R[pad_mux_uart_rx]: V(False)
-
-  prim_subreg #(
-      .DW      (4),
-      .SWACCESS("RW"),
-      .RESVAL  (4'h0)
-  ) u_pad_mux_uart_rx (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(pad_mux_uart_rx_we),
-      .wd(pad_mux_uart_rx_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.pad_mux_uart_rx.q),
-
-      // to register interface (read)
-      .qs(pad_mux_uart_rx_qs)
-  );
-
-
-  // R[pad_mux_uart_tx]: V(False)
-
-  prim_subreg #(
-      .DW      (4),
-      .SWACCESS("RW"),
-      .RESVAL  (4'h0)
-  ) u_pad_mux_uart_tx (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(pad_mux_uart_tx_we),
-      .wd(pad_mux_uart_tx_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.pad_mux_uart_tx.q),
-
-      // to register interface (read)
-      .qs(pad_mux_uart_tx_qs)
-  );
-
-
-  // R[pad_mux_exit_valid]: V(False)
-
-  prim_subreg #(
-      .DW      (4),
-      .SWACCESS("RW"),
-      .RESVAL  (4'h0)
-  ) u_pad_mux_exit_valid (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(pad_mux_exit_valid_we),
-      .wd(pad_mux_exit_valid_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.pad_mux_exit_valid.q),
-
-      // to register interface (read)
-      .qs(pad_mux_exit_valid_qs)
-  );
-
-
-  // R[pad_mux_i2c_scl]: V(False)
-
-  prim_subreg #(
-      .DW      (4),
-      .SWACCESS("RW"),
-      .RESVAL  (4'h0)
-  ) u_pad_mux_i2c_scl (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(pad_mux_i2c_scl_we),
-      .wd(pad_mux_i2c_scl_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.pad_mux_i2c_scl.q),
-
-      // to register interface (read)
-      .qs(pad_mux_i2c_scl_qs)
-  );
-
-
-  // R[pad_mux_i2c_sda]: V(False)
-
-  prim_subreg #(
-      .DW      (4),
-      .SWACCESS("RW"),
-      .RESVAL  (4'h0)
-  ) u_pad_mux_i2c_sda (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(pad_mux_i2c_sda_we),
-      .wd(pad_mux_i2c_sda_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.pad_mux_i2c_sda.q),
-
-      // to register interface (read)
-      .qs(pad_mux_i2c_sda_qs)
-  );
-
-
   // R[pad_attribute_clk]: V(False)
 
   prim_subreg #(
@@ -1371,6 +1248,195 @@ module pad_control_reg_top #(
   );
 
 
+  // R[pad_attribute_gpio_25]: V(False)
+
+  prim_subreg #(
+      .DW      (8),
+      .SWACCESS("RW"),
+      .RESVAL  (8'h0)
+  ) u_pad_attribute_gpio_25 (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(pad_attribute_gpio_25_we),
+      .wd(pad_attribute_gpio_25_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.pad_attribute_gpio_25.q),
+
+      // to register interface (read)
+      .qs(pad_attribute_gpio_25_qs)
+  );
+
+
+  // R[pad_attribute_gpio_26]: V(False)
+
+  prim_subreg #(
+      .DW      (8),
+      .SWACCESS("RW"),
+      .RESVAL  (8'h0)
+  ) u_pad_attribute_gpio_26 (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(pad_attribute_gpio_26_we),
+      .wd(pad_attribute_gpio_26_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.pad_attribute_gpio_26.q),
+
+      // to register interface (read)
+      .qs(pad_attribute_gpio_26_qs)
+  );
+
+
+  // R[pad_attribute_gpio_27]: V(False)
+
+  prim_subreg #(
+      .DW      (8),
+      .SWACCESS("RW"),
+      .RESVAL  (8'h0)
+  ) u_pad_attribute_gpio_27 (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(pad_attribute_gpio_27_we),
+      .wd(pad_attribute_gpio_27_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.pad_attribute_gpio_27.q),
+
+      // to register interface (read)
+      .qs(pad_attribute_gpio_27_qs)
+  );
+
+
+  // R[pad_attribute_gpio_28]: V(False)
+
+  prim_subreg #(
+      .DW      (8),
+      .SWACCESS("RW"),
+      .RESVAL  (8'h0)
+  ) u_pad_attribute_gpio_28 (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(pad_attribute_gpio_28_we),
+      .wd(pad_attribute_gpio_28_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.pad_attribute_gpio_28.q),
+
+      // to register interface (read)
+      .qs(pad_attribute_gpio_28_qs)
+  );
+
+
+  // R[pad_attribute_gpio_29]: V(False)
+
+  prim_subreg #(
+      .DW      (8),
+      .SWACCESS("RW"),
+      .RESVAL  (8'h0)
+  ) u_pad_attribute_gpio_29 (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(pad_attribute_gpio_29_we),
+      .wd(pad_attribute_gpio_29_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.pad_attribute_gpio_29.q),
+
+      // to register interface (read)
+      .qs(pad_attribute_gpio_29_qs)
+  );
+
+
+  // R[pad_attribute_gpio_30]: V(False)
+
+  prim_subreg #(
+      .DW      (8),
+      .SWACCESS("RW"),
+      .RESVAL  (8'h0)
+  ) u_pad_attribute_gpio_30 (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(pad_attribute_gpio_30_we),
+      .wd(pad_attribute_gpio_30_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.pad_attribute_gpio_30.q),
+
+      // to register interface (read)
+      .qs(pad_attribute_gpio_30_qs)
+  );
+
+
+  // R[pad_attribute_gpio_31]: V(False)
+
+  prim_subreg #(
+      .DW      (8),
+      .SWACCESS("RW"),
+      .RESVAL  (8'h0)
+  ) u_pad_attribute_gpio_31 (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(pad_attribute_gpio_31_we),
+      .wd(pad_attribute_gpio_31_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.pad_attribute_gpio_31.q),
+
+      // to register interface (read)
+      .qs(pad_attribute_gpio_31_qs)
+  );
+
+
   // R[pad_attribute_spi_flash_sck]: V(False)
 
   prim_subreg #(
@@ -1587,6 +1653,60 @@ module pad_control_reg_top #(
   );
 
 
+  // R[pad_attribute_spi_cs_0]: V(False)
+
+  prim_subreg #(
+      .DW      (8),
+      .SWACCESS("RW"),
+      .RESVAL  (8'h0)
+  ) u_pad_attribute_spi_cs_0 (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(pad_attribute_spi_cs_0_we),
+      .wd(pad_attribute_spi_cs_0_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.pad_attribute_spi_cs_0.q),
+
+      // to register interface (read)
+      .qs(pad_attribute_spi_cs_0_qs)
+  );
+
+
+  // R[pad_attribute_spi_cs_1]: V(False)
+
+  prim_subreg #(
+      .DW      (8),
+      .SWACCESS("RW"),
+      .RESVAL  (8'h0)
+  ) u_pad_attribute_spi_cs_1 (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(pad_attribute_spi_cs_1_we),
+      .wd(pad_attribute_spi_cs_1_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.pad_attribute_spi_cs_1.q),
+
+      // to register interface (read)
+      .qs(pad_attribute_spi_cs_1_qs)
+  );
+
+
   // R[pad_attribute_spi_sd_0]: V(False)
 
   prim_subreg #(
@@ -1751,65 +1871,69 @@ module pad_control_reg_top #(
 
 
 
-  logic [55:0] addr_hit;
+  logic [59:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[0] = (reg_addr == PAD_CONTROL_PAD_MUX_UART_RX_OFFSET);
-    addr_hit[1] = (reg_addr == PAD_CONTROL_PAD_MUX_UART_TX_OFFSET);
-    addr_hit[2] = (reg_addr == PAD_CONTROL_PAD_MUX_EXIT_VALID_OFFSET);
-    addr_hit[3] = (reg_addr == PAD_CONTROL_PAD_MUX_I2C_SCL_OFFSET);
-    addr_hit[4] = (reg_addr == PAD_CONTROL_PAD_MUX_I2C_SDA_OFFSET);
-    addr_hit[5] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_CLK_OFFSET);
-    addr_hit[6] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_RST_OFFSET);
-    addr_hit[7] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_BOOT_SELECT_OFFSET);
-    addr_hit[8] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_EXECUTE_FROM_FLASH_OFFSET);
-    addr_hit[9] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_JTAG_TCK_OFFSET);
-    addr_hit[10] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_JTAG_TMS_OFFSET);
-    addr_hit[11] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_JTAG_TRST_OFFSET);
-    addr_hit[12] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_JTAG_TDI_OFFSET);
-    addr_hit[13] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_JTAG_TDO_OFFSET);
-    addr_hit[14] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_UART_RX_OFFSET);
-    addr_hit[15] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_UART_TX_OFFSET);
-    addr_hit[16] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_EXIT_VALID_OFFSET);
-    addr_hit[17] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_0_OFFSET);
-    addr_hit[18] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_1_OFFSET);
-    addr_hit[19] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_2_OFFSET);
-    addr_hit[20] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_3_OFFSET);
-    addr_hit[21] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_4_OFFSET);
-    addr_hit[22] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_5_OFFSET);
-    addr_hit[23] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_6_OFFSET);
-    addr_hit[24] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_7_OFFSET);
-    addr_hit[25] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_8_OFFSET);
-    addr_hit[26] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_9_OFFSET);
-    addr_hit[27] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_10_OFFSET);
-    addr_hit[28] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_11_OFFSET);
-    addr_hit[29] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_12_OFFSET);
-    addr_hit[30] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_13_OFFSET);
-    addr_hit[31] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_14_OFFSET);
-    addr_hit[32] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_15_OFFSET);
-    addr_hit[33] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_16_OFFSET);
-    addr_hit[34] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_17_OFFSET);
-    addr_hit[35] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_18_OFFSET);
-    addr_hit[36] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_19_OFFSET);
-    addr_hit[37] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_20_OFFSET);
-    addr_hit[38] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_21_OFFSET);
-    addr_hit[39] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_22_OFFSET);
-    addr_hit[40] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_23_OFFSET);
-    addr_hit[41] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_24_OFFSET);
-    addr_hit[42] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SCK_OFFSET);
-    addr_hit[43] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_0_OFFSET);
-    addr_hit[44] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_1_OFFSET);
-    addr_hit[45] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_0_OFFSET);
-    addr_hit[46] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_1_OFFSET);
-    addr_hit[47] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_2_OFFSET);
-    addr_hit[48] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_3_OFFSET);
-    addr_hit[49] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SCK_OFFSET);
-    addr_hit[50] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_0_OFFSET);
-    addr_hit[51] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_1_OFFSET);
-    addr_hit[52] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_2_OFFSET);
-    addr_hit[53] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_3_OFFSET);
-    addr_hit[54] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_I2C_SCL_OFFSET);
-    addr_hit[55] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_I2C_SDA_OFFSET);
+    addr_hit[0] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_CLK_OFFSET);
+    addr_hit[1] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_RST_OFFSET);
+    addr_hit[2] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_BOOT_SELECT_OFFSET);
+    addr_hit[3] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_EXECUTE_FROM_FLASH_OFFSET);
+    addr_hit[4] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_JTAG_TCK_OFFSET);
+    addr_hit[5] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_JTAG_TMS_OFFSET);
+    addr_hit[6] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_JTAG_TRST_OFFSET);
+    addr_hit[7] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_JTAG_TDI_OFFSET);
+    addr_hit[8] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_JTAG_TDO_OFFSET);
+    addr_hit[9] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_UART_RX_OFFSET);
+    addr_hit[10] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_UART_TX_OFFSET);
+    addr_hit[11] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_EXIT_VALID_OFFSET);
+    addr_hit[12] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_0_OFFSET);
+    addr_hit[13] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_1_OFFSET);
+    addr_hit[14] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_2_OFFSET);
+    addr_hit[15] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_3_OFFSET);
+    addr_hit[16] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_4_OFFSET);
+    addr_hit[17] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_5_OFFSET);
+    addr_hit[18] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_6_OFFSET);
+    addr_hit[19] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_7_OFFSET);
+    addr_hit[20] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_8_OFFSET);
+    addr_hit[21] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_9_OFFSET);
+    addr_hit[22] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_10_OFFSET);
+    addr_hit[23] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_11_OFFSET);
+    addr_hit[24] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_12_OFFSET);
+    addr_hit[25] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_13_OFFSET);
+    addr_hit[26] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_14_OFFSET);
+    addr_hit[27] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_15_OFFSET);
+    addr_hit[28] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_16_OFFSET);
+    addr_hit[29] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_17_OFFSET);
+    addr_hit[30] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_18_OFFSET);
+    addr_hit[31] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_19_OFFSET);
+    addr_hit[32] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_20_OFFSET);
+    addr_hit[33] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_21_OFFSET);
+    addr_hit[34] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_22_OFFSET);
+    addr_hit[35] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_23_OFFSET);
+    addr_hit[36] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_24_OFFSET);
+    addr_hit[37] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_25_OFFSET);
+    addr_hit[38] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_26_OFFSET);
+    addr_hit[39] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_27_OFFSET);
+    addr_hit[40] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_28_OFFSET);
+    addr_hit[41] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_29_OFFSET);
+    addr_hit[42] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_30_OFFSET);
+    addr_hit[43] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_31_OFFSET);
+    addr_hit[44] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SCK_OFFSET);
+    addr_hit[45] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_0_OFFSET);
+    addr_hit[46] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_1_OFFSET);
+    addr_hit[47] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_0_OFFSET);
+    addr_hit[48] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_1_OFFSET);
+    addr_hit[49] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_2_OFFSET);
+    addr_hit[50] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_3_OFFSET);
+    addr_hit[51] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SCK_OFFSET);
+    addr_hit[52] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_CS_0_OFFSET);
+    addr_hit[53] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_CS_1_OFFSET);
+    addr_hit[54] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_0_OFFSET);
+    addr_hit[55] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_1_OFFSET);
+    addr_hit[56] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_2_OFFSET);
+    addr_hit[57] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_3_OFFSET);
+    addr_hit[58] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_I2C_SCL_OFFSET);
+    addr_hit[59] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_I2C_SDA_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -1872,175 +1996,191 @@ module pad_control_reg_top #(
                (addr_hit[52] & (|(PAD_CONTROL_PERMIT[52] & ~reg_be))) |
                (addr_hit[53] & (|(PAD_CONTROL_PERMIT[53] & ~reg_be))) |
                (addr_hit[54] & (|(PAD_CONTROL_PERMIT[54] & ~reg_be))) |
-               (addr_hit[55] & (|(PAD_CONTROL_PERMIT[55] & ~reg_be)))));
+               (addr_hit[55] & (|(PAD_CONTROL_PERMIT[55] & ~reg_be))) |
+               (addr_hit[56] & (|(PAD_CONTROL_PERMIT[56] & ~reg_be))) |
+               (addr_hit[57] & (|(PAD_CONTROL_PERMIT[57] & ~reg_be))) |
+               (addr_hit[58] & (|(PAD_CONTROL_PERMIT[58] & ~reg_be))) |
+               (addr_hit[59] & (|(PAD_CONTROL_PERMIT[59] & ~reg_be)))));
   end
 
-  assign pad_mux_uart_rx_we = addr_hit[0] & reg_we & !reg_error;
-  assign pad_mux_uart_rx_wd = reg_wdata[3:0];
-
-  assign pad_mux_uart_tx_we = addr_hit[1] & reg_we & !reg_error;
-  assign pad_mux_uart_tx_wd = reg_wdata[3:0];
-
-  assign pad_mux_exit_valid_we = addr_hit[2] & reg_we & !reg_error;
-  assign pad_mux_exit_valid_wd = reg_wdata[3:0];
-
-  assign pad_mux_i2c_scl_we = addr_hit[3] & reg_we & !reg_error;
-  assign pad_mux_i2c_scl_wd = reg_wdata[3:0];
-
-  assign pad_mux_i2c_sda_we = addr_hit[4] & reg_we & !reg_error;
-  assign pad_mux_i2c_sda_wd = reg_wdata[3:0];
-
-  assign pad_attribute_clk_we = addr_hit[5] & reg_we & !reg_error;
+  assign pad_attribute_clk_we = addr_hit[0] & reg_we & !reg_error;
   assign pad_attribute_clk_wd = reg_wdata[7:0];
 
-  assign pad_attribute_rst_we = addr_hit[6] & reg_we & !reg_error;
+  assign pad_attribute_rst_we = addr_hit[1] & reg_we & !reg_error;
   assign pad_attribute_rst_wd = reg_wdata[7:0];
 
-  assign pad_attribute_boot_select_we = addr_hit[7] & reg_we & !reg_error;
+  assign pad_attribute_boot_select_we = addr_hit[2] & reg_we & !reg_error;
   assign pad_attribute_boot_select_wd = reg_wdata[7:0];
 
-  assign pad_attribute_execute_from_flash_we = addr_hit[8] & reg_we & !reg_error;
+  assign pad_attribute_execute_from_flash_we = addr_hit[3] & reg_we & !reg_error;
   assign pad_attribute_execute_from_flash_wd = reg_wdata[7:0];
 
-  assign pad_attribute_jtag_tck_we = addr_hit[9] & reg_we & !reg_error;
+  assign pad_attribute_jtag_tck_we = addr_hit[4] & reg_we & !reg_error;
   assign pad_attribute_jtag_tck_wd = reg_wdata[7:0];
 
-  assign pad_attribute_jtag_tms_we = addr_hit[10] & reg_we & !reg_error;
+  assign pad_attribute_jtag_tms_we = addr_hit[5] & reg_we & !reg_error;
   assign pad_attribute_jtag_tms_wd = reg_wdata[7:0];
 
-  assign pad_attribute_jtag_trst_we = addr_hit[11] & reg_we & !reg_error;
+  assign pad_attribute_jtag_trst_we = addr_hit[6] & reg_we & !reg_error;
   assign pad_attribute_jtag_trst_wd = reg_wdata[7:0];
 
-  assign pad_attribute_jtag_tdi_we = addr_hit[12] & reg_we & !reg_error;
+  assign pad_attribute_jtag_tdi_we = addr_hit[7] & reg_we & !reg_error;
   assign pad_attribute_jtag_tdi_wd = reg_wdata[7:0];
 
-  assign pad_attribute_jtag_tdo_we = addr_hit[13] & reg_we & !reg_error;
+  assign pad_attribute_jtag_tdo_we = addr_hit[8] & reg_we & !reg_error;
   assign pad_attribute_jtag_tdo_wd = reg_wdata[7:0];
 
-  assign pad_attribute_uart_rx_we = addr_hit[14] & reg_we & !reg_error;
+  assign pad_attribute_uart_rx_we = addr_hit[9] & reg_we & !reg_error;
   assign pad_attribute_uart_rx_wd = reg_wdata[7:0];
 
-  assign pad_attribute_uart_tx_we = addr_hit[15] & reg_we & !reg_error;
+  assign pad_attribute_uart_tx_we = addr_hit[10] & reg_we & !reg_error;
   assign pad_attribute_uart_tx_wd = reg_wdata[7:0];
 
-  assign pad_attribute_exit_valid_we = addr_hit[16] & reg_we & !reg_error;
+  assign pad_attribute_exit_valid_we = addr_hit[11] & reg_we & !reg_error;
   assign pad_attribute_exit_valid_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_0_we = addr_hit[17] & reg_we & !reg_error;
+  assign pad_attribute_gpio_0_we = addr_hit[12] & reg_we & !reg_error;
   assign pad_attribute_gpio_0_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_1_we = addr_hit[18] & reg_we & !reg_error;
+  assign pad_attribute_gpio_1_we = addr_hit[13] & reg_we & !reg_error;
   assign pad_attribute_gpio_1_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_2_we = addr_hit[19] & reg_we & !reg_error;
+  assign pad_attribute_gpio_2_we = addr_hit[14] & reg_we & !reg_error;
   assign pad_attribute_gpio_2_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_3_we = addr_hit[20] & reg_we & !reg_error;
+  assign pad_attribute_gpio_3_we = addr_hit[15] & reg_we & !reg_error;
   assign pad_attribute_gpio_3_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_4_we = addr_hit[21] & reg_we & !reg_error;
+  assign pad_attribute_gpio_4_we = addr_hit[16] & reg_we & !reg_error;
   assign pad_attribute_gpio_4_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_5_we = addr_hit[22] & reg_we & !reg_error;
+  assign pad_attribute_gpio_5_we = addr_hit[17] & reg_we & !reg_error;
   assign pad_attribute_gpio_5_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_6_we = addr_hit[23] & reg_we & !reg_error;
+  assign pad_attribute_gpio_6_we = addr_hit[18] & reg_we & !reg_error;
   assign pad_attribute_gpio_6_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_7_we = addr_hit[24] & reg_we & !reg_error;
+  assign pad_attribute_gpio_7_we = addr_hit[19] & reg_we & !reg_error;
   assign pad_attribute_gpio_7_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_8_we = addr_hit[25] & reg_we & !reg_error;
+  assign pad_attribute_gpio_8_we = addr_hit[20] & reg_we & !reg_error;
   assign pad_attribute_gpio_8_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_9_we = addr_hit[26] & reg_we & !reg_error;
+  assign pad_attribute_gpio_9_we = addr_hit[21] & reg_we & !reg_error;
   assign pad_attribute_gpio_9_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_10_we = addr_hit[27] & reg_we & !reg_error;
+  assign pad_attribute_gpio_10_we = addr_hit[22] & reg_we & !reg_error;
   assign pad_attribute_gpio_10_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_11_we = addr_hit[28] & reg_we & !reg_error;
+  assign pad_attribute_gpio_11_we = addr_hit[23] & reg_we & !reg_error;
   assign pad_attribute_gpio_11_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_12_we = addr_hit[29] & reg_we & !reg_error;
+  assign pad_attribute_gpio_12_we = addr_hit[24] & reg_we & !reg_error;
   assign pad_attribute_gpio_12_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_13_we = addr_hit[30] & reg_we & !reg_error;
+  assign pad_attribute_gpio_13_we = addr_hit[25] & reg_we & !reg_error;
   assign pad_attribute_gpio_13_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_14_we = addr_hit[31] & reg_we & !reg_error;
+  assign pad_attribute_gpio_14_we = addr_hit[26] & reg_we & !reg_error;
   assign pad_attribute_gpio_14_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_15_we = addr_hit[32] & reg_we & !reg_error;
+  assign pad_attribute_gpio_15_we = addr_hit[27] & reg_we & !reg_error;
   assign pad_attribute_gpio_15_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_16_we = addr_hit[33] & reg_we & !reg_error;
+  assign pad_attribute_gpio_16_we = addr_hit[28] & reg_we & !reg_error;
   assign pad_attribute_gpio_16_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_17_we = addr_hit[34] & reg_we & !reg_error;
+  assign pad_attribute_gpio_17_we = addr_hit[29] & reg_we & !reg_error;
   assign pad_attribute_gpio_17_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_18_we = addr_hit[35] & reg_we & !reg_error;
+  assign pad_attribute_gpio_18_we = addr_hit[30] & reg_we & !reg_error;
   assign pad_attribute_gpio_18_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_19_we = addr_hit[36] & reg_we & !reg_error;
+  assign pad_attribute_gpio_19_we = addr_hit[31] & reg_we & !reg_error;
   assign pad_attribute_gpio_19_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_20_we = addr_hit[37] & reg_we & !reg_error;
+  assign pad_attribute_gpio_20_we = addr_hit[32] & reg_we & !reg_error;
   assign pad_attribute_gpio_20_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_21_we = addr_hit[38] & reg_we & !reg_error;
+  assign pad_attribute_gpio_21_we = addr_hit[33] & reg_we & !reg_error;
   assign pad_attribute_gpio_21_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_22_we = addr_hit[39] & reg_we & !reg_error;
+  assign pad_attribute_gpio_22_we = addr_hit[34] & reg_we & !reg_error;
   assign pad_attribute_gpio_22_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_23_we = addr_hit[40] & reg_we & !reg_error;
+  assign pad_attribute_gpio_23_we = addr_hit[35] & reg_we & !reg_error;
   assign pad_attribute_gpio_23_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_24_we = addr_hit[41] & reg_we & !reg_error;
+  assign pad_attribute_gpio_24_we = addr_hit[36] & reg_we & !reg_error;
   assign pad_attribute_gpio_24_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_flash_sck_we = addr_hit[42] & reg_we & !reg_error;
+  assign pad_attribute_gpio_25_we = addr_hit[37] & reg_we & !reg_error;
+  assign pad_attribute_gpio_25_wd = reg_wdata[7:0];
+
+  assign pad_attribute_gpio_26_we = addr_hit[38] & reg_we & !reg_error;
+  assign pad_attribute_gpio_26_wd = reg_wdata[7:0];
+
+  assign pad_attribute_gpio_27_we = addr_hit[39] & reg_we & !reg_error;
+  assign pad_attribute_gpio_27_wd = reg_wdata[7:0];
+
+  assign pad_attribute_gpio_28_we = addr_hit[40] & reg_we & !reg_error;
+  assign pad_attribute_gpio_28_wd = reg_wdata[7:0];
+
+  assign pad_attribute_gpio_29_we = addr_hit[41] & reg_we & !reg_error;
+  assign pad_attribute_gpio_29_wd = reg_wdata[7:0];
+
+  assign pad_attribute_gpio_30_we = addr_hit[42] & reg_we & !reg_error;
+  assign pad_attribute_gpio_30_wd = reg_wdata[7:0];
+
+  assign pad_attribute_gpio_31_we = addr_hit[43] & reg_we & !reg_error;
+  assign pad_attribute_gpio_31_wd = reg_wdata[7:0];
+
+  assign pad_attribute_spi_flash_sck_we = addr_hit[44] & reg_we & !reg_error;
   assign pad_attribute_spi_flash_sck_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_flash_cs_0_we = addr_hit[43] & reg_we & !reg_error;
+  assign pad_attribute_spi_flash_cs_0_we = addr_hit[45] & reg_we & !reg_error;
   assign pad_attribute_spi_flash_cs_0_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_flash_cs_1_we = addr_hit[44] & reg_we & !reg_error;
+  assign pad_attribute_spi_flash_cs_1_we = addr_hit[46] & reg_we & !reg_error;
   assign pad_attribute_spi_flash_cs_1_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_flash_sd_0_we = addr_hit[45] & reg_we & !reg_error;
+  assign pad_attribute_spi_flash_sd_0_we = addr_hit[47] & reg_we & !reg_error;
   assign pad_attribute_spi_flash_sd_0_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_flash_sd_1_we = addr_hit[46] & reg_we & !reg_error;
+  assign pad_attribute_spi_flash_sd_1_we = addr_hit[48] & reg_we & !reg_error;
   assign pad_attribute_spi_flash_sd_1_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_flash_sd_2_we = addr_hit[47] & reg_we & !reg_error;
+  assign pad_attribute_spi_flash_sd_2_we = addr_hit[49] & reg_we & !reg_error;
   assign pad_attribute_spi_flash_sd_2_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_flash_sd_3_we = addr_hit[48] & reg_we & !reg_error;
+  assign pad_attribute_spi_flash_sd_3_we = addr_hit[50] & reg_we & !reg_error;
   assign pad_attribute_spi_flash_sd_3_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_sck_we = addr_hit[49] & reg_we & !reg_error;
+  assign pad_attribute_spi_sck_we = addr_hit[51] & reg_we & !reg_error;
   assign pad_attribute_spi_sck_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_sd_0_we = addr_hit[50] & reg_we & !reg_error;
+  assign pad_attribute_spi_cs_0_we = addr_hit[52] & reg_we & !reg_error;
+  assign pad_attribute_spi_cs_0_wd = reg_wdata[7:0];
+
+  assign pad_attribute_spi_cs_1_we = addr_hit[53] & reg_we & !reg_error;
+  assign pad_attribute_spi_cs_1_wd = reg_wdata[7:0];
+
+  assign pad_attribute_spi_sd_0_we = addr_hit[54] & reg_we & !reg_error;
   assign pad_attribute_spi_sd_0_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_sd_1_we = addr_hit[51] & reg_we & !reg_error;
+  assign pad_attribute_spi_sd_1_we = addr_hit[55] & reg_we & !reg_error;
   assign pad_attribute_spi_sd_1_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_sd_2_we = addr_hit[52] & reg_we & !reg_error;
+  assign pad_attribute_spi_sd_2_we = addr_hit[56] & reg_we & !reg_error;
   assign pad_attribute_spi_sd_2_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_sd_3_we = addr_hit[53] & reg_we & !reg_error;
+  assign pad_attribute_spi_sd_3_we = addr_hit[57] & reg_we & !reg_error;
   assign pad_attribute_spi_sd_3_wd = reg_wdata[7:0];
 
-  assign pad_attribute_i2c_scl_we = addr_hit[54] & reg_we & !reg_error;
+  assign pad_attribute_i2c_scl_we = addr_hit[58] & reg_we & !reg_error;
   assign pad_attribute_i2c_scl_wd = reg_wdata[7:0];
 
-  assign pad_attribute_i2c_sda_we = addr_hit[55] & reg_we & !reg_error;
+  assign pad_attribute_i2c_sda_we = addr_hit[59] & reg_we & !reg_error;
   assign pad_attribute_i2c_sda_wd = reg_wdata[7:0];
 
   // Read data return
@@ -2048,226 +2188,242 @@ module pad_control_reg_top #(
     reg_rdata_next = '0;
     unique case (1'b1)
       addr_hit[0]: begin
-        reg_rdata_next[3:0] = pad_mux_uart_rx_qs;
-      end
-
-      addr_hit[1]: begin
-        reg_rdata_next[3:0] = pad_mux_uart_tx_qs;
-      end
-
-      addr_hit[2]: begin
-        reg_rdata_next[3:0] = pad_mux_exit_valid_qs;
-      end
-
-      addr_hit[3]: begin
-        reg_rdata_next[3:0] = pad_mux_i2c_scl_qs;
-      end
-
-      addr_hit[4]: begin
-        reg_rdata_next[3:0] = pad_mux_i2c_sda_qs;
-      end
-
-      addr_hit[5]: begin
         reg_rdata_next[7:0] = pad_attribute_clk_qs;
       end
 
-      addr_hit[6]: begin
+      addr_hit[1]: begin
         reg_rdata_next[7:0] = pad_attribute_rst_qs;
       end
 
-      addr_hit[7]: begin
+      addr_hit[2]: begin
         reg_rdata_next[7:0] = pad_attribute_boot_select_qs;
       end
 
-      addr_hit[8]: begin
+      addr_hit[3]: begin
         reg_rdata_next[7:0] = pad_attribute_execute_from_flash_qs;
       end
 
-      addr_hit[9]: begin
+      addr_hit[4]: begin
         reg_rdata_next[7:0] = pad_attribute_jtag_tck_qs;
       end
 
-      addr_hit[10]: begin
+      addr_hit[5]: begin
         reg_rdata_next[7:0] = pad_attribute_jtag_tms_qs;
       end
 
-      addr_hit[11]: begin
+      addr_hit[6]: begin
         reg_rdata_next[7:0] = pad_attribute_jtag_trst_qs;
       end
 
-      addr_hit[12]: begin
+      addr_hit[7]: begin
         reg_rdata_next[7:0] = pad_attribute_jtag_tdi_qs;
       end
 
-      addr_hit[13]: begin
+      addr_hit[8]: begin
         reg_rdata_next[7:0] = pad_attribute_jtag_tdo_qs;
       end
 
-      addr_hit[14]: begin
+      addr_hit[9]: begin
         reg_rdata_next[7:0] = pad_attribute_uart_rx_qs;
       end
 
-      addr_hit[15]: begin
+      addr_hit[10]: begin
         reg_rdata_next[7:0] = pad_attribute_uart_tx_qs;
       end
 
-      addr_hit[16]: begin
+      addr_hit[11]: begin
         reg_rdata_next[7:0] = pad_attribute_exit_valid_qs;
       end
 
-      addr_hit[17]: begin
+      addr_hit[12]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_0_qs;
       end
 
-      addr_hit[18]: begin
+      addr_hit[13]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_1_qs;
       end
 
-      addr_hit[19]: begin
+      addr_hit[14]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_2_qs;
       end
 
-      addr_hit[20]: begin
+      addr_hit[15]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_3_qs;
       end
 
-      addr_hit[21]: begin
+      addr_hit[16]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_4_qs;
       end
 
-      addr_hit[22]: begin
+      addr_hit[17]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_5_qs;
       end
 
-      addr_hit[23]: begin
+      addr_hit[18]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_6_qs;
       end
 
-      addr_hit[24]: begin
+      addr_hit[19]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_7_qs;
       end
 
-      addr_hit[25]: begin
+      addr_hit[20]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_8_qs;
       end
 
-      addr_hit[26]: begin
+      addr_hit[21]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_9_qs;
       end
 
-      addr_hit[27]: begin
+      addr_hit[22]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_10_qs;
       end
 
-      addr_hit[28]: begin
+      addr_hit[23]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_11_qs;
       end
 
-      addr_hit[29]: begin
+      addr_hit[24]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_12_qs;
       end
 
-      addr_hit[30]: begin
+      addr_hit[25]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_13_qs;
       end
 
-      addr_hit[31]: begin
+      addr_hit[26]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_14_qs;
       end
 
-      addr_hit[32]: begin
+      addr_hit[27]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_15_qs;
       end
 
-      addr_hit[33]: begin
+      addr_hit[28]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_16_qs;
       end
 
-      addr_hit[34]: begin
+      addr_hit[29]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_17_qs;
       end
 
-      addr_hit[35]: begin
+      addr_hit[30]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_18_qs;
       end
 
-      addr_hit[36]: begin
+      addr_hit[31]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_19_qs;
       end
 
-      addr_hit[37]: begin
+      addr_hit[32]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_20_qs;
       end
 
-      addr_hit[38]: begin
+      addr_hit[33]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_21_qs;
       end
 
-      addr_hit[39]: begin
+      addr_hit[34]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_22_qs;
       end
 
-      addr_hit[40]: begin
+      addr_hit[35]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_23_qs;
       end
 
-      addr_hit[41]: begin
+      addr_hit[36]: begin
         reg_rdata_next[7:0] = pad_attribute_gpio_24_qs;
       end
 
+      addr_hit[37]: begin
+        reg_rdata_next[7:0] = pad_attribute_gpio_25_qs;
+      end
+
+      addr_hit[38]: begin
+        reg_rdata_next[7:0] = pad_attribute_gpio_26_qs;
+      end
+
+      addr_hit[39]: begin
+        reg_rdata_next[7:0] = pad_attribute_gpio_27_qs;
+      end
+
+      addr_hit[40]: begin
+        reg_rdata_next[7:0] = pad_attribute_gpio_28_qs;
+      end
+
+      addr_hit[41]: begin
+        reg_rdata_next[7:0] = pad_attribute_gpio_29_qs;
+      end
+
       addr_hit[42]: begin
-        reg_rdata_next[7:0] = pad_attribute_spi_flash_sck_qs;
+        reg_rdata_next[7:0] = pad_attribute_gpio_30_qs;
       end
 
       addr_hit[43]: begin
-        reg_rdata_next[7:0] = pad_attribute_spi_flash_cs_0_qs;
+        reg_rdata_next[7:0] = pad_attribute_gpio_31_qs;
       end
 
       addr_hit[44]: begin
-        reg_rdata_next[7:0] = pad_attribute_spi_flash_cs_1_qs;
+        reg_rdata_next[7:0] = pad_attribute_spi_flash_sck_qs;
       end
 
       addr_hit[45]: begin
-        reg_rdata_next[7:0] = pad_attribute_spi_flash_sd_0_qs;
+        reg_rdata_next[7:0] = pad_attribute_spi_flash_cs_0_qs;
       end
 
       addr_hit[46]: begin
-        reg_rdata_next[7:0] = pad_attribute_spi_flash_sd_1_qs;
+        reg_rdata_next[7:0] = pad_attribute_spi_flash_cs_1_qs;
       end
 
       addr_hit[47]: begin
-        reg_rdata_next[7:0] = pad_attribute_spi_flash_sd_2_qs;
+        reg_rdata_next[7:0] = pad_attribute_spi_flash_sd_0_qs;
       end
 
       addr_hit[48]: begin
-        reg_rdata_next[7:0] = pad_attribute_spi_flash_sd_3_qs;
+        reg_rdata_next[7:0] = pad_attribute_spi_flash_sd_1_qs;
       end
 
       addr_hit[49]: begin
-        reg_rdata_next[7:0] = pad_attribute_spi_sck_qs;
+        reg_rdata_next[7:0] = pad_attribute_spi_flash_sd_2_qs;
       end
 
       addr_hit[50]: begin
-        reg_rdata_next[7:0] = pad_attribute_spi_sd_0_qs;
+        reg_rdata_next[7:0] = pad_attribute_spi_flash_sd_3_qs;
       end
 
       addr_hit[51]: begin
-        reg_rdata_next[7:0] = pad_attribute_spi_sd_1_qs;
+        reg_rdata_next[7:0] = pad_attribute_spi_sck_qs;
       end
 
       addr_hit[52]: begin
-        reg_rdata_next[7:0] = pad_attribute_spi_sd_2_qs;
+        reg_rdata_next[7:0] = pad_attribute_spi_cs_0_qs;
       end
 
       addr_hit[53]: begin
-        reg_rdata_next[7:0] = pad_attribute_spi_sd_3_qs;
+        reg_rdata_next[7:0] = pad_attribute_spi_cs_1_qs;
       end
 
       addr_hit[54]: begin
-        reg_rdata_next[7:0] = pad_attribute_i2c_scl_qs;
+        reg_rdata_next[7:0] = pad_attribute_spi_sd_0_qs;
       end
 
       addr_hit[55]: begin
+        reg_rdata_next[7:0] = pad_attribute_spi_sd_1_qs;
+      end
+
+      addr_hit[56]: begin
+        reg_rdata_next[7:0] = pad_attribute_spi_sd_2_qs;
+      end
+
+      addr_hit[57]: begin
+        reg_rdata_next[7:0] = pad_attribute_spi_sd_3_qs;
+      end
+
+      addr_hit[58]: begin
+        reg_rdata_next[7:0] = pad_attribute_i2c_scl_qs;
+      end
+
+      addr_hit[59]: begin
         reg_rdata_next[7:0] = pad_attribute_i2c_sda_qs;
       end
 

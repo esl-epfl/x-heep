@@ -30,20 +30,11 @@ module core_v_mini_mcu
 
     output logic jtag_tdo_o,
 
-    input  logic uart_rx_i,
-    output logic gpio_25_o,
-    input  logic gpio_25_i,
-    output logic gpio_25_oe_o,
+    input logic uart_rx_i,
 
     output logic uart_tx_o,
-    output logic gpio_26_o,
-    input  logic gpio_26_i,
-    output logic gpio_26_oe_o,
 
     output logic exit_valid_o,
-    output logic gpio_27_o,
-    input  logic gpio_27_i,
-    output logic gpio_27_oe_o,
 
     output logic gpio_0_o,
     input  logic gpio_0_i,
@@ -145,6 +136,34 @@ module core_v_mini_mcu
     input  logic gpio_24_i,
     output logic gpio_24_oe_o,
 
+    output logic gpio_25_o,
+    input  logic gpio_25_i,
+    output logic gpio_25_oe_o,
+
+    output logic gpio_26_o,
+    input  logic gpio_26_i,
+    output logic gpio_26_oe_o,
+
+    output logic gpio_27_o,
+    input  logic gpio_27_i,
+    output logic gpio_27_oe_o,
+
+    output logic gpio_28_o,
+    input  logic gpio_28_i,
+    output logic gpio_28_oe_o,
+
+    output logic gpio_29_o,
+    input  logic gpio_29_i,
+    output logic gpio_29_oe_o,
+
+    output logic gpio_30_o,
+    input  logic gpio_30_i,
+    output logic gpio_30_oe_o,
+
+    output logic gpio_31_o,
+    input  logic gpio_31_i,
+    output logic gpio_31_oe_o,
+
     output logic spi_flash_sck_o,
     input  logic spi_flash_sck_i,
     output logic spi_flash_sck_oe_o,
@@ -177,6 +196,14 @@ module core_v_mini_mcu
     input  logic spi_sck_i,
     output logic spi_sck_oe_o,
 
+    output logic spi_cs_0_o,
+    input  logic spi_cs_0_i,
+    output logic spi_cs_0_oe_o,
+
+    output logic spi_cs_1_o,
+    input  logic spi_cs_1_i,
+    output logic spi_cs_1_oe_o,
+
     output logic spi_sd_0_o,
     input  logic spi_sd_0_i,
     output logic spi_sd_0_oe_o,
@@ -196,16 +223,10 @@ module core_v_mini_mcu
     output logic i2c_scl_o,
     input  logic i2c_scl_i,
     output logic i2c_scl_oe_o,
-    output logic gpio_28_o,
-    input  logic gpio_28_i,
-    output logic gpio_28_oe_o,
 
     output logic i2c_sda_o,
     input  logic i2c_sda_i,
     output logic i2c_sda_oe_o,
-    output logic gpio_29_o,
-    input  logic gpio_29_i,
-    output logic gpio_29_oe_o,
 
 
     //External PADs
