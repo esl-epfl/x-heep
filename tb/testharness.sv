@@ -151,10 +151,8 @@ module testharness #(
       .spi_sd_1_io(spi_sd_io[1]),
       .spi_sd_2_io(spi_sd_io[2]),
       .spi_sd_3_io(spi_sd_io[3]),
-
       .i2c_scl_io(),
       .i2c_sda_io(),
-
       .exit_value_o,
       .intr_vector_ext_i(intr_vector_ext),
       .ext_xbar_master_req_i(master_req),
@@ -162,9 +160,11 @@ module testharness #(
       .ext_xbar_slave_req_o(slave_req),
       .ext_xbar_slave_resp_i(slave_resp),
       .ext_peripheral_slave_req_o(periph_slave_req),
-      .ext_peripheral_slave_resp_i(periph_slave_resp)
+      .ext_peripheral_slave_resp_i(periph_slave_resp),
+      .external_subsystem_powergate_switch_o(),
+      .external_subsystem_powergate_iso_o(),
+      .external_subsystem_rst_no()
   );
-
 
   uartdpi #(
       .BAUD('d256000),

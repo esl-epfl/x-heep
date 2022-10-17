@@ -48,12 +48,16 @@ module ao_peripheral_subsystem
     input  logic                                      core_sleep_i,
     output logic                                      cpu_subsystem_powergate_switch_o,
     output logic                                      cpu_subsystem_powergate_iso_o,
+    output logic                                      cpu_subsystem_rst_no,
     output logic                                      peripheral_subsystem_powergate_switch_o,
     output logic                                      peripheral_subsystem_powergate_iso_o,
+    output logic                                      peripheral_subsystem_rst_no,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_o,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_o,
-    output logic                                      cpu_subsystem_rst_no,
-    output logic                                      peripheral_subsystem_rst_no,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_rst_no,
+    output logic                                      external_subsystem_powergate_switch_o,
+    output logic                                      external_subsystem_powergate_iso_o,
+    output logic                                      external_subsystem_rst_no,
 
     //RV TIMER
     output logic rv_timer_0_intr_o,
@@ -230,16 +234,20 @@ module ao_peripheral_subsystem
       .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
       .intr_i,
-      .ext_irq_i(intr_vector_ext_i),
+      .ext_irq_i(ext_intr_i),
       .core_sleep_i,
       .cpu_subsystem_powergate_switch_o,
       .cpu_subsystem_powergate_iso_o,
+      .cpu_subsystem_rst_no,
       .peripheral_subsystem_powergate_switch_o,
       .peripheral_subsystem_powergate_iso_o,
+      .peripheral_subsystem_rst_no,
       .memory_subsystem_banks_powergate_switch_o,
       .memory_subsystem_banks_powergate_iso_o,
-      .cpu_subsystem_rst_no,
-      .peripheral_subsystem_rst_no
+      .memory_subsystem_banks_rst_no,
+      .external_subsystem_powergate_switch_o,
+      .external_subsystem_powergate_iso_o,
+      .external_subsystem_rst_no
   );
 
   reg_to_tlul #(
