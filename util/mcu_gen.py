@@ -121,7 +121,7 @@ class Pad:
 
         self.mux_process += '  always_comb\n' + \
                             '  begin\n' + \
-                            '   unique case(pad_mux[core_v_mini_mcu_pkg::' + self.localparam + ']):\n'
+                            '   unique case(pad_muxes[core_v_mini_mcu_pkg::' + self.localparam + ']):\n'
 
         for i in range(cnt):
             self.mux_process += '    case(' + str(i) + '): begin\n' + \
@@ -177,6 +177,8 @@ class Pad:
     self.signal_name_drive = []
     self.pad_type_drive    = []
 
+    self.is_muxed = False
+
     if(len(pad_mux_list) == 0):
         self.signal_name_drive.append(self.signal_name)
         self.pad_type_drive.append(pad_type)
@@ -184,6 +186,7 @@ class Pad:
         for pad_mux in pad_mux_list:
             self.signal_name_drive.append(pad_mux.signal_name)
             self.pad_type_drive.append(pad_mux.pad_type)
+        self.is_muxed = True
 
     self.io_interface = self.signal_name + 'io'
 
@@ -385,8 +388,8 @@ def main():
     ext_periph_start_offset  = string2int(obj['ao_peripherals']['ext_periph']['offset'])
     ext_periph_size_address  = string2int(obj['ao_peripherals']['ext_periph']['length'])
 
-    pad_attribute_start_offset  = string2int(obj['ao_peripherals']['pad']['offset'])
-    pad_attribute_size_address  = string2int(obj['ao_peripherals']['pad']['length'])
+    pad_control_start_offset  = string2int(obj['ao_peripherals']['pad_control']['offset'])
+    pad_control_size_address  = string2int(obj['ao_peripherals']['pad_control']['length'])
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
@@ -522,6 +525,8 @@ def main():
     pad_core_v_mini_mcu_assign=''
     pad_mux_process=''
 
+    pad_muxed_list = []
+
     for key in pads:
 
         pad_name = key
@@ -567,6 +572,9 @@ def main():
                 pad_list.append(pad_obj)
                 pad_core_v_mini_mcu_assign+= pad_obj.core_v_mini_mcu_assign
                 pad_mux_process+=pad_obj.mux_process
+                if (pad_obj.is_muxed):
+                    pad_muxed_list.append(pad_obj)
+
         else:
             pad_cell_name = "pad_" + key + "_i"
             pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_index_counter, pad_active, pad_mux_list)
@@ -578,6 +586,8 @@ def main():
             pad_list.append(pad_obj)
             pad_core_v_mini_mcu_assign+= pad_obj.core_v_mini_mcu_assign
             pad_mux_process+=pad_obj.mux_process
+            if (pad_obj.is_muxed):
+                pad_muxed_list.append(pad_obj)
 
     if external_pads != None:
         external_pad_index_counter = 0
@@ -613,6 +623,8 @@ def main():
                     external_pad_list.append(pad_obj)
                     pad_core_v_mini_mcu_assign+= pad_obj.core_v_mini_mcu_assign
                     pad_mux_process+=pad_obj.mux_process
+                    if (pad_obj.is_muxed):
+                        pad_muxed_list.append(pad_obj)
 
             else:
                 pad_cell_name = "pad_" + key + "_i"
@@ -624,6 +636,9 @@ def main():
                 external_pad_list.append(pad_obj)
                 pad_core_v_mini_mcu_assign+= pad_obj.core_v_mini_mcu_assign
                 pad_mux_process+=pad_obj.mux_process
+                if (pad_obj.is_muxed):
+                    pad_muxed_list.append(pad_obj)
+
 
 
 
@@ -633,13 +648,15 @@ def main():
 
     total_pad = pad_index_counter + external_pad_index_counter
 
+    total_pad_muxed = len(pad_muxed_list)
+
     ##remove comma from last PAD io_interface
     last_pad = total_pad_list.pop()
     last_pad.remove_comma_io_interface()
     total_pad_list.append(last_pad)
 
     kwargs = {
-         "cpu_type"                         : cpu_type,
+        "cpu_type"                         : cpu_type,
         "bus_type"                         : bus_type,
         "ram_start_address"                : ram_start_address,
         "ram_numbanks"                     : ram_numbanks,
@@ -666,8 +683,8 @@ def main():
         "fast_intr_ctrl_size_address"      : fast_intr_ctrl_size_address,
         "ext_periph_start_offset"          : ext_periph_start_offset,
         "ext_periph_size_address"          : ext_periph_size_address,
-        "pad_attribute_start_offset"       : pad_attribute_start_offset,
-        "pad_attribute_size_address"       : pad_attribute_size_address,
+        "pad_control_start_offset"         : pad_control_start_offset,
+        "pad_control_size_address"         : pad_control_size_address,
         "spi_start_offset"                 : spi_start_offset,
         "spi_size_address"                 : spi_size_address,
         "peripheral_start_address"         : peripheral_start_address,
@@ -760,6 +777,8 @@ def main():
         "total_pad"                        : total_pad,
         "pad_core_v_mini_mcu_assign"       : pad_core_v_mini_mcu_assign,
         "pad_mux_process"                  : pad_mux_process,
+        "pad_muxed_list"                   : pad_muxed_list,
+        "total_pad_muxed"                  : total_pad_muxed,
     }
 
     ###########

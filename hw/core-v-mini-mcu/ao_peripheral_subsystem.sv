@@ -289,8 +289,8 @@ module ao_peripheral_subsystem
       .dma_intr_o
   );
 
-  assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX];
-  assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_ATTRIBUTE_IDX] = pad_resp_i;
+  assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_CONTROL_IDX];
+  assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_CONTROL_IDX] = pad_resp_i;
 
   fast_intr_ctrl #(
       .reg_req_t(reg_pkg::reg_req_t),
