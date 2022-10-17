@@ -50,10 +50,10 @@ module xilinx_core_v_mini_mcu_wrapper
 
 );
 
-  wire                                clk_gen;
-  logic [                       31:0] exit_value;
-  wire                                rst_n;
-  logic [ CLK_LED_COUNT_LENGTH - 1:0] clk_count;
+  wire                               clk_gen;
+  logic [                      31:0] exit_value;
+  wire                               rst_n;
+  logic [CLK_LED_COUNT_LENGTH - 1:0] clk_count;
 
   // low active reset
   assign rst_n   = !rst_i;
@@ -103,16 +103,16 @@ module xilinx_core_v_mini_mcu_wrapper
 
       .intr_vector_ext_i('0),
 
-      .gpio_0_io(gpio_io[0]),
-      .gpio_1_io(gpio_io[1]),
-      .gpio_2_io(gpio_io[2]),
-      .gpio_3_io(gpio_io[3]),
-      .gpio_4_io(gpio_io[4]),
-      .gpio_5_io(gpio_io[5]),
-      .gpio_6_io(gpio_io[6]),
-      .gpio_7_io(gpio_io[7]),
-      .gpio_8_io(gpio_io[8]),
-      .gpio_9_io(gpio_io[9]),
+      .gpio_0_io (gpio_io[0]),
+      .gpio_1_io (gpio_io[1]),
+      .gpio_2_io (gpio_io[2]),
+      .gpio_3_io (gpio_io[3]),
+      .gpio_4_io (gpio_io[4]),
+      .gpio_5_io (gpio_io[5]),
+      .gpio_6_io (gpio_io[6]),
+      .gpio_7_io (gpio_io[7]),
+      .gpio_8_io (gpio_io[8]),
+      .gpio_9_io (gpio_io[9]),
       .gpio_10_io(gpio_io[10]),
       .gpio_11_io(gpio_io[11]),
       .gpio_12_io(gpio_io[12]),
@@ -146,15 +146,15 @@ module xilinx_core_v_mini_mcu_wrapper
       .spi_flash_sd_3_io(spi_flash_sd_io[3]),
       .spi_flash_cs_0_io(spi_flash_csb_o),
       .spi_flash_cs_1_io(),
-      .spi_flash_sck_io(spi_flash_sck_o),
+      .spi_flash_sck_io (spi_flash_sck_o),
 
       .spi_sd_0_io(spi_sd_io[0]),
       .spi_sd_1_io(spi_sd_io[1]),
       .spi_sd_2_io(spi_sd_io[2]),
       .spi_sd_3_io(spi_sd_io[3]),
       .spi_cs_0_io(spi_csb_o),
-      .spi_cs_1_io()
-      .spi_sck_io(spi_sck_o),
+      .spi_cs_1_io(),
+      .spi_sck_io (spi_sck_o),
 
       .exit_value_o(exit_value),
       .exit_valid_o(exit_valid_o),
