@@ -101,8 +101,6 @@ package pad_control_reg_pkg;
 
   typedef struct packed {logic [7:0] q;} pad_control_reg2hw_pad_attribute_gpio_30_reg_t;
 
-  typedef struct packed {logic [7:0] q;} pad_control_reg2hw_pad_attribute_gpio_31_reg_t;
-
   typedef struct packed {logic [7:0] q;} pad_control_reg2hw_pad_attribute_spi_flash_sck_reg_t;
 
   typedef struct packed {logic [7:0] q;} pad_control_reg2hw_pad_attribute_spi_flash_cs_0_reg_t;
@@ -137,51 +135,50 @@ package pad_control_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    pad_control_reg2hw_pad_mux_exit_valid_reg_t pad_mux_exit_valid;  // [483:480]
-    pad_control_reg2hw_pad_attribute_clk_reg_t pad_attribute_clk;  // [479:472]
-    pad_control_reg2hw_pad_attribute_rst_reg_t pad_attribute_rst;  // [471:464]
-    pad_control_reg2hw_pad_attribute_boot_select_reg_t pad_attribute_boot_select;  // [463:456]
-    pad_control_reg2hw_pad_attribute_execute_from_flash_reg_t pad_attribute_execute_from_flash; // [455:448]
-    pad_control_reg2hw_pad_attribute_jtag_tck_reg_t pad_attribute_jtag_tck;  // [447:440]
-    pad_control_reg2hw_pad_attribute_jtag_tms_reg_t pad_attribute_jtag_tms;  // [439:432]
-    pad_control_reg2hw_pad_attribute_jtag_trst_reg_t pad_attribute_jtag_trst;  // [431:424]
-    pad_control_reg2hw_pad_attribute_jtag_tdi_reg_t pad_attribute_jtag_tdi;  // [423:416]
-    pad_control_reg2hw_pad_attribute_jtag_tdo_reg_t pad_attribute_jtag_tdo;  // [415:408]
-    pad_control_reg2hw_pad_attribute_uart_rx_reg_t pad_attribute_uart_rx;  // [407:400]
-    pad_control_reg2hw_pad_attribute_uart_tx_reg_t pad_attribute_uart_tx;  // [399:392]
-    pad_control_reg2hw_pad_attribute_exit_valid_reg_t pad_attribute_exit_valid;  // [391:384]
-    pad_control_reg2hw_pad_attribute_gpio_0_reg_t pad_attribute_gpio_0;  // [383:376]
-    pad_control_reg2hw_pad_attribute_gpio_1_reg_t pad_attribute_gpio_1;  // [375:368]
-    pad_control_reg2hw_pad_attribute_gpio_2_reg_t pad_attribute_gpio_2;  // [367:360]
-    pad_control_reg2hw_pad_attribute_gpio_3_reg_t pad_attribute_gpio_3;  // [359:352]
-    pad_control_reg2hw_pad_attribute_gpio_4_reg_t pad_attribute_gpio_4;  // [351:344]
-    pad_control_reg2hw_pad_attribute_gpio_5_reg_t pad_attribute_gpio_5;  // [343:336]
-    pad_control_reg2hw_pad_attribute_gpio_6_reg_t pad_attribute_gpio_6;  // [335:328]
-    pad_control_reg2hw_pad_attribute_gpio_7_reg_t pad_attribute_gpio_7;  // [327:320]
-    pad_control_reg2hw_pad_attribute_gpio_8_reg_t pad_attribute_gpio_8;  // [319:312]
-    pad_control_reg2hw_pad_attribute_gpio_9_reg_t pad_attribute_gpio_9;  // [311:304]
-    pad_control_reg2hw_pad_attribute_gpio_10_reg_t pad_attribute_gpio_10;  // [303:296]
-    pad_control_reg2hw_pad_attribute_gpio_11_reg_t pad_attribute_gpio_11;  // [295:288]
-    pad_control_reg2hw_pad_attribute_gpio_12_reg_t pad_attribute_gpio_12;  // [287:280]
-    pad_control_reg2hw_pad_attribute_gpio_13_reg_t pad_attribute_gpio_13;  // [279:272]
-    pad_control_reg2hw_pad_attribute_gpio_14_reg_t pad_attribute_gpio_14;  // [271:264]
-    pad_control_reg2hw_pad_attribute_gpio_15_reg_t pad_attribute_gpio_15;  // [263:256]
-    pad_control_reg2hw_pad_attribute_gpio_16_reg_t pad_attribute_gpio_16;  // [255:248]
-    pad_control_reg2hw_pad_attribute_gpio_17_reg_t pad_attribute_gpio_17;  // [247:240]
-    pad_control_reg2hw_pad_attribute_gpio_18_reg_t pad_attribute_gpio_18;  // [239:232]
-    pad_control_reg2hw_pad_attribute_gpio_19_reg_t pad_attribute_gpio_19;  // [231:224]
-    pad_control_reg2hw_pad_attribute_gpio_20_reg_t pad_attribute_gpio_20;  // [223:216]
-    pad_control_reg2hw_pad_attribute_gpio_21_reg_t pad_attribute_gpio_21;  // [215:208]
-    pad_control_reg2hw_pad_attribute_gpio_22_reg_t pad_attribute_gpio_22;  // [207:200]
-    pad_control_reg2hw_pad_attribute_gpio_23_reg_t pad_attribute_gpio_23;  // [199:192]
-    pad_control_reg2hw_pad_attribute_gpio_24_reg_t pad_attribute_gpio_24;  // [191:184]
-    pad_control_reg2hw_pad_attribute_gpio_25_reg_t pad_attribute_gpio_25;  // [183:176]
-    pad_control_reg2hw_pad_attribute_gpio_26_reg_t pad_attribute_gpio_26;  // [175:168]
-    pad_control_reg2hw_pad_attribute_gpio_27_reg_t pad_attribute_gpio_27;  // [167:160]
-    pad_control_reg2hw_pad_attribute_gpio_28_reg_t pad_attribute_gpio_28;  // [159:152]
-    pad_control_reg2hw_pad_attribute_gpio_29_reg_t pad_attribute_gpio_29;  // [151:144]
-    pad_control_reg2hw_pad_attribute_gpio_30_reg_t pad_attribute_gpio_30;  // [143:136]
-    pad_control_reg2hw_pad_attribute_gpio_31_reg_t pad_attribute_gpio_31;  // [135:128]
+    pad_control_reg2hw_pad_mux_exit_valid_reg_t pad_mux_exit_valid;  // [475:472]
+    pad_control_reg2hw_pad_attribute_clk_reg_t pad_attribute_clk;  // [471:464]
+    pad_control_reg2hw_pad_attribute_rst_reg_t pad_attribute_rst;  // [463:456]
+    pad_control_reg2hw_pad_attribute_boot_select_reg_t pad_attribute_boot_select;  // [455:448]
+    pad_control_reg2hw_pad_attribute_execute_from_flash_reg_t pad_attribute_execute_from_flash; // [447:440]
+    pad_control_reg2hw_pad_attribute_jtag_tck_reg_t pad_attribute_jtag_tck;  // [439:432]
+    pad_control_reg2hw_pad_attribute_jtag_tms_reg_t pad_attribute_jtag_tms;  // [431:424]
+    pad_control_reg2hw_pad_attribute_jtag_trst_reg_t pad_attribute_jtag_trst;  // [423:416]
+    pad_control_reg2hw_pad_attribute_jtag_tdi_reg_t pad_attribute_jtag_tdi;  // [415:408]
+    pad_control_reg2hw_pad_attribute_jtag_tdo_reg_t pad_attribute_jtag_tdo;  // [407:400]
+    pad_control_reg2hw_pad_attribute_uart_rx_reg_t pad_attribute_uart_rx;  // [399:392]
+    pad_control_reg2hw_pad_attribute_uart_tx_reg_t pad_attribute_uart_tx;  // [391:384]
+    pad_control_reg2hw_pad_attribute_exit_valid_reg_t pad_attribute_exit_valid;  // [383:376]
+    pad_control_reg2hw_pad_attribute_gpio_0_reg_t pad_attribute_gpio_0;  // [375:368]
+    pad_control_reg2hw_pad_attribute_gpio_1_reg_t pad_attribute_gpio_1;  // [367:360]
+    pad_control_reg2hw_pad_attribute_gpio_2_reg_t pad_attribute_gpio_2;  // [359:352]
+    pad_control_reg2hw_pad_attribute_gpio_3_reg_t pad_attribute_gpio_3;  // [351:344]
+    pad_control_reg2hw_pad_attribute_gpio_4_reg_t pad_attribute_gpio_4;  // [343:336]
+    pad_control_reg2hw_pad_attribute_gpio_5_reg_t pad_attribute_gpio_5;  // [335:328]
+    pad_control_reg2hw_pad_attribute_gpio_6_reg_t pad_attribute_gpio_6;  // [327:320]
+    pad_control_reg2hw_pad_attribute_gpio_7_reg_t pad_attribute_gpio_7;  // [319:312]
+    pad_control_reg2hw_pad_attribute_gpio_8_reg_t pad_attribute_gpio_8;  // [311:304]
+    pad_control_reg2hw_pad_attribute_gpio_9_reg_t pad_attribute_gpio_9;  // [303:296]
+    pad_control_reg2hw_pad_attribute_gpio_10_reg_t pad_attribute_gpio_10;  // [295:288]
+    pad_control_reg2hw_pad_attribute_gpio_11_reg_t pad_attribute_gpio_11;  // [287:280]
+    pad_control_reg2hw_pad_attribute_gpio_12_reg_t pad_attribute_gpio_12;  // [279:272]
+    pad_control_reg2hw_pad_attribute_gpio_13_reg_t pad_attribute_gpio_13;  // [271:264]
+    pad_control_reg2hw_pad_attribute_gpio_14_reg_t pad_attribute_gpio_14;  // [263:256]
+    pad_control_reg2hw_pad_attribute_gpio_15_reg_t pad_attribute_gpio_15;  // [255:248]
+    pad_control_reg2hw_pad_attribute_gpio_16_reg_t pad_attribute_gpio_16;  // [247:240]
+    pad_control_reg2hw_pad_attribute_gpio_17_reg_t pad_attribute_gpio_17;  // [239:232]
+    pad_control_reg2hw_pad_attribute_gpio_18_reg_t pad_attribute_gpio_18;  // [231:224]
+    pad_control_reg2hw_pad_attribute_gpio_19_reg_t pad_attribute_gpio_19;  // [223:216]
+    pad_control_reg2hw_pad_attribute_gpio_20_reg_t pad_attribute_gpio_20;  // [215:208]
+    pad_control_reg2hw_pad_attribute_gpio_21_reg_t pad_attribute_gpio_21;  // [207:200]
+    pad_control_reg2hw_pad_attribute_gpio_22_reg_t pad_attribute_gpio_22;  // [199:192]
+    pad_control_reg2hw_pad_attribute_gpio_23_reg_t pad_attribute_gpio_23;  // [191:184]
+    pad_control_reg2hw_pad_attribute_gpio_24_reg_t pad_attribute_gpio_24;  // [183:176]
+    pad_control_reg2hw_pad_attribute_gpio_25_reg_t pad_attribute_gpio_25;  // [175:168]
+    pad_control_reg2hw_pad_attribute_gpio_26_reg_t pad_attribute_gpio_26;  // [167:160]
+    pad_control_reg2hw_pad_attribute_gpio_27_reg_t pad_attribute_gpio_27;  // [159:152]
+    pad_control_reg2hw_pad_attribute_gpio_28_reg_t pad_attribute_gpio_28;  // [151:144]
+    pad_control_reg2hw_pad_attribute_gpio_29_reg_t pad_attribute_gpio_29;  // [143:136]
+    pad_control_reg2hw_pad_attribute_gpio_30_reg_t pad_attribute_gpio_30;  // [135:128]
     pad_control_reg2hw_pad_attribute_spi_flash_sck_reg_t pad_attribute_spi_flash_sck;  // [127:120]
     pad_control_reg2hw_pad_attribute_spi_flash_cs_0_reg_t pad_attribute_spi_flash_cs_0; // [119:112]
     pad_control_reg2hw_pad_attribute_spi_flash_cs_1_reg_t pad_attribute_spi_flash_cs_1; // [111:104]
@@ -245,23 +242,22 @@ package pad_control_reg_pkg;
   parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_GPIO_28_OFFSET = 8'ha4;
   parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_GPIO_29_OFFSET = 8'ha8;
   parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_GPIO_30_OFFSET = 8'hac;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_GPIO_31_OFFSET = 8'hb0;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SCK_OFFSET = 8'hb4;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_0_OFFSET = 8'hb8;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_1_OFFSET = 8'hbc;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_0_OFFSET = 8'hc0;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_1_OFFSET = 8'hc4;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_2_OFFSET = 8'hc8;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_3_OFFSET = 8'hcc;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SCK_OFFSET = 8'hd0;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_CS_0_OFFSET = 8'hd4;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_CS_1_OFFSET = 8'hd8;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_0_OFFSET = 8'hdc;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_1_OFFSET = 8'he0;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_2_OFFSET = 8'he4;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_3_OFFSET = 8'he8;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_I2C_SCL_OFFSET = 8'hec;
-  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_I2C_SDA_OFFSET = 8'hf0;
+  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SCK_OFFSET = 8'hb0;
+  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_0_OFFSET = 8'hb4;
+  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_1_OFFSET = 8'hb8;
+  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_0_OFFSET = 8'hbc;
+  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_1_OFFSET = 8'hc0;
+  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_2_OFFSET = 8'hc4;
+  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_3_OFFSET = 8'hc8;
+  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SCK_OFFSET = 8'hcc;
+  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_CS_0_OFFSET = 8'hd0;
+  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_CS_1_OFFSET = 8'hd4;
+  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_0_OFFSET = 8'hd8;
+  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_1_OFFSET = 8'hdc;
+  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_2_OFFSET = 8'he0;
+  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_3_OFFSET = 8'he4;
+  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_I2C_SCL_OFFSET = 8'he8;
+  parameter logic [BlockAw-1:0] PAD_CONTROL_PAD_ATTRIBUTE_I2C_SDA_OFFSET = 8'hec;
 
   // Register index
   typedef enum int {
@@ -309,7 +305,6 @@ package pad_control_reg_pkg;
     PAD_CONTROL_PAD_ATTRIBUTE_GPIO_28,
     PAD_CONTROL_PAD_ATTRIBUTE_GPIO_29,
     PAD_CONTROL_PAD_ATTRIBUTE_GPIO_30,
-    PAD_CONTROL_PAD_ATTRIBUTE_GPIO_31,
     PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SCK,
     PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_0,
     PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_1,
@@ -329,7 +324,7 @@ package pad_control_reg_pkg;
   } pad_control_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] PAD_CONTROL_PERMIT[61] = '{
+  parameter logic [3:0] PAD_CONTROL_PERMIT[60] = '{
       4'b0001,  // index[ 0] PAD_CONTROL_PAD_MUX_EXIT_VALID
       4'b0001,  // index[ 1] PAD_CONTROL_PAD_ATTRIBUTE_CLK
       4'b0001,  // index[ 2] PAD_CONTROL_PAD_ATTRIBUTE_RST
@@ -374,23 +369,22 @@ package pad_control_reg_pkg;
       4'b0001,  // index[41] PAD_CONTROL_PAD_ATTRIBUTE_GPIO_28
       4'b0001,  // index[42] PAD_CONTROL_PAD_ATTRIBUTE_GPIO_29
       4'b0001,  // index[43] PAD_CONTROL_PAD_ATTRIBUTE_GPIO_30
-      4'b0001,  // index[44] PAD_CONTROL_PAD_ATTRIBUTE_GPIO_31
-      4'b0001,  // index[45] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SCK
-      4'b0001,  // index[46] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_0
-      4'b0001,  // index[47] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_1
-      4'b0001,  // index[48] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_0
-      4'b0001,  // index[49] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_1
-      4'b0001,  // index[50] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_2
-      4'b0001,  // index[51] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_3
-      4'b0001,  // index[52] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SCK
-      4'b0001,  // index[53] PAD_CONTROL_PAD_ATTRIBUTE_SPI_CS_0
-      4'b0001,  // index[54] PAD_CONTROL_PAD_ATTRIBUTE_SPI_CS_1
-      4'b0001,  // index[55] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_0
-      4'b0001,  // index[56] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_1
-      4'b0001,  // index[57] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_2
-      4'b0001,  // index[58] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_3
-      4'b0001,  // index[59] PAD_CONTROL_PAD_ATTRIBUTE_I2C_SCL
-      4'b0001  // index[60] PAD_CONTROL_PAD_ATTRIBUTE_I2C_SDA
+      4'b0001,  // index[44] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SCK
+      4'b0001,  // index[45] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_0
+      4'b0001,  // index[46] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_1
+      4'b0001,  // index[47] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_0
+      4'b0001,  // index[48] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_1
+      4'b0001,  // index[49] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_2
+      4'b0001,  // index[50] PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_3
+      4'b0001,  // index[51] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SCK
+      4'b0001,  // index[52] PAD_CONTROL_PAD_ATTRIBUTE_SPI_CS_0
+      4'b0001,  // index[53] PAD_CONTROL_PAD_ATTRIBUTE_SPI_CS_1
+      4'b0001,  // index[54] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_0
+      4'b0001,  // index[55] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_1
+      4'b0001,  // index[56] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_2
+      4'b0001,  // index[57] PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_3
+      4'b0001,  // index[58] PAD_CONTROL_PAD_ATTRIBUTE_I2C_SCL
+      4'b0001  // index[59] PAD_CONTROL_PAD_ATTRIBUTE_I2C_SDA
   };
 
 endpackage

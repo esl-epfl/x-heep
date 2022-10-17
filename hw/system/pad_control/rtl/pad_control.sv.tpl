@@ -25,6 +25,18 @@ module pad_control #(
 
   pad_control_reg2hw_t reg2hw;
 
+  pad_control_reg_top #(
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t)
+  ) pad_control_reg_top_i (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i,
+      .reg_rsp_o,
+      .reg2hw,
+      .devmode_i(1'b1)
+  );
+
 % for pad in total_pad_list:
   assign pad_attributes_o[${pad.localparam}] = reg2hw.pad_attribute_${pad.name}.q;
 % endfor

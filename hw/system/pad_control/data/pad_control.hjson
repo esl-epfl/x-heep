@@ -450,16 +450,6 @@
       ]
     }
 
-    { name:     "PAD_ATTRIBUTE_GPIO_31",
-      desc:     "gpio_31 Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
-      resval:   "0x00"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "7:0", name: "PAD_ATTRIBUTE_GPIO_31", desc: "Pad Attribute GPIO_31 Reg" }
-      ]
-    }
-
     { name:     "PAD_ATTRIBUTE_SPI_FLASH_SCK",
       desc:     "spi_flash_sck Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
       resval:   "0x00"

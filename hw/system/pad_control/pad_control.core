@@ -1,0 +1,23 @@
+CAPI=2:
+
+name: "x-heep:ip:pad_control"
+description: "core-v-mini-mcu dma peripheral"
+
+# Copyright 2022 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+      - pulp-platform.org::common_cells
+    files:
+    - rtl/pad_control_reg_pkg.sv
+    - rtl/pad_control_reg_top.sv
+    - rtl/pad_control.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl

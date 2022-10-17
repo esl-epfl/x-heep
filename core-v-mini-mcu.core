@@ -31,7 +31,6 @@ filesets:
     - x-heep:ip:dma
     - x-heep:ip:power_manager
     - x-heep:ip:fast_intr_ctrl
-    - x-heep:ip:pad_attribute
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
@@ -59,6 +58,7 @@ filesets:
   x_heep_system:
     depend:
     - x-heep::packages
+    - x-heep:ip:pad_control
     files:
     - hw/system/x_heep_system.sv
     - hw/system/pad_ring.sv
@@ -79,7 +79,8 @@ filesets:
     - hw/ip/dma/dma.vlt
     - hw/ip/power_manager/power_manager.vlt
     - hw/ip/fast_intr_ctrl/fast_intr_ctrl.vlt
-    - hw/ip/pad_attribute/pad_attribute.vlt
+    - hw/system/pad_control/pad_control.vlt
+    - hw/system/x_heep_system.vlt
     file_type: vlt
 
   rtl-fpga:

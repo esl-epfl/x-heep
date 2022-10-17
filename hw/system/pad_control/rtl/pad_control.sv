@@ -25,6 +25,18 @@ module pad_control #(
 
   pad_control_reg2hw_t reg2hw;
 
+  pad_control_reg_top #(
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_rsp_t)
+  ) pad_control_reg_top_i (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i,
+      .reg_rsp_o,
+      .reg2hw,
+      .devmode_i(1'b1)
+  );
+
   assign pad_attributes_o[PAD_CLK] = reg2hw.pad_attribute_clk.q;
   assign pad_attributes_o[PAD_RST] = reg2hw.pad_attribute_rst.q;
   assign pad_attributes_o[PAD_BOOT_SELECT] = reg2hw.pad_attribute_boot_select.q;
@@ -68,7 +80,6 @@ module pad_control #(
   assign pad_attributes_o[PAD_GPIO_28] = reg2hw.pad_attribute_gpio_28.q;
   assign pad_attributes_o[PAD_GPIO_29] = reg2hw.pad_attribute_gpio_29.q;
   assign pad_attributes_o[PAD_GPIO_30] = reg2hw.pad_attribute_gpio_30.q;
-  assign pad_attributes_o[PAD_GPIO_31] = reg2hw.pad_attribute_gpio_31.q;
   assign pad_attributes_o[PAD_SPI_FLASH_SCK] = reg2hw.pad_attribute_spi_flash_sck.q;
   assign pad_attributes_o[PAD_SPI_FLASH_CS_0] = reg2hw.pad_attribute_spi_flash_cs_0.q;
   assign pad_attributes_o[PAD_SPI_FLASH_CS_1] = reg2hw.pad_attribute_spi_flash_cs_1.q;

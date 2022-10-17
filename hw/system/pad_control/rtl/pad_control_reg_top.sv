@@ -199,9 +199,6 @@ module pad_control_reg_top #(
   logic [7:0] pad_attribute_gpio_30_qs;
   logic [7:0] pad_attribute_gpio_30_wd;
   logic pad_attribute_gpio_30_we;
-  logic [7:0] pad_attribute_gpio_31_qs;
-  logic [7:0] pad_attribute_gpio_31_wd;
-  logic pad_attribute_gpio_31_we;
   logic [7:0] pad_attribute_spi_flash_sck_qs;
   logic [7:0] pad_attribute_spi_flash_sck_wd;
   logic pad_attribute_spi_flash_sck_we;
@@ -1440,33 +1437,6 @@ module pad_control_reg_top #(
   );
 
 
-  // R[pad_attribute_gpio_31]: V(False)
-
-  prim_subreg #(
-      .DW      (8),
-      .SWACCESS("RW"),
-      .RESVAL  (8'h0)
-  ) u_pad_attribute_gpio_31 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(pad_attribute_gpio_31_we),
-      .wd(pad_attribute_gpio_31_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.pad_attribute_gpio_31.q),
-
-      // to register interface (read)
-      .qs(pad_attribute_gpio_31_qs)
-  );
-
-
   // R[pad_attribute_spi_flash_sck]: V(False)
 
   prim_subreg #(
@@ -1901,7 +1871,7 @@ module pad_control_reg_top #(
 
 
 
-  logic [60:0] addr_hit;
+  logic [59:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == PAD_CONTROL_PAD_MUX_EXIT_VALID_OFFSET);
@@ -1948,23 +1918,22 @@ module pad_control_reg_top #(
     addr_hit[41] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_28_OFFSET);
     addr_hit[42] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_29_OFFSET);
     addr_hit[43] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_30_OFFSET);
-    addr_hit[44] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_GPIO_31_OFFSET);
-    addr_hit[45] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SCK_OFFSET);
-    addr_hit[46] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_0_OFFSET);
-    addr_hit[47] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_1_OFFSET);
-    addr_hit[48] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_0_OFFSET);
-    addr_hit[49] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_1_OFFSET);
-    addr_hit[50] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_2_OFFSET);
-    addr_hit[51] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_3_OFFSET);
-    addr_hit[52] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SCK_OFFSET);
-    addr_hit[53] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_CS_0_OFFSET);
-    addr_hit[54] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_CS_1_OFFSET);
-    addr_hit[55] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_0_OFFSET);
-    addr_hit[56] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_1_OFFSET);
-    addr_hit[57] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_2_OFFSET);
-    addr_hit[58] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_3_OFFSET);
-    addr_hit[59] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_I2C_SCL_OFFSET);
-    addr_hit[60] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_I2C_SDA_OFFSET);
+    addr_hit[44] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SCK_OFFSET);
+    addr_hit[45] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_0_OFFSET);
+    addr_hit[46] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_CS_1_OFFSET);
+    addr_hit[47] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_0_OFFSET);
+    addr_hit[48] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_1_OFFSET);
+    addr_hit[49] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_2_OFFSET);
+    addr_hit[50] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_FLASH_SD_3_OFFSET);
+    addr_hit[51] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SCK_OFFSET);
+    addr_hit[52] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_CS_0_OFFSET);
+    addr_hit[53] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_CS_1_OFFSET);
+    addr_hit[54] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_0_OFFSET);
+    addr_hit[55] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_1_OFFSET);
+    addr_hit[56] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_2_OFFSET);
+    addr_hit[57] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_SPI_SD_3_OFFSET);
+    addr_hit[58] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_I2C_SCL_OFFSET);
+    addr_hit[59] = (reg_addr == PAD_CONTROL_PAD_ATTRIBUTE_I2C_SDA_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -2031,8 +2000,7 @@ module pad_control_reg_top #(
                (addr_hit[56] & (|(PAD_CONTROL_PERMIT[56] & ~reg_be))) |
                (addr_hit[57] & (|(PAD_CONTROL_PERMIT[57] & ~reg_be))) |
                (addr_hit[58] & (|(PAD_CONTROL_PERMIT[58] & ~reg_be))) |
-               (addr_hit[59] & (|(PAD_CONTROL_PERMIT[59] & ~reg_be))) |
-               (addr_hit[60] & (|(PAD_CONTROL_PERMIT[60] & ~reg_be)))));
+               (addr_hit[59] & (|(PAD_CONTROL_PERMIT[59] & ~reg_be)))));
   end
 
   assign pad_mux_exit_valid_we = addr_hit[0] & reg_we & !reg_error;
@@ -2167,55 +2135,52 @@ module pad_control_reg_top #(
   assign pad_attribute_gpio_30_we = addr_hit[43] & reg_we & !reg_error;
   assign pad_attribute_gpio_30_wd = reg_wdata[7:0];
 
-  assign pad_attribute_gpio_31_we = addr_hit[44] & reg_we & !reg_error;
-  assign pad_attribute_gpio_31_wd = reg_wdata[7:0];
-
-  assign pad_attribute_spi_flash_sck_we = addr_hit[45] & reg_we & !reg_error;
+  assign pad_attribute_spi_flash_sck_we = addr_hit[44] & reg_we & !reg_error;
   assign pad_attribute_spi_flash_sck_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_flash_cs_0_we = addr_hit[46] & reg_we & !reg_error;
+  assign pad_attribute_spi_flash_cs_0_we = addr_hit[45] & reg_we & !reg_error;
   assign pad_attribute_spi_flash_cs_0_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_flash_cs_1_we = addr_hit[47] & reg_we & !reg_error;
+  assign pad_attribute_spi_flash_cs_1_we = addr_hit[46] & reg_we & !reg_error;
   assign pad_attribute_spi_flash_cs_1_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_flash_sd_0_we = addr_hit[48] & reg_we & !reg_error;
+  assign pad_attribute_spi_flash_sd_0_we = addr_hit[47] & reg_we & !reg_error;
   assign pad_attribute_spi_flash_sd_0_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_flash_sd_1_we = addr_hit[49] & reg_we & !reg_error;
+  assign pad_attribute_spi_flash_sd_1_we = addr_hit[48] & reg_we & !reg_error;
   assign pad_attribute_spi_flash_sd_1_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_flash_sd_2_we = addr_hit[50] & reg_we & !reg_error;
+  assign pad_attribute_spi_flash_sd_2_we = addr_hit[49] & reg_we & !reg_error;
   assign pad_attribute_spi_flash_sd_2_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_flash_sd_3_we = addr_hit[51] & reg_we & !reg_error;
+  assign pad_attribute_spi_flash_sd_3_we = addr_hit[50] & reg_we & !reg_error;
   assign pad_attribute_spi_flash_sd_3_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_sck_we = addr_hit[52] & reg_we & !reg_error;
+  assign pad_attribute_spi_sck_we = addr_hit[51] & reg_we & !reg_error;
   assign pad_attribute_spi_sck_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_cs_0_we = addr_hit[53] & reg_we & !reg_error;
+  assign pad_attribute_spi_cs_0_we = addr_hit[52] & reg_we & !reg_error;
   assign pad_attribute_spi_cs_0_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_cs_1_we = addr_hit[54] & reg_we & !reg_error;
+  assign pad_attribute_spi_cs_1_we = addr_hit[53] & reg_we & !reg_error;
   assign pad_attribute_spi_cs_1_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_sd_0_we = addr_hit[55] & reg_we & !reg_error;
+  assign pad_attribute_spi_sd_0_we = addr_hit[54] & reg_we & !reg_error;
   assign pad_attribute_spi_sd_0_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_sd_1_we = addr_hit[56] & reg_we & !reg_error;
+  assign pad_attribute_spi_sd_1_we = addr_hit[55] & reg_we & !reg_error;
   assign pad_attribute_spi_sd_1_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_sd_2_we = addr_hit[57] & reg_we & !reg_error;
+  assign pad_attribute_spi_sd_2_we = addr_hit[56] & reg_we & !reg_error;
   assign pad_attribute_spi_sd_2_wd = reg_wdata[7:0];
 
-  assign pad_attribute_spi_sd_3_we = addr_hit[58] & reg_we & !reg_error;
+  assign pad_attribute_spi_sd_3_we = addr_hit[57] & reg_we & !reg_error;
   assign pad_attribute_spi_sd_3_wd = reg_wdata[7:0];
 
-  assign pad_attribute_i2c_scl_we = addr_hit[59] & reg_we & !reg_error;
+  assign pad_attribute_i2c_scl_we = addr_hit[58] & reg_we & !reg_error;
   assign pad_attribute_i2c_scl_wd = reg_wdata[7:0];
 
-  assign pad_attribute_i2c_sda_we = addr_hit[60] & reg_we & !reg_error;
+  assign pad_attribute_i2c_sda_we = addr_hit[59] & reg_we & !reg_error;
   assign pad_attribute_i2c_sda_wd = reg_wdata[7:0];
 
   // Read data return
@@ -2399,70 +2364,66 @@ module pad_control_reg_top #(
       end
 
       addr_hit[44]: begin
-        reg_rdata_next[7:0] = pad_attribute_gpio_31_qs;
-      end
-
-      addr_hit[45]: begin
         reg_rdata_next[7:0] = pad_attribute_spi_flash_sck_qs;
       end
 
-      addr_hit[46]: begin
+      addr_hit[45]: begin
         reg_rdata_next[7:0] = pad_attribute_spi_flash_cs_0_qs;
       end
 
-      addr_hit[47]: begin
+      addr_hit[46]: begin
         reg_rdata_next[7:0] = pad_attribute_spi_flash_cs_1_qs;
       end
 
-      addr_hit[48]: begin
+      addr_hit[47]: begin
         reg_rdata_next[7:0] = pad_attribute_spi_flash_sd_0_qs;
       end
 
-      addr_hit[49]: begin
+      addr_hit[48]: begin
         reg_rdata_next[7:0] = pad_attribute_spi_flash_sd_1_qs;
       end
 
-      addr_hit[50]: begin
+      addr_hit[49]: begin
         reg_rdata_next[7:0] = pad_attribute_spi_flash_sd_2_qs;
       end
 
-      addr_hit[51]: begin
+      addr_hit[50]: begin
         reg_rdata_next[7:0] = pad_attribute_spi_flash_sd_3_qs;
       end
 
-      addr_hit[52]: begin
+      addr_hit[51]: begin
         reg_rdata_next[7:0] = pad_attribute_spi_sck_qs;
       end
 
-      addr_hit[53]: begin
+      addr_hit[52]: begin
         reg_rdata_next[7:0] = pad_attribute_spi_cs_0_qs;
       end
 
-      addr_hit[54]: begin
+      addr_hit[53]: begin
         reg_rdata_next[7:0] = pad_attribute_spi_cs_1_qs;
       end
 
-      addr_hit[55]: begin
+      addr_hit[54]: begin
         reg_rdata_next[7:0] = pad_attribute_spi_sd_0_qs;
       end
 
-      addr_hit[56]: begin
+      addr_hit[55]: begin
         reg_rdata_next[7:0] = pad_attribute_spi_sd_1_qs;
       end
 
-      addr_hit[57]: begin
+      addr_hit[56]: begin
         reg_rdata_next[7:0] = pad_attribute_spi_sd_2_qs;
       end
 
-      addr_hit[58]: begin
+      addr_hit[57]: begin
         reg_rdata_next[7:0] = pad_attribute_spi_sd_3_qs;
       end
 
-      addr_hit[59]: begin
+      addr_hit[58]: begin
         reg_rdata_next[7:0] = pad_attribute_i2c_scl_qs;
       end
 
-      addr_hit[60]: begin
+      addr_hit[59]: begin
         reg_rdata_next[7:0] = pad_attribute_i2c_sda_qs;
       end
 

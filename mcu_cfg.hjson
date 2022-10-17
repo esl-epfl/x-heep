@@ -235,19 +235,19 @@
         },
         exit_valid: {
             num: 1,
-            type: inout
+            type: output
             mux: {
-                pippo: {
-                    type: input
+                gpio_31: {
+                    type: inout
                 },
-                pluto: {
+                exit_valid: {
                     type: output
                 }
 
             }
         },
         gpio: {
-            num: 32,
+            num: 31,
             num_offset: 0, #first gpio is gpio0
             type: inout
         },

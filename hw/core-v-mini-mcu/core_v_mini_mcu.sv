@@ -34,8 +34,10 @@ module core_v_mini_mcu
 
     output logic uart_tx_o,
 
-    input  logic pippo_i,
-    output logic pluto_o,
+    output logic gpio_31_o,
+    input  logic gpio_31_i,
+    output logic gpio_31_oe_o,
+    output logic exit_valid_o,
 
     output logic gpio_0_o,
     input  logic gpio_0_i,
@@ -160,10 +162,6 @@ module core_v_mini_mcu
     output logic gpio_30_o,
     input  logic gpio_30_i,
     output logic gpio_30_oe_o,
-
-    output logic gpio_31_o,
-    input  logic gpio_31_i,
-    output logic gpio_31_oe_o,
 
     output logic spi_flash_sck_o,
     input  logic spi_flash_sck_i,

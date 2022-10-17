@@ -29,7 +29,7 @@ class Pad:
         self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    output logic ' + self.signal_name + 'o,'
         self.pad_ring_instance = \
-            'pad_cell_input #(.PADATTR(16)) ' + self.cell_name + ' ( \n' + \
+            'pad_cell_input #(.PADATTR(8)) ' + self.cell_name + ' ( \n' + \
             '   .pad_in_i(1\'b0),\n' + \
             '   .pad_oe_i(1\'b0),\n' + \
             '   .pad_out_o(' + self.signal_name + 'o),\n' + \
@@ -40,7 +40,7 @@ class Pad:
         self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'i,'
         self.pad_ring_instance = \
-            'pad_cell_output #(.PADATTR(16)) ' + self.cell_name + ' ( \n' + \
+            'pad_cell_output #(.PADATTR(8)) ' + self.cell_name + ' ( \n' + \
             '   .pad_in_i(' + self.signal_name + 'i),\n' + \
             '   .pad_oe_i(1\'b1),\n' + \
             '   .pad_out_o(),\n' + \
@@ -53,7 +53,7 @@ class Pad:
         self.pad_ring_ctrl_interface += '    output logic ' + self.signal_name + 'o,\n'
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'oe_i,'
         self.pad_ring_instance = \
-            'pad_cell_inout #(.PADATTR(16)) ' + self.cell_name + ' ( \n' + \
+            'pad_cell_inout #(.PADATTR(8)) ' + self.cell_name + ' ( \n' + \
             '   .pad_in_i(' + self.signal_name + 'i),\n' + \
             '   .pad_oe_i(' + self.signal_name + 'oe_i),\n' + \
             '   .pad_out_o(' + self.signal_name + 'o),\n' + \
@@ -111,9 +111,9 @@ class Pad:
 
     if cnt > 1:
         ###muxing
-        pad_in_internal_signals = self.signal_name + 'in_x'
-        pad_out_internal_signals = self.signal_name + 'out_x'
-        pad_oe_internal_signals = self.signal_name + 'oe_x'
+        pad_in_internal_signals = self.signal_name + 'in_x_muxed'
+        pad_out_internal_signals = self.signal_name + 'out_x_muxed'
+        pad_oe_internal_signals = self.signal_name + 'oe_x_muxed'
 
         self.internal_signals += '  logic ' + pad_in_internal_signals + ',' \
                                  + pad_out_internal_signals + ',' \
@@ -121,12 +121,13 @@ class Pad:
 
         self.mux_process += '  always_comb\n' + \
                             '  begin\n' + \
-                            '   unique case(pad_muxes[core_v_mini_mcu_pkg::' + self.localparam + ']):\n'
+                            '   unique case(pad_muxes[core_v_mini_mcu_pkg::' + self.localparam + '])\n'
 
         for i in range(cnt):
-            self.mux_process += '    case(' + str(i) + '): begin\n' + \
+            self.mux_process += '    ' + str(i) + ': begin\n' + \
                                 '      ' + pad_out_internal_signals + ' = ' + out_internal_signals[i] + ';\n' + \
-                                '      ' + pad_oe_internal_signals + ' = ' + oe_internal_signals[i] + ';\n'
+                                '      ' + pad_oe_internal_signals + ' = ' + oe_internal_signals[i] + ';\n' + \
+                                '    end\n'
 
         self.mux_process += '   endcase\n' + \
                             '  end\n'
@@ -136,21 +137,25 @@ class Pad:
 
   def create_pad_ring_bonding(self):
 
+    if(self.is_muxed):
+        append_name = '_muxed'
+    else:
+        append_name = ''
 
     if self.pad_type == 'input':
-        in_internal_signals = self.signal_name + 'in_x'
+        in_internal_signals = self.signal_name + 'in_x' + append_name
         self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'i),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'o(' + in_internal_signals + '),'
         self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'i,'
     if self.pad_type == 'output':
-        out_internal_signals = self.signal_name + 'out_x'
+        out_internal_signals = self.signal_name + 'out_x' + append_name
         self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'o),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'i(' + out_internal_signals + '),'
         self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'o,'
     if self.pad_type == 'inout':
-        in_internal_signals = self.signal_name + 'in_x'
-        out_internal_signals = self.signal_name + 'out_x'
-        oe_internal_signals = self.signal_name + 'oe_x'
+        in_internal_signals = self.signal_name + 'in_x' + append_name
+        out_internal_signals = self.signal_name + 'out_x' + append_name
+        oe_internal_signals = self.signal_name + 'oe_x' + append_name
         self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'io),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'o(' + in_internal_signals + '),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'i(' + out_internal_signals + '),\n'
