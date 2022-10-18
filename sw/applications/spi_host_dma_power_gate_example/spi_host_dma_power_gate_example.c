@@ -11,12 +11,10 @@
 #include "hart.h"
 #include "handler.h"
 #include "rv_plic.h"
-#include "rv_plic_regs.h"
 #include "soc_ctrl.h"
 #include "spi_host.h"
 #include "dma.h"
-// #include "fast_intr_ctrl.h"
-// #include "fast_intr_ctrl_regs.h"
+#include "fast_intr_ctrl.h"
 #include "power_manager.h"
 
 // Un-comment this line to use the SPI FLASH instead of the default SPI
@@ -25,19 +23,19 @@
 #define COPY_DATA_BYTES 15
 #define SPI_BYTES (4 * (uint32_t)((COPY_DATA_BYTES-1) / 4 + 1)) // Only sends data when an entire word has been received
 
-// int8_t dma_intr_flag;
+int8_t dma_intr_flag;
 spi_host_t spi_host;
 
 static power_manager_t power_manager;
 
-// void handler_irq_fast_dma(void)
-// {
-//     fast_intr_ctrl_t fast_intr_ctrl;
-//     fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-//     clear_fast_interrupt(&fast_intr_ctrl, kDma_e);
+void handler_irq_fast_dma(void)
+{
+    fast_intr_ctrl_t fast_intr_ctrl;
+    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
+    clear_fast_interrupt(&fast_intr_ctrl, kDma_fic_e);
 
-//     dma_intr_flag = 1;
-// }
+    dma_intr_flag = 1;
+}
 
 // Reserve memory array
 uint32_t flash_data[SPI_BYTES / 4] __attribute__ ((aligned (4))) = {0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,0x679852fe,0xff8252bb,0x763b4521,0x6875adaa,0x09ac65bb,0x666ba334,0x44556677,0x0000ba98};
@@ -59,14 +57,13 @@ int main(int argc, char *argv[])
     power_manager.base_addr = power_manager_reg;
     power_manager_counters_t power_manager_cpu_counters;
 
-    // // Enable interrupt on processor side
-    // // Enable global interrupt for machine-level interrupts
-    // CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    // // Set mie.MEIE bit to one to enable machine-level fast dma interrupt
-    // const uint32_t mask = 1 << 19;
-    // CSR_SET_BITS(CSR_REG_MIE, mask);
-    // // spi_intr_flag = 0;
-    // dma_intr_flag = 0;
+    // Enable interrupt on processor side
+    // Enable global interrupt for machine-level interrupts
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    // Set mie.MEIE bit to one to enable machine-level fast dma interrupt
+    const uint32_t mask = 1 << 19;
+    CSR_SET_BITS(CSR_REG_MIE, mask);
+    dma_intr_flag = 0;
 
     // Select SPI host as SPI output
     soc_ctrl_select_spi_host(&soc_ctrl);
@@ -160,8 +157,6 @@ int main(int argc, char *argv[])
 
     dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_BYTES); // Size of data received by SPI
 
-    ////////////////////////////////////////////////////////////////
-
     // Init cpu_subsystem's counters
     if (power_gate_counters_init(&power_manager_cpu_counters, 40, 40, 30, 30, 20, 20) != kPowerManagerOk_e)
     {
@@ -169,18 +164,16 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    // Power gate core and wait for fast dma interrupt
-    if (power_gate_core(&power_manager, kDma_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
+    // Power gate core and wait for fast DMA interrupt
+    if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;
     }
 
-    // // Wait for DMA interrupt
-    // printf("Waiting for the DMA interrupt...\n");
-    // while(dma_intr_flag==0) {
-    //     wait_for_interrupt();
-    // }
+    // Wait for DMA interrupt
+    printf("Waiting for the DMA interrupt...\n");
+    while(dma_intr_flag==0);
     printf("triggered!\n");
 
     // The data is already in memory -- Check results

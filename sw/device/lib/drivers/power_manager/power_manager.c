@@ -264,8 +264,6 @@ void power_gate_core_asm()
         "lui a0, %[base_address_20bit]\n"
         "lw a1, %[power_manager_core_csr_mstatus_reg_offset](a0)\n"
         "csrw mstatus, a1\n"
-        "lw a1, %[power_manager_core_csr_mie_reg_offset](a0)\n"
-        "csrw mie, a1\n"
         "lw a1, %[power_manager_core_csr_mscratch_reg_offset](a0)\n"
         "csrw mscratch, a1\n"
         "lw a1, %[power_manager_core_csr_mepc_reg_offset](a0)\n"
@@ -279,18 +277,20 @@ void power_gate_core_asm()
         "lw a1, %[power_manager_core_csr_mcycle_reg_offset](a0)\n"
         "csrw mcycle, a1\n"
         "lw a1, %[power_manager_core_csr_minstret_reg_offset](a0)\n"
-        "csrw minstret, a1\n" : : \
+        "csrw minstret, a1\n"
+        "lw a1, %[power_manager_core_csr_mie_reg_offset](a0)\n"
+        "csrw mie, a1\n" : : \
         \
         [base_address_20bit] "i" (POWER_MANAGER_START_ADDRESS >> 12), \
         [power_manager_core_csr_mstatus_reg_offset] "i" (POWER_MANAGER_CORE_CSR_MSTATUS_REG_OFFSET), \
-        [power_manager_core_csr_mie_reg_offset] "i" (POWER_MANAGER_CORE_CSR_MIE_REG_OFFSET), \
         [power_manager_core_csr_mscratch_reg_offset] "i" (POWER_MANAGER_CORE_CSR_MSCRATCH_REG_OFFSET), \
         [power_manager_core_csr_mepc_reg_offset] "i" (POWER_MANAGER_CORE_CSR_MEPC_REG_OFFSET), \
         [power_manager_core_csr_mcause_reg_offset] "i" (POWER_MANAGER_CORE_CSR_MCAUSE_REG_OFFSET), \
         [power_manager_core_csr_mtval_reg_offset] "i" (POWER_MANAGER_CORE_CSR_MTVAL_REG_OFFSET), \
         [power_manager_core_csr_mtvec_reg_offset] "i" (POWER_MANAGER_CORE_CSR_MTVEC_REG_OFFSET), \
         [power_manager_core_csr_mcycle_reg_offset] "i" (POWER_MANAGER_CORE_CSR_MCYCLE_REG_OFFSET), \
-        [power_manager_core_csr_minstret_reg_offset] "i" (POWER_MANAGER_CORE_CSR_MINSTRET_REG_OFFSET) \
+        [power_manager_core_csr_minstret_reg_offset] "i" (POWER_MANAGER_CORE_CSR_MINSTRET_REG_OFFSET), \
+        [power_manager_core_csr_mie_reg_offset] "i" (POWER_MANAGER_CORE_CSR_MIE_REG_OFFSET) \
     );
 
     return;
@@ -326,14 +326,6 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_core(const power_ma
     reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_ISO_OFF_STOP_BIT_COUNTER_BIT, true);
     reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_ISO_ON_STOP_BIT_COUNTER_BIT, true);
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_COUNTERS_STOP_REG_OFFSET), reg);
-
-    // clear fast interrupt
-    if (sel_intr >= 2 || sel_intr <= 15)
-    {
-        mmio_region_t base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-        reg = bitfield_bit32_write(reg, sel_intr, true);
-        mmio_region_write32(base_addr, (ptrdiff_t)(FAST_INTR_CTRL_FAST_INTR_CLEAR_REG_OFFSET), reg);
-    }
 
     return kPowerManagerOk_e;
 }
