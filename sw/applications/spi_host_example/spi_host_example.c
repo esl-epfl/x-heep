@@ -16,7 +16,7 @@
 #include "fast_intr_ctrl_regs.h"
 
 // Un-comment this line to use the SPI FLASH instead of the default SPI
-// #define USE_SPI_FLASH
+#define USE_SPI_FLASH
 
 // Simple example to check the SPI host peripheral is working. It checks the ram and flash have the same content
 #define DATA_CHUNK_ADDR 0x00008000
@@ -178,9 +178,7 @@ int main(int argc, char *argv[])
     // or wait for SPI interrupt
     printf("Waiting for SPI...\n");
     while(spi_intr_flag==0) {
-        // spi_wait_for_rx_watermark(&spi_host);
-        // spi_intr_flag = 1;
-        // wait_for_interrupt();
+        wait_for_interrupt();
     }
 
     // Enable event interrupt
