@@ -81,6 +81,7 @@ filesets:
     - hw/ip/fast_intr_ctrl/fast_intr_ctrl.vlt
     - hw/system/pad_control/pad_control.vlt
     - hw/system/x_heep_system.vlt
+    - hw/simulation/simulation.vlt
     file_type: vlt
 
   rtl-fpga:

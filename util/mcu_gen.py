@@ -105,20 +105,23 @@ class Pad:
                                  + pad_oe_internal_signals + ';\n'
 
         self.mux_process += '  always_comb\n' + \
-                            '  begin\n' + \
-                            '   unique case(pad_muxes[core_v_mini_mcu_pkg::' + self.localparam + '])\n'
+                            '  begin\n'
+
+        for i in range(cnt):
+            self.mux_process += '   ' + self.in_internal_signals[i] + '=1\'b0;\n'
+
+
+        self.mux_process += '   unique case(pad_muxes[core_v_mini_mcu_pkg::' + self.localparam + '])\n'
 
         for i in range(cnt):
             self.mux_process += '    ' + str(i) + ': begin\n' + \
                                 '      ' + pad_out_internal_signals + ' = ' + self.out_internal_signals[i] + ';\n' + \
                                 '      ' + pad_oe_internal_signals + ' = ' + self.oe_internal_signals[i] + ';\n' + \
+                                '      ' + self.in_internal_signals[i] + ' = ' + pad_in_internal_signals + ';\n' + \
                                 '    end\n'
 
         self.mux_process += '   endcase\n' + \
                             '  end\n'
-
-        for i in range(cnt):
-            self.mux_process += '  assign ' + self.in_internal_signals[i] + '=' + pad_in_internal_signals + ';\n'
 
   def create_constant_driver_assign(self):
     cnt = len(self.pad_type_drive)
