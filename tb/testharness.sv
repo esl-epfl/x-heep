@@ -60,12 +60,15 @@ module testharness #(
   obi_resp_t slave_resp;
   reg_req_t periph_slave_req;
   reg_rsp_t periph_slave_resp;
+
   // External peripheral example port
   reg_req_t memcopy_periph_req;
   reg_rsp_t memcopy_periph_rsp;
+
   // External xbar slave example port
   obi_req_t slow_ram_slave_req;
   obi_resp_t slow_ram_slave_resp;
+
   // External interrupts
   logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext;
   logic memcopy_intr;
@@ -149,15 +152,8 @@ module testharness #(
       .spi_sd_1_io(spi_sd_io[1]),
       .spi_sd_2_io(spi_sd_io[2]),
       .spi_sd_3_io(spi_sd_io[3]),
-<<<<<<< HEAD
-      .i2c_scl_io(),
-      .i2c_sda_io(),
-=======
-
       .i2c_scl_io(gpio[31]),
       .i2c_sda_io(gpio[30]),
-
->>>>>>> main
       .exit_value_o,
       .intr_vector_ext_i(intr_vector_ext),
       .ext_xbar_master_req_i(master_req),

@@ -11,10 +11,6 @@ module x_heep_system
     parameter PULP_ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0
 ) (
-% for pad in total_pad_list:
-${pad.x_heep_system_interface}
-% endfor
-
     input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
 
     input  obi_req_t  [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
@@ -30,7 +26,11 @@ ${pad.x_heep_system_interface}
     output logic external_subsystem_powergate_iso_o,
     output logic external_subsystem_rst_no,
 
-    output logic [31:0] exit_value_o
+    output logic [31:0] exit_value_o,
+
+% for pad in total_pad_list:
+${pad.x_heep_system_interface}
+% endfor
 );
 
   import core_v_mini_mcu_pkg::*;
