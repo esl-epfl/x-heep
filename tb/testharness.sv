@@ -45,6 +45,10 @@ module testharness #(
   wire sim_jtag_trstn;
   wire [31:0] gpio;
 
+  wire [3:0] spi_flash_sd_io;
+  wire [1:0] spi_flash_csb;
+  wire spi_flash_sck;
+
   wire [3:0] spi_sd_io;
   wire [1:0] spi_csb;
   wire spi_sck;
@@ -83,12 +87,12 @@ module testharness #(
   end
 `endif
 
-  core_v_mini_mcu #(
+  x_heep_system #(
       .PULP_XPULP(PULP_XPULP),
       .FPU(FPU),
       .PULP_ZFINX(PULP_ZFINX),
       .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER)
-  ) core_v_mini_mcu_i (
+  ) x_heep_system_i (
       .clk_i,
       .rst_ni,
       .jtag_tck_i(sim_jtag_tck),
@@ -96,26 +100,69 @@ module testharness #(
       .jtag_trst_ni(sim_jtag_trstn),
       .jtag_tdi_i(sim_jtag_tdi),
       .jtag_tdo_o(sim_jtag_tdo),
+      .boot_select_i,
+      .execute_from_flash_i,
+      .exit_valid_o,
+      .uart_rx_i(uart_rx),
+      .uart_tx_o(uart_tx),
+      .gpio_0_io(gpio[0]),
+      .gpio_1_io(gpio[1]),
+      .gpio_2_io(gpio[2]),
+      .gpio_3_io(gpio[3]),
+      .gpio_4_io(gpio[4]),
+      .gpio_5_io(gpio[5]),
+      .gpio_6_io(gpio[6]),
+      .gpio_7_io(gpio[7]),
+      .gpio_8_io(gpio[8]),
+      .gpio_9_io(gpio[9]),
+      .gpio_10_io(gpio[10]),
+      .gpio_11_io(gpio[11]),
+      .gpio_12_io(gpio[12]),
+      .gpio_13_io(gpio[13]),
+      .gpio_14_io(gpio[14]),
+      .gpio_15_io(gpio[15]),
+      .gpio_16_io(gpio[16]),
+      .gpio_17_io(gpio[17]),
+      .gpio_18_io(gpio[18]),
+      .gpio_19_io(gpio[19]),
+      .gpio_20_io(gpio[20]),
+      .gpio_21_io(gpio[21]),
+      .gpio_22_io(gpio[22]),
+      .gpio_23_io(gpio[23]),
+      .gpio_24_io(gpio[24]),
+      .gpio_25_io(gpio[25]),
+      .gpio_26_io(gpio[26]),
+      .gpio_27_io(gpio[27]),
+      .gpio_28_io(gpio[28]),
+      .gpio_29_io(gpio[29]),
+      .spi_flash_sck_io(spi_flash_sck),
+      .spi_flash_cs_0_io(spi_flash_csb[0]),
+      .spi_flash_cs_1_io(spi_flash_csb[1]),
+      .spi_flash_sd_0_io(spi_flash_sd_io[0]),
+      .spi_flash_sd_1_io(spi_flash_sd_io[1]),
+      .spi_flash_sd_2_io(spi_flash_sd_io[2]),
+      .spi_flash_sd_3_io(spi_flash_sd_io[3]),
+      .spi_sck_io(spi_sck),
+      .spi_cs_0_io(spi_csb[0]),
+      .spi_cs_1_io(spi_csb[1]),
+      .spi_sd_0_io(spi_sd_io[0]),
+      .spi_sd_1_io(spi_sd_io[1]),
+      .spi_sd_2_io(spi_sd_io[2]),
+      .spi_sd_3_io(spi_sd_io[3]),
+
+      .i2c_scl_io(gpio[31]),
+      .i2c_sda_io(gpio[30]),
+
+      .exit_value_o,
+      .intr_vector_ext_i(intr_vector_ext),
       .ext_xbar_master_req_i(master_req),
       .ext_xbar_master_resp_o(master_resp),
       .ext_xbar_slave_req_o(slave_req),
       .ext_xbar_slave_resp_i(slave_resp),
-      .boot_select_i,
-      .execute_from_flash_i,
-      .exit_value_o,
-      .exit_valid_o,
-      .spi_sd_io(spi_sd_io),
-      .spi_csb_o(spi_csb),
-      .spi_sck_o(spi_sck),
-      .intr_vector_ext_i(intr_vector_ext),
-      .uart_rx_i(uart_rx),
-      .uart_tx_o(uart_tx),
-      .gpio_io(gpio),
-      .i2c_scl_io(),
-      .i2c_sda_io(),
       .ext_peripheral_slave_req_o(periph_slave_req),
       .ext_peripheral_slave_resp_i(periph_slave_resp)
   );
+
 
   uartdpi #(
       .BAUD('d256000),
@@ -198,7 +245,20 @@ module testharness #(
   );
 
 `ifndef VERILATOR
-  spiflash flash_1 (
+  // Flash used for booting (execute from flash or copy from flash)
+  spiflash flash_boot_i (
+      .csb(spi_flash_csb[0]),
+      .clk(spi_flash_sck),
+      .io0(spi_flash_sd_io[0]),  // MOSI
+      .io1(spi_flash_sd_io[1]),  // MISO
+      .io2(spi_flash_sd_io[2]),
+      .io3(spi_flash_sd_io[3])
+  );
+`endif
+
+`ifndef VERILATOR
+  // Flash used as an example device with an SPI interface
+  spiflash flash_device_i (
       .csb(spi_csb[0]),
       .clk(spi_sck),
       .io0(spi_sd_io[0]),  // MOSI

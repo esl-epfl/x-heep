@@ -30,7 +30,7 @@ filesets:
     - x-heep:ip:boot_rom
     - x-heep:ip:dma
     - x-heep:ip:power_manager
-    - x-heep:ip:pad_attribute
+    - x-heep:ip:fast_intr_ctrl
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
@@ -41,8 +41,6 @@ filesets:
     - hw/core-v-mini-mcu/debug_subsystem.sv
     - hw/core-v-mini-mcu/peripheral_subsystem.sv
     - hw/core-v-mini-mcu/ao_peripheral_subsystem.sv
-    - hw/core-v-mini-mcu/reg_to_tlul.sv
-    - hw/core-v-mini-mcu/pad_ring.sv
     file_type: systemVerilogSource
 
   rtl-simulation:
@@ -55,6 +53,15 @@ filesets:
     - hw/simulation/pad_cell_inout.sv
     - hw/simulation/pad_cell_input.sv
     - hw/simulation/pad_cell_output.sv
+    file_type: systemVerilogSource
+
+  x_heep_system:
+    depend:
+    - x-heep::packages
+    - x-heep:ip:pad_control
+    files:
+    - hw/system/x_heep_system.sv
+    - hw/system/pad_ring.sv
     file_type: systemVerilogSource
 
   tb-utils:
@@ -71,7 +78,10 @@ filesets:
     - hw/ip/obi_spimemio/obi_spimemio.vlt
     - hw/ip/dma/dma.vlt
     - hw/ip/power_manager/power_manager.vlt
-    - hw/ip/pad_attribute/pad_attribute.vlt
+    - hw/ip/fast_intr_ctrl/fast_intr_ctrl.vlt
+    - hw/system/pad_control/pad_control.vlt
+    - hw/system/x_heep_system.vlt
+    - hw/simulation/simulation.vlt
     file_type: vlt
 
   rtl-fpga:
@@ -216,6 +226,7 @@ targets:
     - tool_verilator? (tb-verilator)
     - tool_modelsim? (tb-sv)
     - tool_vcs? (tb-sv)
+    - "!integrated_heep? (x_heep_system)"
     toplevel:
     - tool_modelsim? (tb_top)
     - tool_vcs? (tb_top)
@@ -294,6 +305,7 @@ targets:
     default_tool: vivado
     description: TUL Pynq-Z2 Board
     filesets_append:
+    - x_heep_system
     - rtl-fpga
     - ip-fpga
     - xdc-fpga-pynq-z2

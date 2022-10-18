@@ -99,7 +99,7 @@ package spi_host_reg_pkg;
 
   typedef struct packed {
     struct packed {
-      logic [8:0]  q;
+      logic [23:0] q;
       logic        qe;
     } len;
     struct packed {
@@ -264,14 +264,14 @@ package spi_host_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    spi_host_reg2hw_intr_state_reg_t intr_state; // [155:154]
-    spi_host_reg2hw_intr_enable_reg_t intr_enable; // [153:152]
-    spi_host_reg2hw_intr_test_reg_t intr_test; // [151:148]
-    spi_host_reg2hw_alert_test_reg_t alert_test; // [147:146]
-    spi_host_reg2hw_control_reg_t control; // [145:128]
-    spi_host_reg2hw_configopts_mreg_t [1:0] configopts; // [127:66]
-    spi_host_reg2hw_csid_reg_t csid; // [65:34]
-    spi_host_reg2hw_command_reg_t command; // [33:16]
+    spi_host_reg2hw_intr_state_reg_t intr_state; // [170:169]
+    spi_host_reg2hw_intr_enable_reg_t intr_enable; // [168:167]
+    spi_host_reg2hw_intr_test_reg_t intr_test; // [166:163]
+    spi_host_reg2hw_alert_test_reg_t alert_test; // [162:161]
+    spi_host_reg2hw_control_reg_t control; // [160:143]
+    spi_host_reg2hw_configopts_mreg_t [1:0] configopts; // [142:81]
+    spi_host_reg2hw_csid_reg_t csid; // [80:49]
+    spi_host_reg2hw_command_reg_t command; // [48:16]
     spi_host_reg2hw_error_enable_reg_t error_enable; // [15:11]
     spi_host_reg2hw_error_status_reg_t error_status; // [10:6]
     spi_host_reg2hw_event_enable_reg_t event_enable; // [5:0]
@@ -338,7 +338,7 @@ package spi_host_reg_pkg;
     4'b 1111, // index[ 6] SPI_HOST_CONFIGOPTS_0
     4'b 1111, // index[ 7] SPI_HOST_CONFIGOPTS_1
     4'b 1111, // index[ 8] SPI_HOST_CSID
-    4'b 0011, // index[ 9] SPI_HOST_COMMAND
+    4'b 1111, // index[ 9] SPI_HOST_COMMAND
     4'b 0001, // index[10] SPI_HOST_ERROR_ENABLE
     4'b 0001, // index[11] SPI_HOST_ERROR_STATUS
     4'b 0001  // index[12] SPI_HOST_EVENT_ENABLE

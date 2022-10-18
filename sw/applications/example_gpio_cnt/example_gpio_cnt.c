@@ -11,6 +11,8 @@
 #include "rv_plic.h"
 #include "rv_plic_regs.h"
 #include "gpio.h"
+#include "pad_control.h"
+#include "pad_control_regs.h"  // Generated.
 
 #define GPIO_TB_OUT 30
 #define GPIO_TB_IN  31
@@ -33,41 +35,39 @@ void handler_irq_external(void) {
 
 int main(int argc, char *argv[])
 {
-    printf("Init PLIC...");
+
+    pad_control_t pad_control;
+    pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
     rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)PLIC_START_ADDRESS);
     plic_res = dif_plic_init(rv_plic_params, &rv_plic);
-    if (plic_res == kDifPlicOk) {
-        printf("success\n");
-    } else {
-        printf("fail\n;");
+    if (plic_res != kDifPlicOk) {
+        printf("Init PLIC failed\n;");
+        return -1;
     }
 
-    printf("Init GPIO...");
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_I2C_SCL_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_I2C_SDA_REG_OFFSET), 1);
+
     gpio_params_t gpio_params;
     gpio_t gpio;
     gpio_result_t gpio_res;
     gpio_params.base_addr = mmio_region_from_addr((uintptr_t)GPIO_START_ADDRESS);
     gpio_res = gpio_init(gpio_params, &gpio);
-    if (gpio_res == kGpioOk) {
-        printf("success\n");
-    } else {
-        printf("fail\n;");
+    if (gpio_res != kGpioOk) {
+        printf("Failed\n;");
+        return -1;
     }
 
-    printf("Init GPIO interrupt priority to 1...");
     plic_res = dif_plic_irq_set_priority(&rv_plic, GPIO_INTR_31, 1);
-    if (plic_res == kDifPlicOk) {
-        printf("success\n");
-    } else {
-        printf("fail\n;");
+    if (plic_res != kDifPlicOk) {
+        printf("Failed\n;");
+        return -1;
     }
 
-    printf("Enable GPIO interrupt...");
     plic_res = dif_plic_irq_set_enabled(&rv_plic, GPIO_INTR_31, 0, kDifPlicToggleEnabled);
-    if (plic_res == kDifPlicOk) {
-        printf("success\n");
-    } else {
-        printf("fail\n;");
+    if (plic_res != kDifPlicOk) {
+        printf("Failed\n;");
+        return -1;
     }
 
     // Enable interrupt on processor side
@@ -78,44 +78,38 @@ int main(int argc, char *argv[])
     CSR_SET_BITS(CSR_REG_MIE, mask);
     external_intr_flag = 0;
 
-    printf("Set GPIO 30 as output...");
     gpio_res = gpio_output_set_enabled(&gpio, GPIO_TB_OUT, true);
-    if (gpio_res == kGpioOk) {
-        printf("success\n");
-    } else {
-        printf("fail\n;");
+    if (gpio_res != kGpioOk) {
+        printf("Failed\n;");
+        return -1;
     }
 
-    printf("Set interrupt for GPIO 31...");
     gpio_res = gpio_irq_set_trigger(&gpio, 1 << GPIO_TB_IN, kGpioIrqTriggerLevelHigh);
-    if (gpio_res == kGpioOk) {
-        printf("success\n");
-    } else {
-        printf("fail\n;");
+    if (gpio_res != kGpioOk) {
+        printf("Failed\n;");
+        return -1;
     }
 
-    printf("Enable interrupt for GPIO 31...");
     gpio_res = gpio_irq_set_enabled(&gpio, GPIO_TB_IN, true);
-    if (gpio_res == kGpioOk) {
-        printf("success\n");
-    } else {
-        printf("fail\n;");
+    if (gpio_res != kGpioOk) {
+        printf("Failed\n;");
+        return -1;
     }
+
 
     printf("Write 1 to GPIO 30 and wait for interrupt...");
     gpio_write(&gpio, GPIO_TB_OUT, true);
     while(external_intr_flag==0) {
         wait_for_interrupt();
     }
-    printf("success\n");
+    printf("Success\n");
 
-    printf("Complete interrupt...");
     plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-    if (plic_res == kDifPlicOk) {
-        printf("success\n");
-    } else {
-        printf("fail\n;");
+    if (plic_res != kDifPlicOk) {
+        printf("Failed\n;");
+        return -1;
     }
+    printf("Done...");
 
     return EXIT_SUCCESS;
 }

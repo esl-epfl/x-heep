@@ -44,7 +44,7 @@
             offset:  0x00010000,
             length:  0x00010000,
         },
-        spi_host: {
+        spi_flash: {
             offset:  0x00020000,
             length:  0x00008000,
         },
@@ -52,20 +52,32 @@
             offset:  0x00028000,
             length:  0x00008000,
         },
-        power_manager: {
+        spi: {
             offset:  0x00030000,
             length:  0x00010000,
         },
-        rv_timer: {
+        power_manager: {
             offset:  0x00040000,
             length:  0x00010000,
         },
-        dma: {
+        rv_timer_ao: {
             offset:  0x00050000,
             length:  0x00010000,
         },
-        pad: {
+        dma: {
             offset:  0x00060000,
+            length:  0x00010000,
+        },
+        fast_intr_ctrl: {
+            offset:  0x00070000,
+            length:  0x00010000,
+        },
+        ext_periph: {
+            offset:  0x00080000,
+            length:  0x00010000,
+        },
+        pad_control: {
+            offset:  0x00090000,
             length:  0x00010000,
         },
     },
@@ -89,13 +101,13 @@
             offset:  0x00030000,
             length:  0x00010000,
         },
-        ext_periph: {
+        rv_timer: {
             offset:  0x00040000,
             length:  0x00010000,
         },
     },
 
-    spi_flash: {
+    flash_mem: {
         address: 0x40000000,
         length:  0x01000000,
     },
@@ -116,62 +128,61 @@
         uart_intr_rx_break_err:  6,
         uart_intr_rx_timeout:    7,
         uart_intr_rx_parity_err: 8,
-        gpio_intr_0:             9,
-        gpio_intr_1:             10,
-        gpio_intr_2:             11,
-        gpio_intr_3:             12,
-        gpio_intr_4:             13,
-        gpio_intr_5:             14,
-        gpio_intr_6:             15,
-        gpio_intr_7:             16,
-        gpio_intr_8:             17,
-        gpio_intr_9:             18,
-        gpio_intr_10:            19,
-        gpio_intr_11:            20,
-        gpio_intr_12:            21,
-        gpio_intr_13:            22,
-        gpio_intr_14:            23,
-        gpio_intr_15:            24,
-        gpio_intr_16:            25,
-        gpio_intr_17:            26,
-        gpio_intr_18:            27,
-        gpio_intr_19:            28,
-        gpio_intr_20:            29,
-        gpio_intr_21:            30,
-        gpio_intr_22:            31,
-        gpio_intr_23:            32,
-        gpio_intr_24:            33,
-        gpio_intr_25:            34,
-        gpio_intr_26:            35,
-        gpio_intr_27:            36,
-        gpio_intr_28:            37,
-        gpio_intr_29:            38,
-        gpio_intr_30:            39,
-        gpio_intr_31:            40,
-        intr_fmt_watermark:      41,
-        intr_rx_watermark:       42,
-        intr_fmt_overflow:       43,
-        intr_rx_overflow:        44,
-        intr_nak:                45,
-        intr_scl_interference:   46,
-        intr_sda_interference:   47,
-        intr_stretch_timeout:    48,
-        intr_sda_unstable:       49,
-        intr_trans_complete:     50,
-        intr_tx_empty:           51,
-        intr_tx_nonempty:        52,
-        intr_tx_overflow:        53,
-        intr_acq_overflow:       54,
-        intr_ack_stop:           55,
-        intr_host_timeout:       56,
-        dma_intr_done:           57,
-        spi_intr_error:          58,
-        spi_intr_event:          59,
-        // Interrupt lines available for external interrupt sources
-        ext_intr_0:              60,
-        ext_intr_1:              61,
-        ext_intr_2:              62,
-        ext_intr_3:              63
+        gpio_intr_8:             9,
+        gpio_intr_9:             10,
+        gpio_intr_10:            11,
+        gpio_intr_11:            12,
+        gpio_intr_12:            13,
+        gpio_intr_13:            14,
+        gpio_intr_14:            15,
+        gpio_intr_15:            16,
+        gpio_intr_16:            17,
+        gpio_intr_17:            18,
+        gpio_intr_18:            19,
+        gpio_intr_19:            20,
+        gpio_intr_20:            21,
+        gpio_intr_21:            22,
+        gpio_intr_22:            23,
+        gpio_intr_23:            24,
+        gpio_intr_24:            25,
+        gpio_intr_25:            26,
+        gpio_intr_26:            27,
+        gpio_intr_27:            28,
+        gpio_intr_28:            29,
+        gpio_intr_29:            30,
+        gpio_intr_30:            31,
+        gpio_intr_31:            32,
+        intr_fmt_watermark:      33,
+        intr_rx_watermark:       34,
+        intr_fmt_overflow:       35,
+        intr_rx_overflow:        36,
+        intr_nak:                37,
+        intr_scl_interference:   38,
+        intr_sda_interference:   39,
+        intr_stretch_timeout:    40,
+        intr_sda_unstable:       41,
+        intr_trans_complete:     42,
+        intr_tx_empty:           43,
+        intr_tx_nonempty:        44,
+        intr_tx_overflow:        45,
+        intr_acq_overflow:       46,
+        intr_ack_stop:           47,
+        intr_host_timeout:       48,
+        ext_intr_0:              49,
+        ext_intr_1:              50,
+        ext_intr_2:              51,
+        ext_intr_3:              52,
+        ext_intr_4:              53,
+        ext_intr_5:              54,
+        ext_intr_6:              55,
+        ext_intr_7:              56,
+        ext_intr_8:              57,
+        ext_intr_9:              58,
+        ext_intr_10:             59,
+        ext_intr_11:             60,
+        ext_intr_12:             61,
+        ext_intr_13:             62,
+        ext_intr_14:             63,
     },
 
     pads: {
@@ -182,6 +193,7 @@
         },
         rst: {
             num: 1,
+            active: low,
             type: input
         },
         boot_select: {
@@ -202,6 +214,7 @@
         },
         jtag_trst: {
             num: 1,
+            active: low,
             type: input
         },
         jtag_tdi: {
@@ -225,7 +238,20 @@
             type: output
         },
         gpio: {
-            num: 32,
+            num: 30,
+            num_offset: 0, #first gpio is gpio0
+            type: inout
+        },
+        spi_flash_sck: {
+            num: 1,
+            type: inout
+        },
+        spi_flash_cs: {
+            num: 2, #carefull, the x-heep uses the CS from the spi pkg, change it
+            type: inout
+        },
+        spi_flash_sd: {
+            num: 4,
             type: inout
         },
         spi_sck: {
@@ -233,7 +259,7 @@
             type: inout
         },
         spi_cs: {
-            num: 2, #carefull, the x-heep uses the CS from the spi pkg, chenge it
+            num: 2,
             type: inout
         },
         spi_sd: {
@@ -243,12 +269,28 @@
         i2c_scl: {
             num: 1,
             type: inout
+            mux: {
+                i2c_scl: {
+                    type: inout
+                },
+                gpio_31: {
+                    type: inout
+                },
+            }
         },
         i2c_sda: {
             num: 1,
             type: inout
+            mux: {
+                i2c_sda: {
+                    type: inout
+                },
+                gpio_30: {
+                    type: inout
+                },
+            }
+
         }
     }
-
 
 }

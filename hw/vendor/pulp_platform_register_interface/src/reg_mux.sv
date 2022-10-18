@@ -66,6 +66,5 @@ module reg_mux #(
   assign out_req_o.write = out_payload.write;
   assign out_req_o.wdata = out_payload.wdata;
   assign out_req_o.wstrb = out_payload.wstrb;
-  assign out_req_o.valid = out_payload.valid;
 
 endmodule

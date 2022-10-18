@@ -26,7 +26,7 @@
       ]
     },
     { name:     "DMA_START",
-      desc:     "Number of words (4 bytes) to copy - Once a value is written, the copy starts",
+      desc:     "Number of bytes to copy - Once a value is written, the copy starts",
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
@@ -36,10 +36,37 @@
     { name:     "DONE",
       desc:     "Register set to 1 when copy is done",
       swaccess: "ro",
-      hwaccess: "hrw",
+      hwaccess: "hwo",
       resval:   1,
       fields: [
         { bits: "31:0", name: "DONE", desc: "Copy done" }
+      ]
+    },
+    { name:     "SRC_PTR_INC",
+      desc:     "Increment number of source pointer every time a word is copied from source",
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   4,
+      fields: [
+        { bits: "31:0", name: "SRC_PTR_INC", desc: "Source pointer increment" }
+      ]
+    },
+    { name:     "DST_PTR_INC",
+      desc:     "Increment number of source pointer every time a word is copied to destination",
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   4,
+      fields: [
+        { bits: "31:0", name: "DST_PTR_INC", desc: "Destination pointer increment" }
+      ]
+    },
+    { name:     "SPI_MODE",
+      desc:     "SPI mode selection: disable(0), receive from SPI (1), and send to SPI (2), receive from SPI FLASH (3), and send to SPI FLASH (4). It waits for TX and RX FIFO in modes 1 and 2, respectively.",
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   0,
+      fields: [
+        { bits: "2:0", name: "SPI_MODE", desc: "Copy/Read from SPI" }
       ]
     }
    ]

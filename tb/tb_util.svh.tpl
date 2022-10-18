@@ -40,36 +40,36 @@ task tb_loadHEX;
 `ifndef VERILATOR
   for (i = 0; i < NumBytes; i = i + 4) begin
 
-    @(posedge core_v_mini_mcu_i.clk_i);
+    @(posedge x_heep_system_i.core_v_mini_mcu_i.clk_i);
     addr = i;
     #1;
     // write to memory
-    force core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_req_o = 1'b1;
-    force core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_addr_o = addr;
-    force core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_we_o = 1'b1;
-    force core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_be_o = 4'b1111;
-    force core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_wdata_o = {
+    force x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_req_o = 1'b1;
+    force x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_addr_o = addr;
+    force x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_we_o = 1'b1;
+    force x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_be_o = 4'b1111;
+    force x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_wdata_o = {
       stimuli[i+3], stimuli[i+2], stimuli[i+1], stimuli[i]
     };
 
-    wait (core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_gnt_i);
+    wait (x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_gnt_i);
 
-    @(posedge core_v_mini_mcu_i.clk_i);
+    @(posedge x_heep_system_i.core_v_mini_mcu_i.clk_i);
 
     #1;
-    force core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_req_o = 1'b0;
+    force x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_req_o = 1'b0;
 
-    wait (core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_rvalid_i);
+    wait (x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_rvalid_i);
 
     #1;
 
   end
 
-  release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_req_o;
-  release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_addr_o;
-  release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_we_o;
-  release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_be_o;
-  release core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_wdata_o;
+  release x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_req_o;
+  release x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_addr_o;
+  release x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_we_o;
+  release x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_be_o;
+  release x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_wdata_o;
 
 `else
 
@@ -94,12 +94,12 @@ task tb_writetoSram${bank};
   input [7:0] val1;
   input [7:0] val0;
 `ifdef VCS
-  force core_v_mini_mcu_i.memory_subsystem_i.gen_sram[${bank}].ram_i.tc_ram_i.sram[addr] = {
+  force x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_i.gen_sram[${bank}].ram_i.tc_ram_i.sram[addr] = {
     val3, val2, val1, val0
   };
-  release core_v_mini_mcu_i.memory_subsystem_i.gen_sram[${bank}].ram_i.tc_ram_i.sram[addr];
+  release x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_i.gen_sram[${bank}].ram_i.tc_ram_i.sram[addr];
 `else
-  core_v_mini_mcu_i.memory_subsystem_i.gen_sram[${bank}].ram_i.tc_ram_i.sram[addr] = {
+  x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_i.gen_sram[${bank}].ram_i.tc_ram_i.sram[addr] = {
     val3, val2, val1, val0
   };
 `endif
@@ -109,10 +109,10 @@ endtask
 
 task tb_set_exit_loop;
 `ifdef VCS
-  force core_v_mini_mcu_i.ao_peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop[0] = 1'b1;
-  release core_v_mini_mcu_i.ao_peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop[0];
+  force x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop[0] = 1'b1;
+  release x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop[0];
 `else
-  core_v_mini_mcu_i.ao_peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop[0] = 1'b1;
+  x_heep_system_i.core_v_mini_mcu_i.ao_peripheral_subsystem_i.soc_ctrl_i.testbench_set_exit_loop[0] = 1'b1;
 `endif
 endtask
 `endif

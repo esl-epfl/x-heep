@@ -218,7 +218,10 @@ def main():
         if found_lunder:
             src_lic = found_lunder
         if found_spdx:
-            src_lic += '\n' + found_spdx
+            if src_lic is None:
+                src_lic = '\n' + found_spdx
+            else:
+                src_lic += '\n' + found_spdx
 
         with outfile:
             if format == 'html':

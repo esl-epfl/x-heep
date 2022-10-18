@@ -79,26 +79,26 @@ tell fusesoc to compile the FLASH model.
 Note that the FLASH model is not compatible with **verilator**, 
 thus the simulation must be carried out with either **modelsim** or **vcs**.
 
-Make sure to compile your SW using the SPI FLASH linker script.
+Make sure to compile your SW using the link_flash_exec.ld linker script.
 
 In this repository, we provide two examples to try, one for FPGA/ASIC 
 only, which toggles a GPIO forever (in simulation, this would never finish),
 and the hello_world example.
 
-To use the SPI FLASH's linker script, do:
+To use the link_flash_exec.ld linker script, do:
 
 ```
 cd sw
-make applications/hello_world/hello_world.flash.hex
+make applications/hello_world/hello_world.flash_memio.hex
 or
-make applications/gpio_pmw/gpio_pmw.flash.hex
+make applications/gpio_pmw/gpio_pmw.flash_memio.hex
 ```
 Then, when launching the simulation, pass the argument `boot_sel=1` 
 to set the `boot_sel_i` input to `1` and `execute_from_flash=1` to set the 
 `execute_from_flash_i` input to `1`.
 
 ```
-make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.flash.hex boot_sel=1 execute_from_flash=1"
+make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.flash_memio.hex boot_sel=1 execute_from_flash=1"
 ```
 
 If you are using FPGAs or ASIC, make sure to program the FLASH first.
@@ -114,26 +114,26 @@ To use this mode, when targeting ASICs or FPGA bitstreams,
 make sure you have the `boot_sel_i` input (e.g., a switch) set to 1, 
 and the `execute_from_flash_i` set to 0.
 
-Make sure to compile your SW using the SPI HOST linker script.
+Make sure to compile your SW using the link_flash_load.ld linker script.
 
 In this repository, we provide two examples to try, one for FPGA/ASIC 
 only, which toggles a GPIO forever (in simulation, this would never finish),
 and the hello_world example.
 
-To use the SPI HOST's linker script, do:
+To use the link_flash_load.ld linker script, do:
 
 ```
 cd sw
-make applications/hello_world/hello_world.spihost.hex
+make applications/hello_world/hello_world.flash_boot.hex
 or
-make applications/gpio_pmw/gpio_pmw.spihost.hex
+make applications/gpio_pmw/gpio_pmw.flash_boot.hex
 ```
 Then, when launching the simulation, pass the argument `boot_sel=1` 
 to set the `boot_sel_i` input to `1` and `execute_from_flash=0` to set the 
 `execute_from_flash_i` input to `0`.
 
 ```
-make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.spihost.hex boot_sel=1 execute_from_flash=0"
+make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.flash_boot.hex boot_sel=1 execute_from_flash=0"
 ```
 
 If you are using FPGAs or ASIC, make sure to program the FLASH first.
