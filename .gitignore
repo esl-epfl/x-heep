@@ -12,7 +12,6 @@ build/
 core-v-mini-mcu.upf
 tb/tb_util.svh
 hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
-hw/core-v-mini-mcu/include/core_v_mini_mcu.sv
 hw/core-v-mini-mcu/system_bus.sv
 hw/system/x_heep_system.sv
 hw/system/pad_ring.sv
