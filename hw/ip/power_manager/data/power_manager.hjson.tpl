@@ -353,26 +353,6 @@
     }
 
 % for bank in range(ram_numbanks):
-    { name:     "RAM_${bank}_RESET_ASSERT_COUNTER",
-      desc:     "Counter before resetting the RAM_${bank} domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM_${bank}_RESET_ASSERT_COUNTER", desc: "RAM_${bank} counter before resetting" }
-      ]
-    }
-
-    { name:     "RAM_${bank}_RESET_DEASSERT_COUNTER",
-      desc:     "Counter before unreset the RAM_${bank} domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM_${bank}_RESET_DEASSERT_COUNTER", desc: "RAM_${bank} counter before unresetting" }
-      ]
-    }
-
     { name:     "RAM_${bank}_SWITCH_OFF_COUNTER",
       desc:     "Counter before switching off the RAM_${bank} domain",
       resval:   "0x00000000"

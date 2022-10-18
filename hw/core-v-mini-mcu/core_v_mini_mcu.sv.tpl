@@ -11,16 +11,14 @@ module core_v_mini_mcu
     parameter PULP_ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0
 ) (
-
 % for pad in pad_list:
     ${pad.core_v_mini_mcu_interface}
 % endfor
 
-    //External PADs
+    input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
+
     output reg_req_t pad_req_o,
     input  reg_rsp_t pad_resp_i,
-
-    output logic [31:0] exit_value_o,
 
     input  obi_req_t  [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
@@ -31,11 +29,11 @@ module core_v_mini_mcu
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
-    input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
-
     output logic external_subsystem_powergate_switch_o,
     output logic external_subsystem_powergate_iso_o,
-    output logic external_subsystem_rst_no
+    output logic external_subsystem_rst_no,
+
+    output logic [31:0] exit_value_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -107,7 +105,7 @@ module core_v_mini_mcu
   logic peripheral_subsystem_rst_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_rst_n;
+
   // rv_timer
   logic [3:0] rv_timer_intr;
 
@@ -117,9 +115,9 @@ module core_v_mini_mcu
 
   // DMA
   logic dma_intr;
+
   // SPI
   logic spi_flash_intr, spi_intr;
-
 
   //GPIO
   logic [31:0] gpio_in;
@@ -141,7 +139,6 @@ module core_v_mini_mcu
     rv_timer_intr[2],
     rv_timer_intr[1]
   };
-
 
   cpu_subsystem #(
       .BOOT_ADDR(BOOT_ADDR),
@@ -188,37 +185,37 @@ module core_v_mini_mcu
   ) system_bus_i (
       .clk_i,
       .rst_ni,
-      .core_instr_req_i          (core_instr_req),
-      .core_instr_resp_o         (core_instr_resp),
-      .core_data_req_i           (core_data_req),
-      .core_data_resp_o          (core_data_resp),
-      .debug_master_req_i        (debug_master_req),
-      .debug_master_resp_o       (debug_master_resp),
-      .dma_master0_ch0_req_i     (dma_master0_ch0_req),
-      .dma_master0_ch0_resp_o    (dma_master0_ch0_resp),
-      .dma_master1_ch0_req_i     (dma_master1_ch0_req),
-      .dma_master1_ch0_resp_o    (dma_master1_ch0_resp),
-      .ext_xbar_master_req_i     (ext_xbar_master_req_i),
-      .ext_xbar_master_resp_o    (ext_xbar_master_resp_o),
-      .ram_req_o                 (ram_slave_req),
-      .ram_resp_i                (ram_slave_resp),
-      .debug_slave_req_o         (debug_slave_req),
-      .debug_slave_resp_i        (debug_slave_resp),
-      .ao_peripheral_slave_req_o (ao_peripheral_slave_req),
+      .core_instr_req_i(core_instr_req),
+      .core_instr_resp_o(core_instr_resp),
+      .core_data_req_i(core_data_req),
+      .core_data_resp_o(core_data_resp),
+      .debug_master_req_i(debug_master_req),
+      .debug_master_resp_o(debug_master_resp),
+      .dma_master0_ch0_req_i(dma_master0_ch0_req),
+      .dma_master0_ch0_resp_o(dma_master0_ch0_resp),
+      .dma_master1_ch0_req_i(dma_master1_ch0_req),
+      .dma_master1_ch0_resp_o(dma_master1_ch0_resp),
+      .ext_xbar_master_req_i(ext_xbar_master_req_i),
+      .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
+      .ram_req_o(ram_slave_req),
+      .ram_resp_i(ram_slave_resp),
+      .debug_slave_req_o(debug_slave_req),
+      .debug_slave_resp_i(debug_slave_resp),
+      .ao_peripheral_slave_req_o(ao_peripheral_slave_req),
       .ao_peripheral_slave_resp_i(ao_peripheral_slave_resp),
-      .peripheral_slave_req_o    (peripheral_slave_req),
-      .peripheral_slave_resp_i   (peripheral_slave_resp),
-      .flash_mem_slave_req_o     (flash_mem_slave_req),
-      .flash_mem_slave_resp_i    (flash_mem_slave_resp),
-      .ext_xbar_slave_req_o      (ext_xbar_slave_req_o),
-      .ext_xbar_slave_resp_i     (ext_xbar_slave_resp_i)
+      .peripheral_slave_req_o(peripheral_slave_req),
+      .peripheral_slave_resp_i(peripheral_slave_resp),
+      .flash_mem_slave_req_o(flash_mem_slave_req),
+      .flash_mem_slave_resp_i(flash_mem_slave_resp),
+      .ext_xbar_slave_req_o(ext_xbar_slave_req_o),
+      .ext_xbar_slave_resp_i(ext_xbar_slave_resp_i)
   );
 
   memory_subsystem #(
       .NUM_BANKS(core_v_mini_mcu_pkg::NUM_BANKS)
   ) memory_subsystem_i (
-      .clk_i(clk),
-      .rst_ni(memory_subsystem_banks_rst_n),
+      .clk_i,
+      .rst_ni,
       .ram_req_i(ram_slave_req),
       .ram_resp_o(ram_slave_resp)
   );
@@ -259,7 +256,6 @@ module core_v_mini_mcu
       .peripheral_subsystem_rst_no(peripheral_subsystem_rst_n),
       .memory_subsystem_banks_powergate_switch_o(memory_subsystem_banks_powergate_switch),
       .memory_subsystem_banks_powergate_iso_o(memory_subsystem_banks_powergate_iso),
-      .memory_subsystem_banks_rst_no(memory_subsystem_banks_rst_n),
       .external_subsystem_powergate_switch_o,
       .external_subsystem_powergate_iso_o,
       .external_subsystem_rst_no,
@@ -279,7 +275,6 @@ module core_v_mini_mcu
       .ext_peripheral_slave_req_o,
       .ext_peripheral_slave_resp_i
   );
-
 
   peripheral_subsystem #(
       .NEXT_INT(NEXT_INT)
@@ -404,6 +399,5 @@ module core_v_mini_mcu
   assign gpio_in[31]  = gpio_31_i;
   assign gpio_31_o    = gpio_out[31];
   assign gpio_31_oe_o = gpio_oe[31];
-
 
 endmodule  // core_v_mini_mcu
