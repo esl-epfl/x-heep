@@ -156,14 +156,6 @@ module core_v_mini_mcu
     input  logic gpio_29_i,
     output logic gpio_29_oe_o,
 
-    output logic gpio_30_o,
-    input  logic gpio_30_i,
-    output logic gpio_30_oe_o,
-
-    output logic gpio_31_o,
-    input  logic gpio_31_i,
-    output logic gpio_31_oe_o,
-
     output logic spi_flash_sck_o,
     input  logic spi_flash_sck_i,
     output logic spi_flash_sck_oe_o,
@@ -223,10 +215,16 @@ module core_v_mini_mcu
     output logic i2c_scl_o,
     input  logic i2c_scl_i,
     output logic i2c_scl_oe_o,
+    output logic gpio_31_o,
+    input  logic gpio_31_i,
+    output logic gpio_31_oe_o,
 
     output logic i2c_sda_o,
     input  logic i2c_sda_i,
     output logic i2c_sda_oe_o,
+    output logic gpio_30_o,
+    input  logic gpio_30_i,
+    output logic gpio_30_oe_o,
 
 
     //External PADs
