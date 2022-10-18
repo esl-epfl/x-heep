@@ -233,7 +233,7 @@ module ao_peripheral_subsystem
       .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::POWER_MANAGER_IDX]),
       .intr_i,
-      .ext_irq_i(ext_intr_i),
+      .ext_irq_i(intr_vector_ext_i),
       .core_sleep_i,
       .cpu_subsystem_powergate_switch_o,
       .cpu_subsystem_powergate_iso_o,
