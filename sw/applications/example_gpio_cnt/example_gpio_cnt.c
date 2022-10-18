@@ -11,6 +11,8 @@
 #include "rv_plic.h"
 #include "rv_plic_regs.h"
 #include "gpio.h"
+#include "pad_control.h"
+#include "pad_control_regs.h"  // Generated.
 
 #define GPIO_TB_OUT 30
 #define GPIO_TB_IN  31
@@ -34,12 +36,17 @@ void handler_irq_external(void) {
 int main(int argc, char *argv[])
 {
 
+    pad_control_t pad_control;
+    pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
     rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)PLIC_START_ADDRESS);
     plic_res = dif_plic_init(rv_plic_params, &rv_plic);
     if (plic_res != kDifPlicOk) {
         printf("Init PLIC failed\n;");
         return -1;
     }
+
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_I2C_SCL_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_I2C_SDA_REG_OFFSET), 1);
 
     gpio_params_t gpio_params;
     gpio_t gpio;
@@ -88,6 +95,7 @@ int main(int argc, char *argv[])
         printf("Failed\n;");
         return -1;
     }
+
 
     printf("Write 1 to GPIO 30 and wait for interrupt...");
     gpio_write(&gpio, GPIO_TB_OUT, true);

@@ -38,7 +38,8 @@ ${pad.x_heep_system_interface}
   // PAD controller
   reg_req_t pad_req;
   reg_rsp_t pad_resp;
-  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][15:0] pad_attributes;
+  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][7:0] pad_attributes;
+  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][3:0] pad_muxes;
 
   //input, output pins from core_v_mini_mcu
 % for pad in total_pad_list:
@@ -76,16 +77,21 @@ ${pad.pad_ring_bonding_bonding}
     .pad_attributes_i(pad_attributes)
   );
 
-  pad_attribute #(
+${pad_constant_driver_assign}
+
+${pad_mux_process}
+
+  pad_control #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t),
       .NUM_PAD  (core_v_mini_mcu_pkg::NUM_PAD)
-  ) pad_attribute_i (
+  ) pad_control_i (
       .clk_i,
       .rst_ni,
       .reg_req_i(pad_req),
       .reg_rsp_o(pad_resp),
-      .pad_attributes_o(pad_attributes)
+      .pad_attributes_o(pad_attributes),
+      .pad_muxes_o(pad_muxes)
   );
 
 endmodule  // x_heep_system
