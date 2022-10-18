@@ -120,6 +120,12 @@ class Pad:
                                 '      ' + self.in_internal_signals[i] + ' = ' + pad_in_internal_signals + ';\n' + \
                                 '    end\n'
 
+        self.mux_process += '    default: begin\n' + \
+                            '      ' + pad_out_internal_signals + ' = ' + self.out_internal_signals[0] + ';\n' + \
+                            '      ' + pad_oe_internal_signals + ' = ' + self.oe_internal_signals[0] + ';\n' + \
+                            '      ' + self.in_internal_signals[0] + ' = ' + pad_in_internal_signals + ';\n' + \
+                            '    end\n'
+
         self.mux_process += '   endcase\n' + \
                             '  end\n'
 
