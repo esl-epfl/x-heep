@@ -135,8 +135,6 @@ module testharness #(
       .gpio_27_io(gpio[27]),
       .gpio_28_io(gpio[28]),
       .gpio_29_io(gpio[29]),
-      .gpio_30_io(gpio[30]),
-      .gpio_31_io(gpio[31]),
       .spi_flash_sck_io(spi_flash_sck),
       .spi_flash_cs_0_io(spi_flash_csb[0]),
       .spi_flash_cs_1_io(spi_flash_csb[1]),
@@ -152,8 +150,8 @@ module testharness #(
       .spi_sd_2_io(spi_sd_io[2]),
       .spi_sd_3_io(spi_sd_io[3]),
 
-      .i2c_scl_io(),
-      .i2c_sda_io(),
+      .i2c_scl_io(gpio[31]),
+      .i2c_sda_io(gpio[30]),
 
       .exit_value_o,
       .intr_vector_ext_i(intr_vector_ext),

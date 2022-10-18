@@ -4,4 +4,5 @@
 
 `verilator_config
 
-lint_off -rule WIDTH -file "*/pad_attribute_reg_top.sv" -match "*"
+lint_off -rule UNUSED -file "*/x_heep_system.sv" -match "*"
+lint_off -rule UNDRIVEN -file "*/x_heep_system.sv" -match "*"

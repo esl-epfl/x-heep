@@ -60,9 +60,9 @@ extern "C" {
 #define EXT_PERIPHERAL_SIZE 0x${ext_periph_size_address}
 #define EXT_PERIPHERAL_END_ADDRESS (EXT_PERIPHERAL_START_ADDRESS + EXT_PERIPHERAL_SIZE)
 
-#define PAD_ATTRIBUTE_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${pad_attribute_start_offset})
-#define PAD_ATTRIBUTE_SIZE 0x${pad_attribute_size_address}
-#define PAD_ATTRIBUTE_END_ADDRESS (PAD_ATTRIBUTE_START_ADDRESS + PAD_ATTRIBUTE_SIZE)
+#define PAD_CONTROL_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${pad_control_start_offset})
+#define PAD_CONTROL_SIZE 0x${pad_control_size_address}
+#define PAD_CONTROL_END_ADDRESS (PAD_CONTROL_START_ADDRESS + PAD_CONTROL_SIZE)
 
 //switch-on/off peripherals
 #define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}

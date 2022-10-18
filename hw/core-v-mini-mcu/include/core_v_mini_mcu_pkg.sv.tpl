@@ -153,10 +153,10 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] EXT_PERIPH_END_ADDRESS = EXT_PERIPH_START_ADDRESS + EXT_PERIPH_SIZE;
   localparam logic[31:0] EXT_PERIPH_IDX = 32'd9;
 
-  localparam logic[31:0] PAD_ATTRIBUTE_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${pad_attribute_start_offset};
-  localparam logic[31:0] PAD_ATTRIBUTE_SIZE = 32'h${pad_attribute_size_address};
-  localparam logic[31:0] PAD_ATTRIBUTE_END_ADDRESS = PAD_ATTRIBUTE_START_ADDRESS + PAD_ATTRIBUTE_SIZE;
-  localparam logic[31:0] PAD_ATTRIBUTE_IDX = 32'd10;
+  localparam logic[31:0] PAD_CONTROL_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${pad_control_start_offset};
+  localparam logic[31:0] PAD_CONTROL_SIZE = 32'h${pad_control_size_address};
+  localparam logic[31:0] PAD_CONTROL_END_ADDRESS = PAD_CONTROL_START_ADDRESS + PAD_CONTROL_SIZE;
+  localparam logic[31:0] PAD_CONTROL_IDX = 32'd10;
 
 
   localparam addr_map_rule_t [AO_PERIPHERALS-1:0] AO_PERIPHERALS_ADDR_RULES = '{
@@ -170,7 +170,7 @@ package core_v_mini_mcu_pkg;
       '{ idx: DMA_IDX, start_addr: DMA_START_ADDRESS, end_addr: DMA_END_ADDRESS },
       '{ idx: FAST_INTR_CTRL_IDX, start_addr: FAST_INTR_CTRL_START_ADDRESS, end_addr: FAST_INTR_CTRL_END_ADDRESS },
       '{ idx: EXT_PERIPH_IDX, start_addr: EXT_PERIPH_START_ADDRESS, end_addr: EXT_PERIPH_END_ADDRESS },
-      '{ idx: PAD_ATTRIBUTE_IDX, start_addr: PAD_ATTRIBUTE_START_ADDRESS, end_addr: PAD_ATTRIBUTE_END_ADDRESS }
+      '{ idx: PAD_CONTROL_IDX, start_addr: PAD_CONTROL_START_ADDRESS, end_addr: PAD_CONTROL_END_ADDRESS }
   };
 
   localparam int unsigned AO_PERIPHERALS_PORT_SEL_WIDTH = AO_PERIPHERALS > 1 ? $clog2(AO_PERIPHERALS) : 32'd1;
@@ -223,16 +223,9 @@ package core_v_mini_mcu_pkg;
 % endfor
 
   localparam NUM_PAD = ${total_pad};
+  localparam NUM_PAD_MUXED = ${total_pad_muxed};
 
   localparam int unsigned NUM_PAD_PORT_SEL_WIDTH = NUM_PAD > 1 ? $clog2(NUM_PAD) : 32'd1;
 
-  // each attribute is a single 16b register mapped at 0 in the pad_attribute IP, so we use +4 to iterate over the IPs
-  // if you add another register in the pad_attribute IP, then +4 does not hold anymore
-  localparam addr_map_rule_t [NUM_PAD-1:0] PAD_ADDR_RULES = '{
-      % for pad in total_pad_list[:-1]:
-      '{ idx: ${pad.index}, start_addr: (PAD_ATTRIBUTE_START_ADDRESS + ${4 * pad.index}), end_addr: (PAD_ATTRIBUTE_START_ADDRESS + ${4 + 4 * pad.index})},
-      % endfor
-      '{ idx: ${total_pad_list[-1].index}, start_addr: (PAD_ATTRIBUTE_START_ADDRESS + ${4 * total_pad_list[-1].index}), end_addr: (PAD_ATTRIBUTE_START_ADDRESS + ${4 + 4 * total_pad_list[-1].index})}
-  };
 
 endpackage

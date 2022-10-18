@@ -1,0 +1,8 @@
+// Copyright 2022 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule WIDTH -file "*/rtl/pad_control_reg_top.sv" -match "Operator ASSIGNW expects *"
+lint_off -rule UNDRIVEN -file "*/rtl/pad_control.sv" -match "Signal is not driven: 'pad_muxes_o'*"
