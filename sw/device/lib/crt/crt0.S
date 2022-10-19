@@ -29,6 +29,12 @@ _start:
 /* initialize stack pointer */
    la sp, _sp
 
+
+#ifdef EXTERNAL_CRTO
+   #include "external_prologue_crt0.S"
+#endif
+
+
 /* set vector table address and vectored mode */
    la a0, __vector_start
    ori a0, a0, 0x1
@@ -52,7 +58,7 @@ _start:
    sw a2, SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET(a0)
 
 #ifdef EXTERNAL_CRTO
-   #include "external_crt0.S"
+   #include "external_epilogue_crt0.S"
 #endif
 
 /* call main */
