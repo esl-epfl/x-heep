@@ -11,14 +11,16 @@
 module spi_host
   import spi_host_reg_pkg::*;
 #(
-  parameter logic [NumAlerts-1:0] AlertAsyncOn = {NumAlerts{1'b1}}
+  parameter logic [NumAlerts-1:0] AlertAsyncOn = {NumAlerts{1'b1}},
+  parameter type reg_req_t = logic,
+  parameter type reg_rsp_t = logic
 ) (
   input              clk_i,
   input              rst_ni,
 
   // Register interface
-  input              tlul_pkg::tl_h2d_t tl_i,
-  output             tlul_pkg::tl_d2h_t tl_o,
+  input              reg_req_t reg_req_i,
+  output             reg_rsp_t reg_rsp_o,
 
   // Alerts
   input  prim_alert_pkg::alert_rx_t [NumAlerts-1:0] alert_rx_i,
@@ -37,6 +39,10 @@ module spi_host
   input  spi_device_pkg::passthrough_req_t passthrough_i,
   output spi_device_pkg::passthrough_rsp_t passthrough_o,
 
+  // DMA Interface
+  output logic             rx_valid_o,
+  output logic             tx_ready_o,
+
   output logic             intr_error_o,
   output logic             intr_spi_event_o
 );
@@ -46,22 +52,24 @@ module spi_host
   spi_host_reg2hw_t reg2hw;
   spi_host_hw2reg_t hw2reg;
 
-  tlul_pkg::tl_h2d_t fifo_win_h2d [2];
-  tlul_pkg::tl_d2h_t fifo_win_d2h [2];
+  reg_req_t fifo_win_h2d [2];
+  reg_rsp_t fifo_win_d2h [2];
 
   // Register module
   logic [NumAlerts-1:0] alert_test, alerts;
-  spi_host_reg_top u_reg (
+  spi_host_reg_top #(
+    .reg_req_t (reg_req_t),
+    .reg_rsp_t (reg_rsp_t)
+  ) u_reg (
     .clk_i,
     .rst_ni,
-    .tl_i       (tl_i),
-    .tl_o       (tl_o),
-    .tl_win_o   (fifo_win_h2d),
-    .tl_win_i   (fifo_win_d2h),
+    .reg_req_i,
+    .reg_rsp_o,
+    .reg_req_win_o (fifo_win_h2d),
+    .reg_rsp_win_i (fifo_win_d2h),
     .reg2hw,
     .hw2reg,
     // SEC_CM: BUS.INTEGRITY
-    .intg_err_o (alerts[0]),
     .devmode_i  (1'b1)
   );
 
@@ -295,7 +303,10 @@ module spi_host
   logic        rx_valid;
   logic        rx_ready;
 
-  spi_host_window u_window (
+  spi_host_window #(
+    .reg_req_t  (reg_req_t),
+    .reg_rsp_t  (reg_rsp_t)
+  ) u_window (
     .clk_i,
     .rst_ni,
     .rx_win_i   (fifo_win_h2d[0]),

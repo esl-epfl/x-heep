@@ -2,11 +2,12 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 { name: "spi_host",
-  clocking: [
-    {clock: "clk_i", reset: "rst_ni", primary: true},
-  ]
+  clock_primary: "clk_i",
+  other_clock_list: [ "clk_core_i" ],
+  reset_primary: "rst_ni",
+  other_reset_list: [ "rst_core_ni" ],
   bus_interfaces: [
-    { protocol: "tlul", direction: "device" }
+    { protocol: "reg_iface", direction: "device" }
   ],
   inter_signal_list: [
     { struct:  "passthrough",
@@ -32,7 +33,7 @@
     { name: "NumCS",
       desc: "The number of active-low chip select (cs_n) lines to create.",
       type: "int",
-      default: "1"
+      default: "2"
     },
     { name: "TxDepth",
       desc: "The size of the Tx FIFO (in words)",
@@ -82,11 +83,6 @@
       '''
     }
   ],
-  countermeasures: [
-    { name: "BUS.INTEGRITY",
-      desc: "End-to-end bus integrity scheme."
-    }
-  ]
   registers: [
     { name: "CONTROL",
       desc: "Control register",
