@@ -165,15 +165,19 @@ int main(int argc, char *argv[])
     }
 
     // Power gate core and wait for fast DMA interrupt
+    CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;
     }
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
 
     // Wait for DMA interrupt
     printf("Waiting for the DMA interrupt...\n");
-    while(dma_intr_flag==0);
+    while(dma_intr_flag==0){
+        wait_for_interrupt();
+    }
     printf("triggered!\n");
 
     // The data is already in memory -- Check results

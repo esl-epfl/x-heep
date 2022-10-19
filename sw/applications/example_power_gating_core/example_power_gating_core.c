@@ -73,11 +73,13 @@ int main(int argc, char *argv[])
     rv_timer_arm(&timer_0_1, 0, 0, 1024);
     rv_timer_counter_set_enabled(&timer_0_1, 0, kRvTimerEnabled);
 
+    CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kTimer_0_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;
     }
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
 
     // Power-gate and wake-up due to timer_1
     rv_timer_set_tick_params(&timer_0_1, 1, tick_params);
@@ -85,12 +87,13 @@ int main(int argc, char *argv[])
     rv_timer_arm(&timer_0_1, 1, 0, 1024);
     rv_timer_counter_set_enabled(&timer_0_1, 1, kRvTimerEnabled);
 
+    CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kTimer_1_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;
     }
-
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     clear_fast_interrupt(&fast_intr_ctrl, kTimer_1_fic_e);
 
     // Power-gate and wake-up due to timer_2
@@ -99,12 +102,13 @@ int main(int argc, char *argv[])
     rv_timer_arm(&timer_2_3, 0, 0, 1024);
     rv_timer_counter_set_enabled(&timer_2_3, 0, kRvTimerEnabled);
 
+    CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kTimer_2_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;
     }
-
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     clear_fast_interrupt(&fast_intr_ctrl, kTimer_2_fic_e);
 
     // Power-gate and wake-up due to timer_3
@@ -113,12 +117,13 @@ int main(int argc, char *argv[])
     rv_timer_arm(&timer_2_3, 1, 0, 1024);
     rv_timer_counter_set_enabled(&timer_2_3, 1, kRvTimerEnabled);
 
+    CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kTimer_3_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;
     }
-
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     clear_fast_interrupt(&fast_intr_ctrl, kTimer_3_fic_e);
 
 #ifdef USE_EXTERNAL_DEVICE
@@ -130,11 +135,13 @@ int main(int argc, char *argv[])
     gpio_irq_set_enabled(&gpio, 31, true);
     gpio_write(&gpio, 30, true);
 
+    CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kPlic_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;
     }
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
 
     dif_plic_irq_id_t intr_num;
     dif_plic_irq_complete(&rv_plic, 0, &intr_num);
