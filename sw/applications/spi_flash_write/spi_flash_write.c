@@ -19,7 +19,7 @@
 #include "fast_intr_ctrl_regs.h"
 
 // Un-comment this line to use the SPI FLASH instead of the default SPI
-#define USE_SPI_FLASH
+// #define USE_SPI_FLASH
 
 #define COPY_DATA_BYTES 256 // Flash page size = 256
 #define SPI_BYTES (4 * (uint32_t)((COPY_DATA_BYTES-1) / 4 + 1)) // Only sends data when an entire word has been received
@@ -29,6 +29,7 @@
 int8_t spi_intr_flag;
 spi_host_t spi_host;
 
+#ifndef USE_SPI_FLASH
 void handler_irq_fast_spi(void)
 {
     // Disable SPI interrupts
@@ -40,7 +41,7 @@ void handler_irq_fast_spi(void)
     clear_fast_interrupt(&fast_intr_ctrl, kSpi_e);
     spi_intr_flag = 1;
 }
-
+#else
 void handler_irq_fast_spi_flash(void)
 {
     // Disable SPI interrupts
@@ -52,6 +53,7 @@ void handler_irq_fast_spi_flash(void)
     clear_fast_interrupt(&fast_intr_ctrl, kSpiFlash);
     spi_intr_flag = 1;
 }
+#endif
 
 // Reserve memory array
 uint32_t flash_data[SPI_BYTES / 4] __attribute__ ((aligned (4))) = {0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,0x679852fe,0xff8252bb,0x763b4521,0x6875adaa,0x09ac65bb,0x666ba334,0x44556677,0x0000ba98};
@@ -88,13 +90,11 @@ int main(int argc, char *argv[])
     // Enable SPI host device
     spi_set_enable(&spi_host, true);
 
-    // SPI and SPI_HOST are the same IP so same register map
+    // SPI and SPI_FLASH are the same IP so same register map
     uint32_t *fifo_ptr = spi_host.base_addr.base + SPI_HOST_DATA_REG_OFFSET;
 
     // -- SPI CONFIGURATION -- 
     // Configure chip 0 (flash memory)
-    // Max 50 MHz core SPI clock --> Max 25 MHz SCK
-    // Single data IO; keep timing as safe as possible.
     const uint32_t chip_cfg = spi_create_configopts((spi_configopts_t){
         .clkdiv     = 1,
         .csnidle    = 0xF,
@@ -107,9 +107,9 @@ int main(int argc, char *argv[])
     spi_set_configopts(&spi_host, 0, chip_cfg);
     spi_set_csid(&spi_host, 0);
 
-    /////////////// WRITE ////////////////
-
-    const uint32_t cmd_dummy = spi_create_command((spi_command_t){
+    // The actual implementation of the SPI HOST has HW bugs when sending single bytes per transaction,
+    // This dummy read and write commands are used to send empty commands to the devide to fush and discard internal TX and RX words
+    const uint32_t cmd_dummy_write = spi_create_command((spi_command_t){
         .len        = 2,
         .csaat      = false,
         .speed      = kSpiSpeedStandard,
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
         .direction  = kSpiDirRxOnly
     });
 
-    printf("Reset...\n");
+    /////////////// WRITE ////////////////
 
     // Reset
     const uint32_t reset_cmd = 0xFFFFFFFF;
@@ -138,8 +138,6 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
     spi_set_rx_watermark(&spi_host,1);
 
-    printf("power up...\n");
-
     // Power up flash
     const uint32_t powerup_byte_cmd = 0xab;
     spi_write_word(&spi_host, powerup_byte_cmd);
@@ -151,11 +149,8 @@ int main(int argc, char *argv[])
     });
     spi_set_command(&spi_host, cmd_powerup);
     spi_wait_for_ready(&spi_host);
-    printf("Wait...\n");
-    spi_set_command(&spi_host, cmd_dummy);
+    spi_set_command(&spi_host, cmd_dummy_write);
     spi_wait_for_ready(&spi_host);
-
-    printf("Write enable...\n");
 
     // Write enable
     const uint32_t write_enable_cmd = 0x06;
@@ -168,11 +163,8 @@ int main(int argc, char *argv[])
     });
     spi_set_command(&spi_host, cmd_write_en);
     spi_wait_for_ready(&spi_host);
-    printf("Wait...\n");
-    spi_set_command(&spi_host, cmd_dummy);
+    spi_set_command(&spi_host, cmd_dummy_write);
     spi_wait_for_ready(&spi_host);
-
-    printf("Write cmd...\n");
 
     // Write command
     const uint32_t write_byte_cmd = ((FLASH_ADDR << 8) | 0x02); // Program Page + addr
@@ -246,13 +238,12 @@ int main(int argc, char *argv[])
         if ((flash_resp[0] & 0x01) == 0) flash_busy = false;
     }
 
-    // Fix bug with Bidirectional additional byte
+    // Fix bug with the previous Bidirectional additional byte
     spi_set_command(&spi_host, cmd_dummy_read);
     spi_wait_for_ready(&spi_host);
     spi_wait_for_rx_watermark(&spi_host);
     spi_read_word(&spi_host, &flash_resp[0]);
 
-    printf("Power down flash...\n");
     // Power down flash
     const uint32_t powerdown_byte_cmd = 0xb9;
     spi_write_word(&spi_host, powerdown_byte_cmd);
@@ -264,8 +255,7 @@ int main(int argc, char *argv[])
     });
     spi_set_command(&spi_host, cmd_powerdown);
     spi_wait_for_ready(&spi_host);
-    printf("Wait...\n");
-    spi_set_command(&spi_host, cmd_dummy);
+    spi_set_command(&spi_host, cmd_dummy_write);
     spi_wait_for_ready(&spi_host);
 
     printf("%d Bytes written in Flash at @0x%08x \n", COPY_DATA_BYTES, FLASH_ADDR);
