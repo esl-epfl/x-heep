@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "x-heep.h"
 #include "core_v_mini_mcu.h"
 #include "csr.h"
 #include "hart.h"
@@ -25,6 +26,8 @@
 #define SPI_BYTES (4 * (uint32_t)((COPY_DATA_BYTES-1) / 4 + 1)) // Only sends data when an entire word has been received
 
 #define FLASH_ADDR 0x00008500 // 256B data alignment
+
+#define FLASH_CLK_MAX 2 // In MHz
 
 int8_t spi_intr_flag;
 spi_host_t spi_host;
@@ -94,6 +97,10 @@ int main(int argc, char *argv[])
     uint32_t *fifo_ptr = spi_host.base_addr.base + SPI_HOST_DATA_REG_OFFSET;
 
     // -- SPI CONFIGURATION -- 
+    // Configure SPI clock
+    // SPI clk toggles at half of the freq as the core clk when clk_div = 1
+    // SPI_CLK = CORE_CLK/(2 + 2 * CLK_DIV) < CLK_MAX => CLK_DIV > (CORE_CLK/CLK_MAX - 2)/2
+    const uint16_t clk_div = (REFERENCE_CLOCK_Hz/(1000*1000*FLASH_CLK_MAX) - 2)/2 + 1;
     // Configure chip 0 (flash memory)
     const uint32_t chip_cfg = spi_create_configopts((spi_configopts_t){
         .clkdiv     = 1,
