@@ -137,6 +137,10 @@ module power_manager #(
     end
   end
 
+  //if you want to wait for ACK, or just bypass it
+  logic cpu_switch_wait_ack;
+  assign cpu_switch_wait_ack = reg2hw.power_gate_core_ack.q ? reg2hw.cpu_wait_ack_switch_on_counter.q : 1'b1;
+
   power_manager_counter_sequence #(
       .IDLE_VALUE(RESET_IDLE_VALUE),
       .ONOFF_AT_RESET(RESET_VALUE_AT_RESET)
@@ -147,6 +151,7 @@ module power_manager #(
       // trigger to start the sequence
       .start_off_sequence_i(reg2hw.power_gate_core.q && core_sleep_i),
       .start_on_sequence_i (start_on_sequence),
+      .switch_ack_i (cpu_switch_wait_ack),
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(cpu_reset_counter_expired_switch_off),
@@ -200,6 +205,7 @@ module power_manager #(
       // trigger to start the sequence
       .start_off_sequence_i(reg2hw.power_gate_core.q && core_sleep_i),
       .start_on_sequence_i (start_on_sequence),
+      .switch_ack_i (1'b1),
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(cpu_powergate_counter_expired_switch_off),
@@ -253,6 +259,7 @@ module power_manager #(
       // trigger to start the sequence
       .start_off_sequence_i(reg2hw.power_gate_core.q && core_sleep_i),
       .start_on_sequence_i (start_on_sequence),
+      .switch_ack_i (cpu_switch_wait_ack),
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(cpu_powergate_counter_expired_iso_off),
@@ -303,6 +310,10 @@ module power_manager #(
       .hw2reg_q_i(reg2hw.periph_reset_deassert_counter.q)
   );
 
+  //if you want to wait for ACK, or just bypass it
+  logic periph_switch_wait_ack;
+  assign periph_switch_wait_ack = reg2hw.power_gate_periph_ack.q ? reg2hw.periph_wait_ack_switch_on_counter.q : 1'b1;
+
   power_manager_counter_sequence #(
       .IDLE_VALUE(RESET_IDLE_VALUE),
       .ONOFF_AT_RESET(RESET_VALUE_AT_RESET)
@@ -313,6 +324,7 @@ module power_manager #(
       // trigger to start the sequence
       .start_off_sequence_i(reg2hw.power_gate_periph.q),
       .start_on_sequence_i (~reg2hw.power_gate_periph.q),
+      .switch_ack_i (periph_switch_wait_ack),
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(periph_reset_counter_expired_switch_off),
@@ -366,6 +378,8 @@ module power_manager #(
       // trigger to start the sequence
       .start_off_sequence_i(reg2hw.power_gate_periph.q),
       .start_on_sequence_i (~reg2hw.power_gate_periph.q),
+      .switch_ack_i (1'b1),
+
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(periph_powergate_counter_expired_switch_off),
@@ -419,6 +433,7 @@ module power_manager #(
       // trigger to start the sequence
       .start_off_sequence_i(reg2hw.power_gate_periph.q),
       .start_on_sequence_i (~reg2hw.power_gate_periph.q),
+      .switch_ack_i (periph_switch_wait_ack),
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(periph_powergate_counter_expired_iso_off),
@@ -479,6 +494,7 @@ module power_manager #(
       // trigger to start the sequence
       .start_off_sequence_i(reg2hw.power_gate_ram_block_${bank}.q),
       .start_on_sequence_i (~reg2hw.power_gate_ram_block_${bank}.q),
+      .switch_ack_i (1'b1),
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(ram_${bank}_powergate_counter_expired_switch_off),
@@ -522,6 +538,10 @@ module power_manager #(
       .hw2reg_q_i(reg2hw.ram_${bank}_iso_on_counter.q)
   );
 
+  //if you want to wait for ACK, or just bypass it
+  logic ram_${bank}_switch_wait_ack;
+  assign ram_${bank}_switch_wait_ack = reg2hw.power_gate_ram_block_${bank}_ack.q ? reg2hw.ram_${bank}_wait_ack_switch_on_counter.q : 1'b1;
+
   power_manager_counter_sequence #(
     .IDLE_VALUE(ISO_IDLE_VALUE),
     .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
@@ -532,7 +552,7 @@ module power_manager #(
       // trigger to start the sequence
       .start_off_sequence_i(reg2hw.power_gate_ram_block_${bank}.q),
       .start_on_sequence_i (~reg2hw.power_gate_ram_block_${bank}.q),
-
+      .switch_ack_i (ram_${bank}_switch_wait_ack),
       // counter to switch on and off signals
       .counter_expired_switch_off_i(ram_${bank}_powergate_counter_expired_iso_off),
       .counter_expired_switch_on_i (ram_${bank}_powergate_counter_expired_iso_on),

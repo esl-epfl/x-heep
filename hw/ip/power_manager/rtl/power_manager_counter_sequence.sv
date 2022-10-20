@@ -14,6 +14,8 @@ module power_manager_counter_sequence #(
     // trigger to start the sequence
     input logic start_off_sequence_i,
     input logic start_on_sequence_i,
+    // if true, wait for ack after counter expires
+    input logic switch_ack_i,
 
     // counter to switch on and off signals
     input logic counter_expired_switch_off_i,
@@ -33,6 +35,7 @@ module power_manager_counter_sequence #(
     WAIT_SWITCH_OFF_COUNTER,
     SWITCH_OFF,
     WAIT_SWITCH_ON_COUNTER,
+    WAIT_ACK,
     SWITCH_ON
   } sequence_fsm_state;
 
@@ -73,6 +76,7 @@ module power_manager_counter_sequence #(
       WAIT_SWITCH_OFF_COUNTER: begin
         switch_onoff_signal_o = IDLE_VALUE;
         sequence_next_state   = counter_expired_switch_off_i ? SWITCH_OFF : WAIT_SWITCH_OFF_COUNTER;
+        sequence_next_state   = counter_expired_switch_off_i ? SWITCH_OFF : WAIT_SWITCH_OFF_COUNTER;
       end
 
       SWITCH_OFF: begin
@@ -85,7 +89,15 @@ module power_manager_counter_sequence #(
 
       WAIT_SWITCH_ON_COUNTER: begin
         switch_onoff_signal_o = ~IDLE_VALUE;
-        sequence_next_state   = counter_expired_switch_on_i ? SWITCH_ON : WAIT_SWITCH_ON_COUNTER;
+        if (counter_expired_switch_on_i) begin
+          sequence_next_state = switch_ack_i ? SWITCH_ON : WAIT_ACK;
+        end
+        sequence_next_state = WAIT_SWITCH_ON_COUNTER;
+      end
+
+      WAIT_ACK: begin
+        switch_onoff_signal_o = ~IDLE_VALUE;
+        sequence_next_state   = switch_ack_i ? SWITCH_ON : WAIT_ACK;
       end
 
       SWITCH_ON: begin
