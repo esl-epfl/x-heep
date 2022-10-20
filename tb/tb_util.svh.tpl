@@ -32,11 +32,11 @@ task tb_initPowerSwitches;
 `ifndef VERILATOR
   force x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_powergate_switch_ack = 1'b1;
   force x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_powergate_switch_ack = 1'b1;
-  force x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_ack = {core_v_mini_mcu_pkg::MEM_SIZE{1'b1}};
+  force x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_ack = {core_v_mini_mcu_pkg::NUM_BANKS{1'b1}};
 `else
   x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_powergate_switch_ack = 1'b1;
   x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_powergate_switch_ack = 1'b1;
-  x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_ack = {core_v_mini_mcu_pkg::MEM_SIZE{1'b1}};
+  x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_ack = {core_v_mini_mcu_pkg::NUM_BANKS{1'b1}};
 `endif
 endtask
 
