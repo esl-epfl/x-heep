@@ -84,11 +84,11 @@ void spi_set_command(const spi_host_t *spi, const uint32_t cmd_reg) {
 }
 
 void spi_write_word(const spi_host_t *spi, uint32_t wdata) {
-    mmio_region_write32(spi->base_addr, SPI_HOST_DATA_REG_OFFSET, wdata);
+    mmio_region_write32(spi->base_addr, SPI_HOST_TXDATA_REG_OFFSET, wdata);
 }
 
 void spi_read_word(const spi_host_t *spi, uint32_t* dst) {
-    *dst = mmio_region_read32(spi->base_addr, SPI_HOST_DATA_REG_OFFSET);
+    *dst = mmio_region_read32(spi->base_addr, SPI_HOST_RXDATA_REG_OFFSET);
 }
 
 void spi_enable_evt_intr(const spi_host_t *spi, bool enable) {

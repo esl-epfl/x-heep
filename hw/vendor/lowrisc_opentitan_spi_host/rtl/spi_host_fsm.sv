@@ -66,13 +66,13 @@ module spi_host_fsm
   logic [1:0]       cmd_speed_d, cmd_speed_q;
   logic             cmd_wr_en_d, cmd_wr_en_q;
   logic             cmd_rd_en_d, cmd_rd_en_q;
-  logic [8:0]       cmd_len_d, cmd_len_q;
+  logic [23:0]      cmd_len_d, cmd_len_q;
   logic             csaat;
   logic             csaat_q;
 
   logic [2:0]       bit_cntr_d, bit_cntr_q;
-  logic [8:0]       byte_cntr_cpha0_d, byte_cntr_cpha1_d, byte_cntr_cpha0_q, byte_cntr_cpha1_q;
-  logic [8:0]       byte_cntr_early, byte_cntr_late;
+  logic [23:0]      byte_cntr_cpha0_d, byte_cntr_cpha1_d, byte_cntr_cpha0_q, byte_cntr_cpha1_q;
+  logic [23:0]      byte_cntr_early, byte_cntr_late;
   logic [3:0]       wait_cntr_d, wait_cntr_q;
   logic             last_bit, last_byte;
 
@@ -163,7 +163,7 @@ module spi_host_fsm
       cmd_rd_en_q <= 1'b0;
       cmd_wr_en_q <= 1'b0;
       cmd_speed_q <= 2'b00;
-      cmd_len_q   <= 9'h0;
+      cmd_len_q   <= 24'h0;
     end else begin
       csid_q      <= (new_command && !stall) ? csid : csid_q;
       cpol_q      <= (new_command && !stall) ? cpol : cpol_q;
@@ -437,11 +437,11 @@ module spi_host_fsm
   // can drive the FSM properly.  However, we explicitly choose
   // byte_cntr_cpha0_q to avoid a combinational logic loop.
   //
-  assign last_byte = (byte_cntr_cpha0_q == 9'h0);
+  assign last_byte = (byte_cntr_cpha0_q == 24'h0);
 
   // Note: when updating the byte_cntr in CPHA=0 mode with a new command value, the length must
   // be pulled in directly from the command bus, cmd_len_d;
-  assign byte_cntr_cpha0_d = sw_rst_i    ? 9'h0 :
+  assign byte_cntr_cpha0_d = sw_rst_i    ? 24'h0 :
                              !fsm_en     ? byte_cntr_cpha0_q :
                              new_command ? cmd_len_d :
                              byte_ending_cpha0 ? byte_cntr_cpha0_q - 1 :
@@ -450,7 +450,7 @@ module spi_host_fsm
   // Note: when updating the byte_cntr in CPHA=1 mode with a new command value, the length must
   // be pulled in with a single state delay (using new_command_cpha1) and must use the
   // registered value, cmd_len_q;
-  assign byte_cntr_cpha1_d = sw_rst_i          ? 9'h0 :
+  assign byte_cntr_cpha1_d = sw_rst_i          ? 24'h0 :
                              !fsm_en           ? byte_cntr_cpha1_q :
                              new_command_cpha1 ? cmd_len_q :
                              byte_ending_cpha1 ? byte_cntr_cpha1_q - 1 :
@@ -491,8 +491,8 @@ module spi_host_fsm
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       bit_cntr_q        <= 3'h0;
-      byte_cntr_cpha0_q <= 9'h0;
-      byte_cntr_cpha1_q <= 9'h0;
+      byte_cntr_cpha0_q <= 24'h0;
+      byte_cntr_cpha1_q <= 24'h0;
       wait_cntr_q       <= 4'h0;
     end else begin
       bit_cntr_q        <= stall ? bit_cntr_q        : bit_cntr_d;
