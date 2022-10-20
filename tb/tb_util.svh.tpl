@@ -10,6 +10,7 @@ export "DPI-C" task tb_loadHEX;
 export "DPI-C" task tb_writetoSram${bank};
 % endfor
 export "DPI-C" task tb_getMemSize;
+export "DPI-C" task tb_initPowerSwitches;
 export "DPI-C" task tb_set_exit_loop;
 
 import core_v_mini_mcu_pkg::*;
@@ -25,6 +26,18 @@ task tb_readHEX;
   input string file;
   output logic [7:0] stimuli[core_v_mini_mcu_pkg::MEM_SIZE];
   $readmemh(file, stimuli);
+endtask
+
+task tb_initPowerSwitches;
+`ifndef VERILATOR
+  force x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_powergate_switch_ack = 1'b1;
+  force x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_powergate_switch_ack = 1'b1;
+  force x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_ack = {core_v_mini_mcu_pkg::MEM_SIZE{1'b1}};
+`else
+  x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_powergate_switch_ack = 1'b1;
+  x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_powergate_switch_ack = 1'b1;
+  x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_ack = {core_v_mini_mcu_pkg::MEM_SIZE{1'b1}};
+`endif
 endtask
 
 task tb_loadHEX;

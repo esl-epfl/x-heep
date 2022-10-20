@@ -112,8 +112,9 @@ module tb_top #(
       end
     end
 
-
     wait (rst_n == 1'b1);
+
+    testharness_i.tb_initPowerSwitches();
 
     if (JTAG_DPI == 0 && boot_sel == 0) begin
       testharness_i.tb_loadHEX(firmware);
@@ -122,6 +123,7 @@ module tb_top #(
     end else begin
       if ($test$plusargs("verbose")) $display("[TESTBENCH] %t: waiting for GDB...", $time);
     end
+
   end
 
   // clock generation
