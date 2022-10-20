@@ -37,7 +37,15 @@
         { bits: "0", name: "POWER_GATE_CORE", desc: "Power Gate Core Reg" }
       ]
     }
-
+    { name:     "POWER_GATE_CORE_ACK",
+      desc:     "Used by the core switch to ack the power manager",
+      resval:   "0x00000000"
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "0", name: "POWER_GATE_CORE_ACK", desc: "Power Gate Core Ack Reg" }
+      ]
+    }
     { name:     "POWER_GATE_PERIPH",
       desc:     "Used to power gate peripheral_subsystem",
       resval:   "0x00000000"
@@ -47,8 +55,17 @@
         { bits: "0", name: "POWER_GATE_PERIPH", desc: "Power Gate Periph Reg" }
       ]
     }
-
+    { name:     "POWER_GATE_PERIPH_ACK",
+      desc:     "Used by the periph switch to ack the power manager",
+      resval:   "0x00000000"
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "0", name: "POWER_GATE_PERIPH_ACK", desc: "Power Gate Periph Ack Reg" }
+      ]
+    }
 % for bank in range(ram_numbanks):
+
     { name:     "POWER_GATE_RAM_BLOCK_${bank}",
       desc:     "Used to power gate ram block ${bank}",
       resval:   "0x00000000"
@@ -58,6 +75,17 @@
         { bits: "0", name: "POWER_GATE_RAM_BLOCK_${bank}", desc: "Power Gate Ram Block ${bank} Reg" }
       ]
     }
+
+    { name:     "POWER_GATE_RAM_BLOCK_${bank}_ACK",
+      desc:     "Used by the ram ${bank} switch to ack the power manager",
+      resval:   "0x00000000"
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "0", name: "POWER_GATE_RAM_BLOCK_${bank}_ACK", desc: "Power Gate Ram Block ${bank} Ack Reg" }
+      ]
+    }
+
 
 % endfor
 % for i in range(31):

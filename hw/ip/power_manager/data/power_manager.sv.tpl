@@ -27,9 +27,12 @@ module power_manager #(
     // Power gating signals
     output logic                                      cpu_subsystem_powergate_switch_o,
     output logic                                      cpu_subsystem_powergate_iso_o,
+    input  logic                                      cpu_subsystem_powergate_switch_ack_i,
     output logic                                      peripheral_subsystem_powergate_switch_o,
+    input  logic                                      peripheral_subsystem_powergate_switch_ack_i,
     output logic                                      peripheral_subsystem_powergate_iso_o,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_o,
+    input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_i,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_o,
     output logic                                      cpu_subsystem_rst_no,
     output logic                                      peripheral_subsystem_rst_no
@@ -77,6 +80,9 @@ module power_manager #(
 
   logic cpu_reset_counter_start_switch_off, cpu_reset_counter_expired_switch_off;
   logic cpu_reset_counter_start_switch_on, cpu_reset_counter_expired_switch_on;
+
+  assign hw2reg.power_gate_core_ack.de = 1'b1;
+  assign hw2reg.power_gate_core_ack.d = cpu_subsystem_powergate_switch_ack_i;
 
   reg_to_counter #(
       .DW(32),
@@ -242,6 +248,9 @@ module power_manager #(
   logic periph_reset_counter_start_switch_off, periph_reset_counter_expired_switch_off;
   logic periph_reset_counter_start_switch_on, periph_reset_counter_expired_switch_on;
 
+  assign hw2reg.power_gate_periph_ack.de = 1'b1;
+  assign hw2reg.power_gate_periph_ack.d = peripheral_subsystem_powergate_switch_ack_i;
+
   reg_to_counter #(
       .DW(32),
       .ExpireValue('0)
@@ -397,6 +406,9 @@ module power_manager #(
   // --------------------------------------------------------------------------------------
   logic ram_${bank}_powergate_counter_start_switch_off, ram_${bank}_powergate_counter_expired_switch_off;
   logic ram_${bank}_powergate_counter_start_switch_on, ram_${bank}_powergate_counter_expired_switch_on;
+
+  assign hw2reg.power_gate_ram_block_${bank}_ack.de = 1'b1;
+  assign hw2reg.power_gate_ram_block_${bank}_ack.d = memory_subsystem_banks_powergate_switch_ack_i[${bank}];
 
   reg_to_counter #(
       .DW(32),
