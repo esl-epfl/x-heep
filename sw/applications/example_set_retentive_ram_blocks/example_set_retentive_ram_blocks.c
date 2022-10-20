@@ -24,14 +24,14 @@ int main(int argc, char *argv[])
     power_manager_counters_t power_manager_ram_blocks_counters;
 
     // Init ram block 2's counters
-    if (power_gate_counters_init(&power_manager_ram_blocks_counters, 40, 40, 30, 30, 20, 20, 0, 0) != kPowerManagerOk_e)
+    if (power_gate_counters_init(&power_manager_ram_blocks_counters, 40, 40, 30, 30, 20, 20, 10, 10) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail. Check the reset and powergate counters value\n");
         return EXIT_FAILURE;
     }
 
-    // Power off ram block 2
-    if (power_gate_domain(&power_manager, kRam_2_e, kOff_e, &power_manager_ram_blocks_counters) != kPowerManagerOk_e)
+    // Set retention mode on for ram block 2
+    if (power_gate_domain(&power_manager, kRam_2_e, kRetOn_e, &power_manager_ram_blocks_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;
@@ -40,8 +40,8 @@ int main(int argc, char *argv[])
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop");
 
-    // Power on ram block 2
-    if (power_gate_domain(&power_manager, kRam_2_e, kOn_e, &power_manager_ram_blocks_counters) != kPowerManagerOk_e)
+    // Set retention mode off for ram block 2
+    if (power_gate_domain(&power_manager, kRam_2_e, kRetOff_e, &power_manager_ram_blocks_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;

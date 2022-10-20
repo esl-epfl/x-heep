@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
     dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_BYTES); // Size of data received by SPI
 
     // Init cpu_subsystem's counters
-    if (power_gate_counters_init(&power_manager_cpu_counters, 40, 40, 30, 30, 20, 20) != kPowerManagerOk_e)
+    if (power_gate_counters_init(&power_manager_cpu_counters, 40, 40, 30, 30, 20, 20, 0, 0) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail. Check the reset and powergate counters value\n");
         return EXIT_FAILURE;

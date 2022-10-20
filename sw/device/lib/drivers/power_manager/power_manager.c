@@ -383,35 +383,46 @@ power_manager_result_t power_gate_domain(const power_manager_t *power_manager, p
     else
     {
         // set counters
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_SWITCH_OFF_COUNTER_REG_OFFSET + (0x14 * (sel_domain - 1))), domain_counters->switch_off);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_SWITCH_ON_COUNTER_REG_OFFSET + (0x14 * (sel_domain - 1))), domain_counters->switch_on);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_ISO_OFF_COUNTER_REG_OFFSET + (0x14 * (sel_domain - 1))), domain_counters->iso_off);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_ISO_ON_COUNTER_REG_OFFSET + (0x14 * (sel_domain - 1))), domain_counters->iso_on);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_SWITCH_OFF_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 1))), domain_counters->switch_off);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_SWITCH_ON_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 1))), domain_counters->switch_on);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_ISO_OFF_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 1))), domain_counters->iso_off);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_ISO_ON_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 1))), domain_counters->iso_on);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_RETENTIVE_OFF_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 1))), domain_counters->retentive_off);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_RETENTIVE_ON_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 1))), domain_counters->retentive_on);
+
 
         if (sel_state == kOn_e)
             mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_RAM_BLOCK_0_REG_OFFSET + (0x4 * (sel_domain - 1))), 0x0);
-        else
+        else if (sel_state == kOff_e)
             mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_RAM_BLOCK_0_REG_OFFSET + (0x4 * (sel_domain - 1))), 0x1);
+        else if (sel_state == kRetOn_e)
+            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_SET_RETENTIVE_RAM_BLOCK_0_REG_OFFSET + (0x4 * (sel_domain - 1))), 0x1);
+        else
+            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_SET_RETENTIVE_RAM_BLOCK_0_REG_OFFSET + (0x4 * (sel_domain - 1))), 0x0);
 
         // stop counters
         reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_SWITCH_OFF_STOP_BIT_COUNTER_BIT, true);
         reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_SWITCH_ON_STOP_BIT_COUNTER_BIT, true);
         reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_ISO_OFF_STOP_BIT_COUNTER_BIT, true);
         reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_ISO_ON_STOP_BIT_COUNTER_BIT, true);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_COUNTERS_STOP_REG_OFFSET + (0x14 * (sel_domain - 1))), reg);
+        reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_RETENTIVE_OFF_STOP_BIT_COUNTER_BIT, true);
+        reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_RETENTIVE_ON_STOP_BIT_COUNTER_BIT, true);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_COUNTERS_STOP_REG_OFFSET + (0x1C * (sel_domain - 1))), reg);
     }
 
     return kPowerManagerOk_e;
 }
 
-power_manager_result_t power_gate_counters_init(power_manager_counters_t* counters, uint32_t reset_off, uint32_t reset_on, uint32_t switch_off, uint32_t switch_on, uint32_t iso_off, uint32_t iso_on)
+power_manager_result_t power_gate_counters_init(power_manager_counters_t* counters, uint32_t reset_off, uint32_t reset_on, uint32_t switch_off, uint32_t switch_on, uint32_t iso_off, uint32_t iso_on, uint32_t retentive_off, uint32_t retentive_on)
 {
-    counters->reset_off  = reset_off;
-    counters->reset_on   = reset_on;
-    counters->switch_off = switch_off;
-    counters->switch_on  = switch_on;
-    counters->iso_off    = iso_off;
-    counters->iso_on     = iso_on;
+    counters->reset_off     = reset_off;
+    counters->reset_on      = reset_on;
+    counters->switch_off    = switch_off;
+    counters->switch_on     = switch_on;
+    counters->iso_off       = iso_off;
+    counters->iso_on        = iso_on;
+    counters->retentive_off = retentive_off;
+    counters->retentive_on  = retentive_on;
 
     return kPowerManagerOk_e;
 }
