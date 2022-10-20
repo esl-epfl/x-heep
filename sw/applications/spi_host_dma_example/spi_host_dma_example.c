@@ -24,6 +24,8 @@
 #define COPY_DATA_BYTES 16
 #define SPI_BYTES (4 * (uint32_t)((COPY_DATA_BYTES-1) / 4 + 1)) // Only sends data when an entire word has been received
 
+#define REVERT_24b_ADDR(addr) ((((uint32_t)addr & 0xff0000) >> 16) | ((uint32_t)addr & 0xff00) | (((uint32_t)addr & 0xff) << 16))
+
 int8_t dma_intr_flag;
 spi_host_t spi_host;
 
@@ -136,12 +138,7 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     // The address bytes sent through the SPI to the Flash are in reverse order
-    uint32_t flash_data_addr = flash_data;
-    uint32_t read_byte_cmd = (flash_data_addr >> 16); 
-    read_byte_cmd = (read_byte_cmd | (flash_data_addr & 0xff00));
-    read_byte_cmd = (read_byte_cmd | ((flash_data_addr & 0xff) << 16));
-    // Add read command in the first byte sent
-    read_byte_cmd = ((read_byte_cmd << 8) | 0x03);
+    int32_t read_byte_cmd = ((REVERT_24b_ADDR(flash_data) << 8) | 0x03); 
 
     // Fill TX FIFO with TX data (read command + 3B address)
     spi_write_word(&spi_host, read_byte_cmd);
