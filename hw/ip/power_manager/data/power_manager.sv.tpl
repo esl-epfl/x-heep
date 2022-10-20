@@ -1,4 +1,4 @@
-// Copyright 2022 OpenHW Group
+// Copyright 2022 EPFL
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
@@ -6,7 +6,24 @@
 
 module power_manager #(
     parameter type reg_req_t = logic,
-    parameter type reg_rsp_t = logic
+    parameter type reg_rsp_t = logic,
+    parameter logic SWITCH_IDLE_VALUE = 1'b1, //the value to have Vdd.daughter = Vdd.mother
+    parameter logic ISO_IDLE_VALUE = 1'b1, //the value to not clamp isolatation cells
+    parameter logic RESET_IDLE_VALUE = 1'b0, //the value when the reset is active
+    /*
+    these values are used at reset time, i.e.
+      the switch of all the power domains are conducting (ON)
+      we are not isolating values
+      we are resetting
+      This should guarantee that the chip boots with the power stable if the
+      always-on reset is asserted long-enough to accomplish a power-cycle
+      Any value different than the following won't guarantee functionality
+      as we do not have any POWER CYCLE FSM in place at reset time,
+      this is a simple power manager.
+    */
+    parameter logic SWITCH_VALUE_AT_RESET = SWITCH_IDLE_VALUE, //the value of the switch at reset
+    parameter logic ISO_VALUE_AT_RESET = ISO_IDLE_VALUE, //the value for isolation cells at reset
+    parameter logic RESET_VALUE_AT_RESET = 1'b0 //the value when the reset is active
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -121,7 +138,8 @@ module power_manager #(
   end
 
   power_manager_counter_sequence #(
-      .ONOFF_AT_RESET(0)
+      .IDLE_VALUE(RESET_IDLE_VALUE),
+      .ONOFF_AT_RESET(RESET_VALUE_AT_RESET)
   ) power_manager_counter_sequence_cpu_reset_i (
       .clk_i,
       .rst_ni,
@@ -172,7 +190,10 @@ module power_manager #(
       .hw2reg_q_i(reg2hw.cpu_switch_on_counter.q)
   );
 
-  power_manager_counter_sequence power_manager_counter_sequence_cpu_switch_i (
+  power_manager_counter_sequence #(
+      .IDLE_VALUE(SWITCH_IDLE_VALUE),
+      .ONOFF_AT_RESET(SWITCH_VALUE_AT_RESET)
+  ) power_manager_counter_sequence_cpu_switch_i (
       .clk_i,
       .rst_ni,
 
@@ -222,7 +243,10 @@ module power_manager #(
       .hw2reg_q_i(reg2hw.cpu_iso_on_counter.q)
   );
 
-  power_manager_counter_sequence power_manager_counter_sequence_cpu_iso_i (
+  power_manager_counter_sequence #(
+    .IDLE_VALUE(ISO_IDLE_VALUE),
+    .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
+  ) power_manager_counter_sequence_cpu_iso_i (
       .clk_i,
       .rst_ni,
 
@@ -280,7 +304,8 @@ module power_manager #(
   );
 
   power_manager_counter_sequence #(
-      .ONOFF_AT_RESET(0)
+      .IDLE_VALUE(RESET_IDLE_VALUE),
+      .ONOFF_AT_RESET(RESET_VALUE_AT_RESET)
   ) power_manager_counter_sequence_periph_reset_i (
       .clk_i,
       .rst_ni,
@@ -331,7 +356,10 @@ module power_manager #(
       .hw2reg_q_i(reg2hw.periph_switch_on_counter.q)
   );
 
-  power_manager_counter_sequence power_manager_counter_sequence_periph_switch_i (
+  power_manager_counter_sequence #(
+      .IDLE_VALUE(SWITCH_IDLE_VALUE),
+      .ONOFF_AT_RESET(SWITCH_VALUE_AT_RESET)
+  ) power_manager_counter_sequence_periph_switch_i (
       .clk_i,
       .rst_ni,
 
@@ -381,7 +409,10 @@ module power_manager #(
       .hw2reg_q_i(reg2hw.periph_iso_on_counter.q)
   );
 
-  power_manager_counter_sequence power_manager_counter_sequence_periph_iso_i (
+  power_manager_counter_sequence #(
+    .IDLE_VALUE(ISO_IDLE_VALUE),
+    .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
+  ) power_manager_counter_sequence_periph_iso_i (
       .clk_i,
       .rst_ni,
 
@@ -438,7 +469,10 @@ module power_manager #(
       .hw2reg_q_i(reg2hw.ram_${bank}_switch_on_counter.q)
   );
 
-  power_manager_counter_sequence power_manager_counter_sequence_ram_${bank}_switch_i (
+  power_manager_counter_sequence #(
+      .IDLE_VALUE(SWITCH_IDLE_VALUE),
+      .ONOFF_AT_RESET(SWITCH_VALUE_AT_RESET)
+  ) power_manager_counter_sequence_ram_${bank}_switch_i (
       .clk_i,
       .rst_ni,
 
@@ -488,7 +522,10 @@ module power_manager #(
       .hw2reg_q_i(reg2hw.ram_${bank}_iso_on_counter.q)
   );
 
-  power_manager_counter_sequence power_manager_counter_sequence_ram_${bank}_iso_i (
+  power_manager_counter_sequence #(
+    .IDLE_VALUE(ISO_IDLE_VALUE),
+    .ONOFF_AT_RESET(ISO_VALUE_AT_RESET)
+  ) power_manager_counter_sequence_ram_${bank}_iso_i (
       .clk_i,
       .rst_ni,
 
