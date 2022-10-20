@@ -33,6 +33,7 @@ module power_manager #(
     output logic                                      peripheral_subsystem_rst_no,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_o,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_o,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_o,
     output logic                                      external_subsystem_powergate_switch_o,
     output logic                                      external_subsystem_powergate_iso_o,
     output logic                                      external_subsystem_rst_no
@@ -484,8 +485,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_ram_block_${bank}.q),
-      .start_on_sequence_i (~reg2hw.power_gate_ram_block_${bank}.q),
+      .start_off_sequence_i(reg2hw.power_gate_ram_block_${bank}.q || reg2hw.set_retentive_ram_block_${bank}.q),
+      .start_on_sequence_i (~reg2hw.power_gate_ram_block_${bank}.q || ~reg2hw.set_retentive_ram_block_${bank}.q),
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(ram_${bank}_powergate_counter_expired_iso_off),
@@ -496,6 +497,56 @@ module power_manager #(
 
       // switch on and off signal, 1 means on
       .switch_onoff_signal_o(memory_subsystem_banks_powergate_iso_o[${bank}])
+  );
+
+  logic ram_${bank}_retentive_counter_start_off, ram_${bank}_retentive_counter_expired_off;
+  logic ram_${bank}_retentive_counter_start_on, ram_${bank}_retentive_counter_expired_on;
+
+  reg_to_counter #(
+      .DW(32),
+      .ExpireValue('0)
+  ) reg_to_counter_ram_${bank}_retentive_off_i (
+      .clk_i,
+      .rst_ni,
+      .stop_i(reg2hw.ram_${bank}_counters_stop.ram_${bank}_retentive_off_stop_bit_counter.q),
+      .start_i(ram_${bank}_retentive_counter_start_off),
+      .done_o(ram_${bank}_retentive_counter_expired_off),
+      .hw2reg_d_o(hw2reg.ram_${bank}_retentive_off_counter.d),
+      .hw2reg_de_o(hw2reg.ram_${bank}_retentive_off_counter.de),
+      .hw2reg_q_i(reg2hw.ram_${bank}_retentive_off_counter.q)
+  );
+
+  reg_to_counter #(
+      .DW(32),
+      .ExpireValue('0)
+  ) reg_to_counter_ram_${bank}_retentive_on_i (
+      .clk_i,
+      .rst_ni,
+      .stop_i(reg2hw.ram_${bank}_counters_stop.ram_${bank}_retentive_on_stop_bit_counter.q),
+      .start_i(ram_${bank}_retentive_counter_start_on),
+      .done_o(ram_${bank}_retentive_counter_expired_on),
+      .hw2reg_d_o(hw2reg.ram_${bank}_retentive_on_counter.d),
+      .hw2reg_de_o(hw2reg.ram_${bank}_retentive_on_counter.de),
+      .hw2reg_q_i(reg2hw.ram_${bank}_retentive_on_counter.q)
+  );
+
+  power_manager_counter_sequence power_manager_counter_sequence_ram_${bank}_retentive_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.set_retentive_ram_block_${bank}.q),
+      .start_on_sequence_i (~reg2hw.set_retentive_ram_block_${bank}.q),
+
+      // counter to switch on and off signals
+      .counter_expired_switch_off_i(ram_${bank}_retentive_counter_expired_off),
+      .counter_expired_switch_on_i (ram_${bank}_retentive_counter_expired_on),
+
+      .counter_start_switch_off_o(ram_${bank}_retentive_counter_start_off),
+      .counter_start_switch_on_o (ram_${bank}_retentive_counter_start_on),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(memory_subsystem_banks_set_retentive_o[${bank}])
   );
 
 % endfor

@@ -13,7 +13,9 @@ module memory_subsystem
     input logic rst_ni,
 
     input  obi_req_t  [NUM_BANKS-1:0] ram_req_i,
-    output obi_resp_t [NUM_BANKS-1:0] ram_resp_o
+    output obi_resp_t [NUM_BANKS-1:0] ram_resp_o,
+
+    input logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] set_retentive
 );
 
   localparam int NumWords = 32 * 1024 / 4;

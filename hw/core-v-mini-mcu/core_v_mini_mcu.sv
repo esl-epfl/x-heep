@@ -316,6 +316,7 @@ module core_v_mini_mcu
   logic peripheral_subsystem_rst_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive;
 
   // rv_timer
   logic [3:0] rv_timer_intr;
@@ -427,8 +428,9 @@ module core_v_mini_mcu
   ) memory_subsystem_i (
       .clk_i,
       .rst_ni,
-      .ram_req_i (ram_slave_req),
-      .ram_resp_o(ram_slave_resp)
+      .ram_req_i(ram_slave_req),
+      .ram_resp_o(ram_slave_resp),
+      .set_retentive(memory_subsystem_banks_set_retentive)
   );
 
   ao_peripheral_subsystem ao_peripheral_subsystem_i (
@@ -469,6 +471,7 @@ module core_v_mini_mcu
       .peripheral_subsystem_rst_no(peripheral_subsystem_rst_n),
       .memory_subsystem_banks_powergate_switch_o(memory_subsystem_banks_powergate_switch),
       .memory_subsystem_banks_powergate_iso_o(memory_subsystem_banks_powergate_iso),
+      .memory_subsystem_banks_set_retentive_o(memory_subsystem_banks_set_retentive),
       .external_subsystem_powergate_switch_o,
       .external_subsystem_powergate_iso_o,
       .external_subsystem_rst_no,

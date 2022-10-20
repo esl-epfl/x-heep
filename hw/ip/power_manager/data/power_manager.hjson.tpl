@@ -60,6 +60,18 @@
     }
 
 % endfor
+% for bank in range(ram_numbanks):
+    { name:     "SET_RETENTIVE_RAM_BLOCK_${bank}",
+      desc:     "Used to set in retentive mode ram block ${bank}",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "SET_RETENTIVE_RAM_BLOCK_${bank}", desc: "Set Retentive Ram Block ${bank} Reg" }
+      ]
+    }
+
+% endfor
     { name:     "POWER_GATE_EXTERNAL",
       desc:     "Used to power gate external domain",
       resval:   "0x00000000"
@@ -393,6 +405,26 @@
       ]
     }
 
+    { name:     "RAM_${bank}_RETENTIVE_OFF_COUNTER",
+      desc:     "Counter before setting off retentive mode for the RAM_${bank} domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0", name: "RAM_${bank}_RETENTIVE_OFF_COUNTER", desc: "RAM_${bank} counter before setting off retentive" }
+      ]
+    }
+
+    { name:     "RAM_${bank}_RETENTIVE_ON_COUNTER",
+      desc:     "Counter before setting on retentive mode for the RAM_${bank} domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0", name: "RAM_${bank}_RETENTIVE_ON_COUNTER", desc: "RAM_${bank} counter before setting on retentive" }
+      ]
+    }
+
     { name:     "RAM_${bank}_COUNTERS_STOP",
       desc:     "Bits to stop the counters keeping the done_o signal high",
       resval:   "0x00000000"
@@ -405,6 +437,8 @@
         { bits: "3", name: "RAM_${bank}_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_SWITCH_ON_COUNTER counter" }
         { bits: "4", name: "RAM_${bank}_ISO_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_ISO_OFF_COUNTER counter" }
         { bits: "5", name: "RAM_${bank}_ISO_ON_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_ISO_ON_COUNTER counter" }
+        { bits: "6", name: "RAM_${bank}_RETENTIVE_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_RETENTIVE_OFF_COUNTER counter" }
+        { bits: "7", name: "RAM_${bank}_RETENTIVE_ON_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_RETENTIVE_ON_COUNTER counter" }
       ]
     }
 
