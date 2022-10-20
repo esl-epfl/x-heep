@@ -16,7 +16,7 @@
 #include "fast_intr_ctrl_regs.h"
 
 // Un-comment this line to use the SPI FLASH instead of the default SPI
-#define USE_SPI_FLASH
+// #define USE_SPI_FLASH
 
 // Simple example to check the SPI host peripheral is working. It checks the ram and flash have the same content
 #define DATA_CHUNK_ADDR 0x00008000
@@ -88,8 +88,6 @@ int main(int argc, char *argv[])
     spi_enable_rxwm_intr(&spi_host, true);
 
     // Configure chip 0 (flash memory)
-    // Max 50 MHz core SPI clock --> Max 25 MHz SCK
-    // Single data IO; keep timing as safe as possible.
     const uint32_t chip_cfg = spi_create_configopts((spi_configopts_t){
         .clkdiv     = 1,
         .csnidle    = 0xF,

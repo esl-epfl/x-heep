@@ -19,7 +19,7 @@
 #include "fast_intr_ctrl_regs.h"
 
 // Un-comment this line to use the SPI FLASH instead of the default SPI
-#define USE_SPI_FLASH
+// #define USE_SPI_FLASH
 
 #define COPY_DATA_BYTES 16
 #define SPI_BYTES (4 * (uint32_t)((COPY_DATA_BYTES-1) / 4 + 1)) // Only sends data when an entire word has been received
@@ -88,8 +88,6 @@ int main(int argc, char *argv[])
 
     // -- SPI CONFIGURATION -- 
     // Configure chip 0 (flash memory)
-    // Max 50 MHz core SPI clock --> Max 25 MHz SCK
-    // Single data IO; keep timing as safe as possible.
     const uint32_t chip_cfg = spi_create_configopts((spi_configopts_t){
         .clkdiv     = 1,
         .csnidle    = 0xF,
@@ -102,7 +100,9 @@ int main(int argc, char *argv[])
     spi_set_configopts(&spi_host, 0, chip_cfg);
     spi_set_csid(&spi_host, 0);
 
-    const uint32_t cmd_dummy = spi_create_command((spi_command_t){
+    // The actual implementation of the SPI HOST has HW bugs when sending single bytes per transaction,
+    // This dummy read and write commands are used to send empty commands to the devide to fush and discard internal TX and RX words
+    const uint32_t cmd_dummy_write = spi_create_command((spi_command_t){
         .len        = 1,
         .csaat      = false,
         .speed      = kSpiSpeedStandard,
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
     });
     spi_set_command(&spi_host, cmd_powerup);
     spi_wait_for_ready(&spi_host);
-    spi_set_command(&spi_host, cmd_dummy);
+    spi_set_command(&spi_host, cmd_dummy_write);
     spi_wait_for_ready(&spi_host);
 
     // The address bytes sent through the SPI to the Flash are in reverse order
@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
-        .len        = 31, // SPI_BYTES - 1,
+        .len        = SPI_BYTES - 1,
         .csaat      = false,
         .speed      = kSpiSpeedStandard,
         .direction  = kSpiDirRxOnly
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
     });
     spi_set_command(&spi_host, cmd_powerdown);
     spi_wait_for_ready(&spi_host);
-    spi_set_command(&spi_host, cmd_dummy);
+    spi_set_command(&spi_host, cmd_dummy_write);
     spi_wait_for_ready(&spi_host);
 
     // The data is already in memory -- Check results
