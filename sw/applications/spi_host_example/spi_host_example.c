@@ -25,6 +25,7 @@ int8_t spi_intr_flag;
 spi_host_t spi_host;
 uint32_t flash_data[8];
 
+#ifndef USE_SPI_FLASH
 void handler_irq_fast_spi(void)
 {
     // Disable SPI interrupts
@@ -38,7 +39,7 @@ void handler_irq_fast_spi(void)
 
     spi_intr_flag = 1;
 }
-
+#else
 void handler_irq_fast_spi_flash(void)
 {
     // Disable SPI interrupts
@@ -52,6 +53,7 @@ void handler_irq_fast_spi_flash(void)
 
     spi_intr_flag = 1;
 }
+#endif
 
 int main(int argc, char *argv[])
 {
