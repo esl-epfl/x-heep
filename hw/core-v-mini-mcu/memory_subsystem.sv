@@ -41,14 +41,14 @@ module memory_subsystem
         .NumWords (NumWords),
         .DataWidth(32'd32)
     ) ram_i (
-        .clk_i  (clk_i),
-        .rst_ni (rst_ni),
-        .req_i  (ram_req_i[i].req),
-        .we_i   (ram_req_i[i].we),
-        .addr_i (ram_req_i[i].addr[AddrWidth-1:2]),
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .req_i(ram_req_i[i].req),
+        .we_i(ram_req_i[i].we),
+        .addr_i(ram_req_i[i].addr[AddrWidth-1:2]),
         .wdata_i(ram_req_i[i].wdata),
-        .be_i   (ram_req_i[i].be),
-        // output ports
+        .be_i(ram_req_i[i].be),
+        .set_retentive(set_retentive[i]),
         .rdata_o(ram_resp_o[i].rdata)
     );
 
