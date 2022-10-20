@@ -31,7 +31,7 @@ _start:
     la     sp, _sp
 
 #ifdef EXTERNAL_CRTO
-   #include "external_prologue_crt0.S"
+   #include "external_crt0.S"
 #endif
 
 
@@ -190,10 +190,6 @@ _init_bss:
     li    a0, SOC_CTRL_START_ADDRESS
     li    a2, REFERENCE_CLOCK_Hz
     sw    a2, SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET(a0)
-
-#ifdef EXTERNAL_CRTO
-   #include "external_epilogue_crt0.S"
-#endif
 
 /* call main */
     lw    a0, 0(sp)                  /* a0 = argc */
