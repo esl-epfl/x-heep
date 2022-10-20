@@ -3,9 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 { name: "spi_host",
   clock_primary: "clk_i",
-  other_clock_list: [ "clk_core_i" ],
   reset_primary: "rst_ni",
-  other_reset_list: [ "rst_core_ni" ],
   bus_interfaces: [
     { protocol: "reg_iface", direction: "device" }
   ],
@@ -57,7 +55,7 @@
     },
     { name:  "csb"
       desc:  '''Chip Select# (One hot, active low).  The size of this port should match NumCS.'''
-      width: "1"
+      width: "2"
     }
   ],
   available_inout_list: [

@@ -7,6 +7,7 @@
 //
 
 `include "prim_assert.sv"
+`include "common_cells/assertions.svh"
 
 module spi_host
   import spi_host_reg_pkg::*;
@@ -52,8 +53,8 @@ module spi_host
   spi_host_reg2hw_t reg2hw;
   spi_host_hw2reg_t hw2reg;
 
-  reg_req_t fifo_win_h2d [2];
-  reg_rsp_t fifo_win_d2h [2];
+  reg_req_t [1:0] fifo_win_h2d;
+  reg_rsp_t [1:0] fifo_win_d2h;
 
   // Register module
   logic [NumAlerts-1:0] alert_test, alerts;
@@ -74,6 +75,7 @@ module spi_host
   );
 
   // Alerts
+  assign alerts[0] = 1'b0;
   assign alert_test = {
     reg2hw.alert_test.q &
     reg2hw.alert_test.qe
@@ -336,6 +338,9 @@ module spi_host
 
   logic        tx_empty, tx_full, tx_wm;
   logic        rx_empty, rx_full, rx_wm;
+
+  assign rx_valid_o = rx_valid;
+  assign tx_ready_o = tx_ready;
 
   assign rx_watermark = reg2hw.control.rx_watermark.q;
   assign tx_watermark = reg2hw.control.tx_watermark.q;

@@ -5,6 +5,8 @@
 // Shift Register for Serial Peripheral Interface (SPI) Host IP.
 //
 
+`include "common_cells/assertions.svh"
+
 module spi_host_shift_register (
   input              clk_i,
   input              rst_ni,

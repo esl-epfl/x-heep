@@ -53,7 +53,7 @@ module spi_host_reg_top #(
   reg_rsp_t  reg_intf_rsp;
 
 
-  logic [0:0] reg_steer;
+  logic [1:0] reg_steer;
 
   reg_req_t [3-1:0] reg_intf_demux_req;
   reg_rsp_t [3-1:0] reg_intf_demux_rsp;

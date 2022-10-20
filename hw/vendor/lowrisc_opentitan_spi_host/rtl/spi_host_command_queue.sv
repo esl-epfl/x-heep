@@ -50,8 +50,7 @@ module spi_host_command_queue #(
     .rready_i (core_command_ready_i),
     .rdata_o  (core_command_o),
     .full_o   (),
-    .depth_o  (cmd_depth),
-    .err_o    ()
+    .depth_o  (cmd_depth)
   );
 
   assign qd_o = 4'(cmd_depth);

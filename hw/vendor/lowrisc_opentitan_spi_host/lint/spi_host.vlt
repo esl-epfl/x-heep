@@ -6,4 +6,6 @@
 
 `verilator_config
 
-lint_off -rule UNUSED -file "*/vendor/lowrisc_opentitan/hw/ip/spi_host/rtl/spi_host.sv" -match "Bits of signal are not used: 'reg2hw'[162:161]"
+lint_off -rule UNUSED -file "*/vendor/lowrisc_opentitan_spi_host/rtl/spi_host.sv" -match "Bits of signal are not used: 'reg2hw'[162:161]"
+lint_off -rule UNUSED -file "*/vendor/lowrisc_opentitan_spi_host/rtl/spi_host.sv" -match "Bits of signal are not used: 'passthrough_i'[11]"
+lint_off -rule UNUSED -file "*/vendor/lowrisc_opentitan_spi_host/rtl/spi_host_window.sv" -match "Bits of signal are not used: 'rx_win_i'[67:64,31:0]"

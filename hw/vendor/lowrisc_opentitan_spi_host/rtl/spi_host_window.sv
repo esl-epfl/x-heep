@@ -5,6 +5,8 @@
 // Module to manage TX FIFO window for Serial Peripheral Interface (SPI) host IP.
 //
 
+`include "common_cells/assertions.svh"
+
 module spi_host_window
 #(
   parameter type reg_req_t = logic,
@@ -24,20 +26,18 @@ module spi_host_window
 );
 
   localparam int AW = spi_host_reg_pkg::BlockAw;
-  localparam int DW = 32;
-  localparam int ByteMaskW = DW / 8;
 
   logic [AW-1:0] tx_addr;
   // Only support reads/writes to the data fifo window
   logic tx_win_error;
   assign tx_win_error = (tx_win_i.write == 1'b0) &&
-                     (tx_addr != spi_host_reg_pkg::SPI_HOST_DATA_OFFSET);
+                     (tx_addr != spi_host_reg_pkg::SPI_HOST_TXDATA_OFFSET);
 
   logic [AW-1:0] rx_addr;
   // Only support reads/writes to the data fifo window
   logic rx_win_error;
   assign rx_win_error = (rx_win_i.write == 1'b1) &&
-                     (rx_addr != spi_host_reg_pkg::SPI_HOST_DATA_OFFSET);
+                     (rx_addr != spi_host_reg_pkg::SPI_HOST_RXDATA_OFFSET);
 
     // Check that our regbus data is 32 bit wide
   `ASSERT_INIT(RegbusIs32Bit, $bits(tx_win_i.wdata) == 32)
@@ -58,6 +58,7 @@ module spi_host_window
     assign tx_be_o      = tx_win_i.wstrb;
     // Response: always ready, else over/underflow error reported in regfile
     assign tx_win_o.error  = tx_win_error;
+    assign tx_win_o.rdata  = 32'h0;
     assign tx_win_o.ready  = 1'b1;
     assign tx_addr         = tx_win_i.addr;
 
