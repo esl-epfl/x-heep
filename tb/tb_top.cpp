@@ -145,8 +145,6 @@ int main (int argc, char * argv[])
   runCycles(1, dut, m_trace);
   std::cout<<"Reset Released"<< std::endl;
 
-  dut->tb_initPowerSwitches();
-
   //dont need to exit from boot loop if using OpenOCD or Boot from Flash
   if(use_openocd==false || boot_sel == 1) {
     dut->tb_loadHEX(firmware.c_str());

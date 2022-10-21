@@ -34,6 +34,8 @@ module testharness #(
   import reg_pkg::*;
   import testharness_pkg::*;
 
+  localparam SWITCH_ACK_LATENCY = 15;
+
   wire uart_rx;
   wire uart_tx;
   logic sim_jtag_enable = (JTAG_DPI == 1);
@@ -162,6 +164,28 @@ module testharness #(
       .ext_peripheral_slave_req_o(periph_slave_req),
       .ext_peripheral_slave_resp_i(periph_slave_resp)
   );
+
+
+  //pretending to be SWITCH CELLs that delay by 8 cycles the ACK signal
+  logic [SWITCH_ACK_LATENCY:0]
+      tb_cpu_subsystem_powergate_switch_ack, tb_peripheral_subsystem_powergate_switch_ack;
+  logic [SWITCH_ACK_LATENCY:0] [core_v_mini_mcu_pkg::NUM_BANKS-1:0] tb_memory_subsystem_banks_powergate_switch_ack;
+
+  always_ff @(posedge clk_i) begin
+    tb_cpu_subsystem_powergate_switch_ack[0] <= x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_powergate_switch;
+    tb_cpu_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY:1] <= tb_cpu_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY-1:0];
+
+    tb_peripheral_subsystem_powergate_switch_ack[0] <= x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_powergate_switch;
+    tb_peripheral_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY:1] <= tb_peripheral_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY-1:0];
+
+    tb_memory_subsystem_banks_powergate_switch_ack[0] <= x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch;
+    tb_memory_subsystem_banks_powergate_switch_ack[SWITCH_ACK_LATENCY:1] <= tb_memory_subsystem_banks_powergate_switch_ack[SWITCH_ACK_LATENCY-1:0];
+  end
+
+
+  assign x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_powergate_switch_ack = tb_cpu_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY];
+  assign x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_powergate_switch_ack = tb_peripheral_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY];
+  assign x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_ack = tb_memory_subsystem_banks_powergate_switch_ack[SWITCH_ACK_LATENCY];
 
 
   uartdpi #(
