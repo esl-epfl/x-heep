@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     const uint16_t clk_div = (REFERENCE_CLOCK_Hz/(1000*1000*FLASH_CLK_MAX) - 2)/2 + 1;
     // Configure chip 0 (flash memory)
     const uint32_t chip_cfg = spi_create_configopts((spi_configopts_t){
-        .clkdiv     = 1,
+        .clkdiv     = clk_div,
         .csnidle    = 0xF,
         .csntrail   = 0xF,
         .csnlead    = 0xF,
