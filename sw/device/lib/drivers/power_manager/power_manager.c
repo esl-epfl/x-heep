@@ -312,6 +312,11 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_core(const power_ma
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EN_WAIT_FOR_INTR_REG_OFFSET), 1 << sel_intr);
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_INTR_STATE_REG_OFFSET), 0x0);
 
+    // enable wait for SWITCH ACK
+    reg = 0;
+    reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET), reg);
+
     power_gate_core_asm();
 
     // clean up states
@@ -319,6 +324,7 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_core(const power_ma
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_INTR_STATE_REG_OFFSET), 0x0);
 
     // stop counters
+    reg = 0;
     reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_RESET_ASSERT_STOP_BIT_COUNTER_BIT, true);
     reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_RESET_DEASSERT_STOP_BIT_COUNTER_BIT, true);
     reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_SWITCH_OFF_STOP_BIT_COUNTER_BIT, true);
@@ -352,12 +358,19 @@ power_manager_result_t power_gate_domain(const power_manager_t *power_manager, p
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_ISO_OFF_COUNTER_REG_OFFSET), domain_counters->iso_off);
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_ISO_ON_COUNTER_REG_OFFSET), domain_counters->iso_on);
 
+        // enable wait for SWITCH ACK
+        reg = 0;
+        reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET), reg);
+
+
         if (sel_state == kOn_e)
             mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_PERIPH_REG_OFFSET), 0x0);
         else
             mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_PERIPH_REG_OFFSET), 0x1);
 
         // stop counters
+        reg = 0;
         reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_COUNTERS_STOP_PERIPH_RESET_ASSERT_STOP_BIT_COUNTER_BIT, true);
         reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_COUNTERS_STOP_PERIPH_RESET_DEASSERT_STOP_BIT_COUNTER_BIT, true);
         reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_COUNTERS_STOP_PERIPH_SWITCH_OFF_STOP_BIT_COUNTER_BIT, true);
@@ -374,12 +387,19 @@ power_manager_result_t power_gate_domain(const power_manager_t *power_manager, p
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_ISO_OFF_COUNTER_REG_OFFSET + (0x14 * (sel_domain - 1))), domain_counters->iso_off);
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_ISO_ON_COUNTER_REG_OFFSET + (0x14 * (sel_domain - 1))), domain_counters->iso_on);
 
+        // enable wait for SWITCH ACK
+        reg = 0;
+        reg = bitfield_bit32_write(reg, power_manager_ram_wait_ack_switch_on_map[sel_domain].bitfield, true);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_wait_ack_switch_on_map[sel_domain].register_addr), reg);
+
+
         if (sel_state == kOn_e)
             mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_RAM_BLOCK_0_REG_OFFSET + (0x4 * (sel_domain - 1))), 0x0);
         else
             mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_RAM_BLOCK_0_REG_OFFSET + (0x4 * (sel_domain - 1))), 0x1);
 
         // stop counters
+        reg = 0;
         reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_SWITCH_OFF_STOP_BIT_COUNTER_BIT, true);
         reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_SWITCH_ON_STOP_BIT_COUNTER_BIT, true);
         reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_ISO_OFF_STOP_BIT_COUNTER_BIT, true);

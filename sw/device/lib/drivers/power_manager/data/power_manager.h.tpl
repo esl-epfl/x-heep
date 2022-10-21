@@ -9,6 +9,8 @@
 #include <stdint.h>
 
 #include "mmio.h"
+#include "power_manager_regs.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,6 +41,23 @@ typedef enum power_manager_sel_state {
   kOn_e  = 0,
   kOff_e = 1,
 } power_manager_sel_state_t;
+
+
+/**
+ * ACK Memories.
+ */
+
+typedef struct power_manager_bit_field_ack {
+  uint32_t bitfield;
+  uint32_t register_addr;
+} power_manager_bit_field_ack;
+
+power_manager_bit_field_ack power_manager_ram_wait_ack_switch_on_map[${ram_numbanks} +1] = {
+  { 0, 0 }, // kPeriph_e
+% for bank in range(ram_numbanks):
+  { POWER_MANAGER_RAM_${bank}_WAIT_ACK_SWITCH_ON_COUNTER_RAM_${bank}_WAIT_ACK_SWITCH_ON_COUNTER_BIT, POWER_MANAGER_RAM_${bank}_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET },
+% endfor
+};
 
 /**
  * Interrupt source.
