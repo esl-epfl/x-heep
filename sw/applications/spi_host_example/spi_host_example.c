@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
 
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+    uint32_t core_clk = soc_ctrl_get_frequency(&soc_ctrl);
 
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
@@ -95,7 +96,7 @@ int main(int argc, char *argv[])
     // Configure SPI clock
     // SPI clk toggles at half of the freq as the core clk when clk_div = 1
     // SPI_CLK = CORE_CLK/(2 + 2 * CLK_DIV) < CLK_MAX => CLK_DIV > (CORE_CLK/CLK_MAX - 2)/2
-    const uint16_t clk_div = (REFERENCE_CLOCK_Hz/(1000*1000*FLASH_CLK_MAX) - 2)/2 + 1;
+    uint16_t clk_div = (core_clk/(1000*1000*FLASH_CLK_MAX) - 2)/2 + 1;
     // Configure chip 0 (flash memory)
     const uint32_t chip_cfg = spi_create_configopts((spi_configopts_t){
         .clkdiv     = clk_div,
