@@ -91,8 +91,9 @@ module power_manager_counter_sequence #(
         switch_onoff_signal_o = ~IDLE_VALUE;
         if (counter_expired_switch_on_i) begin
           sequence_next_state = switch_ack_i ? SWITCH_ON : WAIT_ACK;
+        end else begin
+          sequence_next_state = WAIT_SWITCH_ON_COUNTER;
         end
-        sequence_next_state = WAIT_SWITCH_ON_COUNTER;
       end
 
       WAIT_ACK: begin

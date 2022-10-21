@@ -9,7 +9,7 @@ module power_manager #(
     parameter type reg_rsp_t = logic,
     parameter logic SWITCH_IDLE_VALUE = 1'b1, //the value to have Vdd.daughter = Vdd.mother, i.e. on state
     parameter logic ISO_IDLE_VALUE = 1'b1, //the value to not clamp isolatation cells
-    parameter logic RESET_IDLE_VALUE = 1'b0, //the value when the reset is active
+    parameter logic RESET_IDLE_VALUE = 1'b1, //the value when the reset is not active (deasserted)
     /*
     these values are used at reset time, i.e.
       the switch of all the power domains are conducting (ON)
@@ -23,7 +23,7 @@ module power_manager #(
     */
     parameter logic SWITCH_VALUE_AT_RESET = SWITCH_IDLE_VALUE, //the value of the switch at reset
     parameter logic ISO_VALUE_AT_RESET = ISO_IDLE_VALUE, //the value for isolation cells at reset
-    parameter logic RESET_VALUE_AT_RESET = 1'b0 //the value when the reset is active
+    parameter logic RESET_VALUE_AT_RESET = ~RESET_IDLE_VALUE //the value when the reset is active
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -101,6 +101,10 @@ module power_manager #(
   assign hw2reg.power_gate_core_ack.de = 1'b1;
   assign hw2reg.power_gate_core_ack.d = cpu_subsystem_powergate_switch_ack_i;
 
+  //if you want to wait for ACK, or just bypass it
+  logic cpu_switch_wait_ack;
+  assign cpu_switch_wait_ack = reg2hw.cpu_wait_ack_switch_on_counter.q ? reg2hw.power_gate_core_ack.q == SWITCH_IDLE_VALUE : 1'b1;
+
   reg_to_counter #(
       .DW(32),
       .ExpireValue('0)
@@ -137,9 +141,6 @@ module power_manager #(
     end
   end
 
-  //if you want to wait for ACK, or just bypass it
-  logic cpu_switch_wait_ack;
-  assign cpu_switch_wait_ack = reg2hw.power_gate_core_ack.q == SWITCH_IDLE_VALUE ? reg2hw.cpu_wait_ack_switch_on_counter.q : 1'b1;
 
   power_manager_counter_sequence #(
       .IDLE_VALUE(RESET_IDLE_VALUE),
@@ -282,6 +283,10 @@ module power_manager #(
   assign hw2reg.power_gate_periph_ack.de = 1'b1;
   assign hw2reg.power_gate_periph_ack.d = peripheral_subsystem_powergate_switch_ack_i;
 
+  //if you want to wait for ACK, or just bypass it
+  logic periph_switch_wait_ack;
+  assign periph_switch_wait_ack = reg2hw.periph_wait_ack_switch_on_counter.q ? reg2hw.power_gate_periph_ack.q == SWITCH_IDLE_VALUE : 1'b1;
+
   reg_to_counter #(
       .DW(32),
       .ExpireValue('0)
@@ -309,10 +314,6 @@ module power_manager #(
       .hw2reg_de_o(hw2reg.periph_reset_deassert_counter.de),
       .hw2reg_q_i(reg2hw.periph_reset_deassert_counter.q)
   );
-
-  //if you want to wait for ACK, or just bypass it
-  logic periph_switch_wait_ack;
-  assign periph_switch_wait_ack = reg2hw.power_gate_periph_ack.q == SWITCH_IDLE_VALUE ? reg2hw.periph_wait_ack_switch_on_counter.q : 1'b1;
 
   power_manager_counter_sequence #(
       .IDLE_VALUE(RESET_IDLE_VALUE),
@@ -456,6 +457,10 @@ module power_manager #(
   assign hw2reg.power_gate_ram_block_${bank}_ack.de = 1'b1;
   assign hw2reg.power_gate_ram_block_${bank}_ack.d = memory_subsystem_banks_powergate_switch_ack_i[${bank}];
 
+  //if you want to wait for ACK, or just bypass it
+  logic ram_${bank}_switch_wait_ack;
+  assign ram_${bank}_switch_wait_ack = reg2hw.ram_${bank}_wait_ack_switch_on_counter.q ? reg2hw.power_gate_ram_block_${bank}_ack.q == SWITCH_IDLE_VALUE : 1'b1;
+
   reg_to_counter #(
       .DW(32),
       .ExpireValue('0)
@@ -537,10 +542,6 @@ module power_manager #(
       .hw2reg_de_o(hw2reg.ram_${bank}_iso_on_counter.de),
       .hw2reg_q_i(reg2hw.ram_${bank}_iso_on_counter.q)
   );
-
-  //if you want to wait for ACK, or just bypass it
-  logic ram_${bank}_switch_wait_ack;
-  assign ram_${bank}_switch_wait_ack = reg2hw.power_gate_ram_block_${bank}_ack.q == SWITCH_IDLE_VALUE ? reg2hw.ram_${bank}_wait_ack_switch_on_counter.q : 1'b1;
 
   power_manager_counter_sequence #(
     .IDLE_VALUE(ISO_IDLE_VALUE),
