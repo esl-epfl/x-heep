@@ -34,6 +34,9 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    //check that the RAM is aactually OFF
+    while(!power_domain_is_off(&power_manager, kPeriph_e));
+
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop;");
 

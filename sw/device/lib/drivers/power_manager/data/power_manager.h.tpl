@@ -28,10 +28,10 @@ typedef enum power_manager_result {
  * Domains.
  */
 typedef enum power_manager_sel_domain {
-  kPeriph_e  = 0,
 % for bank in range(ram_numbanks):
-  kRam_${bank}_e   = ${bank+1},
+  kRam_${bank}_e   = ${bank},
 % endfor
+  kPeriph_e  = ${ram_numbanks},
 } power_manager_sel_domain_t;
 
 /**
@@ -47,15 +47,39 @@ typedef enum power_manager_sel_state {
  * ACK Memories.
  */
 
-typedef struct power_manager_bit_field_ack {
-  uint32_t bitfield;
-  uint32_t register_addr;
-} power_manager_bit_field_ack;
+typedef struct power_manager_ram_map_t {
+  uint32_t ack_bitfield;
+  uint32_t ack_reg_addr;
+  uint32_t switch_off_counter;
+  uint32_t switch_on_counter;
+  uint32_t iso_off_counter;
+  uint32_t iso_on_counter;
+  uint32_t power_gate_reg_addr;
+  uint32_t power_gate_reg_ack_addr;
+  uint32_t stop_counter_switch_off_bitfield;
+  uint32_t stop_counter_switch_on_bitfield;
+  uint32_t stop_counter_iso_off_bitfield;
+  uint32_t stop_counter_is_on_bitfield;
+  uint32_t stop_reg_addr;
+} power_manager_ram_map_t;
 
-power_manager_bit_field_ack power_manager_ram_wait_ack_switch_on_map[${ram_numbanks} +1] = {
-  { 0, 0 }, // kPeriph_e
+static power_manager_ram_map_t power_manager_ram_map[${ram_numbanks}] = {
 % for bank in range(ram_numbanks):
-  { POWER_MANAGER_RAM_${bank}_WAIT_ACK_SWITCH_ON_COUNTER_RAM_${bank}_WAIT_ACK_SWITCH_ON_COUNTER_BIT, POWER_MANAGER_RAM_${bank}_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET },
+  {
+    POWER_MANAGER_RAM_${bank}_WAIT_ACK_SWITCH_ON_COUNTER_RAM_${bank}_WAIT_ACK_SWITCH_ON_COUNTER_BIT,
+    POWER_MANAGER_RAM_${bank}_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET,
+    POWER_MANAGER_RAM_${bank}_SWITCH_OFF_COUNTER_REG_OFFSET,
+    POWER_MANAGER_RAM_${bank}_SWITCH_ON_COUNTER_REG_OFFSET,
+    POWER_MANAGER_RAM_${bank}_ISO_OFF_COUNTER_REG_OFFSET,
+    POWER_MANAGER_RAM_${bank}_ISO_ON_COUNTER_REG_OFFSET,
+    POWER_MANAGER_POWER_GATE_RAM_BLOCK_${bank}_REG_OFFSET,
+    POWER_MANAGER_POWER_GATE_RAM_BLOCK_${bank}_ACK_REG_OFFSET,
+    POWER_MANAGER_RAM_${bank}_COUNTERS_STOP_RAM_${bank}_SWITCH_OFF_STOP_BIT_COUNTER_BIT,
+    POWER_MANAGER_RAM_${bank}_COUNTERS_STOP_RAM_${bank}_SWITCH_ON_STOP_BIT_COUNTER_BIT,
+    POWER_MANAGER_RAM_${bank}_COUNTERS_STOP_RAM_${bank}_ISO_OFF_STOP_BIT_COUNTER_BIT,
+    POWER_MANAGER_RAM_${bank}_COUNTERS_STOP_RAM_${bank}_ISO_ON_STOP_BIT_COUNTER_BIT,
+    POWER_MANAGER_RAM_${bank}_COUNTERS_STOP_REG_OFFSET,
+   },
 % endfor
 };
 
@@ -114,6 +138,8 @@ power_manager_result_t power_gate_counters_init(power_manager_counters_t* counte
 power_manager_result_t power_gate_core(const power_manager_t *power_manager, power_manager_sel_intr_t sel_intr, power_manager_counters_t* cpu_counters);
 
 power_manager_result_t power_gate_domain(const power_manager_t *power_manager, power_manager_sel_domain_t sel_domain, power_manager_sel_state_t sel_state, power_manager_counters_t* domain_counters);
+
+uint32_t power_domain_is_off(const power_manager_t *power_manager, power_manager_sel_domain_t sel_domain);
 
 #ifdef __cplusplus
 }
