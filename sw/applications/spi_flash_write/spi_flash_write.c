@@ -29,7 +29,7 @@
 
 #define FLASH_ADDR 0x00008500 // 256B data alignment
 
-#define FLASH_CLK_MAX 2 // In MHz
+#define FLASH_CLK_MAX 2 // In MHz (2 MHz for the flash 93C46B used in the EPFL Programmer)
 
 int8_t spi_intr_flag;
 int8_t dma_intr_flag;

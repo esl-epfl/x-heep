@@ -25,7 +25,7 @@
 #define COPY_DATA_BYTES 16
 #define SPI_BYTES (4 * (uint32_t)((COPY_DATA_BYTES-1) / 4 + 1)) // Only sends data when an entire word has been received
 
-#define FLASH_CLK_MAX 2 // In MHz
+#define FLASH_CLK_MAX 2 // In MHz (2 MHz for the flash 93C46B used in the EPFL Programmer)
 
 #define REVERT_24b_ADDR(addr) ((((uint32_t)addr & 0xff0000) >> 16) | ((uint32_t)addr & 0xff00) | (((uint32_t)addr & 0xff) << 16))
 
