@@ -72,16 +72,18 @@
     }
 
 % endfor
-    { name:     "POWER_GATE_EXTERNAL",
-      desc:     "Used to power gate external domain",
+% for ext in range(external_domains):
+    { name:     "POWER_GATE_EXTERNAL_${ext}",
+      desc:     "Used to power gate external ${ext} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "POWER_GATE_EXTERNAL", desc: "Power Gate External Reg" }
+        { bits: "0", name: "POWER_GATE_EXTERNAL_${ext}", desc: "Power Gate External ${ext} Reg" }
       ]
     }
 
+% endfor
 % for i in range(31):
     { name:     "CORE_REG_X${i+1}",
       desc:     "Core reg x${i+1} value",
@@ -443,79 +445,81 @@
     }
 
 % endfor
-    { name:     "EXTERNAL_RESET_ASSERT_COUNTER",
-      desc:     "Counter before resetting the EXTERNAL domain",
+% for ext in range(external_domains):
+    { name:     "EXTERNAL_${ext}_RESET_ASSERT_COUNTER",
+      desc:     "Counter before resetting the EXTERNAL ${ext} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "EXTERNAL_RESET_ASSERT_COUNTER", desc: "EXTERNAL counter before resetting" }
+        { bits: "31:0", name: "EXTERNAL_${ext}_RESET_ASSERT_COUNTER", desc: "EXTERNAL ${ext} counter before resetting" }
       ]
     }
 
-    { name:     "EXTERNAL_RESET_DEASSERT_COUNTER",
-      desc:     "Counter before unreset the EXTERNAL domain",
+    { name:     "EXTERNAL_${ext}_RESET_DEASSERT_COUNTER",
+      desc:     "Counter before unreset the EXTERNAL ${ext} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "EXTERNAL_RESET_DEASSERT_COUNTER", desc: "EXTERNAL counter before unresetting" }
+        { bits: "31:0", name: "EXTERNAL_${ext}_RESET_DEASSERT_COUNTER", desc: "EXTERNAL ${ext} counter before unresetting" }
       ]
     }
 
-    { name:     "EXTERNAL_SWITCH_OFF_COUNTER",
-      desc:     "Counter before switching off the EXTERNAL domain",
+    { name:     "EXTERNAL_${ext}_SWITCH_OFF_COUNTER",
+      desc:     "Counter before switching off the EXTERNAL ${ext} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "EXTERNAL_SWITCH_OFF_COUNTER", desc: "EXTERNAL counter before switching off" }
+        { bits: "31:0", name: "EXTERNAL_${ext}_SWITCH_OFF_COUNTER", desc: "EXTERNAL ${ext} counter before switching off" }
       ]
     }
 
-    { name:     "EXTERNAL_SWITCH_ON_COUNTER",
-      desc:     "Counter before switching on the EXTERNAL domain",
+    { name:     "EXTERNAL_${ext}_SWITCH_ON_COUNTER",
+      desc:     "Counter before switching on the EXTERNAL ${ext} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "EXTERNAL_SWITCH_ON_COUNTER", desc: "EXTERNAL counter before switching on" }
+        { bits: "31:0", name: "EXTERNAL_${ext}_SWITCH_ON_COUNTER", desc: "EXTERNAL ${ext} counter before switching on" }
       ]
     }
 
-    { name:     "EXTERNAL_ISO_OFF_COUNTER",
-      desc:     "Counter before setting off the isolation of the EXTERNAL domain",
+    { name:     "EXTERNAL_${ext}_ISO_OFF_COUNTER",
+      desc:     "Counter before setting off the isolation of the EXTERNAL ${ext} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "EXTERNAL_ISO_OFF_COUNTER", desc: "EXTERNAL counter before setting off isolation" }
+        { bits: "31:0", name: "EXTERNAL_${ext}_ISO_OFF_COUNTER", desc: "EXTERNAL ${ext} counter before setting off isolation" }
       ]
     }
 
-    { name:     "EXTERNAL_ISO_ON_COUNTER",
-      desc:     "Counter before setting on the isolation of the EXTERNAL domain",
+    { name:     "EXTERNAL_${ext}_ISO_ON_COUNTER",
+      desc:     "Counter before setting on the isolation of the EXTERNAL ${ext} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "EXTERNAL_ISO_ON_COUNTER", desc: "EXTERNAL counter before setting on isolation" }
+        { bits: "31:0", name: "EXTERNAL_${ext}_ISO_ON_COUNTER", desc: "EXTERNAL ${ext} counter before setting on isolation" }
       ]
     }
 
-    { name:     "EXTERNAL_COUNTERS_STOP",
+    { name:     "EXTERNAL_${ext}_COUNTERS_STOP",
       desc:     "Bits to stop the counters keeping the done_o signal high",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "EXTERNAL_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_RESET_ASSERT_COUNTER counter" }
-        { bits: "1", name: "EXTERNAL_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_RESET_DEASSERT_COUNTER counter" }
-        { bits: "2", name: "EXTERNAL_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_SWITCH_OFF_COUNTER counter" }
-        { bits: "3", name: "EXTERNAL_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_SWITCH_ON_COUNTER counter" }
-        { bits: "4", name: "EXTERNAL_ISO_OFF_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_ISO_OFF_COUNTER counter" }
-        { bits: "5", name: "EXTERNAL_ISO_ON_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_ISO_ON_COUNTER counter" }
+        { bits: "0", name: "EXTERNAL_${ext}_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_${ext}_RESET_ASSERT_COUNTER counter" }
+        { bits: "1", name: "EXTERNAL_${ext}_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_${ext}_RESET_DEASSERT_COUNTER counter" }
+        { bits: "2", name: "EXTERNAL_${ext}_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_${ext}_SWITCH_OFF_COUNTER counter" }
+        { bits: "3", name: "EXTERNAL_${ext}_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_${ext}_SWITCH_ON_COUNTER counter" }
+        { bits: "4", name: "EXTERNAL_${ext}_ISO_OFF_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_${ext}_ISO_OFF_COUNTER counter" }
+        { bits: "5", name: "EXTERNAL_${ext}_ISO_ON_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_${ext}_ISO_ON_COUNTER counter" }
       ]
     }
+% endfor
    ]
 }

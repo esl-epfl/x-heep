@@ -25,18 +25,18 @@ module power_manager #(
     input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] ext_irq_i,
 
     // Power gating signals
-    output logic                                      cpu_subsystem_powergate_switch_o,
-    output logic                                      cpu_subsystem_powergate_iso_o,
-    output logic                                      cpu_subsystem_rst_no,
-    output logic                                      peripheral_subsystem_powergate_switch_o,
-    output logic                                      peripheral_subsystem_powergate_iso_o,
-    output logic                                      peripheral_subsystem_rst_no,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_o,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_o,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_o,
-    output logic                                      external_subsystem_powergate_switch_o,
-    output logic                                      external_subsystem_powergate_iso_o,
-    output logic                                      external_subsystem_rst_no
+    output logic                                             cpu_subsystem_powergate_switch_o,
+    output logic                                             cpu_subsystem_powergate_iso_o,
+    output logic                                             cpu_subsystem_rst_no,
+    output logic                                             peripheral_subsystem_powergate_switch_o,
+    output logic                                             peripheral_subsystem_powergate_iso_o,
+    output logic                                             peripheral_subsystem_rst_no,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]        memory_subsystem_banks_powergate_switch_o,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]        memory_subsystem_banks_powergate_iso_o,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]        memory_subsystem_banks_set_retentive_o,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_o,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_o,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_no
 );
 
   import power_manager_reg_pkg::*;
@@ -550,160 +550,162 @@ module power_manager #(
   );
 
 % endfor
+% for ext in range(external_domains):
   // --------------------------------------------------------------------------------------
-  // EXTERNAL_SUBSYSTEM DOMAIN
+  // EXTERNAL_SUBSYSTEM_${ext} DOMAIN
   // --------------------------------------------------------------------------------------
 
-  logic external_reset_counter_start_switch_off, external_reset_counter_expired_switch_off;
-  logic external_reset_counter_start_switch_on, external_reset_counter_expired_switch_on;
+  logic external_${ext}_reset_counter_start_switch_off, external_${ext}_reset_counter_expired_switch_off;
+  logic external_${ext}_reset_counter_start_switch_on, external_${ext}_reset_counter_expired_switch_on;
 
   reg_to_counter #(
       .DW(32),
       .ExpireValue('0)
-  ) reg_to_counter_external_reset_assert_i (
+  ) reg_to_counter_external_${ext}_reset_assert_i (
       .clk_i,
       .rst_ni,
-      .stop_i(reg2hw.external_counters_stop.external_reset_assert_stop_bit_counter.q),
-      .start_i(external_reset_counter_start_switch_off),
-      .done_o(external_reset_counter_expired_switch_off),
-      .hw2reg_d_o(hw2reg.external_reset_assert_counter.d),
-      .hw2reg_de_o(hw2reg.external_reset_assert_counter.de),
-      .hw2reg_q_i(reg2hw.external_reset_assert_counter.q)
+      .stop_i(reg2hw.external_${ext}_counters_stop.external_${ext}_reset_assert_stop_bit_counter.q),
+      .start_i(external_${ext}_reset_counter_start_switch_off),
+      .done_o(external_${ext}_reset_counter_expired_switch_off),
+      .hw2reg_d_o(hw2reg.external_${ext}_reset_assert_counter.d),
+      .hw2reg_de_o(hw2reg.external_${ext}_reset_assert_counter.de),
+      .hw2reg_q_i(reg2hw.external_${ext}_reset_assert_counter.q)
   );
 
   reg_to_counter #(
       .DW(32),
       .ExpireValue('0)
-  ) reg_to_counter_external_reset_deassert_i (
+  ) reg_to_counter_external_${ext}_reset_deassert_i (
       .clk_i,
       .rst_ni,
-      .stop_i(reg2hw.external_counters_stop.external_reset_deassert_stop_bit_counter.q),
-      .start_i(external_reset_counter_start_switch_on),
-      .done_o(external_reset_counter_expired_switch_on),
-      .hw2reg_d_o(hw2reg.external_reset_deassert_counter.d),
-      .hw2reg_de_o(hw2reg.external_reset_deassert_counter.de),
-      .hw2reg_q_i(reg2hw.external_reset_deassert_counter.q)
+      .stop_i(reg2hw.external_${ext}_counters_stop.external_${ext}_reset_deassert_stop_bit_counter.q),
+      .start_i(external_${ext}_reset_counter_start_switch_on),
+      .done_o(external_${ext}_reset_counter_expired_switch_on),
+      .hw2reg_d_o(hw2reg.external_${ext}_reset_deassert_counter.d),
+      .hw2reg_de_o(hw2reg.external_${ext}_reset_deassert_counter.de),
+      .hw2reg_q_i(reg2hw.external_${ext}_reset_deassert_counter.q)
   );
 
   power_manager_counter_sequence #(
       .ONOFF_AT_RESET(0)
-  ) power_manager_counter_sequence_external_reset_i (
+  ) power_manager_counter_sequence_external_${ext}_reset_i (
       .clk_i,
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_external.q),
-      .start_on_sequence_i (~reg2hw.power_gate_external.q),
+      .start_off_sequence_i(reg2hw.power_gate_external_${ext}.q),
+      .start_on_sequence_i (~reg2hw.power_gate_external_${ext}.q),
 
       // counter to switch on and off signals
-      .counter_expired_switch_off_i(external_reset_counter_expired_switch_off),
-      .counter_expired_switch_on_i (external_reset_counter_expired_switch_on),
+      .counter_expired_switch_off_i(external_${ext}_reset_counter_expired_switch_off),
+      .counter_expired_switch_on_i (external_${ext}_reset_counter_expired_switch_on),
 
-      .counter_start_switch_off_o(external_reset_counter_start_switch_off),
-      .counter_start_switch_on_o (external_reset_counter_start_switch_on),
+      .counter_start_switch_off_o(external_${ext}_reset_counter_start_switch_off),
+      .counter_start_switch_on_o (external_${ext}_reset_counter_start_switch_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(external_subsystem_rst_no)
+      .switch_onoff_signal_o(external_subsystem_rst_no[${ext}])
   );
 
-  logic external_powergate_counter_start_switch_off, external_powergate_counter_expired_switch_off;
-  logic external_powergate_counter_start_switch_on, external_powergate_counter_expired_switch_on;
+  logic external_${ext}_powergate_counter_start_switch_off, external_${ext}_powergate_counter_expired_switch_off;
+  logic external_${ext}_powergate_counter_start_switch_on, external_${ext}_powergate_counter_expired_switch_on;
 
   reg_to_counter #(
       .DW(32),
       .ExpireValue('0)
-  ) reg_to_counter_external_powergate_switch_off_i (
+  ) reg_to_counter_external_${ext}_powergate_switch_off_i (
       .clk_i,
       .rst_ni,
-      .stop_i(reg2hw.external_counters_stop.external_switch_off_stop_bit_counter.q),
-      .start_i(external_powergate_counter_start_switch_off),
-      .done_o(external_powergate_counter_expired_switch_off),
-      .hw2reg_d_o(hw2reg.external_switch_off_counter.d),
-      .hw2reg_de_o(hw2reg.external_switch_off_counter.de),
-      .hw2reg_q_i(reg2hw.external_switch_off_counter.q)
+      .stop_i(reg2hw.external_${ext}_counters_stop.external_${ext}_switch_off_stop_bit_counter.q),
+      .start_i(external_${ext}_powergate_counter_start_switch_off),
+      .done_o(external_${ext}_powergate_counter_expired_switch_off),
+      .hw2reg_d_o(hw2reg.external_${ext}_switch_off_counter.d),
+      .hw2reg_de_o(hw2reg.external_${ext}_switch_off_counter.de),
+      .hw2reg_q_i(reg2hw.external_${ext}_switch_off_counter.q)
   );
 
   reg_to_counter #(
       .DW(32),
       .ExpireValue('0)
-  ) reg_to_counter_external_powergate_switch_on_i (
+  ) reg_to_counter_external_${ext}_powergate_switch_on_i (
       .clk_i,
       .rst_ni,
-      .stop_i(reg2hw.external_counters_stop.external_switch_on_stop_bit_counter.q),
-      .start_i(external_powergate_counter_start_switch_on),
-      .done_o(external_powergate_counter_expired_switch_on),
-      .hw2reg_d_o(hw2reg.external_switch_on_counter.d),
-      .hw2reg_de_o(hw2reg.external_switch_on_counter.de),
-      .hw2reg_q_i(reg2hw.external_switch_on_counter.q)
+      .stop_i(reg2hw.external_${ext}_counters_stop.external_${ext}_switch_on_stop_bit_counter.q),
+      .start_i(external_${ext}_powergate_counter_start_switch_on),
+      .done_o(external_${ext}_powergate_counter_expired_switch_on),
+      .hw2reg_d_o(hw2reg.external_${ext}_switch_on_counter.d),
+      .hw2reg_de_o(hw2reg.external_${ext}_switch_on_counter.de),
+      .hw2reg_q_i(reg2hw.external_${ext}_switch_on_counter.q)
   );
 
-  power_manager_counter_sequence power_manager_counter_sequence_external_switch_i (
+  power_manager_counter_sequence power_manager_counter_sequence_external_${ext}_switch_i (
       .clk_i,
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_external.q),
-      .start_on_sequence_i (~reg2hw.power_gate_external.q),
+      .start_off_sequence_i(reg2hw.power_gate_external_${ext}.q),
+      .start_on_sequence_i (~reg2hw.power_gate_external_${ext}.q),
 
       // counter to switch on and off signals
-      .counter_expired_switch_off_i(external_powergate_counter_expired_switch_off),
-      .counter_expired_switch_on_i (external_powergate_counter_expired_switch_on),
+      .counter_expired_switch_off_i(external_${ext}_powergate_counter_expired_switch_off),
+      .counter_expired_switch_on_i (external_${ext}_powergate_counter_expired_switch_on),
 
-      .counter_start_switch_off_o(external_powergate_counter_start_switch_off),
-      .counter_start_switch_on_o (external_powergate_counter_start_switch_on),
+      .counter_start_switch_off_o(external_${ext}_powergate_counter_start_switch_off),
+      .counter_start_switch_on_o (external_${ext}_powergate_counter_start_switch_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(external_subsystem_powergate_switch_o)
+      .switch_onoff_signal_o(external_subsystem_powergate_switch_o[${ext}])
   );
 
-  logic external_powergate_counter_start_iso_off, external_powergate_counter_expired_iso_off;
-  logic external_powergate_counter_start_iso_on, external_powergate_counter_expired_iso_on;
+  logic external_${ext}_powergate_counter_start_iso_off, external_${ext}_powergate_counter_expired_iso_off;
+  logic external_${ext}_powergate_counter_start_iso_on, external_${ext}_powergate_counter_expired_iso_on;
 
   reg_to_counter #(
       .DW(32),
       .ExpireValue('0)
-  ) reg_to_counter_external_powergate_iso_off_i (
+  ) reg_to_counter_external_${ext}_powergate_iso_off_i (
       .clk_i,
       .rst_ni,
-      .stop_i(reg2hw.external_counters_stop.external_iso_off_stop_bit_counter.q),
-      .start_i(external_powergate_counter_start_iso_off),
-      .done_o(external_powergate_counter_expired_iso_off),
-      .hw2reg_d_o(hw2reg.external_iso_off_counter.d),
-      .hw2reg_de_o(hw2reg.external_iso_off_counter.de),
-      .hw2reg_q_i(reg2hw.external_iso_off_counter.q)
+      .stop_i(reg2hw.external_${ext}_counters_stop.external_${ext}_iso_off_stop_bit_counter.q),
+      .start_i(external_${ext}_powergate_counter_start_iso_off),
+      .done_o(external_${ext}_powergate_counter_expired_iso_off),
+      .hw2reg_d_o(hw2reg.external_${ext}_iso_off_counter.d),
+      .hw2reg_de_o(hw2reg.external_${ext}_iso_off_counter.de),
+      .hw2reg_q_i(reg2hw.external_${ext}_iso_off_counter.q)
   );
 
   reg_to_counter #(
       .DW(32),
       .ExpireValue('0)
-  ) reg_to_counter_external_powergate_iso_on_i (
+  ) reg_to_counter_external_${ext}_powergate_iso_on_i (
       .clk_i,
       .rst_ni,
-      .stop_i(reg2hw.external_counters_stop.external_iso_on_stop_bit_counter.q),
-      .start_i(external_powergate_counter_start_iso_on),
-      .done_o(external_powergate_counter_expired_iso_on),
-      .hw2reg_d_o(hw2reg.external_iso_on_counter.d),
-      .hw2reg_de_o(hw2reg.external_iso_on_counter.de),
-      .hw2reg_q_i(reg2hw.external_iso_on_counter.q)
+      .stop_i(reg2hw.external_${ext}_counters_stop.external_${ext}_iso_on_stop_bit_counter.q),
+      .start_i(external_${ext}_powergate_counter_start_iso_on),
+      .done_o(external_${ext}_powergate_counter_expired_iso_on),
+      .hw2reg_d_o(hw2reg.external_${ext}_iso_on_counter.d),
+      .hw2reg_de_o(hw2reg.external_${ext}_iso_on_counter.de),
+      .hw2reg_q_i(reg2hw.external_${ext}_iso_on_counter.q)
   );
 
-  power_manager_counter_sequence power_manager_counter_sequence_external_iso_i (
+  power_manager_counter_sequence power_manager_counter_sequence_external_${ext}_iso_i (
       .clk_i,
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_external.q),
-      .start_on_sequence_i (~reg2hw.power_gate_external.q),
+      .start_off_sequence_i(reg2hw.power_gate_external_${ext}.q),
+      .start_on_sequence_i (~reg2hw.power_gate_external_${ext}.q),
 
       // counter to switch on and off signals
-      .counter_expired_switch_off_i(external_powergate_counter_expired_iso_off),
-      .counter_expired_switch_on_i (external_powergate_counter_expired_iso_on),
+      .counter_expired_switch_off_i(external_${ext}_powergate_counter_expired_iso_off),
+      .counter_expired_switch_on_i (external_${ext}_powergate_counter_expired_iso_on),
 
-      .counter_start_switch_off_o(external_powergate_counter_start_iso_off),
-      .counter_start_switch_on_o (external_powergate_counter_start_iso_on),
+      .counter_start_switch_off_o(external_${ext}_powergate_counter_start_iso_off),
+      .counter_start_switch_on_o (external_${ext}_powergate_counter_start_iso_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(external_subsystem_powergate_iso_o)
+      .switch_onoff_signal_o(external_subsystem_powergate_iso_o[${ext}])
   );
+% endfor
 
 endmodule : power_manager

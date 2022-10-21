@@ -30,8 +30,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    // Power off cgra
-    if (power_gate_domain(&power_manager, kExternal_e, kOff_e, &power_manager_ram_blocks_counters) != kPowerManagerOk_e)
+    // Power off external domain
+    if (power_gate_domain(&power_manager, kExternal_0_e, kOff_e, &power_manager_ram_blocks_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;
@@ -40,8 +40,8 @@ int main(int argc, char *argv[])
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop");
 
-    // Power on cgra
-    if (power_gate_domain(&power_manager, kExternal_e, kOn_e, &power_manager_ram_blocks_counters) != kPowerManagerOk_e)
+    // Power on external domain
+    if (power_gate_domain(&power_manager, kExternal_0_e, kOn_e, &power_manager_ram_blocks_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;

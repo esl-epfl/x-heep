@@ -22,9 +22,9 @@ module x_heep_system
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
-    output logic external_subsystem_powergate_switch_o,
-    output logic external_subsystem_powergate_iso_o,
-    output logic external_subsystem_rst_no,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_o,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_o,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_no,
 
     output logic [31:0] exit_value_o,
 

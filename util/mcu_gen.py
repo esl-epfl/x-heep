@@ -314,6 +314,12 @@ def main():
                         default="",
                         help="Number of 32KB Banks (default value from cfg file)")
 
+    parser.add_argument("--external_domains",
+                        metavar="from 0 to 32",
+                        nargs='?',
+                        default="1",
+                        help="Number of external domains")
+
     parser.add_argument("--pkg-sv",
                         metavar="PKG_SV",
                         help="Name of top-level package file (output)")
@@ -387,6 +393,14 @@ def main():
         exit("ram start address must be 0 instead of " + str(ram_start_address))
 
     ram_size_address = '{:08X}'.format(ram_numbanks*32*1024)
+
+    if args.external_domains != None and args.external_domains != '':
+        external_domains = int(args.external_domains)
+    else:
+        external_domains = 1
+
+    if external_domains < 1 and external_domains > 32:
+        exit("external_domains must be between 1 and 32 instead of " + str(external_domains))
 
     debug_start_address = string2int(obj['debug']['address'])
     if int(debug_start_address, 16) < int('10000', 16):
@@ -793,6 +807,7 @@ def main():
         "bus_type"                         : bus_type,
         "ram_start_address"                : ram_start_address,
         "ram_numbanks"                     : ram_numbanks,
+        "external_domains"                 : external_domains,
         "ram_size_address"                 : ram_size_address,
         "debug_start_address"              : debug_start_address,
         "debug_size_address"               : debug_size_address,

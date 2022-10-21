@@ -50,6 +50,7 @@ package core_v_mini_mcu_pkg;
   localparam int unsigned LOG_SYSTEM_XBAR_NSLAVE = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(SYSTEM_XBAR_NSLAVE) : 32'd1;
 
   localparam int unsigned NUM_BANKS = ${ram_numbanks};
+  localparam int unsigned EXTERNAL_DOMAINS = ${external_domains};
 
   localparam logic[31:0] ERROR_START_ADDRESS = 32'hBADACCE5;
   localparam logic[31:0] ERROR_SIZE = 32'h00000001;
