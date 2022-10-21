@@ -6,7 +6,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "x-heep.h"
 #include "core_v_mini_mcu.h"
 #include "csr.h"
 #include "hart.h"
@@ -22,7 +21,7 @@
 // Simple example to check the SPI host peripheral is working. It checks the ram and flash have the same content
 #define DATA_CHUNK_ADDR 0x00008000
 
-#define FLASH_CLK_MAX 2 // In MHz (2 MHz for the flash 93C46B used in the EPFL Programmer)
+#define FLASH_CLK_MAX_HZ 133*1000*1000 // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
 
 int8_t spi_intr_flag;
 spi_host_t spi_host;
@@ -94,9 +93,14 @@ int main(int argc, char *argv[])
     spi_enable_rxwm_intr(&spi_host, true);
 
     // Configure SPI clock
-    // SPI clk toggles at half of the freq as the core clk when clk_div = 1
-    // SPI_CLK = CORE_CLK/(2 + 2 * CLK_DIV) < CLK_MAX => CLK_DIV > (CORE_CLK/CLK_MAX - 2)/2
-    uint16_t clk_div = (core_clk/(1000*1000*FLASH_CLK_MAX) - 2)/2 + 1;
+    // SPI clk freq = 1/2 core clk freq when clk_div = 0
+    // SPI_CLK = CORE_CLK/(2 + 2 * CLK_DIV) <= CLK_MAX => CLK_DIV > (CORE_CLK/CLK_MAX - 2)/2
+    uint16_t clk_div = 0;
+    if(FLASH_CLK_MAX_HZ < core_clk/2){
+        clk_div = ((core_clk/1000)/(FLASH_CLK_MAX_HZ/1000) - 2)/2; // The value is truncated
+        if (core_clk/(2 + 2 * clk_div) > FLASH_CLK_MAX_HZ) clk_div += 1; // Adjust if the truncation was not 0
+    }
+    // SPI Configuration
     // Configure chip 0 (flash memory)
     const uint32_t chip_cfg = spi_create_configopts((spi_configopts_t){
         .clkdiv     = clk_div,

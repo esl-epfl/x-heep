@@ -6,7 +6,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "x-heep.h"
 #include "core_v_mini_mcu.h"
 #include "csr.h"
 #include "hart.h"
@@ -25,7 +24,7 @@
 #define COPY_DATA_BYTES 16
 #define SPI_BYTES (4 * (uint32_t)((COPY_DATA_BYTES-1) / 4 + 1)) // Only sends data when an entire word has been received
 
-#define FLASH_CLK_MAX 2 // In MHz (2 MHz for the flash 93C46B used in the EPFL Programmer)
+#define FLASH_CLK_MAX_HZ 133*1000*1000 // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
 
 #define REVERT_24b_ADDR(addr) ((((uint32_t)addr & 0xff0000) >> 16) | ((uint32_t)addr & 0xff00) | (((uint32_t)addr & 0xff) << 16))
 
@@ -92,11 +91,15 @@ int main(int argc, char *argv[])
         dma_set_spi_mode(&dma, (uint32_t) 3); // The DMA will wait for the SPI FLASH RX FIFO valid signal
     #endif
 
-    // -- SPI CONFIGURATION -- 
     // Configure SPI clock
-    // SPI clk toggles at half of the freq as the core clk when clk_div = 1
-    // SPI_CLK = CORE_CLK/(2 + 2 * CLK_DIV) < CLK_MAX => CLK_DIV > (CORE_CLK/CLK_MAX - 2)/2
-    uint16_t clk_div = (core_clk/(1000*1000*FLASH_CLK_MAX) - 2)/2 + 1;
+    // SPI clk freq = 1/2 core clk freq when clk_div = 0
+    // SPI_CLK = CORE_CLK/(2 + 2 * CLK_DIV) <= CLK_MAX => CLK_DIV > (CORE_CLK/CLK_MAX - 2)/2
+    uint16_t clk_div = 0;
+    if(FLASH_CLK_MAX_HZ < core_clk/2){
+        clk_div = ((core_clk/1000)/(FLASH_CLK_MAX_HZ/1000) - 2)/2; // The value is truncated
+        if (core_clk/(2 + 2 * clk_div) > FLASH_CLK_MAX_HZ) clk_div += 1; // Adjust if the truncation was not 0
+    }
+    // SPI Configuration
     // Configure chip 0 (flash memory)
     const uint32_t chip_cfg = spi_create_configopts((spi_configopts_t){
         .clkdiv     = clk_div,
