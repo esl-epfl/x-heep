@@ -76,7 +76,7 @@
             offset:  0x00080000,
             length:  0x00010000,
         },
-        pad: {
+        pad_control: {
             offset:  0x00090000,
             length:  0x00010000,
         },
@@ -238,7 +238,7 @@
             type: output
         },
         gpio: {
-            num: 32,
+            num: 30,
             num_offset: 0, #first gpio is gpio0
             type: inout
         },
@@ -269,10 +269,27 @@
         i2c_scl: {
             num: 1,
             type: inout
+            mux: {
+                i2c_scl: {
+                    type: inout
+                },
+                gpio_31: {
+                    type: inout
+                },
+            }
         },
         i2c_sda: {
             num: 1,
             type: inout
+            mux: {
+                i2c_sda: {
+                    type: inout
+                },
+                gpio_30: {
+                    type: inout
+                },
+            }
+
         }
     }
 
