@@ -24,7 +24,7 @@
 #define COPY_DATA_BYTES 16
 #define SPI_BYTES (4 * (uint32_t)((COPY_DATA_BYTES-1) / 4 + 1)) // Only sends data when an entire word has been received
 
-#define FLASH_CLK_MAX_HZ 133*1000*1000 // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
+#define FLASH_CLK_MAX_HZ (133*1000*1000) // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
 
 #define REVERT_24b_ADDR(addr) ((((uint32_t)addr & 0xff0000) >> 16) | ((uint32_t)addr & 0xff00) | (((uint32_t)addr & 0xff) << 16))
 
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     // SPI_CLK = CORE_CLK/(2 + 2 * CLK_DIV) <= CLK_MAX => CLK_DIV > (CORE_CLK/CLK_MAX - 2)/2
     uint16_t clk_div = 0;
     if(FLASH_CLK_MAX_HZ < core_clk/2){
-        clk_div = ((core_clk/1000)/(FLASH_CLK_MAX_HZ/1000) - 2)/2; // The value is truncated
+        clk_div = (core_clk/(FLASH_CLK_MAX_HZ) - 2)/2; // The value is truncated
         if (core_clk/(2 + 2 * clk_div) > FLASH_CLK_MAX_HZ) clk_div += 1; // Adjust if the truncation was not 0
     }
     // SPI Configuration
