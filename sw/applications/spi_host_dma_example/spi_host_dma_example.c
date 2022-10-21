@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     // Enable SPI host device
     spi_set_enable(&spi_host, true);
 
-    // SPI and SPI_HOST are the same IP so same register map
+    // SPI and SPI_FLASH are the same IP so same register map
     uint32_t *fifo_ptr = spi_host.base_addr.base + SPI_HOST_DATA_REG_OFFSET;
 
     // -- DMA CONFIGURATION --
