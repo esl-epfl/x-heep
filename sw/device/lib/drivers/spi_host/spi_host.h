@@ -203,7 +203,7 @@ void spi_read_word(const spi_host_t *spi, uint32_t* dst);
 void spi_enable_evt_intr(const spi_host_t *spi, bool enable);
 
 /**
- * Reads a chunk of data from RX FIFO (which must contains at least 128B!).
+ * Enable SPI error interrupt
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI error interrupt bit value.
@@ -211,12 +211,20 @@ void spi_enable_evt_intr(const spi_host_t *spi, bool enable);
 void spi_enable_error_intr(const spi_host_t *spi, bool enable);
 
 /**
- * Reads a chunk of data from RX FIFO (which must contains at least 128B!).
+ * Enable SPI watermark event interrupt
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI RX watermark interrupt bit value.
  */
 void spi_enable_rxwm_intr(const spi_host_t *spi, bool enable);
+
+/**
+ * Enable SPI TX empty event interrupt
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ * @param enable SPI TX empty interrupt bit value.
+ */
+void spi_enable_txempty_intr(const spi_host_t *spi, bool enable);
 
 
 
@@ -267,6 +275,24 @@ static inline __attribute__((always_inline)) void spi_wait_for_ready(const spi_h
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(const spi_host_t *spi) {
     while (!mmio_region_get_bit32(spi->base_addr, SPI_HOST_STATUS_REG_OFFSET, SPI_HOST_STATUS_TXWM_BIT));
+}
+
+/**
+ * Wait TX FIFO empty.
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ */
+static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const spi_host_t *spi) {
+    while (!mmio_region_get_bit32(spi->base_addr, SPI_HOST_STATUS_REG_OFFSET, SPI_HOST_STATUS_TXEMPTY_BIT));
+}
+
+/**
+ * Wait TX FIFO not empty.
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ */
+static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(const spi_host_t *spi) {
+    while (mmio_region_get_bit32(spi->base_addr, SPI_HOST_STATUS_REG_OFFSET, SPI_HOST_STATUS_TXEMPTY_BIT));
 }
 
 /**
