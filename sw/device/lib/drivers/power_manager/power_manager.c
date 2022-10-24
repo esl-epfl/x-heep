@@ -385,7 +385,7 @@ power_manager_result_t  __attribute__ ((noinline)) power_gate_domain(const power
         // set counters
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_domain].switch_off_counter), domain_counters->switch_off);
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_domain].switch_on_counter), domain_counters->switch_on);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_domain].stop_counter_iso_off_bitfield), domain_counters->iso_off);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_domain].iso_off_counter), domain_counters->iso_off);
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_domain].iso_on_counter), domain_counters->iso_on);
 
         // enable wait for SWITCH ACK
