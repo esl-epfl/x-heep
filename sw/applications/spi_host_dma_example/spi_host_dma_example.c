@@ -70,14 +70,16 @@ int main(int argc, char *argv[])
     soc_ctrl_select_spi_host(&soc_ctrl);
     // Enable SPI host device
     spi_set_enable(&spi_host, true);
+    // Enable SPI output
+    spi_output_enable(&spi_host, true);
 
     // SPI and SPI_FLASH are the same IP so same register map
-    uint32_t *fifo_ptr = spi_host.base_addr.base + SPI_HOST_DATA_REG_OFFSET;
+    uint32_t *fifo_ptr_rx = spi_host.base_addr.base + SPI_HOST_RXDATA_REG_OFFSET;
 
     // -- DMA CONFIGURATION --
     dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
     dma_set_write_ptr_inc(&dma, (uint32_t) 4); // Do not increment address when reading from the SPI (Pop from FIFO)
-    dma_set_read_ptr(&dma, (uint32_t) fifo_ptr); // SPI RX FIFO addr
+    dma_set_read_ptr(&dma, (uint32_t) fifo_ptr_rx); // SPI RX FIFO addr
     dma_set_write_ptr(&dma, (uint32_t) copy_data); // copy data address
     // Set the correct SPI-DMA mode:
     // (0) disable
@@ -113,15 +115,6 @@ int main(int argc, char *argv[])
     spi_set_configopts(&spi_host, 0, chip_cfg);
     spi_set_csid(&spi_host, 0);
 
-    // The actual implementation of the SPI HOST has HW bugs when sending single bytes per transaction,
-    // This dummy read and write commands are used to send empty commands to the device to fush and discard internal TX and RX words
-    const uint32_t cmd_dummy_write = spi_create_command((spi_command_t){
-        .len        = 1,
-        .csaat      = false,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
-    });
-
     // Reset
     const uint32_t reset_cmd = 0xFFFFFFFF;
     spi_write_word(&spi_host, reset_cmd);
@@ -144,8 +137,6 @@ int main(int argc, char *argv[])
         .direction  = kSpiDirTxOnly
     });
     spi_set_command(&spi_host, cmd_powerup);
-    spi_wait_for_ready(&spi_host);
-    spi_set_command(&spi_host, cmd_dummy_write);
     spi_wait_for_ready(&spi_host);
 
     // The address bytes sent through the SPI to the Flash are in reverse order
@@ -196,8 +187,6 @@ int main(int argc, char *argv[])
         .direction  = kSpiDirTxOnly
     });
     spi_set_command(&spi_host, cmd_powerdown);
-    spi_wait_for_ready(&spi_host);
-    spi_set_command(&spi_host, cmd_dummy_write);
     spi_wait_for_ready(&spi_host);
 
     // The data is already in memory -- Check results

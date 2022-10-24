@@ -114,3 +114,9 @@ void spi_enable_txempty_intr(const spi_host_t *spi, bool enable) {
     intr_enable_reg = bitfield_bit32_write(intr_enable_reg, SPI_HOST_EVENT_ENABLE_TXEMPTY_BIT, enable);
     mmio_region_write32(spi->base_addr, SPI_HOST_EVENT_ENABLE_REG_OFFSET, intr_enable_reg);
 }
+
+void spi_output_enable(const spi_host_t *spi, bool enable){
+    volatile uint32_t output_enable_reg = mmio_region_read32(spi->base_addr, SPI_HOST_CONTROL_REG_OFFSET);
+    output_enable_reg = bitfield_bit32_write(output_enable_reg, SPI_HOST_CONTROL_OUTPUT_EN_BIT, enable);
+    mmio_region_write32(spi->base_addr, SPI_HOST_CONTROL_REG_OFFSET, output_enable_reg);
+}

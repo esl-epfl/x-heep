@@ -208,7 +208,7 @@ module ao_peripheral_subsystem
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_IDX]),
       .alert_rx_i(),
       .alert_tx_o(),
-      .passthrough_i(),
+      .passthrough_i('h0),
       .passthrough_o(),
       .cio_sck_o(spi_sck_o),
       .cio_sck_en_o(spi_sck_en_o),
