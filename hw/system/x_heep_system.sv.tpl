@@ -23,6 +23,7 @@ module x_heep_system
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_o,
+    input  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_ack_i,
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_o,
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_no,
 
@@ -65,6 +66,7 @@ ${pad.core_v_mini_mcu_bonding}
     .ext_peripheral_slave_req_o,
     .ext_peripheral_slave_resp_i,
     .external_subsystem_powergate_switch_o,
+    .external_subsystem_powergate_switch_ack_i,
     .external_subsystem_powergate_iso_o,
     .external_subsystem_rst_no,
     .exit_value_o

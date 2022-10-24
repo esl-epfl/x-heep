@@ -30,6 +30,7 @@ module core_v_mini_mcu
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_o,
+    input  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_ack_i,
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_o,
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_no,
 
@@ -98,12 +99,15 @@ module core_v_mini_mcu
 
   // power manager
   logic cpu_subsystem_powergate_switch;
+  logic cpu_subsystem_powergate_switch_ack;
   logic cpu_subsystem_powergate_iso;
   logic cpu_subsystem_rst_n;
   logic peripheral_subsystem_powergate_switch;
+  logic peripheral_subsystem_powergate_switch_ack;
   logic peripheral_subsystem_powergate_iso;
   logic peripheral_subsystem_rst_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive;
 
@@ -251,15 +255,19 @@ module core_v_mini_mcu
       .intr_vector_ext_i(intr_vector_ext_i),
       .core_sleep_i(core_sleep),
       .cpu_subsystem_powergate_switch_o(cpu_subsystem_powergate_switch),
+      .cpu_subsystem_powergate_switch_ack_i(cpu_subsystem_powergate_switch_ack),
       .cpu_subsystem_powergate_iso_o(cpu_subsystem_powergate_iso),
       .cpu_subsystem_rst_no(cpu_subsystem_rst_n),
       .peripheral_subsystem_powergate_switch_o(peripheral_subsystem_powergate_switch),
+      .peripheral_subsystem_powergate_switch_ack_i(peripheral_subsystem_powergate_switch_ack),
       .peripheral_subsystem_powergate_iso_o(peripheral_subsystem_powergate_iso),
       .peripheral_subsystem_rst_no(peripheral_subsystem_rst_n),
       .memory_subsystem_banks_powergate_switch_o(memory_subsystem_banks_powergate_switch),
+      .memory_subsystem_banks_powergate_switch_ack_i(memory_subsystem_banks_powergate_switch_ack),
       .memory_subsystem_banks_powergate_iso_o(memory_subsystem_banks_powergate_iso),
       .memory_subsystem_banks_set_retentive_o(memory_subsystem_banks_set_retentive),
       .external_subsystem_powergate_switch_o,
+      .external_subsystem_powergate_switch_ack_i,
       .external_subsystem_powergate_iso_o,
       .external_subsystem_rst_no,
       .rv_timer_0_intr_o(rv_timer_intr[0]),

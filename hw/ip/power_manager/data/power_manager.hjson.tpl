@@ -37,7 +37,15 @@
         { bits: "0", name: "POWER_GATE_CORE", desc: "Power Gate Core Reg" }
       ]
     }
-
+    { name:     "POWER_GATE_CORE_ACK",
+      desc:     "Used by the core switch to ack the power manager",
+      resval:   "0x00000000"
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "0", name: "POWER_GATE_CORE_ACK", desc: "Power Gate Core Ack Reg" }
+      ]
+    }
     { name:     "POWER_GATE_PERIPH",
       desc:     "Used to power gate peripheral_subsystem",
       resval:   "0x00000000"
@@ -45,6 +53,15 @@
       hwaccess: "hro",
       fields: [
         { bits: "0", name: "POWER_GATE_PERIPH", desc: "Power Gate Periph Reg" }
+      ]
+    }
+    { name:     "POWER_GATE_PERIPH_ACK",
+      desc:     "Used by the periph switch to ack the power manager",
+      resval:   "0x00000000"
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "0", name: "POWER_GATE_PERIPH_ACK", desc: "Power Gate Periph Ack Reg" }
       ]
     }
 
@@ -56,6 +73,16 @@
       hwaccess: "hro",
       fields: [
         { bits: "0", name: "POWER_GATE_RAM_BLOCK_${bank}", desc: "Power Gate Ram Block ${bank} Reg" }
+      ]
+    }
+
+    { name:     "POWER_GATE_RAM_BLOCK_${bank}_ACK",
+      desc:     "Used by the ram ${bank} switch to ack the power manager",
+      resval:   "0x00000000"
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "0", name: "POWER_GATE_RAM_BLOCK_${bank}_ACK", desc: "Power Gate Ram Block ${bank} Ack Reg" }
       ]
     }
 
@@ -80,6 +107,16 @@
       hwaccess: "hro",
       fields: [
         { bits: "0", name: "POWER_GATE_EXTERNAL_${ext}", desc: "Power Gate External ${ext} Reg" }
+      ]
+    }
+
+    { name:     "POWER_GATE_EXTERNAL_${ext}_ACK",
+      desc:     "Used by the external ${ext} switch to ack the power manager",
+      resval:   "0x00000000"
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "0", name: "POWER_GATE_EXTERNAL_${ext}_ACK", desc: "Power Gate External ${ext} Ack Reg" }
       ]
     }
 
@@ -256,6 +293,16 @@
       ]
     }
 
+    { name:     "CPU_WAIT_ACK_SWITCH_ON_COUNTER",
+      desc:     "Bit to set whether to further wait for the ACK from the core switch after the counter expired",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "CPU_WAIT_ACK_SWITCH_ON_COUNTER", desc: "wait for CPU switch ack before switching on" }
+      ]
+    }
+
     { name:     "CPU_ISO_OFF_COUNTER",
       desc:     "Counter before setting off the isolation of the CPU domain",
       resval:   "0x00000000"
@@ -331,6 +378,16 @@
       ]
     }
 
+    { name:     "PERIPH_WAIT_ACK_SWITCH_ON_COUNTER",
+      desc:     "Bit to set whether to further wait for the ACK from the periph switch after the counter expired",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "PERIPH_WAIT_ACK_SWITCH_ON_COUNTER", desc: "wait for PERIPH switch ack before switching on" }
+      ]
+    }
+
     { name:     "PERIPH_ISO_OFF_COUNTER",
       desc:     "Counter before setting off the isolation of the PERIPH domain",
       resval:   "0x00000000"
@@ -384,6 +441,16 @@
       hwaccess: "hrw",
       fields: [
         { bits: "31:0", name: "RAM_${bank}_SWITCH_ON_COUNTER", desc: "RAM_${bank} counter before switching on" }
+      ]
+    }
+
+    { name:     "RAM_${bank}_WAIT_ACK_SWITCH_ON_COUNTER",
+      desc:     "Bit to set whether to further wait for the ACK from the memory ${bank} switch after the counter expired",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "RAM_${bank}_WAIT_ACK_SWITCH_ON_COUNTER", desc: "wait for RAM_${bank} switch ack before switching on" }
       ]
     }
 
@@ -486,6 +553,16 @@
       ]
     }
 
+    { name:     "EXTERNAL_${ext}_WAIT_ACK_SWITCH_ON_COUNTER",
+      desc:     "Bit to set whether to further wait for the ACK from the external ${ext} switch after the counter expired",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "EXTERNAL_${ext}_WAIT_ACK_SWITCH_ON_COUNTER", desc: "wait for external ${ext} switch ack before switching on" }
+      ]
+    }
+
     { name:     "EXTERNAL_${ext}_ISO_OFF_COUNTER",
       desc:     "Counter before setting off the isolation of the EXTERNAL ${ext} domain",
       resval:   "0x00000000"
@@ -520,6 +597,7 @@
         { bits: "5", name: "EXTERNAL_${ext}_ISO_ON_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_${ext}_ISO_ON_COUNTER counter" }
       ]
     }
+
 % endfor
    ]
 }

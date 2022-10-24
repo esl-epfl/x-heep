@@ -310,6 +310,11 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_core(const power_ma
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EN_WAIT_FOR_INTR_REG_OFFSET), 1 << sel_intr);
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_INTR_STATE_REG_OFFSET), 0x0);
 
+    // enable wait for SWITCH ACK
+    reg = 0;
+    reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET), reg);
+
     power_gate_core_asm();
 
     // clean up states
@@ -317,6 +322,7 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_core(const power_ma
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_INTR_STATE_REG_OFFSET), 0x0);
 
     // stop counters
+    reg = 0;
     reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_RESET_ASSERT_STOP_BIT_COUNTER_BIT, true);
     reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_RESET_DEASSERT_STOP_BIT_COUNTER_BIT, true);
     reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_SWITCH_OFF_STOP_BIT_COUNTER_BIT, true);
@@ -328,7 +334,7 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_core(const power_ma
     return kPowerManagerOk_e;
 }
 
-power_manager_result_t power_gate_domain(const power_manager_t *power_manager, power_manager_sel_domain_t sel_domain, power_manager_sel_state_t sel_state, power_manager_counters_t* domain_counters)
+power_manager_result_t  __attribute__ ((noinline)) power_gate_domain(const power_manager_t *power_manager, power_manager_sel_domain_t sel_domain, power_manager_sel_state_t sel_state, power_manager_counters_t* domain_counters)
 {
     uint32_t reg = 0;
 
@@ -342,12 +348,18 @@ power_manager_result_t power_gate_domain(const power_manager_t *power_manager, p
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_ISO_OFF_COUNTER_REG_OFFSET), domain_counters->iso_off);
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_ISO_ON_COUNTER_REG_OFFSET), domain_counters->iso_on);
 
+        // enable wait for SWITCH ACK
+        reg = 0;
+        reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET), reg);
+
         if (sel_state == kOn_e)
             mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_PERIPH_REG_OFFSET), 0x0);
         else
             mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_PERIPH_REG_OFFSET), 0x1);
 
         // stop counters
+        reg = 0;
         reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_COUNTERS_STOP_PERIPH_RESET_ASSERT_STOP_BIT_COUNTER_BIT, true);
         reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_COUNTERS_STOP_PERIPH_RESET_DEASSERT_STOP_BIT_COUNTER_BIT, true);
         reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_COUNTERS_STOP_PERIPH_SWITCH_OFF_STOP_BIT_COUNTER_BIT, true);
@@ -359,12 +371,17 @@ power_manager_result_t power_gate_domain(const power_manager_t *power_manager, p
     else if (sel_domain > kPeriph_e && sel_domain < kExternal_0_e)
     {
         // set counters
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_SWITCH_OFF_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 1))), domain_counters->switch_off);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_SWITCH_ON_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 1))), domain_counters->switch_on);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_ISO_OFF_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 1))), domain_counters->iso_off);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_ISO_ON_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 1))), domain_counters->iso_on);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_RETENTIVE_OFF_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 1))), domain_counters->retentive_off);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_RETENTIVE_ON_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 1))), domain_counters->retentive_on);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_SWITCH_OFF_COUNTER_REG_OFFSET + (0x20 * (sel_domain - 1))), domain_counters->switch_off);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_SWITCH_ON_COUNTER_REG_OFFSET + (0x20 * (sel_domain - 1))), domain_counters->switch_on);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_ISO_OFF_COUNTER_REG_OFFSET + (0x20 * (sel_domain - 1))), domain_counters->iso_off);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_ISO_ON_COUNTER_REG_OFFSET + (0x20 * (sel_domain - 1))), domain_counters->iso_on);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_RETENTIVE_OFF_COUNTER_REG_OFFSET + (0x20 * (sel_domain - 1))), domain_counters->retentive_off);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_RETENTIVE_ON_COUNTER_REG_OFFSET + (0x20 * (sel_domain - 1))), domain_counters->retentive_on);
+
+        // enable wait for SWITCH ACK
+        reg = 0;
+        reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_WAIT_ACK_SWITCH_ON_COUNTER_RAM_0_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET + (0x20 * (sel_domain - 1))), reg);
 
         if (sel_state == kOn_e)
             mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_RAM_BLOCK_0_REG_OFFSET + (0x4 * (sel_domain - 1))), 0x0);
@@ -382,17 +399,22 @@ power_manager_result_t power_gate_domain(const power_manager_t *power_manager, p
         reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_ISO_ON_STOP_BIT_COUNTER_BIT, true);
         reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_RETENTIVE_OFF_STOP_BIT_COUNTER_BIT, true);
         reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_RETENTIVE_ON_STOP_BIT_COUNTER_BIT, true);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_COUNTERS_STOP_REG_OFFSET + (0x1C * (sel_domain - 1))), reg);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_COUNTERS_STOP_REG_OFFSET + (0x20 * (sel_domain - 1))), reg);
     }
     else
     {
         // set counters
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_RESET_ASSERT_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 5))), domain_counters->reset_off);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_RESET_DEASSERT_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 5))), domain_counters->reset_on);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_SWITCH_OFF_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 5))), domain_counters->switch_off);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_SWITCH_ON_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 5))), domain_counters->switch_on);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_ISO_OFF_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 5))), domain_counters->iso_off);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_ISO_ON_COUNTER_REG_OFFSET + (0x1C * (sel_domain - 5))), domain_counters->iso_on);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_RESET_ASSERT_COUNTER_REG_OFFSET + (0x20 * (sel_domain - 5))), domain_counters->reset_off);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_RESET_DEASSERT_COUNTER_REG_OFFSET + (0x20 * (sel_domain - 5))), domain_counters->reset_on);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_SWITCH_OFF_COUNTER_REG_OFFSET + (0x20 * (sel_domain - 5))), domain_counters->switch_off);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_SWITCH_ON_COUNTER_REG_OFFSET + (0x20 * (sel_domain - 5))), domain_counters->switch_on);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_ISO_OFF_COUNTER_REG_OFFSET + (0x20 * (sel_domain - 5))), domain_counters->iso_off);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_ISO_ON_COUNTER_REG_OFFSET + (0x20 * (sel_domain - 5))), domain_counters->iso_on);
+
+        // enable wait for SWITCH ACK
+        reg = 0;
+        reg = bitfield_bit32_write(reg, POWER_MANAGER_EXTERNAL_0_WAIT_ACK_SWITCH_ON_COUNTER_EXTERNAL_0_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET + (0x20 * (sel_domain - 5))), reg);
 
         if (sel_state == kOn_e)
             mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_EXTERNAL_0_REG_OFFSET + (0x4 * (sel_domain - 5))), 0x0);
@@ -406,10 +428,22 @@ power_manager_result_t power_gate_domain(const power_manager_t *power_manager, p
         reg = bitfield_bit32_write(reg, POWER_MANAGER_EXTERNAL_0_COUNTERS_STOP_EXTERNAL_0_SWITCH_ON_STOP_BIT_COUNTER_BIT, true);
         reg = bitfield_bit32_write(reg, POWER_MANAGER_EXTERNAL_0_COUNTERS_STOP_EXTERNAL_0_ISO_OFF_STOP_BIT_COUNTER_BIT, true);
         reg = bitfield_bit32_write(reg, POWER_MANAGER_EXTERNAL_0_COUNTERS_STOP_EXTERNAL_0_ISO_ON_STOP_BIT_COUNTER_BIT, true);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_COUNTERS_STOP_REG_OFFSET + (0x1C * (sel_domain - 5))), reg);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_COUNTERS_STOP_REG_OFFSET + (0x20 * (sel_domain - 5))), reg);
     }
 
     return kPowerManagerOk_e;
+}
+
+uint32_t power_domain_is_off(const power_manager_t *power_manager, power_manager_sel_domain_t sel_domain)
+{
+    uint32_t switch_state;
+
+    if (sel_domain == kPeriph_e)
+        switch_state = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_PERIPH_ACK_REG_OFFSET));
+    else
+        switch_state = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_domain].power_gate_reg_ack_addr));
+
+    return switch_state == 0;
 }
 
 power_manager_result_t power_gate_counters_init(power_manager_counters_t* counters, uint32_t reset_off, uint32_t reset_on, uint32_t switch_off, uint32_t switch_on, uint32_t iso_off, uint32_t iso_on, uint32_t retentive_off, uint32_t retentive_on)
