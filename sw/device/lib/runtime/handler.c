@@ -112,6 +112,12 @@ __attribute__((weak)) void handler_irq_fast_spi(void) {
   }
 }
 
+__attribute__((weak)) void handler_irq_fast_spi_flash(void) {
+  printf("Fast spi flash IRQ triggered!\n");
+  while (1) {
+  }
+}
+
 __attribute__((weak)) void handler_irq_fast_gpio_0(void) {
   printf("Fast gpio 0 IRQ triggered!\n");
   while (1) {

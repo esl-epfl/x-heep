@@ -380,7 +380,7 @@ applications/spi_host_dma_example/spi_host_dma_example.flash_load.elf: applicati
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/spi_host_dma_power_gate_example/spi_host_dma_power_gate_example.elf: applications/spi_host_dma_power_gate_example/spi_host_dma_power_gate_example.c
+applications/spi_flash_write/spi_flash_write.elf: applications/spi_flash_write/spi_flash_write.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
@@ -393,10 +393,10 @@ applications/spi_host_dma_power_gate_example/spi_host_dma_power_gate_example.elf
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
-		-Wl,-Map=applications/spi_host_dma_power_gate_example/spi_host_dma_power_gate_example.map \
+		-Wl,-Map=applications/spi_flash_write/spi_flash_write.map \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
-applications/spi_host_dma_power_gate_example/spi_host_dma_power_gate_example.flash_load.elf: applications/spi_host_dma_power_gate_example/spi_host_dma_power_gate_example.c
+applications/spi_flash_write/spi_flash_write.flash_load.elf: applications/spi_flash_write/spi_flash_write.c
 	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
 		$(CUSTOM_GCC_FLAGS) \
 		-DHOST_BUILD \
@@ -408,7 +408,7 @@ applications/spi_host_dma_power_gate_example/spi_host_dma_power_gate_example.fla
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
-		-Wl,-Map=applications/spi_host_dma_power_gate_example/spi_host_dma_power_gate_example.flash_load.map \
+		-Wl,-Map=applications/spi_flash_write/spi_flash_write.flash_load.map \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 

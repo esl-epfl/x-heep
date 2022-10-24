@@ -30,6 +30,11 @@ _start:
 /* initialize stack pointer */
     la     sp, _sp
 
+#ifdef EXTERNAL_CRTO
+   #include "external_crt0.S"
+#endif
+
+
 /* copy the remaining (if any) text and data sections */
     // Setup the in/out pointers and copy size knowing 1KiB as already been copied
     li     a2, FLASH_MEM_START_ADDRESS # src ptr (flash)
@@ -185,10 +190,6 @@ _init_bss:
     li    a0, SOC_CTRL_START_ADDRESS
     li    a2, REFERENCE_CLOCK_Hz
     sw    a2, SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET(a0)
-
-#ifdef EXTERNAL_CRTO
-   #include "external_crt0.S"
-#endif
 
 /* call main */
     lw    a0, 0(sp)                  /* a0 = argc */
