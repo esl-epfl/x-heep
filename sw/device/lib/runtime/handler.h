@@ -112,6 +112,14 @@ INTERRUPT_HANDLER_ABI void handler_irq_fast_dma(void);
 INTERRUPT_HANDLER_ABI void handler_irq_fast_spi(void);
 
 /**
+ * Fast spi flash IRQ handler.
+ *
+ * `handler.c` provides a weak definition of this symbol, which can be overriden
+ * at link-time by providing an additional non-weak definition.
+ */
+INTERRUPT_HANDLER_ABI void handler_irq_fast_spi_flash(void);
+
+/**
  * Fast gpio 0 IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
