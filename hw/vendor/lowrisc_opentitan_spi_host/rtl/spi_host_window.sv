@@ -40,8 +40,8 @@ module spi_host_window
                      (rx_addr != spi_host_reg_pkg::SPI_HOST_RXDATA_OFFSET);
 
     // Check that our regbus data is 32 bit wide
-  `ASSERT_INIT(RegbusIs32Bit, $bits(tx_win_i.wdata) == 32)
-  `ASSERT_INIT(RegbusIs32Bit, $bits(rx_win_i.wdata) == 32)
+  `ASSERT_INIT(RegbusTXIs32Bit, $bits(tx_win_i.wdata) == 32)
+  `ASSERT_INIT(RegbusRXIs32Bit, $bits(rx_win_i.wdata) == 32)
   
     // We are already a regbus, so no stateful adapter should be needed here
     // TODO @(paulsc, zarubaf): check this assumption!

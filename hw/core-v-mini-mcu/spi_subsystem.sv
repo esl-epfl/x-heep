@@ -132,7 +132,7 @@ module spi_subsystem
       .reg_rsp_o(ot_reg_rsp_o),
       .alert_rx_i(),
       .alert_tx_o(),
-      .passthrough_i('h0),
+      .passthrough_i(spi_device_pkg::PASSTHROUGH_REQ_DEFAULT),
       .passthrough_o(),
       .cio_sck_o(ot_spi_sck),
       .cio_sck_en_o(ot_spi_sck_en),

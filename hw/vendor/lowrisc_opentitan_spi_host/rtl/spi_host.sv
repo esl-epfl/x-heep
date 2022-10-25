@@ -6,7 +6,6 @@
 //
 //
 
-`include "prim_assert.sv"
 `include "common_cells/assertions.svh"
 
 module spi_host
@@ -136,7 +135,7 @@ module spi_host
   end                   : gen_passthrough_implementation
   else begin            : gen_passthrough_ignore
      // Passthrough only supported for instances with one CSb line
-    `ASSERT(PassthroughNumCSCompat_A, !passthrough_i.passthrough_en, clk_i, rst_ni)
+    `ASSERT(PassthroughNumCSCompat_A, $isunknown(rst_ni) || (!passthrough_i.passthrough_en), clk_i, rst_ni)
 
     assign cio_sck_o    = sck;
     assign cio_sck_en_o = output_en;
@@ -617,8 +616,7 @@ module spi_host
   );
 
 
-  `ASSERT_KNOWN(TlDValidKnownO_A, tl_o.d_valid)
-  `ASSERT_KNOWN(TlAReadyKnownO_A, tl_o.a_ready)
+  `ASSERT_KNOWN(TlAReadyKnownO_A, reg_rsp_o.ready)
   `ASSERT_KNOWN(AlertKnownO_A, alert_tx_o)
   `ASSERT_KNOWN(CioSckKnownO_A, cio_sck_o)
   `ASSERT_KNOWN(CioSckEnKnownO_A, cio_sck_en_o)
@@ -632,6 +630,4 @@ module spi_host
   `ASSERT_KNOWN_IF(PassthroughKnownO_A, passthrough_o,
     passthrough_i.passthrough_en && passthrough_i.csb_en && !passthrough_i.csb)
 
-  // Alert assertions for reg_we onehot check
-  `ASSERT_PRIM_REG_WE_ONEHOT_ERROR_TRIGGER_ALERT(RegWeOnehotCheck_A, u_reg, alert_tx_o[0])
 endmodule : spi_host

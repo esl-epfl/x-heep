@@ -128,6 +128,4 @@
    `COVER(__name, __prop, __clk, __rst)                                                     \
 `endif
 
-`include "prim_assert_sec_cm.svh"
-
 `endif // PRIM_ASSERT_SV
