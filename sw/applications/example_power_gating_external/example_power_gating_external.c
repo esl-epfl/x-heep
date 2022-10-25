@@ -14,34 +14,34 @@ static power_manager_t power_manager;
 
 int main(int argc, char *argv[])
 {
-
-
-#if MEMORY_BANKS > 2
     // Setup power_manager
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
     power_manager.base_addr = power_manager_reg;
 
-    power_manager_counters_t power_manager_ram_blocks_counters;
+    power_manager_counters_t power_manager_external_counters;
 
     // Init ram block 2's counters
-    if (power_gate_counters_init(&power_manager_ram_blocks_counters, 40, 40, 30, 30, 20, 20, 0, 0) != kPowerManagerOk_e)
+    if (power_gate_counters_init(&power_manager_external_counters, 40, 40, 30, 30, 20, 20, 0, 0) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail. Check the reset and powergate counters value\n");
         return EXIT_FAILURE;
     }
 
     // Power off external domain
-    if (power_gate_domain(&power_manager, kExternal_0_e, kOff_e, &power_manager_ram_blocks_counters) != kPowerManagerOk_e)
+    if (power_gate_external(&power_manager, 0, kOff_e, &power_manager_external_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;
     }
 
+    // Check that the external domain is actually OFF
+    while(!external_power_domain_is_off(&power_manager, 0));
+
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop");
 
     // Power on external domain
-    if (power_gate_domain(&power_manager, kExternal_0_e, kOn_e, &power_manager_ram_blocks_counters) != kPowerManagerOk_e)
+    if (power_gate_external(&power_manager, 0, kOn_e, &power_manager_external_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;
@@ -51,9 +51,5 @@ int main(int argc, char *argv[])
     printf("Success.\n");
     return EXIT_SUCCESS;
 
-#else
-    #pragma message ( "this application can run only when MEMORY_BANKS > 2" )
     return EXIT_FAILURE;
-#endif
-
 }

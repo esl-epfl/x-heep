@@ -35,7 +35,7 @@ void handler_irq_fast_dma(void)
 {
     fast_intr_ctrl_t fast_intr_ctrl;
     fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kDma_e);
+    clear_fast_interrupt(&fast_intr_ctrl, kDma_fic_e);
     dma_intr_flag = 1;
 }
 
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     // The address bytes sent through the SPI to the Flash are in reverse order
-    int32_t read_byte_cmd = ((REVERT_24b_ADDR(flash_data) << 8) | 0x03); 
+    int32_t read_byte_cmd = ((REVERT_24b_ADDR(flash_data) << 8) | 0x03);
 
     // Fill TX FIFO with TX data (read command + 3B address)
     spi_write_word(&spi_host, read_byte_cmd);

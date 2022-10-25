@@ -27,21 +27,21 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    // Power off peripheral_subsystem
-    if (power_gate_domain(&power_manager, kPeriph_e, kOff_e, &power_manager_periph_counters) != kPowerManagerOk_e)
+    // Power off peripheral_subsystem domain
+    if (power_gate_periph(&power_manager, kOff_e, &power_manager_periph_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;
     }
 
-    //check that the RAM is actually OFF
-    while(!power_domain_is_off(&power_manager, kPeriph_e));
+    // Check that the peripheral_subsystem domain is actually OFF
+    while(!periph_power_domain_is_off(&power_manager));
 
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop;");
 
-    // Power on peripheral_subsystem
-    if (power_gate_domain(&power_manager, kPeriph_e, kOn_e, &power_manager_periph_counters) != kPowerManagerOk_e)
+    // Power on peripheral_subsystem domain
+    if (power_gate_periph(&power_manager, kOn_e, &power_manager_periph_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;

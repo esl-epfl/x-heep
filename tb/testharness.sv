@@ -165,7 +165,7 @@ module testharness #(
       .ext_peripheral_slave_req_o(periph_slave_req),
       .ext_peripheral_slave_resp_i(periph_slave_resp),
       .external_subsystem_powergate_switch_o(),
-      .external_subsystem_powergate_switch_ack_i(),
+      .external_subsystem_powergate_switch_ack_i(1'b0),
       .external_subsystem_powergate_iso_o(),
       .external_subsystem_rst_no()
   );

@@ -15,7 +15,7 @@ module memory_subsystem
     input  obi_req_t  [NUM_BANKS-1:0] ram_req_i,
     output obi_resp_t [NUM_BANKS-1:0] ram_resp_o,
 
-    input logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] set_retentive
+    input logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] set_retentive_i
 );
 
   localparam int NumWords = 32 * 1024 / 4;
@@ -48,7 +48,7 @@ module memory_subsystem
         .addr_i(ram_req_i[i].addr[AddrWidth-1:2]),
         .wdata_i(ram_req_i[i].wdata),
         .be_i(ram_req_i[i].be),
-        .set_retentive(set_retentive[i]),
+        .set_retentive_i(set_retentive[i]),
         .rdata_o(ram_resp_o[i].rdata)
     );
 
