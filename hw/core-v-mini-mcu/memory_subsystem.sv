@@ -48,7 +48,7 @@ module memory_subsystem
         .addr_i(ram_req_i[i].addr[AddrWidth-1:2]),
         .wdata_i(ram_req_i[i].wdata),
         .be_i(ram_req_i[i].be),
-        .set_retentive_i(set_retentive[i]),
+        .set_retentive_i(set_retentive_i[i]),
         .rdata_o(ram_resp_o[i].rdata)
     );
 

@@ -434,7 +434,7 @@ module core_v_mini_mcu
       .rst_ni,
       .ram_req_i(ram_slave_req),
       .ram_resp_o(ram_slave_resp),
-      .set_retentive(memory_subsystem_banks_set_retentive)
+      .set_retentive_i(memory_subsystem_banks_set_retentive)
   );
 
   ao_peripheral_subsystem ao_peripheral_subsystem_i (
