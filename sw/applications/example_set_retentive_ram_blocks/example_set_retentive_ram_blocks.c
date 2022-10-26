@@ -14,8 +14,6 @@ static power_manager_t power_manager;
 
 int main(int argc, char *argv[])
 {
-
-
 #if MEMORY_BANKS > 2
     // Setup power_manager
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);

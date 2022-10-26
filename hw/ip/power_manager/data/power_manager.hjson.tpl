@@ -500,14 +500,12 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "RAM_${bank}_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_RESET_ASSERT_COUNTER counter" }
-        { bits: "1", name: "RAM_${bank}_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_RESET_DEASSERT_COUNTER counter" }
-        { bits: "2", name: "RAM_${bank}_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_SWITCH_OFF_COUNTER counter" }
-        { bits: "3", name: "RAM_${bank}_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_SWITCH_ON_COUNTER counter" }
-        { bits: "4", name: "RAM_${bank}_ISO_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_ISO_OFF_COUNTER counter" }
-        { bits: "5", name: "RAM_${bank}_ISO_ON_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_ISO_ON_COUNTER counter" }
-        { bits: "6", name: "RAM_${bank}_RETENTIVE_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_RETENTIVE_OFF_COUNTER counter" }
-        { bits: "7", name: "RAM_${bank}_RETENTIVE_ON_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_RETENTIVE_ON_COUNTER counter" }
+        { bits: "0", name: "RAM_${bank}_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_SWITCH_OFF_COUNTER counter" }
+        { bits: "1", name: "RAM_${bank}_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_SWITCH_ON_COUNTER counter" }
+        { bits: "2", name: "RAM_${bank}_ISO_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_ISO_OFF_COUNTER counter" }
+        { bits: "3", name: "RAM_${bank}_ISO_ON_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_ISO_ON_COUNTER counter" }
+        { bits: "4", name: "RAM_${bank}_RETENTIVE_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_RETENTIVE_OFF_COUNTER counter" }
+        { bits: "5", name: "RAM_${bank}_RETENTIVE_ON_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_RETENTIVE_ON_COUNTER counter" }
       ]
     }
 

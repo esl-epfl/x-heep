@@ -374,49 +374,49 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_ram_block(const pow
     uint32_t reg = 0;
 
     // set counters
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_SWITCH_OFF_COUNTER_REG_OFFSET + (0x20 * sel_block)), ram_block_counters->switch_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_SWITCH_ON_COUNTER_REG_OFFSET + (0x20 * sel_block)), ram_block_counters->switch_on);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_ISO_OFF_COUNTER_REG_OFFSET + (0x20 * sel_block)), ram_block_counters->iso_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_ISO_ON_COUNTER_REG_OFFSET + (0x20 * sel_block)), ram_block_counters->iso_on);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_RETENTIVE_OFF_COUNTER_REG_OFFSET + (0x20 * sel_block)), ram_block_counters->retentive_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_RETENTIVE_ON_COUNTER_REG_OFFSET + (0x20 * sel_block)), ram_block_counters->retentive_on);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].switch_off_counter), ram_block_counters->switch_off);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].switch_on_counter), ram_block_counters->switch_on);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].iso_off_counter), ram_block_counters->iso_off);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].iso_on_counter), ram_block_counters->iso_on);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].retentive_off_counter), ram_block_counters->retentive_off);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].retentive_on_counter), ram_block_counters->retentive_on);
 
     // enable wait for SWITCH ACK
     reg = 0;
 
     if (sel_state == kOn_e)
     {
-        reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_WAIT_ACK_SWITCH_ON_COUNTER_RAM_0_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET + (0x20 * sel_block)), reg);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_RAM_BLOCK_0_REG_OFFSET + (0x8 * sel_block)), 0x0);
+        reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].wait_ack_switch_on_counter_bit), true);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch_on_counter), reg);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].power_gate), 0x0);
     }
     else if (sel_state == kOff_e)
     {
-        reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_WAIT_ACK_SWITCH_ON_COUNTER_RAM_0_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET + (0x20 * sel_block)), reg);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_RAM_BLOCK_0_REG_OFFSET + (0x8 * sel_block)), 0x1);
+        reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].wait_ack_switch_on_counter_bit), true);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch_on_counter), reg);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].power_gate), 0x1);
     }
     else if (sel_state == kRetOn_e)
     {
-        reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_WAIT_ACK_SWITCH_ON_COUNTER_RAM_0_WAIT_ACK_SWITCH_ON_COUNTER_BIT, false);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET + (0x20 * sel_block)), reg);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_SET_RETENTIVE_RAM_BLOCK_0_REG_OFFSET + (0x4 * sel_block)), 0x0);
+        reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].wait_ack_switch_on_counter_bit), false);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch_on_counter), reg);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].set_retentive), 0x0);
     }
     else
     {
-        reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_WAIT_ACK_SWITCH_ON_COUNTER_RAM_0_WAIT_ACK_SWITCH_ON_COUNTER_BIT, false);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET + (0x20 * sel_block)), reg);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_SET_RETENTIVE_RAM_BLOCK_0_REG_OFFSET + (0x4 * sel_block)), 0x1);
+        reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].wait_ack_switch_on_counter_bit), false);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch_on_counter), reg);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].set_retentive), 0x1);
     }
 
     // stop counters
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_SWITCH_OFF_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_SWITCH_ON_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_ISO_OFF_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_ISO_ON_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_RETENTIVE_OFF_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_RAM_0_COUNTERS_STOP_RAM_0_RETENTIVE_ON_STOP_BIT_COUNTER_BIT, true);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_RAM_0_COUNTERS_STOP_REG_OFFSET + (0x20 * sel_block)), reg);
+    reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].switch_off_stop_bit), true);
+    reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].switch_on_stop_bit), true);
+    reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].iso_off_stop_bit), true);
+    reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].iso_on_stop_bit), true);
+    reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].retentive_off_stop_bit), true);
+    reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].retentive_on_stop_bit), true);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].counter_stop), reg);
 
     return kPowerManagerOk_e;
 }
@@ -426,31 +426,31 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_external(const powe
     uint32_t reg = 0;
 
     // set counters
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_RESET_ASSERT_COUNTER_REG_OFFSET + (0x20 * sel_external)), external_counters->reset_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_RESET_DEASSERT_COUNTER_REG_OFFSET + (0x20 * sel_external)), external_counters->reset_on);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_SWITCH_OFF_COUNTER_REG_OFFSET + (0x20 * sel_external)), external_counters->switch_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_SWITCH_ON_COUNTER_REG_OFFSET + (0x20 * sel_external)), external_counters->switch_on);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_ISO_OFF_COUNTER_REG_OFFSET + (0x20 * sel_external)), external_counters->iso_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_ISO_ON_COUNTER_REG_OFFSET + (0x20 * sel_external)), external_counters->iso_on);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].reset_assert_counter), external_counters->reset_off);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].reset_deassert_counter), external_counters->reset_on);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].switch_off_counter), external_counters->switch_off);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].switch_on_counter), external_counters->switch_on);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].iso_off_counter), external_counters->iso_off);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].iso_on_counter), external_counters->iso_on);
 
     // enable wait for SWITCH ACK
     reg = 0;
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_EXTERNAL_0_WAIT_ACK_SWITCH_ON_COUNTER_EXTERNAL_0_WAIT_ACK_SWITCH_ON_COUNTER_BIT, false);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET + (0x20 * sel_external)), reg);
+    reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].wait_ack_switch_on_counter_bit), false);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch_on_counter), reg);
 
     if (sel_state == kOn_e)
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_EXTERNAL_0_REG_OFFSET + (0x4 * sel_external)), 0x0);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].power_gate), 0x0);
     else
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_EXTERNAL_0_REG_OFFSET + (0x4 * sel_external)), 0x1);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].power_gate), 0x1);
 
     // stop counters
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_EXTERNAL_0_COUNTERS_STOP_EXTERNAL_0_RESET_ASSERT_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_EXTERNAL_0_COUNTERS_STOP_EXTERNAL_0_RESET_DEASSERT_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_EXTERNAL_0_COUNTERS_STOP_EXTERNAL_0_SWITCH_OFF_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_EXTERNAL_0_COUNTERS_STOP_EXTERNAL_0_SWITCH_ON_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_EXTERNAL_0_COUNTERS_STOP_EXTERNAL_0_ISO_OFF_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_EXTERNAL_0_COUNTERS_STOP_EXTERNAL_0_ISO_ON_STOP_BIT_COUNTER_BIT, true);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EXTERNAL_0_COUNTERS_STOP_REG_OFFSET + (0x20 * sel_external)), reg);
+    reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].reset_assert_stop_bit), true);
+    reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].reset_deassert_stop_bit), true);
+    reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].switch_off_stop_bit), true);
+    reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].switch_on_stop_bit), true);
+    reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].iso_off_stop_bit), true);
+    reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].iso_on_stop_bit), true);
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].counter_stop), reg);
 
     return kPowerManagerOk_e;
 }
@@ -464,11 +464,11 @@ uint32_t periph_power_domain_is_off(const power_manager_t *power_manager)
     return switch_state == 0;
 }
 
-uint32_t ram_block_power_domain_is_off(const power_manager_t *power_manager, uint32_t sel_ram_block)
+uint32_t ram_block_power_domain_is_off(const power_manager_t *power_manager, uint32_t sel_block)
 {
     uint32_t switch_state;
 
-    switch_state = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_RAM_BLOCK_0_ACK_REG_OFFSET + (0x8 * sel_ram_block)));
+    switch_state = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].power_gate_ack));
 
     return switch_state == 0;
 }
@@ -477,7 +477,7 @@ uint32_t external_power_domain_is_off(const power_manager_t *power_manager, uint
 {
     uint32_t switch_state;
 
-    switch_state = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_EXTERNAL_0_ACK_REG_OFFSET + (0x8 * sel_external)));
+    switch_state = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].power_gate_ack));
 
     return switch_state == 0;
 }

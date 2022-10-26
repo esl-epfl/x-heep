@@ -556,8 +556,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_ram_block_${bank}.q || reg2hw.set_retentive_ram_block_${bank}.q),
-      .start_on_sequence_i (~reg2hw.power_gate_ram_block_${bank}.q || ~reg2hw.set_retentive_ram_block_${bank}.q),
+      .start_off_sequence_i(reg2hw.power_gate_ram_block_${bank}.q),
+      .start_on_sequence_i (~reg2hw.power_gate_ram_block_${bank}.q),
       .switch_ack_i (ram_${bank}_switch_wait_ack),
 
       // counter to switch on and off signals
