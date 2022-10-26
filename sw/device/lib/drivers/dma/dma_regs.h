@@ -22,7 +22,7 @@ extern "C" {
 // Output data pointer (word aligned)
 #define DMA_PTR_OUT_REG_OFFSET 0x4
 
-// Number of bytes to copy - Once a value is written, the copy starts
+// Number of elements to copy - Once a value is written, the copy starts
 #define DMA_DMA_START_REG_OFFSET 0x8
 
 // Register set to 1 when copy is done
@@ -43,6 +43,14 @@ extern "C" {
 #define DMA_SPI_MODE_SPI_MODE_OFFSET 0
 #define DMA_SPI_MODE_SPI_MODE_FIELD \
   ((bitfield_field32_t) { .mask = DMA_SPI_MODE_SPI_MODE_MASK, .index = DMA_SPI_MODE_SPI_MODE_OFFSET })
+
+// Data type to transfer: 32-bit word(0), 16-bit half word(1), 8-bit
+// byte(2,3).
+#define DMA_DATA_TYPE_REG_OFFSET 0x1c
+#define DMA_DATA_TYPE_DATA_TYPE_MASK 0x3
+#define DMA_DATA_TYPE_DATA_TYPE_OFFSET 0
+#define DMA_DATA_TYPE_DATA_TYPE_FIELD \
+  ((bitfield_field32_t) { .mask = DMA_DATA_TYPE_DATA_TYPE_MASK, .index = DMA_DATA_TYPE_DATA_TYPE_OFFSET })
 
 #ifdef __cplusplus
 }  // extern "C"

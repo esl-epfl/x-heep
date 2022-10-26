@@ -42,7 +42,7 @@ void dma_set_write_ptr(const dma_t *dma, uint32_t write_ptr);
 /**
  * Write to cnt_start register of the DMA
  * @param dma Pointer to dma_t represting the target MEMCOPY PERIPHERAL.
- * @param copy_size Number of bytes to be copied from read_ptr to write_ptr.
+ * @param copy_size Number of elements to be copied from read_ptr to write_ptr.
  */
 void dma_set_cnt_start(const dma_t *dma, uint32_t copy_size);
 
@@ -73,6 +73,13 @@ void dma_set_write_ptr_inc(const dma_t *dma, uint32_t write_ptr_inc);
  * @param spi_mode 0: mem to mem - 1: spi_rx to mem (Default: 0) - 2: mem to spi_tx.
  */
 void dma_set_spi_mode(const dma_t *dma, uint32_t spi_mode);
+
+/**
+ * Sets the DMA data type.
+ * @param dma Pointer to dma_t represting the target DMA.
+ * @param data_type Data type to transfer: 32-bit word(0), 16-bit half word (1), 8-bit byte(2,3).
+ */
+void dma_set_data_type(const dma_t *dma, uint32_t data_type);
 
 #ifdef __cplusplus
 }
