@@ -13,19 +13,30 @@
 #include "fast_intr_ctrl.h"
 #include "fast_intr_ctrl_regs.h"
 
+// TODO
+// - Add offset at the begining and the end and check
+
 // Choose which scenarios to test
-#define TEST_4_BYTES_ALIGNED
-#define TEST_2_BYTES_ALIGNED
-#define TEST_BYTE_ALIGNED
+#define TEST_WORD
+#define TEST_HALF_WORD
+#define TEST_BYTE
+
+#define HALF_WORD_INPUT_OFFSET 0
+#define HALF_WORD_OUTPUT_OFFSET 1 // Applied at begining and end of the output vector, which should not be overwriten.
+#define BYTE_INPUT_OFFSET 1
+#define BYTE_OUTPUT_OFFSET 3 // Applied at begining and end of the output vector, which should not be overwriten.
 
 #define TEST_DATA_SIZE 16
 
 // Source and destination addresses have to be aligned on a 4 bytes address
-uint32_t test_data[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = {
+uint32_t test_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = {
   0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef, 0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa, 0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98};
+uint16_t* test_data_2B = test_data_4B;
+uint8_t* test_data_1B = test_data_4B;
+
 uint32_t copied_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
-uint32_t copied_data_2B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
-uint32_t copied_data_1B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
+uint16_t copied_data_2B[TEST_DATA_SIZE] __attribute__ ((aligned (2))) = { 0 };
+uint8_t copied_data_1B[TEST_DATA_SIZE] = { 0 };
 
 int8_t dma_intr_flag;
 
@@ -53,112 +64,134 @@ int main(int argc, char *argv[])
     dma_t dma;
     dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
 
-    #ifdef TEST_4_BYTES_ALIGNED
-        dma_set_read_ptr(&dma, (uint32_t) test_data);
+    #ifdef TEST_WORD
+        // -- DMA CONFIG -- //
+        dma_set_read_ptr(&dma, (uint32_t) test_data_4B);
         dma_set_write_ptr(&dma, (uint32_t) copied_data_4B);
-        printf("DMA 32b aligned transaction launched\n");
+        dma_set_read_ptr_inc(&dma, (uint32_t) 4);
+        dma_set_write_ptr_inc(&dma, (uint32_t) 4);
+        dma_set_spi_mode(&dma, (uint32_t) 0);
+        dma_set_data_type(&dma, (uint32_t) 0);
+        printf("DMA word transaction launched\n");
         // Give number of bytes to transfer
-        dma_set_cnt_start(&dma, (uint32_t) 4*TEST_DATA_SIZE);
+        dma_set_cnt_start(&dma, (uint32_t) TEST_DATA_SIZE);
         // Wait copy is done
         dma_intr_flag = 0;
         while(dma_intr_flag==0) {
             wait_for_interrupt();
         }
-    #endif // TEST_4_BYTES_ALIGNED
+    #endif // TEST_WORD
 
-    #ifdef TEST_2_BYTES_ALIGNED
-        dma_set_read_ptr(&dma, (uint32_t) test_data);
-        dma_set_write_ptr(&dma, (uint32_t) copied_data_2B);
-        printf("DMA 16b aligned transaction launched\n");
+    #ifdef TEST_HALF_WORD
+        // -- DMA CONFIG -- //
+        dma_set_read_ptr(&dma, (uint32_t) (test_data_2B + HALF_WORD_INPUT_OFFSET));
+        dma_set_write_ptr(&dma, (uint32_t) (copied_data_2B + HALF_WORD_OUTPUT_OFFSET));
+        dma_set_read_ptr_inc(&dma, (uint32_t) 2);
+        dma_set_write_ptr_inc(&dma, (uint32_t) 2);
+        dma_set_spi_mode(&dma, (uint32_t) 0);
+        dma_set_data_type(&dma, (uint32_t) 1);
+        printf("DMA half-word transaction launched\n");
         // Give number of bytes to transfer
         // Last 2 bytes are not copy to check the DMA works properly
-        dma_set_cnt_start(&dma, (uint32_t) 4*TEST_DATA_SIZE-2);
+        dma_set_cnt_start(&dma, (uint32_t) (TEST_DATA_SIZE - 2*HALF_WORD_OUTPUT_OFFSET));
         // Wait copy is done
         dma_intr_flag = 0;
         while(dma_intr_flag==0) {
             wait_for_interrupt();
         }
-    #endif // TEST_2_BYTES_ALIGNED
+    #endif // TEST_HALF_WORD
 
-    #ifdef TEST_BYTE_ALIGNED
-        dma_set_read_ptr(&dma, (uint32_t) test_data);
-        dma_set_write_ptr(&dma, (uint32_t) copied_data_1B);
-        printf("DMA 8b aligned transaction launched\n");
+    #ifdef TEST_BYTE
+        // -- DMA CONFIG -- //
+        dma_set_read_ptr(&dma, (uint32_t) test_data_1B + BYTE_INPUT_OFFSET);
+        dma_set_write_ptr(&dma, (uint32_t) (copied_data_1B + BYTE_OUTPUT_OFFSET));
+        dma_set_read_ptr_inc(&dma, (uint32_t) 1);
+        dma_set_write_ptr_inc(&dma, (uint32_t) 1);
+        dma_set_spi_mode(&dma, (uint32_t) 0);
+        dma_set_data_type(&dma, (uint32_t) 2);
+        printf("DMA byte transaction launched\n");
         // Give number of bytes to transfer
         // Last byte are not copy to check the DMA works properly
-        dma_set_cnt_start(&dma, (uint32_t) 4*TEST_DATA_SIZE-1);
+        dma_set_cnt_start(&dma, (uint32_t) (TEST_DATA_SIZE - 2*BYTE_OUTPUT_OFFSET));
         // Wait copy is done
         dma_intr_flag = 0;
         while(dma_intr_flag==0) {
             wait_for_interrupt();
         }
-    #endif // TEST_BYTE_ALIGNED
+    #endif // TEST_BYTE
 
     int32_t errors;
 
-    #ifdef TEST_4_BYTES_ALIGNED
+    #ifdef TEST_WORD
         errors=0;
         for(int i=0; i<TEST_DATA_SIZE; i++) {
-            if (copied_data_4B[i] != test_data[i]) {
-                printf("ERROR COPY [%d]: %08x != %08x\n", i, copied_data_4B[i], test_data[i]);
+            if (copied_data_4B[i] != test_data_4B[i]) {
+                printf("ERROR COPY [%d]: %08x != %08x : %04x != %04x\n", i, &copied_data_4B[i], &test_data_4B[i], copied_data_4B[i], test_data_4B[i]);
                 errors++;
             }
         }
 
         if (errors == 0) {
-            printf("DMA 32b aligned transfer success\n");
+            printf("DMA word transfer success\n");
         } else {
-            printf("DMA 32b aligned transfer failure: %d errors out of %d bytes checked\n", errors, 4*TEST_DATA_SIZE);
+            printf("DMA word transfer failure: %d errors out of %d words checked\n", errors, TEST_DATA_SIZE);
         }
-    #endif // TEST_4_BYTES_ALIGNED
+    #endif // TEST_WORD
 
-    #ifdef TEST_2_BYTES_ALIGNED
-        uint16_t *test_data_16b = (uint16_t *)test_data;
-        uint16_t *copy_data_16b = (uint16_t *)copied_data_2B;
+    #ifdef TEST_HALF_WORD
 
         errors = 0;
-        for (int i=0; i<2*TEST_DATA_SIZE-1; i++) {
-            if(test_data_16b[i] != copy_data_16b[i]) {
-                printf("@%08x-@%08x : %04x != %04x\n" , &test_data_16b[i] , &copy_data_16b[i], test_data_16b[i], copy_data_16b[i]);
+        for (int i=0; i<(TEST_DATA_SIZE - 2*HALF_WORD_OUTPUT_OFFSET); i++) {
+            if(test_data_2B[i + HALF_WORD_INPUT_OFFSET] != copied_data_2B[i + HALF_WORD_OUTPUT_OFFSET]) {
+                printf("ERROR COPY [%d]: @%08x-@%08x : %04x != %04x\n" , i , &test_data_2B[i + HALF_WORD_INPUT_OFFSET] , &copied_data_2B[i + HALF_WORD_OUTPUT_OFFSET], test_data_2B[i + HALF_WORD_INPUT_OFFSET], copied_data_2B[i + HALF_WORD_OUTPUT_OFFSET]);
                 errors++;
             }
         }
-        // Check last byte have not been overwritten
-        if(copy_data_16b[2*TEST_DATA_SIZE-1] != 0) {
-            printf("Data Overwritten @%08x : %04x != 0\n" , &copy_data_16b[2*TEST_DATA_SIZE-1], copy_data_16b[2*TEST_DATA_SIZE-1]);
-            errors++;
+        // Check that the begining and end values of output vector are not overwriten
+        for (int i=0; i<HALF_WORD_OUTPUT_OFFSET; i++) {
+            if(copied_data_2B[i] != 0) {
+                printf("Data Overwritten @%08x : %04x != 0\n" , &copied_data_2B[i], copied_data_2B[i]);
+                errors++;
+            }
+            if(copied_data_2B[TEST_DATA_SIZE - 1 - i] != 0) {
+                printf("Data Overwritten @%08x : %04x != 0\n" , &copied_data_2B[TEST_DATA_SIZE - 1 - i], copied_data_2B[TEST_DATA_SIZE - 1 - i]);
+                errors++;
+            }
         }
 
         if (errors == 0) {
-            printf("DMA 16b aligned transfer success\n");
+            printf("DMA half-word transfer success\n");
         } else {
-            printf("DMA 16b aligned transfer failure: %d errors out of %d bytes checked\n", errors, 4*TEST_DATA_SIZE);
+            printf("DMA half-word transfer failure: %d errors out of %d half-words checked\n", errors, TEST_DATA_SIZE);
         }
-    #endif // TEST_2_BYTES_ALIGNED
+    #endif // TEST_HALF_WORD
 
-    #ifdef TEST_BYTE_ALIGNED
-        uint8_t *test_data_8b = (uint8_t *)test_data;
-        uint8_t *copy_data_8b = (uint8_t *)copied_data_1B;
-
+    #ifdef TEST_BYTE
         errors = 0;
-        for (int i=0; i<4*TEST_DATA_SIZE-1; i++) {
-            if(test_data_8b[i] != copy_data_8b[i]) {
-                printf("@%08x-@%08x : %02x != %02x\n" , &test_data_8b[i] , &copy_data_8b[i], test_data_8b[i], copy_data_8b[i]);
+        for (int i=0; i<(TEST_DATA_SIZE - 2*BYTE_OUTPUT_OFFSET); i++) {
+            if(test_data_1B[i + BYTE_INPUT_OFFSET] != copied_data_1B[i + BYTE_OUTPUT_OFFSET]) {
+                printf("ERROR COPY [%d]: @%08x-@%08x : %02x != %02x\n" , i , &test_data_1B[i + BYTE_INPUT_OFFSET] , &copied_data_1B[i + BYTE_OUTPUT_OFFSET], test_data_1B[i + BYTE_INPUT_OFFSET], copied_data_1B[i + BYTE_OUTPUT_OFFSET]);
                 errors++;
             }
         }
-        // Check last byte have not been overwritten
-        if(copy_data_8b[4*TEST_DATA_SIZE-1] != 0) {
-            printf("Data Overwritten @%08x : %02x != 0\n" , &copy_data_8b[4*TEST_DATA_SIZE-1], copy_data_8b[4*TEST_DATA_SIZE-1]);
-            errors++;
+        // Check that the begining and end values of output vector are not overwriten
+        for (int i=0; i<BYTE_OUTPUT_OFFSET; i++) {
+            if(copied_data_1B[i] != 0) {
+                printf("Data Overwritten @%08x : %04x != 0\n" , &copied_data_1B[i], copied_data_1B[i]);
+                errors++;
+            }
+            if(copied_data_1B[TEST_DATA_SIZE - 1 - i] != 0) {
+                printf("Data Overwritten @%08x : %04x != 0\n" , &copied_data_1B[TEST_DATA_SIZE - 1 - i], copied_data_1B[TEST_DATA_SIZE - 1 - i]);
+                errors++;
+            }
         }
 
         if (errors == 0) {
-            printf("DMA 8b aligned transfer success\n");
+            printf("DMA byte transfer success\n");
         } else {
-            printf("DMA 8b aligned transfer failure: %d errors out of %d bytes checked\n", errors, 4*TEST_DATA_SIZE);
+            printf("DMA byte transfer failure: %d errors out of %d bytes checked\n", errors, TEST_DATA_SIZE);
         }
-    #endif // TEST_BYTE_ALIGNED
+    #endif // TEST_BYTE
 
     return EXIT_SUCCESS;
 }
