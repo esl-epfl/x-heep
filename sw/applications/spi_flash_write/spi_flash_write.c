@@ -200,6 +200,7 @@ int main(int argc, char *argv[])
     #else
         dma_set_spi_mode(&dma, (uint32_t) 4); // The DMA will wait for the SPI FLASH TX FIFO ready signal
     #endif
+    dma_set_data_type(&dma, (uint32_t) 0);
     dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_BYTES); // Size of data received by SPI
 
     // Wait for the first data to arrive to the TX FIFO before enabling interrupt
@@ -304,6 +305,7 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     dma_intr_flag = 0;
+    dma_set_data_type(&dma, (uint32_t) 0);
     dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_BYTES); // Size of data received by SPI
 
     // Wait for DMA interrupt

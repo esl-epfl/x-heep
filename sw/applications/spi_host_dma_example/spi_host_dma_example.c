@@ -21,12 +21,16 @@
 // Un-comment this line to use the SPI FLASH instead of the default SPI
 // #define USE_SPI_FLASH
 
-#define COPY_DATA_BYTES 16
-#define SPI_BYTES (4 * (uint32_t)((COPY_DATA_BYTES-1) / 4 + 1)) // Only sends data when an entire word has been received
+// Type of data frome the SPI. For types different than words the SPI data is requested in separate transactions
+// word(0), half-word(1), byte(2,3)
+#define SPI_DATA_TYPE 0
+
+// Number of elements to copy
+#define COPY_DATA_NUM 16
 
 #define FLASH_CLK_MAX_HZ (133*1000*1000) // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
 
-#define REVERT_24b_ADDR(addr) ((((uint32_t)addr & 0xff0000) >> 16) | ((uint32_t)addr & 0xff00) | (((uint32_t)addr & 0xff) << 16))
+#define REVERT_24b_ADDR(addr) ((((uint32_t)(addr) & 0xff0000) >> 16) | ((uint32_t)(addr) & 0xff00) | (((uint32_t)(addr) & 0xff) << 16))
 
 int8_t dma_intr_flag;
 spi_host_t spi_host;
@@ -40,8 +44,16 @@ void handler_irq_fast_dma(void)
 }
 
 // Reserve memory array
-uint32_t flash_data[SPI_BYTES / 4] __attribute__ ((aligned (4))) = {0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,0x679852fe,0xff8252bb,0x763b4521,0x6875adaa,0x09ac65bb,0x666ba334,0x44556677,0x0000ba98};
-uint32_t copy_data[SPI_BYTES / 4] __attribute__ ((aligned (4)))  = { 0 };
+#if SPI_DATA_TYPE == 0
+    uint32_t flash_data[COPY_DATA_NUM] __attribute__ ((aligned (4))) = {0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,0x679852fe,0xff8252bb,0x763b4521,0x6875adaa,0x09ac65bb,0x666ba334,0x44556677,0x0000ba98};
+    uint32_t copy_data[COPY_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
+#elif SPI_DATA_TYPE == 1
+    uint16_t flash_data[COPY_DATA_NUM] __attribute__ ((aligned (2))) = {0x7654,0xfedc,0x579a,0x657d,0x758e,0x0123,0xfedb,0x89ab,0x6798,0xff82,0x763b,0x6875,0x09ac,0x666b,0x4455,0x0000};
+    uint16_t copy_data[COPY_DATA_NUM] __attribute__ ((aligned (2)))  = { 0 };
+#else
+    uint8_t flash_data[COPY_DATA_NUM] = {0x76,0xfe,0x57,0x65,0x75,0x01,0xfe,0x89,0x67,0xff,0x76,0x68,0x09,0x66,0x44,0x00};
+    uint8_t copy_data[COPY_DATA_NUM] = { 0 };
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -78,7 +90,13 @@ int main(int argc, char *argv[])
 
     // -- DMA CONFIGURATION --
     dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
-    dma_set_write_ptr_inc(&dma, (uint32_t) 4); // Do not increment address when reading from the SPI (Pop from FIFO)
+    #if SPI_DATA_TYPE == 0
+        dma_set_write_ptr_inc(&dma, (uint32_t) 4); // Do not increment address when reading from the SPI (Pop from FIFO)
+    #elif SPI_DATA_TYPE == 1
+        dma_set_write_ptr_inc(&dma, (uint32_t) 2); // Do not increment address when reading from the SPI (Pop from FIFO)
+    #else
+        dma_set_write_ptr_inc(&dma, (uint32_t) 1); // Do not increment address when reading from the SPI (Pop from FIFO)
+    #endif
     dma_set_read_ptr(&dma, (uint32_t) fifo_ptr_rx); // SPI RX FIFO addr
     dma_set_write_ptr(&dma, (uint32_t) copy_data); // copy data address
     // Set the correct SPI-DMA mode:
@@ -92,6 +110,7 @@ int main(int argc, char *argv[])
     #else
         dma_set_spi_mode(&dma, (uint32_t) 3); // The DMA will wait for the SPI FLASH RX FIFO valid signal
     #endif
+    dma_set_data_type(&dma, (uint32_t) SPI_DATA_TYPE);
 
     // Configure SPI clock
     // SPI clk freq = 1/2 core clk freq when clk_div = 0
@@ -139,13 +158,7 @@ int main(int argc, char *argv[])
     spi_set_command(&spi_host, cmd_powerup);
     spi_wait_for_ready(&spi_host);
 
-    // The address bytes sent through the SPI to the Flash are in reverse order
-    int32_t read_byte_cmd = ((REVERT_24b_ADDR(flash_data) << 8) | 0x03); 
-
-    // Fill TX FIFO with TX data (read command + 3B address)
-    spi_write_word(&spi_host, read_byte_cmd);
-    // Wait for readiness to process commands
-    spi_wait_for_ready(&spi_host);
+    uint32_t read_byte_cmd;
 
     // Load command FIFO with read command (1 Byte at single speed)
     const uint32_t cmd_read = spi_create_command((spi_command_t){
@@ -154,20 +167,57 @@ int main(int argc, char *argv[])
         .speed      = kSpiSpeedStandard,
         .direction  = kSpiDirTxOnly
     });
-    spi_set_command(&spi_host, cmd_read);
-    spi_wait_for_ready(&spi_host);
-
-    const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
-        .len        = SPI_BYTES - 1,
-        .csaat      = false,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirRxOnly
-    });
-    spi_set_command(&spi_host, cmd_read_rx);
-    spi_wait_for_ready(&spi_host);
 
     dma_intr_flag = 0;
-    dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_BYTES); // Size of data received by SPI
+    dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_NUM);
+
+    #if SPI_DATA_TYPE == 0
+        read_byte_cmd = ((REVERT_24b_ADDR(flash_data) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
+        const uint32_t cmd_read_rx = spi_create_command((spi_command_t){ // Single transaction
+            .len        = COPY_DATA_NUM*4 - 1, // In bytes - 1
+            .csaat      = false,
+            .speed      = kSpiSpeedStandard,
+            .direction  = kSpiDirRxOnly
+        });
+        spi_write_word(&spi_host, read_byte_cmd); // Fill TX FIFO with TX data (read command + 3B address)
+        spi_wait_for_ready(&spi_host); // Wait for readiness to process commands
+        spi_set_command(&spi_host, cmd_read); // Send read command to the external device through SPI
+        spi_wait_for_ready(&spi_host);
+        spi_set_command(&spi_host, cmd_read_rx); // Receive data in RX
+        spi_wait_for_ready(&spi_host);
+    #elif SPI_DATA_TYPE == 1
+        const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
+            .len        = 1, // 2 bytes
+            .csaat      = false,
+            .speed      = kSpiSpeedStandard,
+            .direction  = kSpiDirRxOnly
+        });
+        for (int i = 0; i<COPY_DATA_NUM; i++) { // Multiple 16-bit transactions
+            read_byte_cmd = ((REVERT_24b_ADDR(flash_data+i) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
+            spi_write_word(&spi_host, read_byte_cmd); // Fill TX FIFO with TX data (read command + 3B address)
+            spi_wait_for_ready(&spi_host); // Wait for readiness to process commands
+            spi_set_command(&spi_host, cmd_read); // Send read command to the external device through SPI
+            spi_wait_for_ready(&spi_host); 
+            spi_set_command(&spi_host, cmd_read_rx); // Receive data in RX
+            spi_wait_for_ready(&spi_host);
+        }
+    #else
+        const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
+            .len        = 0, // 1 byte
+            .csaat      = false,
+            .speed      = kSpiSpeedStandard,
+            .direction  = kSpiDirRxOnly
+        });
+        for (int i = 0; i<COPY_DATA_NUM; i++) { // Multiple 8-bit transactions
+            read_byte_cmd = ((REVERT_24b_ADDR(flash_data+i) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
+            spi_write_word(&spi_host, read_byte_cmd); // Fill TX FIFO with TX data (read command + 3B address)
+            spi_wait_for_ready(&spi_host); // Wait for readiness to process commands
+            spi_set_command(&spi_host, cmd_read); // Send read command to the external device through SPI
+            spi_wait_for_ready(&spi_host); 
+            spi_set_command(&spi_host, cmd_read_rx); // Receive data in RX
+            spi_wait_for_ready(&spi_host);
+        }
+    #endif
 
     // Wait for DMA interrupt
     printf("Waiting for the DMA interrupt...\n");
@@ -192,26 +242,14 @@ int main(int argc, char *argv[])
     // The data is already in memory -- Check results
     printf("flash vs ram...\n");
 
-    int i;
     uint32_t errors = 0;
     uint32_t count = 0;
-    uint8_t *flash_data_8b = (uint8_t *)flash_data;
-    uint8_t *copy_data_8b = (uint8_t *)copy_data;
-    for (i = 0; i<COPY_DATA_BYTES; i++) {
-        if(flash_data_8b[i] != copy_data_8b[i]) {
-            printf("@%08x-@%08x : %02x != %02x\n" , &flash_data_8b[i] , &copy_data_8b[i], flash_data_8b[i], copy_data_8b[i]);
+    for (int i = 0; i<COPY_DATA_NUM; i++) {
+        if(flash_data[i] != copy_data[i]) {
+            printf("@%08x-@%08x : %02x != %02x\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
             errors++;
         }
         count++;
-    }
-    // Check that the rest last bytes of the word have not been overwritten
-    while(i < SPI_BYTES){
-        if(copy_data_8b[i] != 0) {
-            printf("Data Overwritten @%08x : %02x != 0\n" , &copy_data_8b[i], copy_data_8b[i]);
-            errors++;
-        }
-        count++;
-        i++;
     }
 
     if (errors == 0) {
