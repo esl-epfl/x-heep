@@ -40,6 +40,7 @@ module dma #(
   dma_hw2reg_t                       hw2reg;
 
   logic        [               31:0] read_ptr_reg;
+  logic        [               31:0] read_ptr_valid_reg;
   logic        [               31:0] write_ptr_reg;
   logic        [               31:0] dma_cnt;
   logic                              dma_start;
@@ -155,6 +156,19 @@ module dma #(
     end
   end
 
+  // Only update read_ptr_valid_reg when the data is stored in the fifo
+  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_ptr_valid_in_reg
+    if (~rst_ni) begin
+      read_ptr_valid_reg <= '0;
+    end else begin
+      if (dma_start == 1'b1) begin
+        read_ptr_valid_reg <= reg2hw.ptr_in.q;
+      end else if (data_in_rvalid == 1'b1) begin
+        read_ptr_valid_reg <= read_ptr_valid_reg + reg2hw.src_ptr_inc.q;
+      end
+    end
+  end
+
   // Store output data pointer and increment everytime write request is granted
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_ptr_out_reg
     if (~rst_ni) begin
@@ -234,7 +248,7 @@ module dma #(
     fifo_input[23:16] = data_in_rdata[23:16];
     fifo_input[31:24] = data_in_rdata[31:24];
 
-    case (write_ptr_reg[1:0])
+    case (read_ptr_valid_reg[1:0])
       2'b01: fifo_input[7:0] = data_in_rdata[15:8];
 
       2'b10: begin
