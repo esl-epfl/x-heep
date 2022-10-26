@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
     }
 
     if (errors == 0) {
-        printf("success! (Bytes checked: %d)\n", count);
+        printf("success! (elements checked: %d)\n", count);
     } else {
         printf("failure, %d errors! (Out of %d)\n", errors, count);
     }
