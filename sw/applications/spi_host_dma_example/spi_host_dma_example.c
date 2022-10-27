@@ -158,8 +158,6 @@ int main(int argc, char *argv[])
     spi_set_command(&spi_host, cmd_powerup);
     spi_wait_for_ready(&spi_host);
 
-    uint32_t read_byte_cmd;
-
     // Load command FIFO with read command (1 Byte at single speed)
     const uint32_t cmd_read = spi_create_command((spi_command_t){
         .len        = 3,
@@ -168,11 +166,13 @@ int main(int argc, char *argv[])
         .direction  = kSpiDirTxOnly
     });
 
+    uint32_t read_byte_cmd;
+    read_byte_cmd = ((REVERT_24b_ADDR(flash_data) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
+
     dma_intr_flag = 0;
     dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_NUM);
 
     #if SPI_DATA_TYPE == 0
-        read_byte_cmd = ((REVERT_24b_ADDR(flash_data) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
         const uint32_t cmd_read_rx = spi_create_command((spi_command_t){ // Single transaction
             .len        = COPY_DATA_NUM*4 - 1, // In bytes - 1
             .csaat      = false,
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
             .direction  = kSpiDirRxOnly
         });
         for (int i = 0; i<COPY_DATA_NUM; i++) { // Multiple 16-bit transactions
-            read_byte_cmd = ((REVERT_24b_ADDR(flash_data+i) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
+            // Request the same data multiple times
             spi_write_word(&spi_host, read_byte_cmd); // Fill TX FIFO with TX data (read command + 3B address)
             spi_wait_for_ready(&spi_host); // Wait for readiness to process commands
             spi_set_command(&spi_host, cmd_read); // Send read command to the external device through SPI
@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
             .direction  = kSpiDirRxOnly
         });
         for (int i = 0; i<COPY_DATA_NUM; i++) { // Multiple 8-bit transactions
-            read_byte_cmd = ((REVERT_24b_ADDR(flash_data+i) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
+            // Request the same data multiple times
             spi_write_word(&spi_host, read_byte_cmd); // Fill TX FIFO with TX data (read command + 3B address)
             spi_wait_for_ready(&spi_host); // Wait for readiness to process commands
             spi_set_command(&spi_host, cmd_read); // Send read command to the external device through SPI
@@ -226,7 +226,6 @@ int main(int argc, char *argv[])
     }
     printf("triggered!\n");
 
-    printf("Power down flash...\n");
     // Power down flash
     const uint32_t powerdown_byte_cmd = 0xb9;
     spi_write_word(&spi_host, powerdown_byte_cmd);
@@ -244,13 +243,23 @@ int main(int argc, char *argv[])
 
     uint32_t errors = 0;
     uint32_t count = 0;
-    for (int i = 0; i<COPY_DATA_NUM; i++) {
-        if(flash_data[i] != copy_data[i]) {
-            printf("@%08x-@%08x : %02x != %02x\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
-            errors++;
+    #if SPI_DATA_TYPE == 0
+        for (int i = 0; i<COPY_DATA_NUM; i++) {
+            if(flash_data[i] != copy_data[i]) {
+                printf("@%08x-@%08x : %02x != %02x\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
+                errors++;
+            }
+            count++;
         }
-        count++;
-    }
+    #else
+        for (int i = 0; i<COPY_DATA_NUM; i++) {
+            if(flash_data[0] != copy_data[i]) {
+                printf("@%08x-@%08x : %02x != %02x\n" , &flash_data[0] , &copy_data[i], flash_data[0], copy_data[i]);
+                errors++;
+            }
+            count++;
+        }
+    #endif
 
     if (errors == 0) {
         printf("success! (elements checked: %d)\n", count);

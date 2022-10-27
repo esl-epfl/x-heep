@@ -230,7 +230,7 @@ module dma #(
 
     case (write_ptr_reg[1:0])
       2'b00: ;
-      
+
       2'b01: data_out_wdata[15:8] = fifo_output[7:0];
 
       2'b10: begin

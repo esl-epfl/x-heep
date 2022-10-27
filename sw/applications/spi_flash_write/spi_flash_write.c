@@ -21,8 +21,7 @@
 // Un-comment this line to use the SPI FLASH instead of the default SPI
 // #define USE_SPI_FLASH
 
-#define COPY_DATA_BYTES 256 // Flash page size = 256
-#define SPI_BYTES (4 * (uint32_t)((COPY_DATA_BYTES-1) / 4 + 1)) // Only sends data when an entire word has been received
+#define COPY_DATA_WORDS 64 // Flash page size = 256 Bytes
 
 #define REVERT_24b_ADDR(addr) ((((uint32_t)addr & 0xff0000) >> 16) | ((uint32_t)addr & 0xff00) | (((uint32_t)addr & 0xff) << 16))
 
@@ -69,8 +68,8 @@ void handler_irq_fast_dma(void)
 }
 
 // Reserve memory array
-uint32_t flash_data[SPI_BYTES / 4] __attribute__ ((aligned (4))) = {0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,0x679852fe,0xff8252bb,0x763b4521,0x6875adaa,0x09ac65bb,0x666ba334,0x44556677,0x0000ba98};
-uint32_t copy_data[SPI_BYTES / 4] __attribute__ ((aligned (4)))  = { 0 };
+uint32_t flash_data[COPY_DATA_WORDS] __attribute__ ((aligned (4))) = {0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,0x679852fe,0xff8252bb,0x763b4521,0x6875adaa,0x09ac65bb,0x666ba334,0x44556677,0x0000ba98};
+uint32_t copy_data[COPY_DATA_WORDS] __attribute__ ((aligned (4)))  = { 0 };
 
 int main(int argc, char *argv[])
 {
@@ -201,7 +200,7 @@ int main(int argc, char *argv[])
         dma_set_spi_mode(&dma, (uint32_t) 4); // The DMA will wait for the SPI FLASH TX FIFO ready signal
     #endif
     dma_set_data_type(&dma, (uint32_t) 0);
-    dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_BYTES); // Size of data received by SPI
+    dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_WORDS); // Size of data received by SPI
 
     // Wait for the first data to arrive to the TX FIFO before enabling interrupt
     spi_wait_for_tx_not_empty(&spi_host);
@@ -211,7 +210,7 @@ int main(int argc, char *argv[])
     spi_enable_txempty_intr(&spi_host, true);
 
     const uint32_t cmd_write_tx = spi_create_command((spi_command_t){
-        .len        = SPI_BYTES - 1,
+        .len        = COPY_DATA_WORDS*4 - 1,
         .csaat      = false,
         .speed      = kSpiSpeedStandard,
         .direction  = kSpiDirTxOnly
@@ -253,7 +252,7 @@ int main(int argc, char *argv[])
         if ((flash_resp[0] & 0x01) == 0) flash_busy = false;
     }
 
-    printf("%d Bytes written in Flash at @0x%08x \n", COPY_DATA_BYTES, FLASH_ADDR);
+    printf("%d Bytes written in Flash at @0x%08x \n", COPY_DATA_WORDS*4, FLASH_ADDR);
     printf("Checking write...\n");
 
     const uint32_t mask2 = 1 << 19;
@@ -296,7 +295,7 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
-        .len        = SPI_BYTES - 1,
+        .len        = COPY_DATA_WORDS*4 - 1,
         .csaat      = false,
         .speed      = kSpiSpeedStandard,
         .direction  = kSpiDirRxOnly
@@ -306,7 +305,7 @@ int main(int argc, char *argv[])
 
     dma_intr_flag = 0;
     dma_set_data_type(&dma, (uint32_t) 0);
-    dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_BYTES); // Size of data received by SPI
+    dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_WORDS); // Size of data received by SPI
 
     // Wait for DMA interrupt
     printf("Waiting for the DMA interrupt...\n");
@@ -333,27 +332,16 @@ int main(int argc, char *argv[])
     int i;
     uint32_t errors = 0;
     uint32_t count = 0;
-    uint8_t *flash_data_8b = (uint8_t *)flash_data;
-    uint8_t *copy_data_8b = (uint8_t *)copy_data;
-    for (i = 0; i<COPY_DATA_BYTES; i++) {
-        if(flash_data_8b[i] != copy_data_8b[i]) {
-            printf("@%08x-@%08x : %02x != %02x\n" , &flash_data_8b[i] , &copy_data_8b[i], flash_data_8b[i], copy_data_8b[i]);
+    for (i = 0; i<COPY_DATA_WORDS; i++) {
+        if(flash_data[i] != copy_data[i]) {
+            printf("@%08x-@%08x : %02x != %02x\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
             errors++;
         }
         count++;
-    }
-    // Check that the rest last bytes of the word have not been overwritten
-    while(i < SPI_BYTES){
-        if(copy_data_8b[i] != 0) {
-            printf("Data Overwritten @%08x : %02x != 0\n" , &copy_data_8b[i], copy_data_8b[i]);
-            errors++;
-        }
-        count++;
-        i++;
     }
 
     if (errors == 0) {
-        printf("success! (Bytes checked: %d)\n", count);
+        printf("success! (Words checked: %d)\n", count);
     } else {
         printf("failure, %d errors! (Out of %d)\n", errors, count);
     }
