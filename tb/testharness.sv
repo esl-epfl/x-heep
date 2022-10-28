@@ -170,25 +170,28 @@ module testharness #(
       .external_subsystem_rst_no()
   );
 
-  //pretending to be SWITCH CELLs that delay by 8 cycles the ACK signal
-  logic [SWITCH_ACK_LATENCY:0]
-      tb_cpu_subsystem_powergate_switch_ack, tb_peripheral_subsystem_powergate_switch_ack;
-  logic [SWITCH_ACK_LATENCY:0] [core_v_mini_mcu_pkg::NUM_BANKS-1:0] tb_memory_subsystem_banks_powergate_switch_ack;
+  //pretending to be SWITCH CELLs that delay by SWITCH_ACK_LATENCY cycles the ACK signal
+  logic
+      tb_cpu_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY+1],
+      tb_peripheral_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY+1];
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] tb_memory_subsystem_banks_powergate_switch_ack[SWITCH_ACK_LATENCY+1];
 
   always_ff @(posedge clk_i) begin
     tb_cpu_subsystem_powergate_switch_ack[0] <= x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_powergate_switch;
-    tb_cpu_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY:1] <= tb_cpu_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY-1:0];
-
     tb_peripheral_subsystem_powergate_switch_ack[0] <= x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_powergate_switch;
-    tb_peripheral_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY:1] <= tb_peripheral_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY-1:0];
-
     tb_memory_subsystem_banks_powergate_switch_ack[0] <= x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch;
-    tb_memory_subsystem_banks_powergate_switch_ack[SWITCH_ACK_LATENCY:1] <= tb_memory_subsystem_banks_powergate_switch_ack[SWITCH_ACK_LATENCY-1:0];
+    for (int i = 0; i < SWITCH_ACK_LATENCY; i++) begin
+      tb_memory_subsystem_banks_powergate_switch_ack[i+1] <= tb_memory_subsystem_banks_powergate_switch_ack[i];
+      tb_cpu_subsystem_powergate_switch_ack[i+1] <= tb_cpu_subsystem_powergate_switch_ack[i];
+      tb_peripheral_subsystem_powergate_switch_ack[i+1] <= tb_peripheral_subsystem_powergate_switch_ack[i];
+    end
   end
 
-  assign x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_powergate_switch_ack = tb_cpu_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY];
-  assign x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_powergate_switch_ack = tb_peripheral_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY];
-  assign x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_ack = tb_memory_subsystem_banks_powergate_switch_ack[SWITCH_ACK_LATENCY];
+  always_comb begin
+    x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_powergate_switch_ack = tb_cpu_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY];
+    x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_powergate_switch_ack = tb_peripheral_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY];
+    x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_ack = tb_memory_subsystem_banks_powergate_switch_ack[SWITCH_ACK_LATENCY];
+  end
 
   uartdpi #(
       .BAUD('d256000),

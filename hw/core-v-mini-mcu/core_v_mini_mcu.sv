@@ -226,8 +226,6 @@ module core_v_mini_mcu
     output logic gpio_30_oe_o,
 
 
-    input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
-
     output reg_req_t pad_req_o,
     input  reg_rsp_t pad_resp_i,
 
@@ -239,6 +237,8 @@ module core_v_mini_mcu
 
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
+
+    input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
 
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_o,
     input  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_ack_i,

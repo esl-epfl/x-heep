@@ -385,7 +385,6 @@ module power_manager #(
       .start_on_sequence_i (~reg2hw.power_gate_periph.q),
       .switch_ack_i (1'b1),
 
-
       // counter to switch on and off signals
       .counter_expired_switch_off_i(periph_powergate_counter_expired_switch_off),
       .counter_expired_switch_on_i (periph_powergate_counter_expired_switch_on),
@@ -609,7 +608,7 @@ module power_manager #(
       // trigger to start the sequence
       .start_off_sequence_i(reg2hw.set_retentive_ram_block_${bank}.q),
       .start_on_sequence_i (~reg2hw.set_retentive_ram_block_${bank}.q),
-      .switch_ack_i (1'b0),
+      .switch_ack_i (1'b1),
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(ram_${bank}_retentive_counter_expired_off),
