@@ -14,6 +14,7 @@ module uart_core (
 
   input                  rx,
   output logic           tx,
+  output logic           tx_enable_o,
 
   output logic           intr_tx_watermark_o,
   output logic           intr_rx_watermark_o,
@@ -60,6 +61,8 @@ module uart_core (
   logic           tx_watermark_d, tx_watermark_prev_q;
   logic           rx_watermark_d, rx_watermark_prev_q;
   logic           tx_uart_idle_q;
+
+  assign tx_enable_o      = tx_enable;
 
   assign tx_enable        = reg2hw.ctrl.tx.q;
   assign rx_enable        = reg2hw.ctrl.rx.q;
