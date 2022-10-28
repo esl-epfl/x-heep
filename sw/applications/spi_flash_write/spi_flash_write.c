@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
         dma_set_spi_mode(&dma, (uint32_t) 4); // The DMA will wait for the SPI FLASH TX FIFO ready signal
     #endif
     dma_set_data_type(&dma, (uint32_t) 0);
-    dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_WORDS); // Size of data received by SPI
+    dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_WORDS*sizeof(*flash_data)); // Size of data received by SPI
 
     // Wait for the first data to arrive to the TX FIFO before enabling interrupt
     spi_wait_for_tx_not_empty(&spi_host);
@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
     spi_enable_txempty_intr(&spi_host, true);
 
     const uint32_t cmd_write_tx = spi_create_command((spi_command_t){
-        .len        = COPY_DATA_WORDS*4 - 1,
+        .len        = COPY_DATA_WORDS*sizeof(*flash_data) - 1,
         .csaat      = false,
         .speed      = kSpiSpeedStandard,
         .direction  = kSpiDirTxOnly
@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
         if ((flash_resp[0] & 0x01) == 0) flash_busy = false;
     }
 
-    printf("%d Bytes written in Flash at @0x%08x \n", COPY_DATA_WORDS*4, FLASH_ADDR);
+    printf("%d Bytes written in Flash at @0x%08x \n", COPY_DATA_WORDS*sizeof(*flash_data), FLASH_ADDR);
     printf("Checking write...\n");
 
     const uint32_t mask2 = 1 << 19;
@@ -295,7 +295,7 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
-        .len        = COPY_DATA_WORDS*4 - 1,
+        .len        = COPY_DATA_WORDS*sizeof(*copy_data) - 1,
         .csaat      = false,
         .speed      = kSpiSpeedStandard,
         .direction  = kSpiDirRxOnly
@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
 
     dma_intr_flag = 0;
     dma_set_data_type(&dma, (uint32_t) 0);
-    dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_WORDS); // Size of data received by SPI
+    dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_WORDS*sizeof(*copy_data)); // Number of bytes received by SPI
 
     // Wait for DMA interrupt
     printf("Waiting for the DMA interrupt...\n");

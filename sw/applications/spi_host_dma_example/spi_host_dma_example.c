@@ -170,11 +170,11 @@ int main(int argc, char *argv[])
     read_byte_cmd = ((REVERT_24b_ADDR(flash_data) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
 
     dma_intr_flag = 0;
-    dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_NUM);
+    dma_set_cnt_start(&dma, (uint32_t) (COPY_DATA_NUM*sizeof(*copy_data)));
 
     #if SPI_DATA_TYPE == 0
         const uint32_t cmd_read_rx = spi_create_command((spi_command_t){ // Single transaction
-            .len        = COPY_DATA_NUM*4 - 1, // In bytes - 1
+            .len        = COPY_DATA_NUM*sizeof(*copy_data) - 1, // In bytes - 1
             .csaat      = false,
             .speed      = kSpiSpeedStandard,
             .direction  = kSpiDirRxOnly
@@ -185,30 +185,14 @@ int main(int argc, char *argv[])
         spi_wait_for_ready(&spi_host);
         spi_set_command(&spi_host, cmd_read_rx); // Receive data in RX
         spi_wait_for_ready(&spi_host);
-    #elif SPI_DATA_TYPE == 1
-        const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
-            .len        = 1, // 2 bytes
+    #else
+        const uint32_t cmd_read_rx = spi_create_command((spi_command_t){ // Multiple transactions of the data type
+            .len        = (sizeof(*copy_data) - 1),
             .csaat      = false,
             .speed      = kSpiSpeedStandard,
             .direction  = kSpiDirRxOnly
         });
         for (int i = 0; i<COPY_DATA_NUM; i++) { // Multiple 16-bit transactions
-            // Request the same data multiple times
-            spi_write_word(&spi_host, read_byte_cmd); // Fill TX FIFO with TX data (read command + 3B address)
-            spi_wait_for_ready(&spi_host); // Wait for readiness to process commands
-            spi_set_command(&spi_host, cmd_read); // Send read command to the external device through SPI
-            spi_wait_for_ready(&spi_host); 
-            spi_set_command(&spi_host, cmd_read_rx); // Receive data in RX
-            spi_wait_for_ready(&spi_host);
-        }
-    #else
-        const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
-            .len        = 0, // 1 byte
-            .csaat      = false,
-            .speed      = kSpiSpeedStandard,
-            .direction  = kSpiDirRxOnly
-        });
-        for (int i = 0; i<COPY_DATA_NUM; i++) { // Multiple 8-bit transactions
             // Request the same data multiple times
             spi_write_word(&spi_host, read_byte_cmd); // Fill TX FIFO with TX data (read command + 3B address)
             spi_wait_for_ready(&spi_host); // Wait for readiness to process commands
@@ -262,7 +246,7 @@ int main(int argc, char *argv[])
     #endif
 
     if (errors == 0) {
-        printf("success! (elements checked: %d)\n", count);
+        printf("success! (bytes checked: %d)\n", count*sizeof(*copy_data));
     } else {
         printf("failure, %d errors! (Out of %d)\n", errors, count);
     }

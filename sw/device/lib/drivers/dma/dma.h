@@ -42,7 +42,7 @@ void dma_set_write_ptr(const dma_t *dma, uint32_t write_ptr);
 /**
  * Write to cnt_start register of the DMA
  * @param dma Pointer to dma_t represting the target MEMCOPY PERIPHERAL.
- * @param copy_size Number of elements to be copied from read_ptr to write_ptr.
+ * @param copy_size Number of bytes to be copied from read_ptr to write_ptr.
  */
 void dma_set_cnt_start(const dma_t *dma, uint32_t copy_size);
 

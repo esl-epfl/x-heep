@@ -43,6 +43,7 @@ module dma #(
   logic        [               31:0] read_ptr_valid_reg;
   logic        [               31:0] write_ptr_reg;
   logic        [               31:0] dma_cnt;
+  logic        [               31:0] dma_cnt_dec;
   logic                              dma_start;
   logic                              dma_done;
 
@@ -114,6 +115,8 @@ module dma #(
   assign data_out_rdata = dma_master1_ch0_resp_i.rdata;
 
   assign dma_intr_o = dma_done;
+  assign spi_dma_mode = reg2hw.spi_mode.q;
+  assign data_type = reg2hw.data_type.q;
 
   assign hw2reg.done.de = dma_done | dma_start;
   assign hw2reg.done.d = dma_done == 1'b1 ? 1'b1 : 1'b0;
@@ -130,13 +133,9 @@ module dma #(
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start
     if (~rst_ni) begin
       dma_start <= 1'b0;
-      spi_dma_mode <= 3'h0;
-      data_type <= 2'b00;
     end else begin
       if (dma_start == 1'b1) begin
         dma_start <= 1'b0;
-        spi_dma_mode <= reg2hw.spi_mode.q;
-        data_type <= reg2hw.data_type.q;
       end else begin
         dma_start <= |reg2hw.dma_start.q;
       end
@@ -190,9 +189,17 @@ module dma #(
       if (dma_start == 1'b1) begin
         dma_cnt <= reg2hw.dma_start.q;
       end else if (data_in_gnt == 1'b1) begin
-        dma_cnt <= dma_cnt - 32'h1;
+        dma_cnt <= dma_cnt - dma_cnt_dec;
       end
     end
+  end
+
+  always_comb begin
+    case (data_type)
+      2'b00: dma_cnt_dec = 32'h4;
+      2'b01: dma_cnt_dec = 32'h2;
+      2'b10, 2'b11: dma_cnt_dec = 32'h1;
+    endcase
   end
 
   always_comb begin : proc_byte_enable_out
