@@ -78,8 +78,11 @@ int main(int argc, char *argv[])
     const uint32_t mask = 1 << 19;
     CSR_SET_BITS(CSR_REG_MIE, mask);
 
-    // Select SPI host as SPI output
-    soc_ctrl_select_spi_host(&soc_ctrl);
+    #ifdef USE_SPI_FLASH
+        // Select SPI host as SPI output
+        soc_ctrl_select_spi_host(&soc_ctrl);
+    #endif
+
     // Enable SPI host device
     spi_set_enable(&spi_host, true);
     // Enable SPI output
