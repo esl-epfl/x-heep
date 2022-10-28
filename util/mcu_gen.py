@@ -397,10 +397,10 @@ def main():
     if args.external_domains != None and args.external_domains != '':
         external_domains = int(args.external_domains)
     else:
-        external_domains = 1
+        external_domains = 0
 
-    if external_domains < 1 and external_domains > 32:
-        exit("external_domains must be between 1 and 32 instead of " + str(external_domains))
+    if  external_domains > 32:
+        exit("external_domains must be less than 32 instead of " + str(external_domains))
 
     debug_start_address = string2int(obj['debug']['address'])
     if int(debug_start_address, 16) < int('10000', 16):
