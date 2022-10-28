@@ -13,4 +13,7 @@
 
   patch_dir: "patches/lowrisc_opentitan_spi_host",
 
+  exclude_from_upstream: [
+    "dv",
+  ]
 }
