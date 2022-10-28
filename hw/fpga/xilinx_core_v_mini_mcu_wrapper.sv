@@ -103,7 +103,7 @@ module xilinx_core_v_mini_mcu_wrapper
       .jtag_tdi_i(jtag_tdi_i),
       .jtag_tdo_o(jtag_tdo_o),
       .uart_rx_i(uart_rx_i),
-      .uart_tx_o(uart_tx_o),
+      .uart_tx_io(uart_tx_o),
       .exit_valid_o(exit_valid_o),
       .gpio_0_io(gpio_io[0]),
       .gpio_1_io(gpio_io[1]),

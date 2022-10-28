@@ -299,7 +299,7 @@ module core_v_mini_mcu
       .msip_o(irq_software),
       .uart_rx_i,
       .uart_tx_o,
-      .uart_tx_en_o(),
+      .uart_tx_oe_o,
       .cio_gpio_i(gpio_in),
       .cio_gpio_o(gpio_out),
       .cio_gpio_en_o(gpio_oe),
