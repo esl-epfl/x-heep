@@ -447,6 +447,9 @@ def main():
     pad_control_start_offset  = string2int(obj['ao_peripherals']['pad_control']['offset'])
     pad_control_size_address  = string2int(obj['ao_peripherals']['pad_control']['length'])
 
+    uart_start_offset  = string2int(obj['ao_peripherals']['uart']['offset'])
+    uart_size_address  = string2int(obj['ao_peripherals']['uart']['length'])
+
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
         exit("peripheral start address must be greater than 0x10000")
@@ -455,9 +458,6 @@ def main():
 
     plic_start_offset  = string2int(obj['peripherals']['plic']['offset'])
     plic_size_address  = string2int(obj['peripherals']['plic']['length'])
-
-    uart_start_offset  = string2int(obj['peripherals']['uart']['offset'])
-    uart_size_address  = string2int(obj['peripherals']['uart']['length'])
 
     gpio_start_offset  = string2int(obj['peripherals']['gpio']['offset'])
     gpio_size_address  = string2int(obj['peripherals']['gpio']['length'])

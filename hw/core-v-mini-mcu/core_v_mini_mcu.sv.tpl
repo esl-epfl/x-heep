@@ -130,6 +130,16 @@ module core_v_mini_mcu
   logic [31:0] gpio_oe;
   logic [7:0] gpio_intr;
 
+  // UART PLIC interrupts
+  logic uart_intr_tx_watermark;
+  logic uart_intr_rx_watermark;
+  logic uart_intr_tx_empty;
+  logic uart_intr_rx_overflow;
+  logic uart_intr_rx_frame_err;
+  logic uart_intr_rx_break_err;
+  logic uart_intr_rx_timeout;
+  logic uart_intr_rx_parity_err;
+
   assign intr = {
     1'b0, irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
   };
@@ -283,6 +293,16 @@ module core_v_mini_mcu
       .pad_resp_i,
       .fast_intr_i(fast_intr),
       .fast_intr_o(irq_fast),
+      .uart_rx_i,
+      .uart_tx_o,
+      .uart_intr_tx_watermark_o(uart_intr_tx_watermark),
+      .uart_intr_rx_watermark_o(uart_intr_rx_watermark),
+      .uart_intr_tx_empty_o(uart_intr_tx_empty),
+      .uart_intr_rx_overflow_o(uart_intr_rx_overflow),
+      .uart_intr_rx_frame_err_o(uart_intr_rx_frame_err),
+      .uart_intr_rx_break_err_o(uart_intr_rx_break_err),
+      .uart_intr_rx_timeout_o(uart_intr_rx_timeout),
+      .uart_intr_rx_parity_err_o(uart_intr_rx_parity_err),
       .ext_peripheral_slave_req_o,
       .ext_peripheral_slave_resp_i
   );
@@ -297,9 +317,14 @@ module core_v_mini_mcu
       .intr_vector_ext_i,
       .irq_plic_o(irq_external),
       .msip_o(irq_software),
-      .uart_rx_i,
-      .uart_tx_o,
-      .uart_tx_en_o(),
+      .uart_intr_tx_watermark_i(uart_intr_tx_watermark),
+      .uart_intr_rx_watermark_i(uart_intr_rx_watermark),
+      .uart_intr_tx_empty_i(uart_intr_tx_empty),
+      .uart_intr_rx_overflow_i(uart_intr_rx_overflow),
+      .uart_intr_rx_frame_err_i(uart_intr_rx_frame_err),
+      .uart_intr_rx_break_err_i(uart_intr_rx_break_err),
+      .uart_intr_rx_timeout_i(uart_intr_rx_timeout),
+      .uart_intr_rx_parity_err_i(uart_intr_rx_parity_err),
       .cio_gpio_i(gpio_in),
       .cio_gpio_o(gpio_out),
       .cio_gpio_en_o(gpio_oe),
