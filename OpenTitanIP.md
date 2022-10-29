@@ -9,7 +9,7 @@ e.g.
 ```
 cd hw/vendor/lowrisc_opentitan/hw/ip/uart
 ../../../util/regtool.py -r -t rtl data/uart.hjson
-../../../util/regtool.py --cdefines -o ../../../../../../sw/device/lib/drivers/uart_regs.h  data/uart.hjson
+../../../util/regtool.py --cdefines -o ../../../../../../sw/device/lib/drivers/uart/uart_regs.h  data/uart.hjson
 ```
 
 

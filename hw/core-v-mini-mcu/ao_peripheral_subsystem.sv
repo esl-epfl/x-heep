@@ -43,17 +43,25 @@ module ao_peripheral_subsystem
     output logic                               spi_flash_intr_event_o,
 
     // POWER MANAGER
-    input  logic [                              31:0] intr_i,
-    input  logic [ core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
-    input  logic                                      core_sleep_i,
-    output logic                                      cpu_subsystem_powergate_switch_o,
-    output logic                                      cpu_subsystem_powergate_iso_o,
-    output logic                                      peripheral_subsystem_powergate_switch_o,
-    output logic                                      peripheral_subsystem_powergate_iso_o,
+    input logic [31:0] intr_i,
+    input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
+    input logic core_sleep_i,
+    output logic cpu_subsystem_powergate_switch_o,
+    input logic cpu_subsystem_powergate_switch_ack_i,
+    output logic cpu_subsystem_powergate_iso_o,
+    output logic cpu_subsystem_rst_no,
+    output logic peripheral_subsystem_powergate_switch_o,
+    input logic peripheral_subsystem_powergate_switch_ack_i,
+    output logic peripheral_subsystem_powergate_iso_o,
+    output logic peripheral_subsystem_rst_no,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_o,
+    input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_i,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_o,
-    output logic                                      cpu_subsystem_rst_no,
-    output logic                                      peripheral_subsystem_rst_no,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_o,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_o,
+    input  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_ack_i,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_o,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_no,
 
     //RV TIMER
     output logic rv_timer_0_intr_o,
@@ -74,6 +82,18 @@ module ao_peripheral_subsystem
     input  logic [14:0] fast_intr_i,
     output logic [14:0] fast_intr_o,
 
+    // UART
+    input  logic uart_rx_i,
+    output logic uart_tx_o,
+    output logic uart_intr_tx_watermark_o,
+    output logic uart_intr_rx_watermark_o,
+    output logic uart_intr_tx_empty_o,
+    output logic uart_intr_rx_overflow_o,
+    output logic uart_intr_rx_frame_err_o,
+    output logic uart_intr_rx_break_err_o,
+    output logic uart_intr_rx_timeout_o,
+    output logic uart_intr_rx_parity_err_o,
+
     // EXTERNAL PERIPH
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i
@@ -91,6 +111,9 @@ module ao_peripheral_subsystem
 
   tlul_pkg::tl_h2d_t rv_timer_tl_h2d;
   tlul_pkg::tl_d2h_t rv_timer_tl_d2h;
+
+  tlul_pkg::tl_h2d_t uart_tl_h2d;
+  tlul_pkg::tl_d2h_t uart_tl_d2h;
 
   logic [AO_PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
@@ -233,13 +256,21 @@ module ao_peripheral_subsystem
       .ext_irq_i(intr_vector_ext_i),
       .core_sleep_i,
       .cpu_subsystem_powergate_switch_o,
+      .cpu_subsystem_powergate_switch_ack_i,
       .cpu_subsystem_powergate_iso_o,
-      .peripheral_subsystem_powergate_switch_o,
-      .peripheral_subsystem_powergate_iso_o,
-      .memory_subsystem_banks_powergate_switch_o,
-      .memory_subsystem_banks_powergate_iso_o,
       .cpu_subsystem_rst_no,
-      .peripheral_subsystem_rst_no
+      .peripheral_subsystem_powergate_switch_o,
+      .peripheral_subsystem_powergate_switch_ack_i,
+      .peripheral_subsystem_powergate_iso_o,
+      .peripheral_subsystem_rst_no,
+      .memory_subsystem_banks_powergate_switch_o,
+      .memory_subsystem_banks_powergate_switch_ack_i,
+      .memory_subsystem_banks_powergate_iso_o,
+      .memory_subsystem_banks_set_retentive_o,
+      .external_subsystem_powergate_switch_o,
+      .external_subsystem_powergate_switch_ack_i,
+      .external_subsystem_powergate_iso_o,
+      .external_subsystem_rst_no
   );
 
   reg_to_tlul #(
@@ -303,6 +334,42 @@ module ao_peripheral_subsystem
       .fast_intr_i,
       .fast_intr_o
   );
+
+  reg_to_tlul #(
+      .req_t(reg_pkg::reg_req_t),
+      .rsp_t(reg_pkg::reg_rsp_t),
+      .tl_h2d_t(tlul_pkg::tl_h2d_t),
+      .tl_d2h_t(tlul_pkg::tl_d2h_t),
+      .tl_a_user_t(tlul_pkg::tl_a_user_t),
+      .tl_a_op_e(tlul_pkg::tl_a_op_e),
+      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
+      .PutFullData(tlul_pkg::PutFullData),
+      .Get(tlul_pkg::Get)
+  ) reg_to_tlul_uart_i (
+      .tl_o(uart_tl_h2d),
+      .tl_i(uart_tl_d2h),
+      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::UART_IDX]),
+      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::UART_IDX])
+  );
+
+  uart uart_i (
+      .clk_i,
+      .rst_ni,
+      .tl_i(uart_tl_h2d),
+      .tl_o(uart_tl_d2h),
+      .cio_rx_i(uart_rx_i),
+      .cio_tx_o(uart_tx_o),
+      .cio_tx_en_o(),
+      .intr_tx_watermark_o(uart_intr_tx_watermark_o),
+      .intr_rx_watermark_o(uart_intr_rx_watermark_o),
+      .intr_tx_empty_o(uart_intr_tx_empty_o),
+      .intr_rx_overflow_o(uart_intr_rx_overflow_o),
+      .intr_rx_frame_err_o(uart_intr_rx_frame_err_o),
+      .intr_rx_break_err_o(uart_intr_rx_break_err_o),
+      .intr_rx_timeout_o(uart_intr_rx_timeout_o),
+      .intr_rx_parity_err_o(uart_intr_rx_parity_err_o)
+  );
+
 
 
 endmodule : ao_peripheral_subsystem

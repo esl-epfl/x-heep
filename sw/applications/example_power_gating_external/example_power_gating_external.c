@@ -18,30 +18,30 @@ int main(int argc, char *argv[])
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
     power_manager.base_addr = power_manager_reg;
 
-    power_manager_counters_t power_manager_periph_counters;
+    power_manager_counters_t power_manager_external_counters;
 
-    // Init peripheral_subsystem's counters
-    if (power_gate_counters_init(&power_manager_periph_counters, 40, 40, 30, 30, 20, 20, 0, 0) != kPowerManagerOk_e)
+    // Init ram block 2's counters
+    if (power_gate_counters_init(&power_manager_external_counters, 40, 40, 30, 30, 20, 20, 0, 0) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail. Check the reset and powergate counters value\n");
         return EXIT_FAILURE;
     }
 
-    // Power off peripheral_subsystem domain
-    if (power_gate_periph(&power_manager, kOff_e, &power_manager_periph_counters) != kPowerManagerOk_e)
+    // Power off external domain
+    if (power_gate_external(&power_manager, 0, kOff_e, &power_manager_external_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;
     }
 
-    // Check that the peripheral_subsystem domain is actually OFF
-    while(!periph_power_domain_is_off(&power_manager));
+    // Check that the external domain is actually OFF
+    while(!external_power_domain_is_off(&power_manager, 0));
 
     // Wait some time
-    for (int i=0; i<100; i++) asm volatile("nop;");
+    for (int i=0; i<100; i++) asm volatile("nop");
 
-    // Power on peripheral_subsystem domain
-    if (power_gate_periph(&power_manager, kOn_e, &power_manager_periph_counters) != kPowerManagerOk_e)
+    // Power on external domain
+    if (power_gate_external(&power_manager, 0, kOn_e, &power_manager_external_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;
@@ -50,4 +50,6 @@ int main(int argc, char *argv[])
     /* write something to stdout */
     printf("Success.\n");
     return EXIT_SUCCESS;
+
+    return EXIT_FAILURE;
 }

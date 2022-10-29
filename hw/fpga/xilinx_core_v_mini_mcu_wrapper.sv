@@ -81,38 +81,40 @@ module xilinx_core_v_mini_mcu_wrapper
   );
 
   x_heep_system x_heep_system_i (
-
-      .clk_i (clk_gen),
-      .rst_ni(rst_n),
-
-      .jtag_tck_i  (jtag_tck_i),
-      .jtag_tms_i  (jtag_tms_i),
-      .jtag_trst_ni(jtag_trst_ni),
-      .jtag_tdi_i  (jtag_tdi_i),
-      .jtag_tdo_o  (jtag_tdo_o),
-
+      .intr_vector_ext_i('0),
       .ext_xbar_master_req_i('0),
       .ext_xbar_master_resp_o(),
       .ext_xbar_slave_req_o(),
       .ext_xbar_slave_resp_i('0),
       .ext_peripheral_slave_req_o(),
       .ext_peripheral_slave_resp_i('0),
-
+      .external_subsystem_powergate_switch_o(),
+      .external_subsystem_powergate_switch_ack_i(),
+      .external_subsystem_powergate_iso_o(),
+      .external_subsystem_rst_no(),
+      .exit_value_o(exit_value),
+      .clk_i(clk_gen),
+      .rst_ni(rst_n),
+      .boot_select_i(boot_select_i),
+      .execute_from_flash_i(execute_from_flash_i),
+      .jtag_tck_i(jtag_tck_i),
+      .jtag_tms_i(jtag_tms_i),
+      .jtag_trst_ni(jtag_trst_ni),
+      .jtag_tdi_i(jtag_tdi_i),
+      .jtag_tdo_o(jtag_tdo_o),
       .uart_rx_i(uart_rx_i),
       .uart_tx_o(uart_tx_o),
-
-      .intr_vector_ext_i('0),
-
-      .gpio_0_io (gpio_io[0]),
-      .gpio_1_io (gpio_io[1]),
-      .gpio_2_io (gpio_io[2]),
-      .gpio_3_io (gpio_io[3]),
-      .gpio_4_io (gpio_io[4]),
-      .gpio_5_io (gpio_io[5]),
-      .gpio_6_io (gpio_io[6]),
-      .gpio_7_io (gpio_io[7]),
-      .gpio_8_io (gpio_io[8]),
-      .gpio_9_io (gpio_io[9]),
+      .exit_valid_o(exit_valid_o),
+      .gpio_0_io(gpio_io[0]),
+      .gpio_1_io(gpio_io[1]),
+      .gpio_2_io(gpio_io[2]),
+      .gpio_3_io(gpio_io[3]),
+      .gpio_4_io(gpio_io[4]),
+      .gpio_5_io(gpio_io[5]),
+      .gpio_6_io(gpio_io[6]),
+      .gpio_7_io(gpio_io[7]),
+      .gpio_8_io(gpio_io[8]),
+      .gpio_9_io(gpio_io[9]),
       .gpio_10_io(gpio_io[10]),
       .gpio_11_io(gpio_io[11]),
       .gpio_12_io(gpio_io[12]),
@@ -133,33 +135,23 @@ module xilinx_core_v_mini_mcu_wrapper
       .gpio_27_io(gpio_io[27]),
       .gpio_28_io(gpio_io[28]),
       .gpio_29_io(gpio_io[29]),
-
-      .execute_from_flash_i(execute_from_flash_i),
-      .boot_select_i(boot_select_i),
-
       .spi_flash_sd_0_io(spi_flash_sd_io[0]),
       .spi_flash_sd_1_io(spi_flash_sd_io[1]),
       .spi_flash_sd_2_io(spi_flash_sd_io[2]),
       .spi_flash_sd_3_io(spi_flash_sd_io[3]),
       .spi_flash_cs_0_io(spi_flash_csb_o),
       .spi_flash_cs_1_io(),
-      .spi_flash_sck_io (spi_flash_sck_o),
-
+      .spi_flash_sck_io(spi_flash_sck_o),
       .spi_sd_0_io(spi_sd_io[0]),
       .spi_sd_1_io(spi_sd_io[1]),
       .spi_sd_2_io(spi_sd_io[2]),
       .spi_sd_3_io(spi_sd_io[3]),
       .spi_cs_0_io(spi_csb_o),
       .spi_cs_1_io(),
-      .spi_sck_io (spi_sck_o),
-
-      .exit_value_o(exit_value),
-      .exit_valid_o(exit_valid_o),
-
+      .spi_sck_io(spi_sck_o),
       .i2c_scl_io,
       .i2c_sda_io
   );
-
 
   assign exit_value_o = exit_value[0];
 

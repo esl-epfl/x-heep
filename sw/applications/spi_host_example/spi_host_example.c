@@ -37,7 +37,7 @@ void handler_irq_fast_spi(void)
     // Clear fast interrupt
     fast_intr_ctrl_t fast_intr_ctrl;
     fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kSpi_e);
+    clear_fast_interrupt(&fast_intr_ctrl, kSpi_fic_e);
 
     spi_intr_flag = 1;
 }
@@ -51,7 +51,7 @@ void handler_irq_fast_spi_flash(void)
     // Clear fast interrupt
     fast_intr_ctrl_t fast_intr_ctrl;
     fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kSpiFlash);
+    clear_fast_interrupt(&fast_intr_ctrl, kSpiFlash_fic_e);
 
     spi_intr_flag = 1;
 }

@@ -15,7 +15,6 @@ static power_manager_t power_manager;
 int main(int argc, char *argv[])
 {
 
-
 #if MEMORY_BANKS > 2
     // Setup power_manager
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
@@ -24,24 +23,27 @@ int main(int argc, char *argv[])
     power_manager_counters_t power_manager_ram_blocks_counters;
 
     // Init ram block 2's counters
-    if (power_gate_counters_init(&power_manager_ram_blocks_counters, 40, 40, 30, 30, 20, 20) != kPowerManagerOk_e)
+    if (power_gate_counters_init(&power_manager_ram_blocks_counters, 40, 40, 30, 30, 20, 20, 0, 0) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail. Check the reset and powergate counters value\n");
         return EXIT_FAILURE;
     }
 
-    // Power off ram block 2
-    if (power_gate_domain(&power_manager, kRam_2_e, kOff_e, &power_manager_ram_blocks_counters) != kPowerManagerOk_e)
+    // Power off ram block 2 domain
+    if (power_gate_ram_block(&power_manager, 2, kOff_e, &power_manager_ram_blocks_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;
     }
 
+    // Check that the ram block 2 domain is actually OFF
+    while(!ram_block_power_domain_is_off(&power_manager, 2));
+
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop");
 
-    // Power on ram block 2
-    if (power_gate_domain(&power_manager, kRam_2_e, kOn_e, &power_manager_ram_blocks_counters) != kPowerManagerOk_e)
+    // Power on ram block 2 domain
+    if (power_gate_ram_block(&power_manager, 2, kOn_e, &power_manager_ram_blocks_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;

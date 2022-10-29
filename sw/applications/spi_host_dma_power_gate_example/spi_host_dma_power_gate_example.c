@@ -11,15 +11,14 @@
 #include "hart.h"
 #include "handler.h"
 #include "rv_plic.h"
-#include "rv_plic_regs.h"
 #include "soc_ctrl.h"
 #include "spi_host.h"
 #include "dma.h"
 #include "fast_intr_ctrl.h"
-#include "fast_intr_ctrl_regs.h"
+#include "power_manager.h"
 
 // Un-comment this line to use the SPI FLASH instead of the default SPI
-// #define USE_SPI_FLASH
+#define USE_SPI_FLASH
 
 #define COPY_DATA_BYTES 16
 #define SPI_BYTES (4 * (uint32_t)((COPY_DATA_BYTES-1) / 4 + 1)) // Only sends data when an entire word has been received
@@ -31,11 +30,14 @@
 int8_t dma_intr_flag;
 spi_host_t spi_host;
 
+static power_manager_t power_manager;
+
 void handler_irq_fast_dma(void)
 {
     fast_intr_ctrl_t fast_intr_ctrl;
     fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
     clear_fast_interrupt(&fast_intr_ctrl, kDma_fic_e);
+
     dma_intr_flag = 1;
 }
 
@@ -51,13 +53,24 @@ int main(int argc, char *argv[])
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif
 
+    soc_ctrl_t soc_ctrl;
+    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+    uint32_t core_clk = soc_ctrl_get_frequency(&soc_ctrl);
+
     // dma peripheral structure to access the registers
     dma_t dma;
     dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
 
-    soc_ctrl_t soc_ctrl;
-    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
-    uint32_t core_clk = soc_ctrl_get_frequency(&soc_ctrl);
+    // Setup power_manager
+    mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
+    power_manager.base_addr = power_manager_reg;
+    power_manager_counters_t power_manager_cpu_counters;
+    // Init cpu_subsystem's counters
+    if (power_gate_counters_init(&power_manager_cpu_counters, 40, 40, 30, 30, 20, 20, 0, 0) != kPowerManagerOk_e)
+    {
+        printf("Error: power manager fail. Check the reset and powergate counters value\n");
+        return EXIT_FAILURE;
+    }
 
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
@@ -65,16 +78,17 @@ int main(int argc, char *argv[])
     // Set mie.MEIE bit to one to enable machine-level fast dma interrupt
     const uint32_t mask = 1 << 19;
     CSR_SET_BITS(CSR_REG_MIE, mask);
+    dma_intr_flag = 0;
 
     // Select SPI host as SPI output
     soc_ctrl_select_spi_host(&soc_ctrl);
     // Enable SPI host device
     spi_set_enable(&spi_host, true);
 
-    // SPI and SPI_FLASH are the same IP so same register map
+    // SPI and SPI_HOST are the same IP so same register map
     uint32_t *fifo_ptr = spi_host.base_addr.base + SPI_HOST_DATA_REG_OFFSET;
 
-    // -- DMA CONFIGURATION --
+     // -- DMA CONFIGURATION --
     dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
     dma_set_write_ptr_inc(&dma, (uint32_t) 4); // Do not increment address when reading from the SPI (Pop from FIFO)
     dma_set_read_ptr(&dma, (uint32_t) fifo_ptr); // SPI RX FIFO addr
@@ -178,9 +192,18 @@ int main(int argc, char *argv[])
     dma_intr_flag = 0;
     dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_BYTES); // Size of data received by SPI
 
+    // Power gate core and wait for fast DMA interrupt
+    CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+    if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
+    {
+        printf("Error: power manager fail.\n");
+        return EXIT_FAILURE;
+    }
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+
     // Wait for DMA interrupt
     printf("Waiting for the DMA interrupt...\n");
-    while(dma_intr_flag == 0) {
+    while(dma_intr_flag==0){
         wait_for_interrupt();
     }
     printf("triggered!\n");
