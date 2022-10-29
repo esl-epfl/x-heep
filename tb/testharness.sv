@@ -109,7 +109,7 @@ module testharness #(
       .execute_from_flash_i,
       .exit_valid_o,
       .uart_rx_i(uart_rx),
-      .uart_tx_io(uart_tx),
+      .uart_tx_o(uart_tx),
       .gpio_0_io(gpio[0]),
       .gpio_1_io(gpio[1]),
       .gpio_2_io(gpio[2]),

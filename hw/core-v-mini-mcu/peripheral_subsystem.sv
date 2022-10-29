@@ -22,7 +22,7 @@ module peripheral_subsystem
     //UART
     input  logic uart_rx_i,
     output logic uart_tx_o,
-    output logic uart_tx_oe_o,
+    output logic uart_tx_en_o,
 
     //GPIO
     input  logic [31:0] cio_gpio_i,
@@ -243,7 +243,7 @@ module peripheral_subsystem
       .tl_o(uart_tl_d2h),
       .cio_rx_i(uart_rx_i),
       .cio_tx_o(uart_tx_o),
-      .cio_tx_en_o(uart_tx_oe_o),
+      .cio_tx_en_o(uart_tx_en_o),
       .intr_tx_watermark_o(uart_intr_tx_watermark),
       .intr_rx_watermark_o(uart_intr_rx_watermark),
       .intr_tx_empty_o(uart_intr_tx_empty),

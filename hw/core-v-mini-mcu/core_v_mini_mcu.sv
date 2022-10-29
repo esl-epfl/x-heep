@@ -32,8 +32,6 @@ module core_v_mini_mcu
     input logic uart_rx_i,
 
     output logic uart_tx_o,
-    input  logic uart_tx_i,
-    output logic uart_tx_oe_o,
 
     output logic exit_valid_o,
 

@@ -52,9 +52,9 @@ module uart (
     .reg2hw,
     .hw2reg,
 
-    .rx          (cio_rx_i   ),
-    .tx          (cio_tx_o   ),
-    .tx_enable_o (cio_tx_en_o),
+    .rx    (cio_rx_i   ),
+    .tx    (cio_tx_o   ),
+
     .intr_tx_watermark_o,
     .intr_rx_watermark_o,
     .intr_tx_empty_o,
@@ -65,6 +65,8 @@ module uart (
     .intr_rx_parity_err_o
   );
 
+  // always enable the driving out of TX
+  assign cio_tx_en_o = 1'b1;
 
   // Assert Known for outputs
   `ASSERT_KNOWN(txenKnown, cio_tx_en_o)

@@ -231,7 +231,7 @@
         },
         uart_tx: {
             num: 1,
-            type: inout
+            type: output
         },
         exit_valid: {
             num: 1,

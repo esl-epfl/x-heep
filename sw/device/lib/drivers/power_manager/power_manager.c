@@ -435,7 +435,7 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_external(const powe
 
     // enable wait for SWITCH ACK
     reg = 0;
-    reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].wait_ack_switch_on_counter_bit), true);
+    reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].wait_ack_switch_on_counter_bit), false);
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch_on_counter), reg);
 
     if (sel_state == kOn_e)
