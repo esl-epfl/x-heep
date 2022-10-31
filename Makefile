@@ -40,7 +40,10 @@ verible:
 	util/format-verible;
 
 app-helloworld:
-	$(MAKE) -C sw applications/hello_world/hello_world.hex  TARGET=$(TARGET)
+	$(MAKE) -C sw PROJECT=hello_world MAINFILE=hello_world  TARGET=$(TARGET)
+	
+app-clean:
+	$(MAKE) -C sw/build clean
 
 app-matadd:
 	$(MAKE) -C sw applications/matadd/matadd.hex TARGET=$(TARGET)
