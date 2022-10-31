@@ -35,7 +35,6 @@ void handler_irq_external(void) {
 
 int main(int argc, char *argv[])
 {
-
     pad_control_t pad_control;
     pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
     rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)PLIC_START_ADDRESS);
@@ -95,7 +94,6 @@ int main(int argc, char *argv[])
         printf("Failed\n;");
         return -1;
     }
-
 
     printf("Write 1 to GPIO 30 and wait for interrupt...");
     gpio_write(&gpio, GPIO_TB_OUT, true);

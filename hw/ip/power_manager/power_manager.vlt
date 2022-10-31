@@ -8,3 +8,8 @@ lint_off -rule WIDTH -file "*/power_manager_reg_top.sv" -match "Operator ASSIGNW
 lint_off -rule UNUSED -file "*/power_manager.sv" -match "Bits of signal are not used: 'reg2hw'*"
 lint_off -rule UNUSED -file "*/power_manager.sv" -match "Bits of signal are not used: 'reg2hw'*"
 lint_off -rule UNUSED -file "*/power_manager.sv" -match "Bits of signal are not used: 'intr_i'[31:30,15:12,10:8,6:0]*"
+lint_off -rule LITENDIAN -file "*/power_manager.sv" -match "*"
+lint_off -rule UNDRIVEN -file "*/power_manager.sv" -match "Signal is not driven: 'external_subsystem_powergate_switch_o'*"
+lint_off -rule UNDRIVEN -file "*/power_manager.sv" -match "Signal is not driven: 'external_subsystem_powergate_iso_o'*"
+lint_off -rule UNDRIVEN -file "*/power_manager.sv" -match "Signal is not driven: 'external_subsystem_rst_no'*"
+lint_off -rule UNUSED -file "*/power_manager.sv" -match "Signal is not used: 'external_subsystem_powergate_switch_ack_i'*"

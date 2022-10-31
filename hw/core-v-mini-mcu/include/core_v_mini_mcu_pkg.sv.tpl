@@ -50,6 +50,7 @@ package core_v_mini_mcu_pkg;
   localparam int unsigned LOG_SYSTEM_XBAR_NSLAVE = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(SYSTEM_XBAR_NSLAVE) : 32'd1;
 
   localparam int unsigned NUM_BANKS = ${ram_numbanks};
+  localparam int unsigned EXTERNAL_DOMAINS = ${external_domains};
 
   localparam logic[31:0] ERROR_START_ADDRESS = 32'hBADACCE5;
   localparam logic[31:0] ERROR_SIZE = 32'h00000001;
@@ -101,7 +102,7 @@ package core_v_mini_mcu_pkg;
   };
 
   //always-on peripherals
-  localparam AO_PERIPHERALS = 11;
+  localparam AO_PERIPHERALS = 12;
 
   localparam logic[31:0] SOC_CTRL_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${soc_ctrl_start_offset};
   localparam logic[31:0] SOC_CTRL_SIZE = 32'h${soc_ctrl_size_address};
@@ -158,6 +159,10 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] PAD_CONTROL_END_ADDRESS = PAD_CONTROL_START_ADDRESS + PAD_CONTROL_SIZE;
   localparam logic[31:0] PAD_CONTROL_IDX = 32'd10;
 
+  localparam logic[31:0] UART_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${uart_start_offset};
+  localparam logic[31:0] UART_SIZE = 32'h${uart_size_address};
+  localparam logic[31:0] UART_END_ADDRESS = UART_START_ADDRESS + UART_SIZE;
+  localparam logic[31:0] UART_IDX = 32'd11;
 
   localparam addr_map_rule_t [AO_PERIPHERALS-1:0] AO_PERIPHERALS_ADDR_RULES = '{
       '{ idx: SOC_CTRL_IDX, start_addr: SOC_CTRL_START_ADDRESS, end_addr: SOC_CTRL_END_ADDRESS },
@@ -170,42 +175,37 @@ package core_v_mini_mcu_pkg;
       '{ idx: DMA_IDX, start_addr: DMA_START_ADDRESS, end_addr: DMA_END_ADDRESS },
       '{ idx: FAST_INTR_CTRL_IDX, start_addr: FAST_INTR_CTRL_START_ADDRESS, end_addr: FAST_INTR_CTRL_END_ADDRESS },
       '{ idx: EXT_PERIPH_IDX, start_addr: EXT_PERIPH_START_ADDRESS, end_addr: EXT_PERIPH_END_ADDRESS },
-      '{ idx: PAD_CONTROL_IDX, start_addr: PAD_CONTROL_START_ADDRESS, end_addr: PAD_CONTROL_END_ADDRESS }
+      '{ idx: PAD_CONTROL_IDX, start_addr: PAD_CONTROL_START_ADDRESS, end_addr: PAD_CONTROL_END_ADDRESS },
+      '{ idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS }
   };
 
   localparam int unsigned AO_PERIPHERALS_PORT_SEL_WIDTH = AO_PERIPHERALS > 1 ? $clog2(AO_PERIPHERALS) : 32'd1;
 
   //switch-on/off peripherals
-  localparam PERIPHERALS = 5;
+  localparam PERIPHERALS = 4;
 
   localparam logic[31:0] PLIC_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${plic_start_offset};
   localparam logic[31:0] PLIC_SIZE = 32'h${plic_size_address};
   localparam logic[31:0] PLIC_END_ADDRESS = PLIC_START_ADDRESS + PLIC_SIZE;
   localparam logic[31:0] PLIC_IDX = 32'd0;
 
-  localparam logic[31:0] UART_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${uart_start_offset};
-  localparam logic[31:0] UART_SIZE = 32'h${uart_size_address};
-  localparam logic[31:0] UART_END_ADDRESS = UART_START_ADDRESS + UART_SIZE;
-  localparam logic[31:0] UART_IDX = 32'd1;
-
   localparam logic[31:0] GPIO_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${gpio_start_offset};
   localparam logic[31:0] GPIO_SIZE = 32'h${gpio_size_address};
   localparam logic[31:0] GPIO_END_ADDRESS = GPIO_START_ADDRESS + GPIO_SIZE;
-  localparam logic[31:0] GPIO_IDX = 32'd2;
+  localparam logic[31:0] GPIO_IDX = 32'd1;
 
   localparam logic[31:0] I2C_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${i2c_start_offset};
   localparam logic[31:0] I2C_SIZE = 32'h${i2c_size_address};
   localparam logic[31:0] I2C_END_ADDRESS = I2C_START_ADDRESS + I2C_SIZE;
-  localparam logic[31:0] I2C_IDX = 32'd3;
+  localparam logic[31:0] I2C_IDX = 32'd2;
 
   localparam logic [31:0] RV_TIMER_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${rv_timer_start_offset};
   localparam logic [31:0] RV_TIMER_SIZE = 32'h${rv_timer_size_address};
   localparam logic [31:0] RV_TIMER_END_ADDRESS = RV_TIMER_START_ADDRESS + RV_TIMER_SIZE;
-  localparam logic [31:0] RV_TIMER_IDX = 32'd4;
+  localparam logic [31:0] RV_TIMER_IDX = 32'd3;
 
   localparam addr_map_rule_t [PERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
       '{ idx: PLIC_IDX, start_addr: PLIC_START_ADDRESS, end_addr: PLIC_END_ADDRESS },
-      '{ idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS },
       '{ idx: GPIO_IDX, start_addr: GPIO_START_ADDRESS, end_addr: GPIO_END_ADDRESS },
       '{ idx: I2C_IDX, start_addr: I2C_START_ADDRESS, end_addr: I2C_END_ADDRESS },
       '{ idx: RV_TIMER_IDX, start_addr: RV_TIMER_START_ADDRESS, end_addr: RV_TIMER_END_ADDRESS }

@@ -42,7 +42,7 @@ void handler_irq_fast_spi(void)
     // Clear fast interrupt
     fast_intr_ctrl_t fast_intr_ctrl;
     fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kSpi_e);
+    clear_fast_interrupt(&fast_intr_ctrl, kSpi_fic_e);
     spi_intr_flag = 1;
 }
 #else
@@ -54,7 +54,7 @@ void handler_irq_fast_spi_flash(void)
     // Clear fast interrupt
     fast_intr_ctrl_t fast_intr_ctrl;
     fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kSpiFlash);
+    clear_fast_interrupt(&fast_intr_ctrl, kSpiFlash_fic_e);
     spi_intr_flag = 1;
 }
 #endif
@@ -63,7 +63,7 @@ void handler_irq_fast_dma(void)
 {
     fast_intr_ctrl_t fast_intr_ctrl;
     fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kDma_e);
+    clear_fast_interrupt(&fast_intr_ctrl, kDma_fic_e);
     dma_intr_flag = 1;
 }
 
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
         .direction  = kSpiDirTxOnly
     });
     spi_set_command(&spi_host, cmd_write);
-    spi_wait_for_ready(&spi_host); 
+    spi_wait_for_ready(&spi_host);
 
     // -- DMA CONFIGURATION --
     dma_set_read_ptr_inc(&dma, (uint32_t) 4); // Do not increment address when reading from the SPI (Pop from FIFO)
@@ -219,7 +219,7 @@ int main(int argc, char *argv[])
         .direction  = kSpiDirTxOnly
     });
     spi_set_command(&spi_host, cmd_write_tx);
-    spi_wait_for_ready(&spi_host); 
+    spi_wait_for_ready(&spi_host);
 
     // Wait for SPI interrupt
     printf("Waiting for the SPI interrupt...\n");
@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
     #endif
 
     // The address bytes sent through the SPI to the Flash are in reverse order
-    const int32_t read_byte_cmd = ((REVERT_24b_ADDR(FLASH_ADDR) << 8) | 0x03); 
+    const int32_t read_byte_cmd = ((REVERT_24b_ADDR(FLASH_ADDR) << 8) | 0x03);
 
     // Fill TX FIFO with TX data (read command + 3B address)
     spi_write_word(&spi_host, read_byte_cmd);

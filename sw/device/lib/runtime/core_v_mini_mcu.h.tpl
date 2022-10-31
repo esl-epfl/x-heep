@@ -64,6 +64,10 @@ extern "C" {
 #define PAD_CONTROL_SIZE 0x${pad_control_size_address}
 #define PAD_CONTROL_END_ADDRESS (PAD_CONTROL_START_ADDRESS + PAD_CONTROL_SIZE)
 
+#define UART_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${uart_start_offset})
+#define UART_SIZE 0x${uart_size_address}
+#define UART_END_ADDRESS (UART_START_ADDRESS + UART_SIZE)
+
 //switch-on/off peripherals
 #define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}
 #define PERIPHERAL_SIZE 0x${peripheral_size_address}
@@ -72,10 +76,6 @@ extern "C" {
 #define PLIC_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${plic_start_offset})
 #define PLIC_SIZE 0x${plic_size_address}
 #define PLIC_END_ADDRESS (PLIC_START_ADDRESS + PLIC_SIZE)
-
-#define UART_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${uart_start_offset})
-#define UART_SIZE 0x${uart_size_address}
-#define UART_END_ADDRESS (UART_START_ADDRESS + UART_SIZE)
 
 #define GPIO_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${gpio_start_offset})
 #define GPIO_SIZE 0x${gpio_size_address}

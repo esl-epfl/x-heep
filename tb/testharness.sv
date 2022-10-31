@@ -34,6 +34,8 @@ module testharness #(
   import reg_pkg::*;
   import testharness_pkg::*;
 
+  localparam SWITCH_ACK_LATENCY = 15;
+
   wire uart_rx;
   wire uart_tx;
   logic sim_jtag_enable = (JTAG_DPI == 1);
@@ -60,12 +62,15 @@ module testharness #(
   obi_resp_t slave_resp;
   reg_req_t periph_slave_req;
   reg_rsp_t periph_slave_resp;
+
   // External peripheral example port
   reg_req_t memcopy_periph_req;
   reg_rsp_t memcopy_periph_rsp;
+
   // External xbar slave example port
   obi_req_t slow_ram_slave_req;
   obi_resp_t slow_ram_slave_resp;
+
   // External interrupts
   logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext;
   logic memcopy_intr;
@@ -149,10 +154,8 @@ module testharness #(
       .spi_sd_1_io(spi_sd_io[1]),
       .spi_sd_2_io(spi_sd_io[2]),
       .spi_sd_3_io(spi_sd_io[3]),
-
       .i2c_scl_io(gpio[31]),
       .i2c_sda_io(gpio[30]),
-
       .exit_value_o,
       .intr_vector_ext_i(intr_vector_ext),
       .ext_xbar_master_req_i(master_req),
@@ -160,9 +163,35 @@ module testharness #(
       .ext_xbar_slave_req_o(slave_req),
       .ext_xbar_slave_resp_i(slave_resp),
       .ext_peripheral_slave_req_o(periph_slave_req),
-      .ext_peripheral_slave_resp_i(periph_slave_resp)
+      .ext_peripheral_slave_resp_i(periph_slave_resp),
+      .external_subsystem_powergate_switch_o(),
+      .external_subsystem_powergate_switch_ack_i('0),
+      .external_subsystem_powergate_iso_o(),
+      .external_subsystem_rst_no()
   );
 
+  //pretending to be SWITCH CELLs that delay by SWITCH_ACK_LATENCY cycles the ACK signal
+  logic
+      tb_cpu_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY+1],
+      tb_peripheral_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY+1];
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] tb_memory_subsystem_banks_powergate_switch_ack[SWITCH_ACK_LATENCY+1];
+
+  always_ff @(posedge clk_i) begin
+    tb_cpu_subsystem_powergate_switch_ack[0] <= x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_powergate_switch;
+    tb_peripheral_subsystem_powergate_switch_ack[0] <= x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_powergate_switch;
+    tb_memory_subsystem_banks_powergate_switch_ack[0] <= x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch;
+    for (int i = 0; i < SWITCH_ACK_LATENCY; i++) begin
+      tb_memory_subsystem_banks_powergate_switch_ack[i+1] <= tb_memory_subsystem_banks_powergate_switch_ack[i];
+      tb_cpu_subsystem_powergate_switch_ack[i+1] <= tb_cpu_subsystem_powergate_switch_ack[i];
+      tb_peripheral_subsystem_powergate_switch_ack[i+1] <= tb_peripheral_subsystem_powergate_switch_ack[i];
+    end
+  end
+
+  always_comb begin
+    x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_powergate_switch_ack = tb_cpu_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY];
+    x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_powergate_switch_ack = tb_peripheral_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY];
+    x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_ack = tb_memory_subsystem_banks_powergate_switch_ack[SWITCH_ACK_LATENCY];
+  end
 
   uartdpi #(
       .BAUD('d256000),

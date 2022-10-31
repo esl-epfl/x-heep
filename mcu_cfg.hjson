@@ -80,6 +80,10 @@
             offset:  0x00090000,
             length:  0x00010000,
         },
+        uart: {
+            offset:  0x000A0000,
+            length:  0x00010000,
+        },
     },
 
     peripherals: {
@@ -87,10 +91,6 @@
         length:  0x00100000,
         plic: {
             offset:  0x00000000,
-            length:  0x00010000,
-        },
-        uart: {
-            offset:  0x00010000,
             length:  0x00010000,
         },
         gpio: {

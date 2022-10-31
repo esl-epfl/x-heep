@@ -11,6 +11,7 @@ module x_heep_system
     parameter PULP_ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0
 ) (
+    input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
 
     input  obi_req_t  [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
@@ -21,15 +22,16 @@ module x_heep_system
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
-    input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_o,
+    input  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_ack_i,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_o,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_no,
 
     output logic [31:0] exit_value_o,
 
 % for pad in total_pad_list:
 ${pad.x_heep_system_interface}
 % endfor
-
-
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -51,28 +53,23 @@ ${pad.internal_signals}
     .PULP_ZFINX(PULP_ZFINX),
     .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER)
   ) core_v_mini_mcu_i (
-
 % for pad in pad_list:
 ${pad.core_v_mini_mcu_bonding}
 % endfor
-
-    //External PADs
+    .intr_vector_ext_i,
     .pad_req_o(pad_req),
     .pad_resp_i(pad_resp),
-
-    .exit_value_o,
-
     .ext_xbar_master_req_i,
     .ext_xbar_master_resp_o,
-
     .ext_xbar_slave_req_o,
     .ext_xbar_slave_resp_i,
-
     .ext_peripheral_slave_req_o,
     .ext_peripheral_slave_resp_i,
-
-    .intr_vector_ext_i
-
+    .external_subsystem_powergate_switch_o,
+    .external_subsystem_powergate_switch_ack_i,
+    .external_subsystem_powergate_iso_o,
+    .external_subsystem_rst_no,
+    .exit_value_o
   );
 
   pad_ring pad_ring_i (
@@ -86,7 +83,6 @@ ${pad_constant_driver_assign}
 
 ${pad_mux_process}
 
-
   pad_control #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t),
@@ -99,6 +95,5 @@ ${pad_mux_process}
       .pad_attributes_o(pad_attributes),
       .pad_muxes_o(pad_muxes)
   );
-
 
 endmodule  // x_heep_system

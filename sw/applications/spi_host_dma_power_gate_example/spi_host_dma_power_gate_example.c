@@ -14,7 +14,7 @@
 #include "spi_host.h"
 #include "dma.h"
 #include "fast_intr_ctrl.h"
-#include "fast_intr_ctrl_regs.h"
+#include "power_manager.h"
 
 // Un-comment this line to use the SPI FLASH instead of the default SPI
 // #define USE_SPI_FLASH
@@ -64,6 +64,17 @@ int main(int argc, char *argv[])
     // dma peripheral structure to access the registers
     dma_t dma;
     dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
+
+    // Setup power_manager
+    mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
+    power_manager.base_addr = power_manager_reg;
+    power_manager_counters_t power_manager_cpu_counters;
+    // Init cpu_subsystem's counters
+    if (power_gate_counters_init(&power_manager_cpu_counters, 40, 40, 30, 30, 20, 20, 0, 0) != kPowerManagerOk_e)
+    {
+        printf("Error: power manager fail. Check the reset and powergate counters value\n");
+        return EXIT_FAILURE;
+    }
 
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
@@ -203,6 +214,15 @@ int main(int argc, char *argv[])
             spi_wait_for_ready(&spi_host);
         }
     #endif
+
+	// Power gate core and wait for fast DMA interrupt
+    CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+    if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
+    {
+        printf("Error: power manager fail.\n");
+        return EXIT_FAILURE;
+    }
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
 
     // Wait for DMA interrupt
     printf("Waiting for the DMA interrupt...\n");
