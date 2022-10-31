@@ -33,6 +33,8 @@
 int8_t dma_intr_flag;
 spi_host_t spi_host;
 
+static power_manager_t power_manager;
+
 void handler_irq_fast_dma(void)
 {
     fast_intr_ctrl_t fast_intr_ctrl;
