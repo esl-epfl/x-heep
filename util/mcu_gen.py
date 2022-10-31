@@ -314,6 +314,12 @@ def main():
                         default="",
                         help="Number of 32KB Banks (default value from cfg file)")
 
+    parser.add_argument("--external_domains",
+                        metavar="from 0 to 32",
+                        nargs='?',
+                        default="1",
+                        help="Number of external domains")
+
     parser.add_argument("--pkg-sv",
                         metavar="PKG_SV",
                         help="Name of top-level package file (output)")
@@ -388,6 +394,14 @@ def main():
 
     ram_size_address = '{:08X}'.format(ram_numbanks*32*1024)
 
+    if args.external_domains != None and args.external_domains != '':
+        external_domains = int(args.external_domains)
+    else:
+        external_domains = 0
+
+    if  external_domains > 32:
+        exit("external_domains must be less than 32 instead of " + str(external_domains))
+
     debug_start_address = string2int(obj['debug']['address'])
     if int(debug_start_address, 16) < int('10000', 16):
         exit("debug start address must be greater than 0x10000")
@@ -433,6 +447,9 @@ def main():
     pad_control_start_offset  = string2int(obj['ao_peripherals']['pad_control']['offset'])
     pad_control_size_address  = string2int(obj['ao_peripherals']['pad_control']['length'])
 
+    uart_start_offset  = string2int(obj['ao_peripherals']['uart']['offset'])
+    uart_size_address  = string2int(obj['ao_peripherals']['uart']['length'])
+
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
         exit("peripheral start address must be greater than 0x10000")
@@ -441,9 +458,6 @@ def main():
 
     plic_start_offset  = string2int(obj['peripherals']['plic']['offset'])
     plic_size_address  = string2int(obj['peripherals']['plic']['length'])
-
-    uart_start_offset  = string2int(obj['peripherals']['uart']['offset'])
-    uart_size_address  = string2int(obj['peripherals']['uart']['length'])
 
     gpio_start_offset  = string2int(obj['peripherals']['gpio']['offset'])
     gpio_size_address  = string2int(obj['peripherals']['gpio']['length'])
@@ -793,6 +807,7 @@ def main():
         "bus_type"                         : bus_type,
         "ram_start_address"                : ram_start_address,
         "ram_numbanks"                     : ram_numbanks,
+        "external_domains"                 : external_domains,
         "ram_size_address"                 : ram_size_address,
         "debug_start_address"              : debug_start_address,
         "debug_size_address"               : debug_size_address,

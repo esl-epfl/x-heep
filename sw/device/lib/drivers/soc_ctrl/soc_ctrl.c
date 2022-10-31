@@ -32,5 +32,6 @@ void soc_ctrl_select_spi_memio(const soc_ctrl_t *soc_ctrl) {
 }
 
 void soc_ctrl_select_spi_host(const soc_ctrl_t *soc_ctrl) {
+  mmio_region_write32(soc_ctrl->base_addr, (ptrdiff_t)(SOC_CTRL_ENABLE_SPI_SEL_REG_OFFSET), 0x1);
   mmio_region_write32(soc_ctrl->base_addr, (ptrdiff_t)(SOC_CTRL_USE_SPIMEMIO_REG_OFFSET), 0x0);
 }

@@ -37,20 +37,20 @@ typedef enum fast_intr_ctrl_result {
  * Fast interrupts.
  */
 typedef enum fast_intr_ctrl_fast_interrupt {
-  kTimer_1_e = 0,
-  kTimer_2_e = 1,
-  kTimer_3_e = 2,
-  kDma_e     = 3,
-  kSpi_e     = 4,
-  kSpiFlash  = 5,
-  kGpio_0_e  = 6,
-  kGpio_1_e  = 7,
-  kGpio_2_e  = 8,
-  kGpio_3_e  = 9,
-  kGpio_4_e  = 10,
-  kGpio_5_e  = 11,
-  kGpio_6_e  = 12,
-  kGpio_7_e  = 13,
+  kTimer_1_fic_e  = 0,
+  kTimer_2_fic_e  = 1,
+  kTimer_3_fic_e  = 2,
+  kDma_fic_e      = 3,
+  kSpi_fic_e      = 4,
+  kSpiFlash_fic_e = 5,
+  kGpio_0_fic_e   = 6,
+  kGpio_1_fic_e   = 7,
+  kGpio_2_fic_e   = 8,
+  kGpio_3_fic_e   = 9,
+  kGpio_4_fic_e   = 10,
+  kGpio_5_fic_e   = 11,
+  kGpio_6_fic_e   = 12,
+  kGpio_7_fic_e   = 13,
 } fast_intr_ctrl_fast_interrupt_t;
 
 fast_intr_ctrl_result_t clear_fast_interrupt(fast_intr_ctrl_t* fast_intr_ctrl, fast_intr_ctrl_fast_interrupt_t fast_interrupt);
