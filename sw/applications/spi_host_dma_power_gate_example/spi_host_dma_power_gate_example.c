@@ -24,13 +24,14 @@
 #define SPI_DATA_TYPE 0
 
 // Number of elements to copy
-#define COPY_DATA_NUM 16
+#define COPY_DATA_NUM 256
 
 #define FLASH_CLK_MAX_HZ (133*1000*1000) // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
 
 #define REVERT_24b_ADDR(addr) ((((uint32_t)(addr) & 0xff0000) >> 16) | ((uint32_t)(addr) & 0xff00) | (((uint32_t)(addr) & 0xff) << 16))
 
 int8_t dma_intr_flag;
+int8_t core_sleep_flag;
 spi_host_t spi_host;
 
 static power_manager_t power_manager;
@@ -72,7 +73,7 @@ int main(int argc, char *argv[])
     power_manager.base_addr = power_manager_reg;
     power_manager_counters_t power_manager_cpu_counters;
     // Init cpu_subsystem's counters
-    if (power_gate_counters_init(&power_manager_cpu_counters, 40, 40, 30, 30, 20, 20, 0, 0) != kPowerManagerOk_e)
+    if (power_gate_counters_init(&power_manager_cpu_counters, 400, 400, 300, 300, 200, 200, 0, 0) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail. Check the reset and powergate counters value\n");
         return EXIT_FAILURE;
@@ -101,6 +102,8 @@ int main(int argc, char *argv[])
 
     // SPI and SPI_FLASH are the same IP so same register map
     uint32_t *fifo_ptr_rx = spi_host.base_addr.base + SPI_HOST_RXDATA_REG_OFFSET;
+
+    core_sleep_flag = 0;
 
     // -- DMA CONFIGURATION --
     dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
@@ -217,14 +220,18 @@ int main(int argc, char *argv[])
         }
     #endif
 
-	// Power gate core and wait for fast DMA interrupt
+    // Power gate core and wait for fast DMA interrupt
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
-    {
-        printf("Error: power manager fail.\n");
-        return EXIT_FAILURE;
+    if(dma_intr_flag == 0) {
+        if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
+        {
+            printf("Error: power manager fail.\n");
+            return EXIT_FAILURE;
+        }
+        core_sleep_flag = 1;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    if(core_sleep_flag == 1) printf("Woke up from sleep!\n");
 
     // Wait for DMA interrupt
     printf("Waiting for the DMA interrupt...\n");
