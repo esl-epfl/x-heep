@@ -110,6 +110,8 @@ module power_manager #(
   logic cpu_switch_wait_ack;
   assign cpu_switch_wait_ack = reg2hw.cpu_wait_ack_switch_on_counter.q ? reg2hw.power_gate_core_ack.q == SWITCH_IDLE_VALUE : 1'b1;
 
+  logic cpu_subsystem_rst_n;
+
   reg_to_counter #(
       .DW(32),
       .ExpireValue('0)
@@ -166,8 +168,17 @@ module power_manager #(
       .counter_start_switch_on_o (cpu_reset_counter_start_switch_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(cpu_subsystem_rst_no)
+      .switch_onoff_signal_o(cpu_subsystem_rst_n)
   );
+
+  rstgen rstgen_cpu_i (
+    .clk_i,
+    .rst_ni(cpu_subsystem_rst_n),
+    .test_mode_i(1'b0),
+    .rst_no(cpu_subsystem_rst_no),
+    .init_no()
+  );
+
 
   logic cpu_powergate_counter_start_switch_off, cpu_powergate_counter_expired_switch_off;
   logic cpu_powergate_counter_start_switch_on, cpu_powergate_counter_expired_switch_on;
@@ -291,6 +302,8 @@ module power_manager #(
   logic periph_switch_wait_ack;
   assign periph_switch_wait_ack = reg2hw.periph_wait_ack_switch_on_counter.q ? reg2hw.power_gate_periph_ack.q == SWITCH_IDLE_VALUE : 1'b1;
 
+  logic peripheral_subsystem_rst_n;
+
   reg_to_counter #(
       .DW(32),
       .ExpireValue('0)
@@ -339,8 +352,17 @@ module power_manager #(
       .counter_start_switch_on_o (periph_reset_counter_start_switch_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(peripheral_subsystem_rst_no)
+      .switch_onoff_signal_o(peripheral_subsystem_rst_n)
   );
+
+  rstgen rstgen_periph_i (
+    .clk_i,
+    .rst_ni(peripheral_subsystem_rst_n),
+    .test_mode_i(1'b0),
+    .rst_no(peripheral_subsystem_rst_no),
+    .init_no()
+  );
+
 
   logic periph_powergate_counter_start_switch_off, periph_powergate_counter_expired_switch_off;
   logic periph_powergate_counter_start_switch_on, periph_powergate_counter_expired_switch_on;

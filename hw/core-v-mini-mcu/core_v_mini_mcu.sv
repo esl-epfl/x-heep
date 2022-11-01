@@ -11,9 +11,11 @@ module core_v_mini_mcu
     parameter PULP_ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0
 ) (
-    input logic clk_i,
 
     input logic rst_ni,
+
+    input logic clk_i,
+
 
     input logic boot_select_i,
 

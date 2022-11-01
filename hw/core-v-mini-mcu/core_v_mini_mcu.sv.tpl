@@ -11,6 +11,9 @@ module core_v_mini_mcu
     parameter PULP_ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0
 ) (
+
+    input logic rst_ni,
+
 % for pad in pad_list:
     ${pad.core_v_mini_mcu_interface}
 % endfor
