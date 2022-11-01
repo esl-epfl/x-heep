@@ -17,7 +17,7 @@
 #include "power_manager.h"
 
 // Un-comment this line to use the SPI FLASH instead of the default SPI
-#define USE_SPI_FLASH
+// #define USE_SPI_FLASH
 
 // Type of data frome the SPI. For types different than words the SPI data is requested in separate transactions
 // word(0), half-word(1), byte(2,3)
