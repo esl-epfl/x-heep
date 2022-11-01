@@ -23,7 +23,7 @@ filesets:
     - lowrisc:ip:rv_plic_example:0.1
     - lowrisc:ip:rv_timer:0.1
     - lowrisc:ip:gpio:0.1
-    - lowrisc:ip:spi_host:0.1
+    - lowrisc:ip:spi_host:1.0
     - lowrisc:ip:i2c:0.1
     - yosyshq:picorv32_spimemio:0-r1
     - x-heep:obi_spimemio:0.1.0

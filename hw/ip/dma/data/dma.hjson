@@ -69,5 +69,14 @@
         { bits: "2:0", name: "SPI_MODE", desc: "Copy/Read from SPI" }
       ]
     }
+    { name:     "DATA_TYPE",
+      desc:     "Data type to transfer: 32-bit word(0), 16-bit half word(1), 8-bit byte(2,3).",
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   0,
+      fields: [
+        { bits: "1:0", name: "DATA_TYPE", desc: "Data type" }
+      ]
+    }
    ]
 }

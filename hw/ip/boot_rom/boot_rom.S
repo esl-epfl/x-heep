@@ -52,7 +52,7 @@ _execute_from_flash:
 _copy_from_flash:
        lui    a1, SPI_FLASH_START_ADDRESS_20bit
        // Enable spi
-       lui    a0, 0x80000
+       lui    a0, 0xa0000
        lw     a4, SPI_HOST_CONTROL_REG_OFFSET(a1)
        or     a4, a4, a0
        sw     a4, SPI_HOST_CONTROL_REG_OFFSET(a1)
@@ -71,7 +71,7 @@ _copy_from_flash:
 
        // Power up flash (0xab flash command)
        li     a4, 0xab
-       sw     a4, SPI_HOST_DATA_REG_OFFSET(a1)
+       sw     a4, SPI_HOST_TXDATA_REG_OFFSET(a1)
        // Power up command: 0x10000003 (transmit 4 words)
        lui    a4, 0x10000
        addi   a4, a4, 3
@@ -84,7 +84,7 @@ _wait_spi_ready_cmd_pwr:
 
        // Fill TX FIFO with TX data (read command 0x03 + 3B address 0x000)
        li     a4, 0x03
-       sw     a4, SPI_HOST_DATA_REG_OFFSET(a1)
+       sw     a4, SPI_HOST_TXDATA_REG_OFFSET(a1)
        nop    # otherwise ready bit check is too fast
 
 _wait_spi_ready_tx_init:
@@ -134,7 +134,7 @@ _wait_spi_rxwm_8_words:
 
 _spi_fifo_read_8_words:
        // Read 32B (8 words) from RX FIFO
-       lw     a7, SPI_HOST_DATA_REG_OFFSET(a1)
+       lw     a7, SPI_HOST_RXDATA_REG_OFFSET(a1)
        sw     a7, 0(s1)
        addi   s1, s1, 4
        bne    s1, a2, _spi_fifo_read_8_words
