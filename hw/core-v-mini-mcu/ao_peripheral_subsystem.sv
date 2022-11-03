@@ -63,7 +63,7 @@ module ao_peripheral_subsystem
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_o,
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_no,
 
-    //RV TIMER
+    // RV TIMER
     output logic rv_timer_0_intr_o,
     output logic rv_timer_1_intr_o,
 
@@ -74,7 +74,7 @@ module ao_peripheral_subsystem
     input  obi_resp_t dma_master1_ch0_resp_i,
     output logic      dma_intr_o,
 
-    //External PADs
+    // External PADs
     output reg_req_t pad_req_o,
     input  reg_rsp_t pad_resp_i,
 
@@ -82,11 +82,11 @@ module ao_peripheral_subsystem
     input  logic [14:0] fast_intr_i,
     output logic [14:0] fast_intr_o,
 
-    //GPIO
-    input  logic [7:0] cio_gpio_i,
-    output logic [7:0] cio_gpio_o,
-    output logic [7:0] cio_gpio_en_o,
-    output logic [7:0] cio_gpio_intr_o,
+    // GPIO
+    input  logic [31:0] cio_gpio_i,
+    output logic [31:0] cio_gpio_o,
+    output logic [31:0] cio_gpio_en_o,
+    output logic [31:0] intr_gpio_o,
 
     // UART
     input  logic uart_rx_i,
@@ -127,11 +127,6 @@ module ao_peripheral_subsystem
   logic [AO_PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
   logic use_spimemio;
-
-  logic [31:0] cio_gpio_in;
-  logic [31:0] cio_gpio_out;
-  logic [31:0] cio_gpio_en;
-  logic [31:0] gpio_intr;
 
   logic spi_rx_valid;
   logic spi_tx_ready;
@@ -364,8 +359,8 @@ module ao_peripheral_subsystem
   ) reg_to_tlul_gpio_ao_i (
       .tl_o(gpio_tl_h2d),
       .tl_i(gpio_tl_d2h),
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::GPIO_AO_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_AO_IDX])
+      .reg_req_i(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_AO_IDX]),
+      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_AO_IDX])
   );
 
   gpio gpio_ao_i (
@@ -373,16 +368,11 @@ module ao_peripheral_subsystem
       .rst_ni,
       .tl_i(gpio_tl_h2d),
       .tl_o(gpio_tl_d2h),
-      .cio_gpio_i(cio_gpio_in),
-      .cio_gpio_o(cio_gpio_out),
-      .cio_gpio_en_o(cio_gpio_en),
-      .intr_gpio_o(gpio_intr)
+      .cio_gpio_i,
+      .cio_gpio_o,
+      .cio_gpio_en_o,
+      .intr_gpio_o
   );
-
-  assign cio_gpio_in[7:0] = cio_gpio_i;
-  assign cio_gpio_o = cio_gpio_out[7:0];
-  assign cio_gpio_en_o = cio_gpio_en[7:0];
-  assign cio_gpio_intr_o = gpio_intr[7:0];
 
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
