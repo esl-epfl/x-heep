@@ -33,7 +33,6 @@ module peripheral_subsystem
     input  logic [31:0] cio_gpio_i,
     output logic [31:0] cio_gpio_o,
     output logic [31:0] cio_gpio_en_o,
-    output logic [ 7:0] cio_gpio_intr_o,
 
     // I2C Interface
     input  logic cio_scl_i,
@@ -107,23 +106,23 @@ module peripheral_subsystem
   assign intr_vector[6] = uart_intr_rx_break_err_i;
   assign intr_vector[7] = uart_intr_rx_timeout_i;
   assign intr_vector[8] = uart_intr_rx_parity_err_i;
-  assign intr_vector[32:9] = gpio_intr[31:8];
-  assign intr_vector[33] = i2c_intr_fmt_watermark;
-  assign intr_vector[34] = i2c_intr_rx_watermark;
-  assign intr_vector[35] = i2c_intr_fmt_overflow;
-  assign intr_vector[36] = i2c_intr_rx_overflow;
-  assign intr_vector[37] = i2c_intr_nak;
-  assign intr_vector[38] = i2c_intr_scl_interference;
-  assign intr_vector[39] = i2c_intr_sda_interference;
-  assign intr_vector[40] = i2c_intr_stretch_timeout;
-  assign intr_vector[41] = i2c_intr_sda_unstable;
-  assign intr_vector[42] = i2c_intr_trans_complete;
-  assign intr_vector[43] = i2c_intr_tx_empty;
-  assign intr_vector[44] = i2c_intr_tx_nonempty;
-  assign intr_vector[45] = i2c_intr_tx_overflow;
-  assign intr_vector[46] = i2c_intr_acq_overflow;
-  assign intr_vector[47] = i2c_intr_ack_stop;
-  assign intr_vector[48] = i2c_intr_host_timeout;
+  assign intr_vector[40:9] = gpio_intr;
+  assign intr_vector[41] = i2c_intr_fmt_watermark;
+  assign intr_vector[42] = i2c_intr_rx_watermark;
+  assign intr_vector[43] = i2c_intr_fmt_overflow;
+  assign intr_vector[44] = i2c_intr_rx_overflow;
+  assign intr_vector[45] = i2c_intr_nak;
+  assign intr_vector[46] = i2c_intr_scl_interference;
+  assign intr_vector[47] = i2c_intr_sda_interference;
+  assign intr_vector[48] = i2c_intr_stretch_timeout;
+  assign intr_vector[49] = i2c_intr_sda_unstable;
+  assign intr_vector[50] = i2c_intr_trans_complete;
+  assign intr_vector[51] = i2c_intr_tx_empty;
+  assign intr_vector[52] = i2c_intr_tx_nonempty;
+  assign intr_vector[53] = i2c_intr_tx_overflow;
+  assign intr_vector[54] = i2c_intr_acq_overflow;
+  assign intr_vector[55] = i2c_intr_ack_stop;
+  assign intr_vector[56] = i2c_intr_host_timeout;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin
@@ -239,8 +238,6 @@ module peripheral_subsystem
       .cio_gpio_en_o(cio_gpio_en_o),
       .intr_gpio_o(gpio_intr)
   );
-
-  assign cio_gpio_intr_o = gpio_intr[7:0];
 
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),

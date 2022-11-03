@@ -64,6 +64,10 @@ extern "C" {
 #define PAD_CONTROL_SIZE 0x${pad_control_size_address}
 #define PAD_CONTROL_END_ADDRESS (PAD_CONTROL_START_ADDRESS + PAD_CONTROL_SIZE)
 
+#define GPIO_AO_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${gpio_ao_start_offset})
+#define GPIO_AO_SIZE 0x${gpio_ao_size_address}
+#define GPIO_AO_END_ADDRESS (GPIO_AO_START_ADDRESS + GPIO_AO_SIZE)
+
 #define UART_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${uart_start_offset})
 #define UART_SIZE 0x${uart_size_address}
 #define UART_END_ADDRESS (UART_START_ADDRESS + UART_SIZE)
@@ -106,6 +110,14 @@ extern "C" {
 #define UART_INTR_RX_BREAK_ERR ${uart_intr_rx_break_err}
 #define UART_INTR_RX_TIMEOUT ${uart_intr_rx_timeout}
 #define UART_INTR_RX_PARITY_ERR ${uart_intr_rx_parity_err}
+#define GPIO_INTR_0 ${gpio_intr_8}
+#define GPIO_INTR_1 ${gpio_intr_8}
+#define GPIO_INTR_2 ${gpio_intr_8}
+#define GPIO_INTR_3 ${gpio_intr_8}
+#define GPIO_INTR_4 ${gpio_intr_8}
+#define GPIO_INTR_5 ${gpio_intr_8}
+#define GPIO_INTR_6 ${gpio_intr_8}
+#define GPIO_INTR_7 ${gpio_intr_8}
 #define GPIO_INTR_8 ${gpio_intr_8}
 #define GPIO_INTR_9 ${gpio_intr_9}
 #define GPIO_INTR_10 ${gpio_intr_10}
@@ -153,14 +165,6 @@ extern "C" {
 #define EXT_INTR_4 ${ext_intr_4}
 #define EXT_INTR_5 ${ext_intr_5}
 #define EXT_INTR_6 ${ext_intr_6}
-#define EXT_INTR_7 ${ext_intr_7}
-#define EXT_INTR_8 ${ext_intr_8}
-#define EXT_INTR_9 ${ext_intr_9}
-#define EXT_INTR_10 ${ext_intr_10}
-#define EXT_INTR_11 ${ext_intr_11}
-#define EXT_INTR_12 ${ext_intr_12}
-#define EXT_INTR_13 ${ext_intr_13}
-#define EXT_INTR_14 ${ext_intr_14}
 
 % for pad in pad_list:
 #define ${pad.localparam}_ATTRIBUTE ${pad.index}

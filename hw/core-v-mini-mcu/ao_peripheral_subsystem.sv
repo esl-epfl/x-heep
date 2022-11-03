@@ -82,6 +82,12 @@ module ao_peripheral_subsystem
     input  logic [14:0] fast_intr_i,
     output logic [14:0] fast_intr_o,
 
+    //GPIO
+    input  logic [7:0] cio_gpio_i,
+    output logic [7:0] cio_gpio_o,
+    output logic [7:0] cio_gpio_en_o,
+    output logic [7:0] cio_gpio_intr_o,
+
     // UART
     input  logic uart_rx_i,
     output logic uart_tx_o,
@@ -112,12 +118,20 @@ module ao_peripheral_subsystem
   tlul_pkg::tl_h2d_t rv_timer_tl_h2d;
   tlul_pkg::tl_d2h_t rv_timer_tl_d2h;
 
+  tlul_pkg::tl_h2d_t gpio_tl_h2d;
+  tlul_pkg::tl_d2h_t gpio_tl_d2h;
+
   tlul_pkg::tl_h2d_t uart_tl_h2d;
   tlul_pkg::tl_d2h_t uart_tl_d2h;
 
   logic [AO_PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
   logic use_spimemio;
+
+  logic [31:0] cio_gpio_in;
+  logic [31:0] cio_gpio_out;
+  logic [31:0] cio_gpio_en;
+  logic [31:0] gpio_intr;
 
   logic spi_rx_valid;
   logic spi_tx_ready;
@@ -345,6 +359,39 @@ module ao_peripheral_subsystem
       .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
       .PutFullData(tlul_pkg::PutFullData),
       .Get(tlul_pkg::Get)
+  ) reg_to_tlul_gpio_ao_i (
+      .tl_o(gpio_tl_h2d),
+      .tl_i(gpio_tl_d2h),
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::GPIO_AO_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_AO_IDX])
+  );
+
+  gpio gpio_ao_i (
+      .clk_i,
+      .rst_ni,
+      .tl_i(gpio_tl_h2d),
+      .tl_o(gpio_tl_d2h),
+      .cio_gpio_i(cio_gpio_in),
+      .cio_gpio_o(cio_gpio_out),
+      .cio_gpio_en_o(cio_gpio_en),
+      .intr_gpio_o(gpio_intr)
+  );
+
+  assign cio_gpio_in[7:0] = cio_gpio_i;
+  assign cio_gpio_o = cio_gpio_out[7:0];
+  assign cio_gpio_en_o = cio_gpio_en[7:0];
+  assign cio_gpio_intr_o = gpio_intr[7:0];
+
+  reg_to_tlul #(
+      .req_t(reg_pkg::reg_req_t),
+      .rsp_t(reg_pkg::reg_rsp_t),
+      .tl_h2d_t(tlul_pkg::tl_h2d_t),
+      .tl_d2h_t(tlul_pkg::tl_d2h_t),
+      .tl_a_user_t(tlul_pkg::tl_a_user_t),
+      .tl_a_op_e(tlul_pkg::tl_a_op_e),
+      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
+      .PutFullData(tlul_pkg::PutFullData),
+      .Get(tlul_pkg::Get)
   ) reg_to_tlul_uart_i (
       .tl_o(uart_tl_h2d),
       .tl_i(uart_tl_d2h),
@@ -369,7 +416,6 @@ module ao_peripheral_subsystem
       .intr_rx_timeout_o(uart_intr_rx_timeout_o),
       .intr_rx_parity_err_o(uart_intr_rx_parity_err_o)
   );
-
 
 
 endmodule : ao_peripheral_subsystem

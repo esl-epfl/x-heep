@@ -102,7 +102,7 @@ package core_v_mini_mcu_pkg;
   };
 
   //always-on peripherals
-  localparam AO_PERIPHERALS = 12;
+  localparam AO_PERIPHERALS = 13;
 
   localparam logic[31:0] SOC_CTRL_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${soc_ctrl_start_offset};
   localparam logic[31:0] SOC_CTRL_SIZE = 32'h${soc_ctrl_size_address};
@@ -159,10 +159,15 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] PAD_CONTROL_END_ADDRESS = PAD_CONTROL_START_ADDRESS + PAD_CONTROL_SIZE;
   localparam logic[31:0] PAD_CONTROL_IDX = 32'd10;
 
+  localparam logic[31:0] GPIO_AO_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${gpio_ao_start_offset};
+  localparam logic[31:0] GPIO_AO_SIZE = 32'h${gpio_ao_size_address};
+  localparam logic[31:0] GPIO_AO_END_ADDRESS = GPIO_AO_START_ADDRESS + GPIO_AO_SIZE;
+  localparam logic[31:0] GPIO_AO_IDX = 32'd11;
+
   localparam logic[31:0] UART_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${uart_start_offset};
   localparam logic[31:0] UART_SIZE = 32'h${uart_size_address};
   localparam logic[31:0] UART_END_ADDRESS = UART_START_ADDRESS + UART_SIZE;
-  localparam logic[31:0] UART_IDX = 32'd11;
+  localparam logic[31:0] UART_IDX = 32'd12;
 
   localparam addr_map_rule_t [AO_PERIPHERALS-1:0] AO_PERIPHERALS_ADDR_RULES = '{
       '{ idx: SOC_CTRL_IDX, start_addr: SOC_CTRL_START_ADDRESS, end_addr: SOC_CTRL_END_ADDRESS },
@@ -176,6 +181,7 @@ package core_v_mini_mcu_pkg;
       '{ idx: FAST_INTR_CTRL_IDX, start_addr: FAST_INTR_CTRL_START_ADDRESS, end_addr: FAST_INTR_CTRL_END_ADDRESS },
       '{ idx: EXT_PERIPH_IDX, start_addr: EXT_PERIPH_START_ADDRESS, end_addr: EXT_PERIPH_END_ADDRESS },
       '{ idx: PAD_CONTROL_IDX, start_addr: PAD_CONTROL_START_ADDRESS, end_addr: PAD_CONTROL_END_ADDRESS },
+      '{ idx: GPIO_AO_IDX, start_addr: GPIO_AO_START_ADDRESS, end_addr: GPIO_AO_END_ADDRESS },
       '{ idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS }
   };
 
@@ -215,7 +221,7 @@ package core_v_mini_mcu_pkg;
 
   // Interrupts
   localparam PLIC_NINT = 64;
-  localparam PLIC_USED_NINT = 49;
+  localparam PLIC_USED_NINT = 57;
   localparam NEXT_INT = PLIC_NINT - PLIC_USED_NINT;
 
 % for pad in total_pad_list:

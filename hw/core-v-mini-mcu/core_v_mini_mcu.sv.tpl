@@ -124,11 +124,16 @@ module core_v_mini_mcu
   // SPI
   logic spi_flash_intr, spi_intr;
 
-  //GPIO
+  // GPIO
   logic [31:0] gpio_in;
   logic [31:0] gpio_out;
   logic [31:0] gpio_oe;
-  logic [7:0] gpio_intr;
+
+  // GPIO_AO
+  logic [7:0] gpio_ao_in;
+  logic [7:0] gpio_ao_out;
+  logic [7:0] gpio_ao_oe;
+  logic [7:0] gpio_ao_intr;
 
   // UART PLIC interrupts
   logic uart_intr_tx_watermark;
@@ -146,7 +151,7 @@ module core_v_mini_mcu
 
   assign fast_intr = {
     1'b0,
-    gpio_intr,
+    gpio_ao_intr,
     spi_flash_intr,
     spi_intr,
     dma_intr,
@@ -293,6 +298,10 @@ module core_v_mini_mcu
       .pad_resp_i,
       .fast_intr_i(fast_intr),
       .fast_intr_o(irq_fast),
+      .cio_gpio_i(gpio_ao_in),
+      .cio_gpio_o(gpio_ao_out),
+      .cio_gpio_en_o(gpio_ao_oe),
+      .cio_gpio_intr_o(gpio_ao_intr),
       .uart_rx_i,
       .uart_tx_o,
       .uart_intr_tx_watermark_o(uart_intr_tx_watermark),
@@ -328,7 +337,6 @@ module core_v_mini_mcu
       .cio_gpio_i(gpio_in),
       .cio_gpio_o(gpio_out),
       .cio_gpio_en_o(gpio_oe),
-      .cio_gpio_intr_o(gpio_intr),
       .cio_scl_i(i2c_scl_i),
       .cio_scl_o(i2c_scl_o),
       .cio_scl_en_o(i2c_scl_oe_o),
