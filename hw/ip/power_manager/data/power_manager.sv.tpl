@@ -103,8 +103,19 @@ module power_manager #(
   logic cpu_reset_counter_start_switch_off, cpu_reset_counter_expired_switch_off;
   logic cpu_reset_counter_start_switch_on, cpu_reset_counter_expired_switch_on;
 
+  logic cpu_subsystem_powergate_switch_ack_sync;
+
+  sync #(
+      .ResetValue(1'b0)
+  ) sync_cpu_ack_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(cpu_subsystem_powergate_switch_ack_i),
+      .serial_o(cpu_subsystem_powergate_switch_ack_sync)
+  );
+
   assign hw2reg.power_gate_core_ack.de = 1'b1;
-  assign hw2reg.power_gate_core_ack.d = cpu_subsystem_powergate_switch_ack_i;
+  assign hw2reg.power_gate_core_ack.d = cpu_subsystem_powergate_switch_ack_sync;
 
   //if you want to wait for ACK, or just bypass it
   logic cpu_switch_wait_ack;
@@ -168,6 +179,7 @@ module power_manager #(
       // switch on and off signal, 1 means on
       .switch_onoff_signal_o(cpu_subsystem_rst_no)
   );
+
 
   logic cpu_powergate_counter_start_switch_off, cpu_powergate_counter_expired_switch_off;
   logic cpu_powergate_counter_start_switch_on, cpu_powergate_counter_expired_switch_on;
@@ -284,8 +296,19 @@ module power_manager #(
   logic periph_reset_counter_start_switch_off, periph_reset_counter_expired_switch_off;
   logic periph_reset_counter_start_switch_on, periph_reset_counter_expired_switch_on;
 
+  logic peripheral_subsystem_powergate_switch_ack_sync;
+
+  sync #(
+      .ResetValue(1'b0)
+  ) sync_periph_ack_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(peripheral_subsystem_powergate_switch_ack_i),
+      .serial_o(peripheral_subsystem_powergate_switch_ack_sync)
+  );
+
   assign hw2reg.power_gate_periph_ack.de = 1'b1;
-  assign hw2reg.power_gate_periph_ack.d = peripheral_subsystem_powergate_switch_ack_i;
+  assign hw2reg.power_gate_periph_ack.d = peripheral_subsystem_powergate_switch_ack_sync;
 
   //if you want to wait for ACK, or just bypass it
   logic periph_switch_wait_ack;
@@ -341,6 +364,7 @@ module power_manager #(
       // switch on and off signal, 1 means on
       .switch_onoff_signal_o(peripheral_subsystem_rst_no)
   );
+
 
   logic periph_powergate_counter_start_switch_off, periph_powergate_counter_expired_switch_off;
   logic periph_powergate_counter_start_switch_on, periph_powergate_counter_expired_switch_on;
@@ -458,8 +482,19 @@ module power_manager #(
   logic ram_${bank}_powergate_counter_start_switch_off, ram_${bank}_powergate_counter_expired_switch_off;
   logic ram_${bank}_powergate_counter_start_switch_on, ram_${bank}_powergate_counter_expired_switch_on;
 
+  logic ram_${bank}_subsystem_powergate_switch_ack_sync;
+
+  sync #(
+      .ResetValue(1'b0)
+  ) sync_ram${bank}_ack_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(memory_subsystem_banks_powergate_switch_ack_i[${bank}]),
+      .serial_o(ram_${bank}_subsystem_powergate_switch_ack_sync)
+  );
+
   assign hw2reg.power_gate_ram_block_${bank}_ack.de = 1'b1;
-  assign hw2reg.power_gate_ram_block_${bank}_ack.d = memory_subsystem_banks_powergate_switch_ack_i[${bank}];
+  assign hw2reg.power_gate_ram_block_${bank}_ack.d = ram_${bank}_subsystem_powergate_switch_ack_sync;
 
   //if you want to wait for ACK, or just bypass it
   logic ram_${bank}_switch_wait_ack;

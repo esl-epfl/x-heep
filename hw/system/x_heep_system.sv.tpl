@@ -36,11 +36,27 @@ ${pad.x_heep_system_interface}
 
   import core_v_mini_mcu_pkg::*;
 
+  // PM signals
+  logic cpu_subsystem_powergate_switch;
+  logic cpu_subsystem_powergate_switch_ack;
+  logic cpu_subsystem_powergate_iso;
+  logic cpu_subsystem_rst_n;
+  logic peripheral_subsystem_powergate_switch;
+  logic peripheral_subsystem_powergate_switch_ack;
+  logic peripheral_subsystem_powergate_iso;
+  logic peripheral_subsystem_rst_n;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive;
+
   // PAD controller
   reg_req_t pad_req;
   reg_rsp_t pad_resp;
   logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][7:0] pad_attributes;
   logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][3:0] pad_muxes;
+
+  logic rst_ngen;
 
   //input, output pins from core_v_mini_mcu
 % for pad in total_pad_list:
@@ -53,6 +69,8 @@ ${pad.internal_signals}
     .PULP_ZFINX(PULP_ZFINX),
     .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER)
   ) core_v_mini_mcu_i (
+
+    .rst_ni(rst_ngen),
 % for pad in pad_list:
 ${pad.core_v_mini_mcu_bonding}
 % endfor
@@ -65,6 +83,12 @@ ${pad.core_v_mini_mcu_bonding}
     .ext_xbar_slave_resp_i,
     .ext_peripheral_slave_req_o,
     .ext_peripheral_slave_resp_i,
+    .cpu_subsystem_powergate_switch_o(cpu_subsystem_powergate_switch),
+    .cpu_subsystem_powergate_switch_ack_i(cpu_subsystem_powergate_switch_ack),
+    .peripheral_subsystem_powergate_switch_o(peripheral_subsystem_powergate_switch),
+    .peripheral_subsystem_powergate_switch_ack_i(peripheral_subsystem_powergate_switch_ack),
+    .memory_subsystem_banks_powergate_switch_o(memory_subsystem_banks_powergate_switch),
+    .memory_subsystem_banks_powergate_switch_ack_i(memory_subsystem_banks_powergate_switch_ack),
     .external_subsystem_powergate_switch_o,
     .external_subsystem_powergate_switch_ack_i,
     .external_subsystem_powergate_iso_o,
@@ -88,12 +112,21 @@ ${pad_mux_process}
       .reg_rsp_t(reg_pkg::reg_rsp_t),
       .NUM_PAD  (core_v_mini_mcu_pkg::NUM_PAD)
   ) pad_control_i (
-      .clk_i,
-      .rst_ni,
+      .clk_i(clk_in_x),
+      .rst_ni(rst_nin_x),
       .reg_req_i(pad_req),
       .reg_rsp_o(pad_resp),
       .pad_attributes_o(pad_attributes),
       .pad_muxes_o(pad_muxes)
   );
+
+  rstgen rstgen_i (
+    .clk_i(clk_in_x),
+    .rst_ni(rst_nin_x),
+    .test_mode_i(1'b0),
+    .rst_no(rst_ngen),
+    .init_no()
+  );
+
 
 endmodule  // x_heep_system

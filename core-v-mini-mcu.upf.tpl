@@ -88,8 +88,8 @@ create_power_switch switch_PD_CPU <%text>\</%text>
     -domain             PD_CPU <%text>\</%text>
     -input_supply_port  {sw_in     VDD} <%text>\</%text>
     -output_supply_port {sw_out    VDD_CPU} <%text>\</%text>
-    -control_port       {sw_ctrl   cpu_subsystem_powergate_switch} <%text>\</%text>
-    -ack_port           {sw_ack    cpu_subsystem_powergate_switch_ack} <%text>\</%text>
+    -control_port       {sw_ctrl   cpu_subsystem_powergate_switch_o} <%text>\</%text>
+    -ack_port           {sw_ack    cpu_subsystem_powergate_switch_ack_i} <%text>\</%text>
     -on_state           {on_state  sw_in {sw_ctrl}} <%text>\</%text>
     -off_state          {off_state {!sw_ctrl}}
 
@@ -98,8 +98,8 @@ create_power_switch switch_PD_PERIP_SUBS <%text>\</%text>
     -domain             PD_PERIP_SUBS <%text>\</%text>
     -input_supply_port  {sw_in     VDD} <%text>\</%text>
     -output_supply_port {sw_out    VDD_PERIP_SUBS} <%text>\</%text>
-    -control_port       {sw_ctrl   peripheral_subsystem_powergate_switch} <%text>\</%text>
-    -ack_port           {sw_ack    peripheral_subsystem_powergate_switch_ack} <%text>\</%text>
+    -control_port       {sw_ctrl   peripheral_subsystem_powergate_switch_o} <%text>\</%text>
+    -ack_port           {sw_ack    peripheral_subsystem_powergate_switch_ack_i} <%text>\</%text>
     -on_state           {on_state  sw_in {sw_ctrl}} <%text>\</%text>
     -off_state          {off_state {!sw_ctrl}}
 
@@ -109,8 +109,8 @@ create_power_switch switch_PD_MEM_BANK_${bank} <%text>\</%text>
     -domain             PD_MEM_BANK_${bank} <%text>\</%text>
     -input_supply_port  {sw_in     VDD} <%text>\</%text>
     -output_supply_port {sw_out    VDD_MEM_BANK_${bank}} <%text>\</%text>
-    -control_port       {sw_ctrl   memory_subsystem_banks_powergate_switch[${bank}]} <%text>\</%text>
-    -ack_port           {sw_ack    memory_subsystem_banks_powergate_switch_ack[${bank}]} <%text>\</%text>
+    -control_port       {sw_ctrl   memory_subsystem_banks_powergate_switch_o[${bank}]} <%text>\</%text>
+    -ack_port           {sw_ack    memory_subsystem_banks_powergate_switch_ack_i[${bank}]} <%text>\</%text>
     -on_state           {on_state  sw_in {sw_ctrl}} <%text>\</%text>
     -off_state          {off_state {!sw_ctrl}}
 
