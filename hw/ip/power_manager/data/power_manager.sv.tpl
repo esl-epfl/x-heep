@@ -103,14 +103,23 @@ module power_manager #(
   logic cpu_reset_counter_start_switch_off, cpu_reset_counter_expired_switch_off;
   logic cpu_reset_counter_start_switch_on, cpu_reset_counter_expired_switch_on;
 
+  logic cpu_subsystem_powergate_switch_ack_sync;
+
+  sync #(
+      .ResetValue(1'b0)
+  ) sync_cpu_ack_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(cpu_subsystem_powergate_switch_ack_i),
+      .serial_o(cpu_subsystem_powergate_switch_ack_sync)
+  );
+
   assign hw2reg.power_gate_core_ack.de = 1'b1;
-  assign hw2reg.power_gate_core_ack.d = cpu_subsystem_powergate_switch_ack_i;
+  assign hw2reg.power_gate_core_ack.d = cpu_subsystem_powergate_switch_ack_sync;
 
   //if you want to wait for ACK, or just bypass it
   logic cpu_switch_wait_ack;
   assign cpu_switch_wait_ack = reg2hw.cpu_wait_ack_switch_on_counter.q ? reg2hw.power_gate_core_ack.q == SWITCH_IDLE_VALUE : 1'b1;
-
-  logic cpu_subsystem_rst_n;
 
   reg_to_counter #(
       .DW(32),
@@ -168,15 +177,7 @@ module power_manager #(
       .counter_start_switch_on_o (cpu_reset_counter_start_switch_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(cpu_subsystem_rst_n)
-  );
-
-  rstgen rstgen_cpu_i (
-    .clk_i,
-    .rst_ni(cpu_subsystem_rst_n),
-    .test_mode_i(1'b0),
-    .rst_no(cpu_subsystem_rst_no),
-    .init_no()
+      .switch_onoff_signal_o(cpu_subsystem_rst_no)
   );
 
 
@@ -295,14 +296,23 @@ module power_manager #(
   logic periph_reset_counter_start_switch_off, periph_reset_counter_expired_switch_off;
   logic periph_reset_counter_start_switch_on, periph_reset_counter_expired_switch_on;
 
+  logic peripheral_subsystem_powergate_switch_ack_sync;
+
+  sync #(
+      .ResetValue(1'b0)
+  ) sync_periph_ack_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(peripheral_subsystem_powergate_switch_ack_i),
+      .serial_o(peripheral_subsystem_powergate_switch_ack_sync)
+  );
+
   assign hw2reg.power_gate_periph_ack.de = 1'b1;
-  assign hw2reg.power_gate_periph_ack.d = peripheral_subsystem_powergate_switch_ack_i;
+  assign hw2reg.power_gate_periph_ack.d = peripheral_subsystem_powergate_switch_ack_sync;
 
   //if you want to wait for ACK, or just bypass it
   logic periph_switch_wait_ack;
   assign periph_switch_wait_ack = reg2hw.periph_wait_ack_switch_on_counter.q ? reg2hw.power_gate_periph_ack.q == SWITCH_IDLE_VALUE : 1'b1;
-
-  logic peripheral_subsystem_rst_n;
 
   reg_to_counter #(
       .DW(32),
@@ -352,15 +362,7 @@ module power_manager #(
       .counter_start_switch_on_o (periph_reset_counter_start_switch_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(peripheral_subsystem_rst_n)
-  );
-
-  rstgen rstgen_periph_i (
-    .clk_i,
-    .rst_ni(peripheral_subsystem_rst_n),
-    .test_mode_i(1'b0),
-    .rst_no(peripheral_subsystem_rst_no),
-    .init_no()
+      .switch_onoff_signal_o(peripheral_subsystem_rst_no)
   );
 
 
@@ -480,8 +482,19 @@ module power_manager #(
   logic ram_${bank}_powergate_counter_start_switch_off, ram_${bank}_powergate_counter_expired_switch_off;
   logic ram_${bank}_powergate_counter_start_switch_on, ram_${bank}_powergate_counter_expired_switch_on;
 
+  logic ram_${bank}_subsystem_powergate_switch_ack_sync;
+
+  sync #(
+      .ResetValue(1'b0)
+  ) sync_ram${bank}_ack_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(memory_subsystem_banks_powergate_switch_ack_i[${bank}]),
+      .serial_o(ram_${bank}_subsystem_powergate_switch_ack_sync)
+  );
+
   assign hw2reg.power_gate_ram_block_${bank}_ack.de = 1'b1;
-  assign hw2reg.power_gate_ram_block_${bank}_ack.d = memory_subsystem_banks_powergate_switch_ack_i[${bank}];
+  assign hw2reg.power_gate_ram_block_${bank}_ack.d = ram_${bank}_subsystem_powergate_switch_ack_sync;
 
   //if you want to wait for ACK, or just bypass it
   logic ram_${bank}_switch_wait_ack;
