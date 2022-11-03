@@ -66,7 +66,7 @@ _start:
     or     a4, a4, s0
     or     a2, a4, a5
     or     a2, a2, 0x03
-    sw     a2, SPI_HOST_DATA_REG_OFFSET(a1)
+    sw     a2, SPI_HOST_TXDATA_REG_OFFSET(a1)
     nop    # otherwise ready bit check is too fast
 
 _wait_spi_ready_read_prog:
@@ -123,7 +123,7 @@ _wait_spi_rxwm_8_words:
 
 _spi_fifo_read_8_words:
     // Read 32B (8 words) from RX FIFO
-    lw     a7, SPI_HOST_DATA_REG_OFFSET(a1)
+    lw     a7, SPI_HOST_RXDATA_REG_OFFSET(a1)
     sw     a7, 0(s1)
     addi   s1, s1, 4
     bne    s1, a2, _spi_fifo_read_8_words
@@ -140,7 +140,7 @@ _wait_spi_rxwm_8_words_1:
 
 _spi_fifo_read_8_words_1:
     // Read 32B (8 words) from RX FIFO
-    lw     a7, SPI_HOST_DATA_REG_OFFSET(a1)
+    lw     a7, SPI_HOST_RXDATA_REG_OFFSET(a1)
     sw     a7, 0(s1)
     addi   s1, s1, 4
     bne    s1, a2, _spi_fifo_read_8_words_1
@@ -166,7 +166,7 @@ _remaining_bytes_loop:
     j      _init_bss
 
 _spi_read_word:
-    lw     a7, SPI_HOST_DATA_REG_OFFSET(a1)
+    lw     a7, SPI_HOST_RXDATA_REG_OFFSET(a1)
     sw     a7, 0(s1)
     addi   a3, a3, -4
     addi   s1, s1, 4

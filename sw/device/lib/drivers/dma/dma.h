@@ -74,6 +74,13 @@ void dma_set_write_ptr_inc(const dma_t *dma, uint32_t write_ptr_inc);
  */
 void dma_set_spi_mode(const dma_t *dma, uint32_t spi_mode);
 
+/**
+ * Sets the DMA data type.
+ * @param dma Pointer to dma_t represting the target DMA.
+ * @param data_type Data type to transfer: 32-bit word(0), 16-bit half word (1), 8-bit byte(2,3).
+ */
+void dma_set_data_type(const dma_t *dma, uint32_t data_type);
+
 #ifdef __cplusplus
 }
 #endif
