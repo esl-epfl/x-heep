@@ -36,3 +36,7 @@ void dma_set_write_ptr_inc(const dma_t *dma, uint32_t write_ptr_inc){
 void dma_set_spi_mode(const dma_t *dma, uint32_t spi_mode){
   mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_SPI_MODE_REG_OFFSET), spi_mode);
 }
+
+void dma_set_data_type(const dma_t *dma, uint32_t data_type){
+  mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_DATA_TYPE_REG_OFFSET), data_type);
+}

@@ -13,6 +13,8 @@
 
 #include "power_manager_regs.h"  // Generated.
 
+#include "x-heep.h"
+
 void power_gate_core_asm()
 {
     asm volatile (
@@ -312,7 +314,11 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_core(const power_ma
 
     // enable wait for SWITCH ACK
     reg = 0;
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
+    #ifndef TARGET_PYNQ_Z2
+        reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
+    #else
+        reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, false);
+    #endif
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET), reg);
 
     power_gate_core_asm();
@@ -348,7 +354,11 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_periph(const power_
 
     // enable wait for SWITCH ACK
     reg = 0;
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
+    #ifndef TARGET_PYNQ_Z2
+        reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
+    #else
+        reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_BIT, false);
+    #endif
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET), reg);
 
     if (sel_state == kOn_e)
@@ -386,13 +396,21 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_ram_block(const pow
 
     if (sel_state == kOn_e)
     {
-        reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].wait_ack_switch_on_counter_bit), true);
+        #ifndef TARGET_PYNQ_Z2
+            reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].wait_ack_switch_on_counter_bit), true);
+        #else
+            reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].wait_ack_switch_on_counter_bit), false);
+        #endif
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch_on_counter), reg);
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].power_gate), 0x0);
     }
     else if (sel_state == kOff_e)
     {
-        reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].wait_ack_switch_on_counter_bit), true);
+        #ifndef TARGET_PYNQ_Z2
+            reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].wait_ack_switch_on_counter_bit), true);
+        #else
+            reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].wait_ack_switch_on_counter_bit), false);
+        #endif
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch_on_counter), reg);
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].power_gate), 0x1);
     }
@@ -435,7 +453,11 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_external(const powe
 
     // enable wait for SWITCH ACK
     reg = 0;
-    reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].wait_ack_switch_on_counter_bit), true);
+    #ifndef TARGET_PYNQ_Z2
+        reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].wait_ack_switch_on_counter_bit), true);
+    #else
+        reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].wait_ack_switch_on_counter_bit), false);
+    #endif
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch_on_counter), reg);
 
     if (sel_state == kOn_e)
