@@ -198,6 +198,7 @@
         rst: {
             num: 1,
             active: low,
+            driven_manually: True
             type: input
         },
         boot_select: {
