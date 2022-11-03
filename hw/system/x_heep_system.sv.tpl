@@ -36,6 +36,20 @@ ${pad.x_heep_system_interface}
 
   import core_v_mini_mcu_pkg::*;
 
+  // PM signals
+  logic cpu_subsystem_powergate_switch;
+  logic cpu_subsystem_powergate_switch_ack;
+  logic cpu_subsystem_powergate_iso;
+  logic cpu_subsystem_rst_n;
+  logic peripheral_subsystem_powergate_switch;
+  logic peripheral_subsystem_powergate_switch_ack;
+  logic peripheral_subsystem_powergate_iso;
+  logic peripheral_subsystem_rst_n;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive;
+
   // PAD controller
   reg_req_t pad_req;
   reg_rsp_t pad_resp;
@@ -69,6 +83,12 @@ ${pad.core_v_mini_mcu_bonding}
     .ext_xbar_slave_resp_i,
     .ext_peripheral_slave_req_o,
     .ext_peripheral_slave_resp_i,
+    .cpu_subsystem_powergate_switch_o(cpu_subsystem_powergate_switch),
+    .cpu_subsystem_powergate_switch_ack_i(cpu_subsystem_powergate_switch_ack),
+    .peripheral_subsystem_powergate_switch_o(peripheral_subsystem_powergate_switch),
+    .peripheral_subsystem_powergate_switch_ack_i(peripheral_subsystem_powergate_switch_ack),
+    .memory_subsystem_banks_powergate_switch_o(memory_subsystem_banks_powergate_switch),
+    .memory_subsystem_banks_powergate_switch_ack_i(memory_subsystem_banks_powergate_switch_ack),
     .external_subsystem_powergate_switch_o,
     .external_subsystem_powergate_switch_ack_i,
     .external_subsystem_powergate_iso_o,
