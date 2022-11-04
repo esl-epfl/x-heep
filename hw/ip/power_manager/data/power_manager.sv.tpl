@@ -104,7 +104,6 @@ module power_manager #(
   logic                                             peripheral_subsystem_rst_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]        memory_subsystem_banks_powergate_switch;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]        memory_subsystem_banks_powergate_iso;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]        memory_subsystem_banks_set_retentive;
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch;
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso;
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_n;
@@ -117,7 +116,6 @@ module power_manager #(
   assign peripheral_subsystem_rst_no = peripheral_subsystem_rst_n;
   assign memory_subsystem_banks_powergate_switch_o = memory_subsystem_banks_powergate_switch;
   assign memory_subsystem_banks_powergate_iso_o = memory_subsystem_banks_powergate_iso;
-  assign memory_subsystem_banks_set_retentive_o = memory_subsystem_banks_set_retentive;
   assign external_subsystem_powergate_switch_o = external_subsystem_powergate_switch;
   assign external_subsystem_powergate_iso_o = external_subsystem_powergate_iso;
   assign external_subsystem_rst_no = external_subsystem_rst_n;
@@ -679,7 +677,7 @@ module power_manager #(
       .counter_start_switch_on_o (ram_${bank}_retentive_counter_start_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(memory_subsystem_banks_set_retentive[${bank}])
+      .switch_onoff_signal_o(memory_subsystem_banks_set_retentive_o[${bank}])
   );
 
 % endfor
@@ -864,19 +862,19 @@ module power_manager #(
   // --------------------------------------------------------------------------------------
 
   assign hw2reg.monitor_power_gate_core.de = 1'b1;
-  assign hw2reg.monitor_power_gate_core.d = cpu_subsystem_rst_n & cpu_subsystem_powergate_iso & cpu_subsystem_powergate_switch_ack_i & cpu_subsystem_powergate_switch;
+  assign hw2reg.monitor_power_gate_core.d = {cpu_subsystem_rst_n, cpu_subsystem_powergate_iso, cpu_subsystem_powergate_switch};
 
   assign hw2reg.monitor_power_gate_periph.de = 1'b1;
-  assign hw2reg.monitor_power_gate_periph.d = peripheral_subsystem_rst_n & peripheral_subsystem_powergate_iso & peripheral_subsystem_powergate_switch_ack_i & peripheral_subsystem_powergate_switch;
+  assign hw2reg.monitor_power_gate_periph.d = {peripheral_subsystem_rst_n, peripheral_subsystem_powergate_iso, peripheral_subsystem_powergate_switch};
 
 % for bank in range(ram_numbanks):
   assign hw2reg.monitor_power_gate_ram_block_${bank}.de = 1'b1;
-  assign hw2reg.monitor_power_gate_ram_block_${bank}.d = memory_subsystem_banks_set_retentive[${bank}] & memory_subsystem_banks_powergate_iso[${bank}] & memory_subsystem_banks_powergate_switch_ack_i[${bank}] & memory_subsystem_banks_powergate_switch[${bank}];
+  assign hw2reg.monitor_power_gate_ram_block_${bank}.d = {memory_subsystem_banks_powergate_iso[${bank}], memory_subsystem_banks_powergate_switch[${bank}]};
 
 % endfor
 % for ext in range(external_domains):
   assign hw2reg.monitor_power_gate_external_${ext}.de = 1'b1;
-  assign hw2reg.monitor_power_gate_external_${ext}.d = external_subsystem_rst_n[${ext}] & external_subsystem_powergate_iso[${ext}] & external_subsystem_powergate_switch_ack_i[${ext}] & external_subsystem_powergate_switch[${ext}];
+  assign hw2reg.monitor_power_gate_external_${ext}.d = {external_subsystem_rst_n[${ext}], external_subsystem_powergate_iso[${ext}], external_subsystem_powergate_switch[${ext}]};
 
 % endfor
 

@@ -606,7 +606,7 @@
       swaccess: "ro",
       hwaccess: "hwo",
       fields: [
-        { bits: "3:0", name: "MONITOR_POWER_GATE_CORE", desc: "Monitor Signals Power Gate Core Reg" }
+        { bits: "2:0", name: "MONITOR_POWER_GATE_CORE", desc: "Monitor Signals Power Gate Core Reg" }
       ]
     }
 
@@ -616,7 +616,7 @@
       swaccess: "ro",
       hwaccess: "hwo",
       fields: [
-        { bits: "3:0", name: "MONITOR_POWER_GATE_PERIPH", desc: "Monitor Signals Power Gate Periph Reg" }
+        { bits: "2:0", name: "MONITOR_POWER_GATE_PERIPH", desc: "Monitor Signals Power Gate Periph Reg" }
       ]
     }
 
@@ -627,7 +627,7 @@
       swaccess: "ro",
       hwaccess: "hwo",
       fields: [
-        { bits: "3:0", name: "MONITOR_POWER_GATE_RAM_BLOCK_${bank}", desc: "Monitor Signals Power Gate Ram Block ${bank} Reg" }
+        { bits: "1:0", name: "MONITOR_POWER_GATE_RAM_BLOCK_${bank}", desc: "Monitor Signals Power Gate Ram Block ${bank} Reg" }
       ]
     }
 
@@ -639,7 +639,7 @@
       swaccess: "ro",
       hwaccess: "hwo",
       fields: [
-        { bits: "3:0", name: "MONITOR_POWER_GATE_EXTERNAL_${ext}", desc: "Monitor Signals Power Gate External ${ext} Reg" }
+        { bits: "2:0", name: "MONITOR_POWER_GATE_EXTERNAL_${ext}", desc: "Monitor Signals Power Gate External ${ext} Reg" }
       ]
     }
 
