@@ -221,7 +221,7 @@ package core_v_mini_mcu_pkg;
 
   // Interrupts
   localparam PLIC_NINT = 64;
-  localparam PLIC_USED_NINT = 57;
+  localparam PLIC_USED_NINT = 49;
   localparam NEXT_INT = PLIC_NINT - PLIC_USED_NINT;
 
 % for pad in total_pad_list:
