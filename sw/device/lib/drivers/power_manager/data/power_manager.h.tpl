@@ -74,6 +74,15 @@ typedef enum power_manager_sel_intr {
 } power_manager_sel_intr_t;
 
 /**
+ * Monitor signals.
+ */
+typedef struct monitor_signals {
+  uint32_t kSwitch_e;
+  uint32_t kIso_e;
+  uint32_t kReset_e;
+} monitor_signals_t;
+
+/**
  * Initialization parameters for POWER MANAGER.
  *
  */
@@ -117,6 +126,7 @@ typedef struct power_manager_ram_map_t {
   uint32_t iso_on_stop_bit;
   uint32_t retentive_off_stop_bit;
   uint32_t retentive_on_stop_bit;
+  uint32_t monitor_power_gate;
 } power_manager_ram_map_t;
 
 static power_manager_ram_map_t power_manager_ram_map[${ram_numbanks}] = {
@@ -140,6 +150,7 @@ static power_manager_ram_map_t power_manager_ram_map[${ram_numbanks}] = {
     POWER_MANAGER_RAM_${bank}_COUNTERS_STOP_RAM_${bank}_ISO_ON_STOP_BIT_COUNTER_BIT,
     POWER_MANAGER_RAM_${bank}_COUNTERS_STOP_RAM_${bank}_RETENTIVE_OFF_STOP_BIT_COUNTER_BIT,
     POWER_MANAGER_RAM_${bank}_COUNTERS_STOP_RAM_${bank}_RETENTIVE_ON_STOP_BIT_COUNTER_BIT,
+    POWER_MANAGER_MONITOR_POWER_GATE_RAM_BLOCK_${bank}_REG_OFFSET,
   },
 % endfor
 };
@@ -162,6 +173,7 @@ typedef struct power_manager_external_map_t {
   uint32_t switch_on_stop_bit;
   uint32_t iso_off_stop_bit;
   uint32_t iso_on_stop_bit;
+  uint32_t monitor_power_gate;
 } power_manager_external_map_t;
 
 static power_manager_external_map_t power_manager_external_map[${external_domains}] = {
@@ -184,6 +196,7 @@ static power_manager_external_map_t power_manager_external_map[${external_domain
     POWER_MANAGER_EXTERNAL_${ext}_COUNTERS_STOP_EXTERNAL_${ext}_SWITCH_ON_STOP_BIT_COUNTER_BIT,
     POWER_MANAGER_EXTERNAL_${ext}_COUNTERS_STOP_EXTERNAL_${ext}_ISO_OFF_STOP_BIT_COUNTER_BIT,
     POWER_MANAGER_EXTERNAL_${ext}_COUNTERS_STOP_EXTERNAL_${ext}_ISO_ON_STOP_BIT_COUNTER_BIT,
+    POWER_MANAGER_MONITOR_POWER_GATE_EXTERNAL_${ext}_REG_OFFSET,
   },
 % endfor
 };
@@ -203,6 +216,18 @@ uint32_t periph_power_domain_is_off(const power_manager_t *power_manager);
 uint32_t ram_block_power_domain_is_off(const power_manager_t *power_manager, uint32_t sel_block);
 
 uint32_t external_power_domain_is_off(const power_manager_t *power_manager, uint32_t sel_external);
+
+monitor_signals_t monitor_power_gate_core(const power_manager_t *power_manager);
+
+monitor_signals_t monitor_power_gate_periph(const power_manager_t *power_manager);
+
+monitor_signals_t monitor_power_gate_ram_block(const power_manager_t *power_manager, uint32_t sel_block);
+
+monitor_signals_t monitor_power_gate_external(const power_manager_t *power_manager, uint32_t sel_external);
+
+power_manager_result_t cpu_force_sleep(const power_manager_t *power_manager);
+
+power_manager_result_t cpu_force_wakeup(const power_manager_t *power_manager);
 
 #ifdef __cplusplus
 }
