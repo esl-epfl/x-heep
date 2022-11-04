@@ -244,7 +244,7 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_core.q && core_sleep_i),
+      .start_off_sequence_i(reg2hw.power_gate_core.q && (core_sleep_i || reg2hw.cpu_force_sleep.q)),
       .start_on_sequence_i (start_on_sequence),
       .switch_ack_i (1'b1),
 
@@ -298,7 +298,7 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_core.q && core_sleep_i),
+      .start_off_sequence_i(reg2hw.power_gate_core.q && (core_sleep_i || reg2hw.cpu_force_sleep.q)),
       .start_on_sequence_i (start_on_sequence),
       .switch_ack_i (cpu_switch_wait_ack),
 
