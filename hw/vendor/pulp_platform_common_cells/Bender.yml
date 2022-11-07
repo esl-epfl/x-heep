@@ -22,7 +22,9 @@ sources:
   # etc. Files within a level are ordered alphabetically.
   # Level 0
   - src/binary_to_gray.sv
-  - src/cb_filter_pkg.sv
+  - target: not(all(xilinx,vivado_ipx))
+    files:
+    - src/cb_filter_pkg.sv
   - src/cc_onehot.sv
   - src/cf_math_pkg.sv
   - src/clk_int_div.sv
@@ -52,16 +54,21 @@ sources:
   - src/stream_intf.sv
   - src/stream_join.sv
   - src/stream_mux.sv
+  - src/stream_throttle.sv
   - src/sub_per_hash.sv
   - src/sync.sv
   - src/sync_wedge.sv
   - src/unread.sv
+  - src/read.sv
   - src/cdc_reset_ctrlr_pkg.sv
   # Level 1
+  - src/addr_decode_napot.sv
   - src/cdc_2phase.sv
   - src/cdc_4phase.sv
   - src/addr_decode.sv
-  - src/cb_filter.sv
+  - target: not(all(xilinx,vivado_ipx))
+    files:
+    - src/cb_filter.sv
   - src/cdc_fifo_2phase.sv
   - src/counter.sv
   - src/ecc_decode.sv
@@ -81,6 +88,7 @@ sources:
   - src/id_queue.sv
   - src/stream_to_mem.sv
   - src/stream_arbiter_flushable.sv
+  - src/stream_fifo_optimal_wrap.sv
   - src/stream_register.sv
   - src/stream_xbar.sv
   # Level 3

@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/pulp-platform/common_cells.svg?branch=master)](https://travis-ci.com/pulp-platform/common_cells)
+[![Build Status](https://github.com/pulp-platform/common_cells/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/pulp-platform/common_cells/actions/workflows/ci.yml?query=branch%3Amaster)
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/pulp-platform/common_cells?color=blue&label=current&sort=semver)](CHANGELOG.md)
 [![SHL-0.51 license](https://img.shields.io/badge/license-SHL--0.51-green)](LICENSE)
 
@@ -65,7 +65,8 @@ Please note that cells with status *deprecated* are not to be used for new desig
 
 | Name                       | Description                                                                                               | Status       | Superseded By |
 | -------------------------- | --------------------------------------------------------------------------------------------------------- | ------------ | ------------- |
-| `addr_decode   `           | Address map decoder                                                                                       | active       |               |
+| `addr_decode`              | Address map decoder                                                                                       | active       |               |
+| `addr_decode_napot`        | Address map decoder using naturally-aligned power of two (NAPOT) regions                                  | active       |               |
 | `ecc_decode`               | SECDED Decoder (Single Error Correction, Double Error Detection)                                          | active       |               |
 | `ecc_encode`               | SECDED Encoder (Single Error Correction, Double Error Detection)                                          | active       |               |
 | `binary_to_gray`           | Binary to gray code converter                                                                             | active       |               |
@@ -93,23 +94,25 @@ Please note that cells with status *deprecated* are not to be used for new desig
 | `stream_to_mem`            | Use memories without flow control for output data in streams.                                             | active       |               |
 | `stream_xbar`              | Fully connected crossbar with ready/valid interface.                                                      | active       |               |
 | `stream_omega_net`         | One-way stream omega-net with ready/valid interface. Isomorphic to a butterfly.                           | active       |               |
+| `stream_throttle`          | Restrict the number of outstanding transfers in a stream.                                                 | active       |               |
 | `sub_per_hash`             | Substitution-permutation hash function                                                                    | active       |               |
 | `popcount`                 | Combinatorial popcount (hamming weight)                                                                   | active       |               |
 
 ### Data Structures
 
-| Name               | Description                                     | Status       | Superseded By |
-| ------------------ | ----------------------------------------------- | ------------ | ------------- |
-| `cb_filter`        | Counting-Bloom-Filter with combinational lookup | active       |               |
-| `fifo`             | FIFO register with upper threshold              | *deprecated* | `fifo_v3`     |
-| `fifo_v2`          | FIFO register with upper and lower threshold    | *deprecated* | `fifo_v3`     |
-| `fifo_v3`          | FIFO register with generic fill counts          | active       |               |
-| `stream_fifo`      | FIFO register with ready/valid interface        | active       |               |
-| `generic_fifo`     | FIFO register without thresholds                | *deprecated* | `fifo_v3`     |
-| `generic_fifo_adv` | FIFO register without thresholds                | *deprecated* | `fifo_v3`     |
-| `sram`             | SRAM behavioral model                           | active       |               |
-| `plru_tree`        | Pseudo least recently used tree                 | active       |               |
-| `unread`           | Empty module to sink unconnected outputs into   | active       |               |
+| Name                       | Description                                                      | Status       | Superseded By |
+| -------------------------- | ---------------------------------------------------------------- | ------------ | ------------- |
+| `cb_filter`                | Counting-Bloom-Filter with combinational lookup                  | active       |               |
+| `fifo`                     | FIFO register with upper threshold                               | *deprecated* | `fifo_v3`     |
+| `fifo_v2`                  | FIFO register with upper and lower threshold                     | *deprecated* | `fifo_v3`     |
+| `fifo_v3`                  | FIFO register with generic fill counts                           | active       |               |
+| `stream_fifo`              | FIFO register with ready/valid interface                         | active       |               |
+| `stream_fifo_optimal_wrap` | Wrapper that optimally selects either a spill register or a FIFO | active       |               |
+| `generic_fifo`             | FIFO register without thresholds                                 | *deprecated* | `fifo_v3`     |
+| `generic_fifo_adv`         | FIFO register without thresholds                                 | *deprecated* | `fifo_v3`     |
+| `sram`                     | SRAM behavioral model                                            | active       |               |
+| `plru_tree`                | Pseudo least recently used tree                                  | active       |               |
+| `unread`                   | Empty module to sink unconnected outputs into                    | active       |               |
 
 
 ## Header Contents
