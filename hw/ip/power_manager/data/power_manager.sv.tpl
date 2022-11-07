@@ -510,7 +510,7 @@ module power_manager #(
 
   sync #(
       .ResetValue(1'b0)
-  ) sync_ram${bank}_ack_i (
+  ) sync_ram_${bank}_ack_i (
       .clk_i,
       .rst_ni,
       .serial_i(memory_subsystem_banks_powergate_switch_ack_i[${bank}]),
@@ -689,8 +689,19 @@ module power_manager #(
   logic external_${ext}_reset_counter_start_switch_off, external_${ext}_reset_counter_expired_switch_off;
   logic external_${ext}_reset_counter_start_switch_on, external_${ext}_reset_counter_expired_switch_on;
 
+  logic external_${ext}_subsystem_powergate_switch_ack_sync;
+
+  sync #(
+      .ResetValue(1'b0)
+  ) sync_external_${ext}_ack_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(external_subsystem_powergate_switch_ack_i[${ext}]),
+      .serial_o(external_${ext}_subsystem_powergate_switch_ack_sync)
+  );
+
   assign hw2reg.power_gate_external_${ext}_ack.de = 1'b1;
-  assign hw2reg.power_gate_external_${ext}_ack.d = external_subsystem_powergate_switch_ack_i[${ext}];
+  assign hw2reg.power_gate_external_${ext}_ack.d = external_${ext}_subsystem_powergate_switch_ack_sync;
 
   //if you want to wait for ACK, or just bypass it
   logic external_${ext}_switch_wait_ack;
@@ -789,7 +800,6 @@ module power_manager #(
       .start_off_sequence_i(reg2hw.power_gate_external_${ext}.q),
       .start_on_sequence_i (~reg2hw.power_gate_external_${ext}.q),
       .switch_ack_i (1'b1),
-
 
       // counter to switch on and off signals
       .counter_expired_switch_off_i(external_${ext}_powergate_counter_expired_switch_off),
