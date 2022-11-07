@@ -363,7 +363,7 @@ module ao_peripheral_subsystem
   ) reg_to_tlul_gpio_ao_i (
       .tl_o(gpio_tl_h2d),
       .tl_i(gpio_tl_d2h),
-      .reg_req_i(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_AO_IDX]),
+      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::GPIO_AO_IDX]),
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_AO_IDX])
   );
 
