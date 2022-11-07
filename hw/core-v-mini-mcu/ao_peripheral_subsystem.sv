@@ -83,10 +83,10 @@ module ao_peripheral_subsystem
     output logic [14:0] fast_intr_o,
 
     // GPIO
-    input  logic [31:0] cio_gpio_i,
-    output logic [31:0] cio_gpio_o,
-    output logic [31:0] cio_gpio_en_o,
-    output logic [31:0] intr_gpio_o,
+    input  logic [7:0] cio_gpio_i,
+    output logic [7:0] cio_gpio_o,
+    output logic [7:0] cio_gpio_en_o,
+    output logic [7:0] intr_gpio_o,
 
     // UART
     input  logic uart_rx_i,
@@ -132,6 +132,10 @@ module ao_peripheral_subsystem
   logic spi_tx_ready;
   logic spi_flash_rx_valid;
   logic spi_flash_tx_ready;
+
+  logic [23:0] intr_gpio_unused;
+  logic [23:0] cio_gpio_unused;
+  logic [23:0] cio_gpio_en_unused;
 
   assign ext_peripheral_slave_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPH_IDX];
   assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPH_IDX] = ext_peripheral_slave_resp_i;
@@ -368,10 +372,10 @@ module ao_peripheral_subsystem
       .rst_ni,
       .tl_i(gpio_tl_h2d),
       .tl_o(gpio_tl_d2h),
-      .cio_gpio_i,
-      .cio_gpio_o,
-      .cio_gpio_en_o,
-      .intr_gpio_o
+      .cio_gpio_i({24'b0, cio_gpio_i}),
+      .cio_gpio_o({cio_gpio_unused, cio_gpio_o}),
+      .cio_gpio_en_o({cio_gpio_unused, cio_gpio_en_o}),
+      .intr_gpio_o({intr_gpio_unused, intr_gpio_o})
   );
 
   reg_to_tlul #(

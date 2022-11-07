@@ -174,10 +174,10 @@ module power_manager #(
   );
 
   always_comb begin : power_manager_start_on_sequence_gen
-    if ((reg2hw.en_wait_for_intr.q & (reg2hw.intr_state.q | reg2hw.cpu_force_wakeup.q)) == 32'b0) begin
-      start_on_sequence = 1'b0;
-    end else begin
+    if ( |(reg2hw.en_wait_for_intr.q & reg2hw.intr_state.q) | reg2hw.cpu_force_wakeup.q ) begin
       start_on_sequence = 1'b1;
+    end else begin
+      start_on_sequence = 1'b0;
     end
   end
 

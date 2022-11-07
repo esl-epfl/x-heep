@@ -338,15 +338,15 @@ module core_v_mini_mcu
   logic spi_flash_intr, spi_intr;
 
   // GPIO
-  logic [31:0] gpio_in;
-  logic [31:0] gpio_out;
-  logic [31:0] gpio_oe;
+  logic [31:8] gpio_in;
+  logic [31:8] gpio_out;
+  logic [31:8] gpio_oe;
 
   // GPIO_AO
-  logic [31:0] gpio_ao_in;
-  logic [31:0] gpio_ao_out;
-  logic [31:0] gpio_ao_oe;
-  logic [31:0] gpio_ao_intr;
+  logic [7:0] gpio_ao_in;
+  logic [7:0] gpio_ao_out;
+  logic [7:0] gpio_ao_oe;
+  logic [7:0] gpio_ao_intr;
 
   // UART PLIC interrupts
   logic uart_intr_tx_watermark;

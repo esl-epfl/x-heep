@@ -24,3 +24,5 @@ lint_off -rule UNUSED -file "*/simulation/sram_wrapper.sv" -match "Signal is not
 lint_off -rule LITENDIAN -file "*/ao_peripheral_subsystem.sv" -match "*"
 lint_off -rule LITENDIAN -file "*/core_v_mini_mcu.sv" -match "*"
 lint_off -rule LITENDIAN -file "*/x_heep_system.sv" -match "*"
+lint_off -rule WIDTH -file "*/ao_peripheral_subsystem.sv" -match "Input port connection 'reg_req_i' expects 70 bits on the pin connection, but pin connection's SEL generates 34 bits.*"
+lint_off -rule UNOPTFLAT -file "*/ao_peripheral_subsystem.sv" -match "Signal unoptimizable: Feedback to clock or circular logic: *"

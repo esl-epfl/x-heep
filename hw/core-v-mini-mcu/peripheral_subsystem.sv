@@ -30,9 +30,9 @@ module peripheral_subsystem
     input logic uart_intr_rx_parity_err_i,
 
     //GPIO
-    input  logic [31:0] cio_gpio_i,
-    output logic [31:0] cio_gpio_o,
-    output logic [31:0] cio_gpio_en_o,
+    input  logic [31:8] cio_gpio_i,
+    output logic [31:8] cio_gpio_o,
+    output logic [31:8] cio_gpio_en_o,
 
     // I2C Interface
     input  logic cio_scl_i,
@@ -74,7 +74,10 @@ module peripheral_subsystem
   logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] irq_id[rv_plic_reg_pkg::NumTarget];
   logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] unused_irq_id[rv_plic_reg_pkg::NumTarget];
 
-  logic [31:0] gpio_intr;
+  logic [31:8] gpio_intr;
+  logic [7:0] cio_gpio_unused;
+  logic [7:0] cio_gpio_en_unused;
+  logic [7:0] gpio_int_unused;
 
   logic i2c_intr_fmt_watermark;
   logic i2c_intr_rx_watermark;
@@ -106,7 +109,7 @@ module peripheral_subsystem
   assign intr_vector[6] = uart_intr_rx_break_err_i;
   assign intr_vector[7] = uart_intr_rx_timeout_i;
   assign intr_vector[8] = uart_intr_rx_parity_err_i;
-  assign intr_vector[32:9] = gpio_intr[31:8];
+  assign intr_vector[32:9] = gpio_intr;
   assign intr_vector[33] = i2c_intr_fmt_watermark;
   assign intr_vector[34] = i2c_intr_rx_watermark;
   assign intr_vector[35] = i2c_intr_fmt_overflow;
@@ -233,10 +236,10 @@ module peripheral_subsystem
       .rst_ni,
       .tl_i(gpio_tl_h2d),
       .tl_o(gpio_tl_d2h),
-      .cio_gpio_i(cio_gpio_i),
-      .cio_gpio_o(cio_gpio_o),
-      .cio_gpio_en_o(cio_gpio_en_o),
-      .intr_gpio_o(gpio_intr)
+      .cio_gpio_i({cio_gpio_i, 8'b0}),
+      .cio_gpio_o({cio_gpio_o, cio_gpio_unused}),
+      .cio_gpio_en_o({cio_gpio_en_o, cio_gpio_en_unused}),
+      .intr_gpio_o({gpio_intr, gpio_int_unused})
   );
 
   reg_to_tlul #(
