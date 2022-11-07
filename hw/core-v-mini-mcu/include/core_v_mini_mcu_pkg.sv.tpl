@@ -159,7 +159,7 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] PAD_CONTROL_END_ADDRESS = PAD_CONTROL_START_ADDRESS + PAD_CONTROL_SIZE;
   localparam logic[31:0] PAD_CONTROL_IDX = 32'd10;
 
-  localparam logic[31:0] GPIO_AO_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${gpio_ao_start_offset};
+  localparam logic[31:0] GPIO_AO_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${gpio_ao_start_offset};
   localparam logic[31:0] GPIO_AO_SIZE = 32'h${gpio_ao_size_address};
   localparam logic[31:0] GPIO_AO_END_ADDRESS = GPIO_AO_START_ADDRESS + GPIO_AO_SIZE;
   localparam logic[31:0] GPIO_AO_IDX = 32'd11;

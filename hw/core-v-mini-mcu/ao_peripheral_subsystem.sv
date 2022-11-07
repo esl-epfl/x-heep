@@ -374,7 +374,7 @@ module ao_peripheral_subsystem
       .tl_o(gpio_tl_d2h),
       .cio_gpio_i({24'b0, cio_gpio_i}),
       .cio_gpio_o({cio_gpio_unused, cio_gpio_o}),
-      .cio_gpio_en_o({cio_gpio_unused, cio_gpio_en_o}),
+      .cio_gpio_en_o({cio_gpio_en_unused, cio_gpio_en_o}),
       .intr_gpio_o({intr_gpio_unused, intr_gpio_o})
   );
 
