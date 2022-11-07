@@ -110,14 +110,6 @@ extern "C" {
 #define UART_INTR_RX_BREAK_ERR ${uart_intr_rx_break_err}
 #define UART_INTR_RX_TIMEOUT ${uart_intr_rx_timeout}
 #define UART_INTR_RX_PARITY_ERR ${uart_intr_rx_parity_err}
-#define GPIO_INTR_0 ${gpio_intr_8}
-#define GPIO_INTR_1 ${gpio_intr_8}
-#define GPIO_INTR_2 ${gpio_intr_8}
-#define GPIO_INTR_3 ${gpio_intr_8}
-#define GPIO_INTR_4 ${gpio_intr_8}
-#define GPIO_INTR_5 ${gpio_intr_8}
-#define GPIO_INTR_6 ${gpio_intr_8}
-#define GPIO_INTR_7 ${gpio_intr_8}
 #define GPIO_INTR_8 ${gpio_intr_8}
 #define GPIO_INTR_9 ${gpio_intr_9}
 #define GPIO_INTR_10 ${gpio_intr_10}
