@@ -104,3 +104,5 @@ cd build/openhwgroup.org_systems_core-v-mini-mcu_0/pynq-z2-vivado
 
 Remember to set the `boot_sel_i` and `execute_from_flash_i` switches to 1.
 Reset the logic (so the x-heep reset and not the bitstream reset) and enjoy.
+
+Additional note: To use the flash directly from X-HEEP, you first need to execute from the PC any iceprog command targeting the Flash. On the exit of any iceprog program, the FTDI pins will be set to high impedance. If this is not performed, the pins from the FTDI won't be on high impedance and the SPI signals cannot be driven from X-HEEP (or any other device).
