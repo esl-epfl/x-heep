@@ -14,15 +14,15 @@ int main(int argc, char *argv[])
     gpio_params_t gpio_params;
     gpio_t gpio;
     gpio_result_t gpio_res;
-    gpio_params.base_addr = mmio_region_from_addr((uintptr_t)GPIO_START_ADDRESS);
+    gpio_params.base_addr = mmio_region_from_addr((uintptr_t)GPIO_AO_START_ADDRESS);
     gpio_res = gpio_init(gpio_params, &gpio);
     gpio_res = gpio_output_set_enabled(&gpio, GPIO_PMW, true);
 
-    while(1) {
+    for(int i=0;i<100;i++) {
       gpio_write(&gpio, GPIO_PMW, true);
-      for(int i=0;i<100;i++) asm volatile("nop");
+      for(int i=0;i<10;i++) asm volatile("nop");
       gpio_write(&gpio, GPIO_PMW, false);
-      for(int i=0;i<100;i++) asm volatile("nop");
+      for(int i=0;i<10;i++) asm volatile("nop");
     }
 
     return EXIT_SUCCESS;

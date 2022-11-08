@@ -113,7 +113,7 @@ ${pad_mux_process}
       .NUM_PAD  (core_v_mini_mcu_pkg::NUM_PAD)
   ) pad_control_i (
       .clk_i(clk_in_x),
-      .rst_ni(rst_nin_x),
+      .rst_ni(rst_ngen),
       .reg_req_i(pad_req),
       .reg_rsp_o(pad_resp),
       .pad_attributes_o(pad_attributes),

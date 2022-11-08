@@ -80,8 +80,12 @@
             offset:  0x00090000,
             length:  0x00010000,
         },
-        uart: {
+        gpio_ao: {
             offset:  0x000A0000,
+            length:  0x00010000,
+        },
+        uart: {
+            offset:  0x000B0000,
             length:  0x00010000,
         },
     },
@@ -290,8 +294,6 @@
                     type: inout
                 },
             }
-
         }
     }
-
 }

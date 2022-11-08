@@ -517,3 +517,73 @@ power_manager_result_t power_gate_counters_init(power_manager_counters_t* counte
 
     return kPowerManagerOk_e;
 }
+
+monitor_signals_t monitor_power_gate_core(const power_manager_t *power_manager)
+{
+    uint32_t reg = 0;
+    monitor_signals_t monitor_signals;
+
+    reg = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_MONITOR_POWER_GATE_CORE_REG_OFFSET);
+
+    monitor_signals.kSwitch_e = reg & 0x1;
+    monitor_signals.kIso_e    = (reg & 0x2) >> 1;
+    monitor_signals.kReset_e  = (reg & 0x4) >> 2;
+
+    return monitor_signals;
+}
+
+monitor_signals_t monitor_power_gate_periph(const power_manager_t *power_manager)
+{
+    uint32_t reg = 0;
+    monitor_signals_t monitor_signals;
+
+    reg = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_MONITOR_POWER_GATE_PERIPH_REG_OFFSET);
+
+    monitor_signals.kSwitch_e = reg & 0x1;
+    monitor_signals.kIso_e    = (reg & 0x2) >> 1;
+    monitor_signals.kReset_e  = (reg & 0x4) >> 2;
+
+    return monitor_signals;
+}
+
+monitor_signals_t monitor_power_gate_ram_block(const power_manager_t *power_manager, uint32_t sel_block)
+{
+    uint32_t reg = 0;
+    monitor_signals_t monitor_signals;
+
+    reg = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].monitor_power_gate));
+
+    monitor_signals.kSwitch_e = reg & 0x1;
+    monitor_signals.kIso_e    = (reg & 0x2) >> 1;
+    monitor_signals.kReset_e  = 0x1;
+
+    return monitor_signals;
+}
+
+monitor_signals_t monitor_power_gate_external(const power_manager_t *power_manager, uint32_t sel_external)
+{
+    uint32_t reg = 0;
+    monitor_signals_t monitor_signals;
+
+    reg = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].monitor_power_gate));
+
+    monitor_signals.kSwitch_e = reg & 0x1;
+    monitor_signals.kIso_e    = (reg & 0x2) >> 1;
+    monitor_signals.kReset_e  = (reg & 0x4) >> 2;
+
+    return monitor_signals;
+}
+
+power_manager_result_t cpu_force_sleep(const power_manager_t *power_manager)
+{
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_CPU_FORCE_SLEEP_REG_OFFSET, 0x1);
+
+    return kPowerManagerOk_e;
+}
+
+power_manager_result_t cpu_force_wakeup(const power_manager_t *power_manager)
+{
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_CPU_FORCE_WAKEUP_REG_OFFSET, 0x1);
+
+    return kPowerManagerOk_e;
+}

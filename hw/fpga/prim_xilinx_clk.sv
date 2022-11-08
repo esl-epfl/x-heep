@@ -82,3 +82,19 @@ module cv32e40p_clock_gate (
   );
 
 endmodule
+
+module tc_clk_mux2 (
+    input  logic clk0_i,
+    input  logic clk1_i,
+    input  logic clk_sel_i,
+    output logic clk_o
+);
+
+  xilinx_clk_mux2 xilinx_i_clk_mux2_i (
+      .clk0_i,
+      .clk1_i,
+      .clk_sel_i,
+      .clk_o
+  );
+
+endmodule

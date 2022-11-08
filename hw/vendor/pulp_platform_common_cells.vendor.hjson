@@ -6,8 +6,8 @@
   target_dir: "pulp_platform_common_cells",
 
   upstream: {
-    url: "https://github.com/pulp-platform/common_cells.git",
-    rev: "e35b12282f2403d01a788f272ab1a5ca8cceb13e",
+    url: "https://github.com/davideschiavone/common_cells.git",
+    rev: "007f0e97f554140551dae4bbe81e040ce18beb6c",
   },
 
 }

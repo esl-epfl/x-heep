@@ -521,6 +521,37 @@ applications/spi_flash_write/spi_flash_write.flash_load.elf: applications/spi_fl
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
+applications/example_force_power_gating_core/example_force_power_gating_core.elf: applications/example_force_power_gating_core/example_force_power_gating_core.c
+	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
+		$(CUSTOM_GCC_FLAGS) \
+		-DHOST_BUILD \
+		-T linker/link.ld \
+		-I $(RISCV)/riscv32-unknown-elf/include \
+		$(INC_FOLDERS_GCC) \
+		-static \
+		$(LIB_CRT) \
+		$^ $(LIB_RUNTIME) \
+		$(LIB_BASE) \
+		$(LIB_DRIVERS) \
+		-L $(RISCV)/riscv32-unknown-elf/lib \
+		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
+
+applications/example_force_power_gating_core/example_force_power_gating_core.flash_load.elf: applications/example_force_power_gating_core/example_force_power_gating_core.c
+	$(RISCV_EXE_PREFIX)gcc -march=rv32imc -o $@ -w -Os -g -nostdlib \
+		$(CUSTOM_GCC_FLAGS) \
+		-DHOST_BUILD \
+		-T linker/link_flash_load.ld \
+		-I $(RISCV)/riscv32-unknown-elf/include \
+		$(INC_FOLDERS_GCC) \
+		-static \
+		$(LIB_CRT_FLASH_LOAD) \
+		$^ $(LIB_RUNTIME) \
+		$(LIB_BASE) \
+		$(LIB_DRIVERS) \
+		-Wl,-Map=applications/example_force_power_gating_core/example_force_power_gating_core.flash_load.map \
+		-L $(RISCV)/riscv32-unknown-elf/lib \
+		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
+
 clean:
 	rm -rf applications/*/*.elf \
 	rm -rf applications/*/*.hex \
