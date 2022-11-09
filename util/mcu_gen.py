@@ -81,7 +81,6 @@ class Pad:
 
     for i in range(cnt):
 
-
         self.in_internal_signals.append(self.signal_name_drive[i] + 'in_x')
         self.out_internal_signals.append(self.signal_name_drive[i] + 'out_x')
         self.oe_internal_signals.append(self.signal_name_drive[i] + 'oe_x')
@@ -157,7 +156,6 @@ class Pad:
                 self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'o(' + self.out_internal_signals[i] + '),\n'
                 self.core_v_mini_mcu_bonding += '    .' + self.signal_name_drive[i] + 'oe_o(' + self.oe_internal_signals[i] + '),\n'
 
-
   def create_pad_ring_bonding(self):
 
     if(self.is_muxed):
@@ -185,9 +183,7 @@ class Pad:
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'oe_i(' + oe_internal_signals + '),'
         self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'io,'
 
-
   def __init__(self, name, cell_name, pad_type, index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list):
-
 
     self.name = name
     self.cell_name = cell_name
@@ -248,13 +244,11 @@ class Pad:
     self.pad_ring_bonding_bonding = ''
     self.x_heep_system_interface = ''
 
-
 # Compile a regex to trim trailing whitespaces on lines.
 re_trailws = re.compile(r'[ \t\r]+$', re.MULTILINE)
 
 def string2int(hex_json_string):
     return (hex_json_string.split('x')[1]).split(',')[0]
-
 
 def write_template(tpl_path, outdir, outfile, **kwargs):
     if tpl_path:
@@ -271,7 +265,6 @@ def write_template(tpl_path, outdir, outfile, **kwargs):
                 file.write(code)
         else:
             raise FileNotFoundError
-
 
 def main():
     parser = argparse.ArgumentParser(prog="mcugen")
@@ -447,6 +440,9 @@ def main():
     pad_control_start_offset  = string2int(obj['ao_peripherals']['pad_control']['offset'])
     pad_control_size_address  = string2int(obj['ao_peripherals']['pad_control']['length'])
 
+    gpio_ao_start_offset  = string2int(obj['ao_peripherals']['gpio_ao']['offset'])
+    gpio_ao_size_address  = string2int(obj['ao_peripherals']['gpio_ao']['length'])
+
     uart_start_offset  = string2int(obj['ao_peripherals']['uart']['offset'])
     uart_size_address  = string2int(obj['ao_peripherals']['uart']['length'])
 
@@ -554,9 +550,7 @@ def main():
     ext_intr_13 = obj['interrupts']['ext_intr_13']
     ext_intr_14 = obj['interrupts']['ext_intr_14']
 
-
-
-    pads       = obj['pads']
+    pads = obj['pads']
 
     # Read HJSON description of External Pads
     if args.external_pads != None:
@@ -571,7 +565,6 @@ def main():
         external_pads = ext_pads_obj['pads']
     else:
         external_pads = None
-
 
     pad_list   = []
     pad_index_counter = 0
@@ -723,7 +716,6 @@ def main():
             except KeyError:
                 pad_skip_declaration = False
 
-
             pad_mux_list = []
 
             for pad_mux in pad_mux_list_hjson:
@@ -748,7 +740,6 @@ def main():
                         pad_skip_declaration_mux = False
                 except KeyError:
                     pad_skip_declaration_mux = False
-
 
                 p = Pad(pad_mux, '', external_pads[key]['mux'][pad_mux]['type'], 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [])
                 pad_mux_list.append(p)
@@ -785,9 +776,6 @@ def main():
                 pad_mux_process+=pad_obj.mux_process
                 if (pad_obj.is_muxed):
                     pad_muxed_list.append(pad_obj)
-
-
-
 
     total_pad_list = []
 
@@ -833,14 +821,16 @@ def main():
         "ext_periph_size_address"          : ext_periph_size_address,
         "pad_control_start_offset"         : pad_control_start_offset,
         "pad_control_size_address"         : pad_control_size_address,
+        "gpio_ao_start_offset"             : gpio_ao_start_offset,
+        "gpio_ao_size_address"             : gpio_ao_size_address,
+        "uart_start_offset"                : uart_start_offset,
+        "uart_size_address"                : uart_size_address,
         "spi_start_offset"                 : spi_start_offset,
         "spi_size_address"                 : spi_size_address,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
         "plic_start_offset"                : plic_start_offset,
         "plic_size_address"                : plic_size_address,
-        "uart_start_offset"                : uart_start_offset,
-        "uart_size_address"                : uart_size_address,
         "gpio_start_offset"                : gpio_start_offset,
         "gpio_size_address"                : gpio_size_address,
         "i2c_start_offset"                 : i2c_start_offset,
@@ -943,7 +933,6 @@ def main():
 
     if args.linker_script != None:
         write_template(args.linker_script, outdir, outfile, **kwargs)
-
 
 if __name__ == "__main__":
     main()

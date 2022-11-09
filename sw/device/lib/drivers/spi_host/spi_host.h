@@ -226,6 +226,13 @@ void spi_enable_rxwm_intr(const spi_host_t *spi, bool enable);
  */
 void spi_enable_txempty_intr(const spi_host_t *spi, bool enable);
 
+/**
+ * Enable SPI output
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ * @param enable SPI TX empty interrupt bit value.
+ */
+void spi_output_enable(const spi_host_t *spi, bool enable);
 
 
 // Inline functions

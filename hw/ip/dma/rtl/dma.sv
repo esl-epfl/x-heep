@@ -40,16 +40,15 @@ module dma #(
   dma_hw2reg_t                       hw2reg;
 
   logic        [               31:0] read_ptr_reg;
+  logic        [               31:0] read_ptr_valid_reg;
   logic        [               31:0] write_ptr_reg;
   logic        [               31:0] dma_cnt;
-  logic        [               31:0] dma_cnt_d;
   logic        [               31:0] dma_cnt_dec;
   logic                              dma_start;
   logic                              dma_done;
 
   logic        [Addr_Fifo_Depth-1:0] fifo_usage;
   logic                              fifo_alm_full;
-  logic                              fifo_alm_empty;
 
   logic                              data_in_req;
   logic                              data_in_we;
@@ -76,10 +75,12 @@ module dma #(
   logic                              wait_for_rx_spi;
   logic                              wait_for_tx_spi;
 
-  logic        [                3:0] byte_enable;
+  logic        [                1:0] data_type;
+
+  logic        [               31:0] fifo_input;
+  logic        [               31:0] fifo_output;
+
   logic        [                3:0] byte_enable_out;
-  logic        [                3:0] byte_enable_last;
-  logic                              last_trans;
 
   enum logic {
     DMA_READ_FSM_IDLE,
@@ -114,6 +115,8 @@ module dma #(
   assign data_out_rdata = dma_master1_ch0_resp_i.rdata;
 
   assign dma_intr_o = dma_done;
+  assign spi_dma_mode = reg2hw.spi_mode.q;
+  assign data_type = reg2hw.data_type.q;
 
   assign hw2reg.done.de = dma_done | dma_start;
   assign hw2reg.done.d = dma_done == 1'b1 ? 1'b1 : 1'b0;
@@ -125,17 +128,14 @@ module dma #(
   assign wait_for_tx_spi = (spi_dma_mode == 3'h2 && ~spi_tx_ready_i) || (spi_dma_mode == 3'h4 && ~spi_flash_tx_ready_i);
 
   assign fifo_alm_full = (fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
-  assign fifo_alm_empty = (fifo_usage == 1);
 
   // DMA pulse start when dma_start register is written
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start
     if (~rst_ni) begin
       dma_start <= 1'b0;
-      spi_dma_mode <= 3'h0;
     end else begin
       if (dma_start == 1'b1) begin
         dma_start <= 1'b0;
-        spi_dma_mode <= reg2hw.spi_mode.q;
       end else begin
         dma_start <= |reg2hw.dma_start.q;
       end
@@ -151,6 +151,19 @@ module dma #(
         read_ptr_reg <= reg2hw.ptr_in.q;
       end else if (data_in_gnt == 1'b1) begin
         read_ptr_reg <= read_ptr_reg + reg2hw.src_ptr_inc.q;
+      end
+    end
+  end
+
+  // Only update read_ptr_valid_reg when the data is stored in the fifo
+  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_ptr_valid_in_reg
+    if (~rst_ni) begin
+      read_ptr_valid_reg <= '0;
+    end else begin
+      if (dma_start == 1'b1) begin
+        read_ptr_valid_reg <= reg2hw.ptr_in.q;
+      end else if (data_in_rvalid == 1'b1) begin
+        read_ptr_valid_reg <= read_ptr_valid_reg + reg2hw.src_ptr_inc.q;
       end
     end
   end
@@ -176,56 +189,87 @@ module dma #(
       if (dma_start == 1'b1) begin
         dma_cnt <= reg2hw.dma_start.q;
       end else if (data_in_gnt == 1'b1) begin
-        dma_cnt <= dma_cnt_d;
+        dma_cnt <= dma_cnt - dma_cnt_dec;
       end
     end
   end
 
-  assign dma_cnt_d  = dma_cnt - dma_cnt_dec;
-  assign last_trans = (|dma_cnt_d == 1'b0);
-
   always_comb begin
-    dma_cnt_dec = 32'h4;
-    // Adjust the counter decrement to trigger the read end with dma_cnt=0
-    if (|dma_cnt[31:2] == 1'b1) begin  // if dma_cnt>=4
-      dma_cnt_dec = 32'h4;
-    end else if (dma_cnt[1:0] == 3) begin
-      dma_cnt_dec = 32'h3;
-    end else if (dma_cnt[1:0] == 2) begin
-      dma_cnt_dec = 32'h2;
-    end else if (dma_cnt[1:0] == 1) begin
-      dma_cnt_dec = 32'h1;
-    end
+    case (data_type)
+      2'b00: dma_cnt_dec = 32'h4;
+      2'b01: dma_cnt_dec = 32'h2;
+      2'b10, 2'b11: dma_cnt_dec = 32'h1;
+    endcase
   end
 
-  always_comb begin
-    // If less than four bytes to copy adjust byte_enable
-    // byte_enable is not used before last read so it can already take its final value
-    if (dma_cnt[1:0] == 3) begin
-      byte_enable = 4'b0111;
-    end else if (dma_cnt[1:0] == 2) begin
-      byte_enable = 4'b0011;
-    end else if (dma_cnt[1:0] == 1) begin
-      byte_enable = 4'b0001;
-    end else begin
-      byte_enable = 4'b1111;
-    end
-  end
+  always_comb begin : proc_byte_enable_out
+    case (data_type)  // Data type 00 Word, 01 Half word, 11,10 byte
+      2'b00: byte_enable_out = 4'b1111;  // Writing a word (32 bits)
 
-  // Store the last byte enable for the write channel
-  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_byte_enable_last
-    if (~rst_ni) begin
-      byte_enable_last <= 4'b1111;
-    end else begin
-      if (last_trans == 1'b1 && data_in_gnt == 1'b1) begin
-        byte_enable_last <= byte_enable;
+      2'b01: begin  // Writing a half-word (16 bits)
+        case (write_ptr_reg[1])
+          1'b0: byte_enable_out = 4'b0011;
+          1'b1: byte_enable_out = 4'b1100;
+        endcase
+        ;  // case(write_ptr_reg[1:0])
       end
-    end
+
+      2'b10, 2'b11: begin  // Writing a byte (8 bits)
+        case (write_ptr_reg[1:0])
+          2'b00: byte_enable_out = 4'b0001;
+          2'b01: byte_enable_out = 4'b0010;
+          2'b10: byte_enable_out = 4'b0100;
+          2'b11: byte_enable_out = 4'b1000;
+        endcase
+        ;  // case(write_ptr_reg[1:0])
+      end
+    endcase
+    ;  // case (data_type)
   end
 
-  // Make sure the fifo is almost empty, read transfer are done and no data will be pushed to fifo
-  // This assumes rvalid is always high exactly 1 cycle after gnt is high
-  assign byte_enable_out = (fifo_alm_empty == 1'b1 && dma_cnt == 0 && data_in_rvalid == 1'b0) ? byte_enable_last : 4'b1111;
+  // Output data shift
+  always_comb begin : proc_output_data
+
+    data_out_wdata[7:0]   = fifo_output[7:0];
+    data_out_wdata[15:8]  = fifo_output[15:8];
+    data_out_wdata[23:16] = fifo_output[23:16];
+    data_out_wdata[31:24] = fifo_output[31:24];
+
+    case (write_ptr_reg[1:0])
+      2'b00: ;
+
+      2'b01: data_out_wdata[15:8] = fifo_output[7:0];
+
+      2'b10: begin
+        data_out_wdata[23:16] = fifo_output[7:0];
+        data_out_wdata[31:24] = fifo_output[15:8];
+      end
+
+      2'b11: data_out_wdata[31:24] = fifo_output[7:0];
+    endcase
+  end
+
+  // Input data shift: shift the input data to be on the LSB of the fifo
+  always_comb begin : proc_input_data
+
+    fifo_input[7:0]   = data_in_rdata[7:0];
+    fifo_input[15:8]  = data_in_rdata[15:8];
+    fifo_input[23:16] = data_in_rdata[23:16];
+    fifo_input[31:24] = data_in_rdata[31:24];
+
+    case (read_ptr_valid_reg[1:0])
+      2'b00: ;
+
+      2'b01: fifo_input[7:0] = data_in_rdata[15:8];
+
+      2'b10: begin
+        fifo_input[7:0]  = data_in_rdata[23:16];
+        fifo_input[15:8] = data_in_rdata[31:24];
+      end
+
+      2'b11: fifo_input[7:0] = data_in_rdata[31:24];
+    endcase
+  end
 
   // FSM state update
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_fsm_state
@@ -333,10 +377,10 @@ module dma #(
       .empty_o(fifo_empty),
       .usage_o(fifo_usage),
       // as long as the queue is not full we can push new data
-      .data_i(data_in_rdata),
+      .data_i(fifo_input),
       .push_i(data_in_rvalid),
       // as long as the queue is not empty we can pop new elements
-      .data_o(data_out_wdata),
+      .data_o(fifo_output),
       .pop_i(data_out_gnt)
   );
 

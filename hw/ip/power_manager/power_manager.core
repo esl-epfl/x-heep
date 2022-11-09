@@ -12,6 +12,7 @@ filesets:
     depend:
       - lowrisc:prim:all
       - pulp-platform.org::register_interface
+      - pulp-platform.org::common_cells
     files:
     - rtl/power_manager_reg_pkg.sv
     - rtl/power_manager_reg_top.sv

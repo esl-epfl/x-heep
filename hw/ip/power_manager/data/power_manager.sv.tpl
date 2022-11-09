@@ -96,6 +96,30 @@ module power_manager #(
       .devmode_i(1'b1)
   );
 
+  logic                                             cpu_subsystem_powergate_switch;
+  logic                                             cpu_subsystem_powergate_iso;
+  logic                                             cpu_subsystem_rst_n;
+  logic                                             peripheral_subsystem_powergate_switch;
+  logic                                             peripheral_subsystem_powergate_iso;
+  logic                                             peripheral_subsystem_rst_n;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]        memory_subsystem_banks_powergate_switch;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]        memory_subsystem_banks_powergate_iso;
+  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch;
+  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso;
+  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_n;
+
+  assign cpu_subsystem_powergate_switch_o = cpu_subsystem_powergate_switch;
+  assign cpu_subsystem_powergate_iso_o = cpu_subsystem_powergate_iso;
+  assign cpu_subsystem_rst_no = cpu_subsystem_rst_n;
+  assign peripheral_subsystem_powergate_switch_o = peripheral_subsystem_powergate_switch;
+  assign peripheral_subsystem_powergate_iso_o = peripheral_subsystem_powergate_iso;
+  assign peripheral_subsystem_rst_no = peripheral_subsystem_rst_n;
+  assign memory_subsystem_banks_powergate_switch_o = memory_subsystem_banks_powergate_switch;
+  assign memory_subsystem_banks_powergate_iso_o = memory_subsystem_banks_powergate_iso;
+  assign external_subsystem_powergate_switch_o = external_subsystem_powergate_switch;
+  assign external_subsystem_powergate_iso_o = external_subsystem_powergate_iso;
+  assign external_subsystem_rst_no = external_subsystem_rst_n;
+
   // --------------------------------------------------------------------------------------
   // CPU_SUBSYSTEM DOMAIN
   // --------------------------------------------------------------------------------------
@@ -103,8 +127,19 @@ module power_manager #(
   logic cpu_reset_counter_start_switch_off, cpu_reset_counter_expired_switch_off;
   logic cpu_reset_counter_start_switch_on, cpu_reset_counter_expired_switch_on;
 
+  logic cpu_subsystem_powergate_switch_ack_sync;
+
+  sync #(
+      .ResetValue(1'b0)
+  ) sync_cpu_ack_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(cpu_subsystem_powergate_switch_ack_i),
+      .serial_o(cpu_subsystem_powergate_switch_ack_sync)
+  );
+
   assign hw2reg.power_gate_core_ack.de = 1'b1;
-  assign hw2reg.power_gate_core_ack.d = cpu_subsystem_powergate_switch_ack_i;
+  assign hw2reg.power_gate_core_ack.d = cpu_subsystem_powergate_switch_ack_sync;
 
   //if you want to wait for ACK, or just bypass it
   logic cpu_switch_wait_ack;
@@ -139,10 +174,10 @@ module power_manager #(
   );
 
   always_comb begin : power_manager_start_on_sequence_gen
-    if ((reg2hw.en_wait_for_intr.q & reg2hw.intr_state.q) == 32'b0) begin
-      start_on_sequence = 1'b0;
-    end else begin
+    if ( |(reg2hw.en_wait_for_intr.q & reg2hw.intr_state.q) | reg2hw.cpu_force_wakeup.q ) begin
       start_on_sequence = 1'b1;
+    end else begin
+      start_on_sequence = 1'b0;
     end
   end
 
@@ -154,7 +189,7 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_core.q && core_sleep_i),
+      .start_off_sequence_i(reg2hw.power_gate_core.q && (core_sleep_i || reg2hw.cpu_force_sleep.q)),
       .start_on_sequence_i (start_on_sequence),
       .switch_ack_i (cpu_switch_wait_ack),
 
@@ -166,8 +201,9 @@ module power_manager #(
       .counter_start_switch_on_o (cpu_reset_counter_start_switch_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(cpu_subsystem_rst_no)
+      .switch_onoff_signal_o(cpu_subsystem_rst_n)
   );
+
 
   logic cpu_powergate_counter_start_switch_off, cpu_powergate_counter_expired_switch_off;
   logic cpu_powergate_counter_start_switch_on, cpu_powergate_counter_expired_switch_on;
@@ -208,7 +244,7 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_core.q && core_sleep_i),
+      .start_off_sequence_i(reg2hw.power_gate_core.q && (core_sleep_i || reg2hw.cpu_force_sleep.q)),
       .start_on_sequence_i (start_on_sequence),
       .switch_ack_i (1'b1),
 
@@ -220,7 +256,7 @@ module power_manager #(
       .counter_start_switch_on_o (cpu_powergate_counter_start_switch_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(cpu_subsystem_powergate_switch_o)
+      .switch_onoff_signal_o(cpu_subsystem_powergate_switch)
   );
 
   logic cpu_powergate_counter_start_iso_off, cpu_powergate_counter_expired_iso_off;
@@ -262,7 +298,7 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_core.q && core_sleep_i),
+      .start_off_sequence_i(reg2hw.power_gate_core.q && (core_sleep_i || reg2hw.cpu_force_sleep.q)),
       .start_on_sequence_i (start_on_sequence),
       .switch_ack_i (cpu_switch_wait_ack),
 
@@ -274,7 +310,7 @@ module power_manager #(
       .counter_start_switch_on_o (cpu_powergate_counter_start_iso_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(cpu_subsystem_powergate_iso_o)
+      .switch_onoff_signal_o(cpu_subsystem_powergate_iso)
   );
 
   // --------------------------------------------------------------------------------------
@@ -284,8 +320,19 @@ module power_manager #(
   logic periph_reset_counter_start_switch_off, periph_reset_counter_expired_switch_off;
   logic periph_reset_counter_start_switch_on, periph_reset_counter_expired_switch_on;
 
+  logic peripheral_subsystem_powergate_switch_ack_sync;
+
+  sync #(
+      .ResetValue(1'b0)
+  ) sync_periph_ack_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(peripheral_subsystem_powergate_switch_ack_i),
+      .serial_o(peripheral_subsystem_powergate_switch_ack_sync)
+  );
+
   assign hw2reg.power_gate_periph_ack.de = 1'b1;
-  assign hw2reg.power_gate_periph_ack.d = peripheral_subsystem_powergate_switch_ack_i;
+  assign hw2reg.power_gate_periph_ack.d = peripheral_subsystem_powergate_switch_ack_sync;
 
   //if you want to wait for ACK, or just bypass it
   logic periph_switch_wait_ack;
@@ -339,8 +386,9 @@ module power_manager #(
       .counter_start_switch_on_o (periph_reset_counter_start_switch_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(peripheral_subsystem_rst_no)
+      .switch_onoff_signal_o(peripheral_subsystem_rst_n)
   );
+
 
   logic periph_powergate_counter_start_switch_off, periph_powergate_counter_expired_switch_off;
   logic periph_powergate_counter_start_switch_on, periph_powergate_counter_expired_switch_on;
@@ -393,7 +441,7 @@ module power_manager #(
       .counter_start_switch_on_o (periph_powergate_counter_start_switch_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(peripheral_subsystem_powergate_switch_o)
+      .switch_onoff_signal_o(peripheral_subsystem_powergate_switch)
   );
 
   logic periph_powergate_counter_start_iso_off, periph_powergate_counter_expired_iso_off;
@@ -447,7 +495,7 @@ module power_manager #(
       .counter_start_switch_on_o (periph_powergate_counter_start_iso_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(peripheral_subsystem_powergate_iso_o)
+      .switch_onoff_signal_o(peripheral_subsystem_powergate_iso)
   );
 
 % for bank in range(ram_numbanks):
@@ -458,8 +506,19 @@ module power_manager #(
   logic ram_${bank}_powergate_counter_start_switch_off, ram_${bank}_powergate_counter_expired_switch_off;
   logic ram_${bank}_powergate_counter_start_switch_on, ram_${bank}_powergate_counter_expired_switch_on;
 
+  logic ram_${bank}_subsystem_powergate_switch_ack_sync;
+
+  sync #(
+      .ResetValue(1'b0)
+  ) sync_ram_${bank}_ack_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(memory_subsystem_banks_powergate_switch_ack_i[${bank}]),
+      .serial_o(ram_${bank}_subsystem_powergate_switch_ack_sync)
+  );
+
   assign hw2reg.power_gate_ram_block_${bank}_ack.de = 1'b1;
-  assign hw2reg.power_gate_ram_block_${bank}_ack.d = memory_subsystem_banks_powergate_switch_ack_i[${bank}];
+  assign hw2reg.power_gate_ram_block_${bank}_ack.d = ram_${bank}_subsystem_powergate_switch_ack_sync;
 
   //if you want to wait for ACK, or just bypass it
   logic ram_${bank}_switch_wait_ack;
@@ -513,7 +572,7 @@ module power_manager #(
       .counter_start_switch_on_o (ram_${bank}_powergate_counter_start_switch_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(memory_subsystem_banks_powergate_switch_o[${bank}])
+      .switch_onoff_signal_o(memory_subsystem_banks_powergate_switch[${bank}])
   );
 
   logic ram_${bank}_powergate_counter_start_iso_off, ram_${bank}_powergate_counter_expired_iso_off;
@@ -567,7 +626,7 @@ module power_manager #(
       .counter_start_switch_on_o (ram_${bank}_powergate_counter_start_iso_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(memory_subsystem_banks_powergate_iso_o[${bank}])
+      .switch_onoff_signal_o(memory_subsystem_banks_powergate_iso[${bank}])
   );
 
   logic ram_${bank}_retentive_counter_start_off, ram_${bank}_retentive_counter_expired_off;
@@ -630,8 +689,19 @@ module power_manager #(
   logic external_${ext}_reset_counter_start_switch_off, external_${ext}_reset_counter_expired_switch_off;
   logic external_${ext}_reset_counter_start_switch_on, external_${ext}_reset_counter_expired_switch_on;
 
+  logic external_${ext}_subsystem_powergate_switch_ack_sync;
+
+  sync #(
+      .ResetValue(1'b0)
+  ) sync_external_${ext}_ack_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(external_subsystem_powergate_switch_ack_i[${ext}]),
+      .serial_o(external_${ext}_subsystem_powergate_switch_ack_sync)
+  );
+
   assign hw2reg.power_gate_external_${ext}_ack.de = 1'b1;
-  assign hw2reg.power_gate_external_${ext}_ack.d = external_subsystem_powergate_switch_ack_i[${ext}];
+  assign hw2reg.power_gate_external_${ext}_ack.d = external_${ext}_subsystem_powergate_switch_ack_sync;
 
   //if you want to wait for ACK, or just bypass it
   logic external_${ext}_switch_wait_ack;
@@ -685,7 +755,7 @@ module power_manager #(
       .counter_start_switch_on_o (external_${ext}_reset_counter_start_switch_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(external_subsystem_rst_no[${ext}])
+      .switch_onoff_signal_o(external_subsystem_rst_n[${ext}])
   );
 
   logic external_${ext}_powergate_counter_start_switch_off, external_${ext}_powergate_counter_expired_switch_off;
@@ -731,7 +801,6 @@ module power_manager #(
       .start_on_sequence_i (~reg2hw.power_gate_external_${ext}.q),
       .switch_ack_i (1'b1),
 
-
       // counter to switch on and off signals
       .counter_expired_switch_off_i(external_${ext}_powergate_counter_expired_switch_off),
       .counter_expired_switch_on_i (external_${ext}_powergate_counter_expired_switch_on),
@@ -740,7 +809,7 @@ module power_manager #(
       .counter_start_switch_on_o (external_${ext}_powergate_counter_start_switch_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(external_subsystem_powergate_switch_o[${ext}])
+      .switch_onoff_signal_o(external_subsystem_powergate_switch[${ext}])
   );
 
   logic external_${ext}_powergate_counter_start_iso_off, external_${ext}_powergate_counter_expired_iso_off;
@@ -794,8 +863,28 @@ module power_manager #(
       .counter_start_switch_on_o (external_${ext}_powergate_counter_start_iso_on),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(external_subsystem_powergate_iso_o[${ext}])
+      .switch_onoff_signal_o(external_subsystem_powergate_iso[${ext}])
   );
+
+% endfor
+  // --------------------------------------------------------------------------------------
+  // MONITOR
+  // --------------------------------------------------------------------------------------
+
+  assign hw2reg.monitor_power_gate_core.de = 1'b1;
+  assign hw2reg.monitor_power_gate_core.d = {cpu_subsystem_rst_n, cpu_subsystem_powergate_iso, cpu_subsystem_powergate_switch};
+
+  assign hw2reg.monitor_power_gate_periph.de = 1'b1;
+  assign hw2reg.monitor_power_gate_periph.d = {peripheral_subsystem_rst_n, peripheral_subsystem_powergate_iso, peripheral_subsystem_powergate_switch};
+
+% for bank in range(ram_numbanks):
+  assign hw2reg.monitor_power_gate_ram_block_${bank}.de = 1'b1;
+  assign hw2reg.monitor_power_gate_ram_block_${bank}.d = {memory_subsystem_banks_powergate_iso[${bank}], memory_subsystem_banks_powergate_switch[${bank}]};
+
+% endfor
+% for ext in range(external_domains):
+  assign hw2reg.monitor_power_gate_external_${ext}.de = 1'b1;
+  assign hw2reg.monitor_power_gate_external_${ext}.d = {external_subsystem_rst_n[${ext}], external_subsystem_powergate_iso[${ext}], external_subsystem_powergate_switch[${ext}]};
 
 % endfor
 

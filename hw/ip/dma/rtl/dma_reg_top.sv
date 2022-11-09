@@ -87,6 +87,9 @@ module dma_reg_top #(
   logic [2:0] spi_mode_qs;
   logic [2:0] spi_mode_wd;
   logic spi_mode_we;
+  logic [1:0] data_type_qs;
+  logic [1:0] data_type_wd;
+  logic data_type_we;
 
   // Register instances
   // R[ptr_in]: V(False)
@@ -277,9 +280,36 @@ module dma_reg_top #(
   );
 
 
+  // R[data_type]: V(False)
+
+  prim_subreg #(
+      .DW      (2),
+      .SWACCESS("RW"),
+      .RESVAL  (2'h0)
+  ) u_data_type (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(data_type_we),
+      .wd(data_type_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.data_type.q),
+
+      // to register interface (read)
+      .qs(data_type_qs)
+  );
 
 
-  logic [6:0] addr_hit;
+
+
+  logic [7:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == DMA_PTR_IN_OFFSET);
@@ -289,6 +319,7 @@ module dma_reg_top #(
     addr_hit[4] = (reg_addr == DMA_SRC_PTR_INC_OFFSET);
     addr_hit[5] = (reg_addr == DMA_DST_PTR_INC_OFFSET);
     addr_hit[6] = (reg_addr == DMA_SPI_MODE_OFFSET);
+    addr_hit[7] = (reg_addr == DMA_DATA_TYPE_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -302,7 +333,8 @@ module dma_reg_top #(
                (addr_hit[3] & (|(DMA_PERMIT[3] & ~reg_be))) |
                (addr_hit[4] & (|(DMA_PERMIT[4] & ~reg_be))) |
                (addr_hit[5] & (|(DMA_PERMIT[5] & ~reg_be))) |
-               (addr_hit[6] & (|(DMA_PERMIT[6] & ~reg_be)))));
+               (addr_hit[6] & (|(DMA_PERMIT[6] & ~reg_be))) |
+               (addr_hit[7] & (|(DMA_PERMIT[7] & ~reg_be)))));
   end
 
   assign ptr_in_we = addr_hit[0] & reg_we & !reg_error;
@@ -322,6 +354,9 @@ module dma_reg_top #(
 
   assign spi_mode_we = addr_hit[6] & reg_we & !reg_error;
   assign spi_mode_wd = reg_wdata[2:0];
+
+  assign data_type_we = addr_hit[7] & reg_we & !reg_error;
+  assign data_type_wd = reg_wdata[1:0];
 
   // Read data return
   always_comb begin
@@ -353,6 +388,10 @@ module dma_reg_top #(
 
       addr_hit[6]: begin
         reg_rdata_next[2:0] = spi_mode_qs;
+      end
+
+      addr_hit[7]: begin
+        reg_rdata_next[1:0] = data_type_qs;
       end
 
       default: begin

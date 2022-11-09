@@ -37,6 +37,7 @@
         { bits: "0", name: "POWER_GATE_CORE", desc: "Power Gate Core Reg" }
       ]
     }
+
     { name:     "POWER_GATE_CORE_ACK",
       desc:     "Used by the core switch to ack the power manager",
       resval:   "0x00000000"
@@ -46,6 +47,7 @@
         { bits: "0", name: "POWER_GATE_CORE_ACK", desc: "Power Gate Core Ack Reg" }
       ]
     }
+
     { name:     "POWER_GATE_PERIPH",
       desc:     "Used to power gate peripheral_subsystem",
       resval:   "0x00000000"
@@ -55,6 +57,7 @@
         { bits: "0", name: "POWER_GATE_PERIPH", desc: "Power Gate Periph Reg" }
       ]
     }
+
     { name:     "POWER_GATE_PERIPH_ACK",
       desc:     "Used by the periph switch to ack the power manager",
       resval:   "0x00000000"
@@ -597,5 +600,69 @@
     }
 
 % endfor
+    { name:     "MONITOR_POWER_GATE_CORE",
+      desc:     "Used to monitor the signals to power gate core",
+      resval:   "0x00000000"
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        { bits: "2:0", name: "MONITOR_POWER_GATE_CORE", desc: "Monitor Signals Power Gate Core Reg" }
+      ]
+    }
+
+    { name:     "MONITOR_POWER_GATE_PERIPH",
+      desc:     "Used to monitor the signals to power gate periph",
+      resval:   "0x00000000"
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        { bits: "2:0", name: "MONITOR_POWER_GATE_PERIPH", desc: "Monitor Signals Power Gate Periph Reg" }
+      ]
+    }
+
+% for bank in range(ram_numbanks):
+    { name:     "MONITOR_POWER_GATE_RAM_BLOCK_${bank}",
+      desc:     "Used to monitor the signals to power gate ram block ${bank}",
+      resval:   "0x00000000"
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        { bits: "1:0", name: "MONITOR_POWER_GATE_RAM_BLOCK_${bank}", desc: "Monitor Signals Power Gate Ram Block ${bank} Reg" }
+      ]
+    }
+
+% endfor
+% for ext in range(external_domains):
+    { name:     "MONITOR_POWER_GATE_EXTERNAL_${ext}",
+      desc:     "Used to monitor the signals to power gate external ${ext}",
+      resval:   "0x00000000"
+      swaccess: "ro",
+      hwaccess: "hwo",
+      fields: [
+        { bits: "2:0", name: "MONITOR_POWER_GATE_EXTERNAL_${ext}", desc: "Monitor Signals Power Gate External ${ext} Reg" }
+      ]
+    }
+
+% endfor
+    { name:     "CPU_FORCE_SLEEP",
+      desc:     "Used to force the core to sleep",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "CPU_FORCE_SLEEP", desc: "Force Core Sleep Reg" }
+      ]
+    }
+
+    { name:     "CPU_FORCE_WAKEUP",
+      desc:     "Used to force the core to wakeup",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "CPU_FORCE_WAKEUP", desc: "Force Core Wakeup Reg" }
+      ]
+    }
+
    ]
 }

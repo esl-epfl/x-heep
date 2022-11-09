@@ -63,7 +63,7 @@ module ao_peripheral_subsystem
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_o,
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_no,
 
-    //RV TIMER
+    // RV TIMER
     output logic rv_timer_0_intr_o,
     output logic rv_timer_1_intr_o,
 
@@ -74,13 +74,19 @@ module ao_peripheral_subsystem
     input  obi_resp_t dma_master1_ch0_resp_i,
     output logic      dma_intr_o,
 
-    //External PADs
+    // External PADs
     output reg_req_t pad_req_o,
     input  reg_rsp_t pad_resp_i,
 
     // FAST INTR CTRL
     input  logic [14:0] fast_intr_i,
     output logic [14:0] fast_intr_o,
+
+    // GPIO
+    input  logic [7:0] cio_gpio_i,
+    output logic [7:0] cio_gpio_o,
+    output logic [7:0] cio_gpio_en_o,
+    output logic [7:0] intr_gpio_o,
 
     // UART
     input  logic uart_rx_i,
@@ -112,6 +118,9 @@ module ao_peripheral_subsystem
   tlul_pkg::tl_h2d_t rv_timer_tl_h2d;
   tlul_pkg::tl_d2h_t rv_timer_tl_d2h;
 
+  tlul_pkg::tl_h2d_t gpio_tl_h2d;
+  tlul_pkg::tl_d2h_t gpio_tl_d2h;
+
   tlul_pkg::tl_h2d_t uart_tl_h2d;
   tlul_pkg::tl_d2h_t uart_tl_d2h;
 
@@ -123,6 +132,10 @@ module ao_peripheral_subsystem
   logic spi_tx_ready;
   logic spi_flash_rx_valid;
   logic spi_flash_tx_ready;
+
+  logic [23:0] intr_gpio_unused;
+  logic [23:0] cio_gpio_unused;
+  logic [23:0] cio_gpio_en_unused;
 
   assign ext_peripheral_slave_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPH_IDX];
   assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPH_IDX] = ext_peripheral_slave_resp_i;
@@ -227,10 +240,12 @@ module ao_peripheral_subsystem
   ) spi_host_dma_i (
       .clk_i,
       .rst_ni,
-      .clk_core_i(clk_i),
-      .rst_core_ni(rst_ni),
       .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::SPI_IDX]),
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_IDX]),
+      .alert_rx_i(),
+      .alert_tx_o(),
+      .passthrough_i(spi_device_pkg::PASSTHROUGH_REQ_DEFAULT),
+      .passthrough_o(),
       .cio_sck_o(spi_sck_o),
       .cio_sck_en_o(spi_sck_en_o),
       .cio_csb_o(spi_csb_o),
@@ -345,6 +360,34 @@ module ao_peripheral_subsystem
       .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
       .PutFullData(tlul_pkg::PutFullData),
       .Get(tlul_pkg::Get)
+  ) reg_to_tlul_gpio_ao_i (
+      .tl_o(gpio_tl_h2d),
+      .tl_i(gpio_tl_d2h),
+      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::GPIO_AO_IDX]),
+      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_AO_IDX])
+  );
+
+  gpio gpio_ao_i (
+      .clk_i,
+      .rst_ni,
+      .tl_i(gpio_tl_h2d),
+      .tl_o(gpio_tl_d2h),
+      .cio_gpio_i({24'b0, cio_gpio_i}),
+      .cio_gpio_o({cio_gpio_unused, cio_gpio_o}),
+      .cio_gpio_en_o({cio_gpio_en_unused, cio_gpio_en_o}),
+      .intr_gpio_o({intr_gpio_unused, intr_gpio_o})
+  );
+
+  reg_to_tlul #(
+      .req_t(reg_pkg::reg_req_t),
+      .rsp_t(reg_pkg::reg_rsp_t),
+      .tl_h2d_t(tlul_pkg::tl_h2d_t),
+      .tl_d2h_t(tlul_pkg::tl_d2h_t),
+      .tl_a_user_t(tlul_pkg::tl_a_user_t),
+      .tl_a_op_e(tlul_pkg::tl_a_op_e),
+      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
+      .PutFullData(tlul_pkg::PutFullData),
+      .Get(tlul_pkg::Get)
   ) reg_to_tlul_uart_i (
       .tl_o(uart_tl_h2d),
       .tl_i(uart_tl_d2h),
@@ -369,7 +412,6 @@ module ao_peripheral_subsystem
       .intr_rx_timeout_o(uart_intr_rx_timeout_o),
       .intr_rx_parity_err_o(uart_intr_rx_parity_err_o)
   );
-
 
 
 endmodule : ao_peripheral_subsystem
