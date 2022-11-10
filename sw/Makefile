@@ -300,6 +300,7 @@ applications/example_power_gating_core/example_power_gating_core.elf: applicatio
 		$^ $(LIB_RUNTIME) \
 		$(LIB_BASE) \
 		$(LIB_DRIVERS) \
+		-Wl,-Map=applications/example_power_gating_core/example_power_gating_core.map \
 		-L $(RISCV)/riscv32-unknown-elf/lib \
 		-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs
 
