@@ -15,8 +15,6 @@
 
 #include "x-heep.h"
 
-volatile static __attribute__((section(".power_manager"))) int power_manager_context[64];
-
 
 void __attribute__ ((noinline)) power_gate_core_asm()
 {
