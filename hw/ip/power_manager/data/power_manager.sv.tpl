@@ -42,22 +42,23 @@ module power_manager #(
     input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] ext_irq_i,
 
     // Power gating signals
-    output logic                                             cpu_subsystem_powergate_switch_o,
-    input  logic                                             cpu_subsystem_powergate_switch_ack_i,
-    output logic                                             cpu_subsystem_powergate_iso_o,
-    output logic                                             cpu_subsystem_rst_no,
-    output logic                                             peripheral_subsystem_powergate_switch_o,
-    input  logic                                             peripheral_subsystem_powergate_switch_ack_i,
-    output logic                                             peripheral_subsystem_powergate_iso_o,
-    output logic                                             peripheral_subsystem_rst_no,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]        memory_subsystem_banks_powergate_switch_o,
-    input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]        memory_subsystem_banks_powergate_switch_ack_i,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]        memory_subsystem_banks_powergate_iso_o,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]        memory_subsystem_banks_set_retentive_o,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_o,
-    input  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_ack_i,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_o,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_no
+    output logic                                                         cpu_subsystem_powergate_switch_o,
+    input  logic                                                         cpu_subsystem_powergate_switch_ack_i,
+    output logic                                                         cpu_subsystem_powergate_iso_o,
+    output logic                                                         cpu_subsystem_rst_no,
+    output logic                                                         peripheral_subsystem_powergate_switch_o,
+    input  logic                                                         peripheral_subsystem_powergate_switch_ack_i,
+    output logic                                                         peripheral_subsystem_powergate_iso_o,
+    output logic                                                         peripheral_subsystem_rst_no,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]                    memory_subsystem_banks_powergate_switch_o,
+    input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]                    memory_subsystem_banks_powergate_switch_ack_i,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]                    memory_subsystem_banks_powergate_iso_o,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]                    memory_subsystem_banks_set_retentive_o,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0]             external_subsystem_powergate_switch_o,
+    input  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0]             external_subsystem_powergate_switch_ack_i,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0]             external_subsystem_powergate_iso_o,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0]             external_subsystem_rst_no,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_ram_banks_set_retentive_o
 );
 
   import power_manager_reg_pkg::*;
@@ -864,6 +865,62 @@ module power_manager #(
 
       // switch on and off signal, 1 means on
       .switch_onoff_signal_o(external_subsystem_powergate_iso[${ext}])
+  );
+
+% endfor
+% for ext_bank in range(external_domains):
+  // --------------------------------------------------------------------------------------
+  // RETENTIVE_EXTERNAL_RAM_BANK_${ext_bank}
+  // --------------------------------------------------------------------------------------
+  logic external_ram_${ext_bank}_retentive_counter_start_off, external_ram_${ext_bank}_retentive_counter_expired_off;
+  logic external_ram_${ext_bank}_retentive_counter_start_on, external_ram_${ext_bank}_retentive_counter_expired_on;
+
+  reg_to_counter #(
+      .DW(32),
+      .ExpireValue('0)
+  ) reg_to_counter_external_ram_${ext_bank}_retentive_off_i (
+      .clk_i,
+      .rst_ni,
+      .stop_i(reg2hw.external_ram_${ext_bank}_counters_stop.external_ram_${ext_bank}_retentive_off_stop_bit_counter.q),
+      .start_i(external_ram_${ext_bank}_retentive_counter_start_off),
+      .done_o(external_ram_${ext_bank}_retentive_counter_expired_off),
+      .hw2reg_d_o(hw2reg.external_ram_${ext_bank}_retentive_off_counter.d),
+      .hw2reg_de_o(hw2reg.external_ram_${ext_bank}_retentive_off_counter.de),
+      .hw2reg_q_i(reg2hw.external_ram_${ext_bank}_retentive_off_counter.q)
+  );
+
+  reg_to_counter #(
+      .DW(32),
+      .ExpireValue('0)
+  ) reg_to_counter_external_ram_${ext_bank}_retentive_on_i (
+      .clk_i,
+      .rst_ni,
+      .stop_i(reg2hw.external_ram_${ext_bank}_counters_stop.external_ram_${ext_bank}_retentive_on_stop_bit_counter.q),
+      .start_i(external_ram_${ext_bank}_retentive_counter_start_on),
+      .done_o(external_ram_${ext_bank}_retentive_counter_expired_on),
+      .hw2reg_d_o(hw2reg.external_ram_${ext_bank}_retentive_on_counter.d),
+      .hw2reg_de_o(hw2reg.external_ram_${ext_bank}_retentive_on_counter.de),
+      .hw2reg_q_i(reg2hw.external_ram_${ext_bank}_retentive_on_counter.q)
+  );
+
+  power_manager_counter_sequence power_manager_counter_sequence_external_ram_${ext_bank}_retentive_i (
+      .clk_i,
+      .rst_ni,
+
+      // trigger to start the sequence
+      .start_off_sequence_i(reg2hw.set_retentive_external_ram_block_${ext_bank}.q),
+      .start_on_sequence_i (~reg2hw.set_retentive_external_ram_block_${ext_bank}.q),
+      .switch_ack_i (1'b1),
+
+      // counter to switch on and off signals
+      .counter_expired_switch_off_i(external_ram_${ext_bank}_retentive_counter_expired_off),
+      .counter_expired_switch_on_i (external_ram_${ext_bank}_retentive_counter_expired_on),
+
+      .counter_start_switch_off_o(external_ram_${ext_bank}_retentive_counter_start_off),
+      .counter_start_switch_on_o (external_ram_${ext_bank}_retentive_counter_start_on),
+
+      // switch on and off signal, 1 means on
+      .switch_onoff_signal_o(external_ram_banks_set_retentive_o[${ext_bank}])
   );
 
 % endfor

@@ -62,6 +62,7 @@ module ao_peripheral_subsystem
     input  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_ack_i,
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_o,
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_no,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_ram_banks_set_retentive_o,
 
     // RV TIMER
     output logic rv_timer_0_intr_o,
@@ -285,7 +286,8 @@ module ao_peripheral_subsystem
       .external_subsystem_powergate_switch_o,
       .external_subsystem_powergate_switch_ack_i,
       .external_subsystem_powergate_iso_o,
-      .external_subsystem_rst_no
+      .external_subsystem_rst_no,
+      .external_ram_banks_set_retentive_o
   );
 
   reg_to_tlul #(
