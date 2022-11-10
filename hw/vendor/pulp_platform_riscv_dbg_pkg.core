@@ -1,0 +1,18 @@
+CAPI=2:
+
+name: pulp-platform.org::riscv_dbg_pkg
+
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  rtl-pkg:
+    files:
+    - pulp_platform_riscv_dbg/src/dm_pkg.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - rtl-pkg
