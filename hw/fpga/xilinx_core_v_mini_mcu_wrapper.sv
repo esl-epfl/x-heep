@@ -92,6 +92,7 @@ module xilinx_core_v_mini_mcu_wrapper
       .external_subsystem_powergate_switch_ack_i(),
       .external_subsystem_powergate_iso_o(),
       .external_subsystem_rst_no(),
+      .external_ram_banks_set_retentive_o(),
       .exit_value_o(exit_value),
       .clk_i(clk_gen),
       .rst_ni(rst_n),
