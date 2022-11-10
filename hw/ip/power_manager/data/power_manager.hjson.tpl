@@ -124,6 +124,18 @@
     }
 
 % endfor
+% for ext_bank in range(retentive_external_ram_banks):
+    { name:     "SET_RETENTIVE_EXTERNAL_RAM_BLOCK_${ext_bank}",
+      desc:     "Used to set in retentive mode external ram block ${ext_bank}",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "SET_RETENTIVE_EXTERNAL_RAM_BLOCK_${ext_bank}", desc: "Set Retentive External Ram Block ${bank} Reg" }
+      ]
+    }
+
+% endfor
 % for i in range(31):
     { name:     "CORE_REG_X${i+1}",
       desc:     "Core reg x${i+1} value",
@@ -596,6 +608,39 @@
         { bits: "3", name: "EXTERNAL_${ext}_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_${ext}_SWITCH_ON_COUNTER counter" }
         { bits: "4", name: "EXTERNAL_${ext}_ISO_OFF_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_${ext}_ISO_OFF_COUNTER counter" }
         { bits: "5", name: "EXTERNAL_${ext}_ISO_ON_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_${ext}_ISO_ON_COUNTER counter" }
+      ]
+    }
+
+% endfor
+% for ext_bank in range(retentive_external_ram_banks):
+    { name:     "EXTERNAL_RAM_${ext_bank}_RETENTIVE_OFF_COUNTER",
+      desc:     "Counter before setting off retentive mode for external RAM_${ext_bank}",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0", name: "EXTERNAL_RAM_${ext_bank}_RETENTIVE_OFF_COUNTER", desc: "External RAM_${ext_bank} counter before setting off retentive" }
+      ]
+    }
+
+    { name:     "EXTERNAL_RAM_${ext_bank}_RETENTIVE_ON_COUNTER",
+      desc:     "Counter before setting on retentive mode for external RAM_${ext_bank}",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0", name: "EXTERNAL_RAM_${ext_bank}_RETENTIVE_ON_COUNTER", desc: "External RAM_${ext_bank} counter before setting on retentive" }
+      ]
+    }
+
+    { name:     "EXTERNAL_RAM_${ext_bank}_COUNTERS_STOP",
+      desc:     "Bits to stop the counters keeping the done_o signal high",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "EXTERNAL_RAM_${ext_bank}_RETENTIVE_OFF_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_RAM_${ext_bank}_RETENTIVE_OFF_COUNTER counter" }
+        { bits: "1", name: "EXTERNAL_RAM_${ext_bank}_RETENTIVE_ON_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_RAM_${ext_bank}_RETENTIVE_ON_COUNTER counter" }
       ]
     }
 

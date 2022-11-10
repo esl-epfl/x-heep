@@ -313,6 +313,12 @@ def main():
                         default="1",
                         help="Number of external domains")
 
+    parser.add_argument("--retentive_external_ram_banks",
+                        metavar="from 0 to 32",
+                        nargs='?',
+                        default="1",
+                        help="Number of retentive external ram banks")
+
     parser.add_argument("--pkg-sv",
                         metavar="PKG_SV",
                         help="Name of top-level package file (output)")
@@ -394,6 +400,14 @@ def main():
 
     if  external_domains > 32:
         exit("external_domains must be less than 32 instead of " + str(external_domains))
+
+    if args.retentive_external_ram_banks != None and args.retentive_external_ram_banks != '':
+        retentive_external_ram_banks = int(args.retentive_external_ram_banks)
+    else:
+        retentive_external_ram_banks = 0
+
+    if  retentive_external_ram_banks > 32:
+        exit("retentive_external_ram_banks must be less than 32 instead of " + str(retentive_external_ram_banks))
 
     debug_start_address = string2int(obj['debug']['address'])
     if int(debug_start_address, 16) < int('10000', 16):
@@ -796,6 +810,7 @@ def main():
         "ram_start_address"                : ram_start_address,
         "ram_numbanks"                     : ram_numbanks,
         "external_domains"                 : external_domains,
+        "retentive_external_ram_banks"     : retentive_external_ram_banks,
         "ram_size_address"                 : ram_size_address,
         "debug_start_address"              : debug_start_address,
         "debug_size_address"               : debug_size_address,

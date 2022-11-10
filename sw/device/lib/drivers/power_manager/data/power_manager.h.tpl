@@ -201,6 +201,28 @@ static power_manager_external_map_t power_manager_external_map[${external_domain
 % endfor
 };
 
+typedef struct power_manager_external_retentive_map_t {
+  uint32_t set_retentive;
+  uint32_t retentive_off_counter;
+  uint32_t retentive_on_counter;
+  uint32_t counter_stop;
+  uint32_t retentive_off_stop_bit;
+  uint32_t retentive_on_stop_bit;
+} power_manager_external_retentive_map_t;
+
+static power_manager_external_retentive_map_t power_manager_external_retentive_map[${retentive_external_ram_banks}] = {
+% for ext_bank in range(retentive_external_ram_banks):
+  {
+    POWER_MANAGER_SET_RETENTIVE_EXTERNAL_RAM_BLOCK_${ext_bank}_REG_OFFSET,
+    POWER_MANAGER_EXTERNAL_RAM_${ext_bank}_RETENTIVE_OFF_COUNTER_REG_OFFSET,
+    POWER_MANAGER_EXTERNAL_RAM_${ext_bank}_RETENTIVE_ON_COUNTER_REG_OFFSET,
+    POWER_MANAGER_EXTERNAL_RAM_${ext_bank}_COUNTERS_STOP_REG_OFFSET,
+    POWER_MANAGER_EXTERNAL_RAM_${ext_bank}_COUNTERS_STOP_EXTERNAL_RAM_${ext_bank}_RETENTIVE_OFF_STOP_BIT_COUNTER_BIT,
+    POWER_MANAGER_EXTERNAL_RAM_${ext_bank}_COUNTERS_STOP_EXTERNAL_RAM_${ext_bank}_RETENTIVE_ON_STOP_BIT_COUNTER_BIT,
+  },
+% endfor
+};
+
 power_manager_result_t power_gate_counters_init(power_manager_counters_t* counters, uint32_t reset_off, uint32_t reset_on, uint32_t switch_off, uint32_t switch_on, uint32_t iso_off, uint32_t iso_on, uint32_t retentive_off, uint32_t retentive_on);
 
 power_manager_result_t power_gate_core(const power_manager_t *power_manager, power_manager_sel_intr_t sel_intr, power_manager_counters_t* cpu_counters);
@@ -216,6 +238,8 @@ uint32_t periph_power_domain_is_off(const power_manager_t *power_manager);
 uint32_t ram_block_power_domain_is_off(const power_manager_t *power_manager, uint32_t sel_block);
 
 uint32_t external_power_domain_is_off(const power_manager_t *power_manager, uint32_t sel_external);
+
+power_manager_result_t set_retentive_external_ram_block(const power_manager_t *power_manager, uint32_t sel_block, power_manager_sel_state_t sel_state, power_manager_counters_t* ram_block_counters);
 
 monitor_signals_t monitor_power_gate_core(const power_manager_t *power_manager);
 
