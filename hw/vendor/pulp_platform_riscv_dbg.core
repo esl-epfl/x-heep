@@ -11,10 +11,10 @@ filesets:
     depend:
     - pulp-platform.org::tech_cells_generic
     - pulp-platform.org::common_cells
+    - pulp-platform.org::riscv_dbg_pkg
     files:
     - pulp_platform_riscv_dbg/debug_rom/debug_rom.sv
     - pulp_platform_riscv_dbg/debug_rom/debug_rom_one_scratch.sv
-    - pulp_platform_riscv_dbg/src/dm_pkg.sv
     - pulp_platform_riscv_dbg/src/dm_csrs.sv
     - pulp_platform_riscv_dbg/src/dmi_cdc.sv
     - pulp_platform_riscv_dbg/src/dmi_jtag.sv
