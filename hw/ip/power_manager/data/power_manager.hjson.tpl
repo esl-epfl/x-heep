@@ -124,7 +124,7 @@
     }
 
 % endfor
-% for ext_bank in range(retentive_external_ram_banks):
+% for ext_bank in range(external_domains):
     { name:     "SET_RETENTIVE_EXTERNAL_RAM_BLOCK_${ext_bank}",
       desc:     "Used to set in retentive mode external ram block ${ext_bank}",
       resval:   "0x00000000"
@@ -612,7 +612,7 @@
     }
 
 % endfor
-% for ext_bank in range(retentive_external_ram_banks):
+% for ext_bank in range(external_domains):
     { name:     "EXTERNAL_RAM_${ext_bank}_RETENTIVE_OFF_COUNTER",
       desc:     "Counter before setting off retentive mode for external RAM_${ext_bank}",
       resval:   "0x00000000"

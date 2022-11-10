@@ -210,8 +210,8 @@ typedef struct power_manager_external_retentive_map_t {
   uint32_t retentive_on_stop_bit;
 } power_manager_external_retentive_map_t;
 
-static power_manager_external_retentive_map_t power_manager_external_retentive_map[${retentive_external_ram_banks}] = {
-% for ext_bank in range(retentive_external_ram_banks):
+static power_manager_external_retentive_map_t power_manager_external_retentive_map[${external_domains}] = {
+% for ext_bank in range(external_domains):
   {
     POWER_MANAGER_SET_RETENTIVE_EXTERNAL_RAM_BLOCK_${ext_bank}_REG_OFFSET,
     POWER_MANAGER_EXTERNAL_RAM_${ext_bank}_RETENTIVE_OFF_COUNTER_REG_OFFSET,

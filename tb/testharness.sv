@@ -80,7 +80,7 @@ module testharness #(
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_ack;
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso;
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_n;
-  logic [core_v_mini_mcu_pkg::RETENTIVE_EXTERNAL_RAM_BANKS-1:0] external_ram_banks_set_retentive;
+  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_ram_banks_set_retentive;
 
   always_comb begin
     // All interrupt lines set to zero by default

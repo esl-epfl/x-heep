@@ -51,7 +51,6 @@ package core_v_mini_mcu_pkg;
 
   localparam int unsigned NUM_BANKS = ${ram_numbanks};
   localparam int unsigned EXTERNAL_DOMAINS = ${external_domains};
-  localparam int unsigned RETENTIVE_EXTERNAL_RAM_BANKS = ${retentive_external_ram_banks};
 
   localparam logic[31:0] ERROR_START_ADDRESS = 32'hBADACCE5;
   localparam logic[31:0] ERROR_SIZE = 32'h00000001;

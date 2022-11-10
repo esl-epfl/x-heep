@@ -58,7 +58,7 @@ module power_manager #(
     input  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0]             external_subsystem_powergate_switch_ack_i,
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0]             external_subsystem_powergate_iso_o,
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0]             external_subsystem_rst_no,
-    output logic [core_v_mini_mcu_pkg::RETENTIVE_EXTERNAL_RAM_BANKS-1:0] external_ram_banks_set_retentive_o
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_ram_banks_set_retentive_o
 );
 
   import power_manager_reg_pkg::*;
@@ -868,7 +868,7 @@ module power_manager #(
   );
 
 % endfor
-% for ext_bank in range(retentive_external_ram_banks):
+% for ext_bank in range(external_domains):
   // --------------------------------------------------------------------------------------
   // RETENTIVE_EXTERNAL_RAM_BANK_${ext_bank}
   // --------------------------------------------------------------------------------------
