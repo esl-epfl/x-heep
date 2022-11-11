@@ -503,3 +503,17 @@ power_manager_result_t cpu_force_wakeup(const power_manager_t *power_manager)
 
     return kPowerManagerOk_e;
 }
+
+power_manager_result_t cpu_force_reset(const power_manager_t *power_manager)
+{
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_CPU_FORCE_RESET_REG_OFFSET, 0x1);
+
+    return kPowerManagerOk_e;
+}
+
+power_manager_result_t cpu_force_iso(const power_manager_t *power_manager)
+{
+    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_CPU_FORCE_ISO_REG_OFFSET, 0x1);
+
+    return kPowerManagerOk_e;
+}

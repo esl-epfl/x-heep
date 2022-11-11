@@ -253,6 +253,10 @@ power_manager_result_t cpu_force_sleep(const power_manager_t *power_manager);
 
 power_manager_result_t cpu_force_wakeup(const power_manager_t *power_manager);
 
+power_manager_result_t cpu_force_reset(const power_manager_t *power_manager);
+
+power_manager_result_t cpu_force_iso(const power_manager_t *power_manager);
+
 #ifdef __cplusplus
 }
 #endif
