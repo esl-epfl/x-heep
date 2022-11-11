@@ -90,6 +90,12 @@ SECTIONS {
         __BSS_END__ = .;
     } >RAM
 
+    .power_manager : ALIGN(4)
+    {
+       PROVIDE(__power_manager_start = .);
+       . += 256;
+    } >RAM
+
     /* The compiler uses this to access data in the .sdata, .data, .sbss and .bss
      sections with fewer instructions (relaxation). This reduces code size. */
     __global_pointer$ = MIN(__SDATA_BEGIN__ + 0x800,

@@ -116,6 +116,11 @@ SECTIONS
     *(.gnu.warning)
   } >ram0
 
+  .power_manager : ALIGN(4)
+  {
+     PROVIDE(__power_manager_start = .);
+     . += 256;
+  } >ram0
 
   /* not used by RISC-V*/
   .fini           :
