@@ -577,28 +577,18 @@
     }
 
 % endfor
-    { name:     "CPU_FORCE_SLEEP",
-      desc:     "Used to force the core to sleep",
+    { name:     "CPU_FORCE_SWITCH",
+      desc:     "Used to force core switch",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "CPU_FORCE_SLEEP", desc: "Force Core Sleep Reg" }
-      ]
-    }
-
-    { name:     "CPU_FORCE_WAKEUP",
-      desc:     "Used to force the core to wakeup",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "0", name: "CPU_FORCE_WAKEUP", desc: "Force Core Wakeup Reg" }
+        { bits: "0", name: "CPU_FORCE_SWITCH", desc: "Force Core Switch Reg" }
       ]
     }
 
     { name:     "CPU_FORCE_RESET",
-      desc:     "Used to force the core reset",
+      desc:     "Used to force core reset",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
@@ -608,7 +598,7 @@
     }
 
     { name:     "CPU_FORCE_ISO",
-      desc:     "Used to force the core iso",
+      desc:     "Used to force core iso",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",

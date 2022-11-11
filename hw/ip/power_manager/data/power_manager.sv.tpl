@@ -110,8 +110,8 @@ module power_manager #(
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_n;
 
   assign cpu_subsystem_powergate_switch_o = cpu_subsystem_powergate_switch;
-  assign cpu_subsystem_powergate_iso_o = cpu_subsystem_powergate_iso & reg2hw.cpu_force_iso.q;
-  assign cpu_subsystem_rst_no = cpu_subsystem_rst_n & reg2hw.cpu_force_reset.q;
+  assign cpu_subsystem_powergate_iso_o = cpu_subsystem_powergate_iso;
+  assign cpu_subsystem_rst_no = cpu_subsystem_rst_n;
   assign peripheral_subsystem_powergate_switch_o = peripheral_subsystem_powergate_switch;
   assign peripheral_subsystem_powergate_iso_o = peripheral_subsystem_powergate_iso;
   assign peripheral_subsystem_rst_no = peripheral_subsystem_rst_n;
@@ -175,7 +175,7 @@ module power_manager #(
   );
 
   always_comb begin : power_manager_start_on_sequence_gen
-    if ( |(reg2hw.en_wait_for_intr.q & reg2hw.intr_state.q) | reg2hw.cpu_force_wakeup.q ) begin
+    if (reg2hw.en_wait_for_intr.q & reg2hw.intr_state.q) begin
       start_on_sequence = 1'b1;
     end else begin
       start_on_sequence = 1'b0;
@@ -190,8 +190,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_core.q && (core_sleep_i || reg2hw.cpu_force_sleep.q)),
-      .start_on_sequence_i (start_on_sequence),
+      .start_off_sequence_i((reg2hw.power_gate_core.q && core_sleep_i) || reg2hw.cpu_force_reset.q),
+      .start_on_sequence_i (start_on_sequence || ~reg2hw.cpu_force_reset.q),
       .switch_ack_i (cpu_switch_wait_ack),
 
       // counter to switch on and off signals
@@ -245,8 +245,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_core.q && (core_sleep_i || reg2hw.cpu_force_sleep.q)),
-      .start_on_sequence_i (start_on_sequence),
+      .start_off_sequence_i((reg2hw.power_gate_core.q && core_sleep_i) || reg2hw.cpu_force_switch.q),
+      .start_on_sequence_i (start_on_sequence || ~reg2hw.cpu_force_switch.q),
       .switch_ack_i (1'b1),
 
       // counter to switch on and off signals
@@ -299,8 +299,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_core.q && (core_sleep_i || reg2hw.cpu_force_sleep.q)),
-      .start_on_sequence_i (start_on_sequence),
+      .start_off_sequence_i((reg2hw.power_gate_core.q && core_sleep_i) || reg2hw.cpu_force_iso.q),
+      .start_on_sequence_i (start_on_sequence || ~reg2hw.cpu_force_iso.q),
       .switch_ack_i (cpu_switch_wait_ack),
 
       // counter to switch on and off signals

@@ -490,30 +490,32 @@ monitor_signals_t monitor_power_gate_external(const power_manager_t *power_manag
     return monitor_signals;
 }
 
-power_manager_result_t cpu_force_sleep(const power_manager_t *power_manager)
+power_manager_result_t cpu_force_switch(const power_manager_t *power_manager, power_manager_sel_state_t sel_state)
 {
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_CPU_FORCE_SLEEP_REG_OFFSET, 0x1);
+    if (sel_state == kOn_e)
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_CPU_FORCE_SWITCH_REG_OFFSET, 0x1);
+    else
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_CPU_FORCE_SWITCH_REG_OFFSET, 0x0);
 
     return kPowerManagerOk_e;
 }
 
-power_manager_result_t cpu_force_wakeup(const power_manager_t *power_manager)
+power_manager_result_t cpu_force_reset(const power_manager_t *power_manager, power_manager_sel_state_t sel_state)
 {
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_CPU_FORCE_WAKEUP_REG_OFFSET, 0x1);
+    if (sel_state == kOn_e)
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_CPU_FORCE_RESET_REG_OFFSET, 0x1);
+    else
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_CPU_FORCE_RESET_REG_OFFSET, 0x0);
 
     return kPowerManagerOk_e;
 }
 
-power_manager_result_t cpu_force_reset(const power_manager_t *power_manager)
+power_manager_result_t cpu_force_iso(const power_manager_t *power_manager, power_manager_sel_state_t sel_state)
 {
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_CPU_FORCE_RESET_REG_OFFSET, 0x1);
-
-    return kPowerManagerOk_e;
-}
-
-power_manager_result_t cpu_force_iso(const power_manager_t *power_manager)
-{
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_CPU_FORCE_ISO_REG_OFFSET, 0x1);
+    if (sel_state == kOn_e)
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_CPU_FORCE_ISO_REG_OFFSET, 0x1);
+    else
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_CPU_FORCE_ISO_REG_OFFSET, 0x0);
 
     return kPowerManagerOk_e;
 }
