@@ -597,5 +597,25 @@
       ]
     }
 
+    { name:     "CPU_FORCE_RESET",
+      desc:     "Used to force the core reset",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "CPU_FORCE_RESET", desc: "Force Core Reset Reg" }
+      ]
+    }
+
+    { name:     "CPU_FORCE_ISO",
+      desc:     "Used to force the core iso",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "CPU_FORCE_ISO", desc: "Force Core Iso Reg" }
+      ]
+    }
+
    ]
 }
