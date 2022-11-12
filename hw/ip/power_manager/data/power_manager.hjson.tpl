@@ -14,7 +14,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "WAKEUP_STATE", desc: "Wake-up state Reg" }
+        { bits: "0", name: "WAKEUP_STATE", desc: "Wake-up state Reg, used by BOOTROM" }
       ]
     }
 
@@ -24,7 +24,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "RESTORE_XDDRESS", desc: "Restore xddress Reg" }
+        { bits: "31:0", name: "RESTORE_XDDRESS", desc: "Restore xddress Reg, used by BOOTROM" }
       ]
     }
 
@@ -136,118 +136,6 @@
     }
 
 % endfor
-% for i in range(31):
-    { name:     "CORE_REG_X${i+1}",
-      desc:     "Core reg x${i+1} value",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "31:0", name: "CORE_REG_X${i+1}", desc: "Core reg x${i+1} Reg" }
-      ]
-    }
-
-% endfor
-    { name:     "CORE_CSR_MSTATUS",
-      desc:     "Core csr mstatus value",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "31:0", name: "CORE_CSR_MSTATUS", desc: "Core reg mstatus Reg" }
-      ]
-    }
-
-    { name:     "CORE_CSR_MIE",
-      desc:     "Core csr mie value",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "31:0", name: "CORE_CSR_MIE", desc: "Core reg mie Reg" }
-      ]
-    }
-
-    { name:     "CORE_CSR_MSCRATCH",
-      desc:     "Core csr mscratch value",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "31:0", name: "CORE_CSR_MSCRATCH", desc: "Core reg mscratch Reg" }
-      ]
-    }
-
-    { name:     "CORE_CSR_MEPC",
-      desc:     "Core csr mepc value",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "31:0", name: "CORE_CSR_MEPC", desc: "Core reg mepc Reg" }
-      ]
-    }
-
-    { name:     "CORE_CSR_MCAUSE",
-      desc:     "Core csr mcause value",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "31:0", name: "CORE_CSR_MCAUSE", desc: "Core reg mcause Reg" }
-      ]
-    }
-
-    { name:     "CORE_CSR_MTVAL",
-      desc:     "Core csr mtval value",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "31:0", name: "CORE_CSR_MTVAL", desc: "Core reg mtval Reg" }
-      ]
-    }
-
-    { name:     "CORE_CSR_MTVEC",
-      desc:     "Core csr mtvec value",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "31:0", name: "CORE_CSR_MTVEC", desc: "Core reg mtvec Reg" }
-      ]
-    }
-
-    { name:     "CORE_CSR_DCSR",
-      desc:     "Core csr dcsr value",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "31:0", name: "CORE_CSR_DCSR", desc: "Core reg dcsr Reg" }
-      ]
-    }
-
-    { name:     "CORE_CSR_MCYCLE",
-      desc:     "Core csr mcycle value",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "31:0", name: "CORE_CSR_MCYCLE", desc: "Core reg mcycle Reg" }
-      ]
-    }
-
-    { name:     "CORE_CSR_MINSTRET",
-      desc:     "Core csr minstret value",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "31:0", name: "CORE_CSR_MINSTRET", desc: "Core reg minstret Reg" }
-      ]
-    }
-
     { name:     "EN_WAIT_FOR_INTR",
       desc:     "Enable wait for interrupt",
       resval:   "0x00000000"
@@ -689,25 +577,59 @@
     }
 
 % endfor
-    { name:     "CPU_FORCE_SLEEP",
-      desc:     "Used to force the core to sleep",
+    { name:     "MASTER_CPU_FORCE_SWITCH_OFF",
+      desc:     "Used to force core switch off",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "CPU_FORCE_SLEEP", desc: "Force Core Sleep Reg" }
+        { bits: "0", name: "MASTER_CPU_FORCE_SWITCH_OFF", desc: "Force Core Switch Off Reg, used by JTAG" }
       ]
     }
-
-    { name:     "CPU_FORCE_WAKEUP",
-      desc:     "Used to force the core to wakeup",
+    { name:     "MASTER_CPU_FORCE_SWITCH_ON",
+      desc:     "Used to force core switch on",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "CPU_FORCE_WAKEUP", desc: "Force Core Wakeup Reg" }
+        { bits: "0", name: "MASTER_CPU_FORCE_SWITCH_ON", desc: "Force Core Switch On Reg, used by JTAG" }
       ]
     }
-
+    { name:     "MASTER_CPU_FORCE_RESET_ASSERT",
+      desc:     "Used to force core reset assert",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "MASTER_CPU_FORCE_RESET_ASSERT", desc: "Force Core Reset Assert Reg, used by JTAG" }
+      ]
+    }
+    { name:     "MASTER_CPU_FORCE_RESET_DEASSERT",
+      desc:     "Used to force core reset deassert",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "MASTER_CPU_FORCE_RESET_DEASSERT", desc: "Force Core Reset Deassert Reg, used by JTAG" }
+      ]
+    }
+    { name:     "MASTER_CPU_FORCE_ISO_OFF",
+      desc:     "Used to force core iso off",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "MASTER_CPU_FORCE_ISO_OFF", desc: "Force Core Iso Off Reg, used by JTAG" }
+      ]
+    }
+    { name:     "MASTER_CPU_FORCE_ISO_ON",
+      desc:     "Used to force core iso on",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "MASTER_CPU_FORCE_ISO_ON", desc: "Force Core Iso On Reg, used by JTAG" }
+      ]
+    }
    ]
 }

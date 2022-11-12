@@ -42,22 +42,22 @@ module power_manager #(
     input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] ext_irq_i,
 
     // Power gating signals
-    output logic                                                         cpu_subsystem_powergate_switch_o,
-    input  logic                                                         cpu_subsystem_powergate_switch_ack_i,
-    output logic                                                         cpu_subsystem_powergate_iso_o,
-    output logic                                                         cpu_subsystem_rst_no,
-    output logic                                                         peripheral_subsystem_powergate_switch_o,
-    input  logic                                                         peripheral_subsystem_powergate_switch_ack_i,
-    output logic                                                         peripheral_subsystem_powergate_iso_o,
-    output logic                                                         peripheral_subsystem_rst_no,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]                    memory_subsystem_banks_powergate_switch_o,
-    input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]                    memory_subsystem_banks_powergate_switch_ack_i,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]                    memory_subsystem_banks_powergate_iso_o,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]                    memory_subsystem_banks_set_retentive_o,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0]             external_subsystem_powergate_switch_o,
-    input  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0]             external_subsystem_powergate_switch_ack_i,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0]             external_subsystem_powergate_iso_o,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0]             external_subsystem_rst_no,
+    output logic cpu_subsystem_powergate_switch_o,
+    input  logic cpu_subsystem_powergate_switch_ack_i,
+    output logic cpu_subsystem_powergate_iso_o,
+    output logic cpu_subsystem_rst_no,
+    output logic peripheral_subsystem_powergate_switch_o,
+    input  logic peripheral_subsystem_powergate_switch_ack_i,
+    output logic peripheral_subsystem_powergate_iso_o,
+    output logic peripheral_subsystem_rst_no,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_o,
+    input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_i,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_o,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_o,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_o,
+    input  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_ack_i,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_o,
+    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_no,
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_ram_banks_set_retentive_o
 );
 
@@ -97,14 +97,14 @@ module power_manager #(
       .devmode_i(1'b1)
   );
 
-  logic                                             cpu_subsystem_powergate_switch;
-  logic                                             cpu_subsystem_powergate_iso;
-  logic                                             cpu_subsystem_rst_n;
-  logic                                             peripheral_subsystem_powergate_switch;
-  logic                                             peripheral_subsystem_powergate_iso;
-  logic                                             peripheral_subsystem_rst_n;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]        memory_subsystem_banks_powergate_switch;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]        memory_subsystem_banks_powergate_iso;
+  logic cpu_subsystem_powergate_switch;
+  logic cpu_subsystem_powergate_iso;
+  logic cpu_subsystem_rst_n;
+  logic peripheral_subsystem_powergate_switch;
+  logic peripheral_subsystem_powergate_iso;
+  logic peripheral_subsystem_rst_n;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso;
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch;
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso;
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_n;
@@ -175,7 +175,7 @@ module power_manager #(
   );
 
   always_comb begin : power_manager_start_on_sequence_gen
-    if ( |(reg2hw.en_wait_for_intr.q & reg2hw.intr_state.q) | reg2hw.cpu_force_wakeup.q ) begin
+    if ((reg2hw.en_wait_for_intr.q & reg2hw.intr_state.q)!='0) begin
       start_on_sequence = 1'b1;
     end else begin
       start_on_sequence = 1'b0;
@@ -190,8 +190,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_core.q && (core_sleep_i || reg2hw.cpu_force_sleep.q)),
-      .start_on_sequence_i (start_on_sequence),
+      .start_off_sequence_i((reg2hw.power_gate_core.q && core_sleep_i) || reg2hw.master_cpu_force_reset_assert.q),
+      .start_on_sequence_i (start_on_sequence || reg2hw.master_cpu_force_reset_deassert.q),
       .switch_ack_i (cpu_switch_wait_ack),
 
       // counter to switch on and off signals
@@ -245,8 +245,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_core.q && (core_sleep_i || reg2hw.cpu_force_sleep.q)),
-      .start_on_sequence_i (start_on_sequence),
+      .start_off_sequence_i((reg2hw.power_gate_core.q && core_sleep_i) || reg2hw.master_cpu_force_switch_off.q),
+      .start_on_sequence_i (start_on_sequence || reg2hw.master_cpu_force_switch_on.q),
       .switch_ack_i (1'b1),
 
       // counter to switch on and off signals
@@ -299,8 +299,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i(reg2hw.power_gate_core.q && (core_sleep_i || reg2hw.cpu_force_sleep.q)),
-      .start_on_sequence_i (start_on_sequence),
+      .start_off_sequence_i((reg2hw.power_gate_core.q && core_sleep_i) || reg2hw.master_cpu_force_iso_off.q),
+      .start_on_sequence_i (start_on_sequence || reg2hw.master_cpu_force_iso_on.q),
       .switch_ack_i (cpu_switch_wait_ack),
 
       // counter to switch on and off signals

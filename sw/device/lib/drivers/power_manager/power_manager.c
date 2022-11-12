@@ -489,17 +489,3 @@ monitor_signals_t monitor_power_gate_external(const power_manager_t *power_manag
 
     return monitor_signals;
 }
-
-power_manager_result_t cpu_force_sleep(const power_manager_t *power_manager)
-{
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_CPU_FORCE_SLEEP_REG_OFFSET, 0x1);
-
-    return kPowerManagerOk_e;
-}
-
-power_manager_result_t cpu_force_wakeup(const power_manager_t *power_manager)
-{
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_CPU_FORCE_WAKEUP_REG_OFFSET, 0x1);
-
-    return kPowerManagerOk_e;
-}
