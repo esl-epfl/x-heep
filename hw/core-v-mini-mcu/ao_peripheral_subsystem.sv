@@ -155,7 +155,7 @@ module ao_peripheral_subsystem
   );
 `else
   assign slave_fifo_req = slave_req_i;
-  assign slave_resp_o = slave_fifo_resp;
+  assign slave_resp_o   = slave_fifo_resp;
 `endif
 
   periph_to_reg #(
