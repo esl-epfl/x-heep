@@ -67,7 +67,7 @@ module obi_fifo
         // If we write, accept next request
         if (consumer_resp_i.gnt && !consumer_data_req.we) begin
           state_n = ACCEPT_REQ;
-        // Otherwise wait for rvalid
+          // Otherwise wait for rvalid
         end else if (fifo_resp_pop) begin
           state_n = ACCEPT_REQ;
         end
