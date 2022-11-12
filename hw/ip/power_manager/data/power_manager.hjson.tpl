@@ -14,7 +14,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "WAKEUP_STATE", desc: "Wake-up state Reg" }
+        { bits: "0", name: "WAKEUP_STATE", desc: "Wake-up state Reg, used by BOOTROM" }
       ]
     }
 
@@ -24,7 +24,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "RESTORE_XDDRESS", desc: "Restore xddress Reg" }
+        { bits: "31:0", name: "RESTORE_XDDRESS", desc: "Restore xddress Reg, used by BOOTROM" }
       ]
     }
 
@@ -577,35 +577,59 @@
     }
 
 % endfor
-    { name:     "CPU_FORCE_SWITCH",
-      desc:     "Used to force core switch",
+    { name:     "MASTER_CPU_FORCE_SWITCH_OFF",
+      desc:     "Used to force core switch off",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "CPU_FORCE_SWITCH", desc: "Force Core Switch Reg" }
+        { bits: "0", name: "MASTER_CPU_FORCE_SWITCH_OFF", desc: "Force Core Switch Off Reg, used by JTAG" }
       ]
     }
-
-    { name:     "CPU_FORCE_RESET",
-      desc:     "Used to force core reset",
+    { name:     "MASTER_CPU_FORCE_SWITCH_ON",
+      desc:     "Used to force core switch on",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "CPU_FORCE_RESET", desc: "Force Core Reset Reg" }
+        { bits: "0", name: "MASTER_CPU_FORCE_SWITCH_ON", desc: "Force Core Switch On Reg, used by JTAG" }
       ]
     }
-
-    { name:     "CPU_FORCE_ISO",
-      desc:     "Used to force core iso",
+    { name:     "MASTER_CPU_FORCE_RESET_ASSERT",
+      desc:     "Used to force core reset assert",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "CPU_FORCE_ISO", desc: "Force Core Iso Reg" }
+        { bits: "0", name: "MASTER_CPU_FORCE_RESET_ASSERT", desc: "Force Core Reset Assert Reg, used by JTAG" }
       ]
     }
-
+    { name:     "MASTER_CPU_FORCE_RESET_DEASSERT",
+      desc:     "Used to force core reset deassert",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "MASTER_CPU_FORCE_RESET_DEASSERT", desc: "Force Core Reset Deassert Reg, used by JTAG" }
+      ]
+    }
+    { name:     "MASTER_CPU_FORCE_ISO_OFF",
+      desc:     "Used to force core iso off",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "MASTER_CPU_FORCE_ISO_OFF", desc: "Force Core Iso Off Reg, used by JTAG" }
+      ]
+    }
+    { name:     "MASTER_CPU_FORCE_ISO_ON",
+      desc:     "Used to force core iso on",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "MASTER_CPU_FORCE_ISO_ON", desc: "Force Core Iso On Reg, used by JTAG" }
+      ]
+    }
    ]
 }

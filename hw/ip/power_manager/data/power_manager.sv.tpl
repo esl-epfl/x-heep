@@ -175,7 +175,7 @@ module power_manager #(
   );
 
   always_comb begin : power_manager_start_on_sequence_gen
-    if (reg2hw.en_wait_for_intr.q & reg2hw.intr_state.q) begin
+    if ((reg2hw.en_wait_for_intr.q & reg2hw.intr_state.q)!='0) begin
       start_on_sequence = 1'b1;
     end else begin
       start_on_sequence = 1'b0;
@@ -190,8 +190,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i((reg2hw.power_gate_core.q && core_sleep_i) || reg2hw.cpu_force_reset.q),
-      .start_on_sequence_i (start_on_sequence || ~reg2hw.cpu_force_reset.q),
+      .start_off_sequence_i((reg2hw.power_gate_core.q && core_sleep_i) || reg2hw.master_cpu_force_reset_assert.q),
+      .start_on_sequence_i (start_on_sequence || reg2hw.master_cpu_force_reset_deassert.q),
       .switch_ack_i (cpu_switch_wait_ack),
 
       // counter to switch on and off signals
@@ -245,8 +245,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i((reg2hw.power_gate_core.q && core_sleep_i) || reg2hw.cpu_force_switch.q),
-      .start_on_sequence_i (start_on_sequence || ~reg2hw.cpu_force_switch.q),
+      .start_off_sequence_i((reg2hw.power_gate_core.q && core_sleep_i) || reg2hw.master_cpu_force_switch_off.q),
+      .start_on_sequence_i (start_on_sequence || reg2hw.master_cpu_force_switch_on.q),
       .switch_ack_i (1'b1),
 
       // counter to switch on and off signals
@@ -299,8 +299,8 @@ module power_manager #(
       .rst_ni,
 
       // trigger to start the sequence
-      .start_off_sequence_i((reg2hw.power_gate_core.q && core_sleep_i) || reg2hw.cpu_force_iso.q),
-      .start_on_sequence_i (start_on_sequence || ~reg2hw.cpu_force_iso.q),
+      .start_off_sequence_i((reg2hw.power_gate_core.q && core_sleep_i) || reg2hw.master_cpu_force_iso_off.q),
+      .start_on_sequence_i (start_on_sequence || reg2hw.master_cpu_force_iso_on.q),
       .switch_ack_i (cpu_switch_wait_ack),
 
       // counter to switch on and off signals
