@@ -31,6 +31,7 @@ filesets:
     - x-heep:ip:dma
     - x-heep:ip:power_manager
     - x-heep:ip:fast_intr_ctrl
+    - x-heep:ip:obi_fifo
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
@@ -172,6 +173,10 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     default: false
+  USE_OBI_FIFO:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
   SYNTHESIS:
     datatype: bool
     paramtype: vlogdefine
@@ -240,6 +245,8 @@ targets:
     - PULP_XPULP=0
     - use_jtag_dpi? (JTAG_DPI=1)
     - "!use_jtag_dpi? (JTAG_DPI=0)"
+    - use_obi_fifo? (USE_OBI_FIFO=true)
+    - "!use_obi_fifo? (USE_OBI_FIFO=false)"
     - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
     - use_upf? (USE_UPF=true)
     tools:
@@ -295,6 +302,8 @@ targets:
     parameters:
     - PULP_XPULP=0
     - SYNTHESIS=true
+    - use_obi_fifo? (USE_OBI_FIFO=true)
+    - "!use_obi_fifo? (USE_OBI_FIFO=false)"
     tools:
       vivado:
         part: xc7a100tcsg324-1
@@ -312,6 +321,8 @@ targets:
     parameters:
     - PULP_XPULP=0
     - SYNTHESIS=true
+    - use_obi_fifo? (USE_OBI_FIFO=true)
+    - "!use_obi_fifo? (USE_OBI_FIFO=false)"
     tools:
       vivado:
         part: xc7z020clg400-1
@@ -328,6 +339,8 @@ targets:
     parameters:
     - PULP_XPULP=0
     - FPGA_NETLIST=true
+    - use_obi_fifo? (USE_OBI_FIFO=true)
+    - "!use_obi_fifo? (USE_OBI_FIFO=false)"
     tools:
       modelsim:
         vlog_options:
@@ -343,6 +356,8 @@ targets:
     parameters:
     - PULP_XPULP=0
     - SYNTHESIS=true
+    - use_obi_fifo? (USE_OBI_FIFO=true)
+    - "!use_obi_fifo? (USE_OBI_FIFO=false)"
     filesets_append:
     - ip-asic
     parameters:

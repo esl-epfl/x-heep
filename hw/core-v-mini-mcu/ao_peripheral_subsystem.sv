@@ -138,8 +138,25 @@ module ao_peripheral_subsystem
   logic [23:0] cio_gpio_unused;
   logic [23:0] cio_gpio_en_unused;
 
+  obi_pkg::obi_req_t slave_fifo_req;
+  obi_pkg::obi_resp_t slave_fifo_resp;
+
   assign ext_peripheral_slave_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPH_IDX];
   assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPH_IDX] = ext_peripheral_slave_resp_i;
+
+`ifdef USE_OBI_FIFO
+  obi_fifo obi_fifo_i (
+      .clk_i,
+      .rst_ni,
+      .producer_req_i (slave_req_i),
+      .producer_resp_o(slave_resp_o),
+      .consumer_req_o (slave_fifo_req),
+      .consumer_resp_i(slave_fifo_resp)
+  );
+`else
+  assign slave_fifo_req = slave_req_i;
+  assign slave_resp_o = slave_fifo_resp;
+`endif
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
@@ -148,17 +165,17 @@ module ao_peripheral_subsystem
   ) periph_to_reg_i (
       .clk_i,
       .rst_ni,
-      .req_i(slave_req_i.req),
-      .add_i(slave_req_i.addr),
-      .wen_i(~slave_req_i.we),
-      .wdata_i(slave_req_i.wdata),
-      .be_i(slave_req_i.be),
+      .req_i(slave_fifo_req.req),
+      .add_i(slave_fifo_req.addr),
+      .wen_i(~slave_fifo_req.we),
+      .wdata_i(slave_fifo_req.wdata),
+      .be_i(slave_fifo_req.be),
       .id_i('0),
-      .gnt_o(slave_resp_o.gnt),
-      .r_rdata_o(slave_resp_o.rdata),
+      .gnt_o(slave_fifo_resp.gnt),
+      .r_rdata_o(slave_fifo_resp.rdata),
       .r_opc_o(),
       .r_id_o(),
-      .r_valid_o(slave_resp_o.rvalid),
+      .r_valid_o(slave_fifo_resp.rvalid),
       .reg_req_o(peripheral_req),
       .reg_rsp_i(peripheral_rsp)
   );
