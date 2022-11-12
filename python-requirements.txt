@@ -10,4 +10,4 @@ jsonref==0.2
 git+https://github.com/lowRISC/fusesoc.git@ot#egg=fusesoc >= 1.11.0
 
 # Install edalize by hand as pip install git+https://github.com/davideschiavone/edalize.git
-git+https://github.com/benoitdenkinger/edalize.git@dc_params
+git+https://github.com/davideschiavone/edalize.git
