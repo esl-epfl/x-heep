@@ -26,18 +26,20 @@ module obi_fifo
   } obi_data_req_t;
 
   typedef enum logic {
-    CONSUMER_REQ,
-    WAIT_CONSUMER_GNT
+    ACCEPT_REQ,
+    PROCESS_REQ
   } consumer_req_fsm_e;
 
   obi_data_req_t producer_data_req, consumer_data_req;
   consumer_req_fsm_e state_n, state_q;
 
+  // remove .req from here if not it stays at 1
   assign {producer_data_req.we, producer_data_req.be, producer_data_req.addr, producer_data_req.wdata} =
           {
     producer_req_i.we, producer_req_i.be, producer_req_i.addr, producer_req_i.wdata
   };
 
+  // remove .req from here if not it stays at 1
   assign {consumer_req_o.we, consumer_req_o.be, consumer_req_o.addr, consumer_req_o.wdata} = {
     consumer_data_req.we, consumer_data_req.be, consumer_data_req.addr, consumer_data_req.wdata
   };
@@ -45,29 +47,32 @@ module obi_fifo
   logic fifo_req_full, fifo_req_empty, fifo_req_push, fifo_req_pop;
   logic fifo_resp_full, fifo_resp_empty, fifo_resp_push, fifo_resp_pop;
 
-  assign producer_resp_o.gnt = producer_req_i.req & !fifo_req_full;
-  assign fifo_req_push       = producer_req_i.req & !fifo_req_full;
-  assign fifo_req_pop        = !fifo_req_empty && state_q == CONSUMER_REQ;
+  assign producer_resp_o.gnt = consumer_resp_i.gnt;
+  assign fifo_req_push       = producer_req_i.req && !fifo_req_full && state_q == ACCEPT_REQ;
+  assign fifo_req_pop        = !fifo_req_empty && consumer_resp_i.gnt;
+
+  assign consumer_req_o.req  = ~fifo_req_empty;
 
   always_comb begin
     state_n = state_q;
-    consumer_req_o.req = 1'b0;
     case (state_q)
 
-      CONSUMER_REQ: begin
-        if (fifo_req_pop) begin
-          consumer_req_o.req = 1'b1;
-          if (!consumer_resp_i.gnt) state_n = WAIT_CONSUMER_GNT;
+      ACCEPT_REQ: begin
+        if (fifo_req_push) begin
+          state_n = PROCESS_REQ;
         end
       end
 
-      WAIT_CONSUMER_GNT: begin
-        consumer_req_o.req = 1'b1;
-        if (consumer_resp_i.gnt) state_n = CONSUMER_REQ;
+      PROCESS_REQ: begin
+        // If we write, accept next request
+        if (consumer_resp_i.gnt && !consumer_data_req.we) begin
+          state_n = ACCEPT_REQ;
+        // Otherwise wait for rvalid
+        end else if (fifo_resp_pop) begin
+          state_n = ACCEPT_REQ;
+        end
       end
-
     endcase
-
   end
 
   fifo_v3 #(
@@ -81,10 +86,8 @@ module obi_fifo
       .full_o(fifo_req_full),
       .empty_o(fifo_req_empty),
       .usage_o(),
-      //togliere .req da qui se no rimane ad 1, fare logica per driver
       .data_i(producer_data_req),
       .push_i(fifo_req_push),
-      //togliere .req da qui se no rimane ad 1, fare logica per driver
       .data_o(consumer_data_req),
       .pop_i(fifo_req_pop)
   );
@@ -114,7 +117,7 @@ module obi_fifo
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (~rst_ni) begin
-      state_q <= CONSUMER_REQ;
+      state_q <= ACCEPT_REQ;
     end else begin
       state_q <= state_n;
     end
