@@ -28,114 +28,6 @@
       ]
     }
 
-    { name:     "POWER_GATE_CORE",
-      desc:     "Used to power gate core",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "0", name: "POWER_GATE_CORE", desc: "Power Gate Core Reg" }
-      ]
-    }
-
-    { name:     "POWER_GATE_CORE_ACK",
-      desc:     "Used by the core switch to ack the power manager",
-      resval:   "0x00000000"
-      swaccess: "ro",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "0", name: "POWER_GATE_CORE_ACK", desc: "Power Gate Core Ack Reg" }
-      ]
-    }
-
-    { name:     "POWER_GATE_PERIPH",
-      desc:     "Used to power gate peripheral_subsystem",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "0", name: "POWER_GATE_PERIPH", desc: "Power Gate Periph Reg" }
-      ]
-    }
-
-    { name:     "POWER_GATE_PERIPH_ACK",
-      desc:     "Used by the periph switch to ack the power manager",
-      resval:   "0x00000000"
-      swaccess: "ro",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "0", name: "POWER_GATE_PERIPH_ACK", desc: "Power Gate Periph Ack Reg" }
-      ]
-    }
-
-% for bank in range(ram_numbanks):
-    { name:     "POWER_GATE_RAM_BLOCK_${bank}",
-      desc:     "Used to power gate ram block ${bank}",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "0", name: "POWER_GATE_RAM_BLOCK_${bank}", desc: "Power Gate Ram Block ${bank} Reg" }
-      ]
-    }
-
-    { name:     "POWER_GATE_RAM_BLOCK_${bank}_ACK",
-      desc:     "Used by the ram ${bank} switch to ack the power manager",
-      resval:   "0x00000000"
-      swaccess: "ro",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "0", name: "POWER_GATE_RAM_BLOCK_${bank}_ACK", desc: "Power Gate Ram Block ${bank} Ack Reg" }
-      ]
-    }
-
-% endfor
-% for bank in range(ram_numbanks):
-    { name:     "SET_RETENTIVE_RAM_BLOCK_${bank}",
-      desc:     "Used to set in retentive mode ram block ${bank}",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "0", name: "SET_RETENTIVE_RAM_BLOCK_${bank}", desc: "Set Retentive Ram Block ${bank} Reg" }
-      ]
-    }
-
-% endfor
-% for ext in range(external_domains):
-    { name:     "POWER_GATE_EXTERNAL_${ext}",
-      desc:     "Used to power gate external ${ext} domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "0", name: "POWER_GATE_EXTERNAL_${ext}", desc: "Power Gate External ${ext} Reg" }
-      ]
-    }
-
-    { name:     "POWER_GATE_EXTERNAL_${ext}_ACK",
-      desc:     "Used by the external ${ext} switch to ack the power manager",
-      resval:   "0x00000000"
-      swaccess: "ro",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "0", name: "POWER_GATE_EXTERNAL_${ext}_ACK", desc: "Power Gate External ${ext} Ack Reg" }
-      ]
-    }
-
-% endfor
-% for ext_bank in range(external_domains):
-    { name:     "SET_RETENTIVE_EXTERNAL_RAM_BLOCK_${ext_bank}",
-      desc:     "Used to set in retentive mode external ram block ${ext_bank}",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "0", name: "SET_RETENTIVE_EXTERNAL_RAM_BLOCK_${ext_bank}", desc: "Set Retentive External Ram Block ${bank} Reg" }
-      ]
-    }
-
-% endfor
     { name:     "EN_WAIT_FOR_INTR",
       desc:     "Enable wait for interrupt",
       resval:   "0x00000000"
@@ -153,6 +45,26 @@
       hwaccess: "hrw",
       fields: [
         { bits: "31:0", name: "INTR_STATE", desc: "Interrupt state Reg" }
+      ]
+    }
+
+    { name:     "POWER_GATE_CORE",
+      desc:     "Used to power gate core",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "POWER_GATE_CORE", desc: "Power Gate Core Reg" }
+      ]
+    }
+
+    { name:     "POWER_GATE_CORE_ACK",
+      desc:     "Used by the core switch to ack the power manager",
+      resval:   "0x00000000"
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "0", name: "POWER_GATE_CORE_ACK", desc: "Power Gate Core Ack Reg" }
       ]
     }
 
@@ -241,294 +153,166 @@
       ]
     }
 
-    { name:     "PERIPH_RESET_ASSERT_COUNTER",
-      desc:     "Counter before resetting the PERIPH domain",
+    { name:     "POWER_GATE_PERIPH_ACK",
+      desc:     "Used by the periph switch to ack the power manager",
       resval:   "0x00000000"
-      swaccess: "rw",
+      swaccess: "ro",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "PERIPH_RESET_ASSERT_COUNTER", desc: "PERIPH counter before resetting" }
+        { bits: "0", name: "POWER_GATE_PERIPH_ACK", desc: "Power Gate Periph Ack Reg" }
       ]
     }
 
-    { name:     "PERIPH_RESET_DEASSERT_COUNTER",
-      desc:     "Counter before unreset the PERIPH domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "PERIPH_RESET_DEASSERT_COUNTER", desc: "PERIPH counter before unresetting" }
-      ]
-    }
-
-    { name:     "PERIPH_SWITCH_OFF_COUNTER",
-      desc:     "Counter before switching off the PERIPH domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "PERIPH_SWITCH_OFF_COUNTER", desc: "PERIPH counter before switching off" }
-      ]
-    }
-
-    { name:     "PERIPH_SWITCH_ON_COUNTER",
-      desc:     "Counter before switching on the PERIPH domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "PERIPH_SWITCH_ON_COUNTER", desc: "PERIPH counter before switching on" }
-      ]
-    }
-
-    { name:     "PERIPH_WAIT_ACK_SWITCH_ON_COUNTER",
-      desc:     "Bit to set whether to further wait for the ACK from the periph switch after the counter expired",
+    { name:     "PERIPH_RESET",
+      desc:     "Reset the PERIPH domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "PERIPH_WAIT_ACK_SWITCH_ON_COUNTER", desc: "wait for PERIPH switch ack before switching on" }
+        { bits: "0", name: "PERIPH_RESET", desc: "Reset PERIPH domain" }
       ]
     }
 
-    { name:     "PERIPH_ISO_OFF_COUNTER",
-      desc:     "Counter before setting off the isolation of the PERIPH domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "PERIPH_ISO_OFF_COUNTER", desc: "PERIPH counter before setting off isolation" }
-      ]
-    }
-
-    { name:     "PERIPH_ISO_ON_COUNTER",
-      desc:     "Counter before setting on the isolation of the PERIPH domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "PERIPH_ISO_ON_COUNTER", desc: "PERIPH counter before setting on isolation" }
-      ]
-    }
-
-    { name:     "PERIPH_COUNTERS_STOP",
-      desc:     "Bits to stop the counters keeping the done_o signal high",
+    { name:     "PERIPH_SWITCH",
+      desc:     "Switch off the PERIPH domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "PERIPH_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the PERIPH_RESET_ASSERT_COUNTER counter" }
-        { bits: "1", name: "PERIPH_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the PERIPH_RESET_DEASSERT_COUNTER counter" }
-        { bits: "2", name: "PERIPH_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the PERIPH_SWITCH_OFF_COUNTER counter" }
-        { bits: "3", name: "PERIPH_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the PERIPH_SWITCH_ON_COUNTER counter" }
-        { bits: "4", name: "PERIPH_ISO_OFF_STOP_BIT_COUNTER", desc: "Stop the PERIPH_ISO_OFF_COUNTER counter" }
-        { bits: "5", name: "PERIPH_ISO_ON_STOP_BIT_COUNTER", desc: "Stop the PERIPH_ISO_ON_COUNTER counter" }
+        { bits: "0", name: "PERIPH_SWITCH", desc: "Switch off PERIPH domain" }
+      ]
+    }
+
+    { name:     "PERIPH_WAIT_ACK_SWITCH_ON",
+      desc:     "Wait for the PERIPH domain switch ack",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "PERIPH_WAIT_ACK_SWITCH_ON", desc: "Wait PERIPH domain switch ack" }
+      ]
+    }
+
+    { name:     "PERIPH_ISO",
+      desc:     "Set on the isolation of the PERIPH domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "PERIPH_ISO", desc: "Set on isolation of PERIPH domain" }
       ]
     }
 
 % for bank in range(ram_numbanks):
-    { name:     "RAM_${bank}_SWITCH_OFF_COUNTER",
-      desc:     "Counter before switching off the RAM_${bank} domain",
+    { name:     "POWER_GATE_RAM_BLOCK_${bank}_ACK",
+      desc:     "Used by the ram ${bank} switch to ack the power manager",
       resval:   "0x00000000"
-      swaccess: "rw",
+      swaccess: "ro",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "RAM_${bank}_SWITCH_OFF_COUNTER", desc: "RAM_${bank} counter before switching off" }
+        { bits: "0", name: "POWER_GATE_RAM_BLOCK_${bank}_ACK", desc: "Power Gate Ram Block ${bank} Ack Reg" }
       ]
     }
 
-    { name:     "RAM_${bank}_SWITCH_ON_COUNTER",
-      desc:     "Counter before switching on the RAM_${bank} domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM_${bank}_SWITCH_ON_COUNTER", desc: "RAM_${bank} counter before switching on" }
-      ]
-    }
-
-    { name:     "RAM_${bank}_WAIT_ACK_SWITCH_ON_COUNTER",
-      desc:     "Bit to set whether to further wait for the ACK from the memory ${bank} switch after the counter expired",
+    { name:     "RAM_${bank}_SWITCH",
+      desc:     "Switch off the RAM_${bank} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "RAM_${bank}_WAIT_ACK_SWITCH_ON_COUNTER", desc: "wait for RAM_${bank} switch ack before switching on" }
+        { bits: "0", name: "RAM_${bank}_SWITCH", desc: "Switch off RAM_${bank} domain" }
       ]
     }
 
-    { name:     "RAM_${bank}_ISO_OFF_COUNTER",
-      desc:     "Counter before setting off the isolation of the RAM_${bank} domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM_${bank}_ISO_OFF_COUNTER", desc: "RAM_${bank} counter before setting off isolation" }
-      ]
-    }
-
-    { name:     "RAM_${bank}_ISO_ON_COUNTER",
-      desc:     "Counter before setting on the isolation of the RAM_${bank} domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM_${bank}_ISO_ON_COUNTER", desc: "RAM_${bank} counter before setting on isolation" }
-      ]
-    }
-
-    { name:     "RAM_${bank}_RETENTIVE_OFF_COUNTER",
-      desc:     "Counter before setting off retentive mode for the RAM_${bank} domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM_${bank}_RETENTIVE_OFF_COUNTER", desc: "RAM_${bank} counter before setting off retentive" }
-      ]
-    }
-
-    { name:     "RAM_${bank}_RETENTIVE_ON_COUNTER",
-      desc:     "Counter before setting on retentive mode for the RAM_${bank} domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "RAM_${bank}_RETENTIVE_ON_COUNTER", desc: "RAM_${bank} counter before setting on retentive" }
-      ]
-    }
-
-    { name:     "RAM_${bank}_COUNTERS_STOP",
-      desc:     "Bits to stop the counters keeping the done_o signal high",
+    { name:     "RAM_${bank}_WAIT_ACK_SWITCH_ON",
+      desc:     "Wait for the RAM_${bank} domain switch ack",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "RAM_${bank}_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_SWITCH_OFF_COUNTER counter" }
-        { bits: "1", name: "RAM_${bank}_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_SWITCH_ON_COUNTER counter" }
-        { bits: "2", name: "RAM_${bank}_ISO_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_ISO_OFF_COUNTER counter" }
-        { bits: "3", name: "RAM_${bank}_ISO_ON_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_ISO_ON_COUNTER counter" }
-        { bits: "4", name: "RAM_${bank}_RETENTIVE_OFF_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_RETENTIVE_OFF_COUNTER counter" }
-        { bits: "5", name: "RAM_${bank}_RETENTIVE_ON_STOP_BIT_COUNTER", desc: "Stop the RAM_${bank}_RETENTIVE_ON_COUNTER counter" }
+        { bits: "0", name: "RAM_${bank}_WAIT_ACK_SWITCH_ON", desc: "Wait RAM_${bank} domain switch ack" }
+      ]
+    }
+
+    { name:     "RAM_${bank}_ISO",
+      desc:     "Set on the isolation of the RAM_${bank} domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "RAM_${bank}_ISO", desc: "Set on isolation of RAM_${bank} domain" }
+      ]
+    }
+
+    { name:     "RAM_${bank}_RETENTIVE",
+      desc:     "Set on retentive mode for the RAM_${bank} domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "RAM_${bank}_RETENTIVE", desc: "Set on retentive mode for RAM_${bank} domain" }
       ]
     }
 
 % endfor
 % for ext in range(external_domains):
-    { name:     "EXTERNAL_${ext}_RESET_ASSERT_COUNTER",
-      desc:     "Counter before resetting the EXTERNAL ${ext} domain",
+    { name:     "POWER_GATE_EXTERNAL_${ext}_ACK",
+      desc:     "Used by the external ${ext} switch to ack the power manager",
       resval:   "0x00000000"
-      swaccess: "rw",
+      swaccess: "ro",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:0", name: "EXTERNAL_${ext}_RESET_ASSERT_COUNTER", desc: "EXTERNAL ${ext} counter before resetting" }
+        { bits: "0", name: "POWER_GATE_EXTERNAL_${ext}_ACK", desc: "Power Gate External ${ext} Ack Reg" }
       ]
     }
 
-    { name:     "EXTERNAL_${ext}_RESET_DEASSERT_COUNTER",
-      desc:     "Counter before unreset the EXTERNAL ${ext} domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "EXTERNAL_${ext}_RESET_DEASSERT_COUNTER", desc: "EXTERNAL ${ext} counter before unresetting" }
-      ]
-    }
-
-    { name:     "EXTERNAL_${ext}_SWITCH_OFF_COUNTER",
-      desc:     "Counter before switching off the EXTERNAL ${ext} domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "EXTERNAL_${ext}_SWITCH_OFF_COUNTER", desc: "EXTERNAL ${ext} counter before switching off" }
-      ]
-    }
-
-    { name:     "EXTERNAL_${ext}_SWITCH_ON_COUNTER",
-      desc:     "Counter before switching on the EXTERNAL ${ext} domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "EXTERNAL_${ext}_SWITCH_ON_COUNTER", desc: "EXTERNAL ${ext} counter before switching on" }
-      ]
-    }
-
-    { name:     "EXTERNAL_${ext}_WAIT_ACK_SWITCH_ON_COUNTER",
-      desc:     "Bit to set whether to further wait for the ACK from the external ${ext} switch after the counter expired",
+    { name:     "EXTERNAL_${ext}_RESET",
+      desc:     "Reset the EXTERNAL_${ext} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "EXTERNAL_${ext}_WAIT_ACK_SWITCH_ON_COUNTER", desc: "wait for external ${ext} switch ack before switching on" }
+        { bits: "0", name: "EXTERNAL_${ext}_RESET", desc: "Reset EXTERNAL_${ext} domain" }
       ]
     }
 
-    { name:     "EXTERNAL_${ext}_ISO_OFF_COUNTER",
-      desc:     "Counter before setting off the isolation of the EXTERNAL ${ext} domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "EXTERNAL_${ext}_ISO_OFF_COUNTER", desc: "EXTERNAL ${ext} counter before setting off isolation" }
-      ]
-    }
-
-    { name:     "EXTERNAL_${ext}_ISO_ON_COUNTER",
-      desc:     "Counter before setting on the isolation of the EXTERNAL ${ext} domain",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "EXTERNAL_${ext}_ISO_ON_COUNTER", desc: "EXTERNAL ${ext} counter before setting on isolation" }
-      ]
-    }
-
-    { name:     "EXTERNAL_${ext}_COUNTERS_STOP",
-      desc:     "Bits to stop the counters keeping the done_o signal high",
+    { name:     "EXTERNAL_${ext}_SWITCH",
+      desc:     "Switch off the EXTERNAL_${ext} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "EXTERNAL_${ext}_RESET_ASSERT_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_${ext}_RESET_ASSERT_COUNTER counter" }
-        { bits: "1", name: "EXTERNAL_${ext}_RESET_DEASSERT_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_${ext}_RESET_DEASSERT_COUNTER counter" }
-        { bits: "2", name: "EXTERNAL_${ext}_SWITCH_OFF_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_${ext}_SWITCH_OFF_COUNTER counter" }
-        { bits: "3", name: "EXTERNAL_${ext}_SWITCH_ON_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_${ext}_SWITCH_ON_COUNTER counter" }
-        { bits: "4", name: "EXTERNAL_${ext}_ISO_OFF_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_${ext}_ISO_OFF_COUNTER counter" }
-        { bits: "5", name: "EXTERNAL_${ext}_ISO_ON_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_${ext}_ISO_ON_COUNTER counter" }
+        { bits: "0", name: "EXTERNAL_${ext}_SWITCH", desc: "Switch off EXTERNAL_${ext} domain" }
       ]
     }
 
-% endfor
-% for ext_bank in range(external_domains):
-    { name:     "EXTERNAL_RAM_${ext_bank}_RETENTIVE_OFF_COUNTER",
-      desc:     "Counter before setting off retentive mode for external RAM_${ext_bank}",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "EXTERNAL_RAM_${ext_bank}_RETENTIVE_OFF_COUNTER", desc: "External RAM_${ext_bank} counter before setting off retentive" }
-      ]
-    }
-
-    { name:     "EXTERNAL_RAM_${ext_bank}_RETENTIVE_ON_COUNTER",
-      desc:     "Counter before setting on retentive mode for external RAM_${ext_bank}",
-      resval:   "0x00000000"
-      swaccess: "rw",
-      hwaccess: "hrw",
-      fields: [
-        { bits: "31:0", name: "EXTERNAL_RAM_${ext_bank}_RETENTIVE_ON_COUNTER", desc: "External RAM_${ext_bank} counter before setting on retentive" }
-      ]
-    }
-
-    { name:     "EXTERNAL_RAM_${ext_bank}_COUNTERS_STOP",
-      desc:     "Bits to stop the counters keeping the done_o signal high",
+    { name:     "EXTERNAL_${ext}_WAIT_ACK_SWITCH_ON",
+      desc:     "Wait for the EXTERNAL_${ext} domain switch ack",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "EXTERNAL_RAM_${ext_bank}_RETENTIVE_OFF_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_RAM_${ext_bank}_RETENTIVE_OFF_COUNTER counter" }
-        { bits: "1", name: "EXTERNAL_RAM_${ext_bank}_RETENTIVE_ON_STOP_BIT_COUNTER", desc: "Stop the EXTERNAL_RAM_${ext_bank}_RETENTIVE_ON_COUNTER counter" }
+        { bits: "0", name: "EXTERNAL_${ext}_WAIT_ACK_SWITCH_ON", desc: "Wait EXTERNAL_${ext} domain switch ack" }
+      ]
+    }
+
+    { name:     "EXTERNAL_${ext}_ISO",
+      desc:     "Set on the isolation of the EXTERNAL_${ext} domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "EXTERNAL_${ext}_ISO", desc: "Set on isolation of EXTERNAL_${ext} domain" }
+      ]
+    }
+
+    { name:     "EXTERNAL_RAM_${ext}_RETENTIVE",
+      desc:     "Set on retentive mode for external RAM_${ext} domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "EXTERNAL_RAM_${ext}_RETENTIVE", desc: "Set on retentive mode of external RAM_${ext} domain" }
       ]
     }
 
@@ -586,6 +370,7 @@
         { bits: "0", name: "MASTER_CPU_FORCE_SWITCH_OFF", desc: "Force Core Switch Off Reg, used by JTAG" }
       ]
     }
+
     { name:     "MASTER_CPU_FORCE_SWITCH_ON",
       desc:     "Used to force core switch on",
       resval:   "0x00000000"
@@ -595,6 +380,7 @@
         { bits: "0", name: "MASTER_CPU_FORCE_SWITCH_ON", desc: "Force Core Switch On Reg, used by JTAG" }
       ]
     }
+
     { name:     "MASTER_CPU_FORCE_RESET_ASSERT",
       desc:     "Used to force core reset assert",
       resval:   "0x00000000"
@@ -604,6 +390,7 @@
         { bits: "0", name: "MASTER_CPU_FORCE_RESET_ASSERT", desc: "Force Core Reset Assert Reg, used by JTAG" }
       ]
     }
+
     { name:     "MASTER_CPU_FORCE_RESET_DEASSERT",
       desc:     "Used to force core reset deassert",
       resval:   "0x00000000"
@@ -613,6 +400,7 @@
         { bits: "0", name: "MASTER_CPU_FORCE_RESET_DEASSERT", desc: "Force Core Reset Deassert Reg, used by JTAG" }
       ]
     }
+
     { name:     "MASTER_CPU_FORCE_ISO_OFF",
       desc:     "Used to force core iso off",
       resval:   "0x00000000"
@@ -622,6 +410,7 @@
         { bits: "0", name: "MASTER_CPU_FORCE_ISO_OFF", desc: "Force Core Iso Off Reg, used by JTAG" }
       ]
     }
+
     { name:     "MASTER_CPU_FORCE_ISO_ON",
       desc:     "Used to force core iso on",
       resval:   "0x00000000"
@@ -631,5 +420,6 @@
         { bits: "0", name: "MASTER_CPU_FORCE_ISO_ON", desc: "Force Core Iso On Reg, used by JTAG" }
       ]
     }
+
    ]
 }

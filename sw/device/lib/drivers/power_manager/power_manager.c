@@ -89,9 +89,6 @@ void __attribute__ ((noinline)) power_gate_core_asm()
         "sw a1,  160(a0)\n"  : : : "a0", "a1" \
     );
 
-
-
-
     asm volatile (
 
         // write RESTORE_ADDRESS[31:0] = PC
@@ -204,11 +201,10 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_core(const power_ma
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_INTR_STATE_REG_OFFSET), 0x0);
 
     // enable wait for SWITCH ACK
-    reg = 0;
-    #ifndef TARGET_PYNQ_Z2
-        reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
+    #ifdef TARGET_PYNQ_Z2
+        reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, 0x0);
     #else
-        reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, false);
+        reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, 0x1);
     #endif
     mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET), reg);
 
@@ -235,37 +231,30 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_periph(const power_
 {
     uint32_t reg = 0;
 
-    // set counters
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_RESET_ASSERT_COUNTER_REG_OFFSET), periph_counters->reset_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_RESET_DEASSERT_COUNTER_REG_OFFSET), periph_counters->reset_on);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_SWITCH_OFF_COUNTER_REG_OFFSET), periph_counters->switch_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_SWITCH_ON_COUNTER_REG_OFFSET), periph_counters->switch_on);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_ISO_OFF_COUNTER_REG_OFFSET), periph_counters->iso_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_ISO_ON_COUNTER_REG_OFFSET), periph_counters->iso_on);
-
-    // enable wait for SWITCH ACK
-    reg = 0;
-    #ifndef TARGET_PYNQ_Z2
-        reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
+    #ifdef TARGET_PYNQ_Z2
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_WAIT_ACK_SWITCH_ON_REG_OFFSET), 0x0);
     #else
-        reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_BIT, false);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_WAIT_ACK_SWITCH_ON_REG_OFFSET), 0x1);
     #endif
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET), reg);
 
     if (sel_state == kOn_e)
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_PERIPH_REG_OFFSET), 0x0);
+    {
+        for (int i=0; i<periph_counters->switch_on; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_SWITCH_REG_OFFSET), 0x0);
+        for (int i=0; i<periph_counters->iso_off; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_ISO_REG_OFFSET), 0x0);
+        for (int i=0; i<periph_counters->reset_off; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_RESET_REG_OFFSET), 0x0);
+    }
     else
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_PERIPH_REG_OFFSET), 0x1);
-
-    // stop counters
-    reg = 0;
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_COUNTERS_STOP_PERIPH_RESET_ASSERT_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_COUNTERS_STOP_PERIPH_RESET_DEASSERT_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_COUNTERS_STOP_PERIPH_SWITCH_OFF_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_COUNTERS_STOP_PERIPH_SWITCH_ON_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_COUNTERS_STOP_PERIPH_ISO_OFF_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_PERIPH_COUNTERS_STOP_PERIPH_ISO_ON_STOP_BIT_COUNTER_BIT, true);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_COUNTERS_STOP_REG_OFFSET), reg);
+    {
+        for (int i=0; i<periph_counters->switch_off; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_SWITCH_REG_OFFSET), 0x1);
+        for (int i=0; i<periph_counters->iso_on; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_ISO_REG_OFFSET), 0x1);
+        for (int i=0; i<periph_counters->reset_on; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_RESET_REG_OFFSET), 0x1);
+    }
 
     return kPowerManagerOk_e;
 }
@@ -274,58 +263,42 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_ram_block(const pow
 {
     uint32_t reg = 0;
 
-    // set counters
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].switch_off_counter), ram_block_counters->switch_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].switch_on_counter), ram_block_counters->switch_on);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].iso_off_counter), ram_block_counters->iso_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].iso_on_counter), ram_block_counters->iso_on);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].retentive_off_counter), ram_block_counters->retentive_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].retentive_on_counter), ram_block_counters->retentive_on);
-
-    // enable wait for SWITCH ACK
-    reg = 0;
-
     if (sel_state == kOn_e)
     {
-        #ifndef TARGET_PYNQ_Z2
-            reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].wait_ack_switch_on_counter_bit), true);
+        #ifdef TARGET_PYNQ_Z2
+            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch), 0x0);
         #else
-            reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].wait_ack_switch_on_counter_bit), false);
+            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch), 0x1);
         #endif
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch_on_counter), reg);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].power_gate), 0x0);
+        for (int i=0; i<ram_block_counters->switch_on; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].switch_off), 0x0);
+        for (int i=0; i<ram_block_counters->iso_off; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].iso), 0x0);
     }
     else if (sel_state == kOff_e)
     {
-        #ifndef TARGET_PYNQ_Z2
-            reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].wait_ack_switch_on_counter_bit), true);
+        #ifdef TARGET_PYNQ_Z2
+            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch), 0x0);
         #else
-            reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].wait_ack_switch_on_counter_bit), false);
+            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch), 0x1);
         #endif
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch_on_counter), reg);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].power_gate), 0x1);
+        for (int i=0; i<ram_block_counters->switch_off; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].switch_off), 0x1);
+        for (int i=0; i<ram_block_counters->iso_on; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].iso), 0x1);
     }
     else if (sel_state == kRetOn_e)
     {
-        reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].wait_ack_switch_on_counter_bit), false);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch_on_counter), reg);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].set_retentive), 0x1);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch), 0x0);
+        for (int i=0; i<ram_block_counters->retentive_on; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].retentive), 0x1);
     }
     else
     {
-        reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].wait_ack_switch_on_counter_bit), false);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch_on_counter), reg);
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].set_retentive), 0x0);
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch), 0x0);
+        for (int i=0; i<ram_block_counters->retentive_off; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].retentive), 0x0);
     }
-
-    // stop counters
-    reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].switch_off_stop_bit), true);
-    reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].switch_on_stop_bit), true);
-    reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].iso_off_stop_bit), true);
-    reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].iso_on_stop_bit), true);
-    reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].retentive_off_stop_bit), true);
-    reg = bitfield_bit32_write(reg, (power_manager_ram_map[sel_block].retentive_on_stop_bit), true);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].counter_stop), reg);
 
     return kPowerManagerOk_e;
 }
@@ -334,36 +307,46 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_external(const powe
 {
     uint32_t reg = 0;
 
-    // set counters
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].reset_assert_counter), external_counters->reset_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].reset_deassert_counter), external_counters->reset_on);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].switch_off_counter), external_counters->switch_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].switch_on_counter), external_counters->switch_on);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].iso_off_counter), external_counters->iso_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].iso_on_counter), external_counters->iso_on);
-
-    // enable wait for SWITCH ACK
-    reg = 0;
-    #ifndef TARGET_PYNQ_Z2
-        reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].wait_ack_switch_on_counter_bit), true);
-    #else
-        reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].wait_ack_switch_on_counter_bit), false);
-    #endif
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch_on_counter), reg);
-
     if (sel_state == kOn_e)
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].power_gate), 0x0);
+    {
+        #ifdef TARGET_PYNQ_Z2
+            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x1);
+        #else
+            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x0);
+        #endif
+        for (int i=0; i<external_counters->switch_on; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].switch_off), 0x0);
+        for (int i=0; i<external_counters->iso_off; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].iso), 0x0);
+        for (int i=0; i<external_counters->reset_off; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].reset), 0x0);
+    }
+    else if (sel_state == kOff_e)
+    {
+        #ifdef TARGET_PYNQ_Z2
+            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x1);
+        #else
+            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x0);
+        #endif
+        for (int i=0; i<external_counters->switch_off; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].switch_off), 0x1);
+        for (int i=0; i<external_counters->iso_on; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].iso), 0x1);
+        for (int i=0; i<external_counters->reset_on; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].reset), 0x1);
+    }
+    else if (sel_state == kRetOn_e)
+    {
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x0);
+        for (int i=0; i<external_counters->retentive_on; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].retentive), 0x1);
+    }
     else
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].power_gate), 0x1);
-
-    // stop counters
-    reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].reset_assert_stop_bit), true);
-    reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].reset_deassert_stop_bit), true);
-    reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].switch_off_stop_bit), true);
-    reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].switch_on_stop_bit), true);
-    reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].iso_off_stop_bit), true);
-    reg = bitfield_bit32_write(reg, (power_manager_external_map[sel_external].iso_on_stop_bit), true);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].counter_stop), reg);
+    {
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x0);
+        for (int i=0; i<external_counters->retentive_off; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].retentive), 0x0);
+    }
 
     return kPowerManagerOk_e;
 }
@@ -393,31 +376,6 @@ uint32_t external_power_domain_is_off(const power_manager_t *power_manager, uint
     switch_state = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].power_gate_ack));
 
     return switch_state == 0;
-}
-
-power_manager_result_t set_retentive_external_ram_block(const power_manager_t *power_manager, uint32_t sel_block, power_manager_sel_state_t sel_state, power_manager_counters_t* ram_block_counters)
-{
-    uint32_t reg = 0;
-
-    // set counters
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_retentive_map[sel_block].retentive_off_counter), ram_block_counters->retentive_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_retentive_map[sel_block].retentive_on_counter), ram_block_counters->retentive_on);
-
-    if (sel_state == kRetOn_e)
-    {
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_retentive_map[sel_block].set_retentive), 0x1);
-    }
-    else
-    {
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_retentive_map[sel_block].set_retentive), 0x0);
-    }
-
-    // stop counters
-    reg = bitfield_bit32_write(reg, (power_manager_external_retentive_map[sel_block].retentive_off_stop_bit), true);
-    reg = bitfield_bit32_write(reg, (power_manager_external_retentive_map[sel_block].retentive_on_stop_bit), true);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_retentive_map[sel_block].counter_stop), reg);
-
-    return kPowerManagerOk_e;
 }
 
 power_manager_result_t power_gate_counters_init(power_manager_counters_t* counters, uint32_t reset_off, uint32_t reset_on, uint32_t switch_off, uint32_t switch_on, uint32_t iso_off, uint32_t iso_on, uint32_t retentive_off, uint32_t retentive_on)

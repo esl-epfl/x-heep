@@ -21,14 +21,14 @@ int main(int argc, char *argv[])
     power_manager_counters_t power_manager_external_ram_blocks_counters;
 
     // Init external ram block 0's counters
-    if (power_gate_counters_init(&power_manager_external_ram_blocks_counters, 0, 0, 0, 0, 0, 0, 10, 10) != kPowerManagerOk_e)
+    if (power_gate_counters_init(&power_manager_external_ram_blocks_counters, 0, 0, 0, 0, 0, 0, 30, 30) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail. Check the reset and powergate counters value\n");
         return EXIT_FAILURE;
     }
 
     // Set retention mode on for external ram block 0
-    if (set_retentive_external_ram_block(&power_manager, 0, kRetOn_e, &power_manager_external_ram_blocks_counters) != kPowerManagerOk_e)
+    if (power_gate_external(&power_manager, 0, kRetOn_e, &power_manager_external_ram_blocks_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;
@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     for (int i=0; i<100; i++) asm volatile("nop");
 
     // Set retention mode off for external ram block 0
-    if (set_retentive_external_ram_block(&power_manager, 0, kRetOff_e, &power_manager_external_ram_blocks_counters) != kPowerManagerOk_e)
+    if (power_gate_external(&power_manager, 0, kRetOff_e, &power_manager_external_ram_blocks_counters) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail.\n");
         return EXIT_FAILURE;

@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
     power_manager.base_addr = power_manager_reg;
     power_manager_counters_t power_manager_cpu_counters;
     // Init cpu_subsystem's counters
-    if (power_gate_counters_init(&power_manager_cpu_counters, 400, 400, 300, 300, 200, 200, 0, 0) != kPowerManagerOk_e)
+    if (power_gate_counters_init(&power_manager_cpu_counters, 300, 300, 300, 300, 300, 300, 0, 0) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail. Check the reset and powergate counters value\n");
         return EXIT_FAILURE;
@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
             spi_write_word(&spi_host, read_byte_cmd); // Fill TX FIFO with TX data (read command + 3B address)
             spi_wait_for_ready(&spi_host); // Wait for readiness to process commands
             spi_set_command(&spi_host, cmd_read); // Send read command to the external device through SPI
-            spi_wait_for_ready(&spi_host); 
+            spi_wait_for_ready(&spi_host);
             spi_set_command(&spi_host, cmd_read_rx); // Receive data in RX
             spi_wait_for_ready(&spi_host);
         }
