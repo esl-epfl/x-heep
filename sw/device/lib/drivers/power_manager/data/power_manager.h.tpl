@@ -24,18 +24,6 @@ typedef enum power_manager_result {
   kPowerManagerError_e = 1,
 } power_manager_result_t;
 
-/**
- * Domains.
- */
-typedef enum power_manager_sel_domain {
-  kPeriph_e     = 0,
-% for bank in range(ram_numbanks):
-  kRam_${bank}_e      = ${bank+1},
-% endfor
-% for ext in range(external_domains):
-  kExternal_${ext}_e = ${ram_numbanks+ext+1},
-% endfor
-} power_manager_sel_domain_t;
 
 /**
  * Domain states.
