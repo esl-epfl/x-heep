@@ -248,10 +248,10 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_periph(const power_
     }
     else
     {
-        for (int i=0; i<periph_counters->switch_off; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_SWITCH_REG_OFFSET), 0x1);
         for (int i=0; i<periph_counters->iso_on; i++) asm volatile ("nop\n;");
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_ISO_REG_OFFSET), 0x1);
+        for (int i=0; i<periph_counters->switch_off; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_SWITCH_REG_OFFSET), 0x1);
         for (int i=0; i<periph_counters->reset_on; i++) asm volatile ("nop\n;");
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_RESET_REG_OFFSET), 0x1);
     }
@@ -282,10 +282,10 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_ram_block(const pow
         #else
             mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch), 0x1);
         #endif
-        for (int i=0; i<ram_block_counters->switch_off; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].switch_off), 0x1);
         for (int i=0; i<ram_block_counters->iso_on; i++) asm volatile ("nop\n;");
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].iso), 0x1);
+        for (int i=0; i<ram_block_counters->switch_off; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].switch_off), 0x1);
     }
     else if (sel_state == kRetOn_e)
     {
@@ -328,10 +328,10 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_external(const powe
         #else
             mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x0);
         #endif
-        for (int i=0; i<external_counters->switch_off; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].switch_off), 0x1);
         for (int i=0; i<external_counters->iso_on; i++) asm volatile ("nop\n;");
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].iso), 0x1);
+        for (int i=0; i<external_counters->switch_off; i++) asm volatile ("nop\n;");
+        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].switch_off), 0x1);
         for (int i=0; i<external_counters->reset_on; i++) asm volatile ("nop\n;");
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].reset), 0x1);
     }
