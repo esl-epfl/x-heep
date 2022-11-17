@@ -310,9 +310,9 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_external(const powe
     if (sel_state == kOn_e)
     {
         #ifdef TARGET_PYNQ_Z2
-            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x1);
-        #else
             mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x0);
+        #else
+            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x1);
         #endif
         for (int i=0; i<external_counters->switch_on; i++) asm volatile ("nop\n;");
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].switch_off), 0x0);
@@ -324,9 +324,9 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_external(const powe
     else if (sel_state == kOff_e)
     {
         #ifdef TARGET_PYNQ_Z2
-            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x1);
-        #else
             mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x0);
+        #else
+            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x1);
         #endif
         for (int i=0; i<external_counters->iso_on; i++) asm volatile ("nop\n;");
         mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].iso), 0x1);
