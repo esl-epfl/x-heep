@@ -1,4 +1,4 @@
-# Repo folder structure
+# Repository folder structure
 
     .
     ├── .github/workflows       
@@ -116,6 +116,11 @@ To format your RTL code type:
 ```
 make verible
 ```
+## Compilation Flow and Package Manager
+
+We use [FuseSoC](https://github.com/olofk/fusesoc) for all the tools we use.
+
+The `fusesoc` commands are inside the Makefile.
 
 # Adding external IPs
 
