@@ -93,6 +93,10 @@ extern "C" {
 #define RV_TIMER_SIZE 0x${rv_timer_size_address}
 #define RV_TIMER_END_ADDRESS (RV_TIMER_START_ADDRESS + RV_TIMER_SIZE)
 
+#define SPI2_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${spi2_start_offset})
+#define SPI2_SIZE 0x${spi2_size_address}
+#define SPI2_END_ADDRESS (SPI2_START_ADDRESS + SPI2_SIZE)
+
 #define EXT_SLAVE_START_ADDRESS 0x${ext_slave_start_address}
 #define EXT_SLAVE_SIZE 0x${ext_slave_size_address}
 #define EXT_SLAVE_END_ADDRESS (EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE)
