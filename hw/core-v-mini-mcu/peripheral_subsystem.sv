@@ -42,6 +42,17 @@ module peripheral_subsystem
     output logic cio_sda_o,
     output logic cio_sda_en_o,
 
+    // SPI Host
+    output logic                               spi2_sck_o,
+    output logic                               spi2_sck_en_o,
+    output logic [spi_host_reg_pkg::NumCS-1:0] spi2_csb_o,
+    output logic [spi_host_reg_pkg::NumCS-1:0] spi2_csb_en_o,
+    output logic [                        3:0] spi2_sd_o,
+    output logic [                        3:0] spi2_sd_en_o,
+    input  logic [                        3:0] spi2_sd_i,
+    output logic                               spi2_intr_event_o,
+    output logic                               spi2_flash_intr_event_o,
+
     //RV TIMER
     output logic rv_timer_2_intr_o,
     output logic rv_timer_3_intr_o
@@ -258,6 +269,32 @@ module peripheral_subsystem
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::I2C_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2C_IDX])
   );
+
+  spi_host #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) spi2_host (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI2_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI2_IDX]),
+      .alert_rx_i(),
+      .alert_tx_o(),
+      .passthrough_i(spi_device_pkg::PASSTHROUGH_REQ_DEFAULT),
+      .passthrough_o(),
+      .cio_sck_o(spi2_sck_o),
+      .cio_sck_en_o(spi2_sck_en_o),
+      .cio_csb_o(spi2_csb_o),
+      .cio_csb_en_o(spi2_csb_en_o),
+      .cio_sd_o(spi2_sd_o),
+      .cio_sd_en_o(spi2_sd_en_o),
+      .cio_sd_i(spi2_sd_i),
+      .rx_valid_o(spi2_rx_valid),
+      .tx_ready_o(spi2_tx_ready),
+      .intr_error_o(),
+      .intr_spi_event_o(spi2_intr_event_o)
+  );
+
 
   i2c i2c_i (
       .clk_i,
