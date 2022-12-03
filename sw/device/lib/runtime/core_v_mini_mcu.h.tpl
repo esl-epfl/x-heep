@@ -154,6 +154,7 @@ extern "C" {
 #define INTR_ACQ_OVERFLOW ${intr_acq_overflow}
 #define INTR_ACK_STOP ${intr_ack_stop}
 #define INTR_HOST_TIMEOUT ${intr_host_timeout}
+#define SPI2_INTR_EVENT ${spi2_intr_event}
 #define EXT_INTR_0 ${ext_intr_0}
 #define EXT_INTR_1 ${ext_intr_1}
 #define EXT_INTR_2 ${ext_intr_2}
@@ -168,7 +169,6 @@ extern "C" {
 #define EXT_INTR_11 ${ext_intr_11}
 #define EXT_INTR_12 ${ext_intr_12}
 #define EXT_INTR_13 ${ext_intr_13}
-#define EXT_INTR_14 ${ext_intr_14}
 
 % for pad in pad_list:
 #define ${pad.localparam}_ATTRIBUTE ${pad.index}

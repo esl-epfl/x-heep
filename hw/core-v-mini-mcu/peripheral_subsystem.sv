@@ -50,8 +50,6 @@ module peripheral_subsystem
     output logic [                        3:0] spi2_sd_o,
     output logic [                        3:0] spi2_sd_en_o,
     input  logic [                        3:0] spi2_sd_i,
-    output logic                               spi2_intr_event_o,
-    output logic                               spi2_flash_intr_event_o,
 
     //RV TIMER
     output logic rv_timer_2_intr_o,
@@ -106,6 +104,7 @@ module peripheral_subsystem
   logic i2c_intr_acq_overflow;
   logic i2c_intr_ack_stop;
   logic i2c_intr_host_timeout;
+  logic spi2_intr_event;
 
   // this avoids lint errors
   assign unused_irq_id = irq_id;
@@ -137,6 +136,7 @@ module peripheral_subsystem
   assign intr_vector[46] = i2c_intr_acq_overflow;
   assign intr_vector[47] = i2c_intr_ack_stop;
   assign intr_vector[48] = i2c_intr_host_timeout;
+  assign intr_vector[49] = spi2_intr_event;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin
@@ -289,10 +289,10 @@ module peripheral_subsystem
       .cio_sd_o(spi2_sd_o),
       .cio_sd_en_o(spi2_sd_en_o),
       .cio_sd_i(spi2_sd_i),
-      .rx_valid_o(spi2_rx_valid),
-      .tx_ready_o(spi2_tx_ready),
+      .rx_valid_o(),
+      .tx_ready_o(),
       .intr_error_o(),
-      .intr_spi_event_o(spi2_intr_event_o)
+      .intr_spi_event_o(spi2_intr_event)
   );
 
 

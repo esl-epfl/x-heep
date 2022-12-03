@@ -176,21 +176,21 @@
         intr_acq_overflow:       46,
         intr_ack_stop:           47,
         intr_host_timeout:       48,
-        ext_intr_0:              49,
-        ext_intr_1:              50,
-        ext_intr_2:              51,
-        ext_intr_3:              52,
-        ext_intr_4:              53,
-        ext_intr_5:              54,
-        ext_intr_6:              55,
-        ext_intr_7:              56,
-        ext_intr_8:              57,
-        ext_intr_9:              58,
-        ext_intr_10:             59,
-        ext_intr_11:             60,
-        ext_intr_12:             61,
-        ext_intr_13:             62,
-        ext_intr_14:             63,
+        spi2_intr_event:         49,
+        ext_intr_0:              50,
+        ext_intr_1:              51,
+        ext_intr_2:              52,
+        ext_intr_3:              53,
+        ext_intr_4:              54,
+        ext_intr_5:              55,
+        ext_intr_6:              56,
+        ext_intr_7:              57,
+        ext_intr_8:              58,
+        ext_intr_9:              59,
+        ext_intr_10:             60,
+        ext_intr_11:             61,
+        ext_intr_12:             62,
+        ext_intr_13:             63,
     },
 
     pads: {
@@ -247,7 +247,7 @@
             type: output
         },
         gpio: {
-            num: 24,
+            num: 23,
             num_offset: 0, #first gpio is gpio0
             type: inout
         },
@@ -282,7 +282,7 @@
                 spi2_cs_0: {
                     type: inout
                 },
-                gpio_24: {
+                gpio_23: {
                     type: inout
                 },
             }
@@ -290,6 +290,14 @@
         spi2_cs_1: {
             num: 1,
             type: inout
+            mux: {
+                spi2_cs_1: {
+                    type: inout
+                },
+                gpio_24: {
+                    type: inout
+                },
+            },
         },
         spi2_sck: {
             num: 1,

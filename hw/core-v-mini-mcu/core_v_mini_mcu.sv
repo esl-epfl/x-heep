@@ -129,10 +129,6 @@ module core_v_mini_mcu
     input  logic gpio_22_i,
     output logic gpio_22_oe_o,
 
-    output logic gpio_23_o,
-    input  logic gpio_23_i,
-    output logic gpio_23_oe_o,
-
     output logic spi_flash_sck_o,
     input  logic spi_flash_sck_i,
     output logic spi_flash_sck_oe_o,
@@ -192,13 +188,16 @@ module core_v_mini_mcu
     output logic spi2_cs_0_o,
     input  logic spi2_cs_0_i,
     output logic spi2_cs_0_oe_o,
-    output logic gpio_24_o,
-    input  logic gpio_24_i,
-    output logic gpio_24_oe_o,
+    output logic gpio_23_o,
+    input  logic gpio_23_i,
+    output logic gpio_23_oe_o,
 
     output logic spi2_cs_1_o,
     input  logic spi2_cs_1_i,
     output logic spi2_cs_1_oe_o,
+    output logic gpio_24_o,
+    input  logic gpio_24_i,
+    output logic gpio_24_oe_o,
 
     output logic spi2_sck_o,
     input  logic spi2_sck_i,
