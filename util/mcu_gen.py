@@ -464,6 +464,9 @@ def main():
     rv_timer_start_offset  = string2int(obj['peripherals']['rv_timer']['offset'])
     rv_timer_size_address  = string2int(obj['peripherals']['rv_timer']['length'])
 
+    spi2_start_offset  = string2int(obj['peripherals']['spi2']['offset'])
+    spi2_size_address  = string2int(obj['peripherals']['spi2']['length'])
+
     ext_slave_start_address = string2int(obj['ext_slaves']['address'])
     ext_slave_size_address = string2int(obj['ext_slaves']['length'])
 
@@ -534,6 +537,7 @@ def main():
     intr_acq_overflow = obj['interrupts']['intr_acq_overflow']
     intr_ack_stop = obj['interrupts']['intr_ack_stop']
     intr_host_timeout = obj['interrupts']['intr_host_timeout']
+    spi2_intr_event = obj['interrupts']['spi2_intr_event']
     ext_intr_0 = obj['interrupts']['ext_intr_0']
     ext_intr_1 = obj['interrupts']['ext_intr_1']
     ext_intr_2 = obj['interrupts']['ext_intr_2']
@@ -548,7 +552,6 @@ def main():
     ext_intr_11 = obj['interrupts']['ext_intr_11']
     ext_intr_12 = obj['interrupts']['ext_intr_12']
     ext_intr_13 = obj['interrupts']['ext_intr_13']
-    ext_intr_14 = obj['interrupts']['ext_intr_14']
 
     pads = obj['pads']
 
@@ -837,6 +840,8 @@ def main():
         "i2c_size_address"                 : i2c_size_address,
         "rv_timer_start_offset"            : rv_timer_start_offset,
         "rv_timer_size_address"            : rv_timer_size_address,
+        "spi2_start_offset"                : spi2_start_offset,
+        "spi2_size_address"                : spi2_size_address,
         "ext_slave_start_address"          : ext_slave_start_address,
         "ext_slave_size_address"           : ext_slave_size_address,
         "flash_mem_start_address"          : flash_mem_start_address,
@@ -894,6 +899,7 @@ def main():
         "intr_acq_overflow"                : intr_acq_overflow,
         "intr_ack_stop"                    : intr_ack_stop,
         "intr_host_timeout"                : intr_host_timeout,
+        "spi2_intr_event"                  : spi2_intr_event,
         "ext_intr_0"                       : ext_intr_0,
         "ext_intr_1"                       : ext_intr_1,
         "ext_intr_2"                       : ext_intr_2,
@@ -908,7 +914,6 @@ def main():
         "ext_intr_11"                      : ext_intr_11,
         "ext_intr_12"                      : ext_intr_12,
         "ext_intr_13"                      : ext_intr_13,
-        "ext_intr_14"                      : ext_intr_14,
         "pad_list"                         : pad_list,
         "external_pad_list"                : external_pad_list,
         "total_pad_list"                   : total_pad_list,

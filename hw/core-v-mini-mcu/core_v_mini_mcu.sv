@@ -129,34 +129,6 @@ module core_v_mini_mcu
     input  logic gpio_22_i,
     output logic gpio_22_oe_o,
 
-    output logic gpio_23_o,
-    input  logic gpio_23_i,
-    output logic gpio_23_oe_o,
-
-    output logic gpio_24_o,
-    input  logic gpio_24_i,
-    output logic gpio_24_oe_o,
-
-    output logic gpio_25_o,
-    input  logic gpio_25_i,
-    output logic gpio_25_oe_o,
-
-    output logic gpio_26_o,
-    input  logic gpio_26_i,
-    output logic gpio_26_oe_o,
-
-    output logic gpio_27_o,
-    input  logic gpio_27_i,
-    output logic gpio_27_oe_o,
-
-    output logic gpio_28_o,
-    input  logic gpio_28_i,
-    output logic gpio_28_oe_o,
-
-    output logic gpio_29_o,
-    input  logic gpio_29_i,
-    output logic gpio_29_oe_o,
-
     output logic spi_flash_sck_o,
     input  logic spi_flash_sck_i,
     output logic spi_flash_sck_oe_o,
@@ -212,6 +184,55 @@ module core_v_mini_mcu
     output logic spi_sd_3_o,
     input  logic spi_sd_3_i,
     output logic spi_sd_3_oe_o,
+
+    output logic spi2_cs_0_o,
+    input  logic spi2_cs_0_i,
+    output logic spi2_cs_0_oe_o,
+    output logic gpio_23_o,
+    input  logic gpio_23_i,
+    output logic gpio_23_oe_o,
+
+    output logic spi2_cs_1_o,
+    input  logic spi2_cs_1_i,
+    output logic spi2_cs_1_oe_o,
+    output logic gpio_24_o,
+    input  logic gpio_24_i,
+    output logic gpio_24_oe_o,
+
+    output logic spi2_sck_o,
+    input  logic spi2_sck_i,
+    output logic spi2_sck_oe_o,
+    output logic gpio_25_o,
+    input  logic gpio_25_i,
+    output logic gpio_25_oe_o,
+
+    output logic spi2_sd_0_o,
+    input  logic spi2_sd_0_i,
+    output logic spi2_sd_0_oe_o,
+    output logic gpio_26_o,
+    input  logic gpio_26_i,
+    output logic gpio_26_oe_o,
+
+    output logic spi2_sd_1_o,
+    input  logic spi2_sd_1_i,
+    output logic spi2_sd_1_oe_o,
+    output logic gpio_27_o,
+    input  logic gpio_27_i,
+    output logic gpio_27_oe_o,
+
+    output logic spi2_sd_2_o,
+    input  logic spi2_sd_2_i,
+    output logic spi2_sd_2_oe_o,
+    output logic gpio_28_o,
+    input  logic gpio_28_i,
+    output logic gpio_28_oe_o,
+
+    output logic spi2_sd_3_o,
+    input  logic spi2_sd_3_i,
+    output logic spi2_sd_3_oe_o,
+    output logic gpio_29_o,
+    input  logic gpio_29_i,
+    output logic gpio_29_oe_o,
 
     output logic i2c_scl_o,
     input  logic i2c_scl_i,
@@ -560,6 +581,13 @@ module core_v_mini_mcu
       .cio_sda_i(i2c_sda_i),
       .cio_sda_o(i2c_sda_o),
       .cio_sda_en_o(i2c_sda_oe_o),
+      .spi2_sck_o,
+      .spi2_sck_en_o(spi2_sck_oe_o),
+      .spi2_csb_o({spi2_cs_1_o, spi2_cs_0_o}),
+      .spi2_csb_en_o({spi2_cs_1_oe_o, spi2_cs_0_oe_o}),
+      .spi2_sd_o({spi2_sd_3_o, spi2_sd_2_o, spi2_sd_1_o, spi2_sd_0_o}),
+      .spi2_sd_en_o({spi2_sd_3_oe_o, spi2_sd_2_oe_o, spi2_sd_1_oe_o, spi2_sd_0_oe_o}),
+      .spi2_sd_i({spi2_sd_3_i, spi2_sd_2_i, spi2_sd_1_i, spi2_sd_0_i}),
       .rv_timer_2_intr_o(rv_timer_intr[2]),
       .rv_timer_3_intr_o(rv_timer_intr[3])
   );

@@ -13,3 +13,4 @@ lint_off -rule UNDRIVEN -file "*/power_manager.sv" -match "Signal is not driven:
 lint_off -rule UNDRIVEN -file "*/power_manager.sv" -match "Signal is not driven: 'external_subsystem_powergate_iso*"
 lint_off -rule UNDRIVEN -file "*/power_manager.sv" -match "Signal is not driven: 'external_subsystem_rst_n*"
 lint_off -rule UNUSED -file "*/power_manager.sv" -match "Signal is not used: 'external_subsystem_powergate_switch_ack*"
+lint_off -rule WIDTH -file "*/power_manager.sv" -match "Operator ASSIGNW expects 16 bits on*"
