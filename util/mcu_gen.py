@@ -307,15 +307,12 @@ def main():
                         default="",
                         help="Number of 32KB Banks (default value from cfg file)")
 
-<<<<<<< HEAD
-=======
     parser.add_argument("--external_domains",
                         metavar="from 0 to 32",
                         nargs='?',
                         default="1",
                         help="Number of external domains")
 
->>>>>>> origin/main
     parser.add_argument("--pkg-sv",
                         metavar="PKG_SV",
                         help="Name of top-level package file (output)")
@@ -333,15 +330,12 @@ def main():
                         metavar="LINKER_SCRIPT",
                         help="Name of the linker script (output)")
 
-<<<<<<< HEAD
-=======
     parser.add_argument("--external_pads",
                         metavar="file",
                         type=argparse.FileType('r'),
                         required=False,
                         help="Name of the hjson file contaiting extra pads")
 
->>>>>>> origin/main
     parser.add_argument("-v",
                         "--verbose",
                         help="increase output verbosity",
@@ -367,16 +361,12 @@ def main():
     outdir = args.outdir
     outdir.mkdir(parents=True, exist_ok=True)
 
-<<<<<<< HEAD
-=======
     outfile = args.outfile
 
->>>>>>> origin/main
     if args.cpu != None and args.cpu != '':
         cpu_type = args.cpu
     else:
         cpu_type = obj['cpu_type']
-<<<<<<< HEAD
 
     if args.bus != None and args.bus != '':
         bus_type = args.bus
@@ -391,29 +381,11 @@ def main():
     if ram_numbanks < 2 and ram_numbanks > 16:
         exit("ram numbanks must be between 2 and 16 instead of " + str(ram_numbanks))
 
-=======
-
-    if args.bus != None and args.bus != '':
-        bus_type = args.bus
-    else:
-        bus_type = obj['bus_type']
-
-    if args.memorybanks != None and args.memorybanks != '':
-        ram_numbanks = int(args.memorybanks)
-    else:
-        ram_numbanks = int(obj['ram']['numbanks'])
-
-    if ram_numbanks < 2 and ram_numbanks > 16:
-        exit("ram numbanks must be between 2 and 16 instead of " + str(ram_numbanks))
-
->>>>>>> origin/main
     ram_start_address = string2int(obj['ram']['address'])
     if int(ram_start_address,16) != 0:
         exit("ram start address must be 0 instead of " + str(ram_start_address))
 
     ram_size_address = '{:08X}'.format(ram_numbanks*32*1024)
-<<<<<<< HEAD
-=======
 
     if args.external_domains != None and args.external_domains != '':
         external_domains = int(args.external_domains)
@@ -422,7 +394,6 @@ def main():
 
     if  external_domains > 32:
         exit("external_domains must be less than 32 instead of " + str(external_domains))
->>>>>>> origin/main
 
     debug_start_address = string2int(obj['debug']['address'])
     if int(debug_start_address, 16) < int('10000', 16):
@@ -516,25 +487,6 @@ def main():
 
     if ((int(linker_onchip_data_size_address,16) + int(linker_onchip_code_size_address,16)) > int(ram_size_address,16)):
         exit("The code and data section must fit in the RAM size, instead they takes " + str(linker_onchip_data_size_address + linker_onchip_code_size_address))
-
-    linker_onchip_code_start_address  = string2int(obj['linker_script']['onchip_ls']['code']['address'])
-    linker_onchip_code_size_address  = string2int(obj['linker_script']['onchip_ls']['code']['lenght'])
-
-    if int(linker_onchip_code_size_address,16) < 32*1024:
-        exit("The code section must be at least 32KB, instead it is " + str(linker_onchip_code_size_address))
-
-    linker_onchip_data_start_address  = string2int(obj['linker_script']['onchip_ls']['data']['address'])
-    if (obj['linker_script']['onchip_ls']['data']['lenght'].split()[0].split(",")[0] == "whatisleft"):
-        linker_onchip_data_size_address  = str('{:08X}'.format(int(ram_size_address,16) - int(linker_onchip_code_size_address,16)))
-    else:
-        linker_onchip_data_size_address  = string2int(obj['linker_script']['onchip_ls']['data']['lenght'])
-
-    if ((int(linker_onchip_data_size_address,16) + int(linker_onchip_code_size_address,16)) > int(ram_size_address,16)):
-        exit("The code and data section must fit in the RAM size, instead they takes " + str(linker_onchip_data_size_address + linker_onchip_code_size_address))
-
-
-    spi_flash_size_address  = string2int(obj['spi_flash']['length'])
-
 
     null_intr = obj['interrupts']['null_intr']
     uart_intr_tx_watermark = obj['interrupts']['uart_intr_tx_watermark']
@@ -846,10 +798,7 @@ def main():
         "bus_type"                         : bus_type,
         "ram_start_address"                : ram_start_address,
         "ram_numbanks"                     : ram_numbanks,
-<<<<<<< HEAD
-=======
         "external_domains"                 : external_domains,
->>>>>>> origin/main
         "ram_size_address"                 : ram_size_address,
         "debug_start_address"              : debug_start_address,
         "debug_size_address"               : debug_size_address,
@@ -859,23 +808,12 @@ def main():
         "soc_ctrl_size_address"            : soc_ctrl_size_address,
         "bootrom_start_offset"             : bootrom_start_offset,
         "bootrom_size_address"             : bootrom_size_address,
-<<<<<<< HEAD
-        "spi_host_start_offset"            : spi_host_start_offset,
-        "spi_host_size_address"            : spi_host_size_address,
-=======
         "spi_flash_start_offset"           : spi_flash_start_offset,
         "spi_flash_size_address"           : spi_flash_size_address,
->>>>>>> origin/main
         "spi_memio_start_offset"           : spi_memio_start_offset,
         "spi_memio_size_address"           : spi_memio_size_address,
         "power_manager_start_offset"       : power_manager_start_offset,
         "power_manager_size_address"       : power_manager_size_address,
-<<<<<<< HEAD
-        "rv_timer_start_offset"            : rv_timer_start_offset,
-        "rv_timer_size_address"            : rv_timer_size_address,
-        "dma_start_offset"                 : dma_start_offset,
-        "dma_size_address"                 : dma_size_address,
-=======
         "rv_timer_ao_start_offset"         : rv_timer_ao_start_offset,
         "rv_timer_ao_size_address"         : rv_timer_ao_size_address,
         "dma_start_offset"                 : dma_start_offset,
@@ -892,28 +830,14 @@ def main():
         "uart_size_address"                : uart_size_address,
         "spi_start_offset"                 : spi_start_offset,
         "spi_size_address"                 : spi_size_address,
->>>>>>> origin/main
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
         "plic_start_offset"                : plic_start_offset,
         "plic_size_address"                : plic_size_address,
-<<<<<<< HEAD
-        "uart_start_offset"                : uart_start_offset,
-        "uart_size_address"                : uart_size_address,
-=======
->>>>>>> origin/main
         "gpio_start_offset"                : gpio_start_offset,
         "gpio_size_address"                : gpio_size_address,
         "i2c_start_offset"                 : i2c_start_offset,
         "i2c_size_address"                 : i2c_size_address,
-<<<<<<< HEAD
-        "ext_periph_start_offset"          : ext_periph_start_offset,
-        "ext_periph_size_address"          : ext_periph_size_address,
-        "ext_slave_start_address"          : ext_slave_start_address,
-        "ext_slave_size_address"           : ext_slave_size_address,
-        "spi_flash_start_address"          : spi_flash_start_address,
-        "spi_flash_size_address"           : spi_flash_size_address,
-=======
         "rv_timer_start_offset"            : rv_timer_start_offset,
         "rv_timer_size_address"            : rv_timer_size_address,
         "spi2_start_offset"                : spi2_start_offset,
@@ -922,7 +846,6 @@ def main():
         "ext_slave_size_address"           : ext_slave_size_address,
         "flash_mem_start_address"          : flash_mem_start_address,
         "flash_mem_size_address"           : flash_mem_size_address,
->>>>>>> origin/main
         "linker_onchip_code_start_address" : linker_onchip_code_start_address,
         "linker_onchip_code_size_address"  : linker_onchip_code_size_address,
         "linker_onchip_data_start_address" : linker_onchip_data_start_address,
@@ -936,17 +859,6 @@ def main():
         "uart_intr_rx_break_err"           : uart_intr_rx_break_err,
         "uart_intr_rx_timeout"             : uart_intr_rx_timeout,
         "uart_intr_rx_parity_err"          : uart_intr_rx_parity_err,
-<<<<<<< HEAD
-        "gpio_intr_0"                      : gpio_intr_0,
-        "gpio_intr_1"                      : gpio_intr_1,
-        "gpio_intr_2"                      : gpio_intr_2,
-        "gpio_intr_3"                      : gpio_intr_3,
-        "gpio_intr_4"                      : gpio_intr_4,
-        "gpio_intr_5"                      : gpio_intr_5,
-        "gpio_intr_6"                      : gpio_intr_6,
-        "gpio_intr_7"                      : gpio_intr_7,
-=======
->>>>>>> origin/main
         "gpio_intr_8"                      : gpio_intr_8,
         "gpio_intr_9"                      : gpio_intr_9,
         "gpio_intr_10"                     : gpio_intr_10,
@@ -987,19 +899,13 @@ def main():
         "intr_acq_overflow"                : intr_acq_overflow,
         "intr_ack_stop"                    : intr_ack_stop,
         "intr_host_timeout"                : intr_host_timeout,
-<<<<<<< HEAD
-        "dma_intr_done"                    : dma_intr_done,
-=======
         "spi2_intr_event"                  : spi2_intr_event,
->>>>>>> origin/main
         "ext_intr_0"                       : ext_intr_0,
         "ext_intr_1"                       : ext_intr_1,
         "ext_intr_2"                       : ext_intr_2,
         "ext_intr_3"                       : ext_intr_3,
         "ext_intr_4"                       : ext_intr_4,
         "ext_intr_5"                       : ext_intr_5,
-<<<<<<< HEAD
-=======
         "ext_intr_6"                       : ext_intr_6,
         "ext_intr_7"                       : ext_intr_7,
         "ext_intr_8"                       : ext_intr_8,
@@ -1016,7 +922,6 @@ def main():
         "pad_mux_process"                  : pad_mux_process,
         "pad_muxed_list"                   : pad_muxed_list,
         "total_pad_muxed"                  : total_pad_muxed,
->>>>>>> origin/main
     }
 
     ###########
@@ -1031,17 +936,8 @@ def main():
     if args.tpl_sv != None:
         write_template(args.tpl_sv, outdir, outfile, **kwargs)
 
-<<<<<<< HEAD
-    if args.tpl_sv != None:
-        write_template(args.tpl_sv, outdir, **kwargs)
-
-    if args.linker_script != None:
-        write_template(args.linker_script, outdir, **kwargs)
-
-=======
     if args.linker_script != None:
         write_template(args.linker_script, outdir, outfile, **kwargs)
->>>>>>> origin/main
 
 if __name__ == "__main__":
     main()

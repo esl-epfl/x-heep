@@ -17,16 +17,9 @@ ENTRY(_start)
 
 MEMORY
 {
-<<<<<<< HEAD:sw/linker/link.ld.tpl
-	/* Our testbench is a bit weird in that we initialize the RAM (thus
-	   allowing initialized sections to be placed there). Infact we dump all
-	   sections to ram. */
-
-=======
   /* Our testbench is a bit weird in that we initialize the RAM (thus
      allowing initialized sections to be placed there). Infact we dump all
      sections to ram. */
->>>>>>> origin/main:sw/linker/link.ld
   ram0 (rwxai) : ORIGIN = 0x${linker_onchip_code_start_address}, LENGTH = 0x${linker_onchip_code_size_address}
   ram1 (rwxai) : ORIGIN = 0x${linker_onchip_data_start_address}, LENGTH = 0x${linker_onchip_data_size_address}
 }
