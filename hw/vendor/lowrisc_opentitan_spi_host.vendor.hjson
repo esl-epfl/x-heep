@@ -1,0 +1,19 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+  name: "lowrisc_opentitan_spi_host",
+  target_dir: "lowrisc_opentitan_spi_host"
+
+  upstream: {
+    url: "https://github.com/lowRISC/opentitan.git",
+    rev: "611d56f934a36991b1a61b46690243373e6806fe",
+    only_subdir: "hw/ip/spi_host",
+  },
+
+  patch_dir: "patches/lowrisc_opentitan_spi_host",
+
+  exclude_from_upstream: [
+    "dv",
+  ]
+}

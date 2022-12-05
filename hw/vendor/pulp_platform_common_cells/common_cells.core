@@ -1,6 +1,6 @@
 CAPI=2:
 
-name : pulp-platform.org::common_cells:1.20.0
+name : pulp-platform.org::common_cells:1.26.0
 
 filesets:
   rtl:
@@ -40,15 +40,18 @@ filesets:
       - src/stream_intf.sv
       - src/stream_join.sv
       - src/stream_mux.sv
+      - src/stream_throttle.sv
       - src/sub_per_hash.sv
       - src/sync.sv
       - src/sync_wedge.sv
       - src/unread.sv
+      - src/read.sv
       - src/cdc_reset_ctrlr_pkg.sv
       # Level 1
       - src/cdc_2phase.sv
       - src/cdc_4phase.sv
       - src/addr_decode.sv
+      - src/addr_decode_napot.sv
       - src/cb_filter.sv
       - src/cdc_fifo_2phase.sv
       - src/counter.sv
@@ -69,6 +72,7 @@ filesets:
       - src/id_queue.sv
       - src/stream_to_mem.sv
       - src/stream_arbiter_flushable.sv
+      - src/stream_fifo_optimal_wrap.sv
       - src/stream_register.sv
       - src/stream_xbar.sv
       # Level 3

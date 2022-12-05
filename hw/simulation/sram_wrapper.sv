@@ -14,16 +14,17 @@ module sram_wrapper #(
     // DEPENDENT PARAMETERS, DO NOT OVERWRITE!
     parameter int unsigned AddrWidth = (NumWords > 32'd1) ? $clog2(NumWords) : 32'd1
 ) (
-    input  logic                 clk_i,    // Clock
-    input  logic                 rst_ni,   // Asynchronous reset active low
+    input logic clk_i,
+    input logic rst_ni,
     // input ports
-    input  logic                 req_i,    // request
-    input  logic                 we_i,     // write enable
-    input  logic [AddrWidth-1:0] addr_i,   // request address
-    input  logic [         31:0] wdata_i,  // write data
-    input  logic [          3:0] be_i,     // write byte enable
+    input logic req_i,
+    input logic we_i,
+    input logic [AddrWidth-1:0] addr_i,
+    input logic [31:0] wdata_i,
+    input logic [3:0] be_i,
+    input logic set_retentive_i,
     // output ports
-    output logic [         31:0] rdata_o   // read data
+    output logic [31:0] rdata_o
 );
 
   tc_sram #(
@@ -41,6 +42,5 @@ module sram_wrapper #(
       // output ports
       .rdata_o(rdata_o)
   );
-
 
 endmodule

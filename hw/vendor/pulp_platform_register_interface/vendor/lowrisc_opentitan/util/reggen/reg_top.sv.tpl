@@ -199,7 +199,7 @@ module ${mod_name} \
   assign reg_intf_req = reg_intf_demux_req[${num_wins}];
   assign reg_intf_demux_rsp[${num_wins}] = reg_intf_rsp;
 
-    % for i,t in enumerate(block.wins):
+    % for i in range(num_wins):
   assign reg_req_win_o[${i}] = reg_intf_demux_req[${i}];
   assign reg_intf_demux_rsp[${i}] = reg_rsp_win_i[${i}];
     % endfor

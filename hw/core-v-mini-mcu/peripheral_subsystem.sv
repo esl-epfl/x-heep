@@ -19,15 +19,20 @@ module peripheral_subsystem
     output logic                irq_plic_o,
     output logic                msip_o,
 
-    //UART
-    input  logic uart_rx_i,
-    output logic uart_tx_o,
-    output logic uart_tx_en_o,
+    //UART PLIC interrupts
+    input logic uart_intr_tx_watermark_i,
+    input logic uart_intr_rx_watermark_i,
+    input logic uart_intr_tx_empty_i,
+    input logic uart_intr_rx_overflow_i,
+    input logic uart_intr_rx_frame_err_i,
+    input logic uart_intr_rx_break_err_i,
+    input logic uart_intr_rx_timeout_i,
+    input logic uart_intr_rx_parity_err_i,
 
     //GPIO
-    input  logic [31:0] cio_gpio_i,
-    output logic [31:0] cio_gpio_o,
-    output logic [31:0] cio_gpio_en_o,
+    input  logic [31:8] cio_gpio_i,
+    output logic [31:8] cio_gpio_o,
+    output logic [31:8] cio_gpio_en_o,
 
     // I2C Interface
     input  logic cio_scl_i,
@@ -37,11 +42,18 @@ module peripheral_subsystem
     output logic cio_sda_o,
     output logic cio_sda_en_o,
 
-    //External peripheral(s)
-    output reg_req_t ext_peripheral_slave_req_o,
-    input  reg_rsp_t ext_peripheral_slave_resp_i,
+    // SPI Host
+    output logic                               spi2_sck_o,
+    output logic                               spi2_sck_en_o,
+    output logic [spi_host_reg_pkg::NumCS-1:0] spi2_csb_o,
+    output logic [spi_host_reg_pkg::NumCS-1:0] spi2_csb_en_o,
+    output logic [                        3:0] spi2_sd_o,
+    output logic [                        3:0] spi2_sd_en_o,
+    input  logic [                        3:0] spi2_sd_i,
 
-    input logic dma_intr_i
+    //RV TIMER
+    output logic rv_timer_2_intr_o,
+    output logic rv_timer_3_intr_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -54,9 +66,6 @@ module peripheral_subsystem
   reg_pkg::reg_req_t [core_v_mini_mcu_pkg::PERIPHERALS-1:0] peripheral_slv_req;
   reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::PERIPHERALS-1:0] peripheral_slv_rsp;
 
-  tlul_pkg::tl_h2d_t uart_tl_h2d;
-  tlul_pkg::tl_d2h_t uart_tl_d2h;
-
   tlul_pkg::tl_h2d_t plic_tl_h2d;
   tlul_pkg::tl_d2h_t plic_tl_d2h;
 
@@ -66,70 +75,68 @@ module peripheral_subsystem
   tlul_pkg::tl_h2d_t i2c_tl_h2d;
   tlul_pkg::tl_d2h_t i2c_tl_d2h;
 
+  tlul_pkg::tl_h2d_t rv_timer_tl_h2d;
+  tlul_pkg::tl_d2h_t rv_timer_tl_d2h;
+
   logic [rv_plic_reg_pkg::NumTarget-1:0] irq_plic;
   logic [rv_plic_reg_pkg::NumSrc-1:0] intr_vector;
   logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] irq_id[rv_plic_reg_pkg::NumTarget];
   logic [$clog2(rv_plic_reg_pkg::NumSrc)-1:0] unused_irq_id[rv_plic_reg_pkg::NumTarget];
 
-  logic uart_intr_tx_watermark;
-  logic uart_intr_rx_watermark;
-  logic uart_intr_tx_empty;
-  logic uart_intr_rx_overflow;
-  logic uart_intr_rx_frame_err;
-  logic uart_intr_rx_break_err;
-  logic uart_intr_rx_timeout;
-  logic uart_intr_rx_parity_err;
+  logic [31:8] gpio_intr;
+  logic [7:0] cio_gpio_unused;
+  logic [7:0] cio_gpio_en_unused;
+  logic [7:0] gpio_int_unused;
 
-  logic [31:0] gpio_intr;
-
-  logic intr_fmt_watermark;
-  logic intr_rx_watermark;
-  logic intr_fmt_overflow;
-  logic intr_rx_overflow;
-  logic intr_nak;
-  logic intr_scl_interference;
-  logic intr_sda_interference;
-  logic intr_stretch_timeout;
-  logic intr_sda_unstable;
-  logic intr_trans_complete;
-  logic intr_tx_empty;
-  logic intr_tx_nonempty;
-  logic intr_tx_overflow;
-  logic intr_acq_overflow;
-  logic intr_ack_stop;
-  logic intr_host_timeout;
+  logic i2c_intr_fmt_watermark;
+  logic i2c_intr_rx_watermark;
+  logic i2c_intr_fmt_overflow;
+  logic i2c_intr_rx_overflow;
+  logic i2c_intr_nak;
+  logic i2c_intr_scl_interference;
+  logic i2c_intr_sda_interference;
+  logic i2c_intr_stretch_timeout;
+  logic i2c_intr_sda_unstable;
+  logic i2c_intr_trans_complete;
+  logic i2c_intr_tx_empty;
+  logic i2c_intr_tx_nonempty;
+  logic i2c_intr_tx_overflow;
+  logic i2c_intr_acq_overflow;
+  logic i2c_intr_ack_stop;
+  logic i2c_intr_host_timeout;
+  logic spi2_intr_event;
 
   // this avoids lint errors
   assign unused_irq_id = irq_id;
 
   // Assign internal interrupts
   assign intr_vector[0] = 1'b0;  // ID [0] is a special case and must be tied to zero.
-  assign intr_vector[1] = uart_intr_tx_watermark;
-  assign intr_vector[2] = uart_intr_rx_watermark;
-  assign intr_vector[3] = uart_intr_tx_empty;
-  assign intr_vector[4] = uart_intr_rx_overflow;
-  assign intr_vector[5] = uart_intr_rx_frame_err;
-  assign intr_vector[6] = uart_intr_rx_break_err;
-  assign intr_vector[7] = uart_intr_rx_timeout;
-  assign intr_vector[8] = uart_intr_rx_parity_err;
-  assign intr_vector[40:9] = gpio_intr;
-  assign intr_vector[41] = intr_fmt_watermark;
-  assign intr_vector[42] = intr_rx_watermark;
-  assign intr_vector[43] = intr_fmt_overflow;
-  assign intr_vector[44] = intr_rx_overflow;
-  assign intr_vector[45] = intr_nak;
-  assign intr_vector[46] = intr_scl_interference;
-  assign intr_vector[47] = intr_sda_interference;
-  assign intr_vector[48] = intr_stretch_timeout;
-  assign intr_vector[49] = intr_sda_unstable;
-  assign intr_vector[50] = intr_trans_complete;
-  assign intr_vector[51] = intr_tx_empty;
-  assign intr_vector[52] = intr_tx_nonempty;
-  assign intr_vector[53] = intr_tx_overflow;
-  assign intr_vector[54] = intr_acq_overflow;
-  assign intr_vector[55] = intr_ack_stop;
-  assign intr_vector[56] = intr_host_timeout;
-  assign intr_vector[57] = dma_intr_i;
+  assign intr_vector[1] = uart_intr_tx_watermark_i;
+  assign intr_vector[2] = uart_intr_rx_watermark_i;
+  assign intr_vector[3] = uart_intr_tx_empty_i;
+  assign intr_vector[4] = uart_intr_rx_overflow_i;
+  assign intr_vector[5] = uart_intr_rx_frame_err_i;
+  assign intr_vector[6] = uart_intr_rx_break_err_i;
+  assign intr_vector[7] = uart_intr_rx_timeout_i;
+  assign intr_vector[8] = uart_intr_rx_parity_err_i;
+  assign intr_vector[32:9] = gpio_intr;
+  assign intr_vector[33] = i2c_intr_fmt_watermark;
+  assign intr_vector[34] = i2c_intr_rx_watermark;
+  assign intr_vector[35] = i2c_intr_fmt_overflow;
+  assign intr_vector[36] = i2c_intr_rx_overflow;
+  assign intr_vector[37] = i2c_intr_nak;
+  assign intr_vector[38] = i2c_intr_scl_interference;
+  assign intr_vector[39] = i2c_intr_sda_interference;
+  assign intr_vector[40] = i2c_intr_stretch_timeout;
+  assign intr_vector[41] = i2c_intr_sda_unstable;
+  assign intr_vector[42] = i2c_intr_trans_complete;
+  assign intr_vector[43] = i2c_intr_tx_empty;
+  assign intr_vector[44] = i2c_intr_tx_nonempty;
+  assign intr_vector[45] = i2c_intr_tx_overflow;
+  assign intr_vector[46] = i2c_intr_acq_overflow;
+  assign intr_vector[47] = i2c_intr_ack_stop;
+  assign intr_vector[48] = i2c_intr_host_timeout;
+  assign intr_vector[49] = spi2_intr_event;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin
@@ -138,9 +145,6 @@ module peripheral_subsystem
 
   //Address Decoder
   logic [PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
-
-  assign ext_peripheral_slave_req_o = peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPH_IDX];
-  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPH_IDX] = ext_peripheral_slave_resp_i;
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
@@ -193,7 +197,17 @@ module peripheral_subsystem
       .out_rsp_i(peripheral_slv_rsp)
   );
 
-  reg_to_tlul reg_to_tlul_plic_i (
+  reg_to_tlul #(
+      .req_t(reg_pkg::reg_req_t),
+      .rsp_t(reg_pkg::reg_rsp_t),
+      .tl_h2d_t(tlul_pkg::tl_h2d_t),
+      .tl_d2h_t(tlul_pkg::tl_d2h_t),
+      .tl_a_user_t(tlul_pkg::tl_a_user_t),
+      .tl_a_op_e(tlul_pkg::tl_a_op_e),
+      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
+      .PutFullData(tlul_pkg::PutFullData),
+      .Get(tlul_pkg::Get)
+  ) reg_to_tlul_plic_i (
       .tl_o(plic_tl_h2d),
       .tl_i(plic_tl_d2h),
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::PLIC_IDX]),
@@ -211,32 +225,17 @@ module peripheral_subsystem
       .msip_o(msip_o)
   );
 
-  reg_to_tlul reg_to_tlul_uart_i (
-      .tl_o(uart_tl_h2d),
-      .tl_i(uart_tl_d2h),
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::UART_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::UART_IDX])
-  );
-
-  uart uart_i (
-      .clk_i,
-      .rst_ni,
-      .tl_i(uart_tl_h2d),
-      .tl_o(uart_tl_d2h),
-      .cio_rx_i(uart_rx_i),
-      .cio_tx_o(uart_tx_o),
-      .cio_tx_en_o(uart_tx_en_o),
-      .intr_tx_watermark_o(uart_intr_tx_watermark),
-      .intr_rx_watermark_o(uart_intr_rx_watermark),
-      .intr_tx_empty_o(uart_intr_tx_empty),
-      .intr_rx_overflow_o(uart_intr_rx_overflow),
-      .intr_rx_frame_err_o(uart_intr_rx_frame_err),
-      .intr_rx_break_err_o(uart_intr_rx_break_err),
-      .intr_rx_timeout_o(uart_intr_rx_timeout),
-      .intr_rx_parity_err_o(uart_intr_rx_parity_err)
-  );
-
-  reg_to_tlul reg_to_tlul_gpio_i (
+  reg_to_tlul #(
+      .req_t(reg_pkg::reg_req_t),
+      .rsp_t(reg_pkg::reg_rsp_t),
+      .tl_h2d_t(tlul_pkg::tl_h2d_t),
+      .tl_d2h_t(tlul_pkg::tl_d2h_t),
+      .tl_a_user_t(tlul_pkg::tl_a_user_t),
+      .tl_a_op_e(tlul_pkg::tl_a_op_e),
+      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
+      .PutFullData(tlul_pkg::PutFullData),
+      .Get(tlul_pkg::Get)
+  ) reg_to_tlul_gpio_i (
       .tl_o(gpio_tl_h2d),
       .tl_i(gpio_tl_d2h),
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::GPIO_IDX]),
@@ -248,18 +247,54 @@ module peripheral_subsystem
       .rst_ni,
       .tl_i(gpio_tl_h2d),
       .tl_o(gpio_tl_d2h),
-      .cio_gpio_i(cio_gpio_i),
-      .cio_gpio_o(cio_gpio_o),
-      .cio_gpio_en_o(cio_gpio_en_o),
-      .intr_gpio_o(gpio_intr)
+      .cio_gpio_i({cio_gpio_i, 8'b0}),
+      .cio_gpio_o({cio_gpio_o, cio_gpio_unused}),
+      .cio_gpio_en_o({cio_gpio_en_o, cio_gpio_en_unused}),
+      .intr_gpio_o({gpio_intr, gpio_int_unused})
   );
 
-  reg_to_tlul reg_to_tlul_i2c_i (
+  reg_to_tlul #(
+      .req_t(reg_pkg::reg_req_t),
+      .rsp_t(reg_pkg::reg_rsp_t),
+      .tl_h2d_t(tlul_pkg::tl_h2d_t),
+      .tl_d2h_t(tlul_pkg::tl_d2h_t),
+      .tl_a_user_t(tlul_pkg::tl_a_user_t),
+      .tl_a_op_e(tlul_pkg::tl_a_op_e),
+      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
+      .PutFullData(tlul_pkg::PutFullData),
+      .Get(tlul_pkg::Get)
+  ) reg_to_tlul_i2c_i (
       .tl_o(i2c_tl_h2d),
       .tl_i(i2c_tl_d2h),
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::I2C_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2C_IDX])
   );
+
+  spi_host #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) spi2_host (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI2_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI2_IDX]),
+      .alert_rx_i(),
+      .alert_tx_o(),
+      .passthrough_i(spi_device_pkg::PASSTHROUGH_REQ_DEFAULT),
+      .passthrough_o(),
+      .cio_sck_o(spi2_sck_o),
+      .cio_sck_en_o(spi2_sck_en_o),
+      .cio_csb_o(spi2_csb_o),
+      .cio_csb_en_o(spi2_csb_en_o),
+      .cio_sd_o(spi2_sd_o),
+      .cio_sd_en_o(spi2_sd_en_o),
+      .cio_sd_i(spi2_sd_i),
+      .rx_valid_o(),
+      .tx_ready_o(),
+      .intr_error_o(),
+      .intr_spi_event_o(spi2_intr_event)
+  );
+
 
   i2c i2c_i (
       .clk_i,
@@ -272,22 +307,48 @@ module peripheral_subsystem
       .cio_sda_i,
       .cio_sda_o,
       .cio_sda_en_o,
-      .intr_fmt_watermark_o(intr_fmt_watermark),
-      .intr_rx_watermark_o(intr_rx_watermark),
-      .intr_fmt_overflow_o(intr_fmt_overflow),
-      .intr_rx_overflow_o(intr_rx_overflow),
-      .intr_nak_o(intr_nak),
-      .intr_scl_interference_o(intr_scl_interference),
-      .intr_sda_interference_o(intr_sda_interference),
-      .intr_stretch_timeout_o(intr_stretch_timeout),
-      .intr_sda_unstable_o(intr_sda_unstable),
-      .intr_trans_complete_o(intr_trans_complete),
-      .intr_tx_empty_o(intr_tx_empty),
-      .intr_tx_nonempty_o(intr_tx_nonempty),
-      .intr_tx_overflow_o(intr_tx_overflow),
-      .intr_acq_overflow_o(intr_acq_overflow),
-      .intr_ack_stop_o(intr_ack_stop),
-      .intr_host_timeout_o(intr_host_timeout)
+      .intr_fmt_watermark_o(i2c_intr_fmt_watermark),
+      .intr_rx_watermark_o(i2c_intr_rx_watermark),
+      .intr_fmt_overflow_o(i2c_intr_fmt_overflow),
+      .intr_rx_overflow_o(i2c_intr_rx_overflow),
+      .intr_nak_o(i2c_intr_nak),
+      .intr_scl_interference_o(i2c_intr_scl_interference),
+      .intr_sda_interference_o(i2c_intr_sda_interference),
+      .intr_stretch_timeout_o(i2c_intr_stretch_timeout),
+      .intr_sda_unstable_o(i2c_intr_sda_unstable),
+      .intr_trans_complete_o(i2c_intr_trans_complete),
+      .intr_tx_empty_o(i2c_intr_tx_empty),
+      .intr_tx_nonempty_o(i2c_intr_tx_nonempty),
+      .intr_tx_overflow_o(i2c_intr_tx_overflow),
+      .intr_acq_overflow_o(i2c_intr_acq_overflow),
+      .intr_ack_stop_o(i2c_intr_ack_stop),
+      .intr_host_timeout_o(i2c_intr_host_timeout)
+  );
+
+  reg_to_tlul #(
+      .req_t(reg_pkg::reg_req_t),
+      .rsp_t(reg_pkg::reg_rsp_t),
+      .tl_h2d_t(tlul_pkg::tl_h2d_t),
+      .tl_d2h_t(tlul_pkg::tl_d2h_t),
+      .tl_a_user_t(tlul_pkg::tl_a_user_t),
+      .tl_a_op_e(tlul_pkg::tl_a_op_e),
+      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
+      .PutFullData(tlul_pkg::PutFullData),
+      .Get(tlul_pkg::Get)
+  ) rv_timer_reg_to_tlul_i (
+      .tl_o(rv_timer_tl_h2d),
+      .tl_i(rv_timer_tl_d2h),
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::RV_TIMER_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_IDX])
+  );
+
+  rv_timer rv_timer_2_3_i (
+      .clk_i,
+      .rst_ni,
+      .tl_i(rv_timer_tl_h2d),
+      .tl_o(rv_timer_tl_d2h),
+      .intr_timer_expired_0_0_o(rv_timer_2_intr_o),
+      .intr_timer_expired_1_0_o(rv_timer_3_intr_o)
   );
 
 endmodule : peripheral_subsystem

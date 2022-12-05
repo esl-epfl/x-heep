@@ -20,7 +20,7 @@ module tb_top #(
   const time STIM_APPLICATION_DEL = CLK_PERIOD * 0.1;
   const time RESP_ACQUISITION_DEL = CLK_PERIOD * 0.9;
   const time RESET_DEL = STIM_APPLICATION_DEL;
-  const int  RESET_WAIT_CYCLES = 4;
+  const int  RESET_WAIT_CYCLES = 50;
 
   // clock and reset for tb
   logic      clk = 'b1;
@@ -90,7 +90,7 @@ module tb_top #(
       boot_sel = 0;
     end
 
-    execute_from_flash = 1;
+    execute_from_flash = 0;
     if (boot_sel == 1) begin
       if ($test$plusargs("execute_from_flash")) begin
         $value$plusargs("execute_from_flash=%s", arg_execute_from_flash);
@@ -112,8 +112,12 @@ module tb_top #(
       end
     end
 
-
     wait (rst_n == 1'b1);
+
+    // wait a few cycles
+    repeat (RESET_WAIT_CYCLES) begin
+      @(posedge clk);
+    end
 
     if (JTAG_DPI == 0 && boot_sel == 0) begin
       testharness_i.tb_loadHEX(firmware);
@@ -122,6 +126,7 @@ module tb_top #(
     end else begin
       if ($test$plusargs("verbose")) $display("[TESTBENCH] %t: waiting for GDB...", $time);
     end
+
   end
 
   // clock generation

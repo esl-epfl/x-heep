@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
             errors++;
         }
         src_ptr++;
-	    dest_ptr++;
+        dest_ptr++;
     }
 
     if (errors == 0) {

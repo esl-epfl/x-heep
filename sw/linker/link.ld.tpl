@@ -11,16 +11,22 @@
    putting sections into our memory regions. */
 
 OUTPUT_FORMAT("elf32-littleriscv", "elf32-littleriscv",
-	      "elf32-littleriscv")
+        "elf32-littleriscv")
 OUTPUT_ARCH(riscv)
 ENTRY(_start)
 
 MEMORY
 {
+<<<<<<< HEAD:sw/linker/link.ld.tpl
 	/* Our testbench is a bit weird in that we initialize the RAM (thus
 	   allowing initialized sections to be placed there). Infact we dump all
 	   sections to ram. */
 
+=======
+  /* Our testbench is a bit weird in that we initialize the RAM (thus
+     allowing initialized sections to be placed there). Infact we dump all
+     sections to ram. */
+>>>>>>> origin/main:sw/linker/link.ld
   ram0 (rwxai) : ORIGIN = 0x${linker_onchip_code_start_address}, LENGTH = 0x${linker_onchip_code_size_address}
   ram1 (rwxai) : ORIGIN = 0x${linker_onchip_data_start_address}, LENGTH = 0x${linker_onchip_data_size_address}
 }
@@ -117,6 +123,11 @@ SECTIONS
     *(.gnu.warning)
   } >ram0
 
+  .power_manager : ALIGN(4)
+  {
+     PROVIDE(__power_manager_start = .);
+     . += 256;
+  } >ram0
 
   /* not used by RISC-V*/
   .fini           :
@@ -192,12 +203,12 @@ SECTIONS
 
 
   /* Thread Local Storage sections  */
-  .tdata	  :
+  .tdata    :
   {
     PROVIDE_HIDDEN (__tdata_start = .);
     *(.tdata .tdata.* .gnu.linkonce.td.*)
   } >ram1
-  .tbss		  :
+  .tbss     :
   {
     *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon)
   } >ram1
@@ -317,7 +328,7 @@ SECTIONS
   /* The compiler uses this to access data in the .sdata, .data, .sbss and .bss
      sections with fewer instructions (relaxation). This reduces code size. */
     __global_pointer$ = MIN(__SDATA_BEGIN__ + 0x800,
-			    MAX(__DATA_BEGIN__ + 0x800, __BSS_END__ - 0x800));
+          MAX(__DATA_BEGIN__ + 0x800, __BSS_END__ - 0x800));
   _end = .; PROVIDE (end = .);
   . = DATA_SEGMENT_END (.);
 

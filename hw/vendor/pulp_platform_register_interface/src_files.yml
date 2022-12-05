@@ -19,6 +19,7 @@ register_interface:
     - src/reg_mux.sv
     - src/reg_to_mem.sv
     - src/reg_uniform.sv
+    - src/reg_to_tlul.sv
     # Level 2
     - src/axi_lite_to_reg.sv
 

@@ -6,32 +6,38 @@ module spi_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
 (
-
     input logic clk_i,
     input logic rst_ni,
 
     input logic use_spimemio_i,
 
-    //memory mapped spi
+    // Memory mapped SPI
     input  obi_req_t  spimemio_req_i,
     output obi_resp_t spimemio_resp_o,
-    //yosys spi configuration
+    // Yosys SPI configuration
     input  reg_req_t  yo_reg_req_i,
     output reg_rsp_t  yo_reg_rsp_o,
 
-    //opentitan spi configuration
+    // OpenTitan SPI configuration
     input  reg_req_t ot_reg_req_i,
     output reg_rsp_t ot_reg_rsp_o,
 
     // SPI Interface
-    output logic                               spi_sck_o,
-    output logic                               spi_sck_en_o,
-    output logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_o,
-    output logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_en_o,
-    output logic [                        3:0] spi_sd_o,
-    output logic [                        3:0] spi_sd_en_o,
-    input  logic [                        3:0] spi_sd_i
+    output logic                               spi_flash_sck_o,
+    output logic                               spi_flash_sck_en_o,
+    output logic [spi_host_reg_pkg::NumCS-1:0] spi_flash_csb_o,
+    output logic [spi_host_reg_pkg::NumCS-1:0] spi_flash_csb_en_o,
+    output logic [                        3:0] spi_flash_sd_o,
+    output logic [                        3:0] spi_flash_sd_en_o,
+    input  logic [                        3:0] spi_flash_sd_i,
 
+    // SPI HOST interrupts
+    output logic spi_flash_intr_error_o,
+    output logic spi_flash_intr_event_o,
+
+    // SPI - DMA interface
+    output logic spi_flash_rx_valid_o,
+    output logic spi_flash_tx_ready_o
 );
 
   // OpenTitan SPI Interface
@@ -42,6 +48,10 @@ module spi_subsystem
   logic [                        3:0] ot_spi_sd_out;
   logic [                        3:0] ot_spi_sd_en;
   logic [                        3:0] ot_spi_sd_in;
+  logic                               ot_spi_intr_error;
+  logic                               ot_spi_intr_event;
+  logic                               ot_spi_rx_valid;
+  logic                               ot_spi_tx_ready;
 
   // YosysHW SPI Interface
   logic                               yo_spi_sck;
@@ -52,30 +62,38 @@ module spi_subsystem
   logic [                        3:0] yo_spi_sd_en;
   logic [                        3:0] yo_spi_sd_in;
 
-  //Multiplexer
+  // Multiplexer
   always_comb begin
     if (!use_spimemio_i) begin
-      spi_sck_o = ot_spi_sck;
-      spi_sck_en_o = ot_spi_sck_en;
-      spi_csb_o = ot_spi_csb;
-      spi_csb_en_o = ot_spi_csb_en;
-      spi_sd_o = ot_spi_sd_out;
-      spi_sd_en_o = ot_spi_sd_en;
-      ot_spi_sd_in = spi_sd_i;
+      spi_flash_sck_o = ot_spi_sck;
+      spi_flash_sck_en_o = ot_spi_sck_en;
+      spi_flash_csb_o = ot_spi_csb;
+      spi_flash_csb_en_o = ot_spi_csb_en;
+      spi_flash_sd_o = ot_spi_sd_out;
+      spi_flash_sd_en_o = ot_spi_sd_en;
+      ot_spi_sd_in = spi_flash_sd_i;
       yo_spi_sd_in = '0;
+      spi_flash_intr_error_o = ot_spi_intr_error;
+      spi_flash_intr_event_o = ot_spi_intr_event;
+      spi_flash_rx_valid_o = ot_spi_rx_valid;
+      spi_flash_tx_ready_o = ot_spi_tx_ready;
     end else begin
-      spi_sck_o = yo_spi_sck;
-      spi_sck_en_o = yo_spi_sck_en;
-      spi_csb_o = yo_spi_csb;
-      spi_csb_en_o = yo_spi_csb_en;
-      spi_sd_o = yo_spi_sd_out;
-      spi_sd_en_o = yo_spi_sd_en;
+      spi_flash_sck_o = yo_spi_sck;
+      spi_flash_sck_en_o = yo_spi_sck_en;
+      spi_flash_csb_o = yo_spi_csb;
+      spi_flash_csb_en_o = yo_spi_csb_en;
+      spi_flash_sd_o = yo_spi_sd_out;
+      spi_flash_sd_en_o = yo_spi_sd_en;
       ot_spi_sd_in = '0;
-      yo_spi_sd_in = spi_sd_i;
+      yo_spi_sd_in = spi_flash_sd_i;
+      spi_flash_intr_error_o = 1'b0;
+      spi_flash_intr_event_o = 1'b0;
+      spi_flash_rx_valid_o = 1'b0;
+      spi_flash_tx_ready_o = 1'b0;
     end
   end
 
-  //YosysHQ SPI
+  // YosysHQ SPI
   assign yo_spi_sck_en = 1'b1;
   assign yo_spi_csb_en = 2'b01;
   assign yo_spi_csb[1] = 1'b1;
@@ -103,17 +121,19 @@ module spi_subsystem
       .spimemio_resp_o(spimemio_resp_o)
   );
 
-  //OpenTitan SPI Snitch Version
+  // OpenTitan SPI Snitch Version used for booting
   spi_host #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
-  ) spi_host_i (
+  ) ot_spi_i (
       .clk_i,
       .rst_ni,
-      .clk_core_i(clk_i),
-      .rst_core_ni(rst_ni),
       .reg_req_i(ot_reg_req_i),
       .reg_rsp_o(ot_reg_rsp_o),
+      .alert_rx_i(),
+      .alert_tx_o(),
+      .passthrough_i(spi_device_pkg::PASSTHROUGH_REQ_DEFAULT),
+      .passthrough_o(),
       .cio_sck_o(ot_spi_sck),
       .cio_sck_en_o(ot_spi_sck_en),
       .cio_csb_o(ot_spi_csb),
@@ -121,8 +141,10 @@ module spi_subsystem
       .cio_sd_o(ot_spi_sd_out),
       .cio_sd_en_o(ot_spi_sd_en),
       .cio_sd_i(ot_spi_sd_in),
-      .intr_error_o(),
-      .intr_spi_event_o()
+      .rx_valid_o(ot_spi_rx_valid),
+      .tx_ready_o(ot_spi_tx_ready),
+      .intr_error_o(ot_spi_intr_error),
+      .intr_spi_event_o(ot_spi_intr_event)
   );
 
 `ifndef SYNTHESIS
@@ -135,6 +157,5 @@ module spi_subsystem
   end
 
 `endif
-
 
 endmodule  // spi_subsystem

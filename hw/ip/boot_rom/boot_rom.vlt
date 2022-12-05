@@ -5,4 +5,4 @@
 `verilator_config
 
 lint_off -rule WIDTH -file "*/boot_rom.sv" -match "*"
-lint_off -rule UNUSED -file "*/boot_rom.sv" -match "Bits of signal are not used: 'reg_req_i'[68:64,31:0]*"
+lint_off -rule UNUSED -file "*/boot_rom.sv" -match "Bits of signal are not used: 'reg_req_i'[69:64,31:0]*"

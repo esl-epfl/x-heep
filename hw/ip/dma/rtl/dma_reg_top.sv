@@ -10,7 +10,7 @@
 module dma_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 4
+    parameter int AW = 5
 ) (
     input clk_i,
     input rst_ni,
@@ -78,6 +78,18 @@ module dma_reg_top #(
   logic [31:0] dma_start_wd;
   logic dma_start_we;
   logic [31:0] done_qs;
+  logic [31:0] src_ptr_inc_qs;
+  logic [31:0] src_ptr_inc_wd;
+  logic src_ptr_inc_we;
+  logic [31:0] dst_ptr_inc_qs;
+  logic [31:0] dst_ptr_inc_wd;
+  logic dst_ptr_inc_we;
+  logic [2:0] spi_mode_qs;
+  logic [2:0] spi_mode_wd;
+  logic spi_mode_we;
+  logic [1:0] data_type_qs;
+  logic [1:0] data_type_wd;
+  logic data_type_we;
 
   // Register instances
   // R[ptr_in]: V(False)
@@ -180,22 +192,134 @@ module dma_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.done.q),
+      .q (),
 
       // to register interface (read)
       .qs(done_qs)
   );
 
 
+  // R[src_ptr_inc]: V(False)
+
+  prim_subreg #(
+      .DW      (32),
+      .SWACCESS("RW"),
+      .RESVAL  (32'h4)
+  ) u_src_ptr_inc (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(src_ptr_inc_we),
+      .wd(src_ptr_inc_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.src_ptr_inc.q),
+
+      // to register interface (read)
+      .qs(src_ptr_inc_qs)
+  );
 
 
-  logic [3:0] addr_hit;
+  // R[dst_ptr_inc]: V(False)
+
+  prim_subreg #(
+      .DW      (32),
+      .SWACCESS("RW"),
+      .RESVAL  (32'h4)
+  ) u_dst_ptr_inc (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(dst_ptr_inc_we),
+      .wd(dst_ptr_inc_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.dst_ptr_inc.q),
+
+      // to register interface (read)
+      .qs(dst_ptr_inc_qs)
+  );
+
+
+  // R[spi_mode]: V(False)
+
+  prim_subreg #(
+      .DW      (3),
+      .SWACCESS("RW"),
+      .RESVAL  (3'h0)
+  ) u_spi_mode (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(spi_mode_we),
+      .wd(spi_mode_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.spi_mode.q),
+
+      // to register interface (read)
+      .qs(spi_mode_qs)
+  );
+
+
+  // R[data_type]: V(False)
+
+  prim_subreg #(
+      .DW      (2),
+      .SWACCESS("RW"),
+      .RESVAL  (2'h0)
+  ) u_data_type (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(data_type_we),
+      .wd(data_type_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.data_type.q),
+
+      // to register interface (read)
+      .qs(data_type_qs)
+  );
+
+
+
+
+  logic [7:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == DMA_PTR_IN_OFFSET);
     addr_hit[1] = (reg_addr == DMA_PTR_OUT_OFFSET);
     addr_hit[2] = (reg_addr == DMA_DMA_START_OFFSET);
     addr_hit[3] = (reg_addr == DMA_DONE_OFFSET);
+    addr_hit[4] = (reg_addr == DMA_SRC_PTR_INC_OFFSET);
+    addr_hit[5] = (reg_addr == DMA_DST_PTR_INC_OFFSET);
+    addr_hit[6] = (reg_addr == DMA_SPI_MODE_OFFSET);
+    addr_hit[7] = (reg_addr == DMA_DATA_TYPE_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -206,7 +330,11 @@ module dma_reg_top #(
               ((addr_hit[0] & (|(DMA_PERMIT[0] & ~reg_be))) |
                (addr_hit[1] & (|(DMA_PERMIT[1] & ~reg_be))) |
                (addr_hit[2] & (|(DMA_PERMIT[2] & ~reg_be))) |
-               (addr_hit[3] & (|(DMA_PERMIT[3] & ~reg_be)))));
+               (addr_hit[3] & (|(DMA_PERMIT[3] & ~reg_be))) |
+               (addr_hit[4] & (|(DMA_PERMIT[4] & ~reg_be))) |
+               (addr_hit[5] & (|(DMA_PERMIT[5] & ~reg_be))) |
+               (addr_hit[6] & (|(DMA_PERMIT[6] & ~reg_be))) |
+               (addr_hit[7] & (|(DMA_PERMIT[7] & ~reg_be)))));
   end
 
   assign ptr_in_we = addr_hit[0] & reg_we & !reg_error;
@@ -217,6 +345,18 @@ module dma_reg_top #(
 
   assign dma_start_we = addr_hit[2] & reg_we & !reg_error;
   assign dma_start_wd = reg_wdata[31:0];
+
+  assign src_ptr_inc_we = addr_hit[4] & reg_we & !reg_error;
+  assign src_ptr_inc_wd = reg_wdata[31:0];
+
+  assign dst_ptr_inc_we = addr_hit[5] & reg_we & !reg_error;
+  assign dst_ptr_inc_wd = reg_wdata[31:0];
+
+  assign spi_mode_we = addr_hit[6] & reg_we & !reg_error;
+  assign spi_mode_wd = reg_wdata[2:0];
+
+  assign data_type_we = addr_hit[7] & reg_we & !reg_error;
+  assign data_type_wd = reg_wdata[1:0];
 
   // Read data return
   always_comb begin
@@ -236,6 +376,22 @@ module dma_reg_top #(
 
       addr_hit[3]: begin
         reg_rdata_next[31:0] = done_qs;
+      end
+
+      addr_hit[4]: begin
+        reg_rdata_next[31:0] = src_ptr_inc_qs;
+      end
+
+      addr_hit[5]: begin
+        reg_rdata_next[31:0] = dst_ptr_inc_qs;
+      end
+
+      addr_hit[6]: begin
+        reg_rdata_next[2:0] = spi_mode_qs;
+      end
+
+      addr_hit[7]: begin
+        reg_rdata_next[1:0] = data_type_qs;
       end
 
       default: begin

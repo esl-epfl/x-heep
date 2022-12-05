@@ -136,13 +136,13 @@ int main (int argc, char * argv[])
 
   dut->rst_ni               = 1;
   //this creates the negedge
-  runCycles(5, dut, m_trace);
+  runCycles(50, dut, m_trace);
   dut->rst_ni               = 0;
-  runCycles(20, dut, m_trace);
+  runCycles(50, dut, m_trace);
 
 
   dut->rst_ni = 1;
-  runCycles(1, dut, m_trace);
+  runCycles(20, dut, m_trace);
   std::cout<<"Reset Released"<< std::endl;
 
   //dont need to exit from boot loop if using OpenOCD or Boot from Flash
@@ -150,6 +150,7 @@ int main (int argc, char * argv[])
     dut->tb_loadHEX(firmware.c_str());
     runCycles(1, dut, m_trace);
     dut->tb_set_exit_loop();
+    std::cout<<"Set Exit Loop"<< std::endl;
     runCycles(1, dut, m_trace);
     std::cout<<"Memory Loaded"<< std::endl;
   } else {
