@@ -85,8 +85,6 @@ SECTIONS {
         _etext = .;        /* define a global symbol at end of code */
     } >RAM AT >FLASH
 
-
-
     /* This is the initialized data section
     The program executes knowing that the data is in the RAM
     but the loader puts the initial values in the FLASH (inidata).
