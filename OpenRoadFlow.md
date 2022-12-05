@@ -4,22 +4,40 @@
 
 Follow the instructions [here](https://openroad.readthedocs.io/en/latest/user/BuildWithDocker.html).
 
-First install if you do not have it `Docker` as explained [here](https://docs.docker.com/engine/install/ubuntu/),
-
-then, clone `OpenROAD-flow-scripts`
+First, clone clone `OpenROAD-flow-scripts`
 
 ```bash
 cd flow
 git clone --recursive https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts
+cd OpenROAD-flow-scripts
+```
+
+If you want to install it with `Docker`,
+first make you you have it or install it as explained [here](https://docs.docker.com/engine/install/ubuntu/),
+
+then,
+
+```bash
+sudo ./build_openroad.sh --clean
+cd ../
 mv OpenROAD-flow-scripts OpenROAD
 ```
 
-Finally, install `OpenRoad`
+Otherwise, if you want to install it [locally](https://openroad.readthedocs.io/en/latest/user/BuildLocally.html) instead,
 
 
 ```bash
-cd flow/OpenROAD
-sudo ./build_openroad.sh
+tools/OpenROAD/etc/DependencyInstaller.sh
+sudo ./build_openroad.sh --local
+```
+
+Finally, you need to install `KLayout` v0.27.1
+
+
+```bash
+git clone --depth=1 --branch v0.27.1 https://github.com/KLayout/klayout.git
+cd klayout
+./build.sh -noruby
 ```
 
 ## Edalize
@@ -47,7 +65,6 @@ First of all, the binaries of OpenRoad are only available from the Docker contai
 cd flow/OpenROAD
 docker run -it -u $(id -u ${USER}):$(id -g ${USER}) -v $(pwd)/flow/platforms:/OpenROAD-flow-scripts/flow/platforms:ro openroad/flow-scripts
 ```
-
 
 From the top folder, execute
 
