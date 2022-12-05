@@ -96,7 +96,11 @@ vivado-fpga-nobuild:
 
 # ASIC
 asic:
-	fusesoc --cores-root . run --no-export --target=asic_synthesis --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+	fusesoc --cores-root . run --no-export --target=asic_synthesis --setup openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee builddesigncompiler.log
+
+openroad-sky130:
+	fusesoc --verbose --cores-root . run --target=asic_yosys_synthesis --flag=use_sky130 openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildopenroad.log
+
 
 help:
 	@echo "SIMULATION BUILD TARGETS"
