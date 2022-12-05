@@ -115,6 +115,10 @@ filesets:
     - hw/vendor/pulp_platform_tech_cells_generic/src/rtl/tc_clk.sv #as for now use the simulation clk cells
     file_type: systemVerilogSource
 
+  lib-sky130:
+    files:
+      - hw/asic/sky130/sky130_sram_4kbyte_1rw_32x1024_8_TT_1p8V_25C.lib : { copyto: lib/sky130_sram_4kbyte_1rw_32x1024_8_TT_1p8V_25C.lib }
+
   xdc-fpga-nexys:
     files:
     - hw/fpga/constraints/nexys/pin_assign.xdc
@@ -162,6 +166,17 @@ filesets:
     files:
     - tb/tb_top.sv
     file_type: systemVerilogSource
+
+  openroad_base_files:
+    files:
+      - flow/OpenROAD/flow/Makefile : {file_type: Makefile}
+    depend:
+      - core-v-mini:util:sv2v
+
+  openroad_sky130_files:
+    files:
+      - flow/sky130/config.mk : {file_type: configFile}
+      - flow/sky130/constraint.sdc : {file_type: SDC}
 
 parameters:
   PULP_XPULP:
@@ -368,3 +383,22 @@ targets:
         dc_script:
         - dc_script.tcl
       icarus:
+
+  asic_yosys_synthesis:
+    <<: *default_target
+    default_tool: openroad
+    description: yosys
+    parameters:
+      - PULP_XPULP=0
+      - SYNTHESIS=true
+      - SV2V=true
+    filesets_append:
+      - use_sky130? (rtl-sky130)
+      - lib-sky130
+      - openroad_base_files
+      - openroad_sky130_files
+    toplevel: [core_v_mini_mcu]
+    tools:
+      openroad:
+        flow_path: flow/OpenROAD/flow
+        make_target: synth

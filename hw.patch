@@ -1,0 +1,1215 @@
+diff --git a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/addr_dec_resp_mux.sv b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/addr_dec_resp_mux.sv
+index 1bbc5f7..96bcb0a 100644
+--- a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/addr_dec_resp_mux.sv
++++ b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/addr_dec_resp_mux.sv
+@@ -172,6 +172,7 @@ end
+ // assertions
+ ////////////////////////////////////////////////////////////////////////
+ 
++`ifndef SYNTHESIS
+ // pragma translate_off
+ initial begin
+   assert (RespLat > 0) else
+@@ -180,5 +181,6 @@ initial begin
+     $fatal(1,"NumOut must be greater than 0");
+ end
+ // pragma translate_on
++`endif
+ 
+ endmodule // addr_dec_resp_mux
+diff --git a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/bfly_net.sv b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/bfly_net.sv
+index f9d02dd..f308f91 100644
+--- a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/bfly_net.sv
++++ b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/bfly_net.sv
+@@ -301,6 +301,7 @@ end
+ // assertions
+ ////////////////////////////////////////////////////////////////////////
+ 
++`ifndef SYNTHESIS
+ // pragma translate_off
+ initial begin
+   // some more info for debug purposes:
+@@ -317,5 +318,6 @@ initial begin
+     $fatal(1,"NumOut < NumIn is not supported.");
+ end
+ // pragma translate_on
++`endif
+ 
+ endmodule // bfly_net
+diff --git a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/clos_net.sv b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/clos_net.sv
+index b0f91ce..ee277ba 100644
+--- a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/clos_net.sv
++++ b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/clos_net.sv
+@@ -237,6 +237,7 @@ end
+ // assertions
+ ////////////////////////////////////////////////////////////////////////
+ 
++`ifndef SYNTHESIS
+ // pragma translate_off
+ initial begin
+   // some more info for debug purposes:
+@@ -263,6 +264,7 @@ initial begin
+     $fatal(1,"ClosR is not aligned with a power of 2.");
+ end
+ // pragma translate_on
++`endif
+ 
+ 
+ endmodule
+diff --git a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/tcdm_interconnect.sv b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/tcdm_interconnect.sv
+index 0b4025f..43ce6cd 100644
+--- a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/tcdm_interconnect.sv
++++ b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/tcdm_interconnect.sv
+@@ -263,12 +263,14 @@ end else if (Topology == tcdm_interconnect_pkg::BFLY2 || Topology == tcdm_interc
+       assign req_o        = req1;
+       assign gnt1         = gnt_i;
+   end
++  `ifndef SYNTHESIS
+   // pragma translate_off
+   initial begin
+     assert(NumPar >= unsigned'(1)) else
+       $fatal(1,"NumPar must be greater or equal 1.");
+   end
+   // pragma translate_on
++  `endif
+ ////////////////////////////////////////////////////////////////////////
+ // clos network
+ ////////////////////////////////////////////////////////////////////////
+@@ -298,11 +300,13 @@ end else if (Topology == tcdm_interconnect_pkg::CLOS) begin : gen_clos
+   );
+ ////////////////////////////////////////////////////////////////////////
+ end else begin : gen_unknown
++  `ifndef SYNTHESIS
+   // pragma translate_off
+   initial begin
+     $fatal(1,"Unknown TCDM configuration %d.", Topology);
+   end
+   // pragma translate_on
++  `endif
+ end
+ ////////////////////////////////////////////////////////////////////////
+ 
+@@ -311,6 +315,7 @@ end
+ // assertions
+ ////////////////////////////////////////////////////////////////////////
+ 
++`ifndef SYNTHESIS
+ // pragma translate_off
+ initial begin
+ 	assert(AddrMemWidth+NumOutLog2 <= AddrWidth) else
+@@ -319,5 +324,6 @@ initial begin
+     $fatal(1,"NumOut < NumIn is not supported.");
+ end
+ // pragma translate_on
++`endif
+ 
+ endmodule // tcdm_interconnect
+diff --git a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/xbar.sv b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/xbar.sv
+index 428f1c6..b46b8b9 100644
+--- a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/xbar.sv
++++ b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/xbar.sv
+@@ -120,6 +120,7 @@ end
+ // assertion
+ ////////////////////////////////////////////////////////////////////////
+ 
++`ifndef SYNTHESIS
+ // pragma translate_off
+ initial begin
+   assert(NumIn > 0) else
+@@ -128,5 +129,6 @@ initial begin
+     $fatal(1,"NumOut needs to be larger than 0.");
+ end
+ // pragma translate_on
++`endif
+ 
+ endmodule // xbar
+diff --git a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_variable_latency_interconnect/addr_dec_resp_mux_varlat.sv b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_variable_latency_interconnect/addr_dec_resp_mux_varlat.sv
+index a1cb836..b82f44e 100644
+--- a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_variable_latency_interconnect/addr_dec_resp_mux_varlat.sv
++++ b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_variable_latency_interconnect/addr_dec_resp_mux_varlat.sv
+@@ -133,11 +133,13 @@ end
+ // assertions
+ ////////////////////////////////////////////////////////////////////////
+ 
++`ifndef SYNTHESIS
+ // pragma translate_off
+ initial begin
+   assert (NumOut > 0) else
+     $fatal(1,"NumOut must be greater than 0");
+ end
+ // pragma translate_on
++`endif
+ 
+ endmodule // addr_dec_resp_mux_varlat
+diff --git a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_variable_latency_interconnect/xbar_varlat.sv b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_variable_latency_interconnect/xbar_varlat.sv
+index a1b1cdc..9a07e39 100644
+--- a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_variable_latency_interconnect/xbar_varlat.sv
++++ b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_variable_latency_interconnect/xbar_varlat.sv
+@@ -133,6 +133,8 @@ end
+ // assertion
+ ////////////////////////////////////////////////////////////////////////
+ 
++
++`ifndef SYNTHESIS
+ // pragma translate_off
+ initial begin
+   assert(NumIn > 0) else
+@@ -141,5 +143,6 @@ initial begin
+     $fatal(1,"NumOut needs to be larger than 0.");
+ end
+ // pragma translate_on
++`endif
+ 
+ endmodule // xbar_varlat
+diff --git a/hw/vendor/pulp_platform_common_cells/common_cells.core b/hw/vendor/pulp_platform_common_cells/common_cells.core
+index ea58a83..f8d6599 100644
+--- a/hw/vendor/pulp_platform_common_cells/common_cells.core
++++ b/hw/vendor/pulp_platform_common_cells/common_cells.core
+@@ -6,6 +6,7 @@ filesets:
+   rtl:
+     files:
+       - include/common_cells/registers.svh : {is_include_file : true, include_path : include}
++      - include/common_cells/assertions.svh : {is_include_file : true, include_path : include}
+       # Source files grouped in levels. Files in level 0 have no dependencies on files in this package.
+       # Files in level 1 only depend on files in level 0, files in level 2 on files in levels 1 and 0,
+       # etc. Files within a level are ordered alphabetically.
+@@ -73,7 +74,7 @@ filesets:
+       - src/stream_xbar.sv
+       # Level 3
+       - src/cdc_fifo_gray_clearable.sv
+-      - src/cdc_2phase_clearable.sv
++      - src/cdc_2phase_clearable.sv # TODO: not synthable
+       - src/stream_arbiter.sv
+       - src/stream_omega_net.sv
+     file_type : systemVerilogSource
+diff --git a/hw/vendor/pulp_platform_common_cells/src/addr_decode.sv b/hw/vendor/pulp_platform_common_cells/src/addr_decode.sv
+index 90a43a0..4002f8e 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/addr_decode.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/addr_decode.sv
+@@ -101,6 +101,7 @@ module addr_decode #(
+   // Assumptions and assertions
+   `ifndef VERILATOR
+   `ifndef XSIM
++  `ifndef SYNTHESIS
+   // pragma translate_off
+   initial begin : proc_check_parameters
+     assume ($bits(addr_i) == $bits(addr_map_i[0].start_addr)) else
+@@ -158,4 +159,5 @@ module addr_decode #(
+   // pragma translate_on
+   `endif
+   `endif
++  `endif
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/cb_filter.sv b/hw/vendor/pulp_platform_common_cells/src/cb_filter.sv
+index 9fbc526..85f615f 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/cb_filter.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/cb_filter.sv
+@@ -236,6 +236,7 @@ module hash_block #(
+   end
+ 
+   // assertions
++  `ifndef SYNTHESIS
+   // pragma translate_off
+   initial begin
+     hash_conf: assume (InpWidth > HashWidth) else
+@@ -243,4 +244,5 @@ module hash_block #(
+           InpWidth, HashWidth);
+   end
+   // pragma translate_on
++  `endif
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/cdc_2phase.sv b/hw/vendor/pulp_platform_common_cells/src/cdc_2phase.sv
+index e1a67b4..07a9a41 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/cdc_2phase.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/cdc_2phase.sv
+@@ -57,9 +57,9 @@ module cdc_2phase #(
+ );
+ 
+   // Asynchronous handshake signals.
+-  (* dont_touch = "true" *) logic async_req;
+-  (* dont_touch = "true" *) logic async_ack;
+-  (* dont_touch = "true" *) T async_data;
++  `ifndef SV2V  `endif logic async_req;
++  `ifndef SV2V  `endif logic async_ack;
++  `ifndef SV2V  `endif T async_data;
+ 
+   // The sender in the source domain.
+   cdc_2phase_src #(.T(T)) i_src (
+@@ -102,9 +102,9 @@ module cdc_2phase_src #(
+   output T     async_data_o
+ );
+ 
+-  (* dont_touch = "true" *)
++  `ifndef SV2V (* dont_touch = "true" *) `endif
+   logic req_src_q, ack_src_q, ack_q;
+-  (* dont_touch = "true" *)
++  `ifndef SV2V (* dont_touch = "true" *) `endif
+   T data_src_q;
+ 
+   // The req_src and data_src registers change when a new data item is accepted.
+@@ -152,10 +152,14 @@ module cdc_2phase_dst #(
+   input  T     async_data_i
+ );
+ 
++`ifndef SV2V
+   (* dont_touch = "true" *)
+   (* async_reg = "true" *)
++`endif
+   logic req_dst_q, req_q0, req_q1, ack_dst_q;
++`ifndef SV2V
+   (* dont_touch = "true" *)
++`endif
+   T data_dst_q;
+ 
+   // The ack_dst register changes when a new data item is accepted.
+diff --git a/hw/vendor/pulp_platform_common_cells/src/cdc_2phase_clearable.sv b/hw/vendor/pulp_platform_common_cells/src/cdc_2phase_clearable.sv
+index 21b6ddd..912d208 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/cdc_2phase_clearable.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/cdc_2phase_clearable.sv
+@@ -186,11 +186,11 @@ module cdc_2phase_clearable #(
+ 
+ 
+ `ifndef VERILATOR
+-
++`ifndef SYNTHESIS
+   no_valid_i_during_clear_i : assert property (
+     @(posedge src_clk_i) disable iff (!src_rst_ni) src_clear_i |-> !src_valid_i
+   );
+-
++`endif
+ `endif
+ 
+ endmodule
+@@ -258,6 +258,7 @@ module cdc_2phase_src_clearable #(
+ 
+ // Assertions
+ `ifndef VERILATOR
++`ifndef SYNTHESIS
+   // pragma translate_off
+   no_clear_and_request: assume property (
+      @(posedge clk_i) disable iff(~rst_ni) (clear_i |-> ~valid_i))
+@@ -265,6 +266,7 @@ module cdc_2phase_src_clearable #(
+ 
+   // pragma translate_on
+ `endif
++`endif
+ 
+ endmodule
+ 
+@@ -288,7 +290,7 @@ module cdc_2phase_dst_clearable #(
+ 
+   (* dont_touch = "true" *)
+   (* async_reg = "true" *)
+- logic ack_dst_d, ack_dst_q, req_synced, req_synced_q1;
++  logic ack_dst_d, ack_dst_q, req_synced, req_synced_q1;
+   (* dont_touch = "true" *)
+   T data_dst_d, data_dst_q;
+ 
+diff --git a/hw/vendor/pulp_platform_common_cells/src/cdc_4phase.sv b/hw/vendor/pulp_platform_common_cells/src/cdc_4phase.sv
+index bd4c65a..cc7002f 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/cdc_4phase.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/cdc_4phase.sv
+@@ -53,9 +53,9 @@ module cdc_4phase #(
+ );
+ 
+   // Asynchronous handshake signals.
+-  (* dont_touch = "true" *) logic async_req;
+-  (* dont_touch = "true" *) logic async_ack;
+-  (* dont_touch = "true" *) T async_data;
++  `ifndef SV2V (* dont_touch = "true" *) `endif logic async_req;
++  `ifndef SV2V (* dont_touch = "true" *) `endif logic async_ack;
++  `ifndef SV2V (* dont_touch = "true" *) `endif T async_data;
+ 
+   // The sender in the source domain.
+   cdc_4phase_src #(
+@@ -106,11 +106,11 @@ module cdc_4phase_src #(
+   output T     async_data_o
+ );
+ 
+-  (* dont_touch = "true" *)
++  `ifndef SV2V (* dont_touch = "true" *) `endif
+   logic  req_src_d, req_src_q;
+-  (* dont_touch = "true" *)
++  `ifndef SV2V (* dont_touch = "true" *) `endif
+   T data_src_d, data_src_q;
+-  (* dont_touch = "true" *)
++  `ifndef SV2V (* dont_touch = "true" *) `endif
+   logic  ack_synced;
+ 
+   typedef enum logic[1:0] {IDLE, WAIT_ACK_ASSERT, WAIT_ACK_DEASSERT} state_e;
+@@ -217,9 +217,9 @@ module cdc_4phase_dst #(
+   input  T     async_data_i
+ );
+ 
+-  (* dont_touch = "true" *)
++  `ifndef SV2V (* dont_touch = "true" *) `endif
+   logic  ack_dst_d, ack_dst_q;
+-  (* dont_touch = "true" *)
++  `ifndef SV2V (* dont_touch = "true" *) `endif
+   logic  req_synced;
+ 
+   logic  data_valid;
+diff --git a/hw/vendor/pulp_platform_common_cells/src/cdc_fifo_2phase.sv b/hw/vendor/pulp_platform_common_cells/src/cdc_fifo_2phase.sv
+index 83fd02f..f4dc75d 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/cdc_fifo_2phase.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/cdc_fifo_2phase.sv
+@@ -62,11 +62,13 @@ module cdc_fifo_2phase #(
+ );
+ 
+   // Check the invariants.
+-  //pragma translate_off
++  `ifndef SYNTHESIS
++  // pragma translate_off
+   initial begin
+     assert(LOG_DEPTH > 0);
+   end
+-  //pragma translate_on
++  // pragma translate_on
++  `endif
+ 
+   localparam int PtrWidth = LOG_DEPTH+1;
+   typedef logic [PtrWidth-1:0] pointer_t;
+diff --git a/hw/vendor/pulp_platform_common_cells/src/cdc_fifo_gray.sv b/hw/vendor/pulp_platform_common_cells/src/cdc_fifo_gray.sv
+index c6fb4b6..d20abb1 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/cdc_fifo_gray.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/cdc_fifo_gray.sv
+@@ -97,8 +97,10 @@
+ 
+ `include "common_cells/registers.svh"
+ 
++`ifndef SV2V
+ (* no_ungroup *)
+ (* no_boundary_optimization *)
++`endif
+ module cdc_fifo_gray #(
+   /// The width of the default logic type.
+   parameter int unsigned WIDTH = 1,
+@@ -135,10 +137,15 @@ module cdc_fifo_gray #(
+     .src_data_i,
+     .src_valid_i,
+     .src_ready_o,
+-
++`ifndef SV2V
+     (* async *) .async_data_o ( async_data ),
+     (* async *) .async_wptr_o ( async_wptr ),
+     (* async *) .async_rptr_i ( async_rptr )
++`else
++    .async_data_o ( async_data ),
++    .async_wptr_o ( async_wptr ),
++    .async_rptr_i ( async_rptr )
++`endif
+   );
+ 
+   cdc_fifo_gray_dst #(
+@@ -150,25 +157,33 @@ module cdc_fifo_gray #(
+     .dst_data_o,
+     .dst_valid_o,
+     .dst_ready_i,
+-
++`ifndef SV2V
+     (* async *) .async_data_i ( async_data ),
+     (* async *) .async_wptr_i ( async_wptr ),
+     (* async *) .async_rptr_o ( async_rptr )
++`else
++    .async_data_i ( async_data ),
++    .async_wptr_i ( async_wptr ),
++    .async_rptr_o ( async_rptr )
++`endif
+   );
+ 
+   // Check the invariants.
+   // pragma translate_off
+   `ifndef VERILATOR
++  `ifndef SYNTHESIS
+   initial assert(LOG_DEPTH > 0);
+   initial assert(SYNC_STAGES >= 2);
+   `endif
++  `endif
+   // pragma translate_on
+ 
+ endmodule
+ 
+-
++`ifndef SV2V
+ (* no_ungroup *)
+ (* no_boundary_optimization *)
++`endif
+ module cdc_fifo_gray_src #(
+   parameter type T = logic,
+   parameter int LOG_DEPTH = 3,
+@@ -224,9 +239,10 @@ module cdc_fifo_gray_src #(
+ 
+ endmodule
+ 
+-
++`ifndef SV2V
+ (* no_ungroup *)
+ (* no_boundary_optimization *)
++`endif
+ module cdc_fifo_gray_dst #(
+   parameter type T = logic,
+   parameter int LOG_DEPTH = 3,
+diff --git a/hw/vendor/pulp_platform_common_cells/src/cdc_fifo_gray_clearable.sv b/hw/vendor/pulp_platform_common_cells/src/cdc_fifo_gray_clearable.sv
+index 6c83866..e513d4b 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/cdc_fifo_gray_clearable.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/cdc_fifo_gray_clearable.sv
+@@ -97,8 +97,12 @@
+ 
+ `include "common_cells/registers.svh"
+ 
++
++`ifndef SV2V
+ (* no_ungroup *)
+ (* no_boundary_optimization *)
++`endif
++
+ module cdc_fifo_gray_clearable #(
+   /// The width of the default logic type.
+   parameter int unsigned WIDTH = 1,
+@@ -177,10 +181,15 @@ module cdc_fifo_gray_clearable #(
+     .src_data_i,
+     .src_valid_i ( src_valid_i & !s_src_isolate_req ),
+     .src_ready_o ( s_src_ready                      ),
+-
++`ifndef SV2V
+     (* async *) .async_data_o ( async_data ),
+     (* async *) .async_wptr_o ( async_wptr ),
+     (* async *) .async_rptr_i ( async_rptr )
++`else
++    .async_data_o ( async_data ),
++    .async_wptr_o ( async_wptr ),
++    .async_rptr_i ( async_rptr )
++`endif
+   );
+ 
+   assign src_ready_o = s_src_ready & !s_src_isolate_req;
+@@ -196,10 +205,15 @@ module cdc_fifo_gray_clearable #(
+     .dst_data_o,
+     .dst_valid_o ( s_dst_valid                      ),
+     .dst_ready_i ( dst_ready_i & !s_dst_isolate_req ),
+-
++`ifndef SV2V
+     (* async *) .async_data_i ( async_data ),
+     (* async *) .async_wptr_i ( async_wptr ),
+     (* async *) .async_rptr_o ( async_rptr )
++`else
++    .async_data_i ( async_data ),
++    .async_wptr_i ( async_wptr ),
++    .async_rptr_o ( async_rptr )
++`endif
+   );
+ 
+   assign dst_valid_o = s_dst_valid & !s_dst_isolate_req;
+@@ -256,16 +270,19 @@ module cdc_fifo_gray_clearable #(
+   // Check the invariants.
+   // pragma translate_off
+   `ifndef VERILATOR
++  `ifndef SYNTHESIS
+   initial assert(LOG_DEPTH > 0);
+   initial assert(SYNC_STAGES >= 2);
+   `endif
++  `endif
+   // pragma translate_on
+ 
+ endmodule
+ 
+-
++`ifndef SV2V
+ (* no_ungroup *)
+ (* no_boundary_optimization *)
++`endif
+ module cdc_fifo_gray_src_clearable #(
+   parameter type T = logic,
+   parameter int LOG_DEPTH = 3,
+@@ -323,8 +340,10 @@ module cdc_fifo_gray_src_clearable #(
+ endmodule
+ 
+ 
++`ifndef SV2V
+ (* no_ungroup *)
+ (* no_boundary_optimization *)
++`endif
+ module cdc_fifo_gray_dst_clearable #(
+   parameter type T = logic,
+   parameter int LOG_DEPTH = 3,
+diff --git a/hw/vendor/pulp_platform_common_cells/src/cdc_reset_ctrlr.sv b/hw/vendor/pulp_platform_common_cells/src/cdc_reset_ctrlr.sv
+index 94a63cd..13640a5 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/cdc_reset_ctrlr.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/cdc_reset_ctrlr.sv
+@@ -135,13 +135,21 @@ module cdc_reset_ctrlr
+   input logic  b_isolate_ack_i
+ );
+ 
++`ifndef SV2V
+   (* dont_touch = "true" *)
+   logic        async_a2b_req, async_b2a_ack;
++`endif
++`ifndef SV2V
+   (* dont_touch = "true" *)
++`endif
+   clear_seq_phase_e async_a2b_next_phase;
++`ifndef SV2V
+   (* dont_touch = "true" *)
++`endif
+   logic        async_b2a_req, async_a2b_ack;
++`ifndef SV2V
+   (* dont_touch = "true" *)
++`endif
+   clear_seq_phase_e async_b2a_next_phase;
+ 
+   cdc_reset_ctrlr_half #(
+@@ -155,12 +163,21 @@ module cdc_reset_ctrlr
+     .clear_ack_i        ( a_clear_ack_i        ),
+     .isolate_o          ( a_isolate_o          ),
+     .isolate_ack_i      ( a_isolate_ack_i      ),
++`ifndef SV2V
+     (* async *) .async_next_phase_o ( async_a2b_next_phase ),
+     (* async *) .async_req_o        ( async_a2b_req        ),
+     (* async *) .async_ack_i        ( async_b2a_ack        ),
+     (* async *) .async_next_phase_i ( async_b2a_next_phase ),
+     (* async *) .async_req_i        ( async_b2a_req        ),
+     (* async *) .async_ack_o        ( async_a2b_ack        )
++`else
++    .async_next_phase_o ( async_a2b_next_phase ),
++    .async_req_o        ( async_a2b_req        ),
++    .async_ack_i        ( async_b2a_ack        ),
++    .async_next_phase_i ( async_b2a_next_phase ),
++    .async_req_i        ( async_b2a_req        ),
++    .async_ack_o        ( async_a2b_ack        )
++`endif
+   );
+ 
+     cdc_reset_ctrlr_half #(
+@@ -174,12 +191,21 @@ module cdc_reset_ctrlr
+     .clear_ack_i        ( b_clear_ack_i        ),
+     .isolate_o          ( b_isolate_o          ),
+     .isolate_ack_i      ( b_isolate_ack_i      ),
++`ifndef SV2V
+     (* async *) .async_next_phase_o ( async_b2a_next_phase ),
+     (* async *) .async_req_o        ( async_b2a_req        ),
+     (* async *) .async_ack_i        ( async_a2b_ack        ),
+     (* async *) .async_next_phase_i ( async_a2b_next_phase ),
+     (* async *) .async_req_i        ( async_a2b_req        ),
+     (* async *) .async_ack_o        ( async_b2a_ack        )
++`else
++    .async_next_phase_o ( async_b2a_next_phase ),
++    .async_req_o        ( async_b2a_req        ),
++    .async_ack_i        ( async_a2b_ack        ),
++    .async_next_phase_i ( async_a2b_next_phase ),
++    .async_req_i        ( async_a2b_req        ),
++    .async_ack_o        ( async_b2a_ack        )
++`endif
+   );
+ endmodule
+ 
+diff --git a/hw/vendor/pulp_platform_common_cells/src/cf_math_pkg.sv b/hw/vendor/pulp_platform_common_cells/src/cf_math_pkg.sv
+index 9f35a44..00e7a2a 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/cf_math_pkg.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/cf_math_pkg.sv
+@@ -25,6 +25,7 @@ package cf_math_pkg;
+ 
+         // pragma translate_off
+         `ifndef VERILATOR
++        `ifndef SYNTHESIS
+         if (dividend < 0) begin
+             $fatal(1, "Dividend %0d is not a natural number!", dividend);
+         end
+@@ -37,6 +38,7 @@ package cf_math_pkg;
+             $fatal(1, "Division by zero!");
+         end
+         `endif
++        `endif
+         // pragma translate_on
+ 
+         remainder = dividend;
+diff --git a/hw/vendor/pulp_platform_common_cells/src/deprecated/fifo_v2.sv b/hw/vendor/pulp_platform_common_cells/src/deprecated/fifo_v2.sv
+index 9c87ed9..ab2e729 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/deprecated/fifo_v2.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/deprecated/fifo_v2.sv
+@@ -69,11 +69,13 @@ module fifo_v2 #(
+ 
+     // pragma translate_off
+     `ifndef VERILATOR
++    `ifndef SYNTHESIS
+         initial begin
+             assert (ALM_FULL_TH <= DEPTH)  else $error("ALM_FULL_TH can't be larger than the DEPTH.");
+             assert (ALM_EMPTY_TH <= DEPTH) else $error("ALM_EMPTY_TH can't be larger than the DEPTH.");
+         end
+     `endif
++    `endif
+     // pragma translate_on
+ 
+ endmodule // fifo_v2
+diff --git a/hw/vendor/pulp_platform_common_cells/src/deprecated/find_first_one.sv b/hw/vendor/pulp_platform_common_cells/src/deprecated/find_first_one.sv
+index ee3ba20..ecf2be9 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/deprecated/find_first_one.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/deprecated/find_first_one.sv
+@@ -26,11 +26,13 @@ module find_first_one #(
+ 
+     localparam int NUM_LEVELS = $clog2(WIDTH);
+ 
++    `ifndef SYNTHESIS
+     // pragma translate_off
+     initial begin
+         assert(WIDTH >= 0);
+     end
+     // pragma translate_on
++    `endif
+ 
+     logic [WIDTH-1:0][NUM_LEVELS-1:0]          index_lut;
+     logic [2**NUM_LEVELS-1:0]                  sel_nodes;
+diff --git a/hw/vendor/pulp_platform_common_cells/src/exp_backoff.sv b/hw/vendor/pulp_platform_common_cells/src/exp_backoff.sv
+index 91dccb0..3cd11b0 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/exp_backoff.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/exp_backoff.sv
+@@ -81,8 +81,9 @@ module exp_backoff #(
+ // assertions
+ ///////////////////////////////////////////////////////
+ 
+-//pragma translate_off
++// pragma translate_off
+ `ifndef VERILATOR
++`ifndef SYNTHESIS
+   initial begin
+     // assert wrong parameterizations
+     assert (MaxExp>0)
+@@ -93,6 +94,7 @@ module exp_backoff #(
+       else $fatal(1,"Zero seed is not allowed for LFSR");
+   end
+ `endif
+-//pragma translate_on
++`endif
++// pragma translate_on
+ 
+ endmodule // exp_backoff
+diff --git a/hw/vendor/pulp_platform_common_cells/src/fifo_v3.sv b/hw/vendor/pulp_platform_common_cells/src/fifo_v3.sv
+index e417a3e..6b104ab 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/fifo_v3.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/fifo_v3.sv
+@@ -137,6 +137,7 @@ module fifo_v3 #(
+ 
+ // pragma translate_off
+ `ifndef VERILATOR
++`ifndef SYNTHESIS
+     initial begin
+         assert (DEPTH > 0)             else $error("DEPTH must be greater than 0.");
+     end
+@@ -149,6 +150,7 @@ module fifo_v3 #(
+         @(posedge clk_i) disable iff (~rst_ni) (empty_o |-> ~pop_i))
+         else $fatal (1, "Trying to pop data although the FIFO is empty.");
+ `endif
++`endif
+ // pragma translate_on
+ 
+ endmodule // fifo_v3
+diff --git a/hw/vendor/pulp_platform_common_cells/src/id_queue.sv b/hw/vendor/pulp_platform_common_cells/src/id_queue.sv
+index 2ba347e..79a3608 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/id_queue.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/id_queue.sv
+@@ -49,7 +49,7 @@ module id_queue #(
+     parameter int ID_WIDTH  = 0,
+     parameter int CAPACITY  = 0,
+     parameter bit FULL_BW   = 0,
+-    parameter type data_t   = logic,
++    parameter type data_t   = logic[31:0],
+     // Dependent parameters, DO NOT OVERRIDE!
+     localparam type id_t    = logic[ID_WIDTH-1:0],
+     localparam type mask_t  = logic[$bits(data_t)-1:0]
+@@ -407,6 +407,7 @@ module id_queue #(
+     // Validate parameters.
+ // pragma translate_off
+ `ifndef VERILATOR
++`ifndef SYNTHESIS
+     initial begin: validate_params
+         assert (ID_WIDTH >= 1)
+             else $fatal(1, "The ID must at least be one bit wide!");
+@@ -414,6 +415,7 @@ module id_queue #(
+             else $fatal(1, "The queue must have capacity of at least one entry!");
+     end
+ `endif
++`endif
+ // pragma translate_on
+ 
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/isochronous_4phase_handshake.sv b/hw/vendor/pulp_platform_common_cells/src/isochronous_4phase_handshake.sv
+index 27d4a08..5d8249c 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/isochronous_4phase_handshake.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/isochronous_4phase_handshake.sv
+@@ -71,11 +71,13 @@ module isochronous_4phase_handshake (
+  // pragma translate_off
+  // stability guarantees
+   `ifndef VERILATOR
++  `ifndef SYNTHESIS
+   assert property (@(posedge src_clk_i) disable iff (~src_rst_ni)
+     (src_valid_i && !src_ready_o |=> $stable(src_valid_i))) else $error("src_valid_i is unstable");
+   assert property (@(posedge dst_clk_i) disable iff (~dst_rst_ni)
+     (dst_valid_o && !dst_ready_i |=> $stable(dst_valid_o))) else $error("dst_valid_o is unstable");
+   `endif
++  `endif
+   // pragma translate_on
+ 
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/isochronous_spill_register.sv b/hw/vendor/pulp_platform_common_cells/src/isochronous_spill_register.sv
+index 576b477..e414f87 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/isochronous_spill_register.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/isochronous_spill_register.sv
+@@ -98,6 +98,7 @@ module isochronous_spill_register #(
+   // pragma translate_off
+   // stability guarantees
+   `ifndef VERILATOR
++  `ifndef SYNTHESIS
+   assert property (@(posedge src_clk_i) disable iff (~src_rst_ni)
+     (src_valid_i && !src_ready_o |=> $stable(src_valid_i))) else $error("src_valid_i is unstable");
+   assert property (@(posedge src_clk_i) disable iff (~src_rst_ni)
+@@ -107,5 +108,6 @@ module isochronous_spill_register #(
+   assert property (@(posedge dst_clk_i) disable iff (~dst_rst_ni)
+     (dst_valid_o && !dst_ready_i |=> $stable(dst_data_o))) else $error("dst_data_o is unstable");
+   `endif
++  `endif
+   // pragma translate_on
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/lfsr.sv b/hw/vendor/pulp_platform_common_cells/src/lfsr.sv
+index aae2e2d..ff9b82d 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/lfsr.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/lfsr.sv
+@@ -291,6 +291,7 @@ end
+ ////////////////////////////////////////////////////////////////////////
+ 
+ // pragma translate_off
++`ifndef SYNTHESIS
+ initial begin
+   // these are the LUT limits
+   assert(OutWidth <= LfsrWidth) else
+@@ -304,12 +305,15 @@ initial begin
+   assert((CipherLayers > 0) && (LfsrWidth == 64) || (CipherLayers == 0)) else
+     $fatal(1, "Use additional cipher layers only in conjunction with an LFSR width of 64 bit." );
+ end
++`endif
+ 
+ `ifndef VERILATOR
++`ifndef SYNTHESIS
+   all_zero: assert property (
+     @(posedge clk_i) disable iff (!rst_ni) en_i |-> lfsr_d)
+       else $fatal(1,"Lfsr must not be all-zero.");
+ `endif
++`endif
+ // pragma translate_on
+ 
+ endmodule // lfsr
+diff --git a/hw/vendor/pulp_platform_common_cells/src/lfsr_16bit.sv b/hw/vendor/pulp_platform_common_cells/src/lfsr_16bit.sv
+index 3fc93c7..586a134 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/lfsr_16bit.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/lfsr_16bit.sv
+@@ -58,11 +58,13 @@ module lfsr_16bit #(
+         end
+     end
+ 
+-    //pragma translate_off
++    `ifndef SYNTHESIS
++    // pragma translate_off
+     initial begin
+         assert (WIDTH <= 16)
+             else $fatal(1, "WIDTH needs to be less than 16 because of the 16-bit LFSR");
+     end
+-    //pragma translate_on
++    // pragma translate_on
++    `endif
+ 
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/lfsr_8bit.sv b/hw/vendor/pulp_platform_common_cells/src/lfsr_8bit.sv
+index 60fdf19..3b7bbf7 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/lfsr_8bit.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/lfsr_8bit.sv
+@@ -52,10 +52,12 @@ module lfsr_8bit #(
+     end
+   end
+ 
+-  //pragma translate_off
++  `ifndef SYNTHESIS
++  // pragma translate_off
+   initial begin
+     assert (WIDTH <= 8) else $fatal(1, "WIDTH needs to be less than 8 because of the 8-bit LFSR");
+   end
+-  //pragma translate_on
++  // pragma translate_on
++  `endif
+ 
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/lzc.sv b/hw/vendor/pulp_platform_common_cells/src/lzc.sv
+index b30d042..c59d85d 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/lzc.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/lzc.sv
+@@ -39,11 +39,13 @@ module lzc #(
+ 
+     localparam int unsigned NumLevels = $clog2(WIDTH);
+ 
++    `ifndef SYNTHESIS
+     // pragma translate_off
+     initial begin
+       assert(WIDTH > 0) else $fatal(1, "input must be at least one bit wide");
+     end
+     // pragma translate_on
++    `endif
+ 
+     logic [WIDTH-1:0][NumLevels-1:0] index_lut;
+     logic [2**NumLevels-1:0] sel_nodes;
+@@ -101,11 +103,13 @@ module lzc #(
+ 
+ // pragma translate_off
+ `ifndef VERILATOR
++`ifndef SYNTHESIS
+   initial begin: validate_params
+     assert (WIDTH >= 1)
+       else $fatal(1, "The WIDTH must at least be one bit wide!");
+   end
+ `endif
++`endif
+ // pragma translate_on
+ 
+ endmodule : lzc
+diff --git a/hw/vendor/pulp_platform_common_cells/src/onehot_to_bin.sv b/hw/vendor/pulp_platform_common_cells/src/onehot_to_bin.sv
+index 0c33f08..5970240 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/onehot_to_bin.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/onehot_to_bin.sv
+@@ -31,8 +31,10 @@ module onehot_to_bin #(
+ 
+ // pragma translate_off
+ `ifndef VERILATOR
++`ifndef SYNTHESIS
+     assert final ($onehot0(onehot)) else
+         $fatal(1, "[onehot_to_bin] More than two bit set in the one-hot signal");
+ `endif
++`endif
+ // pragma translate_on
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/plru_tree.sv b/hw/vendor/pulp_platform_common_cells/src/plru_tree.sv
+index 78a0a84..ab02451 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/plru_tree.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/plru_tree.sv
+@@ -111,10 +111,12 @@ module plru_tree #(
+ 
+ // pragma translate_off
+ `ifndef VERILATOR
++`ifndef SYNTHESIS
+     initial begin
+         assert (ENTRIES == 2**LogEntries) else $error("Entries must be a power of two");
+     end
+ `endif
++`endif
+ // pragma translate_on
+ 
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/rr_arb_tree.sv b/hw/vendor/pulp_platform_common_cells/src/rr_arb_tree.sv
+index 90301c8..f4c269d 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/rr_arb_tree.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/rr_arb_tree.sv
+@@ -112,10 +112,12 @@ module rr_arb_tree #(
+   // pragma translate_off
+   `ifndef VERILATOR
+   `ifndef XSIM
++  `ifndef SV2V
+   // Default SVA reset
+   default disable iff (!rst_ni || flush_i);
+   `endif
+   `endif
++  `endif
+   // pragma translate_on
+ 
+   // just pass through in this corner case
+@@ -170,6 +172,7 @@ module rr_arb_tree #(
+ 
+         // pragma translate_off
+         `ifndef VERILATOR
++        `ifndef SYNTHESIS
+           lock: assert property(
+             @(posedge clk_i) LockIn |-> req_o &&
+                              (!gnt_i && !flush_i) |=> idx_o == $past(idx_o)) else
+@@ -183,6 +186,7 @@ module rr_arb_tree #(
+                 $fatal (1, "It is disallowed to deassert unserved request signals when LockIn is \
+                             enabled.");
+         `endif
++        `endif
+         // pragma translate_on
+ 
+         always_ff @(posedge clk_i or negedge rst_ni) begin : p_req_regs
+@@ -310,6 +314,7 @@ module rr_arb_tree #(
+     // pragma translate_off
+     `ifndef VERILATOR
+     `ifndef XSIM
++    `ifndef SYNTHESIS
+     initial begin : p_assert
+       assert(NumIn)
+         else $fatal(1, "Input must be at least one element wide.");
+@@ -342,6 +347,7 @@ module rr_arb_tree #(
+         else $fatal (1, "Req out implies req in.");
+     `endif
+     `endif
++    `endif
+     // pragma translate_on
+   end
+ 
+diff --git a/hw/vendor/pulp_platform_common_cells/src/rstgen_bypass.sv b/hw/vendor/pulp_platform_common_cells/src/rstgen_bypass.sv
+index c51ee83..751b40a 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/rstgen_bypass.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/rstgen_bypass.sv
+@@ -49,9 +49,11 @@ module rstgen_bypass #(
+     end
+     // pragma translate_off
+     `ifndef VERILATOR
++    `ifndef SYNTHESIS
+     initial begin : p_assertions
+         if (NumRegs < 1) $fatal(1, "At least one register is required.");
+     end
+     `endif
++    `endif
+     // pragma translate_on
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/spill_register_flushable.sv b/hw/vendor/pulp_platform_common_cells/src/spill_register_flushable.sv
+index c03ad27..39a1bb1 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/spill_register_flushable.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/spill_register_flushable.sv
+@@ -96,10 +96,12 @@ module spill_register_flushable #(
+ 
+     // pragma translate_off
+     `ifndef VERILATOR
++    `ifndef SYNTHESIS
+     flush_valid : assert property (
+       @(posedge clk_i) disable iff (~rst_ni) (flush_i |-> ~valid_i)) else
+       $warning("Trying to flush and feed the spill register simultaneously. You will lose data!");
+-   `endif
++    `endif
++    `endif
+      // pragma translate_on
+   end
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/stream_fork.sv b/hw/vendor/pulp_platform_common_cells/src/stream_fork.sv
+index 650038d..aec79f2 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/stream_fork.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/stream_fork.sv
+@@ -124,10 +124,12 @@ module stream_fork #(
+ 
+ // pragma translate_off
+ `ifndef VERILATOR
++`ifndef SYNTHESIS
+     initial begin: p_assertions
+         assert (N_OUP >= 1) else $fatal(1, "Number of outputs must be at least 1!");
+     end
+ `endif
++`endif
+ // pragma translate_on
+ 
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/stream_fork_dynamic.sv b/hw/vendor/pulp_platform_common_cells/src/stream_fork_dynamic.sv
+index e4720f7..fe7a1fd 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/stream_fork_dynamic.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/stream_fork_dynamic.sv
+@@ -87,9 +87,11 @@ module stream_fork_dynamic #(
+ 
+ // pragma translate_off
+ `ifndef VERILATOR
++`ifndef SYNTHESIS
+   initial begin: p_assertions
+     assert (N_OUP >= 1) else $fatal(1, "N_OUP must be at least 1!");
+   end
+ `endif
++`endif
+ // pragma translate_on
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/stream_intf.sv b/hw/vendor/pulp_platform_common_cells/src/stream_intf.sv
+index 32f2d8b..88ee789 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/stream_intf.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/stream_intf.sv
+@@ -42,8 +42,10 @@ interface STREAM_DV #(
+   // Make sure that the handshake and payload is stable
+   // pragma translate_off
+   `ifndef VERILATOR
++  `ifndef SYNTHESIS
+   assert property (@(posedge clk_i) (valid && !ready |=> $stable(data)));
+   assert property (@(posedge clk_i) (valid && !ready |=> valid));
+   `endif
++  `endif
+   // pragma translate_on
+ endinterface
+diff --git a/hw/vendor/pulp_platform_common_cells/src/stream_join.sv b/hw/vendor/pulp_platform_common_cells/src/stream_join.sv
+index 2f210bc..c8f9e09 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/stream_join.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/stream_join.sv
+@@ -35,9 +35,11 @@ module stream_join #(
+ 
+ // pragma translate_off
+ `ifndef VERILATOR
++`ifndef SYNTHESIS
+   initial begin: p_assertions
+     assert (N_INP >= 1) else $fatal(1, "N_INP must be at least 1!");
+   end
+ `endif
++`endif
+ // pragma translate_on
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/stream_mux.sv b/hw/vendor/pulp_platform_common_cells/src/stream_mux.sv
+index 34607d9..ac634b0 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/stream_mux.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/stream_mux.sv
+@@ -37,10 +37,12 @@ module stream_mux #(
+ 
+ // pragma translate_off
+ `ifndef VERILATOR
++`ifndef SYNTHESIS
+   initial begin: p_assertions
+     assert (N_INP >= 1) else $fatal (1, "The number of inputs must be at least 1!");
+   end
+ `endif
++`endif
+ // pragma translate_on
+ 
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/stream_omega_net.sv b/hw/vendor/pulp_platform_common_cells/src/stream_omega_net.sv
+index ad8e11d..dbd64bc 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/stream_omega_net.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/stream_omega_net.sv
+@@ -262,6 +262,7 @@ module stream_omega_net #(
+     // Make sure that the handshake and payload is stable
+     // pragma translate_off
+     `ifndef VERILATOR
++    `ifndef SYNTHESIS
+     default disable iff rst_ni;
+     for (genvar i = 0; unsigned'(i) < NumInp; i++) begin : gen_sel_assertions
+       assert property (@(posedge clk_i) (valid_i[i] |-> sel_i[i] < sel_oup_t'(NumOut))) else
+@@ -296,6 +297,7 @@ module stream_omega_net #(
+           $fatal(1, "Bit slicing of the internal selection signal is broken.");
+     end
+     `endif
++    `endif
+     // pragma translate_on
+   end
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/stream_to_mem.sv b/hw/vendor/pulp_platform_common_cells/src/stream_to_mem.sv
+index 00c3086..014cbab 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/stream_to_mem.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/stream_to_mem.sv
+@@ -118,6 +118,7 @@ module stream_to_mem #(
+ // Assertions
+ // pragma translate_off
+ `ifndef VERILATOR
++`ifndef SYNTHESIS
+   if (BufDepth > 0) begin : gen_buf_asserts
+     assert property (@(posedge clk_i) mem_resp_valid_i |-> buf_ready)
+       else $error("Memory response lost!");
+@@ -130,5 +131,6 @@ module stream_to_mem #(
+       else $error("Without BufDepth = 0, the memory must respond in the same cycle!");
+   end
+ `endif
++`endif
+ // pragma translate_on
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/stream_xbar.sv b/hw/vendor/pulp_platform_common_cells/src/stream_xbar.sv
+index 9574006..e92a3f2 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/stream_xbar.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/stream_xbar.sv
+@@ -164,6 +164,7 @@ module stream_xbar #(
+   // Make sure that the handshake and payload is stable
+   // pragma translate_off
+   `ifndef VERILATOR
++  `ifndef SYNTHESIS
+   default disable iff rst_ni;
+   for (genvar i = 0; unsigned'(i) < NumInp; i++) begin : gen_sel_assertions
+     assert property (@(posedge clk_i) (valid_i[i] |-> sel_i[i] < sel_oup_t'(NumOut))) else
+@@ -194,5 +195,6 @@ module stream_xbar #(
+     assert (NumOut > 32'd0) else $fatal(1, "NumOut has to be > 0!");
+   end
+   `endif
++  `endif
+   // pragma translate_on
+ endmodule
+diff --git a/hw/vendor/pulp_platform_common_cells/src/sync.sv b/hw/vendor/pulp_platform_common_cells/src/sync.sv
+index b7bb781..9a39388 100644
+--- a/hw/vendor/pulp_platform_common_cells/src/sync.sv
++++ b/hw/vendor/pulp_platform_common_cells/src/sync.sv
+@@ -19,9 +19,10 @@ module sync #(
+     input  logic serial_i,
+     output logic serial_o
+ );
+-
++`ifndef SV2V
+    (* dont_touch = "true" *)
+    (* async_reg = "true" *)
++`endif
+    logic [STAGES-1:0] reg_q;
+ 
+     always_ff @(posedge clk_i, negedge rst_ni) begin
+diff --git a/hw/vendor/pulp_platform_riscv_dbg/src/dmi_intf.sv b/hw/vendor/pulp_platform_riscv_dbg/src/dmi_intf.sv
+index 8ebd749..71ae530 100644
+--- a/hw/vendor/pulp_platform_riscv_dbg/src/dmi_intf.sv
++++ b/hw/vendor/pulp_platform_riscv_dbg/src/dmi_intf.sv
+@@ -45,6 +45,7 @@ interface DMI_BUS_DV #(
+ 
+   // pragma translate_off
+   `ifndef VERILATOR
++  `ifndef SYNTHESIS
+   assert property (@(posedge clk_i) (q_valid && !q_ready |=> $stable(q_addr)));
+   assert property (@(posedge clk_i) (q_valid && !q_ready |=> $stable(q_op)));
+   assert property (@(posedge clk_i) (q_valid && !q_ready |=> $stable(q_data)));
+@@ -54,6 +55,7 @@ interface DMI_BUS_DV #(
+   assert property (@(posedge clk_i) (p_valid && !p_ready |=> $stable(p_resp)));
+   assert property (@(posedge clk_i) (p_valid && !p_ready |=> p_valid));
+   `endif
++  `endif
+   // pragma translate_on
+ 
+ endinterface
+diff --git a/hw/vendor/pulp_platform_tech_cells_generic/src/fpga/tc_sram_xilinx.sv b/hw/vendor/pulp_platform_tech_cells_generic/src/fpga/tc_sram_xilinx.sv
+index 7c50e64..71845ec 100644
+--- a/hw/vendor/pulp_platform_tech_cells_generic/src/fpga/tc_sram_xilinx.sv
++++ b/hw/vendor/pulp_platform_tech_cells_generic/src/fpga/tc_sram_xilinx.sv
+@@ -169,6 +169,7 @@ module tc_sram #(
+ // pragma translate_off
+ `ifndef VERILATOR
+ `ifndef TARGET_SYNTHESIS
++`ifndef SYNTHESIS
+   initial begin: p_assertions
+     assert (SimInit == "zeros") else $fatal(1, "The Xilinx `tc_sram` has fixed SimInit: zeros");
+     assert ($bits(addr_i)  == NumPorts * AddrWidth) else $fatal(1, "AddrWidth problem on `addr_i`");
+@@ -202,7 +203,7 @@ module tc_sram #(
+       $warning("Request address %0h not mapped, port %0d, expect random write or read behavior!",
+           addr_i[i], i);
+   end
+-
++`endif
+ `endif
+ `endif
+ // pragma translate_on
+diff --git a/hw/vendor/pulp_platform_tech_cells_generic/src/rtl/tc_clk.sv b/hw/vendor/pulp_platform_tech_cells_generic/src/rtl/tc_clk.sv
+index e6aa1fd..7d1e120 100644
+--- a/hw/vendor/pulp_platform_tech_cells_generic/src/rtl/tc_clk.sv
++++ b/hw/vendor/pulp_platform_tech_cells_generic/src/rtl/tc_clk.sv
+@@ -92,8 +92,10 @@ module tc_clk_delay #(
+ 
+ // pragma translate_off
+ `ifndef VERILATOR
++`ifndef SYNTHESIS
+   assign #(Delay) out_o = in_i;
+ `endif
++`endif
+ // pragma translate_on
+ 
+ endmodule
+diff --git a/hw/vendor/pulp_platform_tech_cells_generic/src/rtl/tc_sram.sv b/hw/vendor/pulp_platform_tech_cells_generic/src/rtl/tc_sram.sv
+index 98298d6..0f2bb34 100644
+--- a/hw/vendor/pulp_platform_tech_cells_generic/src/rtl/tc_sram.sv
++++ b/hw/vendor/pulp_platform_tech_cells_generic/src/rtl/tc_sram.sv
+@@ -168,6 +168,7 @@ module tc_sram #(
+ // pragma translate_off
+ `ifndef VERILATOR
+ `ifndef TARGET_SYNTHESIS
++`ifndef SYNTHESIS
+   initial begin: p_assertions
+     assert ($bits(addr_i)  == NumPorts * AddrWidth) else $fatal(1, "AddrWidth problem on `addr_i`");
+     assert ($bits(wdata_i) == NumPorts * DataWidth) else $fatal(1, "DataWidth problem on `wdata_i`");
+@@ -201,6 +202,7 @@ module tc_sram #(
+           addr_i[i], i);
+   end
+ 
++`endif
+ `endif
+ `endif
+ // pragma translate_on
