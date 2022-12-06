@@ -1,0 +1,77 @@
+diff --git a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/addr_dec_resp_mux.sv b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/addr_dec_resp_mux.sv
+index 1bbc5f7..5f5e114 100644
+--- a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/addr_dec_resp_mux.sv
++++ b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/addr_dec_resp_mux.sv
+@@ -172,6 +172,7 @@ end
+ // assertions
+ ////////////////////////////////////////////////////////////////////////
+ 
++`ifndef SV2V
+ // pragma translate_off
+ initial begin
+   assert (RespLat > 0) else
+@@ -180,5 +181,6 @@ initial begin
+     $fatal(1,"NumOut must be greater than 0");
+ end
+ // pragma translate_on
++`endif
+ 
+ endmodule // addr_dec_resp_mux
+diff --git a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/xbar.sv b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/xbar.sv
+index 428f1c6..8a37ab7 100644
+--- a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/xbar.sv
++++ b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_interconnect/xbar.sv
+@@ -119,7 +119,7 @@ end
+ ////////////////////////////////////////////////////////////////////////
+ // assertion
+ ////////////////////////////////////////////////////////////////////////
+-
++`ifndef SV2V
+ // pragma translate_off
+ initial begin
+   assert(NumIn > 0) else
+@@ -128,5 +128,6 @@ initial begin
+     $fatal(1,"NumOut needs to be larger than 0.");
+ end
+ // pragma translate_on
++`endif
+ 
+ endmodule // xbar
+diff --git a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_variable_latency_interconnect/addr_dec_resp_mux_varlat.sv b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_variable_latency_interconnect/addr_dec_resp_mux_varlat.sv
+index a1cb836..5d0bfb1 100644
+--- a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_variable_latency_interconnect/addr_dec_resp_mux_varlat.sv
++++ b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_variable_latency_interconnect/addr_dec_resp_mux_varlat.sv
+@@ -133,11 +133,13 @@ end
+ // assertions
+ ////////////////////////////////////////////////////////////////////////
+ 
++`ifndef SV2V
+ // pragma translate_off
+ initial begin
+   assert (NumOut > 0) else
+     $fatal(1,"NumOut must be greater than 0");
+ end
+ // pragma translate_on
++`endif
+ 
+ endmodule // addr_dec_resp_mux_varlat
+diff --git a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_variable_latency_interconnect/xbar_varlat.sv b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_variable_latency_interconnect/xbar_varlat.sv
+index a1b1cdc..0c08ed2 100644
+--- a/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_variable_latency_interconnect/xbar_varlat.sv
++++ b/hw/vendor/pulp_platform_cluster_interconnect/rtl/tcdm_variable_latency_interconnect/xbar_varlat.sv
+@@ -132,7 +132,7 @@ end
+ ////////////////////////////////////////////////////////////////////////
+ // assertion
+ ////////////////////////////////////////////////////////////////////////
+-
++`ifndef SV2V
+ // pragma translate_off
+ initial begin
+   assert(NumIn > 0) else
+@@ -141,5 +141,6 @@ initial begin
+     $fatal(1,"NumOut needs to be larger than 0.");
+ end
+ // pragma translate_on
++`endif
+ 
+ endmodule // xbar_varlat

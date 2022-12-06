@@ -170,7 +170,7 @@ filesets:
 
   openroad_base_files:
     files:
-      - flow/OpenROAD/flow/Makefile : {file_type: Makefile}
+      - flow/OpenROAD-flow-scripts/flow/Makefile : {file_type: Makefile}
     depend:
       - core-v-mini:util:sv2v
 
@@ -201,6 +201,10 @@ parameters:
     paramtype: vlogdefine
     default: false
   SV2V:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
+  VERILATOR: #used by SV2V
     datatype: bool
     paramtype: vlogdefine
     default: false
@@ -393,6 +397,7 @@ targets:
       - PULP_XPULP=0
       - SYNTHESIS=true
       - SV2V=true
+      - VERILATOR=true
     filesets_append:
       - use_sky130? (rtl-sky130)
       - lib-sky130
@@ -401,5 +406,5 @@ targets:
     toplevel: [core_v_mini_mcu]
     tools:
       openroad:
-        flow_path: flow/OpenROAD/flow
+        flow_path: flow/OpenROAD-flow-scripts/flow
         make_target: synth

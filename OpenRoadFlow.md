@@ -2,8 +2,6 @@
 
 ## Install OpenROAD
 
-Follow the instructions [here](https://openroad.readthedocs.io/en/latest/user/BuildWithDocker.html).
-
 First, clone clone `OpenROAD-flow-scripts`
 
 ```bash
@@ -12,27 +10,19 @@ git clone --recursive https://github.com/The-OpenROAD-Project/OpenROAD-flow-scri
 cd OpenROAD-flow-scripts
 ```
 
-If you want to install it with `Docker`,
-first make you you have it or install it as explained [here](https://docs.docker.com/engine/install/ubuntu/),
-
-then,
-
-```bash
-sudo ./build_openroad.sh --clean
-cd ../
-mv OpenROAD-flow-scripts OpenROAD
-```
-
-Otherwise, if you want to install it [locally](https://openroad.readthedocs.io/en/latest/user/BuildLocally.html) instead,
+Install `OpenRoad` [locally](https://openroad.readthedocs.io/en/latest/user/BuildLocally.html) as,
 
 
 ```bash
-tools/OpenROAD/etc/DependencyInstaller.sh
+sudo ./tools/OpenROAD/etc/DependencyInstaller.sh
 sudo ./build_openroad.sh --local
 ```
 
 Finally, you need to install `KLayout` v0.27.1
 
+
+Installing OpenRoad and KLayout may not be as straight and forwards, so you may need to install several missing packages
+(e.g. Qt for KLayout or libreadline-dev for Yosys, tcl-dev for OpenSTA, etc)
 
 ```bash
 git clone --depth=1 --branch v0.27.1 https://github.com/KLayout/klayout.git
@@ -62,7 +52,7 @@ and add `sv2v` to the `PATH` variable.
 First of all, the binaries of OpenRoad are only available from the Docker container, thus:
 
 ```
-cd flow/OpenROAD
+cd flow/OpenROAD-flow-scripts
 docker run -it -u $(id -u ${USER}):$(id -g ${USER}) -v $(pwd)/flow/platforms:/OpenROAD-flow-scripts/flow/platforms:ro openroad/flow-scripts
 ```
 
