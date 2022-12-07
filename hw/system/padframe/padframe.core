@@ -1,0 +1,30 @@
+CAPI=2:
+
+name: "x-heep:ip:padframe"
+description: "core-v-mini-mcu dma peripheral"
+
+# Copyright 2022 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+      - pulp-platform.org::common_cells
+      - pulp-platform.org::register_interface
+    files:
+    - include/padframe/assign.svh: {is_include_file: true}
+    - src/pkg_padframe.sv
+    - src/pkg_internal_padframe_xheep.sv
+    - src/padframe_xheep_config_reg_pkg.sv
+    - src/padframe_xheep_config_reg_top.sv
+    - src/padframe_xheep_pads.sv
+    - src/padframe_xheep_muxer.sv
+    - src/padframe_xheep.sv
+    - src/padframe.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl

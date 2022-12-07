@@ -58,7 +58,7 @@ filesets:
   x_heep_system:
     depend:
     - x-heep::packages
-    - x-heep:ip:pad_control
+    - x-heep:ip:padframe
     files:
     - hw/system/x_heep_system.sv
     - hw/system/pad_ring.sv

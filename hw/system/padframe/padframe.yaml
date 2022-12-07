@@ -1,0 +1,266 @@
+manifest_version: 2
+name: padframe
+pad_domains:
+  - name: xheep
+    pad_types:
+      - name: generic_pad_cell_input
+
+        template: |
+          pad_cell_input ${instance_name} (
+            .pad_in_i(${conn["chip2pad"]}),
+            .pad_oe_i(${conn["output_en"]}),
+            .pad_out_o(${conn["pad2chip"]}),
+            .pad_io(${conn["pad"]})
+          );
+        pad_signals: &DEFAULT_SIGNALS
+          - name: chip2pad
+            size: 1
+            kind: input
+            conn_type: dynamic
+            default_reset_value: 0
+            default_static_value: 1'b0
+          - name: pad2chip
+            size: 1
+            kind: output
+            conn_type: dynamic
+          - name: output_en
+            size: 1
+            kind: input
+            conn_type: dynamic
+            default_reset_value: 0
+            default_static_value: 1'b0
+          - name: pad
+            size: 1
+            kind: pad
+      - name: generic_pad_cell_output
+        template: |
+          pad_cell_output ${instance_name} (
+            .pad_in_i(${conn["chip2pad"]}),
+            .pad_oe_i(${conn["output_en"]}),
+            .pad_out_o(${conn["pad2chip"]}),
+            .pad_io(${conn["pad"]})
+          );
+        pad_signals: *DEFAULT_SIGNALS
+
+      - name: generic_pad_cell_inout
+        template: |
+          pad_cell_inout ${instance_name} (
+            .pad_in_i(${conn["chip2pad"]}),
+            .pad_oe_i(${conn["output_en"]}),
+            .pad_out_o(${conn["pad2chip"]}),
+            .pad_io(${conn["pad"]})
+          );
+        pad_signals: *DEFAULT_SIGNALS
+
+    pad_list:
+
+#  
+# Static Connection 
+#
+      - name: pad_clk
+        pad_type: generic_pad_cell_input
+        is_static: true
+        connections: 
+          chip2pad: 1'b0
+          output_en: 1'b0
+          pad2chip: clk_o
+
+      - name: pad_rst
+        pad_type: generic_pad_cell_input
+        is_static: true
+        connections: 
+          chip2pad: 1'b0
+          output_en: 1'b0
+          pad2chip: rst_o
+
+      - name: pad_boot_select
+        pad_type: generic_pad_cell_input
+        is_static: true
+        connections: 
+          chip2pad: 1'b0
+          output_en: 1'b0
+          pad2chip: boot_select_o
+
+      - name: pad_execute_from_flash
+        pad_type: generic_pad_cell_input
+        is_static: true
+        connections:
+          chip2pad: 1'b0
+          output_en: 1'b0
+          pad2chip: execute_from_flash_o
+
+      - name: pad_jtag_tck
+        pad_type: generic_pad_cell_input
+        is_static: true
+        connections:
+          chip2pad: 1'b0
+          output_en: 1'b0
+          pad2chip: jtag_tck_o
+
+      - name: pad_jtag_tms
+        pad_type: generic_pad_cell_input
+        is_static: true
+        connections:
+          chip2pad: 1'b0
+          output_en: 1'b0
+          pad2chip: jtag_tms_o
+
+      - name: pad_jtag_trst
+        pad_type: generic_pad_cell_input
+        is_static: true
+        connections:
+          chip2pad: 1'b0
+          output_en: 1'b0
+          pad2chip: jtag_trst_o
+
+      - name: pad_jtag_tdi
+        pad_type: generic_pad_cell_input
+        is_static: true
+        connections:
+          chip2pad: 1'b0
+          output_en: 1'b0
+          pad2chip: jtag_tdi_o
+
+      - name: pad_jtag_tdo
+        pad_type: generic_pad_cell_output
+        is_static: true
+        connections:
+          chip2pad: jtag_tdo_i
+          output_en: 1'b1
+
+      - name: pad_exit_valid
+        pad_type: generic_pad_cell_output
+        is_static: true
+        connections:
+          chip2pad: exit_valid_i
+          output_en: 1'b1
+
+      - name: pad_uart_rx
+        pad_type: generic_pad_cell_input
+        is_static: true
+        connections:
+          chip2pad: 1'b0
+          output_en: 1'b0
+          pad2chip: uart_rx_o
+
+      - name: pad_uart_tx
+        pad_type: generic_pad_cell_output
+        is_static: true
+        connections:
+          chip2pad: uart_tx_i
+          output_en: 1'b1
+
+      - name: pad_gpio_{i:2d}_i
+        multiple: 30
+        pad_type: generic_pad_cell_inout
+        is_static: true
+        connections:
+          chip2pad: gpio_{i:2d}_i
+          output_en: gpio_{i:2d}_oe_i
+          pad2chip: gpio_{i:2d}_o
+
+      - name: pad_spi_flash_sck
+        pad_type: generic_pad_cell_inout
+        is_static: true
+        connections:
+          chip2pad: spi_flash_sck_i
+          output_en: spi_flash_sck_oe_i
+          pad2chip: spi_flash_sck_o
+
+      - name: pad_spi_flash_cs_{i:2d}
+        multiple: 2
+        pad_type: generic_pad_cell_inout
+        is_static: true
+        connections:
+          chip2pad: spi_flash_cs_{i:2d}_i
+          output_en: spi_flash_cs_{i:2d}_oe_i
+          pad2chip: spi_flash_cs_{i:2d}_o
+
+      - name: pad_spi_flash_sd_{i:2d}
+        multiple: 4
+        pad_type: generic_pad_cell_inout
+        is_static: true
+        connections:
+          chip2pad: spi_flash_sd_{i:2d}_i
+          output_en: spi_flash_sd_{i:2d}_oe_i
+          pad2chip: spi_flash_sd_{i:2d}_o
+
+      - name: pad_spi_sck
+        pad_type: generic_pad_cell_inout
+        is_static: true
+        connections:
+          chip2pad: spi_sck_i
+          output_en: spi_sck_oe_i
+          pad2chip: spi_sck_o
+
+      - name: pad_spi_cs_{i:2d}
+        multiple: 2
+        pad_type: generic_pad_cell_inout
+        is_static: true
+        connections:
+          chip2pad: spi_cs_{i:2d}_i
+          output_en: spi_cs_{i:2d}_oe_i
+          pad2chip: spi_cs_{i:2d}_o
+
+      - name: pad_spi_sd_{i:2d}
+        multiple: 4
+        pad_type: generic_pad_cell_inout
+        is_static: true
+        connections:
+          chip2pad: spi_sd_{i:2d}_i
+          output_en: spi_sd_{i:2d}_oe_i
+          pad2chip: spi_sd_{i:2d}_o
+
+
+#  
+# Dynamic Connection 
+#
+
+      - name: pad_io_30 
+        default_port: i2c.i2c_sda
+        mux_groups: [pad30]
+        pad_type: generic_pad_cell_inout
+        is_static: false
+
+      - name: pad_io_31 
+        default_port: i2c.i2c_scl
+        mux_groups: [pad31]
+        pad_type: generic_pad_cell_inout
+        is_static: false
+   
+    port_groups:
+
+      - name: i2c
+        output_defaults: 1'b0
+        ports:
+          - name: i2c_scl
+            mux_groups: [pad31]
+            connections:
+              chip2pad: i2c_scl_i
+              i2c_scl_o: pad2chip
+              output_en: i2c_scl_oe_i
+
+          - name: i2c_sda
+            mux_groups: [pad30]
+            connections:
+              chip2pad: i2c_sda_i
+              i2c_sda_o: pad2chip
+              output_en: i2c_sda_oe_i
+
+      - name: gpio
+        output_defaults: 1'b0
+        ports: 
+          - name: gpio_30
+            mux_groups: [pad30]
+            connections:
+              chip2pad: gpio_30_i
+              gpio_30_o: pad2chip
+              output_en: gpio_30_oe_i
+
+          - name: gpio_31
+            mux_groups: [pad31]
+            connections:
+              chip2pad: gpio_31_i
+              gpio_31_o: pad2chip
+              output_en: gpio_31_oe_i
+
