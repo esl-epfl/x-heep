@@ -60,9 +60,9 @@ extern "C" {
 #define EXT_PERIPHERAL_SIZE 0x${ext_periph_size_address}
 #define EXT_PERIPHERAL_END_ADDRESS (EXT_PERIPHERAL_START_ADDRESS + EXT_PERIPHERAL_SIZE)
 
-#define PAD_CONTROL_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${pad_control_start_offset})
-#define PAD_CONTROL_SIZE 0x${pad_control_size_address}
-#define PAD_CONTROL_END_ADDRESS (PAD_CONTROL_START_ADDRESS + PAD_CONTROL_SIZE)
+#define PADFRAME_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${padframe_start_offset})
+#define PADFRAME_SIZE 0x${padframe_size_address}
+#define PADFRAME_END_ADDRESS (PADFRAME_START_ADDRESS + PADFRAME_SIZE)
 
 #define GPIO_AO_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${gpio_ao_start_offset})
 #define GPIO_AO_SIZE 0x${gpio_ao_size_address}

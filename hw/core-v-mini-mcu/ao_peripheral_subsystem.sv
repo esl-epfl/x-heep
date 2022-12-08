@@ -337,8 +337,8 @@ module ao_peripheral_subsystem
       .dma_intr_o
   );
 
-  assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_CONTROL_IDX];
-  assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_CONTROL_IDX] = pad_resp_i;
+  assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PADFRAME_IDX];
+  assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::PADFRAME_IDX] = pad_resp_i;
 
   fast_intr_ctrl #(
       .reg_req_t(reg_pkg::reg_req_t),
@@ -355,7 +355,7 @@ module ao_peripheral_subsystem
   gpio #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
-  )  gpio_ao_i (
+  ) gpio_ao_i (
       .clk_i,
       .rst_ni,
       .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::GPIO_AO_IDX]),

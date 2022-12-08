@@ -682,11 +682,10 @@ module x_heep_system
   assign uart_tx_oe_x = 1'b1;
   assign exit_valid_oe_x = 1'b1;
 
-  padframe
-   #(
-      .req_t(reg_pkg::reg_req_t),
+  padframe #(
+      .req_t (reg_pkg::reg_req_t),
       .resp_t(reg_pkg::reg_rsp_t)
-    ) xpadframe (
+  ) xpadframe (
       .clk_i                               (clk_in_x),
       .rst_ni                              (rst_nin_x),
       .static_connection_signals_pad2soc   (static_connection_signals_pad2soc),
@@ -737,7 +736,7 @@ module x_heep_system
       .pad_xheep_pad_gpio_29_i_pad         (gpio_29_io),
       .pad_xheep_pad_spi_flash_sck_pad     (spi_flash_sck_io),
       .pad_xheep_pad_spi_flash_cs_00_pad   (spi_flash_cs_0_io),
-      .pad_xheep_pad_spi_flash_cs_01_pad   (spi_flash_cs_1_io),   
+      .pad_xheep_pad_spi_flash_cs_01_pad   (spi_flash_cs_1_io),
       .pad_xheep_pad_spi_flash_sd_00_pad   (spi_flash_sd_0_io),
       .pad_xheep_pad_spi_flash_sd_01_pad   (spi_flash_sd_1_io),
       .pad_xheep_pad_spi_flash_sd_02_pad   (spi_flash_sd_2_io),
@@ -753,64 +752,7 @@ module x_heep_system
       .pad_xheep_pad_io_31_pad             (i2c_scl_io),
       .config_req_i                        (pad_req),
       .config_rsp_o                        (pad_resp)
-    );
-
-  // always_comb begin
-  //   i2c_scl_in_x = 1'b0;
-  //   gpio_31_in_x = 1'b0;
-  //   unique case (pad_muxes[core_v_mini_mcu_pkg::PAD_I2C_SCL])
-  //     0: begin
-  //       i2c_scl_out_x_muxed = i2c_scl_out_x;
-  //       i2c_scl_oe_x_muxed = i2c_scl_oe_x;
-  //       i2c_scl_in_x = i2c_scl_in_x_muxed;
-  //     end
-  //     1: begin
-  //       i2c_scl_out_x_muxed = gpio_31_out_x;
-  //       i2c_scl_oe_x_muxed = gpio_31_oe_x;
-  //       gpio_31_in_x = i2c_scl_in_x_muxed;
-  //     end
-  //     default: begin
-  //       i2c_scl_out_x_muxed = i2c_scl_out_x;
-  //       i2c_scl_oe_x_muxed = i2c_scl_oe_x;
-  //       i2c_scl_in_x = i2c_scl_in_x_muxed;
-  //     end
-  //   endcase
-  // end
-  // always_comb begin
-  //   i2c_sda_in_x = 1'b0;
-  //   gpio_30_in_x = 1'b0;
-  //   unique case (pad_muxes[core_v_mini_mcu_pkg::PAD_I2C_SDA])
-  //     0: begin
-  //       i2c_sda_out_x_muxed = i2c_sda_out_x;
-  //       i2c_sda_oe_x_muxed = i2c_sda_oe_x;
-  //       i2c_sda_in_x = i2c_sda_in_x_muxed;
-  //     end
-  //     1: begin
-  //       i2c_sda_out_x_muxed = gpio_30_out_x;
-  //       i2c_sda_oe_x_muxed = gpio_30_oe_x;
-  //       gpio_30_in_x = i2c_sda_in_x_muxed;
-  //     end
-  //     default: begin
-  //       i2c_sda_out_x_muxed = i2c_sda_out_x;
-  //       i2c_sda_oe_x_muxed = i2c_sda_oe_x;
-  //       i2c_sda_in_x = i2c_sda_in_x_muxed;
-  //     end
-  //   endcase
-  // end
-
-
-  // pad_control #(
-  //     .reg_req_t(reg_pkg::reg_req_t),
-  //     .reg_rsp_t(reg_pkg::reg_rsp_t),
-  //     .NUM_PAD  (core_v_mini_mcu_pkg::NUM_PAD)
-  // ) pad_control_i (
-  //     .clk_i(clk_in_x),
-  //     .rst_ni(rst_ngen),
-  //     .reg_req_i(pad_req),
-  //     .reg_rsp_o(pad_resp),
-  //     .pad_attributes_o(pad_attributes),
-  //     .pad_muxes_o(pad_muxes)
-  // );
+  );
 
   rstgen rstgen_i (
       .clk_i(clk_in_x),

@@ -45,10 +45,12 @@ LIB_DRIVERS                += $(wildcard device/lib/drivers/spi_mem/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/spi_memio/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/spi_host/*.c)
 LIB_DRIVERS                += $(wildcard device/lib/drivers/pad_control/*.c)
+LIB_DRIVERS                += $(wildcard device/lib/drivers/padframe/src/padframe_driver.c)
 INC_FOLDERS                = $(sort $(dir $(wildcard device/target/$(TARGET)/)))
 INC_FOLDERS                += $(sort $(dir $(wildcard device/lib/base/)))
 INC_FOLDERS                += $(sort $(dir $(wildcard device/lib/drivers/*/)))
 INC_FOLDERS                += $(sort $(dir $(wildcard device/lib/runtime/)))
+INC_FOLDERS                += device/lib/drivers/padframe/include
 INC_FOLDERS_GCC             = $(addprefix -I ,$(INC_FOLDERS))
 
 # rules to generate hex (loadable by simulators) from elf
