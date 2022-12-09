@@ -111,6 +111,7 @@ filesets:
     files:
     - hw/asic/sky130/sram_wrapper.sv
     - hw/vendor/openhwgroup_cv32e20/bhv/cve2_sim_clock_gate.sv #as for now use the simulation clk gating
+    - hw/vendor/openhwgroup_cv32e40p/bhv/cv32e40p_sim_clock_gate.sv
     - hw/vendor/pulp_platform_tech_cells_generic/src/deprecated/pulp_clk_cells.sv #as for now use the simulation clk cells
     - hw/vendor/pulp_platform_tech_cells_generic/src/deprecated/cluster_clk_cells.sv #as for now use the simulation clk cells
     - hw/vendor/pulp_platform_tech_cells_generic/src/rtl/tc_clk.sv #as for now use the simulation clk cells
