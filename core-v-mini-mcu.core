@@ -28,7 +28,7 @@ filesets:
     - yosyshq:picorv32_spimemio:0-r1
     - x-heep:obi_spimemio:0.1.0
     - x-heep:ip:boot_rom
-    - x-heep:ip:dma
+    - x-heep:ip:idma
     - x-heep:ip:power_manager
     - x-heep:ip:fast_intr_ctrl
     files:
