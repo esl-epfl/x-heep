@@ -11,7 +11,6 @@ module x_heep_system
     parameter PULP_ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0
 ) (
-
     input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
 
     input  obi_req_t  [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
@@ -66,13 +65,6 @@ module x_heep_system
     inout logic gpio_20_io,
     inout logic gpio_21_io,
     inout logic gpio_22_io,
-    inout logic gpio_23_io,
-    inout logic gpio_24_io,
-    inout logic gpio_25_io,
-    inout logic gpio_26_io,
-    inout logic gpio_27_io,
-    inout logic gpio_28_io,
-    inout logic gpio_29_io,
     inout logic spi_flash_sck_io,
     inout logic spi_flash_cs_0_io,
     inout logic spi_flash_cs_1_io,
@@ -87,6 +79,13 @@ module x_heep_system
     inout logic spi_sd_1_io,
     inout logic spi_sd_2_io,
     inout logic spi_sd_3_io,
+    inout logic spi2_cs_0_io,
+    inout logic spi2_cs_1_io,
+    inout logic spi2_sck_io,
+    inout logic spi2_sd_0_io,
+    inout logic spi2_sd_1_io,
+    inout logic spi2_sd_2_io,
+    inout logic spi2_sd_3_io,
     inout logic i2c_scl_io,
     inout logic i2c_sda_io
 );
@@ -186,20 +185,6 @@ module x_heep_system
 
   logic gpio_22_in_x, gpio_22_out_x, gpio_22_oe_x;
 
-  logic gpio_23_in_x, gpio_23_out_x, gpio_23_oe_x;
-
-  logic gpio_24_in_x, gpio_24_out_x, gpio_24_oe_x;
-
-  logic gpio_25_in_x, gpio_25_out_x, gpio_25_oe_x;
-
-  logic gpio_26_in_x, gpio_26_out_x, gpio_26_oe_x;
-
-  logic gpio_27_in_x, gpio_27_out_x, gpio_27_oe_x;
-
-  logic gpio_28_in_x, gpio_28_out_x, gpio_28_oe_x;
-
-  logic gpio_29_in_x, gpio_29_out_x, gpio_29_oe_x;
-
   logic spi_flash_sck_in_x, spi_flash_sck_out_x, spi_flash_sck_oe_x;
 
   logic spi_flash_cs_0_in_x, spi_flash_cs_0_out_x, spi_flash_cs_0_oe_x;
@@ -227,6 +212,34 @@ module x_heep_system
   logic spi_sd_2_in_x, spi_sd_2_out_x, spi_sd_2_oe_x;
 
   logic spi_sd_3_in_x, spi_sd_3_out_x, spi_sd_3_oe_x;
+
+  logic spi2_cs_0_in_x, spi2_cs_0_out_x, spi2_cs_0_oe_x;
+  logic gpio_23_in_x, gpio_23_out_x, gpio_23_oe_x;
+  logic spi2_cs_0_in_x_muxed, spi2_cs_0_out_x_muxed, spi2_cs_0_oe_x_muxed;
+
+  logic spi2_cs_1_in_x, spi2_cs_1_out_x, spi2_cs_1_oe_x;
+  logic gpio_24_in_x, gpio_24_out_x, gpio_24_oe_x;
+  logic spi2_cs_1_in_x_muxed, spi2_cs_1_out_x_muxed, spi2_cs_1_oe_x_muxed;
+
+  logic spi2_sck_in_x, spi2_sck_out_x, spi2_sck_oe_x;
+  logic gpio_25_in_x, gpio_25_out_x, gpio_25_oe_x;
+  logic spi2_sck_in_x_muxed, spi2_sck_out_x_muxed, spi2_sck_oe_x_muxed;
+
+  logic spi2_sd_0_in_x, spi2_sd_0_out_x, spi2_sd_0_oe_x;
+  logic gpio_26_in_x, gpio_26_out_x, gpio_26_oe_x;
+  logic spi2_sd_0_in_x_muxed, spi2_sd_0_out_x_muxed, spi2_sd_0_oe_x_muxed;
+
+  logic spi2_sd_1_in_x, spi2_sd_1_out_x, spi2_sd_1_oe_x;
+  logic gpio_27_in_x, gpio_27_out_x, gpio_27_oe_x;
+  logic spi2_sd_1_in_x_muxed, spi2_sd_1_out_x_muxed, spi2_sd_1_oe_x_muxed;
+
+  logic spi2_sd_2_in_x, spi2_sd_2_out_x, spi2_sd_2_oe_x;
+  logic gpio_28_in_x, gpio_28_out_x, gpio_28_oe_x;
+  logic spi2_sd_2_in_x_muxed, spi2_sd_2_out_x_muxed, spi2_sd_2_oe_x_muxed;
+
+  logic spi2_sd_3_in_x, spi2_sd_3_out_x, spi2_sd_3_oe_x;
+  logic gpio_29_in_x, gpio_29_out_x, gpio_29_oe_x;
+  logic spi2_sd_3_in_x_muxed, spi2_sd_3_out_x_muxed, spi2_sd_3_oe_x_muxed;
 
   logic i2c_scl_in_x, i2c_scl_out_x, i2c_scl_oe_x;
   logic gpio_31_in_x, gpio_31_out_x, gpio_31_oe_x;
@@ -360,34 +373,6 @@ module x_heep_system
       .gpio_22_o(gpio_22_out_x),
       .gpio_22_oe_o(gpio_22_oe_x),
 
-      .gpio_23_i(gpio_23_in_x),
-      .gpio_23_o(gpio_23_out_x),
-      .gpio_23_oe_o(gpio_23_oe_x),
-
-      .gpio_24_i(gpio_24_in_x),
-      .gpio_24_o(gpio_24_out_x),
-      .gpio_24_oe_o(gpio_24_oe_x),
-
-      .gpio_25_i(gpio_25_in_x),
-      .gpio_25_o(gpio_25_out_x),
-      .gpio_25_oe_o(gpio_25_oe_x),
-
-      .gpio_26_i(gpio_26_in_x),
-      .gpio_26_o(gpio_26_out_x),
-      .gpio_26_oe_o(gpio_26_oe_x),
-
-      .gpio_27_i(gpio_27_in_x),
-      .gpio_27_o(gpio_27_out_x),
-      .gpio_27_oe_o(gpio_27_oe_x),
-
-      .gpio_28_i(gpio_28_in_x),
-      .gpio_28_o(gpio_28_out_x),
-      .gpio_28_oe_o(gpio_28_oe_x),
-
-      .gpio_29_i(gpio_29_in_x),
-      .gpio_29_o(gpio_29_out_x),
-      .gpio_29_oe_o(gpio_29_oe_x),
-
       .spi_flash_sck_i(spi_flash_sck_in_x),
       .spi_flash_sck_o(spi_flash_sck_out_x),
       .spi_flash_sck_oe_o(spi_flash_sck_oe_x),
@@ -444,6 +429,55 @@ module x_heep_system
       .spi_sd_3_o(spi_sd_3_out_x),
       .spi_sd_3_oe_o(spi_sd_3_oe_x),
 
+      .spi2_cs_0_i(spi2_cs_0_in_x),
+      .spi2_cs_0_o(spi2_cs_0_out_x),
+      .spi2_cs_0_oe_o(spi2_cs_0_oe_x),
+      .gpio_23_i(gpio_23_in_x),
+      .gpio_23_o(gpio_23_out_x),
+      .gpio_23_oe_o(gpio_23_oe_x),
+
+      .spi2_cs_1_i(spi2_cs_1_in_x),
+      .spi2_cs_1_o(spi2_cs_1_out_x),
+      .spi2_cs_1_oe_o(spi2_cs_1_oe_x),
+      .gpio_24_i(gpio_24_in_x),
+      .gpio_24_o(gpio_24_out_x),
+      .gpio_24_oe_o(gpio_24_oe_x),
+
+      .spi2_sck_i(spi2_sck_in_x),
+      .spi2_sck_o(spi2_sck_out_x),
+      .spi2_sck_oe_o(spi2_sck_oe_x),
+      .gpio_25_i(gpio_25_in_x),
+      .gpio_25_o(gpio_25_out_x),
+      .gpio_25_oe_o(gpio_25_oe_x),
+
+      .spi2_sd_0_i(spi2_sd_0_in_x),
+      .spi2_sd_0_o(spi2_sd_0_out_x),
+      .spi2_sd_0_oe_o(spi2_sd_0_oe_x),
+      .gpio_26_i(gpio_26_in_x),
+      .gpio_26_o(gpio_26_out_x),
+      .gpio_26_oe_o(gpio_26_oe_x),
+
+      .spi2_sd_1_i(spi2_sd_1_in_x),
+      .spi2_sd_1_o(spi2_sd_1_out_x),
+      .spi2_sd_1_oe_o(spi2_sd_1_oe_x),
+      .gpio_27_i(gpio_27_in_x),
+      .gpio_27_o(gpio_27_out_x),
+      .gpio_27_oe_o(gpio_27_oe_x),
+
+      .spi2_sd_2_i(spi2_sd_2_in_x),
+      .spi2_sd_2_o(spi2_sd_2_out_x),
+      .spi2_sd_2_oe_o(spi2_sd_2_oe_x),
+      .gpio_28_i(gpio_28_in_x),
+      .gpio_28_o(gpio_28_out_x),
+      .gpio_28_oe_o(gpio_28_oe_x),
+
+      .spi2_sd_3_i(spi2_sd_3_in_x),
+      .spi2_sd_3_o(spi2_sd_3_out_x),
+      .spi2_sd_3_oe_o(spi2_sd_3_oe_x),
+      .gpio_29_i(gpio_29_in_x),
+      .gpio_29_o(gpio_29_out_x),
+      .gpio_29_oe_o(gpio_29_oe_x),
+
       .i2c_scl_i(i2c_scl_in_x),
       .i2c_scl_o(i2c_scl_out_x),
       .i2c_scl_oe_o(i2c_scl_oe_x),
@@ -484,21 +518,17 @@ module x_heep_system
 
   import pkg_padframe::port_signals_soc2pad_t;
   import pkg_padframe::port_signals_pad2soc_t;
-
   import pkg_padframe::static_connection_signals_soc2pad_t;
   import pkg_padframe::static_connection_signals_pad2soc_t;
 
   port_signals_soc2pad_t port_signals_soc2pad;
   port_signals_pad2soc_t port_signals_pad2soc;
-
   static_connection_signals_soc2pad_t static_connection_signals_soc2pad;
   static_connection_signals_pad2soc_t static_connection_signals_pad2soc;
+
   assign static_connection_signals_soc2pad.xheep.exit_valid_i = exit_valid_out_x;
-
   assign static_connection_signals_soc2pad.xheep.jtag_tdo_i = jtag_tdo_out_x;
-
   assign static_connection_signals_soc2pad.xheep.uart_tx_i = uart_tx_out_x;
-
   assign static_connection_signals_soc2pad.xheep.spi_sck_i = spi_sck_out_x;
   assign static_connection_signals_soc2pad.xheep.spi_cs_00_i = spi_cs_0_out_x;
   assign static_connection_signals_soc2pad.xheep.spi_cs_01_i = spi_cs_1_out_x;
@@ -550,13 +580,6 @@ module x_heep_system
   assign static_connection_signals_soc2pad.xheep.gpio_20_i = gpio_20_out_x;
   assign static_connection_signals_soc2pad.xheep.gpio_21_i = gpio_21_out_x;
   assign static_connection_signals_soc2pad.xheep.gpio_22_i = gpio_22_out_x;
-  assign static_connection_signals_soc2pad.xheep.gpio_23_i = gpio_23_out_x;
-  assign static_connection_signals_soc2pad.xheep.gpio_24_i = gpio_24_out_x;
-  assign static_connection_signals_soc2pad.xheep.gpio_25_i = gpio_25_out_x;
-  assign static_connection_signals_soc2pad.xheep.gpio_26_i = gpio_26_out_x;
-  assign static_connection_signals_soc2pad.xheep.gpio_27_i = gpio_27_out_x;
-  assign static_connection_signals_soc2pad.xheep.gpio_28_i = gpio_28_out_x;
-  assign static_connection_signals_soc2pad.xheep.gpio_29_i = gpio_29_out_x;
   assign static_connection_signals_soc2pad.xheep.gpio_00_oe_i = gpio_0_oe_x;
   assign static_connection_signals_soc2pad.xheep.gpio_01_oe_i = gpio_1_oe_x;
   assign static_connection_signals_soc2pad.xheep.gpio_02_oe_i = gpio_2_oe_x;
@@ -580,14 +603,6 @@ module x_heep_system
   assign static_connection_signals_soc2pad.xheep.gpio_20_oe_i = gpio_20_oe_x;
   assign static_connection_signals_soc2pad.xheep.gpio_21_oe_i = gpio_21_oe_x;
   assign static_connection_signals_soc2pad.xheep.gpio_22_oe_i = gpio_22_oe_x;
-  assign static_connection_signals_soc2pad.xheep.gpio_23_oe_i = gpio_23_oe_x;
-  assign static_connection_signals_soc2pad.xheep.gpio_24_oe_i = gpio_24_oe_x;
-  assign static_connection_signals_soc2pad.xheep.gpio_25_oe_i = gpio_25_oe_x;
-  assign static_connection_signals_soc2pad.xheep.gpio_26_oe_i = gpio_26_oe_x;
-  assign static_connection_signals_soc2pad.xheep.gpio_27_oe_i = gpio_27_oe_x;
-  assign static_connection_signals_soc2pad.xheep.gpio_28_oe_i = gpio_28_oe_x;
-  assign static_connection_signals_soc2pad.xheep.gpio_29_oe_i = gpio_29_oe_x;
-
 
   assign clk_in_x = static_connection_signals_pad2soc.xheep.clk_o;
   assign rst_nin_x = static_connection_signals_pad2soc.xheep.rst_o;
@@ -638,13 +653,7 @@ module x_heep_system
   assign gpio_20_in_x = static_connection_signals_pad2soc.xheep.gpio_20_o;
   assign gpio_21_in_x = static_connection_signals_pad2soc.xheep.gpio_21_o;
   assign gpio_22_in_x = static_connection_signals_pad2soc.xheep.gpio_22_o;
-  assign gpio_23_in_x = static_connection_signals_pad2soc.xheep.gpio_23_o;
-  assign gpio_24_in_x = static_connection_signals_pad2soc.xheep.gpio_24_o;
-  assign gpio_25_in_x = static_connection_signals_pad2soc.xheep.gpio_25_o;
-  assign gpio_26_in_x = static_connection_signals_pad2soc.xheep.gpio_26_o;
-  assign gpio_27_in_x = static_connection_signals_pad2soc.xheep.gpio_27_o;
-  assign gpio_28_in_x = static_connection_signals_pad2soc.xheep.gpio_28_o;
-  assign gpio_29_in_x = static_connection_signals_pad2soc.xheep.gpio_29_o;
+
 
   assign port_signals_soc2pad.xheep.i2c.i2c_scl_i = i2c_scl_out_x;
   assign port_signals_soc2pad.xheep.i2c.i2c_sda_i = i2c_sda_out_x;
@@ -654,11 +663,33 @@ module x_heep_system
   assign port_signals_soc2pad.xheep.gpio.gpio_31_i = gpio_31_out_x;
   assign port_signals_soc2pad.xheep.gpio.gpio_30_oe_i = gpio_30_oe_x;
   assign port_signals_soc2pad.xheep.gpio.gpio_31_oe_i = gpio_31_oe_x;
+  assign port_signals_soc2pad.xheep.spi2.spi2_sck_i = spi2_sck_out_x;
+  assign port_signals_soc2pad.xheep.spi2.spi2_sck_oe_i = spi2_sck_oe_x;
+  assign port_signals_soc2pad.xheep.spi2.spi2_cs_00_i = spi2_cs_0_out_x;
+  assign port_signals_soc2pad.xheep.spi2.spi2_cs_01_i = spi2_cs_1_out_x;
+  assign port_signals_soc2pad.xheep.spi2.spi2_cs_00_oe_i = spi_cs_0_oe_x;
+  assign port_signals_soc2pad.xheep.spi2.spi2_cs_01_oe_i = spi_cs_1_oe_x;
+  assign port_signals_soc2pad.xheep.spi2.spi2_sd_00_i = spi2_sd_0_in_x;
+  assign port_signals_soc2pad.xheep.spi2.spi2_sd_01_i = spi2_sd_1_in_x;
+  assign port_signals_soc2pad.xheep.spi2.spi2_sd_02_i = spi2_sd_2_in_x;
+  assign port_signals_soc2pad.xheep.spi2.spi2_sd_03_i = spi2_sd_3_in_x;
+  assign port_signals_soc2pad.xheep.spi2.spi2_sd_00_oe_i = spi2_sd_0_oe_x;
+  assign port_signals_soc2pad.xheep.spi2.spi2_sd_01_oe_i = spi2_sd_1_oe_x;
+  assign port_signals_soc2pad.xheep.spi2.spi2_sd_02_oe_i = spi2_sd_2_oe_x;
+  assign port_signals_soc2pad.xheep.spi2.spi2_sd_03_oe_i = spi2_sd_3_oe_x;
+
 
   assign i2c_scl_in_x = port_signals_pad2soc.xheep.i2c.i2c_scl_o;
   assign i2c_sda_in_x = port_signals_pad2soc.xheep.i2c.i2c_sda_o;
   assign gpio_30_in_x = port_signals_pad2soc.xheep.gpio.gpio_30_o;
   assign gpio_31_in_x = port_signals_pad2soc.xheep.gpio.gpio_31_o;
+  assign spi2_sck_in_x = port_signals_pad2soc.xheep.spi2.spi2_sck_o;
+  assign spi2_cs_0_in_x = port_signals_pad2soc.xheep.spi2.spi2_cs_00_o;
+  assign spi2_cs_1_in_x = port_signals_pad2soc.xheep.spi2.spi2_cs_01_o;
+  assign spi2_sd_0_in_x = port_signals_pad2soc.xheep.spi2.spi2_sd_00_o;
+  assign spi2_sd_1_in_x = port_signals_pad2soc.xheep.spi2.spi2_sd_01_o;
+  assign spi2_sd_2_in_x = port_signals_pad2soc.xheep.spi2.spi2_sd_02_o;
+  assign spi2_sd_3_in_x = port_signals_pad2soc.xheep.spi2.spi2_sd_03_o;
 
   assign clk_out_x = 1'b0;
   assign clk_oe_x = 1'b0;
@@ -727,13 +758,6 @@ module x_heep_system
       .pad_xheep_pad_gpio_20_i_pad         (gpio_20_io),
       .pad_xheep_pad_gpio_21_i_pad         (gpio_21_io),
       .pad_xheep_pad_gpio_22_i_pad         (gpio_22_io),
-      .pad_xheep_pad_gpio_23_i_pad         (gpio_23_io),
-      .pad_xheep_pad_gpio_24_i_pad         (gpio_24_io),
-      .pad_xheep_pad_gpio_25_i_pad         (gpio_25_io),
-      .pad_xheep_pad_gpio_26_i_pad         (gpio_26_io),
-      .pad_xheep_pad_gpio_27_i_pad         (gpio_27_io),
-      .pad_xheep_pad_gpio_28_i_pad         (gpio_28_io),
-      .pad_xheep_pad_gpio_29_i_pad         (gpio_29_io),
       .pad_xheep_pad_spi_flash_sck_pad     (spi_flash_sck_io),
       .pad_xheep_pad_spi_flash_cs_00_pad   (spi_flash_cs_0_io),
       .pad_xheep_pad_spi_flash_cs_01_pad   (spi_flash_cs_1_io),
@@ -748,6 +772,13 @@ module x_heep_system
       .pad_xheep_pad_spi_sd_01_pad         (spi_sd_1_io),
       .pad_xheep_pad_spi_sd_02_pad         (spi_sd_2_io),
       .pad_xheep_pad_spi_sd_03_pad         (spi_sd_3_io),
+      .pad_xheep_pad_io_23_pad             (spi2_cs_0_io),
+      .pad_xheep_pad_io_24_pad             (spi2_cs_1_io),
+      .pad_xheep_pad_io_25_pad             (spi2_sck_io),
+      .pad_xheep_pad_io_26_pad             (spi2_sd_0_io),
+      .pad_xheep_pad_io_27_pad             (spi2_sd_1_io),
+      .pad_xheep_pad_io_28_pad             (spi2_sd_2_io),
+      .pad_xheep_pad_io_29_pad             (spi2_sd_3_io),
       .pad_xheep_pad_io_30_pad             (i2c_sda_io),
       .pad_xheep_pad_io_31_pad             (i2c_scl_io),
       .config_req_i                        (pad_req),

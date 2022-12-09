@@ -23,4 +23,29 @@
   assign load.gpio_31_i = driver.gpio_31_i; \
   assign load.gpio_31_oe_i = driver.gpio_31_oe_i; \
 
+`define ASSIGN_XHEEP_SPI2_PAD2SOC(load, driver) \
+  assign load.spi2_cs_00_o = driver.spi2_cs_00_o; \
+  assign load.spi2_cs_01_o = driver.spi2_cs_01_o; \
+  assign load.spi2_sck_o = driver.spi2_sck_o; \
+  assign load.spi2_sd_00_o = driver.spi2_sd_00_o; \
+  assign load.spi2_sd_01_o = driver.spi2_sd_01_o; \
+  assign load.spi2_sd_02_o = driver.spi2_sd_02_o; \
+  assign load.spi2_sd_03_o = driver.spi2_sd_03_o; \
+
+`define ASSIGN_XHEEP_SPI2_SOC2PAD(load, driver) \
+  assign load.spi2_cs_00_i = driver.spi2_cs_00_i; \
+  assign load.spi2_cs_00_oe_i = driver.spi2_cs_00_oe_i; \
+  assign load.spi2_cs_01_i = driver.spi2_cs_01_i; \
+  assign load.spi2_cs_01_oe_i = driver.spi2_cs_01_oe_i; \
+  assign load.spi2_sck_i = driver.spi2_sck_i; \
+  assign load.spi2_sck_oe_i = driver.spi2_sck_oe_i; \
+  assign load.spi2_sd_00_i = driver.spi2_sd_00_i; \
+  assign load.spi2_sd_00_oe_i = driver.spi2_sd_00_oe_i; \
+  assign load.spi2_sd_01_i = driver.spi2_sd_01_i; \
+  assign load.spi2_sd_01_oe_i = driver.spi2_sd_01_oe_i; \
+  assign load.spi2_sd_02_i = driver.spi2_sd_02_i; \
+  assign load.spi2_sd_02_oe_i = driver.spi2_sd_02_oe_i; \
+  assign load.spi2_sd_03_i = driver.spi2_sd_03_i; \
+  assign load.spi2_sd_03_oe_i = driver.spi2_sd_03_oe_i; \
+
 

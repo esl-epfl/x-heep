@@ -7,50 +7,199 @@
 package padframe_xheep_config_reg_pkg;
 
   // Address widths within the block
-  parameter int BlockAw = 5;
+  parameter int BlockAw = 7;
 
   ////////////////////////////
   // Typedefs for registers //
   ////////////////////////////
 
   typedef struct packed {
-    struct packed {logic [15:0] q;} hw_version;
-    struct packed {logic [15:0] q;} padcount;
+    struct packed {
+      logic [15:0] q;
+    } hw_version;
+    struct packed {
+      logic [15:0] q;
+    } padcount;
   } padframe_xheep_config_reg2hw_info_reg_t;
 
   typedef struct packed {
-    struct packed {logic q;} chip2pad;
-    struct packed {logic q;} output_en;
-  } padframe_xheep_config_reg2hw_pad_io_30_cfg_reg_t;
-
-  typedef struct packed {logic [1:0] q;} padframe_xheep_config_reg2hw_pad_io_30_mux_sel_reg_t;
+    struct packed {
+      logic        q;
+    } chip2pad;
+    struct packed {
+      logic        q;
+    } output_en;
+  } padframe_xheep_config_reg2hw_pad_io_23_cfg_reg_t;
 
   typedef struct packed {
-    struct packed {logic q;} chip2pad;
-    struct packed {logic q;} output_en;
+    logic        q;
+  } padframe_xheep_config_reg2hw_pad_io_23_mux_sel_reg_t;
+
+  typedef struct packed {
+    struct packed {
+      logic        q;
+    } chip2pad;
+    struct packed {
+      logic        q;
+    } output_en;
+  } padframe_xheep_config_reg2hw_pad_io_24_cfg_reg_t;
+
+  typedef struct packed {
+    logic        q;
+  } padframe_xheep_config_reg2hw_pad_io_24_mux_sel_reg_t;
+
+  typedef struct packed {
+    struct packed {
+      logic        q;
+    } chip2pad;
+    struct packed {
+      logic        q;
+    } output_en;
+  } padframe_xheep_config_reg2hw_pad_io_25_cfg_reg_t;
+
+  typedef struct packed {
+    logic        q;
+  } padframe_xheep_config_reg2hw_pad_io_25_mux_sel_reg_t;
+
+  typedef struct packed {
+    struct packed {
+      logic        q;
+    } chip2pad;
+    struct packed {
+      logic        q;
+    } output_en;
+  } padframe_xheep_config_reg2hw_pad_io_26_cfg_reg_t;
+
+  typedef struct packed {
+    logic        q;
+  } padframe_xheep_config_reg2hw_pad_io_26_mux_sel_reg_t;
+
+  typedef struct packed {
+    struct packed {
+      logic        q;
+    } chip2pad;
+    struct packed {
+      logic        q;
+    } output_en;
+  } padframe_xheep_config_reg2hw_pad_io_27_cfg_reg_t;
+
+  typedef struct packed {
+    logic        q;
+  } padframe_xheep_config_reg2hw_pad_io_27_mux_sel_reg_t;
+
+  typedef struct packed {
+    struct packed {
+      logic        q;
+    } chip2pad;
+    struct packed {
+      logic        q;
+    } output_en;
+  } padframe_xheep_config_reg2hw_pad_io_28_cfg_reg_t;
+
+  typedef struct packed {
+    logic        q;
+  } padframe_xheep_config_reg2hw_pad_io_28_mux_sel_reg_t;
+
+  typedef struct packed {
+    struct packed {
+      logic        q;
+    } chip2pad;
+    struct packed {
+      logic        q;
+    } output_en;
+  } padframe_xheep_config_reg2hw_pad_io_29_cfg_reg_t;
+
+  typedef struct packed {
+    logic        q;
+  } padframe_xheep_config_reg2hw_pad_io_29_mux_sel_reg_t;
+
+  typedef struct packed {
+    struct packed {
+      logic        q;
+    } chip2pad;
+    struct packed {
+      logic        q;
+    } output_en;
+  } padframe_xheep_config_reg2hw_pad_io_30_cfg_reg_t;
+
+  typedef struct packed {
+    logic [1:0]  q;
+  } padframe_xheep_config_reg2hw_pad_io_30_mux_sel_reg_t;
+
+  typedef struct packed {
+    struct packed {
+      logic        q;
+    } chip2pad;
+    struct packed {
+      logic        q;
+    } output_en;
   } padframe_xheep_config_reg2hw_pad_io_31_cfg_reg_t;
 
-  typedef struct packed {logic [1:0] q;} padframe_xheep_config_reg2hw_pad_io_31_mux_sel_reg_t;
+  typedef struct packed {
+    logic [1:0]  q;
+  } padframe_xheep_config_reg2hw_pad_io_31_mux_sel_reg_t;
 
   // Register -> HW type
   typedef struct packed {
-    padframe_xheep_config_reg2hw_info_reg_t info;  // [39:8]
-    padframe_xheep_config_reg2hw_pad_io_30_cfg_reg_t pad_io_30_cfg;  // [7:6]
-    padframe_xheep_config_reg2hw_pad_io_30_mux_sel_reg_t pad_io_30_mux_sel;  // [5:4]
-    padframe_xheep_config_reg2hw_pad_io_31_cfg_reg_t pad_io_31_cfg;  // [3:2]
-    padframe_xheep_config_reg2hw_pad_io_31_mux_sel_reg_t pad_io_31_mux_sel;  // [1:0]
+    padframe_xheep_config_reg2hw_info_reg_t info; // [60:29]
+    padframe_xheep_config_reg2hw_pad_io_23_cfg_reg_t pad_io_23_cfg; // [28:27]
+    padframe_xheep_config_reg2hw_pad_io_23_mux_sel_reg_t pad_io_23_mux_sel; // [26:26]
+    padframe_xheep_config_reg2hw_pad_io_24_cfg_reg_t pad_io_24_cfg; // [25:24]
+    padframe_xheep_config_reg2hw_pad_io_24_mux_sel_reg_t pad_io_24_mux_sel; // [23:23]
+    padframe_xheep_config_reg2hw_pad_io_25_cfg_reg_t pad_io_25_cfg; // [22:21]
+    padframe_xheep_config_reg2hw_pad_io_25_mux_sel_reg_t pad_io_25_mux_sel; // [20:20]
+    padframe_xheep_config_reg2hw_pad_io_26_cfg_reg_t pad_io_26_cfg; // [19:18]
+    padframe_xheep_config_reg2hw_pad_io_26_mux_sel_reg_t pad_io_26_mux_sel; // [17:17]
+    padframe_xheep_config_reg2hw_pad_io_27_cfg_reg_t pad_io_27_cfg; // [16:15]
+    padframe_xheep_config_reg2hw_pad_io_27_mux_sel_reg_t pad_io_27_mux_sel; // [14:14]
+    padframe_xheep_config_reg2hw_pad_io_28_cfg_reg_t pad_io_28_cfg; // [13:12]
+    padframe_xheep_config_reg2hw_pad_io_28_mux_sel_reg_t pad_io_28_mux_sel; // [11:11]
+    padframe_xheep_config_reg2hw_pad_io_29_cfg_reg_t pad_io_29_cfg; // [10:9]
+    padframe_xheep_config_reg2hw_pad_io_29_mux_sel_reg_t pad_io_29_mux_sel; // [8:8]
+    padframe_xheep_config_reg2hw_pad_io_30_cfg_reg_t pad_io_30_cfg; // [7:6]
+    padframe_xheep_config_reg2hw_pad_io_30_mux_sel_reg_t pad_io_30_mux_sel; // [5:4]
+    padframe_xheep_config_reg2hw_pad_io_31_cfg_reg_t pad_io_31_cfg; // [3:2]
+    padframe_xheep_config_reg2hw_pad_io_31_mux_sel_reg_t pad_io_31_mux_sel; // [1:0]
   } padframe_xheep_config_reg2hw_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_INFO_OFFSET = 5'h0;
-  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_30_CFG_OFFSET = 5'h4;
-  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_30_MUX_SEL_OFFSET = 5'h8;
-  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_31_CFG_OFFSET = 5'hc;
-  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_31_MUX_SEL_OFFSET = 5'h10;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_INFO_OFFSET = 7'h 0;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_23_CFG_OFFSET = 7'h 4;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_23_MUX_SEL_OFFSET = 7'h 8;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_24_CFG_OFFSET = 7'h c;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_24_MUX_SEL_OFFSET = 7'h 10;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_25_CFG_OFFSET = 7'h 14;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_25_MUX_SEL_OFFSET = 7'h 18;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_26_CFG_OFFSET = 7'h 1c;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_26_MUX_SEL_OFFSET = 7'h 20;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_27_CFG_OFFSET = 7'h 24;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_27_MUX_SEL_OFFSET = 7'h 28;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_28_CFG_OFFSET = 7'h 2c;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_28_MUX_SEL_OFFSET = 7'h 30;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_29_CFG_OFFSET = 7'h 34;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_29_MUX_SEL_OFFSET = 7'h 38;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_30_CFG_OFFSET = 7'h 3c;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_30_MUX_SEL_OFFSET = 7'h 40;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_31_CFG_OFFSET = 7'h 44;
+  parameter logic [BlockAw-1:0] PADFRAME_XHEEP_CONFIG_PAD_IO_31_MUX_SEL_OFFSET = 7'h 48;
 
   // Register index
   typedef enum int {
     PADFRAME_XHEEP_CONFIG_INFO,
+    PADFRAME_XHEEP_CONFIG_PAD_IO_23_CFG,
+    PADFRAME_XHEEP_CONFIG_PAD_IO_23_MUX_SEL,
+    PADFRAME_XHEEP_CONFIG_PAD_IO_24_CFG,
+    PADFRAME_XHEEP_CONFIG_PAD_IO_24_MUX_SEL,
+    PADFRAME_XHEEP_CONFIG_PAD_IO_25_CFG,
+    PADFRAME_XHEEP_CONFIG_PAD_IO_25_MUX_SEL,
+    PADFRAME_XHEEP_CONFIG_PAD_IO_26_CFG,
+    PADFRAME_XHEEP_CONFIG_PAD_IO_26_MUX_SEL,
+    PADFRAME_XHEEP_CONFIG_PAD_IO_27_CFG,
+    PADFRAME_XHEEP_CONFIG_PAD_IO_27_MUX_SEL,
+    PADFRAME_XHEEP_CONFIG_PAD_IO_28_CFG,
+    PADFRAME_XHEEP_CONFIG_PAD_IO_28_MUX_SEL,
+    PADFRAME_XHEEP_CONFIG_PAD_IO_29_CFG,
+    PADFRAME_XHEEP_CONFIG_PAD_IO_29_MUX_SEL,
     PADFRAME_XHEEP_CONFIG_PAD_IO_30_CFG,
     PADFRAME_XHEEP_CONFIG_PAD_IO_30_MUX_SEL,
     PADFRAME_XHEEP_CONFIG_PAD_IO_31_CFG,
@@ -58,12 +207,26 @@ package padframe_xheep_config_reg_pkg;
   } padframe_xheep_config_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] PADFRAME_XHEEP_CONFIG_PERMIT[5] = '{
-      4'b1111,  // index[0] PADFRAME_XHEEP_CONFIG_INFO
-      4'b0001,  // index[1] PADFRAME_XHEEP_CONFIG_PAD_IO_30_CFG
-      4'b0001,  // index[2] PADFRAME_XHEEP_CONFIG_PAD_IO_30_MUX_SEL
-      4'b0001,  // index[3] PADFRAME_XHEEP_CONFIG_PAD_IO_31_CFG
-      4'b0001  // index[4] PADFRAME_XHEEP_CONFIG_PAD_IO_31_MUX_SEL
+  parameter logic [3:0] PADFRAME_XHEEP_CONFIG_PERMIT [19] = '{
+    4'b 1111, // index[ 0] PADFRAME_XHEEP_CONFIG_INFO
+    4'b 0001, // index[ 1] PADFRAME_XHEEP_CONFIG_PAD_IO_23_CFG
+    4'b 0001, // index[ 2] PADFRAME_XHEEP_CONFIG_PAD_IO_23_MUX_SEL
+    4'b 0001, // index[ 3] PADFRAME_XHEEP_CONFIG_PAD_IO_24_CFG
+    4'b 0001, // index[ 4] PADFRAME_XHEEP_CONFIG_PAD_IO_24_MUX_SEL
+    4'b 0001, // index[ 5] PADFRAME_XHEEP_CONFIG_PAD_IO_25_CFG
+    4'b 0001, // index[ 6] PADFRAME_XHEEP_CONFIG_PAD_IO_25_MUX_SEL
+    4'b 0001, // index[ 7] PADFRAME_XHEEP_CONFIG_PAD_IO_26_CFG
+    4'b 0001, // index[ 8] PADFRAME_XHEEP_CONFIG_PAD_IO_26_MUX_SEL
+    4'b 0001, // index[ 9] PADFRAME_XHEEP_CONFIG_PAD_IO_27_CFG
+    4'b 0001, // index[10] PADFRAME_XHEEP_CONFIG_PAD_IO_27_MUX_SEL
+    4'b 0001, // index[11] PADFRAME_XHEEP_CONFIG_PAD_IO_28_CFG
+    4'b 0001, // index[12] PADFRAME_XHEEP_CONFIG_PAD_IO_28_MUX_SEL
+    4'b 0001, // index[13] PADFRAME_XHEEP_CONFIG_PAD_IO_29_CFG
+    4'b 0001, // index[14] PADFRAME_XHEEP_CONFIG_PAD_IO_29_MUX_SEL
+    4'b 0001, // index[15] PADFRAME_XHEEP_CONFIG_PAD_IO_30_CFG
+    4'b 0001, // index[16] PADFRAME_XHEEP_CONFIG_PAD_IO_30_MUX_SEL
+    4'b 0001, // index[17] PADFRAME_XHEEP_CONFIG_PAD_IO_31_CFG
+    4'b 0001  // index[18] PADFRAME_XHEEP_CONFIG_PAD_IO_31_MUX_SEL
   };
 
 endpackage

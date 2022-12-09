@@ -26,7 +26,7 @@
                   bits:"31:16"
                   name: PADCOUNT
                   desc: "The number of muxable pads in this IP."
-                  resval: "2"
+                  resval: "9"
               }
             ]
         }
@@ -79,12 +79,355 @@
 
 
 
+      {
+          name: PAD_IO_23_CFG
+          desc: '''
+            Pad signal configuration.
+          '''
+          swaccess: "rw"
+          fields: [
+            {
+                bits: "0"
+                name: chip2pad
+                desc: '''
+                     
+                '''
+                swaccess: "rw"
+                hwaccess: "hro"
+                resval: "0"
+            },
+            {
+                bits: "1"
+                name: output_en
+                desc: '''
+                     
+                '''
+                swaccess: "rw"
+                hwaccess: "hro"
+                resval: "0"
+            },
+          ]
+      }
 
+       {
+          name: PAD_IO_23_MUX_SEL
+          desc: '''
+              Pad signal port multiplex selection for pad pad_io_23. The programmed value defines which port
+              is connected to the pad.
+          '''
+          swaccess: "rw"
+          hwaccess: "hro"
+          resval: 1
+          fields: [
+              {
+                  bits: "0:0"
+                  enum: [
+                      { value: "0", name: "register", desc: "Connects the Pad to the internal configuration register."}
+                      { value: "1", name: "port_spi2_spi2_cs_00", desc: "Connect port spi2_cs_00 from port group spi2 to this pad." }
+                  ]
+              }
+          ]
+      }
 
+      {
+          name: PAD_IO_24_CFG
+          desc: '''
+            Pad signal configuration.
+          '''
+          swaccess: "rw"
+          fields: [
+            {
+                bits: "0"
+                name: chip2pad
+                desc: '''
+                     
+                '''
+                swaccess: "rw"
+                hwaccess: "hro"
+                resval: "0"
+            },
+            {
+                bits: "1"
+                name: output_en
+                desc: '''
+                     
+                '''
+                swaccess: "rw"
+                hwaccess: "hro"
+                resval: "0"
+            },
+          ]
+      }
 
+       {
+          name: PAD_IO_24_MUX_SEL
+          desc: '''
+              Pad signal port multiplex selection for pad pad_io_24. The programmed value defines which port
+              is connected to the pad.
+          '''
+          swaccess: "rw"
+          hwaccess: "hro"
+          resval: 1
+          fields: [
+              {
+                  bits: "0:0"
+                  enum: [
+                      { value: "0", name: "register", desc: "Connects the Pad to the internal configuration register."}
+                      { value: "1", name: "port_spi2_spi2_cs_01", desc: "Connect port spi2_cs_01 from port group spi2 to this pad." }
+                  ]
+              }
+          ]
+      }
 
+      {
+          name: PAD_IO_25_CFG
+          desc: '''
+            Pad signal configuration.
+          '''
+          swaccess: "rw"
+          fields: [
+            {
+                bits: "0"
+                name: chip2pad
+                desc: '''
+                     
+                '''
+                swaccess: "rw"
+                hwaccess: "hro"
+                resval: "0"
+            },
+            {
+                bits: "1"
+                name: output_en
+                desc: '''
+                     
+                '''
+                swaccess: "rw"
+                hwaccess: "hro"
+                resval: "0"
+            },
+          ]
+      }
 
+       {
+          name: PAD_IO_25_MUX_SEL
+          desc: '''
+              Pad signal port multiplex selection for pad pad_io_25. The programmed value defines which port
+              is connected to the pad.
+          '''
+          swaccess: "rw"
+          hwaccess: "hro"
+          resval: 1
+          fields: [
+              {
+                  bits: "0:0"
+                  enum: [
+                      { value: "0", name: "register", desc: "Connects the Pad to the internal configuration register."}
+                      { value: "1", name: "port_spi2_spi2_sck", desc: "Connect port spi2_sck from port group spi2 to this pad." }
+                  ]
+              }
+          ]
+      }
 
+      {
+          name: PAD_IO_26_CFG
+          desc: '''
+            Pad signal configuration.
+          '''
+          swaccess: "rw"
+          fields: [
+            {
+                bits: "0"
+                name: chip2pad
+                desc: '''
+                     
+                '''
+                swaccess: "rw"
+                hwaccess: "hro"
+                resval: "0"
+            },
+            {
+                bits: "1"
+                name: output_en
+                desc: '''
+                     
+                '''
+                swaccess: "rw"
+                hwaccess: "hro"
+                resval: "0"
+            },
+          ]
+      }
+
+       {
+          name: PAD_IO_26_MUX_SEL
+          desc: '''
+              Pad signal port multiplex selection for pad pad_io_26. The programmed value defines which port
+              is connected to the pad.
+          '''
+          swaccess: "rw"
+          hwaccess: "hro"
+          resval: 1
+          fields: [
+              {
+                  bits: "0:0"
+                  enum: [
+                      { value: "0", name: "register", desc: "Connects the Pad to the internal configuration register."}
+                      { value: "1", name: "port_spi2_spi2_sd_00", desc: "Connect port spi2_sd_00 from port group spi2 to this pad." }
+                  ]
+              }
+          ]
+      }
+
+      {
+          name: PAD_IO_27_CFG
+          desc: '''
+            Pad signal configuration.
+          '''
+          swaccess: "rw"
+          fields: [
+            {
+                bits: "0"
+                name: chip2pad
+                desc: '''
+                     
+                '''
+                swaccess: "rw"
+                hwaccess: "hro"
+                resval: "0"
+            },
+            {
+                bits: "1"
+                name: output_en
+                desc: '''
+                     
+                '''
+                swaccess: "rw"
+                hwaccess: "hro"
+                resval: "0"
+            },
+          ]
+      }
+
+       {
+          name: PAD_IO_27_MUX_SEL
+          desc: '''
+              Pad signal port multiplex selection for pad pad_io_27. The programmed value defines which port
+              is connected to the pad.
+          '''
+          swaccess: "rw"
+          hwaccess: "hro"
+          resval: 1
+          fields: [
+              {
+                  bits: "0:0"
+                  enum: [
+                      { value: "0", name: "register", desc: "Connects the Pad to the internal configuration register."}
+                      { value: "1", name: "port_spi2_spi2_sd_01", desc: "Connect port spi2_sd_01 from port group spi2 to this pad." }
+                  ]
+              }
+          ]
+      }
+
+      {
+          name: PAD_IO_28_CFG
+          desc: '''
+            Pad signal configuration.
+          '''
+          swaccess: "rw"
+          fields: [
+            {
+                bits: "0"
+                name: chip2pad
+                desc: '''
+                     
+                '''
+                swaccess: "rw"
+                hwaccess: "hro"
+                resval: "0"
+            },
+            {
+                bits: "1"
+                name: output_en
+                desc: '''
+                     
+                '''
+                swaccess: "rw"
+                hwaccess: "hro"
+                resval: "0"
+            },
+          ]
+      }
+
+       {
+          name: PAD_IO_28_MUX_SEL
+          desc: '''
+              Pad signal port multiplex selection for pad pad_io_28. The programmed value defines which port
+              is connected to the pad.
+          '''
+          swaccess: "rw"
+          hwaccess: "hro"
+          resval: 1
+          fields: [
+              {
+                  bits: "0:0"
+                  enum: [
+                      { value: "0", name: "register", desc: "Connects the Pad to the internal configuration register."}
+                      { value: "1", name: "port_spi2_spi2_sd_02", desc: "Connect port spi2_sd_02 from port group spi2 to this pad." }
+                  ]
+              }
+          ]
+      }
+
+      {
+          name: PAD_IO_29_CFG
+          desc: '''
+            Pad signal configuration.
+          '''
+          swaccess: "rw"
+          fields: [
+            {
+                bits: "0"
+                name: chip2pad
+                desc: '''
+                     
+                '''
+                swaccess: "rw"
+                hwaccess: "hro"
+                resval: "0"
+            },
+            {
+                bits: "1"
+                name: output_en
+                desc: '''
+                     
+                '''
+                swaccess: "rw"
+                hwaccess: "hro"
+                resval: "0"
+            },
+          ]
+      }
+
+       {
+          name: PAD_IO_29_MUX_SEL
+          desc: '''
+              Pad signal port multiplex selection for pad pad_io_29. The programmed value defines which port
+              is connected to the pad.
+          '''
+          swaccess: "rw"
+          hwaccess: "hro"
+          resval: 1
+          fields: [
+              {
+                  bits: "0:0"
+                  enum: [
+                      { value: "0", name: "register", desc: "Connects the Pad to the internal configuration register."}
+                      { value: "1", name: "port_spi2_spi2_sd_03", desc: "Connect port spi2_sd_03 from port group spi2 to this pad." }
+                  ]
+              }
+          ]
+      }
 
       {
           name: PAD_IO_30_CFG

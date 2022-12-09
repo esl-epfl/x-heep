@@ -154,10 +154,10 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] EXT_PERIPH_END_ADDRESS = EXT_PERIPH_START_ADDRESS + EXT_PERIPH_SIZE;
   localparam logic[31:0] EXT_PERIPH_IDX = 32'd9;
 
-  localparam logic[31:0] PAD_CONTROL_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${pad_control_start_offset};
-  localparam logic[31:0] PAD_CONTROL_SIZE = 32'h${pad_control_size_address};
-  localparam logic[31:0] PAD_CONTROL_END_ADDRESS = PAD_CONTROL_START_ADDRESS + PAD_CONTROL_SIZE;
-  localparam logic[31:0] PAD_CONTROL_IDX = 32'd10;
+  localparam logic[31:0] PADFRAME_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${padframe_start_offset};
+  localparam logic[31:0] PADFRAME_SIZE = 32'h${padframe_size_address};
+  localparam logic[31:0] PADFRAME_END_ADDRESS = PADFRAME_START_ADDRESS + PADFRAME_SIZE;
+  localparam logic[31:0] PADFRAME_IDX = 32'd10;
 
   localparam logic[31:0] GPIO_AO_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${gpio_ao_start_offset};
   localparam logic[31:0] GPIO_AO_SIZE = 32'h${gpio_ao_size_address};
@@ -180,7 +180,7 @@ package core_v_mini_mcu_pkg;
       '{ idx: DMA_IDX, start_addr: DMA_START_ADDRESS, end_addr: DMA_END_ADDRESS },
       '{ idx: FAST_INTR_CTRL_IDX, start_addr: FAST_INTR_CTRL_START_ADDRESS, end_addr: FAST_INTR_CTRL_END_ADDRESS },
       '{ idx: EXT_PERIPH_IDX, start_addr: EXT_PERIPH_START_ADDRESS, end_addr: EXT_PERIPH_END_ADDRESS },
-      '{ idx: PAD_CONTROL_IDX, start_addr: PAD_CONTROL_START_ADDRESS, end_addr: PAD_CONTROL_END_ADDRESS },
+      '{ idx: PADFRAME_IDX, start_addr: PADFRAME_START_ADDRESS, end_addr: PADFRAME_END_ADDRESS },
       '{ idx: GPIO_AO_IDX, start_addr: GPIO_AO_START_ADDRESS, end_addr: GPIO_AO_END_ADDRESS },
       '{ idx: UART_IDX, start_addr: UART_START_ADDRESS, end_addr: UART_END_ADDRESS }
   };

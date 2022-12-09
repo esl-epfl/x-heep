@@ -61,7 +61,6 @@ filesets:
     - x-heep:ip:padframe
     files:
     - hw/system/x_heep_system.sv
-    - hw/system/pad_ring.sv
     file_type: systemVerilogSource
 
   tb-utils:

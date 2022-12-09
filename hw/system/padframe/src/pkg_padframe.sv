@@ -4,190 +4,198 @@ package pkg_padframe;
   //Structs for xheep
 
   //Static connections signals
-  typedef struct packed {
-    logic exit_valid_i;
-    logic gpio_00_i;
-    logic gpio_00_oe_i;
-    logic gpio_01_i;
-    logic gpio_01_oe_i;
-    logic gpio_02_i;
-    logic gpio_02_oe_i;
-    logic gpio_03_i;
-    logic gpio_03_oe_i;
-    logic gpio_04_i;
-    logic gpio_04_oe_i;
-    logic gpio_05_i;
-    logic gpio_05_oe_i;
-    logic gpio_06_i;
-    logic gpio_06_oe_i;
-    logic gpio_07_i;
-    logic gpio_07_oe_i;
-    logic gpio_08_i;
-    logic gpio_08_oe_i;
-    logic gpio_09_i;
-    logic gpio_09_oe_i;
-    logic gpio_10_i;
-    logic gpio_10_oe_i;
-    logic gpio_11_i;
-    logic gpio_11_oe_i;
-    logic gpio_12_i;
-    logic gpio_12_oe_i;
-    logic gpio_13_i;
-    logic gpio_13_oe_i;
-    logic gpio_14_i;
-    logic gpio_14_oe_i;
-    logic gpio_15_i;
-    logic gpio_15_oe_i;
-    logic gpio_16_i;
-    logic gpio_16_oe_i;
-    logic gpio_17_i;
-    logic gpio_17_oe_i;
-    logic gpio_18_i;
-    logic gpio_18_oe_i;
-    logic gpio_19_i;
-    logic gpio_19_oe_i;
-    logic gpio_20_i;
-    logic gpio_20_oe_i;
-    logic gpio_21_i;
-    logic gpio_21_oe_i;
-    logic gpio_22_i;
-    logic gpio_22_oe_i;
-    logic gpio_23_i;
-    logic gpio_23_oe_i;
-    logic gpio_24_i;
-    logic gpio_24_oe_i;
-    logic gpio_25_i;
-    logic gpio_25_oe_i;
-    logic gpio_26_i;
-    logic gpio_26_oe_i;
-    logic gpio_27_i;
-    logic gpio_27_oe_i;
-    logic gpio_28_i;
-    logic gpio_28_oe_i;
-    logic gpio_29_i;
-    logic gpio_29_oe_i;
-    logic jtag_tdo_i;
-    logic spi_cs_00_i;
-    logic spi_cs_00_oe_i;
-    logic spi_cs_01_i;
-    logic spi_cs_01_oe_i;
-    logic spi_flash_cs_00_i;
-    logic spi_flash_cs_00_oe_i;
-    logic spi_flash_cs_01_i;
-    logic spi_flash_cs_01_oe_i;
-    logic spi_flash_sck_i;
-    logic spi_flash_sck_oe_i;
-    logic spi_flash_sd_00_i;
-    logic spi_flash_sd_00_oe_i;
-    logic spi_flash_sd_01_i;
-    logic spi_flash_sd_01_oe_i;
-    logic spi_flash_sd_02_i;
-    logic spi_flash_sd_02_oe_i;
-    logic spi_flash_sd_03_i;
-    logic spi_flash_sd_03_oe_i;
-    logic spi_sck_i;
-    logic spi_sck_oe_i;
-    logic spi_sd_00_i;
-    logic spi_sd_00_oe_i;
-    logic spi_sd_01_i;
-    logic spi_sd_01_oe_i;
-    logic spi_sd_02_i;
-    logic spi_sd_02_oe_i;
-    logic spi_sd_03_i;
-    logic spi_sd_03_oe_i;
-    logic uart_tx_i;
-  } pad_domain_xheep_static_connection_signals_soc2pad_t;
+   typedef struct packed {
+      logic        exit_valid_i;
+      logic        gpio_00_i;
+      logic        gpio_00_oe_i;
+      logic        gpio_01_i;
+      logic        gpio_01_oe_i;
+      logic        gpio_02_i;
+      logic        gpio_02_oe_i;
+      logic        gpio_03_i;
+      logic        gpio_03_oe_i;
+      logic        gpio_04_i;
+      logic        gpio_04_oe_i;
+      logic        gpio_05_i;
+      logic        gpio_05_oe_i;
+      logic        gpio_06_i;
+      logic        gpio_06_oe_i;
+      logic        gpio_07_i;
+      logic        gpio_07_oe_i;
+      logic        gpio_08_i;
+      logic        gpio_08_oe_i;
+      logic        gpio_09_i;
+      logic        gpio_09_oe_i;
+      logic        gpio_10_i;
+      logic        gpio_10_oe_i;
+      logic        gpio_11_i;
+      logic        gpio_11_oe_i;
+      logic        gpio_12_i;
+      logic        gpio_12_oe_i;
+      logic        gpio_13_i;
+      logic        gpio_13_oe_i;
+      logic        gpio_14_i;
+      logic        gpio_14_oe_i;
+      logic        gpio_15_i;
+      logic        gpio_15_oe_i;
+      logic        gpio_16_i;
+      logic        gpio_16_oe_i;
+      logic        gpio_17_i;
+      logic        gpio_17_oe_i;
+      logic        gpio_18_i;
+      logic        gpio_18_oe_i;
+      logic        gpio_19_i;
+      logic        gpio_19_oe_i;
+      logic        gpio_20_i;
+      logic        gpio_20_oe_i;
+      logic        gpio_21_i;
+      logic        gpio_21_oe_i;
+      logic        gpio_22_i;
+      logic        gpio_22_oe_i;
+      logic        jtag_tdo_i;
+      logic        spi_cs_00_i;
+      logic        spi_cs_00_oe_i;
+      logic        spi_cs_01_i;
+      logic        spi_cs_01_oe_i;
+      logic        spi_flash_cs_00_i;
+      logic        spi_flash_cs_00_oe_i;
+      logic        spi_flash_cs_01_i;
+      logic        spi_flash_cs_01_oe_i;
+      logic        spi_flash_sck_i;
+      logic        spi_flash_sck_oe_i;
+      logic        spi_flash_sd_00_i;
+      logic        spi_flash_sd_00_oe_i;
+      logic        spi_flash_sd_01_i;
+      logic        spi_flash_sd_01_oe_i;
+      logic        spi_flash_sd_02_i;
+      logic        spi_flash_sd_02_oe_i;
+      logic        spi_flash_sd_03_i;
+      logic        spi_flash_sd_03_oe_i;
+      logic        spi_sck_i;
+      logic        spi_sck_oe_i;
+      logic        spi_sd_00_i;
+      logic        spi_sd_00_oe_i;
+      logic        spi_sd_01_i;
+      logic        spi_sd_01_oe_i;
+      logic        spi_sd_02_i;
+      logic        spi_sd_02_oe_i;
+      logic        spi_sd_03_i;
+      logic        spi_sd_03_oe_i;
+      logic        uart_tx_i;
+     } pad_domain_xheep_static_connection_signals_soc2pad_t;
 
-  typedef struct packed {
-    logic boot_select_o;
-    logic clk_o;
-    logic execute_from_flash_o;
-    logic gpio_00_o;
-    logic gpio_01_o;
-    logic gpio_02_o;
-    logic gpio_03_o;
-    logic gpio_04_o;
-    logic gpio_05_o;
-    logic gpio_06_o;
-    logic gpio_07_o;
-    logic gpio_08_o;
-    logic gpio_09_o;
-    logic gpio_10_o;
-    logic gpio_11_o;
-    logic gpio_12_o;
-    logic gpio_13_o;
-    logic gpio_14_o;
-    logic gpio_15_o;
-    logic gpio_16_o;
-    logic gpio_17_o;
-    logic gpio_18_o;
-    logic gpio_19_o;
-    logic gpio_20_o;
-    logic gpio_21_o;
-    logic gpio_22_o;
-    logic gpio_23_o;
-    logic gpio_24_o;
-    logic gpio_25_o;
-    logic gpio_26_o;
-    logic gpio_27_o;
-    logic gpio_28_o;
-    logic gpio_29_o;
-    logic jtag_tck_o;
-    logic jtag_tdi_o;
-    logic jtag_tms_o;
-    logic jtag_trst_o;
-    logic rst_o;
-    logic spi_cs_00_o;
-    logic spi_cs_01_o;
-    logic spi_flash_cs_00_o;
-    logic spi_flash_cs_01_o;
-    logic spi_flash_sck_o;
-    logic spi_flash_sd_00_o;
-    logic spi_flash_sd_01_o;
-    logic spi_flash_sd_02_o;
-    logic spi_flash_sd_03_o;
-    logic spi_sck_o;
-    logic spi_sd_00_o;
-    logic spi_sd_01_o;
-    logic spi_sd_02_o;
-    logic spi_sd_03_o;
-    logic uart_rx_o;
-  } pad_domain_xheep_static_connection_signals_pad2soc_t;
+   typedef struct packed {
+      logic        boot_select_o;
+      logic        clk_o;
+      logic        execute_from_flash_o;
+      logic        gpio_00_o;
+      logic        gpio_01_o;
+      logic        gpio_02_o;
+      logic        gpio_03_o;
+      logic        gpio_04_o;
+      logic        gpio_05_o;
+      logic        gpio_06_o;
+      logic        gpio_07_o;
+      logic        gpio_08_o;
+      logic        gpio_09_o;
+      logic        gpio_10_o;
+      logic        gpio_11_o;
+      logic        gpio_12_o;
+      logic        gpio_13_o;
+      logic        gpio_14_o;
+      logic        gpio_15_o;
+      logic        gpio_16_o;
+      logic        gpio_17_o;
+      logic        gpio_18_o;
+      logic        gpio_19_o;
+      logic        gpio_20_o;
+      logic        gpio_21_o;
+      logic        gpio_22_o;
+      logic        jtag_tck_o;
+      logic        jtag_tdi_o;
+      logic        jtag_tms_o;
+      logic        jtag_trst_o;
+      logic        rst_o;
+      logic        spi_cs_00_o;
+      logic        spi_cs_01_o;
+      logic        spi_flash_cs_00_o;
+      logic        spi_flash_cs_01_o;
+      logic        spi_flash_sck_o;
+      logic        spi_flash_sd_00_o;
+      logic        spi_flash_sd_01_o;
+      logic        spi_flash_sd_02_o;
+      logic        spi_flash_sd_03_o;
+      logic        spi_sck_o;
+      logic        spi_sd_00_o;
+      logic        spi_sd_01_o;
+      logic        spi_sd_02_o;
+      logic        spi_sd_03_o;
+      logic        uart_rx_o;
+     } pad_domain_xheep_static_connection_signals_pad2soc_t;
 
   // Port Group signals
-  typedef struct packed {
-    logic i2c_scl_i;
-    logic i2c_scl_oe_i;
-    logic i2c_sda_i;
-    logic i2c_sda_oe_i;
-  } pad_domain_xheep_port_group_i2c_soc2pad_t;
+   typedef struct packed {
+      logic        i2c_scl_i;
+      logic        i2c_scl_oe_i;
+      logic        i2c_sda_i;
+      logic        i2c_sda_oe_i;
+     } pad_domain_xheep_port_group_i2c_soc2pad_t;
 
-  typedef struct packed {
-    logic i2c_scl_o;
-    logic i2c_sda_o;
-  } pad_domain_xheep_port_group_i2c_pad2soc_t;
+   typedef struct packed {
+      logic        i2c_scl_o;
+      logic        i2c_sda_o;
+     } pad_domain_xheep_port_group_i2c_pad2soc_t;
 
-  typedef struct packed {
-    logic gpio_30_i;
-    logic gpio_30_oe_i;
-    logic gpio_31_i;
-    logic gpio_31_oe_i;
-  } pad_domain_xheep_port_group_gpio_soc2pad_t;
+   typedef struct packed {
+      logic        gpio_30_i;
+      logic        gpio_30_oe_i;
+      logic        gpio_31_i;
+      logic        gpio_31_oe_i;
+     } pad_domain_xheep_port_group_gpio_soc2pad_t;
 
-  typedef struct packed {
-    logic gpio_30_o;
-    logic gpio_31_o;
-  } pad_domain_xheep_port_group_gpio_pad2soc_t;
+   typedef struct packed {
+      logic        gpio_30_o;
+      logic        gpio_31_o;
+     } pad_domain_xheep_port_group_gpio_pad2soc_t;
 
-  typedef struct packed {
-    pad_domain_xheep_port_group_i2c_soc2pad_t  i2c;
-    pad_domain_xheep_port_group_gpio_soc2pad_t gpio;
-  } pad_domain_xheep_ports_soc2pad_t;
+   typedef struct packed {
+      logic        spi2_cs_00_i;
+      logic        spi2_cs_00_oe_i;
+      logic        spi2_cs_01_i;
+      logic        spi2_cs_01_oe_i;
+      logic        spi2_sck_i;
+      logic        spi2_sck_oe_i;
+      logic        spi2_sd_00_i;
+      logic        spi2_sd_00_oe_i;
+      logic        spi2_sd_01_i;
+      logic        spi2_sd_01_oe_i;
+      logic        spi2_sd_02_i;
+      logic        spi2_sd_02_oe_i;
+      logic        spi2_sd_03_i;
+      logic        spi2_sd_03_oe_i;
+     } pad_domain_xheep_port_group_spi2_soc2pad_t;
 
-  typedef struct packed {
-    pad_domain_xheep_port_group_i2c_pad2soc_t  i2c;
-    pad_domain_xheep_port_group_gpio_pad2soc_t gpio;
-  } pad_domain_xheep_ports_pad2soc_t;
+   typedef struct packed {
+      logic        spi2_cs_00_o;
+      logic        spi2_cs_01_o;
+      logic        spi2_sck_o;
+      logic        spi2_sd_00_o;
+      logic        spi2_sd_01_o;
+      logic        spi2_sd_02_o;
+      logic        spi2_sd_03_o;
+     } pad_domain_xheep_port_group_spi2_pad2soc_t;
+
+   typedef struct packed {
+     pad_domain_xheep_port_group_i2c_soc2pad_t i2c;
+     pad_domain_xheep_port_group_gpio_soc2pad_t gpio;
+     pad_domain_xheep_port_group_spi2_soc2pad_t spi2;
+     } pad_domain_xheep_ports_soc2pad_t;
+
+   typedef struct packed {
+     pad_domain_xheep_port_group_i2c_pad2soc_t i2c;
+     pad_domain_xheep_port_group_gpio_pad2soc_t gpio;
+     pad_domain_xheep_port_group_spi2_pad2soc_t spi2;
+     } pad_domain_xheep_ports_pad2soc_t;
 
 
   //Toplevel structs
@@ -200,9 +208,13 @@ package pkg_padframe;
     pad_domain_xheep_static_connection_signals_soc2pad_t xheep;
   } static_connection_signals_soc2pad_t;
 
-  typedef struct packed {pad_domain_xheep_ports_pad2soc_t xheep;} port_signals_pad2soc_t;
+  typedef struct packed {
+    pad_domain_xheep_ports_pad2soc_t xheep;
+  } port_signals_pad2soc_t;
 
-  typedef struct packed {pad_domain_xheep_ports_soc2pad_t xheep;} port_signals_soc2pad_t;
+  typedef struct packed {
+    pad_domain_xheep_ports_soc2pad_t xheep;
+  } port_signals_soc2pad_t;
 
 
 endpackage : pkg_padframe

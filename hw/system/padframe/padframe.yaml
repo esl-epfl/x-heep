@@ -151,7 +151,7 @@ pad_domains:
           output_en: 1'b1
 
       - name: pad_gpio_{i:2d}_i
-        multiple: 30
+        multiple: 23
         pad_type: generic_pad_cell_inout
         is_static: true
         connections:
@@ -216,6 +216,61 @@ pad_domains:
 # Dynamic Connection 
 #
 
+      # - name: pad_io_{i+23:2d}
+      #   multiple: 9
+      #   mux_groups: ["pad{i+23:2d}"]
+      #   pad_type: generic_pad_cell_inout
+      #   is_static: false
+      #   default_port:
+      #     pad_io_23: spi2.spi2_cs_00
+      #     pad_io_24: spi2.spi2_cs_01
+      #     pad_io_25: spi2.spi2_sck            
+      #     pad_io_{i%4+26:2d}: spi2.sd_{i%4:2d}
+      #     pad_io_30: i2c.i2c_sda
+      #     pad_io_31: i2c.i2c_scl
+
+      - name: pad_io_23 
+        default_port: spi2.spi2_cs_00
+        mux_groups: [pad23]
+        pad_type: generic_pad_cell_inout
+        is_static: false
+
+      - name: pad_io_24 
+        default_port: spi2.spi2_cs_01
+        mux_groups: [pad24]
+        pad_type: generic_pad_cell_inout
+        is_static: false
+
+      - name: pad_io_25 
+        default_port: spi2.spi2_sck
+        mux_groups: [pad25]
+        pad_type: generic_pad_cell_inout
+        is_static: false
+
+      - name: pad_io_26 
+        default_port: spi2.spi2_sd_00
+        mux_groups: [pad26]
+        pad_type: generic_pad_cell_inout
+        is_static: false
+
+      - name: pad_io_27 
+        default_port: spi2.spi2_sd_01
+        mux_groups: [pad27]
+        pad_type: generic_pad_cell_inout
+        is_static: false
+
+      - name: pad_io_28 
+        default_port: spi2.spi2_sd_02
+        mux_groups: [pad28]
+        pad_type: generic_pad_cell_inout
+        is_static: false
+
+      - name: pad_io_29 
+        default_port: spi2.spi2_sd_03
+        mux_groups: [pad29]
+        pad_type: generic_pad_cell_inout
+        is_static: false
+
       - name: pad_io_30 
         default_port: i2c.i2c_sda
         mux_groups: [pad30]
@@ -263,4 +318,56 @@ pad_domains:
               chip2pad: gpio_31_i
               gpio_31_o: pad2chip
               output_en: gpio_31_oe_i
+
+      - name: spi2
+        output_defaults: 1'b0
+        ports:
+          - name: spi2_cs_00
+            mux_groups: [pad23]
+            connections:
+              chip2pad: spi2_cs_00_i
+              spi2_cs_00_o: pad2chip
+              output_en: spi2_cs_00_oe_i
+
+          - name: spi2_cs_01
+            mux_groups: [pad24]
+            connections:
+              chip2pad: spi2_cs_01_i
+              spi2_cs_01_o: pad2chip
+              output_en: spi2_cs_01_oe_i
+
+          - name: spi2_sck
+            mux_groups: [pad25]
+            connections:
+              chip2pad: spi2_sck_i
+              spi2_sck_o: pad2chip
+              output_en: spi2_sck_oe_i
+
+          - name: spi2_sd_00
+            mux_groups: [pad26]
+            connections:
+              chip2pad: spi2_sd_00_i
+              spi2_sd_00_o: pad2chip
+              output_en: spi2_sd_00_oe_i
+
+          - name: spi2_sd_01
+            mux_groups: [pad27]
+            connections:
+              chip2pad: spi2_sd_01_i
+              spi2_sd_01_o: pad2chip
+              output_en: spi2_sd_01_oe_i
+
+          - name: spi2_sd_02
+            mux_groups: [pad28]
+            connections:
+              chip2pad: spi2_sd_02_i
+              spi2_sd_02_o: pad2chip
+              output_en: spi2_sd_02_oe_i
+
+          - name: spi2_sd_03
+            mux_groups: [pad29]
+            connections:
+              chip2pad: spi2_sd_03_i
+              spi2_sd_03_o: pad2chip
+              output_en: spi2_sd_03_oe_i
 
