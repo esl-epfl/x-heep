@@ -137,6 +137,13 @@ padrick generate rtl padframe.yml
 
 This command will generate all the files of the new padframe. Now that your padframe IP is generated you can instantiate it within your design. The toplevel module for user instantiation is called <padframe.name>.sv. The structs that make up the interface of this SystemVerilog module are defined in pkg_<padframe.name>.sv.
 
+Correspondingly, you can also generate the driver by:
+
+```
+padrick generate driver -o ../../../sw/device/lib/drivers/padframe/ padframe.yml
+```
+'-o' here defines the output folder.
+
 You can also use the following command to show the built-in helo
 ```
 padrick --help
