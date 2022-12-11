@@ -172,6 +172,7 @@ end
 // assertions
 ////////////////////////////////////////////////////////////////////////
 
+`ifndef SYNTHESIS
 // pragma translate_off
 initial begin
   assert (RespLat > 0) else
@@ -180,5 +181,6 @@ initial begin
     $fatal(1,"NumOut must be greater than 0");
 end
 // pragma translate_on
+`endif
 
 endmodule // addr_dec_resp_mux
