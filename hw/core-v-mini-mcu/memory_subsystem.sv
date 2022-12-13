@@ -29,7 +29,7 @@ module memory_subsystem
   logic [NUM_BANKS-1:0] clk_cg;
   for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_sram
 
-    xilinx_clk_gating clk_gating_cell_i (
+    tc_clk_gating clk_gating_cell_i (
         .clk_i,
         .en_i(clk_gate_en_i[i]),
         .test_en_i(0),

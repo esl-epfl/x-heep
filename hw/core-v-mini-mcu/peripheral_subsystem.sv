@@ -151,7 +151,7 @@ module peripheral_subsystem
 
   // Clock-gating
   logic clk_cg;
-  xilinx_clk_gating clk_gating_cell (
+  tc_clk_gating clk_gating_cell (
       .clk_i,
       .en_i(clk_gate_en_i),
       .test_en_i(0),
