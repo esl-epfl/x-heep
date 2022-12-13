@@ -437,8 +437,8 @@ def main():
     ext_periph_start_offset  = string2int(obj['ao_peripherals']['ext_periph']['offset'])
     ext_periph_size_address  = string2int(obj['ao_peripherals']['ext_periph']['length'])
 
-    pad_control_start_offset  = string2int(obj['ao_peripherals']['pad_control']['offset'])
-    pad_control_size_address  = string2int(obj['ao_peripherals']['pad_control']['length'])
+    padframe_start_offset  = string2int(obj['ao_peripherals']['padframe']['offset'])
+    padframe_size_address  = string2int(obj['ao_peripherals']['padframe']['length'])
 
     gpio_ao_start_offset  = string2int(obj['ao_peripherals']['gpio_ao']['offset'])
     gpio_ao_size_address  = string2int(obj['ao_peripherals']['gpio_ao']['length'])
@@ -822,8 +822,8 @@ def main():
         "fast_intr_ctrl_size_address"      : fast_intr_ctrl_size_address,
         "ext_periph_start_offset"          : ext_periph_start_offset,
         "ext_periph_size_address"          : ext_periph_size_address,
-        "pad_control_start_offset"         : pad_control_start_offset,
-        "pad_control_size_address"         : pad_control_size_address,
+        "padframe_start_offset"            : padframe_start_offset,
+        "padframe_size_address"            : padframe_size_address,
         "gpio_ao_start_offset"             : gpio_ao_start_offset,
         "gpio_ao_size_address"             : gpio_ao_size_address,
         "uart_start_offset"                : uart_start_offset,

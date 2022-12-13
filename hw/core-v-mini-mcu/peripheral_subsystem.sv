@@ -225,32 +225,19 @@ module peripheral_subsystem
       .msip_o(msip_o)
   );
 
-  reg_to_tlul #(
-      .req_t(reg_pkg::reg_req_t),
-      .rsp_t(reg_pkg::reg_rsp_t),
-      .tl_h2d_t(tlul_pkg::tl_h2d_t),
-      .tl_d2h_t(tlul_pkg::tl_d2h_t),
-      .tl_a_user_t(tlul_pkg::tl_a_user_t),
-      .tl_a_op_e(tlul_pkg::tl_a_op_e),
-      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
-      .PutFullData(tlul_pkg::PutFullData),
-      .Get(tlul_pkg::Get)
-  ) reg_to_tlul_gpio_i (
-      .tl_o(gpio_tl_h2d),
-      .tl_i(gpio_tl_d2h),
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::GPIO_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_IDX])
-  );
-
-  gpio gpio_i (
+  gpio #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  )  gpio_i (
       .clk_i,
       .rst_ni,
-      .tl_i(gpio_tl_h2d),
-      .tl_o(gpio_tl_d2h),
-      .cio_gpio_i({cio_gpio_i, 8'b0}),
-      .cio_gpio_o({cio_gpio_o, cio_gpio_unused}),
-      .cio_gpio_en_o({cio_gpio_en_o, cio_gpio_en_unused}),
-      .intr_gpio_o({gpio_intr, gpio_int_unused})
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::GPIO_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_IDX]),
+      .gpio_in({cio_gpio_i, 8'b0}),
+      .gpio_out({cio_gpio_o, cio_gpio_unused}),
+      .gpio_tx_en_o({cio_gpio_en_o, cio_gpio_en_unused}),
+      .gpio_in_sync_o(),
+      .interrupt_o({gpio_intr, gpio_int_unused})
   );
 
   reg_to_tlul #(

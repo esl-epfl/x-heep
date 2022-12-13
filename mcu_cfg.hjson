@@ -76,7 +76,7 @@
             offset:  0x00080000,
             length:  0x00010000,
         },
-        pad_control: {
+        padframe: {
             offset:  0x00090000,
             length:  0x00010000,
         },

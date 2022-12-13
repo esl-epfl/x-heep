@@ -337,8 +337,8 @@ module ao_peripheral_subsystem
       .dma_intr_o
   );
 
-  assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_CONTROL_IDX];
-  assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_CONTROL_IDX] = pad_resp_i;
+  assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PADFRAME_IDX];
+  assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::PADFRAME_IDX] = pad_resp_i;
 
   fast_intr_ctrl #(
       .reg_req_t(reg_pkg::reg_req_t),
@@ -352,32 +352,19 @@ module ao_peripheral_subsystem
       .fast_intr_o
   );
 
-  reg_to_tlul #(
-      .req_t(reg_pkg::reg_req_t),
-      .rsp_t(reg_pkg::reg_rsp_t),
-      .tl_h2d_t(tlul_pkg::tl_h2d_t),
-      .tl_d2h_t(tlul_pkg::tl_d2h_t),
-      .tl_a_user_t(tlul_pkg::tl_a_user_t),
-      .tl_a_op_e(tlul_pkg::tl_a_op_e),
-      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
-      .PutFullData(tlul_pkg::PutFullData),
-      .Get(tlul_pkg::Get)
-  ) reg_to_tlul_gpio_ao_i (
-      .tl_o(gpio_tl_h2d),
-      .tl_i(gpio_tl_d2h),
-      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::GPIO_AO_IDX]),
-      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_AO_IDX])
-  );
-
-  gpio gpio_ao_i (
+  gpio #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) gpio_ao_i (
       .clk_i,
       .rst_ni,
-      .tl_i(gpio_tl_h2d),
-      .tl_o(gpio_tl_d2h),
-      .cio_gpio_i({24'b0, cio_gpio_i}),
-      .cio_gpio_o({cio_gpio_unused, cio_gpio_o}),
-      .cio_gpio_en_o({cio_gpio_en_unused, cio_gpio_en_o}),
-      .intr_gpio_o({intr_gpio_unused, intr_gpio_o})
+      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::GPIO_AO_IDX]),
+      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_AO_IDX]),
+      .gpio_in({24'b0, cio_gpio_i}),
+      .gpio_out({cio_gpio_unused, cio_gpio_o}),
+      .gpio_tx_en_o({cio_gpio_en_unused, cio_gpio_en_o}),
+      .gpio_in_sync_o(),
+      .interrupt_o({intr_gpio_unused, intr_gpio_o})
   );
 
   reg_to_tlul #(

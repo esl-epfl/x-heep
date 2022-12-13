@@ -1,0 +1,6 @@
+{
+  upstream: {
+    url: "https://github.com/pulp-platform/gpio.git",
+    rev: "a6d5c08f4b16c2b9b30c81fc79bd7abda837d953",
+  }
+}

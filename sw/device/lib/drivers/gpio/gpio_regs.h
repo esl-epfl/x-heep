@@ -16,84 +16,56 @@ extern "C" {
 // Register width
 #define GPIO_PARAM_REG_WIDTH 32
 
-// Common Interrupt Offsets
+// GPIO Mode
+#define GPIO_GPIO_MODE_0_OFFSET 0x8
+#define GPIO_GPIO_MODE_1_OFFSET 0xc
 
-// Interrupt State Register
-#define GPIO_INTR_STATE_REG_OFFSET 0x0
-
-// Interrupt Enable Register
-#define GPIO_INTR_ENABLE_REG_OFFSET 0x4
-
-// Interrupt Test Register
-#define GPIO_INTR_TEST_REG_OFFSET 0x8
+// GPIO Enable
+#define GPIO_GPIO_EN_OFFSET 0x80
 
 // GPIO Input data read value
-#define GPIO_DATA_IN_REG_OFFSET 0xc
+#define GPIO_DATA_IN_REG_OFFSET 0x100
 
 // GPIO direct output data write value
-#define GPIO_DIRECT_OUT_REG_OFFSET 0x10
+#define GPIO_DIRECT_OUT_REG_OFFSET 0x180
 
-// GPIO write data lower with mask.
-#define GPIO_MASKED_OUT_LOWER_REG_OFFSET 0x14
-#define GPIO_MASKED_OUT_LOWER_DATA_MASK 0xffff
-#define GPIO_MASKED_OUT_LOWER_DATA_OFFSET 0
-#define GPIO_MASKED_OUT_LOWER_DATA_FIELD \
-  ((bitfield_field32_t) { .mask = GPIO_MASKED_OUT_LOWER_DATA_MASK, .index = GPIO_MASKED_OUT_LOWER_DATA_OFFSET })
-#define GPIO_MASKED_OUT_LOWER_MASK_MASK 0xffff
-#define GPIO_MASKED_OUT_LOWER_MASK_OFFSET 16
-#define GPIO_MASKED_OUT_LOWER_MASK_FIELD \
-  ((bitfield_field32_t) { .mask = GPIO_MASKED_OUT_LOWER_MASK_MASK, .index = GPIO_MASKED_OUT_LOWER_MASK_OFFSET })
+// GPIO Set
+#define GPIO_GPIO_SET_OFFSET 0x200
 
-// GPIO write data upper with mask.
-#define GPIO_MASKED_OUT_UPPER_REG_OFFSET 0x18
-#define GPIO_MASKED_OUT_UPPER_DATA_MASK 0xffff
-#define GPIO_MASKED_OUT_UPPER_DATA_OFFSET 0
-#define GPIO_MASKED_OUT_UPPER_DATA_FIELD \
-  ((bitfield_field32_t) { .mask = GPIO_MASKED_OUT_UPPER_DATA_MASK, .index = GPIO_MASKED_OUT_UPPER_DATA_OFFSET })
-#define GPIO_MASKED_OUT_UPPER_MASK_MASK 0xffff
-#define GPIO_MASKED_OUT_UPPER_MASK_OFFSET 16
-#define GPIO_MASKED_OUT_UPPER_MASK_FIELD \
-  ((bitfield_field32_t) { .mask = GPIO_MASKED_OUT_UPPER_MASK_MASK, .index = GPIO_MASKED_OUT_UPPER_MASK_OFFSET })
+// GPIO Clear
+#define GPIO_GPIO_CLEAR_OFFSET 0x280
 
-// GPIO Output Enable.
-#define GPIO_DIRECT_OE_REG_OFFSET 0x1c
-
-// GPIO write Output Enable lower with mask.
-#define GPIO_MASKED_OE_LOWER_REG_OFFSET 0x20
-#define GPIO_MASKED_OE_LOWER_DATA_MASK 0xffff
-#define GPIO_MASKED_OE_LOWER_DATA_OFFSET 0
-#define GPIO_MASKED_OE_LOWER_DATA_FIELD \
-  ((bitfield_field32_t) { .mask = GPIO_MASKED_OE_LOWER_DATA_MASK, .index = GPIO_MASKED_OE_LOWER_DATA_OFFSET })
-#define GPIO_MASKED_OE_LOWER_MASK_MASK 0xffff
-#define GPIO_MASKED_OE_LOWER_MASK_OFFSET 16
-#define GPIO_MASKED_OE_LOWER_MASK_FIELD \
-  ((bitfield_field32_t) { .mask = GPIO_MASKED_OE_LOWER_MASK_MASK, .index = GPIO_MASKED_OE_LOWER_MASK_OFFSET })
-
-// GPIO write Output Enable upper with mask.
-#define GPIO_MASKED_OE_UPPER_REG_OFFSET 0x24
-#define GPIO_MASKED_OE_UPPER_DATA_MASK 0xffff
-#define GPIO_MASKED_OE_UPPER_DATA_OFFSET 0
-#define GPIO_MASKED_OE_UPPER_DATA_FIELD \
-  ((bitfield_field32_t) { .mask = GPIO_MASKED_OE_UPPER_DATA_MASK, .index = GPIO_MASKED_OE_UPPER_DATA_OFFSET })
-#define GPIO_MASKED_OE_UPPER_MASK_MASK 0xffff
-#define GPIO_MASKED_OE_UPPER_MASK_OFFSET 16
-#define GPIO_MASKED_OE_UPPER_MASK_FIELD \
-  ((bitfield_field32_t) { .mask = GPIO_MASKED_OE_UPPER_MASK_MASK, .index = GPIO_MASKED_OE_UPPER_MASK_OFFSET })
+// GPIO Toggle
+#define GPIO_GPIO_TOGGLE_OFFSET 0x300
 
 // GPIO interrupt enable for GPIO, rising edge.
-#define GPIO_INTR_CTRL_EN_RISING_REG_OFFSET 0x28
+#define GPIO_INTR_CTRL_EN_RISING_REG_OFFSET 0x380
 
 // GPIO interrupt enable for GPIO, falling edge.
-#define GPIO_INTR_CTRL_EN_FALLING_REG_OFFSET 0x2c
+#define GPIO_INTR_CTRL_EN_FALLING_REG_OFFSET 0x400
 
 // GPIO interrupt enable for GPIO, level high.
-#define GPIO_INTR_CTRL_EN_LVLHIGH_REG_OFFSET 0x30
+#define GPIO_INTR_CTRL_EN_LVLHIGH_REG_OFFSET 0x480
 
 // GPIO interrupt enable for GPIO, level low.
-#define GPIO_INTR_CTRL_EN_LVLLOW_REG_OFFSET 0x34
+#define GPIO_INTR_CTRL_EN_LVLLOW_REG_OFFSET 0x500
 
-// filter enable for GPIO input bits.
-#define GPIO_CTRL_EN_INPUT_FILTER_REG_OFFSET 0x38
+
+// GPIO interrupt status for GPIO
+#define GPIO_INTRPT_STATUS_OFFSET 0x580
+
+// GPIO interrupt status for GPIO, falling edge.
+#define GPIO_INTRPT_RISE_STATUS_OFFSET 0x600
+
+// GPIO interrupt status for GPIO, level high.
+#define GPIO_INTRPT_FALL_STATUS_OFFSET 0x680
+
+// GPIO interrupt status for GPIO, level low.
+#define GPIO_INTRPT_LVL_HIGH_STATUS_OFFSET 0x700
+
+// GPIO interrupt status for GPIO, level low.
+#define GPIO_INTRPT_LVL_LOW_STATUS_OFFSET 0x780
+
 
 #ifdef __cplusplus
 }  // extern "C"
