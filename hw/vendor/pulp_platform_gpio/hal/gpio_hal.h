@@ -24,7 +24,8 @@ extern "C" {
 
 // Global configuration register for the peripheral
 #define GPIO_CFG_REG_OFFSET 0x4
-#define GPIO_CFG_INTRPT_MODE_BIT 0
+#define GPIO_CFG_GLBL_INTRPT_MODE_BIT 0
+#define GPIO_CFG_PIN_LVL_INTRPT_MODE_BIT 0
 #define GPIO_CFG_RESERVED_BIT 1
 
 // Set the IO Mode of the GPIO. (common parameters)

@@ -42,13 +42,14 @@ module gpio_apb_wrap # (
   output logic [NrGPIOs-1:0] gpio_tx_en_o, // 0 -> input, 1 -> output
   output logic [NrGPIOs-1:0] gpio_in_sync_o, // sampled and synchronized GPIO
   // input.
-  output logic               interrupt_o,
-  input apb_req_t            apb_req_i,
-  output apb_rsp_t           apb_rsp_o
+  output logic               global_interrupt_o,
+  output logic [NrGPIOs-1:0] pin_level_interrupts_o,
+  input                      apb_req_t apb_req_i,
+  output                     apb_rsp_t apb_rsp_o
 );
 
   // Convert APB to reg_bus
-  REG_BUS #(.ADDR_WIDTH(ADDR_WIDTH), .DATA_WIDTH(DATA_WIDTH)) s_reg_bus();
+  REG_BUS #(.ADDR_WIDTH(ADDR_WIDTH), .DATA_WIDTH(DATA_WIDTH)) s_reg_bus(.clk_i);
   apb_to_reg i_abp_to_reg (
     .clk_i,
     .rst_ni,
@@ -73,7 +74,8 @@ module gpio_apb_wrap # (
     .gpio_out,
     .gpio_tx_en_o,
     .gpio_in_sync_o,
-    .interrupt_o,
+    .global_interrupt_o,
+    .pin_level_interrupts_o,
     .reg_bus(s_reg_bus)
   );
 endmodule // gpio_apb_wrap
@@ -94,7 +96,8 @@ module gpio_apb_wrap_intf # (
   output logic [NrGPIOs-1:0] gpio_tx_en_o, // 0 -> input, 1 -> output
   output logic [NrGPIOs-1:0] gpio_in_sync_o, // sampled and synchronized GPIO
   // input.
-  output logic               interrupt_o,
+  output logic               global_interrupt_o,
+  output logic [NrGPIOs-1:0] pin_level_interrupts_o,
   APB.Slave                  apb_slave
 );
 
@@ -125,7 +128,8 @@ module gpio_apb_wrap_intf # (
     .gpio_out,
     .gpio_tx_en_o,
     .gpio_in_sync_o,
-    .interrupt_o,
+    .global_interrupt_o,
+    .pin_level_interrupts_o,
     .apb_req_i ( s_apb_req ),
     .apb_rsp_o ( s_apb_rsp )
   );

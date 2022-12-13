@@ -22,8 +22,8 @@
 //-----------------------------------------------------------------------------
 
 
-`include "typedef.svh"
-`include "assign.svh"
+`include "register_interface/typedef.svh"
+`include "register_interface/assign.svh"
 
 `define assert_condition(cond, rst_ni) \
 assert(^cond !== 1'bx | rst_ni !== 1'b1) \
@@ -59,14 +59,15 @@ module gpio #(
   output logic [NrGPIOs-1:0] gpio_in_sync_o,
   /// Global interrupt line. The interrupt line is asserted for one `clk_i`
   /// whenever an unmasked interrupt on one of the GPIOs arrives.
-  output logic               interrupt_o,
+  output logic               global_interrupt_o,
+  output logic [NrGPIOs-1:0] pin_level_interrupts_o,
   /// Control interface request side using register_interface protocol.
   input                      reg_req_t reg_req_i,
   /// Control interface request side using register_interface protocol.
   output                     reg_rsp_t reg_rsp_o
 );
   // The version number exposed via the INFO register
-  localparam logic [9:0]     HW_VERSION = 1;
+  localparam logic [9:0]     HW_VERSION = 2;
 
   import gpio_reg_pkg::*;
 
@@ -129,7 +130,8 @@ module gpio #(
   assign interrupts_pending = s_reg2hw.intrpt_rise_status | s_reg2hw.intrpt_fall_status | s_reg2hw.intrpt_lvl_high_status | s_reg2hw.intrpt_lvl_low_status;
 
   // Assign interrupt output signal depending on inerrupt mode
-  assign interrupt_o = (s_reg2hw.cfg.intrpt_mode.q)? |interrupts_pending : |interrupts_edges;
+  assign global_interrupt_o = (s_reg2hw.cfg.glbl_intrpt_mode.q)? |interrupts_pending : |interrupts_edges;
+  assign pin_level_interrupts_o = (s_reg2hw.cfg.pin_lvl_intrpt_mode.q)? interrupts_pending : interrupts_edges;
 
   // Assign synchronized gpio inputs to external port
   assign gpio_in_sync_o = s_gpio_in_sync;
@@ -249,7 +251,8 @@ module gpio_intf #(
   output logic [NrGPIOs-1:0] gpio_tx_en_o, // 0 -> input, 1 -> output
   output logic [NrGPIOs-1:0] gpio_in_sync_o, // sampled and synchronized GPIO
   // input.
-  output logic               interrupt_o,
+  output logic               global_interrupt_o,
+  output logic [NrGPIOs-1:0] pin_level_interrupts_o,
   REG_BUS.in                 reg_bus
 );
 
@@ -276,7 +279,8 @@ module gpio_intf #(
      .gpio_out,
      .gpio_tx_en_o, // 0 -> input, 1 -> output
      .gpio_in_sync_o, // sampled and synchronized GPIO
-     .interrupt_o,
+     .global_interrupt_o,
+     .pin_level_interrupts_o,
      .reg_req_i(s_reg_req),
      .reg_rsp_o(s_reg_rsp)
   );

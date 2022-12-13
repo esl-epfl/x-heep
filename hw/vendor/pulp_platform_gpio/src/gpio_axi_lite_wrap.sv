@@ -49,7 +49,8 @@ module gpio_axi_lite_wrap # (
   output logic [NrGPIOs-1:0] gpio_tx_en_o, // 0 -> input, 1 -> output
   output logic [NrGPIOs-1:0] gpio_in_sync_o, // sampled and synchronized GPIO
   // input.
-  output logic               interrupt_o,
+  output logic               global_interrupt_o,
+  output logic [NrGPIOs-1:0] pin_level_interrupts_o,
   input axi_lite_req_t       axi_lite_req_i,
   output axi_lite_rsp_t      axi_lite_rsp_o
 );
@@ -95,7 +96,8 @@ module gpio_axi_lite_wrap # (
     .gpio_out,
     .gpio_tx_en_o,
     .gpio_in_sync_o,
-    .interrupt_o,
+    .global_interrupt_o,
+    .pin_level_interrupts_o,
     .reg_req_i ( s_reg_req ),
     .reg_rsp_o ( s_reg_rsp )
   );
@@ -120,7 +122,8 @@ module gpio_axi_lite_wrap_intf # (
   output logic [NrGPIOs-1:0] gpio_tx_en_o, // 0 -> input, 1 -> output
   output logic [NrGPIOs-1:0] gpio_in_sync_o, // sampled and synchronized GPIO
   // input.
-  output logic               interrupt_o,
+  output logic               global_interrupt_o,
+  output logic [NrGPIOs-1:0] pin_level_interrupts_o,
   AXI_LITE.Slave             axi_i
 );
 
@@ -150,7 +153,8 @@ module gpio_axi_lite_wrap_intf # (
     .gpio_out,
     .gpio_tx_en_o,
     .gpio_in_sync_o,
-    .interrupt_o,
+    .global_interrupt_o,
+    .pin_level_interrupts_o,
     .axi_lite_req_i ( s_axi_lite_req ),
     .axi_lite_rsp_o ( s_axi_lite_rsp )
    );

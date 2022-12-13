@@ -9,7 +9,7 @@ dependencies:
   common_verification: { git: "https://github.com/pulp-platform/common_verification.git", version: 0.2.0}
   register_interface: { git: "https://github.com/pulp-platform/register_interface.git", version: 0.3.1}
   apb: { git: "https://github.com/pulp-platform/apb.git", rev: "5c4fa53bfd650959d05afa517e921ea9001a6cf3" } # To be udpated once PR #6 got merged.
-  axi: { git: "https://github.com/pulp-platform/axi.git", version: 0.35.3 }
+  axi: { git: "https://github.com/pulp-platform/axi.git", version: 0.38.0 }
 
 sources:
   - src/gpio_reg_pkg.sv
@@ -20,9 +20,15 @@ sources:
   - target: all(any(test, gpio_include_tb_files), not(gpio_exclude_tb_files))
     files:
       - test/tb_gpio.sv
-  - target: all(any(asic, gpio_with_clk_gates), not(gpio_no_clk_gates))
+  - target: all(any(simulation, asic, gpio_with_clk_gates), not(gpio_no_clk_gates))
     files:
       - src/gpio_input_stage.sv
   - target: all(any(fpga, gpio_no_clk_gates), not(gpio_with_clk_gates))
     files:
       - src/gpio_input_stage_no_clk_gates.sv
+external_import:
+  - name: reggen
+    target_dir: "util"
+    upstream: { git: "https://github.com/pulp-platform/register_interface.git", rev: "ceb3f9791449f60558d17a9444613bdf0819e027"}
+    mapping:
+      - { from: 'vendor/lowrisc_opentitan/util', to: 'reggen'}

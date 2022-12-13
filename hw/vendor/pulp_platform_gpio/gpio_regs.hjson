@@ -40,12 +40,21 @@
             hwaccess: "hro"
             fields: [
                 {
-                    name: "INTRPT_MODE"
+                    name: "GLBL_INTRPT_MODE"
                     bits: "0"
                     desc: '''
                          If 1, keep the interrupt line asserted until all
                          interrupts are cleared. If 0, generate one cycle wide pulse for every interrupt.
                     '''
+                    resval: 0
+                }
+                {
+                    name: "PIN_LVL_INTRPT_MODE"
+                    bits: "0"
+                    desc: '''
+                    If 1, keep the interrupt line asserted until all
+                    interrupts are cleared. If 0, generate one cycle wide pulse for every interrupt.
+                        '''
                     resval: 0
                 }
                 {
