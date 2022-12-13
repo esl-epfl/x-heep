@@ -72,19 +72,23 @@ module power_manager #(
 
   logic start_on_sequence;
 
-  assign hw2reg.intr_state.d = {
-    1'b0,
-    ext_irq_i,
-    intr_i[29:22], // gpio
-    intr_i[21], // spi_flash
-    intr_i[20], // spi
-    intr_i[19], // dma
-    intr_i[18], // rv_timer_3
-    intr_i[17], // rv_timer_2
-    intr_i[16], // rv_timer_1
-    intr_i[11], // plic
-    intr_i[7] // rv_timer_0
+  assign hw2reg.intr_state.d[15:0] = {
+    intr_i[29:22],  // gpio
+    intr_i[21],  // spi_flash
+    intr_i[20],  // spi
+    intr_i[19],  // dma
+    intr_i[18],  // rv_timer_3
+    intr_i[17],  // rv_timer_2
+    intr_i[16],  // rv_timer_1
+    intr_i[11],  // plic
+    intr_i[7]  // rv_timer_0
   };
+
+  if (core_v_mini_mcu_pkg::NEXT_INT > 16) begin
+    assign hw2reg.intr_state.d[31:16] = ext_irq_i[15:0];
+  end else begin
+    assign hw2reg.intr_state.d[31:16] = $unsigned(ext_irq_i);
+  end
 
   assign hw2reg.intr_state.de = 1'b1;
 

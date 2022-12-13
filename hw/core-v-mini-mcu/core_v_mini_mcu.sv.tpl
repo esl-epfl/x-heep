@@ -356,6 +356,13 @@ module core_v_mini_mcu
       .cio_sda_i(i2c_sda_i),
       .cio_sda_o(i2c_sda_o),
       .cio_sda_en_o(i2c_sda_oe_o),
+      .spi2_sck_o,
+      .spi2_sck_en_o(spi2_sck_oe_o),
+      .spi2_csb_o({spi2_cs_1_o, spi2_cs_0_o}),
+      .spi2_csb_en_o({spi2_cs_1_oe_o, spi2_cs_0_oe_o}),
+      .spi2_sd_o({spi2_sd_3_o, spi2_sd_2_o, spi2_sd_1_o, spi2_sd_0_o}),
+      .spi2_sd_en_o({spi2_sd_3_oe_o, spi2_sd_2_oe_o, spi2_sd_1_oe_o, spi2_sd_0_oe_o}),
+      .spi2_sd_i({spi2_sd_3_i, spi2_sd_2_i, spi2_sd_1_i, spi2_sd_0_i}),
       .rv_timer_2_intr_o(rv_timer_intr[2]),
       .rv_timer_3_intr_o(rv_timer_intr[3])
   );
