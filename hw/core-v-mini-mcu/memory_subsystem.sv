@@ -12,6 +12,9 @@ module memory_subsystem
     input logic clk_i,
     input logic rst_ni,
 
+    // Clock-gating signal
+    input logic [NUM_BANKS-1:0] clk_gate_en,
+
     input  obi_req_t  [NUM_BANKS-1:0] ram_req_i,
     output obi_resp_t [NUM_BANKS-1:0] ram_resp_o,
 
@@ -22,10 +25,18 @@ module memory_subsystem
   localparam int AddrWidth = $clog2(32 * 1024);
 
   logic [NUM_BANKS-1:0] ram_valid_q;
-
+  // Clock-gating
+  logic [NUM_BANKS-1:0] clk_cg;
   for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_sram
 
-    always_ff @(posedge clk_i or negedge rst_ni) begin
+    xilinx_clk_gating clk_gating_cell_i (
+        .clk_i,
+        .en_i(clk_gate_en[i]),
+        .test_en_i(0),
+        .clk_o(clk_cg[i])
+    );
+
+    always_ff @(posedge clk_cg[i] or negedge rst_ni) begin
       if (!rst_ni) begin
         ram_valid_q[i] <= '0;
       end else begin
@@ -41,7 +52,7 @@ module memory_subsystem
         .NumWords (NumWords),
         .DataWidth(32'd32)
     ) ram_i (
-        .clk_i(clk_i),
+        .clk_i(clk_cg[i]),
         .rst_ni(rst_ni),
         .req_i(ram_req_i[i].req),
         .we_i(ram_req_i[i].we),

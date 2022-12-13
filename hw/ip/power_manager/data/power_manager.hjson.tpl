@@ -203,7 +203,28 @@
       ]
     }
 
+    { name:     "PERIPH_CLK_GATE",
+      desc:     "Clock-gates the PERIPH domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "PERIPH_CLK_GATE", desc: "Clock-gates the PERIPH domain" }
+      ]
+    }
+  
+
 % for bank in range(ram_numbanks):
+    { name:     "RAM_${bank}_CLK_GATE",
+      desc:     "Clock-gates the RAM_${bank} domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "RAM_${bank}_CLK_GATE", desc: "Clock-gates the RAM_${bank} domain" }
+      ]
+    }
+
     { name:     "POWER_GATE_RAM_BLOCK_${bank}_ACK",
       desc:     "Used by the ram ${bank} switch to ack the power manager",
       resval:   "0x00000000"

@@ -122,6 +122,10 @@ module core_v_mini_mcu
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive;
 
+   // Clock gating signals
+   logic peripheral_subsystem_clkgate_en;
+   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]memory_subsystem_clkgate_en;
+
   // DMA
   logic dma_intr;
 
@@ -240,6 +244,7 @@ module core_v_mini_mcu
   ) memory_subsystem_i (
       .clk_i,
       .rst_ni,
+      .clk_gate_en(memory_subsystem_clkgate_en),
       .ram_req_i(ram_slave_req),
       .ram_resp_o(ram_slave_resp),
       .set_retentive_i(memory_subsystem_banks_set_retentive)
@@ -290,6 +295,8 @@ module core_v_mini_mcu
       .external_subsystem_powergate_iso_o,
       .external_subsystem_rst_no,
       .external_ram_banks_set_retentive_o,
+      .peripheral_subsystem_clkgate_en_o(peripheral_subsystem_clkgate_en),
+      .memory_subsystem_clkgate_en_o(memory_subsystem_clkgate_en),
       .rv_timer_0_intr_o(rv_timer_intr[0]),
       .rv_timer_1_intr_o(rv_timer_intr[1]),
       .dma_master0_ch0_req_o(dma_master0_ch0_req),
@@ -326,6 +333,7 @@ module core_v_mini_mcu
   ) peripheral_subsystem_i (
       .clk_i,
       .rst_ni(peripheral_subsystem_rst_n),
+      .clk_gate_en(peripheral_subsystem_clkgate_en),
       .slave_req_i(peripheral_slave_req),
       .slave_resp_o(peripheral_slave_resp),
       .intr_vector_ext_i,

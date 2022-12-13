@@ -41,6 +41,10 @@ module power_manager #(
     // External interrupts
     input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] ext_irq_i,
 
+    // Clock gating signals
+    output logic peripheral_subsystem_clkgate_en,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]memory_subsystem_clkgate_en,
+
     // Power gating signals
     output logic cpu_subsystem_powergate_switch_o,
     input  logic cpu_subsystem_powergate_switch_ack_i,
@@ -120,6 +124,16 @@ module power_manager #(
   assign external_subsystem_powergate_switch_o = external_subsystem_powergate_switch;
   assign external_subsystem_powergate_iso_o = external_subsystem_powergate_iso;
   assign external_subsystem_rst_no = external_subsystem_rst_n;
+
+  // --------------------------------------------------------------------------------------
+  // CLK_GATING 
+  // --------------------------------------------------------------------------------------
+
+    assign peripheral_subsystem_clkgate_en = reg2hw.periph_clk_gate.q;
+
+% for bank in range(ram_numbanks):
+    assign memory_subsystem_clkgate_en[${bank}] = reg2hw.ram_${bank}_clk_gate.q;
+% endfor
 
   // --------------------------------------------------------------------------------------
   // CPU_SUBSYSTEM DOMAIN
