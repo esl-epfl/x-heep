@@ -292,8 +292,8 @@ module ao_peripheral_subsystem
       .external_subsystem_powergate_iso_o,
       .external_subsystem_rst_no,
       .external_ram_banks_set_retentive_o,
-      .peripheral_subsystem_clkgate_en(peripheral_subsystem_clkgate_en_o),
-      .memory_subsystem_clkgate_en(memory_subsystem_clkgate_en_o)
+      .peripheral_subsystem_clkgate_en_o,
+      .memory_subsystem_clkgate_en_o
   );
 
   reg_to_tlul #(

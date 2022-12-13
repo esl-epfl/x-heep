@@ -13,7 +13,7 @@ module memory_subsystem
     input logic rst_ni,
 
     // Clock-gating signal
-    input logic [NUM_BANKS-1:0] clk_gate_en,
+    input logic [NUM_BANKS-1:0] clk_gate_en_i,
 
     input  obi_req_t  [NUM_BANKS-1:0] ram_req_i,
     output obi_resp_t [NUM_BANKS-1:0] ram_resp_o,
@@ -31,7 +31,7 @@ module memory_subsystem
 
     xilinx_clk_gating clk_gating_cell_i (
         .clk_i,
-        .en_i(clk_gate_en[i]),
+        .en_i(clk_gate_en_i[i]),
         .test_en_i(0),
         .clk_o(clk_cg[i])
     );

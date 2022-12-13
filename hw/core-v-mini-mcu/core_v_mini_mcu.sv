@@ -454,7 +454,7 @@ module core_v_mini_mcu
   ) memory_subsystem_i (
       .clk_i,
       .rst_ni,
-      .clk_gate_en(memory_subsystem_clkgate_en),
+      .clk_gate_en_i(memory_subsystem_clkgate_en),
       .ram_req_i(ram_slave_req),
       .ram_resp_o(ram_slave_resp),
       .set_retentive_i(memory_subsystem_banks_set_retentive)
@@ -545,7 +545,7 @@ module core_v_mini_mcu
   ) peripheral_subsystem_i (
       .clk_i,
       .rst_ni(peripheral_subsystem_rst_n),
-      .clk_gate_en(peripheral_subsystem_clkgate_en),
+      .clk_gate_en_i(peripheral_subsystem_clkgate_en),
       .slave_req_i(peripheral_slave_req),
       .slave_resp_o(peripheral_slave_resp),
       .intr_vector_ext_i,
