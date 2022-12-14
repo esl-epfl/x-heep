@@ -153,8 +153,8 @@ module peripheral_subsystem
   logic clk_cg;
   tc_clk_gating clk_gating_cell (
       .clk_i,
-      .en_i(clk_gate_en_i),
-      .test_en_i(0),
+      .en_i(~clk_gate_en_i),
+      .test_en_i(1'b0),
       .clk_o(clk_cg)
   );
 

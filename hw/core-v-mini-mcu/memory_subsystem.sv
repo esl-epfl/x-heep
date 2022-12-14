@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 /* verilator lint_off UNUSED */
+/* verilator lint_off MULTIDRIVEN */
 
 module memory_subsystem
   import obi_pkg::*;
@@ -31,8 +32,8 @@ module memory_subsystem
 
     tc_clk_gating clk_gating_cell_i (
         .clk_i,
-        .en_i(clk_gate_en_i[i]),
-        .test_en_i(0),
+        .en_i(~clk_gate_en_i[i]),
+        .test_en_i(1'b0),
         .clk_o(clk_cg[i])
     );
 
