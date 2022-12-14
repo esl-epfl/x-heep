@@ -275,6 +275,13 @@ def main():
                         required=True,
                         help="A configuration file")
 
+    parser.add_argument("--pads_cfg",
+                        "-pc",
+                        metavar="file",
+                        type=argparse.FileType('r'),
+                        required=True,
+                        help="A pad configuration file")
+
     parser.add_argument("--outdir",
                         "-of",
                         type=pathlib.Path,
@@ -352,6 +359,14 @@ def main():
             srcfull = file.read()
             obj = hjson.loads(srcfull, use_decimal=True)
             obj = JsonRef.replace_refs(obj)
+        except ValueError:
+            raise SystemExit(sys.exc_info()[1])
+
+    with args.pads_cfg as file:
+        try:
+            srcfull = file.read()
+            obj_pad = hjson.loads(srcfull, use_decimal=True)
+            obj_pad = JsonRef.replace_refs(obj_pad)
         except ValueError:
             raise SystemExit(sys.exc_info()[1])
 
@@ -553,7 +568,7 @@ def main():
     ext_intr_12 = obj['interrupts']['ext_intr_12']
     ext_intr_13 = obj['interrupts']['ext_intr_13']
 
-    pads = obj['pads']
+    pads = obj_pad['pads']
 
     # Read HJSON description of External Pads
     if args.external_pads != None:
