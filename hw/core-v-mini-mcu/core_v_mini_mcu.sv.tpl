@@ -356,7 +356,10 @@ module core_v_mini_mcu
       .spi2_sd_en_o({spi2_sd_3_oe_o, spi2_sd_2_oe_o, spi2_sd_1_oe_o, spi2_sd_0_oe_o}),
       .spi2_sd_i({spi2_sd_3_i, spi2_sd_2_i, spi2_sd_1_i, spi2_sd_0_i}),
       .rv_timer_2_intr_o(rv_timer_intr[2]),
-      .rv_timer_3_intr_o(rv_timer_intr[3])
+      .rv_timer_3_intr_o(rv_timer_intr[3]),
+      .pdm2pcm_clk_o,
+      .pdm2pcm_clk_en_o,
+      .pdm2pcm_pdm_i
   );
 
   assign gpio_ao_in[0] = gpio_0_i;

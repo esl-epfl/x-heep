@@ -113,6 +113,10 @@
             offset:  0x00050000,
             length:  0x00010000,
         },
+        pdm2pcm: {
+            offset:  0x00060000,
+            length:  0x00010000,
+        },
     },
 
     flash_mem: {
@@ -247,7 +251,7 @@
             type: output
         },
         gpio: {
-            num: 23,
+            num: 21,
             num_offset: 0, #first gpio is gpio0
             type: inout
         },
@@ -274,6 +278,28 @@
         spi_sd: {
             num: 4,
             type: inout
+        },
+        pdm2pcm_pdm_in: {
+            num: 1,
+            type: in
+            mux: {
+                pdm2pcm_pdm_in: {
+                    type: in
+                },
+                gpio_21: {
+                    type: inout
+                }
+        },
+        pdm2pcm_clk_out: {
+            num: 1,
+            type: out
+            mux: {
+                pdm2pcm_clk_out: {
+                    type: out
+                },
+                gpio_22: {
+                    type: inout
+                }
         },
         spi2_cs_0: {
             num: 1,

@@ -48,6 +48,10 @@ extern "C" {
 #define RV_TIMER_AO_SIZE 0x${rv_timer_ao_size_address}
 #define RV_TIMER_AO_END_ADDRESS (RV_TIMER_AO_START_ADDRESS + RV_TIMER_AO_SIZE)
 
+#define PDM2PCM_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${pdm2pcm_start_offset})
+#define PDM2PCM_SIZE 0x${pdm2pcm_size_address}
+#define PDM2PCM_END_ADDRESS (PDM2PCM_START_ADDRESS + PDM2PCM_SIZE)
+
 #define DMA_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${dma_start_offset})
 #define DMA_SIZE 0x${dma_size_address}
 #define DMA_END_ADDRESS (DMA_START_ADDRESS + DMA_SIZE)

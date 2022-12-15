@@ -464,6 +464,9 @@ def main():
     rv_timer_start_offset  = string2int(obj['peripherals']['rv_timer']['offset'])
     rv_timer_size_address  = string2int(obj['peripherals']['rv_timer']['length'])
 
+    pdm2pcm_start_offset  = string2int(obj['peripherals']['pdm2pcm']['offset'])
+    pdm2pcm_size_address  = string2int(obj['peripherals']['pdm2pcm']['length'])
+
     spi2_start_offset  = string2int(obj['peripherals']['spi2']['offset'])
     spi2_size_address  = string2int(obj['peripherals']['spi2']['length'])
 
@@ -840,6 +843,8 @@ def main():
         "i2c_size_address"                 : i2c_size_address,
         "rv_timer_start_offset"            : rv_timer_start_offset,
         "rv_timer_size_address"            : rv_timer_size_address,
+        "pdm2pcm_start_offset"             : pdm2pcm_start_offset,
+        "pdm2pcm_size_address"             : pdm2pcm_size_address,
         "spi2_start_offset"                : spi2_start_offset,
         "spi2_size_address"                : spi2_size_address,
         "ext_slave_start_address"          : ext_slave_start_address,
