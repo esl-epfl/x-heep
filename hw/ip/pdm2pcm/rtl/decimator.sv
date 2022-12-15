@@ -7,24 +7,24 @@
 // Description: Decimator component
 
 module decimator #(
-  // Width of counting-related signals
-  parameter COUNTER_WIDTH
+    // Width of counting-related signals
+    parameter COUNTER_WIDTH
 ) (
-  // Clock input
-  input logic clk_i,
-  // Clock divider input
-  input logic clkdiv_i,
-  // Reset input
-  input logic rst_i,
-  // Clear input
-  input logic clr_i,
+    // Clock input
+    input logic clk_i,
+    // Clock divider input
+    input logic clkdiv_i,
+    // Reset input
+    input logic rst_i,
+    // Clear input
+    input logic clr_i,
 
-  // Periodicity of the decimation
-  input  logic [COUNTER_WIDTH-1:0] par_decimation_index,
-  // When HIGH, enables `r_sample_nr` incrementation each `clk_i` RISING.
-  input  logic en_i,
-  // HIGH when `reg_counter` == `par_decimation_index` (may last several clock cycles)
-  output logic en_o
+    // Periodicity of the decimation
+    input logic [COUNTER_WIDTH-1:0] par_decimation_index,
+    // When HIGH, enables `r_sample_nr` incrementation each `clk_i` RISING.
+    input logic en_i,
+    // HIGH when `reg_counter` == `par_decimation_index` (may last several clock cycles)
+    output logic en_o
 );
 
   // Counter register
@@ -34,25 +34,16 @@ module decimator #(
   assign en_o = en_i & (reg_counter == par_decimation_index);
 
   // Counter transition logic & FFs
-  always_ff @(posedge clk_i or negedge rst_i)
-  begin
-    if(~rst_i)
-    begin
+  always_ff @(posedge clk_i or negedge rst_i) begin
+    if (~rst_i) begin
       reg_counter <= 0;
-    end
-    else
-    begin
-      if(clr_i)
-      begin
+    end else begin
+      if (clr_i) begin
         reg_counter <= 0;
+      end else if (en_i & clkdiv_i) begin
+        if (reg_counter == par_decimation_index) reg_counter <= 0;
+        else reg_counter <= reg_counter + 1;
       end
-      else if(en_i & clkdiv_i)
-      begin
-          if(reg_counter == par_decimation_index)
-            reg_counter  <= 0;
-          else
-            reg_counter  <= reg_counter + 1;
-        end
     end
   end
 

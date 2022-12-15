@@ -54,11 +54,11 @@ module peripheral_subsystem
     //RV TIMER
     output logic rv_timer_2_intr_o,
     output logic rv_timer_3_intr_o,
-    
+
     // PDM2PCM Interface
     output pdm2pcm_clk_o,
     output pdm2pcm_clk_en_o,
-    input pdm2pcm_pdm_i
+    input  pdm2pcm_pdm_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -355,7 +355,7 @@ module peripheral_subsystem
       .intr_timer_expired_0_0_o(rv_timer_2_intr_o),
       .intr_timer_expired_1_0_o(rv_timer_3_intr_o)
   );
-  
+
   pdm2pcm pdm2pcm_i (
       .clk_i,
       .rst_ni,

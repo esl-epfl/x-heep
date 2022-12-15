@@ -7,18 +7,18 @@
 // Description: Clock divider component
 
 module clockdivider #(
-  // Width of counting-related signals
-  parameter COUNTER_WIDTH
+    // Width of counting-related signals
+    parameter COUNTER_WIDTH
 ) (
-  // Clock input
-  input logic clk_i,
-  // Reset input
-  input logic rst_i,
+    // Clock input
+    input logic clk_i,
+    // Reset input
+    input logic rst_i,
 
-  // Periodicity of the clock division
-  input  logic [COUNTER_WIDTH-1:0] par_division_index,
-  // Clock division enable output
-  output logic en_o
+    // Periodicity of the clock division
+    input logic [COUNTER_WIDTH-1:0] par_division_index,
+    // Clock division enable output
+    output logic en_o
 );
 
   // Counter register
@@ -28,18 +28,12 @@ module clockdivider #(
   assign en_o = (reg_counter == par_division_index);
 
   // Counter transition logic & FFs
-  always_ff @(posedge clk_i or negedge rst_i)
-  begin
-    if(~rst_i)
-    begin
+  always_ff @(posedge clk_i or negedge rst_i) begin
+    if (~rst_i) begin
       reg_counter <= 0;
-    end
-    else
-    begin
-      if(reg_counter == par_division_index)
-        reg_counter  <= 0;
-      else
-        reg_counter  <= reg_counter + 1;
+    end else begin
+      if (reg_counter == par_division_index) reg_counter <= 0;
+      else reg_counter <= reg_counter + 1;
     end
   end
 

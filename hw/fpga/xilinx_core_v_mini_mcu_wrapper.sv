@@ -54,9 +54,9 @@ module xilinx_core_v_mini_mcu_wrapper
 
     inout logic i2c_scl_io,
     inout logic i2c_sda_io,
-    
+
     output logic pdm2pcm_clk_o,
-    input logic pdm2pcm_pdm_i
+    input  logic pdm2pcm_pdm_i
 
 );
 

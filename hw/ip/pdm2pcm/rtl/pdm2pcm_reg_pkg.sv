@@ -13,282 +13,198 @@ package pdm2pcm_reg_pkg;
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_clkdividx_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_clkdividx_reg_t;
 
   typedef struct packed {
-    struct packed {
-      logic        q;
-    } enabl;
-    struct packed {
-      logic        q;
-    } clear;
+    struct packed {logic q;} enabl;
+    struct packed {logic q;} clear;
   } pdm2pcm_reg2hw_control_reg_t;
 
   typedef struct packed {
-    struct packed {
-      logic        q;
-    } empty;
-    struct packed {
-      logic        q;
-    } reach;
-    struct packed {
-      logic        q;
-    } fulll;
+    struct packed {logic q;} empty;
+    struct packed {logic q;} reach;
+    struct packed {logic q;} fulll;
   } pdm2pcm_reg2hw_status_reg_t;
 
-  typedef struct packed {
-    logic [5:0]  q;
-  } pdm2pcm_reg2hw_reachcount_reg_t;
+  typedef struct packed {logic [5:0] q;} pdm2pcm_reg2hw_reachcount_reg_t;
 
-  typedef struct packed {
-    logic [4:0]  q;
-  } pdm2pcm_reg2hw_decimcic_reg_t;
+  typedef struct packed {logic [4:0] q;} pdm2pcm_reg2hw_decimcic_reg_t;
 
-  typedef struct packed {
-    logic [5:0]  q;
-  } pdm2pcm_reg2hw_decimhb1_reg_t;
+  typedef struct packed {logic [5:0] q;} pdm2pcm_reg2hw_decimhb1_reg_t;
 
-  typedef struct packed {
-    logic [6:0]  q;
-  } pdm2pcm_reg2hw_decimhb2_reg_t;
+  typedef struct packed {logic [6:0] q;} pdm2pcm_reg2hw_decimhb2_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb1coef00_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb1coef00_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb1coef01_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb1coef01_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb1coef02_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb1coef02_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb1coef03_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb1coef03_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb1coef04_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb1coef04_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb1coef05_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb1coef05_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb2coef00_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef00_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb2coef01_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef01_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb2coef02_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef02_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb2coef03_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef03_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb2coef04_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef04_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb2coef05_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef05_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb2coef06_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef06_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb2coef07_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef07_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb2coef08_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef08_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb2coef09_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef09_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb2coef10_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef10_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_hb2coef11_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef11_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_fircoef00_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef00_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_fircoef01_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef01_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_fircoef02_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef02_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_fircoef03_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef03_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_fircoef04_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef04_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_fircoef05_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef05_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_fircoef06_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef06_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_fircoef07_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef07_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_fircoef08_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef08_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_fircoef09_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef09_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_fircoef10_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef10_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_fircoef11_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef11_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_fircoef12_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef12_reg_t;
 
-  typedef struct packed {
-    logic [15:0] q;
-  } pdm2pcm_reg2hw_fircoef13_reg_t;
+  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef13_reg_t;
 
   typedef struct packed {
     struct packed {
-      logic        d;
-      logic        de;
+      logic d;
+      logic de;
     } empty;
     struct packed {
-      logic        d;
-      logic        de;
+      logic d;
+      logic de;
     } reach;
     struct packed {
-      logic        d;
-      logic        de;
+      logic d;
+      logic de;
     } fulll;
   } pdm2pcm_hw2reg_status_reg_t;
 
   // Register -> HW type
   typedef struct packed {
-    pdm2pcm_reg2hw_clkdividx_reg_t clkdividx; // [556:541]
-    pdm2pcm_reg2hw_control_reg_t control; // [540:539]
-    pdm2pcm_reg2hw_status_reg_t status; // [538:536]
-    pdm2pcm_reg2hw_reachcount_reg_t reachcount; // [535:530]
-    pdm2pcm_reg2hw_decimcic_reg_t decimcic; // [529:525]
-    pdm2pcm_reg2hw_decimhb1_reg_t decimhb1; // [524:519]
-    pdm2pcm_reg2hw_decimhb2_reg_t decimhb2; // [518:512]
-    pdm2pcm_reg2hw_hb1coef00_reg_t hb1coef00; // [511:496]
-    pdm2pcm_reg2hw_hb1coef01_reg_t hb1coef01; // [495:480]
-    pdm2pcm_reg2hw_hb1coef02_reg_t hb1coef02; // [479:464]
-    pdm2pcm_reg2hw_hb1coef03_reg_t hb1coef03; // [463:448]
-    pdm2pcm_reg2hw_hb1coef04_reg_t hb1coef04; // [447:432]
-    pdm2pcm_reg2hw_hb1coef05_reg_t hb1coef05; // [431:416]
-    pdm2pcm_reg2hw_hb2coef00_reg_t hb2coef00; // [415:400]
-    pdm2pcm_reg2hw_hb2coef01_reg_t hb2coef01; // [399:384]
-    pdm2pcm_reg2hw_hb2coef02_reg_t hb2coef02; // [383:368]
-    pdm2pcm_reg2hw_hb2coef03_reg_t hb2coef03; // [367:352]
-    pdm2pcm_reg2hw_hb2coef04_reg_t hb2coef04; // [351:336]
-    pdm2pcm_reg2hw_hb2coef05_reg_t hb2coef05; // [335:320]
-    pdm2pcm_reg2hw_hb2coef06_reg_t hb2coef06; // [319:304]
-    pdm2pcm_reg2hw_hb2coef07_reg_t hb2coef07; // [303:288]
-    pdm2pcm_reg2hw_hb2coef08_reg_t hb2coef08; // [287:272]
-    pdm2pcm_reg2hw_hb2coef09_reg_t hb2coef09; // [271:256]
-    pdm2pcm_reg2hw_hb2coef10_reg_t hb2coef10; // [255:240]
-    pdm2pcm_reg2hw_hb2coef11_reg_t hb2coef11; // [239:224]
-    pdm2pcm_reg2hw_fircoef00_reg_t fircoef00; // [223:208]
-    pdm2pcm_reg2hw_fircoef01_reg_t fircoef01; // [207:192]
-    pdm2pcm_reg2hw_fircoef02_reg_t fircoef02; // [191:176]
-    pdm2pcm_reg2hw_fircoef03_reg_t fircoef03; // [175:160]
-    pdm2pcm_reg2hw_fircoef04_reg_t fircoef04; // [159:144]
-    pdm2pcm_reg2hw_fircoef05_reg_t fircoef05; // [143:128]
-    pdm2pcm_reg2hw_fircoef06_reg_t fircoef06; // [127:112]
-    pdm2pcm_reg2hw_fircoef07_reg_t fircoef07; // [111:96]
-    pdm2pcm_reg2hw_fircoef08_reg_t fircoef08; // [95:80]
-    pdm2pcm_reg2hw_fircoef09_reg_t fircoef09; // [79:64]
-    pdm2pcm_reg2hw_fircoef10_reg_t fircoef10; // [63:48]
-    pdm2pcm_reg2hw_fircoef11_reg_t fircoef11; // [47:32]
-    pdm2pcm_reg2hw_fircoef12_reg_t fircoef12; // [31:16]
-    pdm2pcm_reg2hw_fircoef13_reg_t fircoef13; // [15:0]
+    pdm2pcm_reg2hw_clkdividx_reg_t clkdividx;  // [556:541]
+    pdm2pcm_reg2hw_control_reg_t control;  // [540:539]
+    pdm2pcm_reg2hw_status_reg_t status;  // [538:536]
+    pdm2pcm_reg2hw_reachcount_reg_t reachcount;  // [535:530]
+    pdm2pcm_reg2hw_decimcic_reg_t decimcic;  // [529:525]
+    pdm2pcm_reg2hw_decimhb1_reg_t decimhb1;  // [524:519]
+    pdm2pcm_reg2hw_decimhb2_reg_t decimhb2;  // [518:512]
+    pdm2pcm_reg2hw_hb1coef00_reg_t hb1coef00;  // [511:496]
+    pdm2pcm_reg2hw_hb1coef01_reg_t hb1coef01;  // [495:480]
+    pdm2pcm_reg2hw_hb1coef02_reg_t hb1coef02;  // [479:464]
+    pdm2pcm_reg2hw_hb1coef03_reg_t hb1coef03;  // [463:448]
+    pdm2pcm_reg2hw_hb1coef04_reg_t hb1coef04;  // [447:432]
+    pdm2pcm_reg2hw_hb1coef05_reg_t hb1coef05;  // [431:416]
+    pdm2pcm_reg2hw_hb2coef00_reg_t hb2coef00;  // [415:400]
+    pdm2pcm_reg2hw_hb2coef01_reg_t hb2coef01;  // [399:384]
+    pdm2pcm_reg2hw_hb2coef02_reg_t hb2coef02;  // [383:368]
+    pdm2pcm_reg2hw_hb2coef03_reg_t hb2coef03;  // [367:352]
+    pdm2pcm_reg2hw_hb2coef04_reg_t hb2coef04;  // [351:336]
+    pdm2pcm_reg2hw_hb2coef05_reg_t hb2coef05;  // [335:320]
+    pdm2pcm_reg2hw_hb2coef06_reg_t hb2coef06;  // [319:304]
+    pdm2pcm_reg2hw_hb2coef07_reg_t hb2coef07;  // [303:288]
+    pdm2pcm_reg2hw_hb2coef08_reg_t hb2coef08;  // [287:272]
+    pdm2pcm_reg2hw_hb2coef09_reg_t hb2coef09;  // [271:256]
+    pdm2pcm_reg2hw_hb2coef10_reg_t hb2coef10;  // [255:240]
+    pdm2pcm_reg2hw_hb2coef11_reg_t hb2coef11;  // [239:224]
+    pdm2pcm_reg2hw_fircoef00_reg_t fircoef00;  // [223:208]
+    pdm2pcm_reg2hw_fircoef01_reg_t fircoef01;  // [207:192]
+    pdm2pcm_reg2hw_fircoef02_reg_t fircoef02;  // [191:176]
+    pdm2pcm_reg2hw_fircoef03_reg_t fircoef03;  // [175:160]
+    pdm2pcm_reg2hw_fircoef04_reg_t fircoef04;  // [159:144]
+    pdm2pcm_reg2hw_fircoef05_reg_t fircoef05;  // [143:128]
+    pdm2pcm_reg2hw_fircoef06_reg_t fircoef06;  // [127:112]
+    pdm2pcm_reg2hw_fircoef07_reg_t fircoef07;  // [111:96]
+    pdm2pcm_reg2hw_fircoef08_reg_t fircoef08;  // [95:80]
+    pdm2pcm_reg2hw_fircoef09_reg_t fircoef09;  // [79:64]
+    pdm2pcm_reg2hw_fircoef10_reg_t fircoef10;  // [63:48]
+    pdm2pcm_reg2hw_fircoef11_reg_t fircoef11;  // [47:32]
+    pdm2pcm_reg2hw_fircoef12_reg_t fircoef12;  // [31:16]
+    pdm2pcm_reg2hw_fircoef13_reg_t fircoef13;  // [15:0]
   } pdm2pcm_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    pdm2pcm_hw2reg_status_reg_t status; // [5:0]
+    pdm2pcm_hw2reg_status_reg_t status;  // [5:0]
   } pdm2pcm_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] PDM2PCM_CLKDIVIDX_OFFSET = 8'h 0;
-  parameter logic [BlockAw-1:0] PDM2PCM_CONTROL_OFFSET = 8'h 4;
-  parameter logic [BlockAw-1:0] PDM2PCM_STATUS_OFFSET = 8'h 8;
-  parameter logic [BlockAw-1:0] PDM2PCM_REACHCOUNT_OFFSET = 8'h c;
-  parameter logic [BlockAw-1:0] PDM2PCM_DECIMCIC_OFFSET = 8'h 10;
-  parameter logic [BlockAw-1:0] PDM2PCM_DECIMHB1_OFFSET = 8'h 14;
-  parameter logic [BlockAw-1:0] PDM2PCM_DECIMHB2_OFFSET = 8'h 18;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB1COEF00_OFFSET = 8'h 1c;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB1COEF01_OFFSET = 8'h 20;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB1COEF02_OFFSET = 8'h 24;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB1COEF03_OFFSET = 8'h 28;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB1COEF04_OFFSET = 8'h 2c;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB1COEF05_OFFSET = 8'h 30;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF00_OFFSET = 8'h 34;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF01_OFFSET = 8'h 38;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF02_OFFSET = 8'h 3c;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF03_OFFSET = 8'h 40;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF04_OFFSET = 8'h 44;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF05_OFFSET = 8'h 48;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF06_OFFSET = 8'h 4c;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF07_OFFSET = 8'h 50;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF08_OFFSET = 8'h 54;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF09_OFFSET = 8'h 58;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF10_OFFSET = 8'h 5c;
-  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF11_OFFSET = 8'h 60;
-  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF00_OFFSET = 8'h 64;
-  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF01_OFFSET = 8'h 68;
-  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF02_OFFSET = 8'h 6c;
-  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF03_OFFSET = 8'h 70;
-  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF04_OFFSET = 8'h 74;
-  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF05_OFFSET = 8'h 78;
-  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF06_OFFSET = 8'h 7c;
-  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF07_OFFSET = 8'h 80;
-  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF08_OFFSET = 8'h 84;
-  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF09_OFFSET = 8'h 88;
-  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF10_OFFSET = 8'h 8c;
-  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF11_OFFSET = 8'h 90;
-  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF12_OFFSET = 8'h 94;
-  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF13_OFFSET = 8'h 98;
+  parameter logic [BlockAw-1:0] PDM2PCM_CLKDIVIDX_OFFSET = 8'h0;
+  parameter logic [BlockAw-1:0] PDM2PCM_CONTROL_OFFSET = 8'h4;
+  parameter logic [BlockAw-1:0] PDM2PCM_STATUS_OFFSET = 8'h8;
+  parameter logic [BlockAw-1:0] PDM2PCM_REACHCOUNT_OFFSET = 8'hc;
+  parameter logic [BlockAw-1:0] PDM2PCM_DECIMCIC_OFFSET = 8'h10;
+  parameter logic [BlockAw-1:0] PDM2PCM_DECIMHB1_OFFSET = 8'h14;
+  parameter logic [BlockAw-1:0] PDM2PCM_DECIMHB2_OFFSET = 8'h18;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB1COEF00_OFFSET = 8'h1c;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB1COEF01_OFFSET = 8'h20;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB1COEF02_OFFSET = 8'h24;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB1COEF03_OFFSET = 8'h28;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB1COEF04_OFFSET = 8'h2c;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB1COEF05_OFFSET = 8'h30;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF00_OFFSET = 8'h34;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF01_OFFSET = 8'h38;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF02_OFFSET = 8'h3c;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF03_OFFSET = 8'h40;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF04_OFFSET = 8'h44;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF05_OFFSET = 8'h48;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF06_OFFSET = 8'h4c;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF07_OFFSET = 8'h50;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF08_OFFSET = 8'h54;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF09_OFFSET = 8'h58;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF10_OFFSET = 8'h5c;
+  parameter logic [BlockAw-1:0] PDM2PCM_HB2COEF11_OFFSET = 8'h60;
+  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF00_OFFSET = 8'h64;
+  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF01_OFFSET = 8'h68;
+  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF02_OFFSET = 8'h6c;
+  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF03_OFFSET = 8'h70;
+  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF04_OFFSET = 8'h74;
+  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF05_OFFSET = 8'h78;
+  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF06_OFFSET = 8'h7c;
+  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF07_OFFSET = 8'h80;
+  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF08_OFFSET = 8'h84;
+  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF09_OFFSET = 8'h88;
+  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF10_OFFSET = 8'h8c;
+  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF11_OFFSET = 8'h90;
+  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF12_OFFSET = 8'h94;
+  parameter logic [BlockAw-1:0] PDM2PCM_FIRCOEF13_OFFSET = 8'h98;
 
   // Window parameters
-  parameter logic [BlockAw-1:0] PDM2PCM_RXDATA_OFFSET = 8'h 9c;
-  parameter int unsigned        PDM2PCM_RXDATA_SIZE   = 'h 4;
+  parameter logic [BlockAw-1:0] PDM2PCM_RXDATA_OFFSET = 8'h9c;
+  parameter int unsigned PDM2PCM_RXDATA_SIZE = 'h4;
 
   // Register index
   typedef enum int {
@@ -334,46 +250,46 @@ package pdm2pcm_reg_pkg;
   } pdm2pcm_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] PDM2PCM_PERMIT [39] = '{
-    4'b 0011, // index[ 0] PDM2PCM_CLKDIVIDX
-    4'b 0001, // index[ 1] PDM2PCM_CONTROL
-    4'b 0001, // index[ 2] PDM2PCM_STATUS
-    4'b 0001, // index[ 3] PDM2PCM_REACHCOUNT
-    4'b 0001, // index[ 4] PDM2PCM_DECIMCIC
-    4'b 0001, // index[ 5] PDM2PCM_DECIMHB1
-    4'b 0001, // index[ 6] PDM2PCM_DECIMHB2
-    4'b 0011, // index[ 7] PDM2PCM_HB1COEF00
-    4'b 0011, // index[ 8] PDM2PCM_HB1COEF01
-    4'b 0011, // index[ 9] PDM2PCM_HB1COEF02
-    4'b 0011, // index[10] PDM2PCM_HB1COEF03
-    4'b 0011, // index[11] PDM2PCM_HB1COEF04
-    4'b 0011, // index[12] PDM2PCM_HB1COEF05
-    4'b 0011, // index[13] PDM2PCM_HB2COEF00
-    4'b 0011, // index[14] PDM2PCM_HB2COEF01
-    4'b 0011, // index[15] PDM2PCM_HB2COEF02
-    4'b 0011, // index[16] PDM2PCM_HB2COEF03
-    4'b 0011, // index[17] PDM2PCM_HB2COEF04
-    4'b 0011, // index[18] PDM2PCM_HB2COEF05
-    4'b 0011, // index[19] PDM2PCM_HB2COEF06
-    4'b 0011, // index[20] PDM2PCM_HB2COEF07
-    4'b 0011, // index[21] PDM2PCM_HB2COEF08
-    4'b 0011, // index[22] PDM2PCM_HB2COEF09
-    4'b 0011, // index[23] PDM2PCM_HB2COEF10
-    4'b 0011, // index[24] PDM2PCM_HB2COEF11
-    4'b 0011, // index[25] PDM2PCM_FIRCOEF00
-    4'b 0011, // index[26] PDM2PCM_FIRCOEF01
-    4'b 0011, // index[27] PDM2PCM_FIRCOEF02
-    4'b 0011, // index[28] PDM2PCM_FIRCOEF03
-    4'b 0011, // index[29] PDM2PCM_FIRCOEF04
-    4'b 0011, // index[30] PDM2PCM_FIRCOEF05
-    4'b 0011, // index[31] PDM2PCM_FIRCOEF06
-    4'b 0011, // index[32] PDM2PCM_FIRCOEF07
-    4'b 0011, // index[33] PDM2PCM_FIRCOEF08
-    4'b 0011, // index[34] PDM2PCM_FIRCOEF09
-    4'b 0011, // index[35] PDM2PCM_FIRCOEF10
-    4'b 0011, // index[36] PDM2PCM_FIRCOEF11
-    4'b 0011, // index[37] PDM2PCM_FIRCOEF12
-    4'b 0011  // index[38] PDM2PCM_FIRCOEF13
+  parameter logic [3:0] PDM2PCM_PERMIT[39] = '{
+      4'b0011,  // index[ 0] PDM2PCM_CLKDIVIDX
+      4'b0001,  // index[ 1] PDM2PCM_CONTROL
+      4'b0001,  // index[ 2] PDM2PCM_STATUS
+      4'b0001,  // index[ 3] PDM2PCM_REACHCOUNT
+      4'b0001,  // index[ 4] PDM2PCM_DECIMCIC
+      4'b0001,  // index[ 5] PDM2PCM_DECIMHB1
+      4'b0001,  // index[ 6] PDM2PCM_DECIMHB2
+      4'b0011,  // index[ 7] PDM2PCM_HB1COEF00
+      4'b0011,  // index[ 8] PDM2PCM_HB1COEF01
+      4'b0011,  // index[ 9] PDM2PCM_HB1COEF02
+      4'b0011,  // index[10] PDM2PCM_HB1COEF03
+      4'b0011,  // index[11] PDM2PCM_HB1COEF04
+      4'b0011,  // index[12] PDM2PCM_HB1COEF05
+      4'b0011,  // index[13] PDM2PCM_HB2COEF00
+      4'b0011,  // index[14] PDM2PCM_HB2COEF01
+      4'b0011,  // index[15] PDM2PCM_HB2COEF02
+      4'b0011,  // index[16] PDM2PCM_HB2COEF03
+      4'b0011,  // index[17] PDM2PCM_HB2COEF04
+      4'b0011,  // index[18] PDM2PCM_HB2COEF05
+      4'b0011,  // index[19] PDM2PCM_HB2COEF06
+      4'b0011,  // index[20] PDM2PCM_HB2COEF07
+      4'b0011,  // index[21] PDM2PCM_HB2COEF08
+      4'b0011,  // index[22] PDM2PCM_HB2COEF09
+      4'b0011,  // index[23] PDM2PCM_HB2COEF10
+      4'b0011,  // index[24] PDM2PCM_HB2COEF11
+      4'b0011,  // index[25] PDM2PCM_FIRCOEF00
+      4'b0011,  // index[26] PDM2PCM_FIRCOEF01
+      4'b0011,  // index[27] PDM2PCM_FIRCOEF02
+      4'b0011,  // index[28] PDM2PCM_FIRCOEF03
+      4'b0011,  // index[29] PDM2PCM_FIRCOEF04
+      4'b0011,  // index[30] PDM2PCM_FIRCOEF05
+      4'b0011,  // index[31] PDM2PCM_FIRCOEF06
+      4'b0011,  // index[32] PDM2PCM_FIRCOEF07
+      4'b0011,  // index[33] PDM2PCM_FIRCOEF08
+      4'b0011,  // index[34] PDM2PCM_FIRCOEF09
+      4'b0011,  // index[35] PDM2PCM_FIRCOEF10
+      4'b0011,  // index[36] PDM2PCM_FIRCOEF11
+      4'b0011,  // index[37] PDM2PCM_FIRCOEF12
+      4'b0011  // index[38] PDM2PCM_FIRCOEF13
   };
 
 endpackage
