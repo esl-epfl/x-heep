@@ -281,10 +281,10 @@
         },
         pdm2pcm_pdm_in: {
             num: 1,
-            type: in
+            type: inout
             mux: {
                 pdm2pcm_pdm_in: {
-                    type: in
+                    type: inout
                 },
                 gpio_21: {
                     type: inout
@@ -293,10 +293,10 @@
         },
         pdm2pcm_clk_out: {
             num: 1,
-            type: out
+            type: inout
             mux: {
                 pdm2pcm_clk_out: {
-                    type: out
+                    type: inout
                 },
                 gpio_22: {
                     type: inout
