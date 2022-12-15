@@ -25,6 +25,7 @@ filesets:
     - lint/rv_plic.vlt
     - lint/spi_device.vlt
     - lint/spi_host.vlt
+    - lint/tc_clk.vlt
     file_type: vlt
 
 
