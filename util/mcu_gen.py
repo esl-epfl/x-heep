@@ -538,20 +538,12 @@ def main():
     intr_ack_stop = obj['interrupts']['intr_ack_stop']
     intr_host_timeout = obj['interrupts']['intr_host_timeout']
     spi2_intr_event = obj['interrupts']['spi2_intr_event']
-    ext_intr_0 = obj['interrupts']['ext_intr_0']
-    ext_intr_1 = obj['interrupts']['ext_intr_1']
-    ext_intr_2 = obj['interrupts']['ext_intr_2']
-    ext_intr_3 = obj['interrupts']['ext_intr_3']
-    ext_intr_4 = obj['interrupts']['ext_intr_4']
-    ext_intr_5 = obj['interrupts']['ext_intr_5']
-    ext_intr_6 = obj['interrupts']['ext_intr_6']
-    ext_intr_7 = obj['interrupts']['ext_intr_7']
-    ext_intr_8 = obj['interrupts']['ext_intr_8']
-    ext_intr_9 = obj['interrupts']['ext_intr_9']
-    ext_intr_10 = obj['interrupts']['ext_intr_10']
-    ext_intr_11 = obj['interrupts']['ext_intr_11']
-    ext_intr_12 = obj['interrupts']['ext_intr_12']
-    ext_intr_13 = obj['interrupts']['ext_intr_13']
+    ext_intr = obj['interrupts']['ext_intr']
+
+    ext_intr_upper = ext_intr.split(':')[1].replace(',', '')
+    ext_intr_lower = ext_intr.split(':')[0]
+
+    ext_int_list = range(int(ext_intr_lower), int(ext_intr_upper)+1)
 
     pads = obj['pads']
 
@@ -900,20 +892,7 @@ def main():
         "intr_ack_stop"                    : intr_ack_stop,
         "intr_host_timeout"                : intr_host_timeout,
         "spi2_intr_event"                  : spi2_intr_event,
-        "ext_intr_0"                       : ext_intr_0,
-        "ext_intr_1"                       : ext_intr_1,
-        "ext_intr_2"                       : ext_intr_2,
-        "ext_intr_3"                       : ext_intr_3,
-        "ext_intr_4"                       : ext_intr_4,
-        "ext_intr_5"                       : ext_intr_5,
-        "ext_intr_6"                       : ext_intr_6,
-        "ext_intr_7"                       : ext_intr_7,
-        "ext_intr_8"                       : ext_intr_8,
-        "ext_intr_9"                       : ext_intr_9,
-        "ext_intr_10"                      : ext_intr_10,
-        "ext_intr_11"                      : ext_intr_11,
-        "ext_intr_12"                      : ext_intr_12,
-        "ext_intr_13"                      : ext_intr_13,
+        "ext_int_list"                     : ext_int_list,
         "pad_list"                         : pad_list,
         "external_pad_list"                : external_pad_list,
         "total_pad_list"                   : total_pad_list,

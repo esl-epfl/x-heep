@@ -155,20 +155,9 @@ extern "C" {
 #define INTR_ACK_STOP ${intr_ack_stop}
 #define INTR_HOST_TIMEOUT ${intr_host_timeout}
 #define SPI2_INTR_EVENT ${spi2_intr_event}
-#define EXT_INTR_0 ${ext_intr_0}
-#define EXT_INTR_1 ${ext_intr_1}
-#define EXT_INTR_2 ${ext_intr_2}
-#define EXT_INTR_3 ${ext_intr_3}
-#define EXT_INTR_4 ${ext_intr_4}
-#define EXT_INTR_5 ${ext_intr_5}
-#define EXT_INTR_6 ${ext_intr_6}
-#define EXT_INTR_7 ${ext_intr_7}
-#define EXT_INTR_8 ${ext_intr_8}
-#define EXT_INTR_9 ${ext_intr_9}
-#define EXT_INTR_10 ${ext_intr_10}
-#define EXT_INTR_11 ${ext_intr_11}
-#define EXT_INTR_12 ${ext_intr_12}
-#define EXT_INTR_13 ${ext_intr_13}
+% for ext_int_cnt, ext_int_val in zip(range(0,len(ext_int_list)), ext_int_list):
+#define EXT_INTR_${ext_int_cnt} ${ext_int_val}
+% endfor
 
 % for pad in pad_list:
 #define ${pad.localparam}_ATTRIBUTE ${pad.index}

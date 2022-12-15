@@ -225,7 +225,7 @@ module peripheral_subsystem
   gpio #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
-  )  gpio_i (
+  ) gpio_i (
       .clk_i,
       .rst_ni,
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::GPIO_IDX]),
