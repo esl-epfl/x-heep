@@ -38,8 +38,8 @@
 
     { name:     "STATUS"
       desc:     "Status register"
-      swaccess: "hro"
-      hwaccess: "rw"
+      swaccess: "ro"
+      hwaccess: "hrw"
       fields: [
         { bits: "0", name: "EMPTY", desc: "The FIFO buffer is empty." }
         { bits: "1", name: "REACH", desc: "The FIFO buffer reached the specified quantity of signal taps." }
@@ -358,9 +358,9 @@
         validbits: "32",
         desc: '''PCM Receive data
                   '''
-        swaccess: "ro",
+        swaccess: "ro"
       }
-    ]
-  }
+    }
+  ]
 }
 
