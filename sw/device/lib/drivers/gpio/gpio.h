@@ -222,7 +222,8 @@ gpio_result_t gpio_irq_acknowledge(const gpio_t *gpio,
  * @return The result of the operation.
  */
 gpio_result_t gpio_irq_set_trigger(const gpio_t *gpio,
-                                           gpio_mask_t mask,
+                                           gpio_pin_t pin,
+                                           bool state,
                                            gpio_irq_trigger_t trigger);
 
 /**
@@ -241,20 +242,6 @@ gpio_result_t gpio_read(const gpio_t *gpio, gpio_pin_t pin,
                                 bool *state);
 
 /**
- * Reads from all pins.
- *
- * The value returned by this function is independent of the output enable
- * setting and includes the effects of the input noise filter and the load on
- * the pins.
- *
- * @param gpio A GPIO handle.
- * @param[out] state Pin values.
- * @return The result of the operation.
- */
-gpio_result_t gpio_read_all(const gpio_t *gpio,
-                                    gpio_state_t *state);
-
-/**
  * Writes to a pin.
  *
  * The actual value on the pin depends on the output enable setting.
@@ -266,30 +253,6 @@ gpio_result_t gpio_read_all(const gpio_t *gpio,
  */
 gpio_result_t gpio_write(const gpio_t *gpio, gpio_pin_t pin,
                                  bool state);
-
-/**
- * Writes to all pins.
- *
- * The actual values on the pins depend on the output enable setting.
- *
- * @param gpio A GPIO handle.
- * @param state Value to write.
- * @return The result of the operation.
- */
-gpio_result_t gpio_write_all(const gpio_t *gpio,
-                                     gpio_state_t state);
-
-/**
- * Sets output modes of all pins.
- *
- * @param gpio A GPIO handle.
- * @param state Output modes of the pins.
- * @return The result of the operation.
- */
-gpio_result_t gpio_input_set_enabled_all(const gpio_t *gpio,
-                                                  gpio_state_t state);
-
-
 /**
  * Sets output modes of all pins.
  *
@@ -302,57 +265,15 @@ gpio_result_t gpio_input_set_enabled(const gpio_t *gpio,
                                                   gpio_pin_t pin,
                                                   gpio_state_t state);
 /**
- * Set all GPIO to 1
- *
- * When enabled, all GPIO will be set to 1
- *
- * @param gpio A GPIO handle.
- * @param state Value to write.
- */
-gpio_result_t gpio_set(const gpio_t *gpio, gpio_state_t state);
-
-/**
- * Set all GPIO to 0
- *
- * When enabled, all GPIO will be set to 0
- *
- * @param gpio A GPIO handle.
- * @param state Value to write.
- */
-gpio_result_t gpio_clear(const gpio_t *gpio, gpio_state_t state);
-
-/**
- * Toggle all GPIO
- *
- * When enabled, all GPIO will be toggled
- *
- * @param gpio A GPIO handle.
- * @param state Value to write.
- */
-gpio_result_t gpio_toggle(const gpio_t *gpio, gpio_state_t state);
-
-/**
- * Set the mode regs of a single GPIO
- *
+ * Enable sampling on GPIO
+ * *
  * @param gpio A GPIO handle.
  * @param pin A GPIO pin.
- * @param state1 Set the higher bit of the mode reg of the pin.
- * @param state1 Set the lower bit of the mode reg of the pin.
- * @return The result of the operation.
+ * @param state Value to write.
  */
-gpio_result_t gpio_set_mode(const gpio_t *gpio, gpio_pin_t pin,
-                                 bool state1, bool state2);
+gpio_result_t gpio_input_enabled(const gpio_t *gpio,
+                                          gpio_pin_t pin, gpio_toggle_t state);
 
-/**
- * Set the mode regs of all GPIO
- *
- * @param gpio A GPIO handle.
- * @param state1 Set the higher 32bits of the mode regs.
- * @param state1 Set the lower 32bits of the mode reg.
- * @return The result of the operation.
- */
-gpio_result_t gpio_set_mode_all(const gpio_t *gpio,
-                                 bool state1, bool state2);
 
 #ifdef __cplusplus
 }  // extern "C"

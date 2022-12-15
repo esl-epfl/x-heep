@@ -36,7 +36,7 @@ gpio_result_t gpio_reset(const gpio_t *gpio) {
   mmio_region_write32(gpio->params.base_addr,
                       GPIO_GPIO_MODE_0_REG_OFFSET, 0);
   mmio_region_write32(gpio->params.base_addr,
-                      GPIO_GPIO_MODE_0_REG_OFFSET, 0);
+                      GPIO_GPIO_MODE_1_REG_OFFSET, 0);
   mmio_region_write32(gpio->params.base_addr,
                       GPIO_GPIO_EN_REG_OFFSET, 0);
   mmio_region_write32(gpio->params.base_addr,
@@ -82,7 +82,7 @@ gpio_result_t gpio_irq_acknowledge(const gpio_t *gpio,
   }
 
   mmio_region_write32(gpio->params.base_addr, GPIO_INTRPT_STATUS_REG_OFFSET,
-                      index_to_mask(pin));
+                      pin);
 
   return kGpioOk;
 }
@@ -102,77 +102,52 @@ gpio_result_t gpio_irq_get_enabled(const gpio_t *gpio,
 }
 
 gpio_result_t gpio_irq_set_trigger(const gpio_t *gpio,
-                                           gpio_mask_t mask,
+                                           gpio_pin_t pin,
+                                           bool state,
                                            gpio_irq_trigger_t trigger) {
   if (gpio == NULL) {
     return kGpioBadArg;
   }
 
   // Disable all interrupt triggers for the given mask.
-  mmio_region_nonatomic_clear_mask32(
-      gpio->params.base_addr, GPIO_INTRPT_RISE_EN_REG_OFFSET, mask, 0);
-  mmio_region_nonatomic_clear_mask32(
-      gpio->params.base_addr, GPIO_INTRPT_FALL_EN_REG_OFFSET, mask, 0);
-  mmio_region_nonatomic_clear_mask32(
-      gpio->params.base_addr, GPIO_INTRPT_LVL_HIGH_EN_REG_OFFSET, mask, 0);
-  mmio_region_nonatomic_clear_mask32(
-      gpio->params.base_addr, GPIO_INTRPT_LVL_LOW_EN_REG_OFFSET, mask, 0);
+  mmio_region_write32(
+      gpio->params.base_addr, GPIO_INTRPT_RISE_EN_REG_OFFSET, 0);
+  mmio_region_write32(
+      gpio->params.base_addr, GPIO_INTRPT_FALL_EN_REG_OFFSET, 0);
+  mmio_region_write32(
+      gpio->params.base_addr, GPIO_INTRPT_LVL_HIGH_EN_REG_OFFSET, 0);
+  mmio_region_write32(
+      gpio->params.base_addr, GPIO_INTRPT_LVL_LOW_EN_REG_OFFSET, 0);
 
   switch (trigger) {
     case kGpioIrqTriggerEdgeRising:
-      mmio_region_nonatomic_set_mask32(
-          gpio->params.base_addr, GPIO_INTRPT_RISE_EN_REG_OFFSET, mask, 0);
+      mmio_region_write32(gpio->params.base_addr, GPIO_INTRPT_RISE_EN_REG_OFFSET, 1 << pin);
       break;
     case kGpioIrqTriggerEdgeFalling:
-      mmio_region_nonatomic_set_mask32(gpio->params.base_addr,
-                                       GPIO_INTRPT_FALL_EN_REG_OFFSET,
-                                       mask, 0);
+      mmio_region_write32(gpio->params.base_addr, GPIO_INTRPT_FALL_EN_REG_OFFSET, 1 << pin);
       break;
     case kGpioIrqTriggerLevelLow:
-      mmio_region_nonatomic_set_mask32(
-          gpio->params.base_addr, GPIO_INTRPT_LVL_LOW_EN_REG_OFFSET, mask, 0);
+      mmio_region_write32(gpio->params.base_addr, GPIO_INTRPT_LVL_LOW_EN_REG_OFFSET, 1 << pin);
       break;
     case kGpioIrqTriggerLevelHigh:
-      mmio_region_nonatomic_set_mask32(gpio->params.base_addr,
-                                       GPIO_INTRPT_LVL_HIGH_EN_REG_OFFSET,
-                                       mask, 0);
+      mmio_region_write32(gpio->params.base_addr, GPIO_INTRPT_LVL_HIGH_EN_REG_OFFSET, 1 << pin);
       break;
     case kGpioIrqTriggerEdgeRisingFalling:
-      mmio_region_nonatomic_set_mask32(
-          gpio->params.base_addr, GPIO_INTRPT_RISE_EN_REG_OFFSET, mask, 0);
-      mmio_region_nonatomic_set_mask32(gpio->params.base_addr,
-                                       GPIO_INTRPT_FALL_EN_REG_OFFSET,
-                                       mask, 0);
+      mmio_region_write32(gpio->params.base_addr, GPIO_INTRPT_RISE_EN_REG_OFFSET, 1 << pin);
+      mmio_region_write32(gpio->params.base_addr,GPIO_INTRPT_FALL_EN_REG_OFFSET, 1 << pin);
       break;
     case kGpioIrqTriggerEdgeRisingLevelLow:
-      mmio_region_nonatomic_set_mask32(
-          gpio->params.base_addr, GPIO_INTRPT_RISE_EN_REG_OFFSET, mask, 0);
-      mmio_region_nonatomic_set_mask32(
-          gpio->params.base_addr, GPIO_INTRPT_LVL_LOW_EN_REG_OFFSET, mask, 0);
+      mmio_region_write32(gpio->params.base_addr, GPIO_INTRPT_RISE_EN_REG_OFFSET, 1 << pin);
+      mmio_region_write32(gpio->params.base_addr, GPIO_INTRPT_LVL_LOW_EN_REG_OFFSET, 1 << pin);
       break;
     case kGpioIrqTriggerEdgeFallingLevelHigh:
-      mmio_region_nonatomic_set_mask32(
-          gpio->params.base_addr, GPIO_INTRPT_RISE_EN_REG_OFFSET, mask, 0);
-      mmio_region_nonatomic_set_mask32(gpio->params.base_addr,
-                                       GPIO_INTRPT_FALL_EN_REG_OFFSET,
-                                       mask, 0);
-      mmio_region_nonatomic_set_mask32(
-          gpio->params.base_addr, GPIO_INTRPT_LVL_LOW_EN_REG_OFFSET, mask, 0);
+      mmio_region_write32(gpio->params.base_addr, GPIO_INTRPT_RISE_EN_REG_OFFSET, 1 << pin);
+      mmio_region_write32(gpio->params.base_addr, GPIO_INTRPT_FALL_EN_REG_OFFSET, 1 << pin);
+      mmio_region_write32(gpio->params.base_addr, GPIO_INTRPT_LVL_LOW_EN_REG_OFFSET, 1 << pin);
       break;
     default:
       return kGpioError;
   }
-
-  return kGpioOk;
-}
-
-gpio_result_t gpio_read_all(const gpio_t *gpio,
-                                    gpio_state_t *state) {
-  if (gpio == NULL || state == NULL) {
-    return kGpioBadArg;
-  }
-
-  *state = mmio_region_read32(gpio->params.base_addr, GPIO_GPIO_IN_REG_OFFSET);
 
   return kGpioOk;
 }
@@ -189,18 +164,6 @@ gpio_result_t gpio_read(const gpio_t *gpio, gpio_pin_t pin,
   return kGpioOk;
 }
 
-gpio_result_t gpio_write_all(const gpio_t *gpio,
-                                     gpio_state_t state) {
-  if (gpio == NULL) {
-    return kGpioBadArg;
-  }
-
-  mmio_region_write32(gpio->params.base_addr, GPIO_GPIO_OUT_REG_OFFSET,
-                      state);
-
-  return kGpioOk;
-}
-
 gpio_result_t gpio_write(const gpio_t *gpio, gpio_pin_t pin,
                                  bool state) {
 
@@ -208,35 +171,13 @@ gpio_result_t gpio_write(const gpio_t *gpio, gpio_pin_t pin,
     return kGpioBadArg;
   }
 
-  mmio_region_nonatomic_set_mask32(
-          gpio->params.base_addr, GPIO_GPIO_OUT_REG_OFFSET, index_to_mask(pin), state);
+  uint32_t reg_value = mmio_region_read32(gpio->params.base_addr, GPIO_GPIO_OUT_REG_OFFSET);
+  reg_value = bitfield_bit32_write(reg_value, pin, state);
+  mmio_region_write32(gpio->params.base_addr, GPIO_GPIO_OUT_REG_OFFSET, reg_value);
 
   return kGpioOk;
 }
 
-gpio_result_t gpio_write_masked(const gpio_t *gpio,
-                                        gpio_mask_t mask,
-                                        gpio_state_t state) {
-  if (gpio == NULL) {
-    return kGpioBadArg;
-  }
-
-  mmio_region_nonatomic_set_mask32(
-          gpio->params.base_addr, GPIO_GPIO_OUT_REG_OFFSET, mask, state);
-
-  return kGpioOk;
-}
-
-gpio_result_t gpio_output_set_enabled_all(const gpio_t *gpio,
-                                                  gpio_state_t state) {
-  if (gpio == NULL) {
-    return kGpioBadArg;
-  }
-
-  mmio_region_write32(gpio->params.base_addr, GPIO_GPIO_EN_REG_OFFSET, state);
-
-  return kGpioOk;
-}
 
 gpio_result_t gpio_output_set_enabled(const gpio_t *gpio,
                                               gpio_pin_t pin,
@@ -245,16 +186,28 @@ gpio_result_t gpio_output_set_enabled(const gpio_t *gpio,
     return kGpioBadArg;
   }
 
-  mmio_region_nonatomic_set_mask32(
-          gpio->params.base_addr, GPIO_GPIO_EN_REG_OFFSET, index_to_mask(pin), state);
+  if(pin<16) {
+    uint32_t reg_value = mmio_region_read32(gpio->params.base_addr, GPIO_GPIO_MODE_0_REG_OFFSET);
+    reg_value = bitfield_bit32_write(reg_value, 2*pin, state);
+    mmio_region_write32(gpio->params.base_addr, GPIO_GPIO_MODE_0_REG_OFFSET, reg_value);
+  } else {
+    uint32_t reg_value = mmio_region_read32(gpio->params.base_addr, GPIO_GPIO_MODE_1_REG_OFFSET);
+    reg_value = bitfield_bit32_write(reg_value, 2*(pin-16), state);
+    mmio_region_write32(gpio->params.base_addr, GPIO_GPIO_MODE_1_REG_OFFSET, reg_value);
+  }
 
   return kGpioOk;
 }
 
-gpio_result_t gpio_output_set_enabled_masked(const gpio_t *gpio,
-                                                     gpio_mask_t mask,
-                                                     gpio_state_t state) {
-  mmio_region_nonatomic_set_mask32(
-          gpio->params.base_addr, GPIO_GPIO_EN_REG_OFFSET, mask, state);
+gpio_result_t gpio_input_enabled(const gpio_t *gpio,
+                                          gpio_pin_t pin, gpio_toggle_t state) {
+  if (gpio == NULL) {
+    return kGpioBadArg;
+  }
 
+  uint32_t reg_value = mmio_region_read32(gpio->params.base_addr, GPIO_GPIO_EN_REG_OFFSET);
+  reg_value = bitfield_bit32_write(reg_value, pin, state);
+  mmio_region_write32(gpio->params.base_addr, GPIO_GPIO_EN_REG_OFFSET, reg_value);
+
+  return kGpioOk;
 }

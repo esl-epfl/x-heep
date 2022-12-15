@@ -83,13 +83,14 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    gpio_res = gpio_irq_set_trigger(&gpio, 1 << GPIO_TB_IN, kGpioIrqTriggerLevelHigh);
+    gpio_res = gpio_input_enabled(&gpio, GPIO_TB_IN, true);
     if (gpio_res != kGpioOk) {
         printf("Failed\n;");
         return -1;
     }
 
-    gpio_res = gpio_irq_set_enabled(&gpio, GPIO_TB_IN, true);
+
+    gpio_res = gpio_irq_set_trigger(&gpio, GPIO_TB_IN, true, kGpioIrqTriggerEdgeRising);
     if (gpio_res != kGpioOk) {
         printf("Failed\n;");
         return -1;
