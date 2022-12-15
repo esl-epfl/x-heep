@@ -9,6 +9,6 @@
   upstream:
   {
     url: https://github.com/davideschiavone/common_cells.git
-    rev: 78c8be53c24fc30bdc1b223f0bd0bb24d004bc23
+    rev: 14d59aee545e0e4a85dad7318cb0fe7a16bceaf0
   }
 }
