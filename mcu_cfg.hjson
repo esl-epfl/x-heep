@@ -289,6 +289,7 @@
                 gpio_21: {
                     type: inout
                 }
+            }
         },
         pdm2pcm_clk_out: {
             num: 1,
@@ -300,6 +301,7 @@
                 gpio_22: {
                     type: inout
                 }
+           }
         },
         spi2_cs_0: {
             num: 1,
