@@ -119,9 +119,6 @@ module ao_peripheral_subsystem
   tlul_pkg::tl_h2d_t rv_timer_tl_h2d;
   tlul_pkg::tl_d2h_t rv_timer_tl_d2h;
 
-  tlul_pkg::tl_h2d_t gpio_tl_h2d;
-  tlul_pkg::tl_d2h_t gpio_tl_d2h;
-
   tlul_pkg::tl_h2d_t uart_tl_h2d;
   tlul_pkg::tl_d2h_t uart_tl_d2h;
 
@@ -364,7 +361,8 @@ module ao_peripheral_subsystem
       .gpio_out({cio_gpio_unused, cio_gpio_o}),
       .gpio_tx_en_o({cio_gpio_en_unused, cio_gpio_en_o}),
       .gpio_in_sync_o(),
-      .interrupt_o({intr_gpio_unused, intr_gpio_o})
+      .pin_level_interrupts_o({intr_gpio_unused, intr_gpio_o}),
+      .global_interrupt_o()
   );
 
   reg_to_tlul #(
