@@ -11,6 +11,10 @@ TARGET ?= sim
 MCU_CFG ?= mcu_cfg.hjson
 PAD_CFG ?= pad_cfg.hjson
 
+femu-gen: mcu-gen
+	python util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir femu/rtl/ --tpl-sv femu/rtl/femu.sv.tpl
+	$(MAKE) verible
+
 # Generates mcu files
 mcu-gen:
 	python util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/include --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --external_domains $(EXTERNAL_DOMAINS) --pkg-sv hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl

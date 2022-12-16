@@ -26,31 +26,38 @@
         },
         jtag_tck: {
             num: 1,
+            keep_internal: True
             type: input
         },
         jtag_tms: {
             num: 1,
+            keep_internal: True
             type: input
         },
         jtag_trst: {
             num: 1,
+            keep_internal: True
             active: low,
             type: input
         },
         jtag_tdi: {
             num: 1,
+            keep_internal: True
             type: input
         },
         jtag_tdo: {
             num: 1,
+            keep_internal: True
             type: output
         },
         uart_rx: {
             num: 1,
+            keep_internal: True
             type: input
         },
         uart_tx: {
             num: 1,
+            keep_internal: True
             type: output
         },
         exit_valid: {

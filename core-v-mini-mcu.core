@@ -107,8 +107,8 @@ filesets:
     depend:
     - pulp-platform.org::axi_spi_slave
     files:
-    - femu/scripts/xilinx_generate_processing_system.tcl: {file_type: tclsource}
-    - femu/rtl/axi_address_hijacker.v: {file_type: verilogsource}
+    - femu/scripts/xilinx_generate_processing_system.tcl: {file_type: tclSource}
+    - femu/rtl/axi_address_hijacker.v: {file_type: verilogSource}
     - femu/rtl/femu.sv: {file_type: systemVerilogSource}
     - femu/constraints/pin_assign.xdc: {file_type: xdc}
     - femu/constraints/constraints.xdc: {file_type: xdc}
@@ -344,7 +344,6 @@ targets:
         part: xc7z020clg400-1
         jobs: 4
     toplevel: [femu]
-
 
   sim_nexys_netlist:
     filesets:
