@@ -119,6 +119,8 @@ SET(CMAKE_EXE_LINKER_FLAGS  "-T ${LINKER_SCRIPT}  \
                             -ffunction-sections -fdata-sections -specs=nano.specs")
 message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/riscv32-unknown-elf/lib${ColourReset}")
 
+SET(CMAKE_VERBOSE_MAKEFILE on)
+
 # Post processing command to create a disassembly file 
 add_custom_command(TARGET ${TARGET}.elf POST_BUILD
         COMMAND ${CMAKE_OBJDUMP} -S  ${TARGET}.elf > ${TARGET}.disasm

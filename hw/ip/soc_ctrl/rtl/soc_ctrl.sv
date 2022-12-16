@@ -30,6 +30,7 @@ module soc_ctrl #(
   soc_ctrl_reg2hw_t reg2hw;
   soc_ctrl_hw2reg_t hw2reg;
 
+`ifndef SYNTHESIS
   logic testbench_set_exit_loop[1];
   //forced by simulation for preloading, do not touch
   //only arrays can be "forced" in verilator, thus array of 1 element is done
@@ -39,15 +40,18 @@ module soc_ctrl #(
       testbench_set_exit_loop[0] <= '0;
     end
   end
+  assign hw2reg.boot_exit_loop.d  = testbench_set_exit_loop[0];
+  assign hw2reg.boot_exit_loop.de = testbench_set_exit_loop[0];
+`else
+  assign hw2reg.boot_exit_loop.d  = 1'b0;
+  assign hw2reg.boot_exit_loop.de = 1'b0;
+`endif
 
-  assign hw2reg.boot_select.de = 1'b1;
-  assign hw2reg.boot_select.d = boot_select_i;
+  assign hw2reg.boot_select.de  = 1'b1;
+  assign hw2reg.boot_select.d   = boot_select_i;
 
   assign hw2reg.use_spimemio.de = ~enable_spi_sel;
-  assign hw2reg.use_spimemio.d = execute_from_flash_i;
-
-  assign hw2reg.boot_exit_loop.d = testbench_set_exit_loop[0];
-  assign hw2reg.boot_exit_loop.de = testbench_set_exit_loop[0];
+  assign hw2reg.use_spimemio.d  = execute_from_flash_i;
 
   soc_ctrl_reg_top #(
       .reg_req_t(reg_req_t),

@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
         spi_write_word(&spi_host, flash_cmd); // Push TX buffer
         uint32_t spi_status_cmd = spi_create_command((spi_command_t){
             .len        = 0,
-            .csaat      = false,
+            .csaat      = true,
             .speed      = kSpiSpeedStandard,
             .direction  = kSpiDirTxOnly
         });

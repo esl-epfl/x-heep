@@ -58,7 +58,8 @@ module cpu_subsystem
 
     ibex_core #(
         .DmHaltAddr(DM_HALTADDRESS),
-        .DmExceptionAddr(32'h0)
+        .DmExceptionAddr(32'h0),
+        .ResetAll(1'b1)
     ) cv32e20_i (
         .clk_i (clk_i),
         .rst_ni(rst_ni),

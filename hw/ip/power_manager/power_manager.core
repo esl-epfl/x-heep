@@ -13,10 +13,11 @@ filesets:
       - lowrisc:prim:all
       - pulp-platform.org::register_interface
       - pulp-platform.org::common_cells
+      - x-heep:ip:power_manager_pkg
     files:
-    - rtl/power_manager_reg_pkg.sv
     - rtl/power_manager_reg_top.sv
     - rtl/power_manager_counter_sequence.sv
+    - rtl/power_manager_sequence.sv
     - rtl/power_manager.sv
     - rtl/reg_to_counter.sv
     file_type: systemVerilogSource

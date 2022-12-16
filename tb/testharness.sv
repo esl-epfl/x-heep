@@ -80,6 +80,7 @@ module testharness #(
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_ack;
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso;
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_n;
+  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_ram_banks_set_retentive;
 
   always_comb begin
     // All interrupt lines set to zero by default
@@ -139,13 +140,6 @@ module testharness #(
       .gpio_20_io(gpio[20]),
       .gpio_21_io(gpio[21]),
       .gpio_22_io(gpio[22]),
-      .gpio_23_io(gpio[23]),
-      .gpio_24_io(gpio[24]),
-      .gpio_25_io(gpio[25]),
-      .gpio_26_io(gpio[26]),
-      .gpio_27_io(gpio[27]),
-      .gpio_28_io(gpio[28]),
-      .gpio_29_io(gpio[29]),
       .spi_flash_sck_io(spi_flash_sck),
       .spi_flash_cs_0_io(spi_flash_csb[0]),
       .spi_flash_cs_1_io(spi_flash_csb[1]),
@@ -160,6 +154,13 @@ module testharness #(
       .spi_sd_1_io(spi_sd_io[1]),
       .spi_sd_2_io(spi_sd_io[2]),
       .spi_sd_3_io(spi_sd_io[3]),
+      .spi2_cs_0_io(gpio[23]),
+      .spi2_cs_1_io(gpio[24]),
+      .spi2_sck_io(gpio[25]),
+      .spi2_sd_0_io(gpio[26]),
+      .spi2_sd_1_io(gpio[27]),
+      .spi2_sd_2_io(gpio[28]),
+      .spi2_sd_3_io(gpio[29]),
       .i2c_scl_io(gpio[31]),
       .i2c_sda_io(gpio[30]),
       .exit_value_o,
@@ -173,7 +174,8 @@ module testharness #(
       .external_subsystem_powergate_switch_o(external_subsystem_powergate_switch),
       .external_subsystem_powergate_switch_ack_i(external_subsystem_powergate_switch_ack),
       .external_subsystem_powergate_iso_o(external_subsystem_powergate_iso),
-      .external_subsystem_rst_no(external_subsystem_rst_n)
+      .external_subsystem_rst_no(external_subsystem_rst_n),
+      .external_ram_banks_set_retentive_o(external_ram_banks_set_retentive)
   );
 
   //pretending to be SWITCH CELLs that delay by SWITCH_ACK_LATENCY cycles the ACK signal

@@ -1,4 +1,4 @@
-# Repo folder structure
+# Repository folder structure
 
     .
     ├── .github/workflows       
@@ -23,11 +23,22 @@
     ├── util
     └── README.md
     
-============================
+======================================
+# x-heep
+======================================
 
-Minimal configuration of a core-v-mcu
+`x-heep` (eXtendable Heterogeneous Energy-Efficient Platform) is a `RISC-V` microcontroller described in `SystemVerilog` 
+that can be configured to target small and tiny platforms as well as extended to support accelerators.
+The cool thing about `x-heep` is that we provide a simple customizable MCU, so CPUs, common peripherals, memories, etc. 
+so that you can extend it with your own accelerator without modifying the MCU, but just instantiating it in your design. 
+By doing so, you inherit an IP capable of booting RTOS (such as `freeRTOS`) with the whole SW stack, including drivers and `SDK`, 
+and you can focus on building your special HW supported by the microcontroller.
 
-============================
+`x-heep` supports simulation with Verilator, Questasim, etc, it can be implemented on FPGA, and it supports implementation in Silicon, which is its main (but not only) target. See below for more details.
+
+The block diagram below shows the `x-heep` MCU
+
+<p align="center"><img src="block_diagrams/core_v_mini_mcu.svg" width="650"></p>
 
 # Prerequisite
 
@@ -116,6 +127,11 @@ To format your RTL code type:
 ```
 make verible
 ```
+## Compilation Flow and Package Manager
+
+We use [FuseSoC](https://github.com/olofk/fusesoc) for all the tools we use.
+
+The `fusesoc` commands are inside the Makefile.
 
 # Adding external IPs
 
