@@ -13,6 +13,7 @@ run_verif_rtl_log.txt
 
 #ignore femu generated hw
 femu/rtl/femu.sv
+.venv/
 
 # ignore the following hw automatically generated files
 core-v-mini-mcu.upf
