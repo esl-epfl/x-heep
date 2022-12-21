@@ -25,5 +25,6 @@ int main(int argc, char *argv[])
       for(int i=0;i<10;i++) asm volatile("nop");
     }
 
+    printf("Success.\n");
     return EXIT_SUCCESS;
 }
