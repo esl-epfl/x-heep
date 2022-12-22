@@ -1,4 +1,5 @@
 # Instructions
+This assumes that the _arm_ folder has been copied to the PYNQ-Z2 board in the home folder. If this is not desirable, the script content should be updated to reflect the changes.
 
 ## Enabling UART1
 To enable UART1 enter the script/ folder and run the script ./uart_enable.sh
