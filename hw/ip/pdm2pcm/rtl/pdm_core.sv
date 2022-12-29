@@ -77,7 +77,6 @@ module pdm_core #(
   logic [WIDTH-1:0] hb1_to_hb2;
   logic [WIDTH-1:0] hb2_to_fir;
 
-  logic [      9:0] r_sample_nr;
   logic             r_en;
   logic             s_clr;
 

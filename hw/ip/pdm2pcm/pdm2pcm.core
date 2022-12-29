@@ -15,19 +15,19 @@ filesets:
     depend:
       - pulp-platform.org::common_cells
     files:
-      - rtl/cic_comb.sv 
-      - rtl/cic_combs.sv 
-      - rtl/cic_integrator.sv 
-      - rtl/cic_integrators.sv 
-      - rtl/clockdivider.sv 
-      - rtl/decimator.sv 
-      - rtl/fir.sv 
-      - rtl/halfband.sv 
-      - rtl/pdm2pcm.sv 
       - rtl/pdm2pcm_reg_pkg.sv 
       - rtl/pdm2pcm_reg_top.sv 
-      - rtl/pdm2pcm_window.sv 
+      - rtl/cic_combs.sv 
+      - rtl/cic_comb.sv 
+      - rtl/clockdivider.sv 
+      - rtl/cic_integrators.sv 
+      - rtl/decimator.sv 
+      - rtl/halfband.sv 
+      - rtl/cic_integrator.sv 
+      - rtl/fir.sv 
       - rtl/pdm_core.sv
+      - rtl/pdm2pcm.sv 
+      - rtl/pdm2pcm_window.sv 
     
     file_type: systemVerilogSource
 

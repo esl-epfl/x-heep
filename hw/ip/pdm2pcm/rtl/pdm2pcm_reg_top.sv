@@ -123,14 +123,14 @@ module pdm2pcm_reg_top #(
   logic [5:0] reachcount_qs;
   logic [5:0] reachcount_wd;
   logic reachcount_we;
-  logic [4:0] decimcic_qs;
-  logic [4:0] decimcic_wd;
+  logic [3:0] decimcic_qs;
+  logic [3:0] decimcic_wd;
   logic decimcic_we;
-  logic [5:0] decimhb1_qs;
-  logic [5:0] decimhb1_wd;
+  logic [4:0] decimhb1_qs;
+  logic [4:0] decimhb1_wd;
   logic decimhb1_we;
-  logic [6:0] decimhb2_qs;
-  logic [6:0] decimhb2_wd;
+  logic [5:0] decimhb2_qs;
+  logic [5:0] decimhb2_wd;
   logic decimhb2_we;
   logic [15:0] hb1coef00_qs;
   logic [15:0] hb1coef00_wd;
@@ -418,9 +418,9 @@ module pdm2pcm_reg_top #(
   // R[decimcic]: V(False)
 
   prim_subreg #(
-      .DW      (5),
+      .DW      (4),
       .SWACCESS("RW"),
-      .RESVAL  (5'h0)
+      .RESVAL  (4'h0)
   ) u_decimcic (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -445,9 +445,9 @@ module pdm2pcm_reg_top #(
   // R[decimhb1]: V(False)
 
   prim_subreg #(
-      .DW      (6),
+      .DW      (5),
       .SWACCESS("RW"),
-      .RESVAL  (6'h0)
+      .RESVAL  (5'h0)
   ) u_decimhb1 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -472,9 +472,9 @@ module pdm2pcm_reg_top #(
   // R[decimhb2]: V(False)
 
   prim_subreg #(
-      .DW      (7),
+      .DW      (6),
       .SWACCESS("RW"),
-      .RESVAL  (7'h0)
+      .RESVAL  (6'h0)
   ) u_decimhb2 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1465,13 +1465,13 @@ module pdm2pcm_reg_top #(
   assign reachcount_wd = reg_wdata[5:0];
 
   assign decimcic_we = addr_hit[4] & reg_we & !reg_error;
-  assign decimcic_wd = reg_wdata[4:0];
+  assign decimcic_wd = reg_wdata[3:0];
 
   assign decimhb1_we = addr_hit[5] & reg_we & !reg_error;
-  assign decimhb1_wd = reg_wdata[5:0];
+  assign decimhb1_wd = reg_wdata[4:0];
 
   assign decimhb2_we = addr_hit[6] & reg_we & !reg_error;
-  assign decimhb2_wd = reg_wdata[6:0];
+  assign decimhb2_wd = reg_wdata[5:0];
 
   assign hb1coef00_we = addr_hit[7] & reg_we & !reg_error;
   assign hb1coef00_wd = reg_wdata[15:0];
@@ -1593,15 +1593,15 @@ module pdm2pcm_reg_top #(
       end
 
       addr_hit[4]: begin
-        reg_rdata_next[4:0] = decimcic_qs;
+        reg_rdata_next[3:0] = decimcic_qs;
       end
 
       addr_hit[5]: begin
-        reg_rdata_next[5:0] = decimhb1_qs;
+        reg_rdata_next[4:0] = decimhb1_qs;
       end
 
       addr_hit[6]: begin
-        reg_rdata_next[6:0] = decimhb2_qs;
+        reg_rdata_next[5:0] = decimhb2_qs;
       end
 
       addr_hit[7]: begin

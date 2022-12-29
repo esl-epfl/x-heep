@@ -47,7 +47,7 @@
       ]
     }
 
-    // DMA INTERFACE CONFIGURATION
+    // WINDOW INTERFACE CONFIGURATION
 
     { name:     "REACHCOUNT"
       desc:     "Number of signal taps stored into the FIFO to assert the FILLD bit in the STATUS register."
@@ -65,7 +65,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "4:0", name: "COUNT", desc: "Set the samples count" }
+        { bits: "3:0", name: "COUNT", desc: "Set the samples count" }
       ]
     }
     { name:     "DECIMHB1"
@@ -73,7 +73,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "5:0", name: "COUNT", desc: "Set the samples count" }
+        { bits: "4:0", name: "COUNT", desc: "Set the samples count" }
       ]
     }
     { name:     "DECIMHB2"
@@ -81,7 +81,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "6:0", name: "COUNT", desc: "Set the samples count" }
+        { bits: "5:0", name: "COUNT", desc: "Set the samples count" }
       ]
     }
 

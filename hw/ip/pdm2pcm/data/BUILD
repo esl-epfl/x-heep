@@ -6,9 +6,16 @@
 
 package(default_visibility = ["//visibility:public"])
 
+load("//rules:autogen.bzl", "autogen_hjson_header")
+
+autogen_hjson_header(
+    name = "pdm2pcm_regs",
+    srcs = [
+        "pdm2pcm.hjson",
+    ],
+)
+
 filegroup(
     name = "all_files",
-    srcs = glob(["**"]) + [
-        "//hw/ip/pdm2pcm/data:all_files",
-    ],
+    srcs = glob(["**"]),
 )

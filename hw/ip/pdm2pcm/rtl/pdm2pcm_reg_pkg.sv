@@ -28,11 +28,11 @@ package pdm2pcm_reg_pkg;
 
   typedef struct packed {logic [5:0] q;} pdm2pcm_reg2hw_reachcount_reg_t;
 
-  typedef struct packed {logic [4:0] q;} pdm2pcm_reg2hw_decimcic_reg_t;
+  typedef struct packed {logic [3:0] q;} pdm2pcm_reg2hw_decimcic_reg_t;
 
-  typedef struct packed {logic [5:0] q;} pdm2pcm_reg2hw_decimhb1_reg_t;
+  typedef struct packed {logic [4:0] q;} pdm2pcm_reg2hw_decimhb1_reg_t;
 
-  typedef struct packed {logic [6:0] q;} pdm2pcm_reg2hw_decimhb2_reg_t;
+  typedef struct packed {logic [5:0] q;} pdm2pcm_reg2hw_decimhb2_reg_t;
 
   typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb1coef00_reg_t;
 
@@ -115,13 +115,13 @@ package pdm2pcm_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    pdm2pcm_reg2hw_clkdividx_reg_t clkdividx;  // [556:541]
-    pdm2pcm_reg2hw_control_reg_t control;  // [540:539]
-    pdm2pcm_reg2hw_status_reg_t status;  // [538:536]
-    pdm2pcm_reg2hw_reachcount_reg_t reachcount;  // [535:530]
-    pdm2pcm_reg2hw_decimcic_reg_t decimcic;  // [529:525]
-    pdm2pcm_reg2hw_decimhb1_reg_t decimhb1;  // [524:519]
-    pdm2pcm_reg2hw_decimhb2_reg_t decimhb2;  // [518:512]
+    pdm2pcm_reg2hw_clkdividx_reg_t clkdividx;  // [553:538]
+    pdm2pcm_reg2hw_control_reg_t control;  // [537:536]
+    pdm2pcm_reg2hw_status_reg_t status;  // [535:533]
+    pdm2pcm_reg2hw_reachcount_reg_t reachcount;  // [532:527]
+    pdm2pcm_reg2hw_decimcic_reg_t decimcic;  // [526:523]
+    pdm2pcm_reg2hw_decimhb1_reg_t decimhb1;  // [522:518]
+    pdm2pcm_reg2hw_decimhb2_reg_t decimhb2;  // [517:512]
     pdm2pcm_reg2hw_hb1coef00_reg_t hb1coef00;  // [511:496]
     pdm2pcm_reg2hw_hb1coef01_reg_t hb1coef01;  // [495:480]
     pdm2pcm_reg2hw_hb1coef02_reg_t hb1coef02;  // [479:464]

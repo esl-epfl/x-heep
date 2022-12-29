@@ -44,21 +44,21 @@ extern "C" {
 
 // Samples count after which to decimate in the CIC filter.
 #define PDM2PCM_DECIMCIC_REG_OFFSET 0x10
-#define PDM2PCM_DECIMCIC_COUNT_MASK 0x1f
+#define PDM2PCM_DECIMCIC_COUNT_MASK 0xf
 #define PDM2PCM_DECIMCIC_COUNT_OFFSET 0
 #define PDM2PCM_DECIMCIC_COUNT_FIELD \
   ((bitfield_field32_t) { .mask = PDM2PCM_DECIMCIC_COUNT_MASK, .index = PDM2PCM_DECIMCIC_COUNT_OFFSET })
 
 // Samples count after which to decimate after the first halfband filter.
 #define PDM2PCM_DECIMHB1_REG_OFFSET 0x14
-#define PDM2PCM_DECIMHB1_COUNT_MASK 0x3f
+#define PDM2PCM_DECIMHB1_COUNT_MASK 0x1f
 #define PDM2PCM_DECIMHB1_COUNT_OFFSET 0
 #define PDM2PCM_DECIMHB1_COUNT_FIELD \
   ((bitfield_field32_t) { .mask = PDM2PCM_DECIMHB1_COUNT_MASK, .index = PDM2PCM_DECIMHB1_COUNT_OFFSET })
 
 // Samples count after which to decimate after the second halfband filter.
 #define PDM2PCM_DECIMHB2_REG_OFFSET 0x18
-#define PDM2PCM_DECIMHB2_COUNT_MASK 0x7f
+#define PDM2PCM_DECIMHB2_COUNT_MASK 0x3f
 #define PDM2PCM_DECIMHB2_COUNT_OFFSET 0
 #define PDM2PCM_DECIMHB2_COUNT_FIELD \
   ((bitfield_field32_t) { .mask = PDM2PCM_DECIMHB2_COUNT_MASK, .index = PDM2PCM_DECIMHB2_COUNT_OFFSET })

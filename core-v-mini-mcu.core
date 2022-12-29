@@ -78,6 +78,7 @@ filesets:
     - hw/ip/boot_rom/boot_rom.vlt
     - hw/ip/obi_spimemio/obi_spimemio.vlt
     - hw/ip/dma/dma.vlt
+    - hw/ip/pdm2pcm/pdm2pcm.vlt
     - hw/ip/power_manager/power_manager.vlt
     - hw/ip/fast_intr_ctrl/fast_intr_ctrl.vlt
     - hw/system/pad_control/pad_control.vlt

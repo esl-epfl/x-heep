@@ -356,14 +356,18 @@ module peripheral_subsystem
       .intr_timer_expired_1_0_o(rv_timer_3_intr_o)
   );
 
-  pdm2pcm pdm2pcm_i (
+  pdm2pcm #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) pdm2pcm_i (
       .clk_i,
       .rst_ni,
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::PDM2PCM_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX]),
       .pdm_i(pdm2pcm_pdm_i),
-      .pdm_clk_o(pdm2pcm_clk_o),
-
+      .pdm_clk_o(pdm2pcm_clk_o)
   );
+
+  assign pdm2pcm_clk_en_o = 1;
 
 endmodule : peripheral_subsystem

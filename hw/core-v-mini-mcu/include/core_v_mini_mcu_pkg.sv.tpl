@@ -188,7 +188,7 @@ package core_v_mini_mcu_pkg;
   localparam int unsigned AO_PERIPHERALS_PORT_SEL_WIDTH = AO_PERIPHERALS > 1 ? $clog2(AO_PERIPHERALS) : 32'd1;
 
   //switch-on/off peripherals
-  localparam PERIPHERALS = 5;
+  localparam PERIPHERALS = 6;
 
   localparam logic[31:0] PLIC_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${plic_start_offset};
   localparam logic[31:0] PLIC_SIZE = 32'h${plic_size_address};
