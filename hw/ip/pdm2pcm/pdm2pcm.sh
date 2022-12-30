@@ -5,4 +5,4 @@
 echo "Generating RTL"
 ./../../vendor/pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py -r -t rtl data/pdm2pcm.hjson
 echo "Generating SW"
-./../../vendor/pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py --cdefines -o ../../../sw/device/lib/drivers/soc_ctrl/pdm2pcm_regs.h data/pdm2pcm.hjson
+./../../vendor/pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py --cdefines -o ../../../sw/device/lib/drivers/pdm2pcm/pdm2pcm_regs.h data/pdm2pcm.hjson

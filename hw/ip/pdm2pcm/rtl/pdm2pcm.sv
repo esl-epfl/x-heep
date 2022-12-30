@@ -48,8 +48,10 @@ module pdm2pcm #(
   reg_req_t        [                      0:0] fifo_win_h2d;
   reg_rsp_t        [                      0:0] fifo_win_d2h;
 
-  assign hw2reg.status.reach.d = ({{{32-FIFO_ADDR_WIDTH}{1'b0}},fifo_usage} + 1) > reg2hw.reachcount.q;
-
+  assign hw2reg.status.reach.d  = ({{{32-FIFO_ADDR_WIDTH}{1'b0}},fifo_usage} + 1) > reg2hw.reachcount.q;
+  assign hw2reg.status.reach.de = 1;
+  assign hw2reg.status.fulll.de = 1;
+  assign hw2reg.status.empty.de = 1;
   assign par_clkdiv_idx = reg2hw.clkdividx.q;
   assign par_decim_idx_combs = reg2hw.decimcic.q;
   assign par_decim_idx_hfbd2 = reg2hw.decimhb1.q;
