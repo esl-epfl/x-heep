@@ -123,7 +123,7 @@ module pdm2pcm #(
       .full_o(hw2reg.status.fulll.d),
       .empty_o(hw2reg.status.empty.d),
       .usage_o(fifo_usage),
-      .data_i({{12{1'b0}},pcm_o}),
+      .data_i({{12{1'b0}}, pcm_o}),
       .push_i(pcm_data_valid_o),
       .data_o(rx_data),
       .pop_i(rx_ready)

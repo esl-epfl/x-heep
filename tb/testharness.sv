@@ -221,6 +221,8 @@ module testharness #(
 `endif
   end
 
+  assign gpio[21] = 1;
+
   uartdpi #(
       .BAUD('d256000),
       .FREQ(CLK_FREQUENCY * 1000),  //Hz
