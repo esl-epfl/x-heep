@@ -31,11 +31,11 @@ int main(int argc, char *argv[])
 
     mmio_region_t pdm2pcm_base_addr = mmio_region_from_addr((uintptr_t)PDM2PCM_START_ADDRESS);
 
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_CLKDIVIDX_REG_OFFSET , 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_CONTROL_REG_OFFSET   , 1);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_REACHCOUNT_REG_OFFSET, 4);
+    //mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_CLKDIVIDX_REG_OFFSET , 9000);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_CLKDIVIDX_REG_OFFSET ,15);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_REACHCOUNT_REG_OFFSET, 1);
     
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMCIC_REG_OFFSET  , 0);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMCIC_REG_OFFSET  ,15);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMHB1_REG_OFFSET  , 0);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMHB2_REG_OFFSET  , 0);
     
@@ -74,10 +74,30 @@ int main(int argc, char *argv[])
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF12_REG_OFFSET , 0);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF13_REG_OFFSET , 0);
 
-    for(int i=0;i<100;i++) {   
-        uint32_t read = mmio_region_read32(pdm2pcm_base_addr, PDM2PCM_RXDATA_REG_OFFSET);
-        printf("read = %d\n", read);
-        for(int i=0;i<10;i++) asm volatile("nop");
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_CONTROL_REG_OFFSET   , 1);
+
+    int count = 0;
+    int read_prev = 0;
+    int storage[5];
+    int finish = 0;
+
+    while(finish == 0) {
+        uint32_t status = mmio_region_read32(pdm2pcm_base_addr, PDM2PCM_STATUS_REG_OFFSET);
+        if (!(status & 1)) {
+            uint32_t read = mmio_region_read32(pdm2pcm_base_addr, PDM2PCM_RXDATA_REG_OFFSET);
+            if (read != read_prev) {
+                storage[count] = read;
+                ++count;
+                read_prev = read;
+                if (read > 65000 && read_prev > 65000) {
+                    finish = 1;
+                }
+            }
+        } 
+    }
+
+    for (int i = 0; i < 5; ++i) {
+        printf("%d\n",storage[i]);
     }
 
     return EXIT_SUCCESS;

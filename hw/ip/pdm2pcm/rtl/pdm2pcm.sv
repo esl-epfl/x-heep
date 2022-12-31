@@ -48,7 +48,10 @@ module pdm2pcm #(
   reg_req_t        [                      0:0] fifo_win_h2d;
   reg_rsp_t        [                      0:0] fifo_win_d2h;
 
-  assign hw2reg.status.reach.d  = ({{{32-FIFO_ADDR_WIDTH}{1'b0}},fifo_usage} + 1) > reg2hw.reachcount.q;
+  logic push, pop;
+  logic empty, full;
+
+  assign hw2reg.status.reach.d  = ({{{32-FIFO_ADDR_WIDTH}{1'b0}},fifo_usage}) > {{26{1'b0}},reg2hw.reachcount.q};
   assign hw2reg.status.reach.de = 1;
   assign hw2reg.status.fulll.de = 1;
   assign hw2reg.status.empty.de = 1;
@@ -115,6 +118,12 @@ module pdm2pcm #(
       .pcm_data_valid_o
   );
 
+  assign push                  = pcm_data_valid_o & ~full;
+  assign pop                   = rx_ready & ~empty;
+
+  assign hw2reg.status.fulll.d = full;
+  assign hw2reg.status.empty.d = empty;
+
   fifo_v3 #(
       .DEPTH(FIFO_DEPTH)
   ) pdm2pcm_fifo_i (
@@ -122,13 +131,13 @@ module pdm2pcm #(
       .rst_ni,
       .flush_i(reg2hw.control.clear.q),
       .testmode_i(1'b0),
-      .full_o(hw2reg.status.fulll.d),
-      .empty_o(hw2reg.status.empty.d),
+      .full_o(full),
+      .empty_o(empty),
       .usage_o(fifo_usage),
       .data_i({{12{1'b0}}, pcm_o}),
-      .push_i(pcm_data_valid_o),
+      .push_i(push),
       .data_o(rx_data),
-      .pop_i(rx_ready)
+      .pop_i(pop)
   );
 
   pdm2pcm_reg_top #(
