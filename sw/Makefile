@@ -16,6 +16,8 @@
 
 # Author: Jose Miranda (jose.mirandacalero@epfl.ch)
 
+MAKE                       = make
+
 # CMakeLists top file needs to know these variables:
 ifeq ($(origin PROJECT), undefined)
   $(error $$Please, what is the name of your project?)
@@ -23,27 +25,28 @@ endif
 ifeq ($(origin MAINFILE), undefined)
   $(error $$Please, what is the name of your main file?)
 endif
-
-MAKE                       = make
+ifeq ($(origin LINKER), undefined)
+  $(error $$Please, what is the linker of your app?)
+endif
 
 # riscv toolchain install path
 RISCV                      ?= ~/.riscv
 RISCV_EXE_PREFIX           = $(RISCV)/bin/riscv32-unknown-elf-
 
+# Sanity check
 TARGET                     ?= sim
 
+# Get the absolute path
 mkfile_path := $(shell dirname "$(realpath $(firstword $(MAKEFILE_LIST)))")
-#current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 
+# Check the absolute path
 $(info $$You are executing from: $(mkfile_path))
-
-# GCC configuration
-CUSTOM_GCC_FLAGS           =
 
 ROOT_PROJECT               = $(mkfile_path)/
 LIB_CRT                    = $(mkfile_path)/device/lib/crt/
 LIB_CRT_FLASH_EXEC         = $(mkfile_path)/device/lib/crt_flash_exec/
 LIB_CRT_FLASH_LOAD         = $(mkfile_path)/device/lib/crt_flash_load/
+LIB_CRT_FREERTOS           = $(mkfile_path)/device/lib/crt_freertos/
 LIB_BASE                   = $(mkfile_path)/device/lib/base/
 LIB_BASE_FREESTD           = $(mkfile_path)/device/lib/base/freestanding/
 LIB_RUNTIME                = $(mkfile_path)/device/lib/runtime/
@@ -52,12 +55,10 @@ INC_FOLDERS                = $(mkfile_path)/device/target/$(TARGET)/
 INC_FOLDERS_GCC            = $(addprefix -I ,$(INC_FOLDERS))
 LINK_FOLDER                = $(mkfile_path)/linker
 
-# print message to see if wildcard is working
-$(info $$LIB_CRT PATH: $(LIB_CRT))
+$(info $$LIB: $(LIB_CRT_FREERTOS))
 
+# CMake keyword
 CMAKE_DIR=cmake
 
-$(info $$LIB_RUNTIME PATH: $(LIB_RUNTIME))
-
-# Running programs:
+# Let's CMake!
 include cmake/targets.mak

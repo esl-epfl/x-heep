@@ -19,11 +19,10 @@
 extern "C" {
     #include <stdio.h>
     #include <stdlib.h>
-    #include "float.h"
     #include "test_cpp.h"
 }
 
-#define LOOPS 50
+#define LOOPS 5
 template <typename T> 
 T mySum(T x, T y)
 {
@@ -33,12 +32,10 @@ T mySum(T x, T y)
 int test_numbers(void) 
 {
     int i = 0, a = 3, b = 7;
-    float c = 4.2, d=3.21;
 	
     while (i < LOOPS)   
     {
-     float g = (c+d);
-     printf("Integer sum %d\n FLoat sum %.4f \n", mySum(a, b), g);
+     printf("Integer sum %d\n", mySum(a, b));
      i = i + 1;
     }
 	
