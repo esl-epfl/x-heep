@@ -96,6 +96,7 @@ typedef struct power_manager_counters {
 } power_manager_counters_t;
 
 typedef struct power_manager_ram_map_t {
+  uint32_t clk_gate;
   uint32_t power_gate_ack;
   uint32_t switch_off;
   uint32_t wait_ack_switch;
@@ -107,6 +108,7 @@ typedef struct power_manager_ram_map_t {
 static power_manager_ram_map_t power_manager_ram_map[${ram_numbanks}] = {
 % for bank in range(ram_numbanks):
   {
+    POWER_MANAGER_RAM_${bank}_CLK_GATE_REG_OFFSET,
     POWER_MANAGER_POWER_GATE_RAM_BLOCK_${bank}_ACK_REG_OFFSET,
     POWER_MANAGER_RAM_${bank}_SWITCH_REG_OFFSET,
     POWER_MANAGER_RAM_${bank}_WAIT_ACK_SWITCH_ON_REG_OFFSET,

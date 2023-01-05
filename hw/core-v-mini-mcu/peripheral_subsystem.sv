@@ -11,6 +11,9 @@ module peripheral_subsystem
     input logic clk_i,
     input logic rst_ni,
 
+    // Clock-gating signal
+    input logic clk_gate_en_i,
+
     input  obi_req_t  slave_req_i,
     output obi_resp_t slave_resp_o,
 
@@ -146,12 +149,21 @@ module peripheral_subsystem
   //Address Decoder
   logic [PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
+  // Clock-gating
+  logic clk_cg;
+  tc_clk_gating clk_gating_cell (
+      .clk_i,
+      .en_i(~clk_gate_en_i),
+      .test_en_i(1'b0),
+      .clk_o(clk_cg)
+  );
+
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
       .IW(1)
   ) periph_to_reg_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .req_i(slave_req_i.req),
       .add_i(slave_req_i.addr),
@@ -188,7 +200,7 @@ module peripheral_subsystem
       .req_t  (reg_pkg::reg_req_t),
       .rsp_t  (reg_pkg::reg_rsp_t)
   ) reg_demux_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .in_select_i(peripheral_select),
       .in_req_i(peripheral_req),
@@ -215,7 +227,7 @@ module peripheral_subsystem
   );
 
   rv_plic rv_plic_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .tl_i(plic_tl_h2d),
       .tl_o(plic_tl_d2h),
@@ -243,7 +255,7 @@ module peripheral_subsystem
   );
 
   gpio gpio_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .tl_i(gpio_tl_h2d),
       .tl_o(gpio_tl_d2h),
@@ -274,7 +286,7 @@ module peripheral_subsystem
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
   ) spi2_host (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI2_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI2_IDX]),
@@ -297,7 +309,7 @@ module peripheral_subsystem
 
 
   i2c i2c_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .tl_i(i2c_tl_h2d),
       .tl_o(i2c_tl_d2h),
@@ -343,7 +355,7 @@ module peripheral_subsystem
   );
 
   rv_timer rv_timer_2_3_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .tl_i(rv_timer_tl_h2d),
       .tl_o(rv_timer_tl_d2h),
