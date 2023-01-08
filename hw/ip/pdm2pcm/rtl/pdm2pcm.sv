@@ -26,8 +26,8 @@ module pdm2pcm #(
   logic              [                3:0]     par_decim_idx_combs;
   logic              [                4:0]     par_decim_idx_hfbd2;
   logic              [                5:0]     par_decim_idx_fir;
-  logic              [               17:0]     coeffs_hb1          [ 0:5];
-  logic              [               17:0]     coeffs_hb2          [0:11];
+  logic              [               17:0]     coeffs_hb1          [ 0:3];
+  logic              [               17:0]     coeffs_hb2          [ 0:6];
   logic              [               17:0]     coeffs_fir          [0:13];
 
   logic              [FIFO_ADDR_WIDTH-1:0]     fifo_usage;
@@ -64,9 +64,7 @@ module pdm2pcm #(
           reg2hw.hb1coef00.q,
           reg2hw.hb1coef01.q,
           reg2hw.hb1coef02.q,
-          reg2hw.hb1coef03.q,
-          reg2hw.hb1coef04.q,
-          reg2hw.hb1coef05.q
+          reg2hw.hb1coef03.q
       };
 
   assign coeffs_hb2 = '{
@@ -76,12 +74,7 @@ module pdm2pcm #(
           reg2hw.hb2coef03.q,
           reg2hw.hb2coef04.q,
           reg2hw.hb2coef05.q,
-          reg2hw.hb2coef06.q,
-          reg2hw.hb2coef07.q,
-          reg2hw.hb2coef08.q,
-          reg2hw.hb2coef09.q,
-          reg2hw.hb2coef10.q,
-          reg2hw.hb2coef11.q
+          reg2hw.hb2coef06.q
       };
 
   assign coeffs_fir = '{

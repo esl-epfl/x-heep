@@ -31,52 +31,44 @@ int main(int argc, char *argv[])
 
     mmio_region_t pdm2pcm_base_addr = mmio_region_from_addr((uintptr_t)PDM2PCM_START_ADDRESS);
 
-    //mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_CLKDIVIDX_REG_OFFSET , 9000);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_CLKDIVIDX_REG_OFFSET ,15);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_REACHCOUNT_REG_OFFSET, 1);
     
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMCIC_REG_OFFSET  ,15);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMHB1_REG_OFFSET  ,31);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMHB2_REG_OFFSET  ,63);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMCIC_REG_OFFSET  , 15);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMHB1_REG_OFFSET  , 31);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMHB2_REG_OFFSET  , 63);
     
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF00_REG_OFFSET , 3.2768e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF01_REG_OFFSET , 1.9618e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF02_REG_OFFSET , 0       );
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF03_REG_OFFSET ,-0.3899e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF04_REG_OFFSET , 0       );
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF05_REG_OFFSET , 0.0684e4);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF00_REG_OFFSET , 32768);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF01_REG_OFFSET , 19618);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF02_REG_OFFSET ,-3899);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF03_REG_OFFSET , 684);
     
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF00_REG_OFFSET , 3.2768e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF01_REG_OFFSET , 2.0716e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF02_REG_OFFSET , 0       );
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF03_REG_OFFSET ,-0.6529e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF04_REG_OFFSET , 0       );
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF05_REG_OFFSET , 0.3492e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF06_REG_OFFSET , 0       );
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF07_REG_OFFSET ,-0.2081e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF08_REG_OFFSET , 0       );
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF09_REG_OFFSET , 0.1250e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF10_REG_OFFSET , 0       );
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF11_REG_OFFSET ,-0.1013e4);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF00_REG_OFFSET , 32768);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF01_REG_OFFSET , 20716);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF02_REG_OFFSET ,-6529);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF03_REG_OFFSET , 3492);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF04_REG_OFFSET ,-2081);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF05_REG_OFFSET , 1250);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF06_REG_OFFSET ,-1013);
 
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF00_REG_OFFSET , 6.0609e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF01_REG_OFFSET , 0.4854e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF02_REG_OFFSET ,-0.4640e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF03_REG_OFFSET , 0.4303e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF04_REG_OFFSET ,-0.3864e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF05_REG_OFFSET , 0.3353e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF06_REG_OFFSET ,-0.2805e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF07_REG_OFFSET , 0.2253e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF08_REG_OFFSET ,-0.1726e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF09_REG_OFFSET , 0.1252e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF10_REG_OFFSET ,-0.0852e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF11_REG_OFFSET , 0.0548e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF12_REG_OFFSET ,-0.0385e4);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF13_REG_OFFSET ,-0.0178e4);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF00_REG_OFFSET , 60609);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF01_REG_OFFSET , 4854);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF02_REG_OFFSET ,-4640);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF03_REG_OFFSET , 4303);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF04_REG_OFFSET ,-3864);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF05_REG_OFFSET , 3353);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF06_REG_OFFSET ,-2805);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF07_REG_OFFSET , 2253);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF08_REG_OFFSET ,-1726);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF09_REG_OFFSET , 1252);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF10_REG_OFFSET ,-852);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF11_REG_OFFSET , 548);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF12_REG_OFFSET ,-385);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF13_REG_OFFSET ,-178);
 
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_CONTROL_REG_OFFSET   , 1);
 
-    int const COUNT = 20;
+    int const COUNT = 5;
 
     int count = 0;
     int read_prev = 0;

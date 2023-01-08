@@ -86,7 +86,7 @@ module pdm2pcm_reg_top #(
     reg_steer = 1;  // Default set to register
 
     // TODO: Can below codes be unique case () inside ?
-    if (reg_req_i.addr[AW-1:0] >= 156 && reg_req_i.addr[AW-1:0] < 160) begin
+    if (reg_req_i.addr[AW-1:0] >= 128 && reg_req_i.addr[AW-1:0] < 132) begin
       reg_steer = 0;
     end
   end
@@ -144,12 +144,6 @@ module pdm2pcm_reg_top #(
   logic [17:0] hb1coef03_qs;
   logic [17:0] hb1coef03_wd;
   logic hb1coef03_we;
-  logic [17:0] hb1coef04_qs;
-  logic [17:0] hb1coef04_wd;
-  logic hb1coef04_we;
-  logic [17:0] hb1coef05_qs;
-  logic [17:0] hb1coef05_wd;
-  logic hb1coef05_we;
   logic [17:0] hb2coef00_qs;
   logic [17:0] hb2coef00_wd;
   logic hb2coef00_we;
@@ -171,21 +165,6 @@ module pdm2pcm_reg_top #(
   logic [17:0] hb2coef06_qs;
   logic [17:0] hb2coef06_wd;
   logic hb2coef06_we;
-  logic [17:0] hb2coef07_qs;
-  logic [17:0] hb2coef07_wd;
-  logic hb2coef07_we;
-  logic [17:0] hb2coef08_qs;
-  logic [17:0] hb2coef08_wd;
-  logic hb2coef08_we;
-  logic [17:0] hb2coef09_qs;
-  logic [17:0] hb2coef09_wd;
-  logic hb2coef09_we;
-  logic [17:0] hb2coef10_qs;
-  logic [17:0] hb2coef10_wd;
-  logic hb2coef10_we;
-  logic [17:0] hb2coef11_qs;
-  logic [17:0] hb2coef11_wd;
-  logic hb2coef11_we;
   logic [17:0] fircoef00_qs;
   logic [17:0] fircoef00_wd;
   logic fircoef00_we;
@@ -604,60 +583,6 @@ module pdm2pcm_reg_top #(
   );
 
 
-  // R[hb1coef04]: V(False)
-
-  prim_subreg #(
-      .DW      (18),
-      .SWACCESS("RW"),
-      .RESVAL  (18'h0)
-  ) u_hb1coef04 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(hb1coef04_we),
-      .wd(hb1coef04_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.hb1coef04.q),
-
-      // to register interface (read)
-      .qs(hb1coef04_qs)
-  );
-
-
-  // R[hb1coef05]: V(False)
-
-  prim_subreg #(
-      .DW      (18),
-      .SWACCESS("RW"),
-      .RESVAL  (18'h0)
-  ) u_hb1coef05 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(hb1coef05_we),
-      .wd(hb1coef05_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.hb1coef05.q),
-
-      // to register interface (read)
-      .qs(hb1coef05_qs)
-  );
-
-
   // R[hb2coef00]: V(False)
 
   prim_subreg #(
@@ -844,141 +769,6 @@ module pdm2pcm_reg_top #(
 
       // to register interface (read)
       .qs(hb2coef06_qs)
-  );
-
-
-  // R[hb2coef07]: V(False)
-
-  prim_subreg #(
-      .DW      (18),
-      .SWACCESS("RW"),
-      .RESVAL  (18'h0)
-  ) u_hb2coef07 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(hb2coef07_we),
-      .wd(hb2coef07_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.hb2coef07.q),
-
-      // to register interface (read)
-      .qs(hb2coef07_qs)
-  );
-
-
-  // R[hb2coef08]: V(False)
-
-  prim_subreg #(
-      .DW      (18),
-      .SWACCESS("RW"),
-      .RESVAL  (18'h0)
-  ) u_hb2coef08 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(hb2coef08_we),
-      .wd(hb2coef08_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.hb2coef08.q),
-
-      // to register interface (read)
-      .qs(hb2coef08_qs)
-  );
-
-
-  // R[hb2coef09]: V(False)
-
-  prim_subreg #(
-      .DW      (18),
-      .SWACCESS("RW"),
-      .RESVAL  (18'h0)
-  ) u_hb2coef09 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(hb2coef09_we),
-      .wd(hb2coef09_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.hb2coef09.q),
-
-      // to register interface (read)
-      .qs(hb2coef09_qs)
-  );
-
-
-  // R[hb2coef10]: V(False)
-
-  prim_subreg #(
-      .DW      (18),
-      .SWACCESS("RW"),
-      .RESVAL  (18'h0)
-  ) u_hb2coef10 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(hb2coef10_we),
-      .wd(hb2coef10_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.hb2coef10.q),
-
-      // to register interface (read)
-      .qs(hb2coef10_qs)
-  );
-
-
-  // R[hb2coef11]: V(False)
-
-  prim_subreg #(
-      .DW      (18),
-      .SWACCESS("RW"),
-      .RESVAL  (18'h0)
-  ) u_hb2coef11 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(hb2coef11_we),
-      .wd(hb2coef11_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.hb2coef11.q),
-
-      // to register interface (read)
-      .qs(hb2coef11_qs)
   );
 
 
@@ -1362,7 +1152,7 @@ module pdm2pcm_reg_top #(
 
 
 
-  logic [38:0] addr_hit;
+  logic [31:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == PDM2PCM_CLKDIVIDX_OFFSET);
@@ -1376,34 +1166,27 @@ module pdm2pcm_reg_top #(
     addr_hit[8] = (reg_addr == PDM2PCM_HB1COEF01_OFFSET);
     addr_hit[9] = (reg_addr == PDM2PCM_HB1COEF02_OFFSET);
     addr_hit[10] = (reg_addr == PDM2PCM_HB1COEF03_OFFSET);
-    addr_hit[11] = (reg_addr == PDM2PCM_HB1COEF04_OFFSET);
-    addr_hit[12] = (reg_addr == PDM2PCM_HB1COEF05_OFFSET);
-    addr_hit[13] = (reg_addr == PDM2PCM_HB2COEF00_OFFSET);
-    addr_hit[14] = (reg_addr == PDM2PCM_HB2COEF01_OFFSET);
-    addr_hit[15] = (reg_addr == PDM2PCM_HB2COEF02_OFFSET);
-    addr_hit[16] = (reg_addr == PDM2PCM_HB2COEF03_OFFSET);
-    addr_hit[17] = (reg_addr == PDM2PCM_HB2COEF04_OFFSET);
-    addr_hit[18] = (reg_addr == PDM2PCM_HB2COEF05_OFFSET);
-    addr_hit[19] = (reg_addr == PDM2PCM_HB2COEF06_OFFSET);
-    addr_hit[20] = (reg_addr == PDM2PCM_HB2COEF07_OFFSET);
-    addr_hit[21] = (reg_addr == PDM2PCM_HB2COEF08_OFFSET);
-    addr_hit[22] = (reg_addr == PDM2PCM_HB2COEF09_OFFSET);
-    addr_hit[23] = (reg_addr == PDM2PCM_HB2COEF10_OFFSET);
-    addr_hit[24] = (reg_addr == PDM2PCM_HB2COEF11_OFFSET);
-    addr_hit[25] = (reg_addr == PDM2PCM_FIRCOEF00_OFFSET);
-    addr_hit[26] = (reg_addr == PDM2PCM_FIRCOEF01_OFFSET);
-    addr_hit[27] = (reg_addr == PDM2PCM_FIRCOEF02_OFFSET);
-    addr_hit[28] = (reg_addr == PDM2PCM_FIRCOEF03_OFFSET);
-    addr_hit[29] = (reg_addr == PDM2PCM_FIRCOEF04_OFFSET);
-    addr_hit[30] = (reg_addr == PDM2PCM_FIRCOEF05_OFFSET);
-    addr_hit[31] = (reg_addr == PDM2PCM_FIRCOEF06_OFFSET);
-    addr_hit[32] = (reg_addr == PDM2PCM_FIRCOEF07_OFFSET);
-    addr_hit[33] = (reg_addr == PDM2PCM_FIRCOEF08_OFFSET);
-    addr_hit[34] = (reg_addr == PDM2PCM_FIRCOEF09_OFFSET);
-    addr_hit[35] = (reg_addr == PDM2PCM_FIRCOEF10_OFFSET);
-    addr_hit[36] = (reg_addr == PDM2PCM_FIRCOEF11_OFFSET);
-    addr_hit[37] = (reg_addr == PDM2PCM_FIRCOEF12_OFFSET);
-    addr_hit[38] = (reg_addr == PDM2PCM_FIRCOEF13_OFFSET);
+    addr_hit[11] = (reg_addr == PDM2PCM_HB2COEF00_OFFSET);
+    addr_hit[12] = (reg_addr == PDM2PCM_HB2COEF01_OFFSET);
+    addr_hit[13] = (reg_addr == PDM2PCM_HB2COEF02_OFFSET);
+    addr_hit[14] = (reg_addr == PDM2PCM_HB2COEF03_OFFSET);
+    addr_hit[15] = (reg_addr == PDM2PCM_HB2COEF04_OFFSET);
+    addr_hit[16] = (reg_addr == PDM2PCM_HB2COEF05_OFFSET);
+    addr_hit[17] = (reg_addr == PDM2PCM_HB2COEF06_OFFSET);
+    addr_hit[18] = (reg_addr == PDM2PCM_FIRCOEF00_OFFSET);
+    addr_hit[19] = (reg_addr == PDM2PCM_FIRCOEF01_OFFSET);
+    addr_hit[20] = (reg_addr == PDM2PCM_FIRCOEF02_OFFSET);
+    addr_hit[21] = (reg_addr == PDM2PCM_FIRCOEF03_OFFSET);
+    addr_hit[22] = (reg_addr == PDM2PCM_FIRCOEF04_OFFSET);
+    addr_hit[23] = (reg_addr == PDM2PCM_FIRCOEF05_OFFSET);
+    addr_hit[24] = (reg_addr == PDM2PCM_FIRCOEF06_OFFSET);
+    addr_hit[25] = (reg_addr == PDM2PCM_FIRCOEF07_OFFSET);
+    addr_hit[26] = (reg_addr == PDM2PCM_FIRCOEF08_OFFSET);
+    addr_hit[27] = (reg_addr == PDM2PCM_FIRCOEF09_OFFSET);
+    addr_hit[28] = (reg_addr == PDM2PCM_FIRCOEF10_OFFSET);
+    addr_hit[29] = (reg_addr == PDM2PCM_FIRCOEF11_OFFSET);
+    addr_hit[30] = (reg_addr == PDM2PCM_FIRCOEF12_OFFSET);
+    addr_hit[31] = (reg_addr == PDM2PCM_FIRCOEF13_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -1442,14 +1225,7 @@ module pdm2pcm_reg_top #(
                (addr_hit[28] & (|(PDM2PCM_PERMIT[28] & ~reg_be))) |
                (addr_hit[29] & (|(PDM2PCM_PERMIT[29] & ~reg_be))) |
                (addr_hit[30] & (|(PDM2PCM_PERMIT[30] & ~reg_be))) |
-               (addr_hit[31] & (|(PDM2PCM_PERMIT[31] & ~reg_be))) |
-               (addr_hit[32] & (|(PDM2PCM_PERMIT[32] & ~reg_be))) |
-               (addr_hit[33] & (|(PDM2PCM_PERMIT[33] & ~reg_be))) |
-               (addr_hit[34] & (|(PDM2PCM_PERMIT[34] & ~reg_be))) |
-               (addr_hit[35] & (|(PDM2PCM_PERMIT[35] & ~reg_be))) |
-               (addr_hit[36] & (|(PDM2PCM_PERMIT[36] & ~reg_be))) |
-               (addr_hit[37] & (|(PDM2PCM_PERMIT[37] & ~reg_be))) |
-               (addr_hit[38] & (|(PDM2PCM_PERMIT[38] & ~reg_be)))));
+               (addr_hit[31] & (|(PDM2PCM_PERMIT[31] & ~reg_be)))));
   end
 
   assign clkdividx_we = addr_hit[0] & reg_we & !reg_error;
@@ -1485,88 +1261,67 @@ module pdm2pcm_reg_top #(
   assign hb1coef03_we = addr_hit[10] & reg_we & !reg_error;
   assign hb1coef03_wd = reg_wdata[17:0];
 
-  assign hb1coef04_we = addr_hit[11] & reg_we & !reg_error;
-  assign hb1coef04_wd = reg_wdata[17:0];
-
-  assign hb1coef05_we = addr_hit[12] & reg_we & !reg_error;
-  assign hb1coef05_wd = reg_wdata[17:0];
-
-  assign hb2coef00_we = addr_hit[13] & reg_we & !reg_error;
+  assign hb2coef00_we = addr_hit[11] & reg_we & !reg_error;
   assign hb2coef00_wd = reg_wdata[17:0];
 
-  assign hb2coef01_we = addr_hit[14] & reg_we & !reg_error;
+  assign hb2coef01_we = addr_hit[12] & reg_we & !reg_error;
   assign hb2coef01_wd = reg_wdata[17:0];
 
-  assign hb2coef02_we = addr_hit[15] & reg_we & !reg_error;
+  assign hb2coef02_we = addr_hit[13] & reg_we & !reg_error;
   assign hb2coef02_wd = reg_wdata[17:0];
 
-  assign hb2coef03_we = addr_hit[16] & reg_we & !reg_error;
+  assign hb2coef03_we = addr_hit[14] & reg_we & !reg_error;
   assign hb2coef03_wd = reg_wdata[17:0];
 
-  assign hb2coef04_we = addr_hit[17] & reg_we & !reg_error;
+  assign hb2coef04_we = addr_hit[15] & reg_we & !reg_error;
   assign hb2coef04_wd = reg_wdata[17:0];
 
-  assign hb2coef05_we = addr_hit[18] & reg_we & !reg_error;
+  assign hb2coef05_we = addr_hit[16] & reg_we & !reg_error;
   assign hb2coef05_wd = reg_wdata[17:0];
 
-  assign hb2coef06_we = addr_hit[19] & reg_we & !reg_error;
+  assign hb2coef06_we = addr_hit[17] & reg_we & !reg_error;
   assign hb2coef06_wd = reg_wdata[17:0];
 
-  assign hb2coef07_we = addr_hit[20] & reg_we & !reg_error;
-  assign hb2coef07_wd = reg_wdata[17:0];
-
-  assign hb2coef08_we = addr_hit[21] & reg_we & !reg_error;
-  assign hb2coef08_wd = reg_wdata[17:0];
-
-  assign hb2coef09_we = addr_hit[22] & reg_we & !reg_error;
-  assign hb2coef09_wd = reg_wdata[17:0];
-
-  assign hb2coef10_we = addr_hit[23] & reg_we & !reg_error;
-  assign hb2coef10_wd = reg_wdata[17:0];
-
-  assign hb2coef11_we = addr_hit[24] & reg_we & !reg_error;
-  assign hb2coef11_wd = reg_wdata[17:0];
-
-  assign fircoef00_we = addr_hit[25] & reg_we & !reg_error;
+  assign fircoef00_we = addr_hit[18] & reg_we & !reg_error;
   assign fircoef00_wd = reg_wdata[17:0];
 
-  assign fircoef01_we = addr_hit[26] & reg_we & !reg_error;
+  assign fircoef01_we = addr_hit[19] & reg_we & !reg_error;
   assign fircoef01_wd = reg_wdata[17:0];
 
-  assign fircoef02_we = addr_hit[27] & reg_we & !reg_error;
+  assign fircoef02_we = addr_hit[20] & reg_we & !reg_error;
   assign fircoef02_wd = reg_wdata[17:0];
 
-  assign fircoef03_we = addr_hit[28] & reg_we & !reg_error;
+  assign fircoef03_we = addr_hit[21] & reg_we & !reg_error;
   assign fircoef03_wd = reg_wdata[17:0];
 
-  assign fircoef04_we = addr_hit[29] & reg_we & !reg_error;
+  assign fircoef04_we = addr_hit[22] & reg_we & !reg_error;
   assign fircoef04_wd = reg_wdata[17:0];
 
-  assign fircoef05_we = addr_hit[30] & reg_we & !reg_error;
+  assign fircoef05_we = addr_hit[23] & reg_we & !reg_error;
   assign fircoef05_wd = reg_wdata[17:0];
 
-  assign fircoef06_we = addr_hit[31] & reg_we & !reg_error;
+  assign fircoef06_we = addr_hit[24] & reg_we & !reg_error;
   assign fircoef06_wd = reg_wdata[17:0];
 
-  assign fircoef07_we = addr_hit[32] & reg_we & !reg_error;
+  assign fircoef07_we = addr_hit[25] & reg_we & !reg_error;
   assign fircoef07_wd = reg_wdata[17:0];
 
-  assign fircoef08_we = addr_hit[33] & reg_we & !reg_error;
+  assign fircoef08_we = addr_hit[26] & reg_we & !reg_error;
   assign fircoef08_wd = reg_wdata[17:0];
 
-  assign fircoef09_we = addr_hit[34] & reg_we & !reg_error;
+  assign fircoef09_we = addr_hit[27] & reg_we & !reg_error;
   assign fircoef09_wd = reg_wdata[17:0];
 
-  assign fircoef10_we = addr_hit[35] & reg_we & !reg_error;
+  assign fircoef10_we = addr_hit[28] & reg_we & !reg_error;
   assign fircoef10_wd = reg_wdata[17:0];
 
-  assign fircoef11_we = addr_hit[36] & reg_we & !reg_error;
+  assign fircoef11_we = addr_hit[29] & reg_we & !reg_error;
   assign fircoef11_wd = reg_wdata[17:0];
 
-  assign fircoef12_we = addr_hit[37] & reg_we & !reg_error;
+  assign fircoef12_we = addr_hit[30] & reg_we & !reg_error;
   assign fircoef12_wd = reg_wdata[17:0];
 
-  assign fircoef13_we = addr_hit[38] & reg_we & !reg_error;
+  assign fircoef13_we = addr_hit[31] & reg_we & !reg_error;
   assign fircoef13_wd = reg_wdata[17:0];
 
   // Read data return
@@ -1621,114 +1376,86 @@ module pdm2pcm_reg_top #(
       end
 
       addr_hit[11]: begin
-        reg_rdata_next[17:0] = hb1coef04_qs;
-      end
-
-      addr_hit[12]: begin
-        reg_rdata_next[17:0] = hb1coef05_qs;
-      end
-
-      addr_hit[13]: begin
         reg_rdata_next[17:0] = hb2coef00_qs;
       end
 
-      addr_hit[14]: begin
+      addr_hit[12]: begin
         reg_rdata_next[17:0] = hb2coef01_qs;
       end
 
-      addr_hit[15]: begin
+      addr_hit[13]: begin
         reg_rdata_next[17:0] = hb2coef02_qs;
       end
 
-      addr_hit[16]: begin
+      addr_hit[14]: begin
         reg_rdata_next[17:0] = hb2coef03_qs;
       end
 
-      addr_hit[17]: begin
+      addr_hit[15]: begin
         reg_rdata_next[17:0] = hb2coef04_qs;
       end
 
-      addr_hit[18]: begin
+      addr_hit[16]: begin
         reg_rdata_next[17:0] = hb2coef05_qs;
       end
 
-      addr_hit[19]: begin
+      addr_hit[17]: begin
         reg_rdata_next[17:0] = hb2coef06_qs;
       end
 
-      addr_hit[20]: begin
-        reg_rdata_next[17:0] = hb2coef07_qs;
-      end
-
-      addr_hit[21]: begin
-        reg_rdata_next[17:0] = hb2coef08_qs;
-      end
-
-      addr_hit[22]: begin
-        reg_rdata_next[17:0] = hb2coef09_qs;
-      end
-
-      addr_hit[23]: begin
-        reg_rdata_next[17:0] = hb2coef10_qs;
-      end
-
-      addr_hit[24]: begin
-        reg_rdata_next[17:0] = hb2coef11_qs;
-      end
-
-      addr_hit[25]: begin
+      addr_hit[18]: begin
         reg_rdata_next[17:0] = fircoef00_qs;
       end
 
-      addr_hit[26]: begin
+      addr_hit[19]: begin
         reg_rdata_next[17:0] = fircoef01_qs;
       end
 
-      addr_hit[27]: begin
+      addr_hit[20]: begin
         reg_rdata_next[17:0] = fircoef02_qs;
       end
 
-      addr_hit[28]: begin
+      addr_hit[21]: begin
         reg_rdata_next[17:0] = fircoef03_qs;
       end
 
-      addr_hit[29]: begin
+      addr_hit[22]: begin
         reg_rdata_next[17:0] = fircoef04_qs;
       end
 
-      addr_hit[30]: begin
+      addr_hit[23]: begin
         reg_rdata_next[17:0] = fircoef05_qs;
       end
 
-      addr_hit[31]: begin
+      addr_hit[24]: begin
         reg_rdata_next[17:0] = fircoef06_qs;
       end
 
-      addr_hit[32]: begin
+      addr_hit[25]: begin
         reg_rdata_next[17:0] = fircoef07_qs;
       end
 
-      addr_hit[33]: begin
+      addr_hit[26]: begin
         reg_rdata_next[17:0] = fircoef08_qs;
       end
 
-      addr_hit[34]: begin
+      addr_hit[27]: begin
         reg_rdata_next[17:0] = fircoef09_qs;
       end
 
-      addr_hit[35]: begin
+      addr_hit[28]: begin
         reg_rdata_next[17:0] = fircoef10_qs;
       end
 
-      addr_hit[36]: begin
+      addr_hit[29]: begin
         reg_rdata_next[17:0] = fircoef11_qs;
       end
 
-      addr_hit[37]: begin
+      addr_hit[30]: begin
         reg_rdata_next[17:0] = fircoef12_qs;
       end
 
-      addr_hit[38]: begin
+      addr_hit[31]: begin
         reg_rdata_next[17:0] = fircoef13_qs;
       end
 

@@ -16,7 +16,7 @@ module fir #(
     // Total number of coefficients
     localparam TOTCOEFS   = STAGES + 1,
     // Number of free coefficients
-    localparam NUMCOEFS   = int'($ceil(TOTCOEFS / 2))
+    localparam NUMCOEFS   = int'($ceil(TOTCOEFS / 2.0))
 ) (
     // Clock input
     input logic clk_i,
@@ -35,7 +35,7 @@ module fir #(
     output logic [WIDTH-1:0] data_o,
 
     // Free coefficients array (will be mapped to `coeffs`)
-    input logic [COEFSWIDTH-1:0] freecoeffs[0:NUMCOEFS]
+    input logic [COEFSWIDTH-1:0] freecoeffs[0:NUMCOEFS-1]
 );
 
   // Filter impulse response coefficients array
@@ -50,7 +50,7 @@ module fir #(
   genvar k;
   generate
     for (k = 0; k < TOTCOEFS; k = k + 1) begin : coeffs_mapping
-      assign coeffs[k] = freecoeffs[int'($floor($sqrt($pow((TOTCOEFS-1)/2-k, 2))))];
+      assign coeffs[k] = freecoeffs[int'($floor($sqrt($pow((TOTCOEFS-1)/2.0-k, 2))))];
     end
   endgenerate
 

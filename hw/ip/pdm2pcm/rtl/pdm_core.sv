@@ -19,10 +19,10 @@ module pdm_core #(
     localparam DECIM_HFBD2_CNT_W = 6,
     // Number of stages of the first halfband filter
     localparam STAGES_HB1 = 10,
-    localparam COEFFS_HB1 = 6,
+    localparam COEFFS_HB1 = 4,
     // Number of stages of the second halfband filter
     localparam STAGES_HB2 = 22,
-    localparam COEFFS_HB2 = 12,
+    localparam COEFFS_HB2 = 7,
     // Number of stages of the FIR filter
     localparam STAGES_FIR = 26,
     localparam COEFFS_FIR = 14,

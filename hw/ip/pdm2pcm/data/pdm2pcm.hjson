@@ -120,22 +120,6 @@
         { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
-    { name:     "HB1COEF04"
-      desc:     "Filter HB1 coefficient 4"
-      swaccess: "rw"
-      hwaccess: "hro"
-      fields: [
-        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
-      ]
-    }
-    { name:     "HB1COEF05"
-      desc:     "Filter HB1 coefficient 5"
-      swaccess: "rw"
-      hwaccess: "hro"
-      fields: [
-        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
-      ]
-    }
 
     // COEFFICIENTS
     // For Halfband filter #2
@@ -190,46 +174,6 @@
     }
     { name:     "HB2COEF06"
       desc:     "Filter HB2 coefficient 6"
-      swaccess: "rw"
-      hwaccess: "hro"
-      fields: [
-        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
-      ]
-    }
-    { name:     "HB2COEF07"
-      desc:     "Filter HB2 coefficient 7"
-      swaccess: "rw"
-      hwaccess: "hro"
-      fields: [
-        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
-      ]
-    }
-    { name:     "HB2COEF08"
-      desc:     "Filter HB2 coefficient 8"
-      swaccess: "rw"
-      hwaccess: "hro"
-      fields: [
-        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
-      ]
-    }
-    { name:     "HB2COEF09"
-      desc:     "Filter HB2 coefficient 9"
-      swaccess: "rw"
-      hwaccess: "hro"
-      fields: [
-        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
-      ]
-    }
-    { name:     "HB2COEF10"
-      desc:     "Filter HB2 coefficient 10"
-      swaccess: "rw"
-      hwaccess: "hro"
-      fields: [
-        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
-      ]
-    }
-    { name:     "HB2COEF11"
-      desc:     "Filter HB2 coefficient 11"
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
