@@ -76,9 +76,11 @@ int main(int argc, char *argv[])
 
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_CONTROL_REG_OFFSET   , 1);
 
+    int const COUNT = 20;
+
     int count = 0;
     int read_prev = 0;
-    int storage[5];
+    int storage[COUNT];
     int finish = 0;
 
     while(finish == 0) {
@@ -89,14 +91,14 @@ int main(int argc, char *argv[])
                 storage[count] = read;
                 ++count;
                 read_prev = read;
-                if (read > 65000 && read_prev > 65000) {
+                if ((read > 65000 && read_prev > 65000) || count >= COUNT) {
                     finish = 1;
                 }
             }
         } 
     }
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < COUNT; ++i) {
         printf("%d\n",storage[i]);
     }
 
