@@ -132,101 +132,101 @@ module pdm2pcm_reg_top #(
   logic [5:0] decimhb2_qs;
   logic [5:0] decimhb2_wd;
   logic decimhb2_we;
-  logic [15:0] hb1coef00_qs;
-  logic [15:0] hb1coef00_wd;
+  logic [17:0] hb1coef00_qs;
+  logic [17:0] hb1coef00_wd;
   logic hb1coef00_we;
-  logic [15:0] hb1coef01_qs;
-  logic [15:0] hb1coef01_wd;
+  logic [17:0] hb1coef01_qs;
+  logic [17:0] hb1coef01_wd;
   logic hb1coef01_we;
-  logic [15:0] hb1coef02_qs;
-  logic [15:0] hb1coef02_wd;
+  logic [17:0] hb1coef02_qs;
+  logic [17:0] hb1coef02_wd;
   logic hb1coef02_we;
-  logic [15:0] hb1coef03_qs;
-  logic [15:0] hb1coef03_wd;
+  logic [17:0] hb1coef03_qs;
+  logic [17:0] hb1coef03_wd;
   logic hb1coef03_we;
-  logic [15:0] hb1coef04_qs;
-  logic [15:0] hb1coef04_wd;
+  logic [17:0] hb1coef04_qs;
+  logic [17:0] hb1coef04_wd;
   logic hb1coef04_we;
-  logic [15:0] hb1coef05_qs;
-  logic [15:0] hb1coef05_wd;
+  logic [17:0] hb1coef05_qs;
+  logic [17:0] hb1coef05_wd;
   logic hb1coef05_we;
-  logic [15:0] hb2coef00_qs;
-  logic [15:0] hb2coef00_wd;
+  logic [17:0] hb2coef00_qs;
+  logic [17:0] hb2coef00_wd;
   logic hb2coef00_we;
-  logic [15:0] hb2coef01_qs;
-  logic [15:0] hb2coef01_wd;
+  logic [17:0] hb2coef01_qs;
+  logic [17:0] hb2coef01_wd;
   logic hb2coef01_we;
-  logic [15:0] hb2coef02_qs;
-  logic [15:0] hb2coef02_wd;
+  logic [17:0] hb2coef02_qs;
+  logic [17:0] hb2coef02_wd;
   logic hb2coef02_we;
-  logic [15:0] hb2coef03_qs;
-  logic [15:0] hb2coef03_wd;
+  logic [17:0] hb2coef03_qs;
+  logic [17:0] hb2coef03_wd;
   logic hb2coef03_we;
-  logic [15:0] hb2coef04_qs;
-  logic [15:0] hb2coef04_wd;
+  logic [17:0] hb2coef04_qs;
+  logic [17:0] hb2coef04_wd;
   logic hb2coef04_we;
-  logic [15:0] hb2coef05_qs;
-  logic [15:0] hb2coef05_wd;
+  logic [17:0] hb2coef05_qs;
+  logic [17:0] hb2coef05_wd;
   logic hb2coef05_we;
-  logic [15:0] hb2coef06_qs;
-  logic [15:0] hb2coef06_wd;
+  logic [17:0] hb2coef06_qs;
+  logic [17:0] hb2coef06_wd;
   logic hb2coef06_we;
-  logic [15:0] hb2coef07_qs;
-  logic [15:0] hb2coef07_wd;
+  logic [17:0] hb2coef07_qs;
+  logic [17:0] hb2coef07_wd;
   logic hb2coef07_we;
-  logic [15:0] hb2coef08_qs;
-  logic [15:0] hb2coef08_wd;
+  logic [17:0] hb2coef08_qs;
+  logic [17:0] hb2coef08_wd;
   logic hb2coef08_we;
-  logic [15:0] hb2coef09_qs;
-  logic [15:0] hb2coef09_wd;
+  logic [17:0] hb2coef09_qs;
+  logic [17:0] hb2coef09_wd;
   logic hb2coef09_we;
-  logic [15:0] hb2coef10_qs;
-  logic [15:0] hb2coef10_wd;
+  logic [17:0] hb2coef10_qs;
+  logic [17:0] hb2coef10_wd;
   logic hb2coef10_we;
-  logic [15:0] hb2coef11_qs;
-  logic [15:0] hb2coef11_wd;
+  logic [17:0] hb2coef11_qs;
+  logic [17:0] hb2coef11_wd;
   logic hb2coef11_we;
-  logic [15:0] fircoef00_qs;
-  logic [15:0] fircoef00_wd;
+  logic [17:0] fircoef00_qs;
+  logic [17:0] fircoef00_wd;
   logic fircoef00_we;
-  logic [15:0] fircoef01_qs;
-  logic [15:0] fircoef01_wd;
+  logic [17:0] fircoef01_qs;
+  logic [17:0] fircoef01_wd;
   logic fircoef01_we;
-  logic [15:0] fircoef02_qs;
-  logic [15:0] fircoef02_wd;
+  logic [17:0] fircoef02_qs;
+  logic [17:0] fircoef02_wd;
   logic fircoef02_we;
-  logic [15:0] fircoef03_qs;
-  logic [15:0] fircoef03_wd;
+  logic [17:0] fircoef03_qs;
+  logic [17:0] fircoef03_wd;
   logic fircoef03_we;
-  logic [15:0] fircoef04_qs;
-  logic [15:0] fircoef04_wd;
+  logic [17:0] fircoef04_qs;
+  logic [17:0] fircoef04_wd;
   logic fircoef04_we;
-  logic [15:0] fircoef05_qs;
-  logic [15:0] fircoef05_wd;
+  logic [17:0] fircoef05_qs;
+  logic [17:0] fircoef05_wd;
   logic fircoef05_we;
-  logic [15:0] fircoef06_qs;
-  logic [15:0] fircoef06_wd;
+  logic [17:0] fircoef06_qs;
+  logic [17:0] fircoef06_wd;
   logic fircoef06_we;
-  logic [15:0] fircoef07_qs;
-  logic [15:0] fircoef07_wd;
+  logic [17:0] fircoef07_qs;
+  logic [17:0] fircoef07_wd;
   logic fircoef07_we;
-  logic [15:0] fircoef08_qs;
-  logic [15:0] fircoef08_wd;
+  logic [17:0] fircoef08_qs;
+  logic [17:0] fircoef08_wd;
   logic fircoef08_we;
-  logic [15:0] fircoef09_qs;
-  logic [15:0] fircoef09_wd;
+  logic [17:0] fircoef09_qs;
+  logic [17:0] fircoef09_wd;
   logic fircoef09_we;
-  logic [15:0] fircoef10_qs;
-  logic [15:0] fircoef10_wd;
+  logic [17:0] fircoef10_qs;
+  logic [17:0] fircoef10_wd;
   logic fircoef10_we;
-  logic [15:0] fircoef11_qs;
-  logic [15:0] fircoef11_wd;
+  logic [17:0] fircoef11_qs;
+  logic [17:0] fircoef11_wd;
   logic fircoef11_we;
-  logic [15:0] fircoef12_qs;
-  logic [15:0] fircoef12_wd;
+  logic [17:0] fircoef12_qs;
+  logic [17:0] fircoef12_wd;
   logic fircoef12_we;
-  logic [15:0] fircoef13_qs;
-  logic [15:0] fircoef13_wd;
+  logic [17:0] fircoef13_qs;
+  logic [17:0] fircoef13_wd;
   logic fircoef13_we;
 
   // Register instances
@@ -499,9 +499,9 @@ module pdm2pcm_reg_top #(
   // R[hb1coef00]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb1coef00 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -526,9 +526,9 @@ module pdm2pcm_reg_top #(
   // R[hb1coef01]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb1coef01 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -553,9 +553,9 @@ module pdm2pcm_reg_top #(
   // R[hb1coef02]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb1coef02 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -580,9 +580,9 @@ module pdm2pcm_reg_top #(
   // R[hb1coef03]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb1coef03 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -607,9 +607,9 @@ module pdm2pcm_reg_top #(
   // R[hb1coef04]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb1coef04 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -634,9 +634,9 @@ module pdm2pcm_reg_top #(
   // R[hb1coef05]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb1coef05 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -661,9 +661,9 @@ module pdm2pcm_reg_top #(
   // R[hb2coef00]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb2coef00 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -688,9 +688,9 @@ module pdm2pcm_reg_top #(
   // R[hb2coef01]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb2coef01 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -715,9 +715,9 @@ module pdm2pcm_reg_top #(
   // R[hb2coef02]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb2coef02 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -742,9 +742,9 @@ module pdm2pcm_reg_top #(
   // R[hb2coef03]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb2coef03 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -769,9 +769,9 @@ module pdm2pcm_reg_top #(
   // R[hb2coef04]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb2coef04 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -796,9 +796,9 @@ module pdm2pcm_reg_top #(
   // R[hb2coef05]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb2coef05 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -823,9 +823,9 @@ module pdm2pcm_reg_top #(
   // R[hb2coef06]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb2coef06 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -850,9 +850,9 @@ module pdm2pcm_reg_top #(
   // R[hb2coef07]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb2coef07 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -877,9 +877,9 @@ module pdm2pcm_reg_top #(
   // R[hb2coef08]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb2coef08 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -904,9 +904,9 @@ module pdm2pcm_reg_top #(
   // R[hb2coef09]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb2coef09 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -931,9 +931,9 @@ module pdm2pcm_reg_top #(
   // R[hb2coef10]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb2coef10 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -958,9 +958,9 @@ module pdm2pcm_reg_top #(
   // R[hb2coef11]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_hb2coef11 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -985,9 +985,9 @@ module pdm2pcm_reg_top #(
   // R[fircoef00]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_fircoef00 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1012,9 +1012,9 @@ module pdm2pcm_reg_top #(
   // R[fircoef01]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_fircoef01 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1039,9 +1039,9 @@ module pdm2pcm_reg_top #(
   // R[fircoef02]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_fircoef02 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1066,9 +1066,9 @@ module pdm2pcm_reg_top #(
   // R[fircoef03]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_fircoef03 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1093,9 +1093,9 @@ module pdm2pcm_reg_top #(
   // R[fircoef04]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_fircoef04 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1120,9 +1120,9 @@ module pdm2pcm_reg_top #(
   // R[fircoef05]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_fircoef05 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1147,9 +1147,9 @@ module pdm2pcm_reg_top #(
   // R[fircoef06]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_fircoef06 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1174,9 +1174,9 @@ module pdm2pcm_reg_top #(
   // R[fircoef07]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_fircoef07 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1201,9 +1201,9 @@ module pdm2pcm_reg_top #(
   // R[fircoef08]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_fircoef08 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1228,9 +1228,9 @@ module pdm2pcm_reg_top #(
   // R[fircoef09]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_fircoef09 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1255,9 +1255,9 @@ module pdm2pcm_reg_top #(
   // R[fircoef10]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_fircoef10 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1282,9 +1282,9 @@ module pdm2pcm_reg_top #(
   // R[fircoef11]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_fircoef11 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1309,9 +1309,9 @@ module pdm2pcm_reg_top #(
   // R[fircoef12]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_fircoef12 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1336,9 +1336,9 @@ module pdm2pcm_reg_top #(
   // R[fircoef13]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (18),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (18'h0)
   ) u_fircoef13 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -1474,100 +1474,100 @@ module pdm2pcm_reg_top #(
   assign decimhb2_wd = reg_wdata[5:0];
 
   assign hb1coef00_we = addr_hit[7] & reg_we & !reg_error;
-  assign hb1coef00_wd = reg_wdata[15:0];
+  assign hb1coef00_wd = reg_wdata[17:0];
 
   assign hb1coef01_we = addr_hit[8] & reg_we & !reg_error;
-  assign hb1coef01_wd = reg_wdata[15:0];
+  assign hb1coef01_wd = reg_wdata[17:0];
 
   assign hb1coef02_we = addr_hit[9] & reg_we & !reg_error;
-  assign hb1coef02_wd = reg_wdata[15:0];
+  assign hb1coef02_wd = reg_wdata[17:0];
 
   assign hb1coef03_we = addr_hit[10] & reg_we & !reg_error;
-  assign hb1coef03_wd = reg_wdata[15:0];
+  assign hb1coef03_wd = reg_wdata[17:0];
 
   assign hb1coef04_we = addr_hit[11] & reg_we & !reg_error;
-  assign hb1coef04_wd = reg_wdata[15:0];
+  assign hb1coef04_wd = reg_wdata[17:0];
 
   assign hb1coef05_we = addr_hit[12] & reg_we & !reg_error;
-  assign hb1coef05_wd = reg_wdata[15:0];
+  assign hb1coef05_wd = reg_wdata[17:0];
 
   assign hb2coef00_we = addr_hit[13] & reg_we & !reg_error;
-  assign hb2coef00_wd = reg_wdata[15:0];
+  assign hb2coef00_wd = reg_wdata[17:0];
 
   assign hb2coef01_we = addr_hit[14] & reg_we & !reg_error;
-  assign hb2coef01_wd = reg_wdata[15:0];
+  assign hb2coef01_wd = reg_wdata[17:0];
 
   assign hb2coef02_we = addr_hit[15] & reg_we & !reg_error;
-  assign hb2coef02_wd = reg_wdata[15:0];
+  assign hb2coef02_wd = reg_wdata[17:0];
 
   assign hb2coef03_we = addr_hit[16] & reg_we & !reg_error;
-  assign hb2coef03_wd = reg_wdata[15:0];
+  assign hb2coef03_wd = reg_wdata[17:0];
 
   assign hb2coef04_we = addr_hit[17] & reg_we & !reg_error;
-  assign hb2coef04_wd = reg_wdata[15:0];
+  assign hb2coef04_wd = reg_wdata[17:0];
 
   assign hb2coef05_we = addr_hit[18] & reg_we & !reg_error;
-  assign hb2coef05_wd = reg_wdata[15:0];
+  assign hb2coef05_wd = reg_wdata[17:0];
 
   assign hb2coef06_we = addr_hit[19] & reg_we & !reg_error;
-  assign hb2coef06_wd = reg_wdata[15:0];
+  assign hb2coef06_wd = reg_wdata[17:0];
 
   assign hb2coef07_we = addr_hit[20] & reg_we & !reg_error;
-  assign hb2coef07_wd = reg_wdata[15:0];
+  assign hb2coef07_wd = reg_wdata[17:0];
 
   assign hb2coef08_we = addr_hit[21] & reg_we & !reg_error;
-  assign hb2coef08_wd = reg_wdata[15:0];
+  assign hb2coef08_wd = reg_wdata[17:0];
 
   assign hb2coef09_we = addr_hit[22] & reg_we & !reg_error;
-  assign hb2coef09_wd = reg_wdata[15:0];
+  assign hb2coef09_wd = reg_wdata[17:0];
 
   assign hb2coef10_we = addr_hit[23] & reg_we & !reg_error;
-  assign hb2coef10_wd = reg_wdata[15:0];
+  assign hb2coef10_wd = reg_wdata[17:0];
 
   assign hb2coef11_we = addr_hit[24] & reg_we & !reg_error;
-  assign hb2coef11_wd = reg_wdata[15:0];
+  assign hb2coef11_wd = reg_wdata[17:0];
 
   assign fircoef00_we = addr_hit[25] & reg_we & !reg_error;
-  assign fircoef00_wd = reg_wdata[15:0];
+  assign fircoef00_wd = reg_wdata[17:0];
 
   assign fircoef01_we = addr_hit[26] & reg_we & !reg_error;
-  assign fircoef01_wd = reg_wdata[15:0];
+  assign fircoef01_wd = reg_wdata[17:0];
 
   assign fircoef02_we = addr_hit[27] & reg_we & !reg_error;
-  assign fircoef02_wd = reg_wdata[15:0];
+  assign fircoef02_wd = reg_wdata[17:0];
 
   assign fircoef03_we = addr_hit[28] & reg_we & !reg_error;
-  assign fircoef03_wd = reg_wdata[15:0];
+  assign fircoef03_wd = reg_wdata[17:0];
 
   assign fircoef04_we = addr_hit[29] & reg_we & !reg_error;
-  assign fircoef04_wd = reg_wdata[15:0];
+  assign fircoef04_wd = reg_wdata[17:0];
 
   assign fircoef05_we = addr_hit[30] & reg_we & !reg_error;
-  assign fircoef05_wd = reg_wdata[15:0];
+  assign fircoef05_wd = reg_wdata[17:0];
 
   assign fircoef06_we = addr_hit[31] & reg_we & !reg_error;
-  assign fircoef06_wd = reg_wdata[15:0];
+  assign fircoef06_wd = reg_wdata[17:0];
 
   assign fircoef07_we = addr_hit[32] & reg_we & !reg_error;
-  assign fircoef07_wd = reg_wdata[15:0];
+  assign fircoef07_wd = reg_wdata[17:0];
 
   assign fircoef08_we = addr_hit[33] & reg_we & !reg_error;
-  assign fircoef08_wd = reg_wdata[15:0];
+  assign fircoef08_wd = reg_wdata[17:0];
 
   assign fircoef09_we = addr_hit[34] & reg_we & !reg_error;
-  assign fircoef09_wd = reg_wdata[15:0];
+  assign fircoef09_wd = reg_wdata[17:0];
 
   assign fircoef10_we = addr_hit[35] & reg_we & !reg_error;
-  assign fircoef10_wd = reg_wdata[15:0];
+  assign fircoef10_wd = reg_wdata[17:0];
 
   assign fircoef11_we = addr_hit[36] & reg_we & !reg_error;
-  assign fircoef11_wd = reg_wdata[15:0];
+  assign fircoef11_wd = reg_wdata[17:0];
 
   assign fircoef12_we = addr_hit[37] & reg_we & !reg_error;
-  assign fircoef12_wd = reg_wdata[15:0];
+  assign fircoef12_wd = reg_wdata[17:0];
 
   assign fircoef13_we = addr_hit[38] & reg_we & !reg_error;
-  assign fircoef13_wd = reg_wdata[15:0];
+  assign fircoef13_wd = reg_wdata[17:0];
 
   // Read data return
   always_comb begin
@@ -1605,131 +1605,131 @@ module pdm2pcm_reg_top #(
       end
 
       addr_hit[7]: begin
-        reg_rdata_next[15:0] = hb1coef00_qs;
+        reg_rdata_next[17:0] = hb1coef00_qs;
       end
 
       addr_hit[8]: begin
-        reg_rdata_next[15:0] = hb1coef01_qs;
+        reg_rdata_next[17:0] = hb1coef01_qs;
       end
 
       addr_hit[9]: begin
-        reg_rdata_next[15:0] = hb1coef02_qs;
+        reg_rdata_next[17:0] = hb1coef02_qs;
       end
 
       addr_hit[10]: begin
-        reg_rdata_next[15:0] = hb1coef03_qs;
+        reg_rdata_next[17:0] = hb1coef03_qs;
       end
 
       addr_hit[11]: begin
-        reg_rdata_next[15:0] = hb1coef04_qs;
+        reg_rdata_next[17:0] = hb1coef04_qs;
       end
 
       addr_hit[12]: begin
-        reg_rdata_next[15:0] = hb1coef05_qs;
+        reg_rdata_next[17:0] = hb1coef05_qs;
       end
 
       addr_hit[13]: begin
-        reg_rdata_next[15:0] = hb2coef00_qs;
+        reg_rdata_next[17:0] = hb2coef00_qs;
       end
 
       addr_hit[14]: begin
-        reg_rdata_next[15:0] = hb2coef01_qs;
+        reg_rdata_next[17:0] = hb2coef01_qs;
       end
 
       addr_hit[15]: begin
-        reg_rdata_next[15:0] = hb2coef02_qs;
+        reg_rdata_next[17:0] = hb2coef02_qs;
       end
 
       addr_hit[16]: begin
-        reg_rdata_next[15:0] = hb2coef03_qs;
+        reg_rdata_next[17:0] = hb2coef03_qs;
       end
 
       addr_hit[17]: begin
-        reg_rdata_next[15:0] = hb2coef04_qs;
+        reg_rdata_next[17:0] = hb2coef04_qs;
       end
 
       addr_hit[18]: begin
-        reg_rdata_next[15:0] = hb2coef05_qs;
+        reg_rdata_next[17:0] = hb2coef05_qs;
       end
 
       addr_hit[19]: begin
-        reg_rdata_next[15:0] = hb2coef06_qs;
+        reg_rdata_next[17:0] = hb2coef06_qs;
       end
 
       addr_hit[20]: begin
-        reg_rdata_next[15:0] = hb2coef07_qs;
+        reg_rdata_next[17:0] = hb2coef07_qs;
       end
 
       addr_hit[21]: begin
-        reg_rdata_next[15:0] = hb2coef08_qs;
+        reg_rdata_next[17:0] = hb2coef08_qs;
       end
 
       addr_hit[22]: begin
-        reg_rdata_next[15:0] = hb2coef09_qs;
+        reg_rdata_next[17:0] = hb2coef09_qs;
       end
 
       addr_hit[23]: begin
-        reg_rdata_next[15:0] = hb2coef10_qs;
+        reg_rdata_next[17:0] = hb2coef10_qs;
       end
 
       addr_hit[24]: begin
-        reg_rdata_next[15:0] = hb2coef11_qs;
+        reg_rdata_next[17:0] = hb2coef11_qs;
       end
 
       addr_hit[25]: begin
-        reg_rdata_next[15:0] = fircoef00_qs;
+        reg_rdata_next[17:0] = fircoef00_qs;
       end
 
       addr_hit[26]: begin
-        reg_rdata_next[15:0] = fircoef01_qs;
+        reg_rdata_next[17:0] = fircoef01_qs;
       end
 
       addr_hit[27]: begin
-        reg_rdata_next[15:0] = fircoef02_qs;
+        reg_rdata_next[17:0] = fircoef02_qs;
       end
 
       addr_hit[28]: begin
-        reg_rdata_next[15:0] = fircoef03_qs;
+        reg_rdata_next[17:0] = fircoef03_qs;
       end
 
       addr_hit[29]: begin
-        reg_rdata_next[15:0] = fircoef04_qs;
+        reg_rdata_next[17:0] = fircoef04_qs;
       end
 
       addr_hit[30]: begin
-        reg_rdata_next[15:0] = fircoef05_qs;
+        reg_rdata_next[17:0] = fircoef05_qs;
       end
 
       addr_hit[31]: begin
-        reg_rdata_next[15:0] = fircoef06_qs;
+        reg_rdata_next[17:0] = fircoef06_qs;
       end
 
       addr_hit[32]: begin
-        reg_rdata_next[15:0] = fircoef07_qs;
+        reg_rdata_next[17:0] = fircoef07_qs;
       end
 
       addr_hit[33]: begin
-        reg_rdata_next[15:0] = fircoef08_qs;
+        reg_rdata_next[17:0] = fircoef08_qs;
       end
 
       addr_hit[34]: begin
-        reg_rdata_next[15:0] = fircoef09_qs;
+        reg_rdata_next[17:0] = fircoef09_qs;
       end
 
       addr_hit[35]: begin
-        reg_rdata_next[15:0] = fircoef10_qs;
+        reg_rdata_next[17:0] = fircoef10_qs;
       end
 
       addr_hit[36]: begin
-        reg_rdata_next[15:0] = fircoef11_qs;
+        reg_rdata_next[17:0] = fircoef11_qs;
       end
 
       addr_hit[37]: begin
-        reg_rdata_next[15:0] = fircoef12_qs;
+        reg_rdata_next[17:0] = fircoef12_qs;
       end
 
       addr_hit[38]: begin
-        reg_rdata_next[15:0] = fircoef13_qs;
+        reg_rdata_next[17:0] = fircoef13_qs;
       end
 
       default: begin

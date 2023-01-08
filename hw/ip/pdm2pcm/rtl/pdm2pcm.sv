@@ -26,9 +26,9 @@ module pdm2pcm #(
   logic              [                3:0]     par_decim_idx_combs;
   logic              [                4:0]     par_decim_idx_hfbd2;
   logic              [                5:0]     par_decim_idx_fir;
-  logic              [               15:0]     coeffs_hb1          [ 0:5];
-  logic              [               15:0]     coeffs_hb2          [0:11];
-  logic              [               15:0]     coeffs_fir          [0:13];
+  logic              [               17:0]     coeffs_hb1          [ 0:5];
+  logic              [               17:0]     coeffs_hb2          [0:11];
+  logic              [               17:0]     coeffs_fir          [0:13];
 
   logic              [FIFO_ADDR_WIDTH-1:0]     fifo_usage;
 
@@ -36,7 +36,7 @@ module pdm2pcm #(
 
   logic                                        rx_ready;
 
-  logic              [               19:0]     pcm_o;
+  logic              [               17:0]     pcm_o;
 
   // FIFO/window related signals
   logic              [               31:0]     rx_data;
@@ -134,7 +134,7 @@ module pdm2pcm #(
       .full_o(full),
       .empty_o(empty),
       .usage_o(fifo_usage),
-      .data_i({{12{1'b0}}, pcm_o}),
+      .data_i({{14{1'b0}}, pcm_o}),
       .push_i(push),
       .data_o(rx_data),
       .pop_i(pop)

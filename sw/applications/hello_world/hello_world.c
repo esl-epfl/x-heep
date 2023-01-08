@@ -36,17 +36,17 @@ int main(int argc, char *argv[])
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_REACHCOUNT_REG_OFFSET, 1);
     
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMCIC_REG_OFFSET  ,15);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMHB1_REG_OFFSET  , 0);
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMHB2_REG_OFFSET  , 0);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMHB1_REG_OFFSET  ,15);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_DECIMHB2_REG_OFFSET  ,15);
     
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF00_REG_OFFSET , 1);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF00_REG_OFFSET , 1 << 16);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF01_REG_OFFSET , 0);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF02_REG_OFFSET , 0);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF03_REG_OFFSET , 0);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF04_REG_OFFSET , 0);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB1COEF05_REG_OFFSET , 0);
     
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF00_REG_OFFSET , 1);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF00_REG_OFFSET , 1 << 16);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF01_REG_OFFSET , 0);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF02_REG_OFFSET , 0);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF03_REG_OFFSET , 0);
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF10_REG_OFFSET , 0);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_HB2COEF11_REG_OFFSET , 0);
 
-    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF00_REG_OFFSET , 1);
+    mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF00_REG_OFFSET , 1 << 16);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF01_REG_OFFSET , 0);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF02_REG_OFFSET , 0);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_FIRCOEF03_REG_OFFSET , 0);
@@ -82,22 +82,23 @@ int main(int argc, char *argv[])
     int read_prev = 0;
     int storage[COUNT];
     int finish = 0;
-
+    int fed = 0;
+   
     while(finish == 0) {
         uint32_t status = mmio_region_read32(pdm2pcm_base_addr, PDM2PCM_STATUS_REG_OFFSET);
         if (!(status & 1)) {
-            uint32_t read = mmio_region_read32(pdm2pcm_base_addr, PDM2PCM_RXDATA_REG_OFFSET);
-            if (read != read_prev) {
+            int32_t read = mmio_region_read32(pdm2pcm_base_addr, PDM2PCM_RXDATA_REG_OFFSET);
+            if (read != 0 || fed == 1) {
+                fed = 1;
                 storage[count] = read;
                 ++count;
                 read_prev = read;
-                if ((read > 65000 && read_prev > 65000) || count >= COUNT) {
+                if (count >= COUNT) {
                     finish = 1;
                 }
             }
-        } 
+        }
     }
-
     for (int i = 0; i < COUNT; ++i) {
         printf("%d\n",storage[i]);
     }

@@ -9,3 +9,6 @@ lint_off -rule WIDTH -file "*/pdm2pcm_reg_top.sv" -match "Operator ASSIGNW expec
 
 lint_off -rule UNUSED -file "*/pdm2pcm_window.sv" -match "Bits of signal are not *"
 lint_off -rule UNUSED -file "*/pdm2pcm.sv" -match "Bits of signal are not *"
+
+lint_off -rule UNUSED -file "*/fir.sv" -match "*"
+lint_off -rule UNUSED -file "*/halfband.sv" -match "*"

@@ -34,69 +34,69 @@ package pdm2pcm_reg_pkg;
 
   typedef struct packed {logic [5:0] q;} pdm2pcm_reg2hw_decimhb2_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb1coef00_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb1coef00_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb1coef01_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb1coef01_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb1coef02_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb1coef02_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb1coef03_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb1coef03_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb1coef04_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb1coef04_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb1coef05_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb1coef05_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef00_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb2coef00_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef01_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb2coef01_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef02_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb2coef02_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef03_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb2coef03_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef04_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb2coef04_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef05_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb2coef05_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef06_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb2coef06_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef07_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb2coef07_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef08_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb2coef08_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef09_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb2coef09_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef10_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb2coef10_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_hb2coef11_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_hb2coef11_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef00_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_fircoef00_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef01_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_fircoef01_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef02_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_fircoef02_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef03_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_fircoef03_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef04_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_fircoef04_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef05_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_fircoef05_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef06_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_fircoef06_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef07_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_fircoef07_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef08_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_fircoef08_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef09_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_fircoef09_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef10_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_fircoef10_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef11_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_fircoef11_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef12_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_fircoef12_reg_t;
 
-  typedef struct packed {logic [15:0] q;} pdm2pcm_reg2hw_fircoef13_reg_t;
+  typedef struct packed {logic [17:0] q;} pdm2pcm_reg2hw_fircoef13_reg_t;
 
   typedef struct packed {
     struct packed {
@@ -115,45 +115,45 @@ package pdm2pcm_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    pdm2pcm_reg2hw_clkdividx_reg_t clkdividx;  // [553:538]
-    pdm2pcm_reg2hw_control_reg_t control;  // [537:536]
-    pdm2pcm_reg2hw_status_reg_t status;  // [535:533]
-    pdm2pcm_reg2hw_reachcount_reg_t reachcount;  // [532:527]
-    pdm2pcm_reg2hw_decimcic_reg_t decimcic;  // [526:523]
-    pdm2pcm_reg2hw_decimhb1_reg_t decimhb1;  // [522:518]
-    pdm2pcm_reg2hw_decimhb2_reg_t decimhb2;  // [517:512]
-    pdm2pcm_reg2hw_hb1coef00_reg_t hb1coef00;  // [511:496]
-    pdm2pcm_reg2hw_hb1coef01_reg_t hb1coef01;  // [495:480]
-    pdm2pcm_reg2hw_hb1coef02_reg_t hb1coef02;  // [479:464]
-    pdm2pcm_reg2hw_hb1coef03_reg_t hb1coef03;  // [463:448]
-    pdm2pcm_reg2hw_hb1coef04_reg_t hb1coef04;  // [447:432]
-    pdm2pcm_reg2hw_hb1coef05_reg_t hb1coef05;  // [431:416]
-    pdm2pcm_reg2hw_hb2coef00_reg_t hb2coef00;  // [415:400]
-    pdm2pcm_reg2hw_hb2coef01_reg_t hb2coef01;  // [399:384]
-    pdm2pcm_reg2hw_hb2coef02_reg_t hb2coef02;  // [383:368]
-    pdm2pcm_reg2hw_hb2coef03_reg_t hb2coef03;  // [367:352]
-    pdm2pcm_reg2hw_hb2coef04_reg_t hb2coef04;  // [351:336]
-    pdm2pcm_reg2hw_hb2coef05_reg_t hb2coef05;  // [335:320]
-    pdm2pcm_reg2hw_hb2coef06_reg_t hb2coef06;  // [319:304]
-    pdm2pcm_reg2hw_hb2coef07_reg_t hb2coef07;  // [303:288]
-    pdm2pcm_reg2hw_hb2coef08_reg_t hb2coef08;  // [287:272]
-    pdm2pcm_reg2hw_hb2coef09_reg_t hb2coef09;  // [271:256]
-    pdm2pcm_reg2hw_hb2coef10_reg_t hb2coef10;  // [255:240]
-    pdm2pcm_reg2hw_hb2coef11_reg_t hb2coef11;  // [239:224]
-    pdm2pcm_reg2hw_fircoef00_reg_t fircoef00;  // [223:208]
-    pdm2pcm_reg2hw_fircoef01_reg_t fircoef01;  // [207:192]
-    pdm2pcm_reg2hw_fircoef02_reg_t fircoef02;  // [191:176]
-    pdm2pcm_reg2hw_fircoef03_reg_t fircoef03;  // [175:160]
-    pdm2pcm_reg2hw_fircoef04_reg_t fircoef04;  // [159:144]
-    pdm2pcm_reg2hw_fircoef05_reg_t fircoef05;  // [143:128]
-    pdm2pcm_reg2hw_fircoef06_reg_t fircoef06;  // [127:112]
-    pdm2pcm_reg2hw_fircoef07_reg_t fircoef07;  // [111:96]
-    pdm2pcm_reg2hw_fircoef08_reg_t fircoef08;  // [95:80]
-    pdm2pcm_reg2hw_fircoef09_reg_t fircoef09;  // [79:64]
-    pdm2pcm_reg2hw_fircoef10_reg_t fircoef10;  // [63:48]
-    pdm2pcm_reg2hw_fircoef11_reg_t fircoef11;  // [47:32]
-    pdm2pcm_reg2hw_fircoef12_reg_t fircoef12;  // [31:16]
-    pdm2pcm_reg2hw_fircoef13_reg_t fircoef13;  // [15:0]
+    pdm2pcm_reg2hw_clkdividx_reg_t clkdividx;  // [617:602]
+    pdm2pcm_reg2hw_control_reg_t control;  // [601:600]
+    pdm2pcm_reg2hw_status_reg_t status;  // [599:597]
+    pdm2pcm_reg2hw_reachcount_reg_t reachcount;  // [596:591]
+    pdm2pcm_reg2hw_decimcic_reg_t decimcic;  // [590:587]
+    pdm2pcm_reg2hw_decimhb1_reg_t decimhb1;  // [586:582]
+    pdm2pcm_reg2hw_decimhb2_reg_t decimhb2;  // [581:576]
+    pdm2pcm_reg2hw_hb1coef00_reg_t hb1coef00;  // [575:558]
+    pdm2pcm_reg2hw_hb1coef01_reg_t hb1coef01;  // [557:540]
+    pdm2pcm_reg2hw_hb1coef02_reg_t hb1coef02;  // [539:522]
+    pdm2pcm_reg2hw_hb1coef03_reg_t hb1coef03;  // [521:504]
+    pdm2pcm_reg2hw_hb1coef04_reg_t hb1coef04;  // [503:486]
+    pdm2pcm_reg2hw_hb1coef05_reg_t hb1coef05;  // [485:468]
+    pdm2pcm_reg2hw_hb2coef00_reg_t hb2coef00;  // [467:450]
+    pdm2pcm_reg2hw_hb2coef01_reg_t hb2coef01;  // [449:432]
+    pdm2pcm_reg2hw_hb2coef02_reg_t hb2coef02;  // [431:414]
+    pdm2pcm_reg2hw_hb2coef03_reg_t hb2coef03;  // [413:396]
+    pdm2pcm_reg2hw_hb2coef04_reg_t hb2coef04;  // [395:378]
+    pdm2pcm_reg2hw_hb2coef05_reg_t hb2coef05;  // [377:360]
+    pdm2pcm_reg2hw_hb2coef06_reg_t hb2coef06;  // [359:342]
+    pdm2pcm_reg2hw_hb2coef07_reg_t hb2coef07;  // [341:324]
+    pdm2pcm_reg2hw_hb2coef08_reg_t hb2coef08;  // [323:306]
+    pdm2pcm_reg2hw_hb2coef09_reg_t hb2coef09;  // [305:288]
+    pdm2pcm_reg2hw_hb2coef10_reg_t hb2coef10;  // [287:270]
+    pdm2pcm_reg2hw_hb2coef11_reg_t hb2coef11;  // [269:252]
+    pdm2pcm_reg2hw_fircoef00_reg_t fircoef00;  // [251:234]
+    pdm2pcm_reg2hw_fircoef01_reg_t fircoef01;  // [233:216]
+    pdm2pcm_reg2hw_fircoef02_reg_t fircoef02;  // [215:198]
+    pdm2pcm_reg2hw_fircoef03_reg_t fircoef03;  // [197:180]
+    pdm2pcm_reg2hw_fircoef04_reg_t fircoef04;  // [179:162]
+    pdm2pcm_reg2hw_fircoef05_reg_t fircoef05;  // [161:144]
+    pdm2pcm_reg2hw_fircoef06_reg_t fircoef06;  // [143:126]
+    pdm2pcm_reg2hw_fircoef07_reg_t fircoef07;  // [125:108]
+    pdm2pcm_reg2hw_fircoef08_reg_t fircoef08;  // [107:90]
+    pdm2pcm_reg2hw_fircoef09_reg_t fircoef09;  // [89:72]
+    pdm2pcm_reg2hw_fircoef10_reg_t fircoef10;  // [71:54]
+    pdm2pcm_reg2hw_fircoef11_reg_t fircoef11;  // [53:36]
+    pdm2pcm_reg2hw_fircoef12_reg_t fircoef12;  // [35:18]
+    pdm2pcm_reg2hw_fircoef13_reg_t fircoef13;  // [17:0]
   } pdm2pcm_reg2hw_t;
 
   // HW -> register type
@@ -258,38 +258,38 @@ package pdm2pcm_reg_pkg;
       4'b0001,  // index[ 4] PDM2PCM_DECIMCIC
       4'b0001,  // index[ 5] PDM2PCM_DECIMHB1
       4'b0001,  // index[ 6] PDM2PCM_DECIMHB2
-      4'b0011,  // index[ 7] PDM2PCM_HB1COEF00
-      4'b0011,  // index[ 8] PDM2PCM_HB1COEF01
-      4'b0011,  // index[ 9] PDM2PCM_HB1COEF02
-      4'b0011,  // index[10] PDM2PCM_HB1COEF03
-      4'b0011,  // index[11] PDM2PCM_HB1COEF04
-      4'b0011,  // index[12] PDM2PCM_HB1COEF05
-      4'b0011,  // index[13] PDM2PCM_HB2COEF00
-      4'b0011,  // index[14] PDM2PCM_HB2COEF01
-      4'b0011,  // index[15] PDM2PCM_HB2COEF02
-      4'b0011,  // index[16] PDM2PCM_HB2COEF03
-      4'b0011,  // index[17] PDM2PCM_HB2COEF04
-      4'b0011,  // index[18] PDM2PCM_HB2COEF05
-      4'b0011,  // index[19] PDM2PCM_HB2COEF06
-      4'b0011,  // index[20] PDM2PCM_HB2COEF07
-      4'b0011,  // index[21] PDM2PCM_HB2COEF08
-      4'b0011,  // index[22] PDM2PCM_HB2COEF09
-      4'b0011,  // index[23] PDM2PCM_HB2COEF10
-      4'b0011,  // index[24] PDM2PCM_HB2COEF11
-      4'b0011,  // index[25] PDM2PCM_FIRCOEF00
-      4'b0011,  // index[26] PDM2PCM_FIRCOEF01
-      4'b0011,  // index[27] PDM2PCM_FIRCOEF02
-      4'b0011,  // index[28] PDM2PCM_FIRCOEF03
-      4'b0011,  // index[29] PDM2PCM_FIRCOEF04
-      4'b0011,  // index[30] PDM2PCM_FIRCOEF05
-      4'b0011,  // index[31] PDM2PCM_FIRCOEF06
-      4'b0011,  // index[32] PDM2PCM_FIRCOEF07
-      4'b0011,  // index[33] PDM2PCM_FIRCOEF08
-      4'b0011,  // index[34] PDM2PCM_FIRCOEF09
-      4'b0011,  // index[35] PDM2PCM_FIRCOEF10
-      4'b0011,  // index[36] PDM2PCM_FIRCOEF11
-      4'b0011,  // index[37] PDM2PCM_FIRCOEF12
-      4'b0011  // index[38] PDM2PCM_FIRCOEF13
+      4'b0111,  // index[ 7] PDM2PCM_HB1COEF00
+      4'b0111,  // index[ 8] PDM2PCM_HB1COEF01
+      4'b0111,  // index[ 9] PDM2PCM_HB1COEF02
+      4'b0111,  // index[10] PDM2PCM_HB1COEF03
+      4'b0111,  // index[11] PDM2PCM_HB1COEF04
+      4'b0111,  // index[12] PDM2PCM_HB1COEF05
+      4'b0111,  // index[13] PDM2PCM_HB2COEF00
+      4'b0111,  // index[14] PDM2PCM_HB2COEF01
+      4'b0111,  // index[15] PDM2PCM_HB2COEF02
+      4'b0111,  // index[16] PDM2PCM_HB2COEF03
+      4'b0111,  // index[17] PDM2PCM_HB2COEF04
+      4'b0111,  // index[18] PDM2PCM_HB2COEF05
+      4'b0111,  // index[19] PDM2PCM_HB2COEF06
+      4'b0111,  // index[20] PDM2PCM_HB2COEF07
+      4'b0111,  // index[21] PDM2PCM_HB2COEF08
+      4'b0111,  // index[22] PDM2PCM_HB2COEF09
+      4'b0111,  // index[23] PDM2PCM_HB2COEF10
+      4'b0111,  // index[24] PDM2PCM_HB2COEF11
+      4'b0111,  // index[25] PDM2PCM_FIRCOEF00
+      4'b0111,  // index[26] PDM2PCM_FIRCOEF01
+      4'b0111,  // index[27] PDM2PCM_FIRCOEF02
+      4'b0111,  // index[28] PDM2PCM_FIRCOEF03
+      4'b0111,  // index[29] PDM2PCM_FIRCOEF04
+      4'b0111,  // index[30] PDM2PCM_FIRCOEF05
+      4'b0111,  // index[31] PDM2PCM_FIRCOEF06
+      4'b0111,  // index[32] PDM2PCM_FIRCOEF07
+      4'b0111,  // index[33] PDM2PCM_FIRCOEF08
+      4'b0111,  // index[34] PDM2PCM_FIRCOEF09
+      4'b0111,  // index[35] PDM2PCM_FIRCOEF10
+      4'b0111,  // index[36] PDM2PCM_FIRCOEF11
+      4'b0111,  // index[37] PDM2PCM_FIRCOEF12
+      4'b0111  // index[38] PDM2PCM_FIRCOEF13
   };
 
 endpackage

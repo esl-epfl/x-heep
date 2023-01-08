@@ -84,7 +84,15 @@ module fir #(
   genvar j;
   generate
     for (j = 0; j < STAGES; j = j + 1) begin : summation
-      assign partial_sums[j+1] = partial_sums[j] + coeffs[j+1] * memory_points[j+1];
+      logic [WIDTH-1:0] operand_a;
+      logic [WIDTH-1:0] operand_b;
+      logic [2*WIDTH:0] product;
+
+      assign operand_a = coeffs[j+1];
+      assign operand_b = memory_points[j+1];
+      assign product = signed'(operand_a) * signed'(operand_b);
+
+      assign partial_sums[j+1] = signed'(partial_sums[j]) + signed'(product[2*WIDTH-1-2:WIDTH-2]);
     end
   endgenerate
 

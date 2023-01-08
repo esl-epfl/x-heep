@@ -93,7 +93,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "HB1COEF01"
@@ -101,7 +101,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "HB1COEF02"
@@ -109,7 +109,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "HB1COEF03"
@@ -117,7 +117,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "HB1COEF04"
@@ -125,7 +125,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "HB1COEF05"
@@ -133,7 +133,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
 
@@ -145,7 +145,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "HB2COEF01"
@@ -153,7 +153,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "HB2COEF02"
@@ -161,7 +161,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "HB2COEF03"
@@ -169,7 +169,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "HB2COEF04"
@@ -177,7 +177,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "HB2COEF05"
@@ -185,7 +185,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "HB2COEF06"
@@ -193,7 +193,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "HB2COEF07"
@@ -201,7 +201,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "HB2COEF08"
@@ -209,7 +209,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "HB2COEF09"
@@ -217,7 +217,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "HB2COEF10"
@@ -225,7 +225,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "HB2COEF11"
@@ -233,7 +233,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
 
@@ -245,7 +245,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "FIRCOEF01"
@@ -253,7 +253,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "FIRCOEF02"
@@ -261,7 +261,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "FIRCOEF03"
@@ -269,7 +269,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "FIRCOEF04"
@@ -277,7 +277,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "FIRCOEF05"
@@ -285,7 +285,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "FIRCOEF06"
@@ -293,7 +293,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "FIRCOEF07"
@@ -301,7 +301,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "FIRCOEF08"
@@ -309,7 +309,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "FIRCOEF09"
@@ -317,7 +317,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "FIRCOEF10"
@@ -325,7 +325,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "FIRCOEF11"
@@ -333,7 +333,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "FIRCOEF12"
@@ -341,7 +341,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { name:     "FIRCOEF13"
@@ -349,7 +349,7 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "COEFF", desc: "Set the coefficient" }
+        { bits: "17:0", name: "COEFF", desc: "Set the coefficient" }
       ]
     }
     { window: {

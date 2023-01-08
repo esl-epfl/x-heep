@@ -10,7 +10,7 @@ module pdm_core #(
     // Number of stages of the CIC filter
     localparam STAGES_CIC = 4,
     // Width of the datapath
-    localparam WIDTH = 20,
+    localparam WIDTH = 18,
     // First decimator internal counter width
     localparam DECIM_COMBS_CNT_W = 4,
     // Second decimator internal counter width
@@ -27,7 +27,7 @@ module pdm_core #(
     localparam STAGES_FIR = 26,
     localparam COEFFS_FIR = 14,
     // Width of the filter coefficients (Halfbands and FIR)
-    localparam COEFFSWIDTH = 16,
+    localparam COEFFSWIDTH = 18,
     // Width of the clock divider count
     localparam CLKDIVWIDTH = 16
 
