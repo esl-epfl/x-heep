@@ -72,23 +72,23 @@ The `<peripheral>.vlt` is a waiver file. By default, warnings make the simulatio
 a. add the following in the `kwargs` dictionary:
 
 ```c
-+        "<peripheral>_start_offset"             : <peripheral>_start_offset,
-+        "<peripheral>_size_address"             : <peripheral>_size_address,
+        "<peripheral>_start_offset"             : <peripheral>_start_offset,
+        "<peripheral>_size_address"             : <peripheral>_size_address,
 ```
 
 b. and add the following in the corresponding variables region:
 
 ```c
-+    <peripheral>_start_offset  = string2int(obj['peripherals']['<peripheral>']['offset'])
-+    <peripheral>_size_address  = string2int(obj['peripherals']['<peripheral>']['length'])
+    <peripheral>_start_offset  = string2int(obj['peripherals']['<peripheral>']['offset'])
+    <peripheral>_size_address  = string2int(obj['peripherals']['<peripheral>']['length'])
 ```
 
 5. In `sw/device/lib/runtime/core_v_mini_mcu.h.tpl`, add the following:
 
 ```c
-+ #define <peripheral>_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${<peripheral>_start_offset})
-+ #define <peripheral>_SIZE 0x${<peripheral>_size_address}
-+ #define <peripheral>_END_ADDRESS (<peripheral>_START_ADDRESS + <peripheral>_SIZE)
+ #define <peripheral>_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${<peripheral>_start_offset})
+ #define <peripheral>_SIZE 0x${<peripheral>_size_address}
+ #define <peripheral>_END_ADDRESS (<peripheral>_START_ADDRESS + <peripheral>_SIZE)
 ```
 
 6. In case of modification of the GPIOs usage,
@@ -97,14 +97,14 @@ a. the `hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv` must be adapted.
 
 I. In the `x_heep_system_i` instance, GPIOs can be replaced by the desired signals:
 
-```verilog
+```diff
 -      .gpio_X_io(gpio_io[X]),
 +      .your_signal_io(your_signal_io),
 ```
 
 II. The module `xilinx_core_v_mini_mcu_wrapper` should be modified as follows:
 
-```verilog
+```diff
 +    inout  logic your_signal_io,
 
 -    inout logic [X:0] gpio_io,
@@ -116,25 +116,25 @@ b. The peripheral subsystem (`hw/core-v-mini-mcu/peripheral_subsystem.sv`) must 
 I. The I/O signals can be added in the `peripheral_subsystem` module:
 
 ```verilog
-+    inout  logic your_signal_io,
+    inout  logic your_signal_io,
 ```
 
 II. The module must be instantiated in the peripheral subsystem:
 
 ```verilog
-+  <peripheral> #(
-+      .reg_req_t(reg_pkg::reg_req_t),
-+      .reg_rsp_t(reg_pkg::reg_rsp_t)
-+  ) <peripheral>_i (
-+      .clk_i,
-+      .rst_ni,
-+      <...>
-+  );
+  <peripheral> #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) <peripheral>_i (
+      .clk_i,
+      .rst_ni,
+      <...>
+  );
 ```
 
 c. The core MCU I/O must be adapted as well (`hw/core-v-mini-mcu/core_v_mini_mcu.sv.tpl`). Add the I/Os to the peripherals subsystem instanciation:
 
-```verilog
+```diff
   peripheral_subsystem #(
       <...>
   ) peripheral_subsystem_i (
@@ -149,22 +149,23 @@ c. The core MCU I/O must be adapted as well (`hw/core-v-mini-mcu/core_v_mini_mcu
 a. The peripheral number must be updated:
 
 ```verilog
+-  localparam PERIPHERALS = N;
 +  localparam PERIPHERALS = N+1;
 ```
 
 b. Some parameters must be added:
 
 ```verilog
-+  localparam logic[31:0] <peripheral>_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${<peripheral>_start_offset};
-+  localparam logic[31:0] <peripheral>_SIZE = 32'h${<peripheral>_size_address};
-+  localparam logic[31:0] <peripheral>_END_ADDRESS = <peripheral>_START_ADDRESS + <peripheral>_SIZE;
-+  localparam logic[31:0] <peripheral>_IDX = 32'd5;
+  localparam logic[31:0] <peripheral>_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${<peripheral>_start_offset};
+  localparam logic[31:0] <peripheral>_SIZE = 32'h${<peripheral>_size_address};
+  localparam logic[31:0] <peripheral>_END_ADDRESS = <peripheral>_START_ADDRESS + <peripheral>_SIZE;
+  localparam logic[31:0] <peripheral>_IDX = 32'd5;
 ```
 
 c. The `PERIPHERALS_ADDR_RULES` should be amended:
 
 ```c
-+       '{ idx: <peripheral>_IDX, start_addr: <peripheral>_START_ADDRESS, end_addr: <peripheral>_END_ADDRESS },
+       '{ idx: <peripheral>_IDX, start_addr: <peripheral>_START_ADDRESS, end_addr: <peripheral>_END_ADDRESS },
 ```
 
 9. The peripheral package and the waiver files must be declared in the `core-v-mini-mcu.core` manifest:
@@ -172,11 +173,11 @@ c. The `PERIPHERALS_ADDR_RULES` should be amended:
 ```yaml
   depend:
        <...>
-+     - x-heep:ip:<peripheral>
+     - x-heep:ip:<peripheral>
 
    files:
        <...>
-+     - hw/ip/<peripheral>/<peripheral>.vlt
+     - hw/ip/<peripheral>/<peripheral>.vlt
 ```
  
 
@@ -324,7 +325,7 @@ The hardware platform is contained in the `testharness.sv` (tb/testharness.sv) t
 
 If the GPIOs usage has changed, the testbench must be adapted as follows:
 
-```verilog
+```diff
 - .gpio_X_io(gpio[X]),
 + .your_signal_io(gpio[X]),
 ```
