@@ -2,6 +2,11 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+/*
+This application does not work with the EPFL programmer.
+One option is to change the GPIOs for 8 (OUT) and 9 (IN) and connect them physically in the RaspberryPi header (refer to the board pinout).
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "csr.h"
@@ -82,6 +87,7 @@ int main(int argc, char *argv[])
         printf("Failed\n;");
         return -1;
     }
+    gpio_write(&gpio, GPIO_TB_OUT, false);
 
     gpio_res = gpio_input_enabled(&gpio, GPIO_TB_IN, true);
     if (gpio_res != kGpioOk) {
@@ -96,9 +102,9 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    printf("Write 1 to GPIO 30 and wait for interrupt...");
-    gpio_write(&gpio, GPIO_TB_OUT, true);
+    printf("Write 1 to GPIO 30 and wait for interrupt...\n");
     while(external_intr_flag==0) {
+        gpio_write(&gpio, GPIO_TB_OUT, true);
         wait_for_interrupt();
     }
     printf("Success\n");
@@ -108,7 +114,7 @@ int main(int argc, char *argv[])
         printf("Failed\n;");
         return -1;
     }
-    printf("Done...");
+    printf("Done...\n");
 
     return EXIT_SUCCESS;
 }

@@ -75,11 +75,8 @@ set_property -dict {PACKAGE_PIN V17 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_0_i
 set_property -dict {PACKAGE_PIN V18 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_1_io}]
 set_property -dict {PACKAGE_PIN T16 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_2_io}]
 set_property -dict {PACKAGE_PIN R17 IOSTANDARD LVCMOS33} [get_ports {spi2_sd_3_io}]
-
+set_property -dict {PACKAGE_PIN W13 IOSTANDARD LVCMOS33} [get_ports {i2c_scl_io}]
+set_property -dict {PACKAGE_PIN T10 IOSTANDARD LVCMOS33} [get_ports {i2c_sda_io}]
 
 set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets jtag_tck_i_IBUF]
 
-set_property PACKAGE_PIN W13 [get_ports i2c_scl_io]
-set_property PACKAGE_PIN T10 [get_ports i2c_sda_io]
-set_property IOSTANDARD LVCMOS33 [get_ports i2c_scl_io]
-set_property IOSTANDARD LVCMOS33 [get_ports i2c_sda_io]
