@@ -2,11 +2,6 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-/*
-This application does not work with the EPFL programmer.
-One option is to change the GPIOs for 8 (OUT) and 9 (IN) and connect them physically in the RaspberryPi header (refer to the board pinout).
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "csr.h"
@@ -18,9 +13,27 @@ One option is to change the GPIOs for 8 (OUT) and 9 (IN) and connect them physic
 #include "gpio.h"
 #include "pad_control.h"
 #include "pad_control_regs.h"  // Generated.
+#include "x-heep.h"
 
-#define GPIO_TB_OUT 30
-#define GPIO_TB_IN  31
+/*
+Notes:
+ - Ports 30 and 31 are connected in questasim testbench, but in the FPGA version they are connected to the EPFL programmer and should not be used
+ - Connect a cable between the two pins for the applicatio to work
+*/
+
+#ifdef TARGET_PYNQ_Z2
+    #define GPIO_TB_OUT 8
+    #define GPIO_TB_IN  9
+    #define GPIO_INTR  GPIO_INTR_9
+    #pragma message ( "Connect a cable between GPIOs IN and OUT" )
+
+#else
+
+    #define GPIO_TB_OUT 30
+    #define GPIO_TB_IN  31
+    #define GPIO_INTR  GPIO_INTR_31
+
+#endif
 
 int8_t external_intr_flag;
 
@@ -33,7 +46,7 @@ dif_plic_irq_id_t intr_num;
 void handler_irq_external(void) {
     // Claim/clear interrupt
     plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
-    if (plic_res == kDifPlicOk && intr_num == GPIO_INTR_31) {
+    if (plic_res == kDifPlicOk && intr_num == GPIO_INTR) {
         external_intr_flag = 1;
     }
 }
@@ -49,8 +62,14 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    // In case GPIOs 30 and 31 are used:
+#if GPIO_TB_OUT == 31 || GPIO_TB_IN == 31
     pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_I2C_SCL_REG_OFFSET), 1);
+#endif
+
+#if GPIO_TB_OUT == 30|| GPIO_TB_IN == 30
     pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_I2C_SDA_REG_OFFSET), 1);
+#endif
 
     gpio_params_t gpio_params;
     gpio_t gpio;
@@ -62,13 +81,13 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    plic_res = dif_plic_irq_set_priority(&rv_plic, GPIO_INTR_31, 1);
+    plic_res = dif_plic_irq_set_priority(&rv_plic, GPIO_INTR, 1);
     if (plic_res != kDifPlicOk) {
         printf("Failed\n;");
         return -1;
     }
 
-    plic_res = dif_plic_irq_set_enabled(&rv_plic, GPIO_INTR_31, 0, kDifPlicToggleEnabled);
+    plic_res = dif_plic_irq_set_enabled(&rv_plic, GPIO_INTR, 0, kDifPlicToggleEnabled);
     if (plic_res != kDifPlicOk) {
         printf("Failed\n;");
         return -1;
