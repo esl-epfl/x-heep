@@ -209,78 +209,6 @@ gpio_result_t gpio_irq_acknowledge(const gpio_t *gpio,
                                            gpio_pin_t pin);
 
 /**
- * Checks whether a particular pin's interrupt is currently enabled or disabled.
- *
- * @param gpio A GPIO handle.
- * @param pin A GPIO pin.
- * @param[out] state Out-param toggle state of the interrupt.
- * @return The result of the operation.
- */
-gpio_result_t gpio_irq_get_enabled(const gpio_t *gpio,
-                                           gpio_pin_t pin,
-                                           gpio_toggle_t *state);
-
-/**
- * Sets whether a particular pin's interrupt is currently enabled or disabled.
- *
- * @param gpio A GPIO handle.
- * @param pin A GPIO pin.
- * @param state The new toggle state for the interrupt.
- * @return The result of the operation.
- */
-gpio_result_t gpio_irq_set_enabled(const gpio_t *gpio,
-                                           gpio_pin_t pin,
-                                           gpio_toggle_t state);
-
-/**
- * Sets whether a particular pin's interrupt is currently enabled or disabled.
- *
- * @param gpio A GPIO handle.
- * @param mask Mask that identifies the pins whose interrupt triggers will be
- * configured.
- * @param state The new toggle state for the interrupt.
- * @return The result of the operation.
- */
-gpio_result_t gpio_irq_set_enabled_masked(const gpio_t *gpio,
-                                                  gpio_mask_t mask,
-                                                  gpio_toggle_t state);
-
-/**
- * Forces a particular pin's interrupt, causing it to be serviced as if hardware
- * had asserted it.
- *
- * @param gpio A GPIO handle.
- * @param pin A GPIO pin.
- * @return The result of the operation.
- */
-gpio_result_t gpio_irq_force(const gpio_t *gpio,
-                                     gpio_pin_t pin);
-
-/**
- * Disables all interrupts, optionally snapshotting all toggle state for later
- * restoration.
- *
- * @param gpio A GPIO handle.
- * @param[out] snapshot Out-param for the snapshot; may be `NULL`.
- * @return The result of the operation.
- */
-gpio_result_t gpio_irq_disable_all(const gpio_t *gpio,
-                                           gpio_state_t *snapshot);
-
-/**
- * Restores interrupts from the given snapshot.
- *
- * This function can be used with `gpio_irq_disable_all()` to temporary
- * interrupt save-and-restore.
- *
- * @param gpio A GPIO handle.
- * @param snapshot A snapshot to restore from.
- * @return The result of the operation.
- */
-gpio_result_t gpio_irq_restore_all(const gpio_t *gpio,
-                                           const gpio_state_t *snapshot);
-
-/**
  * Configures interrupt triggers for a set of pins.
  *
  * This function configures interrupt triggers, i.e. rising-edge, falling-edge,
@@ -294,7 +222,8 @@ gpio_result_t gpio_irq_restore_all(const gpio_t *gpio,
  * @return The result of the operation.
  */
 gpio_result_t gpio_irq_set_trigger(const gpio_t *gpio,
-                                           gpio_mask_t mask,
+                                           gpio_pin_t pin,
+                                           bool state,
                                            gpio_irq_trigger_t trigger);
 
 /**
@@ -313,20 +242,6 @@ gpio_result_t gpio_read(const gpio_t *gpio, gpio_pin_t pin,
                                 bool *state);
 
 /**
- * Reads from all pins.
- *
- * The value returned by this function is independent of the output enable
- * setting and includes the effects of the input noise filter and the load on
- * the pins.
- *
- * @param gpio A GPIO handle.
- * @param[out] state Pin values.
- * @return The result of the operation.
- */
-gpio_result_t gpio_read_all(const gpio_t *gpio,
-                                    gpio_state_t *state);
-
-/**
  * Writes to a pin.
  *
  * The actual value on the pin depends on the output enable setting.
@@ -338,80 +253,27 @@ gpio_result_t gpio_read_all(const gpio_t *gpio,
  */
 gpio_result_t gpio_write(const gpio_t *gpio, gpio_pin_t pin,
                                  bool state);
-
-/**
- * Writes to all pins.
- *
- * The actual values on the pins depend on the output enable setting.
- *
- * @param gpio A GPIO handle.
- * @param state Value to write.
- * @return The result of the operation.
- */
-gpio_result_t gpio_write_all(const gpio_t *gpio,
-                                     gpio_state_t state);
-
-/**
- * Writes to the pins identified by a mask.
- *
- * The actual values on the pins depend on the output enable setting.
- *
- * @param gpio A GPIO handle.
- * @param mask Mask that identifies the pins to write to.
- * @param state Value to write.
- * @return The result of the operation.
- */
-gpio_result_t gpio_write_masked(const gpio_t *gpio,
-                                        gpio_mask_t mask,
-                                        gpio_state_t state);
-
-/**
- * Sets output enable mode of a pin.
- *
- * @param gpio A GPIO handle.
- * @param pin A GPIO pin.
- * @param state Output mode of the pin.
- * @return The result of the operation.
- */
-gpio_result_t gpio_output_set_enabled(const gpio_t *gpio,
-                                              gpio_pin_t pin,
-                                              gpio_toggle_t state);
-
 /**
  * Sets output modes of all pins.
  *
  * @param gpio A GPIO handle.
+ * @param pin A GPIO pin.
  * @param state Output modes of the pins.
  * @return The result of the operation.
  */
-gpio_result_t gpio_output_set_enabled_all(const gpio_t *gpio,
+gpio_result_t gpio_input_set_enabled(const gpio_t *gpio,
+                                                  gpio_pin_t pin,
                                                   gpio_state_t state);
-
 /**
- * Sets the output modes of the pins identified by a mask.
- *
+ * Enable sampling on GPIO
+ * *
  * @param gpio A GPIO handle.
- * @param mask Mask that identifies the pins whose output modes will be set.
- * @param state Output modes of the pins.
- * @return The result of the operation.
+ * @param pin A GPIO pin.
+ * @param state Value to write.
  */
-gpio_result_t gpio_output_set_enabled_masked(const gpio_t *gpio,
-                                                     gpio_mask_t mask,
-                                                     gpio_state_t state);
+gpio_result_t gpio_input_enabled(const gpio_t *gpio,
+                                          gpio_pin_t pin, gpio_toggle_t state);
 
-/**
- * Enable noise filter for GPIO inputs.
- *
- * When enabled, changes in the pin value will be ignored unless stable
- * for 16 cycles.
- *
- * @param gpio A GPIO handle.
- * @param mask Mask that identifies pins to set the filter state of.
- * @param state The new toggle state for the filter.
- * @return The result of the operation.
- */
-gpio_result_t gpio_input_noise_filter_set_enabled(
-    const gpio_t *gpio, gpio_mask_t mask, gpio_toggle_t state);
 
 #ifdef __cplusplus
 }  // extern "C"

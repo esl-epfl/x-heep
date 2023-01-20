@@ -1,5 +1,5 @@
 axi/axi:
-  commit: v0.35.1
+  commit: v0.38.0
   domain: [cluster, soc]
 common_cells:
   commit: v1.21.0
