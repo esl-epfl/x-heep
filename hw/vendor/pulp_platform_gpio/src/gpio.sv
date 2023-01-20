@@ -186,6 +186,8 @@ module gpio #(
 
     // GPIO set, clear and toggle logic
     always_comb begin
+      s_hw2reg.gpio_out[gpio_idx].d = s_reg2hw.gpio_out[gpio_idx].q;
+      s_hw2reg.gpio_out[gpio_idx].de = 1'b0;
       unique if (s_reg2hw.gpio_set[gpio_idx].qe && s_reg2hw.gpio_set[gpio_idx].q) begin
         `assert_condition(s_reg2hw.gpio_set[gpio_idx].qe && s_reg2hw.gpio_set[gpio_idx].q, rst_ni);
         s_hw2reg.gpio_out[gpio_idx].d = 1'b1;

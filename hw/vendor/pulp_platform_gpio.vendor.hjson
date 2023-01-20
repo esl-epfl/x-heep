@@ -9,4 +9,7 @@
     url: "https://github.com/pulp-platform/gpio.git",
     rev: "61b842818a2f2626032ea4b33925eef0c73d7874",
   },
+
+  patch_dir: "patches/pulp_platform_gpio",
+
 }
