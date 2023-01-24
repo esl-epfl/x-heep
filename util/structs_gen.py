@@ -2,6 +2,11 @@ import hjson
 import string
 import argparse
 
+# Bit length of each register
+reg_length = 32
+
+reserved_name = "_reserved"
+
 # Tab definition as 4 blank spaces #
 tab_spaces = "  "
 
@@ -162,10 +167,18 @@ def main():
                         field["desc"].replace("\n", " "), "<100") + line_comment_end
                 structs_definitions += "\n"
 
+                            
+            if bits_counter < reg_length:
+                reserved_bits = reg_length - bits_counter
+                reserved_type = select_type(reserved_bits)
+                structs_definitions += struct_entry.format(format(reserved_type, "<15"), format(reserved_name, "<20"),
+                                                            format(str(reserved_bits) + ";", "<5"))
+                structs_definitions += "\n"
+
             structs_definitions += struct_typedef_end
             structs_definitions += format(line_comment_start, ">42") + format(struct_comment, "<100") + "*/\n"
 
-            structs_definitions += (2 * tab_spaces) + select_type(bits_counter) + " w;"
+            structs_definitions += (2 * tab_spaces) + "uint32_t" + " w;"
             structs_definitions += format(line_comment_start, ">36") + format(word_comment, "<110") + "*/\n"
 
             structs_definitions += union_end.format(elem["name"])
