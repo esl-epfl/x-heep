@@ -1,6 +1,14 @@
 import hjson
 import string
 import argparse
+import sys
+
+############################################################
+#  This module generates the structures for the registers  #  
+#  of a peripheral and writes them into a file formatted   #
+#  using a template.                                       #
+############################################################
+
 
 # Bit length of each register
 reg_length = 32
@@ -205,10 +213,10 @@ def add_registers(peripheral_json):
             reg_enum += new_enum
 
             reg_struct += struct_typedef_end
-            reg_struct += format(line_comment_start, ">42") + format(struct_comment, "<100") + "*/\n"
+            reg_struct += format(line_comment_start, ">43") + format(struct_comment, "<100") + "*/\n"
 
             reg_struct += (2 * tab_spaces) + "uint32_t" + " w;"
-            reg_struct += format(line_comment_start, ">36") + format(word_comment, "<110") + "*/\n"
+            reg_struct += format(line_comment_start, ">37") + format(word_comment, "<110") + "*/\n"
 
             reg_struct += union_end.format(elem["name"])
     
@@ -217,7 +225,7 @@ def add_registers(peripheral_json):
 
 # def gen(input_template, input_hjson_file):
 # if __name__ == '__main__':
-def main():
+def main(arg_vect):
 
     parser = argparse.ArgumentParser(prog="Structure generator",
                                      description="Given a template and a json file as input, it generates "
@@ -231,7 +239,7 @@ def main():
                         help="name of the file in which to write the final formatted template with the structs "
                              "and enums generated")
 
-    args = parser.parse_args()
+    args = parser.parse_args(arg_vect)
 
     input_template = args.template_filename
     input_hjson_file = args.json_filename
@@ -256,4 +264,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
