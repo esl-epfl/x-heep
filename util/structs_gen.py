@@ -24,6 +24,12 @@ struct_typedef_start = (2 * tab_spaces) + "struct \n" + (
 struct_entry = (3 * tab_spaces) + "{}" + "{}" + ":{}"  # type, name and amount of bits
 struct_typedef_end = (2 * tab_spaces) + "} b ;"  # define the end of the new struct definition and the format for the new type-name
 
+# Documentation comments definitions #
+line_comment_start = "/*!< "
+line_comment_end = "*/"
+struct_comment = "Structure used for bit access"
+word_comment = "Type used for word access"
+
 
 def generate_enum(enum_field, name):
     """
@@ -86,6 +92,95 @@ def select_type(amount_of_bits):
         return "uint64_t"
 
 
+def add_fields(register_json):
+    """
+    Loops through the fields of the json of a register, passed as parameter.
+    Returns the structs and enums entries relative to the register, already
+    indented.
+
+    :param register_json: the json-like description of a register
+    :return: the strings of the the struct fields, the enum (if present)
+    """
+
+    struct_fields = ""
+    enum = ""
+    bits_counter = 0  # to count the bits used for all the fields of the register
+
+    # loops through the fields of the register
+    for field in register_json["fields"]:
+        field_bits = count_bits(field["bits"])
+        field_type = select_type(field_bits)
+
+        # Check if there is an ENUM, if yes it generates it and set the type of the associated field
+        if "enum" in field:
+            field_type = "{}_t".format(field["name"])
+            enum += generate_enum(field["enum"], field["name"])
+
+        bits_counter += int(field_bits)
+
+        # Handles the case in which the field has no name (it's given the same name as the register)
+        if "name" in field:
+            field_name = field["name"]
+        else:
+            field_name = register_json["name"]
+
+        # insert a new struct in the structs string
+        struct_fields += struct_entry.format(format(field_type, "<15"), format(field_name, "<20"),
+                                                    format(str(field_bits) + ";", "<5"))
+
+        # if there is a description, it adds a comment
+        if "desc" in field:
+            struct_fields += line_comment_start + format("bit: {}".format(field["bits"]), "<10") + format(
+                field["desc"].replace("\n", " "), "<100") + line_comment_end
+        struct_fields += "\n"
+                    
+    # add an entry for the reserved bits (if present)
+    if bits_counter < reg_length:
+        reserved_bits = reg_length - bits_counter
+        reserved_type = select_type(reserved_bits)
+        struct_fields += struct_entry.format(format(reserved_type, "<15"), format(reserved_name, "<20"),
+                                                   format(str(reserved_bits) + ";", "<5"))
+        struct_fields += "\n"
+
+    return struct_fields, enum
+
+
+def add_registers(peripheral_json):
+    """
+    Reads the json description of a peripheral and generates structures for every
+    register.
+
+    :param peripheral_json: the json-like description of the registers of a peripheral
+    :return: the strings containing the indented structs and enums relative to the registers
+    """
+
+    reg_struct = ""
+    reg_enum = ""
+
+    # loops through the registers of the hjson
+    for elem in peripheral_json['registers']:
+        if "multireg" in elem:
+            elem = elem["multireg"]
+        
+        if "name" in elem:
+            reg_struct += union_start + struct_typedef_start.format(elem["name"])
+
+            # generate the struct entries relative to the fields of the register
+            new_field, new_enum = add_fields(elem)
+            reg_struct += new_field
+            reg_enum += new_enum
+
+            reg_struct += struct_typedef_end
+            reg_struct += format(line_comment_start, ">42") + format(struct_comment, "<100") + "*/\n"
+
+            reg_struct += (2 * tab_spaces) + "uint32_t" + " w;"
+            reg_struct += format(line_comment_start, ">36") + format(word_comment, "<110") + "*/\n"
+
+            reg_struct += union_end.format(elem["name"])
+    
+    return reg_struct, reg_enum
+
+
 # def gen(input_template, input_hjson_file):
 # if __name__ == '__main__':
 def main():
@@ -118,74 +213,17 @@ def main():
     data = hjson.load(f)
     f.close()
 
-    # Documentation comments definitions #
-    line_comment_start = "/*!< "
-    line_comment_end = "*/"
-    struct_comment = "Structure used for bit access"
-    word_comment = "Type used for word access"
-
     # Two strings used to store all the structs and enums #
     structs_definitions = "typedef struct {\n"  # used to store all the struct definitions to write in the template in the end
     enums_definitions = ""  # used to store all the enums definitions, if present
 
     # START OF THE GENERATION #
 
-    # loops through the registers of the hjson
-    for elem in data['registers']:
-        if "multireg" in elem:
-            elem = elem["multireg"]
-        
-        if "name" in elem:
-            structs_definitions += union_start + struct_typedef_start.format(elem["name"])
-            bits_counter = 0  # to count the bits used for all the fields of the register
-
-            # loops through the fields of the register
-            for field in elem["fields"]:
-                field_bits = count_bits(field["bits"])
-                field_type = select_type(field_bits)
-
-                # Check if there is an ENUM, if yes it generates it and set the type of the associated field
-                if "enum" in field:
-                    field_type = "{}_t".format(field["name"])
-                    enums_definitions += generate_enum(field["enum"], field["name"])
-
-                bits_counter += int(field_bits)
-
-                # Handles the case in which the field has no name (it's given the same name as the register)
-                if "name" in field:
-                    field_name = field["name"]
-                else:
-                    field_name = elem["name"]
-
-                # insert a new struct in the structs string
-                structs_definitions += struct_entry.format(format(field_type, "<15"), format(field_name, "<20"),
-                                                        format(str(field_bits) + ";", "<5"))
-
-                # if there is a description, it adds a comment
-                if "desc" in field:
-                    structs_definitions += line_comment_start + format("bit: {}".format(field["bits"]), "<10") + format(
-                        field["desc"].replace("\n", " "), "<100") + line_comment_end
-                structs_definitions += "\n"
-
-                            
-            if bits_counter < reg_length:
-                reserved_bits = reg_length - bits_counter
-                reserved_type = select_type(reserved_bits)
-                structs_definitions += struct_entry.format(format(reserved_type, "<15"), format(reserved_name, "<20"),
-                                                            format(str(reserved_bits) + ";", "<5"))
-                structs_definitions += "\n"
-
-            structs_definitions += struct_typedef_end
-            structs_definitions += format(line_comment_start, ">42") + format(struct_comment, "<100") + "*/\n"
-
-            structs_definitions += (2 * tab_spaces) + "uint32_t" + " w;"
-            structs_definitions += format(line_comment_start, ">36") + format(word_comment, "<110") + "*/\n"
-
-            structs_definitions += union_end.format(elem["name"])
+    reg_structs, reg_enums = add_registers(data)
+    structs_definitions += reg_structs
+    enums_definitions += reg_enums
 
     structs_definitions += "}} {};".format(data["name"])
-
-    # print(structs_definitions)
 
     # To print the final result into the template
     with open(input_template) as t:
