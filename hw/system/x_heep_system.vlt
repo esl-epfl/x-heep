@@ -6,3 +6,4 @@
 
 lint_off -rule UNUSED -file "*/x_heep_system.sv" -match "*"
 lint_off -rule UNDRIVEN -file "*/x_heep_system.sv" -match "*"
+lint_off -rule DECLFILENAME -file "*pad_control_reg_top.sv" -match "Filename 'pad_control_reg_top' does not match MODULE name: 'pad_control_reg_top_intf'*"
