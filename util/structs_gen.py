@@ -5,6 +5,7 @@ import argparse
 # Bit length of each register
 reg_length = 32
 
+# Entry name for the reserved bits
 reserved_name = "_reserved"
 
 # Tab definition as 4 blank spaces #
@@ -29,6 +30,39 @@ line_comment_start = "/*!< "
 line_comment_end = "*/"
 struct_comment = "Structure used for bit access"
 word_comment = "Type used for word access"
+
+
+def read_json(json_file):
+    """
+    Opens the json file taken as input and returns its content
+    """
+    # Open the hjson file #
+    f = open(json_file)
+    j_data = hjson.load(f)
+    f.close()
+    return j_data
+
+
+def write_template(tpl, structs, enums):
+    """
+    Opens a given template and substitutes the structs and enums fields.
+    Returns a string with the content of the updated template
+    """
+
+    # To print the final result into the template
+    with open(tpl) as t:
+        template = string.Template(t.read())
+
+    return template.substitute(structures_definitions=structs, enums_definitions=enums)
+
+
+def write_output(out_file, out_string):
+    """
+    Writes the final out_string into the specified out_file
+    """
+
+    with open(out_file, "w") as f:
+        f.write(out_string)
 
 
 def generate_enum(enum_field, name):
@@ -199,23 +233,15 @@ def main():
 
     args = parser.parse_args()
 
-    # INPUT FILES #
-    # input_template = "prova_template.tpl"
-    # input_hjson_file = "i2c.hjson"
-    # output_filename = "output.h"
-
     input_template = args.template_filename
     input_hjson_file = args.json_filename
     output_filename = args.output_filename
 
-    # Open the hjson file #
-    f = open(input_hjson_file)
-    data = hjson.load(f)
-    f.close()
+    data = read_json(input_hjson_file)
 
     # Two strings used to store all the structs and enums #
-    structs_definitions = "typedef struct {\n"  # used to store all the struct definitions to write in the template in the end
-    enums_definitions = ""  # used to store all the enums definitions, if present
+    structs_definitions = "typedef struct {\n"      # used to store all the struct definitions to write in the template in the end
+    enums_definitions = ""                          # used to store all the enums definitions, if present
 
     # START OF THE GENERATION #
 
@@ -225,15 +251,8 @@ def main():
 
     structs_definitions += "}} {};".format(data["name"])
 
-    # To print the final result into the template
-    with open(input_template) as t:
-        template = string.Template(t.read())
-
-    final_output = template.substitute(structures_definitions=structs_definitions, enums_definitions=enums_definitions)
-
-    with open(output_filename, "w") as f:
-        f.write(final_output)
-
+    final_output = write_template(input_template, structs_definitions, enums_definitions)
+    write_output(output_filename, final_output)
 
 
 if __name__ == "__main__":
