@@ -30,7 +30,7 @@ MAINFILE ?= hello_world
 LINKER   ?= on_chip
 
 # Target options are 'sim' (default) and 'pynq-z2'
-TARGET ?= sim
+TARGET   ?= sim
 
 ## @section Installation
 
@@ -56,7 +56,6 @@ mcu-gen: |venv
 	bash -c "cd hw/system/pad_control; source pad_control_gen.sh; cd ../../../"
 	$(PYTHON) util/mcu_gen.py --cfg mcu_cfg.hjson --outdir sw/linker --memorybanks $(MEMORY_BANKS) --linker_script sw/linker/link_flash_exec.ld.tpl
 	$(PYTHON) util/mcu_gen.py --cfg mcu_cfg.hjson --outdir sw/linker --memorybanks $(MEMORY_BANKS) --linker_script sw/linker/link_flash_load.ld.tpl
-	$(PYTHON) util/mcu_gen.py --cfg mcu_cfg.hjson --outdir sw/linker --memorybanks $(MEMORY_BANKS) --linker_script sw/linker/link_freertos.ld.tpl
 	$(MAKE) verible
 
 ## Display mcu_gen.py help
@@ -71,11 +70,15 @@ verible:
 
 ## Generates the build folder in sw using CMake to build (compile and linking)
 ## @param PROJECT=<folder_name_of_the_project_to_be_built>
-## @param MAINFILE=<main_file_name_of_the_project_to_be_built>
+## @param MAINFILE=<main_file_name_of_the_project_to_be_built WITHOUT EXTENSION>
 ## @param TARGET=sim(default),pynq-z2
-## @param LINKER=on_chip(default),flash_load,flash_exec,freertos
+## @param LINKER=on_chip(default),flash_load,flash_exec
 app:
 	$(MAKE) -C sw PROJECT=$(PROJECT) MAINFILE=$(MAINFILE)  TARGET=$(TARGET) LINKER=$(LINKER)
+	
+## Just list the different application names available
+app-list:
+	tree sw/applications/
 
 ## @section Simulation
 
@@ -106,7 +109,7 @@ vcs-sim: |venv
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
 run-helloworld: mcu-gen verilator-sim |venv
-	$(MAKE) -C sw PROJECT=$(PROJECT) MAINFILE=$(MAINFILE)  TARGET=$(TARGET) LINKER=$(LINKER)\
+	$(MAKE) -C sw PROJECT=hello_world MAINFILE=hello_world  TARGET=$(TARGET) LINKER=$(LINKER)\
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
 	./Vtestharness +firmware=../../../sw/build/hello_world.hex; \
 	cat uart0.log; \

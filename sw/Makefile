@@ -55,8 +55,6 @@ INC_FOLDERS                = $(mkfile_path)/device/target/$(TARGET)/
 INC_FOLDERS_GCC            = $(addprefix -I ,$(INC_FOLDERS))
 LINK_FOLDER                = $(mkfile_path)/linker
 
-$(info $$LIB: $(LIB_CRT_FREERTOS))
-
 # CMake keyword
 CMAKE_DIR=cmake
 

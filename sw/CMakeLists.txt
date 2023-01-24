@@ -16,8 +16,10 @@
 
 cmake_minimum_required(VERSION 3.15)
 
+# Include to fetch any vendorised repo (e.g. FreeRTOS)
 include(FetchContent)
 
+# Add some colors!
 if(NOT WIN32)
   string(ASCII 27 Esc)
   set(ColourReset "${Esc}[m")
@@ -41,6 +43,7 @@ endif()
 # set the project name
 project(${PROJECT} ASM C)
 
+# set the required CMake standard
 set(CMAKE_CXX_STANDARD 14)
 
 # Set MAIN file
@@ -56,11 +59,15 @@ elseif(${LINKER} STREQUAL "flash_load")
 elseif(${LINKER} STREQUAL "flash_exec")
   SET(LIB_CRT_P	"${ROOT_PROJECT}device/lib/crt_flash_exec/")
   SET(LINK_FILE "link_flash_exec.ld")
-elseif(${LINKER} STREQUAL "freertos")
-  SET(LIB_CRT_P	"${ROOT_PROJECT}device/lib/crt_freertos/")
-  SET(LINK_FILE	"link_freertos.ld")
 else()
   message( FATAL_ERROR "Linker specification is not correct" )
+endif()
+SET(LIB_VCTR_P	"${LIB_CRT_P}vectors.S")
+
+# Just in case it is a freertos based app
+if(${PROJECT} MATCHES "freertos")
+  #SET(LIB_CRT_P	"${ROOT_PROJECT}device/lib/crt_freertos/")
+  SET(LIB_VCTR_P	"${ROOT_PROJECT}device/lib/crt_freertos/vectors.S")
 endif()
 
 # messages to check the paths
@@ -123,7 +130,7 @@ ${LIB_DRIVERS}uart/
 
 # Get all the files to include when linking
 SET(LINKED_FILES    "${LIB_CRT_P}crt0.S \
-                     ${LIB_CRT_P}vectors.S \
+                     ${LIB_VCTR_P} \
                      ${LIB_RUNTIME}handler.c \
                      ${LIB_RUNTIME}init.c \
                      ${LIB_RUNTIME}syscalls.c \
@@ -172,7 +179,7 @@ set(FREERTOS_HEAP "4" CACHE STRING "" FORCE)
 set(FREERTOS_PORT "GCC_RISC_V" CACHE STRING "" FORCE)
 
 # fetching freertos content
-if(${LINK_FILE} STREQUAL "link_freertos.ld")
+if(${PROJECT} MATCHES "freertos")
   FetchContent_MakeAvailable(freertos_kernel)
 endif()
 
@@ -194,11 +201,11 @@ set(SOURCES ${ROOT_PROJECT}applications/${PROJECT}/${TARGET}.c)
 # add the executable
 add_executable(${TARGET}.elf ${SOURCES})  
 
-#linking the libraries
+# linking the libraries
 #target_link_libraries(${TARGET}.elf base)
 #target_link_libraries(${TARGET}.elf drivers)
 #target_link_libraries(${TARGET}.elf runtime)
-if(${LINK_FILE} STREQUAL "link_freertos.ld")
+if(${PROJECT} MATCHES "freertos")
   target_link_libraries(${TARGET}.elf freertos_kernel)
 endif()
 

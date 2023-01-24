@@ -16,7 +16,7 @@
 
 set(RISCV  /home/$ENV{USER}/tools/riscv)
 set(RISCV_GITHUB_GCC_COMPILER  $ENV{RISCV}/bin/riscv32-unknown-elf-gcc)
-message("RISC-V GCC cross-compiler is in : ${RISCV_GCC_COMPILER}") 
+#message("RISC-V GCC cross-compiler is in : ${RISCV_GCC_COMPILER}") 
 
 if (EXISTS ${RISCV_GITHUB_GCC_COMPILER})
 set( RISCV_GCC_COMPILER ${RISCV_GITHUB_GCC_COMPILER})
@@ -24,16 +24,16 @@ else()
 message(FATAL_ERROR "RISC-V GCC not found. ${RISCV_GITHUB_GCC_COMPILER}") 
 endif()
 
-message( "RISC-V GCC found: ${RISCV_GCC_COMPILER}")
+#message( "RISC-V GCC found: ${RISCV_GCC_COMPILER}")
 
 get_filename_component(RISCV_TOOLCHAIN_BIN_PATH ${RISCV_GCC_COMPILER} DIRECTORY)
 get_filename_component(RISCV_TOOLCHAIN_BIN_GCC ${RISCV_GCC_COMPILER} NAME_WE)
 get_filename_component(RISCV_TOOLCHAIN_BIN_EXT ${RISCV_GCC_COMPILER} EXT)
 
-message( "RISC-V GCC Path: ${RISCV_TOOLCHAIN_BIN_PATH}" )
+#message( "RISC-V GCC Path: ${RISCV_TOOLCHAIN_BIN_PATH}" )
 
 STRING(REGEX REPLACE "\-gcc" "-" CROSS_COMPILE ${RISCV_GCC_COMPILER})
-message( "RISC-V Cross Compile: ${CROSS_COMPILE}" )
+#message( "RISC-V Cross Compile: ${CROSS_COMPILE}" )
 
 # The Generic system name is used for embedded targets (targets without OS) in
 # CMake
@@ -57,11 +57,11 @@ set(CMAKE_CXX_COMPILER ${CROSS_COMPILE}g++)
 # the build doesn't know what the OBJCOPY filepath is
 set( CMAKE_OBJCOPY      ${CROSS_COMPILE}objcopy
      CACHE FILEPATH "The toolchain objcopy command " FORCE )
-message( "OBJCOPY PATH: ${CMAKE_OBJCOPY}" )
+#message( "OBJCOPY PATH: ${CMAKE_OBJCOPY}" )
 
 set( CMAKE_OBJDUMP      ${CROSS_COMPILE}objdump
      CACHE FILEPATH "The toolchain objdump command " FORCE )
-message( "OBJDUMP PATH: ${CMAKE_OBJDUMP}" )
+#message( "OBJDUMP PATH: ${CMAKE_OBJDUMP}" )
 
 # Set the common build flags
 
