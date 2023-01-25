@@ -132,6 +132,27 @@ asic: |venv
 	$(FUSESOC) --cores-root . run --no-export --target=asic_synthesis --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
 
 
+## @section Program, Execute, and Debug w/ EPFL_Programmer
+
+## Read the id from the EPFL_Programmer flash
+flash-readid:
+	cd sw/vendor/yosyshq_icestorm/iceprog; \
+	./iceprog -d i:0x0403:0x6011 -I B -t;
+
+## Loads the obtained binary to the EPFL_Programmer flash
+## @param MAINFILE=<main_file_name_of_the_project_that WAS_built WITHOUT EXTENSION>
+flash-prog:
+	cd sw/vendor/yosyshq_icestorm/iceprog; \
+	./iceprog -d i:0x0403:0x6011 -I B $(mkfile_path)/sw/build/$(MAINFILE).hex;
+
+## Run openOCD w/ EPFL_Programmer
+openOCD_epflp:
+	xterm -e openocd -f ./tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg; 
+
+## Start GDB 
+gdb_connect:
+	$(MAKE) -C sw gdb_connect
+
 ## @section Cleaning commands
 
 ## Clean the CMake build folder

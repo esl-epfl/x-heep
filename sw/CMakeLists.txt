@@ -249,6 +249,11 @@ foreach (SRC_MODULE ${TARGET} )
                      COMMENT "Invoking: Disassemble ( CMakeFiles/${TARGET}.dir/${SRC_MODULE}.c.obj)")
 endforeach()
 
+# Adding gdb command - TBD
+#add_custom_target(gdb DEPENDS ${TARGET}.elf)
+#add_custom_command(TARGET gdb
+#    COMMAND ${CMAKE_C_GDB} ${TARGET}.elf -x gdbInit &)
+
 SET(DCMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #message( FATAL_ERROR "You can not do this at all, CMake will exit." )

@@ -101,6 +101,8 @@
 #include "core_v_mini_mcu.h"
 #include "rv_timer.h"
 #include "soc_ctrl.h"
+#include "gpio.h"
+#include "x-heep.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -114,7 +116,7 @@
 
 /* The rate at which data is sent to the queue.  The 200ms value is converted
 to ticks using the pdMS_TO_TICKS() macro. */
-#define mainQUEUE_SEND_FREQUENCY_MS			pdMS_TO_TICKS( 3 )
+#define mainQUEUE_SEND_FREQUENCY_MS			pdMS_TO_TICKS( 200 )
 
 /* The maximum number items the queue can hold.  The priority of the receiving
 task is above the priority of the sending task, so the receiving task will
@@ -140,6 +142,18 @@ or 0 to run the more comprehensive test and demo application. */
 #else
 #error "Full demo is not available in this project. Check demos/ directory."
 #endif /* #if mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1 */
+
+
+#ifdef TARGET_PYNQ_Z2
+    #define GPIO_LD5_R  20
+    #define GPIO_LD5_B  21
+	#define GPIO_LD5_G  22
+    #pragma message ( "Executing FreeRTOS using X-HEEP and Pynq-z2" )
+#else
+    #define GPIO_LD5_R  29
+    #define GPIO_LD5_B  30
+	#define GPIO_LD5_G  31
+#endif
 
 /****************************************************************************/
 /**                                                                        **/
@@ -204,6 +218,12 @@ static QueueHandle_t xQueue = NULL;
 /* Temporal flag to store ISR status */
 int8_t intr_flag = 0;
 
+/* Temporal counter to store blinking status */
+int8_t intr_blink = 0;
+
+/* GPIO struct */
+gpio_t gpio;
+
 /****************************************************************************/
 /**                                                                        **/
 /*                           EXPORTED FUNCTIONS                             */
@@ -226,6 +246,26 @@ void system_init(void)
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
     uint32_t freq_hz = soc_ctrl_get_frequency(&soc_ctrl);
+
+    // Set GPIOs
+    gpio_params_t gpio_params;
+    gpio_result_t gpio_res;
+    gpio_params.base_addr = mmio_region_from_addr((uintptr_t)GPIO_START_ADDRESS);
+    gpio_res = gpio_init(gpio_params, &gpio);
+    if (gpio_res != kGpioOk) 
+	{
+      printf("GPIO Failed\n;");
+    }
+
+    gpio_res = gpio_output_set_enabled(&gpio, GPIO_LD5_R, true);
+    if (gpio_res != kGpioOk) printf("Failed\n;");
+	gpio_write(&gpio, GPIO_LD5_R, false);
+	gpio_res = gpio_output_set_enabled(&gpio, GPIO_LD5_B, true);
+    if (gpio_res != kGpioOk) printf("Failed\n;");
+	gpio_write(&gpio, GPIO_LD5_B, false);
+	gpio_res = gpio_output_set_enabled(&gpio, GPIO_LD5_G, true);
+    if (gpio_res != kGpioOk) printf("Failed\n;");
+	gpio_write(&gpio, GPIO_LD5_G, false);
 
     // Setup rv_timer_0_1
     mmio_region_t timer_0_1_reg = mmio_region_from_addr(RV_TIMER_AO_START_ADDRESS);
@@ -391,7 +431,6 @@ static void SetupHardware( void )
 {
 	/* Init board hardware. */
 	system_init();
-
 }
 
 /*****************************************************************************
@@ -399,7 +438,35 @@ static void SetupHardware( void )
 
 void vToggleLED( void )
 {
-	//gpio_pin_toggle( 0x5 );
+  if (intr_blink == 0)
+  { 
+	gpio_write(&gpio, GPIO_LD5_R, true);
+	gpio_write(&gpio, GPIO_LD5_B, false);
+	gpio_write(&gpio, GPIO_LD5_G, false);
+	intr_blink++;
+  }
+  else if (intr_blink == 1)
+  { 
+	gpio_write(&gpio, GPIO_LD5_R, false);
+	gpio_write(&gpio, GPIO_LD5_B, true);
+	gpio_write(&gpio, GPIO_LD5_G, false);
+	intr_blink++;
+  }
+  else if (intr_blink == 2)
+  { 
+	gpio_write(&gpio, GPIO_LD5_R, false);
+	gpio_write(&gpio, GPIO_LD5_B, false);
+	gpio_write(&gpio, GPIO_LD5_G, true);
+	intr_blink++;
+  }
+  else
+  { 
+	gpio_write(&gpio, GPIO_LD5_R, false);
+	gpio_write(&gpio, GPIO_LD5_B, false);
+	gpio_write(&gpio, GPIO_LD5_G, false);
+	intr_blink = 0;
+  }
+
 }
 
 /*****************************************************************************

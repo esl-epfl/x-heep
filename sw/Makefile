@@ -19,19 +19,32 @@
 MAKE                       = make
 
 # CMakeLists top file needs to know these variables:
-ifeq ($(origin PROJECT), undefined)
-  $(error $$Please, what is the name of your project?)
-endif
-ifeq ($(origin MAINFILE), undefined)
-  $(error $$Please, what is the name of your main file?)
-endif
-ifeq ($(origin LINKER), undefined)
-  $(error $$Please, what is the linker of your app?)
-endif
+#ifeq ($(origin PROJECT), undefined)
+#  $(error $$Please, what is the name of your project?)
+#endif
+#ifeq ($(origin MAINFILE), undefined)
+#  $(error $$Please, what is the name of your main file?)
+#endif
+#ifeq ($(origin LINKER), undefined)
+#  $(error $$Please, what is the linker of your app?)
+#endif
+
+# Project options are based on the app to be build (default - hello_world)
+PROJECT  ?= hello_world
+
+# Mainfile options are based on the main file to be build (default - hello_world)
+MAINFILE ?= hello_world
+
+# Linker options are 'on_chip' (default),'flash_load','flash_exec','freertos'
+LINKER   ?= on_chip
+
+# Target options are 'sim' (default) and 'pynq-z2'
+TARGET   ?= sim
 
 # riscv toolchain install path
 RISCV                      ?= ~/.riscv
 RISCV_EXE_PREFIX           = $(RISCV)/bin/riscv32-unknown-elf-
+RISCV_GDB_PATH             = $(RISCV_EXE_PREFIX)gdb
 
 # Sanity check
 TARGET                     ?= sim
@@ -60,3 +73,7 @@ CMAKE_DIR=cmake
 
 # Let's CMake!
 include cmake/targets.mak
+
+# GDB connection using RISCV-GDB back-end
+gdb_connect:
+	  $(RISCV_GDB_PATH) build/$(MAINFILE).elf -x gdbInit;

@@ -63,6 +63,10 @@ set( CMAKE_OBJDUMP      ${CROSS_COMPILE}objdump
      CACHE FILEPATH "The toolchain objdump command " FORCE )
 #message( "OBJDUMP PATH: ${CMAKE_OBJDUMP}" )
 
+# Dealing with GDB into CMake - TBD
+#set( CMAKE_C_GDB        ${CROSS_COMPILE}gdb 
+#     CACHE FILEPATH "The gdb toolchain command " FORCE )
+
 # Set the common build flags
 
 # Set the CMAKE C flags (which should also be used by the assembler!
