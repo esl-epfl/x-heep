@@ -93,7 +93,7 @@ module pdm_core #(
   );
 
   // Output synchronized with the last decimator
-  assign pcm_data_valid_o = fir_en & clkdiv;
+  assign pcm_data_valid_o = combs_en & clkdiv;
 
   ///////////////////////////////////////////////////////////////////////////
   //////////// PIECE OF CODE I NEED TO MAKE EASIER TO UNDERSTAND ////////////
@@ -127,6 +127,8 @@ module pdm_core #(
     if (~rstn_i) r_en <= 'h0;
     else r_en <= en_i;
   end
+
+  assign pcm_o  = combs_to_hb1;
 
   ///////////////////////////////////////////////////////////////////////////
   ////// END OF THE PIECE OF CODE I NEED TO MAKE EASIER TO UNDERSTAND ///////
@@ -220,7 +222,7 @@ module pdm_core #(
       .clr_i(s_clr),
       .en_i(fir_en),
       .data_i(hb2_to_fir),
-      .data_o(pcm_o),
+      .data_o(),
       .freecoeffs(coeffs_fir)
   );
 
