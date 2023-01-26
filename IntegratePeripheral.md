@@ -148,7 +148,7 @@ c. The core MCU I/O must be adapted as well (`hw/core-v-mini-mcu/core_v_mini_mcu
 
 a. The peripheral number must be updated:
 
-```verilog
+```diff
 -  localparam PERIPHERALS = N;
 +  localparam PERIPHERALS = N+1;
 ```
@@ -185,13 +185,13 @@ c. The `PERIPHERALS_ADDR_RULES` should be amended:
 
 1. Registers must be declared under the `registers:` list in the `<peripheral>.hjson` file. To add a register, append the following:
 
-```json
+```
     { name:     "REGISTER_NAME"
       desc:     "Description"
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "15:0", name: "LSBITS", desc: "Those are the least significant bits." }
+        { bits: "15:0",  name: "LSBITS", desc: "Those are the least significant bits." }
         { bits: "31:16", name: "MSBITS", desc: "Those are the most significant bits." }
       ]
     }
@@ -251,13 +251,12 @@ reg2hw.register.q        // Data to be read from a register
 
 1. Windows must be declared under the `registers:` list in the `<peripheral>.hjson` file. To add a window, append the following:
 
-```json
+```
     { window: {
         name: "RX_WINDOW_NAME",
         items: "1",
         validbits: "32",
-        desc: '''Window purpose description
-                  '''
+        desc: '''Window purpose description'''
         swaccess: "ro"
       }
 ```
