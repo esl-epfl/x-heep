@@ -48,6 +48,9 @@ verible:
 
 app-helloworld:
 	$(MAKE) -C sw applications/hello_world/hello_world.hex  TARGET=$(TARGET)
+	
+app-pdm2pcm:
+	$(MAKE) -C sw applications/example_pdm2pcm/example_pdm2pcm.hex  TARGET=$(TARGET)
 
 app-matadd:
 	$(MAKE) -C sw applications/matadd/matadd.hex TARGET=$(TARGET)
@@ -91,6 +94,12 @@ vcs-sim: |venv
 run-helloworld: mcu-gen verilator-sim app-helloworld |venv
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
 	./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex; \
+	cat uart0.log; \
+	cd ../../..;
+	
+run-pdm2pcm: mcu-gen verilator-sim app-pdm2pcm |venv
+	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
+	./Vtestharness +firmware=../../../sw/applications/example_pdm2pcm/example_pdm2pcm.hex; \
 	cat uart0.log; \
 	cd ../../..;
 
