@@ -1,0 +1,82 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{ name: "i2s",
+  clock_primary: "clk_i",
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ],
+  regwidth: "32",
+  registers: [
+    { name:     "PTR_IN",
+      desc:     "Input data pointer (word aligned)",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "PTR_IN", desc: "Input data pointer (word aligned)" }
+      ]
+    },
+    { name:     "PTR_OUT",
+      desc:     "Output data pointer (word aligned)",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "PTR_OUT", desc: "Output data pointer (word aligned)" }
+      ]
+    },
+    { name:     "i2s_START",
+      desc:     "Number of bytes to copy - Once a value is written, the copy starts",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0", name: "i2s_START", desc: "i2s counter and start" }
+      ]
+    },
+    { name:     "DONE",
+      desc:     "Register set to 1 when copy is done",
+      swaccess: "ro",
+      hwaccess: "hwo",
+      resval:   1,
+      fields: [
+        { bits: "31:0", name: "DONE", desc: "Copy done" }
+      ]
+    },
+    { name:     "SRC_PTR_INC",
+      desc:     "Increment number of source pointer every time a word is copied from source",
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   4,
+      fields: [
+        { bits: "31:0", name: "SRC_PTR_INC", desc: "Source pointer increment" }
+      ]
+    },
+    { name:     "DST_PTR_INC",
+      desc:     "Increment number of source pointer every time a word is copied to destination",
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   4,
+      fields: [
+        { bits: "31:0", name: "DST_PTR_INC", desc: "Destination pointer increment" }
+      ]
+    },
+    { name:     "SPI_MODE",
+      desc:     "SPI mode selection: disable(0), receive from SPI (1), and send to SPI (2), receive from SPI FLASH (3), and send to SPI FLASH (4). It waits for TX and RX FIFO in modes 1 and 2, respectively.",
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   0,
+      fields: [
+        { bits: "2:0", name: "SPI_MODE", desc: "Copy/Read from SPI" }
+      ]
+    }
+    { name:     "DATA_TYPE",
+      desc:     "Data type to transfer: 32-bit word(0), 16-bit half word(1), 8-bit byte(2,3).",
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   0,
+      fields: [
+        { bits: "1:0", name: "DATA_TYPE", desc: "Data type" }
+      ]
+    }
+   ]
+}
