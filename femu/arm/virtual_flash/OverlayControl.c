@@ -1,3 +1,4 @@
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,65 +24,64 @@ volatile uint32_t * MapMemIO(uint32_t baseAddr, uint32_t mapSize)
 {
   bool res = true;
 
-	res = ( (memMapFileDesc = open("/dev/mem", O_RDWR | O_SYNC )) != -1);
+    res = ( (memMapFileDesc = open("/dev/mem", O_RDWR | O_SYNC )) != -1);
 
-	if (!res) {
+    if (!res) {
     #ifdef LOGGING
-		printf("Error opening file\n");
+        printf("Error opening file\n");
     #endif
-	}
-	else {
+    }
+    else {
     #if LOGGING == 2
-		printf("File opened\n");
+        printf("File opened\n");
     #endif
-		memMapAddr = (volatile unsigned int *)mmap(NULL, mapSize, PROT_READ | PROT_WRITE, MAP_SHARED, memMapFileDesc, baseAddr);
-		res = (memMapAddr != MAP_FAILED);
-		if (!res) {
+        memMapAddr = (volatile unsigned int *)mmap(NULL, mapSize, PROT_READ | PROT_WRITE, MAP_SHARED, memMapFileDesc, baseAddr);
+        res = (memMapAddr != MAP_FAILED);
+        if (!res) {
       #ifdef LOGGING
-			printf("Memory mapping failed.\n");
+            printf("Memory mapping failed.\n");
       #endif
-			close(memMapFileDesc);
-			memMapFileDesc = -1;
+            close(memMapFileDesc);
+            memMapFileDesc = -1;
       memMapAddr = NULL;
-		}
-	}
+        }
+    }
 
-	if (res) {
+    if (res) {
     #ifdef LOGGING
-		printf("Memory mapped.\n");
+        printf("Memory mapped.\n");
     #endif
     memMapSize = mapSize;
   }
 
-	return memMapAddr;
+    return memMapAddr;
 }
 
 bool UnmapMemIO()
 {
-	bool res = true; 
+    bool res = true;
 
-	if ((memMapAddr != NULL) && (memMapAddr != MAP_FAILED)) {
-		if ( munmap((void*)memMapAddr, memMapSize) ) {
+    if ((memMapAddr != NULL) && (memMapAddr != MAP_FAILED)) {
+        if ( munmap((void*)memMapAddr, memMapSize) ) {
       #ifdef LOGGING
-			printf("Memory unmapping failed.\n");
+            printf("Memory unmapping failed.\n");
       #endif
-			res = false;
-		}
-		else {
+            res = false;
+        }
+        else {
       #ifdef LOGGING
-			printf("Memory unmapped\n");
+            printf("Memory unmapped\n");
       #endif
-		}
-	}
+        }
+    }
 
-	if (memMapFileDesc != -1) {
-		close(memMapFileDesc);
-		memMapFileDesc = -1;
-	}
+    if (memMapFileDesc != -1) {
+        close(memMapFileDesc);
+        memMapFileDesc = -1;
+    }
 
-	return res;
+    return res;
 }
-
 
 // Reference of functions to (de)allocate DMA memory.
 // extern "C" {
@@ -101,4 +101,3 @@ uint32_t cma_pages_available();
 void cma_flush_cache(void *buf, unsigned int phys_addr, int size);
 void cma_invalidate_cache(void *buf, unsigned int phys_addr, int size);
 */
-

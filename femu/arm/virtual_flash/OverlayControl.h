@@ -1,3 +1,4 @@
+
 #ifndef	OVERLAYCONTROL_H
 #define	OVERLAYCONTROL_H
 
@@ -24,4 +25,3 @@ void cma_invalidate_cache(void *buf, unsigned int phys_addr, int size);
 */
 
 #endif // OVERLAYCONTROL_H
-

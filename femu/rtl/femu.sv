@@ -744,10 +744,7 @@ module femu
       .M_AXI_wvalid(s00_axi_wvalid_sig),
       .M_AXI_awprot(s00_axi_awprot_sig),
       .M_AXI_arprot(s00_axi_arprot_sig),
-      .M_AXI_wstrb(s00_axi_wstrb_sig),
-      .spi_test_clk(spi_test_clk_sig),
-      .spi_test_cs(spi_test_cs_sig),
-      .spi_test_data(spi_test_data_sig)
+      .M_AXI_wstrb(s00_axi_wstrb_sig)
   );
 
   axi_address_hijacker #(
