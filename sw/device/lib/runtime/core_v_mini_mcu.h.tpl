@@ -77,25 +77,12 @@ extern "C" {
 #define PERIPHERAL_SIZE 0x${peripheral_size_address}
 #define PERIPHERAL_END_ADDRESS (PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE)
 
-#define PLIC_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${plic_start_offset})
-#define PLIC_SIZE 0x${plic_size_address}
-#define PLIC_END_ADDRESS (PLIC_START_ADDRESS + PLIC_SIZE)
+% for name, peripheral in peripherals.items():
+#define ${name.upper()}_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${peripheral['offset']})
+#define ${name.upper()}_SIZE 0x${peripheral['length']}
+#define ${name.upper()}_END_ADDRESS (${name.upper()}_START_ADDRESS + ${name.upper()}_SIZE)
 
-#define GPIO_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${gpio_start_offset})
-#define GPIO_SIZE 0x${gpio_size_address}
-#define GPIO_END_ADDRESS (GPIO_START_ADDRESS + GPIO_SIZE)
-
-#define I2C_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${i2c_start_offset})
-#define I2C_SIZE 0x${i2c_size_address}
-#define I2C_END_ADDRESS (I2C_START_ADDRESS + I2C_SIZE)
-
-#define RV_TIMER_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${rv_timer_start_offset})
-#define RV_TIMER_SIZE 0x${rv_timer_size_address}
-#define RV_TIMER_END_ADDRESS (RV_TIMER_START_ADDRESS + RV_TIMER_SIZE)
-
-#define SPI2_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${spi2_start_offset})
-#define SPI2_SIZE 0x${spi2_size_address}
-#define SPI2_END_ADDRESS (SPI2_START_ADDRESS + SPI2_SIZE)
+%endfor
 
 #define EXT_SLAVE_START_ADDRESS 0x${ext_slave_start_address}
 #define EXT_SLAVE_SIZE 0x${ext_slave_size_address}
