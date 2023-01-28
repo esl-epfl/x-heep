@@ -76,10 +76,13 @@ extern "C" {
 #define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}
 #define PERIPHERAL_SIZE 0x${peripheral_size_address}
 #define PERIPHERAL_END_ADDRESS (PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE)
-
+<% 
+  def string2int(hex_json_string):
+      return (hex_json_string.split('x')[1]).split(',')[0]
+%>
 % for name, peripheral in peripherals.items():
-#define ${name.upper()}_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${peripheral['offset']})
-#define ${name.upper()}_SIZE 0x${peripheral['length']}
+#define ${name.upper()}_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${string2int(peripheral['offset'])})
+#define ${name.upper()}_SIZE 0x${string2int(peripheral['length'])}
 #define ${name.upper()}_END_ADDRESS (${name.upper()}_START_ADDRESS + ${name.upper()}_SIZE)
 
 %endfor
