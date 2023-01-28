@@ -188,12 +188,11 @@ package core_v_mini_mcu_pkg;
   localparam int unsigned AO_PERIPHERALS_PORT_SEL_WIDTH = AO_PERIPHERALS > 1 ? $clog2(AO_PERIPHERALS) : 32'd1;
 
   //switch-on/off peripherals
+  localparam PERIPHERALS = ${sum(isinstance(e, dict) for e in peripherals.values())};
 <% 
   def string2int(hex_json_string):
       return (hex_json_string.split('x')[1]).split(',')[0]
 %>
-  localparam PERIPHERALS = ${sum(isinstance(e, dict) for e in peripherals.values())};
-
 % for peripheral, addr in peripherals.items():
   % if isinstance(addr, dict):
   localparam logic [31:0] ${peripheral.upper()}_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${string2int(addr["offset"])};
