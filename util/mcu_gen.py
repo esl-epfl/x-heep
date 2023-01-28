@@ -834,6 +834,7 @@ def main():
         "rv_timer_size_address"            : rv_timer_size_address,
         "spi2_start_offset"                : spi2_start_offset,
         "spi2_size_address"                : spi2_size_address,
+        "peripherals"                      : {name:{**info} for name, info in obj['peripherals'].items() if isinstance(info, dict)},
         "ext_slave_start_address"          : ext_slave_start_address,
         "ext_slave_size_address"           : ext_slave_size_address,
         "flash_mem_start_address"          : flash_mem_start_address,
@@ -901,7 +902,6 @@ def main():
         "pad_mux_process"                  : pad_mux_process,
         "pad_muxed_list"                   : pad_muxed_list,
         "total_pad_muxed"                  : total_pad_muxed,
-        **obj,
     }
 
     ###########

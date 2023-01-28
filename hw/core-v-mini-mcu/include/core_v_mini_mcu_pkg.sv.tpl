@@ -197,13 +197,11 @@ package core_v_mini_mcu_pkg;
       return (hex_json_string.split('x')[1]).split(',')[0]
 %>
 % for peripheral, addr in peripherals.items():
-  % if isinstance(addr, dict):
   localparam logic [31:0] ${peripheral.upper()}_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${string2int(addr["offset"])};
   localparam logic [31:0] ${peripheral.upper()}_SIZE = 32'h${string2int(addr["length"])};
   localparam logic [31:0] ${peripheral.upper()}_END_ADDRESS = ${peripheral.upper()}_START_ADDRESS + ${peripheral.upper()}_SIZE;
-  localparam logic [31:0] ${peripheral.upper()}_IDX = 32'd${loop.index - 2};
-
-  % endif
+  localparam logic [31:0] ${peripheral.upper()}_IDX = 32'd${loop.index};
+  
 % endfor
   localparam addr_map_rule_t [PERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
 % for peripheral, addr in peripherals.items():
