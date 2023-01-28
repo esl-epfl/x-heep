@@ -188,23 +188,21 @@ package core_v_mini_mcu_pkg;
   localparam int unsigned AO_PERIPHERALS_PORT_SEL_WIDTH = AO_PERIPHERALS > 1 ? $clog2(AO_PERIPHERALS) : 32'd1;
 
   //switch-on/off peripherals
-<%!
+<% 
   def string2int(hex_json_string):
       return (hex_json_string.split('x')[1]).split(',')[0]
-
 %>
   localparam PERIPHERALS = ${sum(isinstance(e, dict) for e in peripherals.values())};
 
 % for peripheral, addr in peripherals.items():
   % if isinstance(addr, dict):
   localparam logic [31:0] ${peripheral.upper()}_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${string2int(addr["offset"])};
-  localparam logic [31:0] ${peripheral.upper()}_SIZE = PERIPHERAL_START_ADDRESS + 32'h${string2int(addr["length"])};
+  localparam logic [31:0] ${peripheral.upper()}_SIZE = 32'h${string2int(addr["length"])};
   localparam logic [31:0] ${peripheral.upper()}_END_ADDRESS = ${peripheral.upper()}_START_ADDRESS + ${peripheral.upper()}_SIZE;
   localparam logic [31:0] ${peripheral.upper()}_IDX = 32'd${loop.index - 2};
 
   % endif
 % endfor
-
   localparam addr_map_rule_t [PERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
 % for peripheral, addr in peripherals.items():
   % if isinstance(addr, dict):
