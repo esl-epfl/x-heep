@@ -6,6 +6,7 @@ module pdm2pcm #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
     parameter int unsigned FIFO_DEPTH = 4,
+    parameter int unsigned FIFO_WIDTH = 18,
     localparam int unsigned FIFO_ADDR_WIDTH = $clog2(FIFO_DEPTH)
 ) (
     input logic clk_i,
@@ -32,14 +33,15 @@ module pdm2pcm #(
 
   logic              [FIFO_ADDR_WIDTH-1:0]     fifo_usage;
 
-  logic                                        pcm_data_valid_o;
+  logic                                        pcm_data_valid;
 
   logic                                        rx_ready;
 
-  logic              [               17:0]     pcm_o;
+  logic              [               17:0]     pcm;
 
   // FIFO/window related signals
   logic              [               31:0]     rx_data;
+  logic              [     FIFO_WIDTH-1:0]     rx_fifo;
 
   // Interface signals
   pdm2pcm_reg2hw_t                             reg2hw;
@@ -50,6 +52,8 @@ module pdm2pcm #(
 
   logic push, pop;
   logic empty, full;
+
+  assign rx_data = ({{{32 - FIFO_WIDTH} {1'b0}}, rx_fifo});
 
   assign hw2reg.status.reach.d  = ({{{32-FIFO_ADDR_WIDTH}{1'b0}},fifo_usage}) > {{26{1'b0}},reg2hw.reachcount.q};
   assign hw2reg.status.reach.de = 1;
@@ -97,7 +101,7 @@ module pdm2pcm #(
   pdm_core #() pdm_core_i (
       .clk_i,
       .rstn_i(rst_ni),
-      .en_i  (reg2hw.control.enabl.q),
+      .en_i(reg2hw.control.enabl.q),
       .par_decim_idx_combs,
       .par_decim_idx_hfbd2,
       .par_decim_idx_fir,
@@ -107,18 +111,19 @@ module pdm2pcm #(
       .coeffs_fir,
       .pdm_clk_o,
       .pdm_i,
-      .pcm_o,
-      .pcm_data_valid_o
+      .pcm_o(pcm),
+      .pcm_data_valid_o(pcm_data_valid)
   );
 
-  assign push                  = pcm_data_valid_o & ~full;
+  assign push                  = pcm_data_valid & ~full;
   assign pop                   = rx_ready & ~empty;
 
   assign hw2reg.status.fulll.d = full;
   assign hw2reg.status.empty.d = empty;
 
   fifo_v3 #(
-      .DEPTH(FIFO_DEPTH)
+      .DEPTH(FIFO_DEPTH),
+      .DATA_WIDTH(FIFO_WIDTH)
   ) pdm2pcm_fifo_i (
       .clk_i,
       .rst_ni,
@@ -127,9 +132,9 @@ module pdm2pcm #(
       .full_o(full),
       .empty_o(empty),
       .usage_o(fifo_usage),
-      .data_i({{14{1'b0}}, pcm_o}),
+      .data_i(pcm),
       .push_i(push),
-      .data_o(rx_data),
+      .data_o(rx_fifo),
       .pop_i(pop)
   );
 

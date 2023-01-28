@@ -71,7 +71,7 @@ module pdm_core #(
   logic             clkdiv;
 
   // Auxiliary signals to link the filter blocks
-  logic [WIDTH-1:0] data_i;
+  logic [WIDTH-1:0] data;
   logic [WIDTH-1:0] integr_to_comb;
   logic [WIDTH-1:0] combs_to_hb1;
   logic [WIDTH-1:0] hb1_to_hb2;
@@ -128,14 +128,14 @@ module pdm_core #(
     else r_en <= en_i;
   end
 
-  assign pcm_o  = combs_to_hb1;
+  assign pcm_o = combs_to_hb1;
 
   ///////////////////////////////////////////////////////////////////////////
   ////// END OF THE PIECE OF CODE I NEED TO MAKE EASIER TO UNDERSTAND ///////
   ///////////////////////////////////////////////////////////////////////////
 
   // Converts binary PDM {0,1} to bipolar PDM {-1,1}
-  assign data_i = r_data ? 'h1 : {WIDTH{1'b1}};
+  assign data  = r_data ? 'h1 : {WIDTH{1'b1}};
 
   // Instantiation sequence
   // ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐
@@ -149,7 +149,7 @@ module pdm_core #(
       .rstn_i(rstn_i),
       .clr_i(s_clr),
       .en_i(r_send),
-      .data_i(data_i),
+      .data_i(data),
       .data_o(integr_to_comb)
   );
 

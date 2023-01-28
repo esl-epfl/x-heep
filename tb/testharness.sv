@@ -370,7 +370,7 @@ module testharness #(
         end else begin
           $display("Failed to open PDM file.");
           $display(" > Please check if this the simulation was launched using");
-          $display("   `make *-sim` or `make run-helloworld`.");
+          $display("   `make *-sim` or `make run-pdm2pcm`.");
         end
 
         $fgets(line, fpdm);
