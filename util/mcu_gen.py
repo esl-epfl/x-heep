@@ -452,21 +452,6 @@ def main():
 
     peripheral_size_address = string2int(obj['peripherals']['length'])
 
-    plic_start_offset  = string2int(obj['peripherals']['plic']['offset'])
-    plic_size_address  = string2int(obj['peripherals']['plic']['length'])
-
-    gpio_start_offset  = string2int(obj['peripherals']['gpio']['offset'])
-    gpio_size_address  = string2int(obj['peripherals']['gpio']['length'])
-
-    i2c_start_offset  = string2int(obj['peripherals']['i2c']['offset'])
-    i2c_size_address  = string2int(obj['peripherals']['i2c']['length'])
-
-    rv_timer_start_offset  = string2int(obj['peripherals']['rv_timer']['offset'])
-    rv_timer_size_address  = string2int(obj['peripherals']['rv_timer']['length'])
-
-    spi2_start_offset  = string2int(obj['peripherals']['spi2']['offset'])
-    spi2_size_address  = string2int(obj['peripherals']['spi2']['length'])
-
     ext_slave_start_address = string2int(obj['ext_slaves']['address'])
     ext_slave_size_address = string2int(obj['ext_slaves']['length'])
 
@@ -824,16 +809,6 @@ def main():
         "spi_size_address"                 : spi_size_address,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
-        "plic_start_offset"                : plic_start_offset,
-        "plic_size_address"                : plic_size_address,
-        "gpio_start_offset"                : gpio_start_offset,
-        "gpio_size_address"                : gpio_size_address,
-        "i2c_start_offset"                 : i2c_start_offset,
-        "i2c_size_address"                 : i2c_size_address,
-        "rv_timer_start_offset"            : rv_timer_start_offset,
-        "rv_timer_size_address"            : rv_timer_size_address,
-        "spi2_start_offset"                : spi2_start_offset,
-        "spi2_size_address"                : spi2_size_address,
         "peripherals"                      : {name:{**info} for name, info in obj['peripherals'].items() if isinstance(info, dict)},
         "ext_slave_start_address"          : ext_slave_start_address,
         "ext_slave_size_address"           : ext_slave_size_address,
