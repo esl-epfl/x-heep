@@ -901,6 +901,7 @@ def main():
         "pad_mux_process"                  : pad_mux_process,
         "pad_muxed_list"                   : pad_muxed_list,
         "total_pad_muxed"                  : total_pad_muxed,
+        **obj,
     }
 
     ###########
