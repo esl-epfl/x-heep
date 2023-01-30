@@ -105,23 +105,18 @@ package core_v_mini_mcu_pkg;
 ## Automatically add all always on peripherals listed
 ######################################################################
   //always-on peripherals
-  localparam AO_PERIPHERALS = ${sum(isinstance(e, dict) for e in ao_peripherals.values())};
-<% 
-  def string2int(hex_json_string):
-      return (hex_json_string.split('x')[1]).split(',')[0]
-%>
+  localparam AO_PERIPHERALS = ${ao_peripherals_count};
+
 % for peripheral, addr in ao_peripherals.items():
-  localparam logic [31:0] ${peripheral.upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${string2int(addr["offset"])};
-  localparam logic [31:0] ${peripheral.upper()}_SIZE = 32'h${string2int(addr["length"])};
+  localparam logic [31:0] ${peripheral.upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${addr["offset"]};
+  localparam logic [31:0] ${peripheral.upper()}_SIZE = 32'h${addr["length"]};
   localparam logic [31:0] ${peripheral.upper()}_END_ADDRESS = ${peripheral.upper()}_START_ADDRESS + ${peripheral.upper()}_SIZE;
   localparam logic [31:0] ${peripheral.upper()}_IDX = 32'd${loop.index};
   
 % endfor
   localparam addr_map_rule_t [AO_PERIPHERALS-1:0] AO_PERIPHERALS_ADDR_RULES = '{
 % for peripheral, addr in ao_peripherals.items():
-  % if isinstance(addr, dict):
       '{ idx: ${peripheral.upper()}_IDX, start_addr: ${peripheral.upper()}_START_ADDRESS, end_addr: ${peripheral.upper()}_END_ADDRESS }${"," if not loop.last else ""}
-  % endif
 % endfor
   };
 
@@ -131,23 +126,18 @@ package core_v_mini_mcu_pkg;
 ## Automatically add all peripherals listed
 ######################################################################
   //switch-on/off peripherals
-  localparam PERIPHERALS = ${sum(isinstance(e, dict) for e in peripherals.values())};
-<% 
-  def string2int(hex_json_string):
-      return (hex_json_string.split('x')[1]).split(',')[0]
-%>
+  localparam PERIPHERALS = ${peripherals_count};
+
 % for peripheral, addr in peripherals.items():
-  localparam logic [31:0] ${peripheral.upper()}_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${string2int(addr["offset"])};
-  localparam logic [31:0] ${peripheral.upper()}_SIZE = 32'h${string2int(addr["length"])};
+  localparam logic [31:0] ${peripheral.upper()}_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${addr["offset"]};
+  localparam logic [31:0] ${peripheral.upper()}_SIZE = 32'h${addr["length"]};
   localparam logic [31:0] ${peripheral.upper()}_END_ADDRESS = ${peripheral.upper()}_START_ADDRESS + ${peripheral.upper()}_SIZE;
   localparam logic [31:0] ${peripheral.upper()}_IDX = 32'd${loop.index};
   
 % endfor
   localparam addr_map_rule_t [PERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
 % for peripheral, addr in peripherals.items():
-  % if isinstance(addr, dict):
       '{ idx: ${peripheral.upper()}_IDX, start_addr: ${peripheral.upper()}_START_ADDRESS, end_addr: ${peripheral.upper()}_END_ADDRESS }${"," if not loop.last else ""}
-  % endif
 % endfor
   };
 

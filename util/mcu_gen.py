@@ -407,11 +407,27 @@ def main():
 
     ao_peripheral_size_address = string2int(obj['ao_peripherals']['length'])
 
+    def extract_peripherals(peripherals):
+        return {
+            name: {
+                k: string2int(v)
+                for k, v in info.items()
+            }
+            for name, info in peripherals.items()
+            if isinstance(info, dict)
+        }
+
+    ao_peripherals = extract_peripherals(obj['ao_peripherals'])
+    ao_peripherals_count = len(ao_peripherals) 
+
+
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
         exit("peripheral start address must be greater than 0x10000")
 
     peripheral_size_address = string2int(obj['peripherals']['length'])
+    peripherals = extract_peripherals(obj['peripherals'])
+    peripherals_count = len(peripherals) 
 
     ext_slave_start_address = string2int(obj['ext_slaves']['address'])
     ext_slave_size_address = string2int(obj['ext_slaves']['length'])
@@ -742,10 +758,12 @@ def main():
         "debug_size_address"               : debug_size_address,
         "ao_peripheral_start_address"      : ao_peripheral_start_address,
         "ao_peripheral_size_address"       : ao_peripheral_size_address,
-        "ao_peripherals"                   : {name:{**info} for name, info in obj['ao_peripherals'].items() if isinstance(info, dict)},       
+        "ao_peripherals"                   : ao_peripherals,       
+        "ao_peripherals_count"                   : ao_peripherals_count,       
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
-        "peripherals"                      : {name:{**info} for name, info in obj['peripherals'].items() if isinstance(info, dict)},
+        "peripherals"                      : peripherals,
+        "peripherals_count"                      : peripherals_count,
         "ext_slave_start_address"          : ext_slave_start_address,
         "ext_slave_size_address"           : ext_slave_size_address,
         "flash_mem_start_address"          : flash_mem_start_address,
