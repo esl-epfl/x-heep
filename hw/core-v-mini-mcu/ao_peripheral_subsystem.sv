@@ -139,8 +139,8 @@ module ao_peripheral_subsystem
   logic [23:0] cio_gpio_unused;
   logic [23:0] cio_gpio_en_unused;
 
-  assign ext_peripheral_slave_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPH_IDX];
-  assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPH_IDX] = ext_peripheral_slave_resp_i;
+  assign ext_peripheral_slave_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPHERAL_IDX];
+  assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPHERAL_IDX] = ext_peripheral_slave_resp_i;
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
