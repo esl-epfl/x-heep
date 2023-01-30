@@ -72,7 +72,7 @@
             offset:  0x00070000,
             length:  0x00010000,
         },
-        ext_periph: {
+        ext_peripheral: {
             offset:  0x00080000,
             length:  0x00010000,
         },
