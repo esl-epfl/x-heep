@@ -19,58 +19,16 @@ extern "C" {
 #define AO_PERIPHERAL_START_ADDRESS 0x${ao_peripheral_start_address}
 #define AO_PERIPHERAL_SIZE 0x${ao_peripheral_size_address}
 #define AO_PERIPHERAL_END_ADDRESS (AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE)
+<% 
+  def string2int(hex_json_string):
+      return (hex_json_string.split('x')[1]).split(',')[0]
+%>
+% for name, peripheral in ao_peripherals.items():
+#define ${name.upper()}_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${string2int(peripheral['offset'])})
+#define ${name.upper()}_SIZE 0x${string2int(peripheral['length'])}
+#define ${name.upper()}_END_ADDRESS (${name.upper()}_START_ADDRESS + ${name.upper()}_SIZE)
 
-#define SOC_CTRL_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${soc_ctrl_start_offset})
-#define SOC_CTRL_SIZE 0x${soc_ctrl_size_address}
-#define SOC_CTRL_END_ADDRESS (SOC_CTRL_IDX_START_ADDRESS + SOC_CTRL_IDX_SIZE)
-
-#define BOOTROM_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${bootrom_start_offset})
-#define BOOTROM_SIZE 0x${bootrom_size_address}
-#define BOOTROM_END_ADDRESS (BOOTROM_START_ADDRESS + BOOTROM_SIZE)
-
-#define SPI_FLASH_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_flash_start_offset})
-#define SPI_FLASH_SIZE 0x${spi_flash_size_address}
-#define SPI_FLASH_END_ADDRESS (SPI_FLASH_START_ADDRESS + SPI_FLASH_SIZE)
-
-#define SPI_MEMIO_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_memio_start_offset})
-#define SPI_MEMIO_SIZE 0x${spi_memio_size_address}
-#define SPI_MEMIO_END_ADDRESS (SPI_MEMIO_START_ADDRESS + SPI_MEMIO_SIZE)
-
-#define SPI_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${spi_start_offset})
-#define SPI_SIZE 0x${spi_size_address}
-#define SPI_END_ADDRESS (SPI_START_ADDRESS + SPI_SIZE)
-
-#define POWER_MANAGER_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${power_manager_start_offset})
-#define POWER_MANAGER_SIZE 0x${power_manager_size_address}
-#define POWER_MANAGER_END_ADDRESS (POWER_MANAGER_START_ADDRESS + POWER_MANAGER_SIZE)
-
-#define RV_TIMER_AO_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${rv_timer_ao_start_offset})
-#define RV_TIMER_AO_SIZE 0x${rv_timer_ao_size_address}
-#define RV_TIMER_AO_END_ADDRESS (RV_TIMER_AO_START_ADDRESS + RV_TIMER_AO_SIZE)
-
-#define DMA_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${dma_start_offset})
-#define DMA_SIZE 0x${dma_size_address}
-#define DMA_END_ADDRESS (DMA_START_ADDRESS + DMA_SIZE)
-
-#define FAST_INTR_CTRL_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${fast_intr_ctrl_start_offset})
-#define FAST_INTR_CTRL_SIZE 0x${fast_intr_ctrl_size_address}
-#define FAST_INTR_CTRL_END_ADDRESS (FAST_INTR_CTRL_START_ADDRESS + DMA_SIZE)
-
-#define EXT_PERIPHERAL_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${ext_periph_start_offset})
-#define EXT_PERIPHERAL_SIZE 0x${ext_periph_size_address}
-#define EXT_PERIPHERAL_END_ADDRESS (EXT_PERIPHERAL_START_ADDRESS + EXT_PERIPHERAL_SIZE)
-
-#define PAD_CONTROL_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${pad_control_start_offset})
-#define PAD_CONTROL_SIZE 0x${pad_control_size_address}
-#define PAD_CONTROL_END_ADDRESS (PAD_CONTROL_START_ADDRESS + PAD_CONTROL_SIZE)
-
-#define GPIO_AO_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${gpio_ao_start_offset})
-#define GPIO_AO_SIZE 0x${gpio_ao_size_address}
-#define GPIO_AO_END_ADDRESS (GPIO_AO_START_ADDRESS + GPIO_AO_SIZE)
-
-#define UART_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${uart_start_offset})
-#define UART_SIZE 0x${uart_size_address}
-#define UART_END_ADDRESS (UART_START_ADDRESS + UART_SIZE)
+%endfor
 
 //switch-on/off peripherals
 #define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}
