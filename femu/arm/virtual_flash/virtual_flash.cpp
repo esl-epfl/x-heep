@@ -13,7 +13,7 @@ extern "C" {
 
 const uint32_t MEM_IS_CACHEABLE = 0;
 const uint32_t MAP_SIZE = 64*1024;
-const uint32_t BASE_ADDR = 0x40000000;
+const uint32_t BASE_ADDR = 0x43C00000;
 const uint32_t ALLOC_SIZE_BYTE = 64*1024*128;
 const uint32_t FIXED_VALUE = 0x1c;
 
@@ -76,7 +76,8 @@ int main(int argc, char **argv)
     // Copy the physical address of the DDR memory buffer to hijacker PL peripheral
     *hijacker = (uint32_t)virtual_flash_buffer_phy;
 
-    // Press any key to end the application
+    // Press ENTER to end the application
+    printf("Press ENTER to end the application.\n\n");
     getchar();
 
     // Read content of the DDR memory buffer and store it to a file
