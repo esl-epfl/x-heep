@@ -29,7 +29,7 @@ mcu-gen:
 	bash -c "cd hw/system/pad_control; source pad_control_gen.sh; cd ../../../"
 	python util/mcu_gen.py --cfg mcu_cfg.hjson --outdir sw/linker --memorybanks $(MEMORY_BANKS) --linker_script sw/linker/link_flash_exec.ld.tpl
 	python util/mcu_gen.py --cfg mcu_cfg.hjson --outdir sw/linker --memorybanks $(MEMORY_BANKS) --linker_script sw/linker/link_flash_load.ld.tpl
-	python headers_periph_gen.py
+	python ./util/headers_periph_gen.py
 #	$(MAKE) verible
 
 # Display mcu_gen.py help
