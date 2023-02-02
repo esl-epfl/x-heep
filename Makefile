@@ -30,7 +30,7 @@ mcu-gen:
 	python util/mcu_gen.py --cfg mcu_cfg.hjson --outdir sw/linker --memorybanks $(MEMORY_BANKS) --linker_script sw/linker/link_flash_exec.ld.tpl
 	python util/mcu_gen.py --cfg mcu_cfg.hjson --outdir sw/linker --memorybanks $(MEMORY_BANKS) --linker_script sw/linker/link_flash_load.ld.tpl
 	python ./util/headers_periph_gen.py
-#	$(MAKE) verible
+	$(MAKE) verible
 
 # Display mcu_gen.py help
 mcu-gen-help:
