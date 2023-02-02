@@ -11,6 +11,9 @@ module peripheral_subsystem
     input logic clk_i,
     input logic rst_ni,
 
+    // Clock-gating signal
+    input logic clk_gate_en_i,
+
     input  obi_req_t  slave_req_i,
     output obi_resp_t slave_resp_o,
 
@@ -68,9 +71,6 @@ module peripheral_subsystem
 
   tlul_pkg::tl_h2d_t plic_tl_h2d;
   tlul_pkg::tl_d2h_t plic_tl_d2h;
-
-  tlul_pkg::tl_h2d_t gpio_tl_h2d;
-  tlul_pkg::tl_d2h_t gpio_tl_d2h;
 
   tlul_pkg::tl_h2d_t i2c_tl_h2d;
   tlul_pkg::tl_d2h_t i2c_tl_d2h;
@@ -146,12 +146,21 @@ module peripheral_subsystem
   //Address Decoder
   logic [PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
+  // Clock-gating
+  logic clk_cg;
+  tc_clk_gating clk_gating_cell (
+      .clk_i,
+      .en_i(~clk_gate_en_i),
+      .test_en_i(1'b0),
+      .clk_o(clk_cg)
+  );
+
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
       .IW(1)
   ) periph_to_reg_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .req_i(slave_req_i.req),
       .add_i(slave_req_i.addr),
@@ -188,7 +197,7 @@ module peripheral_subsystem
       .req_t  (reg_pkg::reg_req_t),
       .rsp_t  (reg_pkg::reg_rsp_t)
   ) reg_demux_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .in_select_i(peripheral_select),
       .in_req_i(peripheral_req),
@@ -215,7 +224,7 @@ module peripheral_subsystem
   );
 
   rv_plic rv_plic_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .tl_i(plic_tl_h2d),
       .tl_o(plic_tl_d2h),
@@ -225,32 +234,21 @@ module peripheral_subsystem
       .msip_o(msip_o)
   );
 
-  reg_to_tlul #(
-      .req_t(reg_pkg::reg_req_t),
-      .rsp_t(reg_pkg::reg_rsp_t),
-      .tl_h2d_t(tlul_pkg::tl_h2d_t),
-      .tl_d2h_t(tlul_pkg::tl_d2h_t),
-      .tl_a_user_t(tlul_pkg::tl_a_user_t),
-      .tl_a_op_e(tlul_pkg::tl_a_op_e),
-      .TL_A_USER_DEFAULT(tlul_pkg::TL_A_USER_DEFAULT),
-      .PutFullData(tlul_pkg::PutFullData),
-      .Get(tlul_pkg::Get)
-  ) reg_to_tlul_gpio_i (
-      .tl_o(gpio_tl_h2d),
-      .tl_i(gpio_tl_d2h),
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::GPIO_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_IDX])
-  );
 
-  gpio gpio_i (
-      .clk_i,
+  gpio #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) gpio_i (
+      .clk_i(clk_cg),
       .rst_ni,
-      .tl_i(gpio_tl_h2d),
-      .tl_o(gpio_tl_d2h),
-      .cio_gpio_i({cio_gpio_i, 8'b0}),
-      .cio_gpio_o({cio_gpio_o, cio_gpio_unused}),
-      .cio_gpio_en_o({cio_gpio_en_o, cio_gpio_en_unused}),
-      .intr_gpio_o({gpio_intr, gpio_int_unused})
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::GPIO_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_IDX]),
+      .gpio_in({cio_gpio_i, 8'b0}),
+      .gpio_out({cio_gpio_o, cio_gpio_unused}),
+      .gpio_tx_en_o({cio_gpio_en_o, cio_gpio_en_unused}),
+      .gpio_in_sync_o(),
+      .pin_level_interrupts_o({gpio_intr, gpio_int_unused}),
+      .global_interrupt_o()
   );
 
   reg_to_tlul #(
@@ -274,7 +272,7 @@ module peripheral_subsystem
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
   ) spi2_host (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI2_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI2_IDX]),
@@ -297,7 +295,7 @@ module peripheral_subsystem
 
 
   i2c i2c_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .tl_i(i2c_tl_h2d),
       .tl_o(i2c_tl_d2h),
@@ -343,7 +341,7 @@ module peripheral_subsystem
   );
 
   rv_timer rv_timer_2_3_i (
-      .clk_i,
+      .clk_i(clk_cg),
       .rst_ni,
       .tl_i(rv_timer_tl_h2d),
       .tl_o(rv_timer_tl_d2h),

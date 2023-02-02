@@ -123,6 +123,7 @@
     "hw/ip/usbdev",
     "hw/ip/usb_fs_nb_pe",
     "hw/ip/usbuart",
+    "hw/ip/gpio",
     "hw/ip/prim/lint/prim_pad_wrapper.waiver",
     "hw/ip/prim/prim_pad_attr.core",
     "hw/ip/prim/prim_pad_wrapper.core",

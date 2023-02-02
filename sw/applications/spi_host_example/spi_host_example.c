@@ -19,13 +19,14 @@
 // #define USE_SPI_FLASH
 
 // Simple example to check the SPI host peripheral is working. It checks the ram and flash have the same content
-#define DATA_CHUNK_ADDR 0x00008000
+#define REVERT_24b_ADDR(addr) ((((uint32_t)(addr) & 0xff0000) >> 16) | ((uint32_t)(addr) & 0xff00) | (((uint32_t)(addr) & 0xff) << 16))
 
 #define FLASH_CLK_MAX_HZ (133*1000*1000) // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
 
 int8_t spi_intr_flag;
 spi_host_t spi_host;
 uint32_t flash_data[8];
+uint32_t flash_original[8] = {1};
 
 #ifndef USE_SPI_FLASH
 void handler_irq_fast_spi(void)
@@ -137,9 +138,9 @@ int main(int argc, char *argv[])
     spi_set_command(&spi_host, cmd_powerup);
     spi_wait_for_ready(&spi_host);
 
-    volatile uint32_t data_addr = DATA_CHUNK_ADDR;
+    volatile uint32_t data_addr = flash_original;
 
-    const uint32_t read_byte_cmd = ((DATA_CHUNK_ADDR << 8) | 0x03);
+    const uint32_t read_byte_cmd = ((REVERT_24b_ADDR(flash_original) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
 
     // Fill TX FIFO with TX data (read command + 3B address)
     spi_write_word(&spi_host, read_byte_cmd);
@@ -211,10 +212,10 @@ int main(int argc, char *argv[])
     printf("flash vs ram...\n");
 
     uint32_t errors = 0;
-    uint32_t* ram_ptr = DATA_CHUNK_ADDR;
+    uint32_t* ram_ptr = flash_original;
     for (int i=0; i<8; i++) {
         if(flash_data[i] != *ram_ptr) {
-            printf("@%x : %x != %x\n", DATA_CHUNK_ADDR+i*4, flash_data[i], *ram_ptr);
+            printf("@%x : %x != %x\n", ram_ptr, flash_data[i], *ram_ptr);
             errors++;
         }
         ram_ptr++;
