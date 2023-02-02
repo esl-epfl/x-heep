@@ -50,6 +50,8 @@ Connect your Linux-based PC to the Pynq-Z2 board through Ethernet and run the fo
 ssh -X xilinx@board_ip
 ```
 
+The default password is: xilinx
+
 If you need additional documentation on how to connect your PC to the Pynq-Z2 board, use the following link:
 
 https://pynq.readthedocs.io/en/v2.6.1/getting_started/pynq_z2_setup.html

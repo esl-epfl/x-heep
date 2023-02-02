@@ -28,12 +28,12 @@ volatile uint32_t * MapMemIO(uint32_t baseAddr, uint32_t mapSize)
 
     if (!res) {
     #ifdef LOGGING
-        printf("Error opening file\n");
+        printf("Error opening file.\n");
     #endif
     }
     else {
     #if LOGGING == 2
-        printf("File opened\n");
+        printf("File opened.\n");
     #endif
         memMapAddr = (volatile unsigned int *)mmap(NULL, mapSize, PROT_READ | PROT_WRITE, MAP_SHARED, memMapFileDesc, baseAddr);
         res = (memMapAddr != MAP_FAILED);
@@ -70,7 +70,7 @@ bool UnmapMemIO()
         }
         else {
       #ifdef LOGGING
-            printf("Memory unmapped\n");
+            printf("Memory unmapped.\n");
       #endif
         }
     }

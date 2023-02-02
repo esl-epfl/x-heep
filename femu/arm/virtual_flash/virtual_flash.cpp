@@ -38,8 +38,7 @@ int main(int argc, char **argv)
     volatile uint8_t *pl_peripherals = NULL;
     volatile uint32_t* hijacker = NULL;
 
-    printf("This program has to be run with sudo.\n");
-    printf("Press ENTER to confirm that the bitstream is loaded (proceeding without it can crash the board).\n\n");
+    printf("Press ENTER to confirm that the bitstream is loaded (proceeding without it can crash the board).\n");
     getchar();
 
     // Get the virtual address corresponding to the physical base address of the PL peripherals
@@ -60,9 +59,9 @@ int main(int argc, char **argv)
     virtual_flash_buffer_phy = (uint32_t *)((uint32_t)cma_get_phy_addr(virtual_flash_buffer));
     printf("DDR memory buffer allocated.\n");
     fflush(stdout);
-    printf("Virtual address: 0x%.8X (%u)\n", (uint32_t)virtual_flash_buffer, (uint32_t)virtual_flash_buffer);
+    printf("Virtual address: 0x%.8X.\n", (uint32_t)virtual_flash_buffer);
     fflush(stdout);
-    printf("Physical address: Phys: 0x%.8X (%u)\n", (uint32_t)virtual_flash_buffer_phy, (uint32_t)virtual_flash_buffer_phy);
+    printf("Physical address: Phys: 0x%.8X.\n\n", (uint32_t)virtual_flash_buffer_phy);
     fflush(stdout);
     if (virtual_flash_buffer == NULL) {
         printf("Error allocating DDR memory for %u bytes!\n", ALLOC_SIZE_BYTE);
@@ -77,8 +76,10 @@ int main(int argc, char **argv)
     *hijacker = (uint32_t)virtual_flash_buffer_phy;
 
     // Press ENTER to end the application
-    printf("Press ENTER to end the application.\n\n");
+    printf("Press ENTER to end the application.\n");
     getchar();
+
+    printf("Virtual flash read and content stored in file dump.txt.\n\n");
 
     // Read content of the DDR memory buffer and store it to a file
     FILE *dump = fopen("./dump.txt", "wb");
