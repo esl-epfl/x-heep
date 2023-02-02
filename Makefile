@@ -2,12 +2,20 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
+# Setup to autogenerate python virtual environment
+VENVDIR?=$(WORKDIR)/.venv
+REQUIREMENTS_TXT?=$(wildcard python-requirements.txt)
+include Makefile.venv
+
+FUSESOC = $(VENV)/fusesoc
+PYTHON = $(VENV)/python
 
 # Makefile to generates core-v-mini-mcu files and build the design with fusesoc
 
 .PHONY: clean help
 
 TARGET ?= sim
+
 
 # Generates mcu files
 mcu-gen:
