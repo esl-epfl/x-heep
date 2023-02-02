@@ -39,15 +39,19 @@ This first makes an alias to make sure that the uart1 (/axi/serial@e0001000) is 
 ```
 dtc -O dtb -o uart_enable.dtbo -b 0 -@ uart_enable.dtsi
 ```
-2. We mount the configfs, which is a RAM-based configuration file-system exposed to add overlays
+2. We mount the configfs, which is a RAM-based configuration file-system exposed to add overlays.
+
 ```
 sudo mount configfs configfs /configfs
 sudo mkdir configfs/device-tree/overlays/uart_enable
 ```
-3. Concatenate the dtbo binary file to insert into the kernel device tree
+
+3. Concatenate the dtbo binary file to insert into the kernel device tree.
+
 ```
 sudo su
 cat uart_enable.dtbo >/configfs/device-tree/overlays/uart_enable/dtbo
 exit
 ```
-4. Make sure with dmesg that no errors were thrown and that /dev/ttySP1 has appeared -> that is x-heep's serial
+
+4. Make sure with dmesg that no errors were thrown and that /dev/ttySP1 has appeared -> that is x-heep's serial.

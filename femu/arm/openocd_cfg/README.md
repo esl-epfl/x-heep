@@ -74,5 +74,7 @@ In order to understand the pin numbering used in the script we have to know how 
 Therefore, the pin numbers used in the configuration file are derived as follows:
 
 1. Find the GPIO starting numbers that linux uses by running ``` sudo cat /sys/kernel/debug/gpio ``` -> in this case it was __906__
-2. Add 54 (the first 54 GPIOS are the MIOs)
-3. Add the gpio_n assigned to the specific signal (depends on the HDL connections)
+
+2. Add 54 (the first 54 GPIOS are the MIOs).
+
+3. Add the gpio_n assigned to the specific signal (depends on the HDL connections).

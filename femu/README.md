@@ -1,7 +1,9 @@
-# Build the platform
-Start in the x-heep main folder
+## Build the platform
+
+Start in the x-heep main folder.
 
 ## Generate the files
+
 1. Activate the conda environment with:
 
 ```
@@ -14,21 +16,11 @@ conda activate core-v-mini-mcu
 make femu-gen PAD_CFG=femu/pad_cfg.hjson
 ```
 
-__NOTE__: you can customize the mcu-gen process by providing the MEMORY_BANKS - CPU - BUS parameters to the above command
+__NOTE__: you can customize the mcu-gen process by providing the MEMORY_BANKS - CPU - BUS parameters to the above command.
 
-## Synthesize with Vivado
+## Flash the SD card with a Linux image
 
-1. Run the synthesis by calling:
-
-```
-make vivado-fpga FPGA_BOARD=pynq-z2-arm-emulation
-```
-
-Open the Vivado project and use the Hardware Manager to program the bitstream to the Zynq 7020 of the Pynq-Z2 board
-
-## Flash the SD card with our pre-compiled Linux image
-
-1. Download the Linux image version v3.0.1 using the following link:
+1. Download the Linux image (version v3.0.1) using the following link:
 
 http://www.pynq.io/board.html
 
@@ -36,25 +28,39 @@ http://www.pynq.io/board.html
 
 https://pynq.readthedocs.io/en/v2.2.1/appendix.html#writing-the-sd-card
 
-3. Insert the SD into the Pynq-Z2 board and make sure the booting jumper is on the SD position
+3. Insert the SD into the Pynq-Z2 board and make sure the booting bridge is on the SD position.
 
-4. Power-on the board and wait for Linux to boot
+4. Power-on the board and wait for Linux to boot (a row of 4 leds should turn on).
 
-## Connect to Linux running on the Pynq-Z2
+## Create the Vivado project and generate the bitstream
 
-Connect your Linux-based PC to the Pynq-Z2 board using an Ethernet cable and run the following command:
+1. Starting in the x-heep main folder, run the following command to create the Vivado project and generate the bitstream:
+
+```
+make vivado-fpga FPGA_BOARD=pynq-z2-arm-emulation
+```
+
+2. Open the project x-heep/build/openhwgroup.org_systems_core-v-mini-mcu_0/pynq-z2-arm-emulation-vivado/openhwgroup.org_systems_core-v-mini-mcu_0.xpr with Vivado and use the Hardware Manager to program the bitstream to the Zynq 7020 of the Pynq-Z2 board.
+
+## Connect to Linux running on the Pynq-Z2 board
+
+Connect your Linux-based PC to the Pynq-Z2 board through Ethernet and run the following command:
 
 ```
 ssh -X xilinx@board_ip
 ```
 
-## Install OpenOCD
+If you need additional documentation on how to connect your PC to the Pynq-Z2 board, use the following link:
+
+https://pynq.readthedocs.io/en/v2.6.1/getting_started/pynq_z2_setup.html
+
+## Install OpenOCD on the Pynq-Z2 board
 
 1. Clone the OpenOCD repository usign the following link:
 
 https://github.com/openocd-org/openocd
 
-2. Run the following commands to install it:
+2. Run the following commands from the OpneOCD main folder to install it:
 
 ```
 sudo ./bootstrap
@@ -68,12 +74,12 @@ sudo make install
 Copy the x-heep/femu/arm/ folder from your PC to the home directory of the Pynq-Z2 board with the following command:
 
 ```
-scp -r x-heep/femu/arm/ xilinx@board_ip:/~
+sudo scp -r x-heep/femu/arm/ xilinx@board_ip:~
 ```
 
-## Enable UART1 on Linux
+## Enable UART1 on Linux on the Pynq-Z2 baord
 
-Enter the arm/uart_enable/ folder on and run the following commands:
+Enter the arm/uart_enable/ folder and run the following commands:
 
 ```
 sudo su
@@ -82,11 +88,13 @@ mkdir -p /configfs
 exit
 ```
 
+These commands enable the UART1 on the ARM system side of the Zynq 7020 on the Pynq-Z2 board. UART1 is used to receive the stdout of the code running on the HEEP architecture implemented on the PL side of the chip.
+
 ## Prepare the needed shells
 
-You need to use 5 shells:
+You need to use 5 shells (the first, second and third shells will run on the Pynq-Z2 board, while the fourth and fifth shells will run on your PC):
 
-1. First shell - Run virtual flash app on the Pynq-Z2 board - browse to the arm/virtual_flash/ folder and execute the following commands to compile and run the required application:
+1. First shell - run virtual flash app on the Pynq-Z2 board - browse to the arm/virtual_flash/ folder and execute the following commands to compile and run the required application:
 
 ```
 sudo make clean
@@ -96,20 +104,20 @@ sudo ./virtual_flash
 
 This app allocates a buffer into the off-chip DDR memory of the Pynq-Z2 board and stores its physical base address to the hijacker PL peripheral.
 
-2. Second shell - Run the following commands on the Pynq-Z2 board to get the stdout from the app running on x-heep:
+2. Second shell - run the following commands on the Pynq-Z2 board to get the stdout from the app running on x-heep:
 
 ```
 sudo apt-get install screen
 sudo screen /dev/ttyPS1 115200
 ```
 
-3. Third shell - Run OpenOCD on the Pynq-Z2 board - browse to the arm/openocd_cfg/ folder and run the following command:
+3. Third shell - run openocd on the Pynq-Z2 board - browse to the arm/openocd_cfg/ folder and run the following command:
 
 ```
 sudo openocd -f ./gpio_bitbang.cfg
 ```
 
-4. Fourth shell - Compile x-heep app on your PC - browse to the x-heep/sw/ folder and run the following command:
+4. Fourth shell - compile HEEP app on your PC - browse to the x-heep/sw/ folder and run the following command:
 
 ```
 make clean applications/example_virtual_flash/example_virtual_flash.hex TARGET=pynq-z2
@@ -117,7 +125,7 @@ make clean applications/example_virtual_flash/example_virtual_flash.hex TARGET=p
 
 With this command you compile a sample RISC-V based application that uses the allocated DDR-based virtual memory. You may want to change this command with the name of your own application.
 
-5. Fifth shell - Run GDB on your PC - browse to the x-heep/sw/applications/example_virtual_flash/ folder and run the following command to connect GDB:
+5. Fifth shell - run GDB on your PC - browse to the x-heep/sw/applications/example_virtual_flash/ folder and run the following command to connect GDB:
 
 ```
 sudo /path_to_your_riscv_toolchain/bin/riscv32-unknown-elf-gdb
@@ -126,9 +134,9 @@ sudo /path_to_your_riscv_toolchain/bin/riscv32-unknown-elf-gdb
 Use the following GDB commands to connect to OpenOCD running on the Pynq-Z2 board and run your application:
 
 ```
-(GDB) target remote board_ip:3333
-(GDB) load example_virtual_flash.elf
-(GDB) cont
+(gdb) target remote board_ip:3333
+(gdb) load example_virtual_flash.elf
+(gdb) cont
 ```
 
 Go back to the first shell and press ENTER to end the application and dump the content of the virtual flash to a file. Then, run the following commands:
@@ -151,3 +159,5 @@ Check if your result corresponds to the following lines:
 00000070: 0000 001c 0000 001d 0000 001e 0000 001f  ................
 00000080: 0000 0000 0000 0000 0000 0000 0000 0000  ................
 ```
+
+__NOTE__: to run other applications, press the hard reset button on the Pynq-Z2 board (BTN3) and re-connect OpneOCD and GDB.
