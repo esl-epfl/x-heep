@@ -14,6 +14,7 @@ filesets:
     - openhwgroup.org:ip:cv32e40p
     - openhwgroup.org:ip:cve2
     - pulp-platform.org:ip:fpnew
+    - pulp-platform.org:ip:gpio
     - pulp-platform.org::common_cells
     - pulp-platform.org::cluster_interconnect
     - pulp-platform.org::riscv_dbg
@@ -22,7 +23,6 @@ filesets:
     - lowrisc:ip:uart:0.1
     - lowrisc:ip:rv_plic_example:0.1
     - lowrisc:ip:rv_timer:0.1
-    - lowrisc:ip:gpio:0.1
     - lowrisc:ip:spi_host:1.0
     - lowrisc:ip:i2c:0.1
     - yosyshq:picorv32_spimemio:0-r1

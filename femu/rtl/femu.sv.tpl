@@ -45,7 +45,7 @@ module femu
 
     inout logic i2c_scl_io,
     inout logic i2c_sda_io,
-    
+
     inout wire [14:0] DDR_addr,
     inout wire [2:0] DDR_ba,
     inout wire DDR_cas_n,
@@ -174,7 +174,7 @@ module femu
 % for pad in total_pad_list:
 ${pad.internal_signals}
 % endfor
-  
+
   wire                               clk_gen;
   logic [                      31:0] exit_value;
   wire                               rst_n;
@@ -207,7 +207,7 @@ ${pad.internal_signals}
 
   logic clk_i;
   assign clk_i = clk_gen;
-  
+
   core_v_mini_mcu #(
     .PULP_XPULP(PULP_XPULP),
     .FPU(FPU),
@@ -382,12 +382,9 @@ ${pad.core_v_mini_mcu_bonding}
       .M_AXI_wvalid(s00_axi_wvalid_sig),
       .M_AXI_awprot(s00_axi_awprot_sig),
       .M_AXI_arprot(s00_axi_arprot_sig),
-      .M_AXI_wstrb(s00_axi_wstrb_sig),
-      .spi_test_clk(spi_test_clk_sig),
-      .spi_test_cs(spi_test_cs_sig),
-      .spi_test_data(spi_test_data_sig)
+      .M_AXI_wstrb(s00_axi_wstrb_sig)
   );
-  
+
   axi_address_hijacker #(
       .AXI_ADDR_WIDTH(AXI_ADDR_WIDTH),
       //.AXI_ADDR_WIDTH_SLAVE(AXI_ADDR_WIDTH_SLAVE),
@@ -396,7 +393,7 @@ ${pad.core_v_mini_mcu_bonding}
       .axi_master_awaddr_in(axi_master_awaddr_in_sig),
       .axi_master_araddr_in(axi_master_araddr_in_sig),
 
-      // output write and read address by adding fixed offset 
+      // output write and read address by adding fixed offset
       .axi_master_araddr_out(AXI_HP_araddr_sig),
       .axi_master_awaddr_out(AXI_HP_awaddr_sig),
 
