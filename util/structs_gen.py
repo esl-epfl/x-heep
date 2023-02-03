@@ -88,16 +88,24 @@ def generate_enum(enum_field, name):
     """
     enum = enum_start.format(name)
 
-    first_entry = True
+    # first_entry = True
+    last_entry = False
 
     for key in enum_field:
-        if first_entry:
-            enum += tab_spaces + format(key["name"], "<15") + "=" + tab_spaces + key["value"]
-            first_entry = False
-        else:
-            enum += ",\n" + tab_spaces + format(key["name"], "<15") + "=" + tab_spaces + key["value"]
+        enum += tab_spaces + format(key["name"], "<15") + "=" + tab_spaces + str(key["value"])
+        if not last_entry:
+            enum += ","
+        # if first_entry:
+        #     enum += tab_spaces + format(key["name"], "<15") + "=" + tab_spaces + str(key["value"])
+        #     first_entry = False
+        # else:
+        #     enum += ",\n" + tab_spaces + format(key["name"], "<15") + "=" + tab_spaces + str(key["value"])
 
-    enum += "\n"
+        if "desc" in key:
+            enum += format("", "<25") + line_comment_start + format(key["desc"].replace("\n", " "), "<100") + line_comment_end
+
+        enum += "\n"
+
     enum += enum_end.format(name)
 
     return enum
