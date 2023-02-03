@@ -7,6 +7,7 @@ build/
 *.dis
 *.map
 *.do
+.venv/*
 
 # ignore apps output file
 run_verif_rtl_log.txt
