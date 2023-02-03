@@ -31,9 +31,9 @@ peripheral_names.append("soc_ctrl")
 #### VENDOR ####
 
 # gpio
-# json_files.append("./hw/vendor/lowrisc_opentitan/hw/ip/gpio/data/gpio.hjson")
-# output_files.append("./sw/device/lib/drivers/gpio/gpio_structs.h")
-# peripheral_names.append("gpio")
+json_files.append("./hw/vendor/pulp_platform_gpio/gpio_regs.hjson")
+output_files.append("./sw/device/lib/drivers/gpio/gpio_structs.h")
+peripheral_names.append("gpio")
 
 # i2c
 json_files.append("./hw/vendor/lowrisc_opentitan/hw/ip/i2c/data/i2c.hjson")
