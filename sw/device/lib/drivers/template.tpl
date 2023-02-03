@@ -4,9 +4,9 @@
 **                            *******************                          **
 **                                                                         **
 ** project  : x-heep                                                       **
-** filename : template.h                                                   **
+** filename : ${peripheral_name}_structs.h                                 **
 ** version  : 1                                                            **
-** date     : DD/MM/23                                                     **
+** date     : ${date}                                                      **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -14,21 +14,20 @@
 *****************************************************************************
 
 */
-
-/***************************************************************************/
-/***************************************************************************/
 
 /**
-* @file   template.h
-* @date   DD/MM/YY
-* @brief  This is the main header of template.c
+* @file   ${peripheral_name}_structs.h
+* @date   ${date}
+* @brief  Contains structs for every register
 *
-* Here typically goes a more extensive explanation of what the header
-* defines.
+* This file contains the structs of the registes of the peripheral.
+* Each structure has the various bit fields that can be accessed
+* independently.
+* 
 */
 
-#ifndef _TEMPLATE_H
-#define _TEMPLATE_H
+#ifndef _${peripheral_name_upper}_STRUCTS_H
+#define ${peripheral_name_upper}_STRUCTS
 
 /****************************************************************************/
 /**                                                                        **/
@@ -60,11 +59,11 @@ ${structures_definitions}
 /**                                                                        **/
 /****************************************************************************/
 
-#ifndef _TEMPLATE_C_SRC
+#ifndef _${peripheral_name_upper}_STRUCTS_C_SRC
 
 
 
-#endif  /* _TEMPLATE_C_SRC */
+#endif  /* _${peripheral_name_upper}_STRUCTS_C_SRC */
 
 /****************************************************************************/
 /**                                                                        **/
@@ -81,7 +80,7 @@ ${structures_definitions}
 
 
 
-#endif /* _TEMPLATE_H */
+#endif /* _${peripheral_name_upper}_STRUCTS_H */
 /****************************************************************************/
 /**                                                                        **/
 /**                                EOF                                     **/
