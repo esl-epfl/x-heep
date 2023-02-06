@@ -1,0 +1,10 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule WIDTH -file "*/rtl/include/cv32e40x_pkg.sv" -match "Operator NEQ expects 2 bits on the RHS, but RHS's CONST '1'h1' generates 1 bits."
+
+lint_off -rule UNUSED -file "*cv32e40x_*.sv" -match "*"
+lint_off -rule UNUSED -file "*/rtl/if_xif.sv" -match "*"

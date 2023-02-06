@@ -64,6 +64,9 @@ ${pad.x_heep_system_interface}
 ${pad.internal_signals}
 % endfor
 
+  // eXtension Interface
+  if_xif #() ext_if ();
+
   core_v_mini_mcu #(
     .PULP_XPULP(PULP_XPULP),
     .FPU(FPU),
@@ -76,6 +79,12 @@ ${pad.internal_signals}
 ${pad.core_v_mini_mcu_bonding}
 % endfor
     .intr_vector_ext_i,
+    .xif_compressed_if(ext_if),
+    .xif_issue_if(ext_if),
+    .xif_commit_if(ext_if),
+    .xif_mem_if(ext_if),
+    .xif_mem_result_if(ext_if),
+    .xif_result_if(ext_if),
     .pad_req_o(pad_req),
     .pad_resp_i(pad_resp),
     .ext_xbar_master_req_i,

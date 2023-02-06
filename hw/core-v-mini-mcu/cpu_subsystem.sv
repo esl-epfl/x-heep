@@ -26,6 +26,14 @@ module cpu_subsystem
     output obi_req_t  core_data_req_o,
     input  obi_resp_t core_data_resp_i,
 
+    // eXtension interface
+    if_xif.cpu_compressed xif_compressed_if,
+    if_xif.cpu_issue      xif_issue_if,
+    if_xif.cpu_commit     xif_commit_if,
+    if_xif.cpu_mem        xif_mem_if,
+    if_xif.cpu_mem_result xif_mem_result_if,
+    if_xif.cpu_result     xif_result_if,
+
     // Interrupt inputs
     input  logic [31:0] irq_i,      // CLINT interrupts + CLINT extension interrupts
     output logic        irq_ack_o,
@@ -157,6 +165,95 @@ module cpu_subsystem
     );
 
 
+
+    assign irq_ack_o = '0;
+    assign irq_id_o  = '0;
+
+  end else if (CPU_TYPE == cv32e40x) begin : gen_cv32e40x
+
+    // instantiate the core
+    cv32e40x_core #(
+        .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS),
+        .X_EXT(1)
+    ) cv32e40x_core_i (
+        // Clock and reset
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .scan_cg_en_i(1'b0),
+
+        // Static configuration
+        .boot_addr_i(BOOT_ADDR),
+        .dm_exception_addr_i(32'h0),
+        .dm_halt_addr_i(DM_HALTADDRESS),
+        .mhartid_i(32'h0),
+        .mimpid_patch_i     (),  // TODO // This and mhardid_i are set to parameters by default 32'h0000_0000 in core-v-verif
+        .mtvec_addr_i(32'h0),
+
+        // Instruction memory interface
+        .instr_req_o    (core_instr_req_o.req),
+        .instr_gnt_i    (core_instr_resp_i.gnt),
+        .instr_rvalid_i (core_instr_resp_i.rvalid),
+        .instr_addr_o   (core_instr_req_o.addr),
+        .instr_memtype_o(),                          // TODO
+        .instr_prot_o   (),                          // TODO
+        .instr_dbg_o    (),                          // TODO
+        .instr_rdata_i  (core_instr_resp_i.rdata),
+        .instr_err_i    (1'b0),
+
+        // Data memory interface
+        .data_req_o    (core_data_req_o.req),
+        .data_gnt_i    (core_data_resp_i.gnt),
+        .data_rvalid_i (core_data_resp_i.rvalid),
+        .data_addr_o   (core_data_req_o.addr),
+        .data_be_o     (core_data_req_o.be),
+        .data_we_o     (core_data_req_o.we),
+        .data_wdata_o  (core_data_req_o.wdata),
+        .data_memtype_o(),                         // TODO
+        .data_prot_o   (),                         // TODO
+        .data_dbg_o    (),                         // TODO
+        .data_atop_o   (),                         // TODO
+        .data_rdata_i  (core_data_resp_i.rdata),
+        .data_err_i    (1'b0),
+        .data_exokay_i (),                         // TODO // Set to 1'b1 in core-v-verif
+
+        // Cycle count
+        .mcycle_o(),  // TODO
+
+        // eXtension interface
+        .xif_compressed_if,
+        .xif_issue_if,
+        .xif_commit_if,
+        .xif_mem_if,
+        .xif_mem_result_if,
+        .xif_result_if,
+
+        // Basic interrupt architecture
+        .irq_i(irq_i),
+
+        // Event wakeup signal
+        .wu_wfe_i(1'b0),  // https://docs.openhwgroup.org/projects/cv32e40x-user-manual/en/0.8.0/sleep.html#wfe
+
+        // Smclic interrupt architecture
+        .clic_irq_i      (),
+        .clic_irq_id_i   (),
+        .clic_irq_level_i(),
+        .clic_irq_priv_i (),
+        .clic_irq_shv_i  (),
+
+        // Fence.i flush handshake
+        .fencei_flush_req_o(),  // TODO
+        .fencei_flush_ack_i(),  // TODO  // Set to 1'b0 in core-v-verif
+
+        // Debug interface
+        .debug_req_i      (debug_req_i),
+        .debug_havereset_o(),
+        .debug_running_o  (),
+        .debug_halted_o   (),
+
+        // CPU control signals
+        .fetch_enable_i(fetch_enable),
+        .core_sleep_o
+    );
 
     assign irq_ack_o = '0;
     assign irq_id_o  = '0;

@@ -12,6 +12,7 @@ filesets:
     depend:
     - x-heep::packages
     - openhwgroup.org:ip:cv32e40p
+    - openhwgroup.org:ip:cv32e40x
     - openhwgroup.org:ip:cve2
     - pulp-platform.org:ip:fpnew
     - pulp-platform.org:ip:gpio
