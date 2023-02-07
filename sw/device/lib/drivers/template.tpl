@@ -5,7 +5,6 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : ${peripheral_name}_structs.h                                 **
-** version  : 1                                                            **
 ** date     : ${date}                                                      **
 **                                                                         **
 *****************************************************************************
