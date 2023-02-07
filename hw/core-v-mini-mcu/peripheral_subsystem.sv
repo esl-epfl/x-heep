@@ -219,8 +219,8 @@ module peripheral_subsystem
   ) reg_to_tlul_plic_i (
       .tl_o(plic_tl_h2d),
       .tl_i(plic_tl_d2h),
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::PLIC_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::PLIC_IDX])
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::RV_PLIC_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_PLIC_IDX])
   );
 
   rv_plic rv_plic_i (
