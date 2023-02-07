@@ -58,20 +58,9 @@ if __name__ == "__main__":
     scan_peripherals(ao_peripherals)
     scan_peripherals(peripherals)
 
-    # Manually add rv_plic and spi_host due to name differences between mcu_cfg.hjson and peripherals folders #
-    #rv_plic
-    JSON_FILES.append("./hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/data/rv_plic.hjson")
-    OUTPUT_FILES.append("./sw/device/lib/drivers/rv_plic/rv_plic_structs.h")
-    PERIPHERAL_NAMES.append("rv_plic")
-
-    # spi_host
-    JSON_FILES.append("./hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson")
-    OUTPUT_FILES.append("./sw/device/lib/drivers/spi_host/spi_host_structs.h")
-    PERIPHERAL_NAMES.append("spi_host")
-
     # Call the generation script, once for every peripheral
     for i in range(len(JSON_FILES)):
-            structs_gen.main([ "--template_filename", template_path,
+        structs_gen.main([ "--template_filename", template_path,
                                 "--peripheral_name", PERIPHERAL_NAMES[i],
                                 "--json_filename", JSON_FILES[i], 
                                 "--output_filename", OUTPUT_FILES[i]]
