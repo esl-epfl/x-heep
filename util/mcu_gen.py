@@ -16,6 +16,7 @@ from subprocess import run
 import csv
 from jsonref import JsonRef
 from mako.template import Template
+import collections
 
 class Pad:
 
@@ -417,7 +418,16 @@ def main():
             if isinstance(info, dict)
         }
 
-    ao_peripherals = extract_peripherals(obj['ao_peripherals'])
+    def discard_path(peripherals):
+        new = {}
+        for k,v in peripherals.items():
+            if isinstance(v, dict):
+                new[k] = {key:val for key,val in v.items() if key not in ("path")}
+            else:
+                new[k] = v
+        return new
+
+    ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
     ao_peripherals_count = len(ao_peripherals) 
 
 
@@ -426,7 +436,7 @@ def main():
         exit("peripheral start address must be greater than 0x10000")
 
     peripheral_size_address = string2int(obj['peripherals']['length'])
-    peripherals = extract_peripherals(obj['peripherals'])
+    peripherals = extract_peripherals(discard_path(obj['peripherals']))
     peripherals_count = len(peripherals) 
 
     ext_slave_start_address = string2int(obj['ext_slaves']['address'])
