@@ -108,7 +108,7 @@ void write_to_flash(spi_host_t *SPI, dma_t *DMA, uint16_t *data, uint32_t byte_c
         wait_for_interrupt();
     }
 
-    printf("%d words written to Flash.\n\n\r", byte_count/4);
+    printf("%d words written to flash.\n\n\r", byte_count/4);
 }
 
 int main(int argc, char *argv[])

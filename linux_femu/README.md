@@ -1,3 +1,9 @@
+# Linux-FEMU
+
+In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the Zynq 7020 chip and Linux is run on the ARM-based processing system (PS) side of the same chip. The X-HEEP JTAG signals are driven by the PS GPIO peripheral and are used to program and debug the architecture, while the X-HEEP UART is connected to the PS UART peripheral and is used to get the stdout of the program running on the architecture. Moreover, the X-HEEP flash SPI is connected to the ARM AXI bus passing through an SPI to AXI bridge: this allows virtualising the flash memory into the on-board DDR RAM memory. In this way, the program running on the architecture can read the external virtualised flash as it was a real flash memory, i.e., this virtualisation is totally transparent to the X-HEEP code.
+
+Go through the following steps to build and use our Linux-FEMU version.
+
 ## Build the platform
 
 Start in the x-heep main folder.
@@ -13,7 +19,7 @@ conda activate core-v-mini-mcu
 2. Generate the hdl files by calling:
 
 ```
-make femu-gen PAD_CFG=femu/pad_cfg.hjson
+make linux-femu-gen PAD_CFG=linux_femu/pad_cfg.hjson
 ```
 
 __NOTE__: you can customize the mcu-gen process by providing the MEMORY_BANKS - CPU - BUS parameters to the above command.
@@ -22,11 +28,11 @@ __NOTE__: you can customize the mcu-gen process by providing the MEMORY_BANKS - 
 
 1. Download the Linux image (version v3.0.1) using the following link:
 
-http://www.pynq.io/board.html
+`http://www.pynq.io/board.html`
 
 2. Follow the procedure explained in the following linked page to flash the downloaded image to the SD card:
 
-https://pynq.readthedocs.io/en/v2.2.1/appendix.html#writing-the-sd-card
+`https://pynq.readthedocs.io/en/v2.2.1/appendix.html#writing-the-sd-card`
 
 3. Insert the SD into the Pynq-Z2 board and make sure the booting bridge is on the SD position.
 
@@ -54,13 +60,13 @@ The default password is: xilinx
 
 If you need additional documentation on how to connect your PC to the Pynq-Z2 board, use the following link:
 
-https://pynq.readthedocs.io/en/v2.6.1/getting_started/pynq_z2_setup.html
+`https://pynq.readthedocs.io/en/v2.6.1/getting_started/pynq_z2_setup.html`
 
 ## Install OpenOCD on the Pynq-Z2 board
 
 1. Clone the OpenOCD repository usign the following link:
 
-https://github.com/openocd-org/openocd
+`https://github.com/openocd-org/openocd`
 
 2. Run the following commands from the OpneOCD main folder to install it:
 
@@ -73,10 +79,10 @@ sudo make install
 
 ## Copy the x-heep folder to the Pynq-Z2 baord
 
-Copy the x-heep/femu/arm/ folder from your PC to the home directory of the Pynq-Z2 board with the following command:
+Copy the x-heep/linux_femu/arm/ folder from your PC to the home directory of the Pynq-Z2 board with the following command:
 
 ```
-sudo scp -r x-heep/femu/arm/ xilinx@board_ip:~
+sudo scp -r x-heep/linux_femu/arm/ xilinx@board_ip:~
 ```
 
 ## Enable UART1 on Linux on the Pynq-Z2 baord
