@@ -18,8 +18,8 @@ TARGET ?= sim
 MCU_CFG ?= mcu_cfg.hjson
 PAD_CFG ?= pad_cfg.hjson
 
-femu-gen: mcu-gen
-	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir femu/rtl/ --tpl-sv femu/rtl/femu.sv.tpl
+linux-femu-gen: mcu-gen
+	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir linux_femu/rtl/ --tpl-sv linux_femu/rtl/linux_femu.sv.tpl
 	$(MAKE) verible
 
 # Generates mcu files
@@ -42,6 +42,7 @@ mcu-gen: |venv
 	bash -c "cd hw/system/pad_control; source pad_control_gen.sh; cd ../../../"
 	$(PYTHON) util/mcu_gen.py --cfg mcu_cfg.hjson --pads_cfg $(PAD_CFG) --outdir sw/linker --memorybanks $(MEMORY_BANKS) --linker_script sw/linker/link_flash_exec.ld.tpl
 	$(PYTHON) util/mcu_gen.py --cfg mcu_cfg.hjson --pads_cfg $(PAD_CFG) --outdir sw/linker --memorybanks $(MEMORY_BANKS) --linker_script sw/linker/link_flash_load.ld.tpl
+	$(PYTHON) ./util/structs_periph_gen.py
 	$(MAKE) verible
 
 # Display mcu_gen.py help
@@ -73,7 +74,7 @@ app-spi-host:
 app-spi-host-dma:
 	$(MAKE) -C sw applications/spi_host_dma_example/spi_host_dma_example.hex TARGET=$(TARGET)
 
-app-spi-flash-write: 
+app-spi-flash-write:
 	$(MAKE) -C sw applications/spi_flash_write/spi_flash_write.hex TARGET=$(TARGET)
 
 # Tools specific fusesoc call

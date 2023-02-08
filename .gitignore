@@ -7,6 +7,7 @@ build/
 *.dis
 *.map
 *.do
+.venv/*
 
 # ignore apps output file
 run_verif_rtl_log.txt
@@ -40,3 +41,4 @@ sw/linker/link_flash_load.ld
 sw/device/lib/drivers/power_manager/power_manager_regs.h
 sw/device/lib/drivers/power_manager/power_manager.h
 sw/device/lib/drivers/pad_control/pad_control_regs.h
+sw/device/lib/drivers/**/*_structs.h
