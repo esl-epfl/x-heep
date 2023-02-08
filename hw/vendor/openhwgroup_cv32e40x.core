@@ -56,7 +56,13 @@ filesets:
       - openhwgroup_cv32e40x/rtl/cv32e40x_wpt.sv
     file_type: systemVerilogSource
 
+  files_clk_gate:
+    files:
+      - openhwgroup_cv32e40x/bhv/cv32e40x_sim_clock_gate.sv
+    file_type: systemVerilogSource
+
 targets:
   default:
     filesets:
       - files_rtl
+      - target_sim? (files_clk_gate)
