@@ -10,6 +10,8 @@
     rev: "974ca469f3a7598e99b5c6eb9d6a4b355fe8c9da",
   },
 
+  patch_dir: "patches/openhwgroup_cv32e40x",
+
   exclude_from_upstream: [
     ".github",
     "CONTRIBUTING.md",
