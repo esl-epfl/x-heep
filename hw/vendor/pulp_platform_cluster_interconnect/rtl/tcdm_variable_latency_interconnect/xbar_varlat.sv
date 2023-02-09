@@ -20,6 +20,13 @@ module xbar_varlat #(
   parameter int unsigned ReqDataWidth    = 32,   // word width of data
   parameter int unsigned RespDataWidth   = 32,   // word width of data
   parameter bit          ExtPrio         = 1'b0,  // use external arbiter priority flags
+  /// The `LockIn` option prevents the arbiter from changing the arbitration
+  /// decision when the arbiter is disabled. I.e., the index of the first request
+  /// that wins the arbitration will be locked in case the destination is not
+  /// able to grant the request in the same cycle.
+  ///
+  /// Set to `1'b1` to enable.
+  parameter bit          LockIn          = 1'b0,
   parameter int unsigned LogNumOut       = NumOut > 1 ? $clog2(NumOut) : 1,
   parameter int unsigned LogNumIn        = NumIn > 1 ? $clog2(NumIn) : 1
 ) (
@@ -112,7 +119,8 @@ for (genvar k = 0; unsigned'(k) < NumOut; k++) begin : gen_outputs
     rr_arb_tree #(
       .NumIn     ( NumIn        ),
       .DataWidth ( ReqDataWidth ),
-      .ExtPrio   ( ExtPrio      )
+      .ExtPrio   ( ExtPrio      ),
+      .LockIn    ( LockIn       ),
     ) i_rr_arb_tree (
       .clk_i   ( clk_i      ),
       .rst_ni  ( rst_ni     ),
