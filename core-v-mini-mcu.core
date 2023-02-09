@@ -84,6 +84,7 @@ filesets:
     - hw/system/pad_control/pad_control.vlt
     - hw/system/x_heep_system.vlt
     - hw/simulation/simulation.vlt
+    - hw/ip/i2s/i2s.vlt
     file_type: vlt
 
   rtl-fpga:
