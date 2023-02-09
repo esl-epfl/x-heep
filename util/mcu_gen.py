@@ -203,6 +203,7 @@ class Pad:
     self.pad_type_drive    = []
     self.driven_manually   = []
     self.skip_declaration  = []
+    self.keep_internal     = []
 
     self.is_muxed = False
 
@@ -275,6 +276,13 @@ def main():
                         type=argparse.FileType('r'),
                         required=True,
                         help="A configuration file")
+
+    parser.add_argument("--pads_cfg",
+                        "-pc",
+                        metavar="file",
+                        type=argparse.FileType('r'),
+                        required=True,
+                        help="A pad configuration file")
 
     parser.add_argument("--outdir",
                         "-of",
@@ -353,6 +361,14 @@ def main():
             srcfull = file.read()
             obj = hjson.loads(srcfull, use_decimal=True)
             obj = JsonRef.replace_refs(obj)
+        except ValueError:
+            raise SystemExit(sys.exc_info()[1])
+
+    with args.pads_cfg as file:
+        try:
+            srcfull = file.read()
+            obj_pad = hjson.loads(srcfull, use_decimal=True)
+            obj_pad = JsonRef.replace_refs(obj_pad)
         except ValueError:
             raise SystemExit(sys.exc_info()[1])
 
@@ -517,7 +533,7 @@ def main():
 
     ext_int_list = range(int(ext_intr_lower), int(ext_intr_upper)+1)
 
-    pads = obj['pads']
+    pads = obj_pad['pads']
 
     # Read HJSON description of External Pads
     if args.external_pads != None:
@@ -580,6 +596,14 @@ def main():
         except KeyError:
             pad_skip_declaration = False
 
+        try:
+            if ('True' in pads[key]['keep_internal']):
+                pad_keep_internal = True
+            else:
+                pad_keep_internal = False
+        except KeyError:
+            pad_keep_internal = False
+
         pad_mux_list = []
 
         for pad_mux in pad_mux_list_hjson:
@@ -605,7 +629,6 @@ def main():
             except KeyError:
                 pad_skip_declaration_mux = False
 
-
             p = Pad(pad_mux, '', pads[key]['mux'][pad_mux]['type'], 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [])
             pad_mux_list.append(p)
 
@@ -613,9 +636,11 @@ def main():
             for p in range(pad_num):
                 pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
                 pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list)
-                pad_obj.create_pad_ring()
+                if not pad_keep_internal:
+                    pad_obj.create_pad_ring()
                 pad_obj.create_core_v_mini_mcu_ctrl()
-                pad_obj.create_pad_ring_bonding()
+                if not pad_keep_internal:
+                    pad_obj.create_pad_ring_bonding()
                 pad_obj.create_internal_signals()
                 pad_obj.create_constant_driver_assign()
                 pad_obj.create_multiplexers()
@@ -630,9 +655,11 @@ def main():
         else:
             pad_cell_name = "pad_" + key + "_i"
             pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list)
-            pad_obj.create_pad_ring()
+            if not pad_keep_internal:
+                pad_obj.create_pad_ring()
             pad_obj.create_core_v_mini_mcu_ctrl()
-            pad_obj.create_pad_ring_bonding()
+            if not pad_keep_internal:
+                pad_obj.create_pad_ring_bonding()
             pad_obj.create_internal_signals()
             pad_obj.create_constant_driver_assign()
             pad_obj.create_multiplexers()
