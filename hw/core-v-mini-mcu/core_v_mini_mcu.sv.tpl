@@ -9,7 +9,8 @@ module core_v_mini_mcu
     parameter PULP_XPULP = 0,
     parameter FPU = 0,
     parameter PULP_ZFINX = 0,
-    parameter EXT_XBAR_NMASTER = 0
+    parameter EXT_XBAR_NMASTER = 0,
+    parameter X_EXT = 0  // eXtension interface in cv32e40x
 ) (
 
     input logic rst_ni,
@@ -182,7 +183,8 @@ module core_v_mini_mcu
       .FPU(FPU),
       .PULP_ZFINX(PULP_ZFINX),
       .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS),
-      .DM_HALTADDRESS(DM_HALTADDRESS)
+      .DM_HALTADDRESS(DM_HALTADDRESS),
+      .X_EXT(X_EXT)
   ) cpu_subsystem_i (
       // Clock and Reset
       .clk_i,

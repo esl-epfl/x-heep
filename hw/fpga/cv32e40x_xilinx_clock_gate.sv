@@ -8,11 +8,9 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
-module cv32e40x_clock_gate 
-#(
-  parameter LIB = 0
-)
-(
+module cv32e40x_clock_gate #(
+    parameter LIB = 0
+) (
     input  logic clk_i,
     input  logic en_i,
     input  logic scan_cg_en_i,

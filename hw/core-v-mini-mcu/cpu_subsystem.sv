@@ -12,6 +12,7 @@ module cpu_subsystem
     parameter PULP_ZFINX = 0,  // Float-in-General Purpose registers
     parameter NUM_MHPMCOUNTERS = 1,
     parameter DM_HALTADDRESS = '0,
+    parameter X_EXT = 0,  // eXtension interface in cv32e40x
     parameter core_v_mini_mcu_pkg::cpu_type_e CPU_TYPE = core_v_mini_mcu_pkg::CpuType
 ) (
     // Clock and Reset
@@ -174,7 +175,7 @@ module cpu_subsystem
     // instantiate the core
     cv32e40x_core #(
         .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS),
-        .X_EXT(1)
+        .X_EXT(X_EXT)
     ) cv32e40x_core_i (
         // Clock and reset
         .clk_i(clk_i),
@@ -186,7 +187,7 @@ module cpu_subsystem
         .dm_exception_addr_i(32'h0),
         .dm_halt_addr_i(DM_HALTADDRESS),
         .mhartid_i(32'h0),
-        .mimpid_patch_i     (),  // TODO // This and mhardid_i are set to parameters by default 32'h0000_0000 in core-v-verif
+        .mimpid_patch_i(4'h0),
         .mtvec_addr_i(32'h0),
 
         // Instruction memory interface
@@ -194,9 +195,9 @@ module cpu_subsystem
         .instr_gnt_i    (core_instr_resp_i.gnt),
         .instr_rvalid_i (core_instr_resp_i.rvalid),
         .instr_addr_o   (core_instr_req_o.addr),
-        .instr_memtype_o(),                          // TODO
-        .instr_prot_o   (),                          // TODO
-        .instr_dbg_o    (),                          // TODO
+        .instr_memtype_o(),
+        .instr_prot_o   (),
+        .instr_dbg_o    (),
         .instr_rdata_i  (core_instr_resp_i.rdata),
         .instr_err_i    (1'b0),
 
@@ -208,16 +209,16 @@ module cpu_subsystem
         .data_be_o     (core_data_req_o.be),
         .data_we_o     (core_data_req_o.we),
         .data_wdata_o  (core_data_req_o.wdata),
-        .data_memtype_o(),                         // TODO
-        .data_prot_o   (),                         // TODO
-        .data_dbg_o    (),                         // TODO
-        .data_atop_o   (),                         // TODO
+        .data_memtype_o(),
+        .data_prot_o   (),
+        .data_dbg_o    (),
+        .data_atop_o   (),
         .data_rdata_i  (core_data_resp_i.rdata),
         .data_err_i    (1'b0),
-        .data_exokay_i (),                         // TODO // Set to 1'b1 in core-v-verif
+        .data_exokay_i (1'b1),
 
         // Cycle count
-        .mcycle_o(),  // TODO
+        .mcycle_o(),
 
         // eXtension interface
         .xif_compressed_if,
@@ -231,7 +232,7 @@ module cpu_subsystem
         .irq_i(irq_i),
 
         // Event wakeup signal
-        .wu_wfe_i(1'b0),  // https://docs.openhwgroup.org/projects/cv32e40x-user-manual/en/0.8.0/sleep.html#wfe
+        .wu_wfe_i(1'b0),
 
         // Smclic interrupt architecture
         .clic_irq_i      (),
@@ -241,8 +242,8 @@ module cpu_subsystem
         .clic_irq_shv_i  (),
 
         // Fence.i flush handshake
-        .fencei_flush_req_o(),  // TODO
-        .fencei_flush_ack_i(),  // TODO  // Set to 1'b0 in core-v-verif
+        .fencei_flush_req_o(),
+        .fencei_flush_ack_i(1'b0),
 
         // Debug interface
         .debug_req_i      (debug_req_i),

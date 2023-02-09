@@ -42,5 +42,6 @@ lint_off -rule UNUSED -file "*/rtl/if_xif.sv" -match "*"
 lint_off -rule LITENDIAN -file "*/rtl/cv32e40x_alignment_buffer.sv" -match "Little bit endian vector: left < right of bit range: [0:2]"
 
 lint_off -rule UNDRIVEN -file "*/rtl/if_xif.sv" -match "*"
+lint_off -rule UNDRIVEN -file "*/rtl/cv32e40x_id_stage.sv" -match "*"
 
 lint_off -rule MULTIDRIVEN -file "*/rtl/cv32e40x_cs_registers.sv" -match "Signal has multiple driving blocks with different clocking: '*'*"
