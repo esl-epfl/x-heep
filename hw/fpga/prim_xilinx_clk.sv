@@ -67,6 +67,15 @@ module pulp_clock_mux2 (
 
 endmodule
 
+module pulp_clock_inverter (
+    input  logic clk_i,
+    output logic clk_o
+);
+
+  xilinx_clk_inverter clk_inv_i (.*);
+
+endmodule
+
 module cv32e40p_clock_gate (
     input  logic clk_i,
     input  logic en_i,
@@ -78,6 +87,22 @@ module cv32e40p_clock_gate (
       .clk_i,
       .en_i,
       .test_en_i(scan_cg_en_i),
+      .clk_o
+  );
+
+endmodule
+
+module tc_clk_gating (
+    input  logic clk_i,
+    input  logic en_i,
+    input  logic test_en_i,
+    output logic clk_o
+);
+
+  xilinx_clk_gating clk_gate_i (
+      .clk_i,
+      .en_i,
+      .test_en_i,
       .clk_o
   );
 

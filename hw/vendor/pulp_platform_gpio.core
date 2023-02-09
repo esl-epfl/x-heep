@@ -1,0 +1,46 @@
+CAPI=2:
+
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name: "pulp-platform.org:ip:gpio"
+
+filesets:
+  rtl:
+    depend:
+    - pulp-platform.org::common_cells
+    - pulp-platform.org::register_interface
+    - pulp-platform.org::tech_cells_generic
+    files:
+    - pulp_platform_gpio/src/gpio_reg_pkg.sv
+    - pulp_platform_gpio/src/gpio_reg_top.sv
+    - pulp_platform_gpio/src/gpio.sv
+    file_type: systemVerilogSource
+
+  no-clock-gate:
+    files:
+    - pulp_platform_gpio/src/gpio_input_stage_no_clk_gates.sv
+    file_type: systemVerilogSource
+
+  clock-gate:
+    files:
+    - pulp_platform_gpio/src/gpio_input_stage.sv
+    file_type: systemVerilogSource
+
+  testbench:
+    files:
+    - pulp_platform_gpio/test/tb_gpio.sv
+    file_type: systemVerilogSource
+
+targets:
+  default: &default_target
+    filesets:
+    - rtl
+    - "gpio-test? (testbench)"
+    - target_sim? (clock-gate)
+    - target_asic_synthesis? (clock-gate)
+    - target_asic_yosys_synthesis? (clock-gate)
+    - target_nexys-a7-100t? (no-clock-gate)
+    - target_pynq-z2? (no-clock-gate)
+    - target_pynq-z2-arm-emulation? (no-clock-gate)
