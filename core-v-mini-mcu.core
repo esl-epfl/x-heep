@@ -211,10 +211,6 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     default: false
-  SV2V:
-    datatype: bool
-    paramtype: vlogdefine
-    default: false
   VERILATOR: #used by SV2V
     datatype: bool
     paramtype: vlogdefine
@@ -425,7 +421,6 @@ targets:
     parameters:
       - PULP_XPULP=0
       - SYNTHESIS=true
-      - SV2V=true
       - VERILATOR=true
     filesets_append:
       - use_sky130? (rtl-sky130)

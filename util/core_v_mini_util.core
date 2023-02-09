@@ -37,7 +37,6 @@ scripts:
       - files.txt
       - -DCOCOTB_SIM=1
       - -DSYNTHESIS=1
-      - -DSV2V=1
       - -DVERILATOR=1
 
 
