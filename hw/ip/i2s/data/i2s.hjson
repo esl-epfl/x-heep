@@ -12,54 +12,73 @@
 
     // CLOCK DIVISION
 
-    { name:     "CLKDIVIDX"
-      desc:     "Control register"
-      swaccess: "rw"
-      hwaccess: "hro"
-      fields: [
-        { bits: "15:0", name: "COUNT", desc: "Index at which clock divide." }
-      ]
-    }
+    // { name:     "CLKDIVIDX"
+    //   desc:     "Control register"
+    //   swaccess: "rw"
+    //   hwaccess: "hro"
+    //   fields: [
+    //     { bits: "15:0", name: "COUNT", desc: "Index at which clock divide." }
+    //   ]
+    // }
 
-    { name:     "CLKSRC"
-      desc:     "Clk source"
-      swaccess: "rw"
-      hwaccess: "hro"
-      fields: [
-        { bits: "15:0", name: "COUNT", desc: "Index at which clock divide." }
-      ]
-    }
+    // { name:     "CLKSRC"
+    //   desc:     "Clk source"
+    //   swaccess: "rw"
+    //   hwaccess: "hro"
+    //   fields: [
+    //     { bits: "15:0", name: "COUNT", desc: "Index at which clock divide." }
+    //   ]
+    // }
 
     // STATUS & CONTROL REGISTERS
 
-    { name:     "CONTROL"
-      desc:     "Control register"
-      swaccess: "rw"
-      hwaccess: "hro"
-      fields: [
-        { bits: "0", name: "ENABL", desc: "Starts PDM data processing. The FIFO starts to fill with PCM data." }
-        { bits: "1", name: "CLEAR", desc: "Clears the FIFO buffer." }
-      ]
-    }
+    // { name:     "CONTROL"
+    //   desc:     "Control register"
+    //   swaccess: "rw"
+    //   hwaccess: "hro"
+    //   fields: [
+    //     { bits: "0", name: "ENABL", desc: "Starts PDM data processing. The FIFO starts to fill with PCM data." }
+    //     { bits: "1", name: "CLEAR", desc: "Clears the FIFO buffer." }
+    //   ]
+    // }
 
-    { name:     "STATUS"
+    // { name:     "STATUS"
+    //   desc:     "Status register"
+    //   swaccess: "ro"
+    //   hwaccess: "hrw"
+    //   fields: [
+    //     { bits: "0", name: "EMPTY", desc: "The FIFO buffer is empty." }
+    //     { bits: "1", name: "REACH", desc: "The FIFO buffer reached the specified quantity of signal taps." }
+    //     { bits: "2", name: "FULLL", desc: "The FIFO buffer is full."}
+    //   ]
+    // }
+
+    { name:     "OUTPUTDATA"
       desc:     "Status register"
       swaccess: "ro"
       hwaccess: "hrw"
       fields: [
-        { bits: "0", name: "EMPTY", desc: "The FIFO buffer is empty." }
-        { bits: "1", name: "REACH", desc: "The FIFO buffer reached the specified quantity of signal taps." }
-        { bits: "2", name: "FULLL", desc: "The FIFO buffer is full."}
+        { bits: "31:0", name: "OUTPUTDATA", desc:     "Status register"}
       ]
     }
 
-    { window: {
-        name: "RXDATA",
-        items: "1",
-        validbits: "32",
-        desc: "I2s Receive data"
-        swaccess: "ro"
-      }
+    { name:     "INPUTDATA"
+      desc:     "Status register"
+      swaccess: "rw"
+      hwaccess: "hro"
+      hwqe: "true"
+      fields: [
+        { bits: "31:0", name: "OUTPUTDATA", desc:     "Status register"}
+     ]
     }
+
+    // { window: {
+    //     name: "RXDATA",
+    //     items: "1",
+    //     validbits: "32",
+    //     desc: "I2s Receive data"
+    //     swaccess: "ro"
+    //   }
+    // }
    ]
 }

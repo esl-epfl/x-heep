@@ -349,4 +349,16 @@ module peripheral_subsystem
       .intr_timer_expired_1_0_o(rv_timer_3_intr_o)
   );
 
+  i2s #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) i2s_i (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::I2S_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2S_IDX])
+  );
+
+
+
 endmodule : peripheral_subsystem
