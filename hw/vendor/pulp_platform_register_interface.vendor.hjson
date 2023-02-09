@@ -7,7 +7,7 @@
 
   upstream: {
     url: "https://github.com/pulp-platform/register_interface.git",
-    rev: "cce7ae601efde1db0cd86b4befce1d1c2bc3e4d0",
+    rev: "e3a4955071fcf554febd4b29a7c7a52c7f1e7fc6",
   },
 
   exclude_from_upstream: [

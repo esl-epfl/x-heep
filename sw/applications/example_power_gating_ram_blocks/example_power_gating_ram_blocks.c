@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     power_manager_counters_t power_manager_ram_blocks_counters;
 
     // Init ram block 2's counters
-    if (power_gate_counters_init(&power_manager_ram_blocks_counters, 40, 40, 30, 30, 20, 20, 0, 0) != kPowerManagerOk_e)
+    if (power_gate_counters_init(&power_manager_ram_blocks_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
     {
         printf("Error: power manager fail. Check the reset and powergate counters value\n");
         return EXIT_FAILURE;

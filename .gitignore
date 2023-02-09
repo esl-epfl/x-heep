@@ -7,6 +7,10 @@ build/
 *.dis
 *.map
 *.do
+.venv/*
+
+# ignore apps output file
+run_verif_rtl_log.txt
 
 # ignore the following hw automatically generated files
 core-v-mini-mcu.upf
@@ -24,6 +28,7 @@ hw/system/pad_control/data/pad_control.hjson
 hw/system/pad_control/rtl/pad_control.sv
 hw/system/pad_control/rtl/pad_control_reg_pkg.sv
 hw/system/pad_control/rtl/pad_control_reg_top.sv
+
 # same for the C header file and linker scripts
 sw/device/lib/runtime/core_v_mini_mcu.h
 sw/linker/link.ld
@@ -32,3 +37,4 @@ sw/linker/link_flash_load.ld
 sw/device/lib/drivers/power_manager/power_manager_regs.h
 sw/device/lib/drivers/power_manager/power_manager.h
 sw/device/lib/drivers/pad_control/pad_control_regs.h
+sw/device/lib/drivers/**/*_structs.h

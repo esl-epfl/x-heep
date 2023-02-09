@@ -39,6 +39,7 @@
         soc_ctrl: {
             offset:  0x00000000,
             length:  0x00010000,
+            path:    "./hw/ip/soc_ctrl/data/soc_ctrl.hjson"
         },
         bootrom: {
             offset:  0x00010000,
@@ -52,13 +53,15 @@
             offset:  0x00028000,
             length:  0x00008000,
         },
-        spi: {
+        spi_host: {
             offset:  0x00030000,
             length:  0x00010000,
+            path:    "./hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson"
         },
         power_manager: {
             offset:  0x00040000,
             length:  0x00010000,
+            path:    "./hw/ip/power_manager/data/power_manager.hjson"
         },
         rv_timer_ao: {
             offset:  0x00050000,
@@ -67,12 +70,14 @@
         dma: {
             offset:  0x00060000,
             length:  0x00010000,
+            path:    "./hw/ip/dma/data/dma.hjson"
         },
         fast_intr_ctrl: {
             offset:  0x00070000,
             length:  0x00010000,
+            path:    "./hw/ip/fast_intr_ctrl/data/fast_intr_ctrl.hjson"
         },
-        ext_periph: {
+        ext_peripheral: {
             offset:  0x00080000,
             length:  0x00010000,
         },
@@ -87,26 +92,35 @@
         uart: {
             offset:  0x000B0000,
             length:  0x00010000,
+            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"
         },
     },
 
     peripherals: {
         address: 0x30000000,
         length:  0x00100000,
-        plic: {
+        rv_plic: {
             offset:  0x00000000,
             length:  0x00010000,
+            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/data/rv_plic.hjson"
         },
         gpio: {
             offset:  0x00020000,
             length:  0x00010000,
+            path:    "./hw/vendor/pulp_platform_gpio/gpio_regs.hjson"
         },
         i2c: {
             offset:  0x00030000,
             length:  0x00010000,
+            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/i2c/data/i2c.hjson"
         },
         rv_timer: {
             offset:  0x00040000,
+            length:  0x00010000,
+            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/rv_timer/data/rv_timer.hjson"
+        },
+        spi2: {
+            offset:  0x00050000,
             length:  0x00010000,
         },
     },
@@ -172,21 +186,8 @@
         intr_acq_overflow:       46,
         intr_ack_stop:           47,
         intr_host_timeout:       48,
-        ext_intr_0:              49,
-        ext_intr_1:              50,
-        ext_intr_2:              51,
-        ext_intr_3:              52,
-        ext_intr_4:              53,
-        ext_intr_5:              54,
-        ext_intr_6:              55,
-        ext_intr_7:              56,
-        ext_intr_8:              57,
-        ext_intr_9:              58,
-        ext_intr_10:             59,
-        ext_intr_11:             60,
-        ext_intr_12:             61,
-        ext_intr_13:             62,
-        ext_intr_14:             63,
+        spi2_intr_event:         49,
+        ext_intr:                50:63,
     },
 
     pads: {
@@ -243,7 +244,7 @@
             type: output
         },
         gpio: {
-            num: 30,
+            num: 23,
             num_offset: 0, #first gpio is gpio0
             type: inout
         },
@@ -270,6 +271,90 @@
         spi_sd: {
             num: 4,
             type: inout
+        },
+        spi2_cs_0: {
+            num: 1,
+            type: inout
+            mux: {
+                spi2_cs_0: {
+                    type: inout
+                },
+                gpio_23: {
+                    type: inout
+                },
+            }
+        },
+        spi2_cs_1: {
+            num: 1,
+            type: inout
+            mux: {
+                spi2_cs_1: {
+                    type: inout
+                },
+                gpio_24: {
+                    type: inout
+                },
+            },
+        },
+        spi2_sck: {
+            num: 1,
+            type: inout
+            mux: {
+                spi2_sck: {
+                    type: inout
+                },
+                gpio_25: {
+                    type: inout
+                },
+            }
+        },
+        spi2_sd_0: {
+            num: 1,
+            type: inout
+            mux: {
+                spi2_sd_0: {
+                    type: inout
+                },
+                gpio_26: {
+                    type: inout
+                },
+            }
+        },
+        spi2_sd_1: {
+            num: 1,
+            type: inout
+            mux: {
+                spi2_sd_1: {
+                    type: inout
+                },
+                gpio_27: {
+                    type: inout
+                },
+            }
+        },
+        spi2_sd_2: {
+            num: 1,
+            type: inout
+            mux: {
+                spi2_sd_2: {
+                    type: inout
+                },
+                gpio_28: {
+                    type: inout
+                },
+            }
+        },
+        spi2_sd_3: {
+            num: 1,
+            type: inout
+            mux: {
+                spi2_sd_3: {
+                    type: inout
+                },
+                gpio_29: {
+                    type: inout
+                },
+            }
         },
         i2c_scl: {
             num: 1,
