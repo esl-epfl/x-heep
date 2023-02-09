@@ -10,15 +10,20 @@
 module i2s_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 3
+    parameter int AW = 4
 ) (
     input logic clk_i,
     input logic rst_ni,
     input reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
+
+    // Output port for window
+    output reg_req_t [1-1:0] reg_req_win_o,
+    input  reg_rsp_t [1-1:0] reg_rsp_win_i,
+
     // To HW
     output i2s_reg_pkg::i2s_reg2hw_t reg2hw,  // Write
-    input i2s_reg_pkg::i2s_hw2reg_t hw2reg,  // Read
+    input  i2s_reg_pkg::i2s_hw2reg_t hw2reg,  // Read
 
 
     // Config
@@ -48,8 +53,43 @@ module i2s_reg_top #(
   reg_rsp_t reg_intf_rsp;
 
 
-  assign reg_intf_req = reg_req_i;
-  assign reg_rsp_o = reg_intf_rsp;
+  logic [0:0] reg_steer;
+
+  reg_req_t [2-1:0] reg_intf_demux_req;
+  reg_rsp_t [2-1:0] reg_intf_demux_rsp;
+
+  // demux connection
+  assign reg_intf_req = reg_intf_demux_req[1];
+  assign reg_intf_demux_rsp[1] = reg_intf_rsp;
+
+  assign reg_req_win_o[0] = reg_intf_demux_req[0];
+  assign reg_intf_demux_rsp[0] = reg_rsp_win_i[0];
+
+  // Create Socket_1n
+  reg_demux #(
+      .NoPorts(2),
+      .req_t  (reg_req_t),
+      .rsp_t  (reg_rsp_t)
+  ) i_reg_demux (
+      .clk_i,
+      .rst_ni,
+      .in_req_i(reg_req_i),
+      .in_rsp_o(reg_rsp_o),
+      .out_req_o(reg_intf_demux_req),
+      .out_rsp_i(reg_intf_demux_rsp),
+      .in_select_i(reg_steer)
+  );
+
+
+  // Create steering logic
+  always_comb begin
+    reg_steer = 1;  // Default set to register
+
+    // TODO: Can below codes be unique case () inside ?
+    if (reg_req_i.addr[AW-1:0] >= 8 && reg_req_i.addr[AW-1:0] < 12) begin
+      reg_steer = 0;
+    end
+  end
 
 
   assign reg_we = reg_intf_req.valid & reg_intf_req.write;
@@ -181,12 +221,13 @@ module i2s_reg_top #(
 endmodule
 
 module i2s_reg_top_intf #(
-    parameter  int AW = 3,
+    parameter  int AW = 4,
     localparam int DW = 32
 ) (
     input logic clk_i,
     input logic rst_ni,
     REG_BUS.in regbus_slave,
+    REG_BUS.out regbus_win_mst[1-1:0],
     // To HW
     output i2s_reg_pkg::i2s_reg2hw_t reg2hw,  // Write
     input i2s_reg_pkg::i2s_hw2reg_t hw2reg,  // Read
@@ -211,6 +252,13 @@ module i2s_reg_top_intf #(
   `REG_BUS_ASSIGN_TO_REQ(s_reg_req, regbus_slave)
   `REG_BUS_ASSIGN_FROM_RSP(regbus_slave, s_reg_rsp)
 
+  reg_bus_req_t s_reg_win_req[1-1:0];
+  reg_bus_rsp_t s_reg_win_rsp[1-1:0];
+  for (genvar i = 0; i < 1; i++) begin : gen_assign_window_structs
+    `REG_BUS_ASSIGN_TO_REQ(s_reg_win_req[i], regbus_win_mst[i])
+    `REG_BUS_ASSIGN_FROM_RSP(regbus_win_mst[i], s_reg_win_rsp[i])
+  end
+
 
 
   i2s_reg_top #(
@@ -222,6 +270,8 @@ module i2s_reg_top_intf #(
       .rst_ni,
       .reg_req_i(s_reg_req),
       .reg_rsp_o(s_reg_rsp),
+      .reg_req_win_o(s_reg_win_req),
+      .reg_rsp_win_i(s_reg_win_rsp),
       .reg2hw,  // Write
       .hw2reg,  // Read
       .devmode_i

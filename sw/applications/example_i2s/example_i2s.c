@@ -33,14 +33,17 @@ int main(int argc, char *argv[])
     printf("base address is %d\n", base_addr);
 
     int32_t result = 0;
-    int32_t i = 234789;
-    mmio_region_write32(base_addr, I2S_INPUTDATA_REG_OFFSET, i);
+    int32_t test_value = 234789;
+    mmio_region_write32(base_addr, I2S_INPUTDATA_REG_OFFSET, test_value);
     for (int32_t j = 0; j < 16; j = j + 1) printf("%d", j);
     printf("\n");
     result = mmio_region_read32(base_addr, I2S_OUTPUTDATA_REG_OFFSET);
-    printf("%s written %d read %d\n", result == i ? "SUCCESS" : "FAILED ", i, result);
-    
+    printf("%s written %d read %d\n", result == result ? "SUCCESS" : "FAILED ", test_value, result);
 
+    for (int32_t i = 0; i < 16; i++) {
+        result = mmio_region_read32(base_addr, I2S_RXDATA_REG_OFFSET);
+        printf("RX: %d\n", result);
+    }
 
     return EXIT_SUCCESS;
 }

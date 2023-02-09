@@ -7,7 +7,7 @@
 package i2s_reg_pkg;
 
   // Address widths within the block
-  parameter int BlockAw = 3;
+  parameter int BlockAw = 4;
 
   ////////////////////////////
   // Typedefs for registers //
@@ -37,8 +37,12 @@ package i2s_reg_pkg;
   } i2s_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] I2S_OUTPUTDATA_OFFSET = 3'h0;
-  parameter logic [BlockAw-1:0] I2S_INPUTDATA_OFFSET = 3'h4;
+  parameter logic [BlockAw-1:0] I2S_OUTPUTDATA_OFFSET = 4'h0;
+  parameter logic [BlockAw-1:0] I2S_INPUTDATA_OFFSET = 4'h4;
+
+  // Window parameters
+  parameter logic [BlockAw-1:0] I2S_RXDATA_OFFSET = 4'h8;
+  parameter int unsigned I2S_RXDATA_SIZE = 'h4;
 
   // Register index
   typedef enum int {
