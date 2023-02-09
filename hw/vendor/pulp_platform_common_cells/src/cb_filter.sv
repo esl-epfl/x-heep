@@ -235,7 +235,7 @@ module hash_block #(
     end
   end
 
-`ifndef SYNTHESIS
+`ifndef VERILATOR
   // assertions
   // pragma translate_off
   initial begin
@@ -245,5 +245,4 @@ module hash_block #(
   end
   // pragma translate_on
 `endif
-
 endmodule

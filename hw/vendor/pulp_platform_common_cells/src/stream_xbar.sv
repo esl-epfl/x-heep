@@ -164,7 +164,6 @@ module stream_xbar #(
   // Make sure that the handshake and payload is stable
   // pragma translate_off
   `ifndef VERILATOR
-  `ifndef SYNTHESIS
   default disable iff rst_ni;
   for (genvar i = 0; unsigned'(i) < NumInp; i++) begin : gen_sel_assertions
     assert property (@(posedge clk_i) (valid_i[i] |-> sel_i[i] < sel_oup_t'(NumOut))) else
@@ -194,7 +193,6 @@ module stream_xbar #(
     assert (NumInp > 32'd0) else $fatal(1, "NumInp has to be > 0!");
     assert (NumOut > 32'd0) else $fatal(1, "NumOut has to be > 0!");
   end
-  `endif
   `endif
   // pragma translate_on
 endmodule

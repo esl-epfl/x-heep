@@ -82,7 +82,6 @@ module exp_backoff #(
 ///////////////////////////////////////////////////////
 
 //pragma translate_off
-`ifndef SYNTHESIS
 `ifndef VERILATOR
   initial begin
     // assert wrong parameterizations
@@ -95,6 +94,5 @@ module exp_backoff #(
   end
 `endif
 //pragma translate_on
-`endif
 
 endmodule // exp_backoff

@@ -110,12 +110,12 @@ module cdc_reset_ctrlr
   import cdc_reset_ctrlr_pkg::*;
  #(
   /// The number of synchronization stages to use for the
-  //clear signal request/acknowledge. Must be less or
-  //equal to the number of sync stages used in the CDC
+  /// clear signal request/acknowledge. Must be less than the
+  /// number of sync stages used in the CDC.
   parameter int unsigned SYNC_STAGES = 2,
   /// Whether an asynchronous reset shall cause a clear
   /// request to be sent to the other side.
-  parameter logic CLEAR_ON_ASYNC_RESET = 1'b1
+  parameter logic        CLEAR_ON_ASYNC_RESET = 1'b1
 )(
   // Side A (both sides are symmetric)
   input logic  a_clk_i,
@@ -135,24 +135,13 @@ module cdc_reset_ctrlr
   input logic  b_isolate_ack_i
 );
 
-`ifndef SV2V
   (* dont_touch = "true" *)
-`endif
   logic        async_a2b_req, async_b2a_ack;
-
-`ifndef SV2V
   (* dont_touch = "true" *)
-`endif
   clear_seq_phase_e async_a2b_next_phase;
-
-`ifndef SV2V
   (* dont_touch = "true" *)
-`endif
   logic        async_b2a_req, async_a2b_ack;
-
-`ifndef SV2V
   (* dont_touch = "true" *)
-`endif
   clear_seq_phase_e async_b2a_next_phase;
 
   cdc_reset_ctrlr_half #(
@@ -166,21 +155,12 @@ module cdc_reset_ctrlr
     .clear_ack_i        ( a_clear_ack_i        ),
     .isolate_o          ( a_isolate_o          ),
     .isolate_ack_i      ( a_isolate_ack_i      ),
-`ifndef SV2V
     (* async *) .async_next_phase_o ( async_a2b_next_phase ),
     (* async *) .async_req_o        ( async_a2b_req        ),
     (* async *) .async_ack_i        ( async_b2a_ack        ),
     (* async *) .async_next_phase_i ( async_b2a_next_phase ),
     (* async *) .async_req_i        ( async_b2a_req        ),
     (* async *) .async_ack_o        ( async_a2b_ack        )
-`else
-    .async_next_phase_o ( async_a2b_next_phase ),
-    .async_req_o        ( async_a2b_req        ),
-    .async_ack_i        ( async_b2a_ack        ),
-    .async_next_phase_i ( async_b2a_next_phase ),
-    .async_req_i        ( async_b2a_req        ),
-    .async_ack_o        ( async_a2b_ack        )
-`endif
   );
 
     cdc_reset_ctrlr_half #(
@@ -194,21 +174,12 @@ module cdc_reset_ctrlr
     .clear_ack_i        ( b_clear_ack_i        ),
     .isolate_o          ( b_isolate_o          ),
     .isolate_ack_i      ( b_isolate_ack_i      ),
-`ifndef SV2V
     (* async *) .async_next_phase_o ( async_b2a_next_phase ),
     (* async *) .async_req_o        ( async_b2a_req        ),
     (* async *) .async_ack_i        ( async_a2b_ack        ),
     (* async *) .async_next_phase_i ( async_a2b_next_phase ),
     (* async *) .async_req_i        ( async_a2b_req        ),
     (* async *) .async_ack_o        ( async_b2a_ack        )
-`else
-    .async_next_phase_o ( async_b2a_next_phase ),
-    .async_req_o        ( async_b2a_req        ),
-    .async_ack_i        ( async_a2b_ack        ),
-    .async_next_phase_i ( async_a2b_next_phase ),
-    .async_req_i        ( async_a2b_req        ),
-    .async_ack_o        ( async_b2a_ack        )
-`endif
   );
 endmodule
 
@@ -217,12 +188,12 @@ module cdc_reset_ctrlr_half
   import cdc_reset_ctrlr_pkg::*;
 #(
   /// The number of synchronization stages to use for the
-  //clear signal request/acknowledge. Must be less or
-  //equal to the number of sync stages used in the CDC
+  /// clear signal request/acknowledge. Must be less than
+  /// the number of sync stages used in the CDC
   parameter int unsigned SYNC_STAGES = 2,
   /// Whether an asynchronous reset shall cause a clear
   /// request to be sent to the other side.
-  parameter logic CLEAR_ON_ASYNC_RESET = 1'b1
+  parameter logic        CLEAR_ON_ASYNC_RESET = 1'b1
 )(
   // Synchronous side
   input logic                clk_i,

@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/davideschiavone/common_cells.git
-    rev: 14d59aee545e0e4a85dad7318cb0fe7a16bceaf0
+    url: https://github.com/pulp-platform/common_cells.git
+    rev: ff6a1c14664fd6aadcef8cee3abd5b5293545575
   }
 }

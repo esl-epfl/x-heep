@@ -106,7 +106,10 @@ asic: |venv
 	$(FUSESOC) --cores-root . run --no-export --target=asic_synthesis --setup openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee builddesigncompiler.log
 
 openroad-sky130: |venv
+	git checkout hw/vendor/pulp_platform_common_cells/*
+	sed -i 's/(\*[^\n]*\*)//g' hw/vendor/pulp_platform_common_cells/src/*.sv
 	$(FUSESOC) --verbose --cores-root . run --target=asic_yosys_synthesis --flag=use_sky130 openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildopenroad.log
+	git checkout hw/vendor/pulp_platform_common_cells/*
 
 help:
 	@echo "SIMULATION BUILD TARGETS"

@@ -39,13 +39,13 @@ module lzc #(
 
     localparam int unsigned NumLevels = $clog2(WIDTH);
 
-`ifndef SYNTHESIS
+  `ifndef VERILATOR
     // pragma translate_off
     initial begin
       assert(WIDTH > 0) else $fatal(1, "input must be at least one bit wide");
     end
     // pragma translate_on
-`endif
+  `endif
 
     logic [WIDTH-1:0][NumLevels-1:0] index_lut;
     logic [2**NumLevels-1:0] sel_nodes;
@@ -101,7 +101,6 @@ module lzc #(
 
   end : gen_lzc
 
-`ifndef SYNTHESIS
 // pragma translate_off
 `ifndef VERILATOR
   initial begin: validate_params
@@ -110,6 +109,5 @@ module lzc #(
   end
 `endif
 // pragma translate_on
-`endif
 
 endmodule : lzc
