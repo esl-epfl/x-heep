@@ -302,15 +302,15 @@ Follow the [ExecuteFromFlash](./ExecuteFromFlash.md) guide to exxecute code dire
 
 ## Emulation on Xilinx FPGAs
 
-This project offers two different X-HEEP implementetions on the Xilinx Pynq-Z2 board, called Standalone-FEMU and Linux-FEMU.
+This project offers two different X-HEEP implementetions on the Xilinx FPGAs, called Standalone-FEMU and Linux-FEMU.
 
 ### Standalone-FEMU (Standalone Fpga EMUlation)
 
-In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the Zynq 7020 chip and its input/output are connected to the available headers on the Pynq-Z2 board.
+In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the FPGA, and its input/output are connected to the available headers on the FPGA board.
 
-Make sure you have the Pynq-Z2 board files installed in your Vivado. Otherwise, use the documentation provided by the following link to download and install them:
+Make sure you have the FPGA board files installed in your Vivado.
 
-`https://pynq.readthedocs.io/en/v2.5/overlay_design_methodology/board_settings.html`
+For example, for the Xilinx Pynq-Z2 board, use the documentation provided at the following [link](https://pynq.readthedocs.io/en/v2.5/overlay_design_methodology/board_settings.html) to download and install them:
 
 To build and program the bitstream for your FPGA with vivado, type:
 
@@ -341,15 +341,14 @@ guide if you have a FLASH attached to the FPGA.
 
 ### Linux-FEMU (Linux Fpga EMUlation)
 
-In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the Zynq 7020 chip and Linux is run on the ARM-based processing system (PS) side of the same chip.
+In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the FPGA and Linux is run on the ARM-based processing system (PS) side of the same chip.
 
-Read the following documentation to have more information about this implementation:
+Read the [following](./linux_femu/README.md) documentation to have more information about this implementation.
 
-`./linux_femu/README.md`
 
 # ASIC Implementation
 
-This project can be implemented using standard cells based ASIC flow. (work in progress)
+This project can be implemented using standard cells based ASIC flow.
 
 ## Synthesis with Synopsys Design Compiler
 
@@ -357,10 +356,15 @@ First, you need to provide technology-dependent implementations of some of the c
 
 Then, please provide a set_libs.tcl and set_constraints.tcl scripts to set link and target libraries, and constraints as the clock.
 
-To generate and run synthesis scripts with DC, execute:
+To generate the `analyze` script for the synthesis scripts with DC, execute:
 
 ```
 make asic
 ```
 
-This relies on a fork of [edalize](https://github.com/davideschiavone/edalize) that contains templates for Design Compiler.
+## OpenRoad support for SkyWater 130nm
+
+We are working on supporting OpenRoad and SkyWater 130nm PDK, please refer to the
+[OpenRoadFlow](./OpenRoadFlow.md) page. This is not ready yet, it has not been tested.
+
+This relies on a fork of [edalize](https://github.com/davideschiavone/edalize) that contains templates for Design Compiler and OpenRoad.

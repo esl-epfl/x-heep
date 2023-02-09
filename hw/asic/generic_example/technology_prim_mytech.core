@@ -1,0 +1,25 @@
+CAPI=2:
+
+# Copyright 2022 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name: "technology::prim_mytech"
+description: "technology specific prim"
+filesets:
+  files_rtl:
+    files:
+      - rtl/prim_mytech_clk.sv #add here you clock
+      - rtl/sram_wrapper_mytech.sv #add here your wrapper which contains your tech-sram (mymemory.v)
+    file_type: systemVerilogSource
+  #files_postlayout_sim:
+  #  files:
+  #    - rtl/mymemory.v #add here your tech-sram verilog model for post-layout sim
+  #  file_type: VerilogSource
+
+
+targets:
+  default:
+    filesets:
+      - target_asic_synthesis ? (files_rtl)
+    #  - target_sim_postlayout ? (files_postlayout_sim)
