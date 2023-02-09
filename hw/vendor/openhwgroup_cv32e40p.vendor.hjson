@@ -7,7 +7,7 @@
 
   upstream: {
     url: "https://github.com/openhwgroup/cv32e40p.git",
-    rev: "52113dcc79b4d2bc6d79827fa8dad9ec34734c6c",
+    rev: "2b2cc965394184738ed500a7d66fa555dc34595d",
   },
 
   patch_dir: "patches/openhwgroup_cv32e40p",
