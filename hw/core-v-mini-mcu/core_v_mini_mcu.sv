@@ -118,18 +118,6 @@ module core_v_mini_mcu
     input  logic gpio_19_i,
     output logic gpio_19_oe_o,
 
-    output logic gpio_20_o,
-    input  logic gpio_20_i,
-    output logic gpio_20_oe_o,
-
-    output logic gpio_21_o,
-    input  logic gpio_21_i,
-    output logic gpio_21_oe_o,
-
-    output logic gpio_22_o,
-    input  logic gpio_22_i,
-    output logic gpio_22_oe_o,
-
     output logic spi_flash_sck_o,
     input  logic spi_flash_sck_i,
     output logic spi_flash_sck_oe_o,
@@ -185,6 +173,27 @@ module core_v_mini_mcu
     output logic spi_sd_3_o,
     input  logic spi_sd_3_i,
     output logic spi_sd_3_oe_o,
+
+    output logic i2s_sck_o,
+    input  logic i2s_sck_i,
+    output logic i2s_sck_oe_o,
+    output logic gpio_20_o,
+    input  logic gpio_20_i,
+    output logic gpio_20_oe_o,
+
+    output logic i2s_ws_o,
+    input  logic i2s_ws_i,
+    output logic i2s_ws_oe_o,
+    output logic gpio_21_o,
+    input  logic gpio_21_i,
+    output logic gpio_21_oe_o,
+
+    output logic i2s_sd_o,
+    input  logic i2s_sd_i,
+    output logic i2s_sd_oe_o,
+    output logic gpio_22_o,
+    input  logic gpio_22_i,
+    output logic gpio_22_oe_o,
 
     output logic spi2_cs_0_o,
     input  logic spi2_cs_0_i,
@@ -613,7 +622,17 @@ module core_v_mini_mcu
       .spi2_sd_en_o({spi2_sd_3_oe_o, spi2_sd_2_oe_o, spi2_sd_1_oe_o, spi2_sd_0_oe_o}),
       .spi2_sd_i({spi2_sd_3_i, spi2_sd_2_i, spi2_sd_1_i, spi2_sd_0_i}),
       .rv_timer_2_intr_o(rv_timer_intr[2]),
-      .rv_timer_3_intr_o(rv_timer_intr[3])
+      .rv_timer_3_intr_o(rv_timer_intr[3]),
+
+      .i2s_sck_o(i2s_sck_o),
+      .i2s_sck_oe_o(i2s_sck_oe_o),
+      .i2s_sck_i(i2s_sck_i),
+      .i2s_ws_o(i2s_ws_o),
+      .i2s_ws_oe_o(i2s_ws_oe_o),
+      .i2s_ws_i(i2s_ws_i),
+      .i2s_sd_o(i2s_sd_o),
+      .i2s_sd_oe_o(i2s_sd_oe_o),
+      .i2s_sd_i(i2s_sd_i)
   );
 
   assign gpio_ao_in[0] = gpio_0_i;

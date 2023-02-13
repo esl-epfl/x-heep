@@ -56,7 +56,18 @@ module peripheral_subsystem
 
     //RV TIMER
     output logic rv_timer_2_intr_o,
-    output logic rv_timer_3_intr_o
+    output logic rv_timer_3_intr_o,
+
+    //I2s
+    output logic i2s_sck_o,
+    output logic i2s_sck_oe_o,
+    input  logic i2s_sck_i,
+    output logic i2s_ws_o,
+    output logic i2s_ws_oe_o,
+    input  logic i2s_ws_i,
+    output logic i2s_sd_o,
+    output logic i2s_sd_oe_o,
+    input  logic i2s_sd_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -356,7 +367,17 @@ module peripheral_subsystem
       .clk_i,
       .rst_ni,
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::I2S_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2S_IDX])
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2S_IDX]),
+
+      .i2s_sck_o(i2s_sck_o),
+      .i2s_sck_oe_o(i2s_sck_oe_o),
+      .i2s_sck_i(i2s_sck_i),
+      .i2s_ws_o(i2s_ws_o),
+      .i2s_ws_oe_o(i2s_ws_oe_o),
+      .i2s_ws_i(i2s_ws_i),
+      .i2s_sd_o(i2s_sd_o),
+      .i2s_sd_oe_o(i2s_sd_oe_o),
+      .i2s_sd_i(i2s_sd_i)
   );
 
 

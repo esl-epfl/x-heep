@@ -15,11 +15,18 @@ module i2s #(
 
     // Register interface
     input  reg_req_t reg_req_i,
-    output reg_rsp_t reg_rsp_o
+    output reg_rsp_t reg_rsp_o,
 
     // I2s interface
-    // input  logic i2s_i,
-    // output logic i2s_clk_o
+    output logic i2s_sck_o,
+    output logic i2s_sck_oe_o,
+    input  logic i2s_sck_i,
+    output logic i2s_ws_o,
+    output logic i2s_ws_oe_o,
+    input  logic i2s_ws_i,
+    output logic i2s_sd_o,
+    output logic i2s_sd_oe_o,
+    input  logic i2s_sd_i
 );
 
   import i2s_reg_pkg::*;
@@ -59,6 +66,48 @@ module i2s #(
       count <= 0;
     end else begin
       if (rx_win_d2h.ready) count <= count + 1;
+    end
+  end
+
+  assign i2s_sck_o = 1'b0;
+  assign i2s_sck_oe_o = 1'b1;
+  assign i2s_ws_o = 1'b0;
+  assign i2s_ws_oe_o = 1'b1;
+  assign i2s_sd_o = 1'b0;
+  assign i2s_sd_oe_o = 1'b0;
+
+  logic sck;
+  logic ws;
+
+  assign sck = i2s_sck_oe_o ? i2s_sck_o : i2s_sck_i;
+  assign ws  = i2s_ws_oe_o ? i2s_ws_o : i2s_ws_i;
+
+  logic [31:0] data;
+  logic [31:0] storage;
+
+  logic store;
+  int index;
+  logic right_ch;
+
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (~rst_ni) begin
+      index <= 0;
+      right_ch <= 1'b0;
+    end else begin
+      if (sck == 1'b0) begin
+        if (index < 32) begin
+          data[32-index] <= i2s_sd_i;
+        end
+        if (ws != right_ch) begin
+          index <= 0;
+          right_ch <= ws;
+          store <= 1;
+        end
+        if (store) begin
+          storage <= data;
+          store   <= 0;
+        end
+      end
     end
   end
 
