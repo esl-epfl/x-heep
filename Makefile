@@ -101,6 +101,13 @@ run-helloworld: mcu-gen verilator-sim app-helloworld |venv
 	cat uart0.log; \
 	cd ../../..;
 
+run-dma: mcu-gen verilator-sim app-dma |venv
+	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
+        ./Vtestharness +firmware=../../../sw/applications/dma_example/dma_example.hex; \
+        cat uart0.log; \
+        cd ../../..;
+
+
 # Emulation
 vivado-fpga: |venv
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildvivado.log

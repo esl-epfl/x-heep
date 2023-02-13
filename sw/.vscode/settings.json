@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "mmio.h": "c",
+        "bitfield.h": "c",
+        "dma_structs.h": "c",
+        "dma_regs.h": "c"
+    }
+}

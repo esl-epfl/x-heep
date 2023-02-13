@@ -18,8 +18,8 @@
 
 // Choose which scenarios to test
 #define TEST_WORD
-#define TEST_HALF_WORD
-#define TEST_BYTE
+//#define TEST_HALF_WORD
+//#define TEST_BYTE
 
 #define HALF_WORD_INPUT_OFFSET 0
 #define HALF_WORD_OUTPUT_OFFSET 1 // Applied at begining and end of the output vector, which should not be overwriten.
@@ -60,21 +60,21 @@ int main(int argc, char *argv[])
     const uint32_t mask = 1 << 19;
     CSR_SET_BITS(CSR_REG_MIE, mask);
 
-    // dma peripheral structure to access the registers
-    dma_t dma;
-    dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
+    // The DMA is initialized (i.e. the base address is computed  )
+    dma_init();
 
     #ifdef TEST_WORD
         // -- DMA CONFIG -- //
-        dma_set_read_ptr(&dma, (uint32_t) test_data_4B);
-        dma_set_write_ptr(&dma, (uint32_t) copied_data_4B);
-        dma_set_read_ptr_inc(&dma, (uint32_t) 4);
-        dma_set_write_ptr_inc(&dma, (uint32_t) 4);
-        dma_set_spi_mode(&dma, (uint32_t) 0);
-        dma_set_data_type(&dma, (uint32_t) 0);
+        
+        dma_set_src((uint32_t) test_data_4B);
+        dma_set_dst((uint32_t) copied_data_4B);
+        dma_set_src_ptr_inc((uint32_t) 4);
+        dma_set_dst_ptr_inc((uint32_t) 4);
+        dma_set_spi_mode((uint32_t) 0);
+        dma_set_data_type((uint32_t) 0);
         printf("DMA word transaction launched\n");
         // Give number of bytes to transfer
-        dma_set_cnt_start(&dma, (uint32_t) TEST_DATA_SIZE*sizeof(*copied_data_4B));
+        dma_set_cnt_start((uint32_t) TEST_DATA_SIZE*sizeof(*copied_data_4B));
         // Wait copy is done
         dma_intr_flag = 0;
         while(dma_intr_flag==0) {
