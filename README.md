@@ -1,28 +1,28 @@
 # Repository folder structure
 
     .
-    ├── .github/workflows       
-    ├── ci/scripts              
-    ├── hw      
-    │   ├── asic          
+    ├── .github/workflows
+    ├── ci/scripts
+    ├── hw
+    │   ├── asic
     │   ├── core-v-mini-mcu
-    │   ├── fpga          
+    │   ├── fpga
     │   ├── ip
     │   ├── ip_examples
-    │   ├── simulation   
-    │   └── vendor         
-    ├── scripts     
-    │   ├── sim   
-    │   └── synthesis              
-    ├── sw       
-    │   ├── applications          
+    │   ├── simulation
+    │   └── vendor
+    ├── scripts
+    │   ├── sim
+    │   └── synthesis
+    ├── sw
+    │   ├── applications
     │   ├── device/lib
-    │   ├── linker  
-    │   └── vendor              
+    │   ├── linker
+    │   └── vendor
     ├── tb
     ├── util
     └── README.md
-    
+
 ======================================
 # x-heep
 ======================================
@@ -46,7 +46,7 @@ Note that under `util` folder, the file `generate-makefile-help` is employed to 
 
 # Prerequisite
 
-1. Install [Conda](https://phoenixnap.com/kb/how-to-install-anaconda-ubuntu-18-04-or-20-04) as described in the link, 
+1. Install [Conda](https://phoenixnap.com/kb/how-to-install-anaconda-ubuntu-18-04-or-20-04) as described in the link,
 and create the Conda enviroment with python 3.8:
 
 ```bash
@@ -278,7 +278,7 @@ then go to
 ```
 cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim_opt-modelsim/
 ```
-and 
+and
 
 ```
 make run RUN_OPT=1 PLUSARGS="c firmware=../../../sw/build/hello_world.hex"
@@ -300,7 +300,7 @@ Questasim version must be >= Questasim 2020.4
 
 ### UART DPI
 
-To simulate the UART, we use the LowRISC OpenTitan [UART DPI](https://github.com/lowRISC/opentitan/tree/master/hw/dv/dpi/uartdpi). 
+To simulate the UART, we use the LowRISC OpenTitan [UART DPI](https://github.com/lowRISC/opentitan/tree/master/hw/dv/dpi/uartdpi).
 Read how to interact with it in the Section "Interact with the simulated UART" [here](https://docs.opentitan.org/doc/ug/getting_started_verilator/).
 The output of the UART DPI module is printed in the `uart0.log` file in the simulation folder.
 
@@ -319,12 +319,17 @@ Follow the [Debug](./Debug.md) guide to debug core-v-mini-mcu.
 
 Follow the [ExecuteFromFlash](./ExecuteFromFlash.md) guide to exxecute code directly from the FLASH with modelsim, FPGA, or ASIC.
 
-## Emulation
+## Emulation on Xilinx FPGAs
 
-This project supports emulation on FPGAs.
+This project offers two different X-HEEP implementetions on the Xilinx FPGAs, called Standalone-FEMU and Linux-FEMU.
 
-### Xilinx Pynq-Z2 Flow
+### Standalone-FEMU (Standalone Fpga EMUlation)
 
+In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the FPGA, and its input/output are connected to the available headers on the FPGA board.
+
+Make sure you have the FPGA board files installed in your Vivado.
+
+For example, for the Xilinx Pynq-Z2 board, use the documentation provided at the following [link](https://pynq.readthedocs.io/en/v2.5/overlay_design_methodology/board_settings.html) to download and install them:
 
 To build and program the bitstream for your FPGA with vivado, type:
 
@@ -348,15 +353,21 @@ open --> Hardware Manager --> Open Target --> Autoconnect --> Program Device
 
 and choose the file `openhwgroup.org_systems_core-v-mini-mcu_0.bit`
 
-
-To run SW, follow the [Debug](./Debug.md) guide 
-to load the binaries with the HS2 cable over JTAG, 
-or follow the [ExecuteFromFlash](./ExecuteFromFlash.md) 
+To run SW, follow the [Debug](./Debug.md) guide
+to load the binaries with the HS2 cable over JTAG,
+or follow the [ExecuteFromFlash](./ExecuteFromFlash.md)
 guide if you have a FLASH attached to the FPGA.
+
+### Linux-FEMU (Linux Fpga EMUlation)
+
+In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the FPGA and Linux is run on the ARM-based processing system (PS) side of the same chip.
+
+Read the [following](./linux_femu/README.md) documentation to have more information about this implementation.
+
 
 # ASIC Implementation
 
-This project can be implemented using standard cells based ASIC flow. (work in progress)
+This project can be implemented using standard cells based ASIC flow.
 
 ## Synthesis with Synopsys Design Compiler
 
@@ -364,11 +375,15 @@ First, you need to provide technology-dependent implementations of some of the c
 
 Then, please provide a set_libs.tcl and set_constraints.tcl scripts to set link and target libraries, and constraints as the clock.
 
-To generate and run synthesis scripts with DC, execute:
+To generate the `analyze` script for the synthesis scripts with DC, execute:
 
 ```
 make asic
 ```
 
-This relies on a fork of [edalize](https://github.com/davideschiavone/edalize) that contains templates for Design Compiler.
+## OpenRoad support for SkyWater 130nm
 
+We are working on supporting OpenRoad and SkyWater 130nm PDK, please refer to the
+[OpenRoadFlow](./OpenRoadFlow.md) page. This is not ready yet, it has not been tested.
+
+This relies on a fork of [edalize](https://github.com/davideschiavone/edalize) that contains templates for Design Compiler and OpenRoad.

@@ -12,6 +12,10 @@ build/
 # ignore apps output file
 run_verif_rtl_log.txt
 
+#ignore femu generated hw
+linux_femu/rtl/linux_femu.sv
+.venv/
+
 # ignore the following hw automatically generated files
 core-v-mini-mcu.upf
 tb/tb_util.svh
@@ -37,3 +41,7 @@ sw/linker/link_flash_load.ld
 sw/device/lib/drivers/power_manager/power_manager_regs.h
 sw/device/lib/drivers/power_manager/power_manager.h
 sw/device/lib/drivers/pad_control/pad_control_regs.h
+sw/device/lib/drivers/**/*_structs.h
+
+# openroad
+flow/OpenROAD-flow-scripts

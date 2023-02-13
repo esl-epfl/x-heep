@@ -16,6 +16,7 @@ from subprocess import run
 import csv
 from jsonref import JsonRef
 from mako.template import Template
+import collections
 
 class Pad:
 
@@ -202,6 +203,7 @@ class Pad:
     self.pad_type_drive    = []
     self.driven_manually   = []
     self.skip_declaration  = []
+    self.keep_internal     = []
 
     self.is_muxed = False
 
@@ -275,6 +277,13 @@ def main():
                         required=True,
                         help="A configuration file")
 
+    parser.add_argument("--pads_cfg",
+                        "-pc",
+                        metavar="file",
+                        type=argparse.FileType('r'),
+                        required=True,
+                        help="A pad configuration file")
+
     parser.add_argument("--outdir",
                         "-of",
                         type=pathlib.Path,
@@ -290,7 +299,7 @@ def main():
     # Parse arguments.
 
     parser.add_argument("--cpu",
-                        metavar="cv32e20,cv32e40p",
+                        metavar="cv32e20,cv32e40p,cv32e40x",
                         nargs='?',
                         default="",
                         help="CPU type (default value from cfg file)")
@@ -355,6 +364,14 @@ def main():
         except ValueError:
             raise SystemExit(sys.exc_info()[1])
 
+    with args.pads_cfg as file:
+        try:
+            srcfull = file.read()
+            obj_pad = hjson.loads(srcfull, use_decimal=True)
+            obj_pad = JsonRef.replace_refs(obj_pad)
+        except ValueError:
+            raise SystemExit(sys.exc_info()[1])
+
     if not args.outdir.is_dir():
             exit("Out directory is not a valid path.")
 
@@ -407,65 +424,36 @@ def main():
 
     ao_peripheral_size_address = string2int(obj['ao_peripherals']['length'])
 
-    soc_ctrl_start_offset  = string2int(obj['ao_peripherals']['soc_ctrl']['offset'])
-    soc_ctrl_size_address  = string2int(obj['ao_peripherals']['soc_ctrl']['length'])
+    def extract_peripherals(peripherals):
+        return {
+            name: {
+                k: string2int(v)
+                for k, v in info.items()
+            }
+            for name, info in peripherals.items()
+            if isinstance(info, dict)
+        }
 
-    bootrom_start_offset  = string2int(obj['ao_peripherals']['bootrom']['offset'])
-    bootrom_size_address  = string2int(obj['ao_peripherals']['bootrom']['length'])
+    def discard_path(peripherals):
+        new = {}
+        for k,v in peripherals.items():
+            if isinstance(v, dict):
+                new[k] = {key:val for key,val in v.items() if key not in ("path")}
+            else:
+                new[k] = v
+        return new
 
-    spi_flash_start_offset  = string2int(obj['ao_peripherals']['spi_flash']['offset'])
-    spi_flash_size_address  = string2int(obj['ao_peripherals']['spi_flash']['length'])
+    ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
+    ao_peripherals_count = len(ao_peripherals) 
 
-    spi_memio_start_offset  = string2int(obj['ao_peripherals']['spi_memio']['offset'])
-    spi_memio_size_address  = string2int(obj['ao_peripherals']['spi_memio']['length'])
-
-    spi_start_offset  = string2int(obj['ao_peripherals']['spi']['offset'])
-    spi_size_address  = string2int(obj['ao_peripherals']['spi']['length'])
-
-    power_manager_start_offset  = string2int(obj['ao_peripherals']['power_manager']['offset'])
-    power_manager_size_address  = string2int(obj['ao_peripherals']['power_manager']['length'])
-
-    rv_timer_ao_start_offset  = string2int(obj['ao_peripherals']['rv_timer_ao']['offset'])
-    rv_timer_ao_size_address  = string2int(obj['ao_peripherals']['rv_timer_ao']['length'])
-
-    dma_start_offset  = string2int(obj['ao_peripherals']['dma']['offset'])
-    dma_size_address  = string2int(obj['ao_peripherals']['dma']['length'])
-
-    fast_intr_ctrl_start_offset  = string2int(obj['ao_peripherals']['fast_intr_ctrl']['offset'])
-    fast_intr_ctrl_size_address  = string2int(obj['ao_peripherals']['fast_intr_ctrl']['length'])
-
-    ext_periph_start_offset  = string2int(obj['ao_peripherals']['ext_periph']['offset'])
-    ext_periph_size_address  = string2int(obj['ao_peripherals']['ext_periph']['length'])
-
-    pad_control_start_offset  = string2int(obj['ao_peripherals']['pad_control']['offset'])
-    pad_control_size_address  = string2int(obj['ao_peripherals']['pad_control']['length'])
-
-    gpio_ao_start_offset  = string2int(obj['ao_peripherals']['gpio_ao']['offset'])
-    gpio_ao_size_address  = string2int(obj['ao_peripherals']['gpio_ao']['length'])
-
-    uart_start_offset  = string2int(obj['ao_peripherals']['uart']['offset'])
-    uart_size_address  = string2int(obj['ao_peripherals']['uart']['length'])
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
         exit("peripheral start address must be greater than 0x10000")
 
     peripheral_size_address = string2int(obj['peripherals']['length'])
-
-    plic_start_offset  = string2int(obj['peripherals']['plic']['offset'])
-    plic_size_address  = string2int(obj['peripherals']['plic']['length'])
-
-    gpio_start_offset  = string2int(obj['peripherals']['gpio']['offset'])
-    gpio_size_address  = string2int(obj['peripherals']['gpio']['length'])
-
-    i2c_start_offset  = string2int(obj['peripherals']['i2c']['offset'])
-    i2c_size_address  = string2int(obj['peripherals']['i2c']['length'])
-
-    rv_timer_start_offset  = string2int(obj['peripherals']['rv_timer']['offset'])
-    rv_timer_size_address  = string2int(obj['peripherals']['rv_timer']['length'])
-
-    spi2_start_offset  = string2int(obj['peripherals']['spi2']['offset'])
-    spi2_size_address  = string2int(obj['peripherals']['spi2']['length'])
+    peripherals = extract_peripherals(discard_path(obj['peripherals']))
+    peripherals_count = len(peripherals) 
 
     ext_slave_start_address = string2int(obj['ext_slaves']['address'])
     ext_slave_size_address = string2int(obj['ext_slaves']['length'])
@@ -545,7 +533,7 @@ def main():
 
     ext_int_list = range(int(ext_intr_lower), int(ext_intr_upper)+1)
 
-    pads = obj['pads']
+    pads = obj_pad['pads']
 
     # Read HJSON description of External Pads
     if args.external_pads != None:
@@ -608,6 +596,14 @@ def main():
         except KeyError:
             pad_skip_declaration = False
 
+        try:
+            if ('True' in pads[key]['keep_internal']):
+                pad_keep_internal = True
+            else:
+                pad_keep_internal = False
+        except KeyError:
+            pad_keep_internal = False
+
         pad_mux_list = []
 
         for pad_mux in pad_mux_list_hjson:
@@ -633,7 +629,6 @@ def main():
             except KeyError:
                 pad_skip_declaration_mux = False
 
-
             p = Pad(pad_mux, '', pads[key]['mux'][pad_mux]['type'], 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [])
             pad_mux_list.append(p)
 
@@ -641,9 +636,11 @@ def main():
             for p in range(pad_num):
                 pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
                 pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list)
-                pad_obj.create_pad_ring()
+                if not pad_keep_internal:
+                    pad_obj.create_pad_ring()
                 pad_obj.create_core_v_mini_mcu_ctrl()
-                pad_obj.create_pad_ring_bonding()
+                if not pad_keep_internal:
+                    pad_obj.create_pad_ring_bonding()
                 pad_obj.create_internal_signals()
                 pad_obj.create_constant_driver_assign()
                 pad_obj.create_multiplexers()
@@ -658,9 +655,11 @@ def main():
         else:
             pad_cell_name = "pad_" + key + "_i"
             pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list)
-            pad_obj.create_pad_ring()
+            if not pad_keep_internal:
+                pad_obj.create_pad_ring()
             pad_obj.create_core_v_mini_mcu_ctrl()
-            pad_obj.create_pad_ring_bonding()
+            if not pad_keep_internal:
+                pad_obj.create_pad_ring_bonding()
             pad_obj.create_internal_signals()
             pad_obj.create_constant_driver_assign()
             pad_obj.create_multiplexers()
@@ -796,44 +795,12 @@ def main():
         "debug_size_address"               : debug_size_address,
         "ao_peripheral_start_address"      : ao_peripheral_start_address,
         "ao_peripheral_size_address"       : ao_peripheral_size_address,
-        "soc_ctrl_start_offset"            : soc_ctrl_start_offset,
-        "soc_ctrl_size_address"            : soc_ctrl_size_address,
-        "bootrom_start_offset"             : bootrom_start_offset,
-        "bootrom_size_address"             : bootrom_size_address,
-        "spi_flash_start_offset"           : spi_flash_start_offset,
-        "spi_flash_size_address"           : spi_flash_size_address,
-        "spi_memio_start_offset"           : spi_memio_start_offset,
-        "spi_memio_size_address"           : spi_memio_size_address,
-        "power_manager_start_offset"       : power_manager_start_offset,
-        "power_manager_size_address"       : power_manager_size_address,
-        "rv_timer_ao_start_offset"         : rv_timer_ao_start_offset,
-        "rv_timer_ao_size_address"         : rv_timer_ao_size_address,
-        "dma_start_offset"                 : dma_start_offset,
-        "dma_size_address"                 : dma_size_address,
-        "fast_intr_ctrl_start_offset"      : fast_intr_ctrl_start_offset,
-        "fast_intr_ctrl_size_address"      : fast_intr_ctrl_size_address,
-        "ext_periph_start_offset"          : ext_periph_start_offset,
-        "ext_periph_size_address"          : ext_periph_size_address,
-        "pad_control_start_offset"         : pad_control_start_offset,
-        "pad_control_size_address"         : pad_control_size_address,
-        "gpio_ao_start_offset"             : gpio_ao_start_offset,
-        "gpio_ao_size_address"             : gpio_ao_size_address,
-        "uart_start_offset"                : uart_start_offset,
-        "uart_size_address"                : uart_size_address,
-        "spi_start_offset"                 : spi_start_offset,
-        "spi_size_address"                 : spi_size_address,
+        "ao_peripherals"                   : ao_peripherals,
+        "ao_peripherals_count"             : ao_peripherals_count,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
-        "plic_start_offset"                : plic_start_offset,
-        "plic_size_address"                : plic_size_address,
-        "gpio_start_offset"                : gpio_start_offset,
-        "gpio_size_address"                : gpio_size_address,
-        "i2c_start_offset"                 : i2c_start_offset,
-        "i2c_size_address"                 : i2c_size_address,
-        "rv_timer_start_offset"            : rv_timer_start_offset,
-        "rv_timer_size_address"            : rv_timer_size_address,
-        "spi2_start_offset"                : spi2_start_offset,
-        "spi2_size_address"                : spi2_size_address,
+        "peripherals"                      : peripherals,
+        "peripherals_count"                : peripherals_count,
         "ext_slave_start_address"          : ext_slave_start_address,
         "ext_slave_size_address"           : ext_slave_size_address,
         "flash_mem_start_address"          : flash_mem_start_address,
