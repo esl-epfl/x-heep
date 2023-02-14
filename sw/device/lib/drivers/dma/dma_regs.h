@@ -16,8 +16,8 @@ extern "C" {
 // Register width
 #define DMA_PARAM_REG_WIDTH 32
 
-// Input data pointer (word aligned) // juan q: what is word alligned here? 
-#define DMA_PTR_IN_REG_OFFSET 0x0    // juan q: can we rename this as src_ptr? 
+// Input data pointer (word aligned) // juan q: what is word aligned here? 
+#define DMA_PTR_IN_REG_OFFSET 0x0    
 
 // Output data pointer (word aligned)
 #define DMA_PTR_OUT_REG_OFFSET 0x4

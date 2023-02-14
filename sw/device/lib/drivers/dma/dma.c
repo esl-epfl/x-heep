@@ -4,7 +4,7 @@
 **                            *******************                          
 **                                                                         
 ** project  : X-HEEP                                                       
-** filename : j_dma.c                                                      
+** filename : dma.c                                                      
 ** version  : 1                                                            
 ** date     : 13/02/23                                                     
 **                                                                         
@@ -28,7 +28,7 @@ Description : Original version.
 /***************************************************************************/
 
 /**
-* @file   j_dma.c
+* @file   dma.c
 * @date   13/02/23
 * @brief  The Direct Memory Access (DMA) driver to set up and use the DMA peripheral
 *
@@ -45,6 +45,8 @@ Description : Original version.
 
 // juan: include real assert after Jose
 //#include <assert.h>
+
+#include "dma.h"
 
 #include "dma_structs.h"  // Generated
 #include "dma_regs.h"     // Generated
@@ -91,7 +93,8 @@ Description : Original version.
 /****************************************************************************/
 
 /**
- *  Configuration and information parameters of the DMA peripheral
+ *  Control Block (CB) of the DMA peripheral. 
+ * Has variables and constant necessary/useful for its control. 
  */
 static struct 
 {
@@ -103,7 +106,7 @@ static struct
     * The base address for the soc_ctrl hardware registers.
    */
   mmio_region_t baseAdd; 
-} dma_ctrl;
+} dma_cb; // juan: not a good name, specially if the stefano_structs struct is going to be called ctrl
 
 
 /****************************************************************************/
@@ -112,61 +115,86 @@ static struct
 /**                                                                        **/
 /****************************************************************************/
 
-void dma_init(){
+void dma_init()
+{
   // juan: This should be deprecated. base address should be obtained from.....
-  dma_ctrl.baseAdd = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
+  dma_cb.baseAdd = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
   // juan: prob some more stuff should go here.
   // e.g. this function could return something
 }
 
 // juan q: is it ok to inline exported function?
-/*inline*/ void dma_set_src( uint32_t * p_src ) // juan q: what is the {} standard? 
+void dma_set_src( uint32_t * p_src ) // juan q: what is the {} standard? 
 {                                           // juan q: naming standards?
-  assert_me_please( p_src < DMA_MEM_PTR_MAX )        // 
-  mmio_region_write32(dma_ctrl.baseAdd, (ptrdiff_t)(DMA_PTR_IN_REG_OFFSET), p_src);
+  assert_me_please( p_src < DMA_MEM_PTR_MAX );        
+  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_PTR_IN_REG_OFFSET), p_src);
+}                                                   // juan q: can we rename this as src_ptr?? for consistency
+                                                    // juan q: in dma_regs.h #19: "// Input data pointer (word aligned)"  what is word aligned here?  
+
+void dma_set_dst( uint32_t * p_dst )
+{
+  assert_me_please( p_dst < DMA_MEM_PTR_MAX );
+  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_PTR_OUT_REG_OFFSET), p_dst);
 }
 
-/*inline*/ void dma_set_dst( uint32_t * p_dst )
+void dma_set_cnt_start( uint32_t * p_copySize_du)
 {
-  assert_me_please( p_dst < DMA_MEM_PTR_MAX )
-  mmio_region_write32(dma_ctrl.baseAdd, (ptrdiff_t)(DMA_PTR_OUT_REG_OFFSET), p_dst);
-}
-
-/*inline*/ void dma_set_cnt_start( uint32_t * p_copySize)
-{
-  assert_me_please( p_copySize < DMA_MEM_SIZE_MAX )
-  mmio_region_write32(dma_ctrl.baseAdd, (ptrdiff_t)(DMA_DMA_START_REG_OFFSET), p_copySize);
+  assert_me_please( p_copySize < DMA_MEM_SIZE_MAX );
+  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DMA_START_REG_OFFSET), p_copySize_du);
 }
 
 // juan q: what could be returned? this way the function name could be more explicit. 
-/*inline*/ int32_t dma_is_done()
+int32_t dma_is_done()
 {
-  return mmio_region_read32(dma_ctrl.baseAdd, (ptrdiff_t)(DMA_DONE_REG_OFFSET));
+  return mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DONE_REG_OFFSET));
 }
 
-/*inline*/ void dma_set_src_ptr_inc( uint32_t p_inc )
+/*
+ // juan q: "you can set Half-Word data size for the peripheral to access its data register and set Word data size
+           for the Memory to gain in access time. Each two half words will be packed and written in
+           a single access to a Word in the Memory." 
+ *          "When FIFO is disabled, it is not allowed to configure different Data Sizes for Source
+           and Destination. In this case the Peripheral Data Size will be applied to both Source
+           and Destination."
+ *          STM32 DMA driver: https://github.com/bkht/STM32-HAL-DMA-Interrupt/blob/master/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma.c
+ *          Line 63
+ * 
+ * This would be a difference in increments? 
+ * 
+ * 
+ * 
+ */
+
+
+void dma_set_src_ptr_inc( uint32_t p_inc )
 {
-  assert_me_please( p_inc <= DMA_MEM_INC_MAX && IS_POWER_OF_2(p_inc) )
-  mmio_region_write32(dma_ctrl.baseAdd, (ptrdiff_t)(DMA_SRC_PTR_INC_REG_OFFSET), p_inc);
+  assert_me_please( p_inc <= DMA_MEM_INC_MAX && IS_POWER_OF_2(p_inc) );
+  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_SRC_PTR_INC_REG_OFFSET), p_inc);
 }
 
-/*inline*/ void dma_set_dst_ptr_inc( uint32_t p_inc )
+void dma_set_dst_ptr_inc( uint32_t p_inc )
 {
-  assert_me_please( p_inc <= DMA_MEM_INC_MAX && IS_POWER_OF_2(p_inc) )
-  mmio_region_write32(dma_ctrl.baseAdd, (ptrdiff_t)(DMA_DST_PTR_INC_REG_OFFSET), p_inc);
+  assert_me_please( p_inc <= DMA_MEM_INC_MAX && IS_POWER_OF_2(p_inc) );
+  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DST_PTR_INC_REG_OFFSET), p_inc);
 }
 
-/*inline*/ void dma_set_spi_mode( uint32_t p_mode)
+void dma_set_spi_mode( dma_spi_mode_t p_mode)
 {
-  // juan: #assert_me_please( check is under SPI_MODE__size)
-  mmio_region_write32(dma_ctrl.baseAdd, (ptrdiff_t)(DMA_SPI_MODE_REG_OFFSET), p_mode);
+  assert_me_please( p_mode < DMA_SPI_MODE__size );
+  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_SPI_MODE_REG_OFFSET), (uint32_t) p_mode);
 }
 
-/*inline*/ void dma_set_data_type( uint32_t p_type)
+void dma_set_data_type( dma_data_type_t p_type)
 {
-  // juan: #assert_me_please( check is under DATA_TYPE__size)
-  mmio_region_write32(dma_ctrl.baseAdd, (ptrdiff_t)(DMA_DATA_TYPE_REG_OFFSET), p_type);
+  assert_me_please( p_type < DMA_DATA_TYPE__size );
+  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DATA_TYPE_REG_OFFSET), ( uint32_t ) p_type);
 } 
+
+
+
+// juan q: should add a enable/disable interrupt? where is interrupt set? 
+// juan q: should the DMA be enabled/disabled
+// juan q: should get counter with a function?
 
 /****************************************************************************/
 /**                                                                        **/
@@ -188,3 +216,11 @@ void dma_init(){
 //          it could save preset information (author, institution, copyright, project) 
 // juan q: should we rename this module as drv_dma.c/h?  
 // juan q: way to distinguish between register and region in abbreviation? 
+
+// juan: I will need different streams >>> which information is needed for each? 
+
+// juan q: is the way we are hierarchically organizing the project IDE-friendly'
+
+
+// juan: for example DMA-peripheral firstly just toogle a GPIO and sniff it in the oscilloscope. 
+//       it could be compared vs. doing the same thing w/ the CPU
