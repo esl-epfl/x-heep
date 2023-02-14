@@ -119,7 +119,7 @@ vcs-sim: |venv
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
 run-helloworld: mcu-gen verilator-sim |venv
-	$(MAKE) -C sw PROJECT=hello_world MAINFILE=hello_world  TARGET=$(TARGET) LINKER=$(LINKER)\
+	$(MAKE) -C sw PROJECT=hello_world MAINFILE=hello_world  TARGET=$(TARGET) LINKER=$(LINKER);\
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
 	./Vtestharness +firmware=../../../sw/build/hello_world.hex; \
 	cat uart0.log; \
