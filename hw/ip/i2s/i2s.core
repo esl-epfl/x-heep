@@ -15,6 +15,10 @@ filesets:
     - rtl/i2s_reg_pkg.sv
     - rtl/i2s_reg_top.sv
     - rtl/i2s.sv
+    - rtl/i2s_core.sv
+    - rtl/i2s_clk_gen.sv
+    - rtl/i2s_rx_channel.sv
+    - rtl/i2s_ws_gen.sv
     file_type: systemVerilogSource
 
 targets:
