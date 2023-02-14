@@ -141,7 +141,8 @@ typedef struct
 
 // juan q jose: Would it be smart to make all these functions inline if then I need to extern this control block?
 // Id rather have the cb static'd in the source to guarantee no manipulation.
-// Otherwise, it can be a way of giving control to the user... but hmmmm....
+// juan q jose: consider that if someone accesses the dma_cb not rhough these functions, its data could be incorrect because it has not been sync'd with the register
+
 extern dma_cb_t dma_cb;
 
 // juan q jose: what would this do? 
@@ -172,8 +173,10 @@ void dma_init();
  */
 inline void dma_set_src( uint32_t * p_src ) 
 {                                           
-  assert_me_please( p_src < DMA_MEM_PTR_MAX );        
-  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_PTR_IN_REG_OFFSET), p_src);
+  assert_me_please( p_src < DMA_MEM_PTR_MAX );
+  /* Keeping track of the input values is important to */ 
+  dma_cb.ctrl.PTR_IN = p_src; 
+  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_PTR_IN_REG_OFFSET), dma_cb.ctrl.PTR_IN );
 } // @ToDo: Rename DMA_PTR_IN_*  ->  DMA_SRC_PTR_* 
 
 
@@ -184,7 +187,8 @@ inline void dma_set_src( uint32_t * p_src )
 inline void dma_set_dst( uint32_t * p_dst )
 {
   assert_me_please( p_dst < DMA_MEM_PTR_MAX );
-  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_PTR_OUT_REG_OFFSET), p_dst);
+  dma_cb.ctrl.PTR_OUT = p_dst;
+  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_PTR_OUT_REG_OFFSET), dma_cb.ctrl.PTR_OUT );
 } // @ToDo: Rename DMA_PTR_OUT_*  ->  DMA_DST_PTR_*
 
 
@@ -197,7 +201,8 @@ inline void dma_set_dst( uint32_t * p_dst )
 inline void dma_set_cnt_start( uint32_t * p_copySize_du)
 {
   assert_me_please( p_copySize < DMA_MEM_SIZE_MAX );
-  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DMA_START_REG_OFFSET), p_copySize_du);
+  dma_cb.ctrl.DMA_START = p_copySize_du;
+  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DMA_START_REG_OFFSET), dma_cb.ctrl.DMA_START );
 } // @ToDo: Rename DMA_DMA_START_*  ->  DMA_CNT_START_*
 // juan q ruben: Does the count keep the amount left to transmit? So if cnt == 0, done == 1 ? 
 
@@ -210,7 +215,8 @@ inline uint32_t dma_get_cnt_du()
 {
     uint32_t ret = mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DMA_START_REG_OFFSET));
     assert_me_please( /* juan q ruben: what could be asserted in this case? */ );
-    return ret;
+    dma_cb.ctrl.DMA_START = ret;
+    return dma_cb.ctrl.DMA_START;
 }
 
 
@@ -224,7 +230,8 @@ inline uint32_t dma_is_done()
 {
   uint32_t ret = mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DONE_REG_OFFSET));
   assert_me_please( ret == 0 || ret == 1 );
-  return ret;
+  dma_cb.ctrl.DONE = ret;
+  return dma_cb.ctrl.DONE;
   /* In case a return wants to be forced in case of an error, there are 2 alternatives: 
    *    1) Consider any value != 0 to be a valid 1 using a LOGIC AND: 
    *            return ( 1 && mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DONE_REG_OFFSET)));
@@ -244,7 +251,8 @@ inline uint32_t dma_is_done()
 inline void dma_set_src_ptr_inc( uint32_t p_inc )
 {
   assert_me_please( p_inc <= DMA_MEM_INC_MAX && IS_POWER_OF_2(p_inc) );
-  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_SRC_PTR_INC_REG_OFFSET), p_inc);
+  dma_cb.ctrl.SRC_PTR_INC = p_inc;
+  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_SRC_PTR_INC_REG_OFFSET), dma_cb.ctrl.SRC_PTR_INC );
 }
 
 
@@ -255,7 +263,8 @@ inline void dma_set_src_ptr_inc( uint32_t p_inc )
 inline void dma_set_dst_ptr_inc( uint32_t p_inc )
 {
   assert_me_please( p_inc <= DMA_MEM_INC_MAX && IS_POWER_OF_2(p_inc) );
-  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DST_PTR_INC_REG_OFFSET), p_inc);
+  dma_cb.ctrl.DST_PTR_INC = p_inc;
+  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DST_PTR_INC_REG_OFFSET), dma_cb.ctrl.DST_PTR_INC );
 }
 
 
@@ -271,7 +280,8 @@ inline void dma_set_dst_ptr_inc( uint32_t p_inc )
 inline void dma_set_spi_mode( dma_spi_mode_t p_mode)
 {
   assert_me_please( p_mode < DMA_SPI_MODE__size );
-  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_SPI_MODE_REG_OFFSET), (uint32_t) p_mode);
+  dma_cb.ctrl.SPI_MODE = p_mode;
+  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_SPI_MODE_REG_OFFSET), (uint32_t) dma_cb.ctrl.SPI_MODE );
 }
 
 
@@ -282,7 +292,8 @@ inline void dma_set_spi_mode( dma_spi_mode_t p_mode)
 inline void dma_set_data_type( dma_data_type_t p_type)
 {
   assert_me_please( p_type < DMA_DATA_TYPE__size );
-  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DATA_TYPE_REG_OFFSET), ( uint32_t ) p_type);
+  dma_cb.ctrl.DATA_TYPE = p_type;
+  mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DATA_TYPE_REG_OFFSET), ( uint32_t ) dma_cb.ctrl.DATA_TYPE );
 } 
 
 
@@ -294,9 +305,9 @@ inline void dma_set_data_type( dma_data_type_t p_type)
 /****************************************************************************/
 
                                                  
-                                                     
-
-
+// juan q jose: Consider in set operations only backing up to the dma_cb struct and then have a "flush" function to launch the operation. 
+//              This avoids unnecessary communication with the DMA.
+//              Could help to avoid inconsistencies like: SPI but DMA int enabled, or INC being smaller than data unit 
 
 
 
