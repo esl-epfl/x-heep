@@ -116,7 +116,11 @@
 
 /* The rate at which data is sent to the queue.  The 200ms value is converted
 to ticks using the pdMS_TO_TICKS() macro. */
+#ifdef TARGET_PYNQ_Z2
 #define mainQUEUE_SEND_FREQUENCY_MS			pdMS_TO_TICKS( 200 )
+#else
+#define mainQUEUE_SEND_FREQUENCY_MS			pdMS_TO_TICKS( 3 )
+#endif
 
 /* The maximum number items the queue can hold.  The priority of the receiving
 task is above the priority of the sending task, so the receiving task will

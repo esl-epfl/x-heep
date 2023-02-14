@@ -183,5 +183,8 @@ app-restore:
 clean-sim:
 	@rm -rf build
 
+## Does the same as app-restore
+clean-app: app-restore
+
 ## Removes the CMake build folder and the HW build folder
-clean: app-restore clean-sim
+clean-all: app-restore clean-sim

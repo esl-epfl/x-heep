@@ -144,7 +144,7 @@ In the ./util folder, the vendor.py scripts implements what is describeb above.
 
 # Compiling with Makefile
 
-You can compile the example applications and the platform using the Makefile. Type 'make help' or 'make' for more information.
+You can compile the example applications and the platform using the Makefile. Type 'make help' or 'make' for more information. Moreover, please, check the different 'clean' commands to verify that you are using the corret one.
 
 ## Generate core-v-mini-mcu package
 
@@ -177,7 +177,7 @@ make app
 To run any other application, please use the following command with appropiate parameters:
 
 ```
-app PROJECT=<folder_name_of_the_project_to_be_built> MAINFILE=<main_file_name_of_the_project_to_be_built  WITHOUT EXTENSION!> TARGET=sim(default),pynq-z2 LINKER=on_chip(default),flash_load,flash_exec,freertos
+app PROJECT=<folder_name_of_the_project_to_be_built> MAINFILE=<main_file_name_of_the_project_to_be_built  WITHOUT EXTENSION!> TARGET=sim(default),pynq-z2 LINKER=on_chip(default),flash_load,flash_exec
 
 Params:
 - PROJECT (ex: <folder_name_of_the_project_to_be_built>, hello_wolrd(default))
@@ -186,7 +186,7 @@ Params:
 - LINKER (ex: on_chip(default),flash_load,flash_exec)
 ```
 
-For instance, to run for the pynq-z2 FPGA targets, just run:
+For instance, to run 'hello world' app for the pynq-z2 FPGA targets, just run:
 
 ```
 make app TARGET=pynq-z2
@@ -195,6 +195,24 @@ make app TARGET=pynq-z2
 This will create the executable file to be loaded in your target system (ASIC, FPGA, Simulation).
 Remember that, `X-HEEP` is using CMake to compile and link. Thus, the generated files after having
 compiled and linked are under `sw\build`
+
+## FreeROTS based applications
+
+'X-HEEP' supports 'FreeRTOS' based applications. Please see `sw\applications\blinky_freertos`.
+Note that before runing such application, and due to current memory constraints, the core-v-mini-mcu package needs to be generated using more memory banks than the default settings. Thus, as previously specified: in case of executing a FreeRTOS-based application, the **minimum memory banks should be set to 5**. This is related to the FreeRTOS code and ram requirements. In this case, please, run the following command:
+
+```
+make mcu-gen MEMORY_BANKS=5
+```
+
+After that, you can run the command to compile and link the FreeRTOS based application. Please also set 'LINKER' and 'TARGET' parameters if needed.
+
+```
+make app PROJECT=blinky_freertos MAINFILE=main 
+```
+
+The main FreeRTOS configuration is allocated under `sw\freertos`, in `FreeRTOSConfig.h`. Please, change this file based on your application requirements.
+Moreover, FreeRTOS is being fetch from 'https://github.com/FreeRTOS/FreeRTOS-Kernel.git' by CMake. Specifically, 'V10.5.1' is used. Finally, the fetch repository is located under `sw\build\_deps` after building.
 
 ## Simulating
 
