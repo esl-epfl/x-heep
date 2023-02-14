@@ -43,29 +43,13 @@ Description : Original version.
 /**                                                                        **/
 /****************************************************************************/
 
-// juan: include real assert after Jose
-//#include <assert.h>
-
 #include "dma.h"
-
-#include "dma_structs.h"  // Generated
-#include "dma_regs.h"     // Generated
-
-#include "mmio.h"
-#include "core_v_mini_mcu.h" // @ToDo: Include this inside _regs.h
-
 
 /****************************************************************************/
 /**                                                                        **/
 /*                        DEFINITIONS AND MACROS                            */
 /**                                                                        **/
 /****************************************************************************/
-
-// ToDo: Juan - remove this, is just a placeholder until real assert can be included
-#define assert_me_please(x)
-
-// source: https://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-power-of-2
-#define IS_POWER_OF_2(x) ( x && ( ( x & -x ) == x ) )
 
 /****************************************************************************/
 /**                                                                        **/
@@ -92,22 +76,7 @@ Description : Original version.
 /**                                                                        **/
 /****************************************************************************/
 
-/**
- *  Control Block (CB) of the DMA peripheral. 
- * Has variables and constant necessary/useful for its control. 
- */
-struct 
-{
-  /**
-   * Control variables for the DMA peripheral 
-  */
-  dma    ctrl; 
-  /**
-    * The base address for the soc_ctrl hardware registers.
-   */
-  mmio_region_t baseAdd; 
-} dma_cb; 
-
+dma_cb_t dma_cb;
 
 /****************************************************************************/
 /**                                                                        **/
@@ -122,9 +91,6 @@ void dma_init()
   // juan: prob some more stuff should go here.
   // e.g. this function could return something
 }
-
-
-
 
 
 /****************************************************************************/

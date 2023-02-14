@@ -58,6 +58,16 @@ Description : Original version.
 #include <stddef.h>
 #include <stdint.h>
 
+// juan: include real assert after Jose
+//#include <assert.h>
+
+#include "dma_structs.h"  // Generated
+#include "dma_regs.h"     // Generated
+
+
+#include "../../base/mmio.h"    // @ToDo: Not make this relative. 
+#include "../../runtime/core_v_mini_mcu.h" // @ToDo: Include this inside _regs.h
+
 /****************************************************************************/
 /**                                                                        **/
 /**                       DEFINITIONS AND MACROS                           **/
@@ -70,12 +80,21 @@ Description : Original version.
 #define DMA_MEM_INC_MAX 4
 
 
+// ToDo: Juan - remove this, is just a placeholder until real assert can be included
+#define assert_me_please(x)
+
+// source: https://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-power-of-2
+#define IS_POWER_OF_2(x) ( x && ( ( x & -x ) == x ) )
+
 /****************************************************************************/
 /**                                                                        **/
 /**                       TYPEDEFS AND STRUCTURES                          **/
 /**                                                                        **/
 /****************************************************************************/
 
+/**
+ * All the valid SPI modes for the DMA-SPI operation.
+ */
 typedef enum
 {
     DMA_SPI_MODE_DISABLE    = 0,
@@ -86,15 +105,33 @@ typedef enum
     DMA_SPI_MODE__size     
 } dma_spi_mode_t;
 
+/**
+ *  All the valid data types for the DMA transfer.
+ */
 typedef enum
 {
     DMA_DATA_TYPE_WORD              = 0,
     DMA_DATA_TYPE_HALF_WORD         = 1,
     DMA_DATA_TYPE_BYTE              = 2,
-    DMA_DATA_TYPE_BYTE_deprecated   = 3,
+    DMA_DATA_TYPE_BYTE_alt          = 3,
     DMA_DATA_TYPE__size
 } dma_data_type_t;
 
+/**
+ *  Control Block (CB) of the DMA peripheral. 
+ * Has variables and constant necessary/useful for its control. 
+ */
+typedef struct 
+{
+  /**
+   * Control variables for the DMA peripheral 
+  */
+  dma    ctrl; 
+  /**
+    * The base address for the soc_ctrl hardware registers.
+   */
+  mmio_region_t baseAdd; 
+} dma_cb_t; 
 
 /****************************************************************************/
 /**                                                                        **/
@@ -105,7 +142,7 @@ typedef enum
 // juan q jose: Would it be smart to make all these functions inline if then I need to extern this control block?
 // Id rather have the cb static'd in the source to guarantee no manipulation.
 // Otherwise, it can be a way of giving control to the user... but hmmmm....
-extern dma_cb;
+extern dma_cb_t dma_cb;
 
 // juan q jose: what would this do? 
 // #ifndef _TEMPLATE_C_SRC
@@ -118,7 +155,7 @@ extern dma_cb;
 /****************************************************************************/
 
 /**
- * @brief Obtains basic information without which no operation can be done with the DMA
+ * @brief Obtains basic information for the operation of the DMA. 
  */
 void dma_init();
 
@@ -133,8 +170,8 @@ void dma_init();
  * @brief Write to the read (source) pointer register of the DMA.
  * @param p_src Any valid memory address.
  */
-inline void dma_set_src( uint32_t * p_src ) // juan q: what is the {} standard? 
-{                                           // juan q: naming standards? Let put of accuerd. Review whats already done. 
+inline void dma_set_src( uint32_t * p_src ) 
+{                                           
   assert_me_please( p_src < DMA_MEM_PTR_MAX );        
   mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_PTR_IN_REG_OFFSET), p_src);
 } // @ToDo: Rename DMA_PTR_IN_*  ->  DMA_SRC_PTR_* 
@@ -242,7 +279,7 @@ inline void dma_set_spi_mode( dma_spi_mode_t p_mode)
  * @brief Write to the data type register of the DMA.
  * @param p_src A valid data type. // juan: specify which, they are in dma_regs.h
  */
-inline vvoid dma_set_data_type( dma_data_type_t p_type)
+inline void dma_set_data_type( dma_data_type_t p_type)
 {
   assert_me_please( p_type < DMA_DATA_TYPE__size );
   mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DATA_TYPE_REG_OFFSET), ( uint32_t ) p_type);

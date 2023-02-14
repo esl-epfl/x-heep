@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     #ifdef TEST_WORD
         // -- DMA CONFIG -- //
         
-        
+    
         dma_set_src((uint32_t) test_data_4B);
         dma_set_dst((uint32_t) copied_data_4B);
         dma_set_src_ptr_inc((uint32_t) 4);
