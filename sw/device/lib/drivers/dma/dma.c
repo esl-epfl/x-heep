@@ -52,7 +52,7 @@ Description : Original version.
 #include "dma_regs.h"     // Generated
 
 #include "mmio.h"
-#include "core_v_mini_mcu.h" //juan q: ok?
+#include "core_v_mini_mcu.h" //juan r: ok? Considerar incluir el core-v-mini-mcu.h en el xxx_reg.h
 
 
 /****************************************************************************/
@@ -123,13 +123,14 @@ void dma_init()
   // e.g. this function could return something
 }
 
-// juan q: is it ok to inline exported function?
+// juan r: is it ok to inline exported function? Put definition with prototype in .h
 void dma_set_src( uint32_t * p_src ) // juan q: what is the {} standard? 
-{                                           // juan q: naming standards?
+{                                           // juan q: naming standards? Let put of accuerd. Review whats already done. 
   assert_me_please( p_src < DMA_MEM_PTR_MAX );        
   mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_PTR_IN_REG_OFFSET), p_src);
-}                                                   // juan q: can we rename this as src_ptr?? for consistency
-                                                    // juan q: in dma_regs.h #19: "// Input data pointer (word aligned)"  what is word aligned here?  
+}                                                   // juan r: can we rename this as src_ptr?? for consistency
+                                                     //               - no, make the change in the function name, and leave a ToDo. 
+                                                    // juan r: in dma_regs.h #19: "// Input data pointer (word aligned)"  what is word aligned here?  
 
 void dma_set_dst( uint32_t * p_dst )
 {
@@ -143,14 +144,14 @@ void dma_set_cnt_start( uint32_t * p_copySize_du)
   mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DMA_START_REG_OFFSET), p_copySize_du);
 }
 
-// juan q: what could be returned? this way the function name could be more explicit. 
+// juan r: what could be returned? this way the function name could be more explicit.  Es bool ver abajo
 int32_t dma_is_done()
 {
   return mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DONE_REG_OFFSET));
 }
 
 /*
- // juan q: "you can set Half-Word data size for the peripheral to access its data register and set Word data size
+ // juan r: "you can set Half-Word data size for the peripheral to access its data register and set Word data size
            for the Memory to gain in access time. Each two half words will be packed and written in
            a single access to a Word in the Memory." 
  *          "When FIFO is disabled, it is not allowed to configure different Data Sizes for Source
@@ -159,7 +160,7 @@ int32_t dma_is_done()
  *          STM32 DMA driver: https://github.com/bkht/STM32-HAL-DMA-Interrupt/blob/master/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma.c
  *          Line 63
  * 
- * This would be a difference in increments? 
+ * This would be a difference in increments? Ya esta respondido
  * 
  * 
  * 
@@ -192,9 +193,9 @@ void dma_set_data_type( dma_data_type_t p_type)
 
 
 
-// juan q: should add a enable/disable interrupt? where is interrupt set? 
-// juan q: should the DMA be enabled/disabled
-// juan q: should get counter with a function?
+// juan r: should add a enable/disable interrupt? where is interrupt set?  Yes see notebook
+// juan r: should the DMA be enabled/disabled? no
+// juan r: should get counter with a function? Yes please
 
 /****************************************************************************/
 /**                                                                        **/
@@ -209,18 +210,21 @@ void dma_set_data_type( dma_data_type_t p_type)
 /****************************************************************************/
 
 
+lib/drv/inc/
 
 
-// juan q: is it ok if I use netbeans? 
-// juan q: is there a script to create the new c/h file from template?
+// juan r: is it ok if I use netbeans? pleantearlo en la biweekly
+// juan r: is there a script to create the new c/h file from template? Ask stefano
 //          it could save preset information (author, institution, copyright, project) 
-// juan q: should we rename this module as drv_dma.c/h?  
-// juan q: way to distinguish between register and region in abbreviation? 
+// juan r: should we rename this module as drv_dma.c/h?  ask jose in biweekly
+// juan r: way to distinguish between register and region in abbreviation? stay aleert
 
-// juan: I will need different streams >>> which information is needed for each? 
+// juan r: I will need different streams >>> which information is needed for each?  
 
-// juan q: is the way we are hierarchically organizing the project IDE-friendly'
+// juan r: is the way we are hierarchically organizing the project IDE-friendly': Decide which IDE in the biweekly.
 
 
 // juan: for example DMA-peripheral firstly just toogle a GPIO and sniff it in the oscilloscope. 
 //       it could be compared vs. doing the same thing w/ the CPU
+
+// juan : Hacer que done tome solo el bit 0 y retorne bool ??? Esto deber'a ser un toDo. Lo del bool no.  
