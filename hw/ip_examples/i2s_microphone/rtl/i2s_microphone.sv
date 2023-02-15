@@ -2,9 +2,7 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-module i2s_microphone #(
-    parameter int unsigned CntMax = 32'd2048
-) (
+module i2s_microphone (
     input logic rst_ni,
 
     // i2s interface ports
@@ -16,14 +14,19 @@ module i2s_microphone #(
 );
 
   logic [5:0] bit_count;
-  logic curr_ws;
+  logic s_ws;
+  logic r_ws;
+
+  assign s_ws = i2s_ws_i;
 
   always_ff @(posedge i2s_sck_i or negedge rst_ni) begin
     if (~rst_ni) begin
       bit_count <= 0;
+      r_ws <= 0;
     end else begin
-      if (i2s_ws_i != curr_ws) begin
+      if (s_ws != r_ws) begin
         bit_count <= 0;
+        r_ws <= s_ws;
       end else begin
         bit_count <= bit_count + 1;
       end

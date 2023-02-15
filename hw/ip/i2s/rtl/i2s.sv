@@ -33,7 +33,7 @@ module i2s #(
 
   import i2s_reg_pkg::*;
   localparam SampleWidth = (1 << BytePerSampleWidth) * 8;
-  localparam CounterWidth = BytePerSampleWidth + 4;
+  localparam CounterWidth = BytePerSampleWidth + 3;
 
   // Interface signals
   i2s_reg2hw_t reg2hw;
@@ -56,7 +56,7 @@ module i2s #(
 
 
   logic [CounterWidth-1:0] sample_width;
-  assign sample_width = {(reg2hw.bytepersample.q + {{(BytePerSampleWidth) {1'b0}}, 1'b1}), 3'b0};
+  assign sample_width = {reg2hw.bytepersample.q, 3'h7};
 
   // FIFO -> RX WINDOW
   assign rx_win_d2h.ready = rx_win_h2d.valid && rx_win_h2d.addr[BlockAw-1:0] == i2s_reg_pkg::I2S_RXDATA_OFFSET && !rx_win_h2d.write;

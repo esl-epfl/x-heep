@@ -8,7 +8,7 @@
 
 module i2s_ws_gen #(
     parameter SampleWidth,
-    localparam int unsigned CounterWidth = $clog2(SampleWidth + 1)
+    localparam int unsigned CounterWidth = $clog2(SampleWidth)
 
 ) (
     input logic sck_i,

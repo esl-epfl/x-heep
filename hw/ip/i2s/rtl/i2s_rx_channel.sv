@@ -8,7 +8,7 @@
 
 module i2s_rx_channel #(
     parameter  int unsigned SampleWidth,
-    localparam int unsigned CounterWidth = $clog2(SampleWidth + 1)
+    localparam int unsigned CounterWidth = $clog2(SampleWidth)
 ) (
     input logic sck_i,
     input logic rst_ni,
@@ -56,7 +56,7 @@ module i2s_rx_channel #(
     s_shiftreg_ch0 = r_shiftreg_ch0;
     if (cfg_lsb_first_i) begin
       s_shiftreg_ch0 = {1'b0, r_shiftreg_ch0[SampleWidth-1:1]};
-      s_shiftreg_ch0[cfg_sample_width_i-1] = sd_i;
+      s_shiftreg_ch0[cfg_sample_width_i] = sd_i;
     end else begin
       s_shiftreg_ch0 = {r_shiftreg_ch0[SampleWidth-2:0], sd_i};
     end
