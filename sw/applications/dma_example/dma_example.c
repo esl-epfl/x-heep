@@ -71,11 +71,11 @@ int main(int argc, char *argv[])
         dma_set_dst((uint32_t) copied_data_4B);
         dma_set_src_ptr_inc((uint32_t) 4);
         dma_set_dst_ptr_inc((uint32_t) 4);
-        dma_set_spi_mode((uint32_t) 0);
+        dma_set_direction((uint32_t) 0);
         dma_set_data_type((uint32_t) 0);
         printf("DMA word transaction launched\n");
         // Give number of bytes to transfer
-        dma_set_cnt_start((uint32_t) TEST_DATA_SIZE*sizeof(*copied_data_4B));
+        dma_set_size((uint32_t) TEST_DATA_SIZE*sizeof(*copied_data_4B));
         // Wait copy is done
         dma_intr_flag = 0;
         while(dma_intr_flag==0) {
@@ -89,12 +89,12 @@ int main(int argc, char *argv[])
         dma_set_write_ptr(&dma, (uint32_t) (copied_data_2B + HALF_WORD_OUTPUT_OFFSET));
         dma_set_read_ptr_inc(&dma, (uint32_t) 2);
         dma_set_write_ptr_inc(&dma, (uint32_t) 2);
-        dma_set_spi_mode(&dma, (uint32_t) 0);
+        dma_set_direction(&dma, (uint32_t) 0);
         dma_set_data_type(&dma, (uint32_t) 1);
         printf("DMA half-word transaction launched\n");
         // Give number of bytes to transfer
         // Last 2 bytes are not copy to check the DMA works properly
-        dma_set_cnt_start(&dma, (uint32_t) ((TEST_DATA_SIZE - 2*HALF_WORD_OUTPUT_OFFSET)*sizeof(*copied_data_2B)));
+        dma_set_size(&dma, (uint32_t) ((TEST_DATA_SIZE - 2*HALF_WORD_OUTPUT_OFFSET)*sizeof(*copied_data_2B)));
         // Wait copy is done
         dma_intr_flag = 0;
         while(dma_intr_flag==0) {
@@ -108,12 +108,12 @@ int main(int argc, char *argv[])
         dma_set_write_ptr(&dma, (uint32_t) (copied_data_1B + BYTE_OUTPUT_OFFSET));
         dma_set_read_ptr_inc(&dma, (uint32_t) 1);
         dma_set_write_ptr_inc(&dma, (uint32_t) 1);
-        dma_set_spi_mode(&dma, (uint32_t) 0);
+        dma_set_direction(&dma, (uint32_t) 0);
         dma_set_data_type(&dma, (uint32_t) 2);
         printf("DMA byte transaction launched\n");
         // Give number of bytes to transfer
         // Last byte are not copy to check the DMA works properly
-        dma_set_cnt_start(&dma, (uint32_t) ((TEST_DATA_SIZE - 2*BYTE_OUTPUT_OFFSET)*sizeof(*copied_data_1B)));
+        dma_set_size(&dma, (uint32_t) ((TEST_DATA_SIZE - 2*BYTE_OUTPUT_OFFSET)*sizeof(*copied_data_1B)));
         // Wait copy is done
         dma_intr_flag = 0;
         while(dma_intr_flag==0) {

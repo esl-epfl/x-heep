@@ -107,9 +107,9 @@ int main(int argc, char *argv[])
     // (3) receive from SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
     // (4) send to SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
     #ifndef USE_SPI_FLASH
-        dma_set_spi_mode(&dma, (uint32_t) 1); // The DMA will wait for the SPI RX FIFO valid signal
+        dma_set_direction(&dma, (uint32_t) 1); // The DMA will wait for the SPI RX FIFO valid signal
     #else
-        dma_set_spi_mode(&dma, (uint32_t) 3); // The DMA will wait for the SPI FLASH RX FIFO valid signal
+        dma_set_direction(&dma, (uint32_t) 3); // The DMA will wait for the SPI FLASH RX FIFO valid signal
     #endif
     dma_set_data_type(&dma, (uint32_t) SPI_DATA_TYPE);
 
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
     read_byte_cmd = ((REVERT_24b_ADDR(flash_data) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
 
     dma_intr_flag = 0;
-    dma_set_cnt_start(&dma, (uint32_t) (COPY_DATA_NUM*sizeof(*copy_data)));
+    dma_set_size(&dma, (uint32_t) (COPY_DATA_NUM*sizeof(*copy_data)));
 
     #if SPI_DATA_TYPE == 0
         const uint32_t cmd_read_rx = spi_create_command((spi_command_t){ // Single transaction
