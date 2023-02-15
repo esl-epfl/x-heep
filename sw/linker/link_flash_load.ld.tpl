@@ -149,5 +149,6 @@ SECTIONS {
        . = __stack_size;
        PROVIDE(_sp = .);
        PROVIDE(__stack_end = .);
+       PROVIDE(__freertos_irq_stack_top = .);
     } >RAM
 }

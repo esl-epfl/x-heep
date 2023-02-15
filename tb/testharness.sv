@@ -10,6 +10,7 @@ module testharness #(
     parameter PULP_XPULP    = 0,
     parameter FPU           = 0,
     parameter PULP_ZFINX    = 0,
+    parameter X_EXT         = 0,         // eXtension interface in cv32e40x
     parameter JTAG_DPI      = 0,
     parameter CLK_FREQUENCY = 'd100_000  //KHz
 ) (
@@ -99,11 +100,15 @@ module testharness #(
   end
 `endif
 
+  // eXtension Interface
+  if_xif #() ext_if ();
+
   x_heep_system #(
       .PULP_XPULP(PULP_XPULP),
       .FPU(FPU),
       .PULP_ZFINX(PULP_ZFINX),
-      .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER)
+      .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER),
+      .X_EXT(X_EXT)
   ) x_heep_system_i (
       .clk_i,
       .rst_ni,
@@ -165,6 +170,12 @@ module testharness #(
       .i2c_sda_io(gpio[30]),
       .exit_value_o,
       .intr_vector_ext_i(intr_vector_ext),
+      .xif_compressed_if(ext_if),
+      .xif_issue_if(ext_if),
+      .xif_commit_if(ext_if),
+      .xif_mem_if(ext_if),
+      .xif_mem_result_if(ext_if),
+      .xif_result_if(ext_if),
       .ext_xbar_master_req_i(master_req),
       .ext_xbar_master_resp_o(master_resp),
       .ext_xbar_slave_req_o(slave_req),
