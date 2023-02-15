@@ -27,20 +27,23 @@
 int main(int argc, char *argv[])
 {
     printf("I2s DEMO\n");
-    printf(" > Start\n");
 
     mmio_region_t base_addr = mmio_region_from_addr((uintptr_t)I2S_START_ADDRESS);
-    printf("base address is %d\n", base_addr);
 
     int32_t result = 0;
     int32_t test_value = 234789;
-    mmio_region_write32(base_addr, I2S_INPUTDATA_REG_OFFSET, test_value);
+    mmio_region_write32(base_addr, I2S_BYTEPERSAMPLE_REG_OFFSET, 0x3);
+    mmio_region_write32(base_addr, I2S_CFG_REG_OFFSET, 0b11);
+    
     for (int32_t j = 0; j < 16; j = j + 1) printf("%d", j);
     printf("\n");
-    result = mmio_region_read32(base_addr, I2S_OUTPUTDATA_REG_OFFSET);
-    printf("%s written %d read %d\n", result == result ? "SUCCESS" : "FAILED ", test_value, result);
 
     for (int32_t i = 0; i < 16; i++) {
+        int status; 
+        do {
+            status = mmio_region_read32(base_addr, I2S_STATUS_REG_OFFSET);
+
+        } while (status & I2S_STATUS_EMPTY_BIT);
         result = mmio_region_read32(base_addr, I2S_RXDATA_REG_OFFSET);
         printf("RX: %d\n", result);
     }

@@ -312,6 +312,15 @@ module testharness #(
       .gpio_o(gpio[31])
   );
 
+  // GPIO counter example
+  i2s_microphone i2s_microphone_i (
+      .rst_ni(rst_ni),
+
+      .i2s_sck_i(gpio[20]),
+      .i2s_ws_i (gpio[21]),
+      .i2s_sd_o (gpio[22])
+  );
+
 `ifndef VERILATOR
   // Flash used for booting (execute from flash or copy from flash)
   spiflash flash_boot_i (
