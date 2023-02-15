@@ -7,8 +7,8 @@
 // Description: I2s peripheral
 
 module i2s_rx_channel #(
-    parameter int unsigned SampleWidth,
-    localparam int unsigned CounterWidth = $clog2(SampleWidth+1)
+    parameter  int unsigned SampleWidth,
+    localparam int unsigned CounterWidth = $clog2(SampleWidth + 1)
 ) (
     input logic sck_i,
     input logic rst_ni,
@@ -22,33 +22,33 @@ module i2s_rx_channel #(
 
     // FIFO
     output logic [SampleWidth-1:0] fifo_rx_data_o,
-    output logic             fifo_rx_data_valid_o,
-    input  logic             fifo_rx_data_ready_i,
-    output logic             fifo_rx_err_o
+    output logic                   fifo_rx_data_valid_o,
+    input  logic                   fifo_rx_data_ready_i,
+    output logic                   fifo_rx_err_o
 );
 
 
-  logic        r_ws_old;
-  logic        s_ws_edge;
+  logic                    r_ws_old;
+  logic                    s_ws_edge;
 
-  logic [SampleWidth-1:0] r_shiftreg_ch0;
-  logic [SampleWidth-1:0] s_shiftreg_ch0;
-  logic [SampleWidth-1:0] r_shiftreg_ch0_shadow;
+  logic [ SampleWidth-1:0] r_shiftreg_ch0;
+  logic [ SampleWidth-1:0] s_shiftreg_ch0;
+  logic [ SampleWidth-1:0] r_shiftreg_ch0_shadow;
 
   logic [CounterWidth-1:0] r_count_bit;
 
-  logic        s_word_done;
+  logic                    s_word_done;
 
-  logic        r_started;
-  logic        r_started_dly;
+  logic                    r_started;
+  logic                    r_started_dly;
 
-  logic        r_ch0_valid;
+  logic                    r_ch0_valid;
 
   assign s_ws_edge = ws_i ^ r_ws_old;
 
   assign s_word_done = r_count_bit == cfg_sample_width_i;
 
-  assign fifo_rx_data_o = r_ch0_valid ? r_shiftreg_ch0_shadow : {(SampleWidth){1'b0}};
+  assign fifo_rx_data_o = r_ch0_valid ? r_shiftreg_ch0_shadow : {(SampleWidth) {1'b0}};
   assign fifo_rx_data_valid_o = r_ch0_valid;
   assign fifo_rx_err_o = r_ch0_valid & ~fifo_rx_data_ready_i & s_word_done;
 

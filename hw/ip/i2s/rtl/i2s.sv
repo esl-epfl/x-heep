@@ -56,7 +56,7 @@ module i2s #(
 
 
   logic [CounterWidth-1:0] sample_width;
-  assign sample_width = {(reg2hw.bytepersample.q + {{(BytePerSampleWidth){1'b0}},1'b1}), 3'b0};
+  assign sample_width = {(reg2hw.bytepersample.q + {{(BytePerSampleWidth) {1'b0}}, 1'b1}), 3'b0};
 
   // FIFO -> RX WINDOW
   assign rx_win_d2h.ready = rx_win_h2d.valid && rx_win_h2d.addr[BlockAw-1:0] == i2s_reg_pkg::I2S_RXDATA_OFFSET && !rx_win_h2d.write;
@@ -66,7 +66,7 @@ module i2s #(
 
 
   // STATUS 
-  assign hw2reg.status.fill_level.d  = rx_fifo_usage;
+  assign hw2reg.status.fill_level.d = rx_fifo_usage;
   assign hw2reg.status.fill_level.de = 1'b1;
   assign hw2reg.status.full.d = rx_fifo_full;
   assign hw2reg.status.full.de = 1'b1;
@@ -79,12 +79,12 @@ module i2s #(
 
   // reset control bits immediatelly 
   assign hw2reg.control.clear_fifo.de = reg2hw.control.clear_fifo.q;
-  assign hw2reg.control.clear_fifo.d  = 1'b0;
+  assign hw2reg.control.clear_fifo.d = 1'b0;
 
   assign hw2reg.control.clear_overflow.de = reg2hw.control.clear_overflow.q;
   assign hw2reg.control.clear_overflow.d = 1'b0;
 
-  
+
 
   // Register logic
   i2s_reg_top #(
@@ -124,7 +124,7 @@ module i2s #(
   // Core logic
   i2s_core #(
       .SampleWidth(SampleWidth),
-      .ClkDivSize(ClkDivSize)
+      .ClkDivSize (ClkDivSize)
   ) i2s_core_i (
       .clk_i (clk_i),
       .rst_ni(rst_ni),

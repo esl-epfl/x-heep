@@ -27,16 +27,16 @@ module i2s_core #(
     input  logic i2s_sd_i,
 
     // config
-    input logic                     cfg_lsb_first_i,
-    input logic [ClkDivSize-1:0] cfg_clock_div_i,
-    input logic                     cfg_clk_ws_en_i,
+    input logic                             cfg_lsb_first_i,
+    input logic [           ClkDivSize-1:0] cfg_clock_div_i,
+    input logic                             cfg_clk_ws_en_i,
     input logic [$clog2(SampleWidth+1)-1:0] cfg_sample_width_i,
 
     // FIFO
     output logic [SampleWidth-1:0] fifo_rx_data_o,
-    output logic             fifo_rx_data_valid_o,
-    input  logic             fifo_rx_data_ready_i,
-    output logic             fifo_rx_err_o
+    output logic                   fifo_rx_data_valid_o,
+    input  logic                   fifo_rx_data_ready_i,
+    output logic                   fifo_rx_err_o
 );
 
 

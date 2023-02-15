@@ -19,9 +19,9 @@ module i2s_clk_gen #(
 
 
   logic [ClkDivSize-1:0] r_counter;
-  logic                     r_clk;
+  logic                  r_clk;
   logic [ClkDivSize-1:0] r_sampled_config;
-  logic r_clock_en;
+  logic                  r_clock_en;
 
   //Generate the internal clock signal
   always_ff @(posedge clk_i, negedge rst_ni) begin
