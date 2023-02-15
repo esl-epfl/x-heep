@@ -27,9 +27,9 @@ module i2s_core #(
     input  logic i2s_sd_i,
 
     // config
-    input logic                           cfg_lsb_first_i,
-    input logic [         ClkDivSize-1:0] cfg_clock_div_i,
-    input logic                           cfg_clk_ws_en_i,
+    input logic                             cfg_lsb_first_i,
+    input logic [           ClkDivSize-1:0] cfg_clock_div_i,
+    input logic                             cfg_clk_ws_en_i,
     input logic [$clog2(SampleWidth)-1:0] cfg_sample_width_i,
 
     // FIFO
@@ -59,7 +59,6 @@ module i2s_core #(
   assign i2s_sck_oe_o = en_i & cfg_clk_ws_en_i;
   assign sck = i2s_sck_oe_o ? i2s_sck_o : i2s_sck_i;
 
-  // clk_int_div
   i2s_clk_gen #(
       .ClkDivSize(ClkDivSize)
   ) i2s_clk_gen_i (
