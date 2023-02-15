@@ -75,7 +75,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim/
 and type to run your compiled software:
 
 ```
-make run PLUSARGS="c firmware=../../../sw/sw/build/hello_world/hello_world.hex"
+make run PLUSARGS="c firmware=../../../sw/build/hello_world/hello_world.hex"
 ```
 ### Remote bitbang server started
 
