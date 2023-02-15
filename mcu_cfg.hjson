@@ -19,10 +19,10 @@
         onchip_ls: {
             code: {
                 address: 0x00000000,
-                lenght: 0x00008000, #32KB
+                lenght: 0x0000A200, #minimum size for freeRTOS
             }
             data: {
-                address: 0x00008000,
+                address: 0x0000A200,
                 lenght: whatisleft, #keyword used to calculate the size as: ram.length - code.lenght
             }
         },
@@ -39,6 +39,7 @@
         soc_ctrl: {
             offset:  0x00000000,
             length:  0x00010000,
+            path:    "./hw/ip/soc_ctrl/data/soc_ctrl.hjson"
         },
         bootrom: {
             offset:  0x00010000,
@@ -52,13 +53,15 @@
             offset:  0x00028000,
             length:  0x00008000,
         },
-        spi: {
+        spi_host: {
             offset:  0x00030000,
             length:  0x00010000,
+            path:    "./hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson"
         },
         power_manager: {
             offset:  0x00040000,
             length:  0x00010000,
+            path:    "./hw/ip/power_manager/data/power_manager.hjson"
         },
         rv_timer_ao: {
             offset:  0x00050000,
@@ -67,12 +70,14 @@
         dma: {
             offset:  0x00060000,
             length:  0x00010000,
+            path:    "./hw/ip/dma/data/dma.hjson"
         },
         fast_intr_ctrl: {
             offset:  0x00070000,
             length:  0x00010000,
+            path:    "./hw/ip/fast_intr_ctrl/data/fast_intr_ctrl.hjson"
         },
-        ext_periph: {
+        ext_peripheral: {
             offset:  0x00080000,
             length:  0x00010000,
         },
@@ -87,27 +92,32 @@
         uart: {
             offset:  0x000B0000,
             length:  0x00010000,
+            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"
         },
     },
 
     peripherals: {
         address: 0x30000000,
         length:  0x00100000,
-        plic: {
+        rv_plic: {
             offset:  0x00000000,
             length:  0x00010000,
+            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/data/rv_plic.hjson"
         },
         gpio: {
             offset:  0x00020000,
             length:  0x00010000,
+            path:    "./hw/vendor/pulp_platform_gpio/gpio_regs.hjson"
         },
         i2c: {
             offset:  0x00030000,
             length:  0x00010000,
+            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/i2c/data/i2c.hjson"
         },
         rv_timer: {
             offset:  0x00040000,
             length:  0x00010000,
+            path:    "./hw/vendor/lowrisc_opentitan/hw/ip/rv_timer/data/rv_timer.hjson"
         },
         spi2: {
             offset:  0x00050000,
@@ -181,20 +191,7 @@
         intr_ack_stop:           47,
         intr_host_timeout:       48,
         spi2_intr_event:         49,
-        ext_intr_0:              50,
-        ext_intr_1:              51,
-        ext_intr_2:              52,
-        ext_intr_3:              53,
-        ext_intr_4:              54,
-        ext_intr_5:              55,
-        ext_intr_6:              56,
-        ext_intr_7:              57,
-        ext_intr_8:              58,
-        ext_intr_9:              59,
-        ext_intr_10:             60,
-        ext_intr_11:             61,
-        ext_intr_12:             62,
-        ext_intr_13:             63,
+        ext_intr:                50:63,
     },
 
     pads: {

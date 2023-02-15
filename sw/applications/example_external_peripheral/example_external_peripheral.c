@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     printf("--- MEMCOPY EXAMPLE - external peripheral ---\n");
 
     printf("Init the PLIC...");
-    rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)PLIC_START_ADDRESS);
+    rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
     plic_res = dif_plic_init(rv_plic_params, &rv_plic);
 
     if (plic_res == kDifPlicOk) {

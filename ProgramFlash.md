@@ -37,6 +37,13 @@ Now do this, use B for the SPI, -t to read the FLASH ID
 ./iceprog -d i:0x0403:0x6011 -I B -t
 ```
 
+You can also do this by running the following command
+
+```
+make flash-readid
+```
+
+
 The output should be:
 
 ```
@@ -86,6 +93,12 @@ then program the FLASH as:
 
 ```
 ./iceprog -d i:0x0403:0x6011 -I B ../../../applications/hello_world/hello_world.flash.hex
+```
+
+You can also program the FLASH by running:
+
+```
+make flash-prog MAINFILE=<main_file_name_of_the_project_that WAS_built WITHOUT EXTENSION>
 ```
 
 You can read the content of the FLASH as:

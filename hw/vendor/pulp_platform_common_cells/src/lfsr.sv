@@ -289,7 +289,7 @@ end
 ////////////////////////////////////////////////////////////////////////
 // assertions
 ////////////////////////////////////////////////////////////////////////
-
+`ifndef VERILATOR
 // pragma translate_off
 initial begin
   // these are the LUT limits
@@ -305,11 +305,10 @@ initial begin
     $fatal(1, "Use additional cipher layers only in conjunction with an LFSR width of 64 bit." );
 end
 
-`ifndef VERILATOR
   all_zero: assert property (
     @(posedge clk_i) disable iff (!rst_ni) en_i |-> lfsr_d)
       else $fatal(1,"Lfsr must not be all-zero.");
-`endif
 // pragma translate_on
+`endif
 
 endmodule // lfsr

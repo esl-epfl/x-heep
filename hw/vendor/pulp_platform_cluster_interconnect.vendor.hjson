@@ -7,7 +7,7 @@
 
   upstream: {
     url: "https://github.com/davideschiavone/cluster_interconnect",
-    rev: "e7e440c5f722862d31c904fe4a2057751e46b92e",
+    rev: "3e27b35c3a365b04144dccbbc1d2fd55756cf75f",
   },
 
   exclude_from_upstream: [

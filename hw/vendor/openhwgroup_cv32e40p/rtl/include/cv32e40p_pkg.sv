@@ -552,6 +552,8 @@ package cv32e40p_pkg;
   // Machine Architecture ID (https://github.com/riscv/riscv-isa-manual/blob/master/marchid.md)
   parameter MARCHID = 32'h4;
 
+  parameter MHPMCOUNTER_WIDTH = 64;  //TODO from e40x
+
   ///////////////////////////////////////////////
   //   ___ ____    ____  _                     //
   //  |_ _|  _ \  / ___|| |_ __ _  __ _  ___   //
@@ -728,19 +730,19 @@ package cv32e40p_pkg;
   parameter bit C_RVD = 1'b0;  // Is D extension enabled - NOT SUPPORTED CURRENTLY
 
   // Transprecision floating-point extensions configuration
-  parameter bit C_XF16    = 1'b0;  // Is half-precision float extension (Xf16) enabled
+  parameter bit C_XF16 = 1'b0;  // Is half-precision float extension (Xf16) enabled
   parameter bit C_XF16ALT = 1'b0; // Is alternative half-precision float extension (Xf16alt) enabled
-  parameter bit C_XF8     = 1'b0;  // Is quarter-precision float extension (Xf8) enabled
-  parameter bit C_XFVEC   = 1'b0;  // Is vectorial float extension (Xfvec) enabled
+  parameter bit C_XF8 = 1'b0;  // Is quarter-precision float extension (Xf8) enabled
+  parameter bit C_XFVEC = 1'b0;  // Is vectorial float extension (Xfvec) enabled
 
   // Latency of FP operations: 0 = no pipe registers, 1 = 1 pipe register etc.
-  parameter int unsigned C_LAT_FP64    = 'd0;
-  parameter int unsigned C_LAT_FP32    = 'd0;
-  parameter int unsigned C_LAT_FP16    = 'd0;
+  parameter int unsigned C_LAT_FP64 = 'd0;
+  parameter int unsigned C_LAT_FP32 = 'd0;
+  parameter int unsigned C_LAT_FP16 = 'd0;
   parameter int unsigned C_LAT_FP16ALT = 'd0;
-  parameter int unsigned C_LAT_FP8     = 'd0;
+  parameter int unsigned C_LAT_FP8 = 'd0;
   parameter int unsigned C_LAT_DIVSQRT = 'd1;  // divsqrt post-processing pipe
-  parameter int unsigned C_LAT_CONV    = 'd0;
+  parameter int unsigned C_LAT_CONV = 'd0;
   parameter int unsigned C_LAT_NONCOMP = 'd0;
 
   // General FPU-specific defines

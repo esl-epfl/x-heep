@@ -11,6 +11,7 @@ filesets:
   files_verilator_waiver:
     files:
     - lint/cv32e40p.vlt
+    - lint/cv32e40x.vlt
     - lint/cve2.vlt
     - lint/common_cells.vlt
     - lint/fpnew.vlt
@@ -25,6 +26,7 @@ filesets:
     - lint/rv_plic.vlt
     - lint/spi_device.vlt
     - lint/spi_host.vlt
+    - lint/gpio.vlt
     file_type: vlt
 
 
