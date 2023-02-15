@@ -93,6 +93,7 @@ SET(INCLUDE_FOLDERS "-I ${RISCV}/riscv32-unknown-elf/include \
                      -I ${LIB_DRIVERS}fast_intr_ctrl/ \
                      -I ${LIB_DRIVERS}gpio/ \
                      -I ${LIB_DRIVERS}i2c/ \
+                     -I ${LIB_DRIVERS}i2s/ \
                      -I ${LIB_DRIVERS}pad_control/ \
                      -I ${LIB_DRIVERS}power_manager/ \
                      -I ${LIB_DRIVERS}rv_plic/ \
@@ -118,6 +119,7 @@ ${LIB_DRIVERS}dma/
 ${LIB_DRIVERS}fast_intr_ctrl/
 ${LIB_DRIVERS}gpio/
 ${LIB_DRIVERS}i2c/
+${LIB_DRIVERS}i2s/
 ${LIB_DRIVERS}pad_control/
 ${LIB_DRIVERS}power_manager/
 ${LIB_DRIVERS}rv_plic/
