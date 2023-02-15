@@ -799,23 +799,8 @@ def main():
         "ao_peripherals_count"             : ao_peripherals_count,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
-<<<<<<< HEAD
-        "plic_start_offset"                : plic_start_offset,
-        "plic_size_address"                : plic_size_address,
-        "gpio_start_offset"                : gpio_start_offset,
-        "gpio_size_address"                : gpio_size_address,
-        "i2c_start_offset"                 : i2c_start_offset,
-        "i2c_size_address"                 : i2c_size_address,
-        "rv_timer_start_offset"            : rv_timer_start_offset,
-        "rv_timer_size_address"            : rv_timer_size_address,
-        "pdm2pcm_start_offset"             : pdm2pcm_start_offset,
-        "pdm2pcm_size_address"             : pdm2pcm_size_address,
-        "spi2_start_offset"                : spi2_start_offset,
-        "spi2_size_address"                : spi2_size_address,
-=======
         "peripherals"                      : peripherals,
         "peripherals_count"                : peripherals_count,
->>>>>>> upstream/main
         "ext_slave_start_address"          : ext_slave_start_address,
         "ext_slave_size_address"           : ext_slave_size_address,
         "flash_mem_start_address"          : flash_mem_start_address,
