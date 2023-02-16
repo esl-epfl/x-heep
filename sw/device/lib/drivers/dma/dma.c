@@ -496,8 +496,8 @@ static inline uint8_t getMisalignment( uint32_t p_ptr )
  */
 static inline void writeRegister( uint32_t p_val, ptrdiff_t p_ptr )
 {
-    mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_PTR_IN_REG_OFFSET), p_val );
-    make_sure_that( p_ptr == mmio_region_read32( dma_cb.baseAdd, (ptrdiff_t)(p_ptr) ) );
+    mmio_region_write32(dma_cb.baseAdd, p_ptr, p_val );
+    make_sure_that( p_val == mmio_region_read32( dma_cb.baseAdd, (ptrdiff_t)(p_ptr) ) );
 }
 
 /****************************************************************************/

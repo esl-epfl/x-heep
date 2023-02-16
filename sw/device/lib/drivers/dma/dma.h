@@ -199,13 +199,17 @@ void dma_init();
 
 /**
  * @brief Sets the read (source) pointer of the DMA.
- * @param p_src Any valid memory address.
+ * @param p_src Any valid memory address. 
+ *              It is not necessary to call this function if SPI Rx is selected.
+ *              Integrity checks include making sure the pointer + copySize will not overflow the source memory space.
  */
 void dma_set_src( uint32_t * p_src );
 
 /**
  * @brief Sets the write (destination) pointer of the DMA.
  * @param p_src Any valid memory address.
+ *              It is not necessary to call this function if SPI Tx is selected.
+ *              Integrity checks include making sure the pointer + copySize will not overflow the destination memory space.
  */
 void dma_set_dst( uint32_t * p_dst );
 
@@ -214,19 +218,26 @@ void dma_set_dst( uint32_t * p_dst );
  * @param p_copySize_du Size (in data units) to be copied from the source to the destination pointers.
  *                      Number of data units (du) = copy size in bytes / size of the data type.
  *                      e.g. If 10 Half Words (DMA_DATA_TYPE_HALF_WORD) are to be copied then p_copySize_du = 10,
- *                      not the number of bytes (20).   
+ *                      not the number of bytes (20).  
+ *                      Integrity checks include making sure the pointer + copySize will not overflow the source or destination memory space.
  */                     
 void dma_set_size( uint32_t * p_copySize_du);
 
 /**
  * @brief Write to the source-pointer-increment register of the DMA.
  * @param p_inc_du Number of data units to increment after each read.
+ *                  Consider the increment will reflect in the size of the affected memory region.
+ *                  e.g. If 1 kByte of memory is copied, but with 2x increment, the source pointer must be 
+ *                  at least 2 kBytes before the end of the memory space.
  */
 void dma_set_src_ptr_inc( uint32_t p_inc_du );
 
 /**
  * @brief Write to the destination-pointer-increment register of the DMA.
  * @param p_inc_du Number of data units to increment after each write.
+ *                  Consider the increment will reflect in the size of the affected memory region.
+ *                  e.g. If 1 kByte of memory is copied, but with 2x increment, the source pointer must be 
+ *                  at least 2 kBytes before the end of the memory space.
  */
 void dma_set_dst_ptr_inc( uint32_t p_inc_du );
 
