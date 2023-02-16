@@ -124,6 +124,13 @@ run-helloworld: mcu-gen verilator-sim |venv
 	./Vtestharness +firmware=../../../sw/build/hello_world.hex; \
 	cat uart0.log; \
 	cd ../../..;
+	
+run-app: mcu-gen verilator-sim |venv
+	$(MAKE) -C sw PROJECT=$(PROJECT) MAINFILE=$(MAINFILE)  TARGET=$(TARGET) LINKER=$(LINKER);\
+	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
+	./Vtestharness +firmware=../../../sw/build/$(MAINFILE).hex; \
+	cat uart0.log; \
+	cd ../../..;
 
 ## @section Vivado
 
