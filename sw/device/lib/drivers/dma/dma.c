@@ -14,13 +14,6 @@
 ** All rights reserved.                                                    
 **                                                                         
 ***************************************************************************
-	 
-VERSION HISTORY:
-----------------
-Version     : 1
-Date        : 13/02/2023
-Revised by  : Juan Sapriza
-Description : Original version.
 
 */
 
@@ -245,22 +238,27 @@ dma_launch_ret_t dma_launch( dma_safety_level_t p_safetyLevel, dma_allow_realign
    switch( dma_cb.ctrl.SPI_MODE )
    {
        case DMA_DIR_SPI_RX: // DMA will receive information from SPI
-           dma_cb.ctrl.PTR_IN = 1; // juan: find the SPI rx buffer pointer.
+           dma_cb.ctrl.PTR_IN = mmio_region_from_addr((uintptr_t)SPI_START_ADDRESS) + SPI_HOST_RXDATA_REG_OFFSET;   // juan q jose: should these be fixed or should we expect it as a parameter? 
+           dma_cb.ctrl.SRC_PTR_INC = 0; // No increment as data is pop'd from FIFO.
            dma_cb.endEvent = DMA_END_EVENT_SPI;
            break;
 
        case DMA_DIR_SPI_TX:
            dma_cb.ctrl.PTR_OUT = 2; // juan: find the SPI tx buffer pointer
-           // The user can choose whether to wait for the SPI to finish or 
+           dma_cb.ctrl.DST_PTR_INC = 0; // No increment as data is pushed into FIFO.
+           // The user can choose whether to wait for the SPI to finish or simply once the DMA is done.
            break;
 
        case DMA_DIR_SPI_FLASH_RX:
-           dma_cb.ctrl.PTR_IN = 3; // juan: find the SPI FLASH rx buffer pointer
+           dma_cb.ctrl.PTR_IN = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS) + SPI_HOST_RXDATA_REG_OFFSET; 
+           dma_cb.ctrl.SRC_PTR_INC = 0; // No increment as data is pop'd from FIFO.
            dma_cb.endEvent = DMA_END_EVENT_SPI;
            break;
 
        case DMA_DIR_SPI_FLASH_TX:
            dma_cb.ctrl.PTR_OUT = 4; // juan: find the SPI tx buffer pointer
+           dma_cb.ctrl.DST_PTR_INC = 0; // No increment as data is pushed into FIFO.
+           // The user can choose whether to wait for the SPI to finish or simply once the DMA is done.
            break;
 
        case DMA_DIR_M2M:
@@ -271,6 +269,11 @@ dma_launch_ret_t dma_launch( dma_safety_level_t p_safetyLevel, dma_allow_realign
            make_sure_that(0); // This should never happen
            break;
    }
+   
+   
+   //////////  SET UP THE SPI    //////////
+   if( ( dma_cb.ctrl.SPI_MODE != DMA_DIR_M2M ) && SPI_NOT_SET ){} // juan ! complete this 
+   
     
     //////////  PERFORM INTEGRITY CHECKS CHECKS   //////////
     if( p_safetyLevel & DMA_SAFETY_INTEGRITY_CHECKS ){
@@ -509,3 +512,5 @@ static inline void writeRegister( uint32_t p_val, ptrdiff_t p_ptr )
 // juan: Agregar las condiciones de fallo en la docu de las funciones de set. 
 
 // juan : cubrirme que si el origen/destino es SPI no hay que hacer chequeos de alneacion.
+
+// juan q jose: How do you want to manage the relationship between DMA and SPI? 

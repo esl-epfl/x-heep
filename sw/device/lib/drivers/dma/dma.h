@@ -14,13 +14,6 @@
 ** All rights reserved.                                                    
 **                                                                         
 ***************************************************************************
-	 
-VERSION HISTORY:
-----------------
-Version     : 1
-Date        : 13/02/2023
-Revised by  : Juan Sapriza
-Description : Original version.
 
 */
 
@@ -234,7 +227,7 @@ void dma_set_src_ptr_inc( uint32_t p_inc_du );
 
 /**
  * @brief Write to the destination-pointer-increment register of the DMA.
- * @param p_inc_du Number of data units to increment after each write.
+ * @param p_inc_du Number of data units to increment after each write. Use 0 for SPI.
  *                  Consider the increment will reflect in the size of the affected memory region.
  *                  e.g. If 1 kByte of memory is copied, but with 2x increment, the source pointer must be 
  *                  at least 2 kBytes before the end of the memory space.

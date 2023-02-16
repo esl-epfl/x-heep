@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     // -- DMA CONFIGURATION --
     dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
     #if SPI_DATA_TYPE == 0
-        dma_set_write_ptr_inc(&dma, (uint32_t) 4); // Do not increment address when reading from the SPI (Pop from FIFO)
+        dma_set_write_ptr_inc(&dma, (uint32_t) 4); // Do not increment address when reading from the SPI (Pop from FIFO) //juan: this comments seems wrong. Dismiss. 
     #elif SPI_DATA_TYPE == 1
         dma_set_write_ptr_inc(&dma, (uint32_t) 2); // Do not increment address when reading from the SPI (Pop from FIFO)
     #else
