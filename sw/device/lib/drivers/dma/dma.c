@@ -47,9 +47,9 @@
 #define DMA_DATA_TYPE_2_DATA_SIZE(type) (0b00000100 >> (type) )     
 
 /**
- * If any critical error was detected during this process, the launching is aborted.
+ * If any critical error was detected during this process, the configureing is aborted.
  */
-#define ABORT_IF_CRITICAL_ERROR() { if( dma_cb.launchResult & DMA_LAUNCH_CRITICAL_ERROR ) return dma_cb.launchResult} 
+#define ABORT_IF_CRITICAL_ERROR() { if( dma_cb.configureResult & DMA_CONFIGURE_CRITICAL_ERROR ) return dma_cb.configureResult} 
 
 
 /****************************************************************************/
@@ -68,7 +68,7 @@
 static inline uint32_t getChunkSize( uint32_t p_ptr );
 static inline uint32_t getMemSize( uint32_t p_ptr );
 static inline uint8_t getMisalignment( uint32_t p_ptr );
-static inline void writeRegister( uint32_t p_val, ptrdiff_t p_ptr );
+static inline void writeRegister( uint32_t p_val, uint32_t* p_ptr );
 
 /****************************************************************************/
 /**                                                                        **/
@@ -104,9 +104,9 @@ struct //anonymous
   dma_end_event_t endEvent;
 
   /**
-   * The value returned from the last call to dma_launch().    
+   * The value returned from the last call to dma_configure().    
    */
-  dma_launch_ret_t launchResult;
+  dma_configure_ret_t configureResult;
 }dma_cb;
 
 /****************************************************************************/
@@ -119,7 +119,7 @@ struct //anonymous
 void dma_init()
 {
   // @ToDo: This should be deprecated. base address should be obtained from.....
-  dma_cb.baseAdd = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
+  dma_cb.baseAdd = mmio_region_from_addr((uint32_t*)DMA_START_ADDRESS);
   dma_reset();
   // juan: prob some more stuff should go here.
   // e.g. this function could return something
@@ -190,32 +190,24 @@ void dma_set_end_event( dma_end_event_t p_event )
 }
 
 
-uint32_t dma_get_cnt_du()
-{
-    uint32_t ret = mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DMA_START_REG_OFFSET));
-    make_sure_that( /* juan q ruben: what could be asserted in this case? */ );
-    return ret *= DMA_DATA_TYPE_2_DATA_SIZE( dma_cb.ctrl.DATA_TYPE );
-}
-
-
 uint32_t dma_is_done()
 {
-  uint32_t ret = mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DONE_REG_OFFSET));
+  uint32_t ret = mmio_region_read32(dma_cb.baseAdd, (uint32_t*)(DMA_DONE_REG_OFFSET));
   make_sure_that( ret == 0 || ret == 1 );
   return ret;
 }   // juan q jose: What to do in the above case
   /* In case a return wants to be forced in case of an error, there are 2 alternatives: 
    *    1) Consider any value != 0 to be a valid 1 using a LOGIC AND: 
-   *            return ( 1 && mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DONE_REG_OFFSET)));
+   *            return ( 1 && mmio_region_read32(dma_cb.baseAdd, (uint32_t*)(DMA_DONE_REG_OFFSET)));
    *    2) Consider only the LSB == 1 to be a valid 1 using a BITWISE AND. 
-   *            return ( 1 &  mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DONE_REG_OFFSET)));
+   *            return ( 1 &  mmio_region_read32(dma_cb.baseAdd, (uint32_t*)(DMA_DONE_REG_OFFSET)));
    * */   
     // juan q ruben: if cnt== 0 => done == 1 ?? For how long? 
     // @ToDo: Rename DONE_*  ->  IDLE_*
 // @ToDo: Make register DONE a 1 bit field in hw/ip/dma/data/dma.hjson. Watch out for compatibility/sync with hardware.  
 
 
-dma_launch_ret_t dma_launch( dma_safety_level_t p_safetyLevel, dma_allow_realign_t p_allowRealign ) 
+dma_configure_ret_t dma_configure( dma_safety_level_t p_safetyLevel, dma_allow_realign_t p_allowRealign ) 
 {
     
     // juan q ruben: This might be a good moment to evaluate whether it is really worth it to use the DMA. Consider all these checks that have to be done!! 
@@ -238,7 +230,7 @@ dma_launch_ret_t dma_launch( dma_safety_level_t p_safetyLevel, dma_allow_realign
    switch( dma_cb.ctrl.SPI_MODE )
    {
        case DMA_DIR_SPI_RX: // DMA will receive information from SPI
-           dma_cb.ctrl.PTR_IN = mmio_region_from_addr((uintptr_t)SPI_START_ADDRESS) + SPI_HOST_RXDATA_REG_OFFSET;   // juan q jose: should these be fixed or should we expect it as a parameter? 
+           dma_cb.ctrl.PTR_IN = mmio_region_from_addr((uint32_t*)SPI_START_ADDRESS) + SPI_HOST_RXDATA_REG_OFFSET;   // juan q jose: should these be fixed or should we expect it as a parameter? 
            dma_cb.ctrl.SRC_PTR_INC = 0; // No increment as data is pop'd from FIFO.
            dma_cb.endEvent = DMA_END_EVENT_SPI;
            break;
@@ -250,7 +242,7 @@ dma_launch_ret_t dma_launch( dma_safety_level_t p_safetyLevel, dma_allow_realign
            break;
 
        case DMA_DIR_SPI_FLASH_RX:
-           dma_cb.ctrl.PTR_IN = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS) + SPI_HOST_RXDATA_REG_OFFSET; 
+           dma_cb.ctrl.PTR_IN = mmio_region_from_addr((uint32_t*)SPI_FLASH_START_ADDRESS) + SPI_HOST_RXDATA_REG_OFFSET; 
            dma_cb.ctrl.SRC_PTR_INC = 0; // No increment as data is pop'd from FIFO.
            dma_cb.endEvent = DMA_END_EVENT_SPI;
            break;
@@ -286,21 +278,21 @@ dma_launch_ret_t dma_launch( dma_safety_level_t p_safetyLevel, dma_allow_realign
         
         /* First the source arrangement is analyzed*/
         uint8_t misalignment =  getMisalignment(  dma_cb.ctrl.SRC_PTR_INC );
-        dma_cb.launchResult |= ( misalignment ? DMA_LAUNCH_SRC : 0 ); 
+        dma_cb.configureResult |= ( misalignment ? DMA_CONFIGURE_SRC : 0 ); 
 
         /* The destination arrangement is analyzed. */
         uint8_t dstMisalignment = getMisalignment( dma_cb.ctrl.DST_PTR_INC );
-        dma_cb.launchResult |= ( dstMisalignment ? DMA_LAUNCH_DST : 0 );
+        dma_cb.configureResult |= ( dstMisalignment ? DMA_CONFIGURE_DST : 0 );
       
         /* Only the largest misalignment is preserved.*/
         misalignment = misalignment > dstMisalignment ? misalignment : dstMisalignment; /* If a misalignment was detected during this process, it will be attributed to the destination arrangement.*/  
 
         if( misalignment )
         {
-            dma_cb.launchResult |= DMA_LAUNCH_MISALIGN; // The misalignment flag is raised. 
+            dma_cb.configureResult |= DMA_CONFIGURE_MISALIGN; // The misalignment flag is raised. 
 
             /* If a misalignment is detected and realignment is not allowed, an error is returned. No operation should be performed by the DMA */
-            if( !p_allowRealign) dma_cb.launchResult |= DMA_LAUNCH_CRITICAL_ERROR;
+            if( !p_allowRealign) dma_cb.configureResult |= DMA_CONFIGURE_CRITICAL_ERROR;
 
             //////////  CHECK IF THERE IS A DISCONTINUITY   //////////
             /* If there is a misalignment AND the source or destination arrangements are discontinuous, it is not possible to use the DMA. An error is returned.
@@ -324,7 +316,7 @@ dma_launch_ret_t dma_launch( dma_safety_level_t p_safetyLevel, dma_allow_realign
              * 
              * The discontinuous flag is added (the misaligned one was already there - reason for which this is not an inline function), and it is turned into a critical error.
              */
-            if( dma_cb.ctrl.SRC_PTR_INC > dma_cb.ctrl.DATA_TYPE ) || ( dma_cb.ctrl.DST_PTR_INC > dma_cb.ctrl.DATA_TYPE ) ) dma_cb.launchResult |= ( DMA_LAUNCH_DISCONTINUOUS | DMA_LAUNCH_CRITICAL_ERROR );
+            if( dma_cb.ctrl.SRC_PTR_INC > dma_cb.ctrl.DATA_TYPE ) || ( dma_cb.ctrl.DST_PTR_INC > dma_cb.ctrl.DATA_TYPE ) ) dma_cb.configureResult |= ( DMA_CONFIGURE_DISCONTINUOUS | DMA_CONFIGURE_CRITICAL_ERROR );
 
             //////////  CHECK IF THERE WAS A CRITICAL ERROR   //////////
             ABORT_IF_CRITICAL_ERROR(); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
@@ -354,19 +346,25 @@ dma_launch_ret_t dma_launch( dma_safety_level_t p_safetyLevel, dma_allow_realign
                  *      This is ( the total size of the memory ) minus ( the relative position of the source pointer with regard to the beginning of the memory)
                  *  3) The number obtained in 2) must be larger than that of 1).   
                  */
-                if( getChunkSize( dma_cb.ctrl.SRC_PTR_INC ) > getmemSize( dma_cb.ctrl.PTR_IN ) ) dma_cb.launchResult |= ( DMA_LAUNCH_OVERFLOW | DMA_LAUNCH_SRC | DMA_LAUNCH_CRITICAL_ERROR ); 
+                if( getChunkSize( dma_cb.ctrl.SRC_PTR_INC ) > getmemSize( dma_cb.ctrl.PTR_IN ) ) dma_cb.configureResult |= ( DMA_CONFIGURE_OVERFLOW | DMA_CONFIGURE_SRC | DMA_CONFIGURE_CRITICAL_ERROR ); 
                 break;
             
             /* If the destination of the DMA transmission is the memory, it should be checked that the DMA will not be writing beyond the end of the memory.   */
             case DMA_DIR_SPI_RX:
             case DMA_DIR_SPI_FLASH_RX:
                 /* The process in analogous to the previous cases. */
-                if( getChunkSize( dma_cb.ctrl.DST_PTR_INC ) > getmemSize( dma_cb.ctrl.PTR_OUT ) ) dma_cb.launchResult |= ( DMA_LAUNCH_OVERFLOW | DMA_LAUNCH_DST | DMA_LAUNCH_CRITICAL_ERROR ); 
+                if( getChunkSize( dma_cb.ctrl.DST_PTR_INC ) > getmemSize( dma_cb.ctrl.PTR_OUT ) ) dma_cb.configureResult |= ( DMA_CONFIGURE_OVERFLOW | DMA_CONFIGURE_DST | DMA_CONFIGURE_CRITICAL_ERROR ); 
                 break;
                 
             default:
                 make_sure_that(0); // This should never happen
         }
+        
+        //////////  CHECK IF THERE ARE MEMORY OVERRIDES  //////////
+        
+        // juan: check that src and dst do not step on each other.
+        
+        
         //////////  CHECK IF THERE WAS A CRITICAL ERROR   //////////
         ABORT_IF_CRITICAL_ERROR();
     }
@@ -397,23 +395,24 @@ dma_launch_ret_t dma_launch( dma_safety_level_t p_safetyLevel, dma_allow_realign
     writeRegister( dma_cb.ctrl.SPI_MODE, DMA_SPI_MODE_REG_OFFSET );
     writeRegister( dma_cb.ctrl.DATA_TYPE, DMA_DATA_TYPE_REG_OFFSET );
     
+    return dma_cb.configureResult;
+}
+ 
+void dma_launch(){
     //////////  SET SIZE TO COPY + LAUNCH THE DMA OPERATION   //////////
     writeRegister( dma_cb.ctrl.DMA_START * DMA_DATA_TYPE_2_DATA_SIZE( dma_cb.ctrl.DATA_TYPE ), DMA_DMA_START_REG_OFFSET ); // First converts the copy size to bytes so it can be written into the DMA register.
-    
-    return dma_cb.launchResult;
 }
-
-
 
 void dma_reset()
 {
-
-// juan: consider some default values!! What if the user just forgot to set something up?
-}
-
-uint32_t dma_abort()
-{
-    // juan q ruben: let the user know how many data units where left. But watch out... may prefer not to communicate with the dma. 
+    dma_set_src(0);
+    dma_set_dst(0);
+    dma_set_size(0);
+    dma_set_src_ptr_inc(0);
+    dma_set_dst_ptr_inc(0);
+    dma_set_direction(DMA_DIR__undef);
+    dma_set_data_type(DMA_DATA_TYPE__undef);
+    dma_set_end_event(DMA_END_EVENT__undef); // juan: make sure that this is checked during the configure procedure.
 }
 
 
@@ -497,10 +496,10 @@ static inline uint8_t getMisalignment( uint32_t p_ptr )
  * @param p_val The value to be written.
  * @param p_ptr The memory offset from the memory's base address where the target register is located.
  */
-static inline void writeRegister( uint32_t p_val, ptrdiff_t p_ptr )
+static inline void writeRegister( uint32_t p_val, uint32_t* p_ptr )
 {
     mmio_region_write32(dma_cb.baseAdd, p_ptr, p_val );
-    make_sure_that( p_val == mmio_region_read32( dma_cb.baseAdd, (ptrdiff_t)(p_ptr) ) );
+    make_sure_that( p_val == mmio_region_read32( dma_cb.baseAdd, (uint32_t*)(p_ptr) ) );
 }
 
 /****************************************************************************/
