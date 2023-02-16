@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     mmio_region_t base_addr = mmio_region_from_addr((uintptr_t)I2S_START_ADDRESS);
 
     int32_t result = 0;
-    mmio_region_write32(base_addr, I2S_CLKDIVIDX_COUNT_OFFSET, 0x10);
+    mmio_region_write32(base_addr, I2S_CLKDIVIDX_REG_OFFSET, 0x10);
     mmio_region_write32(base_addr, I2S_BYTEPERSAMPLE_REG_OFFSET, I2S_BYTEPERSAMPLE_COUNT_VALUE_32_BITS);
     mmio_region_write32(base_addr, I2S_CFG_REG_OFFSET, 1 << I2S_CFG_EN_BIT | 1 << I2S_CFG_GEN_CLK_WS_BIT);
 
