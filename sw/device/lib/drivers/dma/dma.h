@@ -1,13 +1,3 @@
-  // juan: remove this
-  // typedef struct dma {
-  //   /**
-  //    * The base address for the soc_ctrl hardware registers.
-  //    */
-  //   mmio_region_t base_addr;
-  // } dma_t; 
-  //juan q: how does this struct relate to the one in dma_structs.h ?
-
-
 /*
                               *******************
 ******************************* H HEADER FILE *****************************
@@ -134,9 +124,16 @@ typedef enum
     DMA_END_EVENT_INTERRUPT,    // The application will receive a DMA interrupt once the DMA transfer has finished (i.e. the DONE register flag is high).   
     DMA_END_EVENT_SPI,          // The application will receive an SPI interrupt once the SPI process has finished. DMA interrupts are disabled.
     DMA_END_EVENT__size
-} dma_end_event_t; // juan: rename
+} dma_end_event_t; 
 
 
+/**
+ * It is possible to choose the level of safety with which the DMA operation should be launched. 
+ * Not performing checks reduces the DMA usage overhead, but may result in a faulty operation, especially if
+ * the configurations set to the DMA are not fixed but rather depend on the circumstance.
+ * e.g. The source pointer is obtained as a result of a loop. It could happen the pointer ends up pointing outside the memory range, 
+ * or that the pointer is close enough the the memory end to cause an overflow during reading. 
+ */
 typedef enum{
     DMA_SAFETY_NO_CHECKS        = 0b00000000, // No checks will be performed. dma_launch() will go straight to writing registers.  
     DMA_SAFETY_SANITY_CHECKS    = 0b00000001, // Only sanity checks will be performed that no values are off-limits. 
@@ -179,44 +176,11 @@ typedef enum
 } dma_launch_ret_t;
 
 
-/**
- *  Control Block (CB) of the DMA peripheral. 
- * Has variables and constant necessary/useful for its control. 
- */
-typedef struct 
-{
-  /**
-   * Control variables for the DMA peripheral 
-  */
-  dma    ctrl; 
-  
-  /**
-    * The base address for the soc_ctrl hardware registers.
-   */
-  mmio_region_t baseAdd; 
-  
-  /**
-   * Determines which event will determine the end of the transfer. 
-   */
-  dma_end_event_t endEvent;
-
-  /**
-   * The value returned from the last call to dma_launch().    
-   */
-  dma_launch_ret_t launchResult;
-} dma_cb_t; 
-
 /****************************************************************************/
 /**                                                                        **/
 /**                          EXPORTED VARIABLES                            **/
 /**                                                                        **/
 /****************************************************************************/
-
-// juan q jose: Would it be smart to make all these functions inline if then I need to extern this control block?
-// Id rather have the cb static'd in the source to guarantee no manipulation.
-// juan q jose: consider that if someone accesses the dma_cb not rhough these functions, its data could be incorrect because it has not been sync'd with the register
-
-extern dma_cb_t dma_cb;
 
 // juan q jose: what would this do? 
 // #ifndef _TEMPLATE_C_SRC
@@ -229,9 +193,96 @@ extern dma_cb_t dma_cb;
 /****************************************************************************/
 
 /**
- * @brief Obtains basic information for the operation of the DMA. 
+ * @brief Does the initial set up of the DMA control block.
  */
 void dma_init();
+
+/**
+ * @brief Sets the read (source) pointer of the DMA.
+ * @param p_src Any valid memory address.
+ */
+void dma_set_src( uint32_t * p_src );
+
+/**
+ * @brief Sets the write (destination) pointer of the DMA.
+ * @param p_src Any valid memory address.
+ */
+void dma_set_dst( uint32_t * p_dst );
+
+/**
+ * @brief Sets the copy size (source) of the DMA 
+ * @param p_copySize_du Size (in data units) to be copied from the source to the destination pointers.
+ *                      Number of data units (du) = copy size in bytes / size of the data type.
+ *                      e.g. If 10 Half Words (DMA_DATA_TYPE_HALF_WORD) are to be copied then p_copySize_du = 10,
+ *                      not the number of bytes (20).   
+ */                     
+void dma_set_size( uint32_t * p_copySize_du);
+
+/**
+ * @brief Write to the source-pointer-increment register of the DMA.
+ * @param p_inc_du Number of data units to increment after each read.
+ */
+void dma_set_src_ptr_inc( uint32_t p_inc_du );
+
+/**
+ * @brief Write to the destination-pointer-increment register of the DMA.
+ * @param p_inc_du Number of data units to increment after each write.
+ */
+void dma_set_dst_ptr_inc( uint32_t p_inc_du );
+
+/**
+ * @brief Write to the SPI mode register of the DMA.
+ * @param p_src A valid SPI mode:
+ *              - DMA_DIR_M2M            : Transfer Memory to Memory.
+                - DMA_DIR_SPI_RX         : Receive from SPI. Wait for Tx FIFO. //juan: remove the Wait for Tx FIFO thing. This is set by the user with the end event. 
+                - DMA_DIR_SPI_TX         : Send to SPI. Wait for Rx FIFO.
+                - DMA_DIR_SPI_FLASH_RX   : Receive from SPI Flash.     
+                - DMA_DIR_SPI_FLASH_TX   : Send to SPI Flash. 
+ */
+void dma_set_direction( dma_dir_t p_dir);
+
+
+/**
+ * @brief Write to the data type register of the DMA.
+ * @param p_src A valid data type.
+ *               *  DMA_DATA_TYPE_WORD      = 4 bytes   = 32 bits
+                 *  DMA_DATA_TYPE_HALF_WORD = 2 bytes   = 16 bits
+                 *  DMA_DATA_TYPE_BYTE      = 1 byte    = 8 bits 
+ */
+void dma_set_data_type( dma_data_type_t p_type);
+
+
+/**
+ * @brief Sets the type of event that will determine the end of the transfer.
+ * @param p_event A valid type of event.
+ */
+void dma_set_end_event( dma_end_event_t p_event );
+
+
+/**
+ * @brief Gets the number of data units not yet transferred. 
+ * @return Number of data units.
+ */
+uint32_t dma_get_cnt_du();
+
+
+/**
+ * @brief Read from the done register of the DMA.
+ * @return Whether the DMA is working or not. 
+ * @retval 0 - DMA is working.   
+ * @retval 1 - DMA has finished the transmission. DMA is idle. 
+ */
+inline uint32_t dma_is_done();
+
+/**
+ * @brief Writes the configuration values stored in the DMA control block into their corresponding registers. 
+ *        Beforehand, sanity checks are performed and errors are returned in case any condition is violated.
+ *        Also, compulsory values are added when needed.
+ * @param p_safetyLevel Whether to perform sanity checks (if globally enabled). More than one condition can be masked with the bitwise or operand (x|y).         
+ * @param p_allowRealign Whether to allow dma_launch() to change data type and increments to avoid misalignments.  
+ * @return A mask of dma_launch_t values. Individual flags can be checked using the bitwise AND operator. e.g. ( ret & DMA_LAUNCH_* ) != 0 if the DMA_LAUNCH_* flag is set in the returned value. 
+ */
+dma_launch_ret_t dma_launch( dma_safety_level_t p_safetyLevel, dma_allow_realign_t p_allowRealign );
 
 /****************************************************************************/
 /**                                                                        **/
@@ -241,43 +292,6 @@ void dma_init();
 
 // juan q jose: In BINDI/Stack/HAL/drivers_nrf/uart/nrf_drv_uart.h functions defined in .h have the _STATIC_INLINE macro.... how is that ok????
 
-
-
-/**
- * @brief Gets the number of data units not yet transferred. 
- * @return Number of data units.
- */
-inline uint32_t dma_get_cnt_du()
-{
-    uint32_t ret = mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DMA_START_REG_OFFSET));
-    make_sure_that( /* juan q ruben: what could be asserted in this case? */ );
-    // juan: This will not be done? Count element in struct will always be not-in-sync : dma_cb.ctrl.DMA_START = ret;
-    return ret;
-}
-
-
-/**
- * @brief Read from the done register of the DMA.
- * @return Whether the DMA is working or not. 
- * @retval 0 - DMA is working.   
- * @retval 1 - DMA has finished the transmission. DMA is idle. 
- */
-inline uint32_t dma_is_done()
-{
-  uint32_t ret = mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DONE_REG_OFFSET));
-  make_sure_that( ret == 0 || ret == 1 );
-   // juan: This will not be done? Count element in struct will always be not-in-sync : dma_cb.ctrl.DONE = ret;
-  return ret;
-  /* In case a return wants to be forced in case of an error, there are 2 alternatives: 
-   *    1) Consider any value != 0 to be a valid 1 using a LOGIC AND: 
-   *            return ( 1 && mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DONE_REG_OFFSET)));
-   *    2) Consider only the LSB == 1 to be a valid 1 using a BITWISE AND. 
-   *            return ( 1 &  mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DONE_REG_OFFSET)));
-   * */   
-}   // juan q jose: What to do in the above case
-    // juan q ruben: if cnt== 0 => done == 1 ?? For how long? 
-    // @ToDo: Rename DONE_*  ->  IDLE_*
-// @ToDo: Make register DONE a 1 bit field in hw/ip/dma/data/dma.hjson. Watch out for compatibility/sync with hardware.  
 
 #endif /* _DMA_DRIVER_H */
 /****************************************************************************/

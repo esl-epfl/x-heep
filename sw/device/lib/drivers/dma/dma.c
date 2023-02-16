@@ -51,15 +51,14 @@ Description : Original version.
 /**                                                                        **/
 /****************************************************************************/
 
-#define DMA_LAUNCH_RETURN(x)    {\
-                                    dma_cb.launchResult = p_ret;\
-                                    return dma_cb.launchResult;\
-                                }
-
 #define DMA_DATA_TYPE_2_DATA_SIZE(type) (0b00000100 >> (type) )     
 
-/* If any critical error was detected during this process, the launching is aborted. */
+/**
+ * If any critical error was detected during this process, the launching is aborted.
+ */
 #define ABORT_IF_CRITICAL_ERROR() { if( dma_cb.launchResult & DMA_LAUNCH_CRITICAL_ERROR ) return dma_cb.launchResult} 
+
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        TYPEDEFS AND STRUCTURES                           */
@@ -89,7 +88,32 @@ static inline uint8_t getMisalignment( uint32_t p_ptr );
 /**                                                                        **/
 /****************************************************************************/
 
-dma_cb_t dma_cb;
+/**
+ * Control Block (CB) of the DMA peripheral. 
+ * Has variables and constant necessary/useful for its control. 
+ */
+struct //anonymous
+{
+  /**
+   * Control variables for the DMA peripheral 
+  */
+  dma    ctrl; 
+  
+  /**
+    * The base address for the soc_ctrl hardware registers.
+   */
+  mmio_region_t baseAdd; 
+  
+  /**
+   * Determines which event will determine the end of the transfer. 
+   */
+  dma_end_event_t endEvent;
+
+  /**
+   * The value returned from the last call to dma_launch().    
+   */
+  dma_launch_ret_t launchResult;
+}dma_cb;
 
 /****************************************************************************/
 /**                                                                        **/
@@ -97,23 +121,17 @@ dma_cb_t dma_cb;
 /**                                                                        **/
 /****************************************************************************/
 
-/**
- * @brief Does the initial set up of the DMA control block.
- */
+
 void dma_init()
 {
   // @ToDo: This should be deprecated. base address should be obtained from.....
   dma_cb.baseAdd = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
+  dma_reset();
   // juan: prob some more stuff should go here.
   // e.g. this function could return something
 }
 
 
-/**
- * 
- * @brief Write to the read (source) pointer register of the DMA.
- * @param p_src Any valid memory address.
- */
 void dma_set_src( uint32_t * p_src ) 
 {                                           
   make_sure_that( p_src < DMA_MEM_PTR_MAX );
@@ -121,10 +139,6 @@ void dma_set_src( uint32_t * p_src )
 } // @ToDo: Rename DMA_PTR_IN_*  ->  DMA_SRC_PTR_* 
 
 
-/**
- * @brief Write to the write (destination) pointer register of the DMA.
- * @param p_src Any valid memory address.
- */
 void dma_set_dst( uint32_t * p_dst )
 {
   make_sure_that( p_dst < DMA_MEM_PTR_MAX );
@@ -132,12 +146,6 @@ void dma_set_dst( uint32_t * p_dst )
 } // @ToDo: Rename DMA_PTR_OUT_*  ->  DMA_DST_PTR_*
 
 
-/**
- * @brief Write to the count/start register of the DMA // juan q: review this explanation.
- * @param p_copySize_du Size (in data units) to be copied from the source to the destination pointers.
- *                      Number of data units (du) = copy size in bytes / size of the data type.
- *                      e.g. If 16 Half Words (DMA_DATA_TYPE_HALF_WORD) are to be copied then p_copySize_du = 16.   
- */                       // juan q: in bytes or in data units?
 void dma_set_size( uint32_t * p_copySize_du)
 {
   make_sure_that( p_copySize < DMA_MEM_SIZE_MAX );
@@ -147,10 +155,6 @@ void dma_set_size( uint32_t * p_copySize_du)
 
 
 
-/**
- * @brief Write to the source-pointer-increment register of the DMA.
- * @param p_inc_du Number of data units to increment after each read.
- */
 void dma_set_src_ptr_inc( uint32_t p_inc_du )
 {
     /*
@@ -161,10 +165,6 @@ void dma_set_src_ptr_inc( uint32_t p_inc_du )
 }
 
 
-/**
- * @brief Write to the destination-pointer-increment register of the DMA.
- * @param p_inc_du Number of data units to increment after each write.
- */
 void dma_set_dst_ptr_inc( uint32_t p_inc_du )
 {
     /*
@@ -175,15 +175,6 @@ void dma_set_dst_ptr_inc( uint32_t p_inc_du )
 }
 
 
-/**
- * @brief Write to the SPI mode register of the DMA.
- * @param p_src A valid SPI mode:
- *              - DMA_DIR_M2M    : Transfer Memory to Memory. //juan: add a sdk function to do this
-                - DMA_DIR_SPI_RX         : Receive from SPI. Wait for Tx FIFO. //juan q: what is this?
-                - DMA_DIR_SPI_TX         : Send to SPI. Wait for Rx FIFO.
-                - DMA_DIR_SPI_FLASH_RX   : Receive from SPI Flash.     
-                - DMA_DIR_SPI_FLASH_TX   : Send to SPI Flash. 
- */
 void dma_set_direction( dma_dir_t p_dir)
 {
   make_sure_that( p_dir < DMA_DIR__size );
@@ -191,10 +182,6 @@ void dma_set_direction( dma_dir_t p_dir)
 }
 
 
-/**
- * @brief Write to the data type register of the DMA.
- * @param p_src A valid data type. // juan: specify which, they are in dma_regs.h
- */
 void dma_set_data_type( dma_data_type_t p_type)
 {
   make_sure_that( p_type < DMA_DATA_TYPE__size );
@@ -202,10 +189,6 @@ void dma_set_data_type( dma_data_type_t p_type)
 } 
 
 
-/**
- * @brief Sets the type of event that will determine the end of the transfer.
- * @param p_event A valid type of event.
- */
 void dma_set_end_event( dma_end_event_t p_event )
 {
     make_sure_that( p_event < DMA_END_EVENT__size );
@@ -213,16 +196,32 @@ void dma_set_end_event( dma_end_event_t p_event )
 }
 
 
+uint32_t dma_get_cnt_du()
+{
+    uint32_t ret = mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DMA_START_REG_OFFSET));
+    make_sure_that( /* juan q ruben: what could be asserted in this case? */ );
+    return ret *= DMA_DATA_TYPE_2_DATA_SIZE( dma_cb.ctrl.DATA_TYPE );
+}
 
-/**
- * @brief Writes the configuration values stored in the DMA control block into their corresponding registers. 
- *        Beforehand, sanity checks are performed and errors are returned in case any condition is violated.
- *        Also, default values are added when needed. // juan: reqrite this and document in each function the default values (i.e. you dont need to callthis function).
- * @param p_safetyLevel Whether to perform sanity checks (if globally enabled). More than one condition can be masked with the bitwise or operand (x|y).         
- * @param p_allowRealign Whether to allow dma_launch() to change data type and increments to avoid misalignments.  
- * @return 
- */
-uint32_t dma_launch( dma_safety_level_t p_safetyLevel, dma_allow_realign_t p_allowRealign ) // juan: should be more than uint32_t.. should be an enum error
+
+uint32_t dma_is_done()
+{
+  uint32_t ret = mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DONE_REG_OFFSET));
+  make_sure_that( ret == 0 || ret == 1 );
+  return ret;
+}   // juan q jose: What to do in the above case
+  /* In case a return wants to be forced in case of an error, there are 2 alternatives: 
+   *    1) Consider any value != 0 to be a valid 1 using a LOGIC AND: 
+   *            return ( 1 && mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DONE_REG_OFFSET)));
+   *    2) Consider only the LSB == 1 to be a valid 1 using a BITWISE AND. 
+   *            return ( 1 &  mmio_region_read32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DONE_REG_OFFSET)));
+   * */   
+    // juan q ruben: if cnt== 0 => done == 1 ?? For how long? 
+    // @ToDo: Rename DONE_*  ->  IDLE_*
+// @ToDo: Make register DONE a 1 bit field in hw/ip/dma/data/dma.hjson. Watch out for compatibility/sync with hardware.  
+
+
+dma_launch_ret_t dma_launch( dma_safety_level_t p_safetyLevel, dma_allow_realign_t p_allowRealign ) 
 {
     
     // juan q ruben: This might be a good moment to evaluate whether it is really worth it to use the DMA. Consider all these checks that have to be done!! 
@@ -383,8 +382,9 @@ uint32_t dma_launch( dma_safety_level_t p_safetyLevel, dma_allow_realign_t p_all
     mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_SPI_MODE_REG_OFFSET), (uint32_t) dma_cb.ctrl.SPI_MODE );
     mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DATA_TYPE_REG_OFFSET), ( uint32_t ) dma_cb.ctrl.DATA_TYPE );
     
-    //////////  SET SIZE TO COPY + LAUNCH THE DMA OPERATION   //////////    
-    mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DMA_START_REG_OFFSET), dma_cb.ctrl.DMA_START );
+    //////////  SET SIZE TO COPY + LAUNCH THE DMA OPERATION   //////////
+    uint32_t copySize_b = dma_cb.ctrl.DMA_START * DMA_DATA_TYPE_2_DATA_SIZE( dma_cb.ctrl.DATA_TYPE ); // Convert the copy size to bytes so it can be written into the DMA register.
+    mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DMA_START_REG_OFFSET), copySize_b);
     
     return dma_cb.launchResult;
 }
@@ -399,7 +399,7 @@ void dma_reset()
 
 uint32_t dma_abort()
 {
-    // juan: let the user know how many data units where left. But watch out... may prefer not to communicate with the dma. 
+    // juan q ruben: let the user know how many data units where left. But watch out... may prefer not to communicate with the dma. 
 }
 
 
@@ -433,9 +433,7 @@ static inline uint32_t getMemSize( uint32_t p_ptr )
 /**
  * @brief Gets how misaligned a pointer is, taking into account the data type size. 
  * @param p_ptr The source or destination pointer. 
- * @retval 0 if no realignment is needed.
- * @retval 1 if realignment is needed, but switching to half the word size would fix it.
- * @retval 2 if a WORD is to be read from an odd pointer, so BYTE data type is needed instead. 
+ * @return How misaligned the pointer is, in bytes. 
  */
 static inline uint8_t getMisalignment( uint32_t p_ptr )
 {

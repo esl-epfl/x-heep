@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
         dma_set_size((uint32_t) TEST_DATA_SIZE*sizeof(*copied_data_4B));
         // Wait copy is done
         dma_intr_flag = 0;
+        
         while(dma_intr_flag==0) {
             wait_for_interrupt();
         }
