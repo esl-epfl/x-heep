@@ -75,6 +75,7 @@ Description : Original version.
 static inline uint32_t getChunkSize( uint32_t p_ptr );
 static inline uint32_t getMemSize( uint32_t p_ptr );
 static inline uint8_t getMisalignment( uint32_t p_ptr );
+static inline void writeRegister( uint32_t p_val, ptrdiff_t p_ptr );
 
 /****************************************************************************/
 /**                                                                        **/
@@ -367,24 +368,34 @@ dma_launch_ret_t dma_launch( dma_safety_level_t p_safetyLevel, dma_allow_realign
         ABORT_IF_CRITICAL_ERROR();
     }
    
+   //////////  WRITE THE REGISTER     //////////
    
-    //////////  SET THE POINTERS   //////////
+   /**
+    * Each register write is performed in three steps:
+    *   1) Saving the value to be written in a dummy variable val
+    *   2) Actually writing the value
+    *   3) Asserting that the value read from the register is the value stored in val. 
+    */
     
-    mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_PTR_IN_REG_OFFSET), dma_cb.ctrl.PTR_IN );
-    mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_PTR_OUT_REG_OFFSET), dma_cb.ctrl.PTR_OUT );
-       
+   /* Dummy value to be used ro write and re-read*/
+    uint32_t val;
+    
+    
+   //////////  SET THE POINTERS   //////////
+    writeRegister( dma_cb.ctrl.PTR_IN, DMA_PTR_IN_REG_OFFSET );
+    writeRegister( dma_cb.ctrl.PTR_OUT, DMA_PTR_OUT_REG_OFFSET );
+    
     //////////  SET THE INCREMENTS   //////////    
-    uint8_t dataSize = DMA_DATA_TYPE_2_DATA_SIZE(dma_cb.ctrl.DATA_TYPE); // Converts pointer increments to bytes. The register of the DMA needs number of bytes. 
-    mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_SRC_PTR_INC_REG_OFFSET), dma_cb.ctrl.SRC_PTR_INC * dataSize); 
-    mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DST_PTR_INC_REG_OFFSET), dma_cb.ctrl.DST_PTR_INC * dataSize);
+    writeRegister( dma_cb.ctrl.SRC_PTR_INC * DMA_DATA_TYPE_2_DATA_SIZE(dma_cb.ctrl.DATA_TYPE), DMA_SRC_PTR_INC_REG_OFFSET ); // First converts pointer increments to bytes. The register of the DMA needs number of bytes. 
+    writeRegister( dma_cb.ctrl.DST_PTR_INC * DMA_DATA_TYPE_2_DATA_SIZE(dma_cb.ctrl.DATA_TYPE), DMA_DST_PTR_INC_REG_OFFSET );
+    
             
     //////////  SET DIRECTION AND DATA TYPE   //////////    
-    mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_SPI_MODE_REG_OFFSET), (uint32_t) dma_cb.ctrl.SPI_MODE );
-    mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DATA_TYPE_REG_OFFSET), ( uint32_t ) dma_cb.ctrl.DATA_TYPE );
+    writeRegister( dma_cb.ctrl.SPI_MODE, DMA_SPI_MODE_REG_OFFSET );
+    writeRegister( dma_cb.ctrl.DATA_TYPE, DMA_DATA_TYPE_REG_OFFSET );
     
     //////////  SET SIZE TO COPY + LAUNCH THE DMA OPERATION   //////////
-    uint32_t copySize_b = dma_cb.ctrl.DMA_START * DMA_DATA_TYPE_2_DATA_SIZE( dma_cb.ctrl.DATA_TYPE ); // Convert the copy size to bytes so it can be written into the DMA register.
-    mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_DMA_START_REG_OFFSET), copySize_b);
+    writeRegister( dma_cb.ctrl.DMA_START * DMA_DATA_TYPE_2_DATA_SIZE( dma_cb.ctrl.DATA_TYPE ), DMA_DMA_START_REG_OFFSET ); // First converts the copy size to bytes so it can be written into the DMA register.
     
     return dma_cb.launchResult;
 }
@@ -477,6 +488,17 @@ static inline uint8_t getMisalignment( uint32_t p_ptr )
     return misalginment;
 }
 
+/**
+ * @brief Writes a given value into the specified register. Later reads the register and checks that the read value is equal to the written one. 
+ *          This check is done through an assertion, so can be disabled by disabling assertions.
+ * @param p_val The value to be written.
+ * @param p_ptr The memory offset from the memory's base address where the target register is located.
+ */
+static inline void writeRegister( uint32_t p_val, ptrdiff_t p_ptr )
+{
+    mmio_region_write32(dma_cb.baseAdd, (ptrdiff_t)(DMA_PTR_IN_REG_OFFSET), p_val );
+    make_sure_that( p_ptr == mmio_region_read32( dma_cb.baseAdd, (ptrdiff_t)(p_ptr) ) );
+}
 
 /****************************************************************************/
 /**                                                                        **/

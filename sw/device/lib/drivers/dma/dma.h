@@ -136,7 +136,7 @@ typedef enum
  */
 typedef enum{
     DMA_SAFETY_NO_CHECKS        = 0b00000000, // No checks will be performed. dma_launch() will go straight to writing registers.  
-    DMA_SAFETY_SANITY_CHECKS    = 0b00000001, // Only sanity checks will be performed that no values are off-limits. 
+    DMA_SAFETY_SANITY_CHECKS    = 0b00000001, // Only sanity checks will be performed that no values are off-limits. It is a good way of not performing sanity check only during this operation. 
     DMA_SAFETY_INTEGRITY_CHECKS = 0b00000010, // Integrity of the parameters is checked to make sure there are no inconsistencies. Not using this flag is only recommended when parameters are constant and the proper operation has been previously tested. 
     DMA_SAFETY__size        
 } dma_safety_level_t;
