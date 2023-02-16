@@ -7,5 +7,5 @@
 lint_off -rule DECLFILENAME -file "*/i2s_reg_top.sv"
 lint_off -rule WIDTH -file "*/i2s_reg_top.sv" -match "Operator ASSIGNW expects *"
 
-lint_off -rule UNUSED -file "*/i2s.sv" -match "Bits of signal are not *"
-lint_off -rule UNUSED -file "*/i2s.sv" -match "Signal is not used: 'storage'"
+lint_off -rule UNUSED -file "*/i2s.sv" -match "Bits of signal are not used*"
+lint_off -rule PINMISSING -file "*/i2s_core.sv" -match "Cell has missing pin: 'cycl_count_o'"
