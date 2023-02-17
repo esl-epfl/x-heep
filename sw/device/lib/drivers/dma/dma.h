@@ -57,10 +57,7 @@
 /**                                                                        **/
 /****************************************************************************/
 
-// juan ! fix this
-#define DMA_MEM_PTR_MAX 1000
-#define DMA_MEM_SIZE_MAX 1000
-#define DMA_MEM_INC_MAX 4
+#define DMA_TARGET_NO_SEMAPHORE 0
 
 
 // ToDo: Juan - remove this, is just a placeholder until real assert can be included
@@ -72,6 +69,9 @@
 /**                       TYPEDEFS AND STRUCTURES                          **/
 /**                                                                        **/
 /****************************************************************************/
+
+
+
 
 /**
  * All the valid SPI modes for the DMA-SPI operation.
@@ -85,13 +85,17 @@ typedef enum
     DMA_DIR_SPI_FLASH_TX   = 4, // Reads from memory, writes in SPI Flash   
     DMA_DIR__size,     
     DMA_DIR__undef,// Default. DMA will not be used.
-} dma_dir_t;
+} dma_dir_t;   // juan: remove these. Now they will be semaphores defined upper in the foodchain
+
+
+
+
 
 /**
  *  All the valid data types for the DMA transfer.
  *  Word            = 4 bytes   = 32 bits
  *  Half Word       = 2 bytes   = 16 bits
- *  Byte/Byte alt   = 1 byte    = 8 bits 
+ *  Byte            = 1 byte    = 8 bits 
  */
 typedef enum
 {               
@@ -115,12 +119,12 @@ typedef enum
  */
 typedef enum
 {
-    DMA_END_EVENT_POLLING,      // Application must query the DONE register flag with dma_is_done() to know when the transfer finished. DMA interrupts are disabled.
-    DMA_END_EVENT_INTERRUPT,    // The application will receive a DMA interrupt once the DMA transfer has finished (i.e. the DONE register flag is high).   
-    DMA_END_EVENT_SPI,          // The application will receive an SPI interrupt once the SPI process has finished. DMA interrupts are disabled.
+    DMA_END_EVENT_POLLING   = 0x00, // Application must query the DONE register flag with dma_is_done() to know when the transfer finished. DMA interrupts are disabled.
+    DMA_END_EVENT_DMA_INT   = 0x01, // The application will receive a DMA interrupt once the DMA transfer has finished (i.e. the DONE register flag is high).   
+    DMA_END_EVENT_PERIP_INT = 0x02, // The application will receive a peripheral interrupt once the peripheral process has finished. DMA interrupts will be disabled.
     DMA_END_EVENT__size,
     DMA_END_EVENT__undef,       // Default. DMA will not be used. 
-} dma_end_event_t; 
+} dma_end_event_t; // juan: add this
 
 
 /**
@@ -135,7 +139,7 @@ typedef enum{
     DMA_SAFETY_SANITY_CHECKS    = 0x01, // Only sanity checks will be performed that no values are off-limits. It is a good way of not performing sanity check only during this operation. 
     DMA_SAFETY_INTEGRITY_CHECKS = 0x02, // Integrity of the parameters is checked to make sure there are no inconsistencies. Not using this flag is only recommended when parameters are constant and the proper operation has been previously tested. 
     DMA_SAFETY__size        
-} dma_safety_level_t;
+} dma_safety_level_t;  // juan: re-do this
 
 
 /**
@@ -154,22 +158,67 @@ typedef enum
  * Possible returns of the dma_configure() function.
  * Some of these issues or not a problem per se, yet a combination of them might be. 
  * For this reason, each error has only one high bit. This way they can be masked together
- * using the bitwise OR operator: ( DMA_CONFIGURE_x | DMA_CONFIGURE_y | DMA_CONFIGURE_z ).
+ * using the bitwise OR operator: ( DMA_CONFIGURATION_x | DMA_CONFIGURATION_y | DMA_CONFIGURATION_z ).
  * The *_SRC and *_DST labels identify in which arrangements issues where encountered.
  * 
- * A flag can be unset using the bitwise AND and NOT operators: x &= ~DMA_CONFIGURE_*    
+ * A flag can be unset using the bitwise AND and NOT operators: x &= ~DMA_CONFIGURATION_*    
  */
 typedef enum
 {
-    DMA_CONFIGURE_OK               = 0x00,    // DMA transfer was successfully configured. 
-    DMA_CONFIGURE_SRC              = 0x01,    // An issue was encountered in the source arrangement.
-    DMA_CONFIGURE_DST              = 0x02,    // An issue was encountered in the destination arrangement.
-    DMA_CONFIGURE_MISALIGN         = 0x04,    // An arrangement is misaligned.
-    DMA_CONFIGURE_OVERLAP          = 0x08,    // The increment is smaller than the data type size.
-    DMA_CONFIGURE_DISCONTINUOUS    = 0x10,    // The increment is larger than the data type size.
-    DMA_CONFIGURE_OVERFLOW         = 0x20,    // The operation goes beyond the memory boundries.
-    DMA_CONFIGURE_CRITICAL_ERROR   = 0x80,    // This flag determines the function will return without the DMA performing any actions.
-} dma_configure_ret_t;
+    DMA_CONFIGURATION_OK               = 0x00,    // DMA transfer was successfully configured. 
+    DMA_CONFIGURATION_SRC              = 0x01,    // An issue was encountered in the source arrangement. // juan: do I need these two? 
+    DMA_CONFIGURATION_DST              = 0x02,    // An issue was encountered in the destination arrangement.
+    DMA_CONFIGURATION_MISALIGN         = 0x04,    // An arrangement is misaligned.
+    DMA_CONFIGURATION_OVERLAP          = 0x08,    // The increment is smaller than the data type size.
+    DMA_CONFIGURATION_DISCONTINUOUS    = 0x10,    // The increment is larger than the data type size.
+    DMA_CONFIGURATION_OUTBOUNDS        = 0x20,    // The operation goes beyond the memory boundries.
+    DMA_CONFIGURATION__unused          = 0x40,    // 
+    DMA_CONFIGURATION_CRITICAL_ERROR   = 0x80,    // This flag determines the function will return without the DMA performing any actions.
+} dma_config_flags_t;
+
+
+
+typedef uint8_t dma_trans_id_t; 
+
+
+
+
+
+typedef struct
+{
+    uint32_t* start;
+    uint32_t* end;
+    //dma_env_characs_t characs; // juan : should we add restrictions to read/write
+    //dma_end_event_t endEvents;
+} dma_env_t;
+
+
+typedef struct
+{
+    dma_env_t* env;
+    uint32_t* ptr;
+    uint32_t inc_du;
+    uint32_t size_du;
+    dma_data_type_t type;
+    uint8_t semaphore;
+    dma_config_flags_t flags;
+} dma_target_t;   
+
+typedef struct
+{
+    dma_target_t* src;
+    dma_target_t* dst;
+    dma_end_event_t end;
+    dma_config_flags_t flags;
+    dma_data_type_t type;
+    uint32_t inc_b;
+    uint32_t size_b;
+} dma_trans_t;
+
+
+
+
+
 
 
 /****************************************************************************/
@@ -189,84 +238,6 @@ typedef enum
 /****************************************************************************/
 
 /**
- * @brief Does the initial set up of the DMA control block.
- */
-void dma_init();
-
-/**
- * @brief Sets the read (source) pointer of the DMA.
- * @param p_src Any valid memory address. 
- *              It is not necessary to call this function if SPI Rx is selected.
- *              Integrity checks include making sure the pointer + copySize will not overflow the source memory space.
- */
-void dma_set_src( uint32_t * p_src );
-
-/**
- * @brief Sets the write (destination) pointer of the DMA.
- * @param p_src Any valid memory address.
- *              It is not necessary to call this function if SPI Tx is selected.
- *              Integrity checks include making sure the pointer + copySize will not overflow the destination memory space.
- */
-void dma_set_dst( uint32_t * p_dst );
-
-/**
- * @brief Sets the copy size (source) of the DMA 
- * @param p_copySize_du Size (in data units) to be copied from the source to the destination pointers.
- *                      Number of data units (du) = copy size in bytes / size of the data type.
- *                      e.g. If 10 Half Words (DMA_DATA_TYPE_HALF_WORD) are to be copied then p_copySize_du = 10,
- *                      not the number of bytes (20).  
- *                      Integrity checks include making sure the pointer + copySize will not overflow the source or destination memory space.
- */                     
-void dma_set_size( uint32_t * p_copySize_du);
-
-/**
- * @brief Write to the source-pointer-increment register of the DMA.
- * @param p_inc_du Number of data units to increment after each read.
- *                  Consider the increment will reflect in the size of the affected memory region.
- *                  e.g. If 1 kByte of memory is copied, but with 2x increment, the source pointer must be 
- *                  at least 2 kBytes before the end of the memory space.
- */
-void dma_set_src_ptr_inc( uint32_t p_inc_du );
-
-/**
- * @brief Write to the destination-pointer-increment register of the DMA.
- * @param p_inc_du Number of data units to increment after each write. Use 0 for SPI.
- *                  Consider the increment will reflect in the size of the affected memory region.
- *                  e.g. If 1 kByte of memory is copied, but with 2x increment, the source pointer must be 
- *                  at least 2 kBytes before the end of the memory space.
- */
-void dma_set_dst_ptr_inc( uint32_t p_inc_du );
-
-/**
- * @brief Write to the SPI mode register of the DMA.
- * @param p_src A valid SPI mode:
- *              - DMA_DIR_M2M            : Transfer Memory to Memory.
-                - DMA_DIR_SPI_RX         : Receive from SPI. Wait for Tx FIFO. //juan: remove the Wait for Tx FIFO thing. This is set by the user with the end event. 
-                - DMA_DIR_SPI_TX         : Send to SPI. Wait for Rx FIFO.
-                - DMA_DIR_SPI_FLASH_RX   : Receive from SPI Flash.     
-                - DMA_DIR_SPI_FLASH_TX   : Send to SPI Flash. 
- */
-void dma_set_direction( dma_dir_t p_dir);
-
-
-/**
- * @brief Write to the data type register of the DMA.
- * @param p_src A valid data type.
- *               *  DMA_DATA_TYPE_WORD      = 4 bytes   = 32 bits
-                 *  DMA_DATA_TYPE_HALF_WORD = 2 bytes   = 16 bits
-                 *  DMA_DATA_TYPE_BYTE      = 1 byte    = 8 bits 
- */
-void dma_set_data_type( dma_data_type_t p_type);
-
-
-/**
- * @brief Sets the type of event that will determine the end of the transfer.
- * @param p_event A valid type of event.
- */
-void dma_set_end_event( dma_end_event_t p_event );
-
-
-/**
  * @brief Read from the done register of the DMA.
  * @return Whether the DMA is working or not. 
  * @retval 0 - DMA is working.   
@@ -274,28 +245,7 @@ void dma_set_end_event( dma_end_event_t p_event );
  */
 inline uint32_t dma_is_done();
 
-/**
- * @brief Writes the configuration values stored in the DMA control block into their corresponding registers. 
- *        Beforehand, sanity checks are performed and errors are returned in case any condition is violated.
- *        Also, compulsory values are added when needed.
- * @param p_safetyLevel Whether to perform sanity checks (if globally enabled). More than one condition can be masked with the bitwise or operand (x|y).         
- * @param p_allowRealign Whether to allow dma_configure() to change data type and increments to avoid misalignments.  
- * @return A mask of dma_configure_t values. Individual flags can be checked using the bitwise AND operator. e.g. ( ret & DMA_CONFIGURE_* ) != 0 if the DMA_CONFIGURE_* flag is set in the returned value. 
- */
-dma_configure_ret_t dma_configure( dma_safety_level_t p_safetyLevel, dma_allow_realign_t p_allowRealign );
 
-
-/**
- * @brief Writes the count register of the DMA and consequently starts the operation.
- */
-void dma_launch();
-    
-/**
- * @brief Sets the default values into the DMA configuration. 
- *          These values do not allow the DMA to operate.
- *          Valid values need to be loaded with the dma_set_* and dma_configure functions/
- */
-void dma_reset();
 
 /****************************************************************************/
 /**                                                                        **/

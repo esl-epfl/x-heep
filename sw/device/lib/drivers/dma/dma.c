@@ -44,13 +44,20 @@
 /**                                                                        **/
 /****************************************************************************/
 
+/**
+ * Returns the size in Bytes of a certain datatype, as a sizeof(type) would. 
+ */
 #define DMA_DATA_TYPE_2_DATA_SIZE(type) (0b00000100 >> (type) )     
 
 /**
  * If any critical error was detected during this process, the configureing is aborted.
  */
-#define ABORT_IF_CRITICAL_ERROR() { if( dma_cb.configureResult & DMA_CONFIGURE_CRITICAL_ERROR ) return dma_cb.configureResult} 
+#define ABORT_IF_CRITICAL_ERROR() { if( dma_cb.configureResult & DMA_CONFIGURATION_CRITICAL_ERROR ) return dma_cb.configureResult} 
 
+
+
+
+#define DMA_TRANS_STACK_DEPTH   5
 
 /****************************************************************************/
 /**                                                                        **/
@@ -65,9 +72,7 @@
 /**                                                                        **/
 /****************************************************************************/
 
-static inline uint32_t getChunkSize( uint32_t p_ptr );
-static inline uint32_t getMemSize( uint32_t p_ptr );
-static inline uint8_t getMisalignment( uint32_t p_ptr );
+static inline uint8_t getMisalignment( uint32_t* p_ptr, dma_data_type_t p_type );
 static inline void writeRegister( uint32_t p_val, uint32_t* p_ptr );
 
 /****************************************************************************/
@@ -82,31 +87,24 @@ static inline void writeRegister( uint32_t p_val, uint32_t* p_ptr );
 /**                                                                        **/
 /****************************************************************************/
 
+
 /**
  * Control Block (CB) of the DMA peripheral. 
  * Has variables and constant necessary/useful for its control. 
  */
-struct //anonymous
+static struct //anonymous
 {
-  /**
-   * Control variables for the DMA peripheral 
-  */
-  dma    ctrl; 
-  
+ 
   /**
     * The base address for the soc_ctrl hardware registers.
    */
   mmio_region_t baseAdd; 
   
-  /**
-   * Determines which event will determine the end of the transfer. 
-   */
-  dma_end_event_t endEvent;
+ /*
+  * Information of the transaction to be performed. 
+  */
+  dma_trans_t* trans;
 
-  /**
-   * The value returned from the last call to dma_configure().    
-   */
-  dma_configure_ret_t configureResult;
 }dma_cb;
 
 /****************************************************************************/
@@ -118,75 +116,225 @@ struct //anonymous
 
 void dma_init()
 {
-  // @ToDo: This should be deprecated. base address should be obtained from.....
-  dma_cb.baseAdd = mmio_region_from_addr((uint32_t*)DMA_START_ADDRESS);
-  dma_reset();
-  // juan: prob some more stuff should go here.
-  // e.g. this function could return something
+    static dma_env_t defaultEnv;
+    static dma_target_t defaultTargetA, defaultTargetB;
+    static dma_trans_t defaultTrans;
+    
+    // @ToDo: This should be deprecated. base address should be obtained from.....
+    dma_cb.baseAdd = mmio_region_from_addr((uint32_t*)DMA_START_ADDRESS);
+    dma_reset();
+    // juan: prob some more stuff should go here.
+    // e.g. this function could return something
+
+
+
+    dma_create_environment( &defaultEnv, (uint32_t*) NULL, (uint32_t*) NULL );
+    dma_create_target( &defaultTargetA, (uint32_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_TARGET_NO_SEMAPHORE, &defaultEnv );
+    dma_create_target( &defaultTargetB, (uint32_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_TARGET_NO_SEMAPHORE, &defaultEnv );
+    dma_create_transaction( &defaultTrans, &defaultTargetA, &defaultTargetB, DMA_END_EVENT_POLLING, DMA_ALLOW_REALIGN); 
+    dma_load_transaction( &defaultTrans );
 }
 
 
-void dma_set_src( uint32_t * p_src ) 
-{                                           
-  make_sure_that( p_src < DMA_MEM_PTR_MAX );
-  dma_cb.ctrl.PTR_IN = p_src; 
-} // @ToDo: Rename DMA_PTR_IN_*  ->  DMA_SRC_PTR_* 
-
-
-void dma_set_dst( uint32_t * p_dst )
+/**
+ * @brief Creates an environment where targets can be added. An environment is, 
+ * for instance, a RAM block, or section of memory that can be used by the DMA. 
+ * Properly defining an environment can prevent the DMA from accessing restricted
+ * memory regions. 
+ * Targets for peripherals do not need an environment.
+ * @param p_env Target to the dma_env_t structure where information will be allocated. 
+ * @param p_start Pointer to the first accessible address of the environment.   
+ * @param p_end Pointer to the last accessible address of the environment.
+ * @return 
+ */
+dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint32_t* p_start, uint32_t* p_end /*, dma_env_characs_t p_characs, dma_end_event_t p_endEvents*/ )
 {
-  make_sure_that( p_dst < DMA_MEM_PTR_MAX );
-  dma_cb.ctrl.PTR_OUT = p_dst;
-} // @ToDo: Rename DMA_PTR_OUT_*  ->  DMA_DST_PTR_*
+    /* PERFORM SANITY CHECKS */
+    make_sure_that( p_end >= p_start );
+    make_sure_that( p_perm < DMA_PERM__size );
+    //make_sure_that( p_endEvents < DMA_END_EVENT__size );
+    
+    p_env->start = p_start;
+    p_env->end   = p_end;
+    
+    /* Only allow the start and end to be the same of the environment is a peripheral.*/
+    //if( ( ! ( p_characs & DMA_ENVIRONMENT_CHARACS_PERIPHERAL ) ) && ( p_start == p_end ) ) return DMA_CONFIGURATION_OVERLAP;
+    
+    //p_env->characs = p_characs;
+    //p_env->endEvents = p_events;
+    
+    return DMA_CONFIGURATION_OK;
+}
 
 
-void dma_set_size( uint32_t * p_copySize_du)
+
+
+
+/* Two alternatives: 
+    1) dma_target_t create()
+    2) dma_config create( target* ) 
+ In both cases the target is stored statically in application level: GOOD - HAL does not need to know how many targets there will be. 
+ In both cases the target is written by this function.
+ */
+dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, uint8_t p_semaphore, dma_env_t* p_env )
 {
-  make_sure_that( p_copySize < DMA_MEM_SIZE_MAX );
-  dma_cb.ctrl.DMA_START = p_copySize_du;
-} // @ToDo: Rename DMA_DMA_START_*  ->  DMA_CNT_START_*
-// juan q ruben: Does the count keep the amount left to transmit? So if cnt == 0, done == 1 ? 
+    //////////  SANITY CHECKS   //////////
+    make_sure_that( p_type < DMA_DATA_TYPE__size );
+    make_sure_that( p_inc_du > 0 );
+    
+    //////////  STORING OF THE INFORMATION   //////////
+    p_tgt->ptr = p_ptr;
+    p_tgt->inc_du = p_inc_du;
+    p_tgt->size_du = p_size_du;
+    p_tgt->type = p_type; 
+    p_tgt->env = p_env;
+    p-tgt->semaphore = p_semaphore;
+    
+    //////////  INTEGRITY CHECKS   //////////
+    if( ( p_tgt->ptr <  p_tgt->env->start )
+        || ( p_tgt->ptr > p_tgt->env->end ) 
+        || ( ( p_tgt->ptr + p_tgt->size_du * p_tgt->inc_du ) > ( p_tgt->env->end + 1 ) )
+            p_tgt->flags |= DMA_CONFIGURATION_OUTBOUNDS;
+    
+    return p_tgt->flags; // This is returned so this function can be called as if( dma_create_target == DMA_CONFIGURATION_OK ){ GO AHEAD } or if( dma_create_target() ){ check for errors } 
+}
+
+// juan: how could one easily modify the target?? Maybe from the SDK. 
 
 
 
-void dma_set_src_ptr_inc( uint32_t p_inc_du )
+
+
+
+
+
+dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p_src, dma_target_t *p_dst, dma_end_event_t p_end, dma_allow_realign_t p_allowRealign )
 {
-    /*
-     * Increment size must be passed as a multiple of the data_unit to prevent overlapping. 
+ /* Check that the destination env can handle the copy*/
+
+    
+    //////////  SET UP THE DEFAULT CONFIGURATIONS //////////
+    p_trans->size_b = p_src->size_du * DMA_DATA_TYPE_2_DATA_SIZE(p_src->type);
+    p_trans->type = p_src->type; // juan : By default, the source defines the data type?
+    p_trans->inc_du = 0; // By default, the transaction increment is set to 0 and, if needed can be changed to 1 (in which case both src and dst will have an increment of 1 data unit)
+    
+    
+    p_trans->src = p_src;
+    p_trans->dst = p_dst;
+    
+    p_trans->end = p_end;
+    
+    //////////  CHECK IF THERE ARE MISALIGNMENTS   //////////
+    /* Misalignment flags will only be stored in the transaction, as they 
+     are data type dependent, and could vary from transaction to transaction,
+     even with the same pair of targets.*/
+    
+    /* First the source arrangement is analyzed*/
+    uint8_t misalignment =  getMisalignment( p_src->ptr, p_trans->type  );
+    p_trans->flags |= ( misalignment ? DMA_CONFIGURATION_SRC : 0 ); 
+
+    /* The destination arrangement is analyzed. */
+    uint8_t dstMisalignment = getMisalignment( p_dst->ptr, p_trans->type  );
+    p_trans->flags  |= ( dstMisalignment ? DMA_CONFIGURATION_DST : 0 );
+
+    /* Only the largest misalignment is preserved.*/
+    misalignment = misalignment > dstMisalignment ? misalignment : dstMisalignment; /* If a misalignment was detected during this process, it will be attributed to the destination arrangement.*/  
+    
+    if( misalignment )
+    {
+        p_trans->flags |= DMA_CONFIGURATION_MISALIGN; // The misalignment flag is raised. 
+
+        /* If a misalignment is detected and realignment is not allowed, an error is returned. No operation should be performed by the DMA */
+        if( !p_allowRealign) return p_trans->flags |= DMA_CONFIGURATION_CRITICAL_ERROR; // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
+
+        //////////  CHECK IF THERE IS A DISCONTINUITY   //////////
+        /* If there is a misalignment AND the source or destination arrangements are discontinuous, it is not possible to use the DMA. An error is returned.
+         * A discontinuity in an arrangement is defined as the increment being larger than the data type size. 
+         * e.g. 
+         * |AAAA|AAAA|BBBB|BBBB|      |____|AAAA|AAAA|____|  
+         * 0    1    2    3           0    1    2    3          
+         *    
+         * |CCCC|CCCC|____|____| ==>  |____|BBBB|BBBB|____| 
+         * 4    5    6    7           4    5    6    7     
+         *    
+         * |____|____|____|____|      |____|CCCC|CCCC|____| 
+         * 8    9    10   11          8    9    10   11    
+         * 
+         * In this case the source arrangement has 16bit HALF WORDs, with an increment of 1 data unit, so all data is continuous. 
+         * The destination arrangement has also 16bit HALF WORDs, but misaligned and with 2 data units of increment. 
+         * To copy a misaligned arrangement of HALF WORDs, the DMA should use BYTEs. However, by using bytes it would not be able to 
+         * write twice and skip twice, but it only has a skip increment. 
+         * 
+         * The misalignment and discontinuity can be found in different arrangements and this limitation would still exist.  
+         * 
+         * The discontinuous flag is added (the misaligned one was already there - reason for which this is not an inline function), and it is turned into a critical error.
+         */
+        if( p_src->inc_du > p_trans->type ) || ( p_dst->inc_du > p_trans->type ) ) return p_trans->flags |= ( DMA_CONFIGURATION_DISCONTINUOUS | DMA_CONFIGURATION_CRITICAL_ERROR ); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
+
+
+        //////////  PERFORM THE REALIGNMENT  //////////
+        /* Otherwise, a more granular data type is used according to the detected misalignment in order to overcome it. */       
+        p_trans->type += misalignment;
+        /* Source and destination increment should now be of the size of the data.
+         * As increments are given in data units, in both cases should be the size of a data unit. */
+        p_trans->inc_b = DMA_DATA_TYPE_2_DATA_SIZE( p_trans->type );
+        /* The copy size does not change, as it is stored in Bytes*/
+        
+        // juan: use this for increments
+    }
+
+    
+    //////////  CHECK IF THERE IS CROSS OUTBOUND   //////////
+    /* As the source target does not know the constraints of the destination target, 
+     * it is possible that the copied information ends up beyond the bounds of 
+     * the destination environment. 
      */
-  make_sure_that( /*There is no possible check*/ );
-  dma_cb.ctrl.SRC_PTR_INC = p_inc_du;
+    if( ( p_dst->ptr + p_trans->size_b ) > p_dst->env->end +1 ) return p_trans->flags |= ( DMA_CONFIGURATION_DST | DMA_CONFIGURATION_OUTBOUNDS | DMA_CONFIGURATION_CRITICAL_ERROR ); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
+    
+    
+    return p_trans->flags;
 }
 
 
-void dma_set_dst_ptr_inc( uint32_t p_inc_du )
+
+void dma_load_transaction( dma_trans_t* p_trans )
 {
-    /*
-     * Increment size must be passed as a multiple of the data_unit to prevent overlapping. 
-     */
-  make_sure_that( /*There is no possible check*/ );
-  dma_cb.ctrl.DST_PTR_INC = p_inc_du;
+    /**
+    * Each register write is performed in two steps:
+    *   1) Writing the value
+    *   2) Asserting that the value read from the register is the desired one.
+    */
+    
+    dma_cb.trans = p_trans; // Save the current transaction
+    
+   //////////  SET THE POINTERS   //////////
+    writeRegister( dma_cb.trans->src->ptr, DMA_PTR_IN_REG_OFFSET );
+    writeRegister( dma_cb.trans->dst->ptr, DMA_PTR_OUT_REG_OFFSET );
+    
+    //////////  SET THE INCREMENTS   //////////    
+                    // The increment might have been changed due to misalignment issues. If it has, use the changed value, otherwise, use the target specific one. 
+    writeRegister( dma_cb.trans->inc_b ? dma_cb.trans->inc_b : dma_cb.trans->src->inc_du * DMA_DATA_TYPE_2_DATA_SIZE( dma_cb.trans->type ), DMA_SRC_PTR_INC_REG_OFFSET ); // First converts pointer increments to bytes. The register of the DMA needs number of bytes. 
+    writeRegister( dma_cb.trans->inc_b ? dma_cb.trans->inc_b : dma_cb.trans->dst->inc_du * DMA_DATA_TYPE_2_DATA_SIZE( dma_cb.trans->type ), DMA_DST_PTR_INC_REG_OFFSET );
+    
+            
+    //////////  SET DIRECTION AND DATA TYPE   //////////    
+    writeRegister(  /* juan ! define how this will be set to the mode.  */ , DMA_SPI_MODE_REG_OFFSET );
+    writeRegister( dma_cb.trans->type, DMA_DATA_TYPE_REG_OFFSET );
+    
+    
+    // juan: configure interrupts and that stuff. 
+    
+    
+    
 }
 
 
-void dma_set_direction( dma_dir_t p_dir)
+dma_config_flags_t dma_launch( dma_trans_t* p_trans )
 {
-  make_sure_that( p_dir < DMA_DIR__size );
-  dma_cb.ctrl.SPI_MODE = p_dir;
-}
-
-
-void dma_set_data_type( dma_data_type_t p_type)
-{
-  make_sure_that( p_type < DMA_DATA_TYPE__size );
-  dma_cb.ctrl.DATA_TYPE = p_type;
-} 
-
-
-void dma_set_end_event( dma_end_event_t p_event )
-{
-    make_sure_that( p_event < DMA_END_EVENT__size );
-    dma_cb.endEvent = p_event;
+    if( dma_cb.trans != p_trans) return DMA_CONFIGURATION_CRITICAL_ERROR; // Make sure that the loaded transaction is the intended transaction
+    //////////  SET SIZE TO COPY + LAUNCH THE DMA OPERATION   //////////
+    writeRegister(dma_cb.trans->size_b, DMA_DMA_START_REG_OFFSET ); 
+    return DMA_CONFIGURATION_OK;
 }
 
 
@@ -207,213 +355,6 @@ uint32_t dma_is_done()
 // @ToDo: Make register DONE a 1 bit field in hw/ip/dma/data/dma.hjson. Watch out for compatibility/sync with hardware.  
 
 
-dma_configure_ret_t dma_configure( dma_safety_level_t p_safetyLevel, dma_allow_realign_t p_allowRealign ) 
-{
-    
-    // juan q ruben: This might be a good moment to evaluate whether it is really worth it to use the DMA. Consider all these checks that have to be done!! 
-    // Another alternative (non exclusive) is to allow the user to bypass any checks. 
-    // This can be useful when you have hand-picked your parameters, so you are sure there will not be a problem. 
-    // You can save a lot of valuable processing time. 
-    // We could even take all the asserts to this point so they can also be by-passed. 
-    
-    
-    //////////  PERFORM SANITY CHECKS   //////////
-    if( p_safetyLevel & DMA_SAFETY_SANITY_CHECKS ){
-    
-        /*
-         *  Asserts would go here
-         */
-    }
-    
-    
-    //////////  SET COMPULSORY VALUES   //////////
-   switch( dma_cb.ctrl.SPI_MODE )
-   {
-       case DMA_DIR_SPI_RX: // DMA will receive information from SPI
-           dma_cb.ctrl.PTR_IN = mmio_region_from_addr((uint32_t*)SPI_START_ADDRESS) + SPI_HOST_RXDATA_REG_OFFSET;   // juan q jose: should these be fixed or should we expect it as a parameter? 
-           dma_cb.ctrl.SRC_PTR_INC = 0; // No increment as data is pop'd from FIFO.
-           dma_cb.endEvent = DMA_END_EVENT_SPI;
-           break;
-
-       case DMA_DIR_SPI_TX:
-           dma_cb.ctrl.PTR_OUT = 2; // juan: find the SPI tx buffer pointer
-           dma_cb.ctrl.DST_PTR_INC = 0; // No increment as data is pushed into FIFO.
-           // The user can choose whether to wait for the SPI to finish or simply once the DMA is done.
-           break;
-
-       case DMA_DIR_SPI_FLASH_RX:
-           dma_cb.ctrl.PTR_IN = mmio_region_from_addr((uint32_t*)SPI_FLASH_START_ADDRESS) + SPI_HOST_RXDATA_REG_OFFSET; 
-           dma_cb.ctrl.SRC_PTR_INC = 0; // No increment as data is pop'd from FIFO.
-           dma_cb.endEvent = DMA_END_EVENT_SPI;
-           break;
-
-       case DMA_DIR_SPI_FLASH_TX:
-           dma_cb.ctrl.PTR_OUT = 4; // juan: find the SPI tx buffer pointer
-           dma_cb.ctrl.DST_PTR_INC = 0; // No increment as data is pushed into FIFO.
-           // The user can choose whether to wait for the SPI to finish or simply once the DMA is done.
-           break;
-
-       case DMA_DIR_M2M:
-           // Nothing to be done
-           break;
-
-       default:
-           make_sure_that(0); // This should never happen
-           break;
-   }
-   
-   
-   //////////  SET UP THE SPI    //////////
-   if( ( dma_cb.ctrl.SPI_MODE != DMA_DIR_M2M ) && SPI_NOT_SET ){} // juan ! complete this 
-   
-    
-    //////////  PERFORM INTEGRITY CHECKS CHECKS   //////////
-    if( p_safetyLevel & DMA_SAFETY_INTEGRITY_CHECKS ){
-
-    
-    // juan: This might overwrite some configs added by the user. Warn them beforehand in the function docu
-    
-    
-        //////////  CHECK IF THERE ARE MISALIGNMENTS   //////////
-        
-        /* First the source arrangement is analyzed*/
-        uint8_t misalignment =  getMisalignment(  dma_cb.ctrl.SRC_PTR_INC );
-        dma_cb.configureResult |= ( misalignment ? DMA_CONFIGURE_SRC : 0 ); 
-
-        /* The destination arrangement is analyzed. */
-        uint8_t dstMisalignment = getMisalignment( dma_cb.ctrl.DST_PTR_INC );
-        dma_cb.configureResult |= ( dstMisalignment ? DMA_CONFIGURE_DST : 0 );
-      
-        /* Only the largest misalignment is preserved.*/
-        misalignment = misalignment > dstMisalignment ? misalignment : dstMisalignment; /* If a misalignment was detected during this process, it will be attributed to the destination arrangement.*/  
-
-        if( misalignment )
-        {
-            dma_cb.configureResult |= DMA_CONFIGURE_MISALIGN; // The misalignment flag is raised. 
-
-            /* If a misalignment is detected and realignment is not allowed, an error is returned. No operation should be performed by the DMA */
-            if( !p_allowRealign) dma_cb.configureResult |= DMA_CONFIGURE_CRITICAL_ERROR;
-
-            //////////  CHECK IF THERE IS A DISCONTINUITY   //////////
-            /* If there is a misalignment AND the source or destination arrangements are discontinuous, it is not possible to use the DMA. An error is returned.
-             * A discontinuity in an arrangement is defined as the increment being larger than the data type size. 
-             * e.g. 
-             * |AAAA|AAAA|BBBB|BBBB|      |____|AAAA|AAAA|____|  
-             * 0    1    2    3           0    1    2    3          
-             *    
-             * |CCCC|CCCC|____|____| ==>  |____|BBBB|BBBB|____| 
-             * 4    5    6    7           4    5    6    7     
-             *    
-             * |____|____|____|____|      |____|CCCC|CCCC|____| 
-             * 8    9    10   11          8    9    10   11    
-             * 
-             * In this case the source arrangement has 16bit HALF WORDs, with an increment of 1 data unit, so all data is continuous. 
-             * The destination arrangement has also 16bit HALF WORDs, but misaligned and with 2 data units of increment. 
-             * To copy a misaligned arrangement of HALF WORDs, the DMA should use BYTEs. However, by using bytes it would not be able to 
-             * write twice and skip twice, but it only has a skip increment. 
-             * 
-             * The misalignment and discontinuity can be found in different arrangements and this limitation would still exist.  
-             * 
-             * The discontinuous flag is added (the misaligned one was already there - reason for which this is not an inline function), and it is turned into a critical error.
-             */
-            if( dma_cb.ctrl.SRC_PTR_INC > dma_cb.ctrl.DATA_TYPE ) || ( dma_cb.ctrl.DST_PTR_INC > dma_cb.ctrl.DATA_TYPE ) ) dma_cb.configureResult |= ( DMA_CONFIGURE_DISCONTINUOUS | DMA_CONFIGURE_CRITICAL_ERROR );
-
-            //////////  CHECK IF THERE WAS A CRITICAL ERROR   //////////
-            ABORT_IF_CRITICAL_ERROR(); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
-        
-            //////////  PERFORM THE REALIGNMENT  //////////
-            /* Otherwise, a more granular data type is used according to the detected misalignment in order to overcome it. */       
-            dma_cb.ctrl.DATA_TYPE += misalignment;
-            /* Source and destination increment should now be of the size of the data.
-             * As increments are given in data units, in both cases should be 1. */
-            dma_cb.ctrl.SRC_PTR_INC = 1;       
-            dma_cb.ctrl.DST_PTR_INC = 1;      
-        }
-        
-        
-        //////////  CHECK IF THERE ARE MEMORY OVERFLOWS  //////////
-        switch( dma_cb.ctrl.SPI_MODE )
-        {
-            /* If the source of the DMA transmission is the memory, it should be checked that the DMA will not be reading beyond the end of the memory.   */
-            case DMA_DIR_M2M:
-            case DMA_DIR_SPI_TX:
-            case DMA_DIR_SPI_FLASH_TX:
-                /* 
-                 * This is done by:
-                 *  1) Finding the size of the chunk of memory to be gone over in order to cover all the data units. 
-                 *      This is ( the number of data units to be copied, in data units) times ( the size of each increment, which includes the copied data unit and the blank spaces, in data units) times ( the conversion rate between data units and bytes ) 
-                 *  2) Finding the size of the available chunk of memory
-                 *      This is ( the total size of the memory ) minus ( the relative position of the source pointer with regard to the beginning of the memory)
-                 *  3) The number obtained in 2) must be larger than that of 1).   
-                 */
-                if( getChunkSize( dma_cb.ctrl.SRC_PTR_INC ) > getmemSize( dma_cb.ctrl.PTR_IN ) ) dma_cb.configureResult |= ( DMA_CONFIGURE_OVERFLOW | DMA_CONFIGURE_SRC | DMA_CONFIGURE_CRITICAL_ERROR ); 
-                break;
-            
-            /* If the destination of the DMA transmission is the memory, it should be checked that the DMA will not be writing beyond the end of the memory.   */
-            case DMA_DIR_SPI_RX:
-            case DMA_DIR_SPI_FLASH_RX:
-                /* The process in analogous to the previous cases. */
-                if( getChunkSize( dma_cb.ctrl.DST_PTR_INC ) > getmemSize( dma_cb.ctrl.PTR_OUT ) ) dma_cb.configureResult |= ( DMA_CONFIGURE_OVERFLOW | DMA_CONFIGURE_DST | DMA_CONFIGURE_CRITICAL_ERROR ); 
-                break;
-                
-            default:
-                make_sure_that(0); // This should never happen
-        }
-        
-        //////////  CHECK IF THERE ARE MEMORY OVERRIDES  //////////
-        
-        // juan: check that src and dst do not step on each other.
-        
-        
-        //////////  CHECK IF THERE WAS A CRITICAL ERROR   //////////
-        ABORT_IF_CRITICAL_ERROR();
-    }
-   
-   //////////  WRITE THE REGISTER     //////////
-   
-   /**
-    * Each register write is performed in three steps:
-    *   1) Saving the value to be written in a dummy variable val
-    *   2) Actually writing the value
-    *   3) Asserting that the value read from the register is the value stored in val. 
-    */
-    
-   /* Dummy value to be used ro write and re-read*/
-    uint32_t val;
-    
-    
-   //////////  SET THE POINTERS   //////////
-    writeRegister( dma_cb.ctrl.PTR_IN, DMA_PTR_IN_REG_OFFSET );
-    writeRegister( dma_cb.ctrl.PTR_OUT, DMA_PTR_OUT_REG_OFFSET );
-    
-    //////////  SET THE INCREMENTS   //////////    
-    writeRegister( dma_cb.ctrl.SRC_PTR_INC * DMA_DATA_TYPE_2_DATA_SIZE(dma_cb.ctrl.DATA_TYPE), DMA_SRC_PTR_INC_REG_OFFSET ); // First converts pointer increments to bytes. The register of the DMA needs number of bytes. 
-    writeRegister( dma_cb.ctrl.DST_PTR_INC * DMA_DATA_TYPE_2_DATA_SIZE(dma_cb.ctrl.DATA_TYPE), DMA_DST_PTR_INC_REG_OFFSET );
-    
-            
-    //////////  SET DIRECTION AND DATA TYPE   //////////    
-    writeRegister( dma_cb.ctrl.SPI_MODE, DMA_SPI_MODE_REG_OFFSET );
-    writeRegister( dma_cb.ctrl.DATA_TYPE, DMA_DATA_TYPE_REG_OFFSET );
-    
-    return dma_cb.configureResult;
-}
- 
-void dma_launch(){
-    //////////  SET SIZE TO COPY + LAUNCH THE DMA OPERATION   //////////
-    writeRegister( dma_cb.ctrl.DMA_START * DMA_DATA_TYPE_2_DATA_SIZE( dma_cb.ctrl.DATA_TYPE ), DMA_DMA_START_REG_OFFSET ); // First converts the copy size to bytes so it can be written into the DMA register.
-}
-
-void dma_reset()
-{
-    dma_set_src(0);
-    dma_set_dst(0);
-    dma_set_size(0);
-    dma_set_src_ptr_inc(0);
-    dma_set_dst_ptr_inc(0);
-    dma_set_direction(DMA_DIR__undef);
-    dma_set_data_type(DMA_DATA_TYPE__undef);
-    dma_set_end_event(DMA_END_EVENT__undef); // juan: make sure that this is checked during the configure procedure.
-}
 
 
 /****************************************************************************/
@@ -423,32 +364,11 @@ void dma_reset()
 /****************************************************************************/
 
 /**
- * @brief Gets the size of the affected memory during a read/write operation of the DMA. 
- * @param p_ptr Source or Destination pointer, to a valid memory region.
- * @return The size of the affected memory, in bytes.
- */
-static inline uint32_t getChunkSize( uint32_t p_ptr )
-{
-    return dma_cb.ctrl.DMA_START * p_ptr * DMA_DATA_TYPE_2_DATA_SIZE(dma_cb.ctrl.DATA_TYPE);
-}
-
-/**
- * @brief Gets the size of the available memory during a read/write operation of the DMA. 
- * @param p_ptr Source or Destination pointer, to a valid memory region.
- * @return The size of the available memory, in bytes.
- */
-static inline uint32_t getMemSize( uint32_t p_ptr )
-{
-    // juan q jose fill this information... from where?  
-    return DMA_MEMORY_SIZE_B - ( p_ptr - DMA_MEMORY_INIT);
-}
-
-/**
  * @brief Gets how misaligned a pointer is, taking into account the data type size. 
  * @param p_ptr The source or destination pointer. 
  * @return How misaligned the pointer is, in bytes. 
  */
-static inline uint8_t getMisalignment( uint32_t p_ptr )
+static inline uint8_t getMisalignment( uint32_t* p_ptr, dma_data_type_t p_type )
 {
     /*
     * Check for word alignment:
@@ -475,12 +395,12 @@ static inline uint8_t getMisalignment( uint32_t p_ptr )
     */  
     
    /* If WORD and the two LSBs of pointer are not 00 there is a misalignment.*/
-    uint8_t misalginment = ( dma_cb.ctrl.DATA_TYPE == DMA_DATA_TYPE_WORD ) && ( dma_cb.ctrl.DST_PTR_INC & 3 );
+    uint8_t misalginment = ( p_type == DMA_DATA_TYPE_WORD ) && ( p_ptr & 3 );
     /* 
     * If WORD or HALF WORD and the LSB of pointer is not 0 there is a misalignment.
     * The inequality is of special importance because WORDs stored in odd pointers need to turn into BYTE as well.
     */
-    misalginment += ( ( dma_cb.ctrl.DATA_TYPE <= DMA_DATA_TYPE_HALF_WORD ) && ( dma_cb.ctrl.DST_PTR_INC & 1 ) );
+    misalginment += ( ( p_typeE <= DMA_DATA_TYPE_HALF_WORD ) && (p_ptr & 1 ) );
     /* 
      * These two lines will end up with: 
      * misalignment == 0 if no realignment is needed.
