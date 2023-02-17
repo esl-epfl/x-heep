@@ -52,18 +52,12 @@ extern "C" {
 
 // control register
 #define I2S_CONTROL_REG_OFFSET 0xc
-#define I2S_CONTROL_CLEAR_FIFO_BIT 0
 #define I2S_CONTROL_CLEAR_OVERFLOW_BIT 1
 
 // Status register
 #define I2S_STATUS_REG_OFFSET 0x10
 #define I2S_STATUS_EMPTY_BIT 0
-#define I2S_STATUS_FULL_BIT 1
 #define I2S_STATUS_OVERFLOW_BIT 2
-#define I2S_STATUS_FILL_LEVEL_MASK 0xff
-#define I2S_STATUS_FILL_LEVEL_OFFSET 8
-#define I2S_STATUS_FILL_LEVEL_FIELD \
-  ((bitfield_field32_t) { .mask = I2S_STATUS_FILL_LEVEL_MASK, .index = I2S_STATUS_FILL_LEVEL_OFFSET })
 
 // Memory area: I2s Receive data
 #define I2S_RXDATA_REG_OFFSET 0x14

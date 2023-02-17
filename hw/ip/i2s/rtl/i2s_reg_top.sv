@@ -126,16 +126,11 @@ module i2s_reg_top #(
   logic [7:0] cfg_reachcount_qs;
   logic [7:0] cfg_reachcount_wd;
   logic cfg_reachcount_we;
-  logic control_clear_fifo_qs;
-  logic control_clear_fifo_wd;
-  logic control_clear_fifo_we;
-  logic control_clear_overflow_qs;
-  logic control_clear_overflow_wd;
-  logic control_clear_overflow_we;
+  logic control_qs;
+  logic control_wd;
+  logic control_we;
   logic status_empty_qs;
-  logic status_full_qs;
   logic status_overflow_qs;
-  logic [7:0] status_fill_level_qs;
 
   // Register instances
   // R[clkdividx]: V(False)
@@ -300,55 +295,28 @@ module i2s_reg_top #(
 
   // R[control]: V(False)
 
-  //   F[clear_fifo]: 0:0
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_control_clear_fifo (
+  ) u_control (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(control_clear_fifo_we),
-      .wd(control_clear_fifo_wd),
+      .we(control_we),
+      .wd(control_wd),
 
       // from internal hardware
-      .de(hw2reg.control.clear_fifo.de),
-      .d (hw2reg.control.clear_fifo.d),
+      .de(hw2reg.control.de),
+      .d (hw2reg.control.d),
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.control.clear_fifo.q),
+      .q (reg2hw.control.q),
 
       // to register interface (read)
-      .qs(control_clear_fifo_qs)
-  );
-
-
-  //   F[clear_overflow]: 1:1
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
-  ) u_control_clear_overflow (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(control_clear_overflow_we),
-      .wd(control_clear_overflow_wd),
-
-      // from internal hardware
-      .de(hw2reg.control.clear_overflow.de),
-      .d (hw2reg.control.clear_overflow.d),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.control.clear_overflow.q),
-
-      // to register interface (read)
-      .qs(control_clear_overflow_qs)
+      .qs(control_qs)
   );
 
 
@@ -379,31 +347,6 @@ module i2s_reg_top #(
   );
 
 
-  //   F[full]: 1:1
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RO"),
-      .RESVAL  (1'h0)
-  ) u_status_full (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      .we(1'b0),
-      .wd('0),
-
-      // from internal hardware
-      .de(hw2reg.status.full.de),
-      .d (hw2reg.status.full.d),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.status.full.q),
-
-      // to register interface (read)
-      .qs(status_full_qs)
-  );
-
-
   //   F[overflow]: 2:2
   prim_subreg #(
       .DW      (1),
@@ -426,31 +369,6 @@ module i2s_reg_top #(
 
       // to register interface (read)
       .qs(status_overflow_qs)
-  );
-
-
-  //   F[fill_level]: 15:8
-  prim_subreg #(
-      .DW      (8),
-      .SWACCESS("RO"),
-      .RESVAL  (8'h0)
-  ) u_status_fill_level (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      .we(1'b0),
-      .wd('0),
-
-      // from internal hardware
-      .de(hw2reg.status.fill_level.de),
-      .d (hw2reg.status.fill_level.d),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.status.fill_level.q),
-
-      // to register interface (read)
-      .qs(status_fill_level_qs)
   );
 
 
@@ -496,11 +414,8 @@ module i2s_reg_top #(
   assign cfg_reachcount_we = addr_hit[2] & reg_we & !reg_error;
   assign cfg_reachcount_wd = reg_wdata[23:16];
 
-  assign control_clear_fifo_we = addr_hit[3] & reg_we & !reg_error;
-  assign control_clear_fifo_wd = reg_wdata[0];
-
-  assign control_clear_overflow_we = addr_hit[3] & reg_we & !reg_error;
-  assign control_clear_overflow_wd = reg_wdata[1];
+  assign control_we = addr_hit[3] & reg_we & !reg_error;
+  assign control_wd = reg_wdata[1];
 
   // Read data return
   always_comb begin
@@ -522,15 +437,12 @@ module i2s_reg_top #(
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[0] = control_clear_fifo_qs;
-        reg_rdata_next[1] = control_clear_overflow_qs;
+        reg_rdata_next[1] = control_qs;
       end
 
       addr_hit[4]: begin
         reg_rdata_next[0] = status_empty_qs;
-        reg_rdata_next[1] = status_full_qs;
         reg_rdata_next[2] = status_overflow_qs;
-        reg_rdata_next[15:8] = status_fill_level_qs;
       end
 
       default: begin

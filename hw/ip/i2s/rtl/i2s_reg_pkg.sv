@@ -28,27 +28,16 @@ package i2s_reg_pkg;
     struct packed {logic [7:0] q;} reachcount;
   } i2s_reg2hw_cfg_reg_t;
 
-  typedef struct packed {
-    struct packed {logic q;} clear_fifo;
-    struct packed {logic q;} clear_overflow;
-  } i2s_reg2hw_control_reg_t;
+  typedef struct packed {logic q;} i2s_reg2hw_control_reg_t;
 
   typedef struct packed {
     struct packed {logic q;} empty;
-    struct packed {logic q;} full;
     struct packed {logic q;} overflow;
-    struct packed {logic [7:0] q;} fill_level;
   } i2s_reg2hw_status_reg_t;
 
   typedef struct packed {
-    struct packed {
-      logic d;
-      logic de;
-    } clear_fifo;
-    struct packed {
-      logic d;
-      logic de;
-    } clear_overflow;
+    logic d;
+    logic de;
   } i2s_hw2reg_control_reg_t;
 
   typedef struct packed {
@@ -59,30 +48,22 @@ package i2s_reg_pkg;
     struct packed {
       logic d;
       logic de;
-    } full;
-    struct packed {
-      logic d;
-      logic de;
     } overflow;
-    struct packed {
-      logic [7:0] d;
-      logic       de;
-    } fill_level;
   } i2s_hw2reg_status_reg_t;
 
   // Register -> HW type
   typedef struct packed {
-    i2s_reg2hw_clkdividx_reg_t clkdividx;  // [41:26]
-    i2s_reg2hw_bytepersample_reg_t bytepersample;  // [25:24]
-    i2s_reg2hw_cfg_reg_t cfg;  // [23:13]
-    i2s_reg2hw_control_reg_t control;  // [12:11]
-    i2s_reg2hw_status_reg_t status;  // [10:0]
+    i2s_reg2hw_clkdividx_reg_t clkdividx;  // [31:16]
+    i2s_reg2hw_bytepersample_reg_t bytepersample;  // [15:14]
+    i2s_reg2hw_cfg_reg_t cfg;  // [13:3]
+    i2s_reg2hw_control_reg_t control;  // [2:2]
+    i2s_reg2hw_status_reg_t status;  // [1:0]
   } i2s_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    i2s_hw2reg_control_reg_t control;  // [18:15]
-    i2s_hw2reg_status_reg_t  status;   // [14:0]
+    i2s_hw2reg_control_reg_t control;  // [5:4]
+    i2s_hw2reg_status_reg_t  status;   // [3:0]
   } i2s_hw2reg_t;
 
   // Register offsets
@@ -111,7 +92,7 @@ package i2s_reg_pkg;
       4'b0001,  // index[1] I2S_BYTEPERSAMPLE
       4'b0111,  // index[2] I2S_CFG
       4'b0001,  // index[3] I2S_CONTROL
-      4'b0011  // index[4] I2S_STATUS
+      4'b0001  // index[4] I2S_STATUS
   };
 
 endpackage
