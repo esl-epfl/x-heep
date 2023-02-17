@@ -192,6 +192,7 @@
         intr_ack_stop:           47,
         intr_host_timeout:       48,
         spi2_intr_event:         49,
-        ext_intr:                50:63,
+        i2s_intr_event:          50,
+        ext_intr:                51:63,
     }
 }

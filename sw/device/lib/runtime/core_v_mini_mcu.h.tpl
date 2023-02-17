@@ -97,6 +97,7 @@ extern "C" {
 #define INTR_ACK_STOP ${intr_ack_stop}
 #define INTR_HOST_TIMEOUT ${intr_host_timeout}
 #define SPI2_INTR_EVENT ${spi2_intr_event}
+#define I2S_INTR_EVENT ${i2s_intr_event}
 % for ext_int_cnt, ext_int_val in zip(range(0,len(ext_int_list)), ext_int_list):
 #define EXT_INTR_${ext_int_cnt} ${ext_int_val}
 % endfor

@@ -116,6 +116,7 @@ module peripheral_subsystem
   logic i2c_intr_ack_stop;
   logic i2c_intr_host_timeout;
   logic spi2_intr_event;
+  logic i2s_intr_event;
 
   // this avoids lint errors
   assign unused_irq_id = irq_id;
@@ -148,6 +149,7 @@ module peripheral_subsystem
   assign intr_vector[47] = i2c_intr_ack_stop;
   assign intr_vector[48] = i2c_intr_host_timeout;
   assign intr_vector[49] = spi2_intr_event;
+  assign intr_vector[50] = i2s_intr_event;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin
@@ -377,7 +379,8 @@ module peripheral_subsystem
       .i2s_ws_i(i2s_ws_i),
       .i2s_sd_o(i2s_sd_o),
       .i2s_sd_oe_o(i2s_sd_oe_o),
-      .i2s_sd_i(i2s_sd_i)
+      .i2s_sd_i(i2s_sd_i),
+      .intr_i2s_event_o(i2s_intr_event)
   );
 
 

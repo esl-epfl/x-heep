@@ -526,6 +526,7 @@ def main():
     intr_ack_stop = obj['interrupts']['intr_ack_stop']
     intr_host_timeout = obj['interrupts']['intr_host_timeout']
     spi2_intr_event = obj['interrupts']['spi2_intr_event']
+    i2s_intr_event = obj['interrupts']['i2s_intr_event']
     ext_intr = obj['interrupts']['ext_intr']
 
     ext_intr_upper = ext_intr.split(':')[1].replace(',', '')
@@ -859,6 +860,7 @@ def main():
         "intr_ack_stop"                    : intr_ack_stop,
         "intr_host_timeout"                : intr_host_timeout,
         "spi2_intr_event"                  : spi2_intr_event,
+        "i2s_intr_event"                   : i2s_intr_event,
         "ext_int_list"                     : ext_int_list,
         "pad_list"                         : pad_list,
         "external_pad_list"                : external_pad_list,

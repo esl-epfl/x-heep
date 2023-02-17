@@ -21,6 +21,12 @@
       default: "16"
     }
   ]
+  interrupt_list: [
+    { name: "i2s_event",
+      desc: '''Event-related interrupts, see !!EVENT_ENABLE register for more
+               information.'''
+    }
+  ],
   registers: [
 
     // CLOCK DIVISION
