@@ -40,20 +40,21 @@ module i2s #(
   i2s_hw2reg_t hw2reg;
 
 
+  logic sck;
+
   // RX Window Interface signals
   reg_req_t    rx_win_h2d;
   reg_rsp_t    rx_win_d2h;
 
 
-  logic rx_fifo_full;
-  logic rx_fifo_empty;
-  logic [FIFO_ADDR_WIDTH-1:0] rx_fifo_usage;
+  logic rx_fifo_ready;
   logic [SampleWidth-1:0] rx_fifo_data_in;
-  logic rx_fifo_push;
-  logic [SampleWidth-1:0] rx_fifo_data_out;
-  logic rx_fifo_pop;
-  logic rx_fifo_err;
+  logic rx_fifo_data_in_valid;
 
+  logic [SampleWidth-1:0] rx_fifo_data_out;
+  logic rx_fifo_data_out_valid;
+
+  logic rx_fifo_err;
 
   logic [CounterWidth-1:0] sample_width;
   assign sample_width = {reg2hw.bytepersample.q, 3'h7};
@@ -61,28 +62,46 @@ module i2s #(
   // FIFO -> RX WINDOW
   assign rx_win_d2h.ready = rx_win_h2d.valid && rx_win_h2d.addr[BlockAw-1:0] == i2s_reg_pkg::I2S_RXDATA_OFFSET && !rx_win_h2d.write;
   assign rx_win_d2h.rdata = rx_fifo_data_out;
-  assign rx_win_d2h.error = rx_fifo_empty;
-  assign rx_fifo_pop = rx_win_d2h.ready && !rx_fifo_empty;
+  assign rx_win_d2h.error = !rx_fifo_data_out_valid;
+
+
+  // RX FIFO
+  cdc_fifo_gray #(
+      .WIDTH(SampleWidth),
+      .LOG_DEPTH(FIFO_ADDR_WIDTH)
+  ) rx_fifo_i (
+      .src_clk_i  (clk_i),
+      .src_rst_ni (rst_ni),
+      .src_ready_o(rx_fifo_ready),
+      .src_data_i (rx_fifo_data_in),
+      .src_valid_i(rx_fifo_data_in_valid),
+
+      .dst_rst_ni (rst_ni),
+      .dst_clk_i  (sck),
+      .dst_data_o (rx_fifo_data_out),
+      .dst_valid_o(rx_fifo_data_out_valid),
+      .dst_ready_i(rx_win_d2h.ready)
+  );
 
 
   // STATUS 
-  assign hw2reg.status.fill_level.d = rx_fifo_usage;
-  assign hw2reg.status.fill_level.de = 1'b1;
-  assign hw2reg.status.full.d = rx_fifo_full;
-  assign hw2reg.status.full.de = 1'b1;
-  assign hw2reg.status.empty.d = rx_fifo_empty;
+  // assign hw2reg.status.fill_level.d = rx_fifo_usage;
+  // assign hw2reg.status.fill_level.de = 1'b1;
+  // assign hw2reg.status.full.d = rx_fifo_full;
+  // assign hw2reg.status.full.de = 1'b1;
+  assign hw2reg.status.empty.d = !rx_fifo_data_out_valid;
   assign hw2reg.status.empty.de = 1'b1;
 
-  assign hw2reg.status.overflow.de = rx_fifo_err | reg2hw.control.clear_overflow.q;
-  assign hw2reg.status.overflow.d = rx_fifo_err & !reg2hw.control.clear_overflow.q;
+  assign hw2reg.status.overflow.de = rx_fifo_err | reg2hw.control.q;
+  assign hw2reg.status.overflow.d = rx_fifo_err & !reg2hw.control.q;
 
 
   // reset control bits immediatelly 
-  assign hw2reg.control.clear_fifo.de = reg2hw.control.clear_fifo.q;
-  assign hw2reg.control.clear_fifo.d = 1'b0;
+  // assign hw2reg.control.clear_fifo.de = reg2hw.control.clear_fifo.q;
+  // assign hw2reg.control.clear_fifo.d = 1'b0;
 
-  assign hw2reg.control.clear_overflow.de = reg2hw.control.clear_overflow.q;
-  assign hw2reg.control.clear_overflow.d = 1'b0;
+  assign hw2reg.control.de = reg2hw.control.q;
+  assign hw2reg.control.d = 1'b0;
 
 
 
@@ -103,23 +122,6 @@ module i2s #(
   );
 
 
-  // RX FIFO
-  fifo_v3 #(
-      .DEPTH(FIFO_DEPTH),
-      .DATA_WIDTH(SampleWidth)
-  ) rx_fifo_i (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .flush_i(reg2hw.control.clear_fifo),
-      .testmode_i(1'b0),
-      .full_o(rx_fifo_full),
-      .empty_o(rx_fifo_empty),
-      .usage_o(rx_fifo_usage),
-      .data_i(rx_fifo_data_in),
-      .push_i(rx_fifo_push),
-      .data_o(rx_fifo_data_out),
-      .pop_i(rx_fifo_pop)
-  );
 
   // Core logic
   i2s_core #(
@@ -140,14 +142,16 @@ module i2s #(
       .i2s_sd_oe_o (i2s_sd_oe_o),
       .i2s_sd_i    (i2s_sd_i),
 
+      .sck_o(sck),
+
       .cfg_clk_ws_en_i(reg2hw.cfg.gen_clk_ws.q),
       .cfg_lsb_first_i(reg2hw.cfg.lsb_first.q),
       .cfg_clock_div_i(reg2hw.clkdividx.q),
       .cfg_sample_width_i(sample_width),
 
       .fifo_rx_data_o(rx_fifo_data_in),
-      .fifo_rx_data_valid_o(rx_fifo_push),
-      .fifo_rx_data_ready_i(!rx_fifo_full),
+      .fifo_rx_data_valid_o(rx_fifo_data_in_valid),
+      .fifo_rx_data_ready_i(rx_fifo_ready),
       .fifo_rx_err_o(rx_fifo_err)
   );
 

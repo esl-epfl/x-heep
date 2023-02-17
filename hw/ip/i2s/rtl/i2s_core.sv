@@ -26,6 +26,8 @@ module i2s_core #(
     output logic i2s_sd_oe_o,
     input  logic i2s_sd_i,
 
+    output logic sck_o,
+
     // config
     input logic                           cfg_lsb_first_i,
     input logic [         ClkDivSize-1:0] cfg_clock_div_i,
@@ -64,6 +66,8 @@ module i2s_core #(
       .clk_sel_i(i2s_sck_oe_o),
       .clk_o    (sck)
   );
+
+  assign sck_o = sck;
 
   logic div_valid;
   logic div_ready;
