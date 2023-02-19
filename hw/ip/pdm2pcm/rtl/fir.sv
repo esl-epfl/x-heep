@@ -8,11 +8,11 @@
 
 module fir #(
     // Width of the datapath
-    parameter  WIDTH,
+    parameter  WIDTH = 18,
     // Width of the filter coefficients
-    parameter  COEFSWIDTH,
+    parameter  COEFSWIDTH = 18,
     // Number of stages (= order = total number of coefficients - 1)
-    parameter  STAGES,
+    parameter  STAGES = 26,
     // Total number of coefficients
     localparam TOTCOEFS   = STAGES + 1,
     // Number of free coefficients

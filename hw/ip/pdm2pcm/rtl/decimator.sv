@@ -8,7 +8,7 @@
 
 module decimator #(
     // Width of counting-related signals
-    parameter COUNTER_WIDTH
+    parameter COUNTER_WIDTH = 4
 ) (
     // Clock input
     input logic clk_i,

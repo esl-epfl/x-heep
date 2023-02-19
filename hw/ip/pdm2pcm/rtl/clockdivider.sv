@@ -8,7 +8,7 @@
 
 module clockdivider #(
     // Width of counting-related signals
-    parameter COUNTER_WIDTH
+    parameter COUNTER_WIDTH = 16
 ) (
     // Clock input
     input logic clk_i,
