@@ -66,7 +66,7 @@ void i2s_set_intr_reach_count(const i2s_t *i2s, uint32_t reach_count);
  * @param i2s pointer to i2s_t represting the target I2s PERIPHERAL.
  * @param enable I2s interrupt event enable bit.
  */
-void i2s_enable_intr(const i2s_t *i2s, bool enable);
+void i2s_set_enable_intr(const i2s_t *i2s, bool enable);
 
 
 #ifdef __cplusplus

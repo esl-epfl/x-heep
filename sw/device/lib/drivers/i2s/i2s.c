@@ -23,6 +23,6 @@ void i2s_set_intr_reach_count(const i2s_t *i2s, uint32_t reach_count) {
   mmio_region_write32(i2s->base_addr, I2S_REACHCOUNT_REG_OFFSET, reach_count);
 }
 
-void i2s_enable_intr(const i2s_t *i2s, bool enable) {
+void i2s_set_enable_intr(const i2s_t *i2s, bool enable) {
   mmio_region_write32(i2s->base_addr, I2S_INTR_ENABLE_REG_OFFSET, enable << I2S_INTR_ENABLE_I2S_EVENT_BIT);
 }

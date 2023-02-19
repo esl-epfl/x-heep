@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 
 
     // enable I2s interrupt
-    i2s_enable_intr(&i2s, 1);
+    i2s_set_enable_intr(&i2s, 1);
 
     const u_int16_t batchsize = 0x20;
 
