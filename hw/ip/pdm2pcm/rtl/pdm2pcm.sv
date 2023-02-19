@@ -2,6 +2,10 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+// Author: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
+// Date: 19.02.2022
+// Description: Top wrapper for the PDM2PCM acquisition peripheral
+
 module pdm2pcm #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
