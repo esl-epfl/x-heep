@@ -37,8 +37,6 @@ module testharness #(
 
   localparam SWITCH_ACK_LATENCY = 15;
 
-  logic pdm_clk_oh;
-
   wire uart_rx;
   wire uart_tx;
   logic sim_jtag_enable = (JTAG_DPI == 1);
@@ -359,63 +357,11 @@ module testharness #(
   assign memcopy_intr = '0;
 `endif
 
-  int init;
-  int fpdm;
-  int lineidx;
-  string line;
-
-  assign gpio[21] = pdm;
-
-  always_ff @(posedge clk_i or negedge rst_ni) begin
-    if (~rst_ni) begin
-      init = 0;
-      lineidx = 0;
-      pdm <= 0;
-    end else begin
-      if (init != 1) begin
-        init = 1;
-        lineidx = 0;
-        fpdm = $fopen("../../../hw/ip/pdm2pcm/tb/signals/pdm.txt", "r");
-        if (fpdm) begin
-          $display("PDM File opened successfully.");
-        end else begin
-          $display("Failed to open PDM file.");
-          $display(" > Please check if this the simulation was launched using");
-          $display("   `make *-sim` or `make run-pdm2pcm`.");
-        end
-
-        $fgets(line, fpdm);
-        line = line.substr(0, 0);
-        if (line == "1") begin
-          pdm <= 1;
-        end else begin
-          pdm <= 0;
-        end
-
-        pdm_clk_oh = 1'b0;
-
-      end
-
-      if (gpio[22] == 1 & pdm_clk_oh == 0) begin
-        $fgets(line, fpdm);
-        line = line.substr(0, 0);
-        if (line == "1") begin
-          pdm <= 1;
-        end else begin
-          pdm <= 0;
-        end
-        lineidx = lineidx + 1;
-      end
-
-      pdm_clk_oh = gpio[22];
-
-      if (lineidx >= 65536) begin
-        $fclose(fpdm);
-        $stop;
-      end
-    end
-  end
-
-
+  pdm2pcm_dummy #() pdm2pcm_dummy_i (
+      .clk_i,
+      .rst_ni,
+      .pdm_data_o(gpio[21]),
+      .pdm_clk_i(gpio[22])
+  );
 
 endmodule  // testharness
