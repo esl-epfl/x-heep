@@ -10,7 +10,7 @@ module pdm2pcm_dummy #(
 ) (
     input logic clk_i,
     input logic rst_ni,
-    
+
     // output ports
     output logic pdm_clk_i,
 
@@ -22,7 +22,7 @@ module pdm2pcm_dummy #(
   int fpdm;
   int lineidx;
   string line;
-  
+
   logic pdm_clk_h;
 
   always_ff @(posedge clk_i or negedge rst_ni) begin

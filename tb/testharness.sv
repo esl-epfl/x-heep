@@ -357,11 +357,11 @@ module testharness #(
   assign memcopy_intr = '0;
 `endif
 
-  pdm2pcm_dummy #() pdm2pcm_dummy_i (
+  pdm2pcm_dummy pdm2pcm_dummy_i (
       .clk_i,
       .rst_ni,
       .pdm_data_o(gpio[21]),
-      .pdm_clk_i(gpio[22])
+      .pdm_clk_i (gpio[22])
   );
 
 endmodule  // testharness

@@ -8,15 +8,15 @@
 
 module fir #(
     // Width of the datapath
-    parameter  WIDTH = 18,
+    parameter WIDTH = 18,
     // Width of the filter coefficients
-    parameter  COEFSWIDTH = 18,
+    parameter COEFSWIDTH = 18,
     // Number of stages (= order = total number of coefficients - 1)
-    parameter  STAGES = 26,
+    parameter STAGES = 26,
     // Total number of coefficients
-    localparam TOTCOEFS   = STAGES + 1,
+    localparam TOTCOEFS = STAGES + 1,
     // Number of free coefficients
-    localparam NUMCOEFS   = int'($ceil(TOTCOEFS / 2.0))
+    localparam NUMCOEFS = int'($ceil(TOTCOEFS / 2.0))
 ) (
     // Clock input
     input logic clk_i,

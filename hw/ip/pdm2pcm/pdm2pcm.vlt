@@ -12,3 +12,5 @@ lint_off -rule UNUSED -file "*/pdm2pcm.sv" -match "Bits of signal are not *"
 
 lint_off -rule UNUSED -file "*/fir.sv" -match "*"
 lint_off -rule UNUSED -file "*/halfband.sv" -match "*"
+
+lint_off -rule DECLFILENAME -file "*/pdm2pcm_reg_top.sv" -match "Filename 'pdm2pcm_reg_top' does not match MODULE name: 'pdm2pcm_reg_top_intf'"

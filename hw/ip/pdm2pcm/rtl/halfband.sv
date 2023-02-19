@@ -8,17 +8,17 @@
 
 module halfband #(
     // Width of the datapath
-    parameter  WIDTH = 18,
+    parameter WIDTH = 18,
     // Width of the filter coefficients
-    parameter  COEFSWIDTH = 18,
+    parameter COEFSWIDTH = 18,
     // Number of stages (= order = total number of coefficients - 1)
-    parameter  STAGES = 10,
+    parameter STAGES = 10,
     // Total number of coefficients
-    localparam TOTCOEFS   = STAGES + 1,
+    localparam TOTCOEFS = STAGES + 1,
     // Number of free coefficients of the FIR filter
-    localparam NUMCOEFS   = int'($ceil(TOTCOEFS / 2.0)),
+    localparam NUMCOEFS = int'($ceil(TOTCOEFS / 2.0)),
     // Number of free coefficients
-    localparam FRECOEFS   = int'((STAGES / 2 - 1) / 2 + 2)
+    localparam FRECOEFS = int'((STAGES / 2 - 1) / 2 + 2)
 ) (
     // Clock input
     input logic clk_i,

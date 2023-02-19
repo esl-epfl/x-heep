@@ -10,7 +10,7 @@ module cic_integrators #(
     // Number of integrators
     parameter STAGES = 4,
     // Width of the datapath
-    parameter WIDTH = 18
+    parameter WIDTH  = 18
 ) (
     // Clock input
     input logic clk_i,

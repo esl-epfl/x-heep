@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: "example:ip:pdm2pcm_dummy"
-description: "OpenHW Group X-HEEP GPIO counter example"
+description: "Simulates a PDM input for the PDM2PCM peripheral"
 
 # Copyright 2022 EPFL
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.

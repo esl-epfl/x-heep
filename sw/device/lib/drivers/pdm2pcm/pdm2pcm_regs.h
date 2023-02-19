@@ -1,11 +1,11 @@
 // Generated register defines for pdm2pcm
 
 // Copyright information found in source file:
-// Copyright EPFL contributors.
+// Copyright 2022 EPFL
 
 // Licensing information found in source file:
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
-// SPDX-License-Identifier: Apache-2.0
+// 
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 #ifndef _PDM2PCM_REG_DEFS_
 #define _PDM2PCM_REG_DEFS_
