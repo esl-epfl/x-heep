@@ -67,31 +67,7 @@ The `<peripheral>.vlt` is a waiver file. By default, warnings make the simulatio
 > **Warning**
 > When a file has a template (another file that has the same name but with a `.tpl` extension), this file is auto-generated. Therefore, do only edit the template file. Otherwise, the modifications will be overriden at the platform generation.
 
-4. In `util/mcu_gen.py`,
-
-a. add the following in the `kwargs` dictionary:
-
-```c
-        "<peripheral>_start_offset"             : <peripheral>_start_offset,
-        "<peripheral>_size_address"             : <peripheral>_size_address,
-```
-
-b. and add the following in the corresponding variables region:
-
-```c
-    <peripheral>_start_offset  = string2int(obj['peripherals']['<peripheral>']['offset'])
-    <peripheral>_size_address  = string2int(obj['peripherals']['<peripheral>']['length'])
-```
-
-5. In `sw/device/lib/runtime/core_v_mini_mcu.h.tpl`, add the following:
-
-```c
- #define <peripheral>_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${<peripheral>_start_offset})
- #define <peripheral>_SIZE 0x${<peripheral>_size_address}
- #define <peripheral>_END_ADDRESS (<peripheral>_START_ADDRESS + <peripheral>_SIZE)
-```
-
-6. In case of modification of the GPIOs usage,
+4. In case of modification of the GPIOs usage,
 
 a. the `hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv` must be adapted.
 
@@ -144,31 +120,7 @@ c. The core MCU I/O must be adapted as well (`hw/core-v-mini-mcu/core_v_mini_mcu
   );
 ```
 
-8. Adapt `hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl`:
-
-a. The peripheral number must be updated:
-
-```diff
--  localparam PERIPHERALS = N;
-+  localparam PERIPHERALS = N+1;
-```
-
-b. Some parameters must be added:
-
-```verilog
-  localparam logic[31:0] <peripheral>_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${<peripheral>_start_offset};
-  localparam logic[31:0] <peripheral>_SIZE = 32'h${<peripheral>_size_address};
-  localparam logic[31:0] <peripheral>_END_ADDRESS = <peripheral>_START_ADDRESS + <peripheral>_SIZE;
-  localparam logic[31:0] <peripheral>_IDX = 32'd5;
-```
-
-c. The `PERIPHERALS_ADDR_RULES` should be amended:
-
-```c
-       '{ idx: <peripheral>_IDX, start_addr: <peripheral>_START_ADDRESS, end_addr: <peripheral>_END_ADDRESS },
-```
-
-9. The peripheral package and the waiver files must be declared in the `core-v-mini-mcu.core` manifest:
+5. The peripheral package and the waiver files must be declared in the `core-v-mini-mcu.core` manifest:
 
 ```yaml
   depend:
@@ -179,7 +131,41 @@ c. The `PERIPHERALS_ADDR_RULES` should be amended:
        <...>
      - hw/ip/<peripheral>/<peripheral>.vlt
 ```
+
+6. The MCU configuration (mcu_cfg.json) must be adapted:
  
+```diff
+    peripherals: {
+      <...>
++        <peripheral>: {
++            offset:  0x00060000,
++            length:  0x00010000,
++        },
+    },
+```
+
+7. The pads configuration (pad_cfg.json) must be adapted as well:
+ 
+```diff
+         gpio: {
+-            num: <N>,
++            num: <N-D>,
+             num_offset: 0, #first gpio is gpio0
+             type: inout
+         },
++        pdm2pcm_pdm: {
++            num: 1,
++            type: inout
++            mux: {
++                <peripheral_io>: {
++                    type: inout
++                },
++                gpio_K: {
++                    type: inout
++                }
++            }
++        },
+```
 
 ## How to implement the registers
 
