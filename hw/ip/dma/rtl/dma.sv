@@ -126,11 +126,11 @@ module dma #(
     wait_for_rx = 1'b0;
     wait_for_tx = 1'b0;
     case (reg2hw.spi_mode.q)
-      3'h1:wait_for_rx = ~spi_rx_valid_i;
-      3'h2: wait_for_tx = ~spi_tx_ready_i;
-      3'h3: wait_for_rx = ~spi_flash_rx_valid_i;
-      3'h4: wait_for_tx = ~spi_flash_tx_ready_i;
-      default:                   ;
+      3'h1:    wait_for_rx = ~spi_rx_valid_i;
+      3'h2:    wait_for_tx = ~spi_tx_ready_i;
+      3'h3:    wait_for_rx = ~spi_flash_rx_valid_i;
+      3'h4:    wait_for_tx = ~spi_flash_tx_ready_i;
+      default: ;
     endcase
   end
 
