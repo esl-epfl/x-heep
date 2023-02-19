@@ -74,6 +74,7 @@
                 { value: "2", name: "DMA_SPI_TX",       desc: "send to SPI"             },
                 { value: "3", name: "DMA_SPI_FLASH_RX", desc: "receive from SPI FLASH"  },
                 { value: "4", name: "DMA_SPI_FLASH_TX", desc: "send to SPI FLASH "      },
+                { value: "5", name: "DMA_I2S_RX",       desc: "receive from I2S"        },
               ]
         }
       ]

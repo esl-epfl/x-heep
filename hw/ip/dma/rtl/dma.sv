@@ -27,6 +27,7 @@ module dma #(
     input logic spi_tx_ready_i,
     input logic spi_flash_rx_valid_i,
     input logic spi_flash_tx_ready_i,
+    input logic i2s_rx_valid_i,
 
     output dma_intr_o
 );
@@ -130,6 +131,7 @@ module dma #(
       3'h2:    wait_for_tx = ~spi_tx_ready_i;
       3'h3:    wait_for_rx = ~spi_flash_rx_valid_i;
       3'h4:    wait_for_tx = ~spi_flash_tx_ready_i;
+      3'h5:    wait_for_rx = ~i2s_rx_valid_i;
       default: ;
     endcase
   end

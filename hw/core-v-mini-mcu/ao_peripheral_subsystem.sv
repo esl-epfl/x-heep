@@ -105,6 +105,9 @@ module ao_peripheral_subsystem
     output logic uart_intr_rx_timeout_o,
     output logic uart_intr_rx_parity_err_o,
 
+    // I2s
+    input logic i2s_rx_valid_i,
+
     // EXTERNAL PERIPH
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i
@@ -337,6 +340,7 @@ module ao_peripheral_subsystem
       .spi_tx_ready_i(spi_tx_ready),
       .spi_flash_rx_valid_i(spi_flash_rx_valid),
       .spi_flash_tx_ready_i(spi_flash_tx_ready),
+      .i2s_rx_valid_i(i2s_rx_valid_i),
       .dma_intr_o
   );
 

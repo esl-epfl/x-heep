@@ -67,7 +67,8 @@ module peripheral_subsystem
     input  logic i2s_ws_i,
     output logic i2s_sd_o,
     output logic i2s_sd_oe_o,
-    input  logic i2s_sd_i
+    input  logic i2s_sd_i,
+    output logic i2s_rx_valid_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -380,7 +381,8 @@ module peripheral_subsystem
       .i2s_sd_o(i2s_sd_o),
       .i2s_sd_oe_o(i2s_sd_oe_o),
       .i2s_sd_i(i2s_sd_i),
-      .intr_i2s_event_o(i2s_intr_event)
+      .intr_i2s_event_o(i2s_intr_event),
+      .i2s_rx_valid_o(i2s_rx_valid_o)
   );
 
 

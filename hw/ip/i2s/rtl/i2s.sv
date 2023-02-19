@@ -31,7 +31,10 @@ module i2s #(
     input  logic i2s_sd_i,
 
     // Interrupt
-    output logic intr_i2s_event_o
+    output logic intr_i2s_event_o,
+
+    // DMA signal
+    output logic i2s_rx_valid_o
 );
 
   import i2s_reg_pkg::*;
@@ -56,6 +59,7 @@ module i2s #(
 
   logic [SampleWidth-1:0] rx_fifo_data_out;
   logic rx_fifo_data_out_valid;
+  logic rx_fifo_data_out_ready;
 
   logic rx_fifo_err;
 
@@ -67,6 +71,9 @@ module i2s #(
   assign rx_win_d2h.rdata = rx_fifo_data_out;
   assign rx_win_d2h.error = !rx_fifo_data_out_valid;
 
+  assign rx_fifo_data_out_ready = rx_win_d2h.ready;
+
+  assign i2s_rx_valid_o = rx_fifo_data_out_valid;
 
   // RX FIFO
   cdc_fifo_gray #(
@@ -83,7 +90,7 @@ module i2s #(
       .dst_clk_i  (sck),
       .dst_data_o (rx_fifo_data_out),
       .dst_valid_o(rx_fifo_data_out_valid),
-      .dst_ready_i(rx_win_d2h.ready)
+      .dst_ready_i(rx_fifo_data_out_ready)
   );
 
 

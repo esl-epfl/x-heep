@@ -46,6 +46,7 @@ extern "C" {
 #define DMA_SPI_MODE_SPI_MODE_VALUE_DMA_SPI_TX 0x2
 #define DMA_SPI_MODE_SPI_MODE_VALUE_DMA_SPI_FLASH_RX 0x3
 #define DMA_SPI_MODE_SPI_MODE_VALUE_DMA_SPI_FLASH_TX 0x4
+#define DMA_SPI_MODE_SPI_MODE_VALUE_DMA_I2S_RX 0x5
 
 // Data type to transfer: 32-bit word(0), 16-bit half word(1), 8-bit
 // byte(2,3).
