@@ -86,7 +86,7 @@ module i2s_reg_top #(
     reg_steer = 1;  // Default set to register
 
     // TODO: Can below codes be unique case () inside ?
-    if (reg_req_i.addr[AW-1:0] >= 32 && reg_req_i.addr[AW-1:0] < 36) begin
+    if (reg_req_i.addr[AW-1:0] >= 36 && reg_req_i.addr[AW-1:0] < 40) begin
       reg_steer = 0;
     end
   end
@@ -131,9 +131,9 @@ module i2s_reg_top #(
   logic cfg_lsb_first_qs;
   logic cfg_lsb_first_wd;
   logic cfg_lsb_first_we;
-  logic [7:0] cfg_reachcount_qs;
-  logic [7:0] cfg_reachcount_wd;
-  logic cfg_reachcount_we;
+  logic [31:0] reachcount_qs;
+  logic [31:0] reachcount_wd;
+  logic reachcount_we;
   logic control_qs;
   logic control_wd;
   logic control_we;
@@ -345,18 +345,19 @@ module i2s_reg_top #(
   );
 
 
-  //   F[reachcount]: 23:16
+  // R[reachcount]: V(False)
+
   prim_subreg #(
-      .DW      (8),
+      .DW      (32),
       .SWACCESS("RW"),
-      .RESVAL  (8'h0)
-  ) u_cfg_reachcount (
+      .RESVAL  (32'h0)
+  ) u_reachcount (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(cfg_reachcount_we),
-      .wd(cfg_reachcount_wd),
+      .we(reachcount_we),
+      .wd(reachcount_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -364,10 +365,10 @@ module i2s_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.cfg.reachcount.q),
+      .q (reg2hw.reachcount.q),
 
       // to register interface (read)
-      .qs(cfg_reachcount_qs)
+      .qs(reachcount_qs)
   );
 
 
@@ -452,7 +453,7 @@ module i2s_reg_top #(
 
 
 
-  logic [7:0] addr_hit;
+  logic [8:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == I2S_INTR_STATE_OFFSET);
@@ -461,8 +462,9 @@ module i2s_reg_top #(
     addr_hit[3] = (reg_addr == I2S_CLKDIVIDX_OFFSET);
     addr_hit[4] = (reg_addr == I2S_BYTEPERSAMPLE_OFFSET);
     addr_hit[5] = (reg_addr == I2S_CFG_OFFSET);
-    addr_hit[6] = (reg_addr == I2S_CONTROL_OFFSET);
-    addr_hit[7] = (reg_addr == I2S_STATUS_OFFSET);
+    addr_hit[6] = (reg_addr == I2S_REACHCOUNT_OFFSET);
+    addr_hit[7] = (reg_addr == I2S_CONTROL_OFFSET);
+    addr_hit[8] = (reg_addr == I2S_STATUS_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -477,7 +479,8 @@ module i2s_reg_top #(
                (addr_hit[4] & (|(I2S_PERMIT[4] & ~reg_be))) |
                (addr_hit[5] & (|(I2S_PERMIT[5] & ~reg_be))) |
                (addr_hit[6] & (|(I2S_PERMIT[6] & ~reg_be))) |
-               (addr_hit[7] & (|(I2S_PERMIT[7] & ~reg_be)))));
+               (addr_hit[7] & (|(I2S_PERMIT[7] & ~reg_be))) |
+               (addr_hit[8] & (|(I2S_PERMIT[8] & ~reg_be)))));
   end
 
   assign intr_state_we = addr_hit[0] & reg_we & !reg_error;
@@ -504,10 +507,10 @@ module i2s_reg_top #(
   assign cfg_lsb_first_we = addr_hit[5] & reg_we & !reg_error;
   assign cfg_lsb_first_wd = reg_wdata[2];
 
-  assign cfg_reachcount_we = addr_hit[5] & reg_we & !reg_error;
-  assign cfg_reachcount_wd = reg_wdata[23:16];
+  assign reachcount_we = addr_hit[6] & reg_we & !reg_error;
+  assign reachcount_wd = reg_wdata[31:0];
 
-  assign control_we = addr_hit[6] & reg_we & !reg_error;
+  assign control_we = addr_hit[7] & reg_we & !reg_error;
   assign control_wd = reg_wdata[1];
 
   // Read data return
@@ -538,14 +541,17 @@ module i2s_reg_top #(
         reg_rdata_next[0] = cfg_en_qs;
         reg_rdata_next[1] = cfg_gen_clk_ws_qs;
         reg_rdata_next[2] = cfg_lsb_first_qs;
-        reg_rdata_next[23:16] = cfg_reachcount_qs;
       end
 
       addr_hit[6]: begin
-        reg_rdata_next[1] = control_qs;
+        reg_rdata_next[31:0] = reachcount_qs;
       end
 
       addr_hit[7]: begin
+        reg_rdata_next[1] = control_qs;
+      end
+
+      addr_hit[8]: begin
         reg_rdata_next[0] = status_empty_qs;
         reg_rdata_next[2] = status_overflow_qs;
       end

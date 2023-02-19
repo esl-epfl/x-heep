@@ -166,36 +166,47 @@ module i2s #(
   );
 
   logic event_i2s_event;
-  prim_intr_hw #(
-      .Width(1)
-  ) intr_hw_i2s_event (
-      .clk_i,
-      .rst_ni,
-      .event_intr_i          (event_i2s_event),
-      .reg2hw_intr_enable_q_i(reg2hw.intr_enable.q),
-      .reg2hw_intr_test_q_i  (reg2hw.intr_test.q),
-      .reg2hw_intr_test_qe_i (reg2hw.intr_test.qe),
-      .reg2hw_intr_state_q_i (reg2hw.intr_state.q),
-      .hw2reg_intr_state_de_o(hw2reg.intr_state.de),
-      .hw2reg_intr_state_d_o (hw2reg.intr_state.d),
-      .intr_o                (intr_i2s_event_o)
-  );
+  // prim_intr_hw #(
+  //     .Width(1)
+  // ) intr_hw_i2s_event (
+  //     .clk_i,
+  //     .rst_ni,
+  //     .event_intr_i          (event_i2s_event),
+  //     .reg2hw_intr_enable_q_i(reg2hw.intr_enable.q),
+  //     .reg2hw_intr_test_q_i  (reg2hw.intr_test.q),
+  //     .reg2hw_intr_test_qe_i (reg2hw.intr_test.qe),
+  //     .reg2hw_intr_state_q_i (reg2hw.intr_state.q),
+  //     .hw2reg_intr_state_de_o(hw2reg.intr_state.de),
+  //     .hw2reg_intr_state_d_o (hw2reg.intr_state.d),
+  //     .intr_o                (intr_i2s_event_o)
+  // );
+
+  assign intr_i2s_event_o = event_i2s_event & reg2hw.intr_enable.q;
+  assign hw2reg.intr_state.de = intr_i2s_event_o;
+  assign hw2reg.intr_state.d = intr_i2s_event_o;
 
 
-  // interrupt test event
-  logic [15:0] intr_test_counter;
-  localparam INTR_TEST_COUNT = 16'hffff;
+
+  // interrupt reach count event
+  // count fifo outputs to be on clk_i
+  logic [31:0] intr_reach_counter;
   always_ff @(posedge clk_i, negedge rst_ni) begin
     if (~rst_ni) begin
-      intr_test_counter <= 16'h0;
+      intr_reach_counter <= 32'h0;
     end else begin
-      if (reg2hw.cfg.en & (intr_test_counter < INTR_TEST_COUNT)) begin
-        intr_test_counter <= intr_test_counter + 16'h1;
+      if (intr_reach_counter == reg2hw.reachcount.q) begin
+        if (reg2hw.cfg.en & rx_fifo_data_out_ready & rx_fifo_data_out_valid) begin
+          intr_reach_counter <= 32'h1;
+        end else begin
+          intr_reach_counter <= 32'h0;
+        end
+      end else if (reg2hw.cfg.en & rx_fifo_data_out_ready & rx_fifo_data_out_valid) begin
+        intr_reach_counter <= intr_reach_counter + 32'h1;
       end
     end
   end
 
-  assign event_i2s_event = intr_test_counter == INTR_TEST_COUNT - 16'h1;
+  assign event_i2s_event = intr_reach_counter == reg2hw.reachcount.q & reg2hw.reachcount.q != 32'h0;
 
 
 endmodule : i2s

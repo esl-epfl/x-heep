@@ -60,22 +60,21 @@ extern "C" {
 #define I2S_CFG_EN_BIT 0
 #define I2S_CFG_GEN_CLK_WS_BIT 1
 #define I2S_CFG_LSB_FIRST_BIT 2
-#define I2S_CFG_REACHCOUNT_MASK 0xff
-#define I2S_CFG_REACHCOUNT_OFFSET 16
-#define I2S_CFG_REACHCOUNT_FIELD \
-  ((bitfield_field32_t) { .mask = I2S_CFG_REACHCOUNT_MASK, .index = I2S_CFG_REACHCOUNT_OFFSET })
+
+// Count to reach for an interrupt
+#define I2S_REACHCOUNT_REG_OFFSET 0x18
 
 // control register
-#define I2S_CONTROL_REG_OFFSET 0x18
+#define I2S_CONTROL_REG_OFFSET 0x1c
 #define I2S_CONTROL_CLEAR_OVERFLOW_BIT 1
 
 // Status register
-#define I2S_STATUS_REG_OFFSET 0x1c
+#define I2S_STATUS_REG_OFFSET 0x20
 #define I2S_STATUS_EMPTY_BIT 0
 #define I2S_STATUS_OVERFLOW_BIT 2
 
 // Memory area: I2s Receive data
-#define I2S_RXDATA_REG_OFFSET 0x20
+#define I2S_RXDATA_REG_OFFSET 0x24
 #define I2S_RXDATA_SIZE_WORDS 1
 #define I2S_RXDATA_SIZE_BYTES 4
 #ifdef __cplusplus
