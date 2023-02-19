@@ -28,6 +28,10 @@
 #include "rv_plic_regs.h"
 #include "csr.h"
 #include "hart.h"
+#include "dma.h"
+#include "dma_regs.h"
+#include "fast_intr_ctrl.h"
+#include "fast_intr_ctrl_regs.h"
 
 int8_t external_intr_flag;
 
@@ -37,101 +41,131 @@ dif_plic_t rv_plic;
 dif_plic_result_t plic_res;
 dif_plic_irq_id_t intr_num;
 
+
+#define AUDIO_DATA_NUM 2048
+uint32_t audio_data[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
+
+
 void handler_irq_external(void) {
     // Claim/clear interrupt
     plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
-    if (plic_res == kDifPlicOk && intr_num == I2S_INTR_EVENT) {
-        external_intr_flag = 1;
+    if (plic_res == kDifPlicOk) {
+        if (intr_num == I2S_INTR_EVENT) {
+            external_intr_flag = external_intr_flag + 1;
+        }
+        dif_plic_irq_complete(&rv_plic, 0, &intr_num);
     }
 }
+
+int8_t dma_intr_flag;
+
+void handler_irq_fast_dma(void)
+{
+    fast_intr_ctrl_t fast_intr_ctrl;
+    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
+    clear_fast_interrupt(&fast_intr_ctrl, kDma_fic_e);
+    dma_intr_flag = 1;
+}
+
 
 
 int main(int argc, char *argv[])
 {
     printf("I2s DEMO\n");
 
-    printf("--- MEMCOPY EXAMPLE - external peripheral ---\n");
+    mmio_region_t i2s_base_addr = mmio_region_from_addr((uintptr_t)I2S_START_ADDRESS);
 
-    printf("Init the PLIC...");
+
+    // dma peripheral structure to access the registers
+    dma_t dma;
+    dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
+
+    uint32_t *fifo_ptr_rx = i2s_base_addr.base + I2S_RXDATA_REG_OFFSET;
+
+
+     // -- DMA CONFIGURATION --
+    dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
+    dma_set_write_ptr_inc(&dma, (uint32_t) 4);
+    dma_set_read_ptr(&dma, (uint32_t) fifo_ptr_rx); // SPI RX FIFO addr
+    dma_set_write_ptr(&dma, (uint32_t) audio_data); // audio data address
+    dma_set_spi_mode(&dma, DMA_SPI_MODE_SPI_MODE_VALUE_DMA_I2S_RX); // The DMA will wait for the SPI RX FIFO valid signal
+    dma_set_data_type(&dma, (uint32_t) 0);
+
+
+    printf("Init PLIC..");
     rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
     plic_res = dif_plic_init(rv_plic_params, &rv_plic);
 
     if (plic_res == kDifPlicOk) {
-        printf("success\n");
+        printf("1\n");
     } else {
-        printf("fail\n;");
+        printf("0\n;");
     }
 
-    printf("Set I2s interrupt priority to 1...");
+    printf("Set I2s intr prio=1..");
     // Set memcopy priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
     plic_res = dif_plic_irq_set_priority(&rv_plic, I2S_INTR_EVENT, 1);
     if (plic_res == kDifPlicOk) {
-        printf("success\n");
+        printf("1\n");
     } else {
-        printf("fail\n;");
+        printf("0\n;");
     }
 
-    printf("Enable I2s interrupt...");
+    printf("EN I2s intr..");
     plic_res = dif_plic_irq_set_enabled(&rv_plic, I2S_INTR_EVENT, 0, kDifPlicToggleEnabled);
     if (plic_res == kDifPlicOk) {
-        printf("Success\n");
+        printf("1\n");
     } else {
-        printf("Fail\n;");
+        printf("0\n;");
     }
 
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     // Set mie.MEIE bit to one to enable machine-level external interrupts
-    const uint32_t mask = 1 << 11; 
+    // bit 11 = external intr (used for i2s)
+    // bit 19 = dma fast intr
+    const uint32_t mask = 1 << 11 | 1 << 19; 
     CSR_SET_BITS(CSR_REG_MIE, mask);
     external_intr_flag = 0;
 
 
 
+    dma_intr_flag = 0;
+    dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*sizeof(*audio_data)));
 
 
-    mmio_region_t base_addr = mmio_region_from_addr((uintptr_t)I2S_START_ADDRESS);
 
     // enable I2s interrupt
-    mmio_region_write32(base_addr, I2S_INTR_ENABLE_REG_OFFSET, 1 << I2S_INTR_ENABLE_I2S_EVENT_BIT);
+    mmio_region_write32(i2s_base_addr, I2S_INTR_ENABLE_REG_OFFSET, 1 << I2S_INTR_ENABLE_I2S_EVENT_BIT);
 
-    mmio_region_write32(base_addr, I2S_CLKDIVIDX_REG_OFFSET, 0x10);
-    mmio_region_write32(base_addr, I2S_BYTEPERSAMPLE_REG_OFFSET, I2S_BYTEPERSAMPLE_COUNT_VALUE_32_BITS);
-    mmio_region_write32(base_addr, I2S_CFG_REG_OFFSET, 1 << I2S_CFG_EN_BIT | 1 << I2S_CFG_GEN_CLK_WS_BIT);
+    const u_int16_t batchsize = 0x20;
+
+    mmio_region_write32(i2s_base_addr, I2S_CLKDIVIDX_REG_OFFSET, 0x10);
+    mmio_region_write32(i2s_base_addr, I2S_REACHCOUNT_REG_OFFSET, batchsize);
+    mmio_region_write32(i2s_base_addr, I2S_BYTEPERSAMPLE_REG_OFFSET, I2S_BYTEPERSAMPLE_COUNT_VALUE_32_BITS);
+    mmio_region_write32(i2s_base_addr, I2S_CFG_REG_OFFSET, 1 << I2S_CFG_EN_BIT | 1 << I2S_CFG_GEN_CLK_WS_BIT);
 
 
 
   
     printf("started hw");
 
-    // // Wait copy is done
-    // while(external_intr_flag==0) {
-    //     wait_for_interrupt();
-    // }
-    // printf("finished\n");
+    int8_t batch = 0;
 
-    // printf("Complete interrupt...");
+    u_int8_t test_baches = 4;
+    for (u_int8_t batch = 0; batch < test_baches; batch++) {
+        while(external_intr_flag == batch) {
+            printf(".");
+        }
 
-    // plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-    // if (plic_res == kDifPlicOk && intr_num == EXT_INTR_0) {
-    //     printf("success\n");
-    // } else {
-    //     printf("fail\n;");
-    // }
-
-    int32_t result;
-
-    for (int32_t i = 0; i < 32; i++) {
-        int32_t status; 
-        do {
-            status = mmio_region_read32(base_addr, I2S_STATUS_REG_OFFSET);
-        } while (status & I2S_STATUS_EMPTY_BIT);
-        result = mmio_region_read32(base_addr, I2S_RXDATA_REG_OFFSET);
-        printf("RX %2d: %d\n", i, result);
+        uint32_t errors = 0;
+        for (int i = 0; i < batchsize; i++) {
+            if (audio_data[batch * batchsize + i] != 0x0F0F0F0F) errors = errors + 1; 
+        }
+        printf("%x: errors %d\n", batch, errors);
     }
 
-    printf("ISR Flag %d", external_intr_flag);
 
     return EXIT_SUCCESS;
 }
