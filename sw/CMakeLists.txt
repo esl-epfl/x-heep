@@ -145,6 +145,7 @@ SET(LINKED_FILES    "${LIB_CRT_P}crt0.S \
                      ${LIB_DRIVERS}rv_timer/rv_timer.c \
                      ${LIB_DRIVERS}gpio/gpio.c \
                      ${LIB_DRIVERS}i2c/i2c.c \
+                     ${LIB_DRIVERS}i2s/i2s.c \
                      ${LIB_DRIVERS}dma/dma.c \
                      ${LIB_DRIVERS}power_manager/power_manager.c \
                      ${LIB_DRIVERS}fast_intr_ctrl/fast_intr_ctrl.c  \

@@ -20,7 +20,7 @@
 #include <stdlib.h>
 
 #include "core_v_mini_mcu.h"
-#include "i2s_regs.h"
+#include "i2s.h"
 
 #include "mmio.h"
 #include "handler.h"
@@ -67,20 +67,20 @@ void handler_irq_fast_dma(void)
     dma_intr_flag = 1;
 }
 
-
+i2s_t i2s;
 
 int main(int argc, char *argv[])
 {
     printf("I2s DEMO\n");
 
-    mmio_region_t i2s_base_addr = mmio_region_from_addr((uintptr_t)I2S_START_ADDRESS);
+    i2s.base_addr = mmio_region_from_addr((uintptr_t)I2S_START_ADDRESS);
 
 
     // dma peripheral structure to access the registers
     dma_t dma;
     dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
 
-    uint32_t *fifo_ptr_rx = i2s_base_addr.base + I2S_RXDATA_REG_OFFSET;
+    uint32_t *fifo_ptr_rx = i2s.base_addr.base + I2S_RXDATA_REG_OFFSET;
 
 
      // -- DMA CONFIGURATION --
@@ -137,16 +137,16 @@ int main(int argc, char *argv[])
 
 
     // enable I2s interrupt
-    mmio_region_write32(i2s_base_addr, I2S_INTR_ENABLE_REG_OFFSET, 1 << I2S_INTR_ENABLE_I2S_EVENT_BIT);
+    i2s_enable_intr(&i2s, 1);
 
     const u_int16_t batchsize = 0x20;
 
-    mmio_region_write32(i2s_base_addr, I2S_CLKDIVIDX_REG_OFFSET, 0x10);
-    mmio_region_write32(i2s_base_addr, I2S_REACHCOUNT_REG_OFFSET, batchsize);
-    mmio_region_write32(i2s_base_addr, I2S_BYTEPERSAMPLE_REG_OFFSET, I2S_BYTEPERSAMPLE_COUNT_VALUE_32_BITS);
-    mmio_region_write32(i2s_base_addr, I2S_CFG_REG_OFFSET, 1 << I2S_CFG_EN_BIT | 1 << I2S_CFG_GEN_CLK_WS_BIT);
 
 
+    i2s_set_clk_divider(&i2s, 0x10);
+    i2s_set_intr_reach_count(&i2s, batchsize);
+    i2s_set_data_width(&i2s, I2S_BYTEPERSAMPLE_COUNT_VALUE_32_BITS);
+    i2s_set_enable(&i2s, 1, 1);
 
   
     printf("started hw");
