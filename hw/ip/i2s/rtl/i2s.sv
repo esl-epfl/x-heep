@@ -80,14 +80,14 @@ module i2s #(
       .WIDTH(SampleWidth),
       .LOG_DEPTH(FIFO_ADDR_WIDTH)
   ) rx_fifo_i (
-      .src_clk_i  (clk_i),
+      .src_clk_i  (sck),
       .src_rst_ni (rst_ni),
       .src_ready_o(rx_fifo_ready),
       .src_data_i (rx_fifo_data_in),
       .src_valid_i(rx_fifo_data_in_valid),
 
       .dst_rst_ni (rst_ni),
-      .dst_clk_i  (sck),
+      .dst_clk_i  (clk_i),
       .dst_data_o (rx_fifo_data_out),
       .dst_valid_o(rx_fifo_data_out_valid),
       .dst_ready_i(rx_fifo_data_out_ready)
