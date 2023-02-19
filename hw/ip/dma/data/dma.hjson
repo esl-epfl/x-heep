@@ -61,12 +61,21 @@
       ]
     },
     { name:     "SPI_MODE",
-      desc:     "SPI mode selection: disable(0), receive from SPI (1), and send to SPI (2), receive from SPI FLASH (3), and send to SPI FLASH (4). It waits for TX and RX FIFO in modes 1 and 2, respectively.",
+      desc:     "Special mode selection. To make the FIFO wait for peripherals.",
       swaccess: "rw",
       hwaccess: "hro",
       resval:   0,
       fields: [
-        { bits: "2:0", name: "SPI_MODE", desc: "Copy/Read from SPI" }
+        { bits: "2:0", name: "SPI_MODE",
+          desc: "Mode of operation"
+          enum: [
+                { value: "0", name: "DMA_NO_SPI",       desc: "Default DMA mode"        },
+                { value: "1", name: "DMA_SPI_RX",       desc: "receive from SPI "       },
+                { value: "2", name: "DMA_SPI_TX",       desc: "send to SPI"             },
+                { value: "3", name: "DMA_SPI_FLASH_RX", desc: "receive from SPI FLASH"  },
+                { value: "4", name: "DMA_SPI_FLASH_TX", desc: "send to SPI FLASH "      },
+              ]
+        }
       ]
     }
     { name:     "DATA_TYPE",
@@ -75,7 +84,15 @@
       hwaccess: "hro",
       resval:   0,
       fields: [
-        { bits: "1:0", name: "DATA_TYPE", desc: "Data type" }
+        { bits: "1:0", name: "DATA_TYPE", 
+          desc: "Data type",
+          enum: [
+            { value: "0", name: "DMA_32BIT_WORD", desc: "Transfers 32 bits"},
+            { value: "1", name: "DMA_16BIT_WORD", desc: "Transfers 16 bits"},
+            { value: "2", name: "DMA_8BIT_WORD" , desc: "Transfers  8 bits"},
+            { value: "3", name: "DMA_8BIT_WORD_2",desc: "Transfers  8 bits"},
+          ]
+        }
       ]
     }
    ]
