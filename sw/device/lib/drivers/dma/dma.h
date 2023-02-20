@@ -57,8 +57,6 @@
 /**                                                                        **/
 /****************************************************************************/
 
-#define DMA_TARGET_NO_SEMAPHORE 0
-
 
 // ToDo: Juan - remove this, is just a placeholder until real assert can be included
 // juan q jose: can we make the assert include some variable as parameter so we can know the "wrong value" ?? 
@@ -78,14 +76,14 @@
  */
 typedef enum
 {
-    DMA_DIR_M2M            = 0, // Reads from memory, writes in memory
-    DMA_DIR_SPI_RX         = 1, // Reads from SPI, writes in memory
-    DMA_DIR_SPI_TX         = 2, // Reads from memory, writes in SPI
-    DMA_DIR_SPI_FLASH_RX   = 3, // Reads from SPI Flash, writes in memory    
-    DMA_DIR_SPI_FLASH_TX   = 4, // Reads from memory, writes in SPI Flash   
-    DMA_DIR__size,     
-    DMA_DIR__undef,// Default. DMA will not be used.
-} dma_dir_t;   // juan: remove these. Now they will be semaphores defined upper in the foodchain
+    DMA_SMPH_MEMORY = 0, // Reads from memory, writes in memory
+    DMA_SMPH_SLOT_1 = 1, // SLOT_1~4 are the available slots for adding semaphores.  
+    DMA_SMPH_SLOT_2 = 2, // These are defined in hardware, 
+    DMA_SMPH_SLOT_3 = 3, // so it should be consistent with the registers' 
+    DMA_SMPH_SLOT_4 = 4, // assigned values. 
+    DMA_SMPH__size,     
+    DMA_SMPH__undef,// Default. DMA will not be used.
+} dma_semaphore_t;  
 
 
 
@@ -158,22 +156,22 @@ typedef enum
  * Possible returns of the dma_configure() function.
  * Some of these issues or not a problem per se, yet a combination of them might be. 
  * For this reason, each error has only one high bit. This way they can be masked together
- * using the bitwise OR operator: ( DMA_CONFIGURATION_x | DMA_CONFIGURATION_y | DMA_CONFIGURATION_z ).
+ * using the bitwise OR operator: ( DMA_CONFIG_x | DMA_CONFIG_y | DMA_CONFIG_z ).
  * The *_SRC and *_DST labels identify in which arrangements issues where encountered.
  * 
- * A flag can be unset using the bitwise AND and NOT operators: x &= ~DMA_CONFIGURATION_*    
+ * A flag can be unset using the bitwise AND and NOT operators: x &= ~DMA_CONFIG_*    
  */
 typedef enum
 {
-    DMA_CONFIGURATION_OK               = 0x00,    // DMA transfer was successfully configured. 
-    DMA_CONFIGURATION_SRC              = 0x01,    // An issue was encountered in the source arrangement. // juan: do I need these two? 
-    DMA_CONFIGURATION_DST              = 0x02,    // An issue was encountered in the destination arrangement.
-    DMA_CONFIGURATION_MISALIGN         = 0x04,    // An arrangement is misaligned.
-    DMA_CONFIGURATION_OVERLAP          = 0x08,    // The increment is smaller than the data type size.
-    DMA_CONFIGURATION_DISCONTINUOUS    = 0x10,    // The increment is larger than the data type size.
-    DMA_CONFIGURATION_OUTBOUNDS        = 0x20,    // The operation goes beyond the memory boundries.
-    DMA_CONFIGURATION__unused          = 0x40,    // 
-    DMA_CONFIGURATION_CRITICAL_ERROR   = 0x80,    // This flag determines the function will return without the DMA performing any actions.
+    DMA_CONFIG_OK               = 0x00,    // DMA transfer was successfully configured. 
+    DMA_CONFIG_SRC              = 0x01,    // An issue was encountered in the source arrangement. // juan: do I need these two? 
+    DMA_CONFIG_DST              = 0x02,    // An issue was encountered in the destination arrangement.
+    DMA_CONFIG_MISALIGN         = 0x04,    // An arrangement is misaligned.
+    DMA_CONFIG_OVERLAP          = 0x08,    // The increment is smaller than the data type size.
+    DMA_CONFIG_DISCONTINUOUS    = 0x10,    // The increment is larger than the data type size.
+    DMA_CONFIG_OUTBOUNDS        = 0x20,    // The operation goes beyond the memory boundries.
+    DMA_CONFIG_INCOMPATIBLE     = 0x40,    // Different arguments result in incompatible requests.
+    DMA_CONFIG_CRITICAL_ERROR   = 0x80,    // This flag determines the function will return without the DMA performing any actions.
 } dma_config_flags_t;
 
 
@@ -200,7 +198,7 @@ typedef struct
     uint32_t inc_du;
     uint32_t size_du;
     dma_data_type_t type;
-    uint8_t semaphore;
+    dma_semaphore_t smph;
     dma_config_flags_t flags;
 } dma_target_t;   
 
@@ -208,11 +206,12 @@ typedef struct
 {
     dma_target_t* src;
     dma_target_t* dst;
-    dma_end_event_t end;
-    dma_config_flags_t flags;
-    dma_data_type_t type;
     uint32_t inc_b;
     uint32_t size_b;
+    dma_end_event_t end;
+    dma_data_type_t type;
+    dma_semaphore_t smph;
+    dma_config_flags_t flags;
 } dma_trans_t;
 
 
@@ -236,6 +235,59 @@ typedef struct
 /**                          EXPORTED FUNCTIONS                            **/
 /**                                                                        **/
 /****************************************************************************/
+
+/**
+ *@brief Takes all DMA configurations to a state where no accidental transaction can be performed. 
+ * It can be called anytime to reset the DMA control block.   
+ */
+void dma_init();
+
+
+/**
+ * @brief Creates an environment where targets can be added. An environment is, 
+ * for instance, a RAM block, or section of memory that can be used by the DMA. 
+ * Properly defining an environment can prevent the DMA from accessing restricted
+ * memory regions. 
+ * Targets for peripherals do not need an environment.
+ * @param p_env Pointer to the dma_env_t structure where information will be allocated. The content of this pointer must be a static variable. 
+ * @param p_start Pointer to the first accessible address of the environment.   
+ * @param p_end Pointer to the last accessible address of the environment.
+ * @return A configuration flags mask. Each individual flag can be accessed with a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query the result from inside
+ * environment structure as an error could have appeared before the creation of the structure.
+ */
+dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint32_t* p_start, uint32_t* p_end );
+
+
+/**
+ * @brief Creates a target that can be used to perform transactions. 
+ * @param p_tgt Pointer to the dma_target_t structure where information will be allocated. The content of this pointer must be a static variable. 
+ * @param p_ptr Pointer to the first element of the target range. 
+ * @param p_inc_du Increment, in multiples of the data unit, between each read or write operation. A value of 1 will read/write all data consecutively.   
+ * @param p_size_du Number of data units to be copied. Only used for reading operations (i.e. when the target is used as source).
+ * @param p_type Data type to be used when reading or writing in the target range. 
+ * @param p_semaphore Which semaphore to use to control the reading or writing rate. A value of 0 will allow writing at full-speed. 
+ * @param p_env Environment to which this target belongs. A NULL pointer will assign no environment and pointer and ranges will not be checked for outbounds. 
+ * @return A configuration flags mask. Each individual flag can be accessed with a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query the result from inside
+ * target structure as an error could have appeared before the creation of the structure.
+ */
+dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, uint8_t p_semaphore, dma_env_t* p_env );
+
+
+/**
+ * @brief Creates a transaction that can be loaded into the DMA.
+ * @param p_trans Pointer to the dma_transaction_t structure where information will be allocated. The content of this pointer must be a static variable. 
+ * @param p_src Pointer to a target structure to be used as source for the transaction. 
+ * The data type and copy size of the source are used by default for the transaction. 
+ * @param p_dst Pointer to a target structure to be used as destination for the transaction.
+ * @param p_end A valid type of knowing that the transaction has finished. 
+ * @param p_allowRealign Whether to allow the DMA to take a smaller data type in order to counter misalignments between the selected data type and the start pointer. 
+ * @return A configuration flags mask. Each individual flag can be accessed with a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query the result from inside
+ * transaction structure as an error could have appeared before the creation of the structure.     
+ */
+dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p_src, dma_target_t *p_dst, dma_end_event_t p_end, dma_allow_realign_t p_allowRealign );
+
+
+
 
 /**
  * @brief Read from the done register of the DMA.
