@@ -265,12 +265,12 @@ dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint32_t* p_start, 
  * @param p_inc_du Increment, in multiples of the data unit, between each read or write operation. A value of 1 will read/write all data consecutively.   
  * @param p_size_du Number of data units to be copied. Only used for reading operations (i.e. when the target is used as source).
  * @param p_type Data type to be used when reading or writing in the target range. 
- * @param p_semaphore Which semaphore to use to control the reading or writing rate. A value of 0 will allow writing at full-speed. 
+ * @param p_smph Which semaphore to use to control the reading or writing rate. A value of 0 will allow writing at full-speed. 
  * @param p_env Environment to which this target belongs. A NULL pointer will assign no environment and pointer and ranges will not be checked for outbounds. 
  * @return A configuration flags mask. Each individual flag can be accessed with a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query the result from inside
  * target structure as an error could have appeared before the creation of the structure.
  */
-dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, uint8_t p_semaphore, dma_env_t* p_env );
+dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, uint8_t p_smph, dma_env_t* p_env );
 
 
 /**
@@ -281,12 +281,18 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint
  * @param p_dst Pointer to a target structure to be used as destination for the transaction.
  * @param p_end A valid type of knowing that the transaction has finished. 
  * @param p_allowRealign Whether to allow the DMA to take a smaller data type in order to counter misalignments between the selected data type and the start pointer. 
- * @return A configuration flags mask. Each individual flag can be accessed with a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query the result from inside
- * transaction structure as an error could have appeared before the creation of the structure.     
+ * @retval DMA_CONFIG_CRITICAL_ERROR if an error was detected in the transaction to be loaded.
+ * @retval DMA_CONFIG_OK == 0 otherwise.    
  */
 dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p_src, dma_target_t *p_dst, dma_end_event_t p_end, dma_allow_realign_t p_allowRealign );
 
-
+/**
+ * @brief The transaction configuration (that has been previously validated through the creation functions) is effectively transferred into the DMA registers. 
+ * @param p_trans Pointer to the transaction struct to be loaded into the DMA. The content of this pointer must be a static variable. 
+ * @return A configuration flags mask. Each individual flag can be accessed with a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query the result from inside
+ * target structure as an error could have appeared before the creation of the structure.
+ */
+dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans );
 
 
 /**
