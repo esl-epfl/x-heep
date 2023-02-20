@@ -41,9 +41,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-// juan: include real assert after Jose
-//#include <assert.h>
-
 #include "dma_structs.h"  // Generated
 #include "dma_regs.h"     // Generated
 
@@ -59,7 +56,6 @@
 
 
 // ToDo: Juan - remove this, is just a placeholder until real assert can be included
-// juan q jose: can we make the assert include some variable as parameter so we can know the "wrong value" ?? 
 #define make_sure_that(x)
 
 /****************************************************************************/
@@ -86,9 +82,6 @@ typedef enum
 } dma_semaphore_t;  
 
 
-
-
-
 /**
  *  All the valid data types for the DMA transfer.
  *  Word            = 4 bytes   = 32 bits
@@ -106,24 +99,6 @@ typedef enum
     DMA_DATA_TYPE__undef, // Default. DMA will not be used.
 } dma_data_type_t;
 
-/**
- * Possible way of knowing a DMA transfer has finished. 
- * This also determines what the application will consider as "finished".
- * e.g. For SPI transmission, the application may consider the transfer has 
- * finished once the DMA has transferred all its data to the SPI buffer (in 
- * which case POLLING or INTERRUPT should be used), or might as well wait 
- * until the SPI has finished sending all the data in its buffer (in which 
- * case SPI should be used).
- */
-typedef enum
-{
-    DMA_END_EVENT_POLLING   = 0x00, // Application must query the DONE register flag with dma_is_done() to know when the transfer finished. DMA interrupts are disabled.
-    DMA_END_EVENT_DMA_INT   = 0x01, // The application will receive a DMA interrupt once the DMA transfer has finished (i.e. the DONE register flag is high).   
-    DMA_END_EVENT_PERIP_INT = 0x02, // The application will receive a peripheral interrupt once the peripheral process has finished. DMA interrupts will be disabled.
-    DMA_END_EVENT__size,
-    DMA_END_EVENT__undef,       // Default. DMA will not be used. 
-} dma_end_event_t; // juan: add this
-
 
 /**
  * It is possible to choose the level of safety with which the DMA operation should be configured. 
@@ -133,11 +108,11 @@ typedef enum
  * or that the pointer is close enough the the memory end to cause an overflow during reading. 
  */
 typedef enum{
-    DMA_SAFETY_NO_CHECKS        = 0x00, // No checks will be performed. dma_configure() will go straight to writing registers.  
-    DMA_SAFETY_SANITY_CHECKS    = 0x01, // Only sanity checks will be performed that no values are off-limits. It is a good way of not performing sanity check only during this operation. 
+    DMA_SAFETY_NO_CHECKS        = 0x00, // No checks will be performed. 
+    DMA_SAFETY_SANITY_CHECKS    = 0x01, // Only sanity checks will be performed that no values are off-limits or containing errors. It is a good way of not performing sanity check only during this operation. 
     DMA_SAFETY_INTEGRITY_CHECKS = 0x02, // Integrity of the parameters is checked to make sure there are no inconsistencies. Not using this flag is only recommended when parameters are constant and the proper operation has been previously tested. 
     DMA_SAFETY__size        
-} dma_safety_level_t;  // juan: re-do this
+} dma_safety_level_t; 
 
 
 /**
@@ -164,7 +139,7 @@ typedef enum
 typedef enum
 {
     DMA_CONFIG_OK               = 0x00,    // DMA transfer was successfully configured. 
-    DMA_CONFIG_SRC              = 0x01,    // An issue was encountered in the source arrangement. // juan: do I need these two? 
+    DMA_CONFIG_SRC              = 0x01,    // An issue was encountered in the source arrangement. 
     DMA_CONFIG_DST              = 0x02,    // An issue was encountered in the destination arrangement.
     DMA_CONFIG_MISALIGN         = 0x04,    // An arrangement is misaligned.
     DMA_CONFIG_OVERLAP          = 0x08,    // The increment is smaller than the data type size.
@@ -175,19 +150,10 @@ typedef enum
 } dma_config_flags_t;
 
 
-
-typedef uint8_t dma_trans_id_t; 
-
-
-
-
-
 typedef struct
 {
     uint32_t* start;
     uint32_t* end;
-    //dma_env_characs_t characs; // juan : should we add restrictions to read/write
-    //dma_end_event_t endEvents;
 } dma_env_t;
 
 
@@ -267,6 +233,7 @@ dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint32_t* p_start, 
  * @param p_type Data type to be used when reading or writing in the target range. 
  * @param p_smph Which semaphore to use to control the reading or writing rate. A value of 0 will allow writing at full-speed. 
  * @param p_env Environment to which this target belongs. A NULL pointer will assign no environment and pointer and ranges will not be checked for outbounds. 
+ * @param p_safety The safety level required for this operation. Safety checks can be masked with a bitwise OR ( DMA_SAFETY_* | DMA_SAFETY_*).
  * @return A configuration flags mask. Each individual flag can be accessed with a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query the result from inside
  * target structure as an error could have appeared before the creation of the structure.
  */
@@ -280,7 +247,8 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint
  * The data type and copy size of the source are used by default for the transaction. 
  * @param p_dst Pointer to a target structure to be used as destination for the transaction.
  * @param p_end A valid type of knowing that the transaction has finished. 
- * @param p_allowRealign Whether to allow the DMA to take a smaller data type in order to counter misalignments between the selected data type and the start pointer. 
+ * @param p_allowRealign Whether to allow the DMA to take a smaller data type in order to counter misalignments between the selected data type and the start pointer.
+ * @param p_safety The safety level required for this operation. Safety checks can be masked with a bitwise OR ( DMA_SAFETY_* | DMA_SAFETY_*). 
  * @retval DMA_CONFIG_CRITICAL_ERROR if an error was detected in the transaction to be loaded.
  * @retval DMA_CONFIG_OK == 0 otherwise.    
  */
@@ -295,9 +263,20 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p
 dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans );
 
 
+
+/**
+ * @brief Launches the loaded transaction. 
+ * @param p_trans A pointer to the desired transaction. This is only used to double check that the loaded transaction is the desired one. 
+ *                  This check can be avoided by passing a NULL pointer.
+ * @retval DMA_CONFIG_CRITICAL_ERROR if the passed pointer does not correspond itself with the loaded transaction (i.e. it is likely the transaction to be loaded is not the desired one).
+ * @retval DMA_CONFIG_OK == 0 otherwise.
+ */
+dma_config_flags_t dma_launch( dma_trans_t* p_trans );
+
+
 /**
  * @brief Read from the done register of the DMA.
- * @return Whether the DMA is working or not. 
+ * @return Whether the DMA is working or not. It starts returning 0 as soon as the dma_launch function has returned. 
  * @retval 0 - DMA is working.   
  * @retval 1 - DMA has finished the transmission. DMA is idle. 
  */
@@ -310,9 +289,6 @@ inline uint32_t dma_is_done();
 /**                          INLINE FUNCTIONS                              **/
 /**                                                                        **/
 /****************************************************************************/
-
-// juan q jose: In BINDI/Stack/HAL/drivers_nrf/uart/nrf_drv_uart.h functions defined in .h have the _STATIC_INLINE macro.... how is that ok????
-
 
 #endif /* _DMA_DRIVER_H */
 /****************************************************************************/
