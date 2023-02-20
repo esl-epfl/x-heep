@@ -6,6 +6,9 @@
 // Date: 13.02.2023
 // Description: I2s peripheral
 
+// Adapted from github.com/pulp-platform/udma_i2s/blob/master/rtl/i2s_rx_channel.sv 
+// by Antonio Pullini (pullinia@iis.ee.ethz.ch)
+
 module i2s_rx_channel #(
     parameter  int unsigned SampleWidth,
     localparam int unsigned CounterWidth = $clog2(SampleWidth)
