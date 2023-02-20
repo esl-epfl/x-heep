@@ -13,6 +13,8 @@ module i2s_microphone (
     output logic i2s_sd_o
 );
 
+  logic [31:0] sample_count;
+
   logic [5:0] bit_count;
   logic s_ws;
   logic r_ws;
@@ -23,10 +25,12 @@ module i2s_microphone (
     if (~rst_ni) begin
       bit_count <= 0;
       r_ws <= 0;
+      sample_count <= 0;
     end else begin
       if (s_ws != r_ws) begin
         bit_count <= 0;
         r_ws <= s_ws;
+        sample_count <= sample_count + 1;
       end else begin
         bit_count <= bit_count + 1;
       end
@@ -34,7 +38,7 @@ module i2s_microphone (
   end
 
   always_ff @(negedge i2s_sck_i) begin
-    i2s_sd_o <= bit_count[2];
+    i2s_sd_o <= sample_count[31-bit_count];  // MSB first
   end
 
 endmodule

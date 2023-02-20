@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
 
         uint32_t errors = 0;
         for (int i = 0; i < batchsize; i++) {
-            if (audio_data[batch * batchsize + i] != 0x0F0F0F0F) errors = errors + 1; 
+            if (audio_data[batch * batchsize + i] != batch * batchsize + i + 1) errors = errors + 1; 
         }
         printf("%x: errors %d\n", batch, errors);
     }
