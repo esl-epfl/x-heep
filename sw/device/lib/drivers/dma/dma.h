@@ -55,9 +55,6 @@
 /****************************************************************************/
 
 
-// ToDo: Juan - remove this, is just a placeholder until real assert can be included
-#define make_sure_that(x)
-
 /****************************************************************************/
 /**                                                                        **/
 /**                       TYPEDEFS AND STRUCTURES                          **/
@@ -150,13 +147,14 @@ typedef enum
 } dma_config_flags_t;
 
 
+// juan: document this
 typedef struct
 {
     uint32_t* start;
     uint32_t* end;
 } dma_env_t;
 
-
+// juan: document this
 typedef struct
 {
     dma_env_t* env;
@@ -168,13 +166,13 @@ typedef struct
     dma_config_flags_t flags;
 } dma_target_t;   
 
+// juan: document this
 typedef struct
 {
     dma_target_t* src;
     dma_target_t* dst;
     uint32_t inc_b;
     uint32_t size_b;
-    dma_end_event_t end;
     dma_data_type_t type;
     dma_semaphore_t smph;
     dma_config_flags_t flags;
@@ -237,7 +235,7 @@ dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint32_t* p_start, 
  * @return A configuration flags mask. Each individual flag can be accessed with a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query the result from inside
  * target structure as an error could have appeared before the creation of the structure.
  */
-dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, uint8_t p_smph, dma_env_t* p_env );
+dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, uint8_t p_smph, dma_env_t* p_env, dma_safety_level_t p_safety );
 
 
 /**
@@ -246,13 +244,12 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint
  * @param p_src Pointer to a target structure to be used as source for the transaction. 
  * The data type and copy size of the source are used by default for the transaction. 
  * @param p_dst Pointer to a target structure to be used as destination for the transaction.
- * @param p_end A valid type of knowing that the transaction has finished. 
  * @param p_allowRealign Whether to allow the DMA to take a smaller data type in order to counter misalignments between the selected data type and the start pointer.
  * @param p_safety The safety level required for this operation. Safety checks can be masked with a bitwise OR ( DMA_SAFETY_* | DMA_SAFETY_*). 
  * @retval DMA_CONFIG_CRITICAL_ERROR if an error was detected in the transaction to be loaded.
  * @retval DMA_CONFIG_OK == 0 otherwise.    
  */
-dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p_src, dma_target_t *p_dst, dma_end_event_t p_end, dma_allow_realign_t p_allowRealign );
+dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p_src, dma_target_t *p_dst, dma_allow_realign_t p_allowRealign, dma_safety_level_t p_safety );
 
 /**
  * @brief The transaction configuration (that has been previously validated through the creation functions) is effectively transferred into the DMA registers. 

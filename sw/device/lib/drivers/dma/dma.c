@@ -48,6 +48,9 @@
  */
 #define DMA_DATA_TYPE_2_DATA_SIZE(type) (0b00000100 >> (type) )     
 
+// ToDo: Juan - remove this, is just a placeholder until real assert can be included
+#define make_sure_that(x) printf( "%s at line %d \n\r",x ? "Success" : "Error",__LINE__ );
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        TYPEDEFS AND STRUCTURES                           */
@@ -135,10 +138,13 @@ void dma_init()
 
     
     // The dummy/null variables are loaded to the DMA.     
+    
+    // Juan: re-think these configurations! 
+    
     dma_create_environment( &defaultEnv, (uint32_t*) NULL, (uint32_t*) NULL );
-    dma_create_target( &defaultTargetA, (uint32_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv );
-    dma_create_target( &defaultTargetB, (uint32_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv );
-    dma_create_transaction( &defaultTrans, &defaultTargetA, &defaultTargetB, DMA_END_EVENT_POLLING, DMA_ALLOW_REALIGN); 
+    dma_create_target( &defaultTargetA, (uint32_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv, DMA_SAFETY_NO_CHECKS );
+    dma_create_target( &defaultTargetB, (uint32_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv, DMA_SAFETY_NO_CHECKS );
+    dma_create_transaction( &defaultTrans, &defaultTargetA, &defaultTargetB, DMA_ALLOW_REALIGN, DMA_SAFETY_NO_CHECKS); 
     dma_load_transaction( &defaultTrans );
 }
 
@@ -190,7 +196,7 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint
 }
 
 
-dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p_src, dma_target_t *p_dst, dma_end_event_t p_end, dma_allow_realign_t p_allowRealign, dma_safety_level_t p_safety )
+dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p_src, dma_target_t *p_dst, dma_allow_realign_t p_allowRealign, dma_safety_level_t p_safety )
 {
     //////////  CHECK IF TARGETS HAVE ERRORS    //////////
      /* 
@@ -219,13 +225,10 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p
     //////////  SET UP THE DEFAULT CONFIGURATIONS //////////
     p_trans->size_b = p_src->size_du * DMA_DATA_TYPE_2_DATA_SIZE(p_src->type); // The copy size of the source (in data units -of the source-) is transformed to bytes, to be used as default size.
     p_trans->type = p_src->type; // By default, the source defines the data type. // ok? 
-    p_trans->inc_du = 0; // By default, the transaction increment is set to 0 and, if required, it will be changed to 1 (in which case both src and dst will have an increment of 1 data unit)
+    p_trans->inc_b = 0; // By default, the transaction increment is set to 0 and, if required, it will be changed to 1 (in which case both src and dst will have an increment of 1 data unit)
     // The pointer to the targets is stored in the transaction
     p_trans->src = p_src;
     p_trans->dst = p_dst;
-    // The end event is stored in the transaction
-    p_trans->end = p_end;
-    
     
     //////////  CHECK IF THERE ARE MISALIGNMENTS   //////////
     if( p_safety & DMA_SAFETY_INTEGRITY_CHECKS )
@@ -274,7 +277,7 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p
              * 
              * The discontinuous flag is added (the misaligned one was already there), and it is turned into a critical error.
              */
-            if( p_src->inc_du > p_trans->type ) || ( p_dst->inc_du > p_trans->type ) ) return p_trans->flags |= ( DMA_CONFIG_DISCONTINUOUS | DMA_CONFIG_CRITICAL_ERROR ); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
+            if( ( p_src->inc_du > p_trans->type ) || ( p_dst->inc_du > p_trans->type ) ) return p_trans->flags |= ( DMA_CONFIG_DISCONTINUOUS | DMA_CONFIG_CRITICAL_ERROR ); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
 
 
             //////////  PERFORM THE REALIGNMENT  //////////
@@ -313,7 +316,7 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p
 }
 
 
-dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans,  )
+dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
 {
     /* 
      * The transaction is not allowed if it contain a critical error.
@@ -400,12 +403,12 @@ static inline uint8_t getMisalignment_b( uint32_t* p_ptr, dma_data_type_t p_type
     */  
     
    /* If WORD and the two LSBs of pointer are not 00 there is a misalignment.*/
-    uint8_t misalginment = ( p_type == DMA_DATA_TYPE_WORD ) && ( p_ptr & 3 );
+    uint8_t misalginment = ( p_type == DMA_DATA_TYPE_WORD ) && ( (uint32_t)p_ptr & 3 );
     /* 
     * If WORD or HALF WORD and the LSB of pointer is not 0 there is a misalignment.
     * The inequality is of special importance because WORDs stored in odd pointers need to turn into BYTE as well.
     */
-    misalginment += ( ( p_typeE <= DMA_DATA_TYPE_HALF_WORD ) && (p_ptr & 1 ) );
+    misalginment += ( ( p_type <= DMA_DATA_TYPE_HALF_WORD ) && ( (uint32_t)p_ptr & 1 ) );
     /* 
      * These two lines will end up with: 
      * misalignment == 0 if no realignment is needed.

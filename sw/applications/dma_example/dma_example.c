@@ -51,7 +51,8 @@ void handler_irq_fast_dma(void)
 
 int main(int argc, char *argv[])
 {
-    printf("--- DMA EXAMPLE ---\n");
+    printf("--- DMA EXAMPLE with new drivers ---\n\r");
+    printf("--- No environments ---\n\r");
 
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
@@ -60,28 +61,48 @@ int main(int argc, char *argv[])
     const uint32_t mask = 1 << 19;
     CSR_SET_BITS(CSR_REG_MIE, mask);
 
+    
+    
+    
+    
+    #ifdef TEST_WORD
     // The DMA is initialized (i.e. the base address is computed  )
     dma_init();
-
-    #ifdef TEST_WORD
-        // -- DMA CONFIG -- //
-        
     
-        dma_set_src((uint32_t) test_data_4B);
-        dma_set_dst((uint32_t) copied_data_4B);
-        dma_set_src_ptr_inc((uint32_t) 4);
-        dma_set_dst_ptr_inc((uint32_t) 4);
-        dma_set_direction((uint32_t) 0);
-        dma_set_data_type((uint32_t) 0);
-        printf("DMA word transaction launched\n");
-        // Give number of bytes to transfer
-        dma_set_size((uint32_t) TEST_DATA_SIZE*sizeof(*copied_data_4B));
-        // Wait copy is done
-        dma_intr_flag = 0;
-        
-        while(dma_intr_flag==0) {
-            wait_for_interrupt();
-        }
+    dma_config_flags_t ret;
+    
+    static dma_target_t tgt1;
+    static dma_target_t tgt2;
+    static dma_trans_t trans;
+    // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
+    ret = dma_create_target( &tgt1, test_data_4B, 1, sizeof( test_data_4B ),  DMA_DATA_TYPE_WORD, DMA_SMPH_MEMORY, NULL, DMA_SAFETY_SANITY_CHECKS | DMA_SAFETY_INTEGRITY_CHECKS);
+    printf(">> Target 1: %d \n\r", ret);
+    
+    ret = dma_create_target( &tgt2, copied_data_4B, 1, sizeof( test_data_4B ),  DMA_DATA_TYPE_WORD, DMA_SMPH_MEMORY, NULL, DMA_SAFETY_SANITY_CHECKS | DMA_SAFETY_INTEGRITY_CHECKS);
+    printf(">> Target 2: %d \n\r", ret);
+    
+    ret = dma_create_transaction( &trans, &tgt1, &tgt2, DMA_ALLOW_REALIGN, DMA_SAFETY_SANITY_CHECKS | DMA_SAFETY_INTEGRITY_CHECKS );
+    printf(">> Transact: %d \n\r", ret);
+    
+    ret = dma_load_transaction(&trans);
+    printf(">> Load tra: %d \n\r", ret);
+    
+    ret = dma_launch(&trans);
+    printf(">> Launch t: %d \n\r", ret);
+    
+    
+    
+    // Wait copy is done
+    dma_intr_flag = 0;
+
+    uint32_t counter;
+    
+    while(dma_intr_flag==0) {
+        printf("| %d | ",counter++);
+        //wait_for_interrupt();
+    }
+    printf(">> Finished transaction \n\r");
+
     #endif // TEST_WORD
 
     #ifdef TEST_HALF_WORD
@@ -128,15 +149,15 @@ int main(int argc, char *argv[])
         errors=0;
         for(int i=0; i<TEST_DATA_SIZE; i++) {
             if (copied_data_4B[i] != test_data_4B[i]) {
-                printf("ERROR COPY [%d]: %08x != %08x : %04x != %04x\n", i, &copied_data_4B[i], &test_data_4B[i], copied_data_4B[i], test_data_4B[i]);
+                printf("ERROR COPY [%d]: %08x != %08x : %04x != %04x\n\r", i, &copied_data_4B[i], &test_data_4B[i], copied_data_4B[i], test_data_4B[i]);
                 errors++;
             }
         }
 
         if (errors == 0) {
-            printf("DMA word transfer success\nFinished! :)");
+            printf("DMA word transfer success\nFinished! :) \n\r");
         } else {
-            printf("DMA word transfer failure: %d errors out of %d words checked\n", errors, TEST_DATA_SIZE);
+            printf("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
         }
     #endif // TEST_WORD
 
