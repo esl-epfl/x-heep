@@ -51,8 +51,8 @@ void handler_irq_fast_dma(void)
 
 int main(int argc, char *argv[])
 {
-    printf("--- DMA EXAMPLE with new drivers ---\n\r");
-    printf("--- No environments ---\n\r");
+    printf("DMA test app\n\r");
+    printf("no environments\n\r");
 
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
@@ -62,12 +62,11 @@ int main(int argc, char *argv[])
     CSR_SET_BITS(CSR_REG_MIE, mask);
 
     
-    
-    
-    
     #ifdef TEST_WORD
     // The DMA is initialized (i.e. the base address is computed  )
+    printf("About to init.\n\r");
     dma_init();
+    printf("Done with init.\n\r");
     
     dma_config_flags_t ret;
     
@@ -98,10 +97,10 @@ int main(int argc, char *argv[])
     uint32_t counter;
     
     while(dma_intr_flag==0) {
-        printf("| %d | ",counter++);
-        //wait_for_interrupt();
+        printf(" %d | ",counter++);
+        wait_for_interrupt();
     }
-    printf(">> Finished transaction \n\r");
+    printf(">> Finished transaction. \n\r");
 
     #endif // TEST_WORD
 

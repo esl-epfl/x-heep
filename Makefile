@@ -101,7 +101,7 @@ run-helloworld: mcu-gen verilator-sim app-helloworld |venv
 	cat uart0.log; \
 	cd ../../..;
 
-run-dma: |venv
+run-dma:  |venv
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
         ./Vtestharness +firmware=../../../sw/applications/dma_example/dma_example.hex; \
         cat uart0.log; \

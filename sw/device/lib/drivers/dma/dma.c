@@ -49,7 +49,7 @@
 #define DMA_DATA_TYPE_2_DATA_SIZE(type) (0b00000100 >> (type) )     
 
 // ToDo: Juan - remove this, is just a placeholder until real assert can be included
-#define make_sure_that(x) printf( "%s at line %d \n\r",x ? "Success" : "Error",__LINE__ );
+#define make_sure_that(x) printf( "%s@%d\n\r",x ? "Success" : "Error",__LINE__ );
 
 /****************************************************************************/
 /**                                                                        **/
@@ -146,6 +146,7 @@ void dma_init()
     dma_create_target( &defaultTargetB, (uint32_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv, DMA_SAFETY_NO_CHECKS );
     dma_create_transaction( &defaultTrans, &defaultTargetA, &defaultTargetB, DMA_ALLOW_REALIGN, DMA_SAFETY_NO_CHECKS); 
     dma_load_transaction( &defaultTrans );
+    
 }
 
 
@@ -421,6 +422,7 @@ static inline uint8_t getMisalignment_b( uint32_t* p_ptr, dma_data_type_t p_type
 
 static inline void writeRegister( uint32_t p_val, uint32_t* p_ptr )
 {
+    printf("Wrote %d @ reg %d", p_val, (uint32_t)p_ptr);
     mmio_region_write32(dma_cb.baseAdd, p_ptr, p_val ); // Writes to the register
     make_sure_that( p_val == mmio_region_read32( dma_cb.baseAdd, (uint32_t*)(p_ptr) ) ); // Checks that the written value was stored correctly
 }
