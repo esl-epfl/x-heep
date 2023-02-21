@@ -75,9 +75,9 @@ static inline uint8_t getMisalignment_b( uint32_t* p_ptr, dma_data_type_t p_type
  * @brief Writes a given value into the specified register. Later reads the register and checks that the read value is equal to the written one. 
  *          This check is done through an assertion, so can be disabled by disabling assertions.
  * @param p_val The value to be written.
- * @param p_ptr The memory offset from the memory's base address where the target register is located. // juan: double check this claim
+ * @param p_offset The memory offset from the memory's base address where the target register is located. // juan: double check this claim
  */
-static inline void writeRegister( uint32_t p_val, uint32_t* p_ptr );
+static inline void writeRegister( uint32_t p_val, uint32_t p_offset );
 
 
 /**
@@ -357,7 +357,7 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans )
 
 uint32_t dma_is_done()
 {
-  uint32_t ret = mmio_region_read32(dma_cb.baseAdd, (uint32_t*)(DMA_DONE_REG_OFFSET));
+  uint32_t ret = mmio_region_read32(dma_cb.baseAdd, (uint32_t)(DMA_DONE_REG_OFFSET));
   make_sure_that( ret == 0 || ret == 1 );
   return ret;
 }   // juan q jose: What to do in the above case
@@ -420,11 +420,11 @@ static inline uint8_t getMisalignment_b( uint32_t* p_ptr, dma_data_type_t p_type
 }
 
 
-static inline void writeRegister( uint32_t p_val, uint32_t* p_ptr )
+static inline void writeRegister( uint32_t p_val, uint32_t p_offset )
 {
-    printf("Wrote %d @ reg %d", p_val, (uint32_t)p_ptr);
-    mmio_region_write32(dma_cb.baseAdd, p_ptr, p_val ); // Writes to the register
-    make_sure_that( p_val == mmio_region_read32( dma_cb.baseAdd, (uint32_t*)(p_ptr) ) ); // Checks that the written value was stored correctly
+    printf("Wrote %d @ reg %d\n\r", p_val, (uint32_t)p_offset);
+    mmio_region_write32(dma_cb.baseAdd, p_offset, p_val ); // Writes to the register
+    make_sure_that( p_val == mmio_region_read32( dma_cb.baseAdd, (uint32_t)(p_offset) ) ); // Checks that the written value was stored correctly
 }
 
 
