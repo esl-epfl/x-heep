@@ -87,7 +87,6 @@
         }
       ]
     }
-
     { name:     "DATA_TYPE",
       desc:     "Data type to transfer: 32-bit word(0), 16-bit half word(1), 8-bit byte(2,3).",
       swaccess: "rw",
