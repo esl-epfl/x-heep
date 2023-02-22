@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
     dma_set_write_ptr_inc(&dma, (uint32_t) 4);
     dma_set_read_ptr(&dma, (uint32_t) fifo_ptr_rx); // I2s RX FIFO addr
     dma_set_write_ptr(&dma, (uint32_t) audio_data); // audio data address
-    dma_set_rx_wait_mode(&dma, DMA_D); // The DMA will wait for the I2s RX FIFO valid signal
+    dma_set_rx_wait_mode(&dma, DMA_RX_WAIT_I2S); // The DMA will wait for the I2s RX FIFO valid signal
     dma_set_data_type(&dma, (uint32_t) 0);
 
 
