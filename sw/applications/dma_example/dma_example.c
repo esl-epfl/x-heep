@@ -29,14 +29,11 @@
 #define TEST_DATA_SIZE 16
 
 // Source and destination addresses have to be aligned on a 4 bytes address
-uint32_t test_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = {
-  0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef, 0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa, 0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98};
-uint16_t* test_data_2B = test_data_4B;
-uint8_t* test_data_1B = test_data_4B;
+//uint16_t* test_data_2B = test_data_4B;
+//uint8_t* test_data_1B = test_data_4B;
 
-uint32_t copied_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
-uint16_t copied_data_2B[TEST_DATA_SIZE] __attribute__ ((aligned (2))) = { 0 };
-uint8_t copied_data_1B[TEST_DATA_SIZE] = { 0 };
+//uint16_t copied_data_2B[TEST_DATA_SIZE] __attribute__ ((aligned (2))) = { 0 };
+//uint8_t copied_data_1B[TEST_DATA_SIZE] = { 0 };
 
 int8_t dma_intr_flag;
 
@@ -51,7 +48,19 @@ void handler_irq_fast_dma(void)
 
 int main(int argc, char *argv[])
 {
-    printf("DMA test app\n\r");
+    
+    static uint32_t test_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = {
+      0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef, 0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa, 0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98};
+    static uint32_t copied_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
+    
+    /// OLD
+    dma_t dma;
+    dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
+    // END OLD
+    
+    
+    
+    printf("DMA test app: 1\n\r");
     printf("no environments\n\r");
 
     // Enable interrupt on processor side
@@ -61,6 +70,27 @@ int main(int argc, char *argv[])
     const uint32_t mask = 1 << 19;
     CSR_SET_BITS(CSR_REG_MIE, mask);
 
+    
+    
+    printf("Do things the old way...\n");
+    
+    dma_set_read_ptr(&dma, (uint32_t) test_data_4B);
+    dma_set_write_ptr(&dma, (uint32_t) copied_data_4B);
+    dma_set_read_ptr_inc(&dma, (uint32_t) 4);
+    dma_set_write_ptr_inc(&dma, (uint32_t) 4);
+    dma_set_spi_mode(&dma, (uint32_t) 0);
+    dma_set_data_type(&dma, (uint32_t) 0);
+    printf("DMA word transaction launched\n");
+    // Give number of bytes to transfer
+    dma_set_cnt_start(&dma, (uint32_t) TEST_DATA_SIZE*sizeof(*copied_data_4B));
+    // Wait copy is done
+    dma_intr_flag = 0;
+    while(dma_intr_flag==0) {
+        wait_for_interrupt();
+    }
+    
+    printf("Finished doing things the old way\n");
+    
     
     #ifdef TEST_WORD
     // The DMA is initialized (i.e. the base address is computed  )
@@ -75,10 +105,10 @@ int main(int argc, char *argv[])
     static dma_trans_t trans;
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
     ret = dma_create_target( &tgt1, test_data_4B, 1, TEST_DATA_SIZE,  DMA_DATA_TYPE_WORD, DMA_SMPH_MEMORY, NULL, DMA_SAFETY_SANITY_CHECKS | DMA_SAFETY_INTEGRITY_CHECKS);
-    printf(">> Target 1: %d \n\r", ret);
+    printf(">> Target 1: %d %d \n\r", ret, test_data_4B);
     
     ret = dma_create_target( &tgt2, copied_data_4B, 1, TEST_DATA_SIZE,  DMA_DATA_TYPE_WORD, DMA_SMPH_MEMORY, NULL, DMA_SAFETY_SANITY_CHECKS | DMA_SAFETY_INTEGRITY_CHECKS);
-    printf(">> Target 2: %d \n\r", ret);
+    printf(">> Target 2: %d, %d \n\r", ret, copied_data_4B);
     
     ret = dma_create_transaction( &trans, &tgt1, &tgt2, DMA_ALLOW_REALIGN, DMA_SAFETY_SANITY_CHECKS | DMA_SAFETY_INTEGRITY_CHECKS );
     printf(">> Transact: %d \n\r", ret);
@@ -94,10 +124,7 @@ int main(int argc, char *argv[])
     // Wait copy is done
     dma_intr_flag = 0;
 
-    uint32_t counter;
-    
     while(dma_intr_flag==0) {
-        printf(" %d | ",counter++);
         wait_for_interrupt();
     }
     printf(">> Finished transaction. \n\r");
