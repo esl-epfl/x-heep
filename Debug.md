@@ -146,6 +146,10 @@ or just run the entire execution with the continue command and then check the `u
 (gdb) continue
 ```
 
+You can also run all the gdb steps by running:
+```
+make gdb_connect MAINFILE=<main_file_name_of_the_project_that WAS_built WITHOUT EXTENSION>
+```
 
 ## Debugging on FPGA
 
@@ -184,10 +188,16 @@ Now run `openOCD` with the its the configuration file specific for the HS2 cable
 openocd -f ./tb/core-v-mini-mcu-nexsys-hs2.cfg
 ```
 
-or with the EPFL Programmer
+or with the EPFL Programmer using this command:
 
 ```
 openocd -f ./tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg
+```
+
+or with the EPFL Programmer also using this other command (**strongly recommended**):
+
+```
+make openOCD_epflp
 ```
 
 

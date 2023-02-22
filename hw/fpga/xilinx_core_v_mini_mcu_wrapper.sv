@@ -9,6 +9,7 @@ module xilinx_core_v_mini_mcu_wrapper
     parameter PULP_XPULP           = 0,
     parameter FPU                  = 0,
     parameter PULP_ZFINX           = 0,
+    parameter X_EXT                = 0,  // eXtension interface in cv32e40x
     parameter CLK_LED_COUNT_LENGTH = 27
 ) (
 
@@ -79,6 +80,9 @@ module xilinx_core_v_mini_mcu_wrapper
     end
   end
 
+  // eXtension Interface
+  if_xif #() ext_if ();
+
   // clock output for debugging
   assign clk_out = clk_gen;
 
@@ -87,8 +91,16 @@ module xilinx_core_v_mini_mcu_wrapper
       .clk_out1_0(clk_gen)
   );
 
-  x_heep_system x_heep_system_i (
+  x_heep_system #(
+      .X_EXT(X_EXT)
+  ) x_heep_system_i (
       .intr_vector_ext_i('0),
+      .xif_compressed_if(ext_if),
+      .xif_issue_if(ext_if),
+      .xif_commit_if(ext_if),
+      .xif_mem_if(ext_if),
+      .xif_mem_result_if(ext_if),
+      .xif_result_if(ext_if),
       .ext_xbar_master_req_i('0),
       .ext_xbar_master_resp_o(),
       .ext_xbar_slave_req_o(),

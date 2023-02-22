@@ -27,18 +27,22 @@
 # x-heep
 ======================================
 
-`x-heep` (eXtendable Heterogeneous Energy-Efficient Platform) is a `RISC-V` microcontroller described in `SystemVerilog`
+`X-HEEP` (eXtendable Heterogeneous Energy-Efficient Platform) is a `RISC-V` microcontroller described in `SystemVerilog` 
 that can be configured to target small and tiny platforms as well as extended to support accelerators.
-The cool thing about `x-heep` is that we provide a simple customizable MCU, so CPUs, common peripherals, memories, etc.
-so that you can extend it with your own accelerator without modifying the MCU, but just instantiating it in your design.
-By doing so, you inherit an IP capable of booting RTOS (such as `freeRTOS`) with the whole SW stack, including drivers and `SDK`,
+The cool thing about `X-HEEP` is that we provide a simple customizable MCU, so CPUs, common peripherals, memories, etc. 
+so that you can extend it with your own accelerator without modifying the MCU, but just instantiating it in your design. 
+By doing so, you inherit an IP capable of booting RTOS (such as `freeRTOS`) with the whole FW stack, including `HAL` drivers and `SDK`, 
 and you can focus on building your special HW supported by the microcontroller.
 
-`x-heep` supports simulation with Verilator, Questasim, etc, it can be implemented on FPGA, and it supports implementation in Silicon, which is its main (but not only) target. See below for more details.
+`X-HEEP` supports simulation with Verilator, Questasim, etc. Morever, FW can be built and linked by using `CMake`. It can be implemented on FPGA, and it supports implementation in Silicon, which is its main (but not only) target. See below for more details.
 
-The block diagram below shows the `x-heep` MCU
+The block diagram below shows the `X-HEEP` MCU
 
 <p align="center"><img src="block_diagrams/core_v_mini_mcu.svg" width="650"></p>
+
+# Self-documented Makefile
+
+Note that under `util` folder, the file `generate-makefile-help` is employed to generate a self-documented helping output. In case of including any other target or command under the main `Makefile`, follow the same general and parameter descriptions as already provided for every target. Check the `help` output by doing `make` or `make help`. Moreover, **note that some of the parameters required for some of the targets are initiated with _default values_**
 
 # Prerequisite
 
@@ -61,13 +65,13 @@ conda activate core-v-mini-mcu
 pip3 install --user -r python-requirements.txt
 ```
 
-Add '--root user_builds' to set your build foders for the pip packages
+Add '--root user_builds' to set your build folders for the pip packages
 and add that folder to the `PATH` variable
 
 3. Install the required apt tools:
 
 ```
-sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 libssl-dev libudev-dev libusb-1.0-0 lsb-release texinfo makeinfo autoconf cmake flex bison libexpat-dev gawk
+sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 libssl-dev libudev-dev libusb-1.0-0 lsb-release texinfo autoconf cmake flex bison libexpat-dev gawk tree xterm
 ```
 
 In general, have a look at the [Install required software](https://docs.opentitan.org/doc/ug/install_instructions/#system-preparation) section of the OpenTitan documentation.
@@ -77,14 +81,14 @@ In general, have a look at the [Install required software](https://docs.opentita
 ```
 git clone --branch 2022.01.17 --recursive https://github.com/riscv/riscv-gnu-toolchain
 cd riscv-gnu-toolchain
-./configure --prefix=/home/yourusername/tools/riscv --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
+./configure --prefix=/home/$USER/tools/riscv --with-abi=ilp32 --with-arch=rv32imc --with-cmodel=medlow
 make
 ```
 
 Then, set the `RISCV` env variable as:
 
 ```
-export RISCV=/home/yourusername/tools/riscv
+export RISCV=/home/$USER/tools/riscv
 ```
 
 5. Install the Verilator:
@@ -97,14 +101,14 @@ cd verilator
 git checkout v$VERILATOR_VERSION
 
 autoconf
-./configure --prefix=/home/yourusername/tools/verilator/$VERILATOR_VERSION
+./configure --prefix=/home/$USER/tools/verilator/$VERILATOR_VERSION
 make
 make install
 ```
 Then, set the `PATH` env variable to as:
 
 ```
-export PATH=/home/yourusername/tools/verilator/$VERILATOR_VERSION/bin:$PATH
+export PATH=/home/$USER/tools/verilator/$VERILATOR_VERSION/bin:$PATH
 ```
 
 In general, have a look at the [Install Verilator](https://docs.opentitan.org/doc/ug/install_instructions/#verilator) section of the OpenTitan documentation.
@@ -140,7 +144,7 @@ In the ./util folder, the vendor.py scripts implements what is describeb above.
 
 # Compiling with Makefile
 
-You can compile the example applications and the platform using the Makefile. Type 'make help' for more information.
+You can compile the example applications and the platform using the Makefile. Type 'make help' or 'make' for more information. Moreover, please, check the different 'clean' commands to verify that you are using the corret one.
 
 ## Generate core-v-mini-mcu package
 
@@ -158,24 +162,57 @@ make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=16
 ```
 
 The last command generates x-heep with the cv32e40p core, with a parallel bus, and 16 memory banks,
-each 32KB, for a total memory of 512KB.
+each 32KB, for a total memory of 512KB. Note that in case of executing a FreeRTOS-based application, 
+the **minimum memory banks should be set to 5**. This is related to the FreeRTOS code and ram requirements.
 
 ## Compiling Software
 
 Don't forget to set the `RISCV` env variable to the compiler folder (without the `/bin` included).
+To run 'hello world' application, just type 'make app'. 
 
 ```
-make app-helloworld
+make app
 ```
 
-or for FPGAs,
+To run any other application, please use the following command with appropiate parameters:
 
 ```
-make app-helloworld TARGET=pynq-z2
+app PROJECT=<folder_name_of_the_project_to_be_built> MAINFILE=<main_file_name_of_the_project_to_be_built  WITHOUT EXTENSION!> TARGET=sim(default),pynq-z2 LINKER=on_chip(default),flash_load,flash_exec
+
+Params:
+- PROJECT (ex: <folder_name_of_the_project_to_be_built>, hello_wolrd(default))
+- MAINFILE (ex: <main_file_name_of_the_project_to_be_built WITHOUT EXTENSION!>, hello_wolrd(default))
+- TARGET (ex: sim(default),pynq-z2)
+- LINKER (ex: on_chip(default),flash_load,flash_exec)
 ```
 
+For instance, to run 'hello world' app for the pynq-z2 FPGA targets, just run:
+
+```
+make app TARGET=pynq-z2
+```
 
 This will create the executable file to be loaded in your target system (ASIC, FPGA, Simulation).
+Remember that, `X-HEEP` is using CMake to compile and link. Thus, the generated files after having
+compiled and linked are under `sw\build`
+
+## FreeROTS based applications
+
+'X-HEEP' supports 'FreeRTOS' based applications. Please see `sw\applications\blinky_freertos`.
+Note that before runing such application, and due to current memory constraints, the core-v-mini-mcu package needs to be generated using more memory banks than the default settings. Thus, as previously specified: in case of executing a FreeRTOS-based application, the **minimum memory banks should be set to 5**. This is related to the FreeRTOS code and ram requirements. In this case, please, run the following command:
+
+```
+make mcu-gen MEMORY_BANKS=5
+```
+
+After that, you can run the command to compile and link the FreeRTOS based application. Please also set 'LINKER' and 'TARGET' parameters if needed.
+
+```
+make app PROJECT=blinky_freertos MAINFILE=main 
+```
+
+The main FreeRTOS configuration is allocated under `sw\freertos`, in `FreeRTOSConfig.h`. Please, change this file based on your application requirements.
+Moreover, FreeRTOS is being fetch from 'https://github.com/FreeRTOS/FreeRTOS-Kernel.git' by CMake. Specifically, 'V10.5.1' is used. Finally, the fetch repository is located under `sw\build\_deps` after building.
 
 ## Simulating
 
@@ -198,7 +235,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
 and type to run your compiled software:
 
 ```
-./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex
+./Vtestharness +firmware=../../../sw/build/hello_world.hex
 ```
 
 or to execute all these three steps type:
@@ -225,7 +262,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-vcs
 and type to run your compiled software:
 
 ```
-./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/applications/hello_world/hello_world.hex
+./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/build/hello_world.hex
 ```
 
 ### Compiling for Questasim
@@ -245,7 +282,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim/
 and type to run your compiled software:
 
 ```
-make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
+make run PLUSARGS="c firmware=../../../sw/build/hello_world.hex"
 ```
 
 You can also use vopt for HDL optimized compilation:
@@ -262,7 +299,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim_opt-modelsim/
 and
 
 ```
-make run RUN_OPT=1 PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
+make run RUN_OPT=1 PLUSARGS="c firmware=../../../sw/build/hello_world.hex"
 ```
 
 You can also compile with the UPF power domain description as:
@@ -274,7 +311,7 @@ make questasim-sim-opt-upf FUSESOC_FLAGS="--flag=use_upf"
 and then execute software as:
 
 ```
-make run RUN_OPT=1 RUN_UPF=1 PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.hex"
+make run RUN_OPT=1 RUN_UPF=1 PLUSARGS="c firmware=../../../sw/build/hello_world.hex"
 ```
 
 Questasim version must be >= Questasim 2020.4
@@ -289,7 +326,7 @@ For example, to see the "hello world!" output of the Verilator simulation:
 
 ```
 cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
-./Vtestharness +firmware=../../../sw/applications/hello_world/hello_world.hex
+./Vtestharness +firmware=../../../sw/build/hello_world.hex
 cat uart0.log
 ```
 ## Debug

@@ -9,7 +9,8 @@ module x_heep_system
     parameter PULP_XPULP = 0,
     parameter FPU = 0,
     parameter PULP_ZFINX = 0,
-    parameter EXT_XBAR_NMASTER = 0
+    parameter EXT_XBAR_NMASTER = 0,
+    parameter X_EXT = 0  // eXtension interface in cv32e40x
 ) (
     input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
 
@@ -29,6 +30,14 @@ module x_heep_system
     output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_ram_banks_set_retentive_o,
 
     output logic [31:0] exit_value_o,
+
+    // eXtension interface
+    if_xif.cpu_compressed xif_compressed_if,
+    if_xif.cpu_issue      xif_issue_if,
+    if_xif.cpu_commit     xif_commit_if,
+    if_xif.cpu_mem        xif_mem_if,
+    if_xif.cpu_mem_result xif_mem_result_if,
+    if_xif.cpu_result     xif_result_if,
 
 % for pad in total_pad_list:
 ${pad.x_heep_system_interface}
@@ -68,7 +77,8 @@ ${pad.internal_signals}
     .PULP_XPULP(PULP_XPULP),
     .FPU(FPU),
     .PULP_ZFINX(PULP_ZFINX),
-    .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER)
+    .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER),
+    .X_EXT(X_EXT)
   ) core_v_mini_mcu_i (
 
     .rst_ni(rst_ngen),
@@ -76,6 +86,12 @@ ${pad.internal_signals}
 ${pad.core_v_mini_mcu_bonding}
 % endfor
     .intr_vector_ext_i,
+    .xif_compressed_if,
+    .xif_issue_if,
+    .xif_commit_if,
+    .xif_mem_if,
+    .xif_mem_result_if,
+    .xif_result_if,
     .pad_req_o(pad_req),
     .pad_resp_i(pad_resp),
     .ext_xbar_master_req_i,
