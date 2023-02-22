@@ -454,8 +454,6 @@ static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
 
  // juan: clear the error flags! Think about where 
 
-// juan: what happends with increments if the target is a peripheral? 
-
 // juan q jose: configure interrupts? Shouldnt that be done from an sdk level (including fic?). If should be here: End events
 
 ///**
