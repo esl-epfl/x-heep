@@ -35,22 +35,15 @@ extern "C" {
 // destination
 #define DMA_DST_PTR_INC_REG_OFFSET 0x14
 
-// Special mode selection. To make the FIFO wait for peripherals.
-#define DMA_SPI_MODE_REG_OFFSET 0x18
-#define DMA_SPI_MODE_SPI_MODE_MASK 0x7
-#define DMA_SPI_MODE_SPI_MODE_OFFSET 0
-#define DMA_SPI_MODE_SPI_MODE_FIELD \
-  ((bitfield_field32_t) { .mask = DMA_SPI_MODE_SPI_MODE_MASK, .index = DMA_SPI_MODE_SPI_MODE_OFFSET })
-#define DMA_SPI_MODE_SPI_MODE_VALUE_DMA_NO_SPI 0x0
-#define DMA_SPI_MODE_SPI_MODE_VALUE_DMA_SPI_RX 0x1
-#define DMA_SPI_MODE_SPI_MODE_VALUE_DMA_SPI_TX 0x2
-#define DMA_SPI_MODE_SPI_MODE_VALUE_DMA_SPI_FLASH_RX 0x3
-#define DMA_SPI_MODE_SPI_MODE_VALUE_DMA_SPI_FLASH_TX 0x4
-#define DMA_SPI_MODE_SPI_MODE_VALUE_DMA_I2S_RX 0x5
+// Special wait mode selection.
+#define DMA_RX_WAIT_MODE_REG_OFFSET 0x18
+
+// Special wait mode selection.
+#define DMA_TX_WAIT_MODE_REG_OFFSET 0x1c
 
 // Data type to transfer: 32-bit word(0), 16-bit half word(1), 8-bit
 // byte(2,3).
-#define DMA_DATA_TYPE_REG_OFFSET 0x1c
+#define DMA_DATA_TYPE_REG_OFFSET 0x20
 #define DMA_DATA_TYPE_DATA_TYPE_MASK 0x3
 #define DMA_DATA_TYPE_DATA_TYPE_OFFSET 0
 #define DMA_DATA_TYPE_DATA_TYPE_FIELD \

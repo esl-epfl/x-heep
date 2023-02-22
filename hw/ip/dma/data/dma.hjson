@@ -60,25 +60,34 @@
         { bits: "31:0", name: "DST_PTR_INC", desc: "Destination pointer increment" }
       ]
     },
-    { name:     "SPI_MODE",
-      desc:     "Special mode selection. To make the FIFO wait for peripherals.",
+    { name:     "RX_WAIT_MODE",
+      desc:     '''Special wait mode selection. 
+                   To make the FIFO wait for 
+                   peripherals to have valid data.''',      
       swaccess: "rw",
       hwaccess: "hro",
       resval:   0,
       fields: [
-        { bits: "2:0", name: "SPI_MODE",
-          desc: "Mode of operation"
-          enum: [
-                { value: "0", name: "DMA_NO_SPI",       desc: "Default DMA mode"        },
-                { value: "1", name: "DMA_SPI_RX",       desc: "receive from SPI "       },
-                { value: "2", name: "DMA_SPI_TX",       desc: "send to SPI"             },
-                { value: "3", name: "DMA_SPI_FLASH_RX", desc: "receive from SPI FLASH"  },
-                { value: "4", name: "DMA_SPI_FLASH_TX", desc: "send to SPI FLASH "      },
-                { value: "5", name: "DMA_I2S_RX",       desc: "receive from I2S"        },
-              ]
+        { bits: "31:0", name: "PERIPHERAL_MASK",
+          desc: "PERIPHERAL to wait for"
+        }
+      ]
+    },
+    { name:     "TX_WAIT_MODE",
+      desc:     '''Special wait mode selection. 
+                   To make the FIFO wait for 
+                   peripherals to be ready for data.
+                   mask''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   0,
+      fields: [
+        { bits: "31:0", name: "PERIPHERAL_MASK",
+          desc: "PERIPHERAL to wait for"
         }
       ]
     }
+
     { name:     "DATA_TYPE",
       desc:     "Data type to transfer: 32-bit word(0), 16-bit half word(1), 8-bit byte(2,3).",
       swaccess: "rw",

@@ -9,7 +9,9 @@ module dma #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
     parameter type obi_req_t = logic,
-    parameter type obi_resp_t = logic
+    parameter type obi_resp_t = logic,
+    parameter int unsigned PERIPHERALS_RX = 0,
+    parameter int unsigned PERIPHERALS_TX = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -23,11 +25,8 @@ module dma #(
     output obi_req_t  dma_master1_ch0_req_o,
     input  obi_resp_t dma_master1_ch0_resp_i,
 
-    input logic spi_rx_valid_i,
-    input logic spi_tx_ready_i,
-    input logic spi_flash_rx_valid_i,
-    input logic spi_flash_tx_ready_i,
-    input logic i2s_rx_valid_i,
+    input logic [PERIPHERALS_RX-1:0] rx_valid_i,
+    input logic [PERIPHERALS_TX-1:0] tx_ready_i,
 
     output dma_intr_o
 );
@@ -123,18 +122,8 @@ module dma #(
   assign hw2reg.dma_start.de = dma_start;
   assign hw2reg.dma_start.d = 32'h0;
 
-  always_comb begin
-    wait_for_rx = 1'b0;
-    wait_for_tx = 1'b0;
-    case (reg2hw.spi_mode.q)
-      3'h1:    wait_for_rx = ~spi_rx_valid_i;
-      3'h2:    wait_for_tx = ~spi_tx_ready_i;
-      3'h3:    wait_for_rx = ~spi_flash_rx_valid_i;
-      3'h4:    wait_for_tx = ~spi_flash_tx_ready_i;
-      3'h5:    wait_for_rx = ~i2s_rx_valid_i;
-      default: ;
-    endcase
-  end
+  assign wait_for_rx = |(reg2hw.rx_wait_mode.q[PERIPHERALS_RX-1:0] & ~rx_valid_i);
+  assign wait_for_tx = |(reg2hw.tx_wait_mode.q[PERIPHERALS_TX-1:0] & ~tx_ready_i);
 
   assign fifo_alm_full = (fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
 

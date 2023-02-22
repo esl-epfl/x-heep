@@ -86,9 +86,9 @@ int main(int argc, char *argv[])
      // -- DMA CONFIGURATION --
     dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
     dma_set_write_ptr_inc(&dma, (uint32_t) 4);
-    dma_set_read_ptr(&dma, (uint32_t) fifo_ptr_rx); // SPI RX FIFO addr
+    dma_set_read_ptr(&dma, (uint32_t) fifo_ptr_rx); // I2s RX FIFO addr
     dma_set_write_ptr(&dma, (uint32_t) audio_data); // audio data address
-    dma_set_spi_mode(&dma, DMA_SPI_MODE_SPI_MODE_VALUE_DMA_I2S_RX); // The DMA will wait for the SPI RX FIFO valid signal
+    dma_set_rx_wait_mode(&dma, DMA_D); // The DMA will wait for the I2s RX FIFO valid signal
     dma_set_data_type(&dma, (uint32_t) 0);
 
 
