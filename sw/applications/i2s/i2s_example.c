@@ -42,8 +42,9 @@ dif_plic_result_t plic_res;
 dif_plic_irq_id_t intr_num;
 
 
-#define AUDIO_DATA_NUM 2048
-uint32_t audio_data[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
+#define AUDIO_DATA_NUM 32
+uint32_t audio_data_0[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
+uint32_t audio_data_1[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
 
 
 void handler_irq_external(void) {
@@ -58,6 +59,7 @@ void handler_irq_external(void) {
 }
 
 int8_t dma_intr_flag;
+bool dma_buffer_id = 0;
 
 void handler_irq_fast_dma(void)
 {
@@ -65,6 +67,14 @@ void handler_irq_fast_dma(void)
     fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
     clear_fast_interrupt(&fast_intr_ctrl, kDma_fic_e);
     dma_intr_flag = 1;
+
+    // dma peripheral structure to access the registers
+    dma_t dma;
+    dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
+
+    dma_buffer_id = !dma_buffer_id;
+    dma_set_write_ptr(&dma,  (dma_buffer_id ? (uint32_t) audio_data_1 : (uint32_t) audio_data_0) ); // audio data address
+    dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4));
 }
 
 i2s_t i2s;
@@ -87,7 +97,7 @@ int main(int argc, char *argv[])
     dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
     dma_set_write_ptr_inc(&dma, (uint32_t) 4);
     dma_set_read_ptr(&dma, (uint32_t) fifo_ptr_rx); // I2s RX FIFO addr
-    dma_set_write_ptr(&dma, (uint32_t) audio_data); // audio data address
+    dma_set_write_ptr(&dma, (uint32_t) audio_data_0); // audio data address
     dma_set_rx_wait_mode(&dma, DMA_RX_WAIT_I2S); // The DMA will wait for the I2s RX FIFO valid signal
     dma_set_data_type(&dma, (uint32_t) 0);
 
@@ -132,18 +142,18 @@ int main(int argc, char *argv[])
 
 
     dma_intr_flag = 0;
-    dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*sizeof(*audio_data)));
+    dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4));
 
 
 
     // enable I2s interrupt
     i2s_set_enable_intr(&i2s, 1);
 
-    const u_int16_t batchsize = 0x20;
+    const u_int16_t batchsize = 0x08;
 
 
 
-    i2s_set_clk_divider(&i2s, 0x10);
+    i2s_set_clk_divider(&i2s, 0x04);
     i2s_set_intr_reach_count(&i2s, batchsize);
     i2s_set_data_width(&i2s, I2S_BYTEPERSAMPLE_COUNT_VALUE_32_BITS);
     i2s_set_enable(&i2s, 1, 1);
@@ -153,17 +163,17 @@ int main(int argc, char *argv[])
 
     int8_t batch = 0;
 
-    u_int8_t test_baches = 4;
+    u_int8_t test_baches = 16;
     for (u_int8_t batch = 0; batch < test_baches; batch++) {
         while(external_intr_flag == batch) {
             printf(".");
         }
 
-        uint32_t errors = 0;
-        for (int i = 0; i < batchsize; i++) {
-            if (audio_data[batch * batchsize + i] != batch * batchsize + i + 1) errors = errors + 1; 
-        }
-        printf("%x: errors %d\n", batch, errors);
+        // uint32_t errors = 0;
+        // for (int i = 0; i < batchsize; i++) {
+        //     if (audio_data_0[batch * batchsize + i] != batch * batchsize + i + 1) errors = errors + 1; 
+        // }
+        printf("%x\r\n", batch);
     }
 
 
