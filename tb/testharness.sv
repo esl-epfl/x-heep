@@ -267,14 +267,6 @@ module testharness #(
   assign memcopy_periph_req = periph_slave_req;
   assign periph_slave_resp = memcopy_periph_rsp;
 
-  // GPIO counter example
-  i2s_microphone i2s_microphone_i (
-      .rst_ni(rst_ni),
-
-      .i2s_sck_i(gpio[20]),
-      .i2s_ws_i (gpio[21]),
-      .i2s_sd_o (gpio[22])
-  );
 
 `ifdef USE_EXTERNAL_DEVICE_EXAMPLE
   // External xbar slave memory example
@@ -319,6 +311,14 @@ module testharness #(
       .rst_ni,
       .gpio_i(gpio[30]),
       .gpio_o(gpio[31])
+  );
+
+  // I2s "microphone"/rx example
+  i2s_microphone i2s_microphone_i (
+      .rst_ni(rst_ni),
+      .i2s_sck_i(gpio[20]),
+      .i2s_ws_i(gpio[21]),
+      .i2s_sd_o(gpio[22])
   );
 
 `ifndef VERILATOR

@@ -39,12 +39,6 @@ filesets:
     depend:
     - lowrisc:dv_dpi:uartdpi
 
-  i2s_example:
-    depend:
-    - example:ip:i2s_microphone
-    files:
-    file_type: systemVerilogSource
-
   systemverilog_only_uart:
     files:
     - hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi.sv
@@ -74,7 +68,6 @@ targets:
     - use_external_device_example? (files_examples)
     - tb-harness
     - tool_verilator? (uartdpi)
-    - tool_verilator? (i2s_example)
     - tool_modelsim? (systemverilog_only_uart)
     - tool_vcs? (systemverilog_only_uart)
     - tool_verilator? (files_verilator_waiver)
