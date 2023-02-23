@@ -122,6 +122,15 @@ typedef enum
 } dma_allow_realign_t;
 
 
+typedef enum
+{
+    DMA_END_EVENT_POLLING,      // Interrupt for the DMA will be disabled. The application will be in charge of monitoring the end of the transaction.
+    DMA_END_EVENT_INTR,         // Interrupt for the DMA will be enabled. After launching the transaction, the dma_launch function will exit. 
+    DMA_END_EVENT_INTR_WAIT,    // Interrupt for the DMA will be enabled. After launching the transaction, the dma_launch function will wait in a wait_for_interrupt (wfi) state.  
+    DMA_END_EVENT__size, 
+} dma_end_event_t;
+
+
 /**
  * Possible returns of the dma_configure() function.
  * Some of these issues or not a problem per se, yet a combination of them might be. 
@@ -186,7 +195,8 @@ typedef struct
     uint32_t size_b;            // The size of the transfer, in bytes (in contrast, the size stored in the targets is in data units).   
     dma_data_type_t type;       // The data type to use. One is chosen among the targets.
     dma_semaphore_t smph;       // The semaphore to use. One is chosen among the targets.
-    dma_config_flags_t flags;   //  A mask with possible issues aroused from the creation of the transaction.
+    dma_end_event_t end;        // What should happen after the transaction is launched. 
+    dma_config_flags_t flags;   // A mask with possible issues aroused from the creation of the transaction.
 } dma_trans_t;
 
 
@@ -251,12 +261,13 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint
  * @param p_src Pointer to a target structure to be used as source for the transaction. 
  * The data type and copy size of the source are used by default for the transaction. 
  * @param p_dst Pointer to a target structure to be used as destination for the transaction.
+ * @param p_end The end event will determine how the dma_launch proceeds after it has effectively launched the transaction. 
  * @param p_allowRealign Whether to allow the DMA to take a smaller data type in order to counter misalignments between the selected data type and the start pointer.
  * @param p_check Whether integrity checks should be performed. 
  * @retval DMA_CONFIG_CRITICAL_ERROR if an error was detected in the transaction to be loaded.
  * @retval DMA_CONFIG_OK == 0 otherwise.    
  */
-dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p_src, dma_target_t *p_dst, dma_allow_realign_t p_allowRealign, dma_perform_checks_t p_check );
+dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p_src, dma_target_t *p_dst, dma_end_event_t p_end, dma_allow_realign_t p_allowRealign, dma_perform_checks_t p_check );
 
 /**
  * @brief The transaction configuration (that has been previously validated through the creation functions) is effectively transferred into the DMA registers. 

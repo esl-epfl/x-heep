@@ -126,6 +126,10 @@ static struct
    */
   uint8_t intrFlag;
 
+  /*
+   * Fast interrupt controller control block
+   */
+  fast_intr_ctrl_t fic;
 }dma_cb;
 
 /****************************************************************************/
@@ -144,9 +148,9 @@ void dma_init()
     static dma_target_t defaultTargetA, defaultTargetB;
     static dma_trans_t defaultTrans;
     
-    // @ToDo: This should be deprecated. base address should be obtained from.....
+    // @ToDo: juan: This should be deprecated. base address should be obtained from.....
     dma_cb.baseAdd = mmio_region_from_addr((uint32_t*)DMA_START_ADDRESS);
-
+    dma_cb.fic.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
     
     // The dummy/null variables are loaded to the DMA.     
     
@@ -155,7 +159,7 @@ void dma_init()
     dma_create_environment( &defaultEnv, (uint32_t*) NULL, (uint32_t*) NULL );
     dma_create_target( &defaultTargetA, (uint32_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv, DMA_PERFORM_CHECKS_ONLY_SANITY );
     dma_create_target( &defaultTargetB, (uint32_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv, DMA_PERFORM_CHECKS_ONLY_SANITY );
-    dma_create_transaction( &defaultTrans, &defaultTargetA, &defaultTargetB, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_ONLY_SANITY); 
+    dma_create_transaction( &defaultTrans, &defaultTargetA, &defaultTargetB, DMA_END_EVENT_INTR_WAIT, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_ONLY_SANITY); 
     dma_load_transaction( &defaultTrans );
     
 }
@@ -205,8 +209,12 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint
 }
 
 
-dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p_src, dma_target_t *p_dst, dma_allow_realign_t p_allowRealign, dma_perform_checks_t p_check )
+dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p_src, dma_target_t *p_dst, dma_end_event_t p_end, dma_allow_realign_t p_allowRealign, dma_perform_checks_t p_check )
 {
+    //////////  SANITY CHECKS    //////////
+    make_sure_that( p_end < DMA_END_EVENT__size );
+    
+    
     //////////  CHECK IF TARGETS HAVE ERRORS    //////////
      /* 
      * The transaction is NOT created if the targets include errors.
@@ -235,6 +243,7 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p
     // The pointer to the targets is stored in the transaction
     p_trans->src = p_src;
     p_trans->dst = p_dst;
+    p_trans->end = p_end;
     
     //////////  CHECK IF THERE ARE MISALIGNMENTS   //////////
     if( p_check  )
@@ -321,12 +330,17 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p
 
 dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
 {
+    
     /* 
      * The transaction is not allowed if it contain a critical error.
      * A successful transaction creation has to be done before loading it to the DMA.
      */
     if( p_trans->flags & DMA_CONFIG_CRITICAL_ERROR ) return DMA_CONFIG_CRITICAL_ERROR;
     dma_cb.trans = p_trans; // Save the current transaction
+    
+    //////////  ENABLE/DISABLE INTERRUPTS   //////////
+    // @ToDo: juan: enable/disable interrupts when required. 
+    
     
     //////////  SET THE POINTERS   //////////
     writeRegister( dma_cb.trans->src->ptr, DMA_PTR_IN_REG_OFFSET );
@@ -354,7 +368,8 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans )
     //////////  SET SIZE TO COPY + LAUNCH THE DMA OPERATION   //////////
     dma_cb.intrFlag = 0; // This has to be done prior to writing the register because otherwise the interrupt could arrive before it is lowered (i.e. causing  
     writeRegister(dma_cb.trans->size_b, DMA_DMA_START_REG_OFFSET ); 
-    while( ! dma_cb.intrFlag ) {
+    // If the end event was set to wait for the interrupt, the dma_launch will not return until the interrupt arrives. 
+    while( p_trans->end == DMA_END_EVENT_INTR_WAIT && ! dma_cb.intrFlag ) {
         wait_for_interrupt();
     }
     return DMA_CONFIG_OK;
@@ -456,11 +471,13 @@ static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
 // juan q jose: How should this function be declared?
 void handler_irq_fast_dma(void)
 {
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kDma_fic_e);
+    // The interrupt is cleared.
+    clear_fast_interrupt(&(dma_cb.fic), kDma_fic_e);
+    // The flag is raised so the waiting loop can be broken.
     dma_cb.intrFlag = 1;
-    dma_intr_handler();
+    // Only perform call the interrupt handler if the transaction requested to end by polling. 
+    // juan: This is only a temporary solution while there is no way of disabling interrupts. 
+    if(dma_cb.trans->end != DMA_END_EVENT_POLLING ) dma_intr_handler();
 }
 
 
