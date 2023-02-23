@@ -105,11 +105,9 @@ typedef enum
  * or that the pointer is close enough the the memory end to cause an overflow during reading. 
  */
 typedef enum{
-    DMA_SAFETY_NO_CHECKS        = 0x00, // No checks will be performed. 
-    DMA_SAFETY_SANITY_CHECKS    = 0x01, // Only sanity checks will be performed that no values are off-limits or containing errors. It is a good way of not performing sanity check only during this operation. 
-    DMA_SAFETY_INTEGRITY_CHECKS = 0x02, // Integrity of the parameters is checked to make sure there are no inconsistencies. Not using this flag is only recommended when parameters are constant and the proper operation has been previously tested. 
-    DMA_SAFETY__size        
-} dma_safety_level_t; 
+    DMA_PERFORM_CHECKS_ONLY_SANITY = 0x00, // No checks will be performed. Only sanity checks will be performed that no values are off-limits or containing errors.
+    DMA_PERFORM_CHECKS_INTEGRITY   = 0x01, // Sanity AND integrity of the parameters is checked to make sure there are no inconsistencies. Not using this flag is only recommended when parameters are constant and the proper operation has been previously tested. 
+} dma_perform_checks_t; 
 
 
 /**
@@ -141,7 +139,7 @@ typedef enum
     DMA_CONFIG_MISALIGN         = 0x04,    // An arrangement is misaligned.
     DMA_CONFIG_OVERLAP          = 0x08,    // The increment is smaller than the data type size.
     DMA_CONFIG_DISCONTINUOUS    = 0x10,    // The increment is larger than the data type size.
-    DMA_CONFIG_OUTBOUNDS        = 0x20,    // The operation goes beyond the memory boundries.
+    DMA_CONFIG_OUTBOUNDS        = 0x20,    // The operation goes beyond the memory boundaries.
     DMA_CONFIG_INCOMPATIBLE     = 0x40,    // Different arguments result in incompatible requests.
     DMA_CONFIG_CRITICAL_ERROR   = 0x80,    // This flag determines the function will return without the DMA performing any actions.
 } dma_config_flags_t;
@@ -162,7 +160,7 @@ typedef struct
  * A target is a region of memory from/to which the DMA can copy data. 
  * It is defined by its start pointer and the size of the data that can be copied. 
  * Furthermore, control parameters can be added to prevent the DMA from reading/writing outside the
- * boundries of the target. 
+ * boundaries of the target. 
  */
 typedef struct
 {
@@ -240,11 +238,11 @@ dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint32_t* p_start, 
  * @param p_type Data type to be used when reading or writing in the target range. 
  * @param p_smph Which semaphore to use to control the reading or writing rate. A value of 0 will allow writing at full-speed. 
  * @param p_env Environment to which this target belongs. A NULL pointer will assign no environment and pointer and ranges will not be checked for outbounds. 
- * @param p_safety The safety level required for this operation. Safety checks can be masked with a bitwise OR ( DMA_SAFETY_* | DMA_SAFETY_*).
+ * @param p_check Whether integrity checks should be performed. 
  * @return A configuration flags mask. Each individual flag can be accessed with a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query the result from inside
  * target structure as an error could have appeared before the creation of the structure.
  */
-dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, uint8_t p_smph, dma_env_t* p_env, dma_safety_level_t p_safety );
+dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, uint8_t p_smph, dma_env_t* p_env, dma_perform_checks_t p_check );
 
 
 /**
@@ -254,11 +252,11 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint
  * The data type and copy size of the source are used by default for the transaction. 
  * @param p_dst Pointer to a target structure to be used as destination for the transaction.
  * @param p_allowRealign Whether to allow the DMA to take a smaller data type in order to counter misalignments between the selected data type and the start pointer.
- * @param p_safety The safety level required for this operation. Safety checks can be masked with a bitwise OR ( DMA_SAFETY_* | DMA_SAFETY_*). 
+ * @param p_check Whether integrity checks should be performed. 
  * @retval DMA_CONFIG_CRITICAL_ERROR if an error was detected in the transaction to be loaded.
  * @retval DMA_CONFIG_OK == 0 otherwise.    
  */
-dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p_src, dma_target_t *p_dst, dma_allow_realign_t p_allowRealign, dma_safety_level_t p_safety );
+dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p_src, dma_target_t *p_dst, dma_allow_realign_t p_allowRealign, dma_perform_checks_t p_check );
 
 /**
  * @brief The transaction configuration (that has been previously validated through the creation functions) is effectively transferred into the DMA registers. 

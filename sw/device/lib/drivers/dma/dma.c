@@ -37,6 +37,7 @@
 
 #include "dma.h"
 
+// To manage interrupts
 #include "fast_intr_ctrl.h"
 #include "fast_intr_ctrl_regs.h"
 #include "hart.h"
@@ -152,9 +153,9 @@ void dma_init()
     // Juan: re-think these configurations! 
     
     dma_create_environment( &defaultEnv, (uint32_t*) NULL, (uint32_t*) NULL );
-    dma_create_target( &defaultTargetA, (uint32_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv, DMA_SAFETY_NO_CHECKS );
-    dma_create_target( &defaultTargetB, (uint32_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv, DMA_SAFETY_NO_CHECKS );
-    dma_create_transaction( &defaultTrans, &defaultTargetA, &defaultTargetB, DMA_ALLOW_REALIGN, DMA_SAFETY_NO_CHECKS); 
+    dma_create_target( &defaultTargetA, (uint32_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv, DMA_PERFORM_CHECKS_ONLY_SANITY );
+    dma_create_target( &defaultTargetB, (uint32_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv, DMA_PERFORM_CHECKS_ONLY_SANITY );
+    dma_create_transaction( &defaultTrans, &defaultTargetA, &defaultTargetB, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_ONLY_SANITY); 
     dma_load_transaction( &defaultTrans );
     
 }
@@ -173,14 +174,11 @@ dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint32_t* p_start, 
 }
 
 
-dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, uint8_t p_smph, dma_env_t* p_env, dma_safety_level_t p_safety )
+dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, uint8_t p_smph, dma_env_t* p_env, dma_perform_checks_t p_check )
 {
     //////////  SANITY CHECKS   //////////
-    if( p_safety & DMA_SAFETY_SANITY_CHECKS )
-    {
-        make_sure_that( p_type < DMA_DATA_TYPE__size );
-        make_sure_that( p_inc_du > 0 );
-    }
+    make_sure_that( p_type < DMA_DATA_TYPE__size );
+    make_sure_that( p_inc_du > 0 );
     
     //////////  STORING OF THE INFORMATION   //////////
     p_tgt->ptr = p_ptr;
@@ -191,7 +189,7 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint
     p_tgt->env = p_env;
     
     //////////  INTEGRITY CHECKS   //////////
-    if( p_safety & DMA_SAFETY_INTEGRITY_CHECKS )
+    if( p_check )
     {
         if( ( p_tgt->env ) && ( ( p_tgt->ptr <  p_tgt->env->start ) /* Only performed if an environment was set. */
             || ( p_tgt->ptr > p_tgt->env->end ) 
@@ -207,24 +205,21 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint
 }
 
 
-dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p_src, dma_target_t *p_dst, dma_allow_realign_t p_allowRealign, dma_safety_level_t p_safety )
+dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p_src, dma_target_t *p_dst, dma_allow_realign_t p_allowRealign, dma_perform_checks_t p_check )
 {
     //////////  CHECK IF TARGETS HAVE ERRORS    //////////
      /* 
      * The transaction is NOT created if the targets include errors.
      * A successful target creation has to be done before loading it to the DMA.
      */
-    if( p_safety & DMA_SAFETY_SANITY_CHECKS )
-    {
-        if( ( p_src->flags & DMA_CONFIG_CRITICAL_ERROR ) || ( p_dst->flags & DMA_CONFIG_CRITICAL_ERROR ) ) return DMA_CONFIG_CRITICAL_ERROR;
-    }
+    if( ( p_src->flags & DMA_CONFIG_CRITICAL_ERROR ) || ( p_dst->flags & DMA_CONFIG_CRITICAL_ERROR ) ) return DMA_CONFIG_CRITICAL_ERROR;
     
     //////////  CHECK IF THERE ARE SEMAPHORE INCONSISTENCIES   //////////
     /* 
      * The DMA can only handle one semaphore at a time, therefore, if the two targets require a semaphore, the transaction has to be discarded.
      * None of the two values can be taken by default because this inconsistency is probably a result of an error (likely wrong target selection).
      */
-    if( p_safety & DMA_SAFETY_INTEGRITY_CHECKS )
+    if( p_check )
     {
         if( p_src->smph && p_dst->smph ) return ( DMA_CONFIG_INCOMPATIBLE | DMA_CONFIG_CRITICAL_ERROR );
         /* As there is only one non-null semaphore among the targets, that one is selected. 
@@ -242,7 +237,7 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p
     p_trans->dst = p_dst;
     
     //////////  CHECK IF THERE ARE MISALIGNMENTS   //////////
-    if( p_safety & DMA_SAFETY_INTEGRITY_CHECKS )
+    if( p_check  )
     {
         /* The source and destination targets are analyzed. 
          * If the target is a peripheral (i.e. uses one of semaphore slots)
@@ -299,27 +294,24 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p
             p_trans->inc_b = DMA_DATA_TYPE_2_DATA_SIZE( p_trans->type );
             /* The copy size does not change, as it is already stored in bytes*/
         }
-    }
     
-    //////////  CHECK IF THERE IS CROSS-OUTBOUND   //////////
-    /* As the source target does not know the constraints of the destination target, 
-     * it is possible that the copied information ends up beyond the bounds of 
-     * the destination environment. 
-     * This check is not performed if no destination environment was set.
-     *
-     * e.g. 
-     * If 10 HALF WORDs are to be transferred with a HALF WORD in between
-     * (increment of 2 data units: writes 2 bytes, skips 2 bytes, ...),
-     * then 10 data units * 4 bytes traveled for each = 40 bytes that need to be 
-     * gone over in order to complete the transaction.
-     * Having the transaction size in bytes, they need to be converted to data units:
-     * size [data units] = size [bytes] / convertionRatio [bytes / data unit].
-     * 
-     * Th transaction can be computed if the whole affected area can fit inside the destination environment
-     * (i.e. The start pointer + the 40 bytes -in this case-, is smaller than the end pointer of the environment).   
-     */ 
-    if( p_safety & DMA_SAFETY_INTEGRITY_CHECKS )
-    {
+        //////////  CHECK IF THERE IS CROSS-OUTBOUND   //////////
+        /* As the source target does not know the constraints of the destination target, 
+         * it is possible that the copied information ends up beyond the bounds of 
+         * the destination environment. 
+         * This check is not performed if no destination environment was set.
+         *
+         * e.g. 
+         * If 10 HALF WORDs are to be transferred with a HALF WORD in between
+         * (increment of 2 data units: writes 2 bytes, skips 2 bytes, ...),
+         * then 10 data units * 4 bytes traveled for each = 40 bytes that need to be 
+         * gone over in order to complete the transaction.
+         * Having the transaction size in bytes, they need to be converted to data units:
+         * size [data units] = size [bytes] / convertionRatio [bytes / data unit].
+         * 
+         * Th transaction can be computed if the whole affected area can fit inside the destination environment
+         * (i.e. The start pointer + the 40 bytes -in this case-, is smaller than the end pointer of the environment).   
+         */ 
         if( ( p_dst->env ) && ( ( p_dst->ptr + p_trans->inc_b * ( p_trans->size_b / DMA_DATA_TYPE_2_DATA_SIZE( p_trans->type ) ) ) > ( p_dst->env->end + 1 ) )  ) return p_trans->flags |= ( DMA_CONFIG_DST | DMA_CONFIG_OUTBOUNDS | DMA_CONFIG_CRITICAL_ERROR ); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
     }
         

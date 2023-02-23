@@ -14,12 +14,9 @@
 
 # Author: Jose Miranda (jose.mirandacalero@epfl.ch)
 
-set(RISCV  /home/sapriza/tools/riscv)
-set(RISCV_GITHUB_GCC_COMPILER  ${RISCV}/bin/riscv32-unknown-elf-gcc)
+set(RISCV  /home/$ENV{USER}/tools/riscv)
+set(RISCV_GITHUB_GCC_COMPILER  $ENV{RISCV}/bin/riscv32-unknown-elf-gcc)
 #message("RISC-V GCC cross-compiler is in : ${RISCV_GCC_COMPILER}") 
-
-message(">>>> ENV{USER} is $ENV{USERNAME}")
-message(">>>> NEV{RISCV} is $ENV{RISCV}")
 
 if (EXISTS ${RISCV_GITHUB_GCC_COMPILER})
 set( RISCV_GCC_COMPILER ${RISCV_GITHUB_GCC_COMPILER})
