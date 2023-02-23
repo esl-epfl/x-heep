@@ -23,7 +23,7 @@
 #include "fast_intr_ctrl.h"
 #include "fast_intr_ctrl_regs.h"
 
-int8_t external_intr_flag;
+
 
 // Interrupt controller variables
 dif_plic_params_t rv_plic_params;
@@ -32,24 +32,37 @@ dif_plic_result_t plic_res;
 dif_plic_irq_id_t intr_num;
 
 
+// I2s
+i2s_t i2s;
+int8_t i2s_interrupt_flag;
+
+#define I2S_TEST_BATCH_SIZE    8
+#define I2S_TEST_BATCHES      16
+
 #define AUDIO_DATA_NUM 32
 uint32_t audio_data_0[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
 uint32_t audio_data_1[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
 
 
+// DMA
+dma_t dma;
+int8_t dma_intr_flag;
+bool dma_buffer_id = 0;
+
+
+//
+// ISR
+//
 void handler_irq_external(void) {
     // Claim/clear interrupt
     plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
     if (plic_res == kDifPlicOk) {
         if (intr_num == I2S_INTR_EVENT) {
-            external_intr_flag = external_intr_flag + 1;
+            i2s_interrupt_flag = i2s_interrupt_flag + 1;
         }
         dif_plic_irq_complete(&rv_plic, 0, &intr_num);
     }
 }
-
-int8_t dma_intr_flag;
-bool dma_buffer_id = 0;
 
 void handler_irq_fast_dma(void)
 {
@@ -67,57 +80,44 @@ void handler_irq_fast_dma(void)
     dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4));
 }
 
-i2s_t i2s;
 
-int main(int argc, char *argv[])
+//
+// Setup
+//
+void setup() 
 {
-    printf("I2s DEMO\n");
-
     i2s.base_addr = mmio_region_from_addr((uintptr_t)I2S_START_ADDRESS);
-
-
-    // dma peripheral structure to access the registers
-    dma_t dma;
     dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
+    rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
 
-    uint32_t *fifo_ptr_rx = i2s.base_addr.base + I2S_RXDATA_REG_OFFSET;
+    const uint32_t *i2s_rx_fifo_ptr = i2s.base_addr.base + I2S_RXDATA_REG_OFFSET;
 
 
      // -- DMA CONFIGURATION --
     dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
     dma_set_write_ptr_inc(&dma, (uint32_t) 4);
-    dma_set_read_ptr(&dma, (uint32_t) fifo_ptr_rx); // I2s RX FIFO addr
+    dma_set_read_ptr(&dma, (uint32_t) i2s_rx_fifo_ptr); // I2s RX FIFO addr
     dma_set_write_ptr(&dma, (uint32_t) audio_data_0); // audio data address
     dma_set_rx_wait_mode(&dma, DMA_RX_WAIT_I2S); // The DMA will wait for the I2s RX FIFO valid signal
     dma_set_data_type(&dma, (uint32_t) 0);
+    dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // start 
 
 
-    printf("Init PLIC..");
-    rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
-    plic_res = dif_plic_init(rv_plic_params, &rv_plic);
-
-    if (plic_res == kDifPlicOk) {
-        printf("1\n");
-    } else {
-        printf("0\n;");
-    }
-
-    printf("Set I2s intr prio=1..");
-    // Set memcopy priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
+    // PLIC
+    dif_plic_init(rv_plic_params, &rv_plic);
     plic_res = dif_plic_irq_set_priority(&rv_plic, I2S_INTR_EVENT, 1);
-    if (plic_res == kDifPlicOk) {
-        printf("1\n");
-    } else {
-        printf("0\n;");
-    }
-
-    printf("EN I2s intr..");
     plic_res = dif_plic_irq_set_enabled(&rv_plic, I2S_INTR_EVENT, 0, kDifPlicToggleEnabled);
-    if (plic_res == kDifPlicOk) {
-        printf("1\n");
-    } else {
-        printf("0\n;");
-    }
+
+
+    // enable I2s interrupt
+    i2s_set_enable_intr(&i2s, 1);
+    i2s_set_clk_divider(&i2s, 0x04);
+    i2s_set_intr_reach_count(&i2s, I2S_TEST_BATCH_SIZE);
+    i2s_set_data_width(&i2s, I2S_BYTEPERSAMPLE_COUNT_VALUE_32_BITS);
+    i2s_set_enable(&i2s, 1, 1);
+
+    i2s_interrupt_flag = 0;
+
 
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
@@ -127,35 +127,18 @@ int main(int argc, char *argv[])
     // bit 19 = dma fast intr
     const uint32_t mask = 1 << 11 | 1 << 19; 
     CSR_SET_BITS(CSR_REG_MIE, mask);
-    external_intr_flag = 0;
+}
 
 
+int main(int argc, char *argv[]) {
+    printf("I2s DEMO\r\n");
 
-    dma_intr_flag = 0;
-    dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4));
+    setup();
 
+    printf("Setup done!\r\n");
 
-
-    // enable I2s interrupt
-    i2s_set_enable_intr(&i2s, 1);
-
-    const u_int16_t batchsize = 0x08;
-
-
-
-    i2s_set_clk_divider(&i2s, 0x04);
-    i2s_set_intr_reach_count(&i2s, batchsize);
-    i2s_set_data_width(&i2s, I2S_BYTEPERSAMPLE_COUNT_VALUE_32_BITS);
-    i2s_set_enable(&i2s, 1, 1);
-
-  
-    printf("started hw");
-
-    int8_t batch = 0;
-
-    u_int8_t test_baches = 16;
-    for (u_int8_t batch = 0; batch < test_baches; batch++) {
-        while(external_intr_flag == batch) {
+    for (u_int8_t batch = 0; batch < I2S_TEST_BATCHES; batch++) {
+        while(i2s_interrupt_flag == batch) {
             printf(".");
         }
 
@@ -165,7 +148,6 @@ int main(int argc, char *argv[])
         // }
         printf("%x\r\n", batch);
     }
-
 
     return EXIT_SUCCESS;
 }
