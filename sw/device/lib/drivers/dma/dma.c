@@ -508,8 +508,8 @@ void dma_set_write_ptr(const dma_t *dma, uint32_t write_ptr) {
 }
 
 void dma_set_cnt_start(const dma_t *dma, uint32_t copy_size) {
+    printf("wrote %d @ %d\n\r", copy_size,  DMA_DMA_START_REG_OFFSET ); // Has to go on top otherwise it does not work
   mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_DMA_START_REG_OFFSET), copy_size);
-    printf("wrote %d @ %d\n\r", copy_size,  DMA_DMA_START_REG_OFFSET );
 }
 
 int32_t dma_get_done(const dma_t *dma) {

@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     
     
     
-    printf("DMA test app: 1\n\r");
+    printf("DMA test app: 2\n\r");
     printf("no environments\n\r");
 
     // Enable interrupt on processor side
