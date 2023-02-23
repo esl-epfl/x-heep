@@ -49,7 +49,7 @@
 #define DMA_DATA_TYPE_2_DATA_SIZE(type) (0b00000100 >> (type) )     
 
 // ToDo: Juan - remove this, is just a placeholder until real assert can be included
-#define make_sure_that(x) printf( "%s@%d\n\r",x ? "Success" : "Error",__LINE__ );
+#define make_sure_that(x) /*printf( "%s@%d\n\r",x ? "Success" : "Error",__LINE__ );*/
 
 /****************************************************************************/
 /**                                                                        **/

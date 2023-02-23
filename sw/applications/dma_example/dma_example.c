@@ -116,14 +116,9 @@ int main(int argc, char *argv[])
     ret = dma_load_transaction(&trans);
     printf(">> Load tra: %d \n\r", ret);
     
-    ret = dma_launch(&trans);
     printf(">> Launch t: %d \n\r", ret);
-    
-    
-    
-    // Wait copy is done
+    ret = dma_launch(&trans);
     dma_intr_flag = 0;
-
     while(dma_intr_flag==0) {
         wait_for_interrupt();
     }
