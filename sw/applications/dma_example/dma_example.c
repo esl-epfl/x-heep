@@ -6,12 +6,9 @@
 #include <stdlib.h>
 
 #include "csr.h"
-#include "hart.h"
-#include "handler.h"
+
 #include "core_v_mini_mcu.h"
 #include "dma.h"
-#include "fast_intr_ctrl.h"
-#include "fast_intr_ctrl_regs.h"
 
 // TODO
 // - Add offset at the begining and the end and check
@@ -35,15 +32,10 @@
 //uint16_t copied_data_2B[TEST_DATA_SIZE] __attribute__ ((aligned (2))) = { 0 };
 //uint8_t copied_data_1B[TEST_DATA_SIZE] = { 0 };
 
-int8_t dma_intr_flag;
 
-void handler_irq_fast_dma(void)
+void dma_intr_handler()
 {
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kDma_fic_e);
-
-    dma_intr_flag = 1;
+    printf("This is not a weak implementation.\n");
 }
 
 int main(int argc, char *argv[])
@@ -53,14 +45,7 @@ int main(int argc, char *argv[])
       0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef, 0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa, 0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98};
     static uint32_t copied_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
     
-    /// OLD
-    dma_t dma;
-    dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
-    // END OLD
-    
-    
-    
-    printf("DMA test app: 2\n\r");
+    printf("DMA test app: 3\n\r");
     printf("no environments\n\r");
 
     // Enable interrupt on processor side
@@ -69,30 +54,7 @@ int main(int argc, char *argv[])
     // Set mie.MEIE bit to one to enable machine-level fast dma interrupt
     const uint32_t mask = 1 << 19;
     CSR_SET_BITS(CSR_REG_MIE, mask);
-
     
-    
-    printf("Do things the old way...\n");
-    
-    dma_set_read_ptr(&dma, (uint32_t) test_data_4B);
-    dma_set_write_ptr(&dma, (uint32_t) copied_data_4B);
-    dma_set_read_ptr_inc(&dma, (uint32_t) 4);
-    dma_set_write_ptr_inc(&dma, (uint32_t) 4);
-    dma_set_spi_mode(&dma, (uint32_t) 0);
-    dma_set_data_type(&dma, (uint32_t) 0);
-    printf("DMA word transaction launched\n");
-    // Give number of bytes to transfer
-    dma_set_cnt_start(&dma, (uint32_t) TEST_DATA_SIZE*sizeof(*copied_data_4B));
-    // Wait copy is done
-    dma_intr_flag = 0;
-    while(dma_intr_flag==0) {
-        wait_for_interrupt();
-    }
-    
-    printf("Finished doing things the old way\n");
-    
-    
-    #ifdef TEST_WORD
     // The DMA is initialized (i.e. the base address is computed  )
     printf("About to init.\n\r");
     dma_init();
@@ -105,137 +67,28 @@ int main(int argc, char *argv[])
     static dma_trans_t trans;
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
     ret = dma_create_target( &tgt1, test_data_4B, 1, TEST_DATA_SIZE,  DMA_DATA_TYPE_WORD, DMA_SMPH_MEMORY, NULL, DMA_SAFETY_SANITY_CHECKS | DMA_SAFETY_INTEGRITY_CHECKS);
-    printf(">> Target 1: %d %d \n\r", ret, test_data_4B);
-    
     ret = dma_create_target( &tgt2, copied_data_4B, 1, TEST_DATA_SIZE,  DMA_DATA_TYPE_WORD, DMA_SMPH_MEMORY, NULL, DMA_SAFETY_SANITY_CHECKS | DMA_SAFETY_INTEGRITY_CHECKS);
-    printf(">> Target 2: %d, %d \n\r", ret, copied_data_4B);
-    
     ret = dma_create_transaction( &trans, &tgt1, &tgt2, DMA_ALLOW_REALIGN, DMA_SAFETY_SANITY_CHECKS | DMA_SAFETY_INTEGRITY_CHECKS );
-    printf(">> Transact: %d \n\r", ret);
-    
     ret = dma_load_transaction(&trans);
-    printf(">> Load tra: %d \n\r", ret);
-    
-    printf(">> Launch t: %d \n\r", ret);
+
     ret = dma_launch(&trans);
-    dma_intr_flag = 0;
-    while(dma_intr_flag==0) {
-        wait_for_interrupt();
-    }
+
     printf(">> Finished transaction. \n\r");
-
-    #endif // TEST_WORD
-
-    #ifdef TEST_HALF_WORD
-        // -- DMA CONFIG -- //
-        dma_set_read_ptr(&dma, (uint32_t) (test_data_2B + HALF_WORD_INPUT_OFFSET));
-        dma_set_write_ptr(&dma, (uint32_t) (copied_data_2B + HALF_WORD_OUTPUT_OFFSET));
-        dma_set_read_ptr_inc(&dma, (uint32_t) 2);
-        dma_set_write_ptr_inc(&dma, (uint32_t) 2);
-        dma_set_direction(&dma, (uint32_t) 0);
-        dma_set_data_type(&dma, (uint32_t) 1);
-        printf("DMA half-word transaction launched\n");
-        // Give number of bytes to transfer
-        // Last 2 bytes are not copy to check the DMA works properly
-        dma_set_size(&dma, (uint32_t) ((TEST_DATA_SIZE - 2*HALF_WORD_OUTPUT_OFFSET)*sizeof(*copied_data_2B)));
-        // Wait copy is done
-        dma_intr_flag = 0;
-        while(dma_intr_flag==0) {
-            wait_for_interrupt();
-        }
-    #endif // TEST_HALF_WORD
-
-    #ifdef TEST_BYTE
-        // -- DMA CONFIG -- //
-        dma_set_read_ptr(&dma, (uint32_t) test_data_1B + BYTE_INPUT_OFFSET);
-        dma_set_write_ptr(&dma, (uint32_t) (copied_data_1B + BYTE_OUTPUT_OFFSET));
-        dma_set_read_ptr_inc(&dma, (uint32_t) 1);
-        dma_set_write_ptr_inc(&dma, (uint32_t) 1);
-        dma_set_direction(&dma, (uint32_t) 0);
-        dma_set_data_type(&dma, (uint32_t) 2);
-        printf("DMA byte transaction launched\n");
-        // Give number of bytes to transfer
-        // Last byte are not copy to check the DMA works properly
-        dma_set_size(&dma, (uint32_t) ((TEST_DATA_SIZE - 2*BYTE_OUTPUT_OFFSET)*sizeof(*copied_data_1B)));
-        // Wait copy is done
-        dma_intr_flag = 0;
-        while(dma_intr_flag==0) {
-            wait_for_interrupt();
-        }
-    #endif // TEST_BYTE
 
     int32_t errors;
 
-    #ifdef TEST_WORD
-        errors=0;
-        for(int i=0; i<TEST_DATA_SIZE; i++) {
-            if (copied_data_4B[i] != test_data_4B[i]) {
-                printf("ERROR COPY [%d]: %08x != %08x : %04x != %04x\n\r", i, &copied_data_4B[i], &test_data_4B[i], copied_data_4B[i], test_data_4B[i]);
-                errors++;
-            }
+    errors=0;
+    for(int i=0; i<TEST_DATA_SIZE; i++) {
+        if (copied_data_4B[i] != test_data_4B[i]) {
+            printf("ERROR COPY [%d]: %08x != %08x : %04x != %04x\n\r", i, &copied_data_4B[i], &test_data_4B[i], copied_data_4B[i], test_data_4B[i]);
+            errors++;
         }
+    }
 
-        if (errors == 0) {
-            printf("DMA word transfer success\nFinished! :) \n\r");
-        } else {
-            printf("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
-        }
-    #endif // TEST_WORD
-
-    #ifdef TEST_HALF_WORD
-
-        errors = 0;
-        for (int i=0; i<(TEST_DATA_SIZE - 2*HALF_WORD_OUTPUT_OFFSET); i++) {
-            if(test_data_2B[i + HALF_WORD_INPUT_OFFSET] != copied_data_2B[i + HALF_WORD_OUTPUT_OFFSET]) {
-                printf("ERROR COPY [%d]: @%08x-@%08x : %04x != %04x\n" , i , &test_data_2B[i + HALF_WORD_INPUT_OFFSET] , &copied_data_2B[i + HALF_WORD_OUTPUT_OFFSET], test_data_2B[i + HALF_WORD_INPUT_OFFSET], copied_data_2B[i + HALF_WORD_OUTPUT_OFFSET]);
-                errors++;
-            }
-        }
-        // Check that the begining and end values of output vector are not overwriten
-        for (int i=0; i<HALF_WORD_OUTPUT_OFFSET; i++) {
-            if(copied_data_2B[i] != 0) {
-                printf("Data Overwritten @%08x : %04x != 0\n" , &copied_data_2B[i], copied_data_2B[i]);
-                errors++;
-            }
-            if(copied_data_2B[TEST_DATA_SIZE - 1 - i] != 0) {
-                printf("Data Overwritten @%08x : %04x != 0\n" , &copied_data_2B[TEST_DATA_SIZE - 1 - i], copied_data_2B[TEST_DATA_SIZE - 1 - i]);
-                errors++;
-            }
-        }
-
-        if (errors == 0) {
-            printf("DMA half-word transfer success\n");
-        } else {
-            printf("DMA half-word transfer failure: %d errors out of %d half-words checked\n", errors, TEST_DATA_SIZE);
-        }
-    #endif // TEST_HALF_WORD
-
-    #ifdef TEST_BYTE
-        errors = 0;
-        for (int i=0; i<(TEST_DATA_SIZE - 2*BYTE_OUTPUT_OFFSET); i++) {
-            if(test_data_1B[i + BYTE_INPUT_OFFSET] != copied_data_1B[i + BYTE_OUTPUT_OFFSET]) {
-                printf("ERROR COPY [%d]: @%08x-@%08x : %02x != %02x\n" , i , &test_data_1B[i + BYTE_INPUT_OFFSET] , &copied_data_1B[i + BYTE_OUTPUT_OFFSET], test_data_1B[i + BYTE_INPUT_OFFSET], copied_data_1B[i + BYTE_OUTPUT_OFFSET]);
-                errors++;
-            }
-        }
-        // Check that the begining and end values of output vector are not overwriten
-        for (int i=0; i<BYTE_OUTPUT_OFFSET; i++) {
-            if(copied_data_1B[i] != 0) {
-                printf("Data Overwritten @%08x : %04x != 0\n" , &copied_data_1B[i], copied_data_1B[i]);
-                errors++;
-            }
-            if(copied_data_1B[TEST_DATA_SIZE - 1 - i] != 0) {
-                printf("Data Overwritten @%08x : %04x != 0\n" , &copied_data_1B[TEST_DATA_SIZE - 1 - i], copied_data_1B[TEST_DATA_SIZE - 1 - i]);
-                errors++;
-            }
-        }
-
-        if (errors == 0) {
-            printf("DMA byte transfer success\n");
-        } else {
-            printf("DMA byte transfer failure: %d errors out of %d bytes checked\n", errors, TEST_DATA_SIZE);
-        }
-    #endif // TEST_BYTE
-
+    if (errors == 0) {
+        printf("DMA word transfer success\nFinished! :) \n\r");
+    } else {
+        printf("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
+    }
     return EXIT_SUCCESS;
 }

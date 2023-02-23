@@ -37,6 +37,11 @@
 
 #include "dma.h"
 
+#include "fast_intr_ctrl.h"
+#include "fast_intr_ctrl_regs.h"
+#include "hart.h"
+#include "handler.h"
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        DEFINITIONS AND MACROS                            */
@@ -49,7 +54,7 @@
 #define DMA_DATA_TYPE_2_DATA_SIZE(type) (0b00000100 >> (type) )     
 
 // ToDo: Juan - remove this, is just a placeholder until real assert can be included
-#define make_sure_that(x) /*printf( "%s@%d\n\r",x ? "Success" : "Error",__LINE__ );*/
+#define make_sure_that(x) printf( "%s@%d\n\r",x ? "Success" : "Error",__LINE__ );
 
 /****************************************************************************/
 /**                                                                        **/
@@ -114,6 +119,11 @@ static struct
   * Pointer to the transaction to be performed. 
   */
   dma_trans_t* trans;
+  
+  /*
+   * Flag to lower as soon as a transaction is launched, and raised by the interrupt handler once it has finished. 
+   */
+  uint8_t intrFlag;
 
 }dma_cb;
 
@@ -350,7 +360,11 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans )
 {
     if( p_trans && dma_cb.trans != p_trans) return DMA_CONFIG_CRITICAL_ERROR; // Make sure that the loaded transaction is the intended transaction
     //////////  SET SIZE TO COPY + LAUNCH THE DMA OPERATION   //////////
+    dma_cb.intrFlag = 0; // This has to be done prior to writing the register because otherwise the interrupt could arrive before it is lowered (i.e. causing  
     writeRegister(dma_cb.trans->size_b, DMA_DMA_START_REG_OFFSET ); 
+    while( ! dma_cb.intrFlag ) {
+        wait_for_interrupt();
+    }
     return DMA_CONFIG_OK;
 }
 
@@ -367,6 +381,12 @@ uint32_t dma_is_done()
    *    2) Consider only the LSB == 1 to be a valid 1 using a BITWISE AND. 
    *            return ( 1 &  mmio_region_read32(dma_cb.baseAdd, (uint32_t*)(DMA_DONE_REG_OFFSET)));
    * */   
+
+
+__attribute__((weak)) void dma_intr_handler()
+{
+    printf("Weak implementation: The DMA has finished!\n");
+}
 
 
 /****************************************************************************/
@@ -422,7 +442,6 @@ static inline uint8_t getMisalignment_b( uint32_t* p_ptr, dma_data_type_t p_type
 
 static inline void writeRegister( uint32_t p_val, uint32_t p_offset )
 {
-    printf("Wrote %d @ reg %d\n\r", p_val, (uint32_t)p_offset);
     mmio_region_write32(dma_cb.baseAdd, p_offset, p_val ); // Writes to the register
     make_sure_that( p_val == mmio_region_read32( dma_cb.baseAdd, (uint32_t)(p_offset) ) ); // Checks that the written value was stored correctly
 }
@@ -440,6 +459,21 @@ static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
     }
     return inc;
 }
+
+
+// juan q jose: How should this function be declared?
+void handler_irq_fast_dma(void)
+{
+    fast_intr_ctrl_t fast_intr_ctrl;
+    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
+    clear_fast_interrupt(&fast_intr_ctrl, kDma_fic_e);
+    dma_cb.intrFlag = 1;
+    dma_intr_handler();
+}
+
+
+
+
 
 
 /****************************************************************************/
@@ -485,53 +519,3 @@ static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
 // juan: right now i am imposing that every peripheral must have a semaphore. 
 
 // juan q jose: can we make the assert include some variable as parameter so we can know the "wrong value" ?? 
-
-
-
-
-
-
-///////////// OLD FUNCTIONS
-
-
-
-
-
-void dma_set_read_ptr(const dma_t *dma, uint32_t read_ptr) {
-  mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_PTR_IN_REG_OFFSET), read_ptr);
-    printf("wrote %d @ %d\n\r", read_ptr,  DMA_PTR_IN_REG_OFFSET );
-}
-
-void dma_set_write_ptr(const dma_t *dma, uint32_t write_ptr) {
-  mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_PTR_OUT_REG_OFFSET), write_ptr);
-    printf("wrote %d @ %d\n\r", write_ptr,  DMA_PTR_OUT_REG_OFFSET );
-}
-
-void dma_set_cnt_start(const dma_t *dma, uint32_t copy_size) {
-    printf("wrote %d @ %d\n\r", copy_size,  DMA_DMA_START_REG_OFFSET ); // Has to go on top otherwise it does not work
-  mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_DMA_START_REG_OFFSET), copy_size);
-}
-
-int32_t dma_get_done(const dma_t *dma) {
-  return mmio_region_read32(dma->base_addr, (ptrdiff_t)(DMA_DONE_REG_OFFSET));
-}
-
-void dma_set_read_ptr_inc(const dma_t *dma, uint32_t read_ptr_inc){
-  mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_SRC_PTR_INC_REG_OFFSET), read_ptr_inc);
-    printf("wrote %d @ %d\n\r", read_ptr_inc,  DMA_SRC_PTR_INC_REG_OFFSET );
-}
-
-void dma_set_write_ptr_inc(const dma_t *dma, uint32_t write_ptr_inc){
-  mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_DST_PTR_INC_REG_OFFSET), write_ptr_inc);
-    printf("wrote %d @ %d\n\r", write_ptr_inc,  DMA_DST_PTR_INC_REG_OFFSET );
-}
-
-void dma_set_spi_mode(const dma_t *dma, uint32_t spi_mode){
-  mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_SPI_MODE_REG_OFFSET), spi_mode);
-    printf("wrote %d @ %d\n\r", spi_mode,  DMA_SPI_MODE_REG_OFFSET );
-}
-
-void dma_set_data_type(const dma_t *dma, uint32_t data_type){
-  mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_DATA_TYPE_REG_OFFSET), data_type);
-    printf("wrote %d @ %d\n\r", data_type,  DMA_DATA_TYPE_REG_OFFSET );
-}

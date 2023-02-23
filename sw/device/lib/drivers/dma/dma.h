@@ -147,40 +147,49 @@ typedef enum
 } dma_config_flags_t;
 
 
-// juan: document this
+/*
+ * An environment is a region of memory defined by its start and end pointers. 
+ * The sole purpose of creating environments is preventing the DMA from writing on 
+ * restricted memory regions (outside the environment).
+ */
 typedef struct
 {
     uint32_t* start;
     uint32_t* end;
 } dma_env_t;
 
-// juan: document this
+/*
+ * A target is a region of memory from/to which the DMA can copy data. 
+ * It is defined by its start pointer and the size of the data that can be copied. 
+ * Furthermore, control parameters can be added to prevent the DMA from reading/writing outside the
+ * boundries of the target. 
+ */
 typedef struct
 {
-    dma_env_t* env;
-    uint32_t* ptr;
-    uint32_t inc_du;
-    uint32_t size_du;
-    dma_data_type_t type;
-    dma_semaphore_t smph;
-    dma_config_flags_t flags;
+    dma_env_t* env;             // The environment to which this target belongs. It may be null (no checks will be performed to guarantee the write operations are not performed beyond limits). This is always null if the target is a peripheral. 
+    uint32_t* ptr;              // Pointer to the start address from/to where data will be copied/pasted.
+    uint32_t inc_du;            // How much the pointer will increase every time a read/write operation is done. It is a multiple of the data units. Can be left blank if the target is a peripheral.
+    uint32_t size_du;           // The size (in data units) of the data to be copied. Can be left blank if the target will only be used as destination.
+    dma_data_type_t type;       // The type of data to be transferred. Can be left blank if the target will only be used as destination.
+    dma_semaphore_t smph;       // If the target is a peripheral, a semaphore can be set to control the data flow. 
+    dma_config_flags_t flags;   // A mask with possible issues aroused from the creation of the target. 
 } dma_target_t;   
 
-// juan: document this
+/*
+ * A transaction is an agreed transfer of data from one target to another. 
+ * It needs a source target and a destination target. 
+ * It also includes control parameters to override the targets' specific ones if needed.
+ */
 typedef struct
 {
-    dma_target_t* src;
-    dma_target_t* dst;
-    uint32_t inc_b;
-    uint32_t size_b;
-    dma_data_type_t type;
-    dma_semaphore_t smph;
-    dma_config_flags_t flags;
+    dma_target_t* src;          // Target from where the data will be copied.
+    dma_target_t* dst;          // Target to where the data will be copied.
+    uint32_t inc_b;             // A common increment in case both targets need to use one same increment. 
+    uint32_t size_b;            // The size of the transfer, in bytes (in contrast, the size stored in the targets is in data units).   
+    dma_data_type_t type;       // The data type to use. One is chosen among the targets.
+    dma_semaphore_t smph;       // The semaphore to use. One is chosen among the targets.
+    dma_config_flags_t flags;   //  A mask with possible issues aroused from the creation of the transaction.
 } dma_trans_t;
-
-
-
-
 
 
 
@@ -277,8 +286,15 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans );
  * @retval 0 - DMA is working.   
  * @retval 1 - DMA has finished the transmission. DMA is idle. 
  */
-inline uint32_t dma_is_done();
+uint32_t dma_is_done();
 
+
+/**
+* @brief DMA interrupt handler.   
+* `dma.c` provides a weak definition of this symbol, which can be overridden
+* at link-time by providing an additional non-weak definition.
+*/
+void dma_intr_handler();
 
 
 /****************************************************************************/
@@ -293,73 +309,3 @@ inline uint32_t dma_is_done();
 /**                                EOF                                     **/
 /**                                                                        **/
 /****************************************************************************/
-
-
-
-////////// OLD
-
-
-typedef struct dma {
-  /**
-   * The base address for the soc_ctrl hardware registers.
-   */
-  mmio_region_t base_addr;
-} dma_t;
-
-
-
-/**
- * Write to read_ptr register of the DMA
- * @param dma Pointer to dma_t represting the target MEMCOPY PERIPHERAL.
- * @param read_ptr Any valid memory address.
- */
-void dma_set_read_ptr(const dma_t *dma, uint32_t read_ptr);
-
-/**
- * Write to write_ptr register of the DMA
- * @param dma Pointer to dma_t represting the target MEMCOPY PERIPHERAL.
- * @param write_ptr Any valid memory address.
- */
-void dma_set_write_ptr(const dma_t *dma, uint32_t write_ptr);
-
-/**
- * Write to cnt_start register of the DMA
- * @param dma Pointer to dma_t represting the target MEMCOPY PERIPHERAL.
- * @param copy_size Number of bytes to be copied from read_ptr to write_ptr.
- */
-void dma_set_cnt_start(const dma_t *dma, uint32_t copy_size);
-
-/**
- * Read from done register of the DMA
- * @param dma Pointer to dma_t represting the target MEMCOPY PERIPHERAL.
- * @return done value (0: data are being copied - 1: copy done/peripheral idle)
- */
-int32_t dma_get_done(const dma_t *dma);
-
-/**
- * Write to src_ptr_inc register of the DMA.
- * @param dma Pointer to dma_t represting the target DMA.
- * @param read_ptr_inc Increment of source pointer (Default: 4).
- */
-void dma_set_read_ptr_inc(const dma_t *dma, uint32_t read_ptr_inc);
-
-/**
- * Write to dst_ptr_inc register of the DMA.
- * @param dma Pointer to dma_t represting the target DMA.
- * @param write_ptr_inc Increment of destination pointer (Default: 4).
- */
-void dma_set_write_ptr_inc(const dma_t *dma, uint32_t write_ptr_inc);
-
-/**
- * Sets the DMA data transfer modes when used with the SPI.
- * @param dma Pointer to dma_t represting the target DMA.
- * @param spi_mode 0: mem to mem - 1: spi_rx to mem (Default: 0) - 2: mem to spi_tx.
- */
-void dma_set_spi_mode(const dma_t *dma, uint32_t spi_mode);
-
-/**
- * Sets the DMA data type.
- * @param dma Pointer to dma_t represting the target DMA.
- * @param data_type Data type to transfer: 32-bit word(0), 16-bit half word (1), 8-bit byte(2,3).
- */
-void dma_set_data_type(const dma_t *dma, uint32_t data_type);
