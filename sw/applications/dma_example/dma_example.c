@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
     printf("DMA test app: 3\n\r");
     printf("no environments\n\r");
 
+    // Juan: this could be the enable/disable interrupts that I was looking for
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);

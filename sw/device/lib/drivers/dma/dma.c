@@ -313,15 +313,20 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p
          * e.g. 
          * If 10 HALF WORDs are to be transferred with a HALF WORD in between
          * (increment of 2 data units: writes 2 bytes, skips 2 bytes, ...),
-         * then 10 data units * 4 bytes traveled for each = 40 bytes that need to be 
-         * gone over in order to complete the transaction.
+         * then ( 10 data units * 2 bytes ) + ( 9 data units * 2 bytes ) are traveled for each = 38 bytes 
+         * that need to be gone over in order to complete the transaction.
          * Having the transaction size in bytes, they need to be converted to data units:
          * size [data units] = size [bytes] / convertionRatio [bytes / data unit].
          * 
-         * Th transaction can be computed if the whole affected area can fit inside the destination environment
-         * (i.e. The start pointer + the 40 bytes -in this case-, is smaller than the end pointer of the environment).   
+         * The transaction can be performed if the whole affected area can fit inside the destination environment
+         * (i.e. The start pointer + the 38 bytes -in this case-, is smaller than the end pointer of the environment).
+         * 
+         * To compute the affected area, the copied words can be considered of the size of an increment (in bytes). 
+         * That is multiplied by the amount of times that is copied (size_b/sizeof(type)) and then the last skip is subtracted.    
          */ 
-        if( ( p_dst->env ) && ( ( p_dst->ptr + p_trans->inc_b * ( p_trans->size_b / DMA_DATA_TYPE_2_DATA_SIZE( p_trans->type ) ) ) > ( p_dst->env->end + 1 ) )  ) return p_trans->flags |= ( DMA_CONFIG_DST | DMA_CONFIG_OUTBOUNDS | DMA_CONFIG_CRITICAL_ERROR ); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
+        uint32_t affectedMem = p_trans->inc_b * ( p_trans->size_b / DMA_DATA_TYPE_2_DATA_SIZE( p_trans->type ) ) - ( p_trans->inc_b - DMA_DATA_TYPE_2_DATA_SIZE( p_trans->type ) );
+        
+        if( ( p_dst->env ) && ( ( p_dst->ptr + affectedMem ) > ( p_dst->env->end + 1 ) )  ) return p_trans->flags |= ( DMA_CONFIG_DST | DMA_CONFIG_OUTBOUNDS | DMA_CONFIG_CRITICAL_ERROR ); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
     }
         
     return p_trans->flags;
