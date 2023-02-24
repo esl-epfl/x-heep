@@ -161,8 +161,8 @@ typedef enum
  */
 typedef struct
 {
-    uint32_t* start;
-    uint32_t* end;
+    uint8_t* start;
+    uint8_t* end;
 } dma_env_t;
 
 /*
@@ -174,7 +174,7 @@ typedef struct
 typedef struct
 {
     dma_env_t* env;             // The environment to which this target belongs. It may be null (no checks will be performed to guarantee the write operations are not performed beyond limits). This is always null if the target is a peripheral. 
-    uint32_t* ptr;              // Pointer to the start address from/to where data will be copied/pasted.
+    uint8_t* ptr;              // Pointer to the start address from/to where data will be copied/pasted.
     uint32_t inc_du;            // How much the pointer will increase every time a read/write operation is done. It is a multiple of the data units. Can be left blank if the target is a peripheral.
     uint32_t size_du;           // The size (in data units) of the data to be copied. Can be left blank if the target will only be used as destination.
     dma_data_type_t type;       // The type of data to be transferred. Can be left blank if the target will only be used as destination.
@@ -236,7 +236,7 @@ void dma_init();
  * @return A configuration flags mask. Each individual flag can be accessed with a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query the result from inside
  * environment structure as an error could have appeared before the creation of the structure.
  */
-dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint32_t* p_start, uint32_t* p_end );
+dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint8_t* p_start, uint8_t* p_end );
 
 
 /**
@@ -252,7 +252,7 @@ dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint32_t* p_start, 
  * @return A configuration flags mask. Each individual flag can be accessed with a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query the result from inside
  * target structure as an error could have appeared before the creation of the structure.
  */
-dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, uint8_t p_smph, dma_env_t* p_env, dma_perform_checks_t p_check );
+dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint8_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, uint8_t p_smph, dma_env_t* p_env, dma_perform_checks_t p_check );
 
 
 /**

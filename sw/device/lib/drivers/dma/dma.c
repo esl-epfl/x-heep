@@ -75,7 +75,7 @@
  * @param p_ptr The source or destination pointer. 
  * @return How misaligned the pointer is, in bytes. 
  */
-static inline uint8_t getMisalignment_b( uint32_t* p_ptr, dma_data_type_t p_type );
+static inline uint8_t getMisalignment_b( uint8_t* p_ptr, dma_data_type_t p_type );
 
 
 /**
@@ -88,7 +88,7 @@ static inline uint8_t getMisalignment_b( uint32_t* p_ptr, dma_data_type_t p_type
  * @retval 1 There is an outbound.
  * @retval 0 There is NOT an outbound.   
  */
-static inline uint8_t getOutbound( uint32_t* p_start, uint32_t* p_end, uint32_t p_type, uint32_t p_size_du, uint32_t p_inc_du );
+static inline uint8_t isOutbound( uint8_t* p_start, uint8_t* p_end, uint32_t p_type, uint32_t p_size_du, uint32_t p_inc_du );
 
 /**
  * @brief Writes a given value into the specified register. Later reads the register and checks that the read value is equal to the written one. 
@@ -162,26 +162,26 @@ void dma_init()
     static dma_trans_t defaultTrans;
     
     // @ToDo: juan: This should be deprecated. base address should be obtained from.....
-    dma_cb.baseAdd = mmio_region_from_addr((uint32_t*)DMA_START_ADDRESS);
+    dma_cb.baseAdd = mmio_region_from_addr((uint8_t*)DMA_START_ADDRESS);
     dma_cb.fic.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
     
     // The dummy/null variables are loaded to the DMA.     
     
     // Juan: re-think these configurations! 
     
-    dma_create_environment( &defaultEnv, (uint32_t*) NULL, (uint32_t*) NULL );
-    dma_create_target( &defaultTargetA, (uint32_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv, DMA_PERFORM_CHECKS_ONLY_SANITY );
-    dma_create_target( &defaultTargetB, (uint32_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv, DMA_PERFORM_CHECKS_ONLY_SANITY );
+    dma_create_environment( &defaultEnv, (uint8_t*) NULL, (uint8_t*) NULL );
+    dma_create_target( &defaultTargetA, (uint8_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv, DMA_PERFORM_CHECKS_ONLY_SANITY );
+    dma_create_target( &defaultTargetB, (uint8_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv, DMA_PERFORM_CHECKS_ONLY_SANITY );
     dma_create_transaction( &defaultTrans, &defaultTargetA, &defaultTargetB, DMA_END_EVENT_INTR_WAIT, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_ONLY_SANITY); 
     dma_load_transaction( &defaultTrans );
     
 }
 
 
-dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint32_t* p_start, uint32_t* p_end )
+dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint8_t* p_start, uint8_t* p_end )
 {
     /* PERFORM SANITY CHECKS */
-    make_sure_that( p_end >= p_start );
+    if( p_end < p_start ) return DMA_CONFIG_INCOMPATIBLE;
     
     // Load the start and end pointers of the enviroment.
     p_env->start = p_start;
@@ -191,11 +191,12 @@ dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint32_t* p_start, 
 }
 
 
-dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, uint8_t p_smph, dma_env_t* p_env, dma_perform_checks_t p_check )
+dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint8_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, uint8_t p_smph, dma_env_t* p_env, dma_perform_checks_t p_check )
 {
     //////////  SANITY CHECKS   //////////
     make_sure_that( p_type < DMA_DATA_TYPE__size );
     make_sure_that( p_inc_du > 0 );
+    make_sure_that( p_size >  0 );
     
     //////////  STORING OF THE INFORMATION   //////////
     p_tgt->ptr = p_ptr;
@@ -211,7 +212,7 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint
         if( ( p_tgt->env ) && ( /* Only performed if an environment was set. */
                ( p_tgt->ptr <  p_tgt->env->start )  // If the target starts before the environment starts.
             || ( p_tgt->ptr > p_tgt->env->end )     // If the target starts after the environment ends 
-            || ( getOutbound( p_tgt->ptr, p_tgt->env->end, p_tgt->type, p_tgt->size_du, p_tgt->inc_du ) ) // If the target selected size goes beyond the boundaries of the environment.   
+            || ( isOutbound( p_tgt->ptr, p_tgt->env->end, p_tgt->type, p_tgt->size_du, p_tgt->inc_du ) ) // If the target selected size goes beyond the boundaries of the environment.   
                 ) )
                 p_tgt->flags |= DMA_CONFIG_OUTBOUNDS;
 
@@ -336,7 +337,7 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p
          * The transaction can be performed if the whole affected area can fit inside the destination environment
          * (i.e. The start pointer + the 38 bytes -in this case-, is smaller than the end pointer of the environment).   
          */ 
-        if( ( p_dst->env ) && getOutbound( p_dst->ptr, p_dst->env->end, p_trans->type, p_trans->dst->size_du, p_trans->dst->inc_du ) ) return p_trans->flags |= ( DMA_CONFIG_DST | DMA_CONFIG_OUTBOUNDS | DMA_CONFIG_CRITICAL_ERROR ); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
+        if( ( p_dst->env ) && isOutbound( p_dst->ptr, p_dst->env->end, p_trans->type, p_trans->dst->size_du, p_trans->dst->inc_du ) ) return p_trans->flags |= ( DMA_CONFIG_DST | DMA_CONFIG_OUTBOUNDS | DMA_CONFIG_CRITICAL_ERROR ); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
     }
         
     return p_trans->flags;
@@ -399,9 +400,9 @@ uint32_t dma_is_done()
 }   // juan q jose: What to do in the above case
   /* In case a return wants to be forced in case of an error, there are 2 alternatives: 
    *    1) Consider any value != 0 to be a valid 1 using a LOGIC AND: 
-   *            return ( 1 && mmio_region_read32(dma_cb.baseAdd, (uint32_t*)(DMA_DONE_REG_OFFSET)));
+   *            return ( 1 && mmio_region_read32(dma_cb.baseAdd, (uint8_t*)(DMA_DONE_REG_OFFSET)));
    *    2) Consider only the LSB == 1 to be a valid 1 using a BITWISE AND. 
-   *            return ( 1 &  mmio_region_read32(dma_cb.baseAdd, (uint32_t*)(DMA_DONE_REG_OFFSET)));
+   *            return ( 1 &  mmio_region_read32(dma_cb.baseAdd, (uint8_t*)(DMA_DONE_REG_OFFSET)));
    * */   
 
 
@@ -418,7 +419,7 @@ __attribute__((weak)) void dma_intr_handler()
 /****************************************************************************/
 
 
-static inline uint8_t getMisalignment_b( uint32_t* p_ptr, dma_data_type_t p_type )
+static inline uint8_t getMisalignment_b( uint8_t* p_ptr, dma_data_type_t p_type )
 {
     /*
     * Note: These checks only makes sense when the target is memory. This is not performed when the target is a peripheral (i.e. uses a semaphore). 
@@ -464,7 +465,7 @@ static inline uint8_t getMisalignment_b( uint32_t* p_ptr, dma_data_type_t p_type
 
 
 
-static inline uint8_t getOutbound( uint32_t* p_start, uint32_t* p_end, uint32_t p_type, uint32_t p_size_du, uint32_t p_inc_du )
+static inline uint8_t isOutbound( uint8_t* p_start, uint8_t* p_end, uint32_t p_type, uint32_t p_size_du, uint32_t p_inc_du )
 {
   /* 000 = A data unit to be copied
    * xxx = A data unit to be skipped
@@ -477,7 +478,7 @@ static inline uint8_t getOutbound( uint32_t* p_start, uint32_t* p_end, uint32_t 
    *                                                                   ^ The last affected byte
    * 
    *  If the environment ends before the last affected byte, then there is outbound writing and the function return 1.  
-   */
+   *                 /------------ This is the address of the first byte outside the range.*/
     return ( p_end < p_start + ( DMA_DATA_TYPE_2_DATA_SIZE(p_type) * ( ( p_size_du - 1 )*p_inc_du + 1 ) ) );
     // juan: what happens if size == 0 ??
 }
