@@ -71,7 +71,7 @@ module i2s_rx_channel #(
       r_shadow <= 'h0;
       r_valid <= 1'b0;
     end else begin
-      if (r_started_dly) begin
+      if (r_started) begin
         r_shiftreg <= s_shiftreg;
         if (s_word_done) begin
           r_shadow <= r_shiftreg;
