@@ -252,7 +252,7 @@ dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint8_t* p_start, u
  * @return A configuration flags mask. Each individual flag can be accessed with a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query the result from inside
  * target structure as an error could have appeared before the creation of the structure.
  */
-dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint8_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, uint8_t p_smph, dma_env_t* p_env, dma_perform_checks_t p_check );
+dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint8_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, dma_semaphore_t p_smph, dma_env_t* p_env, dma_perform_checks_t p_check );
 
 
 /**

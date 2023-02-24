@@ -170,8 +170,8 @@ void dma_init()
     // Juan: re-think these configurations! 
     
     dma_create_environment( &defaultEnv, (uint8_t*) NULL, (uint8_t*) NULL );
-    dma_create_target( &defaultTargetA, (uint8_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv, DMA_PERFORM_CHECKS_ONLY_SANITY );
-    dma_create_target( &defaultTargetB, (uint8_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH__undef, &defaultEnv, DMA_PERFORM_CHECKS_ONLY_SANITY );
+    dma_create_target( &defaultTargetA, (uint8_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH_MEMORY, &defaultEnv, DMA_PERFORM_CHECKS_ONLY_SANITY );
+    dma_create_target( &defaultTargetB, (uint8_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH_MEMORY, &defaultEnv, DMA_PERFORM_CHECKS_ONLY_SANITY );
     dma_create_transaction( &defaultTrans, &defaultTargetA, &defaultTargetB, DMA_END_EVENT_INTR_WAIT, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_ONLY_SANITY); 
     dma_load_transaction( &defaultTrans );
     
@@ -181,40 +181,40 @@ void dma_init()
 dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint8_t* p_start, uint8_t* p_end )
 {
     /* PERFORM SANITY CHECKS */
-    if( p_end < p_start ) return DMA_CONFIG_INCOMPATIBLE;
+    if( (uint8_t*)p_end < (uint8_t*)p_start ) return DMA_CONFIG_INCOMPATIBLE;
     
     // Load the start and end pointers of the enviroment.
-    p_env->start = p_start;
-    p_env->end   = p_end;
+    p_env->start = (uint8_t*)p_start;
+    p_env->end   = (uint8_t*)p_end;
     
     return DMA_CONFIG_OK;
 }
 
 
-dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint8_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, uint8_t p_smph, dma_env_t* p_env, dma_perform_checks_t p_check )
+dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint8_t* p_ptr, uint32_t p_inc_du, uint32_t p_size_du, dma_data_type_t p_type, dma_semaphore_t p_smph, dma_env_t* p_env, dma_perform_checks_t p_check )
 {
     //////////  SANITY CHECKS   //////////
-    make_sure_that( p_type < DMA_DATA_TYPE__size );
-    make_sure_that( p_inc_du > 0 );
-    make_sure_that( p_size >  0 );
+    make_sure_that( (dma_data_type_t)p_type < DMA_DATA_TYPE__size );
+    make_sure_that( (uint32_t)p_inc_du > 0 );
+    make_sure_that( (uint32_t)p_size_du >=  0 );
+    make_sure_that( (dma_semaphore_t) p_smph < DMA_SMPH__size );
     
     //////////  STORING OF THE INFORMATION   //////////
-    p_tgt->ptr = p_ptr;
-    p_tgt->inc_du = p_inc_du;
-    p_tgt->size_du = p_size_du;
-    p_tgt->type = p_type; 
-    p_tgt->smph = p_smph;
-    p_tgt->env = p_env;
+    p_tgt->ptr = (dma_target_t *)p_ptr;
+    p_tgt->inc_du = (uint32_t)p_inc_du;
+    p_tgt->size_du = (uint32_t)p_size_du;
+    p_tgt->type = (dma_data_type_t)p_type; 
+    p_tgt->smph = (dma_semaphore_t)p_smph;
+    p_tgt->env = (dma_env_t*)p_env;
     
     //////////  INTEGRITY CHECKS   //////////
     if( p_check )
     {
         if( ( p_tgt->env ) && ( /* Only performed if an environment was set. */
-               ( p_tgt->ptr <  p_tgt->env->start )  // If the target starts before the environment starts.
-            || ( p_tgt->ptr > p_tgt->env->end )     // If the target starts after the environment ends 
-            || ( isOutbound( p_tgt->ptr, p_tgt->env->end, p_tgt->type, p_tgt->size_du, p_tgt->inc_du ) ) // If the target selected size goes beyond the boundaries of the environment.   
-                ) )
-                p_tgt->flags |= DMA_CONFIG_OUTBOUNDS;
+               ( (uint8_t*)(p_tgt->ptr) <  (uint8_t*)(p_tgt->env->start) )  // If the target starts before the environment starts.
+            || ( (uint8_t*)(p_tgt->ptr) > (uint8_t*)(p_tgt->env->end) )     // If the target starts after the environment ends 
+            || isOutbound( p_tgt->ptr, p_tgt->env->end, p_tgt->type, p_tgt->size_du, p_tgt->inc_du ) // If the target selected size goes beyond the boundaries of the environment.   
+                ) ) p_tgt->flags |= DMA_CONFIG_OUTBOUNDS;
 
         /* If an invalid semaphore is selected, the target cannot be used.
          This is not asserted as a way to allow the __undef semaphore to be used as a disable flag.*/ //juan: not sure if this is the best way of doing so. 
@@ -228,7 +228,7 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint8_t* p_ptr, uint3
 dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p_src, dma_target_t *p_dst, dma_end_event_t p_end, dma_allow_realign_t p_allowRealign, dma_perform_checks_t p_check )
 {
     //////////  SANITY CHECKS    //////////
-    make_sure_that( p_end < DMA_END_EVENT__size );
+    make_sure_that( (dma_end_event_t)p_end < DMA_END_EVENT__size );
     
     
     //////////  CHECK IF TARGETS HAVE ERRORS    //////////
@@ -479,7 +479,7 @@ static inline uint8_t isOutbound( uint8_t* p_start, uint8_t* p_end, uint32_t p_t
    * 
    *  If the environment ends before the last affected byte, then there is outbound writing and the function return 1.  
    *                 /------------ This is the address of the first byte outside the range.*/
-    return ( p_end < p_start + ( DMA_DATA_TYPE_2_DATA_SIZE(p_type) * ( ( p_size_du - 1 )*p_inc_du + 1 ) ) );
+    return ( (uint8_t*)p_end < (uint8_t*)p_start + ( DMA_DATA_TYPE_2_DATA_SIZE(p_type) * ( ( (uint32_t)p_size_du - 1 )*(uint32_t)p_inc_du + 1 ) ) );
     // juan: what happens if size == 0 ??
 }
 
