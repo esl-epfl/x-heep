@@ -199,7 +199,9 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint8_t* p_ptr, uint3
     make_sure_that( (uint32_t)p_size_du >=  0 );
     make_sure_that( (dma_semaphore_t) p_smph < DMA_SMPH__size );
     
+    
     //////////  STORING OF THE INFORMATION   //////////
+    p_tgt->flags = DMA_CONFIG_OK; //The flags are cleaned in case the structure was used before.
     p_tgt->ptr = (dma_target_t *)p_ptr;
     p_tgt->inc_du = (uint32_t)p_inc_du;
     p_tgt->size_du = (uint32_t)p_size_du;
@@ -253,6 +255,7 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p
 
     
     //////////  SET UP THE DEFAULT CONFIGURATIONS //////////
+    p_trans->flags = DMA_CONFIG_OK; //The flags are cleaned in case the structure was used before.
     p_trans->size_b = p_src->size_du * DMA_DATA_TYPE_2_DATA_SIZE(p_src->type); // The copy size of the source (in data units -of the source-) is transformed to bytes, to be used as default size.
     p_trans->type = p_src->type; // By default, the source defines the data type. // ok? 
     p_trans->inc_b = 0; // By default, the transaction increment is set to 0 and, if required, it will be changed to 1 (in which case both src and dst will have an increment of 1 data unit)
