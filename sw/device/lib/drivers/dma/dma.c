@@ -77,6 +77,19 @@
  */
 static inline uint8_t getMisalignment_b( uint32_t* p_ptr, dma_data_type_t p_type );
 
+
+/**
+ * @brief Determines whether a given region will fit before the end of an environment.
+ * @param p_start Pointer to the beginning of the region.
+ * @param p_end Pointer to the last byte of the environment.
+ * @param p_type The data type to be transferred.
+ * @param p_size_du The number of data units to be transferred.
+ * @param p_inc_du The size in data units of each increment. 
+ * @retval 1 There is an outbound.
+ * @retval 0 There is NOT an outbound.   
+ */
+static inline uint8_t getOutbound( uint32_t* p_start, uint32_t* p_end, uint32_t p_type, uint32_t p_size_du, uint32_t p_inc_du );
+
 /**
  * @brief Writes a given value into the specified register. Later reads the register and checks that the read value is equal to the written one. 
  *          This check is done through an assertion, so can be disabled by disabling assertions.
@@ -195,9 +208,11 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint32_t* p_ptr, uint
     //////////  INTEGRITY CHECKS   //////////
     if( p_check )
     {
-        if( ( p_tgt->env ) && ( ( p_tgt->ptr <  p_tgt->env->start ) /* Only performed if an environment was set. */
-            || ( p_tgt->ptr > p_tgt->env->end ) 
-            || ( ( p_tgt->ptr + p_tgt->size_du * p_tgt->inc_du ) > ( p_tgt->env->end + 1 ) ) ) )
+        if( ( p_tgt->env ) && ( /* Only performed if an environment was set. */
+               ( p_tgt->ptr <  p_tgt->env->start )  // If the target starts before the environment starts.
+            || ( p_tgt->ptr > p_tgt->env->end )     // If the target starts after the environment ends 
+            || ( getOutbound( p_tgt->ptr, p_tgt->env->end, p_tgt->type, p_tgt->size_du, p_tgt->inc_du ) ) // If the target selected size goes beyond the boundaries of the environment.   
+                ) )
                 p_tgt->flags |= DMA_CONFIG_OUTBOUNDS;
 
         /* If an invalid semaphore is selected, the target cannot be used.
@@ -319,14 +334,9 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p
          * size [data units] = size [bytes] / convertionRatio [bytes / data unit].
          * 
          * The transaction can be performed if the whole affected area can fit inside the destination environment
-         * (i.e. The start pointer + the 38 bytes -in this case-, is smaller than the end pointer of the environment).
-         * 
-         * To compute the affected area, the copied words can be considered of the size of an increment (in bytes). 
-         * That is multiplied by the amount of times that is copied (size_b/sizeof(type)) and then the last skip is subtracted.    
+         * (i.e. The start pointer + the 38 bytes -in this case-, is smaller than the end pointer of the environment).   
          */ 
-        uint32_t affectedMem = p_trans->inc_b * ( p_trans->size_b / DMA_DATA_TYPE_2_DATA_SIZE( p_trans->type ) ) - ( p_trans->inc_b - DMA_DATA_TYPE_2_DATA_SIZE( p_trans->type ) );
-        
-        if( ( p_dst->env ) && ( ( p_dst->ptr + affectedMem ) > ( p_dst->env->end + 1 ) )  ) return p_trans->flags |= ( DMA_CONFIG_DST | DMA_CONFIG_OUTBOUNDS | DMA_CONFIG_CRITICAL_ERROR ); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
+        if( ( p_dst->env ) && getOutbound( p_dst->ptr, p_dst->env->end, p_trans->type, p_trans->dst->size_du, p_trans->dst->inc_du ) ) return p_trans->flags |= ( DMA_CONFIG_DST | DMA_CONFIG_OUTBOUNDS | DMA_CONFIG_CRITICAL_ERROR ); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
     }
         
     return p_trans->flags;
@@ -451,6 +461,26 @@ static inline uint8_t getMisalignment_b( uint32_t* p_ptr, dma_data_type_t p_type
     return misalginment;
 }
 
+
+
+
+static inline uint8_t getOutbound( uint32_t* p_start, uint32_t* p_end, uint32_t p_type, uint32_t p_size_du, uint32_t p_inc_du )
+{
+  /* 000 = A data unit to be copied
+   * xxx = A data unit to be skipped
+   * 
+   * The start v              /------------\ The size of each increment
+   *          |OOOO|xxxx|xxxx|OOOO|xxxx|xxxx| . . . |OOOO|xxxx|xxxx|OOOO|xxxx|xxxx| 
+   *           \--/ The size of a type    
+   *          \------------------- Each increment n-1 times ------/ \--/ + 1 word (no increment) 
+   *          \--------------------------------------------------------/ All the affected region
+   *                                                                   ^ The last affected byte
+   * 
+   *  If the environment ends before the last affected byte, then there is outbound writing and the function return 1.  
+   */
+    return ( p_end < p_start + ( DMA_DATA_TYPE_2_DATA_SIZE(p_type) * ( ( p_size_du - 1 )*p_inc_du + 1 ) ) );
+    // juan: what happens if size == 0 ??
+}
 
 static inline void writeRegister( uint32_t p_val, uint32_t p_offset )
 {
