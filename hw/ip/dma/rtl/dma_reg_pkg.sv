@@ -17,7 +17,10 @@ package dma_reg_pkg;
 
   typedef struct packed {logic [31:0] q;} dma_reg2hw_ptr_out_reg_t;
 
-  typedef struct packed {logic [31:0] q;} dma_reg2hw_dma_start_reg_t;
+  typedef struct packed {
+    logic [31:0] q;
+    logic        qe;
+  } dma_reg2hw_dma_start_reg_t;
 
   typedef struct packed {logic [31:0] q;} dma_reg2hw_src_ptr_inc_reg_t;
 
@@ -32,18 +35,13 @@ package dma_reg_pkg;
   typedef struct packed {
     logic [31:0] d;
     logic        de;
-  } dma_hw2reg_dma_start_reg_t;
-
-  typedef struct packed {
-    logic [31:0] d;
-    logic        de;
   } dma_hw2reg_done_reg_t;
 
   // Register -> HW type
   typedef struct packed {
-    dma_reg2hw_ptr_in_reg_t ptr_in;  // [225:194]
-    dma_reg2hw_ptr_out_reg_t ptr_out;  // [193:162]
-    dma_reg2hw_dma_start_reg_t dma_start;  // [161:130]
+    dma_reg2hw_ptr_in_reg_t ptr_in;  // [226:195]
+    dma_reg2hw_ptr_out_reg_t ptr_out;  // [194:163]
+    dma_reg2hw_dma_start_reg_t dma_start;  // [162:130]
     dma_reg2hw_src_ptr_inc_reg_t src_ptr_inc;  // [129:98]
     dma_reg2hw_dst_ptr_inc_reg_t dst_ptr_inc;  // [97:66]
     dma_reg2hw_rx_wait_mode_reg_t rx_wait_mode;  // [65:34]
@@ -53,7 +51,6 @@ package dma_reg_pkg;
 
   // HW -> register type
   typedef struct packed {
-    dma_hw2reg_dma_start_reg_t dma_start;  // [65:33]
     dma_hw2reg_done_reg_t done;  // [32:0]
   } dma_hw2reg_t;
 

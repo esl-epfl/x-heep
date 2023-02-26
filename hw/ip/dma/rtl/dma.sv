@@ -119,9 +119,6 @@ module dma #(
   assign hw2reg.done.de = dma_done | dma_start;
   assign hw2reg.done.d = dma_done == 1'b1 ? 1'b1 : 1'b0;
 
-  assign hw2reg.dma_start.de = dma_start;
-  assign hw2reg.dma_start.d = 32'h0;
-
   assign wait_for_rx = |(reg2hw.rx_wait_mode.q[PERIPHERALS_RX-1:0] & ~rx_valid_i);
   assign wait_for_tx = |(reg2hw.tx_wait_mode.q[PERIPHERALS_TX-1:0] & ~tx_ready_i);
 
@@ -135,7 +132,7 @@ module dma #(
       if (dma_start == 1'b1) begin
         dma_start <= 1'b0;
       end else begin
-        dma_start <= |reg2hw.dma_start.q;
+        dma_start <= reg2hw.dma_start.qe;
       end
     end
   end

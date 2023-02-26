@@ -164,11 +164,11 @@ module dma_reg_top #(
       .wd(dma_start_wd),
 
       // from internal hardware
-      .de(hw2reg.dma_start.de),
-      .d (hw2reg.dma_start.d),
+      .de(1'b0),
+      .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.dma_start.qe),
       .q (reg2hw.dma_start.q),
 
       // to register interface (read)

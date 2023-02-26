@@ -28,7 +28,8 @@
     { name:     "DMA_START",
       desc:     "Number of bytes to copy - Once a value is written, the copy starts",
       swaccess: "rw",
-      hwaccess: "hrw",
+      hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
       fields: [
         { bits: "31:0", name: "DMA_START", desc: "DMA counter and start" }
       ]
