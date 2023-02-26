@@ -10,10 +10,10 @@
 module dma_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 5
+    parameter int AW = 6
 ) (
-    input clk_i,
-    input rst_ni,
+    input logic clk_i,
+    input logic rst_ni,
     input reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
     // To HW
@@ -84,9 +84,12 @@ module dma_reg_top #(
   logic [31:0] dst_ptr_inc_qs;
   logic [31:0] dst_ptr_inc_wd;
   logic dst_ptr_inc_we;
-  logic [2:0] spi_mode_qs;
-  logic [2:0] spi_mode_wd;
-  logic spi_mode_we;
+  logic [31:0] rx_wait_mode_qs;
+  logic [31:0] rx_wait_mode_wd;
+  logic rx_wait_mode_we;
+  logic [31:0] tx_wait_mode_qs;
+  logic [31:0] tx_wait_mode_wd;
+  logic tx_wait_mode_we;
   logic [1:0] data_type_qs;
   logic [1:0] data_type_wd;
   logic data_type_we;
@@ -253,19 +256,19 @@ module dma_reg_top #(
   );
 
 
-  // R[spi_mode]: V(False)
+  // R[rx_wait_mode]: V(False)
 
   prim_subreg #(
-      .DW      (3),
+      .DW      (32),
       .SWACCESS("RW"),
-      .RESVAL  (3'h0)
-  ) u_spi_mode (
+      .RESVAL  (32'h0)
+  ) u_rx_wait_mode (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(spi_mode_we),
-      .wd(spi_mode_wd),
+      .we(rx_wait_mode_we),
+      .wd(rx_wait_mode_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -273,10 +276,37 @@ module dma_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.spi_mode.q),
+      .q (reg2hw.rx_wait_mode.q),
 
       // to register interface (read)
-      .qs(spi_mode_qs)
+      .qs(rx_wait_mode_qs)
+  );
+
+
+  // R[tx_wait_mode]: V(False)
+
+  prim_subreg #(
+      .DW      (32),
+      .SWACCESS("RW"),
+      .RESVAL  (32'h0)
+  ) u_tx_wait_mode (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(tx_wait_mode_we),
+      .wd(tx_wait_mode_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.tx_wait_mode.q),
+
+      // to register interface (read)
+      .qs(tx_wait_mode_qs)
   );
 
 
@@ -309,7 +339,7 @@ module dma_reg_top #(
 
 
 
-  logic [7:0] addr_hit;
+  logic [8:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == DMA_PTR_IN_OFFSET);
@@ -318,8 +348,9 @@ module dma_reg_top #(
     addr_hit[3] = (reg_addr == DMA_DONE_OFFSET);
     addr_hit[4] = (reg_addr == DMA_SRC_PTR_INC_OFFSET);
     addr_hit[5] = (reg_addr == DMA_DST_PTR_INC_OFFSET);
-    addr_hit[6] = (reg_addr == DMA_SPI_MODE_OFFSET);
-    addr_hit[7] = (reg_addr == DMA_DATA_TYPE_OFFSET);
+    addr_hit[6] = (reg_addr == DMA_RX_WAIT_MODE_OFFSET);
+    addr_hit[7] = (reg_addr == DMA_TX_WAIT_MODE_OFFSET);
+    addr_hit[8] = (reg_addr == DMA_DATA_TYPE_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -334,7 +365,8 @@ module dma_reg_top #(
                (addr_hit[4] & (|(DMA_PERMIT[4] & ~reg_be))) |
                (addr_hit[5] & (|(DMA_PERMIT[5] & ~reg_be))) |
                (addr_hit[6] & (|(DMA_PERMIT[6] & ~reg_be))) |
-               (addr_hit[7] & (|(DMA_PERMIT[7] & ~reg_be)))));
+               (addr_hit[7] & (|(DMA_PERMIT[7] & ~reg_be))) |
+               (addr_hit[8] & (|(DMA_PERMIT[8] & ~reg_be)))));
   end
 
   assign ptr_in_we = addr_hit[0] & reg_we & !reg_error;
@@ -352,10 +384,13 @@ module dma_reg_top #(
   assign dst_ptr_inc_we = addr_hit[5] & reg_we & !reg_error;
   assign dst_ptr_inc_wd = reg_wdata[31:0];
 
-  assign spi_mode_we = addr_hit[6] & reg_we & !reg_error;
-  assign spi_mode_wd = reg_wdata[2:0];
+  assign rx_wait_mode_we = addr_hit[6] & reg_we & !reg_error;
+  assign rx_wait_mode_wd = reg_wdata[31:0];
 
-  assign data_type_we = addr_hit[7] & reg_we & !reg_error;
+  assign tx_wait_mode_we = addr_hit[7] & reg_we & !reg_error;
+  assign tx_wait_mode_wd = reg_wdata[31:0];
+
+  assign data_type_we = addr_hit[8] & reg_we & !reg_error;
   assign data_type_wd = reg_wdata[1:0];
 
   // Read data return
@@ -387,10 +422,14 @@ module dma_reg_top #(
       end
 
       addr_hit[6]: begin
-        reg_rdata_next[2:0] = spi_mode_qs;
+        reg_rdata_next[31:0] = rx_wait_mode_qs;
       end
 
       addr_hit[7]: begin
+        reg_rdata_next[31:0] = tx_wait_mode_qs;
+      end
+
+      addr_hit[8]: begin
         reg_rdata_next[1:0] = data_type_qs;
       end
 
@@ -413,3 +452,54 @@ module dma_reg_top #(
   `ASSERT(en2addrHit, (reg_we || reg_re) |-> $onehot0(addr_hit))
 
 endmodule
+
+module dma_reg_top_intf #(
+    parameter  int AW = 6,
+    localparam int DW = 32
+) (
+    input logic clk_i,
+    input logic rst_ni,
+    REG_BUS.in regbus_slave,
+    // To HW
+    output dma_reg_pkg::dma_reg2hw_t reg2hw,  // Write
+    input dma_reg_pkg::dma_hw2reg_t hw2reg,  // Read
+    // Config
+    input devmode_i  // If 1, explicit error return for unmapped register access
+);
+  localparam int unsigned STRB_WIDTH = DW / 8;
+
+  `include "register_interface/typedef.svh"
+  `include "register_interface/assign.svh"
+
+  // Define structs for reg_bus
+  typedef logic [AW-1:0] addr_t;
+  typedef logic [DW-1:0] data_t;
+  typedef logic [STRB_WIDTH-1:0] strb_t;
+  `REG_BUS_TYPEDEF_ALL(reg_bus, addr_t, data_t, strb_t)
+
+  reg_bus_req_t s_reg_req;
+  reg_bus_rsp_t s_reg_rsp;
+
+  // Assign SV interface to structs
+  `REG_BUS_ASSIGN_TO_REQ(s_reg_req, regbus_slave)
+  `REG_BUS_ASSIGN_FROM_RSP(regbus_slave, s_reg_rsp)
+
+
+
+  dma_reg_top #(
+      .reg_req_t(reg_bus_req_t),
+      .reg_rsp_t(reg_bus_rsp_t),
+      .AW(AW)
+  ) i_regs (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(s_reg_req),
+      .reg_rsp_o(s_reg_rsp),
+      .reg2hw,  // Write
+      .hw2reg,  // Read
+      .devmode_i
+  );
+
+endmodule
+
+

@@ -10,12 +10,26 @@
 
 #include "mmio.h"
 
+
+/**
+ * Wait Mode Defines
+ * 
+ */
+#define DMA_RX_WAIT_MODE_DISABLED 0
+#define DMA_RX_WAIT_SPI           1
+#define DMA_RX_WAIT_SPI_FLASH     2
+
+#define DMA_TX_WAIT_MODE_DISABLED 0
+#define DMA_RX_WAIT_SPI           1
+#define DMA_RX_WAIT_SPI_FLASH     2
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * Initialization parameters for MEMCOPY PERIPHERAL.
+ * Initialization parameters for DMA PERIPHERAL.
  *
  */
 typedef struct dma {
@@ -68,11 +82,18 @@ void dma_set_read_ptr_inc(const dma_t *dma, uint32_t read_ptr_inc);
 void dma_set_write_ptr_inc(const dma_t *dma, uint32_t write_ptr_inc);
 
 /**
- * Sets the DMA data transfer modes when used with the SPI.
+ * Sets the DMA data transfer modes when used with peripherals
  * @param dma Pointer to dma_t represting the target DMA.
- * @param spi_mode 0: mem to mem - 1: spi_rx to mem (Default: 0) - 2: mem to spi_tx.
+ * @param peripheral_mask mask to listen to correct peripheral
  */
-void dma_set_spi_mode(const dma_t *dma, uint32_t spi_mode);
+void dma_set_rx_wait_mode(const dma_t *dma, uint32_t peripheral_mask);
+
+/**
+ * Sets the DMA data transfer modes when used with peripherals
+ * @param dma Pointer to dma_t represting the target DMA.
+ * @param peripheral_mask mask to listen to correct peripheral
+ */
+void dma_set_tx_wait_mode(const dma_t *dma, uint32_t peripheral_mask);
 
 /**
  * Sets the DMA data type.
