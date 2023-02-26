@@ -105,5 +105,13 @@
         }
       ]
     }
+    { name:     "CIRCULAR_MODE",
+      desc:     "Restart copying as soon as end of buffer is reach",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "CIRCULAR_MODE", desc: "Enables ciruclar mode" }
+      ]
+    },
    ]
 }

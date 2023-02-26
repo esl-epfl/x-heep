@@ -93,6 +93,9 @@ module dma_reg_top #(
   logic [1:0] data_type_qs;
   logic [1:0] data_type_wd;
   logic data_type_we;
+  logic circular_mode_qs;
+  logic circular_mode_wd;
+  logic circular_mode_we;
 
   // Register instances
   // R[ptr_in]: V(False)
@@ -337,9 +340,36 @@ module dma_reg_top #(
   );
 
 
+  // R[circular_mode]: V(False)
+
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_circular_mode (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(circular_mode_we),
+      .wd(circular_mode_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.circular_mode.q),
+
+      // to register interface (read)
+      .qs(circular_mode_qs)
+  );
 
 
-  logic [8:0] addr_hit;
+
+
+  logic [9:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == DMA_PTR_IN_OFFSET);
@@ -351,6 +381,7 @@ module dma_reg_top #(
     addr_hit[6] = (reg_addr == DMA_RX_WAIT_MODE_OFFSET);
     addr_hit[7] = (reg_addr == DMA_TX_WAIT_MODE_OFFSET);
     addr_hit[8] = (reg_addr == DMA_DATA_TYPE_OFFSET);
+    addr_hit[9] = (reg_addr == DMA_CIRCULAR_MODE_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -366,7 +397,8 @@ module dma_reg_top #(
                (addr_hit[5] & (|(DMA_PERMIT[5] & ~reg_be))) |
                (addr_hit[6] & (|(DMA_PERMIT[6] & ~reg_be))) |
                (addr_hit[7] & (|(DMA_PERMIT[7] & ~reg_be))) |
-               (addr_hit[8] & (|(DMA_PERMIT[8] & ~reg_be)))));
+               (addr_hit[8] & (|(DMA_PERMIT[8] & ~reg_be))) |
+               (addr_hit[9] & (|(DMA_PERMIT[9] & ~reg_be)))));
   end
 
   assign ptr_in_we = addr_hit[0] & reg_we & !reg_error;
@@ -392,6 +424,9 @@ module dma_reg_top #(
 
   assign data_type_we = addr_hit[8] & reg_we & !reg_error;
   assign data_type_wd = reg_wdata[1:0];
+
+  assign circular_mode_we = addr_hit[9] & reg_we & !reg_error;
+  assign circular_mode_wd = reg_wdata[0];
 
   // Read data return
   always_comb begin
@@ -431,6 +466,10 @@ module dma_reg_top #(
 
       addr_hit[8]: begin
         reg_rdata_next[1:0] = data_type_qs;
+      end
+
+      addr_hit[9]: begin
+        reg_rdata_next[0] = circular_mode_qs;
       end
 
       default: begin

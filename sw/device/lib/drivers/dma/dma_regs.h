@@ -53,6 +53,10 @@ extern "C" {
 #define DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD 0x2
 #define DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD_2 0x3
 
+// Restart copying as soon as end of buffer is reach
+#define DMA_CIRCULAR_MODE_REG_OFFSET 0x24
+#define DMA_CIRCULAR_MODE_CIRCULAR_MODE_BIT 0
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif

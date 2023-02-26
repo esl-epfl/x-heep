@@ -32,6 +32,8 @@ package dma_reg_pkg;
 
   typedef struct packed {logic [1:0] q;} dma_reg2hw_data_type_reg_t;
 
+  typedef struct packed {logic q;} dma_reg2hw_circular_mode_reg_t;
+
   typedef struct packed {
     logic [31:0] d;
     logic        de;
@@ -39,14 +41,15 @@ package dma_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    dma_reg2hw_ptr_in_reg_t ptr_in;  // [226:195]
-    dma_reg2hw_ptr_out_reg_t ptr_out;  // [194:163]
-    dma_reg2hw_dma_start_reg_t dma_start;  // [162:130]
-    dma_reg2hw_src_ptr_inc_reg_t src_ptr_inc;  // [129:98]
-    dma_reg2hw_dst_ptr_inc_reg_t dst_ptr_inc;  // [97:66]
-    dma_reg2hw_rx_wait_mode_reg_t rx_wait_mode;  // [65:34]
-    dma_reg2hw_tx_wait_mode_reg_t tx_wait_mode;  // [33:2]
-    dma_reg2hw_data_type_reg_t data_type;  // [1:0]
+    dma_reg2hw_ptr_in_reg_t ptr_in;  // [227:196]
+    dma_reg2hw_ptr_out_reg_t ptr_out;  // [195:164]
+    dma_reg2hw_dma_start_reg_t dma_start;  // [163:131]
+    dma_reg2hw_src_ptr_inc_reg_t src_ptr_inc;  // [130:99]
+    dma_reg2hw_dst_ptr_inc_reg_t dst_ptr_inc;  // [98:67]
+    dma_reg2hw_rx_wait_mode_reg_t rx_wait_mode;  // [66:35]
+    dma_reg2hw_tx_wait_mode_reg_t tx_wait_mode;  // [34:3]
+    dma_reg2hw_data_type_reg_t data_type;  // [2:1]
+    dma_reg2hw_circular_mode_reg_t circular_mode;  // [0:0]
   } dma_reg2hw_t;
 
   // HW -> register type
@@ -64,6 +67,7 @@ package dma_reg_pkg;
   parameter logic [BlockAw-1:0] DMA_RX_WAIT_MODE_OFFSET = 6'h18;
   parameter logic [BlockAw-1:0] DMA_TX_WAIT_MODE_OFFSET = 6'h1c;
   parameter logic [BlockAw-1:0] DMA_DATA_TYPE_OFFSET = 6'h20;
+  parameter logic [BlockAw-1:0] DMA_CIRCULAR_MODE_OFFSET = 6'h24;
 
   // Register index
   typedef enum int {
@@ -75,11 +79,12 @@ package dma_reg_pkg;
     DMA_DST_PTR_INC,
     DMA_RX_WAIT_MODE,
     DMA_TX_WAIT_MODE,
-    DMA_DATA_TYPE
+    DMA_DATA_TYPE,
+    DMA_CIRCULAR_MODE
   } dma_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] DMA_PERMIT[9] = '{
+  parameter logic [3:0] DMA_PERMIT[10] = '{
       4'b1111,  // index[0] DMA_PTR_IN
       4'b1111,  // index[1] DMA_PTR_OUT
       4'b1111,  // index[2] DMA_DMA_START
@@ -88,7 +93,8 @@ package dma_reg_pkg;
       4'b1111,  // index[5] DMA_DST_PTR_INC
       4'b1111,  // index[6] DMA_RX_WAIT_MODE
       4'b1111,  // index[7] DMA_TX_WAIT_MODE
-      4'b0001  // index[8] DMA_DATA_TYPE
+      4'b0001,  // index[8] DMA_DATA_TYPE
+      4'b0001  // index[9] DMA_CIRCULAR_MODE
   };
 
 endpackage

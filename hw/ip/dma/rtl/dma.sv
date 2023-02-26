@@ -81,6 +81,8 @@ module dma #(
 
   logic        [                3:0] byte_enable_out;
 
+  logic                              circular_mode;
+
   enum logic {
     DMA_READ_FSM_IDLE,
     DMA_READ_FSM_ON
@@ -119,6 +121,8 @@ module dma #(
   assign hw2reg.done.de = dma_done | dma_start;
   assign hw2reg.done.d = dma_done == 1'b1 ? 1'b1 : 1'b0;
 
+  assign circular_mode = reg2hw.circular_mode.q;
+
   assign wait_for_rx = |(reg2hw.rx_wait_mode.q[PERIPHERALS_RX-1:0] & ~rx_valid_i);
   assign wait_for_tx = |(reg2hw.tx_wait_mode.q[PERIPHERALS_TX-1:0] & ~tx_ready_i);
 
@@ -132,7 +136,7 @@ module dma #(
       if (dma_start == 1'b1) begin
         dma_start <= 1'b0;
       end else begin
-        dma_start <= reg2hw.dma_start.qe;
+        dma_start <= reg2hw.dma_start.qe | (dma_done & circular_mode);
       end
     end
   end
