@@ -32,10 +32,7 @@ MAKE                       = make
 # Project options are based on the app to be build (default - hello_world)
 PROJECT  ?= hello_world
 
-# Mainfile options are based on the main file to be build (default - hello_world)
-MAINFILE ?= hello_world
-
-# Linker options are 'on_chip' (default),'flash_load','flash_exec','freertos'
+# Linker options are 'on_chip' (default),'flash_load','flash_exec'
 LINKER   ?= on_chip
 
 # Target options are 'sim' (default) and 'pynq-z2'
@@ -46,9 +43,6 @@ RISCV                      ?= ~/.riscv
 RISCV_EXE_PREFIX           = $(RISCV)/bin/riscv32-unknown-elf-
 RISCV_GDB_PATH             = $(RISCV_EXE_PREFIX)gdb
 
-# Sanity check
-TARGET                     ?= sim
-
 # Get the absolute path
 mkfile_path := $(shell dirname "$(realpath $(firstword $(MAKEFILE_LIST)))")
 
@@ -56,16 +50,7 @@ mkfile_path := $(shell dirname "$(realpath $(firstword $(MAKEFILE_LIST)))")
 $(info $$You are executing from: $(mkfile_path))
 
 ROOT_PROJECT               = $(mkfile_path)/
-LIB_CRT                    = $(mkfile_path)/device/lib/crt/
-LIB_CRT_FLASH_EXEC         = $(mkfile_path)/device/lib/crt_flash_exec/
-LIB_CRT_FLASH_LOAD         = $(mkfile_path)/device/lib/crt_flash_load/
-LIB_CRT_FREERTOS           = $(mkfile_path)/device/lib/crt_freertos/
-LIB_BASE                   = $(mkfile_path)/device/lib/base/
-LIB_BASE_FREESTD           = $(mkfile_path)/device/lib/base/freestanding/
-LIB_RUNTIME                = $(mkfile_path)/device/lib/runtime/
-LIB_DRIVERS                = $(mkfile_path)/device/lib/drivers/
 INC_FOLDERS                = $(mkfile_path)/device/target/$(TARGET)/
-INC_FOLDERS_GCC            = $(addprefix -I ,$(INC_FOLDERS))
 LINK_FOLDER                = $(mkfile_path)/linker
 
 # CMake keyword
@@ -76,4 +61,4 @@ include cmake/targets.mak
 
 # GDB connection using RISCV-GDB back-end
 gdb_connect:
-	  $(RISCV_GDB_PATH) build/$(MAINFILE).elf -x gdbInit;
+	  $(RISCV_GDB_PATH) build/main.elf -x gdbInit;
