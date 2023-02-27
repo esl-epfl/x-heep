@@ -341,8 +341,11 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p
          * The transaction can be performed if the whole affected area can fit inside the destination environment
          * (i.e. The start pointer + the 38 bytes -in this case-, is smaller than the end pointer of the environment).   
          */ 
-        if( ( p_dst->env ) && isOutbound( p_dst->ptr, p_dst->env->end, p_trans->type, p_trans->dst->size_du, p_trans->dst->inc_du ) ) return p_trans->flags |= ( DMA_CONFIG_DST | DMA_CONFIG_OUTBOUNDS | DMA_CONFIG_CRITICAL_ERROR ); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
-    }
+        if( ( p_dst->env ) && isOutbound( p_dst->ptr, p_dst->env->end, p_trans->type, p_trans->src->size_du, p_trans->dst->inc_du ) ) return p_trans->flags |= ( DMA_CONFIG_DST | DMA_CONFIG_OUTBOUNDS | DMA_CONFIG_CRITICAL_ERROR ); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
+        
+        // @ToDo: It should also be checked that the source and destination are not the same region.. or at least that the destination is behind the source (to be used to shift the position of a buffer). 
+        // @ToDo: Consider if (when a destination target has no environment) the destination size should be used as limit. 
+    }   
         
     return p_trans->flags;
 }
