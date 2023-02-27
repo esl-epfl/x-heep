@@ -78,7 +78,7 @@ message( "${Magenta}LINKER File for Cmake: ${LINK_FILE}${ColourReset}")
 message( "${Magenta}LIB_DRIVERS PATH for Cmake: ${LIB_DRIVERS}${ColourReset}")
 message( "${Magenta}Targetting folder: ${INC_FOLDERS}${ColourReset}")
 
-# Define MACRO to get ALL the *.h files under sw/device 
+# Define MACRO to get ALL the *.h files under sw/device (string format)
 MACRO(H_FILES_RECURSIVE return_list)
   FILE(GLOB_RECURSE new_list *.h)
   SET(dir_list "")
@@ -117,6 +117,7 @@ ENDMACRO()
 
 # Use the MACRO to get ALL the .h files
 H_FILES_RECURSIVE(h_dir_list)
+
 # Check how many you found!
 list(LENGTH h_dir_list h_dir_list_count)
 message(STATUS "[INFO] ${h_dir_list}")
@@ -127,10 +128,38 @@ SET(INCLUDE_FOLDERS "-I ${RISCV}/riscv32-unknown-elf/include \
                      -I ${ROOT_PROJECT} \
 					           ${h_dir_list}")
 
+# Define MACRO to get ALL the *.h files under sw/device (list format)
+MACRO(H_FILES_RECURSIVE_LIST return_list)
+  FILE(GLOB_RECURSE new_list *.h)
+  SET(dir_list "")
+  FOREACH(file_path ${new_list})
+  if(${file_path} MATCHES "device")
+    if(${file_path} MATCHES "target")
+      if(${file_path} MATCHES "${INC_FOLDERS}")
+        GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+        SET(dir_list ${dir_list} "${dir_path}")    
+      endif()
+    else()
+      GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+      SET(dir_list ${dir_list} "${dir_path}")
+    endif()
+  elseif(${file_path} MATCHES "${PROJECT}")
+    GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+    SET(dir_list ${dir_list} "${dir_path}")
+  elseif(${file_path} MATCHES "${freertos}")
+    if(${PROJECT} MATCHES "freertos")
+      GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+      SET(dir_list ${dir_list} "${dir_path}")
+    endif()
+  endif()
+  ENDFOREACH()
+  LIST(REMOVE_DUPLICATES dir_list)
+  SET(${return_list} ${dir_list})
+ENDMACRO()
+
 # Include all those directories for compiling 
-#target_include_directories(${TARGET}.elf 
-#${h_dir_list}
-#)
+# Use the MACRO to get ALL the .h files
+H_FILES_RECURSIVE_LIST(h_dir_list_)
 
 # Define MACRO to get ALL the *.c files under sw/device 
 MACRO(C_FILES_RECURSIVE return_list)
@@ -178,14 +207,7 @@ set(freertos_version "V10.5.1")
 add_library(freertos_config  INTERFACE)
 
 # set include dirtectories for freertos
-target_include_directories(freertos_config SYSTEM
-INTERFACE
-  ${ROOT_PROJECT}freertos/
-	${LIB_RUNTIME}
-  ${INC_FOLDERS}
-	${LIB_DRIVERS}rv_timer/
-	${LIB_BASE}
-)
+target_include_directories(freertos_config SYSTEM INTERFACE ${h_dir_list_})
 
 # set main compilation options for freertos
 target_compile_definitions(freertos_config
@@ -218,7 +240,8 @@ set(SOURCES ${ROOT_PROJECT}applications/${PROJECT}/${TARGET}.c)
 # add the executable
 add_executable(${TARGET}.elf ${SOURCES})  
 
-target_include_directories(${TARGET}.elf PUBLIC ${h_dir_list})
+# add include directories to compilation
+target_include_directories(${TARGET}.elf PUBLIC ${h_dir_list_})
 
 # linking the libraries
 #target_link_libraries(${TARGET}.elf base)
