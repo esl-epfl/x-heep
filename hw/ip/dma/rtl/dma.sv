@@ -145,7 +145,7 @@ module dma #(
     end else begin
       if (dma_start == 1'b1) begin
         dma_start_pending <= 1'b0;
-      end else if (reg2hw.dma_start.qe | (dma_done & circular_mode)) begin 
+      end else if (reg2hw.dma_start.qe | (dma_done & circular_mode)) begin
         dma_start_pending <= 1'b1;
       end
     end
