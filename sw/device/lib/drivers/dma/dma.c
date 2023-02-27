@@ -195,7 +195,7 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint8_t* p_ptr, uint3
 {
     //////////  SANITY CHECKS   //////////
     make_sure_that( (dma_data_type_t)p_type < DMA_DATA_TYPE__size );
-    make_sure_that( (uint32_t)p_inc_du > 0 );
+    make_sure_that( (uint32_t)p_inc_du >= 0 ); // Increment can be 0 when a sempahore is used. 
     make_sure_that( (uint32_t)p_size_du >=  0 );
     make_sure_that( (dma_semaphore_t) p_smph < DMA_SMPH__size );
     
@@ -218,9 +218,8 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint8_t* p_ptr, uint3
             || isOutbound( p_tgt->ptr, p_tgt->env->end, p_tgt->type, p_tgt->size_du, p_tgt->inc_du ) // If the target selected size goes beyond the boundaries of the environment.   
                 ) ) p_tgt->flags |= DMA_CONFIG_OUTBOUNDS;
 
-        /* If an invalid semaphore is selected, the target cannot be used.
-         This is not asserted as a way to allow the __undef semaphore to be used as a disable flag.*/ //juan: not sure if this is the best way of doing so. 
-        if( p_tgt->smph >= DMA_SMPH__size ) p_tgt->flags |= DMA_CONFIG_CRITICAL_ERROR;
+        /*Environments and semaphores cannot co-exist. Furthermore, sempahores should always be used with increment == 0.*/
+        if( p_tgt->smph && ( p_tgt->env || p_tgt->inc_du ) ) p_tgt->flags |= DMA_CONFIG_INCOMPATIBLE;
     }
     
     return p_tgt->flags; // This is returned so this function can be called as: if( dma_create_target == DMA_CONFIG_OK ){ go ahead } or if( dma_create_target() ){ check for errors } 
