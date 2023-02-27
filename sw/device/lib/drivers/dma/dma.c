@@ -312,7 +312,7 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p
              * 
              * The discontinuous flag is added (the misaligned one was already there), and it is turned into a critical error.
              */
-            if( ( p_src->inc_du > p_trans->type ) || ( p_dst->inc_du > p_trans->type ) ) return p_trans->flags |= ( DMA_CONFIG_DISCONTINUOUS | DMA_CONFIG_CRITICAL_ERROR ); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
+            if( ( p_src->inc_du > 1 ) || ( p_dst->inc_du > 1 ) ) return p_trans->flags |= ( DMA_CONFIG_DISCONTINUOUS | DMA_CONFIG_CRITICAL_ERROR ); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
 
 
             //////////  PERFORM THE REALIGNMENT  //////////
