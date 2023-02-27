@@ -35,8 +35,14 @@ package dma_reg_pkg;
   typedef struct packed {logic q;} dma_reg2hw_circular_mode_reg_t;
 
   typedef struct packed {
-    logic d;
-    logic de;
+    struct packed {
+      logic d;
+      logic de;
+    } done;
+    struct packed {
+      logic d;
+      logic de;
+    } halfway;
   } dma_hw2reg_done_reg_t;
 
   // Register -> HW type
@@ -54,7 +60,7 @@ package dma_reg_pkg;
 
   // HW -> register type
   typedef struct packed {
-    dma_hw2reg_done_reg_t done;  // [1:0]
+    dma_hw2reg_done_reg_t done;  // [3:0]
   } dma_hw2reg_t;
 
   // Register offsets

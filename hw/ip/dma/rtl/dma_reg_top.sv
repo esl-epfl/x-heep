@@ -77,7 +77,8 @@ module dma_reg_top #(
   logic [31:0] dma_start_qs;
   logic [31:0] dma_start_wd;
   logic dma_start_we;
-  logic done_qs;
+  logic done_done_qs;
+  logic done_halfway_qs;
   logic [31:0] src_ptr_inc_qs;
   logic [31:0] src_ptr_inc_wd;
   logic src_ptr_inc_we;
@@ -181,11 +182,12 @@ module dma_reg_top #(
 
   // R[done]: V(False)
 
+  //   F[done]: 0:0
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RO"),
       .RESVAL  (1'h1)
-  ) u_done (
+  ) u_done_done (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
@@ -193,15 +195,40 @@ module dma_reg_top #(
       .wd('0),
 
       // from internal hardware
-      .de(hw2reg.done.de),
-      .d (hw2reg.done.d),
+      .de(hw2reg.done.done.de),
+      .d (hw2reg.done.done.d),
 
       // to internal hardware
       .qe(),
       .q (),
 
       // to register interface (read)
-      .qs(done_qs)
+      .qs(done_done_qs)
+  );
+
+
+  //   F[halfway]: 1:1
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RO"),
+      .RESVAL  (1'h0)
+  ) u_done_halfway (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      .we(1'b0),
+      .wd('0),
+
+      // from internal hardware
+      .de(hw2reg.done.halfway.de),
+      .d (hw2reg.done.halfway.d),
+
+      // to internal hardware
+      .qe(),
+      .q (),
+
+      // to register interface (read)
+      .qs(done_halfway_qs)
   );
 
 
@@ -445,7 +472,8 @@ module dma_reg_top #(
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[0] = done_qs;
+        reg_rdata_next[0] = done_done_qs;
+        reg_rdata_next[1] = done_halfway_qs;
       end
 
       addr_hit[4]: begin

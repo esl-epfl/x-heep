@@ -28,6 +28,7 @@ extern "C" {
 // Register set to 1 when copy is done
 #define DMA_DONE_REG_OFFSET 0xc
 #define DMA_DONE_DONE_BIT 0
+#define DMA_DONE_HALFWAY_BIT 1
 
 // Increment number of source pointer every time a word is copied from source
 #define DMA_SRC_PTR_INC_REG_OFFSET 0x10

@@ -25,6 +25,10 @@ bool dma_get_done(const dma_t *dma) {
   return mmio_region_get_bit32(dma->base_addr, (ptrdiff_t)(DMA_DONE_REG_OFFSET), DMA_DONE_DONE_BIT);
 }
 
+bool dma_get_halfway(const dma_t *dma) {
+    return mmio_region_get_bit32(dma->base_addr, (ptrdiff_t)(DMA_DONE_REG_OFFSET), DMA_DONE_HALFWAY_BIT);
+}
+
 void dma_set_read_ptr_inc(const dma_t *dma, uint32_t read_ptr_inc){
   mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_SRC_PTR_INC_REG_OFFSET), read_ptr_inc);
 }

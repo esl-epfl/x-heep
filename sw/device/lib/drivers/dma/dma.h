@@ -68,6 +68,13 @@ void dma_set_cnt_start(const dma_t *dma, uint32_t copy_size);
 bool dma_get_done(const dma_t *dma);
 
 /**
+ * Read the halfway flag from done register of the DMA
+ * @param dma Pointer to dma_t represting the target MEMCOPY PERIPHERAL.
+ * @return halfway value (0: dma is processing first have - 1: first have is done)
+ */
+bool dma_get_halfway(const dma_t *dma);
+
+/**
  * Write to src_ptr_inc register of the DMA.
  * @param dma Pointer to dma_t represting the target DMA.
  * @param read_ptr_inc Increment of source pointer (Default: 4).
