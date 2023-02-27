@@ -42,7 +42,7 @@
 #include "fast_intr_ctrl_regs.h"
 #include "hart.h"
 #include "handler.h"
-
+#include "csr.h"
 /****************************************************************************/
 /**                                                                        **/
 /*                        DEFINITIONS AND MACROS                            */
@@ -56,6 +56,8 @@
 
 // ToDo: Juan - remove this, is just a placeholder until real assert can be included
 #define make_sure_that(x) printf( "%s@%u\n\r",x ? "Success" : "Error",__LINE__ );
+
+#define DMA_CSR_REG_MIE_MASK(enable) (enable << 19)
 
 /****************************************************************************/
 /**                                                                        **/
@@ -361,8 +363,12 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
     if( p_trans->flags & DMA_CONFIG_CRITICAL_ERROR ) return DMA_CONFIG_CRITICAL_ERROR;
     dma_cb.trans = p_trans; // Save the current transaction
     
-    //////////  ENABLE/DISABLE INTERRUPTS   //////////
-    // @ToDo: juan: enable/disable interrupts when required. 
+        //////////  ENABLE/DISABLE INTERRUPTS    //////////    
+    /* 
+     * If the selected en event is polling, interrupts are disabled. 
+     * Otherwise the mie.MEIE bit is set to one to enable machine-level fast dma interrupt.
+     */
+    CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK( dma_cb.trans->end != DMA_END_EVENT_POLLING ) );
     
     
     //////////  SET THE POINTERS   //////////
@@ -381,7 +387,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
     writeRegister( dma_cb.trans->smph, DMA_SPI_MODE_REG_OFFSET );
     writeRegister( dma_cb.trans->type, DMA_DATA_TYPE_REG_OFFSET );
     
-    
+       
     return DMA_CONFIG_OK;
 }
 
@@ -563,8 +569,6 @@ void handler_irq_fast_dma(void)
 
 
 // juan q: Should we add permissions to environments?  Read/write/change? 
-
-// juan: clear flags!
 
 // juan q jose: In BINDI/Stack/HAL/drivers_nrf/uart/nrf_drv_uart.h functions defined in .h have the _STATIC_INLINE macro.... how is that ok????
 

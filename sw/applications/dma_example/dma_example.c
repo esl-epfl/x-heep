@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "csr.h"
+
 
 #include "core_v_mini_mcu.h"
 #include "dma.h"
@@ -48,13 +48,13 @@ int main(int argc, char *argv[])
     printf("DMA test app: 3\n\r");
     printf("no environments\n\r");
 
-    // Juan: this could be the enable/disable interrupts that I was looking for
+
+    
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
-    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    // Set mie.MEIE bit to one to enable machine-level fast dma interrupt
-    const uint32_t mask = 1 << 19;
-    CSR_SET_BITS(CSR_REG_MIE, mask);
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8 ); // juan q jose: This is for enabling global interrupts right? 
+    
+    
     
     // The DMA is initialized (i.e. the base address is computed  )
     printf("About to init.\n\r");

@@ -121,7 +121,10 @@ typedef enum
     DMA_ALLOW_REALIGN         = 1,
 } dma_allow_realign_t;
 
-
+/**
+ * Different possible actions that determine the end of the DMA transaction. This choice does not affect the transaction, but only the way the application is notified of its finalization. 
+ * Consider that for INTR and INTR_WAIT global interrupts must be enabled with: CSR_SET_BITS(CSR_REG_MSTATUS, 0x8 ) (Or something of the sort).  
+ */
 typedef enum
 {
     DMA_END_EVENT_POLLING,      // Interrupt for the DMA will be disabled. The application will be in charge of monitoring the end of the transaction.
