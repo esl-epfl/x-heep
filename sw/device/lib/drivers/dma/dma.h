@@ -111,6 +111,11 @@ void dma_set_data_type(const dma_t *dma, uint32_t data_type);
 
 /**
  * Enables/disables the cirucular mode of the DMA.
+ * 
+ * Restarts copying as soon as end of buffer is reach.
+ * Will trigger DMA interrupt twice: halfway and end of buffer.
+ * To stop clear this flag and it will stop after current transaction.
+ * 
  * @param dma Pointer to dma_t represting the target DMA.
  * @param enable bool.
  */

@@ -107,7 +107,9 @@
       ]
     }
     { name:     "CIRCULAR_MODE",
-      desc:     "Restart copying as soon as end of buffer is reach",
+      desc:     '''Restarts copying as soon as end of buffer is reach.
+                   Will trigger DMA interrupt twice: halfway and end of buffer.
+                   To end clear this flag to finish current transaction. ''',
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
