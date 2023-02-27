@@ -360,7 +360,12 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
      * The transaction is not allowed if it contain a critical error.
      * A successful transaction creation has to be done before loading it to the DMA.
      */
-    if( p_trans->flags & DMA_CONFIG_CRITICAL_ERROR ) return DMA_CONFIG_CRITICAL_ERROR;
+    if( p_trans->flags & DMA_CONFIG_CRITICAL_ERROR )
+    {   
+        dma_cb.trans = NULL;
+        return DMA_CONFIG_CRITICAL_ERROR;
+    }
+    
     dma_cb.trans = p_trans; // Save the current transaction
     
         //////////  ENABLE/DISABLE INTERRUPTS    //////////    
@@ -393,7 +398,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
 
 dma_config_flags_t dma_launch( dma_trans_t* p_trans )
 {
-    if( p_trans && dma_cb.trans != p_trans) return DMA_CONFIG_CRITICAL_ERROR; // Make sure that the loaded transaction is the intended transaction
+    if( !p_trans || ( dma_cb.trans != p_trans ) ) return DMA_CONFIG_CRITICAL_ERROR; // Make sure that the loaded transaction is the intended transaction. If the loaded trans was NULL'd, then this the transaction is never launched.
     //////////  SET SIZE TO COPY + LAUNCH THE DMA OPERATION   //////////
     dma_cb.intrFlag = 0; // This has to be done prior to writing the register because otherwise the interrupt could arrive before it is lowered (i.e. causing  
     writeRegister(dma_cb.trans->size_b, DMA_DMA_START_REG_OFFSET ); 
@@ -506,6 +511,7 @@ static inline void writeRegister( uint32_t p_val, uint32_t p_offset )
 static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
 {
     uint32_t inc = 0;
+    // juan: Is this check necessary? If a smph was set, the inc was forced to be 0.
     if( !( p_tgt->smph ) ) // If the target uses a semaphore, the increment remains 0.
     {
         if( ! (inc = dma_cb.trans->inc_b) ) // If the transaction increment has been overwritten (due to misalignments), then that value is used (it's always 1, never 0). 
