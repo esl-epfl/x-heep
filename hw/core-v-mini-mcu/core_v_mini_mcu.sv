@@ -9,7 +9,8 @@ module core_v_mini_mcu
     parameter PULP_XPULP = 0,
     parameter FPU = 0,
     parameter PULP_ZFINX = 0,
-    parameter EXT_XBAR_NMASTER = 0
+    parameter EXT_XBAR_NMASTER = 0,
+    parameter X_EXT = 0  // eXtension interface in cv32e40x
 ) (
 
     input logic rst_ni,
@@ -249,6 +250,14 @@ module core_v_mini_mcu
     output logic gpio_30_oe_o,
 
 
+    // eXtension interface
+    if_xif.cpu_compressed xif_compressed_if,
+    if_xif.cpu_issue      xif_issue_if,
+    if_xif.cpu_commit     xif_commit_if,
+    if_xif.cpu_mem        xif_mem_if,
+    if_xif.cpu_mem_result xif_mem_result_if,
+    if_xif.cpu_result     xif_result_if,
+
     output reg_req_t pad_req_o,
     input  reg_rsp_t pad_resp_i,
 
@@ -405,7 +414,8 @@ module core_v_mini_mcu
       .FPU(FPU),
       .PULP_ZFINX(PULP_ZFINX),
       .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS),
-      .DM_HALTADDRESS(DM_HALTADDRESS)
+      .DM_HALTADDRESS(DM_HALTADDRESS),
+      .X_EXT(X_EXT)
   ) cpu_subsystem_i (
       // Clock and Reset
       .clk_i,
@@ -414,6 +424,12 @@ module core_v_mini_mcu
       .core_instr_resp_i(core_instr_resp),
       .core_data_req_o(core_data_req),
       .core_data_resp_i(core_data_resp),
+      .xif_compressed_if,
+      .xif_issue_if,
+      .xif_commit_if,
+      .xif_mem_if,
+      .xif_mem_result_if,
+      .xif_result_if,
       .irq_i(intr),
       .irq_ack_o(irq_ack),
       .irq_id_o(irq_id_out),

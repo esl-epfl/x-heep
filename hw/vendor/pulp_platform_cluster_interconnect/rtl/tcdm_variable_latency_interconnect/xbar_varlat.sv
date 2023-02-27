@@ -132,7 +132,7 @@ end
 ////////////////////////////////////////////////////////////////////////
 // assertion
 ////////////////////////////////////////////////////////////////////////
-
+`ifndef SYNTHESIS
 // pragma translate_off
 initial begin
   assert(NumIn > 0) else
@@ -141,5 +141,6 @@ initial begin
     $fatal(1,"NumOut needs to be larger than 0.");
 end
 // pragma translate_on
+`endif
 
 endmodule // xbar_varlat

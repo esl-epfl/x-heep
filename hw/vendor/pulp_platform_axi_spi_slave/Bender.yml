@@ -1,0 +1,20 @@
+package:
+  name: axi_sspi
+
+dependencies:
+   axi: { git: "https://github.com/pulp-platform/axi.git", version: 0.29.1 }
+
+sources:
+  -
+    files:
+    - qspis_pkg.sv
+    - axi_spi_slave.sv
+    - spi_slave_axi_plug.sv
+    - spi_slave_cmd_parser.sv
+    - spi_slave_controller.sv
+    - spi_slave_dc_fifo.sv
+    - spi_slave_regs.sv
+    - spi_slave_rx.sv
+    - spi_slave_syncro.sv
+    - spi_slave_tx.sv
+    - axi_sspi_wrap.sv

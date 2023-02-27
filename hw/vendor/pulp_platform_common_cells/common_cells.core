@@ -1,11 +1,12 @@
 CAPI=2:
 
-name : pulp-platform.org::common_cells:1.26.0
+name : pulp-platform.org::common_cells:1.28.0
 
 filesets:
   rtl:
     files:
       - include/common_cells/registers.svh : {is_include_file : true, include_path : include}
+      - include/common_cells/assertions.svh : {is_include_file : true, include_path : include}
       # Source files grouped in levels. Files in level 0 have no dependencies on files in this package.
       # Files in level 1 only depend on files in level 0, files in level 2 on files in levels 1 and 0,
       # etc. Files within a level are ordered alphabetically.
@@ -65,6 +66,7 @@ filesets:
       - src/stream_delay.sv
       - src/stream_fifo.sv
       - src/stream_fork_dynamic.sv
+      - src/clk_mux_glitch_free.sv
       # Level 2
       - src/cdc_reset_ctrlr.sv
       - src/cdc_fifo_gray.sv
@@ -78,6 +80,7 @@ filesets:
       # Level 3
       - src/cdc_fifo_gray_clearable.sv
       - src/cdc_2phase_clearable.sv
+      - src/mem_to_banks.sv
       - src/stream_arbiter.sv
       - src/stream_omega_net.sv
     file_type : systemVerilogSource

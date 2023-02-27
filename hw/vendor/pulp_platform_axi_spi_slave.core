@@ -1,0 +1,29 @@
+CAPI=2:
+
+name: pulp-platform.org::axi_spi_slave
+
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+    - pulp-platform.org::axi:0.29.1
+    files:
+    - pulp_platform_axi_spi_slave/spi_slave_tx.sv
+    - pulp_platform_axi_spi_slave/spi_slave_rx.sv
+    - pulp_platform_axi_spi_slave/spi_slave_syncro.sv
+    - pulp_platform_axi_spi_slave/spi_slave_regs.sv
+    - pulp_platform_axi_spi_slave/spi_slave_dc_fifo.sv
+    - pulp_platform_axi_spi_slave/spi_slave_cmd_parser.sv
+    - pulp_platform_axi_spi_slave/spi_slave_axi_plug.sv
+    - pulp_platform_axi_spi_slave/spi_slave_controller.sv
+    - pulp_platform_axi_spi_slave/axi_spi_slave.sv
+    - pulp_platform_axi_spi_slave/axi_spi_slave_wrap.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl

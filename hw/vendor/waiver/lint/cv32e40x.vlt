@@ -1,0 +1,47 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule DECLFILENAME -file "*/bhv/cv32e40x_sim_clock_gate.sv" -match "Filename 'cv32e40x_sim_clock_gate' does not match MODULE name: 'cv32e40x_clock_gate'"
+
+lint_off -rule WIDTH -file "*/rtl/include/cv32e40x_pkg.sv" -match "Operator NEQ expects 2 bits on the RHS, but RHS's CONST '1'h1' generates 1 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_cs_registers.sv" -match "Operator SHIFTL expects 32 bits on the LHS, but LHS's VARREF 'MHPMCOUNTERS_MASK' generates 29 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_cs_registers.sv" -match "Operator OR expects 32 bits on the RHS, but RHS's CONST '3'h5' generates 3 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_ff_one.sv" -match "Operator ASSIGNW expects 5 bits on the Assign RHS, but Assign RHS's UNSIGNED generates 32 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_alignment_buffer.sv" -match "Operator SUB expects 32 or 3 bits on the RHS, but RHS's VARREF 'pop_q' generates 1 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_alignment_buffer.sv" -match "Operator NEQ expects 3 bits on the LHS, but LHS's VARREF 'outstanding_cnt_q' generates 2 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_alignment_buffer.sv" -match "Operator SUB expects 32 or 6 bits on the RHS, but RHS's VARREF 'rptr' generates 2 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_alignment_buffer.sv" -match "Operator SUB expects 32 or 6 bits on the RHS, but RHS's VARREF 'rptr2' generates 2 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_alignment_buffer.sv" -match "Operator SUB expects 32 or 6 bits on the RHS, but RHS's VARREF 'wptr' generates 2 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_alignment_buffer.sv" -match "Operator LT expects 32 bits on the LHS, but LHS's VARREF 'rptr' generates 2 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_alignment_buffer.sv" -match "Operator LT expects 32 bits on the LHS, but LHS's VARREF 'wptr' generates 2 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_alignment_buffer.sv" -match "Operator COND expects 3 bits on the Conditional True, but Conditional True's CONST '2'h1' generates 2 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_alignment_buffer.sv" -match "Operator COND expects 3 bits on the Conditional False, but Conditional False's CONST '2'h0' generates 2 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_alignment_buffer.sv" -match "Operator ASSIGNDLY expects 105 bits on the Assign RHS, but Assign RHS's VARREF 'INST_RESP_RESET_VAL' generates 35 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_controller_fsm.sv" -match "Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's ENUMITEMREF 'PC_WB' generates 2 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_controller_fsm.sv" -match "Operator ASSIGNW expects 4 bits on the Assign RHS, but Assign RHS's SEL generates 32 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_alu.sv" -match "Operator COND expects 6 bits on the Conditional False, but Conditional False's VARREF 'ff1_result' generates 5 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_div.sv" -match "Operator NOT expects 33 bits on the LHS, but LHS's VARREF 'op_b_i' generates 32 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_sequencer.sv" -match "Operator SHIFTL expects 12 bits on the LHS, but LHS's SEL generates 2 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_sequencer.sv" -match "Operator ADD expects 12 bits on the LHS, but LHS's VARREF 'instr_cnt_q' generates 4 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_sequencer.sv" -match "Operator SHIFTL expects 12 bits on the LHS, but LHS's REPLICATE generates 5 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_sequencer.sv" -match "Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's REPLICATE generates 31 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_int_controller.sv" -match "Operator ASSIGN expects 5 bits on the Assign RHS, but Assign RHS's VARREF 'CSR_MEIX_BIT' generates 32 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_int_controller.sv" -match "Operator ASSIGN expects 5 bits on the Assign RHS, but Assign RHS's VARREF 'CSR_MSIX_BIT' generates 32 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_int_controller.sv" -match "Operator ASSIGN expects 5 bits on the Assign RHS, but Assign RHS's VARREF 'CSR_MTIX_BIT' generates 32 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_id_stage.sv" -match "Operator ASSIGNW expects 4 bits on the Assign RHS, but Assign RHS's SEL generates 32 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_load_store_unit.sv" -match "Operator ASSIGNW expects 6 bits on the Assign RHS, but Assign RHS's COND generates 11 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_if_stage.sv" -match "Operator ASSIGNDLY expects 32 bits on the Assign RHS, but Assign RHS's VARREF 'xif_id' generates 4 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_if_stage.sv" -match "Operator ASSIGNW expects 4 bits on the Assign RHS, but Assign RHS's COND generates 32 bits."
+
+lint_off -rule UNUSED -file "*cv32e40x_*.sv" -match "*"
+lint_off -rule UNUSED -file "*/rtl/if_xif.sv" -match "*"
+
+lint_off -rule LITENDIAN -file "*/rtl/cv32e40x_alignment_buffer.sv" -match "Little bit endian vector: left < right of bit range: [0:2]"
+
+lint_off -rule UNDRIVEN -file "*/rtl/if_xif.sv" -match "*"
+lint_off -rule UNDRIVEN -file "*/rtl/cv32e40x_id_stage.sv" -match "*"
+
+lint_off -rule MULTIDRIVEN -file "*/rtl/cv32e40x_cs_registers.sv" -match "Signal has multiple driving blocks with different clocking: '*'*"
