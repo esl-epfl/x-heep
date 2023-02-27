@@ -70,7 +70,8 @@ int main(int argc, char *argv[])
         dma_set_write_ptr(&dma, (uint32_t) copied_data_4B);
         dma_set_read_ptr_inc(&dma, (uint32_t) 4);
         dma_set_write_ptr_inc(&dma, (uint32_t) 4);
-        dma_set_spi_mode(&dma, (uint32_t) 0);
+        dma_set_tx_wait_mode(&dma, (uint32_t) 0);
+        dma_set_rx_wait_mode(&dma, (uint32_t) 0);
         dma_set_data_type(&dma, (uint32_t) 0);
         printf("DMA word transaction launched\n");
         // Give number of bytes to transfer
@@ -88,7 +89,8 @@ int main(int argc, char *argv[])
         dma_set_write_ptr(&dma, (uint32_t) (copied_data_2B + HALF_WORD_OUTPUT_OFFSET));
         dma_set_read_ptr_inc(&dma, (uint32_t) 2);
         dma_set_write_ptr_inc(&dma, (uint32_t) 2);
-        dma_set_spi_mode(&dma, (uint32_t) 0);
+        dma_set_tx_wait_mode(&dma, (uint32_t) 0);
+        dma_set_rx_wait_mode(&dma, (uint32_t) 0);
         dma_set_data_type(&dma, (uint32_t) 1);
         printf("DMA half-word transaction launched\n");
         // Give number of bytes to transfer
@@ -107,7 +109,8 @@ int main(int argc, char *argv[])
         dma_set_write_ptr(&dma, (uint32_t) (copied_data_1B + BYTE_OUTPUT_OFFSET));
         dma_set_read_ptr_inc(&dma, (uint32_t) 1);
         dma_set_write_ptr_inc(&dma, (uint32_t) 1);
-        dma_set_spi_mode(&dma, (uint32_t) 0);
+        dma_set_tx_wait_mode(&dma, (uint32_t) 0);
+        dma_set_rx_wait_mode(&dma, (uint32_t) 0);
         dma_set_data_type(&dma, (uint32_t) 2);
         printf("DMA byte transaction launched\n");
         // Give number of bytes to transfer
