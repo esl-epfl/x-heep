@@ -481,8 +481,8 @@ static inline uint8_t isOutbound( uint8_t* p_start, uint8_t* p_end, uint32_t p_t
    *                                                                   ^ The last affected byte
    * 
    *  If the environment ends before the last affected byte, then there is outbound writing and the function return 1.  
-   *                 /------------ This is the address of the first byte outside the range.*/
-    return ( (uint8_t*)p_end < (uint8_t*)p_start + ( DMA_DATA_TYPE_2_DATA_SIZE(p_type) * ( ( (uint32_t)p_size_du - 1 )*(uint32_t)p_inc_du + 1 ) ) );
+   *                 /------------ This is the address of the las byte inside the range.*/
+    return ( p_end < p_start + ( DMA_DATA_TYPE_2_DATA_SIZE(p_type) * ( ( p_size_du - 1 )*p_inc_du + 1 ) )  -1 );
     // juan: what happens if size == 0 ??
 }
 
