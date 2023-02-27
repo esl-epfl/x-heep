@@ -218,8 +218,10 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint8_t* p_ptr, uint3
             || isOutbound( p_tgt->ptr, p_tgt->env->end, p_tgt->type, p_tgt->size_du, p_tgt->inc_du ) // If the target selected size goes beyond the boundaries of the environment.   
                 ) ) p_tgt->flags |= DMA_CONFIG_OUTBOUNDS;
 
-        /*Environments and semaphores cannot co-exist. Furthermore, sempahores should always be used with increment == 0.*/
-        if( p_tgt->smph && ( p_tgt->env || p_tgt->inc_du ) ) p_tgt->flags |= DMA_CONFIG_INCOMPATIBLE;
+        /* If there is a semaphore, there should not be environments nor increments.
+         * Otherwise, an increment is needed.*/ 
+        if( ( p_tgt->smph && ( p_tgt->env || p_tgt->inc_du ) )
+            ||  ( ! p_tgt->smph &&  ! p_tgt->inc_du   ) ) p_tgt->flags |= DMA_CONFIG_INCOMPATIBLE;
     }
     
     return p_tgt->flags; // This is returned so this function can be called as: if( dma_create_target == DMA_CONFIG_OK ){ go ahead } or if( dma_create_target() ){ check for errors } 
