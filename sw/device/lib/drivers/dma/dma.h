@@ -102,6 +102,13 @@ void dma_set_tx_wait_mode(const dma_t *dma, uint32_t peripheral_mask);
  */
 void dma_set_data_type(const dma_t *dma, uint32_t data_type);
 
+/**
+ * Enables/disables the cirucular mode of the DMA.
+ * @param dma Pointer to dma_t represting the target DMA.
+ * @param enable bool.
+ */
+void dma_enable_circular_mode(const dma_t *dma, bool enable);
+
 #ifdef __cplusplus
 }
 #endif

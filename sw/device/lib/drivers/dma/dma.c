@@ -45,3 +45,7 @@ void dma_set_tx_wait_mode(const dma_t *dma, uint32_t peripheral_mask) {
 void dma_set_data_type(const dma_t *dma, uint32_t data_type){
   mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_DATA_TYPE_REG_OFFSET), data_type);
 }
+
+void dma_enable_circular_mode(const dma_t *dma, bool enable) {
+  mmio_region_write32(dma->base_addr, DMA_CIRCULAR_MODE_REG_OFFSET, enable << DMA_CIRCULAR_MODE_CIRCULAR_MODE_BIT);
+}
