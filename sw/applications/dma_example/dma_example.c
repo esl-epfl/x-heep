@@ -21,6 +21,7 @@
 #define TEST_HALF_WORD
 #define TEST_BYTE
 #define TEST_CIRCULAR_MODE
+#define TEST_PENDING_TRANSACTION
 
 #define HALF_WORD_INPUT_OFFSET 0
 #define HALF_WORD_OUTPUT_OFFSET 1 // Applied at begining and end of the output vector, which should not be overwriten.
@@ -249,7 +250,36 @@ int main(int argc, char *argv[])
         }
 
     #endif
-    // }
+
+    #ifdef TEST_PENDING_TRANSACTION
+        // -- DMA CONFIG -- //
+        dma_set_read_ptr(&dma, (uint32_t) test_data_4B);
+        dma_set_write_ptr(&dma, (uint32_t) copied_data_4B);
+        dma_set_read_ptr_inc(&dma, (uint32_t) 1);
+        dma_set_write_ptr_inc(&dma, (uint32_t) 1);
+        dma_set_spi_mode(&dma, (uint32_t) 0);
+        dma_set_data_type(&dma, (uint32_t) 2);
+        // Give number of bytes to transfer
+        dma_set_cnt_start(&dma, (uint32_t) TEST_DATA_SIZE*sizeof(*copied_data_4B));
+
+        dma_intr_flag = 0;
+
+        // start a second time
+        dma_set_cnt_start(&dma, (uint32_t) TEST_DATA_SIZE*sizeof(*copied_data_4B));
+
+        // Wait for first copy
+        while(dma_intr_flag==0) {
+            wait_for_interrupt();
+        }
+    
+        // Wait for second copy
+        dma_intr_flag = 0;
+        
+        while(dma_intr_flag==0) {
+            wait_for_interrupt();
+        }
+        printf("DMA successfully processed two consecutive transactions");
+    #endif
 
     return EXIT_SUCCESS;
 }
