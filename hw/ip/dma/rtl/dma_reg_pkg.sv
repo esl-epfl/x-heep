@@ -22,6 +22,8 @@ package dma_reg_pkg;
     logic        qe;
   } dma_reg2hw_dma_start_reg_t;
 
+  typedef struct packed {struct packed {logic q;} done;} dma_reg2hw_done_reg_t;
+
   typedef struct packed {logic [31:0] q;} dma_reg2hw_src_ptr_inc_reg_t;
 
   typedef struct packed {logic [31:0] q;} dma_reg2hw_dst_ptr_inc_reg_t;
@@ -47,9 +49,10 @@ package dma_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    dma_reg2hw_ptr_in_reg_t ptr_in;  // [227:196]
-    dma_reg2hw_ptr_out_reg_t ptr_out;  // [195:164]
-    dma_reg2hw_dma_start_reg_t dma_start;  // [163:131]
+    dma_reg2hw_ptr_in_reg_t ptr_in;  // [228:197]
+    dma_reg2hw_ptr_out_reg_t ptr_out;  // [196:165]
+    dma_reg2hw_dma_start_reg_t dma_start;  // [164:132]
+    dma_reg2hw_done_reg_t done;  // [131:131]
     dma_reg2hw_src_ptr_inc_reg_t src_ptr_inc;  // [130:99]
     dma_reg2hw_dst_ptr_inc_reg_t dst_ptr_inc;  // [98:67]
     dma_reg2hw_rx_wait_mode_reg_t rx_wait_mode;  // [66:35]

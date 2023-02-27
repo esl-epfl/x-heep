@@ -200,7 +200,7 @@ module dma_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (),
+      .q (reg2hw.done.done.q),
 
       // to register interface (read)
       .qs(done_done_qs)

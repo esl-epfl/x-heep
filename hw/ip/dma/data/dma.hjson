@@ -40,7 +40,7 @@
       hwaccess: "hwo",
       resval:   1,
       fields: [
-        { bits: "0", name: "DONE", desc: "Copy done" },
+        { bits: "0", name: "DONE", desc: "Copy done", hwaccess: "hrw"},
         { bits: "1", name: "HALFWAY", desc: "set if DMA is copying second half"},
       ]
     },

@@ -84,6 +84,8 @@ module dma #(
 
   logic                              circular_mode;
 
+  logic                              dma_start_pending;
+
   enum logic {
     DMA_READ_FSM_IDLE,
     DMA_READ_FSM_ON
@@ -134,15 +136,17 @@ module dma #(
 
   assign fifo_alm_full = (fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
 
+  assign dma_start = dma_start_pending & reg2hw.done.done.q;
+
   // DMA pulse start when dma_start register is written
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start
     if (~rst_ni) begin
-      dma_start <= 1'b0;
+      dma_start_pending <= 1'b0;
     end else begin
       if (dma_start == 1'b1) begin
-        dma_start <= 1'b0;
-      end else begin
-        dma_start <= reg2hw.dma_start.qe | (dma_done & circular_mode);
+        dma_start_pending <= 1'b0;
+      end else if (reg2hw.dma_start.qe | (dma_done & circular_mode)) begin 
+        dma_start_pending <= 1'b1;
       end
     end
   end
