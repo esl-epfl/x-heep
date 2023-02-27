@@ -65,7 +65,7 @@ void dma_set_cnt_start(const dma_t *dma, uint32_t copy_size);
  * @param dma Pointer to dma_t represting the target MEMCOPY PERIPHERAL.
  * @return done value (0: data are being copied - 1: copy done/peripheral idle)
  */
-int32_t dma_get_done(const dma_t *dma);
+bool dma_get_done(const dma_t *dma);
 
 /**
  * Write to src_ptr_inc register of the DMA.

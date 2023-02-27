@@ -35,8 +35,8 @@ package dma_reg_pkg;
   typedef struct packed {logic q;} dma_reg2hw_circular_mode_reg_t;
 
   typedef struct packed {
-    logic [31:0] d;
-    logic        de;
+    logic d;
+    logic de;
   } dma_hw2reg_done_reg_t;
 
   // Register -> HW type
@@ -54,7 +54,7 @@ package dma_reg_pkg;
 
   // HW -> register type
   typedef struct packed {
-    dma_hw2reg_done_reg_t done;  // [32:0]
+    dma_hw2reg_done_reg_t done;  // [1:0]
   } dma_hw2reg_t;
 
   // Register offsets
@@ -88,7 +88,7 @@ package dma_reg_pkg;
       4'b1111,  // index[0] DMA_PTR_IN
       4'b1111,  // index[1] DMA_PTR_OUT
       4'b1111,  // index[2] DMA_DMA_START
-      4'b1111,  // index[3] DMA_DONE
+      4'b0001,  // index[3] DMA_DONE
       4'b1111,  // index[4] DMA_SRC_PTR_INC
       4'b1111,  // index[5] DMA_DST_PTR_INC
       4'b1111,  // index[6] DMA_RX_WAIT_MODE

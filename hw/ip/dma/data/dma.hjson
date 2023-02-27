@@ -40,7 +40,7 @@
       hwaccess: "hwo",
       resval:   1,
       fields: [
-        { bits: "31:0", name: "DONE", desc: "Copy done" }
+        { bits: "0", name: "DONE", desc: "Copy done" },
       ]
     },
     { name:     "SRC_PTR_INC",

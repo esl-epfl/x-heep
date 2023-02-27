@@ -77,7 +77,7 @@ module dma_reg_top #(
   logic [31:0] dma_start_qs;
   logic [31:0] dma_start_wd;
   logic dma_start_we;
-  logic [31:0] done_qs;
+  logic done_qs;
   logic [31:0] src_ptr_inc_qs;
   logic [31:0] src_ptr_inc_wd;
   logic src_ptr_inc_we;
@@ -182,9 +182,9 @@ module dma_reg_top #(
   // R[done]: V(False)
 
   prim_subreg #(
-      .DW      (32),
+      .DW      (1),
       .SWACCESS("RO"),
-      .RESVAL  (32'h1)
+      .RESVAL  (1'h1)
   ) u_done (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -445,7 +445,7 @@ module dma_reg_top #(
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[31:0] = done_qs;
+        reg_rdata_next[0] = done_qs;
       end
 
       addr_hit[4]: begin
