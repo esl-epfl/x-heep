@@ -18,17 +18,6 @@
 
 MAKE                       = make
 
-# CMakeLists top file needs to know these variables:
-#ifeq ($(origin PROJECT), undefined)
-#  $(error $$Please, what is the name of your project?)
-#endif
-#ifeq ($(origin MAINFILE), undefined)
-#  $(error $$Please, what is the name of your main file?)
-#endif
-#ifeq ($(origin LINKER), undefined)
-#  $(error $$Please, what is the linker of your app?)
-#endif
-
 # Project options are based on the app to be build (default - hello_world)
 PROJECT  ?= hello_world
 
