@@ -20,6 +20,7 @@
 #define TEST_WORD
 #define TEST_HALF_WORD
 #define TEST_BYTE
+#define TEST_CIRCULAR_MODE
 
 #define HALF_WORD_INPUT_OFFSET 0
 #define HALF_WORD_OUTPUT_OFFSET 1 // Applied at begining and end of the output vector, which should not be overwriten.
@@ -37,6 +38,13 @@ uint8_t* test_data_1B = test_data_4B;
 uint32_t copied_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
 uint16_t copied_data_2B[TEST_DATA_SIZE] __attribute__ ((aligned (2))) = { 0 };
 uint8_t copied_data_1B[TEST_DATA_SIZE] = { 0 };
+
+#ifdef TEST_CIRCULAR_MODE
+#define TEST_DATA_CIRCULAR 256
+#define TEST_CYCLES_NUM 32
+uint32_t test_data_circular[TEST_DATA_CIRCULAR] __attribute__ ((aligned (4))) = { 1 };
+// uint32_t copied_data_circular[TEST_DATA_CIRCULAR] __attribute__ ((aligned (4))) = { 0 };
+#endif
 
 int8_t dma_intr_flag;
 
@@ -195,6 +203,56 @@ int main(int argc, char *argv[])
             printf("DMA byte transfer failure: %d errors out of %d bytes checked\n", errors, TEST_DATA_SIZE);
         }
     #endif // TEST_BYTE
+
+
+    #ifdef TEST_CIRCULAR_MODE
+        for (int i = 0; i < TEST_DATA_CIRCULAR; i++) {
+            test_data_circular[i] = i;
+        }
+
+        // -- DMA CONFIG -- //
+        dma_set_read_ptr(&dma, (uint32_t) test_data_circular);
+        dma_set_write_ptr(&dma, (uint32_t) test_data_circular);
+        dma_set_read_ptr_inc(&dma, (uint32_t) 1);
+        dma_set_write_ptr_inc(&dma, (uint32_t) 1);
+        dma_set_tx_wait_mode(&dma, (uint32_t) 0);
+        dma_set_rx_wait_mode(&dma, (uint32_t) 0);
+        dma_set_data_type(&dma, (uint32_t) 2);
+        printf("DMA circular transaction launched\n");
+        dma_enable_circular_mode(&dma, true);
+        // Give number of bytes to transfer
+        dma_intr_flag = 0;
+        dma_set_cnt_start(&dma, (uint32_t) TEST_DATA_CIRCULAR*4);
+
+        uint32_t halfway = 0;
+        for (int i = 0; i < 2*TEST_CYCLES_NUM; i++) {
+            while(dma_intr_flag==0) {
+              wait_for_interrupt();
+            }
+            dma_intr_flag = 0;
+
+            halfway = dma_get_halfway(&dma); // to see which have is ready 
+
+            if (i == 2*(TEST_CYCLES_NUM - 1)) dma_enable_circular_mode(&dma, false); // disable circular mode to stop
+
+        }
+        errors = 0;
+
+        for (int i = 0; i < TEST_DATA_CIRCULAR; i++) {
+            if (test_data_circular[i] != i) {
+                printf("ERROR COPY Circular mode failed at %d", i);
+                errors += 1;
+            }
+        }
+
+        if (errors == 0) {
+            printf("DMA circular byte transfer success\n");
+        } else {
+            printf("DMA circular byte transfer failure: %d errors out of %d bytes checked\n", errors, TEST_DATA_CIRCULAR);
+        }
+
+    #endif
+    // }
 
     return EXIT_SUCCESS;
 }
