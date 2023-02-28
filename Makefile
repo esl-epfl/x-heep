@@ -23,9 +23,6 @@ PYTHON  = $(VENV)/python
 # Project options are based on the app to be build (default - hello_world)
 PROJECT  ?= hello_world
 
-# Mainfile options are based on the main file to be build (default - hello_world)
-MAINFILE ?= hello_world
-
 # Linker options are 'on_chip' (default),'flash_load','flash_exec','freertos'
 LINKER   ?= on_chip
 
@@ -80,11 +77,10 @@ verible:
 
 ## Generates the build folder in sw using CMake to build (compile and linking)
 ## @param PROJECT=<folder_name_of_the_project_to_be_built>
-## @param MAINFILE=<main_file_name_of_the_project_to_be_built WITHOUT EXTENSION>
 ## @param TARGET=sim(default),pynq-z2
 ## @param LINKER=on_chip(default),flash_load,flash_exec
-app:
-	$(MAKE) -C sw PROJECT=$(PROJECT) MAINFILE=$(MAINFILE)  TARGET=$(TARGET) LINKER=$(LINKER)
+app: clean-app
+	$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER)
 	
 ## Just list the different application names available
 app-list:
@@ -115,13 +111,23 @@ questasim-sim-opt-upf: questasim-sim
 vcs-sim: |venv
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=vcs $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
     
-## Generates the build output for helloworld applications
+## Generates the build output for helloworld application
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
 run-helloworld: mcu-gen verilator-sim |venv
-	$(MAKE) -C sw PROJECT=hello_world MAINFILE=hello_world  TARGET=$(TARGET) LINKER=$(LINKER)\
+	$(MAKE) -C sw PROJECT=hello_world TARGET=$(TARGET) LINKER=$(LINKER)\
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
-	./Vtestharness +firmware=../../../sw/build/hello_world.hex; \
+	./Vtestharness +firmware=../../../sw/build/main.hex; \
+	cat uart0.log; \
+	cd ../../..;
+
+## Generates the build output for freertos blinky application
+## Uses verilator to simulate the HW model and run the FW
+## UART Dumping in uart0.log to show recollected results
+run-blinkyfreertos: mcu-gen verilator-sim |venv
+	$(MAKE) -C sw PROJECT=blinky_freertos TARGET=$(TARGET) LINKER=$(LINKER)\
+	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
+	./Vtestharness +firmware=../../../sw/build/main.hex; \
 	cat uart0.log; \
 	cd ../../..;
 
@@ -156,10 +162,9 @@ flash-readid:
 	./iceprog -d i:0x0403:0x6011 -I B -t;
 
 ## Loads the obtained binary to the EPFL_Programmer flash
-## @param MAINFILE=<main_file_name_of_the_project_that WAS_built WITHOUT EXTENSION>
 flash-prog:
 	cd sw/vendor/yosyshq_icestorm/iceprog; \
-	./iceprog -d i:0x0403:0x6011 -I B $(mkfile_path)/sw/build/$(MAINFILE).hex;
+	./iceprog -d i:0x0403:0x6011 -I B $(mkfile_path)/sw/build/main.hex;
 
 ## Run openOCD w/ EPFL_Programmer
 openOCD_epflp:
