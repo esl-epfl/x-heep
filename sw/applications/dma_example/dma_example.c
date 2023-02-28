@@ -6,9 +6,9 @@
 #include <stdlib.h>
 
 
-
-#include "core_v_mini_mcu.h"
 #include "dma.h"
+#include "core_v_mini_mcu.h"
+#include "csr.h"
 
 // TODO
 // - Add offset at the begining and the end and check

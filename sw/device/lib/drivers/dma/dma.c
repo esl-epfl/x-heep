@@ -402,6 +402,7 @@ uint32_t dma_is_done()
   uint32_t ret = mmio_region_read32(dma_cb.baseAdd, (uint32_t)(DMA_DONE_REG_OFFSET));
   make_sure_that( ret == 0 || ret == 1 );
   return ret;
+}
   /* @ToDo: Revise this decision.
    * In case a return wants to be forced in case of an error, there are 2 alternatives: 
    *    1) Consider any value != 0 to be a valid 1 using a LOGIC AND: 
