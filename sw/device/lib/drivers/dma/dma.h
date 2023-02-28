@@ -45,8 +45,7 @@
 #include "dma_regs.h"     // Generated
 
 
-#include "../../base/mmio.h"    // @ToDo: Not make this relative. 
-#include "../../runtime/core_v_mini_mcu.h" // @ToDo: Include this inside _regs.h
+#include "core_v_mini_mcu.h" // @ToDo: Include this inside _regs.h
 
 /****************************************************************************/
 /**                                                                        **/

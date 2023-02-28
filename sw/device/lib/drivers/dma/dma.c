@@ -37,6 +37,9 @@
 
 #include "dma.h"
 
+// To manage addresses
+#include "mmio.h"
+
 // To manage interrupts
 #include "fast_intr_ctrl.h"
 #include "fast_intr_ctrl_regs.h"
