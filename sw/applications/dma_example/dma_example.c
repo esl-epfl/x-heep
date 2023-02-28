@@ -52,8 +52,7 @@ int main(int argc, char *argv[])
     
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
-    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8 ); // juan q jose: This is for enabling global interrupts right? 
-    
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8 ); 
     
     
     // The DMA is initialized (i.e. the base address is computed  )

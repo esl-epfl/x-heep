@@ -124,6 +124,8 @@ typedef enum
 /**
  * Different possible actions that determine the end of the DMA transaction. This choice does not affect the transaction, but only the way the application is notified of its finalization. 
  * Consider that for INTR and INTR_WAIT global interrupts must be enabled with: CSR_SET_BITS(CSR_REG_MSTATUS, 0x8 ) (Or something of the sort).  
+ * e.g. For SPI transmission, the application may consider the transfer has finished once the DMA has transferred all its data to the SPI buffer (Use any en event), 
+ * or might prefer to wait until the SPI has finished sending all the data in its buffer (in which case POLLING could be chosen to disable DMA interrupts simply expect the SPI interrupt).
  */
 typedef enum
 {
@@ -209,10 +211,6 @@ typedef struct
 /**                          EXPORTED VARIABLES                            **/
 /**                                                                        **/
 /****************************************************************************/
-
-// juan q jose: what would this do? 
-// #ifndef _TEMPLATE_C_SRC
-// #endif  /* _TEMPLATE_C_SRC */
 
 /****************************************************************************/
 /**                                                                        **/

@@ -47,7 +47,7 @@ extern "C" {
 // Data type to transfer: 32-bit word(0), 16-bit half word(1), 8-bit
 // byte(2,3).
 #define DMA_DATA_TYPE_REG_OFFSET 0x1c
-#define DMA_DATA_TYPE_DATA_TYPE_MASK 0x3 // juan q: is it ok that these names are "doubled"
+#define DMA_DATA_TYPE_DATA_TYPE_MASK 0x3 
 #define DMA_DATA_TYPE_DATA_TYPE_OFFSET 0
 #define DMA_DATA_TYPE_DATA_TYPE_FIELD \
   ((bitfield_field32_t) { .mask = DMA_DATA_TYPE_DATA_TYPE_MASK, .index = DMA_DATA_TYPE_DATA_TYPE_OFFSET })

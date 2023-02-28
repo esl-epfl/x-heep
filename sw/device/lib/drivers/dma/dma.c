@@ -54,7 +54,7 @@
  */
 #define DMA_DATA_TYPE_2_DATA_SIZE(type) (0b00000100 >> (type) )     
 
-// ToDo: Juan - remove this, is just a placeholder until real assert can be included
+// ToDo: Remove this, is just a placeholder until real assert can be included
 #define make_sure_that(x) printf( "%s@%u\n\r",x ? "Success" : "Error",__LINE__ );
 
 #define DMA_CSR_REG_MIE_MASK(enable) (enable << 19)
@@ -85,7 +85,7 @@ static inline uint8_t getMisalignment_b( uint8_t* p_ptr, dma_data_type_t p_type 
  * @param p_start Pointer to the beginning of the region.
  * @param p_end Pointer to the last byte of the environment.
  * @param p_type The data type to be transferred.
- * @param p_size_du The number of data units to be transferred.
+ * @param p_size_du The number of data units to be transferred. Must be non-zero.
  * @param p_inc_du The size in data units of each increment. 
  * @retval 1 There is an outbound.
  * @retval 0 There is NOT an outbound.   
@@ -96,7 +96,7 @@ static inline uint8_t isOutbound( uint8_t* p_start, uint8_t* p_end, uint32_t p_t
  * @brief Writes a given value into the specified register. Later reads the register and checks that the read value is equal to the written one. 
  *          This check is done through an assertion, so can be disabled by disabling assertions.
  * @param p_val The value to be written.
- * @param p_offset The memory offset from the memory's base address where the target register is located. // juan: double check this claim
+ * @param p_offset The register's offset from the peripheral's base address where the target register is located.
  */
 static inline void writeRegister( uint32_t p_val, uint32_t p_offset );
 
@@ -154,28 +154,12 @@ static struct
 /****************************************************************************/
 
 
-// juan: make sure that after the dma_init you could launch a transcation and nothing would happen. Make all registers be loaded with null values.
-
 void dma_init()
 {
-    /* Dummy empty targets and transactions are created clear the DMA.*/
-    static dma_env_t defaultEnv;
-    static dma_target_t defaultTargetA, defaultTargetB;
-    static dma_trans_t defaultTrans;
-    
-    // @ToDo: juan: This should be deprecated. base address should be obtained from.....
-    dma_cb.baseAdd = mmio_region_from_addr((uint8_t*)DMA_START_ADDRESS);
-    dma_cb.fic.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    
-    // The dummy/null variables are loaded to the DMA.     
-    
-    // Juan: re-think these configurations! 
-    
-    dma_create_environment( &defaultEnv, (uint8_t*) NULL, (uint8_t*) NULL );
-    dma_create_target( &defaultTargetA, (uint8_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH_MEMORY, &defaultEnv, DMA_PERFORM_CHECKS_ONLY_SANITY );
-    dma_create_target( &defaultTargetB, (uint8_t*) NULL, 1, 0, DMA_DATA_TYPE_BYTE, DMA_SMPH_MEMORY, &defaultEnv, DMA_PERFORM_CHECKS_ONLY_SANITY );
-    dma_create_transaction( &defaultTrans, &defaultTargetA, &defaultTargetB, DMA_END_EVENT_INTR_WAIT, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_ONLY_SANITY); 
-    dma_load_transaction( &defaultTrans );
+    // @ToDo: This should be deprecated. base address should be obtained from.....
+    dma_cb.baseAdd = mmio_region_from_addr((uint8_t*)DMA_START_ADDRESS); // Obtain the base address of the DMA registers
+    dma_cb.fic.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS); // Obtain the base address of the fast interrupt controller registers
+    dma_cb.trans = NULL; // Clear the loaded transaction. 
     
 }
 
@@ -185,7 +169,7 @@ dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint8_t* p_start, u
     /* PERFORM SANITY CHECKS */
     if( (uint8_t*)p_end < (uint8_t*)p_start ) return DMA_CONFIG_INCOMPATIBLE;
     
-    // Load the start and end pointers of the enviroment.
+    // Load the start and end pointers of the environment.
     p_env->start = (uint8_t*)p_start;
     p_env->end   = (uint8_t*)p_end;
     
@@ -197,8 +181,8 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint8_t* p_ptr, uint3
 {
     //////////  SANITY CHECKS   //////////
     make_sure_that( (dma_data_type_t)p_type < DMA_DATA_TYPE__size );
-    make_sure_that( (uint32_t)p_inc_du >= 0 ); // Increment can be 0 when a sempahore is used. 
-    make_sure_that( (uint32_t)p_size_du >=  0 );
+    make_sure_that( (uint32_t)p_inc_du >= 0 ); // Increment can be 0 when a semaphore is used. 
+    make_sure_that( (uint32_t)p_size_du >=  0 ); // The size could be 0 if the target is only going to be used as a destination.
     make_sure_that( (dma_semaphore_t) p_smph < DMA_SMPH__size );
     
     
@@ -214,10 +198,10 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt, uint8_t* p_ptr, uint3
     //////////  INTEGRITY CHECKS   //////////
     if( p_check )
     {
-        if( ( p_tgt->env ) && ( /* Only performed if an environment was set. */
+        if( ( p_tgt->env ) && ( // Only performed if an environment was set. 
                ( (uint8_t*)(p_tgt->ptr) <  (uint8_t*)(p_tgt->env->start) )  // If the target starts before the environment starts.
             || ( (uint8_t*)(p_tgt->ptr) > (uint8_t*)(p_tgt->env->end) )     // If the target starts after the environment ends 
-            || isOutbound( p_tgt->ptr, p_tgt->env->end, p_tgt->type, p_tgt->size_du, p_tgt->inc_du ) // If the target selected size goes beyond the boundaries of the environment.   
+            || ( p_tgt->size_du && isOutbound( p_tgt->ptr, p_tgt->env->end, p_tgt->type, p_tgt->size_du, p_tgt->inc_du ) ) // If the target selected size goes beyond the boundaries of the environment. Only computed if there is a size defined.   
                 ) ) p_tgt->flags |= DMA_CONFIG_OUTBOUNDS;
 
         /* If there is a semaphore, there should not be environments nor increments.
@@ -326,6 +310,9 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, dma_target_t *p
             /* The copy size does not change, as it is already stored in bytes*/
         }
     
+        //////////  CHECK IF SOURCE HAS SIZE 0 //////////
+        if( p_src->size_du == 0 ) return p_trans->flags |= ( DMA_CONFIG_SRC | DMA_CONFIG_CRITICAL_ERROR ); // No further operations are done to prevent corrupting information that could be useful for debugging purposes. 
+        
         //////////  CHECK IF THERE IS CROSS-OUTBOUND   //////////
         /* As the source target does not know the constraints of the destination target, 
          * it is possible that the copied information ends up beyond the bounds of 
@@ -415,12 +402,13 @@ uint32_t dma_is_done()
   uint32_t ret = mmio_region_read32(dma_cb.baseAdd, (uint32_t)(DMA_DONE_REG_OFFSET));
   make_sure_that( ret == 0 || ret == 1 );
   return ret;
-}   // juan q jose: What to do in the above case
-  /* In case a return wants to be forced in case of an error, there are 2 alternatives: 
+  /* @ToDo: Revise this decision.
+   * In case a return wants to be forced in case of an error, there are 2 alternatives: 
    *    1) Consider any value != 0 to be a valid 1 using a LOGIC AND: 
    *            return ( 1 && mmio_region_read32(dma_cb.baseAdd, (uint8_t*)(DMA_DONE_REG_OFFSET)));
    *    2) Consider only the LSB == 1 to be a valid 1 using a BITWISE AND. 
    *            return ( 1 &  mmio_region_read32(dma_cb.baseAdd, (uint8_t*)(DMA_DONE_REG_OFFSET)));
+   * This would be fixed if the DONE register was a 1 bit field. 
    * */   
 
 
@@ -457,7 +445,7 @@ static inline uint8_t getMisalignment_b( uint8_t* p_ptr, dma_data_type_t p_type 
     * x   x+1  x+2  x+3   
     * 
     * To overcome this, the ALLOW REALIGN flag is available in the DMA control block. 
-    * If the user set the ALLOW REALIGN flag, WORD reading from mis-aligned pointers will be converted to two HALF WORD readings with a HALF WORD
+    * If the user set the ALLOW REALIGN flag, WORD reading from misaligned pointers will be converted to two HALF WORD readings with a HALF WORD
     * increment on both source and destination.  
     * 
     * HALF WORD misalignment is solved through the same method using two WORD readings. 
@@ -498,7 +486,7 @@ static inline uint8_t isOutbound( uint8_t* p_start, uint8_t* p_end, uint32_t p_t
    *  If the environment ends before the last affected byte, then there is outbound writing and the function return 1.  
    *                 /------------ This is the address of the las byte inside the range.*/
     return ( p_end < p_start + ( DMA_DATA_TYPE_2_DATA_SIZE(p_type) * ( ( p_size_du - 1 )*p_inc_du + 1 ) )  -1 );
-    // juan: what happens if size == 0 ??
+    // Size must be guaranteed to be non-zero before calling this function.  
 }
 
 static inline void writeRegister( uint32_t p_val, uint32_t p_offset )
@@ -511,7 +499,6 @@ static inline void writeRegister( uint32_t p_val, uint32_t p_offset )
 static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
 {
     uint32_t inc = 0;
-    // juan: Is this check necessary? If a smph was set, the inc was forced to be 0.
     if( !( p_tgt->smph ) ) // If the target uses a semaphore, the increment remains 0.
     {
         if( ! (inc = dma_cb.trans->inc_b) ) // If the transaction increment has been overwritten (due to misalignments), then that value is used (it's always 1, never 0). 
@@ -523,16 +510,15 @@ static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
 }
 
 
-// juan q jose: How should this function be declared?
+// @ToDo: Reconsider how this function should be declared
 void handler_irq_fast_dma(void)
 {
     // The interrupt is cleared.
     clear_fast_interrupt(&(dma_cb.fic), kDma_fic_e);
     // The flag is raised so the waiting loop can be broken.
     dma_cb.intrFlag = 1;
-    // Only perform call the interrupt handler if the transaction requested to end by polling. 
-    // juan: This is only a temporary solution while there is no way of disabling interrupts. 
-    if(dma_cb.trans->end != DMA_END_EVENT_POLLING ) dma_intr_handler();
+    // Call the weak implementation provided in this module, or the non-weak implementation from above. 
+    dma_intr_handler();
 }
 
 
@@ -545,39 +531,3 @@ void handler_irq_fast_dma(void)
 /*                                 EOF                                      */
 /**                                                                        **/
 /****************************************************************************/
-
-
-
-// juan: how could one easily modify the target?? Maybe from the SDK.
-
- // juan: clear the error flags! Think about where 
-
-// juan q jose: configure interrupts? Shouldnt that be done from an sdk level (including fic?). If should be here: End events
-
-///**
-// * Possible way of knowing a DMA transfer has finished. 
-// * This also determines what the application will consider as "finished".
-// * e.g. For SPI transmission, the application may consider the transfer has 
-// * finished once the DMA has transferred all its data to the SPI buffer (in 
-// * which case POLLING or INTERRUPT should be used), or might as well wait 
-// * until the SPI has finished sending all the data in its buffer (in which 
-// * case SPI should be used).
-// */
-//typedef enum
-//{
-//    DMA_END_EVENT_POLLING   = 0x00, // Application must query the DONE register flag with dma_is_done() to know when the transfer finished. DMA interrupts are disabled.
-//    DMA_END_EVENT_DMA_INT   = 0x01, // The application will receive a DMA interrupt once the DMA transfer has finished (i.e. the DONE register flag is high).   
-//    DMA_END_EVENT_PERIP_INT = 0x02, // The application will receive a peripheral interrupt once the peripheral process has finished. DMA interrupts will be disabled.
-//    DMA_END_EVENT__size,
-//    DMA_END_EVENT__undef,       // Default. DMA will not be used. 
-//} dma_end_event_t; 
-
-
-
-// juan q: Should we add permissions to environments?  Read/write/change? 
-
-// juan q jose: In BINDI/Stack/HAL/drivers_nrf/uart/nrf_drv_uart.h functions defined in .h have the _STATIC_INLINE macro.... how is that ok????
-
-// juan: right now i am imposing that every peripheral must have a semaphore. 
-
-// juan q jose: can we make the assert include some variable as parameter so we can know the "wrong value" ?? 
