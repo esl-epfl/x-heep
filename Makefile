@@ -41,7 +41,7 @@ linux-femu-gen: mcu-gen
 ## @section Installation
 
 ## Generates mcu files core-v-mini-mcu files and build the design with fusesoc
-## @param CPU=[cv32e20(default),cv32e40p]
+## @param CPU=[cv32e20(default),cv32e40p,cv32e40x]
 ## @param BUS=[onetoM(default),NtoM]
 mcu-gen: |venv
 	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/include --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --external_domains $(EXTERNAL_DOMAINS) --pkg-sv hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
@@ -106,7 +106,7 @@ questasim-sim-opt-upf: questasim-sim
 	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim opt-upf
 
 ## Verilator simulation
-## @param CPU=cv32e20(default),cv32e40p
+## @param CPU=cv32e20(default),cv32e40p,cv32e40x
 ## @param BUS=onetoM(default),NtoM
 vcs-sim: |venv
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=vcs $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
