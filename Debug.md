@@ -55,7 +55,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
 and type to run your compiled software:
 
 ```
-./Vtestharness +firmware=../../../sw/build/hello_world/hello_world.hex +openOCD=true
+./Vtestharness +firmware=../../../sw/build/main.hex +openOCD=true
 ```
 
 ### Questasim
@@ -75,7 +75,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim/
 and type to run your compiled software:
 
 ```
-make run PLUSARGS="c firmware=../../../sw/build/hello_world/hello_world.hex"
+make run PLUSARGS="c firmware=../../../sw/build/main.hex"
 ```
 ### Remote bitbang server started
 
@@ -101,7 +101,7 @@ Check the waveform of the JTAG on Modelsim if you like.
 In a 3rd shell, conenct gdb as:
 
 ```
-/home/yourusername/tools/riscv/bin/riscv32-unknown-elf-gdb ./sw/applications/hello_world/hello_world.elf
+/home/yourusername/tools/riscv/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
 ```
 
 Once `gdb` starts, do the following 3 commands:
