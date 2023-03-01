@@ -27,6 +27,12 @@ LINKER   ?= on_chip
 # Target options are 'sim' (default) and 'pynq-z2'
 TARGET   ?= sim
 
+# Compiler options are 'gcc' (default) and 'clang'
+COMPILER ?= gcc
+
+# Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
+ARCH     ?= rv32imc
+
 # riscv toolchain install path
 RISCV                      ?= ~/.riscv
 RISCV_EXE_PREFIX           = $(RISCV)/bin/riscv32-unknown-elf-

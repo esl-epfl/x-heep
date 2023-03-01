@@ -32,6 +32,7 @@ build/Makefile : CMakeLists.txt ${CMAKE_DIR}/riscv.cmake
 			-DINC_FOLDERS:STRING=${INC_FOLDERS} \
 			-DLINK_FOLDER:STRING=${LINK_FOLDER} \
 			-DLINKER:STRING=${LINKER} \
+			-DCOMPILER:STRING=${COMPILER} \
 		    ../ 
 
 clean:

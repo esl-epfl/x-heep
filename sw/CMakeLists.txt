@@ -223,12 +223,26 @@ if(${PROJECT} MATCHES "freertos")
 endif()
 
 # specify the C standard
-set(CMAKE_C_FLAGS "\
+set(COMPILER_LINKER_FLAGS "\
   -march=${CMAKE_SYSTEM_PROCESSOR} \
   -w -Os -g  -nostdlib  \
   -DHOST_BUILD \
   -DportasmHANDLE_INTERRUPT=vSystemIrqHandler\
 ")
+set(CMAKE_C_FLAGS ${COMPILER_LINKER_FLAGS})
+
+if (${COMPILER} MATCHES "clang")
+     set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=riscv32 \
+                                          -mabi=ilp32 \
+                                          --gcc-toolchain=${RISCV} \
+                                          --sysroot=${RISCV}/riscv32-unknown-elf \
+                                          -static \
+                                          -mcmodel=medany \
+                                          -fvisibility=hidden \
+                                          -nostartfiles \
+                                          -Wall \
+                                          -Wno-unused-command-line-argument" )
+endif()
 
 # In case of wanting to create a library with those subdirectories
 #add_subdirectory(device/lib/base)
@@ -269,6 +283,13 @@ SET(CMAKE_EXE_LINKER_FLAGS  "-T ${LINKER_SCRIPT}  \
 message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/riscv32-unknown-elf/lib${ColourReset}")
 
 SET(CMAKE_VERBOSE_MAKEFILE on)
+
+# Specify that we want to link with GCC even if we are compiling with clang
+if (${COMPILER} MATCHES "clang")
+  set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
+                                ${ROOT_PROJECT}build/CMakeFiles/${TARGET}.elf.dir/applications/${PROJECT}/${TARGET}.c.obj \
+                                -o ${TARGET}.elf")
+endif()
 
 # Post processing command to create a disassembly file 
 add_custom_command(TARGET ${TARGET}.elf POST_BUILD
