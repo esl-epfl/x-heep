@@ -21,14 +21,14 @@ After extracting the files,
 
 ```
 cd openocd-0.11.0-rc2
-./configure --enable-ftdi --enable-remote-bitbang --prefix=/home/yourusername/tools/openocd && make
+./configure --enable-ftdi --enable-remote-bitbang --prefix=/home/$USER/tools/openocd && make
 make install
 ```
 
 Add to `PATH` `openOCD`:
 
 ```
-export PATH=/home/yourusername/tools/openocd/bin:$PATH
+export PATH=/home/$USER/tools/openocd/bin:$PATH
 ```
 ## Simulating
 
@@ -101,7 +101,7 @@ Check the waveform of the JTAG on Modelsim if you like.
 In a 3rd shell, conenct gdb as:
 
 ```
-/home/yourusername/tools/riscv/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
+$RISCV/bin/riscv32-unknown-elf-gdb ./sw/build/main.elf
 ```
 
 Once `gdb` starts, do the following 3 commands:
