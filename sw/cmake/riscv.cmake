@@ -102,7 +102,7 @@ endif()
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g" )
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=${CMAKE_SYSTEM_PROCESSOR}" )
 if ($ENV{COMPILER} MATCHES "clang")
-     set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-command-line-argument --target=riscv32 --gcc-toolchain=$ENV{RISCV} --sysroot=${RISCV}/riscv32-unknown-elf" )
+     set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-command-line-argument --target=riscv32 --gcc-toolchain=$ENV{RISCV} --sysroot=$ENV{RISCV}/riscv32-unknown-elf" )
 endif()
 
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" CACHE STRING "" )
