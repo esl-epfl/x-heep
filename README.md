@@ -34,7 +34,7 @@ so that you can extend it with your own accelerator without modifying the MCU, b
 By doing so, you inherit an IP capable of booting RTOS (such as `freeRTOS`) with the whole FW stack, including `HAL` drivers and `SDK`, 
 and you can focus on building your special HW supported by the microcontroller.
 
-`X-HEEP` supports simulation with Verilator, Questasim, etc. Morever, FW can be built and linked by using `CMake`. It can be implemented on FPGA, and it supports implementation in Silicon, which is its main (but not only) target. See below for more details.
+`X-HEEP` supports simulation with Verilator, Questasim, etc. Morever, FW can be built and linked by using `CMake` either with gcc or with clang. It can be implemented on FPGA, and it supports implementation in Silicon, which is its main (but not only) target. See below for more details.
 
 The block diagram below shows the `X-HEEP` MCU
 
@@ -90,6 +90,8 @@ Then, set the `RISCV` env variable as:
 ```
 export RISCV=/home/$USER/tools/riscv
 ```
+
+Optionally you can also compile with clang/LLVM instead of gcc. For that you must install the clang compiler into the same `RISCV` path. The binaries of gcc and clang do not collide so you can have both residing in the same `RISCV` directory. For this you can set the `-DCMAKE_INSTALL_PREFIX` cmake variable to `$RISCV` when building LLVM.
 
 5. Install the Verilator:
 
