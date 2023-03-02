@@ -237,7 +237,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
 and type to run your compiled software:
 
 ```
-./Vtestharness +firmware=../../../sw/build/hello_world.hex
+./Vtestharness +firmware=../../../sw/build/main.hex
 ```
 
 or to execute all these three steps type:
@@ -264,7 +264,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-vcs
 and type to run your compiled software:
 
 ```
-./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/build/hello_world.hex
+./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/build/main.hex
 ```
 
 ### Compiling for Questasim
@@ -284,7 +284,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim/
 and type to run your compiled software:
 
 ```
-make run PLUSARGS="c firmware=../../../sw/build/hello_world.hex"
+make run PLUSARGS="c firmware=../../../sw/build/main.hex"
 ```
 
 You can also use vopt for HDL optimized compilation:
@@ -301,7 +301,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim_opt-modelsim/
 and
 
 ```
-make run RUN_OPT=1 PLUSARGS="c firmware=../../../sw/build/hello_world.hex"
+make run RUN_OPT=1 PLUSARGS="c firmware=../../../sw/build/main.hex"
 ```
 
 You can also compile with the UPF power domain description as:
@@ -313,7 +313,7 @@ make questasim-sim-opt-upf FUSESOC_FLAGS="--flag=use_upf"
 and then execute software as:
 
 ```
-make run RUN_OPT=1 RUN_UPF=1 PLUSARGS="c firmware=../../../sw/build/hello_world.hex"
+make run RUN_OPT=1 RUN_UPF=1 PLUSARGS="c firmware=../../../sw/build/main.hex"
 ```
 
 Questasim version must be >= Questasim 2020.4
@@ -328,7 +328,7 @@ For example, to see the "hello world!" output of the Verilator simulation:
 
 ```
 cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
-./Vtestharness +firmware=../../../sw/build/hello_world.hex
+./Vtestharness +firmware=../../../sw/build/main.hex
 cat uart0.log
 ```
 ## Debug

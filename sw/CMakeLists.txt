@@ -297,9 +297,16 @@ add_custom_command(TARGET ${TARGET}.elf POST_BUILD
         COMMENT "Invoking: Disassemble")
 
 # Post processing command to create a hex file 
-add_custom_command(TARGET ${TARGET}.elf POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} -O verilog  ${TARGET}.elf  ${TARGET}.hex 
-        COMMENT "Invoking: Hexdump")
+if((${LINKER} STREQUAL "flash_load") OR (${LINKER} STREQUAL "flash_exec"))
+    add_custom_command(TARGET ${TARGET}.elf POST_BUILD
+            COMMAND ${CMAKE_OBJCOPY} -O verilog --adjust-vma=-0x40000000 ${TARGET}.elf  ${TARGET}.hex 
+            COMMENT "Invoking: Hexdump")
+else()
+    add_custom_command(TARGET ${TARGET}.elf POST_BUILD
+            COMMAND ${CMAKE_OBJCOPY} -O verilog  ${TARGET}.elf  ${TARGET}.hex 
+            COMMENT "Invoking: Hexdump")
+endif()
+
 add_custom_command(TARGET ${TARGET}.elf POST_BUILD
         COMMAND ${CMAKE_OBJCOPY} -O binary  ${TARGET}.elf  ${TARGET}.bin
         COMMENT "Invoking: Hexdump")
