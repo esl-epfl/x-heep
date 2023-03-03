@@ -209,7 +209,7 @@ def add_registers(peripheral_json):
     :return: the strings containing the indented structs and enums relative to the registers
     """
 
-    reg_struct = ""
+    reg_struct = "\n"
     reg_enum = ""
 
     # loops through the registers of the hjson
@@ -218,20 +218,25 @@ def add_registers(peripheral_json):
             elem = elem["multireg"]
         
         if "name" in elem:
-            reg_struct += union_start + struct_typedef_start.format(elem["name"])
+            reg_struct += tab_spaces + "uint32_t {};".format(elem["name"])
+            reg_comment = elem["desc"].replace("\n", " ")
+            reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
 
-            # generate the struct entries relative to the fields of the register
-            new_field, new_enum = add_fields(elem)
-            reg_struct += new_field
-            reg_enum += new_enum
+            ## OLD VERSION WITH UNION AND BIT FIELDS ##
+            # reg_struct += union_start + struct_typedef_start.format(elem["name"])
 
-            reg_struct += struct_typedef_end
-            reg_struct += format(line_comment_start, ">43") + format(struct_comment, "<100") + "*/\n"
+            # # generate the struct entries relative to the fields of the register
+            # new_field, new_enum = add_fields(elem)
+            # reg_struct += new_field
+            # reg_enum += new_enum
 
-            reg_struct += (2 * tab_spaces) + "uint32_t" + " w;"
-            reg_struct += format(line_comment_start, ">37") + format(word_comment, "<110") + "*/\n"
+            # reg_struct += struct_typedef_end
+            # reg_struct += format(line_comment_start, ">43") + format(struct_comment, "<100") + "*/\n"
 
-            reg_struct += union_end.format(elem["name"])
+            # reg_struct += (2 * tab_spaces) + "uint32_t" + " w;"
+            # reg_struct += format(line_comment_start, ">37") + format(word_comment, "<110") + "*/\n"
+
+            # reg_struct += union_end.format(elem["name"])
     
     return reg_struct, reg_enum
 
