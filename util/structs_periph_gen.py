@@ -25,7 +25,7 @@ PERIPHERAL_NAMES = []   # list of the peripherals' names
 def add_peripheral(name, path):
     JSON_FILES.append(path)
     OUTPUT_FILES.append(out_files_base_path.format(name, name))
-    PERIPHERAL_NAMES.append(name)
+    # PERIPHERAL_NAMES.append(name)
 
 
 """
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     # Call the generation script, once for every peripheral
     for i in range(len(JSON_FILES)):
         structs_gen.main([ "--template_filename", template_path,
-                                "--peripheral_name", PERIPHERAL_NAMES[i],
+                                # "--peripheral_name", PERIPHERAL_NAMES[i],
                                 "--json_filename", JSON_FILES[i], 
                                 "--output_filename", OUTPUT_FILES[i]]
                             )
