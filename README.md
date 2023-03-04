@@ -34,7 +34,7 @@ so that you can extend it with your own accelerator without modifying the MCU, b
 By doing so, you inherit an IP capable of booting RTOS (such as `freeRTOS`) with the whole FW stack, including `HAL` drivers and `SDK`, 
 and you can focus on building your special HW supported by the microcontroller.
 
-`X-HEEP` supports simulation with Verilator, Questasim, etc. Morever, FW can be built and linked by using `CMake`. It can be implemented on FPGA, and it supports implementation in Silicon, which is its main (but not only) target. See below for more details.
+`X-HEEP` supports simulation with Verilator, Questasim, etc. Morever, FW can be built and linked by using `CMake` either with gcc or with clang. It can be implemented on FPGA, and it supports implementation in Silicon, which is its main (but not only) target. See below for more details.
 
 The block diagram below shows the `X-HEEP` MCU
 
@@ -89,6 +89,17 @@ Then, set the `RISCV` env variable as:
 
 ```
 export RISCV=/home/$USER/tools/riscv
+```
+
+Optionally you can also compile with clang/LLVM instead of gcc. For that you must install the clang compiler into the same `RISCV` path. The binaries of gcc and clang do not collide so you can have both residing in the same `RISCV` directory. For this you can set the `-DCMAKE_INSTALL_PREFIX` cmake variable to `$RISCV` when building LLVM. This can be accomplished by doing the following:
+
+```
+git clone https://github.com/llvm/llvm-project.git
+cd llvm-project
+git checkout llvmorg-14.0.0
+mkdir build && cd build
+cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$RISCV -DLLVM_TARGETS_TO_BUILD="RISCV" ../llvm
+cmake --build . --target install
 ```
 
 5. Install the Verilator:
@@ -177,13 +188,15 @@ make app
 To run any other application, please use the following command with appropiate parameters:
 
 ```
-app PROJECT=<folder_name_of_the_project_to_be_built> MAINFILE=<main_file_name_of_the_project_to_be_built  WITHOUT EXTENSION!> TARGET=sim(default),pynq-z2 LINKER=on_chip(default),flash_load,flash_exec
+app PROJECT=<folder_name_of_the_project_to_be_built> MAINFILE=<main_file_name_of_the_project_to_be_built  WITHOUT EXTENSION!> TARGET=sim(default),pynq-z2 LINKER=on_chip(default),flash_load,flash_exec COMPILER=gcc(default),clang ARCH=rv32imc(default),<any RISC-V ISA string supported by the CPU>
 
 Params:
 - PROJECT (ex: <folder_name_of_the_project_to_be_built>, hello_wolrd(default))
 - MAINFILE (ex: <main_file_name_of_the_project_to_be_built WITHOUT EXTENSION!>, hello_wolrd(default))
 - TARGET (ex: sim(default),pynq-z2)
 - LINKER (ex: on_chip(default),flash_load,flash_exec)
+- COMPILER (ex: gcc(default),clang)
+- ARCH (ex: rv32imc(default),<any RISC-V ISA string supported by the CPU>)
 ```
 
 For instance, to run 'hello world' app for the pynq-z2 FPGA targets, just run:
@@ -235,7 +248,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
 and type to run your compiled software:
 
 ```
-./Vtestharness +firmware=../../../sw/build/hello_world.hex
+./Vtestharness +firmware=../../../sw/build/main.hex
 ```
 
 or to execute all these three steps type:
@@ -262,7 +275,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-vcs
 and type to run your compiled software:
 
 ```
-./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/build/hello_world.hex
+./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/build/main.hex
 ```
 
 ### Compiling for Questasim
@@ -282,7 +295,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim/
 and type to run your compiled software:
 
 ```
-make run PLUSARGS="c firmware=../../../sw/build/hello_world.hex"
+make run PLUSARGS="c firmware=../../../sw/build/main.hex"
 ```
 
 You can also use vopt for HDL optimized compilation:
@@ -299,7 +312,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim_opt-modelsim/
 and
 
 ```
-make run RUN_OPT=1 PLUSARGS="c firmware=../../../sw/build/hello_world.hex"
+make run RUN_OPT=1 PLUSARGS="c firmware=../../../sw/build/main.hex"
 ```
 
 You can also compile with the UPF power domain description as:
@@ -311,7 +324,7 @@ make questasim-sim-opt-upf FUSESOC_FLAGS="--flag=use_upf"
 and then execute software as:
 
 ```
-make run RUN_OPT=1 RUN_UPF=1 PLUSARGS="c firmware=../../../sw/build/hello_world.hex"
+make run RUN_OPT=1 RUN_UPF=1 PLUSARGS="c firmware=../../../sw/build/main.hex"
 ```
 
 Questasim version must be >= Questasim 2020.4
@@ -326,7 +339,7 @@ For example, to see the "hello world!" output of the Verilator simulation:
 
 ```
 cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
-./Vtestharness +firmware=../../../sw/build/hello_world.hex
+./Vtestharness +firmware=../../../sw/build/main.hex
 cat uart0.log
 ```
 ## Debug

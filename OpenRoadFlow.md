@@ -49,24 +49,6 @@ and add `sv2v` to the `PATH` variable.
 
 ## Run command
 
-First of all, the binaries of OpenRoad are only available from the Docker container, thus:
-
 ```
-cd flow/OpenROAD-flow-scripts
-docker run -it -u $(id -u ${USER}):$(id -g ${USER}) -v $(pwd)/flow/platforms:/OpenROAD-flow-scripts/flow/platforms:ro openroad/flow-scripts
+make openroad-sky130
 ```
-
-From the top folder, execute
-
-```bash
-fusesoc --verbose --cores-root . run --target=asic_yosys_synthesis --flag=use_sky130 openhwgroup.org:systems:core-v-mini-mcu
-```
-
-## Current status
-
-* [hw.patch](./hw.patch) hw/ folder patch
-
-```bash
-git apply hw.patch
-```
-
