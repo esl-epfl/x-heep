@@ -476,62 +476,15 @@ def main():
     if ((int(linker_onchip_data_size_address,16) + int(linker_onchip_code_size_address,16)) > int(ram_size_address,16)):
         exit("The code and data section must fit in the RAM size, instead they takes " + str(linker_onchip_data_size_address + linker_onchip_code_size_address))
 
-    null_intr = obj['interrupts']['null_intr']
-    uart_intr_tx_watermark = obj['interrupts']['uart_intr_tx_watermark']
-    uart_intr_rx_watermark = obj['interrupts']['uart_intr_rx_watermark']
-    uart_intr_tx_empty = obj['interrupts']['uart_intr_tx_empty']
-    uart_intr_rx_overflow = obj['interrupts']['uart_intr_rx_overflow']
-    uart_intr_rx_frame_err = obj['interrupts']['uart_intr_rx_frame_err']
-    uart_intr_rx_break_err = obj['interrupts']['uart_intr_rx_break_err']
-    uart_intr_rx_timeout = obj['interrupts']['uart_intr_rx_timeout']
-    uart_intr_rx_parity_err = obj['interrupts']['uart_intr_rx_parity_err']
-    gpio_intr_8 = obj['interrupts']['gpio_intr_8']
-    gpio_intr_9 = obj['interrupts']['gpio_intr_9']
-    gpio_intr_10 = obj['interrupts']['gpio_intr_10']
-    gpio_intr_11 = obj['interrupts']['gpio_intr_11']
-    gpio_intr_12 = obj['interrupts']['gpio_intr_12']
-    gpio_intr_13 = obj['interrupts']['gpio_intr_13']
-    gpio_intr_14 = obj['interrupts']['gpio_intr_14']
-    gpio_intr_15 = obj['interrupts']['gpio_intr_15']
-    gpio_intr_16 = obj['interrupts']['gpio_intr_16']
-    gpio_intr_17 = obj['interrupts']['gpio_intr_17']
-    gpio_intr_18 = obj['interrupts']['gpio_intr_18']
-    gpio_intr_19 = obj['interrupts']['gpio_intr_19']
-    gpio_intr_20 = obj['interrupts']['gpio_intr_20']
-    gpio_intr_21 = obj['interrupts']['gpio_intr_21']
-    gpio_intr_22 = obj['interrupts']['gpio_intr_22']
-    gpio_intr_23 = obj['interrupts']['gpio_intr_23']
-    gpio_intr_24 = obj['interrupts']['gpio_intr_24']
-    gpio_intr_25 = obj['interrupts']['gpio_intr_25']
-    gpio_intr_26 = obj['interrupts']['gpio_intr_26']
-    gpio_intr_27 = obj['interrupts']['gpio_intr_27']
-    gpio_intr_28 = obj['interrupts']['gpio_intr_28']
-    gpio_intr_29 = obj['interrupts']['gpio_intr_29']
-    gpio_intr_30 = obj['interrupts']['gpio_intr_30']
-    gpio_intr_31 = obj['interrupts']['gpio_intr_31']
-    intr_fmt_watermark = obj['interrupts']['intr_fmt_watermark']
-    intr_rx_watermark = obj['interrupts']['intr_rx_watermark']
-    intr_fmt_overflow = obj['interrupts']['intr_fmt_overflow']
-    intr_rx_overflow = obj['interrupts']['intr_rx_overflow']
-    intr_nak = obj['interrupts']['intr_nak']
-    intr_scl_interference = obj['interrupts']['intr_scl_interference']
-    intr_sda_interference = obj['interrupts']['intr_sda_interference']
-    intr_stretch_timeout = obj['interrupts']['intr_stretch_timeout']
-    intr_sda_unstable = obj['interrupts']['intr_sda_unstable']
-    intr_trans_complete = obj['interrupts']['intr_trans_complete']
-    intr_tx_empty = obj['interrupts']['intr_tx_empty']
-    intr_tx_nonempty = obj['interrupts']['intr_tx_nonempty']
-    intr_tx_overflow = obj['interrupts']['intr_tx_overflow']
-    intr_acq_overflow = obj['interrupts']['intr_acq_overflow']
-    intr_ack_stop = obj['interrupts']['intr_ack_stop']
-    intr_host_timeout = obj['interrupts']['intr_host_timeout']
-    spi2_intr_event = obj['interrupts']['spi2_intr_event']
-    ext_intr = obj['interrupts']['ext_intr']
+    plic_used_n_interrupts = len(obj['interrupts']['list'])
+    plit_n_interrupts = obj['interrupts']['number']
+    ext_int_list = { f"EXT_INTR_{k}": v for k, v in enumerate(range(plic_used_n_interrupts, plit_n_interrupts)) }
 
-    ext_intr_upper = ext_intr.split(':')[1].replace(',', '')
-    ext_intr_lower = ext_intr.split(':')[0]
+    interrupts = {
+        **obj['interrupts']['list'],
+        **ext_int_list
+    }
 
-    ext_int_list = range(int(ext_intr_lower), int(ext_intr_upper)+1)
 
     pads = obj_pad['pads']
 
@@ -809,57 +762,9 @@ def main():
         "linker_onchip_code_size_address"  : linker_onchip_code_size_address,
         "linker_onchip_data_start_address" : linker_onchip_data_start_address,
         "linker_onchip_data_size_address"  : linker_onchip_data_size_address,
-        "null_intr"                        : null_intr,
-        "uart_intr_tx_watermark"           : uart_intr_tx_watermark,
-        "uart_intr_rx_watermark"           : uart_intr_rx_watermark,
-        "uart_intr_tx_empty"               : uart_intr_tx_empty,
-        "uart_intr_rx_overflow"            : uart_intr_rx_overflow,
-        "uart_intr_rx_frame_err"           : uart_intr_rx_frame_err,
-        "uart_intr_rx_break_err"           : uart_intr_rx_break_err,
-        "uart_intr_rx_timeout"             : uart_intr_rx_timeout,
-        "uart_intr_rx_parity_err"          : uart_intr_rx_parity_err,
-        "gpio_intr_8"                      : gpio_intr_8,
-        "gpio_intr_9"                      : gpio_intr_9,
-        "gpio_intr_10"                     : gpio_intr_10,
-        "gpio_intr_11"                     : gpio_intr_11,
-        "gpio_intr_12"                     : gpio_intr_12,
-        "gpio_intr_13"                     : gpio_intr_13,
-        "gpio_intr_14"                     : gpio_intr_14,
-        "gpio_intr_15"                     : gpio_intr_15,
-        "gpio_intr_16"                     : gpio_intr_16,
-        "gpio_intr_17"                     : gpio_intr_17,
-        "gpio_intr_18"                     : gpio_intr_18,
-        "gpio_intr_19"                     : gpio_intr_19,
-        "gpio_intr_20"                     : gpio_intr_20,
-        "gpio_intr_21"                     : gpio_intr_21,
-        "gpio_intr_22"                     : gpio_intr_22,
-        "gpio_intr_23"                     : gpio_intr_23,
-        "gpio_intr_24"                     : gpio_intr_24,
-        "gpio_intr_25"                     : gpio_intr_25,
-        "gpio_intr_26"                     : gpio_intr_26,
-        "gpio_intr_27"                     : gpio_intr_27,
-        "gpio_intr_28"                     : gpio_intr_28,
-        "gpio_intr_29"                     : gpio_intr_29,
-        "gpio_intr_30"                     : gpio_intr_30,
-        "gpio_intr_31"                     : gpio_intr_31,
-        "intr_fmt_watermark"               : intr_fmt_watermark,
-        "intr_rx_watermark"                : intr_rx_watermark,
-        "intr_fmt_overflow"                : intr_fmt_overflow,
-        "intr_rx_overflow"                 : intr_rx_overflow,
-        "intr_nak"                         : intr_nak,
-        "intr_scl_interference"            : intr_scl_interference,
-        "intr_sda_interference"            : intr_sda_interference,
-        "intr_stretch_timeout"             : intr_stretch_timeout,
-        "intr_sda_unstable"                : intr_sda_unstable,
-        "intr_trans_complete"              : intr_trans_complete,
-        "intr_tx_empty"                    : intr_tx_empty,
-        "intr_tx_nonempty"                 : intr_tx_nonempty,
-        "intr_tx_overflow"                 : intr_tx_overflow,
-        "intr_acq_overflow"                : intr_acq_overflow,
-        "intr_ack_stop"                    : intr_ack_stop,
-        "intr_host_timeout"                : intr_host_timeout,
-        "spi2_intr_event"                  : spi2_intr_event,
-        "ext_int_list"                     : ext_int_list,
+        "plic_used_n_interrupts"           : plic_used_n_interrupts,
+        "plit_n_interrupts"                : plit_n_interrupts,
+        "interrupts"                       : interrupts,
         "pad_list"                         : pad_list,
         "external_pad_list"                : external_pad_list,
         "total_pad_list"                   : total_pad_list,
