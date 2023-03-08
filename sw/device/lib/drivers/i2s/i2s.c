@@ -16,7 +16,7 @@ void i2s_set_clk_divider(const i2s_t *i2s, uint16_t div_value) {
 }
 
 void i2s_set_data_width(const i2s_t *i2s, uint32_t data_width) {
-  mmio_region_write32(i2s->base_addr, I2S_BYTEPERSAMPLE_REG_OFFSET, I2S_BYTEPERSAMPLE_COUNT_VALUE_32_BITS);
+  mmio_region_write32(i2s->base_addr, I2S_BYTEPERSAMPLE_REG_OFFSET, data_width);
 }
 
 void i2s_set_intr_reach_count(const i2s_t *i2s, uint32_t reach_count) {
