@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 
     // Setup plic
     dif_plic_params_t rv_plic_params;
-    rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)PLIC_START_ADDRESS);
+    rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
     dif_plic_init(rv_plic_params, &rv_plic);
 
     // Get current Frequency

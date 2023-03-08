@@ -14,14 +14,25 @@
 
 # Author: Jose Miranda (jose.mirandacalero@epfl.ch)
 
-set(RISCV  /home/$ENV{USER}/tools/riscv)
+# set(RISCV  /home/$ENV{USER}/tools/riscv)
 set(RISCV_GITHUB_GCC_COMPILER  $ENV{RISCV}/bin/riscv32-unknown-elf-gcc)
+set(RISCV_GITHUB_CLANG_COMPILER  $ENV{RISCV}/bin/clang)
 #message("RISC-V GCC cross-compiler is in : ${RISCV_GCC_COMPILER}") 
 
 if (EXISTS ${RISCV_GITHUB_GCC_COMPILER})
-set( RISCV_GCC_COMPILER ${RISCV_GITHUB_GCC_COMPILER})
+     set( RISCV_GCC_COMPILER ${RISCV_GITHUB_GCC_COMPILER})
 else()
-message(FATAL_ERROR "RISC-V GCC not found. ${RISCV_GITHUB_GCC_COMPILER}") 
+     message(FATAL_ERROR "RISC-V GCC not found. ${RISCV_GITHUB_GCC_COMPILER}") 
+endif()
+
+if ($ENV{COMPILER} MATCHES "clang")
+     if (EXISTS ${RISCV_GITHUB_CLANG_COMPILER})
+          set( RISCV_CLANG_COMPILER ${RISCV_GITHUB_CLANG_COMPILER})
+     else()
+          message(FATAL_ERROR "RISC-V clang not found. ${RISCV_GITHUB_CLANG_COMPILER}") 
+     endif()
+elseif (NOT $ENV{COMPILER} MATCHES "gcc")
+     message(FATAL_ERROR "Compiler not supported. $ENV{COMPILER}") 
 endif()
 
 #message( "RISC-V GCC found: ${RISCV_GCC_COMPILER}")
@@ -32,13 +43,17 @@ get_filename_component(RISCV_TOOLCHAIN_BIN_EXT ${RISCV_GCC_COMPILER} EXT)
 
 #message( "RISC-V GCC Path: ${RISCV_TOOLCHAIN_BIN_PATH}" )
 
-STRING(REGEX REPLACE "\-gcc" "-" CROSS_COMPILE ${RISCV_GCC_COMPILER})
+STRING(REGEX REPLACE "\-gcc" "-" GCC_CROSS_COMPILE ${RISCV_GCC_COMPILER})
+if ($ENV{COMPILER} MATCHES "clang")
+     STRING(REGEX REPLACE "clang" "" CLANG_CROSS_COMPILE ${RISCV_CLANG_COMPILER})
+endif()
 #message( "RISC-V Cross Compile: ${CROSS_COMPILE}" )
 
 # The Generic system name is used for embedded targets (targets without OS) in
 # CMake
 set( CMAKE_SYSTEM_NAME          Generic )
-set( CMAKE_SYSTEM_PROCESSOR     rv32imc )
+set( CMAKE_SYSTEM_PROCESSOR     $ENV{ARCH} 
+     CACHE STRING "Generate code for given RISC-V ISA string")
 set( CMAKE_EXECUTABLE_SUFFIX    ".elf")
 
 # specify the cross compiler. We force the compiler so that CMake doesn't
@@ -46,21 +61,35 @@ set( CMAKE_EXECUTABLE_SUFFIX    ".elf")
 # the -nostartfiles option on the command line
 #CMAKE_FORCE_C_COMPILER( "${RISCV_TOOLCHAIN_BIN_PATH}/${CROSS_COMPILE}gcc${RISCV_TOOLCHAIN_BIN_EXT}" GNU )
 #CMAKE_FORCE_CXX_COMPILER( "${RISCV_TOOLCHAIN_BIN_PATH}/${CROSS_COMPILE}g++${RISCV_TOOLCHAIN_BIN_EXT}" GNU )
-set(CMAKE_ASM_COMPILER {CROSS_COMPILE}gcc )
-set(CMAKE_AR ${CROSS_COMPILE}ar)
-set(CMAKE_ASM_COMPILER ${CROSS_COMPILE}gcc)
-set(CMAKE_C_COMPILER ${CROSS_COMPILE}gcc)
-set(CMAKE_CXX_COMPILER ${CROSS_COMPILE}g++)
+if ($ENV{COMPILER} MATCHES "gcc")
+     set(CMAKE_ASM_COMPILER ${GCC_CROSS_COMPILE}gcc)
+     set(CMAKE_AR ${GCC_CROSS_COMPILE}ar)
+     set(CMAKE_ASM_COMPILER ${GCC_CROSS_COMPILE}gcc)
+     set(CMAKE_C_COMPILER ${GCC_CROSS_COMPILE}gcc)
+     set(CMAKE_CXX_COMPILER ${GCC_CROSS_COMPILE}g++)
+elseif ($ENV{COMPILER} MATCHES "clang")
+     set(CMAKE_ASM_COMPILER ${CLANG_CROSS_COMPILE}clang)
+     set(CMAKE_AR ${CLANG_CROSS_COMPILE}llvm-ar)
+     set(CMAKE_ASM_COMPILER ${CLANG_CROSS_COMPILE}clang)
+     set(CMAKE_C_COMPILER ${CLANG_CROSS_COMPILE}clang)
+     set(CMAKE_CXX_COMPILER ${CLANG_CROSS_COMPILE}clang++)
+endif()
 
 # We must set the OBJCOPY setting into cache so that it's available to the
 # whole project. Otherwise, this does not get set into the CACHE and therefore
 # the build doesn't know what the OBJCOPY filepath is
-set( CMAKE_OBJCOPY      ${CROSS_COMPILE}objcopy
+# Even if we compile with clang, this must be GCC's objcopy since we always link with GCC
+set( CMAKE_OBJCOPY      ${GCC_CROSS_COMPILE}objcopy
      CACHE FILEPATH "The toolchain objcopy command " FORCE )
 #message( "OBJCOPY PATH: ${CMAKE_OBJCOPY}" )
 
-set( CMAKE_OBJDUMP      ${CROSS_COMPILE}objdump
-     CACHE FILEPATH "The toolchain objdump command " FORCE )
+if ($ENV{COMPILER} MATCHES "gcc")
+     set( CMAKE_OBJDUMP      ${GCC_CROSS_COMPILE}objdump
+          CACHE FILEPATH "The toolchain objdump command " FORCE )
+elseif ($ENV{COMPILER} MATCHES "clang")
+     set( CMAKE_OBJDUMP      ${CLANG_CROSS_COMPILE}llvm-objdump
+          CACHE FILEPATH "The toolchain objdump command " FORCE )
+endif()
 #message( "OBJDUMP PATH: ${CMAKE_OBJDUMP}" )
 
 # Dealing with GDB into CMake - TBD
@@ -72,10 +101,15 @@ set( CMAKE_OBJDUMP      ${CROSS_COMPILE}objdump
 # Set the CMAKE C flags (which should also be used by the assembler!
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g" )
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=${CMAKE_SYSTEM_PROCESSOR}" )
+if ($ENV{COMPILER} MATCHES "clang")
+     set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-command-line-argument --target=riscv32 --gcc-toolchain=$ENV{RISCV} --sysroot=$ENV{RISCV}/riscv32-unknown-elf" )
+endif()
 
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" CACHE STRING "" )
 set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS}" CACHE STRING "" )
 set( CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS}" CACHE STRING "" )
+
+set( CMAKE_LINKER ${RISCV_GCC_COMPILER})  # We always link with GCC
 
 # Set by deafult Linker flags if needed
 #set( CMAKE_EXE_LINKER_FLAGS   "${CMAKE_EXE_LINKER_FLAGS}  -march=${CMAKE_SYSTEM_PROCESSOR}    -nostartfiles   " )

@@ -23,7 +23,7 @@ One example using the external ports is provided where:
 To run the external device example, first compile the software example:
 
 ```
-make app-ext-periph
+make app PROJECT=example_external_peripheral
 ```
 
 By default, the external device example RTL code is disabled. Run fusesoc with the '--flag=use_external_device_example' option to enable it. This example is available for the sim and sim_opt targets.
@@ -43,7 +43,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
 and type to run your compiled software:
 
 ```
-./Vtestharness +firmware=../../../sw/applications/example_external_peripheral/example_external_peripheral.hex
+./Vtestharness +firmware=../../../sw/build/main.hex
 ```
 
 If you don't compile the platform with the correct fusesoc flag, the simulation will hang forever because the external peripheral is disabled and never replies.
