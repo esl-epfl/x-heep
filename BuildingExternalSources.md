@@ -28,9 +28,46 @@ The most seamless way of building sources from external directories begins with 
     │            ├── external.mk
     │            └── ...	
     ├── Makefile
+    ├── util
+    │    └── vendor.py
     └── ...
     
 Where `BASE` is your repository's base directory, `esl_epfl_x_heep` is the vendorized `X-HEEP` repository and `my_app` is the name of the application you intend to build. 
+
+## Vendorizing X-HEEP
+In order to vendorize X-HEEP create inside `BASE` a `hw/vendor` directory containing a file named `eslepfl_x_heep.vendor.hjson` containing:
+```
+// Copyright EPFL
+// Licensed under the Solderpad Hardware License v2.1, see LICENSE.txt for details
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+{
+  name: "esl_epfl_x_heep",
+  target_dir: "esl_epfl_x_heep",
+
+  upstream: {
+    url: "https://github.com/esl-epfl/x-heep.git",
+    rev: "main",
+  },
+
+  patch_dir: "patches/esl_epfl_x_heep",
+
+  exclude_from_upstream: [
+    ".github",
+    "ci",
+  ]
+}
+
+```
+
+The branch `main` can be replaced with an specific commit. This is the recommended operation to prevent accidental updates to an incompatible version. 
+
+In a directory `BASE/util` add the [vendor python script](https://github.com/lowRISC/opentitan/blob/master/util/vendor.py). 
+
+To vendorize or revendorize the X-HEEP repository inside a `BASE/hw/vendor/esl_epfl_x_heep/` folder run the following command from you `BASE`. 
+```
+util/vendor.py --update hw/vendor/eslepfl_x_heep.vendor.hjson 
+```
 
 ## The BASE/sw/ folder
 
