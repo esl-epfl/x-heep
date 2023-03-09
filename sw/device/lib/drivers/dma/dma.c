@@ -129,11 +129,6 @@ static inline uint32_t getIncrement_b( dma_target_t * p_tgt );
  */
 static struct
 {
-  /**
-    * The base address for the soc_ctrl hardware registers.
-   */
-  mmio_region_t baseAdd; 
-  
  /*
   * Pointer to the transaction to be performed. 
   */
@@ -160,7 +155,8 @@ static struct
 void dma_init()
 {
     // @ToDo: This should be deprecated. base address should be obtained from.....
-    dma_cb.baseAdd = mmio_region_from_addr((uint8_t*)DMA_START_ADDRESS); // Obtain the base address of the DMA registers
+
+    // juan: get rid of this
     dma_cb.fic.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS); // Obtain the base address of the fast interrupt controller registers
     dma_cb.trans = NULL; // Clear the loaded transaction. 
     
@@ -493,11 +489,23 @@ static inline uint8_t isOutbound( uint8_t* p_start, uint8_t* p_end, uint32_t p_t
     // Size must be guaranteed to be non-zero before calling this function.  
 }
 
-static inline void writeRegister( uint32_t p_val, uint32_t p_offset )
+
+
+
+
+static inline void writeRegister( uint32_t p_val, uint32_t p_offset, uint32_t p_mask )
 {
+    // juan: analyze whether a mask is necessary. 
+    dma_peri[p_offset];
+    // apply a mask
     mmio_region_write32(dma_cb.baseAdd, p_offset, p_val ); // Writes to the register
     make_sure_that( p_val == mmio_region_read32( dma_cb.baseAdd, (uint32_t)(p_offset) ) ); // Checks that the written value was stored correctly
 }
+
+
+
+
+
 
 
 static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
@@ -535,3 +543,7 @@ void handler_irq_fast_dma(void)
 /*                                 EOF                                      */
 /**                                                                        **/
 /****************************************************************************/
+
+
+// juan: no tener base_address por ningun lado
+
