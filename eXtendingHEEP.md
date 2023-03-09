@@ -1,4 +1,4 @@
-# Extending X-HEEP via the eXtension interface
+# Extending X-HEEP
 
 `X-HEEP` is meant to be extended with your own custom IPs. `X-HEEP` itself posseses a hardware-software framework capable of working standalone. If you want to extend it, you will need to merge your hardware and software with `X-HEEP`'s.
 
@@ -8,8 +8,51 @@ Here you can find a list of `X-HEEP` based open-source examples. If you want to 
 
 * [wip]
 
+
+## Vendorizing X-HEEP
+
+In order to vendorize `X-HEEP` create inside your repository's base directory (`BASE`) a `hw/vendor` directory containing a file named `esl_epfl_x_heep.vendor.hjson`:
+
+<details>
+    <summary>Example of esl_epfl_x_heep.vendor.hjson</summary>
+
+```
+// Copyright EPFL
+// Licensed under the Solderpad Hardware License v2.1, see LICENSE.txt for details
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+{
+  name: "esl_epfl_x_heep",
+  target_dir: "esl_epfl_x_heep",
+
+  upstream: {
+    url: "https://github.com/esl-epfl/x-heep.git",
+    rev: "main",
+  },
+
+  patch_dir: "patches/esl_epfl_x_heep",
+
+  exclude_from_upstream: [
+    ".github",
+    "ci",
+  ]
+}
+
+```
+</details>
+
+The branch `main` can be replaced with an specific commit. This is the recommended operation to prevent accidental updates to an incompatible version. 
+
+In a directory `BASE/util` add the [vendor python script](https://github.com/lowRISC/opentitan/blob/master/util/vendor.py). 
+
+To vendorize or revendorize the X-HEEP repository inside a `BASE/hw/vendor/esl_epfl_x_heep/` folder run the following command from your `BASE`. 
+```
+util/vendor.py --update hw/vendor/esl_epfl_x_heep.vendor.hjson 
+```
+
+
 ## Extending Hardware
-To get started you will need to integrate both your coprocessor and x-heep into a new system.
+To get started you will need to integrate both your coprocessor or accelerator and `X-HEEP` into a new system.
 
 ### Proposed repository folder structure
 The following is an example repository folder structure. 
@@ -37,7 +80,7 @@ The following is an example repository folder structure.
 
 To achieve this:
 
-* Create a new top-level repository (`BASE`) and [vendorize](#vendorizing-x-heep) (or add as git submodules) both your `CORE-V-XIF` compliant coprocessor and `X-HEEP`.
+* Create a new top-level repository (`BASE`) and [vendorize](#vendorizing-x-heep) (or add as git submodules) both your `CORE-V-XIF/OBI` compliant coprocessor/accelerator and `X-HEEP`.
 * Copy the `x-heep/hw/system/x_heep_system.sv` as your new top-level module. Then modify it as needed to include your co-processor and connect it to the `core_v_mini_mcu` with the `XIF`.
 * Before [building software](#building-software) remember to run `make mcu-gen CPU=cv32e40x`.
 
@@ -166,48 +209,6 @@ To add this new top-level module to the simulation/synthesis flow you can extend
 ```
 
 </details>
-
-
-## Vendorizing X-HEEP
-
-In order to vendorize `X-HEEP` create inside `BASE` a `hw/vendor` directory containing a file named `esl_epfl_x_heep.vendor.hjson`:
-
-<details>
-    <summary>Example of esl_epfl_x_heep.vendor.hjson</summary>
-
-```
-// Copyright EPFL
-// Licensed under the Solderpad Hardware License v2.1, see LICENSE.txt for details
-// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
-
-{
-  name: "esl_epfl_x_heep",
-  target_dir: "esl_epfl_x_heep",
-
-  upstream: {
-    url: "https://github.com/esl-epfl/x-heep.git",
-    rev: "main",
-  },
-
-  patch_dir: "patches/esl_epfl_x_heep",
-
-  exclude_from_upstream: [
-    ".github",
-    "ci",
-  ]
-}
-
-```
-</details>
-
-The branch `main` can be replaced with an specific commit. This is the recommended operation to prevent accidental updates to an incompatible version. 
-
-In a directory `BASE/util` add the [vendor python script](https://github.com/lowRISC/opentitan/blob/master/util/vendor.py). 
-
-To vendorize or revendorize the X-HEEP repository inside a `BASE/hw/vendor/esl_epfl_x_heep/` folder run the following command from your `BASE`. 
-```
-util/vendor.py --update hw/vendor/esl_epfl_x_heep.vendor.hjson 
-```
 
 
 ## Building Software
