@@ -290,7 +290,7 @@ SET(CMAKE_VERBOSE_MAKEFILE on)
 # Specify that we want to link with GCC even if we are compiling with clang
 if (${COMPILER} MATCHES "clang")
   set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
-                                ${SOURCE_PATH}build/CMakeFiles/${TARGET}.elf.dir/applications/${PROJECT}/${TARGET}.c.obj \
+                                ${SOURCE_PATH}build/CMakeFiles/${TARGET}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${TARGET}.c.obj \
                                 -o ${TARGET}.elf")
 endif()
 
