@@ -2,7 +2,7 @@
 
 `X-HEEP` is meant to be extended with your own custom IPs. `X-HEEP` itself posseses a hardware-software framework capable of working standalone. If you want to extend it, you will need to merge your hardware and software with `X-HEEP`'s.
 
-For this purpose we support the [CORE-V-XIF](https://docs.openhwgroup.org/projects/openhw-group-core-v-xif/en/latest/intro.html) interface with the [cv32e40x](https://github.com/openhwgroup/cv32e40x) RISC-V CPU.
+For this purpose we support the [CORE-V-XIF](https://docs.openhwgroup.org/projects/openhw-group-core-v-xif/en/latest/intro.html) interface with the [cv32e40x](https://github.com/openhwgroup/cv32e40x) RISCV-CPU, and we expose master and slave ports to/from the bus.
 
 Here you can find a list of `X-HEEP` based open-source examples. If you want to include your project in this list, please open an issue with a link to your repository.
 
