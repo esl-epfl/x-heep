@@ -17,7 +17,7 @@ extern "C" {
 #define DMA_PARAM_REG_WIDTH 32
 
 // Input data pointer (word aligned)
-#define DMA_PTR_IN_REG_OFFSET 0x0    
+#define DMA_PTR_IN_REG_OFFSET 0x0
 
 // Output data pointer (word aligned)
 #define DMA_PTR_OUT_REG_OFFSET 0x4
@@ -47,7 +47,7 @@ extern "C" {
 // Data type to transfer: 32-bit word(0), 16-bit half word(1), 8-bit
 // byte(2,3).
 #define DMA_DATA_TYPE_REG_OFFSET 0x1c
-#define DMA_DATA_TYPE_DATA_TYPE_MASK 0x3 
+#define DMA_DATA_TYPE_DATA_TYPE_MASK 0x3
 #define DMA_DATA_TYPE_DATA_TYPE_OFFSET 0
 #define DMA_DATA_TYPE_DATA_TYPE_FIELD \
   ((bitfield_field32_t) { .mask = DMA_DATA_TYPE_DATA_TYPE_MASK, .index = DMA_DATA_TYPE_DATA_TYPE_OFFSET })

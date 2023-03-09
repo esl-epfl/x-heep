@@ -138,20 +138,12 @@ run-blinkyfreertos: mcu-gen verilator-sim |venv
 	./Vtestharness +firmware=../../../sw/build/main.hex; \
 	cat uart0.log; \
 	cd ../../..;
-	
-run-app: mcu-gen verilator-sim |venv
-	$(MAKE) -C sw PROJECT=$(PROJECT) MAINFILE=$(MAINFILE)  TARGET=$(TARGET) LINKER=$(LINKER);\
-	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
-	./Vtestharness +firmware=../../../sw/build/$(MAINFILE).hex; \
-	cat uart0.log; \
-	cd ../../..;
 
 ## @section Vivado
 
 ## Builds (synthesis and implementation) the bitstream for the FPGA version using Vivado
 ## @param FPGA_BOARD=nexys-a7-100t,pynq-z2
 ## @param FUSESOC_FLAGS=--flag=<flagname>
-
 vivado-fpga: |venv
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildvivado.log
 

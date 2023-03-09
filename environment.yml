@@ -1,4 +1,4 @@
-name: x-heep
+name: core-v-mini-mcu
 channels:
   - defaults
 dependencies:
