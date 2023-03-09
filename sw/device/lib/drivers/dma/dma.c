@@ -62,6 +62,8 @@
 
 #define DMA_CSR_REG_MIE_MASK(enable) (enable << 19)
 
+#define DMA_MASK_WHOLE_REGISTER 0xFFFFFFFF
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        TYPEDEFS AND STRUCTURES                           */
@@ -364,15 +366,15 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
     
     
     //////////  SET THE POINTERS   //////////
-    writeRegister( dma_cb.trans->src->ptr, DMA_PTR_IN_REG_OFFSET, 0 );
-    writeRegister( dma_cb.trans->dst->ptr, DMA_PTR_OUT_REG_OFFSET, 0 );
+    writeRegister( dma_cb.trans->src->ptr, DMA_PTR_IN_REG_OFFSET, DMA_MASK_WHOLE_REGISTER );
+    writeRegister( dma_cb.trans->dst->ptr, DMA_PTR_OUT_REG_OFFSET, DMA_MASK_WHOLE_REGISTER );
     
     //////////  SET THE INCREMENTS   //////////    
     
     /* The increments might have been changed (vs. the original value of the target) due to misalignment issues. If they have, use the changed values, otherwise, use the target-specific ones.
       Other reason to overwrite the target increment is if a semaphore is used. In that case, a increment of 0 is necessary. */
-    writeRegister( getIncrement_b( dma_cb.trans->src ), DMA_SRC_PTR_INC_REG_OFFSET, 0 );  
-    writeRegister( getIncrement_b( dma_cb.trans->dst ), DMA_DST_PTR_INC_REG_OFFSET, 0 );
+    writeRegister( getIncrement_b( dma_cb.trans->src ), DMA_SRC_PTR_INC_REG_OFFSET, DMA_MASK_WHOLE_REGISTER );  
+    writeRegister( getIncrement_b( dma_cb.trans->dst ), DMA_DST_PTR_INC_REG_OFFSET, DMA_MASK_WHOLE_REGISTER );
     
             
     //////////  SET SEMAPHORE AND DATA TYPE   //////////    
@@ -388,7 +390,7 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans )
     if( !p_trans || ( dma_cb.trans != p_trans ) ) return DMA_CONFIG_CRITICAL_ERROR; // Make sure that the loaded transaction is the intended transaction. If the loaded trans was NULL'd, then this the transaction is never launched.
     //////////  SET SIZE TO COPY + LAUNCH THE DMA OPERATION   //////////
     dma_cb.intrFlag = 0; // This has to be done prior to writing the register because otherwise the interrupt could arrive before it is lowered (i.e. causing  
-    writeRegister(dma_cb.trans->size_b, DMA_DMA_START_REG_OFFSET, 0 ); 
+    writeRegister(dma_cb.trans->size_b, DMA_DMA_START_REG_OFFSET, DMA_MASK_WHOLE_REGISTER ); 
     // If the end event was set to wait for the interrupt, the dma_launch will not return until the interrupt arrives. 
     while( p_trans->end == DMA_END_EVENT_INTR_WAIT && ! dma_cb.intrFlag ) {
         wait_for_interrupt();
@@ -501,18 +503,7 @@ static inline uint8_t isOutbound( uint8_t* p_start, uint8_t* p_end, uint32_t p_t
 
 static inline void writeRegister( uint32_t p_val, uint32_t p_offset, uint32_t p_mask )
 {
-    uint32_t originalVal = (( uint32_t * ) dma_peri ) [ p_offset / 4 ];
-    printf("######## Writing register %u (%u). Was %08x \n", p_offset, p_offset/4, originalVal);
-    uint32_t cleanedVal = originalVal & ~ ( p_mask ? p_mask : 0xFFFFFFFF );
-    printf("Now it is: %08x \n", cleanedVal);
-    uint32_t writeVal = p_val & ( p_mask ? p_mask : 0xFFFFFFFF );
-    printf("I will write %08x \n",writeVal);
-    uint32_t finalVal = cleanedVal | writeVal;
-    printf("Final value %08x \n", finalVal);
-
-    (( uint32_t * ) dma_peri ) [ p_offset / 4 ] = finalVal;
-    // apply a mask
-    //make_sure_that( p_val == mmio_region_read32( dma_cb.baseAdd, (uint32_t)(p_offset) ) ); // Checks that the written value was stored correctly
+    (( uint32_t * ) dma_peri ) [ p_offset / 4 ] = ( (( uint32_t * ) dma_peri ) [ p_offset / 4 ] & ~p_mask ) | ( p_val & p_mask ) ;
 }
 
 
