@@ -63,6 +63,7 @@
 #define DMA_CSR_REG_MIE_MASK(enable) (enable << 19)
 
 #define DMA_MASK_WHOLE_REGISTER 0xFFFFFFFF
+#define DMA_REGISTER_SIZE_BYTES 4
 
 /****************************************************************************/
 /**                                                                        **/
@@ -102,7 +103,7 @@ static inline uint8_t isOutbound( uint8_t* p_start, uint8_t* p_end, uint32_t p_t
  *          This check is done through an assertion, so can be disabled by disabling assertions.
  * @param p_val The value to be written.
  * @param p_offset The register's offset from the peripheral's base address where the target register is located.
- * juan: update
+ * @param p_mask The variable's mask to only modify its bits inside the whole register.
  */
 static inline void writeRegister( uint32_t p_val, uint32_t p_offset, uint32_t p_mask );
 
@@ -400,8 +401,8 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans )
 
 
 uint32_t dma_is_done()
-{                   // juan: fix
-  uint32_t ret = 1;//mmio_region_read32(dma_cb.baseAdd, (uint32_t)(DMA_DONE_REG_OFFSET));
+{                  
+  uint32_t ret = (( uint32_t * ) dma_peri ) [ DMA_DONE_REG_OFFSET / DMA_REGISTER_SIZE_BYTES ];
   make_sure_that( ret == 0 || ret == 1 );
   return ret;
 }
@@ -494,16 +495,10 @@ static inline uint8_t isOutbound( uint8_t* p_start, uint8_t* p_end, uint32_t p_t
 
 
 
-// juan: consider that if the value is masked 0001111000 then the value 000000**** needs to be shifted << 3
-/**
- * #define DMA_DATA_TYPE_DATA_TYPE_FIELD \
-  ((bitfield_field32_t) { .mask = DMA_DATA_TYPE_DATA_TYPE_MASK, .index = DMA_DATA_TYPE_DATA_TYPE_OFFSET })
- * 
-*/
-
+// @ToDo: Consider changing the "mask" parameter for a bitfield definition (see dma_regs.h)
 static inline void writeRegister( uint32_t p_val, uint32_t p_offset, uint32_t p_mask )
 {
-    (( uint32_t * ) dma_peri ) [ p_offset / 4 ] = ( (( uint32_t * ) dma_peri ) [ p_offset / 4 ] & ~p_mask ) | ( p_val & p_mask ) ;
+    (( uint32_t * ) dma_peri ) [ p_offset / DMA_REGISTER_SIZE_BYTES ] = ( (( uint32_t * ) dma_peri ) [ p_offset / DMA_REGISTER_SIZE_BYTES ] & ~p_mask ) | ( p_val & p_mask ) ;
 }
 
 
