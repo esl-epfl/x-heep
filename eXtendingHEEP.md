@@ -206,7 +206,7 @@ In a directory `BASE/util` add the [vendor python script](https://github.com/low
 
 To vendorize or revendorize the X-HEEP repository inside a `BASE/hw/vendor/esl_epfl_x_heep/` folder run the following command from your `BASE`. 
 ```
-util/vendor.py --update hw/vendor/eslepfl_x_heep.vendor.hjson 
+util/vendor.py --update hw/vendor/esl_epfl_x_heep.vendor.hjson 
 ```
 
 
@@ -246,11 +246,13 @@ The following is an example repository folder structure.
     
 Where `BASE` is your repository's base directory, `esl_epfl_x_heep` is the vendorized `X-HEEP` repository and `my_app` is the name of the application you intend to build. 
 
-## The BASE/sw/ folder
+## The /sw/ folder
 
-The `BASE/sw/` folder must comply with `X-HEEP` repository structure and therefore include an `applications`, `build`, `device` and `linker` folder.
+The `BASE/sw/` folder must comply with `X-HEEP` repository structure and therefore include an `applications`, `build`, `device` and `linker` folder. 
+It is not compulsory for it to be on the `BASE` directory, although this is the default structure that `X-HEEP`'s Makefiles will assume if no other path is specified through the `SOURCE` variable. 
 Inside the `applications` folder different projects can be stored (still respecting the `name_of_project/main.c` structure). 
 The `build`, `device` and `linker` should be linked with the vendorized folders inside `X-HEEP`.
+In this example that is done from the `BASE` directory as follows:
 ```
 ln -s hw/vendor/esl_epfl_x_heep/sw/build sw/build
 ln -s hw/vendor/esl_epfl_x_heep/sw/device sw/device
@@ -276,8 +278,8 @@ app:
     @echo This is app being run from the x-heep repo
     $(MAKE) -f $(XHEEP_MAKE) $(MAKECMDGOALS) PROJECT=hello_world SOURCE=.
 
-mcu-gen: 
-    @echo You will not mcu-gen
+verilator-sim: 
+    @echo You will not access verilator-sim
 
 export HEEP_DIR = hw/vendor/esl_epfl_x_heep/
 XHEEP_MAKE = $(HEEP_DIR)/external.mk
@@ -286,10 +288,10 @@ include $(XHEEP_MAKE)
 
 * The `test` rule will not use the `X-HEEP` Makefile in any way.
 * The `app` rule will perform actions before calling `X-HEEP` Makefile's `app` rule. In this case, the project and where the source files are to be extracted from is being specified. The `SOURCE=.` argument will set `X-HEEP`'s own `sw/` folder as the directory from which to fetch source files. This is an example of building inner sources from an external directory. 
-* The `mcu-gen` rule will override the `X-HEEP` Makefile's one. 
-* Any other target will be passed straight to `X-HEEP`'s Makefile, meaning that the following command will build the sources from the external directory:
+* The `verilator-sim` rule will override the `X-HEEP` Makefile's one. 
+* Any other target will be passed straight to `X-HEEP`'s Makefile. For example
 ```
-make app PROJECT=my_app
+make mcu-gen CPU=cv32e40x
 ```
 </details>
 
