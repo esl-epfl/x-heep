@@ -44,7 +44,9 @@ jobs:
       with:
         python-version: 3.8
     - name: Install requirements
-      run: make venv
+      run: |
+        make venv
+        echo "PATH=`pwd`/.venv/bin:$PATH" >> $GITHUB_ENV
     - name: Install Verible
       run: |
         set -e
