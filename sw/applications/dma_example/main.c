@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
     ret = dma_create_target( &tgt1, test_data_4B, 1, TEST_DATA_SIZE,  DMA_DATA_TYPE_WORD, DMA_SMPH_MEMORY, NULL, DMA_PERFORM_CHECKS_INTEGRITY);
     ret = dma_create_target( &tgt2, copied_data_4B, 1, TEST_DATA_SIZE,  DMA_DATA_TYPE_WORD, DMA_SMPH_MEMORY, NULL,  DMA_PERFORM_CHECKS_INTEGRITY);
-    ret = dma_create_transaction( &trans, &tgt1, &tgt2, DMA_END_EVENT_POLLING, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    ret = dma_create_transaction( &trans, &tgt1, &tgt2, DMA_END_EVENT_INTR_WAIT, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     ret = dma_load_transaction(&trans);
 
     ret = dma_launch(&trans);

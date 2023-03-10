@@ -33,18 +33,6 @@ volatile int8_t spi_intr_flag;
 
 spi_host_t spi_host_flash;
 
-void handler_irq_fast_spi_flash(void)
-{
-    // Disable SPI interrupts
-    spi_enable_evt_intr(&spi_host_flash, false);
-    spi_enable_rxwm_intr(&spi_host_flash, false);
-    // Clear fast interrupt
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kSpiFlash_fic_e);
-    spi_intr_flag = 1;
-}
-
 void dma_intr_handler(){
     printf("A non-weak interrupt of the DMA\n");
 }
@@ -77,7 +65,7 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
     uint32_t *fifo_ptr_tx = SPI->base_addr.base + SPI_HOST_TXDATA_REG_OFFSET;
 
     // -- DMA CONFIGURATION --
-    printf("TEst 1\n");
+    printf("TEST 1\n");
 
     dma_target_t tgt_src;
     dma_target_t tgt_dst;
@@ -94,36 +82,6 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
     res = dma_launch(&trans);
     printf("launched!\n");
 
- /*    
-    dma_set_read_ptr_inc(DMA, (uint32_t) 2);
-    wrote 2 in 0x10 
-
-    dma_set_write_ptr_inc(DMA, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
-    wrote 0 in 0x14
-
-    dma_set_read_ptr(DMA, (uint32_t) data);
-    wrote data in 0x00 
-
-    dma_set_write_ptr(DMA, (uint32_t) fifo_ptr_tx);
-    wrote fifo_ptr_tx in 0x04
-
-
-    // Set the correct SPI-DMA mode:
-    // (0) disable
-    // (1) receive from SPI (use SPI_START_ADDRESS for spi_host pointer)
-    // (2) send to SPI (use SPI_START_ADDRESS for spi_host pointer)
-    // (3) receive from SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
-    // (4) send to SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
-    dma_set_spi_mode(DMA, (uint32_t) 4); // The DMA will wait for the SPI FLASH TX FIFO ready signal
-    wrote 4 in 0x18
-    
-    dma_set_data_type(DMA, (uint32_t) 1); // 1 is for 16-bits
-    wrote 1 in 0x1c
-    
-    dma_set_cnt_start(DMA, (uint32_t)byte_count); // Size of data received by SPI
-    wrote 128 in 0x8
-
- */
     // Wait for the first data to arrive to the TX FIFO before enabling interrupt
     spi_wait_for_tx_not_empty(SPI);
     // Enable event interrupt
