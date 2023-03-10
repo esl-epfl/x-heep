@@ -47,8 +47,6 @@ ARCH     ?= rv32imc
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
 SOURCE 	 ?= "."
 
-
-
 ## @section Linux-Emulation
 
 ## Generates FEMU
