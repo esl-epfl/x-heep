@@ -72,6 +72,16 @@
  */
 #define DMA_REGISTER_SIZE_BYTES 4
 
+/**
+ * Mask to determine if an address is multiple of 4 (Word aligned).
+ */
+#define DMA_WORD_ALIGN_MASK 3
+
+/**
+ * Mask to determine if an address is multiple of 2 (Half Word aligned).
+ */
+#define DMA_HALF_WORD_ALIGN_MASK 1
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        TYPEDEFS AND STRUCTURES                           */
@@ -185,8 +195,8 @@ void dma_init()
 dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint8_t* p_start,
                                         uint8_t* p_end ){
     /*
-    * SANITY CHECKS
-    */
+     * SANITY CHECKS
+     */
     if( (uint8_t*)p_end < (uint8_t*)p_start ) return DMA_CONFIG_INCOMPATIBLE;
     
     // Load the start and end pointers of the environment.
@@ -217,8 +227,8 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt,
     
     
     /*
-    * STORING OF INFORMATION
-    */
+     * STORING OF INFORMATION
+     */
 
     /* The flags are cleaned in case the structure was used before.*/
     p_tgt->flags = DMA_CONFIG_OK; 
@@ -231,8 +241,8 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt,
     p_tgt->env = (dma_env_t*)p_env;
     
     /*
-    * INTEGRITY CHECKS
-    */
+     * INTEGRITY CHECKS
+     */
 
     if( p_check )
     {
@@ -293,13 +303,13 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
     make_sure_that( (dma_end_event_t)p_end < DMA_END_EVENT__size );
 
     /*
-    * CHECK IF TARGETS HAVE ERRORS
-    */
+     * CHECK IF TARGETS HAVE ERRORS
+     */
 
     /* 
-    * The transaction is NOT created if the targets include errors.
-    * A successful target creation has to be done before loading it to the DMA.
-    */
+     * The transaction is NOT created if the targets include errors.
+     * A successful target creation has to be done before loading it to the DMA.
+     */
     uint8_t errorSrc = ( p_src->flags & DMA_CONFIG_CRITICAL_ERROR );
     uint8_t errorDst = ( p_dst->flags & DMA_CONFIG_CRITICAL_ERROR );
     if( errorSrc || errorDst )
@@ -308,15 +318,15 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
     }
     
     /*
-    * CHECK IF THERE ARE SEMAPHORE INCONSISTENCIES 
-    */
+     * CHECK IF THERE ARE SEMAPHORE INCONSISTENCIES 
+     */
 
     /* 
-    * The DMA can only handle one semaphore at a time, therefore, if the two 
-    * targets require a semaphore, the transaction has to be discarded.
-    * None of the two values can be taken by default because this inconsistency
-    * is probably a result of an error (likely wrong target selection).
-    */
+     * The DMA can only handle one semaphore at a time, therefore, if the two 
+     * targets require a semaphore, the transaction has to be discarded.
+     * None of the two values can be taken by default because this inconsistency
+     * is probably a result of an error (likely wrong target selection).
+     */
     if( p_check )
     {
         if( p_src->smph && p_dst->smph ) 
@@ -325,15 +335,15 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
         }
     }
     /* 
-    * As there is only one non-null semaphore among the targets, that one 
-    * is selected. 
-    * If both are zero, it does not matter which is picked. 
-    */
+     * As there is only one non-null semaphore among the targets, that one 
+     * is selected. 
+     * If both are zero, it does not matter which is picked. 
+     */
     p_trans->smph = p_src->smph ? p_src->smph : p_dst->smph;
     
     /*
-    * SET UP THE DEFAULT CONFIGURATIONS 
-    */
+     * SET UP THE DEFAULT CONFIGURATIONS 
+     */
 
     /* The flags are cleaned in case the structure was used before.*/
     p_trans->flags = DMA_CONFIG_OK;
@@ -342,9 +352,11 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
     p_trans->size_b = p_src->size_du * DMA_DATA_TYPE_2_DATA_SIZE(p_src->type);
     /* By default, the source defines the data type.*/
     p_trans->type = p_src->type;
-    /* By default, the transaction increment is set to 0 and, if required,
-    * it will be changed to 1 (in which case both src and dst will have an
-    * increment of 1 data unit).*/
+    /* 
+     * By default, the transaction increment is set to 0 and, if required,
+     * it will be changed to 1 (in which case both src and dst will have an
+     * increment of 1 data unit).
+     */
     p_trans->inc_b = 0;
     /* The pointer to the targets is stored in the transaction. */
     p_trans->src = p_src;
@@ -353,16 +365,16 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
     p_trans->end = p_end;
     
     /*
-    * CHECK IF THERE ARE MISALIGNMENTS 
-    */
+     * CHECK IF THERE ARE MISALIGNMENTS 
+     */
 
     if( p_check  )
     {
         /* 
-        * The source and destination targets are analyzed. 
-        * If the target is a peripheral (i.e. uses one of semaphore slots)
-        * then the misalignment is not checked.
-        */
+         * The source and destination targets are analyzed. 
+         * If the target is a peripheral (i.e. uses one of semaphore slots)
+         * then the misalignment is not checked.
+         */
         uint8_t misalignment = 0;
         if( ! p_src->smph )
         {
@@ -386,61 +398,61 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
         if( misalignment )
         {
             /* 
-            * Misalignment flags will only be stored in the transaction, as 
-            * they are data type dependent, and could vary from transaction 
-            * to transaction, even with the same pair of targets.
-            */
+             * Misalignment flags will only be stored in the transaction, as 
+             * they are data type dependent, and could vary from transaction 
+             * to transaction, even with the same pair of targets.
+             */
             p_trans->flags |= DMA_CONFIG_MISALIGN;
 
             /* 
-            * If a misalignment is detected and realignment is not allowed, 
-            * an error is returned. No operation should be performed by the DMA.
-            * No further operations are done to prevent corrupting information
-            * that could be useful for debugging purposes. 
-            */
+             * If a misalignment is detected and realignment is not allowed, 
+             * an error is returned. No operation should be performed by the DMA.
+             * No further operations are done to prevent corrupting information
+             * that could be useful for debugging purposes. 
+             */
             if( !p_allowRealign)
             {
                 return p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
             }
 
             /*
-            * CHECK IF THERE IS A DISCONTINUITY 
-            */
-
-            /* 
-            * If there is a misalignment AND the source or destination 
-            * arrangements are discontinuous, it is not possible to use the 
-            * DMA. An error is returned.
-            * A discontinuity in an arrangement is defined as the increment
-            * being larger than the data type size. 
-            * e.g. 
-            * |AAAA|AAAA|BBBB|BBBB|      |____|AAAA|AAAA|____|  
-            * 0    1    2    3           0    1    2    3          
-            *    
-            * |CCCC|CCCC|____|____| ==>  |____|BBBB|BBBB|____| 
-            * 4    5    6    7           4    5    6    7     
-            *    
-            * |____|____|____|____|      |____|CCCC|CCCC|____| 
-            * 8    9    10   11          8    9    10   11    
-            * 
-            * In this case the source arrangement has 16bit HALF WORDs, with
-            * an increment of 1 data unit, so all data is continuous. 
-            * The destination arrangement has also 16bit HALF WORDs, but 
-            * misaligned and with 2 data units of increment. 
-            * To copy a misaligned arrangement of HALF WORDs, the DMA should
-            * use BYTEs. However, by using bytes it would not be able to 
-            * write twice and skip twice, as it has a single skip increment. 
-            * 
-            * The misalignment and discontinuity can be found in the source 
-            * and destination respectively and vice versa, and this 
-            * limitation would still exist.  
-            * 
-            * The discontinuous flag is added (the misaligned one was 
-            * already there), and it is turned into a critical error.'
-            * 
-            * No further operations are done to prevent corrupting
-            * information that could be useful for debugging purposes.
-            */
+             * CHECK IF THERE IS A DISCONTINUITY 
+             */
+ 
+            /*  
+             * If there is a misalignment AND the source or destination 
+             * arrangements are discontinuous, it is not possible to use the 
+             * DMA. An error is returned.
+             * A discontinuity in an arrangement is defined as the increment
+             * being larger than the data type size. 
+             * e.g. 
+             * |AAAA|AAAA|BBBB|BBBB|      |____|AAAA|AAAA|____|  
+             * 0    1    2    3           0    1    2    3          
+             *    
+             * |CCCC|CCCC|____|____| ==>  |____|BBBB|BBBB|____| 
+             * 4    5    6    7           4    5    6    7     
+             *    
+             * |____|____|____|____|      |____|CCCC|CCCC|____| 
+             * 8    9    10   11          8    9    10   11    
+             * 
+             * In this case the source arrangement has 16bit HALF WORDs, with
+             * an increment of 1 data unit, so all data is continuous. 
+             * The destination arrangement has also 16bit HALF WORDs, but 
+             * misaligned and with 2 data units of increment. 
+             * To copy a misaligned arrangement of HALF WORDs, the DMA should
+             * use BYTEs. However, by using bytes it would not be able to 
+             * write twice and skip twice, as it has a single skip increment. 
+             * 
+             * The misalignment and discontinuity can be found in the source 
+             * and destination respectively and vice versa, and this 
+             * limitation would still exist.  
+             * 
+             * The discontinuous flag is added (the misaligned one was 
+             * already there), and it is turned into a critical error.'
+             * 
+             * No further operations are done to prevent corrupting
+             * information that could be useful for debugging purposes.
+             */
             if( ( p_src->inc_du > 1 ) || ( p_dst->inc_du > 1 ) )
             {
                 p_trans->flags |= DMA_CONFIG_DISCONTINUOUS;
@@ -448,33 +460,33 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
             }
 
             /*
-            * PERFORM THE REALIGNMENT 
-            */
-
+             * PERFORM THE REALIGNMENT 
+             */
+ 
             /* 
-            * If realignment is allowed and there are no discontinuities,
-            * a more granular data type is used according to the detected 
-            * misalignment in order to overcome it. 
-            */       
+             * If realignment is allowed and there are no discontinuities,
+             * a more granular data type is used according to the detected 
+             * misalignment in order to overcome it. 
+             */       
             p_trans->type += misalignment;
             /* 
-            * Source and destination increment should now be of the size
-            * of the data.
-            * As increments are given in bytes, in both cases should be the
-            * size of a data unit. 
-            */
+             * Source and destination increment should now be of the size
+             * of the data.
+             * As increments are given in bytes, in both cases should be the
+             * size of a data unit. 
+             */
             p_trans->inc_b = DMA_DATA_TYPE_2_DATA_SIZE( p_trans->type );
             /* The copy size does not change, as it is already stored in bytes.*/
         }
     
         /*
-        * CHECK IF SOURCE HAS SIZE 0
-        */
+         * CHECK IF SOURCE HAS SIZE 0
+         */
 
         /*
-        * No further operations are done to prevent corrupting information 
-        * that could be useful for debugging purposes. 
-        */
+         * No further operations are done to prevent corrupting information 
+         * that could be useful for debugging purposes. 
+         */
         if( p_src->size_du == 0 ) 
         {
             p_trans->flags |= DMA_CONFIG_SRC;
@@ -482,33 +494,33 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
         }
         
         /*
-        * CHECK IF THERE IS CROSS-OUTBOUND
-        */
+         * CHECK IF THERE IS CROSS-OUTBOUND
+         */
 
         /* 
-        * As the source target does not know the constraints of the 
-        * destination target, it is possible that the copied information
-        * ends up beyond the bounds of the destination environment. 
-        * This check is not performed if no destination environment was set.
-        *
-        * e.g. 
-        * If 10 HALF WORDs are to be transferred with a HALF WORD in between
-        * (increment of 2 data units: writes 2 bytes, skips 2 bytes, ...),
-        * then ( 10 data units * 2 bytes ) + ( 9 data units * 2 bytes ) are
-        * traveled for each = 38 bytes 
-        * that need to be gone over in order to complete the transaction.
-        * Having the transaction size in bytes, they need to be converted 
-        * to data units:
-        * size [data units] = size [bytes] / convertionRatio [bytes/data unit].
-        * 
-        * The transaction can be performed if the whole affected area can fit
-        * inside the destination environment
-        * (i.e. The start pointer + the 38 bytes -in this case-, is smaller
-        * than the end pointer of the environment). 
-        * 
-        * No further operations are done to prevent corrupting information
-        * that could be useful for debugging purposes.  
-        */ 
+         * As the source target does not know the constraints of the 
+         * destination target, it is possible that the copied information
+         * ends up beyond the bounds of the destination environment. 
+         * This check is not performed if no destination environment was set.
+         *
+         * e.g. 
+         * If 10 HALF WORDs are to be transferred with a HALF WORD in between
+         * (increment of 2 data units: writes 2 bytes, skips 2 bytes, ...),
+         * then ( 10 data units * 2 bytes ) + ( 9 data units * 2 bytes ) are
+         * traveled for each = 38 bytes 
+         * that need to be gone over in order to complete the transaction.
+         * Having the transaction size in bytes, they need to be converted 
+         * to data units:
+         * size [data units] = size [bytes] / convertionRatio [bytes/data unit].
+         * 
+         * The transaction can be performed if the whole affected area can fit
+         * inside the destination environment
+         * (i.e. The start pointer + the 38 bytes -in this case-, is smaller
+         * than the end pointer of the environment). 
+         * 
+         * No further operations are done to prevent corrupting information
+         * that could be useful for debugging purposes.  
+         */ 
         uint8_t isEnv = p_dst->env;
         uint8_t isOutb = isOutbound(
                                     p_dst->ptr, 
@@ -550,8 +562,8 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
     dma_cb.trans = p_trans; 
     
     /*
-    * ENABLE/DISABLE INTERRUPTS
-    */
+     * ENABLE/DISABLE INTERRUPTS
+     */
 
     /* 
      * If the selected en event is polling, interrupts are disabled. 
@@ -568,30 +580,30 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
 
 
     /*
-    * SET THE POINTERS
-    */
+     * SET THE POINTERS
+     */
 
     dma_peri->PTR_IN = dma_cb.trans->src->ptr;
     dma_peri->PTR_OUT = dma_cb.trans->dst->ptr;
     
     /*
-    * SET THE INCREMENTS
-    */
+     * SET THE INCREMENTS
+     */
 
     /* 
-    * The increments might have been changed (vs. the original value of 
-    * the target) due to misalignment issues. If they have, use the changed
-    * values, otherwise, use the target-specific ones.
-    * Other reason to overwrite the target increment is if a semaphore is used.
-    * In that case, a increment of 0 is necessary.
-    */
+     * The increments might have been changed (vs. the original value of 
+     * the target) due to misalignment issues. If they have, use the changed
+     * values, otherwise, use the target-specific ones.
+     * Other reason to overwrite the target increment is if a semaphore is used.
+     * In that case, a increment of 0 is necessary.
+     */
 
     dma_peri->SRC_PTR_INC = getIncrement_b( dma_cb.trans->src );
     dma_peri->DST_PTR_INC = getIncrement_b( dma_cb.trans->dst );
     
     /*
-    * SET SEMAPHORE AND DATA TYPE
-    */    
+     * SET SEMAPHORE AND DATA TYPE
+     */    
 
     writeRegister( dma_cb.trans->smph, 
                 DMA_SPI_MODE_REG_OFFSET, 
@@ -606,32 +618,32 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
 dma_config_flags_t dma_launch( dma_trans_t* p_trans )
 {
     /*
-    * Make sure that the loaded transaction is the intended transaction. 
-    * If the loaded trans was NULL'd, then this the transaction is never 
-    * launched.
-    */
+     * Make sure that the loaded transaction is the intended transaction. 
+     * If the loaded trans was NULL'd, then this the transaction is never 
+     * launched.
+     */
     if( !p_trans || ( dma_cb.trans != p_trans ) )
     {
         return DMA_CONFIG_CRITICAL_ERROR;
     }
     
     /*
-    * SET SIZE TO COPY + LAUNCH THE DMA OPERATION
-    */
+     * SET SIZE TO COPY + LAUNCH THE DMA OPERATION
+     */
 
     /*
-    * This has to be done prior to writing the register because otherwise
-    * the interrupt could arrive before it is lowered.
-    */
+     * This has to be done prior to writing the register because otherwise
+     * the interrupt could arrive before it is lowered.
+     */
     dma_cb.intrFlag = 0;
 
     /* Load the size and start the transaction. */
     dma_peri->DMA_START = dma_cb.trans->size_b;
 
     /* 
-    * If the end event was set to wait for the interrupt, the dma_launch
-    * will not return until the interrupt arrives. 
-    */
+     * If the end event was set to wait for the interrupt, the dma_launch
+     * will not return until the interrupt arrives. 
+     */
     while( p_trans->end == DMA_END_EVENT_INTR_WAIT && ! dma_cb.intrFlag ) {
         wait_for_interrupt();
     }
@@ -647,24 +659,24 @@ uint32_t dma_is_done()
     return ret;
 }
 /* @ToDo: Reconsider this decision.
-* In case a return wants to be forced in case of an error, there are 2 
-* alternatives: 
-*    1) Consider any value != 0 to be a valid 1 using a LOGIC AND: 
-*  return ( 1 && dma_peri->DONE );
-*    2) Consider only the LSB == 1 to be a valid 1 using a BITWISE AND. 
-*  return ( 1 &  dma_peri->DONE );
-* This would be fixed if the DONE register was a 1 bit field. 
-* */   
+ * In case a return wants to be forced in case of an error, there are 2 
+ * alternatives: 
+ *    1) Consider any value != 0 to be a valid 1 using a LOGIC AND: 
+ *  return ( 1 && dma_peri->DONE );
+ *    2) Consider only the LSB == 1 to be a valid 1 using a BITWISE AND. 
+ *  return ( 1 &  dma_peri->DONE );
+ * This would be fixed if the DONE register was a 1 bit field. 
+ */   
 
 __attribute__((weak)) void dma_intr_handler()
 {
     /* 
-    * The DMA transaction has finished!
-    * This is a weak implementation.
-    * Create your own function called 
-    * void dma_intr_handler() 
-    * to override this one.  
-    */
+     * The DMA transaction has finished!
+     * This is a weak implementation.
+     * Create your own function called 
+     * void dma_intr_handler() 
+     * to override this one.  
+     */
 }
 
 /****************************************************************************/
@@ -677,51 +689,51 @@ static inline uint8_t getMisalignment_b( uint8_t* p_ptr,
                                         dma_data_type_t p_type )
 {
     /*
-    * Note: These checks only makes sense when the target is memory. This is 
-    * not performed when the target is a peripheral (i.e. uses a semaphore). 
-    * Check for word alignment:
-    * The 2 LSBs of the data type must coincide with the 2 LSBs of the SRC 
-    * pointer.
-    * This guarantees word alignment. 
-    * |____|____|____|____|____|____|____|____|    Memory address 0x*******y
-    * 0    1    2    3    4    5    6    7     = y (In bytes)
-    *  Byte words can start in any of these positions
-    *  Half Words can only start on 0, 2, 4 or 6
-    *  Words can only start on 0 or 4
-    *  For example, if there was a Word starting on address ended in 2:
-    * |____|____|\\\\|\\\\|\\\\|\\\\|____|____|
-    * 0    1    2    3    4    5    6    7    
-    * The DMA could only grab bytes 0-3 and 4-7, so it CANNOT copy into the 
-    * destination pointer (x) the desired Word as follows:
-    * |\\\\|\\\\|\\\\|\\\\|
-    * x   x+1  x+2  x+3   
-    * 
-    * To overcome this, the ALLOW REALIGN flag is available in the DMA control
-    * block. 
-    * If the user set the ALLOW REALIGN flag, WORD reading from misaligned 
-    * pointers will be converted to two HALF WORD readings with a HALF WORD
-    * increment on both source and destination.  
-    * 
-    * HALF WORD misalignment is solved through the same method using two WORD
-    * readings. 
-    * 
-    */  
+     * Note: These checks only makes sense when the target is memory. This is 
+     * not performed when the target is a peripheral (i.e. uses a semaphore). 
+     * Check for word alignment:
+     * The 2 LSBs of the data type must coincide with the 2 LSBs of the SRC 
+     * pointer.
+     * This guarantees word alignment. 
+     * |____|____|____|____|____|____|____|____|    Memory address 0x*******y
+     * 0    1    2    3    4    5    6    7     = y (In bytes)
+     *  Byte words can start in any of these positions
+     *  Half Words can only start on 0, 2, 4 or 6
+     *  Words can only start on 0 or 4
+     *  For example, if there was a Word starting on address ended in 2:
+     * |____|____|\\\\|\\\\|\\\\|\\\\|____|____|
+     * 0    1    2    3    4    5    6    7    
+     * The DMA could only grab bytes 0-3 and 4-7, so it CANNOT copy into the 
+     * destination pointer (x) the desired Word as follows:
+     * |\\\\|\\\\|\\\\|\\\\|
+     * x   x+1  x+2  x+3   
+     * 
+     * To overcome this, the ALLOW REALIGN flag is available in the DMA control
+     * block. 
+     * If the user set the ALLOW REALIGN flag, WORD reading from misaligned 
+     * pointers will be converted to two HALF WORD readings with a HALF WORD
+     * increment on both source and destination.  
+     * 
+     * HALF WORD misalignment is solved through the same method using two WORD
+     * readings. 
+     * 
+     */  
     
     /* 
-    * If the data type is WORD and the two LSBs of pointer are not 00,
-    * there is a misalignment.
-    */
+     * If the data type is WORD and the two LSBs of pointer are not 00,
+     * there is a misalignment.
+     */
     uint8_t isWord = ( p_type == DMA_DATA_TYPE_WORD );
-    uint8_t notWordAligned = ( (uint32_t)p_ptr & 3 );
+    uint8_t notWordAligned = ( (uint32_t)p_ptr & DMA_WORD_ALIGN_MASK );
     uint8_t misalignment = isWord && notWordAligned;
     /* 
-    * If the data type is WORD or HALF WORD and the LSB of pointer 
-    * is not 0, there is a misalignment.
-    * The inequality is of special importance because WORDs stored in odd
-    * pointers need to turn into BYTE as well.
-    */
+     * If the data type is WORD or HALF WORD and the LSB of pointer 
+     * is not 0, there is a misalignment.
+     * The inequality is of special importance because WORDs stored in odd
+     * pointers need to turn into BYTE as well.
+     */
     uint8_t wordOrHalfWord = ( p_type <= DMA_DATA_TYPE_HALF_WORD );
-    uint8_t notHalfWordAligned = ( (uint32_t)p_ptr & 1 );
+    uint8_t notHalfWordAligned = ( (uint32_t)p_ptr & DMA_HALF_WORD_ALIGN_MASK );
     misalignment += ( wordOrHalfWord && notHalfWordAligned );
     /* 
      * These two lines will end up with: 
@@ -780,15 +792,15 @@ static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
     if( !( p_tgt->smph ) ) 
     {   
         /*
-        * If the transaction increment has been overwritten (due to 
-        * misalignments), then that value is used (it's always 1, never 0).
-        */
+         * If the transaction increment has been overwritten (due to 
+         * misalignments), then that value is used (it's always 1, never 0).
+         */
         if( ! (inc_b = dma_cb.trans->inc_b) )
         {
             /*
-            * Otherwise, the target-specific increment is used 
-            * (transformed into bytes).
-            */
+             * Otherwise, the target-specific increment is used 
+             * (transformed into bytes).
+             */
             uint8_t dataSize_b = DMA_DATA_TYPE_2_DATA_SIZE( dma_cb.trans->type );
             inc_b = ( p_tgt->inc_du * dataSize_b );
         }

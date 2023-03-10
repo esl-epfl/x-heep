@@ -21,7 +21,7 @@
 /***************************************************************************/
 
 /**
-* @file   j_dma.h
+* @file   dma.h
 * @date   13/02/23
 * @brief  The Direct Memory Access (DMA) driver to set up and use the DMA peripheral
 *
