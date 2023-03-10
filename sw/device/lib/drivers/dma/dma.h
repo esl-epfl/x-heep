@@ -279,34 +279,19 @@ void dma_init();
  * Properly defining an environment can prevent the DMA from accessing 
  * restricted memory regions. 
  * Targets for peripherals do not need an environment.
- * @param p_env Pointer to the dma_env_t structure where information will be 
- * allocated. The content of this pointer must be a static variable. 
- * @param p_start Pointer to the first accessible address of the environment.   
- * @param p_end Pointer to the last accessible address of the environment.
+ * @param p_env Pointer to the dma_env_t structure where configuration 
+ * should be allocated. The content of this pointer must be a static variable. 
  * @return A configuration flags mask. Each individual flag can be accessed 
  * with a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query 
  * the result from inside environment structure as an error could have 
  * appeared before the creation of the structure.
  */
-dma_config_flags_t dma_create_environment(  dma_env_t *p_env, 
-                                            uint8_t* p_start, 
-                                            uint8_t* p_end );
+dma_config_flags_t dma_create_environment( dma_env_t *p_env );
 
 /**
  * @brief Creates a target that can be used to perform transactions. 
- * @param p_tgt Pointer to the dma_target_t structure where information will 
- * be allocated. The content of this pointer must be a static variable. 
- * @param p_ptr Pointer to the first element of the target range. 
- * @param p_inc_du Increment, in multiples of the data unit, between each 
- * read or write operation. A value of 1 will read/write all data consecutively.   
- * @param p_size_du Number of data units to be copied. Only used for reading 
- * operations (i.e. when the target is used as source).
- * @param p_type Data type to be used when reading or writing in the target 
- * range. 
- * @param p_smph Which semaphore to use to control the reading or writing rate. 
- * A value of 0 will allow writing at full-speed. 
- * @param p_env Environment to which this target belongs. A NULL pointer will 
- * assign no environment and pointer and ranges will not be checked for outbounds. 
+ * @param p_tgt Pointer to the dma_target_t structure where configuration
+ * should be allocated. The content of this pointer must be a static variable. 
  * @param p_check Whether integrity checks should be performed. 
  * @return A configuration flags mask. Each individual flag can be accessed with 
  * a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query the 
@@ -314,26 +299,14 @@ dma_config_flags_t dma_create_environment(  dma_env_t *p_env,
  * the creation of the structure.
  */
 dma_config_flags_t dma_create_target(   dma_target_t *p_tgt, 
-                                        uint8_t* p_ptr, 
-                                        uint32_t p_inc_du, 
-                                        uint32_t p_size_du, 
-                                        dma_data_type_t p_type, 
-                                        dma_semaphore_t p_smph, 
-                                        dma_env_t* p_env, 
                                         dma_perform_checks_t p_check );
 
 /**
  * @brief Creates a transaction that can be loaded into the DMA.
- * @param p_trans Pointer to the dma_transaction_t structure where information
- *  will be allocated. The content of this pointer must be a static variable. 
- * @param p_src Pointer to a target structure to be used as source for the 
- * transaction. 
- * The data type and copy size of the source are used by default for the 
- * transaction. 
- * @param p_dst Pointer to a target structure to be used as destination for 
- * the transaction.
- * @param p_end The end event will determine how the dma_launch proceeds after
- *  it has effectively launched the transaction. 
+ * @param p_trans Pointer to the dma_transaction_t structure where configuration
+ * should be allocated. The content of this pointer must be a static variable. 
+ * @note Variables size_b, inc_b and type will be set by this function. It is
+ * not necessary to set them externally before calling it.
  * @param p_allowRealign Whether to allow the DMA to take a smaller data type 
  * in order to counter misalignments between the selected data type and the 
  * start pointer.
@@ -343,9 +316,6 @@ dma_config_flags_t dma_create_target(   dma_target_t *p_tgt,
  * @retval DMA_CONFIG_OK == 0 otherwise.    
  */
 dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans, 
-                                            dma_target_t *p_src, 
-                                            dma_target_t *p_dst, 
-                                            dma_end_event_t p_end, 
                                             dma_allow_realign_t p_allowRealign, 
                                             dma_perform_checks_t p_check );
 

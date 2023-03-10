@@ -191,53 +191,35 @@ void dma_init()
     
 }
 
-dma_config_flags_t dma_create_environment( dma_env_t *p_env, uint8_t* p_start,
-                                        uint8_t* p_end ){
+dma_config_flags_t dma_create_environment( dma_env_t *p_env )
+{
     /*
      * SANITY CHECKS
      */
-    if( (uint8_t*)p_end < (uint8_t*)p_start ) return DMA_CONFIG_INCOMPATIBLE;
-    
-    // Load the start and end pointers of the environment.
-    p_env->start = (uint8_t*)p_start;
-    p_env->end   = (uint8_t*)p_end;
-    
+
+    if( (uint8_t*)p_env->end < (uint8_t*)p_env->start ) 
+    {
+        return DMA_CONFIG_INCOMPATIBLE;
+    }    
     return DMA_CONFIG_OK;
 }
 
-dma_config_flags_t dma_create_target( dma_target_t *p_tgt, 
-                                    uint8_t* p_ptr, 
-                                    uint32_t p_inc_du, 
-                                    uint32_t p_size_du, 
-                                    dma_data_type_t p_type, 
-                                    dma_semaphore_t p_smph, 
-                                    dma_env_t* p_env, 
-                                    dma_perform_checks_t p_check )
+dma_config_flags_t dma_create_target(   dma_target_t *p_tgt, 
+                                        dma_perform_checks_t p_check )
 {
-    
-    /* The data type must be a valid type */
-    make_sure_that( (dma_data_type_t)p_type < DMA_DATA_TYPE__size );
-    /* Increment can be 0 when a semaphore is used. */
-    make_sure_that( (uint32_t)p_inc_du >= 0 ); 
-    /* The size could be 0 if the target is only going to be used as a 
-    destination. */
-    make_sure_that( (uint32_t)p_size_du >=  0 ); 
-    make_sure_that( (dma_semaphore_t) p_smph < DMA_SMPH__size );
-    
-    
     /*
-     * STORING OF INFORMATION
+     * SANITY CHECKS
      */
 
-    /* The flags are cleaned in case the structure was used before.*/
-    p_tgt->flags = DMA_CONFIG_OK; 
-    /* The passed values are stored.*/
-    p_tgt->ptr = (dma_target_t *)p_ptr;
-    p_tgt->inc_du = (uint32_t)p_inc_du;
-    p_tgt->size_du = (uint32_t)p_size_du;
-    p_tgt->type = (dma_data_type_t)p_type; 
-    p_tgt->smph = (dma_semaphore_t)p_smph;
-    p_tgt->env = (dma_env_t*)p_env;
+    /* Increment can be 0 when a semaphore is used. */
+    make_sure_that( p_tgt->inc_du >= 0 ); 
+    /* The size could be 0 if the target is only going to be used as a 
+    destination. */
+    make_sure_that( p_tgt->size_du >=  0 ); 
+    /* The data type must be a valid type */
+    make_sure_that( p_tgt->type < DMA_DATA_TYPE__size );
+    /* The semaphore must be among the valid semaphore values. */
+    make_sure_that( p_tgt->smph < DMA_SMPH__size );
     
     /*
      * INTEGRITY CHECKS
@@ -288,18 +270,15 @@ dma_config_flags_t dma_create_target( dma_target_t *p_tgt,
     return p_tgt->flags; 
 }
 
-dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans, 
-                                        dma_target_t *p_src, 
-                                        dma_target_t *p_dst, 
-                                        dma_end_event_t p_end, 
-                                        dma_allow_realign_t p_allowRealign, 
-                                        dma_perform_checks_t p_check )
+dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,  
+                                            dma_allow_realign_t p_allowRealign, 
+                                            dma_perform_checks_t p_check )
 {
     /*
     * SANITY CHECKS
     */
 
-    make_sure_that( (dma_end_event_t)p_end < DMA_END_EVENT__size );
+    make_sure_that( (dma_end_event_t)p_trans->end < DMA_END_EVENT__size );
 
     /*
      * CHECK IF TARGETS HAVE ERRORS
@@ -309,11 +288,12 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
      * The transaction is NOT created if the targets include errors.
      * A successful target creation has to be done before loading it to the DMA.
      */
-    uint8_t errorSrc = ( p_src->flags & DMA_CONFIG_CRITICAL_ERROR );
-    uint8_t errorDst = ( p_dst->flags & DMA_CONFIG_CRITICAL_ERROR );
+    uint8_t errorSrc = ( p_trans->src->flags & DMA_CONFIG_CRITICAL_ERROR );
+    uint8_t errorDst = ( p_trans->dst->flags & DMA_CONFIG_CRITICAL_ERROR );
     if( errorSrc || errorDst )
     {
-        return DMA_CONFIG_CRITICAL_ERROR;
+        p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
+        return p_trans->flags;
     }
     
     /*
@@ -328,9 +308,10 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
      */
     if( p_check )
     {
-        if( p_src->smph && p_dst->smph ) 
+        if( p_trans->src->smph && p_trans->dst->smph ) 
         {
-            return ( DMA_CONFIG_INCOMPATIBLE | DMA_CONFIG_CRITICAL_ERROR );
+            p_trans->flags |= ( DMA_CONFIG_INCOMPATIBLE | DMA_CONFIG_CRITICAL_ERROR );
+            return p_trans->flags;
         }
     }
     /* 
@@ -338,7 +319,7 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
      * is selected. 
      * If both are zero, it does not matter which is picked. 
      */
-    p_trans->smph = p_src->smph ? p_src->smph : p_dst->smph;
+    p_trans->smph = p_trans->src->smph ? p_trans->src->smph : p_trans->dst->smph;
     
     /*
      * SET UP THE DEFAULT CONFIGURATIONS 
@@ -348,20 +329,16 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
     p_trans->flags = DMA_CONFIG_OK;
     /* The copy size of the source (in data units -of the source-) is 
     transformed to bytes, to be used as default size.*/
-    p_trans->size_b = p_src->size_du * DMA_DATA_TYPE_2_DATA_SIZE(p_src->type);
+    uint8_t dataSize_b = DMA_DATA_TYPE_2_DATA_SIZE(p_trans->src->type);
+    p_trans->size_b = p_trans->src->size_du * dataSize_b;
     /* By default, the source defines the data type.*/
-    p_trans->type = p_src->type;
+    p_trans->type = p_trans->src->type;
     /* 
      * By default, the transaction increment is set to 0 and, if required,
      * it will be changed to 1 (in which case both src and dst will have an
      * increment of 1 data unit).
      */
     p_trans->inc_b = 0;
-    /* The pointer to the targets is stored in the transaction. */
-    p_trans->src = p_src;
-    p_trans->dst = p_dst;
-    /* The selected end event is stored in the transaction */
-    p_trans->end = p_end;
     
     /*
      * CHECK IF THERE ARE MISALIGNMENTS 
@@ -375,16 +352,16 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
          * then the misalignment is not checked.
          */
         uint8_t misalignment = 0;
-        if( ! p_src->smph )
+        if( ! p_trans->src->smph )
         {
-            misalignment = getMisalignment_b( p_src->ptr, p_trans->type  );
+            misalignment = getMisalignment_b( p_trans->src->ptr, p_trans->type  );
         }
         p_trans->flags |= ( misalignment ? DMA_CONFIG_SRC : DMA_CONFIG_OK ); 
 
         uint8_t dstMisalignment = 0;
-        if( ! p_dst->smph ) 
+        if( ! p_trans->dst->smph ) 
         {
-            dstMisalignment = getMisalignment_b( p_dst->ptr, p_trans->type  );
+            dstMisalignment = getMisalignment_b( p_trans->dst->ptr, p_trans->type  );
         }
         p_trans->flags  |= ( dstMisalignment ? DMA_CONFIG_DST : DMA_CONFIG_OK );
 
@@ -452,10 +429,11 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
              * No further operations are done to prevent corrupting
              * information that could be useful for debugging purposes.
              */
-            if( ( p_src->inc_du > 1 ) || ( p_dst->inc_du > 1 ) )
+            if( ( p_trans->src->inc_du > 1 ) || ( p_trans->dst->inc_du > 1 ) )
             {
                 p_trans->flags |= DMA_CONFIG_DISCONTINUOUS;
-                return p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR ; 
+                p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
+                return p_trans->flags; 
             }
 
             /*
@@ -486,10 +464,11 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
          * No further operations are done to prevent corrupting information 
          * that could be useful for debugging purposes. 
          */
-        if( p_src->size_du == 0 ) 
+        if( p_trans->src->size_du == 0 ) 
         {
             p_trans->flags |= DMA_CONFIG_SRC;
-            return p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR; 
+            p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
+            return p_trans->flags; 
         }
         
         /*
@@ -520,10 +499,10 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
          * No further operations are done to prevent corrupting information
          * that could be useful for debugging purposes.  
          */ 
-        uint8_t isEnv = p_dst->env;
+        uint8_t isEnv = p_trans->dst->env;
         uint8_t isOutb = isOutbound(
-                                    p_dst->ptr, 
-                                    p_dst->env->end,
+                                    p_trans->dst->ptr, 
+                                    p_trans->dst->env->end,
                                     p_trans->type,
                                     p_trans->src->size_du,
                                     p_trans->dst->inc_du );
@@ -531,7 +510,8 @@ dma_config_flags_t dma_create_transaction( dma_trans_t *p_trans,
         {
             p_trans->flags |= DMA_CONFIG_DST; 
             p_trans->flags |= DMA_CONFIG_OUTBOUNDS; 
-            return p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;  
+            p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
+            return p_trans->flags;  
         }
         
         // @ToDo: It should also be checked that the destination is behind the 

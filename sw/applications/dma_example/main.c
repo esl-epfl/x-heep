@@ -37,16 +37,38 @@ int main(int argc, char *argv[])
     
     dma_config_flags_t res;
     
-    static dma_target_t tgt1;
-    static dma_target_t tgt2;
-    static dma_trans_t trans;
+    static dma_target_t tgt1 = {
+                                .ptr = test_data_4B,
+                                .inc_du = 1,
+                                .size_du = TEST_DATA_SIZE,
+                                .smph = DMA_SMPH_MEMORY,
+                                .type = DMA_DATA_TYPE_WORD,
+                                };
+    static dma_target_t tgt2 = {
+                                .ptr = copied_data_4B,
+                                .inc_du = 1,
+                                .size_du = TEST_DATA_SIZE,
+                                .smph = DMA_SMPH_MEMORY,
+                                .type = DMA_DATA_TYPE_WORD,
+                                };
+    static dma_trans_t trans = {
+                                .src = &tgt1,
+                                .dst = &tgt2,
+                                .end = DMA_END_EVENT_POLLING,
+                                };
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
-    res = dma_create_target( &tgt1, test_data_4B, 1, TEST_DATA_SIZE,  DMA_DATA_TYPE_WORD, DMA_SMPH_MEMORY, NULL, DMA_PERFORM_CHECKS_INTEGRITY);
-    res = dma_create_target( &tgt2, copied_data_4B, 1, TEST_DATA_SIZE,  DMA_DATA_TYPE_WORD, DMA_SMPH_MEMORY, NULL,  DMA_PERFORM_CHECKS_INTEGRITY);
-    res = dma_create_transaction( &trans, &tgt1, &tgt2, DMA_END_EVENT_POLLING, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    
+    res = dma_create_target( &tgt1, DMA_PERFORM_CHECKS_INTEGRITY );
+    printf("tgt1: %u \n\r", res);
+    res = dma_create_target( &tgt2, DMA_PERFORM_CHECKS_INTEGRITY );
+    printf("tgt2: %u \n\r", res);
+    res = dma_create_transaction( &trans, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    printf("tran: %u \n\r", res);
+    
     res = dma_load_transaction(&trans);
-
+    printf("load: %u \n\r", res);
     res = dma_launch(&trans);
+    printf("laun: %u \n\r", res);
     printf(">> Finished transaction launch. \n\r");
     
     while( ! dma_is_done() ){}
