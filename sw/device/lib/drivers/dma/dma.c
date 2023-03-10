@@ -571,12 +571,8 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
     * SET THE POINTERS
     */
 
-    writeRegister( dma_cb.trans->src->ptr, 
-                DMA_PTR_IN_REG_OFFSET, 
-                DMA_MASK_WHOLE_REGISTER );
-    writeRegister( dma_cb.trans->dst->ptr, 
-                DMA_PTR_OUT_REG_OFFSET, 
-                DMA_MASK_WHOLE_REGISTER );
+    dma_peri->PTR_IN = dma_cb.trans->src->ptr;
+    dma_peri->PTR_OUT = dma_cb.trans->dst->ptr;
     
     /*
     * SET THE INCREMENTS
@@ -589,16 +585,14 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
     * Other reason to overwrite the target increment is if a semaphore is used.
     * In that case, a increment of 0 is necessary.
     */
-    writeRegister( getIncrement_b( dma_cb.trans->src ),
-                DMA_SRC_PTR_INC_REG_OFFSET, 
-                DMA_MASK_WHOLE_REGISTER );  
-    writeRegister( getIncrement_b( dma_cb.trans->dst ), 
-                DMA_DST_PTR_INC_REG_OFFSET, 
-                DMA_MASK_WHOLE_REGISTER );
+
+    dma_peri->SRC_PTR_INC = getIncrement_b( dma_cb.trans->src );
+    dma_peri->DST_PTR_INC = getIncrement_b( dma_cb.trans->dst );
     
     /*
     * SET SEMAPHORE AND DATA TYPE
-    */       
+    */    
+
     writeRegister( dma_cb.trans->smph, 
                 DMA_SPI_MODE_REG_OFFSET, 
                 DMA_SPI_MODE_SPI_MODE_MASK );
@@ -630,9 +624,10 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans )
     * the interrupt could arrive before it is lowered.
     */
     dma_cb.intrFlag = 0;
-    writeRegister(dma_cb.trans->size_b, 
-                DMA_DMA_START_REG_OFFSET, 
-                DMA_MASK_WHOLE_REGISTER ); 
+
+    /* Load the size and start the transaction. */
+    dma_peri->DMA_START = dma_cb.trans->size_b;
+
     /* 
     * If the end event was set to wait for the interrupt, the dma_launch
     * will not return until the interrupt arrives. 
@@ -640,6 +635,7 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans )
     while( p_trans->end == DMA_END_EVENT_INTR_WAIT && ! dma_cb.intrFlag ) {
         wait_for_interrupt();
     }
+
     return DMA_CONFIG_OK;
 }
 
@@ -766,14 +762,20 @@ static inline uint8_t isOutbound( uint8_t* p_start,
 }
 
 // @ToDo: Consider changing the "mask" parameter for a bitfield definition (see dma_regs.h)
-static inline void writeRegister( uint32_t p_val, uint32_t p_offset, uint32_t p_mask )
+static inline void writeRegister( uint32_t p_val, 
+                                uint32_t p_offset, 
+                                uint32_t p_mask )
 {
-    (( uint32_t * ) dma_peri ) [ p_offset / DMA_REGISTER_SIZE_BYTES ] = ( (( uint32_t * ) dma_peri ) [ p_offset / DMA_REGISTER_SIZE_BYTES ] & ~p_mask ) | ( p_val & p_mask ) ;
+    uint8_t index = p_offset / DMA_REGISTER_SIZE_BYTES;
+    uint32_t originalVal = (( uint32_t * ) dma_peri ) [ index ]; 
+    uint32_t clearedVal = originalVal & ~p_mask; 
+    uint32_t val = clearedVal | ( p_val & p_mask );
+    (( uint32_t * ) dma_peri ) [ index ] = val;
 }
 
 static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
 {
-    uint32_t inc = 0;
+    uint32_t inc_b = 0;
     /* If the target uses a semaphore, the increment remains 0. */
     if( !( p_tgt->smph ) ) 
     {   
@@ -781,16 +783,17 @@ static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
         * If the transaction increment has been overwritten (due to 
         * misalignments), then that value is used (it's always 1, never 0).
         */
-        if( ! (inc = dma_cb.trans->inc_b) )
+        if( ! (inc_b = dma_cb.trans->inc_b) )
         {
             /*
             * Otherwise, the target-specific increment is used 
             * (transformed into bytes).
             */
-            inc = ( p_tgt->inc_du * DMA_DATA_TYPE_2_DATA_SIZE( dma_cb.trans->type ) );
+            uint8_t dataSize_b = DMA_DATA_TYPE_2_DATA_SIZE( dma_cb.trans->type );
+            inc_b = ( p_tgt->inc_du * dataSize_b );
         }
     }
-    return inc;
+    return inc_b;
 }
 
 // @ToDo: Reconsider how this function should be declared
@@ -800,7 +803,8 @@ void handler_irq_fast_dma(void)
     clear_fast_interrupt(&(dma_cb.fic), kDma_fic_e);
     // The flag is raised so the waiting loop can be broken.
     dma_cb.intrFlag = 1;
-    // Call the weak implementation provided in this module, or the non-weak implementation from above. 
+    // Call the weak implementation provided in this module, 
+    // or the non-weak implementation from above. 
     dma_intr_handler();
 }
 
