@@ -62,7 +62,7 @@ void handler_irq_fast_spi_flash(void)
 #endif
 
 void dma_intr_handler(){
-    printf("DMA operation has finished!\n");
+    printf("DMA has finished!\n");
     dma_intr_flag = 1;
 }
 
@@ -370,6 +370,12 @@ int main(int argc, char *argv[])
 
     //dma_set_data_type(&dma, (uint32_t) 0);
     //dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_WORDS*sizeof(*copy_data)); // Number of bytes received by SPI
+
+
+
+    
+
+
 
 
 

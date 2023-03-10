@@ -60,7 +60,7 @@
 // ToDo: Remove this, is just a placeholder until real assert can be included
 #define make_sure_that(x) printf( "%s@%u\n\r",x ? "Success" : "Error",__LINE__ );
 
-#define DMA_CSR_REG_MIE_MASK(enable) (enable << 19)
+#define DMA_CSR_REG_MIE_MASK(enable) ( (enable) << 19)
 
 #define DMA_MASK_WHOLE_REGISTER 0xFFFFFFFF
 #define DMA_REGISTER_SIZE_BYTES 4
@@ -364,6 +364,9 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
      * Otherwise the mie.MEIE bit is set to one to enable machine-level fast dma interrupt.
      */
     CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK( dma_cb.trans->end != DMA_END_EVENT_POLLING ) );
+    printf("Set %u vs. %u\n", DMA_CSR_REG_MIE_MASK( dma_cb.trans->end != DMA_END_EVENT_POLLING ), 1 << 19 );
+
+    //CSR_SET_BITS(CSR_REG_MIE, 1 << 19 );
     
     
     //////////  SET THE POINTERS   //////////
