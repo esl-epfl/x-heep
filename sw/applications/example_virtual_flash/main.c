@@ -45,7 +45,12 @@ void handler_irq_fast_spi_flash(void)
     spi_intr_flag = 1;
 }
 
-void write_to_flash(spi_host_t *SPI, dma_t *DMA, uint16_t *data, uint32_t byte_count, uint32_t addr)
+void dma_intr_handler(){
+    printf("A non-weak interrupt of the DMA\n");
+}
+
+
+void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32_t addr)
 {
     uint32_t write_to_mem = 0x02;
     spi_write_word(SPI, write_to_mem);
@@ -72,10 +77,36 @@ void write_to_flash(spi_host_t *SPI, dma_t *DMA, uint16_t *data, uint32_t byte_c
     uint32_t *fifo_ptr_tx = SPI->base_addr.base + SPI_HOST_TXDATA_REG_OFFSET;
 
     // -- DMA CONFIGURATION --
+    printf("TEst 1\n");
+
+    dma_target_t tgt_src;
+    dma_target_t tgt_dst;
+    dma_trans_t trans;
+    dma_config_flags_t res;
+    res = dma_create_target( &tgt_src, (uint32_t*)data, 1, 64 ,DMA_DATA_TYPE_HALF_WORD, DMA_SMPH_MEMORY, NULL, DMA_PERFORM_CHECKS_INTEGRITY );
+    printf("Result -  tgt src: %u\n", res );
+    res = dma_create_target( &tgt_dst, fifo_ptr_tx, 0, 0, DMA_DATA_TYPE_HALF_WORD, DMA_SMPH_SLOT_4, NULL, DMA_PERFORM_CHECKS_INTEGRITY );
+    printf("Result -  tgt dst: %u\n", res );
+    res = dma_create_transaction( &trans, &tgt_src, &tgt_dst, DMA_END_EVENT_POLLING, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    printf("Result - tgt trans: %u\n", res );
+    res = dma_load_transaction(&trans);
+    printf("Result - tgt load: %u\n", res );
+    res = dma_launch(&trans);
+    printf("launched!\n");
+
+ /*    
     dma_set_read_ptr_inc(DMA, (uint32_t) 2);
+    wrote 2 in 0x10 
+
     dma_set_write_ptr_inc(DMA, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
+    wrote 0 in 0x14
+
     dma_set_read_ptr(DMA, (uint32_t) data);
+    wrote data in 0x00 
+
     dma_set_write_ptr(DMA, (uint32_t) fifo_ptr_tx);
+    wrote fifo_ptr_tx in 0x04
+
 
     // Set the correct SPI-DMA mode:
     // (0) disable
@@ -84,9 +115,15 @@ void write_to_flash(spi_host_t *SPI, dma_t *DMA, uint16_t *data, uint32_t byte_c
     // (3) receive from SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
     // (4) send to SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
     dma_set_spi_mode(DMA, (uint32_t) 4); // The DMA will wait for the SPI FLASH TX FIFO ready signal
+    wrote 4 in 0x18
+    
     dma_set_data_type(DMA, (uint32_t) 1); // 1 is for 16-bits
+    wrote 1 in 0x1c
+    
     dma_set_cnt_start(DMA, (uint32_t)byte_count); // Size of data received by SPI
+    wrote 128 in 0x8
 
+ */
     // Wait for the first data to arrive to the TX FIFO before enabling interrupt
     spi_wait_for_tx_not_empty(SPI);
     // Enable event interrupt
@@ -133,9 +170,6 @@ int main(int argc, char *argv[])
     spi_host_flash.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     spi_set_enable(&spi_host_flash, true);
     spi_output_enable(&spi_host_flash, true);
-
-    dma_t dma;
-    dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
 
     uint16_t clk_div = 0;
     if (FLASH_CLK_MAX_HZ < core_clk / 2)
@@ -187,7 +221,7 @@ int main(int argc, char *argv[])
         results[i] = i;
     }
 
-    write_to_flash(&spi_host_flash, &dma, results, sizeof(*results) * 32, FLASH_ADDR);
+    write_to_flash(&spi_host_flash, results, sizeof(*results) * 32, FLASH_ADDR);
 
     printf("Application ended successfully.\n\r");
 
