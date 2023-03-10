@@ -46,8 +46,14 @@ Note that under `util` folder, the file `generate-makefile-help` is employed to 
 
 # Prerequisite
 
-1. Install [Conda](https://phoenixnap.com/kb/how-to-install-anaconda-ubuntu-18-04-or-20-04) as described in the link,
-and create the Conda enviroment with python 3.8:
+To use `X-HEEP`, we rely on either (a) `miniconda`, or (b) `virtual environment` enviroment.
+
+Choose `1.a` or `1.b` to setup your enviroment.
+
+## Miniconda
+
+1.a Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html#linux-installers) python 3.8 version as described in the link,
+and create the Conda enviroment:
 
 ```bash
 conda update conda
@@ -59,6 +65,15 @@ Activate the environment with
 ```bash
 conda activate core-v-mini-mcu
 ```
+
+## Virtual Environment
+
+1.b Install the python virtual environment just as:
+
+```bash
+make venv
+```
+
 2. Install the required Python tools:
 
 ```
