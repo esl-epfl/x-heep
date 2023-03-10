@@ -60,7 +60,7 @@
 // ToDo: Remove this, is just a placeholder until real assert can be included
 #define make_sure_that(x) printf( "%s@%u\n\r",x ? "Success" : "Error",__LINE__ );
 
-#define DMA_CSR_REG_MIE_MASK(enable) (enable << 19)
+#define DMA_CSR_REG_MIE_MASK ( 1 << 19 )
 
 #define DMA_MASK_WHOLE_REGISTER 0xFFFFFFFF
 #define DMA_REGISTER_SIZE_BYTES 4
@@ -363,8 +363,14 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
      * If the selected en event is polling, interrupts are disabled. 
      * Otherwise the mie.MEIE bit is set to one to enable machine-level fast dma interrupt.
      */
-    CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK( dma_cb.trans->end != DMA_END_EVENT_POLLING ) );
-    
+    if( dma_cb.trans->end != DMA_END_EVENT_POLLING ){
+        CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+    }else
+    {
+        CSR_CLEAR_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+    }
+
+
     
     //////////  SET THE POINTERS   //////////
     writeRegister( dma_cb.trans->src->ptr, DMA_PTR_IN_REG_OFFSET, DMA_MASK_WHOLE_REGISTER );
