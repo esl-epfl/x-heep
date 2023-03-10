@@ -54,7 +54,7 @@
  */
 #define DMA_DATA_TYPE_2_DATA_SIZE(type) (0b00000100 >> (type) )     
 
-// ToDo: Remove this, is just a placeholder until real assert can be included
+// @ToDo: Remove this, is just a placeholder until real assert can be included
 #define make_sure_that(x) printf( "%s@%u\n\r",x ? "Success" : "Error",__LINE__ );
 
 /**
@@ -185,9 +185,8 @@ static struct
 
 void dma_init()
 {
-    // @ToDo: get rid of this
-    // Obtain the base address of the fast interrupt controller registers
-    dma_cb.fic.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS); // @ToDo: Make this line shorter
+    // @ToDo: let fic be in charge of this.
+    dma_cb.fic.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS); 
     dma_cb.trans = NULL; // Clear the loaded transaction. 
     
 }
@@ -808,7 +807,7 @@ static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
     return inc_b;
 }
 
-// @ToDo: Reconsider how this function should be declared
+// @ToDo: Let fic be in charge of this. 
 void handler_irq_fast_dma(void)
 {
     // The interrupt is cleared.
