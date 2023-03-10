@@ -47,6 +47,7 @@ jobs:
       run: |
         make venv
         echo "PATH=`pwd`/.venv/bin:$PATH" >> $GITHUB_ENV
+        echo "PYTHON=`pwd`/.venv/bin/python" >> $GITHUB_ENV
     - name: Install Verible
       run: |
         set -e
