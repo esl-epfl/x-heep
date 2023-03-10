@@ -14,7 +14,6 @@
 ** All rights reserved.                                                    
 **                                                                         
 ***************************************************************************
-
 */
 
 /***************************************************************************/
@@ -25,7 +24,6 @@
 * @date   13/02/23
 * @brief  The Direct Memory Access (DMA) driver to set up and use the DMA 
 * peripheral
-
 */
 
 #ifndef _DMA_DRIVER_H
@@ -189,7 +187,7 @@ typedef enum
     will return without the DMA performing any actions. */
 } dma_config_flags_t;
 
-/*
+/**
  * An environment is a region of memory defined by its start and end pointers. 
  * The sole purpose of creating environments is preventing the DMA from writing
  * on restricted memory regions (outside the environment).
@@ -200,7 +198,7 @@ typedef struct
     uint8_t* end;   /*!< Pointer to the last byte inside the environment. */
 } dma_env_t;
 
-/*
+/**
  * A target is a region of memory from/to which the DMA can copy data. 
  * It is defined by its start pointer and the size of the data that can be 
  * copied. Furthermore, control parameters can be added to prevent the DMA 
@@ -227,7 +225,7 @@ typedef struct
     the creation of the target.  */
 } dma_target_t;   
 
-/*
+/**
  * A transaction is an agreed transfer of data from one target to another. 
  * It needs a source target and a destination target. 
  * It also includes control parameters to override the targets' specific ones 
