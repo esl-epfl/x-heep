@@ -287,6 +287,16 @@ message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/riscv32-unknown-elf/lib${Colo
 
 SET(CMAKE_VERBOSE_MAKEFILE on)
 
+# To make sure that .obj files are created and fetched from the same path. 
+# When setting an inner path to add_executable, .obj files are stored in ${TARGET}.elf.dir/<relative path>
+# but when an outside directory is provided, they are stored in ${TARGET}.elf.dir/<absolute path>.
+# To prevent this, if the SOURCE_PATH is the ROOT_PROJECT (X-HEEP source files will be used), no further path is to be added to the fetch directory.
+if( ${SOURCE_PATH} STREQUAL ${ROOT_PROJECT} )
+    SET(OBJ_PATH "")
+else()
+    SET(OBJ_PATH ${SOURCE_PATH})
+endif()
+
 # Specify that we want to link with GCC even if we are compiling with clang
 if (${COMPILER} MATCHES "clang")
   set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
@@ -313,16 +323,6 @@ endif()
 add_custom_command(TARGET ${TARGET}.elf POST_BUILD
         COMMAND ${CMAKE_OBJCOPY} -O binary  ${TARGET}.elf  ${TARGET}.bin
         COMMENT "Invoking: Hexdump")
-
-# To make sure that .obj files are created and fetched from the same path. 
-# When setting an inner path to add_executable, .obj files are stored in ${TARGET}.elf.dir/<relative path>
-# but when an outside directory is provided, they are stored in ${TARGET}.elf.dir/<absolute path>.
-# To prevent this, if the SOURCE_PATH is the ROOT_PROJECT (X-HEEP source files will be used), no further path is to be added to the fetch directory.
-if( ${SOURCE_PATH} STREQUAL ${ROOT_PROJECT} )
-    SET(OBJ_PATH "")
-else()
-    SET(OBJ_PATH ${SOURCE_PATH})
-endif()
 
 # Pre-processing command to create disassembly for each source file
 foreach (SRC_MODULE ${TARGET} )

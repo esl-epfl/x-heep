@@ -255,9 +255,9 @@ Inside the `applications` folder different projects can be stored (still respect
 The `build`, `device` and `linker` should be linked with the vendorized folders inside `X-HEEP`.
 In this example that is done from the `BASE` directory as follows:
 ```
-ln -s hw/vendor/esl_epfl_x_heep/sw/build sw/build
-ln -s hw/vendor/esl_epfl_x_heep/sw/device sw/device
-ln -s hw/vendor/esl_epfl_x_heep/sw/linker sw/linker
+ln -s ../hw/vendor/esl_epfl_x_heep/sw/build sw/build
+ln -s ../hw/vendor/esl_epfl_x_heep/sw/device sw/device
+ln -s ../hw/vendor/esl_epfl_x_heep/sw/linker sw/linker
 ```
 
 ### The BASE/Makefile
