@@ -47,6 +47,11 @@ ARCH     ?= rv32imc
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
 SOURCE 	 ?= "."
 
+## @section Conda
+conda:
+	conda update conda
+	conda env create -f environment.yml
+
 ## @section Linux-Emulation
 
 ## Generates FEMU
