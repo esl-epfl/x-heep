@@ -58,10 +58,6 @@ int main(int argc, char *argv[])
                                 };
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
     
-    res = dma_create_target( &tgt1, DMA_PERFORM_CHECKS_INTEGRITY );
-    printf("tgt1: %u \n\r", res);
-    res = dma_create_target( &tgt2, DMA_PERFORM_CHECKS_INTEGRITY );
-    printf("tgt2: %u \n\r", res);
     res = dma_create_transaction( &trans, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     printf("tran: %u \n\r", res);
     

@@ -95,6 +95,15 @@
 /****************************************************************************/
 
 /**
+ * @brief Creates a target that can be used to perform transactions. 
+ * @param p_tgt Pointer to the dma_target_t structure where configuration
+ * should be allocated. The content of this pointer must be a static variable. 
+ * @return A configuration flags mask. Each individual flag can be accessed with 
+ * a bitwise AND ( ret & DMA_CONFIG_* ).
+ */
+dma_config_flags_t validateTarget( dma_target_t *p_tgt );
+
+/**
  * @brief Gets how misaligned a pointer is, taking into account the data type 
  * size. 
  * @param p_ptr The source or destination pointer. 
@@ -212,72 +221,6 @@ dma_config_flags_t dma_create_environment( dma_env_t *p_env )
     return DMA_CONFIG_OK;
 }
 
-dma_config_flags_t dma_create_target(   dma_target_t *p_tgt, 
-                                        dma_perform_checks_t p_check )
-{
-    /*
-     * SANITY CHECKS
-     */
-
-    /* Increment can be 0 when a semaphore is used. */
-    make_sure_that( p_tgt->inc_du >= 0 ); 
-    /* The size could be 0 if the target is only going to be used as a 
-    destination. */
-    make_sure_that( p_tgt->size_du >=  0 ); 
-    /* The data type must be a valid type */
-    make_sure_that( p_tgt->type < DMA_DATA_TYPE__size );
-    /* The semaphore must be among the valid semaphore values. */
-    make_sure_that( p_tgt->smph < DMA_SMPH__size );
-    
-    /*
-     * INTEGRITY CHECKS
-     */
-
-    if( p_check )
-    {
-        /* Only performed if an environment was set.*/
-        uint8_t isEnv = p_tgt->env;
-        /* If the target starts before the environment starts.*/
-        uint8_t beforeEnv = p_tgt->ptr < p_tgt->env->start;
-        /* If the target starts after the environment ends. */
-        uint8_t afterEnv = p_tgt->ptr > p_tgt->env->end;
-        /* If a size was defined. */
-        uint8_t isSize = p_tgt->size_du;
-        /* If the target selected size goes beyond the boundaries of the 
-        environment. Only computed if there is a size defined.*/
-        uint8_t isOutb = isOutbound( p_tgt->ptr, p_tgt->env->end, 
-                                    p_tgt->type, p_tgt->size_du, 
-                                    p_tgt->inc_du );
-        
-        if( isEnv && ( beforeEnv || afterEnv || (isSize && isOutb) ) )
-        {
-            p_tgt->flags |= DMA_CONFIG_OUTBOUNDS;
-        }
-
-        /* 
-         * If there is a semaphore, there should not be environments
-         * nor increments (or its an incompatible peripheral).
-         * Otherwise, an increment is needed (or its an incompatible
-         * memory).
-         */
-        uint8_t isSmph = p_tgt->smph;
-        uint8_t isInc = p_tgt->inc_du;
-        uint8_t incomPeri = ( isSmph && ( isEnv || isInc ) );
-        uint8_t incomMem = ( ! p_tgt->smph && ! p_tgt->inc_du );
-        if( incomPeri || incomMem )
-        {
-            p_tgt->flags |= DMA_CONFIG_INCOMPATIBLE;
-        }
-    }
-    
-    /*
-     * This is returned so this function can be called as: 
-     * if( dma_create_target == DMA_CONFIG_OK ){ go ahead } 
-     * or if( dma_create_target() ){ check for errors }
-     */
-    return p_tgt->flags; 
-}
-
 dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,  
                                             dma_allow_realign_t p_allowRealign, 
                                             dma_perform_checks_t p_check )
@@ -294,13 +237,20 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
 
     /* 
      * The transaction is NOT created if the targets include errors.
-     * A successful target creation has to be done before loading it to the DMA.
+     * A successful target validation has to be done before loading it to the DMA.
      */
-    uint8_t errorSrc = ( p_trans->src->flags & DMA_CONFIG_CRITICAL_ERROR );
-    uint8_t errorDst = ( p_trans->dst->flags & DMA_CONFIG_CRITICAL_ERROR );
-    if( errorSrc || errorDst )
+    uint8_t errorSrc = validateTarget( p_trans->src );
+    uint8_t errorDst = validateTarget( p_trans->dst );
+    /* 
+     * If there are any errors or warnings in the valdiation of the targets, they
+     * are added to the transaction flags, adding the source/destination identifying
+     * flags as well. 
+     */
+    p_trans->flags |= errorSrc ? (errorSrc | DMA_CONFIG_SRC ) : DMA_CONFIG_OK;
+    p_trans->flags |= errorDst ? (errorDst | DMA_CONFIG_SRC ) : DMA_CONFIG_OK; 
+    /* If a critical error was detected, no further action is performed. */
+    if( p_trans->flags & DMA_CONFIG_CRITICAL_ERROR )
     {
-        p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
         return p_trans->flags;
     }
     
@@ -671,6 +621,70 @@ __attribute__((weak)) void dma_intr_handler()
 /*                            LOCAL FUNCTIONS                               */
 /**                                                                        **/
 /****************************************************************************/
+
+dma_config_flags_t validateTarget( dma_target_t *p_tgt )
+{
+    /* Flags variable to pass encountered errors. */
+    dma_config_flags_t flags;
+    /*
+     * SANITY CHECKS
+     */
+
+    /* Increment can be 0 when a semaphore is used. */
+    make_sure_that( p_tgt->inc_du >= 0 ); 
+    /* The size could be 0 if the target is only going to be used as a 
+    destination. */
+    make_sure_that( p_tgt->size_du >=  0 ); 
+    /* The data type must be a valid type */
+    make_sure_that( p_tgt->type < DMA_DATA_TYPE__size );
+    /* The semaphore must be among the valid semaphore values. */
+    make_sure_that( p_tgt->smph < DMA_SMPH__size );
+    
+    /*
+     * INTEGRITY CHECKS
+     */
+
+    /* Only performed if an environment was set.*/
+    uint8_t isEnv = p_tgt->env;
+    /* If the target starts before the environment starts.*/
+    uint8_t beforeEnv = p_tgt->ptr < p_tgt->env->start;
+    /* If the target starts after the environment ends. */
+    uint8_t afterEnv = p_tgt->ptr > p_tgt->env->end;
+    /* If a size was defined. */
+    uint8_t isSize = p_tgt->size_du;
+    /* If the target selected size goes beyond the boundaries of the 
+    environment. Only computed if there is a size defined.*/
+    uint8_t isOutb = isOutbound( p_tgt->ptr, p_tgt->env->end, 
+                                p_tgt->type, p_tgt->size_du, 
+                                p_tgt->inc_du );
+    
+    if( isEnv && ( beforeEnv || afterEnv || (isSize && isOutb) ) )
+    {
+        flags |= DMA_CONFIG_OUTBOUNDS;
+    }
+
+    /* 
+    * If there is a semaphore, there should not be environments
+    * nor increments (or its an incompatible peripheral).
+    * Otherwise, an increment is needed (or its an incompatible
+    * memory).
+    */
+    uint8_t isSmph = p_tgt->smph;
+    uint8_t isInc = p_tgt->inc_du;
+    uint8_t incomPeri = ( isSmph && ( isEnv || isInc ) );
+    uint8_t incomMem = ( ! p_tgt->smph && ! p_tgt->inc_du );
+    if( incomPeri || incomMem )
+    {
+        flags |= DMA_CONFIG_INCOMPATIBLE;
+    }
+    
+    /*
+     * This is returned so this function can be called as: 
+     * if( dma_create_target == DMA_CONFIG_OK ){ go ahead } 
+     * or if( dma_create_target() ){ check for errors }
+     */
+    return flags; 
+}
 
 static inline uint8_t getMisalignment_b( uint8_t* p_ptr, 
                                         dma_data_type_t p_type )
