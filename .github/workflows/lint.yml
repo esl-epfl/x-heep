@@ -47,6 +47,7 @@ jobs:
       run: |
         make venv
         echo "PATH=`pwd`/.venv/bin:$PATH" >> $GITHUB_ENV
+        source .venv/bin/activate
         pip install -r python-requirements.txt
     - name: Install Verible
       run: |

@@ -73,6 +73,11 @@ conda activate core-v-mini-mcu
 ```bash
 make venv
 ```
+Activate the environment with
+
+```bash
+source .venv/bin/activate
+```
 
 2. Install the required Python tools:
 
@@ -86,7 +91,7 @@ and add that folder to the `PATH` variable
 3. Install the required apt tools:
 
 ```
-sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 libssl-dev libudev-dev libusb-1.0-0 lsb-release texinfo autoconf cmake flex bison libexpat-dev gawk tree xterm
+sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 libssl-dev libudev-dev libusb-1.0-0 lsb-release texinfo autoconf cmake flex bison libexpat-dev gawk tree xterm python3-venv python3-dev
 ```
 
 In general, have a look at the [Install required software](https://opentitan.org/guides/getting_started/index.html) section of the OpenTitan documentation.
