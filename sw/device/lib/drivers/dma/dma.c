@@ -187,8 +187,16 @@ void dma_init()
 {
     // @ToDo: let fic be in charge of this.
     dma_cb.fic.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS); 
-    dma_cb.trans = NULL; // Clear the loaded transaction. 
-    
+    /* Clear the loaded transaction */
+    dma_cb.trans = NULL;
+    /* Clear all values in the DMA registers. */
+    dma_peri->PTR_IN = 0;
+    dma_peri->PTR_OUT = 0;
+    dma_peri->DMA_START = 0;
+    dma_peri->SRC_PTR_INC = 0;
+    dma_peri->DST_PTR_INC = 0;
+    dma_peri->SPI_MODE = 0;
+    dma_peri->DATA_TYPE = 0;
 }
 
 dma_config_flags_t dma_create_environment( dma_env_t *p_env )
