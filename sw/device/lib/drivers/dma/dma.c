@@ -816,7 +816,6 @@ void handler_irq_fast_dma(void)
     dma_cb.intrFlag = 1;
     // Call the weak implementation provided in this module, 
     // or the non-weak implementation from above. 
-    printf("IRQ\n");
     dma_intr_handler();
 }
 
