@@ -95,7 +95,7 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
     dma_trans_t trans = {
         .src = &tgt_src,
         .dst = &tgt_dst,
-        .end = DMA_END_EVENT_INTR,
+        .end = DMA_END_EVENT_POLLING,
     };
 
     dma_config_flags_t res;

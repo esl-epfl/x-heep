@@ -221,8 +221,6 @@ typedef struct
     be left blank if the target will only be used as destination. */
     dma_semaphore_t smph;       /*!< If the target is a peripheral, a semaphore 
     can be set to control the data flow.  */
-    dma_config_flags_t flags;   /*!< A mask with possible issues aroused from 
-    the creation of the target.  */
 } dma_target_t;   
 
 /**
@@ -287,19 +285,6 @@ void dma_init();
  * appeared before the creation of the structure.
  */
 dma_config_flags_t dma_create_environment( dma_env_t *p_env );
-
-/**
- * @brief Creates a target that can be used to perform transactions. 
- * @param p_tgt Pointer to the dma_target_t structure where configuration
- * should be allocated. The content of this pointer must be a static variable. 
- * @param p_check Whether integrity checks should be performed. 
- * @return A configuration flags mask. Each individual flag can be accessed with 
- * a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query the 
- * result from inside target structure as an error could have appeared before 
- * the creation of the structure.
- */
-dma_config_flags_t dma_create_target(   dma_target_t *p_tgt, 
-                                        dma_perform_checks_t p_check );
 
 /**
  * @brief Creates a transaction that can be loaded into the DMA.
