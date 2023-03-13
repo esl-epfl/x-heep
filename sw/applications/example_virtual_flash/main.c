@@ -78,6 +78,8 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
     // -- DMA CONFIGURATION --
     printf("TEST 1\n");
 
+    dma_init();
+
     dma_target_t tgt_src = {
         .ptr = data,
         .inc_du = 1,
@@ -100,10 +102,6 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
 
     dma_config_flags_t res;
     
-    //res = dma_create_target( &tgt_src, (uint32_t*)data, 1, 64 ,DMA_DATA_TYPE_HALF_WORD, DMA_SMPH_MEMORY, NULL, DMA_PERFORM_CHECKS_INTEGRITY );
-    //printf("Result -  tgt src: %u\n", res );
-    //res = dma_create_target( &tgt_dst, fifo_ptr_tx, 0, 0, DMA_DATA_TYPE_HALF_WORD, DMA_SMPH_SLOT_4, NULL, DMA_PERFORM_CHECKS_INTEGRITY );
-    //printf("Result -  tgt dst: %u\n", res );
     res = dma_create_transaction( &trans, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     printf("Result - tgt trans: %u\n", res );
     res = dma_load_transaction(&trans);
