@@ -13,7 +13,7 @@ cd sw/vendor/yosyshq_icestorm/iceprog
 make
 ```
 
-Plug a micro-USB into the `EPFL programmer`, and connect the EPFL programmer to the Pynq-z2 FPGA PMODs.
+Plug a micro-USB into the [EPFL programmer](https://github.com/esl-epfl/x-heep-programmer-pmod), and connect the EPFL programmer to the Pynq-z2 FPGA PMODs.
 
 We use the the `FT4232H` which has Vendor ID `0x0403` and Product ID `0x6011`.
 

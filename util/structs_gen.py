@@ -52,13 +52,16 @@ def read_json(json_file):
     return j_data
 
 
-def write_template(tpl, structs, enums, name):
+def write_template(tpl, structs, enums, struct_name):
     """
     Opens a given template and substitutes the structs and enums fields.
     Returns a string with the content of the updated template
     """
 
-    upper_case_name = name.upper()
+    lower_case_name = struct_name.lower()
+    upper_case_name = struct_name.upper()
+    start_addr_def = "{}_peri (({} *) {}_START_ADDRESS)".format(lower_case_name, struct_name, upper_case_name)
+    
     today = date.today()
     today = today.strftime("%d/%m/%Y")
 
@@ -66,7 +69,12 @@ def write_template(tpl, structs, enums, name):
     with open(tpl) as t:
         template = string.Template(t.read())
 
-    return template.substitute(structures_definitions=structs, enums_definitions=enums, peripheral_name=name, peripheral_name_upper=upper_case_name, date=today)
+    return template.substitute( structures_definitions=structs, 
+                                enums_definitions=enums, 
+                                peripheral_name=struct_name, 
+                                peripheral_name_upper=upper_case_name, 
+                                date=today,
+                                start_address_define=start_addr_def)
 
 
 def write_output(out_file, out_string):
@@ -209,7 +217,7 @@ def add_registers(peripheral_json):
     :return: the strings containing the indented structs and enums relative to the registers
     """
 
-    reg_struct = ""
+    reg_struct = "\n"
     reg_enum = ""
 
     # loops through the registers of the hjson
@@ -218,20 +226,25 @@ def add_registers(peripheral_json):
             elem = elem["multireg"]
         
         if "name" in elem:
-            reg_struct += union_start + struct_typedef_start.format(elem["name"])
+            reg_struct += tab_spaces + "uint32_t {};".format(elem["name"])
+            reg_comment = elem["desc"].replace("\n", " ")
+            reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
 
-            # generate the struct entries relative to the fields of the register
-            new_field, new_enum = add_fields(elem)
-            reg_struct += new_field
-            reg_enum += new_enum
+            ## OLD VERSION WITH UNION AND BIT FIELDS ##
+            # reg_struct += union_start + struct_typedef_start.format(elem["name"])
 
-            reg_struct += struct_typedef_end
-            reg_struct += format(line_comment_start, ">43") + format(struct_comment, "<100") + "*/\n"
+            # # generate the struct entries relative to the fields of the register
+            # new_field, new_enum = add_fields(elem)
+            # reg_struct += new_field
+            # reg_enum += new_enum
 
-            reg_struct += (2 * tab_spaces) + "uint32_t" + " w;"
-            reg_struct += format(line_comment_start, ">37") + format(word_comment, "<110") + "*/\n"
+            # reg_struct += struct_typedef_end
+            # reg_struct += format(line_comment_start, ">43") + format(struct_comment, "<100") + "*/\n"
 
-            reg_struct += union_end.format(elem["name"])
+            # reg_struct += (2 * tab_spaces) + "uint32_t" + " w;"
+            # reg_struct += format(line_comment_start, ">37") + format(word_comment, "<110") + "*/\n"
+
+            # reg_struct += union_end.format(elem["name"])
     
     return reg_struct, reg_enum
 
@@ -246,8 +259,8 @@ def main(arg_vect):
                                                  "structure provided by the template.")
     parser.add_argument("--template_filename",
                         help="filename of the template for the final file generation")
-    parser.add_argument("--peripheral_name",
-                        help="name of the peripheral for which the structs are generated")
+    # parser.add_argument("--peripheral_name",
+    #                     help="name of the peripheral for which the structs are generated")
     parser.add_argument("--json_filename",
                         help="filename of the input json basing on which the structs and enums will begenerated")
     parser.add_argument("--output_filename",
@@ -259,7 +272,7 @@ def main(arg_vect):
     input_template = args.template_filename
     input_hjson_file = args.json_filename
     output_filename = args.output_filename
-    peripheral_name = args.peripheral_name
+    # peripheral_name = args.peripheral_name
 
     data = read_json(input_hjson_file)
 
@@ -275,7 +288,7 @@ def main(arg_vect):
 
     structs_definitions += "}} {};".format(data["name"])
 
-    final_output = write_template(input_template, structs_definitions, enums_definitions, peripheral_name)
+    final_output = write_template(input_template, structs_definitions, enums_definitions, data["name"])
     write_output(output_filename, final_output)
 
 

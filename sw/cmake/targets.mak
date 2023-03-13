@@ -1,4 +1,5 @@
 # Copyright 2022 Jose Miranda
+# Copyright 2023 Juan Sapriza
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -12,7 +13,7 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# Author: Jose Miranda (jose.mirandacalero@epfl.ch)
+# Author: Juan Sapriza (juan.sapriza@epfl.ch)
 
 build : build/Makefile
 	@echo Build 
@@ -27,11 +28,13 @@ build/Makefile : CMakeLists.txt ${CMAKE_DIR}/riscv.cmake
 		    -G "Unix Makefiles" \
 			-DCMAKE_TOOLCHAIN_FILE=../${CMAKE_DIR}/riscv.cmake \
 			-DROOT_PROJECT=${ROOT_PROJECT} \
+			-DSOURCE_PATH=${SOURCE_PATH} \
 			-DPROJECT:STRING=${PROJECT} \
 			-DRISCV:STRING=${RISCV} \
 			-DINC_FOLDERS:STRING=${INC_FOLDERS} \
 			-DLINK_FOLDER:STRING=${LINK_FOLDER} \
 			-DLINKER:STRING=${LINKER} \
+			-DCOMPILER:STRING=${COMPILER} \
 		    ../ 
 
 clean:

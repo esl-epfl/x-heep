@@ -1,4 +1,5 @@
 # Copyright 2022 Jose Miranda
+# Copyright 2023 Juan Sapriza
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -12,7 +13,7 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# Author: Jose Miranda (jose.mirandacalero@epfl.ch)
+# Author: Juan Sapriza (juan.sapriza@epfl.ch)
 
 cmake_minimum_required(VERSION 3.15)
 
@@ -51,13 +52,13 @@ SET(TARGET "main")
 
 # Get the correct path for the crt files and linker file
 if (${LINKER} STREQUAL "on_chip")
-  SET(LIB_CRT_P "${ROOT_PROJECT}device/lib/crt/")
+  SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt/")
   SET(LINK_FILE "link.ld")
 elseif(${LINKER} STREQUAL "flash_load")
-  SET(LIB_CRT_P "${ROOT_PROJECT}device/lib/crt_flash_load/")
+  SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt_flash_load/")
   SET(LINK_FILE "link_flash_load.ld")
 elseif(${LINKER} STREQUAL "flash_exec")
-  SET(LIB_CRT_P	"${ROOT_PROJECT}device/lib/crt_flash_exec/")
+  SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_flash_exec/")
   SET(LINK_FILE "link_flash_exec.ld")
 else()
   message( FATAL_ERROR "Linker specification is not correct" )
@@ -66,13 +67,14 @@ SET(LIB_VCTR_P	"${LIB_CRT_P}vectors.S")
 
 # Just in case it is a freertos based app
 if(${PROJECT} MATCHES "freertos")
-  #SET(LIB_CRT_P	"${ROOT_PROJECT}device/lib/crt_freertos/")
-  SET(LIB_VCTR_P	"${ROOT_PROJECT}device/lib/crt_freertos/vectors.S")
+  #SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_freertos/")
+  SET(LIB_VCTR_P	"${SOURCE_PATH}device/lib/crt_freertos/vectors.S")
 endif()
 
 # messages to check the paths
 message( "${Magenta}Current project: ${PROJECT}${ColourReset}")
 message( "${Magenta}Root project: ${ROOT_PROJECT}${ColourReset}")
+message( "${Magenta}Source path: ${SOURCE_PATH}${ColourReset}")
 message( "${Magenta}LIB_CRT PATH for Cmake: ${LIB_CRT_P}${ColourReset}")
 message( "${Magenta}LINKER File for Cmake: ${LINK_FILE}${ColourReset}")
 message( "${Magenta}LIB_DRIVERS PATH for Cmake: ${LIB_DRIVERS}${ColourReset}")
@@ -126,6 +128,7 @@ message(STATUS "[INFO] ${h_dir_list}")
 SET(INCLUDE_FOLDERS "-I ${RISCV}/riscv32-unknown-elf/include \
                      -I ${RISCV}/riscv32-unknown-elf/include/ \
                      -I ${ROOT_PROJECT} \
+                     -I ${SOURCE_PATH} \
 					           ${h_dir_list}")
 
 # Define MACRO to get ALL the *.h files under sw/device (list format)
@@ -223,19 +226,33 @@ if(${PROJECT} MATCHES "freertos")
 endif()
 
 # specify the C standard
-set(CMAKE_C_FLAGS "\
+set(COMPILER_LINKER_FLAGS "\
   -march=${CMAKE_SYSTEM_PROCESSOR} \
   -w -Os -g  -nostdlib  \
   -DHOST_BUILD \
   -DportasmHANDLE_INTERRUPT=vSystemIrqHandler\
 ")
+set(CMAKE_C_FLAGS ${COMPILER_LINKER_FLAGS})
+
+if (${COMPILER} MATCHES "clang")
+     set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=riscv32 \
+                                          -mabi=ilp32 \
+                                          --gcc-toolchain=${RISCV} \
+                                          --sysroot=${RISCV}/riscv32-unknown-elf \
+                                          -static \
+                                          -mcmodel=medany \
+                                          -fvisibility=hidden \
+                                          -nostartfiles \
+                                          -Wall \
+                                          -Wno-unused-command-line-argument" )
+endif()
 
 # In case of wanting to create a library with those subdirectories
 #add_subdirectory(device/lib/base)
 #add_subdirectory(device/lib/drivers)
 #add_subdirectory(device/lib/runtime)
 
-set(SOURCES ${ROOT_PROJECT}applications/${PROJECT}/${TARGET}.c)
+set(SOURCES ${SOURCE_PATH}applications/${PROJECT}/${TARGET}.c)
 
 # add the executable
 add_executable(${TARGET}.elf ${SOURCES})  
@@ -270,6 +287,13 @@ message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/riscv32-unknown-elf/lib${Colo
 
 SET(CMAKE_VERBOSE_MAKEFILE on)
 
+# Specify that we want to link with GCC even if we are compiling with clang
+if (${COMPILER} MATCHES "clang")
+  set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
+                                ${SOURCE_PATH}build/CMakeFiles/${TARGET}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${TARGET}.c.obj \
+                                -o ${TARGET}.elf")
+endif()
+
 # Post processing command to create a disassembly file 
 add_custom_command(TARGET ${TARGET}.elf POST_BUILD
         COMMAND ${CMAKE_OBJDUMP} -S  ${TARGET}.elf > ${TARGET}.disasm
@@ -290,11 +314,21 @@ add_custom_command(TARGET ${TARGET}.elf POST_BUILD
         COMMAND ${CMAKE_OBJCOPY} -O binary  ${TARGET}.elf  ${TARGET}.bin
         COMMENT "Invoking: Hexdump")
 
+# To make sure that .obj files are created and fetched from the same path. 
+# When setting an inner path to add_executable, .obj files are stored in ${TARGET}.elf.dir/<relative path>
+# but when an outside directory is provided, they are stored in ${TARGET}.elf.dir/<absolute path>.
+# To prevent this, if the SOURCE_PATH is the ROOT_PROJECT (X-HEEP source files will be used), no further path is to be added to the fetch directory.
+if( ${SOURCE_PATH} STREQUAL ${ROOT_PROJECT} )
+    SET(OBJ_PATH "")
+else()
+    SET(OBJ_PATH ${SOURCE_PATH})
+endif()
+
 # Pre-processing command to create disassembly for each source file
 foreach (SRC_MODULE ${TARGET} )
   add_custom_command(TARGET ${TARGET}.elf 
                      PRE_LINK
-                     COMMAND ${CMAKE_OBJDUMP} -S ${ROOT_PROJECT}build/CMakeFiles/${TARGET}.elf.dir/applications/${PROJECT}/${SRC_MODULE}.c.obj > ${SRC_MODULE}.s
+                     COMMAND ${CMAKE_OBJDUMP} -S ${SOURCE_PATH}build/CMakeFiles/${TARGET}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${SRC_MODULE}.c.obj > ${SRC_MODULE}.s
                      COMMENT "Invoking: Disassemble ( CMakeFiles/${TARGET}.dir/${SRC_MODULE}.c.obj)")
 endforeach()
 

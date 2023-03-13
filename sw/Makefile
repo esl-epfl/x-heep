@@ -1,6 +1,7 @@
 # Copyright 2019 Clifford Wolf
 # Copyright 2019 Robert Balas
 # Copyright 2022 Jose Miranda
+# Copyright 2023 Juan Sapriza
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +15,7 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# Author: Jose Miranda (jose.mirandacalero@epfl.ch)
+# Author: Juan Sapriza (juan.sapriza@epfl.ch)
 
 MAKE                       = make
 
@@ -27,6 +28,15 @@ LINKER   ?= on_chip
 # Target options are 'sim' (default) and 'pynq-z2'
 TARGET   ?= sim
 
+# Compiler options are 'gcc' (default) and 'clang'
+COMPILER ?= gcc
+
+# Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
+ARCH     ?= rv32imc
+
+# Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
+SOURCE 	 ?= "."
+
 # riscv toolchain install path
 RISCV                      ?= ~/.riscv
 RISCV_EXE_PREFIX           = $(RISCV)/bin/riscv32-unknown-elf-
@@ -38,6 +48,12 @@ mkfile_path := $(shell dirname "$(realpath $(firstword $(MAKEFILE_LIST)))")
 # Check the absolute path
 $(info $$You are executing from: $(mkfile_path))
 
+# Get the absolute path of where to fetch sources
+source_path := $(realpath $(mkfile_path)/$(SOURCE))
+$(info $$You are fetching sources from $(source_path) )
+
+
+SOURCE_PATH   		   = $(source_path)/
 ROOT_PROJECT               = $(mkfile_path)/
 INC_FOLDERS                = $(mkfile_path)/device/target/$(TARGET)/
 LINK_FOLDER                = $(mkfile_path)/linker
