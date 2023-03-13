@@ -37,6 +37,17 @@ void dma_intr_handler(){
     printf("A non-weak interrupt of the DMA\n");
 }
 
+void handler_irq_fast_spi_flash(){
+    // Disable SPI interrupts
+    spi_enable_evt_intr(&spi_host_flash, false);
+    spi_enable_rxwm_intr(&spi_host_flash, false);
+    // Clear fast interrupt
+    fast_intr_ctrl_t fast_intr_ctrl;
+    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
+    clear_fast_interrupt(&fast_intr_ctrl, kSpiFlash_fic_e);
+    spi_intr_flag = 1;
+}
+
 
 void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32_t addr)
 {
@@ -67,15 +78,33 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
     // -- DMA CONFIGURATION --
     printf("TEST 1\n");
 
-    dma_target_t tgt_src;
-    dma_target_t tgt_dst;
-    dma_trans_t trans;
+    dma_target_t tgt_src = {
+        .ptr = data,
+        .inc_du = 1,
+        .size_du = 64, 
+        .type = DMA_DATA_TYPE_HALF_WORD,
+        .smph = DMA_SMPH_MEMORY, 
+    };
+    dma_target_t tgt_dst = {
+        .ptr = fifo_ptr_tx,
+        .inc_du = 0,
+        .size_du = 0,
+        .type = DMA_DATA_TYPE_HALF_WORD,
+        .smph = DMA_SMPH_SLOT_4,
+    };
+    dma_trans_t trans = {
+        .src = &tgt_src,
+        .dst = &tgt_dst,
+        .end = DMA_END_EVENT_INTR,
+    };
+
     dma_config_flags_t res;
-    res = dma_create_target( &tgt_src, (uint32_t*)data, 1, 64 ,DMA_DATA_TYPE_HALF_WORD, DMA_SMPH_MEMORY, NULL, DMA_PERFORM_CHECKS_INTEGRITY );
-    printf("Result -  tgt src: %u\n", res );
-    res = dma_create_target( &tgt_dst, fifo_ptr_tx, 0, 0, DMA_DATA_TYPE_HALF_WORD, DMA_SMPH_SLOT_4, NULL, DMA_PERFORM_CHECKS_INTEGRITY );
-    printf("Result -  tgt dst: %u\n", res );
-    res = dma_create_transaction( &trans, &tgt_src, &tgt_dst, DMA_END_EVENT_POLLING, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    
+    //res = dma_create_target( &tgt_src, (uint32_t*)data, 1, 64 ,DMA_DATA_TYPE_HALF_WORD, DMA_SMPH_MEMORY, NULL, DMA_PERFORM_CHECKS_INTEGRITY );
+    //printf("Result -  tgt src: %u\n", res );
+    //res = dma_create_target( &tgt_dst, fifo_ptr_tx, 0, 0, DMA_DATA_TYPE_HALF_WORD, DMA_SMPH_SLOT_4, NULL, DMA_PERFORM_CHECKS_INTEGRITY );
+    //printf("Result -  tgt dst: %u\n", res );
+    res = dma_create_transaction( &trans, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     printf("Result - tgt trans: %u\n", res );
     res = dma_load_transaction(&trans);
     printf("Result - tgt load: %u\n", res );
@@ -98,10 +127,10 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
     spi_set_command(SPI, cmd_write_tx);
     spi_wait_for_ready(SPI);
 
-    // Wait for SPI interrupt
-    while(spi_intr_flag == 0) {
+   // Wait for SPI interrupt
+   while(spi_intr_flag == 0) {
         wait_for_interrupt();
-    }
+   }
 
     printf("%d words written to flash.\n\n\r", byte_count/4);
 }

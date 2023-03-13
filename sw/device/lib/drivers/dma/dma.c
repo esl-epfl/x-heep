@@ -613,9 +613,12 @@ __attribute__((weak)) void dma_intr_handler()
      * Create your own function called 
      * void dma_intr_handler() 
      * to override this one.  
+     * The sole purpose of this trivial code is to make sure the weak 
+     * implementation is not optimized by the compiler. 
      */
+    volatile uint8_t i;
+    i++;
 }
-
 /****************************************************************************/
 /**                                                                        **/
 /*                            LOCAL FUNCTIONS                               */

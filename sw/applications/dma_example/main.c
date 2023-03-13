@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
       0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef, 0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa, 0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98};
     static uint32_t copied_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
     
-    printf("DMA test app: 3\n\r");
+    printf("DMA test app: 4\n\r");
     
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     static dma_trans_t trans = {
                                 .src = &tgt1,
                                 .dst = &tgt2,
-                                .end = DMA_END_EVENT_POLLING,
+                                .end = DMA_END_EVENT_INTR,
                                 };
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
     
