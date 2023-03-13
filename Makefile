@@ -37,6 +37,11 @@ COMPILER ?= gcc
 # Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
 ARCH     ?= rv32imc
 
+# Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
+SOURCE 	 ?= "."
+
+
+
 ## @section Linux-Emulation
 
 ## Generates FEMU
@@ -88,10 +93,11 @@ verible:
 ## @param COMPILER=gcc(default), clang
 ## @param ARCH=rv32imc(default), <any RISC-V ISA string supported by the CPU>
 app: clean-app
-	$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) ARCH=$(ARCH)
+	$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) ARCH=$(ARCH) SOURCE=$(SOURCE)
 	
 ## Just list the different application names available
 app-list:
+	@echo "Note: Applications outside the X-HEEP sw/applications directory will not be listed."  
 	tree sw/applications/
 
 ## @section Simulation
