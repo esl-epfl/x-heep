@@ -72,7 +72,7 @@ uint32_t copy_data[COPY_DATA_WORDS] __attribute__ ((aligned (4)))  = { 0 };
 int main(int argc, char *argv[])
 {
     #ifndef USE_SPI_FLASH
-        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_START_ADDRESS);
+        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI2_START_ADDRESS);
     #else
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif

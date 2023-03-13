@@ -63,11 +63,6 @@
 #define DMA_CSR_REG_MIE_MASK ( 1 << 19 )
 
 /**
- * Mask to use to write on a whole register.
- */
-#define DMA_MASK_WHOLE_REGISTER 0xFFFFFFFF
-
-/**
  * Size of a register of 32 bits. 
  */
 #define DMA_REGISTER_SIZE_BYTES 4
