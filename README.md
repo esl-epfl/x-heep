@@ -48,6 +48,8 @@ Note that under `util` folder, the file `generate-makefile-help` is employed to 
 
 To use `X-HEEP`, we rely on either (a) `miniconda`, or (b) `virtual environment` enviroment.
 
+It has been tested only on `Ubuntu 20`, and we know it does NOT WORK on `Ubuntu 22`.
+
 Choose `1.a` or `1.b` to setup your enviroment.
 
 ## Miniconda
@@ -56,15 +58,15 @@ Choose `1.a` or `1.b` to setup your enviroment.
 and create the Conda enviroment:
 
 ```bash
-conda update conda
-conda env create -f environment.yml
+make conda
 ```
 
-Activate the environment with
+You need to do it only the first time, then just activate the environment everytime you work with `X-HEEP` as
 
 ```bash
 conda activate core-v-mini-mcu
 ```
+
 
 ## Virtual Environment
 
@@ -73,22 +75,15 @@ conda activate core-v-mini-mcu
 ```bash
 make venv
 ```
-Activate the environment with
+
+You need to do it only the first time, then just activate the environment everytime you work with `X-HEEP` as
 
 ```bash
 source .venv/bin/activate
 ```
 
-2. Install the required Python tools:
 
-```
-pip3 install --user -r python-requirements.txt
-```
-
-Add '--root user_builds' to set your build folders for the pip packages
-and add that folder to the `PATH` variable
-
-3. Install the required apt tools:
+2. Install the required apt tools:
 
 ```
 sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 libssl-dev libudev-dev libusb-1.0-0 lsb-release texinfo autoconf cmake flex bison libexpat-dev gawk tree xterm python3-venv python3-dev
@@ -96,7 +91,7 @@ sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 lib
 
 In general, have a look at the [Install required software](https://opentitan.org/guides/getting_started/index.html) section of the OpenTitan documentation.
 
-4. Install the RISC-V Compiler:
+3. Install the RISC-V Compiler:
 
 ```
 git clone --branch 2022.01.17 --recursive https://github.com/riscv/riscv-gnu-toolchain
@@ -122,7 +117,7 @@ cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Releas
 cmake --build . --target install
 ```
 
-5. Install the Verilator:
+4. Install Verilator:
 
 ```
 export VERILATOR_VERSION=4.210
@@ -408,6 +403,10 @@ To run SW, follow the [Debug](./Debug.md) guide
 to load the binaries with the HS2 cable over JTAG,
 or follow the [ExecuteFromFlash](./ExecuteFromFlash.md)
 guide if you have a FLASH attached to the FPGA.
+
+
+Do not forget that the `pynq-z2` board requires you to have the ethernet cable attached to the board while running.
+
 
 ### Linux-FEMU (Linux Fpga EMUlation)
 
