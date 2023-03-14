@@ -219,23 +219,49 @@ def add_registers(peripheral_json):
 
     reg_struct = "\n"
     reg_enum = ""
-
+    
     # loops through the registers of the hjson
     for elem in peripheral_json['registers']:
+
+        # check and handle the multireg case
         if "multireg" in elem:
-            # here I handle the multireg case
-            elem = elem["multireg"]
+            multireg = elem["multireg"]
+            count_var = multireg["count"]
+
+            # search the multireg count default value
+            # This is the number of bitfields needed
+            for p in peripheral_json["param_list"]:
+                if count_var == p["name"]:
+                    count = int(p["default"])
+            
+            # counts the bits needed by the multireg register
+            n_bits = 0
+            for f in multireg["fields"]:
+                n_bits += count_bits(f["bits"])
+
+            # computes the number of registers needed to pack all the bit fields needed
+            n_multireg = int((count * n_bits) /  int(peripheral_json["regwidth"]))
+            
+            # generate the multiregisters
+            for r in range(n_multireg):
+                reg_name = multireg["name"] + str(r)
+                reg_struct += tab_spaces + "uint32_t {};".format(reg_name)
+                reg_comment = multireg["desc"]
+                reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
+
+        # if no multireg, just generate the reg
+        elif "name" in elem:   
+            
+            reg_struct += tab_spaces + "uint32_t {};".format(elem["name"])
+            reg_comment = elem["desc"].replace("\n", " ")
+            reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
+
 
         if "skipto" in elem:
             offset_value = elem["skipto"]       # address offset to skip (in bytes)
             offset_value = int(offset_value) / 4     # address offset in words
             reg_struct += tab_spaces + "uint32_t _reserved[{}];".format(int(offset_value))
             reg_comment = "reserved addresses"
-            reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
-        
-        if "name" in elem:
-            reg_struct += tab_spaces + "uint32_t {};".format(elem["name"])
-            reg_comment = elem["desc"].replace("\n", " ")
             reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
 
             ## OLD VERSION WITH UNION AND BIT FIELDS ##
