@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 cat <<< 'name: core-v-mini-mcu
 channels:
   - defaults
