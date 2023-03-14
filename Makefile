@@ -48,9 +48,11 @@ ARCH     ?= rv32imc
 SOURCE 	 ?= "."
 
 ## @section Conda
-conda:
-	conda update conda
+conda: environment.yml
 	conda env create -f environment.yml
+
+environment.yml: python-requirements.txt
+	util/python-requirements2conda.sh
 
 ## @section Linux-Emulation
 
