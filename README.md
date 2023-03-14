@@ -46,37 +46,56 @@ Note that under `util` folder, the file `generate-makefile-help` is employed to 
 
 # Prerequisite
 
-1. Install [Conda](https://phoenixnap.com/kb/how-to-install-anaconda-ubuntu-18-04-or-20-04) as described in the link,
-and create the Conda enviroment with python 3.8:
+## 1. OS requirements
+
+To use `X-HEEP`, first make sure you have the following apt packages, or install them as:
 
 ```bash
-conda update conda
-conda env create -f environment.yml
-```
-
-Activate the environment with
-
-```bash
-conda activate core-v-mini-mcu
-```
-2. Install the required Python tools:
-
-```
-pip3 install --user -r python-requirements.txt
-```
-
-Add '--root user_builds' to set your build folders for the pip packages
-and add that folder to the `PATH` variable
-
-3. Install the required apt tools:
-
-```
-sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 libssl-dev libudev-dev libusb-1.0-0 lsb-release texinfo autoconf cmake flex bison libexpat-dev gawk tree xterm
+sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 libssl-dev libudev-dev libusb-1.0-0 lsb-release texinfo autoconf cmake flex bison libexpat-dev gawk tree xterm python3-venv python3-dev
 ```
 
 In general, have a look at the [Install required software](https://opentitan.org/guides/getting_started/index.html) section of the OpenTitan documentation.
 
-4. Install the RISC-V Compiler:
+It has been tested only on `Ubuntu 20`, and we know it does NOT WORK on `Ubuntu 22`.
+
+## 2. Python
+
+
+We rely on either (a) `miniconda`, or (b) `virtual environment` enviroment.
+
+Choose between `2.a` or `2.b` to setup your enviroment.
+
+### 2.a Miniconda
+
+Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html#linux-installers) python 3.8 version as described in the link,
+and create the Conda enviroment:
+
+```bash
+make conda
+```
+
+You need to do it only the first time, then just activate the environment everytime you work with `X-HEEP` as
+
+```bash
+conda activate core-v-mini-mcu
+```
+
+
+### 2.b Virtual Environment
+
+Install the python virtual environment just as:
+
+```bash
+make venv
+```
+
+You need to do it only the first time, then just activate the environment everytime you work with `X-HEEP` as
+
+```bash
+source .venv/bin/activate
+```
+
+## 3. Install the RISC-V Compiler:
 
 ```
 git clone --branch 2022.01.17 --recursive https://github.com/riscv/riscv-gnu-toolchain
@@ -102,7 +121,7 @@ cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Releas
 cmake --build . --target install
 ```
 
-5. Install the Verilator:
+## 4. Install Verilator:
 
 ```
 export VERILATOR_VERSION=4.210
@@ -388,6 +407,10 @@ To run SW, follow the [Debug](./Debug.md) guide
 to load the binaries with the HS2 cable over JTAG,
 or follow the [ExecuteFromFlash](./ExecuteFromFlash.md)
 guide if you have a FLASH attached to the FPGA.
+
+
+Do not forget that the `pynq-z2` board requires you to have the ethernet cable attached to the board while running.
+
 
 ### Linux-FEMU (Linux Fpga EMUlation)
 
