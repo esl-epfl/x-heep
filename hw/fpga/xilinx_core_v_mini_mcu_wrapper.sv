@@ -33,7 +33,7 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic uart_rx_i,
     inout logic uart_tx_o,
 
-    inout logic [22:0] gpio_io,
+    inout logic [19:0] gpio_io,
 
     output logic exit_value_o,
     inout  logic exit_valid_o,
@@ -149,9 +149,6 @@ module xilinx_core_v_mini_mcu_wrapper
       .gpio_17_io(gpio_io[17]),
       .gpio_18_io(gpio_io[18]),
       .gpio_19_io(gpio_io[19]),
-      .gpio_20_io(gpio_io[20]),
-      .gpio_21_io(gpio_io[21]),
-      .gpio_22_io(gpio_io[22]),
       .spi_flash_sd_0_io(spi_flash_sd_io[0]),
       .spi_flash_sd_1_io(spi_flash_sd_io[1]),
       .spi_flash_sd_2_io(spi_flash_sd_io[2]),
