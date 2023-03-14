@@ -46,11 +46,11 @@ Note that under `util` folder, the file `generate-makefile-help` is employed to 
 
 # Prerequisite
 
-1. OS requirements
+## 1. OS requirements
 
 To use `X-HEEP`, first make sure you have the following apt packages, or install them as:
 
-```
+```bash
 sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 libssl-dev libudev-dev libusb-1.0-0 lsb-release texinfo autoconf cmake flex bison libexpat-dev gawk tree xterm python3-venv python3-dev
 ```
 
@@ -58,16 +58,16 @@ In general, have a look at the [Install required software](https://opentitan.org
 
 It has been tested only on `Ubuntu 20`, and we know it does NOT WORK on `Ubuntu 22`.
 
-2. Python
+## 2. Python
 
 
 We rely on either (a) `miniconda`, or (b) `virtual environment` enviroment.
 
-Choose btween `2.a` or `2.b` to setup your enviroment.
+Choose between `2.a` or `2.b` to setup your enviroment.
 
-## Miniconda
+### 2.a Miniconda
 
-2.a Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html#linux-installers) python 3.8 version as described in the link,
+Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html#linux-installers) python 3.8 version as described in the link,
 and create the Conda enviroment:
 
 ```bash
@@ -81,9 +81,9 @@ conda activate core-v-mini-mcu
 ```
 
 
-## Virtual Environment
+### 2.b Virtual Environment
 
-2.b Install the python virtual environment just as:
+Install the python virtual environment just as:
 
 ```bash
 make venv
@@ -95,7 +95,7 @@ You need to do it only the first time, then just activate the environment everyt
 source .venv/bin/activate
 ```
 
-3. Install the RISC-V Compiler:
+## 3. Install the RISC-V Compiler:
 
 ```
 git clone --branch 2022.01.17 --recursive https://github.com/riscv/riscv-gnu-toolchain
@@ -121,7 +121,7 @@ cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Releas
 cmake --build . --target install
 ```
 
-4. Install Verilator:
+## 4. Install Verilator:
 
 ```
 export VERILATOR_VERSION=4.210
