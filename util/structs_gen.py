@@ -223,7 +223,15 @@ def add_registers(peripheral_json):
     # loops through the registers of the hjson
     for elem in peripheral_json['registers']:
         if "multireg" in elem:
+            # here I handle the multireg case
             elem = elem["multireg"]
+
+        if "skipto" in elem:
+            offset_value = elem["skipto"]       # address offset to skip (in bytes)
+            offset_value = int(offset_value) / 4     # address offset in words
+            reg_struct += tab_spaces + "uint32_t _reserved[{}];".format(int(offset_value))
+            reg_comment = "reserved addresses"
+            reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
         
         if "name" in elem:
             reg_struct += tab_spaces + "uint32_t {};".format(elem["name"])
