@@ -46,15 +46,28 @@ Note that under `util` folder, the file `generate-makefile-help` is employed to 
 
 # Prerequisite
 
-To use `X-HEEP`, we rely on either (a) `miniconda`, or (b) `virtual environment` enviroment.
+1. OS requirements
+
+To use `X-HEEP`, first make sure you have the following apt packages, or install them as:
+
+```
+sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 libssl-dev libudev-dev libusb-1.0-0 lsb-release texinfo autoconf cmake flex bison libexpat-dev gawk tree xterm python3-venv python3-dev
+```
+
+In general, have a look at the [Install required software](https://opentitan.org/guides/getting_started/index.html) section of the OpenTitan documentation.
 
 It has been tested only on `Ubuntu 20`, and we know it does NOT WORK on `Ubuntu 22`.
 
-Choose `1.a` or `1.b` to setup your enviroment.
+2. Python
+
+
+We rely on either (a) `miniconda`, or (b) `virtual environment` enviroment.
+
+Choose btween `2.a` or `2.b` to setup your enviroment.
 
 ## Miniconda
 
-1.a Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html#linux-installers) python 3.8 version as described in the link,
+2.a Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html#linux-installers) python 3.8 version as described in the link,
 and create the Conda enviroment:
 
 ```bash
@@ -70,7 +83,7 @@ conda activate core-v-mini-mcu
 
 ## Virtual Environment
 
-1.b Install the python virtual environment just as:
+2.b Install the python virtual environment just as:
 
 ```bash
 make venv
@@ -81,15 +94,6 @@ You need to do it only the first time, then just activate the environment everyt
 ```bash
 source .venv/bin/activate
 ```
-
-
-2. Install the required apt tools:
-
-```
-sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 libssl-dev libudev-dev libusb-1.0-0 lsb-release texinfo autoconf cmake flex bison libexpat-dev gawk tree xterm python3-venv python3-dev
-```
-
-In general, have a look at the [Install required software](https://opentitan.org/guides/getting_started/index.html) section of the OpenTitan documentation.
 
 3. Install the RISC-V Compiler:
 
