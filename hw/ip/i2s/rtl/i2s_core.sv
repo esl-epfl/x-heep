@@ -41,6 +41,9 @@ module i2s_core #(
     output logic                   fifo_rx_err_o
 );
 
+  logic clk_div_running;
+
+
 
   logic ws;
   assign ws = i2s_ws_oe_o ? i2s_ws_o : i2s_ws_i;
@@ -75,7 +78,6 @@ module i2s_core #(
 
   // This is a workaround
   // Such that it starts with the demanded div value.
-  logic clk_div_running;
   always_ff @(posedge clk_i, negedge rst_ni) begin
     if (~rst_ni) begin
       clk_div_running <= 1'b0;
