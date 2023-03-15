@@ -89,7 +89,7 @@ module i2s_core #(
   end
 
   assign div = cfg_clock_div_i;
-  assign div_valid = 1'b1;
+  assign div_valid = |div;
 
 
 
