@@ -62,9 +62,9 @@ set_property -dict {PACKAGE_PIN U13 IOSTANDARD LVCMOS33} [get_ports {gpio_io[13]
 set_property -dict {PACKAGE_PIN V13 IOSTANDARD LVCMOS33} [get_ports {gpio_io[14]}]
 set_property -dict {PACKAGE_PIN Y9 IOSTANDARD LVCMOS33} [get_ports {gpio_io[15]}]
 set_property -dict {PACKAGE_PIN A20 IOSTANDARD LVCMOS33} [get_ports {gpio_io[16]}]
-set_property -dict {PACKAGE_PIN B19 IOSTANDARD LVCMOS33} [get_ports i2s_sck_io]
-set_property -dict {PACKAGE_PIN B20 IOSTANDARD LVCMOS33} [get_ports i2s_ws_io]
-set_property -dict {PACKAGE_PIN P15 IOSTANDARD LVCMOS33} [get_ports i2s_sd_io]
+set_property -dict {PACKAGE_PIN B19 IOSTANDARD LVCMOS33} [get_ports {i2s_sck_io}]
+set_property -dict {PACKAGE_PIN B20 IOSTANDARD LVCMOS33} [get_ports {i2s_ws_io}]
+set_property -dict {PACKAGE_PIN P15 IOSTANDARD LVCMOS33} [get_ports {i2s_sd_io}]
 
 ## Tri-color LD5 for TARGET_PYNQ_Z2
 set_property -dict {PACKAGE_PIN M15 IOSTANDARD LVCMOS33} [get_ports {gpio_io[17]}]

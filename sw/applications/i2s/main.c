@@ -10,6 +10,7 @@
 #include <stdlib.h>
 
 #include "core_v_mini_mcu.h"
+#include "x-heep.h"
 #include "i2s.h"
 
 #include "mmio.h"
@@ -34,11 +35,11 @@ dif_plic_irq_id_t intr_num;
 
 // I2s
 i2s_t i2s;
-int8_t i2s_interrupt_flag;
+int i2s_interrupt_flag;
 
-#define I2S_TEST_BATCH_SIZE    8
+#define I2S_TEST_BATCH_SIZE    128
 #define I2S_TEST_BATCHES      16
-#define I2S_CLK_DIV           256
+#define I2S_CLK_DIV           4
 
 #define AUDIO_DATA_NUM 32
 uint32_t audio_data_0[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
@@ -138,7 +139,19 @@ int main(int argc, char *argv[]) {
 
     printf("Setup done!\r\n");
 
-    for (u_int8_t batch = 0; batch < I2S_TEST_BATCHES; batch++) {
+#ifdef TARGET_PYNQ_Z2
+#pragma message ( "this application never ends" )
+    int batch = 0;
+    while(1) {
+        while(i2s_interrupt_flag == batch) {
+            wait_for_interrupt();
+            //printf(".");
+        }
+        printf("\r\n");
+        batch += 1;
+    }
+#else
+    for (int batch = 0; batch < I2S_TEST_BATCHES; batch++) {
         while(i2s_interrupt_flag == batch) {
             printf(".");
         }
@@ -149,6 +162,8 @@ int main(int argc, char *argv[]) {
         // }
         printf("%x\r\n", batch);
     }
+#endif
 
     return EXIT_SUCCESS;
 }
+
