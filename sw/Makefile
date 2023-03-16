@@ -53,10 +53,10 @@ source_path := $(realpath $(mkfile_path)/$(SOURCE))
 $(info $$You are fetching sources from $(source_path) )
 
 
-SOURCE_PATH 	= $(source_path)/
-ROOT_PROJECT	= $(mkfile_path)/
-INC_FOLDERS		= $(mkfile_path)/device/target/$(TARGET)/
-LINK_FOLDER		= $(mkfile_path)/linker
+SOURCE_PATH   		   = $(source_path)/
+ROOT_PROJECT               = $(mkfile_path)/
+INC_FOLDERS                = $(mkfile_path)/device/target/$(TARGET)/
+LINK_FOLDER                = $(mkfile_path)/linker
 
 # CMake keyword
 CMAKE_DIR=cmake
