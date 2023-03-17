@@ -37,35 +37,26 @@ void dma_set_write_ptr_inc(const dma_t *dma, uint32_t write_ptr_inc){
   mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_DST_PTR_INC_REG_OFFSET), write_ptr_inc);
 }
 
-void dma_set_rx_wait_mode(const dma_t *dma, uint32_t peripheral_mask) {
-  mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_RX_WAIT_MODE_REG_OFFSET), peripheral_mask);
-}
-
-void dma_set_tx_wait_mode(const dma_t *dma, uint32_t peripheral_mask) {
-  mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_TX_WAIT_MODE_REG_OFFSET), peripheral_mask);
+void dma_set_slot(const dma_t *dma, uint16_t rx_slot_mask, uint16_t tx_slot_mask) {
+  mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_SLOT_SELECTION_REG_OFFSET), tx_slot_mask << DMA_SLOT_SELECTION_TX_TRIGGER_SLOT_SELECTION_OFFSET + rx_slot_mask);
 }
 
 void dma_set_spi_mode(const dma_t *dma, uint32_t spi_mode){
   switch (spi_mode) {
     case DMA_SPI_MODE_DISABLED: {
-      dma_set_rx_wait_mode(dma, DMA_RX_WAIT_MODE_DISABLED);
-      dma_set_tx_wait_mode(dma, DMA_TX_WAIT_MODE_DISABLED);
+      dma_set_slot(dma, 0, 0);
     } break;
     case DMA_SPI_MODE_SPI_RX: {
-      dma_set_rx_wait_mode(dma, DMA_RX_WAIT_SPI);
-      dma_set_tx_wait_mode(dma, DMA_TX_WAIT_MODE_DISABLED);
+      dma_set_slot(dma, 1, 0);
     } break;
     case DMA_SPI_MODE_SPI_TX: {
-      dma_set_rx_wait_mode(dma, DMA_RX_WAIT_MODE_DISABLED);
-      dma_set_tx_wait_mode(dma, DMA_TX_WAIT_SPI);
+      dma_set_slot(dma, 0, 1 << 1);
     } break;
     case DMA_SPI_MODE_SPI_FLASH_RX: {
-      dma_set_rx_wait_mode(dma, DMA_RX_WAIT_SPI_FLASH);
-      dma_set_tx_wait_mode(dma, DMA_TX_WAIT_MODE_DISABLED);
+      dma_set_slot(dma, 1 << 2, 0);
     } break;
     case DMA_SPI_MODE_SPI_FLASH_TX: {
-      dma_set_rx_wait_mode(dma, DMA_RX_WAIT_MODE_DISABLED);
-      dma_set_tx_wait_mode(dma, DMA_TX_WAIT_SPI_FLASH);
+      dma_set_slot(dma, 0, 1 << 3);
     } break;
   }
 }

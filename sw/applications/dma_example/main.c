@@ -213,8 +213,7 @@ int main(int argc, char *argv[])
         dma_set_write_ptr(&dma, (uint32_t) test_data_circular);
         dma_set_read_ptr_inc(&dma, (uint32_t) 1);
         dma_set_write_ptr_inc(&dma, (uint32_t) 1);
-        dma_set_tx_wait_mode(&dma, (uint32_t) 0);
-        dma_set_rx_wait_mode(&dma, (uint32_t) 0);
+        dma_set_slot(&dma, 0, 0);
         dma_set_data_type(&dma, (uint32_t) 2);
         printf("DMA circular transaction launched\n");
         dma_enable_circular_mode(&dma, true);

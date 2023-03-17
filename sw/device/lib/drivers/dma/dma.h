@@ -15,14 +15,6 @@
  * Wait Mode Defines
  * 
  */
-#define DMA_RX_WAIT_MODE_DISABLED 0
-#define DMA_RX_WAIT_SPI           1
-#define DMA_RX_WAIT_SPI_FLASH     2
-
-#define DMA_TX_WAIT_MODE_DISABLED 0
-#define DMA_TX_WAIT_SPI           1
-#define DMA_TX_WAIT_SPI_FLASH     2
-
 #define DMA_SPI_MODE_DISABLED     0
 #define DMA_SPI_MODE_SPI_RX       1
 #define DMA_SPI_MODE_SPI_TX       2
@@ -96,16 +88,10 @@ void dma_set_write_ptr_inc(const dma_t *dma, uint32_t write_ptr_inc);
 /**
  * Sets the DMA data transfer modes when used with peripherals
  * @param dma Pointer to dma_t represting the target DMA.
- * @param peripheral_mask mask to listen to correct peripheral
+ * @param rx_slot_mask
+ * @param tx_slot_mask
  */
-void dma_set_rx_wait_mode(const dma_t *dma, uint32_t peripheral_mask);
-
-/**
- * Sets the DMA data transfer modes when used with peripherals
- * @param dma Pointer to dma_t represting the target DMA.
- * @param peripheral_mask mask to listen to correct peripheral
- */
-void dma_set_tx_wait_mode(const dma_t *dma, uint32_t peripheral_mask);
+void dma_set_slot(const dma_t *dma, uint16_t rx_slot_mask, uint16_t tx_slot_mask);
 
 /**
  * Sets the DMA data transfer modes when used with the SPI.

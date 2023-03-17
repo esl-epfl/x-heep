@@ -319,34 +319,22 @@ module ao_peripheral_subsystem
       .intr_timer_expired_1_0_o(rv_timer_1_intr_o)
   );
 
-  localparam DMA_PERIPHERALS_RX = 2;
-  logic [DMA_PERIPHERALS_RX-1:0] dma_peripheral_rx_valid;
-  assign dma_peripheral_rx_valid[0] = spi_rx_valid;
-  assign dma_peripheral_rx_valid[1] = spi_flash_rx_valid;
-
-  localparam DMA_PERIPHERALS_TX = 2;
-  logic [DMA_PERIPHERALS_TX-1:0] dma_peripheral_tx_ready;
-  assign dma_peripheral_tx_ready[0] = spi_tx_ready;
-  assign dma_peripheral_tx_ready[1] = spi_flash_tx_ready;
-
   dma #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t),
-      .obi_req_t(obi_pkg::obi_req_t),
+      .reg_req_t (reg_pkg::reg_req_t),
+      .reg_rsp_t (reg_pkg::reg_rsp_t),
+      .obi_req_t (obi_pkg::obi_req_t),
       .obi_resp_t(obi_pkg::obi_resp_t),
-      .PERIPHERALS_RX(DMA_PERIPHERALS_RX),
-      .PERIPHERALS_TX(DMA_PERIPHERALS_TX)
+      .SLOT_NUM  (4)
   ) dma_i (
       .clk_i,
       .rst_ni,
-      .reg_req_i (ao_peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
-      .reg_rsp_o (ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
+      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
+      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
       .dma_master0_ch0_req_o,
       .dma_master0_ch0_resp_i,
       .dma_master1_ch0_req_o,
       .dma_master1_ch0_resp_i,
-      .rx_valid_i(dma_peripheral_rx_valid),
-      .tx_ready_i(dma_peripheral_tx_ready),
+      .trigger_slot_i({spi_rx_valid, spi_tx_ready, spi_flash_rx_valid, spi_flash_tx_ready}),
       .dma_intr_o
   );
 
