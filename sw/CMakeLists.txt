@@ -1,4 +1,5 @@
 # Copyright 2022 Jose Miranda
+# Copyright 2023 Juan Sapriza
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -12,7 +13,7 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# Author: Jose Miranda (jose.mirandacalero@epfl.ch)
+# Author: Juan Sapriza (juan.sapriza@epfl.ch)
 
 cmake_minimum_required(VERSION 3.15)
 
@@ -47,17 +48,17 @@ project(${PROJECT} ASM C)
 set(CMAKE_CXX_STANDARD 14)
 
 # Set MAIN file
-SET(TARGET ${MAINFILE})
+SET(TARGET "main")
 
 # Get the correct path for the crt files and linker file
 if (${LINKER} STREQUAL "on_chip")
-  SET(LIB_CRT_P "${ROOT_PROJECT}device/lib/crt/")
+  SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt/")
   SET(LINK_FILE "link.ld")
 elseif(${LINKER} STREQUAL "flash_load")
-  SET(LIB_CRT_P "${ROOT_PROJECT}device/lib/crt_flash_load/")
+  SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt_flash_load/")
   SET(LINK_FILE "link_flash_load.ld")
 elseif(${LINKER} STREQUAL "flash_exec")
-  SET(LIB_CRT_P	"${ROOT_PROJECT}device/lib/crt_flash_exec/")
+  SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_flash_exec/")
   SET(LINK_FILE "link_flash_exec.ld")
 else()
   message( FATAL_ERROR "Linker specification is not correct" )
@@ -66,89 +67,137 @@ SET(LIB_VCTR_P	"${LIB_CRT_P}vectors.S")
 
 # Just in case it is a freertos based app
 if(${PROJECT} MATCHES "freertos")
-  #SET(LIB_CRT_P	"${ROOT_PROJECT}device/lib/crt_freertos/")
-  SET(LIB_VCTR_P	"${ROOT_PROJECT}device/lib/crt_freertos/vectors.S")
+  #SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_freertos/")
+  SET(LIB_VCTR_P	"${SOURCE_PATH}device/lib/crt_freertos/vectors.S")
 endif()
 
 # messages to check the paths
 message( "${Magenta}Current project: ${PROJECT}${ColourReset}")
 message( "${Magenta}Root project: ${ROOT_PROJECT}${ColourReset}")
+message( "${Magenta}Source path: ${SOURCE_PATH}${ColourReset}")
 message( "${Magenta}LIB_CRT PATH for Cmake: ${LIB_CRT_P}${ColourReset}")
 message( "${Magenta}LINKER File for Cmake: ${LINK_FILE}${ColourReset}")
 message( "${Magenta}LIB_DRIVERS PATH for Cmake: ${LIB_DRIVERS}${ColourReset}")
-message( "${Magenta}Targetting main file: ${MAINFILE}${ColourReset}")
 message( "${Magenta}Targetting folder: ${INC_FOLDERS}${ColourReset}")
+
+# Define MACRO to get ALL the *.h files under sw/device (string format)
+MACRO(H_FILES_RECURSIVE return_list)
+  FILE(GLOB_RECURSE new_list *.h)
+  SET(dir_list "")
+  FOREACH(file_path ${new_list})
+  if(${file_path} MATCHES "device")
+    if(${file_path} MATCHES "target")
+      if(${file_path} MATCHES "${INC_FOLDERS}")
+        GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+        SET(dir_list ${dir_list} "-I ${dir_path} \
+        ")
+        string(REPLACE ";" "" dir_list ${dir_list})     
+      endif()
+    else()
+      GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+      SET(dir_list ${dir_list} "-I ${dir_path} \
+      ")
+      string(REPLACE ";" "" dir_list ${dir_list})
+    endif()
+  elseif(${file_path} MATCHES "${PROJECT}")
+    GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+    SET(dir_list ${dir_list} "-I ${dir_path} \
+    ")
+    string(REPLACE ";" "" dir_list ${dir_list}) 
+  elseif(${file_path} MATCHES "${freertos}")
+    if(${PROJECT} MATCHES "freertos")
+      GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+      SET(dir_list ${dir_list} "-I ${dir_path} \
+      ")
+      string(REPLACE ";" "" dir_list ${dir_list}) 
+    endif()
+  endif()
+  ENDFOREACH()
+  LIST(REMOVE_DUPLICATES dir_list)
+  SET(${return_list} ${dir_list})
+ENDMACRO()
+
+# Use the MACRO to get ALL the .h files
+H_FILES_RECURSIVE(h_dir_list)
+
+# Check how many you found!
+list(LENGTH h_dir_list h_dir_list_count)
+message(STATUS "[INFO] ${h_dir_list}")
 
 # Get all the folders to include when linking
 SET(INCLUDE_FOLDERS "-I ${RISCV}/riscv32-unknown-elf/include \
                      -I ${RISCV}/riscv32-unknown-elf/include/ \
                      -I ${ROOT_PROJECT} \
-					 -I ${ROOT_PROJECT}freertos/ \
-                     -I ${ROOT_PROJECT}applications/${PROJECT}/ \
-                     -I ${INC_FOLDERS} \
-                     -I ${LIB_BASE} \
-                     -I ${LIB_BASE_FREESTD} \
-                     -I ${LIB_RUNTIME} \
-                     -I ${LIB_DRIVERS}dma/ \
-                     -I ${LIB_DRIVERS}fast_intr_ctrl/ \
-                     -I ${LIB_DRIVERS}gpio/ \
-                     -I ${LIB_DRIVERS}i2c/ \
-                     -I ${LIB_DRIVERS}pad_control/ \
-                     -I ${LIB_DRIVERS}power_manager/ \
-                     -I ${LIB_DRIVERS}rv_plic/ \
-                     -I ${LIB_DRIVERS}rv_timer/ \
-                     -I ${LIB_DRIVERS}soc_ctrl/ \
-                     -I ${LIB_DRIVERS}spi_host/ \
-                     -I ${LIB_DRIVERS}spi_memio/ \
-                     -I ${LIB_DRIVERS}uart/ \
-                     ")
+                     -I ${SOURCE_PATH} \
+					           ${h_dir_list}")
+
+# Define MACRO to get ALL the *.h files under sw/device (list format)
+MACRO(H_FILES_RECURSIVE_LIST return_list)
+  FILE(GLOB_RECURSE new_list *.h)
+  SET(dir_list "")
+  FOREACH(file_path ${new_list})
+  if(${file_path} MATCHES "device")
+    if(${file_path} MATCHES "target")
+      if(${file_path} MATCHES "${INC_FOLDERS}")
+        GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+        SET(dir_list ${dir_list} "${dir_path}")    
+      endif()
+    else()
+      GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+      SET(dir_list ${dir_list} "${dir_path}")
+    endif()
+  elseif(${file_path} MATCHES "${PROJECT}")
+    GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+    SET(dir_list ${dir_list} "${dir_path}")
+  elseif(${file_path} MATCHES "${freertos}")
+    if(${PROJECT} MATCHES "freertos")
+      GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+      SET(dir_list ${dir_list} "${dir_path}")
+    endif()
+  endif()
+  ENDFOREACH()
+  LIST(REMOVE_DUPLICATES dir_list)
+  SET(${return_list} ${dir_list})
+ENDMACRO()
 
 # Include all those directories for compiling 
-include_directories(${TARGET}.elf 
-${RISCV}/riscv32-unknown-elf/include
-${RISCV}/riscv32-unknown-elf/include/
-${ROOT_PROJECT}
-${ROOT_PROJECT}freertos/
-${ROOT_PROJECT}applications/${PROJECT}/
-${INC_FOLDERS}
-${LIB_BASE}
-${LIB_BASE_FREESTD}
-${LIB_RUNTIME}
-${LIB_DRIVERS}dma/
-${LIB_DRIVERS}fast_intr_ctrl/
-${LIB_DRIVERS}gpio/
-${LIB_DRIVERS}i2c/
-${LIB_DRIVERS}pad_control/
-${LIB_DRIVERS}power_manager/
-${LIB_DRIVERS}rv_plic/
-${LIB_DRIVERS}rv_timer/
-${LIB_DRIVERS}soc_ctrl/
-${LIB_DRIVERS}spi_host/
-${LIB_DRIVERS}spi_memio/
-${LIB_DRIVERS}uart/
-)
+# Use the MACRO to get ALL the .h files
+H_FILES_RECURSIVE_LIST(h_dir_list_)
+
+# Define MACRO to get ALL the *.c files under sw/device 
+MACRO(C_FILES_RECURSIVE return_list)
+    FILE(GLOB_RECURSE new_list *.c)
+    SET(dir_list "")
+    FOREACH(file_c IN LISTS new_list)
+      #message(${file_c})
+      if(${file_c} MATCHES "device")
+        SET(dir_list ${dir_list} "${file_c} \
+        ")
+        string(REPLACE ";" "" dir_list ${dir_list})
+      elseif(${file_c} MATCHES "${PROJECT}")
+        if(NOT ${file_c} MATCHES "main")
+          SET(dir_list ${dir_list} "${file_c} \
+          ")
+          string(REPLACE ";" "" dir_list ${dir_list})          
+        endif()
+      endif()
+    ENDFOREACH()
+    LIST(REMOVE_DUPLICATES dir_list)
+    SET(${return_list} ${dir_list})
+ENDMACRO()
+
+# Use the MACRO to get ALL the .c files
+C_FILES_RECURSIVE(c_dir_list)
+# Check how many you found!
+list(LENGTH c_dir_list c_dir_list_count)
+#message(STATUS "[INFO] ${c_dir_list}")
 
 # Get all the files to include when linking
 SET(LINKED_FILES    "${LIB_CRT_P}crt0.S \
                      ${LIB_VCTR_P} \
-                     ${LIB_RUNTIME}handler.c \
-                     ${LIB_RUNTIME}init.c \
-                     ${LIB_RUNTIME}syscalls.c \
-                     ${LIB_BASE}bitfield.c \
-                     ${LIB_BASE}memory.c \
-                     ${LIB_BASE}mmio.c \
-                     ${LIB_DRIVERS}soc_ctrl/soc_ctrl.c \
-                     ${LIB_DRIVERS}uart/uart.c \
-                     ${LIB_DRIVERS}rv_plic/rv_plic.c \
-                     ${LIB_DRIVERS}rv_timer/rv_timer.c \
-                     ${LIB_DRIVERS}gpio/gpio.c \
-                     ${LIB_DRIVERS}i2c/i2c.c \
-                     ${LIB_DRIVERS}dma/dma.c \
-                     ${LIB_DRIVERS}power_manager/power_manager.c \
-                     ${LIB_DRIVERS}fast_intr_ctrl/fast_intr_ctrl.c  \
-                     ${LIB_DRIVERS}spi_host/spi_host.c \
-                     ${LIB_DRIVERS}pad_control/pad_control.c \
-                     ")
+                     ${c_dir_list}")
+
+message( "${Magenta}Linked files: ${LINKED_FILES}${ColourReset}")
 					 
 # fetch content from freertos kernel repository			 
 FetchContent_Declare( freertos_kernel
@@ -161,14 +210,7 @@ set(freertos_version "V10.5.1")
 add_library(freertos_config  INTERFACE)
 
 # set include dirtectories for freertos
-target_include_directories(freertos_config SYSTEM
-INTERFACE
-    ${ROOT_PROJECT}freertos/
-	${LIB_RUNTIME}
-    ${INC_FOLDERS}
-	${LIB_DRIVERS}rv_timer/
-	${LIB_BASE}
-)
+target_include_directories(freertos_config SYSTEM INTERFACE ${h_dir_list_})
 
 # set main compilation options for freertos
 target_compile_definitions(freertos_config
@@ -184,22 +226,39 @@ if(${PROJECT} MATCHES "freertos")
 endif()
 
 # specify the C standard
-set(CMAKE_C_FLAGS "\
+set(COMPILER_LINKER_FLAGS "\
   -march=${CMAKE_SYSTEM_PROCESSOR} \
   -w -Os -g  -nostdlib  \
   -DHOST_BUILD \
   -DportasmHANDLE_INTERRUPT=vSystemIrqHandler\
 ")
+set(CMAKE_C_FLAGS ${COMPILER_LINKER_FLAGS})
+
+if (${COMPILER} MATCHES "clang")
+     set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=riscv32 \
+                                          -mabi=ilp32 \
+                                          --gcc-toolchain=${RISCV} \
+                                          --sysroot=${RISCV}/riscv32-unknown-elf \
+                                          -static \
+                                          -mcmodel=medany \
+                                          -fvisibility=hidden \
+                                          -nostartfiles \
+                                          -Wall \
+                                          -Wno-unused-command-line-argument" )
+endif()
 
 # In case of wanting to create a library with those subdirectories
 #add_subdirectory(device/lib/base)
 #add_subdirectory(device/lib/drivers)
 #add_subdirectory(device/lib/runtime)
 
-set(SOURCES ${ROOT_PROJECT}applications/${PROJECT}/${TARGET}.c)
+set(SOURCES ${SOURCE_PATH}applications/${PROJECT}/${TARGET}.c)
 
 # add the executable
 add_executable(${TARGET}.elf ${SOURCES})  
+
+# add include directories to compilation
+target_include_directories(${TARGET}.elf PUBLIC ${h_dir_list_})
 
 # linking the libraries
 #target_link_libraries(${TARGET}.elf base)
@@ -228,15 +287,39 @@ message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/riscv32-unknown-elf/lib${Colo
 
 SET(CMAKE_VERBOSE_MAKEFILE on)
 
+# To make sure that .obj files are created and fetched from the same path. 
+# When setting an inner path to add_executable, .obj files are stored in ${TARGET}.elf.dir/<relative path>
+# but when an outside directory is provided, they are stored in ${TARGET}.elf.dir/<absolute path>.
+# To prevent this, if the SOURCE_PATH is the ROOT_PROJECT (X-HEEP source files will be used), no further path is to be added to the fetch directory.
+if( ${SOURCE_PATH} STREQUAL ${ROOT_PROJECT} )
+    SET(OBJ_PATH "")
+else()
+    SET(OBJ_PATH ${SOURCE_PATH})
+endif()
+
+# Specify that we want to link with GCC even if we are compiling with clang
+if (${COMPILER} MATCHES "clang")
+  set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
+                                ${SOURCE_PATH}build/CMakeFiles/${TARGET}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${TARGET}.c.obj \
+                                -o ${TARGET}.elf")
+endif()
+
 # Post processing command to create a disassembly file 
 add_custom_command(TARGET ${TARGET}.elf POST_BUILD
         COMMAND ${CMAKE_OBJDUMP} -S  ${TARGET}.elf > ${TARGET}.disasm
         COMMENT "Invoking: Disassemble")
 
 # Post processing command to create a hex file 
-add_custom_command(TARGET ${TARGET}.elf POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} -O verilog  ${TARGET}.elf  ${TARGET}.hex 
-        COMMENT "Invoking: Hexdump")
+if((${LINKER} STREQUAL "flash_load") OR (${LINKER} STREQUAL "flash_exec"))
+    add_custom_command(TARGET ${TARGET}.elf POST_BUILD
+            COMMAND ${CMAKE_OBJCOPY} -O verilog --adjust-vma=-0x40000000 ${TARGET}.elf  ${TARGET}.hex 
+            COMMENT "Invoking: Hexdump")
+else()
+    add_custom_command(TARGET ${TARGET}.elf POST_BUILD
+            COMMAND ${CMAKE_OBJCOPY} -O verilog  ${TARGET}.elf  ${TARGET}.hex 
+            COMMENT "Invoking: Hexdump")
+endif()
+
 add_custom_command(TARGET ${TARGET}.elf POST_BUILD
         COMMAND ${CMAKE_OBJCOPY} -O binary  ${TARGET}.elf  ${TARGET}.bin
         COMMENT "Invoking: Hexdump")
@@ -245,7 +328,7 @@ add_custom_command(TARGET ${TARGET}.elf POST_BUILD
 foreach (SRC_MODULE ${TARGET} )
   add_custom_command(TARGET ${TARGET}.elf 
                      PRE_LINK
-                     COMMAND ${CMAKE_OBJDUMP} -S ${ROOT_PROJECT}build/CMakeFiles/${TARGET}.elf.dir/applications/${PROJECT}/${SRC_MODULE}.c.obj > ${SRC_MODULE}.s
+                     COMMAND ${CMAKE_OBJDUMP} -S ${SOURCE_PATH}build/CMakeFiles/${TARGET}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${SRC_MODULE}.c.obj > ${SRC_MODULE}.s
                      COMMENT "Invoking: Disassemble ( CMakeFiles/${TARGET}.dir/${SRC_MODULE}.c.obj)")
 endforeach()
 
