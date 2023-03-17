@@ -219,3 +219,10 @@ clean-app: app-restore
 
 ## Removes the CMake build folder and the HW build folder
 clean-all: app-restore clean-sim
+
+## Uses verilator to simulate the HW model and run the FW
+## UART Dumping in uart0.log to show recollected results
+run-app-sim:
+	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
+	./Vtestharness +firmware=../../../sw/build/main.hex; \
+	cat uart0.log; \
