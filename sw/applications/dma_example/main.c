@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
         while(dma_intr_flag==0) {
             wait_for_interrupt();
         }
-        printf("DMA successfully processed two consecutive transactions");
+        printf("DMA successfully processed two consecutive transactions\n");
     #endif
 
     return EXIT_SUCCESS;
