@@ -41,9 +41,10 @@ int i2s_interrupt_flag;
 #define I2S_TEST_BATCHES      16
 #define I2S_CLK_DIV           4
 
-#define AUDIO_DATA_NUM 32
-uint32_t audio_data_0[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
-uint32_t audio_data_1[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
+
+#define AUDIO_DATA_NUM 1024
+int32_t audio_data_0[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
+int32_t audio_data_1[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
 
 
 // DMA
@@ -112,7 +113,7 @@ void setup()
 
 
     // enable I2s interrupt
-    i2s_set_enable_intr(&i2s, 1);
+    //i2s_set_enable_intr(&i2s, 1);
     i2s_set_clk_divider(&i2s, I2S_CLK_DIV);
     i2s_set_intr_reach_count(&i2s, I2S_TEST_BATCH_SIZE);
     i2s_set_data_width(&i2s, I2S_BYTEPERSAMPLE_COUNT_VALUE_32_BITS);
@@ -143,11 +144,15 @@ int main(int argc, char *argv[]) {
 #pragma message ( "this application never ends" )
     int batch = 0;
     while(1) {
-        while(i2s_interrupt_flag == batch) {
+        while(!dma_intr_flag) {
             wait_for_interrupt();
             //printf(".");
         }
-        printf("\r\n");
+        dma_intr_flag = 0;
+        int32_t* data = dma_buffer_id ? audio_data_0 : audio_data_1;
+        for (int i = 0; i < AUDIO_DATA_NUM; i+=2) {
+            printf("%d %d\r\n", data[i], data[i+1]);
+        }
         batch += 1;
     }
 #else
