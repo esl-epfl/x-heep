@@ -27,6 +27,7 @@
                information.'''
     }
   ],
+  no_auto_intr_regs: "true",
   registers: [
 
     // CLOCK DIVISION
@@ -40,24 +41,6 @@
       ]
     }
 
-    { name:     "BYTEPERSAMPLE"
-      desc:     "Byte per sample"
-      swaccess: "rw"
-      hwaccess: "hro"
-      fields: [
-        { bits: "1:0", name: "COUNT",
-        desc: "Index at which clock divide.",
-        resval: "3",
-        enum: [
-                { value: "0", name: "8_BITS",  desc: "8 bits" },
-                { value: "1", name: "16_BITS", desc: "16 bits" },
-                { value: "2", name: "24_BITS", desc: "24 bits" },
-                { value: "3", name: "32_BITS", desc: "32 bits" }
-              ]
-        }
-      ]
-    }
-
     // STATUS & CONTROL REGISTERS
 
     { name:     "cfg"
@@ -68,6 +51,17 @@
         { bits: "0", name: "EN", desc: "Starts PDM data processing. The FIFO starts to fill with PCM data." }
         { bits: "1", name: "GEN_CLK_WS", desc: "Generate SCK and WS" }
         { bits: "2", name: "LSB_FIRST", desc: "which bit arrives first" }
+        { bits: "3", name: "INTR_EN", desc: "enable reach count interrupt" }
+        { bits: "5:4", name: "DATA_WIDTH",
+          desc: "Bytes per sample",
+          resval: "3",
+          enum: [
+                { value: "0", name: "8_BITS",  desc: "8 bits" },
+                { value: "1", name: "16_BITS", desc: "16 bits" },
+                { value: "2", name: "24_BITS", desc: "24 bits" },
+                { value: "3", name: "32_BITS", desc: "32 bits" }
+              ]
+        }
       ]
     }
 

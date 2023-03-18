@@ -6,23 +6,13 @@
 #include <stdint.h>
 
 #include "i2s.h"
+#include "i2s_structs.h"
 
-void i2s_set_enable(const i2s_t *i2s, bool enable, bool gen_clk) {
-  mmio_region_write32(i2s->base_addr, I2S_CFG_REG_OFFSET, enable << I2S_CFG_EN_BIT | gen_clk << I2S_CFG_GEN_CLK_WS_BIT);
-}
-
-void i2s_set_clk_divider(const i2s_t *i2s, uint16_t div_value) {
-  mmio_region_write32(i2s->base_addr, I2S_CLKDIVIDX_REG_OFFSET, div_value);
-}
-
-void i2s_set_data_width(const i2s_t *i2s, uint32_t data_width) {
-  mmio_region_write32(i2s->base_addr, I2S_BYTEPERSAMPLE_REG_OFFSET, data_width);
-}
-
-void i2s_set_intr_reach_count(const i2s_t *i2s, uint32_t reach_count) {
-  mmio_region_write32(i2s->base_addr, I2S_REACHCOUNT_REG_OFFSET, reach_count);
-}
-
-void i2s_set_enable_intr(const i2s_t *i2s, bool enable) {
-  mmio_region_write32(i2s->base_addr, I2S_INTR_ENABLE_REG_OFFSET, enable << I2S_INTR_ENABLE_I2S_EVENT_BIT);
+void i2s_setup(bool enable, bool gen_clk, uint16_t div_value, bool intr_en, i2s_datawidth_t data_width, uint32_t intr_reach_count) {
+  i2s_peri->cfg = enable << I2S_CFG_EN_BIT
+  + gen_clk << I2S_CFG_GEN_CLK_WS_BIT
+  + intr_en << I2S_CFG_INTR_EN_BIT
+  + data_width << I2S_CFG_DATA_WIDTH_OFFSET;
+  i2s_peri->CLKDIVIDX = div_value;
+  i2s_peri->REACHCOUNT = intr_reach_count;
 }

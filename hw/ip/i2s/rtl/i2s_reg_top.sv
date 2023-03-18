@@ -10,7 +10,7 @@
 module i2s_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 6
+    parameter int AW = 5
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -86,7 +86,7 @@ module i2s_reg_top #(
     reg_steer = 1;  // Default set to register
 
     // TODO: Can below codes be unique case () inside ?
-    if (reg_req_i.addr[AW-1:0] >= 36 && reg_req_i.addr[AW-1:0] < 40) begin
+    if (reg_req_i.addr[AW-1:0] >= 20 && reg_req_i.addr[AW-1:0] < 24) begin
       reg_steer = 0;
     end
   end
@@ -108,20 +108,9 @@ module i2s_reg_top #(
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
   //        or <reg>_{wd|we|qs} if field == 1 or 0
-  logic intr_state_qs;
-  logic intr_state_wd;
-  logic intr_state_we;
-  logic intr_enable_qs;
-  logic intr_enable_wd;
-  logic intr_enable_we;
-  logic intr_test_wd;
-  logic intr_test_we;
   logic [15:0] clkdividx_qs;
   logic [15:0] clkdividx_wd;
   logic clkdividx_we;
-  logic [1:0] bytepersample_qs;
-  logic [1:0] bytepersample_wd;
-  logic bytepersample_we;
   logic cfg_en_qs;
   logic cfg_en_wd;
   logic cfg_en_we;
@@ -131,6 +120,12 @@ module i2s_reg_top #(
   logic cfg_lsb_first_qs;
   logic cfg_lsb_first_wd;
   logic cfg_lsb_first_we;
+  logic cfg_intr_en_qs;
+  logic cfg_intr_en_wd;
+  logic cfg_intr_en_we;
+  logic [1:0] cfg_data_width_qs;
+  logic [1:0] cfg_data_width_wd;
+  logic cfg_data_width_we;
   logic [31:0] reachcount_qs;
   logic [31:0] reachcount_wd;
   logic reachcount_we;
@@ -141,76 +136,6 @@ module i2s_reg_top #(
   logic status_overflow_qs;
 
   // Register instances
-  // R[intr_state]: V(False)
-
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("W1C"),
-      .RESVAL  (1'h0)
-  ) u_intr_state (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(intr_state_we),
-      .wd(intr_state_wd),
-
-      // from internal hardware
-      .de(hw2reg.intr_state.de),
-      .d (hw2reg.intr_state.d),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.intr_state.q),
-
-      // to register interface (read)
-      .qs(intr_state_qs)
-  );
-
-
-  // R[intr_enable]: V(False)
-
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
-  ) u_intr_enable (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(intr_enable_we),
-      .wd(intr_enable_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.intr_enable.q),
-
-      // to register interface (read)
-      .qs(intr_enable_qs)
-  );
-
-
-  // R[intr_test]: V(True)
-
-  prim_subreg_ext #(
-      .DW(1)
-  ) u_intr_test (
-      .re (1'b0),
-      .we (intr_test_we),
-      .wd (intr_test_wd),
-      .d  ('0),
-      .qre(),
-      .qe (reg2hw.intr_test.qe),
-      .q  (reg2hw.intr_test.q),
-      .qs ()
-  );
-
-
   // R[clkdividx]: V(False)
 
   prim_subreg #(
@@ -235,33 +160,6 @@ module i2s_reg_top #(
 
       // to register interface (read)
       .qs(clkdividx_qs)
-  );
-
-
-  // R[bytepersample]: V(False)
-
-  prim_subreg #(
-      .DW      (2),
-      .SWACCESS("RW"),
-      .RESVAL  (2'h3)
-  ) u_bytepersample (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(bytepersample_we),
-      .wd(bytepersample_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.bytepersample.q),
-
-      // to register interface (read)
-      .qs(bytepersample_qs)
   );
 
 
@@ -342,6 +240,58 @@ module i2s_reg_top #(
 
       // to register interface (read)
       .qs(cfg_lsb_first_qs)
+  );
+
+
+  //   F[intr_en]: 3:3
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_cfg_intr_en (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(cfg_intr_en_we),
+      .wd(cfg_intr_en_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.cfg.intr_en.q),
+
+      // to register interface (read)
+      .qs(cfg_intr_en_qs)
+  );
+
+
+  //   F[data_width]: 5:4
+  prim_subreg #(
+      .DW      (2),
+      .SWACCESS("RW"),
+      .RESVAL  (2'h3)
+  ) u_cfg_data_width (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(cfg_data_width_we),
+      .wd(cfg_data_width_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.cfg.data_width.q),
+
+      // to register interface (read)
+      .qs(cfg_data_width_qs)
   );
 
 
@@ -453,18 +403,14 @@ module i2s_reg_top #(
 
 
 
-  logic [8:0] addr_hit;
+  logic [4:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[0] = (reg_addr == I2S_INTR_STATE_OFFSET);
-    addr_hit[1] = (reg_addr == I2S_INTR_ENABLE_OFFSET);
-    addr_hit[2] = (reg_addr == I2S_INTR_TEST_OFFSET);
-    addr_hit[3] = (reg_addr == I2S_CLKDIVIDX_OFFSET);
-    addr_hit[4] = (reg_addr == I2S_BYTEPERSAMPLE_OFFSET);
-    addr_hit[5] = (reg_addr == I2S_CFG_OFFSET);
-    addr_hit[6] = (reg_addr == I2S_REACHCOUNT_OFFSET);
-    addr_hit[7] = (reg_addr == I2S_CONTROL_OFFSET);
-    addr_hit[8] = (reg_addr == I2S_STATUS_OFFSET);
+    addr_hit[0] = (reg_addr == I2S_CLKDIVIDX_OFFSET);
+    addr_hit[1] = (reg_addr == I2S_CFG_OFFSET);
+    addr_hit[2] = (reg_addr == I2S_REACHCOUNT_OFFSET);
+    addr_hit[3] = (reg_addr == I2S_CONTROL_OFFSET);
+    addr_hit[4] = (reg_addr == I2S_STATUS_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -476,41 +422,31 @@ module i2s_reg_top #(
                (addr_hit[1] & (|(I2S_PERMIT[1] & ~reg_be))) |
                (addr_hit[2] & (|(I2S_PERMIT[2] & ~reg_be))) |
                (addr_hit[3] & (|(I2S_PERMIT[3] & ~reg_be))) |
-               (addr_hit[4] & (|(I2S_PERMIT[4] & ~reg_be))) |
-               (addr_hit[5] & (|(I2S_PERMIT[5] & ~reg_be))) |
-               (addr_hit[6] & (|(I2S_PERMIT[6] & ~reg_be))) |
-               (addr_hit[7] & (|(I2S_PERMIT[7] & ~reg_be))) |
-               (addr_hit[8] & (|(I2S_PERMIT[8] & ~reg_be)))));
+               (addr_hit[4] & (|(I2S_PERMIT[4] & ~reg_be)))));
   end
 
-  assign intr_state_we = addr_hit[0] & reg_we & !reg_error;
-  assign intr_state_wd = reg_wdata[0];
-
-  assign intr_enable_we = addr_hit[1] & reg_we & !reg_error;
-  assign intr_enable_wd = reg_wdata[0];
-
-  assign intr_test_we = addr_hit[2] & reg_we & !reg_error;
-  assign intr_test_wd = reg_wdata[0];
-
-  assign clkdividx_we = addr_hit[3] & reg_we & !reg_error;
+  assign clkdividx_we = addr_hit[0] & reg_we & !reg_error;
   assign clkdividx_wd = reg_wdata[15:0];
 
-  assign bytepersample_we = addr_hit[4] & reg_we & !reg_error;
-  assign bytepersample_wd = reg_wdata[1:0];
-
-  assign cfg_en_we = addr_hit[5] & reg_we & !reg_error;
+  assign cfg_en_we = addr_hit[1] & reg_we & !reg_error;
   assign cfg_en_wd = reg_wdata[0];
 
-  assign cfg_gen_clk_ws_we = addr_hit[5] & reg_we & !reg_error;
+  assign cfg_gen_clk_ws_we = addr_hit[1] & reg_we & !reg_error;
   assign cfg_gen_clk_ws_wd = reg_wdata[1];
 
-  assign cfg_lsb_first_we = addr_hit[5] & reg_we & !reg_error;
+  assign cfg_lsb_first_we = addr_hit[1] & reg_we & !reg_error;
   assign cfg_lsb_first_wd = reg_wdata[2];
 
-  assign reachcount_we = addr_hit[6] & reg_we & !reg_error;
+  assign cfg_intr_en_we = addr_hit[1] & reg_we & !reg_error;
+  assign cfg_intr_en_wd = reg_wdata[3];
+
+  assign cfg_data_width_we = addr_hit[1] & reg_we & !reg_error;
+  assign cfg_data_width_wd = reg_wdata[5:4];
+
+  assign reachcount_we = addr_hit[2] & reg_we & !reg_error;
   assign reachcount_wd = reg_wdata[31:0];
 
-  assign control_we = addr_hit[7] & reg_we & !reg_error;
+  assign control_we = addr_hit[3] & reg_we & !reg_error;
   assign control_wd = reg_wdata[1];
 
   // Read data return
@@ -518,40 +454,26 @@ module i2s_reg_top #(
     reg_rdata_next = '0;
     unique case (1'b1)
       addr_hit[0]: begin
-        reg_rdata_next[0] = intr_state_qs;
-      end
-
-      addr_hit[1]: begin
-        reg_rdata_next[0] = intr_enable_qs;
-      end
-
-      addr_hit[2]: begin
-        reg_rdata_next[0] = '0;
-      end
-
-      addr_hit[3]: begin
         reg_rdata_next[15:0] = clkdividx_qs;
       end
 
-      addr_hit[4]: begin
-        reg_rdata_next[1:0] = bytepersample_qs;
+      addr_hit[1]: begin
+        reg_rdata_next[0]   = cfg_en_qs;
+        reg_rdata_next[1]   = cfg_gen_clk_ws_qs;
+        reg_rdata_next[2]   = cfg_lsb_first_qs;
+        reg_rdata_next[3]   = cfg_intr_en_qs;
+        reg_rdata_next[5:4] = cfg_data_width_qs;
       end
 
-      addr_hit[5]: begin
-        reg_rdata_next[0] = cfg_en_qs;
-        reg_rdata_next[1] = cfg_gen_clk_ws_qs;
-        reg_rdata_next[2] = cfg_lsb_first_qs;
-      end
-
-      addr_hit[6]: begin
+      addr_hit[2]: begin
         reg_rdata_next[31:0] = reachcount_qs;
       end
 
-      addr_hit[7]: begin
+      addr_hit[3]: begin
         reg_rdata_next[1] = control_qs;
       end
 
-      addr_hit[8]: begin
+      addr_hit[4]: begin
         reg_rdata_next[0] = status_empty_qs;
         reg_rdata_next[2] = status_overflow_qs;
       end
@@ -577,7 +499,7 @@ module i2s_reg_top #(
 endmodule
 
 module i2s_reg_top_intf #(
-    parameter  int AW = 6,
+    parameter  int AW = 5,
     localparam int DW = 32
 ) (
     input logic clk_i,

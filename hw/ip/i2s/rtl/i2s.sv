@@ -64,7 +64,7 @@ module i2s #(
   logic rx_fifo_err;
 
   logic [CounterWidth-1:0] sample_width;
-  assign sample_width = {reg2hw.bytepersample.q, 3'h7};
+  assign sample_width = {reg2hw.cfg.data_width.q, 3'h7};
 
   // FIFO -> RX WINDOW
   assign rx_win_d2h.ready = rx_win_h2d.valid && rx_win_h2d.addr[BlockAw-1:0] == i2s_reg_pkg::I2S_RXDATA_OFFSET && !rx_win_h2d.write;
@@ -166,25 +166,7 @@ module i2s #(
   );
 
   logic event_i2s_event;
-  // prim_intr_hw #(
-  //     .Width(1)
-  // ) intr_hw_i2s_event (
-  //     .clk_i,
-  //     .rst_ni,
-  //     .event_intr_i          (event_i2s_event),
-  //     .reg2hw_intr_enable_q_i(reg2hw.intr_enable.q),
-  //     .reg2hw_intr_test_q_i  (reg2hw.intr_test.q),
-  //     .reg2hw_intr_test_qe_i (reg2hw.intr_test.qe),
-  //     .reg2hw_intr_state_q_i (reg2hw.intr_state.q),
-  //     .hw2reg_intr_state_de_o(hw2reg.intr_state.de),
-  //     .hw2reg_intr_state_d_o (hw2reg.intr_state.d),
-  //     .intr_o                (intr_i2s_event_o)
-  // );
-
-  assign intr_i2s_event_o = event_i2s_event & reg2hw.intr_enable.q;
-  assign hw2reg.intr_state.de = intr_i2s_event_o;
-  assign hw2reg.intr_state.d = intr_i2s_event_o;
-
+  assign intr_i2s_event_o = event_i2s_event & reg2hw.cfg.intr_en.q;
 
 
   // interrupt reach count event

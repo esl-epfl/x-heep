@@ -113,13 +113,8 @@ void setup()
 
 
     // enable I2s interrupt
-    //i2s_set_enable_intr(&i2s, 1);
-    i2s_set_clk_divider(&i2s, I2S_CLK_DIV);
-    i2s_set_intr_reach_count(&i2s, I2S_TEST_BATCH_SIZE);
-    i2s_set_data_width(&i2s, I2S_BYTEPERSAMPLE_COUNT_VALUE_32_BITS);
-    i2s_set_enable(&i2s, 1, 1);
-
     i2s_interrupt_flag = 0;
+    i2s_setup(true, true, false, I2S_CLK_DIV, I2S_32_BITS, I2S_TEST_BATCH_SIZE);
 
 
     // Enable interrupt on processor side

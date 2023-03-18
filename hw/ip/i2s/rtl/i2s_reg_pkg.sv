@@ -11,29 +11,20 @@ package i2s_reg_pkg;
   parameter int ClkDivSize = 16;
 
   // Address widths within the block
-  parameter int BlockAw = 6;
+  parameter int BlockAw = 5;
 
   ////////////////////////////
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {logic q;} i2s_reg2hw_intr_state_reg_t;
-
-  typedef struct packed {logic q;} i2s_reg2hw_intr_enable_reg_t;
-
-  typedef struct packed {
-    logic q;
-    logic qe;
-  } i2s_reg2hw_intr_test_reg_t;
-
   typedef struct packed {logic [15:0] q;} i2s_reg2hw_clkdividx_reg_t;
-
-  typedef struct packed {logic [1:0] q;} i2s_reg2hw_bytepersample_reg_t;
 
   typedef struct packed {
     struct packed {logic q;} en;
     struct packed {logic q;} gen_clk_ws;
     struct packed {logic q;} lsb_first;
+    struct packed {logic q;} intr_en;
+    struct packed {logic [1:0] q;} data_width;
   } i2s_reg2hw_cfg_reg_t;
 
   typedef struct packed {logic [31:0] q;} i2s_reg2hw_reachcount_reg_t;
@@ -44,11 +35,6 @@ package i2s_reg_pkg;
     struct packed {logic q;} empty;
     struct packed {logic q;} overflow;
   } i2s_reg2hw_status_reg_t;
-
-  typedef struct packed {
-    logic d;
-    logic de;
-  } i2s_hw2reg_intr_state_reg_t;
 
   typedef struct packed {
     logic d;
@@ -68,12 +54,8 @@ package i2s_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    i2s_reg2hw_intr_state_reg_t intr_state;  // [59:59]
-    i2s_reg2hw_intr_enable_reg_t intr_enable;  // [58:58]
-    i2s_reg2hw_intr_test_reg_t intr_test;  // [57:56]
-    i2s_reg2hw_clkdividx_reg_t clkdividx;  // [55:40]
-    i2s_reg2hw_bytepersample_reg_t bytepersample;  // [39:38]
-    i2s_reg2hw_cfg_reg_t cfg;  // [37:35]
+    i2s_reg2hw_clkdividx_reg_t clkdividx;  // [56:41]
+    i2s_reg2hw_cfg_reg_t cfg;  // [40:35]
     i2s_reg2hw_reachcount_reg_t reachcount;  // [34:3]
     i2s_reg2hw_control_reg_t control;  // [2:2]
     i2s_reg2hw_status_reg_t status;  // [1:0]
@@ -81,37 +63,24 @@ package i2s_reg_pkg;
 
   // HW -> register type
   typedef struct packed {
-    i2s_hw2reg_intr_state_reg_t intr_state;  // [7:6]
     i2s_hw2reg_control_reg_t control;  // [5:4]
-    i2s_hw2reg_status_reg_t status;  // [3:0]
+    i2s_hw2reg_status_reg_t  status;   // [3:0]
   } i2s_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] I2S_INTR_STATE_OFFSET = 6'h0;
-  parameter logic [BlockAw-1:0] I2S_INTR_ENABLE_OFFSET = 6'h4;
-  parameter logic [BlockAw-1:0] I2S_INTR_TEST_OFFSET = 6'h8;
-  parameter logic [BlockAw-1:0] I2S_CLKDIVIDX_OFFSET = 6'hc;
-  parameter logic [BlockAw-1:0] I2S_BYTEPERSAMPLE_OFFSET = 6'h10;
-  parameter logic [BlockAw-1:0] I2S_CFG_OFFSET = 6'h14;
-  parameter logic [BlockAw-1:0] I2S_REACHCOUNT_OFFSET = 6'h18;
-  parameter logic [BlockAw-1:0] I2S_CONTROL_OFFSET = 6'h1c;
-  parameter logic [BlockAw-1:0] I2S_STATUS_OFFSET = 6'h20;
-
-  // Reset values for hwext registers and their fields
-  parameter logic [0:0] I2S_INTR_TEST_RESVAL = 1'h0;
-  parameter logic [0:0] I2S_INTR_TEST_I2S_EVENT_RESVAL = 1'h0;
+  parameter logic [BlockAw-1:0] I2S_CLKDIVIDX_OFFSET = 5'h0;
+  parameter logic [BlockAw-1:0] I2S_CFG_OFFSET = 5'h4;
+  parameter logic [BlockAw-1:0] I2S_REACHCOUNT_OFFSET = 5'h8;
+  parameter logic [BlockAw-1:0] I2S_CONTROL_OFFSET = 5'hc;
+  parameter logic [BlockAw-1:0] I2S_STATUS_OFFSET = 5'h10;
 
   // Window parameters
-  parameter logic [BlockAw-1:0] I2S_RXDATA_OFFSET = 6'h24;
+  parameter logic [BlockAw-1:0] I2S_RXDATA_OFFSET = 5'h14;
   parameter int unsigned I2S_RXDATA_SIZE = 'h4;
 
   // Register index
   typedef enum int {
-    I2S_INTR_STATE,
-    I2S_INTR_ENABLE,
-    I2S_INTR_TEST,
     I2S_CLKDIVIDX,
-    I2S_BYTEPERSAMPLE,
     I2S_CFG,
     I2S_REACHCOUNT,
     I2S_CONTROL,
@@ -119,16 +88,12 @@ package i2s_reg_pkg;
   } i2s_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] I2S_PERMIT[9] = '{
-      4'b0001,  // index[0] I2S_INTR_STATE
-      4'b0001,  // index[1] I2S_INTR_ENABLE
-      4'b0001,  // index[2] I2S_INTR_TEST
-      4'b0011,  // index[3] I2S_CLKDIVIDX
-      4'b0001,  // index[4] I2S_BYTEPERSAMPLE
-      4'b0001,  // index[5] I2S_CFG
-      4'b1111,  // index[6] I2S_REACHCOUNT
-      4'b0001,  // index[7] I2S_CONTROL
-      4'b0001  // index[8] I2S_STATUS
+  parameter logic [3:0] I2S_PERMIT[5] = '{
+      4'b0011,  // index[0] I2S_CLKDIVIDX
+      4'b0001,  // index[1] I2S_CFG
+      4'b1111,  // index[2] I2S_REACHCOUNT
+      4'b0001,  // index[3] I2S_CONTROL
+      4'b0001  // index[4] I2S_STATUS
   };
 
 endpackage

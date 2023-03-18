@@ -16,57 +16,26 @@
 extern "C" {
 #endif
 
-/**
- * Initialization parameters for I2s PERIPHERAL.
- *
- */
-typedef struct i2s {
-  /**
-   * The base address for the soc_ctrl hardware registers.
-   */
-  mmio_region_t base_addr;
-} i2s_t;
+
+typedef enum i2s_datawidth {
+  I2S_08_BITS = I2S_CFG_DATA_WIDTH_VALUE_8_BITS,
+  I2S_16_BITS = I2S_CFG_DATA_WIDTH_VALUE_16_BITS,
+  I2S_24_BITS = I2S_CFG_DATA_WIDTH_VALUE_24_BITS,
+  I2S_32_BITS = I2S_CFG_DATA_WIDTH_VALUE_32_BITS
+} i2s_datawidth_t;
 
 
 /**
- * Write to read_ptr register of the I2s
- * @param i2s pointer to i2s_t represting the target I2s PERIPHERAL.
+ * Setup I2s
+ * 
  * @param enable Enable I2s peripheral.
  * @param gen_clk Generate and output sck and ws signal.
- */
-void i2s_set_enable(const i2s_t *i2s, bool enable, bool gen_clk);
-
-
-/**
- * Set clock divider value
- * @param i2s pointer to i2s_t represting the target I2s PERIPHERAL.
+ * @param enable I2s interrupt event enable bit.
  * @param div_value Divider value = src_clk_freq / gen_clk_freq 
  *        (odd values are allowed, for 0 and 1 the src clock is used)
+ * @param data_width 
  */
-void i2s_set_clk_divider(const i2s_t *i2s, uint16_t div_value);
-
-
-/**
- * Set data width of i2s
- * @param i2s pointer to i2s_t represting the target I2s PERIPHERAL.
- * @param data_width value of type `COUNT_t` configuring the data width.
- */
-void i2s_set_data_width(const i2s_t *i2s, uint32_t data_width);
-
-
-/**
- * Write to write_ptr register of the I2s
- * @param i2s pointer to i2s_t represting the target I2s PERIPHERAL.
- * @param reach_count Number of samples to trigger interrupt.
- */
-void i2s_set_intr_reach_count(const i2s_t *i2s, uint32_t reach_count);
-
-/**
- * Enable interrupt 
- * @param i2s pointer to i2s_t represting the target I2s PERIPHERAL.
- * @param enable I2s interrupt event enable bit.
- */
-void i2s_set_enable_intr(const i2s_t *i2s, bool enable);
+void i2s_setup(bool enable, bool gen_clk, uint16_t div_value, bool intr_en, i2s_datawidth_t data_width, uint32_t intr_reach_count);
 
 
 #ifdef __cplusplus
