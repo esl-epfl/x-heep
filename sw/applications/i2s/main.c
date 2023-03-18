@@ -41,11 +41,13 @@ int i2s_interrupt_flag;
 #define I2S_TEST_BATCHES      16
 #define I2S_CLK_DIV           4
 #define AUDIO_DATA_NUM 1024
+#define I2S_USE_INTERRUPT false
 #else
 #define I2S_TEST_BATCH_SIZE    128
 #define I2S_TEST_BATCHES      16
 #define I2S_CLK_DIV           32
 #define AUDIO_DATA_NUM 8
+#define I2S_USE_INTERRUPT false
 #endif
 
 int32_t audio_data_0[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
@@ -118,7 +120,7 @@ void setup()
 
     // enable I2s interrupt
     i2s_interrupt_flag = 0;
-    i2s_setup(true, true, I2S_CLK_DIV, false, I2S_32_BITS, I2S_TEST_BATCH_SIZE);
+    i2s_setup(true, true, I2S_CLK_DIV, I2S_USE_INTERRUPT, I2S_32_BITS, I2S_TEST_BATCH_SIZE);
 
 
     // Enable interrupt on processor side
@@ -159,6 +161,7 @@ int main(int argc, char *argv[]) {
         while(!dma_intr_flag) {
             printf(".");
         }
+        dma_intr_flag = 0;
 
         // uint32_t errors = 0;
         // for (int i = 0; i < batchsize; i++) {
