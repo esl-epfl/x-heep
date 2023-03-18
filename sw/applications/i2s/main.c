@@ -34,15 +34,20 @@ dif_plic_irq_id_t intr_num;
 
 
 // I2s
-i2s_t i2s;
 int i2s_interrupt_flag;
 
+#ifdef TARGET_PYNQ_Z2
 #define I2S_TEST_BATCH_SIZE    128
 #define I2S_TEST_BATCHES      16
 #define I2S_CLK_DIV           4
-
-
 #define AUDIO_DATA_NUM 1024
+#else
+#define I2S_TEST_BATCH_SIZE    128
+#define I2S_TEST_BATCHES      16
+#define I2S_CLK_DIV           32
+#define AUDIO_DATA_NUM 8
+#endif
+
 int32_t audio_data_0[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
 int32_t audio_data_1[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
 
@@ -89,11 +94,10 @@ void handler_irq_fast_dma(void)
 //
 void setup() 
 {
-    i2s.base_addr = mmio_region_from_addr((uintptr_t)I2S_START_ADDRESS);
     dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
     rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
 
-    const uint32_t *i2s_rx_fifo_ptr = i2s.base_addr.base + I2S_RXDATA_REG_OFFSET;
+    const uint32_t *i2s_rx_fifo_ptr = I2S_START_ADDRESS + I2S_RXDATA_REG_OFFSET;
 
 
      // -- DMA CONFIGURATION --
@@ -114,7 +118,7 @@ void setup()
 
     // enable I2s interrupt
     i2s_interrupt_flag = 0;
-    i2s_setup(true, true, false, I2S_CLK_DIV, I2S_32_BITS, I2S_TEST_BATCH_SIZE);
+    i2s_setup(true, true, I2S_CLK_DIV, false, I2S_32_BITS, I2S_TEST_BATCH_SIZE);
 
 
     // Enable interrupt on processor side
@@ -152,7 +156,7 @@ int main(int argc, char *argv[]) {
     }
 #else
     for (int batch = 0; batch < I2S_TEST_BATCHES; batch++) {
-        while(i2s_interrupt_flag == batch) {
+        while(!dma_intr_flag) {
             printf(".");
         }
 
