@@ -13,48 +13,48 @@ module xilinx_core_v_mini_mcu_wrapper
     parameter CLK_LED_COUNT_LENGTH = 27
 ) (
 
-    inout logic clk_i,
-    inout logic rst_i,
+    inout wire clk_i,
+    inout wire rst_i,
 
     //visibility signals
     output logic rst_led,
     output logic clk_led,
     output logic clk_out,
 
-    inout logic boot_select_i,
-    inout logic execute_from_flash_i,
+    inout wire boot_select_i,
+    inout wire execute_from_flash_i,
 
-    inout logic jtag_tck_i,
-    inout logic jtag_tms_i,
-    inout logic jtag_trst_ni,
-    inout logic jtag_tdi_i,
-    inout logic jtag_tdo_o,
+    inout wire jtag_tck_i,
+    inout wire jtag_tms_i,
+    inout wire jtag_trst_ni,
+    inout wire jtag_tdi_i,
+    inout wire jtag_tdo_o,
 
-    inout logic uart_rx_i,
-    inout logic uart_tx_o,
+    inout wire uart_rx_i,
+    inout wire uart_tx_o,
 
-    inout logic [22:0] gpio_io,
+    inout wire [22:0] gpio_io,
 
     output logic exit_value_o,
-    inout  logic exit_valid_o,
+    inout  wire  exit_valid_o,
 
-    inout logic [3:0] spi_flash_sd_io,
-    inout logic spi_flash_csb_o,
-    inout logic spi_flash_sck_o,
+    inout wire [3:0] spi_flash_sd_io,
+    inout wire spi_flash_csb_o,
+    inout wire spi_flash_sck_o,
 
-    inout logic [3:0] spi_sd_io,
-    inout logic spi_csb_o,
-    inout logic spi_sck_o,
+    inout wire [3:0] spi_sd_io,
+    inout wire spi_csb_o,
+    inout wire spi_sck_o,
 
-    inout logic spi2_sd_0_io,
-    inout logic spi2_sd_1_io,
-    inout logic spi2_sd_2_io,
-    inout logic spi2_sd_3_io,
-    inout logic [1:0] spi2_csb_o,
-    inout logic spi2_sck_o,
+    inout wire spi2_sd_0_io,
+    inout wire spi2_sd_1_io,
+    inout wire spi2_sd_2_io,
+    inout wire spi2_sd_3_io,
+    inout wire [1:0] spi2_csb_o,
+    inout wire spi2_sck_o,
 
-    inout logic i2c_scl_io,
-    inout logic i2c_sda_io
+    inout wire i2c_scl_io,
+    inout wire i2c_sda_io
 
 );
 
