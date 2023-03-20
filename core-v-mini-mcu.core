@@ -12,7 +12,6 @@ filesets:
     depend:
     - x-heep::packages
     - openhwgroup.org:ip:cv32e40p
-    - openhwgroup.org:ip:cv32e40x
     - openhwgroup.org:ip:cve2
     - pulp-platform.org:ip:fpnew
     - pulp-platform.org:ip:gpio
@@ -214,6 +213,10 @@ parameters:
     paramtype: vlogdefine
     default: false
   VERILATOR: #used by SV2V
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
+  YOSYS: #used by SV2V
     datatype: bool
     paramtype: vlogdefine
     default: false
@@ -424,6 +427,7 @@ targets:
       - PULP_XPULP=0
       - SYNTHESIS=true
       - VERILATOR=true
+      - YOSYS=true
     filesets_append:
       - use_sky130? (rtl-sky130)
       - lib-sky130

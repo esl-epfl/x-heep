@@ -24,16 +24,17 @@ module cpu_subsystem
     input  obi_resp_t core_instr_resp_i,
 
     // Data memory interface
-    output obi_req_t  core_data_req_o,
-    input  obi_resp_t core_data_resp_i,
-
+    output obi_req_t             core_data_req_o,
+    input  obi_resp_t            core_data_resp_i,
+`ifndef YOSYS
     // eXtension interface
-    if_xif.cpu_compressed xif_compressed_if,
-    if_xif.cpu_issue      xif_issue_if,
-    if_xif.cpu_commit     xif_commit_if,
-    if_xif.cpu_mem        xif_mem_if,
-    if_xif.cpu_mem_result xif_mem_result_if,
-    if_xif.cpu_result     xif_result_if,
+           if_xif.cpu_compressed xif_compressed_if,
+           if_xif.cpu_issue      xif_issue_if,
+           if_xif.cpu_commit     xif_commit_if,
+           if_xif.cpu_mem        xif_mem_if,
+           if_xif.cpu_mem_result xif_mem_result_if,
+           if_xif.cpu_result     xif_result_if,
+`endif
 
     // Interrupt inputs
     input  logic [31:0] irq_i,      // CLINT interrupts + CLINT extension interrupts

@@ -18,7 +18,7 @@ module core_v_mini_mcu
 % for pad in pad_list:
     ${pad.core_v_mini_mcu_interface}
 % endfor
-
+`ifndef YOSYS
     // eXtension interface
     if_xif.cpu_compressed xif_compressed_if,
     if_xif.cpu_issue      xif_issue_if,
@@ -26,7 +26,7 @@ module core_v_mini_mcu
     if_xif.cpu_mem        xif_mem_if,
     if_xif.cpu_mem_result xif_mem_result_if,
     if_xif.cpu_result     xif_result_if,
-
+`endif
     output reg_req_t pad_req_o,
     input  reg_rsp_t pad_resp_i,
 
@@ -193,12 +193,14 @@ module core_v_mini_mcu
       .core_instr_resp_i(core_instr_resp),
       .core_data_req_o(core_data_req),
       .core_data_resp_i(core_data_resp),
+`ifndef YOSYS
       .xif_compressed_if,
       .xif_issue_if,
       .xif_commit_if,
       .xif_mem_if,
       .xif_mem_result_if,
       .xif_result_if,
+`endif
       .irq_i(intr),
       .irq_ack_o(irq_ack),
       .irq_id_o(irq_id_out),
