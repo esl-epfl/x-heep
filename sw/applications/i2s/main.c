@@ -45,7 +45,7 @@ int i2s_interrupt_flag;
 #else
 #define I2S_TEST_BATCH_SIZE    128
 #define I2S_TEST_BATCHES      4
-#define I2S_CLK_DIV           16
+#define I2S_CLK_DIV           512
 #define AUDIO_DATA_NUM 4
 #define I2S_USE_INTERRUPT false
 #endif
@@ -159,15 +159,16 @@ int main(int argc, char *argv[]) {
 #else
     for (int batch = 0; batch < I2S_TEST_BATCHES; batch++) {
         while(!dma_intr_flag) {
-            printf(".");
+            wait_for_interrupt();
         }
         dma_intr_flag = 0;
 
-        // uint32_t errors = 0;
-        // for (int i = 0; i < batchsize; i++) {
-        //     if (audio_data_0[batch * batchsize + i] != batch * batchsize + i + 1) errors = errors + 1; 
-        // }
-        printf("%x\r\n", batch);
+        printf("B%x\r\n", batch);
+        
+        int32_t* data = dma_buffer_id ? audio_data_0 : audio_data_1;
+        for (int i = 0; i < AUDIO_DATA_NUM; i+=2) {
+            printf("%d %d\r\n", data[i], data[i+1]);
+        }
     }
 #endif
 
