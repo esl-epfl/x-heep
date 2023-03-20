@@ -319,11 +319,15 @@ module ao_peripheral_subsystem
       .intr_timer_expired_1_0_o(rv_timer_1_intr_o)
   );
 
-  dma #(
-      .reg_req_t (reg_pkg::reg_req_t),
-      .reg_rsp_t (reg_pkg::reg_rsp_t),
-      .obi_req_t (obi_pkg::obi_req_t),
-      .obi_resp_t(obi_pkg::obi_resp_t)
+  dma_reg32_wrap #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t),
+      .obi_req_t(obi_pkg::obi_req_t),
+      .obi_resp_t(obi_pkg::obi_resp_t),
+      .OBI_DATA_WIDTH(32),
+      .OBI_ADDR_WIDTH(32),
+      .OBI_USER_WIDTH(4),
+      .OBI_ID_WIDTH(4)
   ) dma_i (
       .clk_i,
       .rst_ni,
@@ -333,12 +337,13 @@ module ao_peripheral_subsystem
       .dma_master0_ch0_resp_i,
       .dma_master1_ch0_req_o,
       .dma_master1_ch0_resp_i,
-      .spi_rx_valid_i(spi_rx_valid),
-      .spi_tx_ready_i(spi_tx_ready),
-      .spi_flash_rx_valid_i(spi_flash_rx_valid),
-      .spi_flash_tx_ready_i(spi_flash_tx_ready),
+      .spi_rx_valid_i(),
+      .spi_tx_ready_i(),
+      .spi_flash_rx_valid_i(),
+      .spi_flash_tx_ready_i(),
       .dma_intr_o
   );
+
 
   assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_CONTROL_IDX];
   assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_CONTROL_IDX] = pad_resp_i;

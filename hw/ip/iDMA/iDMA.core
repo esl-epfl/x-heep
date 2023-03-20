@@ -1,0 +1,40 @@
+CAPI=2:
+
+name: "x-heep:ip:idma"
+description: "core-v-mini-mcu dma peripheral"
+
+# Copyright 2021 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+      - pulp-platform.org::common_cells
+      - pulp-platform.org::register_interface
+    files:
+    - ./include/idma/typedef.svh: {is_include_file: true}
+    - ./include/axi/assign.svh: {is_include_file: true}
+    - ./include/axi/typedef.svh: {is_include_file: true}
+
+    - ./include/axi/axi_pkg.sv
+    - ./include/idma/idma_pkg.sv
+    - ./frontend/idma_transfer_id_gen.sv
+    - ./frontend/idma_reg32_frontend_reg_pkg.sv
+    - ./frontend/idma_reg32_frontend_reg_top.sv
+    - ./frontend/idma_reg32_frontend.sv
+    - ./src/idma_axi_transport_layer.sv
+    - ./src/idma_channel_coupler.sv
+    - ./src/idma_stream_fifo.sv
+    - ./axi/axi_to_mem.sv
+    - ./axi/axi_to_mem_split.sv
+    - ./src/idma_buffer.sv
+    - ./src/idma_legalizer.sv
+    - ./src/idma_backend.sv
+    - ./idma_reg32_wrap.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl

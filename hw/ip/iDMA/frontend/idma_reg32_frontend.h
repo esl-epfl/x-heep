@@ -1,14 +1,14 @@
-// Generated register defines for dma
+// Generated register defines for idma_reg32_frontend
 
 // Copyright information found in source file:
-// Copyright EPFL contributors.
+// Copyright 2022 ETH Zurich and University of Bologna.
 
 // Licensing information found in source file:
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
-// SPDX-License-Identifier: Apache-2.0
+// Licensed under Solderpad Hardware License, Version 0.51
+// SPDX-License-Identifier: SHL-0.51
 
-#ifndef _DMA_REG_DEFS_
-#define _DMA_REG_DEFS_
+#ifndef _IDMA_REG32_FRONTEND_REG_DEFS_
+#define _IDMA_REG32_FRONTEND_REG_DEFS_
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,5 +43,5 @@ extern "C" {
 #ifdef __cplusplus
 }  // extern "C"
 #endif
-#endif  // _DMA_REG_DEFS_
-// End generated register defines for dma
+#endif  // _IDMA_REG32_FRONTEND_REG_DEFS_
+// End generated register defines for idma_reg32_frontend
