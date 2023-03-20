@@ -78,7 +78,7 @@ module i2s_core #(
   tc_clk_mux2 i_clk_bypass_mux (
       .clk0_i   (i2s_sck_i),
       .clk1_i   (sck_gen),
-      .clk_sel_i(1'b1), // disable external sck
+      .clk_sel_i(1'b1),       // disable external sck
       .clk_o    (sck)
   );
 
