@@ -18,14 +18,11 @@ module i2s_ws_gen #(
     input logic en_i,
 
     output logic ws_o,
-    output logic ws_oe_o,
 
     input logic [CounterWidth-1:0] cfg_sample_width_i
 );
 
   logic [CounterWidth-1:0] r_counter;
-
-  assign ws_oe_o = en_i;
 
   always_ff @(posedge sck_i, negedge rst_ni) begin
     if (rst_ni == 1'b0) begin

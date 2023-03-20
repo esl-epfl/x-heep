@@ -38,7 +38,10 @@ module i2s_core #(
     input  logic                   data_rx_ready_i
 );
 
+  logic                   ws_gen;
   logic                   ws;
+
+  logic                   sck_gen;
   logic                   sck;
 
   logic                   clk_div_valid;
@@ -49,9 +52,12 @@ module i2s_core #(
   logic                   data_rx_dc_valid;
   logic                   data_rx_dc_ready;
 
-  assign ws = i2s_ws_oe_o ? i2s_ws_o : i2s_ws_i;
+  assign i2s_ws_oe_o = en_i & cfg_clk_ws_en_i;
+  assign i2s_ws_o = ws_gen;
+  assign ws = i2s_ws_oe_o ? ws_gen : i2s_ws_i;
 
   assign i2s_sck_oe_o = en_i & cfg_clk_ws_en_i & clk_div_running;
+  assign i2s_sck_o = sck_gen;
 
   assign i2s_sd_oe_o = 1'b0;
   assign i2s_sd_o    = 1'b0;
@@ -65,15 +71,14 @@ module i2s_core #(
       .sck_i(sck),
       .rst_ni(rst_ni),
       .en_i(en_i & cfg_clk_ws_en_i),
-      .ws_o(i2s_ws_o),
-      .ws_oe_o(i2s_ws_oe_o),
+      .ws_o(ws_gen),
       .cfg_sample_width_i(cfg_sample_width_i)
   );
 
   tc_clk_mux2 i_clk_bypass_mux (
       .clk0_i   (i2s_sck_i),
-      .clk1_i   (i2s_sck_o),
-      .clk_sel_i(i2s_sck_oe_o),
+      .clk1_i   (sck_gen),
+      .clk_sel_i(1'b1), // disable external sck
       .clk_o    (sck)
   );
 
@@ -98,7 +103,7 @@ module i2s_core #(
       .rst_ni(rst_ni),
       .en_i(en_i & cfg_clk_ws_en_i),
       .test_mode_en_i(1'b0),
-      .clk_o(i2s_sck_o),
+      .clk_o(sck_gen),
       .div_i(cfg_clock_div_i),
       .div_valid_i(clk_div_valid),
       .div_ready_o(clk_div_ready)
