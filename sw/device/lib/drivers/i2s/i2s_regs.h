@@ -44,20 +44,11 @@ extern "C" {
 #define I2S_CFG_DATA_WIDTH_VALUE_24_BITS 0x2
 #define I2S_CFG_DATA_WIDTH_VALUE_32_BITS 0x3
 
-// Count to reach for an interrupt
-#define I2S_REACHCOUNT_REG_OFFSET 0x8
-
-// control register
-#define I2S_CONTROL_REG_OFFSET 0xc
-#define I2S_CONTROL_CLEAR_OVERFLOW_BIT 1
-
-// Status register
-#define I2S_STATUS_REG_OFFSET 0x10
-#define I2S_STATUS_EMPTY_BIT 0
-#define I2S_STATUS_OVERFLOW_BIT 2
+// Watermark to reach for an interrupt
+#define I2S_WATERMARK_REG_OFFSET 0x8
 
 // Memory area: I2s Receive data
-#define I2S_RXDATA_REG_OFFSET 0x14
+#define I2S_RXDATA_REG_OFFSET 0xc
 #define I2S_RXDATA_SIZE_WORDS 1
 #define I2S_RXDATA_SIZE_BYTES 4
 #ifdef __cplusplus

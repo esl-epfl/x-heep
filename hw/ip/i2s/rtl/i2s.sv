@@ -36,80 +36,35 @@ module i2s #(
 );
 
   import i2s_reg_pkg::*;
+
   localparam SampleWidth = (1 << BytePerSampleWidth) * 8;
   localparam CounterWidth = BytePerSampleWidth + 3;
 
   // Interface signals
   i2s_reg2hw_t reg2hw;
-  i2s_hw2reg_t hw2reg;
-
-
-  logic sck;
+  // i2s_hw2reg_t hw2reg;
 
   // RX Window Interface signals
   reg_req_t    rx_win_h2d;
   reg_rsp_t    rx_win_d2h;
 
-
-  logic rx_fifo_ready;
-  logic [SampleWidth-1:0] rx_fifo_data_in;
-  logic rx_fifo_data_in_valid;
-
-  logic [SampleWidth-1:0] rx_fifo_data_out;
-  logic rx_fifo_data_out_valid;
-  logic rx_fifo_data_out_ready;
-
-  logic rx_fifo_err;
+  logic [SampleWidth-1:0] data_rx;
+  logic data_rx_valid;
+  logic data_rx_ready;
 
   logic [CounterWidth-1:0] sample_width;
   assign sample_width = {reg2hw.cfg.data_width.q, 3'h7};
 
-  // FIFO -> RX WINDOW
+
+  // I2s RX -> Bus
   assign rx_win_d2h.ready = rx_win_h2d.valid && rx_win_h2d.addr[BlockAw-1:0] == i2s_reg_pkg::I2S_RXDATA_OFFSET && !rx_win_h2d.write;
-  assign rx_win_d2h.rdata = rx_fifo_data_out;
-  assign rx_win_d2h.error = !rx_fifo_data_out_valid;
+  assign rx_win_d2h.rdata = data_rx;
+  assign rx_win_d2h.error = !data_rx_valid;
 
-  assign rx_fifo_data_out_ready = rx_win_d2h.ready;
+  assign data_rx_ready = rx_win_d2h.ready;
 
-  assign i2s_rx_valid_o = rx_fifo_data_out_valid;
-
-  // RX FIFO
-  cdc_2phase #(
-      .T(logic [31:0])
-  ) rx_fifo_i (
-      .src_clk_i  (sck),
-      .src_rst_ni (rst_ni),
-      .src_ready_o(rx_fifo_ready),
-      .src_data_i (rx_fifo_data_in),
-      .src_valid_i(rx_fifo_data_in_valid),
-
-      .dst_rst_ni (rst_ni),
-      .dst_clk_i  (clk_i),
-      .dst_data_o (rx_fifo_data_out),
-      .dst_valid_o(rx_fifo_data_out_valid),
-      .dst_ready_i(rx_fifo_data_out_ready)
-  );
-
-
-  // STATUS 
-  // assign hw2reg.status.fill_level.d = rx_fifo_usage;
-  // assign hw2reg.status.fill_level.de = 1'b1;
-  // assign hw2reg.status.full.d = rx_fifo_full;
-  // assign hw2reg.status.full.de = 1'b1;
-  assign hw2reg.status.empty.d = !rx_fifo_data_out_valid;
-  assign hw2reg.status.empty.de = 1'b1;
-
-  assign hw2reg.status.overflow.de = rx_fifo_err | reg2hw.control.q;
-  assign hw2reg.status.overflow.d = rx_fifo_err & !reg2hw.control.q;
-
-
-  // reset control bits immediatelly 
-  // assign hw2reg.control.clear_fifo.de = reg2hw.control.clear_fifo.q;
-  // assign hw2reg.control.clear_fifo.d = 1'b0;
-
-  assign hw2reg.control.de = reg2hw.control.q;
-  assign hw2reg.control.d = 1'b0;
-
+  // DMA signal
+  assign i2s_rx_valid_o = data_rx_valid;
 
 
   // Register logic
@@ -124,7 +79,7 @@ module i2s #(
       .reg_req_win_o(rx_win_h2d),  // host to device
       .reg_rsp_win_i(rx_win_d2h),  // device to host
       .reg2hw,
-      .hw2reg,
+      // .hw2reg,
       .devmode_i(1'b1)
   );
 
@@ -149,17 +104,14 @@ module i2s #(
       .i2s_sd_oe_o (i2s_sd_oe_o),
       .i2s_sd_i    (i2s_sd_i),
 
-      .sck_o(sck),
-
       .cfg_clk_ws_en_i(reg2hw.cfg.gen_clk_ws.q),
       .cfg_lsb_first_i(reg2hw.cfg.lsb_first.q),
       .cfg_clock_div_i(reg2hw.clkdividx.q),
       .cfg_sample_width_i(sample_width),
 
-      .fifo_rx_data_o(rx_fifo_data_in),
-      .fifo_rx_data_valid_o(rx_fifo_data_in_valid),
-      .fifo_rx_data_ready_i(rx_fifo_ready),
-      .fifo_rx_err_o(rx_fifo_err)
+      .data_rx_o(data_rx),
+      .data_rx_valid_o(data_rx_valid),
+      .data_rx_ready_i(data_rx_ready)
   );
 
   logic event_i2s_event;
@@ -167,25 +119,25 @@ module i2s #(
 
 
   // interrupt reach count event
-  // count fifo outputs to be on clk_i
+  // count bus reads to be on clk_i
   logic [31:0] intr_reach_counter;
   always_ff @(posedge clk_i, negedge rst_ni) begin
     if (~rst_ni) begin
       intr_reach_counter <= 32'h0;
     end else begin
-      if (intr_reach_counter == reg2hw.reachcount.q) begin
-        if (reg2hw.cfg.en & rx_fifo_data_out_ready & rx_fifo_data_out_valid) begin
+      if (intr_reach_counter == reg2hw.watermark.q) begin
+        if (reg2hw.cfg.en & data_rx_ready & data_rx_valid) begin
           intr_reach_counter <= 32'h1;
         end else begin
           intr_reach_counter <= 32'h0;
         end
-      end else if (reg2hw.cfg.en & rx_fifo_data_out_ready & rx_fifo_data_out_valid) begin
+      end else if (reg2hw.cfg.en & data_rx_ready & data_rx_valid) begin
         intr_reach_counter <= intr_reach_counter + 32'h1;
       end
     end
   end
 
-  assign event_i2s_event = intr_reach_counter == reg2hw.reachcount.q & reg2hw.reachcount.q != 32'h0;
+  assign event_i2s_event = intr_reach_counter == reg2hw.watermark.q & reg2hw.watermark.q != 32'h0;
 
 
 endmodule : i2s

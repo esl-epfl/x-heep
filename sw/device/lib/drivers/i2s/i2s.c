@@ -14,5 +14,5 @@ void i2s_setup(bool enable, bool gen_clk, uint16_t div_value, bool intr_en, i2s_
   + (intr_en << I2S_CFG_INTR_EN_BIT)
   + (data_width << I2S_CFG_DATA_WIDTH_OFFSET);
   i2s_peri->CLKDIVIDX = div_value;
-  i2s_peri->REACHCOUNT = intr_reach_count;
+  i2s_peri->Watermark = intr_reach_count;
 }

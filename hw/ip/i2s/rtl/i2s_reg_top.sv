@@ -10,7 +10,7 @@
 module i2s_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 5
+    parameter int AW = 4
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -23,7 +23,6 @@ module i2s_reg_top #(
 
     // To HW
     output i2s_reg_pkg::i2s_reg2hw_t reg2hw,  // Write
-    input  i2s_reg_pkg::i2s_hw2reg_t hw2reg,  // Read
 
 
     // Config
@@ -86,7 +85,7 @@ module i2s_reg_top #(
     reg_steer = 1;  // Default set to register
 
     // TODO: Can below codes be unique case () inside ?
-    if (reg_req_i.addr[AW-1:0] >= 20 && reg_req_i.addr[AW-1:0] < 24) begin
+    if (reg_req_i.addr[AW-1:0] >= 12) begin
       reg_steer = 0;
     end
   end
@@ -126,14 +125,9 @@ module i2s_reg_top #(
   logic [1:0] cfg_data_width_qs;
   logic [1:0] cfg_data_width_wd;
   logic cfg_data_width_we;
-  logic [31:0] reachcount_qs;
-  logic [31:0] reachcount_wd;
-  logic reachcount_we;
-  logic control_qs;
-  logic control_wd;
-  logic control_we;
-  logic status_empty_qs;
-  logic status_overflow_qs;
+  logic [31:0] watermark_qs;
+  logic [31:0] watermark_wd;
+  logic watermark_we;
 
   // Register instances
   // R[clkdividx]: V(False)
@@ -295,19 +289,19 @@ module i2s_reg_top #(
   );
 
 
-  // R[reachcount]: V(False)
+  // R[watermark]: V(False)
 
   prim_subreg #(
       .DW      (32),
       .SWACCESS("RW"),
       .RESVAL  (32'h0)
-  ) u_reachcount (
+  ) u_watermark (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(reachcount_we),
-      .wd(reachcount_wd),
+      .we(watermark_we),
+      .wd(watermark_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -315,102 +309,21 @@ module i2s_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.reachcount.q),
+      .q (reg2hw.watermark.q),
 
       // to register interface (read)
-      .qs(reachcount_qs)
-  );
-
-
-  // R[control]: V(False)
-
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
-  ) u_control (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(control_we),
-      .wd(control_wd),
-
-      // from internal hardware
-      .de(hw2reg.control.de),
-      .d (hw2reg.control.d),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.control.q),
-
-      // to register interface (read)
-      .qs(control_qs)
-  );
-
-
-  // R[status]: V(False)
-
-  //   F[empty]: 0:0
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RO"),
-      .RESVAL  (1'h0)
-  ) u_status_empty (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      .we(1'b0),
-      .wd('0),
-
-      // from internal hardware
-      .de(hw2reg.status.empty.de),
-      .d (hw2reg.status.empty.d),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.status.empty.q),
-
-      // to register interface (read)
-      .qs(status_empty_qs)
-  );
-
-
-  //   F[overflow]: 2:2
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RO"),
-      .RESVAL  (1'h0)
-  ) u_status_overflow (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      .we(1'b0),
-      .wd('0),
-
-      // from internal hardware
-      .de(hw2reg.status.overflow.de),
-      .d (hw2reg.status.overflow.d),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.status.overflow.q),
-
-      // to register interface (read)
-      .qs(status_overflow_qs)
+      .qs(watermark_qs)
   );
 
 
 
 
-  logic [4:0] addr_hit;
+  logic [2:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == I2S_CLKDIVIDX_OFFSET);
     addr_hit[1] = (reg_addr == I2S_CFG_OFFSET);
-    addr_hit[2] = (reg_addr == I2S_REACHCOUNT_OFFSET);
-    addr_hit[3] = (reg_addr == I2S_CONTROL_OFFSET);
-    addr_hit[4] = (reg_addr == I2S_STATUS_OFFSET);
+    addr_hit[2] = (reg_addr == I2S_WATERMARK_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -420,9 +333,7 @@ module i2s_reg_top #(
     wr_err = (reg_we &
               ((addr_hit[0] & (|(I2S_PERMIT[0] & ~reg_be))) |
                (addr_hit[1] & (|(I2S_PERMIT[1] & ~reg_be))) |
-               (addr_hit[2] & (|(I2S_PERMIT[2] & ~reg_be))) |
-               (addr_hit[3] & (|(I2S_PERMIT[3] & ~reg_be))) |
-               (addr_hit[4] & (|(I2S_PERMIT[4] & ~reg_be)))));
+               (addr_hit[2] & (|(I2S_PERMIT[2] & ~reg_be)))));
   end
 
   assign clkdividx_we = addr_hit[0] & reg_we & !reg_error;
@@ -443,11 +354,8 @@ module i2s_reg_top #(
   assign cfg_data_width_we = addr_hit[1] & reg_we & !reg_error;
   assign cfg_data_width_wd = reg_wdata[5:4];
 
-  assign reachcount_we = addr_hit[2] & reg_we & !reg_error;
-  assign reachcount_wd = reg_wdata[31:0];
-
-  assign control_we = addr_hit[3] & reg_we & !reg_error;
-  assign control_wd = reg_wdata[1];
+  assign watermark_we = addr_hit[2] & reg_we & !reg_error;
+  assign watermark_wd = reg_wdata[31:0];
 
   // Read data return
   always_comb begin
@@ -466,16 +374,7 @@ module i2s_reg_top #(
       end
 
       addr_hit[2]: begin
-        reg_rdata_next[31:0] = reachcount_qs;
-      end
-
-      addr_hit[3]: begin
-        reg_rdata_next[1] = control_qs;
-      end
-
-      addr_hit[4]: begin
-        reg_rdata_next[0] = status_empty_qs;
-        reg_rdata_next[2] = status_overflow_qs;
+        reg_rdata_next[31:0] = watermark_qs;
       end
 
       default: begin
@@ -499,7 +398,7 @@ module i2s_reg_top #(
 endmodule
 
 module i2s_reg_top_intf #(
-    parameter  int AW = 5,
+    parameter  int AW = 4,
     localparam int DW = 32
 ) (
     input logic clk_i,
@@ -508,7 +407,6 @@ module i2s_reg_top_intf #(
     REG_BUS.out regbus_win_mst[1-1:0],
     // To HW
     output i2s_reg_pkg::i2s_reg2hw_t reg2hw,  // Write
-    input i2s_reg_pkg::i2s_hw2reg_t hw2reg,  // Read
     // Config
     input devmode_i  // If 1, explicit error return for unmapped register access
 );
@@ -551,7 +449,6 @@ module i2s_reg_top_intf #(
       .reg_req_win_o(s_reg_win_req),
       .reg_rsp_win_i(s_reg_win_rsp),
       .reg2hw,  // Write
-      .hw2reg,  // Read
       .devmode_i
   );
 

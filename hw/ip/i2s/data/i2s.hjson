@@ -65,34 +65,12 @@
       ]
     }
 
-    { name:     "REACHCOUNT"
-      desc:     "Count to reach for an interrupt"
+    { name:     "Watermark"
+      desc:     "Watermark to reach for an interrupt"
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "31:0", name: "REACHCOUNT", desc: "Count of RX samples written to memory which should trigger an interrupt"}
-      ]
-    }
-
-    { name:     "control"
-      desc:     "control register"
-      swaccess: "rw"
-      hwaccess: "hrw"
-      fields: [
-        // { bits: "0", name: "CLEAR_FIFO", desc: "Clears the FIFO buffer." }
-        { bits: "1", name: "CLEAR_OVERFLOW", desc: "Clears the FIFO buffer." }
-      ]
-    }
-
-    { name:     "STATUS"
-      desc:     "Status register"
-      swaccess: "ro"
-      hwaccess: "hrw"
-      fields: [
-        { bits: "0", name: "EMPTY", desc: "The FIFO buffer is empty." }
-        // { bits: "1", name: "FULL",  desc: "The FIFO buffer is full."}
-        { bits: "2", name: "OVERFLOW",  desc: "The FIFO buffer is full."}
-        // { bits: "15:8", name: "FILL_LEVEL", desc: "The FIFO buffer fill level" }
+        { bits: "31:0", name: "Watermark", desc: "Count of RX samples written to memory which should trigger an interrupt"}
       ]
     }
 

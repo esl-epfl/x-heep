@@ -24,10 +24,9 @@ module i2s_rx_channel #(
     input logic [CounterWidth-1:0] cfg_sample_width_i,
 
     // FIFO
-    output logic [SampleWidth-1:0] fifo_rx_data_o,
-    output logic                   fifo_rx_data_valid_o,
-    input  logic                   fifo_rx_data_ready_i,
-    output logic                   fifo_rx_err_o
+    output logic [SampleWidth-1:0] data_o,
+    output logic                   data_valid_o,
+    input  logic                   data_ready_i
 );
 
 
@@ -51,9 +50,8 @@ module i2s_rx_channel #(
 
   assign s_word_done = r_count_bit == cfg_sample_width_i;
 
-  assign fifo_rx_data_o = r_valid ? r_shadow : {(SampleWidth) {1'b0}};
-  assign fifo_rx_data_valid_o = r_valid;
-  assign fifo_rx_err_o = r_valid & ~fifo_rx_data_ready_i & s_word_done;
+  assign data_o = r_shadow;
+  assign data_valid_o = r_valid;
 
   always_comb begin : proc_shiftreg
     s_shiftreg = r_shiftreg;
@@ -79,7 +77,7 @@ module i2s_rx_channel #(
         end
       end
       if (r_valid) begin
-        if (fifo_rx_data_ready_i) begin
+        if (data_ready_i) begin
           r_valid <= 1'b0;
         end
       end
