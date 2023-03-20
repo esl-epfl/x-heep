@@ -8,9 +8,7 @@
 
 module i2s #(
     parameter type reg_req_t = logic,
-    parameter type reg_rsp_t = logic,
-    parameter int unsigned FIFO_DEPTH = 256,
-    localparam int unsigned FIFO_ADDR_WIDTH = $clog2(FIFO_DEPTH)
+    parameter type reg_rsp_t = logic
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -76,9 +74,8 @@ module i2s #(
   assign i2s_rx_valid_o = rx_fifo_data_out_valid;
 
   // RX FIFO
-  cdc_fifo_gray #(
-      .WIDTH(SampleWidth),
-      .LOG_DEPTH(FIFO_ADDR_WIDTH)
+  cdc_2phase #(
+      .T(logic [31:0])
   ) rx_fifo_i (
       .src_clk_i  (sck),
       .src_rst_ni (rst_ni),
