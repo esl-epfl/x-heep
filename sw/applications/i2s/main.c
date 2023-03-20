@@ -44,9 +44,9 @@ int i2s_interrupt_flag;
 #define I2S_USE_INTERRUPT false
 #else
 #define I2S_TEST_BATCH_SIZE    128
-#define I2S_TEST_BATCHES      16
-#define I2S_CLK_DIV           32
-#define AUDIO_DATA_NUM 8
+#define I2S_TEST_BATCHES      4
+#define I2S_CLK_DIV           16
+#define AUDIO_DATA_NUM 4
 #define I2S_USE_INTERRUPT false
 #endif
 
