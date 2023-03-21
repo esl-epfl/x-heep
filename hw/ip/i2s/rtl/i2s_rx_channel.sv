@@ -39,16 +39,15 @@ module i2s_rx_channel #(
 
   logic [CounterWidth-1:0] r_count_bit;
 
-  logic s_word_done;
+  logic word_done;
+  logic width_overflow;
 
   logic r_started;
-  logic r_started_dly;  // "delayed" by one extra cycle as the ws edge comes one early 
 
   logic r_valid;
 
   assign s_ws_edge = ws_i ^ r_ws_old;
 
-  assign s_word_done = r_count_bit == cfg_sample_width_i;
 
   assign data_o = r_shadow;
   assign data_valid_o = r_valid;
@@ -59,7 +58,9 @@ module i2s_rx_channel #(
       s_shiftreg = {1'b0, r_shiftreg[SampleWidth-1:1]};
       s_shiftreg[cfg_sample_width_i] = sd_i;
     end else begin
-      s_shiftreg = {r_shiftreg[SampleWidth-2:0], sd_i};
+      if (!width_overflow) begin
+        s_shiftreg[cfg_sample_width_i-r_count_bit] = sd_i;
+      end
     end
   end
 
@@ -71,7 +72,7 @@ module i2s_rx_channel #(
     end else begin
       if (r_started) begin
         r_shiftreg <= s_shiftreg;
-        if (s_word_done) begin
+        if (word_done) begin
           r_shadow <= r_shiftreg;
           r_valid  <= 1'b1;
         end
@@ -85,12 +86,27 @@ module i2s_rx_channel #(
   end
 
   always_ff @(posedge sck_i, negedge rst_ni) begin
+    if (~rst_ni) begin
+      word_done <= 1'b0;
+    end else begin
+      word_done <= r_started & s_ws_edge;
+    end
+  end
+
+  always_ff @(posedge sck_i, negedge rst_ni) begin
     if (rst_ni == 1'b0) begin
       r_count_bit <= 'h0;
+      width_overflow <= 1'b0;
     end else begin
-      if (r_started_dly) begin
-        if (s_word_done) r_count_bit <= 'h0;
-        else r_count_bit <= r_count_bit + 1;
+      if (r_started) begin
+        if (s_ws_edge) begin
+          r_count_bit <= 'h0;
+          width_overflow <= 1'b0;
+        end else if (r_count_bit < cfg_sample_width_i) begin
+          r_count_bit <= r_count_bit + 1;
+        end else begin
+          width_overflow <= 1'b1;
+        end
       end
     end
   end
@@ -98,12 +114,10 @@ module i2s_rx_channel #(
 
   always_ff @(posedge sck_i, negedge rst_ni) begin
     if (rst_ni == 1'b0) begin
-      r_ws_old      <= 'h0;
-      r_started     <= 'h0;
-      r_started_dly <= 'h0;
+      r_ws_old  <= 'h0;
+      r_started <= 'h0;
     end else begin
       r_ws_old <= ws_i;
-      r_started_dly <= r_started;
       if (s_ws_edge) begin
         if (en_i) r_started <= 1'b1;
         else r_started <= 1'b0;
