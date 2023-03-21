@@ -78,9 +78,10 @@
 #define DMA_HALF_WORD_ALIGN_MASK 1
 
 /**
- * Selection index for when a register is a whole word. 
+ * Selection offset to be used as index for when a register is written from 
+ * the beginning. 
 */
-#define DMA_SELECTION_INDEX_
+#define DMA_SELECTION_OFFSET_START 0
 
 /****************************************************************************/
 /**                                                                        **/
@@ -551,7 +552,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
     writeRegister( dma_cb.trans->type, 
                 DMA_DATA_TYPE_REG_OFFSET, 
                 DMA_DATA_TYPE_DATA_TYPE_MASK, 
-                DMA_DATA_TYPE_DATA_TYPE_OFFSET );
+                DMA_SELECTION_OFFSET_START );
     
     return DMA_CONFIG_OK;
 }
