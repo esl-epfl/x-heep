@@ -11,6 +11,11 @@
 #include "csr.h"
 
 #define TEST_DATA_SIZE 16
+//#define TEST_CIRCULAR_MODE
+//#define TEST_PENDING_TRANSACTION
+
+#define TEST_DATA_CIRCULAR 256
+#define TEST_CYCLES_NUM 32
 
 void dma_intr_handler()
 {
@@ -24,6 +29,10 @@ int main(int argc, char *argv[])
       0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef, 0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa, 0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98};
     static uint32_t copied_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
     
+#ifdef TEST_CIRCULAR_MODE
+    static uint32_t test_data_circular[TEST_DATA_CIRCULAR] __attribute__ ((aligned (4))) = { 1 };
+#endif
+
     printf("DMA test app: 4\n\r");
     
     // Enable interrupt on processor side
@@ -83,5 +92,84 @@ int main(int argc, char *argv[])
     } else {
         printf("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
     }
+
+#ifdef TEST_CIRCULAR_MODE
+        for (int i = 0; i < TEST_DATA_CIRCULAR; i++) {
+            test_data_circular[i] = i;
+        }
+
+        // -- DMA CONFIG -- //
+        dma_set_read_ptr(&dma, (uint32_t) test_data_circular);
+        dma_set_write_ptr(&dma, (uint32_t) test_data_circular);
+        dma_set_read_ptr_inc(&dma, (uint32_t) 1);
+        dma_set_write_ptr_inc(&dma, (uint32_t) 1);
+        dma_set_slot(&dma, 0, 0);
+        dma_set_data_type(&dma, (uint32_t) 2);
+        printf("DMA circular transaction launched\n");
+        dma_enable_circular_mode(&dma, true);
+        // Give number of bytes to transfer
+        dma_intr_flag = 0;
+        dma_set_cnt_start(&dma, (uint32_t) TEST_DATA_CIRCULAR*4);
+
+        uint32_t halfway = 0;
+        for (int i = 0; i < 2*TEST_CYCLES_NUM; i++) {
+            while(dma_intr_flag==0) {
+              wait_for_interrupt();
+            }
+            dma_intr_flag = 0;
+
+            halfway = dma_get_halfway(&dma); // to see which have is ready 
+
+            if (i == 2*(TEST_CYCLES_NUM - 1)) dma_enable_circular_mode(&dma, false); // disable circular mode to stop
+
+        }
+        errors = 0;
+
+        for (int i = 0; i < TEST_DATA_CIRCULAR; i++) {
+            if (test_data_circular[i] != i) {
+                printf("ERROR COPY Circular mode failed at %d", i);
+                errors += 1;
+            }
+        }
+
+        if (errors == 0) {
+            printf("DMA circular byte transfer success\n");
+        } else {
+            printf("DMA circular byte transfer failure: %d errors out of %d bytes checked\n", errors, TEST_DATA_CIRCULAR);
+        }
+
+#endif
+
+#ifdef TEST_PENDING_TRANSACTION
+        // -- DMA CONFIG -- //
+        dma_set_read_ptr(&dma, (uint32_t) test_data_4B);
+        dma_set_write_ptr(&dma, (uint32_t) copied_data_4B);
+        dma_set_read_ptr_inc(&dma, (uint32_t) 1);
+        dma_set_write_ptr_inc(&dma, (uint32_t) 1);
+        dma_set_spi_mode(&dma, (uint32_t) 0);
+        dma_set_data_type(&dma, (uint32_t) 2);
+        // Give number of bytes to transfer
+        dma_set_cnt_start(&dma, (uint32_t) TEST_DATA_SIZE*sizeof(*copied_data_4B));
+
+        dma_intr_flag = 0;
+
+        // start a second time
+        dma_set_cnt_start(&dma, (uint32_t) TEST_DATA_SIZE*sizeof(*copied_data_4B));
+
+        // Wait for first copy
+        while(dma_intr_flag==0) {
+            wait_for_interrupt();
+        }
+    
+        // Wait for second copy
+        dma_intr_flag = 0;
+        
+        while(dma_intr_flag==0) {
+            wait_for_interrupt();
+        }
+        printf("DMA successfully processed two consecutive transactions\n");
+#endif
+
+
     return EXIT_SUCCESS;
 }

@@ -49,6 +49,10 @@
 /**                                                                        **/
 /****************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /****************************************************************************/
 /**                                                                        **/
 /**                       TYPEDEFS AND STRUCTURES                          **/
@@ -249,7 +253,6 @@ typedef struct
     the creation of the transaction. */
 } dma_trans_t;
 
-
 /****************************************************************************/
 /**                                                                        **/
 /**                          EXPORTED VARIABLES                            **/
@@ -351,9 +354,31 @@ void dma_intr_handler();
 /**                                                                        **/
 /****************************************************************************/
 
+
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
+
 #endif /* _DMA_DRIVER_H */
 /****************************************************************************/
 /**                                                                        **/
 /**                                EOF                                     **/
 /**                                                                        **/
 /****************************************************************************/
+
+
+
+
+
+
+
+
+
+/**
+ * Enables/disables the cirucular mode of the DMA.
+ * 
+ * Restarts copying as soon as end of buffer is reach.
+ * Will trigger DMA interrupt twice: halfway and end of buffer.
+ * To stop clear this flag and it will stop after current transaction.
+ */

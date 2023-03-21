@@ -323,7 +323,8 @@ module ao_peripheral_subsystem
       .reg_req_t (reg_pkg::reg_req_t),
       .reg_rsp_t (reg_pkg::reg_rsp_t),
       .obi_req_t (obi_pkg::obi_req_t),
-      .obi_resp_t(obi_pkg::obi_resp_t)
+      .obi_resp_t(obi_pkg::obi_resp_t),
+      .SLOT_NUM  (4)
   ) dma_i (
       .clk_i,
       .rst_ni,
@@ -333,10 +334,7 @@ module ao_peripheral_subsystem
       .dma_master0_ch0_resp_i,
       .dma_master1_ch0_req_o,
       .dma_master1_ch0_resp_i,
-      .spi_rx_valid_i(spi_rx_valid),
-      .spi_tx_ready_i(spi_tx_ready),
-      .spi_flash_rx_valid_i(spi_flash_rx_valid),
-      .spi_flash_tx_ready_i(spi_flash_tx_ready),
+      .trigger_slot_i({spi_rx_valid, spi_tx_ready, spi_flash_rx_valid, spi_flash_tx_ready}),
       .dma_intr_o
   );
 

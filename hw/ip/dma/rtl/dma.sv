@@ -9,7 +9,8 @@ module dma #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
     parameter type obi_req_t = logic,
-    parameter type obi_resp_t = logic
+    parameter type obi_resp_t = logic,
+    parameter int unsigned SLOT_NUM = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -23,10 +24,7 @@ module dma #(
     output obi_req_t  dma_master1_ch0_req_o,
     input  obi_resp_t dma_master1_ch0_resp_i,
 
-    input logic spi_rx_valid_i,
-    input logic spi_tx_ready_i,
-    input logic spi_flash_rx_valid_i,
-    input logic spi_flash_tx_ready_i,
+    input logic [SLOT_NUM-1:0] trigger_slot_i,
 
     output dma_intr_o
 );
@@ -46,6 +44,7 @@ module dma #(
   logic        [               31:0] dma_cnt_dec;
   logic                              dma_start;
   logic                              dma_done;
+  logic                              dma_halfway;
 
   logic        [Addr_Fifo_Depth-1:0] fifo_usage;
   logic                              fifo_alm_full;
@@ -71,9 +70,8 @@ module dma #(
   logic                              fifo_full;
   logic                              fifo_empty;
 
-  logic        [                2:0] spi_dma_mode;
-  logic                              wait_for_rx_spi;
-  logic                              wait_for_tx_spi;
+  logic                              wait_for_rx;
+  logic                              wait_for_tx;
 
   logic        [                1:0] data_type;
 
@@ -81,6 +79,10 @@ module dma #(
   logic        [               31:0] fifo_output;
 
   logic        [                3:0] byte_enable_out;
+
+  logic                              circular_mode;
+
+  logic                              dma_start_pending;
 
   enum logic {
     DMA_READ_FSM_IDLE,
@@ -114,30 +116,35 @@ module dma #(
   assign data_out_rvalid = dma_master1_ch0_resp_i.rvalid;
   assign data_out_rdata = dma_master1_ch0_resp_i.rdata;
 
-  assign dma_intr_o = dma_done;
-  assign spi_dma_mode = reg2hw.spi_mode.q;
+  assign dma_intr_o = dma_done | (circular_mode & dma_halfway);
   assign data_type = reg2hw.data_type.q;
 
-  assign hw2reg.done.de = dma_done | dma_start;
-  assign hw2reg.done.d = dma_done == 1'b1 ? 1'b1 : 1'b0;
+  assign hw2reg.done.done.de = dma_done | dma_start;
+  assign hw2reg.done.done.d = dma_done;
 
-  assign hw2reg.dma_start.de = dma_start;
-  assign hw2reg.dma_start.d = 32'h0;
+  assign hw2reg.done.halfway.de = dma_halfway | dma_start;
+  assign hw2reg.done.halfway.d = dma_halfway;
 
-  assign wait_for_rx_spi = (spi_dma_mode == 3'h1 && ~spi_rx_valid_i) || (spi_dma_mode == 3'h3 && ~spi_flash_rx_valid_i);
-  assign wait_for_tx_spi = (spi_dma_mode == 3'h2 && ~spi_tx_ready_i) || (spi_dma_mode == 3'h4 && ~spi_flash_tx_ready_i);
+  assign dma_halfway = (dma_cnt == {1'b0, reg2hw.dma_start.q[31:1]}) & (|dma_cnt);
+
+  assign circular_mode = reg2hw.circular_mode.q;
+
+  assign wait_for_rx = |(reg2hw.slot_selection.rx_trigger_slot_selection.q[SLOT_NUM-1:0] & ~trigger_slot_i);
+  assign wait_for_tx = |(reg2hw.slot_selection.tx_trigger_slot_selection.q[SLOT_NUM-1:0] & ~trigger_slot_i);
 
   assign fifo_alm_full = (fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
+
+  assign dma_start = dma_start_pending & reg2hw.done.done.q;
 
   // DMA pulse start when dma_start register is written
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start
     if (~rst_ni) begin
-      dma_start <= 1'b0;
+      dma_start_pending <= 1'b0;
     end else begin
       if (dma_start == 1'b1) begin
-        dma_start <= 1'b0;
-      end else begin
-        dma_start <= |reg2hw.dma_start.q;
+        dma_start_pending <= 1'b0;
+      end else if (reg2hw.dma_start.qe | (dma_done & circular_mode)) begin
+        dma_start_pending <= 1'b1;
       end
     end
   end
@@ -313,7 +320,7 @@ module dma #(
         end else begin
           dma_read_fsm_n_state = DMA_READ_FSM_ON;
           // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
-          if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx_spi == 1'b0) begin
+          if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
             data_in_req  = 1'b1;
             data_in_we   = 1'b0;
             data_in_be   = 4'b1111;  // always read all bytes
@@ -354,7 +361,7 @@ module dma #(
         end else begin
           dma_write_fsm_n_state = DMA_WRITE_FSM_ON;
           // Wait if fifo is empty or if the SPI TX is not ready for new data (only in SPI mode 2).
-          if (fifo_empty == 1'b0 && wait_for_tx_spi == 1'b0) begin
+          if (fifo_empty == 1'b0 && wait_for_tx == 1'b0) begin
             data_out_req  = 1'b1;
             data_out_we   = 1'b1;
             data_out_be   = byte_enable_out;
