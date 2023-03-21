@@ -50,14 +50,14 @@ int main(int argc, char *argv[])
                                 .ptr = test_data_4B,
                                 .inc_du = 1,
                                 .size_du = TEST_DATA_SIZE,
-                                .smph = DMA_SMPH_MEMORY,
+                                .trig = DMA_TRIG_MEMORY,
                                 .type = DMA_DATA_TYPE_WORD,
                                 };
     static dma_target_t tgt2 = {
                                 .ptr = copied_data_4B,
                                 .inc_du = 1,
                                 .size_du = TEST_DATA_SIZE,
-                                .smph = DMA_SMPH_MEMORY,
+                                .trig = DMA_TRIG_MEMORY,
                                 .type = DMA_DATA_TYPE_WORD,
                                 };
     static dma_trans_t trans = {

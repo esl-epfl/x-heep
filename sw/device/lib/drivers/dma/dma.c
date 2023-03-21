@@ -77,6 +77,11 @@
  */
 #define DMA_HALF_WORD_ALIGN_MASK 1
 
+/**
+ * Selection index for when a register is a whole word. 
+*/
+#define DMA_SELECTION_INDEX_
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        TYPEDEFS AND STRUCTURES                           */
@@ -134,9 +139,11 @@ static inline uint8_t isOutbound( uint8_t* p_start, uint8_t* p_end,
  *  where the target register is located.
  * @param p_mask The variable's mask to only modify its bits inside the whole
  * register.
+ * @param p_sel The selection index (i.e. From which bit inside the register
+ * the value is to be written). 
  */
 static inline void writeRegister( uint32_t p_val, uint32_t p_offset, 
-                                uint32_t p_mask );
+                                uint32_t p_mask, uint8_t p_sel );
 
 
 /**
@@ -250,29 +257,23 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
     }
     
     /*
-     * CHECK IF THERE ARE SEMAPHORE INCONSISTENCIES 
+     * CHECK IF THERE ARE TRIGGER INCONSISTENCIES 
      */
 
     /* 
-     * The DMA can only handle one semaphore at a time, therefore, if the two 
-     * targets require a semaphore, the transaction has to be discarded.
+     * The DMA can only handle one trigger at a time, therefore, if the two 
+     * targets require a trigger, the transaction has to be discarded.
      * None of the two values can be taken by default because this inconsistency
      * is probably a result of an error (likely wrong target selection).
      */
     if( p_check )
     {
-        if( p_trans->src->smph && p_trans->dst->smph ) 
+        if( p_trans->src->trig && p_trans->dst->trig ) 
         {
             p_trans->flags |= ( DMA_CONFIG_INCOMPATIBLE | DMA_CONFIG_CRITICAL_ERROR );
             return p_trans->flags;
         }
     }
-    /* 
-     * As there is only one non-null semaphore among the targets, that one 
-     * is selected. 
-     * If both are zero, it does not matter which is picked. 
-     */
-    p_trans->smph = p_trans->src->smph ? p_trans->src->smph : p_trans->dst->smph;
     
     /*
      * SET UP THE DEFAULT CONFIGURATIONS 
@@ -301,18 +302,18 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
     {
         /* 
          * The source and destination targets are analyzed. 
-         * If the target is a peripheral (i.e. uses one of semaphore slots)
+         * If the target is a peripheral (i.e. uses one of trigger slots)
          * then the misalignment is not checked.
          */
         uint8_t misalignment = 0;
-        if( ! p_trans->src->smph )
+        if( ! p_trans->src->trig )
         {
             misalignment = getMisalignment_b( p_trans->src->ptr, p_trans->type  );
         }
         p_trans->flags |= ( misalignment ? DMA_CONFIG_SRC : DMA_CONFIG_OK ); 
 
         uint8_t dstMisalignment = 0;
-        if( ! p_trans->dst->smph ) 
+        if( ! p_trans->dst->trig ) 
         {
             dstMisalignment = getMisalignment_b( p_trans->dst->ptr, p_trans->type  );
         }
@@ -526,7 +527,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
      * The increments might have been changed (vs. the original value of 
      * the target) due to misalignment issues. If they have, use the changed
      * values, otherwise, use the target-specific ones.
-     * Other reason to overwrite the target increment is if a semaphore is used.
+     * Other reason to overwrite the target increment is if a trigger is used.
      * In that case, a increment of 0 is necessary.
      */
 
@@ -534,15 +535,23 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
     dma_peri->DST_PTR_INC = getIncrement_b( dma_cb.trans->dst );
     
     /*
-     * SET SEMAPHORE AND DATA TYPE
+     * SET TRIGGER SLOTS AND DATA TYPE
      */    
 
-    writeRegister( dma_cb.trans->smph, 
-                DMA_SPI_MODE_REG_OFFSET, 
-                DMA_SPI_MODE_SPI_MODE_MASK );
+    writeRegister( dma_cb.trans->src->trig, 
+                DMA_SLOT_SELECTION_REG_OFFSET, 
+                DMA_SLOT_SELECTION_RX_TRIGGER_SLOT_SELECTION_MASK,
+                DMA_SLOT_SELECTION_RX_TRIGGER_SLOT_SELECTION_OFFSET );
+
+    writeRegister( dma_cb.trans->dst->trig, 
+                DMA_SLOT_SELECTION_REG_OFFSET, 
+                DMA_SLOT_SELECTION_TX_TRIGGER_SLOT_SELECTION_MASK,
+                DMA_SLOT_SELECTION_TX_TRIGGER_SLOT_SELECTION_OFFSET );
+
     writeRegister( dma_cb.trans->type, 
                 DMA_DATA_TYPE_REG_OFFSET, 
-                DMA_DATA_TYPE_DATA_TYPE_MASK );
+                DMA_DATA_TYPE_DATA_TYPE_MASK, 
+                DMA_DATA_TYPE_DATA_TYPE_OFFSET );
     
     return DMA_CONFIG_OK;
 }
@@ -628,15 +637,15 @@ dma_config_flags_t validateTarget( dma_target_t *p_tgt )
      * SANITY CHECKS
      */
 
-    /* Increment can be 0 when a semaphore is used. */
+    /* Increment can be 0 when a trigger is used. */
     make_sure_that( p_tgt->inc_du >= 0 ); 
     /* The size could be 0 if the target is only going to be used as a 
     destination. */
     make_sure_that( p_tgt->size_du >=  0 ); 
     /* The data type must be a valid type */
     make_sure_that( p_tgt->type < DMA_DATA_TYPE__size );
-    /* The semaphore must be among the valid semaphore values. */
-    make_sure_that( p_tgt->smph < DMA_SMPH__size );
+    /* The trigger must be among the valid trigger values. */
+    make_sure_that( p_tgt->trig < DMA_TRIG__size );
     
     /*
      * INTEGRITY CHECKS
@@ -662,15 +671,15 @@ dma_config_flags_t validateTarget( dma_target_t *p_tgt )
     }
 
     /* 
-    * If there is a semaphore, there should not be environments
+    * If there is a trigger, there should not be environments
     * nor increments (or its an incompatible peripheral).
     * Otherwise, an increment is needed (or its an incompatible
     * memory).
     */
-    uint8_t isSmph = p_tgt->smph;
+    uint8_t isSmph = p_tgt->trig;
     uint8_t isInc = p_tgt->inc_du;
     uint8_t incomPeri = ( isSmph && ( isEnv || isInc ) );
-    uint8_t incomMem = ( ! p_tgt->smph && ! p_tgt->inc_du );
+    uint8_t incomMem = ( ! p_tgt->trig && ! p_tgt->inc_du );
     if( incomPeri || incomMem )
     {
         flags |= DMA_CONFIG_INCOMPATIBLE;
@@ -689,7 +698,7 @@ static inline uint8_t getMisalignment_b( uint8_t* p_ptr,
 {
     /*
      * Note: These checks only makes sense when the target is memory. This is 
-     * not performed when the target is a peripheral (i.e. uses a semaphore). 
+     * not performed when the target is a peripheral (i.e. uses a trigger). 
      * Check for word alignment:
      * The 2 LSBs of the data type must coincide with the 2 LSBs of the SRC 
      * pointer.
@@ -775,20 +784,22 @@ static inline uint8_t isOutbound( uint8_t* p_start,
 // @ToDo: Consider changing the "mask" parameter for a bitfield definition (see dma_regs.h)
 static inline void writeRegister( uint32_t p_val, 
                                 uint32_t p_offset, 
-                                uint32_t p_mask )
+                                uint32_t p_mask,
+                                uint8_t p_sel )
 {
     uint8_t index = p_offset / DMA_REGISTER_SIZE_BYTES;
     uint32_t originalVal = (( uint32_t * ) dma_peri ) [ index ]; 
-    uint32_t clearedVal = originalVal & ~p_mask; 
-    uint32_t val = clearedVal | ( p_val & p_mask );
+    uint32_t mask = ( p_mask << p_sel );
+    uint32_t clearedVal = originalVal & ~mask; 
+    uint32_t val = clearedVal | ( p_val & mask );
     (( uint32_t * ) dma_peri ) [ index ] = val;
 }
 
 static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
 {
     uint32_t inc_b = 0;
-    /* If the target uses a semaphore, the increment remains 0. */
-    if( !( p_tgt->smph ) ) 
+    /* If the target uses a trigger, the increment remains 0. */
+    if( !( p_tgt->trig ) ) 
     {   
         /*
          * If the transaction increment has been overwritten (due to 
@@ -824,5 +835,3 @@ void handler_irq_fast_dma(void)
 /*                                 EOF                                      */
 /**                                                                        **/
 /****************************************************************************/
-
-

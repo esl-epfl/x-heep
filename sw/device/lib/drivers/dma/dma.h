@@ -62,21 +62,21 @@ extern "C" {
 /**
  * All the valid SPI modes for the DMA-SPI operation.
  * 
- * SLOT_1~4 are the available slots for adding semaphores.
+ * SLOT_1~4 are the available slots for adding triggers.
  * These are defined in hardware, so it should be consistent with the 
  * registers' assigned values.
  * 
  */
 typedef enum
 {
-    DMA_SMPH_MEMORY = 0, /*!< Reads from memory, writes in memory. */
-    DMA_SMPH_SLOT_1 = 1, /*!< Slot 1 (SPI Rx). */  
-    DMA_SMPH_SLOT_2 = 2, /*!< Slot 2 (SPI Tx). */
-    DMA_SMPH_SLOT_3 = 3, /*!< Slot 3 (SPI Flash Rx). */ 
-    DMA_SMPH_SLOT_4 = 4, /*!< SLot 4 (SPI Flash Tx). */
-    DMA_SMPH__size,      /*!< Not used, only for sanity checks. */
-    DMA_SMPH__undef,     /*!< DMA will not be used. */
-} dma_semaphore_t;  
+    DMA_TRIG_MEMORY = 0, /*!< Reads from memory, writes in memory. */
+    DMA_TRIG_SLOT_1 = 1, /*!< Slot 1 (SPI Rx). */  
+    DMA_TRIG_SLOT_2 = 2, /*!< Slot 2 (SPI Tx). */
+    DMA_TRIG_SLOT_3 = 3, /*!< Slot 3 (SPI Flash Rx). */ 
+    DMA_TRIG_SLOT_4 = 4, /*!< SLot 4 (SPI Flash Tx). */
+    DMA_TRIG__size,      /*!< Not used, only for sanity checks. */
+    DMA_TRIG__undef,     /*!< DMA will not be used. */
+} dma_trigger_t;  
 
 /**
  *  All the valid data types for the DMA transfer.
@@ -223,7 +223,7 @@ typedef struct
     copied. Can be left blank if the target will only be used as destination. */
     dma_data_type_t type;       /*!< The type of data to be transferred. Can 
     be left blank if the target will only be used as destination. */
-    dma_semaphore_t smph;       /*!< If the target is a peripheral, a semaphore 
+    dma_trigger_t trig;       /*!< If the target is a peripheral, a trigger 
     can be set to control the data flow.  */
 } dma_target_t;   
 
@@ -245,7 +245,7 @@ typedef struct
     contrast, the size stored in the targets is in data units). */ 
     dma_data_type_t type;       /*!< The data type to use. One is chosen among 
     the targets. */
-    dma_semaphore_t smph;       /*!< The semaphore to use. One is chosen among 
+    dma_trigger_t trig;       /*!< The trigger to use. One is chosen among 
     the targets. */
     dma_end_event_t end;        /*!< What should happen after the transaction 
     is launched. */

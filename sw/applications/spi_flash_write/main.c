@@ -189,20 +189,20 @@ int main(int argc, char *argv[])
         .ptr = flash_data,
         .inc_du = 1,
         .size_du = COPY_DATA_WORDS,
-        .smph = DMA_SMPH_MEMORY,
+        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_WORD,
     };
 
     #ifndef USE_SPI_FLASH
-        const uint8_t slot = DMA_SMPH_SLOT_2; // The DMA will wait for the SPI TX FIFO ready signal
+        const uint8_t slot = DMA_TRIG_SLOT_2; // The DMA will wait for the SPI TX FIFO ready signal
     #else
-        const uint8_t slot = DMA_SMPH_SLOT_4; // The DMA will wait for the SPI FLASH TX FIFO ready signal
+        const uint8_t slot = DMA_TRIG_SLOT_4; // The DMA will wait for the SPI FLASH TX FIFO ready signal
     #endif
 
     static dma_target_t tgt2= {
         .inc_du = 0,
         .size_du = COPY_DATA_WORDS,
-        .smph = slot,
+        .trig = slot,
         .type = DMA_DATA_TYPE_WORD,
     };
     tgt2.ptr = fifo_ptr_tx; // This is necessary because fifo_ptr_tx is not a constant, and therefore cannot be used as initializer element.
@@ -283,20 +283,20 @@ int main(int argc, char *argv[])
         .ptr = copy_data,
         .inc_du = 1,
         .size_du = COPY_DATA_WORDS,
-        .smph = DMA_SMPH_MEMORY,
+        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_WORD,
     };
 
     #ifndef USE_SPI_FLASH
-        const uint8_t slot2 = DMA_SMPH_SLOT_1; // The DMA will wait for the SPI TX FIFO ready signal
+        const uint8_t slot2 = DMA_TRIG_SLOT_1; // The DMA will wait for the SPI TX FIFO ready signal
     #else
-        const uint8_t slot2 = DMA_SMPH_SLOT_3; // The DMA will wait for the SPI FLASH TX FIFO ready signal
+        const uint8_t slot2 = DMA_TRIG_SLOT_3; // The DMA will wait for the SPI FLASH TX FIFO ready signal
     #endif
 
     static dma_target_t tgt4= {
         .inc_du = 0,
         .size_du = COPY_DATA_WORDS,
-        .smph = slot2,
+        .trig = slot2,
         .type = DMA_DATA_TYPE_WORD,
     };
     tgt4.ptr = fifo_ptr_rx;

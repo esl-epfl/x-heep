@@ -80,9 +80,9 @@ int main(int argc, char *argv[])
 
 
     #ifndef USE_SPI_FLASH
-        uint8_t slot = DMA_SMPH_SLOT_1;  // The DMA will wait for the SPI RX FIFO valid signal
+        uint8_t slot = DMA_TRIG_SLOT_1;  // The DMA will wait for the SPI RX FIFO valid signal
     #else
-        uint8_t slot = DMA_SMPH_SLOT_3; // The DMA will wait for the SPI FLASH RX FIFO valid signal
+        uint8_t slot = DMA_TRIG_SLOT_3; // The DMA will wait for the SPI FLASH RX FIFO valid signal
     #endif
 
     static dma_target_t tgt_src = {
@@ -91,13 +91,13 @@ int main(int argc, char *argv[])
         .type = SPI_DATA_TYPE,
     };
     tgt_src.ptr = fifo_ptr_rx; // Necessary outside 'cause its not a const. 
-    tgt_src.smph = slot;// Necessary outside 'cause its not a const. 
+    tgt_src.trig = slot;// Necessary outside 'cause its not a const. 
 
     static dma_target_t tgt_dst = {
         .inc_du = 1, 
         .size_du = COPY_DATA_NUM,
         .type = SPI_DATA_TYPE,
-        .smph = DMA_SMPH_MEMORY,
+        .trig = DMA_TRIG_MEMORY,
     };
     tgt_dst.ptr = copy_data; // Necessary outside 'cause its not a const. 
     
