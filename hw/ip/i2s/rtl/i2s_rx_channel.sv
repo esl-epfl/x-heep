@@ -58,6 +58,9 @@ module i2s_rx_channel #(
       s_shiftreg = {1'b0, r_shiftreg[SampleWidth-1:1]};
       s_shiftreg[cfg_sample_width_i] = sd_i;
     end else begin
+      if (word_done) begin
+        s_shiftreg = 'h0;
+      end
       if (!width_overflow) begin
         s_shiftreg[cfg_sample_width_i-r_count_bit] = sd_i;
       end
