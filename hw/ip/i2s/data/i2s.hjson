@@ -48,8 +48,15 @@
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "0", name: "EN", desc: "Starts PDM data processing. The FIFO starts to fill with PCM data." }
-        { bits: "1", name: "GEN_CLK_WS", desc: "Generate SCK and WS" }
+        { bits: "1:0", name: "EN", desc: "Enable i2s channels" 
+          resval: "0",
+          enum:  [
+            { value: "0", name: "DISABLED",  desc: "Disable I2s" },
+            { value: "1", name: "ONLY_LEFT",  desc: "Enable left channel" },
+            { value: "2", name: "ONLY_RIGHT",  desc: "Enable right channel" },
+            { value: "3", name: "BOTH_CHANNELS",  desc: "Enable both channels" },
+          ]
+        }
         { bits: "2", name: "LSB_FIRST", desc: "which bit arrives first" }
         { bits: "3", name: "INTR_EN", desc: "enable reach count interrupt" }
         { bits: "5:4", name: "DATA_WIDTH",
@@ -62,6 +69,7 @@
                 { value: "3", name: "32_BITS", desc: "32 bits" }
               ]
         }
+        { bits: "6", name: "GEN_CLK_WS", desc: "Generate SCK and WS" }
       ]
     }
 

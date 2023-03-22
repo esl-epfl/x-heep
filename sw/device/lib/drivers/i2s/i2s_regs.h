@@ -31,8 +31,14 @@ extern "C" {
 
 // config register
 #define I2S_CFG_REG_OFFSET 0x4
-#define I2S_CFG_EN_BIT 0
-#define I2S_CFG_GEN_CLK_WS_BIT 1
+#define I2S_CFG_EN_MASK 0x3
+#define I2S_CFG_EN_OFFSET 0
+#define I2S_CFG_EN_FIELD \
+  ((bitfield_field32_t) { .mask = I2S_CFG_EN_MASK, .index = I2S_CFG_EN_OFFSET })
+#define I2S_CFG_EN_VALUE_DISABLED 0x0
+#define I2S_CFG_EN_VALUE_ONLY_LEFT 0x1
+#define I2S_CFG_EN_VALUE_ONLY_RIGHT 0x2
+#define I2S_CFG_EN_VALUE_BOTH_CHANNELS 0x3
 #define I2S_CFG_LSB_FIRST_BIT 2
 #define I2S_CFG_INTR_EN_BIT 3
 #define I2S_CFG_DATA_WIDTH_MASK 0x3
@@ -43,6 +49,7 @@ extern "C" {
 #define I2S_CFG_DATA_WIDTH_VALUE_16_BITS 0x1
 #define I2S_CFG_DATA_WIDTH_VALUE_24_BITS 0x2
 #define I2S_CFG_DATA_WIDTH_VALUE_32_BITS 0x3
+#define I2S_CFG_GEN_CLK_WS_BIT 6
 
 // Watermark to reach for an interrupt
 #define I2S_WATERMARK_REG_OFFSET 0x8

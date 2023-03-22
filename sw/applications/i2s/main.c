@@ -120,7 +120,7 @@ void setup()
 
     // enable I2s interrupt
     i2s_interrupt_flag = 0;
-    i2s_setup(true, true, I2S_CLK_DIV, I2S_USE_INTERRUPT, I2S_32_BITS, I2S_TEST_BATCH_SIZE);
+    i2s_setup(I2S_RIGHT_CH, true, I2S_CLK_DIV, I2S_USE_INTERRUPT, I2S_32_BITS, I2S_TEST_BATCH_SIZE);
 
 
     // Enable interrupt on processor side

@@ -13,6 +13,8 @@ module i2s_core #(
     input logic clk_i,
     input logic rst_ni,
     input logic en_i,
+    input logic en_left_i,
+    input logic en_right_i,
 
 
     // IO interface
@@ -112,11 +114,13 @@ module i2s_core #(
   i2s_rx_channel #(
       .SampleWidth(SampleWidth)
   ) i2s_rx_channel_i (
-      .sck_i (sck),
+      .sck_i(sck),
       .rst_ni(rst_ni),
-      .en_i  (en_i),
-      .ws_i  (ws),
-      .sd_i  (i2s_sd_i),
+      .en_i(en_i),
+      .en_left_i(en_left_i),
+      .en_right_i(en_right_i),
+      .ws_i(ws),
+      .sd_i(i2s_sd_i),
 
       .cfg_lsb_first_i(cfg_lsb_first_i),
       .cfg_sample_width_i(cfg_sample_width_i),

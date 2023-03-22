@@ -25,6 +25,13 @@ typedef enum i2s_datawidth {
 } i2s_datawidth_t;
 
 
+typedef enum i2s_channel_sel {
+  I2S_DISABLE = I2S_CFG_EN_VALUE_DISABLED,
+  I2S_LEFT_CH = I2S_CFG_EN_VALUE_ONLY_LEFT,
+  I2S_RIGHT_CH = I2S_CFG_EN_VALUE_ONLY_RIGHT,
+  I2S_BOTH_CH = I2S_CFG_EN_VALUE_BOTH_CHANNELS
+} i2s_channel_sel_t;
+
 /**
  * Setup I2s
  * 
@@ -35,7 +42,7 @@ typedef enum i2s_datawidth {
  *        (odd values are allowed, for 0 and 1 the src clock is used)
  * @param data_width 
  */
-void i2s_setup(bool enable, bool gen_clk, uint16_t div_value, bool intr_en, i2s_datawidth_t data_width, uint32_t intr_reach_count);
+void i2s_setup(i2s_channel_sel_t en, bool en_master, uint16_t div_value, bool intr_en, i2s_datawidth_t data_width, uint32_t intr_reach_count);
 
 
 #ifdef __cplusplus

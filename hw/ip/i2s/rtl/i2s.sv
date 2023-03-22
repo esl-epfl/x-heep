@@ -48,6 +48,9 @@ module i2s #(
   reg_req_t    rx_win_h2d;
   reg_rsp_t    rx_win_d2h;
 
+  logic en;
+  assign en = |reg2hw.cfg.en.q;
+
   logic [SampleWidth-1:0] data_rx;
   logic data_rx_valid;
   logic data_rx_ready;
@@ -90,9 +93,11 @@ module i2s #(
       .SampleWidth(SampleWidth),
       .ClkDivSize (ClkDivSize)
   ) i2s_core_i (
-      .clk_i (clk_i),
+      .clk_i(clk_i),
       .rst_ni(rst_ni),
-      .en_i  (reg2hw.cfg.en),
+      .en_i(en),
+      .en_left_i(reg2hw.cfg.en.q[0]),
+      .en_right_i(reg2hw.cfg.en.q[1]),
 
       .i2s_sck_o   (i2s_sck_o),
       .i2s_sck_oe_o(i2s_sck_oe_o),
@@ -126,12 +131,12 @@ module i2s #(
       intr_reach_counter <= 32'h0;
     end else begin
       if (intr_reach_counter == reg2hw.watermark.q) begin
-        if (reg2hw.cfg.en & data_rx_ready & data_rx_valid) begin
+        if (en & data_rx_ready & data_rx_valid) begin
           intr_reach_counter <= 32'h1;
         end else begin
           intr_reach_counter <= 32'h0;
         end
-      end else if (reg2hw.cfg.en & data_rx_ready & data_rx_valid) begin
+      end else if (en & data_rx_ready & data_rx_valid) begin
         intr_reach_counter <= intr_reach_counter + 32'h1;
       end
     end
