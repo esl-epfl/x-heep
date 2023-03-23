@@ -62,8 +62,8 @@ The following is an example repository folder structure.
     │   ├── TOP
     │   │   └── top.sv
     │   └── vendor
-    │       ├── your_coprocessor
-    │       ├── your_coprocessor.vendor.hjson
+    │       ├── your_copro
+    │       ├── your_copro.vendor.hjson
     │       ├── esl_epfl_x_heep
     │       └── esl_epfl_x_heep.vendor.hjson
     ├── top.core
@@ -221,14 +221,25 @@ The following is an example repository folder structure.
     BASE
     ├── sw
     │   ├── applications
-    │   │   └── my_app
+    │   │   └── your_app
     │   │       ├── main.c
+    │   │       ├── your_app.c
+    │   │       ├── your_app.h
     │   │       └── ...
     │   ├── build -> ../hw/vendor/esl_epfl_x_heep/sw/build
     │   ├── device -> ../hw/vendor/esl_epfl_x_heep/sw/device
-    │   └── linker -> ../hw/vendor/esl_epfl_x_heep/sw/linker
+    │   ├── linker -> ../hw/vendor/esl_epfl_x_heep/sw/linker
+    │   └── external
+    │       ├── drivers
+    │       │   └── your_copro
+    │       │   	├── your_copro.c
+    │       │   	├── your_copro.h
+    │       │   	└── your_copro_defs.h -> ../../../../hw/vendor/your_copro/sw/your_copro_defs.h
+    │       └── extensions
+    │       	└── your_copro_x_heep.h
     ├── hw
     │   └── vendor
+    │       ├── your_copro
     │       ├── esl_epfl_x_heep.vendor.hjson
     │       └── esl_epfl_x_heep
     │           ├── hw
@@ -245,9 +256,9 @@ The following is an example repository folder structure.
     │   └── vendor.py
     └── ...
     
-Where `BASE` is your repository's base directory, `esl_epfl_x_heep` is the vendorized `X-HEEP` repository and `my_app` is the name of the application you intend to build. 
+Where `BASE` is your repository's base directory, `esl_epfl_x_heep` is the vendorized `X-HEEP` repository and `your_app` is the name of the application you intend to build. 
 
-## The /sw/ folder
+### The /sw/ folder
 
 The `BASE/sw/` folder must comply with `X-HEEP` repository structure and therefore include an `applications`, `build`, `device` and `linker` folder. 
 It is not compulsory for it to be on the `BASE` directory, although this is the default structure that `X-HEEP`'s Makefiles will assume if no other path is specified through the `SOURCE` variable. 
@@ -255,10 +266,21 @@ Inside the `applications` folder different projects can be stored (still respect
 The `build`, `device` and `linker` should be linked with the vendorized folders inside `X-HEEP`.
 In this example that is done from the `BASE` directory as follows:
 ```
-ln -s hw/vendor/esl_epfl_x_heep/sw/build sw/build
-ln -s hw/vendor/esl_epfl_x_heep/sw/device sw/device
-ln -s hw/vendor/esl_epfl_x_heep/sw/linker sw/linker
+ln -s ../hw/vendor/esl_epfl_x_heep/sw/build sw/build
+ln -s ../hw/vendor/esl_epfl_x_heep/sw/device sw/device
+ln -s ../hw/vendor/esl_epfl_x_heep/sw/linker sw/linker
 ```
+
+### The /sw/applications folder
+Inside the `sw/applications/` folder you may have different applications that can be built separately. Each application is a directory named after your application, containing one and only one `main.c` file which is built during the compilation process. The folder can contain other source or header files (of any name but `main.c`).  
+
+### The /sw/external folder
+In the `external` folder you can add whatever is necessary for software to work with your coprocessor/accelerator. This might include:
+
+* Sources and header files
+* Soft links to folders or files. 
+
+The external folder or any of its subdirectories cannot contain neither a `device` nor a `applications` folder as it would collide with the respective folders inside `BASE/sw/`. It should also not contain a `main.c` file.  
 
 ### The BASE/Makefile
 The `BASE/Makefile` is your own custom Makefile. You can use it as a bridge to access the Makefile from `X-HEEP`. 
@@ -305,6 +327,6 @@ export HEEP_DIR = <path_to_x_heep_relative_to_this_directory>
 
 If you plan to store source files in a different location that the one proposed, just call `make` making the `SOURCE` path explicit. 
 ```
-make app PROJECT=my_app SOURCE=<path_to_your_sw_relative_to_x_heep_sw>
+make app PROJECT=your_app SOURCE=<path_to_your_sw_relative_to_x_heep_sw>
 ```
 Consider that inside this `sw` folder the same structure than the one proposed is required.  

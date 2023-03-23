@@ -29,6 +29,7 @@ build/Makefile : CMakeLists.txt ${CMAKE_DIR}/riscv.cmake
 			-DCMAKE_TOOLCHAIN_FILE=../${CMAKE_DIR}/riscv.cmake \
 			-DROOT_PROJECT=${ROOT_PROJECT} \
 			-DSOURCE_PATH=${SOURCE_PATH} \
+			-DTARGET=${TARGET} \
 			-DPROJECT:STRING=${PROJECT} \
 			-DRISCV:STRING=${RISCV} \
 			-DINC_FOLDERS:STRING=${INC_FOLDERS} \
