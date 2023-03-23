@@ -207,7 +207,8 @@ void dma_init()
     dma_peri->DMA_START = 0;
     dma_peri->SRC_PTR_INC = 0;
     dma_peri->DST_PTR_INC = 0;
-    dma_peri->SPI_MODE = 0;
+    dma_peri->SLOT_SELECTION = 0;
+    dma_peri->CIRCULAR_MODE = 0;
     dma_peri->DATA_TYPE = 0;
 }
 

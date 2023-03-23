@@ -92,7 +92,7 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
         .inc_du = 0,
         .size_du = 0,
         .type = DMA_DATA_TYPE_HALF_WORD,
-        .trig = DMA_TRIG_SLOT_4,
+        .trig = DMA_TRIG_SLOT_SPI_FLASH_TX,
     };
     dma_trans_t trans = {
         .src = &tgt_src,

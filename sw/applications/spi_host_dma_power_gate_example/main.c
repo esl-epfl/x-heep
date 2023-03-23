@@ -106,9 +106,9 @@ int main(int argc, char *argv[])
     dma_init();
 
     #ifndef USE_SPI_FLASH
-        uint8_t slot =  DMA_TRIG_SLOT_1 ; // The DMA will wait for the SPI RX FIFO valid signal
+        uint8_t slot =  DMA_TRIG_SLOT_SPI_RX ; // The DMA will wait for the SPI RX FIFO valid signal
     #else
-        uint8_t slot =  DMA_TRIG_SLOT_3 ; // The DMA will wait for the SPI FLASH RX FIFO valid signal
+        uint8_t slot =  DMA_TRIG_SLOT_SPI_FLASH_RX ; // The DMA will wait for the SPI FLASH RX FIFO valid signal
     #endif
 
     static dma_target_t tgt_src = {

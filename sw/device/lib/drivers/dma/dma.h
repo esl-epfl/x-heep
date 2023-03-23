@@ -70,13 +70,14 @@ extern "C" {
 typedef enum
 {
     DMA_TRIG_MEMORY = 0, /*!< Reads from memory, writes in memory. */
-    DMA_TRIG_SLOT_1 = 1, /*!< Slot 1 (SPI Rx). */  
-    DMA_TRIG_SLOT_2 = 2, /*!< Slot 2 (SPI Tx). */
-    DMA_TRIG_SLOT_3 = 3, /*!< Slot 3 (SPI Flash Rx). */ 
-    DMA_TRIG_SLOT_4 = 4, /*!< SLot 4 (SPI Flash Tx). */
+    DMA_TRIG_SLOT_SPI_RX        = 1, /*!< Slot 1 (SPI Rx). */  
+    DMA_TRIG_SLOT_SPI_TX        = 2, /*!< Slot 2 (SPI Tx). */
+    DMA_TRIG_SLOT_SPI_FLASH_RX  = 3, /*!< Slot 3 (SPI Flash Rx). */ 
+    DMA_TRIG_SLOT_SPI_FLASH_TX  = 4, /*!< SLot 4 (SPI Flash Tx). */
     DMA_TRIG__size,      /*!< Not used, only for sanity checks. */
     DMA_TRIG__undef,     /*!< DMA will not be used. */
-} dma_trigger_t;  
+} dma_trigger_slot_mask_t;  
+
 
 /**
  *  All the valid data types for the DMA transfer.
@@ -132,6 +133,19 @@ typedef enum
     DMA_ALLOW_REALIGN         = 1, /*!< If a misalignment is detected, the DMA
     HAL will try to overcome it. */
 } dma_allow_realign_t;
+
+/**
+ * The mode of operation of the DMA. It determines what the DMA does when the
+ * end of the transaction is reached.  
+ */
+typedef enum
+{
+    DMA_TRANS_MODE_SINGLE   = 0, /*!< Only one transaction will be performed.*/
+    DMA_TRANS_MODE_CIRCULAR = 1, /*!< Once the transaction is finished, it is 
+    re-loaded automatically (no need to call dma_trans_load), with the same 
+    parameters. This generates a circular mode in the source and/or destination
+    pointing to memory.  */ 
+} dma_trans_mode_t;
 
 /**
  * Different possible actions that determine the end of the DMA transaction. 
@@ -223,7 +237,7 @@ typedef struct
     copied. Can be left blank if the target will only be used as destination. */
     dma_data_type_t type;       /*!< The type of data to be transferred. Can 
     be left blank if the target will only be used as destination. */
-    dma_trigger_t trig;       /*!< If the target is a peripheral, a trigger 
+    dma_trigger_slot_mask_t trig; /*!< If the target is a peripheral, a trigger 
     can be set to control the data flow.  */
 } dma_target_t;   
 
@@ -245,8 +259,7 @@ typedef struct
     contrast, the size stored in the targets is in data units). */ 
     dma_data_type_t type;       /*!< The data type to use. One is chosen among 
     the targets. */
-    dma_trigger_t trig;       /*!< The trigger to use. One is chosen among 
-    the targets. */
+    dma_trans_mode_t mode;            /*!< The copy mode to use. */
     dma_end_event_t end;        /*!< What should happen after the transaction 
     is launched. */
     dma_config_flags_t flags;   /*!< A mask with possible issues aroused from 
@@ -374,7 +387,7 @@ void dma_intr_handler();
 
 
 
-
+// juan: remove this
 /**
  * Enables/disables the cirucular mode of the DMA.
  * 
