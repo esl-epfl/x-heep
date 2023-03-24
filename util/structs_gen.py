@@ -219,7 +219,12 @@ def add_registers(peripheral_json):
 
     reg_struct = "\n"
     reg_enum = ""
-    
+
+    # Keeps track of the offset in Bytes from the base address of the peripheral.
+    # It is usefult to compute how many Bytes to reserve in case a "skipto"
+    # keywork is encountered
+    bytes_offset = 0 
+
     # loops through the registers of the hjson
     for elem in peripheral_json['registers']:
 
@@ -246,8 +251,9 @@ def add_registers(peripheral_json):
             for r in range(n_multireg):
                 reg_name = multireg["name"] + str(r)
                 reg_struct += tab_spaces + "uint32_t {};".format(reg_name)
-                reg_comment = multireg["desc"]
+                reg_comment = multireg["desc"].replace("\n", " ")
                 reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
+                bytes_offset += 4   # one register is 4 bytes
 
         # if no multireg, just generate the reg
         elif "name" in elem:   
@@ -255,14 +261,25 @@ def add_registers(peripheral_json):
             reg_struct += tab_spaces + "uint32_t {};".format(elem["name"])
             reg_comment = elem["desc"].replace("\n", " ")
             reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
-
+            bytes_offset += 4
 
         if "skipto" in elem:
-            offset_value = elem["skipto"]       # address offset to skip (in bytes)
-            offset_value = int(offset_value) / 4     # address offset in words
+            new_address = elem["skipto"]
+
+            # check if the new address is in hexadecimal or decimal
+            # and convert it to decimal
+            if(new_address[:2] == "0x"):
+                new_address = int(new_address, base=16)
+            else:
+                new_address = int(new_address)
+
+            offset_value = int((new_address - bytes_offset) / 4)
+            
             reg_struct += tab_spaces + "uint32_t _reserved[{}];".format(int(offset_value))
             reg_comment = "reserved addresses"
             reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
+            bytes_offset += offset_value * 4
+
 
             ## OLD VERSION WITH UNION AND BIT FIELDS ##
             # reg_struct += union_start + struct_typedef_start.format(elem["name"])
