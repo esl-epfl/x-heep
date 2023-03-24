@@ -68,50 +68,61 @@ module dma_reg_top #(
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
   //        or <reg>_{wd|we|qs} if field == 1 or 0
-  logic [31:0] ptr_in_qs;
-  logic [31:0] ptr_in_wd;
-  logic ptr_in_we;
-  logic [31:0] ptr_out_qs;
-  logic [31:0] ptr_out_wd;
-  logic ptr_out_we;
-  logic [31:0] dma_start_qs;
-  logic [31:0] dma_start_wd;
-  logic dma_start_we;
-  logic done_done_qs;
-  logic done_halfway_qs;
-  logic [31:0] src_ptr_inc_qs;
-  logic [31:0] src_ptr_inc_wd;
-  logic src_ptr_inc_we;
-  logic [31:0] dst_ptr_inc_qs;
-  logic [31:0] dst_ptr_inc_wd;
-  logic dst_ptr_inc_we;
-  logic [15:0] slot_selection_rx_trigger_slot_selection_qs;
-  logic [15:0] slot_selection_rx_trigger_slot_selection_wd;
-  logic slot_selection_rx_trigger_slot_selection_we;
-  logic [15:0] slot_selection_tx_trigger_slot_selection_qs;
-  logic [15:0] slot_selection_tx_trigger_slot_selection_wd;
-  logic slot_selection_tx_trigger_slot_selection_we;
+  logic [31:0] src_ptr_qs;
+  logic [31:0] src_ptr_wd;
+  logic src_ptr_we;
+  logic [31:0] dst_ptr_qs;
+  logic [31:0] dst_ptr_wd;
+  logic dst_ptr_we;
+  logic [31:0] size_qs;
+  logic [31:0] size_wd;
+  logic size_we;
+  logic status_ready_qs;
+  logic status_ready_re;
+  logic status_window_done_qs;
+  logic status_window_done_re;
+  logic [7:0] ptr_inc_src_ptr_inc_qs;
+  logic [7:0] ptr_inc_src_ptr_inc_wd;
+  logic ptr_inc_src_ptr_inc_we;
+  logic [7:0] ptr_inc_dst_ptr_inc_qs;
+  logic [7:0] ptr_inc_dst_ptr_inc_wd;
+  logic ptr_inc_dst_ptr_inc_we;
+  logic [15:0] slot_rx_trigger_slot_qs;
+  logic [15:0] slot_rx_trigger_slot_wd;
+  logic slot_rx_trigger_slot_we;
+  logic [15:0] slot_tx_trigger_slot_qs;
+  logic [15:0] slot_tx_trigger_slot_wd;
+  logic slot_tx_trigger_slot_we;
   logic [1:0] data_type_qs;
   logic [1:0] data_type_wd;
   logic data_type_we;
-  logic circular_mode_qs;
-  logic circular_mode_wd;
-  logic circular_mode_we;
+  logic mode_qs;
+  logic mode_wd;
+  logic mode_we;
+  logic [31:0] window_size_qs;
+  logic [31:0] window_size_wd;
+  logic window_size_we;
+  logic interrupt_en_transaction_done_qs;
+  logic interrupt_en_transaction_done_wd;
+  logic interrupt_en_transaction_done_we;
+  logic interrupt_en_window_done_qs;
+  logic interrupt_en_window_done_wd;
+  logic interrupt_en_window_done_we;
 
   // Register instances
-  // R[ptr_in]: V(False)
+  // R[src_ptr]: V(False)
 
   prim_subreg #(
       .DW      (32),
       .SWACCESS("RW"),
       .RESVAL  (32'h0)
-  ) u_ptr_in (
+  ) u_src_ptr (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(ptr_in_we),
-      .wd(ptr_in_wd),
+      .we(src_ptr_we),
+      .wd(src_ptr_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -119,26 +130,26 @@ module dma_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.ptr_in.q),
+      .q (reg2hw.src_ptr.q),
 
       // to register interface (read)
-      .qs(ptr_in_qs)
+      .qs(src_ptr_qs)
   );
 
 
-  // R[ptr_out]: V(False)
+  // R[dst_ptr]: V(False)
 
   prim_subreg #(
       .DW      (32),
       .SWACCESS("RW"),
       .RESVAL  (32'h0)
-  ) u_ptr_out (
+  ) u_dst_ptr (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(ptr_out_we),
-      .wd(ptr_out_wd),
+      .we(dst_ptr_we),
+      .wd(dst_ptr_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -146,105 +157,86 @@ module dma_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.ptr_out.q),
+      .q (reg2hw.dst_ptr.q),
 
       // to register interface (read)
-      .qs(ptr_out_qs)
+      .qs(dst_ptr_qs)
   );
 
 
-  // R[dma_start]: V(False)
+  // R[size]: V(False)
 
   prim_subreg #(
       .DW      (32),
       .SWACCESS("RW"),
       .RESVAL  (32'h0)
-  ) u_dma_start (
+  ) u_size (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(dma_start_we),
-      .wd(dma_start_wd),
+      .we(size_we),
+      .wd(size_wd),
 
       // from internal hardware
       .de(1'b0),
       .d ('0),
 
       // to internal hardware
-      .qe(reg2hw.dma_start.qe),
-      .q (reg2hw.dma_start.q),
+      .qe(reg2hw.size.qe),
+      .q (reg2hw.size.q),
 
       // to register interface (read)
-      .qs(dma_start_qs)
+      .qs(size_qs)
   );
 
 
-  // R[done]: V(False)
+  // R[status]: V(True)
 
-  //   F[done]: 0:0
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RO"),
-      .RESVAL  (1'h1)
-  ) u_done_done (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      .we(1'b0),
-      .wd('0),
-
-      // from internal hardware
-      .de(hw2reg.done.done.de),
-      .d (hw2reg.done.done.d),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.done.done.q),
-
-      // to register interface (read)
-      .qs(done_done_qs)
+  //   F[ready]: 0:0
+  prim_subreg_ext #(
+      .DW(1)
+  ) u_status_ready (
+      .re (status_ready_re),
+      .we (1'b0),
+      .wd ('0),
+      .d  (hw2reg.status.ready.d),
+      .qre(reg2hw.status.ready.re),
+      .qe (),
+      .q  (reg2hw.status.ready.q),
+      .qs (status_ready_qs)
   );
 
 
-  //   F[halfway]: 1:1
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RO"),
-      .RESVAL  (1'h0)
-  ) u_done_halfway (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      .we(1'b0),
-      .wd('0),
-
-      // from internal hardware
-      .de(hw2reg.done.halfway.de),
-      .d (hw2reg.done.halfway.d),
-
-      // to internal hardware
-      .qe(),
-      .q (),
-
-      // to register interface (read)
-      .qs(done_halfway_qs)
+  //   F[window_done]: 1:1
+  prim_subreg_ext #(
+      .DW(1)
+  ) u_status_window_done (
+      .re (status_window_done_re),
+      .we (1'b0),
+      .wd ('0),
+      .d  (hw2reg.status.window_done.d),
+      .qre(reg2hw.status.window_done.re),
+      .qe (),
+      .q  (reg2hw.status.window_done.q),
+      .qs (status_window_done_qs)
   );
 
 
-  // R[src_ptr_inc]: V(False)
+  // R[ptr_inc]: V(False)
 
+  //   F[src_ptr_inc]: 7:0
   prim_subreg #(
-      .DW      (32),
+      .DW      (8),
       .SWACCESS("RW"),
-      .RESVAL  (32'h4)
-  ) u_src_ptr_inc (
+      .RESVAL  (8'h4)
+  ) u_ptr_inc_src_ptr_inc (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(src_ptr_inc_we),
-      .wd(src_ptr_inc_wd),
+      .we(ptr_inc_src_ptr_inc_we),
+      .wd(ptr_inc_src_ptr_inc_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -252,26 +244,25 @@ module dma_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.src_ptr_inc.q),
+      .q (reg2hw.ptr_inc.src_ptr_inc.q),
 
       // to register interface (read)
-      .qs(src_ptr_inc_qs)
+      .qs(ptr_inc_src_ptr_inc_qs)
   );
 
 
-  // R[dst_ptr_inc]: V(False)
-
+  //   F[dst_ptr_inc]: 15:8
   prim_subreg #(
-      .DW      (32),
+      .DW      (8),
       .SWACCESS("RW"),
-      .RESVAL  (32'h4)
-  ) u_dst_ptr_inc (
+      .RESVAL  (8'h4)
+  ) u_ptr_inc_dst_ptr_inc (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(dst_ptr_inc_we),
-      .wd(dst_ptr_inc_wd),
+      .we(ptr_inc_dst_ptr_inc_we),
+      .wd(ptr_inc_dst_ptr_inc_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -279,27 +270,27 @@ module dma_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.dst_ptr_inc.q),
+      .q (reg2hw.ptr_inc.dst_ptr_inc.q),
 
       // to register interface (read)
-      .qs(dst_ptr_inc_qs)
+      .qs(ptr_inc_dst_ptr_inc_qs)
   );
 
 
-  // R[slot_selection]: V(False)
+  // R[slot]: V(False)
 
-  //   F[rx_trigger_slot_selection]: 15:0
+  //   F[rx_trigger_slot]: 15:0
   prim_subreg #(
       .DW      (16),
       .SWACCESS("RW"),
       .RESVAL  (16'h0)
-  ) u_slot_selection_rx_trigger_slot_selection (
+  ) u_slot_rx_trigger_slot (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(slot_selection_rx_trigger_slot_selection_we),
-      .wd(slot_selection_rx_trigger_slot_selection_wd),
+      .we(slot_rx_trigger_slot_we),
+      .wd(slot_rx_trigger_slot_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -307,25 +298,25 @@ module dma_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.slot_selection.rx_trigger_slot_selection.q),
+      .q (reg2hw.slot.rx_trigger_slot.q),
 
       // to register interface (read)
-      .qs(slot_selection_rx_trigger_slot_selection_qs)
+      .qs(slot_rx_trigger_slot_qs)
   );
 
 
-  //   F[tx_trigger_slot_selection]: 31:16
+  //   F[tx_trigger_slot]: 31:16
   prim_subreg #(
       .DW      (16),
       .SWACCESS("RW"),
       .RESVAL  (16'h0)
-  ) u_slot_selection_tx_trigger_slot_selection (
+  ) u_slot_tx_trigger_slot (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(slot_selection_tx_trigger_slot_selection_we),
-      .wd(slot_selection_tx_trigger_slot_selection_wd),
+      .we(slot_tx_trigger_slot_we),
+      .wd(slot_tx_trigger_slot_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -333,10 +324,10 @@ module dma_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.slot_selection.tx_trigger_slot_selection.q),
+      .q (reg2hw.slot.tx_trigger_slot.q),
 
       // to register interface (read)
-      .qs(slot_selection_tx_trigger_slot_selection_qs)
+      .qs(slot_tx_trigger_slot_qs)
   );
 
 
@@ -367,19 +358,19 @@ module dma_reg_top #(
   );
 
 
-  // R[circular_mode]: V(False)
+  // R[mode]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_circular_mode (
+  ) u_mode (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(circular_mode_we),
-      .wd(circular_mode_wd),
+      .we(mode_we),
+      .wd(mode_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -387,27 +378,109 @@ module dma_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.circular_mode.q),
+      .q (reg2hw.mode.q),
 
       // to register interface (read)
-      .qs(circular_mode_qs)
+      .qs(mode_qs)
+  );
+
+
+  // R[window_size]: V(False)
+
+  prim_subreg #(
+      .DW      (32),
+      .SWACCESS("RW"),
+      .RESVAL  (32'h0)
+  ) u_window_size (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(window_size_we),
+      .wd(window_size_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.window_size.q),
+
+      // to register interface (read)
+      .qs(window_size_qs)
+  );
+
+
+  // R[interrupt_en]: V(False)
+
+  //   F[transaction_done]: 0:0
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_interrupt_en_transaction_done (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(interrupt_en_transaction_done_we),
+      .wd(interrupt_en_transaction_done_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.interrupt_en.transaction_done.q),
+
+      // to register interface (read)
+      .qs(interrupt_en_transaction_done_qs)
+  );
+
+
+  //   F[window_done]: 1:1
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_interrupt_en_window_done (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(interrupt_en_window_done_we),
+      .wd(interrupt_en_window_done_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.interrupt_en.window_done.q),
+
+      // to register interface (read)
+      .qs(interrupt_en_window_done_qs)
   );
 
 
 
 
-  logic [8:0] addr_hit;
+  logic [9:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[0] = (reg_addr == DMA_PTR_IN_OFFSET);
-    addr_hit[1] = (reg_addr == DMA_PTR_OUT_OFFSET);
-    addr_hit[2] = (reg_addr == DMA_DMA_START_OFFSET);
-    addr_hit[3] = (reg_addr == DMA_DONE_OFFSET);
-    addr_hit[4] = (reg_addr == DMA_SRC_PTR_INC_OFFSET);
-    addr_hit[5] = (reg_addr == DMA_DST_PTR_INC_OFFSET);
-    addr_hit[6] = (reg_addr == DMA_SLOT_SELECTION_OFFSET);
-    addr_hit[7] = (reg_addr == DMA_DATA_TYPE_OFFSET);
-    addr_hit[8] = (reg_addr == DMA_CIRCULAR_MODE_OFFSET);
+    addr_hit[0] = (reg_addr == DMA_SRC_PTR_OFFSET);
+    addr_hit[1] = (reg_addr == DMA_DST_PTR_OFFSET);
+    addr_hit[2] = (reg_addr == DMA_SIZE_OFFSET);
+    addr_hit[3] = (reg_addr == DMA_STATUS_OFFSET);
+    addr_hit[4] = (reg_addr == DMA_PTR_INC_OFFSET);
+    addr_hit[5] = (reg_addr == DMA_SLOT_OFFSET);
+    addr_hit[6] = (reg_addr == DMA_DATA_TYPE_OFFSET);
+    addr_hit[7] = (reg_addr == DMA_MODE_OFFSET);
+    addr_hit[8] = (reg_addr == DMA_WINDOW_SIZE_OFFSET);
+    addr_hit[9] = (reg_addr == DMA_INTERRUPT_EN_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -423,76 +496,96 @@ module dma_reg_top #(
                (addr_hit[5] & (|(DMA_PERMIT[5] & ~reg_be))) |
                (addr_hit[6] & (|(DMA_PERMIT[6] & ~reg_be))) |
                (addr_hit[7] & (|(DMA_PERMIT[7] & ~reg_be))) |
-               (addr_hit[8] & (|(DMA_PERMIT[8] & ~reg_be)))));
+               (addr_hit[8] & (|(DMA_PERMIT[8] & ~reg_be))) |
+               (addr_hit[9] & (|(DMA_PERMIT[9] & ~reg_be)))));
   end
 
-  assign ptr_in_we = addr_hit[0] & reg_we & !reg_error;
-  assign ptr_in_wd = reg_wdata[31:0];
+  assign src_ptr_we = addr_hit[0] & reg_we & !reg_error;
+  assign src_ptr_wd = reg_wdata[31:0];
 
-  assign ptr_out_we = addr_hit[1] & reg_we & !reg_error;
-  assign ptr_out_wd = reg_wdata[31:0];
+  assign dst_ptr_we = addr_hit[1] & reg_we & !reg_error;
+  assign dst_ptr_wd = reg_wdata[31:0];
 
-  assign dma_start_we = addr_hit[2] & reg_we & !reg_error;
-  assign dma_start_wd = reg_wdata[31:0];
+  assign size_we = addr_hit[2] & reg_we & !reg_error;
+  assign size_wd = reg_wdata[31:0];
 
-  assign src_ptr_inc_we = addr_hit[4] & reg_we & !reg_error;
-  assign src_ptr_inc_wd = reg_wdata[31:0];
+  assign status_ready_re = addr_hit[3] & reg_re & !reg_error;
 
-  assign dst_ptr_inc_we = addr_hit[5] & reg_we & !reg_error;
-  assign dst_ptr_inc_wd = reg_wdata[31:0];
+  assign status_window_done_re = addr_hit[3] & reg_re & !reg_error;
 
-  assign slot_selection_rx_trigger_slot_selection_we = addr_hit[6] & reg_we & !reg_error;
-  assign slot_selection_rx_trigger_slot_selection_wd = reg_wdata[15:0];
+  assign ptr_inc_src_ptr_inc_we = addr_hit[4] & reg_we & !reg_error;
+  assign ptr_inc_src_ptr_inc_wd = reg_wdata[7:0];
 
-  assign slot_selection_tx_trigger_slot_selection_we = addr_hit[6] & reg_we & !reg_error;
-  assign slot_selection_tx_trigger_slot_selection_wd = reg_wdata[31:16];
+  assign ptr_inc_dst_ptr_inc_we = addr_hit[4] & reg_we & !reg_error;
+  assign ptr_inc_dst_ptr_inc_wd = reg_wdata[15:8];
 
-  assign data_type_we = addr_hit[7] & reg_we & !reg_error;
+  assign slot_rx_trigger_slot_we = addr_hit[5] & reg_we & !reg_error;
+  assign slot_rx_trigger_slot_wd = reg_wdata[15:0];
+
+  assign slot_tx_trigger_slot_we = addr_hit[5] & reg_we & !reg_error;
+  assign slot_tx_trigger_slot_wd = reg_wdata[31:16];
+
+  assign data_type_we = addr_hit[6] & reg_we & !reg_error;
   assign data_type_wd = reg_wdata[1:0];
 
-  assign circular_mode_we = addr_hit[8] & reg_we & !reg_error;
-  assign circular_mode_wd = reg_wdata[0];
+  assign mode_we = addr_hit[7] & reg_we & !reg_error;
+  assign mode_wd = reg_wdata[0];
+
+  assign window_size_we = addr_hit[8] & reg_we & !reg_error;
+  assign window_size_wd = reg_wdata[31:0];
+
+  assign interrupt_en_transaction_done_we = addr_hit[9] & reg_we & !reg_error;
+  assign interrupt_en_transaction_done_wd = reg_wdata[0];
+
+  assign interrupt_en_window_done_we = addr_hit[9] & reg_we & !reg_error;
+  assign interrupt_en_window_done_wd = reg_wdata[1];
 
   // Read data return
   always_comb begin
     reg_rdata_next = '0;
     unique case (1'b1)
       addr_hit[0]: begin
-        reg_rdata_next[31:0] = ptr_in_qs;
+        reg_rdata_next[31:0] = src_ptr_qs;
       end
 
       addr_hit[1]: begin
-        reg_rdata_next[31:0] = ptr_out_qs;
+        reg_rdata_next[31:0] = dst_ptr_qs;
       end
 
       addr_hit[2]: begin
-        reg_rdata_next[31:0] = dma_start_qs;
+        reg_rdata_next[31:0] = size_qs;
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[0] = done_done_qs;
-        reg_rdata_next[1] = done_halfway_qs;
+        reg_rdata_next[0] = status_ready_qs;
+        reg_rdata_next[1] = status_window_done_qs;
       end
 
       addr_hit[4]: begin
-        reg_rdata_next[31:0] = src_ptr_inc_qs;
+        reg_rdata_next[7:0]  = ptr_inc_src_ptr_inc_qs;
+        reg_rdata_next[15:8] = ptr_inc_dst_ptr_inc_qs;
       end
 
       addr_hit[5]: begin
-        reg_rdata_next[31:0] = dst_ptr_inc_qs;
+        reg_rdata_next[15:0]  = slot_rx_trigger_slot_qs;
+        reg_rdata_next[31:16] = slot_tx_trigger_slot_qs;
       end
 
       addr_hit[6]: begin
-        reg_rdata_next[15:0]  = slot_selection_rx_trigger_slot_selection_qs;
-        reg_rdata_next[31:16] = slot_selection_tx_trigger_slot_selection_qs;
-      end
-
-      addr_hit[7]: begin
         reg_rdata_next[1:0] = data_type_qs;
       end
 
+      addr_hit[7]: begin
+        reg_rdata_next[0] = mode_qs;
+      end
+
       addr_hit[8]: begin
-        reg_rdata_next[0] = circular_mode_qs;
+        reg_rdata_next[31:0] = window_size_qs;
+      end
+
+      addr_hit[9]: begin
+        reg_rdata_next[0] = interrupt_en_transaction_done_qs;
+        reg_rdata_next[1] = interrupt_en_window_done_qs;
       end
 
       default: begin
