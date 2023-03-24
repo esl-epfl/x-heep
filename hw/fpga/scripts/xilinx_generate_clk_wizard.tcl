@@ -8,7 +8,8 @@ set in_clk_freq_MHz  125
 set out_clk_freq_MHz 20
 
 # Select board
-set_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]
+set_property -name "board_part_repo_paths" -value "[file normalize "../../../hw/fpga/board_files/"]" -objects [current_project]
+set_property -name "board_part" -value "tul.com.tw:pynq-z2:part0:1.0" -objects [current_project]
 
 # Create block design
 create_bd_design $design_name
