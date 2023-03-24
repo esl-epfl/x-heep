@@ -102,6 +102,7 @@ module dma_reg_top #(
   logic [31:0] window_size_qs;
   logic [31:0] window_size_wd;
   logic window_size_we;
+  logic [31:0] window_count_qs;
   logic interrupt_en_transaction_done_qs;
   logic interrupt_en_transaction_done_wd;
   logic interrupt_en_transaction_done_we;
@@ -412,6 +413,32 @@ module dma_reg_top #(
   );
 
 
+  // R[window_count]: V(False)
+
+  prim_subreg #(
+      .DW      (32),
+      .SWACCESS("RO"),
+      .RESVAL  (32'h0)
+  ) u_window_count (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      .we(1'b0),
+      .wd('0),
+
+      // from internal hardware
+      .de(hw2reg.window_count.de),
+      .d (hw2reg.window_count.d),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.window_count.q),
+
+      // to register interface (read)
+      .qs(window_count_qs)
+  );
+
+
   // R[interrupt_en]: V(False)
 
   //   F[transaction_done]: 0:0
@@ -468,7 +495,7 @@ module dma_reg_top #(
 
 
 
-  logic [9:0] addr_hit;
+  logic [10:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == DMA_SRC_PTR_OFFSET);
@@ -480,7 +507,8 @@ module dma_reg_top #(
     addr_hit[6] = (reg_addr == DMA_DATA_TYPE_OFFSET);
     addr_hit[7] = (reg_addr == DMA_MODE_OFFSET);
     addr_hit[8] = (reg_addr == DMA_WINDOW_SIZE_OFFSET);
-    addr_hit[9] = (reg_addr == DMA_INTERRUPT_EN_OFFSET);
+    addr_hit[9] = (reg_addr == DMA_WINDOW_COUNT_OFFSET);
+    addr_hit[10] = (reg_addr == DMA_INTERRUPT_EN_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -488,16 +516,17 @@ module dma_reg_top #(
   // Check sub-word write is permitted
   always_comb begin
     wr_err = (reg_we &
-              ((addr_hit[0] & (|(DMA_PERMIT[0] & ~reg_be))) |
-               (addr_hit[1] & (|(DMA_PERMIT[1] & ~reg_be))) |
-               (addr_hit[2] & (|(DMA_PERMIT[2] & ~reg_be))) |
-               (addr_hit[3] & (|(DMA_PERMIT[3] & ~reg_be))) |
-               (addr_hit[4] & (|(DMA_PERMIT[4] & ~reg_be))) |
-               (addr_hit[5] & (|(DMA_PERMIT[5] & ~reg_be))) |
-               (addr_hit[6] & (|(DMA_PERMIT[6] & ~reg_be))) |
-               (addr_hit[7] & (|(DMA_PERMIT[7] & ~reg_be))) |
-               (addr_hit[8] & (|(DMA_PERMIT[8] & ~reg_be))) |
-               (addr_hit[9] & (|(DMA_PERMIT[9] & ~reg_be)))));
+              ((addr_hit[ 0] & (|(DMA_PERMIT[ 0] & ~reg_be))) |
+               (addr_hit[ 1] & (|(DMA_PERMIT[ 1] & ~reg_be))) |
+               (addr_hit[ 2] & (|(DMA_PERMIT[ 2] & ~reg_be))) |
+               (addr_hit[ 3] & (|(DMA_PERMIT[ 3] & ~reg_be))) |
+               (addr_hit[ 4] & (|(DMA_PERMIT[ 4] & ~reg_be))) |
+               (addr_hit[ 5] & (|(DMA_PERMIT[ 5] & ~reg_be))) |
+               (addr_hit[ 6] & (|(DMA_PERMIT[ 6] & ~reg_be))) |
+               (addr_hit[ 7] & (|(DMA_PERMIT[ 7] & ~reg_be))) |
+               (addr_hit[ 8] & (|(DMA_PERMIT[ 8] & ~reg_be))) |
+               (addr_hit[ 9] & (|(DMA_PERMIT[ 9] & ~reg_be))) |
+               (addr_hit[10] & (|(DMA_PERMIT[10] & ~reg_be)))));
   end
 
   assign src_ptr_we = addr_hit[0] & reg_we & !reg_error;
@@ -534,10 +563,10 @@ module dma_reg_top #(
   assign window_size_we = addr_hit[8] & reg_we & !reg_error;
   assign window_size_wd = reg_wdata[31:0];
 
-  assign interrupt_en_transaction_done_we = addr_hit[9] & reg_we & !reg_error;
+  assign interrupt_en_transaction_done_we = addr_hit[10] & reg_we & !reg_error;
   assign interrupt_en_transaction_done_wd = reg_wdata[0];
 
-  assign interrupt_en_window_done_we = addr_hit[9] & reg_we & !reg_error;
+  assign interrupt_en_window_done_we = addr_hit[10] & reg_we & !reg_error;
   assign interrupt_en_window_done_wd = reg_wdata[1];
 
   // Read data return
@@ -584,6 +613,10 @@ module dma_reg_top #(
       end
 
       addr_hit[9]: begin
+        reg_rdata_next[31:0] = window_count_qs;
+      end
+
+      addr_hit[10]: begin
         reg_rdata_next[0] = interrupt_en_transaction_done_qs;
         reg_rdata_next[1] = interrupt_en_window_done_qs;
       end

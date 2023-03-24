@@ -70,8 +70,11 @@ extern "C" {
 // Will trigger a every "WINDOW_SIZE" writes
 #define DMA_WINDOW_SIZE_REG_OFFSET 0x20
 
+// Nomber of times end of window was reached since begin.
+#define DMA_WINDOW_COUNT_REG_OFFSET 0x24
+
 // Interrupt Enable Register
-#define DMA_INTERRUPT_EN_REG_OFFSET 0x24
+#define DMA_INTERRUPT_EN_REG_OFFSET 0x28
 #define DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT 0
 #define DMA_INTERRUPT_EN_WINDOW_DONE_BIT 1
 

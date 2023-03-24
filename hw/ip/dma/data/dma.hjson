@@ -115,11 +115,22 @@
         { bits: "31:0", name: "WINDOW_SIZE", desc: ""}
       ]
     },
+    { name:    "WINDOW_COUNT",
+      desc:    '''Nomber of times end of window was reached since begin.
+                  Reset at start''',
+      swaccess: "ro",
+      // hwext: "true",
+      hwaccess: "hrw",
+      resval: 0,
+      fields: [
+        { bits: "31:0", name: "WINDOW_COUNT", desc: "Number of windows transferred in transaction" }
+      ]
+    },
     { name:    "INTERRUPT_EN",
       desc:    '''Interrupt Enable Register 
                   (Only the interrupt with the lowest id will be triggered)''',
       swaccess: "rw",
-      hwaccess: "hro",
+      hwaccess: "hr",
       fields: [
         { bits: "0", name: "TRANSACTION_DONE", desc: "Enables transaction done interrupt" }
         { bits: "1", name: "WINDOW_DONE", desc: "Enables window done interrupt" }

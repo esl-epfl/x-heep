@@ -47,6 +47,8 @@ module dma #(
   logic                              dma_done;
   logic                              dma_window_event;
 
+  logic                              window_done_q;
+
   logic        [Addr_Fifo_Depth-1:0] fifo_usage;
   logic                              fifo_alm_full;
 
@@ -132,6 +134,8 @@ module dma #(
   assign data_type = reg2hw.data_type.q;
 
   assign hw2reg.status.ready.d = (dma_state_q == DMA_READY);
+
+  assign hw2reg.status.window_done.d = window_done_q;
 
   assign circular_mode = reg2hw.mode.q;
 
@@ -469,5 +473,30 @@ module dma #(
       end
     end
   end
+
+  // Update WINDOW_COUNT register
+  always_comb begin
+    hw2reg.window_count.d  = reg2hw.window_count.q + 'h1;
+    hw2reg.window_count.de = 1'b0;
+    if (dma_start) begin
+      hw2reg.window_count.d  = 'h0;
+      hw2reg.window_count.de = 1'b1;
+    end else if (dma_window_event) begin
+      hw2reg.window_count.de = 1'b1;
+    end
+  end
+
+  // update window_done flag
+  // set on dma_window_event
+  // reset on read 
+  always_ff @(posedge clk_i, negedge rst_ni) begin
+    if (~rst_ni) begin
+      window_done_q <= 1'b0;
+    end else begin
+      if (dma_window_event) window_done_q <= 1'b1;
+      else if (reg2hw.status.window_done.re) window_done_q <= 1'b0;
+    end
+  end
+
 
 endmodule : dma
