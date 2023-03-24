@@ -80,6 +80,7 @@ filesets:
     - hw/ip/obi_spimemio/obi_spimemio.vlt
     - hw/ip/dma/dma.vlt
     - hw/ip/pdm2pcm/pdm2pcm.vlt
+    - hw/ip_examples/pdm2pcm_dummy/pdm2pcm_dummy.vlt
     - hw/ip/power_manager/power_manager.vlt
     - hw/ip/fast_intr_ctrl/fast_intr_ctrl.vlt
     - hw/system/pad_control/pad_control.vlt

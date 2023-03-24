@@ -11,8 +11,8 @@ module pdm2pcm_dummy #(
     input logic clk_i,
     input logic rst_ni,
 
-    // output ports
-    output logic pdm_clk_i,
+    // input ports
+    input logic pdm_clk_i,
 
     // output ports
     output logic pdm_data_o
@@ -29,7 +29,7 @@ module pdm2pcm_dummy #(
     if (~rst_ni) begin
       init = 0;
       lineidx = 0;
-      pdm <= 0;
+      pdm_data_o <= 0;
     end else begin
       if (init != 1) begin
         init = 1;
@@ -46,9 +46,9 @@ module pdm2pcm_dummy #(
         $fgets(line, fpdm);
         line = line.substr(0, 0);
         if (line == "1") begin
-          pdm <= 1;
+          pdm_data_o <= 1;
         end else begin
-          pdm <= 0;
+          pdm_data_o <= 0;
         end
 
         pdm_clk_h = 1'b0;
@@ -59,9 +59,9 @@ module pdm2pcm_dummy #(
         $fgets(line, fpdm);
         line = line.substr(0, 0);
         if (line == "1") begin
-          pdm <= 1;
+          pdm_data_o <= 1;
         end else begin
-          pdm <= 0;
+          pdm_data_o <= 0;
         end
         lineidx = lineidx + 1;
       end

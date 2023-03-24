@@ -315,6 +315,13 @@ module testharness #(
       .gpio_o(gpio[31])
   );
 
+  pdm2pcm_dummy pdm2pcm_dummy_i (
+      .clk_i,
+      .rst_ni,
+      .pdm_data_o(gpio[21]),
+      .pdm_clk_i (gpio[22])
+  );
+
 `ifndef VERILATOR
   // Flash used for booting (execute from flash or copy from flash)
   spiflash flash_boot_i (
@@ -356,12 +363,5 @@ module testharness #(
 
   assign memcopy_intr = '0;
 `endif
-
-  pdm2pcm_dummy pdm2pcm_dummy_i (
-      .clk_i,
-      .rst_ni,
-      .pdm_data_o(gpio[21]),
-      .pdm_clk_i (gpio[22])
-  );
 
 endmodule  // testharness
