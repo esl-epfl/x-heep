@@ -9,7 +9,7 @@ module pad_cell_inout #(
     input logic pad_in_i,
     input logic pad_oe_i,
     output logic pad_out_o,
-    inout logic pad_io,
+    inout wire pad_io,
     input logic [PADATTR-1:0] pad_attributes_i
 );
 

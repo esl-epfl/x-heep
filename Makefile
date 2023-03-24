@@ -17,14 +17,18 @@ REQUIREMENTS_TXT?=$(wildcard python-requirements.txt)
 include Makefile.venv
 
 # FUSESOC and Python values (default)
-FUSESOC = $(VENV)/fusesoc
-PYTHON  = $(VENV)/python
+ifndef CONDA_DEFAULT_ENV
+$(info USING VENV)
+FUSESOC = $(PWD)/$(VENV)/fusesoc
+PYTHON  = $(PWD)/$(VENV)/python
+else
+$(info USING MINICONDA $(CONDA_DEFAULT_ENV))
+FUSESOC := $(shell which fusesoc)
+PYTHON  := $(shell which python)
+endif
 
 # Project options are based on the app to be build (default - hello_world)
 PROJECT  ?= hello_world
-
-# Mainfile options are based on the main file to be build (default - hello_world)
-MAINFILE ?= hello_world
 
 # Linker options are 'on_chip' (default),'flash_load','flash_exec','freertos'
 LINKER   ?= on_chip
@@ -33,6 +37,22 @@ LINKER   ?= on_chip
 TARGET   ?= sim
 MCU_CFG  ?= mcu_cfg.hjson
 PAD_CFG  ?= pad_cfg.hjson
+
+# Compiler options are 'gcc' (default) and 'clang'
+COMPILER ?= gcc
+
+# Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
+ARCH     ?= rv32imc
+
+# Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
+SOURCE 	 ?= "."
+
+## @section Conda
+conda: environment.yml
+	conda env create -f environment.yml
+
+environment.yml: python-requirements.txt
+	util/python-requirements2conda.sh
 
 ## @section Linux-Emulation
 
@@ -44,9 +64,9 @@ linux-femu-gen: mcu-gen
 ## @section Installation
 
 ## Generates mcu files core-v-mini-mcu files and build the design with fusesoc
-## @param CPU=[cv32e20(default),cv32e40p]
+## @param CPU=[cv32e20(default),cv32e40p,cv32e40x]
 ## @param BUS=[onetoM(default),NtoM]
-mcu-gen: |venv
+mcu-gen:
 	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/include --cpu $(CPU) --bus $(BUS) --memorybanks $(MEMORY_BANKS) --external_domains $(EXTERNAL_DOMAINS) --pkg-sv hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir hw/core-v-mini-mcu/ --memorybanks $(MEMORY_BANKS) --tpl-sv hw/core-v-mini-mcu/system_bus.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir tb/ --memorybanks $(MEMORY_BANKS) --tpl-sv tb/tb_util.svh.tpl
@@ -69,7 +89,7 @@ mcu-gen: |venv
 	$(MAKE) verible
 
 ## Display mcu_gen.py help
-mcu-gen-help: |venv
+mcu-gen-help:
 	$(PYTHON) util/mcu_gen.py -h
 
 ## Runs verible formating
@@ -80,24 +100,26 @@ verible:
 
 ## Generates the build folder in sw using CMake to build (compile and linking)
 ## @param PROJECT=<folder_name_of_the_project_to_be_built>
-## @param MAINFILE=<main_file_name_of_the_project_to_be_built WITHOUT EXTENSION>
 ## @param TARGET=sim(default),pynq-z2
 ## @param LINKER=on_chip(default),flash_load,flash_exec
-app:
-	$(MAKE) -C sw PROJECT=$(PROJECT) MAINFILE=$(MAINFILE)  TARGET=$(TARGET) LINKER=$(LINKER)
+## @param COMPILER=gcc(default), clang
+## @param ARCH=rv32imc(default), <any RISC-V ISA string supported by the CPU>
+app: clean-app
+	$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) ARCH=$(ARCH) SOURCE=$(SOURCE)
 	
 ## Just list the different application names available
 app-list:
+	@echo "Note: Applications outside the X-HEEP sw/applications directory will not be listed."  
 	tree sw/applications/
 
 ## @section Simulation
 
 ## Verilator simulation			
-verilator-sim: |venv
+verilator-sim:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
 
 ## Questasim simulation
-questasim-sim: |venv
+questasim-sim:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=modelsim $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
 
 ## Questasim simulation with HDL optimized compilation
@@ -110,18 +132,28 @@ questasim-sim-opt-upf: questasim-sim
 	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim opt-upf
 
 ## Verilator simulation
-## @param CPU=cv32e20(default),cv32e40p
+## @param CPU=cv32e20(default),cv32e40p,cv32e40x
 ## @param BUS=onetoM(default),NtoM
-vcs-sim: |venv
+vcs-sim:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=vcs $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
-    
-## Generates the build output for helloworld applications
+
+## Generates the build output for helloworld application
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
-run-helloworld: mcu-gen verilator-sim |venv
-	$(MAKE) -C sw PROJECT=hello_world MAINFILE=hello_world  TARGET=$(TARGET) LINKER=$(LINKER)\
+run-helloworld: mcu-gen verilator-sim
+	$(MAKE) -C sw PROJECT=hello_world TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) ARCH=$(ARCH);
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
-	./Vtestharness +firmware=../../../sw/build/hello_world.hex; \
+	./Vtestharness +firmware=../../../sw/build/main.hex; \
+	cat uart0.log; \
+	cd ../../..;
+
+## Generates the build output for freertos blinky application
+## Uses verilator to simulate the HW model and run the FW
+## UART Dumping in uart0.log to show recollected results
+run-blinkyfreertos: mcu-gen verilator-sim
+	$(MAKE) -C sw PROJECT=blinky_freertos TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) ARCH=$(ARCH);
+	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
+	./Vtestharness +firmware=../../../sw/build/main.hex; \
 	cat uart0.log; \
 	cd ../../..;
 	
@@ -136,18 +168,18 @@ run-pdm2pcm: mcu-gen verilator-sim app-pdm2pcm |venv
 ## Builds (synthesis and implementation) the bitstream for the FPGA version using Vivado
 ## @param FPGA_BOARD=nexys-a7-100t,pynq-z2
 ## @param FUSESOC_FLAGS=--flag=<flagname>
-vivado-fpga: |venv
+vivado-fpga:
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildvivado.log
 
-vivado-fpga-nobuild: |venv
+vivado-fpga-nobuild:
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildvivado.log
 
 ## @section ASIC
 ## Note that for this step you need to provide technology-dependent files (e.g., libs, constraints)
-asic: |venv
+asic:
 	$(FUSESOC) --cores-root . run --no-export --target=asic_synthesis --setup openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee builddesigncompiler.log
 
-openroad-sky130: |venv
+openroad-sky130:
 	git checkout hw/vendor/pulp_platform_common_cells/*
 	sed -i 's/(\*[^\n]*\*)//g' hw/vendor/pulp_platform_common_cells/src/*.sv
 	$(FUSESOC) --verbose --cores-root . run --target=asic_yosys_synthesis --flag=use_sky130 openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildopenroad.log
@@ -162,10 +194,9 @@ flash-readid:
 	./iceprog -d i:0x0403:0x6011 -I B -t;
 
 ## Loads the obtained binary to the EPFL_Programmer flash
-## @param MAINFILE=<main_file_name_of_the_project_that WAS_built WITHOUT EXTENSION>
 flash-prog:
 	cd sw/vendor/yosyshq_icestorm/iceprog; \
-	./iceprog -d i:0x0403:0x6011 -I B $(mkfile_path)/sw/build/$(MAINFILE).hex;
+	./iceprog -d i:0x0403:0x6011 -I B $(mkfile_path)/sw/build/main.hex;
 
 ## Run openOCD w/ EPFL_Programmer
 openOCD_epflp:
@@ -194,3 +225,10 @@ clean-app: app-restore
 
 ## Removes the CMake build folder and the HW build folder
 clean-all: app-restore clean-sim
+
+## Uses verilator to simulate the HW model and run the FW
+## UART Dumping in uart0.log to show recollected results
+run-app-sim:
+	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
+	./Vtestharness +firmware=../../../sw/build/main.hex; \
+	cat uart0.log; \
