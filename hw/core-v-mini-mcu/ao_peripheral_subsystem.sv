@@ -77,7 +77,8 @@ module ao_peripheral_subsystem
     input  obi_resp_t dma_master0_ch0_resp_i,
     output obi_req_t  dma_master1_ch0_req_o,
     input  obi_resp_t dma_master1_ch0_resp_i,
-    output logic      dma_intr_o,
+    output logic      dma_done_intr_o,
+    output logic      dma_window_intr_o,
 
     // External PADs
     output reg_req_t pad_req_o,
@@ -335,7 +336,8 @@ module ao_peripheral_subsystem
       .dma_master1_ch0_req_o,
       .dma_master1_ch0_resp_i,
       .trigger_slot_i({spi_rx_valid, spi_tx_ready, spi_flash_rx_valid, spi_flash_tx_ready}),
-      .dma_intr_o
+      .dma_done_intr_o(dma_done_intr_o),
+      .dma_window_intr_o(dma_window_intr_o)
   );
 
   assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_CONTROL_IDX];

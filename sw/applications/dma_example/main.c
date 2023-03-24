@@ -73,12 +73,13 @@ int main(int argc, char *argv[])
     dma_t dma;
     dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
 
+    dma_enable_intr(&dma, true, false);
+
     #ifdef TEST_WORD
         // -- DMA CONFIG -- //
         dma_set_read_ptr(&dma, (uint32_t) test_data_4B);
         dma_set_write_ptr(&dma, (uint32_t) copied_data_4B);
-        dma_set_read_ptr_inc(&dma, (uint32_t) 4);
-        dma_set_write_ptr_inc(&dma, (uint32_t) 4);
+        dma_set_ptr_inc(&dma, (uint32_t) 4, (uint32_t) 4);
         dma_set_spi_mode(&dma, (uint32_t) 0);
         dma_set_data_type(&dma, (uint32_t) 0);
         printf("DMA word transaction launched\n");
@@ -95,8 +96,7 @@ int main(int argc, char *argv[])
         // -- DMA CONFIG -- //
         dma_set_read_ptr(&dma, (uint32_t) (test_data_2B + HALF_WORD_INPUT_OFFSET));
         dma_set_write_ptr(&dma, (uint32_t) (copied_data_2B + HALF_WORD_OUTPUT_OFFSET));
-        dma_set_read_ptr_inc(&dma, (uint32_t) 2);
-        dma_set_write_ptr_inc(&dma, (uint32_t) 2);
+        dma_set_ptr_inc(&dma, (uint32_t) 2, (uint32_t) 2);
         dma_set_spi_mode(&dma, (uint32_t) 0);
         dma_set_data_type(&dma, (uint32_t) 1);
         printf("DMA half-word transaction launched\n");
@@ -114,8 +114,7 @@ int main(int argc, char *argv[])
         // -- DMA CONFIG -- //
         dma_set_read_ptr(&dma, (uint32_t) test_data_1B + BYTE_INPUT_OFFSET);
         dma_set_write_ptr(&dma, (uint32_t) (copied_data_1B + BYTE_OUTPUT_OFFSET));
-        dma_set_read_ptr_inc(&dma, (uint32_t) 1);
-        dma_set_write_ptr_inc(&dma, (uint32_t) 1);
+        dma_set_ptr_inc(&dma, (uint32_t) 1, (uint32_t) 1);
         dma_set_spi_mode(&dma, (uint32_t) 0);
         dma_set_data_type(&dma, (uint32_t) 2);
         printf("DMA byte transaction launched\n");
@@ -211,8 +210,7 @@ int main(int argc, char *argv[])
         // -- DMA CONFIG -- //
         dma_set_read_ptr(&dma, (uint32_t) test_data_circular);
         dma_set_write_ptr(&dma, (uint32_t) test_data_circular);
-        dma_set_read_ptr_inc(&dma, (uint32_t) 1);
-        dma_set_write_ptr_inc(&dma, (uint32_t) 1);
+        dma_set_ptr_inc(&dma, (uint32_t) 1, (uint32_t) 1);
         dma_set_slot(&dma, 0, 0);
         dma_set_data_type(&dma, (uint32_t) 2);
         printf("DMA circular transaction launched\n");
@@ -254,8 +252,7 @@ int main(int argc, char *argv[])
         // -- DMA CONFIG -- //
         dma_set_read_ptr(&dma, (uint32_t) test_data_4B);
         dma_set_write_ptr(&dma, (uint32_t) copied_data_4B);
-        dma_set_read_ptr_inc(&dma, (uint32_t) 1);
-        dma_set_write_ptr_inc(&dma, (uint32_t) 1);
+        dma_set_ptr_inc(&dma, (uint32_t) 1, (uint32_t) 1);
         dma_set_spi_mode(&dma, (uint32_t) 0);
         dma_set_data_type(&dma, (uint32_t) 2);
         // Give number of bytes to transfer

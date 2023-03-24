@@ -21,6 +21,12 @@
 #define DMA_SPI_MODE_SPI_FLASH_RX 3
 #define DMA_SPI_MODE_SPI_FLASH_TX 4
 
+
+#define DMA_SPI_RX_SLOT 0b00000001
+#define DMA_SPI_TX_SLOT 0b00000010
+#define DMA_SPI_FLASH_RX_SLOT 0b00000100
+#define DMA_SPI_FLASH_TX_SLOT 0b00001000
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -75,15 +81,9 @@ bool dma_get_halfway(const dma_t *dma);
  * Write to src_ptr_inc register of the DMA.
  * @param dma Pointer to dma_t represting the target DMA.
  * @param read_ptr_inc Increment of source pointer (Default: 4).
- */
-void dma_set_read_ptr_inc(const dma_t *dma, uint32_t read_ptr_inc);
-
-/**
- * Write to dst_ptr_inc register of the DMA.
- * @param dma Pointer to dma_t represting the target DMA.
  * @param write_ptr_inc Increment of destination pointer (Default: 4).
  */
-void dma_set_write_ptr_inc(const dma_t *dma, uint32_t write_ptr_inc);
+void dma_set_ptr_inc(const dma_t *dma, uint8_t read_ptr_inc, uint8_t write_ptr_inc);
 
 /**
  * Sets the DMA data transfer modes when used with peripherals
@@ -125,6 +125,15 @@ void dma_set_data_type(const dma_t *dma, uint32_t data_type);
  * @param enable bool.
  */
 void dma_enable_circular_mode(const dma_t *dma, bool enable);
+
+/**
+ * Enables/disables the different interrupts of the DMA.
+ * 
+ * @param dma Pointer to dma_t represting the target DMA.
+ * @param done_intr_en 
+ * @param window_intr_en
+ */
+void dma_enable_intr(const dma_t *dma, bool done_intr_en, bool window_intr_en);
 
 #ifdef __cplusplus
 }
