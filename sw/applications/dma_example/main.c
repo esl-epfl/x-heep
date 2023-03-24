@@ -10,18 +10,22 @@
 #include "handler.h"
 #include "core_v_mini_mcu.h"
 #include "dma.h"
+#include "dma_regs.h"
 #include "fast_intr_ctrl.h"
 #include "fast_intr_ctrl_regs.h"
+#include "rv_plic.h"
+#include "rv_plic_regs.h"
 
 // TODO
 // - Add offset at the begining and the end and check
 
 // Choose which scenarios to test
-#define TEST_WORD
-#define TEST_HALF_WORD
-#define TEST_BYTE
-#define TEST_CIRCULAR_MODE
-#define TEST_PENDING_TRANSACTION
+// #define TEST_WORD
+// #define TEST_HALF_WORD
+// #define TEST_BYTE
+// #define TEST_CIRCULAR_MODE
+// #define TEST_PENDING_TRANSACTION
+#define TEST_WINDOW
 
 #define HALF_WORD_INPUT_OFFSET 0
 #define HALF_WORD_OUTPUT_OFFSET 1 // Applied at begining and end of the output vector, which should not be overwriten.
@@ -47,6 +51,16 @@ uint32_t test_data_circular[TEST_DATA_CIRCULAR] __attribute__ ((aligned (4))) = 
 // uint32_t copied_data_circular[TEST_DATA_CIRCULAR] __attribute__ ((aligned (4))) = { 0 };
 #endif
 
+#ifdef TEST_WINDOW
+#define TEST_WINDOW_DATA_SIZE 1024
+#define TEST_WINDOW_SIZE 72 // if put at <=71 the isr is too slow to react to the interrupt 
+                            // and one will be lost (with size = 1024.)
+                            // meaning with the given implementation the isr takes about 78 dma cycles.
+
+uint8_t test_window_data1[TEST_WINDOW_DATA_SIZE] __attribute__ ((aligned (1))) = { 0 }; 
+uint8_t test_window_data2[TEST_WINDOW_DATA_SIZE] __attribute__ ((aligned (1))) = { 0 }; 
+#endif
+
 int8_t dma_intr_flag;
 
 void handler_irq_fast_dma(void)
@@ -54,9 +68,28 @@ void handler_irq_fast_dma(void)
     fast_intr_ctrl_t fast_intr_ctrl;
     fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
     clear_fast_interrupt(&fast_intr_ctrl, kDma_fic_e);
-
     dma_intr_flag = 1;
 }
+
+#ifdef TEST_WINDOW
+int32_t external_intr_flag;
+
+// Interrupt controller variables
+dif_plic_params_t rv_plic_params;
+dif_plic_t rv_plic;
+dif_plic_result_t plic_res;
+dif_plic_irq_id_t intr_num;
+
+void handler_irq_external(void) {
+    // Claim/clear interrupt
+    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
+    if (plic_res == kDifPlicOk && intr_num == DMA_WINDOW_INTR) {
+        external_intr_flag += 1;
+    }
+    dif_plic_irq_complete(&rv_plic, 0, &intr_num); // complete in any case
+}
+#endif
+
 
 int main(int argc, char *argv[])
 {
@@ -66,7 +99,7 @@ int main(int argc, char *argv[])
     // Enable global interrupt for machine-level interrupts
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     // Set mie.MEIE bit to one to enable machine-level fast dma interrupt
-    const uint32_t mask = 1 << 19;
+    const uint32_t mask = (1 << 19) + (1 << 11);
     CSR_SET_BITS(CSR_REG_MIE, mask);
 
     // dma peripheral structure to access the registers
@@ -275,6 +308,70 @@ int main(int argc, char *argv[])
             wait_for_interrupt();
         }
         printf("DMA successfully processed two consecutive transactions\n");
+    #endif
+
+    #ifdef TEST_WINDOW
+
+        rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
+        dif_plic_init(rv_plic_params, &rv_plic);
+        dif_plic_irq_set_priority(&rv_plic, DMA_WINDOW_INTR, 1);
+        dif_plic_irq_set_enabled(&rv_plic, DMA_WINDOW_INTR, 0, kDifPlicToggleEnabled);
+        external_intr_flag = 0;
+
+        dma_enable_intr(&dma, false, true);
+    
+        // -- DMA CONFIG -- //
+        dma_set_read_ptr(&dma, (uint32_t) test_window_data1);
+        dma_set_write_ptr(&dma, (uint32_t) test_window_data2);
+        dma_set_ptr_inc(&dma, 1, 1);
+        dma_set_slot(&dma, 0, 0);
+        dma_set_data_type(&dma, (uint32_t) DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD);
+        // Give number of bytes to transfer
+        dma_intr_flag = 0;
+        mmio_region_write32(dma.base_addr,  DMA_WINDOW_SIZE_REG_OFFSET, TEST_WINDOW_SIZE);
+        dma_set_cnt_start(&dma, TEST_WINDOW_DATA_SIZE);
+
+        uint8_t error = 0;
+
+        uint32_t status;
+        do {
+            status = mmio_region_read32(dma.base_addr, DMA_STATUS_REG_OFFSET);
+            // wait for done - ISR done should be disabled.
+        } while((status & (1 << DMA_STATUS_READY_BIT)) == 0);
+
+        if (status & (1 << DMA_STATUS_WINDOW_DONE_BIT) == 0) {
+            printf("[E] DMA window done flag not raised\r\n");
+            error += 1;
+        }
+        if (dma_get_halfway(&dma)) { 
+            // should be clean on read so rereading should be 0
+            printf("[E] DMA window done flag not reset on status read\r\n");
+            error += 1;
+        }
+
+        if (dma_intr_flag == 1) {
+            printf("[E] DMA window test failed DONE interrupt was triggered\n");
+            error += 1;
+        }
+
+        uint32_t window_count = mmio_region_read32(dma.base_addr, DMA_WINDOW_COUNT_REG_OFFSET);
+
+        if (external_intr_flag != TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE) {
+            printf("[E] DMA window test failed ISR wasn't trigger the right number %d != %d\r\n", external_intr_flag, TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE);
+            error += 1;
+        }
+        
+        if (window_count != TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE) {
+            printf("[E] DMA window test failed Window count register is wrong %d != %d\r\n", window_count, TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE);
+            error += 1;
+        }
+        if (!error) {
+            printf("DMA window count is okay (#%d * %d)\r\n", TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE, TEST_WINDOW_SIZE);
+        }
+        else {
+            printf("F-DMA window test with %d errors\r\n", error);
+        }
+    
     #endif
 
     return EXIT_SUCCESS;
