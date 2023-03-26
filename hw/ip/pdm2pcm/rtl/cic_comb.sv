@@ -12,8 +12,6 @@ module cic_comb #(
 ) (
     // Clock input
     input logic clk_i,
-    // Clock divider input
-    input logic clkdiv_i,
     // Reset input
     input logic rstn_i,
     // Enable input
@@ -48,7 +46,7 @@ module cic_comb #(
       if (clr_i) begin
         r_previousdata <= 'h0;
         r_data         <= 'h0;
-      end else if (en_i & clkdiv_i) begin
+      end else if (en_i) begin
         r_data <= s_sum;
         r_previousdata <= data_i;
       end

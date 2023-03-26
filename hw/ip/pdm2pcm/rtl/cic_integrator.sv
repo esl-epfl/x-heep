@@ -12,8 +12,6 @@ module cic_integrator #(
 ) (
     // Clock input
     input logic clk_i,
-    // Clock divider input
-    input logic clkdiv_i,
     // Reset input
     input logic rstn_i,
     // Enable input
@@ -44,7 +42,7 @@ module cic_integrator #(
     end else begin
       if (clr_i) begin
         r_accumulator <= 'h0;
-      end else if (en_i & clkdiv_i) begin
+      end else if (en_i) begin
         r_accumulator <= s_sum;
       end
     end

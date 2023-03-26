@@ -12,8 +12,6 @@ module decimator #(
 ) (
     // Clock input
     input logic clk_i,
-    // Clock divider input
-    input logic clkdiv_i,
     // Reset input
     input logic rst_i,
     // Clear input
@@ -40,7 +38,7 @@ module decimator #(
     end else begin
       if (clr_i) begin
         reg_counter <= 0;
-      end else if (en_i & clkdiv_i) begin
+      end else if (en_i) begin
         if (reg_counter == par_decimation_index) reg_counter <= 0;
         else reg_counter <= reg_counter + 1;
       end

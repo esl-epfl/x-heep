@@ -14,8 +14,6 @@ module cic_combs #(
 ) (
     // Clock input
     input logic clk_i,
-    // Clock divider input
-    input logic clkdiv_i,
     // Reset input
     input logic rstn_i,
     // Enable input
@@ -42,11 +40,10 @@ module cic_combs #(
     for (i = 0; i < STAGES; i = i + 1) begin : cic_stages
 
       cic_comb #(WIDTH) cic_comb_inst (
-          .clk_i(clk_i),
-          .clkdiv_i(clkdiv_i),
+          .clk_i (clk_i),
           .rstn_i(rstn_i),
-          .clr_i(clr_i),
-          .en_i(en_i),
+          .clr_i (clr_i),
+          .en_i  (en_i),
           .data_i(comb_data[i]),
           .data_o(comb_data[i+1])
       );

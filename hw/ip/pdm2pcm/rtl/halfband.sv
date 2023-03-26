@@ -22,8 +22,6 @@ module halfband #(
 ) (
     // Clock input
     input logic clk_i,
-    // Clock divider input
-    input logic clkdiv_i,
     // Reset input
     input logic rstn_i,
     // Enable input
@@ -86,7 +84,7 @@ module halfband #(
         end else begin
           if (clr_i) begin
             memory_points[i+1] <= 'h0;
-          end else if (en_i & clkdiv_i) begin
+          end else if (en_i) begin
             memory_points[i+1] <= memory_points[i];
           end
         end

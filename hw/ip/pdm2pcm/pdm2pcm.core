@@ -19,7 +19,6 @@ filesets:
       - rtl/pdm2pcm_reg_top.sv 
       - rtl/cic_combs.sv 
       - rtl/cic_comb.sv 
-      - rtl/clockdivider.sv 
       - rtl/cic_integrators.sv 
       - rtl/decimator.sv 
       - rtl/halfband.sv 

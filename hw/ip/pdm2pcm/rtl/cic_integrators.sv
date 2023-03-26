@@ -14,8 +14,6 @@ module cic_integrators #(
 ) (
     // Clock input
     input logic clk_i,
-    // Clock divider input
-    input logic clkdiv_i,
     // Reset input
     input logic rstn_i,
     // Enable input
@@ -42,11 +40,10 @@ module cic_integrators #(
     for (i = 0; i < STAGES; i = i + 1) begin : cic_stages
 
       cic_integrator #(WIDTH) cic_integrator_inst (
-          .clk_i(clk_i),
-          .clkdiv_i(clkdiv_i),
+          .clk_i (clk_i),
           .rstn_i(rstn_i),
-          .clr_i(clr_i),
-          .en_i(en_i),
+          .clr_i (clr_i),
+          .en_i  (en_i),
           .data_i(integrator_data[i]),
           .data_o(integrator_data[i+1])
       );
