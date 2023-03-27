@@ -35,7 +35,7 @@ struct_entry = (3 * tab_spaces) + "{}" + "{}" + ":{}"  # type, name and amount o
 struct_typedef_end = (2 * tab_spaces) + "} b ;"  # define the end of the new struct definition and the format for the new type-name
 
 # Documentation comments definitions #
-comment_align_space = 40
+comment_align_space = 50
 line_comment_start = "/*!< "
 line_comment_end = "*/"
 struct_comment = "Structure used for bit access"
