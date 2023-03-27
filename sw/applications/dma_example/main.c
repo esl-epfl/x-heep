@@ -22,6 +22,26 @@ void dma_intr_handler()
     printf("This is not a weak implementation.\n\r");
 }
 
+#ifdef TEST_WINDOW
+int32_t external_intr_flag;
+
+// Interrupt controller variables
+dif_plic_params_t rv_plic_params;
+dif_plic_t rv_plic;
+dif_plic_result_t plic_res;
+dif_plic_irq_id_t intr_num;
+
+void handler_irq_external(void) {
+    // Claim/clear interrupt
+    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
+    if (plic_res == kDifPlicOk && intr_num == DMA_WINDOW_INTR) {
+        external_intr_flag += 1;
+    }
+    dif_plic_irq_complete(&rv_plic, 0, &intr_num); // complete in any case
+}
+#endif
+
+
 int main(int argc, char *argv[])
 {
     
@@ -101,8 +121,7 @@ int main(int argc, char *argv[])
         // -- DMA CONFIG -- //
         dma_set_read_ptr(&dma, (uint32_t) test_data_circular);
         dma_set_write_ptr(&dma, (uint32_t) test_data_circular);
-        dma_set_read_ptr_inc(&dma, (uint32_t) 1);
-        dma_set_write_ptr_inc(&dma, (uint32_t) 1);
+        dma_set_ptr_inc(&dma, (uint32_t) 1, (uint32_t) 1);
         dma_set_slot(&dma, 0, 0);
         dma_set_data_type(&dma, (uint32_t) 2);
         printf("DMA circular transaction launched\n");
@@ -144,8 +163,7 @@ int main(int argc, char *argv[])
         // -- DMA CONFIG -- //
         dma_set_read_ptr(&dma, (uint32_t) test_data_4B);
         dma_set_write_ptr(&dma, (uint32_t) copied_data_4B);
-        dma_set_read_ptr_inc(&dma, (uint32_t) 1);
-        dma_set_write_ptr_inc(&dma, (uint32_t) 1);
+        dma_set_ptr_inc(&dma, (uint32_t) 1, (uint32_t) 1);
         dma_set_spi_mode(&dma, (uint32_t) 0);
         dma_set_data_type(&dma, (uint32_t) 2);
         // Give number of bytes to transfer
@@ -170,6 +188,70 @@ int main(int argc, char *argv[])
         printf("DMA successfully processed two consecutive transactions\n");
 #endif
 
+
+    #ifdef TEST_WINDOW
+
+        rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
+        dif_plic_init(rv_plic_params, &rv_plic);
+        dif_plic_irq_set_priority(&rv_plic, DMA_WINDOW_INTR, 1);
+        dif_plic_irq_set_enabled(&rv_plic, DMA_WINDOW_INTR, 0, kDifPlicToggleEnabled);
+        external_intr_flag = 0;
+
+        dma_enable_intr(&dma, false, true);
+    
+        // -- DMA CONFIG -- //
+        dma_set_read_ptr(&dma, (uint32_t) test_window_data1);
+        dma_set_write_ptr(&dma, (uint32_t) test_window_data2);
+        dma_set_ptr_inc(&dma, 1, 1);
+        dma_set_slot(&dma, 0, 0);
+        dma_set_data_type(&dma, (uint32_t) DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD);
+        // Give number of bytes to transfer
+        dma_intr_flag = 0;
+        mmio_region_write32(dma.base_addr,  DMA_WINDOW_SIZE_REG_OFFSET, TEST_WINDOW_SIZE);
+        dma_set_cnt_start(&dma, TEST_WINDOW_DATA_SIZE);
+
+        uint8_t error = 0;
+
+        uint32_t status;
+        do {
+            status = mmio_region_read32(dma.base_addr, DMA_STATUS_REG_OFFSET);
+            // wait for done - ISR done should be disabled.
+        } while((status & (1 << DMA_STATUS_READY_BIT)) == 0);
+
+        if (status & (1 << DMA_STATUS_WINDOW_DONE_BIT) == 0) {
+            printf("[E] DMA window done flag not raised\r\n");
+            error += 1;
+        }
+        if (dma_get_halfway(&dma)) { 
+            // should be clean on read so rereading should be 0
+            printf("[E] DMA window done flag not reset on status read\r\n");
+            error += 1;
+        }
+
+        if (dma_intr_flag == 1) {
+            printf("[E] DMA window test failed DONE interrupt was triggered\n");
+            error += 1;
+        }
+
+        uint32_t window_count = mmio_region_read32(dma.base_addr, DMA_WINDOW_COUNT_REG_OFFSET);
+
+        if (external_intr_flag != TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE) {
+            printf("[E] DMA window test failed ISR wasn't trigger the right number %d != %d\r\n", external_intr_flag, TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE);
+            error += 1;
+        }
+        
+        if (window_count != TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE) {
+            printf("[E] DMA window test failed Window count register is wrong %d != %d\r\n", window_count, TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE);
+            error += 1;
+        }
+        if (!error) {
+            printf("DMA window count is okay (#%d * %d)\r\n", TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE, TEST_WINDOW_SIZE);
+        }
+        else {
+            printf("F-DMA window test with %d errors\r\n", error);
+        }
+    
+    #endif
 
     return EXIT_SUCCESS;
 }

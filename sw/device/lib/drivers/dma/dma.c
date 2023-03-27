@@ -202,14 +202,15 @@ void dma_init()
     /* Clear the loaded transaction */
     dma_cb.trans = NULL;
     /* Clear all values in the DMA registers. */
-    dma_peri->PTR_IN = 0;
-    dma_peri->PTR_OUT = 0;
-    dma_peri->DMA_START = 0;
-    dma_peri->SRC_PTR_INC = 0;
-    dma_peri->DST_PTR_INC = 0;
-    dma_peri->SLOT_SELECTION = 0;
-    dma_peri->CIRCULAR_MODE = 0;
-    dma_peri->DATA_TYPE = 0;
+    dma_peri->SRC_PTR = 0;
+    dma_peri->DST_PTR = 0;
+    dma_peri->SIZE = 0;
+    dma_peri->PTR_INC = 0;
+    dma_peri->SLOT = 0;
+    dma_peri->DATA_TYPE = 0;  
+    dma_peri->MODE = 0;
+    dma_peri->WINDOW_SIZE = 0;
+    dma_peri->INTERRUPT_EN = 0;
 }
 
 dma_config_flags_t dma_create_environment( dma_env_t *p_env )
@@ -518,8 +519,8 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
      * SET THE POINTERS
      */
 
-    dma_peri->PTR_IN = dma_cb.trans->src->ptr;
-    dma_peri->PTR_OUT = dma_cb.trans->dst->ptr;
+    dma_peri->SRC_PTR = dma_cb.trans->src->ptr;
+    dma_peri->DST_PTR = dma_cb.trans->dst->ptr;
     
     /*
      * SET THE INCREMENTS
@@ -532,23 +533,28 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
      * Other reason to overwrite the target increment is if a trigger is used.
      * In that case, a increment of 0 is necessary.
      */
-
-    dma_peri->SRC_PTR_INC = getIncrement_b( dma_cb.trans->src );
-    dma_peri->DST_PTR_INC = getIncrement_b( dma_cb.trans->dst );
+     writeRegister( getIncrement_b( dma_cb.trans->src ), 
+                DMA_PTR_INC_REG_OFFSET, 
+                DMA_PTR_INC_SRC_PTR_INC_MASK,
+                DMA_PTR_INC_SRC_PTR_INC_OFFSET );
+    writeRegister( getIncrement_b( dma_cb.trans->dst ), 
+                DMA_PTR_INC_REG_OFFSET, 
+                DMA_PTR_INC_DST_PTR_INC_MASK,
+                DMA_PTR_INC_DST_PTR_INC_OFFSET );
     
     /*
      * SET TRIGGER SLOTS AND DATA TYPE
      */    
 
     writeRegister( dma_cb.trans->src->trig, 
-                DMA_SLOT_SELECTION_REG_OFFSET, 
-                DMA_SLOT_SELECTION_RX_TRIGGER_SLOT_SELECTION_MASK,
-                DMA_SLOT_SELECTION_RX_TRIGGER_SLOT_SELECTION_OFFSET );
+                DMA_SLOT_REG_OFFSET, 
+                DMA_SLOT_RX_TRIGGER_SLOT_MASK,
+                DMA_SLOT_RX_TRIGGER_SLOT_OFFSET );
 
     writeRegister( dma_cb.trans->dst->trig, 
-                DMA_SLOT_SELECTION_REG_OFFSET, 
-                DMA_SLOT_SELECTION_TX_TRIGGER_SLOT_SELECTION_MASK,
-                DMA_SLOT_SELECTION_TX_TRIGGER_SLOT_SELECTION_OFFSET );
+                DMA_SLOT_REG_OFFSET, 
+                DMA_SLOT_TX_TRIGGER_SLOT_MASK,
+                DMA_SLOT_TX_TRIGGER_SLOT_OFFSET );
 
     writeRegister( dma_cb.trans->type, 
                 DMA_DATA_TYPE_REG_OFFSET, 
@@ -824,7 +830,7 @@ static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
 void handler_irq_fast_dma(void)
 {
     // The interrupt is cleared.
-    clear_fast_interrupt(ADDRESS, kDma_fic_e);
+    clear_fast_interrupt(dma_cb.fic.base_addr, kDma_fic_e);
     // The flag is raised so the waiting loop can be broken.
     dma_cb.intrFlag = 1;
     // Call the weak implementation provided in this module, 

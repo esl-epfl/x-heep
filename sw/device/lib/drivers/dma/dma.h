@@ -49,6 +49,12 @@
 /**                                                                        **/
 /****************************************************************************/
 
+
+#define DMA_SPI_RX_SLOT 0b00000001
+#define DMA_SPI_TX_SLOT 0b00000010
+#define DMA_SPI_FLASH_RX_SLOT 0b00000100
+#define DMA_SPI_FLASH_TX_SLOT 0b00001000
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -259,7 +265,7 @@ typedef struct
     contrast, the size stored in the targets is in data units). */ 
     dma_data_type_t type;       /*!< The data type to use. One is chosen among 
     the targets. */
-    dma_trans_mode_t mode;            /*!< The copy mode to use. */
+    dma_trans_mode_t mode;      /*!< The copy mode to use. */
     dma_end_event_t end;        /*!< What should happen after the transaction 
     is launched. */
     dma_config_flags_t flags;   /*!< A mask with possible issues aroused from 

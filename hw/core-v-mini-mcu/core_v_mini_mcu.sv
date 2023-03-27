@@ -367,7 +367,8 @@ module core_v_mini_mcu
    logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]memory_subsystem_clkgate_en;
 
   // DMA
-  logic dma_intr;
+  logic dma_done_intr;
+  logic dma_window_intr;
 
   // SPI
   logic spi_flash_intr, spi_intr;
@@ -402,7 +403,7 @@ module core_v_mini_mcu
     gpio_ao_intr,
     spi_flash_intr,
     spi_intr,
-    dma_intr,
+    dma_done_intr,
     rv_timer_intr[3],
     rv_timer_intr[2],
     rv_timer_intr[1]
@@ -550,7 +551,8 @@ module core_v_mini_mcu
       .dma_master0_ch0_resp_i(dma_master0_ch0_resp),
       .dma_master1_ch0_req_o(dma_master1_ch0_req),
       .dma_master1_ch0_resp_i(dma_master1_ch0_resp),
-      .dma_intr_o(dma_intr),
+      .dma_done_intr_o(dma_done_intr),
+      .dma_window_intr_o(dma_window_intr),
       .spi_intr_event_o(spi_intr),
       .spi_flash_intr_event_o(spi_flash_intr),
       .pad_req_o,
@@ -594,6 +596,7 @@ module core_v_mini_mcu
       .uart_intr_rx_break_err_i(uart_intr_rx_break_err),
       .uart_intr_rx_timeout_i(uart_intr_rx_timeout),
       .uart_intr_rx_parity_err_i(uart_intr_rx_parity_err),
+      .dma_intr_window_event_i(dma_window_intr),
       .cio_gpio_i(gpio_in),
       .cio_gpio_o(gpio_out),
       .cio_gpio_en_o(gpio_oe),

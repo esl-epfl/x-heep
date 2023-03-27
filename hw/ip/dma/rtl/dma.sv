@@ -26,7 +26,8 @@ module dma #(
 
     input logic [SLOT_NUM-1:0] trigger_slot_i,
 
-    output dma_intr_o
+    output dma_done_intr_o,
+    output dma_window_intr_o
 );
 
   import dma_reg_pkg::*;
@@ -41,10 +42,12 @@ module dma #(
   logic        [               31:0] read_ptr_valid_reg;
   logic        [               31:0] write_ptr_reg;
   logic        [               31:0] dma_cnt;
-  logic        [               31:0] dma_cnt_dec;
+  logic        [                2:0] dma_cnt_dec;
   logic                              dma_start;
   logic                              dma_done;
-  logic                              dma_halfway;
+  logic                              dma_window_event;
+
+  logic                              window_done_q;
 
   logic        [Addr_Fifo_Depth-1:0] fifo_usage;
   logic                              fifo_alm_full;
@@ -84,6 +87,13 @@ module dma #(
 
   logic                              dma_start_pending;
 
+  enum {
+    DMA_READY,
+    DMA_STARTING,
+    DMA_RUNNING
+  }
+      dma_state_q, dma_state_d;
+
   enum logic {
     DMA_READ_FSM_IDLE,
     DMA_READ_FSM_ON
@@ -116,25 +126,63 @@ module dma #(
   assign data_out_rvalid = dma_master1_ch0_resp_i.rvalid;
   assign data_out_rdata = dma_master1_ch0_resp_i.rdata;
 
-  assign dma_intr_o = dma_done | (circular_mode & dma_halfway);
+  assign dma_done_intr_o = dma_done & reg2hw.interrupt_en.transaction_done.q;
+  assign dma_window_intr_o = dma_window_event & reg2hw.interrupt_en.window_done.q & !reg2hw.interrupt_en.transaction_done.q;
+
+  logic [31:0] window_counter;
+
   assign data_type = reg2hw.data_type.q;
 
-  assign hw2reg.done.done.de = dma_done | dma_start;
-  assign hw2reg.done.done.d = dma_done;
+  assign hw2reg.status.ready.d = (dma_state_q == DMA_READY);
 
-  assign hw2reg.done.halfway.de = dma_halfway | dma_start;
-  assign hw2reg.done.halfway.d = dma_halfway;
+  assign hw2reg.status.window_done.d = window_done_q;
 
-  assign dma_halfway = (dma_cnt == {1'b0, reg2hw.dma_start.q[31:1]}) & (|dma_cnt);
+  assign circular_mode = reg2hw.mode.q;
 
-  assign circular_mode = reg2hw.circular_mode.q;
-
-  assign wait_for_rx = |(reg2hw.slot_selection.rx_trigger_slot_selection.q[SLOT_NUM-1:0] & ~trigger_slot_i);
-  assign wait_for_tx = |(reg2hw.slot_selection.tx_trigger_slot_selection.q[SLOT_NUM-1:0] & ~trigger_slot_i);
+  assign wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0] & ~trigger_slot_i);
+  assign wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0] & ~trigger_slot_i);
 
   assign fifo_alm_full = (fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
 
-  assign dma_start = dma_start_pending & reg2hw.done.done.q;
+  assign dma_start = (dma_state_q == DMA_STARTING);
+
+  //
+  // Main DMA state machine
+  //
+  // READY   : idle, waiting for a write pulse to size registered in `dma_start_pending`
+  // STARTING: load transaction data
+  // RUNNING : waiting for transaction finish
+  //           when `dma_done` rises either enter ready or restart in circular mode
+  //
+  always_comb begin
+    dma_state_d = dma_state_q;
+    case (dma_state_q)
+      DMA_READY: begin
+        if (dma_start_pending) begin
+          dma_state_d = DMA_STARTING;
+        end
+      end
+      DMA_STARTING: begin
+        dma_state_d = DMA_RUNNING;
+      end
+      DMA_RUNNING: begin
+        if (dma_done) begin
+          if (circular_mode) dma_state_d = DMA_STARTING;
+          else dma_state_d = DMA_READY;
+        end
+      end
+    endcase
+  end
+
+  // update state
+  always_ff @(posedge clk_i, negedge rst_ni) begin
+    if (~rst_ni) begin
+      dma_state_q <= DMA_READY;
+    end else begin
+      dma_state_q <= dma_state_d;
+    end
+  end
+
 
   // DMA pulse start when dma_start register is written
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start
@@ -143,7 +191,7 @@ module dma #(
     end else begin
       if (dma_start == 1'b1) begin
         dma_start_pending <= 1'b0;
-      end else if (reg2hw.dma_start.qe | (dma_done & circular_mode)) begin
+      end else if (reg2hw.size.qe) begin
         dma_start_pending <= 1'b1;
       end
     end
@@ -155,9 +203,9 @@ module dma #(
       read_ptr_reg <= '0;
     end else begin
       if (dma_start == 1'b1) begin
-        read_ptr_reg <= reg2hw.ptr_in.q;
+        read_ptr_reg <= reg2hw.src_ptr.q;
       end else if (data_in_gnt == 1'b1) begin
-        read_ptr_reg <= read_ptr_reg + reg2hw.src_ptr_inc.q;
+        read_ptr_reg <= read_ptr_reg + {24'h0, reg2hw.ptr_inc.src_ptr_inc.q};
       end
     end
   end
@@ -168,9 +216,9 @@ module dma #(
       read_ptr_valid_reg <= '0;
     end else begin
       if (dma_start == 1'b1) begin
-        read_ptr_valid_reg <= reg2hw.ptr_in.q;
+        read_ptr_valid_reg <= reg2hw.src_ptr.q;
       end else if (data_in_rvalid == 1'b1) begin
-        read_ptr_valid_reg <= read_ptr_valid_reg + reg2hw.src_ptr_inc.q;
+        read_ptr_valid_reg <= read_ptr_valid_reg + {24'h0, reg2hw.ptr_inc.src_ptr_inc.q};
       end
     end
   end
@@ -181,9 +229,9 @@ module dma #(
       write_ptr_reg <= '0;
     end else begin
       if (dma_start == 1'b1) begin
-        write_ptr_reg <= reg2hw.ptr_out.q;
+        write_ptr_reg <= reg2hw.dst_ptr.q;
       end else if (data_out_gnt == 1'b1) begin
-        write_ptr_reg <= write_ptr_reg + reg2hw.dst_ptr_inc.q;
+        write_ptr_reg <= write_ptr_reg + {24'h0, reg2hw.ptr_inc.dst_ptr_inc.q};
       end
     end
   end
@@ -194,18 +242,18 @@ module dma #(
       dma_cnt <= '0;
     end else begin
       if (dma_start == 1'b1) begin
-        dma_cnt <= reg2hw.dma_start.q;
+        dma_cnt <= reg2hw.size.q;
       end else if (data_in_gnt == 1'b1) begin
-        dma_cnt <= dma_cnt - dma_cnt_dec;
+        dma_cnt <= dma_cnt - {29'h0, dma_cnt_dec};
       end
     end
   end
 
   always_comb begin
     case (data_type)
-      2'b00: dma_cnt_dec = 32'h4;
-      2'b01: dma_cnt_dec = 32'h2;
-      2'b10, 2'b11: dma_cnt_dec = 32'h1;
+      2'b00: dma_cnt_dec = 3'h4;
+      2'b01: dma_cnt_dec = 3'h2;
+      2'b10, 2'b11: dma_cnt_dec = 3'h1;
     endcase
   end
 
@@ -403,5 +451,52 @@ module dma #(
       .hw2reg,
       .devmode_i(1'b1)
   );
+
+  // WINDOW EVENT
+  // Count gnt write transaction and generate event pulse if WINDOW_SIZE is reached
+  assign dma_window_event = |reg2hw.window_size.q &  data_out_gnt & (window_counter + 'h1 >= reg2hw.window_size.q);
+
+  always_ff @(posedge clk_i, negedge rst_ni) begin
+    if (~rst_ni) begin
+      window_counter <= 'h0;
+    end else begin
+      if (|reg2hw.window_size.q) begin
+        if (dma_start | dma_done) begin
+          window_counter <= 'h0;
+        end else if (data_out_gnt) begin
+          if (window_counter + 'h1 >= reg2hw.window_size.q) begin
+            window_counter <= 'h0;
+          end else begin
+            window_counter <= window_counter + 'h1;
+          end
+        end
+      end
+    end
+  end
+
+  // Update WINDOW_COUNT register
+  always_comb begin
+    hw2reg.window_count.d  = reg2hw.window_count.q + 'h1;
+    hw2reg.window_count.de = 1'b0;
+    if (dma_start) begin
+      hw2reg.window_count.d  = 'h0;
+      hw2reg.window_count.de = 1'b1;
+    end else if (dma_window_event) begin
+      hw2reg.window_count.de = 1'b1;
+    end
+  end
+
+  // update window_done flag
+  // set on dma_window_event
+  // reset on read 
+  always_ff @(posedge clk_i, negedge rst_ni) begin
+    if (~rst_ni) begin
+      window_done_q <= 1'b0;
+    end else begin
+      if (dma_window_event) window_done_q <= 1'b1;
+      else if (reg2hw.status.window_done.re) window_done_q <= 1'b0;
+    end
+  end
+
 
 endmodule : dma
