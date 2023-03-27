@@ -35,6 +35,7 @@ struct_entry = (3 * tab_spaces) + "{}" + "{}" + ":{}"  # type, name and amount o
 struct_typedef_end = (2 * tab_spaces) + "} b ;"  # define the end of the new struct definition and the format for the new type-name
 
 # Documentation comments definitions #
+comment_align_space = 40
 line_comment_start = "/*!< "
 line_comment_end = "*/"
 struct_comment = "Structure used for bit access"
@@ -162,14 +163,17 @@ def intr_regs_auto_gen():
     :return: string with the register varibles to be added to the struct
     """
     res  = ""
-    res += tab_spaces + "uint32_t {};".format("INTR_STATE")
-    res += format(line_comment_start, ">30") + format("Interrupt State Register", "<100") + "*/\n\n"
+    line = tab_spaces + "uint32_t {};".format("INTR_STATE")
+    reg_comment = line_comment_start + "Interrupt State Register" + line_comment_end + "\n\n"
+    res += line.ljust(comment_align_space) + reg_comment
 
-    res += tab_spaces + "uint32_t {};".format("INTR_ENABLE")
-    res += format(line_comment_start, ">30") + format("Interrupt Enable Register", "<100") + "*/\n\n"
+    line = tab_spaces + "uint32_t {};".format("INTR_ENABLE")
+    reg_comment = line_comment_start + "Interrupt Enable Register" + line_comment_end + "\n\n"
+    res += line.ljust(comment_align_space) + reg_comment
 
-    res += tab_spaces + "uint32_t {};".format("INTR_TEST")
-    res += format(line_comment_start, ">30") + format("Interrupt Test Register", "<100") + "*/\n\n"
+    line = tab_spaces + "uint32_t {};".format("INTR_TEST")
+    reg_comment = line_comment_start + "Interrupt Test Register" + line_comment_end + "\n\n"
+    res += line.ljust(comment_align_space) + reg_comment
 
     return res
 
@@ -182,8 +186,9 @@ def alert_regs_auto_gen():
     """
     res = ""
     
-    res += tab_spaces + "uint32_t {};".format("ALERT_TEST")
-    res += format(line_comment_start, ">30") + format("Alert Test Register", "<100") + "*/\n\n"
+    line = tab_spaces + "uint32_t {};".format("ALERT_TEST")
+    reg_comment = line_comment_start + "Alert Test Register" + line_comment_end + "\n\n"
+    res += line.ljust(comment_align_space) + reg_comment
 
     return res
 
@@ -294,9 +299,9 @@ def add_registers(peripheral_json):
             # generate the multiregisters
             for r in range(n_multireg):
                 reg_name = multireg["name"] + str(r)
-                reg_struct += tab_spaces + "uint32_t {};".format(reg_name)
-                reg_comment = multireg["desc"].replace("\n", " ")
-                reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
+                line = tab_spaces + "uint32_t {};".format(reg_name)
+                reg_comment = line_comment_start + multireg["desc"].replace("\n", " ") + line_comment_end + "\n\n"
+                reg_struct += line.ljust(comment_align_space) + reg_comment
                 bytes_offset += 4   # one register is 4 bytes
 
         # check and handle the "window" case
@@ -306,18 +311,18 @@ def add_registers(peripheral_json):
             
             validbits = int(window["validbits"])
 
-            reg_struct += tab_spaces + "{} {};".format(select_type(validbits), window["name"])
-            reg_comment = window["desc"].replace("\n", " ")
-            reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
+            line = tab_spaces + "{} {};".format(select_type(validbits), window["name"])
+            reg_comment = line_comment_start + window["desc"].replace("\n", " ") + line_comment_end + "\n\n"
+            reg_struct += line.ljust(comment_align_space) + reg_comment
             
 
         # if no multireg or window, just generate the reg
         elif "name" in elem:   
             
-            reg_struct += tab_spaces + "uint32_t {};".format(elem["name"])
-            reg_comment = elem["desc"].replace("\n", " ")
-            reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
-            bytes_offset += 4
+            line = tab_spaces + "uint32_t {};".format(elem["name"])
+            reg_comment = line_comment_start + elem["desc"].replace("\n", " ") + line_comment_end + "\n\n"
+            reg_struct += line.ljust(comment_align_space) + reg_comment
+            bytes_offset += 4       # in order to properly generate subsequent "multireg cases"
 
         if "skipto" in elem:
             new_address = elem["skipto"]
@@ -331,9 +336,9 @@ def add_registers(peripheral_json):
 
             offset_value = int((new_address - bytes_offset) / 4)
             
-            reg_struct += tab_spaces + "uint32_t _reserved[{}];".format(int(offset_value))
-            reg_comment = "reserved addresses"
-            reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
+            line = tab_spaces + "uint32_t _reserved[{}];".format(int(offset_value))
+            reg_comment = line_comment_start + "reserved addresses" + line_comment_end + "\n\n"
+            reg_struct += line.ljust(comment_align_space) + reg_comment
             bytes_offset += offset_value * 4
 
 
