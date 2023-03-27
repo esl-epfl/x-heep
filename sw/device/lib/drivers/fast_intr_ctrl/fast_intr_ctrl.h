@@ -1,29 +1,57 @@
-// Copyright 2022 OpenHW Group
-// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
-// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+/*
+                              *******************
+******************************* H SOURCE FILE *******************************
+**                            *******************                          **
+**                                                                         **
+** project  : X_HEEP                                                       **
+** filename : fast_intr_ctrl.h  
+** version  : 1                                             **
+** date     : 27/03/23                                                   **
+**                                                                         **
+*****************************************************************************
+** 
+** Copyright (c) EPFL contributors.                                     
+** All rights reserved.                                                                   
+**                                                                         
+*****************************************************************************
+*/
+
+/***************************************************************************/
+/***************************************************************************/
+/**
+* @file   fast_intr_ctrl.h
+* @date   27/03/23
+* @brief  The fast interrupt controller peripheral driver 
+*/
 
 #ifndef _FAST_INTR_CTRL_H_
 #define _FAST_INTR_CTRL_H_
-
-#include <stddef.h>
-#include <stdint.h>
-
-#include "mmio.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * Initialization parameters for FAST INTR CTRL.
- *
- */
-typedef struct fast_intr_ctrl {
-  /**
-   * The base address for the fast intr ctrl hardware registers.
-   */
-  mmio_region_t base_addr;
-} fast_intr_ctrl_t;
+/****************************************************************************/
+/**                                                                        **/
+/**                            MODULES USED                                **/
+/**                                                                        **/
+/****************************************************************************/
+
+#include <stddef.h>
+#include <stdint.h>
+#include "mmio.h"
+
+/****************************************************************************/
+/**                                                                        **/
+/**                       DEFINITIONS AND MACROS                           **/
+/**                                                                        **/
+/****************************************************************************/
+
+/****************************************************************************/
+/**                                                                        **/
+/**                       TYPEDEFS AND STRUCTURES                          **/
+/**                                                                        **/
+/****************************************************************************/
 
 /**
  * Results.
@@ -53,8 +81,31 @@ typedef enum fast_intr_ctrl_fast_interrupt {
   kGpio_7_fic_e   = 13,
 } fast_intr_ctrl_fast_interrupt_t;
 
-fast_intr_ctrl_result_t clear_fast_interrupt(fast_intr_ctrl_t* fast_intr_ctrl, fast_intr_ctrl_fast_interrupt_t fast_interrupt);
+/****************************************************************************/
+/**                                                                        **/
+/**                          EXPORTED VARIABLES                            **/
+/**                                                                        **/
+/****************************************************************************/
 
+/****************************************************************************/
+/**                                                                        **/
+/**                          EXPORTED FUNCTIONS                            **/
+/**                                                                        **/
+/****************************************************************************/
+
+fast_intr_ctrl_result_t clear_fast_interrupt(fast_intr_ctrl_fast_interrupt_t fast_interrupt);
+
+/****************************************************************************/
+/**                                                                        **/
+/**                          INLINE FUNCTIONS                              **/
+/**                                                                        **/
+/****************************************************************************/
+
+/****************************************************************************/
+/**                                                                        **/
+/**                                EOF                                     **/
+/**                                                                        **/
+/****************************************************************************/
 #ifdef __cplusplus
 }
 #endif
