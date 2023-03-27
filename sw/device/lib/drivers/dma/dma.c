@@ -824,7 +824,7 @@ static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
 void handler_irq_fast_dma(void)
 {
     // The interrupt is cleared.
-    clear_fast_interrupt(&(dma_cb.fic), kDma_fic_e);
+    clear_fast_interrupt(ADDRESS, kDma_fic_e);
     // The flag is raised so the waiting loop can be broken.
     dma_cb.intrFlag = 1;
     // Call the weak implementation provided in this module, 
