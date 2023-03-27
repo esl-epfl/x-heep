@@ -299,7 +299,19 @@ def add_registers(peripheral_json):
                 reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
                 bytes_offset += 4   # one register is 4 bytes
 
-        # if no multireg, just generate the reg
+        # check and handle the "window" case
+        elif "window" in elem:
+            
+            window = elem["window"]
+            
+            validbits = int(window["validbits"])
+
+            reg_struct += tab_spaces + "{} {};".format(select_type(validbits), window["name"])
+            reg_comment = window["desc"].replace("\n", " ")
+            reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
+            
+
+        # if no multireg or window, just generate the reg
         elif "name" in elem:   
             
             reg_struct += tab_spaces + "uint32_t {};".format(elem["name"])
