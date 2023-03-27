@@ -155,6 +155,39 @@ def select_type(amount_of_bits):
         return "uint64_t"
 
 
+def intr_regs_auto_gen():
+    """
+    Generate hardcoded registers for interrupts
+
+    :return: string with the register varibles to be added to the struct
+    """
+    res  = ""
+    res += tab_spaces + "uint32_t {};".format("INTR_STATE")
+    res += format(line_comment_start, ">30") + format("Interrupt State Register", "<100") + "*/\n\n"
+
+    res += tab_spaces + "uint32_t {};".format("INTR_ENABLE")
+    res += format(line_comment_start, ">30") + format("Interrupt Enable Register", "<100") + "*/\n\n"
+
+    res += tab_spaces + "uint32_t {};".format("INTR_TEST")
+    res += format(line_comment_start, ">30") + format("Interrupt Test Register", "<100") + "*/\n\n"
+
+    return res
+
+
+def alert_regs_auto_gen():
+    """
+    Generate hardcoded registers for alerts
+
+    :return: string with the register varibles to be added to the struct
+    """
+    res = ""
+    
+    res += tab_spaces + "uint32_t {};".format("ALERT_TEST")
+    res += format(line_comment_start, ">30") + format("Alert Test Register", "<100") + "*/\n\n"
+
+    return res
+
+
 def add_fields(register_json):
     """
     Loops through the fields of the json of a register, passed as parameter.
@@ -224,6 +257,17 @@ def add_registers(peripheral_json):
     # It is usefult to compute how many Bytes to reserve in case a "skipto"
     # keywork is encountered
     bytes_offset = 0 
+
+    
+    # To handle INTR specific registers #
+    if "interrupt_list" in peripheral_json:
+        if 'no_auto_intr_regs' not in peripheral_json:
+            reg_struct += intr_regs_auto_gen()
+
+    # To handle the ALERT registers #
+    if "alert_list" in peripheral_json:
+        if "no_auto_alert_regs" not in peripheral_json:
+            reg_struct += alert_regs_auto_gen()
 
     # loops through the registers of the hjson
     for elem in peripheral_json['registers']:
