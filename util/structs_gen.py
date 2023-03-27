@@ -61,7 +61,7 @@ def write_template(tpl, structs, enums, struct_name):
 
     lower_case_name = struct_name.lower()
     upper_case_name = struct_name.upper()
-    start_addr_def = "{}_peri (({} *) {}_START_ADDRESS)".format(lower_case_name, struct_name, upper_case_name)
+    start_addr_def = "{}_peri ((volatile {} *) {}_START_ADDRESS)".format(lower_case_name, struct_name, upper_case_name)
     
     today = date.today()
     today = today.strftime("%d/%m/%Y")
