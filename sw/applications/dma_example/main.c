@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     printf("laun: %u \n\r", res);
     printf(">> Finished transaction launch. \n\r");
     
-    while( ! dma_is_done() ){}
+    while( ! dma_is_ready() ){}
     printf(">> Finished transaction. \n\r");
     
     int32_t errors = 0;

@@ -49,12 +49,6 @@
 /**                                                                        **/
 /****************************************************************************/
 
-
-#define DMA_SPI_RX_SLOT 0b00000001
-#define DMA_SPI_TX_SLOT 0b00000010
-#define DMA_SPI_FLASH_RX_SLOT 0b00000100
-#define DMA_SPI_FLASH_TX_SLOT 0b00001000
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -65,21 +59,25 @@ extern "C" {
 /**                                                                        **/
 /****************************************************************************/
 
-/**
- * All the valid SPI modes for the DMA-SPI operation.
- * 
- * SLOT_1~4 are the available slots for adding triggers.
+/** 
+ * SLOT_1~4 are the available slots for adding triggers. 
  * These are defined in hardware, so it should be consistent with the 
  * registers' assigned values.
- * 
+ * It was considered during design time that slots could be masked, in case a 
+ * peripheral decided to use two or more slots for Tx or Rx. This is not the 
+ * case in the present moment, anyways. 
+ * @ToDo: What is connected to each slot should not be defined in the DMA HAL. 
+ * It is system-architecture-dependent, but not DMA-architecture-dependent.
+ * As there is currently no way of including these definitions anywhere else,
+ * they will be left here for the moment.    
  */
 typedef enum
 {
     DMA_TRIG_MEMORY = 0, /*!< Reads from memory, writes in memory. */
     DMA_TRIG_SLOT_SPI_RX        = 1, /*!< Slot 1 (SPI Rx). */  
     DMA_TRIG_SLOT_SPI_TX        = 2, /*!< Slot 2 (SPI Tx). */
-    DMA_TRIG_SLOT_SPI_FLASH_RX  = 3, /*!< Slot 3 (SPI Flash Rx). */ 
-    DMA_TRIG_SLOT_SPI_FLASH_TX  = 4, /*!< SLot 4 (SPI Flash Tx). */
+    DMA_TRIG_SLOT_SPI_FLASH_RX  = 4, /*!< Slot 3 (SPI Flash Rx). */ 
+    DMA_TRIG_SLOT_SPI_FLASH_TX  = 8, /*!< SLot 4 (SPI Flash Tx). */
     DMA_TRIG__size,      /*!< Not used, only for sanity checks. */
     DMA_TRIG__undef,     /*!< DMA will not be used. */
 } dma_trigger_slot_mask_t;  
@@ -96,7 +94,7 @@ typedef enum
     DMA_DATA_TYPE_WORD              = 0,/*!< Word      = 4 bytes = 32 bits */
     DMA_DATA_TYPE_HALF_WORD         = 1,/*!< Half Word = 2 bytes = 16 bits */ 
     DMA_DATA_TYPE_BYTE              = 2,/*!< Byte      = 1 byte  = 8 bits  */
-    /* DMA_DATA_TYPE_BYTE_alt        = 3, 
+    /* DMA_DATA_TYPE_BYTE_alt       = 3, 
      * BYTE and BYTE_alt are interchangeable in hw, but we advice against 
      * the use of BYTE_alt.
      * By using the alternative, some functions/macros like 
@@ -123,7 +121,8 @@ typedef enum{
     DMA_PERFORM_CHECKS_INTEGRITY   = 0x01, /*!< Sanity AND integrity of the
     parameters is checked to make sure there are no inconsistencies. 
     Not using this flag is only recommended when parameters are constant and
-    the proper operation has been previously tested. */ 
+    the proper operation has been previously tested. */
+    DMA_PERFORM_CHECKS__size,       /*!< Not used, only for sanity checks. */
 } dma_perform_checks_t; 
 
 /**
@@ -138,6 +137,7 @@ typedef enum
     be treated as an error. */
     DMA_ALLOW_REALIGN         = 1, /*!< If a misalignment is detected, the DMA
     HAL will try to overcome it. */
+    DMA_ALLOW_REALIGN__size,       /*!< Not used, only for sanity checks. */
 } dma_allow_realign_t;
 
 /**
@@ -151,6 +151,7 @@ typedef enum
     re-loaded automatically (no need to call dma_trans_load), with the same 
     parameters. This generates a circular mode in the source and/or destination
     pointing to memory.  */ 
+    DMA_TRANS_MODE__size,       /*!< Not used, only for sanity checks. */
 } dma_trans_mode_t;
 
 /**
@@ -192,22 +193,30 @@ typedef enum
  */
 typedef enum
 {
-    DMA_CONFIG_OK               = 0x00, /*!< DMA transfer was successfully
+    DMA_CONFIG_OK               = 0x0000, /*!< DMA transfer was successfully
     configured. */
-    DMA_CONFIG_SRC              = 0x01, /*!< An issue was encountered in the
+    DMA_CONFIG_SRC              = 0x0001, /*!< An issue was encountered in the
     source arrangement.  */
-    DMA_CONFIG_DST              = 0x02, /*!< An issue was encountered in the
+    DMA_CONFIG_DST              = 0x0002, /*!< An issue was encountered in the
     destination arrangement. */
-    DMA_CONFIG_MISALIGN         = 0x04, /*!< An arrangement is misaligned. */
-    DMA_CONFIG_OVERLAP          = 0x08, /*!< The increment is smaller than the
+    DMA_CONFIG_MISALIGN         = 0x0004, /*!< An arrangement is misaligned. */
+    DMA_CONFIG_OVERLAP          = 0x0008, /*!< The increment is smaller than the
      data type size. */
-    DMA_CONFIG_DISCONTINUOUS    = 0x10, /*!< The increment is larger than the 
+    DMA_CONFIG_DISCONTINUOUS    = 0x0010, /*!< The increment is larger than the 
     data type size. */
-    DMA_CONFIG_OUTBOUNDS        = 0x20, /*!< The operation goes beyond the 
+    DMA_CONFIG_OUTBOUNDS        = 0x0020, /*!< The operation goes beyond the 
     memory boundaries. */
-    DMA_CONFIG_INCOMPATIBLE     = 0x40, /*!< Different arguments result in 
+    DMA_CONFIG_INCOMPATIBLE     = 0x0040, /*!< Different arguments result in 
     incompatible requests. */
-    DMA_CONFIG_CRITICAL_ERROR   = 0x80, /*!< This flag determines the function
+    DMA_CONFIG_WINDOW_SIZE      = 0x0080, /*!< A small window size might result 
+    in loss of syncronism. If the processing of the window takes longer than the 
+    time it takes to the DMA to finish the next window, the application will not 
+    be able to cope. Although "how small is too small" is highly dependent on 
+    the length of the processing, this flag will be raised when the transaction
+    and window size ratio is smaller than an arbitrarily chosen ratio as a mere
+    reminder. This value can be overriden buy means of defining a non-weak 
+    implementation of the dma_window_ratio_warning_threshold function. */
+    DMA_CONFIG_CRITICAL_ERROR   = 0x0100, /*!< This flag determines the function
     will return without the DMA performing any actions. */
 } dma_config_flags_t;
 
@@ -230,20 +239,20 @@ typedef struct
  */
 typedef struct
 {
-    dma_env_t* env;             /*!< The environment to which this target 
-    belongs. It may be null (no checks will be performed to guarantee the 
-    write operations are not performed beyond limits). This is always null 
+    dma_env_t*              env;     /*!< The environment to which this 
+    target belongs. It may be null (no checks will be performed to guarantee
+    the write operations are not performed beyond limits). This is always null 
     if the target is a peripheral. */ 
-    uint8_t* ptr;               /*!< Pointer to the start address from/to 
+    uint8_t*                ptr;     /*!< Pointer to the start address from/to 
     where data will be copied/pasted. */
-    uint32_t inc_du;            /*!< How much the pointer will increase every
-     time a read/write operation is done. It is a multiple of the data units. 
-     Can be left blank if the target is a peripheral. */
-    uint32_t size_du;           /*!< The size (in data units) of the data to be 
-    copied. Can be left blank if the target will only be used as destination. */
-    dma_data_type_t type;       /*!< The type of data to be transferred. Can 
+    uint16_t                inc_du;  /*!< How much the pointer will increase 
+    every time a read/write operation is done. It is a multiple of the data units. 
+    Can be left blank if the target is a peripheral. */
+    uint32_t                size_du; /*!< The size (in data units) of the data to
+    be copied. Can be left blank if the target will only be used as destination. */
+    dma_data_type_t         type;    /*!< The type of data to be transferred. Can 
     be left blank if the target will only be used as destination. */
-    dma_trigger_slot_mask_t trig; /*!< If the target is a peripheral, a trigger 
+    dma_trigger_slot_mask_t trig;    /*!< If the target is a peripheral, a trigger 
     can be set to control the data flow.  */
 } dma_target_t;   
 
@@ -255,20 +264,22 @@ typedef struct
  */
 typedef struct
 {
-    dma_target_t* src;          /*!< Target from where the data will be 
+    dma_target_t*       src;   /*!< Target from where the data will be 
     copied. */
-    dma_target_t* dst;          /*!< Target to where the data will be 
+    dma_target_t*       dst;   /*!< Target to where the data will be 
     copied. */
-    uint32_t inc_b;             /*!< A common increment in case both targets 
+    uint16_t            inc_b;  /*!< A common increment in case both targets 
     need to use one same increment. */
-    uint32_t size_b;            /*!< The size of the transfer, in bytes (in 
+    uint32_t            size_b; /*!< The size of the transfer, in bytes (in 
     contrast, the size stored in the targets is in data units). */ 
-    dma_data_type_t type;       /*!< The data type to use. One is chosen among 
+    dma_data_type_t     type;   /*!< The data type to use. One is chosen among 
     the targets. */
-    dma_trans_mode_t mode;      /*!< The copy mode to use. */
-    dma_end_event_t end;        /*!< What should happen after the transaction 
+    dma_trans_mode_t    mode;   /*!< The copy mode to use. */
+    uint32_t            win_b;  /*!< The amount of bytes every which the 
+    WINDOW_DONE flag is raised and its corresponding interrupt triggered. */  
+    dma_end_event_t     end;    /*!< What should happen after the transaction 
     is launched. */
-    dma_config_flags_t flags;   /*!< A mask with possible issues aroused from 
+    dma_config_flags_t  flags;  /*!< A mask with possible issues aroused from 
     the creation of the transaction. */
 } dma_trans_t;
 
@@ -358,7 +369,7 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans );
  * @retval 0 - DMA is working.   
  * @retval 1 - DMA has finished the transmission. DMA is idle. 
  */
-uint32_t dma_is_done();
+uint32_t dma_is_ready();
 
 /**
 * @brief DMA interrupt handler.   
@@ -366,6 +377,19 @@ uint32_t dma_is_done();
 * at link-time by providing an additional non-weak definition.
 */
 void dma_intr_handler();
+
+/**
+ * @brief This weak implementation allows the user to override the threshold
+ * in which a warning is raised for a transaction to window size ratio that
+ * could cause a loss of syncronism. 
+ * Crete this override with caution. For small transaction sizes, even a large
+ * window size might cause loss of syncronism (e.g. If the DMA is copying 10
+ * bytes and the one interrupt is received every 5 bytes, there is a large 
+ * chance that the DMA will finish copying the remaining 5 bytes before the 
+ * CPU managed to process the previous 5 bytes. 
+ * During the non-weak implementation, return 0 to disable this check.
+ */
+uint8_t dma_window_ratio_warning_threshold();
 
 /****************************************************************************/
 /**                                                                        **/

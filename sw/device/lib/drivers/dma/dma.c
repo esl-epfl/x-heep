@@ -83,6 +83,16 @@
 */
 #define DMA_SELECTION_OFFSET_START 0
 
+/**
+ * A small window size might result in loss of syncronism. If the processing 
+ * of the window takes longer than the time it takes to the DMA to finish the 
+ * next window, the application will not be able to cope. Although "how small 
+ * is too small" is highly dependent on the length of the processing, this 
+ * flag will be raised when the transaction and window size ratio is smaller 
+ * than this arbitrarily chosen ratio as a mere reminder. 
+ */
+#define DMA_DEFAULT_TRANS_TO_WIND_SIZE_RATIO_THRESHOLD 4
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        TYPEDEFS AND STRUCTURES                           */
@@ -202,15 +212,15 @@ void dma_init()
     /* Clear the loaded transaction */
     dma_cb.trans = NULL;
     /* Clear all values in the DMA registers. */
-    dma_peri->SRC_PTR = 0;
-    dma_peri->DST_PTR = 0;
-    dma_peri->SIZE = 0;
-    dma_peri->PTR_INC = 0;
-    dma_peri->SLOT = 0;
-    dma_peri->DATA_TYPE = 0;  
-    dma_peri->MODE = 0;
-    dma_peri->WINDOW_SIZE = 0;
-    dma_peri->INTERRUPT_EN = 0;
+    dma_peri->SRC_PTR       = 0;
+    dma_peri->DST_PTR       = 0;
+    dma_peri->SIZE          = 0;
+    dma_peri->PTR_INC       = 0;
+    dma_peri->SLOT          = 0;
+    dma_peri->DATA_TYPE     = 0;  
+    dma_peri->MODE          = 0;
+    dma_peri->WINDOW_SIZE   = 0;
+    dma_peri->INTERRUPT_EN  = 0;
 }
 
 dma_config_flags_t dma_create_environment( dma_env_t *p_env )
@@ -234,7 +244,17 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
     * SANITY CHECKS
     */
 
+    /* Data type is not necessary. If something is provided anyways it should
+     be valid.*/
+    make_sure_that( (dma_data_type_t)p_trans->type < DMA_DATA_TYPE__size );
+    /* Transaction mode should be a valid mode. */
+    make_sure_that( (dma_trans_mode_t)p_trans->mode < DMA_TRANS_MODE__size);
+    /* The end event should be a valid end event. */
     make_sure_that( (dma_end_event_t)p_trans->end < DMA_END_EVENT__size );
+    /* The alignment permission should be a valid permission. */
+    make_sure_that( (dma_allow_realign_t) p_allowRealign < DMA_ALLOW_REALIGN__size );
+    /* The checks request should be a valid request. */
+    make_sure_that( (dma_perform_checks_t) p_check < DMA_PERFORM_CHECKS__size );
 
     /*
      * CHECK IF TARGETS HAVE ERRORS
@@ -475,6 +495,39 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
         // source if there will be overlap. 
         // @ToDo: Consider if (when a destination target has no environment) 
         // the destination size should be used as limit. 
+
+        /*
+         * CHECK IF THERE IS WINDOW SIZE IS ADEQUATE
+         */
+
+        /*
+         * The window size cannot be larger than the transaction size. Although 
+         * this would not cause any error, the transaction is rejected because 
+         * it is likely a mistake. 
+         */
+        if( p_trans->win_b > p_trans->size_b )
+        {
+            p_trans->flags |= DMA_CONFIG_WINDOW_SIZE; 
+            p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
+            return p_trans->flags; 
+        }
+
+        /*
+         * If the ratio between the transaction size and the window size is too
+         * large, the window size might be too small for the application to 
+         * properly handle. The threshold is set in a weak implementation that 
+         * can be overriden to adopt a custom value or set to return 0 to bypass
+         * this check. 
+         * This check only raises a warning, not a critical error as there is no 
+         * certainty that an real error will occur.  
+         */
+        uint32_t threshold = dma_window_ratio_warning_threshold();
+        uint32_t ratio = p_trans->size_b / p_trans->win_b;
+        if( threshold && ( ratio > threshold) )
+        {
+            p_trans->flags |= DMA_CONFIG_WINDOW_SIZE; 
+        }
+
     }   
         
     return p_trans->flags;
@@ -543,6 +596,13 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
                 DMA_PTR_INC_DST_PTR_INC_OFFSET );
     
     /*
+     * SET THE OPERATION MODE AND WINDOW SIZE
+     */
+
+    dma_peri->MODE = dma_cb.trans->mode;
+    dma_peri->WINDOW_SIZE = dma_cb.trans->win_b;
+    
+    /*
      * SET TRIGGER SLOTS AND DATA TYPE
      */    
 
@@ -587,7 +647,7 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans )
     dma_cb.intrFlag = 0;
 
     /* Load the size and start the transaction. */
-    dma_peri->DMA_START = dma_cb.trans->size_b;
+    dma_peri->SIZE = dma_cb.trans->size_b;
 
     /* 
      * If the end event was set to wait for the interrupt, the dma_launch
@@ -601,9 +661,10 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans )
 }
 
 
-uint32_t dma_is_done()
-{       
-    uint32_t ret = dma_peri->DONE;
+uint32_t dma_is_ready()
+{    
+    /* The transaction READY bit is read from the status register*/   
+    uint32_t ret = ( dma_peri->STATUS & (1<<DMA_STATUS_READY_BIT) );
     make_sure_that( ret == 0 || ret == 1 );
     return ret;
 }
@@ -631,6 +692,22 @@ __attribute__((weak)) void dma_intr_handler()
     volatile uint8_t i;
     i++;
 }
+
+__attribute__((weak)) uint8_t dma_window_ratio_warning_threshold()
+{
+    /* 
+     * This is a weak implementation.
+     * Create your own function called 
+     * void dma_window_ratio_warning_threshold() 
+     * to override this one.  
+     * The variable i in this code is made volatile to prevent optimization
+     * from not compiling this function. Your non-weak implementation does not
+     * require such consideration. 
+     */
+    volatile i = DMA_DEFAULT_TRANS_TO_WIND_SIZE_RATIO_THRESHOLD;
+    return i;
+}
+ 
 /****************************************************************************/
 /**                                                                        **/
 /*                            LOCAL FUNCTIONS                               */
@@ -830,7 +907,7 @@ static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
 void handler_irq_fast_dma(void)
 {
     // The interrupt is cleared.
-    clear_fast_interrupt(dma_cb.fic.base_addr, kDma_fic_e);
+    clear_fast_interrupt(&(dma_cb.fic), kDma_fic_e);
     // The flag is raised so the waiting loop can be broken.
     dma_cb.intrFlag = 1;
     // Call the weak implementation provided in this module, 

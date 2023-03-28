@@ -349,7 +349,7 @@ int main(int argc, char *argv[])
     
     if( trans2.end == DMA_END_EVENT_POLLING ){
         printf("Waiting for the DMA DONE...\n");
-        while( ! dma_is_done() ){};
+        while( ! dma_is_ready() ){};
     } else{
         printf("Waiting for the DMA interrupt...\n");
         while(dma_intr_flag == 0) {
