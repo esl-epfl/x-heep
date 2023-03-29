@@ -560,13 +560,16 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
      * Otherwise the mie.MEIE bit is set to one to enable machine-level
      * fast DMA interrupt.
      */
-    if( dma_cb.trans->end != DMA_TRANS_END_EVENT_POLLING ){
-        CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+    if( dma_cb.trans->end == DMA_TRANS_END_EVENT_POLLING ){
+        //CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+        dma_peri->INTERRUPT_EN = 00;
     }
     else
     {
-        CSR_CLEAR_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+        //CSR_CLEAR_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+        dma_peri->INTERRUPT_EN = 01;
     }
+    // @ToDo: Do this in the proper way!!! Consider all possible scenarios!
 
 
     /*
@@ -881,7 +884,8 @@ static inline void writeRegister( uint32_t p_val,
     uint32_t originalVal = (( uint32_t * ) dma_peri ) [ index ]; 
     uint32_t mask = ( p_mask << p_sel );
     uint32_t clearedVal = originalVal & ~mask; 
-    uint32_t val = clearedVal | ( p_val & mask );
+    uint32_t writeVal = p_val << p_sel;
+    uint32_t val = clearedVal | ( writeVal & mask );
     (( uint32_t * ) dma_peri ) [ index ] = val;
 }
 
