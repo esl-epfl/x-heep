@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
     static dma_trans_t trans = {
                             .src = &tgt1,
                             .dst = &tgt2,
-                            .end = DMA_END_EVENT_POLLING,
+                            .end = DMA_TRANS_END_EVENT_POLLING,
                             };
 
     dma_config_flags_t res;
@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
     static dma_trans_t trans2 = {
                             .src = &tgt4,
                             .dst = &tgt3,
-                            .end = DMA_END_EVENT_INTR,
+                            .end = DMA_TRANS_END_EVENT_INTR,
                             };
 
     res = dma_create_transaction( &trans2, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
@@ -347,7 +347,7 @@ int main(int argc, char *argv[])
     printf("laun: %u \n\r", res);
     printf(">> Finished transaction launch. \n\r");
     
-    if( trans2.end == DMA_END_EVENT_POLLING ){
+    if( trans2.end == DMA_TRANS_END_EVENT_POLLING ){
         printf("Waiting for the DMA DONE...\n");
         while( ! dma_is_ready() ){};
     } else{

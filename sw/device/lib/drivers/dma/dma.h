@@ -168,15 +168,15 @@ typedef enum
  */
 typedef enum
 {
-    DMA_END_EVENT_POLLING,   /*!< Interrupt for the DMA will be disabled. The 
+    DMA_TRANS_END_EVENT_POLLING,   /*!< Interrupt for the DMA will be disabled. The 
     application will be in charge of monitoring the end of the transaction.*/
-    DMA_END_EVENT_INTR,      /*!< Interrupt for the DMA will be enabled. After
+    DMA_TRANS_END_EVENT_INTR,      /*!< Interrupt for the DMA will be enabled. After
     launching the transaction, the dma_launch function will exit. */ 
-    DMA_END_EVENT_INTR_WAIT, /*!< Interrupt for the DMA will be enabled. After
+    DMA_TRANS_END_EVENT_INTR_WAIT, /*!< Interrupt for the DMA will be enabled. After
      launching the transaction, the dma_launch function will wait in a 
      wait_for_interrupt (wfi) state. */ 
-    DMA_END_EVENT__size,     /*!< Not used, only for sanity checks. */
-} dma_end_event_t;
+    DMA_TRANS_END_EVENT__size,     /*!< Not used, only for sanity checks. */
+} dma_trans_end_event_t;
 
 /**
  * Possible returns of the dma_configure() function.
@@ -277,7 +277,7 @@ typedef struct
     dma_trans_mode_t    mode;   /*!< The copy mode to use. */
     uint32_t            win_b;  /*!< The amount of bytes every which the 
     WINDOW_DONE flag is raised and its corresponding interrupt triggered. */  
-    dma_end_event_t     end;    /*!< What should happen after the transaction 
+    dma_trans_end_event_t     end;    /*!< What should happen after the transaction 
     is launched. */
     dma_config_flags_t  flags;  /*!< A mask with possible issues aroused from 
     the creation of the transaction. */

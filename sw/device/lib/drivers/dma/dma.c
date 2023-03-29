@@ -250,7 +250,7 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
     /* Transaction mode should be a valid mode. */
     make_sure_that( (dma_trans_mode_t)p_trans->mode < DMA_TRANS_MODE__size);
     /* The end event should be a valid end event. */
-    make_sure_that( (dma_end_event_t)p_trans->end < DMA_END_EVENT__size );
+    make_sure_that( (dma_trans_end_event_t)p_trans->end < DMA_TRANS_END_EVENT__size );
     /* The alignment permission should be a valid permission. */
     make_sure_that( (dma_allow_realign_t) p_allowRealign < DMA_ALLOW_REALIGN__size );
     /* The checks request should be a valid request. */
@@ -559,7 +559,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
      * Otherwise the mie.MEIE bit is set to one to enable machine-level
      * fast DMA interrupt.
      */
-    if( dma_cb.trans->end != DMA_END_EVENT_POLLING ){
+    if( dma_cb.trans->end != DMA_TRANS_END_EVENT_POLLING ){
         CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
     }
     else
@@ -653,7 +653,7 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans )
      * If the end event was set to wait for the interrupt, the dma_launch
      * will not return until the interrupt arrives. 
      */
-    while( p_trans->end == DMA_END_EVENT_INTR_WAIT && ! dma_cb.intrFlag ) {
+    while( p_trans->end == DMA_TRANS_END_EVENT_INTR_WAIT && ! dma_cb.intrFlag ) {
         wait_for_interrupt();
     }
 

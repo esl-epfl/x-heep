@@ -83,7 +83,8 @@ int main(int argc, char *argv[])
     static dma_trans_t trans = {
                                 .src = &tgt1,
                                 .dst = &tgt2,
-                                .end = DMA_END_EVENT_INTR,
+                                .mode = DMA_TRANS_MODE_SINGLE,
+                                .end = DMA_TRANS_END_EVENT_INTR,
                                 };
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
     
