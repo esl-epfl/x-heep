@@ -48,7 +48,7 @@ project(${PROJECT} ASM C)
 set(CMAKE_CXX_STANDARD 14)
 
 # Set MAIN file
-SET(TARGET "main")
+SET(MAINFILE "main")
 
 # Get the correct path for the crt files and linker file
 if (${LINKER} STREQUAL "on_chip")
@@ -79,118 +79,81 @@ message( "${Magenta}LIB_CRT PATH for Cmake: ${LIB_CRT_P}${ColourReset}")
 message( "${Magenta}LINKER File for Cmake: ${LINK_FILE}${ColourReset}")
 message( "${Magenta}LIB_DRIVERS PATH for Cmake: ${LIB_DRIVERS}${ColourReset}")
 message( "${Magenta}Targetting folder: ${INC_FOLDERS}${ColourReset}")
+message( "${Magenta}Target: ${TARGET}${ColourReset}")
 
-# Define MACRO to get ALL the *.h files under sw/device (string format)
-MACRO(H_FILES_RECURSIVE return_list)
-  FILE(GLOB_RECURSE new_list *.h)
-  SET(dir_list "")
-  FOREACH(file_path ${new_list})
-  if(${file_path} MATCHES "device")
-    if(${file_path} MATCHES "target")
-      if(${file_path} MATCHES "${INC_FOLDERS}")
-        GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
-        SET(dir_list ${dir_list} "-I ${dir_path} \
-        ")
-        string(REPLACE ";" "" dir_list ${dir_list})     
+
+# Make a list of the header files that need to be included
+FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.h)
+SET(dir_list_str "")
+FOREACH(file_path ${new_list})
+  SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
+  if(${file_path} MATCHES "/device/")
+    if(${file_path} MATCHES "/target/") # Add it if its not in target, or if its in target/${TARGET}
+      if(${file_path} MATCHES ${TARGET})
+        SET(add 1)     
       endif()
     else()
-      GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
-      SET(dir_list ${dir_list} "-I ${dir_path} \
-      ")
-      string(REPLACE ";" "" dir_list ${dir_list})
+      SET(add 1) 
     endif()
-  elseif(${file_path} MATCHES "${PROJECT}")
-    GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
-    SET(dir_list ${dir_list} "-I ${dir_path} \
-    ")
-    string(REPLACE ";" "" dir_list ${dir_list}) 
-  elseif(${file_path} MATCHES "${freertos}")
-    if(${PROJECT} MATCHES "freertos")
-      GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
-      SET(dir_list ${dir_list} "-I ${dir_path} \
-      ")
-      string(REPLACE ";" "" dir_list ${dir_list}) 
-    endif()
+  elseif(${file_path} MATCHES ${PROJECT})
+    SET(add 1) 
+  elseif( ( ${file_path} MATCHES "/freertos/" ) AND ( ${PROJECT} MATCHES "freertos" ) )
+    SET(add 1)  
+  elseif( ${file_path} MATCHES "/external/" )  
+    SET(add 1)        
   endif()
-  ENDFOREACH()
-  LIST(REMOVE_DUPLICATES dir_list)
-  SET(${return_list} ${dir_list})
-ENDMACRO()
 
-# Use the MACRO to get ALL the .h files
-H_FILES_RECURSIVE(h_dir_list)
+  if( add EQUAL 1 ) # If the file path mathced one of the criterion, add it to the list
+    # Get the path of the obtained directory 
+    GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
 
-# Check how many you found!
-list(LENGTH h_dir_list h_dir_list_count)
-message(STATUS "[INFO] ${h_dir_list}")
+    # Add it to the string format list
+    SET(dir_list_str ${dir_list_str} "-I ${dir_path} \
+    ")  
+    string(REPLACE ";" "" dir_list_str ${dir_list_str})
+
+    # Add it to the header list
+    SET(h_dir_list_ ${h_dir_list_} "${dir_path}")
+  endif()
+
+ENDFOREACH()
+
+LIST(REMOVE_DUPLICATES dir_list_str)
+LIST(REMOVE_DUPLICATES h_dir_list_)
+
+message(STATUS "[INFO] ${dir_list_str}")
 
 # Get all the folders to include when linking
 SET(INCLUDE_FOLDERS "-I ${RISCV}/riscv32-unknown-elf/include \
                      -I ${RISCV}/riscv32-unknown-elf/include/ \
                      -I ${ROOT_PROJECT} \
                      -I ${SOURCE_PATH} \
-					           ${h_dir_list}")
+					           ${dir_list_str}")
 
-# Define MACRO to get ALL the *.h files under sw/device (list format)
-MACRO(H_FILES_RECURSIVE_LIST return_list)
-  FILE(GLOB_RECURSE new_list *.h)
-  SET(dir_list "")
-  FOREACH(file_path ${new_list})
-  if(${file_path} MATCHES "device")
-    if(${file_path} MATCHES "target")
-      if(${file_path} MATCHES "${INC_FOLDERS}")
-        GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
-        SET(dir_list ${dir_list} "${dir_path}")    
-      endif()
-    else()
-      GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
-      SET(dir_list ${dir_list} "${dir_path}")
-    endif()
-  elseif(${file_path} MATCHES "${PROJECT}")
-    GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
-    SET(dir_list ${dir_list} "${dir_path}")
-  elseif(${file_path} MATCHES "${freertos}")
-    if(${PROJECT} MATCHES "freertos")
-      GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
-      SET(dir_list ${dir_list} "${dir_path}")
-    endif()
+
+# Make a list of the source files that need to be linked
+FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
+SET(c_dir_list "")
+FOREACH(file_path IN LISTS new_list)
+  SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
+  if(${file_path} MATCHES "/device/")
+    SET(add 1) 
+  elseif( ( ${file_path} MATCHES "/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES ${MAINFILE} ) )
+    SET(add 1)       
+  elseif( ${file_path} MATCHES "/external/" ) 
+    SET(add 1)          
   endif()
-  ENDFOREACH()
-  LIST(REMOVE_DUPLICATES dir_list)
-  SET(${return_list} ${dir_list})
-ENDMACRO()
 
-# Include all those directories for compiling 
-# Use the MACRO to get ALL the .h files
-H_FILES_RECURSIVE_LIST(h_dir_list_)
+  if( add EQUAL 1 ) # If the file path mathced one of the criterion, add it to the list
+    SET(c_dir_list ${c_dir_list} "${file_path}\
+    ")
+    string(REPLACE ";" "" c_dir_list ${c_dir_list})
+  endif()
 
-# Define MACRO to get ALL the *.c files under sw/device 
-MACRO(C_FILES_RECURSIVE return_list)
-    FILE(GLOB_RECURSE new_list *.c)
-    SET(dir_list "")
-    FOREACH(file_c IN LISTS new_list)
-      #message(${file_c})
-      if(${file_c} MATCHES "device")
-        SET(dir_list ${dir_list} "${file_c} \
-        ")
-        string(REPLACE ";" "" dir_list ${dir_list})
-      elseif(${file_c} MATCHES "${PROJECT}")
-        if(NOT ${file_c} MATCHES "main")
-          SET(dir_list ${dir_list} "${file_c} \
-          ")
-          string(REPLACE ";" "" dir_list ${dir_list})          
-        endif()
-      endif()
-    ENDFOREACH()
-    LIST(REMOVE_DUPLICATES dir_list)
-    SET(${return_list} ${dir_list})
-ENDMACRO()
+ENDFOREACH()
 
-# Use the MACRO to get ALL the .c files
-C_FILES_RECURSIVE(c_dir_list)
-# Check how many you found!
-list(LENGTH c_dir_list c_dir_list_count)
-#message(STATUS "[INFO] ${c_dir_list}")
+LIST(REMOVE_DUPLICATES c_dir_list)
+
 
 # Get all the files to include when linking
 SET(LINKED_FILES    "${LIB_CRT_P}crt0.S \
@@ -252,20 +215,20 @@ endif()
 #add_subdirectory(device/lib/drivers)
 #add_subdirectory(device/lib/runtime)
 
-set(SOURCES ${SOURCE_PATH}applications/${PROJECT}/${TARGET}.c)
+set(SOURCES ${SOURCE_PATH}applications/${PROJECT}/${MAINFILE}.c)
 
 # add the executable
-add_executable(${TARGET}.elf ${SOURCES})  
+add_executable(${MAINFILE}.elf ${SOURCES})  
 
 # add include directories to compilation
-target_include_directories(${TARGET}.elf PUBLIC ${h_dir_list_})
+target_include_directories(${MAINFILE}.elf PUBLIC ${h_dir_list_})
 
 # linking the libraries
-#target_link_libraries(${TARGET}.elf base)
-#target_link_libraries(${TARGET}.elf drivers)
-#target_link_libraries(${TARGET}.elf runtime)
+#target_link_libraries(${MAINFILE}.elf base)
+#target_link_libraries(${MAINFILE}.elf drivers)
+#target_link_libraries(${MAINFILE}.elf runtime)
 if(${PROJECT} MATCHES "freertos")
-  target_link_libraries(${TARGET}.elf freertos_kernel)
+  target_link_libraries(${MAINFILE}.elf freertos_kernel)
 endif()
 
 # Setting-up the linker
@@ -273,13 +236,13 @@ SET(LINKER_SCRIPT "${LINK_FOLDER}/${LINK_FILE}")
 message( "${Magenta}Linker file: ${LINKER_SCRIPT}${ColourReset}")
 
 # Setting-up the properties, elf is 
-set_target_properties(${TARGET}.elf PROPERTIES LINK_DEPENDS "${LINKER_SCRIPT}")
+set_target_properties(${MAINFILE}.elf PROPERTIES LINK_DEPENDS "${LINKER_SCRIPT}")
 
 # Linker control
 SET(CMAKE_EXE_LINKER_FLAGS  "-T ${LINKER_SCRIPT}  \
                             ${INCLUDE_FOLDERS} \
                              -static ${LINKED_FILES} \
-                             -Wl,-Map=${TARGET}.map \
+                             -Wl,-Map=${MAINFILE}.map \
                              -L ${RISCV}/riscv32-unknown-elf/lib \
                              -lc -lm -lgcc -flto \
                             -ffunction-sections -fdata-sections -specs=nano.specs")
@@ -288,8 +251,8 @@ message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/riscv32-unknown-elf/lib${Colo
 SET(CMAKE_VERBOSE_MAKEFILE on)
 
 # To make sure that .obj files are created and fetched from the same path. 
-# When setting an inner path to add_executable, .obj files are stored in ${TARGET}.elf.dir/<relative path>
-# but when an outside directory is provided, they are stored in ${TARGET}.elf.dir/<absolute path>.
+# When setting an inner path to add_executable, .obj files are stored in ${MAINFILE}.elf.dir/<relative path>
+# but when an outside directory is provided, they are stored in ${MAINFILE}.elf.dir/<absolute path>.
 # To prevent this, if the SOURCE_PATH is the ROOT_PROJECT (X-HEEP source files will be used), no further path is to be added to the fetch directory.
 if( ${SOURCE_PATH} STREQUAL ${ROOT_PROJECT} )
     SET(OBJ_PATH "")
@@ -300,43 +263,36 @@ endif()
 # Specify that we want to link with GCC even if we are compiling with clang
 if (${COMPILER} MATCHES "clang")
   set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
-                                ${SOURCE_PATH}build/CMakeFiles/${TARGET}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${TARGET}.c.obj \
-                                -o ${TARGET}.elf")
+                                ${SOURCE_PATH}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${MAINFILE}.c.obj \
+                                -o ${MAINFILE}.elf")
 endif()
 
 # Post processing command to create a disassembly file 
-add_custom_command(TARGET ${TARGET}.elf POST_BUILD
-        COMMAND ${CMAKE_OBJDUMP} -S  ${TARGET}.elf > ${TARGET}.disasm
+add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
+        COMMAND ${CMAKE_OBJDUMP} -S  ${MAINFILE}.elf > ${MAINFILE}.disasm
         COMMENT "Invoking: Disassemble")
 
 # Post processing command to create a hex file 
 if((${LINKER} STREQUAL "flash_load") OR (${LINKER} STREQUAL "flash_exec"))
-    add_custom_command(TARGET ${TARGET}.elf POST_BUILD
-            COMMAND ${CMAKE_OBJCOPY} -O verilog --adjust-vma=-0x40000000 ${TARGET}.elf  ${TARGET}.hex 
+    add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
+            COMMAND ${CMAKE_OBJCOPY} -O verilog --adjust-vma=-0x40000000 ${MAINFILE}.elf  ${MAINFILE}.hex 
             COMMENT "Invoking: Hexdump")
 else()
-    add_custom_command(TARGET ${TARGET}.elf POST_BUILD
-            COMMAND ${CMAKE_OBJCOPY} -O verilog  ${TARGET}.elf  ${TARGET}.hex 
+    add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
+            COMMAND ${CMAKE_OBJCOPY} -O verilog  ${MAINFILE}.elf  ${MAINFILE}.hex 
             COMMENT "Invoking: Hexdump")
 endif()
 
-add_custom_command(TARGET ${TARGET}.elf POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} -O binary  ${TARGET}.elf  ${TARGET}.bin
+add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
+        COMMAND ${CMAKE_OBJCOPY} -O binary  ${MAINFILE}.elf  ${MAINFILE}.bin
         COMMENT "Invoking: Hexdump")
 
 # Pre-processing command to create disassembly for each source file
-foreach (SRC_MODULE ${TARGET} )
-  add_custom_command(TARGET ${TARGET}.elf 
+foreach (SRC_MODULE ${MAINFILE} )
+  add_custom_command(TARGET ${MAINFILE}.elf 
                      PRE_LINK
-                     COMMAND ${CMAKE_OBJDUMP} -S ${SOURCE_PATH}build/CMakeFiles/${TARGET}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${SRC_MODULE}.c.obj > ${SRC_MODULE}.s
-                     COMMENT "Invoking: Disassemble ( CMakeFiles/${TARGET}.dir/${SRC_MODULE}.c.obj)")
+                     COMMAND ${CMAKE_OBJDUMP} -S ${SOURCE_PATH}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${SRC_MODULE}.c.obj > ${SRC_MODULE}.s
+                     COMMENT "Invoking: Disassemble ( CMakeFiles/${MAINFILE}.dir/${SRC_MODULE}.c.obj)")
 endforeach()
 
-# Adding gdb command - TBD
-#add_custom_target(gdb DEPENDS ${TARGET}.elf)
-#add_custom_command(TARGET gdb
-#    COMMAND ${CMAKE_C_GDB} ${TARGET}.elf -x gdbInit &)
-
 SET(DCMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-#message( FATAL_ERROR "You can not do this at all, CMake will exit." )
