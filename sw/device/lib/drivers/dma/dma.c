@@ -518,12 +518,13 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
          * properly handle. The threshold is set in a weak implementation that 
          * can be overriden to adopt a custom value or set to return 0 to bypass
          * this check. 
+         * The window size can also be set to 0 to not enable this trigger. 
          * This check only raises a warning, not a critical error as there is no 
          * certainty that an real error will occur.  
          */
         uint32_t threshold = dma_window_ratio_warning_threshold();
         uint32_t ratio = p_trans->size_b / p_trans->win_b;
-        if( threshold && ( ratio > threshold) )
+        if( p_trans->win_b && threshold && ( ratio > threshold) )
         {
             p_trans->flags |= DMA_CONFIG_WINDOW_SIZE; 
         }
@@ -600,7 +601,11 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
      */
 
     dma_peri->MODE = dma_cb.trans->mode;
-    dma_peri->WINDOW_SIZE = dma_cb.trans->win_b;
+    /* The window size is set to the transaction size if it was set to 0 in
+    order to disable the functionality (it will never be triggered). */
+    dma_peri->WINDOW_SIZE = dma_cb.trans->win_b 
+                            ? dma_cb.trans->win_b
+                            : dma_cb.trans->size_b;
     
     /*
      * SET TRIGGER SLOTS AND DATA TYPE

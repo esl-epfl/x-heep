@@ -66,14 +66,14 @@ int main(int argc, char *argv[])
     
     dma_config_flags_t res;
     
-    static dma_target_t tgt1 = {
+    static dma_target_t tgt_src = {
                                 .ptr = test_data_4B,
                                 .inc_du = 1,
                                 .size_du = TEST_DATA_SIZE,
                                 .trig = DMA_TRIG_MEMORY,
                                 .type = DMA_DATA_TYPE_WORD,
                                 };
-    static dma_target_t tgt2 = {
+    static dma_target_t tgt_dst = {
                                 .ptr = copied_data_4B,
                                 .inc_du = 1,
                                 .size_du = TEST_DATA_SIZE,
@@ -81,9 +81,10 @@ int main(int argc, char *argv[])
                                 .type = DMA_DATA_TYPE_WORD,
                                 };
     static dma_trans_t trans = {
-                                .src = &tgt1,
-                                .dst = &tgt2,
+                                .src = &tgt_src,
+                                .dst = &tgt_dst,
                                 .mode = DMA_TRANS_MODE_SINGLE,
+                                .win_b = 0,
                                 .end = DMA_TRANS_END_EVENT_INTR,
                                 };
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
@@ -114,10 +115,17 @@ int main(int argc, char *argv[])
         printf("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
     }
 
+
+
 #ifdef TEST_CIRCULAR_MODE
         for (int i = 0; i < TEST_DATA_CIRCULAR; i++) {
             test_data_circular[i] = i;
         }
+
+        tgt_src.ptr = test_data_circular
+
+
+
 
         // -- DMA CONFIG -- //
         dma_set_read_ptr(&dma, (uint32_t) test_data_circular);
@@ -190,7 +198,7 @@ int main(int argc, char *argv[])
 #endif
 
 
-    #ifdef TEST_WINDOW
+#ifdef TEST_WINDOW
 
         rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
         dif_plic_init(rv_plic_params, &rv_plic);
@@ -252,7 +260,7 @@ int main(int argc, char *argv[])
             printf("F-DMA window test with %d errors\r\n", error);
         }
     
-    #endif
+#endif
 
     return EXIT_SUCCESS;
 }

@@ -73,7 +73,8 @@ extern "C" {
  */
 typedef enum
 {
-    DMA_TRIG_MEMORY = 0, /*!< Reads from memory, writes in memory. */
+    DMA_TRIG_MEMORY             = 0, /*!< Reads from memory or writes in 
+    memory. */
     DMA_TRIG_SLOT_SPI_RX        = 1, /*!< Slot 1 (SPI Rx). */  
     DMA_TRIG_SLOT_SPI_TX        = 2, /*!< Slot 2 (SPI Tx). */
     DMA_TRIG_SLOT_SPI_FLASH_RX  = 4, /*!< Slot 3 (SPI Flash Rx). */ 
@@ -276,7 +277,8 @@ typedef struct
     the targets. */
     dma_trans_mode_t    mode;   /*!< The copy mode to use. */
     uint32_t            win_b;  /*!< The amount of bytes every which the 
-    WINDOW_DONE flag is raised and its corresponding interrupt triggered. */  
+    WINDOW_DONE flag is raised and its corresponding interrupt triggered. It can
+    be set to 0 to disable this functionality. */  
     dma_trans_end_event_t     end;    /*!< What should happen after the transaction 
     is launched. */
     dma_config_flags_t  flags;  /*!< A mask with possible issues aroused from 
