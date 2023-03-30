@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
     static dma_trans_t trans = {
         .src = &tgt_src,
         .dst = &tgt_dst,
-        .end = DMA_TRANS_END_EVENT_INTR,
+        .end = DMA_TRANS_END_INTR,
     };
 
     dma_config_flags_t res;
@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
 
 
     // Wait for DMA interrupt
-    if( trans.end == DMA_TRANS_END_EVENT_POLLING ){
+    if( trans.end == DMA_TRANS_END_POLLING ){
         while( ! dma_is_ready() ){};
     } else{
         printf("Waiting for the DMA interrupt...\n");

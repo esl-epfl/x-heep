@@ -56,7 +56,7 @@ extern "C" {
 /**
  * Returns the size in bytes of a certain datatype, as a sizeof(type) would. 
  */
-#define DMA_DATA_TYPE_2_DATA_SIZE(type) (0b00000100 >> (type) )   
+#define DMA_DATA_TYPE_2_SIZE(type) (0b00000100 >> (type) )   
 
 /****************************************************************************/
 /**                                                                        **/
@@ -174,14 +174,14 @@ typedef enum
  */
 typedef enum
 {
-    DMA_TRANS_END_EVENT_POLLING,   /*!< Interrupt for the DMA will be disabled. The 
+    DMA_TRANS_END_POLLING,   /*!< Interrupt for the DMA will be disabled. The 
     application will be in charge of monitoring the end of the transaction.*/
-    DMA_TRANS_END_EVENT_INTR,      /*!< Interrupt for the DMA will be enabled. After
+    DMA_TRANS_END_INTR,      /*!< Interrupt for the DMA will be enabled. After
     launching the transaction, the dma_launch function will exit. */ 
-    DMA_TRANS_END_EVENT_INTR_WAIT, /*!< Interrupt for the DMA will be enabled. After
+    DMA_TRANS_END_INTR_WAIT, /*!< Interrupt for the DMA will be enabled. After
      launching the transaction, the dma_launch function will wait in a 
      wait_for_interrupt (wfi) state. */ 
-    DMA_TRANS_END_EVENT__size,     /*!< Not used, only for sanity checks. */
+    DMA_TRANS_END__size,     /*!< Not used, only for sanity checks. */
 } dma_trans_end_event_t;
 
 /**

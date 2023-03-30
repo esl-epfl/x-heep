@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
     static dma_trans_t trans = {
         .src = &tgt_src,
         .dst = &tgt_dst,
-        .end = DMA_TRANS_END_EVENT_INTR,
+        .end = DMA_TRANS_END_INTR,
     };
 
     dma_config_flags_t res;
@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
     if(core_sleep_flag == 1) printf("Woke up from sleep!\n");
 
     // Wait for DMA interrupt
-    if( trans.end == DMA_TRANS_END_EVENT_POLLING ){
+    if( trans.end == DMA_TRANS_END_POLLING ){
         printf("Waiting for DMA DONE...\n");
         while( ! dma_is_ready() ){};
     } else{

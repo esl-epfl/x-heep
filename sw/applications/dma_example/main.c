@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
                                 .dst = &tgt_dst,
                                 .mode = DMA_TRANS_MODE_SINGLE,
                                 .win_b = 0,
-                                .end = DMA_TRANS_END_EVENT_INTR,
+                                .end = DMA_TRANS_END_INTR,
                                 };
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
 
@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
     
     trans.mode = DMA_TRANS_MODE_CIRCULAR;
     trans.win_b = 0;
-    trans.end = DMA_TRANS_END_EVENT_INTR;
+    trans.end = DMA_TRANS_END_INTR;
 
     uint32_t size_w = TEST_DATA_CIRCULAR;
 
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
         PRINTF2("%04d\t",size_w);
 
         // We will be writing 10 words of 4 bytes, at a step of 1 byte per movement.
-        tgt_src.size_du = size_w*DMA_DATA_TYPE_2_DATA_SIZE(DMA_DATA_TYPE_WORD);
+        tgt_src.size_du = size_w*DMA_DATA_TYPE_2_SIZE(DMA_DATA_TYPE_WORD);
         
         cycles = 0;
 

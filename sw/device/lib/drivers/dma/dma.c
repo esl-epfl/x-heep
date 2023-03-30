@@ -136,10 +136,9 @@ static inline uint8_t isOutbound( uint8_t* p_start, uint8_t* p_end,
                                 uint32_t p_inc_du );
 
 /**
- * @brief Writes a given value into the specified register. Later reads the
- * register and checks that the read value is equal to the written one. 
- * This check is done through an assertion, so can be disabled by disabling 
- * assertions.
+ * @brief Writes a given value into the specified register. Its operation 
+ * mimics that of bitfield_field32_write(), but does not require the use of
+ * a field structure, that is not always provided in the _regs.h file. 
  * @param p_val The value to be written.
  * @param p_offset The register's offset from the peripheral's base address
  *  where the target register is located.
@@ -245,7 +244,7 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
     /* Transaction mode should be a valid mode. */
     make_sure_that( (dma_trans_mode_t)p_trans->mode < DMA_TRANS_MODE__size);
     /* The end event should be a valid end event. */
-    make_sure_that( (dma_trans_end_event_t)p_trans->end < DMA_TRANS_END_EVENT__size );
+    make_sure_that( (dma_trans_end_event_t)p_trans->end < DMA_TRANS_END__size );
     /* The alignment permission should be a valid permission. */
     make_sure_that( (dma_allow_realign_t) p_allowRealign < DMA_ALLOW_REALIGN__size );
     /* The checks request should be a valid request. */
@@ -301,7 +300,7 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
     p_trans->flags = DMA_CONFIG_OK;
     /* The copy size of the source (in data units -of the source-) is 
     transformed to bytes, to be used as default size.*/
-    uint8_t dataSize_b = DMA_DATA_TYPE_2_DATA_SIZE(p_trans->src->type);
+    uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE(p_trans->src->type);
     p_trans->size_b = p_trans->src->size_du * dataSize_b;
     /* By default, the source defines the data type.*/
     p_trans->type = p_trans->src->type;
@@ -424,7 +423,7 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
              * As increments are given in bytes, in both cases should be the
              * size of a data unit. 
              */
-            p_trans->inc_b = DMA_DATA_TYPE_2_DATA_SIZE( p_trans->type );
+            p_trans->inc_b = DMA_DATA_TYPE_2_SIZE( p_trans->type );
             /* The copy size does not change, as it is already stored in bytes.*/
         }
     
@@ -557,7 +556,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
      * Otherwise the mie.MEIE bit is set to one to enable machine-level
      * fast DMA interrupt.
      */
-    if( dma_cb.trans->end == DMA_TRANS_END_EVENT_POLLING ){
+    if( dma_cb.trans->end == DMA_TRANS_END_POLLING ){
         CSR_CLEAR_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
         dma_peri->INTERRUPT_EN = 0b00000000;
     }
@@ -658,7 +657,7 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans )
      * If the end event was set to wait for the interrupt, the dma_launch
      * will not return until the interrupt arrives. 
      */
-    while( p_trans->end == DMA_TRANS_END_EVENT_INTR_WAIT && ! dma_cb.intrFlag ) {
+    while( p_trans->end == DMA_TRANS_END_INTR_WAIT && ! dma_cb.intrFlag ) {
         wait_for_interrupt();
     }
 
@@ -842,8 +841,8 @@ static inline uint8_t getMisalignment_b( uint8_t* p_ptr,
      * |\\\\|\\\\|\\\\|\\\\|
      * x   x+1  x+2  x+3   
      * 
-     * To overcome this, the ALLOW REALIGN flag is available in the DMA control
-     * block. 
+     * To overcome this, the ALLOW REALIGN flag is available in the DMA 
+     * control block. 
      * If the user set the ALLOW REALIGN flag, WORD reading from misaligned 
      * pointers will be converted to two HALF WORD readings with a HALF WORD
      * increment on both source and destination.  
@@ -853,13 +852,21 @@ static inline uint8_t getMisalignment_b( uint8_t* p_ptr,
      * 
      */  
     
+    uint8_t misalignment;
+
     /* 
      * If the data type is WORD and the two LSBs of pointer are not 00,
      * there is a misalignment.
      */
-    uint8_t isWord = ( p_type == DMA_DATA_TYPE_WORD );
-    uint8_t notWordAligned = ( (uint32_t)p_ptr & DMA_WORD_ALIGN_MASK );
-    uint8_t misalignment = isWord && notWordAligned;
+    
+    if(  p_type == DMA_DATA_TYPE_WORD )
+    {
+        if( ( (uint32_t)p_ptr & DMA_WORD_ALIGN_MASK )  != 0 )
+        {
+            misalignment++;
+
+        }
+    }
     
     /* 
      * If the data type is WORD or HALF WORD and the LSB of pointer 
@@ -867,12 +874,17 @@ static inline uint8_t getMisalignment_b( uint8_t* p_ptr,
      * The inequality is of special importance because WORDs stored in odd
      * pointers need to turn into BYTE as well.
      */
-    uint8_t wordOrHalfWord = ( p_type <= DMA_DATA_TYPE_HALF_WORD );
-    uint8_t notHalfWordAligned = ( (uint32_t)p_ptr & DMA_HALF_WORD_ALIGN_MASK );
-    misalignment += ( wordOrHalfWord && notHalfWordAligned );
-    
+    if( p_type <= DMA_DATA_TYPE_HALF_WORD )
+    {
+        if( ( (uint32_t)p_ptr & DMA_HALF_WORD_ALIGN_MASK ) != 0 )
+        {
+            misalignment++;
+
+        }
+    }
+
     /* 
-     * These two lines will end up with: 
+     * These two operations will end up with: 
      * misalignment == 0 if no realignment is needed.
      * misalignment == 1 if realignment is needed, but switching to half 
      * the word size would fix it
@@ -903,40 +915,53 @@ static inline uint8_t isOutbound( uint8_t* p_start,
    * outbound writing and the function returns 1.  
    */
     uint32_t affectedUnits = ( p_size_du - 1 )*p_inc_du + 1;
-    uint32_t rangeSize = DMA_DATA_TYPE_2_DATA_SIZE(p_type) * affectedUnits;
+    uint32_t rangeSize = DMA_DATA_TYPE_2_SIZE(p_type) * affectedUnits;
     uint32_t lasByteInsideRange = p_start + rangeSize -1;
     return ( p_end < lasByteInsideRange );
     // Size is be guaranteed to be non-zero before calling this function.  
 }
 
-// @ToDo: Consider changing the "mask" parameter for a bitfield definition (see dma_regs.h)
+/* @ToDo: Consider changing the "mask" parameter for a bitfield definition 
+(see dma_regs.h) */
 static inline void writeRegister( uint32_t p_val, 
                                 uint32_t p_offset, 
                                 uint32_t p_mask,
                                 uint8_t p_sel )
 {
+    /* 
+     * The index is computed to avoid needing to access the structure
+     * as a structure. 
+     */
     uint8_t index = p_offset / DMA_REGISTER_SIZE_BYTES;
-    (( uint32_t * ) dma_peri ) [ index ] &= ~( p_mask << p_sel );
-    (( uint32_t * ) dma_peri ) [ index ] |= (p_val & p_mask) << p_sel;
+    /* 
+     * An intermediate variable "value" is used to prevent writing twice into 
+     * the register.
+     */
+    uint32_t value =  (( uint32_t * ) dma_peri ) [ index ];
+    value &= ~( p_mask << p_sel );
+    value |= (p_val & p_mask) << p_sel;
+    (( uint32_t * ) dma_peri ) [ index ] = value; 
 }
 
 static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
 {
     uint32_t inc_b = 0;
     /* If the target uses a trigger, the increment remains 0. */
-    if( !( p_tgt->trig ) ) 
+    if(  p_tgt->trig  == DMA_TRIG_MEMORY ) 
     {   
         /*
-         * If the transaction increment has been overwritten (due to 
-         * misalignments), then that value is used (it's always 1, never 0).
+         * If the transaction increment has been overriden (due to 
+         * misalignments), then that value is used (it's always set to 1).
          */
-        if( ! (inc_b = dma_cb.trans->inc_b) )
+        inc_b = dma_cb.trans->inc_b;
+
+        /*
+        * Otherwise, the target-specific increment is used transformed into
+        * bytes).
+        */
+        if( inc_b == 0 )
         {
-            /*
-             * Otherwise, the target-specific increment is used 
-             * (transformed into bytes).
-             */
-            uint8_t dataSize_b = DMA_DATA_TYPE_2_DATA_SIZE( dma_cb.trans->type );
+            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( dma_cb.trans->type );
             inc_b = ( p_tgt->inc_du * dataSize_b );
         }
     }
