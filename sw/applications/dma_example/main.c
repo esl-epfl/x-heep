@@ -36,7 +36,7 @@
   #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
   #define PRINTF(...)
-#endif
+#endif // DEBUG
 
 #define PRINTF2(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 
@@ -57,9 +57,9 @@ void dma_intr_handler()
     // The following line must be here because the DMA is much faster than the CPU
 #ifdef CONTROL_IN_HANDLER
     if( cycles == lastCycle ) dma_stop_circular();
-#endif
+#endif // CONTROL_IN_HANDLER
 }
-#endif
+#endif // TEST_CIRCULAR_MODE
 
 #ifdef TEST_WINDOW
 int32_t external_intr_flag;
@@ -78,7 +78,7 @@ void handler_irq_external(void) {
     }
     dif_plic_irq_complete(&rv_plic, 0, &intr_num); // complete in any case
 }
-#endif
+#endif // TEST_WINDOW
 
 
 int main(int argc, char *argv[])
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     
 #ifdef TEST_CIRCULAR_MODE
     static uint32_t test_data_circular[TEST_DATA_CIRCULAR] __attribute__ ((aligned (4))) = { 1 };
-#endif
+#endif //TEST_CIRCULAR_MODE
 
     PRINTF("DMA test app: 4\n\r");
     
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
         PRINTF("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
     }
 
-#endif
+#endif // TEST_SINGULAR_MODE
 
 #ifdef TEST_CIRCULAR_MODE
 
@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
         while( cycles < TEST_CYCLES_NUM ){
 #ifndef CONTROL_IN_HANDLER            
             if( cycles == lastCycle ) dma_stop_circular();
-#endif    
+#endif // CONTROL_IN_HANDLER   
             wait_for_interrupt();
         }
         PRINTF2(".\n\r");
@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
 
     */
 
-#endif
+#endif // TEST_SINGULAR_MODE
 
 #ifdef TEST_PENDING_TRANSACTION
         // -- DMA CONFIG -- //
@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
             wait_for_interrupt();
         }
         PRINTF("DMA successfully processed two consecutive transactions\n");
-#endif
+#endif // TEST_PENDING_TRANSACTION
 
 
 #ifdef TEST_WINDOW
@@ -341,7 +341,7 @@ int main(int argc, char *argv[])
             PRINTF("F-DMA window test with %d errors\r\n", error);
         }
     
-#endif
+#endif // TEST_WINDOW
 
     return EXIT_SUCCESS;
 }
