@@ -81,6 +81,7 @@ task tb_loadHEX;
     stimuli_counter = stimuli_counter + 4;
   end
 % endfor
+% if ram_numbanks_il != 0:
   for (i = 0; i < NumBytes / NumBanks; i = i + 4) begin
 % for bank in range(ram_numbanks_il):
     tb_writetoSram${int(ram_numbanks_cont) + bank}(i / 4, stimuli[stimuli_counter+3], stimuli[stimuli_counter+2],
@@ -88,6 +89,7 @@ task tb_loadHEX;
     stimuli_counter = stimuli_counter + 4;
 % endfor
   end
+% endif
 
 `endif
 
