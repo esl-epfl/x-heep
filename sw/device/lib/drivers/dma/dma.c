@@ -519,7 +519,9 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
          */
         uint32_t threshold = dma_window_ratio_warning_threshold();
         uint32_t ratio = p_trans->size_b / p_trans->win_b;
-        if( p_trans->win_b && threshold && ( ratio > threshold) )
+        if( p_trans->win_b 
+            && threshold 
+            && ( ratio > threshold) )
         {
             p_trans->flags |= DMA_CONFIG_WINDOW_SIZE; 
         }
@@ -755,45 +757,64 @@ dma_config_flags_t validateTarget( dma_target_t *p_tgt )
     /*
      * INTEGRITY CHECKS
      */
-
-    /* Only performed if an environment was set.*/
-    uint8_t isEnv = p_tgt->env;
-    /* If the target starts before the environment starts.*/
-    uint8_t beforeEnv = p_tgt->ptr < p_tgt->env->start;
-    /* If the target starts after the environment ends. */
-    uint8_t afterEnv = p_tgt->ptr > p_tgt->env->end;
-    /* If a size was defined. */
-    uint8_t isSize = p_tgt->size_du;
-    /* If the target selected size goes beyond the boundaries of the 
-    environment. Only computed if there is a size defined.*/
-    uint8_t isOutb = isOutbound( p_tgt->ptr, p_tgt->env->end, 
-                                p_tgt->type, p_tgt->size_du, 
-                                p_tgt->inc_du );
     
-    if( isEnv && ( beforeEnv || afterEnv || (isSize && isOutb) ) )
-    {
-        flags |= DMA_CONFIG_OUTBOUNDS;
+    /* 
+     * Check if the copy will always be inside the target's environments
+     * boundaries.
+     * This check is only performed if an environment was set.
+     */
+    if( p_tgt->env != NULL )
+    {   
+        /* Check if the target selected size goes beyond the boundaries of
+         * the environment. 
+         * This is only analyzed if a size was defined. */
+        if( p_tgt->size_du != 0 )
+        {
+            uint8_t isOutb = isOutbound( p_tgt->ptr, p_tgt->env->end, 
+                                        p_tgt->type, p_tgt->size_du, 
+                                        p_tgt->inc_du );
+            if( isOutb )
+            {
+                flags |= DMA_CONFIG_OUTBOUNDS;
+            }
+        }
+
+        /* Check if the target starts before the environment starts. */
+        uint8_t beforeEnv = p_tgt->ptr < p_tgt->env->start;
+        /* Check if the target starts after the environment ends. */
+        uint8_t afterEnv = p_tgt->ptr > p_tgt->env->end;
+        if( beforeEnv || afterEnv )
+        {
+            flags |= DMA_CONFIG_OUTBOUNDS;
+        }
     }
 
     /* 
     * If there is a trigger, there should not be environments
-    * nor increments (or its an incompatible peripheral).
-    * Otherwise, an increment is needed (or its an incompatible
-    * memory).
+    * nor increments (or it is an incompatible peripheral).
+    * Otherwise, an increment is needed (or it is an incompatible
+    * memory region).
     */
-    uint8_t isSmph = p_tgt->trig;
-    uint8_t isInc = p_tgt->inc_du;
-    uint8_t incomPeri = ( isSmph && ( isEnv || isInc ) );
-    uint8_t incomMem = ( ! p_tgt->trig && ! p_tgt->inc_du );
-    if( incomPeri || incomMem )
-    {
-        flags |= DMA_CONFIG_INCOMPATIBLE;
+
+    if( p_tgt->trig == DMA_TRIG_MEMORY ){ /* If it is a memory region. */
+        /* It should have an increment. */
+        if( ( p_tgt->inc_du == 0 ) ){ 
+            flags |= DMA_CONFIG_INCOMPATIBLE;
+        }
     }
-    
+    else /* If it is a peripheral. */
+    {   
+        /* It should not have neither an environment nor an increment. */
+        if( ( (p_tgt->env != NULL) || ( p_tgt->inc_du != 0 ) ) )
+        {
+            flags |= DMA_CONFIG_INCOMPATIBLE;
+        }
+    }
+
     /*
      * This is returned so this function can be called as: 
-     * if( dma_create_target == DMA_CONFIG_OK ){ go ahead } 
-     * or if( dma_create_target() ){ check for errors }
+     * if( validateTarget == DMA_CONFIG_OK ){ go ahead } 
+     * or if( validateTarget() ){ check for errors }
      */
     return flags; 
 }

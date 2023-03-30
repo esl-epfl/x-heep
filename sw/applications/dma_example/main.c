@@ -19,7 +19,7 @@
 //#define TEST_WINDOW 
 //#define TEST_PENDING_TRANSACTION
 
-#define TEST_DATA_CIRCULAR 100
+#define TEST_DATA_CIRCULAR 20
 
 //#define CONTROL_IN_HANDLER
 
@@ -29,6 +29,18 @@
 #define TEST_CYCLES_NUM 5
 
 
+//#define DEBUG
+
+// Use PRINTF instead of PRINTF to remove print by default
+#ifdef DEBUG
+  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif
+
+#define PRINTF2(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+
+
 uint32_t cycles = 0;
 uint8_t lastCycle = TEST_CYCLES_NUM -1;
 int32_t errors = 0;
@@ -36,7 +48,7 @@ int32_t errors = 0;
 #ifndef TEST_CIRCULAR_MODE 
 void dma_intr_handler()
 {
-    printf("Strong Interrupt!");
+    PRINTF("Strong Interrupt!");
 }
 #else
 void dma_intr_handler()
@@ -80,16 +92,16 @@ int main(int argc, char *argv[])
     static uint32_t test_data_circular[TEST_DATA_CIRCULAR] __attribute__ ((aligned (4))) = { 1 };
 #endif
 
-    printf("DMA test app: 4\n\r");
+    PRINTF("DMA test app: 4\n\r");
     
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8 ); 
     
     // The DMA is initialized (i.e. the base address is computed  )
-    printf("About to init.\n\r");
+    PRINTF("About to init.\n\r");
     dma_init();
-    printf("Init finished.\n\r");
+    PRINTF("Init finished.\n\r");
     
     dma_config_flags_t res;
     
@@ -118,38 +130,38 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_SINGULAR_MODE
 
-    printf("\n\n===================================\n\n");
-    printf("    TESTING SINGULAR MODE   ");
-    printf("\n\n===================================\n\n");
+    PRINTF("\n\n===================================\n\n");
+    PRINTF("    TESTING SINGULAR MODE   ");
+    PRINTF("\n\n===================================\n\n");
 
     cycles = 0;
 
     res = dma_create_transaction( &trans, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-    printf("tran: %u \n\r", res);
+    PRINTF("tran: %u \n\r", res);
     
     res = dma_load_transaction(&trans);
-    printf("load: %u \n\r", res);
+    PRINTF("load: %u \n\r", res);
     res = dma_launch(&trans);
-    printf("laun: %u \n\r", res);
-    printf(">> Finished transaction launch. \n\r");
+    PRINTF("laun: %u \n\r", res);
+    PRINTF(">> Finished transaction launch. \n\r");
     
     while( ! dma_is_ready() ){
         wait_for_interrupt();
     }
-    printf(">> Finished transaction. \n\r");
+    PRINTF(">> Finished transaction. \n\r");
     
     
     for(int i=0; i<TEST_DATA_SIZE; i++) {
         if (copied_data_4B[i] != test_data_4B[i]) {
-            printf("ERROR COPY [%d]: %08x != %08x : %04x != %04x\n\r", i, &copied_data_4B[i], &test_data_4B[i], copied_data_4B[i], test_data_4B[i]);
+            PRINTF("ERROR COPY [%d]: %08x != %08x : %04x != %04x\n\r", i, &copied_data_4B[i], &test_data_4B[i], copied_data_4B[i], test_data_4B[i]);
             errors++;
         }
     }
 
     if (errors == 0) {
-        printf("DMA word transfer success\nFinished! :) \n\r");
+        PRINTF("DMA word transfer success\nFinished! :) \n\r");
     } else {
-        printf("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
+        PRINTF("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
     }
 
 #endif
@@ -177,11 +189,11 @@ int main(int argc, char *argv[])
     for( uint16_t j = 0; j < TEST_DATA_CIRCULAR; j++ ){
         
         size_w = size_w -1;
-        //printf("\n\n===================================\n\n");
-        //printf("    TESTING CIRCULAR MODE  %d ", size_w);
-        //printf("\n\n===================================\n\n");
+        //PRINTF("\n\n===================================\n\n");
+        //PRINTF("    TESTING CIRCULAR MODE  %d ", size_w);
+        //PRINTF("\n\n===================================\n\n");
         
-        printf("Testing: %04d\t",size_w);
+        PRINTF2("%04d\t",size_w);
 
         // We will be writing 10 words of 4 bytes, at a step of 1 byte per movement.
         tgt_src.size_du = size_w*DMA_DATA_TYPE_2_DATA_SIZE(DMA_DATA_TYPE_WORD);
@@ -199,7 +211,7 @@ int main(int argc, char *argv[])
 #endif    
             wait_for_interrupt();
         }
-        printf("Ok!\n");
+        PRINTF2(".\n\r");
         
     }
 
@@ -222,15 +234,15 @@ int main(int argc, char *argv[])
         errors = 0;
         for (int i = 0; i < TEST_DATA_CIRCULAR; i++) {
             if (test_data_circular[i] != i) {
-                printf("ERROR COPY Circular mode failed at %d", i);
+                PRINTF("ERROR COPY Circular mode failed at %d", i);
                 errors += 1;
             }
         }
 
         if (errors == 0) {
-            printf("DMA circular byte transfer success\n");
+            PRINTF("DMA circular byte transfer success\n");
         } else {
-            printf("DMA circular byte transfer failure: %d errors out of %d bytes checked\n", errors, TEST_DATA_CIRCULAR);
+            PRINTF("DMA circular byte transfer failure: %d errors out of %d bytes checked\n", errors, TEST_DATA_CIRCULAR);
         }
 
     */
@@ -263,7 +275,7 @@ int main(int argc, char *argv[])
         while(dma_intr_flag==0) {
             wait_for_interrupt();
         }
-        printf("DMA successfully processed two consecutive transactions\n");
+        PRINTF("DMA successfully processed two consecutive transactions\n");
 #endif
 
 
@@ -297,36 +309,36 @@ int main(int argc, char *argv[])
         } while((status & (1 << DMA_STATUS_READY_BIT)) == 0);
 
         if (status & (1 << DMA_STATUS_WINDOW_DONE_BIT) == 0) {
-            printf("[E] DMA window done flag not raised\r\n");
+            PRINTF("[E] DMA window done flag not raised\r\n");
             error += 1;
         }
         if (dma_get_halfway(&dma)) { 
             // should be clean on read so rereading should be 0
-            printf("[E] DMA window done flag not reset on status read\r\n");
+            PRINTF("[E] DMA window done flag not reset on status read\r\n");
             error += 1;
         }
 
         if (dma_intr_flag == 1) {
-            printf("[E] DMA window test failed DONE interrupt was triggered\n");
+            PRINTF("[E] DMA window test failed DONE interrupt was triggered\n");
             error += 1;
         }
 
         uint32_t window_count = mmio_region_read32(dma.base_addr, DMA_WINDOW_COUNT_REG_OFFSET);
 
         if (external_intr_flag != TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE) {
-            printf("[E] DMA window test failed ISR wasn't trigger the right number %d != %d\r\n", external_intr_flag, TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE);
+            PRINTF("[E] DMA window test failed ISR wasn't trigger the right number %d != %d\r\n", external_intr_flag, TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE);
             error += 1;
         }
         
         if (window_count != TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE) {
-            printf("[E] DMA window test failed Window count register is wrong %d != %d\r\n", window_count, TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE);
+            PRINTF("[E] DMA window test failed Window count register is wrong %d != %d\r\n", window_count, TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE);
             error += 1;
         }
         if (!error) {
-            printf("DMA window count is okay (#%d * %d)\r\n", TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE, TEST_WINDOW_SIZE);
+            PRINTF("DMA window count is okay (#%d * %d)\r\n", TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE, TEST_WINDOW_SIZE);
         }
         else {
-            printf("F-DMA window test with %d errors\r\n", error);
+            PRINTF("F-DMA window test with %d errors\r\n", error);
         }
     
 #endif
