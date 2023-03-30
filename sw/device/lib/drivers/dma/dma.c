@@ -48,14 +48,9 @@
 /*                        DEFINITIONS AND MACROS                            */
 /**                                                                        **/
 /****************************************************************************/
-
-/**
- * Returns the size in bytes of a certain datatype, as a sizeof(type) would. 
- */
-#define DMA_DATA_TYPE_2_DATA_SIZE(type) (0b00000100 >> (type) )     
-
+ 
 // @ToDo: Remove this, is just a placeholder until real assert can be included
-#define make_sure_that(x) printf( "%s@%u\n\r",x ? "Success" : "Error",__LINE__ );
+#define make_sure_that(x) /*printf( "%s@%u\n\r",x ? "Success" : "Error",__LINE__ );*/
 
 /**
  * Returns the mask to enable/disable DMA interrupts.
@@ -561,13 +556,13 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
      * fast DMA interrupt.
      */
     if( dma_cb.trans->end == DMA_TRANS_END_EVENT_POLLING ){
-        //CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
-        dma_peri->INTERRUPT_EN = 00;
+        CSR_CLEAR_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+        dma_peri->INTERRUPT_EN = 0b00000000;
     }
     else
     {
-        //CSR_CLEAR_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
-        dma_peri->INTERRUPT_EN = 01;
+        CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+        dma_peri->INTERRUPT_EN = 0b00000011;
     }
     // @ToDo: Do this in the proper way!!! Consider all possible scenarios!
 
@@ -685,6 +680,23 @@ uint32_t dma_is_ready()
  *  return ( 1 &  dma_peri->DONE );
  * This would be fixed if the DONE register was a 1 bit field. 
  */   
+
+
+uint32_t dma_get_window_count()
+{
+    return dma_peri->WINDOW_COUNT;
+}
+
+
+void dma_stop_circular()
+{
+    /*
+     * The DMA finishes the current transaction before and does not start
+     * a new one.
+     */
+    dma_peri->MODE = DMA_TRANS_MODE_SINGLE;
+}
+
 
 __attribute__((weak)) void dma_intr_handler()
 {
@@ -827,6 +839,7 @@ static inline uint8_t getMisalignment_b( uint8_t* p_ptr,
     uint8_t isWord = ( p_type == DMA_DATA_TYPE_WORD );
     uint8_t notWordAligned = ( (uint32_t)p_ptr & DMA_WORD_ALIGN_MASK );
     uint8_t misalignment = isWord && notWordAligned;
+    
     /* 
      * If the data type is WORD or HALF WORD and the LSB of pointer 
      * is not 0, there is a misalignment.
@@ -836,6 +849,7 @@ static inline uint8_t getMisalignment_b( uint8_t* p_ptr,
     uint8_t wordOrHalfWord = ( p_type <= DMA_DATA_TYPE_HALF_WORD );
     uint8_t notHalfWordAligned = ( (uint32_t)p_ptr & DMA_HALF_WORD_ALIGN_MASK );
     misalignment += ( wordOrHalfWord && notHalfWordAligned );
+    
     /* 
      * These two lines will end up with: 
      * misalignment == 0 if no realignment is needed.
@@ -881,12 +895,8 @@ static inline void writeRegister( uint32_t p_val,
                                 uint8_t p_sel )
 {
     uint8_t index = p_offset / DMA_REGISTER_SIZE_BYTES;
-    uint32_t originalVal = (( uint32_t * ) dma_peri ) [ index ]; 
-    uint32_t mask = ( p_mask << p_sel );
-    uint32_t clearedVal = originalVal & ~mask; 
-    uint32_t writeVal = p_val << p_sel;
-    uint32_t val = clearedVal | ( writeVal & mask );
-    (( uint32_t * ) dma_peri ) [ index ] = val;
+    (( uint32_t * ) dma_peri ) [ index ] &= ~( p_mask << p_sel );
+    (( uint32_t * ) dma_peri ) [ index ] |= (p_val & p_mask) << p_sel;
 }
 
 static inline uint32_t getIncrement_b( dma_target_t * p_tgt )

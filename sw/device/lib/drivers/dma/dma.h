@@ -53,6 +53,11 @@
 extern "C" {
 #endif
 
+/**
+ * Returns the size in bytes of a certain datatype, as a sizeof(type) would. 
+ */
+#define DMA_DATA_TYPE_2_DATA_SIZE(type) (0b00000100 >> (type) )   
+
 /****************************************************************************/
 /**                                                                        **/
 /**                       TYPEDEFS AND STRUCTURES                          **/
@@ -285,6 +290,12 @@ typedef struct
     the creation of the transaction. */
 } dma_trans_t;
 
+/* @ToDo: Change the win_b parameter for a win_r giving a transaction/window
+    size ratio, which is much easier to understand from the application point
+    of view. */
+
+
+
 /****************************************************************************/
 /**                                                                        **/
 /**                          EXPORTED VARIABLES                            **/
@@ -372,6 +383,21 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans );
  * @retval 1 - DMA has finished the transmission. DMA is idle. 
  */
 uint32_t dma_is_ready();
+
+/**
+ * @brief Get the number of windows that have already been written. Resets on 
+ * the start of each transaction.
+ * @return The number of windows that have been written from this transaction.
+ */
+uint32_t dma_get_window_count();
+
+/**
+ * @brief Prevent the DMA from relaunching the transaction automatically after 
+ * finishing the current one. It does not affect the currently running 
+ * transaction. It has no effect if the DMA is operating in SINGULAR transaction
+ * mode.
+ */
+void dma_stop_circular();
 
 /**
 * @brief DMA interrupt handler.   
