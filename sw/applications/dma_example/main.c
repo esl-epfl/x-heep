@@ -168,6 +168,10 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_CIRCULAR_MODE
 
+    PRINTF("\n\n===================================\n\n");
+    PRINTF("    TESTING CIRCULAR MODE  ");
+    PRINTF("\n\n===================================\n\n");
+
     for (uint32_t i = 0; i < TEST_DATA_CIRCULAR; i++) {
         test_data_circular[i] = i;
     }
@@ -188,11 +192,7 @@ int main(int argc, char *argv[])
 
     for( uint16_t j = 0; j < TEST_DATA_CIRCULAR; j++ ){
         
-        size_w = size_w -1;
-        PRINTF("\n\n===================================\n\n");
-        PRINTF("    TESTING CIRCULAR MODE  %d ", size_w);
-        PRINTF("\n\n===================================\n\n");
-        
+        size_w = size_w -1;        
         PRINTF2("%02d\t",size_w);
 
         // We will be writing 10 words of 4 bytes, at a step of 1 byte per movement.
