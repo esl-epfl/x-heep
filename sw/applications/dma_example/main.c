@@ -29,7 +29,7 @@
 #define TEST_CYCLES_NUM 5
 
 
-//#define DEBUG
+#define DEBUG
 
 // Use PRINTF instead of PRINTF to remove print by default
 #ifdef DEBUG
@@ -189,11 +189,11 @@ int main(int argc, char *argv[])
     for( uint16_t j = 0; j < TEST_DATA_CIRCULAR; j++ ){
         
         size_w = size_w -1;
-        //PRINTF("\n\n===================================\n\n");
-        //PRINTF("    TESTING CIRCULAR MODE  %d ", size_w);
-        //PRINTF("\n\n===================================\n\n");
+        PRINTF("\n\n===================================\n\n");
+        PRINTF("    TESTING CIRCULAR MODE  %d ", size_w);
+        PRINTF("\n\n===================================\n\n");
         
-        PRINTF2("%04d\t",size_w);
+        PRINTF2("%02d\t",size_w);
 
         // We will be writing 10 words of 4 bytes, at a step of 1 byte per movement.
         tgt_src.size_du = size_w*DMA_DATA_TYPE_2_SIZE(DMA_DATA_TYPE_WORD);
