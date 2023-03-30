@@ -58,6 +58,9 @@
 /**                                                                        **/
 /****************************************************************************/
 
+/**
+ * Minimum and Maximum priority that an interrupt source can have
+*/
 const uint32_t kDifPlicMinPriority = 0;
 const uint32_t kDifPlicMaxPriority = RV_PLIC_PRIO0_PRIO0_MASK;
 
@@ -152,6 +155,7 @@ void handler_irq_external(void)
   dif_plic_result_t res = plic_irq_claim(0, &int_id);
   irq_sources_t type = plic_get_irq_src_type(int_id);
 
+  //TODO: adjust each case by calling the proper interrupt handler 
   switch (type)
   {
   case IRQ_UART_SRC: 
@@ -182,7 +186,7 @@ void handler_irq_external(void)
     break;
   }
 
-  plic_irq_complete(0, &int_id);
+  plic_irq_complete(&int_id);
 }
 
 
@@ -222,38 +226,33 @@ dif_plic_result_t plic_Init(void)
     }
   }
 
+  /* Address of the first IE register */
+  uint32_t *base = &rv_plic_peri->IE00;
 
-  /* Clears all the target registers */
-  for(dif_plic_target_t target=0; target<RV_PLIC_PARAM_NUM_TARGET; target++)
+  /* Clears the Interrupt Enable registers */
+  for(size_t i=0; i<RV_PLIC_IE0_MULTIREG_COUNT; i++)
   {
-    /* Address of the first IE register */
-    uint32_t *base = &rv_plic_peri->IE00;
+    uint32_t *dest = base + i;
+    *dest = 0;
 
-    /* Clears the Interrupt Enable registers */
-    for(size_t i=0; i<RV_PLIC_IE0_MULTIREG_COUNT; i++)
-    {
-      uint32_t *dest = base + i;
-      *dest = 0;
-
-      if(*dest != 0){
-        return kDifPlicError;
-      }
+    if(*dest != 0){
+      return kDifPlicError;
     }
+  }
   
-    /* Clears all the threshold registers */
-    rv_plic_peri->THRESHOLD0 = 0;
-    if(rv_plic_peri->THRESHOLD0 != 0)
-    {
-      return kDifPlicError;
-    }
+  /* Clears all the threshold registers */
+  rv_plic_peri->THRESHOLD0 = 0;
+  if(rv_plic_peri->THRESHOLD0 != 0)
+  {
+    return kDifPlicError;
+  }
 
 
-    /* clears software interrupts registers */
-    rv_plic_peri->MSIP0 = 0;
-    if(rv_plic_peri->MSIP0 != 0)
-    {
-      return kDifPlicError;
-    }
+  /* clears software interrupts registers */
+  rv_plic_peri->MSIP0 = 0;
+  if(rv_plic_peri->MSIP0 != 0)
+  {
+    return kDifPlicError;
   }
 
   return kDifPlicOk;
@@ -262,10 +261,9 @@ dif_plic_result_t plic_Init(void)
 
 
 dif_plic_result_t plic_irq_set_enabled(dif_plic_irq_id_t irq,
-                                       dif_plic_target_t target,
                                        dif_plic_toggle_t state)
 {
-  if(irq >= RV_PLIC_PARAM_NUM_SRC || target >= RV_PLIC_PARAM_NUM_TARGET)
+  if(irq >= RV_PLIC_PARAM_NUM_SRC)
   {
     return kDifPlicBadArg;
   }
@@ -300,10 +298,9 @@ dif_plic_result_t plic_irq_set_enabled(dif_plic_irq_id_t irq,
 
 
 dif_plic_result_t plic_irq_get_enabled(dif_plic_irq_id_t irq,
-                                       dif_plic_target_t target,
                                        dif_plic_toggle_t *state)
 {
-  if(irq >= RV_PLIC_PARAM_NUM_SRC || target >= RV_PLIC_PARAM_NUM_TARGET){
+  if(irq >= RV_PLIC_PARAM_NUM_SRC){
     return kDifPlicBadArg;
   }
   
@@ -413,10 +410,8 @@ dif_plic_result_t plic_irq_claim(dif_plic_target_t target, dif_plic_irq_id_t *cl
 }
 
 
-dif_plic_result_t plic_irq_complete(dif_plic_target_t target,
-    const dif_plic_irq_id_t *complete_data) {
-  if (target >= RV_PLIC_PARAM_NUM_TARGET ||
-      complete_data == NULL) {
+dif_plic_result_t plic_irq_complete(const dif_plic_irq_id_t *complete_data) {
+  if (complete_data == NULL) {
     return kDifPlicBadArg;
   }
 

@@ -158,6 +158,13 @@ typedef enum irq_sources
 /**                                                                        **/
 /****************************************************************************/
 
+/**
+ * Flag used to handle the wait for interrupt.
+ * The core can test this variable to check if it has to wait
+ * for an interrupt coming from the RV_PLIC.
+ * When an interrupt occurs, this flag is set to 1 by the plic in order
+ * for the core to continue with the execution of the program.
+*/
 extern int8_t external_intr_flag;
 
 /****************************************************************************/
@@ -165,6 +172,18 @@ extern int8_t external_intr_flag;
 /*                          EXPORTED FUNCTIONS                              */
 /**                                                                        **/
 /****************************************************************************/
+
+/**
+ * Generic handler for the interrupts in inputs to RV_PLIC.
+ * Its basic purpose is to understand which source generated
+ * the interrupt and call the proper specific handler. The source
+ * is detected by reading the CC0 register (claim interrupt), containing
+ * the ID of the source.
+ * Once the interrupt routine is finished, this function sets to 1 the 
+ * external_intr_flag and calls plic_irq_complete() function to conclude
+ * the handling.
+*/
+void handler_irq_external(void);
 
 /**
  * Initilises the PLIC peripheral's registers with default values.
@@ -185,20 +204,43 @@ dif_plic_result_t plic_Init(void);
  * This function sets that bit to 0 or 1 depending on the state that it is specified
  * 
  * @param irq An interrupt source identification
- * @param target An interrupt target
  * @param state The new toggle state for the interrupt
  * @return The result of the operation
 */
 dif_plic_result_t plic_irq_set_enabled(dif_plic_irq_id_t irq,
-                                       dif_plic_target_t target,
                                        dif_plic_toggle_t state);
 
 
+/**
+ * Reads a specific bit of the Interrupt Enable registers to understand
+ * if the corresponding interrupt is enabled or disabled.
+ * 
+ * For a specific target, each interrupt source has a dedicated enable/disable bit
+ * inside the relative Interrupt Enable registers, basing on the interrupt
+ * source id.
+ * 
+ * The resulting bit is saved inside the state variable passed as parameter
+ * 
+ * @param irq An interrupt source identification
+ * @param state The toggle state of the interrupt, as read from the IE registers
+ * @return The result of the operation
+*/
 dif_plic_result_t plic_irq_get_enabled(dif_plic_irq_id_t irq,
-                                       dif_plic_target_t target,
                                        dif_plic_toggle_t *state);
 
-
+/**
+ * Sets the interrupt request trigger type.
+ * 
+ * For a specific interrupt line, identified by irq, sets if its trigger
+ * type has to be edge or level.
+ * Edge means that the interrupt is triggered when the source passes from low to high.
+ * Level means that the interrupt is triggered when the source stays at a high level.
+ * 
+ * @param irq An interrupt source identification
+ * @param triggger The trigger state for the interrupt
+ * @result The result of the operation
+ * 
+*/
 dif_plic_result_t plic_irq_set_trigger(dif_plic_irq_id_t irq,
                                            dif_plic_irq_trigger_t trigger);
 
@@ -211,13 +253,27 @@ dif_plic_result_t plic_irq_set_trigger(dif_plic_irq_id_t irq,
 */
 dif_plic_result_t plic_irq_set_priority(dif_plic_irq_id_t irq, uint32_t priority);
 
-
+/**
+ * Sets the priority threshold.
+ * 
+ * PLIC will only interrupt a target when
+ * IRQ source priority is set higher than the priority threshold for the
+ * corresponding target.
+ * 
+ * @param threshold The threshold value to be set
+ * @return The result of the operation
+*/
 dif_plic_result_t plic_target_set_threshold(uint32_t threshold);
 
-
+/**
+ * Returns whether a particular interrupt is currently pending.
+ * 
+ * @param irq An interrupt source identification
+ * @param[out] is_pending Boolean flagcorresponding to whether an interrupt is pending or not 
+*/
 dif_plic_result_t plic_irq_is_pending(dif_plic_irq_id_t irq,
                                           bool *is_pending);
-                                          
+
 /**
  * Claims an IRQ and gets the information about the source.
  *
@@ -240,9 +296,55 @@ dif_plic_result_t plic_irq_is_pending(dif_plic_irq_id_t irq,
  */
 dif_plic_result_t plic_irq_claim(dif_plic_target_t target, dif_plic_irq_id_t *claim_data);
 
+/**
+ * Completes the claimed interrupt request.
+ * 
+ * After an interrupt request is served, the core writes the interrupt source
+ * ID into the Claim/Complete register.
+ * 
+ * This function must be called after plic_irq_claim(), when the core is 
+ * ready to service others interrupts with the same ID. If this function
+ * is not called, future claimed interrupts will not have the same ID.
+ * 
+ * @param complete_data Previously claimed IRQ data that is used to signal
+ * PLIC of the IRQ servicing completion.
+ * @return The result of the operation
+*/
+dif_plic_result_t plic_irq_complete(const dif_plic_irq_id_t *complete_data);
 
-dif_plic_result_t plic_irq_complete(dif_plic_target_t target,
-    const dif_plic_irq_id_t *complete_data);
+
+/**
+ * Forces the software interrupt.
+ *
+ * This function causes an interrupt to the to be serviced as if
+ * hardware had asserted it.
+ *
+ * An interrupt handler is expected to call `plic_software_irq_acknowledge`
+ * when the interrupt has been handled.
+ *
+ * @return The result of the operation
+ */
+dif_plic_result_t plic_software_irq_force();
+
+
+/**
+ * Acknowledges the software interrupt.
+ *
+ * This function indicates to the hardware that the software interrupt has been
+ * successfully serviced. It is expected to be called from a software interrupt
+ * handler.
+ *
+ * @return The result of the operation
+ */
+dif_plic_result_t plic_software_irq_acknowledge();
+
+/**
+ * Returns software interrupt pending state
+ * 
+ * @param is_pending Bool variable storing the information about the pending state
+ * @return The result of the operation
+*/
+dif_plic_result_t plic_software_irq_is_pending(bool *is_pending);
 
 #endif /* _RV_PLIC_H_ */
 
