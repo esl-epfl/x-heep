@@ -191,7 +191,7 @@ module dma #(
     end else begin
       if (dma_start == 1'b1) begin
         dma_start_pending <= 1'b0;
-      end else if (reg2hw.size.qe) begin
+      end else if (reg2hw.size.qe & |reg2hw.size.q) begin
         dma_start_pending <= 1'b1;
       end
     end
