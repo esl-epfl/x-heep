@@ -7,9 +7,8 @@
 
 module memory_subsystem
   import obi_pkg::*;
-#(
-    parameter NUM_BANKS = 2
-) (
+  import core_v_mini_mcu_pkg::*;
+(
     input logic clk_i,
     input logic rst_ni,
 
@@ -28,6 +27,38 @@ module memory_subsystem
   logic [NUM_BANKS-1:0] ram_valid_q;
   // Clock-gating
   logic [NUM_BANKS-1:0] clk_cg;
+  logic [NUM_BANKS-1:0][AddrWidth-3:0] ram_req_addr;
+
+  if (NUM_BANKS_IL == 0) begin : gen_addr_continuous
+    for (genvar i = 0; i < NUM_BANKS; i++) begin
+      assign ram_req_addr[i] = ram_req_i[i].addr[AddrWidth-1:2];
+    end
+  end else if (NUM_BANKS_IL == 2) begin : gen_addr_interleaved
+    for (genvar i = 0; i < NUM_BANKS; i++) begin
+      if (i >= NUM_BANKS - 2) begin
+        assign ram_req_addr[i] = {1'h0, ram_req_i[i].addr[AddrWidth-1:3]};
+      end else begin
+        assign ram_req_addr[i] = ram_req_i[i].addr[AddrWidth-1:2];
+      end
+    end
+  end else if (NUM_BANKS_IL == 4) begin : gen_addr_interleaved
+    for (genvar i = 0; i < NUM_BANKS; i++) begin
+      if (i >= NUM_BANKS - 4) begin
+        assign ram_req_addr[i] = {2'h0, ram_req_i[i].addr[AddrWidth-1:4]};
+      end else begin
+        assign ram_req_addr[i] = ram_req_i[i].addr[AddrWidth-1:2];
+      end
+    end
+  end else if (NUM_BANKS_IL == 8) begin : gen_addr_interleaved
+    for (genvar i = 0; i < NUM_BANKS; i++) begin
+      if (i >= NUM_BANKS - 8) begin
+        assign ram_req_addr[i] = {3'h0, ram_req_i[i].addr[AddrWidth-1:5]};
+      end else begin
+        assign ram_req_addr[i] = ram_req_i[i].addr[AddrWidth-1:2];
+      end
+    end
+  end
+
   for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_sram
 
     tc_clk_gating clk_gating_cell_i (
@@ -57,7 +88,7 @@ module memory_subsystem
         .rst_ni(rst_ni),
         .req_i(ram_req_i[i].req),
         .we_i(ram_req_i[i].we),
-        .addr_i(ram_req_i[i].addr[AddrWidth-1:2]),
+        .addr_i(ram_req_addr[i]),
         .wdata_i(ram_req_i[i].wdata),
         .be_i(ram_req_i[i].be),
         .set_retentive_i(set_retentive_i[i]),

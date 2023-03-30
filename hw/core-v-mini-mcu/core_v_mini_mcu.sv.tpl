@@ -259,9 +259,7 @@ module core_v_mini_mcu
       .ext_xbar_slave_resp_i(ext_xbar_slave_resp_i)
   );
 
-  memory_subsystem #(
-      .NUM_BANKS(core_v_mini_mcu_pkg::NUM_BANKS)
-  ) memory_subsystem_i (
+  memory_subsystem memory_subsystem_i (
       .clk_i,
       .rst_ni,
       .clk_gate_en_i(memory_subsystem_clkgate_en),

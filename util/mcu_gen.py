@@ -316,6 +316,12 @@ def main():
                         default="",
                         help="Number of 32KB Banks (default value from cfg file)")
 
+    parser.add_argument("--memorybanks_il",
+                        metavar="0, 2, 4 or 8",
+                        nargs='?',
+                        default="",
+                        help="Number of interleaved memory banks (default value from cfg file)")
+
     parser.add_argument("--external_domains",
                         metavar="from 0 to 32",
                         nargs='?',
@@ -391,12 +397,25 @@ def main():
         bus_type = obj['bus_type']
 
     if args.memorybanks != None and args.memorybanks != '':
-        ram_numbanks = int(args.memorybanks)
+        ram_numbanks_cont = int(args.memorybanks)
     else:
-        ram_numbanks = int(obj['ram']['numbanks'])
+        ram_numbanks_cont = int(obj['ram']['numbanks'])
 
-    if ram_numbanks < 2 and ram_numbanks > 16:
-        exit("ram numbanks must be between 2 and 16 instead of " + str(ram_numbanks))
+    if args.memorybanks_il != None and args.memorybanks_il != '':
+        ram_numbanks_il = int(args.memorybanks_il)
+    else:
+        ram_numbanks_il = int(obj['ram']['numbanks_interleaved'])
+
+    if ram_numbanks_il != 0 and not (ram_numbanks_il == 2 or ram_numbanks_il == 4 or ram_numbanks_il == 8):
+        exit("ram interleaved numbanks must be 0, 2, 4 or 8 instead of " + str(ram_numbanks_il))
+
+    if ram_numbanks_il != 0 and bus_type == 'onetoM':
+        exit("bus type must be 'NtoM' instead 'onetoM' to access the interleaved memory banks in parallel" + str(args.bus))
+
+    if ram_numbanks_cont + ram_numbanks_il < 2 and ram_numbanks_cont + ram_numbanks_il > 16:
+        exit("ram numbanks must be between 2 and 16 instead of " + str(ram_numbanks_cont + ram_numbanks_il))
+    else:
+        ram_numbanks = ram_numbanks_cont + ram_numbanks_il
 
     ram_start_address = string2int(obj['ram']['address'])
     if int(ram_start_address,16) != 0:
@@ -758,6 +777,8 @@ def main():
         "bus_type"                         : bus_type,
         "ram_start_address"                : ram_start_address,
         "ram_numbanks"                     : ram_numbanks,
+        "ram_numbanks_cont"                : ram_numbanks_cont,
+        "ram_numbanks_il"                  : ram_numbanks_il,
         "external_domains"                 : external_domains,
         "ram_size_address"                 : ram_size_address,
         "debug_start_address"              : debug_start_address,
