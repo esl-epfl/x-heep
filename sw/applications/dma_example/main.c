@@ -172,21 +172,19 @@ int main(int argc, char *argv[])
     trans.win_b = 0;
     trans.end = DMA_TRANS_END_EVENT_INTR;
 
+    uint32_t size_w = TEST_DATA_CIRCULAR;
 
-
-
-    uint32_t size = TEST_DATA_CIRCULAR;
     for( uint16_t j = 0; j < TEST_DATA_CIRCULAR; j++ ){
         
-        size = size -1;
+        size_w = size_w -1;
         //printf("\n\n===================================\n\n");
-        //printf("    TESTING CIRCULAR MODE  %d ", size);
+        //printf("    TESTING CIRCULAR MODE  %d ", size_w);
         //printf("\n\n===================================\n\n");
         
-        printf("Testing: %04d\t",size);
+        printf("Testing: %04d\t",size_w);
 
         // We will be writing 10 words of 4 bytes, at a step of 1 byte per movement.
-        tgt_src.size_du = size*DMA_DATA_TYPE_2_DATA_SIZE(DMA_DATA_TYPE_WORD);
+        tgt_src.size_du = size_w*DMA_DATA_TYPE_2_DATA_SIZE(DMA_DATA_TYPE_WORD);
         
         cycles = 0;
 
