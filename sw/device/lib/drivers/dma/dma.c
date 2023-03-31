@@ -565,7 +565,7 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t        *p_trans,
     return p_trans->flags;
 }
 
-dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
+dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
 {
     
     /* 
@@ -664,14 +664,14 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
     return DMA_CONFIG_OK;
 }
 
-dma_config_flags_t dma_launch( dma_trans_t* p_trans )
+dma_config_flags_t dma_launch( dma_trans_t *p_trans )
 {
     /*
      * Make sure that the loaded transaction is the intended transaction. 
      * If the loaded trans was NULL'd, then this the transaction is never 
      * launched.
      */
-    if(     ( p_trans != NULL ) 
+    if(     ( p_trans == NULL ) 
         ||  ( dma_cb.trans != p_trans ) )
     {
         return DMA_CONFIG_CRITICAL_ERROR;
@@ -1012,13 +1012,14 @@ static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
 // @ToDo: Let fic be in charge of this. 
 void handler_irq_fast_dma(void)
 {
-    // The interrupt is cleared.
-    clear_fast_interrupt(&(dma_cb.fic), kDma_fic_e);
+    printf("@");
     // The flag is raised so the waiting loop can be broken.
     dma_cb.intrFlag = 1;
     // Call the weak implementation provided in this module, 
     // or the non-weak implementation from above. 
     dma_intr_handler();
+    // The interrupt is cleared.
+    clear_fast_interrupt(&(dma_cb.fic), kDma_fic_e);
 }
 
 /****************************************************************************/

@@ -12,21 +12,14 @@
 #include "hart.h"
 
 
-#define TEST_DATA_SIZE 16
 
 #define TEST_SINGULAR_MODE
-
+#define TEST_PENDING_TRANSACTION
 //#define TEST_WINDOW 
-//#define TEST_PENDING_TRANSACTION
 
-#define TEST_DATA_CIRCULAR 20
 
-//#define CONTROL_IN_HANDLER
-
-// @ToDo: Decide how to manage very small transactions.
-// #define TEST_DATA_CIRCULAR 27 When this number is smaller than 30 it start being a large problem! 
-
-#define TEST_CYCLES_NUM 5
+#define TEST_DATA_SIZE 16
+#define TEST_DATA_LARGE 4096
 
 
 #define DEBUG
@@ -41,25 +34,15 @@
 #define PRINTF2(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 
 
-uint32_t cycles = 0;
-uint8_t lastCycle = TEST_CYCLES_NUM -1;
 int32_t errors = 0;
+int8_t cycles = 0;
 
-#ifndef TEST_CIRCULAR_MODE 
-void dma_intr_handler()
-{
-    PRINTF("Strong Interrupt!");
-}
-#else
 void dma_intr_handler()
 {
     cycles++;
-    // The following line must be here because the DMA is much faster than the CPU
-#ifdef CONTROL_IN_HANDLER
-    if( cycles == lastCycle ) dma_stop_circular();
-#endif // CONTROL_IN_HANDLER
+    PRINTF("#");
 }
-#endif // TEST_CIRCULAR_MODE
+
 
 #ifdef TEST_WINDOW
 int32_t external_intr_flag;
@@ -86,7 +69,8 @@ int main(int argc, char *argv[])
     
     static uint32_t test_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = {
       0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef, 0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa, 0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98};
-    static uint32_t copied_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
+    static uint32_t copied_data_4B[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
+    static uint32_t test_data_large[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
     
 #ifdef TEST_CIRCULAR_MODE
     static uint32_t test_data_circular[TEST_DATA_CIRCULAR] __attribute__ ((aligned (4))) = { 1 };
@@ -134,16 +118,12 @@ int main(int argc, char *argv[])
     PRINTF("    TESTING SINGULAR MODE   ");
     PRINTF("\n\n===================================\n\n");
 
-    cycles = 0;
-
     res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     PRINTF("tran: %u \n\r", res);
-    
     res = dma_load_transaction(&trans);
     PRINTF("load: %u \n\r", res);
     res = dma_launch(&trans);
     PRINTF("laun: %u \n\r", res);
-    PRINTF(">> Finished transaction launch. \n\r");
     
     while( ! dma_is_ready() ){
         wait_for_interrupt();
@@ -168,32 +148,51 @@ int main(int argc, char *argv[])
 
 
 #ifdef TEST_PENDING_TRANSACTION
-        // -- DMA CONFIG -- //
-        dma_set_read_ptr(&dma, (uint32_t) test_data_4B);
-        dma_set_write_ptr(&dma, (uint32_t) copied_data_4B);
-        dma_set_ptr_inc(&dma, (uint32_t) 1, (uint32_t) 1);
-        dma_set_spi_mode(&dma, (uint32_t) 0);
-        dma_set_data_type(&dma, (uint32_t) 2);
-        // Give number of bytes to transfer
-        dma_set_cnt_start(&dma, (uint32_t) TEST_DATA_SIZE*sizeof(*copied_data_4B));
-
-        dma_intr_flag = 0;
-
-        // start a second time
-        dma_set_cnt_start(&dma, (uint32_t) TEST_DATA_SIZE*sizeof(*copied_data_4B));
-
-        // Wait for first copy
-        while(dma_intr_flag==0) {
-            wait_for_interrupt();
-        }
-    
-        // Wait for second copy
-        dma_intr_flag = 0;
+        PRINTF("\n\n===================================\n\n");
+        PRINTF("    TESTING MULTIPLE TRANSACTIONS   ");
+        PRINTF("\n\n===================================\n\n");
         
-        while(dma_intr_flag==0) {
+        for (uint32_t i = 0; i < TEST_DATA_LARGE; i++) {
+            test_data_large[i] = i;
+        }
+
+
+        cycles = 0;
+
+        tgt_src.ptr     = test_data_large;
+        tgt_src.size_du = TEST_DATA_LARGE;
+
+
+        res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+        PRINTF("tran: %u \n\r", res);
+        res = dma_load_transaction(&trans);
+        PRINTF("load: %u \n\r", res);
+        res = dma_launch(&trans);
+        //PRINTF("laun #1: %u \n\r", res);
+        res = dma_launch(&trans);
+        //PRINTF("laun #2: %u \n\r", res);
+        
+        while( cycles < 2 ){
             wait_for_interrupt();
         }
-        PRINTF("DMA successfully processed two consecutive transactions\n");
+        PRINTF(">> Finished %d transactions. \n\r", cycles);
+        
+        
+        for(int i=0; i<TEST_DATA_LARGE; i++) {
+            if (tgt_src.ptr[i] != tgt_dst.ptr[i]) {
+                PRINTF("ERROR COPY [%d]: %08x != %08x : %04x != %04x\n\r", i, &tgt_src.ptr[i], &tgt_dst.ptr[i], tgt_src.ptr[i], tgt_dst.ptr[i]);
+                errors++;
+            }
+        }
+
+        if (errors == 0) {
+            PRINTF("DMA word transfer success\nFinished! :) \n\r");
+            PRINTF("DMA couldn't manage two consecutive transactions. \n");
+        } else {
+            PRINTF("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
+            PRINTF("DMA successfully processed two consecutive transactions\n");
+        }
+
 #endif // TEST_PENDING_TRANSACTION
 
 
