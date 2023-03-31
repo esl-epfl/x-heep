@@ -33,7 +33,7 @@ module memory_subsystem
     for (genvar i = 0; i < NUM_BANKS; i++) begin
       assign ram_req_addr[i] = ram_req_i[i].addr[AddrWidth-1:2];
     end
-  end else if (NUM_BANKS_IL == 2) begin : gen_addr_interleaved
+  end else if (NUM_BANKS_IL == 2) begin : gen_addr_interleaved_2
     for (genvar i = 0; i < NUM_BANKS; i++) begin
       if (i >= NUM_BANKS - 2) begin
         assign ram_req_addr[i] = {1'h0, ram_req_i[i].addr[AddrWidth-1:3]};
@@ -41,7 +41,7 @@ module memory_subsystem
         assign ram_req_addr[i] = ram_req_i[i].addr[AddrWidth-1:2];
       end
     end
-  end else if (NUM_BANKS_IL == 4) begin : gen_addr_interleaved
+  end else if (NUM_BANKS_IL == 4) begin : gen_addr_interleaved_4
     for (genvar i = 0; i < NUM_BANKS; i++) begin
       if (i >= NUM_BANKS - 4) begin
         assign ram_req_addr[i] = {2'h0, ram_req_i[i].addr[AddrWidth-1:4]};
@@ -49,7 +49,7 @@ module memory_subsystem
         assign ram_req_addr[i] = ram_req_i[i].addr[AddrWidth-1:2];
       end
     end
-  end else if (NUM_BANKS_IL == 8) begin : gen_addr_interleaved
+  end else if (NUM_BANKS_IL == 8) begin : gen_addr_interleaved_8
     for (genvar i = 0; i < NUM_BANKS; i++) begin
       if (i >= NUM_BANKS - 8) begin
         assign ram_req_addr[i] = {3'h0, ram_req_i[i].addr[AddrWidth-1:5]};
