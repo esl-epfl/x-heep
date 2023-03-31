@@ -280,3 +280,88 @@ int main(int argc, char *argv[])
     }
     return EXIT_SUCCESS;
 }
+
+
+
+#ifdef TEST_CIRCULAR_MODE
+
+    PRINTF("\n\n===================================\n\n");
+    PRINTF("    TESTING CIRCULAR MODE  ");
+    PRINTF("\n\n===================================\n\n");
+
+    for (uint32_t i = 0; i < TEST_DATA_CIRCULAR; i++) {
+        test_data_circular[i] = i;
+    }
+
+    tgt_src.ptr = test_data_circular;
+    tgt_src.type = DMA_DATA_TYPE_BYTE;
+    tgt_src.inc_du = 1;
+
+    tgt_dst.ptr = test_data_circular;
+    tgt_dst.type = DMA_DATA_TYPE_BYTE;
+    tgt_dst.inc_du = 1;
+    
+    trans.mode = DMA_TRANS_MODE_CIRCULAR;
+    trans.win_b = 0;
+    trans.end = DMA_TRANS_END_INTR;
+
+    uint32_t size_w = TEST_DATA_CIRCULAR;
+
+    for( uint16_t j = 0; j < TEST_DATA_CIRCULAR; j++ ){
+        
+        size_w = size_w -1;        
+        PRINTF2("%02d\t",size_w);
+
+        // We will be writing 10 words of 4 bytes, at a step of 1 byte per movement.
+        tgt_src.size_du = size_w*DMA_DATA_TYPE_2_SIZE(DMA_DATA_TYPE_WORD);
+        
+        cycles = 0;
+
+        res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+        res = dma_load_transaction(&trans);
+        res = dma_launch(&trans);
+        
+        // Manage circularity
+        while( cycles < TEST_CYCLES_NUM ){
+#ifndef CONTROL_IN_HANDLER            
+            if( cycles == lastCycle ) dma_stop_circular();
+#endif // CONTROL_IN_HANDLER   
+            wait_for_interrupt();
+        }
+        PRINTF2(".\n\r");
+        
+    }
+
+    /*
+        for (int i = 0; i < ratio*TEST_CYCLES_NUM; i++) {
+            while(dma_intr_flag==0) {
+              wait_for_interrupt();
+            }
+            dma_intr_flag = 0;
+
+            win_count = dma_get_window_count(); // to see which half is ready 
+
+            if (i == 2*(TEST_CYCLES_NUM - 1)) dma_enable_circular_mode(&dma, false); // disable circular mode to stop
+
+        }
+
+    */
+
+   /*
+        errors = 0;
+        for (int i = 0; i < TEST_DATA_CIRCULAR; i++) {
+            if (test_data_circular[i] != i) {
+                PRINTF("ERROR COPY Circular mode failed at %d", i);
+                errors += 1;
+            }
+        }
+
+        if (errors == 0) {
+            PRINTF("DMA circular byte transfer success\n");
+        } else {
+            PRINTF("DMA circular byte transfer failure: %d errors out of %d bytes checked\n", errors, TEST_DATA_CIRCULAR);
+        }
+
+    */
+
+#endif // TEST_CIRCULAR_MODE
