@@ -182,7 +182,7 @@ typedef enum
      launching the transaction, the dma_launch function will wait in a 
      wait_for_interrupt (wfi) state. */ 
     DMA_TRANS_END__size,     /*!< Not used, only for sanity checks. */
-} dma_trans_end_event_t;
+} dma_trans_end_evt_t;
 
 /**
  * Possible returns of the dma_configure() function.
@@ -233,8 +233,8 @@ typedef enum
  */
 typedef struct
 {
-    uint8_t* start; /*!< Pointer to the start of the environment. */
-    uint8_t* end;   /*!< Pointer to the last byte inside the environment. */
+    uint8_t *start; /*!< Pointer to the start of the environment. */
+    uint8_t *end;   /*!< Pointer to the last byte inside the environment. */
 } dma_env_t;
 
 /**
@@ -284,7 +284,7 @@ typedef struct
     uint32_t            win_b;  /*!< The amount of bytes every which the 
     WINDOW_DONE flag is raised and its corresponding interrupt triggered. It can
     be set to 0 to disable this functionality. */  
-    dma_trans_end_event_t     end;    /*!< What should happen after the transaction 
+    dma_trans_end_evt_t end;    /*!< What should happen after the transaction 
     is launched. */
     dma_config_flags_t  flags;  /*!< A mask with possible issues aroused from 
     the creation of the transaction. */
@@ -346,8 +346,8 @@ dma_config_flags_t dma_create_environment( dma_env_t *p_env );
  * to be loaded.
  * @retval DMA_CONFIG_OK == 0 otherwise.    
  */
-dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans, 
-                                            dma_en_realign_t p_enRealign, 
+dma_config_flags_t dma_create_transaction(  dma_trans_t       *p_trans, 
+                                            dma_en_realign_t  p_enRealign, 
                                             dma_perf_checks_t p_check );
 
 /**
@@ -437,19 +437,3 @@ uint8_t dma_window_ratio_warning_threshold();
 /**                                EOF                                     **/
 /**                                                                        **/
 /****************************************************************************/
-
-
-
-
-
-
-
-
-// juan: remove this
-/**
- * Enables/disables the cirucular mode of the DMA.
- * 
- * Restarts copying as soon as end of buffer is reach.
- * Will trigger DMA interrupt twice: halfway and end of buffer.
- * To stop clear this flag and it will stop after current transaction.
- */
