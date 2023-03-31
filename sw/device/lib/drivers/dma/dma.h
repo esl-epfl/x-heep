@@ -129,7 +129,7 @@ typedef enum{
     Not using this flag is only recommended when parameters are constant and
     the proper operation has been previously tested. */
     DMA_PERFORM_CHECKS__size,       /*!< Not used, only for sanity checks. */
-} dma_perform_checks_t; 
+} dma_perf_checks_t; 
 
 /**
  * In some cases the DMA can overcome a misalignment issue if the data type is
@@ -139,12 +139,12 @@ typedef enum{
  */
 typedef enum
 {
-    DMA_DO_NOT_ALLOW_REALIGN  = 0, /*!< If a misalignment is detected, it will 
+    DMA_DO_NOT_ENABLE_REALIGN  = 0, /*!< If a misalignment is detected, it will 
     be treated as an error. */
-    DMA_ALLOW_REALIGN         = 1, /*!< If a misalignment is detected, the DMA
+    DMA_ENABLE_REALIGN         = 1, /*!< If a misalignment is detected, the DMA
     HAL will try to overcome it. */
-    DMA_ALLOW_REALIGN__size,       /*!< Not used, only for sanity checks. */
-} dma_allow_realign_t;
+    DMA_ENABLE_REALIGN__size,       /*!< Not used, only for sanity checks. */
+} dma_en_realign_t;
 
 /**
  * The mode of operation of the DMA. It determines what the DMA does when the
@@ -338,7 +338,7 @@ dma_config_flags_t dma_create_environment( dma_env_t *p_env );
  * should be allocated. The content of this pointer must be a static variable. 
  * @note Variables size_b, inc_b and type will be set by this function. It is
  * not necessary to set them externally before calling it.
- * @param p_allowRealign Whether to allow the DMA to take a smaller data type 
+ * @param p_enRealign Whether to allow the DMA to take a smaller data type 
  * in order to counter misalignments between the selected data type and the 
  * start pointer.
  * @param p_check Whether integrity checks should be performed. 
@@ -347,8 +347,8 @@ dma_config_flags_t dma_create_environment( dma_env_t *p_env );
  * @retval DMA_CONFIG_OK == 0 otherwise.    
  */
 dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans, 
-                                            dma_allow_realign_t p_allowRealign, 
-                                            dma_perform_checks_t p_check );
+                                            dma_en_realign_t p_enRealign, 
+                                            dma_perf_checks_t p_check );
 
 /**
  * @brief The transaction configuration (that has been previously validated 

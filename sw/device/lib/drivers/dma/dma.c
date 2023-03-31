@@ -115,8 +115,8 @@ dma_config_flags_t validateTarget( dma_target_t *p_tgt );
  * @param p_ptr The source or destination pointer. 
  * @return How misaligned the pointer is, in bytes. 
  */
-static inline uint8_t getMisalignment_b( uint8_t* p_ptr, 
-                                        dma_data_type_t p_type );
+static inline uint8_t getMisalign_b(  uint8_t         *p_ptr, 
+                                          dma_data_type_t p_type );
 
 
 /**
@@ -131,9 +131,11 @@ static inline uint8_t getMisalignment_b( uint8_t* p_ptr,
  * @retval 1 There is an outbound.
  * @retval 0 There is NOT an outbound.   
  */
-static inline uint8_t isOutbound( uint8_t* p_start, uint8_t* p_end, 
-                                uint32_t p_type, uint32_t p_size_du, 
-                                uint32_t p_inc_du );
+static inline uint8_t isOutbound( uint8_t  *p_start, 
+                                  uint8_t  *p_end, 
+                                  uint32_t p_type,  
+                                  uint32_t p_size_du, 
+                                  uint32_t p_inc_du );
 
 /**
  * @brief Writes a given value into the specified register. Its operation 
@@ -147,8 +149,10 @@ static inline uint8_t isOutbound( uint8_t* p_start, uint8_t* p_end,
  * @param p_sel The selection index (i.e. From which bit inside the register
  * the value is to be written). 
  */
-static inline void writeRegister( uint32_t p_val, uint32_t p_offset, 
-                                uint32_t p_mask, uint8_t p_sel );
+static inline void writeRegister( uint32_t p_val,   
+                                  uint32_t p_offset, 
+                                  uint32_t p_mask,  
+                                  uint8_t  p_sel );
 
 
 /**
@@ -230,9 +234,9 @@ dma_config_flags_t dma_create_environment( dma_env_t *p_env )
     return DMA_CONFIG_OK;
 }
 
-dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,  
-                                            dma_allow_realign_t p_allowRealign, 
-                                            dma_perform_checks_t p_check )
+dma_config_flags_t dma_create_transaction(  dma_trans_t        *p_trans,  
+                                            dma_en_realign_t   p_enRealign, 
+                                            dma_perf_checks_t  p_check )
 {
     /*
     * SANITY CHECKS
@@ -240,15 +244,15 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
 
     /* Data type is not necessary. If something is provided anyways it should
      be valid.*/
-    make_sure_that( (dma_data_type_t)p_trans->type < DMA_DATA_TYPE__size );
+    make_sure_that( p_trans->type   < DMA_DATA_TYPE__size );
     /* Transaction mode should be a valid mode. */
-    make_sure_that( (dma_trans_mode_t)p_trans->mode < DMA_TRANS_MODE__size);
+    make_sure_that( p_trans->mode   < DMA_TRANS_MODE__size);
     /* The end event should be a valid end event. */
-    make_sure_that( (dma_trans_end_event_t)p_trans->end < DMA_TRANS_END__size );
+    make_sure_that( p_trans->end    < DMA_TRANS_END__size );
     /* The alignment permission should be a valid permission. */
-    make_sure_that( (dma_allow_realign_t) p_allowRealign < DMA_ALLOW_REALIGN__size );
+    make_sure_that( p_enRealign     < DMA_ENABLE_REALIGN__size );
     /* The checks request should be a valid request. */
-    make_sure_that( (dma_perform_checks_t) p_check < DMA_PERFORM_CHECKS__size );
+    make_sure_that( p_check         < DMA_PERFORM_CHECKS__size );
 
     /*
      * CHECK IF TARGETS HAVE ERRORS
@@ -256,14 +260,15 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
 
     /* 
      * The transaction is NOT created if the targets include errors.
-     * A successful target validation has to be done before loading it to the DMA.
+     * A successful target validation has to be done before loading it to the 
+     * DMA.
      */
     uint8_t errorSrc = validateTarget( p_trans->src );
     uint8_t errorDst = validateTarget( p_trans->dst );
     /* 
-     * If there are any errors or warnings in the valdiation of the targets, they
-     * are added to the transaction flags, adding the source/destination identifying
-     * flags as well. 
+     * If there are any errors or warnings in the valdiation of the targets, 
+     * they are added to the transaction flags, adding the source/destination
+     * identifying flags as well. 
      */
     p_trans->flags |= errorSrc ? (errorSrc | DMA_CONFIG_SRC ) : DMA_CONFIG_OK;
     p_trans->flags |= errorDst ? (errorDst | DMA_CONFIG_SRC ) : DMA_CONFIG_OK; 
@@ -280,20 +285,23 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
     /* 
      * The DMA can only handle one trigger at a time, therefore, if the two 
      * targets require a trigger, the transaction has to be discarded.
-     * None of the two values can be taken by default because this inconsistency
-     * is probably a result of an error (likely wrong target selection).
+     * None of the two values can be taken by default because this 
+     * inconsistency is probably a result of an error (likely wrong target 
+     * selection).
      */
     if( p_check )
     {
-        if( p_trans->src->trig && p_trans->dst->trig ) 
+        if(     p_trans->src->trig != DMA_TRIG_MEMORY
+            &&  p_trans->dst->trig != DMA_TRIG_MEMORY ) 
         {
-            p_trans->flags |= ( DMA_CONFIG_INCOMPATIBLE | DMA_CONFIG_CRITICAL_ERROR );
+            p_trans->flags |= DMA_CONFIG_INCOMPATIBLE;
+            p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
             return p_trans->flags;
         }
     }
 
     /*
-     * CHECK IF THERE ARE MODE INCONSISTENCIES 
+     * CHECK IF THERE IS A MODE INCONSISTENCY 
      */
     
     /* 
@@ -310,7 +318,8 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
             && p_trans->dst->trig == DMA_TRIG_MEMORY 
             && p_trans->mode      == DMA_TRANS_MODE_CIRCULAR ) 
         {
-            p_trans->flags |= ( DMA_CONFIG_INCOMPATIBLE | DMA_CONFIG_CRITICAL_ERROR );
+            p_trans->flags |= DMA_CONFIG_INCOMPATIBLE;
+            p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
             return p_trans->flags;
         }
     } 
@@ -346,17 +355,19 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
          * then the misalignment is not checked.
          */
         uint8_t misalignment = 0;
-        if( ! p_trans->src->trig )
-        {
-            misalignment = getMisalignment_b( p_trans->src->ptr, p_trans->type  );
-        }
-        p_trans->flags |= ( misalignment ? DMA_CONFIG_SRC : DMA_CONFIG_OK ); 
-
         uint8_t dstMisalignment = 0;
-        if( ! p_trans->dst->trig ) 
+
+        if( p_trans->src->trig != DMA_TRIG_MEMORY )
         {
-            dstMisalignment = getMisalignment_b( p_trans->dst->ptr, p_trans->type  );
+            misalignment = getMisalign_b( p_trans->src->ptr, p_trans->type );
         }
+        
+        if( p_trans->dst->trig != DMA_TRIG_MEMORY ) 
+        {
+            dstMisalignment = getMisalign_b( p_trans->dst->ptr, p_trans->type );
+        }
+
+        p_trans->flags  |= ( misalignment ? DMA_CONFIG_SRC : DMA_CONFIG_OK ); 
         p_trans->flags  |= ( dstMisalignment ? DMA_CONFIG_DST : DMA_CONFIG_OK );
 
         /* Only the largest misalignment is preserved.*/
@@ -365,7 +376,7 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
             misalignment = dstMisalignment;
         }
 
-        if( misalignment )
+        if( misalignment != 0 )
         {
             /* 
              * Misalignment flags will only be stored in the transaction, as 
@@ -380,7 +391,7 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
              * No further operations are done to prevent corrupting information
              * that could be useful for debugging purposes. 
              */
-            if( !p_allowRealign)
+            if( !p_enRealign)
             {
                 return p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
             }
@@ -423,7 +434,8 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
              * No further operations are done to prevent corrupting
              * information that could be useful for debugging purposes.
              */
-            if( ( p_trans->src->inc_du > 1 ) || ( p_trans->dst->inc_du > 1 ) )
+            if(    ( p_trans->src->inc_du > 1 ) 
+                || ( p_trans->dst->inc_du > 1 ) )
             {
                 p_trans->flags |= DMA_CONFIG_DISCONTINUOUS;
                 p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
@@ -541,9 +553,9 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
          */
         uint32_t threshold = dma_window_ratio_warning_threshold();
         uint32_t ratio = p_trans->size_b / p_trans->win_b;
-        if( p_trans->win_b 
-            && threshold 
-            && ( ratio > threshold) )
+        if(     p_trans->win_b 
+            &&  threshold 
+            &&  ( ratio > threshold) )
         {
             p_trans->flags |= DMA_CONFIG_WINDOW_SIZE; 
         }
@@ -610,14 +622,14 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
      * Other reason to overwrite the target increment is if a trigger is used.
      * In that case, a increment of 0 is necessary.
      */
-     writeRegister( getIncrement_b( dma_cb.trans->src ), 
-                DMA_PTR_INC_REG_OFFSET, 
-                DMA_PTR_INC_SRC_PTR_INC_MASK,
-                DMA_PTR_INC_SRC_PTR_INC_OFFSET );
-    writeRegister( getIncrement_b( dma_cb.trans->dst ), 
-                DMA_PTR_INC_REG_OFFSET, 
-                DMA_PTR_INC_DST_PTR_INC_MASK,
-                DMA_PTR_INC_DST_PTR_INC_OFFSET );
+    writeRegister(  getIncrement_b( dma_cb.trans->src ), 
+                    DMA_PTR_INC_REG_OFFSET, 
+                    DMA_PTR_INC_SRC_PTR_INC_MASK,
+                    DMA_PTR_INC_SRC_PTR_INC_OFFSET );
+    writeRegister(  getIncrement_b( dma_cb.trans->dst ), 
+                    DMA_PTR_INC_REG_OFFSET, 
+                    DMA_PTR_INC_DST_PTR_INC_MASK,
+                    DMA_PTR_INC_DST_PTR_INC_OFFSET );
     
     /*
      * SET THE OPERATION MODE AND WINDOW SIZE
@@ -626,7 +638,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
     dma_peri->MODE = dma_cb.trans->mode;
     /* The window size is set to the transaction size if it was set to 0 in
     order to disable the functionality (it will never be triggered). */
-    dma_peri->WINDOW_SIZE = dma_cb.trans->win_b 
+    dma_peri->WINDOW_SIZE =   dma_cb.trans->win_b 
                             ? dma_cb.trans->win_b
                             : dma_cb.trans->size_b;
     
@@ -634,20 +646,20 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
      * SET TRIGGER SLOTS AND DATA TYPE
      */    
 
-    writeRegister( dma_cb.trans->src->trig, 
-                DMA_SLOT_REG_OFFSET, 
-                DMA_SLOT_RX_TRIGGER_SLOT_MASK,
-                DMA_SLOT_RX_TRIGGER_SLOT_OFFSET );
+    writeRegister(  dma_cb.trans->src->trig, 
+                    DMA_SLOT_REG_OFFSET, 
+                    DMA_SLOT_RX_TRIGGER_SLOT_MASK,
+                    DMA_SLOT_RX_TRIGGER_SLOT_OFFSET );
 
-    writeRegister( dma_cb.trans->dst->trig, 
-                DMA_SLOT_REG_OFFSET, 
-                DMA_SLOT_TX_TRIGGER_SLOT_MASK,
-                DMA_SLOT_TX_TRIGGER_SLOT_OFFSET );
+    writeRegister(  dma_cb.trans->dst->trig, 
+                    DMA_SLOT_REG_OFFSET, 
+                    DMA_SLOT_TX_TRIGGER_SLOT_MASK,
+                    DMA_SLOT_TX_TRIGGER_SLOT_OFFSET );
 
-    writeRegister( dma_cb.trans->type, 
-                DMA_DATA_TYPE_REG_OFFSET, 
-                DMA_DATA_TYPE_DATA_TYPE_MASK, 
-                DMA_SELECTION_OFFSET_START );
+    writeRegister(  dma_cb.trans->type, 
+                    DMA_DATA_TYPE_REG_OFFSET, 
+                    DMA_DATA_TYPE_DATA_TYPE_MASK, 
+                    DMA_SELECTION_OFFSET_START );
     
     return DMA_CONFIG_OK;
 }
@@ -659,7 +671,8 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans )
      * If the loaded trans was NULL'd, then this the transaction is never 
      * launched.
      */
-    if( !p_trans || ( dma_cb.trans != p_trans ) )
+    if(     ( p_trans != NULL ) 
+        ||  ( dma_cb.trans != p_trans ) )
     {
         return DMA_CONFIG_CRITICAL_ERROR;
     }
@@ -681,7 +694,8 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans )
      * If the end event was set to wait for the interrupt, the dma_launch
      * will not return until the interrupt arrives. 
      */
-    while( p_trans->end == DMA_TRANS_END_INTR_WAIT && ! dma_cb.intrFlag ) {
+    while(    p_trans->end == DMA_TRANS_END_INTR_WAIT 
+          && ( dma_cb.intrFlag != 0 ) ) { // @ToDo: add a label for this 0
         wait_for_interrupt();
     }
 
@@ -693,7 +707,7 @@ uint32_t dma_is_ready()
 {    
     /* The transaction READY bit is read from the status register*/   
     uint32_t ret = ( dma_peri->STATUS & (1<<DMA_STATUS_READY_BIT) );
-    make_sure_that( ret == 0 || ret == 1 );
+    make_sure_that( ret == 0 || ret == 1 ); // @ToDo: Add label to these values
     return ret;
 }
 /* @ToDo: Reconsider this decision.
@@ -768,14 +782,14 @@ dma_config_flags_t validateTarget( dma_target_t *p_tgt )
      */
 
     /* Increment can be 0 when a trigger is used. */
-    make_sure_that( p_tgt->inc_du >= 0 ); 
+    make_sure_that( p_tgt->inc_du   >= 0 ); 
     /* The size could be 0 if the target is only going to be used as a 
     destination. */
-    make_sure_that( p_tgt->size_du >=  0 ); 
+    make_sure_that( p_tgt->size_du  >=  0 ); 
     /* The data type must be a valid type */
-    make_sure_that( p_tgt->type < DMA_DATA_TYPE__size );
+    make_sure_that( p_tgt->type     < DMA_DATA_TYPE__size );
     /* The trigger must be among the valid trigger values. */
-    make_sure_that( p_tgt->trig < DMA_TRIG__size );
+    make_sure_that( p_tgt->trig     < DMA_TRIG__size );
     
     /*
      * INTEGRITY CHECKS
@@ -793,9 +807,11 @@ dma_config_flags_t validateTarget( dma_target_t *p_tgt )
          * This is only analyzed if a size was defined. */
         if( p_tgt->size_du != 0 )
         {
-            uint8_t isOutb = isOutbound( p_tgt->ptr, p_tgt->env->end, 
-                                        p_tgt->type, p_tgt->size_du, 
-                                        p_tgt->inc_du );
+            uint8_t isOutb = isOutbound(  p_tgt->ptr,
+                                          p_tgt->env->end, 
+                                          p_tgt->type, 
+                                          p_tgt->size_du, 
+                                          p_tgt->inc_du );
             if( isOutb )
             {
                 flags |= DMA_CONFIG_OUTBOUNDS;
@@ -803,9 +819,9 @@ dma_config_flags_t validateTarget( dma_target_t *p_tgt )
         }
 
         /* Check if the target starts before the environment starts. */
-        uint8_t beforeEnv = p_tgt->ptr < p_tgt->env->start;
+        uint8_t beforeEnv = ( p_tgt->ptr < p_tgt->env->start );
         /* Check if the target starts after the environment ends. */
-        uint8_t afterEnv = p_tgt->ptr > p_tgt->env->end;
+        uint8_t afterEnv  = ( p_tgt->ptr > p_tgt->env->end );
         if( beforeEnv || afterEnv )
         {
             flags |= DMA_CONFIG_OUTBOUNDS;
@@ -828,7 +844,8 @@ dma_config_flags_t validateTarget( dma_target_t *p_tgt )
     else /* If it is a peripheral. */
     {   
         /* It should not have neither an environment nor an increment. */
-        if( ( (p_tgt->env != NULL) || ( p_tgt->inc_du != 0 ) ) )
+        if( (     (p_tgt->env != NULL) 
+              ||  ( p_tgt->inc_du != 0 ) ) )
         {
             flags |= DMA_CONFIG_INCOMPATIBLE;
         }
@@ -842,8 +859,8 @@ dma_config_flags_t validateTarget( dma_target_t *p_tgt )
     return flags; 
 }
 
-static inline uint8_t getMisalignment_b( uint8_t* p_ptr, 
-                                        dma_data_type_t p_type )
+static inline uint8_t getMisalign_b(  uint8_t         *p_ptr, 
+                                      dma_data_type_t p_type )
 {
     /*
      * Note: These checks only makes sense when the target is memory. This is 
@@ -918,11 +935,11 @@ static inline uint8_t getMisalignment_b( uint8_t* p_ptr,
     return misalignment;
 }
 
-static inline uint8_t isOutbound( uint8_t* p_start, 
-                                uint8_t* p_end, 
-                                uint32_t p_type, 
-                                uint32_t p_size_du, 
-                                uint32_t p_inc_du )
+static inline uint8_t isOutbound( uint8_t  *p_start, 
+                                  uint8_t  *p_end, 
+                                  uint32_t p_type, 
+                                  uint32_t p_size_du, 
+                                  uint32_t p_inc_du )
 {
   /* 000 = A data unit to be copied
    * xxx = A data unit to be skipped
@@ -938,8 +955,8 @@ static inline uint8_t isOutbound( uint8_t* p_start,
    * If the environment ends before the last affected byte, then there is
    * outbound writing and the function returns 1.  
    */
-    uint32_t affectedUnits = ( p_size_du - 1 )*p_inc_du + 1;
-    uint32_t rangeSize = DMA_DATA_TYPE_2_SIZE(p_type) * affectedUnits;
+    uint32_t affectedUnits      = ( p_size_du - 1 ) * p_inc_du + 1;
+    uint32_t rangeSize          = DMA_DATA_TYPE_2_SIZE(p_type) * affectedUnits;
     uint32_t lasByteInsideRange = p_start + rangeSize -1;
     return ( p_end < lasByteInsideRange );
     // Size is be guaranteed to be non-zero before calling this function.  
@@ -947,10 +964,10 @@ static inline uint8_t isOutbound( uint8_t* p_start,
 
 /* @ToDo: Consider changing the "mask" parameter for a bitfield definition 
 (see dma_regs.h) */
-static inline void writeRegister( uint32_t p_val, 
-                                uint32_t p_offset, 
-                                uint32_t p_mask,
-                                uint8_t p_sel )
+static inline void writeRegister( uint32_t  p_val, 
+                                  uint32_t  p_offset, 
+                                  uint32_t  p_mask,
+                                  uint8_t   p_sel )
 {
     /* 
      * The index is computed to avoid needing to access the structure
@@ -961,9 +978,9 @@ static inline void writeRegister( uint32_t p_val,
      * An intermediate variable "value" is used to prevent writing twice into 
      * the register.
      */
-    uint32_t value =  (( uint32_t * ) dma_peri ) [ index ];
-    value &= ~( p_mask << p_sel );
-    value |= (p_val & p_mask) << p_sel;
+    uint32_t value  =  (( uint32_t * ) dma_peri ) [ index ];
+    value           &= ~( p_mask << p_sel );
+    value           |= (p_val & p_mask) << p_sel;
     (( uint32_t * ) dma_peri ) [ index ] = value; 
 }
 

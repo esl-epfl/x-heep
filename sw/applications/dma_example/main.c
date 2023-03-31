@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 
     cycles = 0;
 
-    res = dma_create_transaction( &trans, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     PRINTF("tran: %u \n\r", res);
     
     res = dma_load_transaction(&trans);
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
         
         cycles = 0;
 
-        res = dma_create_transaction( &trans, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+        res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
         res = dma_load_transaction(&trans);
         res = dma_launch(&trans);
         

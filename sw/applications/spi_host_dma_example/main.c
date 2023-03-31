@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 
     dma_config_flags_t res;
 
-    res = dma_create_transaction( &trans, DMA_ALLOW_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     printf("Result - tgt trans: %u\n", res );
     res = dma_load_transaction(&trans);
     printf("Result - tgt load: %u\n", res );
