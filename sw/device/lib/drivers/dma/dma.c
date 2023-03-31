@@ -291,7 +291,30 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t *p_trans,
             return p_trans->flags;
         }
     }
+
+    /*
+     * CHECK IF THERE ARE MODE INCONSISTENCIES 
+     */
     
+    /* 
+     * Memory to Memory in circular mode is not only of dubious usefulness, but also
+     * risky. Depending on the MCU properties, the buffer size, the window size and
+     * length of the ISR, the CPU could miss consecutive interrupts or even enter in
+     * an irreversible loop state. 
+     * This issue is less likely to happen with a properly set Memory-to-peripheral
+     * configuration, so circular mode is allowed.
+     */
+    if( p_check )
+    {
+        if(    p_trans->src->trig == DMA_TRIG_MEMORY 
+            && p_trans->dst->trig == DMA_TRIG_MEMORY 
+            && p_trans->mode      == DMA_TRANS_MODE_CIRCULAR ) 
+        {
+            p_trans->flags |= ( DMA_CONFIG_INCOMPATIBLE | DMA_CONFIG_CRITICAL_ERROR );
+            return p_trans->flags;
+        }
+    } 
+
     /*
      * SET UP THE DEFAULT CONFIGURATIONS 
      */
@@ -566,6 +589,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans )
         dma_peri->INTERRUPT_EN = 0b00000011;
     }
     // @ToDo: Do this in the proper way!!! Consider all possible scenarios!
+    // @ToDo: Comment the CSR
 
 
     /*
