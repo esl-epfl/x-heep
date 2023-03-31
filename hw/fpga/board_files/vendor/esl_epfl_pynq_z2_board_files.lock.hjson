@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/pulp-platform/common_cells.git
-    rev: f9528fa6e4d3080605c01074bdaf62dcb4aff7d2
+    url: https://github.com/esl-epfl/pynq-z2_board_files.git
+    rev: ba76fe872870c815a5a8c9252dae2208c242847f
   }
 }
