@@ -192,8 +192,7 @@ make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=16
 ```
 
 The last command generates x-heep with the cv32e40p core, with a parallel bus, and 16 memory banks,
-each 32KB, for a total memory of 512KB. Note that in case of executing a FreeRTOS-based application, 
-the **minimum memory banks should be set to 5**. This is related to the FreeRTOS code and ram requirements.
+each 32KB, for a total memory of 512KB. 
 
 ## Compiling Software
 
@@ -231,11 +230,6 @@ compiled and linked are under `sw\build`
 ## FreeROTS based applications
 
 'X-HEEP' supports 'FreeRTOS' based applications. Please see `sw\applications\blinky_freertos`.
-Note that before runing such application, and due to current memory constraints, the core-v-mini-mcu package needs to be generated using more memory banks than the default settings. Thus, as previously specified: in case of executing a FreeRTOS-based application, the **minimum memory banks should be set to 5**. This is related to the FreeRTOS code and ram requirements. In this case, please, run the following command:
-
-```
-make mcu-gen MEMORY_BANKS=5
-```
 
 After that, you can run the command to compile and link the FreeRTOS based application. Please also set 'LINKER' and 'TARGET' parameters if needed.
 

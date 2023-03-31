@@ -207,7 +207,9 @@ if (${COMPILER} MATCHES "clang")
                                           -fvisibility=hidden \
                                           -nostartfiles \
                                           -Wall \
-                                          -Wno-unused-command-line-argument" )
+                                          -Wno-unused-command-line-argument\
+										  -DportasmHANDLE_INTERRUPT=vSystemIrqHandler \
+										  " )
 endif()
 
 # In case of wanting to create a library with those subdirectories
@@ -264,7 +266,9 @@ endif()
 if (${COMPILER} MATCHES "clang")
   set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
                                 ${SOURCE_PATH}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${MAINFILE}.c.obj \
-                                -o ${MAINFILE}.elf")
+                                -o ${MAINFILE}.elf \
+								_deps/freertos_kernel-build/libfreertos_kernel.a \ _deps/freertos_kernel-build/portable/libfreertos_kernel_port.a \ _deps/freertos_kernel-build/libfreertos_kernel.a \ _deps/freertos_kernel-build/portable/libfreertos_kernel_port.a \
+								")
 endif()
 
 # Post processing command to create a disassembly file 
