@@ -56,8 +56,8 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic i2c_scl_io,
     inout logic i2c_sda_io,
 
-    output logic pdm2pcm_clk_o,
-    input  logic pdm2pcm_pdm_i
+    inout logic pdm2pcm_clk_io,
+    inout logic pdm2pcm_pdm_io
 
 );
 
@@ -172,8 +172,8 @@ module xilinx_core_v_mini_mcu_wrapper
       .spi2_cs_0_io(spi2_csb_o[0]),
       .spi2_cs_1_io(spi2_csb_o[1]),
       .spi2_sck_io(spi2_sck_o),
-      .pdm2pcm_clk_o,
-      .pdm2pcm_pdm_i
+      .pdm2pcm_clk_io,
+      .pdm2pcm_pdm_io
   );
 
   assign exit_value_o = exit_value[0];
