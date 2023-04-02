@@ -24,6 +24,8 @@
 
 #include "mmio.h"
 
+#include "groundtruth.h"
+
 int main(int argc, char *argv[])
 {
     printf("PDM2PCM DEMO\n");
@@ -99,8 +101,6 @@ int main(int argc, char *argv[])
     int const COUNT = 5;
 
     int count = 0;
-    int read_prev = 0;
-    int storage[COUNT];
     int finish = 0;
     int fed = 0;
    
@@ -108,21 +108,20 @@ int main(int argc, char *argv[])
         uint32_t status = mmio_region_read32(pdm2pcm_base_addr, PDM2PCM_STATUS_REG_OFFSET);
         if (!(status & 1)) {
             int32_t read = mmio_region_read32(pdm2pcm_base_addr, PDM2PCM_RXDATA_REG_OFFSET);
-            if (read != 0 || fed == 1) {
+            if (fed == 1 || read != 0) {
                 fed = 1;
-                storage[count] = read;
+                if(pdm2pcm_groundtruth[count] != (int)read) {
+                    printf("ERROR: at index %d. read != groundtruth (resp. %d != %d).\n",count,(int)read,pdm2pcm_groundtruth[count]);
+                    return EXIT_FAILURE;
+                }
                 ++count;
-                read_prev = read;
                 if (count >= COUNT) {
                     finish = 1;
+                    printf("SUCCESS: Readings correspond to ground truth.\n");
                 }
             }
         }
     }
-    for (int i = 0; i < COUNT; ++i) {
-        printf("%d\n",storage[i]);
-    }
-
     return EXIT_SUCCESS;
 }
 
