@@ -86,7 +86,7 @@ module pdm_core #(
   logic             combs_en;
   logic             hb2_en;
   logic             fir_en;
-  
+
   clk_int_div #(
       .DIV_VALUE_WIDTH(CLKDIVWIDTH)
   ) clk_int_div_inst (
@@ -108,7 +108,7 @@ module pdm_core #(
       div_clk_p <= div_clk;
     end
   end
-  
+
   assign div_clk_e = div_clk & ~div_clk_p;
 
   // Output synchronized with the last decimator

@@ -86,7 +86,6 @@ filesets:
     - hw/system/pad_control/pad_control.vlt
     - hw/system/x_heep_system.vlt
     - hw/simulation/simulation.vlt
-    - hw/vendor/pulp_platform_common_cells/lint/common_cells.vlt
     file_type: vlt
 
   rtl-fpga:
