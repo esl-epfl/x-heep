@@ -50,6 +50,29 @@
 /**                                                                        **/
 /****************************************************************************/
 
+/**
+ * Start and end ID of the UART interrupt request lines
+*/
+#define UART_ID_START  1
+#define UART_ID_END    8
+
+/**
+ * Start and end ID of the GPIO interrupt request lines
+*/
+#define GPIO_ID_START   9
+#define GPIO_ID_END     32
+
+/**
+ * Start and end ID of the I2C interrupt request lines
+*/
+#define I2C_ID_START    33
+#define I2C_ID_END      48
+
+/**
+ * ID of the SPI interrupt request line
+*/
+#define SPI_ID    49
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        TYPEDEFS AND STRUCTURES                           */

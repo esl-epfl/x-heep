@@ -76,6 +76,25 @@ const uint32_t plicMaxPriority = RV_PLIC_PRIO0_PRIO0_MASK;
 /**                                                                        **/
 /****************************************************************************/
 
+/**
+ * Get an IE, IP or LE register offset (IE0_0, IE01, ...) from an IRQ source ID.
+ *
+ * With more than 32 IRQ sources, there is a multiple of these registers to
+ * accommodate all the bits (1 bit per IRQ source). This function calculates
+ * the offset for a specific IRQ source ID (ID 32 would be IE01, ...).
+ */
+static ptrdiff_t plic_offset_from_reg0(plic_irq_id_t irq);
+
+/**
+ * 
+ * Get an IE, IP, LE register bit index from an IRQ source ID.
+ *
+ * With more than 32 IRQ sources, there is a multiple of these registers to
+ * accommodate all the bits (1 bit per IRQ source). This function calculates
+ * the bit position within a register for a specific IRQ source ID (ID 32 would
+ * be bit 0).
+ */
+static uint8_t plic_irq_bit_index(plic_irq_id_t irq);
 /****************************************************************************/
 /**                                                                        **/
 /*                           EXPORTED VARIABLES                             */
@@ -126,19 +145,19 @@ __attribute__((weak)) void handler_irq_spi(void) {
 */
 static irq_sources_t plic_get_irq_src_type(plic_irq_id_t irq_id)
 {
-  if(irq_id >= 1 && irq_id <= 8)
+  if(irq_id >= UART_ID_START && irq_id <= UART_ID_END)
   {
     return IRQ_UART_SRC;
   }
-  else if (irq_id >= 9 && irq_id <= 32)
+  else if (irq_id >= GPIO_ID_START && irq_id <= GPIO_ID_END)
   {
     return IRQ_GPIO_SRC;
   }
-  else if (irq_id >= 33 && irq_id <= 48)
+  else if (irq_id >= I2C_ID_START && irq_id <= I2C_ID_END)
   {
     return IRQ_I2C_SRC;
   }
-  else if(irq_id == 49)
+  else if(irq_id == SPI_ID)
   {
     return IRQ_SPI_SRC;
   }
@@ -456,35 +475,12 @@ plic_result_t plic_software_irq_is_pending(bool *is_pending)
 /**                                                                        **/
 /****************************************************************************/
 
-// void plic_get_reg_and_bit_index(uint32_t *base_reg, plic_irq_id_t irq,
-//                                 uint32_t *reg, uint16_t *bit_index)
-// {
-//   ptrdiff_t offset = plic_offset_from_reg0(irq);
-//   *reg = *(base_reg + offset);
-//   *bit_index = plic_irq_bit_index(irq);
-// }
-
-/**
- * Get an IE, IP or LE register offset (IE0_0, IE01, ...) from an IRQ source ID.
- *
- * With more than 32 IRQ sources, there is a multiple of these registers to
- * accommodate all the bits (1 bit per IRQ source). This function calculates
- * the offset for a specific IRQ source ID (ID 32 would be IE01, ...).
- */
 static ptrdiff_t plic_offset_from_reg0(plic_irq_id_t irq) {
   uint8_t register_index = irq / RV_PLIC_PARAM_REG_WIDTH;
   return register_index * sizeof(uint32_t);
 }
 
-/**
- * 
- * Get an IE, IP, LE register bit index from an IRQ source ID.
- *
- * With more than 32 IRQ sources, there is a multiple of these registers to
- * accommodate all the bits (1 bit per IRQ source). This function calculates
- * the bit position within a register for a specific IRQ source ID (ID 32 would
- * be bit 0).
- */
+
 static uint8_t plic_irq_bit_index(plic_irq_id_t irq) {
   return irq % RV_PLIC_PARAM_REG_WIDTH;
 }
