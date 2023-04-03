@@ -66,7 +66,7 @@
  * This is an unsigned 32-bit value that is at least 0 and is less than the
  * `NumTarget` instantiation parameter of the `rv_plic` device.
  */
-typedef uint32_t dif_plic_target_t;
+typedef uint32_t plic_target_t;
 
 
 /**
@@ -80,13 +80,13 @@ typedef uint32_t dif_plic_target_t;
  *
  * The value 0 corresponds to "No Interrupt".
  */
-typedef uint32_t dif_plic_irq_id_t;
+typedef uint32_t plic_irq_id_t;
 
 
 /**
  * The result of a PLIC operation.
  */
-typedef enum dif_plic_result {
+typedef enum plic_result {
   /**
    * Indicates that the operation succeeded.
    */
@@ -102,7 +102,7 @@ typedef enum dif_plic_result {
    * When this value is returned, no hardware operations occurred.
    */
   kDifPlicBadArg = 2,
-} dif_plic_result_t;
+} plic_result_t;
 
 
 /**
@@ -111,7 +111,7 @@ typedef enum dif_plic_result {
  * This enum may be used instead of a `bool` when describing an enabled/disabled
  * state.
  */
-typedef enum dif_plic_toggle {
+typedef enum plic_toggle {
   /*
    * The "enabled" state.
    */
@@ -120,13 +120,13 @@ typedef enum dif_plic_toggle {
    * The "disabled" state.
    */
   kDifPlicToggleDisabled,
-} dif_plic_toggle_t;
+} plic_toggle_t;
 
 
 /**
  * An interrupt trigger type.
  */
-typedef enum dif_plic_irq_trigger {
+typedef enum plic_irq_trigger {
   /**
    * Trigger on an edge (when the signal changes from low to high).
    */
@@ -135,7 +135,7 @@ typedef enum dif_plic_irq_trigger {
    * Trigger on a level (when the signal remains high).
    */
   kDifPlicIrqTriggerLevel,
-} dif_plic_irq_trigger_t;
+} plic_irq_trigger_t;
 
 
 /**
@@ -174,6 +174,27 @@ extern int8_t external_intr_flag;
 /****************************************************************************/
 
 /**
+ * IRQ handler for UART 
+*/
+void handler_irq_uart(void);
+
+/**
+ * IRQ handler for GPIO 
+*/
+void handler_irq_gpio(void);
+
+/**
+ * IRQ handler for I2C 
+*/
+void handler_irq_i2c(void);
+
+/**
+ * IRQ handler for SPI 
+*/
+void handler_irq_spi(void);
+
+
+/**
  * Generic handler for the interrupts in inputs to RV_PLIC.
  * Its basic purpose is to understand which source generated
  * the interrupt and call the proper specific handler. The source
@@ -190,7 +211,7 @@ void handler_irq_external(void);
  *
  * @return The result of the operation.
  */
-dif_plic_result_t plic_Init(void);
+plic_result_t plic_Init(void);
 
 
 /**
@@ -207,8 +228,8 @@ dif_plic_result_t plic_Init(void);
  * @param state The new toggle state for the interrupt
  * @return The result of the operation
 */
-dif_plic_result_t plic_irq_set_enabled(dif_plic_irq_id_t irq,
-                                       dif_plic_toggle_t state);
+plic_result_t plic_irq_set_enabled(plic_irq_id_t irq,
+                                       plic_toggle_t state);
 
 
 /**
@@ -225,8 +246,8 @@ dif_plic_result_t plic_irq_set_enabled(dif_plic_irq_id_t irq,
  * @param state The toggle state of the interrupt, as read from the IE registers
  * @return The result of the operation
 */
-dif_plic_result_t plic_irq_get_enabled(dif_plic_irq_id_t irq,
-                                       dif_plic_toggle_t *state);
+plic_result_t plic_irq_get_enabled(plic_irq_id_t irq,
+                                       plic_toggle_t *state);
 
 /**
  * Sets the interrupt request trigger type.
@@ -241,8 +262,8 @@ dif_plic_result_t plic_irq_get_enabled(dif_plic_irq_id_t irq,
  * @result The result of the operation
  * 
 */
-dif_plic_result_t plic_irq_set_trigger(dif_plic_irq_id_t irq,
-                                           dif_plic_irq_trigger_t trigger);
+plic_result_t plic_irq_set_trigger(plic_irq_id_t irq,
+                                           plic_irq_trigger_t trigger);
 
 /**
  * Sets a priority value for a specific interrupt source
@@ -251,7 +272,7 @@ dif_plic_result_t plic_irq_set_trigger(dif_plic_irq_id_t irq,
  * @param priority A priority value to set
  * @return The result of the operation
 */
-dif_plic_result_t plic_irq_set_priority(dif_plic_irq_id_t irq, uint32_t priority);
+plic_result_t plic_irq_set_priority(plic_irq_id_t irq, uint32_t priority);
 
 /**
  * Sets the priority threshold.
@@ -263,7 +284,7 @@ dif_plic_result_t plic_irq_set_priority(dif_plic_irq_id_t irq, uint32_t priority
  * @param threshold The threshold value to be set
  * @return The result of the operation
 */
-dif_plic_result_t plic_target_set_threshold(uint32_t threshold);
+plic_result_t plic_target_set_threshold(uint32_t threshold);
 
 /**
  * Returns whether a particular interrupt is currently pending.
@@ -271,14 +292,14 @@ dif_plic_result_t plic_target_set_threshold(uint32_t threshold);
  * @param irq An interrupt source identification
  * @param[out] is_pending Boolean flagcorresponding to whether an interrupt is pending or not 
 */
-dif_plic_result_t plic_irq_is_pending(dif_plic_irq_id_t irq,
+plic_result_t plic_irq_is_pending(plic_irq_id_t irq,
                                           bool *is_pending);
 
 /**
  * Claims an IRQ and gets the information about the source.
  *
  * Claims an IRQ and returns the IRQ related data to the caller. This function
- * reads a target specific Claim/Complete register. #dif_plic_irq_complete must
+ * reads a target specific Claim/Complete register. #plic_irq_complete must
  * be called in order to allow another interrupt with the same source id to be
  * delivered. This usually would be done once the interrupt has been serviced.
  *
@@ -294,7 +315,7 @@ dif_plic_result_t plic_irq_is_pending(dif_plic_irq_id_t irq,
  * @param[out] claim_data Data that describes the origin of the IRQ.
  * @return The result of the operation.
  */
-dif_plic_result_t plic_irq_claim(dif_plic_target_t target, dif_plic_irq_id_t *claim_data);
+plic_result_t plic_irq_claim(plic_target_t target, plic_irq_id_t *claim_data);
 
 /**
  * Completes the claimed interrupt request.
@@ -310,7 +331,7 @@ dif_plic_result_t plic_irq_claim(dif_plic_target_t target, dif_plic_irq_id_t *cl
  * PLIC of the IRQ servicing completion.
  * @return The result of the operation
 */
-dif_plic_result_t plic_irq_complete(const dif_plic_irq_id_t *complete_data);
+plic_result_t plic_irq_complete(const plic_irq_id_t *complete_data);
 
 
 /**
@@ -324,7 +345,7 @@ dif_plic_result_t plic_irq_complete(const dif_plic_irq_id_t *complete_data);
  *
  * @return The result of the operation
  */
-dif_plic_result_t plic_software_irq_force();
+plic_result_t plic_software_irq_force();
 
 
 /**
@@ -336,7 +357,7 @@ dif_plic_result_t plic_software_irq_force();
  *
  * @return The result of the operation
  */
-dif_plic_result_t plic_software_irq_acknowledge();
+plic_result_t plic_software_irq_acknowledge();
 
 /**
  * Returns software interrupt pending state
@@ -344,7 +365,7 @@ dif_plic_result_t plic_software_irq_acknowledge();
  * @param is_pending Bool variable storing the information about the pending state
  * @return The result of the operation
 */
-dif_plic_result_t plic_software_irq_is_pending(bool *is_pending);
+plic_result_t plic_software_irq_is_pending(bool *is_pending);
 
 #endif /* _RV_PLIC_H_ */
 

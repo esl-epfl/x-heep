@@ -29,7 +29,7 @@
 *
 */
 
-#define _Template_C_SRC
+#define _RV_PLIC_C_SRC
 
 /****************************************************************************/
 /**                                                                        **/
@@ -61,8 +61,8 @@
 /**
  * Minimum and Maximum priority that an interrupt source can have
 */
-const uint32_t kDifPlicMinPriority = 0;
-const uint32_t kDifPlicMaxPriority = RV_PLIC_PRIO0_PRIO0_MASK;
+const uint32_t plicMinPriority = 0;
+const uint32_t plicMaxPriority = RV_PLIC_PRIO0_PRIO0_MASK;
 
 /****************************************************************************/
 /**                                                                        **/
@@ -96,37 +96,35 @@ int8_t external_intr_flag = 0;
 /**                                                                        **/
 /****************************************************************************/
 
-
-/**
- * Get an IE, IP or LE register offset (IE0_0, IE01, ...) from an IRQ source ID.
- *
- * With more than 32 IRQ sources, there is a multiple of these registers to
- * accommodate all the bits (1 bit per IRQ source). This function calculates
- * the offset for a specific IRQ source ID (ID 32 would be IE01, ...).
- */
-static ptrdiff_t plic_offset_from_reg0(dif_plic_irq_id_t irq) {
-  uint8_t register_index = irq / RV_PLIC_PARAM_REG_WIDTH;
-  return register_index * sizeof(uint32_t);
+__attribute__((weak)) void handler_irq_uart(void) {
+  printf("WEAK UART IRQ triggered!\n");
+  volatile int i=0;
+  i++;
 }
 
-/**
- * 
- * Get an IE, IP, LE register bit index from an IRQ source ID.
- *
- * With more than 32 IRQ sources, there is a multiple of these registers to
- * accommodate all the bits (1 bit per IRQ source). This function calculates
- * the bit position within a register for a specific IRQ source ID (ID 32 would
- * be bit 0).
- */
-static uint8_t plic_irq_bit_index(dif_plic_irq_id_t irq) {
-  return irq % RV_PLIC_PARAM_REG_WIDTH;
+__attribute__((weak)) void handler_irq_gpio(void) {
+  printf("WEAK GPIO IRQ triggered!\n");
+  volatile int i=0;
+  i++;
+}
+
+__attribute__((weak)) void handler_irq_i2c(void) {
+  printf("WEAK I2C IRQ triggered!\n");
+  volatile int i=0;
+  i++;
+}
+
+__attribute__((weak)) void handler_irq_spi(void) {
+  printf("WEAK SPI IRQ triggered!\n");
+  volatile int i=0;
+  i++;
 }
 
 
 /**
  * Returns the irq_sources_t source type of a given irq source ID
 */
-static irq_sources_t plic_get_irq_src_type(dif_plic_irq_id_t irq_id)
+static irq_sources_t plic_get_irq_src_type(plic_irq_id_t irq_id)
 {
   if(irq_id >= 1 && irq_id <= 8)
   {
@@ -151,30 +149,30 @@ static irq_sources_t plic_get_irq_src_type(dif_plic_irq_id_t irq_id)
 
 void handler_irq_external(void)
 {
-  dif_plic_irq_id_t int_id;
-  dif_plic_result_t res = plic_irq_claim(0, &int_id);
+  plic_irq_id_t int_id;
+  plic_result_t res = plic_irq_claim(0, &int_id);
   irq_sources_t type = plic_get_irq_src_type(int_id);
 
   //TODO: adjust each case by calling the proper interrupt handler 
   switch (type)
   {
   case IRQ_UART_SRC: 
-    printf("UART interrupt triggered!\n");
+    handler_irq_uart();
     external_intr_flag = 1;
     break;
   
   case IRQ_GPIO_SRC:
-    printf("GPIO interrupt triggered!\n");
+    handler_irq_gpio();
     external_intr_flag = 1;
     break;
 
   case IRQ_I2C_SRC:
-    printf("I2C interrupt triggered!\n");
+    handler_irq_i2c();
     external_intr_flag = 1;
     break;
 
   case IRQ_SPI_SRC:
-    printf("SPI interrupt triggered!\n");
+    handler_irq_spi();
     external_intr_flag = 1;
     break;
 
@@ -196,7 +194,7 @@ void handler_irq_external(void)
   It writes the default value 0 in them and read back
   the value into the proper register struct
 */
-dif_plic_result_t plic_Init(void)
+plic_result_t plic_Init(void)
 {
   
   /* Clears all the Level/Edge registers */ 
@@ -221,7 +219,8 @@ dif_plic_result_t plic_Init(void)
     uint32_t *dest = &rv_plic_peri->IP0 + i;
     *dest = 0;
 
-    if(*dest != 0){
+    if(*dest != 0)
+    {
       return kDifPlicError;
     }
   }
@@ -235,7 +234,8 @@ dif_plic_result_t plic_Init(void)
     uint32_t *dest = base + i;
     *dest = 0;
 
-    if(*dest != 0){
+    if(*dest != 0)
+    {
       return kDifPlicError;
     }
   }
@@ -260,8 +260,8 @@ dif_plic_result_t plic_Init(void)
 }
 
 
-dif_plic_result_t plic_irq_set_enabled(dif_plic_irq_id_t irq,
-                                       dif_plic_toggle_t state)
+plic_result_t plic_irq_set_enabled(plic_irq_id_t irq,
+                                       plic_toggle_t state)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC)
   {
@@ -286,10 +286,6 @@ dif_plic_result_t plic_irq_set_enabled(dif_plic_irq_id_t irq,
   ptrdiff_t offset = plic_offset_from_reg0(irq);
   uint32_t *dest = &rv_plic_peri->IE00 + offset;
   uint16_t bit_index = plic_irq_bit_index(irq);
-
-  // uint32_t *dest;
-  // uint16_t bit_index;
-  // plic_get_reg_and_bit_index(&rv_plic_peri->IE00, irq, dest, &bit_index);
   
   *dest = bitfield_bit32_write(*dest, bit_index, flag);
 
@@ -297,10 +293,11 @@ dif_plic_result_t plic_irq_set_enabled(dif_plic_irq_id_t irq,
 }
 
 
-dif_plic_result_t plic_irq_get_enabled(dif_plic_irq_id_t irq,
-                                       dif_plic_toggle_t *state)
+plic_result_t plic_irq_get_enabled(plic_irq_id_t irq,
+                                       plic_toggle_t *state)
 {
-  if(irq >= RV_PLIC_PARAM_NUM_SRC){
+  if(irq >= RV_PLIC_PARAM_NUM_SRC)
+  {
     return kDifPlicBadArg;
   }
   
@@ -317,10 +314,11 @@ dif_plic_result_t plic_irq_get_enabled(dif_plic_irq_id_t irq,
 }
 
 
-dif_plic_result_t plic_irq_set_trigger(dif_plic_irq_id_t irq,
-                                           dif_plic_irq_trigger_t trigger)
+plic_result_t plic_irq_set_trigger(plic_irq_id_t irq,
+                                           plic_irq_trigger_t trigger)
 {
-  if(irq >= RV_PLIC_PARAM_NUM_SRC){
+  if(irq >= RV_PLIC_PARAM_NUM_SRC)
+  {
     return kDifPlicBadArg;
   }
 
@@ -349,9 +347,9 @@ dif_plic_result_t plic_irq_set_trigger(dif_plic_irq_id_t irq,
 }
 
 
-dif_plic_result_t plic_irq_set_priority(dif_plic_irq_id_t irq, uint32_t priority)
+plic_result_t plic_irq_set_priority(plic_irq_id_t irq, uint32_t priority)
 {
-  if(irq >= RV_PLIC_PARAM_NUM_SRC || priority > kDifPlicMaxPriority)
+  if(irq >= RV_PLIC_PARAM_NUM_SRC || priority > plicMaxPriority)
   {
     return kDifPlicBadArg;
   }
@@ -367,9 +365,10 @@ dif_plic_result_t plic_irq_set_priority(dif_plic_irq_id_t irq, uint32_t priority
 }
 
 
-dif_plic_result_t plic_target_set_threshold(uint32_t threshold)
+plic_result_t plic_target_set_threshold(uint32_t threshold)
 {
-  if(threshold > kDifPlicMaxPriority){
+  if(threshold > plicMaxPriority)
+  {
     return kDifPlicBadArg;
   }
 
@@ -380,10 +379,11 @@ dif_plic_result_t plic_target_set_threshold(uint32_t threshold)
 }
 
 
-dif_plic_result_t plic_irq_is_pending(dif_plic_irq_id_t irq,
+plic_result_t plic_irq_is_pending(plic_irq_id_t irq,
                                           bool *is_pending)
 {
-  if(irq >= RV_PLIC_PARAM_NUM_SRC || is_pending == NULL){
+  if(irq >= RV_PLIC_PARAM_NUM_SRC || is_pending == NULL)
+  {
     return kDifPlicBadArg;
   }
 
@@ -397,8 +397,9 @@ dif_plic_result_t plic_irq_is_pending(dif_plic_irq_id_t irq,
 }
 
 
-dif_plic_result_t plic_irq_claim(dif_plic_target_t target, dif_plic_irq_id_t *claim_data) {
-  if (target >= RV_PLIC_PARAM_NUM_TARGET || claim_data == NULL) {
+plic_result_t plic_irq_claim(plic_target_t target, plic_irq_id_t *claim_data) {
+  if (target >= RV_PLIC_PARAM_NUM_TARGET || claim_data == NULL) 
+  {
     return kDifPlicBadArg;
   }
 
@@ -410,8 +411,9 @@ dif_plic_result_t plic_irq_claim(dif_plic_target_t target, dif_plic_irq_id_t *cl
 }
 
 
-dif_plic_result_t plic_irq_complete(const dif_plic_irq_id_t *complete_data) {
-  if (complete_data == NULL) {
+plic_result_t plic_irq_complete(const plic_irq_id_t *complete_data) {
+  if (complete_data == NULL) 
+  {
     return kDifPlicBadArg;
   }
 
@@ -423,7 +425,7 @@ dif_plic_result_t plic_irq_complete(const dif_plic_irq_id_t *complete_data) {
 }
 
 
-dif_plic_result_t plic_software_irq_force()
+plic_result_t plic_software_irq_force()
 {
   rv_plic_peri->MSIP0 = 1;
 
@@ -431,7 +433,7 @@ dif_plic_result_t plic_software_irq_force()
 }
 
 
-dif_plic_result_t plic_software_irq_acknowledge()
+plic_result_t plic_software_irq_acknowledge()
 {
   rv_plic_peri->MSIP0 = 0;
 
@@ -439,7 +441,7 @@ dif_plic_result_t plic_software_irq_acknowledge()
 }
 
 
-dif_plic_result_t plic_software_irq_is_pending(bool *is_pending)
+plic_result_t plic_software_irq_is_pending(bool *is_pending)
 {
   uint32_t reg = rv_plic_peri->MSIP0;
   *is_pending = (reg == 1) ? true : false;
@@ -454,12 +456,37 @@ dif_plic_result_t plic_software_irq_is_pending(bool *is_pending)
 /**                                                                        **/
 /****************************************************************************/
 
-void plic_get_reg_and_bit_index(uint32_t *base_reg, dif_plic_irq_id_t irq,
-                                uint32_t *reg, uint16_t *bit_index)
-{
-  ptrdiff_t offset = plic_offset_from_reg0(irq);
-  *reg = *(base_reg + offset);
-  *bit_index = plic_irq_bit_index(irq);
+// void plic_get_reg_and_bit_index(uint32_t *base_reg, plic_irq_id_t irq,
+//                                 uint32_t *reg, uint16_t *bit_index)
+// {
+//   ptrdiff_t offset = plic_offset_from_reg0(irq);
+//   *reg = *(base_reg + offset);
+//   *bit_index = plic_irq_bit_index(irq);
+// }
+
+/**
+ * Get an IE, IP or LE register offset (IE0_0, IE01, ...) from an IRQ source ID.
+ *
+ * With more than 32 IRQ sources, there is a multiple of these registers to
+ * accommodate all the bits (1 bit per IRQ source). This function calculates
+ * the offset for a specific IRQ source ID (ID 32 would be IE01, ...).
+ */
+static ptrdiff_t plic_offset_from_reg0(plic_irq_id_t irq) {
+  uint8_t register_index = irq / RV_PLIC_PARAM_REG_WIDTH;
+  return register_index * sizeof(uint32_t);
+}
+
+/**
+ * 
+ * Get an IE, IP, LE register bit index from an IRQ source ID.
+ *
+ * With more than 32 IRQ sources, there is a multiple of these registers to
+ * accommodate all the bits (1 bit per IRQ source). This function calculates
+ * the bit position within a register for a specific IRQ source ID (ID 32 would
+ * be bit 0).
+ */
+static uint8_t plic_irq_bit_index(plic_irq_id_t irq) {
+  return irq % RV_PLIC_PARAM_REG_WIDTH;
 }
 
 /****************************************************************************/

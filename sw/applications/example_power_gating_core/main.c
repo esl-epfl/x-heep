@@ -21,7 +21,7 @@ static rv_timer_t timer_2_3;
 static const uint64_t kTickFreqHz = 1000 * 1000; // 1 MHz
 
 static power_manager_t power_manager;
-static dif_plic_t rv_plic;
+// static plic_t rv_plic;
 static gpio_t gpio;
 
 int main(int argc, char *argv[])
@@ -36,9 +36,9 @@ int main(int argc, char *argv[])
     power_manager_counters_t power_manager_cpu_counters;
 
     // Setup plic
-    dif_plic_params_t rv_plic_params;
-    rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
-    dif_plic_init(rv_plic_params, &rv_plic);
+    // plic_params_t rv_plic_params;
+    // rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
+    plic_Init();
 
     // Get current Frequency
     soc_ctrl_t soc_ctrl;
@@ -126,10 +126,10 @@ int main(int argc, char *argv[])
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     clear_fast_interrupt(&fast_intr_ctrl, kTimer_3_fic_e);
 
-#ifdef USE_EXTERNAL_DEVICE
+// #ifdef USE_EXTERNAL_DEVICE
     // Power-gate and wake-up due to plic
-    dif_plic_irq_set_priority(&rv_plic, GPIO_INTR_31, 1);
-    dif_plic_irq_set_enabled(&rv_plic, GPIO_INTR_31, 0, kDifPlicToggleEnabled);
+    plic_irq_set_priority(GPIO_INTR_31, 1);
+    plic_irq_set_enabled(GPIO_INTR_31, kDifPlicToggleEnabled);
     gpio_output_set_enabled(&gpio, 30, true);
     gpio_irq_set_trigger(&gpio, 1 << 31, kGpioIrqTriggerLevelHigh);
     gpio_irq_set_enabled(&gpio, 31, true);
@@ -143,9 +143,9 @@ int main(int argc, char *argv[])
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
 
-    dif_plic_irq_id_t intr_num;
-    dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-#endif
+    plic_irq_id_t intr_num;
+    plic_irq_complete(&intr_num);
+// #endif
     /* write something to stdout */
     printf("Success.\n");
     return EXIT_SUCCESS;

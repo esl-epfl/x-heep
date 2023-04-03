@@ -23,10 +23,8 @@
 #define FLASH_CLK_MAX_HZ (133 * 1000 * 1000)
 
 // Interrupt controller variables
-dif_plic_params_t rv_plic_params;
-dif_plic_t rv_plic;
-dif_plic_result_t plic_res;
-dif_plic_irq_id_t intr_num;
+plic_result_t plic_res;
+plic_irq_id_t intr_num;
 
 //volatile int8_t timer_flag;
 volatile int8_t spi_intr_flag;
