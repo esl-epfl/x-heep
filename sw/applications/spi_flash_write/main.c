@@ -329,128 +329,112 @@ int main(int argc, char *argv[])
     PRINTF("\n\n===================================\n\n");
     PRINTF("  MEM <- <- <- DMA <- <- <- SPI  ");
     PRINTF("\n\n===================================\n\n");
-    for( uint32_t iteration = 1000; iteration > 0; iteration-- )
-    { 
-        PRINTF("\n\n Iteration: %d \n\n", iteration);
 
 #ifndef USE_SPI_FLASH
-        const uint8_t slot2 = DMA_TRIG_SLOT_SPI_RX; // The DMA will wait for the SPI TX FIFO ready signal
+    const uint8_t slot2 = DMA_TRIG_SLOT_SPI_RX; // The DMA will wait for the SPI TX FIFO ready signal
 #else
-        const uint8_t slot2 = DMA_TRIG_SLOT_SPI_FLASH_RX; // The DMA will wait for the SPI FLASH TX FIFO ready signal
+    const uint8_t slot2 = DMA_TRIG_SLOT_SPI_FLASH_RX; // The DMA will wait for the SPI FLASH TX FIFO ready signal
 #endif
 
-        static dma_target_t tgt3= {
-        .ptr = copy_data,
-        .inc_du = 1,
+    static dma_target_t tgt3= {
+    .ptr = copy_data,
+    .inc_du = 1,
+    .size_du = COPY_DATA_WORDS,
+    .trig = DMA_TRIG_MEMORY,
+    .type = DMA_DATA_TYPE_WORD,
+    };
+
+    static dma_target_t tgt4= {
+        .inc_du = 0,
         .size_du = COPY_DATA_WORDS,
-        .trig = DMA_TRIG_MEMORY,
+        .trig = slot2,
         .type = DMA_DATA_TYPE_WORD,
-        };
+    };
+    tgt4.ptr = fifo_ptr_rx;
 
-        static dma_target_t tgt4= {
-            .inc_du = 0,
-            .size_du = COPY_DATA_WORDS,
-            .trig = slot2,
-            .type = DMA_DATA_TYPE_WORD,
-        };
-        tgt4.ptr = fifo_ptr_rx;
+    static dma_trans_t trans2 = {
+                            .src = &tgt4,
+                            .dst = &tgt3,
+                            .end = DMA_TRANS_END_INTR,
+                            };
 
-        static dma_trans_t trans2 = {
-                                .src = &tgt4,
-                                .dst = &tgt3,
-                                .end = DMA_TRANS_END_INTR,
-                                };
+    res = dma_create_transaction( &trans2, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    PRINTF("tran: %u \n\r", res);
+    
+    res = dma_load_transaction(&trans2);
+    PRINTF("load: %u \n\r", res);
 
-        res = dma_create_transaction( &trans2, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-        PRINTF("tran: %u \n\r", res);
-        
-        res = dma_load_transaction(&trans2);
-        PRINTF("load: %u \n\r", res);
+    // The address bytes sent through the SPI to the Flash are in reverse order
+    const int32_t read_byte_cmd = ((REVERT_24b_ADDR(FLASH_ADDR) << 8) | 0x03);
 
-        // The address bytes sent through the SPI to the Flash are in reverse order
-        const int32_t read_byte_cmd = ((REVERT_24b_ADDR(FLASH_ADDR) << 8) | 0x03);
+    // Fill TX FIFO with TX data (read command + 3B address)
+    spi_write_word(&spi_host, read_byte_cmd);
+    // Wait for readiness to process commands
+    spi_wait_for_ready(&spi_host);
 
-        // Fill TX FIFO with TX data (read command + 3B address)
-        spi_write_word(&spi_host, read_byte_cmd);
-        // Wait for readiness to process commands
-        spi_wait_for_ready(&spi_host);
+    // Load command FIFO with read command (1 Byte at single speed)
+    const uint32_t cmd_read = spi_create_command((spi_command_t){
+        .len        = 3,
+        .csaat      = true,
+        .speed      = kSpiSpeedStandard,
+        .direction  = kSpiDirTxOnly
+    });
+    spi_set_command(&spi_host, cmd_read);
+    spi_wait_for_ready(&spi_host);
 
-        // Load command FIFO with read command (1 Byte at single speed)
-        const uint32_t cmd_read = spi_create_command((spi_command_t){
-            .len        = 3,
-            .csaat      = true,
-            .speed      = kSpiSpeedStandard,
-            .direction  = kSpiDirTxOnly
-        });
-        spi_set_command(&spi_host, cmd_read);
-        spi_wait_for_ready(&spi_host);
+    const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
+        .len        = COPY_DATA_WORDS*sizeof(*copy_data) - 1,
+        .csaat      = false,
+        .speed      = kSpiSpeedStandard,
+        .direction  = kSpiDirRxOnly
+    });
+    spi_set_command(&spi_host, cmd_read_rx);
+    spi_wait_for_ready(&spi_host);
 
-        const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
-            .len        = COPY_DATA_WORDS*sizeof(*copy_data) - 1,
-            .csaat      = false,
-            .speed      = kSpiSpeedStandard,
-            .direction  = kSpiDirRxOnly
-        });
-        spi_set_command(&spi_host, cmd_read_rx);
-        spi_wait_for_ready(&spi_host);
+    dma_intr_flag = 0;
 
-        dma_intr_flag = 0;
-
-        //PRINTF("///////////"); // This is a threshold printf. Shorter and it does not work. Longer works ok.
-        //PRINTF("This is a long printf just to give some time.\n");
-
-        /*
-        volatile uint32_t pepe = 1000000;
-
-        for( uint32_t i; i < pepe; i++ ){
-            asm("nop");
+    res = dma_launch(&trans2);
+    PRINTF("laun: %u \n\r", res);
+    
+    PRINTF("Waiting for the DMA...\n");
+    while( ! dma_is_ready() ){
+        if( trans2.end == DMA_TRANS_END_INTR )
+        {
+            wait_for_interrupt();
         }
-        */
+    }
+    PRINTF("triggered!\n");
 
+    // Power down flash
+    const uint32_t powerdown_byte_cmd = 0xb9;
+    spi_write_word(&spi_host, powerdown_byte_cmd);
+    const uint32_t cmd_powerdown = spi_create_command((spi_command_t){
+        .len        = 0,
+        .csaat      = false,
+        .speed      = kSpiSpeedStandard,
+        .direction  = kSpiDirTxOnly
+    });
+    spi_set_command(&spi_host, cmd_powerdown);
+    spi_wait_for_ready(&spi_host);
 
-        res = dma_launch(&trans2);
-        PRINTF("laun: %u \n\r", res);
-        
-        PRINTF("Waiting for the DMA...\n");
-        while( ! dma_is_ready() ){
-            if( trans2.end == DMA_TRANS_END_INTR )
-            {
-                wait_for_interrupt();
-            }
+    // The data is already in memory -- Check results
+    PRINTF("flash vs ram...\n");
+
+    int i;
+    uint32_t errors = 0;
+    uint32_t count = 0;
+    for (i = 0; i<COPY_DATA_WORDS; i++) {
+        if(flash_data[i] != copy_data[i]) {
+            PRINTF("@%08x-@%08x : %02x\t!=\t%02x\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
+            errors++;
         }
-        PRINTF("triggered!\n");
+        count++;
+    }
 
-        // Power down flash
-        const uint32_t powerdown_byte_cmd = 0xb9;
-        spi_write_word(&spi_host, powerdown_byte_cmd);
-        const uint32_t cmd_powerdown = spi_create_command((spi_command_t){
-            .len        = 0,
-            .csaat      = false,
-            .speed      = kSpiSpeedStandard,
-            .direction  = kSpiDirTxOnly
-        });
-        spi_set_command(&spi_host, cmd_powerdown);
-        spi_wait_for_ready(&spi_host);
-
-        // The data is already in memory -- Check results
-        PRINTF("flash vs ram...\n");
-
-        int i;
-        uint32_t errors = 0;
-        uint32_t count = 0;
-        for (i = 0; i<COPY_DATA_WORDS; i++) {
-            if(flash_data[i] != copy_data[i]) {
-                PRINTF("@%08x-@%08x : %02x\t!=\t%02x\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
-                errors++;
-            }
-            count++;
-        }
-
-        if (errors == 0) {
-            PRINTF("success! (Words checked: %d)\n", count);
-        } else {
-            PRINTF("failure, %d errors! (Out of %d)\n", errors, count);
-        }
+    if (errors == 0) {
+        PRINTF("success! (Words checked: %d)\n", count);
+    } else {
+        PRINTF("failure, %d errors! (Out of %d)\n", errors, count);
     }
 
 #endif //TEST_MEM_2_SPI
