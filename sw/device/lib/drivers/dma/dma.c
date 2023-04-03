@@ -357,12 +357,12 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t        *p_trans,
         uint8_t misalignment = 0;
         uint8_t dstMisalignment = 0;
 
-        if( p_trans->src->trig != DMA_TRIG_MEMORY )
+        if( p_trans->src->trig == DMA_TRIG_MEMORY )
         {
             misalignment = getMisalign_b( p_trans->src->ptr, p_trans->type );
         }
         
-        if( p_trans->dst->trig != DMA_TRIG_MEMORY ) 
+        if( p_trans->dst->trig == DMA_TRIG_MEMORY ) 
         {
             dstMisalignment = getMisalign_b( p_trans->dst->ptr, p_trans->type );
         }
@@ -450,7 +450,7 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t        *p_trans,
              * If realignment is allowed and there are no discontinuities,
              * a more granular data type is used according to the detected 
              * misalignment in order to overcome it. 
-             */       
+             */
             p_trans->type += misalignment;
             /* 
              * Source and destination increment should now be of the size
@@ -607,7 +607,8 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
     /*
      * SET THE POINTERS
      */
-
+    printf("src ptr - Wrote %08x @ ----\n", dma_cb.trans->src->ptr );
+    printf("dst ptr - Wrote %08x @ ----\n", dma_cb.trans->dst->ptr );
     dma_peri->SRC_PTR = dma_cb.trans->src->ptr;
     dma_peri->DST_PTR = dma_cb.trans->dst->ptr;
     
@@ -622,10 +623,12 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * Other reason to overwrite the target increment is if a trigger is used.
      * In that case, a increment of 0 is necessary.
      */
+    printf("src inc - ");
     writeRegister(  getIncrement_b( dma_cb.trans->src ), 
                     DMA_PTR_INC_REG_OFFSET, 
                     DMA_PTR_INC_SRC_PTR_INC_MASK,
                     DMA_PTR_INC_SRC_PTR_INC_OFFSET );
+    printf("dst inc - ");
     writeRegister(  getIncrement_b( dma_cb.trans->dst ), 
                     DMA_PTR_INC_REG_OFFSET, 
                     DMA_PTR_INC_DST_PTR_INC_MASK,
@@ -635,9 +638,15 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * SET THE OPERATION MODE AND WINDOW SIZE
      */
 
+    printf("mode    - Wrote %08x @ ----\n", dma_cb.trans->mode );
     dma_peri->MODE = dma_cb.trans->mode;
     /* The window size is set to the transaction size if it was set to 0 in
     order to disable the functionality (it will never be triggered). */
+    
+    printf("win siz - Wrote %08x @ ----\n", dma_cb.trans->win_b 
+                            ? dma_cb.trans->win_b
+                            : dma_cb.trans->size_b );
+
     dma_peri->WINDOW_SIZE =   dma_cb.trans->win_b 
                             ? dma_cb.trans->win_b
                             : dma_cb.trans->size_b;
@@ -645,17 +654,19 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
     /*
      * SET TRIGGER SLOTS AND DATA TYPE
      */    
-
+    printf("src tri - ");
     writeRegister(  dma_cb.trans->src->trig, 
                     DMA_SLOT_REG_OFFSET, 
                     DMA_SLOT_RX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_RX_TRIGGER_SLOT_OFFSET );
 
+    printf("dst tri - ");
     writeRegister(  dma_cb.trans->dst->trig, 
                     DMA_SLOT_REG_OFFSET, 
                     DMA_SLOT_TX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_TX_TRIGGER_SLOT_OFFSET );
 
+    printf("dat typ - ");
     writeRegister(  dma_cb.trans->type, 
                     DMA_DATA_TYPE_REG_OFFSET, 
                     DMA_DATA_TYPE_DATA_TYPE_MASK, 
@@ -688,6 +699,7 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans )
     dma_cb.intrFlag = 0;
 
     /* Load the size and start the transaction. */
+    //printf("size    - Wrote %08x @ ----\n", dma_cb.trans->size_b );
     dma_peri->SIZE = dma_cb.trans->size_b;
 
     /* 
@@ -905,7 +917,6 @@ static inline uint8_t getMisalign_b(  uint8_t         *p_ptr,
         if( ( (uint32_t)p_ptr & DMA_WORD_ALIGN_MASK )  != 0 )
         {
             misalignment++;
-
         }
     }
     
@@ -982,6 +993,9 @@ static inline void writeRegister( uint32_t  p_val,
     value           &= ~( p_mask << p_sel );
     value           |= (p_val & p_mask) << p_sel;
     (( uint32_t * ) dma_peri ) [ index ] = value; 
+
+    printf("Wrote %08x @ %04x\n", value, index );
+
 }
 
 static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
