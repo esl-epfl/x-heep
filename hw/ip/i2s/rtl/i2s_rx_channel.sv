@@ -74,7 +74,7 @@ module i2s_rx_channel #(
   end
 
   always_ff @(posedge sck_i, negedge rst_ni) begin
-    if (rst_ni == 1'b0) begin
+    if (~rst_ni) begin
       r_shiftreg <= 'h0;
       r_shadow <= 'h0;
       r_valid <= 1'b0;
@@ -105,7 +105,7 @@ module i2s_rx_channel #(
   end
 
   always_ff @(posedge sck_i, negedge rst_ni) begin
-    if (rst_ni == 1'b0) begin
+    if (~rst_ni) begin
       r_count_bit <= 'h0;
       width_overflow <= 1'b0;
     end else begin
@@ -124,7 +124,7 @@ module i2s_rx_channel #(
 
 
   always_ff @(posedge sck_i, negedge rst_ni) begin
-    if (rst_ni == 1'b0) begin
+    if (~rst_ni) begin
       r_ws_old  <= 'h0;
       r_started <= 'h0;
     end else begin

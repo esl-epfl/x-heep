@@ -25,7 +25,7 @@ module i2s_ws_gen #(
   logic [CounterWidth-1:0] r_counter;
 
   always_ff @(posedge sck_i, negedge rst_ni) begin
-    if (rst_ni == 1'b0) begin
+    if (~rst_ni) begin
       r_counter <= 'h0;
     end else begin
       if (en_i) begin
@@ -37,7 +37,7 @@ module i2s_ws_gen #(
 
   //Generate the internal WS signal
   always_ff @(negedge sck_i, negedge rst_ni) begin
-    if (rst_ni == 1'b0) begin
+    if (~rst_ni) begin
       ws_o <= 1'b0;
     end else begin
       if (en_i) begin
