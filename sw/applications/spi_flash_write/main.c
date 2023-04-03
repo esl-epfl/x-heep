@@ -25,12 +25,22 @@
 #define TEST_MEM_2_SPI
 #define TEST_SPI_2_MEM
 
-#define CIRCULAR_CYCLES 5
-#define COPY_DATA_WORDS 16 // Flash page size = 256 Bytes
+#define CIRCULAR_CYCLES 4
+
+#define COPY_DATA_WORDS 66 // Flash page size = 256 Bytes
 
 #define REVERT_24b_ADDR(addr) ((((uint32_t)addr & 0xff0000) >> 16) | ((uint32_t)addr & 0xff00) | (((uint32_t)addr & 0xff) << 16))
 #define FLASH_ADDR 0x00008500 // 256B data alignment
 #define FLASH_CLK_MAX_HZ (133*1000*1000) // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
+
+
+#ifdef TEST_CIRCULAR 
+    #define COPY_DATA_PER_CYCLE ( COPY_DATA_WORDS / CIRCULAR_CYCLES )// Flash page size = 256 Bytes
+#else
+    #define COPY_DATA_PER_CYCLE COPY_DATA_WORDS
+#endif //TEST_CIRCULAR 
+
+
 
 // Use PRINTF instead of PRINTF to remove print by default
 #ifdef DEBUG
@@ -41,12 +51,11 @@
 #define PRINTF2(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 
 int8_t spi_intr_flag;
-int8_t dma_intr_flag;
 spi_host_t spi_host;
 int8_t cycles;
 
 // Reserve memory array
-uint32_t flash_data[COPY_DATA_WORDS] __attribute__ ((aligned (4))) = {0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,0x679852fe,0xff8252bb,0x763b4521,0x6875adaa,0x09ac65bb,0x666ba334,0x44556677,0x0000ba98};
+uint32_t flash_data[COPY_DATA_WORDS] __attribute__ ((aligned (4))) = { 0 };
 uint32_t copy_data[COPY_DATA_WORDS] __attribute__ ((aligned (4)))  = { 0 };
 
 uint32_t *fifo_ptr_tx;
@@ -89,11 +98,10 @@ void dma_intr_handler(void)
 void dma_intr_handler(void)
 {
     PRINTF("#");
-    dma_intr_flag = 1;
 }
 #endif //TEST_CIRCULAR
 
-void spi_config()
+static inline __attribute__((always_inline)) void spi_config()
 {
 
 /*
@@ -125,7 +133,6 @@ void spi_config()
 
 
     CSR_SET_BITS(CSR_REG_MIE, mask);
-    spi_intr_flag = 0;
 
     // Enable SPI host device
     spi_set_enable(&spi_host, true);
@@ -209,6 +216,36 @@ void spi_config()
 }
 
 
+static inline __attribute__((always_inline)) void spi_wait_4_resp()
+{
+    // Check status register status waiting for ready
+    bool flash_busy = true;
+    uint8_t flash_resp[4] = {0xff,0xff,0xff,0xff};
+    while(flash_busy){
+        uint32_t flash_cmd = 0x00000005; // [CMD] Read status register
+        spi_write_word(&spi_host, flash_cmd); // Push TX buffer
+        uint32_t spi_status_cmd = spi_create_command((spi_command_t){
+            .len        = 0,
+            .csaat      = true,
+            .speed      = kSpiSpeedStandard,
+            .direction  = kSpiDirTxOnly
+        });
+        uint32_t spi_status_read_cmd = spi_create_command((spi_command_t){
+            .len        = 0,
+            .csaat      = false,
+            .speed      = kSpiSpeedStandard,
+            .direction  = kSpiDirRxOnly
+        });
+        spi_set_command(&spi_host, spi_status_cmd);
+        spi_wait_for_ready(&spi_host);
+        spi_set_command(&spi_host, spi_status_read_cmd);
+        spi_wait_for_ready(&spi_host);
+        spi_wait_for_rx_watermark(&spi_host);
+        spi_read_word(&spi_host, &flash_resp[0]);
+        if ((flash_resp[0] & 0x01) == 0) flash_busy = false;
+    }
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -216,6 +253,11 @@ int main(int argc, char *argv[])
     dma_init();
 
     dma_config_flags_t res;
+
+    for( uint32_t i = 0; i < COPY_DATA_WORDS; i ++ )
+    {
+        flash_data[i] = (uint32_t) i;
+    }
 
 #ifdef TEST_MEM_2_SPI
 
@@ -233,14 +275,14 @@ int main(int argc, char *argv[])
     static dma_target_t tgt1= {
         .ptr = flash_data,
         .inc_du = 1,
-        .size_du = COPY_DATA_WORDS,
+        .size_du = COPY_DATA_PER_CYCLE,
         .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_WORD,
     };
 
     static dma_target_t tgt2= {
         .inc_du = 0,
-        .size_du = COPY_DATA_WORDS,
+        .size_du = COPY_DATA_PER_CYCLE,
         .trig = slot,
         .type = DMA_DATA_TYPE_WORD,
     };
@@ -269,6 +311,7 @@ int main(int argc, char *argv[])
     res = dma_launch(&trans);
     PRINTF("laun: %u \n\r", res);
 
+    spi_intr_flag = 0;
     // Wait for the first data to arrive to the TX FIFO before enabling interrupt
     spi_wait_for_tx_not_empty(&spi_host);
     // Enable event interrupt
@@ -292,32 +335,7 @@ int main(int argc, char *argv[])
     }
     PRINTF("triggered!\n");
 
-    // Check status register status waiting for ready
-    bool flash_busy = true;
-    uint8_t flash_resp[4] = {0xff,0xff,0xff,0xff};
-    while(flash_busy){
-        uint32_t flash_cmd = 0x00000005; // [CMD] Read status register
-        spi_write_word(&spi_host, flash_cmd); // Push TX buffer
-        uint32_t spi_status_cmd = spi_create_command((spi_command_t){
-            .len        = 0,
-            .csaat      = true,
-            .speed      = kSpiSpeedStandard,
-            .direction  = kSpiDirTxOnly
-        });
-        uint32_t spi_status_read_cmd = spi_create_command((spi_command_t){
-            .len        = 0,
-            .csaat      = false,
-            .speed      = kSpiSpeedStandard,
-            .direction  = kSpiDirRxOnly
-        });
-        spi_set_command(&spi_host, spi_status_cmd);
-        spi_wait_for_ready(&spi_host);
-        spi_set_command(&spi_host, spi_status_read_cmd);
-        spi_wait_for_ready(&spi_host);
-        spi_wait_for_rx_watermark(&spi_host);
-        spi_read_word(&spi_host, &flash_resp[0]);
-        if ((flash_resp[0] & 0x01) == 0) flash_busy = false;
-    }
+    spi_wait_4_resp();
 
     PRINTF("%d Bytes written in Flash at @ 0x%08x \n", COPY_DATA_WORDS*sizeof(*flash_data), FLASH_ADDR);
 
@@ -339,14 +357,14 @@ int main(int argc, char *argv[])
     static dma_target_t tgt3= {
     .ptr = copy_data,
     .inc_du = 1,
-    .size_du = COPY_DATA_WORDS,
+    .size_du = COPY_DATA_PER_CYCLE,
     .trig = DMA_TRIG_MEMORY,
     .type = DMA_DATA_TYPE_WORD,
     };
 
     static dma_target_t tgt4= {
         .inc_du = 0,
-        .size_du = COPY_DATA_WORDS,
+        .size_du = COPY_DATA_PER_CYCLE,
         .trig = slot2,
         .type = DMA_DATA_TYPE_WORD,
     };
@@ -391,8 +409,6 @@ int main(int argc, char *argv[])
     spi_set_command(&spi_host, cmd_read_rx);
     spi_wait_for_ready(&spi_host);
 
-    dma_intr_flag = 0;
-
     res = dma_launch(&trans2);
     PRINTF("laun: %u \n\r", res);
     
@@ -425,7 +441,7 @@ int main(int argc, char *argv[])
     uint32_t count = 0;
     for (i = 0; i<COPY_DATA_WORDS; i++) {
         if(flash_data[i] != copy_data[i]) {
-            PRINTF("@%08x-@%08x : %02x\t!=\t%02x\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
+            PRINTF("@%08x-@%08x : %02d\t!=\t%02d\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
             errors++;
         }
         count++;
@@ -435,6 +451,11 @@ int main(int argc, char *argv[])
         PRINTF("success! (Words checked: %d)\n", count);
     } else {
         PRINTF("failure, %d errors! (Out of %d)\n", errors, count);
+
+
+        for (i = 0; i<COPY_DATA_WORDS; i++) {
+            PRINTF("@%08x-@%08x : %02d\tvs.\t%02d\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
+        }
     }
 
 #endif //TEST_MEM_2_SPI
