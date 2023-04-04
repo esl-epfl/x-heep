@@ -32,6 +32,7 @@ filesets:
     - x-heep:ip:dma
     - x-heep:ip:power_manager
     - x-heep:ip:fast_intr_ctrl
+    - x-heep:ip:pdm2pcm
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
@@ -78,6 +79,8 @@ filesets:
     - hw/ip/boot_rom/boot_rom.vlt
     - hw/ip/obi_spimemio/obi_spimemio.vlt
     - hw/ip/dma/dma.vlt
+    - hw/ip/pdm2pcm/pdm2pcm.vlt
+    - hw/ip_examples/pdm2pcm_dummy/pdm2pcm_dummy.vlt
     - hw/ip/power_manager/power_manager.vlt
     - hw/ip/fast_intr_ctrl/fast_intr_ctrl.vlt
     - hw/system/pad_control/pad_control.vlt
