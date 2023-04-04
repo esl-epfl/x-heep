@@ -29,8 +29,6 @@
 *
 */
 
-#define _RV_PLIC_C_SRC
-
 /****************************************************************************/
 /**                                                                        **/
 /*                             MODULES USED                                 */
@@ -172,7 +170,6 @@ void handler_irq_external(void)
   plic_result_t res = plic_irq_claim(0, &int_id);
   irq_sources_t type = plic_get_irq_src_type(int_id);
 
-  //TODO: adjust each case by calling the proper interrupt handler 
   switch (type)
   {
   case IRQ_UART_SRC: 
@@ -232,9 +229,6 @@ plic_result_t plic_Init(void)
   /* Clears all the priority registers */ 
   for(size_t i=0; i<RV_PLIC_PARAM_NUM_SRC; i++)
   {
-    // ptrdiff_t offset = plic_priority_reg_offset(i);
-    // mmio_region_write32(rv_plic.rv_plic_base_addr, offset, 0);
-
     uint32_t *dest = &rv_plic_peri->IP0 + i;
     *dest = 0;
 
@@ -287,7 +281,7 @@ plic_result_t plic_irq_set_enabled(plic_irq_id_t irq,
     return kDifPlicBadArg;
   }
 
-  bool flag;
+  bool flag = false;
   switch (state)
   {
   case kDifPlicToggleEnabled:
@@ -304,6 +298,8 @@ plic_result_t plic_irq_set_enabled(plic_irq_id_t irq,
 
   ptrdiff_t offset = plic_offset_from_reg0(irq);
   uint32_t *dest = &rv_plic_peri->IE00 + offset;
+
+  // Get the destination bit in which to write
   uint16_t bit_index = plic_irq_bit_index(irq);
   
   *dest = bitfield_bit32_write(*dest, bit_index, flag);
@@ -320,12 +316,15 @@ plic_result_t plic_irq_get_enabled(plic_irq_id_t irq,
     return kDifPlicBadArg;
   }
   
+  // Get the destination register 
   ptrdiff_t offset = plic_offset_from_reg0(irq);
   uint32_t *reg = &rv_plic_peri->IE00 + offset;
+
+  // Get the destination bit in which to write
   uint16_t bit_index = plic_irq_bit_index(irq);
 
+  // Reads the enabled/disabled bit 
   bool is_enabled = bitfield_bit32_read(*reg, bit_index);
-
   *state = is_enabled ? kDifPlicToggleEnabled : kDifPlicToggleDisabled;
 
   return kDifPlicOk;
@@ -355,10 +354,14 @@ plic_result_t plic_irq_set_trigger(plic_irq_id_t irq,
       return kDifPlicBadArg;
   }
 
+  // Get the destination register 
   ptrdiff_t offset = plic_offset_from_reg0(irq);
   uint32_t *reg = &rv_plic_peri->LE0 + offset;
+
+  // Get the destination bit in which to write
   uint16_t bit_index = plic_irq_bit_index(irq);
 
+  // Updated the register with the new bit
   *reg = bitfield_bit32_write(*reg, bit_index, flag);
 
   return kDifPlicOk;
@@ -373,6 +376,7 @@ plic_result_t plic_irq_set_priority(plic_irq_id_t irq, uint32_t priority)
     return kDifPlicBadArg;
   }
 
+  // Writes the new priority into the proper register
   uint32_t *dest = &rv_plic_peri->PRIO0 + irq;
   *dest = priority;
 
@@ -406,8 +410,11 @@ plic_result_t plic_irq_is_pending(plic_irq_id_t irq,
     return kDifPlicBadArg;
   }
 
+  // Get the destination register 
   ptrdiff_t offset = plic_offset_from_reg0(irq);
   uint32_t *reg = &rv_plic_peri->IP0 + offset;
+
+  // Get the destination bit in which to write
   uint16_t bit_index = plic_irq_bit_index(irq);
 
   *is_pending = bitfield_bit32_read(*reg, bit_index);
@@ -421,9 +428,7 @@ plic_result_t plic_irq_claim(plic_target_t target, plic_irq_id_t *claim_data) {
   {
     return kDifPlicBadArg;
   }
-
-  // printf("CC0:\t%d\n", rv_plic_peri->CC0);
-  // printf("CC0:\t%d\n", rv_plic_peri->CC0);
+  
   *claim_data = rv_plic_peri->CC0;
 
   return kDifPlicOk;
