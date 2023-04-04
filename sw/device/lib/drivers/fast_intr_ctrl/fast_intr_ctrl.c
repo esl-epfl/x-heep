@@ -31,17 +31,10 @@
 /****************************************************************************/
 
 #include "fast_intr_ctrl.h"
-#include <stddef.h>
-#include <stdint.h>
-#include "mmio.h"
 #include "core_v_mini_mcu.h"
 #include "fast_intr_ctrl_regs.h"  // Generated.
 #include "fast_intr_ctrl_structs.h"
-
-/* interrupts */
-// #include "handler.h"
-#include "csr.h"
-// #include "stdasm.h"
+// #include "csr.h"
 
 /****************************************************************************/
 /**                                                                        **/

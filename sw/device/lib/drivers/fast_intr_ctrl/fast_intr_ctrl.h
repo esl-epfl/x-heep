@@ -27,10 +27,6 @@
 #ifndef _FAST_INTR_CTRL_H_
 #define _FAST_INTR_CTRL_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /****************************************************************************/
 /**                                                                        **/
 /**                            MODULES USED                                **/
@@ -231,8 +227,4 @@ void fic_irq_gpio_7(void);
 /**                                EOF                                     **/
 /**                                                                        **/
 /****************************************************************************/
-#ifdef __cplusplus
-}
-#endif
-
 #endif  // _FAST_INTR_CTRL_H_
