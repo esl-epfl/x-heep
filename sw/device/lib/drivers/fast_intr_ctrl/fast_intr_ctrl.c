@@ -34,7 +34,6 @@
 #include "core_v_mini_mcu.h"
 #include "fast_intr_ctrl_regs.h"  // Generated.
 #include "fast_intr_ctrl_structs.h"
-// #include "csr.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -215,88 +214,74 @@ fast_intr_ctrl_result_t clear_fast_interrupt(fast_intr_ctrl_fast_interrupt_t\
     return kFastIntrCtrlOk_e;
 }
 
-__attribute__((weak)) void fic_irq_timer_1(void)
+__attribute__((weak, optimize("O0"))) void fic_irq_timer_1(void)
 {
-    volatile uint8_t i;
-    i++;
+    /* Users should implement their non-weak version */
 }
 
-__attribute__((weak)) void fic_irq_timer_2(void)
+__attribute__((weak, optimize("O0"))) void fic_irq_timer_2(void)
 {
-    volatile uint8_t i;
-    i++;
+    /* Users should implement their non-weak version */
 }
 
-__attribute__((weak)) void fic_irq_timer_3(void)
+__attribute__((weak, optimize("O0"))) void fic_irq_timer_3(void)
 {
-    volatile uint8_t i;
-    i++;
+    /* Users should implement their non-weak version */
 }
 
-__attribute__((weak)) void fic_irq_dma(void)
+__attribute__((weak, optimize("O0"))) void fic_irq_dma(void)
 {
-    volatile uint8_t i;
-    i++;
+    /* Users should implement their non-weak version */
 }
 
-__attribute__((weak)) void fic_irq_spi(void)
+__attribute__((weak, optimize("O0"))) void fic_irq_spi(void)
 {
-    volatile uint8_t i;
-    i++;
+    /* Users should implement their non-weak version */
 }
 
-__attribute__((weak)) void fic_irq_spi_flash(void)
+__attribute__((weak, optimize("O0"))) void fic_irq_spi_flash(void)
 {
-    volatile uint8_t i;
-    i++;
+    /* Users should implement their non-weak version */
 }
 
-__attribute__((weak)) void fic_irq_gpio_0(void)
+__attribute__((weak, optimize("O0"))) void fic_irq_gpio_0(void)
 {
-    volatile uint8_t i;
-    i++;
+    /* Users should implement their non-weak version */
 }
 
-__attribute__((weak)) void fic_irq_gpio_1(void)
+__attribute__((weak, optimize("O0"))) void fic_irq_gpio_1(void)
 {
-    volatile uint8_t i;
-    i++;
+    /* Users should implement their non-weak version */
 }
 
-__attribute__((weak)) void fic_irq_gpio_2(void)
+__attribute__((weak, optimize("O0"))) void fic_irq_gpio_2(void)
 {
-    volatile uint8_t i;
-    i++;
+    /* Users should implement their non-weak version */
 }
 
-__attribute__((weak)) void fic_irq_gpio_3(void)
+__attribute__((weak, optimize("O0"))) void fic_irq_gpio_3(void)
 {
-    volatile uint8_t i;
-    i++;
+    /* Users should implement their non-weak version */
 }
 
-__attribute__((weak)) void fic_irq_gpio_4(void)
+__attribute__((weak, optimize("O0"))) void fic_irq_gpio_4(void)
 {
-    volatile uint8_t i;
-    i++;
+    /* Users should implement their non-weak version */
 }
 
-__attribute__((weak)) void fic_irq_gpio_5(void)
+__attribute__((weak, optimize("O0"))) void fic_irq_gpio_5(void)
 {
-    volatile uint8_t i;
-    i++;
+    /* Users should implement their non-weak version */
 }
 
-__attribute__((weak)) void fic_irq_gpio_6(void)
+__attribute__((weak, optimize("O0"))) void fic_irq_gpio_6(void)
 {
-    volatile uint8_t i;
-    i++;
+    /* Users should implement their non-weak version */
 }
 
-__attribute__((weak)) void fic_irq_gpio_7(void)
+__attribute__((weak, optimize("O0"))) void fic_irq_gpio_7(void)
 {
-    volatile uint8_t i;
-    i++;
+    /* Users should implement their non-weak version */
 }
 
 /****************************************************************************/
