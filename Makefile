@@ -156,6 +156,12 @@ run-blinkyfreertos: mcu-gen verilator-sim
 	./Vtestharness +firmware=../../../sw/build/main.hex; \
 	cat uart0.log; \
 	cd ../../..;
+	
+run-pdm2pcm: mcu-gen verilator-sim app-pdm2pcm |venv
+	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
+	./Vtestharness +firmware=../../../sw/applications/example_pdm2pcm/example_pdm2pcm.hex; \
+	cat uart0.log; \
+	cd ../../..;
 
 ## @section Vivado
 

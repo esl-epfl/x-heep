@@ -154,7 +154,6 @@ ENDFOREACH()
 
 LIST(REMOVE_DUPLICATES c_dir_list)
 
-
 # Get all the files to include when linking
 SET(LINKED_FILES    "${LIB_CRT_P}crt0.S \
                      ${LIB_VCTR_P} \

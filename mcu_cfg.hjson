@@ -123,6 +123,10 @@
             offset:  0x00050000,
             length:  0x00010000,
         },
+        pdm2pcm: {
+            offset:  0x00060000,
+            length:  0x00010000,
+        },
     },
 
     flash_mem: {
