@@ -1,0 +1,22 @@
+CAPI=2:
+
+name: "example:ip:pdm2pcm_dummy"
+description: "Simulates a PDM input for the PDM2PCM peripheral"
+
+# Copyright 2022 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+# Author: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
+# Date: 19.02.2022
+
+filesets:
+  files_rtl:
+    files:
+    - rtl/pdm2pcm_dummy.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl

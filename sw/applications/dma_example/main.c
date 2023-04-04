@@ -40,12 +40,8 @@ uint8_t copied_data_1B[TEST_DATA_SIZE] = { 0 };
 
 int8_t dma_intr_flag;
 
-void handler_irq_fast_dma(void)
+void fic_irq_dma(void)
 {
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kDma_fic_e);
-
     dma_intr_flag = 1;
 }
 
