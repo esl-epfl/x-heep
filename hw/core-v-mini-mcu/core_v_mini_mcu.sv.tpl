@@ -385,7 +385,9 @@ module core_v_mini_mcu
       .spi2_sd_i({spi2_sd_3_i, spi2_sd_2_i, spi2_sd_1_i, spi2_sd_0_i}),
       .rv_timer_2_intr_o(rv_timer_intr[2]),
       .rv_timer_3_intr_o(rv_timer_intr[3]),
-
+      .pdm2pcm_clk_o(pdm2pcm_clk_o),
+      .pdm2pcm_clk_en_o(pdm2pcm_clk_oe_o),
+      .pdm2pcm_pdm_i(pdm2pcm_pdm_i),
       .i2s_sck_o(i2s_sck_o),
       .i2s_sck_oe_o(i2s_sck_oe_o),
       .i2s_sck_i(i2s_sck_i),
@@ -397,6 +399,9 @@ module core_v_mini_mcu
       .i2s_sd_i(i2s_sd_i),
       .i2s_rx_valid_o(i2s_rx_valid)
   );
+
+  assign pdm2pcm_pdm_o = 0;
+  assign pdm2pcm_pdm_oe_o = 0;
 
   assign gpio_ao_in[0] = gpio_0_i;
   assign gpio_0_o      = gpio_ao_out[0];

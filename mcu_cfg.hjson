@@ -102,30 +102,42 @@
         rv_plic: {
             offset:  0x00000000,
             length:  0x00010000,
+            is_included: "yes",
             path:    "./hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/data/rv_plic.hjson"
         },
         gpio: {
             offset:  0x00020000,
             length:  0x00010000,
+            is_included: "yes",
             path:    "./hw/vendor/pulp_platform_gpio/gpio_regs.hjson"
         },
         i2c: {
             offset:  0x00030000,
             length:  0x00010000,
+            is_included: "yes",
             path:    "./hw/vendor/lowrisc_opentitan/hw/ip/i2c/data/i2c.hjson"
         },
         rv_timer: {
             offset:  0x00040000,
             length:  0x00010000,
+            is_included: "yes",
             path:    "./hw/vendor/lowrisc_opentitan/hw/ip/rv_timer/data/rv_timer.hjson"
         },
         spi2: {
             offset:  0x00050000,
             length:  0x00010000,
+            is_included: "yes",
         },
-        i2s: {
+        pdm2pcm: {
             offset:  0x00060000,
             length:  0x00010000,
+            is_included: "no",
+            path:    "./hw/ip/pdm2pcm/data/pdm2pcm.hjson"
+        },
+        i2s: {
+            offset:  0x00070000,
+            length:  0x00010000,
+            is_included: "yes",
             path:    "./hw/ip/i2s/data/i2s.hjson"
         },
     },

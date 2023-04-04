@@ -140,8 +140,6 @@ module testharness #(
       .gpio_15_io(gpio[15]),
       .gpio_16_io(gpio[16]),
       .gpio_17_io(gpio[17]),
-      .gpio_18_io(gpio[18]),
-      .gpio_19_io(gpio[19]),
       .spi_flash_sck_io(spi_flash_sck),
       .spi_flash_cs_0_io(spi_flash_csb[0]),
       .spi_flash_cs_1_io(spi_flash_csb[1]),
@@ -156,6 +154,8 @@ module testharness #(
       .spi_sd_1_io(spi_sd_io[1]),
       .spi_sd_2_io(spi_sd_io[2]),
       .spi_sd_3_io(spi_sd_io[3]),
+      .pdm2pcm_pdm_io(gpio[18]),
+      .pdm2pcm_clk_io(gpio[19]),
       .i2s_sck_io(gpio[20]),
       .i2s_ws_io(gpio[21]),
       .i2s_sd_io(gpio[22]),
@@ -188,6 +188,8 @@ module testharness #(
       .external_subsystem_rst_no(external_subsystem_rst_n),
       .external_ram_banks_set_retentive_o(external_ram_banks_set_retentive)
   );
+
+  logic pdm;
 
   //pretending to be SWITCH CELLs that delay by SWITCH_ACK_LATENCY cycles the ACK signal
   logic
@@ -231,6 +233,7 @@ module testharness #(
     external_subsystem_powergate_switch_ack = delayed_tb_external_subsystem_powergate_switch_ack;
 `endif
   end
+
 
   uartdpi #(
       .BAUD('d256000),
@@ -311,6 +314,13 @@ module testharness #(
       .rst_ni,
       .gpio_i(gpio[30]),
       .gpio_o(gpio[31])
+  );
+
+  pdm2pcm_dummy pdm2pcm_dummy_i (
+      .clk_i,
+      .rst_ni,
+      .pdm_data_o(gpio[18]),
+      .pdm_clk_i (gpio[19])
   );
 
   // I2s "microphone"/rx example
