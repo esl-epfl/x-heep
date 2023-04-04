@@ -36,11 +36,8 @@ spi_host_t spi_host;
 
 static power_manager_t power_manager;
 
-void handler_irq_fast_dma(void)
+void fic_irq_fast_dma(void)
 {
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kDma_fic_e);
     dma_intr_flag = 1;
 }
 
@@ -59,7 +56,7 @@ void handler_irq_fast_dma(void)
 int main(int argc, char *argv[])
 {
     #ifndef USE_SPI_FLASH
-        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_START_ADDRESS);
+        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI2_START_ADDRESS);
     #else
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif
@@ -118,8 +115,8 @@ int main(int argc, char *argv[])
     dma_set_write_ptr(&dma, (uint32_t) copy_data); // copy data address
     // Set the correct SPI-DMA mode:
     // (0) disable
-    // (1) receive from SPI (use SPI_START_ADDRESS for spi_host pointer)
-    // (2) send to SPI (use SPI_START_ADDRESS for spi_host pointer)
+    // (1) receive from SPI (use SPI2_START_ADDRESS for spi_host pointer)
+    // (2) send to SPI (use SPI2_START_ADDRESS for spi_host pointer)
     // (3) receive from SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
     // (4) send to SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
     #ifndef USE_SPI_FLASH

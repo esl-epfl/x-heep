@@ -94,7 +94,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    clear_fast_interrupt(&fast_intr_ctrl, kTimer_1_fic_e);
 
     // Power-gate and wake-up due to timer_2
     rv_timer_set_tick_params(&timer_2_3, 0, tick_params);
@@ -109,7 +108,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    clear_fast_interrupt(&fast_intr_ctrl, kTimer_2_fic_e);
 
     // Power-gate and wake-up due to timer_3
     rv_timer_set_tick_params(&timer_2_3, 1, tick_params);
@@ -124,7 +122,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    clear_fast_interrupt(&fast_intr_ctrl, kTimer_3_fic_e);
 
 #ifdef USE_EXTERNAL_DEVICE
     // Power-gate and wake-up due to plic

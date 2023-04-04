@@ -34,36 +34,25 @@ int8_t dma_intr_flag;
 spi_host_t spi_host;
 
 #ifndef USE_SPI_FLASH
-void handler_irq_fast_spi(void)
+void fic_irq_fast_spi(void)
 {
     // Disable SPI interrupts
     spi_enable_evt_intr(&spi_host, false);
     spi_enable_rxwm_intr(&spi_host, false);
-    // Clear fast interrupt
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kSpi_fic_e);
     spi_intr_flag = 1;
 }
 #else
-void handler_irq_fast_spi_flash(void)
+void fic_irq_fast_spi_flash(void)
 {
     // Disable SPI interrupts
     spi_enable_evt_intr(&spi_host, false);
     spi_enable_rxwm_intr(&spi_host, false);
-    // Clear fast interrupt
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kSpiFlash_fic_e);
     spi_intr_flag = 1;
 }
 #endif
 
-void handler_irq_fast_dma(void)
+void fic_irq_fast_dma(void)
 {
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kDma_fic_e);
     dma_intr_flag = 1;
 }
 
@@ -74,7 +63,7 @@ uint32_t copy_data[COPY_DATA_WORDS] __attribute__ ((aligned (4)))  = { 0 };
 int main(int argc, char *argv[])
 {
     #ifndef USE_SPI_FLASH
-        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_START_ADDRESS);
+        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI2_START_ADDRESS);
     #else
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif
@@ -195,7 +184,7 @@ int main(int argc, char *argv[])
     // (0) disable
     // (1) receive from SPI (use SPI_START_ADDRESS for spi_host pointer)
     // (2) send to SPI (use SPI_START_ADDRESS for spi_host pointer)
-    // (3) receive from SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
+    // (3) receive from SPI FLASH (use SPI2_FLASH_START_ADDRESS for spi_host pointer)
     // (4) send to SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
     #ifndef USE_SPI_FLASH
         dma_set_spi_mode(&dma, (uint32_t) 2); // The DMA will wait for the SPI TX FIFO ready signal
