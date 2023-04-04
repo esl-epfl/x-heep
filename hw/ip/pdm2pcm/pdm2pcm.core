@@ -1,0 +1,36 @@
+CAPI=2:
+
+name: "x-heep:ip:pdm2pcm"
+description: "core-v-mini-mcu pdm to pcm converter peripheral"
+
+# Copyright 2022 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+# Author: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
+# Date: 15.12.2022
+
+filesets:
+  files_rtl:
+    depend:
+      - pulp-platform.org::common_cells
+    files:
+      - rtl/pdm2pcm_reg_pkg.sv 
+      - rtl/pdm2pcm_reg_top.sv 
+      - rtl/cic_combs.sv 
+      - rtl/cic_comb.sv 
+      - rtl/cic_integrators.sv 
+      - rtl/decimator.sv 
+      - rtl/halfband.sv 
+      - rtl/cic_integrator.sv 
+      - rtl/fir.sv 
+      - rtl/pdm_core.sv
+      - rtl/pdm2pcm.sv 
+      - rtl/pdm2pcm_window.sv 
+    
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl

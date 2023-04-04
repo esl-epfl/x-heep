@@ -1,0 +1,16 @@
+// Copyright 2022 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule WIDTH -file "*/pdm2pcm_window.sv" -match "Operator ASSIGNW expects *"
+lint_off -rule WIDTH -file "*/pdm2pcm_reg_top.sv" -match "Operator ASSIGNW expects *"
+
+lint_off -rule UNUSED -file "*/pdm2pcm_window.sv" -match "Bits of signal are not *"
+lint_off -rule UNUSED -file "*/pdm2pcm.sv" -match "Bits of signal are not *"
+
+lint_off -rule UNUSED -file "*/fir.sv" -match "*"
+lint_off -rule UNUSED -file "*/halfband.sv" -match "*"
+
+lint_off -rule DECLFILENAME -file "*/pdm2pcm_reg_top.sv" -match "Filename 'pdm2pcm_reg_top' does not match MODULE name: 'pdm2pcm_reg_top_intf'"
