@@ -60,7 +60,10 @@
  */
 static inline uint32_t getBitfield( uint32_t reg, uint32_t  mask, uint8_t sel )
 {
-    return (reg & ( mask << sel ));
+    uint32_t ret_val = 0;
+    ret_val = reg & ( mask << sel );
+    ret_val = ret_val >> sel;
+    return ret_val;
 }
 
 /**
@@ -142,7 +145,7 @@ gpio_result_t gpio_reset (gpio_pin_number_t pin)
 {
     if (pin >= 0 && pin < 32)
     {
-        gpio_intr_mode (0);
+        gpio_intr_set_mode (0);
         gpio_set_mode (pin, GpioModeIn);
         gpio_dis_input (pin);
         setBitfield(&(gpio_peri->GPIO_CLEAR0), 0, 0b1, pin);
@@ -177,7 +180,7 @@ gpio_result_t gpio_read (gpio_pin_number_t pin, bool *val)
 {
     if (pin >= 0 && pin < 32)
     {
-        if ( getBitfield(gpio_peri->GPIO_IN0, 0b1, pin) == 1)
+        if ( getBitfield(gpio_peri->GPIO_IN0, 0b1, pin) == 0b1)
             *val = true;
         else
             *val = false;

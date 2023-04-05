@@ -71,17 +71,6 @@ int main(int argc, char *argv[])
     pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_I2C_SDA_REG_OFFSET), 1);
 #endif
 
-    // gpio_params_t gpio_params;
-    // gpio_t gpio;
-    // gpio_result_t gpio_res;
-    // gpio_params.base_addr = mmio_region_from_addr((uintptr_t)GPIO_START_ADDRESS);
-    // gpio_res = gpio_init(gpio_params, &gpio);
-    // if (gpio_res != kGpioOk) {
-    //     printf("Failed\n;");
-    //     return -1;
-    // }
-    
-
     plic_res = dif_plic_irq_set_priority(&rv_plic, GPIO_INTR, 1);
     if (plic_res != kDifPlicOk) {
         printf("Failed\n;");
@@ -102,40 +91,30 @@ int main(int argc, char *argv[])
     CSR_SET_BITS(CSR_REG_MIE, mask);
     external_intr_flag = 0;
 
-    // gpio_res = gpio_output_set_enabled(&gpio, GPIO_TB_OUT, true);
-    // if (gpio_res != kGpioOk) {
-    //     printf("Failed\n;");
-    //     return -1;
-    // }
+    //gpio_reset_all();
     gpio_result_t gpio_res;
+
+    gpio_reset(GPIO_TB_OUT); 
     gpio_res = gpio_set_mode(GPIO_TB_OUT, GpioModeOutPushPull);
     if (gpio_res != GpioOk) {
         printf("Failed\n;");
         return -1;
     }
-    // gpio_write(&gpio, GPIO_TB_OUT, false);
     gpio_res = gpio_write(GPIO_TB_OUT, false);
 
-    // gpio_res = gpio_input_enabled(&gpio, GPIO_TB_IN, true);
+    gpio_reset(GPIO_TB_IN);
     gpio_res = gpio_set_mode(GPIO_TB_IN, GpioModeIn);
-    gpio_res = gpio_en_input(GPIO_TB_IN);
-    if (gpio_res != GpioOk) {
-        printf("Failed\n;");
-        return -1;
-    }
-
-
-    // gpio_res = gpio_irq_set_trigger(&gpio, GPIO_TB_IN, true, kGpioIrqTriggerEdgeRising);
-    gpio_res = gpio_intr_en (GPIO_TB_IN, GpioIntrEdgeRisingFalling);
+    gpio_res |= gpio_en_input(GPIO_TB_IN);
+    gpio_res |= gpio_intr_en (GPIO_TB_IN, GpioIntrEdgeRising);
     if (gpio_res != GpioOk) {
         printf("Failed\n;");
         return -1;
     }
 
     printf("Write 1 to GPIO 30 and wait for interrupt...\n");
+    external_intr_flag = 0;
     while(external_intr_flag==0) {
-        //gpio_write(&gpio, GPIO_TB_OUT, true);
-        gpio_res = gpio_write(GPIO_TB_OUT, true);
+        //gpio_res = gpio_write(GPIO_TB_OUT, true);
         wait_for_interrupt();
     }
     printf("Success\n");
