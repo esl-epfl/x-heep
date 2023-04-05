@@ -228,6 +228,9 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_PLIC_IDX])
   );
 
+% for peripheral in peripherals.items():
+% if peripheral[0] in ("rv_plic"):
+% if peripheral[1]['is_included'] in ("yes"):
   rv_plic rv_plic_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -238,8 +241,19 @@ module peripheral_subsystem
       .irq_id_o(irq_id),
       .msip_o(msip_o)
   );
+% else:
+  assign msip_o = '0;
+  assign irq_id = '0;
+  assign irq_plic_o = '0;
+  assign plic_tl_d2h = '0;
+% endif
+% endif
+% endfor
 
 
+% for peripheral in peripherals.items():
+% if peripheral[0] in ("gpio"):
+% if peripheral[1]['is_included'] in ("yes"):
   gpio #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -255,6 +269,14 @@ module peripheral_subsystem
       .pin_level_interrupts_o({gpio_intr, gpio_int_unused}),
       .global_interrupt_o()
   );
+% else:
+  assign cio_gpio_o = '0;
+  assign cio_gpio_en_o = '0;
+  assign gpio_intr = '0;
+  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::GPIO_IDX] = '0;
+% endif
+% endif
+% endfor
 
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
@@ -273,6 +295,9 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2C_IDX])
   );
 
+% for peripheral in peripherals.items():
+% if peripheral[0] in ("i2c"):
+% if peripheral[1]['is_included'] in ("yes"):
   i2c i2c_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -301,6 +326,31 @@ module peripheral_subsystem
       .intr_ack_stop_o(i2c_intr_ack_stop),
       .intr_host_timeout_o(i2c_intr_host_timeout)
   );
+% else:
+  assign i2c_tl_d2h = '0;
+  assign cio_scl_o = '0;
+  assign cio_scl_en_o = '0;
+  assign cio_sda_o = '0;
+  assign cio_sda_en_o = '0;
+  assign i2c_intr_fmt_watermark = '0;
+  assign i2c_intr_rx_watermark = '0;
+  assign i2c_intr_fmt_overflow = '0;
+  assign i2c_intr_rx_overflow = '0;
+  assign i2c_intr_nak = '0;
+  assign i2c_intr_scl_interference = '0;
+  assign i2c_intr_sda_interference = '0;
+  assign i2c_intr_stretch_timeout = '0;
+  assign i2c_intr_sda_unstable = '0;
+  assign i2c_intr_trans_complete = '0;
+  assign i2c_intr_tx_empty = '0;
+  assign i2c_intr_tx_nonempty = '0;
+  assign i2c_intr_tx_overflow = '0;
+  assign i2c_intr_acq_overflow = '0;
+  assign i2c_intr_ack_stop = '0;
+  assign i2c_intr_host_timeout = '0;
+% endif
+% endif
+% endfor
 
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
@@ -319,6 +369,9 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_IDX])
   );
 
+% for peripheral in peripherals.items():
+% if peripheral[0] in ("rv_timer"):
+% if peripheral[1]['is_included'] in ("yes"):
   rv_timer rv_timer_2_3_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -327,7 +380,17 @@ module peripheral_subsystem
       .intr_timer_expired_0_0_o(rv_timer_2_intr_o),
       .intr_timer_expired_1_0_o(rv_timer_3_intr_o)
   );
+% else:
+  assign rv_timer_tl_d2h = '0;
+  assign rv_timer_2_intr_o = '0;
+  assign rv_timer_3_intr_o = '0;
+% endif
+% endif
+% endfor
 
+% for peripheral in peripherals.items():
+% if peripheral[0] in ("spi2"):
+% if peripheral[1]['is_included'] in ("yes"):
   spi_host #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -352,9 +415,39 @@ module peripheral_subsystem
       .intr_error_o(),
       .intr_spi_event_o(spi2_intr_event)
   );
+% else:
+  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI2_IDX] = '0;
+  assign spi2_sck_o = '0;
+  assign spi2_sck_en_o = '0;
+  assign spi2_csb_o = '0;
+  assign spi2_csb_en_o = '0;
+  assign spi2_sd_o = '0;
+  assign spi2_sd_en_o = '0;
+  assign spi2_intr_event = '0;
+% endif
+% endif
+% endfor
 
+% for peripheral in peripherals.items():
+% if peripheral[0] in ("pdm2pcm"):
+% if peripheral[1]['is_included'] in ("yes"):
+  pdm2pcm #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) pdm2pcm_i (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::PDM2PCM_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX]),
+      .pdm_i(pdm2pcm_pdm_i),
+      .pdm_clk_o(pdm2pcm_clk_o)
+  );
+% else:
   assign peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX] = '0;
   assign pdm2pcm_clk_o = '0;
+% endif
+% endif
+% endfor
 
   assign pdm2pcm_clk_en_o = 1;
 

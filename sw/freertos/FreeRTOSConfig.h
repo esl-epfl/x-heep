@@ -73,10 +73,10 @@
 #define configTICK_RATE_HZ	 ((TickType_t)1000)
 #define configMAX_PRIORITIES	 (5)
 /* Can be as low as 60 but some of the demo tasks that use this constant require it to be higher. */
-#define configMINIMAL_STACK_SIZE ((unsigned short)200)
+#define configMINIMAL_STACK_SIZE ((unsigned short)80)
 /* we want to put the heap into special section */
 #define configAPPLICATION_ALLOCATED_HEAP 1
-#define configTOTAL_HEAP_SIZE		 ((size_t)(100 * 1024))
+#define configTOTAL_HEAP_SIZE		 ((size_t)(6 * 1024))
 #define configMAX_TASK_NAME_LEN		 (12)
 #define configUSE_TRACE_FACILITY	 0 /* TODO: 0 */
 #define configUSE_16_BIT_TICKS		 0
