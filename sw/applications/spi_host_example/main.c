@@ -29,31 +29,19 @@ uint32_t flash_data[8];
 uint32_t flash_original[8] = {1};
 
 #ifndef USE_SPI_FLASH
-void handler_irq_fast_spi(void)
+void fic_irq_fast_spi(void)
 {
     // Disable SPI interrupts
     spi_enable_evt_intr(&spi_host, false);
     spi_enable_rxwm_intr(&spi_host, false);
-
-    // Clear fast interrupt
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kSpi_fic_e);
-
     spi_intr_flag = 1;
 }
 #else
-void handler_irq_fast_spi_flash(void)
+void fic_irq_fast_spi_flash(void)
 {
     // Disable SPI interrupts
     spi_enable_evt_intr(&spi_host, false);
     spi_enable_rxwm_intr(&spi_host, false);
-
-    // Clear fast interrupt
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kSpiFlash_fic_e);
-
     spi_intr_flag = 1;
 }
 #endif
@@ -62,7 +50,7 @@ int main(int argc, char *argv[])
 {
     // spi_host_t spi_host;
     #ifndef USE_SPI_FLASH
-        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_START_ADDRESS);
+        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI2_START_ADDRESS);
     #else
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif
