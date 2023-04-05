@@ -103,7 +103,7 @@ gpio_result_t gpio_set_mode (gpio_pin_number_t pin, gpio_mode_t mode)
     }
     else if (pin >= 16 && pin <32)
     {
-        reg = setBit(&(gpio_peri->GPIO_MODE1), mode, 0b11, 2*(pin-16));
+        setBitfield(&(gpio_peri->GPIO_MODE1), mode, 0b11, 2*(pin-16));
         return GpioOk;
     }
     else
@@ -138,7 +138,7 @@ gpio_result_t gpio_dis_input (gpio_pin_number_t pin)
     }
 }
 
-gpio_result_t gpio_pin_reset (gpio_pin_number_t pin)
+gpio_result_t gpio_reset (gpio_pin_number_t pin)
 {
     if (pin >= 0 && pin < 32)
     {
@@ -173,7 +173,7 @@ gpio_result_t gpio_reset_all (void)
     gpio_peri->INTRPT_STATUS0 = 0xFFFFFFFF;
 }
 
-gpio_result_t gpio_pin_read (gpio_pin_number_t pin, bool *val)
+gpio_result_t gpio_read (gpio_pin_number_t pin, bool *val)
 {
     if (pin >= 0 && pin < 32)
     {
@@ -218,7 +218,7 @@ gpio_result_t gpio_pin_read (gpio_pin_number_t pin, bool *val)
 // }
 
 //todo: check to see its toggling or just writing one
-gpio_result_t gpio_pin_toggle (gpio_pin_number_t pin)
+gpio_result_t gpio_toggle (gpio_pin_number_t pin)
 {
     if (pin >= 0 && pin < 32)
     {
@@ -232,7 +232,7 @@ gpio_result_t gpio_pin_toggle (gpio_pin_number_t pin)
     }
 }
 
-gpio_result_t gpio_pin_write (gpio_pin_number_t pin, gpio_value val)
+gpio_result_t gpio_write (gpio_pin_number_t pin, bool val)
 {
     if (pin >= 0 && pin < 32)
     {
@@ -616,20 +616,13 @@ gpio_result_t gpio_intr_clear_stat (gpio_pin_number_t pin)
     }
 }
 
-gpio_result_t gpio_intr_mode (bool gpio_intr_mode)
+gpio_result_t gpio_intr_set_mode (bool gpio_intr_mode)
 {
-    if (pin >= 0 && pin < 32)
-    {
-        if (gpio_intr_mode)
-            setBitfield(&(gpio_peri->CFG), 1, 1, 0);
-        else
-            setBitfield(&(gpio_peri->CFG), 0, 1, 0);
-        return GpioOk;
-    }
+    if (gpio_intr_mode)
+        setBitfield(&(gpio_peri->CFG), 1, 1, 0);
     else
-    {
-        return GpioError;
-    }
+        setBitfield(&(gpio_peri->CFG), 0, 1, 0);
+    return GpioOk;
 }
 /****************************************************************************/
 /**                                                                        **/
