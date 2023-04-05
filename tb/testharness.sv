@@ -143,8 +143,6 @@ module testharness #(
       .gpio_18_io(gpio[18]),
       .gpio_19_io(gpio[19]),
       .gpio_20_io(gpio[20]),
-      .gpio_21_io(gpio[21]),
-      .gpio_22_io(gpio[22]),
       .spi_flash_sck_io(spi_flash_sck),
       .spi_flash_cs_0_io(spi_flash_csb[0]),
       .spi_flash_cs_1_io(spi_flash_csb[1]),
@@ -159,6 +157,8 @@ module testharness #(
       .spi_sd_1_io(spi_sd_io[1]),
       .spi_sd_2_io(spi_sd_io[2]),
       .spi_sd_3_io(spi_sd_io[3]),
+      .pdm2pcm_pdm_io(gpio[21]),
+      .pdm2pcm_clk_io(gpio[22]),
       .spi2_cs_0_io(gpio[23]),
       .spi2_cs_1_io(gpio[24]),
       .spi2_sck_io(gpio[25]),
@@ -188,6 +188,8 @@ module testharness #(
       .external_subsystem_rst_no(external_subsystem_rst_n),
       .external_ram_banks_set_retentive_o(external_ram_banks_set_retentive)
   );
+
+  logic pdm;
 
   //pretending to be SWITCH CELLs that delay by SWITCH_ACK_LATENCY cycles the ACK signal
   logic
@@ -231,6 +233,7 @@ module testharness #(
     external_subsystem_powergate_switch_ack = delayed_tb_external_subsystem_powergate_switch_ack;
 `endif
   end
+
 
   uartdpi #(
       .BAUD('d256000),
@@ -310,6 +313,13 @@ module testharness #(
       .rst_ni,
       .gpio_i(gpio[30]),
       .gpio_o(gpio[31])
+  );
+
+  pdm2pcm_dummy pdm2pcm_dummy_i (
+      .clk_i,
+      .rst_ni,
+      .pdm_data_o(gpio[21]),
+      .pdm_clk_i (gpio[22])
   );
 
 `ifndef VERILATOR

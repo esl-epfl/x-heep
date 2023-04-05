@@ -58,7 +58,7 @@
             type: output
         },
         gpio: {
-            num: 23,
+            num: 21,
             num_offset: 0, #first gpio is gpio0
             type: inout
         },
@@ -86,6 +86,32 @@
             num: 4,
             type: inout
         },
+
+        pdm2pcm_pdm: {
+            num: 1,
+            type: inout
+            mux: {
+                pdm2pcm_pdm: {
+                    type: inout
+                },
+                gpio_21: {
+                    type: inout
+                }
+            }
+        },
+        pdm2pcm_clk: {
+            num: 1,
+            type: inout
+            mux: {
+                pdm2pcm_clk: {
+                    type: inout
+                },
+                gpio_22: {
+                    type: inout
+                }
+           }
+        },
+
         spi2_cs_0: {
             num: 1,
             type: inout
