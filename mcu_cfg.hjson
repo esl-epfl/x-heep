@@ -19,7 +19,7 @@
         onchip_ls: {
             code: {
                 address: 0x00000000,
-                lenght: 0x00000C800, #minimum size for freeRTOS
+                lenght: 0x00000C800, #minimum size for freeRTOS and clang
             }
             data: {
                 address: 0x00000C800,
