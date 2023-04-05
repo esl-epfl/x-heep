@@ -206,11 +206,10 @@ make app
 To run any other application, please use the following command with appropiate parameters:
 
 ```
-app PROJECT=<folder_name_of_the_project_to_be_built> MAINFILE=<main_file_name_of_the_project_to_be_built  WITHOUT EXTENSION!> TARGET=sim(default),pynq-z2 LINKER=on_chip(default),flash_load,flash_exec COMPILER=gcc(default),clang ARCH=rv32imc(default),<any RISC-V ISA string supported by the CPU>
+app PROJECT=<folder_name_of_the_project_to_be_built> TARGET=sim(default),pynq-z2 LINKER=on_chip(default),flash_load,flash_exec COMPILER=gcc(default),clang ARCH=rv32imc(default),<any RISC-V ISA string supported by the CPU>
 
 Params:
 - PROJECT (ex: <folder_name_of_the_project_to_be_built>, hello_wolrd(default))
-- MAINFILE (ex: <main_file_name_of_the_project_to_be_built WITHOUT EXTENSION!>, hello_wolrd(default))
 - TARGET (ex: sim(default),pynq-z2)
 - LINKER (ex: on_chip(default),flash_load,flash_exec)
 - COMPILER (ex: gcc(default),clang)
@@ -234,7 +233,7 @@ compiled and linked are under `sw\build`
 After that, you can run the command to compile and link the FreeRTOS based application. Please also set 'LINKER' and 'TARGET' parameters if needed.
 
 ```
-make app PROJECT=blinky_freertos MAINFILE=main 
+make app PROJECT=blinky_freertos 
 ```
 
 The main FreeRTOS configuration is allocated under `sw\freertos`, in `FreeRTOSConfig.h`. Please, change this file based on your application requirements.
