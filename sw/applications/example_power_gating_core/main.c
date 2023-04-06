@@ -22,13 +22,13 @@ static const uint64_t kTickFreqHz = 1000 * 1000; // 1 MHz
 
 static power_manager_t power_manager;
 static dif_plic_t rv_plic;
-static gpio_t gpio;
+// static gpio_t gpio;
 
 int main(int argc, char *argv[])
 {
     // Setup fast interrupt controller
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
+    // fast_intr_ctrl_t fast_intr_ctrl;
+    // fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
 
     // Setup power_manager
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
@@ -56,9 +56,9 @@ int main(int argc, char *argv[])
     rv_timer_init(timer_2_3_reg, (rv_timer_config_t){.hart_count = 2, .comparator_count = 1}, &timer_2_3);
 
     // Setup gpio
-    gpio_params_t gpio_params;
-    gpio_params.base_addr = mmio_region_from_addr((uintptr_t)GPIO_START_ADDRESS);
-    gpio_init(gpio_params, &gpio);
+    // gpio_params_t gpio_params;
+    // gpio_params.base_addr = mmio_region_from_addr((uintptr_t)GPIO_START_ADDRESS);
+    // gpio_init(gpio_params, &gpio);
 
     // Init cpu_subsystem's counters
     if (power_gate_counters_init(&power_manager_cpu_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
@@ -127,10 +127,19 @@ int main(int argc, char *argv[])
     // Power-gate and wake-up due to plic
     dif_plic_irq_set_priority(&rv_plic, GPIO_INTR_31, 1);
     dif_plic_irq_set_enabled(&rv_plic, GPIO_INTR_31, 0, kDifPlicToggleEnabled);
-    gpio_output_set_enabled(&gpio, 30, true);
-    gpio_irq_set_trigger(&gpio, 1 << 31, kGpioIrqTriggerLevelHigh);
-    gpio_irq_set_enabled(&gpio, 31, true);
-    gpio_write(&gpio, 30, true);
+
+    // gpio_output_set_enabled(&gpio, 30, true);
+    gpio_cfg_t pin1_cfg = {.pin = 30, .mode = GpioModeOutPushPull};
+    gpio_config (pin1_cfg);
+
+    // gpio_irq_set_trigger(&gpio, 1 << 31, kGpioIrqTriggerLevelHigh);
+    // gpio_irq_set_enabled(&gpio, 31, true);
+    gpio_cfg_t pin2_cfg = {.pin = 31, .mode = GpioModeIn,.en_input_sampling = true, 
+        .en_intr = true, .intr_type = GpioIntrLevelHigh};
+    gpio_config (pin2_cfg);
+    
+    // gpio_write(&gpio, 30, true);
+    gpio_write(30, true);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kPlic_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
