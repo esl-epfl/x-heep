@@ -263,7 +263,7 @@ void system_init(void)
     
     gpio_write(GPIO_LD5_R, false);
     gpio_write(GPIO_LD5_B, false);
-	gpio_write(GPIO_LD5_G, false);
+    gpio_write(GPIO_LD5_G, false);
 
     // Setup rv_timer_0_1
     mmio_region_t timer_0_1_reg = mmio_region_from_addr(RV_TIMER_AO_START_ADDRESS);
