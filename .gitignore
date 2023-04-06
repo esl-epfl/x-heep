@@ -46,5 +46,3 @@ sw/device/lib/drivers/**/*_structs.h
 
 # openroad
 flow/OpenROAD-flow-scripts
-
-run.sh
