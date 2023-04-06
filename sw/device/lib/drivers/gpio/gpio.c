@@ -32,13 +32,19 @@
 
 #include "gpio.h"
 #include "gpio_regs.h"  // Generated.
-#include "gpio_structs.h"
+#include "gpio_structs.h" //todo: remove it
 
 /****************************************************************************/
 /**                                                                        **/
 /*                        DEFINITIONS AND MACROS                            */
 /**                                                                        **/
 /****************************************************************************/
+
+/**
+ * As the hw is configurable, we can have setups with different number of
+ * Gpio pins
+ */ 
+#define MAX_PIN     32  
 
 /****************************************************************************/
 /**                                                                        **/
@@ -98,6 +104,30 @@ static inline uint32_t getBitfield( uint32_t reg, uint32_t  mask, uint8_t sel )
 /**                                                                        **/
 /****************************************************************************/
 
+gpio_result_t gpio_config (gpio_cfg_t cfg){
+    // /* check that passed arg is not empty*/
+    // if (cfg == NULL)
+    //     return GpioError;
+    /* check that pin is in acceptable range. */
+    if (cfg.pin > (MAX_PIN-1) || cfg.pin < 0)
+        return GpioError;
+    /* reset pin coniguration first.*/
+    gpio_reset (cfg.pin);
+    /* check mode. */
+    if ((cfg.mode < GpioModeIn) || (cfg.mode > GpioModeoutOpenDrain1))
+        return GpioError;
+    /* set mode. */
+    gpio_set_mode (cfg.pin, cfg.mode);
+    /* if input sampling is enabled */
+    if (cfg.en_input_sampling == true)
+        gpio_en_input_sampling (cfg.pin);
+    /* if interrupt is enabled. Also after enabling check for error */
+    if (cfg.en_intr == true)
+        if (gpio_intr_en (cfg.pin, cfg.intr_type) == GpioError)
+            return GpioError;
+    return GpioOk;
+}
+
 gpio_result_t gpio_set_mode (gpio_pin_number_t pin, gpio_mode_t mode)
 {
     if (pin >= 0 && pin < 16)
@@ -116,7 +146,7 @@ gpio_result_t gpio_set_mode (gpio_pin_number_t pin, gpio_mode_t mode)
     }
 }
 
-gpio_result_t gpio_en_input (gpio_pin_number_t pin)
+gpio_result_t gpio_en_input_sampling (gpio_pin_number_t pin)
 {
     if (pin >= 0 && pin < 32)
     {
@@ -129,7 +159,7 @@ gpio_result_t gpio_en_input (gpio_pin_number_t pin)
     }
 }
 
-gpio_result_t gpio_dis_input (gpio_pin_number_t pin)
+gpio_result_t gpio_dis_input_sampling (gpio_pin_number_t pin)
 {
     if (pin >= 0 && pin < 32)
     {
@@ -148,7 +178,7 @@ gpio_result_t gpio_reset (gpio_pin_number_t pin)
     {
         gpio_intr_set_mode (0);
         gpio_set_mode (pin, GpioModeIn);
-        gpio_dis_input (pin);
+        gpio_dis_input_sampling (pin);
         setBitfield(&(gpio_peri->GPIO_CLEAR0), 0, 0b1, pin);
         setBitfield(&(gpio_peri->GPIO_SET0),   0, 0b1, pin);
         gpio_intr_dis_all(pin);

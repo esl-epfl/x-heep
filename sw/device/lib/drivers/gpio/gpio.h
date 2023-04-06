@@ -37,8 +37,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-// #include "mmio.h"
-
 /****************************************************************************/
 /**                                                                        **/
 /**                       DEFINITIONS AND MACROS                           **/
@@ -62,8 +60,10 @@ typedef enum gpio_mode
 {
     GpioModeIn            = 0,  /*!< input. */
     GpioModeOutPushPull   = 1,  /*!< push-pull output. */
-    GpioModeoutOpenDrain0 = 2,  /*!< open_drain0 (0->High-Z, 1->Drive High) mode. */
-    GpioModeoutOpenDrain1 = 3,  /*!< open_drain1 (0->Drive Low, 1->High-Z) mode. */
+    GpioModeoutOpenDrain0 = 2,  /*!< open_drain0 (0->High-Z, 1->Drive High) 
+    mode. */
+    GpioModeoutOpenDrain1 = 3,  /*!< open_drain1 (0->Drive Low, 1->High-Z) 
+    mode. */
 } gpio_mode_t;
 
 /**
@@ -77,17 +77,8 @@ typedef enum gpio_result
     GpioError = 1,  /*!< There is a problem. */
 } gpio_result_t;
 
-// /**
-//  * Gpio pin values: low or high
-//  */
-// typedef enum gpio_value
-// {
-//     GpioLow = 0, 
-//     GpioHigh = 1, 
-// } gpio_value_t;
-
 /**
- * 
+ * The different interrupt types can be set by user
  */
 typedef enum gpio_intr_type
 {
@@ -101,6 +92,21 @@ typedef enum gpio_intr_type
     GpioIntrEdgeFallingLevelHigh,/*!< Trigger on falling edge or when the 
     input is high. */
 } gpio_intr_type_t;
+
+/**
+ * The structure should be used by user for configuring gpio.
+ * it includes pin number, mode, enable sampling, enable intr, and its mode.
+ */
+typedef struct gpio_cfg
+{
+    gpio_pin_number_t pin;      /*!< pin number. */
+    gpio_pin_number_t mode;     /*!< pin mode. */
+    bool en_input_sampling;     /*!< enable sampling (being input is req). */
+    bool en_intr;               /*!< enable intr (being input is req). */
+    gpio_intr_type_t intr_type; /*!< intr type (enabling intr is req). */
+} gpio_cfg_t;
+
+
 
 
 /****************************************************************************/
@@ -116,7 +122,6 @@ typedef enum gpio_intr_type
 /**                                                                        **/
 /****************************************************************************/
 
-
 /****************************************************************************/
 /**                                                                        **/
 /**                          EXPORTED FUNCTIONS                            **/
@@ -124,28 +129,12 @@ typedef enum gpio_intr_type
 /****************************************************************************/
 
 /**
- * @brief setting the a pins mode by writing in GPIO_MODE0 and GPIO_MODE1.
- * @param gpio_pin_number_t specify the pin.
- * @param gpio_mode_t specify pin mode: 0 as input, 1 push-pull as output, 
- * 2 as open_drain0, and 3 as open_drain1.
- * @retval GpioOk if there is no problem with the given parameters or 
- * operation.
- * @retval GpioError if there is an error with the given parameters or 
- * operation.
+ * @brief gpio configuration. It first reset the pin configuration. 
+ * @param gpio_struct_t contatining pin, mode, en_input_sampling, en_intr,
+ * intr_type
+ * @return GpioOk: no problem, GpioError: there is an error.
  */
-gpio_result_t gpio_set_mode (gpio_pin_number_t pin, gpio_mode_t mode);
-
-/**
- * @brief enable sampling as input by writing one in GPIO_EN. If disables 
- * (0) the corresponding GPIO will not sample the inputs (saves power) and 
- * will not generate any interrupts.
- */
-gpio_result_t gpio_en_input (gpio_pin_number_t pin);
-
-/**
- * @brief disable sampling as input by writing zero in GPIO_EN.
- */
-gpio_result_t gpio_dis_input (gpio_pin_number_t pin);
+gpio_result_t gpio_config (gpio_cfg_t cfg);
 
 /**
  * @brief reset completely all the configurations set for the pin
@@ -157,6 +146,28 @@ gpio_result_t gpio_reset (gpio_pin_number_t pin);
  * @brief reset completely all the configurations for all the pins
  */
 gpio_result_t gpio_reset_all (void);
+
+/**
+ * @brief setting the a pins mode by writing in GPIO_MODE0 and GPIO_MODE1.
+ * @param gpio_pin_number_t specify the pin.
+ * @param gpio_mode_t specify pin mode: 0 as input, 1 push-pull as output, 
+ * 2 as open_drain0, and 3 as open_drain1.
+ */
+gpio_result_t gpio_set_mode (gpio_pin_number_t pin, gpio_mode_t mode);
+
+/**
+ * @brief enable sampling as input by writing one in GPIO_EN. If disables 
+ * (0) the corresponding GPIO will not sample the inputs (saves power) and 
+ * will not generate any interrupts.
+ */
+gpio_result_t gpio_en_input_sampling (gpio_pin_number_t pin);
+
+/**
+ * @brief disable sampling as input by writing zero in GPIO_EN.
+ */
+gpio_result_t gpio_dis_input_sampling (gpio_pin_number_t pin);
+
+
 
 
 /**

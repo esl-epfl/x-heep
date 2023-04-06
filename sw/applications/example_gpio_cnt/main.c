@@ -14,6 +14,7 @@
 #include "pad_control.h"
 #include "pad_control_regs.h"  // Generated.
 #include "x-heep.h"
+#include "gpio_structs.h" //remove
 
 /*
 Notes:
@@ -94,18 +95,25 @@ int main(int argc, char *argv[])
     //gpio_reset_all();
     gpio_result_t gpio_res;
 
-    gpio_reset(GPIO_TB_OUT); 
-    gpio_res = gpio_set_mode(GPIO_TB_OUT, GpioModeOutPushPull);
+    gpio_cfg_t cfg_out = {
+        .pin = GPIO_TB_OUT,
+        .mode = GpioModeOutPushPull
+    };
+    gpio_res = gpio_config(cfg_out);
     if (gpio_res != GpioOk) {
         printf("Failed\n;");
         return -1;
     }
     gpio_res = gpio_write(GPIO_TB_OUT, false);
 
-    gpio_reset(GPIO_TB_IN);
-    gpio_res = gpio_set_mode(GPIO_TB_IN, GpioModeIn);
-    gpio_res |= gpio_en_input(GPIO_TB_IN);
-    gpio_res |= gpio_intr_en (GPIO_TB_IN, GpioIntrEdgeRising);
+    gpio_cfg_t cfg_in = {
+        .pin = GPIO_TB_IN,
+        .mode = GpioModeIn,
+        .en_input_sampling = true,
+        .en_intr = true,
+        .intr_type = GpioIntrEdgeRising
+    };
+    gpio_res = gpio_config(cfg_in);
     if (gpio_res != GpioOk) {
         printf("Failed\n;");
         return -1;
@@ -114,7 +122,7 @@ int main(int argc, char *argv[])
     printf("Write 1 to GPIO 30 and wait for interrupt...\n");
     external_intr_flag = 0;
     while(external_intr_flag==0) {
-        //gpio_res = gpio_write(GPIO_TB_OUT, true);
+        gpio_res = gpio_write(GPIO_TB_OUT, true);
         wait_for_interrupt();
     }
     printf("Success\n");
