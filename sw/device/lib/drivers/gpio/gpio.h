@@ -27,10 +27,6 @@
 #ifndef GPIO_H_
 #define GPIO_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /****************************************************************************/
 /**                                                                        **/
 /**                            MODULES USED                                **/
@@ -39,8 +35,9 @@ extern "C" {
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
-#include "mmio.h"
+// #include "mmio.h"
 
 /****************************************************************************/
 /**                                                                        **/

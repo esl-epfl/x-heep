@@ -33,7 +33,6 @@
 #include "gpio.h"
 #include "gpio_regs.h"  // Generated.
 #include "gpio_structs.h"
-// #include "mmio.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -52,19 +51,6 @@
 /*                      PROTOTYPES OF LOCAL FUNCTIONS                       */
 /**                                                                        **/
 /****************************************************************************/
-/**
- * @brief get some bitfield of a 32b reg.
- * @param reg the register that bitwise field selects from.
- * @param mask the mask w/o offset.
- * @param sel this the offset used for mask and value.
- */
-static inline uint32_t getBitfield( uint32_t reg, uint32_t  mask, uint8_t sel )
-{
-    uint32_t ret_val = 0;
-    ret_val = reg & ( mask << sel );
-    ret_val = ret_val >> sel;
-    return ret_val;
-}
 
 /**
  * @brief do a bitwise operation on 32b register.
@@ -79,6 +65,21 @@ static inline void setBitfield( uint32_t *reg, uint32_t  val,
     *reg           &= ~( mask << sel );
     *reg           |= (val & mask) << sel;
 }
+
+/**
+ * @brief get some bitfield of a 32b reg.
+ * @param reg the register that bitwise field selects from.
+ * @param mask the mask w/o offset.
+ * @param sel this the offset used for mask and value.
+ */
+static inline uint32_t getBitfield( uint32_t reg, uint32_t  mask, uint8_t sel )
+{
+    uint32_t ret_val = 0;
+    ret_val = reg & ( mask << sel );
+    ret_val = ret_val >> sel;
+    return ret_val;
+}
+
 /****************************************************************************/
 /**                                                                        **/
 /*                           EXPORTED VARIABLES                             */
