@@ -23,7 +23,10 @@ module power_manager #(
     */
     parameter logic SWITCH_VALUE_AT_RESET = SWITCH_IDLE_VALUE, //the value of the switch at reset
     parameter logic ISO_VALUE_AT_RESET = ISO_IDLE_VALUE, //the value for isolation cells at reset
-    parameter logic RESET_VALUE_AT_RESET = ~RESET_IDLE_VALUE //the value when the reset is active
+    parameter logic RESET_VALUE_AT_RESET = ~RESET_IDLE_VALUE, //the value when the reset is active
+    //do not touch these parameters
+    parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
+    parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -39,7 +42,7 @@ module power_manager #(
     input logic [31:0] intr_i,
 
     // External interrupts
-    input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] ext_irq_i,
+    input logic [NEXT_INT_RND-1:0] ext_irq_i,
 
     // Clock gating signals
     output logic peripheral_subsystem_clkgate_en_o,
@@ -58,11 +61,11 @@ module power_manager #(
     input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_i,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_o,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_o,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_o,
-    input  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_ack_i,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_o,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_no,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_ram_banks_set_retentive_o
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_o,
+    input  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_i,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_o,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
+    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_o
 );
 
   import power_manager_reg_pkg::*;
@@ -113,9 +116,11 @@ module power_manager #(
   logic peripheral_subsystem_rst_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso;
+% if external_domains != 0:
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch;
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso;
   logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_n;
+% endif
 
   assign cpu_subsystem_powergate_switch_o = cpu_subsystem_powergate_switch;
   assign cpu_subsystem_powergate_iso_o = cpu_subsystem_powergate_iso;
@@ -125,10 +130,15 @@ module power_manager #(
   assign peripheral_subsystem_rst_no = peripheral_subsystem_rst_n;
   assign memory_subsystem_banks_powergate_switch_o = memory_subsystem_banks_powergate_switch;
   assign memory_subsystem_banks_powergate_iso_o = memory_subsystem_banks_powergate_iso;
+% if external_domains != 0:
   assign external_subsystem_powergate_switch_o = external_subsystem_powergate_switch;
   assign external_subsystem_powergate_iso_o = external_subsystem_powergate_iso;
   assign external_subsystem_rst_no = external_subsystem_rst_n;
-
+% else:
+  assign external_subsystem_powergate_switch_o = '0;
+  assign external_subsystem_powergate_iso_o = '0;
+  assign external_subsystem_rst_no = '0;
+% endif
   // --------------------------------------------------------------------------------------
   // CLK_GATING 
   // --------------------------------------------------------------------------------------
@@ -576,6 +586,7 @@ module power_manager #(
   assign hw2reg.monitor_power_gate_ram_block_${bank}.d = {memory_subsystem_banks_powergate_iso[${bank}], memory_subsystem_banks_powergate_switch[${bank}]};
 
 % endfor
+
 % for ext in range(external_domains):
   assign hw2reg.monitor_power_gate_external_${ext}.de = 1'b1;
   assign hw2reg.monitor_power_gate_external_${ext}.d = {external_subsystem_rst_n[${ext}], external_subsystem_powergate_iso[${ext}], external_subsystem_powergate_switch[${ext}]};
