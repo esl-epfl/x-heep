@@ -33,33 +33,27 @@ void handler_irq_external(void) {
 
 int main(int argc, char *argv[])
 {
-    printf("--- MEMCOPY EXAMPLE - external peripheral ---\n");
 
-    printf("Init the PLIC...");
+
+    //Init the PLIC...
     rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
     plic_res = dif_plic_init(rv_plic_params, &rv_plic);
 
-    if (plic_res == kDifPlicOk) {
-        printf("success\n");
-    } else {
-        printf("fail\n;");
+    if (plic_res != kDifPlicOk) {
+        return -1;
     }
 
-    printf("Set MEMCOPY interrupt priority to 1...");
+
     // Set memcopy priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
     plic_res = dif_plic_irq_set_priority(&rv_plic, EXT_INTR_0, 1);
-    if (plic_res == kDifPlicOk) {
-        printf("success\n");
-    } else {
-        printf("fail\n;");
+    if (plic_res != kDifPlicOk) {
+        return -1;
     }
 
-    printf("Enable MEMCOPY interrupt...");
+    //Enable MEMCOPY interrupt...
     plic_res = dif_plic_irq_set_enabled(&rv_plic, EXT_INTR_0, 0, kDifPlicToggleEnabled);
-    if (plic_res == kDifPlicOk) {
-        printf("Success\n");
-    } else {
-        printf("Fail\n;");
+    if (plic_res != kDifPlicOk) {
+        return -1;
     }
 
     // Enable interrupt on processor side
@@ -91,20 +85,17 @@ int main(int argc, char *argv[])
 
     memcopy_periph_set_read_ptr(&memcopy_periph, (uint32_t) original_data);
     memcopy_periph_set_write_ptr(&memcopy_periph, (uint32_t) copied_data);
-    printf("Memcopy launched...");
+    printf("Memcopy launched...\r\n");
     memcopy_periph_set_cnt_start(&memcopy_periph, (uint32_t) COPY_SIZE);
     // Wait copy is done
     while(external_intr_flag==0) {
         wait_for_interrupt();
     }
-    printf("finished\n");
+    printf("Memcopy finished...\r\n");
 
-    printf("Complete interrupt...");
     plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-    if (plic_res == kDifPlicOk && intr_num == EXT_INTR_0) {
-        printf("success\n");
-    } else {
-        printf("fail\n;");
+    if (!(plic_res == kDifPlicOk && intr_num == EXT_INTR_0)) {
+        return -1;
     }
 
     // Reinitialized the read pointer to the original address
@@ -125,6 +116,7 @@ int main(int argc, char *argv[])
         printf("MEMCOPY SUCCESS\n");
     } else {
         printf("MEMCOPY FAILURE: %d errors out of %d words copied\n", errors, COPY_SIZE);
+        return -1;
     }
 
     return EXIT_SUCCESS;
