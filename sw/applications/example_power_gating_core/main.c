@@ -13,7 +13,6 @@
 #include "soc_ctrl.h"
 #include "rv_plic.h"
 #include "rv_plic_regs.h"
-#include "fast_intr_ctrl.h"
 #include "gpio.h"
 
 static rv_timer_t timer_0_1;
@@ -26,10 +25,6 @@ static gpio_t gpio;
 
 int main(int argc, char *argv[])
 {
-    // Setup fast interrupt controller
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-
     // Setup power_manager
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
     power_manager.base_addr = power_manager_reg;
