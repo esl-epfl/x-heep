@@ -42,7 +42,7 @@ do
 		echo -e "${RED}Failure building $APP using GCC${RESET}"
 		echo -e ${LONG_R}
 		FAILURES=$(( FAILURES + 1 ))
-		FAILED="$FAILED(gcc)$APP "  
+		FAILED="$FAILED(gcc)\t$APP "  
 	fi
 	
 	# Build the app with Clang
@@ -56,7 +56,7 @@ do
 		echo -e "${RED}Failure building $APP using Clang${RESET}"
 		echo -e ${LONG_R}
 		FAILURES=$(( FAILURES + 1 ))
-		FAILED="$FAILED(clang)$APP "  
+		FAILED="$FAILED(clang)\t$APP "  
 	fi
 	
 done
