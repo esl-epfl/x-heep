@@ -74,7 +74,7 @@ uint32_t copy_data[COPY_DATA_WORDS] __attribute__ ((aligned (4)))  = { 0 };
 int main(int argc, char *argv[])
 {
     #ifndef USE_SPI_FLASH
-        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_START_ADDRESS);
+        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI2_START_ADDRESS);
     #else
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif
@@ -187,8 +187,7 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     // -- DMA CONFIGURATION --
-    dma_set_read_ptr_inc(&dma, (uint32_t) 4); // Do not increment address when reading from the SPI (Pop from FIFO)
-    dma_set_write_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
+    dma_set_ptr_inc(&dma, (uint32_t) 4, 0); // Do not increment address when reading from the SPI (Pop from FIFO)
     dma_set_read_ptr(&dma, (uint32_t) flash_data); // SPI RX FIFO addr
     dma_set_write_ptr(&dma, (uint32_t) fifo_ptr_tx); // copy data address
     // Set the correct SPI-DMA mode:
@@ -263,8 +262,7 @@ int main(int argc, char *argv[])
     dma_intr_flag = 0;
 
     // -- DMA CONFIGURATION --
-    dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
-    dma_set_write_ptr_inc(&dma, (uint32_t) 4); // Do not increment address when reading from the SPI (Pop from FIFO)
+    dma_set_ptr_inc(&dma, (uint32_t) 0, 4); // Do not increment address when reading from the SPI (Pop from FIFO)
     dma_set_read_ptr(&dma, (uint32_t) fifo_ptr_rx); // SPI RX FIFO addr
     dma_set_write_ptr(&dma, (uint32_t) copy_data); // copy data address
     // Set the correct SPI-DMA mode:

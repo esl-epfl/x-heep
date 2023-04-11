@@ -34,10 +34,14 @@ void dma_set_ptr_inc(const dma_t *dma, uint8_t read_ptr_inc, uint8_t write_ptr_i
 }
 
 void dma_set_slot(const dma_t *dma, uint16_t rx_slot_mask, uint16_t tx_slot_mask) {
+  printf("Wrote @ %08x: %04x << %d + %04x = %08x\n",DMA_SLOT_REG_OFFSET, tx_slot_mask, DMA_SLOT_TX_TRIGGER_SLOT_OFFSET,rx_slot_mask,  (tx_slot_mask << DMA_SLOT_TX_TRIGGER_SLOT_OFFSET) + rx_slot_mask );
   mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_SLOT_REG_OFFSET), tx_slot_mask << DMA_SLOT_TX_TRIGGER_SLOT_OFFSET + rx_slot_mask);
 }
 
 void dma_set_spi_mode(const dma_t *dma, uint32_t spi_mode){
+
+  printf("MODE: %d\n", spi_mode);
+
   switch (spi_mode) {
     case DMA_SPI_MODE_DISABLED: {
       dma_set_slot(dma, 0, 0);
