@@ -75,9 +75,9 @@ void write_to_flash(spi_host_t *SPI, dma_t *DMA, uint16_t *data, uint32_t byte_c
 
     // Set the correct SPI-DMA mode:
     // (0) disable
-    // (1) receive from SPI (use SPI_START_ADDRESS for spi_host pointer)
-    // (2) send to SPI (use SPI_START_ADDRESS for spi_host pointer)
-    // (3) receive from SPI FLASH (use SPI2_FLASH_START_ADDRESS for spi_host pointer)
+    // (1) receive from SPI (use SPI2_START_ADDRESS for spi_host pointer)
+    // (2) send to SPI (use SPI2_START_ADDRESS for spi_host pointer)
+    // (3) receive from SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
     // (4) send to SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
     dma_set_spi_mode(DMA, (uint32_t) 4); // The DMA will wait for the SPI FLASH TX FIFO ready signal
     dma_set_data_type(DMA, (uint32_t) 1); // 1 is for 16-bits
