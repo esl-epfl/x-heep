@@ -13,6 +13,7 @@ filesets:
     - example:ip:slow_memory
     - example:ip:memcopy_periph
     - example:ip:gpio_cnt
+    - example:ip:pdm2pcm_dummy
     files:
     file_type: systemVerilogSource
 

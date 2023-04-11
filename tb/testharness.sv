@@ -36,6 +36,14 @@ module testharness #(
   import testharness_pkg::*;
 
   localparam SWITCH_ACK_LATENCY = 15;
+`ifdef USE_EXTERNAL_DEVICE_EXAMPLE
+  localparam EXT_XBAR_NMASTER_RND = testharness_pkg::EXT_XBAR_NMASTER;
+`else
+  localparam EXT_XBAR_NMASTER_RND = 1;
+`endif
+
+  localparam EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS;
+  localparam NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT;
 
   wire uart_rx;
   wire uart_tx;
@@ -57,8 +65,8 @@ module testharness #(
   wire spi_sck;
 
   // External xbar master/slave and peripheral ports
-  obi_req_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_req;
-  obi_resp_t [testharness_pkg::EXT_XBAR_NMASTER-1:0] master_resp;
+  obi_req_t [EXT_XBAR_NMASTER_RND-1:0] master_req;
+  obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] master_resp;
   obi_req_t slave_req;
   obi_resp_t slave_resp;
   reg_req_t periph_slave_req;
@@ -73,15 +81,15 @@ module testharness #(
   obi_resp_t slow_ram_slave_resp;
 
   // External interrupts
-  logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext;
+  logic [NEXT_INT_RND-1:0] intr_vector_ext;
   logic memcopy_intr;
 
   // External subsystems
-  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch;
-  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_ack;
-  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso;
-  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_n;
-  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_ram_banks_set_retentive;
+  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch;
+  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack;
+  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso;
+  logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_n;
+  logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive;
 
   always_comb begin
     // All interrupt lines set to zero by default
@@ -107,8 +115,12 @@ module testharness #(
       .PULP_XPULP(PULP_XPULP),
       .FPU(FPU),
       .PULP_ZFINX(PULP_ZFINX),
-      .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER),
-      .X_EXT(X_EXT)
+      .X_EXT(X_EXT),
+`ifdef USE_EXTERNAL_DEVICE_EXAMPLE
+      .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER)
+`else
+      .EXT_XBAR_NMASTER(0)
+`endif
   ) x_heep_system_i (
       .clk_i,
       .rst_ni,
@@ -143,8 +155,6 @@ module testharness #(
       .gpio_18_io(gpio[18]),
       .gpio_19_io(gpio[19]),
       .gpio_20_io(gpio[20]),
-      .gpio_21_io(gpio[21]),
-      .gpio_22_io(gpio[22]),
       .spi_flash_sck_io(spi_flash_sck),
       .spi_flash_cs_0_io(spi_flash_csb[0]),
       .spi_flash_cs_1_io(spi_flash_csb[1]),
@@ -159,6 +169,8 @@ module testharness #(
       .spi_sd_1_io(spi_sd_io[1]),
       .spi_sd_2_io(spi_sd_io[2]),
       .spi_sd_3_io(spi_sd_io[3]),
+      .pdm2pcm_pdm_io(gpio[21]),
+      .pdm2pcm_clk_io(gpio[22]),
       .spi2_cs_0_io(gpio[23]),
       .spi2_cs_1_io(gpio[24]),
       .spi2_sck_io(gpio[25]),
@@ -189,16 +201,19 @@ module testharness #(
       .external_ram_banks_set_retentive_o(external_ram_banks_set_retentive)
   );
 
+  logic pdm;
+
   //pretending to be SWITCH CELLs that delay by SWITCH_ACK_LATENCY cycles the ACK signal
   logic
       tb_cpu_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY+1],
       tb_peripheral_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY+1];
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] tb_memory_subsystem_banks_powergate_switch_ack[SWITCH_ACK_LATENCY+1];
-  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] tb_external_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY+1];
+  logic [EXT_DOMAINS_RND-1:0] tb_external_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY+1];
+
   logic delayed_tb_cpu_subsystem_powergate_switch_ack;
   logic delayed_tb_peripheral_subsystem_powergate_switch_ack;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] delayed_tb_memory_subsystem_banks_powergate_switch_ack;
-  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] delayed_tb_external_subsystem_powergate_switch_ack;
+  logic [EXT_DOMAINS_RND-1:0] delayed_tb_external_subsystem_powergate_switch_ack;
 
   always_ff @(negedge clk_i) begin
     tb_cpu_subsystem_powergate_switch_ack[0] <= x_heep_system_i.cpu_subsystem_powergate_switch;
@@ -231,6 +246,7 @@ module testharness #(
     external_subsystem_powergate_switch_ack = delayed_tb_external_subsystem_powergate_switch_ack;
 `endif
   end
+
 
   uartdpi #(
       .BAUD('d256000),
@@ -310,6 +326,13 @@ module testharness #(
       .rst_ni,
       .gpio_i(gpio[30]),
       .gpio_o(gpio[31])
+  );
+
+  pdm2pcm_dummy pdm2pcm_dummy_i (
+      .clk_i,
+      .rst_ni,
+      .pdm_data_o(gpio[21]),
+      .pdm_clk_i (gpio[22])
   );
 
 `ifndef VERILATOR

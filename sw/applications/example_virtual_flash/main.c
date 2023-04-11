@@ -33,15 +33,11 @@ volatile int8_t spi_intr_flag;
 
 spi_host_t spi_host_flash;
 
-void handler_irq_fast_spi_flash(void)
+void fic_irq_fast_spi_flash(void)
 {
     // Disable SPI interrupts
     spi_enable_evt_intr(&spi_host_flash, false);
     spi_enable_rxwm_intr(&spi_host_flash, false);
-    // Clear fast interrupt
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kSpiFlash_fic_e);
     spi_intr_flag = 1;
 }
 
@@ -79,8 +75,8 @@ void write_to_flash(spi_host_t *SPI, dma_t *DMA, uint16_t *data, uint32_t byte_c
 
     // Set the correct SPI-DMA mode:
     // (0) disable
-    // (1) receive from SPI (use SPI_START_ADDRESS for spi_host pointer)
-    // (2) send to SPI (use SPI_START_ADDRESS for spi_host pointer)
+    // (1) receive from SPI (use SPI2_START_ADDRESS for spi_host pointer)
+    // (2) send to SPI (use SPI2_START_ADDRESS for spi_host pointer)
     // (3) receive from SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
     // (4) send to SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
     dma_set_spi_mode(DMA, (uint32_t) 4); // The DMA will wait for the SPI FLASH TX FIFO ready signal

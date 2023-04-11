@@ -424,15 +424,21 @@ def main():
 
     ao_peripheral_size_address = string2int(obj['ao_peripherals']['length'])
 
+
     def extract_peripherals(peripherals):
-        return {
-            name: {
-                k: string2int(v)
-                for k, v in info.items()
-            }
-            for name, info in peripherals.items()
-            if isinstance(info, dict)
-        }
+        result = {}
+        for name, info in peripherals.items():
+            if isinstance(info, dict):
+                new_info = {}
+                for k, v in info.items():
+                    if k not in ("is_included"):
+                        new_info[k] = string2int(v)
+                    else:
+                        new_info[k] = v
+                result[name] = new_info
+
+        return result
+
 
     def discard_path(peripherals):
         new = {}
@@ -442,6 +448,16 @@ def main():
             else:
                 new[k] = v
         return new
+
+    def len_extracted_peripherals(peripherals):
+        len_ep = 0
+        for name, info in peripherals.items():
+            if isinstance(info, dict):
+                for k, v in info.items():
+                   if k in ("is_included"):
+                    if v in ("yes"):
+                        len_ep += 1
+        return len_ep
 
     ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
     ao_peripherals_count = len(ao_peripherals)
