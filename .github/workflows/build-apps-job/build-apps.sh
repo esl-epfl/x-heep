@@ -77,7 +77,7 @@ else
 	
 	echo -e ${LONG_G}
 	echo -e ${LONG_G}
-	echo -e "${WHITE}THE OPERATION SUCCEDED${RESET}"
+	echo -e "${WHITE}THE OPERATION SUCCEEDED${RESET}"
 	echo -e ${LONG_G}
 	echo -e ${LONG_G}
 	exit 0
