@@ -25,9 +25,9 @@
 #define TEST_MEM_2_SPI
 #define TEST_SPI_2_MEM
 
-#define CIRCULAR_CYCLES 4
+#define CIRCULAR_CYCLES 3
 
-#define COPY_DATA_WORDS 66 // Flash page size = 256 Bytes
+#define COPY_DATA_WORDS 63 // Flash page size = 256 Bytes
 
 #define REVERT_24b_ADDR(addr) ((((uint32_t)addr & 0xff0000) >> 16) | ((uint32_t)addr & 0xff00) | (((uint32_t)addr & 0xff) << 16))
 #define FLASH_ADDR 0x00008500 // 256B data alignment
