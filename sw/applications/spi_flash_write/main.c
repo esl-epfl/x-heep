@@ -19,9 +19,9 @@
 #include "fast_intr_ctrl_regs.h"
 
 // Un-comment this line to use the SPI FLASH instead of the default SPI
-// #define USE_SPI_FLASH
+#define USE_SPI_FLASH
 
-#define COPY_DATA_WORDS 64 // Flash page size = 256 Bytes
+#define COPY_DATA_WORDS 16 // Flash page size = 256 Bytes
 
 #define REVERT_24b_ADDR(addr) ((((uint32_t)addr & 0xff0000) >> 16) | ((uint32_t)addr & 0xff00) | (((uint32_t)addr & 0xff) << 16))
 
@@ -65,6 +65,7 @@ void handler_irq_fast_dma(void)
     fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
     clear_fast_interrupt(&fast_intr_ctrl, kDma_fic_e);
     dma_intr_flag = 1;
+    printf("#");
 }
 
 // Reserve memory array
@@ -306,12 +307,16 @@ int main(int argc, char *argv[])
 
     dma_intr_flag = 0;
     dma_set_data_type(&dma, (uint32_t) 0);
+    
+    dma_enable_intr( &dma, 1, 0 );
+
     dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_WORDS*sizeof(*copy_data)); // Number of bytes received by SPI
 
     // Wait for DMA interrupt
     printf("Waiting for the DMA interrupt...\n");
-    while(dma_intr_flag == 0) {
-        wait_for_interrupt();
+    while( dma_get_done(&dma) == 0 ) {
+        //wait_for_interrupt();
+        asm("nop");
     }
     printf("triggered!\n");
 

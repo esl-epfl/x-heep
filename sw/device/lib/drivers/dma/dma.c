@@ -50,13 +50,16 @@ void dma_set_spi_mode(const dma_t *dma, uint32_t spi_mode){
       dma_set_slot(dma, 1, 0);
     } break;
     case DMA_SPI_MODE_SPI_TX: {
-      dma_set_slot(dma, 0, 1 << 1);
+      //dma_set_slot(dma, 0, 1 << 1);
+      dma_set_slot(dma, 0, 2);
     } break;
     case DMA_SPI_MODE_SPI_FLASH_RX: {
-      dma_set_slot(dma, 1 << 2, 0);
+      //dma_set_slot(dma, 1 << 2, 0);
+      dma_set_slot(dma, 3, 0);
     } break;
     case DMA_SPI_MODE_SPI_FLASH_TX: {
-      dma_set_slot(dma, 0, 1 << 3);
+      //dma_set_slot(dma, 0, 1 << 3);
+      dma_set_slot(dma, 0, 4);
     } break;
   }
 }
