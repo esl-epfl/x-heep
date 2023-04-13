@@ -31,8 +31,7 @@ module system_xbar
   localparam int unsigned RESP_AGG_DATA_WIDTH = 32;
 
   //Address Decoder
-  logic [XBAR_NMASTER-1:0][LOG_XBAR_NSLAVE-1:0] port_sel, pre_port_sel;
-  logic [XBAR_NMASTER-1:0][31:0] post_master_req_addr;
+  logic [XBAR_NMASTER-1:0][LOG_XBAR_NSLAVE-1:0] port_sel;
 
   logic [0:0][LOG_XBAR_NSLAVE-1:0] port_sel_onetom;
   logic [0:0] neck_req_req;
@@ -68,85 +67,12 @@ module system_xbar
       ) addr_decode_i (
           .addr_i(master_req_i[i].addr),
           .addr_map_i(core_v_mini_mcu_pkg::XBAR_ADDR_RULES),
-          .idx_o(pre_port_sel[i]),
+          .idx_o(port_sel[i]),
           .dec_valid_o(),
           .dec_error_o(),
           .en_default_idx_i(1'b1),
           .default_idx_i(core_v_mini_mcu_pkg::ERROR_IDX[LOG_XBAR_NSLAVE-1:0])
       );
-    end
-
-    if (NUM_BANKS_IL == 0) begin : gen_addr_continuous
-
-      for (genvar i = 0; i < XBAR_NMASTER; i++) begin
-        assign port_sel[i] = pre_port_sel[i];
-        assign post_master_req_addr[i] = master_req_i[i].addr;
-      end
-
-    end else if (NUM_BANKS_IL == 2) begin : gen_addr_interleaved_2
-
-      for (genvar j = 0; j < XBAR_NMASTER; j++) begin : gen_addr_napot_2
-        always_comb begin
-          port_sel[j] = 1;
-          post_master_req_addr[j] = '0;
-          if (pre_port_sel[j] == NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 1) begin
-            case (master_req_i[j].addr[2])
-              1'b0: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 1;
-              1'b1: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0];
-            endcase
-            post_master_req_addr[j] = {master_req_i[j].addr[31:3], 3'h0};
-          end else begin
-            port_sel[j] = pre_port_sel[j];
-            post_master_req_addr[j] = master_req_i[j].addr;
-          end
-        end
-      end
-
-    end else if (NUM_BANKS_IL == 4) begin : gen_addr_interleaved_4
-
-      for (genvar j = 0; j < XBAR_NMASTER; j++) begin : gen_addr_napot_4
-        always_comb begin
-          port_sel[j] = 1;
-          post_master_req_addr[j] = '0;
-          if (pre_port_sel[j] == NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 3) begin
-            case (master_req_i[j].addr[3:2])
-              2'b00: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 3;
-              2'b01: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 2;
-              2'b10: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 1;
-              2'b11: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0];
-            endcase
-            post_master_req_addr[j] = {master_req_i[j].addr[31:4], 4'h0};
-          end else begin
-            port_sel[j] = pre_port_sel[j];
-            post_master_req_addr[j] = master_req_i[j].addr;
-          end
-        end
-      end
-
-    end else if (NUM_BANKS_IL == 8) begin : gen_addr_interleaved_8
-
-      for (genvar j = 0; j < XBAR_NMASTER; j++) begin : gen_addr_napot_8
-        always_comb begin
-          port_sel[j] = 1;
-          post_master_req_addr[j] = '0;
-          if (pre_port_sel[j] == NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 7) begin
-            case (master_req_i[j].addr[4:2])
-              3'b000: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 7;
-              3'b001: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 6;
-              3'b010: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 5;
-              3'b011: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 4;
-              3'b100: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 3;
-              3'b101: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 2;
-              3'b110: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 1;
-              3'b111: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0];
-            endcase
-            post_master_req_addr[j] = {master_req_i[j].addr[31:5], 5'h0};
-          end else begin
-            port_sel[j] = pre_port_sel[j];
-            post_master_req_addr[j] = master_req_i[j].addr;
-          end
-        end
-      end
     end
   end
 
@@ -154,7 +80,7 @@ module system_xbar
   for (genvar i = 0; i < XBAR_NMASTER; i++) begin : gen_unroll_master
     assign master_req_req[i] = master_req_i[i].req;
     assign master_req_out_data[i] = {
-      master_req_i[i].we, master_req_i[i].be, post_master_req_addr[i], master_req_i[i].wdata
+      master_req_i[i].we, master_req_i[i].be, master_req_i[i].addr, master_req_i[i].wdata
     };
     assign master_resp_o[i].gnt = master_resp_gnt[i];
     assign master_resp_o[i].rdata = master_resp_rdata[i];
