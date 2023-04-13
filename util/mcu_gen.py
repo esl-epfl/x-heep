@@ -17,6 +17,7 @@ import csv
 from jsonref import JsonRef
 from mako.template import Template
 import collections
+from math import log2
 
 class Pad:
 
@@ -406,8 +407,13 @@ def main():
     else:
         ram_numbanks_il = int(obj['ram']['numbanks_interleaved'])
 
-    if ram_numbanks_il != 0 and not (ram_numbanks_il == 2 or ram_numbanks_il == 4 or ram_numbanks_il == 8):
-        exit("ram interleaved numbanks must be 0, 2, 4 or 8 instead of " + str(ram_numbanks_il))
+    if ram_numbanks_il != 0:
+        log_ram_numbanks_il = int(log2(ram_numbanks_il))
+
+        if not log2(ram_numbanks_il).is_integer():
+            exit("ram interleaved numbanks must be a power of 2 instead of " + str(ram_numbanks_il))
+    else:
+        log_ram_numbanks_il = 0
 
     if ram_numbanks_il != 0 and bus_type == 'onetoM':
         exit("bus type must be 'NtoM' instead 'onetoM' to access the interleaved memory banks in parallel" + str(args.bus))
@@ -779,6 +785,7 @@ def main():
         "ram_numbanks"                     : ram_numbanks,
         "ram_numbanks_cont"                : ram_numbanks_cont,
         "ram_numbanks_il"                  : ram_numbanks_il,
+        "log_ram_numbanks_il"              : log_ram_numbanks_il,
         "external_domains"                 : external_domains,
         "ram_size_address"                 : ram_size_address,
         "debug_start_address"              : debug_start_address,

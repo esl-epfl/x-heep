@@ -83,62 +83,17 @@ module system_xbar
           .default_idx_i(core_v_mini_mcu_pkg::ERROR_IDX[LOG_XBAR_NSLAVE-1:0])
       );
     end
-% if ram_numbanks_il == 2:
+% if ram_numbanks_il != 0:
 
-    for (genvar j = 0; j < XBAR_NMASTER; j++) begin : gen_addr_napot_2
+    localparam ZERO = 32'h0;
+
+    for (genvar j = 0; j < XBAR_NMASTER; j++) begin : gen_addr_napot
       always_comb begin
         port_sel[j] = 1;
         post_master_req_addr[j] = '0;
-        if (pre_port_sel[j] == NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 1) begin
-          case (master_req_i[j].addr[2])
-            1'b0: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 1;
-            1'b1: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0];
-          endcase
-          post_master_req_addr[j] = {master_req_i[j].addr[31:3], 3'h0};
-        end else begin
-          port_sel[j] = pre_port_sel[j];
-          post_master_req_addr[j] = master_req_i[j].addr;
-        end
-      end
-    end
-% elif ram_numbanks_il == 4:
-
-    for (genvar j = 0; j < XBAR_NMASTER; j++) begin : gen_addr_napot_4
-      always_comb begin
-        port_sel[j] = 1;
-        post_master_req_addr[j] = '0;
-        if (pre_port_sel[j] == NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 3) begin
-          case (master_req_i[j].addr[3:2])
-            2'b00: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 3;
-            2'b01: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 2;
-            2'b10: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 1;
-            2'b11: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0];
-          endcase
-          post_master_req_addr[j] = {master_req_i[j].addr[31:4], 4'h0};
-        end else begin
-          port_sel[j] = pre_port_sel[j];
-          post_master_req_addr[j] = master_req_i[j].addr;
-        end
-      end
-    end
-% elif ram_numbanks_il == 8:
-
-    for (genvar j = 0; j < XBAR_NMASTER; j++) begin : gen_addr_napot_8
-      always_comb begin
-        port_sel[j] = 1;
-        post_master_req_addr[j] = '0;
-        if (pre_port_sel[j] == NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 7) begin
-          case (master_req_i[j].addr[4:2])
-            3'b000: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 7;
-            3'b001: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 6;
-            3'b010: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 5;
-            3'b011: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 4;
-            3'b100: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 3;
-            3'b101: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 2;
-            3'b110: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - 1;
-            3'b111: port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0];
-          endcase
-          post_master_req_addr[j] = {master_req_i[j].addr[31:5], 5'h0};
+        if (pre_port_sel[j] == NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - (NUM_BANKS_IL[LOG_XBAR_NSLAVE-1:0]-1)) begin
+            port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - (NUM_BANKS_IL[LOG_XBAR_NSLAVE-1:0]-1) + {ZERO[LOG_XBAR_NSLAVE-${1+log_ram_numbanks_il}:0],master_req_i[j].addr[${1+log_ram_numbanks_il}:2]};
+          post_master_req_addr[j] = {master_req_i[j].addr[31:${2+log_ram_numbanks_il}], ${2+log_ram_numbanks_il}'h0};
         end else begin
           port_sel[j] = pre_port_sel[j];
           post_master_req_addr[j] = master_req_i[j].addr;

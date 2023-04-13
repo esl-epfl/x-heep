@@ -30,38 +30,16 @@ module memory_subsystem
   logic [NUM_BANKS-1:0] clk_cg;
 % if ram_numbanks_il != 0:
   logic [NUM_BANKS-1:0][AddrWidth-3:0] ram_req_addr;
+
+  for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_addr_napot
+    if (i >= NUM_BANKS - ${ram_numbanks_il}) begin
+      assign ram_req_addr[i] = {${log_ram_numbanks_il}'h0, ram_req_i[i].addr[AddrWidth-1:${2+log_ram_numbanks_il}]};
+    end else begin
+      assign ram_req_addr[i] = ram_req_i[i].addr[AddrWidth-1:2];
+    end
+  end
 % endif
-% if ram_numbanks_il == 2:
 
-  for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_addr_napot_2
-    if (i >= NUM_BANKS - 2) begin
-      assign ram_req_addr[i] = {1'h0, ram_req_i[i].addr[AddrWidth-1:3]};
-    end else begin
-      assign ram_req_addr[i] = ram_req_i[i].addr[AddrWidth-1:2];
-    end
-  end
-
-% elif ram_numbanks_il == 4:
-
-  for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_addr_napot_4
-    if (i >= NUM_BANKS - 4) begin
-      assign ram_req_addr[i] = {2'h0, ram_req_i[i].addr[AddrWidth-1:4]};
-    end else begin
-      assign ram_req_addr[i] = ram_req_i[i].addr[AddrWidth-1:2];
-    end
-  end
-
-% elif ram_numbanks_il == 8:
-
-  for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_addr_napot_8
-    if (i >= NUM_BANKS - 8) begin
-      assign ram_req_addr[i] = {3'h0, ram_req_i[i].addr[AddrWidth-1:5]};
-    end else begin
-      assign ram_req_addr[i] = ram_req_i[i].addr[AddrWidth-1:2];
-    end
-  end
-
-% endif
   for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_sram
 
     tc_clk_gating clk_gating_cell_i (
