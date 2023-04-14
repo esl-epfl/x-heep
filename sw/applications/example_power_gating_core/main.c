@@ -13,7 +13,6 @@
 #include "soc_ctrl.h"
 #include "rv_plic.h"
 #include "rv_plic_regs.h"
-#include "fast_intr_ctrl.h"
 #include "gpio.h"
 
 static rv_timer_t timer_0_1;
