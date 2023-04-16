@@ -13,7 +13,6 @@
 #include "soc_ctrl.h"
 #include "rv_plic.h"
 #include "rv_plic_regs.h"
-#include "fast_intr_ctrl.h"
 #include "gpio.h"
 
 static rv_timer_t timer_0_1;
@@ -26,10 +25,6 @@ static gpio_t gpio;
 
 int main(int argc, char *argv[])
 {
-    // Setup fast interrupt controller
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-
     // Setup power_manager
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
     power_manager.base_addr = power_manager_reg;
@@ -94,7 +89,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    clear_fast_interrupt(&fast_intr_ctrl, kTimer_1_fic_e);
 
     // Power-gate and wake-up due to timer_2
     rv_timer_set_tick_params(&timer_2_3, 0, tick_params);
@@ -109,7 +103,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    clear_fast_interrupt(&fast_intr_ctrl, kTimer_2_fic_e);
 
     // Power-gate and wake-up due to timer_3
     rv_timer_set_tick_params(&timer_2_3, 1, tick_params);
@@ -124,7 +117,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    clear_fast_interrupt(&fast_intr_ctrl, kTimer_3_fic_e);
 
 #ifdef USE_EXTERNAL_DEVICE
     // Power-gate and wake-up due to plic

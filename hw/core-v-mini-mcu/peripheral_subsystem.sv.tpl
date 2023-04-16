@@ -6,7 +6,8 @@ module peripheral_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
 #(
-    parameter NEXT_INT = 0
+    //do not touch these parameters
+    parameter NEXT_INT_RND         = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -18,7 +19,7 @@ module peripheral_subsystem
     output obi_resp_t slave_resp_o,
 
     //PLIC
-    input  logic [NEXT_INT-1:0] intr_vector_ext_i,
+    input  logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
     output logic                irq_plic_o,
     output logic                msip_o,
 
