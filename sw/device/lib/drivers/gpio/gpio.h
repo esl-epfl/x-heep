@@ -67,6 +67,22 @@ typedef enum gpio_mode
 } gpio_mode_t;
 
 /**
+ * gpio_intr_general_mode 
+ * 1 keep the interrupt line asserted until all interrupts for all GPIOs 
+ * are cleared. 
+ * 0 generate one cycle wide pulses for every new interrupt.
+ */
+typedef enum gpio_intr_general_mode
+{   
+    IntrOnePulse    = 0, /*!< keep the interrupt line asserted until all 
+    interrupts for all GPIOs are cleared. */
+    IntrAsserted    = 1, /*!< generate one cycle wide pulses for every 
+    new interrupt. */
+} gpio_intr_general_mode_t;
+
+
+
+/**
  * This type is used in almost all the operations, and it is returned when
  * there is a problem with functions given parameters or operation for example 
  * pin number not being in the range of accepting pins.
@@ -100,7 +116,7 @@ typedef enum gpio_intr_type
 typedef struct gpio_cfg
 {
     gpio_pin_number_t pin;      /*!< pin number. */
-    gpio_pin_number_t mode;     /*!< pin mode. */
+    gpio_mode_t mode;     /*!< pin mode. */
     bool en_input_sampling;     /*!< enable sampling (being input is req). */
     bool en_intr;               /*!< enable intr (being input is req). */
     gpio_intr_type_t intr_type; /*!< intr type (enabling intr is req). */
@@ -166,9 +182,6 @@ gpio_result_t gpio_en_input_sampling (gpio_pin_number_t pin);
  * @brief disable sampling as input by writing zero in GPIO_EN.
  */
 gpio_result_t gpio_dis_input_sampling (gpio_pin_number_t pin);
-
-
-
 
 /**
  * @brief reading from a gpio pin, which is done by reading from GPIO_IN reg
@@ -348,7 +361,7 @@ gpio_result_t gpio_intr_clear_stat (gpio_pin_number_t pin);
  * interrupts for all GPIOs are cleared. If false, generate one cycle wide 
  * pulses for every new interrupt.
  */
-gpio_result_t gpio_intr_set_mode (bool gpio_intr_mode);
+gpio_result_t gpio_intr_set_mode (gpio_intr_general_mode_t mode);
 
 
 
