@@ -5,7 +5,7 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : rv_plic.h                                                    **
-** date     : 28/03/2023                                                   **
+** date     : 18/04/2023                                                   **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -19,7 +19,7 @@
 
 /**
 * @file   rv_plic.h
-* @date   28/03/2023
+* @date   18/04/2023
 * @brief  This is the main file for the HAL of the RV_PLIC peripheral
 *
 * In this file there are the defintions of the public HAL functions for the RV_PLIC
@@ -80,6 +80,14 @@
 /****************************************************************************/
 
 /**
+ * Pointer used to dynamically access the different interrupt handlers.
+ * Each element will be initialized to be the address of the handler function
+ * relative to its index. So each element will be a callable function.
+*/
+typedef void (*handler_funct_t)(void);
+
+
+/**
  * A PLIC interrupt target.
  *
  * This corresponds to a specific system that can service an interrupt. In
@@ -113,18 +121,18 @@ typedef enum plic_result {
   /**
    * Indicates that the operation succeeded.
    */
-  kDifPlicOk = 0,
+  kPlicOk = 0,
   /**
    * Indicates some unspecified failure.
    */
-  kDifPlicError = 1,
+  kPlicError = 1,
   /**
    * Indicates that some parameter passed into a function failed a
    * precondition.
    *
    * When this value is returned, no hardware operations occurred.
    */
-  kDifPlicBadArg = 2,
+  kPlicBadArg = 2,
 } plic_result_t;
 
 
@@ -135,14 +143,14 @@ typedef enum plic_result {
  * state.
  */
 typedef enum plic_toggle {
-  /*
-   * The "enabled" state.
-   */
-  kDifPlicToggleEnabled,
   /**
    * The "disabled" state.
    */
-  kDifPlicToggleDisabled,
+  kPlicToggleDisabled,
+  /*
+   * The "enabled" state.
+   */
+  kPlicToggleEnabled
 } plic_toggle_t;
 
 
@@ -151,13 +159,13 @@ typedef enum plic_toggle {
  */
 typedef enum plic_irq_trigger {
   /**
-   * Trigger on an edge (when the signal changes from low to high).
-   */
-  kDifPlicIrqTriggerEdge,
-  /**
    * Trigger on a level (when the signal remains high).
    */
-  kDifPlicIrqTriggerLevel,
+  kPlicIrqTriggerLevel,
+  /**
+   * Trigger on an edge (when the signal changes from low to high).
+   */
+  kPlicIrqTriggerEdge
 } plic_irq_trigger_t;
 
 
@@ -188,7 +196,7 @@ typedef enum irq_sources
  * When an interrupt occurs, this flag is set to 1 by the plic in order
  * for the core to continue with the execution of the program.
 */
-extern int8_t external_intr_flag;
+extern uint8_t external_intr_flag;
 
 /****************************************************************************/
 /**                                                                        **/
@@ -338,7 +346,7 @@ plic_result_t plic_irq_is_pending(plic_irq_id_t irq,
  * @param[out] claim_data Data that describes the origin of the IRQ.
  * @return The result of the operation.
  */
-plic_result_t plic_irq_claim(plic_target_t target, plic_irq_id_t *claim_data);
+plic_result_t plic_irq_claim(plic_irq_id_t *claim_data);
 
 /**
  * Completes the claimed interrupt request.
