@@ -336,7 +336,7 @@ SECTIONS
   } >ram1
 
 % if ram_numbanks_cont > 1 and ram_numbanks_il > 0:
-  .interleaved :
+  .data_interleaved :
   {
   } >ram_il
 % endif
