@@ -22,6 +22,9 @@ MEMORY
      sections to ram. */
   ram0 (rwxai) : ORIGIN = 0x${linker_onchip_code_start_address}, LENGTH = 0x${linker_onchip_code_size_address}
   ram1 (rwxai) : ORIGIN = 0x${linker_onchip_data_start_address}, LENGTH = 0x${linker_onchip_data_size_address}
+% if ram_numbanks_cont > 1 and ram_numbanks_il > 0:
+  ram_il (rwxai) : ORIGIN = 0x${linker_onchip_il_start_address}, LENGTH = 0x${linker_onchip_il_size_address}
+% endif  
 }
 
 /*
@@ -331,6 +334,12 @@ SECTIONS
    PROVIDE(__stack_end = .);
    PROVIDE(__freertos_irq_stack_top = .);
   } >ram1
+
+% if ram_numbanks_cont > 1 and ram_numbanks_il > 0:
+  .interleaved :
+  {
+  } >ram_il
+% endif
 
   /* Stabs debugging sections.  */
   .stab          0 : { *(.stab) }
