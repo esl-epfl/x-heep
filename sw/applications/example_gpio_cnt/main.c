@@ -36,19 +36,19 @@ Notes:
 
 #endif
 
-// int8_t external_intr_flag;
+// int8_t plic_intr_flag;
 
 // Interrupt controller variables
-// dif_plic_params_t rv_plic_params;
-// dif_plic_t rv_plic;
-dif_plic_result_t plic_res;
-// dif_plic_irq_id_t intr_num;
+// plic_params_t rv_plic_params;
+// plic_t rv_plic;
+plic_result_t plic_res;
+// plic_irq_id_t intr_num;
 
 // void handler_irq_external(void) {
 //     // Claim/clear interrupt
-//     plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
-//     if (plic_res == kDifPlicOk && intr_num == GPIO_INTR) {
-//         external_intr_flag = 1;
+//     plic_res = plic_irq_claim(&rv_plic, 0, &intr_num);
+//     if (plic_res == kPlicOk && intr_num == GPIO_INTR) {
+//         plic_intr_flag = 1;
 //     }
 // }
 
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
     // rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
     plic_res = plic_Init();
-    if (plic_res != kDifPlicOk) {
+    if (plic_res != kPlicOk) {
         printf("Init PLIC failed\n;");
         return -1;
     }
@@ -83,13 +83,13 @@ int main(int argc, char *argv[])
     }
 
     plic_res = plic_irq_set_priority(GPIO_INTR, 1);
-    if (plic_res != kDifPlicOk) {
+    if (plic_res != kPlicOk) {
         printf("Failed\n;");
         return -1;
     }
 
-    plic_res = plic_irq_set_enabled(GPIO_INTR, kDifPlicToggleEnabled);
-    if (plic_res != kDifPlicOk) {
+    plic_res = plic_irq_set_enabled(GPIO_INTR, kPlicToggleEnabled);
+    if (plic_res != kPlicOk) {
         printf("Failed\n;");
         return -1;
     }
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
     // Set mie.MEIE bit to one to enable machine-level external interrupts
     const uint32_t mask = 1 << 11;
     CSR_SET_BITS(CSR_REG_MIE, mask);
-    external_intr_flag = 0;
+    plic_intr_flag = 0;
 
     gpio_res = gpio_output_set_enabled(&gpio, GPIO_TB_OUT, true);
     if (gpio_res != kGpioOk) {
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
     }
 
     printf("Write 1 to GPIO 30 and wait for interrupt...\n");
-    while(external_intr_flag==0) {
+    while(plic_intr_flag==0) {
         gpio_write(&gpio, GPIO_TB_OUT, true);
         wait_for_interrupt();
         volatile int i=0;
@@ -131,8 +131,8 @@ int main(int argc, char *argv[])
     }
     printf("Success\n");
 
-    // plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-    // if (plic_res != kDifPlicOk) {
+    // plic_res = plic_irq_complete(&rv_plic, 0, &intr_num);
+    // if (plic_res != kPlicOk) {
     //     printf("Failed\n;");
     //     return -1;
     // }

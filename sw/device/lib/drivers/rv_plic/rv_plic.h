@@ -51,6 +51,11 @@
 /****************************************************************************/
 
 /**
+ * Number of different interrupt sources connected to the PLIC.
+*/
+#define PLIC_INTR_SRCS_NUM  4
+
+/**
  * Start and end ID of the UART interrupt request lines
 */
 #define UART_ID_START  1
@@ -196,7 +201,7 @@ typedef enum irq_sources
  * When an interrupt occurs, this flag is set to 1 by the plic in order
  * for the core to continue with the execution of the program.
 */
-extern uint8_t external_intr_flag;
+extern uint8_t plic_intr_flag;
 
 /****************************************************************************/
 /**                                                                        **/
@@ -376,7 +381,7 @@ plic_result_t plic_irq_complete(const plic_irq_id_t *complete_data);
  *
  * @return The result of the operation
  */
-plic_result_t plic_software_irq_force();
+void plic_software_irq_force(void);
 
 
 /**
@@ -388,15 +393,14 @@ plic_result_t plic_software_irq_force();
  *
  * @return The result of the operation
  */
-plic_result_t plic_software_irq_acknowledge();
+void plic_software_irq_acknowledge(void);
 
 /**
  * Returns software interrupt pending state
  * 
- * @param is_pending Bool variable storing the information about the pending state
  * @return The result of the operation
 */
-plic_result_t plic_software_irq_is_pending(bool *is_pending);
+plic_result_t plic_software_irq_is_pending(void);
 
 #endif /* _RV_PLIC_H_ */
 

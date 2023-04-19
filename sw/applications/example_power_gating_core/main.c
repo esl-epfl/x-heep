@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 // #ifdef USE_EXTERNAL_DEVICE
     // Power-gate and wake-up due to plic
     plic_irq_set_priority(GPIO_INTR_31, 1);
-    plic_irq_set_enabled(GPIO_INTR_31, kDifPlicToggleEnabled);
+    plic_irq_set_enabled(GPIO_INTR_31, kPlicToggleEnabled);
     gpio_output_set_enabled(&gpio, 30, true);
     gpio_irq_set_trigger(&gpio, 1 << 31, kGpioIrqTriggerLevelHigh);
     gpio_irq_set_enabled(&gpio, 31, true);

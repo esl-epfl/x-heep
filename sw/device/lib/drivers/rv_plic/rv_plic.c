@@ -68,10 +68,10 @@ const uint32_t plicMaxPriority = RV_PLIC_PRIO0_PRIO0_MASK;
  * index is generated. This index will be used to address the proper
  * handler function inside this array.
 */
-handler_funct_t handlers[4] = {&handler_irq_uart, 
-                               &handler_irq_gpio, 
-                               &handler_irq_i2c, 
-                               &handler_irq_spi};
+handler_funct_t handlers[PLIC_INTR_SRCS_NUM] = {&handler_irq_uart, 
+                                                &handler_irq_gpio, 
+                                                &handler_irq_i2c, 
+                                                &handler_irq_spi};
 
 /****************************************************************************/
 /**                                                                        **/
@@ -109,6 +109,7 @@ static ptrdiff_t plic_offset_from_reg0(plic_irq_id_t irq);
  * be bit 0).
  */
 static uint8_t plic_irq_bit_index(plic_irq_id_t irq);
+
 /****************************************************************************/
 /**                                                                        **/
 /*                           EXPORTED VARIABLES                             */
@@ -126,7 +127,7 @@ static uint8_t plic_irq_bit_index(plic_irq_id_t irq);
   Set to 1 after an interrupt occours and the core is in wait for interrupt
   so the execution of the program can continue.
 */
-uint8_t external_intr_flag = 0;
+uint8_t plic_intr_flag = 0;
 
 
 /****************************************************************************/
@@ -157,15 +158,11 @@ void handler_irq_external(void)
   plic_result_t res = plic_irq_claim(&int_id);
   irq_sources_t type = plic_get_irq_src_type(int_id);
 
-  if(type == IRQ_BAD || type > IRQ_SPI_SRC)
+  if(type != IRQ_BAD)
   {
-    printf("Bad INT source!\n");
-  } 
-  else 
-  { 
     // Calls the proper handler
     handlers[type]();
-    external_intr_flag = 1;
+    plic_intr_flag = 1;
 
     plic_irq_complete(&int_id);
   }
@@ -352,7 +349,8 @@ plic_result_t plic_irq_is_pending(plic_irq_id_t irq,
 }
 
 
-plic_result_t plic_irq_claim(plic_irq_id_t *claim_data) {
+plic_result_t plic_irq_claim(plic_irq_id_t *claim_data) 
+{
   if (claim_data == NULL) 
   {
     return kPlicBadArg;
@@ -364,7 +362,8 @@ plic_result_t plic_irq_claim(plic_irq_id_t *claim_data) {
 }
 
 
-plic_result_t plic_irq_complete(const plic_irq_id_t *complete_data) {
+plic_result_t plic_irq_complete(const plic_irq_id_t *complete_data) 
+{
   if (complete_data == NULL) 
   {
     return kPlicBadArg;
@@ -378,27 +377,21 @@ plic_result_t plic_irq_complete(const plic_irq_id_t *complete_data) {
 }
 
 
-plic_result_t plic_software_irq_force()
+void plic_software_irq_force(void)
 {
   rv_plic_peri->MSIP0 = 1;
-
-  return kPlicOk;
 }
 
 
-plic_result_t plic_software_irq_acknowledge()
+void plic_software_irq_acknowledge(void)
 {
   rv_plic_peri->MSIP0 = 0;
-
-  return kPlicOk;
 }
 
 
-plic_result_t plic_software_irq_is_pending(bool *is_pending)
+plic_result_t plic_software_irq_is_pending(void)
 {
-  *is_pending = rv_plic_peri->MSIP0;
-
-  return kPlicOk;
+  return rv_plic_peri->MSIP0;
 }
 
 
@@ -433,13 +426,14 @@ static irq_sources_t plic_get_irq_src_type(plic_irq_id_t irq_id)
 
 }
 
-static ptrdiff_t plic_offset_from_reg0(plic_irq_id_t irq) {
+static ptrdiff_t plic_offset_from_reg0(plic_irq_id_t irq) 
+{
   uint8_t register_index = irq / RV_PLIC_PARAM_REG_WIDTH;
   return register_index * sizeof(uint32_t);
 }
 
-
-static uint8_t plic_irq_bit_index(plic_irq_id_t irq) {
+static uint8_t plic_irq_bit_index(plic_irq_id_t irq) 
+{
   return irq % RV_PLIC_PARAM_REG_WIDTH;
 }
 
