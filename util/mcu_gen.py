@@ -24,10 +24,10 @@ class Pad:
     self.x_heep_system_interface = self.x_heep_system_interface.rstrip(self.x_heep_system_interface[-1])
 
   def create_pad_ring(self):
-    self.interface = '    inout logic ' + self.name + '_io,\n'
+    self.interface = '    inout wire ' + self.name + '_io,\n'
 
     if self.pad_type == 'input':
-        self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
+        self.pad_ring_io_interface = '    inout wire ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    output logic ' + self.signal_name + 'o,'
         self.pad_ring_instance = \
             'pad_cell_input #(.PADATTR(8)) ' + self.cell_name + ' ( \n' + \
@@ -38,7 +38,7 @@ class Pad:
             '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
             ');\n\n'
     if self.pad_type == 'output':
-        self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
+        self.pad_ring_io_interface = '    inout wire ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'i,'
         self.pad_ring_instance = \
             'pad_cell_output #(.PADATTR(8)) ' + self.cell_name + ' ( \n' + \
@@ -49,7 +49,7 @@ class Pad:
             '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
             ');\n\n'
     if self.pad_type == 'inout':
-        self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
+        self.pad_ring_io_interface = '    inout wire ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'i,\n'
         self.pad_ring_ctrl_interface += '    output logic ' + self.signal_name + 'o,\n'
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'oe_i,'
@@ -168,12 +168,12 @@ class Pad:
         in_internal_signals = self.signal_name + 'in_x' + append_name
         self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'i),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'o(' + in_internal_signals + '),'
-        self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'i,'
+        self.x_heep_system_interface += '    inout wire ' + self.signal_name + 'i,'
     if self.pad_type == 'output':
         out_internal_signals = self.signal_name + 'out_x' + append_name
         self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'o),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'i(' + out_internal_signals + '),'
-        self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'o,'
+        self.x_heep_system_interface += '    inout wire ' + self.signal_name + 'o,'
     if self.pad_type == 'inout':
         in_internal_signals = self.signal_name + 'in_x' + append_name
         out_internal_signals = self.signal_name + 'out_x' + append_name
@@ -182,7 +182,7 @@ class Pad:
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'o(' + in_internal_signals + '),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'i(' + out_internal_signals + '),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'oe_i(' + oe_internal_signals + '),'
-        self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'io,'
+        self.x_heep_system_interface += '    inout wire ' + self.signal_name + 'io,'
 
   def __init__(self, name, cell_name, pad_type, index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list):
 
@@ -444,7 +444,7 @@ def main():
         return new
 
     ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
-    ao_peripherals_count = len(ao_peripherals) 
+    ao_peripherals_count = len(ao_peripherals)
 
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
@@ -453,7 +453,7 @@ def main():
 
     peripheral_size_address = string2int(obj['peripherals']['length'])
     peripherals = extract_peripherals(discard_path(obj['peripherals']))
-    peripherals_count = len(peripherals) 
+    peripherals_count = len(peripherals)
 
     ext_slave_start_address = string2int(obj['ext_slaves']['address'])
     ext_slave_size_address = string2int(obj['ext_slaves']['length'])
