@@ -437,4 +437,4 @@ targets:
     tools:
       openroad:
         flow_path: flow/OpenROAD-flow-scripts/flow
-        make_target: synth
+        make_target: route
