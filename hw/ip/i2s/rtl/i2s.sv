@@ -65,10 +65,12 @@ module i2s #(
   assign rx_win_d2h.error = !data_rx_valid;
 
   assign data_rx_ready = rx_win_d2h.ready;
-  assign hw2reg.status.d = data_rx_ready;
 
   // DMA signal
   assign i2s_rx_valid_o = data_rx_valid;
+
+  // STATUS signal
+  assign hw2reg.status.d = data_rx_valid;
 
 
   // Register logic
