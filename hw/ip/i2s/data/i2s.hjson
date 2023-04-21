@@ -82,6 +82,16 @@
       ]
     }
 
+    { name: "STATUS"
+      desc: "Status flags of the I2s peripheral"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      hwext:  "true"
+      fields: [
+        { bits: "0", name: "RX_DATA_READY", desc: "1 to indicate that an RX sample is ready"}
+      ]
+    }
+
     { window: {
         name: "RXDATA",
         items: "1",

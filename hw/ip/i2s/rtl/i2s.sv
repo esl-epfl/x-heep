@@ -42,7 +42,7 @@ module i2s #(
 
   // Interface signals
   i2s_reg2hw_t reg2hw;
-  // i2s_hw2reg_t hw2reg;
+  i2s_hw2reg_t hw2reg;
 
   // RX Window Interface signals
   reg_req_t    rx_win_h2d;
@@ -65,6 +65,7 @@ module i2s #(
   assign rx_win_d2h.error = !data_rx_valid;
 
   assign data_rx_ready = rx_win_d2h.ready;
+  assign hw2reg.status.d = data_rx_ready;
 
   // DMA signal
   assign i2s_rx_valid_o = data_rx_valid;
@@ -82,7 +83,7 @@ module i2s #(
       .reg_req_win_o(rx_win_h2d),  // host to device
       .reg_rsp_win_i(rx_win_d2h),  // device to host
       .reg2hw,
-      // .hw2reg,
+      .hw2reg,
       .devmode_i(1'b1)
   );
 

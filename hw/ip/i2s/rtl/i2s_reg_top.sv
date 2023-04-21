@@ -10,7 +10,7 @@
 module i2s_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 4
+    parameter int AW = 5
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -23,6 +23,7 @@ module i2s_reg_top #(
 
     // To HW
     output i2s_reg_pkg::i2s_reg2hw_t reg2hw,  // Write
+    input  i2s_reg_pkg::i2s_hw2reg_t hw2reg,  // Read
 
 
     // Config
@@ -85,7 +86,7 @@ module i2s_reg_top #(
     reg_steer = 1;  // Default set to register
 
     // TODO: Can below codes be unique case () inside ?
-    if (reg_req_i.addr[AW-1:0] >= 12) begin
+    if (reg_req_i.addr[AW-1:0] >= 16 && reg_req_i.addr[AW-1:0] < 20) begin
       reg_steer = 0;
     end
   end
@@ -128,6 +129,8 @@ module i2s_reg_top #(
   logic [31:0] watermark_qs;
   logic [31:0] watermark_wd;
   logic watermark_we;
+  logic status_qs;
+  logic status_re;
 
   // Register instances
   // R[clkdividx]: V(False)
@@ -316,14 +319,31 @@ module i2s_reg_top #(
   );
 
 
+  // R[status]: V(True)
+
+  prim_subreg_ext #(
+      .DW(1)
+  ) u_status (
+      .re (status_re),
+      .we (1'b0),
+      .wd ('0),
+      .d  (hw2reg.status.d),
+      .qre(),
+      .qe (),
+      .q  (),
+      .qs (status_qs)
+  );
 
 
-  logic [2:0] addr_hit;
+
+
+  logic [3:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == I2S_CLKDIVIDX_OFFSET);
     addr_hit[1] = (reg_addr == I2S_CFG_OFFSET);
     addr_hit[2] = (reg_addr == I2S_WATERMARK_OFFSET);
+    addr_hit[3] = (reg_addr == I2S_STATUS_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -333,7 +353,8 @@ module i2s_reg_top #(
     wr_err = (reg_we &
               ((addr_hit[0] & (|(I2S_PERMIT[0] & ~reg_be))) |
                (addr_hit[1] & (|(I2S_PERMIT[1] & ~reg_be))) |
-               (addr_hit[2] & (|(I2S_PERMIT[2] & ~reg_be)))));
+               (addr_hit[2] & (|(I2S_PERMIT[2] & ~reg_be))) |
+               (addr_hit[3] & (|(I2S_PERMIT[3] & ~reg_be)))));
   end
 
   assign clkdividx_we = addr_hit[0] & reg_we & !reg_error;
@@ -357,6 +378,8 @@ module i2s_reg_top #(
   assign watermark_we = addr_hit[2] & reg_we & !reg_error;
   assign watermark_wd = reg_wdata[31:0];
 
+  assign status_re = addr_hit[3] & reg_re & !reg_error;
+
   // Read data return
   always_comb begin
     reg_rdata_next = '0;
@@ -375,6 +398,10 @@ module i2s_reg_top #(
 
       addr_hit[2]: begin
         reg_rdata_next[31:0] = watermark_qs;
+      end
+
+      addr_hit[3]: begin
+        reg_rdata_next[0] = status_qs;
       end
 
       default: begin
@@ -398,7 +425,7 @@ module i2s_reg_top #(
 endmodule
 
 module i2s_reg_top_intf #(
-    parameter  int AW = 4,
+    parameter  int AW = 5,
     localparam int DW = 32
 ) (
     input logic clk_i,
@@ -407,6 +434,7 @@ module i2s_reg_top_intf #(
     REG_BUS.out regbus_win_mst[1-1:0],
     // To HW
     output i2s_reg_pkg::i2s_reg2hw_t reg2hw,  // Write
+    input i2s_reg_pkg::i2s_hw2reg_t hw2reg,  // Read
     // Config
     input devmode_i  // If 1, explicit error return for unmapped register access
 );
@@ -449,6 +477,7 @@ module i2s_reg_top_intf #(
       .reg_req_win_o(s_reg_win_req),
       .reg_rsp_win_i(s_reg_win_rsp),
       .reg2hw,  // Write
+      .hw2reg,  // Read
       .devmode_i
   );
 

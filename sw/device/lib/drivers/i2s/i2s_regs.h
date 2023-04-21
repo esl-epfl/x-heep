@@ -54,8 +54,12 @@ extern "C" {
 // Watermark to reach for an interrupt
 #define I2S_WATERMARK_REG_OFFSET 0x8
 
+// Status flags of the I2s peripheral
+#define I2S_STATUS_REG_OFFSET 0xc
+#define I2S_STATUS_RX_DATA_READY_BIT 0
+
 // Memory area: I2s Receive data
-#define I2S_RXDATA_REG_OFFSET 0xc
+#define I2S_RXDATA_REG_OFFSET 0x10
 #define I2S_RXDATA_SIZE_WORDS 1
 #define I2S_RXDATA_SIZE_BYTES 4
 #ifdef __cplusplus
