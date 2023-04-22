@@ -139,8 +139,8 @@ module dma #(
 
   assign circular_mode = reg2hw.mode.q;
 
-  assign wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0] & ~trigger_slot_i);
-  assign wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0] & ~trigger_slot_i);
+  assign wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
+  assign wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
 
   assign fifo_alm_full = (fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
 
@@ -368,7 +368,7 @@ module dma #(
         end else begin
           dma_read_fsm_n_state = DMA_READ_FSM_ON;
           // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
-          if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
+          if (~(fifo_full | fifo_alm_full | wait_for_rx)) begin
             data_in_req  = 1'b1;
             data_in_we   = 1'b0;
             data_in_be   = 4'b1111;  // always read all bytes
@@ -409,7 +409,7 @@ module dma #(
         end else begin
           dma_write_fsm_n_state = DMA_WRITE_FSM_ON;
           // Wait if fifo is empty or if the SPI TX is not ready for new data (only in SPI mode 2).
-          if (fifo_empty == 1'b0 && wait_for_tx == 1'b0) begin
+          if (~(fifo_empty | wait_for_tx)) begin
             data_out_req  = 1'b1;
             data_out_we   = 1'b1;
             data_out_be   = byte_enable_out;
