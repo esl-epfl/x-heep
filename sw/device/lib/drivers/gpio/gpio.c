@@ -233,12 +233,16 @@ gpio_result_t gpio_toggle (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioError;
-    if (bitfield_read(gpio_peri->GPIO_IN0, MASK_1b, pin) == GPIO_IS_SET)
+    if (bitfield_read(gpio_peri->GPIO_OUT0, MASK_1b, pin) == GPIO_IS_SET)
+    {
         gpio_peri->GPIO_OUT0 = bitfield_write(gpio_peri->GPIO_OUT0, 
             MASK_1b, pin, GPIO_IS_RESET);
+    }
     else
+    {
         gpio_peri->GPIO_OUT0 = bitfield_write(gpio_peri->GPIO_OUT0, 
             MASK_1b, pin, GPIO_IS_SET);
+    }
     return GpioOk;
 }
 
