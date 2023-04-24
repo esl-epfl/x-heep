@@ -202,6 +202,23 @@ INTERRUPT_HANDLER_ABI void handler_irq_fast_gpio_7(void);
 /*                           EXPORTED FUNCTIONS                             */
 /**                                                                        **/
 /****************************************************************************/
+fast_intr_ctrl_result_t enable_fast_interrupt(fast_intr_ctrl_fast_interrupt_t\
+ fast_interrupt, bool enable) 
+{
+    /* masking a 32b go write in reg*/
+    uint32_t reg = fast_intr_ctrl_peri->FAST_INTR_ENABLE;
+    reg = bitfield_bit32_write(reg, fast_interrupt, enable);
+    /* write in reg through structure */
+    fast_intr_ctrl_peri->FAST_INTR_ENABLE = reg;
+    return kFastIntrCtrlOk_e;
+}
+
+fast_intr_ctrl_result_t enable_all_fast_interrupts(bool enable) 
+{
+    fast_intr_ctrl_peri->FAST_INTR_ENABLE = enable ? 0x7fff : 0x0000;
+    return kFastIntrCtrlOk_e;
+}
+
 
 fast_intr_ctrl_result_t clear_fast_interrupt(fast_intr_ctrl_fast_interrupt_t\
  fast_interrupt)
