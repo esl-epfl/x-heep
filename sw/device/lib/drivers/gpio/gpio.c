@@ -34,18 +34,13 @@
 #include "gpio_regs.h"  // Generated.
 #include "gpio_structs.h"
 #include "bitfield.h"
+#include "x-heep.h"
 
 /****************************************************************************/
 /**                                                                        **/
 /*                        DEFINITIONS AND MACROS                            */
 /**                                                                        **/
 /****************************************************************************/
-
-/**
- * As the hw is configurable, we can have setups with different number of
- * Gpio pins
- */ 
-#define MAX_PIN     32  
 
 /**
  * Mask for different bit field width

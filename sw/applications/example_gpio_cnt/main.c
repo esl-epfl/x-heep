@@ -14,7 +14,7 @@
 #include "pad_control.h"
 #include "pad_control_regs.h"  // Generated.
 #include "x-heep.h"
-#include "gpio_structs.h" //remove
+#include <limits.h> //todo: remove
 
 /*
 Notes:
@@ -117,6 +117,15 @@ int main(int argc, char *argv[])
     if (gpio_res != GpioOk) {
         printf("Failed\n;");
         return -1;
+    }
+
+    uint8_t  val = 0;
+    while(1){
+        gpio_toggle(GPIO_TB_OUT);
+        for( uint32_t i; i < 1<<30; i++ ){ asm("nop"); }
+        gpio_read(GPIO_TB_IN, &val);
+        printf("val: %d\r\n", val);
+
     }
 
     printf("Write 1 to GPIO 30 and wait for interrupt...\n");
