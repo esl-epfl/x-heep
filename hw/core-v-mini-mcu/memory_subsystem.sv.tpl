@@ -28,6 +28,18 @@ module memory_subsystem
   logic [NUM_BANKS-1:0] ram_valid_q;
   // Clock-gating
   logic [NUM_BANKS-1:0] clk_cg;
+% if ram_numbanks_il != 0:
+  logic [NUM_BANKS-1:0][AddrWidth-3:0] ram_req_addr;
+
+  for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_addr_napot
+    if (i >= NUM_BANKS - ${ram_numbanks_il}) begin
+      assign ram_req_addr[i] = {${log_ram_numbanks_il}'h0, ram_req_i[i].addr[AddrWidth-1:${2+log_ram_numbanks_il}]};
+    end else begin
+      assign ram_req_addr[i] = ram_req_i[i].addr[AddrWidth-1:2];
+    end
+  end
+% endif
+
   for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_sram
 
     tc_clk_gating clk_gating_cell_i (
@@ -57,7 +69,11 @@ module memory_subsystem
         .rst_ni(rst_ni),
         .req_i(ram_req_i[i].req),
         .we_i(ram_req_i[i].we),
+% if ram_numbanks_il == 0:
         .addr_i(ram_req_i[i].addr[AddrWidth-1:2]),
+% else:      
+        .addr_i(ram_req_addr[i]),
+% endif        
         .wdata_i(ram_req_i[i].wdata),
         .be_i(ram_req_i[i].be),
         .set_retentive_i(set_retentive_i[i]),
