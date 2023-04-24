@@ -193,7 +193,6 @@ int main(int argc, char *argv[])
     #endif // TEST_BYTE
 
     enable_fast_interrupt(kDma_fic_e, false);
-    dma_set_cnt_start(&dma, 4); // restart to test
 
     return EXIT_SUCCESS;
 }
