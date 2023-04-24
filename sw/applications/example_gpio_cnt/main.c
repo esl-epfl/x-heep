@@ -119,20 +119,15 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    uint8_t  val = 0;
 
-    gpio_write(GPIO_TB_OUT, true);
-    printf("HEY\r\n");
-    gpio_toggle(GPIO_TB_OUT);
-    
-    while(1){
-        gpio_toggle(GPIO_TB_OUT);
-        printf("HEY\r\n");
-        for( uint32_t i; i < 1<<30; i++ ){ asm("nop"); }
-        gpio_read(GPIO_TB_IN, &val);
-        printf("val: %d\r\n", val);
+    // while(1){
+    //     gpio_toggle(GPIO_TB_OUT);
+    //     printf("HEY\r\n");
+    //     for( uint32_t i; i < 1<<30; i++ ){ asm("nop"); }
+    //     gpio_read(GPIO_TB_IN, &val);
+    //     printf("val: %d\r\n", val);
 
-    }
+    // }
 
     printf("Write 1 to GPIO 30 and wait for interrupt...\n");
     external_intr_flag = 0;

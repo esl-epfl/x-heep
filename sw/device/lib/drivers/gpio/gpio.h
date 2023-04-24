@@ -80,8 +80,6 @@ typedef enum gpio_intr_general_mode
     new interrupt. */
 } gpio_intr_general_mode_t;
 
-
-
 /**
  * This type is used in almost all the operations, and it is returned when
  * there is a problem with functions given parameters or operation for example 
@@ -91,6 +89,11 @@ typedef enum gpio_result
 {
     GpioOk = 0,     /*!< The operation was ok. */
     GpioError = 1,  /*!< There is a problem. */
+    GpioPinNotAcceptable = 2, /*!< Given pin is not inside of acceptable range. */
+    GpioModeNotAcceptable = 3, /*!< Given pin mode is not one of the defined modes
+    in gpio_mode_t. */
+    GpioIntrTypeNotAcceptable = 4, /*!< Given interrupt type is not one of the 
+    defined types in gpio_intr_type_t. */
 } gpio_result_t;
 
 /**
@@ -122,15 +125,11 @@ typedef struct gpio_cfg
     gpio_intr_type_t intr_type; /*!< intr type (enabling intr is req). */
 } gpio_cfg_t;
 
-
-
-
 /****************************************************************************/
 /**                                                                        **/
 /**                       TYPEDEFS AND STRUCTURES                          **/
 /**                                                                        **/
 /****************************************************************************/
-
 
 /****************************************************************************/
 /**                                                                        **/
@@ -361,11 +360,7 @@ gpio_result_t gpio_intr_clear_stat (gpio_pin_number_t pin);
  * interrupts for all GPIOs are cleared. If false, generate one cycle wide 
  * pulses for every new interrupt.
  */
-gpio_result_t gpio_intr_set_mode (gpio_intr_general_mode_t mode);
-
-
-
-
+void gpio_intr_set_mode (gpio_intr_general_mode_t mode);
 
 /****************************************************************************/
 /**                                                                        **/
