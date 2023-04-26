@@ -19,7 +19,9 @@ module system_bus
   import addr_map_rule_pkg::*;
 #(
     parameter NUM_BANKS = 2,
-    parameter EXT_XBAR_NMASTER = 0
+    parameter EXT_XBAR_NMASTER = 0,
+    //do not touch these parameters
+    parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -40,8 +42,8 @@ module system_bus
     input  obi_req_t  dma_master1_ch0_req_i,
     output obi_resp_t dma_master1_ch0_resp_o,
 
-    input  obi_req_t  [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
-    output obi_resp_t [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
+    input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
+    output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
 
     //Slaves
     output obi_req_t  [NUM_BANKS-1:0] ram_req_o,
@@ -72,6 +74,10 @@ module system_bus
   obi_req_t error_slave_req;
   obi_resp_t error_slave_resp;
 
+  obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_req_unused;
+
+  assign ext_xbar_req_unused = ext_xbar_master_req_i;
+
   assign error_slave_resp = '0;
 
   //master req
@@ -92,8 +98,13 @@ module system_bus
   assign dma_master0_ch0_resp_o = master_resp[core_v_mini_mcu_pkg::DMA_MASTER0_CH0_IDX];
   assign dma_master1_ch0_resp_o = master_resp[core_v_mini_mcu_pkg::DMA_MASTER1_CH0_IDX];
 
-  for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin : gen_ext_master_resp_map
-    assign ext_xbar_master_resp_o[i] = master_resp[core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+i];
+
+  if (EXT_XBAR_NMASTER == 0) begin
+    assign ext_xbar_master_resp_o = '0;
+  end else begin
+    for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin : gen_ext_master_resp_map
+      assign ext_xbar_master_resp_o[i] = master_resp[core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+i];
+    end
   end
 
   //slave req
