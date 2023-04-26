@@ -10,7 +10,11 @@ module core_v_mini_mcu
     parameter FPU = 0,
     parameter PULP_ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0,
-    parameter X_EXT = 0  // eXtension interface in cv32e40x
+    parameter X_EXT = 0,  // eXtension interface in cv32e40x
+    //do not touch these parameters
+    parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
+    parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
+    parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
 ) (
 
     input logic rst_ni,
@@ -30,8 +34,8 @@ module core_v_mini_mcu
     output reg_req_t pad_req_o,
     input  reg_rsp_t pad_resp_i,
 
-    input  obi_req_t  [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
-    output obi_resp_t [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
+    input  obi_req_t  [EXT_DOMAINS_RND-1:0] ext_xbar_master_req_i,
+    output obi_resp_t [EXT_DOMAINS_RND-1:0] ext_xbar_master_resp_o,
 
     output obi_req_t  ext_xbar_slave_req_o,
     input  obi_resp_t ext_xbar_slave_resp_i,
@@ -39,7 +43,7 @@ module core_v_mini_mcu
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
-    input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
+    input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
 
     output logic cpu_subsystem_powergate_switch_o,
     input  logic cpu_subsystem_powergate_switch_ack_i,
@@ -47,11 +51,11 @@ module core_v_mini_mcu
     input  logic peripheral_subsystem_powergate_switch_ack_i,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_o,
     input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_i,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_o,
-    input  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_ack_i,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_o,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_no,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_ram_banks_set_retentive_o,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_o,
+    input  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_i,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_o,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
+    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_o,
 
     output logic [31:0] exit_value_o
 );
@@ -292,7 +296,7 @@ module core_v_mini_mcu
       .spi_sd_en_o({spi_sd_3_oe_o,spi_sd_2_oe_o, spi_sd_1_oe_o, spi_sd_0_oe_o}),
       .spi_sd_i({spi_sd_3_i,spi_sd_2_i, spi_sd_1_i, spi_sd_0_i}),
       .intr_i(intr),
-      .intr_vector_ext_i(intr_vector_ext_i),
+      .intr_vector_ext_i,
       .core_sleep_i(core_sleep),
       .cpu_subsystem_powergate_switch_o,
       .cpu_subsystem_powergate_switch_ack_i,
@@ -344,9 +348,7 @@ module core_v_mini_mcu
       .ext_peripheral_slave_resp_i
   );
 
-  peripheral_subsystem #(
-      .NEXT_INT(NEXT_INT)
-  ) peripheral_subsystem_i (
+  peripheral_subsystem peripheral_subsystem_i (
       .clk_i,
       .rst_ni(peripheral_subsystem_rst_n),
       .clk_gate_en_i(peripheral_subsystem_clkgate_en),
@@ -380,8 +382,14 @@ module core_v_mini_mcu
       .spi2_sd_en_o({spi2_sd_3_oe_o, spi2_sd_2_oe_o, spi2_sd_1_oe_o, spi2_sd_0_oe_o}),
       .spi2_sd_i({spi2_sd_3_i, spi2_sd_2_i, spi2_sd_1_i, spi2_sd_0_i}),
       .rv_timer_2_intr_o(rv_timer_intr[2]),
-      .rv_timer_3_intr_o(rv_timer_intr[3])
+      .rv_timer_3_intr_o(rv_timer_intr[3]),
+      .pdm2pcm_clk_o(pdm2pcm_clk_o),
+      .pdm2pcm_clk_en_o(pdm2pcm_clk_oe_o),
+      .pdm2pcm_pdm_i(pdm2pcm_pdm_i)
   );
+
+  assign pdm2pcm_pdm_o = 0;
+  assign pdm2pcm_pdm_oe_o = 0;
 
   assign gpio_ao_in[0] = gpio_0_i;
   assign gpio_0_o      = gpio_ao_out[0];

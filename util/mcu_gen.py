@@ -17,6 +17,7 @@ import csv
 from jsonref import JsonRef
 from mako.template import Template
 import collections
+from math import log2
 
 class Pad:
 
@@ -316,6 +317,12 @@ def main():
                         default="",
                         help="Number of 32KB Banks (default value from cfg file)")
 
+    parser.add_argument("--memorybanks_il",
+                        metavar="0, 2, 4 or 8",
+                        nargs='?',
+                        default="",
+                        help="Number of interleaved memory banks (default value from cfg file)")
+
     parser.add_argument("--external_domains",
                         metavar="from 0 to 32",
                         nargs='?',
@@ -391,12 +398,30 @@ def main():
         bus_type = obj['bus_type']
 
     if args.memorybanks != None and args.memorybanks != '':
-        ram_numbanks = int(args.memorybanks)
+        ram_numbanks_cont = int(args.memorybanks)
     else:
-        ram_numbanks = int(obj['ram']['numbanks'])
+        ram_numbanks_cont = int(obj['ram']['numbanks'])
 
-    if ram_numbanks < 2 and ram_numbanks > 16:
-        exit("ram numbanks must be between 2 and 16 instead of " + str(ram_numbanks))
+    if args.memorybanks_il != None and args.memorybanks_il != '':
+        ram_numbanks_il = int(args.memorybanks_il)
+    else:
+        ram_numbanks_il = int(obj['ram']['numbanks_interleaved'])
+
+    if ram_numbanks_il != 0:
+        log_ram_numbanks_il = int(log2(ram_numbanks_il))
+
+        if not log2(ram_numbanks_il).is_integer():
+            exit("ram interleaved numbanks must be a power of 2 instead of " + str(ram_numbanks_il))
+    else:
+        log_ram_numbanks_il = 0
+
+    if ram_numbanks_il != 0 and bus_type == 'onetoM':
+        exit("bus type must be 'NtoM' instead 'onetoM' to access the interleaved memory banks in parallel" + str(args.bus))
+
+    if ram_numbanks_cont + ram_numbanks_il < 2 and ram_numbanks_cont + ram_numbanks_il > 16:
+        exit("ram numbanks must be between 2 and 16 instead of " + str(ram_numbanks_cont + ram_numbanks_il))
+    else:
+        ram_numbanks = ram_numbanks_cont + ram_numbanks_il
 
     ram_start_address = string2int(obj['ram']['address'])
     if int(ram_start_address,16) != 0:
@@ -424,15 +449,21 @@ def main():
 
     ao_peripheral_size_address = string2int(obj['ao_peripherals']['length'])
 
+
     def extract_peripherals(peripherals):
-        return {
-            name: {
-                k: string2int(v)
-                for k, v in info.items()
-            }
-            for name, info in peripherals.items()
-            if isinstance(info, dict)
-        }
+        result = {}
+        for name, info in peripherals.items():
+            if isinstance(info, dict):
+                new_info = {}
+                for k, v in info.items():
+                    if k not in ("is_included"):
+                        new_info[k] = string2int(v)
+                    else:
+                        new_info[k] = v
+                result[name] = new_info
+
+        return result
+
 
     def discard_path(peripherals):
         new = {}
@@ -442,6 +473,16 @@ def main():
             else:
                 new[k] = v
         return new
+
+    def len_extracted_peripherals(peripherals):
+        len_ep = 0
+        for name, info in peripherals.items():
+            if isinstance(info, dict):
+                for k, v in info.items():
+                   if k in ("is_included"):
+                    if v in ("yes"):
+                        len_ep += 1
+        return len_ep
 
     ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
     ao_peripherals_count = len(ao_peripherals)
@@ -469,9 +510,18 @@ def main():
 
     linker_onchip_data_start_address  = string2int(obj['linker_script']['onchip_ls']['data']['address'])
     if (obj['linker_script']['onchip_ls']['data']['lenght'].split()[0].split(",")[0] == "whatisleft"):
-        linker_onchip_data_size_address  = str('{:08X}'.format(int(ram_size_address,16) - int(linker_onchip_code_size_address,16)))
+        if ram_numbanks_il == 0 or (ram_numbanks_cont == 1 and ram_numbanks_il > 0):
+            linker_onchip_data_size_address  = str('{:08X}'.format(int(ram_size_address,16) - int(linker_onchip_code_size_address,16)))
+        else:
+            linker_onchip_data_size_address  = str('{:08X}'.format(int(ram_size_address,16) - int(linker_onchip_code_size_address,16) - ram_numbanks_il*32*1024))
     else:
-        linker_onchip_data_size_address  = string2int(obj['linker_script']['onchip_ls']['data']['lenght'])
+        if ram_numbanks_il == 0 or (ram_numbanks_cont == 1 and ram_numbanks_il > 0):
+            linker_onchip_data_size_address  = string2int(obj['linker_script']['onchip_ls']['data']['lenght'])
+        else:
+            linker_onchip_data_size_address  = str('{:08X}'.format(int(string2int(obj['linker_script']['onchip_ls']['data']['lenght']),16) - ram_numbanks_il*32*1024))
+
+    linker_onchip_il_start_address = str('{:08X}'.format(int(linker_onchip_data_start_address,16) + int(linker_onchip_data_size_address,16)))
+    linker_onchip_il_size_address = str('{:08X}'.format(ram_numbanks_il*32*1024))
 
     if ((int(linker_onchip_data_size_address,16) + int(linker_onchip_code_size_address,16)) > int(ram_size_address,16)):
         exit("The code and data section must fit in the RAM size, instead they takes " + str(linker_onchip_data_size_address + linker_onchip_code_size_address))
@@ -742,6 +792,9 @@ def main():
         "bus_type"                         : bus_type,
         "ram_start_address"                : ram_start_address,
         "ram_numbanks"                     : ram_numbanks,
+        "ram_numbanks_cont"                : ram_numbanks_cont,
+        "ram_numbanks_il"                  : ram_numbanks_il,
+        "log_ram_numbanks_il"              : log_ram_numbanks_il,
         "external_domains"                 : external_domains,
         "ram_size_address"                 : ram_size_address,
         "debug_start_address"              : debug_start_address,
@@ -762,6 +815,8 @@ def main():
         "linker_onchip_code_size_address"  : linker_onchip_code_size_address,
         "linker_onchip_data_start_address" : linker_onchip_data_start_address,
         "linker_onchip_data_size_address"  : linker_onchip_data_size_address,
+        "linker_onchip_il_start_address"   : linker_onchip_il_start_address,
+        "linker_onchip_il_size_address"    : linker_onchip_il_size_address,
         "plic_used_n_interrupts"           : plic_used_n_interrupts,
         "plit_n_interrupts"                : plit_n_interrupts,
         "interrupts"                       : interrupts,

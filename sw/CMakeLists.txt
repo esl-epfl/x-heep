@@ -154,7 +154,6 @@ ENDFOREACH()
 
 LIST(REMOVE_DUPLICATES c_dir_list)
 
-
 # Get all the files to include when linking
 SET(LINKED_FILES    "${LIB_CRT_P}crt0.S \
                      ${LIB_VCTR_P} \
@@ -207,7 +206,9 @@ if (${COMPILER} MATCHES "clang")
                                           -fvisibility=hidden \
                                           -nostartfiles \
                                           -Wall \
-                                          -Wno-unused-command-line-argument" )
+                                          -Wno-unused-command-line-argument\
+										  -DportasmHANDLE_INTERRUPT=vSystemIrqHandler \
+										  " )
 endif()
 
 # In case of wanting to create a library with those subdirectories
@@ -262,9 +263,17 @@ endif()
 
 # Specify that we want to link with GCC even if we are compiling with clang
 if (${COMPILER} MATCHES "clang")
-  set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
+	if( ${PROJECT} MATCHES "freertos" )
+		set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
                                 ${SOURCE_PATH}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${MAINFILE}.c.obj \
-                                -o ${MAINFILE}.elf")
+                                -o ${MAINFILE}.elf \
+								_deps/freertos_kernel-build/libfreertos_kernel.a \ _deps/freertos_kernel-build/portable/libfreertos_kernel_port.a \ _deps/freertos_kernel-build/libfreertos_kernel.a \ _deps/freertos_kernel-build/portable/libfreertos_kernel_port.a \
+								")
+	else()
+	  	set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
+		                            ${SOURCE_PATH}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${MAINFILE}.c.obj \
+		                            -o ${MAINFILE}.elf")
+    endif()
 endif()
 
 # Post processing command to create a disassembly file 
