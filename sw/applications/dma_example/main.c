@@ -47,6 +47,9 @@ void fic_irq_dma(void)
 
 int main(int argc, char *argv[])
 {
+    enable_all_fast_interrupts(true); // not needed is default - done on reset
+
+
     printf("--- DMA EXAMPLE ---\n");
 
     // Enable interrupt on processor side
@@ -188,6 +191,8 @@ int main(int argc, char *argv[])
             printf("DMA byte transfer failure: %d errors out of %d bytes checked\n", errors, TEST_DATA_SIZE);
         }
     #endif // TEST_BYTE
+
+    enable_fast_interrupt(kDma_fic_e, false);
 
     return EXIT_SUCCESS;
 }

@@ -10,10 +10,10 @@
 module fast_intr_ctrl_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 3
+    parameter int AW = 4
 ) (
-    input clk_i,
-    input rst_ni,
+    input logic clk_i,
+    input logic rst_ni,
     input reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
     // To HW
@@ -68,18 +68,21 @@ module fast_intr_ctrl_reg_top #(
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
   //        or <reg>_{wd|we|qs} if field == 1 or 0
-  logic [15:0] fast_intr_pending_qs;
-  logic [15:0] fast_intr_clear_qs;
-  logic [15:0] fast_intr_clear_wd;
+  logic [14:0] fast_intr_pending_qs;
+  logic [14:0] fast_intr_clear_qs;
+  logic [14:0] fast_intr_clear_wd;
   logic fast_intr_clear_we;
+  logic [14:0] fast_intr_enable_qs;
+  logic [14:0] fast_intr_enable_wd;
+  logic fast_intr_enable_we;
 
   // Register instances
   // R[fast_intr_pending]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (15),
       .SWACCESS("RO"),
-      .RESVAL  (16'h0)
+      .RESVAL  (15'h0)
   ) u_fast_intr_pending (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -103,9 +106,9 @@ module fast_intr_ctrl_reg_top #(
   // R[fast_intr_clear]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (15),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (15'h0)
   ) u_fast_intr_clear (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -127,13 +130,41 @@ module fast_intr_ctrl_reg_top #(
   );
 
 
+  // R[fast_intr_enable]: V(False)
+
+  prim_subreg #(
+      .DW      (15),
+      .SWACCESS("RW"),
+      .RESVAL  (15'h7fff)
+  ) u_fast_intr_enable (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(fast_intr_enable_we),
+      .wd(fast_intr_enable_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.fast_intr_enable.q),
+
+      // to register interface (read)
+      .qs(fast_intr_enable_qs)
+  );
 
 
-  logic [1:0] addr_hit;
+
+
+  logic [2:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == FAST_INTR_CTRL_FAST_INTR_PENDING_OFFSET);
     addr_hit[1] = (reg_addr == FAST_INTR_CTRL_FAST_INTR_CLEAR_OFFSET);
+    addr_hit[2] = (reg_addr == FAST_INTR_CTRL_FAST_INTR_ENABLE_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -142,22 +173,30 @@ module fast_intr_ctrl_reg_top #(
   always_comb begin
     wr_err = (reg_we &
               ((addr_hit[0] & (|(FAST_INTR_CTRL_PERMIT[0] & ~reg_be))) |
-               (addr_hit[1] & (|(FAST_INTR_CTRL_PERMIT[1] & ~reg_be)))));
+               (addr_hit[1] & (|(FAST_INTR_CTRL_PERMIT[1] & ~reg_be))) |
+               (addr_hit[2] & (|(FAST_INTR_CTRL_PERMIT[2] & ~reg_be)))));
   end
 
-  assign fast_intr_clear_we = addr_hit[1] & reg_we & !reg_error;
-  assign fast_intr_clear_wd = reg_wdata[15:0];
+  assign fast_intr_clear_we  = addr_hit[1] & reg_we & !reg_error;
+  assign fast_intr_clear_wd  = reg_wdata[14:0];
+
+  assign fast_intr_enable_we = addr_hit[2] & reg_we & !reg_error;
+  assign fast_intr_enable_wd = reg_wdata[14:0];
 
   // Read data return
   always_comb begin
     reg_rdata_next = '0;
     unique case (1'b1)
       addr_hit[0]: begin
-        reg_rdata_next[15:0] = fast_intr_pending_qs;
+        reg_rdata_next[14:0] = fast_intr_pending_qs;
       end
 
       addr_hit[1]: begin
-        reg_rdata_next[15:0] = fast_intr_clear_qs;
+        reg_rdata_next[14:0] = fast_intr_clear_qs;
+      end
+
+      addr_hit[2]: begin
+        reg_rdata_next[14:0] = fast_intr_enable_qs;
       end
 
       default: begin

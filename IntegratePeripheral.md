@@ -314,3 +314,21 @@ If the GPIOs usage has changed, the testbench must be adapted as follows:
 - .gpio_X_io(gpio[X]),
 + .your_signal_io(gpio[X]),
 ```
+
+## Add an interrupt
+You must register the interrupt in the MCU configuration `mcu_cfg.json`.
+```diff
+    interrupts: {
+        number: 64, // Do not change this number!
+        list: {
+          ...
++          <interrupt identifier>: <interrupt num>
+        }
+    }
+```
+and then connect your signal in `peripheral_subsystem.sv` to the plic
+```diff
++   assign intr_vector[${interrupts["<interrupt identifier>"]}] = <your signal>;
+```
+
+In software the interrupt gets trigger as "external" interrupt see `rv_plic` documentation, your interrupt number to be used in c is automatically added to the `core_v_mini_mcu.h` under the preprosessor define `<YOUR INTERRUPT>` .
