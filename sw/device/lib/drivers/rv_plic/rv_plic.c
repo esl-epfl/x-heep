@@ -5,7 +5,7 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : rv_plic.c                                                    **
-** date     : 18/04/2023                                                   **
+** date     : 26/04/2023                                                   **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -19,7 +19,7 @@
 
 /**
 * @file   rv_plic.c
-* @date   18/04/2023
+* @date   26/04/2023
 * @brief  This is the main file for the HAL of the RV_PLIC peripheral
 *
 * In this file there are the defintions of the HAL functions for the RV_PLIC
@@ -181,26 +181,20 @@ plic_result_t plic_Init(void)
   /* Clears all the Level/Edge registers */ 
   for(uint8_t i=0; i<RV_PLIC_LE_MULTIREG_COUNT; i++)
   {
-    uint32_t *dest = (&rv_plic_peri->IP0 + i);
-    *dest = 0;
+    (&rv_plic_peri->LE0)[i] = 0;
   }
 
 
   /* Clears all the priority registers */ 
   for(uint8_t i=0; i<RV_PLIC_PARAM_NUM_SRC; i++)
   {
-    uint32_t *dest = &rv_plic_peri->IP0 + i;
-    *dest = 0;
+    (&rv_plic_peri->PRIO0)[i] = 0;
   }
-
-  /* Address of the first IE register */
-  uint32_t *base = &rv_plic_peri->IE00;
 
   /* Clears the Interrupt Enable registers */
   for(uint8_t i=0; i<RV_PLIC_IE0_MULTIREG_COUNT; i++)
   {
-    uint32_t *dest = base + i;
-    *dest = 0;
+    (&rv_plic_peri->IE00)[i] = 0;
   }
   
   /* Clears all the threshold registers */
@@ -237,13 +231,18 @@ plic_result_t plic_irq_set_enabled(plic_irq_id_t irq,
     return kPlicBadArg;
   }
 
+  // Get the offset of the register in which to write given the irq ID 
   ptrdiff_t offset = plic_offset_from_reg0(irq);
-  uint32_t *dest = &rv_plic_peri->IE00 + offset;
 
   // Get the destination bit in which to write
   uint16_t bit_index = plic_irq_bit_index(irq);
 
-  *dest = bitfield_bit32_write(*dest, bit_index, state);
+  // Writes `state` in the amount of bits defined by the mask
+  // at position `bit_index` inside the proper Interrupt Enable register
+  (&rv_plic_peri->IE00)[offset] = bitfield_write((&rv_plic_peri->IE00)[offset], 
+                                                  BIT_MASK_1, 
+                                                  bit_index, 
+                                                  state);
 
   return kPlicOk;
 }
@@ -259,13 +258,12 @@ plic_result_t plic_irq_get_enabled(plic_irq_id_t irq,
   
   // Get the destination register 
   ptrdiff_t offset = plic_offset_from_reg0(irq);
-  uint32_t *reg = &rv_plic_peri->IE00 + offset;
 
   // Get the destination bit in which to write
   uint16_t bit_index = plic_irq_bit_index(irq);
 
   // Reads the enabled/disabled bit 
-  *state = bitfield_bit32_read(*reg, bit_index);
+  *state = bitfield_read((&rv_plic_peri->IE00)[offset], BIT_MASK_1, bit_index);
 
   return kPlicOk;
 
@@ -282,13 +280,15 @@ plic_result_t plic_irq_set_trigger(plic_irq_id_t irq,
 
   // Get the destination register 
   ptrdiff_t offset = plic_offset_from_reg0(irq);
-  uint32_t *reg = &rv_plic_peri->LE0 + offset;
 
   // Get the destination bit in which to write
   uint16_t bit_index = plic_irq_bit_index(irq);
 
   // Updated the register with the new bit
-  *reg = bitfield_bit32_write(*reg, bit_index, trigger);
+  (&rv_plic_peri->LE0)[offset] = bitfield_write((&rv_plic_peri->LE0)[offset],
+                                                 BIT_MASK_1,
+                                                 bit_index,
+                                                 trigger);
 
   return kPlicOk;
 
@@ -303,12 +303,7 @@ plic_result_t plic_irq_set_priority(plic_irq_id_t irq, uint32_t priority)
   }
 
   // Writes the new priority into the proper register
-  uint32_t *dest = &rv_plic_peri->PRIO0 + irq;
-  *dest = priority;
-
-  if(*dest != priority){
-    return kPlicError;
-  }
+  (&rv_plic_peri->PRIO0)[irq] = priority;
 
   return kPlicOk;
 }
@@ -338,12 +333,11 @@ plic_result_t plic_irq_is_pending(plic_irq_id_t irq,
 
   // Get the destination register 
   ptrdiff_t offset = plic_offset_from_reg0(irq);
-  uint32_t *reg = &rv_plic_peri->IP0 + offset;
 
   // Get the destination bit in which to write
   uint16_t bit_index = plic_irq_bit_index(irq);
 
-  *is_pending = bitfield_bit32_read(*reg, bit_index);
+  *is_pending = bitfield_read((&rv_plic_peri->IP0)[offset], BIT_MASK_1, bit_index);
 
   return kPlicOk;
 }
