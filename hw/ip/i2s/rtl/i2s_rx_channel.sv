@@ -88,12 +88,14 @@ module i2s_rx_channel #(
           r_shadow <= r_shiftreg;
           r_valid  <= 1'b1;
           data_ws  <= ~r_ws_old;
-        end
-      end
-      if (r_valid) begin
-        if (data_ready_i) begin
+        end else if (data_ready_i) begin
           r_valid <= 1'b0;
         end
+      end else begin
+        r_shiftreg <= 'h0;
+        r_shadow <= 'h0;
+        r_valid <= 1'b0;
+        data_ws <= 1'b0;
       end
     end
   end
@@ -120,6 +122,9 @@ module i2s_rx_channel #(
         end else begin
           width_overflow <= 1'b1;
         end
+      end else begin
+        r_count_bit <= 'h0;
+        width_overflow <= 1'b0;
       end
     end
   end
@@ -130,10 +135,12 @@ module i2s_rx_channel #(
       r_ws_old  <= 'h0;
       r_started <= 'h0;
     end else begin
-      r_ws_old <= ws_i;
-      if (s_ws_edge) begin
-        if (en_i) r_started <= 1'b1;
-        else r_started <= 1'b0;
+      if (en_i) begin
+        r_ws_old <= ws_i;
+        if (s_ws_edge) r_started <= 1'b1;
+      end else begin
+        r_started <= 1'b0;
+        r_ws_old  <= 1'b0;
       end
     end
   end
@@ -144,19 +151,23 @@ module i2s_rx_channel #(
     if (~rst_ni) begin
       last_data_ws <= 1'b0;  // always start with left
     end else begin
-      if (data_ready_i & data_valid_o) begin
+      if (!en_i) begin
+        last_data_ws <= 1'b0;  // always start with left
+      end else if (data_ready_i & data_valid_o) begin
         last_data_ws <= data_ws;
       end
     end
   end
 
   always_comb begin
-    if (!en_left_i) begin
-      data_valid_o = r_valid & (data_ws == 1'b0);  // only right
-    end else if (!en_right_i) begin
-      data_valid_o = r_valid & (data_ws == 1'b1);  // only left
-    end else begin
+    data_valid_o = 1'b0;
+
+    if (en_left_i & en_right_i) begin
       data_valid_o = r_valid & (data_ws ^ last_data_ws);  // make sure to drop even numbers
+    end else if (en_right_i) begin
+      data_valid_o = r_valid & (data_ws == 1'b0);  // only right
+    end else if (en_left_i) begin
+      data_valid_o = r_valid & (data_ws == 1'b1);  // only left
     end
   end
 
@@ -168,7 +179,7 @@ module i2s_rx_channel #(
     end else begin
       if (en_i) begin
         overflow_o <= 1'b0;
-      end else if (word_done & data_valid_o) begin
+      end else if (word_done & data_valid_o & ~data_ready_i) begin
         overflow_o <= 1'b1;
       end
     end
