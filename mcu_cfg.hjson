@@ -12,6 +12,7 @@
     ram: {
         address: 0x00000000, #only tried with 0, cannot be changed for now
         numbanks: 2, #each bank is 32kB, cannot be changed for now
+        numbanks_interleaved: 0,
     },
 
     linker_script: {

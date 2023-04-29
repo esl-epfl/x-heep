@@ -184,14 +184,14 @@ First, you have to generate the SystemVerilog package and C header file of the c
 make mcu-gen
 ```
 
-To change the default cpu type (i.e., cv32e20), the default bus type (i.e., onetoM) type
-or the memory size (i.e., number of banks):
+To change the default cpu type (i.e., cv32e20), the default bus type (i.e., onetoM),
+the default continuous memory size (i.e., 2 continuous banks) or the default interleaved memory size (i.e., 0 interleaved banks):
 
 ```
-make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=16
+make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=12 MEMORY_BANKS_IL=4
 ```
 
-The last command generates x-heep with the cv32e40p core, with a parallel bus, and 16 memory banks,
+The last command generates x-heep with the cv32e40p core, with a parallel bus, and 16 memory banks (12 continuous and 4 interleaved),
 each 32KB, for a total memory of 512KB. 
 
 ## Compiling Software
