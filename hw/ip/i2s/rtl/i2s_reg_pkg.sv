@@ -29,7 +29,10 @@ package i2s_reg_pkg;
 
   typedef struct packed {logic [31:0] q;} i2s_reg2hw_watermark_reg_t;
 
-  typedef struct packed {logic d;} i2s_hw2reg_status_reg_t;
+  typedef struct packed {
+    struct packed {logic d;} rx_data_ready;
+    struct packed {logic d;} rx_overflow;
+  } i2s_hw2reg_status_reg_t;
 
   // Register -> HW type
   typedef struct packed {
@@ -40,7 +43,7 @@ package i2s_reg_pkg;
 
   // HW -> register type
   typedef struct packed {
-    i2s_hw2reg_status_reg_t status;  // [0:0]
+    i2s_hw2reg_status_reg_t status;  // [1:0]
   } i2s_hw2reg_t;
 
   // Register offsets
@@ -50,7 +53,7 @@ package i2s_reg_pkg;
   parameter logic [BlockAw-1:0] I2S_STATUS_OFFSET = 5'hc;
 
   // Reset values for hwext registers and their fields
-  parameter logic [0:0] I2S_STATUS_RESVAL = 1'h0;
+  parameter logic [1:0] I2S_STATUS_RESVAL = 2'h0;
 
   // Window parameters
   parameter logic [BlockAw-1:0] I2S_RXDATA_OFFSET = 5'h10;

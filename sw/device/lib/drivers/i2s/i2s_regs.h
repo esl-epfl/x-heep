@@ -57,6 +57,7 @@ extern "C" {
 // Status flags of the I2s peripheral
 #define I2S_STATUS_REG_OFFSET 0xc
 #define I2S_STATUS_RX_DATA_READY_BIT 0
+#define I2S_STATUS_RX_OVERFLOW_BIT 1
 
 // Memory area: I2s Receive data
 #define I2S_RXDATA_REG_OFFSET 0x10

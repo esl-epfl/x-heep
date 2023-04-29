@@ -37,7 +37,9 @@ module i2s_core #(
     // FIFO
     output logic [SampleWidth-1:0] data_rx_o,
     output logic                   data_rx_valid_o,
-    input  logic                   data_rx_ready_i
+    input  logic                   data_rx_ready_i,
+
+    output logic data_rx_overflow_o
 );
 
   logic                   ws_gen;
@@ -66,6 +68,8 @@ module i2s_core #(
 
   assign clk_div_valid = |cfg_clock_div_i; // workaround
 
+  logic data_rx_overflow_async;
+  logic data_rx_overflow_q;
 
   i2s_ws_gen #(
       .SampleWidth(SampleWidth)
@@ -127,12 +131,14 @@ module i2s_core #(
 
       .data_o(data_rx_dc),
       .data_valid_o(data_rx_dc_valid),
-      .data_ready_i(data_rx_dc_ready)
+      .data_ready_i(data_rx_dc_ready),
+      .overflow_o(data_rx_overflow_async)
   );
 
   // cdc
-  cdc_2phase #(
-      .T(logic [31:0])
+  cdc_fifo_2phase #(
+      .T(logic [31:0]),
+      .LOG_DEPTH(2)
   ) rx_cdc_i (
       .src_clk_i  (sck),
       .src_rst_ni (rst_ni),
@@ -146,5 +152,16 @@ module i2s_core #(
       .dst_valid_o(data_rx_valid_o),
       .dst_ready_i(data_rx_ready_i)
   );
+
+  // SYNC rx overflow signal
+  always_ff @(posedge clk_i, negedge rst_ni) begin
+    if (~rst_ni) begin
+      data_rx_overflow_o <= 1'b0;
+      data_rx_overflow_q <= 1'b0;
+    end else begin
+      data_rx_overflow_o <= data_rx_overflow_q;
+      data_rx_overflow_q <= data_rx_overflow_async;
+    end
+  end
 
 endmodule : i2s_core

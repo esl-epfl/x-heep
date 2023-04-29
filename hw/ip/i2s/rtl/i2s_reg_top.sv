@@ -129,8 +129,10 @@ module i2s_reg_top #(
   logic [31:0] watermark_qs;
   logic [31:0] watermark_wd;
   logic watermark_we;
-  logic status_qs;
-  logic status_re;
+  logic status_rx_data_ready_qs;
+  logic status_rx_data_ready_re;
+  logic status_rx_overflow_qs;
+  logic status_rx_overflow_re;
 
   // Register instances
   // R[clkdividx]: V(False)
@@ -321,17 +323,33 @@ module i2s_reg_top #(
 
   // R[status]: V(True)
 
+  //   F[rx_data_ready]: 0:0
   prim_subreg_ext #(
       .DW(1)
-  ) u_status (
-      .re (status_re),
+  ) u_status_rx_data_ready (
+      .re (status_rx_data_ready_re),
       .we (1'b0),
       .wd ('0),
-      .d  (hw2reg.status.d),
+      .d  (hw2reg.status.rx_data_ready.d),
       .qre(),
       .qe (),
       .q  (),
-      .qs (status_qs)
+      .qs (status_rx_data_ready_qs)
+  );
+
+
+  //   F[rx_overflow]: 1:1
+  prim_subreg_ext #(
+      .DW(1)
+  ) u_status_rx_overflow (
+      .re (status_rx_overflow_re),
+      .we (1'b0),
+      .wd ('0),
+      .d  (hw2reg.status.rx_overflow.d),
+      .qre(),
+      .qe (),
+      .q  (),
+      .qs (status_rx_overflow_qs)
   );
 
 
@@ -378,7 +396,9 @@ module i2s_reg_top #(
   assign watermark_we = addr_hit[2] & reg_we & !reg_error;
   assign watermark_wd = reg_wdata[31:0];
 
-  assign status_re = addr_hit[3] & reg_re & !reg_error;
+  assign status_rx_data_ready_re = addr_hit[3] & reg_re & !reg_error;
+
+  assign status_rx_overflow_re = addr_hit[3] & reg_re & !reg_error;
 
   // Read data return
   always_comb begin
@@ -401,7 +421,8 @@ module i2s_reg_top #(
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[0] = status_qs;
+        reg_rdata_next[0] = status_rx_data_ready_qs;
+        reg_rdata_next[1] = status_rx_overflow_qs;
       end
 
       default: begin

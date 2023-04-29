@@ -28,7 +28,9 @@ module i2s_rx_channel #(
     // FIFO
     output logic [SampleWidth-1:0] data_o,
     output logic                   data_valid_o,
-    input  logic                   data_ready_i
+    input  logic                   data_ready_i,
+
+    output logic overflow_o
 );
 
 
@@ -155,6 +157,20 @@ module i2s_rx_channel #(
       data_valid_o = r_valid & (data_ws == 1'b1);  // only left
     end else begin
       data_valid_o = r_valid & (data_ws ^ last_data_ws);  // make sure to drop even numbers
+    end
+  end
+
+
+  // detect overflow
+  always_ff @(posedge sck_i, negedge rst_ni) begin
+    if (~rst_ni) begin
+      overflow_o <= 1'b0;
+    end else begin
+      if (en_i) begin
+        overflow_o <= 1'b0;
+      end else if (word_done & data_valid_o) begin
+        overflow_o <= 1'b1;
+      end
     end
   end
 

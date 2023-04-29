@@ -54,6 +54,7 @@ module i2s #(
   logic [SampleWidth-1:0] data_rx;
   logic data_rx_valid;
   logic data_rx_ready;
+  logic data_rx_overflow;
 
   logic [CounterWidth-1:0] sample_width;
   assign sample_width = {reg2hw.cfg.data_width.q, 3'h7};
@@ -70,7 +71,8 @@ module i2s #(
   assign i2s_rx_valid_o = data_rx_valid;
 
   // STATUS signal
-  assign hw2reg.status.d = data_rx_valid;
+  assign hw2reg.status.rx_data_ready.d = data_rx_valid;
+  assign hw2reg.status.rx_overflow.d = data_rx_overflow;
 
 
   // Register logic
@@ -119,7 +121,8 @@ module i2s #(
 
       .data_rx_o(data_rx),
       .data_rx_valid_o(data_rx_valid),
-      .data_rx_ready_i(data_rx_ready)
+      .data_rx_ready_i(data_rx_ready),
+      .data_rx_overflow_o(data_rx_overflow)
   );
 
   logic event_i2s_event;

@@ -89,6 +89,7 @@
       hwext:  "true"
       fields: [
         { bits: "0", name: "RX_DATA_READY", desc: "1 to indicate that an RX sample is ready"}
+        { bits: "1", name: "RX_OVERFLOW", desc: "1 to indicate that an RX happend - disable rx_channel to clear"}
       ]
     }
 
