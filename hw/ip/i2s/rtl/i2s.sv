@@ -48,16 +48,16 @@ module i2s #(
   reg_req_t    rx_win_h2d;
   reg_rsp_t    rx_win_d2h;
 
-  logic en;
-  assign en = |reg2hw.cfg.en.q;
 
   logic [SampleWidth-1:0] data_rx;
   logic data_rx_valid;
   logic data_rx_ready;
   logic data_rx_overflow;
 
+  logic event_i2s_event;
+
   logic [CounterWidth-1:0] sample_width;
-  assign sample_width = {reg2hw.cfg.data_width.q, 3'h7};
+  assign sample_width = {reg2hw.control.data_width.q, 3'h7};
 
 
   // I2s RX -> Bus
@@ -100,9 +100,10 @@ module i2s #(
   ) i2s_core_i (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
-      .en_i(en),
-      .en_left_i(reg2hw.cfg.en.q[0]),
-      .en_right_i(reg2hw.cfg.en.q[1]),
+      .en_i(reg2hw.control.en.q),
+      .en_ws_i(reg2hw.control.en_ws.q),
+      .en_rx_left_i(reg2hw.control.en_rx.q[0]),
+      .en_rx_right_i(reg2hw.control.en_rx.q[1]),
 
       .i2s_sck_o   (i2s_sck_o),
       .i2s_sck_oe_o(i2s_sck_oe_o),
@@ -114,8 +115,6 @@ module i2s #(
       .i2s_sd_oe_o (i2s_sd_oe_o),
       .i2s_sd_i    (i2s_sd_i),
 
-      .cfg_clk_ws_en_i(reg2hw.cfg.gen_clk_ws.q),
-      .cfg_lsb_first_i(reg2hw.cfg.lsb_first.q),
       .cfg_clock_div_i(reg2hw.clkdividx.q),
       .cfg_sample_width_i(sample_width),
 
@@ -125,30 +124,22 @@ module i2s #(
       .data_rx_overflow_o(data_rx_overflow)
   );
 
-  logic event_i2s_event;
-  assign intr_i2s_event_o = event_i2s_event & reg2hw.cfg.intr_en.q;
 
-
-  // interrupt reach count event
-  // count bus reads to be on clk_i
-  logic [31:0] intr_reach_counter;
-  always_ff @(posedge clk_i, negedge rst_ni) begin
-    if (~rst_ni) begin
-      intr_reach_counter <= 32'h0;
-    end else begin
-      if (intr_reach_counter == reg2hw.watermark.q) begin
-        if (en & data_rx_ready & data_rx_valid) begin
-          intr_reach_counter <= 32'h1;
-        end else begin
-          intr_reach_counter <= 32'h0;
-        end
-      end else if (en & data_rx_ready & data_rx_valid) begin
-        intr_reach_counter <= intr_reach_counter + 32'h1;
-      end
-    end
-  end
-
-  assign event_i2s_event = intr_reach_counter == reg2hw.watermark.q & reg2hw.watermark.q != 32'h0;
+  // watermark counter
+  // count bus reads and trigger interrupt 
+  event_counter #(
+      .WIDTH(WatermarkSize)
+  ) watermark_counter (
+      .clk_i,
+      .rst_ni,
+      .clear_i(reg2hw.control.reset_watermark.q),  // synchronous clear
+      .en_i(data_rx_ready & data_rx_valid & (|reg2hw.watermark.q) && reg2hw.control.en_watermark.q),    // enable the counter
+      .limit_i(reg2hw.watermark.q),
+      .q_o(hw2reg.waterlevel.d),
+      .overflow_o(event_i2s_event)
+  );
+  
+  assign intr_i2s_event_o = event_i2s_event & reg2hw.control.intr_en.q;
 
 
 endmodule : i2s

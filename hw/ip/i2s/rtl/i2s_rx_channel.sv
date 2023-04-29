@@ -15,14 +15,12 @@ module i2s_rx_channel #(
 ) (
     input logic sck_i,
     input logic rst_ni,
-    input logic en_i,
     input logic en_left_i,
     input logic en_right_i,
     input logic ws_i,
     input logic sd_i,
 
     // config
-    input logic cfg_lsb_first_i,
     input logic [CounterWidth-1:0] cfg_sample_width_i,
 
     // FIFO
@@ -33,6 +31,7 @@ module i2s_rx_channel #(
     output logic overflow_o
 );
 
+  logic en;
 
   logic r_ws_old;
   logic s_ws_edge;
@@ -53,25 +52,18 @@ module i2s_rx_channel #(
   logic last_data_ws;
   logic data_ws;
 
+  assign en = en_left_i | en_right_i;
+
   assign s_ws_edge = ws_i ^ r_ws_old;
   assign data_o = r_shadow;
 
-
-
-
-
   always_comb begin : proc_shiftreg
     s_shiftreg = r_shiftreg;
-    if (cfg_lsb_first_i) begin
-      s_shiftreg = {1'b0, r_shiftreg[SampleWidth-1:1]};
-      s_shiftreg[cfg_sample_width_i] = sd_i;
-    end else begin
-      if (word_done) begin
-        s_shiftreg = 'h0;
-      end
-      if (!width_overflow) begin
-        s_shiftreg[cfg_sample_width_i-r_count_bit] = sd_i;
-      end
+    if (word_done) begin
+      s_shiftreg = 'h0;
+    end
+    if (!width_overflow) begin
+      s_shiftreg[cfg_sample_width_i-r_count_bit] = sd_i;
     end
   end
 
@@ -135,7 +127,7 @@ module i2s_rx_channel #(
       r_ws_old  <= 'h0;
       r_started <= 'h0;
     end else begin
-      if (en_i) begin
+      if (en) begin
         r_ws_old <= ws_i;
         if (s_ws_edge) r_started <= 1'b1;
       end else begin
@@ -151,7 +143,7 @@ module i2s_rx_channel #(
     if (~rst_ni) begin
       last_data_ws <= 1'b0;  // always start with left
     end else begin
-      if (!en_i) begin
+      if (!en) begin
         last_data_ws <= 1'b0;  // always start with left
       end else if (data_ready_i & data_valid_o) begin
         last_data_ws <= data_ws;
@@ -177,7 +169,7 @@ module i2s_rx_channel #(
     if (~rst_ni) begin
       overflow_o <= 1'b0;
     end else begin
-      if (en_i) begin
+      if (en) begin
         overflow_o <= 1'b0;
       end else if (word_done & data_valid_o & ~data_ready_i) begin
         overflow_o <= 1'b1;

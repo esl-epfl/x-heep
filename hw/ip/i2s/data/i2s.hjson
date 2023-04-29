@@ -20,6 +20,11 @@
       type: "int",
       default: "16"
     }
+    { name: "WatermarkSize",
+      desc: '''Bits available for the watermark''',
+      type: "int",
+      default: "32"
+    }
   ]
   interrupt_list: [
     { name: "i2s_event",
@@ -43,12 +48,14 @@
 
     // STATUS & CONTROL REGISTERS
 
-    { name:     "cfg"
-      desc:     "config register"
+    { name:     "CONTROL"
+      desc:     "control register"
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "1:0", name: "EN", desc: "Enable i2s channels" 
+        { bits: "0", name: "EN", desc: "Enable I2s - CLK Domain" }
+        { bits: "1", name: "EN_WS", desc: "Enable word select generation" }
+        { bits: "3:2", name: "EN_RX", desc: "Enable rx channels" 
           resval: "0",
           enum:  [
             { value: "0", name: "DISABLED",  desc: "Disable I2s" },
@@ -57,9 +64,10 @@
             { value: "3", name: "BOTH_CHANNELS",  desc: "Enable both channels" },
           ]
         }
-        { bits: "2", name: "LSB_FIRST", desc: "which bit arrives first" }
-        { bits: "3", name: "INTR_EN", desc: "enable reach count interrupt" }
-        { bits: "5:4", name: "DATA_WIDTH",
+        { bits: "4", name: "INTR_EN", desc: "enable watermark interrupt" }
+        { bits: "5", name: "EN_WATERMARK", desc: "en watermark counter" }
+        { bits: "6", name: "RESET_WATERMARK", desc: "reset watermark counter" }
+        { bits: "9:8", name: "DATA_WIDTH",
           desc: "Bytes per sample",
           resval: "3",
           enum: [
@@ -69,7 +77,6 @@
                 { value: "3", name: "32_BITS", desc: "32 bits" }
               ]
         }
-        { bits: "6", name: "GEN_CLK_WS", desc: "Generate SCK and WS" }
       ]
     }
 
@@ -79,6 +86,16 @@
       hwaccess: "hro"
       fields: [
         { bits: "31:0", name: "Watermark", desc: "Count of RX samples written to memory which should trigger an interrupt"}
+      ]
+    }
+
+    { name:     "WATERLEVEL"
+      desc:     "Watermark counter level"
+      swaccess: "ro"
+      hwext:  "true"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0", name: "Waterlevel", desc: "Count of RX samples"}
       ]
     }
 

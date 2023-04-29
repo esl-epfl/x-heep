@@ -27,8 +27,9 @@
 #define I2S_TEST_BATCHES      16
 #define I2S_CLK_DIV           8
 #define AUDIO_DATA_NUM 2048                          // RECORDING LENGTH
+//#define AUDIO_DATA_NUM 100000                          // RECORDING LENGTH
 #define I2S_USE_INTERRUPT false
-//#define USE_DMA
+#define USE_DMA
 #else
 #define I2S_TEST_BATCH_SIZE    128
 #define I2S_TEST_BATCHES      4
@@ -104,16 +105,14 @@ void setup()
 
     #ifdef USE_DMA
     dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
-    const uint32_t *i2s_rx_fifo_ptr = I2S_START_ADDRESS + I2S_RXDATA_REG_OFFSET;
 
      // -- DMA CONFIGURATION --
     dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
     dma_set_write_ptr_inc(&dma, (uint32_t) 4);
-    dma_set_read_ptr(&dma, (uint32_t) i2s_rx_fifo_ptr); // I2s RX FIFO addr
+    dma_set_read_ptr(&dma, I2S_RX_DATA_ADDRESS); // I2s RX FIFO addr
     dma_set_write_ptr(&dma, (uint32_t) audio_data_0); // audio data address
     dma_set_rx_wait_mode(&dma, DMA_RX_WAIT_I2S); // The DMA will wait for the I2s RX FIFO valid signal
     dma_set_data_type(&dma, (uint32_t) 0);
-    dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // start 
     #endif
 
 
@@ -126,7 +125,7 @@ void setup()
 
     // enable I2s interrupt
     i2s_interrupt_flag = 0;
-    i2s_setup(I2S_RIGHT_CH, true, I2S_CLK_DIV, I2S_USE_INTERRUPT, I2S_32_BITS, I2S_TEST_BATCH_SIZE);
+    i2s_configure(I2S_CLK_DIV, I2S_32_BITS);
 
 
     // Enable interrupt on processor side
@@ -148,6 +147,7 @@ int main(int argc, char *argv[]) {
     //printf("Setup done!\r\n");
 
 #ifdef TARGET_PYNQ_Z2
+    printf("index,data\r\n");
     //
     // FPGA code
     //
@@ -155,7 +155,11 @@ int main(int argc, char *argv[]) {
 
     int batch = 0;
     while(1) {
+        i2s_rx_start(I2S_RIGHT_CH);
+
         #ifdef USE_DMA
+        dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // start 
+
         // WAITING FOR DMA COPY TO FINISH
         while(!dma_intr_flag) {
             wait_for_interrupt();
@@ -165,10 +169,11 @@ int main(int argc, char *argv[]) {
         #else
         // READING DATA MANUALLY OVER BUS
         for (int i = 0; i < AUDIO_DATA_NUM; i+=1) {
-            while ((i2s_peri->STATUS & 0x1) == 0) { }
-            audio_data_0[i] = i2s_peri->RXDATA;
+            while (! i2s_rx_data_available()) { }
+            audio_data_0[i] = i2s_rx_read_data();
         }
         #endif
+        i2s_rx_stop();
 
         int32_t* data = audio_data_0;
         for (int i = 0; i < AUDIO_DATA_NUM; i+=1) {
@@ -180,6 +185,7 @@ int main(int argc, char *argv[]) {
         batch += 1;
 
         #ifdef USE_DMA
+        enable_all_fast_interrupts(false);
         dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // restart 
         #endif
         break;
@@ -190,7 +196,11 @@ int main(int argc, char *argv[]) {
     //
 
     for (int batch = 0; batch < I2S_TEST_BATCHES; batch++) {
+        i2s_rx_start(I2S_RIGHT_CH);
+
         #ifdef USE_DMA
+        dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // start 
+
         // WAITING FOR DMA COPY TO FINISH
         while(!dma_intr_flag) {
             wait_for_interrupt();
@@ -199,10 +209,11 @@ int main(int argc, char *argv[]) {
         #else
         // READING DATA MANUALLY OVER BUS
         for (int i = 0; i < AUDIO_DATA_NUM; i+=1) {
-            while (i2s_peri->STATUS == 0) { }
-            audio_data_0[i] = i2s_peri->RXDATA;
+            while (!i2s_rx_data_available()) { }
+            audio_data_0[i] = i2s_rx_read_data();
         }
         #endif
+        i2s_rx_stop();
 
         printf("B%x\r\n", batch);
         
@@ -211,7 +222,7 @@ int main(int argc, char *argv[]) {
             printf("%d %d\r\n", data[i], data[i+1]);
         }
         #ifdef USE_DMA
-        dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // restart 
+        //dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // restart 
         #endif
     }
 #endif

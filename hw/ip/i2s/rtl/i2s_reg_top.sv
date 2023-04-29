@@ -86,7 +86,7 @@ module i2s_reg_top #(
     reg_steer = 1;  // Default set to register
 
     // TODO: Can below codes be unique case () inside ?
-    if (reg_req_i.addr[AW-1:0] >= 16 && reg_req_i.addr[AW-1:0] < 20) begin
+    if (reg_req_i.addr[AW-1:0] >= 20 && reg_req_i.addr[AW-1:0] < 24) begin
       reg_steer = 0;
     end
   end
@@ -111,24 +111,32 @@ module i2s_reg_top #(
   logic [15:0] clkdividx_qs;
   logic [15:0] clkdividx_wd;
   logic clkdividx_we;
-  logic [1:0] cfg_en_qs;
-  logic [1:0] cfg_en_wd;
-  logic cfg_en_we;
-  logic cfg_lsb_first_qs;
-  logic cfg_lsb_first_wd;
-  logic cfg_lsb_first_we;
-  logic cfg_intr_en_qs;
-  logic cfg_intr_en_wd;
-  logic cfg_intr_en_we;
-  logic [1:0] cfg_data_width_qs;
-  logic [1:0] cfg_data_width_wd;
-  logic cfg_data_width_we;
-  logic cfg_gen_clk_ws_qs;
-  logic cfg_gen_clk_ws_wd;
-  logic cfg_gen_clk_ws_we;
+  logic control_en_qs;
+  logic control_en_wd;
+  logic control_en_we;
+  logic control_en_ws_qs;
+  logic control_en_ws_wd;
+  logic control_en_ws_we;
+  logic [1:0] control_en_rx_qs;
+  logic [1:0] control_en_rx_wd;
+  logic control_en_rx_we;
+  logic control_intr_en_qs;
+  logic control_intr_en_wd;
+  logic control_intr_en_we;
+  logic control_en_watermark_qs;
+  logic control_en_watermark_wd;
+  logic control_en_watermark_we;
+  logic control_reset_watermark_qs;
+  logic control_reset_watermark_wd;
+  logic control_reset_watermark_we;
+  logic [1:0] control_data_width_qs;
+  logic [1:0] control_data_width_wd;
+  logic control_data_width_we;
   logic [31:0] watermark_qs;
   logic [31:0] watermark_wd;
   logic watermark_we;
+  logic [31:0] waterlevel_qs;
+  logic waterlevel_re;
   logic status_rx_data_ready_qs;
   logic status_rx_data_ready_re;
   logic status_rx_overflow_qs;
@@ -162,20 +170,72 @@ module i2s_reg_top #(
   );
 
 
-  // R[cfg]: V(False)
+  // R[control]: V(False)
 
-  //   F[en]: 1:0
+  //   F[en]: 0:0
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_control_en (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(control_en_we),
+      .wd(control_en_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.control.en.q),
+
+      // to register interface (read)
+      .qs(control_en_qs)
+  );
+
+
+  //   F[en_ws]: 1:1
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_control_en_ws (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(control_en_ws_we),
+      .wd(control_en_ws_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.control.en_ws.q),
+
+      // to register interface (read)
+      .qs(control_en_ws_qs)
+  );
+
+
+  //   F[en_rx]: 3:2
   prim_subreg #(
       .DW      (2),
       .SWACCESS("RW"),
       .RESVAL  (2'h0)
-  ) u_cfg_en (
+  ) u_control_en_rx (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(cfg_en_we),
-      .wd(cfg_en_wd),
+      .we(control_en_rx_we),
+      .wd(control_en_rx_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -183,25 +243,25 @@ module i2s_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.cfg.en.q),
+      .q (reg2hw.control.en_rx.q),
 
       // to register interface (read)
-      .qs(cfg_en_qs)
+      .qs(control_en_rx_qs)
   );
 
 
-  //   F[lsb_first]: 2:2
+  //   F[intr_en]: 4:4
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_cfg_lsb_first (
+  ) u_control_intr_en (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(cfg_lsb_first_we),
-      .wd(cfg_lsb_first_wd),
+      .we(control_intr_en_we),
+      .wd(control_intr_en_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -209,25 +269,25 @@ module i2s_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.cfg.lsb_first.q),
+      .q (reg2hw.control.intr_en.q),
 
       // to register interface (read)
-      .qs(cfg_lsb_first_qs)
+      .qs(control_intr_en_qs)
   );
 
 
-  //   F[intr_en]: 3:3
+  //   F[en_watermark]: 5:5
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_cfg_intr_en (
+  ) u_control_en_watermark (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(cfg_intr_en_we),
-      .wd(cfg_intr_en_wd),
+      .we(control_en_watermark_we),
+      .wd(control_en_watermark_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -235,25 +295,51 @@ module i2s_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.cfg.intr_en.q),
+      .q (reg2hw.control.en_watermark.q),
 
       // to register interface (read)
-      .qs(cfg_intr_en_qs)
+      .qs(control_en_watermark_qs)
   );
 
 
-  //   F[data_width]: 5:4
+  //   F[reset_watermark]: 6:6
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_control_reset_watermark (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(control_reset_watermark_we),
+      .wd(control_reset_watermark_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.control.reset_watermark.q),
+
+      // to register interface (read)
+      .qs(control_reset_watermark_qs)
+  );
+
+
+  //   F[data_width]: 9:8
   prim_subreg #(
       .DW      (2),
       .SWACCESS("RW"),
       .RESVAL  (2'h3)
-  ) u_cfg_data_width (
+  ) u_control_data_width (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(cfg_data_width_we),
-      .wd(cfg_data_width_wd),
+      .we(control_data_width_we),
+      .wd(control_data_width_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -261,36 +347,10 @@ module i2s_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.cfg.data_width.q),
+      .q (reg2hw.control.data_width.q),
 
       // to register interface (read)
-      .qs(cfg_data_width_qs)
-  );
-
-
-  //   F[gen_clk_ws]: 6:6
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
-  ) u_cfg_gen_clk_ws (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(cfg_gen_clk_ws_we),
-      .wd(cfg_gen_clk_ws_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.cfg.gen_clk_ws.q),
-
-      // to register interface (read)
-      .qs(cfg_gen_clk_ws_qs)
+      .qs(control_data_width_qs)
   );
 
 
@@ -318,6 +378,22 @@ module i2s_reg_top #(
 
       // to register interface (read)
       .qs(watermark_qs)
+  );
+
+
+  // R[waterlevel]: V(True)
+
+  prim_subreg_ext #(
+      .DW(32)
+  ) u_waterlevel (
+      .re (waterlevel_re),
+      .we (1'b0),
+      .wd ('0),
+      .d  (hw2reg.waterlevel.d),
+      .qre(),
+      .qe (),
+      .q  (),
+      .qs (waterlevel_qs)
   );
 
 
@@ -355,13 +431,14 @@ module i2s_reg_top #(
 
 
 
-  logic [3:0] addr_hit;
+  logic [4:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == I2S_CLKDIVIDX_OFFSET);
-    addr_hit[1] = (reg_addr == I2S_CFG_OFFSET);
+    addr_hit[1] = (reg_addr == I2S_CONTROL_OFFSET);
     addr_hit[2] = (reg_addr == I2S_WATERMARK_OFFSET);
-    addr_hit[3] = (reg_addr == I2S_STATUS_OFFSET);
+    addr_hit[3] = (reg_addr == I2S_WATERLEVEL_OFFSET);
+    addr_hit[4] = (reg_addr == I2S_STATUS_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -372,33 +449,42 @@ module i2s_reg_top #(
               ((addr_hit[0] & (|(I2S_PERMIT[0] & ~reg_be))) |
                (addr_hit[1] & (|(I2S_PERMIT[1] & ~reg_be))) |
                (addr_hit[2] & (|(I2S_PERMIT[2] & ~reg_be))) |
-               (addr_hit[3] & (|(I2S_PERMIT[3] & ~reg_be)))));
+               (addr_hit[3] & (|(I2S_PERMIT[3] & ~reg_be))) |
+               (addr_hit[4] & (|(I2S_PERMIT[4] & ~reg_be)))));
   end
 
   assign clkdividx_we = addr_hit[0] & reg_we & !reg_error;
   assign clkdividx_wd = reg_wdata[15:0];
 
-  assign cfg_en_we = addr_hit[1] & reg_we & !reg_error;
-  assign cfg_en_wd = reg_wdata[1:0];
+  assign control_en_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_en_wd = reg_wdata[0];
 
-  assign cfg_lsb_first_we = addr_hit[1] & reg_we & !reg_error;
-  assign cfg_lsb_first_wd = reg_wdata[2];
+  assign control_en_ws_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_en_ws_wd = reg_wdata[1];
 
-  assign cfg_intr_en_we = addr_hit[1] & reg_we & !reg_error;
-  assign cfg_intr_en_wd = reg_wdata[3];
+  assign control_en_rx_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_en_rx_wd = reg_wdata[3:2];
 
-  assign cfg_data_width_we = addr_hit[1] & reg_we & !reg_error;
-  assign cfg_data_width_wd = reg_wdata[5:4];
+  assign control_intr_en_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_intr_en_wd = reg_wdata[4];
 
-  assign cfg_gen_clk_ws_we = addr_hit[1] & reg_we & !reg_error;
-  assign cfg_gen_clk_ws_wd = reg_wdata[6];
+  assign control_en_watermark_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_en_watermark_wd = reg_wdata[5];
+
+  assign control_reset_watermark_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_reset_watermark_wd = reg_wdata[6];
+
+  assign control_data_width_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_data_width_wd = reg_wdata[9:8];
 
   assign watermark_we = addr_hit[2] & reg_we & !reg_error;
   assign watermark_wd = reg_wdata[31:0];
 
-  assign status_rx_data_ready_re = addr_hit[3] & reg_re & !reg_error;
+  assign waterlevel_re = addr_hit[3] & reg_re & !reg_error;
 
-  assign status_rx_overflow_re = addr_hit[3] & reg_re & !reg_error;
+  assign status_rx_data_ready_re = addr_hit[4] & reg_re & !reg_error;
+
+  assign status_rx_overflow_re = addr_hit[4] & reg_re & !reg_error;
 
   // Read data return
   always_comb begin
@@ -409,11 +495,13 @@ module i2s_reg_top #(
       end
 
       addr_hit[1]: begin
-        reg_rdata_next[1:0] = cfg_en_qs;
-        reg_rdata_next[2]   = cfg_lsb_first_qs;
-        reg_rdata_next[3]   = cfg_intr_en_qs;
-        reg_rdata_next[5:4] = cfg_data_width_qs;
-        reg_rdata_next[6]   = cfg_gen_clk_ws_qs;
+        reg_rdata_next[0]   = control_en_qs;
+        reg_rdata_next[1]   = control_en_ws_qs;
+        reg_rdata_next[3:2] = control_en_rx_qs;
+        reg_rdata_next[4]   = control_intr_en_qs;
+        reg_rdata_next[5]   = control_en_watermark_qs;
+        reg_rdata_next[6]   = control_reset_watermark_qs;
+        reg_rdata_next[9:8] = control_data_width_qs;
       end
 
       addr_hit[2]: begin
@@ -421,6 +509,10 @@ module i2s_reg_top #(
       end
 
       addr_hit[3]: begin
+        reg_rdata_next[31:0] = waterlevel_qs;
+      end
+
+      addr_hit[4]: begin
         reg_rdata_next[0] = status_rx_data_ready_qs;
         reg_rdata_next[1] = status_rx_overflow_qs;
       end
