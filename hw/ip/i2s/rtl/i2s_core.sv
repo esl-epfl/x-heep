@@ -18,15 +18,9 @@ module i2s_core #(
     input logic en_rx_right_i,
 
     // IO interface
-    output logic i2s_sck_o,
-    output logic i2s_sck_oe_o,
-    input  logic i2s_sck_i,
-    output logic i2s_ws_o,
-    output logic i2s_ws_oe_o,
-    input  logic i2s_ws_i,
-    output logic i2s_sd_o,
-    output logic i2s_sd_oe_o,
-    input  logic i2s_sd_i,
+    output logic sck_o,
+    output logic ws_o,
+    input  logic sd_i,
 
     // config
     input logic [         ClkDivSize-1:0] cfg_clock_div_i,
@@ -40,13 +34,11 @@ module i2s_core #(
     output logic data_rx_overflow_o
 );
 
-  logic                   ws_gen;
   logic                   ws;
 
   logic                   sck_gen;
   logic                   sck;
 
-  logic                   clk_div_valid;
   logic                   clk_div_ready;
   logic                   clk_div_running;
 
@@ -54,38 +46,27 @@ module i2s_core #(
   logic                   data_rx_dc_valid;
   logic                   data_rx_dc_ready;
 
-  assign i2s_ws_oe_o = en_i & en_ws_i;
-  assign i2s_ws_o = ws_gen;
-  assign ws = i2s_ws_oe_o ? ws_gen : i2s_ws_i;
+  logic                   data_rx_overflow_async;
+  logic                   data_rx_overflow_q;
 
-  assign i2s_sck_oe_o = en_i & clk_div_running;
-  assign i2s_sck_o = sck_gen;
 
-  assign i2s_sd_oe_o = 1'b0;
-  assign i2s_sd_o    = 1'b0;
+  assign ws_o  = ws;
+  assign sck_o = sck;
 
-  assign clk_div_valid = |cfg_clock_div_i; // workaround
-
-  logic data_rx_overflow_async;
-  logic data_rx_overflow_q;
-
-  i2s_ws_gen #(
-      .SampleWidth(SampleWidth)
-  ) i2s_ws_gen_i (
-      .sck_i(sck),
+  clk_int_div #(
+      .DIV_VALUE_WIDTH(ClkDivSize),
+      .DEFAULT_DIV_VALUE(2)  // HAS TO BE BIGGER THAN ONE TO GET THE START RIGHT
+  ) i2s_clk_gen_i (
+      .clk_i(clk_i),
       .rst_ni(rst_ni),
-      .en_i(en_ws_i),
-      .ws_o(ws_gen),
-      .cfg_sample_width_i(cfg_sample_width_i)
+      .en_i(en_i),
+      .test_mode_en_i(1'b0),
+      .clk_o(sck_gen),
+      .div_i(cfg_clock_div_i),
+      .div_valid_i(|cfg_clock_div_i),  // 0 divider valued doesn't work (this is a workaround)
+      .div_ready_o(clk_div_ready),
+      .cycl_count_o()
   );
-
-  tc_clk_mux2 i_clk_bypass_mux (
-      .clk0_i   (i2s_sck_i),
-      .clk1_i   (sck_gen),
-      .clk_sel_i(1'b1),       // disable external sck
-      .clk_o    (sck)
-  );
-
 
   // This is a workaround
   // Such that it starts with the demanded div value.
@@ -99,18 +80,21 @@ module i2s_core #(
     end
   end
 
-  clk_int_div #(
-      .DIV_VALUE_WIDTH(ClkDivSize),
-      .DEFAULT_DIV_VALUE(2)  // HAS TO BE BIGGER THAN ONE TO GET THE START RIGHT
-  ) i2s_clk_gen_i (
-      .clk_i(clk_i),
+  tc_clk_mux2 i_clk_bypass_mux (
+      .clk0_i   (1'b0),
+      .clk1_i   (sck_gen),
+      .clk_sel_i(clk_div_running),
+      .clk_o    (sck)
+  );
+
+  i2s_ws_gen #(
+      .SampleWidth(SampleWidth)
+  ) i2s_ws_gen_i (
+      .sck_i(sck),
       .rst_ni(rst_ni),
-      .en_i(en_i),
-      .test_mode_en_i(1'b0),
-      .clk_o(sck_gen),
-      .div_i(cfg_clock_div_i),
-      .div_valid_i(clk_div_valid),
-      .div_ready_o(clk_div_ready)
+      .en_i(en_ws_i),
+      .ws_o(ws),
+      .cfg_sample_width_i(cfg_sample_width_i)
   );
 
   i2s_rx_channel #(
@@ -121,7 +105,7 @@ module i2s_core #(
       .en_left_i(en_rx_left_i),
       .en_right_i(en_rx_right_i),
       .ws_i(ws),
-      .sd_i(i2s_sd_i),
+      .sd_i(sd_i),
 
       .cfg_sample_width_i(cfg_sample_width_i),
 
@@ -152,11 +136,11 @@ module i2s_core #(
   // SYNC rx overflow signal
   always_ff @(posedge clk_i, negedge rst_ni) begin
     if (~rst_ni) begin
-      data_rx_overflow_o <= 1'b0;
       data_rx_overflow_q <= 1'b0;
+      data_rx_overflow_o <= 1'b0;
     end else begin
-      data_rx_overflow_o <= data_rx_overflow_q;
       data_rx_overflow_q <= data_rx_overflow_async;
+      data_rx_overflow_o <= data_rx_overflow_q;
     end
   end
 

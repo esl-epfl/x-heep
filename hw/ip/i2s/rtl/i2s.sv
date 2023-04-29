@@ -41,7 +41,9 @@ module i2s #(
   localparam CounterWidth = BytePerSampleWidth + 3;
 
   // Interface signals
+  // /* verilator lint_off UNUSED */
   i2s_reg2hw_t reg2hw;
+  // /* verilator lint_on UNUSED */
   i2s_hw2reg_t hw2reg;
 
   logic [SampleWidth-1:0] data_rx;
@@ -56,7 +58,7 @@ module i2s #(
 
 
   // I2s RX -> Bus
-  assign data_rx_ready = reg2hw.rxdata.re; // bus read signal
+  assign data_rx_ready = reg2hw.rxdata.re;  // bus read signal
   assign hw2reg.rxdata.d = data_rx;
 
   // DMA signal
@@ -65,6 +67,19 @@ module i2s #(
   // STATUS signal
   assign hw2reg.status.rx_data_ready.d = data_rx_valid;
   assign hw2reg.status.rx_overflow.d = data_rx_overflow;
+
+  // IO
+  assign i2s_sd_oe_o = 1'b0;
+  assign i2s_sd_o = 1'b0;
+  assign i2s_sck_oe_o = reg2hw.control.en_io.q;
+  assign i2s_ws_oe_o = reg2hw.control.en_io.q;
+  unread _sck_i (i2s_sck_i);
+  unread _ws_i (i2s_ws_i);
+
+  // CONTROL 
+  assign hw2reg.control.reset_watermark.de = reg2hw.control.reset_watermark.q;
+  assign hw2reg.control.reset_watermark.d  = 1'b0;
+
 
 
   // Register logic
@@ -95,15 +110,9 @@ module i2s #(
       .en_rx_left_i(reg2hw.control.en_rx.q[0]),
       .en_rx_right_i(reg2hw.control.en_rx.q[1]),
 
-      .i2s_sck_o   (i2s_sck_o),
-      .i2s_sck_oe_o(i2s_sck_oe_o),
-      .i2s_sck_i   (i2s_sck_i),
-      .i2s_ws_o    (i2s_ws_o),
-      .i2s_ws_oe_o (i2s_ws_oe_o),
-      .i2s_ws_i    (i2s_ws_i),
-      .i2s_sd_o    (i2s_sd_o),
-      .i2s_sd_oe_o (i2s_sd_oe_o),
-      .i2s_sd_i    (i2s_sd_i),
+      .sck_o(i2s_sck_o),
+      .ws_o (i2s_ws_o),
+      .sd_i (i2s_sd_i),
 
       .cfg_clock_div_i(reg2hw.clkdividx.q),
       .cfg_sample_width_i(sample_width),

@@ -60,9 +60,10 @@ void i2s_rx_start(i2s_channel_sel_t channels) {
   bool overflow = i2s_rx_overflow(); 
 
   if (control & ((I2S_CONTROL_EN_RX_MASK << I2S_CONTROL_EN_RX_OFFSET ) + (1 << I2S_CONTROL_EN_WS_BIT))) {
-    // something is running disable it
+    // something is running - disable all but the clock
     control &= ~(I2S_CONTROL_EN_RX_MASK << I2S_CONTROL_EN_RX_OFFSET); // disable rx
     control &= ~(1 << I2S_CONTROL_EN_WS_BIT); // disable ws gen
+    control &= ~(1 << I2S_CONTROL_EN_IO_BIT); // disable ios
   }
 
   // enable clock
@@ -84,6 +85,7 @@ void i2s_rx_start(i2s_channel_sel_t channels) {
   // now we can start the RX channels and ws generation
   control |= (channels << I2S_CONTROL_EN_RX_OFFSET); // enable selected rx channels
   control |= (1 << I2S_CONTROL_EN_WS_BIT);
+  control |= (1 << I2S_CONTROL_EN_IO_BIT); // enable ios
   i2s_peri->CONTROL = control;
 }
 
@@ -93,5 +95,6 @@ void i2s_rx_stop() {
   control &= ~(1 << I2S_CONTROL_EN_BIT); // disable peripheral and clock domain
   control &= ~(I2S_CONTROL_EN_RX_MASK << I2S_CONTROL_EN_RX_OFFSET); // disable rx
   control &= ~(1 << I2S_CONTROL_EN_WS_BIT); // disable ws gen
+  control &= ~(1 << I2S_CONTROL_EN_IO_BIT); // disable ios
   i2s_peri->CONTROL = control;
 }

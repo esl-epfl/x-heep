@@ -89,6 +89,9 @@ module i2s_reg_top #(
   logic control_reset_watermark_qs;
   logic control_reset_watermark_wd;
   logic control_reset_watermark_we;
+  logic control_en_io_qs;
+  logic control_en_io_wd;
+  logic control_en_io_we;
   logic [1:0] control_data_width_qs;
   logic [1:0] control_data_width_wd;
   logic control_data_width_we;
@@ -278,8 +281,8 @@ module i2s_reg_top #(
       .wd(control_reset_watermark_wd),
 
       // from internal hardware
-      .de(1'b0),
-      .d ('0),
+      .de(hw2reg.control.reset_watermark.de),
+      .d (hw2reg.control.reset_watermark.d),
 
       // to internal hardware
       .qe(),
@@ -287,6 +290,32 @@ module i2s_reg_top #(
 
       // to register interface (read)
       .qs(control_reset_watermark_qs)
+  );
+
+
+  //   F[en_io]: 7:7
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_control_en_io (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(control_en_io_we),
+      .wd(control_en_io_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.control.en_io.q),
+
+      // to register interface (read)
+      .qs(control_en_io_qs)
   );
 
 
@@ -454,6 +483,9 @@ module i2s_reg_top #(
   assign control_reset_watermark_we = addr_hit[1] & reg_we & !reg_error;
   assign control_reset_watermark_wd = reg_wdata[6];
 
+  assign control_en_io_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_en_io_wd = reg_wdata[7];
+
   assign control_data_width_we = addr_hit[1] & reg_we & !reg_error;
   assign control_data_width_wd = reg_wdata[9:8];
 
@@ -483,6 +515,7 @@ module i2s_reg_top #(
         reg_rdata_next[4]   = control_intr_en_qs;
         reg_rdata_next[5]   = control_en_watermark_qs;
         reg_rdata_next[6]   = control_reset_watermark_qs;
+        reg_rdata_next[7]   = control_en_io_qs;
         reg_rdata_next[9:8] = control_data_width_qs;
       end
 

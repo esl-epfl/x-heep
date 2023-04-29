@@ -66,7 +66,8 @@
         }
         { bits: "4", name: "INTR_EN", desc: "enable watermark interrupt" }
         { bits: "5", name: "EN_WATERMARK", desc: "en watermark counter" }
-        { bits: "6", name: "RESET_WATERMARK", desc: "reset watermark counter" }
+        { bits: "6", name: "RESET_WATERMARK", desc: "reset watermark counter", hwaccess: "hrw"}
+        { bits: "7", name: "EN_IO", desc: "connects the peripheral to the IOs" }
         { bits: "9:8", name: "DATA_WIDTH",
           desc: "Bytes per sample",
           resval: "3",
@@ -117,7 +118,7 @@
       hwext:  "true"
       hwre:   "true"
       fields: [
-        { bits: "31:0", name: "RXDATA", desc: "latest rx data if DATA_READY flag is set"}
+        { bits: "31:0", name: "RXDATA", desc: "latest rx data if DATA_READY flag is set", hwaccess: "hrw"}
       ]
     }
    ]
