@@ -44,11 +44,6 @@ module i2s #(
   i2s_reg2hw_t reg2hw;
   i2s_hw2reg_t hw2reg;
 
-  // RX Window Interface signals
-  reg_req_t    rx_win_h2d;
-  reg_rsp_t    rx_win_d2h;
-
-
   logic [SampleWidth-1:0] data_rx;
   logic data_rx_valid;
   logic data_rx_ready;
@@ -61,11 +56,8 @@ module i2s #(
 
 
   // I2s RX -> Bus
-  assign rx_win_d2h.ready = rx_win_h2d.valid && rx_win_h2d.addr[BlockAw-1:0] == i2s_reg_pkg::I2S_RXDATA_OFFSET && !rx_win_h2d.write;
-  assign rx_win_d2h.rdata = data_rx;
-  assign rx_win_d2h.error = !data_rx_valid;
-
-  assign data_rx_ready = rx_win_d2h.ready;
+  assign data_rx_ready = reg2hw.rxdata.re; // bus read signal
+  assign hw2reg.rxdata.d = data_rx;
 
   // DMA signal
   assign i2s_rx_valid_o = data_rx_valid;
@@ -84,8 +76,6 @@ module i2s #(
       .rst_ni,
       .reg_req_i,
       .reg_rsp_o,
-      .reg_req_win_o(rx_win_h2d),  // host to device
-      .reg_rsp_win_i(rx_win_d2h),  // device to host
       .reg2hw,
       .hw2reg,
       .devmode_i(1'b1)
@@ -138,7 +128,7 @@ module i2s #(
       .q_o(hw2reg.waterlevel.d),
       .overflow_o(event_i2s_event)
   );
-  
+
   assign intr_i2s_event_o = event_i2s_event & reg2hw.control.intr_en.q;
 
 

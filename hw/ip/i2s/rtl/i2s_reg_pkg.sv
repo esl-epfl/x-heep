@@ -32,6 +32,11 @@ package i2s_reg_pkg;
 
   typedef struct packed {logic [31:0] q;} i2s_reg2hw_watermark_reg_t;
 
+  typedef struct packed {
+    logic [31:0] q;
+    logic        re;
+  } i2s_reg2hw_rxdata_reg_t;
+
   typedef struct packed {logic [31:0] d;} i2s_hw2reg_waterlevel_reg_t;
 
   typedef struct packed {
@@ -39,17 +44,21 @@ package i2s_reg_pkg;
     struct packed {logic d;} rx_overflow;
   } i2s_hw2reg_status_reg_t;
 
+  typedef struct packed {logic [31:0] d;} i2s_hw2reg_rxdata_reg_t;
+
   // Register -> HW type
   typedef struct packed {
-    i2s_reg2hw_clkdividx_reg_t clkdividx;  // [56:41]
-    i2s_reg2hw_control_reg_t   control;    // [40:32]
-    i2s_reg2hw_watermark_reg_t watermark;  // [31:0]
+    i2s_reg2hw_clkdividx_reg_t clkdividx;  // [89:74]
+    i2s_reg2hw_control_reg_t control;  // [73:65]
+    i2s_reg2hw_watermark_reg_t watermark;  // [64:33]
+    i2s_reg2hw_rxdata_reg_t rxdata;  // [32:0]
   } i2s_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    i2s_hw2reg_waterlevel_reg_t waterlevel;  // [33:2]
-    i2s_hw2reg_status_reg_t status;  // [1:0]
+    i2s_hw2reg_waterlevel_reg_t waterlevel;  // [65:34]
+    i2s_hw2reg_status_reg_t status;  // [33:32]
+    i2s_hw2reg_rxdata_reg_t rxdata;  // [31:0]
   } i2s_hw2reg_t;
 
   // Register offsets
@@ -58,14 +67,12 @@ package i2s_reg_pkg;
   parameter logic [BlockAw-1:0] I2S_WATERMARK_OFFSET = 5'h8;
   parameter logic [BlockAw-1:0] I2S_WATERLEVEL_OFFSET = 5'hc;
   parameter logic [BlockAw-1:0] I2S_STATUS_OFFSET = 5'h10;
+  parameter logic [BlockAw-1:0] I2S_RXDATA_OFFSET = 5'h14;
 
   // Reset values for hwext registers and their fields
   parameter logic [31:0] I2S_WATERLEVEL_RESVAL = 32'h0;
   parameter logic [1:0] I2S_STATUS_RESVAL = 2'h0;
-
-  // Window parameters
-  parameter logic [BlockAw-1:0] I2S_RXDATA_OFFSET = 5'h14;
-  parameter int unsigned I2S_RXDATA_SIZE = 'h4;
+  parameter logic [31:0] I2S_RXDATA_RESVAL = 32'h0;
 
   // Register index
   typedef enum int {
@@ -73,16 +80,18 @@ package i2s_reg_pkg;
     I2S_CONTROL,
     I2S_WATERMARK,
     I2S_WATERLEVEL,
-    I2S_STATUS
+    I2S_STATUS,
+    I2S_RXDATA
   } i2s_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] I2S_PERMIT[5] = '{
+  parameter logic [3:0] I2S_PERMIT[6] = '{
       4'b0011,  // index[0] I2S_CLKDIVIDX
       4'b0011,  // index[1] I2S_CONTROL
       4'b1111,  // index[2] I2S_WATERMARK
       4'b1111,  // index[3] I2S_WATERLEVEL
-      4'b0001  // index[4] I2S_STATUS
+      4'b0001,  // index[4] I2S_STATUS
+      4'b1111  // index[5] I2S_RXDATA
   };
 
 endpackage

@@ -67,10 +67,9 @@ extern "C" {
 #define I2S_STATUS_RX_DATA_READY_BIT 0
 #define I2S_STATUS_RX_OVERFLOW_BIT 1
 
-// Memory area: I2s Receive data
+// I2s Receive data
 #define I2S_RXDATA_REG_OFFSET 0x14
-#define I2S_RXDATA_SIZE_WORDS 1
-#define I2S_RXDATA_SIZE_BYTES 4
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif

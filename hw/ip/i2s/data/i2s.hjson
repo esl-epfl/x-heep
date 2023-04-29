@@ -110,13 +110,15 @@
       ]
     }
 
-    { window: {
-        name: "RXDATA",
-        items: "1",
-        validbits: "32",
-        desc: "I2s Receive data"
-        swaccess: "ro"
-      }
+    { name: "RXDATA",
+      desc: "I2s Receive data"
+      swaccess: "ro"
+      hwaccess: "hrw"
+      hwext:  "true"
+      hwre:   "true"
+      fields: [
+        { bits: "31:0", name: "RXDATA", desc: "latest rx data if DATA_READY flag is set"}
+      ]
     }
    ]
 }
