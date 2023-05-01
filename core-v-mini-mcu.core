@@ -443,4 +443,4 @@ targets:
     tools:
       openroad:
         flow_path: flow/OpenROAD-flow-scripts/flow
-        make_target: route
+        make_target: cts
