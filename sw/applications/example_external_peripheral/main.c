@@ -11,33 +11,33 @@
 #include "core_v_mini_mcu.h"
 #include "rv_plic.h"
 #include "rv_plic_regs.h"
+#include "rv_plic_structs.h"
 #include "memcopy_periph.h"
 
 #define COPY_SIZE 10
 
-int8_t external_intr_flag;
+// int8_t external_intr_flag;
 
 // Interrupt controller variables
-dif_plic_params_t rv_plic_params;
-dif_plic_t rv_plic;
-dif_plic_result_t plic_res;
-dif_plic_irq_id_t intr_num;
+// plic_params_t rv_plic_params;
+// plic_t rv_plic;
+plic_result_t plic_res;
+plic_irq_id_t intr_num;
 
-void handler_irq_external(void) {
-    // Claim/clear interrupt
-    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
-    if (plic_res == kDifPlicOk && intr_num == EXT_INTR_0) {
-        external_intr_flag = 1;
-    }
-}
+// void handler_irq_external(void) {
+//     // Claim/clear interrupt
+//     plic_res = plic_irq_claim(&rv_plic, 0, &intr_num);
+//     if (plic_res == kDifPlicOk && intr_num == EXT_INTR_0) {
+//         external_intr_flag = 1;
+//     }
+// }
 
 int main(int argc, char *argv[])
 {
 
-
-    //Init the PLIC...
-    rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
-    plic_res = dif_plic_init(rv_plic_params, &rv_plic);
+    printf("Init the PLIC...");
+    // rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
+    plic_res = plic_Init();
 
     if (plic_res != kDifPlicOk) {
         return -1;
@@ -45,17 +45,22 @@ int main(int argc, char *argv[])
 
 
     // Set memcopy priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
-    plic_res = dif_plic_irq_set_priority(&rv_plic, EXT_INTR_0, 1);
-    if (plic_res != kDifPlicOk) {
-        return -1;
+    plic_res = plic_irq_set_priority(EXT_INTR_0, 1);
+    if (plic_res == kDifPlicOk) {
+        printf("success\n");
+    } else {
+        printf("fail\n;");
     }
 
-    //Enable MEMCOPY interrupt...
-    plic_res = dif_plic_irq_set_enabled(&rv_plic, EXT_INTR_0, 0, kDifPlicToggleEnabled);
-    if (plic_res != kDifPlicOk) {
-        return -1;
+    printf("Enable MEMCOPY interrupt...");
+    plic_res = plic_irq_set_enabled(EXT_INTR_0, kDifPlicToggleEnabled);
+    if (plic_res == kDifPlicOk) {
+        printf("Success\n");
+    } else {
+        printf("Fail\n;");
     }
 
+    printf("qua1\n");
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -64,6 +69,7 @@ int main(int argc, char *argv[])
     CSR_SET_BITS(CSR_REG_MIE, mask);
     external_intr_flag = 0;
 
+    printf("qua2\n");
     // Use the stack
     int32_t original_data[COPY_SIZE];
     int32_t copied_data[COPY_SIZE];
@@ -74,16 +80,20 @@ int main(int argc, char *argv[])
     volatile uint32_t *src_ptr = original_data;
     volatile uint32_t *dest_ptr = copied_data;
 
+    printf("qua3\n");
     // Put some data to initialize the memory addresses
     for(int i=0; i<COPY_SIZE; i++) {
         *src_ptr++ = i;
     }
 
+    printf("qua4\n");
     // memcopy peripheral structure to access the registers
     memcopy_periph_t memcopy_periph;
     memcopy_periph.base_addr = mmio_region_from_addr((uintptr_t)EXT_PERIPHERAL_START_ADDRESS);
 
+    printf("qua5\n");
     memcopy_periph_set_read_ptr(&memcopy_periph, (uint32_t) original_data);
+    printf("qua6\n");
     memcopy_periph_set_write_ptr(&memcopy_periph, (uint32_t) copied_data);
     printf("Memcopy launched...\r\n");
     memcopy_periph_set_cnt_start(&memcopy_periph, (uint32_t) COPY_SIZE);
@@ -93,9 +103,12 @@ int main(int argc, char *argv[])
     }
     printf("Memcopy finished...\r\n");
 
-    plic_res = dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-    if (!(plic_res == kDifPlicOk && intr_num == EXT_INTR_0)) {
-        return -1;
+    printf("Complete interrupt...");
+    plic_res = plic_irq_complete(&intr_num);
+    if (plic_res == kDifPlicOk && intr_num == EXT_INTR_0) {
+        printf("success\n");
+    } else {
+        printf("fail\n;");
     }
 
     // Reinitialized the read pointer to the original address
