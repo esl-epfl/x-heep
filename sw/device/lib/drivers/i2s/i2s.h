@@ -1,21 +1,63 @@
-// Copyright EPFL contributors.
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
-// SPDX-License-Identifier: Apache-2.0
+/*
+                              *******************
+******************************* C SOURCE FILE *******************************
+**                            *******************                          **
+**                                                                         **
+** project  : x-heep                                                       **
+** filename : i2s.h                                                        **
+** date     : 18/04/2023                                                   **
+**                                                                         **
+*****************************************************************************
+**                                                                         **
+** Copyright (c) EPFL contributors.                                        **
+** All rights reserved.                                                    **
+**                                                                         **
+*****************************************************************************
+
+*/
+
+/***************************************************************************/
+/***************************************************************************/
+
+/**
+* @file   i2s.h
+* @date   08/05/2023
+* @author Tim Frey
+* @brief  HAL of the I2S peripheral
+*
+*/
 
 #ifndef _DRIVERS_I2S_H_
 #define _DRIVERS_I2S_H_
 
+/**
+ * Address of the I2S data of the read channel to be passed as address to the DMA
+ */
+#define I2S_RX_DATA_ADDRESS (uint32_t)(I2S_RXDATA_REG_OFFSET+I2S_START_ADDRESS)
+
+
+/****************************************************************************/
+/**                                                                        **/
+/*                             MODULES USED                                 */
+/**                                                                        **/
+/****************************************************************************/
+
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
-#include "mmio.h"
-
-#include "i2s_regs.h"     // Generated.
+#include "i2s_regs.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+
+/****************************************************************************/
+/**                                                                        **/
+/*                        TYPEDEFS AND STRUCTURES                           */
+/**                                                                        **/
+/****************************************************************************/
 
 typedef enum i2s_word_length {
   I2S_08_BITS = I2S_CONTROL_DATA_WIDTH_VALUE_8_BITS,
@@ -32,7 +74,12 @@ typedef enum i2s_channel_sel {
   I2S_BOTH_CH = I2S_CONTROL_EN_RX_VALUE_BOTH_CHANNELS
 } i2s_channel_sel_t;
 
-#define I2S_RX_DATA_ADDRESS (uint32_t)(I2S_RXDATA_REG_OFFSET+I2S_START_ADDRESS)
+
+/****************************************************************************/
+/**                                                                        **/
+/*                          EXPORTED FUNCTIONS                              */
+/**                                                                        **/
+/****************************************************************************/
 
 /**
  * I2S configure SCK frequency and word length
@@ -55,7 +102,7 @@ void    i2s_rx_enable_watermark(uint32_t watermark, bool interrupt_en);
 /**
  * I2S disable watermark counter
  */
-void    i2s_rx_disable_watermark();
+void    i2s_rx_disable_watermark(void);
 
 
 /**
@@ -72,30 +119,30 @@ void    i2s_rx_start(i2s_channel_sel_t channels);
  * I2S stop rx channels 
  * 
  */
-void    i2s_rx_stop();
+void    i2s_rx_stop(void);
 
 /**
  * I2S check RX data availability
  * 
  * @return true if RX data is available 
  */
-bool    i2s_rx_data_available();
+bool    i2s_rx_data_available(void);
 
 /**
  * I2S read RX word
  * 
  * @note The MSBs outside of word_length are 0.
  *
- * @return int32_t RX word 
+ * @return uint32_t RX word 
  */
-int32_t i2s_rx_read_data();
+uint32_t i2s_rx_read_data(void);
 
 /**
  * I2S read value of watermark counter
  * 
- * @return int32_t current counter value
+ * @return uint32_t current counter value
  */
-int32_t i2s_rx_read_waterlevel();
+uint32_t i2s_rx_read_waterlevel(void);
 
 /**
  * I2S check RX FIFO overflow
@@ -105,7 +152,7 @@ int32_t i2s_rx_read_waterlevel();
  * @return true if RX FIFO overflowed  
  * @return false 
  */
-bool    i2s_rx_overflow();
+bool    i2s_rx_overflow(void);
 
 
 

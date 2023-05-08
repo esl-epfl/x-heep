@@ -1,12 +1,49 @@
-// Copyright EPFL contributors.
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
-// SPDX-License-Identifier: Apache-2.0
+/*
+                              *******************
+******************************* C SOURCE FILE *******************************
+**                            *******************                          **
+**                                                                         **
+** project  : x-heep                                                       **
+** filename : i2s.c                                                        **
+** date     : 18/04/2023                                                   **
+**                                                                         **
+*****************************************************************************
+**                                                                         **
+** Copyright (c) EPFL contributors.                                        **
+** All rights reserved.                                                    **
+**                                                                         **
+*****************************************************************************
 
-#include <stddef.h>
-#include <stdint.h>
+*/
+
+/***************************************************************************/
+/***************************************************************************/
+
+/**
+* @file   i2s.c
+* @date   08/05/2023
+* @author Tim Frey
+* @brief  HAL of the I2S peripheral
+*
+*/
+
+
+/****************************************************************************/
+/**                                                                        **/
+/*                             MODULES USED                                 */
+/**                                                                        **/
+/****************************************************************************/
+
 
 #include "i2s.h"
 #include "i2s_structs.h"
+
+
+/****************************************************************************/
+/**                                                                        **/
+/*                           EXPORTED FUNCTIONS                             */
+/**                                                                        **/
+/****************************************************************************/
 
 void i2s_configure(uint16_t div_value, i2s_word_length_t word_length) {
   i2s_peri->CLKDIVIDX = div_value;
@@ -35,12 +72,12 @@ bool i2s_rx_data_available() {
   return (i2s_peri->STATUS & (1 << I2S_STATUS_RX_DATA_READY_BIT));
 }
 
-int32_t i2s_rx_read_data() {
-  return (int32_t) i2s_peri->RXDATA;
+uint32_t i2s_rx_read_data() {
+  return i2s_peri->RXDATA;
 }
 
-int32_t i2s_rx_read_waterlevel() {
-  return (uint32_t) i2s_peri->WATERLEVEL;
+uint32_t i2s_rx_read_waterlevel() {
+  return i2s_peri->WATERLEVEL;
 }
 
 bool i2s_rx_overflow() {
