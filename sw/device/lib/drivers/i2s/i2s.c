@@ -8,11 +8,11 @@
 #include "i2s.h"
 #include "i2s_structs.h"
 
-void i2s_configure(uint16_t div_value, i2s_datawidth_t data_width) {
+void i2s_configure(uint16_t div_value, i2s_word_length_t word_length) {
   i2s_peri->CLKDIVIDX = div_value;
 
   uint32_t control = i2s_peri->CONTROL;
-  bitfield_field32_write(control, I2S_CONTROL_DATA_WIDTH_FIELD, data_width);
+  bitfield_field32_write(control, I2S_CONTROL_DATA_WIDTH_FIELD, word_length);
   i2s_peri->CONTROL = control;
 }
 
