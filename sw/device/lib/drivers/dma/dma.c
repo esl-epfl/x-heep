@@ -623,17 +623,25 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * Other reason to overwrite the target increment is if a trigger is used.
      * In that case, a increment of 0 is necessary.
      */
+   
+   
+   /*
     printf("src inc - ");
     writeRegister(  getIncrement_b( dma_cb.trans->src ), 
                     DMA_PTR_INC_REG_OFFSET, 
                     DMA_PTR_INC_SRC_PTR_INC_MASK,
                     DMA_PTR_INC_SRC_PTR_INC_OFFSET );
+   
+   
     printf("dst inc - ");
     writeRegister(  getIncrement_b( dma_cb.trans->dst ), 
                     DMA_PTR_INC_REG_OFFSET, 
                     DMA_PTR_INC_DST_PTR_INC_MASK,
                     DMA_PTR_INC_DST_PTR_INC_OFFSET );
     
+*/
+    return 0;
+
     /*
      * SET THE OPERATION MODE AND WINDOW SIZE
      */
