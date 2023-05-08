@@ -43,7 +43,6 @@
 #include "mmio.h"
 #include "handler.h"
 #include "rv_plic.h"
-#include "rv_plic_regs.h"
 #include "csr.h"
 #include "hart.h"
 
@@ -56,10 +55,8 @@
 
 
 // Interrupt controller variables
-dif_plic_params_t rv_plic_params;
-dif_plic_t rv_plic;
-dif_plic_result_t plic_res;
-dif_plic_irq_id_t intr_num;
+plic_result_t plic_res;
+plic_irq_id_t intr_num;
 
 
 // I2s
@@ -78,16 +75,16 @@ int8_t dma_intr_flag;
 //
 // ISR
 //
-void handler_irq_external(void) {
-    // Claim/clear interrupt
-    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
-    if (plic_res == kDifPlicOk) {
-        if (intr_num == I2S_INTR_EVENT) {
-            i2s_interrupt_flag = i2s_interrupt_flag + 1;
-        }
-        dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-    }
-}
+// void handler_irq_external(void) {
+//     // Claim/clear interrupt
+//     plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
+//     if (plic_res == kDifPlicOk) {
+//         if (intr_num == I2S_INTR_EVENT) {
+//             i2s_interrupt_flag = i2s_interrupt_flag + 1;
+//         }
+//         dif_plic_irq_complete(&rv_plic, 0, &intr_num);
+//     }
+// }
 
 #ifdef USE_DMA
 void fic_irq_dma(void)
@@ -117,10 +114,9 @@ void setup()
 
 
     // PLIC
-    rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
-    dif_plic_init(rv_plic_params, &rv_plic);
-    plic_res = dif_plic_irq_set_priority(&rv_plic, I2S_INTR_EVENT, 1);
-    plic_res = dif_plic_irq_set_enabled(&rv_plic, I2S_INTR_EVENT, 0, kDifPlicToggleEnabled);
+    plic_Init();
+    plic_res = plic_irq_set_priority(I2S_INTR_EVENT, 1);
+    plic_res = plic_irq_set_enabled(I2S_INTR_EVENT, kPlicToggleEnabled);
 
 
     // enable I2s interrupt
