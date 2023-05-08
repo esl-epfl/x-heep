@@ -155,7 +155,7 @@ void i2s_rx_stop()
   // disable all modules
   uint32_t control = i2s_peri->CONTROL;
   control &= ~(
-    + (1 << I2S_CONTROL_EN_BIT)                             // disable peripheral and clock domain
+    (1 << I2S_CONTROL_EN_BIT)                             // disable peripheral and clock domain
     + (I2S_CONTROL_EN_RX_MASK << I2S_CONTROL_EN_RX_OFFSET)  // disable rx
     + (1 << I2S_CONTROL_EN_WS_BIT)                          // disable ws gen
     + (1 << I2S_CONTROL_EN_IO_BIT)                           // disable ios
