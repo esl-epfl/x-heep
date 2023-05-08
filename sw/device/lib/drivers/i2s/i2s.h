@@ -46,6 +46,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "bitfield.h"
 #include "i2s_regs.h"
 
 #ifdef __cplusplus
@@ -96,14 +97,12 @@ void    i2s_configure(uint16_t div_value, i2s_word_length_t word_length);
  * @param watermark number to trigger interrupt 
  * @param interrupt_en enable/disable interrupt
  */
-void    i2s_rx_enable_watermark(uint32_t watermark, bool interrupt_en);
-
+void    i2s_rx_enable_watermark(uint16_t watermark, bool interrupt_en);
 
 /**
  * I2S disable watermark counter
  */
 void    i2s_rx_disable_watermark(void);
-
 
 /**
  * I2S start rx channels 
@@ -113,7 +112,6 @@ void    i2s_rx_disable_watermark(void);
  * @param channels to be enabled (see i2s_channel_sel_t)
  */
 void    i2s_rx_start(i2s_channel_sel_t channels);
-
 
 /**
  * I2S stop rx channels 
@@ -140,9 +138,9 @@ uint32_t i2s_rx_read_data(void);
 /**
  * I2S read value of watermark counter
  * 
- * @return uint32_t current counter value
+ * @return uint16_t current counter value
  */
-uint32_t i2s_rx_read_waterlevel(void);
+uint16_t i2s_rx_read_waterlevel(void);
 
 /**
  * I2S check RX FIFO overflow
@@ -154,6 +152,12 @@ uint32_t i2s_rx_read_waterlevel(void);
  */
 bool    i2s_rx_overflow(void);
 
+/**
+ * I2S reset RX Watermark counter to 0
+ * 
+ */
+void    i2s_rx_reset_waterlevel(void);
+
 
 
 #ifdef __cplusplus
@@ -161,3 +165,9 @@ bool    i2s_rx_overflow(void);
 #endif
 
 #endif // _DRIVERS_I2S_H_
+
+/****************************************************************************/
+/**                                                                        **/
+/*                                 EOF                                      */
+/**                                                                        **/
+/****************************************************************************/

@@ -20,7 +20,7 @@ extern "C" {
 #define I2S_PARAM_CLK_DIV_SIZE 16
 
 // Bits available for the watermark
-#define I2S_PARAM_WATERMARK_SIZE 32
+#define I2S_PARAM_WATERMARK_SIZE 16
 
 // Register width
 #define I2S_PARAM_REG_WIDTH 32
@@ -59,9 +59,17 @@ extern "C" {
 
 // Watermark to reach for an interrupt
 #define I2S_WATERMARK_REG_OFFSET 0x8
+#define I2S_WATERMARK_WATERMARK_MASK 0xffff
+#define I2S_WATERMARK_WATERMARK_OFFSET 0
+#define I2S_WATERMARK_WATERMARK_FIELD \
+  ((bitfield_field32_t) { .mask = I2S_WATERMARK_WATERMARK_MASK, .index = I2S_WATERMARK_WATERMARK_OFFSET })
 
 // Watermark counter level
 #define I2S_WATERLEVEL_REG_OFFSET 0xc
+#define I2S_WATERLEVEL_WATERLEVEL_MASK 0xffff
+#define I2S_WATERLEVEL_WATERLEVEL_OFFSET 0
+#define I2S_WATERLEVEL_WATERLEVEL_FIELD \
+  ((bitfield_field32_t) { .mask = I2S_WATERLEVEL_WATERLEVEL_MASK, .index = I2S_WATERLEVEL_WATERLEVEL_OFFSET })
 
 // Status flags of the I2s peripheral
 #define I2S_STATUS_REG_OFFSET 0x10

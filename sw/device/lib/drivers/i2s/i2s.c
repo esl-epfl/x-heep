@@ -45,46 +45,66 @@
 /**                                                                        **/
 /****************************************************************************/
 
-void i2s_configure(uint16_t div_value, i2s_word_length_t word_length) {
+void i2s_configure(uint16_t div_value, i2s_word_length_t word_length)
+{
+  if (div_value == 0) { 
+    // there is a bug in the clock divider for div_value = 0
+    // therfore the hardware disables the clock divider for 0 so provide 1
+    div_value = 1;
+  }
+  // write clock divider value to register
   i2s_peri->CLKDIVIDX = div_value;
 
+  // write word_length to register
   uint32_t control = i2s_peri->CONTROL;
   bitfield_field32_write(control, I2S_CONTROL_DATA_WIDTH_FIELD, word_length);
   i2s_peri->CONTROL = control;
 }
 
-void i2s_rx_enable_watermark(uint32_t watermark, bool interrupt_en) {
-  i2s_peri->Watermark = watermark;
+void i2s_rx_enable_watermark(uint16_t watermark, bool interrupt_en)
+{
+  i2s_peri->WATERMARK = watermark;
 
   uint32_t control = i2s_peri->CONTROL;
+  // enable/disable interrupt
   control = bitfield_bit32_write(control, I2S_CONTROL_INTR_EN_BIT, interrupt_en);
-  control |= (1 << I2S_CONTROL_EN_WATERMARK_BIT);
-  control  &= ~((1 << I2S_CONTROL_INTR_EN_BIT) + (1 << I2S_CONTROL_EN_WATERMARK_BIT));
+  // enable counter
+  control |= (1 << I2S_CONTROL_EN_WATERMARK_BIT); 
   i2s_peri->CONTROL = control;
 }
 
-void i2s_rx_disable_watermark() {
+void i2s_rx_disable_watermark()
+{
   // disable interrupt and disable watermark counter
   i2s_peri->CONTROL &= ~((1 << I2S_CONTROL_INTR_EN_BIT) + (1 << I2S_CONTROL_EN_WATERMARK_BIT));
 }
 
-bool i2s_rx_data_available() {
+bool i2s_rx_data_available()
+{
+  // read data ready bit from STATUS register
   return (i2s_peri->STATUS & (1 << I2S_STATUS_RX_DATA_READY_BIT));
 }
 
-uint32_t i2s_rx_read_data() {
+uint32_t i2s_rx_read_data()
+{
+  // read RXDATA register
   return i2s_peri->RXDATA;
 }
 
-uint32_t i2s_rx_read_waterlevel() {
-  return i2s_peri->WATERLEVEL;
+uint16_t i2s_rx_read_waterlevel()
+{
+  // read WATERLEVEL register
+  return (uint16_t) i2s_peri->WATERLEVEL;
 }
 
-bool i2s_rx_overflow() {
+bool i2s_rx_overflow()
+{
+  // read overflow bit from STATUS register
   return (i2s_peri->STATUS & (1 << I2S_STATUS_RX_OVERFLOW_BIT));
 }
 
-void i2s_rx_start(i2s_channel_sel_t channels) {
+void i2s_rx_start(i2s_channel_sel_t channels)
+{
   if (channels == I2S_DISABLE) {
     // no channels selected -> disable
     i2s_rx_stop();
@@ -96,12 +116,12 @@ void i2s_rx_start(i2s_channel_sel_t channels) {
   // check overflow before changing state
   bool overflow = i2s_rx_overflow(); 
 
-  if (control & ((I2S_CONTROL_EN_RX_MASK << I2S_CONTROL_EN_RX_OFFSET ) + (1 << I2S_CONTROL_EN_WS_BIT))) {
-    // something is running - disable all but the clock
-    control &= ~(I2S_CONTROL_EN_RX_MASK << I2S_CONTROL_EN_RX_OFFSET); // disable rx
-    control &= ~(1 << I2S_CONTROL_EN_WS_BIT); // disable ws gen
-    control &= ~(1 << I2S_CONTROL_EN_IO_BIT); // disable ios
-  }
+
+  control &= ~(
+    (I2S_CONTROL_EN_RX_MASK << I2S_CONTROL_EN_RX_OFFSET) // disable rx
+    + (1 << I2S_CONTROL_EN_WS_BIT)                       // disable ws gen
+    + (1 << I2S_CONTROL_EN_IO_BIT)                       // disable ios
+  );
 
   // enable clock
   control |= (1 << I2S_CONTROL_EN_BIT); // enable peripheral and clock domain
@@ -120,18 +140,38 @@ void i2s_rx_start(i2s_channel_sel_t channels) {
   }
 
   // now we can start the RX channels and ws generation
-  control |= (channels << I2S_CONTROL_EN_RX_OFFSET); // enable selected rx channels
-  control |= (1 << I2S_CONTROL_EN_WS_BIT);
-  control |= (1 << I2S_CONTROL_EN_IO_BIT); // enable ios
+
+  // enable WS generation and IOs  
+  control |= ((1 << I2S_CONTROL_EN_WS_BIT) | (1 << I2S_CONTROL_EN_IO_BIT)); 
+
+  // enable selected rx channels
+  control |= (channels << I2S_CONTROL_EN_RX_OFFSET);
+
   i2s_peri->CONTROL = control;
 }
 
-void i2s_rx_stop() {
+void i2s_rx_stop()
+{
   // disable all modules
   uint32_t control = i2s_peri->CONTROL;
-  control &= ~(1 << I2S_CONTROL_EN_BIT); // disable peripheral and clock domain
-  control &= ~(I2S_CONTROL_EN_RX_MASK << I2S_CONTROL_EN_RX_OFFSET); // disable rx
-  control &= ~(1 << I2S_CONTROL_EN_WS_BIT); // disable ws gen
-  control &= ~(1 << I2S_CONTROL_EN_IO_BIT); // disable ios
+  control &= ~(
+    + (1 << I2S_CONTROL_EN_BIT)                             // disable peripheral and clock domain
+    + (I2S_CONTROL_EN_RX_MASK << I2S_CONTROL_EN_RX_OFFSET)  // disable rx
+    + (1 << I2S_CONTROL_EN_WS_BIT)                          // disable ws gen
+    + (1 << I2S_CONTROL_EN_IO_BIT)                           // disable ios
+  );
   i2s_peri->CONTROL = control;
 }
+
+void    i2s_rx_reset_waterlevel(void)
+{
+  // set "reset watermark" bit in CONTROL register
+  i2s_peri->CONTROL |= (1 << I2S_CONTROL_RESET_WATERMARK_BIT);
+}
+
+
+/****************************************************************************/
+/**                                                                        **/
+/*                                 EOF                                      */
+/**                                                                        **/
+/****************************************************************************/

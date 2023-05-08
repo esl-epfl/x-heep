@@ -23,13 +23,12 @@
     { name: "WatermarkSize",
       desc: '''Bits available for the watermark''',
       type: "int",
-      default: "32"
+      default: "16"
     }
   ]
   interrupt_list: [
     { name: "i2s_event",
-      desc: '''Event-related interrupts, see !!EVENT_ENABLE register for more
-               information.'''
+      desc: '''Event-related interrupts.'''
     }
   ],
   no_auto_intr_regs: "true",
@@ -41,6 +40,7 @@
       desc:     "Control register"
       swaccess: "rw"
       hwaccess: "hro"
+      resval: 4,
       fields: [
         { bits: "15:0", name: "COUNT", desc: "Index at which clock divide." }
       ]
@@ -81,12 +81,12 @@
       ]
     }
 
-    { name:     "Watermark"
+    { name:     "WATERMARK"
       desc:     "Watermark to reach for an interrupt"
       swaccess: "rw"
       hwaccess: "hro"
       fields: [
-        { bits: "31:0", name: "Watermark", desc: "Count of RX samples written to memory which should trigger an interrupt"}
+        { bits: "15:0", name: "Watermark", desc: "Count of RX samples written to memory which should trigger an interrupt"}
       ]
     }
 
@@ -96,7 +96,7 @@
       hwext:  "true"
       hwaccess: "hwo"
       fields: [
-        { bits: "31:0", name: "Waterlevel", desc: "Count of RX samples"}
+        { bits: "15:0", name: "Waterlevel", desc: "Count of RX samples"}
       ]
     }
 

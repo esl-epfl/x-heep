@@ -95,10 +95,10 @@ module i2s_reg_top #(
   logic [1:0] control_data_width_qs;
   logic [1:0] control_data_width_wd;
   logic control_data_width_we;
-  logic [31:0] watermark_qs;
-  logic [31:0] watermark_wd;
+  logic [15:0] watermark_qs;
+  logic [15:0] watermark_wd;
   logic watermark_we;
-  logic [31:0] waterlevel_qs;
+  logic [15:0] waterlevel_qs;
   logic waterlevel_re;
   logic status_rx_data_ready_qs;
   logic status_rx_data_ready_re;
@@ -113,7 +113,7 @@ module i2s_reg_top #(
   prim_subreg #(
       .DW      (16),
       .SWACCESS("RW"),
-      .RESVAL  (16'h0)
+      .RESVAL  (16'h4)
   ) u_clkdividx (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -348,9 +348,9 @@ module i2s_reg_top #(
   // R[watermark]: V(False)
 
   prim_subreg #(
-      .DW      (32),
+      .DW      (16),
       .SWACCESS("RW"),
-      .RESVAL  (32'h0)
+      .RESVAL  (16'h0)
   ) u_watermark (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -375,7 +375,7 @@ module i2s_reg_top #(
   // R[waterlevel]: V(True)
 
   prim_subreg_ext #(
-      .DW(32)
+      .DW(16)
   ) u_waterlevel (
       .re (waterlevel_re),
       .we (1'b0),
@@ -490,7 +490,7 @@ module i2s_reg_top #(
   assign control_data_width_wd = reg_wdata[9:8];
 
   assign watermark_we = addr_hit[2] & reg_we & !reg_error;
-  assign watermark_wd = reg_wdata[31:0];
+  assign watermark_wd = reg_wdata[15:0];
 
   assign waterlevel_re = addr_hit[3] & reg_re & !reg_error;
 
@@ -520,11 +520,11 @@ module i2s_reg_top #(
       end
 
       addr_hit[2]: begin
-        reg_rdata_next[31:0] = watermark_qs;
+        reg_rdata_next[15:0] = watermark_qs;
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[31:0] = waterlevel_qs;
+        reg_rdata_next[15:0] = waterlevel_qs;
       end
 
       addr_hit[4]: begin
