@@ -43,12 +43,6 @@
 /****************************************************************************/
 
 /**
- * Mask for different bit field width
- */
-#define MASK_1b     0b1
-#define MASK_2b     0b11
-
-/**
  * GPIO_EN values 
  */
 #define GPIO_EN__ENABLED     1
@@ -57,10 +51,8 @@
 /**
  * GPIO_CLEAR and GPIO_SET putting and removing mask
  */
-#define GPIO_CLEAR__PUT_MASK 1
-#define GPIO_CLEAR__REMOVE_MASK 0
-#define GPIO_SET__PUT_MASK 1
-#define GPIO_SET__REMOVE_MASK 0
+#define GPIO_PUT_MASK 0x01
+#define GPIO_REMOVE_MASK 0x00
 
 /**
  * GPIO is set or reset. The value read from gpio_peri->GPIO_IN0 or
@@ -149,13 +141,13 @@ gpio_result_t gpio_set_mode (gpio_pin_number_t pin, gpio_mode_t mode)
     if (pin >= 0 && pin < 16)
     {
         gpio_peri->GPIO_MODE0 = bitfield_write(gpio_peri->GPIO_MODE0, 
-                                               MASK_2b, 2*pin, mode);
+                                               BIT_MASK_3, 2*pin, mode);
         return GpioOk;
     }
     else if (pin >= 16 && pin <MAX_PIN)
     {
         gpio_peri->GPIO_MODE1 = bitfield_write(gpio_peri->GPIO_MODE1, 
-                                               MASK_2b, 2*(pin-16), mode);
+                                               BIT_MASK_3, 2*(pin-16), mode);
         return GpioOk;
     }
     else
@@ -169,7 +161,7 @@ gpio_result_t gpio_en_input_sampling (gpio_pin_number_t pin)
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
     gpio_peri->GPIO_EN0 = bitfield_write(gpio_peri->GPIO_EN0,
-                                         MASK_1b, pin, GPIO_EN__ENABLED);
+                                         BIT_MASK_1, pin, GPIO_EN__ENABLED);
     return GpioOk;
 }
 
@@ -178,7 +170,7 @@ gpio_result_t gpio_dis_input_sampling (gpio_pin_number_t pin)
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
     gpio_peri->GPIO_EN0 = bitfield_write(gpio_peri->GPIO_EN0,
-                                         MASK_1b, pin, GPIO_EN__DISABLED);
+                                         BIT_MASK_1, pin, GPIO_EN__DISABLED);
     return GpioOk;
 }
 
@@ -191,9 +183,9 @@ gpio_result_t gpio_reset (gpio_pin_number_t pin)
     gpio_set_mode (pin, GpioModeIn);
     gpio_dis_input_sampling (pin);
     gpio_peri->GPIO_CLEAR0 = bitfield_write(gpio_peri->GPIO_CLEAR0,
-                                         MASK_1b, pin, GPIO_CLEAR__REMOVE_MASK);
+                                         BIT_MASK_1, pin, GPIO_REMOVE_MASK);
     gpio_peri->GPIO_SET0 = bitfield_write(gpio_peri->GPIO_SET0,
-                                         MASK_1b, pin, GPIO_SET__REMOVE_MASK);
+                                         BIT_MASK_1, pin, GPIO_REMOVE_MASK);
     gpio_intr_dis_all(pin);
     gpio_intr_clear_stat(pin);
     return GpioOk;
@@ -218,27 +210,26 @@ gpio_result_t gpio_read (gpio_pin_number_t pin, bool *val)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    if (bitfield_read(gpio_peri->GPIO_IN0, MASK_1b, pin) == GPIO_IS_SET)
+    if (bitfield_read(gpio_peri->GPIO_IN0, BIT_MASK_1, pin) == GPIO_IS_SET)
         *val = true;
     else
         *val = false;
     return GpioOk;
 }
 
-//todo: check it
 gpio_result_t gpio_toggle (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    if (bitfield_read(gpio_peri->GPIO_OUT0, MASK_1b, pin) == GPIO_IS_SET)
+    if (bitfield_read(gpio_peri->GPIO_OUT0, BIT_MASK_1, pin) == GPIO_IS_SET)
     {
         gpio_peri->GPIO_OUT0 = bitfield_write(gpio_peri->GPIO_OUT0, 
-            MASK_1b, pin, GPIO_IS_RESET);
+            BIT_MASK_1, pin, GPIO_IS_RESET);
     }
     else
     {
         gpio_peri->GPIO_OUT0 = bitfield_write(gpio_peri->GPIO_OUT0, 
-            MASK_1b, pin, GPIO_IS_SET);
+            BIT_MASK_1, pin, GPIO_IS_SET);
     }
     return GpioOk;
 }
@@ -247,12 +238,14 @@ gpio_result_t gpio_write (gpio_pin_number_t pin, bool val)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    if (val == GPIO_IS_SET)
-        gpio_peri->GPIO_OUT0 = bitfield_write(gpio_peri->GPIO_OUT0, 
-            MASK_1b, pin, GPIO_IS_SET);
-    else
-        gpio_peri->GPIO_OUT0 = bitfield_write(gpio_peri->GPIO_OUT0, 
-            MASK_1b, pin, GPIO_IS_RESET);
+    // if (val == GPIO_IS_SET)
+    //     gpio_peri->GPIO_OUT0 = bitfield_write(gpio_peri->GPIO_OUT0, 
+    //         BIT_MASK_1, pin, GPIO_IS_SET);
+    // else
+    //     gpio_peri->GPIO_OUT0 = bitfield_write(gpio_peri->GPIO_OUT0, 
+    //         BIT_MASK_1, pin, GPIO_IS_RESET);
+    gpio_peri->GPIO_OUT0 = bitfield_write(gpio_peri->GPIO_OUT0, 
+        BIT_MASK_1, pin, val);
     return GpioOk;
 
 }
@@ -262,7 +255,7 @@ gpio_result_t gpio_intr_en_rise (gpio_pin_number_t pin)
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
     gpio_peri->INTRPT_RISE_EN0 =  bitfield_write(
-        gpio_peri->INTRPT_RISE_EN0, MASK_1b, pin, GPIO_INTR_ENABLE);
+        gpio_peri->INTRPT_RISE_EN0, BIT_MASK_1, pin, GPIO_INTR_ENABLE);
     return GpioOk;
 }
 
@@ -271,7 +264,7 @@ gpio_result_t gpio_intr_en_fall (gpio_pin_number_t pin)
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
     gpio_peri->INTRPT_FALL_EN0 =  bitfield_write(gpio_peri->INTRPT_FALL_EN0, 
-        MASK_1b, pin, GPIO_INTR_ENABLE);
+        BIT_MASK_1, pin, GPIO_INTR_ENABLE);
     return GpioOk;
 }
 
@@ -280,7 +273,7 @@ gpio_result_t gpio_intr_en_lvl_high (gpio_pin_number_t pin)
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
     gpio_peri->INTRPT_LVL_HIGH_EN0 =  bitfield_write(
-        gpio_peri->INTRPT_LVL_HIGH_EN0, MASK_1b, pin, GPIO_INTR_ENABLE);
+        gpio_peri->INTRPT_LVL_HIGH_EN0, BIT_MASK_1, pin, GPIO_INTR_ENABLE);
     return GpioOk;
 }
 
@@ -289,7 +282,7 @@ gpio_result_t gpio_intr_en_lvl_low (gpio_pin_number_t pin)
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
     gpio_peri->INTRPT_LVL_LOW_EN0 =  bitfield_write(
-        gpio_peri->INTRPT_LVL_LOW_EN0, MASK_1b, pin, GPIO_INTR_ENABLE);
+        gpio_peri->INTRPT_LVL_LOW_EN0, BIT_MASK_1, pin, GPIO_INTR_ENABLE);
     return GpioOk;
 }
 
@@ -298,7 +291,7 @@ gpio_result_t gpio_intr_dis_rise (gpio_pin_number_t pin)
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
     gpio_peri->INTRPT_RISE_EN0 =  bitfield_write(
-        gpio_peri->INTRPT_RISE_EN0, MASK_1b, pin, GPIO_INTR_DISABLE);
+        gpio_peri->INTRPT_RISE_EN0, BIT_MASK_1, pin, GPIO_INTR_DISABLE);
     return GpioOk;
 }
 
@@ -307,7 +300,7 @@ gpio_result_t gpio_intr_dis_fall (gpio_pin_number_t pin)
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
     gpio_peri->INTRPT_FALL_EN0 =  bitfield_write(
-        gpio_peri->INTRPT_FALL_EN0, MASK_1b, pin, GPIO_INTR_DISABLE);
+        gpio_peri->INTRPT_FALL_EN0, BIT_MASK_1, pin, GPIO_INTR_DISABLE);
     return GpioOk;
 }
 
@@ -316,7 +309,7 @@ gpio_result_t gpio_intr_dis_lvl_high (gpio_pin_number_t pin)
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
     gpio_peri->INTRPT_LVL_HIGH_EN0 =  bitfield_write(
-        gpio_peri->INTRPT_LVL_HIGH_EN0, MASK_1b, pin, GPIO_INTR_DISABLE);
+        gpio_peri->INTRPT_LVL_HIGH_EN0, BIT_MASK_1, pin, GPIO_INTR_DISABLE);
     return GpioOk;
 }
 
@@ -325,7 +318,7 @@ gpio_result_t gpio_intr_dis_lvl_low (gpio_pin_number_t pin)
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
     gpio_peri->INTRPT_LVL_LOW_EN0 =  bitfield_write(
-        gpio_peri->INTRPT_LVL_LOW_EN0, MASK_1b, pin, GPIO_INTR_DISABLE);
+        gpio_peri->INTRPT_LVL_LOW_EN0, BIT_MASK_1, pin, GPIO_INTR_DISABLE);
     return GpioOk;
 }
 
@@ -333,13 +326,13 @@ gpio_result_t gpio_intr_dis_all (gpio_pin_number_t pin){
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
     gpio_peri->INTRPT_RISE_EN0 =  bitfield_write(
-        gpio_peri->INTRPT_RISE_EN0, MASK_1b, pin, GPIO_INTR_DISABLE);
+        gpio_peri->INTRPT_RISE_EN0, BIT_MASK_1, pin, GPIO_INTR_DISABLE);
     gpio_peri->INTRPT_FALL_EN0 =  bitfield_write(
-        gpio_peri->INTRPT_FALL_EN0, MASK_1b, pin, GPIO_INTR_DISABLE);
+        gpio_peri->INTRPT_FALL_EN0, BIT_MASK_1, pin, GPIO_INTR_DISABLE);
     gpio_peri->INTRPT_LVL_HIGH_EN0 =  bitfield_write(
-        gpio_peri->INTRPT_LVL_HIGH_EN0, MASK_1b, pin, GPIO_INTR_DISABLE);
+        gpio_peri->INTRPT_LVL_HIGH_EN0, BIT_MASK_1, pin, GPIO_INTR_DISABLE);
     gpio_peri->INTRPT_LVL_LOW_EN0 =  bitfield_write(
-        gpio_peri->INTRPT_LVL_LOW_EN0, MASK_1b, pin, GPIO_INTR_DISABLE);
+        gpio_peri->INTRPT_LVL_LOW_EN0, BIT_MASK_1, pin, GPIO_INTR_DISABLE);
     return GpioOk;
 }
 
@@ -388,7 +381,7 @@ gpio_result_t gpio_intr_check_stat_rise (gpio_pin_number_t pin, bool *is_pending
         return GpioPinNotAcceptable;
     }
         
-    if (bitfield_read(gpio_peri->INTRPT_RISE_STATUS0, MASK_1b, pin) == 
+    if (bitfield_read(gpio_peri->INTRPT_RISE_STATUS0, BIT_MASK_1, pin) == 
         GPIO_INTR_IS_TRIGGERED)
         *is_pending = GPIO_INTR_IS_TRIGGERED;
     else
@@ -404,7 +397,7 @@ gpio_result_t gpio_intr_check_stat_fall (gpio_pin_number_t pin, bool *is_pending
         return GpioPinNotAcceptable;
     }
         
-    if (bitfield_read(gpio_peri->INTRPT_FALL_STATUS0, MASK_1b, pin) == 
+    if (bitfield_read(gpio_peri->INTRPT_FALL_STATUS0, BIT_MASK_1, pin) == 
         GPIO_INTR_IS_TRIGGERED)
         *is_pending = GPIO_INTR_IS_TRIGGERED;
     else
@@ -420,7 +413,7 @@ gpio_result_t gpio_intr_check_stat_lvl_low (gpio_pin_number_t pin, bool *is_pend
         return GpioPinNotAcceptable;
     }
         
-    if (bitfield_read(gpio_peri->INTRPT_LVL_LOW_STATUS0, MASK_1b, pin) == 
+    if (bitfield_read(gpio_peri->INTRPT_LVL_LOW_STATUS0, BIT_MASK_1, pin) == 
         GPIO_INTR_IS_TRIGGERED)
         *is_pending = GPIO_INTR_IS_TRIGGERED;
     else
@@ -436,7 +429,7 @@ gpio_result_t gpio_intr_check_stat_lvl_high (gpio_pin_number_t pin, bool *is_pen
         return GpioPinNotAcceptable;
     }
         
-    if (bitfield_read(gpio_peri->INTRPT_LVL_HIGH_STATUS0, MASK_1b, pin) == 
+    if (bitfield_read(gpio_peri->INTRPT_LVL_HIGH_STATUS0, BIT_MASK_1, pin) == 
         GPIO_INTR_IS_TRIGGERED)
         *is_pending = GPIO_INTR_IS_TRIGGERED;
     else
@@ -452,7 +445,7 @@ gpio_result_t gpio_intr_check_stat (gpio_pin_number_t pin, bool *is_pending)
         return GpioPinNotAcceptable;
     }
 
-    if (bitfield_read(gpio_peri->INTRPT_STATUS0, MASK_1b, pin) == 
+    if (bitfield_read(gpio_peri->INTRPT_STATUS0, BIT_MASK_1, pin) == 
         GPIO_INTR_IS_TRIGGERED)
         *is_pending = GPIO_INTR_IS_TRIGGERED;
     else
@@ -465,7 +458,7 @@ gpio_result_t gpio_intr_clear_stat_rise (gpio_pin_number_t pin)
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
     gpio_peri->INTRPT_RISE_STATUS0 = bitfield_write(
-        gpio_peri->INTRPT_RISE_STATUS0, MASK_1b, pin, GPIO_INTR_CLEAR);
+        gpio_peri->INTRPT_RISE_STATUS0, BIT_MASK_1, pin, GPIO_INTR_CLEAR);
     return GpioOk;
 
 }
@@ -475,7 +468,7 @@ gpio_result_t gpio_intr_clear_stat_fall (gpio_pin_number_t pin)
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
     gpio_peri->INTRPT_FALL_STATUS0 = bitfield_write(
-        gpio_peri->INTRPT_FALL_STATUS0, MASK_1b, pin, GPIO_INTR_CLEAR);
+        gpio_peri->INTRPT_FALL_STATUS0, BIT_MASK_1, pin, GPIO_INTR_CLEAR);
     return GpioOk;
 }
 
@@ -484,7 +477,7 @@ gpio_result_t gpio_intr_clear_stat_lvl_low (gpio_pin_number_t pin)
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
     gpio_peri->INTRPT_LVL_LOW_STATUS0 = bitfield_write(
-        gpio_peri->INTRPT_LVL_LOW_STATUS0, MASK_1b, pin, GPIO_INTR_CLEAR);
+        gpio_peri->INTRPT_LVL_LOW_STATUS0, BIT_MASK_1, pin, GPIO_INTR_CLEAR);
     return GpioOk;
 }
 
@@ -493,7 +486,7 @@ gpio_result_t gpio_intr_clear_stat_lvl_high (gpio_pin_number_t pin)
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
     gpio_peri->INTRPT_LVL_HIGH_STATUS0 = bitfield_write(
-        gpio_peri->INTRPT_LVL_HIGH_STATUS0, MASK_1b, pin, GPIO_INTR_CLEAR);
+        gpio_peri->INTRPT_LVL_HIGH_STATUS0, BIT_MASK_1, pin, GPIO_INTR_CLEAR);
     return GpioOk;
 }
 
@@ -502,14 +495,14 @@ gpio_result_t gpio_intr_clear_stat (gpio_pin_number_t pin)
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
     gpio_peri->INTRPT_STATUS0 = bitfield_write(
-        gpio_peri->INTRPT_STATUS0, MASK_1b, pin, GPIO_INTR_CLEAR);
+        gpio_peri->INTRPT_STATUS0, BIT_MASK_1, pin, GPIO_INTR_CLEAR);
     return GpioOk;
 }
 
 void gpio_intr_set_mode (gpio_intr_general_mode_t mode)
 {
     gpio_peri->CFG = bitfield_write(
-        gpio_peri->CFG, MASK_1b, GPIO_CFG_INTR_MODE_INDEX, mode);
+        gpio_peri->CFG, BIT_MASK_1, GPIO_CFG_INTR_MODE_INDEX, mode);
 }
 /****************************************************************************/
 /**                                                                        **/
