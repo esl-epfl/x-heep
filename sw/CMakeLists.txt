@@ -50,41 +50,11 @@ set(CMAKE_CXX_STANDARD 14)
 # Set MAIN file
 SET(MAINFILE "main")
 
-# Get the correct path for the crt files and linker file
-if (${LINKER} STREQUAL "on_chip")
-  SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt/")
-  SET(LINK_FILE "link.ld")
-elseif(${LINKER} STREQUAL "flash_load")
-  SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt_flash_load/")
-  SET(LINK_FILE "link_flash_load.ld")
-elseif(${LINKER} STREQUAL "flash_exec")
-  SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_flash_exec/")
-  SET(LINK_FILE "link_flash_exec.ld")
-else()
-  message( FATAL_ERROR "Linker specification is not correct" )
-endif()
-SET(LIB_VCTR_P	"${LIB_CRT_P}vectors.S")
-
-# Just in case it is a freertos based app
-if(${PROJECT} MATCHES "freertos")
-  #SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_freertos/")
-  SET(LIB_VCTR_P	"${SOURCE_PATH}device/lib/crt_freertos/vectors.S")
-endif()
-
-# messages to check the paths
-message( "${Magenta}Current project: ${PROJECT}${ColourReset}")
-message( "${Magenta}Root project: ${ROOT_PROJECT}${ColourReset}")
-message( "${Magenta}Source path: ${SOURCE_PATH}${ColourReset}")
-message( "${Magenta}LIB_CRT PATH for Cmake: ${LIB_CRT_P}${ColourReset}")
-message( "${Magenta}LINKER File for Cmake: ${LINK_FILE}${ColourReset}")
-message( "${Magenta}LIB_DRIVERS PATH for Cmake: ${LIB_DRIVERS}${ColourReset}")
-message( "${Magenta}Targetting folder: ${INC_FOLDERS}${ColourReset}")
-message( "${Magenta}Target: ${TARGET}${ColourReset}")
-
 
 # Make a list of the header files that need to be included
 FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.h)
 SET(dir_list_str "")
+SET(external_app 0)
 FOREACH(file_path ${new_list})
   SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
   if(${file_path} MATCHES "/device/")
@@ -96,6 +66,7 @@ FOREACH(file_path ${new_list})
       SET(add 1) 
     endif()
   elseif(${file_path} MATCHES ${PROJECT})
+    SET(external_app 1)
     SET(add 1) 
   elseif( ( ${file_path} MATCHES "/freertos/" ) AND ( ${PROJECT} MATCHES "freertos" ) )
     SET(add 1)  
@@ -117,6 +88,11 @@ FOREACH(file_path ${new_list})
   endif()
 
 ENDFOREACH()
+
+# Check if the APP is external to ROOT_PROJECT
+if( external_app EQUAL 0 )
+  SET(SOURCE_PATH ${ROOT_PROJECT})
+endif()
 
 LIST(REMOVE_DUPLICATES dir_list_str)
 LIST(REMOVE_DUPLICATES h_dir_list_)
@@ -153,6 +129,38 @@ FOREACH(file_path IN LISTS new_list)
 ENDFOREACH()
 
 LIST(REMOVE_DUPLICATES c_dir_list)
+
+# Get the correct path for the crt files and linker file
+if (${LINKER} STREQUAL "on_chip")
+  SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt/")
+  SET(LINK_FILE "link.ld")
+elseif(${LINKER} STREQUAL "flash_load")
+  SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt_flash_load/")
+  SET(LINK_FILE "link_flash_load.ld")
+elseif(${LINKER} STREQUAL "flash_exec")
+  SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_flash_exec/")
+  SET(LINK_FILE "link_flash_exec.ld")
+else()
+  message( FATAL_ERROR "Linker specification is not correct" )
+endif()
+SET(LIB_VCTR_P	"${LIB_CRT_P}vectors.S")
+
+# Just in case it is a freertos based app
+if(${PROJECT} MATCHES "freertos")
+  #SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_freertos/")
+  SET(LIB_VCTR_P	"${SOURCE_PATH}device/lib/crt_freertos/vectors.S")
+endif()
+
+# messages to check the paths
+message( "${Magenta}Current project: ${PROJECT}${ColourReset}")
+message( "${Magenta}Root project: ${ROOT_PROJECT}${ColourReset}")
+message( "${Magenta}Source path: ${SOURCE_PATH}${ColourReset}")
+message( "${Magenta}LIB_CRT PATH for Cmake: ${LIB_CRT_P}${ColourReset}")
+message( "${Magenta}LINKER File for Cmake: ${LINK_FILE}${ColourReset}")
+message( "${Magenta}LIB_DRIVERS PATH for Cmake: ${LIB_DRIVERS}${ColourReset}")
+message( "${Magenta}Targetting folder: ${INC_FOLDERS}${ColourReset}")
+message( "${Magenta}Target: ${TARGET}${ColourReset}")
+
 
 # Get all the files to include when linking
 SET(LINKED_FILES    "${LIB_CRT_P}crt0.S \
@@ -206,9 +214,7 @@ if (${COMPILER} MATCHES "clang")
                                           -fvisibility=hidden \
                                           -nostartfiles \
                                           -Wall \
-                                          -Wno-unused-command-line-argument\
-										  -DportasmHANDLE_INTERRUPT=vSystemIrqHandler \
-										  " )
+                                          -Wno-unused-command-line-argument" )
 endif()
 
 # In case of wanting to create a library with those subdirectories
@@ -263,17 +269,9 @@ endif()
 
 # Specify that we want to link with GCC even if we are compiling with clang
 if (${COMPILER} MATCHES "clang")
-	if( ${PROJECT} MATCHES "freertos" )
-		set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
+  set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
                                 ${SOURCE_PATH}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${MAINFILE}.c.obj \
-                                -o ${MAINFILE}.elf \
-								_deps/freertos_kernel-build/libfreertos_kernel.a \ _deps/freertos_kernel-build/portable/libfreertos_kernel_port.a \ _deps/freertos_kernel-build/libfreertos_kernel.a \ _deps/freertos_kernel-build/portable/libfreertos_kernel_port.a \
-								")
-	else()
-	  	set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
-		                            ${SOURCE_PATH}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${MAINFILE}.c.obj \
-		                            -o ${MAINFILE}.elf")
-    endif()
+                                -o ${MAINFILE}.elf")
 endif()
 
 # Post processing command to create a disassembly file 
@@ -300,8 +298,15 @@ add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
 foreach (SRC_MODULE ${MAINFILE} )
   add_custom_command(TARGET ${MAINFILE}.elf 
                      PRE_LINK
-                     COMMAND ${CMAKE_OBJDUMP} -S ${SOURCE_PATH}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${SRC_MODULE}.c.obj > ${SRC_MODULE}.s
+                     COMMAND ${CMAKE_OBJDUMP} -S ${ROOT_PROJECT}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${SRC_MODULE}.c.obj > ${SRC_MODULE}.s
                      COMMENT "Invoking: Disassemble ( CMakeFiles/${MAINFILE}.dir/${SRC_MODULE}.c.obj)")
 endforeach()
 
+# Adding gdb command - TBD
+#add_custom_target(gdb DEPENDS ${MAINFILE}.elf)
+#add_custom_command(TARGET gdb
+#    COMMAND ${CMAKE_C_GDB} ${MAINFILE}.elf -x gdbInit &)
+
 SET(DCMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+#message( FATAL_ERROR "You can not do this at all, CMake will exit." )
