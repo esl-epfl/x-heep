@@ -51,7 +51,7 @@ module fast_intr_ctrl #(
       end else begin
         if (fast_intr_i[i]) begin
           fast_intr_pending_de[i] = 1'b1;
-          hw2reg.fast_intr_pending.d[i] = 1'b1;
+          hw2reg.fast_intr_pending.d[i] = reg2hw.fast_intr_enable.q[i];
           fast_intr_clear_de[i] = 1'b0;
           hw2reg.fast_intr_clear.d[i] = 1'b0;
         end else begin
@@ -65,9 +65,7 @@ module fast_intr_ctrl #(
 
   end
 
-  assign hw2reg.fast_intr_pending.d[15] = 1'b0;
-  assign hw2reg.fast_intr_clear.d[15] = 1'b0;
-  assign fast_intr_o = reg2hw.fast_intr_pending.q[14:0];
+  assign fast_intr_o = reg2hw.fast_intr_pending.q;
   assign hw2reg.fast_intr_pending.de = |fast_intr_pending_de;
   assign hw2reg.fast_intr_clear.de = |fast_intr_clear_de;
 

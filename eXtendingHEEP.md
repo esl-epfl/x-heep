@@ -7,6 +7,7 @@ For this purpose we support the [CORE-V-XIF](https://docs.openhwgroup.org/projec
 Here you can find a list of `X-HEEP` based open-source examples. If you want to include your project in this list, please open an issue with a link to your repository.
 
 * [CGRA-X-HEEP](https://github.com/esl-epfl/cgra_x_heep): A CGRA loosely coupled with X-HEEP.
+* [F-HEEP](https://github.com/davidmallasen/F-HEEP): System integrating [fpu_ss](https://github.com/pulp-platform/fpu_ss) into X-HEEP via the eXtension interface and cv32e40x.
 
 
 ## Vendorizing X-HEEP

@@ -10,12 +10,18 @@ module x_heep_system
     parameter FPU = 0,
     parameter PULP_ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0,
-    parameter X_EXT = 0  // eXtension interface in cv32e40x
-) (
-    input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
+    parameter X_EXT = 0,  // eXtension interface in cv32e40x
+    //do not touch these parameters
+    parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
+    parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
+    parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
 
-    input  obi_req_t  [EXT_XBAR_NMASTER-1:0] ext_xbar_master_req_i,
-    output obi_resp_t [EXT_XBAR_NMASTER-1:0] ext_xbar_master_resp_o,
+) (
+    input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
+
+    input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
+    output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
+
 
     output obi_req_t  ext_xbar_slave_req_o,
     input  obi_resp_t ext_xbar_slave_resp_i,
@@ -23,11 +29,11 @@ module x_heep_system
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_o,
-    input  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_ack_i,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_o,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_no,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_ram_banks_set_retentive_o,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_o,
+    input  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_i,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_o,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
+    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_o,
 
     output logic [31:0] exit_value_o,
 

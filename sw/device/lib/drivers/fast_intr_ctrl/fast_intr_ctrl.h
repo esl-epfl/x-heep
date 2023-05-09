@@ -94,6 +94,27 @@ typedef enum fast_intr_ctrl_fast_interrupt {
 /****************************************************************************/
 
 /**
+ * @brief Enable the generation of the fast interrupt
+ * peripheral by writing inside FAST_INTR_ENABLE
+ * @param fast_interrupt specify the peripheral that will be enabled
+ * @param enable enable value
+ * @retval kFastIntrCtrlOk_e (= 0) if successfully set the bit
+ * @retval kFastIntrCtrlError_e (= 1) if an error occured during operation
+ */
+fast_intr_ctrl_result_t enable_fast_interrupt(fast_intr_ctrl_fast_interrupt_t\
+ fast_interrupt, bool enable);
+
+ /**
+ * @brief Enable the generation of the fast interrupt
+ * peripheral by writing inside FAST_INTR_ENABLE
+ * @param enable enable value
+ * @retval kFastIntrCtrlOk_e (= 0) if successfully set the bit
+ * @retval kFastIntrCtrlError_e (= 1) if an error occured during operation
+ */
+fast_intr_ctrl_result_t enable_all_fast_interrupts(bool enable);
+
+
+/**
  * @brief clean the bit inside FAST_INTR_PENDING register for the requested 
  * peripheral by writing inside FAST_INTR_CLEAR
  * @param fast_interrupt specify the peripheral that will be cleared
