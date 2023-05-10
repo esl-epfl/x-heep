@@ -1,40 +1,92 @@
-// Copyright lowRISC contributors.
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
-// SPDX-License-Identifier: Apache-2.0
+/*
+                              *******************
+******************************* H SOURCE FILE *******************************
+**                            *******************                          **
+**                                                                         **
+** project  : x-heep                                                       **
+** filename : i2c.h                                                        **
+** date     : 17/04/2023                                                   **
+**                                                                         **
+*****************************************************************************
+**                                                                         **
+**                                                                         **
+*****************************************************************************
 
-#ifndef OPENTITAN_SW_DEVICE_LIB_DIF_DIF_I2C_H_
-#define OPENTITAN_SW_DEVICE_LIB_DIF_DIF_I2C_H_
+*/
 
-/**
- * @file
- * @brief <a href="/hw/ip/i2c/doc/">I2C</a> Device Interface Functions
- */
-
-#include <stdbool.h>
-#include <stdint.h>
-
-#include "mmio.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif  // __cplusplus
+/***************************************************************************/
+/***************************************************************************/
 
 /**
- * A toggle state: enabled, or disabled.
- *
- * This enum may be used instead of a `bool` when describing an enabled/disabled
- * state.
- */
+* @file   i2c.h
+* @date   17/04/2023
+* @brief  This is the main header of template.c
+*
+* Here typically goes a more extensive explanation of what the header
+* defines.
+*/
+
+#ifndef _I2C_H_
+#define _I2C_H_
+
+/****************************************************************************/
+/**                                                                        **/
+/**                            MODULES USED                                **/
+/**                                                                        **/
+/****************************************************************************/
+
+#include "inttypes.h"
+#include "stddef.h"
+#include "stdbool.h"
+
+/****************************************************************************/
+/**                                                                        **/
+/**                       DEFINITIONS AND MACROS                           **/
+/**                                                                        **/
+/****************************************************************************/
+
+/****************************************************************************/
+/**                                                                        **/
+/**                       TYPEDEFS AND STRUCTURES                          **/
+/**                                                                        **/
+/****************************************************************************/
+
+/**
+ * A toggle state: enabled ior disabled.
+*/
 typedef enum i2c_toggle {
   /*
    * The "enabled" state.
    */
-  kDifI2cToggleEnabled,
+  kI2cToggleEnabled,
   /**
    * The "disabled" state.
    */
-  kDifI2cToggleDisabled,
+  kI2cToggleDisabled,
 } i2c_toggle_t;
+
+
+/**
+ * The result of a I2C operation.
+ */
+typedef enum i2c_result {
+  /**
+   * Indicates that the operation succeeded.
+   */
+  kDifI2cOk = 0,
+  /**
+   * Indicates some unspecified failure.
+   */
+  kDifI2cError = 1,
+  /**
+   * Indicates that some parameter passed into a function failed a
+   * precondition.
+   *
+   * When this value is returned, no hardware operations occurred.
+   */
+  kDifI2cBadArg = 2,
+} i2c_result_t;
+
 
 /**
  * Represents a speed setting for an I2C component: standard, fast, and
@@ -55,6 +107,7 @@ typedef enum i2c_speed {
    */
   kDifI2cSpeedFastPlus,
 } i2c_speed_t;
+
 
 /**
  * Timing configuration parameters for I2C.
@@ -103,19 +156,6 @@ typedef struct i2c_timing_config {
   uint32_t scl_period_nanos;
 } i2c_timing_config_t;
 
-/**
- * Hardware instantiation parameters for I2C.
- *
- * This struct describes information about the underlying hardware that is
- * not determined until the hardware design is used as part of a top-level
- * design.
- */
-typedef struct i2c_params {
-  /**
-   * The base address for the I2C hardware registers.
-   */
-  mmio_region_t base_addr;
-} i2c_params_t;
 
 /**
  * Runtime configuration for I2C.
@@ -126,8 +166,7 @@ typedef struct i2c_params {
  * these values themselves if they prefer, so long as the I2C spec is
  * respected.
  *
- * These values correspond to those in Table 10 of the I2C spec, and are given
- * in units of input clock cycles.
+ * These values are given in units of input clock cycles.
  */
 typedef struct i2c_config {
   uint16_t scl_time_high_cycles;
@@ -139,90 +178,18 @@ typedef struct i2c_config {
   uint16_t data_signal_setup_cycles;
   uint16_t data_signal_hold_cycles;
   uint16_t stop_signal_setup_cycles;
-  /**
-   * This parameter is referred to in the I2C documents as the
-   * "bus free time".
-   */
   uint16_t stop_signal_hold_cycles;
 } i2c_config_t;
 
-/**
- * A handle to I2C.
- *
- * This type should be treated as opaque by users.
- */
-typedef struct i2c { i2c_params_t params; } i2c_t;
-
-/**
- * The result of a I2C operation.
- */
-typedef enum i2c_result {
-  /**
-   * Indicates that the operation succeeded.
-   */
-  kDifI2cOk = 0,
-  /**
-   * Indicates some unspecified failure.
-   */
-  kDifI2cError = 1,
-  /**
-   * Indicates that some parameter passed into a function failed a
-   * precondition.
-   *
-   * When this value is returned, no hardware operations occurred.
-   */
-  kDifI2cBadArg = 2,
-} i2c_result_t;
-
-/**
- * Represents an I2C-related interrupt type.
- */
-typedef enum i2c_irq {
-  /**
-   * Fired when the FMT FIFO underflows its watermark.
-   */
-  kDifI2cIrqFmtWatermarkUnderflow = 0,
-  /**
-   * Fired when the RX FIFO overflows its watermark.
-   */
-  kDifI2cIrqRxWatermarkOverflow,
-  /**
-   * Fired when the FMT FIFO overflows.
-   */
-  kDifI2cIrqFmtFifoOverflow,
-  /**
-   * Fired when the RX FIFO overflows.
-   */
-  kDifI2cIrqRxFifoOverflow,
-  /**
-   * Fired when there is no ACK in response to an address or data write.
-   */
-  kDifI2cIrqNak,
-  /**
-   * Fired when the SCL line seems to have interference.
-   */
-  kDifI2cIrqSclInterference,
-  /**
-   * Fired when the SDA line seems to have interference.
-   */
-  kDifI2cIrqSdaInterference,
-  /**
-   * Fired when the target stretches the clock beyond the allowed period.
-   */
-  kDifI2cIrqClockStretchTimeout,
-  /**
-   * Fired when the target does not maintain a stable SDA line.
-   */
-  kDifI2cIrqSdaUnstable,
-} i2c_irq_t;
 
 /**
  * A snapshot of the entablement state of the interrupts for I2C.
  *
- * This is an opaque type, to be used with the `i2c_irq_disable_all()` and
+ * This is to be used with the `i2c_irq_disable_all()` and
  * `i2c_irq_restore_all()` functions.
  */
 typedef uint32_t i2c_irq_snapshot_t;
+
 
 /**
  * Represents a valid watermark level for one of the I2C FIFOs.
@@ -231,26 +198,27 @@ typedef enum i2c_watermark_level {
   /**
    * A one-byte watermark.
    */
-  kDifI2cLevel1Byte = 0,
+  kI2cLevel1Byte = 0,
   /**
    * A four-byte watermark.
    */
-  kDifI2cLevel4Byte,
+  kI2cLevel4Byte,
   /**
    * An eight-byte watermark.
    */
-  kDifI2cLevel8Byte,
+  kI2cLevel8Byte,
   /**
    * A sixteen-byte watermark.
    */
-  kDifI2cLevel16Byte,
+  kI2cLevel16Byte,
   /**
    * A thirty-byte watermark.
    *
    * Note that this watermark is only supported for RX, and not for FMT.
    */
-  kDifI2cLevel30Byte,
+  kI2cLevel30Byte,
 } i2c_level_t;
+
 
 /**
  * Flags for a formatted I2C byte, used by the `i2c_write_byte_raw()`
@@ -283,22 +251,19 @@ typedef struct i2c_fmt_flags {
   bool read_cont;
   /**
    * By default, the hardware expects an ACK after every byte sent, and raises
-   * an exception (surfaced as the `kDifi2cIrqNak` interrupt). This flag
-   * disables that behavior.
+   * an exception. This flag disables that behavior.
    *
    * This flag cannot be set along with `read` or `read_cont`.
    */
   bool suppress_nak_irq;
 } i2c_fmt_flags_t;
 
+
 /**
  * Available formatting codes for `i2c_write_byte_raw()`.
  *
  * Each code describes how to interpret the `byte` parameter, referred to below
  * as "the byte".
- *
- * It is the caller's responsibility to observe the state transitions in the
- * comments below.
  */
 typedef enum i2c_fmt {
   /**
@@ -348,109 +313,146 @@ typedef enum i2c_fmt {
   kDifI2cFmtRxStop,
 } i2c_fmt_t;
 
+
 /**
- * Computes timing parameters for an I2C device and stores them in `config`.
- *
- * The values returned may be tweaked by callers that require finer control over
- * some of the calculations, such as how the allocation of a lengthened SCL
- * period.
- *
+ * Represents an I2C-related interrupt type.
+ */
+typedef enum i2c_irq {
+  /**
+   * Fired when the FMT FIFO underflows its watermark.
+   */
+  kDifI2cIrqFmtWatermarkUnderflow = 0,
+  /**
+   * Fired when the RX FIFO overflows its watermark.
+   */
+  kDifI2cIrqRxWatermarkOverflow,
+  /**
+   * Fired when the FMT FIFO overflows.
+   */
+  kDifI2cIrqFmtFifoOverflow,
+  /**
+   * Fired when the RX FIFO overflows.
+   */
+  kDifI2cIrqRxFifoOverflow,
+  /**
+   * Fired when there is no ACK in response to an address or data write.
+   */
+  kDifI2cIrqNak,
+  /**
+   * Fired when the SCL line seems to have interference.
+   */
+  kDifI2cIrqSclInterference,
+  /**
+   * Fired when the SDA line seems to have interference.
+   */
+  kDifI2cIrqSdaInterference,
+  /**
+   * Fired when the target stretches the clock beyond the allowed period.
+   */
+  kDifI2cIrqClockStretchTimeout,
+  /**
+   * Fired when the target does not maintain a stable SDA line.
+   */
+  kDifI2cIrqSdaUnstable,
+} i2c_irq_t;
+
+/****************************************************************************/
+/**                                                                        **/
+/**                          EXPORTED VARIABLES                            **/
+/**                                                                        **/
+/****************************************************************************/
+
+#ifndef _TEMPLATE_C_SRC
+
+
+
+#endif  /* _TEMPLATE_C_SRC */
+
+/****************************************************************************/
+/**                                                                        **/
+/**                          EXPORTED FUNCTIONS                            **/
+/**                                                                        **/
+/****************************************************************************/
+
+/**
+ * Computes timing parameters for an I2C device and store them in `config`.
+ * 
  * @param timing_config Configuration values for producing timing parameters.
- * @param[out] config I2C configuration to which to apply the computed
- * parameters.
+ * @param[out] config I2C configuration to which to apply the computed parameters.
  * @return The result of the operation.
- */
-i2c_result_t i2c_compute_timing(i2c_timing_config_t timing_config,
-                                        i2c_config_t *config);
-/**
- * Creates a new handle for I2C.
- *
- * This function does not actuate the hardware.
- *
- * @param params Hardware instantiation parameters.
- * @param[out] i2c Out param for the initialized handle.
- * @return The result of the operation.
- */
-i2c_result_t i2c_init(i2c_params_t params, i2c_t *i2c);
+*/
+i2c_result_t i2c_compute_timing(i2c_timing_config_t timing_config, 
+                                i2c_config_t *config);
+
 
 /**
  * Configures I2C with runtime information.
  *
- * This function should need to be called once for the lifetime of `handle`.
- *
- * @param i2c An I2C handle.
  * @param config Runtime configuration parameters.
  * @return The result of the operation.
  */
-i2c_result_t i2c_configure(const i2c_t *i2c,
-                                   i2c_config_t config);
+i2c_result_t i2c_configure(i2c_config_t config);
+
 
 /**
  * Returns whether a particular interrupt is currently pending.
  *
- * @param i2c An I2C handle.
  * @param irq An interrupt type.
  * @param[out] is_pending Out-param for whether the interrupt is pending.
  * @return The result of the operation.
  */
-i2c_result_t i2c_irq_is_pending(const i2c_t *i2c, i2c_irq_t irq,
-                                        bool *is_pending);
+i2c_result_t i2c_irq_is_pending(i2c_irq_t irq, bool *is_pending);
+
 
 /**
  * Acknowledges a particular interrupt, indicating to the hardware that it has
  * been successfully serviced.
  *
- * @param i2c An I2C handle.
  * @param irq An interrupt type.
  * @return The result of the operation.
  */
-i2c_result_t i2c_irq_acknowledge(const i2c_t *i2c,
-                                         i2c_irq_t irq);
+i2c_result_t i2c_irq_acknowledge(i2c_irq_t irq);
+
 
 /**
  * Checks whether a particular interrupt is currently enabled or disabled.
  *
- * @param i2c An I2C handle.
  * @param irq An interrupt type.
- * @param[out] state Out-param toggle state of the interrupt.
+ * @param[out] state State of the interrupt.
  * @return The result of the operation.
  */
-i2c_result_t i2c_irq_get_enabled(const i2c_t *i2c,
-                                         i2c_irq_t irq,
-                                         i2c_toggle_t *state);
+i2c_result_t i2c_irq_get_enabled(i2c_irq_t irq, i2c_toggle_t *state);
+
 
 /**
  * Sets whether a particular interrupt is currently enabled or disabled.
  *
- * @param i2c An I2C handle.
  * @param irq An interrupt type.
  * @param state The new toggle state for the interrupt.
  * @return The result of the operation.
  */
-i2c_result_t i2c_irq_set_enabled(const i2c_t *i2c,
-                                         i2c_irq_t irq,
-                                         i2c_toggle_t state);
+i2c_result_t i2c_irq_set_enabled(i2c_irq_t irq, i2c_toggle_t state);
+
 
 /**
  * Forces a particular interrupt, causing it to be serviced as if hardware had
  * asserted it.
  *
- * @param i2c An I2C handle.
  * @param irq An interrupt type.
  * @return The result of the operation.
  */
-i2c_result_t i2c_irq_force(const i2c_t *i2c, i2c_irq_t irq);
+i2c_result_t i2c_irq_force(i2c_irq_t irq);
+
 
 /**
  * Disables all interrupts, optionally snapshotting all toggle state for later
  * restoration.
  *
- * @param i2c An I2C handle.
- * @param[out] snapshot Out-param for the snapshot; may be `NULL`.
+ * @param[out] snapshot Out-param for the snapshot.
  * @return The result of the operation.
  */
-i2c_result_t i2c_irq_disable_all(const i2c_t *i2c,
-                                         i2c_irq_snapshot_t *snapshot);
+i2c_result_t i2c_irq_disable_all(i2c_irq_snapshot_t *snapshot);
+
 
 /**
  * Restores interrupts from the given snapshot.
@@ -458,153 +460,145 @@ i2c_result_t i2c_irq_disable_all(const i2c_t *i2c,
  * This function can be used with `i2c_irq_disable_all()` to temporary
  * interrupt save-and-restore.
  *
- * @param i2c An I2C handle.
  * @param snapshot A snapshot to restore from.
  * @return The result of the operation.
  */
-i2c_result_t i2c_irq_restore_all(
-    const i2c_t *i2c, const i2c_irq_snapshot_t *snapshot);
+i2c_result_t i2c_irq_restore_all(const i2c_irq_snapshot_t *snapshot);
+
 
 /**
  * Resets the state of the RX FIFO, essentially dropping all received bytes.
  *
- * @param i2c An I2c handle.
  * @return The result of the operation.
  */
-i2c_result_t i2c_reset_rx_fifo(const i2c_t *i2c);
+i2c_result_t i2c_reset_rx_fifo();
+
 
 /**
  * Resets the state of the FMT FIFO, essentially dropping all scheduled
  * operations.
  *
- * @param i2c An I2c handle.
  * @return The result of the operation.
  */
-i2c_result_t i2c_reset_fmt_fifo(const i2c_t *i2c);
+i2c_result_t i2c_reset_fmt_fifo();
+
 
 /**
- * Sets watermarks for for the RX and FMT FIFOs, which will fire the respective
+ * Sets watermarks for for the RX and FMT FIFOs, which will trigger the respective
  * interrupts when each fifo exceeds, or falls below, the set level.
  *
  * Note that the 30-byte level is only supported for the RX FIFO: trying to use
  * it with the FMT FIFO is an error.
- *
- * @param i2c An I2C handle.
+ * 
  * @param rx_level The desired watermark level for the RX FIFO.
  * @param fmt_level The desired watermark level for the FMT FIFO.
  * @return The result of the operation.
  */
-i2c_result_t i2c_set_watermarks(const i2c_t *i2c,
-                                        i2c_level_t rx_level,
-                                        i2c_level_t fmt_level);
+i2c_result_t i2c_set_watermarks(i2c_level_t rx_level, i2c_level_t fmt_level);
+
 
 /**
  * Enables or disables the "Host I2C" functionality, effectively turning the
  * I2C device on or off. This function should be called to enable the device
  * once timings, interrupts, and watermarks are all configured.
  *
- * @param i2c An I2C handle.
  * @param state The new toggle state for the host functionality.
  * @return The result of the operation.
  */
-i2c_result_t i2c_host_set_enabled(const i2c_t *i2c,
-                                          i2c_toggle_t state);
+i2c_result_t i2c_host_set_enabled(i2c_toggle_t state);
 
 /**
  * Enables or disables the "override mode". In override mode, software is able
  * to directly control the driven values of the SCL and SDA lines using
  * `i2c_override_drive_pins()`.
  *
- * @param i2c An I2C handle.
  * @param state The new toggle state for override mode.'
  * @return The result of the operation.
  */
-i2c_result_t i2c_override_set_enabled(const i2c_t *i2c,
-                                              i2c_toggle_t state);
+i2c_result_t i2c_override_set_enabled(i2c_toggle_t state);
+
 
 /**
  * Drives the SCL and SDA pins to the given values when "override mode" is
  * enabled.
  *
- * @param i2c An I2C handle.
  * @param scl The value to drive SCL to.
  * @param sda The value to drive SDA to.
  * @return The result of the operation.
  */
-i2c_result_t i2c_override_drive_pins(const i2c_t *i2c, bool scl,
-                                             bool sda);
+i2c_result_t i2c_override_drive_pins(bool scl, bool sda);
+
 
 /**
  * Returns oversampling of the last 16 values of the SCL and SDA pins, with the
  * zeroth bit being the most recent.
  *
- * @param i2c An I2C handle.
- * @param[out] scl_samples SCL sample bits; may be `NULL`.
- * @param[out] sda_samples SDA sample bits; may be `NULL`.
+ * @param[out] scl_samples SCL sample bits.
+ * @param[out] sda_samples SDA sample bits.
  * @return The result of the operation.
  */
-i2c_result_t i2c_override_sample_pins(const i2c_t *i2c,
-                                              uint16_t *scl_samples,
-                                              uint16_t *sda_samples);
+i2c_result_t i2c_override_sample_pins(uint16_t *scl_samples, 
+                                      uint16_t *sda_samples);
+
 
 /**
  * Returns the current levels, i.e., number of entries, in the FMT and RX FIFOs.
  * These values represent the number of entries pending for send by hardware,
  * and entries pending for read by software, respectively.
  *
- * @param i2c An I2C handle.
- * @param[out] fmt_fifo_level The number of unsent FMT bytes; may be `NULL`.
- * @param[out] rx_fifo_level The number of unread RX bytes; may be `NULL`.
+ * @param[out] fmt_fifo_level The number of unsent FMT bytes.
+ * @param[out] rx_fifo_level The number of unread RX bytes.
  * @return The result of the operation.
  */
-i2c_result_t i2c_get_fifo_levels(const i2c_t *i2c,
-                                         uint8_t *fmt_fifo_level,
-                                         uint8_t *rx_fifo_level);
+i2c_result_t i2c_get_fifo_levels(uint8_t *fmt_fifo_level,
+                                  uint8_t *rx_fifo_level);
+
 
 /**
- * Pops an entry (a byte) off of the RX FIFO. Passing in `NULL` to the out-param
- * will still trigger a byte pop.
+ * Pops an entry (a byte) off of the RX FIFO.
  *
- * @param i2c An I2C handle.
- * @param[out] byte The popped byte; may be `NULL`.
+ * @param[out] byte The popped byte.
  * @return The result of the operation.
  */
-i2c_result_t i2c_read_byte(const i2c_t *i2c, uint8_t *byte);
+i2c_result_t i2c_read_byte(uint8_t *byte);
+
 
 /**
  * Pushes a raw write entry onto the FMT FIFO, consisting of a byte and format
  * flags. This function can be called in sequence to enqueue an I2C
  * transmission.
  *
- * Callers should prefer `i2c_write_byte()` instead, since that function
- * provides clearer semantics. This function should only really be used for
- * testing or troubleshooting a device.
- *
- * @param i2c An I2C handle.
+ * This function has to be preferred for testing and debugging.
+ * 
  * @param byte The value to push onto the FIFO.
  * @param flags The flags to use for this write.
  * @return The result of the operation.
  */
-i2c_result_t i2c_write_byte_raw(const i2c_t *i2c, uint8_t byte,
-                                        i2c_fmt_flags_t flags);
+i2c_result_t i2c_write_byte_raw(uint8_t byte, i2c_fmt_flags_t flags);
+
 
 /**
  * Pushes a write entry onto the FMT FIFO, consisting of a byte and a format
  * code. This function can be called in sequence to enqueue an I2C
  * transmission.
  *
- * @param i2c An I2C handle.
  * @param byte The value to push onto the FIFO.
  * @param code The code to use for this write.
  * @param suppress_nak_irq Whether to supress the NAK IRQ for this one byte.
  *        May not be used in combination with `Rx` codes.
  * @return The result of the operation.
  */
-i2c_result_t i2c_write_byte(const i2c_t *i2c, uint8_t byte,
-                                    i2c_fmt_t code, bool suppress_nak_irq);
+i2c_result_t i2c_write_byte(uint8_t byte, i2c_fmt_t code, bool suppress_nak_irq);
 
-#ifdef __cplusplus
-}  // extern "C"
-#endif  // __cplusplus
+/****************************************************************************/
+/**                                                                        **/
+/**                          INLINE FUNCTIONS                              **/
+/**                                                                        **/
+/****************************************************************************/
 
-#endif  // OPENTITAN_SW_DEVICE_LIB_DIF_DIF_I2C_H_
+#endif
+/****************************************************************************/
+/**                                                                        **/
+/**                                EOF                                     **/
+/**                                                                        **/
+/****************************************************************************/
