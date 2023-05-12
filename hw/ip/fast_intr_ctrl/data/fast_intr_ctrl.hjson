@@ -14,7 +14,7 @@
       swaccess: "ro",
       hwaccess: "hrw",
       fields: [
-        { bits: "15:0", name: "FAST_INTR_PENDING", desc: "Pending Fast Interrupt Reg" }
+        { bits: "14:0", name: "FAST_INTR_PENDING", desc: "Pending Fast Interrupt Reg" }
       ]
     }
 
@@ -24,9 +24,18 @@
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
-        { bits: "15:0", name: "FAST_INTR_CLEAR", desc: "Clear Fast Interrupt" }
+        { bits: "14:0", name: "FAST_INTR_CLEAR", desc: "Clear Fast Interrupt" }
       ]
     }
 
+    { name:     "FAST_INTR_ENABLE",
+      desc:     "Enable fast interrupt",
+      resval:   "0x7fff"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "14:0", name: "FAST_INTR_ENABLE", desc: "Enable fast interrupt" }
+      ]
+    }
    ]
 }
