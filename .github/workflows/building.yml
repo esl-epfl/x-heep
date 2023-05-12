@@ -14,4 +14,3 @@ jobs:
         run: |
           chmod u+x ./.github/workflows/build-apps-job/setup.sh
           ./.github/workflows/build-apps-job/setup.sh  
-
