@@ -624,8 +624,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * In that case, a increment of 0 is necessary.
      */
    
-   
-   /*
+
     printf("src inc - ");
     writeRegister(  getIncrement_b( dma_cb.trans->src ), 
                     DMA_PTR_INC_REG_OFFSET, 
@@ -638,9 +637,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
                     DMA_PTR_INC_REG_OFFSET, 
                     DMA_PTR_INC_DST_PTR_INC_MASK,
                     DMA_PTR_INC_DST_PTR_INC_OFFSET );
-    
-*/
-    return 0;
+
 
     /*
      * SET THE OPERATION MODE AND WINDOW SIZE
@@ -1003,6 +1000,8 @@ static inline void writeRegister( uint32_t  p_val,
     (( uint32_t * ) dma_peri ) [ index ] = value; 
 
     printf("Wrote %08x @ %04x\n", value, index );
+
+// mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_SLOT_REG_OFFSET), (tx_slot_mask << DMA_SLOT_TX_TRIGGER_SLOT_OFFSET) + rx_slot_mask)
 
 }
 

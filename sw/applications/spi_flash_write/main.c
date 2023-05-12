@@ -21,7 +21,7 @@
 /* Test Configurations */
 #define DEBUG
 #define USE_SPI_FLASH
-//#define TEST_CIRCULAR
+#define TEST_CIRCULAR
 #define TEST_MEM_2_SPI
 #define TEST_SPI_2_MEM
 

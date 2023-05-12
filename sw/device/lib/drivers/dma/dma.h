@@ -82,8 +82,8 @@ typedef enum
     memory. */
     DMA_TRIG_SLOT_SPI_RX        = 1, /*!< Slot 1 (MEM < SPI). */  
     DMA_TRIG_SLOT_SPI_TX        = 2, /*!< Slot 2 (MEM > SPI). */
-    DMA_TRIG_SLOT_SPI_FLASH_RX  = 3, /*!< Slot 3 (MEM < SPI FLASH). */ 
-    DMA_TRIG_SLOT_SPI_FLASH_TX  = 4, /*!< Slot 4 (MEM > SPI FLASH). */
+    DMA_TRIG_SLOT_SPI_FLASH_RX  = 4, /*!< Slot 3 (MEM < SPI FLASH). */ 
+    DMA_TRIG_SLOT_SPI_FLASH_TX  = 8, /*!< Slot 4 (MEM > SPI FLASH). */
     DMA_TRIG__size,      /*!< Not used, only for sanity checks. */
     DMA_TRIG__undef,     /*!< DMA will not be used. */
 } dma_trigger_slot_mask_t;  
