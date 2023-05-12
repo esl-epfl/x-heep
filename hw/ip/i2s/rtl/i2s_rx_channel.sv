@@ -169,7 +169,7 @@ module i2s_rx_channel #(
     if (~rst_ni) begin
       overflow_o <= 1'b0;
     end else begin
-      if (en) begin
+      if (~en) begin
         overflow_o <= 1'b0;
       end else if (word_done & data_valid_o & ~data_ready_i) begin
         overflow_o <= 1'b1;

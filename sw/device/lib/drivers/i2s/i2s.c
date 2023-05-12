@@ -132,11 +132,12 @@ void i2s_rx_start(i2s_channel_sel_t channels)
     // overflow bit is going to be reset by rx channel if the sck is running
     while (i2s_rx_overflow()) ; // wait for one SCK rise - this might take some time as the SCK can be much slower
     
-    // cdc_2phase FIFO is not clearable, so we have to empty the FIFO manually
-    // note: this uses much less resources
-    while (i2s_rx_data_available()) {
-      i2s_rx_read_data(); // read to empty FIFO
-    }
+  }
+  
+  // cdc_2phase FIFO is not clearable, so we have to empty the FIFO manually
+  // note: this uses much less resources
+  while (i2s_rx_data_available()) {
+    i2s_rx_read_data(); // read to empty FIFO
   }
 
   // now we can start the RX channels and ws generation

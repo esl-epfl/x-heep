@@ -180,11 +180,13 @@ int main(int argc, char *argv[]) {
         }
         batch += 1;
 
+        printf("Overflow bit %d", i2s_rx_overflow());
+
+        break;
+
         #ifdef USE_DMA
-        enable_all_fast_interrupts(false);
         dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // restart 
         #endif
-        break;
     }
 #else
     //
