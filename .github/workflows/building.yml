@@ -5,7 +5,7 @@ jobs:
   test_applications:
     runs-on: ubuntu-latest
     container: 
-      image: ghcr.io/juansapriza/xheep-compiler:riscv-clang
+      image: ghcr.io/esl-epfl/xheep-compiler:latest
     name: Builds apps with gcc and clang. All must build successfully.
     steps:
       - name: Checkout the pushed code. 
