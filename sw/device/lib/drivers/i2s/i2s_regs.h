@@ -13,14 +13,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-// Defines the maximal number of bytes that can be
-#define I2S_PARAM_BYTE_PER_SAMPLE_WIDTH 2
+// Defines the maximal word width
+#define I2S_PARAM_MAX_WORD_WIDTH 32
 
 // Bits available for the clock divider
-#define I2S_PARAM_CLK_DIV_SIZE 16
+#define I2S_PARAM_CLK_DIVIDER_WIDTH 16
 
 // Bits available for the watermark
-#define I2S_PARAM_WATERMARK_SIZE 16
+#define I2S_PARAM_WATERMARK_WIDTH 16
 
 // Register width
 #define I2S_PARAM_REG_WIDTH 32

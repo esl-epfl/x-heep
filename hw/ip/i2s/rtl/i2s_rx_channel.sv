@@ -25,8 +25,8 @@ module i2s_rx_channel #(
 
     // read data out (stream interface)
     output logic [MaxWordWidth-1:0] data_o,
-    output logic                   data_valid_o,
-    input  logic                   data_ready_i,
+    output logic                    data_valid_o,
+    input  logic                    data_ready_i,
 
     output logic overflow_o
 );

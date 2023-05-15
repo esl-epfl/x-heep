@@ -7,7 +7,7 @@
 package i2s_reg_pkg;
 
   // Param list
-  parameter int BytePerMaxWordWidth = 2;
+  parameter int MaxWordWidth = 32;
   parameter int ClkDividerWidth = 16;
   parameter int WatermarkWidth = 16;
 

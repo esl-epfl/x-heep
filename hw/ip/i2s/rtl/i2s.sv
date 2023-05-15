@@ -100,7 +100,7 @@ module i2s #(
   // Core logic
   i2s_core #(
       .MaxWordWidth(MaxWordWidth),
-      .ClkDividerWidth (ClkDividerWidth)
+      .ClkDividerWidth(ClkDividerWidth)
   ) i2s_core_i (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
@@ -113,7 +113,7 @@ module i2s #(
       .ws_o (i2s_ws_o),
       .sd_i (i2s_sd_i),
 
-      .cfg_clock_div_i(reg2hw.clkdividx.q),
+      .cfg_clock_div_i (reg2hw.clkdividx.q),
       .cfg_word_width_i(word_width),
 
       .data_rx_o(data_rx),
