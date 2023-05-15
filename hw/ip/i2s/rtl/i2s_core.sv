@@ -23,30 +23,30 @@ module i2s_core #(
     input  logic sd_i,
 
     // config
-    input logic [         ClkDividerWidth-1:0] cfg_clock_div_i,
+    input logic [     ClkDividerWidth-1:0] cfg_clock_div_i,
     input logic [$clog2(MaxWordWidth)-1:0] cfg_word_width_i,
 
     // FIFO
     output logic [MaxWordWidth-1:0] data_rx_o,
-    output logic                   data_rx_valid_o,
-    input  logic                   data_rx_ready_i,
+    output logic                    data_rx_valid_o,
+    input  logic                    data_rx_ready_i,
 
     output logic data_rx_overflow_o
 );
 
-  logic                   ws;
+  logic                    ws;
 
-  logic                   sck_gen;
-  logic                   sck;
+  logic                    sck_gen;
+  logic                    sck;
 
-  logic                   clk_div_ready;
-  logic                   clk_div_running;
+  logic                    clk_div_ready;
+  logic                    clk_div_running;
 
   logic [MaxWordWidth-1:0] data_rx_dc;
-  logic                   data_rx_dc_valid;
-  logic                   data_rx_dc_ready;
+  logic                    data_rx_dc_valid;
+  logic                    data_rx_dc_ready;
 
-  logic                   data_rx_overflow_async;
+  logic                    data_rx_overflow_async;
 
 
   assign ws_o  = ws;
