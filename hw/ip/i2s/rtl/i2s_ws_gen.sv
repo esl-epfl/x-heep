@@ -4,7 +4,7 @@
 
 // Author: Tim Frey <tim.frey@epfl.ch>, EPFL, STI-SEL
 // Date: 13.02.2023
-// Description: I2s peripheral
+// Description: I2s WS (word select) signal generation
 
 // Adapted from github.com/pulp-platform/udma_i2s/blob/master/rtl/i2s_ws_gen.sv 
 // by Antonio Pullini (pullinia@iis.ee.ethz.ch)
@@ -19,18 +19,23 @@ module i2s_ws_gen #(
 
     output logic ws_o,
 
-    input logic [CounterWidth-1:0] cfg_sample_width_i
+    input logic [CounterWidth-1:0] word_width_i  // must not be changed while en_i = 1
 );
 
   logic [CounterWidth-1:0] r_counter;
+  logic ws;
+
+  assign ws_o = en_i & ws;
 
   always_ff @(posedge sck_i, negedge rst_ni) begin
     if (~rst_ni) begin
       r_counter <= 'h0;
     end else begin
       if (en_i) begin
-        if (r_counter == cfg_sample_width_i) r_counter <= 'h0;
+        if (r_counter == word_width_i) r_counter <= 'h0;
         else r_counter <= r_counter + 1;
+      end else begin
+        r_counter <= 0;
       end
     end
   end
@@ -38,10 +43,12 @@ module i2s_ws_gen #(
   //Generate the internal WS signal
   always_ff @(negedge sck_i, negedge rst_ni) begin
     if (~rst_ni) begin
-      ws_o <= 1'b0;
+      ws <= 1'b0;
     end else begin
       if (en_i) begin
-        if (r_counter == cfg_sample_width_i) ws_o <= ~ws_o;
+        if (r_counter == word_width_i) ws <= ~ws;
+      end else begin
+        ws <= 0;
       end
     end
   end
