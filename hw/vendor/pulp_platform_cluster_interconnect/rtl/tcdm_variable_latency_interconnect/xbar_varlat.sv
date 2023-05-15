@@ -120,7 +120,7 @@ for (genvar k = 0; unsigned'(k) < NumOut; k++) begin : gen_outputs
       .NumIn     ( NumIn        ),
       .DataWidth ( ReqDataWidth ),
       .ExtPrio   ( ExtPrio      ),
-      .LockIn    ( LockIn       ),
+      .LockIn    ( LockIn       )
     ) i_rr_arb_tree (
       .clk_i   ( clk_i      ),
       .rst_ni  ( rst_ni     ),
