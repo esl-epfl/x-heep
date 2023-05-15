@@ -47,7 +47,6 @@ module i2s_core #(
   logic                   data_rx_dc_ready;
 
   logic                   data_rx_overflow_async;
-  logic                   data_rx_overflow_q;
 
 
   assign ws_o  = ws;
@@ -134,14 +133,14 @@ module i2s_core #(
   );
 
   // SYNC rx overflow signal
-  always_ff @(posedge clk_i, negedge rst_ni) begin
-    if (~rst_ni) begin
-      data_rx_overflow_q <= 1'b0;
-      data_rx_overflow_o <= 1'b0;
-    end else begin
-      data_rx_overflow_q <= data_rx_overflow_async;
-      data_rx_overflow_o <= data_rx_overflow_q;
-    end
-  end
+  sync #(
+      parameter int unsigned STAGES = 2,
+      parameter bit ResetValue = 1'b0
+  ) data_rx_overflow_sync_i (
+      .clk_i,
+      .rst_ni,
+      serial_i(data_rx_overflow_async),
+      serial_o(data_rx_overflow_o)
+  );
 
 endmodule : i2s_core
