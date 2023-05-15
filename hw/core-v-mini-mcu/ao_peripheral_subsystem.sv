@@ -5,7 +5,11 @@
 module ao_peripheral_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
-(
+#(
+    //do not touch these parameters
+    parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
+    parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
+) (
     input logic clk_i,
     input logic rst_ni,
 
@@ -44,7 +48,7 @@ module ao_peripheral_subsystem
 
     // POWER MANAGER
     input logic [31:0] intr_i,
-    input logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] intr_vector_ext_i,
+    input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
     input logic core_sleep_i,
     output logic cpu_subsystem_powergate_switch_o,
     input logic cpu_subsystem_powergate_switch_ack_i,
@@ -58,11 +62,11 @@ module ao_peripheral_subsystem
     input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_i,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_o,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_o,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_o,
-    input  logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_switch_ack_i,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_powergate_iso_o,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_subsystem_rst_no,
-    output logic [core_v_mini_mcu_pkg::EXTERNAL_DOMAINS-1:0] external_ram_banks_set_retentive_o,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_o,
+    input logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_i,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_o,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
+    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_o,
 
     // Clock gating signals
     output logic peripheral_subsystem_clkgate_en_o,

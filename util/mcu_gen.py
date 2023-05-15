@@ -17,6 +17,7 @@ import csv
 from jsonref import JsonRef
 from mako.template import Template
 import collections
+from math import log2
 
 class Pad:
 
@@ -24,10 +25,10 @@ class Pad:
     self.x_heep_system_interface = self.x_heep_system_interface.rstrip(self.x_heep_system_interface[-1])
 
   def create_pad_ring(self):
-    self.interface = '    inout logic ' + self.name + '_io,\n'
+    self.interface = '    inout wire ' + self.name + '_io,\n'
 
     if self.pad_type == 'input':
-        self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
+        self.pad_ring_io_interface = '    inout wire ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    output logic ' + self.signal_name + 'o,'
         self.pad_ring_instance = \
             'pad_cell_input #(.PADATTR(8)) ' + self.cell_name + ' ( \n' + \
@@ -38,7 +39,7 @@ class Pad:
             '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
             ');\n\n'
     if self.pad_type == 'output':
-        self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
+        self.pad_ring_io_interface = '    inout wire ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'i,'
         self.pad_ring_instance = \
             'pad_cell_output #(.PADATTR(8)) ' + self.cell_name + ' ( \n' + \
@@ -49,7 +50,7 @@ class Pad:
             '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
             ');\n\n'
     if self.pad_type == 'inout':
-        self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
+        self.pad_ring_io_interface = '    inout wire ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'i,\n'
         self.pad_ring_ctrl_interface += '    output logic ' + self.signal_name + 'o,\n'
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'oe_i,'
@@ -168,12 +169,12 @@ class Pad:
         in_internal_signals = self.signal_name + 'in_x' + append_name
         self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'i),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'o(' + in_internal_signals + '),'
-        self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'i,'
+        self.x_heep_system_interface += '    inout wire ' + self.signal_name + 'i,'
     if self.pad_type == 'output':
         out_internal_signals = self.signal_name + 'out_x' + append_name
         self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'o),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'i(' + out_internal_signals + '),'
-        self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'o,'
+        self.x_heep_system_interface += '    inout wire ' + self.signal_name + 'o,'
     if self.pad_type == 'inout':
         in_internal_signals = self.signal_name + 'in_x' + append_name
         out_internal_signals = self.signal_name + 'out_x' + append_name
@@ -182,7 +183,7 @@ class Pad:
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'o(' + in_internal_signals + '),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'i(' + out_internal_signals + '),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'oe_i(' + oe_internal_signals + '),'
-        self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'io,'
+        self.x_heep_system_interface += '    inout wire ' + self.signal_name + 'io,'
 
   def __init__(self, name, cell_name, pad_type, index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list):
 
@@ -316,6 +317,12 @@ def main():
                         default="",
                         help="Number of 32KB Banks (default value from cfg file)")
 
+    parser.add_argument("--memorybanks_il",
+                        metavar="0, 2, 4 or 8",
+                        nargs='?',
+                        default="",
+                        help="Number of interleaved memory banks (default value from cfg file)")
+
     parser.add_argument("--external_domains",
                         metavar="from 0 to 32",
                         nargs='?',
@@ -391,12 +398,30 @@ def main():
         bus_type = obj['bus_type']
 
     if args.memorybanks != None and args.memorybanks != '':
-        ram_numbanks = int(args.memorybanks)
+        ram_numbanks_cont = int(args.memorybanks)
     else:
-        ram_numbanks = int(obj['ram']['numbanks'])
+        ram_numbanks_cont = int(obj['ram']['numbanks'])
 
-    if ram_numbanks < 2 and ram_numbanks > 16:
-        exit("ram numbanks must be between 2 and 16 instead of " + str(ram_numbanks))
+    if args.memorybanks_il != None and args.memorybanks_il != '':
+        ram_numbanks_il = int(args.memorybanks_il)
+    else:
+        ram_numbanks_il = int(obj['ram']['numbanks_interleaved'])
+
+    if ram_numbanks_il != 0:
+        log_ram_numbanks_il = int(log2(ram_numbanks_il))
+
+        if not log2(ram_numbanks_il).is_integer():
+            exit("ram interleaved numbanks must be a power of 2 instead of " + str(ram_numbanks_il))
+    else:
+        log_ram_numbanks_il = 0
+
+    if ram_numbanks_il != 0 and bus_type == 'onetoM':
+        exit("bus type must be 'NtoM' instead 'onetoM' to access the interleaved memory banks in parallel" + str(args.bus))
+
+    if ram_numbanks_cont + ram_numbanks_il < 2 and ram_numbanks_cont + ram_numbanks_il > 16:
+        exit("ram numbanks must be between 2 and 16 instead of " + str(ram_numbanks_cont + ram_numbanks_il))
+    else:
+        ram_numbanks = ram_numbanks_cont + ram_numbanks_il
 
     ram_start_address = string2int(obj['ram']['address'])
     if int(ram_start_address,16) != 0:
@@ -424,15 +449,21 @@ def main():
 
     ao_peripheral_size_address = string2int(obj['ao_peripherals']['length'])
 
+
     def extract_peripherals(peripherals):
-        return {
-            name: {
-                k: string2int(v)
-                for k, v in info.items()
-            }
-            for name, info in peripherals.items()
-            if isinstance(info, dict)
-        }
+        result = {}
+        for name, info in peripherals.items():
+            if isinstance(info, dict):
+                new_info = {}
+                for k, v in info.items():
+                    if k not in ("is_included"):
+                        new_info[k] = string2int(v)
+                    else:
+                        new_info[k] = v
+                result[name] = new_info
+
+        return result
+
 
     def discard_path(peripherals):
         new = {}
@@ -443,8 +474,18 @@ def main():
                 new[k] = v
         return new
 
+    def len_extracted_peripherals(peripherals):
+        len_ep = 0
+        for name, info in peripherals.items():
+            if isinstance(info, dict):
+                for k, v in info.items():
+                   if k in ("is_included"):
+                    if v in ("yes"):
+                        len_ep += 1
+        return len_ep
+
     ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
-    ao_peripherals_count = len(ao_peripherals) 
+    ao_peripherals_count = len(ao_peripherals)
 
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
@@ -453,7 +494,7 @@ def main():
 
     peripheral_size_address = string2int(obj['peripherals']['length'])
     peripherals = extract_peripherals(discard_path(obj['peripherals']))
-    peripherals_count = len(peripherals) 
+    peripherals_count = len(peripherals)
 
     ext_slave_start_address = string2int(obj['ext_slaves']['address'])
     ext_slave_size_address = string2int(obj['ext_slaves']['length'])
@@ -469,69 +510,31 @@ def main():
 
     linker_onchip_data_start_address  = string2int(obj['linker_script']['onchip_ls']['data']['address'])
     if (obj['linker_script']['onchip_ls']['data']['lenght'].split()[0].split(",")[0] == "whatisleft"):
-        linker_onchip_data_size_address  = str('{:08X}'.format(int(ram_size_address,16) - int(linker_onchip_code_size_address,16)))
+        if ram_numbanks_il == 0 or (ram_numbanks_cont == 1 and ram_numbanks_il > 0):
+            linker_onchip_data_size_address  = str('{:08X}'.format(int(ram_size_address,16) - int(linker_onchip_code_size_address,16)))
+        else:
+            linker_onchip_data_size_address  = str('{:08X}'.format(int(ram_size_address,16) - int(linker_onchip_code_size_address,16) - ram_numbanks_il*32*1024))
     else:
-        linker_onchip_data_size_address  = string2int(obj['linker_script']['onchip_ls']['data']['lenght'])
+        if ram_numbanks_il == 0 or (ram_numbanks_cont == 1 and ram_numbanks_il > 0):
+            linker_onchip_data_size_address  = string2int(obj['linker_script']['onchip_ls']['data']['lenght'])
+        else:
+            linker_onchip_data_size_address  = str('{:08X}'.format(int(string2int(obj['linker_script']['onchip_ls']['data']['lenght']),16) - ram_numbanks_il*32*1024))
+
+    linker_onchip_il_start_address = str('{:08X}'.format(int(linker_onchip_data_start_address,16) + int(linker_onchip_data_size_address,16)))
+    linker_onchip_il_size_address = str('{:08X}'.format(ram_numbanks_il*32*1024))
 
     if ((int(linker_onchip_data_size_address,16) + int(linker_onchip_code_size_address,16)) > int(ram_size_address,16)):
         exit("The code and data section must fit in the RAM size, instead they takes " + str(linker_onchip_data_size_address + linker_onchip_code_size_address))
 
-    null_intr = obj['interrupts']['null_intr']
-    uart_intr_tx_watermark = obj['interrupts']['uart_intr_tx_watermark']
-    uart_intr_rx_watermark = obj['interrupts']['uart_intr_rx_watermark']
-    uart_intr_tx_empty = obj['interrupts']['uart_intr_tx_empty']
-    uart_intr_rx_overflow = obj['interrupts']['uart_intr_rx_overflow']
-    uart_intr_rx_frame_err = obj['interrupts']['uart_intr_rx_frame_err']
-    uart_intr_rx_break_err = obj['interrupts']['uart_intr_rx_break_err']
-    uart_intr_rx_timeout = obj['interrupts']['uart_intr_rx_timeout']
-    uart_intr_rx_parity_err = obj['interrupts']['uart_intr_rx_parity_err']
-    gpio_intr_8 = obj['interrupts']['gpio_intr_8']
-    gpio_intr_9 = obj['interrupts']['gpio_intr_9']
-    gpio_intr_10 = obj['interrupts']['gpio_intr_10']
-    gpio_intr_11 = obj['interrupts']['gpio_intr_11']
-    gpio_intr_12 = obj['interrupts']['gpio_intr_12']
-    gpio_intr_13 = obj['interrupts']['gpio_intr_13']
-    gpio_intr_14 = obj['interrupts']['gpio_intr_14']
-    gpio_intr_15 = obj['interrupts']['gpio_intr_15']
-    gpio_intr_16 = obj['interrupts']['gpio_intr_16']
-    gpio_intr_17 = obj['interrupts']['gpio_intr_17']
-    gpio_intr_18 = obj['interrupts']['gpio_intr_18']
-    gpio_intr_19 = obj['interrupts']['gpio_intr_19']
-    gpio_intr_20 = obj['interrupts']['gpio_intr_20']
-    gpio_intr_21 = obj['interrupts']['gpio_intr_21']
-    gpio_intr_22 = obj['interrupts']['gpio_intr_22']
-    gpio_intr_23 = obj['interrupts']['gpio_intr_23']
-    gpio_intr_24 = obj['interrupts']['gpio_intr_24']
-    gpio_intr_25 = obj['interrupts']['gpio_intr_25']
-    gpio_intr_26 = obj['interrupts']['gpio_intr_26']
-    gpio_intr_27 = obj['interrupts']['gpio_intr_27']
-    gpio_intr_28 = obj['interrupts']['gpio_intr_28']
-    gpio_intr_29 = obj['interrupts']['gpio_intr_29']
-    gpio_intr_30 = obj['interrupts']['gpio_intr_30']
-    gpio_intr_31 = obj['interrupts']['gpio_intr_31']
-    intr_fmt_watermark = obj['interrupts']['intr_fmt_watermark']
-    intr_rx_watermark = obj['interrupts']['intr_rx_watermark']
-    intr_fmt_overflow = obj['interrupts']['intr_fmt_overflow']
-    intr_rx_overflow = obj['interrupts']['intr_rx_overflow']
-    intr_nak = obj['interrupts']['intr_nak']
-    intr_scl_interference = obj['interrupts']['intr_scl_interference']
-    intr_sda_interference = obj['interrupts']['intr_sda_interference']
-    intr_stretch_timeout = obj['interrupts']['intr_stretch_timeout']
-    intr_sda_unstable = obj['interrupts']['intr_sda_unstable']
-    intr_trans_complete = obj['interrupts']['intr_trans_complete']
-    intr_tx_empty = obj['interrupts']['intr_tx_empty']
-    intr_tx_nonempty = obj['interrupts']['intr_tx_nonempty']
-    intr_tx_overflow = obj['interrupts']['intr_tx_overflow']
-    intr_acq_overflow = obj['interrupts']['intr_acq_overflow']
-    intr_ack_stop = obj['interrupts']['intr_ack_stop']
-    intr_host_timeout = obj['interrupts']['intr_host_timeout']
-    spi2_intr_event = obj['interrupts']['spi2_intr_event']
-    ext_intr = obj['interrupts']['ext_intr']
+    plic_used_n_interrupts = len(obj['interrupts']['list'])
+    plit_n_interrupts = obj['interrupts']['number']
+    ext_int_list = { f"EXT_INTR_{k}": v for k, v in enumerate(range(plic_used_n_interrupts, plit_n_interrupts)) }
 
-    ext_intr_upper = ext_intr.split(':')[1].replace(',', '')
-    ext_intr_lower = ext_intr.split(':')[0]
+    interrupts = {
+        **obj['interrupts']['list'],
+        **ext_int_list
+    }
 
-    ext_int_list = range(int(ext_intr_lower), int(ext_intr_upper)+1)
 
     pads = obj_pad['pads']
 
@@ -789,6 +792,9 @@ def main():
         "bus_type"                         : bus_type,
         "ram_start_address"                : ram_start_address,
         "ram_numbanks"                     : ram_numbanks,
+        "ram_numbanks_cont"                : ram_numbanks_cont,
+        "ram_numbanks_il"                  : ram_numbanks_il,
+        "log_ram_numbanks_il"              : log_ram_numbanks_il,
         "external_domains"                 : external_domains,
         "ram_size_address"                 : ram_size_address,
         "debug_start_address"              : debug_start_address,
@@ -809,57 +815,11 @@ def main():
         "linker_onchip_code_size_address"  : linker_onchip_code_size_address,
         "linker_onchip_data_start_address" : linker_onchip_data_start_address,
         "linker_onchip_data_size_address"  : linker_onchip_data_size_address,
-        "null_intr"                        : null_intr,
-        "uart_intr_tx_watermark"           : uart_intr_tx_watermark,
-        "uart_intr_rx_watermark"           : uart_intr_rx_watermark,
-        "uart_intr_tx_empty"               : uart_intr_tx_empty,
-        "uart_intr_rx_overflow"            : uart_intr_rx_overflow,
-        "uart_intr_rx_frame_err"           : uart_intr_rx_frame_err,
-        "uart_intr_rx_break_err"           : uart_intr_rx_break_err,
-        "uart_intr_rx_timeout"             : uart_intr_rx_timeout,
-        "uart_intr_rx_parity_err"          : uart_intr_rx_parity_err,
-        "gpio_intr_8"                      : gpio_intr_8,
-        "gpio_intr_9"                      : gpio_intr_9,
-        "gpio_intr_10"                     : gpio_intr_10,
-        "gpio_intr_11"                     : gpio_intr_11,
-        "gpio_intr_12"                     : gpio_intr_12,
-        "gpio_intr_13"                     : gpio_intr_13,
-        "gpio_intr_14"                     : gpio_intr_14,
-        "gpio_intr_15"                     : gpio_intr_15,
-        "gpio_intr_16"                     : gpio_intr_16,
-        "gpio_intr_17"                     : gpio_intr_17,
-        "gpio_intr_18"                     : gpio_intr_18,
-        "gpio_intr_19"                     : gpio_intr_19,
-        "gpio_intr_20"                     : gpio_intr_20,
-        "gpio_intr_21"                     : gpio_intr_21,
-        "gpio_intr_22"                     : gpio_intr_22,
-        "gpio_intr_23"                     : gpio_intr_23,
-        "gpio_intr_24"                     : gpio_intr_24,
-        "gpio_intr_25"                     : gpio_intr_25,
-        "gpio_intr_26"                     : gpio_intr_26,
-        "gpio_intr_27"                     : gpio_intr_27,
-        "gpio_intr_28"                     : gpio_intr_28,
-        "gpio_intr_29"                     : gpio_intr_29,
-        "gpio_intr_30"                     : gpio_intr_30,
-        "gpio_intr_31"                     : gpio_intr_31,
-        "intr_fmt_watermark"               : intr_fmt_watermark,
-        "intr_rx_watermark"                : intr_rx_watermark,
-        "intr_fmt_overflow"                : intr_fmt_overflow,
-        "intr_rx_overflow"                 : intr_rx_overflow,
-        "intr_nak"                         : intr_nak,
-        "intr_scl_interference"            : intr_scl_interference,
-        "intr_sda_interference"            : intr_sda_interference,
-        "intr_stretch_timeout"             : intr_stretch_timeout,
-        "intr_sda_unstable"                : intr_sda_unstable,
-        "intr_trans_complete"              : intr_trans_complete,
-        "intr_tx_empty"                    : intr_tx_empty,
-        "intr_tx_nonempty"                 : intr_tx_nonempty,
-        "intr_tx_overflow"                 : intr_tx_overflow,
-        "intr_acq_overflow"                : intr_acq_overflow,
-        "intr_ack_stop"                    : intr_ack_stop,
-        "intr_host_timeout"                : intr_host_timeout,
-        "spi2_intr_event"                  : spi2_intr_event,
-        "ext_int_list"                     : ext_int_list,
+        "linker_onchip_il_start_address"   : linker_onchip_il_start_address,
+        "linker_onchip_il_size_address"    : linker_onchip_il_size_address,
+        "plic_used_n_interrupts"           : plic_used_n_interrupts,
+        "plit_n_interrupts"                : plit_n_interrupts,
+        "interrupts"                       : interrupts,
         "pad_list"                         : pad_list,
         "external_pad_list"                : external_pad_list,
         "total_pad_list"                   : total_pad_list,

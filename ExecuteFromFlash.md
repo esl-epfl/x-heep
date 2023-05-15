@@ -88,17 +88,16 @@ and the hello_world example.
 To use the link_flash_exec.ld linker script, do:
 
 ```
-cd sw
-make applications/hello_world/hello_world.flash_memio.hex
+make app LINKER=flash_exec
 or
-make applications/gpio_pmw/gpio_pmw.flash_memio.hex
+make app PROJECT=gpio_pmw LINKER=flash_exec
 ```
 Then, when launching the simulation, pass the argument `boot_sel=1` 
 to set the `boot_sel_i` input to `1` and `execute_from_flash=1` to set the 
 `execute_from_flash_i` input to `1`.
 
 ```
-make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.flash_memio.hex boot_sel=1 execute_from_flash=1"
+make run PLUSARGS="c firmware=../../../sw/build/main.hex boot_sel=1 execute_from_flash=1"
 ```
 
 If you are using FPGAs or ASIC, make sure to program the FLASH first.
@@ -123,17 +122,16 @@ and the hello_world example.
 To use the link_flash_load.ld linker script, do:
 
 ```
-cd sw
-make applications/hello_world/hello_world.flash_boot.hex
+make app LINKER=flash_load
 or
-make applications/gpio_pmw/gpio_pmw.flash_boot.hex
+make app PROJECT=gpio_pmw LINKER=flash_load
 ```
 Then, when launching the simulation, pass the argument `boot_sel=1` 
 to set the `boot_sel_i` input to `1` and `execute_from_flash=0` to set the 
 `execute_from_flash_i` input to `0`.
 
 ```
-make run PLUSARGS="c firmware=../../../sw/applications/hello_world/hello_world.flash_boot.hex boot_sel=1 execute_from_flash=0"
+make run PLUSARGS="c firmware=../../../sw/build/main.hex boot_sel=1 execute_from_flash=0"
 ```
 
 If you are using FPGAs or ASIC, make sure to program the FLASH first.
