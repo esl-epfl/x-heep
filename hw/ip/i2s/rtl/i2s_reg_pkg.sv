@@ -7,9 +7,9 @@
 package i2s_reg_pkg;
 
   // Param list
-  parameter int BytePerSampleWidth = 2;
-  parameter int ClkDivSize = 16;
-  parameter int WatermarkSize = 16;
+  parameter int BytePerMaxWordWidth = 2;
+  parameter int ClkDividerWidth = 16;
+  parameter int WatermarkWidth = 16;
 
   // Address widths within the block
   parameter int BlockAw = 5;

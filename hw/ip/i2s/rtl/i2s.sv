@@ -4,7 +4,8 @@
 
 // Author: Tim Frey <tim.frey@epfl.ch>, EPFL, STI-SEL
 // Date: 07.02.2023
-// Description: I2s peripheral
+// Description: I2s peripheral top level module
+//              Interfacing the bus <-> registers <-> peripheral core logic
 
 module i2s #(
     parameter type reg_req_t = logic,
@@ -37,8 +38,6 @@ module i2s #(
 
   import i2s_reg_pkg::*;
 
-  localparam SampleWidth = (1 << BytePerSampleWidth) * 8;
-  localparam CounterWidth = BytePerSampleWidth + 3;
 
   // Interface signals
   // /* verilator lint_off UNUSED */
@@ -46,15 +45,15 @@ module i2s #(
   // /* verilator lint_on UNUSED */
   i2s_hw2reg_t hw2reg;
 
-  logic [SampleWidth-1:0] data_rx;
+  logic [MaxWordWidth-1:0] data_rx;
   logic data_rx_valid;
   logic data_rx_ready;
   logic data_rx_overflow;
 
   logic event_i2s_event;
 
-  logic [CounterWidth-1:0] sample_width;
-  assign sample_width = {reg2hw.control.data_width.q, 3'h7};
+  logic [$clog2(MaxWordWidth)-1:0] word_width;
+  assign word_width = {reg2hw.control.data_width.q, 3'h7};
 
 
   // I2s RX -> Bus
@@ -100,8 +99,8 @@ module i2s #(
 
   // Core logic
   i2s_core #(
-      .SampleWidth(SampleWidth),
-      .ClkDivSize (ClkDivSize)
+      .MaxWordWidth(MaxWordWidth),
+      .ClkDividerWidth (ClkDividerWidth)
   ) i2s_core_i (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
@@ -115,7 +114,7 @@ module i2s #(
       .sd_i (i2s_sd_i),
 
       .cfg_clock_div_i(reg2hw.clkdividx.q),
-      .cfg_sample_width_i(sample_width),
+      .cfg_word_width_i(word_width),
 
       .data_rx_o(data_rx),
       .data_rx_valid_o(data_rx_valid),
@@ -127,7 +126,7 @@ module i2s #(
   // watermark counter
   // count bus reads and trigger interrupt 
   event_counter #(
-      .WIDTH(WatermarkSize)
+      .WIDTH(WatermarkWidth)
   ) watermark_counter (
       .clk_i,
       .rst_ni,

@@ -9,18 +9,17 @@
   ],
   regwidth: "32",
   param_list: [
-    { name: "BytePerSampleWidth",
-      desc: '''Defines the maximal number of bytes that can be 
-               configured to be received per sample''',
+    { name: "MaxWordWidth",
+      desc: '''Defines the maximal word width''',
       type: "int",
-      default: "2"
+      default: "32"
     }
-    { name: "ClkDivSize",
+    { name: "ClkDividerWidth",
       desc: '''Bits available for the clock divider''',
       type: "int",
       default: "16"
     }
-    { name: "WatermarkSize",
+    { name: "WatermarkWidth",
       desc: '''Bits available for the watermark''',
       type: "int",
       default: "16"

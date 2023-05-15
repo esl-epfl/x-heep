@@ -4,11 +4,11 @@
 
 // Author: Tim Frey <tim.frey@epfl.ch>, EPFL, STI-SEL
 // Date: 13.02.2023
-// Description: I2s peripheral
+// Description: I2s core logic 
 
 module i2s_core #(
-    parameter SampleWidth,
-    parameter ClkDivSize
+    parameter MaxWordWidth,
+    parameter ClkDividerWidth
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -23,11 +23,11 @@ module i2s_core #(
     input  logic sd_i,
 
     // config
-    input logic [         ClkDivSize-1:0] cfg_clock_div_i,
-    input logic [$clog2(SampleWidth)-1:0] cfg_sample_width_i,
+    input logic [         ClkDividerWidth-1:0] cfg_clock_div_i,
+    input logic [$clog2(MaxWordWidth)-1:0] cfg_word_width_i,
 
     // FIFO
-    output logic [SampleWidth-1:0] data_rx_o,
+    output logic [MaxWordWidth-1:0] data_rx_o,
     output logic                   data_rx_valid_o,
     input  logic                   data_rx_ready_i,
 
@@ -42,7 +42,7 @@ module i2s_core #(
   logic                   clk_div_ready;
   logic                   clk_div_running;
 
-  logic [SampleWidth-1:0] data_rx_dc;
+  logic [MaxWordWidth-1:0] data_rx_dc;
   logic                   data_rx_dc_valid;
   logic                   data_rx_dc_ready;
 
@@ -54,7 +54,7 @@ module i2s_core #(
   assign sck_o = sck;
 
   clk_int_div #(
-      .DIV_VALUE_WIDTH(ClkDivSize),
+      .DIV_VALUE_WIDTH(ClkDividerWidth),
       .DEFAULT_DIV_VALUE(2)  // HAS TO BE BIGGER THAN ONE TO GET THE START RIGHT
   ) i2s_clk_gen_i (
       .clk_i(clk_i),
@@ -88,17 +88,17 @@ module i2s_core #(
   );
 
   i2s_ws_gen #(
-      .SampleWidth(SampleWidth)
+      .MaxWordWidth(MaxWordWidth)
   ) i2s_ws_gen_i (
       .sck_i(sck),
       .rst_ni(rst_ni),
       .en_i(en_ws_i),
       .ws_o(ws),
-      .cfg_sample_width_i(cfg_sample_width_i)
+      .word_width_i(cfg_word_width_i)
   );
 
   i2s_rx_channel #(
-      .SampleWidth(SampleWidth)
+      .MaxWordWidth(MaxWordWidth)
   ) i2s_rx_channel_i (
       .sck_i(sck),
       .rst_ni(rst_ni),
@@ -107,7 +107,7 @@ module i2s_core #(
       .ws_i(ws),
       .sd_i(sd_i),
 
-      .cfg_sample_width_i(cfg_sample_width_i),
+      .word_width_i(cfg_word_width_i),
 
       .data_o(data_rx_dc),
       .data_valid_o(data_rx_dc_valid),

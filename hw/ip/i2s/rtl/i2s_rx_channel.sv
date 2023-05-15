@@ -4,14 +4,14 @@
 
 // Author: Tim Frey <tim.frey@epfl.ch>, EPFL, STI-SEL
 // Date: 13.02.2023
-// Description: I2s peripheral
+// Description: I2s rx_channel processing the SDIN signal 
 
 // Adapted from github.com/pulp-platform/udma_i2s/blob/master/rtl/i2s_rx_channel.sv 
 // by Antonio Pullini (pullinia@iis.ee.ethz.ch)
 
 module i2s_rx_channel #(
-    parameter  int unsigned SampleWidth,
-    localparam int unsigned CounterWidth = $clog2(SampleWidth)
+    parameter  int unsigned MaxWordWidth,
+    localparam int unsigned CounterWidth = $clog2(MaxWordWidth)
 ) (
     input logic sck_i,
     input logic rst_ni,
@@ -21,10 +21,10 @@ module i2s_rx_channel #(
     input logic sd_i,
 
     // config
-    input logic [CounterWidth-1:0] cfg_sample_width_i,
+    input logic [CounterWidth-1:0] word_width_i, // must not be changed while either channel is enabled
 
-    // FIFO
-    output logic [SampleWidth-1:0] data_o,
+    // read data out (stream interface)
+    output logic [MaxWordWidth-1:0] data_o,
     output logic                   data_valid_o,
     input  logic                   data_ready_i,
 
@@ -36,9 +36,9 @@ module i2s_rx_channel #(
   logic r_ws_old;
   logic s_ws_edge;
 
-  logic [SampleWidth-1:0] r_shiftreg;
-  logic [SampleWidth-1:0] s_shiftreg;
-  logic [SampleWidth-1:0] r_shadow;
+  logic [MaxWordWidth-1:0] r_shiftreg;
+  logic [MaxWordWidth-1:0] s_shiftreg;
+  logic [MaxWordWidth-1:0] r_shadow;
 
   logic [CounterWidth-1:0] r_count_bit;
 
@@ -63,7 +63,7 @@ module i2s_rx_channel #(
       s_shiftreg = 'h0;
     end
     if (!width_overflow) begin
-      s_shiftreg[cfg_sample_width_i-r_count_bit] = sd_i;
+      s_shiftreg[word_width_i-r_count_bit] = sd_i;
     end
   end
 
@@ -109,7 +109,7 @@ module i2s_rx_channel #(
         if (s_ws_edge) begin
           r_count_bit <= 'h0;
           width_overflow <= 1'b0;
-        end else if (r_count_bit < cfg_sample_width_i) begin
+        end else if (r_count_bit < word_width_i) begin
           r_count_bit <= r_count_bit + 1;
         end else begin
           width_overflow <= 1'b1;

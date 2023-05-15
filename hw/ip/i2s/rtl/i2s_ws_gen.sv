@@ -10,8 +10,8 @@
 // by Antonio Pullini (pullinia@iis.ee.ethz.ch)
 
 module i2s_ws_gen #(
-    parameter SampleWidth,
-    localparam int unsigned CounterWidth = $clog2(SampleWidth)
+    parameter MaxWordWidth,
+    localparam int unsigned CounterWidth = $clog2(MaxWordWidth)
 ) (
     input logic sck_i,
     input logic rst_ni,
