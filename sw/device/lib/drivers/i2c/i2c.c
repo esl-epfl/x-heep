@@ -5,7 +5,7 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : i2c.c                                                        **
-** date     : 17/04/2023                                                   **
+** date     : 16/05/2023                                                   **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -20,10 +20,13 @@
 /**
 * @file   i2c.c
 * @date   17/04/2023
-* @brief  This is the main header of template.c
+* @brief  This is the main file for the HAL of the I2C peripheral
 *
-* Here typically goes a more extensive explanation of what the header
-* defines.
+* In this files there are definitions of low level HAL functions to interact
+* with the registers of the I2C peripheral.
+* The functionalities implemented allow to configure the peripheral with
+* parameters for the FMT and RX fifos, enable or disable interrupts and write
+* and read bytes.
 */
 
 
@@ -208,7 +211,7 @@ i2c_result_t i2c_irq_is_pending(i2c_irq_t irq, bool *is_pending)
   }
 
   bitfield_bit32_index_t index = 0;
-  if (irq_index(irq, &index))
+  if (!irq_index(irq, &index))
   {
     return kI2cBadArg;
   }
@@ -243,11 +246,6 @@ i2c_result_t i2c_irq_get_enabled(i2c_irq_t irq, i2c_toggle_t *state)
   {
     return kI2cBadArg;
   }
-
-  // TODO: qua posso ritornare direttamente `state` ma devo prima cambiare 
-  // l'ordine dell'enum
-  // uint32_t is_enabled = bitfield_read(i2c_peri->INTR_ENABLE, BIT_MASK_1, index);
-  // *state = is_enabled ? kI2cToggleEnabled : kI2cToggleDisabled;
 
   *state = bitfield_read(i2c_peri->INTR_ENABLE, BIT_MASK_1, index);
 

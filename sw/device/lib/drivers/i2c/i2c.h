@@ -5,7 +5,7 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : i2c.h                                                        **
-** date     : 17/04/2023                                                   **
+** date     : 16/05/2023                                                   **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -20,10 +20,13 @@
 /**
 * @file   i2c.h
 * @date   17/04/2023
-* @brief  This is the main header of template.c
+* @brief  This is the main header file of the HAL for I2C peripheral
 *
-* Here typically goes a more extensive explanation of what the header
-* defines.
+* In this files there are definitions of low level HAL functions to interact
+* with the registers of the I2C peripheral.
+* The functionalities implemented allow to configure the peripheral with
+* parameters for the FMT and RX fifos, enable or disable interrupts and write
+* and read bytes.
 */
 
 #ifndef _I2C_H_
