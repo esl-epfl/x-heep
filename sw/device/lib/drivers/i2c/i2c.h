@@ -19,7 +19,7 @@
 
 /**
 * @file   i2c.h
-* @date   17/04/2023
+* @date   16/05/2023
 * @brief  This is the main header file of the HAL for I2C peripheral
 *
 * In this files there are definitions of low level HAL functions to interact
