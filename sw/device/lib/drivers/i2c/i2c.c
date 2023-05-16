@@ -60,11 +60,23 @@ static const uint32_t kNanosPerKBaud = 1000000;  // One million.
 /**                                                                        **/
 /****************************************************************************/
 
+/**
+ * Performs a 32-bit integer unsigned division, rounding up. The bottom
+ * 16 bits of the result are then returned.
+ */
 static uint16_t round_up_divide(uint32_t a, uint32_t b);
 
+
+/**
+ * Computes default timing parameters for a particular I2C speed, given the
+ * clock period, in nanoseconds.
+ */
 static i2c_config_t default_timing_for_speed(i2c_speed_t speed,
                                                  uint32_t clock_period_nanos);
 
+/**
+ * Calculates the bit index relative to the irq parameter.
+*/
 bool irq_index(i2c_irq_t irq, bitfield_bit32_index_t *bit_index);
 
 /****************************************************************************/
@@ -88,21 +100,21 @@ bool irq_index(i2c_irq_t irq, bitfield_bit32_index_t *bit_index);
 i2c_result_t i2c_compute_timing(i2c_timing_config_t timing_config,
                                         i2c_config_t *config) {
   if (config == NULL) {
-    return kDifI2cBadArg;
+    return kI2cBadArg;
   }
   uint32_t lowest_target_device_speed_khz;
   switch (timing_config.lowest_target_device_speed) {
-    case kDifI2cSpeedStandard:
+    case kI2cSpeedStandard:
       lowest_target_device_speed_khz = 100;
       break;
-    case kDifI2cSpeedFast:
+    case kI2cSpeedFast:
       lowest_target_device_speed_khz = 400;
       break;
-    case kDifI2cSpeedFastPlus:
+    case kI2cSpeedFastPlus:
       lowest_target_device_speed_khz = 1000;
       break;
     default:
-      return kDifI2cBadArg;
+      return kI2cBadArg;
   }
 
   *config = default_timing_for_speed(timing_config.lowest_target_device_speed,
@@ -130,7 +142,7 @@ i2c_result_t i2c_compute_timing(i2c_timing_config_t timing_config,
     config->scl_time_high_cycles = lengthened_high_cycles;
   }
 
-  return kDifI2cOk;
+  return kI2cOk;
 }
 
 i2c_result_t i2c_configure(i2c_config_t config)
@@ -192,18 +204,18 @@ i2c_result_t i2c_configure(i2c_config_t config)
 i2c_result_t i2c_irq_is_pending(i2c_irq_t irq, bool *is_pending)
 {
   if (is_pending == NULL) {
-    return kDifI2cBadArg;
+    return kI2cBadArg;
   }
 
   bitfield_bit32_index_t index = 0;
   if (irq_index(irq, &index))
   {
-    return kDifI2cBadArg;
+    return kI2cBadArg;
   }
 
   *is_pending = bitfield_read(i2c_peri->INTR_STATE, BIT_MASK_1, index);
 
-  return kDifI2cOk;
+  return kI2cOk;
 }
 
 
@@ -211,7 +223,7 @@ i2c_result_t i2c_irq_acknowledge(i2c_irq_t irq) {
 
   bitfield_bit32_index_t index = 0;
   if (!irq_index(irq, &index)) {
-    return kDifI2cBadArg;
+    return kI2cBadArg;
   }
 
   i2c_peri->INTR_STATE = bitfield_write(0, 
@@ -219,7 +231,7 @@ i2c_result_t i2c_irq_acknowledge(i2c_irq_t irq) {
                                         index,
                                         true);
 
-  return kDifI2cOk;
+  return kI2cOk;
 }
 
 
@@ -229,49 +241,40 @@ i2c_result_t i2c_irq_get_enabled(i2c_irq_t irq, i2c_toggle_t *state)
 
   if(!irq_index(irq, &index))
   {
-    return kDifI2cBadArg;
+    return kI2cBadArg;
   }
-
-  uint32_t is_enabled = bitfield_read(i2c_peri->INTR_ENABLE, BIT_MASK_1, index);
 
   // TODO: qua posso ritornare direttamente `state` ma devo prima cambiare 
   // l'ordine dell'enum
-  *state = is_enabled ? kI2cToggleEnabled : kI2cToggleDisabled;
+  // uint32_t is_enabled = bitfield_read(i2c_peri->INTR_ENABLE, BIT_MASK_1, index);
+  // *state = is_enabled ? kI2cToggleEnabled : kI2cToggleDisabled;
 
-  return kDifI2cOk;
+  *state = bitfield_read(i2c_peri->INTR_ENABLE, BIT_MASK_1, index);
+
+  return kI2cOk;
 }
 
 
 i2c_result_t i2c_irq_set_enabled(i2c_irq_t irq, i2c_toggle_t state)
 {
+
+  if (state != kI2cToggleEnabled && state != kI2cToggleDisabled)
+  {
+    return kI2cBadArg;
+  }
+
   bitfield_bit32_index_t index = 0;
   if (!irq_index(irq, &index))
   {
-    return kDifI2cBadArg;
-  }
-
-  bool flag = false;
-
-  switch (state)
-  {
-  case kI2cToggleEnabled:
-    flag = true;
-    break;
-  
-  case kI2cToggleDisabled:
-    flag = false;
-    break;
-
-  default:
-    return kDifI2cBadArg;
+    return kI2cBadArg;
   }
 
   i2c_peri->INTR_ENABLE = bitfield_write(i2c_peri->INTR_ENABLE, 
                                           BIT_MASK_1, 
                                           index, 
-                                          flag);
+                                          state);
 
-  return kDifI2cOk;
+  return kI2cOk;
 }
 
 
@@ -281,15 +284,15 @@ i2c_result_t i2c_irq_force(i2c_irq_t irq)
   bitfield_bit32_index_t index;
   if (!irq_index(irq, &index)) 
   {
-    return kDifI2cBadArg;
+    return kI2cBadArg;
   }
 
-  i2c_peri->INTR_TEST = bitfield_write(i2c_peri->INTR_TEST,
+  i2c_peri->INTR_TEST = bitfield_write(0,
                                         BIT_MASK_1,
                                         index,
                                         true);
 
-  return kDifI2cOk;
+  return kI2cOk;
 }
 
 
@@ -302,19 +305,19 @@ i2c_result_t i2c_irq_disable_all(i2c_irq_snapshot_t *snapshot)
 
   i2c_peri->INTR_ENABLE = 0;
 
-  return kDifI2cOk;
+  return kI2cOk;
 }
 
 
 i2c_result_t i2c_irq_restore_all(const i2c_irq_snapshot_t *snapshot)
 {
   if (snapshot == NULL) {
-    return kDifI2cBadArg;
+    return kI2cBadArg;
   }
 
   i2c_peri->INTR_ENABLE = *snapshot;
 
-  return kDifI2cOk;
+  return kI2cOk;
 }
 i2c_result_t i2c_reset_rx_fifo() {
 
@@ -322,11 +325,7 @@ i2c_result_t i2c_reset_rx_fifo() {
                                         BIT_MASK_1,
                                         I2C_FIFO_CTRL_RXRST_BIT,
                                         true);
-  // i2c_peri->FIFO_CTRL = bitfield_write(0,
-  //                                       BIT_MASK_1,
-  //                                       I2C_FIFO_CTRL_RXRST_BIT,
-  //                                       true);
-  return kDifI2cOk;
+  return kI2cOk;
 }
 
 i2c_result_t i2c_reset_fmt_fifo() {
@@ -335,14 +334,14 @@ i2c_result_t i2c_reset_fmt_fifo() {
                                         BIT_MASK_1,
                                         I2C_FIFO_CTRL_FMTRST_BIT,
                                         true);
-  return kDifI2cOk;
+  return kI2cOk;
 }
 
 
 i2c_result_t i2c_set_watermarks(i2c_level_t rx_level, i2c_level_t fmt_level) {
 
   // TODO: is it bad in these 2 cases to use directly the value of
-  // the level_t enum to avoid the case switch and to read the MACRO.
+  // the level_t enum to avoid the case switch and to read the MACRO?
   // The values are the same anyway
   ptrdiff_t rx_level_value;
   switch (rx_level) {
@@ -362,7 +361,7 @@ i2c_result_t i2c_set_watermarks(i2c_level_t rx_level, i2c_level_t fmt_level) {
       rx_level_value = I2C_FIFO_CTRL_RXILVL_VALUE_RXLVL30;
       break;
     default:
-      return kDifI2cBadArg;
+      return kI2cBadArg;
   }
 
   ptrdiff_t fmt_level_value;
@@ -380,7 +379,7 @@ i2c_result_t i2c_set_watermarks(i2c_level_t rx_level, i2c_level_t fmt_level) {
       fmt_level_value = I2C_FIFO_CTRL_FMTILVL_VALUE_FMTLVL16;
       break;
     default:
-      return kDifI2cBadArg;
+      return kI2cBadArg;
   }
 
   i2c_peri->FIFO_CTRL = bitfield_write(i2c_peri->FIFO_CTRL, 
@@ -393,52 +392,38 @@ i2c_result_t i2c_set_watermarks(i2c_level_t rx_level, i2c_level_t fmt_level) {
                                       fmt_level_value);
 
 
-  return kDifI2cOk;
+  return kI2cOk;
 }
 
 
 i2c_result_t i2c_host_set_enabled(i2c_toggle_t state) {
 
-  bool flag;
-  switch (state) {
-    case kI2cToggleEnabled:
-      flag = true;
-      break;
-    case kI2cToggleDisabled:
-      flag = false;
-      break;
-    default:
-      return kDifI2cBadArg;
+  if (state != kI2cToggleEnabled && state != kI2cToggleDisabled)
+  {
+    return kI2cBadArg;
   }
 
   i2c_peri->CTRL = bitfield_write(i2c_peri->CTRL,
                                   BIT_MASK_1,
                                   I2C_CTRL_ENABLEHOST_BIT,
-                                  flag);
+                                  state);
 
-  return kDifI2cOk;
+  return kI2cOk;
 }
 
 i2c_result_t i2c_override_set_enabled(i2c_toggle_t state) {
 
-  bool flag;
-  switch (state) {
-    case kI2cToggleEnabled:
-      flag = true;
-      break;
-    case kI2cToggleDisabled:
-      flag = false;
-      break;
-    default:
-      return kDifI2cBadArg;
+  if (state != kI2cToggleEnabled && state != kI2cToggleDisabled)
+  {
+    return kI2cBadArg;
   }
 
   i2c_peri->OVRD = bitfield_write(i2c_peri->OVRD,
                                   BIT_MASK_1,
                                   I2C_OVRD_TXOVRDEN_BIT,
-                                  flag);
+                                  state);
 
-  return kDifI2cOk;
+  return kI2cOk;
 }
 
 i2c_result_t i2c_override_drive_pins(bool scl, bool sda) {
@@ -451,7 +436,7 @@ i2c_result_t i2c_override_drive_pins(bool scl, bool sda) {
                                   BIT_MASK_1,
                                   I2C_OVRD_SDAVAL_BIT,
                                   sda);
-  return kDifI2cOk;
+  return kI2cOk;
 }
 
 i2c_result_t i2c_override_sample_pins(uint16_t *scl_samples,
@@ -467,7 +452,7 @@ i2c_result_t i2c_override_sample_pins(uint16_t *scl_samples,
     bitfield_read(i2c_peri->VAL, I2C_VAL_SDA_RX_MASK, I2C_VAL_SDA_RX_OFFSET);
   }
 
-  return kDifI2cOk;
+  return kI2cOk;
 }
 
 
@@ -488,7 +473,7 @@ i2c_result_t i2c_get_fifo_levels(uint8_t *fmt_fifo_level,
                                     I2C_FIFO_STATUS_RXLVL_OFFSET);
   }
 
-  return kDifI2cOk;
+  return kI2cOk;
 }
 
 i2c_result_t i2c_read_byte(uint8_t *byte) {
@@ -498,7 +483,7 @@ i2c_result_t i2c_read_byte(uint8_t *byte) {
     *byte = bitfield_read(i2c_peri->RDATA, I2C_RDATA_RDATA_MASK, I2C_RDATA_RDATA_OFFSET);
   }
 
-  return kDifI2cOk;
+  return kI2cOk;
 }
 
 i2c_result_t i2c_write_byte_raw(uint8_t byte, i2c_fmt_flags_t flags) {
@@ -508,12 +493,12 @@ i2c_result_t i2c_write_byte_raw(uint8_t byte, i2c_fmt_flags_t flags) {
   bool has_write_flags = flags.start || flags.stop || flags.suppress_nak_irq;
   bool has_read_flags = flags.read || flags.read_cont;
   if (has_write_flags && has_read_flags) {
-    return kDifI2cBadArg;
+    return kI2cBadArg;
   }
 
   // Also, read_cont requires read.
   if (flags.read_cont && !flags.read) {
-    return kDifI2cBadArg;
+    return kI2cBadArg;
   }
 
   /*
@@ -532,7 +517,7 @@ i2c_result_t i2c_write_byte_raw(uint8_t byte, i2c_fmt_flags_t flags) {
   i2c_peri->FDATA = fmt_entry;
   
 
-  return kDifI2cOk;
+  return kI2cOk;
 }
 
 i2c_result_t i2c_write_byte(uint8_t byte, i2c_fmt_t code, bool suppress_nak_irq) {
@@ -540,10 +525,10 @@ i2c_result_t i2c_write_byte(uint8_t byte, i2c_fmt_t code, bool suppress_nak_irq)
   // Validate that `suppress_nak_irq` has not been mixed with an Rx code.
   if (suppress_nak_irq) {
     switch (code) {
-      case kDifI2cFmtRx:
-      case kDifI2cFmtRxContinue:
-      case kDifI2cFmtRxStop:
-        return kDifI2cBadArg;
+      case kI2cFmtRx:
+      case kI2cFmtRxContinue:
+      case kI2cFmtRxStop:
+        return kI2cBadArg;
       default:
         break;
     }
@@ -552,27 +537,27 @@ i2c_result_t i2c_write_byte(uint8_t byte, i2c_fmt_t code, bool suppress_nak_irq)
   // Convert the format code into flags.
   i2c_fmt_flags_t flags = {.suppress_nak_irq = suppress_nak_irq};
   switch (code) {
-    case kDifI2cFmtStart:
+    case kI2cFmtStart:
       flags.start = true;
       break;
-    case kDifI2cFmtTx:
+    case kI2cFmtTx:
       break;
-    case kDifI2cFmtTxStop:
+    case kI2cFmtTxStop:
       flags.stop = true;
       break;
-    case kDifI2cFmtRx:
+    case kI2cFmtRx:
       flags.read = true;
       break;
-    case kDifI2cFmtRxContinue:
+    case kI2cFmtRxContinue:
       flags.read = true;
       flags.read_cont = true;
       break;
-    case kDifI2cFmtRxStop:
+    case kI2cFmtRxStop:
       flags.read = true;
       flags.stop = true;
       break;
     default:
-      return kDifI2cBadArg;
+      return kI2cBadArg;
   }
 
   return i2c_write_byte_raw(byte, flags);
@@ -585,10 +570,7 @@ i2c_result_t i2c_write_byte(uint8_t byte, i2c_fmt_t code, bool suppress_nak_irq)
 /**                                                                        **/
 /****************************************************************************/
 
-/**
- * Performs a 32-bit integer unsigned division, rounding up. The bottom
- * 16 bits of the result are then returned.
- */
+
 uint16_t round_up_divide(uint32_t a, uint32_t b) {
   if (a == 0) {
     return 0;
@@ -597,15 +579,12 @@ uint16_t round_up_divide(uint32_t a, uint32_t b) {
   return ((a - 1) / b) + 1;
 }
 
-/**
- * Computes default timing parameters for a particular I2C speed, given the
- * clock period, in nanoseconds.
- */
+
 i2c_config_t default_timing_for_speed(i2c_speed_t speed,
                                                  uint32_t clock_period_nanos) {
   // All values are given in nanoseconds
   switch (speed) {
-    case kDifI2cSpeedStandard:
+    case kI2cSpeedStandard:
       return (i2c_config_t){
           .scl_time_high_cycles = round_up_divide(4000, clock_period_nanos),
           .scl_time_low_cycles = round_up_divide(4700, clock_period_nanos),
@@ -617,7 +596,7 @@ i2c_config_t default_timing_for_speed(i2c_speed_t speed,
           .stop_signal_setup_cycles = round_up_divide(4000, clock_period_nanos),
           .stop_signal_hold_cycles = round_up_divide(4700, clock_period_nanos),
       };
-    case kDifI2cSpeedFast:
+    case kI2cSpeedFast:
       return (i2c_config_t){
           .scl_time_high_cycles = round_up_divide(600, clock_period_nanos),
           .scl_time_low_cycles = round_up_divide(1300, clock_period_nanos),
@@ -628,7 +607,7 @@ i2c_config_t default_timing_for_speed(i2c_speed_t speed,
           .stop_signal_setup_cycles = round_up_divide(600, clock_period_nanos),
           .stop_signal_hold_cycles = round_up_divide(1300, clock_period_nanos),
       };
-    case kDifI2cSpeedFastPlus:
+    case kI2cSpeedFastPlus:
       return (i2c_config_t){
           .scl_time_high_cycles = round_up_divide(260, clock_period_nanos),
           .scl_time_low_cycles = round_up_divide(500, clock_period_nanos),
@@ -649,31 +628,31 @@ bool irq_index(i2c_irq_t irq, bitfield_bit32_index_t *bit_index)
 {
   switch (irq) 
   {
-    case kDifI2cIrqFmtWatermarkUnderflow:
+    case kI2cIrqFmtWatermarkUnderflow:
     *bit_index = I2C_INTR_COMMON_FMT_WATERMARK_BIT;
     break;
-    case kDifI2cIrqRxWatermarkOverflow:
+    case kI2cIrqRxWatermarkOverflow:
       *bit_index = I2C_INTR_COMMON_RX_WATERMARK_BIT;
       break;
-    case kDifI2cIrqFmtFifoOverflow:
+    case kI2cIrqFmtFifoOverflow:
       *bit_index = I2C_INTR_COMMON_FMT_OVERFLOW_BIT;
       break;
-    case kDifI2cIrqRxFifoOverflow:
+    case kI2cIrqRxFifoOverflow:
       *bit_index = I2C_INTR_COMMON_RX_OVERFLOW_BIT;
       break;
-    case kDifI2cIrqNak:
+    case kI2cIrqNak:
       *bit_index = I2C_INTR_COMMON_NAK_BIT;
       break;
-    case kDifI2cIrqSclInterference:
+    case kI2cIrqSclInterference:
       *bit_index = I2C_INTR_COMMON_SCL_INTERFERENCE_BIT;
       break;
-    case kDifI2cIrqSdaInterference:
+    case kI2cIrqSdaInterference:
       *bit_index = I2C_INTR_COMMON_SDA_INTERFERENCE_BIT;
       break;
-    case kDifI2cIrqClockStretchTimeout:
+    case kI2cIrqClockStretchTimeout:
       *bit_index = I2C_INTR_COMMON_STRETCH_TIMEOUT_BIT;
       break;
-    case kDifI2cIrqSdaUnstable:
+    case kI2cIrqSdaUnstable:
       *bit_index = I2C_INTR_COMMON_SDA_UNSTABLE_BIT;
       break;
     default:

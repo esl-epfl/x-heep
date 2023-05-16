@@ -55,14 +55,14 @@
  * A toggle state: enabled ior disabled.
 */
 typedef enum i2c_toggle {
-  /*
-   * The "enabled" state.
-   */
-  kI2cToggleEnabled,
   /**
    * The "disabled" state.
    */
   kI2cToggleDisabled,
+  /*
+   * The "enabled" state.
+   */
+  kI2cToggleEnabled
 } i2c_toggle_t;
 
 
@@ -73,18 +73,18 @@ typedef enum i2c_result {
   /**
    * Indicates that the operation succeeded.
    */
-  kDifI2cOk = 0,
+  kI2cOk = 0,
   /**
    * Indicates some unspecified failure.
    */
-  kDifI2cError = 1,
+  kI2cError = 1,
   /**
    * Indicates that some parameter passed into a function failed a
    * precondition.
    *
    * When this value is returned, no hardware operations occurred.
    */
-  kDifI2cBadArg = 2,
+  kI2cBadArg = 2,
 } i2c_result_t;
 
 
@@ -97,15 +97,15 @@ typedef enum i2c_speed {
   /**
    * Standard speed, 100 kilobaud.
    */
-  kDifI2cSpeedStandard,
+  kI2cSpeedStandard,
   /**
    * Fast speed, 400 kilobaud.
    */
-  kDifI2cSpeedFast,
+  kI2cSpeedFast,
   /**
    * Fast plus speed, 1 megabaud.
    */
-  kDifI2cSpeedFastPlus,
+  kI2cSpeedFastPlus,
 } i2c_speed_t;
 
 
@@ -273,21 +273,21 @@ typedef enum i2c_fmt {
    *
    * May be followed by any format code.
    */
-  kDifI2cFmtStart,
+  kI2cFmtStart,
   /**
    * Transmit byte. This simply sends the byte. It may need to be used in
    * conjunction with `Start` to send a multi-byte target address.
    *
    * May be followed by any format code.
    */
-  kDifI2cFmtTx,
+  kI2cFmtTx,
   /**
    * Transmit byte and stop. This sends the byte, and then sends a stop
    * signal, completing a transaction.
    *
    * Only `Start` may follow this code.
    */
-  kDifI2cFmtTxStop,
+  kI2cFmtTxStop,
   /**
    * Request `n` bytes, where `n` is the byte interpreted as an unsigned
    * integer; a byte value of `0` will be interpreted as requesting `256`
@@ -296,21 +296,21 @@ typedef enum i2c_fmt {
    * Only `Start` may follow this code (this code does not stop a transaction;
    * see `RxStop`).
    */
-  kDifI2cFmtRx,
+  kI2cFmtRx,
   /**
    * Request `n` bytes, same as `Rx`, but ACK the last byte so that more data
    * can be requested.
    *
    * May be followed by `RxContinue`, `Rx`, or `RxStop`.
    */
-  kDifI2cFmtRxContinue,
+  kI2cFmtRxContinue,
   /**
    * Request `n` bytes, same as `Rx`, but, after NAKing the last byte, send a
    * stop signal to end the transaction.
    *
    * Only `Start` may follow this code.
    */
-  kDifI2cFmtRxStop,
+  kI2cFmtRxStop,
 } i2c_fmt_t;
 
 
@@ -321,39 +321,39 @@ typedef enum i2c_irq {
   /**
    * Fired when the FMT FIFO underflows its watermark.
    */
-  kDifI2cIrqFmtWatermarkUnderflow = 0,
+  kI2cIrqFmtWatermarkUnderflow = 0,
   /**
    * Fired when the RX FIFO overflows its watermark.
    */
-  kDifI2cIrqRxWatermarkOverflow,
+  kI2cIrqRxWatermarkOverflow,
   /**
    * Fired when the FMT FIFO overflows.
    */
-  kDifI2cIrqFmtFifoOverflow,
+  kI2cIrqFmtFifoOverflow,
   /**
    * Fired when the RX FIFO overflows.
    */
-  kDifI2cIrqRxFifoOverflow,
+  kI2cIrqRxFifoOverflow,
   /**
    * Fired when there is no ACK in response to an address or data write.
    */
-  kDifI2cIrqNak,
+  kI2cIrqNak,
   /**
    * Fired when the SCL line seems to have interference.
    */
-  kDifI2cIrqSclInterference,
+  kI2cIrqSclInterference,
   /**
    * Fired when the SDA line seems to have interference.
    */
-  kDifI2cIrqSdaInterference,
+  kI2cIrqSdaInterference,
   /**
    * Fired when the target stretches the clock beyond the allowed period.
    */
-  kDifI2cIrqClockStretchTimeout,
+  kI2cIrqClockStretchTimeout,
   /**
    * Fired when the target does not maintain a stable SDA line.
    */
-  kDifI2cIrqSdaUnstable,
+  kI2cIrqSdaUnstable,
 } i2c_irq_t;
 
 /****************************************************************************/
