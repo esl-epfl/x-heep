@@ -34,7 +34,7 @@ int8_t dma_intr_flag;
 spi_host_t spi_host;
 
 #ifndef USE_SPI_FLASH
-void fic_irq_fast_spi(void)
+void fic_irq_spi(void)
 {
     // Disable SPI interrupts
     spi_enable_evt_intr(&spi_host, false);
@@ -42,7 +42,7 @@ void fic_irq_fast_spi(void)
     spi_intr_flag = 1;
 }
 #else
-void fic_irq_fast_spi_flash(void)
+void fic_irq_spi_flash(void)
 {
     // Disable SPI interrupts
     spi_enable_evt_intr(&spi_host, false);
@@ -51,7 +51,7 @@ void fic_irq_fast_spi_flash(void)
 }
 #endif
 
-void fic_irq_fast_dma(void)
+void fic_irq_dma(void)
 {
     dma_intr_flag = 1;
 }
@@ -63,7 +63,7 @@ uint32_t copy_data[COPY_DATA_WORDS] __attribute__ ((aligned (4)))  = { 0 };
 int main(int argc, char *argv[])
 {
     #ifndef USE_SPI_FLASH
-        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI2_START_ADDRESS);
+        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
     #else
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif
