@@ -82,6 +82,8 @@ module dma #(
 
   logic        [                3:0] byte_enable_out;
 
+  logic        [Addr_Fifo_Depth-1:0] outstanding_req;
+
   enum logic {
     DMA_READ_FSM_IDLE,
     DMA_READ_FSM_ON
@@ -276,9 +278,11 @@ module dma #(
     if (~rst_ni) begin
       dma_read_fsm_state  <= DMA_READ_FSM_IDLE;
       dma_write_fsm_state <= DMA_WRITE_FSM_IDLE;
+      outstanding_req <= '0;
     end else begin
       dma_read_fsm_state  <= dma_read_fsm_n_state;
       dma_write_fsm_state <= dma_write_fsm_n_state;
+      outstanding_req <= outstanding_req + (data_in_req && data_in_gnt) - data_in_rvalid;
     end
   end
 
@@ -349,8 +353,8 @@ module dma #(
       DMA_WRITE_FSM_ON: begin
         // If all input data read exit
         if (fifo_empty == 1'b1 && dma_read_fsm_state == DMA_READ_FSM_IDLE) begin
-          dma_write_fsm_n_state = DMA_WRITE_FSM_IDLE;
-          dma_done = 1'b1;
+          dma_write_fsm_n_state = outstanding_req == '0 ? DMA_WRITE_FSM_IDLE : DMA_WRITE_FSM_ON;
+          dma_done = outstanding_req == '0;
         end else begin
           dma_write_fsm_n_state = DMA_WRITE_FSM_ON;
           // Wait if fifo is empty or if the SPI TX is not ready for new data (only in SPI mode 2).
