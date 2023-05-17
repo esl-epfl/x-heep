@@ -71,7 +71,8 @@ const uint32_t plicMaxPriority = RV_PLIC_PRIO0_PRIO0_MASK;
 handler_funct_t handlers[PLIC_INTR_SRCS_NUM] = {&handler_irq_uart, 
                                                 &handler_irq_gpio, 
                                                 &handler_irq_i2c, 
-                                                &handler_irq_spi};
+                                                &handler_irq_spi,
+                                                &handler_irq_ext};
 
 /****************************************************************************/
 /**                                                                        **/
@@ -152,12 +153,16 @@ __attribute__((weak, optimize("O0"))) void handler_irq_spi(void) {
   
 }
 
+__attribute__((weak, optimize("O0"))) void handler_irq_ext(void) {
+
+}
+
 void handler_irq_external(void)
 {
   plic_irq_id_t int_id = 0;
   plic_result_t res = plic_irq_claim(&int_id);
   irq_sources_t type = plic_get_irq_src_type(int_id);
-  plic_intr_flag = 1;
+
   if(type != IRQ_BAD)
   {
     // Calls the proper handler
@@ -397,7 +402,7 @@ plic_result_t plic_software_irq_is_pending(void)
 
 static irq_sources_t plic_get_irq_src_type(plic_irq_id_t irq_id)
 {
-  if (irq_id < UART_ID_START || irq_id > SPI_ID)
+  if (irq_id < UART_ID_START || irq_id > EXT_IRQ_END)
   {
     return IRQ_BAD;
   }
@@ -413,9 +418,13 @@ static irq_sources_t plic_get_irq_src_type(plic_irq_id_t irq_id)
   {
     return IRQ_I2C_SRC;
   }
-  else 
+  else if (irq_id == SPI_ID)
   {
     return IRQ_SPI_SRC;
+  }
+  else 
+  {
+    return IRQ_EXT_SRC;
   }
 
 }
