@@ -39,8 +39,8 @@ module system_xbar
 % endif
 
   logic [0:0][LOG_XBAR_NSLAVE-1:0] port_sel_onetom;
-  logic [0:0] neck_req_req;
-  logic [0:0] neck_resp_gnt;
+  logic [0:0] neck_req_req, neck_req_oustanding_req;
+  logic [0:0] neck_resp_gnt, neck_resp_outstanding_gnt;
   logic [0:0] neck_resp_rvalid;
   logic [0:0][31:0] neck_resp_rdata;
   obi_req_t neck_req;
@@ -172,7 +172,7 @@ module system_xbar
         .rdata_o(master_resp_rdata),
         .rr_i   ('0),
         .vld_o  (master_resp_rvalid),
-        .gnt_i  (neck_resp_gnt),
+        .gnt_i  (neck_resp_outstanding_gnt),
         .req_o  (neck_req_req),
         .vld_i  (neck_resp_rvalid),
         .wdata_o(neck_req_out_data),
@@ -180,6 +180,54 @@ module system_xbar
     );
 
     assign {neck_req.we, neck_req.be, neck_req.addr, neck_req.wdata} = neck_req_out_data[0];
+    assign neck_req.req = neck_req_oustanding_req;
+
+    //block outstanding transactions
+    typedef enum logic {
+      NECK_REQ,
+      NECK_WAITFOR_VALID
+    } neck_req_fsm_e;
+
+    neck_req_fsm_e state_n, state_q;
+
+    always_comb begin
+      state_n = state_q;
+      neck_req_oustanding_req = neck_req_req;
+      neck_resp_outstanding_gnt = neck_resp_gnt;
+
+      case(state_q)
+
+      NECK_REQ: begin
+        if(neck_req_req && neck_resp_gnt) begin
+          state_n = NECK_WAITFOR_VALID;
+        end
+      end
+
+      NECK_WAITFOR_VALID: begin
+        neck_req_oustanding_req = 1'b0;
+        neck_resp_outstanding_gnt = 1'b0;
+        if(neck_resp_rvalid) begin
+          neck_req_oustanding_req = neck_req_req;
+          neck_resp_outstanding_gnt = neck_resp_gnt;
+          if(neck_req_req && neck_resp_gnt) begin
+            state_n = NECK_WAITFOR_VALID;
+          end else begin
+            state_n = NECK_REQ;
+          end
+        end
+
+      end
+
+      endcase
+    end
+
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+      if (~rst_ni) begin
+        state_q <= NECK_REQ;
+      end else begin
+        state_q <= state_n;
+      end
+    end
 
     addr_decode #(
         /// Highest index which can happen in a rule.
@@ -216,7 +264,7 @@ module system_xbar
     ) i_xbar_slave (
         .clk_i,
         .rst_ni,
-        .req_i  (neck_req_req),
+        .req_i  (neck_req_oustanding_req),
         .add_i  (port_sel_onetom[0]),
         .wdata_i(neck_req_out_data),
         .gnt_o  (neck_resp_gnt),
