@@ -157,7 +157,7 @@ void handler_irq_external(void)
   plic_irq_id_t int_id = 0;
   plic_result_t res = plic_irq_claim(&int_id);
   irq_sources_t type = plic_get_irq_src_type(int_id);
-
+  plic_intr_flag = 1;
   if(type != IRQ_BAD)
   {
     // Calls the proper handler
@@ -422,8 +422,7 @@ static irq_sources_t plic_get_irq_src_type(plic_irq_id_t irq_id)
 
 static ptrdiff_t plic_offset_from_reg0(plic_irq_id_t irq) 
 {
-  uint8_t register_index = irq / RV_PLIC_PARAM_REG_WIDTH;
-  return register_index * sizeof(uint32_t);
+  return irq / RV_PLIC_PARAM_REG_WIDTH;
 }
 
 static uint8_t plic_irq_bit_index(plic_irq_id_t irq) 
