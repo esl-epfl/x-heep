@@ -36,7 +36,7 @@ spi_host_t spi_host;
 
 static power_manager_t power_manager;
 
-void fic_irq_fast_dma(void)
+void fic_irq_dma(void)
 {
     dma_intr_flag = 1;
 }
