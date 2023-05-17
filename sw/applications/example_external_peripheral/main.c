@@ -85,12 +85,6 @@ int main(int argc, char *argv[])
     printf("Memcopy finished...\r\n");
 
     printf("Complete interrupt...");
-    plic_res = plic_irq_complete(&intr_num);
-    if (plic_res == kPlicOk && intr_num == EXT_INTR_0) {
-        printf("success\n");
-    } else {
-        printf("fail\n;");
-    }
 
     // Reinitialized the read pointer to the original address
     src_ptr = original_data;
