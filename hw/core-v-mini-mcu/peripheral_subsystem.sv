@@ -7,7 +7,7 @@ module peripheral_subsystem
   import reg_pkg::*;
 #(
     //do not touch these parameters
-    parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
+    parameter NEXT_INT_RND         = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -20,8 +20,8 @@ module peripheral_subsystem
 
     //PLIC
     input  logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
-    output logic                    irq_plic_o,
-    output logic                    msip_o,
+    output logic                irq_plic_o,
+    output logic                msip_o,
 
     //UART PLIC interrupts
     input logic uart_intr_tx_watermark_i,
