@@ -35,19 +35,13 @@ module i2s_core #(
 );
 
   logic                    ws;
-
-  logic                    sck_gen;
   logic                    sck;
-
-  logic                    clk_div_ready;
-  logic                    clk_div_running;
 
   logic [MaxWordWidth-1:0] data_rx_dc;
   logic                    data_rx_dc_valid;
   logic                    data_rx_dc_ready;
 
   logic                    data_rx_overflow_async;
-
 
   assign ws_o  = ws;
   assign sck_o = sck;
@@ -60,30 +54,11 @@ module i2s_core #(
       .rst_ni(rst_ni),
       .en_i(en_i),
       .test_mode_en_i(1'b0),
-      .clk_o(sck_gen),
+      .clk_o(sck),
       .div_i(cfg_clock_div_i),
-      .div_valid_i(|cfg_clock_div_i),  // 0 divider valued doesn't work (this is a workaround)
-      .div_ready_o(clk_div_ready),
+      .div_valid_i(1'b1),
+      .div_ready_o(),
       .cycl_count_o()
-  );
-
-  // This is a workaround
-  // Such that it starts with the demanded div value.
-  always_ff @(posedge clk_i, negedge rst_ni) begin
-    if (~rst_ni) begin
-      clk_div_running <= 1'b0;
-    end else begin
-      if (clk_div_ready) begin
-        clk_div_running <= 1'b1;
-      end
-    end
-  end
-
-  tc_clk_mux2 i_clk_bypass_mux (
-      .clk0_i   (1'b0),
-      .clk1_i   (sck_gen),
-      .clk_sel_i(clk_div_running),
-      .clk_o    (sck)
   );
 
   i2s_ws_gen #(
