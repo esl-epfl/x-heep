@@ -24,7 +24,7 @@ module obi_fifo
   } obi_req_fsm_e;
 
   obi_req_fsm_e state_n, state_q;
-  
+
   typedef struct packed {
     logic        we;
     logic [3:0]  be;
@@ -51,29 +51,34 @@ module obi_fifo
   //block outstanding transactions
   always_comb begin
     state_n = state_q;
-    consumer_req_o.req  = ~fifo_req_empty;
+    consumer_req_o.req = ~fifo_req_empty;
     save_request = 1'b0;
     {consumer_req_o.we, consumer_req_o.be, consumer_req_o.addr, consumer_req_o.wdata} = {
-    consumer_data_req.we, consumer_data_req.be, consumer_data_req.addr, consumer_data_req.wdata};
+      consumer_data_req.we, consumer_data_req.be, consumer_data_req.addr, consumer_data_req.wdata
+    };
 
-    case(state_q)
+    case (state_q)
 
-    REQUEST: begin
-      if(!consumer_resp_i.gnt && consumer_req_o.req) begin
-        state_n = WAIT_FOR_GNT;
-        save_request = 1'b1;
+      REQUEST: begin
+        if (!consumer_resp_i.gnt && consumer_req_o.req) begin
+          state_n = WAIT_FOR_GNT;
+          save_request = 1'b1;
+        end
       end
-    end
 
-    WAIT_FOR_GNT: begin
-      consumer_req_o.req = 1'b1;
-      {consumer_req_o.we, consumer_req_o.be, consumer_req_o.addr, consumer_req_o.wdata} = {
-      consumer_data_req_q.we, consumer_data_req_q.be, consumer_data_req_q.addr, consumer_data_req_q.wdata};
-      if(consumer_resp_i.gnt) begin
-        save_request = 1'b0;
-        state_n = REQUEST;
+      WAIT_FOR_GNT: begin
+        consumer_req_o.req = 1'b1;
+        {consumer_req_o.we, consumer_req_o.be, consumer_req_o.addr, consumer_req_o.wdata} = {
+          consumer_data_req_q.we,
+          consumer_data_req_q.be,
+          consumer_data_req_q.addr,
+          consumer_data_req_q.wdata
+        };
+        if (consumer_resp_i.gnt) begin
+          save_request = 1'b0;
+          state_n = REQUEST;
+        end
       end
-    end
     endcase
   end
 
@@ -83,8 +88,7 @@ module obi_fifo
       consumer_data_req_q <= '0;
     end else begin
       state_q <= state_n;
-      if(save_request)
-        consumer_data_req_q <= consumer_data_req;
+      if (save_request) consumer_data_req_q <= consumer_data_req;
     end
   end
 

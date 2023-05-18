@@ -276,11 +276,11 @@ module dma #(
   // FSM state update
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_fsm_state
     if (~rst_ni) begin
-      dma_read_fsm_state  <= DMA_READ_FSM_IDLE;
+      dma_read_fsm_state <= DMA_READ_FSM_IDLE;
       dma_write_fsm_state <= DMA_WRITE_FSM_IDLE;
       outstanding_req <= '0;
     end else begin
-      dma_read_fsm_state  <= dma_read_fsm_n_state;
+      dma_read_fsm_state <= dma_read_fsm_n_state;
       dma_write_fsm_state <= dma_write_fsm_n_state;
       outstanding_req <= outstanding_req + (data_in_req && data_in_gnt) - data_in_rvalid;
     end
