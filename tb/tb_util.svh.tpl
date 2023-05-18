@@ -52,9 +52,8 @@ task tb_loadHEX;
       stimuli[i+3], stimuli[i+2], stimuli[i+1], stimuli[i]
     };
 
-    wait (x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_gnt_i);
-
-    @(posedge x_heep_system_i.core_v_mini_mcu_i.clk_i);
+    while(!x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_gnt_i)
+      @(posedge x_heep_system_i.core_v_mini_mcu_i.clk_i);
 
     #1;
     force x_heep_system_i.core_v_mini_mcu_i.debug_subsystem_i.dm_obi_top_i.master_req_o = 1'b0;
