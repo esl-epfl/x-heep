@@ -20,7 +20,7 @@ module core_v_mini_mcu
     input logic rst_ni,
 
 % for pad in pad_list:
-    ${pad.core_v_mini_mcu_interface}
+${pad.core_v_mini_mcu_interface}
 % endfor
 
     // eXtension interface
@@ -37,8 +37,17 @@ module core_v_mini_mcu
     input  obi_req_t  [EXT_DOMAINS_RND-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_DOMAINS_RND-1:0] ext_xbar_master_resp_o,
 
-    output obi_req_t  ext_xbar_slave_req_o,
-    input  obi_resp_t ext_xbar_slave_resp_i,
+    // External slave ports
+    output obi_req_t  ext_slave_core_instr_req_o,
+    input  obi_resp_t ext_slave_core_instr_resp_i,
+    output obi_req_t  ext_slave_core_data_req_o,
+    input  obi_resp_t ext_slave_core_data_resp_i,
+    output obi_req_t  ext_slave_debug_master_req_o,
+    input  obi_resp_t ext_slave_debug_master_resp_i,
+    output obi_req_t  ext_slave_dma_master0_ch0_req_o,
+    input  obi_resp_t ext_slave_dma_master0_ch0_resp_i,
+    output obi_req_t  ext_slave_dma_master1_ch0_req_o,
+    input  obi_resp_t ext_slave_dma_master1_ch0_resp_i,
 
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
@@ -230,7 +239,7 @@ module core_v_mini_mcu
   system_bus #(
       .NUM_BANKS(core_v_mini_mcu_pkg::NUM_BANKS),
       .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER)
-  ) system_bus_i (
+  ) u_system_bus (
       .clk_i,
       .rst_ni,
       .core_instr_req_i(core_instr_req),
@@ -255,8 +264,16 @@ module core_v_mini_mcu
       .peripheral_slave_resp_i(peripheral_slave_resp),
       .flash_mem_slave_req_o(flash_mem_slave_req),
       .flash_mem_slave_resp_i(flash_mem_slave_resp),
-      .ext_xbar_slave_req_o(ext_xbar_slave_req_o),
-      .ext_xbar_slave_resp_i(ext_xbar_slave_resp_i)
+      .ext_slave_core_instr_req_o(ext_slave_core_instr_req_o),
+      .ext_slave_core_instr_resp_i(ext_slave_core_instr_resp_i),
+      .ext_slave_core_data_req_o(ext_slave_core_data_req_o),
+      .ext_slave_core_data_resp_i(ext_slave_core_data_resp_i),
+      .ext_slave_debug_master_req_o(ext_slave_debug_master_req_o),
+      .ext_slave_debug_master_resp_i(ext_slave_debug_master_resp_i),
+      .ext_slave_dma_master0_ch0_req_o(ext_slave_dma_master0_ch0_req_o),
+      .ext_slave_dma_master0_ch0_resp_i(ext_slave_dma_master0_ch0_resp_i),
+      .ext_slave_dma_master1_ch0_req_o(ext_slave_dma_master1_ch0_req_o),
+      .ext_slave_dma_master1_ch0_resp_i(ext_slave_dma_master1_ch0_resp_i)
   );
 
   memory_subsystem #(

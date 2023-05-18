@@ -67,8 +67,10 @@ module testharness #(
   // External xbar master/slave and peripheral ports
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] master_req;
   obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] master_resp;
-  obi_req_t slave_req;
-  obi_resp_t slave_resp;
+  obi_req_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] ext_master_req;
+  obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER-1:0] ext_master_resp;
+  obi_req_t ext_slave_req;
+  obi_resp_t ext_slave_resp;
   reg_req_t periph_slave_req;
   reg_rsp_t periph_slave_resp;
 
@@ -190,8 +192,16 @@ module testharness #(
       .xif_result_if(ext_if),
       .ext_xbar_master_req_i(master_req),
       .ext_xbar_master_resp_o(master_resp),
-      .ext_xbar_slave_req_o(slave_req),
-      .ext_xbar_slave_resp_i(slave_resp),
+      .ext_slave_core_instr_req_o(ext_master_req[core_v_mini_mcu_pkg::CORE_INSTR_IDX]),
+      .ext_slave_core_instr_resp_i(ext_master_resp[core_v_mini_mcu_pkg::CORE_INSTR_IDX]),
+      .ext_slave_core_data_req_o(ext_master_req[core_v_mini_mcu_pkg::CORE_DATA_IDX]),
+      .ext_slave_core_data_resp_i(ext_master_resp[core_v_mini_mcu_pkg::CORE_DATA_IDX]),
+      .ext_slave_debug_master_req_o(ext_master_req[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX]),
+      .ext_slave_debug_master_resp_i(ext_master_resp[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX]),
+      .ext_slave_dma_master0_ch0_req_o(ext_master_req[core_v_mini_mcu_pkg::DMA_MASTER0_CH0_IDX]),
+      .ext_slave_dma_master0_ch0_resp_i(ext_master_resp[core_v_mini_mcu_pkg::DMA_MASTER0_CH0_IDX]),
+      .ext_slave_dma_master1_ch0_req_o(ext_master_req[core_v_mini_mcu_pkg::DMA_MASTER1_CH0_IDX]),
+      .ext_slave_dma_master1_ch0_resp_i(ext_master_resp[core_v_mini_mcu_pkg::DMA_MASTER1_CH0_IDX]),
       .ext_peripheral_slave_req_o(periph_slave_req),
       .ext_peripheral_slave_resp_i(periph_slave_resp),
       .external_subsystem_powergate_switch_o(external_subsystem_powergate_switch),
@@ -200,6 +210,26 @@ module testharness #(
       .external_subsystem_rst_no(external_subsystem_rst_n),
       .external_ram_banks_set_retentive_o(external_ram_banks_set_retentive)
   );
+
+  // 5-to-1 crossbar for X-HEEP's external ports
+  // -------------------------------------------
+  // NOTE: new versions of X-HEEP expose all the internal master ports (i.e.,
+  // CPU, debug, DMA) to the external subsystem(s). To make the new interface
+  // compatible with the old testbench, a 5-to-1 crossbar is used. This
+  // multiplexes H-HEEP's external ports into a single port.
+  tb_xbar #(
+      .XBAR_NMASTER(core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER)
+  ) u_ext_xbar (
+      .clk_i        (clk_i),
+      .rst_ni       (rst_ni),
+      .master_req_i (ext_master_req),
+      .master_resp_o(ext_master_resp),
+      .slave_req_o  (ext_slave_req),
+      .slave_resp_i (ext_slave_resp)
+  );
+
+  // TODO: add 1-to-2 crossbar for external masters and redirect them to the
+  // above crossbar to allow external masters to access external slaves too.
 
   logic pdm;
 
@@ -277,8 +307,8 @@ module testharness #(
       .exit()
   );
 
-  assign slow_ram_slave_req = slave_req;
-  assign slave_resp = slow_ram_slave_resp;
+  assign slow_ram_slave_req = ext_slave_req;
+  assign ext_slave_resp = slow_ram_slave_resp;
 
   assign memcopy_periph_req = periph_slave_req;
   assign periph_slave_resp = memcopy_periph_rsp;
