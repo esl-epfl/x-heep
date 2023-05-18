@@ -134,8 +134,7 @@ module system_xbar
         .NumIn(XBAR_NMASTER),
         .NumOut(XBAR_NSLAVE),
         .ReqDataWidth(REQ_AGG_DATA_WIDTH),
-        .RespDataWidth(RESP_AGG_DATA_WIDTH),
-        .LockIn(1'b1)
+        .RespDataWidth(RESP_AGG_DATA_WIDTH)
     ) i_xbar (
         .clk_i,
         .rst_ni,
@@ -160,8 +159,7 @@ module system_xbar
         .NumIn(XBAR_NMASTER),
         .NumOut(1),
         .ReqDataWidth(REQ_AGG_DATA_WIDTH),
-        .RespDataWidth(RESP_AGG_DATA_WIDTH),
-        .LockIn(1'b1)
+        .RespDataWidth(RESP_AGG_DATA_WIDTH)
     ) i_xbar_master (
         .clk_i,
         .rst_ni,
@@ -259,8 +257,7 @@ module system_xbar
         .NumIn(1),
         .NumOut(XBAR_NSLAVE),
         .ReqDataWidth(REQ_AGG_DATA_WIDTH),
-        .RespDataWidth(RESP_AGG_DATA_WIDTH),
-        .LockIn(1'b1)
+        .RespDataWidth(RESP_AGG_DATA_WIDTH)
     ) i_xbar_slave (
         .clk_i,
         .rst_ni,
