@@ -10,7 +10,7 @@
 // by Antonio Pullini (pullinia@iis.ee.ethz.ch)
 
 module i2s_rx_channel #(
-    parameter  int unsigned MaxWordWidth,
+    parameter  int unsigned MaxWordWidth = 32,
     localparam int unsigned CounterWidth = $clog2(MaxWordWidth)
 ) (
     input logic sck_i,
@@ -22,6 +22,8 @@ module i2s_rx_channel #(
 
     // config
     input logic [CounterWidth-1:0] word_width_i, // must not be changed while either channel is enabled
+    // first data from channel? (0 = left, 1 = right) .wav uses left first
+    input logic start_channel_i,
 
     // read data out (stream interface)
     output logic [MaxWordWidth-1:0] data_o,
@@ -57,16 +59,18 @@ module i2s_rx_channel #(
   assign s_ws_edge = ws_i ^ r_ws_old;
   assign data_o = r_shadow;
 
-  always_comb begin : proc_shiftreg
+  // read next bit from SD
+  always_comb begin
     s_shiftreg = r_shiftreg;
     if (word_done) begin
       s_shiftreg = 'h0;
     end
-    if (!width_overflow) begin
+    if (~width_overflow) begin
       s_shiftreg[word_width_i-r_count_bit] = sd_i;
     end
   end
 
+  // store and forward data to stream
   always_ff @(posedge sck_i, negedge rst_ni) begin
     if (~rst_ni) begin
       r_shiftreg <= 'h0;
@@ -92,6 +96,8 @@ module i2s_rx_channel #(
     end
   end
 
+
+  // word done after a WS edge
   always_ff @(posedge sck_i, negedge rst_ni) begin
     if (~rst_ni) begin
       word_done <= 1'b0;
@@ -100,6 +106,7 @@ module i2s_rx_channel #(
     end
   end
 
+  // count bits up to set word width (triggers overflow)
   always_ff @(posedge sck_i, negedge rst_ni) begin
     if (~rst_ni) begin
       r_count_bit <= 'h0;
@@ -122,6 +129,8 @@ module i2s_rx_channel #(
   end
 
 
+  // latch ws
+  // start only after an edge
   always_ff @(posedge sck_i, negedge rst_ni) begin
     if (~rst_ni) begin
       r_ws_old  <= 'h0;
@@ -129,7 +138,9 @@ module i2s_rx_channel #(
     end else begin
       if (en) begin
         r_ws_old <= ws_i;
-        if (s_ws_edge) r_started <= 1'b1;
+        if (s_ws_edge & (ws_i == start_channel_i)) begin
+          r_started <= 1'b1;
+        end
       end else begin
         r_started <= 1'b0;
         r_ws_old  <= 1'b0;
@@ -141,16 +152,17 @@ module i2s_rx_channel #(
   // worst case drop even number of samples
   always_ff @(posedge sck_i, negedge rst_ni) begin
     if (~rst_ni) begin
-      last_data_ws <= 1'b0;  // always start with left
+      last_data_ws <= ~start_channel_i;
     end else begin
-      if (!en) begin
-        last_data_ws <= 1'b0;  // always start with left
+      if (~en) begin
+        last_data_ws <= ~start_channel_i;
       end else if (data_ready_i & data_valid_o) begin
         last_data_ws <= data_ws;
       end
     end
   end
 
+  // only data_valid_o = r_valid if the channel is enabled
   always_comb begin
     data_valid_o = 1'b0;
 
@@ -165,6 +177,7 @@ module i2s_rx_channel #(
 
 
   // detect overflow
+  // disable the module to reset
   always_ff @(posedge sck_i, negedge rst_ni) begin
     if (~rst_ni) begin
       overflow_o <= 1'b0;

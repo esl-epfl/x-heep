@@ -82,6 +82,7 @@ module i2s_core #(
       .sd_i(sd_i),
 
       .word_width_i(cfg_word_width_i),
+      .start_channel_i(1'b0),
 
       .data_o(data_rx_dc),
       .data_valid_o(data_rx_dc_valid),
