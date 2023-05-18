@@ -91,7 +91,6 @@ mcu-gen:
 	$(PYTHON) util/mcu_gen.py --cfg mcu_cfg.hjson --pads_cfg $(PAD_CFG) --outdir sw/linker --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --linker_script sw/linker/link_flash_exec.ld.tpl
 	$(PYTHON) util/mcu_gen.py --cfg mcu_cfg.hjson --pads_cfg $(PAD_CFG) --outdir sw/linker --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --linker_script sw/linker/link_flash_load.ld.tpl
 	$(PYTHON) ./util/structs_periph_gen.py
-	$(MAKE) verible
 
 ## Display mcu_gen.py help
 mcu-gen-help:
@@ -184,7 +183,7 @@ vivado-fpga-nobuild:
 ## @section ASIC
 ## Note that for this step you need to provide technology-dependent files (e.g., libs, constraints)
 asic:
-	$(FUSESOC) --cores-root . run --no-export --target=asic_synthesis --setup openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee builddesigncompiler.log
+	$(FUSESOC) --cores-root . run --no-export --target=asic_synthesis $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee builddesigncompiler.log
 
 openroad-sky130:
 	git checkout hw/vendor/pulp_platform_common_cells/*

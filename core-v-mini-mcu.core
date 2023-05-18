@@ -390,46 +390,26 @@ targets:
     parameters:
     - PULP_XPULP=0
     - SYNTHESIS=true
+    - use_obi_fifo? (USE_OBI_FIFO=true)
+    - "!use_obi_fifo? (USE_OBI_FIFO=false)"
     tools:
       vivado:
         part: xc7z020clg400-1
         jobs: 4
     toplevel: [linux_femu]
 
-  sim_nexys_netlist:
-    filesets:
-    - netlist-fpga
-    - tb-rtl
-    - post_build_modelsim_scripts
-    toplevel: [tb_top_vopt]
-    hooks:
-      post_build: [post_build_modelsim_scripts]
-    parameters:
-    - PULP_XPULP=0
-    - FPGA_NETLIST=true
-    - use_obi_fifo? (USE_OBI_FIFO=true)
-    - "!use_obi_fifo? (USE_OBI_FIFO=false)"
-    tools:
-      modelsim:
-        vlog_options:
-        - -override_timescale 1ns/1ps
-        - -suppress vlog-2583
-        - -suppress vlog-2577
-        - -pedanticerrors
-
   asic_synthesis:
     <<: *default_target
     default_tool: design_compiler
     description: Design Compiler Script
     parameters:
+    - PRIM_DEFAULT_IMPL=prim_pkg::your_target_technology
     - PULP_XPULP=0
     - SYNTHESIS=true
     - use_obi_fifo? (USE_OBI_FIFO=true)
     - "!use_obi_fifo? (USE_OBI_FIFO=false)"
     filesets_append:
     - ip-asic
-    parameters:
-      - PRIM_DEFAULT_IMPL=prim_pkg::your_target_technology
     toplevel: [core_v_mini_mcu]
     tools:
       design_compiler:
@@ -448,6 +428,8 @@ targets:
       - PULP_XPULP=0
       - SYNTHESIS=true
       - VERILATOR=true
+      - use_obi_fifo? (USE_OBI_FIFO=true)
+      - "!use_obi_fifo? (USE_OBI_FIFO=false)"
     filesets_append:
       - use_sky130? (rtl-sky130)
       - lib-sky130
