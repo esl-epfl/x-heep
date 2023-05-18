@@ -169,9 +169,9 @@ module i2s_rx_channel #(
     if (en_left_i & en_right_i) begin
       data_valid_o = r_valid & (data_ws ^ last_data_ws);  // make sure to drop even numbers
     end else if (en_right_i) begin
-      data_valid_o = r_valid & (data_ws == 1'b0);  // only right
+      data_valid_o = r_valid & (data_ws == 1'b1);  // only right
     end else if (en_left_i) begin
-      data_valid_o = r_valid & (data_ws == 1'b1);  // only left
+      data_valid_o = r_valid & (data_ws == 1'b0);  // only left
     end
   end
 
