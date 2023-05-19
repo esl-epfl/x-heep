@@ -188,6 +188,19 @@ module system_xbar
 
     neck_req_fsm_e state_n, state_q;
 
+    /* block outstanding transactions
+      The Master M1 may get a GNT at cycle 1, then the Master M2
+      gets a GNT at cycle 2 (from the same or different slaves)
+      As outstanding transactions are not supported (neither in-order nor out-of-order)
+      we need to block the transaction.
+
+      The addr_dec_resp_mux_varlat gates the second request of a master until the valid of the first request returns
+      However, when different masters collides into the 1toM bus, the second part of the xbar sees a single master (the neck) issueing multiple requests (although
+      these 2 reqeusts can actually come from 2 different masters M1 and M2)
+      The second neck.req is gated by the addr_dec_resp_mux_varlat, but not its grant, thus the following FSM gates the gnt as the original master (i.e. the one before the neck)
+      The reason why we have to gate the grant is that the M2 issued a request, although the neck.req is gated by the valid of the M1 request, the grant is propagated
+      to M2, which gets its request granted without begin correct.
+    */
     always_comb begin
       state_n = state_q;
       neck_req_oustanding_req = neck_req_req;
@@ -213,7 +226,6 @@ module system_xbar
             state_n = NECK_REQ;
           end
         end
-
       end
 
       endcase

@@ -19,11 +19,18 @@ module obi_fifo
 );
 
   typedef enum logic {
-    REQUEST,
-    WAIT_FOR_GNT
-  } obi_req_fsm_e;
+    CONSUMER_REQUEST,
+    CONSUMER_WAIT_FOR_GNT
+  } consumer_obi_req_fsm_e;
 
-  obi_req_fsm_e state_n, state_q;
+  consumer_obi_req_fsm_e consumer_state_n, consumer_state_q;
+
+  typedef enum logic {
+    PRODUCER_REQUEST,
+    PRODUCER_WAIT_FOR_VALID
+  } producer_obi_req_fsm_e;
+
+  producer_obi_req_fsm_e producer_state_n, producer_state_q;
 
   typedef struct packed {
     logic        we;
@@ -44,29 +51,27 @@ module obi_fifo
   logic fifo_resp_full, fifo_resp_empty, fifo_resp_push, fifo_resp_pop;
   logic save_request;
 
-  assign producer_resp_o.gnt = !fifo_req_full && state_q == REQUEST;
-  assign fifo_req_pop        = !fifo_req_empty;
-  assign fifo_req_push       = producer_req_i.req && !fifo_req_full && state_q == REQUEST;
+  assign fifo_req_pop = !fifo_req_empty;
 
-  //block outstanding transactions
+  //block consumer outstanding transactions
   always_comb begin
-    state_n = state_q;
+    consumer_state_n = consumer_state_q;
     consumer_req_o.req = ~fifo_req_empty;
     save_request = 1'b0;
     {consumer_req_o.we, consumer_req_o.be, consumer_req_o.addr, consumer_req_o.wdata} = {
       consumer_data_req.we, consumer_data_req.be, consumer_data_req.addr, consumer_data_req.wdata
     };
 
-    case (state_q)
+    case (consumer_state_q)
 
-      REQUEST: begin
+      CONSUMER_REQUEST: begin
         if (!consumer_resp_i.gnt && consumer_req_o.req) begin
-          state_n = WAIT_FOR_GNT;
+          consumer_state_n = CONSUMER_WAIT_FOR_GNT;
           save_request = 1'b1;
         end
       end
 
-      WAIT_FOR_GNT: begin
+      CONSUMER_WAIT_FOR_GNT: begin
         consumer_req_o.req = 1'b1;
         {consumer_req_o.we, consumer_req_o.be, consumer_req_o.addr, consumer_req_o.wdata} = {
           consumer_data_req_q.we,
@@ -76,7 +81,39 @@ module obi_fifo
         };
         if (consumer_resp_i.gnt) begin
           save_request = 1'b0;
-          state_n = REQUEST;
+          consumer_state_n = CONSUMER_REQUEST;
+        end
+      end
+    endcase
+  end
+
+  //block producer outstanding transactions, the FIFO in theory can support more request at a time
+  //but the bus won't dispatch the results depending on ID issues, so OBI slaves that have longer gnt/rvalid latency cannot support
+  //back to back requests
+  always_comb begin
+    producer_state_n    = producer_state_q;
+    producer_resp_o.gnt = !fifo_req_full;
+    fifo_req_push       = producer_req_i.req && !fifo_req_full;
+
+    case (producer_state_q)
+
+      PRODUCER_REQUEST: begin
+        if (producer_req_i.req && !fifo_req_full) begin
+          producer_state_n = PRODUCER_WAIT_FOR_VALID;
+        end
+      end
+
+      PRODUCER_WAIT_FOR_VALID: begin
+        fifo_req_push       = 1'b0;
+        producer_resp_o.gnt = 1'b0;
+        if (producer_resp_o.rvalid) begin
+          fifo_req_push = producer_req_i.req && !fifo_req_full;
+          producer_resp_o.gnt = !fifo_req_full;
+          if (producer_req_i.req && producer_resp_o.gnt) begin
+            producer_state_n = PRODUCER_WAIT_FOR_VALID;
+          end else begin
+            producer_state_n = PRODUCER_REQUEST;
+          end
         end
       end
     endcase
@@ -84,10 +121,12 @@ module obi_fifo
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (~rst_ni) begin
-      state_q <= REQUEST;
+      consumer_state_q <= CONSUMER_REQUEST;
+      producer_state_q <= PRODUCER_REQUEST;
       consumer_data_req_q <= '0;
     end else begin
-      state_q <= state_n;
+      consumer_state_q <= consumer_state_n;
+      producer_state_q <= producer_state_n;
       if (save_request) consumer_data_req_q <= consumer_data_req;
     end
   end
