@@ -6,9 +6,9 @@ module x_heep_system
   import obi_pkg::*;
   import reg_pkg::*;
 #(
-    parameter PULP_XPULP = 0,
+    parameter COREV_PULP = 0,
     parameter FPU = 0,
-    parameter PULP_ZFINX = 0,
+    parameter ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0,
     parameter X_EXT = 0,  // eXtension interface in cv32e40x
     //do not touch these parameters
@@ -80,9 +80,9 @@ ${pad.internal_signals}
 % endfor
 
   core_v_mini_mcu #(
-    .PULP_XPULP(PULP_XPULP),
+    .COREV_PULP(COREV_PULP),
     .FPU(FPU),
-    .PULP_ZFINX(PULP_ZFINX),
+    .ZFINX(ZFINX),
     .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER),
     .X_EXT(X_EXT)
   ) core_v_mini_mcu_i (
