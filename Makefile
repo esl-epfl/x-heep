@@ -117,6 +117,10 @@ app-list:
 	@echo "Note: Applications outside the X-HEEP sw/applications directory will not be listed."  
 	tree sw/applications/
 
+## Compile all the apps present in the repo 	
+app-compile-all:
+	bash util/compile_all_apps.sh;
+
 ## @section Simulation
 
 ## Verilator simulation			

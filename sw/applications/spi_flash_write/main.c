@@ -17,11 +17,17 @@
 #include "dma.h"
 #include "fast_intr_ctrl.h"
 #include "fast_intr_ctrl_regs.h"
+#include "x-heep.h"
 
 // Un-comment this line to use the SPI FLASH instead of the default SPI
 // #define USE_SPI_FLASH
 
 #define COPY_DATA_WORDS 64 // Flash page size = 256 Bytes
+
+// Warning in case of targetting simulation
+#ifdef TARGET_SIM
+  #pragma message("This app does not allow Flash write operations in simulation!")
+#endif
 
 #define REVERT_24b_ADDR(addr) ((((uint32_t)addr & 0xff0000) >> 16) | ((uint32_t)addr & 0xff00) | (((uint32_t)addr & 0xff) << 16))
 
