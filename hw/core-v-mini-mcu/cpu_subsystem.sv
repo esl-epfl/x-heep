@@ -268,7 +268,7 @@ module cpu_subsystem
         .FPU             (FPU),
         .ZFINX           (ZFINX),
         .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS)
-    ) cv32e40p_tb_wrapper_i (
+    ) cv32e40p_top_i (
         .clk_i (clk_i),
         .rst_ni(rst_ni),
 
