@@ -36,7 +36,7 @@ filesets:
     - openhwgroup_cv32e40p/rtl/cv32e40p_core.sv
     - openhwgroup_cv32e40p/rtl/cv32e40p_apu_disp.sv
     - openhwgroup_cv32e40p/rtl/cv32e40p_fifo.sv
-    - openhwgroup_cv32e40p/rtl/cv32e40p_wrapper.sv
+    - openhwgroup_cv32e40p/rtl/cv32e40p_top.sv
     file_type: systemVerilogSource
 
   files_clk_gate:
@@ -54,27 +54,9 @@ filesets:
     - openhwgroup_cv32e40p/rtl/cv32e40p_register_file_latch.sv
     file_type: systemVerilogSource
 
-  files_wrap:
-    files:
-    - openhwgroup_cv32e40p/bhv/cv32e40p_tb_wrapper.sv
-    - openhwgroup_cv32e40p/bhv/cv32e40p_core_log.sv: {is_include_file: true}
-    file_type: systemVerilogSource
-
-parameters:
-  CV32E40P_TRACE_EXECUTION:
-    datatype: bool
-    paramtype: vlogdefine
-    default: false
-
-  CV32E40P_APU_TRACE:
-    datatype: bool
-    paramtype: vlogdefine
-    default: false
-
 targets:
   default:
     filesets:
     - files_rtl
-    - files_wrap
     - ff_regfile
     - target_sim? (files_clk_gate)
