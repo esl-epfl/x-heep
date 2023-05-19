@@ -7,7 +7,7 @@ module peripheral_subsystem
   import reg_pkg::*;
 #(
     //do not touch these parameters
-    parameter NEXT_INT_RND         = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
+    parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -20,8 +20,8 @@ module peripheral_subsystem
 
     //PLIC
     input  logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
-    output logic                irq_plic_o,
-    output logic                msip_o,
+    output logic                    irq_plic_o,
+    output logic                    msip_o,
 
     //UART PLIC interrupts
     input logic uart_intr_tx_watermark_i,
@@ -152,8 +152,14 @@ module peripheral_subsystem
   //Address Decoder
   logic [PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
-  obi_pkg::obi_req_t slave_fifo_req;
-  obi_pkg::obi_resp_t slave_fifo_resp;
+  obi_pkg::obi_req_t slave_fifoin_req;
+  obi_pkg::obi_resp_t slave_fifoin_resp;
+
+  obi_pkg::obi_req_t slave_fifoout_req;
+  obi_pkg::obi_resp_t slave_fifoout_resp;
+
+  obi_pkg::obi_req_t slave_fifo_req_sel;
+  obi_pkg::obi_resp_t slave_fifo_resp_sel;
 
   // Clock-gating
   logic clk_cg;
@@ -164,20 +170,29 @@ module peripheral_subsystem
       .clk_o(clk_cg)
   );
 
-`ifdef USE_OBI_FIFO
   obi_fifo obi_fifo_i (
       .clk_i(clk_cg),
       .rst_ni,
-      .producer_req_i(slave_req_i),
-      .producer_resp_o(slave_resp_o),
-      .consumer_req_o(slave_fifo_req),
-      .consumer_resp_i(slave_fifo_resp)
+      .producer_req_i(slave_fifoin_req),
+      .producer_resp_o(slave_fifoin_resp),
+      .consumer_req_o(slave_fifoout_req),
+      .consumer_resp_i(slave_fifoout_resp)
   );
-`else
-  assign slave_fifo_req = slave_req_i;
-  assign slave_resp_o   = slave_fifo_resp;
-`endif
 
+  //FusoSoc always defines parameter for Verilator with the value 1 or 0, thus we cannot use `ifdef, this is an workaround
+  always_comb begin
+    if (`USE_OBI_FIFO) begin
+      slave_fifo_req_sel = slave_fifoout_req;
+      slave_fifoout_resp = slave_fifo_resp_sel;
+      slave_fifoin_req   = slave_req_i;
+      slave_resp_o       = slave_fifoin_resp;
+    end else begin
+      slave_fifo_req_sel = slave_req_i;
+      slave_resp_o       = slave_fifo_resp_sel;
+      slave_fifoin_req   = '0;
+      slave_fifoout_resp = '0;
+    end
+  end
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
@@ -186,17 +201,17 @@ module peripheral_subsystem
   ) periph_to_reg_i (
       .clk_i(clk_cg),
       .rst_ni,
-      .req_i(slave_fifo_req.req),
-      .add_i(slave_fifo_req.addr),
-      .wen_i(~slave_fifo_req.we),
-      .wdata_i(slave_fifo_req.wdata),
-      .be_i(slave_fifo_req.be),
+      .req_i(slave_fifo_req_sel.req),
+      .add_i(slave_fifo_req_sel.addr),
+      .wen_i(~slave_fifo_req_sel.we),
+      .wdata_i(slave_fifo_req_sel.wdata),
+      .be_i(slave_fifo_req_sel.be),
       .id_i('0),
-      .gnt_o(slave_fifo_resp.gnt),
-      .r_rdata_o(slave_fifo_resp.rdata),
+      .gnt_o(slave_fifo_resp_sel.gnt),
+      .r_rdata_o(slave_fifo_resp_sel.rdata),
       .r_opc_o(),
       .r_id_o(),
-      .r_valid_o(slave_fifo_resp.rvalid),
+      .r_valid_o(slave_fifo_resp_sel.rvalid),
       .reg_req_o(peripheral_req),
       .reg_rsp_i(peripheral_rsp)
   );
