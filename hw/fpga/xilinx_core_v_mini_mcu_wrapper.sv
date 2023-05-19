@@ -6,9 +6,9 @@ module xilinx_core_v_mini_mcu_wrapper
   import obi_pkg::*;
   import reg_pkg::*;
 #(
-    parameter PULP_XPULP           = 0,
+    parameter COREV_PULP           = 0,
     parameter FPU                  = 0,
-    parameter PULP_ZFINX           = 0,
+    parameter ZFINX                = 0,
     parameter X_EXT                = 0,  // eXtension interface in cv32e40x
     parameter CLK_LED_COUNT_LENGTH = 27
 ) (
