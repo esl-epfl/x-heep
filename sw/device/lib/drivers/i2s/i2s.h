@@ -85,11 +85,17 @@ typedef enum i2s_channel_sel {
 /**
  * I2S configure SCK frequency and word length
  * 
+ * @note Only allowed to be called if peripheral is off
+ * 
+ * (There is no need to use call function
+ * default values will be used.)
+ * 
  * @param div_value Divider value = src_clk_freq / gen_clk_freq 
  *        (odd values are allowed, for 0 and 1 the src clock is used)
  * @param word_length (see i2s_word_length_t)
+ * @return false if the periperal was on
  */
-void    i2s_configure(uint16_t div_value, i2s_word_length_t word_length);
+bool    i2s_configure(uint16_t div_value, i2s_word_length_t word_length);
 
 /**
  * I2S enable and configure watermark counter

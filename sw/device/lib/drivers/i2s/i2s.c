@@ -45,13 +45,14 @@
 /**                                                                        **/
 /****************************************************************************/
 
-void i2s_configure(uint16_t div_value, i2s_word_length_t word_length)
+bool i2s_configure(uint16_t div_value, i2s_word_length_t word_length)
 {
-  if (div_value == 0) { 
-    // there is a bug in the clock divider for div_value = 0
-    // therfore the hardware disables the clock divider for 0 so provide 1
-    div_value = 1;
+  if (i2s_peri->CONTROL & I2S_CONTROL_EN_BIT) {
+    
+    return false;
   }
+
+
   // write clock divider value to register
   i2s_peri->CLKDIVIDX = div_value;
 
@@ -59,6 +60,8 @@ void i2s_configure(uint16_t div_value, i2s_word_length_t word_length)
   uint32_t control = i2s_peri->CONTROL;
   bitfield_field32_write(control, I2S_CONTROL_DATA_WIDTH_FIELD, word_length);
   i2s_peri->CONTROL = control;
+
+  retrun true;
 }
 
 void i2s_rx_enable_watermark(uint16_t watermark, bool interrupt_en)
