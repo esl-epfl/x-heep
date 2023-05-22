@@ -1,0 +1,4 @@
+choose xa ../../../hw/analog/adc.sp;
+port_connect -cell ams_adc_1b ( vdd => vdd , gnd => gnd );
+port_dir -cell ams_adc_1b (input sel; output out);
+bus_format <%d>;
