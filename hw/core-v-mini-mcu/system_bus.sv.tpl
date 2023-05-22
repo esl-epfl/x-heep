@@ -1,4 +1,3 @@
-
 // Copyright 2017 Embecosm Limited <www.embecosm.com>
 // Copyright and related rights are licensed under the Solderpad Hardware
 // License, Version 0.51 (the "License"); you may not use this file except in
@@ -65,20 +64,20 @@ module system_bus
     input  obi_resp_t flash_mem_slave_resp_i,
 
     // External slave ports
-    output obi_req_t  ext_slave_core_instr_req_o,
-    input  obi_resp_t ext_slave_core_instr_resp_i,
+    output obi_req_t  ext_core_instr_req_o,
+    input  obi_resp_t ext_core_instr_resp_i,
 
-    output obi_req_t  ext_slave_core_data_req_o,
-    input  obi_resp_t ext_slave_core_data_resp_i,
+    output obi_req_t  ext_core_data_req_o,
+    input  obi_resp_t ext_core_data_resp_i,
 
-    output obi_req_t  ext_slave_debug_master_req_o,
-    input  obi_resp_t ext_slave_debug_master_resp_i,
+    output obi_req_t  ext_debug_master_req_o,
+    input  obi_resp_t ext_debug_master_resp_i,
 
-    output obi_req_t  ext_slave_dma_master0_ch0_req_o,
-    input  obi_resp_t ext_slave_dma_master0_ch0_resp_i,
+    output obi_req_t  ext_dma_master0_ch0_req_o,
+    input  obi_resp_t ext_dma_master0_ch0_resp_i,
 
-    output obi_req_t  ext_slave_dma_master1_ch0_req_o,
-    input  obi_resp_t ext_slave_dma_master1_ch0_resp_i 
+    output obi_req_t  ext_dma_master1_ch0_req_o,
+    input  obi_resp_t ext_dma_master1_ch0_resp_i 
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -119,7 +118,7 @@ module system_bus
 
   // Internal + external master requests
   generate
-    for (genvar i = 0; i < SYSTEM_XBAR_NMASTER; i++) begin
+    for (genvar i = 0; i < SYSTEM_XBAR_NMASTER; i++) begin: gen_sys_master_req_map
       assign master_req[i] = fwd_xbar_req[i][FWD_XBAR_INT_SLAVE_IDX];
     end
     for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin : gen_ext_master_req_map
@@ -129,7 +128,7 @@ module system_bus
 
   // Internal master responses
   generate
-    for (genvar i = 0; i < SYSTEM_XBAR_NMASTER; i++) begin
+    for (genvar i = 0; i < SYSTEM_XBAR_NMASTER; i++) begin: gen_fwd_master_resp_map
       assign fwd_xbar_resp[i][FWD_XBAR_INT_SLAVE_IDX] = master_resp[i];
     end
   endgenerate
@@ -159,11 +158,11 @@ module system_bus
   assign flash_mem_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::FLASH_MEM_IDX];
 
   // External slave requests
-  assign ext_slave_core_instr_req_o = fwd_xbar_req[CORE_INSTR_IDX][FWD_XBAR_EXT_SLAVE_IDX];
-  assign ext_slave_core_data_req_o = fwd_xbar_req[CORE_DATA_IDX][FWD_XBAR_EXT_SLAVE_IDX];
-  assign ext_slave_debug_master_req_o = fwd_xbar_req[DEBUG_MASTER_IDX][FWD_XBAR_EXT_SLAVE_IDX];
-  assign ext_slave_dma_master0_ch0_req_o = fwd_xbar_req[DMA_MASTER0_CH0_IDX][FWD_XBAR_EXT_SLAVE_IDX];
-  assign ext_slave_dma_master1_ch0_req_o = fwd_xbar_req[DMA_MASTER1_CH0_IDX][FWD_XBAR_EXT_SLAVE_IDX];
+  assign ext_core_instr_req_o = fwd_xbar_req[CORE_INSTR_IDX][FWD_XBAR_EXT_SLAVE_IDX];
+  assign ext_core_data_req_o = fwd_xbar_req[CORE_DATA_IDX][FWD_XBAR_EXT_SLAVE_IDX];
+  assign ext_debug_master_req_o = fwd_xbar_req[DEBUG_MASTER_IDX][FWD_XBAR_EXT_SLAVE_IDX];
+  assign ext_dma_master0_ch0_req_o = fwd_xbar_req[DMA_MASTER0_CH0_IDX][FWD_XBAR_EXT_SLAVE_IDX];
+  assign ext_dma_master1_ch0_req_o = fwd_xbar_req[DMA_MASTER1_CH0_IDX][FWD_XBAR_EXT_SLAVE_IDX];
 
   // Internal slave responses
   assign int_slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
@@ -176,11 +175,11 @@ module system_bus
   assign int_slave_resp[core_v_mini_mcu_pkg::FLASH_MEM_IDX] = flash_mem_slave_resp_i;
 
   // External slave responses
-  assign fwd_xbar_resp[CORE_INSTR_IDX][FWD_XBAR_EXT_SLAVE_IDX] = ext_slave_core_instr_resp_i;
-  assign fwd_xbar_resp[CORE_DATA_IDX][FWD_XBAR_EXT_SLAVE_IDX] = ext_slave_core_data_resp_i;
-  assign fwd_xbar_resp[DEBUG_MASTER_IDX][FWD_XBAR_EXT_SLAVE_IDX] = ext_slave_debug_master_resp_i;
-  assign fwd_xbar_resp[DMA_MASTER0_CH0_IDX][FWD_XBAR_EXT_SLAVE_IDX] = ext_slave_dma_master0_ch0_resp_i;
-  assign fwd_xbar_resp[DMA_MASTER1_CH0_IDX][FWD_XBAR_EXT_SLAVE_IDX] = ext_slave_dma_master1_ch0_resp_i;
+  assign fwd_xbar_resp[CORE_INSTR_IDX][FWD_XBAR_EXT_SLAVE_IDX] = ext_core_instr_resp_i;
+  assign fwd_xbar_resp[CORE_DATA_IDX][FWD_XBAR_EXT_SLAVE_IDX] = ext_core_data_resp_i;
+  assign fwd_xbar_resp[DEBUG_MASTER_IDX][FWD_XBAR_EXT_SLAVE_IDX] = ext_debug_master_resp_i;
+  assign fwd_xbar_resp[DMA_MASTER0_CH0_IDX][FWD_XBAR_EXT_SLAVE_IDX] = ext_dma_master0_ch0_resp_i;
+  assign fwd_xbar_resp[DMA_MASTER1_CH0_IDX][FWD_XBAR_EXT_SLAVE_IDX] = ext_dma_master1_ch0_resp_i;
 
 `ifndef SYNTHESIS
   always_ff @(posedge clk_i, negedge rst_ni) begin : check_out_of_bound
@@ -201,13 +200,13 @@ module system_bus
 
   // 1-to-2 forward crossbars
   // ------------------------
-  // These crossbar forward each master to a port on the internal crossbar or
+  // These crossbars forward each master to a port on the internal crossbar or
   // to the corresponding external master port.
   generate
     for (genvar i = 0; unsigned'(i) < SYSTEM_XBAR_NMASTER; i++) begin : gen_fwd_xbar
-      xbar_one_to_n #(
+      xbar_varlat_one_to_n #(
           .XBAR_NSLAVE   (32'd2   ), // internal crossbar + external crossbar
-          .DEFAULT_IDX   (FWD_XBAR_EXT_SLAVE_IDX ), // by default, select external port
+          .DEFAULT_IDX   (FWD_XBAR_EXT_SLAVE_IDX ) // by default, select external port
       ) fwd_xbar_i (
           .clk_i        (clk_i),
           .rst_ni       (rst_ni),
@@ -228,6 +227,8 @@ module system_bus
   ) system_xbar_i (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
+      .addr_map_i(core_v_mini_mcu_pkg::XBAR_ADDR_RULES),
+      .default_idx_i(core_v_mini_mcu_pkg::ERROR_IDX[LOG_SYSTEM_XBAR_NSLAVE-1:0]),
       .master_req_i(master_req),
       .master_resp_o(master_resp),
       .slave_req_o(int_slave_req),

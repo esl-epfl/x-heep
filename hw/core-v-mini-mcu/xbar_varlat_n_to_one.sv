@@ -2,13 +2,13 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 //
-// File: tb_xbar.sv
+// File: xbar_varlat_n_to_one.sv
 // Author: Michele Caon
 // Date: 18/05/2023
-// Description: 5-to-1 crossbar for X-HEEP testbench
+// Description: N-to-1 crossbar
 
-module tb_xbar #(
-    parameter int unsigned XBAR_NMASTER = 5
+module xbar_varlat_n_to_one #(
+    parameter int unsigned XBAR_NMASTER = 2
 ) (
     input logic clk_i,
     input logic rst_ni,

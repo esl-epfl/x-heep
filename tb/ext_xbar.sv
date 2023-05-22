@@ -2,7 +2,7 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-module system_xbar #(
+module ext_xbar #(
     parameter core_v_mini_mcu_pkg::bus_type_e BUS_TYPE = core_v_mini_mcu_pkg::BusType,
     parameter int unsigned XBAR_NMASTER = 3,
     parameter int unsigned XBAR_NSLAVE = 6,
@@ -30,7 +30,6 @@ module system_xbar #(
   import obi_pkg::*;
   import core_v_mini_mcu_pkg::*;
 
-  localparam int unsigned LOG_XBAR_NMASTER = XBAR_NMASTER > 1 ? $clog2(XBAR_NMASTER) : 32'd1;
   localparam int unsigned LOG_XBAR_NSLAVE = XBAR_NSLAVE > 1 ? $clog2(XBAR_NSLAVE) : 32'd1;
 
   //Aggregated Request Data (from Master -> slaves)
@@ -39,12 +38,7 @@ module system_xbar #(
   localparam int unsigned RESP_AGG_DATA_WIDTH = 32;
 
   //Address Decoder
-% if ram_numbanks_il == 0:
   logic [XBAR_NMASTER-1:0][LOG_XBAR_NSLAVE-1:0] port_sel;
-% else:
-  logic [XBAR_NMASTER-1:0][LOG_XBAR_NSLAVE-1:0] port_sel, pre_port_sel;
-  logic [XBAR_NMASTER-1:0][31:0] post_master_req_addr;
-% endif
 
   logic [0:0][LOG_XBAR_NSLAVE-1:0] port_sel_onetom;
   logic [0:0] neck_req_req;
@@ -80,46 +74,20 @@ module system_xbar #(
       ) addr_decode_i (
           .addr_i(master_req_i[i].addr),
           .addr_map_i(addr_map_i),
-% if ram_numbanks_il == 0:
           .idx_o(port_sel[i]),
-% else:
-          .idx_o(pre_port_sel[i]),
-% endif          
           .dec_valid_o(),
           .dec_error_o(),
           .en_default_idx_i(1'b1),
           .default_idx_i(default_idx_i)
       );
     end
-% if ram_numbanks_il != 0:
-
-    localparam ZERO = 32'h0;
-
-    for (genvar j = 0; j < XBAR_NMASTER; j++) begin : gen_addr_napot
-      always_comb begin
-        port_sel[j] = 1;
-        post_master_req_addr[j] = '0;
-        if (pre_port_sel[j] == NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - (NUM_BANKS_IL[LOG_XBAR_NSLAVE-1:0]-1)) begin
-            port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - (NUM_BANKS_IL[LOG_XBAR_NSLAVE-1:0]-1) + {ZERO[LOG_XBAR_NSLAVE-${1+log_ram_numbanks_il}:0],master_req_i[j].addr[${1+log_ram_numbanks_il}:2]};
-          post_master_req_addr[j] = {master_req_i[j].addr[31:${2+log_ram_numbanks_il}], ${2+log_ram_numbanks_il}'h0};
-        end else begin
-          port_sel[j] = pre_port_sel[j];
-          post_master_req_addr[j] = master_req_i[j].addr;
-        end
-      end
-    end
-% endif    
   end
 
   //unroll obi struct
   for (genvar i = 0; i < XBAR_NMASTER; i++) begin : gen_unroll_master
     assign master_req_req[i] = master_req_i[i].req;
     assign master_req_out_data[i] = {
-% if ram_numbanks_il == 0:
       master_req_i[i].we, master_req_i[i].be, master_req_i[i].addr, master_req_i[i].wdata
-% else:    
-      master_req_i[i].we, master_req_i[i].be, post_master_req_addr[i], master_req_i[i].wdata
-% endif      
     };
     assign master_resp_o[i].gnt = master_resp_gnt[i];
     assign master_resp_o[i].rdata = master_resp_rdata[i];
@@ -236,4 +204,4 @@ module system_xbar #(
     );
   end
 
-endmodule : system_xbar
+endmodule : ext_xbar

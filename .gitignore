@@ -49,5 +49,6 @@ sw/device/lib/drivers/**/*_structs.h
 # openroad
 flow/OpenROAD-flow-scripts
 
-# User-ependent configuration files
+# User-dependent configuration files
 .vscode
+private/

@@ -33,7 +33,8 @@ filesets:
     - tb/tb_util.svh: {is_include_file: true}
     - tb/testharness_pkg.sv
     - tb/testharness.sv
-    - tb/tb_xbar.sv
+    - tb/ext_xbar.sv
+    - tb/ext_bus.sv
     file_type: systemVerilogSource
 
   uartdpi:

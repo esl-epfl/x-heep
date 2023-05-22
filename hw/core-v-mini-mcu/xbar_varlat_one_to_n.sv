@@ -2,12 +2,12 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 //
-// File: xbar_one_to_n.sv
+// File: xbar_varlat_one_to_n.sv
 // Author: Michele Caon
 // Date: 18/05/2023
 // Description: 1-to-N crossbar
 
-module xbar_one_to_n #(
+module xbar_varlat_one_to_n #(
     parameter int unsigned XBAR_NSLAVE = 2,
     parameter int unsigned DEFAULT_IDX = XBAR_NSLAVE - 1,  // slave to select when no rule matches
     parameter int unsigned AGGREGATE_GNT = 32'd1 // the master port is not aggregating multiple masters
