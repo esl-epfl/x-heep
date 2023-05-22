@@ -95,6 +95,10 @@
             length:  0x00010000,
             path:    "./hw/vendor/lowrisc_opentitan/hw/ip/uart/data/uart.hjson"
         },
+        ams: {
+            offset:  0x000C0000,
+            length:  0x00010000,
+        },
     },
 
     peripherals: {

@@ -410,5 +410,14 @@ module ao_peripheral_subsystem
       .intr_rx_parity_err_o(uart_intr_rx_parity_err_o)
   );
 
+  ams #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) ams_i (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::AMS_IDX]),
+      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::AMS_IDX])
+  );
 
 endmodule : ao_peripheral_subsystem
