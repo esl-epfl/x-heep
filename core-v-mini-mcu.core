@@ -335,7 +335,6 @@ targets:
           - '--trace-max-array 1024'
           - '--x-assign unique'
           - '--x-initial unique'
-          - '--waiver-output waiver.rpt'
           - '--exe tb_top.cpp'
           - '-CFLAGS "-std=c++11 -Wall -g -fpermissive"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
