@@ -290,7 +290,8 @@ targets:
         - tool_modelsim? (pre_build_remote_bitbang)
         - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
     parameters:
-    - COREV_PULP=0
+    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
+    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
     - use_cv32e40p_fpu? (FPU=1)
     - "!use_cv32e40p_fpu? (FPU=0)"
     - use_jtag_dpi? (JTAG_DPI=1)
@@ -334,6 +335,7 @@ targets:
           - '--trace-max-array 1024'
           - '--x-assign unique'
           - '--x-initial unique'
+          - '--waiver-output waiver.rpt'
           - '--exe tb_top.cpp'
           - '-CFLAGS "-std=c++11 -Wall -g -fpermissive"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
@@ -348,7 +350,8 @@ targets:
     - ip-fpga
     - xdc-fpga-nexys
     parameters:
-    - COREV_PULP=0
+    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
+    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
     - use_cv32e40p_fpu? (FPU=1)
     - "!use_cv32e40p_fpu? (FPU=0)"
     - SYNTHESIS=true
@@ -367,7 +370,8 @@ targets:
     - ip-fpga
     - xdc-fpga-pynq-z2
     parameters:
-    - COREV_PULP=0
+    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
+    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
     - use_cv32e40p_fpu? (FPU=1)
     - "!use_cv32e40p_fpu? (FPU=0)"
     - SYNTHESIS=true
@@ -386,7 +390,8 @@ targets:
     - ip-fpga
     - fpga-arm-emulation
     parameters:
-    - COREV_PULP=0
+    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
+    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
     - use_cv32e40p_fpu? (FPU=1)
     - "!use_cv32e40p_fpu? (FPU=0)"
     - SYNTHESIS=true
@@ -405,7 +410,8 @@ targets:
     hooks:
       post_build: [post_build_modelsim_scripts]
     parameters:
-    - COREV_PULP=0
+    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
+    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
     - use_cv32e40p_fpu? (FPU=1)
     - "!use_cv32e40p_fpu? (FPU=0)"
     - FPGA_NETLIST=true
@@ -422,7 +428,8 @@ targets:
     default_tool: design_compiler
     description: Design Compiler Script
     parameters:
-    - COREV_PULP=0
+    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
+    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
     - use_cv32e40p_fpu? (FPU=1)
     - "!use_cv32e40p_fpu? (FPU=0)"
     - SYNTHESIS=true
@@ -445,7 +452,8 @@ targets:
     default_tool: openroad
     description: yosys
     parameters:
-      - COREV_PULP=0
+      - use_cv32e40p_corev_pulp? (COREV_PULP=1)
+      - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
       - use_cv32e40p_fpu? (FPU=1)
       - "!use_cv32e40p_fpu? (FPU=0)"
       - SYNTHESIS=true
