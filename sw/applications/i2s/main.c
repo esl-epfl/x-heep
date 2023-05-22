@@ -121,7 +121,7 @@ void setup()
 
     // enable I2s interrupt
     i2s_interrupt_flag = 0;
-    i2s_configure(I2S_CLK_DIV, I2S_32_BITS);
+    i2s_init(I2S_CLK_DIV, I2S_32_BITS);
 
 
     // Enable interrupt on processor side
@@ -224,6 +224,7 @@ int main(int argc, char *argv[]) {
         #endif
     }
 #endif
+    i2s_terminate();
 
     return EXIT_SUCCESS;
 }
