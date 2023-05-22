@@ -71,7 +71,8 @@ const uint32_t plicMaxPriority = RV_PLIC_PRIO0_PRIO0_MASK;
 handler_funct_t handlers[PLIC_INTR_SRCS_NUM] = {&handler_irq_uart, 
                                                 &handler_irq_gpio, 
                                                 &handler_irq_i2c, 
-                                                &handler_irq_spi};
+                                                &handler_irq_spi,
+                                                &handler_irq_ext};
 
 /****************************************************************************/
 /**                                                                        **/
@@ -150,6 +151,10 @@ __attribute__((weak, optimize("O0"))) void handler_irq_i2c(void) {
 
 __attribute__((weak, optimize("O0"))) void handler_irq_spi(void) {
   
+}
+
+__attribute__((weak, optimize("O0"))) void handler_irq_ext(void) {
+
 }
 
 void handler_irq_external(void)
@@ -397,7 +402,7 @@ plic_result_t plic_software_irq_is_pending(void)
 
 static irq_sources_t plic_get_irq_src_type(plic_irq_id_t irq_id)
 {
-  if (irq_id < UART_ID_START || irq_id > SPI_ID)
+  if (irq_id < UART_ID_START || irq_id > EXT_IRQ_END)
   {
     return IRQ_BAD;
   }
@@ -413,17 +418,20 @@ static irq_sources_t plic_get_irq_src_type(plic_irq_id_t irq_id)
   {
     return IRQ_I2C_SRC;
   }
-  else 
+  else if (irq_id == SPI_ID)
   {
     return IRQ_SPI_SRC;
+  }
+  else 
+  {
+    return IRQ_EXT_SRC;
   }
 
 }
 
 static ptrdiff_t plic_offset_from_reg0(plic_irq_id_t irq) 
 {
-  uint8_t register_index = irq / RV_PLIC_PARAM_REG_WIDTH;
-  return register_index * sizeof(uint32_t);
+  return irq / RV_PLIC_PARAM_REG_WIDTH;
 }
 
 static uint8_t plic_irq_bit_index(plic_irq_id_t irq) 
