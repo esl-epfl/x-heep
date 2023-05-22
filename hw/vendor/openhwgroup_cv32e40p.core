@@ -13,6 +13,7 @@ filesets:
     - openhwgroup_cv32e40p/rtl/include/cv32e40p_apu_core_pkg.sv
     - openhwgroup_cv32e40p/rtl/include/cv32e40p_fpu_pkg.sv
     - openhwgroup_cv32e40p/rtl/include/cv32e40p_pkg.sv
+    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_pkg.sv
     - openhwgroup_cv32e40p/rtl/cv32e40p_alu.sv
     - openhwgroup_cv32e40p/rtl/cv32e40p_alu_div.sv
     - openhwgroup_cv32e40p/rtl/cv32e40p_ff_one.sv
@@ -42,7 +43,6 @@ filesets:
 
   files_fpu:
     files:
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_pkg.sv
     - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_cast_multi.sv
     - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_classifier.sv
     - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_divsqrt_multi.sv
