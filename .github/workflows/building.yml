@@ -1,0 +1,17 @@
+name: Building tests
+on: [push, pull_request]
+
+jobs:
+  test_applications:
+    runs-on: ubuntu-latest
+    container: 
+      image: ghcr.io/esl-epfl/xheep-compiler:latest
+    name: Builds apps with gcc and clang. All must build successfully.
+    steps:
+      - name: Checkout the pushed code. 
+        uses: actions/checkout@v3        
+      - name: Configure the job container and run tests.
+        run: |
+          chmod u+x ./.github/workflows/build-apps-job/setup.sh
+          ./.github/workflows/build-apps-job/setup.sh  
+
