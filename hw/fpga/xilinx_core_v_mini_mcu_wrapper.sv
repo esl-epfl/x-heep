@@ -95,7 +95,10 @@ module xilinx_core_v_mini_mcu_wrapper
   );
 
   x_heep_system #(
-      .X_EXT(X_EXT)
+      .X_EXT(X_EXT),
+      .COREV_PULP(COREV_PULP),
+      .FPU(FPU),
+      .ZFINX(ZFINX)
   ) x_heep_system_i (
       .intr_vector_ext_i('0),
       .xif_compressed_if(ext_if),
