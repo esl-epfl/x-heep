@@ -15,9 +15,8 @@ filesets:
     - rtl/ams_reg_pkg.sv
     - rtl/ams_reg_top.sv
     - rtl/ams.sv
+    - target_sim? (rtl/dummy_adc.sv)
     file_type: systemVerilogSource
-
-#files_sp once fusesoc modified
 
 targets:
   default:

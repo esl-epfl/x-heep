@@ -261,13 +261,14 @@ targets:
     filesets:
     - files_rtl_generic
     - target_sim ? (rtl-simulation)
+    - target_ams_sim ? (rtl-simulation)
     - target_sim ? (tool_verilator? (files_verilator_waiver))
     toplevel: [core_v_mini_mcu]
 
   sim:
     <<: *default_target
     default_tool: modelsim
-    filesets_append:
+    filesets_append: &sim_filesets
     - tb-utils
     - tool_modelsim? (pre_build_remote_bitbang)
     - tool_modelsim? (pre_build_uartdpi)
@@ -278,7 +279,7 @@ targets:
     - tool_modelsim? (tb-sv)
     - tool_vcs? (tb-sv)
     - "!integrated_heep? (x_heep_system)"
-    toplevel:
+    toplevel: &sim_toplevel
     - tool_modelsim? (tb_top)
     - tool_vcs? (tb_top)
     - tool_verilator? (testharness)
@@ -287,7 +288,7 @@ targets:
         - tool_modelsim? (pre_build_uartdpi)
         - tool_modelsim? (pre_build_remote_bitbang)
         - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
-    parameters:
+    parameters: &sim_parameters
     - PULP_XPULP=0
     - use_jtag_dpi? (JTAG_DPI=1)
     - "!use_jtag_dpi? (JTAG_DPI=0)"
@@ -309,15 +310,18 @@ targets:
          - -override_timescale=1ns/1ps
          - -assert disable_cover
          - -assert svaext
-         - -debug_access+all
+         - -debug_access+all+dmptf
          - -fgp
+         - -full64
          - -kdb
          - -notice
          - -ntb_opts error
          - -race=all
          - -xlrm uniq_prior_final
+         - -ad=../../../hw/analog/control.init
          - -CFLAGS "-std=c++14 -pthread"
          - -LDFLAGS "-pthread -lutil"
+         - +lint=TFIPC-L
          - -V
       verilator:
         mode: cc
@@ -334,6 +338,31 @@ targets:
           - '-CFLAGS "-std=c++11 -Wall -g -fpermissive"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
+  ams_sim:
+    <<: *default_target
+    default_tool: vcs
+    filesets_append: *sim_filesets
+    parameters: *sim_parameters
+    toplevel: *sim_toplevel
+    tools:
+      vcs:
+         vcs_options:
+           - -override_timescale=1ns/1ps
+           - -assert disable_cover
+           - -assert svaext
+           - -debug_access+all+dmptf
+           - -fgp
+           - -full64
+           - -kdb
+           - -notice
+           - -ntb_opts error
+           - -race=all
+           - -xlrm uniq_prior_final
+           - -ad=../../../hw/analog/control.init
+           - -CFLAGS "-std=c++14 -pthread"
+           - -LDFLAGS "-pthread -lutil"
+           - +lint=TFIPC-L
+           - -V
 
   nexys-a7-100t:
     <<: *default_target

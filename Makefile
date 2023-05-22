@@ -100,7 +100,7 @@ mcu-gen-help:
 ## Runs verible formating
 verible:
 	util/format-verible;
-	
+
 ## @section APP FW Build
 
 ## Generates the build folder in sw using CMake to build (compile and linking)
@@ -111,19 +111,19 @@ verible:
 ## @param ARCH=rv32imc(default), <any RISC-V ISA string supported by the CPU>
 app: clean-app
 	$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) ARCH=$(ARCH) SOURCE=$(SOURCE)
-	
+
 ## Just list the different application names available
 app-list:
-	@echo "Note: Applications outside the X-HEEP sw/applications directory will not be listed."  
+	@echo "Note: Applications outside the X-HEEP sw/applications directory will not be listed."
 	tree sw/applications/
 
-## Compile all the apps present in the repo 	
+## Compile all the apps present in the repo
 app-compile-all:
 	bash util/compile_all_apps.sh;
 
 ## @section Simulation
 
-## Verilator simulation			
+## Verilator simulation
 verilator-sim:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
 
@@ -146,6 +146,10 @@ questasim-sim-opt-upf: questasim-sim
 vcs-sim:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=vcs $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
 
+## VCS-AMS simulation:
+vcs-ams-sim:
+	$(FUSESOC) --cores-root . run --no-export --target=ams_sim --tool=vcs $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+
 ## Generates the build output for helloworld application
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
@@ -165,7 +169,7 @@ run-blinkyfreertos: mcu-gen verilator-sim
 	./Vtestharness +firmware=../../../sw/build/main.hex; \
 	cat uart0.log; \
 	cd ../../..;
-	
+
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
 run-app-sim:
@@ -211,9 +215,9 @@ flash-prog:
 
 ## Run openOCD w/ EPFL_Programmer
 openOCD_epflp:
-	xterm -e openocd -f ./tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg; 
+	xterm -e openocd -f ./tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg;
 
-## Start GDB 
+## Start GDB
 gdb_connect:
 	$(MAKE) -C sw gdb_connect
 

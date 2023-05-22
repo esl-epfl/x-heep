@@ -148,6 +148,7 @@ targets:
       - tool_veriblelint ? (files_lint_verible)
       - files_rtl
       - target_sim? (files_clk_gate)
+      - target_ams_sim? (files_clk_gate)
       - target_sim-opt? (files_clk_gate)
     toplevel: ibex_core
     parameters:

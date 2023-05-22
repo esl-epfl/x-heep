@@ -33,6 +33,5 @@ module ams #(
       .devmode_i(1'b1)
   );
 
-  // initialize block with spice pin names, connect to regs
 endmodule : ams
 
