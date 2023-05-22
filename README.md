@@ -27,11 +27,11 @@
 # x-heep
 ======================================
 
-`X-HEEP` (eXtendable Heterogeneous Energy-Efficient Platform) is a `RISC-V` microcontroller described in `SystemVerilog` 
+`X-HEEP` (eXtendable Heterogeneous Energy-Efficient Platform) is a `RISC-V` microcontroller described in `SystemVerilog`
 that can be configured to target small and tiny platforms as well as extended to support accelerators.
-The cool thing about `X-HEEP` is that we provide a simple customizable MCU, so CPUs, common peripherals, memories, etc. 
-so that you can extend it with your own accelerator without modifying the MCU, but just instantiating it in your design. 
-By doing so, you inherit an IP capable of booting RTOS (such as `freeRTOS`) with the whole FW stack, including `HAL` drivers and `SDK`, 
+The cool thing about `X-HEEP` is that we provide a simple customizable MCU, so CPUs, common peripherals, memories, etc.
+so that you can extend it with your own accelerator without modifying the MCU, but just instantiating it in your design.
+By doing so, you inherit an IP capable of booting RTOS (such as `freeRTOS`) with the whole FW stack, including `HAL` drivers and `SDK`,
 and you can focus on building your special HW supported by the microcontroller.
 
 `X-HEEP` supports simulation with Verilator, Questasim, etc. Morever, FW can be built and linked by using `CMake` either with gcc or with clang. It can be implemented on FPGA, and it supports implementation in Silicon, which is its main (but not only) target. See below for more details.
@@ -192,12 +192,12 @@ make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=12 MEMORY_BANKS_IL=4
 ```
 
 The last command generates x-heep with the cv32e40p core, with a parallel bus, and 16 memory banks (12 continuous and 4 interleaved),
-each 32KB, for a total memory of 512KB. 
+each 32KB, for a total memory of 512KB.
 
 ## Compiling Software
 
 Don't forget to set the `RISCV` env variable to the compiler folder (without the `/bin` included).
-To run 'hello world' application, just type 'make app'. 
+To run 'hello world' application, just type 'make app'.
 
 ```
 make app
@@ -233,7 +233,7 @@ compiled and linked are under `sw\build`
 After that, you can run the command to compile and link the FreeRTOS based application. Please also set 'LINKER' and 'TARGET' parameters if needed.
 
 ```
-make app PROJECT=blinky_freertos 
+make app PROJECT=blinky_freertos
 ```
 
 The main FreeRTOS configuration is allocated under `sw\freertos`, in `FreeRTOSConfig.h`. Please, change this file based on your application requirements.
@@ -289,6 +289,28 @@ and type to run your compiled software:
 ```
 ./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/build/main.hex
 ```
+
+Waveforms can be viewed with Verdi. Make sure you have the env variable `VERDI_HOME` set to your Verdi install folder, then run your compiled software as above, but with the `-gui` flag:
+
+```
+./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/build/main.hex -gui
+```
+
+An Analog / Mixed-Signal simulation of X-HEEP, combining both the RTL system verilog files for the digital part and a SPICE file connected through a `control.init` file for the analog / mixed-signal part, can be ran by typing
+
+```
+make vcs-ams-sim
+```
+
+then going to the target system built folder
+
+```
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/ams_sim-vcs
+```
+
+and running the same executable as for the digital simulation. Note that with Verdi you can view both the digital and the analog waveforms.
+
+More details on running an analog / mixed-signal simulation of X-HEEP can be found in the AnalogMixedSignal.md file (TODO).
 
 ### Compiling for Questasim
 
