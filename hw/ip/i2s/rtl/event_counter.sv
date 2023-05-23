@@ -19,10 +19,15 @@ module event_counter #(
     output logic [WIDTH-1:0] q_o,
     output logic             overflow_o
 );
-  logic [WIDTH-1:0] counter_q, counter_d;
+  logic [WIDTH-1:0] counter_q, counter_d, counter_q_plus1;
+  logic overlimit;
+
+  assign counter_q_plus1 = counter_q + {{WIDTH - 1{1'b0}}, 1'b1};
+  assign overlimit = (counter_q_plus1 >= limit_i);
 
   // counter overflowed if counter == limit
-  assign overflow_o = (en_i && (counter_q + '1 >= limit_i));
+  assign overflow_o = en_i & overlimit;
+
   assign q_o = counter_q[WIDTH-1:0];
 
   always_comb begin
@@ -31,7 +36,7 @@ module event_counter #(
     if (clear_i | overflow_o) begin
       counter_d = '0;
     end else if (en_i) begin
-      counter_d = counter_q + '1;
+      counter_d = counter_q_plus1;
     end
   end
 

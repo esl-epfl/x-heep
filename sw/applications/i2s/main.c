@@ -28,14 +28,14 @@
 #define I2S_CLK_DIV           8
 #define AUDIO_DATA_NUM 2048                          // RECORDING LENGTH
 // #define AUDIO_DATA_NUM 0x18000  // max 0x1c894                          // RECORDING LENGTH
-#define I2S_USE_INTERRUPT false
+#define I2S_USE_INTERRUPT true
 #define USE_DMA
 #else
 #define I2S_TEST_BATCH_SIZE    128
 #define I2S_TEST_BATCHES      4
 #define I2S_CLK_DIV           32
 #define AUDIO_DATA_NUM 4
-#define I2S_USE_INTERRUPT false
+#define I2S_USE_INTERRUPT true
 //#define USE_DMA
 #endif
 
@@ -60,7 +60,7 @@ plic_irq_id_t intr_num;
 
 
 // I2s
-int i2s_interrupt_flag;
+int i2s_interrupt_flag = 0;
 
 
 int32_t audio_data_0[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
@@ -75,16 +75,10 @@ int8_t dma_intr_flag;
 //
 // ISR
 //
-// void handler_irq_external(void) {
-//     // Claim/clear interrupt
-//     plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
-//     if (plic_res == kDifPlicOk) {
-//         if (intr_num == I2S_INTR_EVENT) {
-//             i2s_interrupt_flag = i2s_interrupt_flag + 1;
-//         }
-//         dif_plic_irq_complete(&rv_plic, 0, &intr_num);
-//     }
-// }
+void handler_irq_ext(void) {
+    i2s_interrupt_flag = 1;
+    printf(".");
+}
 
 #ifdef USE_DMA
 void fic_irq_dma(void)
@@ -122,6 +116,7 @@ void setup()
     // enable I2s interrupt
     i2s_interrupt_flag = 0;
     i2s_init(I2S_CLK_DIV, I2S_32_BITS);
+    i2s_rx_enable_watermark(AUDIO_DATA_NUM, I2S_USE_INTERRUPT);
 
 
     // Enable interrupt on processor side
@@ -139,7 +134,9 @@ void setup()
 // 1500000
 
 int main(int argc, char *argv[]) {
+#ifdef TARGET_PYNQ_Z2
     for (uint32_t i = 0; i < 0x10000; i++) asm volatile("nop");
+#endif
     printf("I2s DEMO\r\n");
 
     setup();
@@ -147,7 +144,6 @@ int main(int argc, char *argv[]) {
     //printf("Setup done!\r\n");
 
 #ifdef TARGET_PYNQ_Z2
-    printf("index,data\r\n"); // <- csv header for python 
     
 
     for (uint32_t i = 0; i < I2S_WAIT_CYCLES; i++) asm volatile("nop");
@@ -176,15 +172,24 @@ int main(int argc, char *argv[]) {
             audio_data_0[i] = i2s_rx_read_data();
         }
         #endif
-        i2s_rx_stop();
 
+
+
+        printf("index,data\r\n"); // <- csv header for python 
         int32_t* data = audio_data_0;
         for (int i = 0; i < AUDIO_DATA_NUM; i+=1) {
-            printf("%4x,%d\r\n", i, (int16_t) (data[i] >> 16));
+            //printf("%4x,%d\r\n", i, (int16_t) (data[i] >> 16));
         }
         batch += 1;
 
+        if (i2s_interrupt_flag) {
+            printf("irq 1\n");
+            i2s_interrupt_flag = 0;
+        }
+
         break;
+
+        i2s_rx_stop();
 
         #ifdef USE_DMA
         dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // restart 
@@ -209,11 +214,18 @@ int main(int argc, char *argv[]) {
         #else
         // READING DATA MANUALLY OVER BUS
         for (int i = 0; i < AUDIO_DATA_NUM; i+=1) {
+            if (i != i2s_rx_read_waterlevel()) printf("Waterlevel wrong\r\n");
             while (!i2s_rx_data_available()) { }
             audio_data_0[i] = i2s_rx_read_data();
         }
         #endif
         i2s_rx_stop();
+
+        if (i2s_interrupt_flag) {
+            printf("irq 1\r\n");
+            i2s_interrupt_flag = 0;
+        }
+
 
         printf("B%x\r\n", batch);
         

@@ -85,6 +85,7 @@
                 { value: "1", name: "RIGHT_FIRST", desc: "Start right channel first"},
           ]
         }
+        { bits: "11", name: "RESET_RX_OVERFLOW", desc: "reset rx overflow", hwaccess: "hrw"}
       ]
     }
 

@@ -30,7 +30,8 @@ module i2s_rx_channel #(
     output logic                    data_valid_o,
     input  logic                    data_ready_i,
 
-    output logic overflow_o
+    output logic overflow_o,
+    input  logic clear_overflow_i
 );
 
   logic en;
@@ -182,7 +183,7 @@ module i2s_rx_channel #(
     if (~rst_ni) begin
       overflow_o <= 1'b0;
     end else begin
-      if (~en) begin
+      if (clear_overflow_i) begin
         overflow_o <= 1'b0;
       end else if (word_done & data_valid_o & ~data_ready_i) begin
         overflow_o <= 1'b1;

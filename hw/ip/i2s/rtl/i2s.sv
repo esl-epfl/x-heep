@@ -77,7 +77,9 @@ module i2s #(
 
   // CONTROL 
   assign hw2reg.control.reset_watermark.de = reg2hw.control.reset_watermark.q;
-  assign hw2reg.control.reset_watermark.d  = 1'b0;
+  assign hw2reg.control.reset_watermark.d = 1'b0;
+  assign hw2reg.control.reset_rx_overflow.de = ~data_rx_overflow;
+  assign hw2reg.control.reset_rx_overflow.d = 1'b0;
 
 
 
@@ -120,6 +122,8 @@ module i2s #(
       .data_rx_o(data_rx),
       .data_rx_valid_o(data_rx_valid),
       .data_rx_ready_i(data_rx_ready),
+
+      .clear_rx_overflow_i(reg2hw.control.reset_rx_overflow.q),
 
       .running_o(hw2reg.status.running.d),
       .data_rx_overflow_o(data_rx_overflow)

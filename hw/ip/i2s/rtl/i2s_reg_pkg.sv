@@ -30,6 +30,7 @@ package i2s_reg_pkg;
     struct packed {logic q;} en_io;
     struct packed {logic [1:0] q;} data_width;
     struct packed {logic q;} rx_start_channel;
+    struct packed {logic q;} reset_rx_overflow;
   } i2s_reg2hw_control_reg_t;
 
   typedef struct packed {logic [15:0] q;} i2s_reg2hw_watermark_reg_t;
@@ -44,6 +45,10 @@ package i2s_reg_pkg;
       logic d;
       logic de;
     } reset_watermark;
+    struct packed {
+      logic d;
+      logic de;
+    } reset_rx_overflow;
   } i2s_hw2reg_control_reg_t;
 
   typedef struct packed {logic [15:0] d;} i2s_hw2reg_waterlevel_reg_t;
@@ -58,15 +63,15 @@ package i2s_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    i2s_reg2hw_clkdividx_reg_t clkdividx;  // [75:60]
-    i2s_reg2hw_control_reg_t control;  // [59:49]
+    i2s_reg2hw_clkdividx_reg_t clkdividx;  // [76:61]
+    i2s_reg2hw_control_reg_t control;  // [60:49]
     i2s_reg2hw_watermark_reg_t watermark;  // [48:33]
     i2s_reg2hw_rxdata_reg_t rxdata;  // [32:0]
   } i2s_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    i2s_hw2reg_control_reg_t control;  // [52:51]
+    i2s_hw2reg_control_reg_t control;  // [54:51]
     i2s_hw2reg_waterlevel_reg_t waterlevel;  // [50:35]
     i2s_hw2reg_status_reg_t status;  // [34:32]
     i2s_hw2reg_rxdata_reg_t rxdata;  // [31:0]

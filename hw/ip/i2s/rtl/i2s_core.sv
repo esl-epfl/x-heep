@@ -32,6 +32,8 @@ module i2s_core #(
     output logic                    data_rx_valid_o,
     input  logic                    data_rx_ready_i,
 
+    input logic clear_rx_overflow_i,
+
     output logic running_o,
     output logic data_rx_overflow_o
 );
@@ -89,7 +91,8 @@ module i2s_core #(
       .data_o(data_rx_dc),
       .data_valid_o(data_rx_dc_valid),
       .data_ready_i(data_rx_dc_ready),
-      .overflow_o(data_rx_overflow_async)
+      .overflow_o(data_rx_overflow_async),
+      .clear_overflow_i(clear_rx_overflow_i)
   );
 
   // cdc

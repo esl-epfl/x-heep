@@ -122,9 +122,9 @@ i2s_result_t i2s_rx_start(i2s_channel_sel_t channels)
 
   // check if overflow has occurred
   if (overflow) {
+    i2s_peri->CONTROL = control | (1 << I2S_CONTROL_RESET_RX_OVERFLOW_BIT);
     // overflow bit is going to be reset by rx channel if the sck is running
     while (i2s_rx_overflow()) ; // wait for one SCK rise - this might take some time as the SCK can be much slower
-    
   }
   
   // cdc_2phase FIFO is not clearable, so we have to empty the FIFO manually
@@ -135,6 +135,8 @@ i2s_result_t i2s_rx_start(i2s_channel_sel_t channels)
 
   // now we can start the selected rx channels
   control |= (channels << I2S_CONTROL_EN_RX_OFFSET);
+  control |= (1 << I2S_CONTROL_RESET_WATERMARK_BIT); // reset waterlevel
+
   i2s_peri->CONTROL = control;
   return kI2sOk;
 }

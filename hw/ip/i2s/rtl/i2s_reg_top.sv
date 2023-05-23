@@ -98,6 +98,9 @@ module i2s_reg_top #(
   logic control_rx_start_channel_qs;
   logic control_rx_start_channel_wd;
   logic control_rx_start_channel_we;
+  logic control_reset_rx_overflow_qs;
+  logic control_reset_rx_overflow_wd;
+  logic control_reset_rx_overflow_we;
   logic [15:0] watermark_qs;
   logic [15:0] watermark_wd;
   logic watermark_we;
@@ -376,6 +379,32 @@ module i2s_reg_top #(
   );
 
 
+  //   F[reset_rx_overflow]: 11:11
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_control_reset_rx_overflow (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(control_reset_rx_overflow_we),
+      .wd(control_reset_rx_overflow_wd),
+
+      // from internal hardware
+      .de(hw2reg.control.reset_rx_overflow.de),
+      .d (hw2reg.control.reset_rx_overflow.d),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.control.reset_rx_overflow.q),
+
+      // to register interface (read)
+      .qs(control_reset_rx_overflow_qs)
+  );
+
+
   // R[watermark]: V(False)
 
   prim_subreg #(
@@ -538,6 +567,9 @@ module i2s_reg_top #(
   assign control_rx_start_channel_we = addr_hit[1] & reg_we & !reg_error;
   assign control_rx_start_channel_wd = reg_wdata[10];
 
+  assign control_reset_rx_overflow_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_reset_rx_overflow_wd = reg_wdata[11];
+
   assign watermark_we = addr_hit[2] & reg_we & !reg_error;
   assign watermark_wd = reg_wdata[15:0];
 
@@ -569,6 +601,7 @@ module i2s_reg_top #(
         reg_rdata_next[7]   = control_en_io_qs;
         reg_rdata_next[9:8] = control_data_width_qs;
         reg_rdata_next[10]  = control_rx_start_channel_qs;
+        reg_rdata_next[11]  = control_reset_rx_overflow_qs;
       end
 
       addr_hit[2]: begin
