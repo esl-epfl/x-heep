@@ -113,12 +113,15 @@ module i2s #(
       .ws_o (i2s_ws_o),
       .sd_i (i2s_sd_i),
 
-      .cfg_clock_div_i (reg2hw.clkdividx.q),
+      .cfg_clock_div_i(reg2hw.clkdividx.q),
       .cfg_word_width_i(word_width),
+      .cfg_rx_start_channel_i(reg2hw.control.rx_start_channel.q),
 
       .data_rx_o(data_rx),
       .data_rx_valid_o(data_rx_valid),
       .data_rx_ready_i(data_rx_ready),
+
+      .running_o(hw2reg.status.running.d),
       .data_rx_overflow_o(data_rx_overflow)
   );
 

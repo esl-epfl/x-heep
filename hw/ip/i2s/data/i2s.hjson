@@ -77,6 +77,14 @@
                 { value: "3", name: "32_BITS", desc: "32 bits" }
               ]
         }
+        { bits: "10", name: "RX_START_CHANNEL",
+          desc: "Channel (left/right) of first sample - alternating afterwards.",
+          resval: "0",
+          enum: [
+                { value: "0", name: "LEFT_FIRST", desc: "Start left channel first (default for WAVE)"},
+                { value: "1", name: "RIGHT_FIRST", desc: "Start right channel first"},
+          ]
+        }
       ]
     }
 
@@ -105,8 +113,9 @@
       hwaccess: "hwo"
       hwext:  "true"
       fields: [
-        { bits: "0", name: "RX_DATA_READY", desc: "1 to indicate that an RX sample is ready"}
-        { bits: "1", name: "RX_OVERFLOW", desc: "1 to indicate that an RX happend - disable rx_channel to clear"}
+        { bits: "0", name: "RUNNING", desc: "1 to indicate that SCK is on"}
+        { bits: "1", name: "RX_DATA_READY", desc: "1 to indicate that an RX sample is ready"}
+        { bits: "2", name: "RX_OVERFLOW", desc: "1 to indicate that an RX happend - disable rx_channel to clear"}
       ]
     }
 

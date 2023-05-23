@@ -27,13 +27,13 @@
 #define I2S_TEST_BATCHES      16
 #define I2S_CLK_DIV           8
 #define AUDIO_DATA_NUM 2048                          // RECORDING LENGTH
-//#define AUDIO_DATA_NUM 100000                          // RECORDING LENGTH
+// #define AUDIO_DATA_NUM 0x18000  // max 0x1c894                          // RECORDING LENGTH
 #define I2S_USE_INTERRUPT false
 #define USE_DMA
 #else
 #define I2S_TEST_BATCH_SIZE    128
 #define I2S_TEST_BATCHES      4
-#define I2S_CLK_DIV           512
+#define I2S_CLK_DIV           32
 #define AUDIO_DATA_NUM 4
 #define I2S_USE_INTERRUPT false
 //#define USE_DMA
@@ -134,16 +134,24 @@ void setup()
     CSR_SET_BITS(CSR_REG_MIE, mask);
 }
 
+#define I2S_WAIT_TIME_US 100000 
+#define I2S_WAIT_CYCLES  ((1.5 * REFERENCE_CLOCK_Hz / 4))
+// 1500000
 
 int main(int argc, char *argv[]) {
-    //printf("I2s DEMO\r\n");
+    for (uint32_t i = 0; i < 0x10000; i++) asm volatile("nop");
+    printf("I2s DEMO\r\n");
 
     setup();
 
     //printf("Setup done!\r\n");
 
 #ifdef TARGET_PYNQ_Z2
-    printf("index,data\r\n");
+    printf("index,data\r\n"); // <- csv header for python 
+    
+
+    for (uint32_t i = 0; i < I2S_WAIT_CYCLES; i++) asm volatile("nop");
+
     //
     // FPGA code
     //
@@ -151,7 +159,7 @@ int main(int argc, char *argv[]) {
 
     int batch = 0;
     while(1) {
-        i2s_rx_start(I2S_RIGHT_CH);
+        i2s_rx_start(I2S_LEFT_CH);
 
         #ifdef USE_DMA
         dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // start 
@@ -159,7 +167,6 @@ int main(int argc, char *argv[]) {
         // WAITING FOR DMA COPY TO FINISH
         while(!dma_intr_flag) {
             wait_for_interrupt();
-            //printf(".");
         }
         dma_intr_flag = 0;
         #else
@@ -174,13 +181,8 @@ int main(int argc, char *argv[]) {
         int32_t* data = audio_data_0;
         for (int i = 0; i < AUDIO_DATA_NUM; i+=1) {
             printf("%4x,%d\r\n", i, (int16_t) (data[i] >> 16));
-            // for (int j = 0; j < AUDIO_DATA_NUM; j++) {
-            //     asm volatile("nop");
-            // }
         }
         batch += 1;
-
-        printf("Overflow bit %d", i2s_rx_overflow());
 
         break;
 
@@ -194,7 +196,7 @@ int main(int argc, char *argv[]) {
     //
 
     for (int batch = 0; batch < I2S_TEST_BATCHES; batch++) {
-        i2s_rx_start(I2S_RIGHT_CH);
+        i2s_rx_start(I2S_BOTH_CH);
 
         #ifdef USE_DMA
         dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // start 

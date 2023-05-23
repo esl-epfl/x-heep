@@ -60,6 +60,22 @@ extern "C" {
 /**                                                                        **/
 /****************************************************************************/
 
+
+/**
+ * The result of a PLIC operation.
+ */
+typedef enum i2s_result {
+  /**
+   * Indicates that the operation succeeded.
+   */
+  kI2sOk = 0,
+  /**
+   * Indicates some unspecified failure.
+   */
+  kI2sError = 1,
+} i2s_result_t;
+
+
 typedef enum i2s_word_length {
   I2S_08_BITS = I2S_CONTROL_DATA_WIDTH_VALUE_8_BITS,
   I2S_16_BITS = I2S_CONTROL_DATA_WIDTH_VALUE_16_BITS,
@@ -93,9 +109,10 @@ typedef enum i2s_channel_sel {
  * @param div_value Divider value = src_clk_freq / gen_clk_freq 
  *        (odd values are allowed, for 0 and 1 the src clock is used)
  * @param word_length (see i2s_word_length_t)
- * @return false if the periperal was on
+ * @return kI2sOk initialized successful 
+ * @return kI2sError if peripheral was already running
  */
-bool    i2s_init(uint16_t div_value, i2s_word_length_t word_length);
+i2s_result_t i2s_init(uint16_t div_value, i2s_word_length_t word_length);
 
 /**
  * Terminate I2S peripheral 
@@ -110,7 +127,7 @@ void i2s_terminate();
  * 
  * @return true if i2s peripheral enable
  */
-bool i2s_is_init();
+bool i2s_is_running();
 
 
 //
@@ -123,13 +140,14 @@ bool i2s_is_init();
  * @note this function might take some time to complete
  * 
  * @param channels to be enabled (see i2s_channel_sel_t)
- * @return false if i2s not init
+ * @return kI2sOk started successful 
+ * @return kI2sError if peripheral was not running
  */
-bool    i2s_rx_start(i2s_channel_sel_t channels);
+i2s_result_t i2s_rx_start(i2s_channel_sel_t channels);
 
 /**
  * I2S stop rx channels 
- * 
+ *
  */
 void    i2s_rx_stop(void);
 

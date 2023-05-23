@@ -47,14 +47,13 @@
 
 
 // i2s base functions
-bool i2s_init(uint16_t div_value, i2s_word_length_t word_length)
+i2s_result_t i2s_init(uint16_t div_value, i2s_word_length_t word_length)
 {
   // already on ?
-  if (i2s_is_init()) {
-    // ERROR
-    return false;
+  if (i2s_is_running()) {
+    //printf("ERROR: [I2S HAL] I2S peripheral already running");
+    return kI2sError;
   }
-
 
   // write clock divider value to register
   i2s_peri->CLKDIVIDX = div_value;
@@ -65,13 +64,18 @@ bool i2s_init(uint16_t div_value, i2s_word_length_t word_length)
 
   // enable base modules
   control |= (
-    (1 << I2S_CONTROL_EN_WS_BIT)    // enable WS gen
     + (1 << I2S_CONTROL_EN_BIT)     // enable SCK
     + (1 << I2S_CONTROL_EN_IO_BIT)  // connect signals to IO
   );
   i2s_peri->CONTROL = control;
 
-  return true;
+  // wait for I2S clock domain to acknowledge startup
+  while (! i2s_is_running()) ; 
+
+  control |= (1 << I2S_CONTROL_EN_WS_BIT); // enable WS gen
+  i2s_peri->CONTROL = control;
+
+  return kI2sOk;
 }
 
 void i2s_terminate() 
@@ -79,33 +83,41 @@ void i2s_terminate()
   i2s_peri->CONTROL &= ~(
     (1 << I2S_CONTROL_EN_WS_BIT)    // disable WS gen
     + (1 << I2S_CONTROL_EN_BIT)     // disable SCK
-    + (1 << I2S_CONTROL_EN_IO_BIT)  // disable IO
+    + (1 << I2S_CONTROL_EN_IO_BIT)  // disconnect IO
   );
 }
 
-bool i2s_is_init() 
+bool i2s_is_running()
 {
-  return (i2s_peri->CONTROL & I2S_CONTROL_EN_BIT);
+  // check "running" bit in the STATUS register
+  return (i2s_peri->STATUS & (1 << I2S_STATUS_RUNNING_BIT));
 }
 
 //
 // RX Channel
 //
 
-bool i2s_rx_start(i2s_channel_sel_t channels)
+i2s_result_t i2s_rx_start(i2s_channel_sel_t channels)
 {
-  if (! i2s_is_init()) {
-    return false;
+  if (! i2s_is_running()) {
+    //printf("ERROR: [I2S HAL] I2S peripheral not running");
+    return kI2sError;
   }
 
   // check overflow before changing state
   bool overflow = i2s_rx_overflow(); 
 
-  i2s_rx_stop();
+  uint32_t control = i2s_peri->CONTROL;
+
+  // disable rx if it was on
+  if (control & (I2S_CONTROL_EN_RX_MASK << I2S_CONTROL_EN_RX_OFFSET)) {
+    control &= ~(I2S_CONTROL_EN_RX_MASK << I2S_CONTROL_EN_RX_OFFSET);  // disable rx
+    i2s_peri->CONTROL = control;
+  }
 
   if (channels == I2S_DISABLE) {
     // no channels selected -> disable
-    return true;
+    return kI2sOk;
   }
 
   // check if overflow has occurred
@@ -122,8 +134,9 @@ bool i2s_rx_start(i2s_channel_sel_t channels)
   }
 
   // now we can start the selected rx channels
-  i2s_peri->CONTROL |= (channels << I2S_CONTROL_EN_RX_OFFSET);
-  return true;
+  control |= (channels << I2S_CONTROL_EN_RX_OFFSET);
+  i2s_peri->CONTROL = control;
+  return kI2sOk;
 }
 
 void i2s_rx_stop()
@@ -171,7 +184,10 @@ void i2s_rx_enable_watermark(uint16_t watermark, bool interrupt_en)
 void i2s_rx_disable_watermark()
 {
   // disable interrupt and disable watermark counter
-  i2s_peri->CONTROL &= ~((1 << I2S_CONTROL_INTR_EN_BIT) + (1 << I2S_CONTROL_EN_WATERMARK_BIT));
+  i2s_peri->CONTROL &= ~(
+    (1 << I2S_CONTROL_INTR_EN_BIT) 
+    + (1 << I2S_CONTROL_EN_WATERMARK_BIT)
+  );
 }
 
 uint16_t i2s_rx_read_waterlevel()
@@ -180,7 +196,7 @@ uint16_t i2s_rx_read_waterlevel()
   return (uint16_t) i2s_peri->WATERLEVEL;
 }
 
-void    i2s_rx_reset_waterlevel(void)
+void i2s_rx_reset_waterlevel(void)
 {
   // set "reset watermark" bit in CONTROL register
   i2s_peri->CONTROL |= (1 << I2S_CONTROL_RESET_WATERMARK_BIT);

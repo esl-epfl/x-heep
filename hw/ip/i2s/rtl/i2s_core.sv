@@ -25,12 +25,14 @@ module i2s_core #(
     // config
     input logic [     ClkDividerWidth-1:0] cfg_clock_div_i,
     input logic [$clog2(MaxWordWidth)-1:0] cfg_word_width_i,
+    input logic                            cfg_rx_start_channel_i,
 
     // FIFO
     output logic [MaxWordWidth-1:0] data_rx_o,
     output logic                    data_rx_valid_o,
     input  logic                    data_rx_ready_i,
 
+    output logic running_o,
     output logic data_rx_overflow_o
 );
 
@@ -82,7 +84,7 @@ module i2s_core #(
       .sd_i(sd_i),
 
       .word_width_i(cfg_word_width_i),
-      .start_channel_i(1'b0),
+      .start_channel_i(cfg_rx_start_channel_i),
 
       .data_o(data_rx_dc),
       .data_valid_o(data_rx_dc_valid),
@@ -91,7 +93,7 @@ module i2s_core #(
   );
 
   // cdc
-  cdc_fifo_2phase #(
+  cdc_fifo_gray #(
       .T(logic [31:0]),
       .LOG_DEPTH(2)
   ) rx_cdc_i (
@@ -118,5 +120,62 @@ module i2s_core #(
       .serial_i(data_rx_overflow_async),
       .serial_o(data_rx_overflow_o)
   );
+
+
+  logic en_q;
+  always_ff @(posedge clk_i, negedge rst_ni) begin
+    if (~rst_ni) begin
+      en_q <= 1'b0;
+    end else begin
+      en_q <= en_i;
+    end
+  end
+
+  logic enabled_req;  // send enable event to I2S clock domain
+  logic enabled_sck;
+  logic enabled_ack;  // acknowledge enable from I2S clock domain
+
+  always_ff @(posedge clk_i, negedge rst_ni) begin
+    if (~rst_ni) begin
+      enabled_req <= 1'b0;
+    end else begin
+      if (en_i == 1'b1 && en_q == 1'b0) begin
+        // turned on
+        enabled_req <= ~enabled_req;
+      end
+    end
+  end
+
+
+  always_ff @(posedge clk_i, negedge rst_ni) begin
+    if (~rst_ni) begin
+      running_o <= 1'b0;
+    end else begin
+      running_o <= en_q && (enabled_ack == enabled_req);
+    end
+  end
+
+  // enabled_req
+  sync #(
+      .STAGES(2),
+      .ResetValue(1'b0)
+  ) data_en_req_sync_i (
+      .clk_i(sck),
+      .rst_ni,
+      .serial_i(enabled_req),
+      .serial_o(enabled_sck)
+  );
+
+  // enabled_ack
+  sync #(
+      .STAGES(2),
+      .ResetValue(1'b0)
+  ) data_en_ack_sync_i (
+      .clk_i,
+      .rst_ni,
+      .serial_i(enabled_sck),
+      .serial_o(enabled_ack)
+  );
+
 
 endmodule : i2s_core

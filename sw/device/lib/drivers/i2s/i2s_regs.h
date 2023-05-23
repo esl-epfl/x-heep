@@ -56,6 +56,7 @@ extern "C" {
 #define I2S_CONTROL_DATA_WIDTH_VALUE_16_BITS 0x1
 #define I2S_CONTROL_DATA_WIDTH_VALUE_24_BITS 0x2
 #define I2S_CONTROL_DATA_WIDTH_VALUE_32_BITS 0x3
+#define I2S_CONTROL_RX_START_CHANNEL_BIT 10
 
 // Watermark to reach for an interrupt
 #define I2S_WATERMARK_REG_OFFSET 0x8
@@ -73,8 +74,9 @@ extern "C" {
 
 // Status flags of the I2s peripheral
 #define I2S_STATUS_REG_OFFSET 0x10
-#define I2S_STATUS_RX_DATA_READY_BIT 0
-#define I2S_STATUS_RX_OVERFLOW_BIT 1
+#define I2S_STATUS_RUNNING_BIT 0
+#define I2S_STATUS_RX_DATA_READY_BIT 1
+#define I2S_STATUS_RX_OVERFLOW_BIT 2
 
 // I2s Receive data
 #define I2S_RXDATA_REG_OFFSET 0x14
