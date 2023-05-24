@@ -7,52 +7,58 @@
 package fast_intr_ctrl_reg_pkg;
 
   // Address widths within the block
-  parameter int BlockAw = 3;
+  parameter int BlockAw = 4;
 
   ////////////////////////////
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {logic [15:0] q;} fast_intr_ctrl_reg2hw_fast_intr_pending_reg_t;
+  typedef struct packed {logic [14:0] q;} fast_intr_ctrl_reg2hw_fast_intr_pending_reg_t;
 
-  typedef struct packed {logic [15:0] q;} fast_intr_ctrl_reg2hw_fast_intr_clear_reg_t;
+  typedef struct packed {logic [14:0] q;} fast_intr_ctrl_reg2hw_fast_intr_clear_reg_t;
+
+  typedef struct packed {logic [14:0] q;} fast_intr_ctrl_reg2hw_fast_intr_enable_reg_t;
 
   typedef struct packed {
-    logic [15:0] d;
+    logic [14:0] d;
     logic        de;
   } fast_intr_ctrl_hw2reg_fast_intr_pending_reg_t;
 
   typedef struct packed {
-    logic [15:0] d;
+    logic [14:0] d;
     logic        de;
   } fast_intr_ctrl_hw2reg_fast_intr_clear_reg_t;
 
   // Register -> HW type
   typedef struct packed {
-    fast_intr_ctrl_reg2hw_fast_intr_pending_reg_t fast_intr_pending;  // [31:16]
-    fast_intr_ctrl_reg2hw_fast_intr_clear_reg_t   fast_intr_clear;    // [15:0]
+    fast_intr_ctrl_reg2hw_fast_intr_pending_reg_t fast_intr_pending;  // [44:30]
+    fast_intr_ctrl_reg2hw_fast_intr_clear_reg_t   fast_intr_clear;    // [29:15]
+    fast_intr_ctrl_reg2hw_fast_intr_enable_reg_t  fast_intr_enable;   // [14:0]
   } fast_intr_ctrl_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    fast_intr_ctrl_hw2reg_fast_intr_pending_reg_t fast_intr_pending;  // [33:17]
-    fast_intr_ctrl_hw2reg_fast_intr_clear_reg_t   fast_intr_clear;    // [16:0]
+    fast_intr_ctrl_hw2reg_fast_intr_pending_reg_t fast_intr_pending;  // [31:16]
+    fast_intr_ctrl_hw2reg_fast_intr_clear_reg_t   fast_intr_clear;    // [15:0]
   } fast_intr_ctrl_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] FAST_INTR_CTRL_FAST_INTR_PENDING_OFFSET = 3'h0;
-  parameter logic [BlockAw-1:0] FAST_INTR_CTRL_FAST_INTR_CLEAR_OFFSET = 3'h4;
+  parameter logic [BlockAw-1:0] FAST_INTR_CTRL_FAST_INTR_PENDING_OFFSET = 4'h0;
+  parameter logic [BlockAw-1:0] FAST_INTR_CTRL_FAST_INTR_CLEAR_OFFSET = 4'h4;
+  parameter logic [BlockAw-1:0] FAST_INTR_CTRL_FAST_INTR_ENABLE_OFFSET = 4'h8;
 
   // Register index
   typedef enum int {
     FAST_INTR_CTRL_FAST_INTR_PENDING,
-    FAST_INTR_CTRL_FAST_INTR_CLEAR
+    FAST_INTR_CTRL_FAST_INTR_CLEAR,
+    FAST_INTR_CTRL_FAST_INTR_ENABLE
   } fast_intr_ctrl_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] FAST_INTR_CTRL_PERMIT[2] = '{
+  parameter logic [3:0] FAST_INTR_CTRL_PERMIT[3] = '{
       4'b0011,  // index[0] FAST_INTR_CTRL_FAST_INTR_PENDING
-      4'b0011  // index[1] FAST_INTR_CTRL_FAST_INTR_CLEAR
+      4'b0011,  // index[1] FAST_INTR_CTRL_FAST_INTR_CLEAR
+      4'b0011  // index[2] FAST_INTR_CTRL_FAST_INTR_ENABLE
   };
 
 endpackage

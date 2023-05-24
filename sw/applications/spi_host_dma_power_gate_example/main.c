@@ -102,9 +102,28 @@ int main(int argc, char *argv[])
     core_sleep_flag = 0;
 
     // -- DMA CONFIGURATION --
+<<<<<<< HEAD
 
     dma_init();
 
+=======
+    dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
+    #if SPI_DATA_TYPE == 0
+        dma_set_write_ptr_inc(&dma, (uint32_t) 4); // Do not increment address when reading from the SPI (Pop from FIFO)
+    #elif SPI_DATA_TYPE == 1
+        dma_set_write_ptr_inc(&dma, (uint32_t) 2); // Do not increment address when reading from the SPI (Pop from FIFO)
+    #else
+        dma_set_write_ptr_inc(&dma, (uint32_t) 1); // Do not increment address when reading from the SPI (Pop from FIFO)
+    #endif
+    dma_set_read_ptr(&dma, (uint32_t) fifo_ptr_rx); // SPI RX FIFO addr
+    dma_set_write_ptr(&dma, (uint32_t) copy_data); // copy data address
+    // Set the correct SPI-DMA mode:
+    // (0) disable
+    // (1) receive from SPI (use SPI2_START_ADDRESS for spi_host pointer)
+    // (2) send to SPI (use SPI2_START_ADDRESS for spi_host pointer)
+    // (3) receive from SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
+    // (4) send to SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
+>>>>>>> main_test_6
     #ifndef USE_SPI_FLASH
         uint8_t slot =  DMA_TRIG_SLOT_SPI_RX ; // The DMA will wait for the SPI RX FIFO valid signal
     #else

@@ -6,9 +6,9 @@ module xilinx_core_v_mini_mcu_wrapper
   import obi_pkg::*;
   import reg_pkg::*;
 #(
-    parameter PULP_XPULP           = 0,
+    parameter COREV_PULP           = 0,
     parameter FPU                  = 0,
-    parameter PULP_ZFINX           = 0,
+    parameter ZFINX                = 0,
     parameter X_EXT                = 0,  // eXtension interface in cv32e40x
     parameter CLK_LED_COUNT_LENGTH = 27
 ) (
@@ -54,7 +54,10 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic spi2_sck_o,
 
     inout logic i2c_scl_io,
-    inout logic i2c_sda_io
+    inout logic i2c_sda_io,
+
+    inout logic pdm2pcm_clk_io,
+    inout logic pdm2pcm_pdm_io
 
 );
 
@@ -92,7 +95,10 @@ module xilinx_core_v_mini_mcu_wrapper
   );
 
   x_heep_system #(
-      .X_EXT(X_EXT)
+      .X_EXT(X_EXT),
+      .COREV_PULP(COREV_PULP),
+      .FPU(FPU),
+      .ZFINX(ZFINX)
   ) x_heep_system_i (
       .intr_vector_ext_i('0),
       .xif_compressed_if(ext_if),
@@ -146,8 +152,6 @@ module xilinx_core_v_mini_mcu_wrapper
       .gpio_18_io(gpio_io[18]),
       .gpio_19_io(gpio_io[19]),
       .gpio_20_io(gpio_io[20]),
-      .gpio_21_io(gpio_io[21]),
-      .gpio_22_io(gpio_io[22]),
       .spi_flash_sd_0_io(spi_flash_sd_io[0]),
       .spi_flash_sd_1_io(spi_flash_sd_io[1]),
       .spi_flash_sd_2_io(spi_flash_sd_io[2]),
@@ -170,7 +174,9 @@ module xilinx_core_v_mini_mcu_wrapper
       .spi2_sd_3_io(spi2_sd_3_io),
       .spi2_cs_0_io(spi2_csb_o[0]),
       .spi2_cs_1_io(spi2_csb_o[1]),
-      .spi2_sck_io(spi2_sck_o)
+      .spi2_sck_io(spi2_sck_o),
+      .pdm2pcm_clk_io,
+      .pdm2pcm_pdm_io
   );
 
   assign exit_value_o = exit_value[0];

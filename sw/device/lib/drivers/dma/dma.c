@@ -191,10 +191,6 @@ static struct
     */
     uint8_t intrFlag;
 
-    /**
-    * Fast interrupt controller control block
-    */
-    fast_intr_ctrl_t fic;
 }dma_cb;
 
 /****************************************************************************/
@@ -205,8 +201,6 @@ static struct
 
 void dma_init()
 {
-    // @ToDo: let fic be in charge of this.
-    dma_cb.fic.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS); 
     /* Clear the loaded transaction */
     dma_cb.trans = NULL;
     /* Clear all values in the DMA registers. */
@@ -1030,7 +1024,6 @@ static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
     return inc_b;
 }
 
-// @ToDo: Let fic be in charge of this. 
 void handler_irq_fast_dma(void)
 {
     printf("@");
@@ -1039,8 +1032,6 @@ void handler_irq_fast_dma(void)
     // Call the weak implementation provided in this module, 
     // or the non-weak implementation from above. 
     dma_intr_handler();
-    // The interrupt is cleared.
-    clear_fast_interrupt(&(dma_cb.fic), kDma_fic_e);
 }
 
 /****************************************************************************/

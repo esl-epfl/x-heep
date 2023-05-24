@@ -184,16 +184,15 @@ First, you have to generate the SystemVerilog package and C header file of the c
 make mcu-gen
 ```
 
-To change the default cpu type (i.e., cv32e20), the default bus type (i.e., onetoM) type
-or the memory size (i.e., number of banks):
+To change the default cpu type (i.e., cv32e20), the default bus type (i.e., onetoM),
+the default continuous memory size (i.e., 2 continuous banks) or the default interleaved memory size (i.e., 0 interleaved banks):
 
 ```
-make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=16
+make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=12 MEMORY_BANKS_IL=4
 ```
 
-The last command generates x-heep with the cv32e40p core, with a parallel bus, and 16 memory banks,
-each 32KB, for a total memory of 512KB. Note that in case of executing a FreeRTOS-based application, 
-the **minimum memory banks should be set to 5**. This is related to the FreeRTOS code and ram requirements.
+The last command generates x-heep with the cv32e40p core, with a parallel bus, and 16 memory banks (12 continuous and 4 interleaved),
+each 32KB, for a total memory of 512KB. 
 
 ## Compiling Software
 
@@ -207,14 +206,14 @@ make app
 To run any other application, please use the following command with appropiate parameters:
 
 ```
-app PROJECT=<folder_name_of_the_project_to_be_built> MAINFILE=<main_file_name_of_the_project_to_be_built  WITHOUT EXTENSION!> TARGET=sim(default),pynq-z2 LINKER=on_chip(default),flash_load,flash_exec COMPILER=gcc(default),clang ARCH=rv32imc(default),<any RISC-V ISA string supported by the CPU>
+app PROJECT=<folder_name_of_the_project_to_be_built> TARGET=sim(default),pynq-z2 LINKER=on_chip(default),flash_load,flash_exec COMPILER=gcc(default),clang COMPILER_PREFIX=riscv32-unknown-(default) ARCH=rv32imc(default),<any RISC-V ISA string supported by the CPU>
 
 Params:
 - PROJECT (ex: <folder_name_of_the_project_to_be_built>, hello_wolrd(default))
-- MAINFILE (ex: <main_file_name_of_the_project_to_be_built WITHOUT EXTENSION!>, hello_wolrd(default))
 - TARGET (ex: sim(default),pynq-z2)
 - LINKER (ex: on_chip(default),flash_load,flash_exec)
 - COMPILER (ex: gcc(default),clang)
+- COMPILER_PREFIX (ex: riscv32-unknown-(default))
 - ARCH (ex: rv32imc(default),<any RISC-V ISA string supported by the CPU>)
 ```
 
@@ -224,6 +223,13 @@ For instance, to run 'hello world' app for the pynq-z2 FPGA targets, just run:
 make app TARGET=pynq-z2
 ```
 
+Or, if you use the OpenHW Group [GCC](https://www.embecosm.com/resources/tool-chain-downloads/#corev) compiler with CORE_PULP extensions, make sure to point the `RISCV` env variable to the OpenHW Group compiler, then just run:
+
+
+```
+make app COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_xcvhwlp1p0_xcvmem1p0_xcvmac1p0_xcvbi1p0_xcvalu1p0_xcvsimd1p0_xcvbitmanip1p0
+```
+
 This will create the executable file to be loaded in your target system (ASIC, FPGA, Simulation).
 Remember that, `X-HEEP` is using CMake to compile and link. Thus, the generated files after having
 compiled and linked are under `sw\build`
@@ -231,16 +237,11 @@ compiled and linked are under `sw\build`
 ## FreeROTS based applications
 
 'X-HEEP' supports 'FreeRTOS' based applications. Please see `sw\applications\blinky_freertos`.
-Note that before runing such application, and due to current memory constraints, the core-v-mini-mcu package needs to be generated using more memory banks than the default settings. Thus, as previously specified: in case of executing a FreeRTOS-based application, the **minimum memory banks should be set to 5**. This is related to the FreeRTOS code and ram requirements. In this case, please, run the following command:
-
-```
-make mcu-gen MEMORY_BANKS=5
-```
 
 After that, you can run the command to compile and link the FreeRTOS based application. Please also set 'LINKER' and 'TARGET' parameters if needed.
 
 ```
-make app PROJECT=blinky_freertos MAINFILE=main 
+make app PROJECT=blinky_freertos 
 ```
 
 The main FreeRTOS configuration is allocated under `sw\freertos`, in `FreeRTOSConfig.h`. Please, change this file based on your application requirements.
@@ -249,6 +250,10 @@ Moreover, FreeRTOS is being fetch from 'https://github.com/FreeRTOS/FreeRTOS-Ker
 ## Simulating
 
 This project supports simulation with Verilator, Synopsys VCS, and Siemens Questasim.
+It relies on `fusesoc` to handle multiple EDA tools and parameters.
+For example, if you want to set the `FPU` and `COREV_PULP` parameters of the `cv32e40p` CPU,
+you need to add next to your compilation command `FUSESOC_FLAGS="--flag=use_cv32e40p_corev_pulp --flag=use_cv32e40p_fpu"`
+Below the different EDA examples commands.
 
 ### Compiling for Verilator
 

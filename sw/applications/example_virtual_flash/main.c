@@ -23,10 +23,8 @@
 #define FLASH_CLK_MAX_HZ (133 * 1000 * 1000)
 
 // Interrupt controller variables
-dif_plic_params_t rv_plic_params;
-dif_plic_t rv_plic;
-dif_plic_result_t plic_res;
-dif_plic_irq_id_t intr_num;
+plic_result_t plic_res;
+plic_irq_id_t intr_num;
 
 //volatile int8_t timer_flag;
 volatile int8_t spi_intr_flag;
@@ -37,14 +35,10 @@ void dma_intr_handler(){
     printf("A non-weak interrupt of the DMA\n");
 }
 
-void handler_irq_fast_spi_flash(){
+void handler_irq_spi_flash(){
     // Disable SPI interrupts
     spi_enable_evt_intr(&spi_host_flash, false);
     spi_enable_rxwm_intr(&spi_host_flash, false);
-    // Clear fast interrupt
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kSpiFlash_fic_e);
     spi_intr_flag = 1;
 }
 

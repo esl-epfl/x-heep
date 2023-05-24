@@ -75,6 +75,8 @@ int main(int argc, char *argv[])
 #ifdef TEST_CIRCULAR_MODE
     static uint32_t test_data_circular[TEST_DATA_CIRCULAR] __attribute__ ((aligned (4))) = { 1 };
 #endif //TEST_CIRCULAR_MODE
+    enable_all_fast_interrupts(true); // not needed is default - done on reset
+
 
     PRINTF("DMA test app: 4\n\r");
     

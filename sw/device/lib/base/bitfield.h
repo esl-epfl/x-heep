@@ -24,6 +24,25 @@ extern "C" {
 #define BITFIELD_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
 
 /**
+ * Masks used for the bitfield operations to access different amount of bits inside a register
+*/
+#define BIT_MASK_1 0x01
+#define BIT_MASK_2 0x02
+#define BIT_MASK_3 0x03
+#define BIT_MASK_4 0x04
+#define BIT_MASK_5 0x05
+#define BIT_MASK_6 0x06
+#define BIT_MASK_7 0x07
+#define BIT_MASK_8 0x08
+#define BIT_MASK_9 0x09
+#define BIT_MASK_A 0x0A
+#define BIT_MASK_B 0x0B
+#define BIT_MASK_C 0x0C
+#define BIT_MASK_D 0x0D
+#define BIT_MASK_E 0x0E
+#define BIT_MASK_F 0x0F
+
+/**
  * A field of a 32-bit bitfield.
  *
  * The following field definition: `{ .mask = 0b11, .index = 12 }`
@@ -139,6 +158,51 @@ inline uint32_t bitfield_bit32_write(uint32_t bitfield,
                                      bool value) {
   return bitfield_field32_write(bitfield, bitfield_bit32_to_field32(bit_index),
                                 value ? 0x1u : 0x0u);
+}
+
+/**
+ * Reads a value from `bitfield` based on given "mask" and "index"
+ *
+ * This function uses the `mask` and 'index' parameters to read the value 
+ * from `bitfield`.
+ * The resulting value will be shifted right and zero-extended so the field's
+ * zero-bit is the return value's zero-bit.
+ *
+ * @param bitfield Bitfield to get the field from.
+ * @param mask the mask should be one on the affected bits.
+ * @index index number of bits bitfield is shifted before applying mask.
+ * @return Zero-extended `field` from `bitfield`.
+ */
+BITFIELD_WARN_UNUSED_RESULT
+inline uint32_t bitfield_read(uint32_t bitfield, 
+                              uint32_t mask, 
+                              uint32_t index) 
+{
+  return (bitfield >> index) & mask;
+}
+
+/**
+ * Writes `value` in `bitfield` based on given "mask" and "index"
+ *
+ * This function uses the `mask` and 'index' parameters to set specific bits 
+ * in `bitfield`.
+ * The relevant portion of `bitfield` is zeroed before the bits are set to
+ * `value`.
+ *
+ * @param bitfield Bitfield to set the field in.
+ * @param field Field within bitfield to be set.
+ * @param value Value for the new field.
+ * @return `bitfield` with `field` set to `value`.
+ */
+BITFIELD_WARN_UNUSED_RESULT
+inline uint32_t bitfield_write(uint32_t bitfield,
+                                       uint32_t mask, 
+                                       uint32_t index,
+                                       uint32_t value) 
+{
+  bitfield &= ~(mask << index);
+  bitfield |= (value & mask) << index;
+  return bitfield;
 }
 
 /**

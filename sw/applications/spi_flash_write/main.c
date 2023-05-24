@@ -17,6 +17,7 @@
 #include "dma.h"
 #include "fast_intr_ctrl.h"
 #include "fast_intr_ctrl_regs.h"
+#include "x-heep.h"
 
 /* Test Configurations */
 #define DEBUG
@@ -29,8 +30,15 @@
 
 #define COPY_DATA_WORDS 16 // Flash page size = 256 Bytes
 
+// Warning in case of targetting simulation
+#ifdef TARGET_SIM
+  #pragma message("This app does not allow Flash write operations in simulation!")
+#endif
+
 #define REVERT_24b_ADDR(addr) ((((uint32_t)addr & 0xff0000) >> 16) | ((uint32_t)addr & 0xff00) | (((uint32_t)addr & 0xff) << 16))
+
 #define FLASH_ADDR 0x00008500 // 256B data alignment
+
 #define FLASH_CLK_MAX_HZ (133*1000*1000) // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
 
 
@@ -51,6 +59,7 @@
 #define PRINTF2(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 
 int8_t spi_intr_flag;
+int8_t dma_intr_flag;
 spi_host_t spi_host;
 int8_t cycles;
 
@@ -62,27 +71,19 @@ uint32_t *fifo_ptr_tx;
 uint32_t *fifo_ptr_rx;
 
 #ifndef USE_SPI_FLASH
-void handler_irq_fast_spi(void)
+void fic_irq_spi(void)
 {
     // Disable SPI interrupts
     spi_enable_evt_intr(&spi_host, false);
     spi_enable_rxwm_intr(&spi_host, false);
-    // Clear fast interrupt
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kSpi_fic_e);
     spi_intr_flag = 1;
 }
 #else
-void handler_irq_fast_spi_flash(void)
+void fic_irq_spi_flash(void)
 {
     // Disable SPI interrupts
     spi_enable_evt_intr(&spi_host, false);
     spi_enable_rxwm_intr(&spi_host, false);
-    // Clear fast interrupt
-    fast_intr_ctrl_t fast_intr_ctrl;
-    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
-    clear_fast_interrupt(&fast_intr_ctrl, kSpiFlash_fic_e);
     spi_intr_flag = 1;
 }
 #endif //USE_SPI_FLASH
@@ -97,9 +98,9 @@ void dma_intr_handler(void)
 #else
 void dma_intr_handler(void)
 {
-    PRINTF("#");
+    dma_intr_flag =1;
 }
-#endif //TEST_CIRCULAR
+#endif
 
 static inline __attribute__((always_inline)) void spi_config()
 {
@@ -108,7 +109,7 @@ static inline __attribute__((always_inline)) void spi_config()
 * SPI CONFIGURATIONS
 */
 #ifndef USE_SPI_FLASH
-    spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI2_START_ADDRESS);
+    spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
 #else
     spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
 #endif //USE_SPI_FLASH
@@ -124,11 +125,16 @@ static inline __attribute__((always_inline)) void spi_config()
 
 
 #ifndef USE_SPI_FLASH
-    const uint32_t mask = 1 << 20;
+        const uint32_t mask = 1 << 20;
 #else
-    const uint32_t mask = 1 << 21;
+        const uint32_t mask = 1 << 21;
+#endif
+    CSR_SET_BITS(CSR_REG_MIE, mask);
+    spi_intr_flag = 0;
+
+#ifdef USE_SPI_FLASH
         // Select SPI host as SPI output
-    soc_ctrl_select_spi_host(&soc_ctrl);
+        soc_ctrl_select_spi_host(&soc_ctrl);
 #endif // USE_SPI_FLASH
 
 
@@ -213,6 +219,7 @@ static inline __attribute__((always_inline)) void spi_config()
     });
     spi_set_command(&spi_host, cmd_write);
     spi_wait_for_ready(&spi_host);
+
 }
 
 
@@ -266,9 +273,9 @@ int main(int argc, char *argv[])
     PRINTF("\n\n===================================\n\n");
 
 
-#ifndef USE_SPI_FLASH
+    #ifndef USE_SPI_FLASH
     const uint8_t slot = DMA_TRIG_SLOT_SPI_TX; // The DMA will wait for the SPI TX FIFO ready signal
-#else
+    #else
     const uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_TX; // The DMA will wait for the SPI FLASH TX FIFO ready signal
 #endif //USE_SPI_FLASH
 
@@ -352,7 +359,7 @@ int main(int argc, char *argv[])
     const uint8_t slot2 = DMA_TRIG_SLOT_SPI_RX; // The DMA will wait for the SPI TX FIFO ready signal
 #else
     const uint8_t slot2 = DMA_TRIG_SLOT_SPI_FLASH_RX; // The DMA will wait for the SPI FLASH TX FIFO ready signal
-#endif
+    #endif
 
     static dma_target_t tgt3= {
     .ptr = copy_data,
