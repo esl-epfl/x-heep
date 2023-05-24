@@ -33,6 +33,9 @@ module peripheral_subsystem
     input logic uart_intr_rx_timeout_i,
     input logic uart_intr_rx_parity_err_i,
 
+    // DMA window PLIC interrupt
+    input logic dma_window_intr_i,
+
     //GPIO
     input  logic [31:8] cio_gpio_i,
     output logic [31:8] cio_gpio_o,
@@ -143,7 +146,7 @@ module peripheral_subsystem
   assign intr_vector[${interrupts["intr_ack_stop"]}] = i2c_intr_ack_stop;
   assign intr_vector[${interrupts["intr_host_timeout"]}] = i2c_intr_host_timeout;
   assign intr_vector[${interrupts["spi2_intr_event"]}] = spi2_intr_event;
-
+  assign intr_vector[${interrupts["dma_window_intr"]}]  = dma_window_intr_i;
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin
     assign intr_vector[i+PLIC_USED_NINT] = intr_vector_ext_i[i];
