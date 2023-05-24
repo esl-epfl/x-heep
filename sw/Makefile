@@ -31,6 +31,9 @@ TARGET   ?= sim
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER ?= gcc
 
+# Compiler prefix options are 'riscv32-unknown-' (default)
+COMPILER_PREFIX ?= riscv32-unknown-
+
 # Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
 ARCH     ?= rv32imc
 
@@ -39,7 +42,7 @@ SOURCE 	 ?= "."
 
 # riscv toolchain install path
 RISCV                      ?= ~/.riscv
-RISCV_EXE_PREFIX           = $(RISCV)/bin/riscv32-unknown-elf-
+RISCV_EXE_PREFIX           = $(RISCV)/bin/${COMPILER_PREFIX}elf-
 RISCV_GDB_PATH             = $(RISCV_EXE_PREFIX)gdb
 
 # Get the absolute path
