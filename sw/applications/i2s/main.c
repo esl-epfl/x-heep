@@ -29,7 +29,7 @@
 #define AUDIO_DATA_NUM 2048                          // RECORDING LENGTH
 // #define AUDIO_DATA_NUM 0x18000  // max 0x1c894                          // RECORDING LENGTH
 #define I2S_USE_INTERRUPT true
-//#define USE_DMA
+#define USE_DMA
 #else
 #define I2S_TEST_BATCH_SIZE    128
 #define I2S_TEST_BATCHES      4
@@ -168,6 +168,7 @@ int main(int argc, char *argv[]) {
         #else
         // READING DATA MANUALLY OVER BUS
         for (int i = 0; i < AUDIO_DATA_NUM; i+=1) {
+            if (i != i2s_rx_read_waterlevel()) printf("Waterlevel wrong\r\n");
             while (! i2s_rx_data_available()) { }
             audio_data_0[i] = i2s_rx_read_data();
         }
