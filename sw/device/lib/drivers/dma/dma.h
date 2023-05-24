@@ -21,9 +21,15 @@
 #define DMA_RX_WAIT_I2S           4
 
 #define DMA_TX_WAIT_MODE_DISABLED 0
-#define DMA_RX_WAIT_SPI           1
-#define DMA_RX_WAIT_SPI_FLASH     2
+#define DMA_TX_WAIT_SPI           1
+#define DMA_TX_WAIT_SPI_FLASH     2
 
+// backwards compatible
+#define DMA_SPI_MODE_DISABLED     0
+#define DMA_SPI_MODE_SPI_RX       1
+#define DMA_SPI_MODE_SPI_TX       2
+#define DMA_SPI_MODE_SPI_FLASH_RX 3
+#define DMA_SPI_MODE_SPI_FLASH_TX 4
 
 #ifdef __cplusplus
 extern "C" {
@@ -95,6 +101,22 @@ void dma_set_rx_wait_mode(const dma_t *dma, uint32_t peripheral_mask);
  * @param peripheral_mask mask to listen to correct peripheral
  */
 void dma_set_tx_wait_mode(const dma_t *dma, uint32_t peripheral_mask);
+
+
+/**
+ * Sets the DMA data transfer modes when used with the SPI.
+ * (Backwards compatibility)
+ * 
+ * 0 = mem to mem
+ * 1 = spi_rx to mem
+ * 2 = mem to spi_tx
+ * 3 = spi_flash_rx to mem
+ * 4 = mem to spi_flash_tx
+ * 
+ * @param dma Pointer to dma_t represting the target DMA.
+ * @param spi_mode (Default: 0)
+ */
+void dma_set_spi_mode(const dma_t *dma, uint32_t spi_mode);
 
 /**
  * Sets the DMA data type.
