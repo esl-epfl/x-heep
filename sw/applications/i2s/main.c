@@ -29,7 +29,7 @@
 #define AUDIO_DATA_NUM 2048                          // RECORDING LENGTH
 // #define AUDIO_DATA_NUM 0x18000  // max 0x1c894                          // RECORDING LENGTH
 #define I2S_USE_INTERRUPT true
-#define USE_DMA
+//#define USE_DMA
 #else
 #define I2S_TEST_BATCH_SIZE    128
 #define I2S_TEST_BATCHES      4
@@ -178,7 +178,7 @@ int main(int argc, char *argv[]) {
         printf("index,data\r\n"); // <- csv header for python 
         int32_t* data = audio_data_0;
         for (int i = 0; i < AUDIO_DATA_NUM; i+=1) {
-            //printf("%4x,%d\r\n", i, (int16_t) (data[i] >> 16));
+            printf("%4x,%d\r\n", i, (int16_t) (data[i] >> 16));
         }
         batch += 1;
 
