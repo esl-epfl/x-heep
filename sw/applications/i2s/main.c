@@ -235,7 +235,7 @@ int main(int argc, char *argv[]) {
             printf("%d %d\r\n", data[i], data[i+1]);
         }
         #ifdef USE_DMA
-        //dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // restart 
+        dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // restart 
         #endif
     }
 #endif
