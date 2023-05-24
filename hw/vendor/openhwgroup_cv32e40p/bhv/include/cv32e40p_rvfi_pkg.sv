@@ -15,8 +15,10 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.0
 
 // Includes to print info about the RVFI output
-// Contributors: Davide Schiavone <davide@openhwgroup.org>
-//               Halfdan Bechmann <halfdan.bechmann@silabs.com>
+//
+// Contributors: Davide Schiavone, OpenHW Group <davide@openhwgroup.org>
+//               Halfdan Bechmann, Silicon Labs <halfdan.bechmann@silabs.com>
+//               Yoann Pruvost, Dolphin Design <yoann.pruvost@dolphin.fr>
 
 package cv32e40p_rvfi_pkg;
   import cv32e40p_pkg::*;
