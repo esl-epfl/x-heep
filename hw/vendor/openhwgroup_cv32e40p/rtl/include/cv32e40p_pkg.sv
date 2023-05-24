@@ -54,22 +54,16 @@ package cv32e40p_pkg;
   parameter OPCODE_LOAD_FP = 7'h07;
   parameter OPCODE_AMO = 7'h2F;
 
-  // those opcodes are now used for PULP custom instructions
-  // parameter OPCODE_CUST0     = 7'h0b
-  // parameter OPCODE_CUST1     = 7'h2b
-
-  // PULP custom
-  parameter OPCODE_LOAD_POST = 7'h0b;
-  parameter OPCODE_STORE_POST = 7'h2b;
-  parameter OPCODE_PULP_OP = 7'h5b;
-  parameter OPCODE_VECOP = 7'h57;
-  parameter OPCODE_HWLOOP = 7'h7b;
+  // Those custom opcodes are used for PULP custom instructions
+  parameter OPCODE_CUSTOM_0 = 7'h0b;
+  parameter OPCODE_CUSTOM_1 = 7'h2b;
+  parameter OPCODE_CUSTOM_2 = 7'h5b;
+  parameter OPCODE_CUSTOM_3 = 7'h7b;
 
   parameter REGC_S1 = 2'b10;
   parameter REGC_S4 = 2'b00;
   parameter REGC_RD = 2'b01;
   parameter REGC_ZERO = 2'b11;
-
 
   //////////////////////////////////////////////////////////////////////////////
   //      _    _    _   _    ___                       _   _                  //
@@ -270,18 +264,21 @@ package cv32e40p_pkg;
     ///////////////////////////////////////////////////////
 
     // Hardware Loop
-    CSR_LPSTART0 = 12'h800,  // Custom CSR. Included if PULP_HWLP = 1
-    CSR_LPEND0   = 12'h801,  // Custom CSR. Included if PULP_HWLP = 1
-    CSR_LPCOUNT0 = 12'h802,  // Custom CSR. Included if PULP_HWLP = 1
-    CSR_LPSTART1 = 12'h804,  // Custom CSR. Included if PULP_HWLP = 1
-    CSR_LPEND1   = 12'h805,  // Custom CSR. Included if PULP_HWLP = 1
-    CSR_LPCOUNT1 = 12'h806,  // Custom CSR. Included if PULP_HWLP = 1
+    CSR_LPSTART0 = 12'hCC0,  // Custom CSR. Included if PULP_HWLP = 1
+    CSR_LPEND0   = 12'hCC1,  // Custom CSR. Included if PULP_HWLP = 1
+    CSR_LPCOUNT0 = 12'hCC2,  // Custom CSR. Included if PULP_HWLP = 1
+    CSR_LPSTART1 = 12'hCC4,  // Custom CSR. Included if PULP_HWLP = 1
+    CSR_LPEND1   = 12'hCC5,  // Custom CSR. Included if PULP_HWLP = 1
+    CSR_LPCOUNT1 = 12'hCC6,  // Custom CSR. Included if PULP_HWLP = 1
 
     // User Hart ID
-    CSR_UHARTID = 12'hCC0,  // Custom CSR. User Hart ID
+    CSR_UHARTID = 12'hCD0,  // Custom CSR. User Hart ID
 
     // Privilege
-    CSR_PRIVLV = 12'hCC1,  // Custom CSR. Privilege Level
+    CSR_PRIVLV = 12'hCD1,  // Custom CSR. Privilege Level
+
+    // ZFINX
+    CSR_ZFINX = 12'hCD2,  // Custom CSR. ZFINX
 
     ///////////////////////////////////////////////////////
     // Machine CSRs
@@ -545,6 +542,47 @@ package cv32e40p_pkg;
     PRIV_LVL_U = 2'b00
   } PrivLvl_t;
 
+  typedef struct packed {
+    logic uie;
+    // logic sie;      - unimplemented, hardwired to '0
+    // logic hie;      - unimplemented, hardwired to '0
+    logic mie;
+    logic upie;
+    // logic spie;     - unimplemented, hardwired to '0
+    // logic hpie;     - unimplemented, hardwired to '0
+    logic mpie;
+    // logic spp;      - unimplemented, hardwired to '0
+    // logic[1:0] hpp; - unimplemented, hardwired to '0
+    PrivLvl_t mpp;
+    logic mprv;
+  } Status_t;
+
+  typedef struct packed {
+    logic [31:28] xdebugver;
+    logic [27:16] zero2;
+    logic ebreakm;
+    logic zero1;
+    logic ebreaks;
+    logic ebreaku;
+    logic stepie;
+    logic stopcount;
+    logic stoptime;
+    logic [8:6] cause;
+    logic zero0;
+    logic mprven;
+    logic nmip;
+    logic step;
+    PrivLvl_t prv;
+  } Dcsr_t;
+
+  // Floating Point State
+  typedef enum logic [1:0] {
+    FS_OFF     = 2'b00,
+    FS_INITIAL = 2'b01,
+    FS_CLEAN   = 2'b10,
+    FS_DIRTY   = 2'b11
+  } FS_t;
+
   // Machine Vendor ID - OpenHW JEDEC ID is '2 decimal (bank 13)'
   parameter MVENDORID_OFFSET = 7'h2;  // Final byte without parity bit
   parameter MVENDORID_BANK = 25'hC;  // Number of continuation codes
@@ -552,7 +590,7 @@ package cv32e40p_pkg;
   // Machine Architecture ID (https://github.com/riscv/riscv-isa-manual/blob/master/marchid.md)
   parameter MARCHID = 32'h4;
 
-  parameter MHPMCOUNTER_WIDTH = 64;  //TODO from e40x
+  parameter MHPMCOUNTER_WIDTH = 64;
 
   ///////////////////////////////////////////////
   //   ___ ____    ____  _                     //
@@ -737,13 +775,13 @@ package cv32e40p_pkg;
 
   // Latency of FP operations: 0 = no pipe registers, 1 = 1 pipe register etc.
   parameter int unsigned C_LAT_FP64 = 'd0;
-  parameter int unsigned C_LAT_FP32 = 'd0;
+  //parameter int unsigned C_LAT_FP32 = 'd0;
   parameter int unsigned C_LAT_FP16 = 'd0;
   parameter int unsigned C_LAT_FP16ALT = 'd0;
   parameter int unsigned C_LAT_FP8 = 'd0;
   parameter int unsigned C_LAT_DIVSQRT = 'd1;  // divsqrt post-processing pipe
-  parameter int unsigned C_LAT_CONV = 'd0;
-  parameter int unsigned C_LAT_NONCOMP = 'd0;
+  //parameter int unsigned C_LAT_CONV = 'd0;
+  //parameter int unsigned C_LAT_NONCOMP = 'd0;
 
   // General FPU-specific defines
 
