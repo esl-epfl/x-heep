@@ -6,9 +6,9 @@ module core_v_mini_mcu
   import obi_pkg::*;
   import reg_pkg::*;
 #(
-    parameter PULP_XPULP = 0,
+    parameter COREV_PULP = 0,
     parameter FPU = 0,
-    parameter PULP_ZFINX = 0,
+    parameter ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0,
     parameter X_EXT = 0,  // eXtension interface in cv32e40x
     //do not touch these parameters
@@ -183,9 +183,9 @@ module core_v_mini_mcu
 
   cpu_subsystem #(
       .BOOT_ADDR(BOOT_ADDR),
-      .PULP_XPULP(PULP_XPULP),
+      .COREV_PULP(COREV_PULP),
       .FPU(FPU),
-      .PULP_ZFINX(PULP_ZFINX),
+      .ZFINX(ZFINX),
       .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS),
       .DM_HALTADDRESS(DM_HALTADDRESS),
       .X_EXT(X_EXT)

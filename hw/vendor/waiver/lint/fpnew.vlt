@@ -4,5 +4,15 @@
 
 `verilator_config
 
-lint_off -rule LITENDIAN -file "*/src/fpnew_pkg.sv" -match "Little bit endian vector: left < right of bit range: *"
-lint_off -rule WIDTH -file "*/src/fpnew_pkg.sv" -match "Operator *"
+lint_off -rule LITENDIAN -file "*/pulp_platform_fpnew/src/*" -match "*"
+lint_off -rule LITENDIAN -file "*/pulp_platform_fpu_div_sqrt_mvp/hdl/*" -match "*"
+lint_off -rule WIDTH -file "*/pulp_platform_fpnew/src/*" -match "*"
+lint_off -rule WIDTH -file "*/pulp_platform_fpu_div_sqrt_mvp/hdl/*" -match "*"
+lint_off -rule UNUSED -file "*/pulp_platform_fpnew/src/*" -match "*"
+lint_off -rule UNUSED -file "*/pulp_platform_fpu_div_sqrt_mvp/hdl/*" -match "*"
+lint_off -rule WIDTHCONCAT -file "*/pulp_platform_fpnew/src/*" -match "*"
+lint_off -rule WIDTHCONCAT -file "*/pulp_platform_fpu_div_sqrt_mvp/hdl/*" -match "*"
+lint_off -rule BLKANDNBLK -file "*/pulp_platform_fpnew/src/*" -match "*"
+lint_off -rule BLKANDNBLK -file "*/pulp_platform_fpu_div_sqrt_mvp/hdl/*" -match "*"
+lint_off -rule IMPORTSTAR -file "*/pulp_platform_fpnew/src/*" -match "*"
+lint_off -rule IMPORTSTAR -file "*/pulp_platform_fpu_div_sqrt_mvp/hdl/*" -match "*"

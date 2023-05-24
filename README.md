@@ -223,6 +223,13 @@ For instance, to run 'hello world' app for the pynq-z2 FPGA targets, just run:
 make app TARGET=pynq-z2
 ```
 
+Or, if you use the OpenHW Group [GCC](https://www.embecosm.com/resources/tool-chain-downloads/#corev) compiler with CORE_PULP extensions, make sure to point the `RISCV` env variable to the OpenHW Group compiler, then just run:
+
+
+```
+make app COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_xcvhwlp1p0_xcvmem1p0_xcvmac1p0_xcvbi1p0_xcvalu1p0_xcvsimd1p0_xcvbitmanip1p0
+```
+
 This will create the executable file to be loaded in your target system (ASIC, FPGA, Simulation).
 Remember that, `X-HEEP` is using CMake to compile and link. Thus, the generated files after having
 compiled and linked are under `sw\build`
@@ -243,6 +250,10 @@ Moreover, FreeRTOS is being fetch from 'https://github.com/FreeRTOS/FreeRTOS-Ker
 ## Simulating
 
 This project supports simulation with Verilator, Synopsys VCS, and Siemens Questasim.
+It relies on `fusesoc` to handle multiple EDA tools and parameters.
+For example, if you want to set the `FPU` and `COREV_PULP` parameters of the `cv32e40p` CPU,
+you need to add next to your compilation command `FUSESOC_FLAGS="--flag=use_cv32e40p_corev_pulp --flag=use_cv32e40p_fpu"`
+Below the different EDA examples commands.
 
 ### Compiling for Verilator
 

@@ -14,7 +14,6 @@ filesets:
     - openhwgroup.org:ip:cv32e40p
     - openhwgroup.org:ip:cv32e40x
     - openhwgroup.org:ip:cve2
-    - pulp-platform.org:ip:fpnew
     - pulp-platform.org:ip:gpio
     - pulp-platform.org::common_cells
     - pulp-platform.org::cluster_interconnect
@@ -202,7 +201,11 @@ filesets:
       - flow/sky130/constraint.sdc : {file_type: SDC}
 
 parameters:
-  PULP_XPULP:
+  COREV_PULP:
+    datatype: int
+    paramtype: vlogparam
+    default: 0
+  FPU:
     datatype: int
     paramtype: vlogparam
     default: 0
@@ -287,7 +290,10 @@ targets:
         - tool_modelsim? (pre_build_remote_bitbang)
         - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
     parameters:
-    - PULP_XPULP=0
+    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
+    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
+    - use_cv32e40p_fpu? (FPU=1)
+    - "!use_cv32e40p_fpu? (FPU=0)"
     - use_jtag_dpi? (JTAG_DPI=1)
     - "!use_jtag_dpi? (JTAG_DPI=0)"
     - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
@@ -343,7 +349,10 @@ targets:
     - ip-fpga
     - xdc-fpga-nexys
     parameters:
-    - PULP_XPULP=0
+    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
+    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
+    - use_cv32e40p_fpu? (FPU=1)
+    - "!use_cv32e40p_fpu? (FPU=0)"
     - SYNTHESIS=true
     tools:
       vivado:
@@ -360,7 +369,10 @@ targets:
     - ip-fpga
     - xdc-fpga-pynq-z2
     parameters:
-    - PULP_XPULP=0
+    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
+    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
+    - use_cv32e40p_fpu? (FPU=1)
+    - "!use_cv32e40p_fpu? (FPU=0)"
     - SYNTHESIS=true
     tools:
       vivado:
@@ -377,7 +389,10 @@ targets:
     - ip-fpga
     - fpga-arm-emulation
     parameters:
-    - PULP_XPULP=0
+    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
+    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
+    - use_cv32e40p_fpu? (FPU=1)
+    - "!use_cv32e40p_fpu? (FPU=0)"
     - SYNTHESIS=true
     tools:
       vivado:
@@ -394,7 +409,10 @@ targets:
     hooks:
       post_build: [post_build_modelsim_scripts]
     parameters:
-    - PULP_XPULP=0
+    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
+    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
+    - use_cv32e40p_fpu? (FPU=1)
+    - "!use_cv32e40p_fpu? (FPU=0)"
     - FPGA_NETLIST=true
     tools:
       modelsim:
@@ -409,7 +427,10 @@ targets:
     default_tool: design_compiler
     description: Design Compiler Script
     parameters:
-    - PULP_XPULP=0
+    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
+    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
+    - use_cv32e40p_fpu? (FPU=1)
+    - "!use_cv32e40p_fpu? (FPU=0)"
     - SYNTHESIS=true
     filesets_append:
     - ip-asic
@@ -430,7 +451,10 @@ targets:
     default_tool: openroad
     description: yosys
     parameters:
-      - PULP_XPULP=0
+      - use_cv32e40p_corev_pulp? (COREV_PULP=1)
+      - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
+      - use_cv32e40p_fpu? (FPU=1)
+      - "!use_cv32e40p_fpu? (FPU=0)"
       - SYNTHESIS=true
       - VERILATOR=true
     filesets_append:

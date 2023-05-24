@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/openhwgroup/cv32e40p.git
-    rev: 0391e5c15aa32a3df37179ac1d9a17f5f76cbc1e
+    url: https://github.com/pulp-platform/common_cells.git
+    rev: 6aeee85d0a34fedc06c14f04fd6363c9f7b4eeea
   }
 }
