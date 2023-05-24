@@ -223,6 +223,13 @@ For instance, to run 'hello world' app for the pynq-z2 FPGA targets, just run:
 make app TARGET=pynq-z2
 ```
 
+Or, if you use the OpenHW Group [GCC](https://www.embecosm.com/resources/tool-chain-downloads/#corev) compiler with CORE_PULP extensions, make sure to point the `RISCV` env variable to the OpenHW Group compiler, then just run:
+
+
+```
+make app COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_xcvhwlp1p0_xcvmem1p0_xcvmac1p0_xcvbi1p0_xcvalu1p0_xcvsimd1p0_xcvbitmanip1p0
+```
+
 This will create the executable file to be loaded in your target system (ASIC, FPGA, Simulation).
 Remember that, `X-HEEP` is using CMake to compile and link. Thus, the generated files after having
 compiled and linked are under `sw\build`
