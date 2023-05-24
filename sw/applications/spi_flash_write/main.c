@@ -22,7 +22,7 @@
 /* Test Configurations */
 #define DEBUG
 #define USE_SPI_FLASH
-#define TEST_CIRCULAR
+//#define TEST_CIRCULAR
 #define TEST_MEM_2_SPI
 #define TEST_SPI_2_MEM
 
@@ -82,6 +82,7 @@ void fic_irq_spi(void)
 void fic_irq_spi_flash(void)
 {
     // Disable SPI interrupts
+    PRINTF("!");
     spi_enable_evt_intr(&spi_host, false);
     spi_enable_rxwm_intr(&spi_host, false);
     spi_intr_flag = 1;
