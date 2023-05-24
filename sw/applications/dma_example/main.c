@@ -10,16 +10,22 @@
 #include "handler.h"
 #include "core_v_mini_mcu.h"
 #include "dma.h"
+#include "dma_regs.h"
 #include "fast_intr_ctrl.h"
 #include "fast_intr_ctrl_regs.h"
+#include "rv_plic.h"
+#include "rv_plic_regs.h"
 
 // TODO
 // - Add offset at the begining and the end and check
 
 // Choose which scenarios to test
-#define TEST_WORD
-#define TEST_HALF_WORD
-#define TEST_BYTE
+// #define TEST_WORD
+// #define TEST_HALF_WORD
+// #define TEST_BYTE
+// #define TEST_CIRCULAR_MODE
+// #define TEST_PENDING_TRANSACTION
+#define TEST_WINDOW
 
 #define HALF_WORD_INPUT_OFFSET 0
 #define HALF_WORD_OUTPUT_OFFSET 1 // Applied at begining and end of the output vector, which should not be overwriten.
@@ -38,12 +44,52 @@ uint32_t copied_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
 uint16_t copied_data_2B[TEST_DATA_SIZE] __attribute__ ((aligned (2))) = { 0 };
 uint8_t copied_data_1B[TEST_DATA_SIZE] = { 0 };
 
+#ifdef TEST_CIRCULAR_MODE
+#define TEST_DATA_CIRCULAR 256
+#define TEST_CYCLES_NUM 32
+uint32_t test_data_circular[TEST_DATA_CIRCULAR] __attribute__ ((aligned (4))) = { 1 };
+// uint32_t copied_data_circular[TEST_DATA_CIRCULAR] __attribute__ ((aligned (4))) = { 0 };
+#endif
+
+#ifdef TEST_WINDOW
+#define TEST_WINDOW_DATA_SIZE 1024
+#define TEST_WINDOW_SIZE 72 // if put at <=71 the isr is too slow to react to the interrupt 
+                            // and one will be lost (with size = 1024.)
+                            // meaning with the given implementation the isr takes about 78 dma cycles.
+
+uint8_t test_window_data1[TEST_WINDOW_DATA_SIZE] __attribute__ ((aligned (1))) = { 0 }; 
+uint8_t test_window_data2[TEST_WINDOW_DATA_SIZE] __attribute__ ((aligned (1))) = { 0 }; 
+#endif
+
 int8_t dma_intr_flag;
 
 void fic_irq_dma(void)
 {
+    fast_intr_ctrl_t fast_intr_ctrl;
+    fast_intr_ctrl.base_addr = mmio_region_from_addr((uintptr_t)FAST_INTR_CTRL_START_ADDRESS);
+    clear_fast_interrupt(&fast_intr_ctrl, kDma_fic_e);
     dma_intr_flag = 1;
 }
+
+#ifdef TEST_WINDOW
+int32_t external_intr_flag;
+
+// Interrupt controller variables
+dif_plic_params_t rv_plic_params;
+dif_plic_t rv_plic;
+dif_plic_result_t plic_res;
+dif_plic_irq_id_t intr_num;
+
+void handler_irq_external(void) {
+    // Claim/clear interrupt
+    plic_res = dif_plic_irq_claim(&rv_plic, 0, &intr_num);
+    if (plic_res == kDifPlicOk && intr_num == DMA_WINDOW_INTR) {
+        external_intr_flag += 1;
+    }
+    dif_plic_irq_complete(&rv_plic, 0, &intr_num); // complete in any case
+}
+#endif
+
 
 int main(int argc, char *argv[])
 {
@@ -56,19 +102,20 @@ int main(int argc, char *argv[])
     // Enable global interrupt for machine-level interrupts
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     // Set mie.MEIE bit to one to enable machine-level fast dma interrupt
-    const uint32_t mask = 1 << 19;
+    const uint32_t mask = (1 << 19) + (1 << 11);
     CSR_SET_BITS(CSR_REG_MIE, mask);
 
     // dma peripheral structure to access the registers
     dma_t dma;
     dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
 
+    dma_enable_intr(&dma, true, false);
+
     #ifdef TEST_WORD
         // -- DMA CONFIG -- //
         dma_set_read_ptr(&dma, (uint32_t) test_data_4B);
         dma_set_write_ptr(&dma, (uint32_t) copied_data_4B);
-        dma_set_read_ptr_inc(&dma, (uint32_t) 4);
-        dma_set_write_ptr_inc(&dma, (uint32_t) 4);
+        dma_set_ptr_inc(&dma, (uint32_t) 4, (uint32_t) 4);
         dma_set_spi_mode(&dma, (uint32_t) 0);
         dma_set_data_type(&dma, (uint32_t) 0);
         printf("DMA word transaction launched\n");
@@ -85,8 +132,7 @@ int main(int argc, char *argv[])
         // -- DMA CONFIG -- //
         dma_set_read_ptr(&dma, (uint32_t) (test_data_2B + HALF_WORD_INPUT_OFFSET));
         dma_set_write_ptr(&dma, (uint32_t) (copied_data_2B + HALF_WORD_OUTPUT_OFFSET));
-        dma_set_read_ptr_inc(&dma, (uint32_t) 2);
-        dma_set_write_ptr_inc(&dma, (uint32_t) 2);
+        dma_set_ptr_inc(&dma, (uint32_t) 2, (uint32_t) 2);
         dma_set_spi_mode(&dma, (uint32_t) 0);
         dma_set_data_type(&dma, (uint32_t) 1);
         printf("DMA half-word transaction launched\n");
@@ -104,8 +150,7 @@ int main(int argc, char *argv[])
         // -- DMA CONFIG -- //
         dma_set_read_ptr(&dma, (uint32_t) test_data_1B + BYTE_INPUT_OFFSET);
         dma_set_write_ptr(&dma, (uint32_t) (copied_data_1B + BYTE_OUTPUT_OFFSET));
-        dma_set_read_ptr_inc(&dma, (uint32_t) 1);
-        dma_set_write_ptr_inc(&dma, (uint32_t) 1);
+        dma_set_ptr_inc(&dma, (uint32_t) 1, (uint32_t) 1);
         dma_set_spi_mode(&dma, (uint32_t) 0);
         dma_set_data_type(&dma, (uint32_t) 2);
         printf("DMA byte transaction launched\n");
@@ -192,7 +237,145 @@ int main(int argc, char *argv[])
         }
     #endif // TEST_BYTE
 
-    enable_fast_interrupt(kDma_fic_e, false);
+
+    #ifdef TEST_CIRCULAR_MODE
+        for (int i = 0; i < TEST_DATA_CIRCULAR; i++) {
+            test_data_circular[i] = i;
+        }
+
+        // -- DMA CONFIG -- //
+        dma_set_read_ptr(&dma, (uint32_t) test_data_circular);
+        dma_set_write_ptr(&dma, (uint32_t) test_data_circular);
+        dma_set_ptr_inc(&dma, (uint32_t) 1, (uint32_t) 1);
+        dma_set_slot(&dma, 0, 0);
+        dma_set_data_type(&dma, (uint32_t) 2);
+        printf("DMA circular transaction launched\n");
+        dma_enable_circular_mode(&dma, true);
+        // Give number of bytes to transfer
+        dma_intr_flag = 0;
+        dma_set_cnt_start(&dma, (uint32_t) TEST_DATA_CIRCULAR*4);
+
+        uint32_t halfway = 0;
+        for (int i = 0; i < 2*TEST_CYCLES_NUM; i++) {
+            while(dma_intr_flag==0) {
+              wait_for_interrupt();
+            }
+            dma_intr_flag = 0;
+
+            halfway = dma_get_halfway(&dma); // to see which have is ready 
+
+            if (i == 2*(TEST_CYCLES_NUM - 1)) dma_enable_circular_mode(&dma, false); // disable circular mode to stop
+
+        }
+        errors = 0;
+
+        for (int i = 0; i < TEST_DATA_CIRCULAR; i++) {
+            if (test_data_circular[i] != i) {
+                printf("ERROR COPY Circular mode failed at %d", i);
+                errors += 1;
+            }
+        }
+
+        if (errors == 0) {
+            printf("DMA circular byte transfer success\n");
+        } else {
+            printf("DMA circular byte transfer failure: %d errors out of %d bytes checked\n", errors, TEST_DATA_CIRCULAR);
+        }
+
+    #endif
+
+    #ifdef TEST_PENDING_TRANSACTION
+        // -- DMA CONFIG -- //
+        dma_set_read_ptr(&dma, (uint32_t) test_data_4B);
+        dma_set_write_ptr(&dma, (uint32_t) copied_data_4B);
+        dma_set_ptr_inc(&dma, (uint32_t) 1, (uint32_t) 1);
+        dma_set_spi_mode(&dma, (uint32_t) 0);
+        dma_set_data_type(&dma, (uint32_t) 2);
+        // Give number of bytes to transfer
+        dma_set_cnt_start(&dma, (uint32_t) TEST_DATA_SIZE*sizeof(*copied_data_4B));
+
+        dma_intr_flag = 0;
+
+        // start a second time
+        dma_set_cnt_start(&dma, (uint32_t) TEST_DATA_SIZE*sizeof(*copied_data_4B));
+
+        // Wait for first copy
+        while(dma_intr_flag==0) {
+            wait_for_interrupt();
+        }
+    
+        // Wait for second copy
+        dma_intr_flag = 0;
+        
+        while(dma_intr_flag==0) {
+            wait_for_interrupt();
+        }
+        printf("DMA successfully processed two consecutive transactions\n");
+    #endif
+
+    #ifdef TEST_WINDOW
+
+        rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
+        dif_plic_init(rv_plic_params, &rv_plic);
+        dif_plic_irq_set_priority(&rv_plic, DMA_WINDOW_INTR, 1);
+        dif_plic_irq_set_enabled(&rv_plic, DMA_WINDOW_INTR, 0, kDifPlicToggleEnabled);
+        external_intr_flag = 0;
+
+        dma_enable_intr(&dma, false, true);
+    
+        // -- DMA CONFIG -- //
+        dma_set_read_ptr(&dma, (uint32_t) test_window_data1);
+        dma_set_write_ptr(&dma, (uint32_t) test_window_data2);
+        dma_set_ptr_inc(&dma, 1, 1);
+        dma_set_slot(&dma, 0, 0);
+        dma_set_data_type(&dma, (uint32_t) DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD);
+        // Give number of bytes to transfer
+        dma_intr_flag = 0;
+        mmio_region_write32(dma.base_addr,  DMA_WINDOW_SIZE_REG_OFFSET, TEST_WINDOW_SIZE);
+        dma_set_cnt_start(&dma, TEST_WINDOW_DATA_SIZE);
+
+        uint8_t error = 0;
+
+        uint32_t status;
+        do {
+            status = mmio_region_read32(dma.base_addr, DMA_STATUS_REG_OFFSET);
+            // wait for done - ISR done should be disabled.
+        } while((status & (1 << DMA_STATUS_READY_BIT)) == 0);
+
+        if (status & (1 << DMA_STATUS_WINDOW_DONE_BIT) == 0) {
+            printf("[E] DMA window done flag not raised\r\n");
+            error += 1;
+        }
+        if (dma_get_halfway(&dma)) { 
+            // should be clean on read so rereading should be 0
+            printf("[E] DMA window done flag not reset on status read\r\n");
+            error += 1;
+        }
+
+        if (dma_intr_flag == 1) {
+            printf("[E] DMA window test failed DONE interrupt was triggered\n");
+            error += 1;
+        }
+
+        uint32_t window_count = mmio_region_read32(dma.base_addr, DMA_WINDOW_COUNT_REG_OFFSET);
+
+        if (external_intr_flag != TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE) {
+            printf("[E] DMA window test failed ISR wasn't trigger the right number %d != %d\r\n", external_intr_flag, TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE);
+            error += 1;
+        }
+        
+        if (window_count != TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE) {
+            printf("[E] DMA window test failed Window count register is wrong %d != %d\r\n", window_count, TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE);
+            error += 1;
+        }
+        if (!error) {
+            printf("DMA window count is okay (#%d * %d)\r\n", TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE, TEST_WINDOW_SIZE);
+        }
+        else {
+            printf("F-DMA window test with %d errors\r\n", error);
+        }
+    
+    #endif
 
     return EXIT_SUCCESS;
 }

@@ -10,12 +10,29 @@
 
 #include "mmio.h"
 
+
+/**
+ * Wait Mode Defines
+ * 
+ */
+#define DMA_SPI_MODE_DISABLED     0
+#define DMA_SPI_MODE_SPI_RX       1
+#define DMA_SPI_MODE_SPI_TX       2
+#define DMA_SPI_MODE_SPI_FLASH_RX 3
+#define DMA_SPI_MODE_SPI_FLASH_TX 4
+
+
+#define DMA_SPI_RX_SLOT 0b00000001
+#define DMA_SPI_TX_SLOT 0b00000010
+#define DMA_SPI_FLASH_RX_SLOT 0b00000100
+#define DMA_SPI_FLASH_TX_SLOT 0b00001000
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * Initialization parameters for MEMCOPY PERIPHERAL.
+ * Initialization parameters for DMA PERIPHERAL.
  *
  */
 typedef struct dma {
@@ -51,26 +68,42 @@ void dma_set_cnt_start(const dma_t *dma, uint32_t copy_size);
  * @param dma Pointer to dma_t represting the target MEMCOPY PERIPHERAL.
  * @return done value (0: data are being copied - 1: copy done/peripheral idle)
  */
-int32_t dma_get_done(const dma_t *dma);
+bool dma_get_done(const dma_t *dma);
+
+/**
+ * Read the halfway flag from done register of the DMA
+ * @param dma Pointer to dma_t represting the target MEMCOPY PERIPHERAL.
+ * @return halfway value (0: dma is processing first have - 1: first have is done)
+ */
+bool dma_get_halfway(const dma_t *dma);
 
 /**
  * Write to src_ptr_inc register of the DMA.
  * @param dma Pointer to dma_t represting the target DMA.
  * @param read_ptr_inc Increment of source pointer (Default: 4).
- */
-void dma_set_read_ptr_inc(const dma_t *dma, uint32_t read_ptr_inc);
-
-/**
- * Write to dst_ptr_inc register of the DMA.
- * @param dma Pointer to dma_t represting the target DMA.
  * @param write_ptr_inc Increment of destination pointer (Default: 4).
  */
-void dma_set_write_ptr_inc(const dma_t *dma, uint32_t write_ptr_inc);
+void dma_set_ptr_inc(const dma_t *dma, uint8_t read_ptr_inc, uint8_t write_ptr_inc);
+
+/**
+ * Sets the DMA data transfer modes when used with peripherals
+ * @param dma Pointer to dma_t represting the target DMA.
+ * @param rx_slot_mask
+ * @param tx_slot_mask
+ */
+void dma_set_slot(const dma_t *dma, uint16_t rx_slot_mask, uint16_t tx_slot_mask);
 
 /**
  * Sets the DMA data transfer modes when used with the SPI.
+ * 
+ * 0 = mem to mem
+ * 1 = spi_rx to mem
+ * 2 = mem to spi_tx
+ * 3 = spi_flash_rx to mem
+ * 4 = mem to spi_flash_tx
+ * 
  * @param dma Pointer to dma_t represting the target DMA.
- * @param spi_mode 0: mem to mem - 1: spi_rx to mem (Default: 0) - 2: mem to spi_tx.
+ * @param spi_mode (Default: 0)
  */
 void dma_set_spi_mode(const dma_t *dma, uint32_t spi_mode);
 
@@ -80,6 +113,27 @@ void dma_set_spi_mode(const dma_t *dma, uint32_t spi_mode);
  * @param data_type Data type to transfer: 32-bit word(0), 16-bit half word (1), 8-bit byte(2,3).
  */
 void dma_set_data_type(const dma_t *dma, uint32_t data_type);
+
+/**
+ * Enables/disables the cirucular mode of the DMA.
+ * 
+ * Restarts copying as soon as end of buffer is reach.
+ * Will trigger DMA interrupt twice: halfway and end of buffer.
+ * To stop clear this flag and it will stop after current transaction.
+ * 
+ * @param dma Pointer to dma_t represting the target DMA.
+ * @param enable bool.
+ */
+void dma_enable_circular_mode(const dma_t *dma, bool enable);
+
+/**
+ * Enables/disables the different interrupts of the DMA.
+ * 
+ * @param dma Pointer to dma_t represting the target DMA.
+ * @param done_intr_en 
+ * @param window_intr_en
+ */
+void dma_enable_intr(const dma_t *dma, bool done_intr_en, bool window_intr_en);
 
 #ifdef __cplusplus
 }

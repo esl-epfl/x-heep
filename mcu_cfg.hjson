@@ -201,6 +201,7 @@
             intr_ack_stop:           47,
             intr_host_timeout:       48,
             spi2_intr_event:         49,
+            dma_window_intr:         50,
         }
     }
 }

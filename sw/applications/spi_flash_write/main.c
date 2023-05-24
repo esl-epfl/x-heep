@@ -20,9 +20,9 @@
 #include "x-heep.h"
 
 // Un-comment this line to use the SPI FLASH instead of the default SPI
-// #define USE_SPI_FLASH
+#define USE_SPI_FLASH
 
-#define COPY_DATA_WORDS 64 // Flash page size = 256 Bytes
+#define COPY_DATA_WORDS 16 // Flash page size = 256 Bytes
 
 // Warning in case of targetting simulation
 #ifdef TARGET_SIM
@@ -60,6 +60,7 @@ void fic_irq_spi_flash(void)
 void fic_irq_dma(void)
 {
     dma_intr_flag = 1;
+    printf("#");
 }
 
 // Reserve memory array
@@ -69,7 +70,11 @@ uint32_t copy_data[COPY_DATA_WORDS] __attribute__ ((aligned (4)))  = { 0 };
 int main(int argc, char *argv[])
 {
     #ifndef USE_SPI_FLASH
+<<<<<<< HEAD
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
+=======
+        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI2_START_ADDRESS);
+>>>>>>> dma_pr_2
     #else
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif
@@ -182,8 +187,7 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     // -- DMA CONFIGURATION --
-    dma_set_read_ptr_inc(&dma, (uint32_t) 4); // Do not increment address when reading from the SPI (Pop from FIFO)
-    dma_set_write_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
+    dma_set_ptr_inc(&dma, (uint32_t) 4, 0); // Do not increment address when reading from the SPI (Pop from FIFO)
     dma_set_read_ptr(&dma, (uint32_t) flash_data); // SPI RX FIFO addr
     dma_set_write_ptr(&dma, (uint32_t) fifo_ptr_tx); // copy data address
     // Set the correct SPI-DMA mode:
@@ -258,8 +262,7 @@ int main(int argc, char *argv[])
     dma_intr_flag = 0;
 
     // -- DMA CONFIGURATION --
-    dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
-    dma_set_write_ptr_inc(&dma, (uint32_t) 4); // Do not increment address when reading from the SPI (Pop from FIFO)
+    dma_set_ptr_inc(&dma, (uint32_t) 0, 4); // Do not increment address when reading from the SPI (Pop from FIFO)
     dma_set_read_ptr(&dma, (uint32_t) fifo_ptr_rx); // SPI RX FIFO addr
     dma_set_write_ptr(&dma, (uint32_t) copy_data); // copy data address
     // Set the correct SPI-DMA mode:
@@ -303,12 +306,16 @@ int main(int argc, char *argv[])
 
     dma_intr_flag = 0;
     dma_set_data_type(&dma, (uint32_t) 0);
+    
+    dma_enable_intr( &dma, 1, 0 );
+
     dma_set_cnt_start(&dma, (uint32_t) COPY_DATA_WORDS*sizeof(*copy_data)); // Number of bytes received by SPI
 
     // Wait for DMA interrupt
     printf("Waiting for the DMA interrupt...\n");
-    while(dma_intr_flag == 0) {
-        wait_for_interrupt();
+    while( dma_get_done(&dma) == 0 ) {
+        //wait_for_interrupt();
+        asm("nop");
     }
     printf("triggered!\n");
 
