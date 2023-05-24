@@ -1024,7 +1024,7 @@ static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
     return inc_b;
 }
 
-void handler_irq_fast_dma(void)
+void fic_irq_dma(void)
 {
     printf("@");
     // The flag is raised so the waiting loop can be broken.
