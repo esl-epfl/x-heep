@@ -17,7 +17,7 @@
 #include "fast_intr_ctrl_regs.h"
 
 // Un-comment this line to use the SPI FLASH instead of the default SPI
-// #define USE_SPI_FLASH
+#define USE_SPI_FLASH
 
 // Type of data frome the SPI. For types different than words the SPI data is requested in separate transactions
 // word(0), half-word(1), byte(2,3)
@@ -33,7 +33,7 @@
 int8_t dma_intr_flag;
 spi_host_t spi_host;
 
-void fic_irq_fast_dma(void)
+void fic_irq_dma(void)
 {
     dma_intr_flag = 1;
 }
@@ -53,7 +53,7 @@ void fic_irq_fast_dma(void)
 int main(int argc, char *argv[])
 {
     #ifndef USE_SPI_FLASH
-        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI2_START_ADDRESS);
+        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_START_ADDRESS);
     #else
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif
