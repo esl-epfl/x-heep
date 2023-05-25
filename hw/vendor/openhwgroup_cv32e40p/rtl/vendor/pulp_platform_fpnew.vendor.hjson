@@ -11,6 +11,11 @@
   },
 
   exclude_from_upstream: [
+    ".gitignore",
+    ".gitmodules",
+    "CITATION.cff",
+    "README.md",
+    "Bender.yml",
     "src/common_cells",
     "src/fpu_div_sqrt_mvp",
     "tb",

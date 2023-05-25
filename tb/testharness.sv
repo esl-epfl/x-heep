@@ -7,9 +7,9 @@ import UPF::*;
 `endif
 
 module testharness #(
-    parameter PULP_XPULP    = 0,
+    parameter COREV_PULP    = 0,
     parameter FPU           = 0,
-    parameter PULP_ZFINX    = 0,
+    parameter ZFINX         = 0,
     parameter X_EXT         = 0,         // eXtension interface in cv32e40x
     parameter JTAG_DPI      = 0,
     parameter CLK_FREQUENCY = 'd100_000  //KHz
@@ -128,9 +128,9 @@ module testharness #(
   if_xif #() ext_if ();
 
   x_heep_system #(
-      .PULP_XPULP(PULP_XPULP),
+      .COREV_PULP(COREV_PULP),
       .FPU(FPU),
-      .PULP_ZFINX(PULP_ZFINX),
+      .ZFINX(ZFINX),
       .X_EXT(X_EXT),
 `ifdef USE_EXTERNAL_DEVICE_EXAMPLE
       .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER)
