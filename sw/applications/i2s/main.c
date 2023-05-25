@@ -102,7 +102,7 @@ void setup()
     dma_set_write_ptr_inc(&dma, (uint32_t) 4);
     dma_set_read_ptr(&dma, I2S_RX_DATA_ADDRESS); // I2s RX FIFO addr
     dma_set_write_ptr(&dma, (uint32_t) audio_data_0); // audio data address
-    dma_set_rx_wait_mode(&dma, DMA_RX_WAIT_I2S); // The DMA will wait for the I2s RX FIFO valid signal
+    dma_set_slot(&dma, DMA_I2S_RX_SLOT, 0); // The DMA will wait for the I2s RX FIFO valid signal
     dma_set_data_type(&dma, (uint32_t) 0);
     #endif
 

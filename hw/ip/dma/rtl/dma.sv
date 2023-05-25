@@ -10,8 +10,7 @@ module dma #(
     parameter type reg_rsp_t = logic,
     parameter type obi_req_t = logic,
     parameter type obi_resp_t = logic,
-    parameter int unsigned PERIPHERALS_RX = 0,
-    parameter int unsigned PERIPHERALS_TX = 0
+    parameter int unsigned SLOT_NUM = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -25,8 +24,7 @@ module dma #(
     output obi_req_t  dma_master1_ch0_req_o,
     input  obi_resp_t dma_master1_ch0_resp_i,
 
-    input logic [PERIPHERALS_RX-1:0] rx_valid_i,
-    input logic [PERIPHERALS_TX-1:0] tx_ready_i,
+    input logic [SLOT_NUM-1:0] trigger_slot_i,
 
     output dma_intr_o
 );
@@ -122,8 +120,8 @@ module dma #(
   assign hw2reg.dma_start.de = dma_start;
   assign hw2reg.dma_start.d = 32'h0;
 
-  assign wait_for_rx = |(reg2hw.rx_wait_mode.q[PERIPHERALS_RX-1:0] & ~rx_valid_i);
-  assign wait_for_tx = |(reg2hw.tx_wait_mode.q[PERIPHERALS_TX-1:0] & ~tx_ready_i);
+  assign wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
+  assign wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
 
   assign fifo_alm_full = (fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
 
