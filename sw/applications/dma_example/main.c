@@ -158,6 +158,11 @@ int main(int argc, char *argv[])
         tgt_src.ptr     = test_data_large;
         tgt_src.size_du = TEST_DATA_LARGE;
 
+        // trans.end = DMA_TRANS_END_INTR_WAIT; // This option makes no sense, because the launch is blocking the program until the trans finishes. 
+        trans.end = DMA_TRANS_END_INTR;
+        // trans.end = DMA_TRANS_END_POLLING; 
+
+
         res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
         PRINTF("tran: %u \n\r", res);
         res = dma_load_transaction(&trans);
@@ -171,8 +176,15 @@ int main(int argc, char *argv[])
             if( res == DMA_CONFIG_OK ) consecutive_trans++;
         }
         
-        while( cycles < consecutive_trans ){
-            wait_for_interrupt();
+        if( trans.end == DMA_TRANS_END_POLLING ){
+            while( cycles < consecutive_trans ){
+                while( ! dma_is_ready() );
+                cycles++;
+            }
+        } else {
+            while( cycles < consecutive_trans ){
+                wait_for_interrupt();
+            }
         }
         PRINTF(">> Finished %d transactions. \n\r", consecutive_trans);
         
