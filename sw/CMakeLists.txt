@@ -50,41 +50,11 @@ set(CMAKE_CXX_STANDARD 14)
 # Set MAIN file
 SET(MAINFILE "main")
 
-# Get the correct path for the crt files and linker file
-if (${LINKER} STREQUAL "on_chip")
-  SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt/")
-  SET(LINK_FILE "link.ld")
-elseif(${LINKER} STREQUAL "flash_load")
-  SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt_flash_load/")
-  SET(LINK_FILE "link_flash_load.ld")
-elseif(${LINKER} STREQUAL "flash_exec")
-  SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_flash_exec/")
-  SET(LINK_FILE "link_flash_exec.ld")
-else()
-  message( FATAL_ERROR "Linker specification is not correct" )
-endif()
-SET(LIB_VCTR_P	"${LIB_CRT_P}vectors.S")
-
-# Just in case it is a freertos based app
-if(${PROJECT} MATCHES "freertos")
-  #SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_freertos/")
-  SET(LIB_VCTR_P	"${SOURCE_PATH}device/lib/crt_freertos/vectors.S")
-endif()
-
-# messages to check the paths
-message( "${Magenta}Current project: ${PROJECT}${ColourReset}")
-message( "${Magenta}Root project: ${ROOT_PROJECT}${ColourReset}")
-message( "${Magenta}Source path: ${SOURCE_PATH}${ColourReset}")
-message( "${Magenta}LIB_CRT PATH for Cmake: ${LIB_CRT_P}${ColourReset}")
-message( "${Magenta}LINKER File for Cmake: ${LINK_FILE}${ColourReset}")
-message( "${Magenta}LIB_DRIVERS PATH for Cmake: ${LIB_DRIVERS}${ColourReset}")
-message( "${Magenta}Targetting folder: ${INC_FOLDERS}${ColourReset}")
-message( "${Magenta}Target: ${TARGET}${ColourReset}")
-
 
 # Make a list of the header files that need to be included
 FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.h)
 SET(dir_list_str "")
+SET(external_app 0)
 FOREACH(file_path ${new_list})
   SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
   if(${file_path} MATCHES "/device/")
@@ -96,6 +66,7 @@ FOREACH(file_path ${new_list})
       SET(add 1) 
     endif()
   elseif(${file_path} MATCHES ${PROJECT})
+    SET(external_app 1)
     SET(add 1) 
   elseif( ( ${file_path} MATCHES "/freertos/" ) AND ( ${PROJECT} MATCHES "freertos" ) )
     SET(add 1)  
@@ -118,14 +89,19 @@ FOREACH(file_path ${new_list})
 
 ENDFOREACH()
 
+# Check if the APP is external to ROOT_PROJECT
+if( external_app EQUAL 0 )
+  SET(SOURCE_PATH ${ROOT_PROJECT})
+endif()
+
 LIST(REMOVE_DUPLICATES dir_list_str)
 LIST(REMOVE_DUPLICATES h_dir_list_)
 
 message(STATUS "[INFO] ${dir_list_str}")
 
 # Get all the folders to include when linking
-SET(INCLUDE_FOLDERS "-I ${RISCV}/riscv32-unknown-elf/include \
-                     -I ${RISCV}/riscv32-unknown-elf/include/ \
+SET(INCLUDE_FOLDERS "-I ${RISCV}/${COMPILER_PREFIX}elf/include \
+                     -I ${RISCV}/${COMPILER_PREFIX}elf/include/ \
                      -I ${ROOT_PROJECT} \
                      -I ${SOURCE_PATH} \
 					           ${dir_list_str}")
@@ -153,6 +129,42 @@ FOREACH(file_path IN LISTS new_list)
 ENDFOREACH()
 
 LIST(REMOVE_DUPLICATES c_dir_list)
+
+# Get the correct path for the crt files and linker file
+if (${LINKER} STREQUAL "on_chip")
+  #SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt/")
+  SET(CRT_TYPE "ON_CHIP")
+  SET(LINK_FILE "link.ld")
+elseif(${LINKER} STREQUAL "flash_load")
+  #SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt_flash_load/")
+  SET(CRT_TYPE "FLASH_LOAD")
+  SET(LINK_FILE "link_flash_load.ld")
+elseif(${LINKER} STREQUAL "flash_exec")
+  #SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_flash_exec/")
+  SET(CRT_TYPE "FLASH_EXEC")
+  SET(LINK_FILE "link_flash_exec.ld")
+else()
+  message( FATAL_ERROR "Linker specification is not correct" )
+endif()
+SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt/")
+SET(LIB_VCTR_P	"${LIB_CRT_P}vectors.S")
+
+# Just in case it is a freertos based app
+if(${PROJECT} MATCHES "freertos")
+  #SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_freertos/")
+  SET(LIB_VCTR_P	"${SOURCE_PATH}device/lib/crt/vectors_freertos.S")
+endif()
+
+# messages to check the paths
+message( "${Magenta}Current project: ${PROJECT}${ColourReset}")
+message( "${Magenta}Root project: ${ROOT_PROJECT}${ColourReset}")
+message( "${Magenta}Source path: ${SOURCE_PATH}${ColourReset}")
+message( "${Magenta}LIB_CRT PATH for Cmake: ${LIB_CRT_P}${ColourReset}")
+message( "${Magenta}LINKER File for Cmake: ${LINK_FILE}${ColourReset}")
+message( "${Magenta}LIB_DRIVERS PATH for Cmake: ${LIB_DRIVERS}${ColourReset}")
+message( "${Magenta}Targetting folder: ${INC_FOLDERS}${ColourReset}")
+message( "${Magenta}Target: ${TARGET}${ColourReset}")
+
 
 # Get all the files to include when linking
 SET(LINKED_FILES    "${LIB_CRT_P}crt0.S \
@@ -192,6 +204,7 @@ set(COMPILER_LINKER_FLAGS "\
   -march=${CMAKE_SYSTEM_PROCESSOR} \
   -w -Os -g  -nostdlib  \
   -DHOST_BUILD \
+  -D${CRT_TYPE} \
   -DportasmHANDLE_INTERRUPT=vSystemIrqHandler\
 ")
 set(CMAKE_C_FLAGS ${COMPILER_LINKER_FLAGS})
@@ -200,15 +213,13 @@ if (${COMPILER} MATCHES "clang")
      set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=riscv32 \
                                           -mabi=ilp32 \
                                           --gcc-toolchain=${RISCV} \
-                                          --sysroot=${RISCV}/riscv32-unknown-elf \
+                                          --sysroot=${RISCV}/${COMPILER_PREFIX}elf \
                                           -static \
                                           -mcmodel=medany \
                                           -fvisibility=hidden \
                                           -nostartfiles \
                                           -Wall \
-                                          -Wno-unused-command-line-argument\
-										  -DportasmHANDLE_INTERRUPT=vSystemIrqHandler \
-										  " )
+                                          -Wno-unused-command-line-argument" )
 endif()
 
 # In case of wanting to create a library with those subdirectories
@@ -244,10 +255,10 @@ SET(CMAKE_EXE_LINKER_FLAGS  "-T ${LINKER_SCRIPT}  \
                             ${INCLUDE_FOLDERS} \
                              -static ${LINKED_FILES} \
                              -Wl,-Map=${MAINFILE}.map \
-                             -L ${RISCV}/riscv32-unknown-elf/lib \
+                             -L ${RISCV}/${COMPILER_PREFIX}elf/lib \
                              -lc -lm -lgcc -flto \
                             -ffunction-sections -fdata-sections -specs=nano.specs")
-message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/riscv32-unknown-elf/lib${ColourReset}")
+message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/${COMPILER_PREFIX}elf/lib${ColourReset}")
 
 SET(CMAKE_VERBOSE_MAKEFILE on)
 
@@ -300,8 +311,15 @@ add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
 foreach (SRC_MODULE ${MAINFILE} )
   add_custom_command(TARGET ${MAINFILE}.elf 
                      PRE_LINK
-                     COMMAND ${CMAKE_OBJDUMP} -S ${SOURCE_PATH}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${SRC_MODULE}.c.obj > ${SRC_MODULE}.s
+                     COMMAND ${CMAKE_OBJDUMP} -S ${ROOT_PROJECT}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${SRC_MODULE}.c.obj > ${SRC_MODULE}.s
                      COMMENT "Invoking: Disassemble ( CMakeFiles/${MAINFILE}.dir/${SRC_MODULE}.c.obj)")
 endforeach()
 
+# Adding gdb command - TBD
+#add_custom_target(gdb DEPENDS ${MAINFILE}.elf)
+#add_custom_command(TARGET gdb
+#    COMMAND ${CMAKE_C_GDB} ${MAINFILE}.elf -x gdbInit &)
+
 SET(DCMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+#message( FATAL_ERROR "You can not do this at all, CMake will exit." )
