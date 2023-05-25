@@ -1,0 +1,28 @@
+CAPI=2:
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+name: "lowrisc:dv:dv_utils"
+description: "DV utilities"
+
+filesets:
+  files_dv:
+    depend:
+      - lowrisc:dv:dv_macros
+      - lowrisc:dv:dv_fcov_macros
+      - lowrisc:dv:common_ifs
+      - lowrisc:prim:assert:0.1
+      - lowrisc:cve2:bus_params_pkg
+      - lowrisc:dv:str_utils
+      - lowrisc:dv:dv_test_status
+    files:
+      - dv_utils_pkg.sv
+      - dv_report_catcher.sv: {is_include_file: true}
+      - dv_report_server.sv: {is_include_file: true}
+      - dv_vif_wrap.sv: {is_include_file: true}
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+      - files_dv
