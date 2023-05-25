@@ -92,10 +92,10 @@ module cpu_subsystem
         .irq_fast_i    (irq_i[30:16]),
         .irq_nm_i      (irq_i[31]),
 
-        .debug_req_i(debug_req_i),
+        .debug_req_i (debug_req_i),
         .crash_dump_o(),
 
-        //.fetch_enable_i(fetch_enable),
+        .fetch_enable_i(fetch_enable),
 
         .core_sleep_o
     );

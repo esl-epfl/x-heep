@@ -17,6 +17,7 @@ module cve2_controller #(
   input  logic                  clk_i,
   input  logic                  rst_ni,
 
+  input  logic                  fetch_enable_i,          // core can fetch instructions leave RESET state
   output logic                  ctrl_busy_o,             // core is busy processing instrs
 
   // decoder related signals
@@ -410,9 +411,11 @@ module cve2_controller #(
         instr_req_o   = 1'b0;
         pc_mux_o      = PC_BOOT;
         pc_set_o      = 1'b1;
-        ctrl_fsm_ns   = BOOT_SET;
+        if (fetch_enable_i == 1'b1)
+        begin
+          ctrl_fsm_ns = BOOT_SET;
+        end
       end
-
       BOOT_SET: begin
         // copy boot address to instr fetch address
         instr_req_o   = 1'b1;

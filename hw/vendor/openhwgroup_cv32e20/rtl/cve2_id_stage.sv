@@ -27,6 +27,7 @@ module cve2_id_stage #(
   input  logic                      clk_i,
   input  logic                      rst_ni,
 
+  input  logic                      fetch_enable_i,
   output logic                      ctrl_busy_o,
   output logic                      illegal_insn_o,
 
@@ -479,6 +480,7 @@ module cve2_id_stage #(
     .clk_i (clk_i),
     .rst_ni(rst_ni),
 
+    .fetch_enable_i(fetch_enable_i),
     .ctrl_busy_o(ctrl_busy_o),
 
     // decoder related signals

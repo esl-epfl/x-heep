@@ -96,6 +96,7 @@ module cve2_top import cve2_pkg::*; #(
 `endif
 
   // CPU Control Signals
+  input  logic                         fetch_enable_i,
   output logic                         core_sleep_o
 );
 
@@ -118,6 +119,7 @@ module cve2_top import cve2_pkg::*; #(
   logic                        clk;
   logic                        core_busy_d, core_busy_q;
   logic                        clock_en;
+  logic                        fetch_enable_d, fetch_enable_q;
   logic                        irq_pending;
 
   /////////////////////
@@ -127,13 +129,16 @@ module cve2_top import cve2_pkg::*; #(
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       core_busy_q <= 1'b0;
+      fetch_enable_q <= 1'b0;
     end else begin
       core_busy_q <= core_busy_d;
+      fetch_enable_q <= fetch_enable_d;
     end
   end
 
   assign clock_en     = core_busy_q | debug_req_i | irq_pending | irq_nm_i;
   assign core_sleep_o = ~clock_en;
+  assign fetch_enable_d = fetch_enable_i ? 1'b1 : fetch_enable_q;
 
   cve2_clock_gate core_clock_gate_i (
     .clk_i    (clk_i),
@@ -226,7 +231,8 @@ module cve2_top import cve2_pkg::*; #(
     .rvfi_ext_mcycle,
 `endif
 
-    .core_busy_o   (core_busy_d)
+    .fetch_enable_i (fetch_enable_q),
+    .core_busy_o    (core_busy_d)
   );
 
   ////////////////////////
