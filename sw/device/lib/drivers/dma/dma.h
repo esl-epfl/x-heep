@@ -222,7 +222,9 @@ typedef enum
     and window size ratio is smaller than an arbitrarily chosen ratio as a mere
     reminder. This value can be overriden buy means of defining a non-weak 
     implementation of the dma_window_ratio_warning_threshold function. */
-    DMA_CONFIG_CRITICAL_ERROR   = 0x0100, /*!< This flag determines the function
+    DMA_CONFIG_TRANS_STACK_FULL = 0x0100, /*!< The transaction stack is full. A 
+    transaction needs to finish before you can add more. */
+    DMA_CONFIG_CRITICAL_ERROR   = 0x0200, /*!< This flag determines the function
     will return without the DMA performing any actions. */
 } dma_config_flags_t;
 
@@ -255,11 +257,11 @@ typedef struct
     every time a read/write operation is done. It is a multiple of the data units. 
     Can be left blank if the target is a peripheral. */
     uint32_t                size_du; /*!< The size (in data units) of the data to
-    be copied. Can be left blank if the target will only be used as destination. */
-    dma_data_type_t         type;    /*!< The type of data to be transferred. Can 
-    be left blank if the target will only be used as destination. */
-    dma_trigger_slot_mask_t trig;    /*!< If the target is a peripheral, a trigger 
-    can be set to control the data flow.  */
+    be copied. Can be left blank if the target will only be used as destination.*/
+    dma_data_type_t         type;    /*!< The type of data to be transferred. 
+    Can be left blank if the target will only be used as destination. */
+    dma_trigger_slot_mask_t trig;    /*!< If the target is a peripheral, a 
+    trigger can be set to control the data flow.  */
 } dma_target_t;   
 
 /**
@@ -282,8 +284,8 @@ typedef struct
     the targets. */
     dma_trans_mode_t    mode;   /*!< The copy mode to use. */
     uint32_t            win_b;  /*!< The amount of bytes every which the 
-    WINDOW_DONE flag is raised and its corresponding interrupt triggered. It can
-    be set to 0 to disable this functionality. */  
+    WINDOW_DONE flag is raised and its corresponding interrupt triggered. It 
+    can be set to 0 to disable this functionality. */  
     dma_trans_end_evt_t end;    /*!< What should happen after the transaction 
     is launched. */
     dma_config_flags_t  flags;  /*!< A mask with possible issues aroused from 
@@ -309,8 +311,8 @@ typedef struct
 /****************************************************************************/
 
 /**
- *@brief Takes all DMA configurations to a state where no accidental transaction 
- * can be performed. 
+ *@brief Takes all DMA configurations to a state where no accidental 
+ * transaction can be performed. 
  * It can be called anytime to reset the DMA control block.   
  */
 void dma_init();
@@ -376,7 +378,12 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans );
 dma_config_flags_t dma_launch( dma_trans_t* p_trans );
 
 /**
- * @brief Read from the done register of the DMA.
+ * @brief Read from the done register of the DMA. Additionally decreases the 
+ * count of simultaneously-launched transactions. Be careful when calling this 
+ * function  * after it has returned 1, unless there is another transaction 
+ * running or a new transaction was launched.
+ * Be careful when calling this function if interrupts were chosen as the end 
+ * event.  
  * @return Whether the DMA is working or not. It starts returning 0 as soon as 
  * the dma_launch function has returned. 
  * @retval 0 - DMA is working.   
@@ -394,8 +401,8 @@ uint32_t dma_get_window_count();
 /**
  * @brief Prevent the DMA from relaunching the transaction automatically after 
  * finishing the current one. It does not affect the currently running 
- * transaction. It has no effect if the DMA is operating in SINGULAR transaction
- * mode.
+ * transaction. It has no effect if the DMA is operating in SINGULAR 
+ * transaction mode.
  */
 void dma_stop_circular();
 

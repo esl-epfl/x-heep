@@ -13,14 +13,13 @@
 
 
 
-#define TEST_SINGULAR_MODE
-//#define TEST_PENDING_TRANSACTION
+// #define TEST_SINGULAR_MODE
+#define TEST_PENDING_TRANSACTION
 //#define TEST_WINDOW 
 
-
-#define TEST_DATA_SIZE 16
+#define TEST_DATA_SIZE  16
 #define TEST_DATA_LARGE 4096
-
+#define TRANSACTIONS_N  5 // Only possible to perform 2 consecutive transactions
 
 #define DEBUG
 
@@ -72,9 +71,6 @@ int main(int argc, char *argv[])
     static uint32_t copied_data_4B[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
     static uint32_t test_data_large[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
     
-#ifdef TEST_CIRCULAR_MODE
-    static uint32_t test_data_circular[TEST_DATA_CIRCULAR] __attribute__ ((aligned (4))) = { 1 };
-#endif //TEST_CIRCULAR_MODE
     enable_all_fast_interrupts(true); // not needed is default - done on reset
 
 
@@ -159,25 +155,26 @@ int main(int argc, char *argv[])
         }
 
 
-        cycles = 0;
-
         tgt_src.ptr     = test_data_large;
         tgt_src.size_du = TEST_DATA_LARGE;
-
 
         res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
         PRINTF("tran: %u \n\r", res);
         res = dma_load_transaction(&trans);
         PRINTF("load: %u \n\r", res);
-        res = dma_launch(&trans);
-        //PRINTF("laun #1: %u \n\r", res);
-        res = dma_launch(&trans);
-        //PRINTF("laun #2: %u \n\r", res);
+
+        cycles = 0;
+        uint8_t consecutive_trans = 0;
+
+        for(  uint8_t i = 0; i < TRANSACTIONS_N; i++ ){
+            res = dma_launch(&trans);
+            if( res == DMA_CONFIG_OK ) consecutive_trans++;
+        }
         
-        while( cycles < 2 ){
+        while( cycles < consecutive_trans ){
             wait_for_interrupt();
         }
-        PRINTF(">> Finished %d transactions. \n\r", cycles);
+        PRINTF(">> Finished %d transactions. \n\r", consecutive_trans);
         
         
         for(int i=0; i<TEST_DATA_LARGE; i++) {
@@ -189,10 +186,10 @@ int main(int argc, char *argv[])
 
         if (errors == 0) {
             PRINTF("DMA word transfer success\nFinished! :) \n\r");
-            PRINTF("DMA couldn't manage two consecutive transactions. \n");
+            PRINTF("DMA successfully processed %d consecutive transactions\n", consecutive_trans );
         } else {
             PRINTF("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
-            PRINTF("DMA successfully processed two consecutive transactions\n");
+            PRINTF("DMA couldn't manage consecutive transactions. \n");
         }
 
 #endif // TEST_PENDING_TRANSACTION
