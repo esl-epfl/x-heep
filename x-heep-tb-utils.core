@@ -11,7 +11,6 @@ filesets:
   files_examples:
     depend:
     - example:ip:slow_memory
-    - example:ip:memcopy_periph
     - example:ip:gpio_cnt
     - example:ip:pdm2pcm_dummy
     files:
@@ -20,7 +19,6 @@ filesets:
   files_verilator_waiver:
     files:
     - hw/ip_examples/slow_memory/slow_memory.vlt
-    - hw/ip_examples/memcopy_periph/memcopy_periph.vlt
     - tb/tb.vlt
     file_type: vlt
 

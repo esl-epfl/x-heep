@@ -7,11 +7,12 @@ package testharness_pkg;
   import addr_map_rule_pkg::*;
   import core_v_mini_mcu_pkg::*;
 
-  localparam EXT_XBAR_NMASTER = 1;
+  localparam EXT_XBAR_NMASTER = 2;
   localparam EXT_XBAR_NSLAVE = 1;
 
   //master idx
   localparam logic [31:0] EXT_MASTER0_IDX = 0;
+  localparam logic [31:0] EXT_MASTER1_IDX = 1;
 
   //slave mmap and idx
   localparam logic [31:0] SLOW_MEMORY_START_ADDRESS = core_v_mini_mcu_pkg::EXT_SLAVE_START_ADDRESS;
