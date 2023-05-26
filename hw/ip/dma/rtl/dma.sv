@@ -127,7 +127,7 @@ module dma #(
   assign data_out_rdata = dma_master1_ch0_resp_i.rdata;
 
   assign dma_done_intr_o = dma_done & reg2hw.interrupt_en.transaction_done.q;
-  assign dma_window_intr_o = dma_window_event & reg2hw.interrupt_en.window_done.q & !dma_done_intr_o;
+  assign dma_window_intr_o = dma_window_event & reg2hw.interrupt_en.window_done.q;
 
   logic [31:0] window_counter;
 

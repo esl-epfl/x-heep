@@ -16,8 +16,8 @@
 #include "mmio.h"
 
 
-// #define TEST_SINGULAR_MODE
-// #define TEST_PENDING_TRANSACTION
+#define TEST_SINGULAR_MODE
+#define TEST_PENDING_TRANSACTION
 #define TEST_WINDOW 
 
 #define TEST_DATA_SIZE  16
