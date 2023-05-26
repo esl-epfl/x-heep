@@ -134,6 +134,8 @@ void setup()
 // 1500000
 
 int main(int argc, char *argv[]) {
+    bool success = true;
+
 #ifdef TARGET_PYNQ_Z2
     for (uint32_t i = 0; i < 0x10000; i++) asm volatile("nop");
 #endif
@@ -201,6 +203,8 @@ int main(int argc, char *argv[]) {
     // Verilator Code
     //
 
+    bool mic_connected = false;
+
     for (int batch = 0; batch < I2S_TEST_BATCHES; batch++) {
         i2s_rx_start(I2S_BOTH_CH);
 
@@ -232,15 +236,33 @@ int main(int argc, char *argv[]) {
         
         int32_t* data = audio_data_0;
         for (int i = 0; i < AUDIO_DATA_NUM; i+=2) {
-            printf("%d %d\r\n", data[i], data[i+1]);
+            printf("0x%x 0x%x\r\n", data[i], data[i+1]);
+            if (data[i] != 0) {
+                mic_connected = true; // the microphone testbench is connected
+                if (data[i] != 0x8765431) {
+                    printf("ERROR left sample %d (B%d) = 0x%08x != 0x8765431\r\n", i, batch, data[i]);
+                    success = false;
+                }
+            }
+            if (data[i+1] != 0) {
+                mic_connected = true; // the microphone testbench is connected
+                if (data[i+1] != 0xfedcba9) {
+                    printf("ERROR left sample data[%d] = 0x%08x != 0xfedcba9\r\n", i+1, batch, data[i+1]);
+                    success = false;
+                }
+            }
         }
         #ifdef USE_DMA
         dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // restart 
         #endif
     }
+
+    if (! mic_connected) {
+        printf("WARNING: Please build with `make verilator-sim FUSESOC_FLAGS=\"--flag=use_external_device_example\"\r\n");
+    }
 #endif
     i2s_terminate();
 
-    return EXIT_SUCCESS;
+    return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
