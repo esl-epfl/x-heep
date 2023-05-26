@@ -303,20 +303,27 @@ module testharness #(
   );
 
   // External peripheral example with master port to access memory
-  memcopy_periph #(
+  dma #(
       .reg_req_t (reg_pkg::reg_req_t),
       .reg_rsp_t (reg_pkg::reg_rsp_t),
       .obi_req_t (obi_pkg::obi_req_t),
       .obi_resp_t(obi_pkg::obi_resp_t)
-  ) memcopy_periph_i (
+  ) dma_i (
       .clk_i,
       .rst_ni,
       .reg_req_i(memcopy_periph_req),
       .reg_rsp_o(memcopy_periph_rsp),
-      .master_req_o(master_req[testharness_pkg::EXT_MASTER0_IDX]),
-      .master_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX]),
-      .memcopy_intr_o(memcopy_intr)
+      .dma_master0_ch0_req_o(master_req[testharness_pkg::EXT_MASTER0_IDX]),
+      .dma_master0_ch0_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX]),
+      .dma_master1_ch0_req_o(master_req[testharness_pkg::EXT_MASTER1_IDX]),
+      .dma_master1_ch0_resp_i(master_resp[testharness_pkg::EXT_MASTER1_IDX]),
+      .spi_rx_valid_i('0),
+      .spi_tx_ready_i('0),
+      .spi_flash_rx_valid_i('0),
+      .spi_flash_tx_ready_i('0),
+      .dma_intr_o(memcopy_intr)
   );
+
 
   // GPIO counter example
   gpio_cnt #(
@@ -373,6 +380,11 @@ module testharness #(
   assign master_req[testharness_pkg::EXT_MASTER0_IDX].be = '0;
   assign master_req[testharness_pkg::EXT_MASTER0_IDX].addr = '0;
   assign master_req[testharness_pkg::EXT_MASTER0_IDX].wdata = '0;
+  assign master_req[testharness_pkg::EXT_MASTER1_IDX].req = '0;
+  assign master_req[testharness_pkg::EXT_MASTER1_IDX].we = '0;
+  assign master_req[testharness_pkg::EXT_MASTER1_IDX].be = '0;
+  assign master_req[testharness_pkg::EXT_MASTER1_IDX].addr = '0;
+  assign master_req[testharness_pkg::EXT_MASTER1_IDX].wdata = '0;
 
   assign memcopy_intr = '0;
 `endif
