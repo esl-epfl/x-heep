@@ -112,6 +112,7 @@ int main(int argc, char *argv[])
 
 // #ifdef USE_EXTERNAL_DEVICE
     // Power-gate and wake-up due to plic
+	bool state = false;
     plic_irq_set_priority(GPIO_INTR_31, 1);
     plic_irq_set_enabled(GPIO_INTR_31, kPlicToggleEnabled);
 

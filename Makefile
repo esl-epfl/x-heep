@@ -41,6 +41,9 @@ PAD_CFG  ?= pad_cfg.hjson
 # Compiler options are 'gcc' (default) and 'clang'
 COMPILER ?= gcc
 
+# Compiler prefix options are 'riscv32-unknown-' (default)
+COMPILER_PREFIX ?= riscv32-unknown-
+
 # Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
 ARCH     ?= rv32imc
 
@@ -108,14 +111,19 @@ verible:
 ## @param TARGET=sim(default),pynq-z2
 ## @param LINKER=on_chip(default),flash_load,flash_exec
 ## @param COMPILER=gcc(default), clang
+## @param COMPILER_PREFIX=riscv32-unknown-(default)
 ## @param ARCH=rv32imc(default), <any RISC-V ISA string supported by the CPU>
 app: clean-app
-	$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) ARCH=$(ARCH) SOURCE=$(SOURCE)
+	$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH) SOURCE=$(SOURCE)
 	
 ## Just list the different application names available
 app-list:
 	@echo "Note: Applications outside the X-HEEP sw/applications directory will not be listed."  
 	tree sw/applications/
+
+## Compile all the apps present in the repo 	
+app-compile-all:
+	bash util/compile_all_apps.sh;
 
 ## @section Simulation
 
@@ -146,7 +154,7 @@ vcs-sim:
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
 run-helloworld: mcu-gen verilator-sim
-	$(MAKE) -C sw PROJECT=hello_world TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) ARCH=$(ARCH);
+	$(MAKE) -C sw PROJECT=hello_world TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
 	./Vtestharness +firmware=../../../sw/build/main.hex; \
 	cat uart0.log; \
@@ -156,7 +164,7 @@ run-helloworld: mcu-gen verilator-sim
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
 run-blinkyfreertos: mcu-gen verilator-sim
-	$(MAKE) -C sw PROJECT=blinky_freertos TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) ARCH=$(ARCH);
+	$(MAKE) -C sw PROJECT=blinky_freertos TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
 	./Vtestharness +firmware=../../../sw/build/main.hex; \
 	cat uart0.log; \
