@@ -119,7 +119,7 @@ i2s_result_t i2s_init(uint16_t div_value, i2s_word_length_t word_length);
  * 
  * Stops SCK and WS
  */
-void i2s_terminate();
+void i2s_terminate(void);
 
 
 /**
@@ -127,7 +127,7 @@ void i2s_terminate();
  * 
  * @return true if i2s peripheral enable
  */
-bool i2s_is_running();
+bool i2s_is_running(void);
 
 
 //
@@ -149,7 +149,7 @@ i2s_result_t i2s_rx_start(i2s_channel_sel_t channels);
  * I2S stop rx channels 
  *
  */
-void    i2s_rx_stop(void);
+void i2s_rx_stop(void);
 
 
 /**
@@ -157,7 +157,7 @@ void    i2s_rx_stop(void);
  * 
  * @return true if RX data is available 
  */
-bool    i2s_rx_data_available(void);
+bool i2s_rx_data_available(void);
 
 /**
  * I2S read RX word
@@ -173,10 +173,10 @@ uint32_t i2s_rx_read_data(void);
  * 
  * @note call i2s_rx_start(...) to reset overflow and cleanly restart
  * 
- * @return true if RX FIFO overflowed  
- * @return false 
+ * @return true if RX FIFO overflowed
+ * @return false
  */
-bool    i2s_rx_overflow(void);
+bool i2s_rx_overflow(void);
 
 
 
@@ -188,12 +188,12 @@ bool    i2s_rx_overflow(void);
  * @param watermark number to trigger interrupt 
  * @param interrupt_en enable/disable interrupt
  */
-void    i2s_rx_enable_watermark(uint16_t watermark, bool interrupt_en);
+void i2s_rx_enable_watermark(uint16_t watermark, bool interrupt_en);
 
 /**
  * I2S disable watermark counter
  */
-void    i2s_rx_disable_watermark(void);
+void i2s_rx_disable_watermark(void);
 
 
 /**
@@ -208,7 +208,7 @@ uint16_t i2s_rx_read_waterlevel(void);
  * I2S reset RX Watermark counter to 0
  * 
  */
-void    i2s_rx_reset_waterlevel(void);
+void i2s_rx_reset_waterlevel(void);
 
 
 #ifdef __cplusplus
