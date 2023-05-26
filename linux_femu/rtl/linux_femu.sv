@@ -331,6 +331,9 @@ module linux_femu
     .clk_out1_0(clk_gen)
   );
 
+  // eXtension Interface
+  if_xif #() ext_if ();
+
   logic clk_i;
   assign clk_i = clk_gen;
 
@@ -577,6 +580,12 @@ module linux_femu
     .gpio_30_oe_o(gpio_30_oe_x),
 
     .intr_vector_ext_i('0),
+    .xif_compressed_if(ext_if),
+    .xif_issue_if(ext_if),
+    .xif_commit_if(ext_if),
+    .xif_mem_if(ext_if),
+    .xif_mem_result_if(ext_if),
+    .xif_result_if(ext_if),
     .ext_xbar_master_req_i('0),
     .ext_xbar_master_resp_o(),
     .ext_xbar_slave_req_o(),

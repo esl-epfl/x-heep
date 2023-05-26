@@ -23,9 +23,8 @@
     ├── util
     └── README.md
 
-======================================
-# x-heep
-======================================
+<br />
+<p align="left"><img src="logo/x-heep.png" width="250"></p>
 
 `X-HEEP` (eXtendable Heterogeneous Energy-Efficient Platform) is a `RISC-V` microcontroller described in `SystemVerilog` 
 that can be configured to target small and tiny platforms as well as extended to support accelerators.
