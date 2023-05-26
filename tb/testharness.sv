@@ -308,7 +308,8 @@ module testharness #(
       .reg_req_t (reg_pkg::reg_req_t),
       .reg_rsp_t (reg_pkg::reg_rsp_t),
       .obi_req_t (obi_pkg::obi_req_t),
-      .obi_resp_t(obi_pkg::obi_resp_t)
+      .obi_resp_t(obi_pkg::obi_resp_t),
+      .SLOT_NUM  (1)
   ) dma_i (
       .clk_i,
       .rst_ni,
@@ -318,10 +319,7 @@ module testharness #(
       .dma_master0_ch0_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX]),
       .dma_master1_ch0_req_o(master_req[testharness_pkg::EXT_MASTER1_IDX]),
       .dma_master1_ch0_resp_i(master_resp[testharness_pkg::EXT_MASTER1_IDX]),
-      .spi_rx_valid_i('0),
-      .spi_tx_ready_i('0),
-      .spi_flash_rx_valid_i('0),
-      .spi_flash_tx_ready_i('0),
+      .trigger_slot_i(1'b0),
       .dma_intr_o(memcopy_intr)
   );
 

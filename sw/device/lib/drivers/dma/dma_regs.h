@@ -27,6 +27,7 @@ extern "C" {
 
 // Register set to 1 when copy is done
 #define DMA_DONE_REG_OFFSET 0xc
+#define DMA_DONE_DONE_BIT 0
 
 // Increment number of source pointer every time a word is copied from source
 #define DMA_SRC_PTR_INC_REG_OFFSET 0x10
@@ -38,8 +39,16 @@ extern "C" {
 // Special wait mode selection.
 #define DMA_RX_WAIT_MODE_REG_OFFSET 0x18
 
-// Special wait mode selection.
-#define DMA_TX_WAIT_MODE_REG_OFFSET 0x1c
+// The DMA will wait for the signal
+#define DMA_SLOT_REG_OFFSET 0x1c
+#define DMA_SLOT_RX_TRIGGER_SLOT_MASK 0xffff
+#define DMA_SLOT_RX_TRIGGER_SLOT_OFFSET 0
+#define DMA_SLOT_RX_TRIGGER_SLOT_FIELD \
+  ((bitfield_field32_t) { .mask = DMA_SLOT_RX_TRIGGER_SLOT_MASK, .index = DMA_SLOT_RX_TRIGGER_SLOT_OFFSET })
+#define DMA_SLOT_TX_TRIGGER_SLOT_MASK 0xffff
+#define DMA_SLOT_TX_TRIGGER_SLOT_OFFSET 16
+#define DMA_SLOT_TX_TRIGGER_SLOT_FIELD \
+  ((bitfield_field32_t) { .mask = DMA_SLOT_TX_TRIGGER_SLOT_MASK, .index = DMA_SLOT_TX_TRIGGER_SLOT_OFFSET })
 
 // Data type to transfer: 32-bit word(0), 16-bit half word(1), 8-bit
 // byte(2,3).
