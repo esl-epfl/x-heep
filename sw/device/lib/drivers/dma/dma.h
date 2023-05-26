@@ -97,10 +97,13 @@ typedef enum
  */
 typedef enum
 {               
-    DMA_DATA_TYPE_WORD              = 0,/*!< Word      = 4 bytes = 32 bits */
-    DMA_DATA_TYPE_HALF_WORD         = 1,/*!< Half Word = 2 bytes = 16 bits */ 
-    DMA_DATA_TYPE_BYTE              = 2,/*!< Byte      = 1 byte  = 8 bits  */
-    /* DMA_DATA_TYPE_BYTE_alt       = 3, 
+    DMA_DATA_TYPE_WORD      = DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD,/*!< 
+    Word      = 4 bytes = 32 bits */
+    DMA_DATA_TYPE_HALF_WORD = DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_16BIT_WORD,/*!< 
+    Half Word = 2 bytes = 16 bits */ 
+    DMA_DATA_TYPE_BYTE      = DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD,/*!<
+     Byte      = 1 byte  = 8 bits  */
+    /* DMA_DATA_TYPE_BYTE_alt = DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD_2, 
      * BYTE and BYTE_alt are interchangeable in hw, but we advice against 
      * the use of BYTE_alt.
      * By using the alternative, some functions/macros like 
@@ -121,10 +124,10 @@ typedef enum
  * is close enough the the memory end to cause an overflow during reading. 
  */
 typedef enum{
-    DMA_PERFORM_CHECKS_ONLY_SANITY = 0x00, /*!< No checks will be performed. 
+    DMA_PERFORM_CHECKS_ONLY_SANITY = 0, /*!< No checks will be performed. 
     Only sanity checks will be performed that no values are off-limits or 
     containing errors. */
-    DMA_PERFORM_CHECKS_INTEGRITY   = 0x01, /*!< Sanity AND integrity of the
+    DMA_PERFORM_CHECKS_INTEGRITY   = 1, /*!< Sanity AND integrity of the
     parameters is checked to make sure there are no inconsistencies. 
     Not using this flag is only recommended when parameters are constant and
     the proper operation has been previously tested. */

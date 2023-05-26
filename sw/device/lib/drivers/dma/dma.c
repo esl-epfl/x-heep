@@ -39,6 +39,7 @@
 /* To manage interrupts. */
 #include "fast_intr_ctrl.h"
 #include "fast_intr_ctrl_regs.h"
+#include "rv_plic.h"
 #include "hart.h"
 #include "handler.h"
 #include "csr.h"
@@ -50,12 +51,12 @@
 /****************************************************************************/
  
 // @ToDo: Remove this, is just a placeholder until real assert can be included
-#define make_sure_that(x) /*printf( "%s@%u\n\r",x ? "Success" : "Error",__LINE__ );*/
+#define make_sure_that(x) /*//printf( "%s@%u\n\r",x ? "Success" : "Error",__LINE__ );*/
 
 /**
  * Returns the mask to enable/disable DMA interrupts.
  */
-#define DMA_CSR_REG_MIE_MASK ( 1 << 19 )
+#define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ) ) // @ToDo Add definitions for this 19 and 11 
 
 /**
  * Size of a register of 32 bits. 
@@ -103,6 +104,23 @@
 /**                                                                        **/
 /****************************************************************************/
 
+/**
+ * Interrupts must be enabled in the INTERRUPT register of the DMA. 
+ * Only one at a time. In case more than one is interrupt is to be triggered, 
+ * at the same time (last byte of a transaction of size multiple of the window
+ * size) only the lowest ID is triggered. 
+ */ 
+typedef enum
+{
+    INTR_EN_NONE        = 0x0, /*!< No interrupts should be triggered. */
+    INTR_EN_TRANS_DONE  = 0x1, /*!< The TRANS_DONE interrupt is a fast 
+    interrupt that is triggered once the whole transaction has finished. */ 
+    INTR_EN_WINDOW_DONE = 0x2, /*!< The WINDOW_DONE interrupt is a PLIC 
+    interrupt that is triggered every given number of bytes (set in the 
+    transaction configuration as win_b). */
+    INTR_EN__size,
+} inter_en_t;
+
 /****************************************************************************/
 /**                                                                        **/
 /*                      PROTOTYPES OF LOCAL FUNCTIONS                       */
@@ -124,8 +142,8 @@ dma_config_flags_t validateTarget( dma_target_t *p_tgt );
  * @param p_ptr The source or destination pointer. 
  * @return How misaligned the pointer is, in bytes. 
  */
-static inline uint8_t getMisalign_b(  uint8_t         *p_ptr, 
-                                          dma_data_type_t p_type );
+static inline uint8_t getMisalign_b(    uint8_t         *p_ptr, 
+                                        dma_data_type_t p_type );
 
 
 /**
@@ -544,7 +562,7 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t        *p_trans,
         // the destination size should be used as limit. 
 
         /*
-         * CHECK IF THERE IS WINDOW SIZE IS ADEQUATE
+         * CHECK IF THE WINDOW SIZE IS ADEQUATE
          */
 
         /*
@@ -609,24 +627,30 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * Otherwise the mie.MEIE bit is set to one to enable machine-level
      * fast DMA interrupt.
      */
-    if( dma_cb.trans->end == DMA_TRANS_END_POLLING ){
-        CSR_CLEAR_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
-        dma_peri->INTERRUPT_EN = 0b00000000;
-    }
-    else
-    {
-        CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
-        dma_peri->INTERRUPT_EN = 0b00000011;
-    }
-    // @ToDo: Do this in the proper way!!! Consider all possible scenarios!
-    // @ToDo: Comment the CSR
+    dma_peri->INTERRUPT_EN = INTR_EN_NONE;
+    CSR_CLEAR_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
 
+    if( dma_cb.trans->end != DMA_TRANS_END_POLLING )
+    {
+        /* @ToDo: What does this do? */
+        CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+        dma_peri->INTERRUPT_EN |= INTR_EN_TRANS_DONE;
+
+        /* Only if a window is used should the window interrupt be set. */
+        if( p_trans->win_b > 0 )
+        {
+            plic_Init();
+            plic_irq_set_priority(DMA_WINDOW_INTR, 1);
+            plic_irq_set_enabled(DMA_WINDOW_INTR, kPlicToggleEnabled);
+            dma_peri->INTERRUPT_EN |= INTR_EN_WINDOW_DONE;
+        } 
+    }
 
     /*
      * SET THE POINTERS
      */
-    printf("src ptr - Wrote %08x @ ----\n", dma_cb.trans->src->ptr );
-    printf("dst ptr - Wrote %08x @ ----\n", dma_cb.trans->dst->ptr );
+    //printf("src ptr - Wrote %08x @ ----\n", dma_cb.trans->src->ptr );
+    //printf("dst ptr - Wrote %08x @ ----\n", dma_cb.trans->dst->ptr );
     dma_peri->SRC_PTR = dma_cb.trans->src->ptr;
     dma_peri->DST_PTR = dma_cb.trans->dst->ptr;
     
@@ -643,14 +667,14 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      */
    
 
-    printf("src inc - ");
+    //printf("src inc - ");
     writeRegister(  getIncrement_b( dma_cb.trans->src ), 
                     DMA_PTR_INC_REG_OFFSET, 
                     DMA_PTR_INC_SRC_PTR_INC_MASK,
                     DMA_PTR_INC_SRC_PTR_INC_OFFSET );
    
    
-    printf("dst inc - ");
+    //printf("dst inc - ");
     writeRegister(  getIncrement_b( dma_cb.trans->dst ), 
                     DMA_PTR_INC_REG_OFFSET, 
                     DMA_PTR_INC_DST_PTR_INC_MASK,
@@ -661,14 +685,14 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * SET THE OPERATION MODE AND WINDOW SIZE
      */
 
-    printf("mode    - Wrote %08x @ ----\n", dma_cb.trans->mode );
+    //printf("mode    - Wrote %08x @ ----\n", dma_cb.trans->mode );
     dma_peri->MODE = dma_cb.trans->mode;
     /* The window size is set to the transaction size if it was set to 0 in
     order to disable the functionality (it will never be triggered). */
     
-    printf("win siz - Wrote %08x @ ----\n", dma_cb.trans->win_b 
-                            ? dma_cb.trans->win_b
-                            : dma_cb.trans->size_b );
+    //printf("win siz - Wrote %08x @ ----\n", dma_cb.trans->win_b 
+                            // ? dma_cb.trans->win_b
+                            // : dma_cb.trans->size_b );
 
     dma_peri->WINDOW_SIZE =   dma_cb.trans->win_b 
                             ? dma_cb.trans->win_b
@@ -677,19 +701,19 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
     /*
      * SET TRIGGER SLOTS AND DATA TYPE
      */    
-    printf("src tri - ");
+    //printf("src tri - ");
     writeRegister(  dma_cb.trans->src->trig, 
                     DMA_SLOT_REG_OFFSET, 
                     DMA_SLOT_RX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_RX_TRIGGER_SLOT_OFFSET );
 
-    printf("dst tri - ");
+    //printf("dst tri - ");
     writeRegister(  dma_cb.trans->dst->trig, 
                     DMA_SLOT_REG_OFFSET, 
                     DMA_SLOT_TX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_TX_TRIGGER_SLOT_OFFSET );
 
-    printf("dat typ - ");
+    //printf("dat typ - ");
     writeRegister(  dma_cb.trans->type, 
                     DMA_DATA_TYPE_REG_OFFSET, 
                     DMA_DATA_TYPE_DATA_TYPE_MASK, 
@@ -728,7 +752,7 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans )
     dma_cb.intrFlag = 0;
 
     /* Load the size and start the transaction. */
-    //printf("size    - Wrote %08x @ ----\n", dma_cb.trans->size_b );
+    ////printf("size    - Wrote %08x @ ----\n", dma_cb.trans->size_b );
     dma_peri->SIZE = dma_cb.trans->size_b;
 
     /* 
@@ -788,7 +812,7 @@ void dma_stop_circular()
 }
 
 
-__attribute__((weak)) void dma_intr_handler()
+__attribute__((weak, optimize("O0"))) void dma_intr_handler()
 {
     /* 
      * The DMA transaction has finished!
@@ -800,24 +824,18 @@ __attribute__((weak)) void dma_intr_handler()
      * implementation is not optimized by the compiler. 
      */
 
-    // @ToDO: remove this and add __attribute__((weak, optimize("O0"))) void 
-    volatile uint8_t i;
-    i++;
 }
 
-__attribute__((weak)) uint8_t dma_window_ratio_warning_threshold()
+__attribute__((weak, optimize("O0"))) uint8_t dma_window_ratio_warning_threshold()
 {
     /* 
      * This is a weak implementation.
      * Create your own function called 
      * void dma_window_ratio_warning_threshold() 
      * to override this one.  
-     * The variable i in this code is made volatile to prevent optimization
-     * from not compiling this function. Your non-weak implementation does not
-     * require such consideration. 
+     * Make it return 0 to disable this warning. 
      */
-    volatile i = DMA_DEFAULT_TRANS_TO_WIND_SIZE_RATIO_THRESHOLD;
-    return i;
+    return DMA_DEFAULT_TRANS_TO_WIND_SIZE_RATIO_THRESHOLD;
 }
  
 /****************************************************************************/
@@ -1035,7 +1053,7 @@ static inline void writeRegister( uint32_t  p_val,
     value           |= (p_val & p_mask) << p_sel;
     (( uint32_t * ) dma_peri ) [ index ] = value; 
 
-    printf("Wrote %08x @ %04x\n", value, index );
+    //printf("Wrote %08x @ %04x\n", value, index );
 
 // @ToDo: mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_SLOT_REG_OFFSET), (tx_slot_mask << DMA_SLOT_TX_TRIGGER_SLOT_OFFSET) + rx_slot_mask)
 
