@@ -100,8 +100,8 @@ LIST(REMOVE_DUPLICATES h_dir_list_)
 message(STATUS "[INFO] ${dir_list_str}")
 
 # Get all the folders to include when linking
-SET(INCLUDE_FOLDERS "-I ${RISCV}/riscv32-unknown-elf/include \
-                     -I ${RISCV}/riscv32-unknown-elf/include/ \
+SET(INCLUDE_FOLDERS "-I ${RISCV}/${COMPILER_PREFIX}elf/include \
+                     -I ${RISCV}/${COMPILER_PREFIX}elf/include/ \
                      -I ${ROOT_PROJECT} \
                      -I ${SOURCE_PATH} \
 					           ${dir_list_str}")
@@ -213,7 +213,7 @@ if (${COMPILER} MATCHES "clang")
      set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=riscv32 \
                                           -mabi=ilp32 \
                                           --gcc-toolchain=${RISCV} \
-                                          --sysroot=${RISCV}/riscv32-unknown-elf \
+                                          --sysroot=${RISCV}/${COMPILER_PREFIX}elf \
                                           -static \
                                           -mcmodel=medany \
                                           -fvisibility=hidden \
@@ -255,10 +255,10 @@ SET(CMAKE_EXE_LINKER_FLAGS  "-T ${LINKER_SCRIPT}  \
                             ${INCLUDE_FOLDERS} \
                              -static ${LINKED_FILES} \
                              -Wl,-Map=${MAINFILE}.map \
-                             -L ${RISCV}/riscv32-unknown-elf/lib \
+                             -L ${RISCV}/${COMPILER_PREFIX}elf/lib \
                              -lc -lm -lgcc -flto \
                             -ffunction-sections -fdata-sections -specs=nano.specs")
-message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/riscv32-unknown-elf/lib${ColourReset}")
+message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/${COMPILER_PREFIX}elf/lib${ColourReset}")
 
 SET(CMAKE_VERBOSE_MAKEFILE on)
 
