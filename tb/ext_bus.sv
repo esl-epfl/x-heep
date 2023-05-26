@@ -66,7 +66,7 @@ module ext_bus #(
 
   // Dummy external master portp (to prevent unused warning)
   obi_req_t [ExtXbarNmasterRnd-1:0] ext_master_req_unused;
-  obi_resp_t [ExtXbarNslaveRnd-1:0] heep_slave_resp_unused;
+  obi_resp_t [ExtXbarNmasterRnd-1:0] heep_slave_resp_unused;
   obi_resp_t [ExtXbarNslaveRnd-1:0] ext_slave_resp_unused;
 
   assign ext_master_req_unused = ext_master_req_i;

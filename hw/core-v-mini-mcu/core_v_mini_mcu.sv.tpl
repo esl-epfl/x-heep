@@ -34,8 +34,8 @@ ${pad.core_v_mini_mcu_interface}
     output reg_req_t pad_req_o,
     input  reg_rsp_t pad_resp_i,
 
-    input  obi_req_t  [EXT_DOMAINS_RND-1:0] ext_xbar_master_req_i,
-    output obi_resp_t [EXT_DOMAINS_RND-1:0] ext_xbar_master_resp_o,
+    input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
+    output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
 
     // External slave ports
     output obi_req_t  ext_core_instr_req_o,

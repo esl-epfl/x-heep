@@ -26,6 +26,12 @@
 
 #include "groundtruth.h"
 
+#include "x-heep.h"
+
+#ifdef TARGET_PYNQ_Z2
+  #pragma message ( "This app does NOT work on the Pynq-Z2 board!" )
+#endif
+
 int main(int argc, char *argv[])
 {
     printf("PDM2PCM DEMO\n");

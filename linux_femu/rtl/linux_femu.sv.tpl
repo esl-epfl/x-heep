@@ -200,6 +200,9 @@ ${pad.internal_signals}
     .clk_out1_0(clk_gen)
   );
 
+  // eXtension Interface
+  if_xif #() ext_if ();
+
   logic clk_i;
   assign clk_i = clk_gen;
 
@@ -215,6 +218,12 @@ ${pad.internal_signals}
 ${pad.core_v_mini_mcu_bonding}
 % endfor
     .intr_vector_ext_i('0),
+    .xif_compressed_if(ext_if),
+    .xif_issue_if(ext_if),
+    .xif_commit_if(ext_if),
+    .xif_mem_if(ext_if),
+    .xif_mem_result_if(ext_if),
+    .xif_result_if(ext_if),
     .ext_xbar_master_req_i('0),
     .ext_xbar_master_resp_o(),
     .ext_core_instr_req_o(),
