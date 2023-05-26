@@ -15,8 +15,8 @@
 
 #define TEST_DATA_SIZE      16
 #define TEST_DATA_LARGE     4096
-#define TRANSACTIONS_N      5 // Only possible to perform 2 consecutive transactions
-#define TEST_WINDOW_SIZE_W  1024 // if put at <=71 the isr is too slow to react to the interrupt 
+#define TRANSACTIONS_N      3       // Only possible to perform transaction at a time, others should be blocked
+#define TEST_WINDOW_SIZE_W  1024    // if put at <=71 the isr is too slow to react to the interrupt 
 
 #define DEBUG
 
@@ -146,14 +146,12 @@ int main(int argc, char *argv[])
 
     res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
-    res = dma_load_transaction(&trans);
-    PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
-
     cycles = 0;
     uint8_t consecutive_trans = 0;
 
     for(  uint8_t i = 0; i < TRANSACTIONS_N; i++ ){
-        res = dma_launch(&trans);
+        res =  dma_load_transaction(&trans);
+        res |= dma_launch(&trans);
         if( res == DMA_CONFIG_OK ) consecutive_trans++;
     }
     
@@ -167,7 +165,8 @@ int main(int argc, char *argv[])
             wait_for_interrupt();
         }
     }
-    PRINTF(">> Finished %d transactions. \n\r", consecutive_trans);
+    PRINTF(">> Finished %d transactions. That is %s.\n\r", consecutive_trans, consecutive_trans > 1 ? "bad" : "good");
+
     
     
     for(int i=0; i<TEST_DATA_LARGE; i++) {
@@ -179,10 +178,8 @@ int main(int argc, char *argv[])
 
     if (errors == 0) {
         PRINTF("DMA word transfer success\nFinished! :) \n\r");
-        PRINTF("DMA successfully processed %d consecutive transactions\n", consecutive_trans );
     } else {
         PRINTF("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
-        PRINTF("DMA couldn't manage consecutive transactions. \n");
     }
 
 #endif // TEST_PENDING_TRANSACTION

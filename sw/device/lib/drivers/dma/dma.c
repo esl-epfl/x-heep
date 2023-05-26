@@ -88,14 +88,6 @@
 #define DMA_DEFAULT_TRANS_TO_WIND_SIZE_RATIO_THRESHOLD 4
 
 
-/**
- * The DMA allows for more than one equal transaction to be launched before
- * its free. This is done by calling dma_launch() several times consecutively. 
- * The number of consecutive transactions supported is given by the depth
- * of the consecutive-transactions-stack. 
- */
-#define DMA_CONSECUTIVE_TRANSACTIONS_STACK_DEPTH 2 
-
 /****************************************************************************/
 /**                                                                        **/
 /*                        TYPEDEFS AND STRUCTURES                           */
@@ -187,11 +179,6 @@ static inline void writeRegister( uint32_t p_val,
  */ 
 static inline uint32_t getIncrement_b( dma_target_t * p_tgt );
 
-/**
- * @brief Reduces the count of transactions being launched simultaneously. It 
- * makes sure the reuslt never goes bellow 0.                        
- */ 
-static inline void removeTransFromStack();
 
 /****************************************************************************/
 /**                                                                        **/
@@ -223,14 +210,6 @@ static struct
     */
     uint8_t intrFlag;
 
-    /**
-     * The number of consecutive transactions launched is tracked. If the limit
-     * is reached, new transaction launches are rejected. This counter is 
-     * increased on every sucessfull transaction launch and decreased on every 
-     * transaction end. 
-     */ 
-    uint8_t cons_trans;
-
 }dma_cb;
 
 
@@ -244,7 +223,6 @@ void dma_init()
 {
     /* Clear the loaded transaction */
     dma_cb.trans = NULL;
-    dma_cb.cons_trans = 0;
     /* Clear all values in the DMA registers. */
     dma_peri->SRC_PTR       = 0;
     dma_peri->DST_PTR       = 0;
@@ -603,7 +581,10 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t        *p_trans,
 
 dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
 {
-    
+    /*
+     * CHECK FOR CRITICAL ERRORS
+     */
+
     /* 
      * The transaction is not allowed if it contain a critical error.
      * A successful transaction creation has to be done before loading it to
@@ -615,6 +596,22 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
         return DMA_CONFIG_CRITICAL_ERROR;
     }
     
+    /*
+     * CHECK IF THERE IS A TRANSACTION RUNNING
+     */
+
+    /*
+     * Modifying the DMA registers during the execution of a transaction can be 
+     * dangerous. 
+     * This is prevented by blocking any modification of the current transaction 
+     * until it has ended. 
+     * Transactions can still be validated in the meantime.
+     */ 
+    if( !dma_is_ready() )
+    {
+        return DMA_CONFIG_TRANS_OVERRIDE;
+    }
+
     /* Save the current transaction */
     dma_cb.trans = p_trans; 
     
@@ -737,16 +734,22 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans )
     {
         return DMA_CONFIG_CRITICAL_ERROR;
     }
-    
+
     /*
-     * Make sure that the depth of the consecutive-transactions-stack is not
-     * surpassed.
+     * CHECK IF THERE IS A TRANSACTION RUNNING
      */
-    if( dma_cb.cons_trans >= DMA_CONSECUTIVE_TRANSACTIONS_STACK_DEPTH ){
-        return DMA_CONFIG_TRANS_STACK_FULL | DMA_CONFIG_CRITICAL_ERROR;
+
+    /*
+     * Modifying the DMA registers during the execution of a transaction can be 
+     * dangerous. 
+     * This is prevented by blocking any modification of the current transaction 
+     * until it has ended. 
+     * Transactions can still be validated in the meantime.
+     */ 
+    if( !dma_is_ready() )
+    {
+        return DMA_CONFIG_TRANS_OVERRIDE;
     }
-    /* Increase the consecutive transaction counter. */
-    dma_cb.cons_trans++;
 
     /*
      * This has to be done prior to writing the register because otherwise
@@ -776,16 +779,6 @@ uint32_t dma_is_ready()
     /* The transaction READY bit is read from the status register*/   
     uint32_t ret = ( dma_peri->STATUS & (1<<DMA_STATUS_READY_BIT) );
     make_sure_that( ret == 0 || ret == 1 ); // @ToDo: Add label to these values
-    
-    /* 
-     * The transaction count is decreased. Do not call this function 
-     * any more until a new transaction is launched. 
-     */ 
-    if( ret == 1 ) 
-    {
-        removeTransFromStack();
-    }
-
     return ret;
 }
 /* @ToDo: Reconsider this decision.
@@ -1096,21 +1089,6 @@ static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
 }
 
 
-static inline void removeTransFromStack()
-{
-    /* 
-     * This is an additional security. If the transaction is controlled by
-     * polling, there is no way of knowing how many times the dma_is_ready
-     * function was called. Therefore, it is necessary to limit the decrease
-     * of the transaction stack to 0. 
-     * It is the responsability of the developer to stop reading dma_is_ready
-     * once its response is possitive. Also its necessary to read it every time
-     * a transaction is launched, not simply launch it and forget about it hoping
-     * it will finish before the next time it is needed. 
-     */ 
-    dma_cb.cons_trans = dma_cb.cons_trans == 0 ? 0 : dma_cb.cons_trans - 1;
-}
-
 /** 
  * This is a non-weak implementation of the function declared in fast_intr_ctrl.c
  */
@@ -1118,9 +1096,6 @@ void fic_irq_dma(void)
 {
     /* The flag is raised so the waiting loop can be broken.*/
     dma_cb.intrFlag = 1;
-    
-    /* The count of tasks in the stack is decreased. */
-    dma_cb.cons_trans--;
 
     /*
      * Call the weak implementation provided in this module, 

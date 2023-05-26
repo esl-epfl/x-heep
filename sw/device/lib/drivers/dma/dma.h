@@ -226,8 +226,8 @@ typedef enum
     and window size ratio is smaller than an arbitrarily chosen ratio as a mere
     reminder. This value can be overriden buy means of defining a non-weak 
     implementation of the dma_window_ratio_warning_threshold function. */
-    DMA_CONFIG_TRANS_STACK_FULL = 0x0100, /*!< The transaction stack is full. A 
-    transaction needs to finish before you can add more. */
+    DMA_CONFIG_TRANS_OVERRIDE   = 0x0100, /*!< A transaction is running. Its 
+    values cannot be modified, nor can it be re-launched. */
     DMA_CONFIG_CRITICAL_ERROR   = 0x0200, /*!< This flag determines the function
     will return without the DMA performing any actions. */
 } dma_config_flags_t;
