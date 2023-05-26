@@ -16,7 +16,7 @@
 #define TEST_DATA_SIZE      16
 #define TEST_DATA_LARGE     4096
 #define TRANSACTIONS_N      3       // Only possible to perform transaction at a time, others should be blocked
-#define TEST_WINDOW_SIZE_W  1024    // if put at <=71 the isr is too slow to react to the interrupt 
+#define TEST_WINDOW_SIZE_DU  1024    // if put at <=71 the isr is too slow to react to the interrupt 
 
 #define DEBUG
 
@@ -80,13 +80,12 @@ int main(int argc, char *argv[])
                                 .inc_du     = 1,
                                 .size_du    = TEST_DATA_SIZE,
                                 .trig       = DMA_TRIG_MEMORY,
-                                .type       = DMA_DATA_TYPE_WORD,
                                 };
     static dma_trans_t trans = {
                                 .src        = &tgt_src,
                                 .dst        = &tgt_dst,
                                 .mode       = DMA_TRANS_MODE_SINGLE,
-                                .win_b      = 0,
+                                .win_du      = 0,
                                 .end        = DMA_TRANS_END_INTR,
                                 };
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
@@ -108,11 +107,10 @@ int main(int argc, char *argv[])
         wait_for_interrupt();
     }
     PRINTF(">> Finished transaction. \n\r");
-    
-    
-    for(uint32_t i = 0; i < TEST_DATA_SIZE; i++ ) {
-        if (copied_data_4B[i] != test_data_4B[i]) {
-            PRINTF("ERROR COPY [%d]: %08x != %08x : %04x != %04x\n\r", i, &copied_data_4B[i], &test_data_4B[i], copied_data_4B[i], test_data_4B[i]);
+        
+    for(uint32_t i = 0; i < trans.size_b; i++ ) {
+        if ( ((uint8_t*)copied_data_4B)[i] != ((uint8_t*)test_data_4B)[i] ) {
+            PRINTF("ERROR [%d]: %04x != %04x\n\r", i, ((uint8_t*)copied_data_4B)[i], ((uint8_t*)test_data_4B)[i]);
             errors++;
         }
     }
@@ -120,7 +118,7 @@ int main(int argc, char *argv[])
     if (errors == 0) {
         PRINTF("DMA word transfer success\nFinished! :) \n\r");
     } else {
-        PRINTF("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
+        PRINTF("DMA word transfer failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
     }
 
 #endif // TEST_SINGULAR_MODE
@@ -205,7 +203,7 @@ int main(int argc, char *argv[])
     tgt_src.type    = DMA_DATA_TYPE_WORD;
     tgt_dst.type    = DMA_DATA_TYPE_WORD;
 
-    trans.win_b     = TEST_WINDOW_SIZE_W;
+    trans.win_du     = TEST_WINDOW_SIZE_DU;
     trans.end       = DMA_TRANS_END_INTR;
     
     res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );

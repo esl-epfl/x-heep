@@ -107,7 +107,7 @@ typedef enum
     interrupt that is triggered once the whole transaction has finished. */ 
     INTR_EN_WINDOW_DONE = 0x2, /*!< The WINDOW_DONE interrupt is a PLIC 
     interrupt that is triggered every given number of bytes (set in the 
-    transaction configuration as win_b). */
+    transaction configuration as win_du). */
     INTR_EN__size,
 } inter_en_t;
 
@@ -548,7 +548,7 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t        *p_trans,
          * this would not cause any error, the transaction is rejected because 
          * it is likely a mistake. 
          */
-        if( p_trans->win_b > p_trans->size_b )
+        if( p_trans->win_du > p_trans->size_b )
         {
             p_trans->flags |= DMA_CONFIG_WINDOW_SIZE; 
             p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
@@ -566,8 +566,8 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t        *p_trans,
          * certainty that an real error will occur.  
          */
         uint32_t threshold = dma_window_ratio_warning_threshold();
-        uint32_t ratio = p_trans->size_b / p_trans->win_b;
-        if(     p_trans->win_b 
+        uint32_t ratio = p_trans->size_b / p_trans->win_du;
+        if(     p_trans->win_du 
             &&  threshold 
             &&  ( ratio > threshold) )
         {
@@ -637,7 +637,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
         dma_peri->INTERRUPT_EN |= INTR_EN_TRANS_DONE;
 
         /* Only if a window is used should the window interrupt be set. */
-        if( p_trans->win_b > 0 )
+        if( p_trans->win_du > 0 )
         {
             plic_Init();
             plic_irq_set_priority(DMA_WINDOW_INTR, 1);
@@ -690,12 +690,12 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
     /* The window size is set to the transaction size if it was set to 0 in
     order to disable the functionality (it will never be triggered). */
     
-    //printf("win siz - Wrote %08x @ ----\n", dma_cb.trans->win_b 
-                            // ? dma_cb.trans->win_b
+    //printf("win siz - Wrote %08x @ ----\n", dma_cb.trans->win_du 
+                            // ? dma_cb.trans->win_du
                             // : dma_cb.trans->size_b );
 
-    dma_peri->WINDOW_SIZE =   dma_cb.trans->win_b 
-                            ? dma_cb.trans->win_b
+    dma_peri->WINDOW_SIZE =   dma_cb.trans->win_du 
+                            ? dma_cb.trans->win_du
                             : dma_cb.trans->size_b;
     
     /*

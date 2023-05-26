@@ -302,7 +302,7 @@ int main(int argc, char *argv[])
     tgt_dst.inc_du = 1;
     
     trans.mode = DMA_TRANS_MODE_CIRCULAR;
-    trans.win_b = 0;
+    trans.win_du = 0;
     trans.end = DMA_TRANS_END_INTR;
 
     uint32_t size_w = TEST_DATA_CIRCULAR;

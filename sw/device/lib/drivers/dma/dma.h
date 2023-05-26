@@ -287,7 +287,7 @@ typedef struct
     dma_data_type_t     type;   /*!< The data type to use. One is chosen among 
     the targets. */
     dma_trans_mode_t    mode;   /*!< The copy mode to use. */
-    uint32_t            win_b;  /*!< The amount of bytes every which the 
+    uint32_t            win_du;  /*!< The amount of data units every which the 
     WINDOW_DONE flag is raised and its corresponding interrupt triggered. It 
     can be set to 0 to disable this functionality. */  
     dma_trans_end_evt_t end;    /*!< What should happen after the transaction 
@@ -296,7 +296,7 @@ typedef struct
     the creation of the transaction. */
 } dma_trans_t;
 
-/* @ToDo: Change the win_b parameter for a win_r giving a transaction/window
+/* @ToDo: Change the win_du parameter for a win_r giving a transaction/window
     size ratio, which is much easier to understand from the application point
     of view. */
 

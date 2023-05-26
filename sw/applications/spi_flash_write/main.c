@@ -301,7 +301,7 @@ int main(int argc, char *argv[])
                             .src = &tgt1,
                             .dst = &tgt2,
                             .mode = DMA_TRANS_MODE_SINGLE,
-                            .win_b = 0,
+                            .win_du = 0,
                             .end = DMA_TRANS_END_INTR,
                             };
 
