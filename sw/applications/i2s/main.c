@@ -36,7 +36,7 @@
 #define I2S_CLK_DIV           32
 #define AUDIO_DATA_NUM 4
 #define I2S_USE_INTERRUPT true
-//#define USE_DMA
+#define USE_DMA
 #endif
 
 
