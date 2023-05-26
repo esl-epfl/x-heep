@@ -36,7 +36,7 @@ spi_host_t spi_host;
 
 static power_manager_t power_manager;
 
-void dma_intr_handler(void)
+void dma_intr_handler_trans_done(void)
 {
     printf("This is a weak implementation of the DMA interrupt\n");
     dma_intr_flag = 1;

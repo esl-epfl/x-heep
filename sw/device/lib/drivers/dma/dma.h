@@ -38,10 +38,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "dma_structs.h"  // Generated
-#include "dma_regs.h"     // Generated
+#include "dma_structs.h"    // Generated
+#include "dma_regs.h"       // Generated
 
 #include "core_v_mini_mcu.h" 
+#include "hart.h"           // Wait for interrupt
 
 /****************************************************************************/
 /**                                                                        **/
@@ -414,7 +415,7 @@ void dma_stop_circular();
 * `dma.c` provides a weak definition of this symbol, which can be overridden
 * at link-time by providing an additional non-weak definition.
 */
-void dma_intr_handler();
+void dma_intr_handler_trans_done();
 
 /**
  * @brief This weak implementation allows the user to override the threshold

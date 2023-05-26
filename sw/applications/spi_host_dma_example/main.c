@@ -33,7 +33,7 @@
 int8_t dma_intr_flag;
 spi_host_t spi_host;
 
-void dma_intr_handler(void)
+void dma_intr_handler_trans_done(void)
 {
     printf("Non-weak implementation of a DMA interrupt\n");
     dma_intr_flag = 1;

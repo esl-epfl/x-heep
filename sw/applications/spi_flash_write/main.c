@@ -90,14 +90,14 @@ void fic_irq_spi_flash(void)
 #endif //USE_SPI_FLASH
 
 #ifdef TEST_CIRCULAR
-void dma_intr_handler(void)
+void dma_intr_handler_trans_done(void)
 {
     PRINTF("#");
     cycles++;
     if( cycles == CIRCULAR_CYCLES ) dma_stop_circular();
 }
 #else
-void dma_intr_handler(void)
+void dma_intr_handler_trans_done(void)
 {
     dma_intr_flag =1;
 }

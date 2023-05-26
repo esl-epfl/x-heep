@@ -9,24 +9,14 @@
 #include "dma.h"
 #include "core_v_mini_mcu.h"
 
-#include "csr.h"
-#include "hart.h"
-
-#include "gpio.h"
-#include "mmio.h"
-
-
 #define TEST_SINGULAR_MODE
 #define TEST_PENDING_TRANSACTION
 #define TEST_WINDOW 
 
-#define TEST_DATA_SIZE  16
-#define TEST_DATA_LARGE 4096
-#define TRANSACTIONS_N  5 // Only possible to perform 2 consecutive transactions
-#define TEST_WINDOW_SIZE_W 1024//72 // if put at <=71 the isr is too slow to react to the interrupt 
-                            // and one will be lost (with size = 1024.)
-                            // meaning with the given implementation the isr takes about 78 dma cycles.
-
+#define TEST_DATA_SIZE      16
+#define TEST_DATA_LARGE     4096
+#define TRANSACTIONS_N      5 // Only possible to perform 2 consecutive transactions
+#define TEST_WINDOW_SIZE_W  1024 // if put at <=71 the isr is too slow to react to the interrupt 
 
 #define DEBUG
 
@@ -43,16 +33,18 @@
 int32_t errors = 0;
 int8_t cycles = 0;
 
+void dma_intr_handler_trans_done()
+{
+    cycles++;
+    PRINTF("D");
+}
+
 #ifdef TEST_WINDOW
 int32_t window_intr_flag;
-gpio_t gpio;
 
-void handler_irq_dma(void) {
-    gpio_write(&gpio, 8, true);
+void dma_intr_handler_window_done(void) {
     window_intr_flag ++;
-    plic_irq_complete();
     PRINTF("w");
-    gpio_write(&gpio, 8, false);
 }
 
 uint8_t dma_window_ratio_warning_threshold()
@@ -62,13 +54,6 @@ uint8_t dma_window_ratio_warning_threshold()
 
 #endif // TEST_WINDOW
 
-void dma_intr_handler()
-{
-    gpio_write(&gpio, 9, true);
-    cycles++;
-    PRINTF("D");
-    gpio_write(&gpio, 9, false);
-}
 
 int main(int argc, char *argv[])
 {
@@ -78,16 +63,7 @@ int main(int argc, char *argv[])
     static uint32_t copied_data_4B[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
     static uint32_t test_data_large[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
 
-    enable_all_fast_interrupts(true); // not needed is default - done on reset
-
-
-    PRINTF("DMA test app\n\r");
-    
-    // Enable interrupt on processor side
-    // Enable global interrupt for machine-level interrupts
-    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8 ); 
-    
-    // The DMA is initialized (i.e. the base address is computed  )
+    // The DMA is initialized (i.e. Any current transaction is cleaned.)
     dma_init();
     
     dma_config_flags_t res;
@@ -122,11 +98,11 @@ int main(int argc, char *argv[])
     PRINTF("\n\n===================================\n\n");
 
     res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-    PRINTF("tran: %u \n\r", res);
+    PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     res = dma_load_transaction(&trans);
-    PRINTF("load: %u \n\r", res);
+    PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     res = dma_launch(&trans);
-    PRINTF("laun: %u \n\r", res);
+    PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     
     while( ! dma_is_ready() ){
         wait_for_interrupt();
@@ -169,9 +145,9 @@ int main(int argc, char *argv[])
 
 
     res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-    PRINTF("tran: %u \n\r", res);
+    PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     res = dma_load_transaction(&trans);
-    PRINTF("load: %u \n\r", res);
+    PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
 
     cycles = 0;
     uint8_t consecutive_trans = 0;
@@ -219,16 +195,6 @@ int main(int argc, char *argv[])
     PRINTF("\n\n===================================\n\n");
 
     
-    gpio_params_t gpio_params;
-    gpio_params.base_addr = mmio_region_from_addr((uintptr_t)GPIO_START_ADDRESS);
-    gpio_init(gpio_params, &gpio);
-    gpio_output_set_enabled(&gpio, 8, true);
-    gpio_write(&gpio, 8, false); 
-    gpio_output_set_enabled(&gpio, 9, true);
-    gpio_write(&gpio, 9, false);
-    gpio_output_set_enabled(&gpio, 11, true);
-    gpio_write(&gpio, 11, false); 
-
     window_intr_flag = 0;
 
     for (uint32_t i = 0; i < TEST_DATA_LARGE; i++) {
@@ -246,9 +212,9 @@ int main(int argc, char *argv[])
     trans.end       = DMA_TRANS_END_INTR;
     
     res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-    PRINTF("tran: %u \n\r", res);
+    PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     res = dma_load_transaction(&trans);
-    PRINTF("load: %u \n\r", res);
+    PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
 
     dma_launch(&trans);
 
@@ -261,10 +227,6 @@ int main(int argc, char *argv[])
             printf("i");
         }
     }  
-
-    gpio_write(&gpio, 11, true);
-    cycles--;
-    gpio_write(&gpio, 11, false);
 
     PRINTF("\nWe had %d window interrupts.\n", window_intr_flag);
 
@@ -281,46 +243,6 @@ int main(int argc, char *argv[])
         PRINTF("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
     }
 
-/*
-    uint32_t status;
-    do {
-        status = mmio_region_read32(dma.base_addr, DMA_STATUS_REG_OFFSET);
-        // wait for done - ISR done should be disabled.
-    } while((status & (1 << DMA_STATUS_READY_BIT)) == 0);
-
-    if (status & (1 << DMA_STATUS_WINDOW_DONE_BIT) == 0) {
-        PRINTF("[E] DMA window done flag not raised\r\n");
-        errors += 1;
-    }
-    if (dma_get_halfway(&dma)) { 
-        // should be clean on read so rereading should be 0
-        PRINTF("[E] DMA window done flag not reset on status read\r\n");
-        errors += 1;
-    }
-
-    if (dma_intr_flag == 1) {
-        PRINTF("[E] DMA window test failed DONE interrupt was triggered\n");
-        errors += 1;
-    }
-
-    uint32_t window_count = mmio_region_read32(dma.base_addr, DMA_WINDOW_COUNT_REG_OFFSET);
-
-    if (window_intr_flag != TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE) {
-        PRINTF("[E] DMA window test failed ISR wasn't trigger the right number %d != %d\r\n", window_intr_flag, TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE);
-        errors += 1;
-    }
-    
-    if (window_count != TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE) {
-        PRINTF("[E] DMA window test failed Window count register is wrong %d != %d\r\n", window_count, TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE);
-        errors += 1;
-    }
-    if (!errors) {
-        PRINTF("DMA window count is okay (#%d * %d)\r\n", TEST_WINDOW_DATA_SIZE / TEST_WINDOW_SIZE, TEST_WINDOW_SIZE);
-    }
-    else {
-        PRINTF("F-DMA window test with %d errors\r\n", error);
-    }
-    */
 #endif // TEST_WINDOW
 
     return EXIT_SUCCESS;

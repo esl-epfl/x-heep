@@ -38,9 +38,7 @@
 
 /* To manage interrupts. */
 #include "fast_intr_ctrl.h"
-#include "fast_intr_ctrl_regs.h"
 #include "rv_plic.h"
-#include "hart.h"
 #include "handler.h"
 #include "csr.h"
 
@@ -220,14 +218,16 @@ static struct
     
     /**
     * Flag to lower as soon as a transaction is launched, and raised by the 
-    * interrupt handler once it has finished. 
+    * interrupt handler once it has finished. Only used when the end event is
+    * set to INTR_WAIT.
     */
     uint8_t intrFlag;
 
     /**
-     * The number of consecutive transactions launched is tracked. If the limit is 
-     * reached, new transaction launches are rejected. This counter is increased on
-     * every sucessfull transaction launch and decreased on every transaction end. 
+     * The number of consecutive transactions launched is tracked. If the limit
+     * is reached, new transaction launches are rejected. This counter is 
+     * increased on every sucessfull transaction launch and decreased on every 
+     * transaction end. 
      */ 
     uint8_t cons_trans;
 
@@ -632,8 +632,11 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
 
     if( dma_cb.trans->end != DMA_TRANS_END_POLLING )
     {
+        /* Enable global interrupt for machine-level interrupts. */
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8 ); 
         /* @ToDo: What does this do? */
         CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+
         dma_peri->INTERRUPT_EN |= INTR_EN_TRANS_DONE;
 
         /* Only if a window is used should the window interrupt be set. */
@@ -812,18 +815,26 @@ void dma_stop_circular()
 }
 
 
-__attribute__((weak, optimize("O0"))) void dma_intr_handler()
+__attribute__((weak, optimize("O0"))) void dma_intr_handler_trans_done()
 {
     /* 
      * The DMA transaction has finished!
      * This is a weak implementation.
      * Create your own function called 
-     * void dma_intr_handler() 
+     * void dma_intr_handler_trans_done() 
      * to override this one.  
-     * The sole purpose of this trivial code is to make sure the weak 
-     * implementation is not optimized by the compiler. 
      */
+}
 
+__attribute__((weak, optimize("O0"))) void dma_intr_handler_window_done()
+{
+    /* 
+     * The DMA has copied another window.
+     * This is a weak implementation.
+     * Create your own function called 
+     * void dma_intr_handler_window_done() 
+     * to override this one.  
+     */
 }
 
 __attribute__((weak, optimize("O0"))) uint8_t dma_window_ratio_warning_threshold()
@@ -1100,6 +1111,9 @@ static inline void removeTransFromStack()
     dma_cb.cons_trans = dma_cb.cons_trans == 0 ? 0 : dma_cb.cons_trans - 1;
 }
 
+/** 
+ * This is a non-weak implementation of the function declared in fast_intr_ctrl.c
+ */
 void fic_irq_dma(void)
 {
     /* The flag is raised so the waiting loop can be broken.*/
@@ -1112,7 +1126,18 @@ void fic_irq_dma(void)
      * Call the weak implementation provided in this module, 
      * or the non-weak implementation.
      */ 
-    dma_intr_handler();
+    dma_intr_handler_trans_done();
+}
+
+/** 
+ * This is a non-weak implementation of the function declared in rv_plic.c
+ */
+void handler_irq_dma(void) {
+    /*
+     * Call the weak implementation provided in this module, 
+     * or the non-weak implementation.
+     */ 
+    dma_intr_handler_window_done();
 }
 
 /****************************************************************************/
