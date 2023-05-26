@@ -25,6 +25,10 @@ plic_irq_id_t intr_num;
 int main(int argc, char *argv[])
 {
 
+#ifndef RV_PLIC_IS_INCLUDED
+  #pragma message ( "This app does NOT work as the RV_PLIC peripheral is not included" )
+    return -1;
+#else
     printf("Init the PLIC...");
     plic_res = plic_Init();
 
@@ -108,4 +112,5 @@ int main(int argc, char *argv[])
     }
 
     return EXIT_SUCCESS;
+#endif
 }
