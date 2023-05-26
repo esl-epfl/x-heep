@@ -131,12 +131,13 @@ module ext_bus #(
   generate
     for (genvar i = 0; unsigned'(i) < EXT_XBAR_NMASTER; i++) begin : gen_fwd_xbar
       xbar_varlat_one_to_n #(
-          .XBAR_NSLAVE   (32'd2   ), // internal crossbar + external crossbar
-          .DEFAULT_IDX   (FWD_XBAR_EXT_SLAVE_IDX) // by default, select external port
+          .XBAR_NSLAVE(32'd2),  // internal crossbar + external crossbar
+          .NUM_RULES  (32'd1)   // only the external address space is defined
       ) fwd_xbar_i (
           .clk_i        (clk_i),
           .rst_ni       (rst_ni),
           .addr_map_i   (FWD_XBAR_ADDR_RULES),
+          .default_idx_i(FWD_XBAR_INT_SLAVE_IDX[0:0]),
           .master_req_i (ext_master_req_i[i]),
           .master_resp_o(ext_master_resp_o[i]),
           .slave_req_o  (fwd_xbar_req[i]),

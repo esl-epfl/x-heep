@@ -4,7 +4,6 @@
 
 `verilator_config
 
-lint_off -rule WIDTH -file "*/system_xbar.sv" -match "Input port connection 'default_idx_i' expects 3 bits on the pin connection, but pin connection's VARREF 'ERROR_IDX' generates 32 bits*"
 lint_off -rule UNUSED -file "*/core_v_mini_mcu.sv" -match "*"
 lint_off -rule UNUSED -file "*/cpu_subsystem.sv" -match "Signal is not used: 'apu*'*"
 lint_off -rule UNDRIVEN -file "*/memory_subsystem.sv" -match "Bits of signal are not driven: 'ram*_resp_o'[32]*"

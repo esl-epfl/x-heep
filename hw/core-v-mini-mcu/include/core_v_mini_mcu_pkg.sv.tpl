@@ -131,9 +131,14 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] FWD_XBAR_EXT_SLAVE_IDX = 32'd1;
 
   // Address map
-  localparam addr_map_rule_t [1:0] FWD_XBAR_ADDR_RULES = '{
-    '{idx: FWD_XBAR_INT_SLAVE_IDX, start_addr: FWD_XBAR_INT_SLAVE_START_ADDRESS, end_addr: FWD_XBAR_INT_SLAVE_END_ADDRESS},
-    '{idx: FWD_XBAR_EXT_SLAVE_IDX, start_addr: FWD_XBAR_EXT_SLAVE_START_ADDRESS, end_addr: FWD_XBAR_EXT_SLAVE_END_ADDRESS}
+  // NOTE: the internal address space is chosen by default by the system bus,
+  // so it is not defined here.
+  localparam addr_map_rule_t [0:0] FWD_XBAR_ADDR_RULES = '{
+    '{
+      idx: FWD_XBAR_EXT_SLAVE_IDX, 
+      start_addr: FWD_XBAR_EXT_SLAVE_START_ADDRESS, 
+      end_addr: FWD_XBAR_EXT_SLAVE_END_ADDRESS
+    }
   };
 
 ######################################################################

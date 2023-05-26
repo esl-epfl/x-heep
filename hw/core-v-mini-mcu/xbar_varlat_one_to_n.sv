@@ -9,14 +9,19 @@
 
 module xbar_varlat_one_to_n #(
     parameter int unsigned XBAR_NSLAVE = 2,
-    parameter int unsigned DEFAULT_IDX = XBAR_NSLAVE - 1,  // slave to select when no rule matches
-    parameter int unsigned AGGREGATE_GNT = 32'd1 // the master port is not aggregating multiple masters
+    parameter int unsigned NUM_RULES = XBAR_NSLAVE,  // number of ranges in the address map
+    parameter int unsigned AGGREGATE_GNT = 32'd1, // the master port is not aggregating multiple masters
+    // Dependent parameters: do not override!
+    localparam int unsigned IdxWidth = cf_math_pkg::idx_width(XBAR_NSLAVE)
 ) (
     input logic clk_i,
     input logic rst_ni,
 
     // Address map
-    input addr_map_rule_pkg::addr_map_rule_t [XBAR_NSLAVE-1:0] addr_map_i,
+    input addr_map_rule_pkg::addr_map_rule_t [NUM_RULES-1:0] addr_map_i,
+
+    // Default slave index
+    input logic [IdxWidth-1:0] default_idx_i,
 
     // Master port
     input  obi_pkg::obi_req_t  master_req_i,
@@ -44,9 +49,6 @@ module xbar_varlat_one_to_n #(
   localparam int unsigned ReqDataWidth = 32'd1 + 32'd4 + 32'd32 + 32'd32;
   // Response: rdata[31:0]
   localparam int unsigned RspDataWidth = 32'd32;
-
-  // Default index width
-  localparam int unsigned LogDefaultIdx = DEFAULT_IDX > 1 ? $clog2(DEFAULT_IDX) : 32'd1;
 
   // INTERNAL SIGNALS
   // ----------------
@@ -76,7 +78,7 @@ module xbar_varlat_one_to_n #(
   // ---------------
   addr_decode #(
       .NoIndices(XBAR_NSLAVE),
-      .NoRules  (XBAR_NSLAVE),
+      .NoRules  (NUM_RULES),
       .addr_t   (logic [31:0]),
       .rule_t   (addr_map_rule_pkg::addr_map_rule_t),
       .Napot    (1'b0)
@@ -84,10 +86,10 @@ module xbar_varlat_one_to_n #(
       .addr_i          (master_req_i.addr),
       .addr_map_i      (addr_map_i),
       .idx_o           (slave_idx),
-      .dec_valid_o     (),                               // unused
-      .dec_error_o     (),                               // unused
+      .dec_valid_o     (),                   // unused
+      .dec_error_o     (),                   // unused
       .en_default_idx_i(1'b1),
-      .default_idx_i   (DEFAULT_IDX[LogDefaultIdx-1:0])
+      .default_idx_i   (default_idx_i)
   );
 
   // 1-to-N crossbar
