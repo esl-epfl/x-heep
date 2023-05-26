@@ -120,6 +120,16 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    /* gpio toggle test. connect gpio in and out.*/
+    // bool rd_val = false;
+    // gpio_res = gpio_write(GPIO_TB_OUT, true);
+    // while(1){
+    //     gpio_toggle (GPIO_TB_OUT);
+    //     gpio_read (GPIO_TB_IN, &rd_val);
+    //     printf("input val: %d\r\n", rd_val);
+    //     for( uint32_t i; i < UINT_MAX; i++ ){ asm("nop"); }
+    // }
+
     printf("Write 1 to GPIO 30 and wait for interrupt...\n");
     while(plic_intr_flag==0) {
         gpio_res = gpio_write(GPIO_TB_OUT, true);
