@@ -21,11 +21,11 @@ module i2s_microphone (
   logic s_ws;
   logic r_ws;
 
-  assign s_ws = i2s_ws_i;
+  assign s_ws  = i2s_ws_i;
 
-  assign left = 32'h8765431;
+  assign left  = 32'h8765431;
   assign right = 32'hfedcba9;
-  assign data = s_ws == 1'b0 ? left : right;
+  assign data  = s_ws == 1'b0 ? left : right;
 
   always_ff @(posedge i2s_sck_i or negedge rst_ni) begin
     if (~rst_ni) begin
