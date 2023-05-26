@@ -259,7 +259,7 @@ void system_init(void)
     gpio_res |= gpio_config(pin_cfg);
     pin_cfg.pin = GPIO_LD5_G;
 	gpio_res |= gpio_config(pin_cfg);
-    if (gpio_res != kGpioOk) printf("Failed\n;");
+    if (gpio_res != GpioOk) printf("Failed\n;");
     
     gpio_write(GPIO_LD5_R, false);
     gpio_write(GPIO_LD5_B, false);
