@@ -68,9 +68,6 @@ module i2s_reg_top #(
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
   //        or <reg>_{wd|we|qs} if field == 1 or 0
-  logic [15:0] clkdividx_qs;
-  logic [15:0] clkdividx_wd;
-  logic clkdividx_we;
   logic control_en_qs;
   logic control_en_wd;
   logic control_en_we;
@@ -101,48 +98,24 @@ module i2s_reg_top #(
   logic control_reset_rx_overflow_qs;
   logic control_reset_rx_overflow_wd;
   logic control_reset_rx_overflow_we;
-  logic [15:0] watermark_qs;
-  logic [15:0] watermark_wd;
-  logic watermark_we;
-  logic [15:0] waterlevel_qs;
-  logic waterlevel_re;
   logic status_running_qs;
   logic status_running_re;
   logic status_rx_data_ready_qs;
   logic status_rx_data_ready_re;
   logic status_rx_overflow_qs;
   logic status_rx_overflow_re;
+  logic [15:0] clkdividx_qs;
+  logic [15:0] clkdividx_wd;
+  logic clkdividx_we;
   logic [31:0] rxdata_qs;
   logic rxdata_re;
+  logic [15:0] watermark_qs;
+  logic [15:0] watermark_wd;
+  logic watermark_we;
+  logic [15:0] waterlevel_qs;
+  logic waterlevel_re;
 
   // Register instances
-  // R[clkdividx]: V(False)
-
-  prim_subreg #(
-      .DW      (16),
-      .SWACCESS("RW"),
-      .RESVAL  (16'h4)
-  ) u_clkdividx (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(clkdividx_we),
-      .wd(clkdividx_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.clkdividx.q),
-
-      // to register interface (read)
-      .qs(clkdividx_qs)
-  );
-
-
   // R[control]: V(False)
 
   //   F[en]: 0:0
@@ -405,49 +378,6 @@ module i2s_reg_top #(
   );
 
 
-  // R[watermark]: V(False)
-
-  prim_subreg #(
-      .DW      (16),
-      .SWACCESS("RW"),
-      .RESVAL  (16'h0)
-  ) u_watermark (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(watermark_we),
-      .wd(watermark_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.watermark.q),
-
-      // to register interface (read)
-      .qs(watermark_qs)
-  );
-
-
-  // R[waterlevel]: V(True)
-
-  prim_subreg_ext #(
-      .DW(16)
-  ) u_waterlevel (
-      .re (waterlevel_re),
-      .we (1'b0),
-      .wd ('0),
-      .d  (hw2reg.waterlevel.d),
-      .qre(),
-      .qe (),
-      .q  (),
-      .qs (waterlevel_qs)
-  );
-
-
   // R[status]: V(True)
 
   //   F[running]: 0:0
@@ -495,6 +425,33 @@ module i2s_reg_top #(
   );
 
 
+  // R[clkdividx]: V(False)
+
+  prim_subreg #(
+      .DW      (16),
+      .SWACCESS("RW"),
+      .RESVAL  (16'h4)
+  ) u_clkdividx (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(clkdividx_we),
+      .wd(clkdividx_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.clkdividx.q),
+
+      // to register interface (read)
+      .qs(clkdividx_qs)
+  );
+
+
   // R[rxdata]: V(True)
 
   prim_subreg_ext #(
@@ -511,17 +468,60 @@ module i2s_reg_top #(
   );
 
 
+  // R[watermark]: V(False)
+
+  prim_subreg #(
+      .DW      (16),
+      .SWACCESS("RW"),
+      .RESVAL  (16'h0)
+  ) u_watermark (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(watermark_we),
+      .wd(watermark_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.watermark.q),
+
+      // to register interface (read)
+      .qs(watermark_qs)
+  );
+
+
+  // R[waterlevel]: V(True)
+
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_waterlevel (
+      .re (waterlevel_re),
+      .we (1'b0),
+      .wd ('0),
+      .d  (hw2reg.waterlevel.d),
+      .qre(),
+      .qe (),
+      .q  (),
+      .qs (waterlevel_qs)
+  );
+
+
 
 
   logic [5:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[0] = (reg_addr == I2S_CLKDIVIDX_OFFSET);
-    addr_hit[1] = (reg_addr == I2S_CONTROL_OFFSET);
-    addr_hit[2] = (reg_addr == I2S_WATERMARK_OFFSET);
-    addr_hit[3] = (reg_addr == I2S_WATERLEVEL_OFFSET);
-    addr_hit[4] = (reg_addr == I2S_STATUS_OFFSET);
-    addr_hit[5] = (reg_addr == I2S_RXDATA_OFFSET);
+    addr_hit[0] = (reg_addr == I2S_CONTROL_OFFSET);
+    addr_hit[1] = (reg_addr == I2S_STATUS_OFFSET);
+    addr_hit[2] = (reg_addr == I2S_CLKDIVIDX_OFFSET);
+    addr_hit[3] = (reg_addr == I2S_RXDATA_OFFSET);
+    addr_hit[4] = (reg_addr == I2S_WATERMARK_OFFSET);
+    addr_hit[5] = (reg_addr == I2S_WATERLEVEL_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -537,61 +537,57 @@ module i2s_reg_top #(
                (addr_hit[5] & (|(I2S_PERMIT[5] & ~reg_be)))));
   end
 
-  assign clkdividx_we = addr_hit[0] & reg_we & !reg_error;
-  assign clkdividx_wd = reg_wdata[15:0];
-
-  assign control_en_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_en_we = addr_hit[0] & reg_we & !reg_error;
   assign control_en_wd = reg_wdata[0];
 
-  assign control_en_ws_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_en_ws_we = addr_hit[0] & reg_we & !reg_error;
   assign control_en_ws_wd = reg_wdata[1];
 
-  assign control_en_rx_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_en_rx_we = addr_hit[0] & reg_we & !reg_error;
   assign control_en_rx_wd = reg_wdata[3:2];
 
-  assign control_intr_en_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_intr_en_we = addr_hit[0] & reg_we & !reg_error;
   assign control_intr_en_wd = reg_wdata[4];
 
-  assign control_en_watermark_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_en_watermark_we = addr_hit[0] & reg_we & !reg_error;
   assign control_en_watermark_wd = reg_wdata[5];
 
-  assign control_reset_watermark_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_reset_watermark_we = addr_hit[0] & reg_we & !reg_error;
   assign control_reset_watermark_wd = reg_wdata[6];
 
-  assign control_en_io_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_en_io_we = addr_hit[0] & reg_we & !reg_error;
   assign control_en_io_wd = reg_wdata[7];
 
-  assign control_data_width_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_data_width_we = addr_hit[0] & reg_we & !reg_error;
   assign control_data_width_wd = reg_wdata[9:8];
 
-  assign control_rx_start_channel_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_rx_start_channel_we = addr_hit[0] & reg_we & !reg_error;
   assign control_rx_start_channel_wd = reg_wdata[10];
 
-  assign control_reset_rx_overflow_we = addr_hit[1] & reg_we & !reg_error;
+  assign control_reset_rx_overflow_we = addr_hit[0] & reg_we & !reg_error;
   assign control_reset_rx_overflow_wd = reg_wdata[11];
 
-  assign watermark_we = addr_hit[2] & reg_we & !reg_error;
+  assign status_running_re = addr_hit[1] & reg_re & !reg_error;
+
+  assign status_rx_data_ready_re = addr_hit[1] & reg_re & !reg_error;
+
+  assign status_rx_overflow_re = addr_hit[1] & reg_re & !reg_error;
+
+  assign clkdividx_we = addr_hit[2] & reg_we & !reg_error;
+  assign clkdividx_wd = reg_wdata[15:0];
+
+  assign rxdata_re = addr_hit[3] & reg_re & !reg_error;
+
+  assign watermark_we = addr_hit[4] & reg_we & !reg_error;
   assign watermark_wd = reg_wdata[15:0];
 
-  assign waterlevel_re = addr_hit[3] & reg_re & !reg_error;
-
-  assign status_running_re = addr_hit[4] & reg_re & !reg_error;
-
-  assign status_rx_data_ready_re = addr_hit[4] & reg_re & !reg_error;
-
-  assign status_rx_overflow_re = addr_hit[4] & reg_re & !reg_error;
-
-  assign rxdata_re = addr_hit[5] & reg_re & !reg_error;
+  assign waterlevel_re = addr_hit[5] & reg_re & !reg_error;
 
   // Read data return
   always_comb begin
     reg_rdata_next = '0;
     unique case (1'b1)
       addr_hit[0]: begin
-        reg_rdata_next[15:0] = clkdividx_qs;
-      end
-
-      addr_hit[1]: begin
         reg_rdata_next[0]   = control_en_qs;
         reg_rdata_next[1]   = control_en_ws_qs;
         reg_rdata_next[3:2] = control_en_rx_qs;
@@ -604,22 +600,26 @@ module i2s_reg_top #(
         reg_rdata_next[11]  = control_reset_rx_overflow_qs;
       end
 
-      addr_hit[2]: begin
-        reg_rdata_next[15:0] = watermark_qs;
-      end
-
-      addr_hit[3]: begin
-        reg_rdata_next[15:0] = waterlevel_qs;
-      end
-
-      addr_hit[4]: begin
+      addr_hit[1]: begin
         reg_rdata_next[0] = status_running_qs;
         reg_rdata_next[1] = status_rx_data_ready_qs;
         reg_rdata_next[2] = status_rx_overflow_qs;
       end
 
-      addr_hit[5]: begin
+      addr_hit[2]: begin
+        reg_rdata_next[15:0] = clkdividx_qs;
+      end
+
+      addr_hit[3]: begin
         reg_rdata_next[31:0] = rxdata_qs;
+      end
+
+      addr_hit[4]: begin
+        reg_rdata_next[15:0] = watermark_qs;
+      end
+
+      addr_hit[5]: begin
+        reg_rdata_next[15:0] = waterlevel_qs;
       end
 
       default: begin

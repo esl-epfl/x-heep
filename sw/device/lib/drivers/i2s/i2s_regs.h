@@ -25,15 +25,8 @@ extern "C" {
 // Register width
 #define I2S_PARAM_REG_WIDTH 32
 
-// Control register
-#define I2S_CLKDIVIDX_REG_OFFSET 0x0
-#define I2S_CLKDIVIDX_COUNT_MASK 0xffff
-#define I2S_CLKDIVIDX_COUNT_OFFSET 0
-#define I2S_CLKDIVIDX_COUNT_FIELD \
-  ((bitfield_field32_t) { .mask = I2S_CLKDIVIDX_COUNT_MASK, .index = I2S_CLKDIVIDX_COUNT_OFFSET })
-
 // control register
-#define I2S_CONTROL_REG_OFFSET 0x4
+#define I2S_CONTROL_REG_OFFSET 0x0
 #define I2S_CONTROL_EN_BIT 0
 #define I2S_CONTROL_EN_WS_BIT 1
 #define I2S_CONTROL_EN_RX_MASK 0x3
@@ -59,28 +52,35 @@ extern "C" {
 #define I2S_CONTROL_RX_START_CHANNEL_BIT 10
 #define I2S_CONTROL_RESET_RX_OVERFLOW_BIT 11
 
+// Status flags of the I2s peripheral
+#define I2S_STATUS_REG_OFFSET 0x4
+#define I2S_STATUS_RUNNING_BIT 0
+#define I2S_STATUS_RX_DATA_READY_BIT 1
+#define I2S_STATUS_RX_OVERFLOW_BIT 2
+
+// Control register
+#define I2S_CLKDIVIDX_REG_OFFSET 0x8
+#define I2S_CLKDIVIDX_COUNT_MASK 0xffff
+#define I2S_CLKDIVIDX_COUNT_OFFSET 0
+#define I2S_CLKDIVIDX_COUNT_FIELD \
+  ((bitfield_field32_t) { .mask = I2S_CLKDIVIDX_COUNT_MASK, .index = I2S_CLKDIVIDX_COUNT_OFFSET })
+
+// I2s Receive data
+#define I2S_RXDATA_REG_OFFSET 0xc
+
 // Watermark to reach for an interrupt
-#define I2S_WATERMARK_REG_OFFSET 0x8
+#define I2S_WATERMARK_REG_OFFSET 0x10
 #define I2S_WATERMARK_WATERMARK_MASK 0xffff
 #define I2S_WATERMARK_WATERMARK_OFFSET 0
 #define I2S_WATERMARK_WATERMARK_FIELD \
   ((bitfield_field32_t) { .mask = I2S_WATERMARK_WATERMARK_MASK, .index = I2S_WATERMARK_WATERMARK_OFFSET })
 
 // Watermark counter level
-#define I2S_WATERLEVEL_REG_OFFSET 0xc
+#define I2S_WATERLEVEL_REG_OFFSET 0x14
 #define I2S_WATERLEVEL_WATERLEVEL_MASK 0xffff
 #define I2S_WATERLEVEL_WATERLEVEL_OFFSET 0
 #define I2S_WATERLEVEL_WATERLEVEL_FIELD \
   ((bitfield_field32_t) { .mask = I2S_WATERLEVEL_WATERLEVEL_MASK, .index = I2S_WATERLEVEL_WATERLEVEL_OFFSET })
-
-// Status flags of the I2s peripheral
-#define I2S_STATUS_REG_OFFSET 0x10
-#define I2S_STATUS_RUNNING_BIT 0
-#define I2S_STATUS_RX_DATA_READY_BIT 1
-#define I2S_STATUS_RX_OVERFLOW_BIT 2
-
-// I2s Receive data
-#define I2S_RXDATA_REG_OFFSET 0x14
 
 #ifdef __cplusplus
 }  // extern "C"

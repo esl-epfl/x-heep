@@ -33,17 +33,7 @@
   no_auto_intr_regs: "true",
   registers: [
 
-    // CLOCK DIVISION
 
-    { name:     "CLKDIVIDX"
-      desc:     "Control register"
-      swaccess: "rw"
-      hwaccess: "hro"
-      resval: 4,
-      fields: [
-        { bits: "15:0", name: "COUNT", desc: "Index at which clock divide." }
-      ]
-    }
 
     // STATUS & CONTROL REGISTERS
 
@@ -89,6 +79,41 @@
       ]
     }
 
+    { name: "STATUS"
+      desc: "Status flags of the I2s peripheral"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      hwext:  "true"
+      fields: [
+        { bits: "0", name: "RUNNING", desc: "1 to indicate that SCK is on"}
+        { bits: "1", name: "RX_DATA_READY", desc: "1 to indicate that an RX sample is ready"}
+        { bits: "2", name: "RX_OVERFLOW", desc: "1 to indicate that an RX happend - disable rx_channel to clear"}
+      ]
+    }
+
+    // CLOCK DIVISION
+    { name:     "CLKDIVIDX"
+      desc:     "Control register"
+      swaccess: "rw"
+      hwaccess: "hro"
+      resval: 4,
+      fields: [
+        { bits: "15:0", name: "COUNT", desc: "Index at which clock divide." }
+      ]
+    }
+    // RX DATA
+    { name: "RXDATA",
+      desc: "I2s Receive data"
+      swaccess: "ro"
+      hwaccess: "hrw"
+      hwext:  "true"
+      hwre:   "true"
+      fields: [
+        { bits: "31:0", name: "RXDATA", desc: "latest rx data if DATA_READY flag is set", hwaccess: "hrw"}
+      ]
+    }
+
+    // Watermark counter
     { name:     "WATERMARK"
       desc:     "Watermark to reach for an interrupt"
       swaccess: "rw"
@@ -107,28 +132,5 @@
         { bits: "15:0", name: "Waterlevel", desc: "Count of RX samples"}
       ]
     }
-
-    { name: "STATUS"
-      desc: "Status flags of the I2s peripheral"
-      swaccess: "ro"
-      hwaccess: "hwo"
-      hwext:  "true"
-      fields: [
-        { bits: "0", name: "RUNNING", desc: "1 to indicate that SCK is on"}
-        { bits: "1", name: "RX_DATA_READY", desc: "1 to indicate that an RX sample is ready"}
-        { bits: "2", name: "RX_OVERFLOW", desc: "1 to indicate that an RX happend - disable rx_channel to clear"}
-      ]
-    }
-
-    { name: "RXDATA",
-      desc: "I2s Receive data"
-      swaccess: "ro"
-      hwaccess: "hrw"
-      hwext:  "true"
-      hwre:   "true"
-      fields: [
-        { bits: "31:0", name: "RXDATA", desc: "latest rx data if DATA_READY flag is set", hwaccess: "hrw"}
-      ]
-    }
-   ]
+  ]
 }
