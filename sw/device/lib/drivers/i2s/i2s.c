@@ -127,6 +127,9 @@ i2s_result_t i2s_rx_start(i2s_channel_sel_t channels)
     while (i2s_rx_overflow()) ; // wait for one SCK rise - this might take some time as the SCK can be much slower
   }
   
+  // disable WATERMARK counter
+  i2s_peri->CONTROL = control & ~(1 << I2S_CONTROL_EN_WATERMARK_BIT);
+
   // cdc_2phase FIFO is not clearable, so we have to empty the FIFO manually
   // note: this uses much less resources
   while (i2s_rx_data_available()) {
