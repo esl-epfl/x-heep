@@ -10,7 +10,7 @@
 module dma_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 6
+    parameter int AW = 5
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -84,9 +84,6 @@ module dma_reg_top #(
   logic [31:0] dst_ptr_inc_qs;
   logic [31:0] dst_ptr_inc_wd;
   logic dst_ptr_inc_we;
-  logic [31:0] rx_wait_mode_qs;
-  logic [31:0] rx_wait_mode_wd;
-  logic rx_wait_mode_we;
   logic [15:0] slot_rx_trigger_slot_qs;
   logic [15:0] slot_rx_trigger_slot_wd;
   logic slot_rx_trigger_slot_we;
@@ -259,33 +256,6 @@ module dma_reg_top #(
   );
 
 
-  // R[rx_wait_mode]: V(False)
-
-  prim_subreg #(
-      .DW      (32),
-      .SWACCESS("RW"),
-      .RESVAL  (32'h0)
-  ) u_rx_wait_mode (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(rx_wait_mode_we),
-      .wd(rx_wait_mode_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.rx_wait_mode.q),
-
-      // to register interface (read)
-      .qs(rx_wait_mode_qs)
-  );
-
-
   // R[slot]: V(False)
 
   //   F[rx_trigger_slot]: 15:0
@@ -369,7 +339,7 @@ module dma_reg_top #(
 
 
 
-  logic [8:0] addr_hit;
+  logic [7:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == DMA_PTR_IN_OFFSET);
@@ -378,9 +348,8 @@ module dma_reg_top #(
     addr_hit[3] = (reg_addr == DMA_DONE_OFFSET);
     addr_hit[4] = (reg_addr == DMA_SRC_PTR_INC_OFFSET);
     addr_hit[5] = (reg_addr == DMA_DST_PTR_INC_OFFSET);
-    addr_hit[6] = (reg_addr == DMA_RX_WAIT_MODE_OFFSET);
-    addr_hit[7] = (reg_addr == DMA_SLOT_OFFSET);
-    addr_hit[8] = (reg_addr == DMA_DATA_TYPE_OFFSET);
+    addr_hit[6] = (reg_addr == DMA_SLOT_OFFSET);
+    addr_hit[7] = (reg_addr == DMA_DATA_TYPE_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -395,8 +364,7 @@ module dma_reg_top #(
                (addr_hit[4] & (|(DMA_PERMIT[4] & ~reg_be))) |
                (addr_hit[5] & (|(DMA_PERMIT[5] & ~reg_be))) |
                (addr_hit[6] & (|(DMA_PERMIT[6] & ~reg_be))) |
-               (addr_hit[7] & (|(DMA_PERMIT[7] & ~reg_be))) |
-               (addr_hit[8] & (|(DMA_PERMIT[8] & ~reg_be)))));
+               (addr_hit[7] & (|(DMA_PERMIT[7] & ~reg_be)))));
   end
 
   assign ptr_in_we = addr_hit[0] & reg_we & !reg_error;
@@ -414,16 +382,13 @@ module dma_reg_top #(
   assign dst_ptr_inc_we = addr_hit[5] & reg_we & !reg_error;
   assign dst_ptr_inc_wd = reg_wdata[31:0];
 
-  assign rx_wait_mode_we = addr_hit[6] & reg_we & !reg_error;
-  assign rx_wait_mode_wd = reg_wdata[31:0];
-
-  assign slot_rx_trigger_slot_we = addr_hit[7] & reg_we & !reg_error;
+  assign slot_rx_trigger_slot_we = addr_hit[6] & reg_we & !reg_error;
   assign slot_rx_trigger_slot_wd = reg_wdata[15:0];
 
-  assign slot_tx_trigger_slot_we = addr_hit[7] & reg_we & !reg_error;
+  assign slot_tx_trigger_slot_we = addr_hit[6] & reg_we & !reg_error;
   assign slot_tx_trigger_slot_wd = reg_wdata[31:16];
 
-  assign data_type_we = addr_hit[8] & reg_we & !reg_error;
+  assign data_type_we = addr_hit[7] & reg_we & !reg_error;
   assign data_type_wd = reg_wdata[1:0];
 
   // Read data return
@@ -455,15 +420,11 @@ module dma_reg_top #(
       end
 
       addr_hit[6]: begin
-        reg_rdata_next[31:0] = rx_wait_mode_qs;
-      end
-
-      addr_hit[7]: begin
         reg_rdata_next[15:0]  = slot_rx_trigger_slot_qs;
         reg_rdata_next[31:16] = slot_tx_trigger_slot_qs;
       end
 
-      addr_hit[8]: begin
+      addr_hit[7]: begin
         reg_rdata_next[1:0] = data_type_qs;
       end
 

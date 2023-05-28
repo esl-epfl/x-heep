@@ -36,11 +36,8 @@ extern "C" {
 // destination
 #define DMA_DST_PTR_INC_REG_OFFSET 0x14
 
-// Special wait mode selection.
-#define DMA_RX_WAIT_MODE_REG_OFFSET 0x18
-
 // The DMA will wait for the signal
-#define DMA_SLOT_REG_OFFSET 0x1c
+#define DMA_SLOT_REG_OFFSET 0x18
 #define DMA_SLOT_RX_TRIGGER_SLOT_MASK 0xffff
 #define DMA_SLOT_RX_TRIGGER_SLOT_OFFSET 0
 #define DMA_SLOT_RX_TRIGGER_SLOT_FIELD \
@@ -52,7 +49,7 @@ extern "C" {
 
 // Data type to transfer: 32-bit word(0), 16-bit half word(1), 8-bit
 // byte(2,3).
-#define DMA_DATA_TYPE_REG_OFFSET 0x20
+#define DMA_DATA_TYPE_REG_OFFSET 0x1c
 #define DMA_DATA_TYPE_DATA_TYPE_MASK 0x3
 #define DMA_DATA_TYPE_DATA_TYPE_OFFSET 0
 #define DMA_DATA_TYPE_DATA_TYPE_FIELD \
