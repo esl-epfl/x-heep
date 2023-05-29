@@ -310,7 +310,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/ams_sim-vcs
 
 and running the same executable as for the digital simulation. Note that with Verdi you can view both the digital and the analog waveforms.
 
-More details on running an analog / mixed-signal simulation of X-HEEP can be found in the AnalogMixedSignal.md file (TODO).
+Additional instructions on how to run an analog / mixed-signal simulation of X-HEEP can be found [here](AnalogMixedSignal.md).
 
 ### Compiling for Questasim
 

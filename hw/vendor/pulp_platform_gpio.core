@@ -39,7 +39,6 @@ targets:
     - rtl
     - "gpio-test? (testbench)"
     - target_sim? (clock-gate)
-    - target_ams_sim? (clock-gate)
     - target_asic_synthesis? (clock-gate)
     - target_asic_yosys_synthesis? (clock-gate)
     - target_nexys-a7-100t? (no-clock-gate)
