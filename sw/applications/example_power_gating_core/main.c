@@ -16,6 +16,7 @@
 #include "gpio.h"
 #include "pad_control.h"
 #include "pad_control_regs.h"
+#include "x-heep.h"
 
 static rv_timer_t timer_0_1;
 static rv_timer_t timer_2_3;
