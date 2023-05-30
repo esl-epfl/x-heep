@@ -28,8 +28,8 @@
 
 #define TEST_DATA_TYPE  DMA_DATA_TYPE_WORD
 
+// WARNING: When using circular mode COPY_DATA_WORDS/CIRCULAR_CYCLES needs to be 32 <= x <= 128
 #define CIRCULAR_CYCLES 4
-
 #define COPY_DATA_WORDS 128// Flash page size = 256 Bytes
 
 // Warning in case of targetting simulation
