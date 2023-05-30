@@ -49,7 +49,7 @@
 /****************************************************************************/
  
 // @ToDo: Remove this, is just a placeholder until real assert can be included
-#define make_sure_that(x) /*//printf( "%s@%u\n\r",x ? "Success" : "Error",__LINE__ );*/
+#define make_sure_that(x) /*PRINTF( "%s@%u\n\r",x ? "Success" : "Error",__LINE__ );*/
 
 /**
  * Returns the mask to enable/disable DMA interrupts.
@@ -649,8 +649,8 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
     /*
      * SET THE POINTERS
      */
-    //printf("src ptr - Wrote %08x @ ----\n", dma_cb.trans->src->ptr );
-    //printf("dst ptr - Wrote %08x @ ----\n", dma_cb.trans->dst->ptr );
+    printf("src ptr - Wrote %08x @ ----\n", dma_cb.trans->src->ptr );
+    printf("dst ptr - Wrote %08x @ ----\n", dma_cb.trans->dst->ptr );
     dma_peri->SRC_PTR = dma_cb.trans->src->ptr;
     dma_peri->DST_PTR = dma_cb.trans->dst->ptr;
     
@@ -667,14 +667,14 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      */
    
 
-    //printf("src inc - ");
+    printf("src inc - ");
     writeRegister(  getIncrement_b( dma_cb.trans->src ), 
                     DMA_PTR_INC_REG_OFFSET, 
                     DMA_PTR_INC_SRC_PTR_INC_MASK,
                     DMA_PTR_INC_SRC_PTR_INC_OFFSET );
    
    
-    //printf("dst inc - ");
+    printf("dst inc - ");
     writeRegister(  getIncrement_b( dma_cb.trans->dst ), 
                     DMA_PTR_INC_REG_OFFSET, 
                     DMA_PTR_INC_DST_PTR_INC_MASK,
@@ -685,14 +685,14 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * SET THE OPERATION MODE AND WINDOW SIZE
      */
 
-    //printf("mode    - Wrote %08x @ ----\n", dma_cb.trans->mode );
+    printf("mode    - Wrote %08x @ ----\n", dma_cb.trans->mode );
     dma_peri->MODE = dma_cb.trans->mode;
     /* The window size is set to the transaction size if it was set to 0 in
     order to disable the functionality (it will never be triggered). */
     
-    //printf("win siz - Wrote %08x @ ----\n", dma_cb.trans->win_du 
-                            // ? dma_cb.trans->win_du
-                            // : dma_cb.trans->size_b );
+    printf("win siz - Wrote %08x @ ----\n", dma_cb.trans->win_du 
+                            ? dma_cb.trans->win_du
+                            : dma_cb.trans->size_b );
 
     dma_peri->WINDOW_SIZE =   dma_cb.trans->win_du 
                             ? dma_cb.trans->win_du
@@ -701,19 +701,19 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
     /*
      * SET TRIGGER SLOTS AND DATA TYPE
      */    
-    //printf("src tri - ");
+    printf("src tri - ");
     writeRegister(  dma_cb.trans->src->trig, 
                     DMA_SLOT_REG_OFFSET, 
                     DMA_SLOT_RX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_RX_TRIGGER_SLOT_OFFSET );
 
-    //printf("dst tri - ");
+    printf("dst tri - ");
     writeRegister(  dma_cb.trans->dst->trig, 
                     DMA_SLOT_REG_OFFSET, 
                     DMA_SLOT_TX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_TX_TRIGGER_SLOT_OFFSET );
 
-    //printf("dat typ - ");
+    printf("dat typ - ");
     writeRegister(  dma_cb.trans->type, 
                     DMA_DATA_TYPE_REG_OFFSET, 
                     DMA_DATA_TYPE_DATA_TYPE_MASK, 
@@ -758,7 +758,7 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans )
     dma_cb.intrFlag = 0;
 
     /* Load the size and start the transaction. */
-    ////printf("size    - Wrote %08x @ ----\n", dma_cb.trans->size_b );
+    printf("size    - Wrote %08x @ ----\n", dma_cb.trans->size_b );
     dma_peri->SIZE = dma_cb.trans->size_b;
 
     /* 
@@ -1057,7 +1057,7 @@ static inline void writeRegister( uint32_t  p_val,
     value           |= (p_val & p_mask) << p_sel;
     (( uint32_t * ) dma_peri ) [ index ] = value; 
 
-    //printf("Wrote %08x @ %04x\n", value, index );
+    printf("Wrote %08x @ %04x\n", value, index );
 
 // @ToDo: mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_SLOT_REG_OFFSET), (tx_slot_mask << DMA_SLOT_TX_TRIGGER_SLOT_OFFSET) + rx_slot_mask)
 

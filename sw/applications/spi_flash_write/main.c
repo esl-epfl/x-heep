@@ -22,13 +22,15 @@
 /* Test Configurations */
 #define DEBUG
 #define USE_SPI_FLASH
-//#define TEST_CIRCULAR
+#define TEST_CIRCULAR
 #define TEST_MEM_2_SPI
 #define TEST_SPI_2_MEM
 
-#define CIRCULAR_CYCLES 3
+#define TEST_DATA_TYPE  DMA_DATA_TYPE_WORD
 
-#define COPY_DATA_WORDS 16 // Flash page size = 256 Bytes
+#define CIRCULAR_CYCLES 4
+
+#define COPY_DATA_WORDS 2048// Flash page size = 256 Bytes
 
 // Warning in case of targetting simulation
 #ifdef TARGET_SIM
@@ -59,7 +61,6 @@
 #define PRINTF2(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 
 int8_t spi_intr_flag;
-int8_t dma_intr_flag;
 spi_host_t spi_host;
 int8_t cycles;
 
@@ -82,7 +83,7 @@ void fic_irq_spi(void)
 void fic_irq_spi_flash(void)
 {
     // Disable SPI interrupts
-    PRINTF("!");
+    // PRINTF("&");
     spi_enable_evt_intr(&spi_host, false);
     spi_enable_rxwm_intr(&spi_host, false);
     spi_intr_flag = 1;
@@ -94,12 +95,12 @@ void dma_intr_handler_trans_done(void)
 {
     PRINTF("#");
     cycles++;
-    if( cycles == CIRCULAR_CYCLES ) dma_stop_circular();
+    if( cycles >= CIRCULAR_CYCLES -1 ) dma_stop_circular();
 }
 #else
 void dma_intr_handler_trans_done(void)
 {
-    dma_intr_flag =1;
+    PRINTF("#");
 }
 #endif
 
@@ -228,7 +229,7 @@ static inline __attribute__((always_inline)) void spi_wait_4_resp()
 {
     // Check status register status waiting for ready
     bool flash_busy = true;
-    uint8_t flash_resp[4] = {0xff,0xff,0xff,0xff};
+    uint8_t flash_resp[4] = {0xee,0xee,0xee,0xee};
     while(flash_busy){
         uint32_t flash_cmd = 0x00000005; // [CMD] Read status register
         spi_write_word(&spi_host, flash_cmd); // Push TX buffer
@@ -269,14 +270,13 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_MEM_2_SPI
 
-    PRINTF("\n\n===================================\n\n");
-    PRINTF("  MEM -> -> -> DMA -> -> -> SPI  ");
-    PRINTF("\n\n===================================\n\n");
+    PRINTF("\n\n======================================\n\n");
+    PRINTF(" MEM -> -> DMA -> -> SPI -> -> FLASH ");
+    PRINTF("\n\n======================================\n\n");
 
-
-    #ifndef USE_SPI_FLASH
+#ifndef USE_SPI_FLASH
     const uint8_t slot = DMA_TRIG_SLOT_SPI_TX; // The DMA will wait for the SPI TX FIFO ready signal
-    #else
+#else
     const uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_TX; // The DMA will wait for the SPI FLASH TX FIFO ready signal
 #endif //USE_SPI_FLASH
 
@@ -285,14 +285,14 @@ int main(int argc, char *argv[])
         .inc_du = 1,
         .size_du = COPY_DATA_PER_CYCLE,
         .trig = DMA_TRIG_MEMORY,
-        .type = DMA_DATA_TYPE_WORD,
+        .type = TEST_DATA_TYPE,
     };
 
     static dma_target_t tgt2= {
         .inc_du = 0,
         .size_du = COPY_DATA_PER_CYCLE,
         .trig = slot,
-        .type = DMA_DATA_TYPE_WORD,
+        .type = TEST_DATA_TYPE,
     };
 
     tgt2.ptr = fifo_ptr_tx; // This is necessary because fifo_ptr_tx is not a constant, and therefore cannot be used as initializer element.
@@ -317,7 +317,7 @@ int main(int argc, char *argv[])
     PRINTF("load: %u \n\r", res);
 
     res = dma_launch(&trans);
-    PRINTF("laun: %u \n\r", res);
+    // PRINTF("laun: %u \n\r", res);
 
     spi_intr_flag = 0;
     // Wait for the first data to arrive to the TX FIFO before enabling interrupt
@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
     spi_enable_txempty_intr(&spi_host, true);
 
     const uint32_t cmd_write_tx = spi_create_command((spi_command_t){
-        .len        = COPY_DATA_WORDS*sizeof(*flash_data) - 1,
+        .len        = COPY_DATA_WORDS*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE) - 1,
         .csaat      = false,
         .speed      = kSpiSpeedStandard,
         .direction  = kSpiDirTxOnly
@@ -337,11 +337,10 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     // Wait for SPI interrupt
-    PRINTF("Waiting for the SPI interrupt...\n");
     while(spi_intr_flag == 0) {
         wait_for_interrupt();
     }
-    PRINTF("triggered!\n");
+    PRINTF("triggered\n");
 
     spi_wait_4_resp();
 
@@ -352,9 +351,9 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_SPI_2_MEM
 
-    PRINTF("\n\n===================================\n\n");
-    PRINTF("  MEM <- <- <- DMA <- <- <- SPI  ");
-    PRINTF("\n\n===================================\n\n");
+    PRINTF("\n\n======================================\n\n");
+    PRINTF(" MEM <- <- DMA <- <- SPI <- <- FLASH ");
+    PRINTF("\n\n======================================\n\n");
 
 #ifndef USE_SPI_FLASH
     const uint8_t slot2 = DMA_TRIG_SLOT_SPI_RX; // The DMA will wait for the SPI TX FIFO ready signal
@@ -409,7 +408,7 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
-        .len        = COPY_DATA_WORDS*sizeof(*copy_data) - 1,
+        .len        = COPY_DATA_WORDS*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE) - 1,
         .csaat      = false,
         .speed      = kSpiSpeedStandard,
         .direction  = kSpiDirRxOnly
@@ -447,7 +446,7 @@ int main(int argc, char *argv[])
     int i;
     uint32_t errors = 0;
     uint32_t count = 0;
-    for (i = 0; i<COPY_DATA_WORDS; i++) {
+    for (i = 0; i<COPY_DATA_PER_CYCLE; i++) {
         if(flash_data[i] != copy_data[i]) {
             PRINTF("@%08x-@%08x : %02d\t!=\t%02d\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
             errors++;
@@ -459,11 +458,6 @@ int main(int argc, char *argv[])
         PRINTF("success! (Words checked: %d)\n", count);
     } else {
         PRINTF("failure, %d errors! (Out of %d)\n", errors, count);
-
-
-        for (i = 0; i<COPY_DATA_WORDS; i++) {
-            PRINTF("@%08x-@%08x : %02d\tvs.\t%02d\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
-        }
     }
 
 #endif //TEST_MEM_2_SPI
