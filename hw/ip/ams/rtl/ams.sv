@@ -1,3 +1,7 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
 module ams #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic
