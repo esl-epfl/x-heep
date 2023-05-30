@@ -28,15 +28,15 @@
 
 #include "x-heep.h"
 
+#ifndef PDM2PCM_IS_INCLUDED
+  #error ( "This app does NOT work as the PDM2PCM peripheral is not included" )
+#endif
+
 
 int main(int argc, char *argv[])
 {
 
 
-#ifndef PDM2PCM_IS_INCLUDED
-  #pragma message ( "This app does NOT work as the PDM2PCM peripheral is not included" )
-    return -1;
-#else
     printf("PDM2PCM DEMO\n");
     printf(" > Start\n");
 
@@ -104,8 +104,6 @@ int main(int argc, char *argv[])
         }
     }
     return EXIT_SUCCESS;
-#endif
-
 
 }
 
