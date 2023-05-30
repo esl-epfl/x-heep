@@ -30,7 +30,7 @@
 
 #define CIRCULAR_CYCLES 4
 
-#define COPY_DATA_WORDS 2048// Flash page size = 256 Bytes
+#define COPY_DATA_WORDS 128// Flash page size = 256 Bytes
 
 // Warning in case of targetting simulation
 #ifdef TARGET_SIM
