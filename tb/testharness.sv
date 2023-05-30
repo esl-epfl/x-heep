@@ -7,9 +7,9 @@ import UPF::*;
 `endif
 
 module testharness #(
-    parameter PULP_XPULP    = 0,
+    parameter COREV_PULP    = 0,
     parameter FPU           = 0,
-    parameter PULP_ZFINX    = 0,
+    parameter ZFINX         = 0,
     parameter X_EXT         = 0,         // eXtension interface in cv32e40x
     parameter JTAG_DPI      = 0,
     parameter CLK_FREQUENCY = 'd100_000  //KHz
@@ -112,9 +112,9 @@ module testharness #(
   if_xif #() ext_if ();
 
   x_heep_system #(
-      .PULP_XPULP(PULP_XPULP),
+      .COREV_PULP(COREV_PULP),
       .FPU(FPU),
-      .PULP_ZFINX(PULP_ZFINX),
+      .ZFINX(ZFINX),
       .X_EXT(X_EXT),
 `ifdef USE_EXTERNAL_DEVICE_EXAMPLE
       .EXT_XBAR_NMASTER(testharness_pkg::EXT_XBAR_NMASTER)
@@ -303,20 +303,27 @@ module testharness #(
   );
 
   // External peripheral example with master port to access memory
-  memcopy_periph #(
+  dma #(
       .reg_req_t (reg_pkg::reg_req_t),
       .reg_rsp_t (reg_pkg::reg_rsp_t),
       .obi_req_t (obi_pkg::obi_req_t),
       .obi_resp_t(obi_pkg::obi_resp_t)
-  ) memcopy_periph_i (
+  ) dma_i (
       .clk_i,
       .rst_ni,
       .reg_req_i(memcopy_periph_req),
       .reg_rsp_o(memcopy_periph_rsp),
-      .master_req_o(master_req[testharness_pkg::EXT_MASTER0_IDX]),
-      .master_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX]),
-      .memcopy_intr_o(memcopy_intr)
+      .dma_master0_ch0_req_o(master_req[testharness_pkg::EXT_MASTER0_IDX]),
+      .dma_master0_ch0_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX]),
+      .dma_master1_ch0_req_o(master_req[testharness_pkg::EXT_MASTER1_IDX]),
+      .dma_master1_ch0_resp_i(master_resp[testharness_pkg::EXT_MASTER1_IDX]),
+      .spi_rx_valid_i('0),
+      .spi_tx_ready_i('0),
+      .spi_flash_rx_valid_i('0),
+      .spi_flash_tx_ready_i('0),
+      .dma_intr_o(memcopy_intr)
   );
+
 
   // GPIO counter example
   gpio_cnt #(

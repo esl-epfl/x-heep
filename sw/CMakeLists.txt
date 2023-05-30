@@ -100,8 +100,8 @@ LIST(REMOVE_DUPLICATES h_dir_list_)
 message(STATUS "[INFO] ${dir_list_str}")
 
 # Get all the folders to include when linking
-SET(INCLUDE_FOLDERS "-I ${RISCV}/riscv32-unknown-elf/include \
-                     -I ${RISCV}/riscv32-unknown-elf/include/ \
+SET(INCLUDE_FOLDERS "-I ${RISCV}/${COMPILER_PREFIX}elf/include \
+                     -I ${RISCV}/${COMPILER_PREFIX}elf/include/ \
                      -I ${ROOT_PROJECT} \
                      -I ${SOURCE_PATH} \
 					           ${dir_list_str}")
@@ -132,23 +132,27 @@ LIST(REMOVE_DUPLICATES c_dir_list)
 
 # Get the correct path for the crt files and linker file
 if (${LINKER} STREQUAL "on_chip")
-  SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt/")
+  #SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt/")
+  SET(CRT_TYPE "ON_CHIP")
   SET(LINK_FILE "link.ld")
 elseif(${LINKER} STREQUAL "flash_load")
-  SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt_flash_load/")
+  #SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt_flash_load/")
+  SET(CRT_TYPE "FLASH_LOAD")
   SET(LINK_FILE "link_flash_load.ld")
 elseif(${LINKER} STREQUAL "flash_exec")
-  SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_flash_exec/")
+  #SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_flash_exec/")
+  SET(CRT_TYPE "FLASH_EXEC")
   SET(LINK_FILE "link_flash_exec.ld")
 else()
   message( FATAL_ERROR "Linker specification is not correct" )
 endif()
+SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt/")
 SET(LIB_VCTR_P	"${LIB_CRT_P}vectors.S")
 
 # Just in case it is a freertos based app
 if(${PROJECT} MATCHES "freertos")
   #SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_freertos/")
-  SET(LIB_VCTR_P	"${SOURCE_PATH}device/lib/crt_freertos/vectors.S")
+  SET(LIB_VCTR_P	"${SOURCE_PATH}device/lib/crt/vectors_freertos.S")
 endif()
 
 # messages to check the paths
@@ -200,6 +204,7 @@ set(COMPILER_LINKER_FLAGS "\
   -march=${CMAKE_SYSTEM_PROCESSOR} \
   -w -Os -g  -nostdlib  \
   -DHOST_BUILD \
+  -D${CRT_TYPE} \
   -DportasmHANDLE_INTERRUPT=vSystemIrqHandler\
 ")
 set(CMAKE_C_FLAGS ${COMPILER_LINKER_FLAGS})
@@ -208,7 +213,7 @@ if (${COMPILER} MATCHES "clang")
      set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=riscv32 \
                                           -mabi=ilp32 \
                                           --gcc-toolchain=${RISCV} \
-                                          --sysroot=${RISCV}/riscv32-unknown-elf \
+                                          --sysroot=${RISCV}/${COMPILER_PREFIX}elf \
                                           -static \
                                           -mcmodel=medany \
                                           -fvisibility=hidden \
@@ -250,10 +255,10 @@ SET(CMAKE_EXE_LINKER_FLAGS  "-T ${LINKER_SCRIPT}  \
                             ${INCLUDE_FOLDERS} \
                              -static ${LINKED_FILES} \
                              -Wl,-Map=${MAINFILE}.map \
-                             -L ${RISCV}/riscv32-unknown-elf/lib \
+                             -L ${RISCV}/${COMPILER_PREFIX}elf/lib \
                              -lc -lm -lgcc -flto \
                             -ffunction-sections -fdata-sections -specs=nano.specs")
-message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/riscv32-unknown-elf/lib${ColourReset}")
+message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/${COMPILER_PREFIX}elf/lib${ColourReset}")
 
 SET(CMAKE_VERBOSE_MAKEFILE on)
 
@@ -269,9 +274,17 @@ endif()
 
 # Specify that we want to link with GCC even if we are compiling with clang
 if (${COMPILER} MATCHES "clang")
-  set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
+	if( ${PROJECT} MATCHES "freertos" )
+		set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
                                 ${SOURCE_PATH}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${MAINFILE}.c.obj \
-                                -o ${MAINFILE}.elf")
+                                -o ${MAINFILE}.elf \
+								_deps/freertos_kernel-build/libfreertos_kernel.a \ _deps/freertos_kernel-build/portable/libfreertos_kernel_port.a \ _deps/freertos_kernel-build/libfreertos_kernel.a \ _deps/freertos_kernel-build/portable/libfreertos_kernel_port.a \
+								")
+	else()
+	  	set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
+		                            ${SOURCE_PATH}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${MAINFILE}.c.obj \
+		                            -o ${MAINFILE}.elf")
+    endif()
 endif()
 
 # Post processing command to create a disassembly file 
