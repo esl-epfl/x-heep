@@ -26,11 +26,19 @@
 #define TEST_MEM_2_SPI
 #define TEST_SPI_2_MEM
 
-#define TEST_DATA_TYPE  DMA_DATA_TYPE_WORD
+#define TEST_DATA_TYPE  DMA_DATA_TYPE_HALF_WORD
 
-// WARNING: When using circular mode COPY_DATA_WORDS/CIRCULAR_CYCLES needs to be 32 <= x <= 128
+#if TEST_DATA_TYPE == DMA_DATA_TYPE_BYTE
+#define DATA_TYPE    uint8_t
+#elif TEST_DATA_TYPE == DMA_DATA_TYPE_HALF_WORD
+#define DATA_TYPE    uint16_t
+#else
+#define DATA_TYPE    uint32_t
+#endif
+
+// WARNING: When using circular mode COPY_DATA_UNITS/CIRCULAR_CYCLES needs to be 32 <= x <= 128
 #define CIRCULAR_CYCLES 4
-#define COPY_DATA_WORDS 128// Flash page size = 256 Bytes
+#define COPY_DATA_UNITS 256// Flash page size = 256 Bytes
 
 // Warning in case of targetting simulation
 #ifdef TARGET_SIM
@@ -45,9 +53,9 @@
 
 
 #ifdef TEST_CIRCULAR 
-    #define COPY_DATA_PER_CYCLE ( COPY_DATA_WORDS / CIRCULAR_CYCLES )// Flash page size = 256 Bytes
+    #define COPY_DATA_PER_CYCLE ( COPY_DATA_UNITS / CIRCULAR_CYCLES )// Flash page size = 256 Bytes
 #else
-    #define COPY_DATA_PER_CYCLE COPY_DATA_WORDS
+    #define COPY_DATA_PER_CYCLE COPY_DATA_UNITS
 #endif //TEST_CIRCULAR 
 
 
@@ -65,11 +73,11 @@ spi_host_t spi_host;
 int8_t cycles;
 
 // Reserve memory array
-uint32_t flash_data[COPY_DATA_WORDS] __attribute__ ((aligned (4))) = { 0 };
-uint32_t copy_data[COPY_DATA_WORDS] __attribute__ ((aligned (4)))  = { 0 };
+DATA_TYPE flash_data[COPY_DATA_UNITS] __attribute__ ((aligned (4))) = { 0 };
+DATA_TYPE copy_data[COPY_DATA_UNITS] __attribute__ ((aligned (4)))  = { 0 };
 
-uint32_t *fifo_ptr_tx;
-uint32_t *fifo_ptr_rx;
+DATA_TYPE *fifo_ptr_tx;
+DATA_TYPE *fifo_ptr_rx;
 
 #ifndef USE_SPI_FLASH
 void fic_irq_spi(void)
@@ -263,9 +271,9 @@ int main(int argc, char *argv[])
 
     dma_config_flags_t res;
 
-    for( uint32_t i = 0; i < COPY_DATA_WORDS; i ++ )
+    for( uint32_t i = 0; i < COPY_DATA_UNITS; i ++ )
     {
-        flash_data[i] = (uint32_t) i;
+        ((DATA_TYPE*)flash_data)[i] = (DATA_TYPE) i;
     }
 
 #ifdef TEST_MEM_2_SPI
@@ -328,7 +336,7 @@ int main(int argc, char *argv[])
     spi_enable_txempty_intr(&spi_host, true);
 
     const uint32_t cmd_write_tx = spi_create_command((spi_command_t){
-        .len        = COPY_DATA_WORDS*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE) - 1,
+        .len        = COPY_DATA_UNITS*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE) - 1,
         .csaat      = false,
         .speed      = kSpiSpeedStandard,
         .direction  = kSpiDirTxOnly
@@ -344,7 +352,7 @@ int main(int argc, char *argv[])
 
     spi_wait_4_resp();
 
-    PRINTF("%d Bytes written in Flash at @ 0x%08x \n", COPY_DATA_WORDS*sizeof(*flash_data), FLASH_ADDR);
+    PRINTF("%d Bytes written in Flash at @ 0x%08x \n", COPY_DATA_UNITS*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE), FLASH_ADDR);
 
 
 #endif //TEST_SPI_2_MEM
@@ -408,7 +416,7 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
-        .len        = COPY_DATA_WORDS*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE) - 1,
+        .len        = COPY_DATA_UNITS*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE) - 1,
         .csaat      = false,
         .speed      = kSpiSpeedStandard,
         .direction  = kSpiDirRxOnly
@@ -441,13 +449,13 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     // The data is already in memory -- Check results
-    PRINTF("flash vs ram...\n");
+    PRINTF("ram vs flash...\n");
 
     int i;
     uint32_t errors = 0;
     uint32_t count = 0;
     for (i = 0; i<COPY_DATA_PER_CYCLE; i++) {
-        if(flash_data[i] != copy_data[i]) {
+        if(((DATA_TYPE*)flash_data)[i] != ((DATA_TYPE*)copy_data)[i]) {
             PRINTF("@%08x-@%08x : %02d\t!=\t%02d\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
             errors++;
         }
@@ -455,7 +463,7 @@ int main(int argc, char *argv[])
     }
 
     if (errors == 0) {
-        PRINTF("success! (Words checked: %d)\n", count);
+        PRINTF("success! (Data units checked: %d)\n", count);
     } else {
         PRINTF("failure, %d errors! (Out of %d)\n", errors, count);
     }
