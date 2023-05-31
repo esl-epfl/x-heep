@@ -12,10 +12,17 @@
 #include "rv_plic.h"
 #include "rv_plic_regs.h"
 #include "rv_plic_structs.h"
-#include "memcopy_periph.h"
+#include "dma.h"
 
 #define COPY_SIZE 10
 
+#ifndef RV_PLIC_IS_INCLUDED
+  #error ( "This app does NOT work as the RV_PLIC peripheral is not included" )
+#endif
+
+#ifdef TARGET_PYNQ_Z2
+  #error ( "This app does NOT work on the FPGA as it relies on the simulator testbench" )
+#endif
 
 // Interrupt controller variables
 plic_result_t plic_res;
@@ -70,21 +77,25 @@ int main(int argc, char *argv[])
         *src_ptr++ = i;
     }
 
-    // memcopy peripheral structure to access the registers
-    memcopy_periph_t memcopy_periph;
+    // dma peripheral structure to access the registers
+    dma_t memcopy_periph;
     memcopy_periph.base_addr = mmio_region_from_addr((uintptr_t)EXT_PERIPHERAL_START_ADDRESS);
-    
-    memcopy_periph_set_read_ptr(&memcopy_periph, (uint32_t) original_data);
-    memcopy_periph_set_write_ptr(&memcopy_periph, (uint32_t) copied_data);
+
+
+    dma_set_read_ptr(&memcopy_periph, (uint32_t) original_data);
+    dma_set_write_ptr(&memcopy_periph, (uint32_t) copied_data);
+    dma_set_read_ptr_inc(&memcopy_periph, (uint32_t) 4);
+    dma_set_write_ptr_inc(&memcopy_periph, (uint32_t) 4);
+    dma_set_spi_mode(&memcopy_periph, (uint32_t) 0);
+    dma_set_data_type(&memcopy_periph, (uint32_t) 0);
+
     printf("Memcopy launched...\r\n");
-    memcopy_periph_set_cnt_start(&memcopy_periph, (uint32_t) COPY_SIZE);
+    dma_set_cnt_start(&memcopy_periph, (uint32_t) COPY_SIZE*sizeof(*original_data));
     // Wait copy is done
     while(plic_intr_flag==0) {
         wait_for_interrupt();
     }
     printf("Memcopy finished...\r\n");
-
-    printf("Complete interrupt...");
 
     // Reinitialized the read pointer to the original address
     src_ptr = original_data;
