@@ -210,13 +210,19 @@ i2c_result_t i2c_irq_is_pending(i2c_irq_t irq, bool *is_pending)
     return kI2cBadArg;
   }
 
-  bitfield_bit32_index_t index = 0;
-  if (!irq_index(irq, &index))
+  if(irq < 0 || irq > kI2cNIrqTypes)
   {
     return kI2cBadArg;
   }
 
-  *is_pending = bitfield_read(i2c_peri->INTR_STATE, BIT_MASK_1, index);
+  // bitfield_bit32_index_t index = 0;
+  // if (!irq_index(irq, &index))
+  // {
+  //   return kI2cBadArg;
+  // }
+
+
+  *is_pending = bitfield_read(i2c_peri->INTR_STATE, BIT_MASK_1, irq);
 
   return kI2cOk;
 }
@@ -224,14 +230,18 @@ i2c_result_t i2c_irq_is_pending(i2c_irq_t irq, bool *is_pending)
 
 i2c_result_t i2c_irq_acknowledge(i2c_irq_t irq) {
 
-  bitfield_bit32_index_t index = 0;
-  if (!irq_index(irq, &index)) {
+  if(irq < 0 || irq > kI2cNIrqTypes)
+  {
     return kI2cBadArg;
   }
+  // bitfield_bit32_index_t index = 0;
+  // if (!irq_index(irq, &index)) {
+  //   return kI2cBadArg;
+  // }
 
   i2c_peri->INTR_STATE = bitfield_write(0, 
                                         BIT_MASK_1,
-                                        index,
+                                        irq,
                                         true);
 
   return kI2cOk;
@@ -240,14 +250,19 @@ i2c_result_t i2c_irq_acknowledge(i2c_irq_t irq) {
 
 i2c_result_t i2c_irq_get_enabled(i2c_irq_t irq, i2c_toggle_t *state)
 {
-  bitfield_bit32_index_t index = 0;
 
-  if(!irq_index(irq, &index))
+  if(irq < 0 || irq > kI2cNIrqTypes)
   {
     return kI2cBadArg;
   }
+  // bitfield_bit32_index_t index = 0;
 
-  *state = bitfield_read(i2c_peri->INTR_ENABLE, BIT_MASK_1, index);
+  // if(!irq_index(irq, &index))
+  // {
+  //   return kI2cBadArg;
+  // }
+
+  *state = bitfield_read(i2c_peri->INTR_ENABLE, BIT_MASK_1, irq);
 
   return kI2cOk;
 }
@@ -261,15 +276,19 @@ i2c_result_t i2c_irq_set_enabled(i2c_irq_t irq, i2c_toggle_t state)
     return kI2cBadArg;
   }
 
-  bitfield_bit32_index_t index = 0;
-  if (!irq_index(irq, &index))
+  if(irq < 0 || irq > kI2cNIrqTypes)
   {
     return kI2cBadArg;
   }
+  // bitfield_bit32_index_t index = 0;
+  // if (!irq_index(irq, &index))
+  // {
+  //   return kI2cBadArg;
+  // }
 
   i2c_peri->INTR_ENABLE = bitfield_write(i2c_peri->INTR_ENABLE, 
                                           BIT_MASK_1, 
-                                          index, 
+                                          irq, 
                                           state);
 
   return kI2cOk;
@@ -278,16 +297,20 @@ i2c_result_t i2c_irq_set_enabled(i2c_irq_t irq, i2c_toggle_t state)
 
 i2c_result_t i2c_irq_force(i2c_irq_t irq)
 {
-
-  bitfield_bit32_index_t index;
-  if (!irq_index(irq, &index)) 
+  if(irq < 0 || irq > kI2cNIrqTypes)
   {
     return kI2cBadArg;
   }
 
+  // bitfield_bit32_index_t index;
+  // if (!irq_index(irq, &index)) 
+  // {
+  //   return kI2cBadArg;
+  // }
+
   i2c_peri->INTR_TEST = bitfield_write(0,
                                         BIT_MASK_1,
-                                        index,
+                                        irq,
                                         true);
 
   return kI2cOk;
@@ -622,64 +645,72 @@ i2c_config_t default_timing_for_speed(i2c_speed_t speed,
 }
 
 
-bool irq_index(i2c_irq_t irq, bitfield_bit32_index_t *bit_index)
-{
-  switch (irq) 
-  {
-    case kI2cIrqFmtWatermarkUnderflow:
-    *bit_index = I2C_INTR_COMMON_FMT_WATERMARK_BIT;
-    break;
-    case kI2cIrqRxWatermarkOverflow:
-      *bit_index = I2C_INTR_COMMON_RX_WATERMARK_BIT;
-      break;
-    case kI2cIrqFmtFifoOverflow:
-      *bit_index = I2C_INTR_COMMON_FMT_OVERFLOW_BIT;
-      break;
-    case kI2cIrqRxFifoOverflow:
-      *bit_index = I2C_INTR_COMMON_RX_OVERFLOW_BIT;
-      break;
-    case kI2cIrqNak:
-      *bit_index = I2C_INTR_COMMON_NAK_BIT;
-      break;
-    case kI2cIrqSclInterference:
-      *bit_index = I2C_INTR_COMMON_SCL_INTERFERENCE_BIT;
-      break;
-    case kI2cIrqSdaInterference:
-      *bit_index = I2C_INTR_COMMON_SDA_INTERFERENCE_BIT;
-      break;
-    case kI2cIrqClockStretchTimeout:
-      *bit_index = I2C_INTR_COMMON_STRETCH_TIMEOUT_BIT;
-      break;
-    case kI2cIrqSdaUnstable:
-      *bit_index = I2C_INTR_COMMON_SDA_UNSTABLE_BIT;
-      break;
-    case kI2cIrqTransComplete:
-      *bit_index = I2C_INTR_STATE_TRANS_COMPLETE_BIT;
-      break;
-    case kI2cIrqTxEmpty:
-      *bit_index = I2C_INTR_STATE_TX_EMPTY_BIT;
-      break;
-    case kI2cIrqTxNonEmpty:
-      *bit_index = I2C_INTR_STATE_TX_NONEMPTY_BIT;
-      break;
-    case kI2cIrqTxOverflow:
-      *bit_index = I2C_INTR_STATE_TX_OVERFLOW_BIT;
-      break;
-    case kI2cIrqAcqOverflow:
-      *bit_index = I2C_INTR_STATE_ACQ_OVERFLOW_BIT;
-      break;
-    case kI2cIrqAckStop:
-      *bit_index = I2C_INTR_STATE_ACK_STOP_BIT;
-      break;
-    case kI2cIrqHostTimeout:
-      *bit_index = I2C_INTR_STATE_HOST_TIMEOUT_BIT;
-      break;
-    default:
-      return false;
-  }
+// bool irq_index(i2c_irq_t irq, bitfield_bit32_index_t *bit_index)
+// {
+//   // // Check if the irq type is among the possible ones
+//   // if (irq < 0 || irq > kI2cNIrqTypes)
+//   // {
+//   //   return false;
+//   // } else {
+//   //   return true;
+//   // }
 
-  return true;
-}
+//   switch (irq) 
+//   {
+//     case kI2cIrqFmtWatermarkUnderflow:
+//     *bit_index = I2C_INTR_COMMON_FMT_WATERMARK_BIT;
+//     break;
+//     case kI2cIrqRxWatermarkOverflow:
+//       *bit_index = I2C_INTR_COMMON_RX_WATERMARK_BIT;
+//       break;
+//     case kI2cIrqFmtFifoOverflow:
+//       *bit_index = I2C_INTR_COMMON_FMT_OVERFLOW_BIT;
+//       break;
+//     case kI2cIrqRxFifoOverflow:
+//       *bit_index = I2C_INTR_COMMON_RX_OVERFLOW_BIT;
+//       break;
+//     case kI2cIrqNak:
+//       *bit_index = I2C_INTR_COMMON_NAK_BIT;
+//       break;
+//     case kI2cIrqSclInterference:
+//       *bit_index = I2C_INTR_COMMON_SCL_INTERFERENCE_BIT;
+//       break;
+//     case kI2cIrqSdaInterference:
+//       *bit_index = I2C_INTR_COMMON_SDA_INTERFERENCE_BIT;
+//       break;
+//     case kI2cIrqClockStretchTimeout:
+//       *bit_index = I2C_INTR_COMMON_STRETCH_TIMEOUT_BIT;
+//       break;
+//     case kI2cIrqSdaUnstable:
+//       *bit_index = I2C_INTR_COMMON_SDA_UNSTABLE_BIT;
+//       break;
+//     case kI2cIrqTransComplete:
+//       *bit_index = I2C_INTR_STATE_TRANS_COMPLETE_BIT;
+//       break;
+//     case kI2cIrqTxEmpty:
+//       *bit_index = I2C_INTR_STATE_TX_EMPTY_BIT;
+//       break;
+//     case kI2cIrqTxNonEmpty:
+//       *bit_index = I2C_INTR_STATE_TX_NONEMPTY_BIT;
+//       break;
+//     case kI2cIrqTxOverflow:
+//       *bit_index = I2C_INTR_STATE_TX_OVERFLOW_BIT;
+//       break;
+//     case kI2cIrqAcqOverflow:
+//       *bit_index = I2C_INTR_STATE_ACQ_OVERFLOW_BIT;
+//       break;
+//     case kI2cIrqAckStop:
+//       *bit_index = I2C_INTR_STATE_ACK_STOP_BIT;
+//       break;
+//     case kI2cIrqHostTimeout:
+//       *bit_index = I2C_INTR_STATE_HOST_TIMEOUT_BIT;
+//       break;
+//     default:
+//       return false;
+//   }
+
+//   return true;
+// }
 
 /****************************************************************************/
 /**                                                                        **/

@@ -385,7 +385,15 @@ typedef enum i2c_irq {
   /**
    * Fires when the host stop sending the clock during a transaction (target mode)
   */
-  kI2cIrqHostTimeout
+  kI2cIrqHostTimeout,
+
+  /**
+   * Helper variable used to keep track of the amount of different I2C-related
+   * interrupt requests there can be.
+   * Whenever a new IRQ is added after the last one, this variable should 
+   * be changed as well in order to keep track of the correct number.
+  */
+  kI2cNIrqTypes = kI2cIrqHostTimeout
 } i2c_irq_t;
 
 /****************************************************************************/
