@@ -39,7 +39,6 @@
 /* To manage interrupts. */
 #include "fast_intr_ctrl.h"
 #include "rv_plic.h"
-#include "handler.h"
 #include "csr.h"
 
 /****************************************************************************/
