@@ -209,6 +209,11 @@ static struct
     */
     uint8_t intrFlag;
 
+    /**
+     * memory mapped structure of a DMA.
+     */
+    dma *peri; 
+
 }dma_cb;
 
 
@@ -218,20 +223,26 @@ static struct
 /**                                                                        **/
 /****************************************************************************/
 
-void dma_init()
+void dma_init( dma *peri )
 {
+    /* 
+     * If a DMA peripheral was provided, use that one, otherwise use the
+     * integrated one. 
+     */
+    dma_cb.peri = peri ? peri : dma_peri;
+
     /* Clear the loaded transaction */
     dma_cb.trans = NULL;
     /* Clear all values in the DMA registers. */
-    dma_peri->SRC_PTR       = 0;
-    dma_peri->DST_PTR       = 0;
-    dma_peri->SIZE          = 0;
-    dma_peri->PTR_INC       = 0;
-    dma_peri->SLOT          = 0;
-    dma_peri->DATA_TYPE     = 0;  
-    dma_peri->MODE          = 0;
-    dma_peri->WINDOW_SIZE   = 0;
-    dma_peri->INTERRUPT_EN  = 0;
+    dma_cb.peri->SRC_PTR       = 0;
+    dma_cb.peri->DST_PTR       = 0;
+    dma_cb.peri->SIZE          = 0;
+    dma_cb.peri->PTR_INC       = 0;
+    dma_cb.peri->SLOT          = 0;
+    dma_cb.peri->DATA_TYPE     = 0;  
+    dma_cb.peri->MODE          = 0;
+    dma_cb.peri->WINDOW_SIZE   = 0;
+    dma_cb.peri->INTERRUPT_EN  = 0;
 }
 
 dma_config_flags_t dma_create_environment( dma_env_t *p_env )
@@ -623,7 +634,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * Otherwise the mie.MEIE bit is set to one to enable machine-level
      * fast DMA interrupt.
      */
-    dma_peri->INTERRUPT_EN = INTR_EN_NONE;
+    dma_cb.peri->INTERRUPT_EN = INTR_EN_NONE;
     CSR_CLEAR_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
 
     if( dma_cb.trans->end != DMA_TRANS_END_POLLING )
@@ -633,7 +644,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
         /* @ToDo: What does this do? */
         CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
 
-        dma_peri->INTERRUPT_EN |= INTR_EN_TRANS_DONE;
+        dma_cb.peri->INTERRUPT_EN |= INTR_EN_TRANS_DONE;
 
         /* Only if a window is used should the window interrupt be set. */
         if( p_trans->win_du > 0 )
@@ -641,7 +652,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
             plic_Init();
             plic_irq_set_priority(DMA_WINDOW_INTR, 1);
             plic_irq_set_enabled(DMA_WINDOW_INTR, kPlicToggleEnabled);
-            dma_peri->INTERRUPT_EN |= INTR_EN_WINDOW_DONE;
+            dma_cb.peri->INTERRUPT_EN |= INTR_EN_WINDOW_DONE;
         } 
     }
 
@@ -650,8 +661,8 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      */
     ////printf("src ptr - Wrote %08x @ ----\n", dma_cb.trans->src->ptr );
     //printf("dst ptr - Wrote %08x @ ----\n", dma_cb.trans->dst->ptr );
-    dma_peri->SRC_PTR = dma_cb.trans->src->ptr;
-    dma_peri->DST_PTR = dma_cb.trans->dst->ptr;
+    dma_cb.peri->SRC_PTR = dma_cb.trans->src->ptr;
+    dma_cb.peri->DST_PTR = dma_cb.trans->dst->ptr;
     
     /*
      * SET THE INCREMENTS
@@ -685,13 +696,13 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      */
 
     //printf("mode    - Wrote %08x @ ----\n", dma_cb.trans->mode );
-    dma_peri->MODE = dma_cb.trans->mode;
+    dma_cb.peri->MODE = dma_cb.trans->mode;
     /* The window size is set to the transaction size if it was set to 0 in
     order to disable the functionality (it will never be triggered). */
     
     //printf("win siz - Wrote %08x @ ----\n", dma_cb.trans->win_du ? dma_cb.trans->win_du : dma_cb.trans->size_b );
 
-    dma_peri->WINDOW_SIZE =   dma_cb.trans->win_du 
+    dma_cb.peri->WINDOW_SIZE =   dma_cb.trans->win_du 
                             ? dma_cb.trans->win_du
                             : dma_cb.trans->size_b;
     
@@ -756,7 +767,7 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans )
 
     /* Load the size and start the transaction. */
     //printf("size    - Wrote %08x @ ----\n", dma_cb.trans->size_b );
-    dma_peri->SIZE = dma_cb.trans->size_b;
+    dma_cb.peri->SIZE = dma_cb.trans->size_b;
 
     /* 
      * If the end event was set to wait for the interrupt, the dma_launch
@@ -774,7 +785,7 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans )
 uint32_t dma_is_ready()
 {    
     /* The transaction READY bit is read from the status register*/   
-    uint32_t ret = ( dma_peri->STATUS & (1<<DMA_STATUS_READY_BIT) );
+    uint32_t ret = ( dma_cb.peri->STATUS & (1<<DMA_STATUS_READY_BIT) );
     make_sure_that( ret == 0 || ret == 1 ); // @ToDo: Add label to these values
     return ret;
 }
@@ -782,16 +793,16 @@ uint32_t dma_is_ready()
  * In case a return wants to be forced in case of an error, there are 2 
  * alternatives: 
  *    1) Consider any value != 0 to be a valid 1 using a LOGIC AND: 
- *  return ( 1 && dma_peri->DONE );
+ *  return ( 1 && dma_cb.peri->DONE );
  *    2) Consider only the LSB == 1 to be a valid 1 using a BITWISE AND. 
- *  return ( 1 &  dma_peri->DONE );
+ *  return ( 1 &  dma_cb.peri->DONE );
  * This would be fixed if the DONE register was a 1 bit field. 
  */   
 
 
 uint32_t dma_get_window_count()
 {
-    return dma_peri->WINDOW_COUNT;
+    return dma_cb.peri->WINDOW_COUNT;
 }
 
 
@@ -801,7 +812,7 @@ void dma_stop_circular()
      * The DMA finishes the current transaction before and does not start
      * a new one.
      */
-    dma_peri->MODE = DMA_TRANS_MODE_SINGLE;
+    dma_cb.peri->MODE = DMA_TRANS_MODE_SINGLE;
 }
 
 
@@ -1049,10 +1060,10 @@ static inline void writeRegister( uint32_t  p_val,
      * An intermediate variable "value" is used to prevent writing twice into 
      * the register.
      */
-    uint32_t value  =  (( uint32_t * ) dma_peri ) [ index ];
+    uint32_t value  =  (( uint32_t * ) dma_cb.peri ) [ index ];
     value           &= ~( p_mask << p_sel );
     value           |= (p_val & p_mask) << p_sel;
-    (( uint32_t * ) dma_peri ) [ index ] = value; 
+    (( uint32_t * ) dma_cb.peri ) [ index ] = value; 
 
     //printf("Wrote %08x @ %04x\n", value, index );
 

@@ -5,116 +5,97 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "csr.h"
-#include "hart.h"
-#include "handler.h"
-#include "core_v_mini_mcu.h"
-#include "rv_plic.h"
-#include "rv_plic_regs.h"
-#include "rv_plic_structs.h"
+
 #include "dma.h"
+#include "core_v_mini_mcu.h"
 
-#define COPY_SIZE 10
+
+#define TEST_DATA_SIZE      16
+#define TEST_DATA_LARGE     1024
+#define DEBUG
+
+// Use PRINTF instead of PRINTF to remove print by default
+#ifdef DEBUG
+  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif // DEBUG
 
 
-// Interrupt controller variables
-plic_result_t plic_res;
-plic_irq_id_t intr_num;
+int32_t errors = 0;
 
+void dma_intr_handler_trans_done()
+{
+    PRINTF("D");
+}
 
 int main(int argc, char *argv[])
 {
+    
+    static uint32_t test_data[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = {
+      0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef, 0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa, 0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98};
+    static uint32_t copied_data[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
 
-#ifdef TARGET_PYNQ_Z2
-  #pragma message ( "This app does NOT work on the Pynq-Z2 board as it relies on the testbench" )
-    return -1;
-#else
-    printf("Init the PLIC...");
-    plic_res = plic_Init();
+    // The DMA is initialized (i.e. Any current transaction is cleaned.)
 
-    if (plic_res != kPlicOk) {
-        return -1;
-    }
+    volatile static dma *peri =  EXT_PERIPHERAL_START_ADDRESS;
 
-    // Set memcopy priority to 1 (target threshold is by default 0) to trigger an interrupt to the target (the processor)
-    plic_res = plic_irq_set_priority(EXT_INTR_0, 1);
-    if (plic_res == kPlicOk) {
-        printf("success\n");
-    } else {
-        printf("fail\n;");
-    }
+    dma_init(peri);
+    
+    dma_config_flags_t res;
+    
+    static dma_target_t tgt_src = {
+                                .ptr        = test_data,
+                                .inc_du     = 1,
+                                .size_du    = TEST_DATA_SIZE,
+                                .trig       = DMA_TRIG_MEMORY,
+                                .type       = DMA_DATA_TYPE_WORD,
+                                };
+    static dma_target_t tgt_dst = {
+                                .ptr        = copied_data,
+                                .inc_du     = 1,
+                                .size_du    = TEST_DATA_SIZE,
+                                .trig       = DMA_TRIG_MEMORY,
+                                };
+    static dma_trans_t trans = {
+                                .src        = &tgt_src,
+                                .dst        = &tgt_dst,
+                                .mode       = DMA_TRANS_MODE_SINGLE,
+                                .win_du      = 0,
+                                .end        = DMA_TRANS_END_INTR,
+                                };
+    // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
 
-    printf("Enable MEMCOPY interrupt...");
-    plic_res = plic_irq_set_enabled(EXT_INTR_0, kPlicToggleEnabled);
-    if (plic_res == kPlicOk) {
-        printf("Success\n");
-    } else {
-        printf("Fail\n;");
-    }
+    PRINTF("\n\n===================================\n\n");
+    PRINTF(" TESTING DMA ON EXTERNAL PERIPHERAL   ");
+    PRINTF("\n\n===================================\n\n");
 
-    // Enable interrupt on processor side
-    // Enable global interrupt for machine-level interrupts
-    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    // Set mie.MEIE bit to one to enable machine-level external interrupts
-    const uint32_t mask = 1 << 11;//IRQ_EXT_ENABLE_OFFSET;
-    CSR_SET_BITS(CSR_REG_MIE, mask);
-
-    // Use the stack
-    int32_t original_data[COPY_SIZE];
-    int32_t copied_data[COPY_SIZE];
-    // Or use the slow sram ip example for data
-    // int32_t original_data = EXT_SLAVE_START_ADDRESS;
-    // int32_t copied_data = EXT_SLAVE_START_ADDRESS+COPY_SIZE;
-
-    volatile uint32_t *src_ptr = original_data;
-    volatile uint32_t *dest_ptr = copied_data;
-
-    // Put some data to initialize the memory addresses
-    for(int i=0; i<COPY_SIZE; i++) {
-        *src_ptr++ = i;
-    }
-
-    // dma peripheral structure to access the registers
-    dma_t memcopy_periph;
-    memcopy_periph.base_addr = mmio_region_from_addr((uintptr_t)EXT_PERIPHERAL_START_ADDRESS);
-
-
-    dma_set_read_ptr(&memcopy_periph, (uint32_t) original_data);
-    dma_set_write_ptr(&memcopy_periph, (uint32_t) copied_data);
-    dma_set_read_ptr_inc(&memcopy_periph, (uint32_t) 4);
-    dma_set_write_ptr_inc(&memcopy_periph, (uint32_t) 4);
-    dma_set_spi_mode(&memcopy_periph, (uint32_t) 0);
-    dma_set_data_type(&memcopy_periph, (uint32_t) 0);
-
-    printf("Memcopy launched...\r\n");
-    dma_set_cnt_start(&memcopy_periph, (uint32_t) COPY_SIZE*sizeof(*original_data));
-    // Wait copy is done
-    while(plic_intr_flag==0) {
+    res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res = dma_load_transaction(&trans);
+    PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res = dma_launch(&trans);
+    PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    
+    while( ! dma_is_ready() ){
         wait_for_interrupt();
     }
-    printf("Memcopy finished...\r\n");
-
-    // Reinitialized the read pointer to the original address
-    src_ptr = original_data;
-
-    // Check for errors
-    int32_t errors=0;
-    for(int i=0; i<COPY_SIZE; i++) {
-        if ((*src_ptr) != (*dest_ptr)) {
-            printf("WARNING: %d != %d\n", *src_ptr, *dest_ptr);
+    PRINTF(">> Finished transaction. \n\r");
+        
+    for(uint32_t i = 0; i < trans.size_b; i++ ) {
+        if ( ((uint8_t*)copied_data)[i] != ((uint8_t*)test_data)[i] ) {
+            PRINTF("ERROR [%d]: %04x != %04x\n\r", i, ((uint8_t*)copied_data)[i], ((uint8_t*)test_data)[i]);
             errors++;
         }
-        src_ptr++;
-        dest_ptr++;
     }
 
     if (errors == 0) {
-        printf("MEMCOPY SUCCESS\n");
+        PRINTF("DMA word transfer success\nFinished! :) \n\r");
+        return EXIT_SUCCESS;
     } else {
-        printf("MEMCOPY FAILURE: %d errors out of %d words copied\n", errors, COPY_SIZE);
-        return -1;
+        PRINTF("DMA word transfer failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
+        return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
-#endif
 }
