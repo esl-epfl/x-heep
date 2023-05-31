@@ -380,11 +380,6 @@ module testharness #(
   assign master_req[testharness_pkg::EXT_MASTER0_IDX].be = '0;
   assign master_req[testharness_pkg::EXT_MASTER0_IDX].addr = '0;
   assign master_req[testharness_pkg::EXT_MASTER0_IDX].wdata = '0;
-  assign master_req[testharness_pkg::EXT_MASTER1_IDX].req = '0;
-  assign master_req[testharness_pkg::EXT_MASTER1_IDX].we = '0;
-  assign master_req[testharness_pkg::EXT_MASTER1_IDX].be = '0;
-  assign master_req[testharness_pkg::EXT_MASTER1_IDX].addr = '0;
-  assign master_req[testharness_pkg::EXT_MASTER1_IDX].wdata = '0;
 
   assign memcopy_intr = '0;
 `endif
