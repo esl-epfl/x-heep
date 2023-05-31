@@ -14,22 +14,44 @@
 #include "rv_plic.h"
 #include "rv_plic_regs.h"
 #include "gpio.h"
+#include "pad_control.h"
+#include "pad_control_regs.h"
+#include "x-heep.h"
+
+
+#ifndef RV_PLIC_IS_INCLUDED
+  #error ( "This app does NOT work as the RV_PLIC peripheral is not included" )
+#endif
+
 
 static rv_timer_t timer_0_1;
 static rv_timer_t timer_2_3;
 static const uint64_t kTickFreqHz = 1000 * 1000; // 1 MHz
 static power_manager_t power_manager;
 
+#ifndef TARGET_PYNQ_Z2
+    #define GPIO_TB_OUT 30
+    #define GPIO_TB_IN  31
+    #define GPIO_INTR  GPIO_INTR_31
+#endif
+
 int main(int argc, char *argv[])
 {
+
     // Setup power_manager
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
     power_manager.base_addr = power_manager_reg;
     power_manager_counters_t power_manager_cpu_counters;
 
+    // Setup pads
+#ifndef TARGET_PYNQ_Z2
+    pad_control_t pad_control;
+    pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_I2C_SCL_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_I2C_SDA_REG_OFFSET), 1);
+#endif
+
     // Setup plic
-    // plic_params_t rv_plic_params;
-    // rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
     plic_Init();
 
     // Get current Frequency
@@ -110,18 +132,18 @@ int main(int argc, char *argv[])
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
 
-// #ifdef USE_EXTERNAL_DEVICE
+#ifndef TARGET_PYNQ_Z2
     // Power-gate and wake-up due to plic
 	bool state = false;
     plic_irq_set_priority(GPIO_INTR_31, 1);
     plic_irq_set_enabled(GPIO_INTR_31, kPlicToggleEnabled);
 
-    gpio_cfg_t pin1_cfg = {.pin = 30, .mode = GpioModeOutPushPull};
+    gpio_cfg_t pin1_cfg = {.pin = GPIO_TB_OUT, .mode = GpioModeOutPushPull};
     gpio_config (pin1_cfg);
-    gpio_write(30, true);
+    gpio_write(GPIO_TB_OUT, true);
 
-    gpio_cfg_t pin2_cfg = {.pin = 31, .mode = GpioModeIn,.en_input_sampling = true, 
-        .en_intr = true, .intr_type = GpioIntrLevelHigh};
+    gpio_cfg_t pin2_cfg = {.pin = GPIO_TB_IN, .mode = GpioModeIn,.en_input_sampling = true, 
+        .en_intr = true, .intr_type = GpioIntrEdgeRising};
     gpio_config (pin2_cfg);
     
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
@@ -134,8 +156,10 @@ int main(int argc, char *argv[])
 
     plic_irq_id_t intr_num;
     plic_irq_complete(&intr_num);
-// #endif
+#endif
+
     /* write something to stdout */
     printf("Success.\n");
     return EXIT_SUCCESS;
+
 }
