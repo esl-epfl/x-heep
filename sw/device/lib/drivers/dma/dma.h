@@ -418,6 +418,13 @@ void dma_stop_circular();
 void dma_intr_handler_trans_done();
 
 /**
+* @brief DMA interrupt handler.   
+* `dma.c` provides a weak definition of this symbol, which can be overridden
+* at link-time by providing an additional non-weak definition.
+*/
+void dma_intr_handler_window_done();
+
+/**
  * @brief This weak implementation allows the user to override the threshold
  * in which a warning is raised for a transaction to window size ratio that
  * could cause a loss of syncronism. 
