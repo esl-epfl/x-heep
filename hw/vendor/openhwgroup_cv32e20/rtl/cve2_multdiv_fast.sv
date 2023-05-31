@@ -38,8 +38,6 @@ module cve2_multdiv_fast #(
   output logic [33:0]      imd_val_d_o[2],
   output logic [1:0]       imd_val_we_o,
 
-  input  logic             multdiv_ready_id_i,
-
   output logic [31:0]      multdiv_result_o,
   output logic             valid_o
 );
@@ -209,7 +207,7 @@ module cve2_multdiv_fast #(
             mult_valid = 1'b0;
             mult_state_d = MULH;
           end else begin
-            mult_hold = ~multdiv_ready_id_i;
+            mult_hold = 1'b0;
           end
         end
 
@@ -228,7 +226,7 @@ module cve2_multdiv_fast #(
           mult_state_d = MULL;
           mult_valid = 1'b1;
 
-          mult_hold = ~multdiv_ready_id_i;
+          mult_hold = 1'b0;
         end
 
         default: begin
@@ -327,7 +325,7 @@ module cve2_multdiv_fast #(
 
             // Note no state transition will occur if mult_hold is set
             mult_state_d = ALBL;
-            mult_hold    = ~multdiv_ready_id_i;
+            mult_hold    = 1'b0;
           end else begin
             accum        = imd_val_q_i[0];
             mac_res_d    = mac_res;
@@ -350,7 +348,7 @@ module cve2_multdiv_fast #(
 
           // Note no state transition will occur if mult_hold is set
           mult_state_d = ALBL;
-          mult_hold    = ~multdiv_ready_id_i;
+          mult_hold    = 1'b0;
         end
         default: begin
           mult_state_d = ALBL;
@@ -507,7 +505,7 @@ module cve2_multdiv_fast #(
         // Hold result until ID stage is ready to accept it
         // Note no state transition will occur if div_hold is set
         md_state_d = MD_IDLE;
-        div_hold   = ~multdiv_ready_id_i;
+        div_hold   = 1'b0;
         div_valid   = 1'b1;
       end
 

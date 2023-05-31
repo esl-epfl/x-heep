@@ -29,7 +29,7 @@ filesets:
       - rtl/cve2_multdiv_slow.sv
       - rtl/cve2_prefetch_buffer.sv
       - rtl/cve2_pmp.sv
-      - rtl/cve2_wb_stage.sv
+      - rtl/cve2_wb.sv
       - rtl/cve2_core.sv
       - rtl/cve2_pmp_reset_default.svh: {is_include_file: true}
     file_type: systemVerilogSource

@@ -50,10 +50,6 @@ module cve2_load_store_unit
                                               // -> mtval
                                               // -> AGU for misaligned accesses
 
-  output logic         lsu_req_done_o,       // Signals that data request is complete
-                                              // (only need to await final data
-                                              // response)                        -> to ID/EX
-
   output logic         lsu_resp_valid_o,     // LSU has response from transaction -> to ID/EX
 
   // exception signals
@@ -452,8 +448,6 @@ module cve2_load_store_unit
       end
     endcase
   end
-
-  assign lsu_req_done_o = (lsu_req_i | (ls_fsm_cs != IDLE)) & (ls_fsm_ns == IDLE);
 
   // registers for FSM
   always_ff @(posedge clk_i or negedge rst_ni) begin

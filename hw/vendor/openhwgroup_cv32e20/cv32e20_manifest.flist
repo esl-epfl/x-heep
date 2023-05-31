@@ -55,7 +55,7 @@ ${DESIGN_RTL_DIR}/cve2_multdiv_slow.sv
 ${DESIGN_RTL_DIR}/cve2_prefetch_buffer.sv
 ${DESIGN_RTL_DIR}/cve2_pmp.sv
 ${DESIGN_RTL_DIR}/cve2_register_file_ff.sv
-${DESIGN_RTL_DIR}/cve2_wb_stage.sv
+${DESIGN_RTL_DIR}/cve2_wb.sv
 ${DESIGN_RTL_DIR}/cve2_core.sv
 ${DESIGN_RTL_DIR}/cve2_top.sv
 ${DESIGN_RTL_DIR}/cve2_top_tracing.sv

@@ -30,7 +30,6 @@ module cve2_ex_block #(
   input  logic  [1:0]           multdiv_signed_mode_i,
   input  logic [31:0]           multdiv_operand_a_i,
   input  logic [31:0]           multdiv_operand_b_i,
-  input  logic                  multdiv_ready_id_i,
 
   // intermediate val reg
   output logic [1:0]            imd_val_we_o,
@@ -138,7 +137,7 @@ module cve2_ex_block #(
       .imd_val_q_i       (imd_val_q_i),
       .imd_val_d_o       (multdiv_imd_val_d),
       .imd_val_we_o      (multdiv_imd_val_we),
-      .multdiv_ready_id_i(multdiv_ready_id_i),
+      .multdiv_ready_id_i(1'b1),
       .multdiv_result_o  (multdiv_result)
     );
   end else if (RV32M == RV32MFast || RV32M == RV32MSingleCycle) begin : gen_multdiv_fast
@@ -163,7 +162,6 @@ module cve2_ex_block #(
       .imd_val_q_i       (imd_val_q_i),
       .imd_val_d_o       (multdiv_imd_val_d),
       .imd_val_we_o      (multdiv_imd_val_we),
-      .multdiv_ready_id_i(multdiv_ready_id_i),
       .valid_o           (multdiv_valid),
       .multdiv_result_o  (multdiv_result)
     );

@@ -77,12 +77,10 @@ module cve2_cs_registers #(
 
   input  logic [31:0]          pc_if_i,
   input  logic [31:0]          pc_id_i,
-  input  logic [31:0]          pc_wb_i,
 
   // Exception save/restore
   input  logic                 csr_save_if_i,
   input  logic                 csr_save_id_i,
-  input  logic                 csr_save_wb_i,
   input  logic                 csr_restore_mret_i,
   input  logic                 csr_restore_dret_i,
   input  logic                 csr_save_cause_i,
@@ -94,8 +92,6 @@ module cve2_cs_registers #(
   // Performance Counters
   input  logic                 instr_ret_i,                 // instr retired in ID/EX stage
   input  logic                 instr_ret_compressed_i,      // compressed instr retired
-  input  logic                 instr_ret_spec_i,            // speculative instr_ret_i
-  input  logic                 instr_ret_compressed_spec_i, // speculative instr_ret_compressed_i
   input  logic                 iside_wait_i,                // core waiting for the iside
   input  logic                 jump_i,                      // jump instr seen (j, jr, jal, jalr)
   input  logic                 branch_i,                    // branch instr seen (bf, bnf)
@@ -219,7 +215,7 @@ module cve2_cs_registers #(
   logic        unused_mhpmcounterh_we_1;
   logic        unused_mhpmcounter_incr_1;
 
-  logic [63:0] minstret_next, minstret_raw;
+  logic [63:0] minstret_raw;
 
   // Debug / trigger registers
   logic [31:0] tselect_rdata;
@@ -622,9 +618,6 @@ module cve2_cs_registers #(
           end
           csr_save_id_i: begin
             exception_pc = pc_id_i;
-          end
-          csr_save_wb_i: begin
-            exception_pc = pc_wb_i;
           end
           default:;
         endcase
@@ -1227,7 +1220,7 @@ module cve2_cs_registers #(
     .counter_we_i(mhpmcounter_we[2]),
     .counter_val_i(csr_wdata_int),
     .counter_val_o(minstret_raw),
-    .counter_val_upd_o(minstret_next)
+    .counter_val_upd_o()
   );
 
   // Where the writeback stage is present instruction in ID observing value of minstret must take
@@ -1237,7 +1230,7 @@ module cve2_cs_registers #(
   // so the incorrect value doesn't matter. A similar behaviour is required for the compressed
   // instruction retired counter below. When the writeback stage isn't present the speculative
   // signals are always 0.
-  assign mhpmcounter[2] = instr_ret_spec_i & ~mcountinhibit[2] ? minstret_next : minstret_raw;
+  assign mhpmcounter[2] = minstret_raw;
 
   // reserved:
   assign mhpmcounter[1]            = '0;
@@ -1270,7 +1263,6 @@ module cve2_cs_registers #(
         // Special behaviour for reading compressed instruction retired counter, see comment on
         // `mhpmcounter[2]` above for further information.
         assign mhpmcounter[Cnt] =
-          instr_ret_compressed_spec_i & ~mcountinhibit[Cnt] ? mhpmcounter_next:
                                                               mhpmcounter_raw;
       end else begin : gen_other_cnts
         logic [63:0] unused_mhpmcounter_next;
@@ -1280,11 +1272,6 @@ module cve2_cs_registers #(
       end
     end else begin : gen_unimp
       assign mhpmcounter[Cnt] = '0;
-
-      if (Cnt == 10) begin : gen_no_compressed_instr_cnt
-        logic unused_instr_ret_compressed_spec_i;
-        assign unused_instr_ret_compressed_spec_i = instr_ret_compressed_spec_i;
-      end
     end
   end
 

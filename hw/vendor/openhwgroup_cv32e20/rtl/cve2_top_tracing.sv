@@ -12,7 +12,6 @@ module cve2_top_tracing import cve2_pkg::*; #(
   parameter bit          RV32E            = 1'b0,
   parameter rv32m_e      RV32M            = RV32MFast,
   parameter rv32b_e      RV32B            = RV32BNone,
-  parameter bit          WritebackStage   = 1'b0,
   parameter bit          BranchPredictor  = 1'b0,
   parameter bit          DbgTriggerEn     = 1'b0,
   parameter int unsigned DbgHwBreakNum    = 1,
@@ -126,7 +125,6 @@ module cve2_top_tracing import cve2_pkg::*; #(
     .BranchPredictor  ( BranchPredictor  ),
     .DbgTriggerEn     ( DbgTriggerEn     ),
     .DbgHwBreakNum    ( DbgHwBreakNum    ),
-    .WritebackStage   ( WritebackStage   ),
     .DmHaltAddr       ( DmHaltAddr       ),
     .DmExceptionAddr  ( DmExceptionAddr  )
   ) u_cve2_top (

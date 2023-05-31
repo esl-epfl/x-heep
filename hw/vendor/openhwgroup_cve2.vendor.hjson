@@ -7,7 +7,7 @@
 
   upstream: {
     url: "https://github.com/davideschiavone/cve2.git",
-    rev: "e168b236496e3f2bb884d3aa2c1f345f6ef344f0",
+    rev: "721bf75c9bde3cf62edc6ea0432bb422112b3d1e",
   },
 
   exclude_from_upstream: [
