@@ -26,7 +26,9 @@
 #define TEST_MEM_2_SPI
 #define TEST_SPI_2_MEM
 
-#define TEST_DATA_TYPE  DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_16BIT_WORD
+// These defines are used only to easily change the data types. 
+// If not needed, the proper way is using the dma_data_type_t enum. 
+#define TEST_DATA_TYPE  DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD
 
 #if TEST_DATA_TYPE == DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD
 #define DATA_TYPE    uint8_t
@@ -38,7 +40,7 @@
 
 
 #ifdef TEST_CIRCULAR 
-// WARNING: When using circular mode COPY_DATA_UNITS/CIRCULAR_CYCLES needs to be 32 <= x <= 128
+// WARNING: When using circular mode the amount of WORDS of each cycle needs to be 32 <= x <= 128
     #define CIRCULAR_CYCLES 4
     #define COPY_DATA_UNITS 256   
     #define COPY_DATA_PER_CYCLE ( COPY_DATA_UNITS / CIRCULAR_CYCLES )// Flash page size = 256 Bytes
@@ -237,7 +239,7 @@ static inline __attribute__((always_inline)) void spi_wait_4_resp()
 {
     // Check status register status waiting for ready
     bool flash_busy = true;
-    uint8_t flash_resp[4] = {0xee,0xee,0xee,0xee};
+    uint8_t flash_resp[4] = {0xff,0xff,0xff,0xff};
     while(flash_busy){
         uint32_t flash_cmd = 0x00000005; // [CMD] Read status register
         spi_write_word(&spi_host, flash_cmd); // Push TX buffer
@@ -325,7 +327,6 @@ int main(int argc, char *argv[])
     PRINTF("load: %u \n\r", res);
 
     res = dma_launch(&trans);
-    // PRINTF("laun: %u \n\r", res);
 
     spi_intr_flag = 0;
     // Wait for the first data to arrive to the TX FIFO before enabling interrupt
@@ -372,16 +373,18 @@ int main(int argc, char *argv[])
     static dma_target_t tgt3= {
     .ptr = copy_data,
     .inc_du = 1,
-    .size_du = COPY_DATA_PER_CYCLE,
+    // Because the data type needs to be WORD the size needs to be normalized. 
+    .size_du = COPY_DATA_PER_CYCLE*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE)/DMA_DATA_TYPE_2_SIZE(DMA_DATA_TYPE_WORD),
     .trig = DMA_TRIG_MEMORY,
-    .type = TEST_DATA_TYPE,
+    .type = DMA_DATA_TYPE_WORD, // Only possible to read word-wise from SPI
     };
 
     static dma_target_t tgt4= {
         .inc_du = 0,
-        .size_du = COPY_DATA_PER_CYCLE,
+        // Because the data type needs to be WORD the size needs to be normalized. 
+        .size_du = COPY_DATA_PER_CYCLE*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE)/DMA_DATA_TYPE_2_SIZE(DMA_DATA_TYPE_WORD),
         .trig = slot2,
-        .type = TEST_DATA_TYPE,
+        .type = DMA_DATA_TYPE_WORD,
     };
     tgt4.ptr = fifo_ptr_rx;
 
@@ -425,28 +428,24 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     res = dma_launch(&trans2);
-    //PRINTF("laun: %u \n\r", res);
     
-    // PRINTF("Waiting for the DMA...\n");
-    // while( ! dma_is_ready() ){
-    //     if( trans2.end == DMA_TRANS_END_INTR )
-    //     {
-            wait_for_interrupt();
-    //     }
-    // }
+    while( ! dma_is_ready() ){
+        /* wait_for_interrupt(); For small buffer sizes the interrupt arrives before going to wfi(); */
+    }; 
+
     PRINTF("triggered!\n");
 
-    // // Power down flash
-    // const uint32_t powerdown_byte_cmd = 0xb9;
-    // spi_write_word(&spi_host, powerdown_byte_cmd);
-    // const uint32_t cmd_powerdown = spi_create_command((spi_command_t){
-    //     .len        = 0,
-    //     .csaat      = false,
-    //     .speed      = kSpiSpeedStandard,
-    //     .direction  = kSpiDirTxOnly
-    // });
-    // spi_set_command(&spi_host, cmd_powerdown);
-    // spi_wait_for_ready(&spi_host);
+    // Power down flash
+    const uint32_t powerdown_byte_cmd = 0xb9;
+    spi_write_word(&spi_host, powerdown_byte_cmd);
+    const uint32_t cmd_powerdown = spi_create_command((spi_command_t){
+        .len        = 0,
+        .csaat      = false,
+        .speed      = kSpiSpeedStandard,
+        .direction  = kSpiDirTxOnly
+    });
+    spi_set_command(&spi_host, cmd_powerdown);
+    spi_wait_for_ready(&spi_host);
 
     // The data is already in memory -- Check results
     PRINTF("ram vs flash...\n");
@@ -454,9 +453,9 @@ int main(int argc, char *argv[])
     int i;
     uint32_t errors = 0;
     uint32_t count = 0;
-    for (i = 0; i<COPY_DATA_PER_CYCLE; i++) {
-            PRINTF("@%08x-@%08x : %02d\t!=\t%02d\n" , &flash_data[i] , &copy_data[i], ((DATA_TYPE*)flash_data)[i], ((DATA_TYPE*)copy_data)[i]);
-        if(((DATA_TYPE*)flash_data)[i] != ((DATA_TYPE*)copy_data)[i]) {
+    for (i = 0; i<COPY_DATA_UNITS*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE); i++) {
+        if(((uint8_t*)flash_data)[i] != ((uint8_t*)copy_data)[i]) {
+            PRINTF("@%08x-@%08x : %02d\t!=\t%02d\n" , &((uint8_t*)flash_data)[i] , &((uint8_t*)copy_data)[i], ((uint8_t*)flash_data)[i], ((uint8_t*)copy_data)[i]);
             errors++;
         }
         count++;
