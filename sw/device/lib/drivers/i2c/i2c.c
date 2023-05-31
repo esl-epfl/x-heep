@@ -653,6 +653,27 @@ bool irq_index(i2c_irq_t irq, bitfield_bit32_index_t *bit_index)
     case kI2cIrqSdaUnstable:
       *bit_index = I2C_INTR_COMMON_SDA_UNSTABLE_BIT;
       break;
+    case kI2cIrqTransComplete:
+      *bit_index = I2C_INTR_STATE_TRANS_COMPLETE_BIT;
+      break;
+    case kI2cIrqTxEmpty:
+      *bit_index = I2C_INTR_STATE_TX_EMPTY_BIT;
+      break;
+    case kI2cIrqTxNonEmpty:
+      *bit_index = I2C_INTR_STATE_TX_NONEMPTY_BIT;
+      break;
+    case kI2cIrqTxOverflow:
+      *bit_index = I2C_INTR_STATE_TX_OVERFLOW_BIT;
+      break;
+    case kI2cIrqAcqOverflow:
+      *bit_index = I2C_INTR_STATE_ACQ_OVERFLOW_BIT;
+      break;
+    case kI2cIrqAckStop:
+      *bit_index = I2C_INTR_STATE_ACK_STOP_BIT;
+      break;
+    case kI2cIrqHostTimeout:
+      *bit_index = I2C_INTR_STATE_HOST_TIMEOUT_BIT;
+      break;
     default:
       return false;
   }

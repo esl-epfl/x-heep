@@ -357,6 +357,35 @@ typedef enum i2c_irq {
    * Fired when the target does not maintain a stable SDA line.
    */
   kI2cIrqSdaUnstable,
+  /**
+   * Fires when host issues a repeated START or terminates the transaction
+   * with a STOP.
+  */
+  kI2cIrqTransComplete,
+  /**
+   * Fires when the target stretches the clock for a read command (TX FIFO empty)
+  */
+  kI2cIrqTxEmpty,
+  /**
+   * Fires when the target stretches the clock for a read command (ACQ FIFO non empty)
+  */
+  kI2cIrqTxNonEmpty,
+  /**
+   * Fires when the TX FIFO overflows
+  */
+  kI2cIrqTxOverflow,
+  /**
+   * Fires when the ACQ FIFO is full
+  */
+  kI2cIrqAcqOverflow,
+  /**
+   * Fires when a STOP is received without a preceding NACK (target mode)
+  */
+  kI2cIrqAckStop,
+  /**
+   * Fires when the host stop sending the clock during a transaction (target mode)
+  */
+  kI2cIrqHostTimeout
 } i2c_irq_t;
 
 /****************************************************************************/
