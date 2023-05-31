@@ -21,7 +21,7 @@
 
 // Type of data frome the SPI. For types different than words the SPI data is requested in separate transactions
 // word(0), half-word(1), byte(2,3)
-#define SPI_DATA_TYPE DMA_DATA_TYPE_WORD
+#define SPI_DATA_TYPE DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD
 
 // Number of elements to copy
 #define COPY_DATA_NUM 16
@@ -46,7 +46,7 @@ uint32_t copy_data[COPY_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
 int main(int argc, char *argv[])
 {
     #ifndef USE_SPI_FLASH
-        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI2_START_ADDRESS);
+        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
 
     #else
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
     res = dma_launch(&trans);
     printf("launched!\n");
 
-    #if SPI_DATA_TYPE == 0
+    #if SPI_DATA_TYPE == DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD
         const uint32_t cmd_read_rx = spi_create_command((spi_command_t){ // Single transaction
             .len        = COPY_DATA_NUM*sizeof(*copy_data) - 1, // In bytes - 1
             .csaat      = false,
@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
 
     uint32_t errors = 0;
     uint32_t count = 0;
-    #if SPI_DATA_TYPE == 0
+    #if SPI_DATA_TYPE == DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD
         for (int i = 0; i<COPY_DATA_NUM; i++) {
             if(flash_data[i] != copy_data[i]) {
                 printf("@%08x-@%08x : %02x != %02x\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
@@ -245,8 +245,8 @@ int main(int argc, char *argv[])
         }
     #else
         for (int i = 0; i<COPY_DATA_NUM; i++) {
-            if(flash_data[0] != copy_data[i]) {
-                printf("@%08x-@%08x : %02x != %02x\n" , &flash_data[0] , &copy_data[i], flash_data[0], copy_data[i]);
+            if(flash_data[i] != copy_data[i]) {
+                printf("@%08x-@%08x : %02x != %02x\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
                 errors++;
             }
             count++;
