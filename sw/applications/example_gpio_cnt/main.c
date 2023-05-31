@@ -22,6 +22,13 @@ Notes:
  - Connect a cable between the two pins for the applicatio to work
 */
 
+
+
+#ifndef RV_PLIC_IS_INCLUDED
+  #error ( "This app does NOT work as the RV_PLIC peripheral is not included" )
+#endif
+
+
 #ifdef TARGET_PYNQ_Z2
     #define GPIO_TB_OUT 8
     #define GPIO_TB_IN  9
@@ -54,6 +61,7 @@ plic_result_t plic_res;
 
 int main(int argc, char *argv[])
 {
+
     pad_control_t pad_control;
     pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
     // rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
@@ -130,13 +138,6 @@ int main(int argc, char *argv[])
         i++;
     }
     printf("Success\n");
-
-    // plic_res = plic_irq_complete(&rv_plic, 0, &intr_num);
-    // if (plic_res != kPlicOk) {
-    //     printf("Failed\n;");
-    //     return -1;
-    // }
-    printf("Done...\n");
 
     return EXIT_SUCCESS;
 }
