@@ -26,19 +26,27 @@
 #define TEST_MEM_2_SPI
 #define TEST_SPI_2_MEM
 
-#define TEST_DATA_TYPE  DMA_DATA_TYPE_HALF_WORD
+#define TEST_DATA_TYPE  DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_16BIT_WORD
 
-#if TEST_DATA_TYPE == DMA_DATA_TYPE_BYTE
+#if TEST_DATA_TYPE == DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD
 #define DATA_TYPE    uint8_t
-#elif TEST_DATA_TYPE == DMA_DATA_TYPE_HALF_WORD
+#elif TEST_DATA_TYPE == DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_16BIT_WORD
 #define DATA_TYPE    uint16_t
 #else
 #define DATA_TYPE    uint32_t
 #endif
 
+
+#ifdef TEST_CIRCULAR 
 // WARNING: When using circular mode COPY_DATA_UNITS/CIRCULAR_CYCLES needs to be 32 <= x <= 128
-#define CIRCULAR_CYCLES 4
-#define COPY_DATA_UNITS 256// Flash page size = 256 Bytes
+    #define CIRCULAR_CYCLES 4
+    #define COPY_DATA_UNITS 256   
+    #define COPY_DATA_PER_CYCLE ( COPY_DATA_UNITS / CIRCULAR_CYCLES )// Flash page size = 256 Bytes
+#else
+    #define COPY_DATA_UNITS 64
+    #define COPY_DATA_PER_CYCLE COPY_DATA_UNITS
+#endif //TEST_CIRCULAR 
+
 
 // Warning in case of targetting simulation
 #ifdef TARGET_SIM
@@ -50,14 +58,6 @@
 #define FLASH_ADDR 0x00008500 // 256B data alignment
 
 #define FLASH_CLK_MAX_HZ (133*1000*1000) // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
-
-
-#ifdef TEST_CIRCULAR 
-    #define COPY_DATA_PER_CYCLE ( COPY_DATA_UNITS / CIRCULAR_CYCLES )// Flash page size = 256 Bytes
-#else
-    #define COPY_DATA_PER_CYCLE COPY_DATA_UNITS
-#endif //TEST_CIRCULAR 
-
 
 
 // Use PRINTF instead of PRINTF to remove print by default
@@ -73,8 +73,8 @@ spi_host_t spi_host;
 int8_t cycles;
 
 // Reserve memory array
-DATA_TYPE flash_data[COPY_DATA_UNITS] __attribute__ ((aligned (4))) = { 0 };
-DATA_TYPE copy_data[COPY_DATA_UNITS] __attribute__ ((aligned (4)))  = { 0 };
+DATA_TYPE flash_data[COPY_DATA_UNITS] __attribute__ ((aligned (DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE)))) = { 0 };
+DATA_TYPE copy_data [COPY_DATA_UNITS] __attribute__ ((aligned (DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE)))) = { 0 };
 
 DATA_TYPE *fifo_ptr_tx;
 DATA_TYPE *fifo_ptr_rx;
@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
 
     dma_config_flags_t res;
 
-    for( uint32_t i = 0; i < COPY_DATA_UNITS; i ++ )
+    for( DATA_TYPE i = 0; i < COPY_DATA_PER_CYCLE; i ++ )
     {
         ((DATA_TYPE*)flash_data)[i] = (DATA_TYPE) i;
     }
@@ -374,14 +374,14 @@ int main(int argc, char *argv[])
     .inc_du = 1,
     .size_du = COPY_DATA_PER_CYCLE,
     .trig = DMA_TRIG_MEMORY,
-    .type = DMA_DATA_TYPE_WORD,
+    .type = TEST_DATA_TYPE,
     };
 
     static dma_target_t tgt4= {
         .inc_du = 0,
         .size_du = COPY_DATA_PER_CYCLE,
         .trig = slot2,
-        .type = DMA_DATA_TYPE_WORD,
+        .type = TEST_DATA_TYPE,
     };
     tgt4.ptr = fifo_ptr_rx;
 
@@ -425,28 +425,28 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     res = dma_launch(&trans2);
-    PRINTF("laun: %u \n\r", res);
+    //PRINTF("laun: %u \n\r", res);
     
-    PRINTF("Waiting for the DMA...\n");
-    while( ! dma_is_ready() ){
-        if( trans2.end == DMA_TRANS_END_INTR )
-        {
+    // PRINTF("Waiting for the DMA...\n");
+    // while( ! dma_is_ready() ){
+    //     if( trans2.end == DMA_TRANS_END_INTR )
+    //     {
             wait_for_interrupt();
-        }
-    }
+    //     }
+    // }
     PRINTF("triggered!\n");
 
-    // Power down flash
-    const uint32_t powerdown_byte_cmd = 0xb9;
-    spi_write_word(&spi_host, powerdown_byte_cmd);
-    const uint32_t cmd_powerdown = spi_create_command((spi_command_t){
-        .len        = 0,
-        .csaat      = false,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
-    });
-    spi_set_command(&spi_host, cmd_powerdown);
-    spi_wait_for_ready(&spi_host);
+    // // Power down flash
+    // const uint32_t powerdown_byte_cmd = 0xb9;
+    // spi_write_word(&spi_host, powerdown_byte_cmd);
+    // const uint32_t cmd_powerdown = spi_create_command((spi_command_t){
+    //     .len        = 0,
+    //     .csaat      = false,
+    //     .speed      = kSpiSpeedStandard,
+    //     .direction  = kSpiDirTxOnly
+    // });
+    // spi_set_command(&spi_host, cmd_powerdown);
+    // spi_wait_for_ready(&spi_host);
 
     // The data is already in memory -- Check results
     PRINTF("ram vs flash...\n");
@@ -455,8 +455,8 @@ int main(int argc, char *argv[])
     uint32_t errors = 0;
     uint32_t count = 0;
     for (i = 0; i<COPY_DATA_PER_CYCLE; i++) {
+            PRINTF("@%08x-@%08x : %02d\t!=\t%02d\n" , &flash_data[i] , &copy_data[i], ((DATA_TYPE*)flash_data)[i], ((DATA_TYPE*)copy_data)[i]);
         if(((DATA_TYPE*)flash_data)[i] != ((DATA_TYPE*)copy_data)[i]) {
-            PRINTF("@%08x-@%08x : %02d\t!=\t%02d\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
             errors++;
         }
         count++;
