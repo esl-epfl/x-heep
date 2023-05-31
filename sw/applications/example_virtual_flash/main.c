@@ -32,14 +32,15 @@ volatile int8_t spi_intr_flag;
 spi_host_t spi_host_flash;
 
 void dma_intr_handler_trans_done(){
-    printf("A non-weak interrupt of the DMA\n");
+    printf("#\n\r");
 }
 
-void handler_irq_spi_flash(){
+void fic_irq_spi_flash(){
     // Disable SPI interrupts
     spi_enable_evt_intr(&spi_host_flash, false);
     spi_enable_rxwm_intr(&spi_host_flash, false);
     spi_intr_flag = 1;
+    printf("@");
 }
 
 
@@ -91,17 +92,18 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
     dma_trans_t trans = {
         .src = &tgt_src,
         .dst = &tgt_dst,
-        .end = DMA_TRANS_END_POLLING,
+        .end = DMA_TRANS_END_INTR,
     };
 
     dma_config_flags_t res;
     
+    spi_intr_flag = 0;
+
     res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     printf("Result - tgt trans: %u\n", res );
     res = dma_load_transaction(&trans);
     printf("Result - tgt load: %u\n", res );
     res = dma_launch(&trans);
-    printf("launched!\n");
 
     // Wait for the first data to arrive to the TX FIFO before enabling interrupt
     spi_wait_for_tx_not_empty(SPI);
@@ -146,7 +148,7 @@ int main(int argc, char *argv[])
     mask = 1 << 7;
     CSR_SET_BITS(CSR_REG_MIE, mask);
 
-    spi_host_flash.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
+    spi_host_flash.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
     spi_set_enable(&spi_host_flash, true);
     spi_output_enable(&spi_host_flash, true);
 

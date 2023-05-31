@@ -465,6 +465,7 @@ int main(int argc, char *argv[])
         PRINTF("success! (Data units checked: %d)\n", count);
     } else {
         PRINTF("failure, %d errors! (Out of %d)\n", errors, count);
+        return EXIT_FAILURE;
     }
 
 #endif //TEST_MEM_2_SPI
