@@ -129,11 +129,11 @@ app-compile-all:
 
 ## Verilator simulation			
 verilator-sim:
-	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator --flag=use_external_device_example $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
 
 ## Questasim simulation
 questasim-sim:
-	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=modelsim $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=modelsim --flag=use_external_device_example $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
 
 ## Questasim simulation with HDL optimized compilation
 questasim-sim-opt: questasim-sim
@@ -148,7 +148,7 @@ questasim-sim-opt-upf: questasim-sim
 ## @param CPU=cv32e20(default),cv32e40p,cv32e40x
 ## @param BUS=onetoM(default),NtoM
 vcs-sim:
-	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=vcs $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=vcs --flag=use_external_device_example $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
 
 ## Generates the build output for helloworld application
 ## Uses verilator to simulate the HW model and run the FW

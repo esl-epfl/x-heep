@@ -31,7 +31,7 @@ By default, the external device example RTL code is disabled. Run fusesoc with t
 For example, compile for Verilator with:
 
 ```
-make verilator-sim FUSESOC_FLAGS="--flag=use_external_device_example"
+make verilator-sim
 ```
 
 then, go to your target system built folder
