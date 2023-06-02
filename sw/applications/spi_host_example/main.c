@@ -15,8 +15,9 @@
 #include "fast_intr_ctrl.h"
 #include "fast_intr_ctrl_regs.h"
 
-// Un-comment this line to use the SPI FLASH instead of the default SPI
-// #define USE_SPI_FLASH
+#ifdef TARGET_PYNQ_Z2
+    #define USE_SPI_FLASH
+#endif
 
 // Simple example to check the SPI host peripheral is working. It checks the ram and flash have the same content
 #define REVERT_24b_ADDR(addr) ((((uint32_t)(addr) & 0xff0000) >> 16) | ((uint32_t)(addr) & 0xff00) | (((uint32_t)(addr) & 0xff) << 16))

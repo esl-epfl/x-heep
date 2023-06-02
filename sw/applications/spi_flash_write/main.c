@@ -19,8 +19,10 @@
 #include "fast_intr_ctrl_regs.h"
 #include "x-heep.h"
 
-// Un-comment this line to use the SPI FLASH instead of the default SPI
-// #define USE_SPI_FLASH
+
+#ifdef TARGET_PYNQ_Z2
+    #define USE_SPI_FLASH
+#endif
 
 #define COPY_DATA_WORDS 64 // Flash page size = 256 Bytes
 
