@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
                                 .src        = &tgt_src,
                                 .dst        = &tgt_dst,
                                 .mode       = DMA_TRANS_MODE_SINGLE,
-                                .win_du      = 0,
+                                .win_du     = 0,
                                 .end        = DMA_TRANS_END_INTR,
                                 };
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  

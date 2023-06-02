@@ -126,6 +126,22 @@ typedef enum
 dma_config_flags_t validateTarget( dma_target_t *p_tgt );
 
 /**
+ * @brief Creates an environment where targets can be added. An environment 
+ * is, for instance, a RAM block, or section of memory that can be used by 
+ * the DMA. 
+ * Properly defining an environment can prevent the DMA from accessing 
+ * restricted memory regions. 
+ * Targets for peripherals do not need an environment.
+ * @param p_env Pointer to the dma_env_t structure where configuration 
+ * should be allocated. The content of this pointer must be a static variable. 
+ * @return A configuration flags mask. Each individual flag can be accessed 
+ * with a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query 
+ * the result from inside environment structure as an error could have 
+ * appeared before the creation of the structure.
+ */
+dma_config_flags_t validate_environment( dma_env_t *p_env );
+
+/**
  * @brief Gets how misaligned a pointer is, taking into account the data type 
  * size. 
  * @param p_ptr The source or destination pointer. 
@@ -245,19 +261,6 @@ void dma_init( dma *peri )
     dma_cb.peri->INTERRUPT_EN  = 0;
 }
 
-dma_config_flags_t dma_create_environment( dma_env_t *p_env )
-{
-    /*
-     * SANITY CHECKS
-     */
-
-    if( (uint8_t*)p_env->end < (uint8_t*)p_env->start ) 
-    {
-        return DMA_CONFIG_INCOMPATIBLE;
-    }    
-    return DMA_CONFIG_OK;
-}
-
 dma_config_flags_t dma_create_transaction(  dma_trans_t        *p_trans,  
                                             dma_en_realign_t   p_enRealign, 
                                             dma_perf_checks_t  p_check )
@@ -289,6 +292,7 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t        *p_trans,
      */
     uint8_t errorSrc = validateTarget( p_trans->src );
     uint8_t errorDst = validateTarget( p_trans->dst );
+
     /* 
      * If there are any errors or warnings in the valdiation of the targets, 
      * they are added to the transaction flags, adding the source/destination
@@ -296,6 +300,7 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t        *p_trans,
      */
     p_trans->flags |= errorSrc ? (errorSrc | DMA_CONFIG_SRC ) : DMA_CONFIG_OK;
     p_trans->flags |= errorDst ? (errorDst | DMA_CONFIG_SRC ) : DMA_CONFIG_OK; 
+
     /* If a critical error was detected, no further action is performed. */
     if( p_trans->flags & DMA_CONFIG_CRITICAL_ERROR )
     {
@@ -738,7 +743,7 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans )
      * launched.
      */
     if(     ( p_trans == NULL ) 
-        ||  ( dma_cb.trans != p_trans ) )
+        ||  ( dma_cb.trans != p_trans ) ) // @ToDo: Check per-element.
     {
         return DMA_CONFIG_CRITICAL_ERROR;
     }
@@ -885,9 +890,14 @@ dma_config_flags_t validateTarget( dma_target_t *p_tgt )
      */
     if( p_tgt->env != NULL )
     {   
-        /* Check if the target selected size goes beyond the boundaries of
+        /* Check if the environment was properly formed.*/
+        flags |= validate_environment( p_tgt->env );
+
+        /* 
+         * Check if the target selected size goes beyond the boundaries of
          * the environment. 
-         * This is only analyzed if a size was defined. */
+         * This is only analyzed if a size was defined. 
+         */
         if( p_tgt->size_du != 0 )
         {
             uint8_t isOutb = isOutbound(  p_tgt->ptr,
@@ -941,6 +951,20 @@ dma_config_flags_t validateTarget( dma_target_t *p_tgt )
      */
     return flags; 
 }
+
+dma_config_flags_t validate_environment( dma_env_t *p_env )
+{
+    /*
+     * SANITY CHECKS
+     */
+
+    if( (uint8_t*)p_env->end < (uint8_t*)p_env->start ) 
+    {
+        return DMA_CONFIG_INCOMPATIBLE;
+    }    
+    return DMA_CONFIG_OK;
+}
+/* @ToDo: Prevent validation of targets whose environment was not validated. */
 
 static inline uint8_t getMisalign_b(  uint8_t         *p_ptr, 
                                       dma_data_type_t p_type )

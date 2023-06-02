@@ -295,9 +295,11 @@ typedef struct
     the creation of the transaction. */
 } dma_trans_t;
 
-/* @ToDo: Change the win_du parameter for a win_r giving a transaction/window
-    size ratio, which is much easier to understand from the application point
-    of view. */
+/* 
+ * @ToDo: Consider changing the win_du parameter for a win_r giving a 
+ * transaction/window size ratio, which might be easier to understand from the
+ * application point of view. 
+ */
 
 
 
@@ -322,22 +324,6 @@ typedef struct
  */
 void dma_init( dma *peri );
 
-
-/**
- * @brief Creates an environment where targets can be added. An environment 
- * is, for instance, a RAM block, or section of memory that can be used by 
- * the DMA. 
- * Properly defining an environment can prevent the DMA from accessing 
- * restricted memory regions. 
- * Targets for peripherals do not need an environment.
- * @param p_env Pointer to the dma_env_t structure where configuration 
- * should be allocated. The content of this pointer must be a static variable. 
- * @return A configuration flags mask. Each individual flag can be accessed 
- * with a bitwise AND ( ret & DMA_CONFIG_* ). It is not recommended to query 
- * the result from inside environment structure as an error could have 
- * appeared before the creation of the structure.
- */
-dma_config_flags_t dma_create_environment( dma_env_t *p_env );
 
 /**
  * @brief Creates a transaction that can be loaded into the DMA.
