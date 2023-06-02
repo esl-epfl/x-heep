@@ -269,7 +269,7 @@ int main(int argc, char *argv[])
 {
 
     spi_config();
-    dma_init();
+    dma_init(NULL);
 
     dma_config_flags_t res;
 

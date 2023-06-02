@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 
     // -- DMA CONFIGURATION --
 
-    dma_init();
+    dma_init(NULL);
 
     #ifndef USE_SPI_FLASH
         uint8_t slot =  DMA_TRIG_SLOT_SPI_RX ; // The DMA will wait for the SPI RX FIFO valid signal

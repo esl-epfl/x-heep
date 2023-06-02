@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 
     // DMA CONFIGURATION
     printf("---- TEST ---- \n");
-    dma_init();
+    dma_init(NULL);
 
 
     #ifndef USE_SPI_FLASH

@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     static uint32_t test_data_large[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
 
     // The DMA is initialized (i.e. Any current transaction is cleaned.)
-    dma_init();
+    dma_init(NULL);
     
     dma_config_flags_t res;
     

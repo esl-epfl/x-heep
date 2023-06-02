@@ -89,7 +89,6 @@ typedef enum
     DMA_TRIG__undef,     /*!< DMA will not be used. */
 } dma_trigger_slot_mask_t;  
 
-
 /**
  *  All the valid data types for the DMA transfer.
  *  
@@ -317,9 +316,11 @@ typedef struct
 /**
  *@brief Takes all DMA configurations to a state where no accidental 
  * transaction can be performed. 
- * It can be called anytime to reset the DMA control block.   
+ * It can be called anytime to reset the DMA control block.  
+ * @param peri Pointer to a register address following the dma structure. By 
+ * default (peri == NULL), the integrated DMA will be used.   
  */
-void dma_init();
+void dma_init( dma *peri );
 
 
 /**
