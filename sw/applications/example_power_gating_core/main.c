@@ -18,6 +18,12 @@
 #include "pad_control_regs.h"
 #include "x-heep.h"
 
+
+#ifndef RV_PLIC_IS_INCLUDED
+  #error ( "This app does NOT work as the RV_PLIC peripheral is not included" )
+#endif
+
+
 static rv_timer_t timer_0_1;
 static rv_timer_t timer_2_3;
 static const uint64_t kTickFreqHz = 1000 * 1000; // 1 MHz
@@ -33,6 +39,7 @@ static gpio_t gpio;
 
 int main(int argc, char *argv[])
 {
+
     // Setup power_manager
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
     power_manager.base_addr = power_manager_reg;
@@ -157,4 +164,5 @@ int main(int argc, char *argv[])
     /* write something to stdout */
     printf("Success.\n");
     return EXIT_SUCCESS;
+
 }
