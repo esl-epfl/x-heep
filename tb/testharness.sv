@@ -429,11 +429,11 @@ module testharness #(
   assign memcopy_periph_rsp.ready = '0;
   assign memcopy_periph_rsp.rdata = '0;
 
-  assign master_req[testharness_pkg::EXT_MASTER0_IDX].req = '0;
-  assign master_req[testharness_pkg::EXT_MASTER0_IDX].we = '0;
-  assign master_req[testharness_pkg::EXT_MASTER0_IDX].be = '0;
-  assign master_req[testharness_pkg::EXT_MASTER0_IDX].addr = '0;
-  assign master_req[testharness_pkg::EXT_MASTER0_IDX].wdata = '0;
+  assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].req = '0;
+  assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].we = '0;
+  assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].be = '0;
+  assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].addr = '0;
+  assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].wdata = '0;
 
   assign memcopy_intr = '0;
 `endif
