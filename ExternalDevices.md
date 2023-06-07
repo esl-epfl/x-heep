@@ -8,8 +8,8 @@ The top module [`core_v_mini_mcu`](hw/core-v-mini-mcu/corecore_v_mini_mcu.sv) ex
    1. `ext_core_instr`: CPU instruction interface.
    2. `ext_core_data`: CPU data interface.
    3. `ext_debug_master`: debug interface.
-   4. `ext_dma_master0_ch0`: DMA 0 channel 0.
-   5. `ext_dma_master0_ch0`: DMA 1 channel 0.
+   4. `ext_dma_read_ch0`: DMA read master, channel 0.
+   5. `ext_dma_write_ch0`: DMA write master, channel 0.
 
 - `ext_peripheral_slave`: 1 peripheral slave port connected to the system bus (through the peripheral interface).
 

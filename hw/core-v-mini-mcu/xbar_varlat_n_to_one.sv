@@ -53,7 +53,7 @@ module xbar_varlat_n_to_one #(
   // --------
   // Unroll OBI master signals
   generate
-    for (genvar i = 0; unsigned'(i) < XBAR_NMASTER; i++) begin
+    for (genvar i = 0; unsigned'(i) < XBAR_NMASTER; i++) begin : gen_master_unroll
       assign master_xbar_req_req[i] = master_req_i[i].req;
       assign master_xbar_req_data[i] = {
         master_req_i[i].we, master_req_i[i].be, master_req_i[i].addr, master_req_i[i].wdata

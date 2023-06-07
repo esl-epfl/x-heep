@@ -71,7 +71,7 @@ module xbar_varlat_one_to_n #(
   // INTERNAL MODULES
   // ----------------
   // The address decoder chooses the target slave based on the master request
-  // address. Decoding errors are not handled: if the address does not match 
+  // address. Decoding errors are not handled: if the address does not match
   // any of the specified rules, the default slave index is selected.
 
   // Address decoder

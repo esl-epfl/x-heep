@@ -17,11 +17,11 @@ module dma #(
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
-    output obi_req_t  dma_master0_ch0_req_o,
-    input  obi_resp_t dma_master0_ch0_resp_i,
+    output obi_req_t  dma_read_ch0_req_o,
+    input  obi_resp_t dma_read_ch0_resp_i,
 
-    output obi_req_t  dma_master1_ch0_req_o,
-    input  obi_resp_t dma_master1_ch0_resp_i,
+    output obi_req_t  dma_write_ch0_req_o,
+    input  obi_resp_t dma_write_ch0_resp_i,
 
     input logic spi_rx_valid_i,
     input logic spi_tx_ready_i,
@@ -94,25 +94,25 @@ module dma #(
   }
       dma_write_fsm_state, dma_write_fsm_n_state;
 
-  assign dma_master0_ch0_req_o.req = data_in_req;
-  assign dma_master0_ch0_req_o.we = data_in_we;
-  assign dma_master0_ch0_req_o.be = data_in_be;
-  assign dma_master0_ch0_req_o.addr = data_in_addr;
-  assign dma_master0_ch0_req_o.wdata = 32'h0;
+  assign dma_read_ch0_req_o.req = data_in_req;
+  assign dma_read_ch0_req_o.we = data_in_we;
+  assign dma_read_ch0_req_o.be = data_in_be;
+  assign dma_read_ch0_req_o.addr = data_in_addr;
+  assign dma_read_ch0_req_o.wdata = 32'h0;
 
-  assign data_in_gnt = dma_master0_ch0_resp_i.gnt;
-  assign data_in_rvalid = dma_master0_ch0_resp_i.rvalid;
-  assign data_in_rdata = dma_master0_ch0_resp_i.rdata;
+  assign data_in_gnt = dma_read_ch0_resp_i.gnt;
+  assign data_in_rvalid = dma_read_ch0_resp_i.rvalid;
+  assign data_in_rdata = dma_read_ch0_resp_i.rdata;
 
-  assign dma_master1_ch0_req_o.req = data_out_req;
-  assign dma_master1_ch0_req_o.we = data_out_we;
-  assign dma_master1_ch0_req_o.be = data_out_be;
-  assign dma_master1_ch0_req_o.addr = data_out_addr;
-  assign dma_master1_ch0_req_o.wdata = data_out_wdata;
+  assign dma_write_ch0_req_o.req = data_out_req;
+  assign dma_write_ch0_req_o.we = data_out_we;
+  assign dma_write_ch0_req_o.be = data_out_be;
+  assign dma_write_ch0_req_o.addr = data_out_addr;
+  assign dma_write_ch0_req_o.wdata = data_out_wdata;
 
-  assign data_out_gnt = dma_master1_ch0_resp_i.gnt;
-  assign data_out_rvalid = dma_master1_ch0_resp_i.rvalid;
-  assign data_out_rdata = dma_master1_ch0_resp_i.rdata;
+  assign data_out_gnt = dma_write_ch0_resp_i.gnt;
+  assign data_out_rvalid = dma_write_ch0_resp_i.rvalid;
+  assign data_out_rdata = dma_write_ch0_resp_i.rdata;
 
   assign dma_intr_o = dma_done;
   assign spi_dma_mode = reg2hw.spi_mode.q;

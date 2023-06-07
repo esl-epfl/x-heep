@@ -123,7 +123,7 @@ module ext_xbar #(
     end else begin : gen_xbar_1toM
       // N-to-1 crossbar
       xbar_varlat_n_to_one #(
-          .XBAR_NMASTER (XBAR_NMASTER)
+          .XBAR_NMASTER(XBAR_NMASTER)
       ) i_xbar_master (
           .clk_i        (clk_i),
           .rst_ni       (rst_ni),

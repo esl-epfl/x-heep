@@ -77,10 +77,10 @@ module ao_peripheral_subsystem
     output logic rv_timer_1_intr_o,
 
     // DMA
-    output obi_req_t  dma_master0_ch0_req_o,
-    input  obi_resp_t dma_master0_ch0_resp_i,
-    output obi_req_t  dma_master1_ch0_req_o,
-    input  obi_resp_t dma_master1_ch0_resp_i,
+    output obi_req_t  dma_read_ch0_req_o,
+    input  obi_resp_t dma_read_ch0_resp_i,
+    output obi_req_t  dma_write_ch0_req_o,
+    input  obi_resp_t dma_write_ch0_resp_i,
     output logic      dma_intr_o,
 
     // External PADs
@@ -333,10 +333,10 @@ module ao_peripheral_subsystem
       .rst_ni,
       .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
-      .dma_master0_ch0_req_o,
-      .dma_master0_ch0_resp_i,
-      .dma_master1_ch0_req_o,
-      .dma_master1_ch0_resp_i,
+      .dma_read_ch0_req_o,
+      .dma_read_ch0_resp_i,
+      .dma_write_ch0_req_o,
+      .dma_write_ch0_resp_i,
       .spi_rx_valid_i(spi_rx_valid),
       .spi_tx_ready_i(spi_tx_ready),
       .spi_flash_rx_valid_i(spi_flash_rx_valid),
