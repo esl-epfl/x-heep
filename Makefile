@@ -152,7 +152,7 @@ vcs-sim:
 
 ## VCS-AMS simulation:
 vcs-ams-sim:
-	$(FUSESOC) --cores-root . run --no-export --target=sim --flag "ams_sim" --tool=vcs $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
+	$(FUSESOC) --cores-root . run --no-export --target=sim --flag "ams_sim" --flag "use_external_device_example" --tool=vcs $(FUSESOC_FLAGS) --setup --build openhwgroup.org:systems:core-v-mini-mcu 2>&1 | tee buildsim.log
 
 ## Generates the build output for helloworld application
 ## Uses verilator to simulate the HW model and run the FW

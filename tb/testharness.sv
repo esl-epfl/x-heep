@@ -34,6 +34,7 @@ module testharness #(
   import obi_pkg::*;
   import reg_pkg::*;
   import testharness_pkg::*;
+  import addr_map_rule_pkg::*;
 
   localparam SWITCH_ACK_LATENCY = 15;
 `ifdef USE_EXTERNAL_DEVICE_EXAMPLE
@@ -64,17 +65,18 @@ module testharness #(
   wire [1:0] spi_csb;
   wire spi_sck;
 
+  logic [EXT_PERIPHERALS_PORT_SEL_WIDTH-1:0] ext_periph_select;
+
   // External xbar master/slave and peripheral ports
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] master_req;
   obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] master_resp;
   obi_req_t slave_req;
   obi_resp_t slave_resp;
   reg_req_t periph_slave_req;
-  reg_rsp_t periph_slave_resp;
+  reg_rsp_t periph_slave_rsp;
 
-  // External peripheral example port
-  reg_req_t memcopy_periph_req;
-  reg_rsp_t memcopy_periph_rsp;
+  reg_pkg::reg_req_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_req;
+  reg_pkg::reg_rsp_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_rsp;
 
   // External xbar slave example port
   obi_req_t slow_ram_slave_req;
@@ -193,7 +195,7 @@ module testharness #(
       .ext_xbar_slave_req_o(slave_req),
       .ext_xbar_slave_resp_i(slave_resp),
       .ext_peripheral_slave_req_o(periph_slave_req),
-      .ext_peripheral_slave_resp_i(periph_slave_resp),
+      .ext_peripheral_slave_resp_i(periph_slave_rsp),
       .external_subsystem_powergate_switch_o(external_subsystem_powergate_switch),
       .external_subsystem_powergate_switch_ack_i(external_subsystem_powergate_switch_ack),
       .external_subsystem_powergate_iso_o(external_subsystem_powergate_iso),
@@ -280,9 +282,6 @@ module testharness #(
   assign slow_ram_slave_req = slave_req;
   assign slave_resp = slow_ram_slave_resp;
 
-  assign memcopy_periph_req = periph_slave_req;
-  assign periph_slave_resp = memcopy_periph_rsp;
-
 `ifdef USE_EXTERNAL_DEVICE_EXAMPLE
   // External xbar slave memory example
   slow_memory #(
@@ -311,8 +310,8 @@ module testharness #(
   ) dma_i (
       .clk_i,
       .rst_ni,
-      .reg_req_i(memcopy_periph_req),
-      .reg_rsp_o(memcopy_periph_rsp),
+      .reg_req_i(ext_periph_slv_req[testharness_pkg::MEMCOPY_CTRL_IDX]),
+      .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::MEMCOPY_CTRL_IDX]),
       .dma_master0_ch0_req_o(master_req[testharness_pkg::EXT_MASTER0_IDX]),
       .dma_master0_ch0_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX]),
       .dma_master1_ch0_req_o(master_req[testharness_pkg::EXT_MASTER1_IDX]),
@@ -324,6 +323,45 @@ module testharness #(
       .dma_intr_o(memcopy_intr)
   );
 
+  // AMS external peripheral
+  ams #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) ams_i (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(ext_periph_slv_req[testharness_pkg::AMS_IDX]),
+      .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::AMS_IDX])
+  );
+
+  addr_decode #(
+      .NoIndices(testharness_pkg::EXT_NPERIPHERALS),
+      .NoRules(testharness_pkg::EXT_NPERIPHERALS),
+      .addr_t(logic [31:0]),
+      .rule_t(addr_map_rule_pkg::addr_map_rule_t)
+  ) i_addr_decode_soc_regbus_ext_periphs (
+      .addr_i(periph_slave_req.addr),
+      .addr_map_i(testharness_pkg::EXT_PERIPHERALS_ADDR_RULES),
+      .idx_o(ext_periph_select),
+      .dec_valid_o(),
+      .dec_error_o(),
+      .en_default_idx_i(1'b0),
+      .default_idx_i('0)
+  );
+
+  reg_demux #(
+      .NoPorts(testharness_pkg::EXT_NPERIPHERALS),
+      .req_t  (reg_pkg::reg_req_t),
+      .rsp_t  (reg_pkg::reg_rsp_t)
+  ) reg_demux_i (
+      .clk_i,
+      .rst_ni,
+      .in_select_i(ext_periph_select),
+      .in_req_i(periph_slave_req),
+      .in_rsp_o(periph_slave_rsp),
+      .out_req_o(),
+      .out_rsp_i()
+  );
 
   // GPIO counter example
   gpio_cnt #(
@@ -371,9 +409,8 @@ module testharness #(
   assign slow_ram_slave_resp.rdata = '0;
   assign slow_ram_slave_resp.rvalid = '0;
 
-  assign memcopy_periph_rsp.error = '0;
-  assign memcopy_periph_rsp.ready = '0;
-  assign memcopy_periph_rsp.rdata = '0;
+  assign ext_periph_slv_req = '0;
+  assign ext_periph_slv_rsp = '0;
 
   assign master_req[testharness_pkg::EXT_MASTER0_IDX].req = '0;
   assign master_req[testharness_pkg::EXT_MASTER0_IDX].we = '0;

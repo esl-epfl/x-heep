@@ -32,7 +32,6 @@ filesets:
     - x-heep:ip:power_manager
     - x-heep:ip:fast_intr_ctrl
     - x-heep:ip:pdm2pcm
-    - x-heep:ip:ams
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv

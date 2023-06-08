@@ -1,6 +1,6 @@
 CAPI=2:
 
-# Copyright 2022 OpenHW Group
+ mpleCopyright 2022 OpenHW Group
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
@@ -13,6 +13,7 @@ filesets:
     - example:ip:slow_memory
     - example:ip:gpio_cnt
     - example:ip:pdm2pcm_dummy
+    - example:ip:ams
     files:
     file_type: systemVerilogSource
 
