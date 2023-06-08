@@ -1,0 +1,88 @@
+# Analog / Mixed-Signal Simulation of X-HEEP
+
+## About
+
+VCS offers the possibility to run AMS simulations by interfacing analog SPICE files with the rest of the digital RTL design. This is done through a special fine located under `hw/analog` named `control.init`.
+
+## The SPICE (.sp) file
+
+SPICE files can be created with the tool of your choice, however they must sometimes be edited manually afterwards to meet the following criteria:
+
+- The format should be HSPICE compatible
+
+- If not already done, one or more library inclusion lines:
+```
+.LIB /path/to/pdk/lib
+```
+must be added at the beginning of the file to include the necessary files from the PDK.
+
+- After the .LIB lines, power nets must be manually added in the file and made global. In most cases it should look like this:
+```
+v_vdd vdd 0 1.2
+v_gnd gnd 0 0
+.global vdd gnd
+```
+
+- Aside from the .LIB inclusions and the power nets, the file must only contain subcircuits.
+    - This means that lines describing temperature, parameters, options and so forth should be removed from the file
+    - This also means that there should be no top-level elements such as transistors, passive components etc at the top-level. The top-level must thus itself be a subcircuit, with IO pins corresponding to the names defined in the RTL part.
+
+- Keep in mind that all names in HSPICE netlists are treated as lowercase, thus make sure they will properly match with the RTL part.
+
+### Example procedure with Cadence Virtuoso
+
+- TODO: double check this
+- Design a schematic that should later be simulated, make sure the toplevel pins match the name of the pins in the RTL part of the peripheral
+- Create a toplevel symbol of the schematic you want to simulate
+- Run ADE L, select hspiceD in Setup -> Simulator
+- Select Results -> Netlist -> Create and save the SPICE output in a file
+- Open the SPICE file with a text editor, remove lines beginning with .TEMP, .PARAM & ???
+- Add the global power nets tat the beginning of the file:
+```
+v_vdd vdd 0 1.2
+v_gnd gnd 0 0
+.global vdd gnd
+```
+- Go to the bottom of the file, remove toplevel info, there must be only subckts left
+- The SPICE file is now ready to be simulated. Place it in hw/analog and create a control.init file (see next section)
+
+## The control.init file
+
+This file should at the very least look similar to this to be able to run a successful simulation:
+```
+choose xa ../../../hw/analog/adc.sp;
+port_connect -cell ams_adc_1b ( vdd => vdd , gnd => gnd );
+port_dir -cell ams_adc_1b (input sel; output out);
+bus_format <%d>;
+```
+- The first line tells what analog simulator should VCS be using, and what SPICE file it should be simulating. In this case, by specifying `xa`, we tell it to use CustomSim, which reads SPICE files in the HSPICE format. Note that as this file will be ran from the VCS runtime directory, relative paths pointing to the .sp file should take this into account.
+- The second line specifies which RTL cell should be connected to the SPICE top-level subcircuit. VDD & GND must be connected as indicated.
+- The third line specifies the direction (input/output) of the ports which are connected from RTL to SPICE. This isn't always necessary to specify, but the simulation might fail without this line
+- The last line specifies the bus format used by the SPICE file, which is usually <%d> but can sometimes be [%d] or even (%d) depending on how your SPICE file was written.
+
+Additional lines and options can of course be specified: refer to the official Synopsys Mixed-Signal Simulation User Guide for complete instructions.
+
+
+## The example AMS peripheral and the interfacing of SPICE netlists within X-HEEP
+
+The example AMS peripheral used by simulations of X-HEEP is located in `hw/ip_examples/ams`. You should edit the port names so they match the top-level connectivity of the SPICE netlist.
+
+
+### The repository's example SPICE files
+
+An example `adc_sky130.sp` file can be found in `hw/analog`. This is a 1-bit ADC with a threshold that is configured through the 2-bit wide SEL input: an input of 00, 01, 10 and 11 will provide a threshold of 20%, 40%, 60% and 80% of VDD (1.2V) respectively. The input signal of the ADC is a sine wave with a peak-to-peak amplitude of 1.2V directly placed inside the SPICE netlist. The SPICE netlist uses the SkyWater 130nm PDK library; to be able to simulate this file with VCS, the corresponding git repo must be cloned in the root of the repository. To do so, make sure you're in the root repository of x-heep and enter the following command:
+
+```
+git clone -n https://github.com/google/skywater-pdk-libs-sky130_fd_pr.git
+cd skywater-pdk-libs-sky130_fd_pr
+git checkout f62031a1be9aefe902d6d54cddd6f59b57627436
+```
+
+## Simulating with VCS-AMS and CustomSim
+
+[copy from readme]
+
+### Viewing the waveforms with Verdi
+
+[copy from readme too]
+
