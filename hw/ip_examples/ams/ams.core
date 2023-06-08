@@ -1,6 +1,6 @@
 CAPI=2:
 
-name: "x-heep:ip:ams"
+name: "example:ip:ams"
 description: "core-v-mini-mcu ams peripheral"
 
 # Copyright 2023 EPFL
