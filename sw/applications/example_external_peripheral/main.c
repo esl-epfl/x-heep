@@ -16,6 +16,13 @@
 
 #define COPY_SIZE 10
 
+#ifndef RV_PLIC_IS_INCLUDED
+  #error ( "This app does NOT work as the RV_PLIC peripheral is not included" )
+#endif
+
+#ifdef TARGET_PYNQ_Z2
+  #error ( "This app does NOT work on the FPGA as it relies on the simulator testbench" )
+#endif
 
 // Interrupt controller variables
 plic_result_t plic_res;
@@ -25,10 +32,6 @@ plic_irq_id_t intr_num;
 int main(int argc, char *argv[])
 {
 
-#ifdef TARGET_PYNQ_Z2
-  #pragma message ( "This app does NOT work on the Pynq-Z2 board as it relies on the testbench" )
-    return -1;
-#else
     printf("Init the PLIC...");
     plic_res = plic_Init();
 
@@ -116,5 +119,4 @@ int main(int argc, char *argv[])
     }
 
     return EXIT_SUCCESS;
-#endif
 }
