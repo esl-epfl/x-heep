@@ -70,9 +70,17 @@ typedef enum i2s_result {
    */
   kI2sOk = 0,
   /**
+   * errors i2s is uninitialized
+   */
+  kI2sErrUninit = 1,
+  /**
+   * Indicates overflow.
+   */
+  kI2sOverflow = 2,
+  /**
    * Indicates some unspecified failure.
    */
-  kI2sError = 1,
+  kI2sError = 0xFF,
 } i2s_result_t;
 
 
@@ -100,6 +108,8 @@ typedef enum i2s_channel_sel {
 
 /**
  * Initialize I2S peripheral
+ * Starts devices connected on the I2S bus
+ * This function has to be called before any other function of the I2S hal.
  * 
  * Generates SCK and WS 
  * (with the given parameters frequency and word length)
@@ -115,7 +125,8 @@ typedef enum i2s_channel_sel {
 i2s_result_t i2s_init(uint16_t div_value, i2s_word_length_t word_length);
 
 /**
- * Terminate I2S peripheral 
+ * Terminate I2S peripheral
+ * Afterwards the init funciton has to be called to reinit the peripheral
  * 
  * Stops SCK and WS
  */
@@ -137,19 +148,27 @@ bool i2s_is_running(void);
 /**
  * I2S start rx channels 
  * 
- * @note this function might take some time to complete
+ * (Start the DMA before)
  * 
- * @param channels to be enabled (see i2s_channel_sel_t)
- * @return kI2sOk started successful 
- * @return kI2sError if peripheral was not running
+ * @param channels to be enabled (see i2s_channel_sel_t) (I2S_DISABLE calls i2s_rx_stop())
+ * 
+ * @return kI2sOk success 
+ * @return kI2sError RX already started 
+ * @return kI2sErrUninit error peripheral was not initialized
+ * @return kI2sOverflow indicates overflow. (to clear call i2s_rx_stop())
  */
 i2s_result_t i2s_rx_start(i2s_channel_sel_t channels);
 
 /**
- * I2S stop rx channels 
+ * I2S stop rx channels and cleans overflow
  *
+ * (DMA must not be reading from I2S RX data)
+ * 
+ * @return kI2sOk success
+ * @return kI2sErrUninit error peripheral was not initialized
+ * @return kI2sOverflow the RX-FIFO overflowed since the RX has been started.
  */
-void i2s_rx_stop(void);
+i2s_result_t i2s_rx_stop(void);
 
 
 /**
@@ -171,7 +190,11 @@ uint32_t i2s_rx_read_data(void);
 /**
  * I2S check RX FIFO overflow
  * 
- * @note call i2s_rx_start(...) to reset overflow and cleanly restart
+ * To clear overflow:
+ *  1. stop DMA
+ *  2. call i2s_rx_stop() 
+ *  3. start DMA
+ *  4. call i2s_rx_start()
  * 
  * @return true if RX FIFO overflowed
  * @return false

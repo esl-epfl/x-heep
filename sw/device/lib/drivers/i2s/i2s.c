@@ -60,7 +60,7 @@ i2s_result_t i2s_init(uint16_t div_value, i2s_word_length_t word_length)
 
   // write word_length to register
   uint32_t control = i2s_peri->CONTROL;
-  bitfield_field32_write(control, I2S_CONTROL_DATA_WIDTH_FIELD, word_length);
+  control = bitfield_field32_write(control, I2S_CONTROL_DATA_WIDTH_FIELD, word_length);
 
   // enable base modules
   control |= (
@@ -101,53 +101,67 @@ i2s_result_t i2s_rx_start(i2s_channel_sel_t channels)
 {
   if (! i2s_is_running()) {
     //printf("ERROR: [I2S HAL] I2S peripheral not running");
-    return kI2sError;
-  }
-
-  // check overflow before changing state
-  bool overflow = i2s_rx_overflow(); 
-
-  uint32_t control = i2s_peri->CONTROL;
-
-  // disable rx if it was on
-  if (control & (I2S_CONTROL_EN_RX_MASK << I2S_CONTROL_EN_RX_OFFSET)) {
-    control &= ~(I2S_CONTROL_EN_RX_MASK << I2S_CONTROL_EN_RX_OFFSET);  // disable rx
-    i2s_peri->CONTROL = control;
+    return kI2sErrUninit;
   }
 
   if (channels == I2S_DISABLE) {
     // no channels selected -> disable
-    return kI2sOk;
+    return i2s_rx_stop();
   }
 
-  // check if overflow has occurred
-  if (overflow) {
-    i2s_peri->CONTROL = control | (1 << I2S_CONTROL_RESET_RX_OVERFLOW_BIT);
-    // overflow bit is going to be reset by rx channel if the sck is running
-    while (i2s_rx_overflow()) ; // wait for one SCK rise - this might take some time as the SCK can be much slower
-  }
-  
-  // disable WATERMARK counter
-  i2s_peri->CONTROL = control & ~(1 << I2S_CONTROL_EN_WATERMARK_BIT);
-
-  // cdc_2phase FIFO is not clearable, so we have to empty the FIFO manually
-  // note: this uses much less resources
-  while (i2s_rx_data_available()) {
-    i2s_rx_read_data(); // read to empty FIFO
+  if (i2s_rx_overflow()) {
+    return kI2sOverflow;
   }
 
-  // now we can start the selected rx channels
-  control |= (channels << I2S_CONTROL_EN_RX_OFFSET);
+  uint32_t control = i2s_peri->CONTROL;
+
+  if (bitfield_field32_read(control, I2S_CONTROL_EN_RX_FIELD) != 0x00) {
+    //printf("ERROR: [I2S HAL] I2S rx was already running");
+    return kI2sError;
+  }
+
+  control = bitfield_field32_write(control, I2S_CONTROL_EN_RX_FIELD, channels);
   control |= (1 << I2S_CONTROL_RESET_WATERMARK_BIT); // reset waterlevel
 
   i2s_peri->CONTROL = control;
   return kI2sOk;
 }
 
-void i2s_rx_stop(void)
+i2s_result_t i2s_rx_stop(void)
 {
+  if (! i2s_is_running()) {
+    //printf("ERROR: [I2S HAL] I2S peripheral not running");
+    return kI2sErrUninit;
+  }
+
+  bool overflow = i2s_rx_overflow(); 
+
   // disable rx channel
-  i2s_peri->CONTROL &= ~(I2S_CONTROL_EN_RX_MASK << I2S_CONTROL_EN_RX_OFFSET);  // disable rx
+  uint32_t control = i2s_peri->CONTROL;
+  control &= ~(I2S_CONTROL_EN_RX_MASK << I2S_CONTROL_EN_RX_OFFSET);
+  i2s_peri->CONTROL = control;
+
+  if (overflow) {
+    // trigger reset of the overflow flag
+    i2s_peri->CONTROL = control | (1 << I2S_CONTROL_RESET_RX_OVERFLOW_BIT);
+
+    // overflow bit is going to be reset by rx channel if the sck is running
+    while (i2s_rx_overflow()) ; // wait for one SCK rise - this might take some time as the SCK can be much slower
+
+    // disable WATERMARK counter
+    i2s_peri->CONTROL = control & ~(1 << I2S_CONTROL_EN_WATERMARK_BIT);
+
+    // CDC FIFO is not clearable, so we have to empty the FIFO manually
+    // note: this uses much less resources
+    for (int i = 0; i < 6; i++) {
+      // 4 FIFO + 2 spill registers
+      i2s_rx_read_data(); // read to empty FIFO
+    }
+
+    i2s_peri->CONTROL = control; // reset control register
+    return kI2sOverflow;
+  }
+  return kI2sOk;
 }
 
 

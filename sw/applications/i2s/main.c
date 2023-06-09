@@ -61,6 +61,7 @@ plic_irq_id_t intr_num;
 
 // I2s
 int i2s_interrupt_flag = 0;
+i2s_result_t i2s_res;
 
 
 int32_t audio_data_0[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
@@ -115,7 +116,10 @@ void setup()
 
     // enable I2s interrupt
     i2s_interrupt_flag = 0;
-    i2s_init(I2S_CLK_DIV, I2S_32_BITS);
+    i2s_res = i2s_init(I2S_CLK_DIV, I2S_32_BITS);
+    if (i2s_res != kI2sOk) {
+        printf("I2s init failed with %d\n", i2s_res);
+    } 
     i2s_rx_enable_watermark(AUDIO_DATA_NUM, I2S_USE_INTERRUPT);
 
 
@@ -157,11 +161,16 @@ int main(int argc, char *argv[]) {
 
     int batch = 0;
     while(1) {
-        i2s_rx_start(I2S_LEFT_CH);
+        #ifdef USE_DMA
+            dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // start 
+        #endif // USE_DMA
+        
+        i2s_res = i2s_rx_start(I2S_LEFT_CH);
+        if (i2s_res != kI2sOk) {
+            printf("I2s rx start failed with %d\n", i2s_res);
+        } 
 
         #ifdef USE_DMA
-        dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // start 
-
         // WAITING FOR DMA COPY TO FINISH
         while(!dma_intr_flag) {
             wait_for_interrupt();
@@ -176,8 +185,22 @@ int main(int argc, char *argv[]) {
         }
         #endif
 
+        if (i2s_rx_overflow()) {
+            printf("I2s rx FIFO overflowed\n");
+        }
+
+        i2s_res = i2s_rx_stop();
+        if (i2s_res != kI2sOk) {
+            if (i2s_res == kI2sOverflow) {
+                printf("I2s rx overflow occured and cleared\n");
+            }
+            else {
+                printf("I2s rx stop failed with %d\n", i2s_res);
+            }
+        }
 
 
+        // this takes wayyy longer than reading the samples, so no continuous mode is possible with UART dump 
         printf("index,data\r\n"); // <- csv header for python 
         int32_t* data = audio_data_0;
         for (int i = 0; i < AUDIO_DATA_NUM; i+=1) {
@@ -192,7 +215,6 @@ int main(int argc, char *argv[]) {
 
         break;
 
-        i2s_rx_stop();
 
         #ifdef USE_DMA
         dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // restart 
@@ -206,10 +228,14 @@ int main(int argc, char *argv[]) {
     bool mic_connected = false;
 
     for (int batch = 0; batch < I2S_TEST_BATCHES; batch++) {
-        i2s_rx_start(I2S_BOTH_CH);
-
         #ifdef USE_DMA
         dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // start 
+        #endif // USE_DMA
+        i2s_res = i2s_rx_start(I2S_BOTH_CH);
+        if (i2s_res != kI2sOk) {
+            printf("I2s rx start failed with %d\n", i2s_res);
+        } 
+        #ifdef USE_DMA
 
         // WAITING FOR DMA COPY TO FINISH
         while(!dma_intr_flag) {
@@ -224,7 +250,19 @@ int main(int argc, char *argv[]) {
             audio_data_0[i] = i2s_rx_read_data();
         }
         #endif
-        i2s_rx_stop();
+        if (i2s_rx_overflow()) {
+            printf("I2s rx FIFO overflowed\n");
+        }
+
+        i2s_res = i2s_rx_stop();
+        if (i2s_res != kI2sOk) {
+            if (i2s_res == kI2sOverflow) {
+                printf("I2s rx overflow occured and cleared\n");
+            }
+            else {
+                printf("I2s rx stop failed with %d\n", i2s_res);
+            }
+        }
 
         if (i2s_interrupt_flag) {
             printf("irq 1\r\n");
