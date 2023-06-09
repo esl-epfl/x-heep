@@ -36,7 +36,7 @@ v_gnd gnd 0 0
 - Create a toplevel symbol of the schematic you want to simulate
 - Run ADE L, select hspiceD in Setup -> Simulator
 - Select Results -> Netlist -> Create and save the SPICE output in a file
-- Open the SPICE file with a text editor, remove lines beginning with .TEMP, .PARAM & ???
+- Open the SPICE file with a text editor, remove lines beginning with .TEMP, .PARAM & ...
 - Add the global power nets tat the beginning of the file:
 ```
 v_vdd vdd 0 1.2
@@ -70,13 +70,7 @@ The example AMS peripheral used by simulations of X-HEEP is located in `hw/ip_ex
 
 ### The repository's example SPICE files
 
-An example `adc_sky130.sp` file can be found in `hw/analog`. This is a 1-bit ADC with a threshold that is configured through the 2-bit wide SEL input: an input of 00, 01, 10 and 11 will provide a threshold of 20%, 40%, 60% and 80% of VDD (1.2V) respectively. The input signal of the ADC is a sine wave with a peak-to-peak amplitude of 1.2V directly placed inside the SPICE netlist. The SPICE netlist uses the SkyWater 130nm PDK library; to be able to simulate this file with VCS, the corresponding git repo must be cloned in the root of the repository. To do so, make sure you're in the root repository of x-heep and enter the following command:
-
-```
-git clone -n https://github.com/google/skywater-pdk-libs-sky130_fd_pr.git
-cd skywater-pdk-libs-sky130_fd_pr
-git checkout f62031a1be9aefe902d6d54cddd6f59b57627436
-```
+An example `adc.sp` file can be found in `hw/analog`. This is a 1-bit ADC with a threshold that is configured through the 2-bit wide SEL input: an input of 00, 01, 10 and 11 will provide a threshold of 20%, 40%, 60% and 80% of VDD (1.2V) respectively. The input signal of the ADC is a sine wave with a peak-to-peak amplitude of 1.2V directly placed inside the SPICE netlist. The SPICE netlist uses the the 65nm_bulk PTM Bulk CMOS model obtained from [https://ptm.asu.edu](https://ptm.asu.edu/) (February 22, 2006 release) ; to be able to simulate this file with VCS/CustomSim, the model file should be placed in `hw/analog/65nm_bulk.pm`.
 
 ## Simulating with VCS-AMS and CustomSim
 
