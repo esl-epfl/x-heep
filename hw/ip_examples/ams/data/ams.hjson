@@ -24,7 +24,7 @@
       hwaccess: "hrw",
       fields: [
         { bits: "31:1", name:"UNUSED", desc: "Unused bits" },
-        { bits: "0:0", name:"VALUE", desc: "Get the ADC input" }
+        { bits: "0:0", name:"VALUE", desc: "Get the ADC output" }
       ]
     },
    ]
