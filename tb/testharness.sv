@@ -359,8 +359,8 @@ module testharness #(
       .in_select_i(ext_periph_select),
       .in_req_i(periph_slave_req),
       .in_rsp_o(periph_slave_rsp),
-      .out_req_o(),
-      .out_rsp_i()
+      .out_req_o(ext_periph_slv_req),
+      .out_rsp_i(ext_periph_slv_rsp)
   );
 
   // GPIO counter example
