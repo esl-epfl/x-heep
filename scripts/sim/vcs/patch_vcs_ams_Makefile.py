@@ -12,7 +12,7 @@ fileOut = open("Makefile", "w")
 # Loop through the file line by line
 for line in fileIn:
     if "$(EDALIZE_LAUNCHER) vcs" in line:
-        line = line[:-1] + " -ad=../../../hw/analog/control.init\n"
+        line = line[:-1] + " -ad=../../../hw/ip_examples/ams/analog/control.init\n"
     fileOut.write(line)
 
 

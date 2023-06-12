@@ -2,7 +2,7 @@
 
 ## About
 
-VCS offers the possibility to run AMS simulations by interfacing analog SPICE files with the rest of the digital RTL design. This is done through a special fine located under `hw/analog` named `control.init`.
+VCS offers the possibility to run AMS simulations by interfacing analog SPICE files with the rest of the digital RTL design. This is done through a special file located under `hw/ip_examples/ams/analog` named `control.init`.
 
 ## The SPICE (.sp) file
 
@@ -44,13 +44,13 @@ v_gnd gnd 0 0
 .global vdd gnd
 ```
 - Go to the bottom of the file, remove toplevel info, there must be only subckts left
-- The SPICE file is now ready to be simulated. Place it in hw/analog and create a control.init file (see next section)
+- The SPICE file is now ready to be simulated. Place it in `hw/ip_examples/ams/analog` and create a `control.init` file (see next section)
 
 ## The control.init file
 
 This file should at the very least look similar to this to be able to run a successful simulation:
 ```
-choose xa ../../../hw/analog/adc.sp;
+choose xa ../../../hw/ip_examples/ams/analog/adc.sp;
 port_connect -cell ams_adc_1b ( vdd => vdd , gnd => gnd );
 port_dir -cell ams_adc_1b (input sel; output out);
 bus_format <%d>;
@@ -70,7 +70,7 @@ The example AMS peripheral used by simulations of X-HEEP is located in `hw/ip_ex
 
 ### The repository's example SPICE files
 
-An example `adc.sp` file can be found in `hw/analog`. This is a 1-bit ADC with a threshold that is configured through the 2-bit wide SEL input: an input of 00, 01, 10 and 11 will provide a threshold of 20%, 40%, 60% and 80% of VDD (1.2V) respectively. The input signal of the ADC is a sine wave with a peak-to-peak amplitude of 1.2V directly placed inside the SPICE netlist. The SPICE netlist uses the the 65nm_bulk PTM Bulk CMOS model obtained from [https://ptm.asu.edu](https://ptm.asu.edu/) (February 22, 2006 release) ; to be able to simulate this file with VCS/CustomSim, the model file should be placed in `hw/analog/65nm_bulk.pm`.
+An example `adc.sp` file can be found in `hw/ip_examples/ams/analog`. This is a 1-bit ADC with a threshold that is configured through the 2-bit wide SEL input: an input of 00, 01, 10 and 11 will provide a threshold of 20%, 40%, 60% and 80% of VDD (1.2V) respectively. The input signal of the ADC is a sine wave with a peak-to-peak amplitude of 1.2V directly placed inside the SPICE netlist. The SPICE netlist uses the the 65nm_bulk PTM Bulk CMOS model obtained from [https://ptm.asu.edu](https://ptm.asu.edu/) (February 22, 2006 release) ; to be able to simulate this file with VCS/CustomSim, the model file should be placed in `hw/ip_examples/ams/analog/65nm_bulk.pm`.
 
 ## Simulating with VCS-AMS and CustomSim
 

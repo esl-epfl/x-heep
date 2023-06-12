@@ -5,7 +5,7 @@
 ** Uses the 65nm_bulk PTM Bulk CMOS model, February 22, 2006 release
 ** (obtained from https://ptm.asu.edu)
 
-.include "../../../hw/analog/65nm_bulk.pm"
+.include "../../../hw/ip_examples/ams/analog/65nm_bulk.pm"
 
 v_vdd VDD 0 1.2
 v_gnd GND 0 0
