@@ -71,8 +71,6 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
     uint32_t *fifo_ptr_tx = SPI->base_addr.base + SPI_HOST_TXDATA_REG_OFFSET;
 
     // -- DMA CONFIGURATION --
-    printf("TEST 1\n");
-
     dma_init(NULL);
 
     dma_target_t tgt_src = {
