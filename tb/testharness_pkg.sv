@@ -32,14 +32,14 @@ package testharness_pkg;
   localparam EXT_NPERIPHERALS = 2;
 
   // Memcopy controller (external peripheral example)
-  localparam logic [31:0] MEMCOPY_CTRL_START_ADDRESS = core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS + 32'h0020000;
+  localparam logic [31:0] MEMCOPY_CTRL_START_ADDRESS = core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS + 32'h0;
   localparam logic [31:0] MEMCOPY_CTRL_SIZE = 32'h10;
   localparam logic [31:0] MEMCOPY_CTRL_END_ADDRESS = MEMCOPY_CTRL_START_ADDRESS + MEMCOPY_CTRL_SIZE;
   localparam logic [31:0] MEMCOPY_CTRL_IDX = 32'd0;
 
   // External AMS Peripheral
-  localparam logic [31:0] AMS_START_ADDRESS = core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS + 32'h0030000;
-  localparam logic [31:0] AMS_SIZE = 32'h1000;
+  localparam logic [31:0] AMS_START_ADDRESS = core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS + 32'h001000;
+  localparam logic [31:0] AMS_SIZE = 32'h100;
   localparam logic [31:0] AMS_END_ADDRESS = AMS_START_ADDRESS + AMS_SIZE;
   localparam logic [31:0] AMS_IDX = 32'd1;
 
