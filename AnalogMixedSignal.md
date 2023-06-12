@@ -31,12 +31,11 @@ v_gnd gnd 0 0
 
 ### Example procedure with Cadence Virtuoso
 
-- TODO: double check this
 - Design a schematic that should later be simulated, make sure the toplevel pins match the name of the pins in the RTL part of the peripheral
 - Create a toplevel symbol of the schematic you want to simulate
 - Run ADE L, select hspiceD in Setup -> Simulator
-- Select Results -> Netlist -> Create and save the SPICE output in a file
-- Open the SPICE file with a text editor, remove lines beginning with .TEMP, .PARAM & ...
+- Select Simulation -> Netlist -> Create and save the SPICE output in a file
+- Open the SPICE file with a text editor, remove lines beginning with .TEMP & .OPTION (remember the file should only
 - Add the global power nets tat the beginning of the file:
 ```
 v_vdd vdd 0 1.2
@@ -74,9 +73,33 @@ An example `adc.sp` file can be found in `hw/ip_examples/ams/analog`. This is a 
 
 ## Simulating with VCS-AMS and CustomSim
 
-[copy from readme]
+The AMS simulation of X-HEEP can be ran by typing
+```
+make vcs-ams-sim
+```
+
+then going to the target system built folder
+
+```
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-vcs
+```
+
+and running the executable
+
+```
+./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/build/main.hex
+```
+
+However, due to the analog nature of the simulation, viewing the waveforms is very useful as well.
 
 ### Viewing the waveforms with Verdi
 
-[copy from readme too]
+To run the simulation through Verdi, make sure to have the `VERDI_HOME` environmental variable  set then run
+```
+./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/build/main.hex -gui
+```
+
+It may be that you don't see the list signals: click on View -> Signal list. Then, select the desired signals and put the desired simulation time on the box just after the green arrow and click on the green arrow (run Simulation).
+
+In case you cannot add internal signals to the waveform, try to delete the sim-vcs build directory and rebuilding.
 
