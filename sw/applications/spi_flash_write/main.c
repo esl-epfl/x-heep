@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
     cycles = 0;
 #endif // TEST_CIRCULAR
 
-    res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     PRINTF("tran: %u \n\r", res);
     
     res = dma_load_transaction(&trans);
@@ -394,7 +394,7 @@ int main(int argc, char *argv[])
                             .end = DMA_TRANS_END_INTR,
                             };
 
-    res = dma_create_transaction( &trans2, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    res = dma_validate_transaction( &trans2, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     PRINTF("tran: %u \n\r", res);
     
     res = dma_load_transaction(&trans2);

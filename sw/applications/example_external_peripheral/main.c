@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     PRINTF(" TESTING DMA ON EXTERNAL PERIPHERAL   ");
     PRINTF("\n\n===================================\n\n");
 
-    res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     res = dma_load_transaction(&trans);
     PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");

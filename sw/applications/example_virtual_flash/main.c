@@ -99,7 +99,7 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
     
     spi_intr_flag = 0;
 
-    res = dma_create_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     printf("Result - tgt trans: %u\n", res );
     res = dma_load_transaction(&trans);
     printf("Result - tgt load: %u\n", res );

@@ -123,7 +123,7 @@ typedef enum
  * @return A configuration flags mask. Each individual flag can be accessed with 
  * a bitwise AND ( ret & DMA_CONFIG_* ).
  */
-dma_config_flags_t validateTarget( dma_target_t *p_tgt );
+dma_config_flags_t validate_target( dma_target_t *p_tgt );
 
 /**
  * @brief Creates an environment where targets can be added. An environment 
@@ -147,8 +147,8 @@ dma_config_flags_t validate_environment( dma_env_t *p_env );
  * @param p_ptr The source or destination pointer. 
  * @return How misaligned the pointer is, in bytes. 
  */
-static inline uint8_t getMisalign_b(    uint8_t         *p_ptr, 
-                                        dma_data_type_t p_type );
+static inline uint8_t get_misalignment_b(   uint8_t         *p_ptr, 
+                                            dma_data_type_t p_type );
 
 
 /**
@@ -163,11 +163,11 @@ static inline uint8_t getMisalign_b(    uint8_t         *p_ptr,
  * @retval 1 There is an outbound.
  * @retval 0 There is NOT an outbound.   
  */
-static inline uint8_t isOutbound( uint8_t  *p_start, 
-                                  uint8_t  *p_end, 
-                                  uint32_t p_type,  
-                                  uint32_t p_size_du, 
-                                  uint32_t p_inc_du );
+static inline uint8_t is_region_outbound(   uint8_t  *p_start, 
+                                            uint8_t  *p_end, 
+                                            uint32_t p_type,  
+                                            uint32_t p_size_du, 
+                                            uint32_t p_inc_du );
 
 /**
  * @brief Writes a given value into the specified register. Its operation 
@@ -181,10 +181,10 @@ static inline uint8_t isOutbound( uint8_t  *p_start,
  * @param p_sel The selection index (i.e. From which bit inside the register
  * the value is to be written). 
  */
-static inline void writeRegister( uint32_t p_val,   
-                                  uint32_t p_offset, 
-                                  uint32_t p_mask,  
-                                  uint8_t  p_sel );
+static inline void write_register(  uint32_t p_val,   
+                                    uint32_t p_offset, 
+                                    uint32_t p_mask,  
+                                    uint8_t  p_sel );
 
 
 /**
@@ -192,7 +192,7 @@ static inline void writeRegister( uint32_t p_val,
  * @param p_tgt A pointer to the target to analyze. 
  * @return The number of bytes of the increment.
  */ 
-static inline uint32_t getIncrement_b( dma_target_t * p_tgt );
+static inline uint32_t get_increment_b( dma_target_t * p_tgt );
 
 
 /****************************************************************************/
@@ -261,9 +261,9 @@ void dma_init( dma *peri )
     dma_cb.peri->INTERRUPT_EN  = 0;
 }
 
-dma_config_flags_t dma_create_transaction(  dma_trans_t        *p_trans,  
-                                            dma_en_realign_t   p_enRealign, 
-                                            dma_perf_checks_t  p_check )
+dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,  
+                                                dma_en_realign_t   p_enRealign, 
+                                                dma_perf_checks_t  p_check )
 {
     /*
     * SANITY CHECKS
@@ -290,8 +290,8 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t        *p_trans,
      * A successful target validation has to be done before loading it to the 
      * DMA.
      */
-    uint8_t errorSrc = validateTarget( p_trans->src );
-    uint8_t errorDst = validateTarget( p_trans->dst );
+    uint8_t errorSrc = validate_target( p_trans->src );
+    uint8_t errorDst = validate_target( p_trans->dst );
 
     /* 
      * If there are any errors or warnings in the valdiation of the targets, 
@@ -388,12 +388,12 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t        *p_trans,
 
         if( p_trans->src->trig == DMA_TRIG_MEMORY )
         {
-            misalignment = getMisalign_b( p_trans->src->ptr, p_trans->type );
+            misalignment = get_misalignment_b( p_trans->src->ptr, p_trans->type );
         }
         
         if( p_trans->dst->trig == DMA_TRIG_MEMORY ) 
         {
-            dstMisalignment = getMisalign_b( p_trans->dst->ptr, p_trans->type );
+            dstMisalignment = get_misalignment_b( p_trans->dst->ptr, p_trans->type );
         }
 
         p_trans->flags  |= ( misalignment ? DMA_CONFIG_SRC : DMA_CONFIG_OK ); 
@@ -535,7 +535,7 @@ dma_config_flags_t dma_create_transaction(  dma_trans_t        *p_trans,
          * that could be useful for debugging purposes.  
          */ 
         uint8_t isEnv = p_trans->dst->env;
-        uint8_t isOutb = isOutbound(
+        uint8_t isOutb = is_region_outbound(
                                     p_trans->dst->ptr, 
                                     p_trans->dst->env->end,
                                     p_trans->type,
@@ -683,14 +683,14 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
    
 
     //printf("src inc - ");
-    writeRegister(  getIncrement_b( dma_cb.trans->src ), 
+    write_register(  get_increment_b( dma_cb.trans->src ), 
                     DMA_PTR_INC_REG_OFFSET, 
                     DMA_PTR_INC_SRC_PTR_INC_MASK,
                     DMA_PTR_INC_SRC_PTR_INC_OFFSET );
    
    
     //printf("dst inc - ");
-    writeRegister(  getIncrement_b( dma_cb.trans->dst ), 
+    write_register(  get_increment_b( dma_cb.trans->dst ), 
                     DMA_PTR_INC_REG_OFFSET, 
                     DMA_PTR_INC_DST_PTR_INC_MASK,
                     DMA_PTR_INC_DST_PTR_INC_OFFSET );
@@ -715,19 +715,19 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * SET TRIGGER SLOTS AND DATA TYPE
      */    
     //printf("src tri - ");
-    writeRegister(  dma_cb.trans->src->trig, 
+    write_register(  dma_cb.trans->src->trig, 
                     DMA_SLOT_REG_OFFSET, 
                     DMA_SLOT_RX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_RX_TRIGGER_SLOT_OFFSET );
 
     //printf("dst tri - ");
-    writeRegister(  dma_cb.trans->dst->trig, 
+    write_register(  dma_cb.trans->dst->trig, 
                     DMA_SLOT_REG_OFFSET, 
                     DMA_SLOT_TX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_TX_TRIGGER_SLOT_OFFSET );
 
     //printf("dat typ - ");
-    writeRegister(  dma_cb.trans->type, 
+    write_register(  dma_cb.trans->type, 
                     DMA_DATA_TYPE_REG_OFFSET, 
                     DMA_DATA_TYPE_DATA_TYPE_MASK, 
                     DMA_SELECTION_OFFSET_START );
@@ -861,7 +861,7 @@ __attribute__((weak, optimize("O0"))) uint8_t dma_window_ratio_warning_threshold
 /**                                                                        **/
 /****************************************************************************/
 
-dma_config_flags_t validateTarget( dma_target_t *p_tgt )
+dma_config_flags_t validate_target( dma_target_t *p_tgt )
 {
     /* Flags variable to pass encountered errors. */
     dma_config_flags_t flags;
@@ -900,7 +900,7 @@ dma_config_flags_t validateTarget( dma_target_t *p_tgt )
          */
         if( p_tgt->size_du != 0 )
         {
-            uint8_t isOutb = isOutbound(  p_tgt->ptr,
+            uint8_t isOutb = is_region_outbound(  p_tgt->ptr,
                                           p_tgt->env->end, 
                                           p_tgt->type, 
                                           p_tgt->size_du, 
@@ -946,8 +946,8 @@ dma_config_flags_t validateTarget( dma_target_t *p_tgt )
 
     /*
      * This is returned so this function can be called as: 
-     * if( validateTarget == DMA_CONFIG_OK ){ go ahead } 
-     * or if( validateTarget() ){ check for errors }
+     * if( validate_target == DMA_CONFIG_OK ){ go ahead } 
+     * or if( validate_target() ){ check for errors }
      */
     return flags; 
 }
@@ -966,7 +966,7 @@ dma_config_flags_t validate_environment( dma_env_t *p_env )
 }
 /* @ToDo: Prevent validation of targets whose environment was not validated. */
 
-static inline uint8_t getMisalign_b(  uint8_t         *p_ptr, 
+static inline uint8_t get_misalignment_b(  uint8_t         *p_ptr, 
                                       dma_data_type_t p_type )
 {
     /*
@@ -1041,7 +1041,7 @@ static inline uint8_t getMisalign_b(  uint8_t         *p_ptr,
     return misalignment;
 }
 
-static inline uint8_t isOutbound( uint8_t  *p_start, 
+static inline uint8_t is_region_outbound( uint8_t  *p_start, 
                                   uint8_t  *p_end, 
                                   uint32_t p_type, 
                                   uint32_t p_size_du, 
@@ -1070,7 +1070,7 @@ static inline uint8_t isOutbound( uint8_t  *p_start,
 
 /* @ToDo: Consider changing the "mask" parameter for a bitfield definition 
 (see dma_regs.h) */
-static inline void writeRegister( uint32_t  p_val, 
+static inline void write_register( uint32_t  p_val, 
                                   uint32_t  p_offset, 
                                   uint32_t  p_mask,
                                   uint8_t   p_sel )
@@ -1095,7 +1095,7 @@ static inline void writeRegister( uint32_t  p_val,
 
 }
 
-static inline uint32_t getIncrement_b( dma_target_t * p_tgt )
+static inline uint32_t get_increment_b( dma_target_t * p_tgt )
 {
     uint32_t inc_b = 0;
     /* If the target uses a trigger, the increment remains 0. */

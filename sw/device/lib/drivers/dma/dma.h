@@ -339,7 +339,7 @@ void dma_init( dma *peri );
  * to be loaded.
  * @retval DMA_CONFIG_OK == 0 otherwise.    
  */
-dma_config_flags_t dma_create_transaction(  dma_trans_t       *p_trans, 
+dma_config_flags_t dma_validate_transaction(  dma_trans_t       *p_trans, 
                                             dma_en_realign_t  p_enRealign, 
                                             dma_perf_checks_t p_check );
 
