@@ -20,6 +20,7 @@ filesets:
   files_verilator_waiver:
     files:
     - hw/ip_examples/slow_memory/slow_memory.vlt
+    - hw/ip_examples/ams/ams.vlt
     - tb/tb.vlt
     file_type: vlt
 

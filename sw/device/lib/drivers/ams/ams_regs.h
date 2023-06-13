@@ -22,18 +22,10 @@ extern "C" {
 #define AMS_SEL_VALUE_OFFSET 0
 #define AMS_SEL_VALUE_FIELD \
   ((bitfield_field32_t) { .mask = AMS_SEL_VALUE_MASK, .index = AMS_SEL_VALUE_OFFSET })
-#define AMS_SEL_UNUSED_MASK 0x3fffffff
-#define AMS_SEL_UNUSED_OFFSET 2
-#define AMS_SEL_UNUSED_FIELD \
-  ((bitfield_field32_t) { .mask = AMS_SEL_UNUSED_MASK, .index = AMS_SEL_UNUSED_OFFSET })
 
 // Get the ADC output
 #define AMS_GET_REG_OFFSET 0x4
 #define AMS_GET_VALUE_BIT 0
-#define AMS_GET_UNUSED_MASK 0x7fffffff
-#define AMS_GET_UNUSED_OFFSET 1
-#define AMS_GET_UNUSED_FIELD \
-  ((bitfield_field32_t) { .mask = AMS_GET_UNUSED_MASK, .index = AMS_GET_UNUSED_OFFSET })
 
 #ifdef __cplusplus
 }  // extern "C"

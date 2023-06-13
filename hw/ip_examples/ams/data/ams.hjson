@@ -14,7 +14,6 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:2", name:"UNUSED", desc: "Unused bits" },
         { bits: "1:0", name:"VALUE", desc: "Set the ADC threshold value" }
       ]
     },
@@ -23,8 +22,7 @@
       swaccess: "ro",
       hwaccess: "hrw",
       fields: [
-        { bits: "31:1", name:"UNUSED", desc: "Unused bits" },
-        { bits: "0:0", name:"VALUE", desc: "Get the ADC output" }
+        { bits: "0", name:"VALUE", desc: "Get the ADC output" }
       ]
     },
    ]

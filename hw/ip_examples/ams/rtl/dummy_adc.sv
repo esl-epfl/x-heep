@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 module ams_adc_1b (
-    input  logic sel,
+    input logic [1:0] sel,
     output logic out
 );
 

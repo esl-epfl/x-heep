@@ -17,11 +17,11 @@ module ams #(
   ams_reg2hw_t reg2hw;
   ams_hw2reg_t hw2reg;
 
-  assign hw2reg.get.value.de = 1;
+  assign hw2reg.get.de = 1;
 
   ams_adc_1b ams_adc_1b_i (
-      .sel(reg2hw.sel.value.q),
-      .out(hw2reg.get.value.d)
+      .sel(reg2hw.sel.q),
+      .out(hw2reg.get.d)
   );
 
   ams_reg_top #(

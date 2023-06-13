@@ -13,36 +13,24 @@ package ams_reg_pkg;
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {
-    struct packed {logic [1:0] q;} value;
-    struct packed {logic [29:0] q;} unused;
-  } ams_reg2hw_sel_reg_t;
+  typedef struct packed {logic [1:0] q;} ams_reg2hw_sel_reg_t;
+
+  typedef struct packed {logic q;} ams_reg2hw_get_reg_t;
 
   typedef struct packed {
-    struct packed {logic q;} value;
-    struct packed {logic [30:0] q;} unused;
-  } ams_reg2hw_get_reg_t;
-
-  typedef struct packed {
-    struct packed {
-      logic d;
-      logic de;
-    } value;
-    struct packed {
-      logic [30:0] d;
-      logic        de;
-    } unused;
+    logic d;
+    logic de;
   } ams_hw2reg_get_reg_t;
 
   // Register -> HW type
   typedef struct packed {
-    ams_reg2hw_sel_reg_t sel;  // [63:32]
-    ams_reg2hw_get_reg_t get;  // [31:0]
+    ams_reg2hw_sel_reg_t sel;  // [2:1]
+    ams_reg2hw_get_reg_t get;  // [0:0]
   } ams_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    ams_hw2reg_get_reg_t get;  // [33:0]
+    ams_hw2reg_get_reg_t get;  // [1:0]
   } ams_hw2reg_t;
 
   // Register offsets
@@ -57,8 +45,8 @@ package ams_reg_pkg;
 
   // Register width information to check illegal writes
   parameter logic [3:0] AMS_PERMIT[2] = '{
-      4'b1111,  // index[0] AMS_SEL
-      4'b1111  // index[1] AMS_GET
+      4'b0001,  // index[0] AMS_SEL
+      4'b0001  // index[1] AMS_GET
   };
 
 endpackage

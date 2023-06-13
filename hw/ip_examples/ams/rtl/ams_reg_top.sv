@@ -68,30 +68,25 @@ module ams_reg_top #(
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
   //        or <reg>_{wd|we|qs} if field == 1 or 0
-  logic [1:0] sel_value_qs;
-  logic [1:0] sel_value_wd;
-  logic sel_value_we;
-  logic [29:0] sel_unused_qs;
-  logic [29:0] sel_unused_wd;
-  logic sel_unused_we;
-  logic get_value_qs;
-  logic [30:0] get_unused_qs;
+  logic [1:0] sel_qs;
+  logic [1:0] sel_wd;
+  logic sel_we;
+  logic get_qs;
 
   // Register instances
   // R[sel]: V(False)
 
-  //   F[value]: 1:0
   prim_subreg #(
       .DW      (2),
       .SWACCESS("RW"),
       .RESVAL  (2'h0)
-  ) u_sel_value (
+  ) u_sel (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(sel_value_we),
-      .wd(sel_value_wd),
+      .we(sel_we),
+      .wd(sel_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -99,47 +94,20 @@ module ams_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.sel.value.q),
+      .q (reg2hw.sel.q),
 
       // to register interface (read)
-      .qs(sel_value_qs)
-  );
-
-
-  //   F[unused]: 31:2
-  prim_subreg #(
-      .DW      (30),
-      .SWACCESS("RW"),
-      .RESVAL  (30'h0)
-  ) u_sel_unused (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(sel_unused_we),
-      .wd(sel_unused_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.sel.unused.q),
-
-      // to register interface (read)
-      .qs(sel_unused_qs)
+      .qs(sel_qs)
   );
 
 
   // R[get]: V(False)
 
-  //   F[value]: 0:0
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RO"),
       .RESVAL  (1'h0)
-  ) u_get_value (
+  ) u_get (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
@@ -147,40 +115,15 @@ module ams_reg_top #(
       .wd('0),
 
       // from internal hardware
-      .de(hw2reg.get.value.de),
-      .d (hw2reg.get.value.d),
+      .de(hw2reg.get.de),
+      .d (hw2reg.get.d),
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.get.value.q),
+      .q (reg2hw.get.q),
 
       // to register interface (read)
-      .qs(get_value_qs)
-  );
-
-
-  //   F[unused]: 31:1
-  prim_subreg #(
-      .DW      (31),
-      .SWACCESS("RO"),
-      .RESVAL  (31'h0)
-  ) u_get_unused (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      .we(1'b0),
-      .wd('0),
-
-      // from internal hardware
-      .de(hw2reg.get.unused.de),
-      .d (hw2reg.get.unused.d),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.get.unused.q),
-
-      // to register interface (read)
-      .qs(get_unused_qs)
+      .qs(get_qs)
   );
 
 
@@ -202,24 +145,19 @@ module ams_reg_top #(
                (addr_hit[1] & (|(AMS_PERMIT[1] & ~reg_be)))));
   end
 
-  assign sel_value_we  = addr_hit[0] & reg_we & !reg_error;
-  assign sel_value_wd  = reg_wdata[1:0];
-
-  assign sel_unused_we = addr_hit[0] & reg_we & !reg_error;
-  assign sel_unused_wd = reg_wdata[31:2];
+  assign sel_we = addr_hit[0] & reg_we & !reg_error;
+  assign sel_wd = reg_wdata[1:0];
 
   // Read data return
   always_comb begin
     reg_rdata_next = '0;
     unique case (1'b1)
       addr_hit[0]: begin
-        reg_rdata_next[1:0]  = sel_value_qs;
-        reg_rdata_next[31:2] = sel_unused_qs;
+        reg_rdata_next[1:0] = sel_qs;
       end
 
       addr_hit[1]: begin
-        reg_rdata_next[0] = get_value_qs;
-        reg_rdata_next[31:1] = get_unused_qs;
+        reg_rdata_next[0] = get_qs;
       end
 
       default: begin
