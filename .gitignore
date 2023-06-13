@@ -18,6 +18,7 @@ linux_femu/rtl/linux_femu.sv
 .venv/
 
 # ignore the following hw automatically generated files
+environment.yml
 core-v-mini-mcu.upf
 tb/tb_util.svh
 hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
@@ -48,3 +49,7 @@ sw/device/lib/drivers/**/*_structs.h
 
 # openroad
 flow/OpenROAD-flow-scripts
+
+# User-dependent configuration files
+.vscode
+private/
