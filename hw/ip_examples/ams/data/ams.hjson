@@ -1,0 +1,30 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{ name: "ams",
+  clock_primary: "clk_i",
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ],
+  regwidth: "32",
+  registers: [
+    { name:     "SEL",
+      desc:     "Select the ADC threshold value (20%, 40%, 60%, 80% of VDD)",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "1:0", name:"VALUE", desc: "Set the ADC threshold value" }
+      ]
+    },
+    { name:     "GET",
+      desc:     "Get the ADC output",
+      swaccess: "ro",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "0", name:"VALUE", desc: "Get the ADC output" }
+      ]
+    },
+   ]
+}
+

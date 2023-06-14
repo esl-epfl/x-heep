@@ -17,6 +17,8 @@ One example using the external ports is provided where:
 
 - hw/ip_examples/slow_sram is a memory slave device
 - hw/ip_examples/memcopy is a slave peripheral with a master port. It implements a simple memcopy feature (i.e., DMA).
+- hw/ip_examples/ams is an example AMS peripheral which can interface with SPICE netlists to run mixed-signal simulations (in this repository, the example analog peripheral is a 1-bit ADC)
+    - For more information, see [here](AnalogMixedSignal.md)
 
 ## Run the external device example
 

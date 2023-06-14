@@ -179,6 +179,11 @@ filesets:
     - scripts/sim/modelsim/patch_modelsim_Makefile.py
     file_type: user
 
+  pre_patch_vcs_ams_Makefile:
+    files:
+    - scripts/sim/vcs/patch_vcs_ams_Makefile.py
+    file_type: user
+
   tb-verilator:
     files:
     - tb/tb_top.cpp
@@ -258,6 +263,11 @@ scripts:
     - python
     - ../../../scripts/sim/modelsim/patch_modelsim_Makefile.py
 
+  pre_patch_vcs_ams_Makefile:
+    cmd:
+    - python
+    - ../../../scripts/sim/vcs/patch_vcs_ams_Makefile.py
+
 targets:
   default: &default_target
     filesets:
@@ -289,6 +299,7 @@ targets:
         - tool_modelsim? (pre_build_uartdpi)
         - tool_modelsim? (pre_build_remote_bitbang)
         - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
+        - ams_sim? (pre_patch_vcs_ams_Makefile)
     parameters:
     - use_cv32e40p_corev_pulp? (COREV_PULP=1)
     - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
@@ -314,8 +325,9 @@ targets:
          - -override_timescale=1ns/1ps
          - -assert disable_cover
          - -assert svaext
-         - -debug_access+all
+         - -debug_access+all+dmptf
          - -fgp
+         - -full64
          - -kdb
          - -notice
          - -ntb_opts error
@@ -323,6 +335,7 @@ targets:
          - -xlrm uniq_prior_final
          - -CFLAGS "-std=c++14 -pthread"
          - -LDFLAGS "-pthread -lutil"
+         - +lint=TFIPC-L
          - -V
       verilator:
         mode: cc
