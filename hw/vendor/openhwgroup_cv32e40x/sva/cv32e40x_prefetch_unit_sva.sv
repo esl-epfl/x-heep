@@ -21,7 +21,7 @@
 module cv32e40x_prefetch_unit_sva import cv32e40x_pkg::*;
   import uvm_pkg::*;
   #(
-        parameter SMCLIC = 1'b0
+        parameter bit CLIC = 1'b0
   )
   (
    input logic        clk,
@@ -58,7 +58,7 @@ module cv32e40x_prefetch_unit_sva import cv32e40x_pkg::*;
   a_branch_implies_req : assert property(p_branch_implies_req)
     else `uvm_error("prefetch_buffer", "Assertion a_branch_implies_req failed")
 
-if (SMCLIC) begin
+if (CLIC) begin
   // Shall not fetch anything between pointer fetch and the actual instruction fetch
   // based on the pointer.
   property p_single_ptr_fetch;
@@ -70,7 +70,7 @@ if (SMCLIC) begin
     assert property(p_single_ptr_fetch)
     else
       `uvm_error("Alignment buffer SVA", "Multiple fetches for CLIC/Zc pointer")
-end // SMCLIC
+end // CLIC
 
 
 endmodule // cv32e40x_prefetch_unit
