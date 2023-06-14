@@ -22,7 +22,9 @@ module cv32e40x_rvfi
   import cv32e40x_pkg::*;
   import cv32e40x_rvfi_pkg::*;
   #(
-    parameter bit SMCLIC = 0
+    parameter bit     CLIC  = 0,
+    parameter bit     DEBUG = 1,
+    parameter a_ext_e A_EXT = A_NONE
   )
   (
    input logic                                clk_i,
@@ -77,8 +79,12 @@ module cv32e40x_rvfi
    input logic                                dret_in_ex_i,
    input logic                                lsu_en_ex_i,
    input logic                                lsu_pmp_err_ex_i,
-   input logic                                lsu_pma_err_atomic_ex_i,
-   input obi_data_req_t                       buffer_trans,
+   input logic                                lsu_pma_err_ex_i,
+   input logic                                lsu_pma_atomic_ex_i,
+   input pma_cfg_t                            lsu_pma_cfg_ex_i,
+   input logic                                lsu_misaligned_ex_i,
+   input obi_data_req_t                       buffer_trans_ex_i,
+   input logic                                buffer_trans_valid_ex_i,
    input logic                                lsu_split_q_ex_i,
 
    // WB probes
@@ -179,9 +185,6 @@ module cv32e40x_rvfi
    input logic [31:0]                         csr_mscratchcswl_n_i,
    input logic [31:0]                         csr_mscratchcswl_q_i,
    input logic                                csr_mscratchcswl_we_i,
-   input logic [31:0]                         csr_mclicbase_n_i,
-   input logic [31:0]                         csr_mclicbase_q_i,
-   input logic                                csr_mclicbase_we_i,
    input logic [31:0]                         csr_tdata1_n_i,
    input logic [31:0]                         csr_tdata1_q_i,
    input logic                                csr_tdata1_we_i,
@@ -409,10 +412,6 @@ module cv32e40x_rvfi
    output logic [31:0]                        rvfi_csr_mscratchcswl_wmask,
    output logic [31:0]                        rvfi_csr_mscratchcswl_rdata,
    output logic [31:0]                        rvfi_csr_mscratchcswl_wdata,
-   output logic [31:0]                        rvfi_csr_mclicbase_rmask,
-   output logic [31:0]                        rvfi_csr_mclicbase_wmask,
-   output logic [31:0]                        rvfi_csr_mclicbase_rdata,
-   output logic [31:0]                        rvfi_csr_mclicbase_wdata,
    output logic [31:0]                        rvfi_csr_tselect_rmask,
    output logic [31:0]                        rvfi_csr_tselect_wmask,
    output logic [31:0]                        rvfi_csr_tselect_rdata,
@@ -704,11 +703,24 @@ module cv32e40x_rvfi
 
   rvfi_obi_instr_t obi_instr_if;
   obi_data_req_t   lsu_data_trans;
+  logic            lsu_data_trans_valid;
 
   // Detect mret initiated CLIC pointer in WB
   logic         mret_ptr_wb;
 
+  // Detect a PMA error due to atomics accessing non-atomic regions
+  logic         lsu_pma_err_atomic_ex;
+
+  // Detect PMA errors due to misaligned accesses
+  logic         lsu_pma_err_misaligned_ex;
+
   assign        mret_ptr_wb = mret_ptr_wb_i;
+
+  // PMA error due to atomic not within an atomic region
+  assign lsu_pma_err_atomic_ex = lsu_pma_err_ex_i && lsu_pma_atomic_ex_i && !lsu_pma_cfg_ex_i.atomic;
+
+  // PMA error due to misaligned accesses to I/O memory
+  assign lsu_pma_err_misaligned_ex = lsu_pma_err_ex_i && lsu_misaligned_ex_i && !lsu_pma_cfg_ex_i.main;
 
   assign insn_opcode = rvfi_insn[6:0];
   assign insn_rd     = rvfi_insn[11:7];
@@ -741,10 +753,12 @@ module cv32e40x_rvfi
   cv32e40x_rvfi_data_obi
   rvfi_data_obi_i
   (
-    .clk                        ( clk_i          ),
-    .rst_n                      ( rst_ni         ),
-    .buffer_trans               ( buffer_trans   ),
-    .lsu_data_trans             ( lsu_data_trans )
+    .clk                        ( clk_i                   ),
+    .rst_n                      ( rst_ni                  ),
+    .buffer_trans_i             ( buffer_trans_ex_i       ),
+    .buffer_trans_valid_i       ( buffer_trans_valid_ex_i ),
+    .lsu_data_trans_o           ( lsu_data_trans          ),
+    .lsu_data_trans_valid_o     ( lsu_data_trans_valid    )
   );
 
 
@@ -766,7 +780,7 @@ module cv32e40x_rvfi
       end
     end
 
-    // Genrate PC for branches taken from EX
+    // Generate PC for branches taken from EX
     pc_wdata_ex_branch = pc_wdata_ex_branch_q;
 
     if (ctrl_fsm_i.pc_set) begin
@@ -799,12 +813,12 @@ module cv32e40x_rvfi
   assign branch_taken_ex = branch_in_ex_i && branch_decision_ex_i;
 
   // Assign rvfi channels
-  assign rvfi_halt = 1'b0; // No intruction causing halt in cv32e40x
+  assign rvfi_halt = 1'b0; // No instruction causing halt in cv32e40x
   assign rvfi_ixl = 2'b01; // XLEN for current privilege level, must be 1(32) for RV32 systems
 
   logic         in_trap_clr;
   // Clear in trap pipeline when it reaches rvfi_intr
-  // This is done to avoid reporting already signaled triggers as supressed during by debug
+  // This is done to avoid reporting already signaled triggers as suppressed during by debug
   assign in_trap_clr = wb_valid_lastop && in_trap[STAGE_WB].intr;
 
   // Set rvfi_trap for instructions causing exception or debug entry.
@@ -826,6 +840,7 @@ module cv32e40x_rvfi
       // Indicate synchronous (non-debug entry) trap
       rvfi_trap_next.exception       = 1'b1;
       rvfi_trap_next.exception_cause = ctrl_fsm_i.csr_cause.exception_code[5:0]; // All synchronous exceptions fit in lower 6 bits
+      rvfi_trap_next.clicptr         = clic_ptr_wb_i;
 
       // Separate exception causes with the same ecseption cause code
       case (ctrl_fsm_i.csr_cause.exception_code)
@@ -840,6 +855,12 @@ module cv32e40x_rvfi
         end
         EXC_CAUSE_STORE_FAULT : begin
           rvfi_trap_next.cause_type = mem_err[STAGE_WB];
+        end
+        EXC_CAUSE_LOAD_MISALIGNED : begin
+          rvfi_trap_next.cause_type = 2'h0;
+        end
+        EXC_CAUSE_STORE_MISALIGNED : begin
+          rvfi_trap_next.cause_type = 2'h0;
         end
         default : begin
           // rvfi_trap_next.cause_type is only set for exception codes that can have multiple causes
@@ -863,10 +884,11 @@ module cv32e40x_rvfi
   end
 
   // All instructions retire when wb_valid is high and it either is a last_op or an abort_op.
-  // CLIC pointers are excluded as they are not instructions.
+  // CLIC pointers are excluded if they do not raise an exception.
+  // Faulted CLIC pointer fetches are reported with rvfi_valid and rvfi_trap.clicptr==1.
   // CLIC pointers that are a result of an mret (instr_meta.mret_ptr) finish the sequence mret->ptr, and shall raise rvfi_valid_* to retire the mret.
-  assign wb_valid_subop    = wb_valid_i && !clic_ptr_wb_i;
-  assign wb_valid_lastop   = wb_valid_i && (last_op_wb_i || abort_op_wb_i) && !clic_ptr_wb_i;
+  assign wb_valid_subop    = wb_valid_i && !(clic_ptr_wb_i && !pc_mux_exception);
+  assign wb_valid_lastop   = wb_valid_i && (last_op_wb_i || abort_op_wb_i) && !(clic_ptr_wb_i && !pc_mux_exception);
 
 
   // Pipeline stage model //
@@ -956,7 +978,9 @@ module cv32e40x_rvfi
         //     but we still need the in_trap attached to the pointer target, which is
         //     only fetched when the CLIC pointer is in ID. Thus we must not clear in_trap
         //     when the pointer goes from IF to ID.
-        if ((last_op_if_i || abort_op_if_i) && !clic_ptr_if_i) begin
+        // Any aborted operation will not cause any other side effects than taking an exception, and
+        // thus that is the last part of an operation, leading to clearing in_trap and debug cause for STAGE_IF;
+        if ((last_op_if_i && !clic_ptr_if_i) || abort_op_if_i) begin
           in_trap    [STAGE_IF] <= 1'b0;
           debug_cause[STAGE_IF] <= '0;
         end
@@ -979,14 +1003,27 @@ module cv32e40x_rvfi
           // A higher priority debug request (e.g. trigger match) will pull ebreak_in_wb_i low and allow the debug cause to propagate
           debug_cause[STAGE_IF] <=  ebreak_in_wb_i ? 3'h1 : ctrl_fsm_i.debug_cause;
 
-          // If there is a trap in the pipeline when debug is taken, the trap will be supressed but the side-effects will not.
+          // If there is a trap in the pipeline when debug is taken, the trap will be suppressed but the side-effects will not.
           // The succeeding instruction therefore needs to re-trigger the intr signals if it it did not reach the rvfi output.
-          // When in_trap_clr is set, the in_trap[STAGE_WB] reached the RVFI outputs and we must not propagate it back to the in_trap[STAGE_IF]
-          in_trap[STAGE_IF] <= in_trap[STAGE_IF].intr ? in_trap[STAGE_IF] :
-                               in_trap[STAGE_ID].intr ? in_trap[STAGE_ID] :
-                               in_trap[STAGE_EX].intr ? in_trap[STAGE_EX] :
-                               !in_trap_clr           ? in_trap[STAGE_WB] :
-                               '0;
+          //
+          // in_trap is attached to the first instruction of interrupt or exception handlers. If such an instruction is killed by
+          // an external haltrequest, the above comment holds and the in_trap info from the pipeline must be backpropagated to the IF stage.
+          // If however the debug entry is due to a synchronous exception, the first handler instruction must have reached WB. For most synchronous
+          // debug entries (except single step due to acking an interrupt) rvfi_valid == 1, thus the in_trap reached RVFI outputs and does not need to backpropagate fo IF.
+          if (ctrl_fsm_i.debug_cause == DBG_CAUSE_HALTREQ) begin
+            in_trap[STAGE_IF] <= in_trap[STAGE_IF].intr ? in_trap[STAGE_IF] :
+                                 in_trap[STAGE_ID].intr ? in_trap[STAGE_ID] :
+                                 in_trap[STAGE_EX].intr ? in_trap[STAGE_EX] :
+                                                          in_trap[STAGE_WB];
+
+          end else begin
+            // Clear in_trap[STAGE_IF] if the handler instruction reached WB without being killed (trigger match, ebreak or stepping)
+            // In case of taking single step debug due to acking an interrupt or NMI, the in_trap_clr will be zero and the the trap information
+            // must be retained in the STAGE_IF to be communicated on RVFI for the first debug instruction.
+            if (in_trap_clr) begin
+              in_trap[STAGE_IF] <= '0;
+            end
+          end
         // In case the first instruction during debug mode gets an exception, if_stage will be killed and the clearing
         // of debug_cause due to last_op_if_i during (if_valid && id_ready) may never happen. This will lead to a wrong
         // value of debug_cause on RVFI outputs. To avoid this, debug_cause is cleared if IF stage is killed due to an exception.
@@ -1075,8 +1112,8 @@ module cv32e40x_rvfi
         rs2_addr   [STAGE_WB] <= rs2_addr           [STAGE_EX];
         rs1_rdata  [STAGE_WB] <= rs1_rdata          [STAGE_EX];
         rs2_rdata  [STAGE_WB] <= rs2_rdata          [STAGE_EX];
-        mem_rmask  [STAGE_WB] <= mem_rmask          [STAGE_EX];
-        mem_wmask  [STAGE_WB] <= mem_wmask          [STAGE_EX];
+        mem_rmask  [STAGE_WB] <= lsu_data_trans_valid ? mem_rmask[STAGE_EX] : '0;
+        mem_wmask  [STAGE_WB] <= lsu_data_trans_valid ? mem_wmask[STAGE_EX] : '0;
         in_trap    [STAGE_WB] <= in_trap            [STAGE_EX];
 
         rs1_addr_subop   [STAGE_WB] <= rs1_addr_subop [STAGE_EX];
@@ -1088,14 +1125,17 @@ module cv32e40x_rvfi
 
         lsu_mem_split_wb <= lsu_split_q_ex_i;
         if (!lsu_split_q_ex_i) begin
-          // The second part of the split misaligned acess is suppressed to keep
+          // The second part of the split misaligned access is suppressed to keep
           // the start address and data for the whole misaligned transfer
           ex_mem_trans <= lsu_data_trans;
         end
 
-        mem_err   [STAGE_WB]  <= lsu_pmp_err_ex_i        ? MEM_ERR_PMP :
-                                 lsu_pma_err_atomic_ex_i ? MEM_ERR_ATOMIC :
-                                                           MEM_ERR_IO_ALIGN;
+        // Capture cause of LSU exception for the cases that can have multiple reasons for an exception
+        // These are currently load and store access faults trigger by misaligned access to i/o regions,
+        // atomic accesses to regions not enabled for atomics or accesses blocked by PMP.
+        mem_err [STAGE_WB]  = lsu_pma_err_misaligned_ex    ? MEM_ERR_IO_ALIGN          : // Non-natrually aligned access to !main
+                              lsu_pma_err_atomic_ex        ? MEM_ERR_ATOMIC            : // Any atomic to non-atomic PMA region
+                                                             MEM_ERR_PMP;                // PMP error
 
         // Read autonomuos CSRs from EX perspective
         ex_csr_rdata        <= ex_csr_rdata_d;
@@ -1402,16 +1442,11 @@ module cv32e40x_rvfi
   assign rvfi_csr_wdata_d.mscratchcswl       = csr_mscratchcswl_n_i;
   assign rvfi_csr_wmask_d.mscratchcswl       = csr_mscratchcswl_we_i ? '1 : '0;
 
-  assign rvfi_csr_rdata_d.mclicbase          = csr_mclicbase_q_i;
-  assign rvfi_csr_rmask_d.mclicbase          = '1;
-  assign rvfi_csr_wdata_d.mclicbase          = csr_mclicbase_n_i;
-  assign rvfi_csr_wmask_d.mclicbase          = csr_mclicbase_we_i ? '1 : '0;
-
   // Trigger
   assign rvfi_csr_rdata_d.tselect            = csr_tselect_q_i;
   assign rvfi_csr_rmask_d.tselect            = '1;
   assign rvfi_csr_wdata_d.tselect            = csr_tselect_n_i;
-  assign rvfi_csr_wmask_d.tselect            = csr_tselect_we_i;
+  assign rvfi_csr_wmask_d.tselect            = csr_tselect_we_i ? '1 : '0;
 
   // Tdata0 does not exist, tie off to zero
   assign rvfi_csr_rdata_d.tdata[0]           = '0;
@@ -1432,12 +1467,12 @@ module cv32e40x_rvfi
   assign rvfi_csr_rdata_d.tdata[3]           = csr_tdata3_q_i;
   assign rvfi_csr_rmask_d.tdata[3]           = '1;
   assign rvfi_csr_wdata_d.tdata[3]           = csr_tdata3_n_i;
-  assign rvfi_csr_wmask_d.tdata[3]           = csr_tdata3_we_i;
+  assign rvfi_csr_wmask_d.tdata[3]           = csr_tdata3_we_i ? '1 : '0;
 
   assign rvfi_csr_rdata_d.tinfo              = csr_tinfo_q_i;
   assign rvfi_csr_rmask_d.tinfo              = '1;
   assign rvfi_csr_wdata_d.tinfo              = csr_tinfo_n_i;
-  assign rvfi_csr_wmask_d.tinfo              = csr_tinfo_we_i;
+  assign rvfi_csr_wmask_d.tinfo              = csr_tinfo_we_i ? '1 : '0;
 
   assign rvfi_csr_rdata_d.tcontrol           = csr_tcontrol_q_i;
   assign rvfi_csr_rmask_d.tcontrol           = '1;
@@ -1777,10 +1812,6 @@ module cv32e40x_rvfi
   assign rvfi_csr_mscratchcswl_rmask      = rvfi_csr_rmask.mscratchcswl;
   assign rvfi_csr_mscratchcswl_wdata      = rvfi_csr_wdata.mscratchcswl;
   assign rvfi_csr_mscratchcswl_wmask      = rvfi_csr_wmask.mscratchcswl;
-  assign rvfi_csr_mclicbase_rdata         = rvfi_csr_rdata.mclicbase;
-  assign rvfi_csr_mclicbase_rmask         = rvfi_csr_rmask.mclicbase;
-  assign rvfi_csr_mclicbase_wdata         = rvfi_csr_wdata.mclicbase;
-  assign rvfi_csr_mclicbase_wmask         = rvfi_csr_wmask.mclicbase;
   assign rvfi_csr_tselect_rdata           = rvfi_csr_rdata.tselect;
   assign rvfi_csr_tselect_rmask           = rvfi_csr_rmask.tselect;
   assign rvfi_csr_tselect_wdata           = rvfi_csr_wdata.tselect;

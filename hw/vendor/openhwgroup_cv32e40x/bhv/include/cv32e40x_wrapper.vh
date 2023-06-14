@@ -139,10 +139,6 @@
 .rvfi_csr_mscratchcswl_wmask(),\
 .rvfi_csr_mscratchcswl_rdata(),\
 .rvfi_csr_mscratchcswl_wdata(),\
-.rvfi_csr_mclicbase_rmask(),\
-.rvfi_csr_mclicbase_wmask(),\
-.rvfi_csr_mclicbase_rdata(),\
-.rvfi_csr_mclicbase_wdata(),\
 .rvfi_csr_tselect_rmask(),\
 .rvfi_csr_tselect_wmask(),\
 .rvfi_csr_tselect_rdata(),\

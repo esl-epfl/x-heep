@@ -28,7 +28,7 @@
 
 module cv32e40x_prefetch_unit import cv32e40x_pkg::*;
 #(
-    parameter bit SMCLIC                   = 1'b0,
+    parameter bit CLIC                     = 1'b0,
     parameter int unsigned ALBUF_DEPTH     = 3,
     parameter int unsigned ALBUF_CNT_WIDTH = $clog2(ALBUF_DEPTH)
 )
@@ -53,6 +53,7 @@ module cv32e40x_prefetch_unit import cv32e40x_pkg::*;
   output logic        trans_valid_o,
   input  logic        trans_ready_i,
   output logic [31:0] trans_addr_o,
+  output logic        trans_ptr_o,
 
   input  logic        resp_valid_i,
   input  inst_resp_t  resp_i,
@@ -82,7 +83,7 @@ module cv32e40x_prefetch_unit import cv32e40x_pkg::*;
 
   cv32e40x_prefetcher
   #(
-      .SMCLIC  (SMCLIC)
+      .CLIC  (CLIC)
   )
   prefetcher_i
   (
@@ -99,7 +100,8 @@ module cv32e40x_prefetch_unit import cv32e40x_pkg::*;
     .fetch_priv_lvl_access_o  ( fetch_priv_lvl_resp  ),
     .trans_valid_o            ( trans_valid_o        ),
     .trans_ready_i            ( trans_ready_i        ),
-    .trans_addr_o             ( trans_addr_o         )
+    .trans_addr_o             ( trans_addr_o         ),
+    .trans_ptr_o              ( trans_ptr_o          )
   );
 
 

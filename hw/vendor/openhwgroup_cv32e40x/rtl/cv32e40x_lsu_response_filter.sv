@@ -32,7 +32,7 @@
 
 module cv32e40x_lsu_response_filter
   import cv32e40x_pkg::*;
-  #(parameter DEPTH = 2)
+  #(parameter int unsigned DEPTH = 2)
   (
    // clock and reset
    input logic            clk,
@@ -52,6 +52,7 @@ module cv32e40x_lsu_response_filter
    output logic           ready_o,
 
    output logic           busy_o,
+   output logic           bus_busy_o,      // There are outstanding transactions on the bus side.
    output logic           resp_valid_o,
    output obi_data_resp_t resp_o, // Todo: This also carries the obi error field. Could replace by data_resp_t
 
@@ -85,6 +86,7 @@ module cv32e40x_lsu_response_filter
   outstanding_t [DEPTH:0]        outstanding_next;
 
   assign busy_o              = ( bus_cnt_q != '0) || valid_i;
+  assign bus_busy_o          = ( bus_cnt_q != '0);
 
   // The two trans valid signals will always have the same value as they are gated with the same condition
   assign core_trans_accepted = ready_o && valid_i; // Transfer accepted on the core side of the response filter

@@ -28,7 +28,7 @@
 
 module cv32e40x_clic_int_controller import cv32e40x_pkg::*;
 #(
-  parameter int SMCLIC_ID_WIDTH = 5
+  parameter int unsigned CLIC_ID_WIDTH = 5
 )
 (
   input  logic                       clk,
@@ -36,7 +36,7 @@ module cv32e40x_clic_int_controller import cv32e40x_pkg::*;
 
   // CLIC interface
   input  logic                       clic_irq_i,                // CLIC interrupt pending
-  input  logic [SMCLIC_ID_WIDTH-1:0] clic_irq_id_i,             // ID of pending interrupt
+  input  logic [CLIC_ID_WIDTH-1:0] clic_irq_id_i,               // ID of pending interrupt
   input  logic [7:0]                 clic_irq_level_i,          // Level of pending interrupt
   input  logic [1:0]                 clic_irq_priv_i,           // Privilege level of pending interrupt (always machine mode) (not used)
   input  logic                       clic_irq_shv_i,            // Is pending interrupt vectored?
@@ -58,7 +58,7 @@ module cv32e40x_clic_int_controller import cv32e40x_pkg::*;
 
   // To cs_registers
   output logic                       mnxti_irq_pending_o,       // An interrupt is available to the mnxti CSR read
-  output logic [SMCLIC_ID_WIDTH-1:0] mnxti_irq_id_o,            // The id of the availble mnxti interrupt
+  output logic [CLIC_ID_WIDTH-1:0]   mnxti_irq_id_o,            // The id of the availble mnxti interrupt
   output logic [7:0]                 mnxti_irq_level_o          // Level of the available interrupt
 );
 
@@ -67,7 +67,7 @@ module cv32e40x_clic_int_controller import cv32e40x_pkg::*;
 
   // Flops for breaking timing path to instruction interface
   logic                       clic_irq_q;
-  logic [SMCLIC_ID_WIDTH-1:0] clic_irq_id_q;
+  logic [CLIC_ID_WIDTH-1:0]   clic_irq_id_q;
   logic [7:0]                 clic_irq_level_q;
   logic                       clic_irq_shv_q;
 
@@ -159,7 +159,7 @@ module cv32e40x_clic_int_controller import cv32e40x_pkg::*;
 
   // If mnxti_irq_pending is true, the currently flopped ID and level will be sent to cs_registers
   // for use in the function pointer and CSR side effects.
-  // Using native SMCLIC_ID_WIDTH for cleaner pointer concatenation in cs_registers.
+  // Using native CLIC_ID_WIDTH for cleaner pointer concatenation in cs_registers.
 
   assign mnxti_irq_id_o    = clic_irq_id_q;
   assign mnxti_irq_level_o = clic_irq_level_q;
