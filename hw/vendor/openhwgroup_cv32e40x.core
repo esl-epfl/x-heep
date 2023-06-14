@@ -22,6 +22,7 @@ filesets:
       - openhwgroup_cv32e40x/rtl/cv32e40x_write_buffer.sv
       - openhwgroup_cv32e40x/rtl/cv32e40x_lsu_response_filter.sv
       - openhwgroup_cv32e40x/rtl/cv32e40x_load_store_unit.sv
+      - openhwgroup_cv32e40x/rtl/cv32e40x_align_check.sv
       - openhwgroup_cv32e40x/rtl/cv32e40x_id_stage.sv
       - openhwgroup_cv32e40x/rtl/cv32e40x_i_decoder.sv
       - openhwgroup_cv32e40x/rtl/cv32e40x_m_decoder.sv
