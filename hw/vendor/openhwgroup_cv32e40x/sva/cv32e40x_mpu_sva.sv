@@ -24,9 +24,15 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 module cv32e40x_mpu_sva import cv32e40x_pkg::*; import uvm_pkg::*;
-  #(  parameter int PMA_NUM_REGIONS              = 0,
+  #(  parameter int          PMA_NUM_REGIONS              = 0,
       parameter pma_cfg_t    PMA_CFG[PMA_NUM_REGIONS-1:0] = '{default:PMA_R_DEFAULT},
-      parameter int unsigned IS_INSTR_SIDE = 0)
+      parameter bit          IS_INSTR_SIDE = 0,
+      parameter type         CORE_RESP_TYPE = inst_resp_t,
+      parameter type         CORE_REQ_TYPE  = obi_inst_req_t,
+      parameter a_ext_e      A_EXT = A_NONE,
+      parameter bit          DEBUG = 1,
+      parameter logic [31:0] DM_REGION_START = 32'hF0000000,
+      parameter logic [31:0] DM_REGION_END   = 32'hF0003FFF)
   (
    input logic        clk,
    input logic        rst_n,
@@ -41,12 +47,16 @@ module cv32e40x_mpu_sva import cv32e40x_pkg::*; import uvm_pkg::*;
    input logic        pma_err,
    input logic [31:0] pma_addr,
    input pma_cfg_t    pma_cfg,
+   input logic        pma_dbg,
 
    // Core OBI signals
    input logic [ 1:0] obi_memtype,
    input logic [31:0] obi_addr,
    input logic        obi_req,
    input logic        obi_gnt,
+   input logic        obi_dbg,
+
+   input obi_if_state_e obi_if_state,
 
    // Interface towards bus interface
    input logic        bus_trans_ready_i,
@@ -61,8 +71,10 @@ module cv32e40x_mpu_sva import cv32e40x_pkg::*; import uvm_pkg::*;
    input logic        write_buffer_txn_cacheable,
 
    // Interface towards core
-   input logic        core_trans_valid_i,
-   input logic        core_trans_ready_o,
+   input logic         core_trans_valid_i,
+   input logic         core_trans_ready_o,
+   input CORE_REQ_TYPE core_trans_i,
+   input logic         core_trans_pushpop_i,
 
    input logic        core_resp_valid_o,
 
@@ -82,6 +94,11 @@ module cv32e40x_mpu_sva import cv32e40x_pkg::*; import uvm_pkg::*;
   // Not checking bits [1:0]; bit 0 is always 0; bit 1 is not checked because it is only
   // suppressed after the PMA. These address bits are also ignored by the PMA itself.
   assign is_addr_match = obi_addr[31:2] == pma_addr[31:2];
+
+  // Check if a transaction matches DM_REGION while in debug mode
+  logic is_pma_dbg_matched;
+
+  assign is_pma_dbg_matched = (core_trans_i.addr >= DM_REGION_START && core_trans_i.addr <= DM_REGION_END) && core_trans_i.dbg;
 
   logic was_obi_waiting;
   logic was_obi_reqnognt;
@@ -210,15 +227,22 @@ module cv32e40x_mpu_sva import cv32e40x_pkg::*; import uvm_pkg::*;
   // RTL vs SVA expectations
   pma_cfg_t    pma_expected_cfg;
   logic        pma_expected_err;
+  logic        pma_expected_misaligned_err;
   always_comb begin
     pma_expected_cfg = NO_PMA_R_DEFAULT;
     if (PMA_NUM_REGIONS) begin
-      pma_expected_cfg = is_pma_matched ? PMA_CFG[pma_lowest_match] : PMA_R_DEFAULT;
+      pma_expected_cfg = is_pma_dbg_matched ? '{main    : 1'b1, default : '0} :
+                         is_pma_matched     ? PMA_CFG[pma_lowest_match]       : PMA_R_DEFAULT;
+
     end
   end
   assign pma_expected_err = (instr_fetch_access && !pma_expected_cfg.main)  ||
                             (misaligned_access_i && !pma_expected_cfg.main) ||
-                            (atomic_access_i && !pma_expected_cfg.atomic);
+                            (atomic_access_i && !pma_expected_cfg.atomic)   ||
+                            (core_trans_pushpop_i && !pma_expected_cfg.main);
+
+  assign pma_expected_misaligned_err = (misaligned_access_i && atomic_access_i);
+
   a_pma_expect_cfg :
     assert property (@(posedge clk) disable iff (!rst_n) pma_cfg == pma_expected_cfg)
       else `uvm_error("mpu", "RTL cfg don't match SVA expectations")
@@ -238,6 +262,7 @@ module cv32e40x_mpu_sva import cv32e40x_pkg::*; import uvm_pkg::*;
   a_pma_expect_cacheable :
     assert property (@(posedge clk) disable iff (!rst_n) bus_trans_cacheable == pma_expected_cfg.cacheable)
       else `uvm_error("mpu", "expected different cacheable flag")
+
   a_pma_expect_err :
     assert property (@(posedge clk) disable iff (!rst_n) pma_err == pma_expected_err)
       else `uvm_error("mpu", "expected different err flag")
@@ -296,9 +321,16 @@ module cv32e40x_mpu_sva import cv32e40x_pkg::*; import uvm_pkg::*;
     assert property (@(posedge clk) disable iff (!rst_n)
                      obi_req
                      |->
+                     // If we have an address match, there must be no PMA error
                      (!pma_err && is_addr_match) ||
-                     (write_buffer_state && write_buffer_valid_o) ||
-                     (!is_addr_match && was_obi_waiting && $past(obi_req)))
+                     // or a transaction from the write buffer is causing obi_req
+                     // (a different transaction could cause pma_err in the same cycle)
+                     (!IS_INSTR_SIDE && (write_buffer_state && write_buffer_valid_o)) ||
+                     // or we are already outputting a obi_req but a new address comes in which may cause a pma_err
+                     (IS_INSTR_SIDE && (!is_addr_match && (obi_if_state == REGISTERED))) ||
+                     // or we get an address match, but was already outputting the same address (no pma_err)
+                     // but a change in debug mode causes the new transaction the same address to fail
+                     (IS_INSTR_SIDE && (is_addr_match && (obi_if_state == REGISTERED) && (!pma_dbg && obi_dbg))))
       else `uvm_error("mpu", "obi made request to pma-forbidden region")
 
   generate
@@ -376,5 +408,46 @@ module cv32e40x_mpu_sva import cv32e40x_pkg::*; import uvm_pkg::*;
         end
   endgenerate
 
+
+  // Check that PMA sets correct attribution for non-atomic accesses DM during debug
+  // main, non-cacheable, non-bufferable, non-atomics
+  logic [5:0] atop;
+  generate
+    if (IS_INSTR_SIDE) begin
+      assign atop = '0;
+    end else begin
+      assign atop = core_trans_i.atop;
+    end
+  endgenerate
+
+
+if (A_EXT != A_NONE) begin
+  if (DEBUG) begin
+    // Check that PMA sets correct attribution for non-atomic accesses DM during debug
+    // main, non-cacheable, non-bufferable, non-atomics
+    a_dm_region_atomic_dbg:
+    assert property (@(posedge clk) disable iff (!rst_n)
+                      is_pma_dbg_matched &&
+                      (|atop)
+                      |->
+                      pma_err &&               // No atomics allowed to DM region
+                      !bus_trans_cacheable &&
+                      !bus_trans_bufferable)
+          else `uvm_error("mpu", "Wrong attributes for non-atomic access to DM during debug mode")
+  end // DEBUG
+
+end
+
+if (DEBUG) begin
+  a_dm_region_nonatomic_dbg:
+  assert property (@(posedge clk) disable iff (!rst_n)
+                  is_pma_dbg_matched &&
+                  !(|atop)
+                  |->
+                  !pma_err &&               // Always 'main' while accessing DM in debug mode
+                  !bus_trans_cacheable &&
+                  !bus_trans_bufferable)
+        else `uvm_error("mpu", "Wrong attributes for non-atomic access to DM during debug mode")
+end
 endmodule : cv32e40x_mpu_sva
 

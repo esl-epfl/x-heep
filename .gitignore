@@ -25,6 +25,7 @@ hw/core-v-mini-mcu/include/core_v_mini_mcu_pkg.sv
 hw/core-v-mini-mcu/system_bus.sv
 hw/core-v-mini-mcu/system_xbar.sv
 hw/core-v-mini-mcu/memory_subsystem.sv
+hw/core-v-mini-mcu/core_v_mini_mcu.sv
 hw/system/x_heep_system.sv
 hw/system/pad_ring.sv
 tb/tb_util.svh

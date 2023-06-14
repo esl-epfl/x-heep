@@ -29,11 +29,10 @@ module cv32e40x_decoder import cv32e40x_pkg::*;
 #(
   parameter rv32_e       RV32                   = RV32I,
   parameter int unsigned REGFILE_NUM_READ_PORTS = 2,
-  parameter bit          A_EXT                  = 0,
+  parameter a_ext_e      A_EXT                  = A_NONE,
   parameter b_ext_e      B_EXT                  = B_NONE,
   parameter m_ext_e      M_EXT                  = M,
-  parameter              DEBUG_TRIGGER_EN       = 1,
-  parameter bit          SMCLIC                 = 1
+  parameter bit          CLIC                   = 1
 )
 (
   // singals running to/from controller
@@ -142,8 +141,7 @@ module cv32e40x_decoder import cv32e40x_pkg::*;
   // RV32I Base instruction set decoder
   cv32e40x_i_decoder
   #(
-    .DEBUG_TRIGGER_EN (DEBUG_TRIGGER_EN),
-    .SMCLIC           (SMCLIC          )
+    .CLIC             (CLIC            )
   )
   i_decoder_i
   (
@@ -163,9 +161,13 @@ module cv32e40x_decoder import cv32e40x_pkg::*;
                           decoder_i_ctrl_int;
 
   generate
-    if (A_EXT) begin: a_decoder
+    if (A_EXT != A_NONE) begin: a_decoder
       // RV32A extension decoder
-      cv32e40x_a_decoder a_decoder_i
+      cv32e40x_a_decoder
+      #(
+          .A_EXT (A_EXT)
+      )
+      a_decoder_i
       (
         .instr_rdata_i  ( instr_rdata        ),
         .decoder_ctrl_o ( decoder_a_ctrl_int )

@@ -35,6 +35,7 @@ lint_off -rule WIDTH -file "*/rtl/cv32e40x_id_stage.sv" -match "Operator ASSIGNW
 lint_off -rule WIDTH -file "*/rtl/cv32e40x_load_store_unit.sv" -match "Operator ASSIGNW expects 6 bits on the Assign RHS, but Assign RHS's COND generates 11 bits."
 lint_off -rule WIDTH -file "*/rtl/cv32e40x_if_stage.sv" -match "Operator ASSIGNDLY expects 32 bits on the Assign RHS, but Assign RHS's VARREF 'xif_id' generates 4 bits."
 lint_off -rule WIDTH -file "*/rtl/cv32e40x_if_stage.sv" -match "Operator ASSIGNW expects 4 bits on the Assign RHS, but Assign RHS's COND generates 32 bits."
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_pma.sv" -match "Logical operator GENIF expects 1 bit on the If, but If's VARREF 'A_EXT' generates 2 bits."
 
 lint_off -rule UNUSED -file "*cv32e40x_*.sv" -match "*"
 lint_off -rule UNUSED -file "*/rtl/if_xif.sv" -match "*"

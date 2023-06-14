@@ -32,7 +32,8 @@
 
 module cv32e40x_controller_bypass import cv32e40x_pkg::*;
 #(
-  parameter int unsigned REGFILE_NUM_READ_PORTS = 2
+  parameter int unsigned REGFILE_NUM_READ_PORTS = 2,
+  parameter a_ext_e      A_EXT                  = A_NONE
 )
 (
   // From decoder
@@ -57,6 +58,11 @@ module cv32e40x_controller_bypass import cv32e40x_pkg::*;
   // From WB
   input  logic        wb_ready_i,                 // WB stage is ready
   input  logic        csr_irq_enable_write_i,     // WB is writing to a CSR that may enable an interrupt.
+
+  // From LSU
+  input  lsu_atomic_e lsu_atomic_ex_i,
+  input  lsu_atomic_e lsu_atomic_wb_i,
+  input  logic        lsu_bus_busy_i,
 
   // Controller Bypass outputs
   output ctrl_byp_t   ctrl_byp_o
@@ -188,7 +194,7 @@ module cv32e40x_controller_bypass import cv32e40x_pkg::*;
     // Also deassert for trigger match, as with dcsr.timing==0 we do not execute before entering debug mode
     // CLIC pointer fetches go through the pipeline, but no write enables should be active.
     if (if_id_pipe_i.instr.bus_resp.err || !(if_id_pipe_i.instr.mpu_status == MPU_OK) || if_id_pipe_i.trigger_match ||
-        if_id_pipe_i.instr_meta.clic_ptr || if_id_pipe_i.instr_meta.mret_ptr) begin
+        if_id_pipe_i.instr_meta.clic_ptr || if_id_pipe_i.instr_meta.mret_ptr || !(if_id_pipe_i.instr.align_status == ALIGN_OK)) begin
       ctrl_byp_o.deassert_we = 1'b1;
     end
 
@@ -231,6 +237,24 @@ module cv32e40x_controller_bypass import cv32e40x_pkg::*;
       ctrl_byp_o.irq_enable_stall = 1'b1;
     end
   end
+
+  generate
+    if (A_EXT != A_NONE) begin : atomic_stall
+      always_comb begin
+        ctrl_byp_o.atomic_stall = 1'b0;
+
+        // Stall EX for the following two scenarios
+        // 1: There is an atomic instruction in EX while we have outstanding transactions on the bus
+        // 2: There is any LSU instruction in EX while there is an outstanding atomic transfer in progress
+        if ((id_ex_pipe_i.lsu_en && (lsu_atomic_ex_i != AT_NONE) && id_ex_pipe_i.instr_valid) ||
+            (id_ex_pipe_i.lsu_en && id_ex_pipe_i.instr_valid && ex_wb_pipe_i.lsu_en && (lsu_atomic_wb_i != AT_NONE) && ex_wb_pipe_i.instr_valid)) begin
+            ctrl_byp_o.atomic_stall = lsu_bus_busy_i;
+        end
+      end
+    end else begin : no_atomic_stall
+      assign ctrl_byp_o.atomic_stall = 1'b0;
+    end
+  endgenerate
 
   assign ctrl_byp_o.id_stage_abort = ctrl_byp_o.deassert_we;
 
