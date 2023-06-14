@@ -1,0 +1,13 @@
+// Copyright 2023 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule DECLFILENAME -file "*/ams/rtl/ams_reg_top.sv" -match "Filename 'ams_reg_top' does not match MODULE name: 'ams_reg_top_intf'*"
+lint_off -rule DECLFILENAME -file "*/ams/rtl/dummy_adc.sv" -match "Filename 'dummy_adc' does not match MODULE name: 'ams_adc_1b'*"
+lint_off -rule WIDTH -file "*/ams/rtl/ams_reg_top.sv" -match "Operator ASSIGNW expects 3 bits on the Assign RHS, but Assign RHS's SEL generates 32*"
+lint_off -rule UNUSED -file "*/ams/rtl/ams.sv" -match "Bits of signal are not used: 'reg2hw'[0]*"
+lint_off -rule UNUSED -file "*/ams/rtl/dummy_adc.sv" -match "Signal is not used: 'sel'*"
+lint_off -rule UNDRIVEN -file "*/ams/rtl/dummy_adc.sv" -match "Signal is not driven: 'out'*"
+
