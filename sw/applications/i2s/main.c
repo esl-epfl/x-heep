@@ -9,8 +9,19 @@
 
 /**
  * This is a example for a i2s microphone.
+ * It is recording an audiosample of a given size and then outputing it over UART.
  * 
- * Is recording an audiosample of a given size and then outputing it over UART.
+ * Tested with SPH0645 microphone module from Adafruit
+ * https://www.adafruit.com/product/3421
+ * 
+ * check `pin_assign.xdc` for the pinout of the FPGA to connect:
+ * 3V -> 3.3V
+ * GND -> GND
+ * BCLK -> I2S_SCK
+ * LRCL -> I2S_WS
+ * DOUT -> I2S_SD
+ * SEL -> left floating (pulldown) to transmit data on the left channel
+ * 
  */
 
 #include <stdio.h>

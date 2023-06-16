@@ -50,8 +50,7 @@ fs = CLK // DIV // 64
 
 
 
-argLen = len(sys.argv)
-print("Total arguments passed:", argLen)
+print("I2s DEMO started");
 
 start = False
 
