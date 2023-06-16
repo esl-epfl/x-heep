@@ -207,13 +207,12 @@ int main(int argc, char *argv[]) {
             printf("%4x,%d\r\n", i, (int16_t) (data[i] >> 16));
         }
         batch += 1;
+        printf("Batch done!\r\n", batch);
 
         if (i2s_interrupt_flag) {
             printf("irq 1\n");
             i2s_interrupt_flag = 0;
         }
-
-        break;
 
 
         #ifdef USE_DMA
