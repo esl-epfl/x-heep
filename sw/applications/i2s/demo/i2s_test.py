@@ -46,7 +46,7 @@ else:
                 elif (start == True):
                     val = int(serialString.split(b',')[1])
                     print(val)
-                    mylist.append(val)
+                    mylist = [*mylist, val]
                 else:
                     print(serialString)
         exit()
