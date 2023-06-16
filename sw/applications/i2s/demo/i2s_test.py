@@ -47,6 +47,7 @@ else:
                     val = int(serialString.split(b',')[1])
                     print(val)
                     mylist = [*mylist, val]
+                    print(mylist)
                 else:
                     print(serialString)
         exit()
