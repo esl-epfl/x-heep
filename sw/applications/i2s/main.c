@@ -78,7 +78,6 @@ int8_t dma_intr_flag;
 //
 void handler_irq_ext(void) {
     i2s_interrupt_flag = 1;
-    printf(".");
 }
 
 #ifdef USE_DMA
