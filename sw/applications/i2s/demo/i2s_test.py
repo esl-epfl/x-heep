@@ -32,10 +32,15 @@ else:
                     mylist = []
                     print("Started recording")
                 elif (start == True and b'Batch done' in serialString):
-                    count = count + 1
+                    print("Done recording")
+                    print(mylist)
+
+                    plt.figure(count)
                     plt.plot(mylist)
                     plt.show()
                     start = False
+                    count = count + 1
+
                     if (numPlots == count):
                         break
                 elif (start == True):
