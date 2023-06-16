@@ -425,6 +425,7 @@ module testharness #(
   assign master_req[testharness_pkg::EXT_MASTER0_IDX].wdata = '0;
 
   assign memcopy_intr = '0;
+  assign periph_slave_rsp = '0;
 `endif
 
 endmodule  // testharness
