@@ -83,7 +83,6 @@ else:
                     print("Started recording")
                 elif (start == True and b'Batch done' in serialString):
                     print("Done recording")
-                    print(mylist)
 
                     # DO ANYTHING WITH THE DATA HERE
                     # e.g. FFT, etc.
