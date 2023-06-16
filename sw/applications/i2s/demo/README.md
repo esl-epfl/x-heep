@@ -1,6 +1,8 @@
 # I2S DEMO application
 The main.c read from the microphone and dumps the read values.
 
+This demo requires mcu_gen with `MEM_BANKS=16`
+
 
 ## a) Dump to file
 ```

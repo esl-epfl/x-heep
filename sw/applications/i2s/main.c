@@ -26,8 +26,8 @@
 #define I2S_TEST_BATCH_SIZE    128
 #define I2S_TEST_BATCHES      16
 #define I2S_CLK_DIV           8
-#define AUDIO_DATA_NUM 2048                          // RECORDING LENGTH
-// #define AUDIO_DATA_NUM 0x18000  // max 0x1c894                          // RECORDING LENGTH
+// #define AUDIO_DATA_NUM 2048                          // RECORDING LENGTH
+#define AUDIO_DATA_NUM 0x18000  // max 0x1c894                          // RECORDING LENGTH
 #define I2S_USE_INTERRUPT true
 #define USE_DMA
 #else
