@@ -7,7 +7,7 @@ import sounddevice as sd
 import numpy as np
 
 
-
+DEBUG = False
 
 
 
@@ -120,6 +120,6 @@ else:
                 elif (start == True):
                     val = int(serialString.split(b',')[1])
                     mylist.append(val)
-                else:
-                    print(serialString)
+                elif (DEBUG == True): 
+                    print(serialString) 
         exit()
