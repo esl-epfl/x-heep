@@ -49,11 +49,11 @@ DIV = 8
 fs = CLK // DIV // 64
 
 
-
 print("I2s DEMO started");
 
 start = False
 
+argLen = len(sys.argv)
 if( argLen < 3 ):
     print ("Usage:", sys.argv[0], "[/dev/ttyUSBx]", "[num of batches]")
 else:
