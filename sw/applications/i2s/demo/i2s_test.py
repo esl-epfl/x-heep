@@ -40,5 +40,5 @@ else:
                     if (numPlots == count):
                         break
                 elif (start == True):
-                    mylist.append(int(serialString.split(b','[1])))
+                    mylist.append(int(serialString.split(b',')[1]))
         exit()
