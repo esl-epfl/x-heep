@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 argLen = len(sys.argv)
 print("Total arguments passed:", argLen)
 
-dump = False
+start = False
 
 if( argLen < 3 ):
     print ("Usage:", sys.argv[0], "[/dev/ttyUSBx]", "[num of plots]")
@@ -23,20 +23,21 @@ else:
 
             # Wait until there is data waiting in the serial buffer
             if(serialPort.in_waiting > 0):
-                list = []
+                mylist = []
                 # Read data out of the buffer until a carraige return / new line is found
                 serialString = serialPort.readline()
                 if (b'index,data' in serialString):
-                    dump = True
-                    list = []
+                    start = True
+                    mylist = []
+                    print("Started recording")
                 elif (b'Batch done' in serialString):
                     count = count + 1
-                    plt.plot(list)
+                    plt.plot(mylist)
                     plt.show()
-                    dump = False
+                    start = False
                     if (numPlots == count):
                         break
-                elif (dump == True):
-                    list.append(int(serialString.split(b',')[1]))
+                elif (start == True):
+                    mylist.append(int(serialString.split(b','[1])))
             
         exit()
