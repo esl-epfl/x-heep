@@ -24,6 +24,8 @@ else:
             # Wait until there is data waiting in the serial buffer
             if(serialPort.in_waiting > 0):
                 mylist = []
+                print(serialString)
+
                 # Read data out of the buffer until a carraige return / new line is found
                 serialString = serialPort.readline()
                 if (b'index' in serialString):
@@ -39,6 +41,4 @@ else:
                         break
                 elif (start == True):
                     mylist.append(int(serialString.split(b','[1])))
-                else:
-                     print(serialString)
         exit()
