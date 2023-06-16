@@ -166,6 +166,9 @@ module core_v_mini_mcu
   logic uart_intr_rx_timeout;
   logic uart_intr_rx_parity_err;
 
+  // I2s
+  logic i2s_rx_valid;
+
   assign intr = {
     1'b0, irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
   };
@@ -344,6 +347,7 @@ module core_v_mini_mcu
       .uart_intr_rx_break_err_o(uart_intr_rx_break_err),
       .uart_intr_rx_timeout_o(uart_intr_rx_timeout),
       .uart_intr_rx_parity_err_o(uart_intr_rx_parity_err),
+      .i2s_rx_valid_i(i2s_rx_valid),
       .ext_peripheral_slave_req_o,
       .ext_peripheral_slave_resp_i
   );
@@ -385,7 +389,17 @@ module core_v_mini_mcu
       .rv_timer_3_intr_o(rv_timer_intr[3]),
       .pdm2pcm_clk_o(pdm2pcm_clk_o),
       .pdm2pcm_clk_en_o(pdm2pcm_clk_oe_o),
-      .pdm2pcm_pdm_i(pdm2pcm_pdm_i)
+      .pdm2pcm_pdm_i(pdm2pcm_pdm_i),
+      .i2s_sck_o(i2s_sck_o),
+      .i2s_sck_oe_o(i2s_sck_oe_o),
+      .i2s_sck_i(i2s_sck_i),
+      .i2s_ws_o(i2s_ws_o),
+      .i2s_ws_oe_o(i2s_ws_oe_o),
+      .i2s_ws_i(i2s_ws_i),
+      .i2s_sd_o(i2s_sd_o),
+      .i2s_sd_oe_o(i2s_sd_oe_o),
+      .i2s_sd_i(i2s_sd_i),
+      .i2s_rx_valid_o(i2s_rx_valid)
   );
 
   assign pdm2pcm_pdm_o = 0;

@@ -114,18 +114,6 @@ module core_v_mini_mcu
     input  logic gpio_17_i,
     output logic gpio_17_oe_o,
 
-    output logic gpio_18_o,
-    input  logic gpio_18_i,
-    output logic gpio_18_oe_o,
-
-    output logic gpio_19_o,
-    input  logic gpio_19_i,
-    output logic gpio_19_oe_o,
-
-    output logic gpio_20_o,
-    input  logic gpio_20_i,
-    output logic gpio_20_oe_o,
-
     output logic spi_flash_sck_o,
     input  logic spi_flash_sck_i,
     output logic spi_flash_sck_oe_o,
@@ -185,13 +173,34 @@ module core_v_mini_mcu
     output logic pdm2pcm_pdm_o,
     input  logic pdm2pcm_pdm_i,
     output logic pdm2pcm_pdm_oe_o,
-    output logic gpio_21_o,
-    input  logic gpio_21_i,
-    output logic gpio_21_oe_o,
+    output logic gpio_18_o,
+    input  logic gpio_18_i,
+    output logic gpio_18_oe_o,
 
     output logic pdm2pcm_clk_o,
     input  logic pdm2pcm_clk_i,
     output logic pdm2pcm_clk_oe_o,
+    output logic gpio_19_o,
+    input  logic gpio_19_i,
+    output logic gpio_19_oe_o,
+
+    output logic i2s_sck_o,
+    input  logic i2s_sck_i,
+    output logic i2s_sck_oe_o,
+    output logic gpio_20_o,
+    input  logic gpio_20_i,
+    output logic gpio_20_oe_o,
+
+    output logic i2s_ws_o,
+    input  logic i2s_ws_i,
+    output logic i2s_ws_oe_o,
+    output logic gpio_21_o,
+    input  logic gpio_21_i,
+    output logic gpio_21_oe_o,
+
+    output logic i2s_sd_o,
+    input  logic i2s_sd_i,
+    output logic i2s_sd_oe_o,
     output logic gpio_22_o,
     input  logic gpio_22_i,
     output logic gpio_22_oe_o,
@@ -403,6 +412,9 @@ module core_v_mini_mcu
   logic uart_intr_rx_timeout;
   logic uart_intr_rx_parity_err;
 
+  // I2s
+  logic i2s_rx_valid;
+
   assign intr = {
     1'b0, irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
   };
@@ -583,6 +595,7 @@ module core_v_mini_mcu
       .uart_intr_rx_break_err_o(uart_intr_rx_break_err),
       .uart_intr_rx_timeout_o(uart_intr_rx_timeout),
       .uart_intr_rx_parity_err_o(uart_intr_rx_parity_err),
+      .i2s_rx_valid_i(i2s_rx_valid),
       .ext_peripheral_slave_req_o,
       .ext_peripheral_slave_resp_i
   );
@@ -624,7 +637,17 @@ module core_v_mini_mcu
       .rv_timer_3_intr_o(rv_timer_intr[3]),
       .pdm2pcm_clk_o(pdm2pcm_clk_o),
       .pdm2pcm_clk_en_o(pdm2pcm_clk_oe_o),
-      .pdm2pcm_pdm_i(pdm2pcm_pdm_i)
+      .pdm2pcm_pdm_i(pdm2pcm_pdm_i),
+      .i2s_sck_o(i2s_sck_o),
+      .i2s_sck_oe_o(i2s_sck_oe_o),
+      .i2s_sck_i(i2s_sck_i),
+      .i2s_ws_o(i2s_ws_o),
+      .i2s_ws_oe_o(i2s_ws_oe_o),
+      .i2s_ws_i(i2s_ws_i),
+      .i2s_sd_o(i2s_sd_o),
+      .i2s_sd_oe_o(i2s_sd_oe_o),
+      .i2s_sd_i(i2s_sd_i),
+      .i2s_rx_valid_o(i2s_rx_valid)
   );
 
   assign pdm2pcm_pdm_o    = 0;

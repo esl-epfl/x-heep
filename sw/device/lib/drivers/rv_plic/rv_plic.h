@@ -79,9 +79,14 @@
 #define SPI_ID          49
 
 /**
+ * ID of the I2S interrupt request lines
+ */
+#define I2S_ID          50
+
+/**
  * ID of the external interrupt request lines
 */
-#define EXT_IRQ_START   50
+#define EXT_IRQ_START   51
 #define EXT_IRQ_END     63
 
 /****************************************************************************/
@@ -190,7 +195,8 @@ typedef enum irq_sources
   IRQ_GPIO_SRC,   // from 9 to 32 
   IRQ_I2C_SRC,    // from 33 to 48
   IRQ_SPI_SRC,    // line 49
-  IRQ_EXT_SRC,    // from 50 to 63
+  IRQ_I2S_SRC,    // line 50
+  IRQ_EXT_SRC,    // from 51 to 63
   IRQ_BAD = -1    // default failure case
 } irq_sources_t;
 
@@ -235,6 +241,11 @@ void handler_irq_i2c(void);
  * IRQ handler for SPI 
 */
 void handler_irq_spi(void);
+
+/**
+ * IRQ handler for I2S 
+*/
+void handler_irq_i2s(void);
 
 /**
  * IRQ handler for external interrupts sources

@@ -154,9 +154,6 @@ module testharness #(
       .gpio_15_io(gpio[15]),
       .gpio_16_io(gpio[16]),
       .gpio_17_io(gpio[17]),
-      .gpio_18_io(gpio[18]),
-      .gpio_19_io(gpio[19]),
-      .gpio_20_io(gpio[20]),
       .spi_flash_sck_io(spi_flash_sck),
       .spi_flash_cs_0_io(spi_flash_csb[0]),
       .spi_flash_cs_1_io(spi_flash_csb[1]),
@@ -171,8 +168,11 @@ module testharness #(
       .spi_sd_1_io(spi_sd_io[1]),
       .spi_sd_2_io(spi_sd_io[2]),
       .spi_sd_3_io(spi_sd_io[3]),
-      .pdm2pcm_pdm_io(gpio[21]),
-      .pdm2pcm_clk_io(gpio[22]),
+      .pdm2pcm_pdm_io(gpio[18]),
+      .pdm2pcm_clk_io(gpio[19]),
+      .i2s_sck_io(gpio[20]),
+      .i2s_ws_io(gpio[21]),
+      .i2s_sd_io(gpio[22]),
       .spi2_cs_0_io(gpio[23]),
       .spi2_cs_1_io(gpio[24]),
       .spi2_sck_io(gpio[25]),
@@ -306,7 +306,8 @@ module testharness #(
       .reg_req_t (reg_pkg::reg_req_t),
       .reg_rsp_t (reg_pkg::reg_rsp_t),
       .obi_req_t (obi_pkg::obi_req_t),
-      .obi_resp_t(obi_pkg::obi_resp_t)
+      .obi_resp_t(obi_pkg::obi_resp_t),
+      .SLOT_NUM  (1)
   ) dma_i (
       .clk_i,
       .rst_ni,
@@ -316,10 +317,7 @@ module testharness #(
       .dma_master0_ch0_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX]),
       .dma_master1_ch0_req_o(master_req[testharness_pkg::EXT_MASTER1_IDX]),
       .dma_master1_ch0_resp_i(master_resp[testharness_pkg::EXT_MASTER1_IDX]),
-      .spi_rx_valid_i('0),
-      .spi_tx_ready_i('0),
-      .spi_flash_rx_valid_i('0),
-      .spi_flash_tx_ready_i('0),
+      .trigger_slot_i('0),
       .dma_intr_o(memcopy_intr)
   );
 
@@ -376,8 +374,16 @@ module testharness #(
   pdm2pcm_dummy pdm2pcm_dummy_i (
       .clk_i,
       .rst_ni,
-      .pdm_data_o(gpio[21]),
-      .pdm_clk_i (gpio[22])
+      .pdm_data_o(gpio[18]),
+      .pdm_clk_i (gpio[19])
+  );
+
+  // I2s "microphone"/rx example
+  i2s_microphone i2s_microphone_i (
+      .rst_ni(rst_ni),
+      .i2s_sck_i(gpio[20]),
+      .i2s_ws_i(gpio[21]),
+      .i2s_sd_o(gpio[22])
   );
 
 `ifndef VERILATOR
@@ -419,6 +425,7 @@ module testharness #(
   assign master_req[testharness_pkg::EXT_MASTER0_IDX].wdata = '0;
 
   assign memcopy_intr = '0;
+  assign periph_slave_rsp = '0;
 `endif
 
 endmodule  // testharness

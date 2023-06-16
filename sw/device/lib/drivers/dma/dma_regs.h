@@ -27,6 +27,7 @@ extern "C" {
 
 // Register set to 1 when copy is done
 #define DMA_DONE_REG_OFFSET 0xc
+#define DMA_DONE_DONE_BIT 0
 
 // Increment number of source pointer every time a word is copied from source
 #define DMA_SRC_PTR_INC_REG_OFFSET 0x10
@@ -35,14 +36,16 @@ extern "C" {
 // destination
 #define DMA_DST_PTR_INC_REG_OFFSET 0x14
 
-// SPI mode selection: disable(0), receive from SPI (1), and send to SPI (2),
-// receive from SPI FLASH (3), and send to SPI FLASH (4). It waits for TX and
-// RX FIFO in modes 1 and 2, respectively.
-#define DMA_SPI_MODE_REG_OFFSET 0x18
-#define DMA_SPI_MODE_SPI_MODE_MASK 0x7
-#define DMA_SPI_MODE_SPI_MODE_OFFSET 0
-#define DMA_SPI_MODE_SPI_MODE_FIELD \
-  ((bitfield_field32_t) { .mask = DMA_SPI_MODE_SPI_MODE_MASK, .index = DMA_SPI_MODE_SPI_MODE_OFFSET })
+// The DMA will wait for the signal
+#define DMA_SLOT_REG_OFFSET 0x18
+#define DMA_SLOT_RX_TRIGGER_SLOT_MASK 0xffff
+#define DMA_SLOT_RX_TRIGGER_SLOT_OFFSET 0
+#define DMA_SLOT_RX_TRIGGER_SLOT_FIELD \
+  ((bitfield_field32_t) { .mask = DMA_SLOT_RX_TRIGGER_SLOT_MASK, .index = DMA_SLOT_RX_TRIGGER_SLOT_OFFSET })
+#define DMA_SLOT_TX_TRIGGER_SLOT_MASK 0xffff
+#define DMA_SLOT_TX_TRIGGER_SLOT_OFFSET 16
+#define DMA_SLOT_TX_TRIGGER_SLOT_FIELD \
+  ((bitfield_field32_t) { .mask = DMA_SLOT_TX_TRIGGER_SLOT_MASK, .index = DMA_SLOT_TX_TRIGGER_SLOT_OFFSET })
 
 // Data type to transfer: 32-bit word(0), 16-bit half word(1), 8-bit
 // byte(2,3).
@@ -51,6 +54,10 @@ extern "C" {
 #define DMA_DATA_TYPE_DATA_TYPE_OFFSET 0
 #define DMA_DATA_TYPE_DATA_TYPE_FIELD \
   ((bitfield_field32_t) { .mask = DMA_DATA_TYPE_DATA_TYPE_MASK, .index = DMA_DATA_TYPE_DATA_TYPE_OFFSET })
+#define DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD 0x0
+#define DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_16BIT_WORD 0x1
+#define DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD 0x2
+#define DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD_2 0x3
 
 #ifdef __cplusplus
 }  // extern "C"

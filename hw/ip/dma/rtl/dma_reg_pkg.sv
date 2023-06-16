@@ -23,7 +23,10 @@ package dma_reg_pkg;
 
   typedef struct packed {logic [31:0] q;} dma_reg2hw_dst_ptr_inc_reg_t;
 
-  typedef struct packed {logic [2:0] q;} dma_reg2hw_spi_mode_reg_t;
+  typedef struct packed {
+    struct packed {logic [15:0] q;} rx_trigger_slot;
+    struct packed {logic [15:0] q;} tx_trigger_slot;
+  } dma_reg2hw_slot_reg_t;
 
   typedef struct packed {logic [1:0] q;} dma_reg2hw_data_type_reg_t;
 
@@ -33,25 +36,25 @@ package dma_reg_pkg;
   } dma_hw2reg_dma_start_reg_t;
 
   typedef struct packed {
-    logic [31:0] d;
-    logic        de;
+    logic d;
+    logic de;
   } dma_hw2reg_done_reg_t;
 
   // Register -> HW type
   typedef struct packed {
-    dma_reg2hw_ptr_in_reg_t ptr_in;  // [164:133]
-    dma_reg2hw_ptr_out_reg_t ptr_out;  // [132:101]
-    dma_reg2hw_dma_start_reg_t dma_start;  // [100:69]
-    dma_reg2hw_src_ptr_inc_reg_t src_ptr_inc;  // [68:37]
-    dma_reg2hw_dst_ptr_inc_reg_t dst_ptr_inc;  // [36:5]
-    dma_reg2hw_spi_mode_reg_t spi_mode;  // [4:2]
+    dma_reg2hw_ptr_in_reg_t ptr_in;  // [193:162]
+    dma_reg2hw_ptr_out_reg_t ptr_out;  // [161:130]
+    dma_reg2hw_dma_start_reg_t dma_start;  // [129:98]
+    dma_reg2hw_src_ptr_inc_reg_t src_ptr_inc;  // [97:66]
+    dma_reg2hw_dst_ptr_inc_reg_t dst_ptr_inc;  // [65:34]
+    dma_reg2hw_slot_reg_t slot;  // [33:2]
     dma_reg2hw_data_type_reg_t data_type;  // [1:0]
   } dma_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    dma_hw2reg_dma_start_reg_t dma_start;  // [65:33]
-    dma_hw2reg_done_reg_t done;  // [32:0]
+    dma_hw2reg_dma_start_reg_t dma_start;  // [34:2]
+    dma_hw2reg_done_reg_t done;  // [1:0]
   } dma_hw2reg_t;
 
   // Register offsets
@@ -61,7 +64,7 @@ package dma_reg_pkg;
   parameter logic [BlockAw-1:0] DMA_DONE_OFFSET = 5'hc;
   parameter logic [BlockAw-1:0] DMA_SRC_PTR_INC_OFFSET = 5'h10;
   parameter logic [BlockAw-1:0] DMA_DST_PTR_INC_OFFSET = 5'h14;
-  parameter logic [BlockAw-1:0] DMA_SPI_MODE_OFFSET = 5'h18;
+  parameter logic [BlockAw-1:0] DMA_SLOT_OFFSET = 5'h18;
   parameter logic [BlockAw-1:0] DMA_DATA_TYPE_OFFSET = 5'h1c;
 
   // Register index
@@ -72,7 +75,7 @@ package dma_reg_pkg;
     DMA_DONE,
     DMA_SRC_PTR_INC,
     DMA_DST_PTR_INC,
-    DMA_SPI_MODE,
+    DMA_SLOT,
     DMA_DATA_TYPE
   } dma_id_e;
 
@@ -81,10 +84,10 @@ package dma_reg_pkg;
       4'b1111,  // index[0] DMA_PTR_IN
       4'b1111,  // index[1] DMA_PTR_OUT
       4'b1111,  // index[2] DMA_DMA_START
-      4'b1111,  // index[3] DMA_DONE
+      4'b0001,  // index[3] DMA_DONE
       4'b1111,  // index[4] DMA_SRC_PTR_INC
       4'b1111,  // index[5] DMA_DST_PTR_INC
-      4'b0001,  // index[6] DMA_SPI_MODE
+      4'b1111,  // index[6] DMA_SLOT
       4'b0001  // index[7] DMA_DATA_TYPE
   };
 

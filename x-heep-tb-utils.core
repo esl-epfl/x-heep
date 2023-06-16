@@ -14,6 +14,7 @@ filesets:
     - example:ip:gpio_cnt
     - example:ip:pdm2pcm_dummy
     - example:ip:ams
+    - example:ip:i2s_microphone
     files:
     file_type: systemVerilogSource
 

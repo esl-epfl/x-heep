@@ -109,6 +109,9 @@ module ao_peripheral_subsystem
     output logic uart_intr_rx_timeout_o,
     output logic uart_intr_rx_parity_err_o,
 
+    // I2s
+    input logic i2s_rx_valid_i,
+
     // EXTERNAL PERIPH
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i
@@ -323,11 +326,20 @@ module ao_peripheral_subsystem
       .intr_timer_expired_1_0_o(rv_timer_1_intr_o)
   );
 
+  parameter DMA_TRIGGER_SLOT_NUM = 5;
+  logic [DMA_TRIGGER_SLOT_NUM-1:0] dma_trigger_slots;
+  assign dma_trigger_slots[0] = spi_rx_valid;
+  assign dma_trigger_slots[1] = spi_tx_ready;
+  assign dma_trigger_slots[2] = spi_flash_rx_valid;
+  assign dma_trigger_slots[3] = spi_flash_tx_ready;
+  assign dma_trigger_slots[4] = i2s_rx_valid_i;
+
   dma #(
       .reg_req_t (reg_pkg::reg_req_t),
       .reg_rsp_t (reg_pkg::reg_rsp_t),
       .obi_req_t (obi_pkg::obi_req_t),
-      .obi_resp_t(obi_pkg::obi_resp_t)
+      .obi_resp_t(obi_pkg::obi_resp_t),
+      .SLOT_NUM  (DMA_TRIGGER_SLOT_NUM)
   ) dma_i (
       .clk_i,
       .rst_ni,
@@ -337,10 +349,7 @@ module ao_peripheral_subsystem
       .dma_master0_ch0_resp_i,
       .dma_master1_ch0_req_o,
       .dma_master1_ch0_resp_i,
-      .spi_rx_valid_i(spi_rx_valid),
-      .spi_tx_ready_i(spi_tx_ready),
-      .spi_flash_rx_valid_i(spi_flash_rx_valid),
-      .spi_flash_tx_ready_i(spi_flash_tx_ready),
+      .trigger_slot_i(dma_trigger_slots),
       .dma_intr_o
   );
 

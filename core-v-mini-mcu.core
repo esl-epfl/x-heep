@@ -29,6 +29,7 @@ filesets:
     - x-heep:obi_spimemio:0.1.0
     - x-heep:ip:boot_rom
     - x-heep:ip:dma
+    - x-heep:ip:i2s
     - x-heep:ip:power_manager
     - x-heep:ip:fast_intr_ctrl
     - x-heep:ip:pdm2pcm
@@ -85,6 +86,7 @@ filesets:
     - hw/system/pad_control/pad_control.vlt
     - hw/system/x_heep_system.vlt
     - hw/simulation/simulation.vlt
+    - hw/ip/i2s/i2s.vlt
     file_type: vlt
 
   rtl-fpga:

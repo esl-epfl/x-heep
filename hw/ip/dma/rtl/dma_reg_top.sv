@@ -12,8 +12,8 @@ module dma_reg_top #(
     parameter type reg_rsp_t = logic,
     parameter int AW = 5
 ) (
-    input clk_i,
-    input rst_ni,
+    input logic clk_i,
+    input logic rst_ni,
     input reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
     // To HW
@@ -77,16 +77,19 @@ module dma_reg_top #(
   logic [31:0] dma_start_qs;
   logic [31:0] dma_start_wd;
   logic dma_start_we;
-  logic [31:0] done_qs;
+  logic done_qs;
   logic [31:0] src_ptr_inc_qs;
   logic [31:0] src_ptr_inc_wd;
   logic src_ptr_inc_we;
   logic [31:0] dst_ptr_inc_qs;
   logic [31:0] dst_ptr_inc_wd;
   logic dst_ptr_inc_we;
-  logic [2:0] spi_mode_qs;
-  logic [2:0] spi_mode_wd;
-  logic spi_mode_we;
+  logic [15:0] slot_rx_trigger_slot_qs;
+  logic [15:0] slot_rx_trigger_slot_wd;
+  logic slot_rx_trigger_slot_we;
+  logic [15:0] slot_tx_trigger_slot_qs;
+  logic [15:0] slot_tx_trigger_slot_wd;
+  logic slot_tx_trigger_slot_we;
   logic [1:0] data_type_qs;
   logic [1:0] data_type_wd;
   logic data_type_we;
@@ -176,9 +179,9 @@ module dma_reg_top #(
   // R[done]: V(False)
 
   prim_subreg #(
-      .DW      (32),
+      .DW      (1),
       .SWACCESS("RO"),
-      .RESVAL  (32'h1)
+      .RESVAL  (1'h1)
   ) u_done (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -253,19 +256,20 @@ module dma_reg_top #(
   );
 
 
-  // R[spi_mode]: V(False)
+  // R[slot]: V(False)
 
+  //   F[rx_trigger_slot]: 15:0
   prim_subreg #(
-      .DW      (3),
+      .DW      (16),
       .SWACCESS("RW"),
-      .RESVAL  (3'h0)
-  ) u_spi_mode (
+      .RESVAL  (16'h0)
+  ) u_slot_rx_trigger_slot (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(spi_mode_we),
-      .wd(spi_mode_wd),
+      .we(slot_rx_trigger_slot_we),
+      .wd(slot_rx_trigger_slot_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -273,10 +277,36 @@ module dma_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.spi_mode.q),
+      .q (reg2hw.slot.rx_trigger_slot.q),
 
       // to register interface (read)
-      .qs(spi_mode_qs)
+      .qs(slot_rx_trigger_slot_qs)
+  );
+
+
+  //   F[tx_trigger_slot]: 31:16
+  prim_subreg #(
+      .DW      (16),
+      .SWACCESS("RW"),
+      .RESVAL  (16'h0)
+  ) u_slot_tx_trigger_slot (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(slot_tx_trigger_slot_we),
+      .wd(slot_tx_trigger_slot_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.slot.tx_trigger_slot.q),
+
+      // to register interface (read)
+      .qs(slot_tx_trigger_slot_qs)
   );
 
 
@@ -318,7 +348,7 @@ module dma_reg_top #(
     addr_hit[3] = (reg_addr == DMA_DONE_OFFSET);
     addr_hit[4] = (reg_addr == DMA_SRC_PTR_INC_OFFSET);
     addr_hit[5] = (reg_addr == DMA_DST_PTR_INC_OFFSET);
-    addr_hit[6] = (reg_addr == DMA_SPI_MODE_OFFSET);
+    addr_hit[6] = (reg_addr == DMA_SLOT_OFFSET);
     addr_hit[7] = (reg_addr == DMA_DATA_TYPE_OFFSET);
   end
 
@@ -352,8 +382,11 @@ module dma_reg_top #(
   assign dst_ptr_inc_we = addr_hit[5] & reg_we & !reg_error;
   assign dst_ptr_inc_wd = reg_wdata[31:0];
 
-  assign spi_mode_we = addr_hit[6] & reg_we & !reg_error;
-  assign spi_mode_wd = reg_wdata[2:0];
+  assign slot_rx_trigger_slot_we = addr_hit[6] & reg_we & !reg_error;
+  assign slot_rx_trigger_slot_wd = reg_wdata[15:0];
+
+  assign slot_tx_trigger_slot_we = addr_hit[6] & reg_we & !reg_error;
+  assign slot_tx_trigger_slot_wd = reg_wdata[31:16];
 
   assign data_type_we = addr_hit[7] & reg_we & !reg_error;
   assign data_type_wd = reg_wdata[1:0];
@@ -375,7 +408,7 @@ module dma_reg_top #(
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[31:0] = done_qs;
+        reg_rdata_next[0] = done_qs;
       end
 
       addr_hit[4]: begin
@@ -387,7 +420,8 @@ module dma_reg_top #(
       end
 
       addr_hit[6]: begin
-        reg_rdata_next[2:0] = spi_mode_qs;
+        reg_rdata_next[15:0]  = slot_rx_trigger_slot_qs;
+        reg_rdata_next[31:16] = slot_tx_trigger_slot_qs;
       end
 
       addr_hit[7]: begin

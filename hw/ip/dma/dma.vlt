@@ -5,7 +5,6 @@
 `verilator_config
 
 lint_off -rule WIDTH -file "*/rtl/dma_reg_top.sv" -match "Operator ASSIGNW expects *"
-lint_off -rule WIDTH -file "*/rtl/dma.sv" -match "Operator COND expects *"
  
 lint_off -rule UNUSED -file "*/rtl/dma.sv" -match "Signal is not used: 'data_out_rvalid'"
 lint_off -rule UNUSED -file "*/rtl/dma.sv" -match "Signal is not used: 'data_out_rdata'"

@@ -39,7 +39,7 @@
       hwaccess: "hwo",
       resval:   1,
       fields: [
-        { bits: "31:0", name: "DONE", desc: "Copy done" }
+        { bits: "0", name: "DONE", desc: "Copy done" }
       ]
     },
     { name:     "SRC_PTR_INC",
@@ -60,13 +60,20 @@
         { bits: "31:0", name: "DST_PTR_INC", desc: "Destination pointer increment" }
       ]
     },
-    { name:     "SPI_MODE",
-      desc:     "SPI mode selection: disable(0), receive from SPI (1), and send to SPI (2), receive from SPI FLASH (3), and send to SPI FLASH (4). It waits for TX and RX FIFO in modes 1 and 2, respectively.",
+    { name:     "SLOT",
+      desc:     '''The DMA will wait for the signal 
+                   connected to the selected trigger_slots to be high
+                   on the read and write side respectivly''',
       swaccess: "rw",
       hwaccess: "hro",
       resval:   0,
       fields: [
-        { bits: "2:0", name: "SPI_MODE", desc: "Copy/Read from SPI" }
+        { bits: "15:0", name: "RX_TRIGGER_SLOT",
+          desc: "Slot selection mask"
+        },
+        { bits: "31:16", name: "TX_TRIGGER_SLOT",
+          desc: "Slot selection mask"
+        }
       ]
     }
     { name:     "DATA_TYPE",
@@ -75,7 +82,15 @@
       hwaccess: "hro",
       resval:   0,
       fields: [
-        { bits: "1:0", name: "DATA_TYPE", desc: "Data type" }
+        { bits: "1:0", name: "DATA_TYPE", 
+          desc: "Data type",
+          enum: [
+            { value: "0", name: "DMA_32BIT_WORD", desc: "Transfers 32 bits"},
+            { value: "1", name: "DMA_16BIT_WORD", desc: "Transfers 16 bits"},
+            { value: "2", name: "DMA_8BIT_WORD" , desc: "Transfers  8 bits"},
+            { value: "3", name: "DMA_8BIT_WORD_2",desc: "Transfers  8 bits"},
+          ]
+        }
       ]
     }
    ]
