@@ -26,10 +26,10 @@ else:
                 list = []
                 # Read data out of the buffer until a carraige return / new line is found
                 serialString = serialPort.readline()
-                if (serialString == b'index,data\r\n'):
+                if (b'index,data' in serialString):
                     dump = True
                     list = []
-                elif (serialString == b'Batch done!\r\n'):
+                elif (b'Batch done' in serialString):
                     count = count + 1
                     plt.plot(list)
                     plt.show()
