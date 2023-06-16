@@ -6,26 +6,37 @@ import matplotlib.pyplot as plt
 argLen = len(sys.argv)
 print("Total arguments passed:", argLen)
 
-if( argLen < 2 ):
-    print ("Usage:", sys.argv[0], "[/dev/ttyUSBx]")
+dump = False
+
+if( argLen < 3 ):
+    print ("Usage:", sys.argv[0], "[/dev/ttyUSBx]", "[num of plots]")
 else:
         serialPort = serial.Serial(port = sys.argv[1], baudrate=115200, bytesize=8, timeout=2, stopbits=serial.STOPBITS_ONE)
 
+        numPlots = int(sys.argv[2])
+
         serialString = ""                           # Used to hold data coming over UART
         
+        count = 0
 
         while(1):
 
             # Wait until there is data waiting in the serial buffer
             if(serialPort.in_waiting > 0):
-
+                list = []
                 # Read data out of the buffer until a carraige return / new line is found
                 serialString = serialPort.readline()
                 if (serialString == b'index,data\r\n'):
+                    dump = True
                     list = []
                 elif (serialString == b'Batch done!\r\n'):
+                    count = count + 1
                     plt.plot(list)
                     plt.show()
-                else:
+                    dump = False
+                    if (numPlots == count):
+                        break
+                elif (dump == True):
                     list.append(int(serialString.split(b',')[1]))
+            
         exit()

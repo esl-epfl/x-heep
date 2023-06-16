@@ -16,5 +16,5 @@ pip install pyserial matplotlib
 
 Run
 ```
-i2s_test.py
+python i2s_test.py /dev/ttyUSBx
 ```
