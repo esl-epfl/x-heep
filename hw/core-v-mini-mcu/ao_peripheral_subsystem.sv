@@ -419,5 +419,4 @@ module ao_peripheral_subsystem
       .intr_rx_parity_err_o(uart_intr_rx_parity_err_o)
   );
 
-
 endmodule : ao_peripheral_subsystem

@@ -1,0 +1,24 @@
+CAPI=2:
+
+name: "example:ip:ams"
+description: "core-v-mini-mcu ams peripheral"
+
+# Copyright 2023 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+      - pulp-platform.org::common_cells
+    files:
+    - rtl/ams_reg_pkg.sv
+    - rtl/ams_reg_top.sv
+    - rtl/ams.sv
+    - "!ams_sim? (rtl/dummy_adc.sv)"
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl

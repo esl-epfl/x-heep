@@ -220,6 +220,9 @@ module cpu_subsystem
         // Cycle count
         .mcycle_o(),
 
+        // Time input
+        .time_i(64'h0),
+
         // eXtension interface
         .xif_compressed_if,
         .xif_issue_if,
@@ -250,6 +253,8 @@ module cpu_subsystem
         .debug_havereset_o(),
         .debug_running_o  (),
         .debug_halted_o   (),
+        .debug_pc_valid_o (),
+        .debug_pc_o       (),
 
         // CPU control signals
         .fetch_enable_i(fetch_enable),

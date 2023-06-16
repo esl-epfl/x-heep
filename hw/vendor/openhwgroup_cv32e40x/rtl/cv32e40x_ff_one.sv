@@ -24,7 +24,7 @@
 
 module cv32e40x_ff_one
 #(
-  parameter LEN = 32
+  parameter int unsigned LEN = 32
 )
 (
   input  logic [LEN-1:0]         in_i,

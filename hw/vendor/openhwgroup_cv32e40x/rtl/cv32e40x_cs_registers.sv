@@ -30,16 +30,17 @@
 module cv32e40x_cs_registers import cv32e40x_pkg::*;
 #(
   parameter rv32_e       RV32                 = RV32I,
-  parameter bit          A_EXT                = 0,
+  parameter a_ext_e      A_EXT                = A_NONE,
   parameter m_ext_e      M_EXT                = M,
   parameter bit          X_EXT                = 0,
   parameter logic [31:0] X_MISA               =  32'h00000000,
   parameter logic [1:0]  X_ECS_XS             =  2'b00, // todo: implement related mstatus bitfields (but only if X_EXT = 1)
   parameter bit          ZC_EXT               = 0,
-  parameter bit          SMCLIC               = 0,
-  parameter int          SMCLIC_ID_WIDTH      = 5,
-  parameter int          SMCLIC_INTTHRESHBITS = 8,
-  parameter int          NUM_MHPMCOUNTERS     = 1,
+  parameter bit          CLIC                 = 0,
+  parameter int unsigned CLIC_ID_WIDTH        = 5,
+  parameter int unsigned CLIC_INTTHRESHBITS   = 8,
+  parameter int unsigned NUM_MHPMCOUNTERS     = 1,
+  parameter bit          DEBUG                = 1,
   parameter int          DBG_NUM_TRIGGERS     = 1, // todo: implement support for DBG_NUM_TRIGGERS != 1
   parameter int unsigned MTVT_ADDR_WIDTH      = 26
 )
@@ -58,6 +59,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
   output dcsr_t                         dcsr_o,
   output logic [31:0]                   dpc_o,
   output logic [JVT_ADDR_WIDTH-1:0]     jvt_addr_o,
+  output logic [5:0]                    jvt_mode_o,
   output mcause_t                       mcause_o,
   output logic [63:0]                   mcycle_o,
   output logic [31:0]                   mepc_o,
@@ -91,11 +93,14 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
   // Interrupts
   input  logic [31:0]                   mip_i,
   input  logic                          mnxti_irq_pending_i,
-  input  logic [SMCLIC_ID_WIDTH-1:0]    mnxti_irq_id_i,
+  input  logic [CLIC_ID_WIDTH-1:0]    mnxti_irq_id_i,
   input  logic [7:0]                    mnxti_irq_level_i,
   output logic                          clic_pa_valid_o,        // CSR read data is an address to a function pointer
   output logic [31:0]                   clic_pa_o,              // Address to CLIC function pointer
   output logic                          csr_irq_enable_write_o, // An irq enable write is being performed in WB
+
+  // Time input
+  input  logic [63:0]                   time_i,
 
   // CSR write strobes
   output logic                          csr_wr_in_wb_flush_o,
@@ -110,23 +115,24 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
   input  logic                          lsu_valid_ex_i,
   input  logic [31:0]                   lsu_addr_ex_i,
   input  logic                          lsu_we_ex_i,
-  input  logic [3:0]                    lsu_be_ex_i
+  input  logic [3:0]                    lsu_be_ex_i,
+  input  lsu_atomic_e                   lsu_atomic_ex_i
 );
 
   localparam logic [31:0] CORE_MISA =
-    (32'(A_EXT)         <<  0) | // A - Atomic Instructions extension
-    (32'(1)             <<  2) | // C - Compressed extension
-    (32'(RV32 == RV32E) <<  4) | // E - RV32E/64E base ISA
-    (32'(RV32 == RV32I) <<  8) | // I - RV32I/64I/128I base ISA
-    (32'(M_EXT == M)    << 12) | // M - Integer Multiply/Divide extension
-    (32'(0)             << 20) | // U - User mode implemented
-    (32'(1)             << 23) | // X - Non-standard extensions present
-    (32'(MXL)           << 30);  // M-XLEN
+    (32'(A_EXT == A)      <<  0) | // A - Atomic Instructions extension
+    (32'(1)               <<  2) | // C - Compressed extension
+    (32'(RV32 == RV32E)   <<  4) | // E - RV32E/64E base ISA
+    (32'(RV32 == RV32I)   <<  8) | // I - RV32I/64I/128I base ISA
+    (32'(M_EXT == M)      << 12) | // M - Integer Multiply/Divide extension
+    (32'(0)               << 20) | // U - User mode implemented
+    (32'(1)               << 23) | // X - Non-standard extensions present
+    (32'(MXL)             << 30);  // M-XLEN
 
   localparam logic [31:0] MISA_VALUE = CORE_MISA | (X_EXT ? X_MISA : 32'h0000_0000);
 
-  // Set mask for minththresh based on number of bits implemented (SMCLIC_INTTHRESHBITS)
-  localparam CSR_MINTTHRESH_MASK = ((2 ** SMCLIC_INTTHRESHBITS )-1) << (8 - SMCLIC_INTTHRESHBITS);
+  // Set mask for minththresh based on number of bits implemented (CLIC_INTTHRESHBITS)
+  localparam CSR_MINTTHRESH_MASK = ((2 ** CLIC_INTTHRESHBITS )-1) << (8 - CLIC_INTTHRESHBITS);
 
   // CSR update logic
   logic [31:0]                  csr_wdata_int;
@@ -222,9 +228,6 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
   logic [31:0]                  mscratchcswl_n, mscratchcswl_rdata;
   logic                         mscratchcswl_we;
-
-  logic [31:0]                  mclicbase_n, mclicbase_rdata;                   // No CSR module instance
-  logic                         mclicbase_we;                                   // Not used in RTL (used by RVFI)
 
   logic [31:0]                  mip_n, mip_rdata;                               // No CSR module instance
   logic                         mip_we;                                         // Not used in RTL (used by RVFI)
@@ -363,7 +366,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
       // mtvt: machine trap-handler vector table base address
       CSR_MTVT: begin
-        if (SMCLIC) begin
+        if (CLIC) begin
           csr_rdata_int = mtvt_rdata;
         end else begin
           csr_rdata_int    = '0;
@@ -403,7 +406,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
       // mnxti: Next Interrupt Handler Address and Interrupt Enable
       CSR_MNXTI: begin
-        if (SMCLIC) begin
+        if (CLIC) begin
           // The data read here is what will be used in the read-modify-write portion of the CSR access.
           // For mnxti, this is actually mstatus. The value written back to the GPR will be the address of
           // the function pointer to the interrupt handler. This is muxed in the WB stage.
@@ -417,7 +420,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
       // mintstatus: Interrupt Status
       CSR_MINTSTATUS: begin
-        if (SMCLIC) begin
+        if (CLIC) begin
           csr_rdata_int = mintstatus_rdata;
         end else begin
           csr_rdata_int    = '0;
@@ -427,7 +430,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
       // mintthresh: Interrupt-Level Threshold
       CSR_MINTTHRESH: begin
-        if (SMCLIC) begin
+        if (CLIC) begin
           csr_rdata_int = mintthresh_rdata;
         end else begin
           csr_rdata_int    = '0;
@@ -437,7 +440,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
       // mscratchcsw: Scratch Swap for Multiple Privilege Modes
       CSR_MSCRATCHCSW: begin
-        if (SMCLIC) begin
+        if (CLIC) begin
           // CLIC spec 13.2
           // Depending on mstatus.MPP, we return either mscratch_rdata or rs1 to rd.
           // Safe to use mstatus_rdata here (EX timing), as there is a generic stall of the ID stage
@@ -458,7 +461,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
       // mscratchcswl: Scratch Swap for Interrupt Levels
       CSR_MSCRATCHCSWL: begin
-        if (SMCLIC) begin
+        if (CLIC) begin
           // CLIC spec 14.1
           // Depending on mcause.pil and mintstatus.mil, either mscratch or rs1 is returned to rd.
           // Safe to use mcause_rdata and mintstatus_rdata here (EX timing), as there is a generic stall of the ID stage
@@ -471,16 +474,6 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
             // return rs1 for writing to GPR
             csr_rdata_int = id_ex_pipe_i.alu_operand_a;
           end
-        end else begin
-          csr_rdata_int    = '0;
-          illegal_csr_read = 1'b1;
-        end
-      end
-
-      // mclicbase: CLIC Base
-      CSR_MCLICBASE: begin
-        if (SMCLIC) begin
-          csr_rdata_int = mclicbase_rdata;
         end else begin
           csr_rdata_int    = '0;
           illegal_csr_read = 1'b1;
@@ -542,23 +535,51 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
       end
 
       CSR_DCSR: begin
-        csr_rdata_int = dcsr_rdata;
-        illegal_csr_read = !ctrl_fsm_i.debug_mode;
+        if (DEBUG) begin
+          csr_rdata_int = dcsr_rdata;
+          illegal_csr_read = !ctrl_fsm_i.debug_mode;
+        end else begin
+          csr_rdata_int    = '0;
+          illegal_csr_read = 1'b1;
+        end
       end
 
       CSR_DPC: begin
-        csr_rdata_int = dpc_rdata;
-        illegal_csr_read = !ctrl_fsm_i.debug_mode;
+        if (DEBUG) begin
+          csr_rdata_int = dpc_rdata;
+          illegal_csr_read = !ctrl_fsm_i.debug_mode;
+        end else begin
+          csr_rdata_int    = '0;
+          illegal_csr_read = 1'b1;
+        end
       end
 
       CSR_DSCRATCH0: begin
-        csr_rdata_int = dscratch0_rdata;
-        illegal_csr_read = !ctrl_fsm_i.debug_mode;
+        if (DEBUG) begin
+          csr_rdata_int = dscratch0_rdata;
+          illegal_csr_read = !ctrl_fsm_i.debug_mode;
+        end else begin
+          csr_rdata_int    = '0;
+          illegal_csr_read = 1'b1;
+        end
       end
 
       CSR_DSCRATCH1: begin
-        csr_rdata_int = dscratch1_rdata;
-        illegal_csr_read = !ctrl_fsm_i.debug_mode;
+        if (DEBUG) begin
+          csr_rdata_int = dscratch1_rdata;
+          illegal_csr_read = !ctrl_fsm_i.debug_mode;
+        end else begin
+          csr_rdata_int    = '0;
+          illegal_csr_read = 1'b1;
+        end
+      end
+
+      CSR_TIME: begin
+        csr_rdata_int = time_i[31:0];
+      end
+
+      CSR_TIMEH: begin
+        csr_rdata_int = time_i[63:32];
       end
 
       // Hardware Performance Monitor
@@ -638,30 +659,31 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
   always_comb
   begin
 
-    jvt_n         = csr_wdata_int & CSR_JVT_MASK;
+    jvt_n         = csr_next_value(csr_wdata_int, CSR_JVT_MASK, JVT_RESET_VAL);
     jvt_we        = 1'b0;
 
-    mscratch_n    = csr_wdata_int;
+    mscratch_n    = csr_next_value(csr_wdata_int, CSR_MSCRATCH_MASK, MSCRATCH_RESET_VAL);
     mscratch_we   = 1'b0;
 
-    mepc_n        = csr_wdata_int & CSR_MEPC_MASK;
+    mepc_n        = csr_next_value(csr_wdata_int, CSR_MEPC_MASK, MEPC_RESET_VAL);
     mepc_we       = 1'b0;
 
-    dpc_n         = csr_wdata_int & CSR_DPC_MASK;
+    dpc_n         = csr_next_value(csr_wdata_int, CSR_DPC_MASK, DPC_RESET_VAL);
     dpc_we        = 1'b0;
 
-    dcsr_n        = '{
-                      xdebugver : dcsr_rdata.xdebugver,
-                      ebreakm   : csr_wdata_int[15],
-                      ebreaku   : dcsr_ebreaku_resolve(dcsr_rdata.ebreaku, csr_wdata_int[DCSR_EBREAKU_BIT]),
-                      stepie    : csr_wdata_int[11],
-                      stopcount : csr_wdata_int[10],
-                      mprven    : dcsr_rdata.mprven,
-                      step      : csr_wdata_int[2],
-                      prv       : dcsr_prv_resolve(dcsr_rdata.prv, csr_wdata_int[DCSR_PRV_BIT_HIGH:DCSR_PRV_BIT_LOW]),
-                      cause     : dcsr_rdata.cause,
-                      default   : 'd0
-                     };
+    dcsr_n        = csr_next_value(dcsr_t'{
+                                            xdebugver : dcsr_rdata.xdebugver,
+                                            ebreakm   : csr_wdata_int[15],
+                                            ebreaku   : dcsr_ebreaku_resolve(dcsr_rdata.ebreaku, csr_wdata_int[DCSR_EBREAKU_BIT]),
+                                            stepie    : csr_wdata_int[11],
+                                            stopcount : csr_wdata_int[10],
+                                            mprven    : dcsr_rdata.mprven,
+                                            step      : csr_wdata_int[2],
+                                            prv       : dcsr_prv_resolve(dcsr_rdata.prv, csr_wdata_int[DCSR_PRV_BIT_HIGH:DCSR_PRV_BIT_LOW]),
+                                            cause     : dcsr_rdata.cause,
+                                            default   : 'd0
+                                          },
+                                    CSR_DCSR_MASK, DCSR_RESET_VAL);
     dcsr_we       = 1'b0;
 
     dscratch0_n   = csr_wdata_int;
@@ -708,7 +730,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
     mtvec_n.submode = mtvec_rdata.submode;
     mtvec_we        = csr_mtvec_init_i;
 
-    if (SMCLIC) begin
+    if (CLIC) begin
       mtvec_n.mode             = mtvec_mode_clic_resolve(mtvec_rdata.mode, csr_wdata_int[MTVEC_MODE_BIT_HIGH:MTVEC_MODE_BIT_LOW]); // mode is WARL 0x3 when using CLIC
 
       mtvt_n                   = {csr_wdata_int[31:(32-MTVT_ADDR_WIDTH)], {(32-MTVT_ADDR_WIDTH){1'b0}}};
@@ -734,9 +756,6 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
       mip_n                    = mip_rdata; // Read only;
       mip_we                   = 1'b0;
 
-      mclicbase_n              = '0; // Read only, tieing to zero for now.
-      mclicbase_we             = 1'b0;
-
       mcause_n                 = '{
                                     irq:            csr_wdata_int[31],
                                     minhv:          csr_wdata_int[30],
@@ -748,7 +767,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
                                   };
       mcause_we                = 1'b0;
       mcause_alias_we          = 1'b0;
-    end else begin // !SMCLIC
+    end else begin // !CLIC
       mtvec_n.mode             = csr_mtvec_init_i ? mtvec_rdata.mode : mtvec_mode_clint_resolve(mtvec_rdata.mode, csr_wdata_int[MTVEC_MODE_BIT_HIGH:MTVEC_MODE_BIT_LOW]);
 
       mtvt_n                   = '0;
@@ -773,9 +792,6 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
       mip_n                    = mip_rdata; // Read only;
       mip_we                   = 1'b0;
-
-      mclicbase_n              = '0;
-      mclicbase_we             = 1'b0;
 
       mcause_n                 = '{
                                     irq:            csr_wdata_int[31],
@@ -818,10 +834,10 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
         // mstatus
         CSR_MSTATUS: begin
           mstatus_we = 1'b1;
-          // CLIC mode is assumed when SMCLIC = 1
+          // CLIC mode is assumed when CLIC = 1
           // For CLIC, a write to mstatus.mpp or mstatus.mpie will write to the
           // corresponding bits in mstatus as well.
-          if (SMCLIC) begin
+          if (CLIC) begin
             mcause_alias_we = 1'b1;
           end
         end
@@ -842,7 +858,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
         // mtvt: machine trap-handler vector table base address
         CSR_MTVT: begin
-          if (SMCLIC) begin
+          if (CLIC) begin
             mtvt_we = 1'b1;
           end
         end
@@ -864,10 +880,10 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
         // mcause
         CSR_MCAUSE: begin
           mcause_we = 1'b1;
-          // CLIC mode is assumed when SMCLIC = 1
+          // CLIC mode is assumed when CLIC = 1
           // For CLIC, a write to mcause.mpp or mcause.mpie will write to the
           // corresponding bits in mstatus as well.
-          if (SMCLIC) begin
+          if (CLIC) begin
             mstatus_alias_we = 1'b1;
           end
         end
@@ -882,7 +898,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
         end
 
         CSR_MNXTI: begin
-          if (SMCLIC) begin
+          if (CLIC) begin
             mnxti_we = 1'b1;
 
             // Writes to mnxti also writes to mstatus (uses mstatus in the RMW operation)
@@ -903,19 +919,19 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
         end
 
         CSR_MINTSTATUS: begin
-          if (SMCLIC) begin
+          if (CLIC) begin
             mintstatus_we = 1'b1;
           end
         end
 
         CSR_MINTTHRESH: begin
-          if (SMCLIC) begin
+          if (CLIC) begin
             mintthresh_we = 1'b1;
           end
         end
 
         CSR_MSCRATCHCSW: begin
-          if (SMCLIC) begin
+          if (CLIC) begin
             // mscratchcsw operates on mscratch
             // Writing only when mstatus.mpp != PRIV_LVL_M
             if (mstatus_rdata.mpp != PRIV_LVL_M) begin
@@ -926,18 +942,12 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
         end
 
         CSR_MSCRATCHCSWL: begin
-          if (SMCLIC) begin
+          if (CLIC) begin
             // mscratchcswl operates on mscratch
             if ((mcause_rdata.mpil == '0) != (mintstatus_rdata.mil == '0)) begin
               mscratchcswl_we = 1'b1;
               mscratch_we     = 1'b1;
             end
-          end
-        end
-
-        CSR_MCLICBASE: begin
-          if (SMCLIC) begin
-            mclicbase_we = 1'b1;
           end
         end
 
@@ -992,8 +1002,8 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
     // CSR side effects from other CSRs
 
-    // CLIC mode is assumed when SMCLIC = 1
-    if (SMCLIC) begin
+    // CLIC mode is assumed when CLIC = 1
+    if (CLIC) begin
       if (mnxti_we) begin
         // Mstatus is written as part of an mnxti access
         // Make sure we alias the mpp/mpie to mcause
@@ -1087,7 +1097,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
           mcause_we = 1'b1;
 
 
-          if (SMCLIC) begin
+          if (CLIC) begin
             // mpil is saved from mintstatus
             mcause_n.mpil = mintstatus_rdata.mil;
 
@@ -1126,7 +1136,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
         mstatus_n.mpp  = PRIV_LVL_LOWEST;
         mstatus_we     = 1'b1;
 
-        if (SMCLIC) begin
+        if (CLIC) begin
           mintstatus_n.mil = mcause_rdata.mpil;
           mintstatus_we = 1'b1;
 
@@ -1153,7 +1163,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
         mstatus_n.mprv = (privlvl_t'(dcsr_rdata.prv) == PRIV_LVL_M) ? mstatus_rdata.mprv : 1'b0;
         mstatus_we     = 1'b1;
 
-        if (SMCLIC) begin
+        if (CLIC) begin
           // Not really needed, but allows for asserting mstatus_we == mcause_we to check aliasing formally
           mcause_n       = mcause_rdata;
           mcause_we      = 1'b1;
@@ -1166,7 +1176,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
       // In the case of mret restarting CLIC pointer fetches, minhv is cleared while
       // ctrl_fsm_i.csr_restore_mret_ptr is asserted.
       ctrl_fsm_i.csr_clear_minhv: begin
-        if (SMCLIC) begin
+        if (CLIC) begin
           // Keep mcause values, only clear minhv bit.
           mcause_n = mcause_rdata;
           mcause_n.minhv = 1'b0;
@@ -1215,8 +1225,9 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
   cv32e40x_csr
   #(
-    .WIDTH      (32),
-    .RESETVALUE (32'd0)
+    .WIDTH      (32            ),
+    .MASK       (CSR_JVT_MASK  ),
+    .RESETVALUE (JVT_RESET_VAL )
   )
   jvt_csr_i
   (
@@ -1227,66 +1238,78 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
     .rd_data_o          ( jvt_q                 )
   );
 
-  cv32e40x_csr
-  #(
-    .WIDTH      (32),
-    .RESETVALUE (32'd0)
-  )
-  dscratch0_csr_i
-  (
-    .clk                ( clk                   ),
-    .rst_n              ( rst_n                 ),
-    .wr_data_i          ( dscratch0_n           ),
-    .wr_en_i            ( dscratch0_we          ),
-    .rd_data_o          ( dscratch0_q           )
-  );
+  generate
+    if (DEBUG) begin : gen_debug_csr
+      cv32e40x_csr
+      #(
+        .WIDTH      (32),
+        .RESETVALUE (32'd0)
+      )
+      dscratch0_csr_i
+      (
+        .clk                ( clk                   ),
+        .rst_n              ( rst_n                 ),
+        .wr_data_i          ( dscratch0_n           ),
+        .wr_en_i            ( dscratch0_we          ),
+        .rd_data_o          ( dscratch0_q           )
+      );
+
+      cv32e40x_csr
+      #(
+        .WIDTH      (32),
+        .RESETVALUE (32'd0)
+      )
+      dscratch1_csr_i
+      (
+        .clk                ( clk                   ),
+        .rst_n              ( rst_n                 ),
+        .wr_data_i          ( dscratch1_n           ),
+        .wr_en_i            ( dscratch1_we          ),
+        .rd_data_o          ( dscratch1_q           )
+      );
+
+      cv32e40x_csr
+      #(
+        .WIDTH      (32            ),
+        .MASK       (CSR_DCSR_MASK ),
+        .RESETVALUE (DCSR_RESET_VAL)
+      )
+      dcsr_csr_i
+      (
+        .clk                ( clk                   ),
+        .rst_n              ( rst_n                 ),
+        .wr_data_i          ( dcsr_n                ),
+        .wr_en_i            ( dcsr_we               ),
+        .rd_data_o          ( dcsr_q                )
+      );
+
+      cv32e40x_csr
+      #(
+        .WIDTH      (32           ),
+        .MASK       (CSR_DPC_MASK ),
+        .RESETVALUE (DPC_RESET_VAL)
+      )
+      dpc_csr_i
+      (
+        .clk                ( clk                   ),
+        .rst_n              ( rst_n                 ),
+        .wr_data_i          ( dpc_n                 ),
+        .wr_en_i            ( dpc_we                ),
+        .rd_data_o          ( dpc_q                 )
+      );
+    end else begin : debug_csr_tieoff
+        assign dscratch0_q = 32'h0;
+        assign dscratch1_q = 32'h0;
+        assign dpc_q       = 32'h0;
+        assign dcsr_q      = 32'h0;
+    end
+  endgenerate
 
   cv32e40x_csr
   #(
-    .WIDTH      (32),
-    .RESETVALUE (32'd0)
-  )
-  dscratch1_csr_i
-  (
-    .clk                ( clk                   ),
-    .rst_n              ( rst_n                 ),
-    .wr_data_i          ( dscratch1_n           ),
-    .wr_en_i            ( dscratch1_we          ),
-    .rd_data_o          ( dscratch1_q           )
-  );
-
-  cv32e40x_csr
-  #(
-    .WIDTH      (32),
-    .RESETVALUE (DCSR_RESET_VAL)
-  )
-  dcsr_csr_i
-  (
-    .clk                ( clk                   ),
-    .rst_n              ( rst_n                 ),
-    .wr_data_i          ( dcsr_n                ),
-    .wr_en_i            ( dcsr_we               ),
-    .rd_data_o          ( dcsr_q                )
-  );
-
-  cv32e40x_csr
-  #(
-    .WIDTH      (32),
-    .RESETVALUE (32'd0)
-  )
-  dpc_csr_i
-  (
-    .clk                ( clk                   ),
-    .rst_n              ( rst_n                 ),
-    .wr_data_i          ( dpc_n                 ),
-    .wr_en_i            ( dpc_we                ),
-    .rd_data_o          ( dpc_q                 )
-  );
-
-  cv32e40x_csr
-  #(
-    .WIDTH      (32),
-    .RESETVALUE (32'd0)
+    .WIDTH      (32            ),
+    .MASK       (CSR_MEPC_MASK ),
+    .RESETVALUE (MEPC_RESET_VAL)
   )
   mepc_csr_i
   (
@@ -1299,8 +1322,9 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
   cv32e40x_csr
   #(
-    .WIDTH      (32),
-    .RESETVALUE (32'd0)
+    .WIDTH      (32                ),
+    .MASK       (CSR_MSCRATCH_MASK ),
+    .RESETVALUE (MSCRATCH_RESET_VAL)
   )
   mscratch_csr_i
   (
@@ -1328,9 +1352,9 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
 
   generate
-    if (SMCLIC) begin : smclic_csrs
+    if (CLIC) begin : clic_csrs
 
-      assign mie_q = 32'h0;                                                     // CLIC mode is assumed when SMCLIC = 1
+      assign mie_q = 32'h0;                                                     // CLIC mode is assumed when CLIC = 1
 
       cv32e40x_csr
       #(
@@ -1468,15 +1492,14 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
   assign mtvec_rdata        = mtvec_q;
   assign mtvt_rdata         = mtvt_q;
   assign mintstatus_rdata   = mintstatus_q;
-  assign mclicbase_rdata    = 32'h00000000;
   assign mie_rdata          = mie_q;
 
   // Implemented threshold bits are left justified, unimplemented bits are tied to 1.
   // Special case when all 8 bits are implemented to avoid zero-replication
   generate
-    if (SMCLIC_INTTHRESHBITS < 8) begin : gen_partial_thresh
+    if (CLIC_INTTHRESHBITS < 8) begin : gen_partial_thresh
       // Unimplemented bits within [7:0] are tied to 1. Bits 31:8 always tied to 0.
-      assign mintthresh_rdata   = {mintthresh_q[31:(7-(SMCLIC_INTTHRESHBITS-1))], {(8-SMCLIC_INTTHRESHBITS) {1'b1}}};
+      assign mintthresh_rdata   = {mintthresh_q[31:(7-(CLIC_INTTHRESHBITS-1))], {(8-CLIC_INTTHRESHBITS) {1'b1}}};
     end else begin : gen_full_thresh
       // Bits 31:8 tied to 0, all bits within [7:0] are implemented in flipflops.
       assign mintthresh_rdata   = mintthresh_q[31:0];
@@ -1510,7 +1533,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
   assign priv_lvl_rdata     = PRIV_LVL_M;
 
   // dcsr_rdata factors in the flop outputs and the nmip bit from the controller
-  assign dcsr_rdata = {dcsr_q[31:4], ctrl_fsm_i.pending_nmi, dcsr_q[2:0]};
+  assign dcsr_rdata = DEBUG ? {dcsr_q[31:4], ctrl_fsm_i.pending_nmi, dcsr_q[2:0]} : 32'h0;
 
 
   assign mcause_rdata = mcause_q;
@@ -1533,7 +1556,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
   // Signal when an interrupt may become enabled due to a CSR write
   generate
-    if (SMCLIC) begin : smclic_irq_en
+    if (CLIC) begin : clic_irq_en
       assign csr_irq_enable_write_o = mstatus_we || priv_lvl_we || mintthresh_we || mintstatus_we;
     end else begin : basic_irq_en
       assign csr_irq_enable_write_o = mie_we || mstatus_we || priv_lvl_we;
@@ -1547,6 +1570,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
   assign dcsr_o        = dcsr_rdata;
   assign dpc_o         = dpc_rdata;
   assign jvt_addr_o    = jvt_rdata.base[31:32-JVT_ADDR_WIDTH];
+  assign jvt_mode_o    = jvt_rdata.mode;
   assign mcause_o      = mcause_rdata;
   assign mcycle_o      = mhpmcounter_rdata[0];
   assign mepc_o        = mepc_rdata;
@@ -1569,9 +1593,11 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
   //                         |___/               |___/ |___/            //
   ////////////////////////////////////////////////////////////////////////
 
+  // When DEBUG==0, DBG_NUM_TRIGGERS is assumed to be 0 as well.
   cv32e40x_debug_triggers
     #(
-        .DBG_NUM_TRIGGERS (DBG_NUM_TRIGGERS)
+        .DBG_NUM_TRIGGERS (DBG_NUM_TRIGGERS),
+        .A_EXT            (A_EXT)
     )
     debug_triggers_i
     (
@@ -1606,6 +1632,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
       .lsu_we_ex_i         ( lsu_we_ex_i           ),
       .lsu_be_ex_i         ( lsu_be_ex_i           ),
       .priv_lvl_ex_i       ( id_ex_pipe_i.priv_lvl ),
+      .lsu_atomic_ex_i     ( lsu_atomic_ex_i       ),
 
       // WB inputs
       .priv_lvl_wb_i       ( ex_wb_pipe_i.priv_lvl ),
@@ -1904,7 +1931,7 @@ module cv32e40x_cs_registers import cv32e40x_pkg::*;
 
   assign unused_signals = mstatush_we | misa_we | mip_we | mvendorid_we |
     marchid_we | mimpid_we | mhartid_we | mconfigptr_we | mtval_we | (|mnxti_n) | mscratchcsw_we | mscratchcswl_we |
-    (|mscratchcsw_rdata) | (|mscratchcswl_rdata) | (|mscratchcsw_n) | (|mscratchcswl_n) | (|mclicbase_n) | mclicbase_we |
+    (|mscratchcsw_rdata) | (|mscratchcswl_rdata) | (|mscratchcsw_n) | (|mscratchcswl_n) |
     mscratchcsw_in_wb | mscratchcswl_in_wb | mnxti_in_wb;
 
 endmodule

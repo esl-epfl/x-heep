@@ -27,7 +27,7 @@ module cv32e40x_write_buffer_sva
   import cv32e40x_pkg::*;
   import uvm_pkg::*;
   #(
-     parameter int PMA_NUM_REGIONS = 0,
+     parameter int       PMA_NUM_REGIONS = 0,
      parameter pma_cfg_t PMA_CFG[PMA_NUM_REGIONS-1:0] = '{default:PMA_R_DEFAULT}
   )
   (input logic          clk,

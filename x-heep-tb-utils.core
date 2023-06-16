@@ -13,6 +13,7 @@ filesets:
     - example:ip:slow_memory
     - example:ip:gpio_cnt
     - example:ip:pdm2pcm_dummy
+    - example:ip:ams
     - example:ip:i2s_microphone
     files:
     file_type: systemVerilogSource
@@ -20,6 +21,7 @@ filesets:
   files_verilator_waiver:
     files:
     - hw/ip_examples/slow_memory/slow_memory.vlt
+    - hw/ip_examples/ams/ams.vlt
     - tb/tb.vlt
     file_type: vlt
 
