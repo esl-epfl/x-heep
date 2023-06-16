@@ -26,7 +26,7 @@ else:
                 mylist = []
                 # Read data out of the buffer until a carraige return / new line is found
                 serialString = serialPort.readline()
-                if (b'index,data' in serialString):
+                if (b'index' in serialString):
                     start = True
                     mylist = []
                     print("Started recording")
@@ -39,5 +39,6 @@ else:
                         break
                 elif (start == True):
                     mylist.append(int(serialString.split(b','[1])))
-            
+                else:
+                     print(serialString)
         exit()
