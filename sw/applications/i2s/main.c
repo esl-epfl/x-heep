@@ -160,6 +160,7 @@ int main(int argc, char *argv[]) {
 
     int batch = 0;
     while(1) {
+        printf("starting\r\n"); // <- csv header for python 
         #ifdef USE_DMA
             dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // start 
         #endif // USE_DMA
@@ -200,10 +201,9 @@ int main(int argc, char *argv[]) {
 
 
         // this takes wayyy longer than reading the samples, so no continuous mode is possible with UART dump 
-        printf("index,data\r\n"); // <- csv header for python 
         int32_t* data = audio_data_0;
         for (int i = 0; i < AUDIO_DATA_NUM; i+=1) {
-            printf("%4x,%d\r\n", i, (int16_t) (data[i] >> 16));
+            printf("%d\r\n",(int16_t) (data[i] >> 16));
         }
         batch += 1;
         printf("Batch done!\r\n", batch);

@@ -75,7 +75,7 @@ else:
                 serialString = serialPort.readline()
 
                 # wait for index to signal start of data
-                if (b'index' in serialString):
+                if (b'starting' in serialString):
                     # reset variables
                     start = True
                     mylist = []
@@ -119,8 +119,13 @@ else:
                 elif (start == True):
                     if (len(mylist) == 0):
                         print("Stopped recording, starting to transmit")
-                    val = int(serialString.split(b',')[1])
-                    mylist.append(val)
+                    try:
+                        val = int(serialString)
+                        mylist.append(val)
+                    except:
+                        print("Error parsing: ", serialString)
+                        exit()
+
                 elif (DEBUG == True): 
                     print(serialString) 
         exit()
