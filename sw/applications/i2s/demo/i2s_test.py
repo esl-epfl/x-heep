@@ -18,12 +18,12 @@ else:
         serialString = ""                           # Used to hold data coming over UART
         
         count = 0
+        mylist = []
 
         while(1):
 
             # Wait until there is data waiting in the serial buffer
             if(serialPort.in_waiting > 0):
-                mylist = []
 
                 # Read data out of the buffer until a carraige return / new line is found
                 serialString = serialPort.readline()
@@ -46,8 +46,7 @@ else:
                 elif (start == True):
                     val = int(serialString.split(b',')[1])
                     print(val)
-                    mylist = [*mylist, val]
-                    print(mylist)
+                    mylist.append(val)
                 else:
                     print(serialString)
         exit()
