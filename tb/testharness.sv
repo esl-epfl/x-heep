@@ -169,7 +169,7 @@ module testharness #(
       .spi_sd_2_io(spi_sd_io[2]),
       .spi_sd_3_io(spi_sd_io[3]),
       .pdm2pcm_pdm_io(gpio[18]),
-      .pdm2pcm_clk_io(gpio[19])
+      .pdm2pcm_clk_io(gpio[19]),
       .i2s_sck_io(gpio[20]),
       .i2s_ws_io(gpio[21]),
       .i2s_sd_io(gpio[22]),
