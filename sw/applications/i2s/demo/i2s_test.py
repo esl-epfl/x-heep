@@ -36,7 +36,6 @@ def fft_plot(x, fs, title, y_label, filename):
     axs[1].set_xlabel("f [Hz]")
     axs[1].set_ylabel("Magnitude")
 
-    fig.savefig(f"../report/figures/{filename}.pdf")
     fig.show()
 
 
@@ -118,6 +117,8 @@ else:
                     if (numPlots == count):
                         break
                 elif (start == True):
+                    if (len(mylist) == 0):
+                        print("Stopped recording, starting to transmit")
                     val = int(serialString.split(b',')[1])
                     mylist.append(val)
                 elif (DEBUG == True): 
