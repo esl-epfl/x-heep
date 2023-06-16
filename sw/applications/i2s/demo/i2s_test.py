@@ -94,7 +94,7 @@ else:
                     sd.play(sample, fs)
 
                     # store as wav
-                    scipy.io.wavfile.write(f"data/{filename}.wav", fs, sample)
+                    scipy.io.wavfile.write(f"recording.wav", fs, sample)
 
                     # FFT
                     fft_plot(
