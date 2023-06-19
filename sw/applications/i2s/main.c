@@ -178,7 +178,7 @@ int main(int argc, char *argv[]) {
     #pragma message ( "this application never ends" )
 
     int batch = 0;
-    for( uint8_t cycles = 0; cycles < 5; cycles ++ ){
+    for (int batch = 0; batch < I2S_TEST_BATCHES; batch++){
         printf("starting\r\n"); // <- csv header for python 
         #ifdef USE_DMA
             dma_launch( &trans );
@@ -242,7 +242,7 @@ int main(int argc, char *argv[]) {
 
     for (int batch = 0; batch < I2S_TEST_BATCHES; batch++) {
         #ifdef USE_DMA
-        dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // start 
+        dma_launch( &trans );
         #endif // USE_DMA
         i2s_res = i2s_rx_start(I2S_BOTH_CH);
         if (i2s_res != kI2sOk) {
@@ -303,9 +303,6 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
-        #ifdef USE_DMA
-        dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // restart 
-        #endif
     }
 
     if (! mic_connected) {
