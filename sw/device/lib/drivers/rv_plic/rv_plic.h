@@ -87,13 +87,8 @@
  * ID of the external interrupt request lines
 */
 
-/* 
- * When adding new interrupts (like the DMA above) we increment the start of 
- * the external IDs (instead of reducing the end) to prevent from modifying the 
- * values already in use by other peripherals.
-*/
-#define EXT_IRQ_START   EXT_INTR_1 
-#define EXT_IRQ_END     EXT_INTR_12
+#define EXT_IRQ_START   EXT_INTR_0 
+#define EXT_IRQ_END     EXT_INTR_11
 
 /****************************************************************************/
 /**                                                                        **/
