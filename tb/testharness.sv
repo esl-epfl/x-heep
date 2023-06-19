@@ -301,13 +301,15 @@ module testharness #(
       .rvalid_o(slow_ram_slave_resp.rvalid)
   );
 
+  parameter DMA_TRIGGER_SLOT_NUM = 4;
+
   // External peripheral example with master port to access memory
   dma #(
       .reg_req_t (reg_pkg::reg_req_t),
       .reg_rsp_t (reg_pkg::reg_rsp_t),
       .obi_req_t (obi_pkg::obi_req_t),
       .obi_resp_t(obi_pkg::obi_resp_t),
-      .SLOT_NUM  (1)
+      .SLOT_NUM  (DMA_TRIGGER_SLOT_NUM)
   ) dma_i (
       .clk_i,
       .rst_ni,
@@ -318,7 +320,8 @@ module testharness #(
       .dma_master1_ch0_req_o(master_req[testharness_pkg::EXT_MASTER1_IDX]),
       .dma_master1_ch0_resp_i(master_resp[testharness_pkg::EXT_MASTER1_IDX]),
       .trigger_slot_i('0),
-      .dma_intr_o(memcopy_intr)
+      .dma_done_intr_o(memcopy_intr),
+      .dma_window_intr_o()
   );
 
   // AMS external peripheral
