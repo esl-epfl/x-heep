@@ -63,7 +63,7 @@
 #endif
 #include "fast_intr_ctrl.h"
 
-
+#pragma message ( "NECESSARY TO RUN WITH mcu-gen MEMORY_BANKS=16" )
 
 // Interrupt controller variables
 plic_result_t plic_res;
@@ -80,7 +80,6 @@ int32_t audio_data_0[AUDIO_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
 
 // DMA
 #ifdef USE_DMA
-dma_t dma;
 int8_t dma_intr_flag;
 #endif
 
@@ -92,12 +91,16 @@ void handler_irq_i2s(void) {
 }
 
 #ifdef USE_DMA
-void fic_irq_dma(void)
+void dma_intr_handler_trans_done(void)
 {
     dma_intr_flag = 1;
 }
 #endif
 
+
+static dma_target_t tgt_src;
+static dma_target_t tgt_dst;
+static dma_trans_t trans;
 
 //
 // Setup
@@ -106,15 +109,29 @@ void setup()
 {
 
     #ifdef USE_DMA
-    dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
 
      // -- DMA CONFIGURATION --
-    dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
-    dma_set_write_ptr_inc(&dma, (uint32_t) 4);
-    dma_set_read_ptr(&dma, I2S_RX_DATA_ADDRESS); // I2s RX FIFO addr
-    dma_set_write_ptr(&dma, (uint32_t) audio_data_0); // audio data address
-    dma_set_slot(&dma, DMA_I2S_RX_SLOT, 0); // The DMA will wait for the I2s RX FIFO valid signal
-    dma_set_data_type(&dma, (uint32_t) 0);
+
+    tgt_src.ptr        = I2S_RX_DATA_ADDRESS;
+    tgt_src.inc_du     = 0;
+    tgt_src.trig       = DMA_TRIG_SLOT_I2S;
+    tgt_src.type       = DMA_DATA_TYPE_WORD;
+    tgt_src.size_du    = AUDIO_DATA_NUM;
+    
+    tgt_dst.ptr        = audio_data_0;
+    tgt_dst.inc_du     = 1;
+    tgt_dst.trig       = DMA_TRIG_MEMORY;
+    tgt_dst.type       = DMA_DATA_TYPE_WORD;
+    
+    trans.src        = &tgt_src;
+    trans.dst        = &tgt_dst;
+    trans.end        = DMA_TRANS_END_INTR;
+
+    dma_config_flags_t res;
+    res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    printf("Valid:  %d\n", res);
+    res = dma_load_transaction(&trans);
+    printf("Load:   %d\n", res);
     #endif
 
 
@@ -132,15 +149,6 @@ void setup()
     } 
     i2s_rx_enable_watermark(AUDIO_DATA_NUM, I2S_USE_INTERRUPT);
 
-
-    // Enable interrupt on processor side
-    // Enable global interrupt for machine-level interrupts
-    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    // Set mie.MEIE bit to one to enable machine-level external interrupts
-    // bit 11 = external intr (used for i2s)
-    // bit 19 = dma fast intr
-    const uint32_t mask = 1 << 11 | 1 << 19; 
-    CSR_SET_BITS(CSR_REG_MIE, mask);
 }
 
 #define I2S_WAIT_TIME_US 100000 
@@ -170,10 +178,10 @@ int main(int argc, char *argv[]) {
     #pragma message ( "this application never ends" )
 
     int batch = 0;
-    while(1) {
+    for( uint8_t cycles = 0; cycles < 5; cycles ++ ){
         printf("starting\r\n"); // <- csv header for python 
         #ifdef USE_DMA
-            dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // start 
+            dma_launch( &trans );
         #endif // USE_DMA
         
         i2s_res = i2s_rx_start(I2S_LEFT_CH);
@@ -223,11 +231,7 @@ int main(int argc, char *argv[]) {
             printf("irq 1\n");
             i2s_interrupt_flag = 0;
         }
-
-
-        #ifdef USE_DMA
-        dma_set_cnt_start(&dma, (uint32_t) (AUDIO_DATA_NUM*4)); // restart 
-        #endif
+        success = 1;
     }
 #else
     //
