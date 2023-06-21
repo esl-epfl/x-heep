@@ -363,7 +363,7 @@ make run RUN_OPT=1 PLUSARGS="c firmware=../../../sw/build/main.hex"
 You can also compile with the UPF power domain description as:
 
 ```
-make questasim-sim-opt-upf FUSESOC_FLAGS="--USE_UPF=1"
+make questasim-sim-opt-upf FUSESOC_FLAGS="--flag=use_upf"
 ```
 
 and then execute software as:
