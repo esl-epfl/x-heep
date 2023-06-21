@@ -45,7 +45,7 @@ Then it loads the `boot_address` from a memory-mapped register that is set to
 0x180 at reset time, which is also the boot address specified in the entry point of the 
 linked scripts.
 If you want to simulate the actual JTAG procedure without pre-loading instead, 
-compile the RTL with the `use_jtag_dpi` flag and follow the `Debug.md` guide.
+compile the RTL with the `--JTAG_DPI=1` FuseSoC parameter and follow the `Debug.md` guide.
 
 ### SPI Flash Execution Boot Procedure
 

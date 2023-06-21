@@ -1,0 +1,5 @@
+APPLICATIONS OUTPUT:
+
+
+Run hello_world application...
+

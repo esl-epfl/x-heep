@@ -303,14 +303,11 @@ targets:
         - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
         - ams_sim? (pre_patch_vcs_ams_Makefile)
     parameters:
-    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
-    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
-    - use_cv32e40p_fpu? (FPU=1)
-    - "!use_cv32e40p_fpu? (FPU=0)"
-    - use_jtag_dpi? (JTAG_DPI=1)
-    - "!use_jtag_dpi? (JTAG_DPI=0)"
+    - COREV_PULP
+    - FPU
+    - JTAG_DPI
     - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
-    - use_upf? (USE_UPF=true)
+    - USE_UPF
     tools:
       modelsim:
         vlog_options:
@@ -364,10 +361,8 @@ targets:
     - ip-fpga
     - xdc-fpga-nexys
     parameters:
-    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
-    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
-    - use_cv32e40p_fpu? (FPU=1)
-    - "!use_cv32e40p_fpu? (FPU=0)"
+    - COREV_PULP
+    - FPU
     - SYNTHESIS=true
     tools:
       vivado:
@@ -384,10 +379,8 @@ targets:
     - ip-fpga
     - xdc-fpga-pynq-z2
     parameters:
-    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
-    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
-    - use_cv32e40p_fpu? (FPU=1)
-    - "!use_cv32e40p_fpu? (FPU=0)"
+    - COREV_PULP
+    - FPU
     - SYNTHESIS=true
     tools:
       vivado:
@@ -404,10 +397,8 @@ targets:
     - ip-fpga
     - fpga-arm-emulation
     parameters:
-    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
-    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
-    - use_cv32e40p_fpu? (FPU=1)
-    - "!use_cv32e40p_fpu? (FPU=0)"
+    - COREV_PULP
+    - FPU
     - SYNTHESIS=true
     tools:
       vivado:
@@ -424,10 +415,8 @@ targets:
     hooks:
       post_build: [post_build_modelsim_scripts]
     parameters:
-    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
-    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
-    - use_cv32e40p_fpu? (FPU=1)
-    - "!use_cv32e40p_fpu? (FPU=0)"
+    - COREV_PULP
+    - FPU
     - FPGA_NETLIST=true
     tools:
       modelsim:
@@ -442,10 +431,8 @@ targets:
     default_tool: design_compiler
     description: Design Compiler Script
     parameters:
-    - use_cv32e40p_corev_pulp? (COREV_PULP=1)
-    - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
-    - use_cv32e40p_fpu? (FPU=1)
-    - "!use_cv32e40p_fpu? (FPU=0)"
+    - COREV_PULP
+    - FPU
     - SYNTHESIS=true
     filesets_append:
     - ip-asic
@@ -466,10 +453,8 @@ targets:
     default_tool: openroad
     description: yosys
     parameters:
-      - use_cv32e40p_corev_pulp? (COREV_PULP=1)
-      - "!use_cv32e40p_corev_pulp? (COREV_PULP=0)"
-      - use_cv32e40p_fpu? (FPU=1)
-      - "!use_cv32e40p_fpu? (FPU=0)"
+      - COREV_PULP
+      - FPU
       - SYNTHESIS=true
       - VERILATOR=true
     filesets_append:

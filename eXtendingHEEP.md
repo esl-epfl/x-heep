@@ -194,10 +194,9 @@ To add this new top-level module to the simulation/synthesis flow you can extend
             - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
         parameters:
         - PULP_XPULP=0
-        - use_jtag_dpi? (JTAG_DPI=1)
-        - "!use_jtag_dpi? (JTAG_DPI=0)"
+        - JTAG_DPI
         - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
-        - use_upf? (USE_UPF=true)
+        - USE_UPF
         tools:
         modelsim:
             vlog_options:

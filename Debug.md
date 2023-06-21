@@ -40,10 +40,10 @@ The remote bitbang server is simplemented in the folder ./hw/vendor/pulp_platfor
 
 ### Verilator
 
-To simulate your application with Questasim using the remote_bitbang server, you need to compile you system adding the flag `use_jtag_dpi`:
+To simulate your application with Questasim using the remote_bitbang server, you need to compile you system adding the following FuseSoC parameter:
 
 ```
-make verilator-sim FUSESOC_FLAGS="--flag use_jtag_dpi"
+make verilator-sim FUSESOC_FLAGS="--JTAG_DPI=1"
 ```
 
 then, go to your target system built folder
@@ -60,10 +60,10 @@ and type to run your compiled software:
 
 ### Questasim
 
-To simulate your application with Questasim using the remote_bitbang server, you need to compile you system adding the flag `use_jtag_dpi`:
+To simulate your application with Questasim using the remote_bitbang server, you need to compile you system adding the following FuseSoC parameter:
 
 ```
-make questasim-sim FUSESOC_FLAGS="--flag=use_jtag_dpi"
+make questasim-sim FUSESOC_FLAGS="--JTAG_DPI=1"
 ```
 
 then, go to your target system built folder
