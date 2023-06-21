@@ -196,7 +196,7 @@ To add this new top-level module to the simulation/synthesis flow you can extend
         - PULP_XPULP=0
         - JTAG_DPI
         - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
-        - USE_UPF
+        - use_upf? (USE_UPF=true)
         tools:
         modelsim:
             vlog_options:
