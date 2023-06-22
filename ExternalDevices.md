@@ -28,12 +28,12 @@ To run the external device example, first compile the software example:
 make app PROJECT=example_external_peripheral
 ```
 
-By default, the external device example RTL code is disabled. Run fusesoc with the '--flag=use_external_device_example' option to enable it. This example is available for the sim and sim_opt targets.
+By default, the external device example RTL code is disabled. This example is available for the sim and sim_opt targets.
 
 For example, compile for Verilator with:
 
 ```
-make verilator-sim FUSESOC_FLAGS="--flag=use_external_device_example"
+make verilator-sim
 ```
 
 then, go to your target system built folder

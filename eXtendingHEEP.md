@@ -141,7 +141,7 @@ To add this new top-level module to the simulation/synthesis flow you can extend
         file_type: user
 
     parameters:
-    PULP_XPULP:
+    COREV_PULP:
         datatype: int
         paramtype: vlogparam
         default: 0
@@ -149,14 +149,11 @@ To add this new top-level module to the simulation/synthesis flow you can extend
         datatype: int
         paramtype: vlogparam
         default: 0
-    USE_EXTERNAL_DEVICE_EXAMPLE:
-        datatype: bool
-        paramtype: vlogdefine
-        default: false
     USE_UPF:
-        datatype: bool
-        paramtype: vlogdefine
-        default: false
+      datatype: bool
+      paramtype: vlogdefine
+      description: |
+        Enables simulation with UPF with Modelsim/VCS
 
     scripts:
     pre_build_remote_bitbang:
@@ -193,11 +190,8 @@ To add this new top-level module to the simulation/synthesis flow you can extend
             - tool_modelsim? (pre_build_remote_bitbang)
             - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
         parameters:
-        - PULP_XPULP=0
-        - use_jtag_dpi? (JTAG_DPI=1)
-        - "!use_jtag_dpi? (JTAG_DPI=0)"
-        - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
-        - use_upf? (USE_UPF=true)
+        - COREV_PULP
+        - JTAG_DPI
         tools:
         modelsim:
             vlog_options:
