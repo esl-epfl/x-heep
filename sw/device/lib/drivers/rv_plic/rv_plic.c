@@ -138,28 +138,28 @@ uint8_t plic_intr_flag = 0;
 /**                                                                        **/
 /****************************************************************************/
 
-__attribute__((weak, optimize("O0"))) void handler_irq_uart(void) {
+__attribute__((weak, optimize("O0"))) void handler_irq_uart(plic_irq_id_t id) {
 
 } 
 
-__attribute__((weak, optimize("O0"))) void handler_irq_gpio(void) {
+__attribute__((weak, optimize("O0"))) void handler_irq_gpio(plic_irq_id_t id) {
   
 }
 
-__attribute__((weak, optimize("O0"))) void handler_irq_i2c(void) {
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c(plic_irq_id_t id) {
   
 }
 
-__attribute__((weak, optimize("O0"))) void handler_irq_spi(void) {
+__attribute__((weak, optimize("O0"))) void handler_irq_spi(plic_irq_id_t id) {
   
 }
 
 
-__attribute__((weak, optimize("O0"))) void handler_irq_i2s(void) {
+__attribute__((weak, optimize("O0"))) void handler_irq_i2s(plic_irq_id_t id) {
   
 }
 
-__attribute__((weak, optimize("O0"))) void handler_irq_ext(void) {
+__attribute__((weak, optimize("O0"))) void handler_irq_ext(plic_irq_id_t id) {
 
 }
 
@@ -172,7 +172,7 @@ void handler_irq_external(void)
   if(type != IRQ_BAD)
   {
     // Calls the proper handler
-    handlers[type]();
+    handlers[type](int_id);
     plic_intr_flag = 1;
 
     plic_irq_complete(&int_id);

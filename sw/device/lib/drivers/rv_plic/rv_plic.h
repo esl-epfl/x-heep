@@ -100,7 +100,7 @@
  * Each element will be initialized to be the address of the handler function
  * relative to its index. So each element will be a callable function.
 */
-typedef void (*handler_funct_t)(void);
+typedef void (*handler_funct_t)(plic_irq_id_t);
 
 
 /**
@@ -225,32 +225,32 @@ extern uint8_t plic_intr_flag;
 /**
  * IRQ handler for UART 
 */
-void handler_irq_uart(void);
+void handler_irq_uart(plic_irq_id_t id);
 
 /**
  * IRQ handler for GPIO 
 */
-void handler_irq_gpio(void);
+void handler_irq_gpio(plic_irq_id_t id);
 
 /**
  * IRQ handler for I2C 
 */
-void handler_irq_i2c(void);
+void handler_irq_i2c(plic_irq_id_t id);
 
 /**
  * IRQ handler for SPI 
 */
-void handler_irq_spi(void);
+void handler_irq_spi(plic_irq_id_t id);
 
 /**
  * IRQ handler for I2S 
 */
-void handler_irq_i2s(void);
+void handler_irq_i2s(plic_irq_id_t id);
 
 /**
  * IRQ handler for external interrupts sources
 */
-void handler_irq_ext(void);
+void handler_irq_ext(plic_irq_id_t id);
 
 
 /**

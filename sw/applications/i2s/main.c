@@ -87,7 +87,7 @@ int8_t dma_intr_flag;
 //
 // ISR
 //
-void handler_irq_i2s(void) {
+void handler_irq_i2s(plic_irq_id_t id) {
     i2s_interrupt_flag = 1;
 }
 
