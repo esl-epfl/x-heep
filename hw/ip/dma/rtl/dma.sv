@@ -24,6 +24,9 @@ module dma #(
     output obi_req_t  dma_master1_ch0_req_o,
     input  obi_resp_t dma_master1_ch0_resp_i,
 
+    output obi_req_t  dma_master2_ch0_req_o,
+    input  obi_resp_t dma_master2_ch0_resp_i,
+
     input logic [SLOT_NUM-1:0] trigger_slot_i,
 
     output dma_done_intr_o,
@@ -39,9 +42,12 @@ module dma #(
   dma_hw2reg_t                       hw2reg;
 
   logic        [               31:0] read_ptr_reg;
+  logic        [               31:0] addr_ptr_reg;
   logic        [               31:0] read_ptr_valid_reg;
   logic        [               31:0] write_ptr_reg;
+  logic        [               31:0] write_address;
   logic        [               31:0] dma_cnt;
+  logic        [               31:0] dma_addr_cnt;
   logic        [                2:0] dma_cnt_dec;
   logic                              dma_start;
   logic                              dma_done;
@@ -52,6 +58,9 @@ module dma #(
   logic        [Addr_Fifo_Depth-1:0] fifo_usage;
   logic                              fifo_alm_full;
 
+  logic        [Addr_Fifo_Depth-1:0] fifo_addr_usage;
+  logic                              fifo_addr_alm_full;
+
   logic                              data_in_req;
   logic                              data_in_we;
   logic        [                3:0] data_in_be;
@@ -59,6 +68,14 @@ module dma #(
   logic                              data_in_gnt;
   logic                              data_in_rvalid;
   logic        [               31:0] data_in_rdata;
+
+  logic                              data_addr_in_req;
+  logic                              data_addr_in_we;
+  logic        [                3:0] data_addr_in_be;
+  logic        [               31:0] data_addr_in_addr;
+  logic                              data_addr_in_gnt;
+  logic                              data_addr_in_rvalid;
+  logic        [               31:0] data_addr_in_rdata;
 
   logic                              data_out_req;
   logic                              data_out_we;
@@ -73,17 +90,24 @@ module dma #(
   logic                              fifo_full;
   logic                              fifo_empty;
 
+  logic                              fifo_addr_flush;
+  logic                              fifo_addr_full;
+  logic                              fifo_addr_empty, fifo_addr_empty_check;
+
   logic                              wait_for_rx;
   logic                              wait_for_tx;
 
   logic        [                1:0] data_type;
 
   logic        [               31:0] fifo_input;
+  logic        [               31:0] fifo_addr_input;
   logic        [               31:0] fifo_output;
+  logic        [               31:0] fifo_addr_output;
 
   logic        [                3:0] byte_enable_out;
 
   logic                              circular_mode;
+  logic                              address_mode;
 
   logic                              dma_start_pending;
 
@@ -98,7 +122,7 @@ module dma #(
     DMA_READ_FSM_IDLE,
     DMA_READ_FSM_ON
   }
-      dma_read_fsm_state, dma_read_fsm_n_state;
+      dma_read_fsm_state, dma_read_fsm_n_state, dma_read_addr_fsm_state, dma_read_addr_fsm_n_state;
 
   enum logic {
     DMA_WRITE_FSM_IDLE,
@@ -115,6 +139,17 @@ module dma #(
   assign data_in_gnt = dma_master0_ch0_resp_i.gnt;
   assign data_in_rvalid = dma_master0_ch0_resp_i.rvalid;
   assign data_in_rdata = dma_master0_ch0_resp_i.rdata;
+
+  assign dma_master2_ch0_req_o.req = data_addr_in_req;
+  assign dma_master2_ch0_req_o.we = data_addr_in_we;
+  assign dma_master2_ch0_req_o.be = data_addr_in_be;
+  assign dma_master2_ch0_req_o.addr = data_addr_in_addr;
+  assign dma_master2_ch0_req_o.wdata = 32'h0;
+
+  assign data_addr_in_gnt = dma_master2_ch0_resp_i.gnt;
+  assign data_addr_in_rvalid = dma_master2_ch0_resp_i.rvalid;
+  assign data_addr_in_rdata = dma_master2_ch0_resp_i.rdata;
+
 
   assign dma_master1_ch0_req_o.req = data_out_req;
   assign dma_master1_ch0_req_o.we = data_out_we;
@@ -137,12 +172,18 @@ module dma #(
 
   assign hw2reg.status.window_done.d = window_done_q;
 
-  assign circular_mode = reg2hw.mode.q;
+  assign circular_mode = reg2hw.mode.q == 1;
+  assign address_mode = reg2hw.mode.q == 2;
+
+  assign write_address = address_mode ? fifo_addr_output : write_ptr_reg;
 
   assign wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
   assign wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
 
+  assign fifo_addr_empty_check = !(fifo_addr_empty==1'b0 && address_mode);
+
   assign fifo_alm_full = (fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
+  assign fifo_addr_alm_full = (fifo_addr_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
 
   assign dma_start = (dma_state_q == DMA_STARTING);
 
@@ -210,6 +251,19 @@ module dma #(
     end
   end
 
+  // Store address data pointer and increment everytime read request is granted - only in address mode
+  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_ptr_addr_reg
+    if (~rst_ni) begin
+      addr_ptr_reg <= '0;
+    end else begin
+      if (dma_start == 1'b1) begin
+        addr_ptr_reg <= reg2hw.addr_ptr.q;
+      end else if (data_addr_in_gnt == 1'b1 && address_mode) begin
+        addr_ptr_reg <= addr_ptr_reg + 32'h4; //always continuos in 32b
+      end
+    end
+  end
+
   // Only update read_ptr_valid_reg when the data is stored in the fifo
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_ptr_valid_in_reg
     if (~rst_ni) begin
@@ -249,6 +303,19 @@ module dma #(
     end
   end
 
+  // Store dma transfer size for the address port
+  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_addr_cnt_reg
+    if (~rst_ni) begin
+      dma_addr_cnt <= '0;
+    end else begin
+      if (dma_start == 1'b1) begin
+        dma_addr_cnt <= reg2hw.size.q;
+      end else if (data_addr_in_gnt == 1'b1) begin
+        dma_addr_cnt <= dma_addr_cnt - 32'h4; //address always 32b
+      end
+    end
+  end
+
   always_comb begin
     case (data_type)
       2'b00: dma_cnt_dec = 3'h4;
@@ -262,21 +329,21 @@ module dma #(
       2'b00: byte_enable_out = 4'b1111;  // Writing a word (32 bits)
 
       2'b01: begin  // Writing a half-word (16 bits)
-        case (write_ptr_reg[1])
+        case (write_address[1])
           1'b0: byte_enable_out = 4'b0011;
           1'b1: byte_enable_out = 4'b1100;
         endcase
-        ;  // case(write_ptr_reg[1:0])
+        ;  // case(write_address[1:0])
       end
 
       2'b10, 2'b11: begin  // Writing a byte (8 bits)
-        case (write_ptr_reg[1:0])
+        case (write_address[1:0])
           2'b00: byte_enable_out = 4'b0001;
           2'b01: byte_enable_out = 4'b0010;
           2'b10: byte_enable_out = 4'b0100;
           2'b11: byte_enable_out = 4'b1000;
         endcase
-        ;  // case(write_ptr_reg[1:0])
+        ;  // case(write_address[1:0])
       end
     endcase
     ;  // case (data_type)
@@ -290,7 +357,7 @@ module dma #(
     data_out_wdata[23:16] = fifo_output[23:16];
     data_out_wdata[31:24] = fifo_output[31:24];
 
-    case (write_ptr_reg[1:0])
+    case (write_address[1:0])
       2'b00: ;
 
       2'b01: data_out_wdata[15:8] = fifo_output[7:0];
@@ -303,6 +370,8 @@ module dma #(
       2'b11: data_out_wdata[31:24] = fifo_output[7:0];
     endcase
   end
+
+  assign fifo_addr_input = data_addr_in_rdata; //never misaligned, always 32b
 
   // Input data shift: shift the input data to be on the LSB of the fifo
   always_comb begin : proc_input_data
@@ -331,9 +400,11 @@ module dma #(
     if (~rst_ni) begin
       dma_read_fsm_state  <= DMA_READ_FSM_IDLE;
       dma_write_fsm_state <= DMA_WRITE_FSM_IDLE;
+      dma_read_addr_fsm_state <= DMA_READ_FSM_IDLE;
     end else begin
       dma_read_fsm_state  <= dma_read_fsm_n_state;
       dma_write_fsm_state <= dma_write_fsm_n_state;
+      dma_read_addr_fsm_state <= dma_read_addr_fsm_n_state;
     end
   end
 
@@ -379,6 +450,48 @@ module dma #(
     endcase
   end
 
+  // Read address master FSM
+  always_comb begin : proc_dma_addr_read_fsm_logic
+
+    dma_read_addr_fsm_n_state = DMA_READ_FSM_IDLE;
+
+    data_addr_in_req = '0;
+    data_addr_in_we = '0;
+    data_addr_in_be = '0;
+    data_addr_in_addr = '0;
+
+    fifo_addr_flush = 1'b0;
+
+    unique case (dma_read_addr_fsm_state)
+
+      DMA_READ_FSM_IDLE: begin
+        // Wait for start signal
+        if (dma_start == 1'b1) begin
+          dma_read_addr_fsm_n_state = DMA_READ_FSM_ON;
+          fifo_addr_flush = 1'b1;
+        end else begin
+          dma_read_addr_fsm_n_state = DMA_READ_FSM_IDLE;
+        end
+      end
+      // Read one word
+      DMA_READ_FSM_ON: begin
+        // If all input data read exit
+        if (|dma_addr_cnt == 1'b0) begin
+          dma_read_addr_fsm_n_state = DMA_READ_FSM_IDLE;
+        end else begin
+          dma_read_addr_fsm_n_state = DMA_READ_FSM_ON;
+          // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
+          if (fifo_addr_full == 1'b0 && fifo_addr_alm_full == 1'b0) begin
+            data_addr_in_req  = 1'b1;
+            data_addr_in_we   = 1'b0;
+            data_addr_in_be   = 4'b1111;  // always read all bytes
+            data_addr_in_addr = addr_ptr_reg;
+          end
+        end
+      end
+    endcase
+  end
+
   // Write master FSM
   always_comb begin : proc_dma_write_fsm_logic
 
@@ -409,11 +522,11 @@ module dma #(
         end else begin
           dma_write_fsm_n_state = DMA_WRITE_FSM_ON;
           // Wait if fifo is empty or if the SPI TX is not ready for new data (only in SPI mode 2).
-          if (fifo_empty == 1'b0 && wait_for_tx == 1'b0) begin
+          if (fifo_empty == 1'b0 && wait_for_tx == 1'b0 && fifo_addr_empty_check == 1'b0) begin
             data_out_req  = 1'b1;
             data_out_we   = 1'b1;
             data_out_be   = byte_enable_out;
-            data_out_addr = write_ptr_reg;
+            data_out_addr = write_address;
           end
         end
       end
@@ -436,6 +549,25 @@ module dma #(
       .push_i(data_in_rvalid),
       // as long as the queue is not empty we can pop new elements
       .data_o(fifo_output),
+      .pop_i(data_out_gnt)
+  );
+
+  fifo_v3 #(
+      .DEPTH(FIFO_DEPTH)
+  ) dma_addr_fifo_i (
+      .clk_i,
+      .rst_ni,
+      .flush_i(fifo_addr_flush),
+      .testmode_i(1'b0),
+      // status flags
+      .full_o(fifo_addr_full),
+      .empty_o(fifo_addr_empty),
+      .usage_o(fifo_addr_usage),
+      // as long as the queue is not full we can push new data
+      .data_i(fifo_addr_input),
+      .push_i(data_addr_in_rvalid),
+      // as long as the queue is not empty we can pop new elements
+      .data_o(fifo_addr_output),
       .pop_i(data_out_gnt)
   );
 

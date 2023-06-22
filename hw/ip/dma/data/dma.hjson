@@ -25,6 +25,14 @@
         { bits: "31:0", name: "PTR_OUT", desc: "Output data pointer (word aligned)" }
       ]
     },
+    { name:     "ADDR_PTR",
+      desc:     "Addess data pointer (word aligned)",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "PTR_ADDR", desc: "Address data pointer (word aligned) - used only in Address mode" }
+      ]
+    },
     { name:     "SIZE",
       desc:     "Number of bytes to copy - Once a value is written, the copy starts",
       swaccess: "rw",
