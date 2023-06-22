@@ -49,7 +49,7 @@ Notes:
 // plic_params_t rv_plic_params;
 // plic_t rv_plic;
 plic_result_t plic_res;
-// plic_irq_id_t intr_num;
+// uint32_t intr_num;
 
 // void handler_irq_external(void) {
 //     // Claim/clear interrupt

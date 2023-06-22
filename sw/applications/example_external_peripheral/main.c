@@ -26,7 +26,7 @@
 
 // Interrupt controller variables
 plic_result_t plic_res;
-plic_irq_id_t intr_num;
+uint32_t intr_num;
 
 
 int main(int argc, char *argv[])

@@ -90,7 +90,7 @@ handler_funct_t handlers[PLIC_INTR_SRCS_NUM] = {&handler_irq_uart,
 /**
  * Returns the irq_sources_t source type of a given irq source ID
 */
-static irq_sources_t plic_get_irq_src_type(plic_irq_id_t irq_id);
+static irq_sources_t plic_get_irq_src_type(uint32_t irq_id);
 
 /**
  * Get an IE, IP or LE register offset (IE0_0, IE01, ...) from an IRQ source ID.
@@ -99,7 +99,7 @@ static irq_sources_t plic_get_irq_src_type(plic_irq_id_t irq_id);
  * accommodate all the bits (1 bit per IRQ source). This function calculates
  * the offset for a specific IRQ source ID (ID 32 would be IE01, ...).
  */
-static ptrdiff_t plic_offset_from_reg0(plic_irq_id_t irq);
+static ptrdiff_t plic_offset_from_reg0(uint32_t irq);
 
 /**
  * 
@@ -110,7 +110,7 @@ static ptrdiff_t plic_offset_from_reg0(plic_irq_id_t irq);
  * the bit position within a register for a specific IRQ source ID (ID 32 would
  * be bit 0).
  */
-static uint8_t plic_irq_bit_index(plic_irq_id_t irq);
+static uint8_t plic_irq_bit_index(uint32_t irq);
 
 /****************************************************************************/
 /**                                                                        **/
@@ -138,34 +138,34 @@ uint8_t plic_intr_flag = 0;
 /**                                                                        **/
 /****************************************************************************/
 
-__attribute__((weak, optimize("O0"))) void handler_irq_uart(plic_irq_id_t id) {
+__attribute__((weak, optimize("O0"))) void handler_irq_uart(uint32_t id) {
 
 } 
 
-__attribute__((weak, optimize("O0"))) void handler_irq_gpio(plic_irq_id_t id) {
+__attribute__((weak, optimize("O0"))) void handler_irq_gpio(uint32_t id) {
   
 }
 
-__attribute__((weak, optimize("O0"))) void handler_irq_i2c(plic_irq_id_t id) {
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c(uint32_t id) {
   
 }
 
-__attribute__((weak, optimize("O0"))) void handler_irq_spi(plic_irq_id_t id) {
+__attribute__((weak, optimize("O0"))) void handler_irq_spi(uint32_t id) {
   
 }
 
 
-__attribute__((weak, optimize("O0"))) void handler_irq_i2s(plic_irq_id_t id) {
+__attribute__((weak, optimize("O0"))) void handler_irq_i2s(uint32_t id) {
   
 }
 
-__attribute__((weak, optimize("O0"))) void handler_irq_ext(plic_irq_id_t id) {
+__attribute__((weak, optimize("O0"))) void handler_irq_ext(uint32_t id) {
 
 }
 
 void handler_irq_external(void)
 {
-  plic_irq_id_t int_id = 0;
+  uint32_t int_id = 0;
   plic_result_t res = plic_irq_claim(&int_id);
   irq_sources_t type = plic_get_irq_src_type(int_id);
 
@@ -228,7 +228,7 @@ plic_result_t plic_Init(void)
 }
 
 
-plic_result_t plic_irq_set_enabled(plic_irq_id_t irq,
+plic_result_t plic_irq_set_enabled(uint32_t irq,
                                        plic_toggle_t state)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC)
@@ -259,7 +259,7 @@ plic_result_t plic_irq_set_enabled(plic_irq_id_t irq,
 }
 
 
-plic_result_t plic_irq_get_enabled(plic_irq_id_t irq,
+plic_result_t plic_irq_get_enabled(uint32_t irq,
                                        plic_toggle_t *state)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC)
@@ -281,7 +281,7 @@ plic_result_t plic_irq_get_enabled(plic_irq_id_t irq,
 }
 
 
-plic_result_t plic_irq_set_trigger(plic_irq_id_t irq,
+plic_result_t plic_irq_set_trigger(uint32_t irq,
                                            plic_irq_trigger_t trigger)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC)
@@ -306,7 +306,7 @@ plic_result_t plic_irq_set_trigger(plic_irq_id_t irq,
 }
 
 
-plic_result_t plic_irq_set_priority(plic_irq_id_t irq, uint32_t priority)
+plic_result_t plic_irq_set_priority(uint32_t irq, uint32_t priority)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC || priority > plicMaxPriority)
   {
@@ -334,7 +334,7 @@ plic_result_t plic_target_set_threshold(uint32_t threshold)
 }
 
 
-plic_result_t plic_irq_is_pending(plic_irq_id_t irq,
+plic_result_t plic_irq_is_pending(uint32_t irq,
                                           bool *is_pending)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC || is_pending == NULL)
@@ -354,7 +354,7 @@ plic_result_t plic_irq_is_pending(plic_irq_id_t irq,
 }
 
 
-plic_result_t plic_irq_claim(plic_irq_id_t *claim_data) 
+plic_result_t plic_irq_claim(uint32_t *claim_data) 
 {
   if (claim_data == NULL) 
   {
@@ -367,7 +367,7 @@ plic_result_t plic_irq_claim(plic_irq_id_t *claim_data)
 }
 
 
-plic_result_t plic_irq_complete(const plic_irq_id_t *complete_data) 
+plic_result_t plic_irq_complete(const uint32_t *complete_data) 
 {
   if (complete_data == NULL) 
   {
@@ -406,7 +406,7 @@ plic_result_t plic_software_irq_is_pending(void)
 /**                                                                        **/
 /****************************************************************************/
 
-static irq_sources_t plic_get_irq_src_type(plic_irq_id_t irq_id)
+static irq_sources_t plic_get_irq_src_type(uint32_t irq_id)
 {
   if (irq_id < UART_ID_START || irq_id > EXT_IRQ_END)
   {
@@ -438,12 +438,12 @@ static irq_sources_t plic_get_irq_src_type(plic_irq_id_t irq_id)
 
 }
 
-static ptrdiff_t plic_offset_from_reg0(plic_irq_id_t irq) 
+static ptrdiff_t plic_offset_from_reg0(uint32_t irq) 
 {
   return irq / RV_PLIC_PARAM_REG_WIDTH;
 }
 
-static uint8_t plic_irq_bit_index(plic_irq_id_t irq) 
+static uint8_t plic_irq_bit_index(uint32_t irq) 
 {
   return irq % RV_PLIC_PARAM_REG_WIDTH;
 }

@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
 
-    plic_irq_id_t intr_num;
+    uint32_t intr_num;
     plic_irq_complete(&intr_num);
 #endif
 

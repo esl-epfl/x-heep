@@ -24,7 +24,7 @@
 
 // Interrupt controller variables
 plic_result_t plic_res;
-plic_irq_id_t intr_num;
+uint32_t intr_num;
 
 //volatile int8_t timer_flag;
 volatile int8_t spi_intr_flag;
