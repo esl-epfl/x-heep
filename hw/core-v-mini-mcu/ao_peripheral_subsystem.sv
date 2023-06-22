@@ -350,6 +350,8 @@ module ao_peripheral_subsystem
       .dma_master0_ch0_resp_i,
       .dma_master1_ch0_req_o,
       .dma_master1_ch0_resp_i,
+      .dma_master2_ch0_req_o(),
+      .dma_master2_ch0_resp_i('0),
       .trigger_slot_i(dma_trigger_slots),
       .dma_done_intr_o(dma_done_intr_o),
       .dma_window_intr_o(dma_window_intr_o)
