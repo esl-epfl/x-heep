@@ -141,7 +141,7 @@ questasim-sim-opt: questasim-sim
 	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim opt
 
 ## Questasim simulation with HDL optimized compilation and UPF power domain description
-## @param FUSESOC_FLAGS="--flag=use_upf"
+## @param FUSESOC_PARAM="--USE_UPF"
 questasim-sim-opt-upf: questasim-sim
 	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim opt-upf
 

@@ -150,9 +150,10 @@ To add this new top-level module to the simulation/synthesis flow you can extend
         paramtype: vlogparam
         default: 0
     USE_UPF:
-        datatype: bool
-        paramtype: vlogdefine
-        default: false
+      datatype: bool
+      paramtype: vlogdefine
+      description: |
+        Enables simulation with UPF with Modelsim/VCS
 
     scripts:
     pre_build_remote_bitbang:
@@ -192,7 +193,6 @@ To add this new top-level module to the simulation/synthesis flow you can extend
         - PULP_XPULP=0
         - use_jtag_dpi? (JTAG_DPI=1)
         - "!use_jtag_dpi? (JTAG_DPI=0)"
-        - use_upf? (USE_UPF=true)
         tools:
         modelsim:
             vlog_options:

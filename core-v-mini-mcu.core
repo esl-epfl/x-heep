@@ -229,7 +229,8 @@ parameters:
   USE_UPF:
     datatype: bool
     paramtype: vlogdefine
-    default: false
+    description: |
+      Enables simulation with UPF with Modelsim/VCS
   SYNTHESIS:
     datatype: bool
     paramtype: vlogdefine
@@ -311,8 +312,8 @@ targets:
     - "!use_cv32e40p_fpu? (FPU=0)"
     - use_jtag_dpi? (JTAG_DPI=1)
     - "!use_jtag_dpi? (JTAG_DPI=0)"
-    - use_upf? (USE_UPF=true)
     - USE_EXTERNAL_DEVICE_EXAMPLE
+    - USE_UPF
     tools:
       modelsim:
         vlog_options:
