@@ -97,13 +97,18 @@
       ]
     },
     { name:     "MODE",
-      desc:     '''Restarts copying as soon as end of buffer is reach.
-                   Will trigger DMA interrupt twice: halfway and end of buffer.
-                   To end clear this flag to finish current transaction. ''',
+      desc:     '''Set the operational mode of the DMA''',
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "CIRCULAR_MODE", desc: "Enables ciruclar mode" }
+        { bits: "1:0", name: "MODE",
+          desc: "DMA operation mode",
+          enum: [
+            { value: "0", name: "LINEAR_MODE", desc: "Transfers data linearly"},
+            { value: "1", name: "CIRCULAR_MODE", desc: "Transfers data in circular mode"},
+            { value: "2", name: "ADDRESS_MODE" , desc: "Transfers data using as destination address the data from ADD_PTR"},
+          ]
+        }
       ]
     },
     { name:    "WINDOW_SIZE",
@@ -130,7 +135,7 @@
       desc:    '''Interrupt Enable Register 
                   (Only the interrupt with the lowest id will be triggered)''',
       swaccess: "rw",
-      hwaccess: "hr",
+      hwaccess: "hro",
       fields: [
         { bits: "0", name: "TRANSACTION_DONE", desc: "Enables transaction done interrupt" }
         { bits: "1", name: "WINDOW_DONE", desc: "Enables window done interrupt" }

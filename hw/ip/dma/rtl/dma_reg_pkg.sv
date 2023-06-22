@@ -45,7 +45,7 @@ package dma_reg_pkg;
 
   typedef struct packed {logic [1:0] q;} dma_reg2hw_data_type_reg_t;
 
-  typedef struct packed {logic q;} dma_reg2hw_mode_reg_t;
+  typedef struct packed {logic [1:0] q;} dma_reg2hw_mode_reg_t;
 
   typedef struct packed {logic [31:0] q;} dma_reg2hw_window_size_reg_t;
 
@@ -68,14 +68,14 @@ package dma_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    dma_reg2hw_src_ptr_reg_t src_ptr;  // [217:186]
-    dma_reg2hw_dst_ptr_reg_t dst_ptr;  // [185:154]
-    dma_reg2hw_size_reg_t size;  // [153:121]
-    dma_reg2hw_status_reg_t status;  // [120:117]
-    dma_reg2hw_ptr_inc_reg_t ptr_inc;  // [116:101]
-    dma_reg2hw_slot_reg_t slot;  // [100:69]
-    dma_reg2hw_data_type_reg_t data_type;  // [68:67]
-    dma_reg2hw_mode_reg_t mode;  // [66:66]
+    dma_reg2hw_src_ptr_reg_t src_ptr;  // [218:187]
+    dma_reg2hw_dst_ptr_reg_t dst_ptr;  // [186:155]
+    dma_reg2hw_size_reg_t size;  // [154:122]
+    dma_reg2hw_status_reg_t status;  // [121:118]
+    dma_reg2hw_ptr_inc_reg_t ptr_inc;  // [117:102]
+    dma_reg2hw_slot_reg_t slot;  // [101:70]
+    dma_reg2hw_data_type_reg_t data_type;  // [69:68]
+    dma_reg2hw_mode_reg_t mode;  // [67:66]
     dma_reg2hw_window_size_reg_t window_size;  // [65:34]
     dma_reg2hw_window_count_reg_t window_count;  // [33:2]
     dma_reg2hw_interrupt_en_reg_t interrupt_en;  // [1:0]

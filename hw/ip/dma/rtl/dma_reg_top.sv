@@ -96,8 +96,8 @@ module dma_reg_top #(
   logic [1:0] data_type_qs;
   logic [1:0] data_type_wd;
   logic data_type_we;
-  logic mode_qs;
-  logic mode_wd;
+  logic [1:0] mode_qs;
+  logic [1:0] mode_wd;
   logic mode_we;
   logic [31:0] window_size_qs;
   logic [31:0] window_size_wd;
@@ -362,9 +362,9 @@ module dma_reg_top #(
   // R[mode]: V(False)
 
   prim_subreg #(
-      .DW      (1),
+      .DW      (2),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (2'h0)
   ) u_mode (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -558,7 +558,7 @@ module dma_reg_top #(
   assign data_type_wd = reg_wdata[1:0];
 
   assign mode_we = addr_hit[7] & reg_we & !reg_error;
-  assign mode_wd = reg_wdata[0];
+  assign mode_wd = reg_wdata[1:0];
 
   assign window_size_we = addr_hit[8] & reg_we & !reg_error;
   assign window_size_wd = reg_wdata[31:0];
@@ -605,7 +605,7 @@ module dma_reg_top #(
       end
 
       addr_hit[7]: begin
-        reg_rdata_next[0] = mode_qs;
+        reg_rdata_next[1:0] = mode_qs;
       end
 
       addr_hit[8]: begin
