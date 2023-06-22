@@ -251,7 +251,7 @@ Moreover, FreeRTOS is being fetch from 'https://github.com/FreeRTOS/FreeRTOS-Ker
 This project supports simulation with Verilator, Synopsys VCS, and Siemens Questasim.
 It relies on `fusesoc` to handle multiple EDA tools and parameters.
 For example, if you want to set the `FPU` and `COREV_PULP` parameters of the `cv32e40p` CPU,
-you need to add next to your compilation command `FUSESOC_FLAGS="--flag=use_cv32e40p_corev_pulp --flag=use_cv32e40p_fpu"`
+you need to add next to your compilation command `FUSESOC_PARAM="--COREV_PULP=1 --FPU=1"`
 Below the different EDA examples commands.
 
 ### Compiling for Verilator
