@@ -72,10 +72,6 @@ To use this mode, when targetting ASICs or FPGA bitstreams,
 make sure you have the `boot_sel_i` input (e.g., a switch) set to 1, 
 and the `execute_from_flash_i` set to 1 too.
 
-To simulate this procedure, you must compile the RTL 
-with the `use_external_device_example` flag to 
-tell fusesoc to compile the FLASH model.
-
 Note that the FLASH model is not compatible with **verilator**, 
 thus the simulation must be carried out with either **modelsim** or **vcs**.
 

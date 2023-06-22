@@ -149,10 +149,6 @@ To add this new top-level module to the simulation/synthesis flow you can extend
         datatype: int
         paramtype: vlogparam
         default: 0
-    USE_EXTERNAL_DEVICE_EXAMPLE:
-        datatype: bool
-        paramtype: vlogdefine
-        default: false
     USE_UPF:
         datatype: bool
         paramtype: vlogdefine
@@ -196,7 +192,6 @@ To add this new top-level module to the simulation/synthesis flow you can extend
         - PULP_XPULP=0
         - use_jtag_dpi? (JTAG_DPI=1)
         - "!use_jtag_dpi? (JTAG_DPI=0)"
-        - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
         - use_upf? (USE_UPF=true)
         tools:
         modelsim:

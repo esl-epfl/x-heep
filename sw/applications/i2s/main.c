@@ -305,7 +305,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (! mic_connected) {
-        printf("WARNING: Please build with `make verilator-sim FUSESOC_FLAGS=\"--flag=use_external_device_example\"\r\n");
+        printf("WARNING: Microphone not connected!\r\n");
     }
 #endif
     i2s_terminate();
