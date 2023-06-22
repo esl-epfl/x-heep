@@ -92,24 +92,24 @@ module dma #(
 
   logic                              fifo_addr_flush;
   logic                              fifo_addr_full;
-  logic                              fifo_addr_empty, fifo_addr_empty_check;
+  logic fifo_addr_empty, fifo_addr_empty_check;
 
-  logic                              wait_for_rx;
-  logic                              wait_for_tx;
+  logic        wait_for_rx;
+  logic        wait_for_tx;
 
-  logic        [                1:0] data_type;
+  logic [ 1:0] data_type;
 
-  logic        [               31:0] fifo_input;
-  logic        [               31:0] fifo_addr_input;
-  logic        [               31:0] fifo_output;
-  logic        [               31:0] fifo_addr_output;
+  logic [31:0] fifo_input;
+  logic [31:0] fifo_addr_input;
+  logic [31:0] fifo_output;
+  logic [31:0] fifo_addr_output;
 
-  logic        [                3:0] byte_enable_out;
+  logic [ 3:0] byte_enable_out;
 
-  logic                              circular_mode;
-  logic                              address_mode;
+  logic        circular_mode;
+  logic        address_mode;
 
-  logic                              dma_start_pending;
+  logic        dma_start_pending;
 
   enum {
     DMA_READY,
@@ -180,7 +180,7 @@ module dma #(
   assign wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
   assign wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
 
-  assign fifo_addr_empty_check = !(fifo_addr_empty==1'b0 && address_mode);
+  assign fifo_addr_empty_check = !(fifo_addr_empty == 1'b0 && address_mode);
 
   assign fifo_alm_full = (fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
   assign fifo_addr_alm_full = (fifo_addr_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
@@ -259,7 +259,7 @@ module dma #(
       if (dma_start == 1'b1) begin
         addr_ptr_reg <= reg2hw.addr_ptr.q;
       end else if (data_addr_in_gnt == 1'b1 && address_mode) begin
-        addr_ptr_reg <= addr_ptr_reg + 32'h4; //always continuos in 32b
+        addr_ptr_reg <= addr_ptr_reg + 32'h4;  //always continuos in 32b
       end
     end
   end
@@ -311,7 +311,7 @@ module dma #(
       if (dma_start == 1'b1) begin
         dma_addr_cnt <= reg2hw.size.q;
       end else if (data_addr_in_gnt == 1'b1) begin
-        dma_addr_cnt <= dma_addr_cnt - 32'h4; //address always 32b
+        dma_addr_cnt <= dma_addr_cnt - 32'h4;  //address always 32b
       end
     end
   end
@@ -371,7 +371,7 @@ module dma #(
     endcase
   end
 
-  assign fifo_addr_input = data_addr_in_rdata; //never misaligned, always 32b
+  assign fifo_addr_input = data_addr_in_rdata;  //never misaligned, always 32b
 
   // Input data shift: shift the input data to be on the LSB of the fifo
   always_comb begin : proc_input_data
@@ -398,11 +398,11 @@ module dma #(
   // FSM state update
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_fsm_state
     if (~rst_ni) begin
-      dma_read_fsm_state  <= DMA_READ_FSM_IDLE;
+      dma_read_fsm_state <= DMA_READ_FSM_IDLE;
       dma_write_fsm_state <= DMA_WRITE_FSM_IDLE;
       dma_read_addr_fsm_state <= DMA_READ_FSM_IDLE;
     end else begin
-      dma_read_fsm_state  <= dma_read_fsm_n_state;
+      dma_read_fsm_state <= dma_read_fsm_n_state;
       dma_write_fsm_state <= dma_write_fsm_n_state;
       dma_read_addr_fsm_state <= dma_read_addr_fsm_n_state;
     end
