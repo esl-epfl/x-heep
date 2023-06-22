@@ -63,14 +63,20 @@ extern "C" {
 #define DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD 0x2
 #define DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD_2 0x3
 
-// Restarts copying as soon as end of buffer is reach.
+// Set the operational mode of the DMA
 #define DMA_MODE_REG_OFFSET 0x1c
-#define DMA_MODE_CIRCULAR_MODE_BIT 0
+#define DMA_MODE_MODE_MASK 0x3
+#define DMA_MODE_MODE_OFFSET 0
+#define DMA_MODE_MODE_FIELD \
+  ((bitfield_field32_t) { .mask = DMA_MODE_MODE_MASK, .index = DMA_MODE_MODE_OFFSET })
+#define DMA_MODE_MODE_VALUE_LINEAR_MODE 0x0
+#define DMA_MODE_MODE_VALUE_CIRCULAR_MODE 0x1
+#define DMA_MODE_MODE_VALUE_ADDRESS_MODE 0x2
 
 // Will trigger a every "WINDOW_SIZE" writes
 #define DMA_WINDOW_SIZE_REG_OFFSET 0x20
 
-// Nomber of times end of window was reached since begin.
+// Number of times the end of the window was reached since the beginning.
 #define DMA_WINDOW_COUNT_REG_OFFSET 0x24
 
 // Interrupt Enable Register
