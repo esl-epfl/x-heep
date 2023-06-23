@@ -30,7 +30,7 @@ uint32_t flash_data[8];
 uint32_t flash_original[8] = {1};
 
 #ifndef USE_SPI_FLASH
-void fic_irq_fast_spi(void)
+void fic_irq_spi(void)
 {
     // Disable SPI interrupts
     spi_enable_evt_intr(&spi_host, false);
@@ -38,7 +38,7 @@ void fic_irq_fast_spi(void)
     spi_intr_flag = 1;
 }
 #else
-void fic_irq_fast_spi_flash(void)
+void fic_irq_spi_flash(void)
 {
     // Disable SPI interrupts
     spi_enable_evt_intr(&spi_host, false);
