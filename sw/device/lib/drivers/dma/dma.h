@@ -174,11 +174,13 @@ typedef enum
  */
 typedef enum
 {
-    DMA_TRANS_MODE_SINGLE   = 0, /*!< Only one transaction will be performed.*/
-    DMA_TRANS_MODE_CIRCULAR = 1, /*!< Once the transaction is finished, it is 
+    DMA_TRANS_MODE_SINGLE   = DMA_MODE_MODE_VALUE_LINEAR_MODE, /*!< Only one transaction will be performed.*/
+    DMA_TRANS_MODE_CIRCULAR = DMA_MODE_MODE_VALUE_CIRCULAR_MODE, /*!< Once the transaction is finished, it is
     re-loaded automatically (no need to call dma_trans_load), with the same 
     parameters. This generates a circular mode in the source and/or destination
     pointing to memory.  */ 
+    DMA_TRANS_MODE_ADDRESS = DMA_MODE_MODE_VALUE_ADDRESS_MODE, /*!< In this mode, the destination address is read from the address port! */
+
     DMA_TRANS_MODE__size,       /*!< Not used, only for sanity checks. */
 } dma_trans_mode_t;
 
@@ -298,6 +300,8 @@ typedef struct
     copied. */
     dma_target_t*       dst;   /*!< Target to where the data will be 
     copied. */
+    dma_target_t*       src_addr; /*!< Target from where the dst address will be
+    copied. - only valid in address mode */
     uint16_t            inc_b;  /*!< A common increment in case both targets 
     need to use one same increment. */
     uint32_t            size_b; /*!< The size of the transfer, in bytes (in 
