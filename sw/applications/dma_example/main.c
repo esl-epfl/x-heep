@@ -17,7 +17,7 @@
 #define TEST_ADDRESS_MODE_EXTERNAL_DEVICE
 
 #define TEST_DATA_SIZE      16
-#define TEST_DATA_LARGE     TEST_DATA_SIZE
+#define TEST_DATA_LARGE     1024
 #define TRANSACTIONS_N      3       // Only possible to perform transaction at a time, others should be blocked
 #define TEST_WINDOW_SIZE_DU  1024    // if put at <=71 the isr is too slow to react to the interrupt 
 
