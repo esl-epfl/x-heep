@@ -65,38 +65,39 @@ int main(int argc, char *argv[])
     static uint32_t copied_data_4B[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
     static uint32_t test_data_large[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
 
+
     // this array will contain the data at the even indexes the test_data_4B
-    static uint32_t copied_data_4B_ADDR_MODE[2*TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
-    // this array will contain the even address of copied_data_4B_ADDR_MODE
-    static uint32_t test_addr_4B_PTR[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
+    uint32_t copied_data_4B_ADDR_MODE[2*TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
+     // this array will contain the even address of copied_data_4B_ADDR_MODE
+    uint32_t test_addr_4B_PTR[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
 
     // The DMA is initialized (i.e. Any current transaction is cleaned.)
     dma_init(NULL);
     
     dma_config_flags_t res;
     
-    static dma_target_t tgt_src = {
+    dma_target_t tgt_src = {
                                 .ptr        = test_data_4B,
                                 .inc_du     = 1,
                                 .size_du    = TEST_DATA_SIZE,
                                 .trig       = DMA_TRIG_MEMORY,
                                 .type       = DMA_DATA_TYPE_WORD,
                                 };
-    static dma_target_t tgt_dst = {
+    dma_target_t tgt_dst = {
                                 .ptr        = copied_data_4B,
                                 .inc_du     = 1,
                                 .size_du    = TEST_DATA_SIZE,
                                 .trig       = DMA_TRIG_MEMORY,
                                 };
 
-    static dma_target_t tgt_addr = {
+    dma_target_t tgt_addr = {
                                 .ptr        = test_addr_4B_PTR,
                                 .inc_du     = 1,
                                 .size_du    = TEST_DATA_SIZE,
                                 .trig       = DMA_TRIG_MEMORY,
                                 };
 
-    static dma_trans_t trans = {
+    dma_trans_t trans = {
                                 .src        = &tgt_src,
                                 .dst        = &tgt_dst,
                                 .src_addr   = &tgt_addr,
@@ -315,6 +316,92 @@ int main(int argc, char *argv[])
     }
 
 #endif // TEST_WINDOW
+
+
+#ifdef TARGET_PYNQ_Z2
+
+#ifdef TEST_ADDRESS_MODE_EXTERNAL_DEVICE
+
+#pragma message ( "this application should not be ran in a system integrating x-heep as in the external \
+    slave can be plugged something else than a slow memory as in our testbench" )
+
+    test_addr_4B_PTR = EXT_SLAVE_START_ADDRESS;
+    copied_data_4B_ADDR_MODE = &test_addr_4B_PTR[TEST_DATA_SIZE+1];
+
+    dma_target_t tgt_dst = {
+                                .ptr        = copied_data_4B,
+                                .inc_du     = 1,
+                                .size_du    = TEST_DATA_SIZE,
+                                .trig       = DMA_TRIG_MEMORY,
+                                };
+
+    dma_target_t tgt_addr = {
+                                .ptr        = test_addr_4B_PTR,
+                                .inc_du     = 1,
+                                .size_du    = TEST_DATA_SIZE,
+                                .trig       = DMA_TRIG_MEMORY,
+                                };
+
+    dma_trans_t trans = {
+                                .src        = &tgt_src,
+                                .dst        = &tgt_dst,
+                                .src_addr   = &tgt_addr,
+                                .mode       = DMA_TRANS_MODE_SINGLE,
+                                .win_du     = 0,
+                                .end        = DMA_TRANS_END_INTR,
+                                };
+
+    PRINTF("\n\n=====================================\n\n");
+    PRINTF("    TESTING ADDRESS MODE IN EXTERNAL MEMORY  ");
+    PRINTF("\n\n=====================================\n\n");
+
+    // Prepare the data
+    for (int i = 0; i < TEST_DATA_SIZE; i++) {
+        test_addr_4B_PTR[i] = &copied_data_4B_ADDR_MODE[i*2];
+    }
+
+    trans.mode = DMA_TRANS_MODE_ADDRESS;
+
+    res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    //PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res = dma_load_transaction(&trans);
+    //PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res = dma_launch(&trans);
+    //PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+
+    while( ! dma_is_ready()) {
+        // disable_interrupts
+        // this does not prevent waking up the core as this is controlled by the MIP register
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x0);
+        if ( dma_is_ready() == 0 ) {
+            wait_for_interrupt();
+            //from here we wake up even if we did not jump to the ISR
+        }
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    }
+
+
+    PRINTF(">> Finished transaction. \n\r");
+
+    for(uint32_t i = 0; i < 2*trans.size_b; i++ ) {
+        if ( copied_data_4B_ADDR_MODE[i*2] != test_data_4B[i] ) {
+            PRINTF("ERROR [%d]: %04x != %04x\n\r", i, copied_data_4B_ADDR_MODE[i], test_data_4B[i]);
+            errors++;
+        }
+    }
+
+    if (errors == 0) {
+        PRINTF("DMA word transfer success\nFinished! :) \n\r");
+    } else {
+        PRINTF("DMA word transfer failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
+    }
+
+    trans.mode = DMA_TRANS_MODE_SINGLE;
+
+#endif
+
+#endif
+
 
     return EXIT_SUCCESS;
 }
