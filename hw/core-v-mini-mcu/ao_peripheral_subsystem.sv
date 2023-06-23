@@ -81,6 +81,8 @@ module ao_peripheral_subsystem
     input  obi_resp_t dma_master0_ch0_resp_i,
     output obi_req_t  dma_master1_ch0_req_o,
     input  obi_resp_t dma_master1_ch0_resp_i,
+    output obi_req_t  dma_master2_ch0_req_o,
+    input  obi_resp_t dma_master2_ch0_resp_i,
     output logic      dma_done_intr_o,
     output logic      dma_window_intr_o,
 
@@ -350,8 +352,8 @@ module ao_peripheral_subsystem
       .dma_master0_ch0_resp_i,
       .dma_master1_ch0_req_o,
       .dma_master1_ch0_resp_i,
-      .dma_master2_ch0_req_o(),
-      .dma_master2_ch0_resp_i('0),
+      .dma_master2_ch0_req_o,
+      .dma_master2_ch0_resp_i,
       .trigger_slot_i(dma_trigger_slots),
       .dma_done_intr_o(dma_done_intr_o),
       .dma_window_intr_o(dma_window_intr_o)

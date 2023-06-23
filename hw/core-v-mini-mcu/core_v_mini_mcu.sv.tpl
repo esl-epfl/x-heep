@@ -88,6 +88,8 @@ module core_v_mini_mcu
   obi_resp_t dma_master0_ch0_resp;
   obi_req_t dma_master1_ch0_req;
   obi_resp_t dma_master1_ch0_resp;
+  obi_req_t dma_master2_ch0_req;
+  obi_resp_t dma_master2_ch0_resp;
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
@@ -247,6 +249,8 @@ module core_v_mini_mcu
       .dma_master0_ch0_resp_o(dma_master0_ch0_resp),
       .dma_master1_ch0_req_i(dma_master1_ch0_req),
       .dma_master1_ch0_resp_o(dma_master1_ch0_resp),
+      .dma_master2_ch0_req_i(dma_master2_ch0_req),
+      .dma_master2_ch0_resp_o(dma_master2_ch0_resp),
       .ext_xbar_master_req_i(ext_xbar_master_req_i),
       .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
       .ram_req_o(ram_slave_req),
@@ -327,6 +331,8 @@ module core_v_mini_mcu
       .dma_master0_ch0_resp_i(dma_master0_ch0_resp),
       .dma_master1_ch0_req_o(dma_master1_ch0_req),
       .dma_master1_ch0_resp_i(dma_master1_ch0_resp),
+      .dma_master2_ch0_req_o(dma_master2_ch0_req),
+      .dma_master2_ch0_resp_i(dma_master2_ch0_resp),
       .dma_done_intr_o(dma_done_intr),
       .dma_window_intr_o(dma_window_intr),
       .spi_intr_event_o(spi_intr),
