@@ -53,20 +53,19 @@
 
 /**
  * Wait Mode Defines
- * 
  */
-#define DMA_SPI_MODE_DISABLED     0
-#define DMA_SPI_MODE_SPI_RX       1
-#define DMA_SPI_MODE_SPI_TX       2
-#define DMA_SPI_MODE_SPI_FLASH_RX 3
-#define DMA_SPI_MODE_SPI_FLASH_TX 4
+#define DMA_SPI_MODE_DISABLED     0x00
+#define DMA_SPI_MODE_SPI_RX       0x01
+#define DMA_SPI_MODE_SPI_TX       0x02
+#define DMA_SPI_MODE_SPI_FLASH_RX 0x03
+#define DMA_SPI_MODE_SPI_FLASH_TX 0x04
 
 
-#define DMA_SPI_RX_SLOT 0b00000001
-#define DMA_SPI_TX_SLOT 0b00000010
-#define DMA_SPI_FLASH_RX_SLOT 0b00000100
-#define DMA_SPI_FLASH_TX_SLOT 0b00001000
-#define DMA_I2S_RX_SLOT 0b00010000
+#define DMA_SPI_RX_SLOT           0x01
+#define DMA_SPI_TX_SLOT           0x02
+#define DMA_SPI_FLASH_RX_SLOT     0x04
+#define DMA_SPI_FLASH_TX_SLOT     0x08
+#define DMA_I2S_RX_SLOT           0x10
 
 #ifdef __cplusplus
 extern "C" {
@@ -314,14 +313,6 @@ typedef struct
     the creation of the transaction. */
 } dma_trans_t;
 
-/* 
- * @ToDo: Consider changing the win_du parameter for a win_r giving a 
- * transaction/window size ratio, which might be easier to understand from the
- * application point of view. 
- */
-
-
-
 /****************************************************************************/
 /**                                                                        **/
 /**                          EXPORTED VARIABLES                            **/
@@ -342,7 +333,6 @@ typedef struct
  * default (peri == NULL), the integrated DMA will be used.   
  */
 void dma_init( dma *peri );
-
 
 /**
  * @brief Creates a transaction that can be loaded into the DMA.
@@ -399,14 +389,14 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans );
  * @retval 0 - DMA is working.   
  * @retval 1 - DMA has finished the transmission. DMA is idle. 
  */
-uint32_t dma_is_ready();
+uint32_t dma_is_ready(void);
 
 /**
  * @brief Get the number of windows that have already been written. Resets on 
  * the start of each transaction.
  * @return The number of windows that have been written from this transaction.
  */
-uint32_t dma_get_window_count();
+uint32_t dma_get_window_count(void);
 
 /**
  * @brief Prevent the DMA from relaunching the transaction automatically after 
@@ -414,21 +404,21 @@ uint32_t dma_get_window_count();
  * transaction. It has no effect if the DMA is operating in SINGULAR 
  * transaction mode.
  */
-void dma_stop_circular();
+void dma_stop_circular(void);
 
 /**
 * @brief DMA interrupt handler.   
 * `dma.c` provides a weak definition of this symbol, which can be overridden
 * at link-time by providing an additional non-weak definition.
 */
-void dma_intr_handler_trans_done();
+void dma_intr_handler_trans_done(void);
 
 /**
 * @brief DMA interrupt handler.   
 * `dma.c` provides a weak definition of this symbol, which can be overridden
 * at link-time by providing an additional non-weak definition.
 */
-void dma_intr_handler_window_done();
+void dma_intr_handler_window_done(void);
 
 /**
  * @brief This weak implementation allows the user to override the threshold
@@ -441,16 +431,13 @@ void dma_intr_handler_window_done();
  * CPU managed to process the previous 5 bytes. 
  * During the non-weak implementation, return 0 to disable this check.
  */
-uint8_t dma_window_ratio_warning_threshold();
+uint8_t dma_window_ratio_warning_threshold(void);
 
 /****************************************************************************/
 /**                                                                        **/
 /**                          INLINE FUNCTIONS                              **/
 /**                                                                        **/
 /****************************************************************************/
-
-
-
 #ifdef __cplusplus
 } // extern "C"
 #endif
