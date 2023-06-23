@@ -51,38 +51,44 @@
 /****************************************************************************/
 
 /**
- * Number of different interrupt sources connected to the PLIC.
-*/
-#define PLIC_INTR_SRCS_NUM  5
-
-/**
  * Start and end ID of the UART interrupt request lines
 */
-#define UART_ID_START   1
-#define UART_ID_END     8
+#define UART_ID_START   UART_INTR_TX_WATERMARK
+#define UART_ID_END     UART_INTR_RX_PARITY_ERR
 
 /**
  * Start and end ID of the GPIO interrupt request lines
 */
-#define GPIO_ID_START   9
-#define GPIO_ID_END     32
+#define GPIO_ID_START   GPIO_INTR_8
+#define GPIO_ID_END     GPIO_INTR_31
 
 /**
  * Start and end ID of the I2C interrupt request lines
 */
-#define I2C_ID_START    33
-#define I2C_ID_END      48
+#define I2C_ID_START    INTR_FMT_WATERMARK
+#define I2C_ID_END      INTR_HOST_TIMEOUT
 
 /**
  * ID of the SPI interrupt request line
 */
-#define SPI_ID          49
+#define SPI_ID          SPI2_INTR_EVENT
+
+/**
+ * ID of the I2S interrupt request lines
+ */
+#define I2S_ID          I2S_INTR_EVENT
+
+/**
+ * ID of the DMA interrupt request line
+*/
+#define DMA_ID          DMA_WINDOW_INTR
 
 /**
  * ID of the external interrupt request lines
 */
-#define EXT_IRQ_START   50
-#define EXT_IRQ_END     63
+
+#define EXT_IRQ_START   EXT_INTR_0 
+#define EXT_IRQ_END     EXT_INTR_11
 
 /****************************************************************************/
 /**                                                                        **/
@@ -190,7 +196,9 @@ typedef enum irq_sources
   IRQ_GPIO_SRC,   // from 9 to 32 
   IRQ_I2C_SRC,    // from 33 to 48
   IRQ_SPI_SRC,    // line 49
-  IRQ_EXT_SRC,    // from 50 to 63
+  IRQ_I2S_SRC,    // line 50
+  IRQ_DMA_SRC,    // line 51
+  IRQ_EXT_SRC,    // from 52 to 63
   IRQ_BAD = -1    // default failure case
 } irq_sources_t;
 
@@ -235,6 +243,16 @@ void handler_irq_i2c(void);
  * IRQ handler for SPI 
 */
 void handler_irq_spi(void);
+
+/**
+ * IRQ handler for I2S 
+*/
+void handler_irq_i2s(void);
+
+/**
+ * IRQ handler for DMA window 
+*/
+void handler_irq_dma(void);
 
 /**
  * IRQ handler for external interrupts sources

@@ -114,18 +114,6 @@ module core_v_mini_mcu
     input  logic gpio_17_i,
     output logic gpio_17_oe_o,
 
-    output logic gpio_18_o,
-    input  logic gpio_18_i,
-    output logic gpio_18_oe_o,
-
-    output logic gpio_19_o,
-    input  logic gpio_19_i,
-    output logic gpio_19_oe_o,
-
-    output logic gpio_20_o,
-    input  logic gpio_20_i,
-    output logic gpio_20_oe_o,
-
     output logic spi_flash_sck_o,
     input  logic spi_flash_sck_i,
     output logic spi_flash_sck_oe_o,
@@ -185,13 +173,34 @@ module core_v_mini_mcu
     output logic pdm2pcm_pdm_o,
     input  logic pdm2pcm_pdm_i,
     output logic pdm2pcm_pdm_oe_o,
-    output logic gpio_21_o,
-    input  logic gpio_21_i,
-    output logic gpio_21_oe_o,
+    output logic gpio_18_o,
+    input  logic gpio_18_i,
+    output logic gpio_18_oe_o,
 
     output logic pdm2pcm_clk_o,
     input  logic pdm2pcm_clk_i,
     output logic pdm2pcm_clk_oe_o,
+    output logic gpio_19_o,
+    input  logic gpio_19_i,
+    output logic gpio_19_oe_o,
+
+    output logic i2s_sck_o,
+    input  logic i2s_sck_i,
+    output logic i2s_sck_oe_o,
+    output logic gpio_20_o,
+    input  logic gpio_20_i,
+    output logic gpio_20_oe_o,
+
+    output logic i2s_ws_o,
+    input  logic i2s_ws_i,
+    output logic i2s_ws_oe_o,
+    output logic gpio_21_o,
+    input  logic gpio_21_i,
+    output logic gpio_21_oe_o,
+
+    output logic i2s_sd_o,
+    input  logic i2s_sd_i,
+    output logic i2s_sd_oe_o,
     output logic gpio_22_o,
     input  logic gpio_22_i,
     output logic gpio_22_oe_o,
@@ -377,7 +386,8 @@ module core_v_mini_mcu
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_clkgate_en;
 
   // DMA
-  logic dma_intr;
+  logic dma_done_intr;
+  logic dma_window_intr;
 
   // SPI
   logic spi_flash_intr, spi_intr;
@@ -403,6 +413,9 @@ module core_v_mini_mcu
   logic uart_intr_rx_timeout;
   logic uart_intr_rx_parity_err;
 
+  // I2s
+  logic i2s_rx_valid;
+
   assign intr = {
     1'b0, irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
   };
@@ -412,7 +425,7 @@ module core_v_mini_mcu
     gpio_ao_intr,
     spi_flash_intr,
     spi_intr,
-    dma_intr,
+    dma_done_intr,
     rv_timer_intr[3],
     rv_timer_intr[2],
     rv_timer_intr[1]
@@ -562,7 +575,8 @@ module core_v_mini_mcu
       .dma_master0_ch0_resp_i(dma_master0_ch0_resp),
       .dma_master1_ch0_req_o(dma_master1_ch0_req),
       .dma_master1_ch0_resp_i(dma_master1_ch0_resp),
-      .dma_intr_o(dma_intr),
+      .dma_done_intr_o(dma_done_intr),
+      .dma_window_intr_o(dma_window_intr),
       .spi_intr_event_o(spi_intr),
       .spi_flash_intr_event_o(spi_flash_intr),
       .pad_req_o,
@@ -583,6 +597,7 @@ module core_v_mini_mcu
       .uart_intr_rx_break_err_o(uart_intr_rx_break_err),
       .uart_intr_rx_timeout_o(uart_intr_rx_timeout),
       .uart_intr_rx_parity_err_o(uart_intr_rx_parity_err),
+      .i2s_rx_valid_i(i2s_rx_valid),
       .ext_peripheral_slave_req_o,
       .ext_peripheral_slave_resp_i
   );
@@ -604,6 +619,7 @@ module core_v_mini_mcu
       .uart_intr_rx_break_err_i(uart_intr_rx_break_err),
       .uart_intr_rx_timeout_i(uart_intr_rx_timeout),
       .uart_intr_rx_parity_err_i(uart_intr_rx_parity_err),
+      .dma_window_intr_i(dma_window_intr),
       .cio_gpio_i(gpio_in),
       .cio_gpio_o(gpio_out),
       .cio_gpio_en_o(gpio_oe),
@@ -624,7 +640,17 @@ module core_v_mini_mcu
       .rv_timer_3_intr_o(rv_timer_intr[3]),
       .pdm2pcm_clk_o(pdm2pcm_clk_o),
       .pdm2pcm_clk_en_o(pdm2pcm_clk_oe_o),
-      .pdm2pcm_pdm_i(pdm2pcm_pdm_i)
+      .pdm2pcm_pdm_i(pdm2pcm_pdm_i),
+      .i2s_sck_o(i2s_sck_o),
+      .i2s_sck_oe_o(i2s_sck_oe_o),
+      .i2s_sck_i(i2s_sck_i),
+      .i2s_ws_o(i2s_ws_o),
+      .i2s_ws_oe_o(i2s_ws_oe_o),
+      .i2s_ws_i(i2s_ws_i),
+      .i2s_sd_o(i2s_sd_o),
+      .i2s_sd_oe_o(i2s_sd_oe_o),
+      .i2s_sd_i(i2s_sd_i),
+      .i2s_rx_valid_o(i2s_rx_valid)
   );
 
   assign pdm2pcm_pdm_o    = 0;

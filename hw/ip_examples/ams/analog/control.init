@@ -1,0 +1,8 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+choose xa ../../../hw/ip_examples/ams/analog/adc.sp;
+port_connect -cell ams_adc_1b ( vdd => vdd , gnd => gnd );
+port_dir -cell ams_adc_1b (input sel; output out);
+bus_format <%d>;

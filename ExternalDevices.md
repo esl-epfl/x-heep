@@ -17,6 +17,8 @@ One example using the external ports is provided where:
 
 - hw/ip_examples/slow_sram is a memory slave device
 - hw/ip_examples/memcopy is a slave peripheral with a master port. It implements a simple memcopy feature (i.e., DMA).
+- hw/ip_examples/ams is an example AMS peripheral which can interface with SPICE netlists to run mixed-signal simulations (in this repository, the example analog peripheral is a 1-bit ADC)
+    - For more information, see [here](AnalogMixedSignal.md)
 
 ## Run the external device example
 
@@ -26,12 +28,12 @@ To run the external device example, first compile the software example:
 make app PROJECT=example_external_peripheral
 ```
 
-By default, the external device example RTL code is disabled. Run fusesoc with the '--flag=use_external_device_example' option to enable it. This example is available for the sim and sim_opt targets.
+By default, the external device example RTL code is disabled. This example is available for the sim and sim_opt targets.
 
 For example, compile for Verilator with:
 
 ```
-make verilator-sim FUSESOC_FLAGS="--flag=use_external_device_example"
+make verilator-sim
 ```
 
 then, go to your target system built folder

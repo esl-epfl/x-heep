@@ -33,13 +33,12 @@
 module cv32e40x_id_stage import cv32e40x_pkg::*;
 #(
   parameter rv32_e       RV32                   = RV32I,
-  parameter bit          A_EXT                  = 0,
+  parameter a_ext_e      A_EXT                  = A_NONE,
   parameter b_ext_e      B_EXT                  = B_NONE,
   parameter m_ext_e      M_EXT                  = M,
   parameter bit          X_EXT                  = 0,
-  parameter              DEBUG_TRIGGER_EN       = 1,
   parameter int unsigned REGFILE_NUM_READ_PORTS = 2,
-  parameter bit          SMCLIC                 = 1
+  parameter bit          CLIC                   = 1
 )
 (
   input  logic        clk,                    // Gated clock
@@ -422,8 +421,7 @@ module cv32e40x_id_stage import cv32e40x_pkg::*;
     .A_EXT                           ( A_EXT                     ),
     .B_EXT                           ( B_EXT                     ),
     .M_EXT                           ( M_EXT                     ),
-    .DEBUG_TRIGGER_EN                ( DEBUG_TRIGGER_EN          ),
-    .SMCLIC                          ( SMCLIC                    )
+    .CLIC                            ( CLIC                      )
   )
   decoder_i
   (
@@ -666,6 +664,7 @@ module cv32e40x_id_stage import cv32e40x_pkg::*;
           id_ex_pipe_o.instr.bus_resp.rdata <= {16'h0, if_id_pipe_i.compressed_instr};
           id_ex_pipe_o.instr.bus_resp.err   <= if_id_pipe_i.instr.bus_resp.err;
           id_ex_pipe_o.instr.mpu_status     <= if_id_pipe_i.instr.mpu_status;
+          id_ex_pipe_o.instr.align_status   <= if_id_pipe_i.instr.align_status;
         end else begin
           id_ex_pipe_o.instr                <= if_id_pipe_i.instr;
         end

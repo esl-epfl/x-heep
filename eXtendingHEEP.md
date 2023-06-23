@@ -4,6 +4,8 @@
 
 For this purpose we support the [CORE-V-XIF](https://docs.openhwgroup.org/projects/openhw-group-core-v-xif/en/latest/intro.html) interface with the [cv32e40x](https://github.com/openhwgroup/cv32e40x) RISCV-CPU, and we expose master and slave ports to/from the bus.
 
+> `X-HEEP` currently uses the revision [`0.9.0`](https://github.com/openhwgroup/cv32e40x/commit/f17028f2369373d9443e4636f2826218e8d54e0f) of OpenHW Groups's `cv32e40x` core to implement the `CORE-V-XIF`. It is recommended to use the same revision in peripheral IPs to prevent conflicts during RTL compilation.
+
 Here you can find a list of `X-HEEP` based open-source examples. If you want to include your project in this list, please open an issue with a link to your repository.
 
 * [CGRA-X-HEEP](https://github.com/esl-epfl/cgra_x_heep): A CGRA loosely coupled with X-HEEP.
@@ -82,7 +84,7 @@ The following is an example repository folder structure.
 To achieve this:
 
 * Create a new top-level repository (`BASE`) and [vendorize](#vendorizing-x-heep) (or add as git submodules) both your `CORE-V-XIF/OBI` compliant coprocessor/accelerator and `X-HEEP`.
-* Copy the `x-heep/hw/system/x_heep_system.sv` as your new top-level module. Then modify it as needed to include your co-processor and connect it to the `core_v_mini_mcu` with the `XIF`.
+* Copy the `x-heep/hw/system/x_heep_system.sv` as your new top-level module. Then modify it as needed to include your co-processor and connect it to the `core_v_mini_mcu` with the `XIF`. The `XIF` SystemVerilog interface must be instantiated in the top-level module, where `X-HEEP` and your co-processor are connected. See the `X-HEEP` [testbench](./tb/testharness.sv) as an example.
 * Before [building software](#building-software) remember to run `make mcu-gen CPU=cv32e40x`.
 
 To add this new top-level module to the simulation/synthesis flow you can extend the [FuseSoC](https://fusesoc.readthedocs.io/en/stable/user/index.html) support of `X-HEEP`.
@@ -139,7 +141,7 @@ To add this new top-level module to the simulation/synthesis flow you can extend
         file_type: user
 
     parameters:
-    PULP_XPULP:
+    COREV_PULP:
         datatype: int
         paramtype: vlogparam
         default: 0
@@ -147,14 +149,11 @@ To add this new top-level module to the simulation/synthesis flow you can extend
         datatype: int
         paramtype: vlogparam
         default: 0
-    USE_EXTERNAL_DEVICE_EXAMPLE:
-        datatype: bool
-        paramtype: vlogdefine
-        default: false
     USE_UPF:
-        datatype: bool
-        paramtype: vlogdefine
-        default: false
+      datatype: bool
+      paramtype: vlogdefine
+      description: |
+        Enables simulation with UPF with Modelsim/VCS
 
     scripts:
     pre_build_remote_bitbang:
@@ -191,11 +190,8 @@ To add this new top-level module to the simulation/synthesis flow you can extend
             - tool_modelsim? (pre_build_remote_bitbang)
             - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
         parameters:
-        - PULP_XPULP=0
-        - use_jtag_dpi? (JTAG_DPI=1)
-        - "!use_jtag_dpi? (JTAG_DPI=0)"
-        - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
-        - use_upf? (USE_UPF=true)
+        - COREV_PULP
+        - JTAG_DPI
         tools:
         modelsim:
             vlog_options:
