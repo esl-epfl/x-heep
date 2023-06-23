@@ -350,6 +350,9 @@ def main():
                         metavar="file",
                         type=argparse.FileType('r'),
                         required=False,
+                        nargs='?',
+                        default=None,
+                        const=None,
                         help="Name of the hjson file contaiting extra pads")
 
     parser.add_argument("-v",
