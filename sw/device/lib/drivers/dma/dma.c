@@ -40,15 +40,18 @@
 #include "fast_intr_ctrl.h"
 #include "rv_plic.h"
 #include "csr.h"
+#include "stdasm.h"
 
 /****************************************************************************/
 /**                                                                        **/
 /*                        DEFINITIONS AND MACROS                            */
 /**                                                                        **/
 /****************************************************************************/
- 
-// @ToDo: Remove this, is just a placeholder until real assert can be included
-#define make_sure_that(x) /*//printf( "%s@%u\n\r",x ? "Success" : "Error",__LINE__ );*/
+
+ /**
+ * Static DMA ASSERT.
+ */
+#define DMA_STATIC_ASSERT(expr, msg)// _Static_assert(!expr, msg);
 
 /**
  * Returns the mask to enable/disable DMA interrupts.
@@ -58,7 +61,7 @@
 /**
  * Size of a register of 32 bits. 
  */
-#define DMA_REGISTER_SIZE_BYTES 4
+#define DMA_REGISTER_SIZE_BYTES sizeof(int)
 
 /**
  * Mask to determine if an address is multiple of 4 (Word aligned).
@@ -271,15 +274,20 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
 
     /* Data type is not necessary. If something is provided anyways it should
      be valid.*/
-    make_sure_that( p_trans->type   < DMA_DATA_TYPE__size );
+    DMA_STATIC_ASSERT( p_trans->type   < DMA_DATA_TYPE__size, 
+                       "Data type not valid");
     /* Transaction mode should be a valid mode. */
-    make_sure_that( p_trans->mode   < DMA_TRANS_MODE__size);
+    DMA_STATIC_ASSERT( p_trans->mode   < DMA_TRANS_MODE__size, 
+                       "Transaction mode not valid");
     /* The end event should be a valid end event. */
-    make_sure_that( p_trans->end    < DMA_TRANS_END__size );
+    DMA_STATIC_ASSERT( p_trans->end    < DMA_TRANS_END__size, 
+                       "End event not valid");
     /* The alignment permission should be a valid permission. */
-    make_sure_that( p_enRealign     < DMA_ENABLE_REALIGN__size );
+    DMA_STATIC_ASSERT( p_enRealign     < DMA_ENABLE_REALIGN__size, 
+                       "Alignment not valid");
     /* The checks request should be a valid request. */
-    make_sure_that( p_check         < DMA_PERFORM_CHECKS__size );
+    DMA_STATIC_ASSERT( p_check         < DMA_PERFORM_CHECKS__size, 
+                       "Check request not valid");
 
     /*
      * CHECK IF TARGETS HAVE ERRORS
@@ -799,11 +807,10 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans )
 }
 
 
-uint32_t dma_is_ready()
+uint32_t dma_is_ready(void)
 {    
     /* The transaction READY bit is read from the status register*/   
     uint32_t ret = ( dma_cb.peri->STATUS & (1<<DMA_STATUS_READY_BIT) );
-    make_sure_that( ret == 0 || ret == 1 ); // @ToDo: Add label to these values
     return ret;
 }
 /* @ToDo: Reconsider this decision.
@@ -882,14 +889,14 @@ dma_config_flags_t validate_target( dma_target_t *p_tgt )
      */
 
     /* Increment can be 0 when a trigger is used. */
-    make_sure_that( p_tgt->inc_du   >= 0 ); 
+    DMA_STATIC_ASSERT( p_tgt->inc_du   >= 0 , "Increment not valid"); 
     /* The size could be 0 if the target is only going to be used as a 
     destination. */
-    make_sure_that( p_tgt->size_du  >=  0 ); 
+    DMA_STATIC_ASSERT( p_tgt->size_du  >=  0 , "Size not valid"); 
     /* The data type must be a valid type */
-    make_sure_that( p_tgt->type     < DMA_DATA_TYPE__size );
+    DMA_STATIC_ASSERT( p_tgt->type     < DMA_DATA_TYPE__size , "Type not valid");
     /* The trigger must be among the valid trigger values. */
-    make_sure_that( p_tgt->trig     < DMA_TRIG__size );
+    DMA_STATIC_ASSERT( p_tgt->trig     < DMA_TRIG__size , "Trigger not valid");
     
     /*
      * INTEGRITY CHECKS
@@ -969,7 +976,6 @@ dma_config_flags_t validate_environment( dma_env_t *p_env )
     /*
      * SANITY CHECKS
      */
-
     if( (uint8_t*)p_env->end < (uint8_t*)p_env->start ) 
     {
         return DMA_CONFIG_INCOMPATIBLE;
@@ -1151,7 +1157,8 @@ void fic_irq_dma(void)
 /** 
  * This is a non-weak implementation of the function declared in rv_plic.c
  */
-void handler_irq_dma(void) {
+void handler_irq_dma(void) 
+{
     /*
      * Call the weak implementation provided in this module, 
      * or the non-weak implementation.
