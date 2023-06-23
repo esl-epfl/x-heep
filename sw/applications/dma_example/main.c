@@ -17,11 +17,16 @@
 #define TEST_ADDRESS_MODE_EXTERNAL_DEVICE
 
 #define TEST_DATA_SIZE      16
-#define TEST_DATA_LARGE     1024
+#define TEST_DATA_LARGE     4096
 #define TRANSACTIONS_N      3       // Only possible to perform transaction at a time, others should be blocked
 #define TEST_WINDOW_SIZE_DU  1024    // if put at <=71 the isr is too slow to react to the interrupt 
 
 //#define DEBUG
+
+
+#if TEST_DATA_LARGE < 2* TEST_DATA_SIZE
+    #errors("TEST_DATA_LARGE must be at least 2*TEST_DATA_SIZE")
+#endif
 
 // Use PRINTF instead of printf to remove print by default
 #ifdef DEBUG
@@ -39,15 +44,15 @@ int8_t cycles = 0;
 void dma_intr_handler_trans_done()
 {
     cycles++;
-    PRINTF("D");
 }
 
+
 #ifdef TEST_WINDOW
+
 int32_t window_intr_flag;
 
 void dma_intr_handler_window_done(void) {
     window_intr_flag ++;
-    PRINTF("w");
 }
 
 uint8_t dma_window_ratio_warning_threshold()
@@ -66,10 +71,7 @@ int main(int argc, char *argv[])
     static uint32_t copied_data_4B[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
     static uint32_t test_data_large[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
 
-
-    // this array will contain the data at the even indexes the test_data_4B
-    static uint32_t copied_data_4B_ADDR_MODE[2*TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
-     // this array will contain the even address of copied_data_4B_ADDR_MODE
+     // this array will contain the even address of copied_data_4B
     static uint32_t test_addr_4B_PTR[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
 
     // The DMA is initialized (i.e. Any current transaction is cleaned.)
@@ -144,6 +146,7 @@ int main(int argc, char *argv[])
         PRINTF("DMA word transfer success\nFinished! :) \n\r");
     } else {
         PRINTF("DMA word transfer failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
+        return -1;
     }
 
 #endif // TEST_SINGULAR_MODE
@@ -156,17 +159,17 @@ int main(int argc, char *argv[])
 
     // Prepare the data
     for (int i = 0; i < TEST_DATA_SIZE; i++) {
-        test_addr_4B_PTR[i] = &copied_data_4B_ADDR_MODE[i*2];
+        test_addr_4B_PTR[i] = &copied_data_4B[i*2];
     }
 
     trans.mode = DMA_TRANS_MODE_ADDRESS;
 
     res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-    //PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     res = dma_load_transaction(&trans);
-    //PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     res = dma_launch(&trans);
-    //PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
 
     while( ! dma_is_ready()) {
         // disable_interrupts
@@ -182,9 +185,9 @@ int main(int argc, char *argv[])
 
     PRINTF(">> Finished transaction. \n\r");
 
-    for(uint32_t i = 0; i < 2*trans.size_b; i++ ) {
-        if ( copied_data_4B_ADDR_MODE[i*2] != test_data_4B[i] ) {
-            PRINTF("ERROR [%d]: %04x != %04x\n\r", i, copied_data_4B_ADDR_MODE[i], test_data_4B[i]);
+    for(uint32_t i = 0; i < trans.size_b >> 2; i++ ) {
+        if ( copied_data_4B[i*2] != test_data_4B[i] ) {
+            PRINTF("ERROR [%d]: %04x != %04x\n\r", i, copied_data_4B[i*2], test_data_4B[i]);
             errors++;
         }
     }
@@ -193,6 +196,7 @@ int main(int argc, char *argv[])
         PRINTF("DMA word transfer success\nFinished! :) \n\r");
     } else {
         PRINTF("DMA word transfer failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
+        return -1;
     }
 
     trans.mode = DMA_TRANS_MODE_SINGLE;
@@ -208,9 +212,9 @@ int main(int argc, char *argv[])
     slave can be plugged something else than a slow memory as in our testbench" )
 
     uint32_t* ext_test_addr_4B_PTR = EXT_SLAVE_START_ADDRESS;
-    uint32_t* ext_copied_data_4B_ADDR_MODE;
+    uint32_t* ext_copied_data_4B;
 
-    ext_copied_data_4B_ADDR_MODE = &ext_test_addr_4B_PTR[TEST_DATA_SIZE+1];
+    ext_copied_data_4B = &ext_test_addr_4B_PTR[TEST_DATA_SIZE+1];
 
 
     tgt_addr.ptr = ext_test_addr_4B_PTR;
@@ -222,17 +226,17 @@ int main(int argc, char *argv[])
 
     // Prepare the data
     for (int i = 0; i < TEST_DATA_SIZE; i++) {
-        ext_test_addr_4B_PTR[i] = &ext_copied_data_4B_ADDR_MODE[i*2];
+        ext_test_addr_4B_PTR[i] = &ext_copied_data_4B[i*2];
     }
 
     trans.mode = DMA_TRANS_MODE_ADDRESS;
 
     res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-    //PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     res = dma_load_transaction(&trans);
-    //PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     res = dma_launch(&trans);
-    //PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
 
     while( ! dma_is_ready()) {
         // disable_interrupts
@@ -248,9 +252,9 @@ int main(int argc, char *argv[])
 
     PRINTF(">> Finished transaction. \n\r");
 
-    for(uint32_t i = 0; i < 2*trans.size_b; i++ ) {
-        if ( ext_copied_data_4B_ADDR_MODE[i*2] != test_data_4B[i] ) {
-            PRINTF("ERROR [%d]: %04x != %04x\n\r", i, ext_copied_data_4B_ADDR_MODE[i], test_data_4B[i]);
+    for(uint32_t i = 0; i < trans.size_b >> 2; i++ ) {
+        if ( ext_copied_data_4B[i*2] != test_data_4B[i] ) {
+            PRINTF("ERROR [%d]: %04x != %04x\n\r", i, ext_copied_data_4B[i], test_data_4B[i]);
             errors++;
         }
     }
@@ -259,6 +263,7 @@ int main(int argc, char *argv[])
         PRINTF("DMA word transfer success\nFinished! :) \n\r");
     } else {
         PRINTF("DMA word transfer failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
+        return -1;
     }
 
     trans.mode = DMA_TRANS_MODE_SINGLE;
@@ -321,6 +326,7 @@ int main(int argc, char *argv[])
         PRINTF("DMA word transfer success\nFinished! :) \n\r");
     } else {
         PRINTF("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
+        return -1;
     }
 
 #endif // TEST_PENDING_TRANSACTION
@@ -379,6 +385,7 @@ int main(int argc, char *argv[])
         PRINTF("DMA word transfer success\nFinished! :) \n\r");
     } else {
         PRINTF("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
+        return -1;
     }
 
 #endif // TEST_WINDOW
