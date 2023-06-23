@@ -8,10 +8,11 @@
 
 #include "dma.h"
 #include "core_v_mini_mcu.h"
+#include "csr.h"
 
-//#define TEST_SINGULAR_MODE
-//#define TEST_PENDING_TRANSACTION
-//#define TEST_WINDOW
+#define TEST_SINGULAR_MODE
+#define TEST_PENDING_TRANSACTION
+#define TEST_WINDOW
 #define TEST_ADDRESS_MODE
 
 #define TEST_DATA_SIZE      16
@@ -118,8 +119,15 @@ int main(int argc, char *argv[])
     res = dma_launch(&trans);
     PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     
-    while( ! dma_is_ready() ){
-        wait_for_interrupt();
+    while( ! dma_is_ready()) {
+        // disable_interrupts
+        // this does not prevent waking up the core as this is controlled by the MIP register
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x0);
+        if ( dma_is_ready() == 0 ) {
+            wait_for_interrupt();
+            //from here we wake up even if we did not jump to the ISR
+        }
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }
     PRINTF(">> Finished transaction. \n\r");
         
@@ -140,9 +148,9 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_ADDRESS_MODE
 
-    //PRINTF("\n\n===================================\n\n");
-    //PRINTF("    TESTING ADDRESS MODE   ");
-    //PRINTF("\n\n===================================\n\n");
+    PRINTF("\n\n===================================\n\n");
+    PRINTF("    TESTING ADDRESS MODE   ");
+    PRINTF("\n\n===================================\n\n");
 
     // Prepare the data
     for (int i = 0; i < TEST_DATA_SIZE; i++) {
@@ -158,9 +166,18 @@ int main(int argc, char *argv[])
     res = dma_launch(&trans);
     //PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
 
-    while( ! dma_is_ready() ){
-        wait_for_interrupt();
+    while( ! dma_is_ready()) {
+        // disable_interrupts
+        // this does not prevent waking up the core as this is controlled by the MIP register
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x0);
+        if ( dma_is_ready() == 0 ) {
+            wait_for_interrupt();
+            //from here we wake up even if we did not jump to the ISR
+        }
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }
+
+
     PRINTF(">> Finished transaction. \n\r");
 
     for(uint32_t i = 0; i < 2*trans.size_b; i++ ) {

@@ -180,7 +180,7 @@ module dma #(
   assign wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
   assign wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
 
-  assign fifo_addr_empty_check = !(fifo_addr_empty == 1'b0 && address_mode);
+  assign fifo_addr_empty_check = fifo_addr_empty && address_mode;
 
   assign fifo_alm_full = (fifo_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
   assign fifo_addr_alm_full = (fifo_addr_usage == LastFifoUsage[Addr_Fifo_Depth-1:0]);
@@ -256,7 +256,7 @@ module dma #(
     if (~rst_ni) begin
       addr_ptr_reg <= '0;
     end else begin
-      if (dma_start == 1'b1) begin
+      if (dma_start == 1'b1 && address_mode) begin
         addr_ptr_reg <= reg2hw.addr_ptr.q;
       end else if (data_addr_in_gnt == 1'b1 && address_mode) begin
         addr_ptr_reg <= addr_ptr_reg + 32'h4;  //always continuos in 32b
@@ -308,9 +308,9 @@ module dma #(
     if (~rst_ni) begin
       dma_addr_cnt <= '0;
     end else begin
-      if (dma_start == 1'b1) begin
+      if (dma_start == 1'b1 && address_mode) begin
         dma_addr_cnt <= reg2hw.size.q;
-      end else if (data_addr_in_gnt == 1'b1) begin
+      end else if (data_addr_in_gnt == 1'b1 && address_mode) begin
         dma_addr_cnt <= dma_addr_cnt - 32'h4;  //address always 32b
       end
     end
@@ -466,7 +466,7 @@ module dma #(
 
       DMA_READ_FSM_IDLE: begin
         // Wait for start signal
-        if (dma_start == 1'b1) begin
+        if (dma_start == 1'b1 && address_mode) begin
           dma_read_addr_fsm_n_state = DMA_READ_FSM_ON;
           fifo_addr_flush = 1'b1;
         end else begin
@@ -568,7 +568,7 @@ module dma #(
       .push_i(data_addr_in_rvalid),
       // as long as the queue is not empty we can pop new elements
       .data_o(fifo_addr_output),
-      .pop_i(data_out_gnt)
+      .pop_i(data_out_gnt && address_mode)
   );
 
   dma_reg_top #(
