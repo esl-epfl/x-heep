@@ -8,6 +8,7 @@
 
 #include "dma.h"
 #include "core_v_mini_mcu.h"
+#include "x-heep.h"
 #include "csr.h"
 
 #define TEST_SINGULAR_MODE
@@ -268,9 +269,11 @@ int main(int argc, char *argv[])
 
     trans.mode = DMA_TRANS_MODE_SINGLE;
 
-#endif
-
 #endif //TEST_ADDRESS_MODE_EXTERNAL_DEVICE
+
+#else
+    #pragma message( "TEST_ADDRESS_MODE_EXTERNAL_DEVICE is not executed on PYNQ Z2" )
+#endif
 
 #ifdef TEST_PENDING_TRANSACTION
     PRINTF("\n\n===================================\n\n");
