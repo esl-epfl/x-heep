@@ -674,18 +674,20 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      */
     ////printf("src ptr - Wrote %08x @ ----\n", dma_cb.trans->src->ptr );
     //printf("dst ptr - Wrote %08x @ ----\n", dma_cb.trans->dst->ptr );
-    dma_cb.peri->SRC_PTR = dma_cb.trans->src->ptr;
-
-    if(dma_cb.trans->mode != DMA_TRANS_MODE_ADDRESS) {
+    if(dma_cb.trans->mode != DMA_TRANS_MODE_ADDRESS)
+    {
         /*
             Write to the destination pointers only if we are not in address mode,
             otherwise the destination address is read in a separate port in parallel with the data
             from the address port
         */
         dma_cb.peri->DST_PTR = dma_cb.trans->dst->ptr;
-    } else {
+     }
+     else
+     {
         dma_cb.peri->ADDR_PTR = dma_cb.trans->src_addr->ptr;
-    }
+     }
+
     /*
      * SET THE INCREMENTS
      */
