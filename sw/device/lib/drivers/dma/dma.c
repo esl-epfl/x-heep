@@ -726,7 +726,8 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
    
    
 
-    if(dma_cb.trans->mode != DMA_TRANS_MODE_ADDRESS) {
+    if(dma_cb.trans->mode != DMA_TRANS_MODE_ADDRESS)
+    {
         //printf("dst inc - ");
         write_register(  get_increment_b( dma_cb.trans->dst ),
                         DMA_PTR_INC_REG_OFFSET,
