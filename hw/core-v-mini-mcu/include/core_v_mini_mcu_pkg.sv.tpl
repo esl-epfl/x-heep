@@ -38,8 +38,9 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] DEBUG_MASTER_IDX = 2;
   localparam logic [31:0] DMA_READ_CH0_IDX = 3;
   localparam logic [31:0] DMA_WRITE_CH0_IDX = 4;
+  localparam logic [31:0] DMA_MASTER2_CH0_IDX = 5;
 
-  localparam SYSTEM_XBAR_NMASTER = 5;
+  localparam SYSTEM_XBAR_NMASTER = 6;
 
   // Internal slave memory map and index
   // -----------------------------------

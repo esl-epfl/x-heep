@@ -97,6 +97,8 @@ ${pad.core_v_mini_mcu_interface}
   obi_resp_t dma_read_ch0_resp;
   obi_req_t dma_write_ch0_req;
   obi_resp_t dma_write_ch0_resp;
+  obi_req_t dma_master2_ch0_req;
+  obi_resp_t dma_master2_ch0_resp;
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
@@ -149,7 +151,8 @@ ${pad.core_v_mini_mcu_interface}
    logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]memory_subsystem_clkgate_en;
 
   // DMA
-  logic dma_intr;
+  logic dma_done_intr;
+  logic dma_window_intr;
 
   // SPI
   logic spi_flash_intr, spi_intr;
@@ -175,6 +178,9 @@ ${pad.core_v_mini_mcu_interface}
   logic uart_intr_rx_timeout;
   logic uart_intr_rx_parity_err;
 
+  // I2s
+  logic i2s_rx_valid;
+
   assign intr = {
     1'b0, irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
   };
@@ -184,7 +190,7 @@ ${pad.core_v_mini_mcu_interface}
     gpio_ao_intr,
     spi_flash_intr,
     spi_intr,
-    dma_intr,
+    dma_done_intr,
     rv_timer_intr[3],
     rv_timer_intr[2],
     rv_timer_intr[1]
@@ -252,6 +258,8 @@ ${pad.core_v_mini_mcu_interface}
       .dma_read_ch0_resp_o(dma_read_ch0_resp),
       .dma_write_ch0_req_i(dma_write_ch0_req),
       .dma_write_ch0_resp_o(dma_write_ch0_resp),
+      .dma_master2_ch0_req_i(dma_master2_ch0_req),
+      .dma_master2_ch0_resp_o(dma_master2_ch0_resp),
       .ext_xbar_master_req_i(ext_xbar_master_req_i),
       .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
       .ram_req_o(ram_slave_req),
@@ -340,7 +348,10 @@ ${pad.core_v_mini_mcu_interface}
       .dma_read_ch0_resp_i(dma_read_ch0_resp),
       .dma_write_ch0_req_o(dma_write_ch0_req),
       .dma_write_ch0_resp_i(dma_write_ch0_resp),
-      .dma_intr_o(dma_intr),
+      .dma_master2_ch0_req_o(dma_master2_ch0_req),
+      .dma_master2_ch0_resp_i(dma_master2_ch0_resp),
+      .dma_done_intr_o(dma_done_intr),
+      .dma_window_intr_o(dma_window_intr),
       .spi_intr_event_o(spi_intr),
       .spi_flash_intr_event_o(spi_flash_intr),
       .pad_req_o,
@@ -361,6 +372,7 @@ ${pad.core_v_mini_mcu_interface}
       .uart_intr_rx_break_err_o(uart_intr_rx_break_err),
       .uart_intr_rx_timeout_o(uart_intr_rx_timeout),
       .uart_intr_rx_parity_err_o(uart_intr_rx_parity_err),
+      .i2s_rx_valid_i(i2s_rx_valid),
       .ext_peripheral_slave_req_o,
       .ext_peripheral_slave_resp_i
   );
@@ -382,6 +394,7 @@ ${pad.core_v_mini_mcu_interface}
       .uart_intr_rx_break_err_i(uart_intr_rx_break_err),
       .uart_intr_rx_timeout_i(uart_intr_rx_timeout),
       .uart_intr_rx_parity_err_i(uart_intr_rx_parity_err),
+      .dma_window_intr_i(dma_window_intr),
       .cio_gpio_i(gpio_in),
       .cio_gpio_o(gpio_out),
       .cio_gpio_en_o(gpio_oe),
@@ -402,7 +415,17 @@ ${pad.core_v_mini_mcu_interface}
       .rv_timer_3_intr_o(rv_timer_intr[3]),
       .pdm2pcm_clk_o(pdm2pcm_clk_o),
       .pdm2pcm_clk_en_o(pdm2pcm_clk_oe_o),
-      .pdm2pcm_pdm_i(pdm2pcm_pdm_i)
+      .pdm2pcm_pdm_i(pdm2pcm_pdm_i),
+      .i2s_sck_o(i2s_sck_o),
+      .i2s_sck_oe_o(i2s_sck_oe_o),
+      .i2s_sck_i(i2s_sck_i),
+      .i2s_ws_o(i2s_ws_o),
+      .i2s_ws_oe_o(i2s_ws_oe_o),
+      .i2s_ws_i(i2s_ws_i),
+      .i2s_sd_o(i2s_sd_o),
+      .i2s_sd_oe_o(i2s_sd_oe_o),
+      .i2s_sd_i(i2s_sd_i),
+      .i2s_rx_valid_o(i2s_rx_valid)
   );
 
   assign pdm2pcm_pdm_o = 0;

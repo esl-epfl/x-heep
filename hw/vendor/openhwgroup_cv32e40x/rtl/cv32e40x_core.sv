@@ -33,24 +33,27 @@ module cv32e40x_core import cv32e40x_pkg::*;
 #(
   parameter                             LIB                                     = 0,
   parameter rv32_e                      RV32                                    = RV32I,
-  parameter bit                         A_EXT                                   = 0,
+  parameter a_ext_e                     A_EXT                                   = A_NONE,
   parameter b_ext_e                     B_EXT                                   = B_NONE,
   parameter m_ext_e                     M_EXT                                   = M,
+  parameter bit                         DEBUG                                   = 1,
+  parameter logic [31:0]                DM_REGION_START                         = 32'hF0000000,
+  parameter logic [31:0]                DM_REGION_END                           = 32'hF0003FFF,
   parameter int                         DBG_NUM_TRIGGERS                        = 1,
   parameter int                         PMA_NUM_REGIONS                         = 0,
   parameter pma_cfg_t                   PMA_CFG[PMA_NUM_REGIONS-1:0]            = '{default:PMA_R_DEFAULT},
-  parameter bit                         SMCLIC                                  = 0,
-  parameter int                         SMCLIC_ID_WIDTH                         = 5,
-  parameter int                         SMCLIC_INTTHRESHBITS                    = 8,
+  parameter bit                         CLIC                                    = 0,
+  parameter int unsigned                CLIC_ID_WIDTH                           = 5,
+  parameter int unsigned                CLIC_INTTHRESHBITS                      = 8,
   parameter bit                         X_EXT                                   = 0,
-  parameter int                         X_NUM_RS                                = 2,
-  parameter int                         X_ID_WIDTH                              = 4,
-  parameter int                         X_MEM_WIDTH                             = 32,
-  parameter int                         X_RFR_WIDTH                             = 32,
-  parameter int                         X_RFW_WIDTH                             = 32,
+  parameter int unsigned                X_NUM_RS                                = 2,
+  parameter int unsigned                X_ID_WIDTH                              = 4,
+  parameter int unsigned                X_MEM_WIDTH                             = 32,
+  parameter int unsigned                X_RFR_WIDTH                             = 32,
+  parameter int unsigned                X_RFW_WIDTH                             = 32,
   parameter logic [31:0]                X_MISA                                  = 32'h00000000,
   parameter logic [1:0]                 X_ECS_XS                                = 2'b00,
-  parameter int                         NUM_MHPMCOUNTERS                        = 1
+  parameter int unsigned                NUM_MHPMCOUNTERS                        = 1
 )
 (
   // Clock and reset
@@ -96,6 +99,9 @@ module cv32e40x_core import cv32e40x_pkg::*;
   // Cycle count
   output logic [63:0]                   mcycle_o,
 
+  // Time input
+  input  logic [63:0]                   time_i,
+
   // eXtension interface
   if_xif.cpu_compressed                 xif_compressed_if,
   if_xif.cpu_issue                      xif_issue_if,
@@ -107,12 +113,12 @@ module cv32e40x_core import cv32e40x_pkg::*;
   // Basic interrupt architecture
   input  logic [31:0]                   irq_i,
 
-  // Event wakeup signal
-  input  logic                          wu_wfe_i,
+  // Event wakeup signals
+  input  logic                          wu_wfe_i,   // Wait-for-event wakeup
 
-  // Smclic interrupt architecture
+  // CLIC interrupt architecture
   input  logic                          clic_irq_i,
-  input  logic [SMCLIC_ID_WIDTH-1:0]    clic_irq_id_i,
+  input  logic [CLIC_ID_WIDTH-1:0]      clic_irq_id_i,
   input  logic [ 7:0]                   clic_irq_level_i,
   input  logic [ 1:0]                   clic_irq_priv_i,
   input  logic                          clic_irq_shv_i,
@@ -126,6 +132,8 @@ module cv32e40x_core import cv32e40x_pkg::*;
   output logic                          debug_havereset_o,
   output logic                          debug_running_o,
   output logic                          debug_halted_o,
+  output logic                          debug_pc_valid_o,
+  output logic [31:0]                   debug_pc_o,
 
   // CPU control signals
   input  logic                          fetch_enable_i,
@@ -142,7 +150,7 @@ module cv32e40x_core import cv32e40x_pkg::*;
   // Determine alignedness of mtvt
   // mtvt[31:N] holds mtvt table entry
   // mtvt[N-1:0] is tied to zero.
-  localparam int unsigned MTVT_LSB = ((SMCLIC_ID_WIDTH + 2) < 6) ? 6 : (SMCLIC_ID_WIDTH + 2);
+  localparam int unsigned MTVT_LSB = ((CLIC_ID_WIDTH + 2) < 6) ? 6 : (CLIC_ID_WIDTH + 2);
   localparam int unsigned MTVT_ADDR_WIDTH = 32 - MTVT_LSB;
 
   logic         clk;                    // Gated clock
@@ -159,7 +167,8 @@ module cv32e40x_core import cv32e40x_pkg::*;
 
   // Busy signals
   logic        if_busy;
-  logic        lsu_busy;
+  logic        lsu_busy;       // LSU is busy, outstanding OBI or new transaction being initiated
+  logic        lsu_bus_busy;   // LSU has outstanding transactions on the OBI bus
   logic        lsu_interruptible;
 
   // ID/EX pipeline
@@ -174,6 +183,9 @@ module cv32e40x_core import cv32e40x_pkg::*;
   // Controller
   ctrl_byp_t   ctrl_byp;
   ctrl_fsm_t   ctrl_fsm;
+
+  // Gated debug_req_i signal depending on DEBUG parameter
+  logic        debug_req_gated;
 
   // Register File Write Back
   logic        rf_we_wb;
@@ -217,6 +229,7 @@ module cv32e40x_core import cv32e40x_pkg::*;
 
   // JVT
   logic [JVT_ADDR_WIDTH-1:0]  jvt_addr;
+  logic [5:0]                 jvt_mode;
 
   logic [MTVT_ADDR_WIDTH-1:0] mtvt_addr;
 
@@ -243,10 +256,13 @@ module cv32e40x_core import cv32e40x_pkg::*;
   logic        lsu_split_ex;
   logic        lsu_first_op_ex;
   logic        lsu_last_op_ex;
+  lsu_atomic_e lsu_atomic_ex;
   mpu_status_e lsu_mpu_status_wb;
   logic        lsu_wpt_match_wb;
+  align_status_e lsu_align_status_wb;
   logic [31:0] lsu_rdata_wb;
   logic [1:0]  lsu_err_wb;
+  lsu_atomic_e lsu_atomic_wb;
 
   logic        lsu_valid_0;             // Handshake with EX
   logic        lsu_ready_ex;
@@ -264,6 +280,10 @@ module cv32e40x_core import cv32e40x_pkg::*;
   logic [3:0]  lsu_be_ex;
 
   logic        data_stall_wb;
+
+  logic        wpt_match_wb;       // Sticky wpt_match from WB stage
+  mpu_status_e mpu_status_wb;      // Sticky mpu_status from WB stage
+  align_status_e align_status_wb;  // Sticky align_status from WB stage
 
   // Stage ready signals
   logic        id_ready;
@@ -320,15 +340,15 @@ module cv32e40x_core import cv32e40x_pkg::*;
   logic [7:0]                 irq_clic_level;
   logic [1:0]                 irq_clic_priv;
   logic                       mnxti_irq_pending;
-  logic [SMCLIC_ID_WIDTH-1:0] mnxti_irq_id;
+  logic [CLIC_ID_WIDTH-1:0]   mnxti_irq_id;
   logic [7:0]                 mnxti_irq_level;
 
   // Used (only) by verification environment
   logic        irq_ack;
   logic [9:0]  irq_id;
-  logic [7:0]  irq_level;       // Only applicable if SMCLIC = 1
-  logic [1:0]  irq_priv;        // Only applicable if SMCLIC = 1
-  logic        irq_shv;         // Only applicable if SMCLIC = 1
+  logic [7:0]  irq_level;       // Only applicable if CLIC = 1
+  logic [1:0]  irq_priv;        // Only applicable if CLIC = 1
+  logic        irq_shv;         // Only applicable if CLIC = 1
   logic        dbg_ack;
 
   // eXtension interface signals
@@ -368,6 +388,8 @@ module cv32e40x_core import cv32e40x_pkg::*;
   assign debug_havereset_o = ctrl_fsm.debug_havereset;
   assign debug_halted_o    = ctrl_fsm.debug_halted;
   assign debug_running_o   = ctrl_fsm.debug_running;
+  assign debug_pc_valid_o  = ctrl_fsm.mhpmevent.minstret;
+  assign debug_pc_o        = ex_wb_pipe.pc;
 
   // Used (only) by verification environment
   assign irq_ack   = ctrl_fsm.irq_ack;
@@ -376,6 +398,9 @@ module cv32e40x_core import cv32e40x_pkg::*;
   assign irq_priv  = ctrl_fsm.irq_priv;
   assign irq_shv   = ctrl_fsm.irq_shv;
   assign dbg_ack   = ctrl_fsm.dbg_ack;
+
+  // Gate off the internal debug_request signal if debug support is not configured.
+  assign debug_req_gated = DEBUG ? debug_req_i : 1'b0;
 
   //////////////////////////////////////////////////////////////////////////////////////////////
   //   ____ _            _      __  __                                                   _    //
@@ -432,10 +457,13 @@ module cv32e40x_core import cv32e40x_pkg::*;
     .PMA_NUM_REGIONS     ( PMA_NUM_REGIONS          ),
     .PMA_CFG             ( PMA_CFG                  ),
     .MTVT_ADDR_WIDTH     ( MTVT_ADDR_WIDTH          ),
-    .SMCLIC              ( SMCLIC                   ),
-    .SMCLIC_ID_WIDTH     ( SMCLIC_ID_WIDTH          ),
+    .CLIC                ( CLIC                     ),
+    .CLIC_ID_WIDTH       ( CLIC_ID_WIDTH            ),
     .ZC_EXT              ( ZC_EXT                   ),
-    .M_EXT               ( M_EXT                    )
+    .M_EXT               ( M_EXT                    ),
+    .DEBUG               ( DEBUG                    ),
+    .DM_REGION_START     ( DM_REGION_START          ),
+    .DM_REGION_END       ( DM_REGION_END            )
   )
   if_stage_i
   (
@@ -451,6 +479,7 @@ module cv32e40x_core import cv32e40x_pkg::*;
     .mepc_i              ( mepc                     ), // Exception PC (restore upon return from exception/interrupt)
     .mtvec_addr_i        ( mtvec_addr               ), // Exception/interrupt address (MSBs only)
     .mtvt_addr_i         ( mtvt_addr                ), // CLIC vector base
+    .jvt_mode_i          ( jvt_mode                 ),
 
     .m_c_obi_instr_if    ( m_c_obi_instr_if         ), // Instruction bus interface
 
@@ -495,7 +524,7 @@ module cv32e40x_core import cv32e40x_pkg::*;
     .M_EXT                        ( M_EXT                     ),
     .X_EXT                        ( X_EXT                     ),
     .REGFILE_NUM_READ_PORTS       ( REGFILE_NUM_READ_PORTS    ),
-    .SMCLIC                       ( SMCLIC                    )
+    .CLIC                         ( CLIC                      )
   )
   id_stage_i
   (
@@ -627,7 +656,10 @@ module cv32e40x_core import cv32e40x_pkg::*;
     .X_ID_WIDTH            (X_ID_WIDTH          ),
     .PMA_NUM_REGIONS       (PMA_NUM_REGIONS     ),
     .PMA_CFG               (PMA_CFG             ),
-    .DBG_NUM_TRIGGERS      (DBG_NUM_TRIGGERS    )
+    .DBG_NUM_TRIGGERS      (DBG_NUM_TRIGGERS    ),
+    .DEBUG                 (DEBUG               ),
+    .DM_REGION_START       (DM_REGION_START     ),
+    .DM_REGION_END         (DM_REGION_END       )
   )
   load_store_unit_i
   (
@@ -645,6 +677,7 @@ module cv32e40x_core import cv32e40x_pkg::*;
 
     // Control signals
     .busy_o                ( lsu_busy           ),
+    .bus_busy_o            ( lsu_bus_busy       ),
     .interruptible_o       ( lsu_interruptible  ),
 
     // Trigger match
@@ -654,6 +687,7 @@ module cv32e40x_core import cv32e40x_pkg::*;
     .lsu_split_0_o         ( lsu_split_ex       ),
     .lsu_first_op_0_o      ( lsu_first_op_ex    ),
     .lsu_last_op_0_o       ( lsu_last_op_ex     ),
+    .lsu_atomic_0_o        ( lsu_atomic_ex      ),
 
     // Outputs to trigger module
     .lsu_addr_o            ( lsu_addr_ex        ),
@@ -661,10 +695,16 @@ module cv32e40x_core import cv32e40x_pkg::*;
     .lsu_be_o              ( lsu_be_ex          ),
 
     // Stage 1 outputs (WB)
-    .lsu_err_1_o           ( lsu_err_wb         ), // To controller (has WB timing, but does not pass through WB stage)
+    // lsu_err_1_o has WB timing and is used by the controller. Does not go through the wb_stage, and does not have
+    // any sticky bits associated with it. The sticky bits for LSU related signals within the WB stage are only needed
+    // for MPU errors and watchpoint triggers. All LSU instructions that gets through the WPT and MPU will retire immediately
+    // when data_rvalid arrives. data_err_i will always come from the bus.
+    .lsu_err_1_o           ( lsu_err_wb         ),
     .lsu_rdata_1_o         ( lsu_rdata_wb       ),
     .lsu_mpu_status_1_o    ( lsu_mpu_status_wb  ),
     .lsu_wpt_match_1_o     ( lsu_wpt_match_wb   ),
+    .lsu_align_status_1_o  ( lsu_align_status_wb),
+    .lsu_atomic_1_o        ( lsu_atomic_wb      ),
 
     // Valid/ready
     .valid_0_i             ( lsu_valid_ex       ), // First LSU stage (EX)
@@ -687,6 +727,9 @@ module cv32e40x_core import cv32e40x_pkg::*;
   ////////////////////////////////////////////////////////////////////////////////////////
 
   cv32e40x_wb_stage
+  #(
+      .DEBUG                    ( DEBUG                        )
+  )
   wb_stage_i
   (
     .clk                        ( clk                          ), // Not used in RTL; only used by assertions
@@ -702,6 +745,7 @@ module cv32e40x_core import cv32e40x_pkg::*;
     .lsu_rdata_i                ( lsu_rdata_wb                 ),
     .lsu_mpu_status_i           ( lsu_mpu_status_wb            ),
     .lsu_wpt_match_i            ( lsu_wpt_match_wb             ),
+    .lsu_align_status_i         ( lsu_align_status_wb          ),
 
     // Write back to register file
     .rf_we_wb_o                 ( rf_we_wb                     ),
@@ -722,6 +766,10 @@ module cv32e40x_core import cv32e40x_pkg::*;
 
     // eXtension interface
     .xif_result_if              ( xif_result_if                ),
+
+    .wpt_match_wb_o             ( wpt_match_wb                 ),
+    .mpu_status_wb_o            ( mpu_status_wb                ),
+    .align_status_wb_o          ( align_status_wb              ),
 
     // CSR/CLIC pointer inputs
     .clic_pa_valid_i            ( csr_clic_pa_valid            ),
@@ -750,9 +798,10 @@ module cv32e40x_core import cv32e40x_pkg::*;
     .X_MISA                     ( X_MISA                 ),
     .X_ECS_XS                   ( X_ECS_XS               ),
     .ZC_EXT                     ( ZC_EXT                 ),
-    .SMCLIC                     ( SMCLIC                 ),
-    .SMCLIC_ID_WIDTH            ( SMCLIC_ID_WIDTH        ),
-    .SMCLIC_INTTHRESHBITS       ( SMCLIC_INTTHRESHBITS   ),
+    .CLIC                       ( CLIC                   ),
+    .CLIC_ID_WIDTH              ( CLIC_ID_WIDTH          ),
+    .CLIC_INTTHRESHBITS         ( CLIC_INTTHRESHBITS     ),
+    .DEBUG                      ( DEBUG                  ),
     .DBG_NUM_TRIGGERS           ( DBG_NUM_TRIGGERS       ),
     .NUM_MHPMCOUNTERS           ( NUM_MHPMCOUNTERS       ),
     .MTVT_ADDR_WIDTH            ( MTVT_ADDR_WIDTH        )
@@ -772,6 +821,7 @@ module cv32e40x_core import cv32e40x_pkg::*;
     .dcsr_o                     ( dcsr                   ),
     .dpc_o                      ( dpc                    ),
     .jvt_addr_o                 ( jvt_addr               ),
+    .jvt_mode_o                 ( jvt_mode               ),
     .mcause_o                   ( mcause                 ),
     .mcycle_o                   ( mcycle_o               ),
     .mepc_o                     ( mepc                   ),
@@ -811,6 +861,9 @@ module cv32e40x_core import cv32e40x_pkg::*;
     .clic_pa_valid_o            ( csr_clic_pa_valid      ),
     .clic_pa_o                  ( csr_clic_pa            ),
 
+    // Time input
+    .time_i                     ( time_i                 ),
+
     // CSR write strobes
     .csr_wr_in_wb_flush_o       ( csr_wr_in_wb_flush     ),
 
@@ -824,7 +877,8 @@ module cv32e40x_core import cv32e40x_pkg::*;
     .lsu_valid_ex_i             ( lsu_valid_ex           ),
     .lsu_addr_ex_i              ( lsu_addr_ex            ),
     .lsu_we_ex_i                ( lsu_we_ex              ),
-    .lsu_be_ex_i                ( lsu_be_ex              )
+    .lsu_be_ex_i                ( lsu_be_ex              ),
+    .lsu_atomic_ex_i            ( lsu_atomic_ex          )
   );
 
   ////////////////////////////////////////////////////////////////////
@@ -839,9 +893,11 @@ module cv32e40x_core import cv32e40x_pkg::*;
   cv32e40x_controller
   #(
     .X_EXT                          ( X_EXT                  ),
+    .A_EXT                          ( A_EXT                  ),
     .REGFILE_NUM_READ_PORTS         ( REGFILE_NUM_READ_PORTS ),
-    .SMCLIC                         ( SMCLIC                 ),
-    .SMCLIC_ID_WIDTH                ( SMCLIC_ID_WIDTH        )
+    .CLIC                           ( CLIC                   ),
+    .CLIC_ID_WIDTH                  ( CLIC_ID_WIDTH          ),
+    .DEBUG                          ( DEBUG                  )
   )
   controller_i
   (
@@ -859,6 +915,9 @@ module cv32e40x_core import cv32e40x_pkg::*;
 
     // From EX/WB pipeline
     .ex_wb_pipe_i                   ( ex_wb_pipe             ),
+    .mpu_status_wb_i                ( mpu_status_wb          ),
+    .wpt_match_wb_i                 ( wpt_match_wb           ),
+    .align_status_wb_i              ( align_status_wb        ),
 
     // last_op bits
     .last_op_id_i                   ( last_op_id             ),
@@ -886,13 +945,14 @@ module cv32e40x_core import cv32e40x_pkg::*;
     .first_op_id_i                  ( first_op_id            ),
 
     // LSU
-    .lsu_mpu_status_wb_i            ( lsu_mpu_status_wb      ),
     .data_stall_wb_i                ( data_stall_wb          ),
     .lsu_err_wb_i                   ( lsu_err_wb             ),
     .lsu_busy_i                     ( lsu_busy               ),
+    .lsu_bus_busy_i                 ( lsu_bus_busy           ),
     .lsu_interruptible_i            ( lsu_interruptible      ),
     .lsu_valid_wb_i                 ( lsu_valid_wb           ),
-    .lsu_wpt_match_wb_i             ( lsu_wpt_match_wb       ),
+    .lsu_atomic_ex_i                ( lsu_atomic_ex          ),
+    .lsu_atomic_wb_i                ( lsu_atomic_wb          ),
 
     // jump/branch control
     .branch_decision_ex_i           ( branch_decision_ex     ),
@@ -910,6 +970,7 @@ module cv32e40x_core import cv32e40x_pkg::*;
     // From CSR registers
     .mtvec_mode_i                   ( mtvec_mode             ),
     .mcause_i                       ( mcause                 ),
+    .mintstatus_i                   ( mintstatus             ),
 
     // Trigger module
     .etrigger_wb_i                  ( etrigger_wb            ),
@@ -918,7 +979,7 @@ module cv32e40x_core import cv32e40x_pkg::*;
     .csr_wr_in_wb_flush_i           ( csr_wr_in_wb_flush     ),
 
     // Debug signals
-    .debug_req_i                    ( debug_req_i            ),
+    .debug_req_i                    ( debug_req_gated        ),
     .dcsr_i                         ( dcsr                   ),
 
     // Register File read, write back and forwards
@@ -958,12 +1019,12 @@ module cv32e40x_core import cv32e40x_pkg::*;
   ////////////////////////////////////////////////////////////////////////
 
   generate
-    if (SMCLIC) begin : gen_clic_interrupt
+    if (CLIC) begin : gen_clic_interrupt
       assign mip          = '0;
 
       cv32e40x_clic_int_controller
       #(
-          .SMCLIC_ID_WIDTH (SMCLIC_ID_WIDTH)
+          .CLIC_ID_WIDTH (CLIC_ID_WIDTH)
       )
       clic_int_controller_i
       (

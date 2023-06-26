@@ -32,7 +32,8 @@
 module cv32e40x_debug_triggers
 import cv32e40x_pkg::*;
 #(
-  parameter int DBG_NUM_TRIGGERS = 1
+  parameter int     DBG_NUM_TRIGGERS = 1,
+  parameter a_ext_e A_EXT = A_NONE
 )
 (
   input  logic       clk,
@@ -66,6 +67,7 @@ import cv32e40x_pkg::*;
   input  logic        lsu_we_ex_i,
   input  logic [3:0]  lsu_be_ex_i,
   input  privlvl_t    priv_lvl_ex_i,
+  input  lsu_atomic_e lsu_atomic_ex_i,
 
   // WB stage inputs
   input  privlvl_t    priv_lvl_wb_i,
@@ -86,6 +88,13 @@ import cv32e40x_pkg::*;
   logic [31:0] tdata3_n;
   logic [31:0] tinfo_n;
   logic [31:0] tcontrol_n;
+
+  // RVFI only signals
+  logic [31:0] tdata1_n_r;
+  logic [31:0] tdata2_n_r;
+  logic        tdata1_we_r;
+  logic        tdata2_we_r;
+
 
   // Signal for or'ing unused signals for easier lint
   logic unused_signals;
@@ -141,7 +150,28 @@ import cv32e40x_pkg::*;
         tdata2_n  = tdata2_rdata_o;
 
         if (tdata1_we_i) begin
-          if (csr_wdata_i[TDATA1_TTYPE_HIGH:TDATA1_TTYPE_LOW] == TTYPE_MCONTROL6) begin
+          if (csr_wdata_i[TDATA1_TTYPE_HIGH:TDATA1_TTYPE_LOW] == TTYPE_MCONTROL) begin
+            // Mcontrol supports any value in tdata2, no need to check tdata2 before writing tdata1
+            tdata1_n = {
+                        TTYPE_MCONTROL,        // type    : address/data match
+                        1'b1,                  // dmode   : access from D mode only
+                        6'b000000,             // maskmax  : hardwired to zero
+                        1'b0,                  // hit     : hardwired to zero
+                        1'b0,                  // select  : hardwired to zero, only address matching
+                        1'b0,                  // timing  : hardwired to zero, only 'before' timing
+                        2'b00,                 // sizelo  : hardwired to zero, match any size
+                        4'b0001,               // action  : enter debug on match
+                        1'b0,                  // chain   : hardwired to zero
+                        mcontrol2_6_match_resolve(csr_wdata_i[MCONTROL2_6_MATCH_HIGH:MCONTROL2_6_MATCH_LOW]), // match, WARL(0,2,3) 10:7
+                        csr_wdata_i[6],        // m       : match in machine mode
+                        1'b0,                  //         : hardwired to zero
+                        1'b0,                  // s       : hardwired to zer0
+                        mcontrol2_6_u_resolve(csr_wdata_i[MCONTROL2_6_U]),     // zero, U 3
+                        csr_wdata_i[2],        // EXECUTE 2
+                        csr_wdata_i[1],        // STORE 1
+                        csr_wdata_i[0]         // LOAD 0
+            };
+          end else if (csr_wdata_i[TDATA1_TTYPE_HIGH:TDATA1_TTYPE_LOW] == TTYPE_MCONTROL6) begin
             // Mcontrol6 supports any value in tdata2, no need to check tdata2 before writing tdata1
             tdata1_n = {
                         TTYPE_MCONTROL6,       // type    : address/data match
@@ -153,11 +183,11 @@ import cv32e40x_pkg::*;
                         4'b0000,               // zero, size (match any size) 19:16
                         4'b0001,               // action, WARL(1), enter debug 15:12
                         1'b0,                  // zero, chain 11
-                        mcontrol6_match_resolve(csr_wdata_i[MCONTROL6_MATCH_HIGH:MCONTROL6_MATCH_LOW]), // match, WARL(0,2,3) 10:7
+                        mcontrol2_6_match_resolve(csr_wdata_i[MCONTROL2_6_MATCH_HIGH:MCONTROL2_6_MATCH_LOW]), // match, WARL(0,2,3) 10:7
                         csr_wdata_i[6],        // M  6
                         1'b0,                  // zero 5
                         1'b0,                  // zero, S 4
-                        mcontrol6_u_resolve(csr_wdata_i[MCONTROL6_U]),     // zero, U 3
+                        mcontrol2_6_u_resolve(csr_wdata_i[MCONTROL2_6_U]),     // zero, U 3
                         csr_wdata_i[2],        // EXECUTE 2
                         csr_wdata_i[1],        // STORE 1
                         csr_wdata_i[0]         // LOAD 0
@@ -168,8 +198,8 @@ import cv32e40x_pkg::*;
 
             // Detect if any cleared bits in ETRIGGER_TDATA2_MASK are set in tdata2
             if (|(tdata2_rdata_o & (~ETRIGGER_TDATA2_MASK))) begin
-              // Unsupported exception codes enabled, keep value of tdata1
-              tdata1_n = tdata1_rdata_o;
+              // Unsupported exception codes enabled, default to disabled trigger.
+              tdata1_n = {TTYPE_DISABLED, 1'b1, {27{1'b0}}};
             end else begin
               tdata1_n = {
                           TTYPE_ETRIGGER,        // type  : exception trigger
@@ -198,8 +228,9 @@ import cv32e40x_pkg::*;
         // tdata2
         if (tdata2_we_i) begin
           if ((tdata1_rdata_o[TDATA1_TTYPE_HIGH:TDATA1_TTYPE_LOW] == TTYPE_DISABLED) ||
+              (tdata1_rdata_o[TDATA1_TTYPE_HIGH:TDATA1_TTYPE_LOW] == TTYPE_MCONTROL) ||
               (tdata1_rdata_o[TDATA1_TTYPE_HIGH:TDATA1_TTYPE_LOW] == TTYPE_MCONTROL6)) begin
-            // Disabled trigger and mcontrol6 can have any value in tdata2
+            // Disabled trigger, mcontrol and mcontrol6 can have any value in tdata2
             tdata2_n = csr_wdata_i;
           end else begin
             // Exception trigger, only allow implemented exception codes to be used
@@ -254,16 +285,17 @@ import cv32e40x_pkg::*;
         //   No instruction address match on any pointer type (CLIC and Zc tablejumps).
 
         // Check for address match using tdata2.match for checking rule
-        assign if_addr_match[idx] = (tdata1_rdata[idx][MCONTROL6_MATCH_HIGH:MCONTROL6_MATCH_LOW] == 4'h0) ? (pc_if_i == tdata2_rdata[idx]) :
-                                    (tdata1_rdata[idx][MCONTROL6_MATCH_HIGH:MCONTROL6_MATCH_LOW] == 4'h2) ? (pc_if_i >= tdata2_rdata[idx]) : (pc_if_i < tdata2_rdata[idx]);
+        assign if_addr_match[idx] = (tdata1_rdata[idx][MCONTROL2_6_MATCH_HIGH:MCONTROL2_6_MATCH_LOW] == 4'h0) ? (pc_if_i == tdata2_rdata[idx]) :
+                                    (tdata1_rdata[idx][MCONTROL2_6_MATCH_HIGH:MCONTROL2_6_MATCH_LOW] == 4'h2) ? (pc_if_i >= tdata2_rdata[idx]) : (pc_if_i < tdata2_rdata[idx]);
 
         // Check if matching is enabled for the current privilege level from IF
-        assign priv_lvl_match_en_if[idx] = (tdata1_rdata[idx][MCONTROL6_M] && (priv_lvl_if_i == PRIV_LVL_M)) ||
-                                           (tdata1_rdata[idx][MCONTROL6_U] && (priv_lvl_if_i == PRIV_LVL_U));
+        assign priv_lvl_match_en_if[idx] = (tdata1_rdata[idx][MCONTROL2_6_M] && (priv_lvl_if_i == PRIV_LVL_M)) ||
+                                           (tdata1_rdata[idx][MCONTROL2_6_U] && (priv_lvl_if_i == PRIV_LVL_U));
 
         // Check for trigger match from IF
-        assign trigger_match_if[idx] = (tdata1_rdata[idx][TDATA1_TTYPE_HIGH:TDATA1_TTYPE_LOW] == TTYPE_MCONTROL6) &&
-                                       tdata1_rdata[idx][MCONTROL6_EXECUTE] && priv_lvl_match_en_if[idx] && !ctrl_fsm_i.debug_mode && !ptr_in_if_i &&
+        assign trigger_match_if[idx] = ((tdata1_rdata[idx][TDATA1_TTYPE_HIGH:TDATA1_TTYPE_LOW] == TTYPE_MCONTROL)   ||
+                                        (tdata1_rdata[idx][TDATA1_TTYPE_HIGH:TDATA1_TTYPE_LOW] == TTYPE_MCONTROL6)) &&
+                                       tdata1_rdata[idx][MCONTROL2_6_EXECUTE] && priv_lvl_match_en_if[idx] && !ctrl_fsm_i.debug_mode && !ptr_in_if_i &&
                                        if_addr_match[idx];
 
         ///////////////////////////////////////
@@ -292,19 +324,21 @@ import cv32e40x_pkg::*;
         // For ==, check that we match the 32-bit aligned word and that any of the accessed bytes matches tdata2[1:0]
         // For >=, check that the highest accessed address is greater than or equal to tdata2. If this fails, no bytes within the access are >= tdata2
         // For <, check that the lowest accessed address is less than tdata2. If this fails, no bytes within the access are < tdata2.
-        assign lsu_addr_match[idx] = (tdata1_rdata[idx][MCONTROL6_MATCH_HIGH:MCONTROL6_MATCH_LOW] == 4'h0) ? ((lsu_addr_ex_i[31:2] == tdata2_rdata[idx][31:2]) && (|lsu_byte_addr_match[idx])) :
-                                     (tdata1_rdata[idx][MCONTROL6_MATCH_HIGH:MCONTROL6_MATCH_LOW] == 4'h2) ? (lsu_addr_high >= tdata2_rdata[idx]) :
+        assign lsu_addr_match[idx] = (tdata1_rdata[idx][MCONTROL2_6_MATCH_HIGH:MCONTROL2_6_MATCH_LOW] == 4'h0) ? ((lsu_addr_ex_i[31:2] == tdata2_rdata[idx][31:2]) && (|lsu_byte_addr_match[idx])) :
+                                     (tdata1_rdata[idx][MCONTROL2_6_MATCH_HIGH:MCONTROL2_6_MATCH_LOW] == 4'h2) ? (lsu_addr_high >= tdata2_rdata[idx]) :
                                                                                                              (lsu_addr_low  <  tdata2_rdata[idx]) ;
 
         // Check if matching is enabled for the current privilege level from EX
-        assign priv_lvl_match_en_ex[idx] = (tdata1_rdata[idx][MCONTROL6_M] && (priv_lvl_ex_i == PRIV_LVL_M)) ||
-                                           (tdata1_rdata[idx][MCONTROL6_U] && (priv_lvl_ex_i == PRIV_LVL_U));
+        assign priv_lvl_match_en_ex[idx] = (tdata1_rdata[idx][MCONTROL2_6_M] && (priv_lvl_ex_i == PRIV_LVL_M)) ||
+                                           (tdata1_rdata[idx][MCONTROL2_6_U] && (priv_lvl_ex_i == PRIV_LVL_U));
 
         // Enable LSU address matching
-        assign lsu_addr_match_en[idx] = lsu_valid_ex_i && ((tdata1_rdata[idx][MCONTROL6_LOAD] && !lsu_we_ex_i) || (tdata1_rdata[idx][MCONTROL6_STORE] && lsu_we_ex_i));
+        // AMO transactions have lsu_we_ex_i == 1'b1, but also perform a read. Thus AMOs will also match loads regardless of the lsu_we_we bit.
+        assign lsu_addr_match_en[idx] = lsu_valid_ex_i && ((tdata1_rdata[idx][MCONTROL2_6_LOAD] && (!lsu_we_ex_i || (lsu_atomic_ex_i == AT_AMO))) || (tdata1_rdata[idx][MCONTROL2_6_STORE] && lsu_we_ex_i));
 
         // Signal trigger match for LSU address
-        assign trigger_match_ex[idx] = (tdata1_rdata[idx][TDATA1_TTYPE_HIGH:TDATA1_TTYPE_LOW] == TTYPE_MCONTROL6) &&
+        assign trigger_match_ex[idx] = ((tdata1_rdata[idx][TDATA1_TTYPE_HIGH:TDATA1_TTYPE_LOW] == TTYPE_MCONTROL)   ||
+                                        (tdata1_rdata[idx][TDATA1_TTYPE_HIGH:TDATA1_TTYPE_LOW] == TTYPE_MCONTROL6)) &&
                                         priv_lvl_match_en_ex[idx] &&  lsu_addr_match_en[idx] && lsu_addr_match[idx] && !ctrl_fsm_i.debug_mode;
 
         /////////////////////////////
@@ -392,9 +426,29 @@ import cv32e40x_pkg::*;
         end
       end
 
+      // RVFI only
+      // assign _we_r and wdata_n_r values
+      always_comb begin
+        tdata1_we_r = tdata1_we_i || tselect_we_i;
+        tdata2_we_r = tdata2_we_i || tselect_we_i;
+
+        tdata1_n_r = tdata1_n;
+        tdata2_n_r = tdata2_n;
+
+        if (tselect_we_i) begin
+          for (int i=0; i<DBG_NUM_TRIGGERS; i++) begin
+            if(tselect_n == i) begin
+              tdata1_n_r = tdata1_rdata[i];
+              tdata2_n_r = tdata2_rdata[i];
+            end
+          end
+        end
+      end
+
+
       assign tdata3_rdata_o   = 32'h00000000;
       assign tselect_rdata_o  = tselect_q;
-      assign tinfo_rdata_o    = 32'h00008060; // Supported types 0x5, 0x6 and 0xF
+      assign tinfo_rdata_o    = 32'h00008064; // Supported types 0x2, 0x5, 0x6 and 0xF
       assign tcontrol_rdata_o = 32'h00000000;
 
       // Set trigger match for IF
@@ -406,7 +460,8 @@ import cv32e40x_pkg::*;
       // Set trigger match for WB
       assign etrigger_wb_o = |etrigger_wb;
 
-      assign unused_signals = tinfo_we_i | tcontrol_we_i | tdata3_we_i | (|tinfo_n) | (|tdata3_n) | (|tcontrol_n);
+      assign unused_signals = tinfo_we_i | tcontrol_we_i | tdata3_we_i | (|tinfo_n) | (|tdata3_n) | (|tcontrol_n) |
+                              (|tdata1_n_r) | (|tdata2_n_r) | tdata1_we_r | tdata2_we_r;
 
     end else begin : gen_no_triggers
       // Tie off outputs
@@ -425,9 +480,14 @@ import cv32e40x_pkg::*;
       assign tselect_n = '0;
       assign tinfo_n = '0;
       assign tcontrol_n = '0;
+      assign tdata1_n_r = '0;
+      assign tdata2_n_r = '0;
+      assign tdata1_we_r = 1'b0;
+      assign tdata2_we_r = 1'b0;
 
       assign unused_signals = (|tdata1_n) | (|tdata2_n) | (|tdata3_n) | (|tselect_n) | (|tinfo_n) | (|tcontrol_n) |
-                              (|csr_wdata_i) | tdata1_we_i | tdata2_we_i | tdata3_we_i | tselect_we_i | tinfo_we_i | tcontrol_we_i;
+                              (|csr_wdata_i) | tdata1_we_i | tdata2_we_i | tdata3_we_i | tselect_we_i | tinfo_we_i | tcontrol_we_i |
+                              (|tdata1_n_r) | (|tdata2_n_r) | tdata1_we_r | tdata2_we_r;
     end
   endgenerate
 endmodule

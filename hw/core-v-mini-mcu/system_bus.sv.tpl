@@ -43,6 +43,9 @@ module system_bus
     input  obi_req_t  dma_write_ch0_req_i,
     output obi_resp_t dma_write_ch0_resp_o,
 
+    input  obi_req_t  dma_master2_ch0_req_i,
+    output obi_resp_t dma_master2_ch0_resp_o,
+
     // External master ports
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
@@ -115,6 +118,7 @@ module system_bus
   assign int_master_req[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX] = debug_master_req_i;
   assign int_master_req[core_v_mini_mcu_pkg::DMA_READ_CH0_IDX] = dma_read_ch0_req_i;
   assign int_master_req[core_v_mini_mcu_pkg::DMA_WRITE_CH0_IDX] = dma_write_ch0_req_i;
+  assign master_req[core_v_mini_mcu_pkg::DMA_MASTER2_CH0_IDX] = dma_master2_ch0_req_i;
 
   // Internal + external master requests
   generate
@@ -137,6 +141,7 @@ module system_bus
   assign debug_master_resp_o = int_master_resp[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX];
   assign dma_read_ch0_resp_o = int_master_resp[core_v_mini_mcu_pkg::DMA_READ_CH0_IDX];
   assign dma_write_ch0_resp_o = int_master_resp[core_v_mini_mcu_pkg::DMA_WRITE_CH0_IDX];
+  assign dma_master2_ch0_resp_o = master_resp[core_v_mini_mcu_pkg::DMA_MASTER2_CH0_IDX];
 
   // External master responses
   if (EXT_XBAR_NMASTER == 0) begin

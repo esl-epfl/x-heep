@@ -68,11 +68,13 @@ const uint32_t plicMaxPriority = RV_PLIC_PRIO0_PRIO0_MASK;
  * index is generated. This index will be used to address the proper
  * handler function inside this array.
 */
-handler_funct_t handlers[PLIC_INTR_SRCS_NUM] = {&handler_irq_uart, 
-                                                &handler_irq_gpio, 
-                                                &handler_irq_i2c, 
-                                                &handler_irq_spi,
-                                                &handler_irq_ext};
+handler_funct_t handlers[] = {&handler_irq_uart, 
+                              &handler_irq_gpio, 
+                              &handler_irq_i2c, 
+                              &handler_irq_spi,
+                              &handler_irq_i2s,
+                              &handler_irq_dma,
+                              &handler_irq_ext};
 
 /****************************************************************************/
 /**                                                                        **/
@@ -150,6 +152,14 @@ __attribute__((weak, optimize("O0"))) void handler_irq_i2c(void) {
 }
 
 __attribute__((weak, optimize("O0"))) void handler_irq_spi(void) {
+  
+}
+
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2s(void) {
+
+} 
+__attribute__((weak, optimize("O0"))) void handler_irq_dma(void) {
   
 }
 
@@ -421,6 +431,13 @@ static irq_sources_t plic_get_irq_src_type(plic_irq_id_t irq_id)
   else if (irq_id == SPI_ID)
   {
     return IRQ_SPI_SRC;
+  }
+  else if (irq_id == I2S_ID) {
+    return IRQ_I2S_SRC;
+  }
+  else if (irq_id == DMA_ID)
+  {
+    return IRQ_DMA_SRC;
   }
   else 
   {

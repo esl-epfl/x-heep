@@ -15,8 +15,9 @@
 #include "fast_intr_ctrl.h"
 #include "fast_intr_ctrl_regs.h"
 
-// Un-comment this line to use the SPI FLASH instead of the default SPI
-// #define USE_SPI_FLASH
+#ifdef TARGET_PYNQ_Z2
+    #define USE_SPI_FLASH
+#endif
 
 // Simple example to check the SPI host peripheral is working. It checks the ram and flash have the same content
 #define REVERT_24b_ADDR(addr) ((((uint32_t)(addr) & 0xff0000) >> 16) | ((uint32_t)(addr) & 0xff00) | (((uint32_t)(addr) & 0xff) << 16))
@@ -29,7 +30,7 @@ uint32_t flash_data[8];
 uint32_t flash_original[8] = {1};
 
 #ifndef USE_SPI_FLASH
-void fic_irq_fast_spi(void)
+void fic_irq_spi(void)
 {
     // Disable SPI interrupts
     spi_enable_evt_intr(&spi_host, false);
@@ -37,7 +38,7 @@ void fic_irq_fast_spi(void)
     spi_intr_flag = 1;
 }
 #else
-void fic_irq_fast_spi_flash(void)
+void fic_irq_spi_flash(void)
 {
     // Disable SPI interrupts
     spi_enable_evt_intr(&spi_host, false);
@@ -50,7 +51,7 @@ int main(int argc, char *argv[])
 {
     // spi_host_t spi_host;
     #ifndef USE_SPI_FLASH
-        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI2_START_ADDRESS);
+        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
     #else
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif

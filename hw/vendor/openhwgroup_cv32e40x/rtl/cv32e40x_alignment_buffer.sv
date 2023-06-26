@@ -60,7 +60,7 @@ module cv32e40x_alignment_buffer import cv32e40x_pkg::*;
   output logic [31:0]                instr_addr_o,
   output privlvl_t                   instr_priv_lvl_o,
   output logic                       instr_is_clic_ptr_o, // True CLIC pointer after taking a CLIC SHV interrupt
-  output logic                       instr_is_mret_ptr_o, // CLIC pointer due to restarting pionter fetch during mret
+  output logic                       instr_is_mret_ptr_o, // CLIC pointer due to restarting pointer fetch during mret
   output logic                       instr_is_tbljmp_ptr_o,
   output logic [ALBUF_CNT_WIDTH-1:0] outstnd_cnt_q_o
 );
@@ -97,9 +97,10 @@ module cv32e40x_alignment_buffer import cv32e40x_pkg::*;
   // Store number of responses to flush when get get a branch
   logic [1:0] n_flush_n, n_flush_q, n_flush_branch;
 
-  // Error propagation signals for bus and mpu
+  // Error propagation signals for bus, mpu and alignment checker (pointers)
   logic bus_err_unaligned, bus_err;
   mpu_status_e mpu_status_unaligned, mpu_status;
+  align_status_e align_status_unaligned, align_status;
 
   // resp_valid gated while flushing
   logic resp_valid_gated;
@@ -163,9 +164,11 @@ module cv32e40x_alignment_buffer import cv32e40x_pkg::*;
 
   // Aligned instructions will either be fully in index 0 or incoming data
   // This also applies for the bus_error and mpu_status
-  assign instr      = (valid_q[rptr]) ? resp_q[rptr].bus_resp.rdata : resp_i.bus_resp.rdata;
-  assign bus_err    = (valid_q[rptr]) ? resp_q[rptr].bus_resp.err   : resp_i.bus_resp.err;
-  assign mpu_status = (valid_q[rptr]) ? resp_q[rptr].mpu_status     : resp_i.mpu_status;
+  assign instr        = (valid_q[rptr]) ? resp_q[rptr].bus_resp.rdata : resp_i.bus_resp.rdata;
+  assign bus_err      = (valid_q[rptr]) ? resp_q[rptr].bus_resp.err   : resp_i.bus_resp.err;
+  assign mpu_status   = (valid_q[rptr]) ? resp_q[rptr].mpu_status     : resp_i.mpu_status;
+  assign align_status = (valid_q[rptr]) ? resp_q[rptr].align_status   : resp_i.align_status;
+
 
   // Unaligned instructions will either be split across index 0 and 1, or index 0 and incoming data
   assign instr_unaligned = (valid_q[rptr2]) ? {resp_q[rptr2].bus_resp.rdata[15:0], instr[31:16]} : {resp_i.bus_resp.rdata[15:0], instr[31:16]};
@@ -178,13 +181,19 @@ module cv32e40x_alignment_buffer import cv32e40x_pkg::*;
   assign valid = valid_q[rptr] || resp_valid_gated;
 
   // unaligned_is_compressed and aligned_is_compressed are only defined when valid = 1 (which implies that instr_valid_o will be 1)
-  assign unaligned_is_compressed = instr[17:16] != 2'b11;
-  assign aligned_is_compressed   = instr[1:0] != 2'b11;
+  // Never flag a compressed instruction (aligned or misaligned) for pointers. Otherwise one could signal instr_valid_o twice for one pointer
+  // if the pointer itself looks like two compressed instructions.
+  assign unaligned_is_compressed = (instr[17:16] != 2'b11) &&
+                                   !(instr_is_clic_ptr_o || instr_is_mret_ptr_o || instr_is_tbljmp_ptr_o);
+
+  assign aligned_is_compressed   = (instr[1:0] != 2'b11) &&
+                                   !(instr_is_clic_ptr_o || instr_is_mret_ptr_o || instr_is_tbljmp_ptr_o);
 
 
-  // Set mpu_status and bus error for unaligned instructions
+  // Set mpu_status, align_status and bus error for unaligned instructions
   always_comb begin
     mpu_status_unaligned = MPU_OK;
+    align_status_unaligned = ALIGN_OK;
     bus_err_unaligned = 1'b0;
     // There is valid data in q1 (valid q0 is implied)
     if(valid_q[rptr2]) begin
@@ -195,11 +204,17 @@ module cv32e40x_alignment_buffer import cv32e40x_pkg::*;
           mpu_status_unaligned = MPU_RE_FAULT;
         end
 
+        if((resp_q[rptr2].align_status != ALIGN_OK) || (resp_q[rptr].align_status != ALIGN_OK)) begin
+          align_status_unaligned = ALIGN_RE_ERR;
+        end
+
         // Bus error from either entry
         bus_err_unaligned = (resp_q[rptr2].bus_resp.err || resp_q[rptr].bus_resp.err);
       end else begin
         // Compressed, use only mpu_status from q0
         mpu_status_unaligned = resp_q[rptr].mpu_status;
+
+        align_status_unaligned = resp_q[rptr].align_status;
 
         // bus error from q0
         bus_err_unaligned    = resp_q[rptr].bus_resp.err;
@@ -214,19 +229,24 @@ module cv32e40x_alignment_buffer import cv32e40x_pkg::*;
             mpu_status_unaligned = MPU_RE_FAULT;
           end
 
+          if((resp_q[rptr].align_status != ALIGN_OK) || (resp_i.align_status != ALIGN_OK)) begin
+            align_status_unaligned = ALIGN_RE_ERR;
+          end
+
           // Bus error from q0 and resp_i
           bus_err_unaligned = (resp_q[rptr].bus_resp.err || resp_i.bus_resp.err);
         end else begin
           // There is unaligned data in q0 and it is compressed
           mpu_status_unaligned = resp_q[rptr].mpu_status;
-
+          align_status_unaligned = resp_q[rptr].align_status;
           // Bus error from q0
           bus_err_unaligned = resp_q[rptr].bus_resp.err;
         end
       end else begin
         // There is no data in the buffer, use input
-        mpu_status_unaligned = resp_i.mpu_status;
-        bus_err_unaligned    = resp_i.bus_resp.err;
+        mpu_status_unaligned   = resp_i.mpu_status;
+        bus_err_unaligned      = resp_i.bus_resp.err;
+        align_status_unaligned = resp_i.align_status;
       end
     end
   end
@@ -238,6 +258,7 @@ module cv32e40x_alignment_buffer import cv32e40x_pkg::*;
     instr_instr_o.bus_resp.rdata = instr;
     instr_instr_o.bus_resp.err   = bus_err;
     instr_instr_o.mpu_status     = mpu_status;
+    instr_instr_o.align_status   = align_status;
     instr_valid_o = 1'b0;
 
     // Invalidate output if we get killed
@@ -248,14 +269,20 @@ module cv32e40x_alignment_buffer import cv32e40x_pkg::*;
       instr_instr_o.bus_resp.rdata = instr_unaligned;
       instr_instr_o.bus_resp.err   = bus_err_unaligned;
       instr_instr_o.mpu_status     = mpu_status_unaligned;
-      // No instruction valid
+      instr_instr_o.align_status   = align_status_unaligned;
+
       if (!valid) begin
+        // No instruction valid
         instr_valid_o = 1'b0;
-      // Unaligned instruction is compressed, we only need 16 upper bits from index 0
+      end else if (instr_is_clic_ptr_o || instr_is_mret_ptr_o || instr_is_tbljmp_ptr_o) begin
+        // currently outputting a pointer, valid whenever the response arrives or we have
+        // the pointer within index 0 of the buffer.
+        instr_valid_o = valid;
       end else if (unaligned_is_compressed) begin
+        // Unaligned instruction is compressed, we only need 16 upper bits from index 0
         instr_valid_o = valid;
       end else begin
-      // Unaligned is not compressed, we need data form either index 0 and 1, or 0 and input
+        // Unaligned is not compressed, we need data from either index 0 and 1, or 0 and input
         instr_valid_o = valid_unaligned_uncompressed;
       end
     end else begin
@@ -545,6 +572,11 @@ module cv32e40x_alignment_buffer import cv32e40x_pkg::*;
         if(instr_valid_o && instr_ready_i) begin
           addr_q <= addr_n;
           rptr   <= rptr_n;
+
+          // Clear pointer flags when pointers are consumed.
+          is_clic_ptr_q     <= 1'b0;
+          is_mret_ptr_q     <= 1'b0;
+          is_tbljmp_ptr_q   <= 1'b0;
         end
       end
 

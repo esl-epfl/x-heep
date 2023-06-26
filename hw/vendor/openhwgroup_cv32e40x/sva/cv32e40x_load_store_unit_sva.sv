@@ -22,8 +22,10 @@ module cv32e40x_load_store_unit_sva
   import uvm_pkg::*;
   import cv32e40x_pkg::*;
   #(
-    parameter bit    X_EXT = 0,
-    parameter        DEPTH = 0
+    parameter bit          X_EXT = 0,
+    parameter int unsigned DEPTH = 0,
+    parameter bit          DEBUG = 1,
+    parameter a_ext_e      A_EXT = A_NONE
   )
   (input logic       clk,
    input logic       rst_n,
@@ -39,6 +41,7 @@ module cv32e40x_load_store_unit_sva
    input write_buffer_state_e write_buffer_state_i,
    input logic       split_q,
    input mpu_status_e lsu_mpu_status_1_o, // WB mpu status
+   input align_status_e lsu_align_status_1_o,
    input ex_wb_pipe_t ex_wb_pipe_i,
    if_c_obi.monitor  m_c_obi_data_if,
    input logic       xif_req,
@@ -50,7 +53,11 @@ module cv32e40x_load_store_unit_sva
    input logic       valid_0_i,
    input logic       ready_0_i,
    input logic       trigger_match_0_i,
-   input logic       lsu_wpt_match_1_o
+   input logic       lsu_wpt_match_1_o,
+   input trans_req_t trans,
+   input logic       bus_trans_valid,
+   input logic       mpu_err_i,
+   input logic       align_err_i
   );
 
   // Check that outstanding transaction count will not overflow DEPTH
@@ -122,10 +129,10 @@ module cv32e40x_load_store_unit_sva
 
   // Second half of a split transaction should never get killed while in EX
   // Exception: Second half of a split transaction may be killed if the first half
-  //            gets blocked by the PMA.
+  //            gets blocked by the PMA or alignment checker.
   a_lsu_no_kill_second_half_ex:
   assert property (@(posedge clk) disable iff (!rst_n)
-                  (split_q && (lsu_mpu_status_1_o == MPU_OK)) |-> !ctrl_fsm_i.kill_ex)
+                  (split_q && (lsu_mpu_status_1_o == MPU_OK) && (lsu_align_status_1_o == ALIGN_OK)) |-> !ctrl_fsm_i.kill_ex)
     else `uvm_error("load_store_unit", "Second half of split transaction was killed")
 
   // cnt_q == 2'b00 shall be the same as !(ex_wb_pipe.lsu_en && ex_wb_pipe_i.instr_valid)
@@ -135,16 +142,7 @@ module cv32e40x_load_store_unit_sva
                     (cnt_q == 2'b00) && !(ctrl_fsm_cs == DEBUG_TAKEN) |-> !(ex_wb_pipe_i.lsu_en && ex_wb_pipe_i.instr_valid))
       else `uvm_error("load_store_unit", "cnt_q is zero when WB contains a valid LSU instruction")
 
-  // The only cause of (cnt_q==0) with a valid LSU instruction in WB is a watchpoint trigger.
-  // Assertions checks that this is the case and that a debug entry is taking place.
-  a_lsu_cnt_nonzero_wpt:
-  assert property (@(posedge clk) disable iff (!rst_n)
-                  (cnt_q == 2'b00) && (ex_wb_pipe_i.lsu_en && ex_wb_pipe_i.instr_valid)
-                  |->
-                  $past(lsu_wpt_match_1_o) && (ctrl_fsm_cs == DEBUG_TAKEN))
-      else `uvm_error("load_store_unit", "Illegal cause of cnt_q=0 while a valid LSU instruction is in WB")
-
-  // Check that no XIF request or result are produced if X_EXT is disabled
+    // Check that no XIF request or result are produced if X_EXT is disabled
   a_lsu_no_xif_req_if_xext_disabled:
   assert property (@(posedge clk) disable iff (!rst_n)
                   !X_EXT |-> !xif_req)
@@ -224,5 +222,38 @@ module cv32e40x_load_store_unit_sva
                      ((split_rem_cnt == 2'h1) && (m_c_obi_data_if.s_req.req && m_c_obi_data_if.s_gnt.gnt)) |->
                      (m_c_obi_data_if.req_payload.prot == trans_prot_prev))
       else `uvm_error("load_store_unit", "OBI prot not equal for both parts of a split transfer")
+
+
+if (DEBUG) begin
+  // The only cause of (cnt_q==0) with a valid LSU instruction in WB is a watchpoint trigger.
+  // Assertions checks that this is the case and that a debug entry is taking place.
+  a_lsu_cnt_nonzero_wpt:
+  assert property (@(posedge clk) disable iff (!rst_n)
+                  (cnt_q == 2'b00) && (ex_wb_pipe_i.lsu_en && ex_wb_pipe_i.instr_valid)
+                  |->
+                  $past(lsu_wpt_match_1_o) && (ctrl_fsm_cs == DEBUG_TAKEN))
+      else `uvm_error("load_store_unit", "Illegal cause of cnt_q=0 while a valid LSU instruction is in WB")
+
+  // MPU errors and watchpoint triggers cannot happen at the same time
+  a_mpuerr_wpt_unique:
+  assert property (@(posedge clk) disable iff (!rst_n)
+                  lsu_wpt_match_1_o
+                  |->
+                  !(lsu_mpu_status_1_o != MPU_OK))
+      else `uvm_error("load_store_unit", "MPU error and watchpoint trigger not unique")
+end
+
+if (A_EXT != A_NONE) begin
+  // Check that misaligned atomics never reach the bus but get blocked by the alignment checker
+  a_misaligned_atomic_err:
+  assert property (@(posedge clk) disable iff (!rst_n)
+                  trans_valid &&                                    // Active transfer
+                  (trans.atop[5] && (trans.addr[1:0] != 2'b00)) &&  // Misaligned atomic
+                  !mpu_err_i                                        // Not blocked by MPU
+                  |->
+                  lsu_split_0_o &&
+                  align_err_i && !bus_trans_valid)
+      else `uvm_error("load_store_unit", "Misaligned atomic not blocked by alignment checker")
+end
 
 endmodule // cv32e40x_load_store_unit_sva
