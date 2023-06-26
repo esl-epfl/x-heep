@@ -24,8 +24,8 @@ module dma #(
     output obi_req_t  dma_write_ch0_req_o,
     input  obi_resp_t dma_write_ch0_resp_i,
 
-    output obi_req_t  dma_master2_ch0_req_o,
-    input  obi_resp_t dma_master2_ch0_resp_i,
+    output obi_req_t  dma_addr_ch0_req_o,
+    input  obi_resp_t dma_addr_ch0_resp_i,
 
     input logic [SLOT_NUM-1:0] trigger_slot_i,
 
@@ -140,16 +140,15 @@ module dma #(
   assign data_in_rvalid = dma_read_ch0_resp_i.rvalid;
   assign data_in_rdata = dma_read_ch0_resp_i.rdata;
 
-  assign dma_master2_ch0_req_o.req = data_addr_in_req;
-  assign dma_master2_ch0_req_o.we = data_addr_in_we;
-  assign dma_master2_ch0_req_o.be = data_addr_in_be;
-  assign dma_master2_ch0_req_o.addr = data_addr_in_addr;
-  assign dma_master2_ch0_req_o.wdata = 32'h0;
+  assign dma_addr_ch0_req_o.req = data_addr_in_req;
+  assign dma_addr_ch0_req_o.we = data_addr_in_we;
+  assign dma_addr_ch0_req_o.be = data_addr_in_be;
+  assign dma_addr_ch0_req_o.addr = data_addr_in_addr;
+  assign dma_addr_ch0_req_o.wdata = 32'h0;
 
-
-  assign data_addr_in_gnt = dma_master2_ch0_resp_i.gnt;
-  assign data_addr_in_rvalid = dma_master2_ch0_resp_i.rvalid;
-  assign data_addr_in_rdata = dma_master2_ch0_resp_i.rdata;
+  assign data_addr_in_gnt = dma_addr_ch0_resp_i.gnt;
+  assign data_addr_in_rvalid = dma_addr_ch0_resp_i.rvalid;
+  assign data_addr_in_rdata = dma_addr_ch0_resp_i.rdata;
 
   assign dma_write_ch0_req_o.req = data_out_req;
   assign dma_write_ch0_req_o.we = data_out_we;

@@ -34,7 +34,7 @@ One example using the external ports is provided where:
 To run the external device example, first compile the software example:
 
 ```bash
-make app PROJECT=example_external_peripheral
+make app PROJECT=example_external_dma
 ```
 
 By default, the external device example RTL code is disabled. This example is available for the sim and sim_opt targets.

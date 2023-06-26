@@ -123,6 +123,8 @@ module xilinx_core_v_mini_mcu_wrapper
       .ext_dma_read_ch0_resp_i('0),
       .ext_dma_write_ch0_req_o(),
       .ext_dma_write_ch0_resp_i('0),
+      .ext_dma_addr_ch0_req_o(),
+      .ext_dma_addr_ch0_resp_i('0),
       .ext_peripheral_slave_req_o(),
       .ext_peripheral_slave_resp_i('0),
       .external_subsystem_powergate_switch_o(),
