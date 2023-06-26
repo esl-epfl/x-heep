@@ -314,6 +314,8 @@ module testharness #(
           .dma_master0_ch0_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX]),
           .dma_master1_ch0_req_o(master_req[testharness_pkg::EXT_MASTER1_IDX]),
           .dma_master1_ch0_resp_i(master_resp[testharness_pkg::EXT_MASTER1_IDX]),
+          .dma_master2_ch0_req_o(),
+          .dma_master2_ch0_resp_i('0),
           .trigger_slot_i('0),
           .dma_done_intr_o(memcopy_intr),
           .dma_window_intr_o()
