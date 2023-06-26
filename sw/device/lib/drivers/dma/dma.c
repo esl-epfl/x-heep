@@ -714,8 +714,9 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * values, otherwise, use the target-specific ones.
      * Other reason to overwrite the target increment is if a trigger is used.
      * In that case, a increment of 0 is necessary.
+     * In case of DMA Address mode transaction, the dst pointer is ignored
+     * as the values read from the second port are instead used.
      */
-   
 
     //printf("src inc - ");
     write_register(  get_increment_b( dma_cb.trans->src ), 
