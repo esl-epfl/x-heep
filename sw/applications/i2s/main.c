@@ -67,7 +67,7 @@
 
 // Interrupt controller variables
 plic_result_t plic_res;
-plic_irq_id_t intr_num;
+uint32_t intr_num;
 
 
 // I2s
@@ -86,7 +86,7 @@ int8_t dma_intr_flag;
 //
 // ISR
 //
-void handler_irq_i2s(void) {
+void handler_irq_i2s(uint32_t id) {
     i2s_interrupt_flag = 1;
 }
 
