@@ -144,7 +144,7 @@ module system_bus
   assign debug_master_resp_o = int_master_resp[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX];
   assign dma_read_ch0_resp_o = int_master_resp[core_v_mini_mcu_pkg::DMA_READ_CH0_IDX];
   assign dma_write_ch0_resp_o = int_master_resp[core_v_mini_mcu_pkg::DMA_WRITE_CH0_IDX];
-  assign dma_addr_ch0_resp_o = master_resp[core_v_mini_mcu_pkg::DMA_ADDR_CH0_IDX];
+  assign dma_addr_ch0_resp_o = int_master_resp[core_v_mini_mcu_pkg::DMA_ADDR_CH0_IDX];
 
   // External master responses
   if (EXT_XBAR_NMASTER == 0) begin
