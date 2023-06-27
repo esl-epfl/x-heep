@@ -121,24 +121,17 @@ package core_v_mini_mcu_pkg;
   // ---------------------------------------
   // These crossbar connect each muster to the internal crossbar and to the
   // corresponding external master port.
-  localparam logic [31:0] FWD_XBAR_INT_SLAVE_START_ADDRESS = RAM0_START_ADDRESS;
-  localparam logic [31:0] FWD_XBAR_INT_SLAVE_END_ADDRESS = FLASH_MEM_END_ADDRESS;
-  localparam logic [31:0] FWD_XBAR_INT_SLAVE_SIZE = FWD_XBAR_INT_SLAVE_END_ADDRESS - FWD_XBAR_INT_SLAVE_START_ADDRESS;
-  localparam logic [31:0] FWD_XBAR_INT_SLAVE_IDX = 32'd0;
-
-  localparam logic[31:0] FWD_XBAR_EXT_SLAVE_START_ADDRESS = EXT_SLAVE_START_ADDRESS;
-  localparam logic[31:0] FWD_XBAR_EXT_SLAVE_SIZE = EXT_SLAVE_SIZE;
-  localparam logic[31:0] FWD_XBAR_EXT_SLAVE_END_ADDRESS = EXT_SLAVE_END_ADDRESS;
-  localparam logic[31:0] FWD_XBAR_EXT_SLAVE_IDX = 32'd1;
+  localparam logic [31:0] DEMUX_XBAR_INT_SLAVE_IDX = 32'd0;
+  localparam logic[31:0] DEMUX_XBAR_EXT_SLAVE_IDX = 32'd1;
 
   // Address map
   // NOTE: the internal address space is chosen by default by the system bus,
   // so it is not defined here.
-  localparam addr_map_rule_t [0:0] FWD_XBAR_ADDR_RULES = '{
+  localparam addr_map_rule_t [0:0] DEMUX_XBAR_ADDR_RULES = '{
     '{
-      idx: FWD_XBAR_EXT_SLAVE_IDX, 
-      start_addr: FWD_XBAR_EXT_SLAVE_START_ADDRESS, 
-      end_addr: FWD_XBAR_EXT_SLAVE_END_ADDRESS
+      idx: DEMUX_XBAR_EXT_SLAVE_IDX,
+      start_addr: EXT_SLAVE_START_ADDRESS,
+      end_addr: EXT_SLAVE_END_ADDRESS
     }
   };
 
