@@ -11,9 +11,9 @@ module ext_bus #(
     parameter int unsigned EXT_XBAR_NMASTER = 1,
     parameter int unsigned EXT_XBAR_NSLAVE = 1,
     // Dependent parameters: do not override
-    localparam int unsigned ExtXbarNmasterRnd = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
-    localparam int unsigned ExtXbarNslaveRnd = EXT_XBAR_NSLAVE == 0 ? 1 : EXT_XBAR_NSLAVE,
-    localparam int unsigned IdxWidth = cf_math_pkg::idx_width(EXT_XBAR_NSLAVE)
+    localparam int unsigned EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
+    localparam int unsigned EXT_XBAR_NSLAVE_RND = EXT_XBAR_NSLAVE == 0 ? 1 : EXT_XBAR_NSLAVE,
+    localparam int unsigned IDX_WIDTH = cf_math_pkg::idx_width(EXT_XBAR_NSLAVE)
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -22,7 +22,7 @@ module ext_bus #(
     input addr_map_rule_pkg::addr_map_rule_t [EXT_XBAR_NSLAVE-1:0] addr_map_i,
 
     // Default external slave index
-    input logic [IdxWidth-1:0] default_idx_i,
+    input logic [IDX_WIDTH-1:0] default_idx_i,
 
     // X-HEEP master ports
     input  obi_pkg::obi_req_t  heep_core_instr_req_i,
@@ -44,16 +44,16 @@ module ext_bus #(
     output obi_pkg::obi_resp_t heep_dma_addr_ch0_resp_o,
 
     // External master ports
-    input  obi_pkg::obi_req_t  [ExtXbarNmasterRnd-1:0] ext_master_req_i,
-    output obi_pkg::obi_resp_t [ExtXbarNmasterRnd-1:0] ext_master_resp_o,
+    input  obi_pkg::obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_master_req_i,
+    output obi_pkg::obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_resp_o,
 
     // X-HEEP slave ports (one per external master)
-    output obi_pkg::obi_req_t  [ExtXbarNmasterRnd-1:0] heep_slave_req_o,
-    input  obi_pkg::obi_resp_t [ExtXbarNmasterRnd-1:0] heep_slave_resp_i,
+    output obi_pkg::obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] heep_slave_req_o,
+    input  obi_pkg::obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] heep_slave_resp_i,
 
     // External slave ports
-    output obi_pkg::obi_req_t  [ExtXbarNslaveRnd-1:0] ext_slave_req_o,
-    input  obi_pkg::obi_resp_t [ExtXbarNslaveRnd-1:0] ext_slave_resp_i
+    output obi_pkg::obi_req_t  [EXT_XBAR_NSLAVE_RND-1:0] ext_slave_req_o,
+    input  obi_pkg::obi_resp_t [EXT_XBAR_NSLAVE_RND-1:0] ext_slave_resp_i
 );
   import obi_pkg::*;
   import addr_map_rule_pkg::*;
@@ -64,13 +64,13 @@ module ext_bus #(
   obi_resp_t [core_v_mini_mcu_pkg::SYSTEM_XBAR_NMASTER+EXT_XBAR_NMASTER-1:0] master_resp;
 
   // Forward crossbars ports
-  obi_req_t [EXT_XBAR_NMASTER-1:0][1:0] fwd_xbar_req;
-  obi_resp_t [EXT_XBAR_NMASTER-1:0][1:0] fwd_xbar_resp;
+  obi_req_t [EXT_XBAR_NMASTER-1:0][1:0] demux_xbar_req;
+  obi_resp_t [EXT_XBAR_NMASTER-1:0][1:0] demux_xbar_resp;
 
   // Dummy external master portp (to prevent unused warning)
-  obi_req_t [ExtXbarNmasterRnd-1:0] ext_master_req_unused;
-  obi_resp_t [ExtXbarNmasterRnd-1:0] heep_slave_resp_unused;
-  obi_resp_t [ExtXbarNslaveRnd-1:0] ext_slave_resp_unused;
+  obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_req_unused;
+  obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] heep_slave_resp_unused;
+  obi_resp_t [EXT_XBAR_NSLAVE_RND-1:0] ext_slave_resp_unused;
 
   assign ext_master_req_unused = ext_master_req_i;
   assign heep_slave_resp_unused = heep_slave_resp_i;
@@ -85,7 +85,7 @@ module ext_bus #(
   assign master_req[DMA_ADDR_CH0_IDX] = heep_dma_addr_ch0_req_i;
   generate
     for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin : gen_ext_master_req_map
-      assign master_req[SYSTEM_XBAR_NMASTER+i] = fwd_xbar_req[i][FWD_XBAR_EXT_SLAVE_IDX];
+      assign master_req[SYSTEM_XBAR_NMASTER+i] = demux_xbar_req[i][DEMUX_XBAR_EXT_SLAVE_IDX];
     end
   endgenerate
 
@@ -100,21 +100,21 @@ module ext_bus #(
   // X-HEEP slave requests
   generate
     for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin
-      assign heep_slave_req_o[i] = fwd_xbar_req[i][FWD_XBAR_INT_SLAVE_IDX];
+      assign heep_slave_req_o[i] = demux_xbar_req[i][DEMUX_XBAR_INT_SLAVE_IDX];
     end
   endgenerate
 
   // X-HEEP slave responses
   generate
     for (genvar i = 0; unsigned'(i) < EXT_XBAR_NMASTER; i++) begin
-      assign fwd_xbar_resp[i][FWD_XBAR_INT_SLAVE_IDX] = heep_slave_resp_i[i];
+      assign demux_xbar_resp[i][DEMUX_XBAR_INT_SLAVE_IDX] = heep_slave_resp_i[i];
     end
   endgenerate
 
   // External slave responses
   generate
-    for (genvar i = 0; unsigned'(i) < EXT_XBAR_NMASTER; i++) begin : gen_fwd_master_resp_map
-      assign fwd_xbar_resp[i][FWD_XBAR_EXT_SLAVE_IDX] = master_resp[SYSTEM_XBAR_NMASTER+i];
+    for (genvar i = 0; unsigned'(i) < EXT_XBAR_NMASTER; i++) begin : gen_demux_master_resp_map
+      assign demux_xbar_resp[i][DEMUX_XBAR_EXT_SLAVE_IDX] = master_resp[SYSTEM_XBAR_NMASTER+i];
     end
   endgenerate
 
@@ -122,9 +122,8 @@ module ext_bus #(
   // show writes if requested
   always_ff @(posedge clk_i, negedge rst_ni) begin : verbose_writes
     if ($test$plusargs("verbose") != 0 && heep_core_data_req_i.req && heep_core_data_req_i.we)
-      $display(
-          "write addr=0x%08x: data=0x%08x", heep_core_data_req_i.addr, heep_core_data_req_i.wdata
-      );
+      $display("write addr=0x%08x: data=0x%08x", heep_core_data_req_i.addr,
+               heep_core_data_req_i.wdata);
   end
 `endif
 
@@ -133,19 +132,19 @@ module ext_bus #(
   // These crossbars forward each external master to a port on the external
   // crossbar or to the corresponding slave port of X-HEEP.
   generate
-    for (genvar i = 0; unsigned'(i) < EXT_XBAR_NMASTER; i++) begin : gen_fwd_xbar
+    for (genvar i = 0; unsigned'(i) < EXT_XBAR_NMASTER; i++) begin : gen_demux_xbar
       xbar_varlat_one_to_n #(
           .XBAR_NSLAVE(32'd2),  // internal crossbar + external crossbar
           .NUM_RULES  (32'd1)   // only the external address space is defined
-      ) fwd_xbar_i (
+      ) demux_xbar_i (
           .clk_i        (clk_i),
           .rst_ni       (rst_ni),
-          .addr_map_i   (FWD_XBAR_ADDR_RULES),
-          .default_idx_i(FWD_XBAR_INT_SLAVE_IDX[0:0]),
+          .addr_map_i   (DEMUX_XBAR_ADDR_RULES),
+          .default_idx_i(DEMUX_XBAR_INT_SLAVE_IDX[0:0]),
           .master_req_i (ext_master_req_i[i]),
           .master_resp_o(ext_master_resp_o[i]),
-          .slave_req_o  (fwd_xbar_req[i]),
-          .slave_resp_i (fwd_xbar_resp[i])
+          .slave_req_o  (demux_xbar_req[i]),
+          .slave_resp_i (demux_xbar_resp[i])
       );
     end
   endgenerate
