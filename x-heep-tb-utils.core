@@ -11,16 +11,17 @@ filesets:
   files_examples:
     depend:
     - example:ip:slow_memory
-    - example:ip:memcopy_periph
     - example:ip:gpio_cnt
     - example:ip:pdm2pcm_dummy
+    - example:ip:ams
+    - example:ip:i2s_microphone
     files:
     file_type: systemVerilogSource
 
   files_verilator_waiver:
     files:
     - hw/ip_examples/slow_memory/slow_memory.vlt
-    - hw/ip_examples/memcopy_periph/memcopy_periph.vlt
+    - hw/ip_examples/ams/ams.vlt
     - tb/tb.vlt
     file_type: vlt
 
@@ -65,7 +66,7 @@ filesets:
 targets:
   default: &default_target
     filesets:
-    - use_external_device_example? (files_examples)
+    - files_examples
     - tb-harness
     - tool_verilator? (uartdpi)
     - tool_modelsim? (systemverilog_only_uart)

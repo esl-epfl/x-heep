@@ -14,7 +14,6 @@ filesets:
     - openhwgroup.org:ip:cv32e40p
     - openhwgroup.org:ip:cv32e40x
     - openhwgroup.org:ip:cve2
-    - pulp-platform.org:ip:fpnew
     - pulp-platform.org:ip:gpio
     - pulp-platform.org::common_cells
     - pulp-platform.org::cluster_interconnect
@@ -30,6 +29,7 @@ filesets:
     - x-heep:obi_spimemio:0.1.0
     - x-heep:ip:boot_rom
     - x-heep:ip:dma
+    - x-heep:ip:i2s
     - x-heep:ip:power_manager
     - x-heep:ip:fast_intr_ctrl
     - x-heep:ip:pdm2pcm
@@ -86,6 +86,7 @@ filesets:
     - hw/system/pad_control/pad_control.vlt
     - hw/system/x_heep_system.vlt
     - hw/simulation/simulation.vlt
+    - hw/ip/i2s/i2s.vlt
     file_type: vlt
 
   rtl-fpga:
@@ -180,6 +181,11 @@ filesets:
     - scripts/sim/modelsim/patch_modelsim_Makefile.py
     file_type: user
 
+  pre_patch_vcs_ams_Makefile:
+    files:
+    - scripts/sim/vcs/patch_vcs_ams_Makefile.py
+    file_type: user
+
   tb-verilator:
     files:
     - tb/tb_top.cpp
@@ -202,22 +208,35 @@ filesets:
       - flow/sky130/constraint.sdc : {file_type: SDC}
 
 parameters:
-  PULP_XPULP:
+  COREV_PULP:
     datatype: int
     paramtype: vlogparam
+    description: |
+      Enables COREV_PULP custom RISC-V extension on the CV32E40P core. Admitted values: 1|0.
+    default: 0
+  FPU:
+    datatype: int
+    paramtype: vlogparam
+    description: |
+      Enables RV32F RISC-V extension on the CV32E40P core. Admitted values: 1|0.
     default: 0
   JTAG_DPI:
     datatype: int
     paramtype: vlogparam
+    description: |
+      Enables testbench JTAG DIPs. Admitted values: 1|0.
     default: 0
   USE_EXTERNAL_DEVICE_EXAMPLE:
-    datatype: bool
-    paramtype: vlogdefine
-    default: false
+    datatype: int
+    paramtype: vlogparam
+    description: |
+      Enables testbench modules compilation. Admitted values: 1|0.
+    default: 1
   USE_UPF:
     datatype: bool
     paramtype: vlogdefine
-    default: false
+    description: |
+      Enables simulation with UPF with Modelsim/VCS
   SYNTHESIS:
     datatype: bool
     paramtype: vlogdefine
@@ -255,6 +274,11 @@ scripts:
     - python
     - ../../../scripts/sim/modelsim/patch_modelsim_Makefile.py
 
+  pre_patch_vcs_ams_Makefile:
+    cmd:
+    - python
+    - ../../../scripts/sim/vcs/patch_vcs_ams_Makefile.py
+
 targets:
   default: &default_target
     filesets:
@@ -286,12 +310,13 @@ targets:
         - tool_modelsim? (pre_build_uartdpi)
         - tool_modelsim? (pre_build_remote_bitbang)
         - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
+        - ams_sim? (pre_patch_vcs_ams_Makefile)
     parameters:
-    - PULP_XPULP=0
-    - use_jtag_dpi? (JTAG_DPI=1)
-    - "!use_jtag_dpi? (JTAG_DPI=0)"
-    - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
-    - use_upf? (USE_UPF=true)
+    - COREV_PULP
+    - FPU
+    - JTAG_DPI
+    - USE_EXTERNAL_DEVICE_EXAMPLE
+    - USE_UPF
     tools:
       modelsim:
         vlog_options:
@@ -308,8 +333,9 @@ targets:
          - -override_timescale=1ns/1ps
          - -assert disable_cover
          - -assert svaext
-         - -debug_access+all
+         - -debug_access+all+dmptf
          - -fgp
+         - -full64
          - -kdb
          - -notice
          - -ntb_opts error
@@ -317,6 +343,7 @@ targets:
          - -xlrm uniq_prior_final
          - -CFLAGS "-std=c++14 -pthread"
          - -LDFLAGS "-pthread -lutil"
+         - +lint=TFIPC-L
          - -V
       verilator:
         mode: cc
@@ -343,7 +370,8 @@ targets:
     - ip-fpga
     - xdc-fpga-nexys
     parameters:
-    - PULP_XPULP=0
+    - COREV_PULP
+    - FPU
     - SYNTHESIS=true
     tools:
       vivado:
@@ -360,7 +388,8 @@ targets:
     - ip-fpga
     - xdc-fpga-pynq-z2
     parameters:
-    - PULP_XPULP=0
+    - COREV_PULP
+    - FPU
     - SYNTHESIS=true
     tools:
       vivado:
@@ -377,7 +406,8 @@ targets:
     - ip-fpga
     - fpga-arm-emulation
     parameters:
-    - PULP_XPULP=0
+    - COREV_PULP
+    - FPU
     - SYNTHESIS=true
     tools:
       vivado:
@@ -394,7 +424,8 @@ targets:
     hooks:
       post_build: [post_build_modelsim_scripts]
     parameters:
-    - PULP_XPULP=0
+    - COREV_PULP
+    - FPU
     - FPGA_NETLIST=true
     tools:
       modelsim:
@@ -409,7 +440,8 @@ targets:
     default_tool: design_compiler
     description: Design Compiler Script
     parameters:
-    - PULP_XPULP=0
+    - COREV_PULP
+    - FPU
     - SYNTHESIS=true
     filesets_append:
     - ip-asic
@@ -430,7 +462,8 @@ targets:
     default_tool: openroad
     description: yosys
     parameters:
-      - PULP_XPULP=0
+      - COREV_PULP
+      - FPU
       - SYNTHESIS=true
       - VERILATOR=true
     filesets_append:

@@ -16,8 +16,9 @@
 #include "fast_intr_ctrl.h"
 #include "power_manager.h"
 
-// Un-comment this line to use the SPI FLASH instead of the default SPI
-// #define USE_SPI_FLASH
+#ifdef TARGET_PYNQ_Z2
+    #define USE_SPI_FLASH
+#endif
 
 // Type of data frome the SPI. For types different than words the SPI data is requested in separate transactions
 // word(0), half-word(1), byte(2,3)
@@ -36,8 +37,9 @@ spi_host_t spi_host;
 
 static power_manager_t power_manager;
 
-void fic_irq_fast_dma(void)
+void dma_intr_handler_trans_done(void)
 {
+    printf("This is a weak implementation of the DMA interrupt\n");
     dma_intr_flag = 1;
 }
 
@@ -56,14 +58,11 @@ void fic_irq_fast_dma(void)
 int main(int argc, char *argv[])
 {
     #ifndef USE_SPI_FLASH
-        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI2_START_ADDRESS);
+        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
     #else
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif
 
-    // dma peripheral structure to access the registers
-    dma_t dma;
-    dma.base_addr = mmio_region_from_addr((uintptr_t)DMA_START_ADDRESS);
 
     // Setup power_manager
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
@@ -83,6 +82,7 @@ int main(int argc, char *argv[])
     // Enable interrupt on processor side
     // Enable global interrupt for machine-level interrupts
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    
     // Set mie.MEIE bit to one to enable machine-level fast dma interrupt
     const uint32_t mask = 1 << 19;
     CSR_SET_BITS(CSR_REG_MIE, mask);
@@ -103,28 +103,44 @@ int main(int argc, char *argv[])
     core_sleep_flag = 0;
 
     // -- DMA CONFIGURATION --
-    dma_set_read_ptr_inc(&dma, (uint32_t) 0); // Do not increment address when reading from the SPI (Pop from FIFO)
-    #if SPI_DATA_TYPE == 0
-        dma_set_write_ptr_inc(&dma, (uint32_t) 4); // Do not increment address when reading from the SPI (Pop from FIFO)
-    #elif SPI_DATA_TYPE == 1
-        dma_set_write_ptr_inc(&dma, (uint32_t) 2); // Do not increment address when reading from the SPI (Pop from FIFO)
-    #else
-        dma_set_write_ptr_inc(&dma, (uint32_t) 1); // Do not increment address when reading from the SPI (Pop from FIFO)
-    #endif
-    dma_set_read_ptr(&dma, (uint32_t) fifo_ptr_rx); // SPI RX FIFO addr
-    dma_set_write_ptr(&dma, (uint32_t) copy_data); // copy data address
-    // Set the correct SPI-DMA mode:
-    // (0) disable
-    // (1) receive from SPI (use SPI2_START_ADDRESS for spi_host pointer)
-    // (2) send to SPI (use SPI2_START_ADDRESS for spi_host pointer)
-    // (3) receive from SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
-    // (4) send to SPI FLASH (use SPI_FLASH_START_ADDRESS for spi_host pointer)
+
+    dma_init(NULL);
+
     #ifndef USE_SPI_FLASH
-        dma_set_spi_mode(&dma, (uint32_t) 1); // The DMA will wait for the SPI RX FIFO valid signal
+        uint8_t slot =  DMA_TRIG_SLOT_SPI_RX ; // The DMA will wait for the SPI RX FIFO valid signal
     #else
-        dma_set_spi_mode(&dma, (uint32_t) 3); // The DMA will wait for the SPI FLASH RX FIFO valid signal
+        uint8_t slot =  DMA_TRIG_SLOT_SPI_FLASH_RX ; // The DMA will wait for the SPI FLASH RX FIFO valid signal
     #endif
-    dma_set_data_type(&dma, (uint32_t) SPI_DATA_TYPE);
+
+    static dma_target_t tgt_src = {
+        .size_du = COPY_DATA_NUM,
+        .inc_du = 0,
+        .type = SPI_DATA_TYPE,
+    };
+    tgt_src.ptr = fifo_ptr_rx;
+    tgt_src.trig = slot;
+
+    static dma_target_t tgt_dst = {
+        .ptr = copy_data,
+        .inc_du = 1,
+        .type = SPI_DATA_TYPE,
+        .trig = DMA_TRIG_MEMORY,
+    };
+
+    static dma_trans_t trans = {
+        .src = &tgt_src,
+        .dst = &tgt_dst,
+        .end = DMA_TRANS_END_INTR,
+    };
+
+    dma_config_flags_t res;
+
+    res = dma_validate_transaction(&trans ,DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
+    printf("trans: %u \n", res );
+    res = dma_load_transaction(&trans);
+    printf(" load: %u \n", res );
+
+
 
     // Configure SPI clock
     // SPI clk freq = 1/2 core clk freq when clk_div = 0
@@ -184,7 +200,8 @@ int main(int argc, char *argv[])
     read_byte_cmd = ((REVERT_24b_ADDR(flash_data) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
 
     dma_intr_flag = 0;
-    dma_set_cnt_start(&dma, (uint32_t) (COPY_DATA_NUM*sizeof(*copy_data)));
+    dma_launch(&trans);
+    printf("Launched\n");
 
     #if SPI_DATA_TYPE == 0
         const uint32_t cmd_read_rx = spi_create_command((spi_command_t){ // Single transaction
@@ -231,9 +248,14 @@ int main(int argc, char *argv[])
     if(core_sleep_flag == 1) printf("Woke up from sleep!\n");
 
     // Wait for DMA interrupt
-    printf("Waiting for the DMA interrupt...\n");
-    while(dma_intr_flag == 0) {
-        wait_for_interrupt();
+    if( trans.end == DMA_TRANS_END_POLLING ){
+        printf("Waiting for DMA DONE...\n");
+        while( ! dma_is_ready() ){};
+    } else{
+        printf("Waiting for the DMA interrupt...\n");
+        while(dma_intr_flag == 0) {
+            wait_for_interrupt();
+        }
     }
     printf("triggered!\n");
 

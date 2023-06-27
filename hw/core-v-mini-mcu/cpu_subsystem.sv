@@ -7,9 +7,9 @@ module cpu_subsystem
   import core_v_mini_mcu_pkg::*;
 #(
     parameter BOOT_ADDR = 'h180,
-    parameter PULP_XPULP =  0, // PULP ISA Extension (incl. custom CSRs and hardware loop, excl. p.elw)
+    parameter COREV_PULP =  0, // PULP ISA Extension (incl. custom CSRs and hardware loop, excl. p.elw)
     parameter FPU = 0,  // Floating Point Unit (interfaced via APU interface)
-    parameter PULP_ZFINX = 0,  // Float-in-General Purpose registers
+    parameter ZFINX = 0,  // Float-in-General Purpose registers
     parameter NUM_MHPMCOUNTERS = 1,
     parameter DM_HALTADDRESS = '0,
     parameter X_EXT = 0,  // eXtension interface in cv32e40x
@@ -220,6 +220,9 @@ module cpu_subsystem
         // Cycle count
         .mcycle_o(),
 
+        // Time input
+        .time_i(64'h0),
+
         // eXtension interface
         .xif_compressed_if,
         .xif_issue_if,
@@ -250,6 +253,8 @@ module cpu_subsystem
         .debug_havereset_o(),
         .debug_running_o  (),
         .debug_halted_o   (),
+        .debug_pc_valid_o (),
+        .debug_pc_o       (),
 
         // CPU control signals
         .fetch_enable_i(fetch_enable),
@@ -262,13 +267,13 @@ module cpu_subsystem
   end else begin : gen_cv32e40p
 
     // instantiate the core
-    cv32e40p_tb_wrapper #(
-        .PULP_XPULP      (PULP_XPULP),
-        .PULP_CLUSTER    (0),
+    cv32e40p_top #(
+        .COREV_PULP      (COREV_PULP),
+        .COREV_CLUSTER   (0),
         .FPU             (FPU),
-        .PULP_ZFINX      (PULP_ZFINX),
+        .ZFINX           (ZFINX),
         .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS)
-    ) cv32e40p_tb_wrapper_i (
+    ) cv32e40p_top_i (
         .clk_i (clk_i),
         .rst_ni(rst_ni),
 

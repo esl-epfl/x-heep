@@ -9,6 +9,6 @@
   upstream:
   {
     url: https://github.com/openhwgroup/cv32e40x.git
-    rev: 974ca469f3a7598e99b5c6eb9d6a4b355fe8c9da
+    rev: f17028f2369373d9443e4636f2826218e8d54e0f
   }
 }

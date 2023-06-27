@@ -6,9 +6,9 @@ module xilinx_core_v_mini_mcu_wrapper
   import obi_pkg::*;
   import reg_pkg::*;
 #(
-    parameter PULP_XPULP           = 0,
+    parameter COREV_PULP           = 0,
     parameter FPU                  = 0,
-    parameter PULP_ZFINX           = 0,
+    parameter ZFINX                = 0,
     parameter X_EXT                = 0,  // eXtension interface in cv32e40x
     parameter CLK_LED_COUNT_LENGTH = 27
 ) (
@@ -33,7 +33,7 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic uart_rx_i,
     inout logic uart_tx_o,
 
-    inout logic [22:0] gpio_io,
+    inout logic [19:0] gpio_io,
 
     output logic exit_value_o,
     inout  logic exit_valid_o,
@@ -57,7 +57,11 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic i2c_sda_io,
 
     inout logic pdm2pcm_clk_io,
-    inout logic pdm2pcm_pdm_io
+    inout logic pdm2pcm_pdm_io,
+
+    inout logic i2s_sck_io,
+    inout logic i2s_ws_io,
+    inout logic i2s_sd_io
 
 );
 
@@ -95,7 +99,10 @@ module xilinx_core_v_mini_mcu_wrapper
   );
 
   x_heep_system #(
-      .X_EXT(X_EXT)
+      .X_EXT(X_EXT),
+      .COREV_PULP(COREV_PULP),
+      .FPU(FPU),
+      .ZFINX(ZFINX)
   ) x_heep_system_i (
       .intr_vector_ext_i('0),
       .xif_compressed_if(ext_if),
@@ -146,9 +153,6 @@ module xilinx_core_v_mini_mcu_wrapper
       .gpio_15_io(gpio_io[15]),
       .gpio_16_io(gpio_io[16]),
       .gpio_17_io(gpio_io[17]),
-      .gpio_18_io(gpio_io[18]),
-      .gpio_19_io(gpio_io[19]),
-      .gpio_20_io(gpio_io[20]),
       .spi_flash_sd_0_io(spi_flash_sd_io[0]),
       .spi_flash_sd_1_io(spi_flash_sd_io[1]),
       .spi_flash_sd_2_io(spi_flash_sd_io[2]),
@@ -173,7 +177,10 @@ module xilinx_core_v_mini_mcu_wrapper
       .spi2_cs_1_io(spi2_csb_o[1]),
       .spi2_sck_io(spi2_sck_o),
       .pdm2pcm_clk_io,
-      .pdm2pcm_pdm_io
+      .pdm2pcm_pdm_io,
+      .i2s_sck_io(i2s_sck_io),
+      .i2s_ws_io(i2s_ws_io),
+      .i2s_sd_io(i2s_sd_io)
   );
 
   assign exit_value_o = exit_value[0];

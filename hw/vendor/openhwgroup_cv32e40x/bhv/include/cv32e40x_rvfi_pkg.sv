@@ -30,9 +30,9 @@ package cv32e40x_rvfi_pkg;
   parameter NMEM = 128;   // Maximum number of memory transactions per instruction is currently 13 when ZC_EXT=1
 
   typedef enum logic [1:0] { // Memory error types
-    MEM_ERR_PMP      = 2'h2,
-    MEM_ERR_ATOMIC   = 2'h1,
-    MEM_ERR_IO_ALIGN = 2'h0
+    MEM_ERR_IO_ALIGN          = 2'h0,
+    MEM_ERR_ATOMIC            = 2'h1,
+    MEM_ERR_PMP               = 2'h2
   } mem_err_t;
 
   typedef struct packed { // Autonomously updated CSRs
@@ -64,7 +64,6 @@ package cv32e40x_rvfi_pkg;
     logic        [31:0] mintthresh;
     logic        [31:0] mscratchcsw;
     logic        [31:0] mscratchcswl;
-    logic        [31:0] mclicbase;
     logic        [31:0] tselect;
     logic [ 3:0] [31:0] tdata;
     logic        [31:0] tinfo;
@@ -119,6 +118,7 @@ package cv32e40x_rvfi_pkg;
   } rvfi_intr_t;
 
   typedef struct packed {
+    logic        clicptr;
     logic [1:0]  cause_type;
     logic [2:0]  debug_cause;
     logic [5:0]  exception_cause;

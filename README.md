@@ -23,15 +23,14 @@
     ├── util
     └── README.md
 
-======================================
-# x-heep
-======================================
+<br />
+<p align="left"><img src="logo/x-heep.png" width="250"></p>
 
-`X-HEEP` (eXtendable Heterogeneous Energy-Efficient Platform) is a `RISC-V` microcontroller described in `SystemVerilog` 
+`X-HEEP` (eXtendable Heterogeneous Energy-Efficient Platform) is a `RISC-V` microcontroller described in `SystemVerilog`
 that can be configured to target small and tiny platforms as well as extended to support accelerators.
-The cool thing about `X-HEEP` is that we provide a simple customizable MCU, so CPUs, common peripherals, memories, etc. 
-so that you can extend it with your own accelerator without modifying the MCU, but just instantiating it in your design. 
-By doing so, you inherit an IP capable of booting RTOS (such as `freeRTOS`) with the whole FW stack, including `HAL` drivers and `SDK`, 
+The cool thing about `X-HEEP` is that we provide a simple customizable MCU, so CPUs, common peripherals, memories, etc.
+so that you can extend it with your own accelerator without modifying the MCU, but just instantiating it in your design.
+By doing so, you inherit an IP capable of booting RTOS (such as `freeRTOS`) with the whole FW stack, including `HAL` drivers and `SDK`,
 and you can focus on building your special HW supported by the microcontroller.
 
 `X-HEEP` supports simulation with Verilator, Questasim, etc. Morever, FW can be built and linked by using `CMake` either with gcc or with clang. It can be implemented on FPGA, and it supports implementation in Silicon, which is its main (but not only) target. See below for more details.
@@ -192,12 +191,12 @@ make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=12 MEMORY_BANKS_IL=4
 ```
 
 The last command generates x-heep with the cv32e40p core, with a parallel bus, and 16 memory banks (12 continuous and 4 interleaved),
-each 32KB, for a total memory of 512KB. 
+each 32KB, for a total memory of 512KB.
 
 ## Compiling Software
 
 Don't forget to set the `RISCV` env variable to the compiler folder (without the `/bin` included).
-To run 'hello world' application, just type 'make app'. 
+To run 'hello world' application, just type 'make app'.
 
 ```
 make app
@@ -206,13 +205,14 @@ make app
 To run any other application, please use the following command with appropiate parameters:
 
 ```
-app PROJECT=<folder_name_of_the_project_to_be_built> TARGET=sim(default),pynq-z2 LINKER=on_chip(default),flash_load,flash_exec COMPILER=gcc(default),clang ARCH=rv32imc(default),<any RISC-V ISA string supported by the CPU>
+app PROJECT=<folder_name_of_the_project_to_be_built> TARGET=sim(default),pynq-z2 LINKER=on_chip(default),flash_load,flash_exec COMPILER=gcc(default),clang COMPILER_PREFIX=riscv32-unknown-(default) ARCH=rv32imc(default),<any RISC-V ISA string supported by the CPU>
 
 Params:
-- PROJECT (ex: <folder_name_of_the_project_to_be_built>, hello_wolrd(default))
+- PROJECT (ex: <folder_name_of_the_project_to_be_built>, hello_world(default))
 - TARGET (ex: sim(default),pynq-z2)
 - LINKER (ex: on_chip(default),flash_load,flash_exec)
 - COMPILER (ex: gcc(default),clang)
+- COMPILER_PREFIX (ex: riscv32-unknown-(default))
 - ARCH (ex: rv32imc(default),<any RISC-V ISA string supported by the CPU>)
 ```
 
@@ -220,6 +220,13 @@ For instance, to run 'hello world' app for the pynq-z2 FPGA targets, just run:
 
 ```
 make app TARGET=pynq-z2
+```
+
+Or, if you use the OpenHW Group [GCC](https://www.embecosm.com/resources/tool-chain-downloads/#corev) compiler with CORE_PULP extensions, make sure to point the `RISCV` env variable to the OpenHW Group compiler, then just run:
+
+
+```
+make app COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_xcvhwlp1p0_xcvmem1p0_xcvmac1p0_xcvbi1p0_xcvalu1p0_xcvsimd1p0_xcvbitmanip1p0
 ```
 
 This will create the executable file to be loaded in your target system (ASIC, FPGA, Simulation).
@@ -233,7 +240,7 @@ compiled and linked are under `sw\build`
 After that, you can run the command to compile and link the FreeRTOS based application. Please also set 'LINKER' and 'TARGET' parameters if needed.
 
 ```
-make app PROJECT=blinky_freertos 
+make app PROJECT=blinky_freertos
 ```
 
 The main FreeRTOS configuration is allocated under `sw\freertos`, in `FreeRTOSConfig.h`. Please, change this file based on your application requirements.
@@ -242,6 +249,10 @@ Moreover, FreeRTOS is being fetch from 'https://github.com/FreeRTOS/FreeRTOS-Ker
 ## Simulating
 
 This project supports simulation with Verilator, Synopsys VCS, and Siemens Questasim.
+It relies on `fusesoc` to handle multiple EDA tools and parameters.
+For example, if you want to set the `FPU` and `COREV_PULP` parameters of the `cv32e40p` CPU,
+you need to add next to your compilation command `FUSESOC_PARAM="--COREV_PULP=1 --FPU=1"`
+Below the different EDA examples commands.
 
 ### Compiling for Verilator
 
@@ -290,6 +301,28 @@ and type to run your compiled software:
 ./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/build/main.hex
 ```
 
+Waveforms can be viewed with Verdi. Make sure you have the env variable `VERDI_HOME` set to your Verdi install folder, then run your compiled software as above, but with the `-gui` flag:
+
+```
+./openhwgroup.org_systems_core-v-mini-mcu_0 +firmware=../../../sw/build/main.hex -gui
+```
+
+An Analog / Mixed-Signal simulation of X-HEEP, combining both the RTL system verilog files for the digital part and a SPICE file connected through a `control.init` file for the analog / mixed-signal part, can be ran by typing
+
+```
+make vcs-ams-sim
+```
+
+then going to the target system built folder
+
+```
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-vcs
+```
+
+and running the same executable as for the digital simulation. Note that with Verdi you can view both the digital and the analog waveforms.
+
+Additional instructions on how to run an analog / mixed-signal simulation of X-HEEP can be found [here](AnalogMixedSignal.md). To try out the simulation, we provide an example SPICE netlist of an simple 1-bit ADC created by us and exported from [xschem](https://xschem.sourceforge.io/stefan/index.html) and which uses the PTM 65nm bulk CMOS model from [https://ptm.asu.edu](https://ptm.asu.edu/).
+
 ### Compiling for Questasim
 
 To simulate your application with Questasim, first set the env variable `MODEL_TECH` to your Questasim bin folder, then compile the HDL:
@@ -330,7 +363,7 @@ make run RUN_OPT=1 PLUSARGS="c firmware=../../../sw/build/main.hex"
 You can also compile with the UPF power domain description as:
 
 ```
-make questasim-sim-opt-upf FUSESOC_FLAGS="--flag=use_upf"
+make questasim-sim-opt-upf FUSESOC_PARAM="--USE_UPF"
 ```
 
 and then execute software as:
