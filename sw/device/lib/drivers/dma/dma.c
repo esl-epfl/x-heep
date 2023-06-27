@@ -1177,7 +1177,7 @@ void fic_irq_dma(void)
 /** 
  * This is a non-weak implementation of the function declared in rv_plic.c
  */
-void handler_irq_dma(void) 
+void handler_irq_dma(uint32_t id) 
 {
     /*
      * Call the weak implementation provided in this module, 
