@@ -101,7 +101,7 @@
  * Each element will be initialized to be the address of the handler function
  * relative to its index. So each element will be a callable function.
 */
-typedef void (*handler_funct_t)(void);
+typedef void (*handler_funct_t)(uint32_t);
 
 
 /**
@@ -115,20 +115,6 @@ typedef void (*handler_funct_t)(void);
  * `NumTarget` instantiation parameter of the `rv_plic` device.
  */
 typedef uint32_t plic_target_t;
-
-
-/**
- * A PLIC interrupt source identifier.
- *
- * This corresponds to a specific interrupt, and not the device it originates
- * from.
- *
- * This is an unsigned 32-bit value that is at least zero and is less than the
- * `NumSrc` instantiation parameter of the `rv_plic` device.
- *
- * The value 0 corresponds to "No Interrupt".
- */
-typedef uint32_t plic_irq_id_t;
 
 
 /**
@@ -227,37 +213,37 @@ extern uint8_t plic_intr_flag;
 /**
  * IRQ handler for UART 
 */
-void handler_irq_uart(void);
+void handler_irq_uart(uint32_t id);
 
 /**
  * IRQ handler for GPIO 
 */
-void handler_irq_gpio(void);
+void handler_irq_gpio(uint32_t id);
 
 /**
  * IRQ handler for I2C 
 */
-void handler_irq_i2c(void);
+void handler_irq_i2c(uint32_t id);
 
 /**
  * IRQ handler for SPI 
 */
-void handler_irq_spi(void);
+void handler_irq_spi(uint32_t id);
 
 /**
  * IRQ handler for I2S 
 */
-void handler_irq_i2s(void);
+void handler_irq_i2s(uint32_t id);
 
 /**
  * IRQ handler for DMA window 
 */
-void handler_irq_dma(void);
+void handler_irq_dma(uint32_t id);
 
 /**
  * IRQ handler for external interrupts sources
 */
-void handler_irq_ext(void);
+void handler_irq_ext(uint32_t id);
 
 
 /**
@@ -294,7 +280,7 @@ plic_result_t plic_Init(void);
  * @param state The new toggle state for the interrupt
  * @return The result of the operation
 */
-plic_result_t plic_irq_set_enabled(plic_irq_id_t irq,
+plic_result_t plic_irq_set_enabled(uint32_t irq,
                                        plic_toggle_t state);
 
 
@@ -312,7 +298,7 @@ plic_result_t plic_irq_set_enabled(plic_irq_id_t irq,
  * @param state The toggle state of the interrupt, as read from the IE registers
  * @return The result of the operation
 */
-plic_result_t plic_irq_get_enabled(plic_irq_id_t irq,
+plic_result_t plic_irq_get_enabled(uint32_t irq,
                                        plic_toggle_t *state);
 
 /**
@@ -328,7 +314,7 @@ plic_result_t plic_irq_get_enabled(plic_irq_id_t irq,
  * @result The result of the operation
  * 
 */
-plic_result_t plic_irq_set_trigger(plic_irq_id_t irq,
+plic_result_t plic_irq_set_trigger(uint32_t irq,
                                            plic_irq_trigger_t trigger);
 
 /**
@@ -338,7 +324,7 @@ plic_result_t plic_irq_set_trigger(plic_irq_id_t irq,
  * @param priority A priority value to set
  * @return The result of the operation
 */
-plic_result_t plic_irq_set_priority(plic_irq_id_t irq, uint32_t priority);
+plic_result_t plic_irq_set_priority(uint32_t irq, uint32_t priority);
 
 /**
  * Sets the priority threshold.
@@ -358,7 +344,7 @@ plic_result_t plic_target_set_threshold(uint32_t threshold);
  * @param irq An interrupt source identification
  * @param[out] is_pending Boolean flagcorresponding to whether an interrupt is pending or not 
 */
-plic_result_t plic_irq_is_pending(plic_irq_id_t irq,
+plic_result_t plic_irq_is_pending(uint32_t irq,
                                           bool *is_pending);
 
 /**
@@ -381,7 +367,7 @@ plic_result_t plic_irq_is_pending(plic_irq_id_t irq,
  * @param[out] claim_data Data that describes the origin of the IRQ.
  * @return The result of the operation.
  */
-plic_result_t plic_irq_claim(plic_irq_id_t *claim_data);
+plic_result_t plic_irq_claim(uint32_t *claim_data);
 
 /**
  * Completes the claimed interrupt request.
@@ -397,7 +383,7 @@ plic_result_t plic_irq_claim(plic_irq_id_t *claim_data);
  * PLIC of the IRQ servicing completion.
  * @return The result of the operation
 */
-plic_result_t plic_irq_complete(const plic_irq_id_t *complete_data);
+plic_result_t plic_irq_complete(const uint32_t *complete_data);
 
 
 /**
