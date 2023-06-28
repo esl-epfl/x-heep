@@ -23,6 +23,15 @@ Notes:
 */
 
 
+//#define DEBUG // Should be pushed commented to minimize testing time
+ 
+// Use PRINTF instead of printf to remove print by default
+#ifdef DEBUG
+  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif // DEBUG
+
 
 #ifndef RV_PLIC_IS_INCLUDED
   #error ( "This app does NOT work as the RV_PLIC peripheral is not included" )
@@ -43,21 +52,7 @@ Notes:
 
 #endif
 
-// int8_t plic_intr_flag;
-
-// Interrupt controller variables
-// plic_params_t rv_plic_params;
-// plic_t rv_plic;
 plic_result_t plic_res;
-// uint32_t intr_num;
-
-// void handler_irq_external(void) {
-//     // Claim/clear interrupt
-//     plic_res = plic_irq_claim(&rv_plic, 0, &intr_num);
-//     if (plic_res == kPlicOk && intr_num == GPIO_INTR) {
-//         plic_intr_flag = 1;
-//     }
-// }
 
 int main(int argc, char *argv[])
 {
@@ -67,7 +62,7 @@ int main(int argc, char *argv[])
     // rv_plic_params.base_addr = mmio_region_from_addr((uintptr_t)RV_PLIC_START_ADDRESS);
     plic_res = plic_Init();
     if (plic_res != kPlicOk) {
-        printf("Init PLIC failed\n;");
+        PRINTF("Init PLIC failed\n\r;");
         return -1;
     }
 
@@ -86,19 +81,19 @@ int main(int argc, char *argv[])
     gpio_params.base_addr = mmio_region_from_addr((uintptr_t)GPIO_START_ADDRESS);
     gpio_res = gpio_init(gpio_params, &gpio);
     if (gpio_res != kGpioOk) {
-        printf("Failed\n;");
+        PRINTF("Failed\n\r;");
         return -1;
     }
 
     plic_res = plic_irq_set_priority(GPIO_INTR, 1);
     if (plic_res != kPlicOk) {
-        printf("Failed\n;");
+        PRINTF("Failed\n\r;");
         return -1;
     }
 
     plic_res = plic_irq_set_enabled(GPIO_INTR, kPlicToggleEnabled);
     if (plic_res != kPlicOk) {
-        printf("Failed\n;");
+        PRINTF("Failed\n\r;");
         return -1;
     }
 
@@ -112,32 +107,35 @@ int main(int argc, char *argv[])
 
     gpio_res = gpio_output_set_enabled(&gpio, GPIO_TB_OUT, true);
     if (gpio_res != kGpioOk) {
-        printf("Failed\n;");
+        PRINTF("Failed\n\r;");
         return -1;
     }
     gpio_write(&gpio, GPIO_TB_OUT, false);
 
     gpio_res = gpio_input_enabled(&gpio, GPIO_TB_IN, true);
     if (gpio_res != kGpioOk) {
-        printf("Failed\n;");
+        PRINTF("Failed\n\r;");
         return -1;
     }
 
 
     gpio_res = gpio_irq_set_trigger(&gpio, GPIO_TB_IN, true, kGpioIrqTriggerEdgeRising);
     if (gpio_res != kGpioOk) {
-        printf("Failed\n;");
+        PRINTF("Failed\n\r;");
         return -1;
     }
 
-    printf("Write 1 to GPIO 30 and wait for interrupt...\n");
+    PRINTF("Write 1 to GPIO 30 and wait for interrupt...\n\r");
     while(plic_intr_flag==0) {
+
+        // disable_interrupts
+        // this does not prevent waking up the core as this is controlled by the MIP register
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x0);
         gpio_write(&gpio, GPIO_TB_OUT, true);
         wait_for_interrupt();
-        volatile int i=0;
-        i++;
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }
-    printf("Success\n");
+    PRINTF("Success\n\r");
 
     return EXIT_SUCCESS;
 }
