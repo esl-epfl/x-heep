@@ -10,6 +10,15 @@
 #include "core_v_mini_mcu.h"
 #include "power_manager.h"
 
+//#define DEBUG // Should be pushed commented to minimize testing time
+ 
+// Use PRINTF instead of printf to remove print by default
+#ifdef DEBUG
+  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif // DEBUG
+
 static power_manager_t power_manager;
 
 int main(int argc, char *argv[])
@@ -37,6 +46,6 @@ int main(int argc, char *argv[])
         mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x0);
 
     /* write something to stdout */
-    printf("Success.\n");
+    PRINTF("Success.\n\r");
     return EXIT_SUCCESS;
 }
