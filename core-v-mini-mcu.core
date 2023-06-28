@@ -37,6 +37,8 @@ filesets:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
     - hw/core-v-mini-mcu/cpu_subsystem.sv
     - hw/core-v-mini-mcu/memory_subsystem.sv
+    - hw/core-v-mini-mcu/xbar_varlat_one_to_n.sv
+    - hw/core-v-mini-mcu/xbar_varlat_n_to_one.sv
     - hw/core-v-mini-mcu/system_bus.sv
     - hw/core-v-mini-mcu/system_xbar.sv
     - hw/core-v-mini-mcu/spi_subsystem.sv

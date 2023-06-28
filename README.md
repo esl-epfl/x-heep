@@ -168,8 +168,7 @@ The `fusesoc` commands are inside the Makefile.
 
 # Adding external IPs
 
-This repository relies on [vendor](https://opentitan.org/book/util/doc/vendor.html) to add new IPs.
-In the ./util folder, the vendor.py scripts implements what is describeb above.
+This repository relies on [Vendor](https://opentitan.org/book/util/doc/vendor.html) to add new IPs. The `vendor.py` script in the [`./util`](./util/) folder implements what is describeb above, while [this](./ExternalDevices.md) file contains additional information on how to connect external devices to the system.
 
 # Compiling with Makefile
 

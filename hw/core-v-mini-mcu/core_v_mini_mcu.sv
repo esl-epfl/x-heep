@@ -283,8 +283,19 @@ module core_v_mini_mcu
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
 
-    output obi_req_t  ext_xbar_slave_req_o,
-    input  obi_resp_t ext_xbar_slave_resp_i,
+    // External slave ports
+    output obi_req_t  ext_core_instr_req_o,
+    input  obi_resp_t ext_core_instr_resp_i,
+    output obi_req_t  ext_core_data_req_o,
+    input  obi_resp_t ext_core_data_resp_i,
+    output obi_req_t  ext_debug_master_req_o,
+    input  obi_resp_t ext_debug_master_resp_i,
+    output obi_req_t  ext_dma_read_ch0_req_o,
+    input  obi_resp_t ext_dma_read_ch0_resp_i,
+    output obi_req_t  ext_dma_write_ch0_req_o,
+    input  obi_resp_t ext_dma_write_ch0_resp_i,
+    output obi_req_t  ext_dma_addr_ch0_req_o,
+    input  obi_resp_t ext_dma_addr_ch0_resp_i,
 
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
@@ -330,12 +341,12 @@ module core_v_mini_mcu
   obi_resp_t core_data_resp;
   obi_req_t debug_master_req;
   obi_resp_t debug_master_resp;
-  obi_req_t dma_master0_ch0_req;
-  obi_resp_t dma_master0_ch0_resp;
-  obi_req_t dma_master1_ch0_req;
-  obi_resp_t dma_master1_ch0_resp;
-  obi_req_t dma_master2_ch0_req;
-  obi_resp_t dma_master2_ch0_resp;
+  obi_req_t dma_read_ch0_req;
+  obi_resp_t dma_read_ch0_resp;
+  obi_req_t dma_write_ch0_req;
+  obi_resp_t dma_write_ch0_resp;
+  obi_req_t dma_addr_ch0_req;
+  obi_resp_t dma_addr_ch0_resp;
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
@@ -491,12 +502,12 @@ module core_v_mini_mcu
       .core_data_resp_o(core_data_resp),
       .debug_master_req_i(debug_master_req),
       .debug_master_resp_o(debug_master_resp),
-      .dma_master0_ch0_req_i(dma_master0_ch0_req),
-      .dma_master0_ch0_resp_o(dma_master0_ch0_resp),
-      .dma_master1_ch0_req_i(dma_master1_ch0_req),
-      .dma_master1_ch0_resp_o(dma_master1_ch0_resp),
-      .dma_master2_ch0_req_i(dma_master2_ch0_req),
-      .dma_master2_ch0_resp_o(dma_master2_ch0_resp),
+      .dma_read_ch0_req_i(dma_read_ch0_req),
+      .dma_read_ch0_resp_o(dma_read_ch0_resp),
+      .dma_write_ch0_req_i(dma_write_ch0_req),
+      .dma_write_ch0_resp_o(dma_write_ch0_resp),
+      .dma_addr_ch0_req_i(dma_addr_ch0_req),
+      .dma_addr_ch0_resp_o(dma_addr_ch0_resp),
       .ext_xbar_master_req_i(ext_xbar_master_req_i),
       .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
       .ram_req_o(ram_slave_req),
@@ -509,8 +520,18 @@ module core_v_mini_mcu
       .peripheral_slave_resp_i(peripheral_slave_resp),
       .flash_mem_slave_req_o(flash_mem_slave_req),
       .flash_mem_slave_resp_i(flash_mem_slave_resp),
-      .ext_xbar_slave_req_o(ext_xbar_slave_req_o),
-      .ext_xbar_slave_resp_i(ext_xbar_slave_resp_i)
+      .ext_core_instr_req_o(ext_core_instr_req_o),
+      .ext_core_instr_resp_i(ext_core_instr_resp_i),
+      .ext_core_data_req_o(ext_core_data_req_o),
+      .ext_core_data_resp_i(ext_core_data_resp_i),
+      .ext_debug_master_req_o(ext_debug_master_req_o),
+      .ext_debug_master_resp_i(ext_debug_master_resp_i),
+      .ext_dma_read_ch0_req_o(ext_dma_read_ch0_req_o),
+      .ext_dma_read_ch0_resp_i(ext_dma_read_ch0_resp_i),
+      .ext_dma_write_ch0_req_o(ext_dma_write_ch0_req_o),
+      .ext_dma_write_ch0_resp_i(ext_dma_write_ch0_resp_i),
+      .ext_dma_addr_ch0_req_o(ext_dma_addr_ch0_req_o),
+      .ext_dma_addr_ch0_resp_i(ext_dma_addr_ch0_resp_i)
   );
 
   memory_subsystem #(
@@ -575,12 +596,12 @@ module core_v_mini_mcu
       .memory_subsystem_clkgate_en_o(memory_subsystem_clkgate_en),
       .rv_timer_0_intr_o(rv_timer_intr[0]),
       .rv_timer_1_intr_o(rv_timer_intr[1]),
-      .dma_master0_ch0_req_o(dma_master0_ch0_req),
-      .dma_master0_ch0_resp_i(dma_master0_ch0_resp),
-      .dma_master1_ch0_req_o(dma_master1_ch0_req),
-      .dma_master1_ch0_resp_i(dma_master1_ch0_resp),
-      .dma_master2_ch0_req_o(dma_master2_ch0_req),
-      .dma_master2_ch0_resp_i(dma_master2_ch0_resp),
+      .dma_read_ch0_req_o(dma_read_ch0_req),
+      .dma_read_ch0_resp_i(dma_read_ch0_resp),
+      .dma_write_ch0_req_o(dma_write_ch0_req),
+      .dma_write_ch0_resp_i(dma_write_ch0_resp),
+      .dma_addr_ch0_req_o(dma_addr_ch0_req),
+      .dma_addr_ch0_resp_i(dma_addr_ch0_resp),
       .dma_done_intr_o(dma_done_intr),
       .dma_window_intr_o(dma_window_intr),
       .spi_intr_event_o(spi_intr),
