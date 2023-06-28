@@ -20,6 +20,18 @@
     #define USE_SPI_FLASH
 #endif
 
+/* Enable printf by default only for FPGA. */
+#ifdef TARGET_PYNQ_Z2
+#define DEBUG
+#endif // TARGET_PYNQ_Z2
+ 
+// Use PRINTF instead of printf to remove print by default
+#ifdef DEBUG
+  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif // DEBUG
+
 // Type of data frome the SPI. For types different than words the SPI data is requested in separate transactions
 // word(0), half-word(1), byte(2,3)
 #define SPI_DATA_TYPE 0
@@ -39,7 +51,7 @@ static power_manager_t power_manager;
 
 void dma_intr_handler_trans_done(void)
 {
-    printf("This is a weak implementation of the DMA interrupt\n");
+    PRINTF("This is a weak implementation of the DMA interrupt\n\r");
     dma_intr_flag = 1;
 }
 
@@ -71,7 +83,7 @@ int main(int argc, char *argv[])
     // Init cpu_subsystem's counters
     if (power_gate_counters_init(&power_manager_cpu_counters, 300, 300, 300, 300, 300, 300, 0, 0) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail. Check the reset and powergate counters value\n");
+        PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
         return EXIT_FAILURE;
     }
 
@@ -136,9 +148,9 @@ int main(int argc, char *argv[])
     dma_config_flags_t res;
 
     res = dma_validate_transaction(&trans ,DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
-    printf("trans: %u \n", res );
+    PRINTF("trans: %u \n\r", res );
     res = dma_load_transaction(&trans);
-    printf(" load: %u \n", res );
+    PRINTF(" load: %u \n\r", res );
 
 
 
@@ -201,7 +213,7 @@ int main(int argc, char *argv[])
 
     dma_intr_flag = 0;
     dma_launch(&trans);
-    printf("Launched\n");
+    PRINTF("Launched\n\r");
 
     #if SPI_DATA_TYPE == 0
         const uint32_t cmd_read_rx = spi_create_command((spi_command_t){ // Single transaction
@@ -239,25 +251,25 @@ int main(int argc, char *argv[])
     if(dma_intr_flag == 0) {
         if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
         {
-            printf("Error: power manager fail.\n");
+            PRINTF("Error: power manager fail.\n\r");
             return EXIT_FAILURE;
         }
         core_sleep_flag = 1;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    if(core_sleep_flag == 1) printf("Woke up from sleep!\n");
+    if(core_sleep_flag == 1) PRINTF("Woke up from sleep!\n\r");
 
     // Wait for DMA interrupt
     if( trans.end == DMA_TRANS_END_POLLING ){
-        printf("Waiting for DMA DONE...\n");
+        PRINTF("Waiting for DMA DONE...\n\r");
         while( ! dma_is_ready() ){};
     } else{
-        printf("Waiting for the DMA interrupt...\n");
+        PRINTF("Waiting for the DMA interrupt...\n\r");
         while(dma_intr_flag == 0) {
             wait_for_interrupt();
         }
     }
-    printf("triggered!\n");
+    PRINTF("triggered!\n\r");
 
     // Power down flash
     const uint32_t powerdown_byte_cmd = 0xb9;
@@ -272,14 +284,14 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     // The data is already in memory -- Check results
-    printf("flash vs ram...\n");
+    PRINTF("flash vs ram...\n\r");
 
     uint32_t errors = 0;
     uint32_t count = 0;
     #if SPI_DATA_TYPE == 0
         for (int i = 0; i<COPY_DATA_NUM; i++) {
             if(flash_data[i] != copy_data[i]) {
-                printf("@%08x-@%08x : %02x != %02x\n" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
+                PRINTF("@%08x-@%08x : %02x != %02x\n\r" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
                 errors++;
             }
             count++;
@@ -287,7 +299,7 @@ int main(int argc, char *argv[])
     #else
         for (int i = 0; i<COPY_DATA_NUM; i++) {
             if(flash_data[0] != copy_data[i]) {
-                printf("@%08x-@%08x : %02x != %02x\n" , &flash_data[0] , &copy_data[i], flash_data[0], copy_data[i]);
+                PRINTF("@%08x-@%08x : %02x != %02x\n\r" , &flash_data[0] , &copy_data[i], flash_data[0], copy_data[i]);
                 errors++;
             }
             count++;
@@ -295,9 +307,9 @@ int main(int argc, char *argv[])
     #endif
 
     if (errors == 0) {
-        printf("success! (bytes checked: %d)\n", count*sizeof(*copy_data));
+        PRINTF("success! (bytes checked: %d)\n\r", count*sizeof(*copy_data));
     } else {
-        printf("failure, %d errors! (Out of %d)\n", errors, count);
+        PRINTF("failure, %d errors! (Out of %d)\n\r", errors, count);
     }
     return EXIT_SUCCESS;
 }

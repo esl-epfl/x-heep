@@ -7,7 +7,18 @@
 #include "csr.h"
 #include "matrixAdd32.h"
 
-#define DEBUG_OUTPUT
+
+/* Enable printf by default only for FPGA. */
+#ifdef TARGET_PYNQ_Z2
+#define DEBUG
+#endif // TARGET_PYNQ_Z2
+ 
+// Use PRINTF instead of printf to remove print by default
+#ifdef DEBUG
+  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif // DEBUG
 
 void __attribute__ ((noinline)) matrixAdd(int32_t * A, int32_t * B, int32_t * C, int N, int M);
 uint32_t check_results(int32_t *  C, int N, int M);
@@ -32,7 +43,7 @@ int main()
 
     errors = check_results(m_c, N, M);
 
-    printf("program finished with %d errors and %d cycles\n", errors, cycles);
+    PRINTF("program finished with %d errors and %d cycles\n\r", errors, cycles);
     return errors;
 }
 
@@ -55,9 +66,7 @@ uint32_t check_results(int32_t * C, int N, int M)
         for(j = 0; j < M; j++) {
             if(C[i*N+j] != m_exp[i*WIDTH+j]) {
                 err++;
-            #ifdef DEBUG_OUTPUT
-                printf("Error at index %d, %d, expected %d, got %d\n", i, j, m_exp[i*WIDTH+j], C[i*N+j]);
-            #endif
+                PRINTF("Error at index %d, %d, expected %d, got %d\n\r", i, j, m_exp[i*WIDTH+j], C[i*N+j]);
             }
         }
     }

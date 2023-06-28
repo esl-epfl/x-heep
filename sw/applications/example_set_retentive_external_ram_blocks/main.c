@@ -1,5 +1,5 @@
 // Copyright EPFL contributors.
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.\n
 // SPDX-License-Identifier: Apache-2.0
 
 #include <stdio.h>
@@ -9,6 +9,18 @@
 #include "handler.h"
 #include "core_v_mini_mcu.h"
 #include "power_manager.h"
+
+/* Enable printf by default only for FPGA. */
+#ifdef TARGET_PYNQ_Z2
+#define DEBUG
+#endif // TARGET_PYNQ_Z2
+ 
+// Use PRINTF instead of printf to remove print by default
+#ifdef DEBUG
+  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif // DEBUG
 
 static power_manager_t power_manager;
 
@@ -23,14 +35,14 @@ int main(int argc, char *argv[])
     // Init external ram block 0's counters
     if (power_gate_counters_init(&power_manager_external_ram_blocks_counters, 0, 0, 0, 0, 0, 0, 30, 30) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail. Check the reset and powergate counters value\n");
+        PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
         return EXIT_FAILURE;
     }
 
     // Set retention mode on for external ram block 0
     if (power_gate_external(&power_manager, 0, kRetOn_e, &power_manager_external_ram_blocks_counters) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail.\n");
+        PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
     }
 
@@ -40,11 +52,11 @@ int main(int argc, char *argv[])
     // Set retention mode off for external ram block 0
     if (power_gate_external(&power_manager, 0, kRetOff_e, &power_manager_external_ram_blocks_counters) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail.\n");
+        PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
     }
 
     /* write something to stdout */
-    printf("Success.\n");
+    PRINTF("Success.\n\r");
     return EXIT_SUCCESS;
 }

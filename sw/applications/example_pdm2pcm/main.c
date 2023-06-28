@@ -32,13 +32,24 @@
   #error ( "This app does NOT work as the PDM2PCM peripheral is not included" )
 #endif
 
+/* Enable printf by default only for FPGA. */
+#ifdef TARGET_PYNQ_Z2
+#define DEBUG
+#endif // TARGET_PYNQ_Z2
+ 
+// Use PRINTF instead of printf to remove print by default
+#ifdef DEBUG
+  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif // DEBUG
 
 int main(int argc, char *argv[])
 {
 
 
-    printf("PDM2PCM DEMO\n");
-    printf(" > Start\n");
+    PRINTF("PDM2PCM DEMO\n\r");
+    PRINTF(" > Start\n\r");
 
     mmio_region_t pdm2pcm_base_addr = mmio_region_from_addr((uintptr_t)PDM2PCM_START_ADDRESS);
 
@@ -92,13 +103,13 @@ int main(int argc, char *argv[])
             if (fed == 1 || read != 0) {
                 fed = 1;
                 if(pdm2pcm_groundtruth[count] != (int)read) {
-                    printf("ERROR: at index %d. read != groundtruth (resp. %d != %d).\n",count,(int)read,pdm2pcm_groundtruth[count]);
+                    PRINTF("ERROR: at index %d. read != groundtruth (resp. %d != %d).\n\r",count,(int)read,pdm2pcm_groundtruth[count]);
                     return EXIT_FAILURE;
                 }
                 ++count;
                 if (count >= COUNT) {
                     finish = 1;
-                    printf("SUCCESS: Readings correspond to ground truth.\n");
+                    PRINTF("SUCCESS: Readings correspond to ground truth.\n\r");
                 }
             }
         }

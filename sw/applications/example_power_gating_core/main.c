@@ -24,6 +24,18 @@
 #endif
 
 
+/* Enable printf by default only for FPGA. */
+#ifdef TARGET_PYNQ_Z2
+#define DEBUG
+#endif // TARGET_PYNQ_Z2
+ 
+// Use PRINTF instead of printf to remove print by default
+#ifdef DEBUG
+  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif // DEBUG
+
 static rv_timer_t timer_0_1;
 static rv_timer_t timer_2_3;
 static const uint64_t kTickFreqHz = 1000 * 1000; // 1 MHz
@@ -79,7 +91,7 @@ int main(int argc, char *argv[])
     // Init cpu_subsystem's counters
     if (power_gate_counters_init(&power_manager_cpu_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail. Check the reset and powergate counters value\n");
+        PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
         return EXIT_FAILURE;
     }
 
@@ -92,7 +104,7 @@ int main(int argc, char *argv[])
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kTimer_0_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail.\n");
+        PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -106,7 +118,7 @@ int main(int argc, char *argv[])
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kTimer_1_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail.\n");
+        PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -120,7 +132,7 @@ int main(int argc, char *argv[])
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kTimer_2_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail.\n");
+        PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -134,7 +146,7 @@ int main(int argc, char *argv[])
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kTimer_3_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail.\n");
+        PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -152,7 +164,7 @@ int main(int argc, char *argv[])
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kPlic_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail.\n");
+        PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -162,7 +174,7 @@ int main(int argc, char *argv[])
 #endif
 
     /* write something to stdout */
-    printf("Success.\n");
+    PRINTF("Success.\n\r");
     return EXIT_SUCCESS;
 
 }

@@ -8,7 +8,20 @@
 #include "gpio.h"
 #include "x-heep.h"
 
-#define GPIO_PMW 2
+#define GPIO_TOGGLE 2
+
+/* Enable printf by default only for FPGA. */
+#ifdef TARGET_PYNQ_Z2
+#define DEBUG
+#endif // TARGET_PYNQ_Z2
+ 
+// Use PRINTF instead of printf to remove print by default
+#ifdef DEBUG
+  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif // DEBUG
+
 
 int main(int argc, char *argv[])
 {
@@ -17,25 +30,25 @@ int main(int argc, char *argv[])
     gpio_result_t gpio_res;
     gpio_params.base_addr = mmio_region_from_addr((uintptr_t)GPIO_AO_START_ADDRESS);
     gpio_res = gpio_init(gpio_params, &gpio);
-    gpio_res = gpio_output_set_enabled(&gpio, GPIO_PMW, true);
+    gpio_res = gpio_output_set_enabled(&gpio, GPIO_TOGGLE, true);
 
 #ifdef TARGET_PYNQ_Z2
 #pragma message ( "this application never ends" )
     while(1) {
-      gpio_write(&gpio, GPIO_PMW, true);
+      gpio_write(&gpio, GPIO_TOGGLE, true);
       for(int i=0;i<10;i++) asm volatile("nop");
-      gpio_write(&gpio, GPIO_PMW, false);
+      gpio_write(&gpio, GPIO_TOGGLE, false);
       for(int i=0;i<10;i++) asm volatile("nop");
     }
 #else
     for(int i=0;i<100;i++) {
-      gpio_write(&gpio, GPIO_PMW, true);
+      gpio_write(&gpio, GPIO_TOGGLE, true);
       for(int i=0;i<10;i++) asm volatile("nop");
-      gpio_write(&gpio, GPIO_PMW, false);
+      gpio_write(&gpio, GPIO_TOGGLE, false);
       for(int i=0;i<10;i++) asm volatile("nop");
     }
 #endif
 
-    printf("Success.\n");
+    PRINTF("Success.\n");
     return EXIT_SUCCESS;
 }

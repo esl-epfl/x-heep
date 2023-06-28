@@ -10,6 +10,18 @@
 #include "core_v_mini_mcu.h"
 #include "power_manager.h"
 
+/* Enable printf by default only for FPGA. */
+#ifdef TARGET_PYNQ_Z2
+#define DEBUG
+#endif // TARGET_PYNQ_Z2
+ 
+// Use PRINTF instead of printf to remove print by default
+#ifdef DEBUG
+  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif // DEBUG
+
 static power_manager_t power_manager;
 
 int main(int argc, char *argv[])
@@ -23,14 +35,14 @@ int main(int argc, char *argv[])
     // Init peripheral_subsystem's counters
     if (power_gate_counters_init(&power_manager_periph_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail. Check the reset and powergate counters value\n");
+        PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
         return EXIT_FAILURE;
     }
 
     // Power off peripheral_subsystem domain
     if (power_gate_periph(&power_manager, kOff_e, &power_manager_periph_counters) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail.\n");
+        PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
     }
 
@@ -43,11 +55,11 @@ int main(int argc, char *argv[])
     // Power on peripheral_subsystem domain
     if (power_gate_periph(&power_manager, kOn_e, &power_manager_periph_counters) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail.\n");
+        PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
     }
 
     /* write something to stdout */
-    printf("Success.\n");
+    PRINTF("Success.\n\r");
     return EXIT_SUCCESS;
 }
