@@ -51,6 +51,10 @@ ARCH     ?= rv32imc
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
 SOURCE 	 ?= "."
 
+# Number of memory banks. Set to 3 by default to allow the testing of ram retention examples
+MEMORY_BANKS 	?= 3
+
+
 ## @section Conda
 conda: environment.yml
 	conda env create -f environment.yml
@@ -177,7 +181,7 @@ run-blinkyfreertos: mcu-gen verilator-sim
 
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
-run-app-sim:
+run-app-sim: app
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
 	./Vtestharness +firmware=../../../sw/build/main.hex; \
 	cat uart0.log; \

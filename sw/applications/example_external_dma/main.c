@@ -12,9 +12,10 @@
 
 #define TEST_DATA_SIZE      16
 #define TEST_DATA_LARGE     1024
-#define DEBUG
 
-// Use PRINTF instead of PRINTF to remove print by default
+//#define DEBUG // Should be pushed commented to minimize testing time
+ 
+// Use PRINTF instead of printf to remove print by default
 #ifdef DEBUG
   #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
@@ -66,9 +67,9 @@ int main(int argc, char *argv[])
                                 };
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
 
-    PRINTF("\n\n===================================\n\n");
+    PRINTF("\n\n\r===================================\n\n\r");
     PRINTF(" TESTING DMA ON EXTERNAL PERIPHERAL   ");
-    PRINTF("\n\n===================================\n\n");
+    PRINTF("\n\n\r===================================\n\n\r");
 
     res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
@@ -90,10 +91,10 @@ int main(int argc, char *argv[])
     }
 
     if (errors == 0) {
-        PRINTF("DMA word transfer success\nFinished! :) \n\r");
+        PRINTF("External DMA success\n\r");
         return EXIT_SUCCESS;
     } else {
-        PRINTF("DMA word transfer failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
+        PRINTF("External DMA failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
         return EXIT_FAILURE;
     }
 
