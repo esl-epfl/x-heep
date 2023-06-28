@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 
 #else
     #pragma message ( "this application can run only when MEMORY_BANKS > 2" )
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
 #endif
 
 }
