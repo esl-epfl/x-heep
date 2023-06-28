@@ -18,25 +18,31 @@
 #define TEST_ADDRESS_MODE_EXTERNAL_DEVICE
 
 #define TEST_DATA_SIZE      16
-#define TEST_DATA_LARGE     4096
+#define TEST_DATA_LARGE     1024
 #define TRANSACTIONS_N      3       // Only possible to perform transaction at a time, others should be blocked
 #define TEST_WINDOW_SIZE_DU  1024    // if put at <=71 the isr is too slow to react to the interrupt 
 
-//#define DEBUG
 
 
 #if TEST_DATA_LARGE < 2* TEST_DATA_SIZE
     #errors("TEST_DATA_LARGE must be at least 2*TEST_DATA_SIZE")
 #endif
 
-// Use PRINTF instead of printf to remove print by default
-#ifdef DEBUG
+/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
+#define DEFAULT_PRINTF_BEHAVIOR 1
+
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#ifdef TARGET_PYNQ_Z2 
+    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
+#else 
+    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
+#endif
+
+#if ENABLE_PRINTF
   #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
   #define PRINTF(...)
-#endif // DEBUG
-
-#define PRINTF2(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#endif 
 
 
 int32_t errors = 0;
@@ -113,9 +119,9 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_SINGULAR_MODE
 
-    PRINTF("\n\n===================================\n\n");
-    PRINTF("    TESTING SINGULAR MODE   ");
-    PRINTF("\n\n===================================\n\n");
+    PRINTF("\n\n\r===================================\n\n\r");
+    PRINTF("    TESTING SINGLE MODE   ");
+    PRINTF("\n\n\r===================================\n\n\r");
 
     res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
@@ -144,9 +150,9 @@ int main(int argc, char *argv[])
     }
 
     if (errors == 0) {
-        PRINTF("DMA word transfer success\nFinished! :) \n\r");
+        PRINTF("DMA single mode success.\n\r");
     } else {
-        PRINTF("DMA word transfer failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
+        PRINTF("DMA single mode failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
         return -1;
     }
 
@@ -154,9 +160,9 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_ADDRESS_MODE
 
-    PRINTF("\n\n===================================\n\n");
+    PRINTF("\n\n\r===================================\n\n\r");
     PRINTF("    TESTING ADDRESS MODE   ");
-    PRINTF("\n\n===================================\n\n");
+    PRINTF("\n\n\r===================================\n\n\r");
 
     // Prepare the data
     for (int i = 0; i < TEST_DATA_SIZE; i++) {
@@ -194,9 +200,9 @@ int main(int argc, char *argv[])
     }
 
     if (errors == 0) {
-        PRINTF("DMA word transfer success\nFinished! :) \n\r");
+        PRINTF("DMA address mode success.\n\r");
     } else {
-        PRINTF("DMA word transfer failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
+        PRINTF("DMA address mode failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
         return -1;
     }
 
@@ -221,9 +227,9 @@ int main(int argc, char *argv[])
     tgt_addr.ptr = ext_test_addr_4B_PTR;
     trans.src_addr = &tgt_addr;
 
-    PRINTF("\n\n=====================================\n\n");
+    PRINTF("\n\n\r=====================================\n\n\r");
     PRINTF("    TESTING ADDRESS MODE IN EXTERNAL MEMORY  ");
-    PRINTF("\n\n=====================================\n\n");
+    PRINTF("\n\n\r=====================================\n\n\r");
 
     // Prepare the data
     for (int i = 0; i < TEST_DATA_SIZE; i++) {
@@ -261,9 +267,9 @@ int main(int argc, char *argv[])
     }
 
     if (errors == 0) {
-        PRINTF("DMA word transfer success\nFinished! :) \n\r");
+        PRINTF("DMA address mode in external memory success.\n\r");
     } else {
-        PRINTF("DMA word transfer failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
+        PRINTF("DMA address mode in external memory failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
         return -1;
     }
 
@@ -276,9 +282,9 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef TEST_PENDING_TRANSACTION
-    PRINTF("\n\n===================================\n\n");
+    PRINTF("\n\n\r===================================\n\n\r");
     PRINTF("    TESTING MULTIPLE TRANSACTIONS   ");
-    PRINTF("\n\n===================================\n\n");
+    PRINTF("\n\n\r===================================\n\n\r");
     
     for (uint32_t i = 0; i < TEST_DATA_LARGE; i++) {
         test_data_large[i] = i;
@@ -326,9 +332,9 @@ int main(int argc, char *argv[])
     }
 
     if (errors == 0) {
-        PRINTF("DMA word transfer success\nFinished! :) \n\r");
+        PRINTF("DMA multiple transactions success.\n\r");
     } else {
-        PRINTF("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
+        PRINTF("DMA multiple transactions failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
         return -1;
     }
 
@@ -337,9 +343,9 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_WINDOW
 
-    PRINTF("\n\n===================================\n\n");
+    PRINTF("\n\n\r===================================\n\n\r");
     PRINTF("    TESTING WINDOW INTERRUPT   ");
-    PRINTF("\n\n===================================\n\n");
+    PRINTF("\n\n\r===================================\n\n\r");
 
     
     window_intr_flag = 0;
@@ -367,15 +373,15 @@ int main(int argc, char *argv[])
 
     if( trans.end == DMA_TRANS_END_POLLING ){ //There will be no interrupts whatsoever!
         while( ! dma_is_ready() );
-        printf("?");
+        PRINTF("?\n\r");
     } else {
         while( !dma_is_ready() ){
             wait_for_interrupt();
-            printf("i");
+            PRINTF("i\n\r");
         }
     }  
 
-    PRINTF("\nWe had %d window interrupts.\n", window_intr_flag);
+    PRINTF("\nWe had %d window interrupts.\n\r", window_intr_flag);
 
     for(uint32_t i = 0; i < TEST_DATA_LARGE; i++ ) {
         if (copied_data_4B[i] != test_data_large[i]) {
@@ -385,9 +391,9 @@ int main(int argc, char *argv[])
     }
 
     if (errors == 0) {
-        PRINTF("DMA word transfer success\nFinished! :) \n\r");
+        PRINTF("DMA window success\n\r");
     } else {
-        PRINTF("DMA word transfer failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
+        PRINTF("DMA window failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
         return -1;
     }
 

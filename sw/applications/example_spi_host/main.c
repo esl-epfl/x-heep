@@ -19,6 +19,22 @@
     #define USE_SPI_FLASH
 #endif
 
+/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
+#define DEFAULT_PRINTF_BEHAVIOR 1
+
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#ifdef TARGET_PYNQ_Z2 
+    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
+#else 
+    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
+#endif
+
+#if ENABLE_PRINTF
+  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif 
+
 // Simple example to check the SPI host peripheral is working. It checks the ram and flash have the same content
 #define REVERT_24b_ADDR(addr) ((((uint32_t)(addr) & 0xff0000) >> 16) | ((uint32_t)(addr) & 0xff00) | (((uint32_t)(addr) & 0xff) << 16))
 
@@ -183,7 +199,7 @@ int main(int argc, char *argv[])
     // Wait transaction is finished (polling register)
     // spi_wait_for_rx_watermark(&spi_host);
     // or wait for SPI interrupt
-    printf("Waiting for SPI...\n");
+    PRINTF("Waiting for SPI...\n\r");
     while(spi_intr_flag==0) {
         wait_for_interrupt();
     }
@@ -198,22 +214,22 @@ int main(int argc, char *argv[])
         spi_read_word(&spi_host, &flash_data[i]);
     }
 
-    printf("flash vs ram...\n");
+    PRINTF("flash vs ram...\n\r");
 
     uint32_t errors = 0;
     uint32_t* ram_ptr = flash_original;
     for (int i=0; i<8; i++) {
         if(flash_data[i] != *ram_ptr) {
-            printf("@%x : %x != %x\n", ram_ptr, flash_data[i], *ram_ptr);
+            PRINTF("@%x : %x != %x\n\r", ram_ptr, flash_data[i], *ram_ptr);
             errors++;
         }
         ram_ptr++;
     }
 
     if (errors == 0) {
-        printf("success!\n");
+        PRINTF("success!\n\r");
     } else {
-        printf("failure, %d errors!\n", errors);
+        PRINTF("failure, %d errors!\n\r", errors);
     }
     return EXIT_SUCCESS;
 }

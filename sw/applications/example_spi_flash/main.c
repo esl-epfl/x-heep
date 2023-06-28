@@ -24,7 +24,6 @@
     #define USE_SPI_FLASH
 #endif
 /* Test Configurations */
-#define DEBUG
 #define TEST_CIRCULAR
 #define TEST_MEM_2_SPI
 #define TEST_SPI_2_MEM
@@ -65,13 +64,21 @@
 #define FLASH_CLK_MAX_HZ (133*1000*1000) // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
 
 
-// Use PRINTF instead of PRINTF to remove print by default
-#ifdef DEBUG
+/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
+#define DEFAULT_PRINTF_BEHAVIOR 1
+
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#ifdef TARGET_PYNQ_Z2 
+    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
+#else 
+    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
+#endif
+
+#if ENABLE_PRINTF
   #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
   #define PRINTF(...)
-#endif // DEBUG
-#define PRINTF2(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#endif 
 
 int8_t spi_intr_flag;
 spi_host_t spi_host;
@@ -283,9 +290,9 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_MEM_2_SPI
 
-    PRINTF("\n\n======================================\n\n");
+    PRINTF("\n\n\r======================================\n\n\r");
     PRINTF(" MEM -> -> DMA -> -> SPI -> -> FLASH ");
-    PRINTF("\n\n======================================\n\n");
+    PRINTF("\n\n\r======================================\n\n\r");
 
 #ifndef USE_SPI_FLASH
     const uint8_t slot = DMA_TRIG_SLOT_SPI_TX; // The DMA will wait for the SPI TX FIFO ready signal
@@ -352,20 +359,20 @@ int main(int argc, char *argv[])
     while(spi_intr_flag == 0) {
         wait_for_interrupt();
     }
-    PRINTF("triggered\n");
+    PRINTF("triggered\n\r");
 
     spi_wait_4_resp();
 
-    PRINTF("%d Bytes written in Flash at @ 0x%08x \n", COPY_DATA_UNITS*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE), FLASH_ADDR);
+    PRINTF("%d Bytes written in Flash at @ 0x%08x \n\r", COPY_DATA_UNITS*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE), FLASH_ADDR);
 
 
 #endif //TEST_SPI_2_MEM
 
 #ifdef TEST_SPI_2_MEM
 
-    PRINTF("\n\n======================================\n\n");
+    PRINTF("\n\n\r======================================\n\n\r");
     PRINTF(" MEM <- <- DMA <- <- SPI <- <- FLASH ");
-    PRINTF("\n\n======================================\n\n");
+    PRINTF("\n\n\r======================================\n\n\r");
 
 #ifndef USE_SPI_FLASH
     const uint8_t slot2 = DMA_TRIG_SLOT_SPI_RX; // The DMA will wait for the SPI TX FIFO ready signal
@@ -436,7 +443,7 @@ int main(int argc, char *argv[])
         /* wait_for_interrupt(); For small buffer sizes the interrupt arrives before going to wfi(); */
     }; 
 
-    PRINTF("triggered!\n");
+    PRINTF("triggered!\n\r");
 
     // Power down flash
     const uint32_t powerdown_byte_cmd = 0xb9;
@@ -451,23 +458,23 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
 
     // The data is already in memory -- Check results
-    PRINTF("ram vs flash...\n");
+    PRINTF("ram vs flash...\n\r");
 
     int i;
     uint32_t errors = 0;
     uint32_t count = 0;
     for (i = 0; i<COPY_DATA_UNITS*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE); i++) {
         if(((uint8_t*)flash_data)[i] != ((uint8_t*)copy_data)[i]) {
-            PRINTF("@%08x-@%08x : %02d\t!=\t%02d\n" , &((uint8_t*)flash_data)[i] , &((uint8_t*)copy_data)[i], ((uint8_t*)flash_data)[i], ((uint8_t*)copy_data)[i]);
+            PRINTF("@%08x-@%08x : %02d\t!=\t%02d\n\r" , &((uint8_t*)flash_data)[i] , &((uint8_t*)copy_data)[i], ((uint8_t*)flash_data)[i], ((uint8_t*)copy_data)[i]);
             errors++;
         }
         count++;
     }
 
     if (errors == 0) {
-        PRINTF("success! (Data units checked: %d)\n", count);
+        PRINTF("success! (Data units checked: %d)\n\r", count);
     } else {
-        PRINTF("failure, %d errors! (Out of %d)\n", errors, count);
+        PRINTF("Failure, %d errors! (Out of %d)\n\r", errors, count);
         return EXIT_FAILURE;
     }
 

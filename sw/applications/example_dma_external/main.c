@@ -8,18 +8,27 @@
 
 #include "dma.h"
 #include "core_v_mini_mcu.h"
+#include "csr.h"
 
 
 #define TEST_DATA_SIZE      16
 #define TEST_DATA_LARGE     1024
-#define DEBUG
 
-// Use PRINTF instead of PRINTF to remove print by default
-#ifdef DEBUG
+/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
+#define DEFAULT_PRINTF_BEHAVIOR 1
+
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#ifdef TARGET_PYNQ_Z2 
+    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
+#else 
+    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
+#endif
+
+#if ENABLE_PRINTF
   #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
   #define PRINTF(...)
-#endif // DEBUG
+#endif 
 
 
 int32_t errors = 0;
@@ -66,9 +75,9 @@ int main(int argc, char *argv[])
                                 };
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
 
-    PRINTF("\n\n===================================\n\n");
+    PRINTF("\n\n\r===================================\n\n\r");
     PRINTF(" TESTING DMA ON EXTERNAL PERIPHERAL   ");
-    PRINTF("\n\n===================================\n\n");
+    PRINTF("\n\n\r===================================\n\n\r");
 
     res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
@@ -78,7 +87,14 @@ int main(int argc, char *argv[])
     PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     
     while( ! dma_is_ready() ){
-        wait_for_interrupt();
+        // disable_interrupts
+        // this does not prevent waking up the core as this is controlled by the MIP register
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x0);
+        if ( dma_is_ready() == 0 ) {
+            wait_for_interrupt();
+            //from here we wake up even if we did not jump to the ISR
+        }
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }
     PRINTF(">> Finished transaction. \n\r");
         
@@ -90,10 +106,10 @@ int main(int argc, char *argv[])
     }
 
     if (errors == 0) {
-        PRINTF("DMA word transfer success\nFinished! :) \n\r");
+        PRINTF("External DMA success\n\r");
         return EXIT_SUCCESS;
     } else {
-        PRINTF("DMA word transfer failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
+        PRINTF("External DMA failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
         return EXIT_FAILURE;
     }
 
