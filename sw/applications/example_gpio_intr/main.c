@@ -23,7 +23,10 @@ Notes:
 */
 
 
-//#define DEBUG // Should be pushed commented to minimize testing time
+/* Enable printf by default only for FPGA. */
+#ifdef TARGET_PYNQ_Z2
+#define DEBUG
+#endif // TARGET_PYNQ_Z2
  
 // Use PRINTF instead of printf to remove print by default
 #ifdef DEBUG
