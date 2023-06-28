@@ -51,10 +51,6 @@ ARCH     ?= rv32imc
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
 SOURCE 	 ?= "."
 
-# Number of memory banks. Set to 3 by default to allow the testing of ram retention examples
-MEMORY_BANKS 	?= 3
-
-
 ## @section Conda
 conda: environment.yml
 	conda env create -f environment.yml
