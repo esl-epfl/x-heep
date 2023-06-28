@@ -24,7 +24,6 @@
     #define USE_SPI_FLASH
 #endif
 /* Test Configurations */
-// #define DEBUG
 #define TEST_CIRCULAR
 #define TEST_MEM_2_SPI
 #define TEST_SPI_2_MEM
@@ -65,17 +64,21 @@
 #define FLASH_CLK_MAX_HZ (133*1000*1000) // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
 
 
-/* Enable printf by default only for FPGA. */
-#ifdef TARGET_PYNQ_Z2
-#define DEBUG
-#endif // TARGET_PYNQ_Z2
- 
-// Use PRINTF instead of printf to remove print by default
-#ifdef DEBUG
+/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
+#define DEFAULT_PRINTF_BEHAVIOR 1
+
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#ifdef TARGET_PYNQ_Z2 
+    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
+#else 
+    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
+#endif
+
+#if ENABLE_PRINTF
   #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
   #define PRINTF(...)
-#endif // DEBUG
+#endif 
 
 int8_t spi_intr_flag;
 spi_host_t spi_host;

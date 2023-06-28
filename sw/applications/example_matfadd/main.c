@@ -9,17 +9,21 @@
 
 #define FS_INITIAL 0x01
 
-/* Enable printf by default only for FPGA. */
-#ifdef TARGET_PYNQ_Z2
-#define DEBUG
-#endif // TARGET_PYNQ_Z2
- 
-// Use PRINTF instead of printf to remove print by default
-#ifdef DEBUG
+/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
+#define DEFAULT_PRINTF_BEHAVIOR 1
+
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#ifdef TARGET_PYNQ_Z2 
+    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
+#else 
+    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
+#endif
+
+#if ENABLE_PRINTF
   #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
   #define PRINTF(...)
-#endif // DEBUG
+#endif 
 
 void __attribute__ ((noinline)) matrixAdd(float * A, float * B, float * C, int N, int M);
 uint32_t check_results(float *  C, int N, int M);
