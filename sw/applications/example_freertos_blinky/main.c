@@ -149,9 +149,9 @@ or 0 to run the more comprehensive test and demo application. */
 
 
 #ifdef TARGET_PYNQ_Z2
-    #define GPIO_LD5_R  20
-    #define GPIO_LD5_B  21
-	#define GPIO_LD5_G  22
+    #define GPIO_LD5_R  15
+    #define GPIO_LD5_B  16
+	#define GPIO_LD5_G  17
     #pragma message ( "Executing FreeRTOS using X-HEEP and Pynq-z2" )
 #else
     #define GPIO_LD5_R  29
