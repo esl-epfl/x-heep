@@ -126,7 +126,7 @@ module xbar_varlat_n_to_one #(
   always_comb begin
     state_n = state_q;
     xbar_slave_req_req_outstanding = xbar_slave_req_req[0];
-    slave_xbar_rsp_gnt_outstanding = slave_resp_i.gnt;
+    slave_xbar_rsp_gnt_outstanding = slave_xbar_rsp_gnt[0];
 
     case (state_q)
 
@@ -139,9 +139,9 @@ module xbar_varlat_n_to_one #(
       OUTSTANDING_WAITFOR_VALID: begin
         xbar_slave_req_req_outstanding = 1'b0;
         slave_xbar_rsp_gnt_outstanding = 1'b0;
-        if (slave_resp_i.rvalid) begin
+        if (slave_xbar_rsp_rvalid[0]) begin
           xbar_slave_req_req_outstanding = xbar_slave_req_req[0];
-          slave_xbar_rsp_gnt_outstanding = slave_resp_i.gnt;
+          slave_xbar_rsp_gnt_outstanding = slave_xbar_rsp_gnt[0];
           if (xbar_slave_req_req_outstanding && slave_xbar_rsp_gnt_outstanding) begin
             state_n = OUTSTANDING_WAITFOR_VALID;
           end else begin

@@ -45,14 +45,9 @@ module system_xbar
   logic [XBAR_NMASTER-1:0][31:0] post_master_req_addr;
 % endif
 
-  logic [0:0][LOG_XBAR_NSLAVE-1:0] port_sel_onetom;
-  logic [0:0] neck_req_req, neck_req_oustanding_req;
-  logic [0:0] neck_resp_gnt, neck_resp_outstanding_gnt;
-  logic [0:0] neck_resp_rvalid;
-  logic [0:0][31:0] neck_resp_rdata;
+  // Neck crossbar
   obi_req_t neck_req;
-  logic [0:0][REQ_AGG_DATA_WIDTH-1:0] neck_req_out_data;
-
+  obi_resp_t neck_resp;
 
   logic [XBAR_NMASTER-1:0] master_req_req;
   logic [XBAR_NMASTER-1:0] master_resp_gnt;
