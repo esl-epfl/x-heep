@@ -15,6 +15,7 @@
 #include "pad_control.h"
 #include "pad_control_regs.h"  // Generated.
 #include "x-heep.h"
+#include <limits.h> //todo: remove
 
 /*
 Notes:
@@ -82,16 +83,6 @@ int main(int argc, char *argv[])
     pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_I2C_SDA_REG_OFFSET), 1);
 #endif
 
-    gpio_params_t gpio_params;
-    gpio_t gpio;
-    gpio_result_t gpio_res;
-    gpio_params.base_addr = mmio_region_from_addr((uintptr_t)GPIO_START_ADDRESS);
-    gpio_res = gpio_init(gpio_params, &gpio);
-    if (gpio_res != kGpioOk) {
-        PRINTF("Failed\n\r;");
-        return -1;
-    }
-
     plic_res = plic_irq_set_priority(GPIO_INTR, 1);
     if (plic_res != kPlicOk) {
         PRINTF("Failed\n\r;");
@@ -112,33 +103,39 @@ int main(int argc, char *argv[])
     CSR_SET_BITS(CSR_REG_MIE, mask);
     plic_intr_flag = 0;
 
-    gpio_res = gpio_output_set_enabled(&gpio, GPIO_TB_OUT, true);
-    if (gpio_res != kGpioOk) {
-        PRINTF("Failed\n\r;");
+    //gpio_reset_all();
+    gpio_result_t gpio_res;
+
+    gpio_cfg_t cfg_out = {
+        .pin = GPIO_TB_OUT,
+        .mode = GpioModeOutPushPull
+    };
+    gpio_res = gpio_config(cfg_out);
+    if (gpio_res != GpioOk) {
+        PRINTF("Failed\n;");
         return -1;
     }
-    gpio_write(&gpio, GPIO_TB_OUT, false);
+    gpio_res = gpio_write(GPIO_TB_OUT, false);
 
-    gpio_res = gpio_input_enabled(&gpio, GPIO_TB_IN, true);
-    if (gpio_res != kGpioOk) {
-        PRINTF("Failed\n\r;");
-        return -1;
-    }
-
-
-    gpio_res = gpio_irq_set_trigger(&gpio, GPIO_TB_IN, true, kGpioIrqTriggerEdgeRising);
-    if (gpio_res != kGpioOk) {
-        PRINTF("Failed\n\r;");
+    gpio_cfg_t cfg_in = {
+        .pin = GPIO_TB_IN,
+        .mode = GpioModeIn,
+        .en_input_sampling = true,
+        .en_intr = true,
+        .intr_type = GpioIntrEdgeRising
+    };
+    gpio_res = gpio_config(cfg_in);
+    if (gpio_res != GpioOk) {
+        PRINTF("Failed\n;");
         return -1;
     }
 
     PRINTF("Write 1 to GPIO 30 and wait for interrupt...\n\r");
     while(plic_intr_flag==0) {
-
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x0);
-        gpio_write(&gpio, GPIO_TB_OUT, true);
+        gpio_res = gpio_write(GPIO_TB_OUT, true);
         wait_for_interrupt();
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }

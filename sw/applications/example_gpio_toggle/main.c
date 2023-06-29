@@ -29,29 +29,22 @@
 
 int main(int argc, char *argv[])
 {
-    gpio_params_t gpio_params;
-    gpio_t gpio;
     gpio_result_t gpio_res;
-    gpio_params.base_addr = mmio_region_from_addr((uintptr_t)GPIO_AO_START_ADDRESS);
-    gpio_res = gpio_init(gpio_params, &gpio);
-    gpio_res = gpio_output_set_enabled(&gpio, GPIO_TOGGLE, true);
+    gpio_cfg_t pin_cfg = {
+        .pin = GPIO_TOGGLE,     
+        .mode = GpioModeOutPushPull    
+    };
+    gpio_res = gpio_config (pin_cfg);
+    if (gpio_res != GpioOk)
+        PRINTF("Gpio initialization failed!\n");
 
-#ifdef TARGET_PYNQ_Z2
-#pragma message ( "this application never ends" )
-    while(1) {
-      gpio_write(&gpio, GPIO_TOGGLE, true);
-      for(int i=0;i<10;i++) asm volatile("nop");
-      gpio_write(&gpio, GPIO_TOGGLE, false);
-      for(int i=0;i<10;i++) asm volatile("nop");
-    }
-#else
+
     for(int i=0;i<100;i++) {
-      gpio_write(&gpio, GPIO_TOGGLE, true);
-      for(int i=0;i<10;i++) asm volatile("nop");
-      gpio_write(&gpio, GPIO_TOGGLE, false);
-      for(int i=0;i<10;i++) asm volatile("nop");
+        gpio_write(GPIO_TOGGLE, true);
+        for(int i=0;i<10;i++) asm volatile("nop");
+        gpio_write(GPIO_TOGGLE, false);
+        for(int i=0;i<10;i++) asm volatile("nop");
     }
-#endif
 
     PRINTF("Success.\n");
     return EXIT_SUCCESS;
