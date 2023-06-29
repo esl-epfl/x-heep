@@ -33,6 +33,9 @@ module peripheral_subsystem
     input logic uart_intr_rx_timeout_i,
     input logic uart_intr_rx_parity_err_i,
 
+    // DMA window PLIC interrupt
+    input logic dma_window_intr_i,
+
     //GPIO
     input  logic [31:8] cio_gpio_i,
     output logic [31:8] cio_gpio_o,
@@ -58,6 +61,18 @@ module peripheral_subsystem
     //RV TIMER
     output logic rv_timer_2_intr_o,
     output logic rv_timer_3_intr_o,
+
+    //I2s
+    output logic i2s_sck_o,
+    output logic i2s_sck_oe_o,
+    input  logic i2s_sck_i,
+    output logic i2s_ws_o,
+    output logic i2s_ws_oe_o,
+    input  logic i2s_ws_i,
+    output logic i2s_sd_o,
+    output logic i2s_sd_oe_o,
+    input  logic i2s_sd_i,
+    output logic i2s_rx_valid_o,
 
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
@@ -111,6 +126,7 @@ module peripheral_subsystem
   logic i2c_intr_ack_stop;
   logic i2c_intr_host_timeout;
   logic spi2_intr_event;
+  logic i2s_intr_event;
 
   // this avoids lint errors
   assign unused_irq_id = irq_id;
@@ -143,7 +159,9 @@ module peripheral_subsystem
   assign intr_vector[${interrupts["intr_ack_stop"]}] = i2c_intr_ack_stop;
   assign intr_vector[${interrupts["intr_host_timeout"]}] = i2c_intr_host_timeout;
   assign intr_vector[${interrupts["spi2_intr_event"]}] = spi2_intr_event;
-
+  assign intr_vector[${interrupts["i2s_intr_event"]}] = i2s_intr_event;
+  assign intr_vector[${interrupts["dma_window_intr"]}]  = dma_window_intr_i;
+  
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin
     assign intr_vector[i+PLIC_USED_NINT] = intr_vector_ext_i[i];
@@ -151,12 +169,6 @@ module peripheral_subsystem
 
   //Address Decoder
   logic [PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
-
-  obi_pkg::obi_req_t slave_fifoin_req;
-  obi_pkg::obi_resp_t slave_fifoin_resp;
-
-  obi_pkg::obi_req_t slave_fifoout_req;
-  obi_pkg::obi_resp_t slave_fifoout_resp;
 
   obi_pkg::obi_req_t slave_fifo_req_sel;
   obi_pkg::obi_resp_t slave_fifo_resp_sel;
@@ -170,6 +182,20 @@ module peripheral_subsystem
       .clk_o(clk_cg)
   );
 
+
+`ifdef REMOVE_OBI_FIFO
+
+  assign slave_fifo_req_sel = slave_req_i;
+  assign slave_resp_o       = slave_fifo_resp_sel;
+
+`else
+
+  obi_pkg::obi_req_t slave_fifoin_req;
+  obi_pkg::obi_resp_t slave_fifoin_resp;
+
+  obi_pkg::obi_req_t slave_fifoout_req;
+  obi_pkg::obi_resp_t slave_fifoout_resp;
+
   obi_fifo obi_fifo_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -179,21 +205,12 @@ module peripheral_subsystem
       .consumer_resp_i(slave_fifoout_resp)
   );
 
-  //FusoSoc always defines parameter for Verilator with the value 1 or 0, thus we cannot use `ifdef, this is an workaround
-  always_comb
-  begin
-    if ( `USE_OBI_FIFO ) begin
-      slave_fifo_req_sel = slave_fifoout_req;
-      slave_fifoout_resp = slave_fifo_resp_sel;
-      slave_fifoin_req   = slave_req_i;
-      slave_resp_o       = slave_fifoin_resp;
-    end else begin
-      slave_fifo_req_sel = slave_req_i;
-      slave_resp_o       = slave_fifo_resp_sel;
-      slave_fifoin_req   = '0;
-      slave_fifoout_resp = '0;
-    end
-  end
+  assign slave_fifo_req_sel = slave_fifoout_req;
+  assign slave_fifoout_resp = slave_fifo_resp_sel;
+  assign slave_fifoin_req   = slave_req_i;
+  assign slave_resp_o       = slave_fifoin_resp;
+
+`endif
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
@@ -485,5 +502,44 @@ module peripheral_subsystem
 % endfor
 
   assign pdm2pcm_clk_en_o = 1;
+
+% for peripheral in peripherals.items():
+% if peripheral[0] in ("i2s"):
+% if peripheral[1]['is_included'] in ("yes"):
+  i2s #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) i2s_i (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::I2S_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2S_IDX]),
+
+      .i2s_sck_o(i2s_sck_o),
+      .i2s_sck_oe_o(i2s_sck_oe_o),
+      .i2s_sck_i(i2s_sck_i),
+      .i2s_ws_o(i2s_ws_o),
+      .i2s_ws_oe_o(i2s_ws_oe_o),
+      .i2s_ws_i(i2s_ws_i),
+      .i2s_sd_o(i2s_sd_o),
+      .i2s_sd_oe_o(i2s_sd_oe_o),
+      .i2s_sd_i(i2s_sd_i),
+      .intr_i2s_event_o(i2s_intr_event),
+      .i2s_rx_valid_o(i2s_rx_valid_o)
+  );
+% else:
+  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::I2S_IDX] = '0;
+
+  assign i2s_sck_oe_o     = 1'b0;
+  assign i2s_sck_o        = 1'b0;
+  assign i2s_ws_oe_o      = 1'b0;
+  assign i2s_ws_o         = 1'b0;
+  assign i2s_sd_oe_o      = 1'b0;
+  assign i2s_sd_o         = 1'b0;
+  assign intr_i2s_event   = 1'b0;
+  assing i2s_rx_valid_o   = 1'b0;
+% endif
+% endif
+% endfor
 
 endmodule : peripheral_subsystem

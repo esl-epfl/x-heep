@@ -8,7 +8,7 @@ if [[ $1 = "rtl" ]]
 then
     type="rtl"
     fusesoc="questasim-sim-opt-upf"
-    fusesoc_flags="--flag=use_upf --flag=use_external_device_example"
+    fusesoc_flags="--flag=use_upf"
     sim_folder="sim-modelsim"
     upf="RUN_UPF=1"
 else

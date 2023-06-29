@@ -77,11 +77,14 @@ module ao_peripheral_subsystem
     output logic rv_timer_1_intr_o,
 
     // DMA
-    output obi_req_t  dma_master0_ch0_req_o,
-    input  obi_resp_t dma_master0_ch0_resp_i,
-    output obi_req_t  dma_master1_ch0_req_o,
-    input  obi_resp_t dma_master1_ch0_resp_i,
-    output logic      dma_intr_o,
+    output obi_req_t  dma_read_ch0_req_o,
+    input  obi_resp_t dma_read_ch0_resp_i,
+    output obi_req_t  dma_write_ch0_req_o,
+    input  obi_resp_t dma_write_ch0_resp_i,
+    output obi_req_t  dma_addr_ch0_req_o,
+    input  obi_resp_t dma_addr_ch0_resp_i,
+    output logic      dma_done_intr_o,
+    output logic      dma_window_intr_o,
 
     // External PADs
     output reg_req_t pad_req_o,
@@ -108,6 +111,9 @@ module ao_peripheral_subsystem
     output logic uart_intr_rx_break_err_o,
     output logic uart_intr_rx_timeout_o,
     output logic uart_intr_rx_parity_err_o,
+
+    // I2s
+    input logic i2s_rx_valid_i,
 
     // EXTERNAL PERIPH
     output reg_req_t ext_peripheral_slave_req_o,
@@ -143,17 +149,25 @@ module ao_peripheral_subsystem
   logic [23:0] cio_gpio_unused;
   logic [23:0] cio_gpio_en_unused;
 
-  obi_pkg::obi_req_t slave_fifoin_req;
-  obi_pkg::obi_resp_t slave_fifoin_resp;
-
-  obi_pkg::obi_req_t slave_fifoout_req;
-  obi_pkg::obi_resp_t slave_fifoout_resp;
 
   obi_pkg::obi_req_t slave_fifo_req_sel;
   obi_pkg::obi_resp_t slave_fifo_resp_sel;
 
   assign ext_peripheral_slave_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPHERAL_IDX];
   assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPHERAL_IDX] = ext_peripheral_slave_resp_i;
+
+`ifdef REMOVE_OBI_FIFO
+
+  assign slave_fifo_req_sel = slave_req_i;
+  assign slave_resp_o       = slave_fifo_resp_sel;
+
+`else
+
+  obi_pkg::obi_req_t  slave_fifoin_req;
+  obi_pkg::obi_resp_t slave_fifoin_resp;
+
+  obi_pkg::obi_req_t  slave_fifoout_req;
+  obi_pkg::obi_resp_t slave_fifoout_resp;
 
   obi_fifo obi_fifo_i (
       .clk_i,
@@ -164,20 +178,12 @@ module ao_peripheral_subsystem
       .consumer_resp_i(slave_fifoout_resp)
   );
 
-  //FusoSoc always defines parameter for Verilator with the value 1 or 0, thus we cannot use `ifdef, this is an workaround
-  always_comb begin
-    if (`USE_OBI_FIFO) begin
-      slave_fifo_req_sel = slave_fifoout_req;
-      slave_fifoout_resp = slave_fifo_resp_sel;
-      slave_fifoin_req   = slave_req_i;
-      slave_resp_o       = slave_fifoin_resp;
-    end else begin
-      slave_fifo_req_sel = slave_req_i;
-      slave_resp_o       = slave_fifo_resp_sel;
-      slave_fifoin_req   = '0;
-      slave_fifoout_resp = '0;
-    end
-  end
+  assign slave_fifo_req_sel = slave_fifoout_req;
+  assign slave_fifoout_resp = slave_fifo_resp_sel;
+  assign slave_fifoin_req   = slave_req_i;
+  assign slave_resp_o       = slave_fifoin_resp;
+
+`endif
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
@@ -356,25 +362,34 @@ module ao_peripheral_subsystem
       .intr_timer_expired_1_0_o(rv_timer_1_intr_o)
   );
 
+  parameter DMA_TRIGGER_SLOT_NUM = 5;
+  logic [DMA_TRIGGER_SLOT_NUM-1:0] dma_trigger_slots;
+  assign dma_trigger_slots[0] = spi_rx_valid;
+  assign dma_trigger_slots[1] = spi_tx_ready;
+  assign dma_trigger_slots[2] = spi_flash_rx_valid;
+  assign dma_trigger_slots[3] = spi_flash_tx_ready;
+  assign dma_trigger_slots[4] = i2s_rx_valid_i;
+
   dma #(
       .reg_req_t (reg_pkg::reg_req_t),
       .reg_rsp_t (reg_pkg::reg_rsp_t),
       .obi_req_t (obi_pkg::obi_req_t),
-      .obi_resp_t(obi_pkg::obi_resp_t)
+      .obi_resp_t(obi_pkg::obi_resp_t),
+      .SLOT_NUM  (DMA_TRIGGER_SLOT_NUM)
   ) dma_i (
       .clk_i,
       .rst_ni,
       .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
-      .dma_master0_ch0_req_o,
-      .dma_master0_ch0_resp_i,
-      .dma_master1_ch0_req_o,
-      .dma_master1_ch0_resp_i,
-      .spi_rx_valid_i(spi_rx_valid),
-      .spi_tx_ready_i(spi_tx_ready),
-      .spi_flash_rx_valid_i(spi_flash_rx_valid),
-      .spi_flash_tx_ready_i(spi_flash_tx_ready),
-      .dma_intr_o
+      .dma_read_ch0_req_o,
+      .dma_read_ch0_resp_i,
+      .dma_write_ch0_req_o,
+      .dma_write_ch0_resp_i,
+      .dma_addr_ch0_req_o,
+      .dma_addr_ch0_resp_i,
+      .trigger_slot_i(dma_trigger_slots),
+      .dma_done_intr_o(dma_done_intr_o),
+      .dma_window_intr_o(dma_window_intr_o)
   );
 
   assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_CONTROL_IDX];
@@ -442,6 +457,5 @@ module ao_peripheral_subsystem
       .intr_rx_timeout_o(uart_intr_rx_timeout_o),
       .intr_rx_parity_err_o(uart_intr_rx_parity_err_o)
   );
-
 
 endmodule : ao_peripheral_subsystem

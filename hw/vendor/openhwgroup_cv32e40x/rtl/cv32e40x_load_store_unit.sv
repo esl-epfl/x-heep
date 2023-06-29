@@ -27,12 +27,15 @@
 
 module cv32e40x_load_store_unit import cv32e40x_pkg::*;
 #(
-  parameter bit          A_EXT = 0,
+  parameter a_ext_e      A_EXT = A_NONE,
   parameter bit          X_EXT = 0,
-  parameter int          X_ID_WIDTH = 4,
+  parameter int unsigned X_ID_WIDTH = 4,
   parameter int          PMA_NUM_REGIONS = 0,
   parameter pma_cfg_t    PMA_CFG[PMA_NUM_REGIONS-1:0] = '{default:PMA_R_DEFAULT},
-  parameter int          DBG_NUM_TRIGGERS = 1
+  parameter int          DBG_NUM_TRIGGERS = 1,
+  parameter bit          DEBUG = 1,
+  parameter logic [31:0] DM_REGION_START = 32'hF0000000,
+  parameter logic [31:0] DM_REGION_END   = 32'hF0003FFF
 )
 (
   input  logic        clk,
@@ -49,6 +52,7 @@ module cv32e40x_load_store_unit import cv32e40x_pkg::*;
 
   // Control outputs
   output logic        busy_o,
+  output logic        bus_busy_o,        // There are outstanding OBI transactions
   output logic        interruptible_o,
 
   // Trigger match input
@@ -58,6 +62,7 @@ module cv32e40x_load_store_unit import cv32e40x_pkg::*;
   output logic        lsu_split_0_o,            // Misaligned access is split in two transactions (to controller)
   output logic        lsu_first_op_0_o,         // First operation is active in EX
   output logic        lsu_last_op_0_o,          // Last operation is active in EX
+  output lsu_atomic_e lsu_atomic_0_o,           // Is there an atomic in EX, and of which type
 
   // outputs to trigger module
   output logic [31:0] lsu_addr_o,
@@ -69,6 +74,8 @@ module cv32e40x_load_store_unit import cv32e40x_pkg::*;
   output logic [31:0] lsu_rdata_1_o,            // LSU read data
   output mpu_status_e lsu_mpu_status_1_o,       // MPU (PMA) status, response/WB timing. To controller and wb_stage
   output logic        lsu_wpt_match_1_o,        // Address match trigger, WB timing.
+  output align_status_e lsu_align_status_1_o,   // Alignment status (for atomics), WB timing
+  output lsu_atomic_e lsu_atomic_1_o,           // Is there an atomic in WB, and of which type.
 
   // Handshakes
   input  logic        valid_0_i,                // Handshakes for first LSU stage (EX)
@@ -96,11 +103,20 @@ module cv32e40x_load_store_unit import cv32e40x_pkg::*;
   // Aligned transaction request (to cv32e40x_wpt)
   logic           wpt_trans_valid;
   logic           wpt_trans_ready;
+  logic           wpt_trans_pushpop;
   obi_data_req_t  wpt_trans;
+
+  // Align_check transaction request (to cv32e40x_align_check)
+  logic           alcheck_trans_valid;
+  logic           alcheck_trans_ready;
+  logic           alcheck_trans_pushpop;
+  obi_data_req_t  alcheck_trans;
 
   // Transaction request to cv32e40x_mpu
   logic           mpu_trans_valid;
   logic           mpu_trans_ready;
+  logic           mpu_trans_pushpop;
+  logic           mpu_trans_atomic;
   obi_data_req_t  mpu_trans;
 
   // Transaction response
@@ -112,6 +128,11 @@ module cv32e40x_load_store_unit import cv32e40x_pkg::*;
   logic           wpt_resp_valid;
   logic [31:0]    wpt_resp_rdata;
   data_resp_t     wpt_resp;
+
+  // Transaction response interface (from cv32e40x_align_check)
+  logic           alcheck_resp_valid;
+  logic [31:0]    alcheck_resp_rdata;
+  data_resp_t     alcheck_resp;
 
   // Transaction response interface (from cv32e40x_mpu)
   logic           mpu_resp_valid;
@@ -177,6 +198,11 @@ module cv32e40x_load_store_unit import cv32e40x_pkg::*;
   logic                  xif_ready_1;   // The LSU second stage is ready for an XIF transaction
   logic                  xif_res_q;     // The next memory result is for the XIF interface
   logic [X_ID_WIDTH-1:0] xif_id_q;      // Instruction ID of an XIF memory transaction
+
+  logic           align_check_en;        // Perform alignment checks for atomics
+
+  logic           consumer_resp_wait;    // Signal to WPT, MPU and alignment checker if they must wait with
+                                         // the response until there is one transaction left;
 
   assign xif_req = X_EXT && xif_mem_if.mem_valid;
 
@@ -388,10 +414,45 @@ module cv32e40x_load_store_unit import cv32e40x_pkg::*;
     end
   end
 
-  // output to register file
-  // Always rdata_ext regardless of split accesses
-  // Output will be valid (valid_1_o) only for the last phase of split access.
-  assign lsu_rdata_1_o = rdata_ext;
+  // Set rdata output and atomic type output depending on A_EXT
+  generate
+    if (A_EXT != A_NONE) begin : a_ext
+      lsu_atomic_e lsu_atomic_q;
+
+      always_ff @(posedge clk, negedge rst_n)
+      begin
+        if (rst_n == 1'b0) begin
+          lsu_atomic_q     <= AT_NONE;
+        end else if (ctrl_update) begin     // request was granted, we wait for rvalid and can continue to WB
+          if (xif_req) begin
+            lsu_atomic_q   <= AT_NONE;
+          end else begin
+            // Set type of atomic instruction in WB, if any.
+            lsu_atomic_q   <= lsu_atomic_0_o;
+            end
+        end
+      end
+
+      assign lsu_atomic_0_o  = !trans.atop[5]            ? AT_NONE :
+                               (trans.atop[4:0] == 5'h2) ? AT_LR   :
+                               (trans.atop[4:0] == 5'h3) ? AT_SC   :
+                                                           AT_AMO;
+      assign lsu_atomic_1_o = lsu_atomic_q;
+
+      // SC.W must write 0 to rd on success, and 1 on failure. All other instructions including AMO write the response data.
+      assign lsu_rdata_1_o = (lsu_atomic_q == AT_SC) ? {{31{1'b0}}, !resp.bus_resp.exokay} : rdata_ext;
+
+    end else begin : no_a_ext
+      // A_EXT not enabled, tie off outputs.
+      assign lsu_atomic_0_o = AT_NONE;
+      assign lsu_atomic_1_o = AT_NONE;
+
+      // output to register file
+      // Always rdata_ext regardless of split accesses
+      // Output will be valid (valid_1_o) only for the last phase of split access.
+      assign lsu_rdata_1_o = rdata_ext;
+    end
+  endgenerate
 
   // misaligned_access is high for both transfers of a misaligned transfer
   // TODO: Give MPU a separate modified_access_i input
@@ -474,6 +535,9 @@ module cv32e40x_load_store_unit import cv32e40x_pkg::*;
   assign wpt_trans_valid = trans_valid;
   assign trans_ready     = wpt_trans_ready;
 
+  // Indicate if transaction is part of a PUSH/POP sequence
+  assign wpt_trans_pushpop = id_ex_pipe_i.instr_meta.pushpop;
+
   // Transaction request generation
   // OBI compatible (avoids combinatorial path from data_rvalid_i to data_req_o). Multiple trans_* transactions can be
   // issued (and accepted) before a response (resp_*) is received.
@@ -533,8 +597,9 @@ module cv32e40x_load_store_unit import cv32e40x_pkg::*;
     end
   endgenerate
 
-  // Export mpu status to WB stage/controller
-  assign lsu_mpu_status_1_o = resp.mpu_status;
+  // Export mpu status and align check status to WB stage/controller
+  assign lsu_mpu_status_1_o   = resp.mpu_status;
+  assign lsu_align_status_1_o = resp.align_status;
 
   // Update signals for EX/WB registers (when EX has valid data itself and is ready for next)
   assign ctrl_update = done_0 && (valid_0_i || xif_req);
@@ -637,6 +702,7 @@ module cv32e40x_load_store_unit import cv32e40x_pkg::*;
   //////////////////////////////////////////////////////////////////////////////
   // WPT
   //////////////////////////////////////////////////////////////////////////////
+  assign consumer_resp_wait = !xif_req;
 
   // Watchpint trigger "gate". If a watchpoint trigger is detected, this module will
   // consume the transaction, not letting it through to the MPU. The triger match will
@@ -651,9 +717,10 @@ module cv32e40x_load_store_unit import cv32e40x_pkg::*;
         // Input from debug_triggers module
         .trigger_match_i     ( trigger_match_0_i ),
 
-        // Interface towards mpu interface
+        // Interface towards MPU
         .mpu_trans_ready_i   ( mpu_trans_ready   ),
         .mpu_trans_valid_o   ( mpu_trans_valid   ),
+        .mpu_trans_pushpop_o ( mpu_trans_pushpop ),
         .mpu_trans_o         ( mpu_trans         ),
 
         .mpu_resp_valid_i    ( mpu_resp_valid    ),
@@ -662,6 +729,7 @@ module cv32e40x_load_store_unit import cv32e40x_pkg::*;
         // Interface towards core
         .core_trans_valid_i  ( wpt_trans_valid   ),
         .core_trans_ready_o  ( wpt_trans_ready   ),
+        .core_trans_pushpop_i( wpt_trans_pushpop ),
         .core_trans_i        ( wpt_trans         ),
 
         .core_resp_valid_o   ( wpt_resp_valid    ),
@@ -672,7 +740,7 @@ module cv32e40x_load_store_unit import cv32e40x_pkg::*;
 
         // Indication from the core that watchpoint triggers should be reported after all in flight transactions
         // are complete (default behavior for main core requests, but not used for XIF requests)
-        .core_wpt_wait_i     ( !xif_req          ),
+        .core_wpt_wait_i     ( consumer_resp_wait),
 
         // Report watchpoint triggers to the core immediatly (used in case core_wpt_wait_i is not asserted)
         .core_wpt_match_o    ( xif_wpt_match     )
@@ -686,11 +754,13 @@ module cv32e40x_load_store_unit import cv32e40x_pkg::*;
       assign resp       = wpt_resp;
 
       assign lsu_wpt_match_1_o = resp.wpt_match;
+
     end else begin : gen_no_wpt
       // Bypass WPT in case DBG_NUM_TRIGGERS is zero
       assign lsu_wpt_match_1_o = resp.wpt_match;
       assign mpu_trans_valid   = wpt_trans_valid;
       assign mpu_trans         = wpt_trans;
+      assign mpu_trans_pushpop = wpt_trans_pushpop;
       assign wpt_trans_ready   = mpu_trans_ready;
       assign wpt_resp_valid    = mpu_resp_valid;
       assign wpt_resp          = mpu_resp;
@@ -703,41 +773,87 @@ module cv32e40x_load_store_unit import cv32e40x_pkg::*;
       assign resp       = wpt_resp;
     end
   endgenerate
+
+
   //////////////////////////////////////////////////////////////////////////////
   // MPU
   //////////////////////////////////////////////////////////////////////////////
+  assign mpu_trans_atomic = mpu_trans.atop[5];
 
   cv32e40x_mpu
   #(
     .IF_STAGE           ( 0                    ),
     .A_EXT              ( A_EXT                ),
     .CORE_RESP_TYPE     ( data_resp_t          ),
-    .BUS_RESP_TYPE      ( obi_data_resp_t      ),
+    .BUS_RESP_TYPE      ( data_resp_t          ),
     .CORE_REQ_TYPE      ( obi_data_req_t       ),
     .PMA_NUM_REGIONS    ( PMA_NUM_REGIONS      ),
-    .PMA_CFG            ( PMA_CFG              )
+    .PMA_CFG            ( PMA_CFG              ),
+    .DEBUG              ( DEBUG                ),
+    .DM_REGION_START    ( DM_REGION_START      ),
+    .DM_REGION_END      ( DM_REGION_END        )
   )
   mpu_i
   (
     .clk                  ( clk                ),
     .rst_n                ( rst_n              ),
-    .atomic_access_i      ( 1'b0               ), // TODO:OE update to support atomic PMA checks
+    .atomic_access_i      ( mpu_trans_atomic   ),
     .misaligned_access_i  ( misaligned_access  ),
 
     .core_one_txn_pend_n  ( cnt_is_one_next    ),
-    .core_mpu_err_wait_i  ( !xif_req           ),
+    .core_mpu_err_wait_i  ( consumer_resp_wait ),
     .core_mpu_err_o       ( xif_mpu_err        ),
     .core_trans_valid_i   ( mpu_trans_valid    ),
+    .core_trans_pushpop_i ( mpu_trans_pushpop  ),
     .core_trans_ready_o   ( mpu_trans_ready    ),
     .core_trans_i         ( mpu_trans          ),
     .core_resp_valid_o    ( mpu_resp_valid     ),
     .core_resp_o          ( mpu_resp           ),
 
-    .bus_trans_valid_o    ( filter_trans_valid ),
-    .bus_trans_ready_i    ( filter_trans_ready ),
-    .bus_trans_o          ( filter_trans       ),
-    .bus_resp_valid_i     ( filter_resp_valid  ),
-    .bus_resp_i           ( filter_resp        )
+    .bus_trans_valid_o    ( alcheck_trans_valid ),
+    .bus_trans_ready_i    ( alcheck_trans_ready ),
+    .bus_trans_o          ( alcheck_trans       ),
+    .bus_resp_valid_i     ( alcheck_resp_valid  ),
+    .bus_resp_i           ( alcheck_resp        )
+
+  );
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Alignment checker for atomics
+  //////////////////////////////////////////////////////////////////////////////
+  assign align_check_en = alcheck_trans.atop[5];
+
+  cv32e40x_align_check
+  #(
+    .IF_STAGE             ( 0                    ),
+    .CORE_RESP_TYPE       ( data_resp_t          ),
+    .BUS_RESP_TYPE        ( obi_data_resp_t      ),
+    .CORE_REQ_TYPE        ( obi_data_req_t       )
+
+  )
+  align_check_i
+  (
+    .clk                  ( clk                   ),
+    .rst_n                ( rst_n                 ),
+    .align_check_en_i     ( align_check_en        ),
+    .misaligned_access_i  ( misaligned_access     ),
+
+    .core_one_txn_pend_n  ( cnt_is_one_next       ),
+    .core_align_err_wait_i( consumer_resp_wait    ),
+    .core_align_err_o     (                       ), // todo: Unconnected on purpose, is this needed for xif?
+
+    .core_trans_valid_i   ( alcheck_trans_valid   ),
+    .core_trans_ready_o   ( alcheck_trans_ready   ),
+    .core_trans_i         ( alcheck_trans         ),
+    .core_resp_valid_o    ( alcheck_resp_valid    ),
+    .core_resp_o          ( alcheck_resp          ),
+
+    .bus_trans_valid_o    ( filter_trans_valid    ),
+    .bus_trans_ready_i    ( filter_trans_ready    ),
+    .bus_trans_o          ( filter_trans          ),
+    .bus_resp_valid_i     ( filter_resp_valid     ),
+    .bus_resp_i           ( filter_resp           )
+
   );
 
 
@@ -750,6 +866,7 @@ module cv32e40x_load_store_unit import cv32e40x_pkg::*;
       (.clk          ( clk                ),
        .rst_n        ( rst_n              ),
        .busy_o       ( filter_resp_busy   ),
+       .bus_busy_o   ( bus_busy_o         ),
 
        .valid_i      ( filter_trans_valid ),
        .ready_o      ( filter_trans_ready ),

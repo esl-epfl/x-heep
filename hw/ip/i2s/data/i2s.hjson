@@ -1,0 +1,136 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{ name: "i2s",
+  clock_primary: "clk_i",
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ],
+  regwidth: "32",
+  param_list: [
+    { name: "MaxWordWidth",
+      desc: '''Defines the maximal word width''',
+      type: "int",
+      default: "32"
+    }
+    { name: "ClkDividerWidth",
+      desc: '''Bits available for the clock divider''',
+      type: "int",
+      default: "16"
+    }
+    { name: "WatermarkWidth",
+      desc: '''Bits available for the watermark''',
+      type: "int",
+      default: "16"
+    }
+  ]
+  interrupt_list: [
+    { name: "i2s_event",
+      desc: '''Event-related interrupts.'''
+    }
+  ],
+  no_auto_intr_regs: "true",
+  registers: [
+
+
+
+    // STATUS & CONTROL REGISTERS
+
+    { name:     "CONTROL"
+      desc:     "control register"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "0", name: "EN", desc: "Enable I2s - CLK Domain" }
+        { bits: "1", name: "EN_WS", desc: "Enable word select generation" }
+        { bits: "3:2", name: "EN_RX", desc: "Enable rx channels" 
+          resval: "0",
+          enum:  [
+            { value: "0", name: "DISABLED",  desc: "Disable I2s" },
+            { value: "1", name: "ONLY_LEFT",  desc: "Enable left channel" },
+            { value: "2", name: "ONLY_RIGHT",  desc: "Enable right channel" },
+            { value: "3", name: "BOTH_CHANNELS",  desc: "Enable both channels" },
+          ]
+        }
+        { bits: "4", name: "INTR_EN", desc: "enable watermark interrupt" }
+        { bits: "5", name: "EN_WATERMARK", desc: "en watermark counter" }
+        { bits: "6", name: "RESET_WATERMARK", desc: "reset watermark counter", hwaccess: "hrw"}
+        { bits: "7", name: "EN_IO", desc: "connects the peripheral to the IOs" }
+        { bits: "9:8", name: "DATA_WIDTH",
+          desc: "Bytes per sample",
+          resval: "3",
+          enum: [
+                { value: "0", name: "8_BITS",  desc: "8 bits" },
+                { value: "1", name: "16_BITS", desc: "16 bits" },
+                { value: "2", name: "24_BITS", desc: "24 bits" },
+                { value: "3", name: "32_BITS", desc: "32 bits" }
+              ]
+        }
+        { bits: "10", name: "RX_START_CHANNEL",
+          desc: "Channel (left/right) of first sample - alternating afterwards.",
+          resval: "0",
+          enum: [
+                { value: "0", name: "LEFT_FIRST", desc: "Start left channel first (default for WAVE)"},
+                { value: "1", name: "RIGHT_FIRST", desc: "Start right channel first"},
+          ]
+        }
+        { bits: "11", name: "RESET_RX_OVERFLOW", desc: "reset rx overflow", hwaccess: "hrw"}
+      ]
+    }
+
+    { name: "STATUS"
+      desc: "Status flags of the I2s peripheral"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      hwext:  "true"
+      fields: [
+        { bits: "0", name: "RUNNING", desc: "1 to indicate that SCK is on"}
+        { bits: "1", name: "RX_DATA_READY", desc: "1 to indicate that an RX sample is ready"}
+        { bits: "2", name: "RX_OVERFLOW", desc: "1 to indicate that an RX happend - disable rx_channel to clear"}
+      ]
+    }
+
+    // CLOCK DIVISION
+    { name:     "CLKDIVIDX"
+      desc:     "Control register"
+      swaccess: "rw"
+      hwaccess: "hro"
+      resval: 4,
+      fields: [
+        { bits: "15:0", name: "COUNT", desc: "Index at which clock divide." }
+      ]
+    }
+    // RX DATA
+    { name: "RXDATA",
+      desc: "I2s Receive data"
+      swaccess: "ro"
+      hwaccess: "hrw"
+      hwext:  "true"
+      hwre:   "true"
+      fields: [
+        { bits: "31:0", name: "RXDATA", desc: "latest rx data if DATA_READY flag is set", hwaccess: "hrw"}
+      ]
+    }
+
+    // Watermark counter
+    { name:     "WATERMARK"
+      desc:     "Watermark to reach for an interrupt"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "15:0", name: "Watermark", desc: "Count of RX samples written to memory which should trigger an interrupt"}
+      ]
+    }
+
+    { name:     "WATERLEVEL"
+      desc:     "Watermark counter level"
+      swaccess: "ro"
+      hwext:  "true"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "15:0", name: "Waterlevel", desc: "Count of RX samples"}
+      ]
+    }
+  ]
+}
