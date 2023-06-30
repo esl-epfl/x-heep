@@ -15,6 +15,7 @@
 #include "dma.h"
 #include "fast_intr_ctrl.h"
 #include "power_manager.h"
+#include "x-heep.h"
 
 #ifdef TARGET_PYNQ_Z2
     #define USE_SPI_FLASH
@@ -323,7 +324,9 @@ int main(int argc, char *argv[])
         PRINTF("success! (bytes checked: %d)\n\r", count*sizeof(*copy_data));
     } else {
         PRINTF("failure, %d errors! (Out of %d)\n\r", errors, count);
+
         return EXIT_FAILURE;
     }
+
     return EXIT_SUCCESS;
 }

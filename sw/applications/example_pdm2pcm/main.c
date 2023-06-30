@@ -20,13 +20,10 @@
 #include <stdlib.h>
 
 #include "core_v_mini_mcu.h"
-#include "pdm2pcm_regs.h"
-
-#include "mmio.h"
-
-#include "groundtruth.h"
-
 #include "x-heep.h"
+#include "pdm2pcm_regs.h"
+#include "mmio.h"
+#include "groundtruth.h"
 
 #ifndef PDM2PCM_IS_INCLUDED
   #error ( "This app does NOT work as the PDM2PCM peripheral is not included" )

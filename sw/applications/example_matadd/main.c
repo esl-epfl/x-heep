@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include "csr.h"
 #include "matrixAdd32.h"
-
+#include "x-heep.h"
 
 /* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
 #define DEFAULT_PRINTF_BEHAVIOR 1
