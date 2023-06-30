@@ -34,7 +34,11 @@ module cv32e40x_alignment_buffer_sva
    input logic [2:0] instr_cnt_n,
    input logic [2:0] instr_cnt_q,
    input logic                     instr_valid_o,
+   input logic                     instr_ready_i,
    input logic [31:0]              instr_addr_o,
+   input logic                     instr_is_clic_ptr_o,
+   input logic                     instr_is_mret_ptr_o,
+   input logic                     instr_is_tbljmp_ptr_o,
    input logic                     resp_valid_i,
    input logic                     resp_valid_gated,
    input logic [1:0]               outstanding_cnt_q,
@@ -43,8 +47,8 @@ module cv32e40x_alignment_buffer_sva
    input logic [1:0]               wptr,
    input logic [1:0]               rptr,
    input logic [1:0]               rptr2,
-   input logic                     pop_q
-
+   input logic                     pop_q,
+   input logic                     ptr_fetch_accepted_q
    );
 
 
@@ -237,7 +241,66 @@ module cv32e40x_alignment_buffer_sva
       else
         `uvm_error("Alignment buffer SVA", "Read pointer(2) illegal value")
 
+  // Check that the alignment buffer is empty when a pointer is received.
+  property p_pointer_fetch_empty;
+    @(posedge clk) disable iff (!rst_n)
+      ptr_fetch_accepted_q && resp_valid_i
+      |->
+      !(|valid_q);
+  endproperty
 
+  a_pointer_fetch_empty:
+    assert property(p_pointer_fetch_empty)
+    else
+      `uvm_error("Alignment buffer SVA", "Buffer not empty when requested pointer arrives.")
+
+  // Check that a pointer is only emitted once.
+  // Pointers that look like two compressed instructions could cause two instr_rvalid_o's
+  property p_single_pointer_valid;
+    @(posedge clk) disable iff (!rst_n)
+      (instr_valid_o && instr_ready_i) &&
+      (instr_is_clic_ptr_o || instr_is_mret_ptr_o || instr_is_tbljmp_ptr_o)
+      |=>
+      !instr_valid_o until_with(ctrl_fsm_i.pc_set);
+  endproperty
+
+  a_single_pointer_valid:
+    assert property(p_single_pointer_valid)
+    else
+      `uvm_error("Alignment buffer SVA", "Multiple instr_valid_o for one pointer")
+
+  // Check that we signal instr_valid_o when we have no outstanding transactions or ongoing requests.
+  // Unless we already signaled a valid pointer (then further fetches are blocked)
+  logic ptr_flagged;
+  always_ff @(posedge clk, negedge rst_n) begin
+    if(rst_n == 1'b0) begin
+      ptr_flagged <= 1'b0;
+    end else begin
+      if(ctrl_fsm_i.pc_set) begin
+        ptr_flagged <= 1'b0;
+      end else begin
+        if (instr_valid_o && instr_ready_i && (instr_is_clic_ptr_o || instr_is_mret_ptr_o || instr_is_tbljmp_ptr_o)) begin
+          ptr_flagged <= 1'b1;
+        end
+      end
+    end
+  end
+
+  property p_no_outstanding_instr_valid;
+    @(posedge clk) disable iff (!rst_n)
+      ctrl_fsm_i.instr_req &&  // We are commanded to prefetch
+      !(|outstanding_cnt_q) && // There are no outstanding transactions
+      !fetch_valid_o           // We are not requesting anything
+      |->
+      instr_valid_o            // There must be a valid entry in the buffer
+      or
+      ptr_flagged;             // Or a pointer has already been sent out
+  endproperty
+
+a_no_outstanding_instr_valid:
+  assert property(p_no_outstanding_instr_valid)
+  else
+    `uvm_error("Alignment buffer SVA", "No instr_valid when expected")
 
 endmodule // cv32e40x_alignment_buffer_sva
 

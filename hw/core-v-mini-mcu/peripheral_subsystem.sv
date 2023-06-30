@@ -33,6 +33,9 @@ module peripheral_subsystem
     input logic uart_intr_rx_timeout_i,
     input logic uart_intr_rx_parity_err_i,
 
+    // DMA window PLIC interrupt
+    input logic dma_window_intr_i,
+
     //GPIO
     input  logic [31:8] cio_gpio_i,
     output logic [31:8] cio_gpio_o,
@@ -58,6 +61,18 @@ module peripheral_subsystem
     //RV TIMER
     output logic rv_timer_2_intr_o,
     output logic rv_timer_3_intr_o,
+
+    //I2s
+    output logic i2s_sck_o,
+    output logic i2s_sck_oe_o,
+    input  logic i2s_sck_i,
+    output logic i2s_ws_o,
+    output logic i2s_ws_oe_o,
+    input  logic i2s_ws_i,
+    output logic i2s_sd_o,
+    output logic i2s_sd_oe_o,
+    input  logic i2s_sd_i,
+    output logic i2s_rx_valid_o,
 
     // PDM2PCM Interface
     output logic pdm2pcm_clk_o,
@@ -111,6 +126,7 @@ module peripheral_subsystem
   logic i2c_intr_ack_stop;
   logic i2c_intr_host_timeout;
   logic spi2_intr_event;
+  logic i2s_intr_event;
 
   // this avoids lint errors
   assign unused_irq_id = irq_id;
@@ -143,6 +159,8 @@ module peripheral_subsystem
   assign intr_vector[47] = i2c_intr_ack_stop;
   assign intr_vector[48] = i2c_intr_host_timeout;
   assign intr_vector[49] = spi2_intr_event;
+  assign intr_vector[50] = i2s_intr_event;
+  assign intr_vector[51] = dma_window_intr_i;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin
@@ -358,5 +376,27 @@ module peripheral_subsystem
   assign pdm2pcm_clk_o = '0;
 
   assign pdm2pcm_clk_en_o = 1;
+
+  i2s #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) i2s_i (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::I2S_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2S_IDX]),
+
+      .i2s_sck_o(i2s_sck_o),
+      .i2s_sck_oe_o(i2s_sck_oe_o),
+      .i2s_sck_i(i2s_sck_i),
+      .i2s_ws_o(i2s_ws_o),
+      .i2s_ws_oe_o(i2s_ws_oe_o),
+      .i2s_ws_i(i2s_ws_i),
+      .i2s_sd_o(i2s_sd_o),
+      .i2s_sd_oe_o(i2s_sd_oe_o),
+      .i2s_sd_i(i2s_sd_i),
+      .intr_i2s_event_o(i2s_intr_event),
+      .i2s_rx_valid_o(i2s_rx_valid_o)
+  );
 
 endmodule : peripheral_subsystem

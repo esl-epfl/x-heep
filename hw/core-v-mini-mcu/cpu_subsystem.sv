@@ -175,7 +175,8 @@ module cpu_subsystem
     // instantiate the core
     cv32e40x_core #(
         .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS),
-        .X_EXT(X_EXT)
+        .X_EXT(X_EXT),
+        .DBG_NUM_TRIGGERS('0)
     ) cv32e40x_core_i (
         // Clock and reset
         .clk_i(clk_i),
@@ -220,6 +221,9 @@ module cpu_subsystem
         // Cycle count
         .mcycle_o(),
 
+        // Time input
+        .time_i(64'h0),
+
         // eXtension interface
         .xif_compressed_if,
         .xif_issue_if,
@@ -250,6 +254,8 @@ module cpu_subsystem
         .debug_havereset_o(),
         .debug_running_o  (),
         .debug_halted_o   (),
+        .debug_pc_valid_o (),
+        .debug_pc_o       (),
 
         // CPU control signals
         .fetch_enable_i(fetch_enable),

@@ -45,7 +45,7 @@ Then it loads the `boot_address` from a memory-mapped register that is set to
 0x180 at reset time, which is also the boot address specified in the entry point of the 
 linked scripts.
 If you want to simulate the actual JTAG procedure without pre-loading instead, 
-compile the RTL with the `use_jtag_dpi` flag and follow the `Debug.md` guide.
+compile the RTL with the `FUSESOC_PARAM="--JTAG_DPI=1"` flag and follow the `Debug.md` guide.
 
 ### SPI Flash Execution Boot Procedure
 
@@ -71,10 +71,6 @@ The CPU then executes the instruction stored in the FLASH.
 To use this mode, when targetting ASICs or FPGA bitstreams, 
 make sure you have the `boot_sel_i` input (e.g., a switch) set to 1, 
 and the `execute_from_flash_i` set to 1 too.
-
-To simulate this procedure, you must compile the RTL 
-with the `use_external_device_example` flag to 
-tell fusesoc to compile the FLASH model.
 
 Note that the FLASH model is not compatible with **verilator**, 
 thus the simulation must be carried out with either **modelsim** or **vcs**.
