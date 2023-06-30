@@ -103,6 +103,17 @@ void putfloat(float x, int p)
     }
 }
 
+void __attribute__ ((noinline)) printMatrix(float *  C, int N, int M)
+{
+    for(int i = 0; i < N; i++) {
+        for(int j = 0; j < M; j++) {
+            putfloat(C[i*N+j], 2);
+            if( j != M -1)
+                printf(", ");
+        }
+        printf("\n");
+    }
+}
 
 int main()
 {
@@ -141,18 +152,6 @@ void __attribute__ ((noinline)) matrixAdd(float *  A, float *  B, float *  C, in
         for(int j = 0; j < M; j++) {
             C[i*N+j] = A[i*WIDTH+j] + B[i*WIDTH+j];
         }
-    }
-}
-
-void __attribute__ ((noinline)) printMatrix(float *  C, int N, int M)
-{
-    for(int i = 0; i < N; i++) {
-        for(int j = 0; j < M; j++) {
-            putfloat(C[i*N+j], 2);
-            if( j != M -1)
-                printf(", ");
-        }
-        printf("\n");
     }
 }
 
