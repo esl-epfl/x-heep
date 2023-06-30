@@ -24,7 +24,7 @@ setup : build/Makefile
 build/Makefile : CMakeLists.txt ${CMAKE_DIR}/riscv.cmake
 	if [ ! -d build ] ; then mkdir build ; fi
 	cd build;  \
-		cmake \
+		${CMAKE} \
 		    -G "Unix Makefiles" \
 			-DCMAKE_TOOLCHAIN_FILE=../${CMAKE_DIR}/riscv.cmake \
 			-DROOT_PROJECT=${ROOT_PROJECT} \

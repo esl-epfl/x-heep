@@ -64,6 +64,12 @@ LINK_FOLDER                = $(mkfile_path)/linker
 # CMake keyword
 CMAKE_DIR=cmake
 
+ifeq (, $(shell which cmake3)) # cmake3 is not defined
+CMAKE=cmake
+else
+CMAKE=cmake3
+endif
+
 # Let's CMake!
 include cmake/targets.mak
 
