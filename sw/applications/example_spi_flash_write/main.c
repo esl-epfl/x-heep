@@ -272,13 +272,21 @@ static inline __attribute__((always_inline)) void spi_wait_4_resp()
 int main(int argc, char *argv[])
 {
 
-    // Warning in case of targetting simulation
 #ifdef TARGET_SIM
   #pragma message("This app does not allow Flash write operations in simulation!")
     PRINTF("Flash writes are not permitted during Simulation, only on FPGA\n");
     return EXIT_SUCCESS;
 #endif
 
+#ifdef USE_SPI_FLASH
+    soc_ctrl_t soc_ctrl;
+    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO )
+    {
+        PRINTF("This application cannot work with the memory mapped SPI FLASH module - do not use the FLASH_EXEC linker script for this application\n");
+        return EXIT_SUCCESS;
+    }
+#endif
     spi_config();
     dma_init(NULL);
 
