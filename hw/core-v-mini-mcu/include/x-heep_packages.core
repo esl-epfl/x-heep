@@ -9,6 +9,8 @@ description: "toplevel packages of x-heep"
 
 filesets:
   files_rtl:
+    depend:
+    - openhwgroup.org:ip:cv32e40x_xif
     files:
     - addr_map_rule_pkg.sv
     - obi_pkg.sv
