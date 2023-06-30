@@ -51,12 +51,6 @@
     #define COPY_DATA_PER_CYCLE COPY_DATA_UNITS
 #endif //TEST_CIRCULAR 
 
-
-// Warning in case of targetting simulation
-#ifdef TARGET_SIM
-  #pragma message("This app does not allow Flash write operations in simulation!")
-#endif
-
 #define REVERT_24b_ADDR(addr) ((((uint32_t)addr & 0xff0000) >> 16) | ((uint32_t)addr & 0xff00) | (((uint32_t)addr & 0xff) << 16))
 
 #define FLASH_ADDR 0x00008500 // 256B data alignment
@@ -277,6 +271,13 @@ static inline __attribute__((always_inline)) void spi_wait_4_resp()
 
 int main(int argc, char *argv[])
 {
+
+    // Warning in case of targetting simulation
+#ifdef TARGET_SIM
+  #pragma message("This app does not allow Flash write operations in simulation!")
+    PRINTF("Flash writes are not permitted during Simulation, only on FPGA\n");
+    return EXIT_SUCCESS;
+#endif
 
     spi_config();
     dma_init(NULL);
