@@ -14,6 +14,9 @@
 extern "C" {
 #endif
 
+#define SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO 1
+#define SOC_CTRL_SPI_FLASH_MODE_SPIHOST 0
+
 /**
  * Initialization parameters for SOC CTRL.
  *
@@ -55,6 +58,13 @@ void soc_ctrl_select_spi_memio(const soc_ctrl_t *soc_ctrl);
  * @param soc_ctrl Pointer to soc_ctrl_t represting the target SOC CTRL.
  */
 void soc_ctrl_select_spi_host(const soc_ctrl_t *soc_ctrl);
+
+/**
+ * Get the SPI mode selected
+ * @param soc_ctrl Pointer to soc_ctrl_t represting the target SOC CTRL.
+ */
+
+uint32_t get_spi_flash_mode(const soc_ctrl_t *soc_ctrl);
 
 #ifdef __cplusplus
 }

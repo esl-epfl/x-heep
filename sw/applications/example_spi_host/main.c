@@ -65,6 +65,17 @@ void fic_irq_spi_flash(void)
 
 int main(int argc, char *argv[])
 {
+
+    soc_ctrl_t soc_ctrl;
+    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+
+#ifdef USE_SPI_FLASH
+   if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO )
+    {
+        PRINTF("This application cannot work with the memory mapped SPI FLASH module - do not use the FLASH_EXEC linker script for this application\n");
+        return EXIT_SUCCESS;
+    }
+#endif
     // spi_host_t spi_host;
     #ifndef USE_SPI_FLASH
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
@@ -72,8 +83,6 @@ int main(int argc, char *argv[])
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif
 
-    soc_ctrl_t soc_ctrl;
-    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
     uint32_t core_clk = soc_ctrl_get_frequency(&soc_ctrl);
 
     // Enable interrupt on processor side
@@ -230,6 +239,9 @@ int main(int argc, char *argv[])
         PRINTF("success!\n\r");
     } else {
         PRINTF("failure, %d errors!\n\r", errors);
+        return EXIT_FAILURE;
     }
+
     return EXIT_SUCCESS;
+
 }
