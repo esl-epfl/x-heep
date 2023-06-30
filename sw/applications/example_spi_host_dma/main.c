@@ -284,6 +284,7 @@ int main(int argc, char *argv[])
         PRINTF("success! (bytes checked: %d)\n\r", count*sizeof(*copy_data));
     } else {
         PRINTF("failure, %d errors! (Out of %d)\n\r", errors, count);
+        return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
 }

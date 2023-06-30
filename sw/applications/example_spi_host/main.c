@@ -239,6 +239,9 @@ int main(int argc, char *argv[])
         PRINTF("success!\n\r");
     } else {
         PRINTF("failure, %d errors!\n\r", errors);
+        return EXIT_FAILURE;
     }
+
     return EXIT_SUCCESS;
+
 }
