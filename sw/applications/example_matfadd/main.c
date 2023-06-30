@@ -4,9 +4,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "csr.h"
-#include "matrixAdd32.h"
 #include <math.h>
+#include "matrixAdd32.h"
+#include "csr.h"
+#include "x-heep.h"
 
 #define FS_INITIAL 0x01
 

@@ -15,6 +15,7 @@
 #include "dma.h"
 #include "fast_intr_ctrl.h"
 #include "fast_intr_ctrl_regs.h"
+#include "x-heep.h"
 
 #ifdef TARGET_PYNQ_Z2
     #define USE_SPI_FLASH
