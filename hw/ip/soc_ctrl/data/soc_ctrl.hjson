@@ -51,7 +51,7 @@
     }
     { name:     "USE_SPIMEMIO",
       desc:     "Spi Module Select Value - Used to decide whether to use the SPI from Yosys or OpenTitan",
-      resval:   "0x0"
+      resval:   "0x1"
       swaccess: "rw",
       hwaccess: "hrw",
       fields: [
