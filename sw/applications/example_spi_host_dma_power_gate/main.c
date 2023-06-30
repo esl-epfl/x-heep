@@ -41,7 +41,7 @@
 #define SPI_DATA_TYPE 0
 
 // Number of elements to copy
-#define COPY_DATA_NUM 256
+#define COPY_DATA_NUM 16
 
 #define FLASH_CLK_MAX_HZ (133*1000*1000) // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
 
@@ -55,7 +55,7 @@ static power_manager_t power_manager;
 
 void dma_intr_handler_trans_done(void)
 {
-    PRINTF("This is a weak implementation of the DMA interrupt\n\r");
+    PRINTF("Non-weak implementation of a DMA interrupt\n\r");
     dma_intr_flag = 1;
 }
 
