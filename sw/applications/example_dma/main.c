@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
         PRINTF("DMA single mode success.\n\r");
     } else {
         PRINTF("DMA single mode failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
-        return -1;
+        return EXIT_FAILURE;
     }
 
 #endif // TEST_SINGULAR_MODE
@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
         PRINTF("DMA address mode success.\n\r");
     } else {
         PRINTF("DMA address mode failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
-        return -1;
+        return EXIT_FAILURE;
     }
 
     trans.mode = DMA_TRANS_MODE_SINGLE;
@@ -270,7 +270,7 @@ int main(int argc, char *argv[])
         PRINTF("DMA address mode in external memory success.\n\r");
     } else {
         PRINTF("DMA address mode in external memory failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
-        return -1;
+        return EXIT_FAILURE;
     }
 
     trans.mode = DMA_TRANS_MODE_SINGLE;
@@ -335,7 +335,7 @@ int main(int argc, char *argv[])
         PRINTF("DMA multiple transactions success.\n\r");
     } else {
         PRINTF("DMA multiple transactions failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
-        return -1;
+        return EXIT_FAILURE;
     }
 
 #endif // TEST_PENDING_TRANSACTION
@@ -394,7 +394,7 @@ int main(int argc, char *argv[])
         PRINTF("DMA window success\n\r");
     } else {
         PRINTF("DMA window failure: %d errors out of %d words checked\n\r", errors, TEST_DATA_SIZE);
-        return -1;
+        return EXIT_FAILURE;
     }
 
 #endif // TEST_WINDOW
