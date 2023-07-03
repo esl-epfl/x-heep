@@ -827,7 +827,7 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans )
 }
 
 
-uint32_t dma_is_ready(void)
+__attribute__((optimize("O0"))) uint32_t dma_is_ready(void)
 {    
     /* The transaction READY bit is read from the status register*/   
     uint32_t ret = ( dma_cb.peri->STATUS & (1<<DMA_STATUS_READY_BIT) );
