@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
-        CSR_SET_BITS(CSR_REG_MSTATUS, 0x0);
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
         gpio_write(&gpio, GPIO_TB_OUT, true);
         wait_for_interrupt();
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
