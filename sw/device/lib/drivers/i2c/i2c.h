@@ -5,7 +5,8 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : i2c.h                                                        **
-** date     : 16/05/2023                                                   **
+** version  : 1.0                                                          **
+** date     : 03/06/2023                                                   **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -48,6 +49,57 @@
 /**                                                                        **/
 /****************************************************************************/
 
+/**
+ * Maximum bandwidth supported expressed as [nano seconds * Baud]
+*/
+#define NANO_SEC_PER_KBAUD    1000000   // One million
+
+/**
+ * Possible speed (expressed in kBaud) for the I2C devices
+*/
+#define STANDARD_MODE_SPEED   100   
+#define FAST_MODE_SPEED       400
+#define FAST_MODE_PLUS_SPEED  1000
+
+
+/**
+ * Speed constants for the Standard-speed mode 
+*/
+#define T_HIGH_SCL_STANDARD       4000
+#define T_LOW_SCL_STANDARD        4700
+#define T_START_SET_UP_STANDARD   4700
+#define T_START_HOLD_STANDARD     4000
+#define T_DATA_SET_UP_STANDARD    250
+#define T_SIGNAL_HOLD_STANDARD    0
+#define T_STOP_SET_UP_STANDARD    4000
+#define T_STOP_HOLD_STANDARD     4700
+
+
+/**
+ * Speed constants for the Fast-speed mode 
+*/
+#define T_HIGH_SCL_FAST           600
+#define T_LOW_SCL_FAST            1300
+#define T_START_SET_UP_FAST       600
+#define T_START_HOLD_FAST         600
+#define T_DATA_SET_UP_FAST        100
+#define T_SIGNAL_HOLD_FAST        0
+#define T_STOP_SET_UP_FAST        600
+#define T_STOP_HOLD_FAST          1300
+
+
+/**
+ * Speed constants for the Fast-plus-speed mode 
+*/
+#define T_HIGH_SCL_FAST_PLUS      260
+#define T_LOW_SCL_FAST_PLUS       500
+#define T_START_SET_UP_FAST_PLUS  260
+#define T_START_HOLD_FAST_PLUS    260
+#define T_DATA_SET_UP_FAST_PLUS   50
+#define T_SIGNAL_HOLD_FAST_PLUS   0
+#define T_STOP_SET_UP_FAST_PLUS   260
+#define T_STOP_HOLD_FAST_PLUS     500
+
 /****************************************************************************/
 /**                                                                        **/
 /**                       TYPEDEFS AND STRUCTURES                          **/
@@ -76,18 +128,18 @@ typedef enum i2c_result {
   /**
    * Indicates that the operation succeeded.
    */
-  kI2cOk = 0,
+  kI2cOk,
   /**
    * Indicates some unspecified failure.
    */
-  kI2cError = 1,
+  kI2cError,
   /**
    * Indicates that some parameter passed into a function failed a
    * precondition.
    *
    * When this value is returned, no hardware operations occurred.
    */
-  kI2cBadArg = 2,
+  kI2cBadArg,
 } i2c_result_t;
 
 
@@ -401,12 +453,6 @@ typedef enum i2c_irq {
 /**                          EXPORTED VARIABLES                            **/
 /**                                                                        **/
 /****************************************************************************/
-
-#ifndef _TEMPLATE_C_SRC
-
-
-
-#endif  /* _TEMPLATE_C_SRC */
 
 /****************************************************************************/
 /**                                                                        **/

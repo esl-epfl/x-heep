@@ -5,7 +5,8 @@
 **                                                                         **
 ** project  : x-heep                                                       **
 ** filename : i2c.c                                                        **
-** date     : 16/05/2023                                                   **
+** version  : 1.0                                                          **
+** date     : 03/06/2023                                                   **
 **                                                                         **
 *****************************************************************************
 **                                                                         **
@@ -49,8 +50,6 @@
 /**                                                                        **/
 /****************************************************************************/
 
-static const uint32_t kNanosPerKBaud = 1000000;  // One million.
-
 /****************************************************************************/
 /**                                                                        **/
 /*                        TYPEDEFS AND STRUCTURES                           */
@@ -73,6 +72,8 @@ static uint16_t round_up_divide(uint32_t a, uint32_t b);
 /**
  * Computes default timing parameters for a particular I2C speed, given the
  * clock period, in nanoseconds.
+ * 
+ * \returns an unspecified value for an invalid speed.
  */
 static i2c_config_t default_timing_for_speed(i2c_speed_t speed,
                                                  uint32_t clock_period_nanos);
@@ -103,13 +104,13 @@ i2c_result_t i2c_compute_timing(i2c_timing_config_t timing_config,
   uint32_t lowest_target_device_speed_khz;
   switch (timing_config.lowest_target_device_speed) {
     case kI2cSpeedStandard:
-      lowest_target_device_speed_khz = 100;
+      lowest_target_device_speed_khz = STANDARD_MODE_SPEED;
       break;
     case kI2cSpeedFast:
-      lowest_target_device_speed_khz = 400;
+      lowest_target_device_speed_khz = FAST_MODE_SPEED;
       break;
     case kI2cSpeedFastPlus:
-      lowest_target_device_speed_khz = 1000;
+      lowest_target_device_speed_khz = FAST_MODE_PLUS_SPEED;
       break;
     default:
       return kI2cBadArg;
@@ -125,7 +126,7 @@ i2c_result_t i2c_compute_timing(i2c_timing_config_t timing_config,
 
   uint32_t scl_period_nanos = timing_config.scl_period_nanos;
   uint32_t slowest_scl_period_nanos =
-      kNanosPerKBaud / lowest_target_device_speed_khz;
+      NANO_SEC_PER_KBAUD / lowest_target_device_speed_khz;
   if (scl_period_nanos < slowest_scl_period_nanos) {
     scl_period_nanos = slowest_scl_period_nanos;
   }
@@ -579,37 +580,57 @@ i2c_config_t default_timing_for_speed(i2c_speed_t speed,
   switch (speed) {
     case kI2cSpeedStandard:
       return (i2c_config_t){
-          .scl_time_high_cycles = round_up_divide(4000, clock_period_nanos),
-          .scl_time_low_cycles = round_up_divide(4700, clock_period_nanos),
-          .start_signal_setup_cycles =
-              round_up_divide(4700, clock_period_nanos),
-          .start_signal_hold_cycles = round_up_divide(4000, clock_period_nanos),
-          .data_signal_setup_cycles = round_up_divide(250, clock_period_nanos),
-          .data_signal_hold_cycles = 0,
-          .stop_signal_setup_cycles = round_up_divide(4000, clock_period_nanos),
-          .stop_signal_hold_cycles = round_up_divide(4700, clock_period_nanos),
+          .scl_time_high_cycles = round_up_divide(T_HIGH_SCL_STANDARD, 
+                                                  clock_period_nanos),
+          .scl_time_low_cycles = round_up_divide(T_LOW_SCL_STANDARD, 
+                                                 clock_period_nanos),
+          .start_signal_setup_cycles = round_up_divide(T_START_SET_UP_STANDARD, 
+                                                       clock_period_nanos),
+          .start_signal_hold_cycles = round_up_divide(T_START_HOLD_STANDARD, 
+                                                      clock_period_nanos),
+          .data_signal_setup_cycles = round_up_divide(T_DATA_SET_UP_STANDARD, 
+                                                      clock_period_nanos),
+          .data_signal_hold_cycles = T_SIGNAL_HOLD_STANDARD,
+          .stop_signal_setup_cycles = round_up_divide(T_STOP_SET_UP_STANDARD, 
+                                                      clock_period_nanos),
+          .stop_signal_hold_cycles = round_up_divide(T_STOP_HOLD_STANDARD, 
+                                                     clock_period_nanos),
       };
     case kI2cSpeedFast:
       return (i2c_config_t){
-          .scl_time_high_cycles = round_up_divide(600, clock_period_nanos),
-          .scl_time_low_cycles = round_up_divide(1300, clock_period_nanos),
-          .start_signal_setup_cycles = round_up_divide(600, clock_period_nanos),
-          .start_signal_hold_cycles = round_up_divide(600, clock_period_nanos),
-          .data_signal_setup_cycles = round_up_divide(100, clock_period_nanos),
-          .data_signal_hold_cycles = 0,
-          .stop_signal_setup_cycles = round_up_divide(600, clock_period_nanos),
-          .stop_signal_hold_cycles = round_up_divide(1300, clock_period_nanos),
+          .scl_time_high_cycles = round_up_divide(T_HIGH_SCL_FAST, 
+                                                  clock_period_nanos),
+          .scl_time_low_cycles = round_up_divide(T_LOW_SCL_FAST, 
+                                                 clock_period_nanos),
+          .start_signal_setup_cycles = round_up_divide(T_START_SET_UP_FAST, 
+                                                       clock_period_nanos),
+          .start_signal_hold_cycles = round_up_divide(T_START_HOLD_FAST, 
+                                                      clock_period_nanos),
+          .data_signal_setup_cycles = round_up_divide(T_DATA_SET_UP_FAST, 
+                                                      clock_period_nanos),
+          .data_signal_hold_cycles = T_SIGNAL_HOLD_FAST,
+          .stop_signal_setup_cycles = round_up_divide(T_STOP_SET_UP_FAST, 
+                                                      clock_period_nanos),
+          .stop_signal_hold_cycles = round_up_divide(T_STOP_HOLD_FAST, 
+                                                     clock_period_nanos),
       };
     case kI2cSpeedFastPlus:
       return (i2c_config_t){
-          .scl_time_high_cycles = round_up_divide(260, clock_period_nanos),
-          .scl_time_low_cycles = round_up_divide(500, clock_period_nanos),
-          .start_signal_setup_cycles = round_up_divide(260, clock_period_nanos),
-          .start_signal_hold_cycles = round_up_divide(260, clock_period_nanos),
-          .data_signal_setup_cycles = round_up_divide(50, clock_period_nanos),
-          .data_signal_hold_cycles = 0,
-          .stop_signal_setup_cycles = round_up_divide(260, clock_period_nanos),
-          .stop_signal_hold_cycles = round_up_divide(500, clock_period_nanos),
+          .scl_time_high_cycles = round_up_divide(T_HIGH_SCL_FAST_PLUS, 
+                                                  clock_period_nanos),
+          .scl_time_low_cycles = round_up_divide(T_LOW_SCL_FAST_PLUS, 
+                                                 clock_period_nanos),
+          .start_signal_setup_cycles = round_up_divide(T_START_SET_UP_FAST_PLUS, 
+                                                       clock_period_nanos),
+          .start_signal_hold_cycles = round_up_divide(T_START_HOLD_FAST_PLUS, 
+                                                      clock_period_nanos),
+          .data_signal_setup_cycles = round_up_divide(T_DATA_SET_UP_FAST_PLUS, 
+                                                      clock_period_nanos),
+          .data_signal_hold_cycles = T_SIGNAL_HOLD_FAST_PLUS,
+          .stop_signal_setup_cycles = round_up_divide(T_STOP_SET_UP_FAST_PLUS, 
+                                                      clock_period_nanos),
+          .stop_signal_hold_cycles = round_up_divide(T_STOP_HOLD_FAST_PLUS, 
+                                                     clock_period_nanos),
       };
     default:
       return (i2c_config_t){0};
