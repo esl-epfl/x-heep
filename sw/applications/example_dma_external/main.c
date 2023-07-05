@@ -9,7 +9,7 @@
 #include "dma.h"
 #include "core_v_mini_mcu.h"
 #include "csr.h"
-
+#include "x-heep.h"
 
 #define TEST_DATA_SIZE      16
 #define TEST_DATA_LARGE     1024

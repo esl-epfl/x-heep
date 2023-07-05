@@ -672,8 +672,6 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
     /*
      * SET THE POINTERS
      */
-    ////printf("src ptr - Wrote %08x @ ----\n", dma_cb.trans->src->ptr );
-    //printf("dst ptr - Wrote %08x @ ----\n", dma_cb.trans->dst->ptr );
     dma_cb.peri->SRC_PTR = dma_cb.trans->src->ptr;
 
     if(dma_cb.trans->mode != DMA_TRANS_MODE_ADDRESS)
@@ -718,7 +716,6 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * as the values read from the second port are instead used.
      */
 
-    //printf("src inc - ");
     write_register(  get_increment_b( dma_cb.trans->src ), 
                     DMA_PTR_INC_REG_OFFSET, 
                     DMA_PTR_INC_SRC_PTR_INC_MASK,
@@ -728,7 +725,6 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
 
     if(dma_cb.trans->mode != DMA_TRANS_MODE_ADDRESS)
     {
-        //printf("dst inc - ");
         write_register(  get_increment_b( dma_cb.trans->dst ),
                         DMA_PTR_INC_REG_OFFSET,
                         DMA_PTR_INC_DST_PTR_INC_MASK,
@@ -740,13 +736,10 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * SET THE OPERATION MODE AND WINDOW SIZE
      */
 
-    //printf("mode    - Wrote %08x @ ----\n", dma_cb.trans->mode );
     dma_cb.peri->MODE = dma_cb.trans->mode;
     /* The window size is set to the transaction size if it was set to 0 in
     order to disable the functionality (it will never be triggered). */
     
-    //printf("win siz - Wrote %08x @ ----\n", dma_cb.trans->win_du ? dma_cb.trans->win_du : dma_cb.trans->size_b );
-
     dma_cb.peri->WINDOW_SIZE =   dma_cb.trans->win_du 
                             ? dma_cb.trans->win_du
                             : dma_cb.trans->size_b;
@@ -754,19 +747,16 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
     /*
      * SET TRIGGER SLOTS AND DATA TYPE
      */    
-    //printf("src tri - ");
     write_register(  dma_cb.trans->src->trig, 
                     DMA_SLOT_REG_OFFSET, 
                     DMA_SLOT_RX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_RX_TRIGGER_SLOT_OFFSET );
 
-    //printf("dst tri - ");
     write_register(  dma_cb.trans->dst->trig, 
                     DMA_SLOT_REG_OFFSET, 
                     DMA_SLOT_TX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_TX_TRIGGER_SLOT_OFFSET );
 
-    //printf("dat typ - ");
     write_register(  dma_cb.trans->type, 
                     DMA_DATA_TYPE_REG_OFFSET, 
                     DMA_DATA_TYPE_DATA_TYPE_MASK, 
@@ -811,7 +801,6 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans )
     dma_cb.intrFlag = 0;
 
     /* Load the size and start the transaction. */
-    //printf("size    - Wrote %08x @ ----\n", dma_cb.trans->size_b );
     dma_cb.peri->SIZE = dma_cb.trans->size_b;
 
     /* 
@@ -827,7 +816,7 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans )
 }
 
 
-uint32_t dma_is_ready(void)
+__attribute__((optimize("O0"))) uint32_t dma_is_ready(void)
 {    
     /* The transaction READY bit is read from the status register*/   
     uint32_t ret = ( dma_cb.peri->STATUS & (1<<DMA_STATUS_READY_BIT) );
@@ -903,7 +892,7 @@ __attribute__((weak, optimize("O0"))) uint8_t dma_window_ratio_warning_threshold
 dma_config_flags_t validate_target( dma_target_t *p_tgt )
 {
     /* Flags variable to pass encountered errors. */
-    dma_config_flags_t flags;
+    dma_config_flags_t flags = DMA_CONFIG_OK;
     /*
      * SANITY CHECKS
      */
@@ -1004,11 +993,11 @@ dma_config_flags_t validate_environment( dma_env_t *p_env )
 }
 /* @ToDo: Prevent validation of targets whose environment was not validated. */
 
-static inline uint8_t get_misalignment_b(  uint8_t         *p_ptr, 
-                                      dma_data_type_t p_type )
+static inline uint8_t get_misalignment_b(   uint8_t         *p_ptr, 
+                                            dma_data_type_t p_type )
 {
     /*
-     * Note: These checks only makes sense when the target is memory. This is 
+     * Note: These checks only make sense when the target is memory. This is 
      * not performed when the target is a peripheral (i.e. uses a trigger). 
      * Check for word alignment:
      * The 2 LSBs of the data type must coincide with the 2 LSBs of the SRC 
@@ -1038,7 +1027,7 @@ static inline uint8_t get_misalignment_b(  uint8_t         *p_ptr,
      * 
      */  
     
-    uint8_t misalignment;
+    uint8_t misalignment = 0;
 
     /* 
      * If the data type is WORD and the two LSBs of pointer are not 00,
@@ -1079,11 +1068,11 @@ static inline uint8_t get_misalignment_b(  uint8_t         *p_ptr,
     return misalignment;
 }
 
-static inline uint8_t is_region_outbound( uint8_t  *p_start, 
-                                  uint8_t  *p_end, 
-                                  uint32_t p_type, 
-                                  uint32_t p_size_du, 
-                                  uint32_t p_inc_du )
+static inline uint8_t is_region_outbound(   uint8_t  *p_start, 
+                                            uint8_t  *p_end, 
+                                            uint32_t p_type, 
+                                            uint32_t p_size_du, 
+                                            uint32_t p_inc_du )
 {
   /* 000 = A data unit to be copied
    * xxx = A data unit to be skipped
@@ -1126,8 +1115,6 @@ static inline void write_register( uint32_t  p_val,
     value           &= ~( p_mask << p_sel );
     value           |= (p_val & p_mask) << p_sel;
     (( uint32_t * ) dma_cb.peri ) [ index ] = value; 
-
-    //printf("Wrote %08x @ %04x\n", value, index );
 
 // @ToDo: mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_SLOT_REG_OFFSET), (tx_slot_mask << DMA_SLOT_TX_TRIGGER_SLOT_OFFSET) + rx_slot_mask)
 
