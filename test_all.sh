@@ -20,6 +20,9 @@ declare -i SIM_FAILURES=0 &&\
 declare -i SIM_SKIPPED=0 &&\
 FAILED='' &&\
 
+# List of applications that will not be simulated 9skipped)
+declare -a BLACKLIST=("example_freertos_blinky" "example_virtual_flash" )
+
 echo -e ${LONG_W}
 echo -e "${WHITE}Will try building and simualting the following apps:${RESET}"
 echo -e $APPS | tr " " "\n"
@@ -53,8 +56,6 @@ if [ -z "$APPS" ]; then
         echo -e ${LONG_R}
         exit 2
 fi
-
-declare -a BLACKLIST=("example_freertos_blinky" "example_virtual_flash" )
 
 # All peripherals are included to make sure all apps can be built.
 sed 's/is_included: "no",/is_included: "yes",/' -i mcu_cfg.hjson
@@ -150,9 +151,9 @@ done
 
 
 # Reset changes made to files
-git status
+git status -uno
 echo -e "${WHITE}During the execution, some files might have been modified."
-echo -e "${WHITE}Do you want to revert all these changes? (Y/n)"
+echo -e "${WHITE}Do you want to revert all these changes? (Y/n)${RESET}"
 read yn
 case $yn in
 	[Yy]* ) git stash; git stash drop;;
