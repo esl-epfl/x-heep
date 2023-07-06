@@ -183,23 +183,6 @@ run-app-verilator: app
 	cat uart0.log; \
 	cd ../../..;
 
-## Uses verilator to simulate the HW model and run the FW
-## UART Dumping in uart0.log to show recollected results
-sim-app-verilator:
-	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
-	./Vtestharness +firmware=../../../sw/build/main.hex; \
-	cat uart0.log; \
-	cd ../../..;
-
-## Uses verilator to simulate the HW model and run the FW
-## UART Dumping in uart0.log to show recollected results
-sim-app-questasim:
-	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim; \
-	./Vtestharness +firmware=../../../sw/build/main.hex; \
-	cat uart0.log; \
-	cd ../../..;
-
-
 ## @section Vivado
 
 ## Builds (synthesis and implementation) the bitstream for the FPGA version using Vivado

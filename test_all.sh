@@ -65,8 +65,6 @@ make mcu-gen MEMORY_BANKS=3 EXTERNAL_DOMAINS=1
 
 SIMULATOR='verilator'
 SIM_MODEL_CMD=${SIMULATOR}"-sim"
-SIM_CMD="sim-app-"${SIMULATOR}
-
 
 USE_GCC=$(which gcc) &&\
 USE_CLANG=$(which clang) &&\
@@ -117,15 +115,25 @@ do
 	# Simulate. The result value is stored but not yet used.
 	if  [ -n "${USE_GCC}" ] || [ -n "${USE_CLANG}"   ] ; then
 		if ! [[ ${BLACKLIST[*]} =~ "$APP" ]]  ; then
-			make --no-print-directory -s $SIM_CMD
-			res=$?
-			if [ "$res" = "0" ] ; then
+			# The following is done in a very strange way for the following reasons:
+			# To get the output of the ./Vtestharness, the Makefile cannot be used.
+			# To be able to cancel de script and not be inside the simulation directory
+			# the parenthesis are needed. However, those parenthesis make the variable
+			# out not be accesible from outside. The outmost variable out will contain
+			# the output of the execution of the $(sub-script), which happens to be the
+			# echo of the variable out. Then only the last character is used, because
+			# it contains whether the simulation returned 0 or 1.
+			out=$(cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
+				out=$(./Vtestharness +firmware=../../../sw/build/main.hex); \
+				cd ../../../ ; \
+				echo $out; )
+			if [ "${out: -1}" = "0" ] ; then
 				echo -e ${LONG_G}
 				echo -e "${GREEN}Successfully simulated $APP using $SIMULATOR${RESET}"
 				echo -e ${LONG_G}
 			else
 				echo -e ${LONG_R}
-				echo -e "${RED}Failure building $APP using $SIMULATOR${RESET}"
+				echo -e "${RED}Failure simulating $APP using $SIMULATOR${RESET}"
 				echo -e ${LONG_R}
 				SIM_FAILURES=$(( SIM_FAILURES + 1 ))
 				FAILED="$FAILED($SIMULATOR)\t$APP "
@@ -142,12 +150,18 @@ done
 
 
 # Reset changes made to files
-git stash push mcu_cfg.hjson
-git stash drop
-
+git status
+echo -e "${WHITE}During the execution, some files might have been modified."
+echo -e "${WHITE}Do you want to revert all these changes? (Y/n)"
+read yn
+case $yn in
+	[Yy]* ) git stash; git stash drop;;
+	[Nn]* ) ;;
+	* ) git stash; git stash drop;;
+esac
 
 # Present the results
-if [ $BUILD_FAILURES + $SIM_FAILURES -gt 0 ]; then
+if [ $BUILD_FAILURES -gt 0 ] || [ $SIM_FAILURES -gt 0 ]; then
 
 	echo -e ${LONG_R}
 	echo -e ${LONG_R}
