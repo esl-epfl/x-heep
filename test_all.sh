@@ -47,10 +47,6 @@ esac
 
 echo -e ${LONG_W}
 
-
-
-
-
 if [ -z "$APPS" ]; then
         echo -e ${LONG_R}
         echo -e "${RED}No apps found${RESET}"
@@ -58,15 +54,13 @@ if [ -z "$APPS" ]; then
         exit 2
 fi
 
-
 declare -a BLACKLIST=("example_freertos_blinky" "example_virtual_flash" )
 
 # All peripherals are included to make sure all apps can be built.
 sed 's/is_included: "no",/is_included: "yes",/' -i mcu_cfg.hjson
-# The MCU is generated with several memory banks to avoid example code not fitting.
 
-# <<<<<<<<<<<<<<<<<<<<<< uncomment!
-#make mcu-gen MEMORY_BANKS=3 EXTERNAL_DOMAINS=1
+# The MCU is generated with several memory banks to avoid example code not fitting.
+make mcu-gen MEMORY_BANKS=3 EXTERNAL_DOMAINS=1
 
 
 SIMULATOR='verilator'
@@ -80,8 +74,7 @@ USE_CLANG=$(which clang) &&\
 echo $USE_GCC
 echo $USE_CLANG
 
-# <<<<<<<<<<< uncomment
-#make $SIM_MODEL_CMD
+make $SIM_MODEL_CMD
 
 for APP in $APPS
 do
@@ -121,12 +114,11 @@ do
 		fi
 	fi
 
-
+	# Simulate. The result value is stored but not yet used.
 	if  [ -n "${USE_GCC}" ] || [ -n "${USE_CLANG}"   ] ; then
 		if ! [[ ${BLACKLIST[*]} =~ "$APP" ]]  ; then
-			#res=$( make $SIM_CMD ) # This will silence the operation and store in res all the output!
 			make --no-print-directory -s $SIM_CMD
-			res=$? # Hopefully this will store just the retun value
+			res=$?
 			if [ "$res" = "0" ] ; then
 				echo -e ${LONG_G}
 				echo -e "${GREEN}Successfully simulated $APP using $SIMULATOR${RESET}"
@@ -150,15 +142,11 @@ done
 
 
 # Reset changes made to files
-
-# <<<<<<<<<<<<<<< uncomment!
-#git stash push mcu_cfg.hjson
-#git stash drop
-
+git stash push mcu_cfg.hjson
+git stash drop
 
 
 # Present the results
-
 if [ $BUILD_FAILURES + $SIM_FAILURES -gt 0 ]; then
 
 	echo -e ${LONG_R}
@@ -189,4 +177,3 @@ fi
 # Keep a count of apps that return a meaningless execution
 # Try different linkers
 # Present what is going to be done and wait for user confirmation, or let modification of certain parameters
-# uncomment commented long processes
