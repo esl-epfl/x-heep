@@ -44,7 +44,6 @@ SIM_MODEL_CMD=${SIMULATOR}"-sim"
 SIM_CMD="sim-app-"${SIMULATOR}
 
 
-
 USE_GCC=$(which gcc) &&\
 USE_CLANG=$(which clang) &&\
 USE_SIM=$(which $SIMULATOR)
@@ -56,13 +55,16 @@ echo $USE_CLANG
 # <<<<<<<<<<< uncomment
 #make $SIM_MODEL_CMD
 
-for APP in $APPS
-do
+for APP in $APPS do
+
+	echo -e ${LONG_W}
+	echo -e "Now testing $APP ${RESET}"
+	echo -e ${LONG_W}
 
 	# Build the app with Clang
 	if [ -n "${USE_CLANG}" ] ; then
-		make app-clean
-		if make app PROJECT=$APP COMPILER=clang ; then
+		make --no-print-directory -s app-clean
+		if make >/dev/null || make --no-print-directory -s app PROJECT=$APP COMPILER=clang ; then
 			echo -e ${LONG_G}
 			echo -e "${GREEN}Successfully built $APP using Clang${RESET}"
 			echo -e ${LONG_G}
@@ -77,8 +79,8 @@ do
 
 	# Build the app with GCC
 	if [ -n "${USE_GCC}"  ] ; then
-		make app-clean
-		if make app PROJECT=$APP ; then
+		make --no-print-directory -s app-clean
+		if make >/dev/null || make --no-print-directory -s app PROJECT=$APP -q ; then
 			echo -e ${LONG_G}
 			echo -e "${GREEN}Successfully built $APP using GCC${RESET}"
 			echo -e ${LONG_G}
@@ -92,19 +94,27 @@ do
 	fi
 
 
-	if [ [ [ -n "${USE_GCC}" ] || [ -n "${USE_CLANG}"   ] ] && [ -n "${USE_SIM}"  ] ] ; then
-		if  [ "$APP" != "example_freertos_blinky" ] ; then
-			if make $SIM_CMD ; then
-				echo -e ${LONG_G}
-				echo -e "${GREEN}Successfully simulated $APP using $SIMULATOR${RESET}"
-				echo -e ${LONG_G}
-			else
-				echo -e ${LONG_R}
-				echo -e "${RED}Failure building $APP using $SIMULATOR${RESET}"
-				echo -e ${LONG_R}
-				SIM_FAILURES=$(( SIM_FAILURES + 1 ))
-				FAILED="$FAILED($SIMULATOR)\t$APP "
+	if  [ -n "${USE_GCC}" ] || [ -n "${USE_CLANG}"   ] ; then
+		if [ -n "${USE_SIM}"  ] ; then
+			if  [ "$APP" != "example_freertos_blinky" ] ; then
+				#res=$( make $SIM_CMD ) # This will silence the operation and store in res all the output!
+
+				make --no-print-directory -s $SIM_CMD
+				res=$? # Hopefully this will store just the retun value
+				if [ "$res" = "0" ] ; then
+					echo -e ${LONG_G}
+					echo -e "${GREEN}Successfully simulated $APP using $SIMULATOR${RESET}"
+					echo -e ${LONG_G}
+				else
+					echo -e ${LONG_R}
+					echo -e "${RED}Failure building $APP using $SIMULATOR${RESET}"
+					echo -e ${LONG_R}
+					SIM_FAILURES=$(( SIM_FAILURES + 1 ))
+					FAILED="$FAILED($SIMULATOR)\t$APP "
+				fi
 			fi
+		else
+			echo -e "${WHITE}No simulator!${RESET}"
 		fi
 	fi
 
