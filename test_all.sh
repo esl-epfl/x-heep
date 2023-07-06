@@ -15,6 +15,7 @@ LONG_W="${WHITE}================================================================
 APPS=$(\ls sw/applications/) &&\
 declare -i BUILD_FAILURES=0 &&\
 declare -i SIM_FAILURES=0 &&\
+declare -i SIM_SKIPPED=0 &&\
 FAILED='' &&\
 
 echo -e ${LONG_W}
@@ -33,7 +34,10 @@ fi
 # All peripherals are included to make sure all apps can be built.
 sed 's/is_included: "no",/is_included: "yes",/' -i mcu_cfg.hjson
 # The MCU is generated with various memory banks to avoid example code not fitting.
-make mcu-gen MEMORY_BANKS=3 EXTERNAL_DOMAINS=1
+
+# <<<<<<<<<<<<<<<<<<<<<< uncomment!
+#make mcu-gen MEMORY_BANKS=3 EXTERNAL_DOMAINS=1
+
 
 SIMULATOR='verilator'
 SIM_MODEL_CMD=${SIMULATOR}"-sim"
@@ -41,50 +45,66 @@ SIM_CMD="sim-app-"${SIMULATOR}
 
 
 
-make $SIM_MODEL_CMD
+USE_GCC=$(which gcc) &&\
+USE_CLANG=$(which clang) &&\
+USE_SIM=$(which $SIMULATOR)
+
+echo $USE_SIM
+echo $USE_GCC
+echo $USE_CLANG
+
+# <<<<<<<<<<< uncomment
+#make $SIM_MODEL_CMD
 
 for APP in $APPS
 do
 
 	# Build the app with Clang
-	make app-clean
-	if make app PROJECT=$APP COMPILER=clang ; then
-		echo -e ${LONG_G}
-		echo -e "${GREEN}Successfully built $APP using Clang${RESET}"
-		echo -e ${LONG_G}
-	else
-		echo -e ${LONG_R}
-		echo -e "${RED}Failure building $APP using Clang${RESET}"
-		echo -e ${LONG_R}
-		BUILD_FAILURES=$(( BUILD_FAILURES + 1 ))
-		FAILED="$FAILED(clang)\t$APP "
-	fi
-
-	# Build the app with GCC
-	make app-clean
-	if make app PROJECT=$APP ; then
-		echo -e ${LONG_G}
-		echo -e "${GREEN}Successfully built $APP using GCC${RESET}"
-		echo -e ${LONG_G}
-	else
-		echo -e ${LONG_R}
-		echo -e "${RED}Failure building $APP using GCC${RESET}"
-		echo -e ${LONG_R}
-		BUILD_FAILURES=$(( BUILD_FAILURES + 1 ))
-		FAILED="$FAILED(gcc)\t$APP "
-	fi
-
-	if  [ "$APP" != "example_freertos_blinky" ] ; then
-		if make $SIM_CMD ; then
+	if [ -n "${USE_CLANG}" ] ; then
+		make app-clean
+		if make app PROJECT=$APP COMPILER=clang ; then
 			echo -e ${LONG_G}
-			echo -e "${GREEN}Successfully simulated $APP using $SIMULATOR${RESET}"
+			echo -e "${GREEN}Successfully built $APP using Clang${RESET}"
 			echo -e ${LONG_G}
 		else
 			echo -e ${LONG_R}
-			echo -e "${RED}Failure building $APP using $SIMULATOR${RESET}"
+			echo -e "${RED}Failure building $APP using Clang${RESET}"
 			echo -e ${LONG_R}
-			SIM_FAILURES=$(( SIM_FAILURES + 1 ))
-			FAILED="$FAILED($SIMULATOR)\t$APP "
+			BUILD_FAILURES=$(( BUILD_FAILURES + 1 ))
+			FAILED="$FAILED(clang)\t$APP "
+		fi
+	fi
+
+	# Build the app with GCC
+	if [ -n "${USE_GCC}"  ] ; then
+		make app-clean
+		if make app PROJECT=$APP ; then
+			echo -e ${LONG_G}
+			echo -e "${GREEN}Successfully built $APP using GCC${RESET}"
+			echo -e ${LONG_G}
+		else
+			echo -e ${LONG_R}
+			echo -e "${RED}Failure building $APP using GCC${RESET}"
+			echo -e ${LONG_R}
+			BUILD_FAILURES=$(( BUILD_FAILURES + 1 ))
+			FAILED="$FAILED(gcc)\t$APP "
+		fi
+	fi
+
+
+	if [ [ [ -n "${USE_GCC}" ] || [ -n "${USE_CLANG}"   ] ] && [ -n "${USE_SIM}"  ] ] ; then
+		if  [ "$APP" != "example_freertos_blinky" ] ; then
+			if make $SIM_CMD ; then
+				echo -e ${LONG_G}
+				echo -e "${GREEN}Successfully simulated $APP using $SIMULATOR${RESET}"
+				echo -e ${LONG_G}
+			else
+				echo -e ${LONG_R}
+				echo -e "${RED}Failure building $APP using $SIMULATOR${RESET}"
+				echo -e ${LONG_R}
+				SIM_FAILURES=$(( SIM_FAILURES + 1 ))
+				FAILED="$FAILED($SIMULATOR)\t$APP "
+			fi
 		fi
 	fi
 
@@ -92,8 +112,10 @@ done
 
 
 # Reset changes made to files
-git stash
-git stash drop
+
+# <<<<<<<<<<<<<<< uncomment!
+#git stash
+#git stash drop
 
 
 
@@ -132,4 +154,4 @@ fi
 # Keep a count of apps that return a meaningless execution
 # Try different linkers!
 # Present what is going to be done and wait for user confirmation
-
+# uncomment commented long processes
