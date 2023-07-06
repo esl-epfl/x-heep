@@ -176,4 +176,4 @@ fi
 
 # Keep a count of apps that return a meaningless execution
 # Try different linkers
-# Present what is going to be done and wait for user confirmation, or let modification of certain parameters
+# let modification of certain parameters
