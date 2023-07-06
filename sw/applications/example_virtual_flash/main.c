@@ -16,6 +16,7 @@
 #include "fast_intr_ctrl.h"
 #include "gpio.h"
 #include "fast_intr_ctrl_regs.h"
+#include "x-heep.h"
 
 #define REVERT_24b_ADDR(addr) ((((uint32_t)addr & 0xff0000) >> 16) | ((uint32_t)addr & 0xff00) | (((uint32_t)addr & 0xff) << 16))
 #define FLASH_ADDR 0x00000000

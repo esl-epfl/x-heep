@@ -15,6 +15,7 @@
 #include "dma.h"
 #include "fast_intr_ctrl.h"
 #include "fast_intr_ctrl_regs.h"
+#include "x-heep.h"
 
 #ifdef TARGET_PYNQ_Z2
     #define USE_SPI_FLASH
@@ -60,16 +61,38 @@ void dma_intr_handler_trans_done(void)
 uint32_t flash_data[COPY_DATA_NUM] __attribute__ ((aligned (4))) = {0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,0x679852fe,0xff8252bb,0x763b4521,0x6875adaa,0x09ac65bb,0x666ba334,0x44556677,0x0000ba98};
 uint32_t copy_data[COPY_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
 
+#if SPI_DATA_TYPE == DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD
+    #define DATA_TYPE uint32_t
+#elif SPI_DATA_TYPE == DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_16BIT_WORD
+    #define DATA_TYPE uint16_t
+#else
+    #define DATA_TYPE uint8_t
+#endif
+
+#define COPY_DATA_TYPE (COPY_DATA_NUM/(sizeof(uint32_t)/sizeof(DATA_TYPE)))
+
+
 int main(int argc, char *argv[])
 {
+
+    soc_ctrl_t soc_ctrl;
+    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+
+#ifdef USE_SPI_FLASH
+    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO )
+    {
+        PRINTF("This application cannot work with the memory mapped SPI FLASH module - do not use the FLASH_EXEC linker script for this application\n");
+        return EXIT_SUCCESS;
+    }
+#endif
+
+
     #ifndef USE_SPI_FLASH
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
     #else
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif
 
-    soc_ctrl_t soc_ctrl;
-    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
     uint32_t core_clk = soc_ctrl_get_frequency(&soc_ctrl);
 
     // Enable interrupt on processor side
@@ -110,13 +133,11 @@ int main(int argc, char *argv[])
     tgt_src.trig = slot;// Necessary outside 'cause its not a const. 
 
     static dma_target_t tgt_dst = {
-        .inc_du = 1, 
-        .size_du = COPY_DATA_NUM,
+        .ptr = copy_data,
+        .inc_du = 1,
         .type = SPI_DATA_TYPE,
         .trig = DMA_TRIG_MEMORY,
     };
-    tgt_dst.ptr = copy_data; // Necessary outside 'cause its not a const. 
-    
     static dma_trans_t trans = {
         .src = &tgt_src,
         .dst = &tgt_dst,
@@ -185,15 +206,14 @@ int main(int argc, char *argv[])
     });
 
     uint32_t read_byte_cmd;
-    read_byte_cmd = ((REVERT_24b_ADDR(flash_data) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
-
     dma_intr_flag = 0;
     res = dma_launch(&trans);
     PRINTF("launched!\n\r");
 
     #if SPI_DATA_TYPE == DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD
+        read_byte_cmd = ((REVERT_24b_ADDR(flash_data) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
         const uint32_t cmd_read_rx = spi_create_command((spi_command_t){ // Single transaction
-            .len        = COPY_DATA_NUM*sizeof(*copy_data) - 1, // In bytes - 1
+            .len        = COPY_DATA_NUM*sizeof(DATA_TYPE) - 1, // In bytes - 1
             .csaat      = false,
             .speed      = kSpiSpeedStandard,
             .direction  = kSpiDirRxOnly
@@ -206,13 +226,15 @@ int main(int argc, char *argv[])
         spi_wait_for_ready(&spi_host);
     #else
         const uint32_t cmd_read_rx = spi_create_command((spi_command_t){ // Multiple transactions of the data type
-            .len        = (sizeof(*copy_data) - 1),
+            .len        = (sizeof(DATA_TYPE) - 1),
             .csaat      = false,
             .speed      = kSpiSpeedStandard,
             .direction  = kSpiDirRxOnly
         });
-        for (int i = 0; i<COPY_DATA_NUM; i++) { // Multiple 16-bit transactions
+        DATA_TYPE* flash_ptr = (DATA_TYPE *)flash_data;
+        for (int i = 0; i<COPY_DATA_NUM; i++) { // Multiple 8 or 16-bit transactions, just to try a new mode, we could treat it as int32
             // Request the same data multiple times
+            read_byte_cmd = ((REVERT_24b_ADDR(&flash_ptr[i]) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
             spi_write_word(&spi_host, read_byte_cmd); // Fill TX FIFO with TX data (read command + 3B address)
             spi_wait_for_ready(&spi_host); // Wait for readiness to process commands
             spi_set_command(&spi_host, cmd_read); // Send read command to the external device through SPI
@@ -251,28 +273,19 @@ int main(int argc, char *argv[])
 
     uint32_t errors = 0;
     uint32_t count = 0;
-    #if SPI_DATA_TYPE == DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD
-        for (int i = 0; i<COPY_DATA_NUM; i++) {
-            if(flash_data[i] != copy_data[i]) {
-                PRINTF("@%08x-@%08x : %02x != %02x\n\r" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
-                errors++;
-            }
-            count++;
+    for (int i = 0; i<COPY_DATA_TYPE; i++) {
+        if(flash_data[i] != copy_data[i]) {
+            PRINTF("@%08x-@%08x : %02x != %02x\n\r" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
+            errors++;
         }
-    #else
-        for (int i = 0; i<COPY_DATA_NUM; i++) {
-            if(flash_data[i] != copy_data[i]) {
-                PRINTF("@%08x-@%08x : %02x != %02x\n\r" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
-                errors++;
-            }
-            count++;
-        }
-    #endif
+        count++;
+    }
 
     if (errors == 0) {
-        PRINTF("success! (bytes checked: %d)\n\r", count*sizeof(*copy_data));
+        PRINTF("success! (bytes checked: %d)\n\r", count*sizeof(DATA_TYPE));
     } else {
         PRINTF("failure, %d errors! (Out of %d)\n\r", errors, count);
+        return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
 }

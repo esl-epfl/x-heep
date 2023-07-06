@@ -15,6 +15,7 @@
 #include "dma.h"
 #include "fast_intr_ctrl.h"
 #include "power_manager.h"
+#include "x-heep.h"
 
 #ifdef TARGET_PYNQ_Z2
     #define USE_SPI_FLASH
@@ -38,10 +39,10 @@
 
 // Type of data frome the SPI. For types different than words the SPI data is requested in separate transactions
 // word(0), half-word(1), byte(2,3)
-#define SPI_DATA_TYPE 0
+#define SPI_DATA_TYPE DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD
 
 // Number of elements to copy
-#define COPY_DATA_NUM 256
+#define COPY_DATA_NUM 16
 
 #define FLASH_CLK_MAX_HZ (133*1000*1000) // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
 
@@ -55,30 +56,44 @@ static power_manager_t power_manager;
 
 void dma_intr_handler_trans_done(void)
 {
-    PRINTF("This is a weak implementation of the DMA interrupt\n\r");
+    PRINTF("Non-weak implementation of a DMA interrupt\n\r");
     dma_intr_flag = 1;
 }
 
 // Reserve memory array
-#if SPI_DATA_TYPE == 0
-    uint32_t flash_data[COPY_DATA_NUM] __attribute__ ((aligned (4))) = {0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,0x679852fe,0xff8252bb,0x763b4521,0x6875adaa,0x09ac65bb,0x666ba334,0x44556677,0x0000ba98};
-    uint32_t copy_data[COPY_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
-#elif SPI_DATA_TYPE == 1
-    uint16_t flash_data[COPY_DATA_NUM] __attribute__ ((aligned (2))) = {0x7654,0xfedc,0x579a,0x657d,0x758e,0x0123,0xfedb,0x89ab,0x6798,0xff82,0x763b,0x6875,0x09ac,0x666b,0x4455,0x0000};
-    uint16_t copy_data[COPY_DATA_NUM] __attribute__ ((aligned (2)))  = { 0 };
+uint32_t flash_data[COPY_DATA_NUM] __attribute__ ((aligned (4))) = {0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,0x679852fe,0xff8252bb,0x763b4521,0x6875adaa,0x09ac65bb,0x666ba334,0x44556677,0x0000ba98};
+uint32_t copy_data[COPY_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
+
+#if SPI_DATA_TYPE == DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD
+    #define DATA_TYPE uint32_t
+#elif SPI_DATA_TYPE == DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_16BIT_WORD
+    #define DATA_TYPE uint16_t
 #else
-    uint8_t flash_data[COPY_DATA_NUM] = {0x76,0xfe,0x57,0x65,0x75,0x01,0xfe,0x89,0x67,0xff,0x76,0x68,0x09,0x66,0x44,0x00};
-    uint8_t copy_data[COPY_DATA_NUM] = { 0 };
+    #define DATA_TYPE uint8_t
 #endif
+
+#define COPY_DATA_TYPE (COPY_DATA_NUM/(sizeof(uint32_t)/sizeof(DATA_TYPE)))
+
 
 int main(int argc, char *argv[])
 {
+
+    soc_ctrl_t soc_ctrl;
+    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+ 
+#ifdef USE_SPI_FLASH
+   if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO )
+    {
+        PRINTF("This application cannot work with the memory mapped SPI FLASH module - do not use the FLASH_EXEC linker script for this application\n");
+        return EXIT_SUCCESS;
+    }
+#endif
+
     #ifndef USE_SPI_FLASH
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
     #else
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif
-
 
     // Setup power_manager
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
@@ -91,8 +106,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    soc_ctrl_t soc_ctrl;
-    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
     uint32_t core_clk = soc_ctrl_get_frequency(&soc_ctrl);
 
     // Enable interrupt on processor side
@@ -213,15 +226,15 @@ int main(int argc, char *argv[])
     });
 
     uint32_t read_byte_cmd;
-    read_byte_cmd = ((REVERT_24b_ADDR(flash_data) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
 
     dma_intr_flag = 0;
     dma_launch(&trans);
     PRINTF("Launched\n\r");
 
-    #if SPI_DATA_TYPE == 0
+    #if SPI_DATA_TYPE == DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD
+        read_byte_cmd = ((REVERT_24b_ADDR(flash_data) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
         const uint32_t cmd_read_rx = spi_create_command((spi_command_t){ // Single transaction
-            .len        = COPY_DATA_NUM*sizeof(*copy_data) - 1, // In bytes - 1
+            .len        = COPY_DATA_NUM*sizeof(DATA_TYPE) - 1, // In bytes - 1
             .csaat      = false,
             .speed      = kSpiSpeedStandard,
             .direction  = kSpiDirRxOnly
@@ -234,13 +247,15 @@ int main(int argc, char *argv[])
         spi_wait_for_ready(&spi_host);
     #else
         const uint32_t cmd_read_rx = spi_create_command((spi_command_t){ // Multiple transactions of the data type
-            .len        = (sizeof(*copy_data) - 1),
+            .len        = (sizeof(DATA_TYPE) - 1),
             .csaat      = false,
             .speed      = kSpiSpeedStandard,
             .direction  = kSpiDirRxOnly
         });
-        for (int i = 0; i<COPY_DATA_NUM; i++) { // Multiple 16-bit transactions
+        DATA_TYPE* flash_ptr = (DATA_TYPE *)flash_data;
+        for (int i = 0; i<COPY_DATA_NUM; i++) { // Multiple 8 or 16-bit transactions, just to try a new mode, we could treat it as int32
             // Request the same data multiple times
+            read_byte_cmd = ((REVERT_24b_ADDR(&flash_ptr[i]) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
             spi_write_word(&spi_host, read_byte_cmd); // Fill TX FIFO with TX data (read command + 3B address)
             spi_wait_for_ready(&spi_host); // Wait for readiness to process commands
             spi_set_command(&spi_host, cmd_read); // Send read command to the external device through SPI
@@ -292,28 +307,21 @@ int main(int argc, char *argv[])
 
     uint32_t errors = 0;
     uint32_t count = 0;
-    #if SPI_DATA_TYPE == 0
-        for (int i = 0; i<COPY_DATA_NUM; i++) {
-            if(flash_data[i] != copy_data[i]) {
-                PRINTF("@%08x-@%08x : %02x != %02x\n\r" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
-                errors++;
-            }
-            count++;
+    for (int i = 0; i<COPY_DATA_TYPE; i++) {
+        if(flash_data[i] != copy_data[i]) {
+            PRINTF("@%08x-@%08x : %02x != %02x\n\r" , &flash_data[i] , &copy_data[i], flash_data[i], copy_data[i]);
+            errors++;
         }
-    #else
-        for (int i = 0; i<COPY_DATA_NUM; i++) {
-            if(flash_data[0] != copy_data[i]) {
-                PRINTF("@%08x-@%08x : %02x != %02x\n\r" , &flash_data[0] , &copy_data[i], flash_data[0], copy_data[i]);
-                errors++;
-            }
-            count++;
-        }
-    #endif
+        count++;
+    }
 
     if (errors == 0) {
-        PRINTF("success! (bytes checked: %d)\n\r", count*sizeof(*copy_data));
+        PRINTF("success! (bytes checked: %d)\n\r", count*sizeof(DATA_TYPE));
     } else {
         PRINTF("failure, %d errors! (Out of %d)\n\r", errors, count);
+
+        return EXIT_FAILURE;
     }
+
     return EXIT_SUCCESS;
 }

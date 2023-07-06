@@ -175,7 +175,8 @@ module cpu_subsystem
     // instantiate the core
     cv32e40x_core #(
         .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS),
-        .X_EXT(X_EXT)
+        .X_EXT(X_EXT),
+        .DBG_NUM_TRIGGERS('0)
     ) cv32e40x_core_i (
         // Clock and reset
         .clk_i(clk_i),
