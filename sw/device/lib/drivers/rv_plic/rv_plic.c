@@ -47,6 +47,8 @@
 
 #include "rv_plic_regs.h"  // Generated.
 
+#include "i2c.h"
+
 #include "handler.h"
 
 /****************************************************************************/
@@ -147,8 +149,12 @@ __attribute__((weak, optimize("O0"))) void handler_irq_gpio(uint32_t id) {
   
 }
 
-__attribute__((weak, optimize("O0"))) void handler_irq_i2c(uint32_t id) {
+void handler_irq_i2c(uint32_t id) {
   
+  // Reduce the ID from the whole PLIC range to the I2C range
+  uint32_t i2c_irq_id = id - INTR_FMT_WATERMARK;
+
+  handler_i2c(i2c_irq_id);
 }
 
 __attribute__((weak, optimize("O0"))) void handler_irq_spi(uint32_t id) {
