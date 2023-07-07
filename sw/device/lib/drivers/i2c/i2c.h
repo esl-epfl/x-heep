@@ -107,6 +107,14 @@
 /****************************************************************************/
 
 /**
+ * Pointer to a generic handler function for the I2C.
+ * This pointer is used to sequentially store different
+ * handlers for different I2C interrupt cases.
+*/
+typedef void (*handler_func_i2c_t)(void);
+
+
+/**
  * A toggle state: enabled ior disabled.
 */
 typedef enum i2c_toggle {
@@ -459,6 +467,98 @@ typedef enum i2c_irq {
 /**                          EXPORTED FUNCTIONS                            **/
 /**                                                                        **/
 /****************************************************************************/
+
+/**
+ * IRQ handler for when the FMT FIFO depth goes under the watermark
+*/
+void handler_irq_i2c_fmtWatermarkUnderflow(void);
+
+/**
+ * IRQ handler for when the RX FIFO depth goes over the watermark
+*/
+void handler_irq_i2c_rxWatermarkOverflow(void);
+
+/**
+ * IRQ handler for when the FMT FIFO overflows
+*/
+void handler_irq_i2c_fmtOverflow(void);
+
+/**
+ * IRQ handler for when the RX FIFO overflows
+*/
+void handler_irq_i2c_rxOverflow(void);
+
+/**
+ * IRQ handler for when there is no ACK response
+*/
+void handler_irq_i2c_nak(void);
+
+/**
+ * IRQ handler for when the SCL line appears to have interference
+*/
+void handler_irq_i2c_sclInterference(void);
+
+/**
+ * IRQ handler for when the SDA line appears to have interference
+*/
+void handler_irq_i2c_sdaInteference(void);
+
+/**
+ * IRQ handler for when the target stretches the clock beyond the allower period
+*/
+void handler_irq_i2c_clockStretchTimeout(void);
+
+/**
+ * IRQ handler for when the target doesn't keep the SDA line stable
+*/
+void handler_irq_i2c_sdaUnstable(void);
+
+/**
+ * IRQ handler for when the host issues a repeated START or terminates the transaction
+ * with a STOP.
+*/
+void handler_irq_i2c_transComplete(void);
+
+/**
+ * IRQ handler for when the target stretches the clock for a read command (TX FIFO empty)
+*/
+void handler_irq_i2c_txEmpty(void);
+
+/**
+ * IRQ handler for when the target stretches the clock for a read command (ACQ FIFO non empty)
+*/
+void handler_irq_i2c_txNonEmpty(void);
+
+/**
+ * IRQ handler for when the TX FIFO overflows
+*/
+void handler_irq_i2c_txOverflow(void);
+
+/**
+ * IRQ handler for when the ACQ FIFO is full
+*/
+void handler_irq_i2c_acqOverflow(void);
+
+/**
+ * IRQ handler for when a STOP is received without a preceding NACK (target mode)
+*/
+void handler_irq_i2c_ackStop(void);
+
+/**
+ * IRQ handler for when the host stop sending the clock during a transaction (target mode)
+*/
+void handler_irq_i2c_hostTimeout(void);
+
+/**
+ * Generic hanlder for the I2C interupts.
+ * Whenever the I2C generates an interrupt, this function will be called
+ * by the interrupt controller and the proper handler will be called, basing on the 
+ * interrupt ID.
+ *
+ * @param id An interrupt source ID
+*/
+void handler_i2c(uint32_t id);
+
 
 /**
  * Computes timing parameters for an I2C device and store them in `config`.

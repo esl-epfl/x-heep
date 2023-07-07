@@ -50,6 +50,31 @@
 /**                                                                        **/
 /****************************************************************************/
 
+/**
+ * Array of handler functions.
+ * Each element contains the address of the function and can be directly called.
+ * The order of the handlers in the array is the same as the one of the IDs
+ * of the possible interrupt sources, so to make it easier to call
+ * the proper one.
+*/
+handler_func_i2c_t i2c_handlers[] = {&handler_irq_i2c_fmtWatermarkUnderflow,
+                                     &handler_irq_i2c_rxWatermarkOverflow,
+                                     &handler_irq_i2c_fmtOverflow,
+                                     &handler_irq_i2c_rxOverflow,
+                                     &handler_irq_i2c_nak,
+                                     &handler_irq_i2c_sclInterference,
+                                     &handler_irq_i2c_sdaInteference,
+                                     &handler_irq_i2c_clockStretchTimeout,
+                                     &handler_irq_i2c_sdaUnstable,
+                                     &handler_irq_i2c_transComplete,
+                                     &handler_irq_i2c_txEmpty,
+                                     &handler_irq_i2c_txNonEmpty,
+                                     &handler_irq_i2c_txOverflow,
+                                     &handler_irq_i2c_acqOverflow,
+                                     &handler_irq_i2c_ackStop,
+                                     &handler_irq_i2c_hostTimeout
+                                     };
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        TYPEDEFS AND STRUCTURES                           */
@@ -95,6 +120,78 @@ static i2c_config_t default_timing_for_speed(i2c_speed_t speed,
 /*                           EXPORTED FUNCTIONS                             */
 /**                                                                        **/
 /****************************************************************************/
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c_fmtWatermarkUnderflow(void) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c_rxWatermarkOverflow(void) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c_fmtOverflow(void) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c_rxOverflow(void) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c_nak(void) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c_sclInterference(void) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c_sdaInteference(void) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c_clockStretchTimeout(void) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c_sdaUnstable(void) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c_transComplete(void) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c_txEmpty(void) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c_txNonEmpty(void) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c_txOverflow(void) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c_acqOverflow(void) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c_ackStop(void) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c_hostTimeout(void) {
+
+}
+
+
+void handler_i2c(uint32_t id)
+{
+  // Call the proper handler basing on the ID.
+  i2c_handlers[id]();
+}
+
 
 i2c_result_t i2c_compute_timing(i2c_timing_config_t timing_config,
                                         i2c_config_t *config) {
