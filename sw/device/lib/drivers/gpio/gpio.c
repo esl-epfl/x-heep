@@ -1,16 +1,16 @@
 /*
                               *******************
 ******************************* C SOURCE FILE *****************************
-**                            *******************                                                                                               
-**                                                                         
-** project  : X-HEEP                                                       
-** filename : gpio.c                                                                                                        
-**                                                                         
+**                            *******************
+**
+** project  : X-HEEP
+** filename : gpio.c
+**
 ***************************************************************************
-**                                                                         
-** Copyright (c) EPFL contributors.                                        
-** All rights reserved.                                                    
-**                                                                         
+**
+** Copyright (c) EPFL contributors.
+** All rights reserved.
+**
 ***************************************************************************
 */
 
@@ -21,7 +21,7 @@
 * @date     30/03/2023
 * @author   Hossein taji
 * @version  1
-* @brief    GPIO driver 
+* @brief    GPIO driver
 */
 
 /****************************************************************************/
@@ -43,7 +43,7 @@
 /****************************************************************************/
 
 /**
- * GPIO_EN values 
+ * GPIO_EN values
  */
 #define GPIO_EN__ENABLED     1
 #define GPIO_EN__DISABLED    0
@@ -68,7 +68,7 @@
 #define GPIO_INTR_DISABLE   0
 
 /**
- * Values read after checking intr status registers to see they are 
+ * Values read after checking intr status registers to see they are
  * triggered or not
  */
 #define GPIO_INTR_IS_TRIGGERED      1
@@ -88,31 +88,6 @@
  * GPIO mode, number of pins it includes
  */
 #define GPIO_MODE_NUM_PINS      16
-
-
-/****************************************************************************/
-/**                                                                        **/
-/*                        TYPEDEFS AND STRUCTURES                           */
-/**                                                                        **/
-/****************************************************************************/
-
-/****************************************************************************/
-/**                                                                        **/
-/*                      PROTOTYPES OF LOCAL FUNCTIONS                       */
-/**                                                                        **/
-/****************************************************************************/
-
-/****************************************************************************/
-/**                                                                        **/
-/*                           EXPORTED VARIABLES                             */
-/**                                                                        **/
-/****************************************************************************/
-
-/****************************************************************************/
-/**                                                                        **/
-/*                            GLOBAL VARIABLES                              */
-/**                                                                        **/
-/****************************************************************************/
 
 /****************************************************************************/
 /**                                                                        **/
@@ -147,11 +122,11 @@ gpio_result_t gpio_set_mode (gpio_pin_number_t pin, gpio_mode_t mode)
         return GpioModeNotAcceptable;
 
     if (pin >= 0 && pin < 1*GPIO_MODE_NUM_PINS)
-        gpio_peri->GPIO_MODE0 = bitfield_write(gpio_peri->GPIO_MODE0, 
+        gpio_peri->GPIO_MODE0 = bitfield_write(gpio_peri->GPIO_MODE0,
                                                BIT_MASK_3, 2*pin, mode);
-    else 
-        gpio_peri->GPIO_MODE1 = bitfield_write(gpio_peri->GPIO_MODE1, 
-                                               BIT_MASK_3, 2*(pin-GPIO_MODE_NUM_PINS), mode);    
+    else
+        gpio_peri->GPIO_MODE1 = bitfield_write(gpio_peri->GPIO_MODE1,
+                                               BIT_MASK_3, 2*(pin-GPIO_MODE_NUM_PINS), mode);
     return GpioOk;
 }
 
@@ -217,7 +192,7 @@ gpio_result_t gpio_toggle (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    gpio_peri->GPIO_OUT0 = bitfield_write(gpio_peri->GPIO_OUT0, BIT_MASK_1, 
+    gpio_peri->GPIO_OUT0 = bitfield_write(gpio_peri->GPIO_OUT0, BIT_MASK_1,
         pin, !(bitfield_read(gpio_peri->GPIO_OUT0, BIT_MASK_1, pin)));
     return GpioOk;
 }
@@ -226,7 +201,7 @@ gpio_result_t gpio_write (gpio_pin_number_t pin, bool val)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    gpio_peri->GPIO_OUT0 = bitfield_write(gpio_peri->GPIO_OUT0, 
+    gpio_peri->GPIO_OUT0 = bitfield_write(gpio_peri->GPIO_OUT0,
         BIT_MASK_1, pin, val);
     return GpioOk;
 
@@ -245,7 +220,7 @@ gpio_result_t gpio_intr_en_fall (gpio_pin_number_t pin)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
         return GpioPinNotAcceptable;
-    gpio_peri->INTRPT_FALL_EN0 =  bitfield_write(gpio_peri->INTRPT_FALL_EN0, 
+    gpio_peri->INTRPT_FALL_EN0 =  bitfield_write(gpio_peri->INTRPT_FALL_EN0,
         BIT_MASK_1, pin, GPIO_INTR_ENABLE);
     return GpioOk;
 }
@@ -358,7 +333,7 @@ gpio_result_t gpio_intr_en (gpio_pin_number_t pin, gpio_intr_type_t type)
 gpio_result_t gpio_intr_check_stat_rise (gpio_pin_number_t pin, bool *is_pending)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
-    {   
+    {
         *is_pending = GPIO_INTR_IS_NOT_TRIGGERED;
         return GpioPinNotAcceptable;
     }
@@ -369,7 +344,7 @@ gpio_result_t gpio_intr_check_stat_rise (gpio_pin_number_t pin, bool *is_pending
 gpio_result_t gpio_intr_check_stat_fall (gpio_pin_number_t pin, bool *is_pending)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
-    {   
+    {
         *is_pending = GPIO_INTR_IS_NOT_TRIGGERED;
         return GpioPinNotAcceptable;
     }
@@ -380,7 +355,7 @@ gpio_result_t gpio_intr_check_stat_fall (gpio_pin_number_t pin, bool *is_pending
 gpio_result_t gpio_intr_check_stat_lvl_low (gpio_pin_number_t pin, bool *is_pending)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
-    {   
+    {
         *is_pending = GPIO_INTR_IS_NOT_TRIGGERED;
         return GpioPinNotAcceptable;
     }
@@ -391,7 +366,7 @@ gpio_result_t gpio_intr_check_stat_lvl_low (gpio_pin_number_t pin, bool *is_pend
 gpio_result_t gpio_intr_check_stat_lvl_high (gpio_pin_number_t pin, bool *is_pending)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
-    {   
+    {
         *is_pending = GPIO_INTR_IS_NOT_TRIGGERED;
         return GpioPinNotAcceptable;
     }
@@ -402,7 +377,7 @@ gpio_result_t gpio_intr_check_stat_lvl_high (gpio_pin_number_t pin, bool *is_pen
 gpio_result_t gpio_intr_check_stat (gpio_pin_number_t pin, bool *is_pending)
 {
     if (pin > (MAX_PIN-1) || pin < 0)
-    {   
+    {
         *is_pending = GPIO_INTR_IS_NOT_TRIGGERED;
         return GpioPinNotAcceptable;
     }
@@ -461,12 +436,6 @@ void gpio_intr_set_mode (gpio_intr_general_mode_t mode)
     gpio_peri->CFG = bitfield_write(
         gpio_peri->CFG, BIT_MASK_1, GPIO_CFG_INTR_MODE_INDEX, mode);
 }
-/****************************************************************************/
-/**                                                                        **/
-/*                            LOCAL FUNCTIONS                               */
-/**                                                                        **/
-/****************************************************************************/
-
 
 /****************************************************************************/
 /**                                                                        **/
