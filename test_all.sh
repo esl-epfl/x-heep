@@ -28,18 +28,19 @@ FAILED='' &&\
 #				VARIABLES AND CONSTANTS
 #############################################################
 
-# List of applications that will not be simulated 9skipped)
+# List of applications that will not be simulated (skipped)
+# This list is a temporary solution. Apps should report by themselves
+# whether their simulation should be skipped or not.
 declare -a BLACKLIST=("example_freertos_blinky" "example_virtual_flash" )
 
-# List of possible compilers
+# List of possible compilers. The last compiler will be used for simulation.
 declare -a COMPILERS=("clang" "gcc" )
 
-
-# Simulator tool
+# Simulator tool.
 SIMULATOR='verilator'
 
-
-# Environment tool
+# Environment tool and environment name (if changed to venv, add the path
+# and make the name an empty string).
 ENVIRONMENT_TOOL=conda
 ENV="core-v-mini-mcu"
 
@@ -100,8 +101,6 @@ case $yn in
 	* ) return;;
 esac
 
-echo -e ${LONG_W}
-
 #############################################################
 #					SET-UP THE TOOLS
 #############################################################
@@ -130,16 +129,21 @@ do
 	echo -e ${LONG_W}
 
 	COMPILER_TO_USE=""
+	# Will store the build result to determine if the app should be simulated or not.
+	# Because only the last compiler option is used for simulation, there is not need
+	# to keep track of which compilers succeeded and which not.
 	APP_RESULT=""
 	for COMPILER in "${COMPILERS[@]}"
 	do
 		COMPILER_EXISTS=$(which $COMPILER)
-
+		# If a compiler is not installed, that compilation is skipped.
 		if [ -n "${COMPILER_EXISTS}" ] ; then
 			COMPILER_TO_USE=$COMPILER
 			make --no-print-directory -s app-clean
 			out=$(make -s --no-print-directory app PROJECT=$APP COMPILER=$COMPILER; val=$?; echo $val)
 			APP_RESULT="${out: -1}"
+			# The output of the make command is extracted. This way, the output is quite silent
+			# but the error information is still printed.
 			if [ "$APP_RESULT" == "0" ]; then
 				echo -e ${LONG_G}
 				echo -e "${GREEN}Successfully built $APP using $COMPILER${RESET}"
@@ -154,7 +158,8 @@ do
 		fi
 	done
 
-	# Simulate. The result value is stored but not yet used.
+	# Simulation is only performed if the last compilation succeeded and the app is not
+	# in the black list. The compiler to use was chosen before based on its existance.
 	if  [ -n "${COMPILER_TO_USE}" ] ; then
 		if ! [[ ${BLACKLIST[*]} =~ "$APP" ]] && [ "$APP_RESULT" == "0" ] ; then
 			# The following is done in a very strange way for a reasons:
@@ -194,7 +199,12 @@ done
 #						FINISH UP
 #############################################################
 
-# Reset changes made to files
+# Because there were changed made to the mcu_cfg.json file, and the mcu was
+# re-generated, some files were changed with respect to the original state when
+# the script was launched.
+# Ideally, the user should have commited their changes before sourcing the script,
+# but if they didn't they can opt-out of the stashing of the changes and make the stash
+# manually themselves.
 echo -e ${LONG_W}
 
 git status -uno
@@ -234,13 +244,12 @@ fi
 #						FUTURE WORK
 #############################################################
 
-# Make venv or conda
+# Select environment tool
 # Select simulator
-# Warn if no simulator was chosen
-# Fix example_freertos_blinky
 # Add watchdog timer
 # Fix apps that never finish testing on one simulator
 ### example_virtual_flash
+### example_freertos_blinky
 
 # Keep a count of apps that return a meaningless execution
 # Try different linkers
