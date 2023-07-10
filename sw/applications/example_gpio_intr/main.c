@@ -8,7 +8,6 @@
 #include "hart.h"
 #include "handler.h"
 #include "core_v_mini_mcu.h"
-// #include "rv_plic_old.h"
 #include "rv_plic.h"
 #include "rv_plic_regs.h"
 #include "gpio.h"
@@ -28,9 +27,9 @@ Notes:
 #define DEFAULT_PRINTF_BEHAVIOR 1
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
-#ifdef TARGET_PYNQ_Z2 
+#ifdef TARGET_PYNQ_Z2
     #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
-#else 
+#else
     #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
 #endif
 
@@ -38,7 +37,7 @@ Notes:
   #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
   #define PRINTF(...)
-#endif 
+#endif
 
 
 #ifndef RV_PLIC_IS_INCLUDED
@@ -134,8 +133,8 @@ int main(int argc, char *argv[])
     while(plic_intr_flag==0) {
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
-        CSR_SET_BITS(CSR_REG_MSTATUS, 0x0);
-        gpio_res = gpio_write(GPIO_TB_OUT, true);
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+        gpio_write(GPIO_TB_OUT, true);
         wait_for_interrupt();
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }

@@ -9,6 +9,7 @@
 #include "handler.h"
 #include "core_v_mini_mcu.h"
 #include "power_manager.h"
+#include "x-heep.h"
 
 /* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
 #define DEFAULT_PRINTF_BEHAVIOR 1

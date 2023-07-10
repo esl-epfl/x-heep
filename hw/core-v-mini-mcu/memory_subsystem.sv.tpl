@@ -24,6 +24,9 @@ module memory_subsystem
 
   localparam int NumWords = 32 * 1024 / 4;
   localparam int AddrWidth = $clog2(32 * 1024);
+% if ram_numbanks_il != 0:
+  localparam int ilAddrWidth = $clog2(${ram_numbanks_il} * 32 * 1024);
+% endif
 
   logic [NUM_BANKS-1:0] ram_valid_q;
   // Clock-gating
@@ -33,7 +36,11 @@ module memory_subsystem
 
   for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_addr_napot
     if (i >= NUM_BANKS - ${ram_numbanks_il}) begin
-      assign ram_req_addr[i] = {${log_ram_numbanks_il}'h0, ram_req_i[i].addr[AddrWidth-1:${2+log_ram_numbanks_il}]};
+      assign ram_req_addr[i] = {
+        ram_req_i[i].addr[ilAddrWidth-1:AddrWidth] - 
+        core_v_mini_mcu_pkg::RAM${ram_numbanks_cont}_START_ADDRESS[ilAddrWidth-1:AddrWidth],
+        ram_req_i[i].addr[AddrWidth-1:${2+log_ram_numbanks_il}]
+      };
     end else begin
       assign ram_req_addr[i] = ram_req_i[i].addr[AddrWidth-1:2];
     end
