@@ -1,5 +1,97 @@
 #! /usr/bin/bash -e
 
+
+#############################################################
+#					FUNCTION DEFINITIONS
+#############################################################
+
+SIM_SUCCESS(){
+	echo -e ${LONG_G}
+	echo -e "${GREEN}Successfully simulated $APP using $SIMULATOR${RESET}"
+	echo -e ${LONG_G}
+
+}
+
+SIM_FAIL(){
+	echo -e ${LONG_R}
+	echo -e "${RED}Failed simulating $APP using $SIMULATOR${RESET}"
+	echo -e ${LONG_R}
+	SIM_FAILURES=$(( SIM_FAILURES + 1 ))
+	FAILED="$FAILED($SIMULATOR)\t$APP "
+}
+
+SIM_TIMEOUT(){
+	echo -e ${LONG_WAR}
+	echo -e "${WARNING}Timeout simulating $APP using $SIMULATOR${RESET}"
+	echo -e ${LONG_WAR}
+	SIM_FAILURES=$(( SIM_FAILURES + 1 ))
+	FAILED="$FAILED(Timeout)\t$APP "
+}
+
+SIM_SKIP(){
+	echo -e ${LONG_WAR}
+	echo -e "${WARNING}Will skip simulation for $APP.${RESET}"
+	echo -e ${LONG_WAR}
+	SIM_SKIPPED=$(( SIM_SKIPPED + 1 ))
+	SKIPPED="$SKIPPED($SIMULATOR)\t$APP "
+}
+
+SIMULATE(){
+	# Simulation is only performed if the last compilation succeeded and the app is not
+	# in the black list. The compiler to use was chosen before based on its existance.
+	if  [ -n "${COMPILER_TO_USE}" ] ; then
+		if ! [[ ${BLACKLIST[*]} =~ "$APP" ]] && [ "$APP_RESULT" == "0" ] ; then
+			# The following is done in a very strange way for a reasons:
+			# To get the output of the ./Vtestharness, the Makefile cannot be used.
+			# To be able to cancel de script and not be inside the simulation directory
+			# the parenthesis are needed. However, those parenthesis make the variable
+			# out not be accesible from outside. The outmost variable out will contain
+			# the output of the execution of the $(sub-script), which happens to be the
+			# echo of the variable out. Then only the last character is used, because
+			# it contains whether the simulation returned 0 or 1.
+			out=$(cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
+				out=$(./Vtestharness +firmware=../../../sw/build/main.hex); \
+				cd ../../../ ; \
+				echo $out; )
+			if [ "${out: -1}" == "0" ] ; then
+				return 0;
+			else
+				return 1;
+			fi
+		else
+			return 2;
+		fi
+	fi
+
+}
+
+BUILD (){
+	for COMPILER in "${COMPILERS[@]}"
+	do
+		COMPILER_EXISTS=$(which $COMPILER)
+		# If a compiler is not installed, that compilation is skipped.
+		if [ -n "${COMPILER_EXISTS}" ] ; then
+			COMPILER_TO_USE=$COMPILER
+			make --no-print-directory -s app-clean
+			out=$(make -s --no-print-directory app PROJECT=$APP COMPILER=$COMPILER; val=$?; echo $val)
+			APP_RESULT="${out: -1}"
+			# The output of the make command is extracted. This way, the output is quite silent
+			# but the error information is still printed.
+			if [ "$APP_RESULT" == "0" ]; then
+				echo -e ${LONG_G}
+				echo -e "${GREEN}Successfully built $APP using $COMPILER${RESET}"
+				echo -e ${LONG_G}
+			else
+				echo -e ${LONG_R}
+				echo -e "${RED}Failure building $APP using $COMPILER${RESET}"
+				echo -e ${LONG_R}
+				BUILD_FAILURES=$(( BUILD_FAILURES + 1 ))
+				FAILED="$FAILED($COMPILER)\t$APP "
+			fi
+		fi
+	done
+}
+
 #############################################################
 #						FORMATTING
 #############################################################
@@ -18,11 +110,12 @@ LONG_W="${WHITE}================================================================
 LONG_WAR="${WARNING}================================================================================${RESET}"
 
 # Error vars are not defined if there is problem!
-APPS=$(\ls sw/applications/) &&\
 declare -i BUILD_FAILURES=0 &&\
 declare -i SIM_FAILURES=0 &&\
 declare -i SIM_SKIPPED=0 &&\
+APPS=$(\ls sw/applications/) &&\
 FAILED='' &&\
+SKIPPED=''
 
 #############################################################
 #				VARIABLES AND CONSTANTS
@@ -31,7 +124,7 @@ FAILED='' &&\
 # List of applications that will not be simulated (skipped)
 # This list is a temporary solution. Apps should report by themselves
 # whether their simulation should be skipped or not.
-declare -a BLACKLIST=("example_freertos_blinky" "example_virtual_flash" )
+declare -a BLACKLIST=( "example_virtual_flash" )
 
 # List of possible compilers. The last compiler will be used for simulation.
 declare -a COMPILERS=("clang" "gcc" )
@@ -39,10 +132,17 @@ declare -a COMPILERS=("clang" "gcc" )
 # Simulator tool.
 SIMULATOR='verilator'
 
+# Simulation timeout to prevent apps from running infinitely
+SIM_TIMEOUT_S=120 # This time, in seconds, was chosen empirically.
+
 # Environment tool and environment name (if changed to venv, add the path
 # and make the name an empty string).
 ENVIRONMENT_TOOL=conda
 ENV="core-v-mini-mcu"
+
+# Prevent the re-generation of the mcu and the simualtion model on every
+# execution by changing DEBUG to 1
+DEBUG=0
 
 #############################################################
 #					CHECKS
@@ -74,11 +174,11 @@ done
 echo -e ${LONG_W}
 
 echo -e "${WHITE}Will simulate using:${RESET}"
-echo -e "$SIMULATOR"
+echo -e "$SIMULATOR (timeout: $SIM_TIMEOUT_S seconds)"
 
 echo -e ${LONG_W}
 
-echo -e "${WHITE}Will try building and simualting the following apps:${RESET}"
+echo -e "${WHITE}Will test the following apps:${RESET}"
 echo -e $APPS | tr " " "\n"
 
 echo -e ${LONG_W}
@@ -111,12 +211,14 @@ $ENVIRONMENT_TOOL activate $ENV
 # All peripherals are included to make sure all apps can be built.
 sed 's/is_included: "no",/is_included: "yes",/' -i mcu_cfg.hjson
 
-# The MCU is generated with several memory banks to avoid example code not fitting.
-make mcu-gen MEMORY_BANKS=3 EXTERNAL_DOMAINS=1
+if [ $DEBUG -eq 0 ];	 then
+	# The MCU is generated with several memory banks to avoid example code not fitting.
+	make mcu-gen MEMORY_BANKS=3 EXTERNAL_DOMAINS=1
 
-# Make the simualtion model
-SIM_MODEL_CMD=${SIMULATOR}"-sim"
-make $SIM_MODEL_CMD
+	# Make the simualtion model
+	SIM_MODEL_CMD=${SIMULATOR}"-sim"
+	make $SIM_MODEL_CMD
+fi
 
 #############################################################
 #			PERFORM THE BUILDING AND SIMULATIONS
@@ -133,64 +235,33 @@ do
 	# Because only the last compiler option is used for simulation, there is not need
 	# to keep track of which compilers succeeded and which not.
 	APP_RESULT=""
-	for COMPILER in "${COMPILERS[@]}"
-	do
-		COMPILER_EXISTS=$(which $COMPILER)
-		# If a compiler is not installed, that compilation is skipped.
-		if [ -n "${COMPILER_EXISTS}" ] ; then
-			COMPILER_TO_USE=$COMPILER
-			make --no-print-directory -s app-clean
-			out=$(make -s --no-print-directory app PROJECT=$APP COMPILER=$COMPILER; val=$?; echo $val)
-			APP_RESULT="${out: -1}"
-			# The output of the make command is extracted. This way, the output is quite silent
-			# but the error information is still printed.
-			if [ "$APP_RESULT" == "0" ]; then
-				echo -e ${LONG_G}
-				echo -e "${GREEN}Successfully built $APP using $COMPILER${RESET}"
-				echo -e ${LONG_G}
-			else
-				echo -e ${LONG_R}
-				echo -e "${RED}Failure building $APP using $COMPILER${RESET}"
-				echo -e ${LONG_R}
-				BUILD_FAILURES=$(( BUILD_FAILURES + 1 ))
-				FAILED="$FAILED($COMPILER)\t$APP "
-			fi
-		fi
-	done
 
-	# Simulation is only performed if the last compilation succeeded and the app is not
-	# in the black list. The compiler to use was chosen before based on its existance.
-	if  [ -n "${COMPILER_TO_USE}" ] ; then
-		if ! [[ ${BLACKLIST[*]} =~ "$APP" ]] && [ "$APP_RESULT" == "0" ] ; then
-			# The following is done in a very strange way for a reasons:
-			# To get the output of the ./Vtestharness, the Makefile cannot be used.
-			# To be able to cancel de script and not be inside the simulation directory
-			# the parenthesis are needed. However, those parenthesis make the variable
-			# out not be accesible from outside. The outmost variable out will contain
-			# the output of the execution of the $(sub-script), which happens to be the
-			# echo of the variable out. Then only the last character is used, because
-			# it contains whether the simulation returned 0 or 1.
-			out=$(cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
-				out=$(./Vtestharness +firmware=../../../sw/build/main.hex); \
-				cd ../../../ ; \
-				echo $out; )
-			if [ "${out: -1}" == "0" ] ; then
-				echo -e ${LONG_G}
-				echo -e "${GREEN}Successfully simulated $APP using $SIMULATOR${RESET}"
-				echo -e ${LONG_G}
-			else
-				echo -e ${LONG_R}
-				echo -e "${RED}Failure simulating $APP using $SIMULATOR${RESET}"
-				echo -e ${LONG_R}
-				SIM_FAILURES=$(( SIM_FAILURES + 1 ))
-				FAILED="$FAILED($SIMULATOR)\t$APP "
-			fi
-		else
-			echo -e ${LONG_WAR}
-			echo -e "${WARNING}Will skip simulation for $APP.${RESET}"
-			echo -e ${LONG_WAR}
-			SIM_SKIPPED=$(( SIM_SKIPPED + 1 ))
-		fi
+	# The app is built with all the possible compilers.
+	BUILD
+
+	# The simulation is done with a timeout. If an application is failing
+	# it will return an error after the timeout has finished.
+	# Because the simulation will be called as a sub-process, the returns are
+	# analyzed externally (unlike BUILD, that can modify the parent's variables).
+	( SIMULATE ) & pid=$!
+	( sleep $SIM_TIMEOUT_S && kill -HUP $pid ) 2>/dev/null & watcher=$!
+	wait $pid 2>/dev/null;
+	res=$?
+	if [ $res -eq 0 ]; then
+		SIM_SUCCESS
+		pkill -HUP -P $watcher
+		wait $watcher
+	elif [ $res -eq 1 ]; then
+		SIM_FAIL
+		pkill -HUP -P $watcher
+		wait $watcher
+	elif [ $res -eq 2 ]; then
+		SIM_SKIP
+		pkill -HUP -P $watcher
+		wait $watcher
+	else
+		echo -e "${WARNING} Timeout!${RESET}"
+		SIM_TIMEOUT
 	fi
 
 done
@@ -240,17 +311,23 @@ else
 	echo -e ${LONG_G}
 fi
 
+if [ $SIM_SKIPPED -gt 0  ]; then
+	echo -e ${LONG_WAR}
+	echo -e "${WARNING}Simulation of $SIM_SKIPPED apps was skipped${RESET}"
+	echo -e $SKIPPED | tr " " "\n"
+	echo -e ${LONG_WAR}
+fi
+
 #############################################################
 #						FUTURE WORK
 #############################################################
 
 # Select environment tool
 # Select simulator
-# Add watchdog timer
-# Fix apps that never finish testing on one simulator
+# Fix apps that never finish testing on (one) simulator
 ### example_virtual_flash
 ### example_freertos_blinky
 
 # Keep a count of apps that return a meaningless execution
 # Try different linkers
-# let modification of certain parameters
+# Allow modification of certain parameters
