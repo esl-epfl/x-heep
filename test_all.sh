@@ -1,10 +1,14 @@
 #! /usr/bin/bash -e
 
-# Some colors are defined to help debugging in the GitHub console.
-WHITE="\033[37;1m"
-RED="\033[31;1m"
-GREEN="\033[32;1m"
-WARNING="\033[33;1m"
+#############################################################
+#						FORMATTING
+#############################################################
+
+# Some colors are defined to help debugging in the console.
+WHITE="\033[37;1m "
+RED="\033[31;1m "
+GREEN="\033[32;1m "
+WARNING="\033[33;1m "
 RESET="\033[0m"
 
 # Some delimiters are defined to assist the process of detecting each app in the console.
@@ -20,10 +24,59 @@ declare -i SIM_FAILURES=0 &&\
 declare -i SIM_SKIPPED=0 &&\
 FAILED='' &&\
 
+#############################################################
+#				VARIABLES AND CONSTANTS
+#############################################################
+
 # List of applications that will not be simulated 9skipped)
 declare -a BLACKLIST=("example_freertos_blinky" "example_virtual_flash" )
 
+# List of possible compilers
+declare -a COMPILERS=("clang" "gcc" )
+
+
+# Simulator tool
+SIMULATOR='verilator'
+
+
+# Environment tool
+ENVIRONMENT_TOOL=conda
+ENV="core-v-mini-mcu"
+
+#############################################################
+#					CHECKS
+#############################################################
+
+# Check that there are some apps to build and simulate
+if [ -z "$APPS" ]; then
+        echo -e ${LONG_R}
+        echo -e "${RED}No apps found${RESET}"
+        echo -e ${LONG_R}
+        exit 2
+fi
+
+#############################################################
+#				SHOW INFORMATION
+#############################################################
+
 echo -e ${LONG_W}
+
+echo -e "${WHITE}Will build using:${RESET}"
+for COMPILER in "${COMPILERS[@]}"
+do
+	COMPILER_EXISTS=$(which $COMPILER)
+	if [ -n "${COMPILER_EXISTS}" ] ; then
+		echo -e "${COMPILER}"
+	fi
+done
+
+echo -e ${LONG_W}
+
+echo -e "${WHITE}Will simulate using:${RESET}"
+echo -e "$SIMULATOR"
+
+echo -e ${LONG_W}
+
 echo -e "${WHITE}Will try building and simualting the following apps:${RESET}"
 echo -e $APPS | tr " " "\n"
 
@@ -41,7 +94,6 @@ echo -e "\t() some patience."
 
 echo -e "\n\nStart? (y/N)"
 read yn
-
 case $yn in
 	[Yy]* ) ;;
 	[Nn]* ) return;;
@@ -50,12 +102,12 @@ esac
 
 echo -e ${LONG_W}
 
-if [ -z "$APPS" ]; then
-        echo -e ${LONG_R}
-        echo -e "${RED}No apps found${RESET}"
-        echo -e ${LONG_R}
-        exit 2
-fi
+#############################################################
+#					SET-UP THE TOOLS
+#############################################################
+
+# Activate the environment
+$ENVIRONMENT_TOOL activate $ENV
 
 # All peripherals are included to make sure all apps can be built.
 sed 's/is_included: "no",/is_included: "yes",/' -i mcu_cfg.hjson
@@ -63,17 +115,13 @@ sed 's/is_included: "no",/is_included: "yes",/' -i mcu_cfg.hjson
 # The MCU is generated with several memory banks to avoid example code not fitting.
 make mcu-gen MEMORY_BANKS=3 EXTERNAL_DOMAINS=1
 
-
-SIMULATOR='verilator'
+# Make the simualtion model
 SIM_MODEL_CMD=${SIMULATOR}"-sim"
-
-USE_GCC=$(which gcc) &&\
-USE_CLANG=$(which clang) &&\
-
-echo $USE_GCC
-echo $USE_CLANG
-
 make $SIM_MODEL_CMD
+
+#############################################################
+#			PERFORM THE BUILDING AND SIMULATIONS
+#############################################################
 
 for APP in $APPS
 do
@@ -81,42 +129,32 @@ do
 	echo -e "${WHITE}Now testing $APP ${RESET}"
 	echo -e ${LONG_W}
 
-	# Build the app with Clang
-	if [ -n "${USE_CLANG}" ] ; then
-		make --no-print-directory -s app-clean
-		if make app PROJECT=$APP COMPILER=clang ; then
-			echo -e ${LONG_G}
-			echo -e "${GREEN}Successfully built $APP using Clang${RESET}"
-			echo -e ${LONG_G}
-		else
-			echo -e ${LONG_R}
-			echo -e "${RED}Failure building $APP using Clang${RESET}"
-			echo -e ${LONG_R}
-			BUILD_FAILURES=$(( BUILD_FAILURES + 1 ))
-			FAILED="$FAILED(clang)\t$APP "
-		fi
-	fi
+	COMPILER_TO_USE=""
+	for COMPILER in "${COMPILERS[@]}"
+	do
+		COMPILER_EXISTS=$(which $COMPILER)
 
-	# Build the app with GCC
-	if [ -n "${USE_GCC}"  ] ; then
-		make --no-print-directory -s app-clean
-		if make app PROJECT=$APP ; then
-			echo -e ${LONG_G}
-			echo -e "${GREEN}Successfully built $APP using GCC${RESET}"
-			echo -e ${LONG_G}
-		else
-			echo -e ${LONG_R}
-			echo -e "${RED}Failure building $APP using GCC${RESET}"
-			echo -e ${LONG_R}
-			BUILD_FAILURES=$(( BUILD_FAILURES + 1 ))
-			FAILED="$FAILED(gcc)\t$APP "
+		if [ -n "${COMPILER_EXISTS}" ] ; then
+			COMPILER_TO_USE=$COMPILER
+			make --no-print-directory -s app-clean
+			if make app PROJECT=$APP COMPILER=$COMPILER ; then
+				echo -e ${LONG_G}
+				echo -e "${GREEN}Successfully built $APP using $COMPILER${RESET}"
+				echo -e ${LONG_G}
+			else
+				echo -e ${LONG_R}
+				echo -e "${RED}Failure building $APP using $COMPILER${RESET}"
+				echo -e ${LONG_R}
+				BUILD_FAILURES=$(( BUILD_FAILURES + 1 ))
+				FAILED="$FAILED($COMPILER)\t$APP "
+			fi
 		fi
-	fi
+	done
 
 	# Simulate. The result value is stored but not yet used.
-	if  [ -n "${USE_GCC}" ] || [ -n "${USE_CLANG}"   ] ; then
+	if  [ -n "${COMPILER_TO_USE}" ] ; then
 		if ! [[ ${BLACKLIST[*]} =~ "$APP" ]]  ; then
-			# The following is done in a very strange way for the following reasons:
+			# The following is done in a very strange way for a reasons:
 			# To get the output of the ./Vtestharness, the Makefile cannot be used.
 			# To be able to cancel de script and not be inside the simulation directory
 			# the parenthesis are needed. However, those parenthesis make the variable
@@ -149,9 +187,15 @@ do
 
 done
 
+#############################################################
+#						FINISH UP
+#############################################################
 
 # Reset changes made to files
+echo -e ${LONG_W}
+
 git status -uno
+
 echo -e "${WHITE}During the execution, some files might have been modified."
 echo -e "${WHITE}Do you want to revert all these changes? (Y/n)${RESET}"
 read yn
@@ -161,7 +205,10 @@ case $yn in
 	* ) git stash; git stash drop;;
 esac
 
-# Present the results
+#############################################################
+#						SHOW RESULTS
+#############################################################
+
 if [ $BUILD_FAILURES -gt 0 ] || [ $SIM_FAILURES -gt 0 ]; then
 
 	echo -e ${LONG_R}
@@ -180,7 +227,10 @@ else
 	echo -e ${LONG_G}
 fi
 
-# ToDo:
+#############################################################
+#						FUTURE WORK
+#############################################################
+
 # Make venv or conda
 # Select simulator
 # Warn if no simulator was chosen
