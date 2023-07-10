@@ -130,6 +130,7 @@ do
 	echo -e ${LONG_W}
 
 	COMPILER_TO_USE=""
+	APP_RESULT=""
 	for COMPILER in "${COMPILERS[@]}"
 	do
 		COMPILER_EXISTS=$(which $COMPILER)
@@ -137,7 +138,9 @@ do
 		if [ -n "${COMPILER_EXISTS}" ] ; then
 			COMPILER_TO_USE=$COMPILER
 			make --no-print-directory -s app-clean
-			if make app PROJECT=$APP COMPILER=$COMPILER ; then
+			out=$(make -s --no-print-directory app PROJECT=$APP COMPILER=$COMPILER; val=$?; echo $val)
+			APP_RESULT="${out: -1}"
+			if [ "$APP_RESULT" == "0" ]; then
 				echo -e ${LONG_G}
 				echo -e "${GREEN}Successfully built $APP using $COMPILER${RESET}"
 				echo -e ${LONG_G}
@@ -153,7 +156,7 @@ do
 
 	# Simulate. The result value is stored but not yet used.
 	if  [ -n "${COMPILER_TO_USE}" ] ; then
-		if ! [[ ${BLACKLIST[*]} =~ "$APP" ]]  ; then
+		if ! [[ ${BLACKLIST[*]} =~ "$APP" ]] && [ "$APP_RESULT" == "0" ] ; then
 			# The following is done in a very strange way for a reasons:
 			# To get the output of the ./Vtestharness, the Makefile cannot be used.
 			# To be able to cancel de script and not be inside the simulation directory
@@ -166,7 +169,7 @@ do
 				out=$(./Vtestharness +firmware=../../../sw/build/main.hex); \
 				cd ../../../ ; \
 				echo $out; )
-			if [ "${out: -1}" = "0" ] ; then
+			if [ "${out: -1}" == "0" ] ; then
 				echo -e ${LONG_G}
 				echo -e "${GREEN}Successfully simulated $APP using $SIMULATOR${RESET}"
 				echo -e ${LONG_G}
