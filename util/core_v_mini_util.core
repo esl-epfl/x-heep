@@ -38,6 +38,7 @@ scripts:
       - -DCOCOTB_SIM=1
       - -DSYNTHESIS=1
       - -DVERILATOR=1
+      - -DYOSYS=1
 
 
 targets:

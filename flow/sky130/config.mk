@@ -12,7 +12,7 @@ export MAX_UNGROUP_SIZE = 100
 # Adders degrade setup repair
 export ADDER_MAP_FILE :=
 
-export CORE_UTILIZATION = 40
+export CORE_UTILIZATION = 10
 export CORE_ASPECT_RATIO = 1
 export CORE_MARGIN = 2
 

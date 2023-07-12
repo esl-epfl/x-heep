@@ -12,7 +12,6 @@ filesets:
     depend:
     - x-heep::packages
     - openhwgroup.org:ip:cv32e40p
-    - openhwgroup.org:ip:cv32e40x
     - openhwgroup.org:ip:cve2
     - pulp-platform.org:ip:gpio
     - pulp-platform.org::common_cells
@@ -247,6 +246,10 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     default: false
+  YOSYS: #used by SV2V
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
   FPGA_NETLIST:
     datatype: bool
     paramtype: vlogdefine
@@ -468,6 +471,7 @@ targets:
       - FPU
       - SYNTHESIS=true
       - VERILATOR=true
+      - YOSYS=true
     filesets_append:
       - use_sky130? (rtl-sky130)
       - lib-sky130
@@ -477,4 +481,4 @@ targets:
     tools:
       openroad:
         flow_path: flow/OpenROAD-flow-scripts/flow
-        make_target: synth
+        make_target: cts

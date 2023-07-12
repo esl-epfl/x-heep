@@ -268,17 +268,17 @@ module core_v_mini_mcu
     input  logic gpio_30_i,
     output logic gpio_30_oe_o,
 
-
+`ifndef YOSYS
     // eXtension interface
-    if_xif.cpu_compressed xif_compressed_if,
-    if_xif.cpu_issue      xif_issue_if,
-    if_xif.cpu_commit     xif_commit_if,
-    if_xif.cpu_mem        xif_mem_if,
-    if_xif.cpu_mem_result xif_mem_result_if,
-    if_xif.cpu_result     xif_result_if,
-
-    output reg_req_t pad_req_o,
-    input  reg_rsp_t pad_resp_i,
+           if_xif.cpu_compressed xif_compressed_if,
+           if_xif.cpu_issue      xif_issue_if,
+           if_xif.cpu_commit     xif_commit_if,
+           if_xif.cpu_mem        xif_mem_if,
+           if_xif.cpu_mem_result xif_mem_result_if,
+           if_xif.cpu_result     xif_result_if,
+`endif
+    output reg_req_t             pad_req_o,
+    input  reg_rsp_t             pad_resp_i,
 
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
@@ -460,12 +460,14 @@ module core_v_mini_mcu
       .core_instr_resp_i(core_instr_resp),
       .core_data_req_o(core_data_req),
       .core_data_resp_i(core_data_resp),
+`ifndef YOSYS
       .xif_compressed_if,
       .xif_issue_if,
       .xif_commit_if,
       .xif_mem_if,
       .xif_mem_result_if,
       .xif_result_if,
+`endif
       .irq_i(intr),
       .irq_ack_o(irq_ack),
       .irq_id_o(irq_id_out),
