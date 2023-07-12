@@ -43,9 +43,7 @@
 static rv_timer_t timer_0_1;
 static rv_timer_t timer_2_3;
 static const uint64_t kTickFreqHz = 1000 * 1000; // 1 MHz
-
 static power_manager_t power_manager;
-static gpio_t gpio;
 
 #ifndef TARGET_PYNQ_Z2
     #define GPIO_TB_OUT 30
@@ -86,11 +84,6 @@ int main(int argc, char *argv[])
     // Setup rv_timer_2_3
     mmio_region_t timer_2_3_reg = mmio_region_from_addr(RV_TIMER_START_ADDRESS);
     rv_timer_init(timer_2_3_reg, (rv_timer_config_t){.hart_count = 2, .comparator_count = 1}, &timer_2_3);
-
-    // Setup gpio
-    gpio_params_t gpio_params;
-    gpio_params.base_addr = mmio_region_from_addr((uintptr_t)GPIO_START_ADDRESS);
-    gpio_init(gpio_params, &gpio);
 
     // Init cpu_subsystem's counters
     if (power_gate_counters_init(&power_manager_cpu_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
@@ -157,14 +150,18 @@ int main(int argc, char *argv[])
 
 #ifndef TARGET_PYNQ_Z2
     // Power-gate and wake-up due to plic
-    bool state = false;
-    plic_irq_set_priority(GPIO_INTR, 1);
-    plic_irq_set_enabled(GPIO_INTR, kPlicToggleEnabled);
-    gpio_output_set_enabled(&gpio, GPIO_TB_OUT, true);
-    gpio_input_enabled(&gpio, GPIO_TB_IN, true);
-    gpio_irq_set_trigger(&gpio, GPIO_TB_IN, true, kGpioIrqTriggerEdgeRising);
-    gpio_write(&gpio, GPIO_TB_OUT, true);
+	bool state = false;
+    plic_irq_set_priority(GPIO_INTR_31, 1);
+    plic_irq_set_enabled(GPIO_INTR_31, kPlicToggleEnabled);
 
+    gpio_cfg_t pin1_cfg = {.pin = GPIO_TB_OUT, .mode = GpioModeOutPushPull};
+    gpio_config (pin1_cfg);
+    gpio_write(GPIO_TB_OUT, true);
+
+    gpio_cfg_t pin2_cfg = {.pin = GPIO_TB_IN, .mode = GpioModeIn,.en_input_sampling = true, 
+        .en_intr = true, .intr_type = GpioIntrEdgeRising};
+    gpio_config (pin2_cfg);
+    
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kPlic_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
