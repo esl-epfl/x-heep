@@ -443,4 +443,4 @@ targets:
     tools:
       openroad:
         flow_path: flow/OpenROAD-flow-scripts/flow
-        make_target: cts
+        make_target: synth
