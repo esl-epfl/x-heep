@@ -22,7 +22,11 @@ from math import log2
 class Pad:
 
   def remove_comma_io_interface(self):
-    self.x_heep_system_interface = self.x_heep_system_interface.rstrip(self.x_heep_system_interface[-1])
+    try:
+        self.x_heep_system_interface = self.x_heep_system_interface.rstrip(self.x_heep_system_interface[-1])
+    except IndexError:
+        pass
+        ### bypass kind of PADs do not have any comma to be removed as they do not define an interface
 
   def create_pad_ring(self):
     self.interface = '    inout wire ' + self.name + '_io,\n'
