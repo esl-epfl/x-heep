@@ -149,9 +149,9 @@ or 0 to run the more comprehensive test and demo application. */
 
 
 #ifdef TARGET_PYNQ_Z2
-    #define GPIO_LD5_R  20
-    #define GPIO_LD5_B  21
-	#define GPIO_LD5_G  22
+    #define GPIO_LD5_R  15
+    #define GPIO_LD5_B  16
+	#define GPIO_LD5_G  17
     #pragma message ( "Executing FreeRTOS using X-HEEP and Pynq-z2" )
 #else
     #define GPIO_LD5_R  29
@@ -225,9 +225,6 @@ int8_t intr_flag = 0;
 /* Temporal counter to store blinking status */
 int8_t intr_blink = 0;
 
-/* GPIO struct */
-gpio_t gpio;
-
 /****************************************************************************/
 /**                                                                        **/
 /*                           EXPORTED FUNCTIONS                             */
@@ -251,25 +248,22 @@ void system_init(void)
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
     uint32_t freq_hz = soc_ctrl_get_frequency(&soc_ctrl);
 
-    // Set GPIOs
-    gpio_params_t gpio_params;
-    gpio_result_t gpio_res;
-    gpio_params.base_addr = mmio_region_from_addr((uintptr_t)GPIO_START_ADDRESS);
-    gpio_res = gpio_init(gpio_params, &gpio);
-    if (gpio_res != kGpioOk) 
-	{
-      printf("GPIO Failed\n;");
-    }
 
-    gpio_res = gpio_output_set_enabled(&gpio, GPIO_LD5_R, true);
-    if (gpio_res != kGpioOk) printf("Failed\n;");
-	gpio_write(&gpio, GPIO_LD5_R, false);
-	gpio_res = gpio_output_set_enabled(&gpio, GPIO_LD5_B, true);
-    if (gpio_res != kGpioOk) printf("Failed\n;");
-	gpio_write(&gpio, GPIO_LD5_B, false);
-	gpio_res = gpio_output_set_enabled(&gpio, GPIO_LD5_G, true);
-    if (gpio_res != kGpioOk) printf("Failed\n;");
-	gpio_write(&gpio, GPIO_LD5_G, false);
+    gpio_result_t gpio_res;
+    gpio_cfg_t pin_cfg = {
+        .pin= GPIO_LD5_R, 
+        .mode= GpioModeOutPushPull
+    };
+    gpio_res = gpio_config(pin_cfg);
+    pin_cfg.pin = GPIO_LD5_B;
+    gpio_res |= gpio_config(pin_cfg);
+    pin_cfg.pin = GPIO_LD5_G;
+	gpio_res |= gpio_config(pin_cfg);
+    if (gpio_res != GpioOk) printf("Failed\n;");
+    
+    gpio_write(GPIO_LD5_R, false);
+    gpio_write(GPIO_LD5_B, false);
+    gpio_write(GPIO_LD5_G, false);
 
     // Setup rv_timer_0_1
     mmio_region_t timer_0_1_reg = mmio_region_from_addr(RV_TIMER_AO_START_ADDRESS);
@@ -444,30 +438,30 @@ void vToggleLED( void )
 {
   if (intr_blink == 0)
   { 
-	gpio_write(&gpio, GPIO_LD5_R, true);
-	gpio_write(&gpio, GPIO_LD5_B, false);
-	gpio_write(&gpio, GPIO_LD5_G, false);
+	gpio_write(GPIO_LD5_R, true);
+	gpio_write(GPIO_LD5_B, false);
+	gpio_write(GPIO_LD5_G, false);
 	intr_blink++;
   }
   else if (intr_blink == 1)
   { 
-	gpio_write(&gpio, GPIO_LD5_R, false);
-	gpio_write(&gpio, GPIO_LD5_B, true);
-	gpio_write(&gpio, GPIO_LD5_G, false);
+	gpio_write(GPIO_LD5_R, false);
+	gpio_write(GPIO_LD5_B, true);
+	gpio_write(GPIO_LD5_G, false);
 	intr_blink++;
   }
   else if (intr_blink == 2)
   { 
-	gpio_write(&gpio, GPIO_LD5_R, false);
-	gpio_write(&gpio, GPIO_LD5_B, false);
-	gpio_write(&gpio, GPIO_LD5_G, true);
+	gpio_write(GPIO_LD5_R, false);
+	gpio_write(GPIO_LD5_B, false);
+	gpio_write(GPIO_LD5_G, true);
 	intr_blink++;
   }
   else
   { 
-	gpio_write(&gpio, GPIO_LD5_R, false);
-	gpio_write(&gpio, GPIO_LD5_B, false);
-	gpio_write(&gpio, GPIO_LD5_G, false);
+	gpio_write(GPIO_LD5_R, false);
+	gpio_write(GPIO_LD5_B, false);
+	gpio_write(GPIO_LD5_G, false);
 	intr_blink = 0;
   }
 
