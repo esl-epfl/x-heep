@@ -767,7 +767,7 @@ def main():
 
             else:
                 pad_cell_name = "pad_" + key + "_i"
-                pad_obj = Pad(pad_name, pad_cell_name, pad_type, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration_mux, pad_mux_list)
+                pad_obj = Pad(pad_name, pad_cell_name, pad_type, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list)
                 pad_obj.create_pad_ring()
                 pad_obj.create_pad_ring_bonding()
                 pad_obj.create_internal_signals()
