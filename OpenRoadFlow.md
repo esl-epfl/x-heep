@@ -14,10 +14,17 @@ Install `OpenRoad` [locally](https://openroad.readthedocs.io/en/latest/user/Buil
 
 
 ```bash
-sudo ./tools/OpenROAD/etc/DependencyInstaller.sh
+sudo ./setup.sh
 sudo ./build_openroad.sh --local
 ```
+Add the paths for OpenROAD and yosys. Check the build. 
 
+```bash
+export PATH=/home/($USER)/OpenROAD-flow-scripts/tools/install/OpenROAD/bin:/home/($USER)/OpenROAD-flow-scripts/tools/install/yosys/bin:$PATH
+source ./env.sh
+yosys -help
+openroad -help
+```
 Finally, you need to install `KLayout` v0.27.1
 
 
@@ -28,6 +35,11 @@ Installing OpenRoad and KLayout may not be as straight and forwards, so you may 
 git clone --depth=1 --branch v0.27.1 https://github.com/KLayout/klayout.git
 cd klayout
 ./build.sh -noruby
+```
+
+Define the LD_LIBRARY_PATH for the klayout. 
+```bash
+export LD_LIBRARY_PATH=(path to klayout directory)/klayout/bin-release
 ```
 
 ## Edalize
@@ -99,9 +111,35 @@ be applied as long as they are implementable with the selected technology.
 
 
 
+Important tips to use the tool
+In order to use the correct placer two variables should be set inside the config.mk file. 
+```bash
+export SYNTH_HIERARCHICAL = 1
+export RTLMP_FLOW = True
+```
+By this way we can use the latest placer without a problem. Additionally, if you want to include macros to the design you should include them in config.mk so the design would know the properties of the macros.
 
+```bash
+export ADDITIONAL_LEFS = /*.lef
+export ADDITIONAL_LIBS = /*.lib
+export ADDITIONAL_GDS = /*.gds
+```
 
+In order to run the tool properly place the design file and configuration files under the designs directory, by this way you can run the flow under the flow directory and create reproducable issue files in case of a problem. If you want to run the design step by step you should go to the flow directory and run the below code and if any step fails, you can run the test case to upload the issue on github. 
 
+```bash
+#Run the flow
+make synth DESIGN_CONFIG=./designs/sky130hd/core_v_mini_mcu/config.mk 
+make floorplan DESIGN_CONFIG=./designs/sky130hd/core_v_mini_mcu/config.mk 
+make place DESIGN_CONFIG=./designs/sky130hd/core_v_mini_mcu/config.mk 
+make cts DESIGN_CONFIG=./designs/sky130hd/core_v_mini_mcu/config.mk 
+make route DESIGN_CONFIG=./designs/sky130hd/core_v_mini_mcu/config.mk 
+make final DESIGN_CONFIG=./designs/sky130hd/core_v_mini_mcu/config.mk 
+
+#For test case example
+make make_issue_place DESIGN_CONFIG=./designs/sky130hd/core_v_mini_mcu/config.mk 
+
+```
 
 
 
