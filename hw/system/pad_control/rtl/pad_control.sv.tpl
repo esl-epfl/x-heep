@@ -14,8 +14,10 @@ module pad_control #(
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
-    output logic [NUM_PAD-1:0][7:0] pad_attributes_o,
-    output logic [NUM_PAD-1:0][3:0] pad_muxes_o
+% if pads_attributes != None:
+    output logic [NUM_PAD-1:0][${pads_attributes['bits']}] pad_attributes_o,
+% endif
+    output logic [NUM_PAD-1:0][${max_total_pad_mux_bitlengh-1}:0] pad_muxes_o
 
 );
 
@@ -37,13 +39,15 @@ module pad_control #(
       .devmode_i(1'b1)
   );
 
+% if pads_attributes != None:
 % for pad in total_pad_list:
   assign pad_attributes_o[${pad.localparam}] = reg2hw.pad_attribute_${pad.name.lower()}.q;
 % endfor
+% endif
 
 
 % for pad in pad_muxed_list:
-  assign pad_muxes_o[${pad.localparam}] = reg2hw.pad_mux_${pad.name.lower()}.q;
+  assign pad_muxes_o[${pad.localparam}] = $unsigned(reg2hw.pad_mux_${pad.name.lower()}.q);
 % endfor
 
 endmodule : pad_control

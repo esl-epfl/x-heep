@@ -56,9 +56,11 @@ extern "C" {
 #define ${key.upper()} ${value}
 % endfor
 
+% if pads_attributes != None:
 % for pad in pad_list:
 #define ${pad.localparam}_ATTRIBUTE ${pad.index}
 % endfor
+% endif
 
 #ifdef __cplusplus
 }  // extern "C"
