@@ -11,10 +11,6 @@
 
 {
 
-    attributes: {
-        bits: 7:0
-    },
-
     pads: {
 
         clk: {
