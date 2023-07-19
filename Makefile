@@ -230,7 +230,9 @@ gdb_connect:
 
 ## Clean the CMake build folder
 app-clean:
-	$(MAKE) -C sw/build clean
+	if [ -d "sw/build" ]; then \
+		$(MAKE) -C sw/build clean; \
+	fi
 
 ## Removes the CMake build folder
 app-restore:
