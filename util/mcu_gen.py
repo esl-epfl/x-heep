@@ -29,6 +29,7 @@ class Pad:
         ### bypass kind of PADs do not have any comma to be removed as they do not define an interface
 
   def create_pad_ring(self):
+
     self.interface = '    inout wire ' + self.name + '_io,\n'
 
     if self.pad_type == 'input':
@@ -61,14 +62,15 @@ class Pad:
             '   .pad_out_o(' + self.signal_name + 'o),\n' + \
             '   .pad_io(' + self.signal_name + 'io),\n'
 
-    if self.has_attribute:
-        self.pad_ring_instance += \
-            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
-            ');\n\n'
-    else:
-        self.pad_ring_instance += \
-            '   .pad_attributes_i(\'0)' + \
-            ');\n\n'
+    if self.pad_type == 'input' or self.pad_type == 'output' or self.pad_type == 'inout':
+        if self.has_attribute:
+            self.pad_ring_instance += \
+                '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
+                ');\n\n'
+        else:
+            self.pad_ring_instance += \
+                '   .pad_attributes_i(\'0)' + \
+                ');\n\n'
 
 
   def create_core_v_mini_mcu_ctrl(self):
