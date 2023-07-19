@@ -12,14 +12,21 @@ module pad_control #(
 
     // Bus Interface
     input  reg_req_t reg_req_i,
-    output reg_rsp_t reg_rsp_o,
-
-% if pads_attributes != None:
-    output logic [NUM_PAD-1:0][${pads_attributes['bits']}] pad_attributes_o,
+    output reg_rsp_t reg_rsp_o
+% if total_pad_muxed > 0 or pads_attributes != None:
+      ,
 % endif
+% if pads_attributes != None:
+    output logic [NUM_PAD-1:0][${pads_attributes['bits']}] pad_attributes_o
+% if total_pad_muxed > 0:
+      ,
+% endif
+% endif
+% if total_pad_muxed > 0:
     output logic [NUM_PAD-1:0][${max_total_pad_mux_bitlengh-1}:0] pad_muxes_o
-
+% endif
 );
+
 
   import core_v_mini_mcu_pkg::*;
 
