@@ -5,13 +5,29 @@
 module pad_control #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
+% if not (total_pad_muxed > 0 or pads_attributes != None):
+    /* verilator lint_off UNUSED */
+% endif
     parameter NUM_PAD = 1
 ) (
+
+% if not (total_pad_muxed > 0 or pads_attributes != None):
+    /* verilator lint_off UNUSED */
+% endif
     input logic clk_i,
+% if not (total_pad_muxed > 0 or pads_attributes != None):
+    /* verilator lint_off UNUSED */
+% endif
     input logic rst_ni,
 
     // Bus Interface
+% if not (total_pad_muxed > 0 or pads_attributes != None):
+    /* verilator lint_off UNUSED */
+% endif
     input  reg_req_t reg_req_i,
+% if not (total_pad_muxed > 0 or pads_attributes != None):
+    /* verilator lint_off UNDRIVEN */
+% endif
     output reg_rsp_t reg_rsp_o
 % if total_pad_muxed > 0 or pads_attributes != None:
       ,
@@ -27,6 +43,7 @@ module pad_control #(
 % endif
 );
 
+% if total_pad_muxed > 0 or pads_attributes != None:
 
   import core_v_mini_mcu_pkg::*;
 
@@ -45,6 +62,7 @@ module pad_control #(
       .reg2hw,
       .devmode_i(1'b1)
   );
+% endif
 
 % if pads_attributes != None:
 % for pad in total_pad_list:
