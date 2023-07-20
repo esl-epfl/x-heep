@@ -61,12 +61,12 @@ module ao_peripheral_subsystem
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_o,
     input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_i,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_o,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_o,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_no,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_o,
     input logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_i,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_o,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_o,
+    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_no,
 
     // Clock gating signals
     output logic peripheral_subsystem_clkgate_en_o,
@@ -293,12 +293,12 @@ module ao_peripheral_subsystem
       .memory_subsystem_banks_powergate_switch_o,
       .memory_subsystem_banks_powergate_switch_ack_i,
       .memory_subsystem_banks_powergate_iso_o,
-      .memory_subsystem_banks_set_retentive_o,
+      .memory_subsystem_banks_set_retentive_no,
       .external_subsystem_powergate_switch_o,
       .external_subsystem_powergate_switch_ack_i,
       .external_subsystem_powergate_iso_o,
       .external_subsystem_rst_no,
-      .external_ram_banks_set_retentive_o,
+      .external_ram_banks_set_retentive_no,
       .peripheral_subsystem_clkgate_en_o,
       .memory_subsystem_clkgate_en_o
   );

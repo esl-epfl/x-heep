@@ -19,7 +19,7 @@ module memory_subsystem
     input  obi_req_t  [NUM_BANKS-1:0] ram_req_i,
     output obi_resp_t [NUM_BANKS-1:0] ram_resp_o,
 
-    input logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] set_retentive_i
+    input logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] set_retentive_ni
 );
 
   localparam int NumWords = 32 * 1024 / 4;
@@ -37,7 +37,7 @@ module memory_subsystem
   for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_addr_napot
     if (i >= NUM_BANKS - ${ram_numbanks_il}) begin
       assign ram_req_addr[i] = {
-        ram_req_i[i].addr[ilAddrWidth-1:AddrWidth] - 
+        ram_req_i[i].addr[ilAddrWidth-1:AddrWidth] -
         core_v_mini_mcu_pkg::RAM${ram_numbanks_cont}_START_ADDRESS[ilAddrWidth-1:AddrWidth],
         ram_req_i[i].addr[AddrWidth-1:${2+log_ram_numbanks_il}]
       };
@@ -78,12 +78,12 @@ module memory_subsystem
         .we_i(ram_req_i[i].we),
 % if ram_numbanks_il == 0:
         .addr_i(ram_req_i[i].addr[AddrWidth-1:2]),
-% else:      
+% else:
         .addr_i(ram_req_addr[i]),
-% endif        
+% endif
         .wdata_i(ram_req_i[i].wdata),
         .be_i(ram_req_i[i].be),
-        .set_retentive_i(set_retentive_i[i]),
+        .set_retentive_ni(set_retentive_ni[i]),
         .rdata_o(ram_resp_o[i].rdata)
     );
 

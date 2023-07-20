@@ -43,7 +43,7 @@ module x_heep_system
     input  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_i,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_o,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_o,
+    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_no,
 
     output logic [31:0] exit_value_o,
 
@@ -65,16 +65,10 @@ ${pad.x_heep_system_interface}
   // PM signals
   logic cpu_subsystem_powergate_switch;
   logic cpu_subsystem_powergate_switch_ack;
-  logic cpu_subsystem_powergate_iso;
-  logic cpu_subsystem_rst_n;
   logic peripheral_subsystem_powergate_switch;
   logic peripheral_subsystem_powergate_switch_ack;
-  logic peripheral_subsystem_powergate_iso;
-  logic peripheral_subsystem_rst_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive;
 
   // PAD controller
   reg_req_t pad_req;
@@ -136,7 +130,7 @@ ${pad.core_v_mini_mcu_bonding}
     .external_subsystem_powergate_switch_ack_i,
     .external_subsystem_powergate_iso_o,
     .external_subsystem_rst_no,
-    .external_ram_banks_set_retentive_o,
+    .external_ram_banks_set_retentive_no,
     .exit_value_o
   );
 

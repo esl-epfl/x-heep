@@ -60,12 +60,12 @@ module power_manager #(
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_o,
     input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_i,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_o,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_o,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_no,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_o,
     input  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_i,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_o,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_o
+    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_no
 );
 
   import power_manager_reg_pkg::*;
@@ -140,7 +140,7 @@ module power_manager #(
   assign external_subsystem_rst_no = '0;
 % endif
   // --------------------------------------------------------------------------------------
-  // CLK_GATING 
+  // CLK_GATING
   // --------------------------------------------------------------------------------------
 
     assign peripheral_subsystem_clkgate_en_o = reg2hw.periph_clk_gate.q;
@@ -479,7 +479,7 @@ module power_manager #(
       .switch_ack_i (1'b1),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(memory_subsystem_banks_set_retentive_o[${bank}])
+      .switch_onoff_signal_o(memory_subsystem_banks_set_retentive_no[${bank}])
   );
 
 % endfor
@@ -567,7 +567,7 @@ module power_manager #(
       .switch_ack_i (1'b1),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(external_ram_banks_set_retentive_o[${ext}])
+      .switch_onoff_signal_o(external_ram_banks_set_retentive_no[${ext}])
   );
 
 % endfor

@@ -312,7 +312,7 @@ module core_v_mini_mcu
     input logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_i,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_o,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_o,
+    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_no,
 
     output logic [31:0] exit_value_o
 );
@@ -392,7 +392,7 @@ module core_v_mini_mcu
   logic peripheral_subsystem_powergate_iso;
   logic peripheral_subsystem_rst_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_n;
 
   // Clock gating signals
   logic peripheral_subsystem_clkgate_en;
@@ -542,7 +542,7 @@ module core_v_mini_mcu
       .clk_gate_en_i(memory_subsystem_clkgate_en),
       .ram_req_i(ram_slave_req),
       .ram_resp_o(ram_slave_resp),
-      .set_retentive_i(memory_subsystem_banks_set_retentive)
+      .set_retentive_ni(memory_subsystem_banks_set_retentive_n)
   );
 
   ao_peripheral_subsystem ao_peripheral_subsystem_i (
@@ -586,12 +586,12 @@ module core_v_mini_mcu
       .memory_subsystem_banks_powergate_switch_o,
       .memory_subsystem_banks_powergate_switch_ack_i,
       .memory_subsystem_banks_powergate_iso_o(memory_subsystem_banks_powergate_iso),
-      .memory_subsystem_banks_set_retentive_o(memory_subsystem_banks_set_retentive),
+      .memory_subsystem_banks_set_retentive_no(memory_subsystem_banks_set_retentive_n),
       .external_subsystem_powergate_switch_o,
       .external_subsystem_powergate_switch_ack_i,
       .external_subsystem_powergate_iso_o,
       .external_subsystem_rst_no,
-      .external_ram_banks_set_retentive_o,
+      .external_ram_banks_set_retentive_no,
       .peripheral_subsystem_clkgate_en_o(peripheral_subsystem_clkgate_en),
       .memory_subsystem_clkgate_en_o(memory_subsystem_clkgate_en),
       .rv_timer_0_intr_o(rv_timer_intr[0]),
