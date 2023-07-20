@@ -407,6 +407,7 @@ Additionally, a `test_all.sh` script is provided. Apart from compiling all apps 
 You can choose:
 * Simulator: `verilator` (default) or `questasim`.
 * Linker: `on_chip`(default), `flash_load` or `flash_exec`.
+* Timeout: Integer number of seconds (defualt 120)
 
 #### Usage
 
@@ -420,7 +421,7 @@ The order or capitalization of the arguments is irrelevant.
 
 * Applications that fail being built with gcc will not be simulated (skipped).
 * Some applications are skipped by default for not being suitable for simulation.
-* If a simulation takes too long (>120s), it is killed.
+* If a simulation takes too long (>timeout), it is killed.
 
 * Upon starting, the script will modify the `mcu_cfg.hjson` file to include all peripherals (so the largest number of apps can be run), re-generates the mcu and re-builds the simulation model for the chosen tool.
 These changes can be reverted at the end of the execution (default). If changes were not commited, accepting this operation will revert them!
