@@ -48,10 +48,46 @@ SIMULATE(){
 			# the output of the execution of the $(sub-script), which happens to be the
 			# echo of the variable out. Then only the last character is used, because
 			# it contains whether the simulation returned 0 or 1.
-			out=$(cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
-				out=$(./Vtestharness +firmware=../../../sw/build/main.hex); \
-				cd ../../../ ; \
-				echo $out; )
+			case $SIMULATOR in
+				"verilator")
+					out=$(cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
+						out=$(./Vtestharness +firmware=../../../sw/build/main.hex); \
+						cd ../../../ ; \
+						echo $out; )
+						;;
+				"questasim")
+					case $LINKER in
+						"flash_load")
+							boot_sel="1"
+							flash="0"
+							;;
+						"fash_exec")
+							boot_sel="1"
+							flash="1"
+							;;
+						"on_chip")
+							boot_sel="0"
+							flash="0"
+							;;
+						*)
+							echo -e "${RED}INVALID LINKER: $LINKER!${RESET}"
+							return 2;
+							;;
+					esac
+
+
+					out=$(cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim; \
+						out=$(make run PLUSARGS="c firmware=../../../sw/build/main.hex" boot_sel=$boot_sel execute_from_flash=$flash); \
+						cd ../../../ ; \
+						echo $out; )
+						;;
+				*)
+					echo -e "${RED}INVALID SIMULATOR: $SIMULATOR!${RESET}"
+					return 2;
+					;;
+				esac
+
+
 			if [ "${out: -1}" == "0" ] ; then
 				return 0;
 			else
@@ -320,9 +356,9 @@ echo -e "${WHITE}During the execution, some files might have been modified."
 echo -e "${WHITE}Do you want to revert all these changes? (Y/n)${RESET}"
 read yn
 case $yn in
-	[Yy]* ) git stash; git stash drop;;
+	[Yy]* ) git restore .;;
 	[Nn]* ) ;;
-	* ) git stash; git stash drop;;
+	* ) git restore .;;
 esac
 
 #############################################################
