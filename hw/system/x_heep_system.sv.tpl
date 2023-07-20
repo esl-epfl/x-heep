@@ -44,6 +44,7 @@ module x_heep_system
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_no,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
     output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_no,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_no,
 
     output logic [31:0] exit_value_o,
 
@@ -131,6 +132,7 @@ ${pad.core_v_mini_mcu_bonding}
     .external_subsystem_powergate_iso_no,
     .external_subsystem_rst_no,
     .external_ram_banks_set_retentive_no,
+    .external_subsystem_clkgate_en_no,
     .exit_value_o
   );
 

@@ -11,6 +11,8 @@ extern "C" {
 
 #define MEMORY_BANKS ${ram_numbanks}
 
+#define EXTERNAL_DOMAINS ${external_domains}
+
 #define DEBUG_START_ADDRESS 0x${debug_start_address}
 #define DEBUG_SIZE 0x${debug_size_address}
 #define DEBUG_END_ADDRESS (DEBUG_START_ADDRESS + DEBUG_SIZE)
