@@ -9,11 +9,12 @@ description: "OpenHW Group RISC-V Core CV32E40P"
 
 filesets:
   files_rtl:
+    depend:
+    - pulp-platform.org::fpnew
     files:
     - openhwgroup_cv32e40p/rtl/include/cv32e40p_apu_core_pkg.sv
     - openhwgroup_cv32e40p/rtl/include/cv32e40p_fpu_pkg.sv
     - openhwgroup_cv32e40p/rtl/include/cv32e40p_pkg.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_pkg.sv
     - openhwgroup_cv32e40p/rtl/cv32e40p_alu.sv
     - openhwgroup_cv32e40p/rtl/cv32e40p_alu_div.sv
     - openhwgroup_cv32e40p/rtl/cv32e40p_ff_one.sv
@@ -41,37 +42,6 @@ filesets:
     - openhwgroup_cv32e40p/rtl/cv32e40p_top.sv
     file_type: systemVerilogSource
 
-  files_fpu:
-    files:
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_cast_multi.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_classifier.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_divsqrt_multi.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_fma_multi.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_noncomp.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_opgroup_block.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_opgroup_fmt_slice.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_opgroup_multifmt_slice.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_rounding.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_top.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_divsqrt_th_32.sv
-    file_type: systemVerilogSource
-
-  files_fpu_div:
-    files:
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/clk/rtl/gated_clk_cell.v
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/fdsu/rtl/pa_fdsu_ctrl.v
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/fdsu/rtl/pa_fdsu_ff1.v
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/fdsu/rtl/pa_fdsu_pack_single.v
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/fdsu/rtl/pa_fdsu_prepare.v
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/fdsu/rtl/pa_fdsu_round_single.v
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/fdsu/rtl/pa_fdsu_special.v
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/fdsu/rtl/pa_fdsu_srt_single.v
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/fdsu/rtl/pa_fdsu_top.v
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/fpu/rtl/pa_fpu_dp.v
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/fpu/rtl/pa_fpu_frbus.v
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY/gen_rtl/fpu/rtl/pa_fpu_src_type.v
-    file_type: verilogSource
-
 
   files_clk_gate:
     files:
@@ -93,6 +63,4 @@ targets:
     filesets:
     - files_rtl
     - ff_regfile
-    - files_fpu
-    - files_fpu_div
     - target_sim? (files_clk_gate)
