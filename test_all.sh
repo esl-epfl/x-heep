@@ -206,8 +206,17 @@ do
 			LINKER='flash_exec'
 			;;
 
+		debug)
+			DEBUG=1
+			;;
+
 		*)
-			echo "$arg is not a valid argument"
+			re='^[0-9]+$'
+			if [[ $arg =~ $re ]] ; then
+				SIM_TIMEOUT_S=$arg
+			else
+				echo -e "${RED}$arg is not a valid argument${RESET}"
+			fi
 			;;
 
 	esac
