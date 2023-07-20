@@ -271,6 +271,7 @@ module cpu_subsystem
 
     // instantiate the core
     cv32e40px_top #(
+        .COREV_X_IF      (X_EXT),
         .COREV_PULP      (COREV_PULP),
         .COREV_CLUSTER   (0),
         .FPU             (FPU),
