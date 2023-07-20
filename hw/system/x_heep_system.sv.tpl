@@ -39,9 +39,9 @@ module x_heep_system
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_o,
-    input  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_i,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_o,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_no,
+    input  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_ni,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_no,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
     output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_no,
 
@@ -63,12 +63,12 @@ ${pad.x_heep_system_interface}
   import core_v_mini_mcu_pkg::*;
 
   // PM signals
-  logic cpu_subsystem_powergate_switch;
-  logic cpu_subsystem_powergate_switch_ack;
-  logic peripheral_subsystem_powergate_switch;
-  logic peripheral_subsystem_powergate_switch_ack;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack;
+  logic cpu_subsystem_powergate_switch_n;
+  logic cpu_subsystem_powergate_switch_ack_n;
+  logic peripheral_subsystem_powergate_switch_n;
+  logic peripheral_subsystem_powergate_switch_ack_n;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_n;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_n;
 
   // PAD controller
   reg_req_t pad_req;
@@ -120,15 +120,15 @@ ${pad.core_v_mini_mcu_bonding}
     .ext_dma_addr_ch0_resp_i,
     .ext_peripheral_slave_req_o,
     .ext_peripheral_slave_resp_i,
-    .cpu_subsystem_powergate_switch_o(cpu_subsystem_powergate_switch),
-    .cpu_subsystem_powergate_switch_ack_i(cpu_subsystem_powergate_switch_ack),
-    .peripheral_subsystem_powergate_switch_o(peripheral_subsystem_powergate_switch),
-    .peripheral_subsystem_powergate_switch_ack_i(peripheral_subsystem_powergate_switch_ack),
-    .memory_subsystem_banks_powergate_switch_o(memory_subsystem_banks_powergate_switch),
-    .memory_subsystem_banks_powergate_switch_ack_i(memory_subsystem_banks_powergate_switch_ack),
-    .external_subsystem_powergate_switch_o,
-    .external_subsystem_powergate_switch_ack_i,
-    .external_subsystem_powergate_iso_o,
+    .cpu_subsystem_powergate_switch_no(cpu_subsystem_powergate_switch_n),
+    .cpu_subsystem_powergate_switch_ack_ni(cpu_subsystem_powergate_switch_ack_n),
+    .peripheral_subsystem_powergate_switch_no(peripheral_subsystem_powergate_switch_n),
+    .peripheral_subsystem_powergate_switch_ack_ni(peripheral_subsystem_powergate_switch_ack_n),
+    .memory_subsystem_banks_powergate_switch_no(memory_subsystem_banks_powergate_switch_n),
+    .memory_subsystem_banks_powergate_switch_ack_ni(memory_subsystem_banks_powergate_switch_ack_n),
+    .external_subsystem_powergate_switch_no,
+    .external_subsystem_powergate_switch_ack_ni,
+    .external_subsystem_powergate_iso_no,
     .external_subsystem_rst_no,
     .external_ram_banks_set_retentive_no,
     .exit_value_o

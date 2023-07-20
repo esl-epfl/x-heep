@@ -13,7 +13,7 @@ module peripheral_subsystem
     input logic rst_ni,
 
     // Clock-gating signal
-    input logic clk_gate_en_i,
+    input logic clk_gate_en_ni,
 
     input  obi_req_t  slave_req_i,
     output obi_resp_t slave_resp_o,
@@ -174,7 +174,7 @@ module peripheral_subsystem
   logic clk_cg;
   tc_clk_gating clk_gating_cell (
       .clk_i,
-      .en_i(~clk_gate_en_i),
+      .en_i(clk_gate_en_ni),
       .test_en_i(1'b0),
       .clk_o(clk_cg)
   );
