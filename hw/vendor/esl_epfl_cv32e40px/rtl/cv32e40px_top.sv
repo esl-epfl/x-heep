@@ -11,7 +11,9 @@
 // Top file instantiating a CV32E40P core and an optional FPU
 // Contributor: Davide Schiavone <davide@openhwgroup.org>
 
-module cv32e40px_top import cv32e40px_core_v_xif_pkg::*; #(
+module cv32e40px_top
+  import cv32e40px_core_v_xif_pkg::*;
+#(
     parameter COREV_X_IF = 0,
     parameter COREV_PULP = 0, // PULP ISA Extension (incl. custom CSRs and hardware loop, excl. cv.elw)
     parameter COREV_CLUSTER = 0,  // PULP Cluster interface (incl. cv.elw)
@@ -55,24 +57,24 @@ module cv32e40px_top import cv32e40px_core_v_xif_pkg::*; #(
     // CORE-V-XIF
     // Compressed interface
     output logic x_compressed_valid_o,
-    input  logic x_compressed_ready_i,
+    input logic x_compressed_ready_i,
     output x_compressed_req_t x_compressed_req_o,
-    input  x_compressed_resp_t x_compressed_resp_i,
+    input x_compressed_resp_t x_compressed_resp_i,
 
     // Issue Interface
     output logic x_issue_valid_o,
-    input  logic x_issue_ready_i,
+    input logic x_issue_ready_i,
     output x_issue_req_t x_issue_req_o,
-    input  x_issue_resp_t x_issue_resp_i,
+    input x_issue_resp_t x_issue_resp_i,
 
     // Commit Interface
     output logic x_commit_valid_o,
     output x_commit_t x_commit_o,
 
     // Memory request/response Interface
-    input  logic x_mem_valid_i,
+    input logic x_mem_valid_i,
     output logic x_mem_ready_o,
-    input  x_mem_req_t x_mem_req_i,
+    input x_mem_req_t x_mem_req_i,
     output x_mem_resp_t x_mem_resp_o,
 
     // Memory Result Interface
@@ -80,9 +82,9 @@ module cv32e40px_top import cv32e40px_core_v_xif_pkg::*; #(
     output x_mem_result_t x_mem_result_o,
 
     // Result Interface
-    input  logic x_result_valid_i,
+    input logic x_result_valid_i,
     output logic x_result_ready_o,
-    input  x_result_t x_result_i,
+    input x_result_t x_result_i,
 
     // Interrupt inputs
     input  logic [31:0] irq_i,  // CLINT interrupts + CLINT extension interrupts
@@ -166,14 +168,14 @@ module cv32e40px_top import cv32e40px_core_v_xif_pkg::*; #(
       // Compressed interface
       .x_compressed_valid_o(x_compressed_valid_o),
       .x_compressed_ready_i(x_compressed_ready_i),
-      .x_compressed_req_o(x_compressed_req_o),
-      .x_compressed_resp_i(x_compressed_resp_i),
+      .x_compressed_req_o  (x_compressed_req_o),
+      .x_compressed_resp_i (x_compressed_resp_i),
 
       // Issue Interface
       .x_issue_valid_o(x_issue_valid_o),
       .x_issue_ready_i(x_issue_ready_i),
-      .x_issue_req_o(x_issue_req_o),
-      .x_issue_resp_i(x_issue_resp_i),
+      .x_issue_req_o  (x_issue_req_o),
+      .x_issue_resp_i (x_issue_resp_i),
 
       // Commit Interface
       .x_commit_valid_o(x_commit_valid_o),
@@ -182,8 +184,8 @@ module cv32e40px_top import cv32e40px_core_v_xif_pkg::*; #(
       // Memory request/response Interface
       .x_mem_valid_i(x_mem_valid_i),
       .x_mem_ready_o(x_mem_ready_o),
-      .x_mem_req_i(x_mem_req_i),
-      .x_mem_resp_o(x_mem_resp_o),
+      .x_mem_req_i  (x_mem_req_i),
+      .x_mem_resp_o (x_mem_resp_o),
 
       // Memory Result Interface
       .x_mem_result_valid_o(x_mem_result_valid_o),

@@ -14,34 +14,34 @@
 package cv32e40px_core_v_xif_pkg;
 
   // cv-x-if parameters
-  parameter int          X_NUM_RS    = 3;
-  parameter int          X_ID_WIDTH  = 4;
-  parameter int          X_MEM_WIDTH = 32;
-  parameter int          X_RFR_WIDTH = 32;
-  parameter int          X_RFW_WIDTH = 32;
-  parameter logic [31:0] X_MISA      = '0;
-  parameter logic [ 1:0] X_ECS_XS    = '0;
+  parameter int X_NUM_RS = 3;
+  parameter int X_ID_WIDTH = 4;
+  parameter int X_MEM_WIDTH = 32;
+  parameter int X_RFR_WIDTH = 32;
+  parameter int X_RFW_WIDTH = 32;
+  parameter logic [31:0] X_MISA = '0;
+  parameter logic [1:0] X_ECS_XS = '0;
 
   // interface structs
   typedef struct packed {
-    logic [          15:0] instr;
-    logic [           1:0] mode;
+    logic [15:0] instr;
+    logic [1:0] mode;
     logic [X_ID_WIDTH-1:0] id;
   } x_compressed_req_t;
 
   typedef struct packed {
     logic [31:0] instr;
-    logic        accept;
+    logic accept;
   } x_compressed_resp_t;
 
   typedef struct packed {
-    logic                 [           31:0] instr;
-    logic                 [            1:0] mode;
-    logic                 [ X_ID_WIDTH-1:0] id;
-    logic [  X_NUM_RS-1:0][X_RFR_WIDTH-1:0] rs;
-    logic                 [   X_NUM_RS-1:0] rs_valid;
-    logic                 [            5:0] ecs;
-    logic                                   ecs_valid;
+    logic [31:0] instr;
+    logic [1:0] mode;
+    logic [X_ID_WIDTH-1:0] id;
+    logic [X_NUM_RS-1:0][X_RFR_WIDTH-1:0] rs;
+    logic [X_NUM_RS-1:0] rs_valid;
+    logic [5:0] ecs;
+    logic ecs_valid;
   } x_issue_req_t;
 
   typedef struct packed {
@@ -56,41 +56,41 @@ package cv32e40px_core_v_xif_pkg;
 
   typedef struct packed {
     logic [X_ID_WIDTH-1:0] id;
-    logic                  commit_kill;
+    logic commit_kill;
   } x_commit_t;
 
   typedef struct packed {
-    logic [ X_ID_WIDTH-1:0] id;
-    logic [           31:0] addr;
-    logic [            1:0] mode;
-    logic [            1:0] size;
-    logic                   we;
+    logic [X_ID_WIDTH-1:0] id;
+    logic [31:0] addr;
+    logic [1:0] mode;
+    logic [1:0] size;
+    logic we;
     logic [X_MEM_WIDTH-1:0] wdata;
-    logic                   last;
-    logic                   spec;
+    logic last;
+    logic spec;
   } x_mem_req_t;
 
   typedef struct packed {
-    logic       exc;
+    logic exc;
     logic [5:0] exccode;
-    logic       dbg;
+    logic dbg;
   } x_mem_resp_t;
 
-    typedef struct packed {
-    logic [ X_ID_WIDTH-1:0] id;
+  typedef struct packed {
+    logic [X_ID_WIDTH-1:0] id;
     logic [X_MEM_WIDTH-1:0] rdata;
-    logic                   err;
-    logic                   dbg;
+    logic err;
+    logic dbg;
   } x_mem_result_t;
 
   typedef struct packed {
-    logic [    X_ID_WIDTH-1:0] id;
-    logic [   X_RFW_WIDTH-1:0] data;
-    logic [               4:0] rd;
-    logic                      we;
-    logic [               2:0] ecswe;
-    logic [               5:0] ecsdata;
-    logic                      exc;
-    logic [               5:0] exccode;
+    logic [X_ID_WIDTH-1:0] id;
+    logic [X_RFW_WIDTH-1:0] data;
+    logic [4:0] rd;
+    logic we;
+    logic [2:0] ecswe;
+    logic [5:0] ecsdata;
+    logic exc;
+    logic [5:0] exccode;
   } x_result_t;
 endpackage

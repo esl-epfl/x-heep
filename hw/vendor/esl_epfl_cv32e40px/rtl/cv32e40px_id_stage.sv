@@ -183,7 +183,7 @@ module cv32e40px_id_stage
 
     // Core internal xif memory signals
     output logic        x_mem_instr_ex_o,
-    output logic [3:0]  x_mem_id_ex_o,
+    output logic [ 3:0] x_mem_id_ex_o,
     input  logic        x_mem_instr_wb_i,
     input  logic [31:0] result_fw_to_x_i,
 
@@ -1008,7 +1008,7 @@ module cv32e40px_id_stage
           .rst_ni(rst_n),
 
           // compressed interface
-          .x_compressed_id_o       (x_compressed_id_o),
+          .x_compressed_id_o(x_compressed_id_o),
 
           // issue interface
           .x_issue_valid_o         (x_issue_valid_o),

@@ -257,8 +257,8 @@ module cv32e40px_ex_stage
   assign x_mem_result_rdata_o = lsu_rdata_i;
 
   // branch handling
-  assign branch_decision_o = alu_cmp_result;
-  assign jump_target_o     = alu_operand_c_i;
+  assign branch_decision_o    = alu_cmp_result;
+  assign jump_target_o        = alu_operand_c_i;
 
 
   ////////////////////////////
@@ -432,7 +432,7 @@ module cv32e40px_ex_stage
       if (ex_valid_o) // wb_ready_i is implied
       begin
         regfile_we_lsu <= regfile_we_i & ~lsu_err_i;
-        x_mem_instr_wb_o  <= x_mem_instr_i;
+        x_mem_instr_wb_o <= x_mem_instr_i;
         x_mem_result_id_o <= x_mem_id_ex_i;
         if (regfile_we_i & ~lsu_err_i) begin
           regfile_waddr_lsu <= regfile_waddr_i;
@@ -440,7 +440,7 @@ module cv32e40px_ex_stage
       end else if (wb_ready_i) begin
         // we are ready for a new instruction, but there is none available,
         // so we just flush the current one out of the pipe
-        regfile_we_lsu <= 1'b0;
+        regfile_we_lsu   <= 1'b0;
         x_mem_instr_wb_o <= 1'b0;
       end
     end

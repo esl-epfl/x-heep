@@ -89,24 +89,24 @@ module cv32e40px_core
     // CORE-V-XIF
     // Compressed interface
     output logic x_compressed_valid_o,
-    input  logic x_compressed_ready_i,
+    input logic x_compressed_ready_i,
     output x_compressed_req_t x_compressed_req_o,
-    input  x_compressed_resp_t x_compressed_resp_i,
+    input x_compressed_resp_t x_compressed_resp_i,
 
     // Issue Interface
     output logic x_issue_valid_o,
-    input  logic x_issue_ready_i,
+    input logic x_issue_ready_i,
     output x_issue_req_t x_issue_req_o,
-    input  x_issue_resp_t x_issue_resp_i,
+    input x_issue_resp_t x_issue_resp_i,
 
     // Commit Interface
     output logic x_commit_valid_o,
     output x_commit_t x_commit_o,
 
     // Memory request/response Interface
-    input  logic x_mem_valid_i,
+    input logic x_mem_valid_i,
     output logic x_mem_ready_o,
-    input  x_mem_req_t x_mem_req_i,
+    input x_mem_req_t x_mem_req_i,
     output x_mem_resp_t x_mem_resp_o,
 
     // Memory Result Interface
@@ -114,9 +114,9 @@ module cv32e40px_core
     output x_mem_result_t x_mem_result_o,
 
     // Result Interface
-    input  logic x_result_valid_i,
+    input logic x_result_valid_i,
     output logic x_result_ready_o,
-    input  x_result_t x_result_i,
+    input x_result_t x_result_i,
 
 
     // Interrupt inputs
@@ -259,12 +259,12 @@ module cv32e40px_core
   logic                                     perf_apu_wb;
 
   // X-Interface
-  logic        [ 3:0] x_compressed_id;
-  logic               x_result_valid_assigned;
-  logic               x_mem_instr;
-  logic        [ 3:0] x_mem_id_ex;
-  logic               x_mem_instr_wb;
-  logic        [31:0] result_fw_to_x;
+  logic        [                 3:0]       x_compressed_id;
+  logic                                     x_result_valid_assigned;
+  logic                                     x_mem_instr;
+  logic        [                 3:0]       x_mem_id_ex;
+  logic                                     x_mem_instr_wb;
+  logic        [                31:0]       result_fw_to_x;
 
   // Register Write Control
   logic        [                 5:0]       regfile_waddr_ex;
@@ -498,11 +498,11 @@ module cv32e40px_core
 
 
       // X-IF
-      .x_compressed_valid_o (x_compressed_valid_o),
-      .x_compressed_ready_i (x_compressed_ready_i),
-      .x_compressed_req_o   (x_compressed_req_o),
-      .x_compressed_resp_i  (x_compressed_resp_i),
-      .x_compressed_id_i    (x_compressed_id),
+      .x_compressed_valid_o(x_compressed_valid_o),
+      .x_compressed_ready_i(x_compressed_ready_i),
+      .x_compressed_req_o  (x_compressed_req_o),
+      .x_compressed_resp_i (x_compressed_resp_i),
+      .x_compressed_id_i   (x_compressed_id),
 
       // outputs to ID stage
       .instr_valid_id_o (instr_valid_id),
@@ -687,33 +687,33 @@ module cv32e40px_core
 
       // CORE-V-XIF
       // Compressed Interface
-      .x_compressed_id_o (x_compressed_id),
+      .x_compressed_id_o(x_compressed_id),
 
       // Issue Interface
-      .x_issue_valid_o (x_issue_valid_o),
-      .x_issue_ready_i (x_issue_ready_i),
-      .x_issue_req_o (x_issue_req_o),
+      .x_issue_valid_o(x_issue_valid_o),
+      .x_issue_ready_i(x_issue_ready_i),
+      .x_issue_req_o  (x_issue_req_o),
       .x_issue_resp_i (x_issue_resp_i),
 
       // Commit Interface
-      .x_commit_valid_o (x_commit_valid_o),
-      .x_commit_o (x_commit_o),
+      .x_commit_valid_o(x_commit_valid_o),
+      .x_commit_o(x_commit_o),
 
       // Memory request/response Interface
-      .x_mem_valid_i (x_mem_valid_i),
-      .x_mem_ready_o (x_mem_ready_o),
-      .x_mem_req_i (x_mem_req_i),
+      .x_mem_valid_i(x_mem_valid_i),
+      .x_mem_ready_o(x_mem_ready_o),
+      .x_mem_req_i  (x_mem_req_i),
       .x_mem_resp_o (x_mem_resp_o),
 
       // Memory Result Interface
-      .x_mem_result_valid_o (x_mem_result_valid_o),
-      .x_mem_result_err_o (x_mem_result_o.err),
+      .x_mem_result_valid_o(x_mem_result_valid_o),
+      .x_mem_result_err_o  (x_mem_result_o.err),
 
       // Result Interface
-      .x_result_valid_i (x_result_valid_i),
-      .x_result_ready_o (x_result_ready_o),
-      .x_result_i (x_result_i),
-      .x_result_valid_assigned_o (x_result_valid_assigned),
+      .x_result_valid_i(x_result_valid_i),
+      .x_result_ready_o(x_result_ready_o),
+      .x_result_i(x_result_i),
+      .x_result_valid_assigned_o(x_result_valid_assigned),
 
       .x_mem_instr_ex_o(x_mem_instr),
       .x_mem_id_ex_o   (x_mem_id_ex),
@@ -905,16 +905,16 @@ module cv32e40px_core
       .apu_result_i  (apu_result_i),
 
       // X-Interface
-      .x_result_valid_assigned_i (x_result_valid_assigned),
-      .x_result_rd_i             (x_result_i.rd),
-      .x_result_data_i           (x_result_i.data),
-      .x_result_we_i             (x_result_i.we),
-      .x_mem_instr_i             (x_mem_instr),
-      .x_mem_id_ex_i             (x_mem_id_ex),
-      .x_mem_result_rdata_o      (x_mem_result_o.rdata),
-      .x_mem_instr_wb_o          (x_mem_instr_wb),
-      .x_mem_result_id_o         (x_mem_result_o.id),
-      .result_fw_to_x_o          (result_fw_to_x),
+      .x_result_valid_assigned_i(x_result_valid_assigned),
+      .x_result_rd_i            (x_result_i.rd),
+      .x_result_data_i          (x_result_i.data),
+      .x_result_we_i            (x_result_i.we),
+      .x_mem_instr_i            (x_mem_instr),
+      .x_mem_id_ex_i            (x_mem_id_ex),
+      .x_mem_result_rdata_o     (x_mem_result_o.rdata),
+      .x_mem_instr_wb_o         (x_mem_instr_wb),
+      .x_mem_result_id_o        (x_mem_result_o.id),
+      .result_fw_to_x_o         (result_fw_to_x),
 
       .lsu_en_i   (data_req_ex),
       .lsu_rdata_i(lsu_rdata),

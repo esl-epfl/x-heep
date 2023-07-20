@@ -52,7 +52,7 @@ module cv32e40px_x_disp
     input  logic       x_mem_req_last_i,  // unused
     output logic       x_mem_resp_exc_o,  // hardwired to 0
     output logic [5:0] x_mem_resp_exccode_o,  // hardwired to 0
-    output logic       x_mem_resp_dbg_o, // hardwired to 0
+    output logic       x_mem_resp_dbg_o,  // hardwired to 0
 
     // memory result interface
     output logic x_mem_result_valid_o,
@@ -115,7 +115,7 @@ module cv32e40px_x_disp
                                      & ~(x_rs_addr_i[1] == mem_instr_waddr_ex_i & mem_instr_we_ex_i) & ~(x_rs_addr_i[1] == waddr_wb_i & ~ex_valid_i);
   assign x_issue_req_rs_valid_o[2] = (~scoreboard_q[x_rs_addr_i[2]] | x_ex_fwd_o[2] | x_wb_fwd_o[2])
                                      & ~(x_rs_addr_i[2] == mem_instr_waddr_ex_i & mem_instr_we_ex_i) & ~(x_rs_addr_i[2] == waddr_wb_i & ~ex_valid_i);
-  assign x_issue_req_ecs_valid = 1'b1; // extension context status is not implemented in cv32e40px
+  assign x_issue_req_ecs_valid = 1'b1;  // extension context status is not implemented in cv32e40px
 
   // commit interface
   assign x_commit_valid_o = x_issue_valid_o;

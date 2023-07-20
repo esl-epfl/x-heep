@@ -61,10 +61,10 @@ module cv32e40px_if_stage #(
 
     // compressed x-interface
     output logic x_compressed_valid_o,
-    input  logic x_compressed_ready_i,
+    input logic x_compressed_ready_i,
     output cv32e40px_core_v_xif_pkg::x_compressed_req_t x_compressed_req_o,
-    input  cv32e40px_core_v_xif_pkg::x_compressed_resp_t x_compressed_resp_i,
-    input  logic [3:0] x_compressed_id_i,
+    input cv32e40px_core_v_xif_pkg::x_compressed_resp_t x_compressed_resp_i,
+    input logic [3:0] x_compressed_id_i,
 
     // Output of IF Pipeline stage
     output logic instr_valid_id_o,  // instruction in IF/ID pipeline is valid
@@ -294,7 +294,7 @@ module cv32e40px_if_stage #(
     if (COREV_X_IF) begin
       assign x_compressed_valid_o = illegal_c_insn_dec;
       assign x_compressed_req_o.instr = instr_aligned;
-      assign x_compressed_req_o.mode = 2'b00; // Machine Mode
+      assign x_compressed_req_o.mode = 2'b00;  // Machine Mode
       assign x_compressed_req_o.id = x_compressed_id_i;
 
       always_comb begin
@@ -309,8 +309,8 @@ module cv32e40px_if_stage #(
         end
       end
     end else begin
-      assign instr_decompressed = instr_decompressed_dec;
-      assign illegal_c_insn     = illegal_c_insn_dec;
+      assign instr_decompressed   = instr_decompressed_dec;
+      assign illegal_c_insn       = illegal_c_insn_dec;
       assign x_compressed_valid_o = '0;
       assign x_compressed_req_o   = '0;
     end
