@@ -23,7 +23,7 @@
     "cv32e40p_manifest.flist",
     "cv32e40p_fpu_manifest.flist",
     "docs",
-    "rtl/vendor/pulp_platform_common_cells",
+    "rtl/vendor",
     "scripts",
   ]
 }
