@@ -68,26 +68,23 @@ SIMULATE(){
 BUILD (){
 	for COMPILER in "${COMPILERS[@]}"
 	do
-		COMPILER_EXISTS=$(which $COMPILER)
 		# If a compiler is not installed, that compilation is skipped.
-		if [ -n "${COMPILER_EXISTS}" ] ; then
-			COMPILER_TO_USE=$COMPILER
-			make --no-print-directory -s app-clean
-			out=$(make -s --no-print-directory app PROJECT=$APP COMPILER=$COMPILER; val=$?; echo $val)
-			APP_RESULT="${out: -1}"
-			# The output of the make command is extracted. This way, the output is quite silent
-			# but the error information is still printed.
-			if [ "$APP_RESULT" == "0" ]; then
-				echo -e ${LONG_G}
-				echo -e "${GREEN}Successfully built $APP using $COMPILER${RESET}"
-				echo -e ${LONG_G}
-			else
-				echo -e ${LONG_R}
-				echo -e "${RED}Failure building $APP using $COMPILER${RESET}"
-				echo -e ${LONG_R}
-				BUILD_FAILURES=$(( BUILD_FAILURES + 1 ))
-				FAILED="$FAILED($COMPILER)\t$APP "
-			fi
+		COMPILER_TO_USE=$COMPILER
+		make --no-print-directory -s app-clean
+		out=$(make -s --no-print-directory app PROJECT=$APP COMPILER=$COMPILER; val=$?; echo $val)
+		APP_RESULT="${out: -1}"
+		# The output of the make command is extracted. This way, the output is quite silent
+		# but the error information is still printed.
+		if [ "$APP_RESULT" == "0" ]; then
+			echo -e ${LONG_G}
+			echo -e "${GREEN}Successfully built $APP using $COMPILER${RESET}"
+			echo -e ${LONG_G}
+		else
+			echo -e ${LONG_R}
+			echo -e "${RED}Failure building $APP using $COMPILER${RESET}"
+			echo -e ${LONG_R}
+			BUILD_FAILURES=$(( BUILD_FAILURES + 1 ))
+			FAILED="$FAILED($COMPILER)\t$APP "
 		fi
 	done
 }
@@ -118,7 +115,7 @@ FAILED='' &&\
 SKIPPED=''
 
 #############################################################
-#				VARIABLES AND CONSTANTS
+#			DEFAULT VARIABLES AND CONSTANTS
 #############################################################
 
 # List of applications that will not be simulated (skipped)
@@ -165,10 +162,7 @@ echo -e ${LONG_W}
 echo -e "${WHITE}Will build using:${RESET}"
 for COMPILER in "${COMPILERS[@]}"
 do
-	COMPILER_EXISTS=$(which $COMPILER)
-	if [ -n "${COMPILER_EXISTS}" ] ; then
-		echo -e "${COMPILER}"
-	fi
+	echo -e "${COMPILER}"
 done
 
 echo -e ${LONG_W}
@@ -190,6 +184,7 @@ echo -e ${LONG_W}
 
 echo -e "${WHITE}\n\nPlease make sure you have...${RESET}"
 echo -e "\t() activated the virtual environment (conda or venv)."
+echo -e "\t() GCC or CLANG installed in the RISCV toolchain."
 echo -e "\t() Verilator or Questasim installed."
 echo -e "\t() some patience."
 
@@ -331,3 +326,5 @@ fi
 # Keep a count of apps that return a meaningless execution
 # Try different linkers
 # Allow modification of certain parameters
+
+# Update the condition over which an app is simulated (check both compilation results and not only the last one)
