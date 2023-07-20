@@ -1,0 +1,27 @@
+// Copyright 2023 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+{
+  name: "esl_epfl_cv32e40px",
+  target_dir: "esl_epfl_cv32e40px",
+
+  upstream: {
+    url: "https://github.com/esl-epfl/cv32e40px.git",
+    rev: "21a66269610a1f98f1712d3b887570f0b4657086",
+  },
+
+  patch_dir: "patches/esl_epfl_cv32e40px",
+
+  exclude_from_upstream: [
+    "ci",
+    ".github",
+    "example_tb",
+    "CONTRIBUTING.md",
+    "Bender.yml",
+    ".gitlab-ci.yml",
+    ".dir-locals.el",
+    "docs",
+    "rtl/vendor",
+    "scripts",
+  ]
+}

@@ -13,6 +13,7 @@ filesets:
     - lint/cv32e40p.vlt
     - lint/cv32e40x.vlt
     - lint/cve2.vlt
+    - lint/cv32e40px.vlt
     - lint/common_cells.vlt
     - lint/fpnew.vlt
     - lint/tech_cells_generic.vlt

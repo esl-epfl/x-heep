@@ -20,7 +20,8 @@ package core_v_mini_mcu_pkg;
   typedef enum logic [1:0] {
     cv32e40p,
     cv32e20,
-    cv32e40x
+    cv32e40x,
+    cv32e40px
   } cpu_type_e;
 
   localparam cpu_type_e CpuType = ${cpu_type};
