@@ -128,6 +128,9 @@ declare -a COMPILERS=("clang" "gcc" )
 # Simulator tool.
 SIMULATOR='verilator'
 
+# Linker
+LINKER='on_chip'
+
 # Simulation timeout to prevent apps from running infinitely
 SIM_TIMEOUT_S=120 # This time, in seconds, was chosen empirically.
 
@@ -138,7 +141,7 @@ ENV="core-v-mini-mcu"
 
 # Prevent the re-generation of the mcu and the simualtion model on every
 # execution by changing DEBUG to 1
-DEBUG=1
+DEBUG=0
 
 
 #############################################################
