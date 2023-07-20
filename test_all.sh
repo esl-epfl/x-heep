@@ -1,5 +1,4 @@
-#! /usr/bin/bash -e
-
+#!/usr/bin/bash -e
 
 #############################################################
 #					FUNCTION DEFINITIONS
@@ -71,7 +70,7 @@ BUILD (){
 		# If a compiler is not installed, that compilation is skipped.
 		COMPILER_TO_USE=$COMPILER
 		make --no-print-directory -s app-clean
-		out=$(make -s --no-print-directory app PROJECT=$APP COMPILER=$COMPILER; val=$?; echo $val)
+		out=$(make -s --no-print-directory app PROJECT=$APP COMPILER=$COMPILER LINKER=$LINKER; val=$?; echo $val)
 		APP_RESULT="${out: -1}"
 		# The output of the make command is extracted. This way, the output is quite silent
 		# but the error information is still printed.
@@ -84,7 +83,7 @@ BUILD (){
 			echo -e "${RED}Failure building $APP using $COMPILER${RESET}"
 			echo -e ${LONG_R}
 			BUILD_FAILURES=$(( BUILD_FAILURES + 1 ))
-			FAILED="$FAILED($COMPILER)\t$APP "
+			FAILED="$FAILED($COMPILER)\t\t$APP "
 		fi
 	done
 }
@@ -139,7 +138,43 @@ ENV="core-v-mini-mcu"
 
 # Prevent the re-generation of the mcu and the simualtion model on every
 # execution by changing DEBUG to 1
-DEBUG=0
+DEBUG=1
+
+
+#############################################################
+#					USER ARGUMENTS
+#############################################################
+
+for arg in "$@"
+do
+	case $arg in
+
+		verilator | VERILATOR)
+			SIMULATOR='verilator'
+			;;
+
+		questasim | questa | QUESTASIM | QUESTA)
+			SIMULATOR='questasim'
+			;;
+
+		on_chip | jtag)
+			LINKER='on_chip'
+			;;
+
+		flash_load | "flash-load" | FLASH_LOAD | "FLASH-LOAD")
+			LINKER='flash_load'
+			;;
+
+		flash_exec | "flash-exec" | FLASH_EXEC | "FLASH-EXEC")
+			LINKER='flash_exec'
+			;;
+
+		*)
+			echo "$arg is not a valid argument"
+			;;
+
+	esac
+done
 
 #############################################################
 #					CHECKS
@@ -147,10 +182,10 @@ DEBUG=0
 
 # Check that there are some apps to build and simulate
 if [ -z "$APPS" ]; then
-        echo -e ${LONG_R}
-        echo -e "${RED}No apps found${RESET}"
-        echo -e ${LONG_R}
-        exit 2
+		echo -e ${LONG_R}
+		echo -e "${RED}No apps found${RESET}"
+		echo -e ${LONG_R}
+		exit 2
 fi
 
 #############################################################
@@ -164,6 +199,9 @@ for COMPILER in "${COMPILERS[@]}"
 do
 	echo -e "${COMPILER}"
 done
+
+echo -e "${WHITE}Linker:${RESET}"
+echo -e "${LINKER}"
 
 echo -e ${LONG_W}
 
@@ -318,13 +356,10 @@ fi
 #############################################################
 
 # Select environment tool
-# Select simulator
 # Fix apps that never finish testing on (one) simulator
 ### example_virtual_flash
 ### example_freertos_blinky
 
 # Keep a count of apps that return a meaningless execution
-# Try different linkers
-# Allow modification of certain parameters
 
 # Update the condition over which an app is simulated (check both compilation results and not only the last one)
