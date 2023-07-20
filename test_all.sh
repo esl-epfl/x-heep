@@ -75,9 +75,8 @@ SIMULATE(){
 							;;
 					esac
 
-
 					out=$(cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim; \
-						out=$(make run PLUSARGS="c firmware=../../../sw/build/main.hex" boot_sel=$boot_sel execute_from_flash=$flash); \
+						out=$(make run PLUSARGS="c firmware=../../../sw/build/main.hex boot_sel=$boot_sel execute_from_flash=$flash"); \
 						cd ../../../ ; \
 						echo $out; )
 						;;
@@ -85,10 +84,9 @@ SIMULATE(){
 					echo -e "${RED}INVALID SIMULATOR: $SIMULATOR!${RESET}"
 					return 2;
 					;;
-				esac
+			esac
 
-
-			if [ "${out: -1}" == "0" ] ; then
+			if [[ "${out}" == *"Errors: 0"* ]] ; then
 				return 0;
 			else
 				return 1;
@@ -227,6 +225,10 @@ if [ -z "$APPS" ]; then
 		exit 2
 fi
 
+
+# Increase the timeout to be used for questasim
+
+
 #############################################################
 #				SHOW INFORMATION
 #############################################################
@@ -289,6 +291,11 @@ if [ $DEBUG -eq 0 ];	 then
 
 	# Make the simualtion model
 	SIM_MODEL_CMD=${SIMULATOR}"-sim"
+
+	echo -e ${LONG_W}
+	echo -e "${WHITE}Building simulation model $SIM_MODEL_CMD ${RESET}"
+	echo -e ${LONG_W}
+
 	make $SIM_MODEL_CMD
 fi
 
