@@ -9,6 +9,8 @@ description: "PULP Platform RISC-V FPU"
 
 filesets:
   files_rtl:
+    depend:
+    - pulp-platform.org::common_cells
     files:
     - pulp_platform_fpnew/src/fpnew_pkg.sv
     - pulp_platform_fpnew/src/fpnew_cast_multi.sv
