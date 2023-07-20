@@ -411,11 +411,11 @@ You can choose:
 
 #### Usage
 
-You can source the script as
+You can execute the script as
 ```bash
-. test_all.sh flash_load verilator
+./test_all.sh flash_load verilator
 ```
-The order or capitalization of the arguments is irrelevant. Pay attention to the `.` at the beginning of the command.
+The order or capitalization of the arguments is irrelevant.
 
 > Note: Be sure to commit all your changes before running the script!
 
