@@ -415,7 +415,7 @@ You can source the script as
 ```bash
 . test_all.sh flash_load verilator
 ```
-The order or capitalization of the arguments is irrelevant.
+The order or capitalization of the arguments is irrelevant. Pay attention to the `.` at the beginning of the command.
 
 > Note: Be sure to commit all your changes before running the script!
 

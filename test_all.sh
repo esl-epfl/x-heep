@@ -168,11 +168,6 @@ LINKER='on_chip'
 # Simulation timeout to prevent apps from running infinitely
 SIM_TIMEOUT_S=120 # This time, in seconds, was chosen empirically.
 
-# Environment tool and environment name (if changed to venv, add the path
-# and make the name an empty string).
-ENVIRONMENT_TOOL=conda
-ENV="core-v-mini-mcu"
-
 # Prevent the re-generation of the mcu and the simualtion model on every
 # execution by changing DEBUG to 1
 DEBUG=0
@@ -287,9 +282,6 @@ esac
 #############################################################
 #					SET-UP THE TOOLS
 #############################################################
-
-# Activate the environment
-$ENVIRONMENT_TOOL activate $ENV
 
 # All peripherals are included to make sure all apps can be built.
 sed 's/is_included: "no",/is_included: "yes",/' -i mcu_cfg.hjson
@@ -410,7 +402,6 @@ fi
 #						FUTURE WORK
 #############################################################
 
-# Select environment tool
 # Fix apps that never finish testing on (one) simulator
 ### example_virtual_flash
 ### example_freertos_blinky
