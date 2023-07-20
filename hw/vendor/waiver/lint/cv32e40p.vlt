@@ -110,3 +110,6 @@ lint_off -rule WIDTH -file "*/rtl/cv32e40p_decoder.sv" -match "Logical operator 
 lint_off -rule WIDTH -file "*/rtl/cv32e40p_controller.sv" -match "Logical operator COND expects 1 bit on the Conditional Test, but Conditional Test's VARREF 'COREV_PULP' generates 32 bits."
 lint_off -rule WIDTH -file "*/rtl/cv32e40p_controller.sv" -match "Logical operator IF expects 1 bit on the If, but If's VARREF 'COREV_PULP' generates 32 bits."
 lint_off -rule WIDTH -file "*/rtl/cv32e40p_cs_registers.sv" -match "Logical operator LOGNOT expects 1 bit on the LHS, but LHS's VARREF 'COREV_PULP' generates 32 bits."
+lint_off -rule WIDTH -file "*/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY*" -match "*"
+lint_off -rule UNUSED -file "*/rtl/vendor/pulp_platform_fpnew/vendor/opene906/E906_RTL_FACTORY*" -match "*"
+lint_off -rule WIDTH -file "*/rtl/cv32e40p_decoder.sv" -match "Logical operator LOGAND expects 1 bit on the LHS, but LHS's VARREF 'FPU' generates 32 bits*"
