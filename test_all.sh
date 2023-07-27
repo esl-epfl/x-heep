@@ -170,7 +170,7 @@ declare -a COMPILERS=( "gcc" )
 # Simulator tool.
 SIMULATOR='verilator'
 
-# List of possible linkers. The last compiler will be used for linker.
+# List of possible linkers. The last linker will be used for simulation.
 declare -a LINKERS=( "on_chip" )
 
 # Simulation timeout to prevent apps from running infinitely
