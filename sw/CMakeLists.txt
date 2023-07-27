@@ -54,33 +54,31 @@ SET(MAINFILE "main")
 # Make a list of the header files that need to be included
 FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.h)
 SET(dir_list_str "")
-SET(external_app 0)
 FOREACH(file_path ${new_list})
   SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
   if(${file_path} MATCHES "/device/")
     if(${file_path} MATCHES "/target/") # Add it if its not in target, or if its in target/${TARGET}
       if(${file_path} MATCHES ${TARGET})
-        SET(add 1)     
+        SET(add 1)
       endif()
     else()
-      SET(add 1) 
+      SET(add 1)
     endif()
   elseif(${file_path} MATCHES ${PROJECT})
-    SET(external_app 1)
-    SET(add 1) 
+    SET(add 1)
   elseif( ( ${file_path} MATCHES "/freertos/" ) AND ( ${PROJECT} MATCHES "freertos" ) )
-    SET(add 1)  
-  elseif( ${file_path} MATCHES "/external/" )  
-    SET(add 1)        
+    SET(add 1)
+  elseif( ${file_path} MATCHES "/external/" )
+    SET(add 1)
   endif()
 
   if( add EQUAL 1 ) # If the file path mathced one of the criterion, add it to the list
-    # Get the path of the obtained directory 
+    # Get the path of the obtained directory
     GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
 
     # Add it to the string format list
     SET(dir_list_str ${dir_list_str} "-I ${dir_path} \
-    ")  
+    ")
     string(REPLACE ";" "" dir_list_str ${dir_list_str})
 
     # Add it to the header list
@@ -88,11 +86,6 @@ FOREACH(file_path ${new_list})
   endif()
 
 ENDFOREACH()
-
-# Check if the APP is external to ROOT_PROJECT
-if( external_app EQUAL 0 )
-  SET(SOURCE_PATH ${ROOT_PROJECT})
-endif()
 
 LIST(REMOVE_DUPLICATES dir_list_str)
 LIST(REMOVE_DUPLICATES h_dir_list_)
@@ -109,15 +102,18 @@ SET(INCLUDE_FOLDERS "-I ${RISCV}/${COMPILER_PREFIX}elf/include \
 
 # Make a list of the source files that need to be linked
 FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
-SET(c_dir_list "")
+SET( c_dir_list "" )
+SET( app_found 0 )
 FOREACH(file_path IN LISTS new_list)
   SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
   if(${file_path} MATCHES "/device/")
-    SET(add 1) 
+    SET(add 1)
+  elseif( ${file_path} MATCHES "/external/" )
+    SET(add 1)
   elseif( ( ${file_path} MATCHES "/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES ${MAINFILE} ) )
-    SET(add 1)       
-  elseif( ${file_path} MATCHES "/external/" ) 
-    SET(add 1)          
+    SET(add 1)
+    elseif( ( ${file_path} MATCHES "/${PROJECT}/" ) AND ( ${file_path} MATCHES ${MAINFILE} ) )
+    SET(app_found 1)
   endif()
 
   if( add EQUAL 1 ) # If the file path mathced one of the criterion, add it to the list
@@ -128,7 +124,40 @@ FOREACH(file_path IN LISTS new_list)
 
 ENDFOREACH()
 
+# If the app did not exist in the provided path, try with the root project
+if( app_found EQUAL 0 )
+  SET(SOURCE_PATH ${ROOT_PROJECT})
+
+  # Make a list of the source files that need to be linked
+  FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
+  SET(c_dir_list "")
+  FOREACH(file_path IN LISTS new_list)
+    SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
+    if(${file_path} MATCHES "/device/")
+      SET(add 1)
+    elseif( ( ${file_path} MATCHES "/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES ${MAINFILE} ) )
+      SET(add 1)
+    endif()
+
+    if( add EQUAL 1 ) # If the file path mathced one of the criterion, add it to the list
+      SET(c_dir_list ${c_dir_list} "${file_path}\
+      ")
+      string(REPLACE ";" "" c_dir_list ${c_dir_list})
+    endif()
+
+    ENDFOREACH()
+endif()
+
 LIST(REMOVE_DUPLICATES c_dir_list)
+
+# Determine whether the target app is located in the root project or in an external folder
+if( ${SOURCE_PATH} STREQUAL ${ROOT_PROJECT} )
+  SET( internal_app 1 )
+  message( "${Magenta}Internal application${ColourReset}")
+else()
+  SET( internal_app 0 )
+  message( "${Magenta}External application${ColourReset}")
+endif()
 
 # Get the correct path for the crt files and linker file
 if (${LINKER} STREQUAL "on_chip")
@@ -172,8 +201,8 @@ SET(LINKED_FILES    "${LIB_CRT_P}crt0.S \
                      ${c_dir_list}")
 
 message( "${Magenta}Linked files: ${LINKED_FILES}${ColourReset}")
-					 
-# fetch content from freertos kernel repository			 
+
+# fetch content from freertos kernel repository
 FetchContent_Declare( freertos_kernel
   GIT_REPOSITORY https://github.com/FreeRTOS/FreeRTOS-Kernel.git
   GIT_TAG        99d3d54ac4d17474a81c94ec5bab36f55f470359 #V10.5.1, last commit 16/12/2022
@@ -230,7 +259,7 @@ endif()
 set(SOURCES ${SOURCE_PATH}applications/${PROJECT}/${MAINFILE}.c)
 
 # add the executable
-add_executable(${MAINFILE}.elf ${SOURCES})  
+add_executable(${MAINFILE}.elf ${SOURCES})
 
 # add include directories to compilation
 target_include_directories(${MAINFILE}.elf PUBLIC ${h_dir_list_})
@@ -247,7 +276,7 @@ endif()
 SET(LINKER_SCRIPT "${LINK_FOLDER}/${LINK_FILE}")
 message( "${Magenta}Linker file: ${LINKER_SCRIPT}${ColourReset}")
 
-# Setting-up the properties, elf is 
+# Setting-up the properties, elf is
 set_target_properties(${MAINFILE}.elf PROPERTIES LINK_DEPENDS "${LINKER_SCRIPT}")
 
 # Linker control
@@ -262,7 +291,7 @@ message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/${COMPILER_PREFIX}elf/lib${Co
 
 SET(CMAKE_VERBOSE_MAKEFILE on)
 
-# To make sure that .obj files are created and fetched from the same path. 
+# To make sure that .obj files are created and fetched from the same path.
 # When setting an inner path to add_executable, .obj files are stored in ${MAINFILE}.elf.dir/<relative path>
 # but when an outside directory is provided, they are stored in ${MAINFILE}.elf.dir/<absolute path>.
 # To prevent this, if the SOURCE_PATH is the ROOT_PROJECT (X-HEEP source files will be used), no further path is to be added to the fetch directory.
@@ -281,25 +310,25 @@ if (${COMPILER} MATCHES "clang")
 								_deps/freertos_kernel-build/libfreertos_kernel.a \ _deps/freertos_kernel-build/portable/libfreertos_kernel_port.a \ _deps/freertos_kernel-build/libfreertos_kernel.a \ _deps/freertos_kernel-build/portable/libfreertos_kernel_port.a \
 								")
 	else()
-	  	set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
-		                            ${SOURCE_PATH}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${MAINFILE}.c.obj \
-		                            -o ${MAINFILE}.elf")
+  set( CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${COMPILER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS} \
+                                ${SOURCE_PATH}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${MAINFILE}.c.obj \
+                                -o ${MAINFILE}.elf")
     endif()
 endif()
 
-# Post processing command to create a disassembly file 
+# Post processing command to create a disassembly file
 add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
         COMMAND ${CMAKE_OBJDUMP} -S  ${MAINFILE}.elf > ${MAINFILE}.disasm
         COMMENT "Invoking: Disassemble")
 
-# Post processing command to create a hex file 
+# Post processing command to create a hex file
 if((${LINKER} STREQUAL "flash_load") OR (${LINKER} STREQUAL "flash_exec"))
     add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
-            COMMAND ${CMAKE_OBJCOPY} -O verilog --adjust-vma=-0x40000000 ${MAINFILE}.elf  ${MAINFILE}.hex 
+            COMMAND ${CMAKE_OBJCOPY} -O verilog --adjust-vma=-0x40000000 ${MAINFILE}.elf  ${MAINFILE}.hex
             COMMENT "Invoking: Hexdump")
 else()
     add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
-            COMMAND ${CMAKE_OBJCOPY} -O verilog  ${MAINFILE}.elf  ${MAINFILE}.hex 
+            COMMAND ${CMAKE_OBJCOPY} -O verilog  ${MAINFILE}.elf  ${MAINFILE}.hex
             COMMENT "Invoking: Hexdump")
 endif()
 
@@ -309,7 +338,7 @@ add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
 
 # Pre-processing command to create disassembly for each source file
 foreach (SRC_MODULE ${MAINFILE} )
-  add_custom_command(TARGET ${MAINFILE}.elf 
+  add_custom_command(TARGET ${MAINFILE}.elf
                      PRE_LINK
                      COMMAND ${CMAKE_OBJDUMP} -S ${ROOT_PROJECT}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${SRC_MODULE}.c.obj > ${SRC_MODULE}.s
                      COMMENT "Invoking: Disassemble ( CMakeFiles/${MAINFILE}.dir/${SRC_MODULE}.c.obj)")
