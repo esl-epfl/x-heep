@@ -348,8 +348,6 @@ do
 		echo -e "${WARNING} Timeout!${RESET}"
 		SIM_TIMEOUT
 	fi
-	echo "finished this app.. going for the next one..."
-
 done
 
 #############################################################
