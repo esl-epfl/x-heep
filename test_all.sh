@@ -84,10 +84,10 @@ SIMULATE(){
 						out=$(make run PLUSARGS="c firmware=../../../sw/build/main.hex boot_sel=$boot_sel execute_from_flash=$flash"); \
 						cd ../../../ ; \
 						echo $out; )
-					if [[ "${out}" == *"Errors: 0"* ]] ; then
-						return 0;
-					else
+					if [[ "${out}" == *"# EXIT FAILURE:"* ]] ; then
 						return 1;
+					else
+						return 0;
 					fi
 					;;
 				*)
