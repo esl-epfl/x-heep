@@ -411,10 +411,12 @@ You can choose:
 
 #### Usage
 
-You can execute the script as
+You can **SOURCE** the script as
 ```bash
-./test_all.sh flash_load verilator
+. test_all.sh flash_load verilator
 ```
+*Pay special attention to the first period in the command!*
+You will be killing simulations that take too long, if you **EXECUTE** (`./test_all.sh`) this action kills the script.
 The order or capitalization of the arguments is irrelevant.
 
 > Note: Be sure to commit all your changes before running the script!

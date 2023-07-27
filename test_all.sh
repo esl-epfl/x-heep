@@ -54,6 +54,11 @@ SIMULATE(){
 						out=$(./Vtestharness +firmware=../../../sw/build/main.hex); \
 						cd ../../../ ; \
 						echo $out; )
+					if [ "${out: -1}" == "0" ] ; then
+						return 0;
+					else
+						return 1;
+					fi
 						;;
 				"questasim")
 					case $LINKER in
@@ -61,7 +66,7 @@ SIMULATE(){
 							boot_sel="1"
 							flash="0"
 							;;
-						"flash_exec")
+						"fash_exec")
 							boot_sel="1"
 							flash="1"
 							;;
@@ -79,18 +84,18 @@ SIMULATE(){
 						out=$(make run PLUSARGS="c firmware=../../../sw/build/main.hex boot_sel=$boot_sel execute_from_flash=$flash"); \
 						cd ../../../ ; \
 						echo $out; )
-						;;
+					if [[ "${out}" == *"Errors: 0"* ]] ; then
+						return 0;
+					else
+						return 1;
+					fi
+					;;
 				*)
 					echo -e "${RED}INVALID SIMULATOR: $SIMULATOR!${RESET}"
 					return 2;
 					;;
 			esac
 
-			if [[ "${out}" == *"Errors: 0"* ]] ; then
-				return 0;
-			else
-				return 1;
-			fi
 		else
 			return 2;
 		fi
@@ -343,6 +348,7 @@ do
 		echo -e "${WARNING} Timeout!${RESET}"
 		SIM_TIMEOUT
 	fi
+	echo "finished this app.. going for the next one..."
 
 done
 
