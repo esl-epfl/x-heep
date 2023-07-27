@@ -3,7 +3,14 @@
 // SPDX-License-Identifier: SHL-0.51
 // Derived from Occamy: https://github.com/pulp-platform/snitch/blob/master/hw/system/occamy/src/occamy_cfg.hjson
 // Peripherals configuration for core-v-mini-mcu.
+
+// Add this field at the same level of pads (not inside) if you want to define PADs attributes
+//    attributes: {
+//        bits: 7:0
+//    },
+
 {
+
     pads: {
 
         clk: {

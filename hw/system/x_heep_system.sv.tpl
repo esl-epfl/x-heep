@@ -73,8 +73,12 @@ ${pad.x_heep_system_interface}
   // PAD controller
   reg_req_t pad_req;
   reg_rsp_t pad_resp;
-  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][7:0] pad_attributes;
-  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][3:0] pad_muxes;
+% if pads_attributes != None:
+  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${pads_attributes['bits']}] pad_attributes;
+% endif
+ % if total_pad_muxed > 0:
+  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${max_total_pad_mux_bitlengh-1}:0] pad_muxes;
+% endif
 
   logic rst_ngen;
 
@@ -138,7 +142,11 @@ ${pad.core_v_mini_mcu_bonding}
 % for pad in total_pad_list:
 ${pad.pad_ring_bonding_bonding}
 % endfor
+% if pads_attributes != None:
     .pad_attributes_i(pad_attributes)
+% else:
+    .pad_attributes_i('0)
+% endif
   );
 
 ${pad_constant_driver_assign}
@@ -153,9 +161,19 @@ ${pad_mux_process}
       .clk_i(clk_in_x),
       .rst_ni(rst_ngen),
       .reg_req_i(pad_req),
-      .reg_rsp_o(pad_resp),
-      .pad_attributes_o(pad_attributes),
+      .reg_rsp_o(pad_resp)
+% if total_pad_muxed > 0 or pads_attributes != None:
+      ,
+% endif
+% if pads_attributes != None:
+      .pad_attributes_o(pad_attributes)
+% if total_pad_muxed > 0:
+      ,
+% endif
+% endif
+% if total_pad_muxed > 0:
       .pad_muxes_o(pad_muxes)
+% endif
   );
 
   rstgen rstgen_i (
