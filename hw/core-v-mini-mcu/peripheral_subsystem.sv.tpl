@@ -13,7 +13,7 @@ module peripheral_subsystem
     input logic rst_ni,
 
     // Clock-gating signal
-    input logic clk_gate_en_i,
+    input logic clk_gate_en_ni,
 
     input  obi_req_t  slave_req_i,
     output obi_resp_t slave_resp_o,
@@ -161,7 +161,7 @@ module peripheral_subsystem
   assign intr_vector[${interrupts["spi2_intr_event"]}] = spi2_intr_event;
   assign intr_vector[${interrupts["i2s_intr_event"]}] = i2s_intr_event;
   assign intr_vector[${interrupts["dma_window_intr"]}]  = dma_window_intr_i;
-  
+
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin
     assign intr_vector[i+PLIC_USED_NINT] = intr_vector_ext_i[i];
@@ -177,7 +177,7 @@ module peripheral_subsystem
   logic clk_cg;
   tc_clk_gating clk_gating_cell (
       .clk_i,
-      .en_i(~clk_gate_en_i),
+      .en_i(clk_gate_en_ni),
       .test_en_i(1'b0),
       .clk_o(clk_cg)
   );
