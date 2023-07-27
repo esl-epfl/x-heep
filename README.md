@@ -386,6 +386,50 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
 ./Vtestharness +firmware=../../../sw/build/main.hex
 cat uart0.log
 ```
+
+## Automatic testing
+
+X-HEEP includes two tools to perform automatic tests over your modifications.
+
+### Github CIs
+
+Upon push, tests are run on Github runners, these include:
+* The generated `.sv` files pushed are equal to those generated in the runner (the code does not depend on the modification of generated files)
+* Vendor is up to date (the code does not depend on the modification of vendorized files)
+* All applications can be built successfully using both gcc and clang
+
+All test must be successful before PRs can be merged.
+
+### Simulation script
+
+Additionally, a `test_all.sh` script is provided. Apart from compiling all apps with both gcc and clang, it will simulate them and check the result.
+
+You can choose:
+* Simulator: `verilator` (default) or `questasim`.
+* Linker: `on_chip`(default), `flash_load` or `flash_exec`.
+* Timeout: Integer number of seconds (defualt 120)
+
+#### Usage
+
+You can **SOURCE** the script as
+```bash
+. test_all.sh flash_load verilator
+```
+*Pay special attention to the first period in the command!*
+You will be killing simulations that take too long, if you **EXECUTE** (`./test_all.sh`) this action kills the script.
+The order or capitalization of the arguments is irrelevant.
+
+> Note: Be sure to commit all your changes before running the script!
+
+* Applications that fail being built with gcc will not be simulated (skipped).
+* Some applications are skipped by default for not being suitable for simulation.
+* If a simulation takes too long (>timeout), it is killed.
+
+* Upon starting, the script will modify the `mcu_cfg.hjson` file to include all peripherals (so the largest number of apps can be run), re-generates the mcu and re-builds the simulation model for the chosen tool.
+These changes can be reverted at the end of the execution (default). If changes were not commited, accepting this operation will revert them!
+
+The success of the script is not required for merging of a PR.
+
 ## Debug
 
 Follow the [Debug](./Debug.md) guide to debug core-v-mini-mcu.
