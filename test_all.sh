@@ -61,7 +61,7 @@ SIMULATE(){
 							boot_sel="1"
 							flash="0"
 							;;
-						"fash_exec")
+						"flash_exec")
 							boot_sel="1"
 							flash="1"
 							;;
