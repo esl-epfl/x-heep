@@ -24,7 +24,7 @@ SECTIONS {
     /* interrupt vectors */
     .vectors (ORIGIN(FLASH)):
     {
-      PROVIDE(_vector_start = .);
+      PROVIDE(__vector_start = .);
       KEEP(*(.vectors));
     } >FLASH
 
@@ -80,7 +80,7 @@ SECTIONS {
     .bss :
     {
         . = ALIGN(4);
-        _sbss = .;         /* define a global symbol at bss start; used by startup code */
+        __bss_start = .;         /* define a global symbol at bss start; used by startup code */
         *(.bss)
         *(.bss*)
         *(.sbss)
@@ -88,7 +88,7 @@ SECTIONS {
         *(COMMON)
 
         . = ALIGN(4);
-        _ebss = .;         /* define a global symbol at bss end; used by startup code */
+        __bss_end = .;         /* define a global symbol at bss end; used by startup code */
         __BSS_END__ = .;
     } >RAM
 

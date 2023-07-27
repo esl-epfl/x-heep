@@ -4,9 +4,12 @@
 
 For this purpose we support the [CORE-V-XIF](https://docs.openhwgroup.org/projects/openhw-group-core-v-xif/en/latest/intro.html) interface with the [cv32e40x](https://github.com/openhwgroup/cv32e40x) RISCV-CPU, and we expose master and slave ports to/from the bus.
 
+> `X-HEEP` currently uses the revision [`0.9.0`](https://github.com/openhwgroup/cv32e40x/commit/f17028f2369373d9443e4636f2826218e8d54e0f) of OpenHW Groups's `cv32e40x` core to implement the `CORE-V-XIF`. It is recommended to use the same revision in peripheral IPs to prevent conflicts during RTL compilation.
+
 Here you can find a list of `X-HEEP` based open-source examples. If you want to include your project in this list, please open an issue with a link to your repository.
 
 * [CGRA-X-HEEP](https://github.com/esl-epfl/cgra_x_heep): A CGRA loosely coupled with X-HEEP.
+* [F-HEEP](https://github.com/davidmallasen/F-HEEP): System integrating [fpu_ss](https://github.com/pulp-platform/fpu_ss) into X-HEEP via the eXtension interface and cv32e40x.
 
 
 ## Vendorizing X-HEEP
@@ -62,8 +65,8 @@ The following is an example repository folder structure.
     │   ├── TOP
     │   │   └── top.sv
     │   └── vendor
-    │       ├── your_coprocessor
-    │       ├── your_coprocessor.vendor.hjson
+    │       ├── your_copro
+    │       ├── your_copro.vendor.hjson
     │       ├── esl_epfl_x_heep
     │       └── esl_epfl_x_heep.vendor.hjson
     ├── top.core
@@ -81,7 +84,7 @@ The following is an example repository folder structure.
 To achieve this:
 
 * Create a new top-level repository (`BASE`) and [vendorize](#vendorizing-x-heep) (or add as git submodules) both your `CORE-V-XIF/OBI` compliant coprocessor/accelerator and `X-HEEP`.
-* Copy the `x-heep/hw/system/x_heep_system.sv` as your new top-level module. Then modify it as needed to include your co-processor and connect it to the `core_v_mini_mcu` with the `XIF`.
+* Copy the `x-heep/hw/system/x_heep_system.sv` as your new top-level module. Then modify it as needed to include your co-processor and connect it to the `core_v_mini_mcu` with the `XIF`. The `XIF` SystemVerilog interface must be instantiated in the top-level module, where `X-HEEP` and your co-processor are connected. See the `X-HEEP` [testbench](./tb/testharness.sv) as an example.
 * Before [building software](#building-software) remember to run `make mcu-gen CPU=cv32e40x`.
 
 To add this new top-level module to the simulation/synthesis flow you can extend the [FuseSoC](https://fusesoc.readthedocs.io/en/stable/user/index.html) support of `X-HEEP`.
@@ -138,7 +141,7 @@ To add this new top-level module to the simulation/synthesis flow you can extend
         file_type: user
 
     parameters:
-    PULP_XPULP:
+    COREV_PULP:
         datatype: int
         paramtype: vlogparam
         default: 0
@@ -146,14 +149,11 @@ To add this new top-level module to the simulation/synthesis flow you can extend
         datatype: int
         paramtype: vlogparam
         default: 0
-    USE_EXTERNAL_DEVICE_EXAMPLE:
-        datatype: bool
-        paramtype: vlogdefine
-        default: false
     USE_UPF:
-        datatype: bool
-        paramtype: vlogdefine
-        default: false
+      datatype: bool
+      paramtype: vlogdefine
+      description: |
+        Enables simulation with UPF with Modelsim/VCS
 
     scripts:
     pre_build_remote_bitbang:
@@ -190,11 +190,8 @@ To add this new top-level module to the simulation/synthesis flow you can extend
             - tool_modelsim? (pre_build_remote_bitbang)
             - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
         parameters:
-        - PULP_XPULP=0
-        - use_jtag_dpi? (JTAG_DPI=1)
-        - "!use_jtag_dpi? (JTAG_DPI=0)"
-        - use_external_device_example? (USE_EXTERNAL_DEVICE_EXAMPLE=true)
-        - use_upf? (USE_UPF=true)
+        - COREV_PULP
+        - JTAG_DPI
         tools:
         modelsim:
             vlog_options:
@@ -221,14 +218,25 @@ The following is an example repository folder structure.
     BASE
     ├── sw
     │   ├── applications
-    │   │   └── my_app
+    │   │   └── your_app
     │   │       ├── main.c
+    │   │       ├── your_app.c
+    │   │       ├── your_app.h
     │   │       └── ...
     │   ├── build -> ../hw/vendor/esl_epfl_x_heep/sw/build
     │   ├── device -> ../hw/vendor/esl_epfl_x_heep/sw/device
-    │   └── linker -> ../hw/vendor/esl_epfl_x_heep/sw/linker
+    │   ├── linker -> ../hw/vendor/esl_epfl_x_heep/sw/linker
+    │   └── external
+    │       ├── drivers
+    │       │   └── your_copro
+    │       │   	├── your_copro.c
+    │       │   	├── your_copro.h
+    │       │   	└── your_copro_defs.h -> ../../../../hw/vendor/your_copro/sw/your_copro_defs.h
+    │       └── extensions
+    │       	└── your_copro_x_heep.h
     ├── hw
     │   └── vendor
+    │       ├── your_copro
     │       ├── esl_epfl_x_heep.vendor.hjson
     │       └── esl_epfl_x_heep
     │           ├── hw
@@ -245,9 +253,9 @@ The following is an example repository folder structure.
     │   └── vendor.py
     └── ...
     
-Where `BASE` is your repository's base directory, `esl_epfl_x_heep` is the vendorized `X-HEEP` repository and `my_app` is the name of the application you intend to build. 
+Where `BASE` is your repository's base directory, `esl_epfl_x_heep` is the vendorized `X-HEEP` repository and `your_app` is the name of the application you intend to build. 
 
-## The /sw/ folder
+### The /sw/ folder
 
 The `BASE/sw/` folder must comply with `X-HEEP` repository structure and therefore include an `applications`, `build`, `device` and `linker` folder. 
 It is not compulsory for it to be on the `BASE` directory, although this is the default structure that `X-HEEP`'s Makefiles will assume if no other path is specified through the `SOURCE` variable. 
@@ -259,6 +267,17 @@ ln -s ../hw/vendor/esl_epfl_x_heep/sw/build sw/build
 ln -s ../hw/vendor/esl_epfl_x_heep/sw/device sw/device
 ln -s ../hw/vendor/esl_epfl_x_heep/sw/linker sw/linker
 ```
+
+### The /sw/applications folder
+Inside the `sw/applications/` folder you may have different applications that can be built separately. Each application is a directory named after your application, containing one and only one `main.c` file which is built during the compilation process. The folder can contain other source or header files (of any name but `main.c`).  
+
+### The /sw/external folder
+In the `external` folder you can add whatever is necessary for software to work with your coprocessor/accelerator. This might include:
+
+* Sources and header files
+* Soft links to folders or files. 
+
+The external folder or any of its subdirectories cannot contain neither a `device` nor a `applications` folder as it would collide with the respective folders inside `BASE/sw/`. It should also not contain a `main.c` file.  
 
 ### The BASE/Makefile
 The `BASE/Makefile` is your own custom Makefile. You can use it as a bridge to access the Makefile from `X-HEEP`. 
@@ -305,6 +324,6 @@ export HEEP_DIR = <path_to_x_heep_relative_to_this_directory>
 
 If you plan to store source files in a different location that the one proposed, just call `make` making the `SOURCE` path explicit. 
 ```
-make app PROJECT=my_app SOURCE=<path_to_your_sw_relative_to_x_heep_sw>
+make app PROJECT=your_app SOURCE=<path_to_your_sw_relative_to_x_heep_sw>
 ```
 Consider that inside this `sw` folder the same structure than the one proposed is required.  

@@ -265,7 +265,6 @@ typedef enum logic[11:0] {
   CSR_MTVAL          = 12'h343,
   CSR_MIP            = 12'h344,
   CSR_MNXTI          = 12'h345,
-  CSR_MINTSTATUS     = 12'h346,
   CSR_MINTTHRESH     = 12'h347,
   CSR_MSCRATCHCSW    = 12'h348,
   CSR_MSCRATCHCSWL   = 12'h349,
@@ -353,6 +352,7 @@ typedef enum logic[11:0] {
   CSR_MHPMCOUNTER31H = 12'hB9F,
 
   CSR_CYCLE          = 12'hC00,
+  CSR_TIME           = 12'hC01,
   CSR_INSTRET        = 12'hC02,
   CSR_HPMCOUNTER3    = 12'hC03,
   CSR_HPMCOUNTER4    = 12'hC04,
@@ -385,6 +385,7 @@ typedef enum logic[11:0] {
   CSR_HPMCOUNTER31   = 12'hC1F,
 
   CSR_CYCLEH         = 12'hC80,
+  CSR_TIMEH          = 12'hC81,
   CSR_INSTRETH       = 12'hC82,
   CSR_HPMCOUNTER3H   = 12'hC83,
   CSR_HPMCOUNTER4H   = 12'hC84,
@@ -421,13 +422,18 @@ typedef enum logic[11:0] {
   CSR_MARCHID        = 12'hF12,
   CSR_MIMPID         = 12'hF13,
   CSR_MHARTID        = 12'hF14,
-  CSR_MCONFIGPTR     = 12'hF15
+  CSR_MCONFIGPTR     = 12'hF15,
+  CSR_MINTSTATUS     = 12'hFB1
+
 } csr_num_e;
 
 // CSR Bit Implementation Masks
+// A mask bit of '1' means a flipflop is implemented.
 parameter CSR_JVT_MASK          = 32'hFFFFFFC0;
 parameter CSR_MEPC_MASK         = 32'hFFFFFFFE;
 parameter CSR_DPC_MASK          = 32'hFFFFFFFE;
+parameter CSR_MSCRATCH_MASK     = 32'hFFFFFFFF;
+parameter CSR_DCSR_MASK         = 32'b0000_0000_0000_0000_1000_1101_1100_0100; // NMI bit taken from ctrl_fsm
 
 // CSR operations
 
@@ -551,6 +557,7 @@ typedef enum logic[3:0] {
 
 // Trigger types
 typedef enum logic [3:0] {
+  TTYPE_MCONTROL  = 4'h2,
   TTYPE_ETRIGGER  = 4'h5,
   TTYPE_MCONTROL6 = 4'h6,
   TTYPE_DISABLED  = 4'hF
@@ -656,33 +663,38 @@ parameter mcause_t MCAUSE_CLIC_RESET_VAL = '{
 parameter mcause_t MCAUSE_BASIC_RESET_VAL = '{
     default: 'b0};
 
+parameter JVT_RESET_VAL      = 32'd0;
+parameter MSCRATCH_RESET_VAL = 32'd0;
+parameter MEPC_RESET_VAL     = 32'd0;
+parameter DPC_RESET_VAL      = 32'd0;
+
 parameter logic [31:0] TDATA1_RST_VAL = {
-  TTYPE_MCONTROL6,       // type    : address/data match
+  TTYPE_MCONTROL,        // type    : address/data match
   1'b1,                  // dmode   : access from D mode only
-  2'b00,                 // zero  26:25
-  3'b000,                // zero, vs, vu, hit 24:22
-  1'b0,                  // zero, select 21
-  1'b0,                  // zero, timing 20
-  4'b0000,               // zero, size (match any sie) 19:16
-  4'b0001,               // action, WARL(1), enter debug 15:12
-  1'b0,                  // zero, chain 11
+  6'b000000,             // maskmax  : hardwired to zero
+  1'b0,                  // hit     : hardwired to zero
+  1'b0,                  // select  : hardwired to zero, only address matching
+  1'b0,                  // timing  : hardwired to zero, only 'before' timing
+  2'b00,                 // sizelo  : hardwired to zero, match any size
+  4'b0001,               // action  : enter debug on match
+  1'b0,                  // chain   : hardwired to zero
   4'b0000,               // match, WARL(0,2,3) 10:7
-  1'b0,                  // M  6
-  1'b0,                  // zero 5
-  1'b0,                  // zero, S 4
+  1'b0,                  // m       : match in machine mode
+  1'b0,                  //         : hardwired to zero
+  1'b0,                  // s       : hardwired to zer0
   1'b0,                  // zero, U 3
   1'b0,                  // EXECUTE 2
   1'b0,                  // STORE 1
   1'b0};                 // LOAD 0
 
-  // Bit position parameters for MCONTROL6
-  parameter MCONTROL6_MATCH_HIGH = 10;
-  parameter MCONTROL6_MATCH_LOW  = 7;
-  parameter MCONTROL6_M          = 6;
-  parameter MCONTROL6_U          = 3;
-  parameter MCONTROL6_EXECUTE    = 2;
-  parameter MCONTROL6_STORE      = 1;
-  parameter MCONTROL6_LOAD       = 0;
+  // Bit position parameters for MCONTROL and MCONTROL6
+  parameter MCONTROL2_6_MATCH_HIGH = 10;
+  parameter MCONTROL2_6_MATCH_LOW  = 7;
+  parameter MCONTROL2_6_M          = 6;
+  parameter MCONTROL2_6_U          = 3;
+  parameter MCONTROL2_6_EXECUTE    = 2;
+  parameter MCONTROL2_6_STORE      = 1;
+  parameter MCONTROL2_6_LOAD       = 0;
 
   parameter ETRIGGER_M = 9;
   parameter ETRIGGER_U = 6;
@@ -897,16 +909,20 @@ typedef enum logic[3:0] {
 } pc_mux_e;
 
 // Exception Cause
-parameter EXC_CAUSE_INSTR_FAULT     = 11'h01;
-parameter EXC_CAUSE_ILLEGAL_INSN    = 11'h02;
-parameter EXC_CAUSE_BREAKPOINT      = 11'h03;
-parameter EXC_CAUSE_LOAD_FAULT      = 11'h05;
-parameter EXC_CAUSE_STORE_FAULT     = 11'h07;
-parameter EXC_CAUSE_ECALL_MMODE     = 11'h0B;
-parameter EXC_CAUSE_INSTR_BUS_FAULT = 11'h18;
+parameter EXC_CAUSE_INSTR_MISALIGNED = 11'h00;
+parameter EXC_CAUSE_INSTR_FAULT      = 11'h01;
+parameter EXC_CAUSE_ILLEGAL_INSN     = 11'h02;
+parameter EXC_CAUSE_BREAKPOINT       = 11'h03;
+parameter EXC_CAUSE_LOAD_MISALIGNED  = 11'h04;
+parameter EXC_CAUSE_LOAD_FAULT       = 11'h05;
+parameter EXC_CAUSE_STORE_MISALIGNED = 11'h06;
+parameter EXC_CAUSE_STORE_FAULT      = 11'h07;
+parameter EXC_CAUSE_ECALL_MMODE      = 11'h0B;
+parameter EXC_CAUSE_INSTR_BUS_FAULT  = 11'h18;
 
 parameter logic [31:0] ETRIGGER_TDATA2_MASK = (1 << EXC_CAUSE_INSTR_BUS_FAULT) | (1 << EXC_CAUSE_ECALL_MMODE) | (1 << EXC_CAUSE_STORE_FAULT) |
-                                              (1 << EXC_CAUSE_LOAD_FAULT) | (1 << EXC_CAUSE_BREAKPOINT) | (1 << EXC_CAUSE_ILLEGAL_INSN) | (1 << EXC_CAUSE_INSTR_FAULT);
+                                              (1 << EXC_CAUSE_LOAD_FAULT) | (1 << EXC_CAUSE_BREAKPOINT) | (1 << EXC_CAUSE_ILLEGAL_INSN) | (1 << EXC_CAUSE_INSTR_FAULT) |
+                                              (1 << EXC_CAUSE_LOAD_MISALIGNED) | (1<<EXC_CAUSE_STORE_MISALIGNED);
 
 parameter INT_CAUSE_LSU_LOAD_FAULT  = 11'h400;
 parameter INT_CAUSE_LSU_STORE_FAULT = 11'h401;
@@ -959,12 +975,22 @@ parameter pma_cfg_t PMA_R_DEFAULT = '{word_addr_low   : 0,
 
 // MPU status. Used for PMA
 typedef enum logic [1:0] {
-                          MPU_OK       = 2'h0,
-                          MPU_RE_FAULT = 2'h1,
-                          MPU_WR_FAULT = 2'h2
+                          MPU_OK            = 2'h0,
+                          MPU_RE_FAULT      = 2'h1,
+                          MPU_WR_FAULT      = 2'h2
                           } mpu_status_e;
 
+
 typedef enum logic [2:0] {MPU_IDLE, MPU_RE_ERR_RESP, MPU_RE_ERR_WAIT, MPU_WR_ERR_RESP, MPU_WR_ERR_WAIT} mpu_state_e;
+
+// ALIGN status. Used when checking alignment for atomics and mret pointers
+typedef enum logic [1:0] {
+                          ALIGN_OK         = 2'h0,
+                          ALIGN_RE_ERR     = 2'h1,
+                          ALIGN_WR_ERR     = 2'h2
+                          } align_status_e;
+
+typedef enum logic [2:0] {ALIGN_IDLE, ALIGN_WR_ERR_RESP, ALIGN_WR_ERR_WAIT, ALIGN_RE_ERR_RESP, ALIGN_RE_ERR_WAIT} align_state_e;
 
 // WPT state machine
 typedef enum logic [1:0] {WPT_IDLE, WPT_MATCH_WAIT, WPT_MATCH_RESP} wpt_state_e;
@@ -1021,14 +1047,17 @@ typedef struct packed {
 typedef struct packed {
  obi_inst_resp_t             bus_resp;
  mpu_status_e                mpu_status;
+ align_status_e              align_status;   // Alignment status (for mret pointers)
 } inst_resp_t;
 
 // Reset value for the inst_resp_t type
 parameter inst_resp_t INST_RESP_RESET_VAL = '{
   // Setting rdata[1:0] to 2'b11 to easily assert that all
   // instructions in ID are uncompressed
-  bus_resp    : '{rdata: 32'h3, err: 1'b0},
-  mpu_status  : MPU_OK
+  bus_resp     : '{rdata: 32'h3, err: 1'b0},
+  mpu_status   : MPU_OK,
+  align_status : ALIGN_OK
+
 };
 
 // Reset value for the obi_inst_req_t type
@@ -1044,6 +1073,7 @@ typedef struct packed {
   obi_data_resp_t             bus_resp;
   mpu_status_e                mpu_status;
   logic                       wpt_match;
+  align_status_e              align_status;
 } data_resp_t;
 
 // LSU transaction
@@ -1072,6 +1102,7 @@ typedef struct packed
   logic        clic_ptr;   // "True" CLIC pointer due to taking a CLIC SHV interrupt
   logic        mret_ptr;   // CLIC pointer due to an mret restarting pointer fetch
   logic        tbljmp;
+  logic        pushpop;    // Operation is part of a push/pop sequence.
 } instr_meta_t;
 
 // Struct for carrying eXtension interface information
@@ -1083,6 +1114,15 @@ typedef struct packed
   logic [31:0] id;        // ID of offloaded ins
   logic        accepted;  // Was the offloaded instruction accepted or not?
 } xif_meta_t;
+
+// Struct for signaling if there is an atomic LSU instruction, and of which type
+typedef enum logic [1:0]
+{
+  AT_NONE   = 2'b00,  // There is no atomic instruction
+  AT_LR     = 2'b01,  // Atomic of LR.W type
+  AT_SC     = 2'b10,  // Atomic of SC.W type
+  AT_AMO    = 2'b11   // Atomic of AMO type
+} lsu_atomic_e;
 
 // IF/ID pipeline
 typedef struct packed {
@@ -1263,6 +1303,7 @@ typedef struct packed {
   logic         id_stage_abort;         // Same signal as deassert_we, with better name for use in the controller.
   logic         xif_exception_stall;    // Stall (EX) if xif insn in WB can cause an exception
   logic         irq_enable_stall;       // Stall (EX) if an interrupt may be enabled by the instruction in WB.
+  logic         atomic_stall;           // Stall (EX) if an Atomic/non-atomic LSU is in EX while an non-atomic/Atomic is in WB
 } ctrl_byp_t;
 
 // Controller FSM outputs
@@ -1388,18 +1429,18 @@ typedef struct packed {
     return 1'b0;
   endfunction
 
-  function automatic logic [3:0] mcontrol6_match_resolve
+  function automatic logic [3:0] mcontrol2_6_match_resolve
   (
     logic [3:0] next_value
   );
     return ((next_value != 4'h0) && (next_value != 4'h2) && (next_value != 4'h3)) ? 4'h0 : next_value;
   endfunction
 
-  function automatic logic mcontrol6_u_resolve
+  function automatic logic mcontrol2_6_u_resolve
   (
     logic next_value
   );
-    // mcontrol6.u is WARL(0x0)
+    // mcontrol2/6.u is WARL(0x0)
     return 1'b0;
   endfunction
 
@@ -1417,7 +1458,7 @@ typedef struct packed {
     logic [1:0] next_value
   );
     // mtvec.mode is WARL(0,1) in CLINT mode
-    return ((next_value != 2'b00) && (next_value != 1'b01)) ? current_value : next_value;
+    return ((next_value != 2'b00) && (next_value != 2'b01)) ? current_value : next_value;
   endfunction
 
   function automatic logic[1:0] mtvec_mode_clic_resolve
@@ -1427,6 +1468,17 @@ typedef struct packed {
   );
     // mtvec.mode is WARL(0x3) in CLIC mode
     return 2'b11;
+  endfunction
+
+  // Function for setting next-value for CSRs
+  // Uses a mask and reset value to allow nom-implemented (no flipflop) bits to be either 0 or 1.
+  function automatic logic [31:0] csr_next_value
+  (
+      logic [31:0] wdata,
+      logic [31:0] mask,
+      logic [31:0] reset_value
+  );
+      return (wdata & mask) | (reset_value & ~mask);
   endfunction
   ///////////////////////////
   //                       //
@@ -1445,6 +1497,9 @@ typedef struct packed {
 
   // OBI interface FSM state encoding
   typedef enum logic {TRANSPARENT, REGISTERED} obi_if_state_e;
+
+  // Enum used for configuration of A extension
+  typedef enum logic [1:0] {A_NONE, ZALRSC, A} a_ext_e;
 
   // Enum used for configuration of B extension
   typedef enum logic [1:0] {B_NONE, ZBA_ZBB, ZBA_ZBB_ZBS, ZBA_ZBB_ZBC_ZBS} b_ext_e;

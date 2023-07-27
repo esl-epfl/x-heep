@@ -6,21 +6,22 @@ module peripheral_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
 #(
-    parameter NEXT_INT = 0
+    //do not touch these parameters
+    parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
 ) (
     input logic clk_i,
     input logic rst_ni,
 
     // Clock-gating signal
-    input logic clk_gate_en_i,
+    input logic clk_gate_en_ni,
 
     input  obi_req_t  slave_req_i,
     output obi_resp_t slave_resp_o,
 
     //PLIC
-    input  logic [NEXT_INT-1:0] intr_vector_ext_i,
-    output logic                irq_plic_o,
-    output logic                msip_o,
+    input  logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
+    output logic                    irq_plic_o,
+    output logic                    msip_o,
 
     //UART PLIC interrupts
     input logic uart_intr_tx_watermark_i,
@@ -31,6 +32,9 @@ module peripheral_subsystem
     input logic uart_intr_rx_break_err_i,
     input logic uart_intr_rx_timeout_i,
     input logic uart_intr_rx_parity_err_i,
+
+    // DMA window PLIC interrupt
+    input logic dma_window_intr_i,
 
     //GPIO
     input  logic [31:8] cio_gpio_i,
@@ -56,7 +60,24 @@ module peripheral_subsystem
 
     //RV TIMER
     output logic rv_timer_2_intr_o,
-    output logic rv_timer_3_intr_o
+    output logic rv_timer_3_intr_o,
+
+    //I2s
+    output logic i2s_sck_o,
+    output logic i2s_sck_oe_o,
+    input  logic i2s_sck_i,
+    output logic i2s_ws_o,
+    output logic i2s_ws_oe_o,
+    input  logic i2s_ws_i,
+    output logic i2s_sd_o,
+    output logic i2s_sd_oe_o,
+    input  logic i2s_sd_i,
+    output logic i2s_rx_valid_o,
+
+    // PDM2PCM Interface
+    output logic pdm2pcm_clk_o,
+    output logic pdm2pcm_clk_en_o,
+    input  logic pdm2pcm_pdm_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -105,6 +126,7 @@ module peripheral_subsystem
   logic i2c_intr_ack_stop;
   logic i2c_intr_host_timeout;
   logic spi2_intr_event;
+  logic i2s_intr_event;
 
   // this avoids lint errors
   assign unused_irq_id = irq_id;
@@ -137,6 +159,8 @@ module peripheral_subsystem
   assign intr_vector[47] = i2c_intr_ack_stop;
   assign intr_vector[48] = i2c_intr_host_timeout;
   assign intr_vector[49] = spi2_intr_event;
+  assign intr_vector[50] = i2s_intr_event;
+  assign intr_vector[51] = dma_window_intr_i;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin
@@ -150,7 +174,7 @@ module peripheral_subsystem
   logic clk_cg;
   tc_clk_gating clk_gating_cell (
       .clk_i,
-      .en_i(~clk_gate_en_i),
+      .en_i(clk_gate_en_ni),
       .test_en_i(1'b0),
       .clk_o(clk_cg)
   );
@@ -268,32 +292,6 @@ module peripheral_subsystem
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2C_IDX])
   );
 
-  spi_host #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
-  ) spi2_host (
-      .clk_i(clk_cg),
-      .rst_ni,
-      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI2_IDX]),
-      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI2_IDX]),
-      .alert_rx_i(),
-      .alert_tx_o(),
-      .passthrough_i(spi_device_pkg::PASSTHROUGH_REQ_DEFAULT),
-      .passthrough_o(),
-      .cio_sck_o(spi2_sck_o),
-      .cio_sck_en_o(spi2_sck_en_o),
-      .cio_csb_o(spi2_csb_o),
-      .cio_csb_en_o(spi2_csb_en_o),
-      .cio_sd_o(spi2_sd_o),
-      .cio_sd_en_o(spi2_sd_en_o),
-      .cio_sd_i(spi2_sd_i),
-      .rx_valid_o(),
-      .tx_ready_o(),
-      .intr_error_o(),
-      .intr_spi_event_o(spi2_intr_event)
-  );
-
-
   i2c i2c_i (
       .clk_i(clk_cg),
       .rst_ni,
@@ -347,6 +345,58 @@ module peripheral_subsystem
       .tl_o(rv_timer_tl_d2h),
       .intr_timer_expired_0_0_o(rv_timer_2_intr_o),
       .intr_timer_expired_1_0_o(rv_timer_3_intr_o)
+  );
+
+  spi_host #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) spi2_host (
+      .clk_i(clk_cg),
+      .rst_ni,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::SPI2_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI2_IDX]),
+      .alert_rx_i(),
+      .alert_tx_o(),
+      .passthrough_i(spi_device_pkg::PASSTHROUGH_REQ_DEFAULT),
+      .passthrough_o(),
+      .cio_sck_o(spi2_sck_o),
+      .cio_sck_en_o(spi2_sck_en_o),
+      .cio_csb_o(spi2_csb_o),
+      .cio_csb_en_o(spi2_csb_en_o),
+      .cio_sd_o(spi2_sd_o),
+      .cio_sd_en_o(spi2_sd_en_o),
+      .cio_sd_i(spi2_sd_i),
+      .rx_valid_o(),
+      .tx_ready_o(),
+      .intr_error_o(),
+      .intr_spi_event_o(spi2_intr_event)
+  );
+
+  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX] = '0;
+  assign pdm2pcm_clk_o = '0;
+
+  assign pdm2pcm_clk_en_o = 1;
+
+  i2s #(
+      .reg_req_t(reg_pkg::reg_req_t),
+      .reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) i2s_i (
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::I2S_IDX]),
+      .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2S_IDX]),
+
+      .i2s_sck_o(i2s_sck_o),
+      .i2s_sck_oe_o(i2s_sck_oe_o),
+      .i2s_sck_i(i2s_sck_i),
+      .i2s_ws_o(i2s_ws_o),
+      .i2s_ws_oe_o(i2s_ws_oe_o),
+      .i2s_ws_i(i2s_ws_i),
+      .i2s_sd_o(i2s_sd_o),
+      .i2s_sd_oe_o(i2s_sd_oe_o),
+      .i2s_sd_i(i2s_sd_i),
+      .intr_i2s_event_o(i2s_intr_event),
+      .i2s_rx_valid_o(i2s_rx_valid_o)
   );
 
 endmodule : peripheral_subsystem

@@ -44,7 +44,8 @@ module cv32e40x_ex_stage_sva
   input logic           csr_illegal_i,
 
   input logic [31:0]    branch_target_o,
-  input logic           branch_taken_ex_ctrl_i
+  input logic           branch_taken_ex_ctrl_i,
+  input logic           last_op_o
 );
 
   // Halt implies not ready and not valid
@@ -115,12 +116,14 @@ endgenerate
       else `uvm_error("ex_stage", "Multiple functional units enabled")
 
   // Check that branch target remains constant while a branch instruction is in EX
+  // Branches are taken during their first un-stalled cycle in EX. If the target changes before
+  // the branch can move to WB, we might have taken the branch before an unresolved dependency.
   property p_bch_target_stable;
     logic [31:0] bch_target;
     @(posedge clk) disable iff (!rst_n)
-    (branch_taken_ex_ctrl_i && !ctrl_fsm_i.kill_ex, bch_target=branch_target_o)
+    (branch_taken_ex_ctrl_i, bch_target=branch_target_o)
     |->
-    (bch_target == branch_target_o) until_with ((ex_valid_o && wb_ready_i) || ctrl_fsm_i.kill_ex);
+    (bch_target == branch_target_o) until_with ((ex_valid_o && wb_ready_i && last_op_o) || ctrl_fsm_i.kill_ex);
   endproperty
 
   a_bch_target_stable: assert property (p_bch_target_stable)

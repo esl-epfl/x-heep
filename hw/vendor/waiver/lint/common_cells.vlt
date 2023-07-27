@@ -12,3 +12,6 @@ lint_off -rule CMPCONST -file "*/src/deprecated/fifo_v2.sv" -match "Comparison i
 lint_off -rule UNSIGNED -file "*/src/rr_arb_tree.sv" -match "Comparison is constant due to unsigned*"
 lint_off -rule UNOPTFLAT -file "*/src/lzc.sv" -match "Signal unoptimizable:*"
 lint_off -rule DECLFILENAME -file "*/src/clk_mux_glitch_free.sv" -match "Filename 'clk_mux_glitch_free' does not match MODULE name: 'clk_or_tree'"
+lint_off -rule BLKSEQ -file "*/src/clk_int_div.sv"
+lint_off -rule WIDTH -file "*/src/clk_int_div.sv"
+lint_off -rule WIDTH -file "*/src/cdc_fifo_2phase.sv"

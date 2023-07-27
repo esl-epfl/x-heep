@@ -6,9 +6,9 @@ module linux_femu
   import obi_pkg::*;
   import reg_pkg::*;
 #(
-  parameter PULP_XPULP           = 0,
+  parameter COREV_PULP           = 0,
   parameter FPU                  = 0,
-  parameter PULP_ZFINX           = 0,
+  parameter ZFINX                = 0,
   parameter EXT_XBAR_NMASTER     = 0,
   parameter CLK_LED_COUNT_LENGTH = 27
 ) (
@@ -200,13 +200,16 @@ ${pad.internal_signals}
     .clk_out1_0(clk_gen)
   );
 
+  // eXtension Interface
+  if_xif #() ext_if ();
+
   logic clk_i;
   assign clk_i = clk_gen;
 
   core_v_mini_mcu #(
-    .PULP_XPULP(PULP_XPULP),
+    .COREV_PULP(COREV_PULP),
     .FPU(FPU),
-    .PULP_ZFINX(PULP_ZFINX),
+    .ZFINX(ZFINX),
     .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER)
   ) core_v_mini_mcu_i (
 
@@ -215,10 +218,26 @@ ${pad.internal_signals}
 ${pad.core_v_mini_mcu_bonding}
 % endfor
     .intr_vector_ext_i('0),
+    .xif_compressed_if(ext_if),
+    .xif_issue_if(ext_if),
+    .xif_commit_if(ext_if),
+    .xif_mem_if(ext_if),
+    .xif_mem_result_if(ext_if),
+    .xif_result_if(ext_if),
     .ext_xbar_master_req_i('0),
     .ext_xbar_master_resp_o(),
-    .ext_xbar_slave_req_o(),
-    .ext_xbar_slave_resp_i('0),
+    .ext_core_instr_req_o(),
+    .ext_core_instr_resp_i('0),
+    .ext_core_data_req_o(),
+    .ext_core_data_resp_i('0),
+    .ext_debug_master_req_o(),
+    .ext_debug_master_resp_i('0),
+    .ext_dma_read_ch0_req_o(),
+    .ext_dma_read_ch0_resp_i('0),
+    .ext_dma_write_ch0_req_o(),
+    .ext_dma_write_ch0_resp_i('0),
+    .ext_dma_addr_ch0_req_o(),
+    .ext_dma_addr_ch0_resp_i('0),
     .ext_peripheral_slave_req_o(),
     .ext_peripheral_slave_resp_i('0),
     .external_subsystem_powergate_switch_o(),

@@ -25,12 +25,15 @@
 
 module cv32e40x_mpu import cv32e40x_pkg::*;
   #(  parameter bit          IF_STAGE                     = 1,
-      parameter bit          A_EXT                        = 0,
+      parameter a_ext_e      A_EXT                        = A_NONE,
       parameter type         CORE_REQ_TYPE                = obi_inst_req_t,
       parameter type         CORE_RESP_TYPE               = inst_resp_t,
-      parameter type         BUS_RESP_TYPE                = obi_inst_resp_t,
+      parameter type         BUS_RESP_TYPE                = data_resp_t,
       parameter int          PMA_NUM_REGIONS              = 0,
-      parameter pma_cfg_t    PMA_CFG[PMA_NUM_REGIONS-1:0] = '{default:PMA_R_DEFAULT})
+      parameter pma_cfg_t    PMA_CFG[PMA_NUM_REGIONS-1:0] = '{default:PMA_R_DEFAULT},
+      parameter bit          DEBUG                        = 1,
+      parameter logic [31:0] DM_REGION_START              = 32'hF0000000,
+      parameter logic [31:0] DM_REGION_END                = 32'hF0003FFF)
   (
    input logic  clk,
    input logic  rst_n,
@@ -48,6 +51,7 @@ module cv32e40x_mpu import cv32e40x_pkg::*;
 
    // Interface towards core
    input logic  core_trans_valid_i,
+   input logic  core_trans_pushpop_i,
    output logic core_trans_ready_o,
    input        CORE_REQ_TYPE core_trans_i,
 
@@ -79,6 +83,10 @@ module cv32e40x_mpu import cv32e40x_pkg::*;
   logic        instr_fetch_access;
   logic        load_access;
   logic        wpt_match;
+  logic        core_trans_debug_region;
+
+  // Detect a debug mode transaction to the Debug Module region
+  assign core_trans_debug_region = (core_trans_i.addr >= DM_REGION_START) && (core_trans_i.addr <= DM_REGION_END) && core_trans_i.dbg;
 
   // FSM that will "consume" transfers failing PMA checks.
   // Upon failing checks, this FSM will prevent the transfer from going out on the bus
@@ -139,7 +147,6 @@ module cv32e40x_mpu import cv32e40x_pkg::*;
         // Set up MPU error response towards the core
         mpu_err_trans_valid = 1'b1;
         mpu_status = (state_q == MPU_RE_ERR_RESP) ? MPU_RE_FAULT : MPU_WR_FAULT;
-
         // Go back to IDLE uncoditionally.
         // The core is expected to always be ready for the response
         state_n = MPU_IDLE;
@@ -169,10 +176,11 @@ module cv32e40x_mpu import cv32e40x_pkg::*;
 
   // Forward transaction response towards core
   assign core_resp_valid_o      = bus_resp_valid_i || mpu_err_trans_valid;
-  assign core_resp_o.bus_resp   = bus_resp_i;
+  assign core_resp_o.bus_resp   = bus_resp_i.bus_resp;
   assign core_resp_o.mpu_status = mpu_status;
+  assign core_resp_o.align_status = bus_resp_i.align_status;
 
-  // Report MPU errors to the core immediatly
+  // Report MPU errors to the core immediately
   assign core_mpu_err_o = mpu_err;
 
   // Signal ready towards core
@@ -181,20 +189,22 @@ module cv32e40x_mpu import cv32e40x_pkg::*;
   // PMA - Physical Memory Attribution
   cv32e40x_pma
   #(
-    .A_EXT                      ( A_EXT                ),
-    .PMA_NUM_REGIONS            ( PMA_NUM_REGIONS      ),
-    .PMA_CFG                    ( PMA_CFG              )
+    .A_EXT                      ( A_EXT                   ),
+    .PMA_NUM_REGIONS            ( PMA_NUM_REGIONS         ),
+    .PMA_CFG                    ( PMA_CFG                 )
   )
   pma_i
     (
-    .trans_addr_i               ( core_trans_i.addr    ),
-    .instr_fetch_access_i       ( instr_fetch_access   ),
-    .atomic_access_i            ( atomic_access_i      ),
-    .misaligned_access_i        ( misaligned_access_i  ),
-    .load_access_i              ( load_access          ),
-    .pma_err_o                  ( pma_err              ),
-    .pma_bufferable_o           ( bus_trans_bufferable ),
-    .pma_cacheable_o            ( bus_trans_cacheable  )
+    .trans_addr_i               ( core_trans_i.addr       ),
+    .trans_debug_region_i       ( core_trans_debug_region ),
+    .trans_pushpop_i            ( core_trans_pushpop_i    ),
+    .instr_fetch_access_i       ( instr_fetch_access      ),
+    .atomic_access_i            ( atomic_access_i         ),
+    .misaligned_access_i        ( misaligned_access_i     ),
+    .load_access_i              ( load_access             ),
+    .pma_err_o                  ( pma_err                 ),
+    .pma_bufferable_o           ( bus_trans_bufferable    ),
+    .pma_cacheable_o            ( bus_trans_cacheable     )
   );
 
   assign mpu_err = pma_err;

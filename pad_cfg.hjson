@@ -3,7 +3,14 @@
 // SPDX-License-Identifier: SHL-0.51
 // Derived from Occamy: https://github.com/pulp-platform/snitch/blob/master/hw/system/occamy/src/occamy_cfg.hjson
 // Peripherals configuration for core-v-mini-mcu.
+
+// Add this field at the same level of pads (not inside) if you want to define PADs attributes
+//    attributes: {
+//        bits: 7:0
+//    },
+
 {
+
     pads: {
 
         clk: {
@@ -58,7 +65,7 @@
             type: output
         },
         gpio: {
-            num: 23,
+            num: 18,
             num_offset: 0, #first gpio is gpio0
             type: inout
         },
@@ -85,6 +92,67 @@
         spi_sd: {
             num: 4,
             type: inout
+        },
+
+        pdm2pcm_pdm: {
+            num: 1,
+            type: inout
+            mux: {
+                pdm2pcm_pdm: {
+                    type: inout
+                },
+                gpio_18: {
+                    type: inout
+                }
+            }
+        },
+        pdm2pcm_clk: {
+            num: 1,
+            type: inout
+            mux: {
+                pdm2pcm_clk: {
+                    type: inout
+                },
+                gpio_19: {
+                    type: inout
+                }
+            }
+        },
+        i2s_sck: {
+            num: 1,
+            type: inout
+            mux: {
+                i2s_sck: {
+                    type: inout
+                },
+                gpio_20: {
+                    type: inout
+                }
+            }
+        },
+        i2s_ws: {
+            num: 1,
+            type: inout
+            mux: {
+                i2s_ws: {
+                    type: inout
+                },
+                gpio_21: {
+                    type: inout
+                }
+            }
+        },
+        i2s_sd: {
+            num: 1,
+            type: inout
+            mux: {
+                i2s_sd: {
+                    type: inout
+                },
+                gpio_22: {
+                    type: inout
+                }
+           }
         },
         spi2_cs_0: {
             num: 1,

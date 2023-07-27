@@ -24,44 +24,17 @@ SECTIONS {
     /* interrupt vectors */
     .vectors (ORIGIN(RAM)):
     {
-        PROVIDE(_vector_start = .);
+        PROVIDE(__vector_start = .);
         KEEP(*(.vectors));
+        __VECTORS_AT = .;
     } >RAM AT >FLASH
 
-    /* this should be removed or made elegant */
+    /* Fill memory up to __boot_address */
     .fill :
     {
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
+        FILL(0xDEADBEEF);
+        . = ORIGIN(RAM) + (__boot_address) - 1;
+        BYTE(0xEE)
     } >RAM AT >FLASH
 
     /* crt0 init code */
@@ -116,7 +89,7 @@ SECTIONS {
     .bss :
     {
         . = ALIGN(4);
-        _sbss = .;         /* define a global symbol at bss start; used by startup code */
+        __bss_start = .;         /* define a global symbol at bss start; used by startup code */
         *(.bss)
         *(.bss*)
         *(.sbss)
@@ -124,7 +97,7 @@ SECTIONS {
         *(COMMON)
 
         . = ALIGN(4);
-        _ebss = .;         /* define a global symbol at bss end; used by startup code */
+        __bss_end = .;         /* define a global symbol at bss end; used by startup code */
         __BSS_END__ = .;
     } >RAM
 

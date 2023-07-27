@@ -7,9 +7,9 @@ module cpu_subsystem
   import core_v_mini_mcu_pkg::*;
 #(
     parameter BOOT_ADDR = 'h180,
-    parameter PULP_XPULP =  0, // PULP ISA Extension (incl. custom CSRs and hardware loop, excl. p.elw)
+    parameter COREV_PULP =  0, // PULP ISA Extension (incl. custom CSRs and hardware loop, excl. p.elw)
     parameter FPU = 0,  // Floating Point Unit (interfaced via APU interface)
-    parameter PULP_ZFINX = 0,  // Float-in-General Purpose registers
+    parameter ZFINX = 0,  // Float-in-General Purpose registers
     parameter NUM_MHPMCOUNTERS = 1,
     parameter DM_HALTADDRESS = '0,
     parameter X_EXT = 0,  // eXtension interface in cv32e40x
@@ -175,7 +175,8 @@ module cpu_subsystem
     // instantiate the core
     cv32e40x_core #(
         .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS),
-        .X_EXT(X_EXT)
+        .X_EXT(X_EXT),
+        .DBG_NUM_TRIGGERS('0)
     ) cv32e40x_core_i (
         // Clock and reset
         .clk_i(clk_i),
@@ -220,6 +221,9 @@ module cpu_subsystem
         // Cycle count
         .mcycle_o(),
 
+        // Time input
+        .time_i(64'h0),
+
         // eXtension interface
         .xif_compressed_if,
         .xif_issue_if,
@@ -250,6 +254,8 @@ module cpu_subsystem
         .debug_havereset_o(),
         .debug_running_o  (),
         .debug_halted_o   (),
+        .debug_pc_valid_o (),
+        .debug_pc_o       (),
 
         // CPU control signals
         .fetch_enable_i(fetch_enable),
@@ -259,16 +265,97 @@ module cpu_subsystem
     assign irq_ack_o = '0;
     assign irq_id_o  = '0;
 
+  end else if (CPU_TYPE == cv32e40px) begin : gen_cv32e40px
+
+    import cv32e40px_core_v_xif_pkg::*;
+
+    // instantiate the core
+    cv32e40px_top #(
+        .COREV_X_IF      (X_EXT),
+        .COREV_PULP      (COREV_PULP),
+        .COREV_CLUSTER   (0),
+        .FPU             (FPU),
+        .ZFINX           (ZFINX),
+        .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS)
+    ) cv32e40px_top_i (
+        .clk_i (clk_i),
+        .rst_ni(rst_ni),
+
+        .pulp_clock_en_i(1'b1),
+        .scan_cg_en_i   (1'b0),
+
+        .boot_addr_i        (BOOT_ADDR),
+        .mtvec_addr_i       (32'h0),
+        .dm_halt_addr_i     (DM_HALTADDRESS),
+        .hart_id_i          (32'h0),
+        .dm_exception_addr_i(32'h0),
+
+        .instr_addr_o  (core_instr_req_o.addr),
+        .instr_req_o   (core_instr_req_o.req),
+        .instr_rdata_i (core_instr_resp_i.rdata),
+        .instr_gnt_i   (core_instr_resp_i.gnt),
+        .instr_rvalid_i(core_instr_resp_i.rvalid),
+
+        .data_addr_o  (core_data_req_o.addr),
+        .data_wdata_o (core_data_req_o.wdata),
+        .data_we_o    (core_data_req_o.we),
+        .data_req_o   (core_data_req_o.req),
+        .data_be_o    (core_data_req_o.be),
+        .data_rdata_i (core_data_resp_i.rdata),
+        .data_gnt_i   (core_data_resp_i.gnt),
+        .data_rvalid_i(core_data_resp_i.rvalid),
+
+        // CORE-V-XIF
+        // Compressed interface
+        .x_compressed_valid_o(),
+        .x_compressed_ready_i(),
+        .x_compressed_req_o(),
+        .x_compressed_resp_i('0),
+        // Issue Interface
+        .x_issue_valid_o(),
+        .x_issue_ready_i(),
+        .x_issue_req_o(),
+        .x_issue_resp_i('0),
+        // Commit Interface
+        .x_commit_valid_o(),
+        .x_commit_o(),
+        // Memory request/response Interface
+        .x_mem_valid_i(),
+        .x_mem_ready_o(),
+        .x_mem_req_i('0),
+        .x_mem_resp_o(),
+        // Memory Result Interface
+        .x_mem_result_valid_o(),
+        .x_mem_result_o(),
+        // Result Interface
+        .x_result_valid_i(),
+        .x_result_ready_o(),
+        .x_result_i('0),
+
+        .irq_i    (irq_i),
+        .irq_ack_o(irq_ack_o),
+        .irq_id_o (irq_id_o),
+
+        .debug_req_i      (debug_req_i),
+        .debug_havereset_o(),
+        .debug_running_o  (),
+        .debug_halted_o   (),
+
+        .fetch_enable_i(fetch_enable),
+        .core_sleep_o
+
+    );
+
   end else begin : gen_cv32e40p
 
     // instantiate the core
-    cv32e40p_tb_wrapper #(
-        .PULP_XPULP      (PULP_XPULP),
-        .PULP_CLUSTER    (0),
+    cv32e40p_top #(
+        .COREV_PULP      (COREV_PULP),
+        .COREV_CLUSTER   (0),
         .FPU             (FPU),
-        .PULP_ZFINX      (PULP_ZFINX),
+        .ZFINX           (ZFINX),
         .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS)
-    ) cv32e40p_tb_wrapper_i (
+    ) cv32e40p_top_i (
         .clk_i (clk_i),
         .rst_ni(rst_ni),
 

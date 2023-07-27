@@ -27,7 +27,8 @@ module cv32e40x_decoder_sva
   import uvm_pkg::*;
   import cv32e40x_pkg::*;
 #(
-  parameter bit A_EXT     = 1'b0
+  parameter a_ext_e A_EXT     = A_NONE,
+  parameter bit     CLIC      = 0
 )
 (
   input logic           clk,
@@ -70,11 +71,21 @@ module cv32e40x_decoder_sva
   a_uncompressed_lsb: assert property(p_uncompressed_lsb) else `uvm_error("decoder", "2 LSBs not 2'b11")
 
   generate
-    if (!A_EXT) begin : gen_no_a_extension_assertions
+    if (A_EXT == A_NONE) begin : gen_no_a_extension_assertions
       // Check that A extension opcodes are decoded as illegal when A extension not enabled
       a_illegal_0 :
         assert property (@(posedge clk) disable iff (!rst_n)
           (instr_rdata[6:0] == OPCODE_AMO) |-> (decoder_ctrl_mux.illegal_insn == 'b1))
+        else `uvm_error("decoder", "All atomic instructions should be illegal")
+    end
+
+    if (A_EXT == ZALRSC) begin : gen_no_a_ext_amo_assertions
+      // Check that A extension AMO opcodes are decoded as illegal when A extension not enabled
+      a_illegal_0 :
+        assert property (@(posedge clk) disable iff (!rst_n)
+          (instr_rdata[6:0] == OPCODE_AMO) &&
+          (instr_rdata[31:27] inside {AMO_SWAP, AMO_ADD, AMO_XOR, AMO_AND, AMO_OR, AMO_MIN, AMO_MAX, AMO_MINU, AMO_MAXU})
+          |-> (decoder_ctrl_mux.illegal_insn == 'b1))
         else `uvm_error("decoder", "AMO instruction should be illegal")
     end
   endgenerate
@@ -120,15 +131,17 @@ module cv32e40x_decoder_sva
                               decoder_ctrl_mux.illegal_insn}))
       else `uvm_error("decoder", "Multiple functional units enabled")
 
-  // Check that all functional units are disabled when a pointer is in the ID stage
-  a_functional_unit_disable_ptr :
-    assert property (@(posedge clk) disable iff (!rst_n)
-                      (if_id_pipe.instr_meta.clic_ptr || if_id_pipe.instr_meta.mret_ptr)
-                      |->
-                      !(|{alu_en_o, div_en_o, mul_en_o,
-                         csr_en_o, sys_en_o, lsu_en_o,
-                         illegal_insn_o}))
-      else `uvm_error("decoder", "Functional units enable when a pointer is in the ID stage")
+  if (CLIC) begin
+    // Check that all functional units are disabled when a pointer is in the ID stage
+    a_functional_unit_disable_ptr :
+      assert property (@(posedge clk) disable iff (!rst_n)
+                        (if_id_pipe.instr_meta.clic_ptr || if_id_pipe.instr_meta.mret_ptr)
+                        |->
+                        !(|{alu_en_o, div_en_o, mul_en_o,
+                          csr_en_o, sys_en_o, lsu_en_o,
+                          illegal_insn_o}))
+        else `uvm_error("decoder", "Functional units enable when a pointer is in the ID stage")
+  end
 
   // Check that branch/jump related signals can be used from I decoder directly (bypassing other decoders)
   a_branch_jump_decode :

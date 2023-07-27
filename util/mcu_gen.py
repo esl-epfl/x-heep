@@ -17,50 +17,61 @@ import csv
 from jsonref import JsonRef
 from mako.template import Template
 import collections
+from math import log2
 
 class Pad:
 
   def remove_comma_io_interface(self):
-    self.x_heep_system_interface = self.x_heep_system_interface.rstrip(self.x_heep_system_interface[-1])
+    try:
+        self.x_heep_system_interface = self.x_heep_system_interface.rstrip(self.x_heep_system_interface[-1])
+    except IndexError:
+        pass
+        ### bypass kind of PADs do not have any comma to be removed as they do not define an interface
 
   def create_pad_ring(self):
-    self.interface = '    inout logic ' + self.name + '_io,\n'
+
+    self.interface = '    inout wire ' + self.name + '_io,\n'
 
     if self.pad_type == 'input':
-        self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
+        self.pad_ring_io_interface = '    inout wire ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    output logic ' + self.signal_name + 'o,'
         self.pad_ring_instance = \
-            'pad_cell_input #(.PADATTR(8)) ' + self.cell_name + ' ( \n' + \
+            'pad_cell_input #(.PADATTR('+ str(self.attribute_bits) +')) ' + self.cell_name + ' ( \n' + \
             '   .pad_in_i(1\'b0),\n' + \
             '   .pad_oe_i(1\'b0),\n' + \
             '   .pad_out_o(' + self.signal_name + 'o),\n' + \
-            '   .pad_io(' + self.signal_name + 'io),\n' + \
-            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
-            ');\n\n'
+            '   .pad_io(' + self.signal_name + 'io),\n'
     if self.pad_type == 'output':
-        self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
+        self.pad_ring_io_interface = '    inout wire ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'i,'
         self.pad_ring_instance = \
-            'pad_cell_output #(.PADATTR(8)) ' + self.cell_name + ' ( \n' + \
+            'pad_cell_output #(.PADATTR('+ str(self.attribute_bits) +')) ' + self.cell_name + ' ( \n' + \
             '   .pad_in_i(' + self.signal_name + 'i),\n' + \
             '   .pad_oe_i(1\'b1),\n' + \
             '   .pad_out_o(),\n' + \
-            '   .pad_io(' + self.signal_name + 'io),\n' + \
-            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
-            ');\n\n'
+            '   .pad_io(' + self.signal_name + 'io),\n'
     if self.pad_type == 'inout':
-        self.pad_ring_io_interface = '    inout logic ' + self.io_interface + ','
+        self.pad_ring_io_interface = '    inout wire ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'i,\n'
         self.pad_ring_ctrl_interface += '    output logic ' + self.signal_name + 'o,\n'
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'oe_i,'
         self.pad_ring_instance = \
-            'pad_cell_inout #(.PADATTR(8)) ' + self.cell_name + ' ( \n' + \
+            'pad_cell_inout #(.PADATTR('+ str(self.attribute_bits) +')) ' + self.cell_name + ' ( \n' + \
             '   .pad_in_i(' + self.signal_name + 'i),\n' + \
             '   .pad_oe_i(' + self.signal_name + 'oe_i),\n' + \
             '   .pad_out_o(' + self.signal_name + 'o),\n' + \
-            '   .pad_io(' + self.signal_name + 'io),\n' + \
-            '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
-            ');\n\n'
+            '   .pad_io(' + self.signal_name + 'io),\n'
+
+    if self.pad_type == 'input' or self.pad_type == 'output' or self.pad_type == 'inout':
+        if self.has_attribute:
+            self.pad_ring_instance += \
+                '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
+                ');\n\n'
+        else:
+            self.pad_ring_instance += \
+                '   .pad_attributes_i(\'0)' + \
+                ');\n\n'
+
 
   def create_core_v_mini_mcu_ctrl(self):
 
@@ -168,12 +179,12 @@ class Pad:
         in_internal_signals = self.signal_name + 'in_x' + append_name
         self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'i),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'o(' + in_internal_signals + '),'
-        self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'i,'
+        self.x_heep_system_interface += '    inout wire ' + self.signal_name + 'i,'
     if self.pad_type == 'output':
         out_internal_signals = self.signal_name + 'out_x' + append_name
         self.pad_ring_bonding_bonding = '    .' + self.io_interface + '(' + self.signal_name + 'o),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'i(' + out_internal_signals + '),'
-        self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'o,'
+        self.x_heep_system_interface += '    inout wire ' + self.signal_name + 'o,'
     if self.pad_type == 'inout':
         in_internal_signals = self.signal_name + 'in_x' + append_name
         out_internal_signals = self.signal_name + 'out_x' + append_name
@@ -182,15 +193,16 @@ class Pad:
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'o(' + in_internal_signals + '),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'i(' + out_internal_signals + '),\n'
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'oe_i(' + oe_internal_signals + '),'
-        self.x_heep_system_interface += '    inout logic ' + self.signal_name + 'io,'
+        self.x_heep_system_interface += '    inout wire ' + self.signal_name + 'io,'
 
-  def __init__(self, name, cell_name, pad_type, index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list):
+  def __init__(self, name, cell_name, pad_type, index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, has_attribute, attribute_bits):
 
     self.name = name
     self.cell_name = cell_name
     self.index = index
     self.localparam = 'PAD_' + name.upper()
     self.pad_type = pad_type
+    self.pad_mux_list = pad_mux_list
 
     if('low' in pad_active):
         name_active = 'n'
@@ -198,6 +210,9 @@ class Pad:
         name_active = ''
 
     self.signal_name = self.name + '_' + name_active
+
+    self.has_attribute = has_attribute
+    self.attribute_bits = int(attribute_bits.split(":")[0]) - int(attribute_bits.split(":")[1]) + 1
 
     self.signal_name_drive = []
     self.pad_type_drive    = []
@@ -299,7 +314,7 @@ def main():
     # Parse arguments.
 
     parser.add_argument("--cpu",
-                        metavar="cv32e20,cv32e40p,cv32e40x",
+                        metavar="cv32e20,cv32e40p,cv32e40x,cv32e40px",
                         nargs='?',
                         default="",
                         help="CPU type (default value from cfg file)")
@@ -315,6 +330,12 @@ def main():
                         nargs='?',
                         default="",
                         help="Number of 32KB Banks (default value from cfg file)")
+
+    parser.add_argument("--memorybanks_il",
+                        metavar="0, 2, 4 or 8",
+                        nargs='?',
+                        default="",
+                        help="Number of interleaved memory banks (default value from cfg file)")
 
     parser.add_argument("--external_domains",
                         metavar="from 0 to 32",
@@ -343,6 +364,9 @@ def main():
                         metavar="file",
                         type=argparse.FileType('r'),
                         required=False,
+                        nargs='?',
+                        default=None,
+                        const=None,
                         help="Name of the hjson file contaiting extra pads")
 
     parser.add_argument("-v",
@@ -391,12 +415,30 @@ def main():
         bus_type = obj['bus_type']
 
     if args.memorybanks != None and args.memorybanks != '':
-        ram_numbanks = int(args.memorybanks)
+        ram_numbanks_cont = int(args.memorybanks)
     else:
-        ram_numbanks = int(obj['ram']['numbanks'])
+        ram_numbanks_cont = int(obj['ram']['numbanks'])
 
-    if ram_numbanks < 2 and ram_numbanks > 16:
-        exit("ram numbanks must be between 2 and 16 instead of " + str(ram_numbanks))
+    if args.memorybanks_il != None and args.memorybanks_il != '':
+        ram_numbanks_il = int(args.memorybanks_il)
+    else:
+        ram_numbanks_il = int(obj['ram']['numbanks_interleaved'])
+
+    if ram_numbanks_il != 0:
+        log_ram_numbanks_il = int(log2(ram_numbanks_il))
+
+        if not log2(ram_numbanks_il).is_integer():
+            exit("ram interleaved numbanks must be a power of 2 instead of " + str(ram_numbanks_il))
+    else:
+        log_ram_numbanks_il = 0
+
+    if ram_numbanks_il != 0 and bus_type == 'onetoM':
+        exit("bus type must be 'NtoM' instead 'onetoM' to access the interleaved memory banks in parallel" + str(args.bus))
+
+    if ram_numbanks_cont + ram_numbanks_il < 2 and ram_numbanks_cont + ram_numbanks_il > 16:
+        exit("ram numbanks must be between 2 and 16 instead of " + str(ram_numbanks_cont + ram_numbanks_il))
+    else:
+        ram_numbanks = ram_numbanks_cont + ram_numbanks_il
 
     ram_start_address = string2int(obj['ram']['address'])
     if int(ram_start_address,16) != 0:
@@ -424,15 +466,21 @@ def main():
 
     ao_peripheral_size_address = string2int(obj['ao_peripherals']['length'])
 
+
     def extract_peripherals(peripherals):
-        return {
-            name: {
-                k: string2int(v)
-                for k, v in info.items()
-            }
-            for name, info in peripherals.items()
-            if isinstance(info, dict)
-        }
+        result = {}
+        for name, info in peripherals.items():
+            if isinstance(info, dict):
+                new_info = {}
+                for k, v in info.items():
+                    if k not in ("is_included"):
+                        new_info[k] = string2int(v)
+                    else:
+                        new_info[k] = v
+                result[name] = new_info
+
+        return result
+
 
     def discard_path(peripherals):
         new = {}
@@ -443,8 +491,18 @@ def main():
                 new[k] = v
         return new
 
+    def len_extracted_peripherals(peripherals):
+        len_ep = 0
+        for name, info in peripherals.items():
+            if isinstance(info, dict):
+                for k, v in info.items():
+                   if k in ("is_included"):
+                    if v in ("yes"):
+                        len_ep += 1
+        return len_ep
+
     ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
-    ao_peripherals_count = len(ao_peripherals) 
+    ao_peripherals_count = len(ao_peripherals)
 
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
@@ -453,7 +511,7 @@ def main():
 
     peripheral_size_address = string2int(obj['peripherals']['length'])
     peripherals = extract_peripherals(discard_path(obj['peripherals']))
-    peripherals_count = len(peripherals) 
+    peripherals_count = len(peripherals)
 
     ext_slave_start_address = string2int(obj['ext_slaves']['address'])
     ext_slave_size_address = string2int(obj['ext_slaves']['length'])
@@ -469,9 +527,18 @@ def main():
 
     linker_onchip_data_start_address  = string2int(obj['linker_script']['onchip_ls']['data']['address'])
     if (obj['linker_script']['onchip_ls']['data']['lenght'].split()[0].split(",")[0] == "whatisleft"):
-        linker_onchip_data_size_address  = str('{:08X}'.format(int(ram_size_address,16) - int(linker_onchip_code_size_address,16)))
+        if ram_numbanks_il == 0 or (ram_numbanks_cont == 1 and ram_numbanks_il > 0):
+            linker_onchip_data_size_address  = str('{:08X}'.format(int(ram_size_address,16) - int(linker_onchip_code_size_address,16)))
+        else:
+            linker_onchip_data_size_address  = str('{:08X}'.format(int(ram_size_address,16) - int(linker_onchip_code_size_address,16) - ram_numbanks_il*32*1024))
     else:
-        linker_onchip_data_size_address  = string2int(obj['linker_script']['onchip_ls']['data']['lenght'])
+        if ram_numbanks_il == 0 or (ram_numbanks_cont == 1 and ram_numbanks_il > 0):
+            linker_onchip_data_size_address  = string2int(obj['linker_script']['onchip_ls']['data']['lenght'])
+        else:
+            linker_onchip_data_size_address  = str('{:08X}'.format(int(string2int(obj['linker_script']['onchip_ls']['data']['lenght']),16) - ram_numbanks_il*32*1024))
+
+    linker_onchip_il_start_address = str('{:08X}'.format(int(linker_onchip_data_start_address,16) + int(linker_onchip_data_size_address,16)))
+    linker_onchip_il_size_address = str('{:08X}'.format(ram_numbanks_il*32*1024))
 
     if ((int(linker_onchip_data_size_address,16) + int(linker_onchip_code_size_address,16)) > int(ram_size_address,16)):
         exit("The code and data section must fit in the RAM size, instead they takes " + str(linker_onchip_data_size_address + linker_onchip_code_size_address))
@@ -487,6 +554,13 @@ def main():
 
 
     pads = obj_pad['pads']
+
+    try:
+        pads_attributes = obj_pad['attributes']
+        pads_attributes_bits = pads_attributes['bits']
+    except KeyError:
+        pads_attributes = None
+        pads_attributes_bits = "-1:0"
 
     # Read HJSON description of External Pads
     if args.external_pads != None:
@@ -582,13 +656,13 @@ def main():
             except KeyError:
                 pad_skip_declaration_mux = False
 
-            p = Pad(pad_mux, '', pads[key]['mux'][pad_mux]['type'], 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [])
+            p = Pad(pad_mux, '', pads[key]['mux'][pad_mux]['type'], 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [], pads_attributes!=None, pads_attributes_bits)
             pad_mux_list.append(p)
 
         if pad_num > 1:
             for p in range(pad_num):
                 pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
-                pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list)
+                pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits)
                 if not pad_keep_internal:
                     pad_obj.create_pad_ring()
                 pad_obj.create_core_v_mini_mcu_ctrl()
@@ -607,7 +681,7 @@ def main():
 
         else:
             pad_cell_name = "pad_" + key + "_i"
-            pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list)
+            pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits)
             if not pad_keep_internal:
                 pad_obj.create_pad_ring()
             pad_obj.create_core_v_mini_mcu_ctrl()
@@ -688,13 +762,13 @@ def main():
                 except KeyError:
                     pad_skip_declaration_mux = False
 
-                p = Pad(pad_mux, '', external_pads[key]['mux'][pad_mux]['type'], 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [])
+                p = Pad(pad_mux, '', external_pads[key]['mux'][pad_mux]['type'], 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [], pads_attributes!=None, pads_attributes_bits)
                 pad_mux_list.append(p)
 
             if pad_num > 1:
                 for p in range(pad_num):
                     pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
-                    pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration_mux, pad_mux_list)
+                    pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits)
                     pad_obj.create_pad_ring()
                     pad_obj.create_pad_ring_bonding()
                     pad_obj.create_internal_signals()
@@ -710,7 +784,7 @@ def main():
 
             else:
                 pad_cell_name = "pad_" + key + "_i"
-                pad_obj = Pad(pad_name, pad_cell_name, pad_type, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration_mux, pad_mux_list)
+                pad_obj = Pad(pad_name, pad_cell_name, pad_type, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits)
                 pad_obj.create_pad_ring()
                 pad_obj.create_pad_ring_bonding()
                 pad_obj.create_internal_signals()
@@ -728,6 +802,12 @@ def main():
 
     total_pad_list = pad_list + external_pad_list
 
+    max_total_pad_mux_bitlengh = -1
+    for pad in pad_muxed_list:
+        if (len(pad.pad_mux_list)-1).bit_length() > max_total_pad_mux_bitlengh:
+          max_total_pad_mux_bitlengh = (len(pad.pad_mux_list)-1).bit_length()
+
+
     total_pad = pad_index_counter + external_pad_index_counter
 
     total_pad_muxed = len(pad_muxed_list)
@@ -742,6 +822,9 @@ def main():
         "bus_type"                         : bus_type,
         "ram_start_address"                : ram_start_address,
         "ram_numbanks"                     : ram_numbanks,
+        "ram_numbanks_cont"                : ram_numbanks_cont,
+        "ram_numbanks_il"                  : ram_numbanks_il,
+        "log_ram_numbanks_il"              : log_ram_numbanks_il,
         "external_domains"                 : external_domains,
         "ram_size_address"                 : ram_size_address,
         "debug_start_address"              : debug_start_address,
@@ -762,6 +845,8 @@ def main():
         "linker_onchip_code_size_address"  : linker_onchip_code_size_address,
         "linker_onchip_data_start_address" : linker_onchip_data_start_address,
         "linker_onchip_data_size_address"  : linker_onchip_data_size_address,
+        "linker_onchip_il_start_address"   : linker_onchip_il_start_address,
+        "linker_onchip_il_size_address"    : linker_onchip_il_size_address,
         "plic_used_n_interrupts"           : plic_used_n_interrupts,
         "plit_n_interrupts"                : plit_n_interrupts,
         "interrupts"                       : interrupts,
@@ -773,6 +858,8 @@ def main():
         "pad_mux_process"                  : pad_mux_process,
         "pad_muxed_list"                   : pad_muxed_list,
         "total_pad_muxed"                  : total_pad_muxed,
+        "max_total_pad_mux_bitlengh"       : max_total_pad_mux_bitlengh,
+        "pads_attributes"                  : pads_attributes,
     }
 
     ###########

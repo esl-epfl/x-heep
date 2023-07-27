@@ -36,7 +36,12 @@ extern "C" {
 #define ${name.upper()}_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${peripheral['offset']})
 #define ${name.upper()}_SIZE 0x${peripheral['length']}
 #define ${name.upper()}_END_ADDRESS (${name.upper()}_START_ADDRESS + ${name.upper()}_SIZE)
+% if "yes" in peripheral['is_included']:
+#define ${name.upper()}_IS_INCLUDED
 
+%else:
+
+% endif
 %endfor
 
 #define EXT_SLAVE_START_ADDRESS 0x${ext_slave_start_address}
@@ -51,9 +56,11 @@ extern "C" {
 #define ${key.upper()} ${value}
 % endfor
 
+% if pads_attributes != None:
 % for pad in pad_list:
 #define ${pad.localparam}_ATTRIBUTE ${pad.index}
 % endfor
+% endif
 
 #ifdef __cplusplus
 }  // extern "C"

@@ -13,7 +13,10 @@
 
 module cv32e40p_fp_wrapper
   import cv32e40p_apu_core_pkg::*;
-(
+#(
+    parameter FPU_ADDMUL_LAT = 0,  // Floating-Point ADDition/MULtiplication computing lane pipeline registers number
+    parameter FPU_OTHERS_LAT = 0  // Floating-Point COMParison/CONVersion computing lanes pipeline registers number
+) (
     // Clock and Reset
     input logic clk_i,
     input logic rst_ni,
@@ -73,11 +76,11 @@ module cv32e40p_fp_wrapper
   localparam fpnew_pkg::fpu_implementation_t FPU_IMPLEMENTATION = '{
       PipeRegs: '{  // FP32, FP64, FP16, FP8, FP16alt
       '{
-          C_LAT_FP32, C_LAT_FP64, C_LAT_FP16, C_LAT_FP8, C_LAT_FP16ALT
+          FPU_ADDMUL_LAT, C_LAT_FP64, C_LAT_FP16, C_LAT_FP8, C_LAT_FP16ALT
       },  // ADDMUL
       '{default: C_LAT_DIVSQRT},  // DIVSQRT
-      '{default: C_LAT_NONCOMP},  // NONCOMP
-      '{default: C_LAT_CONV}
+      '{default: FPU_OTHERS_LAT},  // NONCOMP
+      '{default: FPU_OTHERS_LAT}
   },  // CONV
   UnitTypes: '{
       '{default: fpnew_pkg::MERGED},  // ADDMUL
@@ -94,6 +97,7 @@ module cv32e40p_fp_wrapper
   fpnew_top #(
       .Features      (FPU_FEATURES),
       .Implementation(FPU_IMPLEMENTATION),
+      .PulpDivsqrt   (1'b0),
       .TagType       (logic)
   ) i_fpnew_bulk (
       .clk_i         (clk_i),
@@ -107,6 +111,7 @@ module cv32e40p_fp_wrapper
       .int_fmt_i     (fpnew_pkg::int_format_e'(fpu_int_fmt)),
       .vectorial_op_i(fpu_vec_op),
       .tag_i         (1'b0),
+      .simd_mask_i   ('b0),
       .in_valid_i    (apu_req_i),
       .in_ready_o    (apu_gnt_o),
       .flush_i       (1'b0),

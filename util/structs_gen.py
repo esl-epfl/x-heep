@@ -35,6 +35,7 @@ struct_entry = (3 * tab_spaces) + "{}" + "{}" + ":{}"  # type, name and amount o
 struct_typedef_end = (2 * tab_spaces) + "} b ;"  # define the end of the new struct definition and the format for the new type-name
 
 # Documentation comments definitions #
+comment_align_space = 50
 line_comment_start = "/*!< "
 line_comment_end = "*/"
 struct_comment = "Structure used for bit access"
@@ -60,7 +61,7 @@ def write_template(tpl, structs, enums, struct_name):
 
     lower_case_name = struct_name.lower()
     upper_case_name = struct_name.upper()
-    start_addr_def = "{}_peri (({} *) {}_START_ADDRESS)".format(lower_case_name, struct_name, upper_case_name)
+    start_addr_def = "{}_peri ((volatile {} *) {}_START_ADDRESS)".format(lower_case_name, struct_name, upper_case_name)
     
     today = date.today()
     today = today.strftime("%d/%m/%Y")
@@ -155,6 +156,43 @@ def select_type(amount_of_bits):
         return "uint64_t"
 
 
+def intr_regs_auto_gen():
+    """
+    Generate hardcoded registers for interrupts
+
+    :return: string with the register varibles to be added to the struct
+    """
+    res  = ""
+    line = tab_spaces + "uint32_t {};".format("INTR_STATE")
+    reg_comment = line_comment_start + "Interrupt State Register" + line_comment_end + "\n\n"
+    res += line.ljust(comment_align_space) + reg_comment
+
+    line = tab_spaces + "uint32_t {};".format("INTR_ENABLE")
+    reg_comment = line_comment_start + "Interrupt Enable Register" + line_comment_end + "\n\n"
+    res += line.ljust(comment_align_space) + reg_comment
+
+    line = tab_spaces + "uint32_t {};".format("INTR_TEST")
+    reg_comment = line_comment_start + "Interrupt Test Register" + line_comment_end + "\n\n"
+    res += line.ljust(comment_align_space) + reg_comment
+
+    return res
+
+
+def alert_regs_auto_gen():
+    """
+    Generate hardcoded registers for alerts
+
+    :return: string with the register varibles to be added to the struct
+    """
+    res = ""
+    
+    line = tab_spaces + "uint32_t {};".format("ALERT_TEST")
+    reg_comment = line_comment_start + "Alert Test Register" + line_comment_end + "\n\n"
+    res += line.ljust(comment_align_space) + reg_comment
+
+    return res
+
+
 def add_fields(register_json):
     """
     Loops through the fields of the json of a register, passed as parameter.
@@ -220,15 +258,93 @@ def add_registers(peripheral_json):
     reg_struct = "\n"
     reg_enum = ""
 
+    # number of "reserved" fields. Used to name them with a progressive ID
+    num_of_reserved = 0 
+
+    # Keeps track of the offset in Bytes from the base address of the peripheral.
+    # It is usefult to compute how many Bytes to reserve in case a "skipto"
+    # keywork is encountered
+    bytes_offset = 0 
+
+    
+    # To handle INTR specific registers #
+    if "interrupt_list" in peripheral_json:
+        if 'no_auto_intr_regs' not in peripheral_json:
+            reg_struct += intr_regs_auto_gen()
+
+    # To handle the ALERT registers #
+    if "alert_list" in peripheral_json:
+        if "no_auto_alert_regs" not in peripheral_json:
+            reg_struct += alert_regs_auto_gen()
+
     # loops through the registers of the hjson
     for elem in peripheral_json['registers']:
+
+        # check and handle the multireg case
         if "multireg" in elem:
-            elem = elem["multireg"]
-        
-        if "name" in elem:
-            reg_struct += tab_spaces + "uint32_t {};".format(elem["name"])
-            reg_comment = elem["desc"].replace("\n", " ")
-            reg_struct += format(line_comment_start, ">30") + format(reg_comment, "<100") + "*/\n\n"
+            multireg = elem["multireg"]
+            count_var = multireg["count"]
+
+            # search the multireg count default value
+            # This is the number of bitfields needed
+            for p in peripheral_json["param_list"]:
+                if count_var == p["name"]:
+                    count = int(p["default"])
+            
+            # counts the bits needed by the multireg register
+            n_bits = 0
+            for f in multireg["fields"]:
+                n_bits += count_bits(f["bits"])
+
+            # computes the number of registers needed to pack all the bit fields needed
+            n_multireg = int((count * n_bits) /  int(peripheral_json["regwidth"]))
+            
+            # generate the multiregisters
+            for r in range(n_multireg):
+                reg_name = multireg["name"] + str(r)
+                line = tab_spaces + "uint32_t {};".format(reg_name)
+                reg_comment = line_comment_start + multireg["desc"].replace("\n", " ") + line_comment_end + "\n\n"
+                reg_struct += line.ljust(comment_align_space) + reg_comment
+                bytes_offset += 4   # one register is 4 bytes
+
+        # check and handle the "window" case
+        elif "window" in elem:
+            
+            window = elem["window"]
+            
+            validbits = int(window["validbits"])
+
+            line = tab_spaces + "{} {};".format(select_type(validbits), window["name"])
+            reg_comment = line_comment_start + window["desc"].replace("\n", " ") + line_comment_end + "\n\n"
+            reg_struct += line.ljust(comment_align_space) + reg_comment
+            
+
+        # if no multireg or window, just generate the reg
+        elif "name" in elem:   
+            
+            line = tab_spaces + "uint32_t {};".format(elem["name"])
+            reg_comment = line_comment_start + elem["desc"].replace("\n", " ") + line_comment_end + "\n\n"
+            reg_struct += line.ljust(comment_align_space) + reg_comment
+            bytes_offset += 4       # in order to properly generate subsequent "multireg cases"
+
+        if "skipto" in elem:
+            new_address = elem["skipto"]
+
+            # check if the new address is in hexadecimal or decimal
+            # and convert it to decimal
+            if(new_address[:2] == "0x"):
+                new_address = int(new_address, base=16)
+            else:
+                new_address = int(new_address)
+
+            offset_value = int((new_address - bytes_offset) / 4)
+            
+            line = tab_spaces + "uint32_t _reserved_{}[{}];".format(num_of_reserved, int(offset_value))
+            reg_comment = line_comment_start + "reserved addresses" + line_comment_end + "\n\n"
+            reg_struct += line.ljust(comment_align_space) + reg_comment
+            bytes_offset += offset_value * 4
+            num_of_reserved += 1
+
 
             ## OLD VERSION WITH UNION AND BIT FIELDS ##
             # reg_struct += union_start + struct_typedef_start.format(elem["name"])

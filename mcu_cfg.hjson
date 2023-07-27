@@ -12,6 +12,7 @@
     ram: {
         address: 0x00000000, #only tried with 0, cannot be changed for now
         numbanks: 2, #each bank is 32kB, cannot be changed for now
+        numbanks_interleaved: 0,
     },
 
     linker_script: {
@@ -19,10 +20,10 @@
         onchip_ls: {
             code: {
                 address: 0x00000000,
-                lenght: 0x0000A200, #minimum size for freeRTOS
+                lenght: 0x00000C800, #minimum size for freeRTOS and clang
             }
             data: {
-                address: 0x0000A200,
+                address: 0x00000C800,
                 lenght: whatisleft, #keyword used to calculate the size as: ram.length - code.lenght
             }
         },
@@ -102,26 +103,43 @@
         rv_plic: {
             offset:  0x00000000,
             length:  0x00010000,
+            is_included: "yes",
             path:    "./hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/data/rv_plic.hjson"
         },
         gpio: {
             offset:  0x00020000,
             length:  0x00010000,
+            is_included: "yes",
             path:    "./hw/vendor/pulp_platform_gpio/gpio_regs.hjson"
         },
         i2c: {
             offset:  0x00030000,
             length:  0x00010000,
+            is_included: "yes",
             path:    "./hw/vendor/lowrisc_opentitan/hw/ip/i2c/data/i2c.hjson"
         },
         rv_timer: {
             offset:  0x00040000,
             length:  0x00010000,
+            is_included: "yes",
             path:    "./hw/vendor/lowrisc_opentitan/hw/ip/rv_timer/data/rv_timer.hjson"
         },
         spi2: {
             offset:  0x00050000,
             length:  0x00010000,
+            is_included: "yes",
+        },
+        pdm2pcm: {
+            offset:  0x00060000,
+            length:  0x00010000,
+            is_included: "no",
+            path:    "./hw/ip/pdm2pcm/data/pdm2pcm.hjson"
+        },
+        i2s: {
+            offset:  0x00070000,
+            length:  0x00010000,
+            is_included: "yes",
+            path:    "./hw/ip/i2s/data/i2s.hjson"
         },
     },
 
@@ -189,6 +207,8 @@
             intr_ack_stop:           47,
             intr_host_timeout:       48,
             spi2_intr_event:         49,
+            i2s_intr_event:          50,
+            dma_window_intr:         51,
         }
     }
 }
