@@ -44,13 +44,13 @@ In order to vendorize `X-HEEP` create inside your repository's base directory (`
 ```
 </details>
 
-The branch `main` can be replaced with an specific commit. This is the recommended operation to prevent accidental updates to an incompatible version. 
+The branch `main` can be replaced with an specific commit. This is the recommended operation to prevent accidental updates to an incompatible version.
 
-In a directory `BASE/util` add the [vendor python script](https://github.com/lowRISC/opentitan/blob/master/util/vendor.py). 
+In a directory `BASE/util` add the [vendor python script](https://github.com/lowRISC/opentitan/blob/master/util/vendor.py).
 
-To vendorize or revendorize the X-HEEP repository inside a `BASE/hw/vendor/esl_epfl_x_heep/` folder run the following command from your `BASE`. 
+To vendorize or revendorize the X-HEEP repository inside a `BASE/hw/vendor/esl_epfl_x_heep/` folder run the following command from your `BASE`.
 ```
-util/vendor.py --update hw/vendor/esl_epfl_x_heep.vendor.hjson 
+util/vendor.py --update hw/vendor/esl_epfl_x_heep.vendor.hjson
 ```
 
 
@@ -58,8 +58,8 @@ util/vendor.py --update hw/vendor/esl_epfl_x_heep.vendor.hjson
 To get started you will need to integrate both your coprocessor or accelerator and `X-HEEP` into a new system.
 
 ### Proposed repository folder structure
-The following is an example repository folder structure. 
-    
+The following is an example repository folder structure.
+
     BASE
     ├── hw
     │   ├── TOP
@@ -113,9 +113,9 @@ To add this new top-level module to the simulation/synthesis flow you can extend
         - [YOUR_COPROCESSOR]
         files:
         - hw/[YOUR_TOPLEVEL_SV]
-        - hw/vendor/esl-epfl_x-heep/hw/system/pad_ring.sv  
+        - hw/vendor/esl-epfl_x-heep/hw/system/pad_ring.sv
         file_type: systemVerilogSource
-    
+
     tb:
         depend:
         - x-heep::tb-utils
@@ -210,7 +210,7 @@ To add this new top-level module to the simulation/synthesis flow you can extend
 
 ## Building Software
 
-If `X-HEEP` is vendorized into your project, you can still have software source files in any directory of your convenience and build them using `X-HEEP`'s compilation flow. 
+If `X-HEEP` is vendorized into your project, you can still have software source files in any directory of your convenience and build them using `X-HEEP`'s compilation flow.
 
 ### Proposed repository folder structure
 The following is an example repository folder structure.
@@ -247,19 +247,19 @@ The following is an example repository folder structure.
     │           │   └── ...
     │           ├── Makefile
     │           ├── external.mk
-    │           └── ...	
+    │           └── ...
     ├── Makefile
     ├── util
     │   └── vendor.py
     └── ...
-    
-Where `BASE` is your repository's base directory, `esl_epfl_x_heep` is the vendorized `X-HEEP` repository and `your_app` is the name of the application you intend to build. 
+
+Where `BASE` is your repository's base directory, `esl_epfl_x_heep` is the vendorized `X-HEEP` repository and `your_app` is the name of the application you intend to build.
 
 ### The /sw/ folder
 
-The `BASE/sw/` folder must comply with `X-HEEP` repository structure and therefore include an `applications`, `build`, `device` and `linker` folder. 
-It is not compulsory for it to be on the `BASE` directory, although this is the default structure that `X-HEEP`'s Makefiles will assume if no other path is specified through the `SOURCE` variable. 
-Inside the `applications` folder different projects can be stored (still respecting the `name_of_project/main.c` structure). 
+The `BASE/sw/` folder must comply with `X-HEEP` repository structure and therefore include an `applications`, `build`, `device` and `linker` folder.
+It is not compulsory for it to be on the `BASE` directory, although this is the default structure that `X-HEEP`'s Makefiles will assume if no other path is specified through the `SOURCE` variable.
+Inside the `applications` folder different projects can be stored (still respecting the `name_of_project/main.c` structure).
 The `build`, `device` and `linker` should be linked with the vendorized folders inside `X-HEEP`.
 In this example that is done from the `BASE` directory as follows:
 ```
@@ -269,20 +269,20 @@ ln -s ../hw/vendor/esl_epfl_x_heep/sw/linker sw/linker
 ```
 
 ### The /sw/applications folder
-Inside the `sw/applications/` folder you may have different applications that can be built separately. Each application is a directory named after your application, containing one and only one `main.c` file which is built during the compilation process. The folder can contain other source or header files (of any name but `main.c`).  
+Inside the `sw/applications/` folder you may have different applications that can be built separately. Each application is a directory named after your application, containing one and only one `main.c` file which is built during the compilation process. The folder can contain other source or header files (of any name but `main.c`).
 
 ### The /sw/external folder
 In the `external` folder you can add whatever is necessary for software to work with your coprocessor/accelerator. This might include:
 
 * Sources and header files
-* Soft links to folders or files. 
+* Soft links to folders or files.
 
-The external folder or any of its subdirectories cannot contain neither a `device` nor a `applications` folder as it would collide with the respective folders inside `BASE/sw/`. It should also not contain a `main.c` file.  
+The external folder or any of its subdirectories cannot contain neither a `device` nor a `applications` folder as it would collide with the respective folders inside `BASE/sw/`. It should also not contain a `main.c` file.
 
 ### The BASE/Makefile
-The `BASE/Makefile` is your own custom Makefile. You can use it as a bridge to access the Makefile from `X-HEEP`. 
+The `BASE/Makefile` is your own custom Makefile. You can use it as a bridge to access the Makefile from `X-HEEP`.
 
-To do so, it MUST include the `external.mk` AFTER all your custom rules. 
+To do so, it MUST include the `external.mk` AFTER all your custom rules.
 
 
 <details>
@@ -290,25 +290,25 @@ To do so, it MUST include the `external.mk` AFTER all your custom rules.
 
 ```
 MAKE     = make
-
+.PHONY: test
 test:
-    @echo Nothing is executed from X-HEEP
+    @echo Nothing is executed from X-HEEP, as test is not a target inside X-HEEP.
 
 app:
-    @echo This is app being run from the x-heep repo
+    @echo This target will do something and then call the one inside X-HEEP.
     $(MAKE) -f $(XHEEP_MAKE) $(MAKECMDGOALS) PROJECT=hello_world SOURCE=.
 
-verilator-sim: 
-    @echo You will not access verilator-sim
+verilator-sim:
+    @echo You will not access the verilator-sim target from X-HEEP.
 
 export HEEP_DIR = hw/vendor/esl_epfl_x_heep/
 XHEEP_MAKE = $(HEEP_DIR)/external.mk
 include $(XHEEP_MAKE)
 ```
 
-* The `test` rule will not use the `X-HEEP` Makefile in any way.
-* The `app` rule will perform actions before calling `X-HEEP` Makefile's `app` rule. In this case, the project and where the source files are to be extracted from is being specified. The `SOURCE=.` argument will set `X-HEEP`'s own `sw/` folder as the directory from which to fetch source files. This is an example of building inner sources from an external directory. 
-* The `verilator-sim` rule will override the `X-HEEP` Makefile's one. 
+* The `test` rule will not use the `X-HEEP` Makefile in any way. Make the target a prerequisite of `.PHONY` to prevent the X-HEEP Makefile from attempting to run a non-existent target.
+* The `app` rule will perform actions before calling `X-HEEP` Makefile's `app` rule. In this case, the project and where the source files are to be extracted from is being specified. The `SOURCE=.` argument will set `X-HEEP`'s own `sw/` folder as the directory from which to fetch source files. This is an example of building inner sources from an external directory.
+* The `verilator-sim` rule will override the `X-HEEP` Makefile's one.
 * Any other target will be passed straight to `X-HEEP`'s Makefile. For example
 ```
 make mcu-gen CPU=cv32e40x
@@ -322,8 +322,8 @@ If you plan to vendorize `X-HEEP` in a different directory than the one proposed
 export HEEP_DIR = <path_to_x_heep_relative_to_this_directory>
 ```
 
-If you plan to store source files in a different location that the one proposed, just call `make` making the `SOURCE` path explicit. 
+If you plan to store source files in a different location that the one proposed, just call `make` making the `SOURCE` path explicit.
 ```
 make app PROJECT=your_app SOURCE=<path_to_your_sw_relative_to_x_heep_sw>
 ```
-Consider that inside this `sw` folder the same structure than the one proposed is required.  
+Consider that inside this `sw` folder the same structure than the one proposed is required.
