@@ -26,9 +26,10 @@ module cv32e40x_core_sva
   import uvm_pkg::*;
   import cv32e40x_pkg::*;
   #(
-    parameter bit A_EXT = 0,
-    parameter int PMA_NUM_REGIONS = 0,
-    parameter bit SMCLIC = 0
+    parameter a_ext_e A_EXT = A_NONE,
+    parameter bit     DEBUG = 1,
+    parameter int     PMA_NUM_REGIONS = 0,
+    parameter bit     CLIC = 0
   )
   (
   input logic        clk,
@@ -66,6 +67,12 @@ module cv32e40x_core_sva
   input logic          last_op_id,
   input logic [31:0]   rf_wdata_wb,
   input logic          rf_we_wb,
+  input lsu_atomic_e   lsu_atomic_wb,
+  input logic          lsu_valid_wb,
+  input logic          lsu_exception_wb,
+  input logic          lsu_wpt_match_wb,
+  input logic [31:0]   lsu_rdata_wb,
+  input logic          lsu_exokay_wb,
 
   input logic        alu_jmpr_id_i,
   input logic        alu_en_id_i,
@@ -77,8 +84,11 @@ module cv32e40x_core_sva
   input logic        instr_dbg_o,
   input logic [1:0]  data_memtype_o,
   input logic        data_req_o,
+  input logic        data_gnt_i,
+  input logic        data_rvalid_i,
   input logic        data_we_o,
   input logic [5:0]  data_atop_o,
+  input logic        data_dbg_o,
 
   // probed controller signals
   input logic        ctrl_debug_mode_n,
@@ -92,6 +102,9 @@ module cv32e40x_core_sva
   input logic [2:0]  ctrl_debug_cause_n,
   input logic        ctrl_pending_nmi,
   input ctrl_state_e ctrl_fsm_cs,
+
+  input logic        debug_halted_o,
+
   // probed cs_registers signals
   input logic [31:0] cs_registers_mie_q,
   input logic [31:0] cs_registers_mepc_n,
@@ -99,7 +112,7 @@ module cv32e40x_core_sva
   input mcause_t     cs_registers_mcause_q,    // From cs_registers, flopped mcause
   input mstatus_t    cs_registers_mstatus_q);
 
-if (SMCLIC) begin
+if (CLIC) begin
   property p_clic_mie_tieoff;
     @(posedge clk)
     |mie == 1'b0;
@@ -114,7 +127,7 @@ if (SMCLIC) begin
 
   //todo: add CLIC related assertions (level thresholds etc)
 end else begin
-  // SMCLIC == 0
+  // CLIC == 0
   // Check that a taken IRQ is actually enabled (e.g. that we do not react to an IRQ that was just disabled in MIE)
   // The actual mie_n value may be different from mie_q if mie is not
   // written to.
@@ -135,7 +148,7 @@ end else begin
 
   a_irq_enabled_1 : assert property(p_irq_enabled_1) else `uvm_error("core", "Assertion a_irq_enabled_1 failed")
 
-  // Assert that no pointer can be in any pipeline stage when SMCLIC == 0
+  // Assert that no pointer can be in any pipeline stage when CLIC == 0
   property p_clic_noptr_in_pipeline;
     @(posedge clk) disable iff (!rst_ni)
       1'b1
@@ -145,7 +158,7 @@ end else begin
   endproperty
 
   a_clic_noptr_in_pipeline : assert property(p_clic_noptr_in_pipeline) else `uvm_error("core", "CLIC pointer in pipeline when CLIC is not configured.")
-end // SMCLIC
+end // CLIC
 
 // First illegal instruction decoded
 logic         first_illegal_found;
@@ -201,7 +214,7 @@ always_ff @(posedge clk , negedge rst_ni)
         expected_ebrk_mepc <= ex_wb_pipe.pc;
       end
 
-      if (!first_instr_err_found && (ex_wb_pipe.instr.mpu_status == MPU_OK) && !irq_ack && !pending_debug &&
+      if (!first_instr_err_found && (ex_wb_pipe.instr.mpu_status == MPU_OK) && (ex_wb_pipe.instr.align_status == ALIGN_OK) && !irq_ack && !pending_debug &&
          !(ctrl_fsm.pc_mux == PC_TRAP_NMI) &&
           ex_wb_pipe.instr_valid && ex_wb_pipe.instr.bus_resp.err && !ctrl_debug_mode_n ) begin
         first_instr_err_found   <= 1'b1;
@@ -340,28 +353,19 @@ always_ff @(posedge clk , negedge rst_ni)
     end
 
 
-  // Single step without interrupts
-  // Should issue exactly one instruction from ID before entering debug_mode
-  a_single_step_no_irq :
-    assert property (@(posedge clk) disable iff (!rst_ni || interrupt_taken)
-                     (inst_taken && dcsr.step && !ctrl_fsm.debug_mode)
-                     ##1 inst_taken [->1]
-                     |-> (ctrl_fsm.debug_mode && dcsr.step))
-      else `uvm_error("core", "Assertion a_single_step_no_irq failed")
-
-// todo: add similar assertion as above to check that only one instruction moves from IF to ID while taking a single step (rename inst_taken to inst_taken_id and introduce similar inst_taken_if signal)
-
-if (SMCLIC) begin
-  // Non-SHV interrupt taken during single stepping.
-  // If this happens, no instructions should retire until the core is in debug mode.
-  // irq_ack is asserted during FUNCTIONAL state. debug_mode_n will be set during
-  // DEBUG_TAKEN one cycle later
-  a_single_step_with_irq_nonshv :
-    assert property (@(posedge clk) disable iff (!rst_ni)
-                      (dcsr.step && !ctrl_fsm.debug_mode && irq_ack && !irq_clic_shv)
-                      |->
-                      !wb_valid ##1 (!wb_valid && ctrl_debug_mode_n && dcsr.step))
-      else `uvm_error("core", "Assertion a_single_step_with_irq_nonshv failed")
+if (CLIC) begin
+  if (DEBUG) begin
+    // Non-SHV interrupt taken during single stepping.
+    // If this happens, no instructions should retire until the core is in debug mode.
+    // irq_ack is asserted during FUNCTIONAL state. debug_mode_n will be set during
+    // DEBUG_TAKEN one cycle later
+    a_single_step_with_irq_nonshv :
+      assert property (@(posedge clk) disable iff (!rst_ni)
+                        (dcsr.step && !ctrl_fsm.debug_mode && irq_ack && !irq_clic_shv)
+                        |->
+                        !wb_valid ##1 (!wb_valid && ctrl_debug_mode_n && dcsr.step))
+        else `uvm_error("core", "Assertion a_single_step_with_irq_nonshv failed")
+  end // DEBUG
 
   // An SHV CLIC interrupt will first do one fetch to get a function pointer,
   // then a second fetch to the actual interrupt handler. If the first fetch has
@@ -398,13 +402,7 @@ end else begin
                       !wb_valid ##1 (!wb_valid && ctrl_debug_mode_n && dcsr.step))
       else `uvm_error("core", "Assertion a_single_step_with_irq failed")
 end
-  // Check that only a single instruction can retire during single step
-  a_single_step_retire :
-    assert property (@(posedge clk) disable iff (!rst_ni)
-                      (wb_valid && last_op_wb && dcsr.step && !ctrl_fsm.debug_mode)
-                      ##1 wb_valid [->1]
-                      |-> (ctrl_fsm.debug_mode && dcsr.step))
-      else `uvm_error("core", "Multiple instructions retired during single stepping")
+
 
   // Check that instruction fetches are always word aligned
   a_instr_addr_word_aligned :
@@ -426,18 +424,114 @@ end
 
 
   generate
-    if (!A_EXT) begin
+    if (A_EXT == A_NONE) begin
       a_atomic_disabled_never_atop :
         assert property (@(posedge clk) disable iff (!rst_ni)
-                         (data_atop_o == 6'b0))
+                         (data_atop_o == 6'b0) &&
+                         (lsu_atomic_wb == AT_NONE))
           else `uvm_error("core", "Atomic operations should never occur without A-extension enabled")
+
+      a_never_atomic_stall:
+      assert property (@(posedge clk) disable iff (!rst_ni)
+                       !ctrl_byp.atomic_stall)
+          else `uvm_error("core", "Stalling for atomics without A_EXT enabled")
+
+
     end
     else begin
+      // Helper logic:
+      /////////////////////////////////////////////////////////////
+      // Count outstanding transaction on the data OBI bus
+      logic count_up;
+      logic count_down;
+      logic [1:0] next_cnt;
+      logic [1:0] cnt_q;
+      assign count_up = data_req_o && data_gnt_i;
+      assign count_down = data_rvalid_i;
+
+      always_comb begin
+        case ({count_up, count_down})
+          2'b00 : begin
+            next_cnt = cnt_q;
+          end
+          2'b01 : begin
+            next_cnt = cnt_q - 1'b1;
+          end
+          2'b10 : begin
+            next_cnt = cnt_q + 1'b1;
+          end
+          2'b11 : begin
+            next_cnt = cnt_q;
+          end
+          default:;
+        endcase
+      end
+
+      always_ff @(posedge clk, negedge rst_ni)
+      begin
+        if (rst_ni == 1'b0) begin
+          cnt_q <= '0;
+        end else begin
+          cnt_q <= next_cnt;
+        end
+      end
+
+      /////////////////////////////////////////////////////////////
+
       // Check that atomic operations are always non-bufferable
       a_atomic_non_bufferable :
         assert property (@(posedge clk) disable iff (!rst_ni)
                          (data_req_o && |data_atop_o |-> !data_memtype_o[0]))
           else `uvm_error("core", "Atomic operation classified as bufferable")
+
+
+      // All instructions from the A-extension write the register file
+      a_all_atop_write_rf:
+        assert property (@(posedge clk) disable iff (!rst_ni)
+                        (lsu_atomic_wb != AT_NONE) && lsu_valid_wb && !lsu_exception_wb && !lsu_wpt_match_wb
+                        |->
+                        rf_we_wb)
+          else `uvm_error("core", "Atomic instruction did not write the register file")
+
+      // SC.W which receives !exokay must write 1 to the register file
+      a_atop_sc_fault_rf_wdata:
+        assert property (@(posedge clk) disable iff (!rst_ni)
+                        (lsu_atomic_wb == AT_SC) && lsu_valid_wb && !lsu_exception_wb && !lsu_wpt_match_wb &&
+                        !lsu_exokay_wb
+                        |->
+                        (lsu_rdata_wb == 32'h1))
+          else `uvm_error("core", "Register file not written with 1 on SC fault due to exokay==0")
+
+      // SC.W which receives exokay must write 0 to the register file
+      a_atop_sc_success_rf_wdata:
+        assert property (@(posedge clk) disable iff (!rst_ni)
+                        (lsu_atomic_wb == AT_SC) && lsu_valid_wb && !lsu_exception_wb && !lsu_wpt_match_wb &&
+                        lsu_exokay_wb
+                        |->
+                        (lsu_rdata_wb == 32'h0))
+          else `uvm_error("core", "Register file not written with 0 on SC success.")
+
+      // Do not allow any atomic address phase in EX if there are unfinished LSU instructions in WB
+      // This implies that there shall be no outstanding transactions on the OBI bus (cnt_q == 0)
+      a_no_atop_until_lsu_clear:
+        assert property (@(posedge clk) disable iff (!rst_ni)
+                        (cnt_q != 2'b00)
+                        |->
+                        !(data_atop_o[5] && data_req_o))
+          else `uvm_error("core", "Atomic instruction allowed on bus while there are outstanding transactions")
+
+      // Do not allow any memory address phase in EX if there are unfinished atomic instructions in WB
+      // This implies that if an atomic is in WB, the outstanding counter must be 1.
+      a_no_lsu_until_atop_clear:
+        assert property (@(posedge clk) disable iff (!rst_ni)
+                        (ex_wb_pipe.lsu_en && ex_wb_pipe.instr_valid) &&   // Valid LSU instruction in WB
+                        (lsu_atomic_wb != AT_NONE) &&                      // LSU instruction is atomic
+                        !(lsu_exception_wb || lsu_wpt_match_wb)            // No exception or watchpoint (it reached the bus)
+                        |->
+                        !data_req_o &&
+                        (cnt_q == 2'b01))
+            else `uvm_error("core", "Non-atomic LSU instruction allowed on bus before preceeding atomic is finished")
+
     end
   endgenerate
 
@@ -507,7 +601,7 @@ end
   a_tbljmp_stall: assert property(p_tbljmp_stall)
     else `uvm_error("core", "Table jump not stalled while CSR is written");
 
-if (!SMCLIC) begin
+if (!CLIC) begin
   // Check that a pending interrupt is taken as soon as possible after being enabled
   property p_mip_mie_write_enable;
     @(posedge clk) disable iff (!rst_ni)
@@ -561,28 +655,76 @@ endproperty;
 a_no_irq_after_lsu: assert property(p_no_irq_after_lsu)
   else `uvm_error("core", "Interrupt taken after disabling");
 
-// If debug_req_i is asserted when fetch_enable_i gets asserted we should not execute any
-// instruction until the core is in debug mode.
-a_reset_into_debug:
-assert property (@(posedge clk_i) disable iff (!rst_ni)
-                (ctrl_fsm_cs == RESET) &&
-                fetch_enable_i &&
-                debug_req_i
-                ##1
-                debug_req_i // Controller gets a one cycle delayed fetch enable, must keep debug_req_i asserted for two cycles
-                |->
-                !wb_valid until (wb_valid && ctrl_fsm.debug_mode))
-  else `uvm_error("controller", "Debug out of reset but executed instruction outside debug mode")
 
-// When entering debug out of reset, the first fetch must also flag debug on the instruction OBI interface
-a_first_fetch_debug:
-assert property (@(posedge clk_i) disable iff (!rst_ni)
-                (ctrl_fsm_cs == RESET) &&
-                fetch_enable_i &&
-                debug_req_i
-                ##1
-                debug_req_i // Controller gets a one cycle delayed fetch enable, must keep debug_req_i asserted for two cycles
-                |->
-                !instr_req_o until (instr_req_o && instr_dbg_o))
-  else `uvm_error("controller", "Debug out of reset but fetched without setting instr_dbg_o")
+
+generate
+  if (!DEBUG) begin
+    a_nodebug_never_debug:
+      assert property (@(posedge clk_i) disable iff (!rst_ni)
+                      !ctrl_fsm.debug_mode)
+          else `uvm_error("core", "Debug mode entered without support for debug.")
+
+    a_nodebug_never_debug_halted:
+      assert property (@(posedge clk_i) disable iff (!rst_ni)
+                      !debug_halted_o)
+          else `uvm_error("core", "Debug_halated_o set without support for debug.")
+
+    a_nodebug_never_instr_dbg:
+      assert property (@(posedge clk_i) disable iff (!rst_ni)
+                      !instr_dbg_o)
+          else `uvm_error("core", "instr_dbg_o set without support for debug.")
+
+    a_nodebug_never_data_dbg:
+      assert property (@(posedge clk_i) disable iff (!rst_ni)
+                      !data_dbg_o)
+          else `uvm_error("core", "data_dbg_o set without support for debug.")
+  end else begin
+    // DEBUG related assertions
+
+    // If debug_req_i is asserted when fetch_enable_i gets asserted we should not execute any
+    // instruction until the core is in debug mode.
+    a_reset_into_debug:
+    assert property (@(posedge clk_i) disable iff (!rst_ni)
+                    (ctrl_fsm_cs == RESET) &&
+                    fetch_enable_i &&
+                    debug_req_i
+                    ##1
+                    debug_req_i // Controller gets a one cycle delayed fetch enable, must keep debug_req_i asserted for two cycles
+                    |->
+                    !wb_valid until (wb_valid && ctrl_fsm.debug_mode))
+      else `uvm_error("controller", "Debug out of reset but executed instruction outside debug mode")
+
+    // When entering debug out of reset, the first fetch must also flag debug on the instruction OBI interface
+    a_first_fetch_debug:
+    assert property (@(posedge clk_i) disable iff (!rst_ni)
+                    (ctrl_fsm_cs == RESET) &&
+                    fetch_enable_i &&
+                    debug_req_i
+                    ##1
+                    debug_req_i // Controller gets a one cycle delayed fetch enable, must keep debug_req_i asserted for two cycles
+                    |->
+                    !instr_req_o until (instr_req_o && instr_dbg_o))
+      else `uvm_error("controller", "Debug out of reset but fetched without setting instr_dbg_o")
+
+    // Check that only a single instruction can retire during single step
+    a_single_step_retire :
+    assert property (@(posedge clk) disable iff (!rst_ni)
+                      (wb_valid && last_op_wb && dcsr.step && !ctrl_fsm.debug_mode)
+                      ##1 wb_valid [->1]
+                      |-> (ctrl_fsm.debug_mode && dcsr.step))
+      else `uvm_error("core", "Multiple instructions retired during single stepping")
+
+    // Single step without interrupts
+    // Should issue exactly one instruction from ID before entering debug_mode
+    a_single_step_no_irq :
+    assert property (@(posedge clk) disable iff (!rst_ni || interrupt_taken)
+                    (inst_taken && dcsr.step && !ctrl_fsm.debug_mode)
+                    ##1 inst_taken [->1]
+                    |-> (ctrl_fsm.debug_mode && dcsr.step))
+      else `uvm_error("core", "Assertion a_single_step_no_irq failed")
+
+    // todo: add similar assertion as above to check that only one instruction moves from IF to ID while taking a single step (rename inst_taken to inst_taken_id and introduce similar inst_taken_if signal)
+
+  end
+endgenerate
 endmodule // cv32e40x_core_sva

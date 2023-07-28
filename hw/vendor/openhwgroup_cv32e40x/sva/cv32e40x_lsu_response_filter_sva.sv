@@ -26,7 +26,7 @@
 module cv32e40x_lsu_response_filter_sva
   import cv32e40x_pkg::*;
   import uvm_pkg::*;
-  #(parameter DEPTH = 2)
+  #(parameter int unsigned DEPTH = 2)
   (input logic                       clk,
    input logic                       rst_n,
 

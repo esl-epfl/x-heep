@@ -20,25 +20,37 @@
 #include <stdlib.h>
 
 #include "core_v_mini_mcu.h"
-#include "pdm2pcm_regs.h"
-
-#include "mmio.h"
-
-#include "groundtruth.h"
-
 #include "x-heep.h"
+#include "pdm2pcm_regs.h"
+#include "mmio.h"
+#include "groundtruth.h"
 
 #ifndef PDM2PCM_IS_INCLUDED
   #error ( "This app does NOT work as the PDM2PCM peripheral is not included" )
 #endif
 
+/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
+#define DEFAULT_PRINTF_BEHAVIOR 1
+
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#ifdef TARGET_PYNQ_Z2 
+    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
+#else 
+    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
+#endif
+
+#if ENABLE_PRINTF
+  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif 
 
 int main(int argc, char *argv[])
 {
 
 
-    printf("PDM2PCM DEMO\n");
-    printf(" > Start\n");
+    PRINTF("PDM2PCM DEMO\n\r");
+    PRINTF(" > Start\n\r");
 
     mmio_region_t pdm2pcm_base_addr = mmio_region_from_addr((uintptr_t)PDM2PCM_START_ADDRESS);
 
@@ -92,13 +104,13 @@ int main(int argc, char *argv[])
             if (fed == 1 || read != 0) {
                 fed = 1;
                 if(pdm2pcm_groundtruth[count] != (int)read) {
-                    printf("ERROR: at index %d. read != groundtruth (resp. %d != %d).\n",count,(int)read,pdm2pcm_groundtruth[count]);
+                    PRINTF("ERROR: at index %d. read != groundtruth (resp. %d != %d).\n\r",count,(int)read,pdm2pcm_groundtruth[count]);
                     return EXIT_FAILURE;
                 }
                 ++count;
                 if (count >= COUNT) {
                     finish = 1;
-                    printf("SUCCESS: Readings correspond to ground truth.\n");
+                    PRINTF("SUCCESS: Readings correspond to ground truth.\n\r");
                 }
             }
         }

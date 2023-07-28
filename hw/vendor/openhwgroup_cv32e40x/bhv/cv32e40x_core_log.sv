@@ -39,8 +39,8 @@
 module cv32e40x_core_log import cv32e40x_pkg::*;
 #(
 // todo: log all parameters
-  parameter int NUM_MHPMCOUNTERS =  1,
-  parameter bit ENABLE           =  1
+  parameter int unsigned NUM_MHPMCOUNTERS =  1,
+  parameter bit          ENABLE           =  1
 )
 (
   input logic        clk_i,
