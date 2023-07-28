@@ -405,19 +405,21 @@ All test must be successful before PRs can be merged.
 Additionally, a `test_all.sh` script is provided. Apart from compiling all apps with both gcc and clang, it will simulate them and check the result.
 
 You can choose:
-* Simulator: `verilator` (default) or `questasim`.
-* Linker: `on_chip`(default), `flash_load` or `flash_exec`.
-* Timeout: Integer number of seconds (defualt 120)
+* Compiler: `gcc` (default) or `clang` (can provide more than one)
+* Simulator: `verilator` (default), `questasim` or disable simulation with `nosim` (only one, the last provided is used).
+* Linker: `on_chip`(default), `flash_load` or `flash_exec` (can provide more than one)
+* Timeout: Integer number of seconds (default 120)
+
 
 #### Usage
 
 You can **SOURCE** the script as
 ```bash
-. test_all.sh flash_load verilator
+. test_all.sh flash_load verilator gcc clang on_chip 150
 ```
 *Pay special attention to the first period in the command!*
 You will be killing simulations that take too long, if you **EXECUTE** (`./test_all.sh`) this action kills the script.
-The order or capitalization of the arguments is irrelevant.
+The order of the arguments is irrelevant.
 
 > Note: Be sure to commit all your changes before running the script!
 
