@@ -743,8 +743,8 @@ module cve2_cs_registers #(
 
   // MSTATUS
   localparam status_t MSTATUS_RST_VAL = '{mie:  1'b0,
-                                          mpie: 1'b1,
-                                          mpp:  PRIV_LVL_U,
+                                          mpie: 1'b0,
+                                          mpp:  PRIV_LVL_M,
                                           mprv: 1'b0,
                                           tw:   1'b0};
   cve2_csr #(

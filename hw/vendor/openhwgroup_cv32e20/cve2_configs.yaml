@@ -13,7 +13,6 @@ small:
   RV32B                    : "cve2_pkg::RV32BNone"
   RegFile                  : "cve2_pkg::RegFileFF"
   WritebackStage           : 0
-  BranchPredictor          : 0
   PMPEnable                : 0
   PMPGranularity           : 0
   PMPNumRegions            : 4
@@ -25,7 +24,6 @@ opentitan:
   RV32B                    : "cve2_pkg::RV32BOTEarlGrey"
   RegFile                  : "cve2_pkg::RegFileFF"
   WritebackStage           : 1
-  BranchPredictor          : 0
   PMPEnable                : 1
   PMPGranularity           : 0
   PMPNumRegions            : 16
@@ -43,7 +41,6 @@ experimental-maxperf:
   RV32B                    : "cve2_pkg::RV32BNone"
   RegFile                  : "cve2_pkg::RegFileFF"
   WritebackStage           : 1
-  BranchPredictor          : 0
   PMPEnable                : 0
   PMPGranularity           : 0
   PMPNumRegions            : 4
@@ -55,7 +52,6 @@ experimental-maxperf-pmp:
   RV32B                    : "cve2_pkg::RV32BNone"
   RegFile                  : "cve2_pkg::RegFileFF"
   WritebackStage           : 1
-  BranchPredictor          : 0
   PMPEnable                : 1
   PMPGranularity           : 0
   PMPNumRegions            : 16
@@ -67,7 +63,6 @@ experimental-maxperf-pmp-bmbalanced:
   RV32B                    : "cve2_pkg::RV32BBalanced"
   RegFile                  : "cve2_pkg::RegFileFF"
   WritebackStage           : 1
-  BranchPredictor          : 0
   PMPEnable                : 1
   PMPGranularity           : 0
   PMPNumRegions            : 16
@@ -79,7 +74,6 @@ experimental-maxperf-pmp-bmfull:
   RV32B                    : "cve2_pkg::RV32BFull"
   RegFile                  : "cve2_pkg::RegFileFF"
   WritebackStage           : 1
-  BranchPredictor          : 0
   PMPEnable                : 1
   PMPGranularity           : 0
   PMPNumRegions            : 16
@@ -94,7 +88,6 @@ experimental-branch-predictor:
   RV32B                    : "cve2_pkg::RV32BNone"
   RegFile                  : "cve2_pkg::RegFileFF"
   WritebackStage           : 1
-  BranchPredictor          : 1
   PMPEnable                : 0
   PMPGranularity           : 0
   PMPNumRegions            : 4

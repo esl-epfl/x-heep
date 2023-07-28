@@ -29,8 +29,7 @@
 
 module cv32e40x_i_decoder import cv32e40x_pkg::*;
   #(
-    parameter     DEBUG_TRIGGER_EN  = 1,
-    parameter bit SMCLIC            = 1
+    parameter bit CLIC              = 1
     )
   (
    // from IF/ID pipeline
@@ -369,7 +368,7 @@ module cv32e40x_i_decoder import cv32e40x_pkg::*;
             default: decoder_ctrl_o = DECODER_CTRL_ILLEGAL_INSN;
           endcase
 
-          if (SMCLIC) begin
+          if (CLIC) begin
             // The mscratchcsw[l] CSRs are only accessible using CSRRW with neither rd nor rs1 set to x0
             if ((instr_rdata_i[31:20] == CSR_MSCRATCHCSW) || (instr_rdata_i[31:20] == CSR_MSCRATCHCSWL)) begin
               if (instr_rdata_i[14:12] == 3'b001) begin // CSRRW
@@ -404,7 +403,7 @@ module cv32e40x_i_decoder import cv32e40x_pkg::*;
                 end
               end
             end
-          end // SMCLIC
+          end // CLIC
         end
       end
 

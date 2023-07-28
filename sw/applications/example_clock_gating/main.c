@@ -9,6 +9,23 @@
 #include "handler.h"
 #include "core_v_mini_mcu.h"
 #include "power_manager.h"
+#include "x-heep.h"
+
+/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
+#define DEFAULT_PRINTF_BEHAVIOR 1
+
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#ifdef TARGET_PYNQ_Z2 
+    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
+#else 
+    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
+#endif
+
+#if ENABLE_PRINTF
+  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif 
 
 static power_manager_t power_manager;
 
@@ -37,6 +54,6 @@ int main(int argc, char *argv[])
         mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x0);
 
     /* write something to stdout */
-    printf("Success.\n");
+    PRINTF("Success.\n\r");
     return EXIT_SUCCESS;
 }

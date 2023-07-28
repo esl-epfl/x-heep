@@ -1,282 +1,338 @@
-// Copyright lowRISC contributors.
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
-// SPDX-License-Identifier: Apache-2.0
+/*
+                              *******************
+******************************* H SOURCE FILE *******************************
+**                            *******************                          **
+**                                                                         **
+** project  : X-HEEP                                                       **
+** filename : gpio.h                                             **
+**                                                                         **
+*****************************************************************************
+**
+** Copyright (c) EPFL contributors.
+** All rights reserved.
+**
+*****************************************************************************
+*/
 
-// Modified version for core-v-mini-mcu
-// original at: https://github.com/lowRISC/opentitan/blob/master/sw/
+/***************************************************************************/
+/***************************************************************************/
+/**
+* @file     gpio.h
+* @date     30/03/2023
+* @author   Hossein taji
+* @version  1
+* @brief    GPIO driver
+*/
 
 #ifndef GPIO_H_
 #define GPIO_H_
 
-/**
- * @file
- * @brief <a href="/hw/ip/gpio/doc/">GPIO</a> Device Interface Functions
- */
+/****************************************************************************/
+/**                                                                        **/
+/**                            MODULES USED                                **/
+/**                                                                        **/
+/****************************************************************************/
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
-#include "mmio.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif  // __cplusplus
-
-/**
- * A toggle state: enabled, or disabled.
- *
- * This enum may be used instead of a `bool` when describing an enabled/disabled
- * state.
- *
- * This enum may be used with `gpio_toggle_vec_t` to set individual bits
- * within it; `gpio_toggle_t`'s variants are guaranteed to be compatible
- * with `gpio_toggle_vec_t`.
- */
-typedef enum gpio_toggle {
-  /*
-   * The "enabled" state.
-   */
-  kGpioToggleEnabled = true,
-  /**
-   * The "disabled" state.
-   */
-  kGpioToggleDisabled = false,
-} gpio_toggle_t;
+/****************************************************************************/
+/**                                                                        **/
+/**                       DEFINITIONS AND MACROS                           **/
+/**                                                                        **/
+/****************************************************************************/
 
 /**
- * Hardware instantiation parameters for GPIO.
- *
- * This struct describes information about the underlying hardware that is
- * not determined until the hardware design is used as part of a top-level
- * design.
+ * The format use for pin number. As the gpio pins are only 32 number,
+ * uint8_t would be enough.
  */
-typedef struct gpio_params {
-  /**
-   * The base address for the GPIO hardware registers.
-   */
-  mmio_region_t base_addr;
-} gpio_params_t;
+typedef uint8_t gpio_pin_number_t;
 
 /**
- * A handle to GPIO.
- *
- * This type should be treated as opaque by users.
+ * gpio mode.
+ * 0 configure GPIO as input. 1 configures GPIO as a push-pull output.
+ * 2 configures the GPIO to be in open_drain0 (0 ->  High-Z, 1 -> Drive High)
+ * mode. 3 configures the GPIO to be in open_drain1 (0 -> Drive Low, 1 ->
+ * High-Z) mode.
  */
-typedef struct gpio { gpio_params_t params; } gpio_t;
+typedef enum gpio_mode
+{
+    GpioModeIn            = 0,  /*!< input. */
+    GpioModeOutPushPull   = 1,  /*!< push-pull output. */
+    GpioModeoutOpenDrain0 = 2,  /*!< open_drain0 (0->High-Z, 1->Drive High)
+    mode. */
+    GpioModeoutOpenDrain1 = 3,  /*!< open_drain1 (0->Drive Low, 1->High-Z)
+    mode. */
+} gpio_mode_t;
 
 /**
- * The result of a GPIO operation.
+ * gpio_intr_general_mode
+ * 1 keep the interrupt line asserted until all interrupts for all GPIOs
+ * are cleared.
+ * 0 generate one cycle wide pulses for every new interrupt.
  */
-typedef enum gpio_result {
-  /**
-   * Indicates that the operation succeeded.
-   */
-  kGpioOk = 0,
-  /**
-   * Indicates some unspecified failure.
-   */
-  kGpioError = 1,
-  /**
-   * Indicates that some parameter passed into a function failed a
-   * precondition.
-   *
-   * When this value is returned, no hardware operations occurred.
-   */
-  kGpioBadArg = 2,
+typedef enum gpio_intr_general_mode
+{
+    IntrOnePulse    = 0, /*!< keep the interrupt line asserted until all
+    interrupts for all GPIOs are cleared. */
+    IntrAsserted    = 1, /*!< generate one cycle wide pulses for every
+    new interrupt. */
+} gpio_intr_general_mode_t;
+
+/**
+ * This type is used in almost all the operations, and it is returned when
+ * there is a problem with functions given parameters or operation for example
+ * pin number not being in the range of accepting pins.
+ */
+typedef enum gpio_result
+{
+    GpioOk = 0,     /*!< The operation was ok. */
+    GpioError = 1,  /*!< There is a problem. */
+    GpioPinNotAcceptable = 2, /*!< Given pin is not inside of acceptable range. */
+    GpioModeNotAcceptable = 3, /*!< Given pin mode is not one of the defined modes
+    in gpio_mode_t. */
+    GpioIntrTypeNotAcceptable = 4, /*!< Given interrupt type is not one of the
+    defined types in gpio_intr_type_t. */
 } gpio_result_t;
 
 /**
- * A GPIO interrupt request trigger.
- *
- * Each GPIO pin has an associated interrupt that can be independently
- * configured
- * to be edge and/or level sensitive. This enum defines supported configurations
- * for
- * these interrupts.
+ * The different interrupt types can be set by user
  */
-typedef enum gpio_irq_trigger {
-  /**
-   * Trigger on rising edge.
-   */
-  kGpioIrqTriggerEdgeRising,
-  /**
-   * Trigger on falling edge.
-   */
-  kGpioIrqTriggerEdgeFalling,
-  /**
-   * Trigger when input is low.
-   */
-  kGpioIrqTriggerLevelLow,
-  /**
-   * Trigger when input is high.
-   */
-  kGpioIrqTriggerLevelHigh,
-  /**
-   * Trigger on rising and falling edges.
-   */
-  kGpioIrqTriggerEdgeRisingFalling,
-  /**
-   * Trigger on rising edge or when the input is low.
-   */
-  kGpioIrqTriggerEdgeRisingLevelLow,
-  /**
-   * Trigger on falling edge or when the input is high.
-   */
-  kGpioIrqTriggerEdgeFallingLevelHigh,
-} gpio_irq_trigger_t;
+typedef enum gpio_intr_type
+{
+    GpioIntrEdgeRising,         /*!< Trigger on rising edge. */
+    GpioIntrEdgeFalling,        /*!< Trigger on falling edge. */
+    GpioIntrLevelLow,           /*!< Trigger when input is low. */
+    GpioIntrLevelHigh,          /*!< rigger when input is high. */
+    GpioIntrEdgeRisingFalling,  /*!< Trigger on rising and falling edges. */
+    GpioIntrEdgeRisingLevelLow, /*!< Trigger on rising edge or when the
+    input is low. */
+    GpioIntrEdgeFallingLevelHigh,/*!< Trigger on falling edge or when the
+    input is high. */
+} gpio_intr_type_t;
 
 /**
- * A GPIO pin index, ranging from 0 to 31.
- *
- * This type serves as the GPIO interrupt request type.
+ * The structure should be used by user for configuring gpio.
+ * it includes pin number, mode, enable sampling, enable intr, and its mode.
  */
-typedef uint32_t gpio_pin_t;
+typedef struct gpio_cfg
+{
+    gpio_pin_number_t pin;      /*!< pin number. */
+    gpio_mode_t mode;     /*!< pin mode. */
+    bool en_input_sampling;     /*!< enable sampling (being input is req). */
+    bool en_intr;               /*!< enable intr (being input is req). */
+    gpio_intr_type_t intr_type; /*!< intr type (enabling intr is req). */
+} gpio_cfg_t;
+
+/****************************************************************************/
+/**                                                                        **/
+/**                          EXPORTED FUNCTIONS                            **/
+/**                                                                        **/
+/****************************************************************************/
 
 /**
- * State for all 32 GPIO pins, given as bit fields.
- *
- * The Nth bit represents the state of the Nth pin.
- *
- * This type is also used as a vector of `gpio_toggle_t`s, to indicate
- * toggle state across all 32 pins. A set bit corresponds to
- * `kGpioToggleEnabled`.
- *
- * It is also used with `gpio_irq_disable_all()` and
- * `gpio_irq_restore_all()`.
+ * @brief gpio configuration. It first reset the pin configuration.
+ * @param gpio_struct_t contatining pin, mode, en_input_sampling, en_intr,
+ * intr_type
+ * @return GpioOk: no problem, GpioError: there is an error.
  */
-typedef uint32_t gpio_state_t;
+gpio_result_t gpio_config (gpio_cfg_t cfg);
 
 /**
- * A mask for selecting GPIO pins.
- *
- * If the Nth bit is enabled, then the Nth pin is selected by the mask.
+ * @brief reset completely all the configurations set for the pin
+ * @param gpio_pin_number_t specify pin number
  */
-typedef uint32_t gpio_mask_t;
+gpio_result_t gpio_reset (gpio_pin_number_t pin);
 
 /**
- * Creates a new handle for GPIO.
- *
- * This function does not actuate the hardware.
- *
- * @param params Hardware instantiation parameters.
- * @param[out] gpio Out param for the initialized handle.
- * @return The result of the operation.
+ * @brief reset completely all the configurations for all the pins
  */
-gpio_result_t gpio_init(gpio_params_t params, gpio_t *gpio);
+gpio_result_t gpio_reset_all (void);
 
 /**
- * Resets a GPIO device.
- *
- * Resets the given GPIO device by setting its configuration registers to
- * reset values. Disables interrupts, output, and input filter.
- *
- * @param gpio A GPIO handle.
- * @return The result of the operation.
+ * @brief setting the a pins mode by writing in GPIO_MODE0 and GPIO_MODE1.
+ * @param gpio_pin_number_t specify the pin.
+ * @param gpio_mode_t specify pin mode: 0 as input, 1 push-pull as output,
+ * 2 as open_drain0, and 3 as open_drain1.
  */
-gpio_result_t gpio_reset(const gpio_t *gpio);
+gpio_result_t gpio_set_mode (gpio_pin_number_t pin, gpio_mode_t mode);
 
 /**
- * Returns whether a particular pin's interrupt is currently pending.
- *
- * @param gpio A GPIO handle.
- * @param pin A GPIO pin.
- * @param[out] is_pending Out-param for whether the interrupt is pending.
- * @return The result of the operation.
+ * @brief enable sampling as input by writing one in GPIO_EN. If disables
+ * (0) the corresponding GPIO will not sample the inputs (saves power) and
+ * will not generate any interrupts.
  */
-gpio_result_t gpio_irq_is_pending(const gpio_t *gpio,
-                                          gpio_pin_t pin, bool *is_pending);
+gpio_result_t gpio_en_input_sampling (gpio_pin_number_t pin);
 
 /**
- * Returns a GPIO state representing which pins have interrupts enabled.
- *
- * @param gpio A GPIO handle.
- * @param[out] is_pending Out-param for which interrupts are pending.
- * @return The result of the operation.
+ * @brief disable sampling as input by writing zero in GPIO_EN.
  */
-gpio_result_t gpio_irq_is_pending_all(const gpio_t *gpio,
-                                              gpio_state_t *is_pending);
+gpio_result_t gpio_dis_input_sampling (gpio_pin_number_t pin);
 
 /**
- * Acknowledges a particular pin's interrupt, indicating to the hardware that it
- * has
- * been successfully serviced.
- *
- * @param gpio A GPIO handle.
- * @param pin A GPIO pin.
- * @return The result of the operation.
+ * @brief reading from a gpio pin, which is done by reading from GPIO_IN reg
+ * @param gpio_pin_number_t specify pin number
+ * @return gpio value as GpioLow (false) or GpioHigh (true)
  */
-gpio_result_t gpio_irq_acknowledge(const gpio_t *gpio,
-                                           gpio_pin_t pin);
+gpio_result_t gpio_read (gpio_pin_number_t pin, bool *val);
 
 /**
- * Configures interrupt triggers for a set of pins.
- *
- * This function configures interrupt triggers, i.e. rising-edge, falling-edge,
- * level-high, and level-low, for the pins given by the mask. Note that
- * interrupt of the pin must also be enabled to generate interrupts.
- *
- * @param gpio A GPIO handle.
- * @param mask Mask that identifies the pins whose interrupt triggers will be
- * configured.
- * @param trigger New configuration of interrupt triggers.
- * @return The result of the operation.
+ * @brief toggle a pin. Using masking through GPIO_TOGGLE, and then
+ * writing to GPIO_OUT
+ * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_irq_set_trigger(const gpio_t *gpio,
-                                           gpio_pin_t pin,
-                                           bool state,
-                                           gpio_irq_trigger_t trigger);
+gpio_result_t gpio_toggle (gpio_pin_number_t pin);
 
 /**
- * Reads from a pin.
- *
- * The value returned by this function is independent of the output enable
- * setting and includes the effects of the input noise filter and the load on
- * the pin.
- *
- * @param gpio A GPIO handle.
- * @param pin A GPIO pin.
- * @param[out] state Pin value.
- * @return The result of the operation.
+ * @brief write to a pin. using gpio_set and gpio_clear functions.
+ * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_read(const gpio_t *gpio, gpio_pin_t pin,
-                                bool *state);
+gpio_result_t gpio_write (gpio_pin_number_t pin, bool val);
 
 /**
- * Writes to a pin.
- *
- * The actual value on the pin depends on the output enable setting.
- *
- * @param gpio A GPIO handle.
- * @param pin A GPIO pin.
- * @param state Value to write.
- * @return The result of the operation.
+ * @brief enable rising edge interrupt for the given pin.
+ * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_write(const gpio_t *gpio, gpio_pin_t pin,
-                                 bool state);
+gpio_result_t gpio_intr_en_rise (gpio_pin_number_t pin);
+
 /**
- * Sets output modes of all pins.
- *
- * @param gpio A GPIO handle.
- * @param pin A GPIO pin.
- * @param state Output modes of the pins.
- * @return The result of the operation.
+ * @brief disable rising edge interrupt for the given pin.
+ * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_input_set_enabled(const gpio_t *gpio,
-                                                  gpio_pin_t pin,
-                                                  gpio_state_t state);
+gpio_result_t gpio_intr_dis_rise (gpio_pin_number_t pin);
+
 /**
- * Enable sampling on GPIO
- * *
- * @param gpio A GPIO handle.
- * @param pin A GPIO pin.
- * @param state Value to write.
+ * @brief enable falling edge interrupt for the given pin.
+ * @param gpio_pin_number_t specify pin number
  */
-gpio_result_t gpio_input_enabled(const gpio_t *gpio,
-                                          gpio_pin_t pin, gpio_toggle_t state);
+gpio_result_t gpio_intr_en_fall (gpio_pin_number_t pin);
 
+/**
+ * @brief disable falling edge interrupt for the given pin.
+ * @param gpio_pin_number_t specify pin number
+ */
+gpio_result_t gpio_intr_dis_fall (gpio_pin_number_t pin);
 
-#ifdef __cplusplus
-}  // extern "C"
-#endif  // __cplusplus
+/**
+ * @brief enable logic-high level-sensitive interrupt for the given pin.
+ * @param gpio_pin_number_t specify pin number
+ */
+gpio_result_t gpio_intr_en_lvl_high (gpio_pin_number_t pin);
 
-#endif  // GPIO_H_
+/**
+ * @brief disable logic-high level-sensitive interrupt for the given pin.
+ * @param gpio_pin_number_t specify pin number
+ */
+gpio_result_t gpio_intr_dis_lvl_high (gpio_pin_number_t pin);
+
+/**
+ * @brief enable logic-low level-sensitive interrupt for the given pin.
+ * @param gpio_pin_number_t specify pin number
+ */
+gpio_result_t gpio_intr_en_lvl_low (gpio_pin_number_t pin);
+
+/**
+ * @brief disable logic-low level-sensitive interrupt for the given pin.
+ * @param gpio_pin_number_t specify pin number
+ */
+gpio_result_t gpio_intr_dis_lvl_low (gpio_pin_number_t pin);
+
+/**
+ * @brief enable the interrupt for the given pin. Type of interrupt
+ * specified by user.
+ * @param gpio_pin_number_t specify pin number
+ * @param gpio_intr_type_t specify the type of the interrupt
+ */
+gpio_result_t gpio_intr_en (gpio_pin_number_t pin, gpio_intr_type_t type);
+
+/**
+ * @brief disable all the types of interrupt on the given pin.
+ * @param gpio_pin_number_t specify pin number
+ */
+gpio_result_t gpio_intr_dis_all (gpio_pin_number_t pin);
+
+/**
+ * @brief Each bit indicates if there is a pending rising-edge interrupt
+ * on the corresponding GPIO.
+ * @param gpio_pin_number_t specify pin number
+ */
+gpio_result_t gpio_intr_check_stat_rise (gpio_pin_number_t pin, bool *is_pending);
+
+/**
+ * @brief Each bit indicates if there is a pending falling-edge interrupt
+ * on the corresponding GPIO.
+ * @param gpio_pin_number_t specify pin number
+ */
+gpio_result_t gpio_intr_check_stat_fall (gpio_pin_number_t pin, bool *is_pending);
+
+/**
+ * @brief Each bit indicates if there is a pending low level-sensitive
+ * interrupt on the corresponding GPIO.
+ * @param gpio_pin_number_t specify pin number
+ */
+gpio_result_t gpio_intr_check_stat_lvl_low (gpio_pin_number_t pin, bool *is_pending);
+
+/**
+ * @brief Each bit indicates if there is a pending high level-sensitive
+ * interrupt on the corresponding GPIO.
+ * @param gpio_pin_number_t specify pin number
+ */
+gpio_result_t gpio_intr_check_stat_lvl_high (gpio_pin_number_t pin, bool *is_pending);
+
+/**
+ * @brief Each bit indicates if there is a pending interrupt on the
+ * corresponding GPIO in any form (rise, fall, low level, and high level)
+ * @param gpio_pin_number_t specify pin number
+ */
+gpio_result_t gpio_intr_check_stat (gpio_pin_number_t pin, bool *is_pending);
+
+/**
+ * @brief Clearing interrupt rise status. Writing a 1 to a specific bit
+ * clears the interrupt for the corresponding GPIO.
+ * @param gpio_pin_number_t specify pin number
+ */
+gpio_result_t gpio_intr_clear_stat_rise (gpio_pin_number_t pin);
+
+/**
+ * @brief Clearing interrupt fall status. Writing a 1 to a specific bit
+ * clears the interrupt for the corresponding GPIO.
+ * @param gpio_pin_number_t specify pin number
+ */
+gpio_result_t gpio_intr_clear_stat_fall (gpio_pin_number_t pin);
+
+/**
+ * @brief Clearing interrupt low level-sensitive status. Writing a 1 to a
+ * specific bit clears the interrupt for the corresponding GPIO.
+ * @param gpio_pin_number_t specify pin number
+ */
+gpio_result_t gpio_intr_clear_stat_lvl_low (gpio_pin_number_t pin);
+
+/**
+ * @brief Clearing interrupt high level-sensitive status. Writing a 1 to a
+ * specific bit clears the interrupt for the corresponding GPIO.
+ * @param gpio_pin_number_t specify pin number
+ */
+gpio_result_t gpio_intr_clear_stat_lvl_high (gpio_pin_number_t pin);
+
+/**
+ * @brief Clearing interrupt status regardless of its type. Writing a 1 to
+ * a specific bit clears the interrupt for the corresponding GPIO.
+ * @param gpio_pin_number_t specify pin number
+ */
+gpio_result_t gpio_intr_clear_stat (gpio_pin_number_t pin);
+
+/**
+ * @brief Controls the interrupt mode of the gpios.
+ * @gpio_intr_mode If true, keep the interrupt line asserted until all
+ * interrupts for all GPIOs are cleared. If false, generate one cycle wide
+ * pulses for every new interrupt.
+ */
+void gpio_intr_set_mode (gpio_intr_general_mode_t mode);
+
+#endif  // _GPIO_H_
+/****************************************************************************/
+/**                                                                        **/
+/**                                EOF                                     **/
+/**                                                                        **/
+/****************************************************************************/

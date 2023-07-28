@@ -29,7 +29,7 @@
 
 module cv32e40x_prefetcher_sva import cv32e40x_pkg::*;
 #(
-    parameter bit SMCLIC = 1'b0
+    parameter bit CLIC = 1'b0
 )
 (
   input  logic        clk,
@@ -172,7 +172,7 @@ module cv32e40x_prefetcher_sva import cv32e40x_pkg::*;
       `uvm_error("Prefetcher SVA",
                 $sformatf("First fetch after reset is not a branch"))
 
-if (SMCLIC) begin
+if (CLIC) begin
   // We cannot have a new fetch_branch when a CLIC pointer fetch is outstanding. If that happens, the core will lose track of
   // which which address to return to (mepc, dpc) as the pointer is not associated with an actual instruction.
   // For Zc pointer fetches, we can allow this (for instance debug entry or exception while the pointer is outstanding).
@@ -186,5 +186,5 @@ if (SMCLIC) begin
     assert property(p_data_q_no_branch)
     else
       `uvm_error("Prefetcher SVA", "data_q is set on branch.")
-end // SMCLIC
+end // CLIC
 endmodule: cv32e40x_prefetcher_sva

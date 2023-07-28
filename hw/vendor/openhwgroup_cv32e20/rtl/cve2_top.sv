@@ -17,7 +17,6 @@ module cve2_top import cve2_pkg::*; #(
   parameter int unsigned MHPMCounterWidth = 40,
   parameter bit          RV32E            = 1'b0,
   parameter rv32m_e      RV32M            = RV32MFast,
-  parameter bit          BranchPredictor  = 1'b0,
   parameter int unsigned DmHaltAddr       = 32'h1A110800,
   parameter int unsigned DmExceptionAddr  = 32'h1A110808
 ) (
@@ -135,8 +134,8 @@ module cve2_top import cve2_pkg::*; #(
     end
   end
 
-  assign clock_en     = core_busy_q | debug_req_i | irq_pending | irq_nm_i;
-  assign core_sleep_o = ~clock_en;
+  assign clock_en = fetch_enable_q & (core_busy_q | debug_req_i | irq_pending | irq_nm_i);
+  assign core_sleep_o = fetch_enable_q & !clock_en;
   assign fetch_enable_d = fetch_enable_i ? 1'b1 : fetch_enable_q;
 
   cve2_clock_gate core_clock_gate_i (
@@ -159,7 +158,6 @@ module cve2_top import cve2_pkg::*; #(
     .RV32E            (RV32E),
     .RV32M            (RV32M),
     .RV32B            (RV32B),
-    .BranchPredictor  (BranchPredictor),
     .DbgTriggerEn     (DbgTriggerEn),
     .DbgHwBreakNum    (DbgHwBreakNum),
     .DmHaltAddr       (DmHaltAddr),

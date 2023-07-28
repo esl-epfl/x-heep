@@ -26,42 +26,15 @@ SECTIONS {
     {
         PROVIDE(__vector_start = .);
         KEEP(*(.vectors));
+        __VECTORS_AT = .;
     } >RAM AT >FLASH
 
-    /* this should be removed or made elegant */
+    /* Fill memory up to __boot_address */
     .fill :
     {
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
-        LONG(0xDEADBEEF);
+        FILL(0xDEADBEEF);
+        . = ORIGIN(RAM) + (__boot_address) - 1;
+        BYTE(0xEE)
     } >RAM AT >FLASH
 
     /* crt0 init code */

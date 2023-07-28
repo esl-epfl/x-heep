@@ -135,6 +135,12 @@
             is_included: "no",
             path:    "./hw/ip/pdm2pcm/data/pdm2pcm.hjson"
         },
+        i2s: {
+            offset:  0x00070000,
+            length:  0x00010000,
+            is_included: "yes",
+            path:    "./hw/ip/i2s/data/i2s.hjson"
+        },
     },
 
     flash_mem: {
@@ -201,6 +207,8 @@
             intr_ack_stop:           47,
             intr_host_timeout:       48,
             spi2_intr_event:         49,
+            i2s_intr_event:          50,
+            dma_window_intr:         51,
         }
     }
 }

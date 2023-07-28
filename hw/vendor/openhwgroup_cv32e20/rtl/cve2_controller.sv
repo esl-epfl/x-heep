@@ -11,7 +11,6 @@
 `include "dv_fcov_macros.svh"
 
 module cve2_controller #(
-  parameter bit BranchPredictor = 0
  ) (
   input  logic                  clk_i,
   input  logic                  rst_ni,
@@ -33,7 +32,6 @@ module cve2_controller #(
   input  logic [31:0]           instr_i,                 // uncompressed instr data for mtval
   input  logic [15:0]           instr_compressed_i,      // instr compressed data for mtval
   input  logic                  instr_is_compressed_i,   // instr is compressed
-  input  logic                  instr_bp_taken_i,        // instr was predicted taken branch
   input  logic                  instr_fetch_err_i,       // instr has error
   input  logic                  instr_fetch_err_plus2_i, // instr error is x32
   input  logic [31:0]           pc_id_i,                 // instr address
@@ -49,8 +47,6 @@ module cve2_controller #(
   output logic                  pc_set_o,                // jump to address set by pc_mux
   output cve2_pkg::pc_sel_e     pc_mux_o,                // IF stage fetch address selector
                                                          // (boot, normal, exception...)
-  output logic                  nt_branch_mispredict_o,  // Not-taken branch in ID/EX was
-                                                         // mispredicted (predicted taken)
   output cve2_pkg::exc_pc_sel_e exc_pc_mux_o,            // IF stage selector for exception PC
   output cve2_pkg::exc_cause_e  exc_cause_o,             // for IF stage, CSRs
 
@@ -58,12 +54,10 @@ module cve2_controller #(
   input  logic [31:0]           lsu_addr_last_i,         // for mtval
   input  logic                  load_err_i,
   input  logic                  store_err_i,
-  output logic                  id_exception_o,          // Instruction in ID taking an exception
 
   // jump/branch signals
   input  logic                  branch_set_i,            // branch set signal (branch definitely
                                                          // taken)
-  input  logic                  branch_not_set_i,        // branch is definitely not taken
   input  logic                  jump_set_i,              // jump taken set signal
 
   // interrupt signals
@@ -215,8 +209,6 @@ module cve2_controller #(
   // LSU exception requests
   assign exc_req_lsu = store_err_i | load_err_i;
 
-  assign id_exception_o = exc_req_d;
-
   // special requests: special instructions, pipeline flushes, exceptions...
   // All terms in these expressions are qualified by instr_valid_i except exc_req_lsu which can come
   // from the Writeback stage with no instr_valid_i from the ID stage
@@ -341,7 +333,6 @@ module cve2_controller #(
     // helping timing.
     pc_mux_o               = PC_BOOT;
     pc_set_o               = 1'b0;
-    nt_branch_mispredict_o = 1'b0;
 
     exc_pc_mux_o           = EXC_PC_IRQ;
     exc_cause_o            = EXC_CAUSE_INSN_ADDR_MISA; // = 6'h00
@@ -461,19 +452,10 @@ module cve2_controller #(
         end
 
         if (branch_set_i || jump_set_i) begin
-          // Only set the PC if the branch predictor hasn't already done the branch for us
-          pc_set_o       = BranchPredictor ? ~instr_bp_taken_i : 1'b1;
+          pc_set_o       = 1'b1;
 
           perf_tbranch_o = branch_set_i;
           perf_jump_o    = jump_set_i;
-        end
-
-        if (BranchPredictor) begin
-          if (instr_bp_taken_i & branch_not_set_i) begin
-            // If the instruction is a branch that was predicted to be taken but was not taken
-            // signal a mispredict.
-            nt_branch_mispredict_o = 1'b1;
-          end
         end
 
         // If entering debug mode or handling an IRQ the core needs to wait until any instruction in
@@ -778,8 +760,6 @@ module cve2_controller #(
   ////////////////
   // Assertions //
   ////////////////
-
-  `ASSERT(AlwaysInstrClearOnMispredict, nt_branch_mispredict_o |-> instr_valid_clear_o)
 
   // Selectors must be known/valid.
   `ASSERT(IbexCtrlStateValid, ctrl_fsm_cs inside {

@@ -38,7 +38,6 @@ ${DESIGN_RTL_DIR}/cve2_tracer_pkg.sv
 ${DESIGN_RTL_DIR}/../vendor/lowrisc_ip/ip/prim/rtl/prim_secded_pkg.sv
 ${DESIGN_RTL_DIR}/../vendor/lowrisc_ip/ip/prim/rtl/prim_ram_1p_pkg.sv
 ${DESIGN_RTL_DIR}/cve2_alu.sv
-${DESIGN_RTL_DIR}/cve2_branch_predict.sv
 ${DESIGN_RTL_DIR}/cve2_compressed_decoder.sv
 ${DESIGN_RTL_DIR}/cve2_controller.sv
 ${DESIGN_RTL_DIR}/cve2_cs_registers.sv

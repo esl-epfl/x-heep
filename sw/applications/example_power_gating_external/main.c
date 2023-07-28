@@ -9,6 +9,23 @@
 #include "handler.h"
 #include "core_v_mini_mcu.h"
 #include "power_manager.h"
+#include "x-heep.h"
+
+/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
+#define DEFAULT_PRINTF_BEHAVIOR 1
+
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#ifdef TARGET_PYNQ_Z2 
+    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
+#else 
+    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
+#endif
+
+#if ENABLE_PRINTF
+  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif 
 
 static power_manager_t power_manager;
 
@@ -23,14 +40,14 @@ int main(int argc, char *argv[])
     // Init ram block 2's counters
     if (power_gate_counters_init(&power_manager_external_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail. Check the reset and powergate counters value\n");
+        PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
         return EXIT_FAILURE;
     }
 
     // Power off external domain
     if (power_gate_external(&power_manager, 0, kOff_e, &power_manager_external_counters) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail.\n");
+        PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
     }
 
@@ -43,12 +60,12 @@ int main(int argc, char *argv[])
     // Power on external domain
     if (power_gate_external(&power_manager, 0, kOn_e, &power_manager_external_counters) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail.\n");
+        PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
     }
 
     /* write something to stdout */
-    printf("Success.\n");
+    PRINTF("Success.\n\r");
     return EXIT_SUCCESS;
 
     return EXIT_FAILURE;

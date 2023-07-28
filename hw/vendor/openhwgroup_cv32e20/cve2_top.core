@@ -68,7 +68,6 @@ parameters:
     paramtype: vlogdefine
     description: "Bitmanip implementation parameter enum. See the cve2_pkg::rv32b_e enum in cve2_pkg.sv for permitted values."
 
-
 targets:
   default: &default_target
     filesets:

@@ -65,12 +65,6 @@ parameters:
     paramtype: vlogparam
     description: "Enables third pipeline stage (EXPERIMENTAL) [0/1]"
 
-  BranchPredictor:
-    datatype: int
-    paramtype: vlogparam
-    default: 0
-    description: "Enables static branch prediction (EXPERIMENTAL)"
-
   SecureCVE2:
     datatype: int
     default: 0
@@ -121,7 +115,6 @@ targets:
       - ICache
       - ICacheECC
       - WritebackStage
-      - BranchPredictor
       - SecureCVE2
       - ICacheScramble
       - PMPEnable

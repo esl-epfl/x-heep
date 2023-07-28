@@ -4,13 +4,15 @@
 
 /* verilator lint_off UNUSED */
 module pad_cell_bypass_output #(
-    parameter PADATTR = 16
+    parameter PADATTR = 16,
+    //do not touch these parameters
+    parameter PADATTR_RND = PADATTR == 0 ? 1 : PADATTR
 ) (
     input logic pad_in_i,
     input logic pad_oe_i,
     output logic pad_out_o,
     inout logic pad_io,
-    input logic [PADATTR-1:0] pad_attributes_i
+    input logic [PADATTR_RND-1:0] pad_attributes_i
 );
 
   logic pad;

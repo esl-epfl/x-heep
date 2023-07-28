@@ -14,16 +14,19 @@ module memory_subsystem
     input logic rst_ni,
 
     // Clock-gating signal
-    input logic [NUM_BANKS-1:0] clk_gate_en_i,
+    input logic [NUM_BANKS-1:0] clk_gate_en_ni,
 
     input  obi_req_t  [NUM_BANKS-1:0] ram_req_i,
     output obi_resp_t [NUM_BANKS-1:0] ram_resp_o,
 
-    input logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] set_retentive_i
+    input logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] set_retentive_ni
 );
 
   localparam int NumWords = 32 * 1024 / 4;
   localparam int AddrWidth = $clog2(32 * 1024);
+% if ram_numbanks_il != 0:
+  localparam int ilAddrWidth = $clog2(${ram_numbanks_il} * 32 * 1024);
+% endif
 
   logic [NUM_BANKS-1:0] ram_valid_q;
   // Clock-gating
@@ -33,7 +36,11 @@ module memory_subsystem
 
   for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_addr_napot
     if (i >= NUM_BANKS - ${ram_numbanks_il}) begin
-      assign ram_req_addr[i] = {${log_ram_numbanks_il}'h0, ram_req_i[i].addr[AddrWidth-1:${2+log_ram_numbanks_il}]};
+      assign ram_req_addr[i] = {
+        ram_req_i[i].addr[ilAddrWidth-1:AddrWidth] -
+        core_v_mini_mcu_pkg::RAM${ram_numbanks_cont}_START_ADDRESS[ilAddrWidth-1:AddrWidth],
+        ram_req_i[i].addr[AddrWidth-1:${2+log_ram_numbanks_il}]
+      };
     end else begin
       assign ram_req_addr[i] = ram_req_i[i].addr[AddrWidth-1:2];
     end
@@ -44,7 +51,7 @@ module memory_subsystem
 
     tc_clk_gating clk_gating_cell_i (
         .clk_i,
-        .en_i(~clk_gate_en_i[i]),
+        .en_i(clk_gate_en_ni[i]),
         .test_en_i(1'b0),
         .clk_o(clk_cg[i])
     );
@@ -71,12 +78,12 @@ module memory_subsystem
         .we_i(ram_req_i[i].we),
 % if ram_numbanks_il == 0:
         .addr_i(ram_req_i[i].addr[AddrWidth-1:2]),
-% else:      
+% else:
         .addr_i(ram_req_addr[i]),
-% endif        
+% endif
         .wdata_i(ram_req_i[i].wdata),
         .be_i(ram_req_i[i].be),
-        .set_retentive_i(set_retentive_i[i]),
+        .set_retentive_ni(set_retentive_ni[i]),
         .rdata_o(ram_resp_o[i].rdata)
     );
 

@@ -17,8 +17,6 @@ module cve2_prefetch_buffer #(
   input  logic        req_i,
 
   input  logic        branch_i,
-  input  logic        branch_mispredict_i,
-  input  logic [31:0] mispredict_addr_i,
   input  logic [31:0] addr_i,
 
 
@@ -64,15 +62,11 @@ module cve2_prefetch_buffer #(
 
   logic                valid_raw;
 
-  logic                branch_or_mispredict;
-
   ////////////////////////////
   // Prefetch buffer status //
   ////////////////////////////
 
   assign busy_o = (|rdata_outstanding_q) | instr_req_o;
-
-  assign branch_or_mispredict = branch_i | branch_mispredict_i;
 
   //////////////////////////////////////////////
   // Fetch fifo - consumes addresses and data //
@@ -81,7 +75,7 @@ module cve2_prefetch_buffer #(
   // A branch will invalidate any previously fetched instructions.
   // Note that the FENCE.I instruction relies on this flushing behaviour on branch. If it is
   // altered the FENCE.I implementation may require changes.
-  assign fifo_clear = branch_or_mispredict;
+  assign fifo_clear = branch_i;
 
   // Reversed version of rdata_outstanding_q which can be overlaid with fifo fill state
   for (genvar i = 0; i < NUM_REQS; i++) begin : gen_rd_rev
@@ -120,7 +114,7 @@ module cve2_prefetch_buffer #(
   //////////////
 
   // Make a new request any time there is space in the FIFO, and space in the request queue
-  assign valid_new_req = req_i & (fifo_ready | branch_or_mispredict) &
+  assign valid_new_req = req_i & (fifo_ready | branch_i) &
                          ~rdata_outstanding_q[NUM_REQS-1];
 
   assign valid_req = valid_req_q | valid_new_req;
@@ -129,7 +123,7 @@ module cve2_prefetch_buffer #(
   assign valid_req_d = valid_req & ~instr_gnt_i;
 
   // Record whether an outstanding bus request is cancelled by a branch
-  assign discard_req_d = valid_req_q & (branch_or_mispredict | discard_req_q);
+  assign discard_req_d = valid_req_q & (branch_i | discard_req_q);
 
   ////////////////
   // Fetch addr //
@@ -164,10 +158,9 @@ module cve2_prefetch_buffer #(
   // 2. fetch_addr_q
 
   // Update on a branch or as soon as a request is issued
-  assign fetch_addr_en = branch_or_mispredict | (valid_new_req & ~valid_req_q);
+  assign fetch_addr_en = branch_i | (valid_new_req & ~valid_req_q);
 
   assign fetch_addr_d = (branch_i            ? addr_i :
-                         branch_mispredict_i ? {mispredict_addr_i[31:2], 2'b00} :
                                                {fetch_addr_q[31:2], 2'b00}) +
                         // Current address + 4
                         {{29{1'b0}},(valid_new_req & ~valid_req_q),2'b00};
@@ -183,7 +176,6 @@ module cve2_prefetch_buffer #(
   // Address mux
   assign instr_addr = valid_req_q         ? stored_addr_q :
                       branch_i            ? addr_i :
-                      branch_mispredict_i ? mispredict_addr_i :
                                             fetch_addr_q;
 
   assign instr_addr_w_aligned = {instr_addr[31:2], 2'b00};
@@ -202,7 +194,7 @@ module cve2_prefetch_buffer #(
       // If a branch is received at any point while a request is outstanding, it must be tracked
       // to ensure we discard the data once received
       assign branch_discard_n[i]    = (valid_req & instr_gnt_i & discard_req_d) |
-                                      (branch_or_mispredict & rdata_outstanding_q[i]) |
+                                      (branch_i & rdata_outstanding_q[i]) |
                                       branch_discard_q[i];
 
     end else begin : g_reqtop
@@ -214,7 +206,7 @@ module cve2_prefetch_buffer #(
                                       rdata_outstanding_q[i];
       assign branch_discard_n[i]    = (valid_req & instr_gnt_i & discard_req_d &
                                        rdata_outstanding_q[i-1]) |
-                                      (branch_or_mispredict & rdata_outstanding_q[i]) |
+                                      (branch_i & rdata_outstanding_q[i]) |
                                       branch_discard_q[i];
     end
   end
@@ -228,7 +220,7 @@ module cve2_prefetch_buffer #(
   // Push a new entry to the FIFO once complete (and not cancelled by a branch)
   assign fifo_valid = instr_rvalid_i & ~branch_discard_q[0];
 
-  assign fifo_addr = branch_i ? addr_i : mispredict_addr_i;
+  assign fifo_addr = addr_i;
 
   ///////////////
   // Registers //
@@ -255,6 +247,6 @@ module cve2_prefetch_buffer #(
   assign instr_req_o  = valid_req;
   assign instr_addr_o = instr_addr_w_aligned;
 
-  assign valid_o = valid_raw & ~branch_mispredict_i;
+  assign valid_o = valid_raw;
 
 endmodule

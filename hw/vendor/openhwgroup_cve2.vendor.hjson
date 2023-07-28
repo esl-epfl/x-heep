@@ -6,8 +6,8 @@
   target_dir: "openhwgroup_cv32e20",
 
   upstream: {
-    url: "https://github.com/openhwgroup/cve2.git",
-    rev: "06c4a0c0e64f713a60011dc69704d67e62c8d078",
+    url: "https://github.com/davideschiavone/cve2.git",
+    rev: "2ff63f71a78999460b1b36b7723f87b82c1eb572",
   },
 
   exclude_from_upstream: [
@@ -20,6 +20,7 @@
     "shared",
     "syn",
     "util",
+    "scripts",
     "vendor/eembc_coremark",
     "vendor/eembc_coremark.lock.hjson",
     "vendor/google_riscv-dv",

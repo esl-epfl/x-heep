@@ -20,8 +20,7 @@
 module cve2_id_stage #(
   parameter bit               RV32E           = 0,
   parameter cve2_pkg::rv32m_e RV32M           = cve2_pkg::RV32MFast,
-  parameter cve2_pkg::rv32b_e RV32B           = cve2_pkg::RV32BNone,
-  parameter bit               BranchPredictor = 0
+  parameter cve2_pkg::rv32b_e RV32B           = cve2_pkg::RV32BNone
 ) (
   input  logic                      clk_i,
   input  logic                      rst_ni,
@@ -36,7 +35,6 @@ module cve2_id_stage #(
   input  logic [31:0]               instr_rdata_alu_i,     // from IF-ID pipeline registers
   input  logic [15:0]               instr_rdata_c_i,       // from IF-ID pipeline registers
   input  logic                      instr_is_compressed_i,
-  input  logic                      instr_bp_taken_i,
   output logic                      instr_req_o,
   output logic                      instr_first_cycle_id_o,
   output logic                      instr_valid_clear_o,   // kill instr in IF-ID reg
@@ -48,8 +46,6 @@ module cve2_id_stage #(
   // IF and ID stage signals
   output logic                      pc_set_o,
   output cve2_pkg::pc_sel_e         pc_mux_o,
-  output logic                      nt_branch_mispredict_o,
-  output logic [31:0]               nt_branch_addr_o,
   output cve2_pkg::exc_pc_sel_e     exc_pc_mux_o,
   output cve2_pkg::exc_cause_e      exc_cause_o,
 
@@ -170,7 +166,6 @@ module cve2_id_stage #(
   logic        branch_in_dec;
   logic        branch_set, branch_set_raw, branch_set_raw_d;
   logic        branch_jump_set_done_q, branch_jump_set_done_d;
-  logic        branch_not_set;
   logic        jump_in_dec;
   logic        jump_set_dec;
   logic        jump_set, jump_set_raw;
@@ -450,7 +445,6 @@ module cve2_id_stage #(
   assign illegal_insn_o = instr_valid_i & (illegal_insn_dec | illegal_csr_insn_i);
 
   cve2_controller #(
-    .BranchPredictor(BranchPredictor)
   ) controller_i (
     .clk_i (clk_i),
     .rst_ni(rst_ni),
@@ -472,7 +466,6 @@ module cve2_id_stage #(
     .instr_i                (instr_rdata_i),
     .instr_compressed_i     (instr_rdata_c_i),
     .instr_is_compressed_i  (instr_is_compressed_i),
-    .instr_bp_taken_i       (instr_bp_taken_i),
     .instr_fetch_err_i      (instr_fetch_err_i),
     .instr_fetch_err_plus2_i(instr_fetch_err_plus2_i),
     .pc_id_i                (pc_id_i),
@@ -486,7 +479,6 @@ module cve2_id_stage #(
     .instr_req_o           (instr_req_o),
     .pc_set_o              (pc_set_o),
     .pc_mux_o              (pc_mux_o),
-    .nt_branch_mispredict_o(nt_branch_mispredict_o),
     .exc_pc_mux_o          (exc_pc_mux_o),
     .exc_cause_o           (exc_cause_o),
 
@@ -494,10 +486,8 @@ module cve2_id_stage #(
     .lsu_addr_last_i(lsu_addr_last_i),
     .load_err_i     (lsu_load_err_i),
     .store_err_i    (lsu_store_err_i),
-    .id_exception_o (),
     // jump/branch control
     .branch_set_i     (branch_set),
-    .branch_not_set_i (branch_not_set),
     .jump_set_i       (jump_set),
 
     // interrupt signals
@@ -609,22 +599,6 @@ module cve2_id_stage #(
   assign jump_set        = jump_set_raw        & ~branch_jump_set_done_q;
   assign branch_set      = branch_set_raw      & ~branch_jump_set_done_q;
 
-  // Holding branch_set/jump_set high for more than one cycle should not cause a functional issue.
-  // However it could generate needless prefetch buffer flushes and instruction fetches. The ID/EX
-  // designs ensures that this never happens for non-predicted branches.
-  `ASSERT(NeverDoubleBranch, branch_set & ~instr_bp_taken_i |=> ~branch_set)
-  `ASSERT(NeverDoubleJump, jump_set & ~instr_bp_taken_i |=> ~jump_set)
-
-  //////////////////////////////
-  // Branch not-taken address //
-  //////////////////////////////
-
-  if (BranchPredictor) begin : g_calc_nt_addr
-    assign nt_branch_addr_o = pc_id_i + (instr_is_compressed_i ? 32'd2 : 32'd4);
-  end else begin : g_n_calc_nt_addr
-    assign nt_branch_addr_o = 32'd0;
-  end
-
   ///////////////
   // ID-EX FSM //
   ///////////////
@@ -653,7 +627,6 @@ module cve2_id_stage #(
     stall_branch            = 1'b0;
     stall_alu               = 1'b0;
     branch_set_raw_d        = 1'b0;
-    branch_not_set          = 1'b0;
     jump_set_raw            = 1'b0;
     perf_branch_o           = 1'b0;
 
@@ -686,10 +659,6 @@ module cve2_id_stage #(
                                      MULTI_CYCLE : FIRST_CYCLE;
               stall_branch     = branch_decision_i;
               branch_set_raw_d = branch_decision_i;
-
-              if (BranchPredictor) begin
-                branch_not_set = 1'b1;
-              end
 
               perf_branch_o = 1'b1;
             end
