@@ -166,13 +166,13 @@ int main(int argc, char *argv[])
     plic_irq_set_priority(GPIO_INTR_31, 1);
     plic_irq_set_enabled(GPIO_INTR_31, kPlicToggleEnabled);
 
-    gpio_cfg_t pin1_cfg = {.pin = GPIO_TB_OUT, .mode = GpioModeOutPushPull};
-    gpio_config (pin1_cfg);
-    gpio_write(GPIO_TB_OUT, true);
-
     gpio_cfg_t pin2_cfg = {.pin = GPIO_TB_IN, .mode = GpioModeIn,.en_input_sampling = true,
         .en_intr = true, .intr_type = GpioIntrEdgeRising};
     gpio_config (pin2_cfg);
+
+    gpio_cfg_t pin1_cfg = {.pin = GPIO_TB_OUT, .mode = GpioModeOutPushPull};
+    gpio_config (pin1_cfg);
+    gpio_write(GPIO_TB_OUT, true);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kPlic_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
