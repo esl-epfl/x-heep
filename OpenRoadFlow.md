@@ -2,7 +2,7 @@
 
 ## Install OpenROAD
 
-First, clone clone `OpenROAD-flow-scripts`
+First, clone clone `OpenROAD-flow-scripts`. We used the OpenROAD version: v2.0-9070-gbb341ffb9
 
 ```bash
 cd flow
