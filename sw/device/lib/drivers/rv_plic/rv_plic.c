@@ -49,6 +49,13 @@
 
 #include "handler.h"
 
+// Peripheral modules from where to obtain the irq handlers
+#include "../uart/uart.h"
+#include "../gpio/gpio.h"
+#include "../i2c/i2c.h"
+#include "../i2s/i2s.h"
+#include "../dma/dma.h"
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        DEFINITIONS AND MACROS                            */
@@ -61,22 +68,7 @@
 const uint32_t plicMinPriority = 0;
 const uint32_t plicMaxPriority = RV_PLIC_PRIO0_PRIO0_MASK;
 
-
-/**
- * Array of handler functions. Each entry is a callable handler function.
- * When an interrupt is serviced, its ID is detected and basing on it an
- * index is generated. This index will be used to address the proper
- * handler function inside this array.
-*/
-// handler_funct_t handlers[] = {&handler_irq_uart,
-//                               &handler_irq_gpio,
-//                               &handler_irq_i2c,
-//                               &handler_irq_spi,
-//                               &handler_irq_i2s,
-//                               &handler_irq_dma,
-//                               &handler_irq_ext};
-
-handler_funct_t handlers[QTY_INTR];
+handler_funct_t handlers[INTR__size];
 
 /****************************************************************************/
 /**                                                                        **/
@@ -91,9 +83,9 @@ handler_funct_t handlers[QTY_INTR];
 /****************************************************************************/
 
 /**
- * Returns the irq_sources_t source type of a given irq source ID
+ * Assigns the hardware-fixed peripheral handlers to the handlers array.
 */
-static irq_sources_t plic_get_irq_src_type(uint32_t irq_id);
+static void plic_reset_handlers_list( );
 
 /**
  * Get an IE, IP or LE register offset (IE0_0, IE01, ...) from an IRQ source ID.
@@ -102,7 +94,7 @@ static irq_sources_t plic_get_irq_src_type(uint32_t irq_id);
  * accommodate all the bits (1 bit per IRQ source). This function calculates
  * the offset for a specific IRQ source ID (ID 32 would be IE01, ...).
  */
-static ptrdiff_t plic_offset_from_reg0(uint32_t irq);
+static ptrdiff_t plic_offset_from_reg0( core_intr_id_t irq);
 
 /**
  *
@@ -113,7 +105,7 @@ static ptrdiff_t plic_offset_from_reg0(uint32_t irq);
  * the bit position within a register for a specific IRQ source ID (ID 32 would
  * be bit 0).
  */
-static uint8_t plic_irq_bit_index(uint32_t irq);
+static uint8_t plic_irq_bit_index( core_intr_id_t irq);
 
 /****************************************************************************/
 /**                                                                        **/
@@ -143,20 +135,15 @@ uint8_t plic_intr_flag = 0;
 
 void handler_irq_external(void)
 {
-  uint32_t int_id = 0;
+  core_intr_id_t int_id = NULL_INTR;
   plic_result_t res = plic_irq_claim(&int_id);
-  irq_sources_t type = plic_get_irq_src_type(int_id);
 
-  if(type != IRQ_BAD)
-  {
     // Calls the proper handler
-    handlers[type](int_id);
+    handlers[int_id](int_id);
     plic_intr_flag = 1;
 
     plic_irq_complete(&int_id);
-  }
 }
-
 
 /*!
   Resets relevant registers of the PLIC (Level/Edge,
@@ -200,25 +187,15 @@ plic_result_t plic_Init(void)
     return kPlicError;
   }
 
-
-
-
-
-
-
-
-
-
-
-
+  /* Fill the handlers array with the fixed peripherals. */
+  plic_reset_handlers_list();
 
   return kPlicOk;
-
 }
 
 
-plic_result_t plic_irq_set_enabled(uint32_t irq,
-                                       plic_toggle_t state)
+plic_result_t plic_irq_set_enabled( core_intr_id_t irq,
+                                    plic_toggle_t state)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC)
   {
@@ -248,8 +225,8 @@ plic_result_t plic_irq_set_enabled(uint32_t irq,
 }
 
 
-plic_result_t plic_irq_get_enabled(uint32_t irq,
-                                       plic_toggle_t *state)
+plic_result_t plic_irq_get_enabled( core_intr_id_t irq,
+                                    plic_toggle_t *state)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC)
   {
@@ -270,7 +247,7 @@ plic_result_t plic_irq_get_enabled(uint32_t irq,
 }
 
 
-plic_result_t plic_irq_set_trigger(uint32_t irq,
+plic_result_t plic_irq_set_trigger( core_intr_id_t irq,
                                            plic_irq_trigger_t trigger)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC)
@@ -295,7 +272,7 @@ plic_result_t plic_irq_set_trigger(uint32_t irq,
 }
 
 
-plic_result_t plic_irq_set_priority(uint32_t irq, uint32_t priority)
+plic_result_t plic_irq_set_priority( core_intr_id_t irq, uint32_t priority)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC || priority > plicMaxPriority)
   {
@@ -323,7 +300,7 @@ plic_result_t plic_target_set_threshold(uint32_t threshold)
 }
 
 
-plic_result_t plic_irq_is_pending(uint32_t irq,
+plic_result_t plic_irq_is_pending( core_intr_id_t irq,
                                           bool *is_pending)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC || is_pending == NULL)
@@ -343,7 +320,7 @@ plic_result_t plic_irq_is_pending(uint32_t irq,
 }
 
 
-plic_result_t plic_irq_claim(uint32_t *claim_data)
+plic_result_t plic_irq_claim( core_intr_id_t *claim_data)
 {
   if (claim_data == NULL)
   {
@@ -356,7 +333,7 @@ plic_result_t plic_irq_claim(uint32_t *claim_data)
 }
 
 
-plic_result_t plic_irq_complete(const uint32_t *complete_data)
+plic_result_t plic_irq_complete(const core_intr_id_t *complete_data)
 {
   if (complete_data == NULL)
   {
@@ -389,55 +366,74 @@ plic_result_t plic_software_irq_is_pending(void)
 }
 
 
+plic_result_t plic_assign_external_irq_handler( core_intr_id_t id,
+                                                handler_funct_t handler )
+{
+  if( id >= EXT_IRQ_START && id <= INTR__size ){
+    handlers[ id ] = handler;
+    return kPlicOk;
+  }
+  return kPlicBadArg;
+}
+
 /****************************************************************************/
 /**                                                                        **/
 /*                            LOCAL FUNCTIONS                               */
 /**                                                                        **/
 /****************************************************************************/
 
-static irq_sources_t plic_get_irq_src_type(uint32_t irq_id)
+/**
+ * A dummy function to prevent unassigned irq to access a null pointer.
+ */
+__attribute__((optimize("O0"))) static void handler_irq_dummy( core_intr_id_t dummy )
 {
-  if (irq_id < UART_ID_START || irq_id > EXT_IRQ_END)
-  {
-    return IRQ_BAD;
-  }
-  else if (irq_id <= UART_ID_END)
-  {
-    return IRQ_UART_SRC;
-  }
-  else if (irq_id <= GPIO_ID_END)
-  {
-    return IRQ_GPIO_SRC;
-  }
-  else if (irq_id <= I2C_ID_END)
-  {
-    return IRQ_I2C_SRC;
-  }
-  else if (irq_id == SPI_ID)
-  {
-    return IRQ_SPI_SRC;
-  }
-  else if (irq_id == I2S_ID)
-  {
-    return IRQ_I2S_SRC;
-  }
-  else if (irq_id == DMA_ID)
-  {
-    return IRQ_DMA_SRC;
-  }
-  else
-  {
-    return IRQ_EXT_SRC;
-  }
-
+  return;
 }
 
-static ptrdiff_t plic_offset_from_reg0(uint32_t irq)
+static void plic_reset_handlers_list( )
+{
+  handlers[NULL_INTR] = &handler_irq_dummy;
+
+  for( uint8_t i = NULL_INTR +1; i < INTR__size; i++ )
+  {
+    /*if ( i <= UART_ID_END)
+    {
+      handlers[i] = &handler_irq_uart; //missing
+    }
+    else if ( i <= GPIO_ID_END)
+    {
+      handlers[i] = &handler_irq_gpio; //missing
+    }
+    else if ( i <= I2C_ID_END)
+    {
+      handlers[i] = &handler_irq_i2c; //missing
+    }
+    else if ( i == SPI_ID)
+    {
+      handlers[i] = &handler_irq_spi; //missing
+    }
+    else if ( i == I2S_ID)
+    {
+      handlers[i] = &handler_irq_i2s;
+    }
+    else */
+    if ( i == DMA_ID)
+    {
+      handlers[i] = &handler_irq_dma;
+    }
+    else
+    {
+      handlers[i] = &handler_irq_dummy;
+    }
+  }
+}
+
+static ptrdiff_t plic_offset_from_reg0( core_intr_id_t irq)
 {
   return irq / RV_PLIC_PARAM_REG_WIDTH;
 }
 
-static uint8_t plic_irq_bit_index(uint32_t irq)
+static uint8_t plic_irq_bit_index( core_intr_id_t irq)
 {
   return irq % RV_PLIC_PARAM_REG_WIDTH;
 }

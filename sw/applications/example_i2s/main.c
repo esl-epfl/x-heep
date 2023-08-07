@@ -10,10 +10,10 @@
 /**
  * This is a example for a i2s microphone.
  * It is recording an audiosample of a given size and then outputing it over UART.
- * 
+ *
  * Tested with SPH0645 microphone module from Adafruit
  * https://www.adafruit.com/product/3421
- * 
+ *
  * check `pin_assign.xdc` for the pinout of the FPGA to connect:
  * 3V -> 3.3V
  * GND -> GND
@@ -21,13 +21,14 @@
  * LRCL -> I2S_WS
  * DOUT -> I2S_SD
  * SEL -> left floating (pulldown) to transmit data on the left channel
- * 
+ *
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "core_v_mini_mcu.h"
+#include "core_intr.h"
 #include "x-heep.h"
 #include "i2s.h"
 #include "i2s_structs.h"
@@ -69,9 +70,9 @@
 #define DEFAULT_PRINTF_BEHAVIOR 1
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
-#ifdef TARGET_PYNQ_Z2 
+#ifdef TARGET_PYNQ_Z2
     #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
-#else 
+#else
     #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
 #endif
 
@@ -79,7 +80,7 @@
   #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
   #define PRINTF(...)
-#endif 
+#endif
 
 // Interrupt controller variables
 plic_result_t plic_res;
@@ -102,7 +103,7 @@ int8_t dma_intr_flag;
 //
 // ISR
 //
-void handler_irq_i2s(uint32_t id) {
+void handler_irq_i2s(core_intr_id_t id) {
     i2s_interrupt_flag = 1;
 }
 
@@ -121,7 +122,7 @@ static dma_trans_t trans;
 //
 // Setup
 //
-void setup() 
+void setup()
 {
 
     #ifdef USE_DMA
@@ -135,12 +136,12 @@ void setup()
     tgt_src.trig       = DMA_TRIG_SLOT_I2S;
     tgt_src.type       = DMA_DATA_TYPE_WORD;
     tgt_src.size_du    = AUDIO_DATA_NUM;
-    
+
     tgt_dst.ptr        = audio_data_0;
     tgt_dst.inc_du     = 1;
     tgt_dst.trig       = DMA_TRIG_MEMORY;
     tgt_dst.type       = DMA_DATA_TYPE_WORD;
-    
+
     trans.src        = &tgt_src;
     trans.dst        = &tgt_dst;
     trans.end        = DMA_TRANS_END_INTR;
@@ -164,12 +165,12 @@ void setup()
     i2s_res = i2s_init(I2S_CLK_DIV, I2S_32_BITS);
     if (i2s_res != kI2sOk) {
         PRINTF("I2S init failed with %d\n\r", i2s_res);
-    } 
+    }
     i2s_rx_enable_watermark(AUDIO_DATA_NUM, I2S_USE_INTERRUPT);
 
 }
 
-#define I2S_WAIT_TIME_US 100000 
+#define I2S_WAIT_TIME_US 100000
 #define I2S_WAIT_CYCLES  ((1.5 * REFERENCE_CLOCK_Hz / 4))
 // 1500000
 
@@ -186,7 +187,7 @@ int main(int argc, char *argv[]) {
     //PRINTF("Setup done!\r\n\r");
 
 #ifdef TARGET_PYNQ_Z2
-    
+
 
     for (uint32_t i = 0; i < I2S_WAIT_CYCLES; i++) asm volatile("nop");
 
@@ -197,15 +198,15 @@ int main(int argc, char *argv[]) {
 
     int batch = 0;
     for (int batch = 0; batch < I2S_TEST_BATCHES; batch++){
-        PRINTF("starting\r\n\r"); // <- csv header for python 
+        PRINTF("starting\r\n\r"); // <- csv header for python
         #ifdef USE_DMA
             dma_launch( &trans );
         #endif // USE_DMA
-        
+
         i2s_res = i2s_rx_start(I2S_LEFT_CH);
         if (i2s_res != kI2sOk) {
             PRINTF("I2S rx start failed with %d\n\r", i2s_res);
-        } 
+        }
 
         #ifdef USE_DMA
         // WAITING FOR DMA COPY TO FINISH
@@ -237,7 +238,7 @@ int main(int argc, char *argv[]) {
         }
 
 
-        // this takes wayyy longer than reading the samples, so no continuous mode is possible with UART dump 
+        // this takes wayyy longer than reading the samples, so no continuous mode is possible with UART dump
         int32_t* data = audio_data_0;
         for (int i = 0; i < AUDIO_DATA_NUM; i+=1) {
             PRINTF("%d\r\n\r",(int16_t) (data[i] >> 16));
@@ -265,7 +266,7 @@ int main(int argc, char *argv[]) {
         i2s_res = i2s_rx_start(I2S_BOTH_CH);
         if (i2s_res != kI2sOk) {
             PRINTF("I2S rx start failed with %d\n\r", i2s_res);
-        } 
+        }
         #ifdef USE_DMA
 
         // WAITING FOR DMA COPY TO FINISH
@@ -302,7 +303,7 @@ int main(int argc, char *argv[]) {
 
 
         PRINTF("B%x\r\n\r", batch);
-        
+
         int32_t* data = audio_data_0;
         for (int i = 0; i < AUDIO_DATA_NUM; i+=2) {
             PRINTF("0x%x 0x%x\r\n\r", data[i], data[i+1]);
@@ -329,7 +330,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     i2s_terminate();
-    
+
     if( success ){
         PRINTF("Success. \n\r");
         return EXIT_SUCCESS;

@@ -10,6 +10,7 @@
 #include "core_v_mini_mcu.h"
 #include "x-heep.h"
 #include "csr.h"
+#include "rv_plic.h"
 
 #define TEST_SINGULAR_MODE
 #define TEST_PENDING_TRANSACTION
@@ -20,7 +21,7 @@
 #define TEST_DATA_SIZE      16
 #define TEST_DATA_LARGE     1024
 #define TRANSACTIONS_N      3       // Only possible to perform transaction at a time, others should be blocked
-#define TEST_WINDOW_SIZE_DU  1024    // if put at <=71 the isr is too slow to react to the interrupt 
+#define TEST_WINDOW_SIZE_DU  1024    // if put at <=71 the isr is too slow to react to the interrupt
 
 
 
@@ -32,9 +33,9 @@
 #define DEFAULT_PRINTF_BEHAVIOR 1
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
-#ifdef TARGET_PYNQ_Z2 
+#ifdef TARGET_PYNQ_Z2
     #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
-#else 
+#else
     #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
 #endif
 
@@ -42,7 +43,7 @@
   #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
   #define PRINTF(...)
-#endif 
+#endif
 
 
 int32_t errors = 0;
@@ -72,7 +73,7 @@ uint8_t dma_window_ratio_warning_threshold()
 
 int main(int argc, char *argv[])
 {
-    
+
     static uint32_t test_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = {
       0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef, 0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa, 0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98};
     static uint32_t copied_data_4B[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
@@ -83,9 +84,9 @@ int main(int argc, char *argv[])
 
     // The DMA is initialized (i.e. Any current transaction is cleaned.)
     dma_init(NULL);
-    
+
     dma_config_flags_t res;
-    
+
     dma_target_t tgt_src = {
                                 .ptr        = test_data_4B,
                                 .inc_du     = 1,
@@ -115,7 +116,7 @@ int main(int argc, char *argv[])
                                 .win_du     = 0,
                                 .end        = DMA_TRANS_END_INTR,
                                 };
-    // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
+    // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.
 
 #ifdef TEST_SINGULAR_MODE
 
@@ -129,7 +130,7 @@ int main(int argc, char *argv[])
     PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     res = dma_launch(&trans);
     PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
-    
+
     while( ! dma_is_ready()) {
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
@@ -141,7 +142,7 @@ int main(int argc, char *argv[])
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }
     PRINTF(">> Finished transaction. \n\r");
-        
+
     for(uint32_t i = 0; i < trans.size_b; i++ ) {
         if ( ((uint8_t*)copied_data_4B)[i] != ((uint8_t*)test_data_4B)[i] ) {
             PRINTF("ERROR [%d]: %04x != %04x\n\r", i, ((uint8_t*)copied_data_4B)[i], ((uint8_t*)test_data_4B)[i]);
@@ -285,7 +286,7 @@ int main(int argc, char *argv[])
     PRINTF("\n\n\r===================================\n\n\r");
     PRINTF("    TESTING MULTIPLE TRANSACTIONS   ");
     PRINTF("\n\n\r===================================\n\n\r");
-    
+
     for (uint32_t i = 0; i < TEST_DATA_LARGE; i++) {
         test_data_large[i] = i;
     }
@@ -294,9 +295,9 @@ int main(int argc, char *argv[])
     tgt_src.ptr     = test_data_large;
     tgt_src.size_du = TEST_DATA_LARGE;
 
-    // trans.end = DMA_TRANS_END_INTR_WAIT; // This option makes no sense, because the launch is blocking the program until the trans finishes. 
+    // trans.end = DMA_TRANS_END_INTR_WAIT; // This option makes no sense, because the launch is blocking the program until the trans finishes.
     trans.end = DMA_TRANS_END_INTR;
-    // trans.end = DMA_TRANS_END_POLLING; 
+    // trans.end = DMA_TRANS_END_POLLING;
 
 
     res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
@@ -309,7 +310,7 @@ int main(int argc, char *argv[])
         res |= dma_launch(&trans);
         if( res == DMA_CONFIG_OK ) consecutive_trans++;
     }
-    
+
     if( trans.end == DMA_TRANS_END_POLLING ){
         while( cycles < consecutive_trans ){
             while( ! dma_is_ready() );
@@ -322,8 +323,8 @@ int main(int argc, char *argv[])
     }
     PRINTF(">> Finished %d transactions. That is %s.\n\r", consecutive_trans, consecutive_trans > 1 ? "bad" : "good");
 
-    
-    
+
+
     for(int i=0; i<TEST_DATA_LARGE; i++) {
         if (tgt_src.ptr[i] != tgt_dst.ptr[i]) {
             PRINTF("ERROR COPY [%d]: %08x != %08x : %04x != %04x\n\r", i, &tgt_src.ptr[i], &tgt_dst.ptr[i], tgt_src.ptr[i], tgt_dst.ptr[i]);
@@ -347,7 +348,11 @@ int main(int argc, char *argv[])
     PRINTF("    TESTING WINDOW INTERRUPT   ");
     PRINTF("\n\n\r===================================\n\n\r");
 
-    
+
+    plic_Init();
+    plic_irq_set_priority( DMA_WINDOW_INTR, 1);
+    plic_irq_set_enabled(  DMA_WINDOW_INTR, kPlicToggleEnabled);
+
     window_intr_flag = 0;
 
     for (uint32_t i = 0; i < TEST_DATA_LARGE; i++) {
@@ -363,7 +368,7 @@ int main(int argc, char *argv[])
 
     trans.win_du     = TEST_WINDOW_SIZE_DU;
     trans.end       = DMA_TRANS_END_INTR;
-    
+
     res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     res = dma_load_transaction(&trans);
@@ -379,7 +384,7 @@ int main(int argc, char *argv[])
             wait_for_interrupt();
             PRINTF("i\n\r");
         }
-    }  
+    }
 
     PRINTF("\nWe had %d window interrupts.\n\r", window_intr_flag);
 
