@@ -370,6 +370,12 @@ plic_result_t plic_software_irq_is_pending(void);
 plic_result_t plic_assign_external_irq_handler( uint32_t id,
                                                 handler_funct_t handler );
 
+/**
+ * Resets all peripheral handlers to their pre-set ones. All external handlers
+ * are re-set to the dummy handler.
+ */
+void plic_reset_handlers_list( );
+
 #endif /* _RV_PLIC_H_ */
 
 /****************************************************************************/

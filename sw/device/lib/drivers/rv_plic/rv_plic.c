@@ -83,11 +83,6 @@ handler_funct_t handlers[QTY_INTR];
 /****************************************************************************/
 
 /**
- * Assigns the hardware-fixed peripheral handlers to the handlers array.
-*/
-static void plic_reset_handlers_list( );
-
-/**
  * Get an IE, IP or LE register offset (IE0_0, IE01, ...) from an IRQ source ID.
  *
  * With more than 32 IRQ sources, there is a multiple of these registers to
@@ -106,6 +101,12 @@ static ptrdiff_t plic_offset_from_reg0( uint32_t irq);
  * be bit 0).
  */
 static uint8_t plic_irq_bit_index( uint32_t irq);
+
+/**
+ * A dummy function to prevent unassigned irq to access a null pointer.
+ */
+__attribute__((optimize("O0"))) static void handler_irq_dummy( uint32_t dummy );
+
 
 /****************************************************************************/
 /**                                                                        **/
@@ -369,28 +370,15 @@ plic_result_t plic_software_irq_is_pending(void)
 plic_result_t plic_assign_external_irq_handler( uint32_t id,
                                                 handler_funct_t handler )
 {
-  if( id >= EXT_IRQ_START && id <= QTY_INTR ){
+  if( id >= EXT_IRQ_START && id <= QTY_INTR )
+  {
     handlers[ id ] = handler;
     return kPlicOk;
   }
   return kPlicBadArg;
 }
 
-/****************************************************************************/
-/**                                                                        **/
-/*                            LOCAL FUNCTIONS                               */
-/**                                                                        **/
-/****************************************************************************/
-
-/**
- * A dummy function to prevent unassigned irq to access a null pointer.
- */
-__attribute__((optimize("O0"))) static void handler_irq_dummy( uint32_t dummy )
-{
-  return;
-}
-
-static void plic_reset_handlers_list( )
+void plic_reset_handlers_list( )
 {
   handlers[NULL_INTR] = &handler_irq_dummy;
 
@@ -400,10 +388,12 @@ static void plic_reset_handlers_list( )
     {
       handlers[i] = &handler_irq_uart; //missing
     }
-    else if ( i <= GPIO_ID_END)
+    else */
+    if ( i <= GPIO_ID_END)
     {
       handlers[i] = &handler_irq_gpio; //missing
     }
+    /*
     else if ( i <= I2C_ID_END)
     {
       handlers[i] = &handler_irq_i2c; //missing
@@ -411,9 +401,8 @@ static void plic_reset_handlers_list( )
     else if ( i == SPI_ID)
     {
       handlers[i] = &handler_irq_spi; //missing
-    }
-    else */
-    if ( i == I2S_ID)
+    } */
+    else if ( i == I2S_ID)
     {
       handlers[i] = &handler_irq_i2s;
     }
@@ -426,6 +415,17 @@ static void plic_reset_handlers_list( )
       handlers[i] = &handler_irq_dummy;
     }
   }
+}
+
+/****************************************************************************/
+/**                                                                        **/
+/*                            LOCAL FUNCTIONS                               */
+/**                                                                        **/
+/****************************************************************************/
+
+__attribute__((optimize("O0"))) static void handler_irq_dummy( uint32_t dummy )
+{
+  return;
 }
 
 static ptrdiff_t plic_offset_from_reg0( uint32_t irq)
