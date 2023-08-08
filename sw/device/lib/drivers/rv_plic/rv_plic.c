@@ -55,6 +55,7 @@
 #include "../i2c/i2c.h"
 #include "../i2s/i2s.h"
 #include "../dma/dma.h"
+#include "../spi_host/spi_host.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -370,19 +371,19 @@ void plic_reset_handlers_list( )
   {
     if ( i <= UART_ID_END)
     {
-      // handlers[i] = &handler_irq_uart; //missing
+      handlers[i] = &handler_irq_uart;
     }
     else if ( i <= GPIO_ID_END)
     {
-      handlers[i] = &handler_irq_gpio; //missing
+      handlers[i] = &handler_irq_gpio;
     }
     else if ( i <= I2C_ID_END)
     {
-      // handlers[i] = &handler_irq_i2c; //missing
+      handlers[i] = &handler_irq_i2c;
     }
     else if ( i == SPI_ID)
     {
-      // handlers[i] = &handler_irq_spi; //missing
+      handlers[i] = &handler_irq_spi;
     }
     else if ( i == I2S_ID)
     {
