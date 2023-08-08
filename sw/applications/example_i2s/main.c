@@ -28,7 +28,7 @@
 #include <stdlib.h>
 
 #include "core_v_mini_mcu.h"
-#include "core_intr.h"
+
 #include "x-heep.h"
 #include "i2s.h"
 #include "i2s_structs.h"

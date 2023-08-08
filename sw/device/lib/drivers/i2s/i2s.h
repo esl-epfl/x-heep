@@ -48,7 +48,7 @@
 
 #include "bitfield.h"
 #include "i2s_regs.h"
-#include "core_intr.h"
+
 
 #ifdef __cplusplus
 extern "C" {

@@ -68,7 +68,7 @@
 const uint32_t plicMinPriority = 0;
 const uint32_t plicMaxPriority = RV_PLIC_PRIO0_PRIO0_MASK;
 
-handler_funct_t handlers[INTR__size];
+handler_funct_t handlers[QTY_INTR];
 
 /****************************************************************************/
 /**                                                                        **/
@@ -369,7 +369,7 @@ plic_result_t plic_software_irq_is_pending(void)
 plic_result_t plic_assign_external_irq_handler( uint32_t id,
                                                 handler_funct_t handler )
 {
-  if( id >= EXT_IRQ_START && id <= INTR__size ){
+  if( id >= EXT_IRQ_START && id <= QTY_INTR ){
     handlers[ id ] = handler;
     return kPlicOk;
   }
@@ -394,7 +394,7 @@ static void plic_reset_handlers_list( )
 {
   handlers[NULL_INTR] = &handler_irq_dummy;
 
-  for( uint8_t i = NULL_INTR +1; i < INTR__size; i++ )
+  for( uint8_t i = NULL_INTR +1; i < QTY_INTR; i++ )
   {
     /*if ( i <= UART_ID_END)
     {

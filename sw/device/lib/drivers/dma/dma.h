@@ -42,7 +42,7 @@
 #include "dma_regs.h"       // Generated
 
 #include "core_v_mini_mcu.h"
-#include "core_intr.h"
+
 #include "hart.h"           // Wait for interrupt
 
 /****************************************************************************/
