@@ -61,6 +61,20 @@ Notes:
 
 plic_result_t plic_res;
 
+uint8_t gpio_intr_flag = 0;
+
+void handler_1()
+{
+    PRINTF("handler 1\n");
+    gpio_intr_flag = 1;
+}
+
+void handler_2()
+{
+    PRINTF("handler 2\n");
+    gpio_intr_flag = 1;
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -100,7 +114,6 @@ int main(int argc, char *argv[])
     // Set mie.MEIE bit to one to enable machine-level external interrupts
     const uint32_t mask = 1 << 11;
     CSR_SET_BITS(CSR_REG_MIE, mask);
-    plic_intr_flag = 0;
 
     //gpio_reset_all();
     gpio_result_t gpio_res;
@@ -129,15 +142,32 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    gpio_assign_irq_handler( GPIO_INTR, &handler_1 );
+    gpio_intr_flag = 0;
+
     PRINTF("Write 1 to GPIO 30 and wait for interrupt...\n\r");
-    while(plic_intr_flag==0) {
+    while(gpio_intr_flag == 0) {
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
         gpio_write(GPIO_TB_OUT, true);
-        wait_for_interrupt();
+        // wait_for_interrupt();
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }
+
+    gpio_assign_irq_handler( GPIO_INTR, &handler_2 );
+    gpio_intr_flag = 0;
+
+    PRINTF("Write 1 to GPIO 30 and wait for interrupt...\n\r");
+    while(gpio_intr_flag == 0) {
+        // disable_interrupts
+        // this does not prevent waking up the core as this is controlled by the MIP register
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+        gpio_write(GPIO_TB_OUT, true);
+        //wait_for_interrupt();
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    }
+
     PRINTF("Success\n\r");
 
     return EXIT_SUCCESS;

@@ -116,20 +116,6 @@ __attribute__((optimize("O0"))) static void handler_irq_dummy( uint32_t dummy );
 
 /****************************************************************************/
 /**                                                                        **/
-/*                            GLOBAL VARIABLES                              */
-/**                                                                        **/
-/****************************************************************************/
-
-/*
-  Flag to handle the wait for interrupt.
-  Set to 1 after an interrupt occours and the core is in wait for interrupt
-  so the execution of the program can continue.
-*/
-uint8_t plic_intr_flag = 0;
-
-
-/****************************************************************************/
-/**                                                                        **/
 /*                           EXPORTED FUNCTIONS                             */
 /**                                                                        **/
 /****************************************************************************/
@@ -141,8 +127,6 @@ void handler_irq_external(void)
 
     // Calls the proper handler
     handlers[int_id](int_id);
-    plic_intr_flag = 1;
-
     plic_irq_complete(&int_id);
 }
 
@@ -384,29 +368,27 @@ void plic_reset_handlers_list( )
 
   for( uint8_t i = NULL_INTR +1; i < QTY_INTR; i++ )
   {
-    /*if ( i <= UART_ID_END)
+    if ( i <= UART_ID_END)
     {
-      handlers[i] = &handler_irq_uart; //missing
+      // handlers[i] = &handler_irq_uart; //missing
     }
-    else */
-    if ( i <= GPIO_ID_END)
+    else if ( i <= GPIO_ID_END)
     {
       handlers[i] = &handler_irq_gpio; //missing
     }
-    /*
     else if ( i <= I2C_ID_END)
     {
-      handlers[i] = &handler_irq_i2c; //missing
+      // handlers[i] = &handler_irq_i2c; //missing
     }
     else if ( i == SPI_ID)
     {
-      handlers[i] = &handler_irq_spi; //missing
-    } */
+      // handlers[i] = &handler_irq_spi; //missing
+    }
     else if ( i == I2S_ID)
     {
       handlers[i] = &handler_irq_i2s;
     }
-    if ( i == DMA_ID)
+    else if ( i == DMA_ID)
     {
       handlers[i] = &handler_irq_dma;
     }
