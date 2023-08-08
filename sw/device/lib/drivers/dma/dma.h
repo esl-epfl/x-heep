@@ -333,7 +333,7 @@ typedef struct
 /**
  * @brief Attends the plic interrupt.
  */
-void handler_irq_dma( core_intr_id_t id );
+void handler_irq_dma( uint32_t id );
 
 /**
  * @brief This is a non-weak implementation of the function declared in

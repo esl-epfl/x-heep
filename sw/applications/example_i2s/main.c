@@ -103,7 +103,7 @@ int8_t dma_intr_flag;
 //
 // ISR
 //
-void handler_irq_i2s(core_intr_id_t id) {
+void handler_irq_i2s(uint32_t id) {
     i2s_interrupt_flag = 1;
 }
 

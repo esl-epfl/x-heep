@@ -45,7 +45,7 @@
 /**                                                                        **/
 /****************************************************************************/
 
-__attribute__((weak, optimize("O0"))) void handler_irq_i2s(core_intr_id_t id)
+__attribute__((weak, optimize("O0"))) void handler_irq_i2s(uint32_t id)
 {
  // Replace this function with a non-weak implementation
 }

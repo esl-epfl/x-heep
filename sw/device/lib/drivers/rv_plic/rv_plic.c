@@ -94,7 +94,7 @@ static void plic_reset_handlers_list( );
  * accommodate all the bits (1 bit per IRQ source). This function calculates
  * the offset for a specific IRQ source ID (ID 32 would be IE01, ...).
  */
-static ptrdiff_t plic_offset_from_reg0( core_intr_id_t irq);
+static ptrdiff_t plic_offset_from_reg0( uint32_t irq);
 
 /**
  *
@@ -105,7 +105,7 @@ static ptrdiff_t plic_offset_from_reg0( core_intr_id_t irq);
  * the bit position within a register for a specific IRQ source ID (ID 32 would
  * be bit 0).
  */
-static uint8_t plic_irq_bit_index( core_intr_id_t irq);
+static uint8_t plic_irq_bit_index( uint32_t irq);
 
 /****************************************************************************/
 /**                                                                        **/
@@ -135,7 +135,7 @@ uint8_t plic_intr_flag = 0;
 
 void handler_irq_external(void)
 {
-  core_intr_id_t int_id = NULL_INTR;
+  uint32_t int_id = NULL_INTR;
   plic_result_t res = plic_irq_claim(&int_id);
 
     // Calls the proper handler
@@ -194,7 +194,7 @@ plic_result_t plic_Init(void)
 }
 
 
-plic_result_t plic_irq_set_enabled( core_intr_id_t irq,
+plic_result_t plic_irq_set_enabled( uint32_t irq,
                                     plic_toggle_t state)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC)
@@ -225,7 +225,7 @@ plic_result_t plic_irq_set_enabled( core_intr_id_t irq,
 }
 
 
-plic_result_t plic_irq_get_enabled( core_intr_id_t irq,
+plic_result_t plic_irq_get_enabled( uint32_t irq,
                                     plic_toggle_t *state)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC)
@@ -247,7 +247,7 @@ plic_result_t plic_irq_get_enabled( core_intr_id_t irq,
 }
 
 
-plic_result_t plic_irq_set_trigger( core_intr_id_t irq,
+plic_result_t plic_irq_set_trigger( uint32_t irq,
                                            plic_irq_trigger_t trigger)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC)
@@ -272,7 +272,7 @@ plic_result_t plic_irq_set_trigger( core_intr_id_t irq,
 }
 
 
-plic_result_t plic_irq_set_priority( core_intr_id_t irq, uint32_t priority)
+plic_result_t plic_irq_set_priority( uint32_t irq, uint32_t priority)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC || priority > plicMaxPriority)
   {
@@ -300,7 +300,7 @@ plic_result_t plic_target_set_threshold(uint32_t threshold)
 }
 
 
-plic_result_t plic_irq_is_pending( core_intr_id_t irq,
+plic_result_t plic_irq_is_pending( uint32_t irq,
                                           bool *is_pending)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC || is_pending == NULL)
@@ -320,7 +320,7 @@ plic_result_t plic_irq_is_pending( core_intr_id_t irq,
 }
 
 
-plic_result_t plic_irq_claim( core_intr_id_t *claim_data)
+plic_result_t plic_irq_claim( uint32_t *claim_data)
 {
   if (claim_data == NULL)
   {
@@ -333,7 +333,7 @@ plic_result_t plic_irq_claim( core_intr_id_t *claim_data)
 }
 
 
-plic_result_t plic_irq_complete(const core_intr_id_t *complete_data)
+plic_result_t plic_irq_complete(const uint32_t *complete_data)
 {
   if (complete_data == NULL)
   {
@@ -366,7 +366,7 @@ plic_result_t plic_software_irq_is_pending(void)
 }
 
 
-plic_result_t plic_assign_external_irq_handler( core_intr_id_t id,
+plic_result_t plic_assign_external_irq_handler( uint32_t id,
                                                 handler_funct_t handler )
 {
   if( id >= EXT_IRQ_START && id <= INTR__size ){
@@ -385,7 +385,7 @@ plic_result_t plic_assign_external_irq_handler( core_intr_id_t id,
 /**
  * A dummy function to prevent unassigned irq to access a null pointer.
  */
-__attribute__((optimize("O0"))) static void handler_irq_dummy( core_intr_id_t dummy )
+__attribute__((optimize("O0"))) static void handler_irq_dummy( uint32_t dummy )
 {
   return;
 }
@@ -412,11 +412,11 @@ static void plic_reset_handlers_list( )
     {
       handlers[i] = &handler_irq_spi; //missing
     }
-    else if ( i == I2S_ID)
+    else */
+    if ( i == I2S_ID)
     {
       handlers[i] = &handler_irq_i2s;
     }
-    else */
     if ( i == DMA_ID)
     {
       handlers[i] = &handler_irq_dma;
@@ -428,12 +428,12 @@ static void plic_reset_handlers_list( )
   }
 }
 
-static ptrdiff_t plic_offset_from_reg0( core_intr_id_t irq)
+static ptrdiff_t plic_offset_from_reg0( uint32_t irq)
 {
   return irq / RV_PLIC_PARAM_REG_WIDTH;
 }
 
-static uint8_t plic_irq_bit_index( core_intr_id_t irq)
+static uint8_t plic_irq_bit_index( uint32_t irq)
 {
   return irq % RV_PLIC_PARAM_REG_WIDTH;
 }

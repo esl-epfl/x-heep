@@ -52,6 +52,11 @@ extern "C" {
 #define FLASH_MEM_SIZE 0x${flash_mem_size_address}
 #define FLASH_MEM_END_ADDRESS (FLASH_MEM_START_ADDRESS + FLASH_MEM_SIZE)
 
+#define QTY_INTR ${len(interrupts)}
+% for key, value in interrupts.items():
+#define ${key.upper()} ${value}
+% endfor
+
 % if pads_attributes != None:
 % for pad in pad_list:
 #define ${pad.localparam}_ATTRIBUTE ${pad.index}

@@ -97,7 +97,7 @@
  * Each element will be initialized to be the address of the handler function
  * relative to its index. So each element will be a callable function.
 */
-typedef void (*handler_funct_t)(core_intr_id_t);
+typedef void (*handler_funct_t)(uint32_t);
 
 
 /**
@@ -223,7 +223,7 @@ plic_result_t plic_Init(void);
  * @param state The new toggle state for the interrupt
  * @return The result of the operation
 */
-plic_result_t plic_irq_set_enabled( core_intr_id_t irq,
+plic_result_t plic_irq_set_enabled( uint32_t irq,
                                     plic_toggle_t state);
 
 
@@ -241,7 +241,7 @@ plic_result_t plic_irq_set_enabled( core_intr_id_t irq,
  * @param state The toggle state of the interrupt, as read from the IE registers
  * @return The result of the operation
 */
-plic_result_t plic_irq_get_enabled( core_intr_id_t irq,
+plic_result_t plic_irq_get_enabled( uint32_t irq,
                                     plic_toggle_t *state);
 
 /**
@@ -257,7 +257,7 @@ plic_result_t plic_irq_get_enabled( core_intr_id_t irq,
  * @result The result of the operation
  *
 */
-plic_result_t plic_irq_set_trigger( core_intr_id_t irq,
+plic_result_t plic_irq_set_trigger( uint32_t irq,
                                     plic_irq_trigger_t trigger);
 
 /**
@@ -267,7 +267,7 @@ plic_result_t plic_irq_set_trigger( core_intr_id_t irq,
  * @param priority A priority value to set
  * @return The result of the operation
 */
-plic_result_t plic_irq_set_priority(  core_intr_id_t irq,
+plic_result_t plic_irq_set_priority(  uint32_t irq,
                                       uint32_t priority);
 
 /**
@@ -288,7 +288,7 @@ plic_result_t plic_target_set_threshold(uint32_t threshold);
  * @param irq An interrupt source identification
  * @param[out] is_pending Boolean flagcorresponding to whether an interrupt is pending or not
 */
-plic_result_t plic_irq_is_pending( core_intr_id_t irq,
+plic_result_t plic_irq_is_pending( uint32_t irq,
                                    bool *is_pending);
 
 /**
@@ -310,7 +310,7 @@ plic_result_t plic_irq_is_pending( core_intr_id_t irq,
  * @param[out] claim_data Data that describes the origin of the IRQ.
  * @return The result of the operation.
  */
-plic_result_t plic_irq_claim( core_intr_id_t *claim_data);
+plic_result_t plic_irq_claim( uint32_t *claim_data);
 
 /**
  * Completes the claimed interrupt request.
@@ -326,7 +326,7 @@ plic_result_t plic_irq_claim( core_intr_id_t *claim_data);
  * PLIC of the IRQ servicing completion.
  * @return The result of the operation
 */
-plic_result_t plic_irq_complete(const core_intr_id_t *complete_data );
+plic_result_t plic_irq_complete(const uint32_t *complete_data );
 
 
 /**
@@ -363,11 +363,11 @@ plic_result_t plic_software_irq_is_pending(void);
 
 /**
  * Adds a handler function for an external interrupt to the handlers list.
- * @param id The interrupt ID of an external interrupt.
+ * @param id The interrupt ID of an external interrupt (from core_v_mini_mcu.h)
  * @param handler A pointer to a function that will be called upon interrupt.
  * @return The result of the operation
 */
-plic_result_t plic_assign_external_irq_handler( core_intr_id_t id,
+plic_result_t plic_assign_external_irq_handler( uint32_t id,
                                                 handler_funct_t handler );
 
 #endif /* _RV_PLIC_H_ */

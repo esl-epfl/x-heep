@@ -241,7 +241,7 @@ static struct
 /**                                                                        **/
 /****************************************************************************/
 
-void handler_irq_dma(core_intr_id_t id)
+void handler_irq_dma(uint32_t id)
 {
     /*
      * Call the weak implementation provided in this module,

@@ -110,7 +110,7 @@ typedef enum i2s_channel_sel {
 /**
  * @brief Attends the plic interrupt.
  */
-__attribute__((weak, optimize("O0"))) void handler_irq_i2s(core_intr_id_t id);
+__attribute__((weak, optimize("O0"))) void handler_irq_i2s(uint32_t id);
 
 /**
  * Initialize I2S peripheral
