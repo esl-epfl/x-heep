@@ -90,8 +90,6 @@ ENDFOREACH()
 LIST(REMOVE_DUPLICATES dir_list_str)
 LIST(REMOVE_DUPLICATES h_dir_list_)
 
-message(STATUS "[INFO] ${dir_list_str}")
-
 # Get all the folders to include when linking
 SET(INCLUDE_FOLDERS "-I ${RISCV}/${COMPILER_PREFIX}elf/include \
                      -I ${RISCV}/${COMPILER_PREFIX}elf/include/ \
@@ -159,6 +157,32 @@ else()
   message( "${Magenta}External application${ColourReset}")
 endif()
 
+SET(LIB_CRT_P	  "${ROOT_PROJECT}device/lib/crt/crt0.S")
+SET(LIB_VCTR_P  "${ROOT_PROJECT}device/lib/crt/vectors.S")
+
+# If the app is external, look for external CRT files
+SET(CRTO "INTERNAL_CRTO")
+SET( LIB_CRT_EXT_P  "" )
+if( internal_app EQUAL 0 )
+ FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS "${SOURCE_PATH}/external/lib/crt/*.S")
+ FOREACH(file_path IN LISTS new_list)
+   if(${file_path} MATCHES "external_crt0.S")
+      SET( CRTO "EXTERNAL_CRTO" )
+      SET( LIB_CRT_EXT_P  "${file_path}" )
+      GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+      SET(INCLUDE_FOLDERS "${INCLUDE_FOLDERS} -I ${dir_path}")
+      SET(h_dir_list_ ${h_dir_list_} "${dir_path}")
+   endif()
+ ENDFOREACH()
+endif()
+
+
+# Just in case it is a freertos based app
+if(${PROJECT} MATCHES "freertos")
+  #SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_freertos/")
+  SET(LIB_VCTR_P	"${SOURCE_PATH}device/lib/crt/vectors_freertos.S")
+endif()
+
 # Get the correct path for the crt files and linker file
 if (${LINKER} STREQUAL "on_chip")
   #SET(LIB_CRT_P "${SOURCE_PATH}device/lib/crt/")
@@ -175,16 +199,9 @@ elseif(${LINKER} STREQUAL "flash_exec")
 else()
   message( FATAL_ERROR "Linker specification is not correct" )
 endif()
-SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt/")
-SET(LIB_VCTR_P	"${LIB_CRT_P}vectors.S")
-
-# Just in case it is a freertos based app
-if(${PROJECT} MATCHES "freertos")
-  #SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_freertos/")
-  SET(LIB_VCTR_P	"${SOURCE_PATH}device/lib/crt/vectors_freertos.S")
-endif()
 
 # messages to check the paths
+message(STATUS "[INFO] ${INCLUDE_FOLDERS}")
 message( "${Magenta}Current project: ${PROJECT}${ColourReset}")
 message( "${Magenta}Root project: ${ROOT_PROJECT}${ColourReset}")
 message( "${Magenta}Source path: ${SOURCE_PATH}${ColourReset}")
@@ -196,8 +213,9 @@ message( "${Magenta}Target: ${TARGET}${ColourReset}")
 
 
 # Get all the files to include when linking
-SET(LINKED_FILES    "${LIB_CRT_P}crt0.S \
+SET(LINKED_FILES    "${LIB_CRT_P} \
                      ${LIB_VCTR_P} \
+                     ${LIB_CRT_EXT_P} \
                      ${c_dir_list}")
 
 message( "${Magenta}Linked files: ${LINKED_FILES}${ColourReset}")
@@ -234,6 +252,7 @@ set(COMPILER_LINKER_FLAGS "\
   -w -Os -g  -nostdlib  \
   -DHOST_BUILD \
   -D${CRT_TYPE} \
+  -D${CRTO} \
   -DportasmHANDLE_INTERRUPT=vSystemIrqHandler\
 ")
 set(CMAKE_C_FLAGS ${COMPILER_LINKER_FLAGS})
