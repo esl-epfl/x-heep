@@ -13,7 +13,14 @@ ${external_pad.pad_ring_io_interface}
 ${external_pad.pad_ring_ctrl_interface}
 % endfor
 
-    input logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][7:0] pad_attributes_i
+% if pads_attributes != None:
+    input logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${pads_attributes['bits']}] pad_attributes_i
+% else:
+    // here just for simplicity
+    /* verilator lint_off UNUSED */
+    input logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][0:0] pad_attributes_i
+% endif
+
 );
 
 % for pad in pad_list:

@@ -175,9 +175,9 @@ run-blinkyfreertos: mcu-gen verilator-sim
 	cat uart0.log; \
 	cd ../../..;
 
-## Uses verilator to simulate the HW model and run the FW
+## First builds the app and then uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
-run-app-sim: app
+run-app-verilator: app
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
 	./Vtestharness +firmware=../../../sw/build/main.hex; \
 	cat uart0.log; \
@@ -230,7 +230,11 @@ gdb_connect:
 
 ## Clean the CMake build folder
 app-clean:
-	$(MAKE) -C sw/build clean
+	if [ -f "sw/build/Makefile" ]; then\
+		$(MAKE) -C sw/build clean;\
+	else\
+		$(MAKE) app-restore;\
+	fi
 
 ## Removes the CMake build folder
 app-restore:
