@@ -51,6 +51,13 @@ set(CMAKE_CXX_STANDARD 14)
 SET(MAINFILE "main")
 
 
+#######################################################################
+#      FIND HEADER FILES TO BE INCLUDED
+#######################################################################
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Preliminary list of header files inside the source path
+
 # Make a list of the header files that need to be included
 FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.h)
 SET(dir_list_str "")
@@ -72,6 +79,9 @@ FOREACH(file_path ${new_list})
     SET(add 1)
   endif()
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Prune list
+
   if( add EQUAL 1 ) # If the file path mathced one of the criterion, add it to the list
     # Get the path of the obtained directory
     GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
@@ -90,6 +100,9 @@ ENDFOREACH()
 LIST(REMOVE_DUPLICATES dir_list_str)
 LIST(REMOVE_DUPLICATES h_dir_list_)
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Add list to the directories to be included
+
 # Get all the folders to include when linking
 SET(INCLUDE_FOLDERS "-I ${RISCV}/${COMPILER_PREFIX}elf/include \
                      -I ${RISCV}/${COMPILER_PREFIX}elf/include/ \
@@ -97,6 +110,13 @@ SET(INCLUDE_FOLDERS "-I ${RISCV}/${COMPILER_PREFIX}elf/include \
                      -I ${SOURCE_PATH} \
 					           ${dir_list_str}")
 
+
+#######################################################################
+#      FIND SOURCE FILES TO BE INCLUDED
+#######################################################################
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Preliminary list of source files inside the source path
 
 # Make a list of the source files that need to be linked
 FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
@@ -122,7 +142,9 @@ FOREACH(file_path IN LISTS new_list)
 
 ENDFOREACH()
 
-# If the app did not exist in the provided path, try with the root project
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# If the app was not found, look into the root project
+
 if( app_found EQUAL 0 )
   SET(SOURCE_PATH ${ROOT_PROJECT})
 
@@ -148,6 +170,10 @@ endif()
 
 LIST(REMOVE_DUPLICATES c_dir_list)
 
+#######################################################################
+#      DETERMINE IF APP IS EXTERNAL
+#######################################################################
+
 # Determine whether the target app is located in the root project or in an external folder
 if( ${SOURCE_PATH} STREQUAL ${ROOT_PROJECT} )
   SET( internal_app 1 )
@@ -157,10 +183,19 @@ else()
   message( "${Magenta}External application${ColourReset}")
 endif()
 
+#######################################################################
+#      FIND CRT FILES TO BE INCLUDED
+#######################################################################
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Set the default CRT directories
+
 SET(LIB_CRT_P	  "${ROOT_PROJECT}device/lib/crt/crt0.S")
 SET(LIB_VCTR_P  "${ROOT_PROJECT}device/lib/crt/vectors.S")
 
-# If the app is external, look for external CRT files
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Look for external CRT files
+
 SET(CRTO "INTERNAL_CRTO")
 SET( LIB_CRT_EXT_P  "" )
 if( internal_app EQUAL 0 )
@@ -176,12 +211,18 @@ if( internal_app EQUAL 0 )
  ENDFOREACH()
 endif()
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# In case of a freertos based app
 
-# Just in case it is a freertos based app
 if(${PROJECT} MATCHES "freertos")
   #SET(LIB_CRT_P	"${SOURCE_PATH}device/lib/crt_freertos/")
   SET(LIB_VCTR_P	"${SOURCE_PATH}device/lib/crt/vectors_freertos.S")
 endif()
+
+
+#######################################################################
+#      SET CRT AND LINKER TYPE
+#######################################################################
 
 # Get the correct path for the crt files and linker file
 if (${LINKER} STREQUAL "on_chip")
@@ -200,7 +241,9 @@ else()
   message( FATAL_ERROR "Linker specification is not correct" )
 endif()
 
-# messages to check the paths
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Debug messages to check the paths
+
 message(STATUS "[INFO] ${INCLUDE_FOLDERS}")
 message( "${Magenta}Current project: ${PROJECT}${ColourReset}")
 message( "${Magenta}Root project: ${ROOT_PROJECT}${ColourReset}")
@@ -212,6 +255,13 @@ message( "${Magenta}Targetting folder: ${INC_FOLDERS}${ColourReset}")
 message( "${Magenta}Target: ${TARGET}${ColourReset}")
 
 
+#######################################################################
+#      SET LINKER PROPERTIES
+#######################################################################
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Set linked files
+
 # Get all the files to include when linking
 SET(LINKED_FILES    "${LIB_CRT_P} \
                      ${LIB_VCTR_P} \
@@ -219,6 +269,9 @@ SET(LINKED_FILES    "${LIB_CRT_P} \
                      ${c_dir_list}")
 
 message( "${Magenta}Linked files: ${LINKED_FILES}${ColourReset}")
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Free-RTOS configurations
 
 # fetch content from freertos kernel repository
 FetchContent_Declare( freertos_kernel
@@ -245,6 +298,9 @@ set(FREERTOS_PORT "GCC_RISC_V" CACHE STRING "" FORCE)
 if(${PROJECT} MATCHES "freertos")
   FetchContent_MakeAvailable(freertos_kernel)
 endif()
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Set CMAKE flags
 
 # specify the C standard
 set(COMPILER_LINKER_FLAGS "\
@@ -274,6 +330,10 @@ endif()
 #add_subdirectory(device/lib/base)
 #add_subdirectory(device/lib/drivers)
 #add_subdirectory(device/lib/runtime)
+
+#######################################################################
+#      SET TARGETS
+#######################################################################
 
 set(SOURCES ${SOURCE_PATH}applications/${PROJECT}/${MAINFILE}.c)
 
@@ -334,6 +394,10 @@ if (${COMPILER} MATCHES "clang")
                                 -o ${MAINFILE}.elf")
     endif()
 endif()
+
+#######################################################################
+#      SET CUSTOM COMMANDS
+#######################################################################
 
 # Post processing command to create a disassembly file
 add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
