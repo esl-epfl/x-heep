@@ -47,6 +47,7 @@ module power_manager #(
     // Clock gating signals
     output logic peripheral_subsystem_clkgate_en_no,
     output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]memory_subsystem_clkgate_en_no,
+    output logic [EXT_DOMAINS_RND-1:0]external_subsystem_clkgate_en_no,
 
     // Power gating signals
     output logic cpu_subsystem_powergate_switch_no,
@@ -139,6 +140,7 @@ module power_manager #(
   assign external_subsystem_powergate_iso_no = '0;
   assign external_subsystem_rst_no = '0;
 % endif
+
   // --------------------------------------------------------------------------------------
   // CLK_GATING
   // --------------------------------------------------------------------------------------
@@ -147,6 +149,10 @@ module power_manager #(
 
 % for bank in range(ram_numbanks):
     assign memory_subsystem_clkgate_en_no[${bank}] = ~reg2hw.ram_${bank}_clk_gate.q;
+% endfor
+
+% for ext in range(external_domains):
+    assign external_subsystem_clkgate_en_no[${ext}] = ~reg2hw.external_${ext}_clk_gate.q;
 % endfor
 
   // --------------------------------------------------------------------------------------
