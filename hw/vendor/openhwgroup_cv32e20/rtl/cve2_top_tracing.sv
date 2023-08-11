@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * Top level module of the ibex RISC-V core with tracing enabled
+ * Top level module of the cve2 RISC-V core with tracing enabled
  */
 
 module cve2_top_tracing import cve2_pkg::*; #(
@@ -11,9 +11,7 @@ module cve2_top_tracing import cve2_pkg::*; #(
   parameter int unsigned MHPMCounterWidth = 40,
   parameter bit          RV32E            = 1'b0,
   parameter rv32m_e      RV32M            = RV32MFast,
-  parameter rv32b_e      RV32B            = RV32BNone,
-  parameter bit          DbgTriggerEn     = 1'b0,
-  parameter int unsigned DbgHwBreakNum    = 1,
+  parameter bit          BranchPredictor  = 1'b0,
   parameter int unsigned DmHaltAddr       = 32'h1A110800,
   parameter int unsigned DmExceptionAddr  = 32'h1A110808
 ) (
@@ -22,7 +20,6 @@ module cve2_top_tracing import cve2_pkg::*; #(
   input  logic                         rst_ni,
 
   input  logic                         test_en_i,     // enable all clock gates for testing
-  input  logic                         scan_rst_ni,
   input  prim_ram_1p_pkg::ram_1p_cfg_t ram_cfg_i,
 
 
@@ -35,7 +32,6 @@ module cve2_top_tracing import cve2_pkg::*; #(
   input  logic                         instr_rvalid_i,
   output logic [31:0]                  instr_addr_o,
   input  logic [31:0]                  instr_rdata_i,
-  input  logic [6:0]                   instr_rdata_intg_i,
   input  logic                         instr_err_i,
 
   // Data memory interface
@@ -46,9 +42,7 @@ module cve2_top_tracing import cve2_pkg::*; #(
   output logic [3:0]                   data_be_o,
   output logic [31:0]                  data_addr_o,
   output logic [31:0]                  data_wdata_o,
-  output logic [6:0]                   data_wdata_intg_o,
   input  logic [31:0]                  data_rdata_i,
-  input  logic [6:0]                   data_rdata_intg_i,
   input  logic                         data_err_i,
 
   // Interrupt inputs
@@ -63,9 +57,7 @@ module cve2_top_tracing import cve2_pkg::*; #(
   output crash_dump_t                  crash_dump_o,
 
   // CPU Control Signals
-  output logic                         alert_minor_o,
-  output logic                         alert_major_internal_o,
-  output logic                         alert_major_bus_o,
+  input  logic                         fetch_enable_i,
   output logic                         core_sleep_o
 
 );
@@ -120,9 +112,7 @@ module cve2_top_tracing import cve2_pkg::*; #(
     .MHPMCounterWidth ( MHPMCounterWidth ),
     .RV32E            ( RV32E            ),
     .RV32M            ( RV32M            ),
-    .RV32B            ( RV32B            ),
-    .DbgTriggerEn     ( DbgTriggerEn     ),
-    .DbgHwBreakNum    ( DbgHwBreakNum    ),
+    .BranchPredictor  ( BranchPredictor  ),
     .DmHaltAddr       ( DmHaltAddr       ),
     .DmExceptionAddr  ( DmExceptionAddr  )
   ) u_cve2_top (
@@ -130,7 +120,6 @@ module cve2_top_tracing import cve2_pkg::*; #(
     .rst_ni,
 
     .test_en_i,
-    .scan_rst_ni,
     .ram_cfg_i,
 
     .hart_id_i,
@@ -141,7 +130,6 @@ module cve2_top_tracing import cve2_pkg::*; #(
     .instr_rvalid_i,
     .instr_addr_o,
     .instr_rdata_i,
-    .instr_rdata_intg_i,
     .instr_err_i,
 
     .data_req_o,
@@ -151,9 +139,7 @@ module cve2_top_tracing import cve2_pkg::*; #(
     .data_be_o,
     .data_addr_o,
     .data_wdata_o,
-    .data_wdata_intg_o,
     .data_rdata_i,
-    .data_rdata_intg_i,
     .data_err_i,
 
     .irq_software_i,
@@ -193,9 +179,7 @@ module cve2_top_tracing import cve2_pkg::*; #(
     .rvfi_ext_debug_req,
     .rvfi_ext_mcycle,
 
-    .alert_minor_o,
-    .alert_major_internal_o,
-    .alert_major_bus_o,
+    .fetch_enable_i,
     .core_sleep_o
   );
 

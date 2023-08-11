@@ -159,7 +159,7 @@ module cve2_controller #(
   always_ff @(negedge clk_i) begin
     // print warning in case of decoding errors
     if ((ctrl_fsm_cs == DECODE) && instr_valid_i && !instr_fetch_err_i && illegal_insn_d) begin
-      $display("%t: Illegal instruction (hart %0x) at PC 0x%h: 0x%h", $time, cve2_core.hart_id_i,
+     $display("%m @ %t: Illegal instruction (hart %0x) at PC 0x%h: 0x%h", $time, cve2_core.hart_id_i,
                cve2_id_stage.pc_id_i, cve2_id_stage.instr_rdata_i);
     end
   end
