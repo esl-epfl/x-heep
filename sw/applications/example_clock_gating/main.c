@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_CLK_GATE_REG_OFFSET), 0x0);
 
     // Enabling ram-banks
-    for(uint32_t i = 0; i < MEMORY_BANKS; ++i)
+    for(uint32_t i = 2; i < MEMORY_BANKS; ++i)
         mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x0);
 
     // Enabling external subsystems
