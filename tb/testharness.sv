@@ -108,6 +108,7 @@ module testharness #(
   logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_n;
   logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_n;
   logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_n;
+  logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_n;
 
   always_comb begin
     // All interrupt lines set to zero by default
@@ -222,7 +223,8 @@ module testharness #(
       .external_subsystem_powergate_switch_ack_ni(external_subsystem_powergate_switch_ack_n),
       .external_subsystem_powergate_iso_no(external_subsystem_powergate_iso_n),
       .external_subsystem_rst_no(external_subsystem_rst_n),
-      .external_ram_banks_set_retentive_no(external_ram_banks_set_retentive_n)
+      .external_ram_banks_set_retentive_no(external_ram_banks_set_retentive_n),
+      .external_subsystem_clkgate_en_no(external_subsystem_clkgate_en_n)
   );
 
   // Testbench external bus
