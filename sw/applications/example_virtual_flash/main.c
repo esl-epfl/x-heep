@@ -24,21 +24,17 @@
 #define FLASH_CLK_MAX_HZ (133 * 1000 * 1000)
 
 
-/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
-#define DEFAULT_PRINTF_BEHAVIOR 1
-
 /* By default, printfs are activated for FPGA and disabled for simulation. */
-#ifdef TARGET_PYNQ_Z2 
-    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
-#else 
-    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
-#endif
+#define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   0
 
-#if ENABLE_PRINTF
-  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#if TARGET_SIM && PRINTF_IN_SIM
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
-  #define PRINTF(...)
-#endif 
+    #define PRINTF(...)
+#endif
 
 // Interrupt controller variables
 plic_result_t plic_res;
@@ -94,9 +90,9 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
     dma_target_t tgt_src = {
         .ptr = data,
         .inc_du = 1,
-        .size_du = 64, 
+        .size_du = 64,
         .type = DMA_DATA_TYPE_HALF_WORD,
-        .trig = DMA_TRIG_MEMORY, 
+        .trig = DMA_TRIG_MEMORY,
     };
     dma_target_t tgt_dst = {
         .ptr = fifo_ptr_tx,
@@ -112,7 +108,7 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
     };
 
     dma_config_flags_t res;
-    
+
     spi_intr_flag = 0;
 
     res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
