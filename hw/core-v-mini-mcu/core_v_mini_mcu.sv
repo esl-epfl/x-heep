@@ -313,6 +313,7 @@ module core_v_mini_mcu
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_no,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
     output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_no,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_no,
 
     output logic [31:0] exit_value_o
 );
@@ -594,6 +595,7 @@ module core_v_mini_mcu
       .external_ram_banks_set_retentive_no,
       .peripheral_subsystem_clkgate_en_no(peripheral_subsystem_clkgate_en_n),
       .memory_subsystem_clkgate_en_no(memory_subsystem_clkgate_en_n),
+      .external_subsystem_clkgate_en_no,
       .rv_timer_0_intr_o(rv_timer_intr[0]),
       .rv_timer_1_intr_o(rv_timer_intr[1]),
       .dma_read_ch0_req_o(dma_read_ch0_req),

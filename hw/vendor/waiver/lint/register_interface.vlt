@@ -6,3 +6,4 @@
 
 lint_off -rule LITENDIAN -file "*/src/periph_to_reg.sv" -match "Little bit endian vector*"
 lint_off -rule UNUSED -file "*/src/reg_demux.sv" -match "*"
+lint_off -rule UNOPTFLAT -file "*/src/periph_to_reg.sv" -match "*"
