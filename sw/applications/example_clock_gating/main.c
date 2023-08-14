@@ -39,6 +39,10 @@ int main(int argc, char *argv[])
     for(uint32_t i = 2; i < MEMORY_BANKS; ++i)
         mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x1);
 
+    // Clock-gating external subsystems
+    for(uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
+        mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_external_map[i].clk_gate), 0x1);
+
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop;");
 
@@ -48,6 +52,10 @@ int main(int argc, char *argv[])
     // Enabling ram-banks
     for(uint32_t i = 2; i < MEMORY_BANKS; ++i)
         mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x0);
+
+    // Enabling external subsystems
+    for(uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
+        mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_external_map[i].clk_gate), 0x0);
 
     /* write something to stdout */
     PRINTF("Success.\n\r");
