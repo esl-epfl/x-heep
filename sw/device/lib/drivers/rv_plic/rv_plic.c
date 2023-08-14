@@ -37,25 +37,18 @@
 
 #include "rv_plic.h"
 #include "rv_plic_structs.h"
-
-#include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
-
 #include "bitfield.h"
-#include "mmio.h"
-
 #include "rv_plic_regs.h"  // Generated.
-
 #include "handler.h"
 
 // Peripheral modules from where to obtain the irq handlers
-#include "../uart/uart.h"
-#include "../gpio/gpio.h"
-#include "../i2c/i2c.h"
-#include "../i2s/i2s.h"
-#include "../dma/dma.h"
-#include "../spi_host/spi_host.h"
+#include "uart.h"
+#include "gpio.h"
+#include "i2c.h"
+#include "i2s.h"
+#include "dma.h"
+#include "spi_host.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -69,13 +62,16 @@
 const uint32_t plicMinPriority = 0;
 const uint32_t plicMaxPriority = RV_PLIC_PRIO0_PRIO0_MASK;
 
-handler_funct_t handlers[QTY_INTR];
-
 /****************************************************************************/
 /**                                                                        **/
 /*                        TYPEDEFS AND STRUCTURES                           */
 /**                                                                        **/
 /****************************************************************************/
+
+/**
+ * Pointer used to dynamically access the different interrupt handlers.
+*/
+typedef void (*handler_funct_t)(uint32_t);
 
 /****************************************************************************/
 /**                                                                        **/
@@ -84,27 +80,31 @@ handler_funct_t handlers[QTY_INTR];
 /****************************************************************************/
 
 /**
- * Get an IE, IP or LE register offset (IE0_0, IE01, ...) from an IRQ source ID.
+ * @brief Get an IE, IP or LE register offset (e.g. IE0_0) from an IRQ ID.
  *
  * With more than 32 IRQ sources, there is a multiple of these registers to
  * accommodate all the bits (1 bit per IRQ source). This function calculates
  * the offset for a specific IRQ source ID (ID 32 would be IE01, ...).
+ *  
+ * @param irq An interrupt source identification
  */
 static ptrdiff_t plic_offset_from_reg0( uint32_t irq);
 
 /**
  *
- * Get an IE, IP, LE register bit index from an IRQ source ID.
+ * @brief Get an IE, IP, LE register bit index from an IRQ source ID.
  *
  * With more than 32 IRQ sources, there is a multiple of these registers to
  * accommodate all the bits (1 bit per IRQ source). This function calculates
  * the bit position within a register for a specific IRQ source ID (ID 32 would
  * be bit 0).
+ *  
+ * @param irq An interrupt source identification
  */
 static uint8_t plic_irq_bit_index( uint32_t irq);
 
 /**
- * A dummy function to prevent unassigned irq to access a null pointer.
+ * @brief A dummy function to prevent unassigned irq to access a null pointer.
  */
 __attribute__((optimize("O0"))) static void handler_irq_dummy( uint32_t dummy );
 
@@ -114,6 +114,20 @@ __attribute__((optimize("O0"))) static void handler_irq_dummy( uint32_t dummy );
 /*                           EXPORTED VARIABLES                             */
 /**                                                                        **/
 /****************************************************************************/
+
+/****************************************************************************/
+/**                                                                        **/
+/*                            GLOBAL VARIABLES                              */
+/**                                                                        **/
+/****************************************************************************/
+
+/**
+ * Array for the ISRs. Length automatically generated when compiling and 
+ * assigned to QTY_INTR.
+ * Each element will be initialized to be the address of the handler function
+ * relative to its index. So each element will be a callable function.
+*/
+handler_funct_t handlers[QTY_INTR];
 
 /****************************************************************************/
 /**                                                                        **/
@@ -353,17 +367,17 @@ plic_result_t plic_software_irq_is_pending(void)
 
 
 plic_result_t plic_assign_external_irq_handler( uint32_t id,
-                                                handler_funct_t handler )
+                                                void *handler )
 {
   if( id >= EXT_IRQ_START && id <= QTY_INTR )
   {
-    handlers[ id ] = handler;
+    handlers[ id ] = (handler_funct_t*) handler;
     return kPlicOk;
   }
   return kPlicBadArg;
 }
 
-void plic_reset_handlers_list( )
+void plic_reset_handlers_list(void)
 {
   handlers[NULL_INTR] = &handler_irq_dummy;
 
@@ -408,7 +422,6 @@ void plic_reset_handlers_list( )
 
 __attribute__((optimize("O0"))) static void handler_irq_dummy( uint32_t dummy )
 {
-  return;
 }
 
 static ptrdiff_t plic_offset_from_reg0( uint32_t irq)

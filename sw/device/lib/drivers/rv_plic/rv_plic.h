@@ -93,14 +93,6 @@
 /****************************************************************************/
 
 /**
- * Pointer used to dynamically access the different interrupt handlers.
- * Each element will be initialized to be the address of the handler function
- * relative to its index. So each element will be a callable function.
-*/
-typedef void (*handler_funct_t)(uint32_t);
-
-
-/**
  * A PLIC interrupt target.
  *
  * This corresponds to a specific system that can service an interrupt. In
@@ -353,13 +345,13 @@ plic_result_t plic_software_irq_is_pending(void);
  * @return The result of the operation
 */
 plic_result_t plic_assign_external_irq_handler( uint32_t id,
-                                                handler_funct_t handler );
+                                                void  *handler );
 
 /**
  * Resets all peripheral handlers to their pre-set ones. All external handlers
  * are re-set to the dummy handler.
  */
-void plic_reset_handlers_list( );
+void plic_reset_handlers_list(void);
 
 #endif /* _RV_PLIC_H_ */
 
