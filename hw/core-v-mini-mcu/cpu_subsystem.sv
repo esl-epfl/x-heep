@@ -89,8 +89,8 @@ module cpu_subsystem
         .irq_software_i(irq_i[3]),
         .irq_timer_i   (irq_i[7]),
         .irq_external_i(irq_i[11]),
-        .irq_fast_i    (irq_i[30:16]),
-        .irq_nm_i      (irq_i[31]),
+        .irq_fast_i    (irq_i[31:16]),
+        .irq_nm_i      (1'b0),
 
         .debug_req_i (debug_req_i),
         .crash_dump_o(),

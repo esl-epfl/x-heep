@@ -101,7 +101,7 @@ module cve2_if_stage import cve2_pkg::*; #(
 
   logic       [31:0] exc_pc;
 
-  logic        [5:0] irq_id;
+  logic        [6:0] irq_id;
   logic              unused_irq_bit;
 
   logic              if_id_pipe_reg_we; // IF-ID pipeline reg write enable
@@ -116,16 +116,16 @@ module cve2_if_stage import cve2_pkg::*; #(
 
   // extract interrupt ID from exception cause
   assign irq_id         = {exc_cause};
-  assign unused_irq_bit = irq_id[5];   // MSB distinguishes interrupts from exceptions
+  assign unused_irq_bit = irq_id[6];   // MSB distinguishes interrupts from exceptions
 
   // exception PC selection mux
   always_comb begin : exc_pc_mux
     unique case (exc_pc_mux_i)
-      EXC_PC_EXC:     exc_pc = { csr_mtvec_i[31:8], 8'h00                    };
-      EXC_PC_IRQ:     exc_pc = { csr_mtvec_i[31:8], 1'b0, irq_id[4:0], 2'b00 };
+      EXC_PC_EXC:     exc_pc = { csr_mtvec_i[31:8], 8'h00              };
+      EXC_PC_IRQ:     exc_pc = { csr_mtvec_i[31:8], irq_id[5:0], 2'b00 };
       EXC_PC_DBD:     exc_pc = DmHaltAddr;
       EXC_PC_DBG_EXC: exc_pc = DmExceptionAddr;
-      default:        exc_pc = { csr_mtvec_i[31:8], 8'h00                    };
+      default:        exc_pc = { csr_mtvec_i[31:8], 8'h00              };
     endcase
   end
 

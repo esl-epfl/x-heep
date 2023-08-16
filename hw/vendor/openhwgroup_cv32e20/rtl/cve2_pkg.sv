@@ -292,26 +292,25 @@ package cve2_pkg;
     logic        irq_software;
     logic        irq_timer;
     logic        irq_external;
-    logic [14:0] irq_fast; // 15 fast interrupts,
-                          // one interrupt is reserved for NMI (not visible through mip/mie)
+    logic [15:0] irq_fast; // 16 fast interrupts
   } irqs_t;
 
   // Exception cause
-  typedef enum logic [5:0] {
-    EXC_CAUSE_IRQ_SOFTWARE_M     = {1'b1, 5'd03},
-    EXC_CAUSE_IRQ_TIMER_M        = {1'b1, 5'd07},
-    EXC_CAUSE_IRQ_EXTERNAL_M     = {1'b1, 5'd11},
-    // EXC_CAUSE_IRQ_FAST_0      = {1'b1, 5'd16},
-    // EXC_CAUSE_IRQ_FAST_14     = {1'b1, 5'd30},
-    EXC_CAUSE_IRQ_NM             = {1'b1, 5'd31}, // == EXC_CAUSE_IRQ_FAST_15
-    EXC_CAUSE_INSN_ADDR_MISA     = {1'b0, 5'd00},
-    EXC_CAUSE_INSTR_ACCESS_FAULT = {1'b0, 5'd01},
-    EXC_CAUSE_ILLEGAL_INSN       = {1'b0, 5'd02},
-    EXC_CAUSE_BREAKPOINT         = {1'b0, 5'd03},
-    EXC_CAUSE_LOAD_ACCESS_FAULT  = {1'b0, 5'd05},
-    EXC_CAUSE_STORE_ACCESS_FAULT = {1'b0, 5'd07},
-    EXC_CAUSE_ECALL_UMODE        = {1'b0, 5'd08},
-    EXC_CAUSE_ECALL_MMODE        = {1'b0, 5'd11}
+  typedef enum logic [6:0] {
+    EXC_CAUSE_IRQ_SOFTWARE_M     = {1'b1, 6'd03},
+    EXC_CAUSE_IRQ_TIMER_M        = {1'b1, 6'd07},
+    EXC_CAUSE_IRQ_EXTERNAL_M     = {1'b1, 6'd11},
+    // EXC_CAUSE_IRQ_FAST_0      = {1'b1, 6'd16},
+    // EXC_CAUSE_IRQ_FAST_15     = {1'b1, 6'd31},
+    EXC_CAUSE_IRQ_NM             = {1'b1, 6'd32},
+    EXC_CAUSE_INSN_ADDR_MISA     = {1'b0, 6'd00},
+    EXC_CAUSE_INSTR_ACCESS_FAULT = {1'b0, 6'd01},
+    EXC_CAUSE_ILLEGAL_INSN       = {1'b0, 6'd02},
+    EXC_CAUSE_BREAKPOINT         = {1'b0, 6'd03},
+    EXC_CAUSE_LOAD_ACCESS_FAULT  = {1'b0, 6'd05},
+    EXC_CAUSE_STORE_ACCESS_FAULT = {1'b0, 6'd07},
+    EXC_CAUSE_ECALL_UMODE        = {1'b0, 6'd08},
+    EXC_CAUSE_ECALL_MMODE        = {1'b0, 6'd11}
   } exc_cause_e;
 
   // Debug cause
@@ -547,7 +546,7 @@ package cve2_pkg;
   parameter int unsigned CSR_MTIX_BIT      = 7;
   parameter int unsigned CSR_MEIX_BIT      = 11;
   parameter int unsigned CSR_MFIX_BIT_LOW  = 16;
-  parameter int unsigned CSR_MFIX_BIT_HIGH = 30;
+  parameter int unsigned CSR_MFIX_BIT_HIGH = 31;
 
   // CSR Machine Security Configuration bits
   parameter int unsigned CSR_MSECCFG_MML_BIT  = 0;
