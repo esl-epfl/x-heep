@@ -156,7 +156,7 @@ FAILED='' &&\
 SKIPPED=''
 
 #############################################################
-#			DEFAULT VARIABLES AND CONSTANTS
+#			CONFIGURATION PARAMETERS
 #############################################################
 
 # List of applications that will not be simulated (skipped)
@@ -165,13 +165,13 @@ SKIPPED=''
 declare -a BLACKLIST=( "example_virtual_flash" )
 
 # List of possible compilers. The last compiler will be used for simulation.
-declare -a COMPILERS=( "gcc" )
+declare -a COMPILERS=( )
 
 # Simulator tool.
-SIMULATOR='verilator'
+SIMULATOR=''
 
 # List of possible linkers. The last linker will be used for simulation.
-declare -a LINKERS=( "on_chip" )
+declare -a LINKERS=( )
 
 # Simulation timeout to prevent apps from running infinitely
 SIM_TIMEOUT_S=120 # This time, in seconds, was chosen empirically.
@@ -179,6 +179,7 @@ SIM_TIMEOUT_S=120 # This time, in seconds, was chosen empirically.
 # Prevent the re-generation of the mcu and the simualtion model on every
 # execution by changing DEBUG to 1
 DEBUG=0
+
 
 
 #############################################################
@@ -211,9 +212,7 @@ do
 		flash_load | "flash-load" | FLASH_LOAD | "FLASH-LOAD")
 			LINKER='flash_load'
 			if ! [[ " $LINKERS " =~ .*\ $LINKER\ .* ]]; then
-                echo "added"
 				LINKERS+=($LINKER)
-				echo "${LINKERS[@]}"
             fi
 			;;
 
@@ -253,6 +252,24 @@ do
 
 	esac
 done
+
+
+
+#############################################################
+#			SET DEFAULT VALUES IF NON WERE SUPPLIED
+#############################################################
+
+if [ -z "$COMPILERS" ]; then
+	COMPILERS+="gcc"
+fi
+
+if [ -z "$SIMULATOR" ]; then
+	SIMULATOR+="verilator"
+fi
+
+if [ -z "$LINKERS" ]; then
+	LINKERS+="on_chip"
+fi
 
 #############################################################
 #					CHECKS
