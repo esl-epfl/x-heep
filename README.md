@@ -404,11 +404,11 @@ All test must be successful before PRs can be merged.
 
 Additionally, a `test_all.sh` script is provided. Apart from compiling all apps with both gcc and clang, it will simulate them and check the result.
 
-You can choose:
-* Compiler: `gcc` (default) or `clang` (can provide more than one)
-* Simulator: `verilator` (default), `questasim` or disable simulation with `nosim` (only one, the last provided is used).
-* Linker: `on_chip`(default), `flash_load` or `flash_exec` (can provide more than one)
-* Timeout: Integer number of seconds (default 120)
+The available parameters are:
+* COMPILER: `gcc` (default) or `clang` (can provide more than one)
+* SIMULATOR: `verilator` (default), `questasim` or disable simulation with `nosim` (only one, the last provided is used).
+* LINKER: `on_chip`(default), `flash_load` or `flash_exec` (can provide more than one)
+* TIMEOUT: Integer number of seconds (default 120)
 
 
 #### Usage
@@ -421,18 +421,15 @@ make app-compile-all
 ```
 make app-simulate-all
 ```
-Note that both commands allow the following parameters to specify compiling or simulation options:
+Note that both commands allow the previous parameters to specify compiling or simulation options. E.g.:
 ```
-Params:
-- LINKER (ex: on_chip(default),flash_load,flash_exec)
-- COMPILER (ex: gcc(default),clang)
-- SIMULATOR (ex: verilator(default),questasim)
+make app-simulate-all LINKER=on_chip SIMULATOR=questasim COMPILER=clang TIMEOUT=150 
 ```
 
 ##### Manually
 You can also **SOURCE** the script as
 ```bash
-. util/test_all.sh flash_load verilator gcc clang on_chip 150
+. util/test_all.sh on_chip questasim clang 150
 ```
 
 *Pay special attention to the first period in the command!*
