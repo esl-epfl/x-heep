@@ -51,6 +51,12 @@ ARCH     ?= rv32imc
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
 SOURCE 	 ?= "."
 
+# Simulation engines options are verilator (default) and questasim
+SIMULATOR ?= verilator
+
+# Timeout for simulation, default 120
+TIMEOUT ?= 120
+
 ## @section Conda
 conda: environment.yml
 	conda env create -f environment.yml
@@ -124,7 +130,7 @@ app-list:
 
 ## Compile all the apps present in the repo
 app-compile-all:
-	bash util/compile_all_apps.sh;
+	bash util/test_all.sh nosim $(LINKER) $(COMPILER) $(TIMEOUT)
 
 ## @section Simulation
 
@@ -145,7 +151,7 @@ questasim-sim-opt: questasim-sim
 questasim-sim-opt-upf: questasim-sim
 	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim opt-upf
 
-## Verilator simulation
+## VCS simulation
 ## @param CPU=cv32e20(default),cv32e40p,cv32e40x
 ## @param BUS=onetoM(default),NtoM
 vcs-sim:
@@ -182,6 +188,10 @@ run-app-verilator: app
 	./Vtestharness +firmware=../../../sw/build/main.hex; \
 	cat uart0.log; \
 	cd ../../..;
+
+## Simulate all the apps present in the repo
+app-simulate-all:
+	bash util/test_all.sh $(LINKER) $(COMPILER) $(TIMEOUT) $(SIMULATOR)
 
 ## @section Vivado
 

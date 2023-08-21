@@ -465,4 +465,5 @@ fi
 
 # Keep a count of apps that return a meaningless execution
 
-# Update the condition over which an app is simulated (check both compilation results and not only the last one)
+# Update the condition over which an app is simulated (check 
+# both compilation results and not only the last one)
