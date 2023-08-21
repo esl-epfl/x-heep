@@ -413,13 +413,32 @@ You can choose:
 
 #### Usage
 
-You can **SOURCE** the script as
-```bash
-. test_all.sh flash_load verilator gcc clang on_chip 150
+##### Comands
+You can use two different commands to compile or simulate all the existing APPs:
 ```
+make app-compile-all
+```
+```
+make app-simulate-all
+```
+Note that both commands allow the following parameters to specify compiling or simulation options:
+```
+Params:
+- LINKER (ex: on_chip(default),flash_load,flash_exec)
+- COMPILER (ex: gcc(default),clang)
+- SIMULATOR (ex: verilator(default),questasim)
+```
+
+##### Manually
+You can also **SOURCE** the script as
+```bash
+. util/test_all.sh flash_load verilator gcc clang on_chip 150
+```
+
 *Pay special attention to the first period in the command!*
 You will be killing simulations that take too long, if you **EXECUTE** (`./test_all.sh`) this action kills the script.
-The order of the arguments is irrelevant.
+
+For both usages (commands or manual), the order of the arguments is irrelevant.
 
 > Note: Be sure to commit all your changes before running the script!
 
