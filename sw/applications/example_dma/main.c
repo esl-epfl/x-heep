@@ -10,6 +10,7 @@
 #include "core_v_mini_mcu.h"
 #include "x-heep.h"
 #include "csr.h"
+#include "rv_plic.h"
 
 #define TEST_SINGULAR_MODE
 #define TEST_PENDING_TRANSACTION
@@ -343,6 +344,9 @@ int main(int argc, char *argv[])
     PRINTF("    TESTING WINDOW INTERRUPT   ");
     PRINTF("\n\n\r===================================\n\n\r");
 
+    plic_Init();
+    plic_irq_set_priority( DMA_WINDOW_INTR, 1);
+    plic_irq_set_enabled(  DMA_WINDOW_INTR, kPlicToggleEnabled);
 
     window_intr_flag = 0;
 

@@ -132,6 +132,25 @@ typedef struct gpio_cfg
 /****************************************************************************/
 
 /**
+ * @brief Adds a handler function for a gpio interrupt to the handlers list.
+ * @param intr_id The interrupt ID of a gpio interrupt (from core_v_mini_mcu.h)
+ * @param handler A pointer to a function that will be called upon interrupt.
+ * @return The result of the operation
+ */
+gpio_result_t gpio_assign_irq_handler( uint32_t intr_id,
+                                       void *handler() );
+
+/**
+ * @brief Resets all handlers to the dummy handler.
+ */
+void gpio_reset_handlers_list( );
+
+/**
+ * @brief Attends the plic interrupt.
+ */
+void handler_irq_gpio( uint32_t id );
+
+/**
  * @brief gpio configuration. It first reset the pin configuration.
  * @param gpio_struct_t contatining pin, mode, en_input_sampling, en_intr,
  * intr_type

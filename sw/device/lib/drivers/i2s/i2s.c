@@ -45,6 +45,10 @@
 /**                                                                        **/
 /****************************************************************************/
 
+__attribute__((weak, optimize("O0"))) void handler_irq_i2s(uint32_t id)
+{
+ // Replace this function with a non-weak implementation
+}
 
 // i2s base functions
 i2s_result_t i2s_init(uint16_t div_value, i2s_word_length_t word_length)
@@ -70,7 +74,7 @@ i2s_result_t i2s_init(uint16_t div_value, i2s_word_length_t word_length)
   i2s_peri->CONTROL = control;
 
   // wait for I2S clock domain to acknowledge startup
-  while (! i2s_is_running()) ; 
+  while (! i2s_is_running()) ;
 
   control |= (1 << I2S_CONTROL_EN_WS_BIT); // enable WS gen
   i2s_peri->CONTROL = control;
@@ -134,7 +138,7 @@ i2s_result_t i2s_rx_stop(void)
     return kI2sErrUninit;
   }
 
-  bool overflow = i2s_rx_overflow(); 
+  bool overflow = i2s_rx_overflow();
 
   // disable rx channel
   uint32_t control = i2s_peri->CONTROL;
@@ -196,7 +200,7 @@ void i2s_rx_enable_watermark(uint16_t watermark, bool interrupt_en)
   // enable/disable interrupt
   control = bitfield_bit32_write(control, I2S_CONTROL_INTR_EN_BIT, interrupt_en);
   // enable counter
-  control |= (1 << I2S_CONTROL_EN_WATERMARK_BIT); 
+  control |= (1 << I2S_CONTROL_EN_WATERMARK_BIT);
   i2s_peri->CONTROL = control;
 }
 
@@ -204,7 +208,7 @@ void i2s_rx_disable_watermark(void)
 {
   // disable interrupt and disable watermark counter
   i2s_peri->CONTROL &= ~(
-    (1 << I2S_CONTROL_INTR_EN_BIT) 
+    (1 << I2S_CONTROL_INTR_EN_BIT)
     + (1 << I2S_CONTROL_EN_WATERMARK_BIT)
   );
 }
