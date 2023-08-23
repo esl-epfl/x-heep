@@ -106,24 +106,27 @@ SIMULATE(){
 BUILD (){
 	for COMPILER in "${COMPILERS[@]}"
 	do
-		# If a compiler is not installed, that compilation is skipped.
-		COMPILER_TO_USE=$COMPILER
-		make --no-print-directory -s app-clean
-		out=$(make -s --no-print-directory app PROJECT=$APP COMPILER=$COMPILER LINKER=$LINKER; val=$?; echo $val)
-		APP_RESULT="${out: -1}"
-		# The output of the make command is extracted. This way, the output is quite silent
-		# but the error information is still printed.
-		if [ "$APP_RESULT" == "0" ]; then
-			echo -e ${LONG_G}
-			echo -e "${GREEN}Successfully built $APP using $COMPILER${RESET}"
-			echo -e ${LONG_G}
-		else
-			echo -e ${LONG_R}
-			echo -e "${RED}Failure building $APP using $COMPILER${RESET}"
-			echo -e ${LONG_R}
-			BUILD_FAILURES=$(( BUILD_FAILURES + 1 ))
-			FAILED="$FAILED($COMPILER)\t\t$APP "
-		fi
+		for LINKER in "${LINKERS[@]}"
+		do
+			# If a compiler is not installed, that compilation is skipped.
+			COMPILER_TO_USE=$COMPILER
+			make --no-print-directory -s app-clean
+			out=$(make -s --no-print-directory app PROJECT=$APP COMPILER=$COMPILER LINKER=$LINKER; val=$?; echo $val)
+			APP_RESULT="${out: -1}"
+			# The output of the make command is extracted. This way, the output is quite silent
+			# but the error information is still printed.
+			if [ "$APP_RESULT" == "0" ]; then
+				echo -e ${LONG_G}
+				echo -e "${GREEN}Successfully built $APP using $COMPILER for $LINKER${RESET}"
+				echo -e ${LONG_G}
+			else
+				echo -e ${LONG_R}
+				echo -e "${RED}Failure building $APP using $COMPILER for $LINKER${RESET}"
+				echo -e ${LONG_R}
+				BUILD_FAILURES=$(( BUILD_FAILURES + 1 ))
+				FAILED="$FAILED($COMPILER,$LINKER)\t\t$APP "
+			fi
+		done
 	done
 }
 
@@ -153,7 +156,7 @@ FAILED='' &&\
 SKIPPED=''
 
 #############################################################
-#			DEFAULT VARIABLES AND CONSTANTS
+#			CONFIGURATION PARAMETERS
 #############################################################
 
 # List of applications that will not be simulated (skipped)
@@ -162,13 +165,13 @@ SKIPPED=''
 declare -a BLACKLIST=( "example_virtual_flash" )
 
 # List of possible compilers. The last compiler will be used for simulation.
-declare -a COMPILERS=("clang" "gcc" )
+declare -a COMPILERS=( )
 
 # Simulator tool.
-SIMULATOR='verilator'
+SIMULATOR=''
 
-# Linker
-LINKER='on_chip'
+# List of possible linkers. The last linker will be used for simulation.
+declare -a LINKERS=( )
 
 # Simulation timeout to prevent apps from running infinitely
 SIM_TIMEOUT_S=120 # This time, in seconds, was chosen empirically.
@@ -176,6 +179,7 @@ SIM_TIMEOUT_S=120 # This time, in seconds, was chosen empirically.
 # Prevent the re-generation of the mcu and the simualtion model on every
 # execution by changing DEBUG to 1
 DEBUG=0
+
 
 
 #############################################################
@@ -194,16 +198,43 @@ do
 			SIMULATOR='questasim'
 			;;
 
-		on_chip | jtag)
+		nosim | NOSIM)
+			SIMULATOR='none'
+			;;
+
+		on_chip | 'on-chip' | ON_CHIP | 'ON-CHIP' | jtag | JTAG)
 			LINKER='on_chip'
+			if ! [[ " $LINKERS " =~ .*\ $LINKER\ .* ]]; then
+                LINKERS+=($LINKER)
+            fi
 			;;
 
 		flash_load | "flash-load" | FLASH_LOAD | "FLASH-LOAD")
 			LINKER='flash_load'
+			if ! [[ " $LINKERS " =~ .*\ $LINKER\ .* ]]; then
+				LINKERS+=($LINKER)
+            fi
 			;;
 
 		flash_exec | "flash-exec" | FLASH_EXEC | "FLASH-EXEC")
 			LINKER='flash_exec'
+			if ! [[ " $LINKERS " =~ .*\ $LINKER\ .* ]]; then
+                LINKERS+=($LINKER)
+            fi
+			;;
+
+		gcc | GCC )
+			COMPILER='gcc'
+			if ! [[ " $COMPILERS " =~ .*\ $COMPILER\ .* ]]; then
+                COMPILERS+=($COMPILER)
+            fi
+			;;
+
+		clang | CLANG )
+			COMPILER='clang'
+			if ! [[ " $COMPILERS " =~ .*\ $COMPILER\ .* ]]; then
+                COMPILERS+=($COMPILER)
+            fi
 			;;
 
 		debug)
@@ -221,6 +252,24 @@ do
 
 	esac
 done
+
+
+
+#############################################################
+#			SET DEFAULT VALUES IF NON WERE SUPPLIED
+#############################################################
+
+if [ -z "$COMPILERS" ]; then
+	COMPILERS+="gcc"
+fi
+
+if [ -z "$SIMULATOR" ]; then
+	SIMULATOR+="verilator"
+fi
+
+if [ -z "$LINKERS" ]; then
+	LINKERS+="on_chip"
+fi
 
 #############################################################
 #					CHECKS
@@ -245,20 +294,16 @@ fi
 echo -e ${LONG_W}
 
 echo -e "${WHITE}Will build using:${RESET}"
-for COMPILER in "${COMPILERS[@]}"
-do
-	echo -e "${COMPILER}"
-done
-
-echo -e "${WHITE}Linker:${RESET}"
-echo -e "${LINKER}"
+echo "${COMPILERS[@]}"
+echo "${LINKERS[@]}"
 
 echo -e ${LONG_W}
 
-echo -e "${WHITE}Will simulate using:${RESET}"
-echo -e "$SIMULATOR (timeout: $SIM_TIMEOUT_S seconds)"
-
-echo -e ${LONG_W}
+if [ "$SIMULATOR" != "none" ]; then
+	echo -e "${WHITE}Will simulate using:${RESET}"
+	echo -e "$SIMULATOR (timeout: $SIM_TIMEOUT_S seconds)"
+	echo -e ${LONG_W}
+fi
 
 echo -e "${WHITE}Will test the following apps:${RESET}"
 echo -e $APPS | tr " " "\n"
@@ -295,6 +340,7 @@ if [ $DEBUG -eq 0 ];	 then
 	# The MCU is generated with several memory banks to avoid example code not fitting.
 	make mcu-gen MEMORY_BANKS=3 EXTERNAL_DOMAINS=1
 
+	if [ "$SIMULATOR" != "none" ]; then
 	# Make the simualtion model
 	SIM_MODEL_CMD=${SIMULATOR}"-sim"
 
@@ -303,6 +349,7 @@ if [ $DEBUG -eq 0 ];	 then
 	echo -e ${LONG_W}
 
 	make $SIM_MODEL_CMD
+	fi
 fi
 
 #############################################################
@@ -324,6 +371,7 @@ do
 	# The app is built with all the possible compilers.
 	BUILD
 
+	if [ "$SIMULATOR" != "none" ]; then
 	# The simulation is done with a timeout. If an application is failing
 	# it will return an error after the timeout has finished.
 	# Because the simulation will be called as a sub-process, the returns are
@@ -347,6 +395,7 @@ do
 	else
 		echo -e "${WARNING} Timeout!${RESET}"
 		SIM_TIMEOUT
+		fi
 	fi
 done
 
@@ -382,7 +431,9 @@ if [ $BUILD_FAILURES -gt 0 ] || [ $SIM_FAILURES -gt 0 ]; then
 	echo -e ${LONG_R}
 	echo -e ${LONG_R}
 	echo -e "${RED}FAIL: $BUILD_FAILURES APPS COULD NOT BE BUILT${RESET}"
-	echo -e "${RED}FAIL: $SIM_FAILURES APPS FAILED THE SIMULATION${RESET}"
+	if [ "$SIMULATOR" != "none" ]; then
+		echo -e "${RED}FAIL: $SIM_FAILURES APPS FAILED THE SIMULATION${RESET}"
+	fi
 	echo -e $FAILED | tr " " "\n"
 	echo -e ${LONG_R}
 	echo -e ${LONG_R}
@@ -395,11 +446,13 @@ else
 	echo -e ${LONG_G}
 fi
 
-if [ $SIM_SKIPPED -gt 0  ]; then
-	echo -e ${LONG_WAR}
-	echo -e "${WARNING}Simulation of $SIM_SKIPPED apps was skipped${RESET}"
-	echo -e $SKIPPED | tr " " "\n"
-	echo -e ${LONG_WAR}
+if [ "$SIMULATOR" != "none" ]; then
+	if [ $SIM_SKIPPED -gt 0  ]; then
+		echo -e ${LONG_WAR}
+		echo -e "${WARNING}Simulation of $SIM_SKIPPED apps was skipped${RESET}"
+		echo -e $SKIPPED | tr " " "\n"
+		echo -e ${LONG_WAR}
+	fi
 fi
 
 #############################################################
@@ -412,4 +465,5 @@ fi
 
 # Keep a count of apps that return a meaningless execution
 
-# Update the condition over which an app is simulated (check both compilation results and not only the last one)
+# Update the condition over which an app is simulated (check 
+# both compilation results and not only the last one)
