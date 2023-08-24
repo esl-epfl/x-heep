@@ -65,6 +65,20 @@ and add `sv2v` to the `PATH` variable.
 make openroad-sky130
 ```
 OPENROAD RUN
+In order to make the best out of the tool we should make some changes in the file locations. Running the commanda above would provide the design file for us therefore I suggest to create a folder insdie the design sources and move the design file into this folder. Do the same process also for configuraton files. These changes will help us to use the tool as it is designed.
+
+```
+mkdir flow/OpenROAD-flow-scripts/flow/designs/src/core_v_mini_mcu
+cp build/openhwgroup.org_systems_core-v-mini-mcu_0/asic_yosys_synthesis-openroad/design.sv flow/OpenROAD-flow-scripts/flow/designs/src/core_v_mini_mcu/design.sv
+mkdir flow/OpenROAD-flow-scripts/flow/designs/sky130hd/core_v_mini_mcu
+cp flow/sky130/config.mk flow/OpenROAD-flow-scripts/flow/designs/sky130hd/core_v_mini_mcu/config.mk 
+cp flow/sky130/constraint.sdc flow/OpenROAD-flow-scripts/flow/designs/sky130hd/core_v_mini_mcu/constraint.sdc
+```
+Make the required changes in the configuration file.
+```
+export VERILOG_FILES = ./designs/src/$(DESIGN_NICKNAME)/design.sv 
+export SDC_FILE      = ./designs/$(PLATFORM)/$(DESIGN_NICKNAME)/constraint.sdc
+```
 
 Tool takes an input configuration file config.mk which contains the information over:
 	- technology (platform to be used)

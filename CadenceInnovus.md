@@ -1,6 +1,8 @@
-Source the edadk and run the innovus with the command eda cds innovus.
 Import the design at innovus start by seleting the verilog file to import the netlist and right the top cell name. 
 For the technology files assign the lef files used in the design. It is important the select the tlef file first also depending on the version certain layers might be asked to be defined before other layers therefore check for the possible errors given.
+<p align="center"><img src="import1.png" width="650"></p>
+
+<p align="center"><img src="import2.png" width="650"></p>
 ```bash
 ../../sky130/sky130hd/lef/sky130_fd_sc_hd.tlef ../../sky130/sky130hd/lef/sky130_fd_sc_hd_merged.lef ../../sky130/sky130hd/lef/sky130io_fill.lef ../../sky130/sky130hs/lef/sky130_fd_sc_hs_merged.lef ../../sky130/sky130io/lef/sky130_ef_io__com_bus_slice_10um.lef ../../sky130/sky130io/lef/sky130_ef_io__com_bus_slice_1um.lef ../../sky130/sky130io/lef/sky130_ef_io__com_bus_slice_20um.lef ../../sky130/sky130io/lef/sky130_ef_io__com_bus_slice_5um.lef ../../sky130/sky130io/lef/sky130_ef_io__corner_pad.lef ../../sky130/sky130io/lef/sky130_ef_io__gpiov2_pad_wrapped.lef ../../sky130/sky130io/lef/sky130_ef_io__vccd_hvc_pad.lef ../../sky130/sky130io/lef/sky130_ef_io__vccd_lvc_pad.lef ../../sky130/sky130io/lef/sky130_ef_io__vdda_hvc_pad.lef ../../sky130/sky130io/lef/sky130_ef_io__vdda_lvc_pad.lef ../../sky130/sky130io/lef/sky130_ef_io__vddio_hvc_pad.lef ../../sky130/sky130io/lef/sky130_ef_io__vddio_lvc_pad.lef ../../sky130/sky130io/lef/sky130_ef_io__vssa_hvc_pad.lef ../../sky130/sky130io/lef/sky130_ef_io__vssa_lvc_pad.lef ../../sky130/sky130io/lef/sky130_ef_io__vssd_hvc_pad.lef ../../sky130/sky130io/lef/sky130_ef_io__vssd_lvc_pad.lef ../../sky130/sky130io/lef/sky130_ef_io__vssio_hvc_pad.lef ../../sky130/sky130io/lef/sky130_ef_io__vssio_lvc_pad.lef ../../sky130/sky130ram/sky130_sram_1rw1r_128x256_8/sky130_sram_1rw1r_128x256_8.lef ../../sky130/sky130ram/sky130_sram_1rw1r_44x64_8/sky130_sram_1rw1r_44x64_8.lef ../../sky130/sky130ram/sky130_sram_1rw1r_64x256_8/sky130_sram_1rw1r_64x256_8.lef ../../sky130/sky130ram/sky130_sram_1rw1r_80x64_8/sky130_sram_1rw1r_80x64_8.lef
 ```
@@ -96,6 +98,8 @@ create_analysis_view -name signoff_setup_wc -constraint_mode {signoff_constraint
 
 set_analysis_view -setup {analysis_setup_typ analysis_setup_bc analysis_setup_wc} -hold {analysis_hold analysis_setup_typ analysis_setup_bc analysis_setup_wc}
 ```
+
+<p align="center"><img src="import3.png" width="650"></p>
 
 Reading a def file
 ```bash
