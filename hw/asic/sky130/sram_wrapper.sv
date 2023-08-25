@@ -16,7 +16,7 @@ module sram_wrapper #(
     input  logic [AddrWidth-1:0] addr_i,   // request address
     input  logic [         31:0] wdata_i,  // write data
     input  logic [          3:0] be_i,     // write byte enable
-    input  logic                 set_retentive_i, // set retentive state (unused here)
+    input  logic                 set_retentive_ni, // set retentive state (unused here)
     // output ports
     output logic [         31:0] rdata_o   // read data
 );

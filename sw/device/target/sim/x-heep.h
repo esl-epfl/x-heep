@@ -14,7 +14,13 @@ extern "C" {
 
 #define REFERENCE_CLOCK_Hz 100*1000*1000
 #define UART_BAUDRATE 256000
-#define TARGET_SIM
+#define TARGET_SIM 1
+
+/**
+ * As the hw is configurable, we can have setups with different number of
+ * Gpio pins
+ */
+#define MAX_PIN     32
 
 
 #ifdef __cplusplus

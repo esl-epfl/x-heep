@@ -22,7 +22,7 @@ module sram_wrapper #(
     input logic [AddrWidth-1:0] addr_i,
     input logic [31:0] wdata_i,
     input logic [3:0] be_i,
-    input logic set_retentive_i,
+    input logic set_retentive_ni,
     // output ports
     output logic [31:0] rdata_o
 );

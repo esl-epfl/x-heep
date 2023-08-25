@@ -41,6 +41,10 @@ module testharness #(
   localparam EXT_XBAR_NMASTER_RND = USE_EXTERNAL_DEVICE_EXAMPLE ? testharness_pkg::EXT_XBAR_NMASTER : 1;
   localparam HEEP_EXT_XBAR_NMASTER = USE_EXTERNAL_DEVICE_EXAMPLE ? testharness_pkg::EXT_XBAR_NMASTER : 0;
 
+  localparam int unsigned LOG_EXT_XBAR_NSLAVE = EXT_XBAR_NSLAVE > 32'd1 ? $clog2(
+      EXT_XBAR_NSLAVE
+  ) : 32'd1;
+
   localparam EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS;
   localparam NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT;
 
@@ -66,10 +70,24 @@ module testharness #(
   logic [EXT_PERIPHERALS_PORT_SEL_WIDTH-1:0] ext_periph_select;
 
   // External xbar master/slave and peripheral ports
-  obi_req_t [EXT_XBAR_NMASTER_RND-1:0] master_req;
-  obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] master_resp;
-  obi_req_t slave_req;
-  obi_resp_t slave_resp;
+  obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_req;
+  obi_req_t [EXT_XBAR_NMASTER_RND-1:0] heep_slave_req;
+  obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_resp;
+  obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] heep_slave_resp;
+  obi_req_t heep_core_instr_req;
+  obi_resp_t heep_core_instr_resp;
+  obi_req_t heep_core_data_req;
+  obi_resp_t heep_core_data_resp;
+  obi_req_t heep_debug_master_req;
+  obi_resp_t heep_debug_master_resp;
+  obi_req_t heep_dma_read_ch0_req;
+  obi_resp_t heep_dma_read_ch0_resp;
+  obi_req_t heep_dma_write_ch0_req;
+  obi_resp_t heep_dma_write_ch0_resp;
+  obi_req_t heep_dma_addr_ch0_req;
+  obi_resp_t heep_dma_addr_ch0_resp;
+  obi_req_t [EXT_XBAR_NSLAVE-1:0] ext_slave_req;
+  obi_resp_t [EXT_XBAR_NSLAVE-1:0] ext_slave_resp;
   reg_req_t periph_slave_req;
   reg_rsp_t periph_slave_rsp;
 
@@ -85,11 +103,12 @@ module testharness #(
   logic memcopy_intr;
 
   // External subsystems
-  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch;
-  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack;
-  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso;
+  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_n;
+  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_n;
+  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_n;
   logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_n;
-  logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive;
+  logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_n;
+  logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_n;
 
   always_comb begin
     // All interrupt lines set to zero by default
@@ -184,62 +203,105 @@ module testharness #(
       .xif_mem_if(ext_if),
       .xif_mem_result_if(ext_if),
       .xif_result_if(ext_if),
-      .ext_xbar_master_req_i(master_req),
-      .ext_xbar_master_resp_o(master_resp),
-      .ext_xbar_slave_req_o(slave_req),
-      .ext_xbar_slave_resp_i(slave_resp),
+      .ext_xbar_master_req_i(heep_slave_req),
+      .ext_xbar_master_resp_o(heep_slave_resp),
+      .ext_core_instr_req_o(heep_core_instr_req),
+      .ext_core_instr_resp_i(heep_core_instr_resp),
+      .ext_core_data_req_o(heep_core_data_req),
+      .ext_core_data_resp_i(heep_core_data_resp),
+      .ext_debug_master_req_o(heep_debug_master_req),
+      .ext_debug_master_resp_i(heep_debug_master_resp),
+      .ext_dma_read_ch0_req_o(heep_dma_read_ch0_req),
+      .ext_dma_read_ch0_resp_i(heep_dma_read_ch0_resp),
+      .ext_dma_write_ch0_req_o(heep_dma_write_ch0_req),
+      .ext_dma_write_ch0_resp_i(heep_dma_write_ch0_resp),
+      .ext_dma_addr_ch0_req_o(heep_dma_addr_ch0_req),
+      .ext_dma_addr_ch0_resp_i(heep_dma_addr_ch0_resp),
       .ext_peripheral_slave_req_o(periph_slave_req),
       .ext_peripheral_slave_resp_i(periph_slave_rsp),
-      .external_subsystem_powergate_switch_o(external_subsystem_powergate_switch),
-      .external_subsystem_powergate_switch_ack_i(external_subsystem_powergate_switch_ack),
-      .external_subsystem_powergate_iso_o(external_subsystem_powergate_iso),
+      .external_subsystem_powergate_switch_no(external_subsystem_powergate_switch_n),
+      .external_subsystem_powergate_switch_ack_ni(external_subsystem_powergate_switch_ack_n),
+      .external_subsystem_powergate_iso_no(external_subsystem_powergate_iso_n),
       .external_subsystem_rst_no(external_subsystem_rst_n),
-      .external_ram_banks_set_retentive_o(external_ram_banks_set_retentive)
+      .external_ram_banks_set_retentive_no(external_ram_banks_set_retentive_n),
+      .external_subsystem_clkgate_en_no(external_subsystem_clkgate_en_n)
+  );
+
+  // Testbench external bus
+  // ----------------------
+  // The external bus connects the external peripherals among them and to
+  // the corresponding X-HEEP slave port (to the internal system bus).
+  ext_bus #(
+      .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER),
+      .EXT_XBAR_NSLAVE (EXT_XBAR_NSLAVE)
+  ) ext_bus_i (
+      .clk_i                    (clk_i),
+      .rst_ni                   (rst_ni),
+      .addr_map_i               (EXT_XBAR_ADDR_RULES),
+      .default_idx_i            (SLOW_MEMORY_IDX[LOG_EXT_XBAR_NSLAVE-1:0]),
+      .heep_core_instr_req_i    (heep_core_instr_req),
+      .heep_core_instr_resp_o   (heep_core_instr_resp),
+      .heep_core_data_req_i     (heep_core_data_req),
+      .heep_core_data_resp_o    (heep_core_data_resp),
+      .heep_debug_master_req_i  (heep_debug_master_req),
+      .heep_debug_master_resp_o (heep_debug_master_resp),
+      .heep_dma_read_ch0_req_i  (heep_dma_read_ch0_req),
+      .heep_dma_read_ch0_resp_o (heep_dma_read_ch0_resp),
+      .heep_dma_write_ch0_req_i (heep_dma_write_ch0_req),
+      .heep_dma_write_ch0_resp_o(heep_dma_write_ch0_resp),
+      .heep_dma_addr_ch0_req_i  (heep_dma_addr_ch0_req),
+      .heep_dma_addr_ch0_resp_o (heep_dma_addr_ch0_resp),
+      .ext_master_req_i         (ext_master_req),
+      .ext_master_resp_o        (ext_master_resp),
+      .heep_slave_req_o         (heep_slave_req),
+      .heep_slave_resp_i        (heep_slave_resp),
+      .ext_slave_req_o          (ext_slave_req),
+      .ext_slave_resp_i         (ext_slave_resp)
   );
 
   logic pdm;
 
   //pretending to be SWITCH CELLs that delay by SWITCH_ACK_LATENCY cycles the ACK signal
   logic
-      tb_cpu_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY+1],
-      tb_peripheral_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY+1];
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] tb_memory_subsystem_banks_powergate_switch_ack[SWITCH_ACK_LATENCY+1];
-  logic [EXT_DOMAINS_RND-1:0] tb_external_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY+1];
+      tb_cpu_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY+1],
+      tb_peripheral_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY+1];
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] tb_memory_subsystem_banks_powergate_switch_ack_n[SWITCH_ACK_LATENCY+1];
+  logic [EXT_DOMAINS_RND-1:0] tb_external_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY+1];
 
-  logic delayed_tb_cpu_subsystem_powergate_switch_ack;
-  logic delayed_tb_peripheral_subsystem_powergate_switch_ack;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] delayed_tb_memory_subsystem_banks_powergate_switch_ack;
-  logic [EXT_DOMAINS_RND-1:0] delayed_tb_external_subsystem_powergate_switch_ack;
+  logic delayed_tb_cpu_subsystem_powergate_switch_ack_n;
+  logic delayed_tb_peripheral_subsystem_powergate_switch_ack_n;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] delayed_tb_memory_subsystem_banks_powergate_switch_ack_n;
+  logic [EXT_DOMAINS_RND-1:0] delayed_tb_external_subsystem_powergate_switch_ack_n;
 
   always_ff @(negedge clk_i) begin
-    tb_cpu_subsystem_powergate_switch_ack[0] <= x_heep_system_i.cpu_subsystem_powergate_switch;
-    tb_peripheral_subsystem_powergate_switch_ack[0] <= x_heep_system_i.peripheral_subsystem_powergate_switch;
-    tb_memory_subsystem_banks_powergate_switch_ack[0] <= x_heep_system_i.memory_subsystem_banks_powergate_switch;
-    tb_external_subsystem_powergate_switch_ack[0] <= external_subsystem_powergate_switch;
+    tb_cpu_subsystem_powergate_switch_ack_n[0] <= x_heep_system_i.cpu_subsystem_powergate_switch_n;
+    tb_peripheral_subsystem_powergate_switch_ack_n[0] <= x_heep_system_i.peripheral_subsystem_powergate_switch_n;
+    tb_memory_subsystem_banks_powergate_switch_ack_n[0] <= x_heep_system_i.memory_subsystem_banks_powergate_switch_n;
+    tb_external_subsystem_powergate_switch_ack_n[0] <= external_subsystem_powergate_switch_n;
     for (int i = 0; i < SWITCH_ACK_LATENCY; i++) begin
-      tb_memory_subsystem_banks_powergate_switch_ack[i+1] <= tb_memory_subsystem_banks_powergate_switch_ack[i];
-      tb_cpu_subsystem_powergate_switch_ack[i+1] <= tb_cpu_subsystem_powergate_switch_ack[i];
-      tb_peripheral_subsystem_powergate_switch_ack[i+1] <= tb_peripheral_subsystem_powergate_switch_ack[i];
-      tb_external_subsystem_powergate_switch_ack[i+1] <= tb_external_subsystem_powergate_switch_ack[i];
+      tb_memory_subsystem_banks_powergate_switch_ack_n[i+1] <= tb_memory_subsystem_banks_powergate_switch_ack_n[i];
+      tb_cpu_subsystem_powergate_switch_ack_n[i+1] <= tb_cpu_subsystem_powergate_switch_ack_n[i];
+      tb_peripheral_subsystem_powergate_switch_ack_n[i+1] <= tb_peripheral_subsystem_powergate_switch_ack_n[i];
+      tb_external_subsystem_powergate_switch_ack_n[i+1] <= tb_external_subsystem_powergate_switch_ack_n[i];
     end
   end
 
-  assign delayed_tb_cpu_subsystem_powergate_switch_ack = tb_cpu_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY];
-  assign delayed_tb_peripheral_subsystem_powergate_switch_ack = tb_peripheral_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY];
-  assign delayed_tb_memory_subsystem_banks_powergate_switch_ack = tb_memory_subsystem_banks_powergate_switch_ack[SWITCH_ACK_LATENCY];
-  assign delayed_tb_external_subsystem_powergate_switch_ack = tb_external_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY];
+  assign delayed_tb_cpu_subsystem_powergate_switch_ack_n = tb_cpu_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY];
+  assign delayed_tb_peripheral_subsystem_powergate_switch_ack_n = tb_peripheral_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY];
+  assign delayed_tb_memory_subsystem_banks_powergate_switch_ack_n = tb_memory_subsystem_banks_powergate_switch_ack_n[SWITCH_ACK_LATENCY];
+  assign delayed_tb_external_subsystem_powergate_switch_ack_n = tb_external_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY];
 
   always_comb begin
 `ifndef VERILATOR
-    force x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_powergate_switch_ack_i = delayed_tb_cpu_subsystem_powergate_switch_ack;
-    force x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_powergate_switch_ack_i = delayed_tb_peripheral_subsystem_powergate_switch_ack;
-    force x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_ack_i = delayed_tb_memory_subsystem_banks_powergate_switch_ack;
-    force external_subsystem_powergate_switch_ack = delayed_tb_external_subsystem_powergate_switch_ack;
+    force x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_powergate_switch_ack_ni = delayed_tb_cpu_subsystem_powergate_switch_ack_n;
+    force x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_powergate_switch_ack_ni = delayed_tb_peripheral_subsystem_powergate_switch_ack_n;
+    force x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_ack_ni = delayed_tb_memory_subsystem_banks_powergate_switch_ack_n;
+    force external_subsystem_powergate_switch_ack_n = delayed_tb_external_subsystem_powergate_switch_ack_n;
 `else
-    x_heep_system_i.cpu_subsystem_powergate_switch_ack = delayed_tb_cpu_subsystem_powergate_switch_ack;
-    x_heep_system_i.peripheral_subsystem_powergate_switch_ack = delayed_tb_peripheral_subsystem_powergate_switch_ack;
-    x_heep_system_i.memory_subsystem_banks_powergate_switch_ack = delayed_tb_memory_subsystem_banks_powergate_switch_ack;
-    external_subsystem_powergate_switch_ack = delayed_tb_external_subsystem_powergate_switch_ack;
+    x_heep_system_i.cpu_subsystem_powergate_switch_ack_n = delayed_tb_cpu_subsystem_powergate_switch_ack_n;
+    x_heep_system_i.peripheral_subsystem_powergate_switch_ack_n = delayed_tb_peripheral_subsystem_powergate_switch_ack_n;
+    x_heep_system_i.memory_subsystem_banks_powergate_switch_ack_n = delayed_tb_memory_subsystem_banks_powergate_switch_ack_n;
+    external_subsystem_powergate_switch_ack_n = delayed_tb_external_subsystem_powergate_switch_ack_n;
 `endif
   end
 
@@ -273,27 +335,41 @@ module testharness #(
       .exit()
   );
 
-  assign slow_ram_slave_req = slave_req;
-  assign slave_resp = slow_ram_slave_resp;
+  assign slow_ram_slave_req = ext_slave_req[SLOW_MEMORY_IDX];
+  assign ext_slave_resp[SLOW_MEMORY_IDX] = slow_ram_slave_resp;
 
   generate
     if (USE_EXTERNAL_DEVICE_EXAMPLE) begin : gen_USE_EXTERNAL_DEVICE_EXAMPLE
+
+      obi_pkg::obi_req_t  slave_fifoout_req;
+      obi_pkg::obi_resp_t slave_fifoout_resp;
+
+      //this FIFO makes the slow memory even more slower in terms of latency
+      obi_fifo obi_fifo_i (
+          .clk_i,
+          .rst_ni,
+          .producer_req_i (slow_ram_slave_req),
+          .producer_resp_o(slow_ram_slave_resp),
+          .consumer_req_o (slave_fifoout_req),
+          .consumer_resp_i(slave_fifoout_resp)
+      );
+
       // External xbar slave memory example
       slow_memory #(
           .NumWords (128),
           .DataWidth(32'd32)
       ) slow_ram_i (
-          .clk_i(clk_i),
-          .rst_ni(rst_ni),
-          .req_i(slow_ram_slave_req.req),
-          .we_i(slow_ram_slave_req.we),
-          .addr_i(slow_ram_slave_req.addr[8:2]),
-          .wdata_i(slow_ram_slave_req.wdata),
-          .be_i(slow_ram_slave_req.be),
+          .clk_i,
+          .rst_ni,
+          .req_i(slave_fifoout_req.req),
+          .we_i(slave_fifoout_req.we),
+          .addr_i(slave_fifoout_req.addr[8:2]),
+          .wdata_i(slave_fifoout_req.wdata),
+          .be_i(slave_fifoout_req.be),
           // output ports
-          .gnt_o(slow_ram_slave_resp.gnt),
-          .rdata_o(slow_ram_slave_resp.rdata),
-          .rvalid_o(slow_ram_slave_resp.rvalid)
+          .gnt_o(slave_fifoout_resp.gnt),
+          .rdata_o(slave_fifoout_resp.rdata),
+          .rvalid_o(slave_fifoout_resp.rvalid)
       );
 
       parameter DMA_TRIGGER_SLOT_NUM = 4;
@@ -310,12 +386,12 @@ module testharness #(
           .rst_ni,
           .reg_req_i(ext_periph_slv_req[testharness_pkg::MEMCOPY_CTRL_IDX]),
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::MEMCOPY_CTRL_IDX]),
-          .dma_master0_ch0_req_o(master_req[testharness_pkg::EXT_MASTER0_IDX]),
-          .dma_master0_ch0_resp_i(master_resp[testharness_pkg::EXT_MASTER0_IDX]),
-          .dma_master1_ch0_req_o(master_req[testharness_pkg::EXT_MASTER1_IDX]),
-          .dma_master1_ch0_resp_i(master_resp[testharness_pkg::EXT_MASTER1_IDX]),
-          .dma_master2_ch0_req_o(),
-          .dma_master2_ch0_resp_i('0),
+          .dma_read_ch0_req_o(ext_master_req[testharness_pkg::EXT_MASTER0_IDX]),
+          .dma_read_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER0_IDX]),
+          .dma_write_ch0_req_o(ext_master_req[testharness_pkg::EXT_MASTER1_IDX]),
+          .dma_write_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER1_IDX]),
+          .dma_addr_ch0_req_o(),
+          .dma_addr_ch0_resp_i('0),
           .trigger_slot_i('0),
           .dma_done_intr_o(memcopy_intr),
           .dma_window_intr_o()
@@ -418,11 +494,11 @@ module testharness #(
       assign ext_periph_slv_req = '0;
       assign ext_periph_slv_rsp = '0;
 
-      assign master_req[testharness_pkg::EXT_MASTER0_IDX].req = '0;
-      assign master_req[testharness_pkg::EXT_MASTER0_IDX].we = '0;
-      assign master_req[testharness_pkg::EXT_MASTER0_IDX].be = '0;
-      assign master_req[testharness_pkg::EXT_MASTER0_IDX].addr = '0;
-      assign master_req[testharness_pkg::EXT_MASTER0_IDX].wdata = '0;
+      assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].req = '0;
+      assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].we = '0;
+      assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].be = '0;
+      assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].addr = '0;
+      assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].wdata = '0;
 
       assign memcopy_intr = '0;
       assign periph_slave_rsp = '0;

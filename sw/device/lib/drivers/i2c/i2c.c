@@ -625,3 +625,8 @@ i2c_result_t i2c_write_byte(const i2c_t *i2c, uint8_t byte,
 
   return i2c_write_byte_raw(i2c, byte, flags);
 }
+
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c(uint32_t id)
+{
+ // Replace this function with a non-weak implementation
+}

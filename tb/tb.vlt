@@ -5,9 +5,11 @@
 `verilator_config
 
 lint_off -rule UNUSED -file "*tb/testharness.sv" -match "*"
+lint_off -rule UNUSED -file "*tb/ext_xbar.sv" -match "Signal is not driven, nor used: '*"
+lint_off -rule UNOPTFLAT -file "*tb/ext_xbar.sv" -match "Signal unoptimizable: Feedback to clock or circular logic: 'testharness.ext_bus_i.__Vcellout__ext_xbar_i__slave_req_o'"
 lint_off -rule UNDRIVEN -file "*tb/testharness.sv" -match "Signal is not driven: 'jtag_tdo_o'*"
 lint_off -rule SYNCASYNCNET -file "*tb/testharness.sv" -match "*"
 lint_off -rule WIDTH -file "*tb/testharness.sv" -match "*"
 lint_off -rule LITENDIAN -file "*tb/testharness.sv" -match "*"
 lint_off -rule BLKSEQ -file "*tb/testharness.sv" -match "*"
-lint_off -rule UNOPTFLAT -file "*tb/testharness.sv" -match "Signal unoptimizable: Feedback to clock or circular logic: 'testharness.gpio'"
+lint_off -rule UNOPTFLAT -file "*tb/testharness.sv" -match "*"

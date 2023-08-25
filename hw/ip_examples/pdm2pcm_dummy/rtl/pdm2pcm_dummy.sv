@@ -35,9 +35,7 @@ module pdm2pcm_dummy #(
         init = 1;
         lineidx = 0;
         fpdm = $fopen(filepath, "r");
-        if (fpdm) begin
-          $display("PDM File opened successfully.");
-        end else begin
+        if (!fpdm) begin
           $display("Failed to open PDM file.");
           $display(" > Please check if this the simulation was launched using");
           $display("   `make *-sim` or `make run-pdm2pcm`.");

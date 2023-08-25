@@ -16,15 +16,29 @@
 #include "fast_intr_ctrl.h"
 #include "gpio.h"
 #include "fast_intr_ctrl_regs.h"
+#include "x-heep.h"
 
 #define REVERT_24b_ADDR(addr) ((((uint32_t)addr & 0xff0000) >> 16) | ((uint32_t)addr & 0xff00) | (((uint32_t)addr & 0xff) << 16))
 #define FLASH_ADDR 0x00000000
 #define FLASH_SIZE 64 * 1024 * 1024
 #define FLASH_CLK_MAX_HZ (133 * 1000 * 1000)
 
+
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   0
+
+#if TARGET_SIM && PRINTF_IN_SIM
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+    #define PRINTF(...)
+#endif
+
 // Interrupt controller variables
 plic_result_t plic_res;
-plic_irq_id_t intr_num;
+uint32_t intr_num;
 
 //volatile int8_t timer_flag;
 volatile int8_t spi_intr_flag;
@@ -32,7 +46,7 @@ volatile int8_t spi_intr_flag;
 spi_host_t spi_host_flash;
 
 void dma_intr_handler_trans_done(){
-    printf("#\n\r");
+    PRINTF("#\n\r");
 }
 
 void fic_irq_spi_flash(){
@@ -40,7 +54,7 @@ void fic_irq_spi_flash(){
     spi_enable_evt_intr(&spi_host_flash, false);
     spi_enable_rxwm_intr(&spi_host_flash, false);
     spi_intr_flag = 1;
-    printf("@");
+    PRINTF("@\n\r");
 }
 
 
@@ -76,9 +90,9 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
     dma_target_t tgt_src = {
         .ptr = data,
         .inc_du = 1,
-        .size_du = 64, 
+        .size_du = 64,
         .type = DMA_DATA_TYPE_HALF_WORD,
-        .trig = DMA_TRIG_MEMORY, 
+        .trig = DMA_TRIG_MEMORY,
     };
     dma_target_t tgt_dst = {
         .ptr = fifo_ptr_tx,
@@ -94,13 +108,13 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
     };
 
     dma_config_flags_t res;
-    
+
     spi_intr_flag = 0;
 
     res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-    printf("Result - tgt trans: %u\n", res );
+    PRINTF("trans: %u\n\r", res );
     res = dma_load_transaction(&trans);
-    printf("Result - tgt load: %u\n", res );
+    PRINTF("load: %u\n\r", res );
     res = dma_launch(&trans);
 
     // Wait for the first data to arrive to the TX FIFO before enabling interrupt
@@ -124,7 +138,7 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
         wait_for_interrupt();
    }
 
-    printf("%d words written to flash.\n\n\r", byte_count/4);
+    PRINTF("%d words written to flash.\n\n\r", byte_count/4);
 }
 
 int main(int argc, char *argv[])
@@ -202,7 +216,7 @@ int main(int argc, char *argv[])
 
     write_to_flash(&spi_host_flash, results, sizeof(*results) * 32, FLASH_ADDR);
 
-    printf("Application ended successfully.\n\r");
+    PRINTF("Success.\n\r");
 
     return EXIT_SUCCESS;
 }

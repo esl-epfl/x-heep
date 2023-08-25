@@ -18,14 +18,14 @@ module dma #(
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
-    output obi_req_t  dma_master0_ch0_req_o,
-    input  obi_resp_t dma_master0_ch0_resp_i,
+    output obi_req_t  dma_read_ch0_req_o,
+    input  obi_resp_t dma_read_ch0_resp_i,
 
-    output obi_req_t  dma_master1_ch0_req_o,
-    input  obi_resp_t dma_master1_ch0_resp_i,
+    output obi_req_t  dma_write_ch0_req_o,
+    input  obi_resp_t dma_write_ch0_resp_i,
 
-    output obi_req_t  dma_master2_ch0_req_o,
-    input  obi_resp_t dma_master2_ch0_resp_i,
+    output obi_req_t  dma_addr_ch0_req_o,
+    input  obi_resp_t dma_addr_ch0_resp_i,
 
     input logic [SLOT_NUM-1:0] trigger_slot_i,
 
@@ -118,6 +118,8 @@ module dma #(
   }
       dma_state_q, dma_state_d;
 
+  logic [Addr_Fifo_Depth-1:0] outstanding_req, outstanding_addr_req;
+
   enum logic {
     DMA_READ_FSM_IDLE,
     DMA_READ_FSM_ON
@@ -130,41 +132,42 @@ module dma #(
   }
       dma_write_fsm_state, dma_write_fsm_n_state;
 
-  assign dma_master0_ch0_req_o.req = data_in_req;
-  assign dma_master0_ch0_req_o.we = data_in_we;
-  assign dma_master0_ch0_req_o.be = data_in_be;
-  assign dma_master0_ch0_req_o.addr = data_in_addr;
-  assign dma_master0_ch0_req_o.wdata = 32'h0;
+  assign dma_read_ch0_req_o.req = data_in_req;
+  assign dma_read_ch0_req_o.we = data_in_we;
+  assign dma_read_ch0_req_o.be = data_in_be;
+  assign dma_read_ch0_req_o.addr = data_in_addr;
+  assign dma_read_ch0_req_o.wdata = 32'h0;
 
-  assign data_in_gnt = dma_master0_ch0_resp_i.gnt;
-  assign data_in_rvalid = dma_master0_ch0_resp_i.rvalid;
-  assign data_in_rdata = dma_master0_ch0_resp_i.rdata;
+  assign data_in_gnt = dma_read_ch0_resp_i.gnt;
+  assign data_in_rvalid = dma_read_ch0_resp_i.rvalid;
+  assign data_in_rdata = dma_read_ch0_resp_i.rdata;
 
-  assign dma_master2_ch0_req_o.req = data_addr_in_req;
-  assign dma_master2_ch0_req_o.we = data_addr_in_we;
-  assign dma_master2_ch0_req_o.be = data_addr_in_be;
-  assign dma_master2_ch0_req_o.addr = data_addr_in_addr;
-  assign dma_master2_ch0_req_o.wdata = 32'h0;
+  assign dma_addr_ch0_req_o.req = data_addr_in_req;
+  assign dma_addr_ch0_req_o.we = data_addr_in_we;
+  assign dma_addr_ch0_req_o.be = data_addr_in_be;
+  assign dma_addr_ch0_req_o.addr = data_addr_in_addr;
+  assign dma_addr_ch0_req_o.wdata = 32'h0;
 
-  assign data_addr_in_gnt = dma_master2_ch0_resp_i.gnt;
-  assign data_addr_in_rvalid = dma_master2_ch0_resp_i.rvalid;
-  assign data_addr_in_rdata = dma_master2_ch0_resp_i.rdata;
+  assign data_addr_in_gnt = dma_addr_ch0_resp_i.gnt;
+  assign data_addr_in_rvalid = dma_addr_ch0_resp_i.rvalid;
+  assign data_addr_in_rdata = dma_addr_ch0_resp_i.rdata;
 
+  assign dma_write_ch0_req_o.req = data_out_req;
+  assign dma_write_ch0_req_o.we = data_out_we;
+  assign dma_write_ch0_req_o.be = data_out_be;
+  assign dma_write_ch0_req_o.addr = data_out_addr;
+  assign dma_write_ch0_req_o.wdata = data_out_wdata;
 
-  assign dma_master1_ch0_req_o.req = data_out_req;
-  assign dma_master1_ch0_req_o.we = data_out_we;
-  assign dma_master1_ch0_req_o.be = data_out_be;
-  assign dma_master1_ch0_req_o.addr = data_out_addr;
-  assign dma_master1_ch0_req_o.wdata = data_out_wdata;
-
-  assign data_out_gnt = dma_master1_ch0_resp_i.gnt;
-  assign data_out_rvalid = dma_master1_ch0_resp_i.rvalid;
-  assign data_out_rdata = dma_master1_ch0_resp_i.rdata;
+  assign data_out_gnt = dma_write_ch0_resp_i.gnt;
+  assign data_out_rvalid = dma_write_ch0_resp_i.rvalid;
+  assign data_out_rdata = dma_write_ch0_resp_i.rdata;
 
   assign dma_done_intr_o = dma_done & reg2hw.interrupt_en.transaction_done.q;
   assign dma_window_intr_o = dma_window_event & reg2hw.interrupt_en.window_done.q;
 
+
   logic [31:0] window_counter;
+
 
   assign data_type = reg2hw.data_type.q;
 
@@ -401,10 +404,17 @@ module dma #(
       dma_read_fsm_state <= DMA_READ_FSM_IDLE;
       dma_write_fsm_state <= DMA_WRITE_FSM_IDLE;
       dma_read_addr_fsm_state <= DMA_READ_FSM_IDLE;
+      outstanding_req <= '0;
+      outstanding_addr_req <= '0;
     end else begin
       dma_read_fsm_state <= dma_read_fsm_n_state;
       dma_write_fsm_state <= dma_write_fsm_n_state;
       dma_read_addr_fsm_state <= dma_read_addr_fsm_n_state;
+      outstanding_req <= outstanding_req + (data_in_req && data_in_gnt) - data_in_rvalid;
+
+      if (address_mode)
+        outstanding_addr_req <= outstanding_addr_req + (data_addr_in_req && data_addr_in_gnt) - data_addr_in_rvalid;
+
     end
   end
 
@@ -517,8 +527,8 @@ module dma #(
       DMA_WRITE_FSM_ON: begin
         // If all input data read exit
         if (fifo_empty == 1'b1 && dma_read_fsm_state == DMA_READ_FSM_IDLE) begin
-          dma_write_fsm_n_state = DMA_WRITE_FSM_IDLE;
-          dma_done = 1'b1;
+          dma_done = outstanding_req == '0 && outstanding_addr_req == '0;
+          dma_write_fsm_n_state = dma_done ? DMA_WRITE_FSM_IDLE : DMA_WRITE_FSM_ON;
         end else begin
           dma_write_fsm_n_state = DMA_WRITE_FSM_ON;
           // Wait if fifo is empty or if the SPI TX is not ready for new data (only in SPI mode 2).
@@ -620,7 +630,7 @@ module dma #(
 
   // update window_done flag
   // set on dma_window_event
-  // reset on read 
+  // reset on read
   always_ff @(posedge clk_i, negedge rst_ni) begin
     if (~rst_ni) begin
       window_done_q <= 1'b0;

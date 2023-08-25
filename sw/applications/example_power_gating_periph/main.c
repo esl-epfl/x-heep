@@ -9,6 +9,19 @@
 #include "handler.h"
 #include "core_v_mini_mcu.h"
 #include "power_manager.h"
+#include "x-heep.h"
+
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   0
+
+#if TARGET_SIM && PRINTF_IN_SIM
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+    #define PRINTF(...)
+#endif
 
 static power_manager_t power_manager;
 
@@ -23,14 +36,14 @@ int main(int argc, char *argv[])
     // Init peripheral_subsystem's counters
     if (power_gate_counters_init(&power_manager_periph_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail. Check the reset and powergate counters value\n");
+        PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
         return EXIT_FAILURE;
     }
 
     // Power off peripheral_subsystem domain
     if (power_gate_periph(&power_manager, kOff_e, &power_manager_periph_counters) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail.\n");
+        PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
     }
 
@@ -43,11 +56,11 @@ int main(int argc, char *argv[])
     // Power on peripheral_subsystem domain
     if (power_gate_periph(&power_manager, kOn_e, &power_manager_periph_counters) != kPowerManagerOk_e)
     {
-        printf("Error: power manager fail.\n");
+        PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
     }
 
     /* write something to stdout */
-    printf("Success.\n");
+    PRINTF("Success.\n\r");
     return EXIT_SUCCESS;
 }

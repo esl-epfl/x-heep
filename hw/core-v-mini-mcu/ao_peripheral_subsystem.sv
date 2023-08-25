@@ -50,39 +50,40 @@ module ao_peripheral_subsystem
     input logic [31:0] intr_i,
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
     input logic core_sleep_i,
-    output logic cpu_subsystem_powergate_switch_o,
-    input logic cpu_subsystem_powergate_switch_ack_i,
-    output logic cpu_subsystem_powergate_iso_o,
+    output logic cpu_subsystem_powergate_switch_no,
+    input logic cpu_subsystem_powergate_switch_ack_ni,
+    output logic cpu_subsystem_powergate_iso_no,
     output logic cpu_subsystem_rst_no,
-    output logic peripheral_subsystem_powergate_switch_o,
-    input logic peripheral_subsystem_powergate_switch_ack_i,
-    output logic peripheral_subsystem_powergate_iso_o,
+    output logic peripheral_subsystem_powergate_switch_no,
+    input logic peripheral_subsystem_powergate_switch_ack_ni,
+    output logic peripheral_subsystem_powergate_iso_no,
     output logic peripheral_subsystem_rst_no,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_o,
-    input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_i,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_o,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_o,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_o,
-    input logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_i,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_o,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_no,
+    input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_ni,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_no,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_no,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_no,
+    input logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_ni,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_no,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_o,
+    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_no,
 
     // Clock gating signals
-    output logic peripheral_subsystem_clkgate_en_o,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_clkgate_en_o,
+    output logic peripheral_subsystem_clkgate_en_no,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_clkgate_en_no,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_no,
 
     // RV TIMER
     output logic rv_timer_0_intr_o,
     output logic rv_timer_1_intr_o,
 
     // DMA
-    output obi_req_t  dma_master0_ch0_req_o,
-    input  obi_resp_t dma_master0_ch0_resp_i,
-    output obi_req_t  dma_master1_ch0_req_o,
-    input  obi_resp_t dma_master1_ch0_resp_i,
-    output obi_req_t  dma_master2_ch0_req_o,
-    input  obi_resp_t dma_master2_ch0_resp_i,
+    output obi_req_t  dma_read_ch0_req_o,
+    input  obi_resp_t dma_read_ch0_resp_i,
+    output obi_req_t  dma_write_ch0_req_o,
+    input  obi_resp_t dma_write_ch0_resp_i,
+    output obi_req_t  dma_addr_ch0_req_o,
+    input  obi_resp_t dma_addr_ch0_resp_i,
     output logic      dma_done_intr_o,
     output logic      dma_window_intr_o,
 
@@ -149,8 +150,41 @@ module ao_peripheral_subsystem
   logic [23:0] cio_gpio_unused;
   logic [23:0] cio_gpio_en_unused;
 
+
+  obi_pkg::obi_req_t slave_fifo_req_sel;
+  obi_pkg::obi_resp_t slave_fifo_resp_sel;
+
   assign ext_peripheral_slave_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPHERAL_IDX];
   assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPHERAL_IDX] = ext_peripheral_slave_resp_i;
+
+`ifdef REMOVE_OBI_FIFO
+
+  assign slave_fifo_req_sel = slave_req_i;
+  assign slave_resp_o       = slave_fifo_resp_sel;
+
+`else
+
+  obi_pkg::obi_req_t  slave_fifoin_req;
+  obi_pkg::obi_resp_t slave_fifoin_resp;
+
+  obi_pkg::obi_req_t  slave_fifoout_req;
+  obi_pkg::obi_resp_t slave_fifoout_resp;
+
+  obi_fifo obi_fifo_i (
+      .clk_i,
+      .rst_ni,
+      .producer_req_i (slave_fifoin_req),
+      .producer_resp_o(slave_fifoin_resp),
+      .consumer_req_o (slave_fifoout_req),
+      .consumer_resp_i(slave_fifoout_resp)
+  );
+
+  assign slave_fifo_req_sel = slave_fifoout_req;
+  assign slave_fifoout_resp = slave_fifo_resp_sel;
+  assign slave_fifoin_req   = slave_req_i;
+  assign slave_resp_o       = slave_fifoin_resp;
+
+`endif
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
@@ -159,17 +193,17 @@ module ao_peripheral_subsystem
   ) periph_to_reg_i (
       .clk_i,
       .rst_ni,
-      .req_i(slave_req_i.req),
-      .add_i(slave_req_i.addr),
-      .wen_i(~slave_req_i.we),
-      .wdata_i(slave_req_i.wdata),
-      .be_i(slave_req_i.be),
+      .req_i(slave_fifo_req_sel.req),
+      .add_i(slave_fifo_req_sel.addr),
+      .wen_i(~slave_fifo_req_sel.we),
+      .wdata_i(slave_fifo_req_sel.wdata),
+      .be_i(slave_fifo_req_sel.be),
       .id_i('0),
-      .gnt_o(slave_resp_o.gnt),
-      .r_rdata_o(slave_resp_o.rdata),
+      .gnt_o(slave_fifo_resp_sel.gnt),
+      .r_rdata_o(slave_fifo_resp_sel.rdata),
       .r_opc_o(),
       .r_id_o(),
-      .r_valid_o(slave_resp_o.rvalid),
+      .r_valid_o(slave_fifo_resp_sel.rvalid),
       .reg_req_o(peripheral_req),
       .reg_rsp_i(peripheral_rsp)
   );
@@ -282,25 +316,26 @@ module ao_peripheral_subsystem
       .intr_i,
       .ext_irq_i(intr_vector_ext_i),
       .core_sleep_i,
-      .cpu_subsystem_powergate_switch_o,
-      .cpu_subsystem_powergate_switch_ack_i,
-      .cpu_subsystem_powergate_iso_o,
+      .cpu_subsystem_powergate_switch_no,
+      .cpu_subsystem_powergate_switch_ack_ni,
+      .cpu_subsystem_powergate_iso_no,
       .cpu_subsystem_rst_no,
-      .peripheral_subsystem_powergate_switch_o,
-      .peripheral_subsystem_powergate_switch_ack_i,
-      .peripheral_subsystem_powergate_iso_o,
+      .peripheral_subsystem_powergate_switch_no,
+      .peripheral_subsystem_powergate_switch_ack_ni,
+      .peripheral_subsystem_powergate_iso_no,
       .peripheral_subsystem_rst_no,
-      .memory_subsystem_banks_powergate_switch_o,
-      .memory_subsystem_banks_powergate_switch_ack_i,
-      .memory_subsystem_banks_powergate_iso_o,
-      .memory_subsystem_banks_set_retentive_o,
-      .external_subsystem_powergate_switch_o,
-      .external_subsystem_powergate_switch_ack_i,
-      .external_subsystem_powergate_iso_o,
+      .memory_subsystem_banks_powergate_switch_no,
+      .memory_subsystem_banks_powergate_switch_ack_ni,
+      .memory_subsystem_banks_powergate_iso_no,
+      .memory_subsystem_banks_set_retentive_no,
+      .external_subsystem_powergate_switch_no,
+      .external_subsystem_powergate_switch_ack_ni,
+      .external_subsystem_powergate_iso_no,
       .external_subsystem_rst_no,
-      .external_ram_banks_set_retentive_o,
-      .peripheral_subsystem_clkgate_en_o,
-      .memory_subsystem_clkgate_en_o
+      .external_ram_banks_set_retentive_no,
+      .peripheral_subsystem_clkgate_en_no,
+      .memory_subsystem_clkgate_en_no,
+      .external_subsystem_clkgate_en_no
   );
 
   reg_to_tlul #(
@@ -348,12 +383,12 @@ module ao_peripheral_subsystem
       .rst_ni,
       .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
-      .dma_master0_ch0_req_o,
-      .dma_master0_ch0_resp_i,
-      .dma_master1_ch0_req_o,
-      .dma_master1_ch0_resp_i,
-      .dma_master2_ch0_req_o,
-      .dma_master2_ch0_resp_i,
+      .dma_read_ch0_req_o,
+      .dma_read_ch0_resp_i,
+      .dma_write_ch0_req_o,
+      .dma_write_ch0_resp_i,
+      .dma_addr_ch0_req_o,
+      .dma_addr_ch0_resp_i,
       .trigger_slot_i(dma_trigger_slots),
       .dma_done_intr_o(dma_done_intr_o),
       .dma_window_intr_o(dma_window_intr_o)

@@ -20,7 +20,8 @@ package core_v_mini_mcu_pkg;
   typedef enum logic [1:0] {
     cv32e40p,
     cv32e20,
-    cv32e40x
+    cv32e40x,
+    cv32e40px
   } cpu_type_e;
 
   localparam cpu_type_e CpuType = ${cpu_type};
@@ -36,17 +37,18 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] CORE_INSTR_IDX = 0;
   localparam logic [31:0] CORE_DATA_IDX = 1;
   localparam logic [31:0] DEBUG_MASTER_IDX = 2;
-  localparam logic [31:0] DMA_MASTER0_CH0_IDX = 3;
-  localparam logic [31:0] DMA_MASTER1_CH0_IDX = 4;
-  localparam logic [31:0] DMA_MASTER2_CH0_IDX = 5;
+  localparam logic [31:0] DMA_READ_CH0_IDX = 3;
+  localparam logic [31:0] DMA_WRITE_CH0_IDX = 4;
+  localparam logic [31:0] DMA_ADDR_CH0_IDX = 5;
 
   localparam SYSTEM_XBAR_NMASTER = 6;
 
-  //slave mmap and idx
+  // Internal slave memory map and index
+  // -----------------------------------
   //must be power of two
   localparam int unsigned MEM_SIZE = 32'h${ram_size_address};
 
-  localparam SYSTEM_XBAR_NSLAVE = ${int(ram_numbanks) + 6};
+  localparam SYSTEM_XBAR_NSLAVE = ${int(ram_numbanks) + 5};
 
   localparam int unsigned LOG_SYSTEM_XBAR_NMASTER = SYSTEM_XBAR_NMASTER > 1 ? $clog2(SYSTEM_XBAR_NMASTER) : 32'd1;
   localparam int unsigned LOG_SYSTEM_XBAR_NSLAVE = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(SYSTEM_XBAR_NSLAVE) : 32'd1;
@@ -91,15 +93,10 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] PERIPHERAL_END_ADDRESS = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE;
   localparam logic[31:0] PERIPHERAL_IDX = 32'd${int(ram_numbanks) + 3};
 
-  localparam logic[31:0] EXT_SLAVE_START_ADDRESS = 32'h${ext_slave_start_address};
-  localparam logic[31:0] EXT_SLAVE_SIZE = 32'h${ext_slave_size_address};
-  localparam logic[31:0] EXT_SLAVE_END_ADDRESS = EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE;
-  localparam logic[31:0] EXT_SLAVE_IDX = 32'd${int(ram_numbanks) + 4};
-
   localparam logic[31:0] FLASH_MEM_START_ADDRESS = 32'h${flash_mem_start_address};
   localparam logic[31:0] FLASH_MEM_SIZE = 32'h${flash_mem_size_address};
   localparam logic[31:0] FLASH_MEM_END_ADDRESS = FLASH_MEM_START_ADDRESS + FLASH_MEM_SIZE;
-  localparam logic[31:0] FLASH_MEM_IDX = 32'd${int(ram_numbanks) + 5};
+  localparam logic[31:0] FLASH_MEM_IDX = 32'd${int(ram_numbanks) + 4};
 
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{ idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS },
@@ -112,14 +109,38 @@ package core_v_mini_mcu_pkg;
       '{ idx: DEBUG_IDX, start_addr: DEBUG_START_ADDRESS, end_addr: DEBUG_END_ADDRESS },
       '{ idx: AO_PERIPHERAL_IDX, start_addr: AO_PERIPHERAL_START_ADDRESS, end_addr: AO_PERIPHERAL_END_ADDRESS },
       '{ idx: PERIPHERAL_IDX, start_addr: PERIPHERAL_START_ADDRESS, end_addr: PERIPHERAL_END_ADDRESS },
-      '{ idx: EXT_SLAVE_IDX, start_addr: EXT_SLAVE_START_ADDRESS, end_addr: EXT_SLAVE_END_ADDRESS },
       '{ idx: FLASH_MEM_IDX, start_addr: FLASH_MEM_START_ADDRESS, end_addr: FLASH_MEM_END_ADDRESS }
+  };
+
+  // External slave address map
+  // --------------------------
+  localparam logic [31:0] EXT_SLAVE_START_ADDRESS = 32'h${ext_slave_start_address};
+  localparam logic [31:0] EXT_SLAVE_SIZE = 32'h${ext_slave_size_address};
+  localparam logic [31:0] EXT_SLAVE_END_ADDRESS = EXT_SLAVE_START_ADDRESS + EXT_SLAVE_SIZE;
+
+  // Forward crossbars address map and index
+  // ---------------------------------------
+  // These crossbar connect each muster to the internal crossbar and to the
+  // corresponding external master port.
+  localparam logic [31:0] DEMUX_XBAR_INT_SLAVE_IDX = 32'd0;
+  localparam logic[31:0] DEMUX_XBAR_EXT_SLAVE_IDX = 32'd1;
+
+  // Address map
+  // NOTE: the internal address space is chosen by default by the system bus,
+  // so it is not defined here.
+  localparam addr_map_rule_t [0:0] DEMUX_XBAR_ADDR_RULES = '{
+    '{
+      idx: DEMUX_XBAR_EXT_SLAVE_IDX,
+      start_addr: EXT_SLAVE_START_ADDRESS,
+      end_addr: EXT_SLAVE_END_ADDRESS
+    }
   };
 
 ######################################################################
 ## Automatically add all always on peripherals listed
 ######################################################################
-  //always-on peripherals
+  // always-on peripherals
+  // ---------------------
   localparam AO_PERIPHERALS = ${ao_peripherals_count};
 
 % for peripheral, addr in ao_peripherals.items():
@@ -140,7 +161,8 @@ package core_v_mini_mcu_pkg;
 ######################################################################
 ## Automatically add all peripherals listed
 ######################################################################
-  //switch-on/off peripherals
+  // switch-on/off peripherals
+  // -------------------------
   localparam PERIPHERALS = ${peripherals_count};
 
 % for peripheral, addr in peripherals.items():
@@ -159,6 +181,7 @@ package core_v_mini_mcu_pkg;
   localparam int unsigned PERIPHERALS_PORT_SEL_WIDTH = PERIPHERALS > 1 ? $clog2(PERIPHERALS) : 32'd1;
 
   // Interrupts
+  // ----------
   localparam PLIC_NINT = ${plit_n_interrupts};
   localparam PLIC_USED_NINT = ${plic_used_n_interrupts};
   localparam NEXT_INT = PLIC_NINT - PLIC_USED_NINT;

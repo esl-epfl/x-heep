@@ -7,7 +7,7 @@
 
   upstream: {
     url: "https://github.com/openhwgroup/cv32e40p.git",
-    rev: "0391e5c15aa32a3df37179ac1d9a17f5f76cbc1e",
+    rev: "b14f1adafdd55fcdab7349cc858216f702b7ad0e",
   },
 
   patch_dir: "patches/openhwgroup_cv32e40p",
@@ -23,7 +23,7 @@
     "cv32e40p_manifest.flist",
     "cv32e40p_fpu_manifest.flist",
     "docs",
-    "rtl/vendor/pulp_platform_common_cells",
+    "rtl/vendor",
     "scripts",
   ]
 }

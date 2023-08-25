@@ -40,10 +40,9 @@ module pdm_core_tb;
     end
 
     fpcm = $fopen("signals/pcm.txt", "w");
-    if (fpcm) begin
-      $display("PCM File opened successfully.");
-    end else begin
+    if (!fpcm) begin
       $display("Failed to open PCM file.");
+      $stop();
     end
 
     rstn_i = 0;

@@ -13,7 +13,7 @@ module peripheral_subsystem
     input logic rst_ni,
 
     // Clock-gating signal
-    input logic clk_gate_en_i,
+    input logic clk_gate_en_ni,
 
     input  obi_req_t  slave_req_i,
     output obi_resp_t slave_resp_o,
@@ -170,14 +170,47 @@ module peripheral_subsystem
   //Address Decoder
   logic [PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
+  obi_pkg::obi_req_t slave_fifo_req_sel;
+  obi_pkg::obi_resp_t slave_fifo_resp_sel;
+
   // Clock-gating
   logic clk_cg;
   tc_clk_gating clk_gating_cell (
       .clk_i,
-      .en_i(~clk_gate_en_i),
+      .en_i(clk_gate_en_ni),
       .test_en_i(1'b0),
       .clk_o(clk_cg)
   );
+
+
+`ifdef REMOVE_OBI_FIFO
+
+  assign slave_fifo_req_sel = slave_req_i;
+  assign slave_resp_o       = slave_fifo_resp_sel;
+
+`else
+
+  obi_pkg::obi_req_t  slave_fifoin_req;
+  obi_pkg::obi_resp_t slave_fifoin_resp;
+
+  obi_pkg::obi_req_t  slave_fifoout_req;
+  obi_pkg::obi_resp_t slave_fifoout_resp;
+
+  obi_fifo obi_fifo_i (
+      .clk_i(clk_cg),
+      .rst_ni,
+      .producer_req_i(slave_fifoin_req),
+      .producer_resp_o(slave_fifoin_resp),
+      .consumer_req_o(slave_fifoout_req),
+      .consumer_resp_i(slave_fifoout_resp)
+  );
+
+  assign slave_fifo_req_sel = slave_fifoout_req;
+  assign slave_fifoout_resp = slave_fifo_resp_sel;
+  assign slave_fifoin_req   = slave_req_i;
+  assign slave_resp_o       = slave_fifoin_resp;
+
+`endif
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
@@ -186,17 +219,17 @@ module peripheral_subsystem
   ) periph_to_reg_i (
       .clk_i(clk_cg),
       .rst_ni,
-      .req_i(slave_req_i.req),
-      .add_i(slave_req_i.addr),
-      .wen_i(~slave_req_i.we),
-      .wdata_i(slave_req_i.wdata),
-      .be_i(slave_req_i.be),
+      .req_i(slave_fifo_req_sel.req),
+      .add_i(slave_fifo_req_sel.addr),
+      .wen_i(~slave_fifo_req_sel.we),
+      .wdata_i(slave_fifo_req_sel.wdata),
+      .be_i(slave_fifo_req_sel.be),
       .id_i('0),
-      .gnt_o(slave_resp_o.gnt),
-      .r_rdata_o(slave_resp_o.rdata),
+      .gnt_o(slave_fifo_resp_sel.gnt),
+      .r_rdata_o(slave_fifo_resp_sel.rdata),
       .r_opc_o(),
       .r_id_o(),
-      .r_valid_o(slave_resp_o.rvalid),
+      .r_valid_o(slave_fifo_resp_sel.rvalid),
       .reg_req_o(peripheral_req),
       .reg_rsp_i(peripheral_rsp)
   );

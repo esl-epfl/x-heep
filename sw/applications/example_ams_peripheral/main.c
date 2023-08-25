@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
         mmio_region_write32(ams_base_addr, AMS_SEL_REG_OFFSET, 3);
 
 
-        printf("END");
+        printf("END\n");
 
         return EXIT_SUCCESS;
 }

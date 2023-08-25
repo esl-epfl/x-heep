@@ -9,11 +9,12 @@ description: "OpenHW Group RISC-V Core CV32E40P"
 
 filesets:
   files_rtl:
+    depend:
+    - pulp-platform.org::fpnew
     files:
     - openhwgroup_cv32e40p/rtl/include/cv32e40p_apu_core_pkg.sv
     - openhwgroup_cv32e40p/rtl/include/cv32e40p_fpu_pkg.sv
     - openhwgroup_cv32e40p/rtl/include/cv32e40p_pkg.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_pkg.sv
     - openhwgroup_cv32e40p/rtl/cv32e40p_alu.sv
     - openhwgroup_cv32e40p/rtl/cv32e40p_alu_div.sv
     - openhwgroup_cv32e40p/rtl/cv32e40p_ff_one.sv
@@ -41,34 +42,6 @@ filesets:
     - openhwgroup_cv32e40p/rtl/cv32e40p_top.sv
     file_type: systemVerilogSource
 
-  files_fpu:
-    files:
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_cast_multi.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_classifier.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_divsqrt_multi.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_fma_multi.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_fma.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_noncomp.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_opgroup_block.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_opgroup_fmt_slice.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_opgroup_multifmt_slice.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_rounding.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpnew/src/fpnew_top.sv
-    file_type: systemVerilogSource
-
-
-  files_fpu_div:
-    files:
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpu_div_sqrt_mvp/hdl/defs_div_sqrt_mvp.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpu_div_sqrt_mvp/hdl/control_mvp.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpu_div_sqrt_mvp/hdl/div_sqrt_mvp_wrapper.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpu_div_sqrt_mvp/hdl/div_sqrt_top_mvp.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpu_div_sqrt_mvp/hdl/iteration_div_sqrt_mvp.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpu_div_sqrt_mvp/hdl/norm_div_sqrt_mvp.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpu_div_sqrt_mvp/hdl/nrbd_nrsc_mvp.sv
-    - openhwgroup_cv32e40p/rtl/vendor/pulp_platform_fpu_div_sqrt_mvp/hdl/preprocess_mvp.sv
-    file_type: systemVerilogSource
-
 
   files_clk_gate:
     files:
@@ -90,6 +63,4 @@ targets:
     filesets:
     - files_rtl
     - ff_regfile
-    - files_fpu
-    - files_fpu_div
     - target_sim? (files_clk_gate)

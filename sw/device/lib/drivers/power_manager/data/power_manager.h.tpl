@@ -107,19 +107,20 @@ typedef struct power_manager_ram_map_t {
 
 static power_manager_ram_map_t power_manager_ram_map[${ram_numbanks}] = {
 % for bank in range(ram_numbanks):
-  {
-    POWER_MANAGER_RAM_${bank}_CLK_GATE_REG_OFFSET,
-    POWER_MANAGER_POWER_GATE_RAM_BLOCK_${bank}_ACK_REG_OFFSET,
-    POWER_MANAGER_RAM_${bank}_SWITCH_REG_OFFSET,
-    POWER_MANAGER_RAM_${bank}_WAIT_ACK_SWITCH_ON_REG_OFFSET,
-    POWER_MANAGER_RAM_${bank}_ISO_REG_OFFSET,
-    POWER_MANAGER_RAM_${bank}_RETENTIVE_REG_OFFSET,
-    POWER_MANAGER_MONITOR_POWER_GATE_RAM_BLOCK_${bank}_REG_OFFSET
+  (power_manager_ram_map_t) {
+    .clk_gate = POWER_MANAGER_RAM_${bank}_CLK_GATE_REG_OFFSET,
+    .power_gate_ack = POWER_MANAGER_POWER_GATE_RAM_BLOCK_${bank}_ACK_REG_OFFSET,
+    .switch_off = POWER_MANAGER_RAM_${bank}_SWITCH_REG_OFFSET,
+    .wait_ack_switch = POWER_MANAGER_RAM_${bank}_WAIT_ACK_SWITCH_ON_REG_OFFSET,
+    .iso = POWER_MANAGER_RAM_${bank}_ISO_REG_OFFSET,
+    .retentive = POWER_MANAGER_RAM_${bank}_RETENTIVE_REG_OFFSET,
+    .monitor_power_gate = POWER_MANAGER_MONITOR_POWER_GATE_RAM_BLOCK_${bank}_REG_OFFSET
   },
 % endfor
 };
 
 typedef struct power_manager_external_map_t {
+  uint32_t clk_gate;
   uint32_t power_gate_ack;
   uint32_t reset;
   uint32_t switch_off;
@@ -131,14 +132,15 @@ typedef struct power_manager_external_map_t {
 
 static power_manager_external_map_t power_manager_external_map[${external_domains}] = {
 % for ext in range(external_domains):
-  {
-    POWER_MANAGER_POWER_GATE_EXTERNAL_${ext}_ACK_REG_OFFSET,
-    POWER_MANAGER_EXTERNAL_${ext}_RESET_REG_OFFSET,
-    POWER_MANAGER_EXTERNAL_${ext}_SWITCH_REG_OFFSET,
-    POWER_MANAGER_EXTERNAL_${ext}_WAIT_ACK_SWITCH_ON_REG_OFFSET,
-    POWER_MANAGER_EXTERNAL_${ext}_ISO_REG_OFFSET,
-    POWER_MANAGER_EXTERNAL_RAM_${ext}_RETENTIVE_REG_OFFSET,
-    POWER_MANAGER_MONITOR_POWER_GATE_EXTERNAL_${ext}_REG_OFFSET,
+  (power_manager_external_map_t) {
+    .clk_gate = POWER_MANAGER_EXTERNAL_${ext}_CLK_GATE_REG_OFFSET,
+    .power_gate_ack = POWER_MANAGER_POWER_GATE_EXTERNAL_${ext}_ACK_REG_OFFSET,
+    .reset = POWER_MANAGER_EXTERNAL_${ext}_RESET_REG_OFFSET,
+    .switch_off = POWER_MANAGER_EXTERNAL_${ext}_SWITCH_REG_OFFSET,
+    .wait_ack_switch = POWER_MANAGER_EXTERNAL_${ext}_WAIT_ACK_SWITCH_ON_REG_OFFSET,
+    .iso = POWER_MANAGER_EXTERNAL_${ext}_ISO_REG_OFFSET,
+    .retentive = POWER_MANAGER_EXTERNAL_RAM_${ext}_RETENTIVE_REG_OFFSET,
+    .monitor_power_gate = POWER_MANAGER_MONITOR_POWER_GATE_EXTERNAL_${ext}_REG_OFFSET,
   },
 % endfor
 };
