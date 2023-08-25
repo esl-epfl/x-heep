@@ -11,6 +11,8 @@ extern "C" {
 
 #define MEMORY_BANKS ${ram_numbanks}
 
+#define EXTERNAL_DOMAINS ${external_domains}
+
 #define DEBUG_START_ADDRESS 0x${debug_start_address}
 #define DEBUG_SIZE 0x${debug_size_address}
 #define DEBUG_END_ADDRESS (DEBUG_START_ADDRESS + DEBUG_SIZE)
@@ -52,13 +54,16 @@ extern "C" {
 #define FLASH_MEM_SIZE 0x${flash_mem_size_address}
 #define FLASH_MEM_END_ADDRESS (FLASH_MEM_START_ADDRESS + FLASH_MEM_SIZE)
 
+#define QTY_INTR ${len(interrupts)}
 % for key, value in interrupts.items():
 #define ${key.upper()} ${value}
 % endfor
 
+% if pads_attributes != None:
 % for pad in pad_list:
 #define ${pad.localparam}_ATTRIBUTE ${pad.index}
 % endfor
+% endif
 
 #ifdef __cplusplus
 }  // extern "C"

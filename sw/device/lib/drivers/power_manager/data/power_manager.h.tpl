@@ -120,6 +120,7 @@ static power_manager_ram_map_t power_manager_ram_map[${ram_numbanks}] = {
 };
 
 typedef struct power_manager_external_map_t {
+  uint32_t clk_gate;
   uint32_t power_gate_ack;
   uint32_t reset;
   uint32_t switch_off;
@@ -132,6 +133,7 @@ typedef struct power_manager_external_map_t {
 static power_manager_external_map_t power_manager_external_map[${external_domains}] = {
 % for ext in range(external_domains):
   (power_manager_external_map_t) {
+    .clk_gate = POWER_MANAGER_EXTERNAL_${ext}_CLK_GATE_REG_OFFSET,
     .power_gate_ack = POWER_MANAGER_POWER_GATE_EXTERNAL_${ext}_ACK_REG_OFFSET,
     .reset = POWER_MANAGER_EXTERNAL_${ext}_RESET_REG_OFFSET,
     .switch_off = POWER_MANAGER_EXTERNAL_${ext}_SWITCH_REG_OFFSET,

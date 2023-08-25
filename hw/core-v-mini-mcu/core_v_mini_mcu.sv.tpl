@@ -56,17 +56,18 @@ ${pad.core_v_mini_mcu_interface}
 
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
 
-    output logic cpu_subsystem_powergate_switch_o,
-    input  logic cpu_subsystem_powergate_switch_ack_i,
-    output logic peripheral_subsystem_powergate_switch_o,
-    input  logic peripheral_subsystem_powergate_switch_ack_i,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_o,
-    input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_i,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_o,
-    input  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_i,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_o,
+    output logic cpu_subsystem_powergate_switch_no,
+    input  logic cpu_subsystem_powergate_switch_ack_ni,
+    output logic peripheral_subsystem_powergate_switch_no,
+    input  logic peripheral_subsystem_powergate_switch_ack_ni,
+    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_no,
+    input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_ni,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_no,
+    input  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_ni,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_no,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_o,
+    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_no,
+    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_no,
 
     output logic [31:0] exit_value_o
 );
@@ -141,16 +142,16 @@ ${pad.core_v_mini_mcu_interface}
   logic [14:0] fast_intr;
 
   // Power manager
-  logic cpu_subsystem_powergate_iso;
+  logic cpu_subsystem_powergate_iso_n;
   logic cpu_subsystem_rst_n;
-  logic peripheral_subsystem_powergate_iso;
+  logic peripheral_subsystem_powergate_iso_n;
   logic peripheral_subsystem_rst_n;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_n;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_n;
 
    // Clock gating signals
-   logic peripheral_subsystem_clkgate_en;
-   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]memory_subsystem_clkgate_en;
+   logic peripheral_subsystem_clkgate_en_n;
+   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]memory_subsystem_clkgate_en_n;
 
   // DMA
   logic dma_done_intr;
@@ -293,10 +294,10 @@ ${pad.core_v_mini_mcu_interface}
   ) memory_subsystem_i (
       .clk_i,
       .rst_ni,
-      .clk_gate_en_i(memory_subsystem_clkgate_en),
+      .clk_gate_en_ni(memory_subsystem_clkgate_en_n),
       .ram_req_i(ram_slave_req),
       .ram_resp_o(ram_slave_resp),
-      .set_retentive_i(memory_subsystem_banks_set_retentive)
+      .set_retentive_ni(memory_subsystem_banks_set_retentive_n)
   );
 
   ao_peripheral_subsystem ao_peripheral_subsystem_i (
@@ -327,25 +328,26 @@ ${pad.core_v_mini_mcu_interface}
       .intr_i(intr),
       .intr_vector_ext_i,
       .core_sleep_i(core_sleep),
-      .cpu_subsystem_powergate_switch_o,
-      .cpu_subsystem_powergate_switch_ack_i,
-      .cpu_subsystem_powergate_iso_o(cpu_subsystem_powergate_iso),
+      .cpu_subsystem_powergate_switch_no,
+      .cpu_subsystem_powergate_switch_ack_ni,
+      .cpu_subsystem_powergate_iso_no(cpu_subsystem_powergate_iso_n),
       .cpu_subsystem_rst_no(cpu_subsystem_rst_n),
-      .peripheral_subsystem_powergate_switch_o,
-      .peripheral_subsystem_powergate_switch_ack_i,
-      .peripheral_subsystem_powergate_iso_o(peripheral_subsystem_powergate_iso),
+      .peripheral_subsystem_powergate_switch_no,
+      .peripheral_subsystem_powergate_switch_ack_ni,
+      .peripheral_subsystem_powergate_iso_no(peripheral_subsystem_powergate_iso_n),
       .peripheral_subsystem_rst_no(peripheral_subsystem_rst_n),
-      .memory_subsystem_banks_powergate_switch_o,
-      .memory_subsystem_banks_powergate_switch_ack_i,
-      .memory_subsystem_banks_powergate_iso_o(memory_subsystem_banks_powergate_iso),
-      .memory_subsystem_banks_set_retentive_o(memory_subsystem_banks_set_retentive),
-      .external_subsystem_powergate_switch_o,
-      .external_subsystem_powergate_switch_ack_i,
-      .external_subsystem_powergate_iso_o,
+      .memory_subsystem_banks_powergate_switch_no,
+      .memory_subsystem_banks_powergate_switch_ack_ni,
+      .memory_subsystem_banks_powergate_iso_no(memory_subsystem_banks_powergate_iso_n),
+      .memory_subsystem_banks_set_retentive_no(memory_subsystem_banks_set_retentive_n),
+      .external_subsystem_powergate_switch_no,
+      .external_subsystem_powergate_switch_ack_ni,
+      .external_subsystem_powergate_iso_no,
       .external_subsystem_rst_no,
-      .external_ram_banks_set_retentive_o,
-      .peripheral_subsystem_clkgate_en_o(peripheral_subsystem_clkgate_en),
-      .memory_subsystem_clkgate_en_o(memory_subsystem_clkgate_en),
+      .external_ram_banks_set_retentive_no,
+      .peripheral_subsystem_clkgate_en_no(peripheral_subsystem_clkgate_en_n),
+      .memory_subsystem_clkgate_en_no(memory_subsystem_clkgate_en_n),
+      .external_subsystem_clkgate_en_no,
       .rv_timer_0_intr_o(rv_timer_intr[0]),
       .rv_timer_1_intr_o(rv_timer_intr[1]),
       .dma_read_ch0_req_o(dma_read_ch0_req),
@@ -384,7 +386,7 @@ ${pad.core_v_mini_mcu_interface}
   peripheral_subsystem peripheral_subsystem_i (
       .clk_i,
       .rst_ni(peripheral_subsystem_rst_n),
-      .clk_gate_en_i(peripheral_subsystem_clkgate_en),
+      .clk_gate_en_ni(peripheral_subsystem_clkgate_en_n),
       .slave_req_i(peripheral_slave_req),
       .slave_resp_o(peripheral_slave_resp),
       .intr_vector_ext_i,

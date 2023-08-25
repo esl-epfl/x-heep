@@ -24,28 +24,22 @@
 #endif
 
 
-/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
-#define DEFAULT_PRINTF_BEHAVIOR 1
-
 /* By default, printfs are activated for FPGA and disabled for simulation. */
-#ifdef TARGET_PYNQ_Z2 
-    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
-#else 
-    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
-#endif
+#define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   0
 
-#if ENABLE_PRINTF
-  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#if TARGET_SIM && PRINTF_IN_SIM
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
-  #define PRINTF(...)
-#endif 
+    #define PRINTF(...)
+#endif
 
 static rv_timer_t timer_0_1;
 static rv_timer_t timer_2_3;
 static const uint64_t kTickFreqHz = 1000 * 1000; // 1 MHz
-
 static power_manager_t power_manager;
-static gpio_t gpio;
 
 #ifndef TARGET_PYNQ_Z2
     #define GPIO_TB_OUT 30
@@ -60,6 +54,8 @@ int main(int argc, char *argv[])
     mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
     power_manager.base_addr = power_manager_reg;
     power_manager_counters_t power_manager_cpu_counters;
+    //counters
+    uint32_t reset_off, reset_on, switch_off, switch_on, iso_off, iso_on;
 
     // Setup pads
 #ifndef TARGET_PYNQ_Z2
@@ -87,13 +83,18 @@ int main(int argc, char *argv[])
     mmio_region_t timer_2_3_reg = mmio_region_from_addr(RV_TIMER_START_ADDRESS);
     rv_timer_init(timer_2_3_reg, (rv_timer_config_t){.hart_count = 2, .comparator_count = 1}, &timer_2_3);
 
-    // Setup gpio
-    gpio_params_t gpio_params;
-    gpio_params.base_addr = mmio_region_from_addr((uintptr_t)GPIO_START_ADDRESS);
-    gpio_init(gpio_params, &gpio);
-
     // Init cpu_subsystem's counters
-    if (power_gate_counters_init(&power_manager_cpu_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
+
+    //Turn off: first, isolate the CPU outputs, then I reset it, then I switch it off (reset and switch off order does not really matter)
+    iso_off = 10;
+    reset_off = iso_off + 5;
+    switch_off = reset_off + 5;
+    //Turn on: first, give back power by switching on, then deassert the reset, the unisolate the CPU outputs
+    switch_on = 10;
+    reset_on = switch_on + 20; //give 20 cycles to emulate the turn on time, this number depends on technology and here it is just a random number
+    iso_on = reset_on + 5;
+
+    if (power_gate_counters_init(&power_manager_cpu_counters, reset_off, reset_on, switch_off, switch_on, iso_off, iso_on, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
         return EXIT_FAILURE;
@@ -157,13 +158,17 @@ int main(int argc, char *argv[])
 
 #ifndef TARGET_PYNQ_Z2
     // Power-gate and wake-up due to plic
-    bool state = false;
-    plic_irq_set_priority(GPIO_INTR, 1);
-    plic_irq_set_enabled(GPIO_INTR, kPlicToggleEnabled);
-    gpio_output_set_enabled(&gpio, GPIO_TB_OUT, true);
-    gpio_input_enabled(&gpio, GPIO_TB_IN, true);
-    gpio_irq_set_trigger(&gpio, GPIO_TB_IN, true, kGpioIrqTriggerEdgeRising);
-    gpio_write(&gpio, GPIO_TB_OUT, true);
+	bool state = false;
+    plic_irq_set_priority(GPIO_INTR_31, 1);
+    plic_irq_set_enabled(GPIO_INTR_31, kPlicToggleEnabled);
+
+    gpio_cfg_t pin2_cfg = {.pin = GPIO_TB_IN, .mode = GpioModeIn,.en_input_sampling = true,
+        .en_intr = true, .intr_type = GpioIntrEdgeRising};
+    gpio_config (pin2_cfg);
+
+    gpio_cfg_t pin1_cfg = {.pin = GPIO_TB_OUT, .mode = GpioModeOutPushPull};
+    gpio_config (pin1_cfg);
+    gpio_write(GPIO_TB_OUT, true);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kPlic_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)

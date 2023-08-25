@@ -20,28 +20,24 @@
     #define USE_SPI_FLASH
 #endif
 
-/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
-#define DEFAULT_PRINTF_BEHAVIOR 1
-
 /* By default, printfs are activated for FPGA and disabled for simulation. */
-#ifdef TARGET_PYNQ_Z2 
-    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
-#else 
-    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
-#endif
+#define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   0
 
-#if ENABLE_PRINTF
-  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#if TARGET_SIM && PRINTF_IN_SIM
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
-  #define PRINTF(...)
-#endif 
+    #define PRINTF(...)
+#endif
 
 // Simple example to check the SPI host peripheral is working. It checks the ram and flash have the same content
 #define REVERT_24b_ADDR(addr) ((((uint32_t)(addr) & 0xff0000) >> 16) | ((uint32_t)(addr) & 0xff00) | (((uint32_t)(addr) & 0xff) << 16))
 
 #define FLASH_CLK_MAX_HZ (133*1000*1000) // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
 
-int8_t spi_intr_flag;
+volatile int8_t spi_intr_flag;
 spi_host_t spi_host;
 uint32_t flash_data[8];
 uint32_t flash_original[8] = {1};
@@ -69,14 +65,30 @@ int main(int argc, char *argv[])
 
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+    uint32_t read_byte_cmd = ((REVERT_24b_ADDR(flash_original) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
 
-#ifdef USE_SPI_FLASH
    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO )
     {
+#ifdef USE_SPI_FLASH
         PRINTF("This application cannot work with the memory mapped SPI FLASH module - do not use the FLASH_EXEC linker script for this application\n");
         return EXIT_SUCCESS;
-    }
+#else
+        /*
+            if we are using in SIMULATION the SPIMMIO from Yosys, then the flash_original data is different
+            as the compilation is done differently, so we will store there the first WORDs of code mapped at the beginning of the FLASH
+        */
+        uint32_t* ptr_flash = (uint32_t*)FLASH_MEM_START_ADDRESS;
+        for(int i =0; i < 8 ; i++){
+            flash_original[i] = ptr_flash[i];
+        }
+        // we read the data from the FLASH address 0x0, which corresponds to FLASH_MEM_START_ADDRESS
+        read_byte_cmd = ((REVERT_24b_ADDR(0x0) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
+
 #endif
+
+    }
+
+
     // spi_host_t spi_host;
     #ifndef USE_SPI_FLASH
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
@@ -155,7 +167,6 @@ int main(int argc, char *argv[])
 
     volatile uint32_t data_addr = flash_original;
 
-    const uint32_t read_byte_cmd = ((REVERT_24b_ADDR(flash_original) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
 
     // Fill TX FIFO with TX data (read command + 3B address)
     spi_write_word(&spi_host, read_byte_cmd);
@@ -210,8 +221,14 @@ int main(int argc, char *argv[])
     // spi_wait_for_rx_watermark(&spi_host);
     // or wait for SPI interrupt
     PRINTF("Waiting for SPI...\n\r");
-    while(spi_intr_flag==0) {
-        wait_for_interrupt();
+
+    while( spi_intr_flag == 0 ) {
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+
+        if( spi_intr_flag == 0 )
+            wait_for_interrupt();
+
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }
 
     // Enable event interrupt

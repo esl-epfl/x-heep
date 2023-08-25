@@ -103,11 +103,12 @@ module testharness #(
   logic memcopy_intr;
 
   // External subsystems
-  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch;
-  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack;
-  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso;
+  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_n;
+  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_n;
+  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_n;
   logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_n;
-  logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive;
+  logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_n;
+  logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_n;
 
   always_comb begin
     // All interrupt lines set to zero by default
@@ -218,11 +219,12 @@ module testharness #(
       .ext_dma_addr_ch0_resp_i(heep_dma_addr_ch0_resp),
       .ext_peripheral_slave_req_o(periph_slave_req),
       .ext_peripheral_slave_resp_i(periph_slave_rsp),
-      .external_subsystem_powergate_switch_o(external_subsystem_powergate_switch),
-      .external_subsystem_powergate_switch_ack_i(external_subsystem_powergate_switch_ack),
-      .external_subsystem_powergate_iso_o(external_subsystem_powergate_iso),
+      .external_subsystem_powergate_switch_no(external_subsystem_powergate_switch_n),
+      .external_subsystem_powergate_switch_ack_ni(external_subsystem_powergate_switch_ack_n),
+      .external_subsystem_powergate_iso_no(external_subsystem_powergate_iso_n),
       .external_subsystem_rst_no(external_subsystem_rst_n),
-      .external_ram_banks_set_retentive_o(external_ram_banks_set_retentive)
+      .external_ram_banks_set_retentive_no(external_ram_banks_set_retentive_n),
+      .external_subsystem_clkgate_en_no(external_subsystem_clkgate_en_n)
   );
 
   // Testbench external bus
@@ -261,45 +263,45 @@ module testharness #(
 
   //pretending to be SWITCH CELLs that delay by SWITCH_ACK_LATENCY cycles the ACK signal
   logic
-      tb_cpu_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY+1],
-      tb_peripheral_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY+1];
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] tb_memory_subsystem_banks_powergate_switch_ack[SWITCH_ACK_LATENCY+1];
-  logic [EXT_DOMAINS_RND-1:0] tb_external_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY+1];
+      tb_cpu_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY+1],
+      tb_peripheral_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY+1];
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] tb_memory_subsystem_banks_powergate_switch_ack_n[SWITCH_ACK_LATENCY+1];
+  logic [EXT_DOMAINS_RND-1:0] tb_external_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY+1];
 
-  logic delayed_tb_cpu_subsystem_powergate_switch_ack;
-  logic delayed_tb_peripheral_subsystem_powergate_switch_ack;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] delayed_tb_memory_subsystem_banks_powergate_switch_ack;
-  logic [EXT_DOMAINS_RND-1:0] delayed_tb_external_subsystem_powergate_switch_ack;
+  logic delayed_tb_cpu_subsystem_powergate_switch_ack_n;
+  logic delayed_tb_peripheral_subsystem_powergate_switch_ack_n;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] delayed_tb_memory_subsystem_banks_powergate_switch_ack_n;
+  logic [EXT_DOMAINS_RND-1:0] delayed_tb_external_subsystem_powergate_switch_ack_n;
 
   always_ff @(negedge clk_i) begin
-    tb_cpu_subsystem_powergate_switch_ack[0] <= x_heep_system_i.cpu_subsystem_powergate_switch;
-    tb_peripheral_subsystem_powergate_switch_ack[0] <= x_heep_system_i.peripheral_subsystem_powergate_switch;
-    tb_memory_subsystem_banks_powergate_switch_ack[0] <= x_heep_system_i.memory_subsystem_banks_powergate_switch;
-    tb_external_subsystem_powergate_switch_ack[0] <= external_subsystem_powergate_switch;
+    tb_cpu_subsystem_powergate_switch_ack_n[0] <= x_heep_system_i.cpu_subsystem_powergate_switch_n;
+    tb_peripheral_subsystem_powergate_switch_ack_n[0] <= x_heep_system_i.peripheral_subsystem_powergate_switch_n;
+    tb_memory_subsystem_banks_powergate_switch_ack_n[0] <= x_heep_system_i.memory_subsystem_banks_powergate_switch_n;
+    tb_external_subsystem_powergate_switch_ack_n[0] <= external_subsystem_powergate_switch_n;
     for (int i = 0; i < SWITCH_ACK_LATENCY; i++) begin
-      tb_memory_subsystem_banks_powergate_switch_ack[i+1] <= tb_memory_subsystem_banks_powergate_switch_ack[i];
-      tb_cpu_subsystem_powergate_switch_ack[i+1] <= tb_cpu_subsystem_powergate_switch_ack[i];
-      tb_peripheral_subsystem_powergate_switch_ack[i+1] <= tb_peripheral_subsystem_powergate_switch_ack[i];
-      tb_external_subsystem_powergate_switch_ack[i+1] <= tb_external_subsystem_powergate_switch_ack[i];
+      tb_memory_subsystem_banks_powergate_switch_ack_n[i+1] <= tb_memory_subsystem_banks_powergate_switch_ack_n[i];
+      tb_cpu_subsystem_powergate_switch_ack_n[i+1] <= tb_cpu_subsystem_powergate_switch_ack_n[i];
+      tb_peripheral_subsystem_powergate_switch_ack_n[i+1] <= tb_peripheral_subsystem_powergate_switch_ack_n[i];
+      tb_external_subsystem_powergate_switch_ack_n[i+1] <= tb_external_subsystem_powergate_switch_ack_n[i];
     end
   end
 
-  assign delayed_tb_cpu_subsystem_powergate_switch_ack = tb_cpu_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY];
-  assign delayed_tb_peripheral_subsystem_powergate_switch_ack = tb_peripheral_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY];
-  assign delayed_tb_memory_subsystem_banks_powergate_switch_ack = tb_memory_subsystem_banks_powergate_switch_ack[SWITCH_ACK_LATENCY];
-  assign delayed_tb_external_subsystem_powergate_switch_ack = tb_external_subsystem_powergate_switch_ack[SWITCH_ACK_LATENCY];
+  assign delayed_tb_cpu_subsystem_powergate_switch_ack_n = tb_cpu_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY];
+  assign delayed_tb_peripheral_subsystem_powergate_switch_ack_n = tb_peripheral_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY];
+  assign delayed_tb_memory_subsystem_banks_powergate_switch_ack_n = tb_memory_subsystem_banks_powergate_switch_ack_n[SWITCH_ACK_LATENCY];
+  assign delayed_tb_external_subsystem_powergate_switch_ack_n = tb_external_subsystem_powergate_switch_ack_n[SWITCH_ACK_LATENCY];
 
   always_comb begin
 `ifndef VERILATOR
-    force x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_powergate_switch_ack_i = delayed_tb_cpu_subsystem_powergate_switch_ack;
-    force x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_powergate_switch_ack_i = delayed_tb_peripheral_subsystem_powergate_switch_ack;
-    force x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_ack_i = delayed_tb_memory_subsystem_banks_powergate_switch_ack;
-    force external_subsystem_powergate_switch_ack = delayed_tb_external_subsystem_powergate_switch_ack;
+    force x_heep_system_i.core_v_mini_mcu_i.cpu_subsystem_powergate_switch_ack_ni = delayed_tb_cpu_subsystem_powergate_switch_ack_n;
+    force x_heep_system_i.core_v_mini_mcu_i.peripheral_subsystem_powergate_switch_ack_ni = delayed_tb_peripheral_subsystem_powergate_switch_ack_n;
+    force x_heep_system_i.core_v_mini_mcu_i.memory_subsystem_banks_powergate_switch_ack_ni = delayed_tb_memory_subsystem_banks_powergate_switch_ack_n;
+    force external_subsystem_powergate_switch_ack_n = delayed_tb_external_subsystem_powergate_switch_ack_n;
 `else
-    x_heep_system_i.cpu_subsystem_powergate_switch_ack = delayed_tb_cpu_subsystem_powergate_switch_ack;
-    x_heep_system_i.peripheral_subsystem_powergate_switch_ack = delayed_tb_peripheral_subsystem_powergate_switch_ack;
-    x_heep_system_i.memory_subsystem_banks_powergate_switch_ack = delayed_tb_memory_subsystem_banks_powergate_switch_ack;
-    external_subsystem_powergate_switch_ack = delayed_tb_external_subsystem_powergate_switch_ack;
+    x_heep_system_i.cpu_subsystem_powergate_switch_ack_n = delayed_tb_cpu_subsystem_powergate_switch_ack_n;
+    x_heep_system_i.peripheral_subsystem_powergate_switch_ack_n = delayed_tb_peripheral_subsystem_powergate_switch_ack_n;
+    x_heep_system_i.memory_subsystem_banks_powergate_switch_ack_n = delayed_tb_memory_subsystem_banks_powergate_switch_ack_n;
+    external_subsystem_powergate_switch_ack_n = delayed_tb_external_subsystem_powergate_switch_ack_n;
 `endif
   end
 
@@ -338,22 +340,36 @@ module testharness #(
 
   generate
     if (USE_EXTERNAL_DEVICE_EXAMPLE) begin : gen_USE_EXTERNAL_DEVICE_EXAMPLE
+
+      obi_pkg::obi_req_t  slave_fifoout_req;
+      obi_pkg::obi_resp_t slave_fifoout_resp;
+
+      //this FIFO makes the slow memory even more slower in terms of latency
+      obi_fifo obi_fifo_i (
+          .clk_i,
+          .rst_ni,
+          .producer_req_i (slow_ram_slave_req),
+          .producer_resp_o(slow_ram_slave_resp),
+          .consumer_req_o (slave_fifoout_req),
+          .consumer_resp_i(slave_fifoout_resp)
+      );
+
       // External xbar slave memory example
       slow_memory #(
           .NumWords (128),
           .DataWidth(32'd32)
       ) slow_ram_i (
-          .clk_i(clk_i),
-          .rst_ni(rst_ni),
-          .req_i(slow_ram_slave_req.req),
-          .we_i(slow_ram_slave_req.we),
-          .addr_i(slow_ram_slave_req.addr[8:2]),
-          .wdata_i(slow_ram_slave_req.wdata),
-          .be_i(slow_ram_slave_req.be),
+          .clk_i,
+          .rst_ni,
+          .req_i(slave_fifoout_req.req),
+          .we_i(slave_fifoout_req.we),
+          .addr_i(slave_fifoout_req.addr[8:2]),
+          .wdata_i(slave_fifoout_req.wdata),
+          .be_i(slave_fifoout_req.be),
           // output ports
-          .gnt_o(slow_ram_slave_resp.gnt),
-          .rdata_o(slow_ram_slave_resp.rdata),
-          .rvalid_o(slow_ram_slave_resp.rvalid)
+          .gnt_o(slave_fifoout_resp.gnt),
+          .rdata_o(slave_fifoout_resp.rdata),
+          .rvalid_o(slave_fifoout_resp.rvalid)
       );
 
       parameter DMA_TRIGGER_SLOT_NUM = 4;

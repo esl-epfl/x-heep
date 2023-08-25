@@ -14,6 +14,7 @@ filesets:
     - openhwgroup.org:ip:cv32e40p
     - openhwgroup.org:ip:cv32e40x
     - openhwgroup.org:ip:cve2
+    - esl_epfl:ip:cv32e40px
     - pulp-platform.org:ip:gpio
     - pulp-platform.org::common_cells
     - pulp-platform.org::cluster_interconnect
@@ -32,6 +33,7 @@ filesets:
     - x-heep:ip:i2s
     - x-heep:ip:power_manager
     - x-heep:ip:fast_intr_ctrl
+    - x-heep:ip:obi_fifo
     - x-heep:ip:pdm2pcm
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
@@ -239,6 +241,11 @@ parameters:
     paramtype: vlogdefine
     description: |
       Enables simulation with UPF with Modelsim/VCS
+  REMOVE_OBI_FIFO:
+    datatype: bool
+    paramtype: vlogdefine
+    description: |
+      Remove the FIFO between the BUS and the peripherals subsystems
   SYNTHESIS:
     datatype: bool
     paramtype: vlogdefine
@@ -319,6 +326,7 @@ targets:
     - JTAG_DPI
     - USE_EXTERNAL_DEVICE_EXAMPLE
     - USE_UPF
+    - REMOVE_OBI_FIFO
     tools:
       modelsim:
         vlog_options:
@@ -375,6 +383,7 @@ targets:
     - COREV_PULP
     - FPU
     - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
     tools:
       vivado:
         part: xc7a100tcsg324-1
@@ -393,6 +402,7 @@ targets:
     - COREV_PULP
     - FPU
     - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
     tools:
       vivado:
         part: xc7z020clg400-1
@@ -411,44 +421,25 @@ targets:
     - COREV_PULP
     - FPU
     - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
     tools:
       vivado:
         part: xc7z020clg400-1
         jobs: 4
     toplevel: [linux_femu]
 
-  sim_nexys_netlist:
-    filesets:
-    - netlist-fpga
-    - tb-rtl
-    - post_build_modelsim_scripts
-    toplevel: [tb_top_vopt]
-    hooks:
-      post_build: [post_build_modelsim_scripts]
-    parameters:
-    - COREV_PULP
-    - FPU
-    - FPGA_NETLIST=true
-    tools:
-      modelsim:
-        vlog_options:
-        - -override_timescale 1ns/1ps
-        - -suppress vlog-2583
-        - -suppress vlog-2577
-        - -pedanticerrors
-
   asic_synthesis:
     <<: *default_target
     default_tool: design_compiler
     description: Design Compiler Script
     parameters:
+    - PRIM_DEFAULT_IMPL=prim_pkg::your_target_technology
     - COREV_PULP
     - FPU
     - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
     filesets_append:
     - ip-asic
-    parameters:
-      - PRIM_DEFAULT_IMPL=prim_pkg::your_target_technology
     toplevel: [core_v_mini_mcu]
     tools:
       design_compiler:
@@ -468,6 +459,7 @@ targets:
       - FPU
       - SYNTHESIS=true
       - VERILATOR=true
+      - REMOVE_OBI_FIFO
     filesets_append:
       - use_sky130? (rtl-sky130)
       - lib-sky130

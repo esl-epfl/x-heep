@@ -21,21 +21,17 @@
     #define USE_SPI_FLASH
 #endif
 
-/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
-#define DEFAULT_PRINTF_BEHAVIOR 1
-
 /* By default, printfs are activated for FPGA and disabled for simulation. */
-#ifdef TARGET_PYNQ_Z2 
-    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
-#else 
-    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
-#endif
+#define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   0
 
-#if ENABLE_PRINTF
-  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#if TARGET_SIM && PRINTF_IN_SIM
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
-  #define PRINTF(...)
-#endif 
+    #define PRINTF(...)
+#endif
 
 // Type of data frome the SPI. For types different than words the SPI data is requested in separate transactions
 // word(0), half-word(1), byte(2,3)
@@ -48,7 +44,7 @@
 
 #define REVERT_24b_ADDR(addr) ((((uint32_t)(addr) & 0xff0000) >> 16) | ((uint32_t)(addr) & 0xff00) | (((uint32_t)(addr) & 0xff) << 16))
 
-int8_t dma_intr_flag;
+volatile int8_t dma_intr_flag;
 spi_host_t spi_host;
 
 void dma_intr_handler_trans_done(void)
@@ -77,14 +73,25 @@ int main(int argc, char *argv[])
 
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+    uint32_t read_byte_cmd;
 
-#ifdef USE_SPI_FLASH
     if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO )
     {
+#ifdef USE_SPI_FLASH
         PRINTF("This application cannot work with the memory mapped SPI FLASH module - do not use the FLASH_EXEC linker script for this application\n");
         return EXIT_SUCCESS;
-    }
+#else
+        /*
+            if we are using in SIMULATION the SPIMMIO from Yosys, then the flash_original data is different
+            as the compilation is done differently, so we will store there the first WORDs of code mapped at the beginning of the FLASH
+        */
+        uint32_t* ptr_flash = (uint32_t*)FLASH_MEM_START_ADDRESS;
+        for(int i =0; i < COPY_DATA_NUM ; i++){
+            flash_data[i] = ptr_flash[i];
+        }
 #endif
+
+    }
 
 
     #ifndef USE_SPI_FLASH
@@ -125,12 +132,12 @@ int main(int argc, char *argv[])
     #endif
 
     static dma_target_t tgt_src = {
-        .inc_du = 0, 
+        .inc_du = 0,
         .size_du = COPY_DATA_NUM,
         .type = SPI_DATA_TYPE,
     };
-    tgt_src.ptr = fifo_ptr_rx; // Necessary outside 'cause its not a const. 
-    tgt_src.trig = slot;// Necessary outside 'cause its not a const. 
+    tgt_src.ptr = fifo_ptr_rx; // Necessary outside 'cause its not a const.
+    tgt_src.trig = slot;// Necessary outside 'cause its not a const.
 
     static dma_target_t tgt_dst = {
         .ptr = copy_data,
@@ -150,7 +157,7 @@ int main(int argc, char *argv[])
     PRINTF("Result - tgt trans: %u\n\r", res );
     res = dma_load_transaction(&trans);
     PRINTF("Result - tgt load: %u\n\r", res );
-  
+
     // Configure SPI clock
     // SPI clk freq = 1/2 core clk freq when clk_div = 0
     // SPI_CLK = CORE_CLK/(2 + 2 * CLK_DIV) <= CLK_MAX => CLK_DIV > (CORE_CLK/CLK_MAX - 2)/2
@@ -205,13 +212,18 @@ int main(int argc, char *argv[])
         .direction  = kSpiDirTxOnly
     });
 
-    uint32_t read_byte_cmd;
     dma_intr_flag = 0;
     res = dma_launch(&trans);
     PRINTF("launched!\n\r");
 
     #if SPI_DATA_TYPE == DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD
-        read_byte_cmd = ((REVERT_24b_ADDR(flash_data) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
+
+        if(get_spi_flash_mode(&soc_ctrl) != SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO)
+            read_byte_cmd = ((REVERT_24b_ADDR(flash_data) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
+        else
+            // we read the data from the FLASH address 0x0, which corresponds to FLASH_MEM_START_ADDRESS
+            read_byte_cmd = ((REVERT_24b_ADDR(0x0) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
+
         const uint32_t cmd_read_rx = spi_create_command((spi_command_t){ // Single transaction
             .len        = COPY_DATA_NUM*sizeof(DATA_TYPE) - 1, // In bytes - 1
             .csaat      = false,
@@ -234,11 +246,14 @@ int main(int argc, char *argv[])
         DATA_TYPE* flash_ptr = (DATA_TYPE *)flash_data;
         for (int i = 0; i<COPY_DATA_NUM; i++) { // Multiple 8 or 16-bit transactions, just to try a new mode, we could treat it as int32
             // Request the same data multiple times
-            read_byte_cmd = ((REVERT_24b_ADDR(&flash_ptr[i]) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
+            if(get_spi_flash_mode(&soc_ctrl) != SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO)
+                read_byte_cmd = ((REVERT_24b_ADDR(&flash_ptr[i]) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
+            else
+                read_byte_cmd = ((REVERT_24b_ADDR(i) << 8) | 0x03);
             spi_write_word(&spi_host, read_byte_cmd); // Fill TX FIFO with TX data (read command + 3B address)
             spi_wait_for_ready(&spi_host); // Wait for readiness to process commands
             spi_set_command(&spi_host, cmd_read); // Send read command to the external device through SPI
-            spi_wait_for_ready(&spi_host); 
+            spi_wait_for_ready(&spi_host);
             spi_set_command(&spi_host, cmd_read_rx); // Receive data in RX
             spi_wait_for_ready(&spi_host);
         }
@@ -249,13 +264,18 @@ int main(int argc, char *argv[])
         while( ! dma_is_ready() ){};
     } else{
         PRINTF("Waiting for the DMA interrupt...\n\r");
-        while(dma_intr_flag == 0) {
-            wait_for_interrupt();
+        while( dma_intr_flag == 0 ) {
+            CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+
+            if( dma_intr_flag == 0 )
+                wait_for_interrupt();
+
+            CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
         }
         PRINTF("triggered!\n\r");
     }
-    
-    
+
+
     // Power down flash
     const uint32_t powerdown_byte_cmd = 0xb9;
     spi_write_word(&spi_host, powerdown_byte_cmd);
