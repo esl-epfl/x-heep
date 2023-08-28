@@ -318,7 +318,7 @@ module cve2_cs_registers #(
       CSR_MEPC: csr_rdata_int = mepc_q;
 
       // mcause: exception cause
-      CSR_MCAUSE: csr_rdata_int = {mcause_q[5], 26'b0, mcause_q[4:0]};
+      CSR_MCAUSE: csr_rdata_int = {mcause_q[6], 25'b0, mcause_q[5:0]};
 
       // mtval: trap value
       CSR_MTVAL: csr_rdata_int = mtval_q;

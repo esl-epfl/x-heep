@@ -49,7 +49,7 @@ module cve2_top_tracing import cve2_pkg::*; #(
   input  logic                         irq_software_i,
   input  logic                         irq_timer_i,
   input  logic                         irq_external_i,
-  input  logic [14:0]                  irq_fast_i,
+  input  logic [15:0]                  irq_fast_i,
   input  logic                         irq_nm_i,       // non-maskeable interrupt
 
   // Debug Interface

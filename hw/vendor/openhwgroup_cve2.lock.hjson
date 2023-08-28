@@ -9,6 +9,6 @@
   upstream:
   {
     url: https://github.com/davideschiavone/cve2.git
-    rev: 538f406f6d6007e075188d69ed889c4fc3887b61
+    rev: f135a3a2e6c6aa40737a9c766429b1d4b5de6874
   }
 }
