@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/davideschiavone/cve2.git
-    rev: f135a3a2e6c6aa40737a9c766429b1d4b5de6874
+    url: https://github.com/openhwgroup/cve2.git
+    rev: 9a79be864fe658998f49182737054b1ff55cd28c
   }
 }
