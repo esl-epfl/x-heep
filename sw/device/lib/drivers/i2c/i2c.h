@@ -603,6 +603,12 @@ i2c_result_t i2c_write_byte_raw(const i2c_t *i2c, uint8_t byte,
 i2c_result_t i2c_write_byte(const i2c_t *i2c, uint8_t byte,
                                     i2c_fmt_t code, bool suppress_nak_irq);
 
+
+/**
+ * @brief Attends the plic interrupt.
+ */
+__attribute__((weak, optimize("O0"))) void handler_irq_i2c(uint32_t id);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus
