@@ -89,13 +89,71 @@
  */
 #define GPIO_MODE_NUM_PINS      16
 
+/**
+ * The first interrupt ID for the GPIOS
+ */
+#define GPIO_INTR_START GPIO_INTR_8
+
+/**
+ * The last interrupt ID for the GPIOS
+ */
+#define GPIO_INTR_END GPIO_INTR_31
+
+/**
+ * The number of GPIO interrupt IDs
+ */
+#define GPIO_INTR_QTY ( GPIO_INTR_END - GPIO_INTR_START + 1 )
+
+/**
+ * Array of handlers for the different GPIO interrupts.
+ */
+void (*gpio_handlers[ GPIO_INTR_QTY ])( void );
+
+
+/****************************************************************************/
+/**                                                                        **/
+/*                      PROTOTYPES OF LOCAL FUNCTIONS                       */
+/**                                                                        **/
+/****************************************************************************/
+
+/**
+ * A dummy function to prevent unassigned irq to access a null pointer.
+ */
+__attribute__((optimize("O0"))) static void gpio_handler_irq_dummy( uint32_t dummy );
+
+
 /****************************************************************************/
 /**                                                                        **/
 /*                           EXPORTED FUNCTIONS                             */
 /**                                                                        **/
 /****************************************************************************/
 
-gpio_result_t gpio_config (gpio_cfg_t cfg){
+gpio_result_t gpio_assign_irq_handler( uint32_t intr_id,
+                                       void *handler() )
+{
+  if( intr_id >= GPIO_INTR_START && intr_id <= GPIO_INTR_END )
+  {
+    gpio_handlers[ intr_id - GPIO_INTR_START ] = handler;
+    return GpioOk;
+  }
+  return GpioError;
+}
+
+void gpio_reset_handlers_list( )
+{
+    for( uint8_t i = 0; i < GPIO_INTR_QTY; i++ )
+    {
+        gpio_handlers[ i ] = &gpio_handler_irq_dummy;
+    }
+}
+
+void handler_irq_gpio( uint32_t id )
+{
+    gpio_handlers[ id - GPIO_INTR_START ]();
+}
+
+gpio_result_t gpio_config (gpio_cfg_t cfg)
+{
     /* check that pin is in acceptable range. */
     if (cfg.pin > (MAX_PIN-1) || cfg.pin < 0)
         return GpioPinNotAcceptable;
@@ -178,6 +236,8 @@ gpio_result_t gpio_reset_all (void)
     gpio_peri->INTRPT_LVL_HIGH_EN0 = 0;
     gpio_peri->INTRPT_LVL_LOW_EN0 = 0;
     gpio_peri->INTRPT_STATUS0 = 0xFFFFFFFF;
+
+    gpio_reset_handlers_list( );
 }
 
 gpio_result_t gpio_read (gpio_pin_number_t pin, bool *val)
@@ -435,6 +495,17 @@ void gpio_intr_set_mode (gpio_intr_general_mode_t mode)
 {
     gpio_peri->CFG = bitfield_write(
         gpio_peri->CFG, BIT_MASK_1, GPIO_CFG_INTR_MODE_INDEX, mode);
+}
+
+/****************************************************************************/
+/**                                                                        **/
+/*                            LOCAL FUNCTIONS                               */
+/**                                                                        **/
+/****************************************************************************/
+
+__attribute__((optimize("O0"))) static void gpio_handler_irq_dummy( uint32_t dummy )
+{
+  return;
 }
 
 /****************************************************************************/

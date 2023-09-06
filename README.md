@@ -404,20 +404,38 @@ All test must be successful before PRs can be merged.
 
 Additionally, a `test_all.sh` script is provided. Apart from compiling all apps with both gcc and clang, it will simulate them and check the result.
 
-You can choose:
-* Simulator: `verilator` (default) or `questasim`.
-* Linker: `on_chip`(default), `flash_load` or `flash_exec`.
-* Timeout: Integer number of seconds (defualt 120)
+The available parameters are:
+* COMPILER: `gcc` (default) or `clang` (can provide more than one)
+* SIMULATOR: `verilator` (default), `questasim` or disable simulation with `nosim` (only one, the last provided is used).
+* LINKER: `on_chip`(default), `flash_load` or `flash_exec` (can provide more than one)
+* TIMEOUT: Integer number of seconds (default 120)
+
 
 #### Usage
 
-You can **SOURCE** the script as
-```bash
-. test_all.sh flash_load verilator
+##### Comands
+You can use two different commands to compile or simulate all the existing APPs:
 ```
+make app-compile-all
+```
+```
+make app-simulate-all
+```
+Note that both commands allow the previous parameters to specify compiling or simulation options. E.g.:
+```
+make app-simulate-all LINKER=on_chip SIMULATOR=questasim COMPILER=clang TIMEOUT=150 
+```
+
+##### Manually
+You can also **SOURCE** the script as
+```bash
+. util/test_all.sh on_chip questasim clang 150
+```
+
 *Pay special attention to the first period in the command!*
 You will be killing simulations that take too long, if you **EXECUTE** (`./test_all.sh`) this action kills the script.
-The order or capitalization of the arguments is irrelevant.
+
+For both usages (commands or manual), the order of the arguments is irrelevant.
 
 > Note: Be sure to commit all your changes before running the script!
 

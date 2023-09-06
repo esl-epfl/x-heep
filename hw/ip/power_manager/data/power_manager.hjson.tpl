@@ -212,7 +212,7 @@
         { bits: "0", name: "PERIPH_CLK_GATE", desc: "Clock-gates the PERIPH domain" }
       ]
     }
-  
+
 
 % for bank in range(ram_numbanks):
     { name:     "RAM_${bank}_CLK_GATE",
@@ -277,6 +277,16 @@
 
 % endfor
 % for ext in range(external_domains):
+    { name:     "EXTERNAL_${ext}_CLK_GATE",
+      desc:     "Clock-gates the EXTERNAL_${ext} domain",
+      resval:   "0x00000000"
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "EXTERNAL_${ext}_CLK_GATE", desc: "Clock-gates the EXTERNAL_${ext} domain" }
+      ]
+    }
+
     { name:     "POWER_GATE_EXTERNAL_${ext}_ACK",
       desc:     "Used by the external ${ext} switch to ack the power manager",
       resval:   "0x00000000"

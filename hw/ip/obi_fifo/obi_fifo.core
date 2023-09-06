@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: "x-heep:ip:obi_fifo"
+description: "OBI fifo for peripheral access."
+
+# Copyright 2022 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    files:
+    - obi_fifo.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl

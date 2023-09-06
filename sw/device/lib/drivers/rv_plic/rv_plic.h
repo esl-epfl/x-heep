@@ -44,6 +44,7 @@
 #include "mmio.h"
 #include "macros.h"
 
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        DEFINITIONS AND MACROS                            */
@@ -53,19 +54,16 @@
 /**
  * Start and end ID of the UART interrupt request lines
 */
-#define UART_ID_START   UART_INTR_TX_WATERMARK
 #define UART_ID_END     UART_INTR_RX_PARITY_ERR
 
 /**
  * Start and end ID of the GPIO interrupt request lines
 */
-#define GPIO_ID_START   GPIO_INTR_8
 #define GPIO_ID_END     GPIO_INTR_31
 
 /**
  * Start and end ID of the I2C interrupt request lines
 */
-#define I2C_ID_START    INTR_FMT_WATERMARK
 #define I2C_ID_END      INTR_HOST_TIMEOUT
 
 /**
@@ -86,23 +84,13 @@
 /**
  * ID of the external interrupt request lines
 */
-
-#define EXT_IRQ_START   EXT_INTR_0 
-#define EXT_IRQ_END     EXT_INTR_11
+#define EXT_IRQ_START   EXT_INTR_0
 
 /****************************************************************************/
 /**                                                                        **/
 /*                        TYPEDEFS AND STRUCTURES                           */
 /**                                                                        **/
 /****************************************************************************/
-
-/**
- * Pointer used to dynamically access the different interrupt handlers.
- * Each element will be initialized to be the address of the handler function
- * relative to its index. So each element will be a callable function.
-*/
-typedef void (*handler_funct_t)(uint32_t);
-
 
 /**
  * A PLIC interrupt target.
@@ -172,38 +160,6 @@ typedef enum plic_irq_trigger {
 } plic_irq_trigger_t;
 
 
-/**
- * Enum for describing all the different types of interrupt
- * sources that the rv_plic handles
-*/
-typedef enum irq_sources
-{
-  IRQ_UART_SRC,   // from 1 to 8
-  IRQ_GPIO_SRC,   // from 9 to 32 
-  IRQ_I2C_SRC,    // from 33 to 48
-  IRQ_SPI_SRC,    // line 49
-  IRQ_I2S_SRC,    // line 50
-  IRQ_DMA_SRC,    // line 51
-  IRQ_EXT_SRC,    // from 52 to 63
-  IRQ_BAD = -1    // default failure case
-} irq_sources_t;
-
-
-/****************************************************************************/
-/**                                                                        **/
-/*                           EXPORTED VARIABLES                             */
-/**                                                                        **/
-/****************************************************************************/
-
-/**
- * Flag used to handle the wait for interrupt.
- * The core can test this variable to check if it has to wait
- * for an interrupt coming from the RV_PLIC.
- * When an interrupt occurs, this flag is set to 1 by the plic in order
- * for the core to continue with the execution of the program.
-*/
-extern uint8_t plic_intr_flag;
-
 /****************************************************************************/
 /**                                                                        **/
 /*                          EXPORTED FUNCTIONS                              */
@@ -211,48 +167,12 @@ extern uint8_t plic_intr_flag;
 /****************************************************************************/
 
 /**
- * IRQ handler for UART 
-*/
-void handler_irq_uart(uint32_t id);
-
-/**
- * IRQ handler for GPIO 
-*/
-void handler_irq_gpio(uint32_t id);
-
-/**
- * IRQ handler for I2C 
-*/
-void handler_irq_i2c(uint32_t id);
-
-/**
- * IRQ handler for SPI 
-*/
-void handler_irq_spi(uint32_t id);
-
-/**
- * IRQ handler for I2S 
-*/
-void handler_irq_i2s(uint32_t id);
-
-/**
- * IRQ handler for DMA window 
-*/
-void handler_irq_dma(uint32_t id);
-
-/**
- * IRQ handler for external interrupts sources
-*/
-void handler_irq_ext(uint32_t id);
-
-
-/**
  * Generic handler for the interrupts in inputs to RV_PLIC.
  * Its basic purpose is to understand which source generated
  * the interrupt and call the proper specific handler. The source
  * is detected by reading the CC0 register (claim interrupt), containing
  * the ID of the source.
- * Once the interrupt routine is finished, this function sets to 1 the 
+ * Once the interrupt routine is finished, this function sets to 1 the
  * external_intr_flag and calls plic_irq_complete() function to conclude
  * the handling.
 */
@@ -269,70 +189,71 @@ plic_result_t plic_Init(void);
 /**
  * Sets wherher a particular interrupt is curently enabled or disabled.
  * This is done by setting a specific bit in the Interrupt Enable registers.
- * 
+ *
  * For a specific target, each interrupt source has a dedicated enable/disable bit
  * inside the relative Interrupt Enable registers, basing on the interrupt
  * source id.
- * 
+ *
  * This function sets that bit to 0 or 1 depending on the state that it is specified
- * 
+ *
  * @param irq An interrupt source identification
  * @param state The new toggle state for the interrupt
  * @return The result of the operation
 */
-plic_result_t plic_irq_set_enabled(uint32_t irq,
-                                       plic_toggle_t state);
+plic_result_t plic_irq_set_enabled( uint32_t irq,
+                                    plic_toggle_t state);
 
 
 /**
  * Reads a specific bit of the Interrupt Enable registers to understand
  * if the corresponding interrupt is enabled or disabled.
- * 
+ *
  * For a specific target, each interrupt source has a dedicated enable/disable bit
  * inside the relative Interrupt Enable registers, basing on the interrupt
  * source id.
- * 
+ *
  * The resulting bit is saved inside the state variable passed as parameter
- * 
+ *
  * @param irq An interrupt source identification
  * @param state The toggle state of the interrupt, as read from the IE registers
  * @return The result of the operation
 */
-plic_result_t plic_irq_get_enabled(uint32_t irq,
-                                       plic_toggle_t *state);
+plic_result_t plic_irq_get_enabled( uint32_t irq,
+                                    plic_toggle_t *state);
 
 /**
  * Sets the interrupt request trigger type.
- * 
+ *
  * For a specific interrupt line, identified by irq, sets if its trigger
  * type has to be edge or level.
  * Edge means that the interrupt is triggered when the source passes from low to high.
  * Level means that the interrupt is triggered when the source stays at a high level.
- * 
+ *
  * @param irq An interrupt source identification
  * @param triggger The trigger state for the interrupt
  * @result The result of the operation
- * 
+ *
 */
-plic_result_t plic_irq_set_trigger(uint32_t irq,
-                                           plic_irq_trigger_t trigger);
+plic_result_t plic_irq_set_trigger( uint32_t irq,
+                                    plic_irq_trigger_t trigger);
 
 /**
  * Sets a priority value for a specific interrupt source
- * 
+ *
  * @param irq An interrupt source identification
  * @param priority A priority value to set
  * @return The result of the operation
 */
-plic_result_t plic_irq_set_priority(uint32_t irq, uint32_t priority);
+plic_result_t plic_irq_set_priority(  uint32_t irq,
+                                      uint32_t priority);
 
 /**
  * Sets the priority threshold.
- * 
+ *
  * PLIC will only interrupt a target when
  * IRQ source priority is set higher than the priority threshold for the
  * corresponding target.
- * 
+ *
  * @param threshold The threshold value to be set
  * @return The result of the operation
 */
@@ -340,12 +261,12 @@ plic_result_t plic_target_set_threshold(uint32_t threshold);
 
 /**
  * Returns whether a particular interrupt is currently pending.
- * 
+ *
  * @param irq An interrupt source identification
- * @param[out] is_pending Boolean flagcorresponding to whether an interrupt is pending or not 
+ * @param[out] is_pending Boolean flagcorresponding to whether an interrupt is pending or not
 */
-plic_result_t plic_irq_is_pending(uint32_t irq,
-                                          bool *is_pending);
+plic_result_t plic_irq_is_pending( uint32_t irq,
+                                   bool *is_pending);
 
 /**
  * Claims an IRQ and gets the information about the source.
@@ -363,27 +284,26 @@ plic_result_t plic_irq_is_pending(uint32_t irq,
  * interrupts should be Completed in the reverse order of when they were
  * Claimed.
  *
- * @param target Target that claimed the IRQ.
  * @param[out] claim_data Data that describes the origin of the IRQ.
  * @return The result of the operation.
  */
-plic_result_t plic_irq_claim(uint32_t *claim_data);
+plic_result_t plic_irq_claim( uint32_t *claim_data);
 
 /**
  * Completes the claimed interrupt request.
- * 
+ *
  * After an interrupt request is served, the core writes the interrupt source
  * ID into the Claim/Complete register.
- * 
- * This function must be called after plic_irq_claim(), when the core is 
+ *
+ * This function must be called after plic_irq_claim(), when the core is
  * ready to service others interrupts with the same ID. If this function
  * is not called, future claimed interrupts will not have the same ID.
- * 
+ *
  * @param complete_data Previously claimed IRQ data that is used to signal
  * PLIC of the IRQ servicing completion.
  * @return The result of the operation
 */
-plic_result_t plic_irq_complete(const uint32_t *complete_data);
+plic_result_t plic_irq_complete(const uint32_t *complete_data );
 
 
 /**
@@ -413,10 +333,25 @@ void plic_software_irq_acknowledge(void);
 
 /**
  * Returns software interrupt pending state
- * 
+ *
  * @return The result of the operation
 */
 plic_result_t plic_software_irq_is_pending(void);
+
+/**
+ * Adds a handler function for an external interrupt to the handlers list.
+ * @param id The interrupt ID of an external interrupt (from core_v_mini_mcu.h)
+ * @param handler A pointer to a function that will be called upon interrupt.
+ * @return The result of the operation
+*/
+plic_result_t plic_assign_external_irq_handler( uint32_t id,
+                                                void  *handler );
+
+/**
+ * Resets all peripheral handlers to their pre-set ones. All external handlers
+ * are re-set to the dummy handler.
+ */
+void plic_reset_handlers_list(void);
 
 #endif /* _RV_PLIC_H_ */
 
