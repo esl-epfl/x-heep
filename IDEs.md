@@ -34,9 +34,9 @@ Note that on the right part, you have the memory usage based on the linker we ha
 
 # Debugging
 
-Finally, after building (compile and linking), you can directly start debugging by pressing `F5` or also `Target > Connect GDB Server` and `Debug > Go`.
+Finally, after building (compile and linking), you can directly start debugging by pressing `F5` or also `Target > Connect GDB Server` and `Debug > Go`. You also have the possibility to activate the terminal to see directly into the SES window the printing characters. 
 
-The output should be like this:
+The output should be something like this:
 
 <p align="left"><img src="ides/img/debug_screenshot.png" width="450"></p>
 
