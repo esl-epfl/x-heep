@@ -10,13 +10,13 @@ The platform was only tested under Linux and version 7.32 of the Embedded Studio
 
 After installing SES, you need to indicate to Segger your Toolchain directory (RISC-V Compiler) as well as your openOCD installation folder. Those need to be specified into `xheep.emProject` file. 
 
-For the RISC-V Compiler path, 'line 71':
+For the RISC-V Compiler path, **line 71**:
 ```
 build_toolchain_directory="/home/< user >/tools/riscv/bin"
 ```
 Please, substitute that path to your current path where the RISC-V compiler was installed. Do not forget to target the `bin` folder inside the installation folder of the toolchain.
 
-For the openOCS path, 'line 88':
+For the openOCS path, **line 88**:
 ```
 gdb_server_command_line="/home/< user >/tools/openocd/bin/openocd -f &quot;$(ProjectDir)/../../tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg&quot;"
 ```
