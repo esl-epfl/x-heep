@@ -10,13 +10,13 @@ The platform was only tested under Linux and version 7.32 of the Embedded Studio
 
 After installing SES, you need to indicate to Segger your Toolchain directory (RISC-V Compiler) as well as your openOCD installation folder. Those need to be specified into `xheep.emProject` file. 
 
-For the RISC-V Compiler path, line 71:
+For the RISC-V Compiler path, 'line 71':
 ```
 build_toolchain_directory="/home/< user >/tools/riscv/bin"
 ```
 Please, substitute that path to your current path where the RISC-V compiler was installed. Do not forget to target the `bin` folder inside the installation folder of the toolchain.
 
-For the openOCS path, line 88:
+For the openOCS path, 'line 88':
 ```
 gdb_server_command_line="/home/< user >/tools/openocd/bin/openocd -f &quot;$(ProjectDir)/../../tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg&quot;"
 ```
@@ -28,7 +28,7 @@ Once the paths are set properly, you can open `xheep.emProject` with SES. That w
 
 The output should be like this:
 
-<p align="left"><img src="ides/img/build_screenshot.png" width="250"></p>
+<p align="left"><img src="ides/img/build_screenshot.png" width="450"></p>
 
 Note that on the right part, you have the memory usage based on the linker we have configured. If you do not see this, you can activate that view in `View > Memory Usage`.
 
@@ -38,7 +38,7 @@ Finally, after building (compile and linking), you can directly start debugging 
 
 The output should be like this:
 
-<p align="left"><img src="ides/img/debug_screenshot.png" width="250"></p>
+<p align="left"><img src="ides/img/debug_screenshot.png" width="450"></p>
 
 Note that when debugging and setting breakpoints, please, go one-by-one (one breakpoint at a time). Several breakpoints support will be supported in the following releases.
 

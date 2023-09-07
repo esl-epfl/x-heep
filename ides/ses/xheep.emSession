@@ -34,8 +34,6 @@
  <Watch4>
   <Watches active="0" update="Never"/>
  </Watch4>
- <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="31" y="43" useTextEdit="1" path="xheep.emProject" left="0" selected="1" top="13" codecName="Default"/>
- </Files>
- <EMStudioWindow activeProject="helloworld" fileDialogDefaultFilter="*" autoConnectTarget="GDB Server" buildConfiguration="Debug External" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="/home/jose/ESL/x-heep/sw/device/lib/drivers/dma" debugSearchPath="" autoConnectCapabilities="1343"/>
+ <Files/>
+ <EMStudioWindow activeProject="helloworld" fileDialogDefaultFilter="*" autoConnectTarget="GDB Server" buildConfiguration="Debug External" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="1343"/>
 </session>
