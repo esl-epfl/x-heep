@@ -9,10 +9,10 @@ X-HEEP supports simulation with Verilator, Questasim, etc. Morever, FW can be bu
 You are welcome to explore our `X-HEEP repository <https://github.com/esl-epfl/x-heep>`_ or our `X-HEEP paper <https://infoscience.epfl.ch/record/302127>`_ for a deeper description of the platform.
 
 Architecture
-------------
+^^^^^^^^^^^^
 The architecture is thought to be divided into the following power domains: CPU subsystem domain, memory banks domains, peripheral subsystem domain and always-on peripheral subsystem domain. The following image highlights each power domain with a different colour. IPs are carefully selected and grouped in the mentioned power domains in order to maximize energy savings during the processing and acquisition phases of our target ultra-low-power edge-computing applications. We reused several IPs from the most important open-source projects, such as `PULP <https://github.com/pulp-platform>`_, `OpenHW <https://github.com/openhwgroup>`_ and `lowRISC <https://github.com/lowRISC>`_. Moreover, we custom-designed some specific IPs to meet our architectural needs.
 
-.. image:: ../images/x_heep.svg
+.. image:: images/x_heep.svg
    :width: 600
 
 CPU subsystem domain
@@ -37,11 +37,11 @@ The always-on peripheral subsystem includes all IPs we want to keep on for the e
 
 
 ASIC implementation
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 The following image shows the block diagram of an ASIC implementation (``HEEPocrates``) of X-HEEP that we used to extract the power values for our energy model.
 
-.. image:: ../images/asic.svg
+.. image:: images/asic.svg
    :width: 600
 
 In addition to the already mentioned peripherals, we added a pad ring, a pad controller, a frequency-locked loop (FLL), and an MCU controller. Then, we synthesised and placed and routed the design with ``TSMC 65nm CMOS technology`` and two flavours of cells: low-voltage threshold (LVT) and high-voltage threshold (HVT). The former is high-performance but high-power, while the latter is low-power but low-performance.
@@ -56,5 +56,5 @@ We simulated our design with dedicated test applications storing the switching a
 
    We extended our ASIC version, adding a course-grained reconfigurable array (CGRA) accelerator and an in-memory computing (IMC) accelerator, and then, we realized our first X-HEEP-based silicon chip, called HEEPpocrates. The chip targets ultra-low-power healthcare applications and is fabricated with TSMC 65nm CMOS technology. Soon, we will be able to perform power measurements on the physical chip and update our energy model with much more accurate real-world power values!
 
-.. image:: ../images/tapeout.png
+.. image:: images/tapeout.png
    :width: 600
