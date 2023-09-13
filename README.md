@@ -192,6 +192,16 @@ make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=12 MEMORY_BANKS_IL=4
 The last command generates x-heep with the cv32e40p core, with a parallel bus, and 16 memory banks (12 continuous and 4 interleaved),
 each 32KB, for a total memory of 512KB.
 
+If you are using `X-HEEP` just as a controller for your own system and you do not need any peripheral, you can use the `minimal` configuration file
+when generating the MCU as:
+
+```
+make mcu-gen MCU_CFG=mcu_cfg_minimal.hjson
+```
+
+The `minimal` configuration is a work-in-progress, thus not all the APPs have been tested.
+
+
 ## Compiling Software
 
 Don't forget to set the `RISCV` env variable to the compiler folder (without the `/bin` included).
