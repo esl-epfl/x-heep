@@ -196,7 +196,7 @@ If you are using `X-HEEP` just as a controller for your own system and you do no
 when generating the MCU as:
 
 ```
-make mcu-gen
+make mcu-gen MCU_CFG=mcu_cfg_minimal.hjson
 ```
 
 The `minimal` configuration is a work-in-progress, thus not all the APPs have been tested.
