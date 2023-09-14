@@ -33,8 +33,8 @@ PROJECT  ?= hello_world
 # Linker options are 'on_chip' (default),'flash_load','flash_exec','freertos'
 LINKER   ?= on_chip
 
-# Target options are 'sim' (default) and 'pynq-z2'
-TARGET   	?= sim
+# Target options are 'verilator' (default), 'questasim', 'vcs' and 'pynq-z2'
+TARGET   	?= verilator
 MCU_CFG  	?= mcu_cfg.hjson
 PAD_CFG  	?= pad_cfg.hjson
 EXT_PAD_CFG ?=
