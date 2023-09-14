@@ -469,7 +469,7 @@ Follow the [ExecuteFromFlash](./ExecuteFromFlash.md) guide to exxecute code dire
 
 ## Emulation on Xilinx FPGAs
 
-This project offers two different X-HEEP implementetions on the Xilinx FPGAs, called Standalone-FEMU and Linux-FEMU.
+This project offers two different X-HEEP implementations on the Xilinx FPGAs, called Standalone-FEMU and Linux-FEMU.
 
 ### Standalone-FEMU (Standalone Fpga EMUlation)
 
