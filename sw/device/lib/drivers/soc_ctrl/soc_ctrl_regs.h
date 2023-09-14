@@ -48,6 +48,13 @@ extern "C" {
 // system is running (in Hz)
 #define SOC_CTRL_SYSTEM_FREQUENCY_HZ_REG_OFFSET 0x1c
 
+// Bus access error
+#define SOC_CTRL_BUS_ERROR_REG_OFFSET 0x20
+#define SOC_CTRL_BUS_ERROR_BUS_ERROR_BIT 0
+
+// Bus access error address
+#define SOC_CTRL_BUS_ERROR_ADDRESS_REG_OFFSET 0x24
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif

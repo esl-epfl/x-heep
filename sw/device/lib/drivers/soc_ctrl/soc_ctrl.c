@@ -41,3 +41,15 @@ void soc_ctrl_select_spi_host(const soc_ctrl_t *soc_ctrl) {
 uint32_t get_spi_flash_mode(const soc_ctrl_t *soc_ctrl) {
   return mmio_region_read32(soc_ctrl->base_addr, (ptrdiff_t)(SOC_CTRL_USE_SPIMEMIO_REG_OFFSET));
 }
+
+uint32_t get_bus_error(const soc_ctrl_t *soc_ctrl) {
+  return mmio_region_read32(soc_ctrl->base_addr, (ptrdiff_t)(SOC_CTRL_BUS_ERROR_REG_OFFSET));
+}
+
+void clear_bus_error(const soc_ctrl_t *soc_ctrl) {
+  mmio_region_write32(soc_ctrl->base_addr, (ptrdiff_t)(SOC_CTRL_BUS_ERROR_REG_OFFSET), 0x0);
+}
+
+uint32_t get_bus_error_address(const soc_ctrl_t *soc_ctrl) {
+  return mmio_region_read32(soc_ctrl->base_addr, (ptrdiff_t)(SOC_CTRL_BUS_ERROR_ADDRESS_REG_OFFSET));
+}

@@ -123,7 +123,7 @@ module system_bus
   assign bus_error_address_o  = error_slave_req.addr;
   assign error_slave_resp.gnt = error_slave_req.req;
   assign error_slave_resp.rvalid = error_slave_resp_rvalid;
-  assign error_slave_resp.rdata  = 32'hdeadbeef;
+  assign error_slave_resp.rdata  = 32'hbada55e5;
 
   // Internal master requests
   assign int_master_req[core_v_mini_mcu_pkg::CORE_INSTR_IDX] = core_instr_req_i;
@@ -206,7 +206,7 @@ module system_bus
       error_slave_resp_rvalid <= 1'b0;
     end else begin
 `ifndef SYNTHESIS
-      if(rst_ni)
+      if(rst_ni && bus_error_o)
         $display("%t Out of bound memory access 0x%08x", $time, error_slave_req.addr);
 `endif
       error_slave_resp_rvalid <= error_slave_resp.gnt;

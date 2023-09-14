@@ -66,6 +66,30 @@ void soc_ctrl_select_spi_host(const soc_ctrl_t *soc_ctrl);
 
 uint32_t get_spi_flash_mode(const soc_ctrl_t *soc_ctrl);
 
+/**
+ * Get the bus error
+ * @param soc_ctrl Pointer to soc_ctrl_t represting the target SOC CTRL.
+ */
+
+uint32_t get_bus_error(const soc_ctrl_t *soc_ctrl);
+
+/**
+ * Clear the bus error
+ * @param soc_ctrl Pointer to soc_ctrl_t represting the target SOC CTRL.
+ */
+
+void clear_bus_error(const soc_ctrl_t *soc_ctrl);
+
+/**
+ * Get the bus error address
+ * @param soc_ctrl Pointer to soc_ctrl_t represting the target SOC CTRL.
+ */
+
+uint32_t get_bus_error_address(const soc_ctrl_t *soc_ctrl);
+
+
+
+
 #ifdef __cplusplus
 }
 #endif
