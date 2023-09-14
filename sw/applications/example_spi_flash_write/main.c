@@ -20,7 +20,7 @@
 #include "x-heep.h"
 
 
-#ifdef TARGET_PYNQ_Z2
+#ifdef TARGET_FPGA
     #define USE_SPI_FLASH
 #endif
 /* Test Configurations */
@@ -64,7 +64,7 @@
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+#elif TARGET_FPGA && PRINTF_IN_FPGA
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
@@ -268,9 +268,9 @@ static inline __attribute__((always_inline)) void spi_wait_4_resp()
 int main(int argc, char *argv[])
 {
 
-#ifdef TARGET_SIM
-  #pragma message("This app does not allow Flash write operations in simulation!")
-    PRINTF("Flash writes are not permitted during Simulation, only on FPGA\n");
+#ifdef TARGET_VERILATOR
+    #pragma message("This app does not allow Flash write operations in VERILATOR!")
+    PRINTF("Flash writes are not permitted during simulation on VERILATOR.\n");
     return EXIT_SUCCESS;
 #endif
 

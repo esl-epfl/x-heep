@@ -30,7 +30,7 @@
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+#elif TARGET_FPGA && PRINTF_IN_FPGA
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
@@ -143,6 +143,12 @@ void write_to_flash(spi_host_t *SPI, uint16_t *data, uint32_t byte_count, uint32
 
 int main(int argc, char *argv[])
 {
+
+    #ifdef TARGET_VERILATOR
+        #pragma message("This app does not work in VERILATOR!")
+        return EXIT_SUCCESS;
+    #endif
+
     // Get current Frequency
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);

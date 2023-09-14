@@ -116,7 +116,7 @@
 
 /* The rate at which data is sent to the queue.  The 200ms value is converted
 to ticks using the pdMS_TO_TICKS() macro. */
-#ifdef TARGET_PYNQ_Z2
+#ifdef TARGET_FPGA
 #define mainQUEUE_SEND_FREQUENCY_MS			pdMS_TO_TICKS( 200 )
 #else
 #define mainQUEUE_SEND_FREQUENCY_MS			pdMS_TO_TICKS( 3 )
@@ -214,7 +214,7 @@ static rv_timer_t timer_0_1;
 /* In case of playing with the Tick Frequency, set it to the desired value
  * E.g.: REFERENCE_CLOCK_Hz/configTICK_RATE_HZ --> 100kHz
  */
-static const uint64_t kTickFreqHz = (REFERENCE_CLOCK_Hz/configTICK_RATE_HZ); 
+static const uint64_t kTickFreqHz = (REFERENCE_CLOCK_Hz/configTICK_RATE_HZ);
 
 /* The queue used by both tasks. */
 static QueueHandle_t xQueue = NULL;
@@ -251,7 +251,7 @@ void system_init(void)
 
     gpio_result_t gpio_res;
     gpio_cfg_t pin_cfg = {
-        .pin= GPIO_LD5_R, 
+        .pin= GPIO_LD5_R,
         .mode= GpioModeOutPushPull
     };
     gpio_res = gpio_config(pin_cfg);
@@ -260,7 +260,7 @@ void system_init(void)
     pin_cfg.pin = GPIO_LD5_G;
 	gpio_res |= gpio_config(pin_cfg);
     if (gpio_res != GpioOk) printf("Failed\n;");
-    
+
     gpio_write(GPIO_LD5_R, false);
     gpio_write(GPIO_LD5_B, false);
     gpio_write(GPIO_LD5_G, false);
@@ -268,7 +268,7 @@ void system_init(void)
     // Setup rv_timer_0_1
     mmio_region_t timer_0_1_reg = mmio_region_from_addr(RV_TIMER_AO_START_ADDRESS);
     rv_timer_init(timer_0_1_reg, (rv_timer_config_t){.hart_count = 2, .comparator_count = 1}, &timer_0_1);
-	
+
 	// Just in case you are playing with Tick freq.
     //rv_timer_approximate_tick_params(freq_hz, kTickFreqHz, &tick_params);
 
@@ -295,16 +295,16 @@ void handler_irq_timer(void)
 	configASSERT(rv_timer_reset(&timer_0_1)==kRvTimerOk);
     configASSERT(rv_timer_irq_enable(&timer_0_1, 0, 0, kRvTimerEnabled) == kRvTimerOk);
 	configASSERT(rv_timer_arm(&timer_0_1, 0, 0, TICK_COUNT) == kRvTimerOk);
-	
+
     if (xTaskIncrementTick() != 0) {
 		vTaskSwitchContext();
 		intr_flag = 1;
 	}
-	
+
 	uint32_t out = 0;
 	out = xTaskGetTickCountFromISR();
 	printf( "I %d\r\n",out);
-	
+
 	configASSERT(rv_timer_counter_set_enabled(&timer_0_1, 0, kRvTimerEnabled) == kRvTimerOk);
 }
 
@@ -361,18 +361,18 @@ static void prvQueueSendTask( void *pvParameters )
   //printf( "%s\n\r", __func__ );
   /* Remove compiler warning about unused parameter. */
   ( void ) pvParameters;
-  
+
   /* Initialise xNextWakeTime - this only needs to be done once. */
   xNextWakeTime = xTaskGetTickCount();
-  
+
   for( ;; )
   {
     vSendString( "T1\r\n" );
-  	
+
     /* Place this task in the blocked state until it is time to run again. */
     vTaskDelayUntil( &xNextWakeTime, mainQUEUE_SEND_FREQUENCY_MS );
     //vTaskDelay(1);
-    
+
     /* Send to the queue - causing the queue receive task to unblock and
     toggle the LED.  0 is used as the block time so the sending operation
     will not block - it shouldn't need to block as the queue should always
@@ -397,16 +397,16 @@ static void prvQueueReceiveTask( void *pvParameters )
   //printf( "%s\n\r", __func__ );
   /* Remove compiler warning about unused parameter. */
   ( void ) pvParameters;
-  
+
   for( ;; )
   {
     vSendString( "T2\r\n" );
-    
+
     /* Wait until something arrives in the queue - this task will block
     indefinitely provided INCLUDE_vTaskSuspend is set to 1 in
     FreeRTOSConfig.h. */
     xQueueReceive( xQueue, &ulReceivedValue, ( TickType_t ) portMAX_DELAY );
-    
+
     /*  To get here something must have been received from the queue, but
     is it the expected value?  If it is, toggle the LED. */
     if( ulReceivedValue == ulExpectedValue )
@@ -437,28 +437,28 @@ static void SetupHardware( void )
 void vToggleLED( void )
 {
   if (intr_blink == 0)
-  { 
+  {
 	gpio_write(GPIO_LD5_R, true);
 	gpio_write(GPIO_LD5_B, false);
 	gpio_write(GPIO_LD5_G, false);
 	intr_blink++;
   }
   else if (intr_blink == 1)
-  { 
+  {
 	gpio_write(GPIO_LD5_R, false);
 	gpio_write(GPIO_LD5_B, true);
 	gpio_write(GPIO_LD5_G, false);
 	intr_blink++;
   }
   else if (intr_blink == 2)
-  { 
+  {
 	gpio_write(GPIO_LD5_R, false);
 	gpio_write(GPIO_LD5_B, false);
 	gpio_write(GPIO_LD5_G, true);
 	intr_blink++;
   }
   else
-  { 
+  {
 	gpio_write(GPIO_LD5_R, false);
 	gpio_write(GPIO_LD5_B, false);
 	gpio_write(GPIO_LD5_G, false);
@@ -512,7 +512,7 @@ void vApplicationIdleHook( void )
 	taskENTER_CRITICAL();
 	printf("I\r\n");
 	taskEXIT_CRITICAL();
-	
+
 }
 /*-----------------------------------------------------------*/
 
@@ -556,7 +556,7 @@ void vApplicationTickHook( void )
 int main( void )
 {
 	SetupHardware();
-	
+
 	//printf("Going into main_blinky\n\r");
 
 	/* The mainCREATE_SIMPLE_BLINKY_DEMO_ONLY setting is described at the top
@@ -567,10 +567,10 @@ int main( void )
 	}
 	#else
 	{
-	  #error "Full demo is not available in this project. 
+	  #error "Full demo is not available in this project.
 	}
 	#endif
-	
+
 	//should never reach this point
 	for(;;);
 }

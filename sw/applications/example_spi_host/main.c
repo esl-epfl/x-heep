@@ -16,7 +16,7 @@
 #include "fast_intr_ctrl_regs.h"
 #include "x-heep.h"
 
-#ifdef TARGET_PYNQ_Z2
+#ifdef TARGET_FPGA
     #define USE_SPI_FLASH
 #endif
 
@@ -26,7 +26,7 @@
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+#elif TARGET_FPGA && PRINTF_IN_FPGA
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
@@ -66,6 +66,12 @@ int main(int argc, char *argv[])
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
     uint32_t read_byte_cmd = ((REVERT_24b_ADDR(flash_original) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
+
+    #ifdef TARGET_VERILATOR
+        #pragma message("This app does not work in VERILATOR!")
+        return EXIT_SUCCESS;
+    #endif
+
 
    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO )
     {
