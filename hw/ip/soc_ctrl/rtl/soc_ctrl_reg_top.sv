@@ -10,7 +10,7 @@
 module soc_ctrl_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 5
+    parameter int AW = 6
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -90,6 +90,12 @@ module soc_ctrl_reg_top #(
   logic [31:0] system_frequency_hz_qs;
   logic [31:0] system_frequency_hz_wd;
   logic system_frequency_hz_we;
+  logic bus_error_qs;
+  logic bus_error_wd;
+  logic bus_error_we;
+  logic [31:0] bus_error_address_qs;
+  logic [31:0] bus_error_address_wd;
+  logic bus_error_address_we;
 
   // Register instances
   // R[exit_valid]: V(False)
@@ -307,9 +313,63 @@ module soc_ctrl_reg_top #(
   );
 
 
+  // R[bus_error]: V(False)
+
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_bus_error (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(bus_error_we),
+      .wd(bus_error_wd),
+
+      // from internal hardware
+      .de(hw2reg.bus_error.de),
+      .d (hw2reg.bus_error.d),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.bus_error.q),
+
+      // to register interface (read)
+      .qs(bus_error_qs)
+  );
 
 
-  logic [7:0] addr_hit;
+  // R[bus_error_address]: V(False)
+
+  prim_subreg #(
+      .DW      (32),
+      .SWACCESS("RW"),
+      .RESVAL  (32'h0)
+  ) u_bus_error_address (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(bus_error_address_we),
+      .wd(bus_error_address_wd),
+
+      // from internal hardware
+      .de(hw2reg.bus_error_address.de),
+      .d (hw2reg.bus_error_address.d),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.bus_error_address.q),
+
+      // to register interface (read)
+      .qs(bus_error_address_qs)
+  );
+
+
+
+
+  logic [9:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == SOC_CTRL_EXIT_VALID_OFFSET);
@@ -320,6 +380,8 @@ module soc_ctrl_reg_top #(
     addr_hit[5] = (reg_addr == SOC_CTRL_USE_SPIMEMIO_OFFSET);
     addr_hit[6] = (reg_addr == SOC_CTRL_ENABLE_SPI_SEL_OFFSET);
     addr_hit[7] = (reg_addr == SOC_CTRL_SYSTEM_FREQUENCY_HZ_OFFSET);
+    addr_hit[8] = (reg_addr == SOC_CTRL_BUS_ERROR_OFFSET);
+    addr_hit[9] = (reg_addr == SOC_CTRL_BUS_ERROR_ADDRESS_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -334,7 +396,9 @@ module soc_ctrl_reg_top #(
                (addr_hit[4] & (|(SOC_CTRL_PERMIT[4] & ~reg_be))) |
                (addr_hit[5] & (|(SOC_CTRL_PERMIT[5] & ~reg_be))) |
                (addr_hit[6] & (|(SOC_CTRL_PERMIT[6] & ~reg_be))) |
-               (addr_hit[7] & (|(SOC_CTRL_PERMIT[7] & ~reg_be)))));
+               (addr_hit[7] & (|(SOC_CTRL_PERMIT[7] & ~reg_be))) |
+               (addr_hit[8] & (|(SOC_CTRL_PERMIT[8] & ~reg_be))) |
+               (addr_hit[9] & (|(SOC_CTRL_PERMIT[9] & ~reg_be)))));
   end
 
   assign exit_valid_we = addr_hit[0] & reg_we & !reg_error;
@@ -357,6 +421,12 @@ module soc_ctrl_reg_top #(
 
   assign system_frequency_hz_we = addr_hit[7] & reg_we & !reg_error;
   assign system_frequency_hz_wd = reg_wdata[31:0];
+
+  assign bus_error_we = addr_hit[8] & reg_we & !reg_error;
+  assign bus_error_wd = reg_wdata[0];
+
+  assign bus_error_address_we = addr_hit[9] & reg_we & !reg_error;
+  assign bus_error_address_wd = reg_wdata[31:0];
 
   // Read data return
   always_comb begin
@@ -394,6 +464,14 @@ module soc_ctrl_reg_top #(
         reg_rdata_next[31:0] = system_frequency_hz_qs;
       end
 
+      addr_hit[8]: begin
+        reg_rdata_next[0] = bus_error_qs;
+      end
+
+      addr_hit[9]: begin
+        reg_rdata_next[31:0] = bus_error_address_qs;
+      end
+
       default: begin
         reg_rdata_next = '1;
       end
@@ -415,7 +493,7 @@ module soc_ctrl_reg_top #(
 endmodule
 
 module soc_ctrl_reg_top_intf #(
-    parameter  int AW = 5,
+    parameter  int AW = 6,
     localparam int DW = 32
 ) (
     input logic clk_i,

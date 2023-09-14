@@ -27,6 +27,10 @@ module system_bus
     input logic clk_i,
     input logic rst_ni,
 
+    // Bus error
+    output logic bus_error_o,
+    output logic [31:0] bus_error_address_o,
+
     // Internal master ports
     input  obi_req_t  core_instr_req_i,
     output obi_resp_t core_instr_resp_o,
@@ -111,9 +115,15 @@ module system_bus
   // Dummy external master port (to prevent unused warning)
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_req_unused;
 
+  logic error_slave_resp_rvalid;
+
   assign ext_xbar_req_unused = ext_xbar_master_req_i;
 
-  assign error_slave_resp = '0;
+  assign bus_error_o = error_slave_req.req;
+  assign bus_error_address_o  = error_slave_req.addr;
+  assign error_slave_resp.gnt = error_slave_req.req;
+  assign error_slave_resp.rvalid = error_slave_resp_rvalid;
+  assign error_slave_resp.rdata  = 32'hdeadbeef;
 
   // Internal master requests
   assign int_master_req[core_v_mini_mcu_pkg::CORE_INSTR_IDX] = core_instr_req_i;
@@ -191,22 +201,27 @@ module system_bus
   assign demux_xbar_resp[DMA_WRITE_CH0_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_dma_write_ch0_resp_i;
   assign demux_xbar_resp[DMA_ADDR_CH0_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_dma_addr_ch0_resp_i;
 
-`ifndef SYNTHESIS
   always_ff @(posedge clk_i, negedge rst_ni) begin : check_out_of_bound
-    if (rst_ni) begin
-      if (error_slave_req.req) begin
+    if (~rst_ni) begin
+      error_slave_resp_rvalid <= 1'b0;
+    end else begin
+`ifndef SYNTHESIS
         $display("%t Out of bound memory access 0x%08x", $time, error_slave_req.addr);
-        $stop;
-      end
+`endif
+        error_slave_resp_rvalid <= error_slave_resp.gnt;
     end
   end
 
+`ifndef SYNTHESIS
   // show writes if requested
   always_ff @(posedge clk_i, negedge rst_ni) begin : verbose_writes
     if ($test$plusargs("verbose") != 0 && core_data_req_i.req && core_data_req_i.we)
       $display("write addr=0x%08x: data=0x%08x", core_data_req_i.addr, core_data_req_i.wdata);
   end
 `endif
+
+
+
 
   // 1-to-2 demux crossbars
   // ------------------------

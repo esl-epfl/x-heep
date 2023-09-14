@@ -7,7 +7,7 @@
 package soc_ctrl_reg_pkg;
 
   // Address widths within the block
-  parameter int BlockAw = 5;
+  parameter int BlockAw = 6;
 
   ////////////////////////////
   // Typedefs for registers //
@@ -27,6 +27,10 @@ package soc_ctrl_reg_pkg;
 
   typedef struct packed {logic q;} soc_ctrl_reg2hw_enable_spi_sel_reg_t;
 
+  typedef struct packed {logic q;} soc_ctrl_reg2hw_bus_error_reg_t;
+
+  typedef struct packed {logic [31:0] q;} soc_ctrl_reg2hw_bus_error_address_reg_t;
+
   typedef struct packed {
     logic d;
     logic de;
@@ -42,33 +46,49 @@ package soc_ctrl_reg_pkg;
     logic de;
   } soc_ctrl_hw2reg_use_spimemio_reg_t;
 
+  typedef struct packed {
+    logic d;
+    logic de;
+  } soc_ctrl_hw2reg_bus_error_reg_t;
+
+  typedef struct packed {
+    logic [31:0] d;
+    logic        de;
+  } soc_ctrl_hw2reg_bus_error_address_reg_t;
+
   // Register -> HW type
   typedef struct packed {
-    soc_ctrl_reg2hw_exit_valid_reg_t exit_valid;  // [68:68]
-    soc_ctrl_reg2hw_exit_value_reg_t exit_value;  // [67:36]
-    soc_ctrl_reg2hw_boot_select_reg_t boot_select;  // [35:35]
-    soc_ctrl_reg2hw_boot_exit_loop_reg_t boot_exit_loop;  // [34:34]
-    soc_ctrl_reg2hw_boot_address_reg_t boot_address;  // [33:2]
-    soc_ctrl_reg2hw_use_spimemio_reg_t use_spimemio;  // [1:1]
-    soc_ctrl_reg2hw_enable_spi_sel_reg_t enable_spi_sel;  // [0:0]
+    soc_ctrl_reg2hw_exit_valid_reg_t exit_valid;  // [101:101]
+    soc_ctrl_reg2hw_exit_value_reg_t exit_value;  // [100:69]
+    soc_ctrl_reg2hw_boot_select_reg_t boot_select;  // [68:68]
+    soc_ctrl_reg2hw_boot_exit_loop_reg_t boot_exit_loop;  // [67:67]
+    soc_ctrl_reg2hw_boot_address_reg_t boot_address;  // [66:35]
+    soc_ctrl_reg2hw_use_spimemio_reg_t use_spimemio;  // [34:34]
+    soc_ctrl_reg2hw_enable_spi_sel_reg_t enable_spi_sel;  // [33:33]
+    soc_ctrl_reg2hw_bus_error_reg_t bus_error;  // [32:32]
+    soc_ctrl_reg2hw_bus_error_address_reg_t bus_error_address;  // [31:0]
   } soc_ctrl_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    soc_ctrl_hw2reg_boot_select_reg_t boot_select;  // [5:4]
-    soc_ctrl_hw2reg_boot_exit_loop_reg_t boot_exit_loop;  // [3:2]
-    soc_ctrl_hw2reg_use_spimemio_reg_t use_spimemio;  // [1:0]
+    soc_ctrl_hw2reg_boot_select_reg_t boot_select;  // [40:39]
+    soc_ctrl_hw2reg_boot_exit_loop_reg_t boot_exit_loop;  // [38:37]
+    soc_ctrl_hw2reg_use_spimemio_reg_t use_spimemio;  // [36:35]
+    soc_ctrl_hw2reg_bus_error_reg_t bus_error;  // [34:33]
+    soc_ctrl_hw2reg_bus_error_address_reg_t bus_error_address;  // [32:0]
   } soc_ctrl_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] SOC_CTRL_EXIT_VALID_OFFSET = 5'h0;
-  parameter logic [BlockAw-1:0] SOC_CTRL_EXIT_VALUE_OFFSET = 5'h4;
-  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_SELECT_OFFSET = 5'h8;
-  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_EXIT_LOOP_OFFSET = 5'hc;
-  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_ADDRESS_OFFSET = 5'h10;
-  parameter logic [BlockAw-1:0] SOC_CTRL_USE_SPIMEMIO_OFFSET = 5'h14;
-  parameter logic [BlockAw-1:0] SOC_CTRL_ENABLE_SPI_SEL_OFFSET = 5'h18;
-  parameter logic [BlockAw-1:0] SOC_CTRL_SYSTEM_FREQUENCY_HZ_OFFSET = 5'h1c;
+  parameter logic [BlockAw-1:0] SOC_CTRL_EXIT_VALID_OFFSET = 6'h0;
+  parameter logic [BlockAw-1:0] SOC_CTRL_EXIT_VALUE_OFFSET = 6'h4;
+  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_SELECT_OFFSET = 6'h8;
+  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_EXIT_LOOP_OFFSET = 6'hc;
+  parameter logic [BlockAw-1:0] SOC_CTRL_BOOT_ADDRESS_OFFSET = 6'h10;
+  parameter logic [BlockAw-1:0] SOC_CTRL_USE_SPIMEMIO_OFFSET = 6'h14;
+  parameter logic [BlockAw-1:0] SOC_CTRL_ENABLE_SPI_SEL_OFFSET = 6'h18;
+  parameter logic [BlockAw-1:0] SOC_CTRL_SYSTEM_FREQUENCY_HZ_OFFSET = 6'h1c;
+  parameter logic [BlockAw-1:0] SOC_CTRL_BUS_ERROR_OFFSET = 6'h20;
+  parameter logic [BlockAw-1:0] SOC_CTRL_BUS_ERROR_ADDRESS_OFFSET = 6'h24;
 
   // Register index
   typedef enum int {
@@ -79,11 +99,13 @@ package soc_ctrl_reg_pkg;
     SOC_CTRL_BOOT_ADDRESS,
     SOC_CTRL_USE_SPIMEMIO,
     SOC_CTRL_ENABLE_SPI_SEL,
-    SOC_CTRL_SYSTEM_FREQUENCY_HZ
+    SOC_CTRL_SYSTEM_FREQUENCY_HZ,
+    SOC_CTRL_BUS_ERROR,
+    SOC_CTRL_BUS_ERROR_ADDRESS
   } soc_ctrl_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] SOC_CTRL_PERMIT[8] = '{
+  parameter logic [3:0] SOC_CTRL_PERMIT[10] = '{
       4'b0001,  // index[0] SOC_CTRL_EXIT_VALID
       4'b1111,  // index[1] SOC_CTRL_EXIT_VALUE
       4'b0001,  // index[2] SOC_CTRL_BOOT_SELECT
@@ -91,7 +113,9 @@ package soc_ctrl_reg_pkg;
       4'b1111,  // index[4] SOC_CTRL_BOOT_ADDRESS
       4'b0001,  // index[5] SOC_CTRL_USE_SPIMEMIO
       4'b0001,  // index[6] SOC_CTRL_ENABLE_SPI_SEL
-      4'b1111  // index[7] SOC_CTRL_SYSTEM_FREQUENCY_HZ
+      4'b1111,  // index[7] SOC_CTRL_SYSTEM_FREQUENCY_HZ
+      4'b0001,  // index[8] SOC_CTRL_BUS_ERROR
+      4'b1111  // index[9] SOC_CTRL_BUS_ERROR_ADDRESS
   };
 
 endpackage

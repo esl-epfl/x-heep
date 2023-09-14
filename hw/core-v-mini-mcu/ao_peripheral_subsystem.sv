@@ -22,6 +22,11 @@ module ao_peripheral_subsystem
     output logic        exit_valid_o,
     output logic [31:0] exit_value_o,
 
+    // Bus error
+    input  logic        bus_error_i,
+    input  logic [31:0] bus_error_address_i,
+    output logic        bus_error_intr_o,
+
     // Memory Map SPI Region
     input  obi_req_t  spimemio_req_i,
     output obi_resp_t spimemio_resp_o,
@@ -247,6 +252,9 @@ module ao_peripheral_subsystem
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
       .boot_select_i,
       .execute_from_flash_i,
+      .bus_error_i,
+      .bus_error_address_i,
+      .bus_error_intr_o,
       .use_spimemio_o(use_spimemio),
       .exit_valid_o,
       .exit_value_o

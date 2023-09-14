@@ -76,6 +76,23 @@
         { bits: "31:0", name: "SYSTEM_FREQUENCY_HZ", desc: "Contains the value in Hz of the frequency the system is running" }
       ]
     }
-
+    { name:     "BUS_ERROR",
+      desc:     "Bus access error",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "0", name: "BUS_ERROR", desc: "Bus access error Reg" }
+      ]
+    }
+    { name:     "BUS_ERROR_ADDRESS",
+      desc:     "Bus access error address",
+      resval:   "0x0"
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "31:0", name: "BUS_ERROR_ADDRESS", desc: "Bus access error address reg" }
+      ]
+    }
    ]
 }

@@ -19,6 +19,11 @@ module soc_ctrl #(
     input  logic execute_from_flash_i,
     output logic use_spimemio_o,
 
+    // Bus error
+    input  logic        bus_error_i,
+    input  logic [31:0] bus_error_address_i,
+    output logic        bus_error_intr_o,
+
     output logic        exit_valid_o,
     output logic [31:0] exit_value_o
 );
@@ -47,11 +52,19 @@ module soc_ctrl #(
   assign hw2reg.boot_exit_loop.de = 1'b0;
 `endif
 
-  assign hw2reg.boot_select.de  = 1'b1;
-  assign hw2reg.boot_select.d   = boot_select_i;
+  assign hw2reg.bus_error.de = 1'b1;
+  assign hw2reg.bus_error.d = bus_error_i;
+
+  assign hw2reg.bus_error_address.de = hw2reg.bus_error.d;
+  assign hw2reg.bus_error_address.d = bus_error_address_i;
+
+  assign bus_error_intr_o = reg2hw.bus_error.q;
+
+  assign hw2reg.boot_select.de = 1'b1;
+  assign hw2reg.boot_select.d = boot_select_i;
 
   assign hw2reg.use_spimemio.de = ~enable_spi_sel;
-  assign hw2reg.use_spimemio.d  = execute_from_flash_i;
+  assign hw2reg.use_spimemio.d = execute_from_flash_i;
 
   soc_ctrl_reg_top #(
       .reg_req_t(reg_req_t),
