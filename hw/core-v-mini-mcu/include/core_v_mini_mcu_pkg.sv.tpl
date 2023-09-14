@@ -58,7 +58,7 @@ package core_v_mini_mcu_pkg;
   localparam int unsigned EXTERNAL_DOMAINS = ${external_domains};
 
   localparam logic[31:0] ERROR_START_ADDRESS = 32'hBADACCE5;
-  localparam logic[31:0] ERROR_SIZE = 32'h00000001;
+  localparam logic[31:0] ERROR_SIZE = 32'h01;
   localparam logic[31:0] ERROR_END_ADDRESS = ERROR_START_ADDRESS + ERROR_SIZE;
   localparam logic[31:0] ERROR_IDX = 32'd0;
 
