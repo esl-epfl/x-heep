@@ -206,9 +206,10 @@ module system_bus
       error_slave_resp_rvalid <= 1'b0;
     end else begin
 `ifndef SYNTHESIS
+      if(rst_ni)
         $display("%t Out of bound memory access 0x%08x", $time, error_slave_req.addr);
 `endif
-        error_slave_resp_rvalid <= error_slave_resp.gnt;
+      error_slave_resp_rvalid <= error_slave_resp.gnt;
     end
   end
 
@@ -219,9 +220,6 @@ module system_bus
       $display("write addr=0x%08x: data=0x%08x", core_data_req_i.addr, core_data_req_i.wdata);
   end
 `endif
-
-
-
 
   // 1-to-2 demux crossbars
   // ------------------------

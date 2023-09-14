@@ -71,7 +71,8 @@ module system_xbar
           .NoIndices(XBAR_NSLAVE),
           .NoRules(XBAR_NSLAVE),
           .addr_t(logic [31:0]),
-          .rule_t(addr_map_rule_pkg::addr_map_rule_t)
+          .rule_t(addr_map_rule_pkg::addr_map_rule_t),
+          .Napot(1)
       ) addr_decode_i (
           .addr_i(master_req_i[i].addr),
           .addr_map_i,

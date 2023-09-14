@@ -238,7 +238,8 @@ module peripheral_subsystem
       .NoIndices(core_v_mini_mcu_pkg::PERIPHERALS),
       .NoRules(core_v_mini_mcu_pkg::PERIPHERALS),
       .addr_t(logic [31:0]),
-      .rule_t(addr_map_rule_pkg::addr_map_rule_t)
+      .rule_t(addr_map_rule_pkg::addr_map_rule_t),
+      .Napot(1)
   ) i_addr_decode_soc_regbus_periph_xbar (
       .addr_i(peripheral_req.addr),
       .addr_map_i(core_v_mini_mcu_pkg::PERIPHERALS_ADDR_RULES),

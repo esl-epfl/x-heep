@@ -81,7 +81,7 @@ module xbar_varlat_one_to_n #(
       .NoRules  (NUM_RULES),
       .addr_t   (logic [31:0]),
       .rule_t   (addr_map_rule_pkg::addr_map_rule_t),
-      .Napot    (1'b0)
+      .Napot    (1'b1)
   ) u_addr_decode (
       .addr_i          (master_req_i.addr),
       .addr_map_i      (addr_map_i),
