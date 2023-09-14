@@ -433,7 +433,7 @@ make app-simulate-all
 ```
 Note that both commands allow the previous parameters to specify compiling or simulation options. E.g.:
 ```
-make app-simulate-all LINKER=on_chip SIMULATOR=questasim COMPILER=clang TIMEOUT=150 
+make app-simulate-all LINKER=on_chip SIMULATOR=questasim COMPILER=clang TIMEOUT=150
 ```
 
 ##### Manually
@@ -443,18 +443,19 @@ You can also **SOURCE** the script as
 ```
 
 *Pay special attention to the first period in the command!*
-You will be killing simulations that take too long, if you **EXECUTE** (`./test_all.sh`) this action kills the script.
+The script will terminate simulations that take too long (>timeout), if you **EXECUTE** (`./test_all.sh`) this action will also terminate the script.
 
 For both usages (commands or manual), the order of the arguments is irrelevant.
 
 > Note: Be sure to commit all your changes before running the script!
 
 * Applications that fail being built with gcc will not be simulated (skipped).
-* Some applications are skipped by default for not being suitable for simulation.
+* Some applications can skipped by default for not being suitable for simulation. Open the script and add yours to the `BLACKLIST`.
 * If a simulation takes too long (>timeout), it is killed.
 
 * Upon starting, the script will modify the `mcu_cfg.hjson` file to include all peripherals (so the largest number of apps can be run), re-generates the mcu and re-builds the simulation model for the chosen tool.
 These changes can be reverted at the end of the execution (default). If changes were not commited, accepting this operation will revert them!
+* If you want to re-run a test without re-building the simulation model, add the argument `debug` to the command (only available when sourcing the script).
 
 The success of the script is not required for merging of a PR.
 

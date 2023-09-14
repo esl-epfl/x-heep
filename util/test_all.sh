@@ -162,7 +162,7 @@ SKIPPED=''
 # List of applications that will not be simulated (skipped)
 # This list is a temporary solution. Apps should report by themselves
 # whether their simulation should be skipped or not.
-declare -a BLACKLIST=( "example_virtual_flash" )
+declare -a BLACKLIST=( "example_your_ignored_app" "example_another_ignored_app")
 
 # List of possible compilers. The last compiler will be used for simulation.
 declare -a COMPILERS=( )
@@ -465,5 +465,5 @@ fi
 
 # Keep a count of apps that return a meaningless execution
 
-# Update the condition over which an app is simulated (check 
+# Update the condition over which an app is simulated (check
 # both compilation results and not only the last one)
