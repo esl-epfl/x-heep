@@ -155,8 +155,9 @@ module ao_peripheral_subsystem
   logic [23:0] cio_gpio_unused;
   logic [23:0] cio_gpio_en_unused;
 
+  logic ao_peripheral_bus_error, bus_error;
 
-  obi_pkg::obi_req_t slave_fifo_req_sel;
+  obi_pkg::obi_req_t  slave_fifo_req_sel;
   obi_pkg::obi_resp_t slave_fifo_resp_sel;
 
   assign ext_peripheral_slave_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPHERAL_IDX];
@@ -191,6 +192,9 @@ module ao_peripheral_subsystem
 
 `endif
 
+  logic slave_fifo_resp_sel_r_opc;
+  assign ao_peripheral_bus_error = slave_fifo_resp_sel.rvalid & slave_fifo_resp_sel_r_opc;
+
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -206,7 +210,7 @@ module ao_peripheral_subsystem
       .id_i('0),
       .gnt_o(slave_fifo_resp_sel.gnt),
       .r_rdata_o(slave_fifo_resp_sel.rdata),
-      .r_opc_o(),
+      .r_opc_o(slave_fifo_resp_sel_r_opc),
       .r_id_o(),
       .r_valid_o(slave_fifo_resp_sel.rvalid),
       .reg_req_o(peripheral_req),
@@ -242,6 +246,8 @@ module ao_peripheral_subsystem
       .out_rsp_i(ao_peripheral_slv_rsp)
   );
 
+  assign bus_error = bus_error_i | ao_peripheral_bus_error;
+
   soc_ctrl #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -252,7 +258,7 @@ module ao_peripheral_subsystem
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
       .boot_select_i,
       .execute_from_flash_i,
-      .bus_error_i,
+      .bus_error_i(bus_error),
       .bus_error_address_i,
       .bus_error_intr_o,
       .use_spimemio_o(use_spimemio),

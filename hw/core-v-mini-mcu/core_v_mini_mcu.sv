@@ -376,6 +376,7 @@ module core_v_mini_mcu
   logic irq_external;
   logic [14:0] irq_fast;
   logic msip;
+  logic irq_plic;
   logic bus_error_intr;
 
   // Memory Map SPI Region
@@ -435,8 +436,10 @@ module core_v_mini_mcu
   // Bus error
   logic bus_error;
   logic [31:0] bus_error_address;
+  logic peripheral_bus_error;
 
-  assign irq_software = msip | bus_error_intr;
+  assign irq_software = msip;
+  assign irq_external = irq_plic | bus_error_intr;
 
   assign intr = {
     1'b0, irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
@@ -565,7 +568,7 @@ module core_v_mini_mcu
       .execute_from_flash_i,
       .exit_valid_o,
       .exit_value_o,
-      .bus_error_i(bus_error),
+      .bus_error_i(bus_error | peripheral_bus_error),
       .bus_error_address_i(bus_error_address),
       .bus_error_intr_o(bus_error_intr),
       .spimemio_req_i(flash_mem_slave_req),
@@ -650,8 +653,9 @@ module core_v_mini_mcu
       .clk_gate_en_ni(peripheral_subsystem_clkgate_en_n),
       .slave_req_i(peripheral_slave_req),
       .slave_resp_o(peripheral_slave_resp),
+      .peripheral_bus_error_o(peripheral_bus_error),
       .intr_vector_ext_i,
-      .irq_plic_o(irq_external),
+      .irq_plic_o(irq_plic),
       .msip_o(msip),
       .uart_intr_tx_watermark_i(uart_intr_tx_watermark),
       .uart_intr_rx_watermark_i(uart_intr_rx_watermark),

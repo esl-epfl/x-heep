@@ -18,6 +18,9 @@ module peripheral_subsystem
     input  obi_req_t  slave_req_i,
     output obi_resp_t slave_resp_o,
 
+    //BUS ERROR
+    output logic peripheral_bus_error_o,
+
     //PLIC
     input  logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
     output logic                    irq_plic_o,
@@ -212,6 +215,9 @@ module peripheral_subsystem
 
 `endif
 
+  logic slave_fifo_resp_sel_r_opc;
+  assign peripheral_bus_error_o = slave_fifo_resp_sel.rvalid & slave_fifo_resp_sel_r_opc;
+
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -227,7 +233,7 @@ module peripheral_subsystem
       .id_i('0),
       .gnt_o(slave_fifo_resp_sel.gnt),
       .r_rdata_o(slave_fifo_resp_sel.rdata),
-      .r_opc_o(),
+      .r_opc_o(slave_fifo_resp_sel_r_opc),
       .r_id_o(),
       .r_valid_o(slave_fifo_resp_sel.rvalid),
       .reg_req_o(peripheral_req),
@@ -308,6 +314,7 @@ module peripheral_subsystem
       .global_interrupt_o()
   );
 
+
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -324,6 +331,7 @@ module peripheral_subsystem
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::I2C_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::I2C_IDX])
   );
+
 
   i2c i2c_i (
       .clk_i(clk_cg),
@@ -354,6 +362,7 @@ module peripheral_subsystem
       .intr_host_timeout_o(i2c_intr_host_timeout)
   );
 
+
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -370,6 +379,7 @@ module peripheral_subsystem
       .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::RV_TIMER_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::RV_TIMER_IDX])
   );
+
 
   rv_timer rv_timer_2_3_i (
       .clk_i(clk_cg),
@@ -405,7 +415,9 @@ module peripheral_subsystem
       .intr_spi_event_o(spi2_intr_event)
   );
 
-  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX] = '0;
+  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX].ready = 1'b1;
+  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX].error = 1'b1;
+  assign peripheral_slv_rsp[core_v_mini_mcu_pkg::PDM2PCM_IDX].rdata = 32'hbada55e5;
   assign pdm2pcm_clk_o = '0;
 
   assign pdm2pcm_clk_en_o = 1;

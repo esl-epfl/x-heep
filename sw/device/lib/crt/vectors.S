@@ -40,7 +40,7 @@ vector_table:
 	// 10 : unmapped
 	j __no_irq_handler
 	// 11 : machine external interrupt handler
-	j handler_irq_external
+	j handler_irq_external_bus_error
 	// 12 : unmapped
 	j __no_irq_handler
 	// 13 : unmapped

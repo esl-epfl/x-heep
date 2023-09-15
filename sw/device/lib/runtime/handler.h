@@ -64,12 +64,31 @@ INTERRUPT_HANDLER_ABI void handler_irq_software(void);
 INTERRUPT_HANDLER_ABI void handler_irq_timer(void);
 
 /**
+ * External or Bus Error IRQ handler.
+ *
+ * `handler.c` provides a non-weak definition of this symbol.
+    This function discriminates between a bus error or a PLIC interrupt,
+    it then calls the weak handler_irq_bus_error or the weak handler_irq_external handlers
+ */
+INTERRUPT_HANDLER_ABI void handler_irq_external_bus_error(void);
+
+
+/**
  * External IRQ handler.
  *
  * `handler.c` provides a weak definition of this symbol, which can be overriden
  * at link-time by providing an additional non-weak definition.
  */
-INTERRUPT_HANDLER_ABI void handler_irq_external(void);
+void handler_irq_external(void);
+
+/**
+ * Bus Error IRQ handler.
+ *
+ * `handler.c` provides a weak definition of this symbol, which can be overriden
+ * at link-time by providing an additional non-weak definition.
+ */
+void handler_irq_bus_error(void);
+
 
 /**
  * Instruction access fault.

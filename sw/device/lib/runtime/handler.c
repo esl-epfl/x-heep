@@ -6,6 +6,9 @@
 
 #include "csr.h"
 #include "stdasm.h"
+#include "soc_ctrl_regs.h"
+#include "soc_ctrl.h"
+#include "core_v_mini_mcu.h"
 
 /**
  * Return value of mtval
@@ -70,6 +73,18 @@ __attribute__((weak)) void handler_irq_software(void) {
   }
 }
 
+void handler_irq_external_bus_error(void) {
+
+  soc_ctrl_t soc_ctrl;
+  soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+
+  if (get_bus_error(&soc_ctrl)) {
+    handler_irq_bus_error();
+  } else {
+    handler_irq_external();
+  }
+}
+
 __attribute__((weak)) void handler_irq_timer(void) {
   printf("Timer IRQ triggered!\n");
   while (1) {
@@ -78,6 +93,15 @@ __attribute__((weak)) void handler_irq_timer(void) {
 
 __attribute__((weak)) void handler_irq_external(void) {
   printf("External IRQ triggered!\n");
+  while (1) {
+  }
+}
+
+__attribute__((weak)) void handler_irq_bus_error(void) {
+  soc_ctrl_t soc_ctrl;
+  soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+  printf("Bus Error IRQ triggered! - Bus error %d, Bus Address %x\n", get_bus_error(&soc_ctrl), get_bus_error_address(&soc_ctrl));
+  clear_bus_error(&soc_ctrl);
   while (1) {
   }
 }

@@ -119,6 +119,7 @@ module system_bus
 
   assign ext_xbar_req_unused = ext_xbar_master_req_i;
 
+  // this does not deal with slave bus errors
   assign bus_error_o = error_slave_req.req;
   assign bus_error_address_o  = error_slave_req.addr;
   assign error_slave_resp.gnt = error_slave_req.req;
