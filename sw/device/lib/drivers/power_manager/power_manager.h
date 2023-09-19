@@ -24,6 +24,21 @@ Description : Original version
 
 */
 
+/**
+ * @todo
+ * bitfield -> create enums
+ * remove unnecesary structs
+ * counters init
+ * initilization slave registers
+ * review headers
+*/
+
+/**
+ * @todo sanity checks
+ * External power manager only if something is connected
+ * Ram sel maximum to the number of rams - Define num banks
+*/
+
 /***************************************************************************/
 /***************************************************************************/
 
@@ -56,26 +71,6 @@ Description : Original version
 /**                       DEFINITIONS AND MACROS                           **/
 /**                                                                        **/
 /****************************************************************************/
-
-/**
- * Each ram register salves are separated by 6 salve registers
- */
-#define RAM_X_CLK_GATE(ram_sel) (RAM_0_CLK_GATE + ram_sel*6)
-#define POWER_GATE_RAM_BLOCK_X_ACK(ram_sel) (POWER_GATE_RAM_BLOCK_0_ACK + ram_sel*6)
-#define RAM_X_SWITCH(ram_sel) (RAM_0_SWITCH + ram_sel*6)
-#define RAM_X_WAIT_ACK_SWITCH_ON(ram_sel) (RAM_0_WAIT_ACK_SWITCH_ON + ram_sel*6)
-#define RAM_X_ISO(ram_sel) (RAM_0_ISO + ram_sel*6)
-#define RAM_X_RETENTIVE(ram_sel) (RAM_0_RETENTIVE + ram_sel*6)
-#define MONITOR_POWER_GATE_RAM_BLOCK_X(ram_sel) (MONITOR_POWER_GATE_RAM_BLOCK_0 + ram_sel)
-
-#define POWER_MANAGER_EXTERNAL_X_CLK_GATE(ram_sel) (POWER_MANAGER_EXTERNAL_0_CLK_GATE + ram_sel*7)
-#define POWER_MANAGER_POWER_GATE_EXTERNAL_X_ACK(ram_sel) (POWER_MANAGER_POWER_GATE_EXTERNAL_0_ACK + ram_sel*7)
-#define POWER_MANAGER_EXTERNAL_X_RESET(ram_sel) (POWER_MANAGER_EXTERNAL_0_RESET + ram_sel*7)
-#define POWER_MANAGER_EXTERNAL_X_SWITCH(ram_sel) (POWER_MANAGER_EXTERNAL_0_SWITCH + ram_sel*7)
-#define POWER_MANAGER_EXTERNAL_X_WAIT_ACK_SWITCH_ON(ram_sel) (POWER_MANAGER_EXTERNAL_0_WAIT_ACK_SWITCH_ON + ram_sel*7)
-#define POWER_MANAGER_EXTERNAL_X_ISO(ram_sel) (POWER_MANAGER_EXTERNAL_0_ISO + ram_sel*7)
-#define POWER_MANAGER_EXTERNAL_RAM_X_RETENTIVE(ram_sel) (POWER_MANAGER_EXTERNAL_RAM_0_RETENTIVE + ram_sel*7)
-#define POWER_MANAGER_MONITOR_POWER_GATE_EXTERNAL_X(ram_sel) (POWER_MANAGER_MONITOR_POWER_GATE_EXTERNAL_0 + ram_sel)
 
 #ifdef __cplusplus
 extern "C" {
@@ -235,18 +230,6 @@ typedef struct monitor_signals {
    */
   uint32_t kReset_e;
 } monitor_signals_t;
-
-/**
- * Initialization parameters for POWER MANAGER.
- *
- *
- */
-typedef struct power_manager {
-  /**
-   * The base address for the power_manager hardware registers.
-   */
-  mmio_region_t base_addr;
-} power_manager_t;
 
 /**
  *
@@ -455,6 +438,14 @@ static power_manager_external_map_t power_manager_external_map[0] = {
 /****************************************************************************/
 
 /**
+ *@brief Initialize all Power Manager configuration registers to a safe default state.
+ * It can be called anytime to reset the Power Manager control block. @todo
+ * @param peri Pointer to a register address following the power_manager structure. By
+ * default (peri == NULL), the integrated power_manager will be used.
+ */
+void power_manager_init( power_manager *peri );
+
+/**
  * Creates a new handle
  *
  * This function does not actuate the hardware.
@@ -482,7 +473,7 @@ power_manager_result_t power_gate_counters_init(power_manager_counters_t* counte
  * @param cpu_counters
  * @return The result of the operation.
  */
-power_manager_result_t power_gate_core(const power_manager_t *power_manager, power_manager_sel_intr_t sel_intr, power_manager_counters_t* cpu_counters);
+power_manager_result_t power_gate_core(power_manager_sel_intr_t sel_intr, power_manager_counters_t* cpu_counters);
 
 /**
  *
@@ -494,7 +485,7 @@ power_manager_result_t power_gate_core(const power_manager_t *power_manager, pow
  * @param periph_counters
  * @return The result of the operation.
  */
-power_manager_result_t power_gate_periph(const power_manager_t *power_manager, power_manager_sel_state_t sel_state, power_manager_counters_t* periph_counters);
+power_manager_result_t power_gate_periph(power_manager_sel_state_t sel_state, power_manager_counters_t* periph_counters);
 
 /**
  *
@@ -507,7 +498,7 @@ power_manager_result_t power_gate_periph(const power_manager_t *power_manager, p
  * @param ram_block_counters
  * @return The result of the operation.
  */
-power_manager_result_t power_gate_ram_block(const power_manager_t *power_manager, uint32_t sel_block, power_manager_sel_state_t sel_state, power_manager_counters_t* ram_block_counters);
+power_manager_result_t power_gate_ram_block(uint32_t sel_block, power_manager_sel_state_t sel_state, power_manager_counters_t* ram_block_counters);
 
 /**
  *
@@ -520,7 +511,7 @@ power_manager_result_t power_gate_ram_block(const power_manager_t *power_manager
  * @param external_counters
  * @return The result of the operation.
  */
-power_manager_result_t power_gate_external(const power_manager_t *power_manager, uint32_t sel_external, power_manager_sel_state_t sel_state, power_manager_counters_t* external_counters);
+power_manager_result_t power_gate_external(uint32_t sel_external, power_manager_sel_state_t sel_state, power_manager_counters_t* external_counters);
 
 /**
  *
@@ -530,49 +521,7 @@ power_manager_result_t power_gate_external(const power_manager_t *power_manager,
  * @param power_manager A power manager handle.
  * @return The result of the operation.
  */
-uint32_t periph_power_domain_is_off(const power_manager_t *power_manager);
-
-/**
- *
- *
- *
- *
- * @param power_manager A power manager handle.
- * @param sel_block
- * @return The result of the operation.
- */
-uint32_t ram_block_power_domain_is_off(const power_manager_t *power_manager, uint32_t sel_block);
-
-/**
- *
- *
- *
- *
- * @param power_manager A power manager handle.
- * @param sel_external
- * @return The result of the operation.
- */
-uint32_t external_power_domain_is_off(const power_manager_t *power_manager, uint32_t sel_external);
-
-/**
- *
- *
- *
- *
- * @param power_manager A power manager handle.
- * @return The result of the operation.
- */
-monitor_signals_t monitor_power_gate_core(const power_manager_t *power_manager);
-
-/**
- *
- *
- *
- *
- * @param power_manager A power manager handle.
- * @return The result of the operation.
- */
-monitor_signals_t monitor_power_gate_periph(const power_manager_t *power_manager);
+uint32_t periph_power_domain_is_off();
 
 /**
  *
@@ -583,7 +532,7 @@ monitor_signals_t monitor_power_gate_periph(const power_manager_t *power_manager
  * @param sel_block
  * @return The result of the operation.
  */
-monitor_signals_t monitor_power_gate_ram_block(const power_manager_t *power_manager, uint32_t sel_block);
+uint32_t ram_block_power_domain_is_off(uint32_t sel_block);
 
 /**
  *
@@ -594,7 +543,49 @@ monitor_signals_t monitor_power_gate_ram_block(const power_manager_t *power_mana
  * @param sel_external
  * @return The result of the operation.
  */
-monitor_signals_t monitor_power_gate_external(const power_manager_t *power_manager, uint32_t sel_external);
+uint32_t external_power_domain_is_off(uint32_t sel_external);
+
+/**
+ *
+ *
+ *
+ *
+ * @param power_manager A power manager handle.
+ * @return The result of the operation.
+ */
+monitor_signals_t monitor_power_gate_core();
+
+/**
+ *
+ *
+ *
+ *
+ * @param power_manager A power manager handle.
+ * @return The result of the operation.
+ */
+monitor_signals_t monitor_power_gate_periph();
+
+/**
+ *
+ *
+ *
+ *
+ * @param power_manager A power manager handle.
+ * @param sel_block
+ * @return The result of the operation.
+ */
+monitor_signals_t monitor_power_gate_ram_block(uint32_t sel_block);
+
+/**
+ *
+ *
+ *
+ *
+ * @param power_manager A power manager handle.
+ * @param sel_external
+ * @return The result of the operation.
+ */
+monitor_signals_t monitor_power_gate_external(uint32_t sel_external);
 
 /****************************************************************************/
 /**                                                                        **/
