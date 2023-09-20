@@ -48,8 +48,6 @@ volatile int8_t dma_intr_flag;
 int8_t core_sleep_flag;
 spi_host_t spi_host;
 
-static power_manager_t power_manager;
-
 void dma_intr_handler_trans_done(void)
 {
     PRINTF("Non-weak implementation of a DMA interrupt\n\r");
@@ -102,11 +100,10 @@ int main(int argc, char *argv[])
     #endif
 
     // Setup power_manager
-    mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
-    power_manager.base_addr = power_manager_reg;
-    power_manager_counters_t power_manager_cpu_counters;
+    power_manager_init(NULL);
+
     // Init cpu_subsystem's counters
-    if (power_gate_counters_init(&power_manager_cpu_counters, 300, 300, 300, 300, 300, 300, 0, 0) != kPowerManagerOk_e)
+    if (power_gate_counters_init(300, 300, 300, 300, 300, 300, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
         return EXIT_FAILURE;
@@ -279,7 +276,7 @@ int main(int argc, char *argv[])
     // Power gate core and wait for fast DMA interrupt
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if(dma_intr_flag == 0) {
-        if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
+        if (power_gate_core(kDma_pm_e) != kPowerManagerOk_e)
         {
             PRINTF("Error: power manager fail.\n\r");
             return EXIT_FAILURE;

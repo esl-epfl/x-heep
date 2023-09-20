@@ -33,6 +33,7 @@ Description : Original version
  * review headers
  * Fix all applications
  * Different counters for each peripheral
+ * Test power gate external in questa
 */
 
 /**

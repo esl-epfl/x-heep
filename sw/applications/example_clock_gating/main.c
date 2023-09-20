@@ -23,39 +23,36 @@
     #define PRINTF(...)
 #endif
 
-static power_manager_t power_manager;
-
 int main(int argc, char *argv[])
 {
     // Setup power_manager
-    mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
-    power_manager.base_addr = power_manager_reg;
+    power_manager_init(NULL);
 
     // Clock-gating the peripheral subsystem
-    mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_CLK_GATE_REG_OFFSET), 0x1);
+    mmio_region_write32((ptrdiff_t)(POWER_MANAGER_PERIPH_CLK_GATE_REG_OFFSET), 0x1);
 
     // Clock-gating ram-banks
     // We probably should not clockgate the bank where our RAM resides
     for(uint32_t i = 2; i < MEMORY_BANKS; ++i)
-        mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x1);
+        mmio_region_write32((ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x1);
 
     // Clock-gating external subsystems
     for(uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
-        mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_external_map[i].clk_gate), 0x1);
+        mmio_region_write32((ptrdiff_t)(power_manager_external_map[i].clk_gate), 0x1);
 
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop;");
 
     // Enabling the peripheral subsystem
-    mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_CLK_GATE_REG_OFFSET), 0x0);
+    mmio_region_write32((ptrdiff_t)(POWER_MANAGER_PERIPH_CLK_GATE_REG_OFFSET), 0x0);
 
     // Enabling ram-banks
     for(uint32_t i = 2; i < MEMORY_BANKS; ++i)
-        mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x0);
+        mmio_region_write32((ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x0);
 
     // Enabling external subsystems
     for(uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
-        mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_external_map[i].clk_gate), 0x0);
+        mmio_region_write32((ptrdiff_t)(power_manager_external_map[i].clk_gate), 0x0);
 
     /* write something to stdout */
     PRINTF("Success.\n\r");

@@ -195,48 +195,48 @@ void power_manager_init( power_manager *peri )
     /**
      * @todo check register initializaton
      * */
-    power_manager_cb.peri->WAKEUP_STATE                    = 0;
-    power_manager_cb.peri->RESTORE_ADDRESS                 = 0;
-    power_manager_cb.peri->EN_WAIT_FOR_INTR                = 0;
-    power_manager_cb.peri->INTR_STATE                      = 0;
-    power_manager_cb.peri->POWER_GATE_CORE                 = 0;
-    power_manager_cb.peri->POWER_GATE_CORE_ACK             = 0;
-    power_manager_cb.peri->CPU_RESET_ASSERT_COUNTER        = 0;
-    power_manager_cb.peri->CPU_RESET_DEASSERT_COUNTER      = 0;
-    power_manager_cb.peri->CPU_SWITCH_OFF_COUNTER          = 0;
-    power_manager_cb.peri->CPU_SWITCH_ON_COUNTER           = 0;
-    power_manager_cb.peri->CPU_WAIT_ACK_SWITCH_ON_COUNTER  = 0;
-    power_manager_cb.peri->CPU_ISO_OFF_COUNTER             = 0;
-    power_manager_cb.peri->CPU_ISO_ON_COUNTER              = 0;
-    power_manager_cb.peri->CPU_COUNTERS_STOP               = 0;
-    power_manager_cb.peri->POWER_GATE_PERIPH_ACK           = 0;
-    power_manager_cb.peri->PERIPH_RESET                    = 0;
-    power_manager_cb.peri->PERIPH_SWITCH                   = 0;
-    power_manager_cb.peri->PERIPH_WAIT_ACK_SWITCH_ON       = 0;
-    power_manager_cb.peri->PERIPH_ISO                      = 0;
-    power_manager_cb.peri->PERIPH_CLK_GATE                 = 0;
-    power_manager_cb.peri->RAM_0_CLK_GATE                  = 0;
-    power_manager_cb.peri->POWER_GATE_RAM_BLOCK_0_ACK      = 0;
-    power_manager_cb.peri->RAM_0_SWITCH                    = 0;
-    power_manager_cb.peri->RAM_0_WAIT_ACK_SWITCH_ON        = 0;
-    power_manager_cb.peri->RAM_0_ISO                       = 0;
-    power_manager_cb.peri->RAM_0_RETENTIVE                 = 0;
-    power_manager_cb.peri->RAM_1_CLK_GATE                  = 0;
-    power_manager_cb.peri->POWER_GATE_RAM_BLOCK_1_ACK      = 0;
-    power_manager_cb.peri->RAM_1_SWITCH                    = 0;
-    power_manager_cb.peri->RAM_1_WAIT_ACK_SWITCH_ON        = 0;
-    power_manager_cb.peri->RAM_1_ISO                       = 0;
-    power_manager_cb.peri->RAM_1_RETENTIVE                 = 0;
-    power_manager_cb.peri->MONITOR_POWER_GATE_CORE         = 0;
-    power_manager_cb.peri->MONITOR_POWER_GATE_PERIPH       = 0;
-    power_manager_cb.peri->MONITOR_POWER_GATE_RAM_BLOCK_0  = 0;
-    power_manager_cb.peri->MONITOR_POWER_GATE_RAM_BLOCK_1  = 0;
-    power_manager_cb.peri->MASTER_CPU_FORCE_SWITCH_OFF     = 0;
-    power_manager_cb.peri->MASTER_CPU_FORCE_SWITCH_ON      = 0;
-    power_manager_cb.peri->MASTER_CPU_FORCE_RESET_ASSERT   = 0;
-    power_manager_cb.peri->MASTER_CPU_FORCE_RESET_DEASSERT = 0;
-    power_manager_cb.peri->MASTER_CPU_FORCE_ISO_OFF        = 0;
-    power_manager_cb.peri->MASTER_CPU_FORCE_ISO_ON         = 0;
+    // power_manager_cb.peri->WAKEUP_STATE                    = 0;
+    // power_manager_cb.peri->RESTORE_ADDRESS                 = 0;
+    // power_manager_cb.peri->EN_WAIT_FOR_INTR                = 0;
+    // power_manager_cb.peri->INTR_STATE                      = 0;
+    // power_manager_cb.peri->POWER_GATE_CORE                 = 0;
+    // power_manager_cb.peri->POWER_GATE_CORE_ACK             = 0;
+    // power_manager_cb.peri->CPU_RESET_ASSERT_COUNTER        = 0;
+    // power_manager_cb.peri->CPU_RESET_DEASSERT_COUNTER      = 0;
+    // power_manager_cb.peri->CPU_SWITCH_OFF_COUNTER          = 0;
+    // power_manager_cb.peri->CPU_SWITCH_ON_COUNTER           = 0;
+    // power_manager_cb.peri->CPU_WAIT_ACK_SWITCH_ON_COUNTER  = 0;
+    // power_manager_cb.peri->CPU_ISO_OFF_COUNTER             = 0;
+    // power_manager_cb.peri->CPU_ISO_ON_COUNTER              = 0;
+    // power_manager_cb.peri->CPU_COUNTERS_STOP               = 0;
+    // power_manager_cb.peri->POWER_GATE_PERIPH_ACK           = 0;
+    // power_manager_cb.peri->PERIPH_RESET                    = 0;
+    // power_manager_cb.peri->PERIPH_SWITCH                   = 0;
+    // power_manager_cb.peri->PERIPH_WAIT_ACK_SWITCH_ON       = 0;
+    // power_manager_cb.peri->PERIPH_ISO                      = 0;
+    // power_manager_cb.peri->PERIPH_CLK_GATE                 = 0;
+    // power_manager_cb.peri->RAM_0_CLK_GATE                  = 0;
+    // power_manager_cb.peri->POWER_GATE_RAM_BLOCK_0_ACK      = 0;
+    // power_manager_cb.peri->RAM_0_SWITCH                    = 0;
+    // power_manager_cb.peri->RAM_0_WAIT_ACK_SWITCH_ON        = 0;
+    // power_manager_cb.peri->RAM_0_ISO                       = 0;
+    // power_manager_cb.peri->RAM_0_RETENTIVE                 = 0;
+    // power_manager_cb.peri->RAM_1_CLK_GATE                  = 0;
+    // power_manager_cb.peri->POWER_GATE_RAM_BLOCK_1_ACK      = 0;
+    // power_manager_cb.peri->RAM_1_SWITCH                    = 0;
+    // power_manager_cb.peri->RAM_1_WAIT_ACK_SWITCH_ON        = 0;
+    // power_manager_cb.peri->RAM_1_ISO                       = 0;
+    // power_manager_cb.peri->RAM_1_RETENTIVE                 = 0;
+    // power_manager_cb.peri->MONITOR_POWER_GATE_CORE         = 0;
+    // power_manager_cb.peri->MONITOR_POWER_GATE_PERIPH       = 0;
+    // power_manager_cb.peri->MONITOR_POWER_GATE_RAM_BLOCK_0  = 0;
+    // power_manager_cb.peri->MONITOR_POWER_GATE_RAM_BLOCK_1  = 0;
+    // power_manager_cb.peri->MASTER_CPU_FORCE_SWITCH_OFF     = 0;
+    // power_manager_cb.peri->MASTER_CPU_FORCE_SWITCH_ON      = 0;
+    // power_manager_cb.peri->MASTER_CPU_FORCE_RESET_ASSERT   = 0;
+    // power_manager_cb.peri->MASTER_CPU_FORCE_RESET_DEASSERT = 0;
+    // power_manager_cb.peri->MASTER_CPU_FORCE_ISO_OFF        = 0;
+    // power_manager_cb.peri->MASTER_CPU_FORCE_ISO_ON         = 0;
 }
 
 void __attribute__ ((noinline)) power_gate_core_asm()
@@ -428,6 +428,7 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_core(power_manager_
         power_manager_cb.peri->CPU_WAIT_ACK_SWITCH_ON_COUNTER = bitfield_bit32_write(power_manager_cb.peri->CPU_WAIT_ACK_SWITCH_ON_COUNTER, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
     #endif
 
+    asm volatile ("nop\n;"); // Necessary in SIM to swith on/off the ack signal
     power_gate_core_asm();
 
     // clean up states
