@@ -26,7 +26,7 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_SIM   1
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -39,7 +39,6 @@
 static rv_timer_t timer_0_1;
 static rv_timer_t timer_2_3;
 static const uint64_t kTickFreqHz = 1000 * 1000; // 1 MHz
-static power_manager_t power_manager;
 
 #ifndef TARGET_PYNQ_Z2
     #define GPIO_TB_OUT 30
@@ -51,9 +50,7 @@ int main(int argc, char *argv[])
 {
 
     // Setup power_manager
-    mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
-    power_manager.base_addr = power_manager_reg;
-    power_manager_counters_t power_manager_cpu_counters;
+    power_manager_init(NULL);
     //counters
     uint32_t reset_off, reset_on, switch_off, switch_on, iso_off, iso_on;
 
@@ -94,7 +91,7 @@ int main(int argc, char *argv[])
     reset_on = switch_on + 20; //give 20 cycles to emulate the turn on time, this number depends on technology and here it is just a random number
     iso_on = reset_on + 5;
 
-    if (power_gate_counters_init(&power_manager_cpu_counters, reset_off, reset_on, switch_off, switch_on, iso_off, iso_on, 0, 0) != kPowerManagerOk_e)
+    if (power_gate_counters_init(reset_off, reset_on, switch_off, switch_on, iso_off, iso_on, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
         return EXIT_FAILURE;
@@ -107,7 +104,7 @@ int main(int argc, char *argv[])
     rv_timer_counter_set_enabled(&timer_0_1, 0, kRvTimerEnabled);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (power_gate_core(&power_manager, kTimer_0_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
+    if (power_gate_core(kTimer_0_pm_e) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -121,7 +118,7 @@ int main(int argc, char *argv[])
     rv_timer_counter_set_enabled(&timer_0_1, 1, kRvTimerEnabled);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (power_gate_core(&power_manager, kTimer_1_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
+    if (power_gate_core(kTimer_1_pm_e) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -135,7 +132,7 @@ int main(int argc, char *argv[])
     rv_timer_counter_set_enabled(&timer_2_3, 0, kRvTimerEnabled);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (power_gate_core(&power_manager, kTimer_2_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
+    if (power_gate_core(kTimer_2_pm_e) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -149,7 +146,7 @@ int main(int argc, char *argv[])
     rv_timer_counter_set_enabled(&timer_2_3, 1, kRvTimerEnabled);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (power_gate_core(&power_manager, kTimer_3_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
+    if (power_gate_core(kTimer_3_pm_e) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -171,7 +168,7 @@ int main(int argc, char *argv[])
     gpio_write(GPIO_TB_OUT, true);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (power_gate_core(&power_manager, kPlic_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
+    if (power_gate_core(kPlic_pm_e) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;

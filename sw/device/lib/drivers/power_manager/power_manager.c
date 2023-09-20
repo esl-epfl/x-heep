@@ -63,6 +63,61 @@ Description : Original version
 /****************************************************************************/
 
 /**
+ *
+ *
+ *
+ */
+typedef struct power_manager_counters {
+  /**
+   * The counter to set and unset the reset and switch of the CPU.
+   */
+  uint32_t reset_off;
+  /**
+  *
+  *
+  *
+  */
+  uint32_t reset_on;
+  /**
+  *
+  *
+  *
+  */
+  uint32_t switch_off;
+  /**
+  *
+  *
+  *
+  */
+  uint32_t switch_on;
+  /**
+  *
+  *
+  *
+  */
+  uint32_t iso_off;
+  /**
+  *
+  *
+  *
+  */
+  uint32_t iso_on;
+  /**
+  *
+  *
+  *
+  */
+  uint32_t retentive_off;
+  /**
+  *
+  *
+  *
+  */
+  uint32_t retentive_on;
+} power_manager_counters_t;
+
+/**
+ * @todo completely wrong, copy paste from DMA
  * Interrupts must be enabled in the INTERRUPT register of the DMA.
  * Only one at a time. In case more than one is interrupt is to be triggered,
  * at the same time (last byte of a transaction of size multiple of the window
@@ -115,6 +170,11 @@ static struct
      */
     power_manager *peri;
 
+    /**
+     * memory mapped structure of a power manager.
+     */
+    power_manager_counters_t counters;
+
 }power_manager_cb;
 
 /****************************************************************************/
@@ -132,7 +192,9 @@ void power_manager_init( power_manager *peri )
     power_manager_cb.peri = peri ? peri : power_manager_peri;
 
     /* Clear all values in the power_manager registers. */
-    // @todo check register initializaton
+    /**
+     * @todo check register initializaton
+     * */
     power_manager_cb.peri->WAKEUP_STATE                    = 0;
     power_manager_cb.peri->RESTORE_ADDRESS                 = 0;
     power_manager_cb.peri->EN_WAIT_FOR_INTR                = 0;
@@ -345,15 +407,15 @@ void __attribute__ ((noinline)) power_gate_core_asm()
     return;
 }
 
-power_manager_result_t __attribute__ ((noinline)) power_gate_core(power_manager_sel_intr_t sel_intr, power_manager_counters_t* cpu_counter)
+power_manager_result_t __attribute__ ((noinline)) power_gate_core(power_manager_sel_intr_t sel_intr)
 {
     // set counters
-    power_manager_cb.peri->CPU_RESET_ASSERT_COUNTER = cpu_counter->reset_off;
-    power_manager_cb.peri->CPU_RESET_DEASSERT_COUNTER = cpu_counter->reset_on;
-    power_manager_cb.peri->CPU_SWITCH_OFF_COUNTER = cpu_counter->switch_off;
-    power_manager_cb.peri->CPU_SWITCH_ON_COUNTER = cpu_counter->switch_on;
-    power_manager_cb.peri->CPU_ISO_OFF_COUNTER = cpu_counter->iso_off;
-    power_manager_cb.peri->CPU_ISO_ON_COUNTER = cpu_counter->iso_on;
+    power_manager_cb.peri->CPU_RESET_ASSERT_COUNTER = power_manager_cb.counters.reset_off;
+    power_manager_cb.peri->CPU_RESET_DEASSERT_COUNTER = power_manager_cb.counters.reset_on;
+    power_manager_cb.peri->CPU_SWITCH_OFF_COUNTER = power_manager_cb.counters.switch_off;
+    power_manager_cb.peri->CPU_SWITCH_ON_COUNTER = power_manager_cb.counters.switch_on;
+    power_manager_cb.peri->CPU_ISO_OFF_COUNTER = power_manager_cb.counters.iso_off;
+    power_manager_cb.peri->CPU_ISO_ON_COUNTER = power_manager_cb.counters.iso_on;
 
     // enable wakeup timers
     power_manager_cb.peri->EN_WAIT_FOR_INTR = 1 << sel_intr;
@@ -383,7 +445,7 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_core(power_manager_
     return kPowerManagerOk_e;
 }
 
-power_manager_result_t __attribute__ ((noinline)) power_gate_periph(power_manager_sel_state_t sel_state, power_manager_counters_t* periph_counters)
+power_manager_result_t __attribute__ ((noinline)) power_gate_periph(power_manager_sel_state_t sel_state)
 {
     uint32_t reg = 0;
 
@@ -395,27 +457,27 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_periph(power_manage
 
     if (sel_state == kOn_e)
     {
-        for (int i=0; i<periph_counters->switch_on; i++) asm volatile ("nop\n;");
+        for (int i=0; i<power_manager_cb.counters.switch_on; i++) asm volatile ("nop\n;");
         power_manager_cb.peri->PERIPH_SWITCH = 0x0;
-        for (int i=0; i<periph_counters->iso_off; i++) asm volatile ("nop\n;");
+        for (int i=0; i<power_manager_cb.counters.iso_off; i++) asm volatile ("nop\n;");
         power_manager_cb.peri->PERIPH_ISO = 0x0;
-        for (int i=0; i<periph_counters->reset_off; i++) asm volatile ("nop\n;");
+        for (int i=0; i<power_manager_cb.counters.reset_off; i++) asm volatile ("nop\n;");
         power_manager_cb.peri->PERIPH_RESET = 0x0;
     }
     else
     {
-        for (int i=0; i<periph_counters->iso_on; i++) asm volatile ("nop\n;");
+        for (int i=0; i<power_manager_cb.counters.iso_on; i++) asm volatile ("nop\n;");
         power_manager_cb.peri->PERIPH_ISO = 0x1;
-        for (int i=0; i<periph_counters->switch_off; i++) asm volatile ("nop\n;");
+        for (int i=0; i<power_manager_cb.counters.switch_off; i++) asm volatile ("nop\n;");
         power_manager_cb.peri->PERIPH_SWITCH = 0x1;
-        for (int i=0; i<periph_counters->reset_on; i++) asm volatile ("nop\n;");
+        for (int i=0; i<power_manager_cb.counters.reset_on; i++) asm volatile ("nop\n;");
         power_manager_cb.peri->PERIPH_RESET = 0x1;
     }
 
     return kPowerManagerOk_e;
 }
 
-power_manager_result_t __attribute__ ((noinline)) power_gate_ram_block(uint32_t sel_block, power_manager_sel_state_t sel_state, power_manager_counters_t* ram_block_counters)
+power_manager_result_t __attribute__ ((noinline)) power_gate_ram_block(uint32_t sel_block, power_manager_sel_state_t sel_state)
 {
     uint32_t reg = 0;
 
@@ -430,9 +492,9 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_ram_block(uint32_t 
         #else
             *(&power_manager_cb.peri->RAM_0_WAIT_ACK_SWITCH_ON + sel_block*6) = 0x1;
         #endif
-        for (int i=0; i<ram_block_counters->switch_on; i++) asm volatile ("nop\n;");
+        for (int i=0; i<power_manager_cb.counters.switch_on; i++) asm volatile ("nop\n;");
         *(&power_manager_cb.peri->RAM_0_SWITCH + sel_block*6) = 0x0;
-        for (int i=0; i<ram_block_counters->iso_off; i++) asm volatile ("nop\n;");
+        for (int i=0; i<power_manager_cb.counters.iso_off; i++) asm volatile ("nop\n;");
         *(&power_manager_cb.peri->RAM_0_ISO + sel_block*6) = 0x0;
     }
     else if (sel_state == kOff_e)
@@ -442,28 +504,28 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_ram_block(uint32_t 
         #else
             *(&power_manager_cb.peri->RAM_0_WAIT_ACK_SWITCH_ON + sel_block*6) = 0x1;
         #endif
-        for (int i=0; i<ram_block_counters->iso_on; i++) asm volatile ("nop\n;");
+        for (int i=0; i<power_manager_cb.counters.iso_on; i++) asm volatile ("nop\n;");
         *(&power_manager_cb.peri->RAM_0_ISO + sel_block*6) = 0x1;
-        for (int i=0; i<ram_block_counters->switch_off; i++) asm volatile ("nop\n;");
+        for (int i=0; i<power_manager_cb.counters.switch_off; i++) asm volatile ("nop\n;");
         *(&power_manager_cb.peri->RAM_0_SWITCH + sel_block*6) = 0x1;
     }
     else if (sel_state == kRetOn_e)
     {
         *(&power_manager_cb.peri->RAM_0_WAIT_ACK_SWITCH_ON + sel_block*6) = 0x0;
-        for (int i=0; i<ram_block_counters->retentive_on; i++) asm volatile ("nop\n;");
+        for (int i=0; i<power_manager_cb.counters.retentive_on; i++) asm volatile ("nop\n;");
         *(&power_manager_cb.peri->RAM_0_RETENTIVE + sel_block*6) = 0x1;
     }
     else
     {
         *(&power_manager_cb.peri->RAM_0_WAIT_ACK_SWITCH_ON + sel_block*6) = 0x0;
-        for (int i=0; i<ram_block_counters->retentive_off; i++) asm volatile ("nop\n;");
+        for (int i=0; i<power_manager_cb.counters.retentive_off; i++) asm volatile ("nop\n;");
         *(&power_manager_cb.peri->RAM_0_RETENTIVE + sel_block*6) = 0x0;
     }
 
     return kPowerManagerOk_e;
 }
 
-power_manager_result_t __attribute__ ((noinline)) power_gate_external(uint32_t sel_external, power_manager_sel_state_t sel_state, power_manager_counters_t* external_counters)
+power_manager_result_t __attribute__ ((noinline)) power_gate_external(uint32_t sel_external, power_manager_sel_state_t sel_state)
 {
 
     /**
@@ -547,16 +609,16 @@ uint32_t external_power_domain_is_off(uint32_t sel_external)
     #endif
 }
 
-power_manager_result_t power_gate_counters_init(power_manager_counters_t* counters, uint32_t reset_off, uint32_t reset_on, uint32_t switch_off, uint32_t switch_on, uint32_t iso_off, uint32_t iso_on, uint32_t retentive_off, uint32_t retentive_on)
+power_manager_result_t power_gate_counters_init(uint32_t reset_off, uint32_t reset_on, uint32_t switch_off, uint32_t switch_on, uint32_t iso_off, uint32_t iso_on, uint32_t retentive_off, uint32_t retentive_on)
 {
-    counters->reset_off     = reset_off;
-    counters->reset_on      = reset_on;
-    counters->switch_off    = switch_off;
-    counters->switch_on     = switch_on;
-    counters->iso_off       = iso_off;
-    counters->iso_on        = iso_on;
-    counters->retentive_off = retentive_off;
-    counters->retentive_on  = retentive_on;
+    power_manager_cb.counters.reset_off     = reset_off;
+    power_manager_cb.counters.reset_on      = reset_on;
+    power_manager_cb.counters.switch_off    = switch_off;
+    power_manager_cb.counters.switch_on     = switch_on;
+    power_manager_cb.counters.iso_off       = iso_off;
+    power_manager_cb.counters.iso_on        = iso_on;
+    power_manager_cb.counters.retentive_off = retentive_off;
+    power_manager_cb.counters.retentive_on  = retentive_on;
 
     return kPowerManagerOk_e;
 }

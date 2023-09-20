@@ -26,12 +26,13 @@ Description : Original version
 
 /**
  * @todo
- * bitfield -> create enums
+ * Create enums for modes and interrupts
  * remove unnecesary structs
  * counters init
  * initilization slave registers
  * review headers
  * Fix all applications
+ * Different counters for each peripheral
 */
 
 /**
@@ -237,60 +238,6 @@ typedef struct monitor_signals {
  *
  *
  */
-typedef struct power_manager_counters {
-  /**
-   * The counter to set and unset the reset and switch of the CPU.
-   */
-  uint32_t reset_off;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t reset_on;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t switch_off;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t switch_on;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t iso_off;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t iso_on;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t retentive_off;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t retentive_on;
-} power_manager_counters_t;
-
-/**
- *
- *
- *
- */
 typedef struct power_manager_ram_map_t {
   /**
   *
@@ -462,7 +409,7 @@ void power_manager_init( power_manager *peri );
  * @param retentive_on
  * @return The result of the operation.
  */
-power_manager_result_t power_gate_counters_init(power_manager_counters_t* counters, uint32_t reset_off, uint32_t reset_on, uint32_t switch_off, uint32_t switch_on, uint32_t iso_off, uint32_t iso_on, uint32_t retentive_off, uint32_t retentive_on);
+power_manager_result_t power_gate_counters_init(uint32_t reset_off, uint32_t reset_on, uint32_t switch_off, uint32_t switch_on, uint32_t iso_off, uint32_t iso_on, uint32_t retentive_off, uint32_t retentive_on);
 
 /**
  *
@@ -474,7 +421,7 @@ power_manager_result_t power_gate_counters_init(power_manager_counters_t* counte
  * @param cpu_counters
  * @return The result of the operation.
  */
-power_manager_result_t power_gate_core(power_manager_sel_intr_t sel_intr, power_manager_counters_t* cpu_counters);
+power_manager_result_t power_gate_core(power_manager_sel_intr_t sel_intr);
 
 /**
  *
@@ -486,7 +433,7 @@ power_manager_result_t power_gate_core(power_manager_sel_intr_t sel_intr, power_
  * @param periph_counters
  * @return The result of the operation.
  */
-power_manager_result_t power_gate_periph(power_manager_sel_state_t sel_state, power_manager_counters_t* periph_counters);
+power_manager_result_t power_gate_periph(power_manager_sel_state_t sel_state);
 
 /**
  *
@@ -499,7 +446,7 @@ power_manager_result_t power_gate_periph(power_manager_sel_state_t sel_state, po
  * @param ram_block_counters
  * @return The result of the operation.
  */
-power_manager_result_t power_gate_ram_block(uint32_t sel_block, power_manager_sel_state_t sel_state, power_manager_counters_t* ram_block_counters);
+power_manager_result_t power_gate_ram_block(uint32_t sel_block, power_manager_sel_state_t sel_state);
 
 /**
  *
@@ -512,7 +459,7 @@ power_manager_result_t power_gate_ram_block(uint32_t sel_block, power_manager_se
  * @param external_counters
  * @return The result of the operation.
  */
-power_manager_result_t power_gate_external(uint32_t sel_external, power_manager_sel_state_t sel_state, power_manager_counters_t* external_counters);
+power_manager_result_t power_gate_external(uint32_t sel_external, power_manager_sel_state_t sel_state);
 
 /**
  *
