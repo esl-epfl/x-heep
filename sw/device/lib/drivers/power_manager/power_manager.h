@@ -28,18 +28,16 @@ Description : Original version
  * @todo
  * Create enums for modes and interrupts
  * remove unnecesary structs
- * counters init
  * initilization slave registers
  * review headers
- * Fix all applications
  * Different counters for each peripheral
- * Test power gate external in questa
+ * Test all external examples in questa and fpga
+ * Test dma-power-gate in questa and fpga
+ * Add to dma power gate cannot execute in verilator
 */
 
 /**
- * @todo sanity checks
- * External power manager only if something is connected
- * Ram sel maximum to the number of rams - Define num banks
+ * @todo sanity checks - assert or error?
 */
 
 /***************************************************************************/
@@ -445,7 +443,7 @@ power_manager_result_t power_gate_periph(power_manager_sel_state_t sel_state);
  * @param sel_block
  * @param sel_state
  * @param ram_block_counters
- * @return The result of the operation.
+ * @return The result of the operation: 0 for success, 1 if trying to access innexistant RAM
  */
 power_manager_result_t power_gate_ram_block(uint32_t sel_block, power_manager_sel_state_t sel_state);
 
