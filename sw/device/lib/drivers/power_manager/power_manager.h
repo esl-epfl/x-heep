@@ -31,6 +31,7 @@ Description : Original version
  * counters init
  * initilization slave registers
  * review headers
+ * Fix all applications
 */
 
 /**

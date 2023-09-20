@@ -62,6 +62,23 @@ Description : Original version
 /**                                                                        **/
 /****************************************************************************/
 
+/**
+ * Interrupts must be enabled in the INTERRUPT register of the DMA.
+ * Only one at a time. In case more than one is interrupt is to be triggered,
+ * at the same time (last byte of a transaction of size multiple of the window
+ * size) only the lowest ID is triggered.
+ */
+typedef enum
+{
+    INTR_EN_NONE        = 0x0, /*!< No interrupts should be triggered. */
+    INTR_EN_TRANS_DONE  = 0x1, /*!< The TRANS_DONE interrupt is a fast
+    interrupt that is triggered once the whole transaction has finished. */
+    INTR_EN_WINDOW_DONE = 0x2, /*!< The WINDOW_DONE interrupt is a PLIC
+    interrupt that is triggered every given number of bytes (set in the
+    transaction configuration as win_du). */
+    INTR_EN__size,
+} inter_en_t;
+
 /****************************************************************************/
 /**                                                                        **/
 /*                      PROTOTYPES OF LOCAL FUNCTIONS                       */
@@ -330,8 +347,6 @@ void __attribute__ ((noinline)) power_gate_core_asm()
 
 power_manager_result_t __attribute__ ((noinline)) power_gate_core(power_manager_sel_intr_t sel_intr, power_manager_counters_t* cpu_counter)
 {
-    uint32_t reg = 0;
-
     // set counters
     power_manager_cb.peri->CPU_RESET_ASSERT_COUNTER = cpu_counter->reset_off;
     power_manager_cb.peri->CPU_RESET_DEASSERT_COUNTER = cpu_counter->reset_on;
@@ -346,11 +361,10 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_core(power_manager_
 
     // enable wait for SWITCH ACK
     #ifdef TARGET_PYNQ_Z2
-        reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, 0x0);
+        power_manager_cb.peri->CPU_WAIT_ACK_SWITCH_ON_COUNTER = bitfield_bit32_write(power_manager_cb.peri->CPU_WAIT_ACK_SWITCH_ON_COUNTER, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, false);
     #else
-        reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, 0x1);
+        power_manager_cb.peri->CPU_WAIT_ACK_SWITCH_ON_COUNTER = bitfield_bit32_write(power_manager_cb.peri->CPU_WAIT_ACK_SWITCH_ON_COUNTER, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
     #endif
-    power_manager_cb.peri->CPU_WAIT_ACK_SWITCH_ON_COUNTER = reg;
 
     power_gate_core_asm();
 
@@ -359,14 +373,12 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_core(power_manager_
     power_manager_cb.peri->INTR_STATE = 0x0;
 
     // stop counters
-    reg = 0;
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_RESET_ASSERT_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_RESET_DEASSERT_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_SWITCH_OFF_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_SWITCH_ON_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_ISO_OFF_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_ISO_ON_STOP_BIT_COUNTER_BIT, true);
-    power_manager_cb.peri->CPU_COUNTERS_STOP = reg;
+    power_manager_cb.peri->CPU_COUNTERS_STOP = bitfield_bit32_write(power_manager_cb.peri->CPU_COUNTERS_STOP, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_RESET_ASSERT_STOP_BIT_COUNTER_BIT, true);
+    power_manager_cb.peri->CPU_COUNTERS_STOP = bitfield_bit32_write(power_manager_cb.peri->CPU_COUNTERS_STOP, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_RESET_DEASSERT_STOP_BIT_COUNTER_BIT, true);
+    power_manager_cb.peri->CPU_COUNTERS_STOP = bitfield_bit32_write(power_manager_cb.peri->CPU_COUNTERS_STOP, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_SWITCH_OFF_STOP_BIT_COUNTER_BIT, true);
+    power_manager_cb.peri->CPU_COUNTERS_STOP = bitfield_bit32_write(power_manager_cb.peri->CPU_COUNTERS_STOP, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_SWITCH_ON_STOP_BIT_COUNTER_BIT, true);
+    power_manager_cb.peri->CPU_COUNTERS_STOP = bitfield_bit32_write(power_manager_cb.peri->CPU_COUNTERS_STOP, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_ISO_OFF_STOP_BIT_COUNTER_BIT, true);
+    power_manager_cb.peri->CPU_COUNTERS_STOP = bitfield_bit32_write(power_manager_cb.peri->CPU_COUNTERS_STOP, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_ISO_ON_STOP_BIT_COUNTER_BIT, true);
 
     return kPowerManagerOk_e;
 }
