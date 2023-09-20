@@ -232,146 +232,6 @@ typedef struct monitor_signals {
   uint32_t kReset_e;
 } monitor_signals_t;
 
-/**
- *
- *
- *
- */
-typedef struct power_manager_ram_map_t {
-  /**
-  *
-  *
-  *
-  */
-  uint32_t clk_gate;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t power_gate_ack;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t switch_off;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t wait_ack_switch;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t iso;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t retentive;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t monitor_power_gate;
-} power_manager_ram_map_t;
-
-/**
- *
- *
- *
- */
-static power_manager_ram_map_t power_manager_ram_map[2] = {
-  (power_manager_ram_map_t) {
-    .clk_gate = POWER_MANAGER_RAM_0_CLK_GATE_REG_OFFSET,
-    .power_gate_ack = POWER_MANAGER_POWER_GATE_RAM_BLOCK_0_ACK_REG_OFFSET,
-    .switch_off = POWER_MANAGER_RAM_0_SWITCH_REG_OFFSET,
-    .wait_ack_switch = POWER_MANAGER_RAM_0_WAIT_ACK_SWITCH_ON_REG_OFFSET,
-    .iso = POWER_MANAGER_RAM_0_ISO_REG_OFFSET,
-    .retentive = POWER_MANAGER_RAM_0_RETENTIVE_REG_OFFSET,
-    .monitor_power_gate = POWER_MANAGER_MONITOR_POWER_GATE_RAM_BLOCK_0_REG_OFFSET
-  },
-  (power_manager_ram_map_t) {
-    .clk_gate = POWER_MANAGER_RAM_1_CLK_GATE_REG_OFFSET,
-    .power_gate_ack = POWER_MANAGER_POWER_GATE_RAM_BLOCK_1_ACK_REG_OFFSET,
-    .switch_off = POWER_MANAGER_RAM_1_SWITCH_REG_OFFSET,
-    .wait_ack_switch = POWER_MANAGER_RAM_1_WAIT_ACK_SWITCH_ON_REG_OFFSET,
-    .iso = POWER_MANAGER_RAM_1_ISO_REG_OFFSET,
-    .retentive = POWER_MANAGER_RAM_1_RETENTIVE_REG_OFFSET,
-    .monitor_power_gate = POWER_MANAGER_MONITOR_POWER_GATE_RAM_BLOCK_1_REG_OFFSET
-  },
-};
-
-/**
- *
- *
- *
- */
-typedef struct power_manager_external_map_t {
-  /**
-  *
-  *
-  *
-  */
-  uint32_t clk_gate;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t power_gate_ack;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t reset;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t switch_off;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t wait_ack_switch;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t iso;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t retentive;
-  /**
-  *
-  *
-  *
-  */
-  uint32_t monitor_power_gate;
-} power_manager_external_map_t;
-
-/**
-  *
-  *
-  *
-  */
-static power_manager_external_map_t power_manager_external_map[0] = {
-};
-
 /****************************************************************************/
 /**                                                                        **/
 /**                          EXPORTED VARIABLES                            **/
@@ -397,7 +257,6 @@ void power_manager_init( power_manager *peri );
  *
  * This function does not actuate the hardware.
  *
- * @param counters
  * @param reset_off
  * @param reset_on
  * @param switch_off
@@ -417,7 +276,6 @@ power_manager_result_t power_gate_counters_init(uint32_t reset_off, uint32_t res
  *
  * @param power_manager A power manager handle.
  * @param sel_intr
- * @param cpu_counters
  * @return The result of the operation.
  */
 power_manager_result_t power_gate_core(power_manager_sel_intr_t sel_intr);
@@ -427,9 +285,7 @@ power_manager_result_t power_gate_core(power_manager_sel_intr_t sel_intr);
  *
  *
  *
- * @param power_manager A power manager handle.
  * @param sel_state
- * @param periph_counters
  * @return The result of the operation.
  */
 power_manager_result_t power_gate_periph(power_manager_sel_state_t sel_state);
@@ -439,10 +295,8 @@ power_manager_result_t power_gate_periph(power_manager_sel_state_t sel_state);
  *
  *
  *
- * @param power_manager A power manager handle.
  * @param sel_block
  * @param sel_state
- * @param ram_block_counters
  * @return The result of the operation: 0 for success, 1 if trying to access innexistant RAM
  */
 power_manager_result_t power_gate_ram_block(uint32_t sel_block, power_manager_sel_state_t sel_state);
@@ -452,10 +306,8 @@ power_manager_result_t power_gate_ram_block(uint32_t sel_block, power_manager_se
  *
  *
  *
- * @param power_manager A power manager handle.
  * @param sel_external
  * @param sel_state
- * @param external_counters
  * @return The result of the operation.
  */
 power_manager_result_t power_gate_external(uint32_t sel_external, power_manager_sel_state_t sel_state);
@@ -465,7 +317,6 @@ power_manager_result_t power_gate_external(uint32_t sel_external, power_manager_
  *
  *
  *
- * @param power_manager A power manager handle.
  * @return The result of the operation.
  */
 uint32_t periph_power_domain_is_off();
@@ -475,7 +326,6 @@ uint32_t periph_power_domain_is_off();
  *
  *
  *
- * @param power_manager A power manager handle.
  * @param sel_block
  * @return The result of the operation.
  */
@@ -486,7 +336,6 @@ uint32_t ram_block_power_domain_is_off(uint32_t sel_block);
  *
  *
  *
- * @param power_manager A power manager handle.
  * @param sel_external
  * @return The result of the operation.
  */
@@ -497,7 +346,6 @@ uint32_t external_power_domain_is_off(uint32_t sel_external);
  *
  *
  *
- * @param power_manager A power manager handle.
  * @return The result of the operation.
  */
 monitor_signals_t monitor_power_gate_core();
@@ -507,7 +355,6 @@ monitor_signals_t monitor_power_gate_core();
  *
  *
  *
- * @param power_manager A power manager handle.
  * @return The result of the operation.
  */
 monitor_signals_t monitor_power_gate_periph();
@@ -517,7 +364,6 @@ monitor_signals_t monitor_power_gate_periph();
  *
  *
  *
- * @param power_manager A power manager handle.
  * @param sel_block
  * @return The result of the operation.
  */
@@ -528,7 +374,6 @@ monitor_signals_t monitor_power_gate_ram_block(uint32_t sel_block);
  *
  *
  *
- * @param power_manager A power manager handle.
  * @param sel_external
  * @return The result of the operation.
  */
