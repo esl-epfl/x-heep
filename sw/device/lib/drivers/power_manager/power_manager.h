@@ -34,6 +34,7 @@ Description : Original version
  * Test all external examples in questa and fpga
  * Test dma-power-gate in questa and fpga
  * Add to dma power gate cannot execute in verilator
+ * Check clock gate in the simultion
 */
 
 /**
@@ -274,7 +275,38 @@ power_manager_result_t power_gate_counters_init(uint32_t reset_off, uint32_t res
  *
  *
  *
- * @param power_manager A power manager handle.
+ * @param sel_state
+ * @return The result of the operation.
+ */
+power_manager_result_t clock_gate_periph(power_manager_sel_state_t sel_state);
+
+/**
+ *
+ *
+ *
+ *
+ * @param sel_block
+ * @param sel_state
+ * @return The result of the operation.
+ */
+power_manager_result_t clock_gate_ram_block(uint32_t sel_block, power_manager_sel_state_t sel_state);
+
+/**
+ *
+ *
+ *
+ *
+ * @param sel_external
+ * @param sel_state
+ * @return The result of the operation.
+ */
+power_manager_result_t clock_gate_external(uint32_t sel_external, power_manager_sel_state_t sel_state);
+
+/**
+ *
+ *
+ *
+ *
  * @param sel_intr
  * @return The result of the operation.
  */

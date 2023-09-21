@@ -239,6 +239,55 @@ void power_manager_init( power_manager *peri )
     // power_manager_cb.peri->MASTER_CPU_FORCE_ISO_ON         = 0;
 }
 
+power_manager_result_t __attribute__ ((noinline)) clock_gate_periph(power_manager_sel_state_t sel_state){
+    if (sel_state == kOn_e)
+    {
+        power_manager_cb.peri->PERIPH_CLK_GATE = 0x0;
+    }
+    else
+    {
+        power_manager_cb.peri->PERIPH_CLK_GATE = 0x1;
+    }
+
+    return kPowerManagerOk_e;
+}
+
+power_manager_result_t __attribute__ ((noinline)) clock_gate_ram_block(uint32_t sel_block, power_manager_sel_state_t sel_state){
+    if (sel_state == kOn_e)
+    {
+        *((uint32_t *)&power_manager_cb.peri->RAM_0_CLK_GATE + sel_block*6) = 0x0;
+    }
+    else
+    {
+        *((uint32_t *)&power_manager_cb.peri->RAM_0_CLK_GATE + sel_block*6) = 0x1;
+    }
+
+    return kPowerManagerOk_e;
+}
+
+power_manager_result_t __attribute__ ((noinline)) clock_gate_external(uint32_t sel_external, power_manager_sel_state_t sel_state){
+
+    if (sel_external >= EXTERNAL_DOMAINS){
+        // Sanity check on the number of external domains available. Return with an error if the external domain accessed is greater than the number of external domains avaliable
+        return kPowerManagerError_e;
+    }else{
+        #if EXTERNAL_DOMAINS > 0
+
+        if (sel_state == kOn_e)
+        {
+            *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_CLK_GATE + sel_external*7) = 0x0;
+        }
+        else
+        {
+            *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_CLK_GATE + sel_external*7) = 0x1;
+        }
+
+        #endif
+    }
+
+    return kPowerManagerOk_e;
+}
+
 void __attribute__ ((noinline)) power_gate_core_asm()
 {
     asm volatile (
@@ -539,11 +588,11 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_external(uint32_t s
             #else
                 *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_WAIT_ACK_SWITCH_ON + sel_external*7) = 0x1;
             #endif
-            for (int i=0; i<external_counters->switch_on; i++) asm volatile ("nop\n;");
+            for (int i=0; i<power_manager_cb.counters.switch_on; i++) asm volatile ("nop\n;");
             *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_SWITCH + sel_external*7) = 0x0;
-            for (int i=0; i<external_counters->iso_off; i++) asm volatile ("nop\n;");
+            for (int i=0; i<power_manager_cb.counters.iso_off; i++) asm volatile ("nop\n;");
             *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_ISO + sel_external*7) = 0x0;
-            for (int i=0; i<external_counters->reset_off; i++) asm volatile ("nop\n;");
+            for (int i=0; i<power_manager_cb.counters.reset_off; i++) asm volatile ("nop\n;");
             *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_RESET + sel_external*7) = 0x0;
         }
         else if (sel_state == kOff_e)
@@ -553,23 +602,23 @@ power_manager_result_t __attribute__ ((noinline)) power_gate_external(uint32_t s
             #else
                 *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_WAIT_ACK_SWITCH_ON + sel_external*7) = 0x1;
             #endif
-            for (int i=0; i<external_counters->iso_on; i++) asm volatile ("nop\n;");
+            for (int i=0; i<power_manager_cb.counters.iso_on; i++) asm volatile ("nop\n;");
             *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_ISO + sel_external*7) = 0x1;
-            for (int i=0; i<external_counters->switch_off; i++) asm volatile ("nop\n;");
+            for (int i=0; i<power_manager_cb.counters.switch_off; i++) asm volatile ("nop\n;");
             *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_SWITCH + sel_external*7) = 0x1;
-            for (int i=0; i<external_counters->reset_on; i++) asm volatile ("nop\n;");
+            for (int i=0; i<power_manager_cb.counters.reset_on; i++) asm volatile ("nop\n;");
             *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_RESET + sel_external*7) = 0x1;
         }
         else if (sel_state == kRetOn_e)
         {
             *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_WAIT_ACK_SWITCH_ON + sel_external*7) = 0x0;
-            for (int i=0; i<external_counters->retentive_on; i++) asm volatile ("nop\n;");
+            for (int i=0; i<power_manager_cb.counters.retentive_on; i++) asm volatile ("nop\n;");
             *((uint32_t *)&power_manager_cb.peri->EXTERNAL_RAM_0_RETENTIVE + sel_external*7) = 0x1;
         }
         else
         {
             *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_WAIT_ACK_SWITCH_ON + sel_external*7) = 0x0;
-            for (int i=0; i<external_counters->retentive_off; i++) asm volatile ("nop\n;");
+            for (int i=0; i<power_manager_cb.counters.retentive_off; i++) asm volatile ("nop\n;");
             *((uint32_t *)&power_manager_cb.peri->EXTERNAL_RAM_0_RETENTIVE + sel_external*7) = 0x0;
         }
 

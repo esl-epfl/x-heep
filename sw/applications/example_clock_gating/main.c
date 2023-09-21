@@ -29,30 +29,30 @@ int main(int argc, char *argv[])
     power_manager_init(NULL);
 
     // Clock-gating the peripheral subsystem
-    mmio_region_write32((ptrdiff_t)(POWER_MANAGER_PERIPH_CLK_GATE_REG_OFFSET), 0x1);
+    clock_gate_periph(kOff_e);
 
     // Clock-gating ram-banks
     // We probably should not clockgate the bank where our RAM resides
     for(uint32_t i = 2; i < MEMORY_BANKS; ++i)
-        mmio_region_write32((ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x1);
+        clock_gate_ram_block(i,kOff_e);
 
     // Clock-gating external subsystems
     for(uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
-        mmio_region_write32((ptrdiff_t)(power_manager_external_map[i].clk_gate), 0x1);
+        clock_gate_external(i,kOff_e);
 
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop;");
 
     // Enabling the peripheral subsystem
-    mmio_region_write32((ptrdiff_t)(POWER_MANAGER_PERIPH_CLK_GATE_REG_OFFSET), 0x0);
+    clock_gate_periph(kOn_e);
 
     // Enabling ram-banks
     for(uint32_t i = 2; i < MEMORY_BANKS; ++i)
-        mmio_region_write32((ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x0);
+        clock_gate_ram_block(i,kOn_e);
 
     // Enabling external subsystems
     for(uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
-        mmio_region_write32((ptrdiff_t)(power_manager_external_map[i].clk_gate), 0x0);
+        clock_gate_external(i,kOn_e);
 
     /* write something to stdout */
     PRINTF("Success.\n\r");
