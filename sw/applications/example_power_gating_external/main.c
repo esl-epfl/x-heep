@@ -23,38 +23,33 @@
     #define PRINTF(...)
 #endif
 
-static power_manager_t power_manager;
-
 int main(int argc, char *argv[])
 {
     // Setup power_manager
-    mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
-    power_manager.base_addr = power_manager_reg;
-
-    power_manager_counters_t power_manager_external_counters;
+    power_manager_init(NULL);
 
     // Init ram block 2's counters
-    if (power_gate_counters_init(&power_manager_external_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
+    if (power_gate_counters_init(30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
         return EXIT_FAILURE;
     }
 
     // Power off external domain
-    if (power_gate_external(&power_manager, 0, kOff_e, &power_manager_external_counters) != kPowerManagerOk_e)
+    if (power_gate_external(0, kOff_e) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
     }
 
     // Check that the external domain is actually OFF
-    while(!external_power_domain_is_off(&power_manager, 0));
+    while(!external_power_domain_is_off(0));
 
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop");
 
     // Power on external domain
-    if (power_gate_external(&power_manager, 0, kOn_e, &power_manager_external_counters) != kPowerManagerOk_e)
+    if (power_gate_external(0, kOn_e) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;

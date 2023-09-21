@@ -23,25 +23,20 @@
     #define PRINTF(...)
 #endif
 
-static power_manager_t power_manager;
-
 int main(int argc, char *argv[])
 {
     // Setup power_manager
-    mmio_region_t power_manager_reg = mmio_region_from_addr(POWER_MANAGER_START_ADDRESS);
-    power_manager.base_addr = power_manager_reg;
-
-    power_manager_counters_t power_manager_external_ram_blocks_counters;
+    power_manager_init(NULL);
 
     // Init external ram block 0's counters
-    if (power_gate_counters_init(&power_manager_external_ram_blocks_counters, 0, 0, 0, 0, 0, 0, 30, 30) != kPowerManagerOk_e)
+    if (power_gate_counters_init(0, 0, 0, 0, 0, 0, 30, 30) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
         return EXIT_FAILURE;
     }
 
     // Set retention mode on for external ram block 0
-    if (power_gate_external(&power_manager, 0, kRetOn_e, &power_manager_external_ram_blocks_counters) != kPowerManagerOk_e)
+    if (power_gate_external(0, kRetOn_e) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -51,7 +46,7 @@ int main(int argc, char *argv[])
     for (int i=0; i<100; i++) asm volatile("nop");
 
     // Set retention mode off for external ram block 0
-    if (power_gate_external(&power_manager, 0, kRetOff_e, &power_manager_external_ram_blocks_counters) != kPowerManagerOk_e)
+    if (power_gate_external(0, kRetOff_e) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;

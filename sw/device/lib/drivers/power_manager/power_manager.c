@@ -1,20 +1,292 @@
-// Copyright 2022 OpenHW Group
-// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
-// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+/*
+                              *******************
+******************************* C SOURCE FILE *******************************
+**                            *******************                          **
+**                                                                         **
+** project  : X-HEEP                                                       **
+** filename : power_manager.c                                              **
+** version  : 1                                                            **
+** date     : 22/08/23                                                     **
+**                                                                         **
+*****************************************************************************
+**                                                                         **
+** Copyright (c) EPFL contributors.                                        **
+** All rights reserved.                                                    **
+**                                                                         **
+*****************************************************************************
 
-#include "power_manager.h"
+VERSION HISTORY:
+----------------
+Version     : 1
+Date        : -/-/-
+Revised by  : -
+Description : Original version
 
-#include <stddef.h>
-#include <stdint.h>
+*/
 
-#include "mmio.h"
+/***************************************************************************/
+/***************************************************************************/
 
-#include "core_v_mini_mcu.h"
+/**
+* @file   power_manager.c
+* @date   22/08/23
+* @brief  The Power Manager driver to set up and use the power manager
+* peripheral
+*
+* X-HEEP power domains (take from paper)
+*/
 
-#include "power_manager_regs.h"  // Generated.
+/****************************************************************************/
+/**                                                                        **/
+/*                             MODULES USED                                 */
+/**                                                                        **/
+/****************************************************************************/
+
+#include "power_manager.h"      // Generated
+
+#include "bitfield.h"
+
+#include "power_manager_regs.h" // Generated
 
 #include "x-heep.h"
 
+/****************************************************************************/
+/**                                                                        **/
+/*                        DEFINITIONS AND MACROS                            */
+/**                                                                        **/
+/****************************************************************************/
+
+/****************************************************************************/
+/**                                                                        **/
+/*                        TYPEDEFS AND STRUCTURES                           */
+/**                                                                        **/
+/****************************************************************************/
+
+/**
+ *
+ *
+ *
+ */
+typedef struct power_manager_counters {
+  /**
+   * The counter to set and unset the reset and switch of the CPU.
+   */
+  uint32_t reset_off;
+  /**
+  *
+  *
+  *
+  */
+  uint32_t reset_on;
+  /**
+  *
+  *
+  *
+  */
+  uint32_t switch_off;
+  /**
+  *
+  *
+  *
+  */
+  uint32_t switch_on;
+  /**
+  *
+  *
+  *
+  */
+  uint32_t iso_off;
+  /**
+  *
+  *
+  *
+  */
+  uint32_t iso_on;
+  /**
+  *
+  *
+  *
+  */
+  uint32_t retentive_off;
+  /**
+  *
+  *
+  *
+  */
+  uint32_t retentive_on;
+} power_manager_counters_t;
+
+/**
+ * @todo completely wrong, copy paste from DMA
+ * Interrupts must be enabled in the INTERRUPT register of the DMA.
+ * Only one at a time. In case more than one is interrupt is to be triggered,
+ * at the same time (last byte of a transaction of size multiple of the window
+ * size) only the lowest ID is triggered.
+ */
+typedef enum
+{
+    INTR_EN_NONE        = 0x0, /*!< No interrupts should be triggered. */
+    INTR_EN_TRANS_DONE  = 0x1, /*!< The TRANS_DONE interrupt is a fast
+    interrupt that is triggered once the whole transaction has finished. */
+    INTR_EN_WINDOW_DONE = 0x2, /*!< The WINDOW_DONE interrupt is a PLIC
+    interrupt that is triggered every given number of bytes (set in the
+    transaction configuration as win_du). */
+    INTR_EN__size,
+} inter_en_t;
+
+/****************************************************************************/
+/**                                                                        **/
+/*                      PROTOTYPES OF LOCAL FUNCTIONS                       */
+/**                                                                        **/
+/****************************************************************************/
+
+/****************************************************************************/
+/**                                                                        **/
+/*                           EXPORTED VARIABLES                             */
+/**                                                                        **/
+/****************************************************************************/
+
+/****************************************************************************/
+/**                                                                        **/
+/*                            GLOBAL VARIABLES                              */
+/**                                                                        **/
+/****************************************************************************/
+
+/**
+ * Control Block (CB) of the power manager peripheral.
+ * Has variables and constant necessary/useful for its control.
+ */
+static struct
+{
+    /**
+    * Flag to lower as soon as a transaction is launched, and raised by the
+    * interrupt handler once it has finished. Only used when the end event is
+    * set to INTR_WAIT.
+    */
+    uint8_t intrFlag;
+
+    /**
+     * memory mapped structure of a power manager.
+     */
+    power_manager *peri;
+
+    /**
+     * memory mapped structure of a power manager.
+     */
+    power_manager_counters_t counters;
+
+}power_manager_cb;
+
+/****************************************************************************/
+/**                                                                        **/
+/*                           EXPORTED FUNCTIONS                             */
+/**                                                                        **/
+/****************************************************************************/
+
+void power_manager_init( power_manager *peri )
+{
+    /*
+     * If a power_manager peripheral was provided, use that one, otherwise use the
+     * integrated one.
+     */
+    power_manager_cb.peri = peri ? peri : power_manager_peri;
+
+    /* Clear all values in the power_manager registers. */
+    /**
+     * @todo check register initializaton
+     * */
+    // power_manager_cb.peri->WAKEUP_STATE                    = 0;
+    // power_manager_cb.peri->RESTORE_ADDRESS                 = 0;
+    // power_manager_cb.peri->EN_WAIT_FOR_INTR                = 0;
+    // power_manager_cb.peri->INTR_STATE                      = 0;
+    // power_manager_cb.peri->POWER_GATE_CORE                 = 0;
+    // power_manager_cb.peri->POWER_GATE_CORE_ACK             = 0;
+    // power_manager_cb.peri->CPU_RESET_ASSERT_COUNTER        = 0;
+    // power_manager_cb.peri->CPU_RESET_DEASSERT_COUNTER      = 0;
+    // power_manager_cb.peri->CPU_SWITCH_OFF_COUNTER          = 0;
+    // power_manager_cb.peri->CPU_SWITCH_ON_COUNTER           = 0;
+    // power_manager_cb.peri->CPU_WAIT_ACK_SWITCH_ON_COUNTER  = 0;
+    // power_manager_cb.peri->CPU_ISO_OFF_COUNTER             = 0;
+    // power_manager_cb.peri->CPU_ISO_ON_COUNTER              = 0;
+    // power_manager_cb.peri->CPU_COUNTERS_STOP               = 0;
+    // power_manager_cb.peri->POWER_GATE_PERIPH_ACK           = 0;
+    // power_manager_cb.peri->PERIPH_RESET                    = 0;
+    // power_manager_cb.peri->PERIPH_SWITCH                   = 0;
+    // power_manager_cb.peri->PERIPH_WAIT_ACK_SWITCH_ON       = 0;
+    // power_manager_cb.peri->PERIPH_ISO                      = 0;
+    // power_manager_cb.peri->PERIPH_CLK_GATE                 = 0;
+    // power_manager_cb.peri->RAM_0_CLK_GATE                  = 0;
+    // power_manager_cb.peri->POWER_GATE_RAM_BLOCK_0_ACK      = 0;
+    // power_manager_cb.peri->RAM_0_SWITCH                    = 0;
+    // power_manager_cb.peri->RAM_0_WAIT_ACK_SWITCH_ON        = 0;
+    // power_manager_cb.peri->RAM_0_ISO                       = 0;
+    // power_manager_cb.peri->RAM_0_RETENTIVE                 = 0;
+    // power_manager_cb.peri->RAM_1_CLK_GATE                  = 0;
+    // power_manager_cb.peri->POWER_GATE_RAM_BLOCK_1_ACK      = 0;
+    // power_manager_cb.peri->RAM_1_SWITCH                    = 0;
+    // power_manager_cb.peri->RAM_1_WAIT_ACK_SWITCH_ON        = 0;
+    // power_manager_cb.peri->RAM_1_ISO                       = 0;
+    // power_manager_cb.peri->RAM_1_RETENTIVE                 = 0;
+    // power_manager_cb.peri->MONITOR_POWER_GATE_CORE         = 0;
+    // power_manager_cb.peri->MONITOR_POWER_GATE_PERIPH       = 0;
+    // power_manager_cb.peri->MONITOR_POWER_GATE_RAM_BLOCK_0  = 0;
+    // power_manager_cb.peri->MONITOR_POWER_GATE_RAM_BLOCK_1  = 0;
+    // power_manager_cb.peri->MASTER_CPU_FORCE_SWITCH_OFF     = 0;
+    // power_manager_cb.peri->MASTER_CPU_FORCE_SWITCH_ON      = 0;
+    // power_manager_cb.peri->MASTER_CPU_FORCE_RESET_ASSERT   = 0;
+    // power_manager_cb.peri->MASTER_CPU_FORCE_RESET_DEASSERT = 0;
+    // power_manager_cb.peri->MASTER_CPU_FORCE_ISO_OFF        = 0;
+    // power_manager_cb.peri->MASTER_CPU_FORCE_ISO_ON         = 0;
+}
+
+power_manager_result_t __attribute__ ((noinline)) clock_gate_periph(power_manager_sel_state_t sel_state){
+    if (sel_state == kOn_e)
+    {
+        power_manager_cb.peri->PERIPH_CLK_GATE = 0x0;
+    }
+    else
+    {
+        power_manager_cb.peri->PERIPH_CLK_GATE = 0x1;
+    }
+
+    return kPowerManagerOk_e;
+}
+
+power_manager_result_t __attribute__ ((noinline)) clock_gate_ram_block(uint32_t sel_block, power_manager_sel_state_t sel_state){
+    if (sel_state == kOn_e)
+    {
+        *((uint32_t *)&power_manager_cb.peri->RAM_0_CLK_GATE + sel_block*6) = 0x0;
+    }
+    else
+    {
+        *((uint32_t *)&power_manager_cb.peri->RAM_0_CLK_GATE + sel_block*6) = 0x1;
+    }
+
+    return kPowerManagerOk_e;
+}
+
+power_manager_result_t __attribute__ ((noinline)) clock_gate_external(uint32_t sel_external, power_manager_sel_state_t sel_state){
+
+    if (sel_external >= EXTERNAL_DOMAINS){
+        // Sanity check on the number of external domains available. Return with an error if the external domain accessed is greater than the number of external domains avaliable
+        return kPowerManagerError_e;
+    }else{
+        #if EXTERNAL_DOMAINS > 0
+
+        if (sel_state == kOn_e)
+        {
+            *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_CLK_GATE + sel_external*7) = 0x0;
+        }
+        else
+        {
+            *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_CLK_GATE + sel_external*7) = 0x1;
+        }
+
+        #endif
+    }
+
+    return kPowerManagerOk_e;
+}
 
 void __attribute__ ((noinline)) power_gate_core_asm()
 {
@@ -184,220 +456,227 @@ void __attribute__ ((noinline)) power_gate_core_asm()
     return;
 }
 
-power_manager_result_t __attribute__ ((noinline)) power_gate_core(const power_manager_t *power_manager, power_manager_sel_intr_t sel_intr, power_manager_counters_t* cpu_counter)
+power_manager_result_t __attribute__ ((noinline)) power_gate_core(power_manager_sel_intr_t sel_intr)
 {
-    uint32_t reg = 0;
-
     // set counters
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_RESET_ASSERT_COUNTER_REG_OFFSET), cpu_counter->reset_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_RESET_DEASSERT_COUNTER_REG_OFFSET), cpu_counter->reset_on);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_SWITCH_OFF_COUNTER_REG_OFFSET), cpu_counter->switch_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_SWITCH_ON_COUNTER_REG_OFFSET), cpu_counter->switch_on);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_ISO_OFF_COUNTER_REG_OFFSET), cpu_counter->iso_off);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_ISO_ON_COUNTER_REG_OFFSET), cpu_counter->iso_on);
+    power_manager_cb.peri->CPU_RESET_ASSERT_COUNTER = power_manager_cb.counters.reset_off;
+    power_manager_cb.peri->CPU_RESET_DEASSERT_COUNTER = power_manager_cb.counters.reset_on;
+    power_manager_cb.peri->CPU_SWITCH_OFF_COUNTER = power_manager_cb.counters.switch_off;
+    power_manager_cb.peri->CPU_SWITCH_ON_COUNTER = power_manager_cb.counters.switch_on;
+    power_manager_cb.peri->CPU_ISO_OFF_COUNTER = power_manager_cb.counters.iso_off;
+    power_manager_cb.peri->CPU_ISO_ON_COUNTER = power_manager_cb.counters.iso_on;
 
     // enable wakeup timers
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EN_WAIT_FOR_INTR_REG_OFFSET), 1 << sel_intr);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_INTR_STATE_REG_OFFSET), 0x0);
+    power_manager_cb.peri->EN_WAIT_FOR_INTR = 1 << sel_intr;
+    power_manager_cb.peri->INTR_STATE = 0x0;
 
     // enable wait for SWITCH ACK
     #ifdef TARGET_PYNQ_Z2
-        reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, 0x0);
+        power_manager_cb.peri->CPU_WAIT_ACK_SWITCH_ON_COUNTER = bitfield_bit32_write(power_manager_cb.peri->CPU_WAIT_ACK_SWITCH_ON_COUNTER, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, false);
     #else
-        reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, 0x1);
+        power_manager_cb.peri->CPU_WAIT_ACK_SWITCH_ON_COUNTER = bitfield_bit32_write(power_manager_cb.peri->CPU_WAIT_ACK_SWITCH_ON_COUNTER, POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_BIT, true);
     #endif
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_WAIT_ACK_SWITCH_ON_COUNTER_REG_OFFSET), reg);
 
+    asm volatile ("nop\n;"); // Necessary in SIM to swith on/off the ack signal
     power_gate_core_asm();
 
     // clean up states
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_EN_WAIT_FOR_INTR_REG_OFFSET), 0x0);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_INTR_STATE_REG_OFFSET), 0x0);
+    power_manager_cb.peri->EN_WAIT_FOR_INTR = 0x0;
+    power_manager_cb.peri->INTR_STATE = 0x0;
 
     // stop counters
-    reg = 0;
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_RESET_ASSERT_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_RESET_DEASSERT_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_SWITCH_OFF_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_SWITCH_ON_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_ISO_OFF_STOP_BIT_COUNTER_BIT, true);
-    reg = bitfield_bit32_write(reg, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_ISO_ON_STOP_BIT_COUNTER_BIT, true);
-    mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_CPU_COUNTERS_STOP_REG_OFFSET), reg);
+    power_manager_cb.peri->CPU_COUNTERS_STOP = bitfield_bit32_write(power_manager_cb.peri->CPU_COUNTERS_STOP, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_RESET_ASSERT_STOP_BIT_COUNTER_BIT, true);
+    power_manager_cb.peri->CPU_COUNTERS_STOP = bitfield_bit32_write(power_manager_cb.peri->CPU_COUNTERS_STOP, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_RESET_DEASSERT_STOP_BIT_COUNTER_BIT, true);
+    power_manager_cb.peri->CPU_COUNTERS_STOP = bitfield_bit32_write(power_manager_cb.peri->CPU_COUNTERS_STOP, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_SWITCH_OFF_STOP_BIT_COUNTER_BIT, true);
+    power_manager_cb.peri->CPU_COUNTERS_STOP = bitfield_bit32_write(power_manager_cb.peri->CPU_COUNTERS_STOP, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_SWITCH_ON_STOP_BIT_COUNTER_BIT, true);
+    power_manager_cb.peri->CPU_COUNTERS_STOP = bitfield_bit32_write(power_manager_cb.peri->CPU_COUNTERS_STOP, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_ISO_OFF_STOP_BIT_COUNTER_BIT, true);
+    power_manager_cb.peri->CPU_COUNTERS_STOP = bitfield_bit32_write(power_manager_cb.peri->CPU_COUNTERS_STOP, POWER_MANAGER_CPU_COUNTERS_STOP_CPU_ISO_ON_STOP_BIT_COUNTER_BIT, true);
 
     return kPowerManagerOk_e;
 }
 
-power_manager_result_t __attribute__ ((noinline)) power_gate_periph(const power_manager_t *power_manager, power_manager_sel_state_t sel_state, power_manager_counters_t* periph_counters)
+power_manager_result_t __attribute__ ((noinline)) power_gate_periph(power_manager_sel_state_t sel_state)
 {
-    uint32_t reg = 0;
-
     #ifdef TARGET_PYNQ_Z2
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_WAIT_ACK_SWITCH_ON_REG_OFFSET), 0x0);
+        power_manager_cb.peri->PERIPH_WAIT_ACK_SWITCH_ON = 0x0;
     #else
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_WAIT_ACK_SWITCH_ON_REG_OFFSET), 0x1);
+        power_manager_cb.peri->PERIPH_WAIT_ACK_SWITCH_ON = 0x1;
     #endif
 
     if (sel_state == kOn_e)
     {
-        for (int i=0; i<periph_counters->switch_on; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_SWITCH_REG_OFFSET), 0x0);
-        for (int i=0; i<periph_counters->iso_off; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_ISO_REG_OFFSET), 0x0);
-        for (int i=0; i<periph_counters->reset_off; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_RESET_REG_OFFSET), 0x0);
+        for (int i=0; i<power_manager_cb.counters.switch_on; i++) asm volatile ("nop\n;");
+        power_manager_cb.peri->PERIPH_SWITCH = 0x0;
+        for (int i=0; i<power_manager_cb.counters.iso_off; i++) asm volatile ("nop\n;");
+        power_manager_cb.peri->PERIPH_ISO = 0x0;
+        for (int i=0; i<power_manager_cb.counters.reset_off; i++) asm volatile ("nop\n;");
+        power_manager_cb.peri->PERIPH_RESET = 0x0;
     }
     else
     {
-        for (int i=0; i<periph_counters->iso_on; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_ISO_REG_OFFSET), 0x1);
-        for (int i=0; i<periph_counters->switch_off; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_SWITCH_REG_OFFSET), 0x1);
-        for (int i=0; i<periph_counters->reset_on; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_PERIPH_RESET_REG_OFFSET), 0x1);
+        for (int i=0; i<power_manager_cb.counters.iso_on; i++) asm volatile ("nop\n;");
+        power_manager_cb.peri->PERIPH_ISO = 0x1;
+        for (int i=0; i<power_manager_cb.counters.switch_off; i++) asm volatile ("nop\n;");
+        power_manager_cb.peri->PERIPH_SWITCH = 0x1;
+        for (int i=0; i<power_manager_cb.counters.reset_on; i++) asm volatile ("nop\n;");
+        power_manager_cb.peri->PERIPH_RESET = 0x1;
     }
 
     return kPowerManagerOk_e;
 }
 
-power_manager_result_t __attribute__ ((noinline)) power_gate_ram_block(const power_manager_t *power_manager, uint32_t sel_block, power_manager_sel_state_t sel_state, power_manager_counters_t* ram_block_counters)
+power_manager_result_t __attribute__ ((noinline)) power_gate_ram_block(uint32_t sel_block, power_manager_sel_state_t sel_state)
 {
-    uint32_t reg = 0;
+    if (sel_block >= MEMORY_BANKS){
+        // Sanity check on the number of banks available. Return with an error if the bank accessed is greater than the number of banks avaliable
+        return kPowerManagerError_e;
+    }else{
+        if (sel_state == kOn_e)
+        {
+            #ifdef TARGET_PYNQ_Z2
+                *((uint32_t *)&power_manager_cb.peri->RAM_0_WAIT_ACK_SWITCH_ON + sel_block*6) = 0x0;
+            #else
+                *((uint32_t *)&power_manager_cb.peri->RAM_0_WAIT_ACK_SWITCH_ON + sel_block*6) = 0x1;
+            #endif
+            for (int i=0; i<power_manager_cb.counters.switch_on; i++) asm volatile ("nop\n;");
+            *((uint32_t *)&power_manager_cb.peri->RAM_0_SWITCH + sel_block*6) = 0x0;
+            for (int i=0; i<power_manager_cb.counters.iso_off; i++) asm volatile ("nop\n;");
+            *((uint32_t *)&power_manager_cb.peri->RAM_0_ISO + sel_block*6) = 0x0;
+        }
+        else if (sel_state == kOff_e)
+        {
+            #ifdef TARGET_PYNQ_Z2
+                *((uint32_t *)&power_manager_cb.peri->RAM_0_WAIT_ACK_SWITCH_ON + sel_block*6) = 0x0;
+            #else
+                *((uint32_t *)&power_manager_cb.peri->RAM_0_WAIT_ACK_SWITCH_ON + sel_block*6) = 0x1;
+            #endif
+            for (int i=0; i<power_manager_cb.counters.iso_on; i++) asm volatile ("nop\n;");
+            *((uint32_t *)&power_manager_cb.peri->RAM_0_ISO + sel_block*6) = 0x1;
+            for (int i=0; i<power_manager_cb.counters.switch_off; i++) asm volatile ("nop\n;");
+            *((uint32_t *)&power_manager_cb.peri->RAM_0_SWITCH + sel_block*6) = 0x1;
+        }
+        else if (sel_state == kRetOn_e)
+        {
+            *((uint32_t *)&power_manager_cb.peri->RAM_0_WAIT_ACK_SWITCH_ON + sel_block*6) = 0x0;
+            for (int i=0; i<power_manager_cb.counters.retentive_on; i++) asm volatile ("nop\n;");
+            *((uint32_t *)&power_manager_cb.peri->RAM_0_RETENTIVE + sel_block*6) = 0x1;
+        }
+        else
+        {
+            *((uint32_t *)&power_manager_cb.peri->RAM_0_WAIT_ACK_SWITCH_ON + sel_block*6) = 0x0;
+            for (int i=0; i<power_manager_cb.counters.retentive_off; i++) asm volatile ("nop\n;");
+            *((uint32_t *)&power_manager_cb.peri->RAM_0_RETENTIVE + sel_block*6) = 0x0;
+        }
 
-    if (sel_state == kOn_e)
-    {
-        #ifdef TARGET_PYNQ_Z2
-            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch), 0x0);
-        #else
-            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch), 0x1);
-        #endif
-        for (int i=0; i<ram_block_counters->switch_on; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].switch_off), 0x0);
-        for (int i=0; i<ram_block_counters->iso_off; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].iso), 0x0);
-    }
-    else if (sel_state == kOff_e)
-    {
-        #ifdef TARGET_PYNQ_Z2
-            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch), 0x0);
-        #else
-            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch), 0x1);
-        #endif
-        for (int i=0; i<ram_block_counters->iso_on; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].iso), 0x1);
-        for (int i=0; i<ram_block_counters->switch_off; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].switch_off), 0x1);
-    }
-    else if (sel_state == kRetOn_e)
-    {
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch), 0x0);
-        for (int i=0; i<ram_block_counters->retentive_on; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].retentive), 0x1);
-    }
-    else
-    {
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].wait_ack_switch), 0x0);
-        for (int i=0; i<ram_block_counters->retentive_off; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].retentive), 0x0);
+        return kPowerManagerOk_e;
     }
 
-    return kPowerManagerOk_e;
 }
 
-power_manager_result_t __attribute__ ((noinline)) power_gate_external(const power_manager_t *power_manager, uint32_t sel_external, power_manager_sel_state_t sel_state, power_manager_counters_t* external_counters)
+power_manager_result_t __attribute__ ((noinline)) power_gate_external(uint32_t sel_external, power_manager_sel_state_t sel_state)
 {
-    uint32_t reg = 0;
+    if (sel_external >= EXTERNAL_DOMAINS){
+        // Sanity check on the number of external domains available. Return with an error if the external domain accessed is greater than the number of external domains avaliable
+        return kPowerManagerError_e;
+    }else{
+        #if EXTERNAL_DOMAINS > 0
 
-    if (sel_state == kOn_e)
-    {
-        #ifdef TARGET_PYNQ_Z2
-            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x0);
-        #else
-            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x1);
-        #endif
-        for (int i=0; i<external_counters->switch_on; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].switch_off), 0x0);
-        for (int i=0; i<external_counters->iso_off; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].iso), 0x0);
-        for (int i=0; i<external_counters->reset_off; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].reset), 0x0);
-    }
-    else if (sel_state == kOff_e)
-    {
-        #ifdef TARGET_PYNQ_Z2
-            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x0);
-        #else
-            mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x1);
-        #endif
-        for (int i=0; i<external_counters->iso_on; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].iso), 0x1);
-        for (int i=0; i<external_counters->switch_off; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].switch_off), 0x1);
-        for (int i=0; i<external_counters->reset_on; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].reset), 0x1);
-    }
-    else if (sel_state == kRetOn_e)
-    {
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x0);
-        for (int i=0; i<external_counters->retentive_on; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].retentive), 0x1);
-    }
-    else
-    {
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].wait_ack_switch), 0x0);
-        for (int i=0; i<external_counters->retentive_off; i++) asm volatile ("nop\n;");
-        mmio_region_write32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].retentive), 0x0);
-    }
+        if (sel_state == kOn_e)
+        {
+            #ifdef TARGET_PYNQ_Z2
+                *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_WAIT_ACK_SWITCH_ON + sel_external*7) = 0x0;
+            #else
+                *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_WAIT_ACK_SWITCH_ON + sel_external*7) = 0x1;
+            #endif
+            for (int i=0; i<power_manager_cb.counters.switch_on; i++) asm volatile ("nop\n;");
+            *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_SWITCH + sel_external*7) = 0x0;
+            for (int i=0; i<power_manager_cb.counters.iso_off; i++) asm volatile ("nop\n;");
+            *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_ISO + sel_external*7) = 0x0;
+            for (int i=0; i<power_manager_cb.counters.reset_off; i++) asm volatile ("nop\n;");
+            *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_RESET + sel_external*7) = 0x0;
+        }
+        else if (sel_state == kOff_e)
+        {
+            #ifdef TARGET_PYNQ_Z2
+                *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_WAIT_ACK_SWITCH_ON + sel_external*7) = 0x0;
+            #else
+                *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_WAIT_ACK_SWITCH_ON + sel_external*7) = 0x1;
+            #endif
+            for (int i=0; i<power_manager_cb.counters.iso_on; i++) asm volatile ("nop\n;");
+            *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_ISO + sel_external*7) = 0x1;
+            for (int i=0; i<power_manager_cb.counters.switch_off; i++) asm volatile ("nop\n;");
+            *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_SWITCH + sel_external*7) = 0x1;
+            for (int i=0; i<power_manager_cb.counters.reset_on; i++) asm volatile ("nop\n;");
+            *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_RESET + sel_external*7) = 0x1;
+        }
+        else if (sel_state == kRetOn_e)
+        {
+            *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_WAIT_ACK_SWITCH_ON + sel_external*7) = 0x0;
+            for (int i=0; i<power_manager_cb.counters.retentive_on; i++) asm volatile ("nop\n;");
+            *((uint32_t *)&power_manager_cb.peri->EXTERNAL_RAM_0_RETENTIVE + sel_external*7) = 0x1;
+        }
+        else
+        {
+            *((uint32_t *)&power_manager_cb.peri->EXTERNAL_0_WAIT_ACK_SWITCH_ON + sel_external*7) = 0x0;
+            for (int i=0; i<power_manager_cb.counters.retentive_off; i++) asm volatile ("nop\n;");
+            *((uint32_t *)&power_manager_cb.peri->EXTERNAL_RAM_0_RETENTIVE + sel_external*7) = 0x0;
+        }
 
-    return kPowerManagerOk_e;
+        return kPowerManagerOk_e;
+
+        #endif
+    }
 }
 
-uint32_t periph_power_domain_is_off(const power_manager_t *power_manager)
+uint32_t periph_power_domain_is_off()
 {
     uint32_t switch_state;
 
-    switch_state = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)(POWER_MANAGER_POWER_GATE_PERIPH_ACK_REG_OFFSET));
+    switch_state = power_manager_cb.peri->POWER_GATE_PERIPH_ACK;
 
     return switch_state == 0;
 }
 
-uint32_t ram_block_power_domain_is_off(const power_manager_t *power_manager, uint32_t sel_block)
+uint32_t ram_block_power_domain_is_off(uint32_t sel_block)
 {
     uint32_t switch_state;
 
-    switch_state = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].power_gate_ack));
+    switch_state = *((uint32_t *)&power_manager_cb.peri->POWER_GATE_RAM_BLOCK_0_ACK + sel_block*6);
 
     return switch_state == 0;
 }
 
-uint32_t external_power_domain_is_off(const power_manager_t *power_manager, uint32_t sel_external)
+uint32_t external_power_domain_is_off(uint32_t sel_external)
 {
+    #if EXTERNAL_DOMAINS > 0
     uint32_t switch_state;
 
-    switch_state = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].power_gate_ack));
+    switch_state = *((uint32_t *)&power_manager_cb.peri->POWER_GATE_EXTERNAL_0_ACK + sel_external*7);
 
     return switch_state == 0;
+    #endif
 }
 
-power_manager_result_t power_gate_counters_init(power_manager_counters_t* counters, uint32_t reset_off, uint32_t reset_on, uint32_t switch_off, uint32_t switch_on, uint32_t iso_off, uint32_t iso_on, uint32_t retentive_off, uint32_t retentive_on)
+power_manager_result_t power_gate_counters_init(uint32_t reset_off, uint32_t reset_on, uint32_t switch_off, uint32_t switch_on, uint32_t iso_off, uint32_t iso_on, uint32_t retentive_off, uint32_t retentive_on)
 {
-    counters->reset_off     = reset_off;
-    counters->reset_on      = reset_on;
-    counters->switch_off    = switch_off;
-    counters->switch_on     = switch_on;
-    counters->iso_off       = iso_off;
-    counters->iso_on        = iso_on;
-    counters->retentive_off = retentive_off;
-    counters->retentive_on  = retentive_on;
+    power_manager_cb.counters.reset_off     = reset_off;
+    power_manager_cb.counters.reset_on      = reset_on;
+    power_manager_cb.counters.switch_off    = switch_off;
+    power_manager_cb.counters.switch_on     = switch_on;
+    power_manager_cb.counters.iso_off       = iso_off;
+    power_manager_cb.counters.iso_on        = iso_on;
+    power_manager_cb.counters.retentive_off = retentive_off;
+    power_manager_cb.counters.retentive_on  = retentive_on;
 
     return kPowerManagerOk_e;
 }
 
-monitor_signals_t monitor_power_gate_core(const power_manager_t *power_manager)
+monitor_signals_t monitor_power_gate_core()
 {
     uint32_t reg = 0;
     monitor_signals_t monitor_signals;
 
-    reg = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_MONITOR_POWER_GATE_CORE_REG_OFFSET);
+    reg = power_manager_cb.peri->MONITOR_POWER_GATE_CORE;
 
     monitor_signals.kSwitch_e = reg & 0x1;
     monitor_signals.kIso_e    = (reg & 0x2) >> 1;
@@ -406,12 +685,12 @@ monitor_signals_t monitor_power_gate_core(const power_manager_t *power_manager)
     return monitor_signals;
 }
 
-monitor_signals_t monitor_power_gate_periph(const power_manager_t *power_manager)
+monitor_signals_t monitor_power_gate_periph()
 {
     uint32_t reg = 0;
     monitor_signals_t monitor_signals;
 
-    reg = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)POWER_MANAGER_MONITOR_POWER_GATE_PERIPH_REG_OFFSET);
+    reg = power_manager_cb.peri->MONITOR_POWER_GATE_PERIPH;
 
     monitor_signals.kSwitch_e = reg & 0x1;
     monitor_signals.kIso_e    = (reg & 0x2) >> 1;
@@ -420,12 +699,12 @@ monitor_signals_t monitor_power_gate_periph(const power_manager_t *power_manager
     return monitor_signals;
 }
 
-monitor_signals_t monitor_power_gate_ram_block(const power_manager_t *power_manager, uint32_t sel_block)
+monitor_signals_t monitor_power_gate_ram_block(uint32_t sel_block)
 {
     uint32_t reg = 0;
     monitor_signals_t monitor_signals;
 
-    reg = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)(power_manager_ram_map[sel_block].monitor_power_gate));
+    reg = *((uint32_t *)&power_manager_cb.peri->MONITOR_POWER_GATE_RAM_BLOCK_0 + sel_block);
 
     monitor_signals.kSwitch_e = reg & 0x1;
     monitor_signals.kIso_e    = (reg & 0x2) >> 1;
@@ -434,16 +713,30 @@ monitor_signals_t monitor_power_gate_ram_block(const power_manager_t *power_mana
     return monitor_signals;
 }
 
-monitor_signals_t monitor_power_gate_external(const power_manager_t *power_manager, uint32_t sel_external)
+monitor_signals_t monitor_power_gate_external(uint32_t sel_external)
 {
+    #if EXTERNAL_DOMAINS > 0
     uint32_t reg = 0;
     monitor_signals_t monitor_signals;
 
-    reg = mmio_region_read32(power_manager->base_addr, (ptrdiff_t)(power_manager_external_map[sel_external].monitor_power_gate));
+    reg = *((uint32_t *)&power_manager_cb.peri->MONITOR_POWER_GATE_EXTERNAL_0 + sel_external);
 
     monitor_signals.kSwitch_e = reg & 0x1;
     monitor_signals.kIso_e    = (reg & 0x2) >> 1;
     monitor_signals.kReset_e  = (reg & 0x4) >> 2;
 
     return monitor_signals;
+    #endif
 }
+
+/****************************************************************************/
+/**                                                                        **/
+/*                            LOCAL FUNCTIONS                               */
+/**                                                                        **/
+/****************************************************************************/
+
+/****************************************************************************/
+/**                                                                        **/
+/*                                 EOF                                      */
+/**                                                                        **/
+/****************************************************************************/
