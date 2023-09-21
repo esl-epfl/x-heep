@@ -58,3 +58,9 @@ We simulated our design with dedicated test applications storing the switching a
 
 .. image:: images/tapeout.png
    :width: 600
+
+
+.. toctree::
+   :maxdepth: 2
+
+   DMA.md
