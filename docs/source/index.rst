@@ -60,7 +60,10 @@ We simulated our design with dedicated test applications storing the switching a
    :width: 600
 
 
+Index
+^^^^^
+
 .. toctree::
    :maxdepth: 1
 
-   DMA.md
+   Peripherals/DMA.md
