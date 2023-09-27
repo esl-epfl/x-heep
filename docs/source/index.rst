@@ -1,5 +1,5 @@
-X-HEEP - testing 2 -
-======
+X-HEEP - testing 3 -
+=====================
 
 ``X-HEEP`` (eXtendable Heterogeneous Energy-Efficient Platform) is a RISC-V microcontroller described in SystemVerilog that can be configured to target small and tiny platforms as well as extended to support accelerators.
 The cool thing about X-HEEP is that we provide a simple customizable MCU, so CPUs, common peripherals, memories, etc. so that you can extend it with your own accelerator without modifying the MCU, but just instantiating it in your design.
@@ -61,6 +61,6 @@ We simulated our design with dedicated test applications storing the switching a
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    DMA.md

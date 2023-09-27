@@ -332,6 +332,14 @@ During this transaction
 * The process went on until the the last byte (letter `L`) is sent to the SPI.
 
 
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+  font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-wp8o{border-color:#000000;text-align:center;vertical-align:top}
+</style>
 <table class="tg">
 <thead>
   <tr>
@@ -370,8 +378,14 @@ During this transaction
     <td class="tg-wp8o">F</td>
   </tr>
   <tr>
-    <td class="tg-wp8o" colspan="4">...</td>
-    <td class="tg-wp8o" colspan="4">...</td>
+    <td class="tg-wp8o">.</td>
+    <td class="tg-wp8o">.</td>
+    <td class="tg-wp8o">.</td>
+    <td class="tg-wp8o">.</td>
+    <td class="tg-wp8o">.</td>
+    <td class="tg-wp8o">.</td>
+    <td class="tg-wp8o">.</td>
+    <td class="tg-wp8o">.</td>
   </tr>
 </thead>
 </table>
