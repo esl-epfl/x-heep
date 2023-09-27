@@ -3,7 +3,6 @@ The **Direct Memory Access (DMA)** peripheral allows data transfers with reduced
 It can perform *transactions* of data between peripherals and memory, or memory-to-memory (as a `memcpy` would).
 The CPU is required to configure the transaction, but once launched it is free to go to sleep, process the incoming data or do anything else.
 
-# The DMA HAL
 The DMA **Hardware Abstraction Layer (HAL)** facilitates the configuration of transactions from the users application. Furthermore, it adds an additional layer of safety checks to reduce the risk of faulty memory accesses, data override or infinite loops.
 
 
