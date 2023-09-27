@@ -62,7 +62,6 @@ We simulated our design with dedicated test applications storing the switching a
 
 Index
 ^^^^^
-Click below...
 
 .. toctree::
    :glob:
