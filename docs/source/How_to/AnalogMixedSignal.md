@@ -1,4 +1,4 @@
-# Analog / Mixed-Signal Simulation of X-HEEP
+# ... integrate Analog / Mixed-Signal simulation
 
 ## About
 
