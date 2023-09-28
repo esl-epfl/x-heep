@@ -64,8 +64,13 @@ Index
 ^^^^^
 
 .. toctree::
-   :glob:
    :maxdepth: 1
+   :caption: Getting started
 
-   Peripherals/*
-   How to/*
+   ./How_to/GettingStarted
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Peripherals
+
+   ./Peripherals/DMA
