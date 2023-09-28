@@ -68,3 +68,4 @@ Index
    :maxdepth: 1
 
    Peripherals/*
+   How to/*
