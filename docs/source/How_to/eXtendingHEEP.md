@@ -1,4 +1,4 @@
-#  extend X-HEEP
+#  eXtend X-HEEP
 
 `X-HEEP` is meant to be extended with your own custom IPs. `X-HEEP` itself posseses a hardware-software framework capable of working standalone. If you want to extend it, you will need to merge your hardware and software with `X-HEEP`'s.
 
