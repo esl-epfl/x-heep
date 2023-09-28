@@ -1,4 +1,4 @@
-# ... integrate Analog / Mixed-Signal simulation
+#  integrate Analog / Mixed-Signal simulation
 
 ## About
 

@@ -1,4 +1,4 @@
-# ... debug
+#  debug
 
 ## Prerequisite
 

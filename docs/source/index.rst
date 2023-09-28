@@ -68,6 +68,7 @@ Index
    :glob:
    :caption: How to...
 
+   ./How_to/GettingStarted
    ./How_to/*
 
 .. toctree::
