@@ -1,6 +1,6 @@
 # Interface for external devices
 
-The top module [`core_v_mini_mcu`](hw/core-v-mini-mcu/corecore_v_mini_mcu.sv) exposes several external interfaces:
+The top module [`core_v_mini_mcu`]((./../../../hw/core-v-mini-mcu/corecore_v_mini_mcu.sv) exposes several external interfaces:
 
 - `ext_xbar_master`: N ports to connect external masters to the internal system bus.
 
@@ -14,10 +14,10 @@ The top module [`core_v_mini_mcu`](hw/core-v-mini-mcu/corecore_v_mini_mcu.sv) ex
 
 - `ext_peripheral_slave`: 1 peripheral slave port connected to the system bus (through the peripheral interface).
 
-The number of external master ports is set by the [`EXT_XBAR_NMASTER`](./tb/testharness_pkg.sv#L10) parameter from `testharness_pkg`.
-Multiple OBI slaves can be connected to the exposed internal masters using an external bus, as demonstrated in [`testharness.sv`](./tb/testharness.sv#L232).
+The number of external master ports is set by the [`EXT_XBAR_NMASTER`](./../../../tb/testharness_pkg.sv#L10) parameter from `testharness_pkg`.
+Multiple OBI slaves can be connected to the exposed internal masters using an external bus, as demonstrated in [`testharness.sv`](./../../../tb/testharness.sv#L232).
 
-> NOTE: the internal bus has no master port connected to the external subsystem. Therefore, an external master cannot send a request to an external slave through one of the exposed master ports. All the address decoding must be done by the external bus: the request must be forwarded to one of the `ext_xbar_master` ports only if the target address falls into the space where internal slaves are mapped. This can be achieved using a 1-to-2 crossbar for each external master as done [here](./tb/ext_bus.sv#L131).
+> NOTE: the internal bus has no master port connected to the external subsystem. Therefore, an external master cannot send a request to an external slave through one of the exposed master ports. All the address decoding must be done by the external bus: the request must be forwarded to one of the `ext_xbar_master` ports only if the target address falls into the space where internal slaves are mapped. This can be achieved using a 1-to-2 crossbar for each external master as done [here](./../../../tb/ext_bus.sv#L131).
 
 Finally, only one peripheral slave port is available to the external subsystem.
 
@@ -92,8 +92,8 @@ To create and maintain a peripheral unit efficiently, use the `reggen` tool:
 
 2. Launch the `regtool.py` script to generate SystemVerilog RTL code and a C header file.
 
-For example, launching the script [`memcopy_periph_gen.sh`](./hw/ip_examples/memcopy_periph/memcopy_periph_gen.sh) generates 2 SystemVerilog files and one C header file:
+For example, launching the script [`memcopy_periph_gen.sh`](./../../../hw/ip_examples/memcopy_periph/memcopy_periph_gen.sh) generates 2 SystemVerilog files and one C header file:
 
-1. `memcopy_periph_reg_top.sv`: the register file module. It can be directly instantiated inside your peripheral RTL code (e.g., [`memcopy_periph.sv`](./hw/ip_examples/memcopy_periph/rtl/memcopy_periph.sv)) and connected to the peripheral device controller(s).
+1. `memcopy_periph_reg_top.sv`: the register file module. It can be directly instantiated inside your peripheral RTL code (e.g., [`memcopy_periph.sv`](./../../../hw/ip_examples/memcopy_periph/rtl/memcopy_periph.sv)) and connected to the peripheral device controller(s).
 2. `memcopy_periph_reg_pkg.sv`: SystemVerilog package containing the definitions used in the SystemVerilog module above.
-3. `memcopy_periph_regs.h`: C/C++ header file defining the address offset of the peripheral configuration registers. Take a look at the C code [here](./sw/applications/example_external_peripheral/memcopy_periph.c) for a usage example.
+3. `memcopy_periph_regs.h`: C/C++ header file defining the address offset of the peripheral configuration registers. Take a look at the C code [here](./../../../sw/applications/example_external_peripheral/memcopy_periph.c) for a usage example.

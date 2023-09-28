@@ -112,13 +112,13 @@ c. The pads configuration (pad_cfg.json) must be adapted as well:
 
 I. The I/O signals can be added in the `peripheral_subsystem` module:
 
-```verilog
+```systemverilog
     inout  logic your_signal_io,
 ```
 
 II. The module must be instantiated in the peripheral subsystem:
 
-```verilog
+```systemverilog
   <peripheral> #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -185,7 +185,7 @@ II. The module must be instantiated in the peripheral subsystem:
 
 a. The module interface must be as follows:
 
-```verilog
+```systemverilog
 module <peripheral> #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
@@ -206,7 +206,7 @@ module <peripheral> #(
 
 b. The corresponding package must be imported:
 
-```verilog
+```systemverilog
 import <peripheral>_reg_pkg::*;
 ```
 
@@ -225,7 +225,7 @@ e. A register with only one filed is accessed by its name and a register with se
 
 f. Some examples:
 
-```verilog
+```systemverilog
 hw2reg.register.field.de // Data enable signal of a hardware-written field
 hw2reg.register.d        // Data to be written on a hardware-written register
 reg2hw.register.q        // Data to be read from a register
@@ -247,7 +247,7 @@ reg2hw.register.q        // Data to be read from a register
 
 2. An RX window typically looks as follows:
 
-```verilog
+```systemverilog
 
 module <peripheral>_window #(
     parameter type reg_req_t = logic,
