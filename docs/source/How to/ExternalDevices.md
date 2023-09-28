@@ -1,4 +1,4 @@
-## Interface for external devices
+# Interface for external devices
 
 The top module [`core_v_mini_mcu`](hw/core-v-mini-mcu/corecore_v_mini_mcu.sv) exposes several external interfaces:
 
@@ -15,7 +15,7 @@ The top module [`core_v_mini_mcu`](hw/core-v-mini-mcu/corecore_v_mini_mcu.sv) ex
 - `ext_peripheral_slave`: 1 peripheral slave port connected to the system bus (through the peripheral interface).
 
 The number of external master ports is set by the [`EXT_XBAR_NMASTER`](./tb/testharness_pkg.sv#L10) parameter from `testharness_pkg`.
-Multiple OBI slaves can be connected to the exposed internal masters using an external bus, as demonstrated in [`testharness.sv`](./tb/testharness.sv#L232). 
+Multiple OBI slaves can be connected to the exposed internal masters using an external bus, as demonstrated in [`testharness.sv`](./tb/testharness.sv#L232).
 
 > NOTE: the internal bus has no master port connected to the external subsystem. Therefore, an external master cannot send a request to an external slave through one of the exposed master ports. All the address decoding must be done by the external bus: the request must be forwarded to one of the `ext_xbar_master` ports only if the target address falls into the space where internal slaves are mapped. This can be achieved using a 1-to-2 crossbar for each external master as done [here](./tb/ext_bus.sv#L131).
 

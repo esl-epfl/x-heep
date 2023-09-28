@@ -1,4 +1,4 @@
-# Peripherals Integration
+# Integrate Peripherals
 
 This documentation file summarizes how to integrate a hardware peripheral in the _x-heep_ platform.
 

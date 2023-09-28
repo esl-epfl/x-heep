@@ -1,4 +1,4 @@
-# OpenROAD support with SkyWater 130 PDK
+# Integrate OpenROAD support with SkyWater 130 PDK
 
 ## Install OpenROAD
 
