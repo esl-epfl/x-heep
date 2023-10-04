@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/davideschiavone/cv32e40p.git
-    rev: f9d959958ceb3342c65dd133a69016246494c32a
+    url: https://github.com/openhwgroup/cv32e40p.git
+    rev: c8d65849ec060c6f7bc62325b46ba0ab7eae8805
   }
 }
