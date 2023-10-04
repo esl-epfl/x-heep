@@ -21,11 +21,11 @@ module testharness #(
     inout wire boot_select_i,
     inout wire execute_from_flash_i,
 
-    inout  wire         jtag_tck_i,
-    inout  wire         jtag_tms_i,
-    inout  wire         jtag_trst_ni,
-    inout  wire         jtag_tdi_i,
-    inout  wire         jtag_tdo_o,
+    input  wire         jtag_tck_i,
+    input  wire         jtag_tms_i,
+    input  wire         jtag_trst_ni,
+    input  wire         jtag_tdi_i,
+    output wire         jtag_tdo_o,
     output logic [31:0] exit_value_o,
     inout  wire         exit_valid_o
 );
@@ -53,10 +53,14 @@ module testharness #(
   logic sim_jtag_enable = (JTAG_DPI == 1);
   wire sim_jtag_tck;
   wire sim_jtag_tms;
-  wire sim_jtag_trst;
   wire sim_jtag_tdi;
   wire sim_jtag_tdo;
   wire sim_jtag_trstn;
+  wire mux_jtag_tck;
+  wire mux_jtag_tms;
+  wire mux_jtag_tdi;
+  wire mux_jtag_tdo;
+  wire mux_jtag_trstn;
   wire [31:0] gpio;
 
   wire [3:0] spi_flash_sd_io;
@@ -139,11 +143,11 @@ module testharness #(
   ) x_heep_system_i (
       .clk_i,
       .rst_ni,
-      .jtag_tck_i(sim_jtag_tck),
-      .jtag_tms_i(sim_jtag_tms),
-      .jtag_trst_ni(sim_jtag_trstn),
-      .jtag_tdi_i(sim_jtag_tdi),
-      .jtag_tdo_o(sim_jtag_tdo),
+      .jtag_tck_i(mux_jtag_tck),
+      .jtag_tms_i(mux_jtag_tms),
+      .jtag_trst_ni(mux_jtag_trstn),
+      .jtag_tdi_i(mux_jtag_tdi),
+      .jtag_tdo_o(mux_jtag_tdo),
       .boot_select_i,
       .execute_from_flash_i,
       .exit_valid_o,
@@ -335,7 +339,15 @@ module testharness #(
       .exit()
   );
 
-  assign slow_ram_slave_req = ext_slave_req[SLOW_MEMORY_IDX];
+  assign mux_jtag_tck                    = JTAG_DPI ? sim_jtag_tck : jtag_tck_i;
+  assign mux_jtag_tms                    = JTAG_DPI ? sim_jtag_tms : jtag_tms_i;
+  assign mux_jtag_tdi                    = JTAG_DPI ? sim_jtag_tdi : jtag_tdi_i;
+  assign mux_jtag_trstn                  = JTAG_DPI ? sim_jtag_trstn : jtag_trst_ni;
+
+  assign sim_jtag_tdo                    = JTAG_DPI ? mux_jtag_tdo : '0;
+  assign jtag_tdo_o                      = !JTAG_DPI ? mux_jtag_tdo : '0;
+
+  assign slow_ram_slave_req              = ext_slave_req[SLOW_MEMORY_IDX];
   assign ext_slave_resp[SLOW_MEMORY_IDX] = slow_ram_slave_resp;
 
   generate
