@@ -553,25 +553,24 @@ package cve2_pkg;
   parameter int unsigned CSR_MSECCFG_MMWP_BIT = 1;
   parameter int unsigned CSR_MSECCFG_RLB_BIT  = 2;
 
-  // Vendor ID
-  // No JEDEC ID has been allocated to lowRISC so the value is 0 to indicate the field is not
-  // implemented
-  localparam logic [31:0] CSR_MVENDORID_VALUE  = 32'b0;
+  // Machine Vendor ID - OpenHW JEDEC ID is '2 decimal (bank 13)'
+  parameter MVENDORID_OFFSET = 7'h2;  // Final byte without parity bit
+  parameter MVENDORID_BANK = 25'hC;  // Number of continuation codes
 
-  // Architecture ID
-  // Top bit is unset to indicate an open source project. The lower bits are an ID allocated by the
-  // RISC-V Foundation. Note this is allocated specifically to Ibex, should significant changes be
-  // made a different architecture ID should be supplied.
-  localparam logic [31:0] CSR_MARCHID_VALUE = {1'b0, 31'd22};
+  // Machine Architecture ID (https://github.com/riscv/riscv-isa-manual/blob/master/marchid.md)
+  parameter MARCHID = 32'd35;
+
+  localparam logic [31:0] CSR_MVENDORID_VALUE  = {MVENDORID_BANK, MVENDORID_OFFSET};
+  localparam logic [31:0] CSR_MARCHID_VALUE = MARCHID;
 
   // Implementation ID
-  // 0 indicates this field is not implemeted. Ibex implementors may wish to indicate an RTL/netlist
+  // 0 indicates this field is not implemeted. cve2 implementors may wish to indicate an RTL/netlist
   // version here using their own unique encoding (e.g. 32 bits of the git hash of the implemented
   // commit).
   localparam logic [31:0] CSR_MIMPID_VALUE = 32'b0;
 
   // Machine Configuration Pointer
-  // 0 indicates the configuration data structure does not eixst. Ibex implementors may wish to
+  // 0 indicates the configuration data structure does not eixst. cve2 implementors may wish to
   // alter this to point to their system specific configuration data structure.
   localparam logic [31:0] CSR_MCONFIGPTR_VALUE = 32'b0;
 

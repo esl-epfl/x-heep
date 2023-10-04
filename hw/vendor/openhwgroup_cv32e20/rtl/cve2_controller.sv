@@ -140,7 +140,7 @@ module cve2_controller #(
   logic enter_debug_mode;
   logic ebreak_into_debug;
   logic handle_irq;
-
+  logic irq_enabled;
   logic [3:0] mfip_id;
   logic       unused_irq_timer;
 
@@ -291,12 +291,15 @@ module cve2_controller #(
                              priv_mode_i == PRIV_LVL_U ? debug_ebreaku_i :
                                                          1'b0;
 
+  // MIE bit only applies when in M mode
+  assign irq_enabled = csr_mstatus_mie_i | (priv_mode_i == PRIV_LVL_U);
+
   // Interrupts including NMI are ignored,
   // - while in debug mode [Debug Spec v0.13.2, p.39],
   // - while in NMI mode (nested NMIs are not supported, NMI has highest priority and
   //   cannot be interrupted by regular interrupts).
   // - while single stepping.
-  assign handle_irq = ~debug_mode_q & ~debug_single_step_i & ~nmi_mode_q &
+  assign handle_irq = ~debug_mode_q & ~nmi_mode_q &
       (irq_nm_i | (irq_pending_i & csr_mstatus_mie_i));
 
   // generate ID of fast interrupts, highest priority to lowest ID
@@ -532,11 +535,11 @@ module cve2_controller #(
 
         csr_save_cause_o = 1'b1;
         if (trigger_match_i) begin
-          debug_cause_o = DBG_CAUSE_TRIGGER;
-        end else if (debug_single_step_i) begin
-          debug_cause_o = DBG_CAUSE_STEP;
+          debug_cause_o = DBG_CAUSE_TRIGGER;     // (priority 4)
+        end else if (debug_req_i) begin
+          debug_cause_o = DBG_CAUSE_HALTREQ;     // (priority 1)
         end else begin
-          debug_cause_o = DBG_CAUSE_HALTREQ;
+          debug_cause_o = DBG_CAUSE_STEP;        // (priority 0, lowest)
         end
 
         // enter debug mode
@@ -680,9 +683,14 @@ module cve2_controller #(
         // Leave all other signals as is to ensure CSRs and PC get set as if
         // core was entering exception handler, entry to debug mode will then
         // see the appropriate state and setup dpc correctly.
+
         // If an EBREAK instruction is causing us to enter debug mode on the
         // same cycle as a debug_req or single step, honor the EBREAK and
-        // proceed to DBG_TAKEN_ID.
+        // proceed to DBG_TAKEN_ID, as it has the highest priority.
+        // [Debug Spec v1.0.0-STABLE, p.53]
+        // cause==EBREAK    -> prio 3 (highest)
+        // cause==debug_req -> prio 2
+        // cause==step      -> prio 1 (lowest)
         if (enter_debug_mode_prio_q && !(ebrk_insn_prio && ebreak_into_debug)) begin
           ctrl_fsm_ns = DBG_TAKEN_IF;
         end
