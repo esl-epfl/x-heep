@@ -249,6 +249,7 @@ module cv32e40px_core
   logic        [                 2:0][ 5:0] apu_read_regs;
   logic        [                 2:0]       apu_read_regs_valid;
   logic                                     apu_read_dep;
+  logic                                     apu_read_dep_for_jalr;
   logic        [                 1:0][ 5:0] apu_write_regs;
   logic        [                 1:0]       apu_write_regs_valid;
   logic                                     apu_write_dep;
@@ -405,7 +406,6 @@ module cv32e40px_core
 
   // APU master signals
   assign apu_flags_o = apu_flags_ex;
-  assign fflags_csr = apu_flags_i;
 
   assign x_mem_result_o.dbg = '0;
 
@@ -676,14 +676,15 @@ module cv32e40px_core
       .apu_flags_ex_o   (apu_flags_ex),
       .apu_waddr_ex_o   (apu_waddr_ex),
 
-      .apu_read_regs_o       (apu_read_regs),
-      .apu_read_regs_valid_o (apu_read_regs_valid),
-      .apu_read_dep_i        (apu_read_dep),
-      .apu_write_regs_o      (apu_write_regs),
-      .apu_write_regs_valid_o(apu_write_regs_valid),
-      .apu_write_dep_i       (apu_write_dep),
-      .apu_perf_dep_o        (perf_apu_dep),
-      .apu_busy_i            (apu_busy),
+      .apu_read_regs_o        (apu_read_regs),
+      .apu_read_regs_valid_o  (apu_read_regs_valid),
+      .apu_read_dep_i         (apu_read_dep),
+      .apu_read_dep_for_jalr_i(apu_read_dep_for_jalr),
+      .apu_write_regs_o       (apu_write_regs),
+      .apu_write_regs_valid_o (apu_write_regs_valid),
+      .apu_write_dep_i        (apu_write_dep),
+      .apu_perf_dep_o         (perf_apu_dep),
+      .apu_busy_i             (apu_busy),
 
       // CORE-V-XIF
       // Compressed Interface
@@ -869,8 +870,14 @@ module cv32e40px_core
 
       .mult_multicycle_o(mult_multicycle),  // to ID/EX pipe registers
 
+      .data_req_i          (data_req_o),  // from ID/EX pipeline
+      .data_rvalid_i       (data_rvalid_i),  // from ID/EX pipeline
+      .data_misaligned_ex_i(data_misaligned_ex),  // from ID/EX pipeline
+      .data_misaligned_i   (data_misaligned),
+
       // FPU
       .fpu_fflags_we_o(fflags_we),
+      .fpu_fflags_o   (fflags_csr),
 
       // APU
       .apu_en_i      (apu_en_ex),
@@ -878,14 +885,14 @@ module cv32e40px_core
       .apu_lat_i     (apu_lat_ex),
       .apu_operands_i(apu_operands_ex),
       .apu_waddr_i   (apu_waddr_ex),
-      .apu_flags_i   (apu_flags_ex),
 
-      .apu_read_regs_i       (apu_read_regs),
-      .apu_read_regs_valid_i (apu_read_regs_valid),
-      .apu_read_dep_o        (apu_read_dep),
-      .apu_write_regs_i      (apu_write_regs),
-      .apu_write_regs_valid_i(apu_write_regs_valid),
-      .apu_write_dep_o       (apu_write_dep),
+      .apu_read_regs_i        (apu_read_regs),
+      .apu_read_regs_valid_i  (apu_read_regs_valid),
+      .apu_read_dep_o         (apu_read_dep),
+      .apu_read_dep_for_jalr_o(apu_read_dep_for_jalr),
+      .apu_write_regs_i       (apu_write_regs),
+      .apu_write_regs_valid_i (apu_write_regs_valid),
+      .apu_write_dep_o        (apu_write_dep),
 
       .apu_perf_type_o(perf_apu_type),
       .apu_perf_cont_o(perf_apu_cont),
@@ -903,6 +910,7 @@ module cv32e40px_core
       // response channel
       .apu_rvalid_i  (apu_rvalid_i),
       .apu_result_i  (apu_result_i),
+      .apu_flags_i   (apu_flags_i),
 
       // X-Interface
       .x_result_valid_assigned_i(x_result_valid_assigned),
@@ -1002,8 +1010,6 @@ module cv32e40px_core
 
       .data_misaligned_ex_i(data_misaligned_ex),  // from ID/EX pipeline
       .data_misaligned_o   (data_misaligned),
-
-      .apu_busy_i(apu_busy),
 
       .p_elw_start_o (p_elw_start),
       .p_elw_finish_o(p_elw_finish),
