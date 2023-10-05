@@ -233,7 +233,10 @@ The following is an example repository folder structure.
     │       │   	├── your_copro.h
     │       │   	└── your_copro_defs.h -> ../../../../hw/vendor/your_copro/sw/your_copro_defs.h
     │       └── extensions
-    │       	└── your_copro_x_heep.h
+    │       │   └── your_copro_x_heep.h
+    │       └── lib
+    │           └── crt
+    │               └── external_crt0.S
     ├── hw
     │   └── vendor
     │       ├── your_copro
@@ -276,8 +279,9 @@ In the `external` folder you can add whatever is necessary for software to work 
 
 * Sources and header files
 * Soft links to folders or files.
+* A `lib/crt/` directory with and `exteral_crt0.S` file (will be included inside `BASW/sw/device/lib/crt/crt0.S`).
 
-The external folder or any of its subdirectories cannot contain neither a `device` nor a `applications` folder as it would collide with the respective folders inside `BASE/sw/`. It should also not contain a `main.c` file.
+The external folder or any of its subdirectories cannot contain neither a `device` nor an `applications` folder as it would collide with the respective folders inside `BASE/sw/`. It should also not contain a `main.c` file.
 
 ### The BASE/Makefile
 The `BASE/Makefile` is your own custom Makefile. You can use it as a bridge to access the Makefile from `X-HEEP`.
