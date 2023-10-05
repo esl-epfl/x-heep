@@ -375,7 +375,7 @@ targets:
           - '--x-assign unique'
           - '--x-initial unique'
           - '--exe tb_top.cpp'
-          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive -DVL_DEBUG=1"'
+          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
 
