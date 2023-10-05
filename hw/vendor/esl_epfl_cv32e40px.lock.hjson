@@ -9,6 +9,6 @@
   upstream:
   {
     url: https://github.com/esl-epfl/cv32e40px.git
-    rev: 28ddffa13abfd42f6e475cfbacb6254040adc847
+    rev: d81cd5c36616e0fbf28dafd2ca9b202fdcc7b777
   }
 }

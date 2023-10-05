@@ -463,6 +463,7 @@ module cv32e40px_core
   //                                              //
   //////////////////////////////////////////////////
   cv32e40px_if_stage #(
+      .COREV_X_IF (COREV_X_IF),
       .COREV_PULP (COREV_PULP),
       .PULP_OBI   (PULP_OBI),
       .PULP_SECURE(PULP_SECURE),
