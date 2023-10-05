@@ -28,6 +28,7 @@ filesets:
     - lint/spi_device.vlt
     - lint/spi_host.vlt
     - lint/gpio.vlt
+    - lint/fpu_ss.vlt
     file_type: vlt
 
 

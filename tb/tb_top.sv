@@ -7,6 +7,7 @@ module tb_top #(
     parameter FPU                         = 0,
     parameter ZFINX                       = 0,
     parameter JTAG_DPI                    = 0,
+    parameter X_EXT                       = 0,
     parameter USE_EXTERNAL_DEVICE_EXAMPLE = 1
 );
 
@@ -193,6 +194,7 @@ module tb_top #(
       .COREV_PULP                 (COREV_PULP),
       .FPU                        (FPU),
       .ZFINX                      (ZFINX),
+      .X_EXT                      (X_EXT),
       .JTAG_DPI                   (JTAG_DPI),
       .USE_EXTERNAL_DEVICE_EXAMPLE(USE_EXTERNAL_DEVICE_EXAMPLE),
       .CLK_FREQUENCY              (CLK_FREQUENCY_KHz)

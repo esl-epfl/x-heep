@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/esl-epfl/cv32e40px.git
-    rev: acf3442b414725191fb7a2027facd0b5b4123c1c
+    url: https://github.com/davideschiavone/fpu_ss.git
+    rev: bb784e028ced4d2d542639dc698e2b620ed20aae
   }
 }

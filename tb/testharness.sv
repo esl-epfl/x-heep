@@ -30,6 +30,7 @@ module testharness #(
     inout  wire         exit_valid_o
 );
 
+
   `include "tb_util.svh"
 
   import obi_pkg::*;
@@ -114,6 +115,16 @@ module testharness #(
   logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_n;
   logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_n;
 
+  // eXtension Interface
+  if_xif #(
+      .X_NUM_RS(fpu_ss_pkg::X_NUM_RS),
+      .X_ID_WIDTH(fpu_ss_pkg::X_ID_WIDTH),
+      .X_MEM_WIDTH(fpu_ss_pkg::X_MEM_WIDTH),
+      .X_RFR_WIDTH(fpu_ss_pkg::X_RFR_WIDTH),
+      .X_RFW_WIDTH(fpu_ss_pkg::X_RFW_WIDTH),
+      .X_MISA(fpu_ss_pkg::X_MISA)
+  ) ext_if ();
+
   always_comb begin
     // All interrupt lines set to zero by default
     for (int i = 0; i < core_v_mini_mcu_pkg::NEXT_INT; i++) begin
@@ -123,6 +134,19 @@ module testharness #(
     intr_vector_ext[0] = memcopy_intr;
   end
 
+  //log parameters
+  initial begin
+    $display("%t: the parameter COREV_PULP is %x", $time, COREV_PULP);
+    $display("%t: the parameter FPU is %x", $time, FPU);
+    $display("%t: the parameter ZFINX is %x", $time, ZFINX);
+    $display("%t: the parameter X_EXT is %x", $time, X_EXT);
+    $display("%t: the parameter ZFINX is %x", $time, ZFINX);
+    $display("%t: the parameter JTAG_DPI is %x", $time, JTAG_DPI);
+    $display("%t: the parameter USE_EXTERNAL_DEVICE_EXAMPLE is %x", $time,
+             USE_EXTERNAL_DEVICE_EXAMPLE);
+    $display("%t: the parameter CLK_FREQUENCY is %d KHz", $time, CLK_FREQUENCY);
+  end
+
 `ifdef USE_UPF
   initial begin
     $display("%t: All Power Supply ON", $time);
@@ -130,9 +154,6 @@ module testharness #(
     supply_on("VSS", 0);
   end
 `endif
-
-  // eXtension Interface
-  if_xif #() ext_if ();
 
   x_heep_system #(
       .COREV_PULP(COREV_PULP),
@@ -498,6 +519,29 @@ module testharness #(
       );
 `endif
 
+      if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px) && X_EXT != 0) begin: gen_fpu_ss_wrapper
+        fpu_ss_wrapper #(
+            .PULP_ZFINX(ZFINX),
+            .INPUT_BUFFER_DEPTH(1),
+            .OUT_OF_ORDER(0),
+            .FORWARDING(1),
+            .FPU_FEATURES(fpu_ss_pkg::FPU_FEATURES),
+            .FPU_IMPLEMENTATION(fpu_ss_pkg::FPU_IMPLEMENTATION)
+        ) fpu_ss_wrapper_i (
+            // Clock and reset
+            .clk_i,
+            .rst_ni,
+
+            // eXtension Interface
+            .xif_compressed_if(ext_if),
+            .xif_issue_if(ext_if),
+            .xif_commit_if(ext_if),
+            .xif_mem_if(ext_if),
+            .xif_mem_result_if(ext_if),
+            .xif_result_if(ext_if)
+        );
+      end
+
     end else begin : gen_DONT_USE_EXTERNAL_DEVICE_EXAMPLE
       assign slow_ram_slave_resp.gnt = '0;
       assign slow_ram_slave_resp.rdata = '0;
@@ -514,6 +558,7 @@ module testharness #(
 
       assign memcopy_intr = '0;
       assign periph_slave_rsp = '0;
+
     end
   endgenerate
 

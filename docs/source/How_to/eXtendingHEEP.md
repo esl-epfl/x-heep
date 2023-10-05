@@ -12,6 +12,18 @@ Here you can find a list of `X-HEEP` based open-source examples. If you want to 
 * [F-HEEP](https://github.com/davidmallasen/F-HEEP): System integrating [fpu_ss](https://github.com/pulp-platform/fpu_ss) into X-HEEP via the eXtension interface and cv32e40x.
 
 
+In addition, the `X-HEEP` testbench has been extended with a `DMA`, dummy `PERIPHERALs` (including the `FLASH`), and a CORE-V-XIF compatible co-processor
+implementing the `RV32F` RISC-V ISA. This has been done to help us maintaining and verifying the extension interface.
+
+If you want to try the co-processor with a CORE-V-XIF compatible CPU as the `cv32e40px`, do as follow:
+
+```
+make mcu-gen CPU=cv32e40px
+make verilator-sim FUSESOC_PARAM="--X_EXT=1"
+make app PROJECT=example_matfadd ARCH=rv32imfc
+./Vtestharness +firmware=../../../sw/build/main.hex
+```
+
 ## Vendorizing X-HEEP
 
 In order to vendorize `X-HEEP` create inside your repository's base directory (`BASE`) a `hw/vendor` directory containing a file named `esl_epfl_x_heep.vendor.hjson`:
