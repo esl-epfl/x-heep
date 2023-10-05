@@ -1,0 +1,17 @@
+// Copyright 2023 David Mallasen Quintana
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+{
+  name: "pulp_platform_fpu_ss",
+  target_dir: "pulp_platform_fpu_ss",
+
+  upstream: {
+    url: "https://github.com/davideschiavone/fpu_ss.git",
+    rev: "bbfd200c234ca5325700570974b470a446b002ff",
+  },
+
+  exclude_from_upstream: [
+    ".gitmodules",
+    "fpnew",
+  ]
+}

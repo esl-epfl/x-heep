@@ -1,0 +1,21 @@
+CAPI=2:
+
+# Copyright 2023 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name: x-heep::tb-fpu-utils
+description: x-heep testbench files.
+
+filesets:
+  files_examples:
+    depend:
+    - pulp-platform.org:ip:fpu_ss
+    files:
+    - hw/ip_examples/fpu_ss_wrapper/fpu_ss_wrapper.sv
+    file_type: systemVerilogSource
+
+targets:
+  default: &default_target
+    filesets:
+    - files_examples

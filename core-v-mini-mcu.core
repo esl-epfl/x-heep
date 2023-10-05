@@ -73,6 +73,7 @@ filesets:
   tb-utils:
     depend:
     - x-heep::tb-utils
+    - x-heep::tb-fpu-utils
 
   files_verilator_waiver:
     depend:
