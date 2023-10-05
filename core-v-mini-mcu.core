@@ -369,13 +369,14 @@ targets:
           - '--cc'
           - '--trace'
           - '--trace-fst'
+          - '--profile-cfuncs'
           - '--trace-structs'
           - '--trace-params'
           - '--trace-max-array 1024'
           - '--x-assign unique'
           - '--x-initial unique'
           - '--exe tb_top.cpp'
-          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive"'
+          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive -DVL_DEBUG=1"'
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
 
