@@ -182,8 +182,13 @@ First, you have to generate the SystemVerilog package and C header file of the c
 make mcu-gen
 ```
 
-To change the default cpu type (i.e., cv32e20), the default bus type (i.e., onetoM),
-the default continuous memory size (i.e., 2 continuous banks) or the default interleaved memory size (i.e., 0 interleaved banks):
+By default, `X-HEEP` deploys the [cv32e20](https://github.com/openhwgroup/cve2) RISC-V CPU.
+Other supported CPUs are: the [cv32e40p](https://github.com/openhwgroup/cv32e40p), [cv32e40x](https://github.com/openhwgroup/cv32e40x), and the [cv32e40px](https://github.com/esl-epfl/cv32e40px).
+The default bus type of `X-HEEP` is a single-master-at-a-time architecture, (called `onetoM`), but the cross-bar architecture is also supported by setting
+the bus to `NtoM`. Also, the user can select the number of 32kB banks addressed in continuous mode and/or the interleaved mode.
+By default, `X-HEEP` is generated with 2 continuous banks and 0 interleaved banks.
+
+Below an example that changes the default configuration:
 
 ```
 make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=12 MEMORY_BANKS_IL=4

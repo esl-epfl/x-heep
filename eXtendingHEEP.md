@@ -11,6 +11,8 @@ Here you can find a list of `X-HEEP` based open-source examples. If you want to 
 * [CGRA-X-HEEP](https://github.com/esl-epfl/cgra_x_heep): A CGRA loosely coupled with X-HEEP.
 * [F-HEEP](https://github.com/davidmallasen/F-HEEP): System integrating [fpu_ss](https://github.com/pulp-platform/fpu_ss) into X-HEEP via the eXtension interface and cv32e40x.
 
+In addition, the `X-HEEP` testbench has been extended with a `DMA`, dummy `PERIPHERALs` (including the `FLASH`), and a CORE-V-XIF compatible co-processor
+implementing the `RV32F` RISC-V ISA. This has been done to help us maintaining and verifying the extension interface.
 
 ## Vendorizing X-HEEP
 
