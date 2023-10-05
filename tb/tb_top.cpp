@@ -53,8 +53,6 @@ int main (int argc, char * argv[])
   // Instantiate the model
   Vtestharness *dut = new Vtestharness;
 
-  Verilated::debug();
-
   // Open VCD
   Verilated::traceEverOn (true);
   VerilatedFstC *m_trace = new VerilatedFstC;
