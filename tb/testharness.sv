@@ -30,6 +30,7 @@ module testharness #(
     inout  wire         exit_valid_o
 );
 
+
   `include "tb_util.svh"
 
   import obi_pkg::*;
@@ -131,6 +132,18 @@ module testharness #(
     end
     // Re-assign the interrupt lines used here
     intr_vector_ext[0] = memcopy_intr;
+  end
+
+  //log parameters
+  initial begin
+    $display("%t: the parameter COREV_PULP is %x",$time, COREV_PULP);
+    $display("%t: the parameter FPU is %x",$time, FPU);
+    $display("%t: the parameter ZFINX is %x",$time, ZFINX);
+    $display("%t: the parameter X_EXT is %x",$time, X_EXT);
+    $display("%t: the parameter ZFINX is %x",$time, ZFINX);
+    $display("%t: the parameter JTAG_DPI is %x",$time, JTAG_DPI);
+    $display("%t: the parameter USE_EXTERNAL_DEVICE_EXAMPLE is %x",$time, USE_EXTERNAL_DEVICE_EXAMPLE);
+    $display("%t: the parameter CLK_FREQUENCY is %x",$time, CLK_FREQUENCY);
   end
 
 `ifdef USE_UPF
@@ -505,26 +518,28 @@ module testharness #(
       );
 `endif
 
-      fpu_ss_wrapper #(
-          .PULP_ZFINX(ZFINX),
-          .INPUT_BUFFER_DEPTH(1),
-          .OUT_OF_ORDER(0),
-          .FORWARDING(1),
-          .FPU_FEATURES(fpu_ss_pkg::FPU_FEATURES),
-          .FPU_IMPLEMENTATION(fpu_ss_pkg::FPU_IMPLEMENTATION)
-      ) fpu_ss_wrapper_i (
-          // Clock and reset
-          .clk_i,
-          .rst_ni,
+      if (core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px) begin: gen_fpu_ss_wrapper
+        fpu_ss_wrapper #(
+            .PULP_ZFINX(ZFINX),
+            .INPUT_BUFFER_DEPTH(1),
+            .OUT_OF_ORDER(0),
+            .FORWARDING(1),
+            .FPU_FEATURES(fpu_ss_pkg::FPU_FEATURES),
+            .FPU_IMPLEMENTATION(fpu_ss_pkg::FPU_IMPLEMENTATION)
+        ) fpu_ss_wrapper_i (
+            // Clock and reset
+            .clk_i,
+            .rst_ni,
 
-          // eXtension Interface
-          .xif_compressed_if(ext_if),
-          .xif_issue_if(ext_if),
-          .xif_commit_if(ext_if),
-          .xif_mem_if(ext_if),
-          .xif_mem_result_if(ext_if),
-          .xif_result_if(ext_if)
-      );
+            // eXtension Interface
+            .xif_compressed_if(ext_if),
+            .xif_issue_if(ext_if),
+            .xif_commit_if(ext_if),
+            .xif_mem_if(ext_if),
+            .xif_mem_result_if(ext_if),
+            .xif_result_if(ext_if)
+        );
+      end
 
     end else begin : gen_DONT_USE_EXTERNAL_DEVICE_EXAMPLE
       assign slow_ram_slave_resp.gnt = '0;

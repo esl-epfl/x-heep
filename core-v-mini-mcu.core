@@ -231,6 +231,12 @@ parameters:
     description: |
       Enables testbench JTAG DIPs. Admitted values: 1|0.
     default: 0
+  X_EXT:
+    datatype: int
+    paramtype: vlogparam
+    description: |
+      Enables CORE-V-XIF interface for the CV32E40X and CV32E40PX cores. Admitted values: 1|0.
+    default: 0
   USE_EXTERNAL_DEVICE_EXAMPLE:
     datatype: int
     paramtype: vlogparam
@@ -325,6 +331,7 @@ targets:
     - COREV_PULP
     - FPU
     - JTAG_DPI
+    - X_EXT
     - USE_EXTERNAL_DEVICE_EXAMPLE
     - USE_UPF
     - REMOVE_OBI_FIFO
@@ -383,6 +390,7 @@ targets:
     parameters:
     - COREV_PULP
     - FPU
+    - X_EXT
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     tools:
@@ -402,6 +410,7 @@ targets:
     parameters:
     - COREV_PULP
     - FPU
+    - X_EXT
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     tools:
@@ -421,6 +430,7 @@ targets:
     parameters:
     - COREV_PULP
     - FPU
+    - X_EXT
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
     tools:
@@ -436,6 +446,7 @@ targets:
     parameters:
     - PRIM_DEFAULT_IMPL=prim_pkg::your_target_technology
     - COREV_PULP
+    - X_EXT
     - FPU
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
@@ -458,6 +469,7 @@ targets:
     parameters:
       - COREV_PULP
       - FPU
+      - X_EXT
       - SYNTHESIS=true
       - VERILATOR=true
       - REMOVE_OBI_FIFO
