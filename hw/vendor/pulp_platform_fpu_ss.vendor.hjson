@@ -7,7 +7,7 @@
 
   upstream: {
     url: "https://github.com/davideschiavone/fpu_ss.git",
-    rev: "bbfd200c234ca5325700570974b470a446b002ff",
+    rev: "bb784e028ced4d2d542639dc698e2b620ed20aae",
   },
 
   exclude_from_upstream: [
