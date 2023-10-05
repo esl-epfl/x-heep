@@ -519,7 +519,7 @@ module testharness #(
       );
 `endif
 
-      if (core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px) begin: gen_fpu_ss_wrapper
+      if ((core_v_mini_mcu_pkg::CpuType == cv32e40x || core_v_mini_mcu_pkg::CpuType == cv32e40px) && X_EXT != 0) begin: gen_fpu_ss_wrapper
         fpu_ss_wrapper #(
             .PULP_ZFINX(ZFINX),
             .INPUT_BUFFER_DEPTH(1),
