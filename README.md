@@ -228,9 +228,11 @@ Or, if you use the OpenHW Group [GCC](https://www.embecosm.com/resources/tool-ch
 make app COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_xcvhwlp1p0_xcvmem1p0_xcvmac1p0_xcvbi1p0_xcvalu1p0_xcvsimd1p0_xcvbitmanip1p0
 ```
 
-This will create the executable file to be loaded in your target system (ASIC, FPGA, Simulation).
+This will create the executable file to be loaded into your target system (ASIC, FPGA, Simulation).
 Remember that, `X-HEEP` is using CMake to compile and link. Thus, the generated files after having
 compiled and linked are under `sw\build`
+
+Alternatively, in case you are doing pure FW development and you are used to developing using Integrated Development Evironments (IDEs), please check [the IDE readme](./IDEs.md).
 
 ## FreeROTS based applications
 
@@ -451,6 +453,8 @@ The success of the script is not required for merging of a PR.
 ## Debug
 
 Follow the [Debug](./Debug.md) guide to debug core-v-mini-mcu.
+
+Alternatively, in case you are used to developing using Integrated Development Environments (IDEs), please check [the IDE readme](./IDEs.md).
 
 ## Execute From Flash
 
