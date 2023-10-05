@@ -136,14 +136,15 @@ module testharness #(
 
   //log parameters
   initial begin
-    $display("%t: the parameter COREV_PULP is %x",$time, COREV_PULP);
-    $display("%t: the parameter FPU is %x",$time, FPU);
-    $display("%t: the parameter ZFINX is %x",$time, ZFINX);
-    $display("%t: the parameter X_EXT is %x",$time, X_EXT);
-    $display("%t: the parameter ZFINX is %x",$time, ZFINX);
-    $display("%t: the parameter JTAG_DPI is %x",$time, JTAG_DPI);
-    $display("%t: the parameter USE_EXTERNAL_DEVICE_EXAMPLE is %x",$time, USE_EXTERNAL_DEVICE_EXAMPLE);
-    $display("%t: the parameter CLK_FREQUENCY is %d KHz",$time, CLK_FREQUENCY);
+    $display("%t: the parameter COREV_PULP is %x", $time, COREV_PULP);
+    $display("%t: the parameter FPU is %x", $time, FPU);
+    $display("%t: the parameter ZFINX is %x", $time, ZFINX);
+    $display("%t: the parameter X_EXT is %x", $time, X_EXT);
+    $display("%t: the parameter ZFINX is %x", $time, ZFINX);
+    $display("%t: the parameter JTAG_DPI is %x", $time, JTAG_DPI);
+    $display("%t: the parameter USE_EXTERNAL_DEVICE_EXAMPLE is %x", $time,
+             USE_EXTERNAL_DEVICE_EXAMPLE);
+    $display("%t: the parameter CLK_FREQUENCY is %d KHz", $time, CLK_FREQUENCY);
   end
 
 `ifdef USE_UPF
