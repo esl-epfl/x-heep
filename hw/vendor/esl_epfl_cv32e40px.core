@@ -38,11 +38,11 @@ filesets:
     - esl_epfl_cv32e40px/rtl/cv32e40px_sleep_unit.sv
     - esl_epfl_cv32e40px/rtl/cv32e40px_core.sv
     - esl_epfl_cv32e40px/rtl/cv32e40px_apu_disp.sv
+    - esl_epfl_cv32e40px/rtl/cv32e40px_x_disp.sv
     - esl_epfl_cv32e40px/rtl/cv32e40px_fifo.sv
     - esl_epfl_cv32e40px/rtl/cv32e40px_fp_wrapper.sv
     - esl_epfl_cv32e40px/rtl/cv32e40px_top.sv
     file_type: systemVerilogSource
-
 
   files_clk_gate:
     files:

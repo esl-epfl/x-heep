@@ -295,7 +295,11 @@ module peripheral_subsystem
   );
 % else:
   assign msip_o = '0;
-  assign irq_id = '0;
+
+  for(genvar i=0; i<rv_plic_reg_pkg::NumTarget; i=i+1) begin
+    assign irq_id[i] = '0;
+  end
+
   assign irq_plic_o = '0;
   assign plic_tl_d2h = '0;
 % endif
@@ -536,8 +540,8 @@ module peripheral_subsystem
   assign i2s_ws_o         = 1'b0;
   assign i2s_sd_oe_o      = 1'b0;
   assign i2s_sd_o         = 1'b0;
-  assign intr_i2s_event   = 1'b0;
-  assing i2s_rx_valid_o   = 1'b0;
+  assign i2s_intr_event   = 1'b0;
+  assign i2s_rx_valid_o   = 1'b0;
 % endif
 % endif
 % endfor

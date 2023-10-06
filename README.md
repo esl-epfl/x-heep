@@ -182,8 +182,13 @@ First, you have to generate the SystemVerilog package and C header file of the c
 make mcu-gen
 ```
 
-To change the default cpu type (i.e., cv32e20), the default bus type (i.e., onetoM),
-the default continuous memory size (i.e., 2 continuous banks) or the default interleaved memory size (i.e., 0 interleaved banks):
+By default, `X-HEEP` deploys the [cv32e20](https://github.com/openhwgroup/cve2) RISC-V CPU.
+Other supported CPUs are: the [cv32e40p](https://github.com/openhwgroup/cv32e40p), [cv32e40x](https://github.com/openhwgroup/cv32e40x), and the [cv32e40px](https://github.com/esl-epfl/cv32e40px).
+The default bus type of `X-HEEP` is a single-master-at-a-time architecture, (called `onetoM`), but the cross-bar architecture is also supported by setting
+the bus to `NtoM`. Also, the user can select the number of 32kB banks addressed in continuous mode and/or the interleaved mode.
+By default, `X-HEEP` is generated with 2 continuous banks and 0 interleaved banks.
+
+Below an example that changes the default configuration:
 
 ```
 make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=12 MEMORY_BANKS_IL=4
@@ -191,6 +196,16 @@ make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=12 MEMORY_BANKS_IL=4
 
 The last command generates x-heep with the cv32e40p core, with a parallel bus, and 16 memory banks (12 continuous and 4 interleaved),
 each 32KB, for a total memory of 512KB.
+
+If you are using `X-HEEP` just as a controller for your own system and you do not need any peripheral, you can use the `minimal` configuration file
+when generating the MCU as:
+
+```
+make mcu-gen MCU_CFG=mcu_cfg_minimal.hjson
+```
+
+The `minimal` configuration is a work-in-progress, thus not all the APPs have been tested.
+
 
 ## Compiling Software
 
@@ -228,9 +243,11 @@ Or, if you use the OpenHW Group [GCC](https://www.embecosm.com/resources/tool-ch
 make app COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_xcvhwlp1p0_xcvmem1p0_xcvmac1p0_xcvbi1p0_xcvalu1p0_xcvsimd1p0_xcvbitmanip1p0
 ```
 
-This will create the executable file to be loaded in your target system (ASIC, FPGA, Simulation).
+This will create the executable file to be loaded into your target system (ASIC, FPGA, Simulation).
 Remember that, `X-HEEP` is using CMake to compile and link. Thus, the generated files after having
 compiled and linked are under `sw\build`
+
+Alternatively, in case you are doing pure FW development and you are used to developing using Integrated Development Evironments (IDEs), please check [the IDE readme](./IDEs.md).
 
 ## FreeROTS based applications
 
@@ -404,20 +421,38 @@ All test must be successful before PRs can be merged.
 
 Additionally, a `test_all.sh` script is provided. Apart from compiling all apps with both gcc and clang, it will simulate them and check the result.
 
-You can choose:
-* Simulator: `verilator` (default) or `questasim`.
-* Linker: `on_chip`(default), `flash_load` or `flash_exec`.
-* Timeout: Integer number of seconds (defualt 120)
+The available parameters are:
+* COMPILER: `gcc` (default) or `clang` (can provide more than one)
+* SIMULATOR: `verilator` (default), `questasim` or disable simulation with `nosim` (only one, the last provided is used).
+* LINKER: `on_chip`(default), `flash_load` or `flash_exec` (can provide more than one)
+* TIMEOUT: Integer number of seconds (default 120)
+
 
 #### Usage
 
-You can **SOURCE** the script as
-```bash
-. test_all.sh flash_load verilator
+##### Comands
+You can use two different commands to compile or simulate all the existing APPs:
 ```
+make app-compile-all
+```
+```
+make app-simulate-all
+```
+Note that both commands allow the previous parameters to specify compiling or simulation options. E.g.:
+```
+make app-simulate-all LINKER=on_chip SIMULATOR=questasim COMPILER=clang TIMEOUT=150 
+```
+
+##### Manually
+You can also **SOURCE** the script as
+```bash
+. util/test_all.sh on_chip questasim clang 150
+```
+
 *Pay special attention to the first period in the command!*
 You will be killing simulations that take too long, if you **EXECUTE** (`./test_all.sh`) this action kills the script.
-The order or capitalization of the arguments is irrelevant.
+
+For both usages (commands or manual), the order of the arguments is irrelevant.
 
 > Note: Be sure to commit all your changes before running the script!
 
@@ -433,6 +468,8 @@ The success of the script is not required for merging of a PR.
 ## Debug
 
 Follow the [Debug](./Debug.md) guide to debug core-v-mini-mcu.
+
+Alternatively, in case you are used to developing using Integrated Development Environments (IDEs), please check [the IDE readme](./IDEs.md).
 
 ## Execute From Flash
 

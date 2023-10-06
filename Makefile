@@ -51,6 +51,12 @@ ARCH     ?= rv32imc
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
 SOURCE 	 ?= "."
 
+# Simulation engines options are verilator (default) and questasim
+SIMULATOR ?= verilator
+
+# Timeout for simulation, default 120
+TIMEOUT ?= 120
+
 ## @section Conda
 conda: environment.yml
 	conda env create -f environment.yml
@@ -88,12 +94,12 @@ mcu-gen:
 	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir hw/ip/power_manager/rtl --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --pkg-sv hw/ip/power_manager/data/power_manager.sv.tpl
 	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir hw/ip/power_manager/data --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --pkg-sv hw/ip/power_manager/data/power_manager.hjson.tpl
 	bash -c "cd hw/ip/power_manager; source power_manager_gen.sh; cd ../../../"
-	$(PYTHON) util/mcu_gen.py --cfg mcu_cfg.hjson --pads_cfg $(PAD_CFG) --outdir sw/device/lib/drivers/power_manager --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --pkg-sv sw/device/lib/drivers/power_manager/data/power_manager.h.tpl
-	$(PYTHON) util/mcu_gen.py --cfg mcu_cfg.hjson --pads_cfg $(PAD_CFG) --outdir hw/system/pad_control/data --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_pads $(EXT_PAD_CFG) --pkg-sv hw/system/pad_control/data/pad_control.hjson.tpl
-	$(PYTHON) util/mcu_gen.py --cfg mcu_cfg.hjson --pads_cfg $(PAD_CFG) --outdir hw/system/pad_control/rtl --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_pads $(EXT_PAD_CFG) --pkg-sv hw/system/pad_control/rtl/pad_control.sv.tpl
+	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir sw/device/lib/drivers/power_manager --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_domains $(EXTERNAL_DOMAINS) --pkg-sv sw/device/lib/drivers/power_manager/data/power_manager.h.tpl
+	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir hw/system/pad_control/data --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_pads $(EXT_PAD_CFG) --pkg-sv hw/system/pad_control/data/pad_control.hjson.tpl
+	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir hw/system/pad_control/rtl --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --external_pads $(EXT_PAD_CFG) --pkg-sv hw/system/pad_control/rtl/pad_control.sv.tpl
 	bash -c "cd hw/system/pad_control; source pad_control_gen.sh; cd ../../../"
-	$(PYTHON) util/mcu_gen.py --cfg mcu_cfg.hjson --pads_cfg $(PAD_CFG) --outdir sw/linker --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --linker_script sw/linker/link_flash_exec.ld.tpl
-	$(PYTHON) util/mcu_gen.py --cfg mcu_cfg.hjson --pads_cfg $(PAD_CFG) --outdir sw/linker --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --linker_script sw/linker/link_flash_load.ld.tpl
+	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir sw/linker --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --linker_script sw/linker/link_flash_exec.ld.tpl
+	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir sw/linker --bus $(BUS) --memorybanks $(MEMORY_BANKS) --memorybanks_il $(MEMORY_BANKS_IL) --linker_script sw/linker/link_flash_load.ld.tpl
 	$(PYTHON) ./util/structs_periph_gen.py
 	$(MAKE) verible
 
@@ -124,7 +130,7 @@ app-list:
 
 ## Compile all the apps present in the repo
 app-compile-all:
-	bash util/compile_all_apps.sh;
+	bash util/test_all.sh nosim $(LINKER) $(COMPILER) $(TIMEOUT)
 
 ## @section Simulation
 
@@ -145,7 +151,7 @@ questasim-sim-opt: questasim-sim
 questasim-sim-opt-upf: questasim-sim
 	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-modelsim opt-upf
 
-## Verilator simulation
+## VCS simulation
 ## @param CPU=cv32e20(default),cv32e40p,cv32e40x
 ## @param BUS=onetoM(default),NtoM
 vcs-sim:
@@ -182,6 +188,10 @@ run-app-verilator: app
 	./Vtestharness +firmware=../../../sw/build/main.hex; \
 	cat uart0.log; \
 	cd ../../..;
+
+## Simulate all the apps present in the repo
+app-simulate-all:
+	bash util/test_all.sh $(LINKER) $(COMPILER) $(TIMEOUT) $(SIMULATOR)
 
 ## @section Vivado
 

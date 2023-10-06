@@ -291,9 +291,9 @@ module cv32e40px_if_stage #(
 
 
   generate
-    if (COREV_X_IF) begin
+    if (COREV_X_IF != 0) begin
       assign x_compressed_valid_o = illegal_c_insn_dec;
-      assign x_compressed_req_o.instr = instr_aligned;
+      assign x_compressed_req_o.instr = instr_aligned[15:0];
       assign x_compressed_req_o.mode = 2'b00;  // Machine Mode
       assign x_compressed_req_o.id = x_compressed_id_i;
 

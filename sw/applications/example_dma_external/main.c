@@ -14,21 +14,17 @@
 #define TEST_DATA_SIZE      16
 #define TEST_DATA_LARGE     1024
 
-/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
-#define DEFAULT_PRINTF_BEHAVIOR 1
-
 /* By default, printfs are activated for FPGA and disabled for simulation. */
-#ifdef TARGET_PYNQ_Z2 
-    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
-#else 
-    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
-#endif
+#define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   0
 
-#if ENABLE_PRINTF
-  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#if TARGET_SIM && PRINTF_IN_SIM
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
-  #define PRINTF(...)
-#endif 
+    #define PRINTF(...)
+#endif
 
 
 int32_t errors = 0;
@@ -40,7 +36,7 @@ void dma_intr_handler_trans_done()
 
 int main(int argc, char *argv[])
 {
-    
+
     static uint32_t test_data[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = {
       0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef, 0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa, 0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98};
     static uint32_t copied_data[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
@@ -50,9 +46,9 @@ int main(int argc, char *argv[])
     volatile static dma *peri =  EXT_PERIPHERAL_START_ADDRESS;
 
     dma_init(peri);
-    
+
     dma_config_flags_t res;
-    
+
     static dma_target_t tgt_src = {
                                 .ptr        = test_data,
                                 .inc_du     = 1,
@@ -73,7 +69,7 @@ int main(int argc, char *argv[])
                                 .win_du      = 0,
                                 .end        = DMA_TRANS_END_INTR,
                                 };
-    // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.  
+    // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.
 
     PRINTF("\n\n\r===================================\n\n\r");
     PRINTF(" TESTING DMA ON EXTERNAL PERIPHERAL   ");
@@ -85,7 +81,7 @@ int main(int argc, char *argv[])
     PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     res = dma_launch(&trans);
     PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
-    
+
     while( ! dma_is_ready() ){
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
@@ -97,7 +93,7 @@ int main(int argc, char *argv[])
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }
     PRINTF(">> Finished transaction. \n\r");
-        
+
     for(uint32_t i = 0; i < trans.size_b; i++ ) {
         if ( ((uint8_t*)copied_data)[i] != ((uint8_t*)test_data)[i] ) {
             PRINTF("ERROR [%d]: %04x != %04x\n\r", i, ((uint8_t*)copied_data)[i], ((uint8_t*)test_data)[i]);
