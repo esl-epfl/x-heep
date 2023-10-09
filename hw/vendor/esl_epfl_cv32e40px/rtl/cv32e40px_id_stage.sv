@@ -1015,7 +1015,7 @@ module cv32e40px_id_stage
   logic [1:0] x_mem_data_type_id;
 
   generate
-    if (COREV_X_IF) begin : gen_x_disp
+    if (COREV_X_IF != 0) begin : gen_x_disp
       ////////////////////////////////////////
       //  __  __     ____ ___ ____  ____    //
       //  \ \/ /    |  _ \_ _/ ___||  _ \   //
@@ -1138,12 +1138,12 @@ module cv32e40px_id_stage
       always_comb begin
         x_mem_data_type_id = 2'b00;
         case (x_mem_req_i.size)
-          2'b00: x_mem_data_type_id = 2'b10;  // SB
-          2'b01: x_mem_data_type_id = 2'b01;  // SH
-          2'b10: x_mem_data_type_id = 2'b00;  // SW
+          3'd0: x_mem_data_type_id = 2'b10;  // SB
+          3'd1: x_mem_data_type_id = 2'b01;  // SH
+          3'd2: x_mem_data_type_id = 2'b00;  // SW
+          default: x_mem_data_type_id = 2'b00;  // SW
         endcase
       end
-
 
     end else begin : gen_no_x_disp
 

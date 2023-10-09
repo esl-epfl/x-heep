@@ -1,4 +1,4 @@
-## Generate OpenTitan IPs
+# Generate OpenTitan IPs
 
 These are ips cloned from OpenTitan.
 Via the `regtool` application, OpenTitan generates `rtl`, `header` files and more.
