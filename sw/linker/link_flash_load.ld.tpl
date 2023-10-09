@@ -350,8 +350,8 @@ SECTIONS
       PROVIDE(__freertos_irq_stack_top = .);
   } >ram1
 
-  /* Data mapped to the interleaved memory banks */
 % if ram_numbanks_cont > 1 and ram_numbanks_il > 0:
+  /* Data mapped to the interleaved memory banks */
   .data_interleaved :
   {
   } >ram_il AT >FLASH
