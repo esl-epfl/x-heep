@@ -46,6 +46,9 @@ _start:
 #endif
 
 #ifdef FLASH_LOAD
+
+    add  s2, x0, x0 #init the s2 dirty state to 0
+
 /* copy the remaining (if any) text and data sections */
     // Setup the in/out pointers and copy size knowing 1KiB as already been copied
     li     a2, FLASH_MEM_START_ADDRESS # src ptr (flash)
@@ -54,10 +57,11 @@ _start:
     li     s1, 1024 # dst ptr (ram)
     la     a0, _edata
     addi   a0, a0, -4 # _edata point to next address, so decrease it by one word
-    // Skip if everything has already been copied
-    blt    a0, s1, _init_bss
+    // Skip if everything has already been copied, and copy the data_interleaved
+    blt    a0, s1, _init_data_interleaved
     addi   a3, a0, -1024 # copy size in bytes (_edata is word aligned, so -1020 to make sure last word is copied)
 
+_start_copying_flash:
     li     a1, SPI_FLASH_START_ADDRESS
     // Spi should already be enabled, powered-up and TXWM to 8
     // Address in byte reversed order (might be useless for the 1KiB address value)
@@ -94,7 +98,7 @@ _wait_spi_ready_copy_cmd:
     // mv     s0, a3
     li     s6, 256
     // Read command: 0x90000FF
-   lui    s5, 0x9000
+    lui    s5, 0x9000
     addi   s5, s5, 255 # spi cmd: rxonly + stdspeed + csaat + 255 bytes
 
 _32B_chunk_loop:
@@ -170,6 +174,8 @@ _wait_spi_rxwm_n_words:
 
 _remaining_bytes_loop:
     bnez   a3, _spi_read_word
+    beqz   s2, _init_data_interleaved
+    // if s2 is 1, it means we can go to init_bss as data interleaved have been loaded
     j      _init_bss
 
 _spi_read_word:
@@ -178,7 +184,18 @@ _spi_read_word:
     addi   a3, a3, -4
     addi   s1, s1, 4
     j      _remaining_bytes_loop
-	
+
+_init_data_interleaved:
+#ifdef HAS_MEMORY_BANKS_IL
+    // Setup the in/out pointers and copy size knowing 1KiB as already been copied
+    la     a2, __data_interleaved_start
+    la     a0, _eddata_interleaved
+    addi   a0, a0, -4 # _eddata_interleaved point to next address, so decrease it by one word
+    sub    a3, a0, a2 # copy size in bytes
+    addi   s2, x0, 1 #s2 is a dirty state to tell we have MEMORY_BANKS_IL and we copied them on-chip
+    j _start_copying_flash
+#endif
+
 /* clear the bss segment */
 _init_bss:
     la     a0, __bss_start
