@@ -84,8 +84,7 @@ _wait_spi_ready_read_prog:
     lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
     bgez   a5, _wait_spi_ready_read_prog
     // Read command: 0x11000003
-    lui    a4, 0x11000
-    addi   a4, a4, 3 // spi cmd: txonly + stdspeed + csaat + 4B
+    la     a4, 0x11000003 // spi cmd: txonly + stdspeed + csaat + 4B
     sw     a4, SPI_HOST_COMMAND_REG_OFFSET(a1)
     nop    // otherwise ready bit check is too fast
 
@@ -97,9 +96,8 @@ _wait_spi_ready_copy_cmd:
     // Try first to do as much as 256-bytes copies as possible
     // mv     s0, a3
     li     s6, 256
-    // Read command: 0x90000FF
-    lui    s5, 0x9000
-    addi   s5, s5, 255 // spi cmd: rxonly + stdspeed + csaat + 255 bytes
+    // Read command:
+    la    s5, 0x90000FF // spi cmd: rxonly + stdspeed + csaat + 255 bytes
 
 _32B_chunk_loop:
     blt    s6, a3, _read_32B_chunk
