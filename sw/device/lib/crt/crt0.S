@@ -51,15 +51,16 @@ _start:
 
 /* copy the remaining (if any) text and data sections */
     // Setup the in/out pointers and copy size knowing 1KiB as already been copied
-    li     a2, FLASH_MEM_START_ADDRESS # src ptr (flash)
+    li     a2, FLASH_MEM_START_ADDRESS // src ptr (flash)
     addi   a2, a2, 1024
-    // This assumes ram base address is 0x00000000
-    li     s1, 1024 # dst ptr (ram)
-    la     a0, _edata
-    addi   a0, a0, -4 # _edata point to next address, so decrease it by one word
+    // This assumes ram base address is 0x00000000 and the section .text stars from ram0 (in the first 1024B)
+    li     s1, 1024 // dst ptr (ram)
+    la     a0, _etext
+    addi   a0, a0, -4 // _edata point to next address, so decrease it by one word
     // Skip if everything has already been copied, and copy the data_interleaved
-    blt    a0, s1, _init_data_interleaved
-    addi   a3, a0, -1024 # copy size in bytes (_edata is word aligned, so -1020 to make sure last word is copied)
+    blt    a0, s1, _init_data_section
+    blt    a0, s1, _init_data_interleaved_section
+    addi   a3, a0, -1024 // copy size in bytes (_edata is word aligned, so -1020 to make sure last word is copied)
 
 _start_copying_flash:
     li     a1, SPI_FLASH_START_ADDRESS
@@ -78,16 +79,16 @@ _start_copying_flash:
     or     a2, a4, a5
     or     a2, a2, 0x03
     sw     a2, SPI_HOST_TXDATA_REG_OFFSET(a1)
-    nop    # otherwise ready bit check is too fast
+    nop    // otherwise ready bit check is too fast
 
 _wait_spi_ready_read_prog:
     lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
     bgez   a5, _wait_spi_ready_read_prog
     // Read command: 0x11000003
     lui    a4, 0x11000
-    addi   a4, a4, 3 # spi cmd: txonly + stdspeed + csaat + 4B
+    addi   a4, a4, 3 // spi cmd: txonly + stdspeed + csaat + 4B
     sw     a4, SPI_HOST_COMMAND_REG_OFFSET(a1)
-    nop    # otherwise ready bit check is too fast
+    nop    // otherwise ready bit check is too fast
 
 _wait_spi_ready_copy_cmd:
     lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
@@ -99,16 +100,16 @@ _wait_spi_ready_copy_cmd:
     li     s6, 256
     // Read command: 0x90000FF
     lui    s5, 0x9000
-    addi   s5, s5, 255 # spi cmd: rxonly + stdspeed + csaat + 255 bytes
+    addi   s5, s5, 255 // spi cmd: rxonly + stdspeed + csaat + 255 bytes
 
 _32B_chunk_loop:
     blt    s6, a3, _read_32B_chunk
     // Read remaining bytes
     lui    a5, 0x8000
     addi   a4, a3, -1
-    or     a5, a5, a4 # spi cmd: rxonly + stdspeed + remaining bytes (a3-1)
+    or     a5, a5, a4 // spi cmd: rxonly + stdspeed + remaining bytes (a3-1)
     sw     a5, SPI_HOST_COMMAND_REG_OFFSET(a1)
-    nop    # otherwise ready bit check is too fast
+    nop    // otherwise ready bit check is too fast
 
 _wait_spi_ready_remaining_bytes:
     lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
@@ -118,19 +119,19 @@ _wait_spi_ready_remaining_bytes:
 
 _read_32B_chunk:
     sw     s5, SPI_HOST_COMMAND_REG_OFFSET(a1)
-    nop    # otherwise ready bit check is too fast
+    nop    // otherwise ready bit check is too fast
 
 _wait_spi_ready_read_32B_chunk:
     lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
     bgez   a5, _wait_spi_ready_read_32B_chunk
-    addi   s7, s1, 256 # add 32*8 (256 bytes) to dst ptr
+    addi   s7, s1, 256 // add 32*8 (256 bytes) to dst ptr
 
 _wait_spi_rxwm_8_words:
     lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
     srli   a5, a5, 0x14
-    andi   a5, a5, 1 # SPI_HOST_STATUS_RXWM_BIT
+    andi   a5, a5, 1 // SPI_HOST_STATUS_RXWM_BIT
     beqz   a5, _wait_spi_rxwm_8_words
-    addi   a2, s1, 32 # add 32 bytes (4 words) to dst ptr
+    addi   a2, s1, 32 // add 32 bytes (4 words) to dst ptr
 
 _spi_fifo_read_8_words:
     // Read 32B (8 words) from RX FIFO
@@ -145,9 +146,9 @@ _spi_fifo_read_8_words:
 _wait_spi_rxwm_8_words_1:
     lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
     srli   a5, a5, 0x14
-    andi   a5, a5, 1 # SPI_HOST_STATUS_RXWM_BIT
+    andi   a5, a5, 1 // SPI_HOST_STATUS_RXWM_BIT
     beqz   a5, _wait_spi_rxwm_8_words_1
-    addi   a2, s1, 32 # add 32 bytes (4 words) to dst ptr
+    addi   a2, s1, 32 // add 32 bytes (4 words) to dst ptr
 
 _spi_fifo_read_8_words_1:
     // Read 32B (8 words) from RX FIFO
@@ -161,21 +162,23 @@ _last_bytes_read_start:
     bltu   s4, a3, _wait_spi_rxwm_8_words_1
     // Update RX watermark with remaining words (<=8)
     lw     a4, SPI_HOST_CONTROL_REG_OFFSET(a1)
-    andi   a4, a4, -256 # ~SPI_HOST_CONTROL_RX_WATERMARK_MASK
-    srli   a5, a3, 0x2 # 4 bytes = 1 word
+    andi   a4, a4, -256 // ~SPI_HOST_CONTROL_RX_WATERMARK_MASK
+    srli   a5, a3, 0x2 // 4 bytes = 1 word
     or     a5, a5, a4
     sw     a5, SPI_HOST_CONTROL_REG_OFFSET(a1)
 
 _wait_spi_rxwm_n_words:
     lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
     srli   a5, a5, 0x14
-    andi   a5, a5, 1 # SPI_HOST_STATUS_RXWM_BIT
+    andi   a5, a5, 1 // SPI_HOST_STATUS_RXWM_BIT
     beqz   a5, _wait_spi_rxwm_n_words
 
 _remaining_bytes_loop:
     bnez   a3, _spi_read_word
-    beqz   s2, _init_data_interleaved
-    // if s2 is 1, it means we can go to init_bss as data interleaved have been loaded
+    beqz   s2, _init_data_section
+    // if s2 is not 0, it means we can go to data interleaved (s2==1) or init_bss (s2==2) have been loaded
+    li     s3, 1
+    beq    s2, s3, _init_data_interleaved_section
     j      _init_bss
 
 _spi_read_word:
@@ -185,14 +188,21 @@ _spi_read_word:
     addi   s1, s1, 4
     j      _remaining_bytes_loop
 
-_init_data_interleaved:
+_init_data_section:
+    la     a2, __data_start
+    la     a0, _edata
+    addi   a0, a0, -4 // _eddata point to next address, so decrease it by one word
+    sub    a3, a0, a2 // copy size in bytes
+    li     s2, 1      // s2 is a dirty state to tell we have to copy ram1
+    j _start_copying_flash
+
+_init_data_interleaved_section:
 #ifdef HAS_MEMORY_BANKS_IL
-    // Setup the in/out pointers and copy size knowing 1KiB as already been copied
     la     a2, __data_interleaved_start
     la     a0, _eddata_interleaved
-    addi   a0, a0, -4 # _eddata_interleaved point to next address, so decrease it by one word
-    sub    a3, a0, a2 # copy size in bytes
-    addi   s2, x0, 1 #s2 is a dirty state to tell we have MEMORY_BANKS_IL and we copied them on-chip
+    addi   a0, a0, -4 // _eddata_interleaved point to next address, so decrease it by one word
+    sub    a3, a0, a2 // copy size in bytes
+    li     s2, 2 #s2 is a dirty state to tell we have MEMORY_BANKS_IL and we copied them on-chip
     j _start_copying_flash
 #endif
 

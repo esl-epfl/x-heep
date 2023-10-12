@@ -53,6 +53,7 @@ SECTIONS {
     .text : ALIGN_WITH_INPUT
     {
         . = ALIGN(4);
+        __text_start = .; /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
         *(.text)           /* .text sections (code) */
         *(.text*)          /* .text* sections (code) */
         *(.rodata)         /* .rodata sections (constants, strings, etc.) */
@@ -70,6 +71,7 @@ SECTIONS {
     .data : ALIGN_WITH_INPUT
     {
         . = ALIGN(4);
+        __data_start = .; /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
         _sidata = LOADADDR(.data);
         _sdata = .;        /* create a global symbol at data start; used by startup code in order to initialise the .data section in RAM */
         _ram_start = .;    /* create a global symbol at ram start for garbage collector */
@@ -80,9 +82,10 @@ SECTIONS {
         __SDATA_BEGIN__ = .;
         *(.sdata)           /* .sdata sections */
         *(.sdata*)          /* .sdata* sections */
-        . = ALIGN(4);
-        _edata = .;        /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
     } >ram1 AT >FLASH
+
+    . = ALIGN(4);
+    _edata = .;        /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
 
     .power_manager : ALIGN(4096)
     {
