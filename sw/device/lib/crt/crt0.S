@@ -47,7 +47,7 @@ _start:
 
 #ifdef FLASH_LOAD
 
-    add  s2, x0, x0 #init the s2 dirty state to 0
+    li  s2, 0 #init the s2 dirty state to 0
 
 /* copy the remaining (if any) text and data sections */
     // Setup the in/out pointers and copy size knowing 1KiB as already been copied
@@ -57,7 +57,7 @@ _start:
     li     s1, 1024 // dst ptr (ram)
     la     a0, _etext
     addi   a0, a0, -4 // _edata point to next address, so decrease it by one word
-    // Skip if everything has already been copied, and copy the data_interleaved
+    // Skip if everything has already been copied, and copy the data section
     blt    a0, s1, _init_data_section
     addi   a3, a0, -1024 // copy size in bytes (_edata is word aligned, so -1020 to make sure last word is copied)
 
@@ -186,21 +186,52 @@ _spi_read_word:
     j      _remaining_bytes_loop
 
 _init_data_section:
-    la     a2, __data_start
-    la     a0, _edata
-    addi   a0, a0, -4 // _eddata point to next address, so decrease it by one word
+    la     a2, _lma_data_start
+    la     a0, _lma_data_end
+    addi   a0, a0, -4 // _lma_data_end point to next address, so decrease it by one word
     sub    a3, a0, a2 // copy size in bytes
+    // remove bits 31:24 as the flash address is 24b only
+    slli   a2, a2, 8
+    srli   a2, a2, 8
+    la     s1, __data_start //dst ptr in sram (ram1)
     li     s2, 1      // s2 is a dirty state to tell we have to copy ram1
+    // if data_section is < 32B the crt0 does not work:
+    li     s3, 32
+    bge    a3, s3, _update_txwm_to_8
+    // else, trap to ECALL: TODO FIXME for any size
+    ecall
+_update_txwm_to_8:
+    // Update RX watermark back to 8
+    lw     a4, SPI_HOST_CONTROL_REG_OFFSET(a1)
+    andi   a4, a4, -256 // ~SPI_HOST_CONTROL_RX_WATERMARK_MASK
+    ori    a4, a4, 8
+    sw     a4, SPI_HOST_CONTROL_REG_OFFSET(a1)
+
     j _start_copying_flash
 
 _init_data_interleaved_section:
 #ifdef HAS_MEMORY_BANKS_IL
-    la     a2, __data_interleaved_start
-    la     a0, _eddata_interleaved
+    la     a2, _lma_data_interleaved_start
+    la     a0, _lma_data_interleaved_end
     addi   a0, a0, -4 // _eddata_interleaved point to next address, so decrease it by one word
     sub    a3, a0, a2 // copy size in bytes
+    bltz   a3, _init_bss // dont do anything if you do not have interleaved data
+    // remove bits 31:24 as the flash address is 24b only
+    slli   a2, a2, 8
+    srli   a2, a2, 8
+    la     s1, __data_interleaved_start //dst ptr in sram (ram1)
     li     s2, 2 #s2 is a dirty state to tell we have MEMORY_BANKS_IL and we copied them on-chip
-    j _start_copying_flash
+    /*
+        now we do something dirty, TO BE FIXED, if data_interleaved_section is < 32B the crt0 does not work
+        as .data is very likely to be bigger, whereas .data_interleaved may be not, so copy anyway 32B in case it is smaller but >0
+    */
+    li     s3, 32
+    bge    a3,s3, _update_txwm_to_8
+    la     a0, __data_interleaved_start
+    addi   a0,a0,32 //even if it is less than 32B...
+    j    _update_txwm_to_8
+
+
 #endif
 
 /* clear the bss segment */

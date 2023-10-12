@@ -73,6 +73,7 @@ SECTIONS {
         . = ALIGN(4);
         __data_start = .; /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
         _sidata = LOADADDR(.data);
+        _lma_data_start = LOADADDR(.data);
         _sdata = .;        /* create a global symbol at data start; used by startup code in order to initialise the .data section in RAM */
         _ram_start = .;    /* create a global symbol at ram start for garbage collector */
         . = ALIGN(4);
@@ -86,6 +87,7 @@ SECTIONS {
 
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
+    _lma_data_end = _lma_data_start + SIZEOF(.data);
 
     .power_manager : ALIGN(4096)
     {
@@ -137,10 +139,13 @@ SECTIONS {
     .data_interleaved : ALIGN_WITH_INPUT
     {
         PROVIDE(__data_interleaved_start = .);
+        _lma_data_interleaved_start = LOADADDR(.data_interleaved);
     } >ram_il AT >FLASH
-  % endif
 
    . = ALIGN(4);
   _eddata_interleaved = .;
+  _lma_data_interleaved_end = _lma_data_interleaved_start + SIZEOF(.data_interleaved);
+
+  % endif
 
 }
