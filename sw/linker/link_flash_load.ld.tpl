@@ -140,6 +140,9 @@ SECTIONS {
     {
         PROVIDE(__data_interleaved_start = .);
         _lma_data_interleaved_start = LOADADDR(.data_interleaved);
+        . = ALIGN(4);
+        *(.xheep_data_interleaved)
+        . = ALIGN(4);
     } >ram_il AT >FLASH
 
    . = ALIGN(4);
