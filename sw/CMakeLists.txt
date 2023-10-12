@@ -401,7 +401,7 @@ endif()
 
 # Post processing command to create a disassembly file
 add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
-        COMMAND ${CMAKE_OBJDUMP} -S  ${MAINFILE}.elf > ${MAINFILE}.disasm
+        COMMAND ${CMAKE_OBJDUMP} -S  ${MAINFILE}.elf > ${MAINFILE}.S
         COMMENT "Invoking: Disassemble")
 
 # Post processing command to create a hex file
