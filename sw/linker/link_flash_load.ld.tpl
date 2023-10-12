@@ -151,4 +151,11 @@ SECTIONS {
 
   % endif
 
+    .data_flash_only : ALIGN_WITH_INPUT
+    {
+        . = ALIGN(4);
+        *(.xheep_data_flash_only)
+        . = ALIGN(4);
+    } >FLASH
+
 }
