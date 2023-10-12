@@ -59,7 +59,6 @@ _start:
     addi   a0, a0, -4 // _edata point to next address, so decrease it by one word
     // Skip if everything has already been copied, and copy the data_interleaved
     blt    a0, s1, _init_data_section
-    blt    a0, s1, _init_data_interleaved_section
     addi   a3, a0, -1024 // copy size in bytes (_edata is word aligned, so -1020 to make sure last word is copied)
 
 _start_copying_flash:
