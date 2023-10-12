@@ -187,7 +187,6 @@ _spi_read_word:
 _init_data_section:
     la     a2, _lma_data_start
     la     a0, _lma_data_end
-    addi   a0, a0, -4 // _lma_data_end point to next address, so decrease it by one word
     sub    a3, a0, a2 // copy size in bytes
     // remove bits 31:24 as the flash address is 24b only
     slli   a2, a2, 8
@@ -212,7 +211,6 @@ _init_data_interleaved_section:
 #ifdef HAS_MEMORY_BANKS_IL
     la     a2, _lma_data_interleaved_start
     la     a0, _lma_data_interleaved_end
-    addi   a0, a0, -4 // _eddata_interleaved point to next address, so decrease it by one word
     sub    a3, a0, a2 // copy size in bytes
     bltz   a3, _init_bss // dont do anything if you do not have interleaved data
     // remove bits 31:24 as the flash address is 24b only
@@ -229,8 +227,6 @@ _init_data_interleaved_section:
     la     a0, __data_interleaved_start
     addi   a0,a0,32 //even if it is less than 32B...
     j    _update_txwm_to_8
-
-
 #endif
 
 /* clear the bss segment */
