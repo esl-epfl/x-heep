@@ -1,0 +1,13 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule WIDTHCONCAT -file "*/pulp_platform_fpu_ss/src/*" -match "*"
+lint_off -rule VARHIDDEN -file "*/src/fpu_ss.sv" -match "Declaration of signal hides declaration in upper scope: 'FPU_FEATURES'*"
+lint_off -rule VARHIDDEN -file "*/src/fpu_ss.sv" -match "Declaration of signal hides declaration in upper scope: 'FPU_IMPLEMENTATION'*"
+lint_off -rule UNUSED -file "*/src/fpu_ss.sv" -match "*"
+lint_off -rule UNUSED -file "*/src/fpu_ss_controller.sv" -match "*"
+lint_off -rule UNDRIVEN -file "*/src/fpu_ss.sv" -match "Bits of signal are not driven:*"
+lint_off -rule UNOPTFLAT -file "*/src/fpu_ss.sv" -match "Signal unoptimizable: Feedback to clock or circular logic:*"
