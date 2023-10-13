@@ -41,6 +41,7 @@ volatile int8_t spi_intr_flag;
 spi_host_t spi_host;
 uint32_t flash_data[8];
 uint32_t flash_original[8] = {1};
+extern uint32_t* _lma_vma_data_offset;
 
 #ifndef USE_SPI_FLASH
 void fic_irq_spi(void)
@@ -60,12 +61,24 @@ void fic_irq_spi_flash(void)
 }
 #endif
 
+uint32_t * get_data_address_lma(uint32_t* data_address_vma){
+
+    uint32_t* flash_original_lma = (uint32_t*) ((uint32_t)(_lma_vma_data_offset) + (uint32_t)(data_address_vma));
+    //set MS 8 bits to 0 as the flash only uses 24b
+    flash_original_lma = (uint32_t*) ((uint32_t)(flash_original_lma) & 0x00FFFFFF);
+    return flash_original_lma;
+}
+
 int main(int argc, char *argv[])
 {
 
+
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
-    uint32_t read_byte_cmd = ((REVERT_24b_ADDR(flash_original) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
+
+    uint32_t* flash_original_lma = get_data_address_lma(flash_original);
+
+    uint32_t read_byte_cmd = ((REVERT_24b_ADDR(flash_original_lma) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
 
    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO )
     {

@@ -88,6 +88,7 @@ SECTIONS {
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
     _lma_data_end = _lma_data_start + SIZEOF(.data);
+    _lma_vma_data_offset = _lma_data_start - __data_start;
 
     .power_manager : ALIGN(4096)
     {
