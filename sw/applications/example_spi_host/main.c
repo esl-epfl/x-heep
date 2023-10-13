@@ -41,7 +41,6 @@ volatile int8_t spi_intr_flag;
 spi_host_t spi_host;
 uint32_t flash_data[8];
 uint32_t flash_original[8] = {1};
-extern uint32_t* _lma_vma_data_offset;
 
 #ifndef USE_SPI_FLASH
 void fic_irq_spi(void)
@@ -61,12 +60,14 @@ void fic_irq_spi_flash(void)
 }
 #endif
 
+extern const uint32_t _lma_vma_data_offset;
+
 uint32_t * get_data_address_lma(uint32_t* data_address_vma){
 
-    uint32_t* flash_original_lma = (uint32_t*) ((uint32_t)(_lma_vma_data_offset) + (uint32_t)(data_address_vma));
+    uint32_t* data_address_lma = (uint32_t*) ((uint32_t)&(_lma_vma_data_offset) + (uint32_t)(data_address_vma));
     //set MS 8 bits to 0 as the flash only uses 24b
-    flash_original_lma = (uint32_t*) ((uint32_t)(flash_original_lma) & 0x00FFFFFF);
-    return flash_original_lma;
+    data_address_lma = (uint32_t*) ((uint32_t)(data_address_lma) & 0x00FFFFFF);
+    return data_address_lma;
 }
 
 int main(int argc, char *argv[])
