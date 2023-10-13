@@ -35,7 +35,7 @@
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+#elif TARGET_FPGA && PRINTF_IN_FPGA
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
 
 #endif // TEST_ADDRESS_MODE
 
-#ifndef TARGET_PYNQ_Z2
+#ifndef TARGET_FPGA
 
 #ifdef TEST_ADDRESS_MODE_EXTERNAL_DEVICE
 

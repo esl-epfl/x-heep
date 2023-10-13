@@ -5,16 +5,17 @@
 #ifndef X_HEEP
 #define X_HEEP
 
-#pragma message ( "the x-heep.h for SIMULATION is used" )
+#pragma message ( "the x-heep.h for VCS is used" )
 
 #ifdef __cplusplus
 extern "C" {
 #endif  // __cplusplus
 
 
-#define REFERENCE_CLOCK_Hz 100*1000*1000
-#define UART_BAUDRATE 256000
-#define TARGET_SIM 1
+#define REFERENCE_CLOCK_Hz  100*1000*1000
+#define UART_BAUDRATE       256000
+#define TARGET_SIM          1
+#define TARGET_VCS          1
 
 /**
  * As the hw is configurable, we can have setups with different number of

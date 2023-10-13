@@ -5,17 +5,17 @@
 #ifndef X_HEEP
 #define X_HEEP
 
-#pragma message ( "the x-heep.h for PYNQ-Z2 is used" )
+#pragma message ( "the x-heep.h for VERILATOR is used" )
 
 #ifdef __cplusplus
 extern "C" {
 #endif  // __cplusplus
 
 
-#define REFERENCE_CLOCK_Hz  20*1000*1000
-#define UART_BAUDRATE       115200
-#define TARGET_FPGA         1
-#define TARGET_PYNQ_Z2      1
+#define REFERENCE_CLOCK_Hz  100*1000*1000
+#define UART_BAUDRATE       256000
+#define TARGET_SIM          1
+#define TARGET_VERILATOR    1
 
 /**
  * As the hw is configurable, we can have setups with different number of
