@@ -42,7 +42,7 @@
 
 
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   1
+#define PRINTF_IN_SIM   0
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -88,16 +88,15 @@ int main(int argc, char *argv[])
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
-    // 24-bit address + Fxh (here FFh) as required by W25Q128JW flash datasheet
-    uint32_t read_byte_cmd = (REVERT_24b_ADDR(flash_original) | 0xFF << 24); 
-    PRINTF("read_byte_cmd = %x\n\r", read_byte_cmd);
-
+    // [WARNING]: this part was not updated to support quad SPI
     if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO )
     {
     #ifdef USE_SPI_FLASH
         PRINTF("This application cannot work with the memory mapped SPI FLASH module - do not use the FLASH_EXEC linker script for this application\n");
         return EXIT_SUCCESS;
     #else
+        PRINTF("This application is not supporting quad SPI in memory mapped mode (yet)\n");
+        return EXIT_FAILURE;
         /*
             if we are using in SIMULATION the SPIMMIO from Yosys, then the flash_original data is different
             as the compilation is done differently, so we will store there the first WORDs of code mapped at the beginning of the FLASH
@@ -107,7 +106,7 @@ int main(int argc, char *argv[])
             flash_original[i] = ptr_flash[i];
         }
         // we read the data from the FLASH address 0x0, which corresponds to FLASH_MEM_START_ADDRESS
-        read_byte_cmd = ((REVERT_24b_ADDR(0x0) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
+        uint32_t read_byte_cmd_spimemio = ((REVERT_24b_ADDR(0x0) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
     #endif
     }
 
@@ -186,7 +185,7 @@ int main(int argc, char *argv[])
     spi_write_word(&spi_host, powerup_byte_cmd);
 
     const uint32_t cmd_powerup = spi_create_command((spi_command_t){
-        .len        = 3,                 // 1 Byte
+        .len        = 0,                 // 1 Byte
         .csaat      = false,             // End command
         .speed      = kSpiSpeedStandard, // Single speed
         .direction  = kSpiDirTxOnly      // Write only
@@ -219,6 +218,8 @@ int main(int argc, char *argv[])
 
 
     // Create segment 2
+    uint32_t read_byte_cmd = (REVERT_24b_ADDR(flash_original) | 0xFF << 24); // Fxh (here FFh) required by W25Q128JW
+    PRINTF("read_byte_cmd = %x\n\r", read_byte_cmd);
     spi_write_word(&spi_host, read_byte_cmd);
     spi_wait_for_ready(&spi_host);
 
@@ -234,7 +235,11 @@ int main(int argc, char *argv[])
     
     // Create segment 3
     const uint32_t dummy_clocks_cmd = spi_create_command((spi_command_t){
-        .len        = 7,               // 8 Byte [WARNING]: W25Q128JW flash needs 4
+        #ifdef TARGET_PYNQ_Z2
+        .len        = 3,               // W25Q128JW flash needs 4 dummy cycles
+        #else
+        .len        = 7,               // SPI flash simulation model needs 8 dummy cycles
+        #endif
         .csaat      = true,            // Command not finished
         .speed      = kSpiSpeedQuad,   // Quad speed
         .direction  = kSpiDirDummy     // Dummy
