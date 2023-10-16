@@ -24,7 +24,7 @@ MEMORY
   ram1 (rwxai) : ORIGIN = 0x${linker_onchip_data_start_address}, LENGTH = 0x${linker_onchip_data_size_address}
 % if ram_numbanks_cont > 1 and ram_numbanks_il > 0:
   ram_il (rwxai) : ORIGIN = 0x${linker_onchip_il_start_address}, LENGTH = 0x${linker_onchip_il_size_address}
-% endif  
+% endif
 }
 
 /*
@@ -224,6 +224,8 @@ SECTIONS
   {
     *(.data1)
   } >ram1
+
+  _lma_vma_data_offset = 0x0;
 
   /* no dynamic linking, no object tables required */
   /* .got            : { *(.got.plt) *(.igot.plt) *(.got) *(.igot) } */
