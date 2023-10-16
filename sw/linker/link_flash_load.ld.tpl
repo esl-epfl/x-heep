@@ -30,6 +30,7 @@ SECTIONS {
     .vectors (ORIGIN(ram0)):
     {
         PROVIDE(__vector_start = .);
+        _lma_text_start = LOADADDR(.vectors);
         KEEP(*(.vectors));
         __VECTORS_AT = .;
     } >ram0 AT >FLASH
@@ -70,7 +71,7 @@ SECTIONS {
     It is one task of the startup to copy the initial values from FLASH to RAM. */
     .data : ALIGN_WITH_INPUT
     {
-        . = ALIGN(4);
+        . = ALIGN(256);
         __data_start = .; /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
         _sidata = LOADADDR(.data);
         _lma_data_start = LOADADDR(.data);
@@ -87,17 +88,15 @@ SECTIONS {
 
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
-    _lma_data_end = _lma_data_start + SIZEOF(.data);
-    _lma_vma_data_offset = _lma_data_start - __data_start;
 
     .power_manager : ALIGN(4096)
     {
        PROVIDE(__power_manager_start = .);
        . += 256;
-    } >ram1
+    } >ram1 AT >FLASH
 
     /* Uninitialized data section */
-    .bss :
+    .bss : ALIGN_WITH_INPUT
     {
         . = ALIGN(4);
         __bss_start = .;         /* define a global symbol at bss start; used by startup code */
@@ -110,7 +109,14 @@ SECTIONS {
         . = ALIGN(4);
         __bss_end = .;         /* define a global symbol at bss end; used by startup code */
         __BSS_END__ = .;
-    } >ram1
+    } >ram1 AT >FLASH
+
+    _lma_data_end = _lma_data_start + SIZEOF(.data) + SIZEOF(.power_manager) + SIZEOF(.bss);
+    _lma_vma_data_offset = _lma_data_start - __data_start;
+
+    _lma_text_end = _lma_text_start + SIZEOF(.vectors) + SIZEOF(.init) + SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.power_manager) + SIZEOF(.bss);
+    _lma_text_vma_offset = _lma_text_start - __vector_start;
+
 
     /* The compiler uses this to access data in the .sdata, .data, .sbss and .bss
      sections with fewer instructions (relaxation). This reduces code size. */
@@ -152,7 +158,7 @@ SECTIONS {
 
   % endif
 
-    .data_flash_only : ALIGN_WITH_INPUT
+    .data_flash_only : ALIGN(256)
     {
         . = ALIGN(4);
         *(.xheep_data_flash_only)

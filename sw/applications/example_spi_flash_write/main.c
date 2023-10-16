@@ -53,8 +53,6 @@
 
 #define REVERT_24b_ADDR(addr) ((((uint32_t)addr & 0xff0000) >> 16) | ((uint32_t)addr & 0xff00) | (((uint32_t)addr & 0xff) << 16))
 
-#define FLASH_ADDR 0x00008500 // 256B data alignment
-
 #define FLASH_CLK_MAX_HZ (133*1000*1000) // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
 
 
@@ -74,7 +72,6 @@ int8_t spi_intr_flag;
 spi_host_t spi_host;
 int8_t cycles;
 
-// Reserve memory array
 DATA_TYPE flash_data[COPY_DATA_UNITS] __attribute__ ((aligned (DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE)))) = { 0 };
 DATA_TYPE copy_data [COPY_DATA_UNITS] __attribute__ ((aligned (DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE)))) = { 0 };
 
@@ -125,7 +122,7 @@ void dma_intr_handler_trans_done(void)
 }
 #endif
 
-static inline __attribute__((always_inline)) void spi_config()
+static inline __attribute__((always_inline)) void spi_config(DATA_TYPE* flash_addr)
 {
 
 /*
@@ -232,9 +229,7 @@ static inline __attribute__((always_inline)) void spi_config()
     spi_wait_for_ready(&spi_host);
 
     // Write command
-    uint32_t* flash_original_lma = get_data_address_lma(FLASH_ADDR);
-
-    const uint32_t write_byte_cmd = ((REVERT_24b_ADDR(flash_original_lma) << 8) | 0x02); // Program Page + addr
+    const uint32_t write_byte_cmd = ((REVERT_24b_ADDR(flash_addr) << 8) | 0x02); // Program Page + addr
     spi_write_word(&spi_host, write_byte_cmd);
     const uint32_t cmd_write = spi_create_command((spi_command_t){
         .len        = 3,
@@ -278,6 +273,8 @@ static inline __attribute__((always_inline)) void spi_wait_4_resp()
     }
 }
 
+// Reserve memory array
+DATA_TYPE __attribute__((section(".xheep_data_flash_only"))) flash_buffer[COPY_DATA_UNITS] __attribute__ ((aligned (256))); // 256B data alignment
 
 
 int main(int argc, char *argv[])
@@ -299,7 +296,7 @@ int main(int argc, char *argv[])
         return EXIT_SUCCESS;
     }
 #endif
-    spi_config();
+    spi_config(flash_buffer);
     dma_init(NULL);
 
     dma_config_flags_t res;
@@ -384,7 +381,7 @@ int main(int argc, char *argv[])
 
     spi_wait_4_resp();
 
-    PRINTF("%d Bytes written in Flash at @ 0x%08x \n\r", COPY_DATA_UNITS*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE), FLASH_ADDR);
+    PRINTF("%d Bytes written in Flash at @ 0x%08x \n\r", COPY_DATA_UNITS*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE), flash_buffer);
 
 
 #endif //TEST_SPI_2_MEM
@@ -431,10 +428,8 @@ int main(int argc, char *argv[])
     res = dma_load_transaction(&trans2);
     PRINTF("load: %u \n\r", res);
 
-    uint32_t* flash_original_lma = get_data_address_lma(FLASH_ADDR);
-
     // The address bytes sent through the SPI to the Flash are in reverse order
-    const int32_t read_byte_cmd = ((REVERT_24b_ADDR(flash_original_lma) << 8) | 0x03);
+    const int32_t read_byte_cmd = ((REVERT_24b_ADDR(flash_buffer) << 8) | 0x03);
 
     // Fill TX FIFO with TX data (read command + 3B address)
     spi_write_word(&spi_host, read_byte_cmd);
