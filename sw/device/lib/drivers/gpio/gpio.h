@@ -347,7 +347,7 @@ gpio_result_t gpio_intr_clear_stat (gpio_pin_number_t pin);
  * interrupts for all GPIOs are cleared. If false, generate one cycle wide
  * pulses for every new interrupt.
  */
-void gpio_intr_set_mode (gpio_intr_general_mode_t mode);
+void gpio_intr_set_mode (gpio_pin_number_t pin, gpio_intr_general_mode_t mode);
 
 #endif  // _GPIO_H_
 /****************************************************************************/
