@@ -81,6 +81,17 @@ DATA_TYPE copy_data [COPY_DATA_UNITS] __attribute__ ((aligned (DMA_DATA_TYPE_2_S
 DATA_TYPE *fifo_ptr_tx;
 DATA_TYPE *fifo_ptr_rx;
 
+extern const uint32_t _lma_vma_data_offset;
+
+uint32_t * get_data_address_lma(uint32_t* data_address_vma){
+
+    uint32_t* data_address_lma = (uint32_t*) ((uint32_t)&(_lma_vma_data_offset) + (uint32_t)(data_address_vma));
+    //set MS 8 bits to 0 as the flash only uses 24b
+    data_address_lma = (uint32_t*) ((uint32_t)(data_address_lma) & 0x00FFFFFF);
+    return data_address_lma;
+}
+
+
 #ifndef USE_SPI_FLASH
 void fic_irq_spi(void)
 {
@@ -221,7 +232,9 @@ static inline __attribute__((always_inline)) void spi_config()
     spi_wait_for_ready(&spi_host);
 
     // Write command
-    const uint32_t write_byte_cmd = ((FLASH_ADDR << 8) | 0x02); // Program Page + addr
+    uint32_t* flash_original_lma = get_data_address_lma(FLASH_ADDR);
+
+    const uint32_t write_byte_cmd = ((REVERT_24b_ADDR(flash_original_lma) << 8) | 0x02); // Program Page + addr
     spi_write_word(&spi_host, write_byte_cmd);
     const uint32_t cmd_write = spi_create_command((spi_command_t){
         .len        = 3,
@@ -264,6 +277,8 @@ static inline __attribute__((always_inline)) void spi_wait_4_resp()
         if ((flash_resp[0] & 0x01) == 0) flash_busy = false;
     }
 }
+
+
 
 int main(int argc, char *argv[])
 {
@@ -416,8 +431,10 @@ int main(int argc, char *argv[])
     res = dma_load_transaction(&trans2);
     PRINTF("load: %u \n\r", res);
 
+    uint32_t* flash_original_lma = get_data_address_lma(FLASH_ADDR);
+
     // The address bytes sent through the SPI to the Flash are in reverse order
-    const int32_t read_byte_cmd = ((REVERT_24b_ADDR(FLASH_ADDR) << 8) | 0x03);
+    const int32_t read_byte_cmd = ((REVERT_24b_ADDR(flash_original_lma) << 8) | 0x03);
 
     // Fill TX FIFO with TX data (read command + 3B address)
     spi_write_word(&spi_host, read_byte_cmd);
