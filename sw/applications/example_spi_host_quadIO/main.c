@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
 
     // W25Q128JW requires the QE (Quad Enable) bit to be set in order to operate at quad speed
     // The Verilog flash do not model this behavior and no actions are required
-    // #ifdef TARGET_PYNQ_Z2
+    #ifdef TARGET_PYNQ_Z2
 
     // ----------------COMMAND----------------
     // Read Status Register 2
@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
     spi_set_command(&spi_host, reg2_write_2);
     spi_wait_for_ready(&spi_host);
     // ----------------END COMMAND----------------
-    // #endif
+    #endif
     
 
     volatile uint32_t data_addr = flash_original;
