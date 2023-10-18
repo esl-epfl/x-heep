@@ -250,8 +250,8 @@ int main(int argc, char *argv[])
     // ----------------COMMAND----------------
 
     // Create segment 1
-    const uint32_t reg2_read_cmd = W25Q128JW_CMD_WRITE_REG2;
-    spi_write_word(&spi_host, reg2_read_cmd);
+    const uint32_t reg2_write_cmd = W25Q128JW_CMD_WRITE_REG2;
+    spi_write_word(&spi_host, reg2_write_cmd);
     spi_wait_for_ready(&spi_host);
 
     const uint32_t reg2_write_1 = spi_create_command((spi_command_t){
