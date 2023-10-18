@@ -34,6 +34,9 @@
 #define W25Q128JW_CMD_READ               0x03
 #define W25Q128JW_CMD_READ_DUALIO        0xbb
 #define W25Q128JW_CMD_READ_QUADIO        0xeb
+// Not supported in Verilog flash model
+#define W25Q128JW_CMD_READ_REG2          0x35
+#define W25Q128JW_CMD_WRITE_REG2         0x31
 
 
 #ifdef TARGET_PYNQ_Z2
@@ -60,7 +63,9 @@
 volatile int8_t spi_intr_flag;
 spi_host_t spi_host;
 uint32_t flash_data[8];
-uint32_t flash_original[8] = {1};
+
+// This is the vector that the spi_host is reading from the flash
+uint32_t flash_original[8] = {0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef};
 
 #ifndef USE_SPI_FLASH
 void fic_irq_spi(void)
@@ -88,6 +93,7 @@ int main(int argc, char *argv[])
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
+
     // [WARNING]: this part was not updated to support quad SPI
     if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO )
     {
@@ -109,6 +115,7 @@ int main(int argc, char *argv[])
         uint32_t read_byte_cmd_spimemio = ((REVERT_24b_ADDR(0x0) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
     #endif
     }
+    // [WARNING STOP] -----------------------------
 
 
     // spi_host_t spi_host;
@@ -183,6 +190,7 @@ int main(int argc, char *argv[])
     // Create segment 1
     const uint32_t powerup_byte_cmd = W25Q128JW_CMD_RELEASE_POWERDOWN;
     spi_write_word(&spi_host, powerup_byte_cmd);
+    spi_wait_for_ready(&spi_host);
 
     const uint32_t cmd_powerup = spi_create_command((spi_command_t){
         .len        = 0,                 // 1 Byte
@@ -194,6 +202,83 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
     // ----------------END COMMAND----------------
 
+
+    // W25Q128JW requires the QE (Quad Enable) bit to be set in order to operate at quad speed
+    // The Verilog flash do not model this behavior and no actions are required
+    // #ifdef TARGET_PYNQ_Z2
+
+    // ----------------COMMAND----------------
+    // Read Status Register 2
+    // ----------------COMMAND----------------
+
+    // Create segment 1
+    const uint32_t reg2_read_cmd = W25Q128JW_CMD_READ_REG2;
+    spi_write_word(&spi_host, reg2_read_cmd);
+    spi_wait_for_ready(&spi_host);
+
+    const uint32_t reg2_read_1 = spi_create_command((spi_command_t){
+        .len        = 0,                 // 1 Byte
+        .csaat      = true,              // Command not finished
+        .speed      = kSpiSpeedStandard, // Single speed
+        .direction  = kSpiDirTxOnly      // Write only
+    });
+    spi_set_command(&spi_host, reg2_read_1);
+    spi_wait_for_ready(&spi_host);
+
+
+    // Create segment 2
+    const uint32_t reg2_read_2 = spi_create_command((spi_command_t){
+        .len        = 0,                 // 1 Byte
+        .csaat      = false,             // End command
+        .speed      = kSpiSpeedStandard, // Standard speed
+        .direction  = kSpiDirRxOnly      // Read only
+    });
+    spi_set_command(&spi_host, reg2_read_2);
+    spi_wait_for_ready(&spi_host);
+
+    uint32_t reg2_data; // The actual register is 8 bit, but the SPI host reads 32 bit
+    spi_read_word(&spi_host, &reg2_data);
+    // ----------------END COMMAND----------------
+
+
+    // Set bit in position 1 (QE bit)
+    reg2_data |= 0x2;
+
+
+    // ----------------COMMAND----------------
+    // Write Status Register 2
+    // ----------------COMMAND----------------
+
+    // Create segment 1
+    const uint32_t reg2_read_cmd = W25Q128JW_CMD_WRITE_REG2;
+    spi_write_word(&spi_host, reg2_read_cmd);
+    spi_wait_for_ready(&spi_host);
+
+    const uint32_t reg2_write_1 = spi_create_command((spi_command_t){
+        .len        = 0,                 // 1 Byte
+        .csaat      = true,              // Command not finished
+        .speed      = kSpiSpeedStandard, // Single speed
+        .direction  = kSpiDirTxOnly      // Write only
+    });
+    spi_set_command(&spi_host, reg2_write_1);
+    spi_wait_for_ready(&spi_host);
+
+
+    // Create segment 2
+    spi_write_word(&spi_host, reg2_data);
+    spi_wait_for_ready(&spi_host);
+
+    const uint32_t reg2_write_2 = spi_create_command((spi_command_t){
+        .len        = 0,                 // 1 Byte
+        .csaat      = false,             // End command
+        .speed      = kSpiSpeedStandard, // Standard speed
+        .direction  = kSpiDirRxOnly      // Write only
+    });
+    spi_set_command(&spi_host, reg2_write_2);
+    spi_wait_for_ready(&spi_host);
+    // ----------------END COMMAND----------------
+    // #endif
+    
 
     volatile uint32_t data_addr = flash_original;
     
@@ -215,11 +300,12 @@ int main(int argc, char *argv[])
     });
     spi_set_command(&spi_host, cmd_read);
     spi_wait_for_ready(&spi_host);
+    PRINTF("cmd_read = 0x%x\n\r", cmd_read);
 
 
     // Create segment 2
-    uint32_t read_byte_cmd = (REVERT_24b_ADDR(flash_original) | 0xFF << 24); // Fxh (here FFh) required by W25Q128JW
-    PRINTF("read_byte_cmd = %x\n\r", read_byte_cmd);
+    uint32_t read_byte_cmd = (REVERT_24b_ADDR(flash_original) | (0xFF << 24)); // Fxh (here FFh) required by W25Q128JW
+    PRINTF("read_byte_cmd = %u\n\r", read_byte_cmd);
     spi_write_word(&spi_host, read_byte_cmd);
     spi_wait_for_ready(&spi_host);
 
@@ -231,6 +317,7 @@ int main(int argc, char *argv[])
     });
     spi_set_command(&spi_host, cmd_address);
     spi_wait_for_ready(&spi_host);
+    PRINTF("cmd_address = 0x%x\n\r", cmd_address);
 
     
     // Create segment 3
@@ -246,6 +333,7 @@ int main(int argc, char *argv[])
     });
     spi_set_command(&spi_host, dummy_clocks_cmd);
     spi_wait_for_ready(&spi_host);
+    PRINTF("dummy_clocks_cmd = 0x%x\n\r", dummy_clocks_cmd);
 
 
     // Create segment 4
@@ -257,6 +345,7 @@ int main(int argc, char *argv[])
     });
     spi_set_command(&spi_host, cmd_read_rx);
     spi_wait_for_ready(&spi_host);
+    PRINTF("cmd_read_rx = 0x%x\n\r", cmd_read_rx);
     // ----------------END COMMAND----------------
 
 
