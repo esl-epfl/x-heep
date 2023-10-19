@@ -30,16 +30,17 @@ int main()
     int N = WIDTH;
     int M = HEIGHT;
     uint32_t errors = 0;
-    unsigned int instr, cycles, ldstall, jrstall, imstall;
+    unsigned int instr, cycles;
+
+    //enable mcycle csr
+    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
 
     CSR_WRITE(CSR_REG_MCYCLE, 0);
 
     //execute the kernel
     matrixAdd(m_a, m_b, m_c, N, M);
 
-    CSR_READ(CSR_REG_MCYCLE, &cycles) ;
-
-    //stop the HW counter used for monitoring
+    CSR_READ(CSR_REG_MCYCLE, &cycles);
 
     errors = check_results(m_c, N, M);
 
