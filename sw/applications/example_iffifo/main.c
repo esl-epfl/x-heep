@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0, see LICENSE for details.
  * SPDX-License-Identifier: Apache-2.0
  *
- * Author: Tim Frey <tim.frey@epfl.ch>
+ * Author: Pierre Guillod <pierre.guillod@epfl.ch>
  */
 
 #include <stdio.h>
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
 
     tgt_dst.ptr        = IFFIFO_START_ADDRESS + IFFIFO_FIFO_IN_REG_OFFSET;
     tgt_dst.inc_du     = 0;
-    tgt_dst.trig       = DMA_TRIG_SLOT_EXT1;
+    tgt_dst.trig       = DMA_TRIG_SLOT_EXT0;
     tgt_dst.type       = DMA_DATA_TYPE_WORD;
     
     trans.src        = &tgt_src;
@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
 
     tgt_src.ptr        = IFFIFO_START_ADDRESS + IFFIFO_FIFO_OUT_REG_OFFSET;
     tgt_src.inc_du     = 0;
-    tgt_src.trig       = DMA_TRIG_SLOT_EXT0;
+    tgt_src.trig       = DMA_TRIG_SLOT_EXT1;
     tgt_src.type       = DMA_DATA_TYPE_WORD;
     tgt_src.size_du    = 3;
 
