@@ -191,7 +191,9 @@ module xilinx_core_v_mini_mcu_wrapper
       .pdm2pcm_pdm_io,
       .i2s_sck_io(i2s_sck_io),
       .i2s_ws_io(i2s_ws_io),
-      .i2s_sd_io(i2s_sd_io)
+      .i2s_sd_io(i2s_sd_io),
+      .ext_dma_slot_0_i,
+      .ext_dma_slot_1_i,
   );
 
   assign exit_value_o = exit_value[0];

@@ -74,6 +74,8 @@ module testharness #(
 
   logic [EXT_PERIPHERALS_PORT_SEL_WIDTH-1:0] ext_periph_select;
 
+  logic iffifo_in_ready, iffifo_out_valid;
+
   // External xbar master/slave and peripheral ports
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_req;
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] heep_slave_req;
@@ -249,7 +251,9 @@ module testharness #(
       .external_subsystem_powergate_iso_no(external_subsystem_powergate_iso_n),
       .external_subsystem_rst_no(external_subsystem_rst_n),
       .external_ram_banks_set_retentive_no(external_ram_banks_set_retentive_n),
-      .external_subsystem_clkgate_en_no(external_subsystem_clkgate_en_n)
+      .external_subsystem_clkgate_en_no(external_subsystem_clkgate_en_n),
+      .ext_dma_slot_0_i(iffifo_in_ready),
+      .ext_dma_slot_1_i(iffifo_out_valid)
   );
 
   // Testbench external bus
@@ -439,6 +443,19 @@ module testharness #(
           .rst_ni,
           .reg_req_i(ext_periph_slv_req[testharness_pkg::AMS_IDX]),
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::AMS_IDX])
+      );
+
+      // InterFaced FIFO (IFFIFO) external peripheral
+      iffifo #(
+          .reg_req_t(reg_pkg::reg_req_t),
+          .reg_rsp_t(reg_pkg::reg_rsp_t)
+      ) iffifo_i (
+          .clk_i,
+          .rst_ni,
+          .reg_req_i(ext_periph_slv_req[testharness_pkg::IFFIFO_IDX]),
+          .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::IFFIFO_IDX]),
+          .iffifo_in_ready_o(iffifo_in_ready),
+          .iffifo_out_valid_o(iffifo_out_valid)
       );
 
       addr_decode #(
