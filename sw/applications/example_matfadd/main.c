@@ -117,10 +117,13 @@ int main()
     int N = WIDTH;
     int M = HEIGHT;
     uint32_t errors = 0;
-    unsigned int instr, cycles, ldstall, jrstall, imstall;
+    unsigned int instr, cycles;
 
     //enable FP operations
     CSR_SET_BITS(CSR_REG_MSTATUS, (FS_INITIAL << 13));
+
+    //enable mcycle csr
+    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
 
     CSR_WRITE(CSR_REG_MCYCLE, 0);
 
