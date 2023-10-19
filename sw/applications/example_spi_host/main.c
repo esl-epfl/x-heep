@@ -39,8 +39,14 @@
 
 volatile int8_t spi_intr_flag;
 spi_host_t spi_host;
-uint32_t flash_data[8];
-uint32_t flash_original[8] = {1};
+
+//do not change these defines
+#define COPY_DATA_NUM 8
+#define COPY_DATA_NUM_BYTE COPY_DATA_NUM*(sizeof(uint32_t))
+
+
+uint32_t flash_data[COPY_DATA_NUM];
+uint32_t flash_original[COPY_DATA_NUM] __attribute__ ((aligned (4))) = {0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef};
 
 #ifndef USE_SPI_FLASH
 void fic_irq_spi(void)
@@ -92,7 +98,7 @@ int main(int argc, char *argv[])
             as the compilation is done differently, so we will store there the first WORDs of code mapped at the beginning of the FLASH
         */
         uint32_t* ptr_flash = (uint32_t*)FLASH_MEM_START_ADDRESS;
-        for(int i =0; i < 8 ; i++){
+        for(int i =0; i < COPY_DATA_NUM ; i++){
             flash_original[i] = ptr_flash[i];
         }
         // we read the data from the FLASH address 0x0, which corresponds to FLASH_MEM_START_ADDRESS
@@ -162,9 +168,7 @@ int main(int argc, char *argv[])
     spi_set_csid(&spi_host, 0);
 
     // Set RX watermark to 8 word
-    spi_set_rx_watermark(&spi_host, 8);
-
-    uint32_t *flash_data_ptr = flash_data[0];
+    spi_set_rx_watermark(&spi_host, COPY_DATA_NUM);
 
     // Power up flash
     const uint32_t powerup_byte_cmd = 0xab;
@@ -178,9 +182,6 @@ int main(int argc, char *argv[])
     });
     spi_set_command(&spi_host, cmd_powerup);
     spi_wait_for_ready(&spi_host);
-
-    volatile uint32_t data_addr = flash_original;
-
 
     // Fill TX FIFO with TX data (read command + 3B address)
     spi_write_word(&spi_host, read_byte_cmd);
@@ -223,7 +224,7 @@ int main(int argc, char *argv[])
     ////////////////////////////////////////////////////////////////
 
     const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
-        .len        = 31,
+        .len        = (COPY_DATA_NUM_BYTE-1),
         .csaat      = false,
         .speed      = kSpiSpeedStandard,
         .direction  = kSpiDirRxOnly
@@ -259,7 +260,7 @@ int main(int argc, char *argv[])
 
     uint32_t errors = 0;
     uint32_t* ram_ptr = flash_original;
-    for (int i=0; i<8; i++) {
+    for (int i=0; i<COPY_DATA_NUM; i++) {
         if(flash_data[i] != *ram_ptr) {
             PRINTF("@%x : %x != %x\n\r", ram_ptr, flash_data[i], *ram_ptr);
             errors++;
