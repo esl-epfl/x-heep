@@ -18,7 +18,6 @@ filesets:
     - rtl/iffifo_reg_pkg.sv
     - rtl/iffifo_reg_top.sv
     - rtl/iffifo.sv
-    - rtl/iffifo_window.sv
     file_type: systemVerilogSource
 
 targets:

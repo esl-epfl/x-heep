@@ -47,7 +47,7 @@ int compare_print_fifo_array(void) {
   for (int i = 0; i < 3; i+=1) {
     PRINTF("%d",from_fifo[i]);
     if(i != 3-1) {PRINTF(", ");};
-    if (to_fifo[i] != from_fifo[i]) {++errors;}
+    if (to_fifo[i]+1 != from_fifo[i]) {++errors;}
   }
   PRINTF("}\n");
   return errors;

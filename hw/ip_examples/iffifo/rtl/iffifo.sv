@@ -21,14 +21,15 @@ module iffifo #(
 
   import iffifo_reg_pkg::*;
 
-  logic pop, push;
-  logic [WIDTH-1:0] fifin, fifout;
+  iffifo_reg2hw_t reg2hw;
+  iffifo_hw2reg_t hw2reg;
+
+  logic [WIDTH-1:0] fifout;
 
   assign iffifo_in_ready_o  = 1;
   assign iffifo_out_valid_o = 1;
 
-  reg_req_t [1:0] fifo_win_h2d;
-  reg_rsp_t [1:0] fifo_win_d2h;
+  assign hw2reg.fifo_out.d  = fifout + 1;
 
   iffifo_reg_top #(
       .reg_req_t(reg_req_t),
@@ -36,15 +37,12 @@ module iffifo #(
   ) iffifo_reg_top_i (
       .clk_i,
       .rst_ni,
-      .reg2hw(),
-      .hw2reg(),
+      .reg2hw,
+      .hw2reg,
       .reg_req_i,
       .reg_rsp_o,
-      .reg_req_win_o(fifo_win_h2d),
-      .reg_rsp_win_i(fifo_win_d2h),
       .devmode_i(1'b0)
   );
-
 
   fifo_v3 #(
       .DEPTH(DEPTH),
@@ -57,25 +55,10 @@ module iffifo #(
       .full_o(),
       .empty_o(),
       .usage_o(),
-      .data_i(fifin),
-      .push_i(push),
+      .data_i(reg2hw.fifo_in.q),
+      .push_i(reg2hw.fifo_in.qe),
       .data_o(fifout),
-      .pop_i(pop)
-  );
-
-  iffifo_window #(
-      .reg_req_t(reg_req_t),
-      .reg_rsp_t(reg_rsp_t)
-  ) u_window (
-      .rx_win_i  (fifo_win_h2d[0]),
-      .rx_win_o  (fifo_win_d2h[0]),
-      .tx_win_i  (fifo_win_h2d[1]),
-      .tx_win_o  (fifo_win_d2h[1]),
-      .tx_data_o (fifin),
-      .tx_be_o   (),
-      .tx_valid_o(push),
-      .rx_data_i (fifout),
-      .rx_ready_o(pop)
+      .pop_i(reg2hw.fifo_out.re)
   );
 
 endmodule : iffifo

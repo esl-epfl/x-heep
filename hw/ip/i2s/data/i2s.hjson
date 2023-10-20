@@ -109,7 +109,7 @@
       hwext:  "true"
       hwre:   "true"
       fields: [
-        { bits: "31:0", name: "RXDATA", desc: "latest rx data if DATA_READY flag is set", hwaccess: "hrw"}
+        { bits: "31:0", name: "RXDATA", desc: "latest rx data if DATA_READY flag is set" }
       ]
     }
 

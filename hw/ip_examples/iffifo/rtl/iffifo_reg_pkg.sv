@@ -7,52 +7,52 @@
 package iffifo_reg_pkg;
 
   // Address widths within the block
-  parameter int BlockAw = 4;
+  parameter int BlockAw = 3;
 
   ////////////////////////////
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {logic [31:0] q;} iffifo_reg2hw_dummyr_reg_t;
-
-  typedef struct packed {logic [31:0] q;} iffifo_reg2hw_dummyw_reg_t;
+  typedef struct packed {
+    logic [31:0] q;
+    logic        re;
+  } iffifo_reg2hw_fifo_out_reg_t;
 
   typedef struct packed {
-    logic [31:0] d;
-    logic        de;
-  } iffifo_hw2reg_dummyw_reg_t;
+    logic [31:0] q;
+    logic        qe;
+  } iffifo_reg2hw_fifo_in_reg_t;
+
+  typedef struct packed {logic [31:0] d;} iffifo_hw2reg_fifo_out_reg_t;
 
   // Register -> HW type
   typedef struct packed {
-    iffifo_reg2hw_dummyr_reg_t dummyr;  // [63:32]
-    iffifo_reg2hw_dummyw_reg_t dummyw;  // [31:0]
+    iffifo_reg2hw_fifo_out_reg_t fifo_out;  // [65:33]
+    iffifo_reg2hw_fifo_in_reg_t  fifo_in;   // [32:0]
   } iffifo_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    iffifo_hw2reg_dummyw_reg_t dummyw;  // [32:0]
+    iffifo_hw2reg_fifo_out_reg_t fifo_out;  // [31:0]
   } iffifo_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] IFFIFO_DUMMYR_OFFSET = 4'h0;
-  parameter logic [BlockAw-1:0] IFFIFO_DUMMYW_OFFSET = 4'h4;
+  parameter logic [BlockAw-1:0] IFFIFO_FIFO_OUT_OFFSET = 3'h0;
+  parameter logic [BlockAw-1:0] IFFIFO_FIFO_IN_OFFSET = 3'h4;
 
-  // Window parameters
-  parameter logic [BlockAw-1:0] IFFIFO_FIFO_OUT_OFFSET = 4'h8;
-  parameter int unsigned IFFIFO_FIFO_OUT_SIZE = 'h4;
-  parameter logic [BlockAw-1:0] IFFIFO_FIFO_IN_OFFSET = 4'hc;
-  parameter int unsigned IFFIFO_FIFO_IN_SIZE = 'h4;
+  // Reset values for hwext registers and their fields
+  parameter logic [31:0] IFFIFO_FIFO_OUT_RESVAL = 32'h0;
 
   // Register index
   typedef enum int {
-    IFFIFO_DUMMYR,
-    IFFIFO_DUMMYW
+    IFFIFO_FIFO_OUT,
+    IFFIFO_FIFO_IN
   } iffifo_id_e;
 
   // Register width information to check illegal writes
   parameter logic [3:0] IFFIFO_PERMIT[2] = '{
-      4'b1111,  // index[0] IFFIFO_DUMMYR
-      4'b1111  // index[1] IFFIFO_DUMMYW
+      4'b1111,  // index[0] IFFIFO_FIFO_OUT
+      4'b1111  // index[1] IFFIFO_FIFO_IN
   };
 
 endpackage

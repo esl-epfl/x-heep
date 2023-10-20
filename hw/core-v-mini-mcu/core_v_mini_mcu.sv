@@ -317,8 +317,8 @@ module core_v_mini_mcu
 
     output logic [31:0] exit_value_o,
 
-    input logic ext_dma_slot_0_i,
-    input logic ext_dma_slot_1_i
+    input logic ext_dma_slot_tx_i,
+    input logic ext_dma_slot_rx_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -632,8 +632,8 @@ module core_v_mini_mcu
       .i2s_rx_valid_i(i2s_rx_valid),
       .ext_peripheral_slave_req_o,
       .ext_peripheral_slave_resp_i,
-      .ext_dma_slot_0_i,
-      .ext_dma_slot_1_i
+      .ext_dma_slot_tx_i,
+      .ext_dma_slot_rx_i
   );
 
   peripheral_subsystem peripheral_subsystem_i (

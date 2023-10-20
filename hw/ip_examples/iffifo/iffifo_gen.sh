@@ -6,9 +6,3 @@ echo "Generating RTL"
 ${PYTHON} ../../vendor/pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py -r -t rtl data/iffifo.hjson
 echo "Generating SW"
 ${PYTHON} ../../vendor/pulp_platform_register_interface/vendor/lowrisc_opentitan/util/regtool.py --cdefines -o ../../../sw/device/lib/drivers/iffifo/iffifo_regs.h data/iffifo.hjson
-
-echo -e ""
-echo -e ""
-echo -e ' \033[5m !!! \033[0m \033[1mIn rtl/iffifo_reg_top.sv, replace "logic [0:0] reg_steer;" by "logic [1:0] reg_steer;" \033[5m !!! \033[0m \033[0m'
-echo -e ""
-echo -e ""

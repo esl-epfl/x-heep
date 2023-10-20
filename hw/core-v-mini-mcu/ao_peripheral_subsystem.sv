@@ -120,8 +120,8 @@ module ao_peripheral_subsystem
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
-    input logic ext_dma_slot_0_i,
-    input logic ext_dma_slot_1_i
+    input logic ext_dma_slot_tx_i,
+    input logic ext_dma_slot_rx_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -374,8 +374,8 @@ module ao_peripheral_subsystem
   assign dma_trigger_slots[2] = spi_flash_rx_valid;
   assign dma_trigger_slots[3] = spi_flash_tx_ready;
   assign dma_trigger_slots[4] = i2s_rx_valid_i;
-  assign dma_trigger_slots[5] = ext_dma_slot_0_i;
-  assign dma_trigger_slots[6] = ext_dma_slot_1_i;
+  assign dma_trigger_slots[5] = ext_dma_slot_tx_i;
+  assign dma_trigger_slots[6] = ext_dma_slot_rx_i;
 
   dma #(
       .reg_req_t (reg_pkg::reg_req_t),

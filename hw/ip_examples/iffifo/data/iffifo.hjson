@@ -2,47 +2,35 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-{ name: "iffifo",
-  clock_primary: "clk_i",
+{ name: "iffifo"
+  clock_primary: "clk_i"
   bus_interfaces: [
     { protocol: "reg_iface", direction: "device" }
   ],
-  regwidth: "32",
+  regwidth: 32
   registers: [
-    { name:     "DUMMYR",
-      desc:     "Does nothing.",
-      swaccess: "rw",
-      hwaccess: "hro",
+  
+    { name:     "FIFO_OUT"
+      desc:     "Data coming from the FIFO (Fifo Output/Software RX)."
+      swaccess: "ro"
+      hwaccess: "hrw" # required for RE signal
+      hwext: "true"   # required for RE signal
+      hwre: "true"    # Used to emulate a window behaviour
       fields: [
-        { bits: "31:0", name: "DUMMY", desc: "Does nothing." }
+        { bits: "31:0", name: "FIFO_OUT", desc: "" }
       ]
-    },
-    { name:     "DUMMYW",
-      desc:     "Does nothing.",
-      swaccess: "ro",
-      hwaccess: "hrw",
+    }
+    
+    { name:     "FIFO_IN"
+      desc:     "Data sent to the FIFO (Fifo Input/Software TX)."
+      hwaccess: "hro"
+      swaccess: "rw"  # required for QE signal
+      hwqe: "true"    # Used to emulate a window behaviour
       fields: [
-        { bits: "31:0", name: "DUMMY", desc: "Does nothing." }
+        { bits: "31:0", name: "FIFO_IN", desc: "" }
       ]
-    },
-    { window: {
-        name: "FIFO_OUT",
-        items: "1",
-        validbits: "32",
-        desc: '''Data coming from the FIFO (Fifo Output/Software RX)
-                  '''
-        swaccess: "ro"
-      }
     }
-    { window: {
-        name: "FIFO_IN",
-        items: "1",
-        validbits: "32",
-        desc: '''Data sent to the FIFO (Fifo Input/Software TX)
-                  '''
-        swaccess: "wo"
-      }
-    }
+    
   ]
 }
 
