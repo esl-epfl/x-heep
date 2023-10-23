@@ -98,6 +98,7 @@ module i2s #(
   );
 
 
+
   // Core logic
   i2s_core #(
       .MaxWordWidth(MaxWordWidth),

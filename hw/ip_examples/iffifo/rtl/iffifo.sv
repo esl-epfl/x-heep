@@ -47,7 +47,7 @@ module iffifo #(
   fifo_v3 #(
       .DEPTH(DEPTH),
       .DATA_WIDTH(WIDTH)
-  ) pdm2pcm_fifo_i (
+  ) iffifo_fifo_i (
       .clk_i,
       .rst_ni,
       .flush_i(1'b0),
