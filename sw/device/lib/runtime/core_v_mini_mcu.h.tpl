@@ -68,6 +68,8 @@ extern "C" {
 % endfor
 % endif
 
+#define GPIO_AO_DOMAIN_LIMIT 8
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus
