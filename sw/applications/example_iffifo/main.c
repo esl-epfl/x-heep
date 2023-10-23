@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
 
     tgt_dst.ptr        = IFFIFO_START_ADDRESS + IFFIFO_FIFO_IN_REG_OFFSET;
     tgt_dst.inc_du     = 0;
-    tgt_dst.trig       = DMA_TRIG_SLOT_TX;
+    tgt_dst.trig       = DMA_TRIG_SLOT_EXT_TX;
     tgt_dst.type       = DMA_DATA_TYPE_WORD;
     
     trans.src        = &tgt_src;
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
 
     tgt_src.ptr        = IFFIFO_START_ADDRESS + IFFIFO_FIFO_OUT_REG_OFFSET;
     tgt_src.inc_du     = 0;
-    tgt_src.trig       = DMA_TRIG_SLOT_RX;
+    tgt_src.trig       = DMA_TRIG_SLOT_EXT_RX;
     tgt_src.type       = DMA_DATA_TYPE_WORD;
     tgt_src.size_du    = 3;
 
