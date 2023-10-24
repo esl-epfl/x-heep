@@ -91,9 +91,6 @@ uint8_t w25q128jw_read_standard(uint32_t addr, uint8_t* data, uint32_t length);
 /**
  * @brief Write to flash at standard speed.
  * 
- * Programs an arbitrary number of bytes at previously erased (FFh) memory
- * locations. The address must be 264-byte aligned (i.e. last 8 bits must be 0).
- * 
  * 
  * @param addr 24-bit address to write to.
  * @param data pointer to the data buffer.
@@ -106,6 +103,7 @@ uint8_t w25q128jw_write_standard(uint32_t addr, uint8_t* data, uint32_t length);
 
 
 // TODO
+/*
 uint8_t w25q128jw_read_quad_dma(uint32_t addr, uint32_t* data, uint32_t length);
 
 uint8_t w25q128jw_write_quad_dma(uint32_t addr, uint32_t* data, uint32_t length);
@@ -117,6 +115,7 @@ uint8_t w25q128jw_write(uint32_t addr, uint32_t* data, uint32_t length);
 // Erase is not flexible, probably is better to explicitely show the 4kb, 32kb,
 // 64kb and full chip erase functions
 uint8_t w25q128jw_erase(uint32_t addr, uint32_t length); // ???
+*/
 
 
 /**
