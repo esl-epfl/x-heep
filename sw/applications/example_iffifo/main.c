@@ -27,15 +27,14 @@
 #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 
 
-int32_t to_fifo  [3]   __attribute__ ((aligned (4)))  = { 1, 2, 3 };
-int32_t from_fifo[3]   __attribute__ ((aligned (4)))  = { 0, 0, 0 };
+int32_t to_fifo  [6]   __attribute__ ((aligned (4)))  = { 1, 2, 3, 4, 5, 6 };
+int32_t from_fifo[4]   __attribute__ ((aligned (4)))  = { 0, 0, 0, 0 };
 
 int8_t dma_intr_flag = 0;
-void dma_intr_handler_trans_done(void)
+void dma_intr_handler_trans_done()
 {
-    dma_intr_flag = 1;
+  dma_intr_flag = 1;
 }
-
 
 static dma_target_t tgt_src;
 static dma_target_t tgt_dst;
@@ -44,9 +43,9 @@ static dma_trans_t trans;
 int compare_print_fifo_array(void) {
   int errors = 0;
   PRINTF("from_fifo = {");
-  for (int i = 0; i < 3; i+=1) {
+  for (int i = 0; i < 4; i+=1) {
     PRINTF("%d",from_fifo[i]);
-    if(i != 3-1) {PRINTF(", ");};
+    if(i != 4-1) {PRINTF(", ");};
     if (to_fifo[i]+1 != from_fifo[i]) {++errors;}
   }
   PRINTF("}\n");
@@ -59,16 +58,16 @@ int main(int argc, char *argv[]) {
     unsigned int IFFIFO_START_ADDRESS = EXT_PERIPHERAL_START_ADDRESS + 0x2000;
     mmio_region_t iffifo_base_addr = mmio_region_from_addr((uintptr_t)IFFIFO_START_ADDRESS);
     
-    dma_init(NULL);
     dma_config_flags_t ret;
 
      // -- DMA CONFIGURATION --
 
+    dma_init(NULL);
     tgt_src.ptr        = to_fifo;
     tgt_src.inc_du     = 1;
     tgt_src.trig       = DMA_TRIG_MEMORY;
     tgt_src.type       = DMA_DATA_TYPE_WORD;
-    tgt_src.size_du    = 3;
+    tgt_src.size_du    = 6;
 
     tgt_dst.ptr        = IFFIFO_START_ADDRESS + IFFIFO_FIFO_IN_REG_OFFSET;
     tgt_dst.inc_du     = 0;
@@ -84,18 +83,25 @@ int main(int argc, char *argv[]) {
     ret = dma_load_transaction(&trans);
     if (ret != 0) {return EXIT_FAILURE;}
     
-    if (compare_print_fifo_array() != 3) {return EXIT_FAILURE;};
+    if (compare_print_fifo_array() != 4) {return EXIT_FAILURE;}
     
     PRINTF("Launch MM -> Stream DMA\n");
     dma_launch( &trans );
-
-    if (!dma_intr_flag) { wait_for_interrupt(); }
-
+    
+    int32_t read0 = mmio_region_read32(iffifo_base_addr, IFFIFO_FIFO_OUT_REG_OFFSET);
+    int32_t read1 = mmio_region_read32(iffifo_base_addr, IFFIFO_FIFO_OUT_REG_OFFSET);
+    
+    PRINTF("Manual readings: {%d, %d}\n", read0, read1);
+    
+    if (dma_intr_flag == 0) { wait_for_interrupt(); }
+    dma_intr_flag = 0;
+    
+    dma_init(NULL);
     tgt_src.ptr        = IFFIFO_START_ADDRESS + IFFIFO_FIFO_OUT_REG_OFFSET;
     tgt_src.inc_du     = 0;
     tgt_src.trig       = DMA_TRIG_SLOT_EXT_RX;
     tgt_src.type       = DMA_DATA_TYPE_WORD;
-    tgt_src.size_du    = 3;
+    tgt_src.size_du    = 4;
 
     tgt_dst.ptr        = from_fifo;
     tgt_dst.inc_du     = 1;
@@ -113,7 +119,9 @@ int main(int argc, char *argv[]) {
     PRINTF("Launch Stream -> MM DMA\n");
     dma_launch( &trans );
     
-    if (compare_print_fifo_array() != 0) {return EXIT_FAILURE;};
+    wait_for_interrupt(); 
+
+    if (compare_print_fifo_array() == 0) {return EXIT_FAILURE;};
     
     return EXIT_SUCCESS;
     

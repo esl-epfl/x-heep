@@ -26,10 +26,7 @@ module iffifo #(
 
   logic [WIDTH-1:0] fifout;
 
-  assign iffifo_in_ready_o  = 1;
-  assign iffifo_out_valid_o = 1;
-
-  assign hw2reg.fifo_out.d  = fifout + 1;
+  assign hw2reg.fifo_out.d = fifout + 1;
 
   iffifo_reg_top #(
       .reg_req_t(reg_req_t),
@@ -44,21 +41,30 @@ module iffifo #(
       .devmode_i(1'b0)
   );
 
-  fifo_v3 #(
-      .DEPTH(DEPTH),
-      .DATA_WIDTH(WIDTH)
+  prim_fifo_sync #(
+      .Width(WIDTH),
+      .Depth(DEPTH),
+      .Pass(1'b0),
+      .OutputZeroIfEmpty(1'b0)
   ) iffifo_fifo_i (
+
       .clk_i,
       .rst_ni,
-      .flush_i(1'b0),
-      .testmode_i(1'b0),
-      .full_o(),
-      .empty_o(),
-      .usage_o(),
-      .data_i(reg2hw.fifo_in.q),
-      .push_i(reg2hw.fifo_in.qe),
-      .data_o(fifout),
-      .pop_i(reg2hw.fifo_out.re)
+      .clr_i(1'b0),
+
+      // From DMA (output) to FIFO (input, TX)
+      .wvalid_i(reg2hw.fifo_in.qe),
+      .wready_o(iffifo_in_ready_o),
+      .wdata_i (reg2hw.fifo_in.q),
+
+      // From FIFO (output) to DMA (input, RX)
+      .rvalid_o(iffifo_out_valid_o),
+      .rready_i(reg2hw.fifo_out.re),
+      .rdata_o (fifout),
+
+      .full_o (),
+      .depth_o()
+
   );
 
 endmodule : iffifo
