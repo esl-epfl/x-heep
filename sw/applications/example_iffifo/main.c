@@ -35,6 +35,13 @@ void dma_intr_handler_trans_done()
 {
   dma_intr_flag = 1;
 }
+void protected_wait_for_dma_interrupt(void)
+{
+  enable_all_fast_interrupts(false);
+  while (dma_intr_flag == 0) { wait_for_interrupt(); }
+  dma_intr_flag = 0;
+  enable_all_fast_interrupts(true);
+}
 
 static dma_target_t tgt_src;
 static dma_target_t tgt_dst;
@@ -92,9 +99,8 @@ int main(int argc, char *argv[]) {
     int32_t read1 = mmio_region_read32(iffifo_base_addr, IFFIFO_FIFO_OUT_REG_OFFSET);
     
     PRINTF("Manual readings: {%d, %d}\n", read0, read1);
-    
-    if (dma_intr_flag == 0) { wait_for_interrupt(); }
-    dma_intr_flag = 0;
+
+    protected_wait_for_dma_interrupt();
     
     dma_init(NULL);
     tgt_src.ptr        = IFFIFO_START_ADDRESS + IFFIFO_FIFO_OUT_REG_OFFSET;
@@ -119,7 +125,7 @@ int main(int argc, char *argv[]) {
     PRINTF("Launch Stream -> MM DMA\n");
     dma_launch( &trans );
     
-    wait_for_interrupt(); 
+    protected_wait_for_dma_interrupt();
 
     if (compare_print_fifo_array() == 0) {return EXIT_FAILURE;};
     
