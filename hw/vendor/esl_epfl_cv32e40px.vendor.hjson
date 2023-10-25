@@ -7,7 +7,7 @@
 
   upstream: {
     url: "https://github.com/esl-epfl/cv32e40px.git",
-    rev: "bfb6b76b19e036ade7265eb78ac15b733f0d758a",
+    rev: "acf3442b414725191fb7a2027facd0b5b4123c1c",
   },
 
   patch_dir: "patches/esl_epfl_cv32e40px",

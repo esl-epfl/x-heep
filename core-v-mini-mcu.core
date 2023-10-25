@@ -33,6 +33,7 @@ filesets:
     - x-heep:ip:i2s
     - x-heep:ip:power_manager
     - x-heep:ip:fast_intr_ctrl
+    - x-heep:ip:obi_fifo
     - x-heep:ip:pdm2pcm
     files:
     - hw/core-v-mini-mcu/core_v_mini_mcu.sv
@@ -72,6 +73,7 @@ filesets:
   tb-utils:
     depend:
     - x-heep::tb-utils
+    - x-heep::tb-fpu-utils
 
   files_verilator_waiver:
     depend:
@@ -106,6 +108,7 @@ filesets:
     - hw/fpga/cv32e40p_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
     - hw/fpga/cv32e40x_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
     - hw/fpga/cve2_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
+    - hw/fpga/cv32e40px_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
     - hw/fpga/pad_cell_input_xilinx.sv:  { file_type: systemVerilogSource }
     - hw/fpga/pad_cell_output_xilinx.sv:  { file_type: systemVerilogSource }
     - hw/fpga/pad_cell_inout_xilinx.sv:  { file_type: systemVerilogSource }
@@ -229,6 +232,12 @@ parameters:
     description: |
       Enables testbench JTAG DIPs. Admitted values: 1|0.
     default: 0
+  X_EXT:
+    datatype: int
+    paramtype: vlogparam
+    description: |
+      Enables CORE-V-XIF interface for the CV32E40X and CV32E40PX cores. Admitted values: 1|0.
+    default: 0
   USE_EXTERNAL_DEVICE_EXAMPLE:
     datatype: int
     paramtype: vlogparam
@@ -240,6 +249,11 @@ parameters:
     paramtype: vlogdefine
     description: |
       Enables simulation with UPF with Modelsim/VCS
+  REMOVE_OBI_FIFO:
+    datatype: bool
+    paramtype: vlogdefine
+    description: |
+      Remove the FIFO between the BUS and the peripherals subsystems
   SYNTHESIS:
     datatype: bool
     paramtype: vlogdefine
@@ -318,8 +332,10 @@ targets:
     - COREV_PULP
     - FPU
     - JTAG_DPI
+    - X_EXT
     - USE_EXTERNAL_DEVICE_EXAMPLE
     - USE_UPF
+    - REMOVE_OBI_FIFO
     tools:
       modelsim:
         vlog_options:
@@ -375,7 +391,9 @@ targets:
     parameters:
     - COREV_PULP
     - FPU
+    - X_EXT
     - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
     tools:
       vivado:
         part: xc7a100tcsg324-1
@@ -393,7 +411,9 @@ targets:
     parameters:
     - COREV_PULP
     - FPU
+    - X_EXT
     - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
     tools:
       vivado:
         part: xc7z020clg400-1
@@ -411,45 +431,28 @@ targets:
     parameters:
     - COREV_PULP
     - FPU
+    - X_EXT
     - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
     tools:
       vivado:
         part: xc7z020clg400-1
         jobs: 4
     toplevel: [linux_femu]
 
-  sim_nexys_netlist:
-    filesets:
-    - netlist-fpga
-    - tb-rtl
-    - post_build_modelsim_scripts
-    toplevel: [tb_top_vopt]
-    hooks:
-      post_build: [post_build_modelsim_scripts]
-    parameters:
-    - COREV_PULP
-    - FPU
-    - FPGA_NETLIST=true
-    tools:
-      modelsim:
-        vlog_options:
-        - -override_timescale 1ns/1ps
-        - -suppress vlog-2583
-        - -suppress vlog-2577
-        - -pedanticerrors
-
   asic_synthesis:
     <<: *default_target
     default_tool: design_compiler
     description: Design Compiler Script
     parameters:
+    - PRIM_DEFAULT_IMPL=prim_pkg::your_target_technology
     - COREV_PULP
+    - X_EXT
     - FPU
     - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
     filesets_append:
     - ip-asic
-    parameters:
-      - PRIM_DEFAULT_IMPL=prim_pkg::your_target_technology
     toplevel: [core_v_mini_mcu]
     tools:
       design_compiler:
@@ -467,8 +470,10 @@ targets:
     parameters:
       - COREV_PULP
       - FPU
+      - X_EXT
       - SYNTHESIS=true
       - VERILATOR=true
+      - REMOVE_OBI_FIFO
     filesets_append:
       - use_sky130? (rtl-sky130)
       - lib-sky130

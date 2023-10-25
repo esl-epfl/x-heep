@@ -12,15 +12,15 @@ extern "C" {
 #endif  // __cplusplus
 
 
-#define REFERENCE_CLOCK_Hz 20*1000*1000
-#define UART_BAUDRATE 115200
-#define TARGET_PYNQ_Z2
+#define REFERENCE_CLOCK_Hz 15*1000*1000
+#define UART_BAUDRATE 9600
+#define TARGET_PYNQ_Z2 1
 
 /**
  * As the hw is configurable, we can have setups with different number of
  * Gpio pins
- */ 
-#define MAX_PIN     32  
+ */
+#define MAX_PIN     32
 
 
 #ifdef __cplusplus

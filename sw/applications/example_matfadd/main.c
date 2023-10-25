@@ -11,21 +11,17 @@
 
 #define FS_INITIAL 0x01
 
-/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
-#define DEFAULT_PRINTF_BEHAVIOR 1
-
 /* By default, printfs are activated for FPGA and disabled for simulation. */
-#ifdef TARGET_PYNQ_Z2 
-    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
-#else 
-    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
-#endif
+#define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   0
 
-#if ENABLE_PRINTF
-  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#if TARGET_SIM && PRINTF_IN_SIM
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
-  #define PRINTF(...)
-#endif 
+    #define PRINTF(...)
+#endif
 
 void __attribute__ ((noinline)) matrixAdd(float * A, float * B, float * C, int N, int M);
 uint32_t check_results(float *  C, int N, int M);
@@ -121,10 +117,13 @@ int main()
     int N = WIDTH;
     int M = HEIGHT;
     uint32_t errors = 0;
-    unsigned int instr, cycles, ldstall, jrstall, imstall;
+    unsigned int instr, cycles;
 
     //enable FP operations
     CSR_SET_BITS(CSR_REG_MSTATUS, (FS_INITIAL << 13));
+
+    //enable mcycle csr
+    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
 
     CSR_WRITE(CSR_REG_MCYCLE, 0);
 

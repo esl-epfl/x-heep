@@ -11,21 +11,17 @@
 #include "power_manager.h"
 #include "x-heep.h"
 
-/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
-#define DEFAULT_PRINTF_BEHAVIOR 1
-
 /* By default, printfs are activated for FPGA and disabled for simulation. */
-#ifdef TARGET_PYNQ_Z2 
-    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
-#else 
-    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
-#endif
+#define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   0
 
-#if ENABLE_PRINTF
-  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#if TARGET_SIM && PRINTF_IN_SIM
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
-  #define PRINTF(...)
-#endif 
+    #define PRINTF(...)
+#endif
 
 static power_manager_t power_manager;
 
@@ -43,6 +39,10 @@ int main(int argc, char *argv[])
     for(uint32_t i = 2; i < MEMORY_BANKS; ++i)
         mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x1);
 
+    // Clock-gating external subsystems
+    for(uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
+        mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_external_map[i].clk_gate), 0x1);
+
     // Wait some time
     for (int i=0; i<100; i++) asm volatile("nop;");
 
@@ -52,6 +52,10 @@ int main(int argc, char *argv[])
     // Enabling ram-banks
     for(uint32_t i = 2; i < MEMORY_BANKS; ++i)
         mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_ram_map[i].clk_gate), 0x0);
+
+    // Enabling external subsystems
+    for(uint32_t i = 0; i < EXTERNAL_DOMAINS; ++i)
+        mmio_region_write32(power_manager.base_addr, (ptrdiff_t)(power_manager_external_map[i].clk_gate), 0x0);
 
     /* write something to stdout */
     PRINTF("Success.\n\r");

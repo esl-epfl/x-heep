@@ -1,4 +1,4 @@
-## Program the FLASH on the EPFL Programmer
+# program the FLASH on the EPFL Programmer
 
 Install the required linux tools:
 

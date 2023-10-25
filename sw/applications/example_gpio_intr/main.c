@@ -23,20 +23,16 @@ Notes:
 */
 
 
-/* Change this value to 0 to disable prints for FPGA and enable them for simulation. */
-#define DEFAULT_PRINTF_BEHAVIOR 1
-
 /* By default, printfs are activated for FPGA and disabled for simulation. */
-#ifdef TARGET_PYNQ_Z2
-    #define ENABLE_PRINTF DEFAULT_PRINTF_BEHAVIOR
-#else
-    #define ENABLE_PRINTF !DEFAULT_PRINTF_BEHAVIOR
-#endif
+#define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   0
 
-#if ENABLE_PRINTF
-  #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#if TARGET_SIM && PRINTF_IN_SIM
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
-  #define PRINTF(...)
+    #define PRINTF(...)
 #endif
 
 
@@ -60,6 +56,20 @@ Notes:
 #endif
 
 plic_result_t plic_res;
+
+uint8_t gpio_intr_flag = 0;
+
+void handler_1()
+{
+    PRINTF("handler 1\n");
+    gpio_intr_flag = 1;
+}
+
+void handler_2()
+{
+    PRINTF("handler 2\n");
+    gpio_intr_flag = 1;
+}
 
 int main(int argc, char *argv[])
 {
@@ -100,7 +110,6 @@ int main(int argc, char *argv[])
     // Set mie.MEIE bit to one to enable machine-level external interrupts
     const uint32_t mask = 1 << 11;
     CSR_SET_BITS(CSR_REG_MIE, mask);
-    plic_intr_flag = 0;
 
     //gpio_reset_all();
     gpio_result_t gpio_res;
@@ -129,15 +138,32 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    gpio_assign_irq_handler( GPIO_INTR, &handler_1 );
+    gpio_intr_flag = 0;
+
     PRINTF("Write 1 to GPIO 30 and wait for interrupt...\n\r");
-    while(plic_intr_flag==0) {
+    while(gpio_intr_flag == 0) {
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
         gpio_write(GPIO_TB_OUT, true);
-        wait_for_interrupt();
+        // wait_for_interrupt();
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }
+
+    gpio_assign_irq_handler( GPIO_INTR, &handler_2 );
+    gpio_intr_flag = 0;
+
+    PRINTF("Write 1 to GPIO 30 and wait for interrupt...\n\r");
+    while(gpio_intr_flag == 0) {
+        // disable_interrupts
+        // this does not prevent waking up the core as this is controlled by the MIP register
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+        gpio_write(GPIO_TB_OUT, true);
+        //wait_for_interrupt();
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    }
+
     PRINTF("Success\n\r");
 
     return EXIT_SUCCESS;
