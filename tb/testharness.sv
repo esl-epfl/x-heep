@@ -454,8 +454,13 @@ module testharness #(
           .rst_ni,
           .reg_req_i(ext_periph_slv_req[testharness_pkg::IFFIFO_IDX]),
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::IFFIFO_IDX]),
+          // DMA slots
           .iffifo_in_ready_o(iffifo_in_ready),
-          .iffifo_out_valid_o(iffifo_out_valid)
+          .iffifo_out_valid_o(iffifo_out_valid),
+          // Interrupts lines
+          .iffifo_available_int_o(),
+          .iffifo_reached_int_o(),
+          .iffifo_full_int_o()
       );
 
       addr_decode #(

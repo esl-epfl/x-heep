@@ -9,14 +9,22 @@ module iffifo #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
     localparam int WIDTH = 32,
-    localparam int DEPTH = 4
+    localparam int DEPTH = 4,
+    localparam int DEPTHw = $clog2(DEPTH + 1)
 ) (
     input logic clk_i,
     input logic rst_ni,
     input reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
+
+    // DMA slots
     output logic iffifo_in_ready_o,
-    output logic iffifo_out_valid_o
+    output logic iffifo_out_valid_o,
+
+    // Interrupt lines
+    output logic iffifo_available_int_o,
+    output logic iffifo_reached_int_o,
+    output logic iffifo_full_int_o
 );
 
   import iffifo_reg_pkg::*;
@@ -25,8 +33,60 @@ module iffifo #(
   iffifo_hw2reg_t hw2reg;
 
   logic [WIDTH-1:0] fifout;
+  logic [DEPTHw-1:0] occupancy;
+  logic empty, full, reached, available;
 
   assign hw2reg.fifo_out.d = fifout + 1;
+
+  // Status (full/empty/watermark) reporting circuitry
+  assign empty = (occupancy == 0);
+  assign available = !empty;
+  assign hw2reg.status.empty.de = 1;
+  assign hw2reg.status.empty.d = empty;
+  assign hw2reg.status.available.de = 1;
+  assign hw2reg.status.available.d = available;
+  assign hw2reg.status.full.de = 1;
+  assign hw2reg.status.full.d = full;
+  assign hw2reg.status.reached.de = 1;
+  assign hw2reg.status.reached.d = reached;
+  assign hw2reg.occupancy.de = 1;
+  assign hw2reg.occupancy.d = {{32 - DEPTHw{1'b0}}, occupancy};
+  assign reached = ({{32 - DEPTHw{1'b0}}, occupancy} >= reg2hw.watermark.q);
+
+  // Interrupts circuitry
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (~rst_ni) begin
+
+      iffifo_available_int_o <= 0;
+      iffifo_reached_int_o   <= 0;
+      iffifo_full_int_o      <= 0;
+
+    end else begin
+
+      // Interrupts firing
+      if (full & reg2hw.interrupts.full.q) begin
+        iffifo_full_int_o <= 1;
+      end
+      if (reached & reg2hw.interrupts.reached.q) begin
+        iffifo_reached_int_o <= 1;
+      end
+      if (available & reg2hw.interrupts.available.q) begin
+        iffifo_available_int_o <= 1;
+      end
+
+      // Interrupts assertion
+      if (reg2hw.interrupts.full.qe) begin
+        iffifo_full_int_o <= 0;
+      end
+      if (reg2hw.interrupts.reached.qe) begin
+        iffifo_reached_int_o <= 0;
+      end
+      if (reg2hw.interrupts.available.qe) begin
+        iffifo_available_int_o <= 0;
+      end
+
+    end
+  end
 
   iffifo_reg_top #(
       .reg_req_t(reg_req_t),
@@ -62,8 +122,8 @@ module iffifo #(
       .rready_i(reg2hw.fifo_out.re),
       .rdata_o (fifout),
 
-      .full_o (),
-      .depth_o()
+      .full_o (full),
+      .depth_o(occupancy)
 
   );
 

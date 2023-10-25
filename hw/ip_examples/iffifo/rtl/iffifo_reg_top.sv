@@ -10,7 +10,7 @@
 module iffifo_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 3
+    parameter int AW = 5
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -73,6 +73,23 @@ module iffifo_reg_top #(
   logic [31:0] fifo_in_qs;
   logic [31:0] fifo_in_wd;
   logic fifo_in_we;
+  logic status_empty_qs;
+  logic status_available_qs;
+  logic status_reached_qs;
+  logic status_full_qs;
+  logic [31:0] occupancy_qs;
+  logic [31:0] watermark_qs;
+  logic [31:0] watermark_wd;
+  logic watermark_we;
+  logic interrupts_available_qs;
+  logic interrupts_available_wd;
+  logic interrupts_available_we;
+  logic interrupts_reached_qs;
+  logic interrupts_reached_wd;
+  logic interrupts_reached_we;
+  logic interrupts_full_qs;
+  logic interrupts_full_wd;
+  logic interrupts_full_we;
 
   // Register instances
   // R[fifo_out]: V(True)
@@ -118,13 +135,252 @@ module iffifo_reg_top #(
   );
 
 
+  // R[status]: V(False)
+
+  //   F[empty]: 0:0
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RO"),
+      .RESVAL  (1'h0)
+  ) u_status_empty (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      .we(1'b0),
+      .wd('0),
+
+      // from internal hardware
+      .de(hw2reg.status.empty.de),
+      .d (hw2reg.status.empty.d),
+
+      // to internal hardware
+      .qe(),
+      .q (),
+
+      // to register interface (read)
+      .qs(status_empty_qs)
+  );
 
 
-  logic [1:0] addr_hit;
+  //   F[available]: 1:1
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RO"),
+      .RESVAL  (1'h0)
+  ) u_status_available (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      .we(1'b0),
+      .wd('0),
+
+      // from internal hardware
+      .de(hw2reg.status.available.de),
+      .d (hw2reg.status.available.d),
+
+      // to internal hardware
+      .qe(),
+      .q (),
+
+      // to register interface (read)
+      .qs(status_available_qs)
+  );
+
+
+  //   F[reached]: 2:2
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RO"),
+      .RESVAL  (1'h0)
+  ) u_status_reached (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      .we(1'b0),
+      .wd('0),
+
+      // from internal hardware
+      .de(hw2reg.status.reached.de),
+      .d (hw2reg.status.reached.d),
+
+      // to internal hardware
+      .qe(),
+      .q (),
+
+      // to register interface (read)
+      .qs(status_reached_qs)
+  );
+
+
+  //   F[full]: 3:3
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RO"),
+      .RESVAL  (1'h0)
+  ) u_status_full (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      .we(1'b0),
+      .wd('0),
+
+      // from internal hardware
+      .de(hw2reg.status.full.de),
+      .d (hw2reg.status.full.d),
+
+      // to internal hardware
+      .qe(),
+      .q (),
+
+      // to register interface (read)
+      .qs(status_full_qs)
+  );
+
+
+  // R[occupancy]: V(False)
+
+  prim_subreg #(
+      .DW      (32),
+      .SWACCESS("RO"),
+      .RESVAL  (32'h0)
+  ) u_occupancy (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      .we(1'b0),
+      .wd('0),
+
+      // from internal hardware
+      .de(hw2reg.occupancy.de),
+      .d (hw2reg.occupancy.d),
+
+      // to internal hardware
+      .qe(),
+      .q (),
+
+      // to register interface (read)
+      .qs(occupancy_qs)
+  );
+
+
+  // R[watermark]: V(False)
+
+  prim_subreg #(
+      .DW      (32),
+      .SWACCESS("RW"),
+      .RESVAL  (32'h0)
+  ) u_watermark (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(watermark_we),
+      .wd(watermark_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.watermark.q),
+
+      // to register interface (read)
+      .qs(watermark_qs)
+  );
+
+
+  // R[interrupts]: V(False)
+
+  //   F[available]: 0:0
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_interrupts_available (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(interrupts_available_we),
+      .wd(interrupts_available_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(reg2hw.interrupts.available.qe),
+      .q (reg2hw.interrupts.available.q),
+
+      // to register interface (read)
+      .qs(interrupts_available_qs)
+  );
+
+
+  //   F[reached]: 1:1
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_interrupts_reached (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(interrupts_reached_we),
+      .wd(interrupts_reached_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(reg2hw.interrupts.reached.qe),
+      .q (reg2hw.interrupts.reached.q),
+
+      // to register interface (read)
+      .qs(interrupts_reached_qs)
+  );
+
+
+  //   F[full]: 2:2
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_interrupts_full (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(interrupts_full_we),
+      .wd(interrupts_full_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(reg2hw.interrupts.full.qe),
+      .q (reg2hw.interrupts.full.q),
+
+      // to register interface (read)
+      .qs(interrupts_full_qs)
+  );
+
+
+
+
+  logic [5:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == IFFIFO_FIFO_OUT_OFFSET);
     addr_hit[1] = (reg_addr == IFFIFO_FIFO_IN_OFFSET);
+    addr_hit[2] = (reg_addr == IFFIFO_STATUS_OFFSET);
+    addr_hit[3] = (reg_addr == IFFIFO_OCCUPANCY_OFFSET);
+    addr_hit[4] = (reg_addr == IFFIFO_WATERMARK_OFFSET);
+    addr_hit[5] = (reg_addr == IFFIFO_INTERRUPTS_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -133,13 +389,29 @@ module iffifo_reg_top #(
   always_comb begin
     wr_err = (reg_we &
               ((addr_hit[0] & (|(IFFIFO_PERMIT[0] & ~reg_be))) |
-               (addr_hit[1] & (|(IFFIFO_PERMIT[1] & ~reg_be)))));
+               (addr_hit[1] & (|(IFFIFO_PERMIT[1] & ~reg_be))) |
+               (addr_hit[2] & (|(IFFIFO_PERMIT[2] & ~reg_be))) |
+               (addr_hit[3] & (|(IFFIFO_PERMIT[3] & ~reg_be))) |
+               (addr_hit[4] & (|(IFFIFO_PERMIT[4] & ~reg_be))) |
+               (addr_hit[5] & (|(IFFIFO_PERMIT[5] & ~reg_be)))));
   end
 
   assign fifo_out_re = addr_hit[0] & reg_re & !reg_error;
 
-  assign fifo_in_we  = addr_hit[1] & reg_we & !reg_error;
-  assign fifo_in_wd  = reg_wdata[31:0];
+  assign fifo_in_we = addr_hit[1] & reg_we & !reg_error;
+  assign fifo_in_wd = reg_wdata[31:0];
+
+  assign watermark_we = addr_hit[4] & reg_we & !reg_error;
+  assign watermark_wd = reg_wdata[31:0];
+
+  assign interrupts_available_we = addr_hit[5] & reg_we & !reg_error;
+  assign interrupts_available_wd = reg_wdata[0];
+
+  assign interrupts_reached_we = addr_hit[5] & reg_we & !reg_error;
+  assign interrupts_reached_wd = reg_wdata[1];
+
+  assign interrupts_full_we = addr_hit[5] & reg_we & !reg_error;
+  assign interrupts_full_wd = reg_wdata[2];
 
   // Read data return
   always_comb begin
@@ -151,6 +423,27 @@ module iffifo_reg_top #(
 
       addr_hit[1]: begin
         reg_rdata_next[31:0] = fifo_in_qs;
+      end
+
+      addr_hit[2]: begin
+        reg_rdata_next[0] = status_empty_qs;
+        reg_rdata_next[1] = status_available_qs;
+        reg_rdata_next[2] = status_reached_qs;
+        reg_rdata_next[3] = status_full_qs;
+      end
+
+      addr_hit[3]: begin
+        reg_rdata_next[31:0] = occupancy_qs;
+      end
+
+      addr_hit[4]: begin
+        reg_rdata_next[31:0] = watermark_qs;
+      end
+
+      addr_hit[5]: begin
+        reg_rdata_next[0] = interrupts_available_qs;
+        reg_rdata_next[1] = interrupts_reached_qs;
+        reg_rdata_next[2] = interrupts_full_qs;
       end
 
       default: begin
@@ -174,7 +467,7 @@ module iffifo_reg_top #(
 endmodule
 
 module iffifo_reg_top_intf #(
-    parameter  int AW = 3,
+    parameter  int AW = 5,
     localparam int DW = 32
 ) (
     input logic clk_i,
