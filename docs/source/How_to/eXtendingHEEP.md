@@ -1,4 +1,4 @@
-# Extending X-HEEP
+#  eXtend X-HEEP
 
 `X-HEEP` is meant to be extended with your own custom IPs. `X-HEEP` itself posseses a hardware-software framework capable of working standalone. If you want to extend it, you will need to merge your hardware and software with `X-HEEP`'s.
 
@@ -11,6 +11,18 @@ Here you can find a list of `X-HEEP` based open-source examples. If you want to 
 * [CGRA-X-HEEP](https://github.com/esl-epfl/cgra_x_heep): A CGRA loosely coupled with X-HEEP.
 * [F-HEEP](https://github.com/davidmallasen/F-HEEP): System integrating [fpu_ss](https://github.com/pulp-platform/fpu_ss) into X-HEEP via the eXtension interface and cv32e40x.
 
+
+In addition, the `X-HEEP` testbench has been extended with a `DMA`, dummy `PERIPHERALs` (including the `FLASH`), and a CORE-V-XIF compatible co-processor
+implementing the `RV32F` RISC-V ISA. This has been done to help us maintaining and verifying the extension interface.
+
+If you want to try the co-processor with a CORE-V-XIF compatible CPU as the `cv32e40px`, do as follow:
+
+```
+make mcu-gen CPU=cv32e40px
+make verilator-sim FUSESOC_PARAM="--X_EXT=1"
+make app PROJECT=example_matfadd ARCH=rv32imfc
+./Vtestharness +firmware=../../../sw/build/main.hex
+```
 
 ## Vendorizing X-HEEP
 
@@ -83,9 +95,9 @@ The following is an example repository folder structure.
 
 To achieve this:
 
-* Create a new top-level repository (`BASE`) and [vendorize](#vendorizing-x-heep) (or add as git submodules) both your `CORE-V-XIF/OBI` compliant coprocessor/accelerator and `X-HEEP`.
-* Copy the `x-heep/hw/system/x_heep_system.sv` as your new top-level module. Then modify it as needed to include your co-processor and connect it to the `core_v_mini_mcu` with the `XIF`. The `XIF` SystemVerilog interface must be instantiated in the top-level module, where `X-HEEP` and your co-processor are connected. See the `X-HEEP` [testbench](./tb/testharness.sv) as an example.
-* Before [building software](#building-software) remember to run `make mcu-gen CPU=cv32e40x`.
+* Create a new top-level repository (`BASE`) and vendorize (or add as git submodules) both your `CORE-V-XIF/OBI` compliant coprocessor/accelerator and `X-HEEP`.
+* Copy the `x-heep/hw/system/x_heep_system.sv` as your new top-level module. Then modify it as needed to include your co-processor and connect it to the `core_v_mini_mcu` with the `XIF`. The `XIF` SystemVerilog interface must be instantiated in the top-level module, where `X-HEEP` and your co-processor are connected. See the `X-HEEP` [testbench](./../../../tb/testharness.sv) as an example.
+* Before building software remember to run `make mcu-gen CPU=cv32e40x`.
 
 To add this new top-level module to the simulation/synthesis flow you can extend the [FuseSoC](https://fusesoc.readthedocs.io/en/stable/user/index.html) support of `X-HEEP`.
 
@@ -233,7 +245,10 @@ The following is an example repository folder structure.
     │       │   	├── your_copro.h
     │       │   	└── your_copro_defs.h -> ../../../../hw/vendor/your_copro/sw/your_copro_defs.h
     │       └── extensions
-    │       	└── your_copro_x_heep.h
+    │       │   └── your_copro_x_heep.h
+    │       └── lib
+    │           └── crt
+    │               └── external_crt0.S
     ├── hw
     │   └── vendor
     │       ├── your_copro
@@ -276,8 +291,9 @@ In the `external` folder you can add whatever is necessary for software to work 
 
 * Sources and header files
 * Soft links to folders or files.
+* A `lib/crt/` directory with and `exteral_crt0.S` file (will be included inside `BASW/sw/device/lib/crt/crt0.S`).
 
-The external folder or any of its subdirectories cannot contain neither a `device` nor a `applications` folder as it would collide with the respective folders inside `BASE/sw/`. It should also not contain a `main.c` file.
+The external folder or any of its subdirectories cannot contain neither a `device` nor an `applications` folder as it would collide with the respective folders inside `BASE/sw/`. It should also not contain a `main.c` file.
 
 ### The BASE/Makefile
 The `BASE/Makefile` is your own custom Makefile. You can use it as a bridge to access the Makefile from `X-HEEP`.

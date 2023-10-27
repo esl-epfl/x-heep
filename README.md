@@ -182,8 +182,13 @@ First, you have to generate the SystemVerilog package and C header file of the c
 make mcu-gen
 ```
 
-To change the default cpu type (i.e., cv32e20), the default bus type (i.e., onetoM),
-the default continuous memory size (i.e., 2 continuous banks) or the default interleaved memory size (i.e., 0 interleaved banks):
+By default, `X-HEEP` deploys the [cv32e20](https://github.com/openhwgroup/cve2) RISC-V CPU.
+Other supported CPUs are: the [cv32e40p](https://github.com/openhwgroup/cv32e40p), [cv32e40x](https://github.com/openhwgroup/cv32e40x), and the [cv32e40px](https://github.com/esl-epfl/cv32e40px).
+The default bus type of `X-HEEP` is a single-master-at-a-time architecture, (called `onetoM`), but the cross-bar architecture is also supported by setting
+the bus to `NtoM`. Also, the user can select the number of 32kB banks addressed in continuous mode and/or the interleaved mode.
+By default, `X-HEEP` is generated with 2 continuous banks and 0 interleaved banks.
+
+Below an example that changes the default configuration:
 
 ```
 make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=12 MEMORY_BANKS_IL=4
@@ -191,6 +196,16 @@ make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=12 MEMORY_BANKS_IL=4
 
 The last command generates x-heep with the cv32e40p core, with a parallel bus, and 16 memory banks (12 continuous and 4 interleaved),
 each 32KB, for a total memory of 512KB.
+
+If you are using `X-HEEP` just as a controller for your own system and you do not need any peripheral, you can use the `minimal` configuration file
+when generating the MCU as:
+
+```
+make mcu-gen MCU_CFG=mcu_cfg_minimal.hjson
+```
+
+The `minimal` configuration is a work-in-progress, thus not all the APPs have been tested.
+
 
 ## Compiling Software
 
@@ -499,8 +514,19 @@ to load the binaries with the HS2 cable over JTAG,
 or follow the [ExecuteFromFlash](./ExecuteFromFlash.md)
 guide if you have a FLASH attached to the FPGA.
 
-
 Do not forget that the `pynq-z2` board requires you to have the ethernet cable attached to the board while running.
+
+For example, if you want to run your application using flash_exec, do as follow:
+
+compile your application, e.g. `make app PROJECT=example_matfadd TARGET=pynq-z2 ARCH=rv32imfc LINKER=flash_exec`
+
+and then follow the [ExecuteFromFlash](./ExecuteFromFlash.md) to program the flash and set the boot buttons on the FPGA correctly.
+
+To look at the output of your printf, run in another terminal:
+
+`picocom -b 9600 -r -l --imap lfcrlf /dev/ttyUSB2`
+
+Please be sure to use the right `ttyUSB` number (you can discover it with `dmesg --time-format iso | grep FTDI` for example).
 
 
 ### Linux-FEMU (Linux Fpga EMUlation)

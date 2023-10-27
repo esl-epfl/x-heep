@@ -98,7 +98,7 @@ module cv32e40px_x_disp
   // scoreboard, id and satus signals
   logic [31:0] scoreboard_q, scoreboard_d;
   logic [3:0] id_q, id_d;
-  logic [3:0] instr_offloaded_q, instr_offloaded_d;
+  logic instr_offloaded_q, instr_offloaded_d;
   logic [3:0] mem_counter_q, mem_counter_d;
   logic dep;
   logic outstanding_mem;
@@ -182,7 +182,7 @@ module cv32e40px_x_disp
   always_comb begin
     scoreboard_d = scoreboard_q;
     if (x_issue_resp_writeback_i & x_issue_valid_o & x_issue_ready_i
-        & ~((waddr_id_i == x_result_rd_i) & x_result_valid_i & x_result_rd_i)) begin
+        & ~((waddr_id_i == x_result_rd_i) & x_result_valid_i & (x_result_rd_i != '0))) begin
       scoreboard_d[waddr_id_i] = 1'b1;
     end
     if (x_result_valid_i & x_result_we_i) begin

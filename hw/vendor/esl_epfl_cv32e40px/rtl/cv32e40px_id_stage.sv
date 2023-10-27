@@ -148,6 +148,7 @@ module cv32e40px_id_stage
     output logic [2:0][5:0] apu_read_regs_o,
     output logic [2:0]      apu_read_regs_valid_o,
     input  logic            apu_read_dep_i,
+    input  logic            apu_read_dep_for_jalr_i,
     output logic [1:0][5:0] apu_write_regs_o,
     output logic [1:0]      apu_write_regs_valid_o,
     input  logic            apu_write_dep_i,
@@ -860,11 +861,17 @@ module cv32e40px_id_stage
       // dependency checks
       always_comb begin
         unique case (alu_op_a_mux_sel)
+          OP_A_CURRPC: begin
+            if (ctrl_transfer_target_mux_sel == JT_JALR) begin
+              apu_read_regs[0]       = regfile_addr_ra_id;
+              apu_read_regs_valid[0] = 1'b1;
+            end
+          end  // OP_A_CURRPC:
           OP_A_REGA_OR_FWD: begin
             apu_read_regs[0]       = regfile_addr_ra_id;
             apu_read_regs_valid[0] = 1'b1;
           end  // OP_A_REGA_OR_FWD:
-          OP_A_REGB_OR_FWD: begin
+          OP_A_REGB_OR_FWD, OP_A_REGC_OR_FWD: begin
             apu_read_regs[0]       = regfile_addr_rb_id;
             apu_read_regs_valid[0] = 1'b1;
           end
@@ -881,13 +888,22 @@ module cv32e40px_id_stage
             apu_read_regs[1]       = regfile_addr_ra_id;
             apu_read_regs_valid[1] = 1'b1;
           end
-          OP_B_REGB_OR_FWD: begin
+          OP_B_REGB_OR_FWD, OP_B_BMASK: begin
             apu_read_regs[1]       = regfile_addr_rb_id;
             apu_read_regs_valid[1] = 1'b1;
           end
           OP_B_REGC_OR_FWD: begin
             apu_read_regs[1]       = regfile_addr_rc_id;
             apu_read_regs_valid[1] = 1'b1;
+          end
+          OP_B_IMM: begin
+            if (alu_bmask_b_mux_sel == BMASK_B_REG) begin
+              apu_read_regs[1]       = regfile_addr_rb_id;
+              apu_read_regs_valid[1] = 1'b1;
+            end else begin
+              apu_read_regs[1]       = regfile_addr_rb_id;
+              apu_read_regs_valid[1] = 1'b0;
+            end
           end
           default: begin
             apu_read_regs[1]       = regfile_addr_rb_id;
@@ -903,8 +919,15 @@ module cv32e40px_id_stage
             apu_read_regs_valid[2] = 1'b1;
           end
           OP_C_REGC_OR_FWD: begin
-            apu_read_regs[2]       = regfile_addr_rc_id;
-            apu_read_regs_valid[2] = 1'b1;
+            if ((alu_op_a_mux_sel != OP_A_REGC_OR_FWD) && (ctrl_transfer_target_mux_sel != JT_JALR) &&
+                !((alu_op_b_mux_sel == OP_B_IMM) && (alu_bmask_b_mux_sel == BMASK_B_REG)) &&
+                !(alu_op_b_mux_sel == OP_B_BMASK)) begin
+              apu_read_regs[2]       = regfile_addr_rc_id;
+              apu_read_regs_valid[2] = 1'b1;
+            end else begin
+              apu_read_regs[2]       = regfile_addr_rc_id;
+              apu_read_regs_valid[2] = 1'b0;
+            end
           end
           default: begin
             apu_read_regs[2]       = regfile_addr_rc_id;
@@ -992,7 +1015,7 @@ module cv32e40px_id_stage
   logic [1:0] x_mem_data_type_id;
 
   generate
-    if (COREV_X_IF) begin : gen_x_disp
+    if (COREV_X_IF != 0) begin : gen_x_disp
       ////////////////////////////////////////
       //  __  __     ____ ___ ____  ____    //
       //  \ \/ /    |  _ \_ _/ ___||  _ \   //
@@ -1115,12 +1138,12 @@ module cv32e40px_id_stage
       always_comb begin
         x_mem_data_type_id = 2'b00;
         case (x_mem_req_i.size)
-          2'b00: x_mem_data_type_id = 2'b10;  // SB
-          2'b01: x_mem_data_type_id = 2'b01;  // SH
-          2'b10: x_mem_data_type_id = 2'b00;  // SW
+          3'd0: x_mem_data_type_id = 2'b10;  // SB
+          3'd1: x_mem_data_type_id = 2'b01;  // SH
+          3'd2: x_mem_data_type_id = 2'b00;  // SW
+          default: x_mem_data_type_id = 2'b00;  // SW
         endcase
       end
-
 
     end else begin : gen_no_x_disp
 
@@ -1297,7 +1320,8 @@ module cv32e40px_id_stage
 
   cv32e40px_controller #(
       .COREV_CLUSTER(COREV_CLUSTER),
-      .COREV_PULP   (COREV_PULP)
+      .COREV_PULP   (COREV_PULP),
+      .FPU          (FPU)
   ) controller_i (
       .clk          (clk),  // Gated clock
       .clk_ungated_i(clk_ungated_i),  // Ungated clock
@@ -1312,7 +1336,6 @@ module cv32e40px_id_stage
       .deassert_we_o(deassert_we),
 
       .illegal_insn_i(illegal_insn),
-      .illegal_insn_dec_i(illegal_insn_dec),
       .ecall_insn_i  (ecall_insn_dec),
       .mret_insn_i   (mret_insn_dec),
       .uret_insn_i   (uret_insn_dec),
@@ -1345,8 +1368,7 @@ module cv32e40px_id_stage
       .trap_addr_mux_o(trap_addr_mux_o),
 
       // HWLoop signls
-      .pc_id_i        (pc_id_i),
-      .is_compressed_i(is_compressed_i),
+      .pc_id_i(pc_id_i),
 
       .hwlp_start_addr_i(hwlp_start_o),
       .hwlp_end_addr_i  (hwlp_end_o),
@@ -1368,9 +1390,10 @@ module cv32e40px_id_stage
       .mult_multicycle_i(mult_multicycle_i),
 
       // APU
-      .apu_en_i       (apu_en),
-      .apu_read_dep_i (apu_read_dep_i),
-      .apu_write_dep_i(apu_write_dep_i),
+      .apu_en_i               (apu_en),
+      .apu_read_dep_i         (apu_read_dep_i),
+      .apu_read_dep_for_jalr_i(apu_read_dep_for_jalr_i),
+      .apu_write_dep_i        (apu_write_dep_i),
 
       .apu_stall_o(apu_stall),
 

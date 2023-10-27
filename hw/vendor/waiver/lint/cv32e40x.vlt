@@ -31,16 +31,15 @@ lint_off -rule WIDTH -file "*/rtl/cv32e40x_int_controller.sv" -match "Operator A
 lint_off -rule WIDTH -file "*/rtl/cv32e40x_int_controller.sv" -match "Operator ASSIGN expects 5 bits on the Assign RHS, but Assign RHS's VARREF 'CSR_MTIX_BIT' generates 32 bits."
 lint_off -rule WIDTH -file "*/rtl/cv32e40x_if_stage.sv" -match "Operator ASSIGNDLY expects 32 bits on the Assign RHS, but Assign RHS's VARREF 'xif_id' generates 4 bits."
 lint_off -rule WIDTH -file "*/rtl/cv32e40x_pma.sv" -match "Logical operator GENIF expects 1 bit on the If, but If's VARREF 'A_EXT' generates 2 bits."
-
 lint_off -rule UNUSED -file "*cv32e40x_*.sv" -match "*"
 lint_off -rule UNUSED -file "*/rtl/if_xif.sv" -match "*"
-
 lint_off -rule LITENDIAN -file "*/rtl/cv32e40x_alignment_buffer.sv" -match "Little bit endian vector: left < right of bit range: [0:2]"
-
 lint_off -rule UNDRIVEN -file "*/rtl/if_xif.sv" -match "*"
 lint_off -rule UNDRIVEN -file "*/rtl/cv32e40x_id_stage.sv" -match "*"
 lint_off -rule UNDRIVEN -file "*/rtl/cv32e40x_align_check.sv" -match "Bits of signal are not driven: 'core_resp_o'[2]"
-
 lint_off -rule BLKANDNBLK -file "*/rtl/cv32e40x_csr.sv" -match "Unsupported: Blocked and non-blocking assignments to same variable: *"
-
 lint_off -rule MULTIDRIVEN -file "*/rtl/cv32e40x_cs_registers.sv" -match "Signal has multiple driving blocks with different clocking: '*'*"
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_controller_fsm.sv" -match "Operator ASSIGNW expects 4 bits on the Assign RHS, but Assign RHS's SEL generates 32 bits*"
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_id_stage.sv" -match "Operator ASSIGNW expects 4 bits on the Assign RHS, but Assign RHS's SEL generates 32 bits.*"
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_load_store_unit.sv" -match "Operator ASSIGNW expects 6 bits on the Assign RHS, but Assign RHS's COND generates 11 bits.*"
+lint_off -rule WIDTH -file "*/rtl/cv32e40x_if_stage.sv" -match "Operator ASSIGNW expects 4 bits on the Assign RHS, but Assign RHS's COND generates 32 bits.*"

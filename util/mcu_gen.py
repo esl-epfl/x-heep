@@ -540,8 +540,15 @@ def main():
     linker_onchip_il_start_address = str('{:08X}'.format(int(linker_onchip_data_start_address,16) + int(linker_onchip_data_size_address,16)))
     linker_onchip_il_size_address = str('{:08X}'.format(ram_numbanks_il*32*1024))
 
+    stack_size  = string2int(obj['linker_script']['stack_size'])
+    heap_size  = string2int(obj['linker_script']['heap_size'])
+
     if ((int(linker_onchip_data_size_address,16) + int(linker_onchip_code_size_address,16)) > int(ram_size_address,16)):
         exit("The code and data section must fit in the RAM size, instead they takes " + str(linker_onchip_data_size_address + linker_onchip_code_size_address))
+    
+    if ((int(stack_size,16) + int(heap_size,16)) > int(ram_size_address,16)):
+        exit("The stack and heap section must fit in the RAM size, instead they takes " + str(stack_size + heap_size))
+
 
     plic_used_n_interrupts = len(obj['interrupts']['list'])
     plit_n_interrupts = obj['interrupts']['number']
@@ -847,6 +854,8 @@ def main():
         "linker_onchip_data_size_address"  : linker_onchip_data_size_address,
         "linker_onchip_il_start_address"   : linker_onchip_il_start_address,
         "linker_onchip_il_size_address"    : linker_onchip_il_size_address,
+        "stack_size"                       : stack_size,
+        "heap_size"                        : heap_size,
         "plic_used_n_interrupts"           : plic_used_n_interrupts,
         "plit_n_interrupts"                : plit_n_interrupts,
         "interrupts"                       : interrupts,
