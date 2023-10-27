@@ -6,6 +6,7 @@ MAKE                       = make
 
 # Get the absolute path
 mkfile_path := $(shell dirname "$(realpath $(firstword $(MAKEFILE_LIST)))")
+$(info $$You are executing from: $(mkfile_path))
 
 # Include the self-documenting tool
 FILE=$(mkfile_path)/Makefile
@@ -49,13 +50,16 @@ COMPILER_PREFIX ?= riscv32-unknown-
 ARCH     ?= rv32imc
 
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
-SOURCE 	 ?= "."
+SOURCE 	 ?= $(".")
 
 # Simulation engines options are verilator (default) and questasim
 SIMULATOR ?= verilator
 
 # Timeout for simulation, default 120
 TIMEOUT ?= 120
+
+# Export variables to sub-makefiles
+export
 
 ## @section Conda
 conda: environment.yml
@@ -122,6 +126,9 @@ verible:
 ## @param ARCH=rv32imc(default), <any RISC-V ISA string supported by the CPU>
 app: clean-app
 	$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH) SOURCE=$(SOURCE)
+
+app_sta: clean-app
+	$(MAKE) -C sw PROJECT=$(PROJECT)
 
 ## Just list the different application names available
 app-list:
