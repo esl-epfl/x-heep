@@ -459,7 +459,7 @@ module testharness #(
           // DMA slots
           .iffifo_in_ready_o(iffifo_in_ready),
           .iffifo_out_valid_o(iffifo_out_valid),
-          // Interrupts lines
+          // Interrupt lines
           .iffifo_int_o(iffifo_int_o)
       );
 
