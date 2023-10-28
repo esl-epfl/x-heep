@@ -38,9 +38,7 @@ extern "C" {
 // Write any value to assert an interrupt. Write 0 or 1 to disable or enable
 // an interrupt.
 #define IFFIFO_INTERRUPTS_REG_OFFSET 0x14
-#define IFFIFO_INTERRUPTS_AVAILABLE_BIT 0
-#define IFFIFO_INTERRUPTS_REACHED_BIT 1
-#define IFFIFO_INTERRUPTS_FULL_BIT 2
+#define IFFIFO_INTERRUPTS_REACHED_BIT 0
 
 #ifdef __cplusplus
 }  // extern "C"

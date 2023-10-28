@@ -22,9 +22,7 @@ module iffifo #(
     output logic iffifo_out_valid_o,
 
     // Interrupt lines
-    output logic iffifo_available_int_o,
-    output logic iffifo_reached_int_o,
-    output logic iffifo_full_int_o
+    output logic iffifo_int_o
 );
 
   import iffifo_reg_pkg::*;
@@ -57,32 +55,18 @@ module iffifo #(
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (~rst_ni) begin
 
-      iffifo_available_int_o <= 0;
-      iffifo_reached_int_o   <= 0;
-      iffifo_full_int_o      <= 0;
+      iffifo_int_o <= 0;
 
     end else begin
 
       // Interrupts firing
-      if (full & reg2hw.interrupts.full.q) begin
-        iffifo_full_int_o <= 1;
-      end
-      if (reached & reg2hw.interrupts.reached.q) begin
-        iffifo_reached_int_o <= 1;
-      end
-      if (available & reg2hw.interrupts.available.q) begin
-        iffifo_available_int_o <= 1;
+      if (reached & reg2hw.interrupts.q) begin
+        iffifo_int_o <= 1;
       end
 
       // Interrupts assertion
-      if (reg2hw.interrupts.full.qe) begin
-        iffifo_full_int_o <= 0;
-      end
-      if (reg2hw.interrupts.reached.qe) begin
-        iffifo_reached_int_o <= 0;
-      end
-      if (reg2hw.interrupts.available.qe) begin
-        iffifo_available_int_o <= 0;
+      if (reg2hw.interrupts.qe) begin
+        iffifo_int_o <= 0;
       end
 
     end

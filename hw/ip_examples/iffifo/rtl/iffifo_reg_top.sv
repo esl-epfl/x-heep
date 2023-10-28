@@ -81,15 +81,9 @@ module iffifo_reg_top #(
   logic [31:0] watermark_qs;
   logic [31:0] watermark_wd;
   logic watermark_we;
-  logic interrupts_available_qs;
-  logic interrupts_available_wd;
-  logic interrupts_available_we;
-  logic interrupts_reached_qs;
-  logic interrupts_reached_wd;
-  logic interrupts_reached_we;
-  logic interrupts_full_qs;
-  logic interrupts_full_wd;
-  logic interrupts_full_we;
+  logic interrupts_qs;
+  logic interrupts_wd;
+  logic interrupts_we;
 
   // Register instances
   // R[fifo_out]: V(True)
@@ -292,81 +286,28 @@ module iffifo_reg_top #(
 
   // R[interrupts]: V(False)
 
-  //   F[available]: 0:0
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_interrupts_available (
+  ) u_interrupts (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(interrupts_available_we),
-      .wd(interrupts_available_wd),
+      .we(interrupts_we),
+      .wd(interrupts_wd),
 
       // from internal hardware
       .de(1'b0),
       .d ('0),
 
       // to internal hardware
-      .qe(reg2hw.interrupts.available.qe),
-      .q (reg2hw.interrupts.available.q),
+      .qe(reg2hw.interrupts.qe),
+      .q (reg2hw.interrupts.q),
 
       // to register interface (read)
-      .qs(interrupts_available_qs)
-  );
-
-
-  //   F[reached]: 1:1
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
-  ) u_interrupts_reached (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(interrupts_reached_we),
-      .wd(interrupts_reached_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(reg2hw.interrupts.reached.qe),
-      .q (reg2hw.interrupts.reached.q),
-
-      // to register interface (read)
-      .qs(interrupts_reached_qs)
-  );
-
-
-  //   F[full]: 2:2
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
-  ) u_interrupts_full (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(interrupts_full_we),
-      .wd(interrupts_full_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(reg2hw.interrupts.full.qe),
-      .q (reg2hw.interrupts.full.q),
-
-      // to register interface (read)
-      .qs(interrupts_full_qs)
+      .qs(interrupts_qs)
   );
 
 
@@ -404,14 +345,8 @@ module iffifo_reg_top #(
   assign watermark_we = addr_hit[4] & reg_we & !reg_error;
   assign watermark_wd = reg_wdata[31:0];
 
-  assign interrupts_available_we = addr_hit[5] & reg_we & !reg_error;
-  assign interrupts_available_wd = reg_wdata[0];
-
-  assign interrupts_reached_we = addr_hit[5] & reg_we & !reg_error;
-  assign interrupts_reached_wd = reg_wdata[1];
-
-  assign interrupts_full_we = addr_hit[5] & reg_we & !reg_error;
-  assign interrupts_full_wd = reg_wdata[2];
+  assign interrupts_we = addr_hit[5] & reg_we & !reg_error;
+  assign interrupts_wd = reg_wdata[0];
 
   // Read data return
   always_comb begin
@@ -441,9 +376,7 @@ module iffifo_reg_top #(
       end
 
       addr_hit[5]: begin
-        reg_rdata_next[0] = interrupts_available_qs;
-        reg_rdata_next[1] = interrupts_reached_qs;
-        reg_rdata_next[2] = interrupts_full_qs;
+        reg_rdata_next[0] = interrupts_qs;
       end
 
       default: begin

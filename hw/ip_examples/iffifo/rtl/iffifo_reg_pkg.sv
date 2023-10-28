@@ -26,18 +26,8 @@ package iffifo_reg_pkg;
   typedef struct packed {logic [31:0] q;} iffifo_reg2hw_watermark_reg_t;
 
   typedef struct packed {
-    struct packed {
-      logic q;
-      logic qe;
-    } available;
-    struct packed {
-      logic q;
-      logic qe;
-    } reached;
-    struct packed {
-      logic q;
-      logic qe;
-    } full;
+    logic q;
+    logic qe;
   } iffifo_reg2hw_interrupts_reg_t;
 
   typedef struct packed {logic [31:0] d;} iffifo_hw2reg_fifo_out_reg_t;
@@ -68,10 +58,10 @@ package iffifo_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    iffifo_reg2hw_fifo_out_reg_t fifo_out;  // [103:71]
-    iffifo_reg2hw_fifo_in_reg_t fifo_in;  // [70:38]
-    iffifo_reg2hw_watermark_reg_t watermark;  // [37:6]
-    iffifo_reg2hw_interrupts_reg_t interrupts;  // [5:0]
+    iffifo_reg2hw_fifo_out_reg_t fifo_out;  // [99:67]
+    iffifo_reg2hw_fifo_in_reg_t fifo_in;  // [66:34]
+    iffifo_reg2hw_watermark_reg_t watermark;  // [33:2]
+    iffifo_reg2hw_interrupts_reg_t interrupts;  // [1:0]
   } iffifo_reg2hw_t;
 
   // HW -> register type

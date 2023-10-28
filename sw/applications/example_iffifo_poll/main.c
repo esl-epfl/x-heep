@@ -19,21 +19,21 @@
 
 #include "fast_intr_ctrl.h"
 #include "dma.h"
+#include "rv_plic.h"
 
+#include "x-heep.h"
 
-#define DMA_CSR_REG_MIE_MASK 0xFFFFFFFF
-
-
-#define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#include "iffifo.h"
 
 unsigned int IFFIFO_START_ADDRESS = EXT_PERIPHERAL_START_ADDRESS + 0x2000;
 
-void iffifo_isr(void)    
+#define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+
+void handler_irq_iffifo(uint32_t id)    
 {
   mmio_region_t iffifo_base_addr = mmio_region_from_addr((uintptr_t)IFFIFO_START_ADDRESS);
-  // Assert and disable interrupts
-  mmio_region_write32(iffifo_base_addr, IFFIFO_INTERRUPTS_REG_OFFSET, 0b000);
-  PRINTF(" ** REACH interrupt fired.");
+  mmio_region_write32(iffifo_base_addr, IFFIFO_INTERRUPTS_REG_OFFSET, 0b0);
+  PRINTF(" ** REACH intr. fired.\n");
 }
 
 void print_status_register(void)
@@ -50,12 +50,21 @@ void print_status_register(void)
 
 int main(int argc, char *argv[]) {
 
-    CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+    // Enable interrupt on processor side
+    // Enable global interrupt for machine-level interrupts
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    // Set mie.MEIE bit to one to enable machine-level external interrupts
+    const uint32_t mask = 1 << 11;
+    CSR_SET_BITS(CSR_REG_MIE, mask);
+    
+    if(plic_Init()) {return EXIT_FAILURE;};
+    if(plic_irq_set_priority(EXT_INTR_1, 1)) {return EXIT_FAILURE;};
+    if(plic_irq_set_enabled(EXT_INTR_1, kPlicToggleEnabled)) {return EXIT_FAILURE;};
 
     mmio_region_t iffifo_base_addr = mmio_region_from_addr((uintptr_t)IFFIFO_START_ADDRESS);
     
     mmio_region_write32(iffifo_base_addr, IFFIFO_WATERMARK_REG_OFFSET, 2);
-    mmio_region_write32(iffifo_base_addr, IFFIFO_INTERRUPTS_REG_OFFSET, 0b010);
+    mmio_region_write32(iffifo_base_addr, IFFIFO_INTERRUPTS_REG_OFFSET, 0b1);
     print_status_register();
     mmio_region_write32(iffifo_base_addr, IFFIFO_FIFO_IN_REG_OFFSET, 1);
     print_status_register();

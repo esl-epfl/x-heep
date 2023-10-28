@@ -67,9 +67,7 @@
       hwaccess: "hro"
       hwqe: "true"    # Used to catch software writes
       fields: [
-        { bits: "0", name: "AVAILABLE",   desc: "Data available interrupt" }
-        { bits: "1", name: "REACHED",     desc: "Watermark reached interrupt" }
-        { bits: "2", name: "FULL",        desc: "FIFO full interrupt" }
+        { bits: "0", name: "REACHED",     desc: "Watermark reached interrupt" }
       ]
     }
     

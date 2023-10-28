@@ -75,6 +75,7 @@ module testharness #(
   logic [EXT_PERIPHERALS_PORT_SEL_WIDTH-1:0] ext_periph_select;
 
   logic iffifo_in_ready, iffifo_out_valid;
+  logic iffifo_int_o;
 
   // External xbar master/slave and peripheral ports
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_req;
@@ -134,6 +135,7 @@ module testharness #(
     end
     // Re-assign the interrupt lines used here
     intr_vector_ext[0] = memcopy_intr;
+    intr_vector_ext[1] = iffifo_int_o;
   end
 
   //log parameters
@@ -458,9 +460,7 @@ module testharness #(
           .iffifo_in_ready_o(iffifo_in_ready),
           .iffifo_out_valid_o(iffifo_out_valid),
           // Interrupts lines
-          .iffifo_available_int_o(),
-          .iffifo_reached_int_o(),
-          .iffifo_full_int_o()
+          .iffifo_int_o(iffifo_int_o)
       );
 
       addr_decode #(
@@ -579,6 +579,7 @@ module testharness #(
       assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].wdata = '0;
 
       assign memcopy_intr = '0;
+      assign iffifo_int_o = '0;
       assign periph_slave_rsp = '0;
 
     end
