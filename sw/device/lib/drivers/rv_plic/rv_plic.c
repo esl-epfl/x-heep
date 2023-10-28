@@ -51,8 +51,6 @@
 #include "spi_host.h"
 #include "iffifo.h"
 
-#define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-
 /****************************************************************************/
 /**                                                                        **/
 /*                        DEFINITIONS AND MACROS                            */
