@@ -38,9 +38,9 @@ SECTIONS
   PROVIDE(__boot_address = 0x180);
 
   /* stack and heap related settings */
-  __stack_size = DEFINED(__stack_size) ? __stack_size : 0x800;
+  __stack_size = DEFINED(__stack_size) ? __stack_size : 0x${stack_size};
   PROVIDE(__stack_size = __stack_size);
-  __heap_size = DEFINED(__heap_size) ? __heap_size : 0x800;
+  __heap_size = DEFINED(__heap_size) ? __heap_size : 0x${heap_size};
 
   /* Read-only sections, merged into text segment: */
   PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x10000)); . = SEGMENT_START("text-segment", 0x10000) + SIZEOF_HEADERS;
