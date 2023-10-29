@@ -111,11 +111,46 @@ uint8_t w25q128jw_write_quad_dma(uint32_t addr, uint32_t* data, uint32_t length)
 uint8_t w25q128jw_read(uint32_t addr, uint32_t* data, uint32_t length);
 
 uint8_t w25q128jw_write(uint32_t addr, uint32_t* data, uint32_t length);
-
-// Erase is not flexible, probably is better to explicitely show the 4kb, 32kb,
-// 64kb and full chip erase functions
-uint8_t w25q128jw_erase(uint32_t addr, uint32_t length); // ???
 */
+
+
+/**
+ * @brief Erase a 4kb sector.
+ * 
+ * Sets all memory within a 4kb sector to the erased state of all 1s (FFh).
+ * After the erase is issued, waits for the flash to be ready.
+ * 
+ * @param addr 24-bit address of the sector to erase.
+*/
+void w25q128jw_4k_erase(uint32_t addr);
+
+/**
+ * @brief Erase a 32kb block.
+ * 
+ * Sets all memory within a 32kb block to the erased state of all 1s (FFh).
+ * After the erase is issued, waits for the flash to be ready.
+ * 
+ * @param addr 24-bit address of the block to erase.
+*/
+void w25q128jw_32k_erase(uint32_t addr);
+
+/**
+ * @brief Erase a 64kb block.
+ * 
+ * Sets all memory within a 64kb block to the erased state of all 1s (FFh).
+ * After the erase is issued, waits for the flash to be ready.
+ * 
+ * @param addr 24-bit address of the block to erase.
+*/
+void w25q128jw_64k_erase(uint32_t addr);
+
+/**
+ * @brief Erase the entire chip.
+ * 
+ * Sets all memory within the chip to the erased state of all 1s (FFh).
+ * After the erase is issued, waits for the flash to be ready.
+*/
+void w25q128jw_chip_erase();
 
 
 /**
@@ -132,7 +167,7 @@ void w25q128jw_reset();
  * 
  * This function is used to reset the flash when it is not possible to check
  * for ongoing operations (e.g. when the flash is not responding).
- * After the reset is issued, wait for the flash to be ready.
+ * After the reset is issued, waits for the flash to be ready.
 */
 void w25q128jw_reset_force();
 

@@ -22,6 +22,7 @@ static void configure_spi(soc_ctrl_t soc_ctrl);
 static void wait_flash();
 static void reset_flash();
 static void page_write(uint32_t addr, uint8_t *data, uint32_t length);
+static void flash_write_enable();
 
 
 // ----------------------------------------------------------------
@@ -125,7 +126,80 @@ uint8_t w25q128jw_write_standard(uint32_t addr, uint8_t *data, uint32_t length) 
     return 1; // Success
 }
 
+void w25q128jw_4k_erase(uint32_t addr) {
+    wait_flash();
+    flash_write_enable();
 
+    uint32_t erase_4k_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_SE);
+    spi_write_word(&spi, erase_4k_cmd);
+    spi_wait_for_ready(&spi);
+    const uint32_t cmd_erase = spi_create_command((spi_command_t){
+        .len        = 3,                 // 4 Bytes
+        .csaat      = false,             // End command
+        .speed      = kSpiSpeedStandard, // Single speed
+        .direction  = kSpiDirTxOnly      // Write only
+    });
+    spi_set_command(&spi, cmd_erase);
+    spi_wait_for_ready(&spi);
+
+    wait_flash();
+}
+
+void w25q128jw_32k_erase(uint32_t addr) {
+    wait_flash();
+    flash_write_enable();
+
+    uint32_t erase_32k_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_BE32);
+    spi_write_word(&spi, erase_32k_cmd);
+    spi_wait_for_ready(&spi);
+    const uint32_t cmd_erase = spi_create_command((spi_command_t){
+        .len        = 3,                 // 4 Bytes
+        .csaat      = false,             // End command
+        .speed      = kSpiSpeedStandard, // Single speed
+        .direction  = kSpiDirTxOnly      // Write only
+    });
+    spi_set_command(&spi, cmd_erase);
+    spi_wait_for_ready(&spi);
+
+    wait_flash();
+}
+
+void w25q128jw_64k_erase(uint32_t addr) {
+    wait_flash();
+    flash_write_enable();
+
+    uint32_t erase_64k_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_BE64);
+    spi_write_word(&spi, erase_64k_cmd);
+    spi_wait_for_ready(&spi);
+    const uint32_t cmd_erase = spi_create_command((spi_command_t){
+        .len        = 3,                 // 4 Bytes
+        .csaat      = false,             // End command
+        .speed      = kSpiSpeedStandard, // Single speed
+        .direction  = kSpiDirTxOnly      // Write only
+    });
+    spi_set_command(&spi, cmd_erase);
+    spi_wait_for_ready(&spi);
+
+    wait_flash();
+}
+
+void w25q128jw_chip_erase() {
+    wait_flash();
+    flash_write_enable();
+
+    spi_write_word(&spi, FC_CE);
+    spi_wait_for_ready(&spi);
+    const uint32_t cmd_erase = spi_create_command((spi_command_t){
+        .len        = 0,                 // 1 Bytes
+        .csaat      = false,             // End command
+        .speed      = kSpiSpeedStandard, // Single speed
+        .direction  = kSpiDirTxOnly      // Write only
+    });
+    spi_set_command(&spi, cmd_erase);
+    spi_wait_for_ready(&spi);
+
+    wait_flash();
+}
 
 void w25q128jw_reset() {
     wait_flash();
@@ -258,16 +332,7 @@ static void reset_flash() {
 }
 
 static void page_write(uint32_t addr, uint8_t *data, uint32_t length) {
-    // Write enable
-    spi_write_word(&spi, FC_WE);
-    const uint32_t cmd_write_en = spi_create_command((spi_command_t){
-        .len        = 0,
-        .csaat      = false,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
-    });
-    spi_set_command(&spi, cmd_write_en);
-    spi_wait_for_ready(&spi);
+    flash_write_enable();
 
     // Write command
     const uint32_t write_byte_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_PP);
@@ -306,6 +371,18 @@ static void page_write(uint32_t addr, uint8_t *data, uint32_t length) {
 
     // Wait for flash to be ready again
     wait_flash();
+}
+
+static void flash_write_enable() {
+    spi_write_word(&spi, FC_WE);
+    const uint32_t cmd_write_en = spi_create_command((spi_command_t){
+        .len        = 0,
+        .csaat      = false,
+        .speed      = kSpiSpeedStandard,
+        .direction  = kSpiDirTxOnly
+    });
+    spi_set_command(&spi, cmd_write_en);
+    spi_wait_for_ready(&spi);
 }
 
 
