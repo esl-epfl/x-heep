@@ -8,8 +8,24 @@
 
 #include "w25q128jw.h"
 
+#ifdef TARGET_PYNQ_Z2
+    #define USE_SPI_FLASH
+#endif
+
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   0
+
+#if TARGET_SIM && PRINTF_IN_SIM
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+    #define PRINTF(...)
+#endif
 
 #define REVERT_24b_ADDR(addr) ((((uint32_t)(addr) & 0xff0000) >> 16) | ((uint32_t)(addr) & 0xff00) | (((uint32_t)(addr) & 0xff) << 16))
+#define FLASH_CLK_MAX_HZ (133*1000*1000) // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
 
 // Global variables
 volatile int8_t spi_intr_flag;
@@ -31,19 +47,30 @@ static void flash_write_enable();
 uint8_t w25q128jw_init() {
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+    #ifndef USE_SPI_FLASH
+    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
+    #else
     spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
+    #endif
     if (get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO) {
+        PRINTF("Memory mapped SPI flash mode NOT supported \n");
         return 0; // Error
     }
 
     // Enable interrupt on processor side
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    #ifndef USE_SPI_FLASH
     const uint32_t mask = 1 << 20;
+    #else
+    const uint32_t mask = 1 << 21;
+    #endif // USE_SPI_FLASH
     CSR_SET_BITS(CSR_REG_MIE, mask);
     spi_intr_flag = 0;
 
+    #ifdef USE_SPI_FLASH
     // Select SPI host as SPI output
     soc_ctrl_select_spi_host(&soc_ctrl);
+    #endif // USE_SPI_FLASH
     
     spi_set_enable(&spi, true);
     spi_output_enable(&spi, true);
@@ -123,6 +150,16 @@ uint8_t w25q128jw_write_standard(uint32_t addr, uint8_t *data, uint32_t length) 
         }
     }
 
+    return 1; // Success
+}
+
+uint8_t w25q128jw_read_standard_dma(uint32_t addr, uint32_t *data, uint32_t length) {
+
+    return 1; // Success
+}
+
+uint8_t w25q128jw_write_standard_dma(uint32_t addr, uint8_t *data, uint32_t length) {
+    
     return 1; // Success
 }
 

@@ -81,7 +81,7 @@ uint8_t w25q128jw_init();
  * 
  * 
  * @param addr 24-bit address to read from.
- * @param data pointer to the data buffer.
+ * @param data pointer to the data buffer to be filled.
  * @param length number of bytes to read.
  * @return 1 if the read is successful, 0 otherwise.
 */
@@ -98,6 +98,29 @@ uint8_t w25q128jw_read_standard(uint32_t addr, uint8_t* data, uint32_t length);
  * @return 1 if the write is successful, 0 otherwise.
 */
 uint8_t w25q128jw_write_standard(uint32_t addr, uint8_t* data, uint32_t length);
+
+
+/**
+ * @brief Read from flash at standard speed using DMA
+ * 
+ * @param addr 24-bit address to read from.
+ * @param data pointer to the data buffer.
+ * @param length number of bytes to read.
+ * @return 1 if the read is successful, 0 otherwise.
+*/
+uint8_t w25q128jw_read_standard_dma(uint32_t addr, uint32_t* data, uint32_t length);
+
+
+/**
+ * @brief Write to flash at standard speed using DMA
+ * 
+ * 
+ * @param addr 24-bit address to write to.
+ * @param data pointer to the data buffer.
+ * @param length number of bytes to write.
+ * @return 1 if the write is successful, 0 otherwise.
+*/
+uint8_t w25q128jw_write_standard_dma(uint32_t addr, uint8_t* data, uint32_t length);
 
 
 
@@ -179,7 +202,6 @@ void w25q128jw_reset_force();
  * by the flash.
 */
 void w25q128jw_power_down();
-
 
 
 
