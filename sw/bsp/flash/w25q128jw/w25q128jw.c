@@ -16,11 +16,11 @@ volatile int8_t spi_intr_flag;
 spi_host_t spi;
 
 // Prototypes of helper functions
-static void power_up_flash();
-static void set_QE_bit();
+static void flash_power_up();
+static uint8_t set_QE_bit();
 static void configure_spi(soc_ctrl_t soc_ctrl);
-static void wait_flash();
-static void reset_flash();
+static void flash_wait();
+static void flash_reset();
 static void page_write(uint32_t addr, uint8_t *data, uint32_t length);
 static void flash_write_enable();
 
@@ -53,9 +53,9 @@ uint8_t w25q128jw_init() {
     // Set CSID
     spi_set_csid(&spi, 0);
     // Power up flash
-    power_up_flash();
+    flash_power_up();
     // Set QE bit
-    set_QE_bit(); // TO DO
+    if (set_QE_bit() == 0) return 0; // Error occurred while setting QE bit
 
     return 1;
 }
@@ -127,7 +127,7 @@ uint8_t w25q128jw_write_standard(uint32_t addr, uint8_t *data, uint32_t length) 
 }
 
 void w25q128jw_4k_erase(uint32_t addr) {
-    wait_flash();
+    flash_wait();
     flash_write_enable();
 
     uint32_t erase_4k_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_SE);
@@ -142,11 +142,11 @@ void w25q128jw_4k_erase(uint32_t addr) {
     spi_set_command(&spi, cmd_erase);
     spi_wait_for_ready(&spi);
 
-    wait_flash();
+    flash_wait();
 }
 
 void w25q128jw_32k_erase(uint32_t addr) {
-    wait_flash();
+    flash_wait();
     flash_write_enable();
 
     uint32_t erase_32k_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_BE32);
@@ -161,11 +161,11 @@ void w25q128jw_32k_erase(uint32_t addr) {
     spi_set_command(&spi, cmd_erase);
     spi_wait_for_ready(&spi);
 
-    wait_flash();
+    flash_wait();
 }
 
 void w25q128jw_64k_erase(uint32_t addr) {
-    wait_flash();
+    flash_wait();
     flash_write_enable();
 
     uint32_t erase_64k_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_BE64);
@@ -180,11 +180,11 @@ void w25q128jw_64k_erase(uint32_t addr) {
     spi_set_command(&spi, cmd_erase);
     spi_wait_for_ready(&spi);
 
-    wait_flash();
+    flash_wait();
 }
 
 void w25q128jw_chip_erase() {
-    wait_flash();
+    flash_wait();
     flash_write_enable();
 
     spi_write_word(&spi, FC_CE);
@@ -198,18 +198,18 @@ void w25q128jw_chip_erase() {
     spi_set_command(&spi, cmd_erase);
     spi_wait_for_ready(&spi);
 
-    wait_flash();
+    flash_wait();
 }
 
 void w25q128jw_reset() {
-    wait_flash();
-    reset_flash();
-    wait_flash();
+    flash_wait();
+    flash_reset();
+    flash_wait();
 }
 
 void w25q128jw_reset_force() {
-    reset_flash();    
-    wait_flash();
+    flash_reset();    
+    flash_wait();
 }
 
 void w25q128jw_power_down() {
@@ -236,7 +236,7 @@ void w25q128jw_power_down() {
 // HELPER FUNCTIONS
 // ----------------
 
-static void power_up_flash() {
+static void flash_power_up() {
     spi_write_word(&spi, FC_RPD);
     spi_wait_for_ready(&spi);
     const uint32_t cmd_powerup = spi_create_command((spi_command_t){
@@ -249,8 +249,49 @@ static void power_up_flash() {
     spi_wait_for_ready(&spi);
 }
 
-static void set_QE_bit() {
-    // TODO
+static uint8_t set_QE_bit() {
+    flash_write_enable();
+
+    const uint32_t cmd_set_qe = ((0x02 << 8) | FC_WSR2);
+    spi_write_word(&spi, cmd_set_qe);
+    spi_wait_for_ready(&spi);
+    const uint32_t cmd_set_qe_2 = spi_create_command((spi_command_t){
+        .len        = 1,                 // 2 Bytes
+        .csaat      = false,             // End command
+        .speed      = kSpiSpeedStandard, // Single speed
+        .direction  = kSpiDirTxOnly      // Write only
+    });
+    spi_set_command(&spi, cmd_set_qe_2);
+    spi_wait_for_ready(&spi);
+
+    flash_wait();
+
+    // Read back to check if QE bit is set
+    spi_set_rx_watermark(&spi, 1);
+    uint32_t SR2_data = 0;
+    spi_write_word(&spi, FC_RSR2);
+    spi_wait_for_ready(&spi);
+    const uint32_t cmd_read_qe = spi_create_command((spi_command_t){
+        .len        = 0,                 // 1 Bytes
+        .csaat      = true,              // Command not finished
+        .speed      = kSpiSpeedStandard, // Single speed
+        .direction  = kSpiDirTxOnly      // Write only
+    });
+    spi_set_command(&spi, cmd_read_qe);
+    spi_wait_for_ready(&spi);
+    const uint32_t cmd_read_qe_2 = spi_create_command((spi_command_t){
+        .len        = 0,                 // 1 Bytes
+        .csaat      = false,             // End command
+        .speed      = kSpiSpeedStandard, // Single speed
+        .direction  = kSpiDirRxOnly      // Read only
+    });
+    spi_set_command(&spi, cmd_read_qe_2);
+    spi_wait_for_ready(&spi);
+    spi_wait_for_rx_watermark(&spi);
+    spi_read_word(&spi, &SR2_data);
+    if ((SR2_data & 0x02) != 0x02) return 0; // Error: failed to set QE bit
+
+    return 1; // Success
 }
 
 static void configure_spi(soc_ctrl_t soc_ctrl) {
@@ -278,7 +319,7 @@ static void configure_spi(soc_ctrl_t soc_ctrl) {
 }
 
 // Checking BUSY bit status. Not checking SUS bit status.
-static void wait_flash() {
+static void flash_wait() {
     spi_set_rx_watermark(&spi,1);
     bool flash_busy = true;
     uint8_t flash_resp[4] = {0xff,0xff,0xff,0xff};
@@ -308,7 +349,7 @@ static void wait_flash() {
     }
 }
 
-static void reset_flash() {
+static void flash_reset() {
     spi_write_word(&spi, FC_ERESET);
     spi_write_word(&spi, FC_RESET);
     spi_wait_for_ready(&spi);
@@ -370,7 +411,7 @@ static void page_write(uint32_t addr, uint8_t *data, uint32_t length) {
     spi_wait_for_ready(&spi);
 
     // Wait for flash to be ready again
-    wait_flash();
+    flash_wait();
 }
 
 static void flash_write_enable() {
