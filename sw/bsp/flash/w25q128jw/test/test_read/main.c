@@ -7,7 +7,6 @@
  *
 */
 
-
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -28,6 +27,12 @@ uint32_t flash_data[8];
 uint32_t flash_original[8] = {0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef};
 
 int main(int argc, char *argv[]) {
+    printf("BSP read test\n\r");
+
+    #ifndef USE_SPI_FLASH
+    printf("Currently only support for USE_SPI_FLASH\n\r");
+    return EXIT_FAILURE;
+    #endif // USE_SPI_FLASH
 
     w25q128jw_init();
     w25q128jw_read_standard(flash_original, flash_data, 32);
