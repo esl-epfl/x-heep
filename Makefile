@@ -127,9 +127,6 @@ verible:
 app: clean-app
 	$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH) SOURCE=$(SOURCE)
 
-app_sta: clean-app
-	$(MAKE) -C sw PROJECT=$(PROJECT)
-
 ## Just list the different application names available
 app-list:
 	@echo "Note: Applications outside the X-HEEP sw/applications directory will not be listed."
