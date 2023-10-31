@@ -275,6 +275,8 @@ void dma_init( dma *peri )
     /* Clear all values in the DMA registers. */
     dma_cb.peri->SRC_PTR       = 0;
     dma_cb.peri->DST_PTR       = 0;
+    dma_cb.peri->ADDR_PTR      = 0;
+    dma_cb.peri->DST_BCST_PTR  = 0;
     dma_cb.peri->SIZE          = 0;
     dma_cb.peri->PTR_INC       = 0;
     dma_cb.peri->SLOT          = 0;
@@ -699,26 +701,17 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
             from the address port
         */
         dma_cb.peri->DST_PTR = dma_cb.trans->dst->ptr;
+
+	// Populates DST_BCST_PTR (pointer to broadcast destination register)
+        if (dma_cb.trans->mode == DMA_TRANS_MODE_BROADCAST) {
+          dma_cb.peri->DST_BCST_PTR = dma_cb.trans->dst_bcst->ptr;
+        }
      }
      else
      {
         dma_cb.peri->ADDR_PTR = dma_cb.trans->src_addr->ptr;
      }
-
-    if(dma_cb.trans->mode != DMA_TRANS_MODE_ADDRESS)
-    {
-        /*
-            Write to the destination pointers only if we are not in address mode,
-            otherwise the destination address is read in a separate port in parallel with the data
-            from the address port
-        */
-        dma_cb.peri->DST_PTR = dma_cb.trans->dst->ptr;
-     }
-     else
-     {
-        dma_cb.peri->ADDR_PTR = dma_cb.trans->src_addr->ptr;
-     }
-
+     
     /*
      * SET THE INCREMENTS
      */
@@ -742,10 +735,20 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
 
     if(dma_cb.trans->mode != DMA_TRANS_MODE_ADDRESS)
     {
-        write_register(  get_increment_b( dma_cb.trans->dst ),
+        
+	write_register(  get_increment_b( dma_cb.trans->dst ),
                         DMA_PTR_INC_REG_OFFSET,
                         DMA_PTR_INC_DST_PTR_INC_MASK,
                         DMA_PTR_INC_DST_PTR_INC_OFFSET );
+	
+	// Populates BCST_PTR_INC (broadcast destination increment)
+        if (dma_cb.trans->mode == DMA_TRANS_MODE_BROADCAST) {
+          write_register(  get_increment_b( dma_cb.trans->dst_bcst ),
+                          DMA_PTR_INC_REG_OFFSET,
+                          DMA_PTR_INC_BCST_PTR_INC_MASK,
+                          DMA_PTR_INC_BCST_PTR_INC_OFFSET );
+        }
+
     }
 
 
@@ -764,15 +767,24 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
     /*
      * SET TRIGGER SLOTS AND DATA TYPE
      */
+
+    // RX_TRIGGER_SLOT (Source)
     write_register(  dma_cb.trans->src->trig,
                     DMA_SLOT_REG_OFFSET,
                     DMA_SLOT_RX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_RX_TRIGGER_SLOT_OFFSET );
 
+    // TX_TRIGGER_SLOT (Destination)
     write_register(  dma_cb.trans->dst->trig,
                     DMA_SLOT_REG_OFFSET,
                     DMA_SLOT_TX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_TX_TRIGGER_SLOT_OFFSET );
+
+    // BX_TRIGGER_SLOT (Broadcast destination)
+    write_register(  dma_cb.trans->dst_bcst->trig,
+                    DMA_BSLOT_REG_OFFSET,
+                    DMA_BSLOT_BX_TRIGGER_SLOT_MASK,
+                    DMA_BSLOT_BX_TRIGGER_SLOT_OFFSET );
 
     write_register(  dma_cb.trans->type,
                     DMA_DATA_TYPE_REG_OFFSET,
