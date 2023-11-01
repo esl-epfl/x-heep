@@ -38,7 +38,7 @@ COMPILER_PREFIX ?= riscv32-unknown-
 ARCH     ?= rv32imc
 
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
-SOURCE 	 ?= "."
+SOURCE 	 ?= $(".")
 
 # riscv toolchain install path
 RISCV                      ?= ~/.riscv
@@ -56,7 +56,7 @@ source_path := $(realpath $(mkfile_path)/$(SOURCE))
 $(info $$You are fetching sources from $(source_path) )
 
 
-SOURCE_PATH   		   = $(source_path)/
+SOURCE_PATH   		       = $(source_path)/
 ROOT_PROJECT               = $(mkfile_path)/
 INC_FOLDERS                = $(mkfile_path)/device/target/$(TARGET)/
 LINK_FOLDER                = $(mkfile_path)/linker
@@ -69,6 +69,9 @@ CMAKE=cmake
 else
 CMAKE=cmake3
 endif
+
+# Export variables to sub-makefiles
+export
 
 # Let's CMake!
 include cmake/targets.mak
