@@ -45,7 +45,9 @@ module dma #(
   logic        [               31:0] addr_ptr_reg;
   logic        [               31:0] read_ptr_valid_reg;
   logic        [               31:0] write_ptr_reg;
+  logic        [               31:0] bcst_ptr_reg;
   logic        [               31:0] write_address;
+  logic        [               31:0] bcst_address;
   logic        [               31:0] dma_cnt;
   logic        [               31:0] dma_addr_cnt;
   logic        [                2:0] dma_cnt_dec;
@@ -77,6 +79,8 @@ module dma #(
   logic                              data_addr_in_rvalid;
   logic        [               31:0] data_addr_in_rdata;
 
+  logic        [               31:0] data_addr_in_wdata;
+
   logic                              data_out_req;
   logic                              data_out_we;
   logic        [                3:0] data_out_be;
@@ -105,11 +109,15 @@ module dma #(
   logic [31:0] fifo_addr_output;
 
   logic [ 3:0] byte_enable_out;
+  logic [ 3:0] bcst_byte_enable_out;
 
   logic        circular_mode;
   logic        address_mode;
+  logic        broadcast_mode;
 
   logic        dma_start_pending;
+
+  logic broadcast_pop, latched_data_out_gnt, latched_data_addr_in;
 
   enum {
     DMA_READY,
@@ -132,6 +140,7 @@ module dma #(
   }
       dma_write_fsm_state, dma_write_fsm_n_state;
 
+  // READ channel
   assign dma_read_ch0_req_o.req = data_in_req;
   assign dma_read_ch0_req_o.we = data_in_we;
   assign dma_read_ch0_req_o.be = data_in_be;
@@ -142,16 +151,18 @@ module dma #(
   assign data_in_rvalid = dma_read_ch0_resp_i.rvalid;
   assign data_in_rdata = dma_read_ch0_resp_i.rdata;
 
+  // ADDRESS channel
   assign dma_addr_ch0_req_o.req = data_addr_in_req;
   assign dma_addr_ch0_req_o.we = data_addr_in_we;
   assign dma_addr_ch0_req_o.be = data_addr_in_be;
   assign dma_addr_ch0_req_o.addr = data_addr_in_addr;
-  assign dma_addr_ch0_req_o.wdata = 32'h0;
+  assign dma_addr_ch0_req_o.wdata = data_addr_in_wdata;
 
   assign data_addr_in_gnt = dma_addr_ch0_resp_i.gnt;
   assign data_addr_in_rvalid = dma_addr_ch0_resp_i.rvalid;
   assign data_addr_in_rdata = dma_addr_ch0_resp_i.rdata;
 
+  // WRITE channel
   assign dma_write_ch0_req_o.req = data_out_req;
   assign dma_write_ch0_req_o.we = data_out_we;
   assign dma_write_ch0_req_o.be = data_out_be;
@@ -177,8 +188,10 @@ module dma #(
 
   assign circular_mode = reg2hw.mode.q == 1;
   assign address_mode = reg2hw.mode.q == 2;
+  assign broadcast_mode = reg2hw.mode.q == 3;
 
   assign write_address = address_mode ? fifo_addr_output : write_ptr_reg;
+  assign bcst_address = bcst_ptr_reg;
 
   assign wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
   assign wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
@@ -293,6 +306,19 @@ module dma #(
     end
   end
 
+  // Store broadcast output data pointer and increment everytime write request is granted
+  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_bcst_ptr_out_reg
+    if (~rst_ni) begin
+      bcst_ptr_reg <= '0;
+    end else begin
+      if (dma_start == 1'b1) begin
+        bcst_ptr_reg <= reg2hw.dst_bcst_ptr.q;
+      end else if (data_addr_in_gnt == 1'b1) begin
+        bcst_ptr_reg <= bcst_ptr_reg + {24'h0, reg2hw.ptr_inc.bcst_ptr_inc.q};
+      end
+    end
+  end
+
   // Store dma transfer size and decrement it everytime input data rvalid is asserted
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_cnt_reg
     if (~rst_ni) begin
@@ -352,6 +378,31 @@ module dma #(
     ;  // case (data_type)
   end
 
+  always_comb begin : proc_byte_enable_out_broadcast
+    case (data_type)  // Data type 00 Word, 01 Half word, 11,10 byte
+      2'b00: bcst_byte_enable_out = 4'b1111;  // Writing a word (32 bits)
+
+      2'b01: begin  // Writing a half-word (16 bits)
+        case (bcst_address[1])
+          1'b0: bcst_byte_enable_out = 4'b0011;
+          1'b1: bcst_byte_enable_out = 4'b1100;
+        endcase
+        ;  // case(write_address[1:0])
+      end
+
+      2'b10, 2'b11: begin  // Writing a byte (8 bits)
+        case (bcst_address[1:0])
+          2'b00: bcst_byte_enable_out = 4'b0001;
+          2'b01: bcst_byte_enable_out = 4'b0010;
+          2'b10: bcst_byte_enable_out = 4'b0100;
+          2'b11: bcst_byte_enable_out = 4'b1000;
+        endcase
+        ;  // case(write_address[1:0])
+      end
+    endcase
+    ;  // case (data_type)
+  end
+
   // Output data shift
   always_comb begin : proc_output_data
 
@@ -372,6 +423,35 @@ module dma #(
 
       2'b11: data_out_wdata[31:24] = fifo_output[7:0];
     endcase
+  end
+
+  // Output data shift (broadcast)
+  always_comb begin : proc_output_data_broadcast
+
+    if (broadcast_mode) begin
+
+      data_addr_in_wdata[7:0]   = fifo_output[7:0];
+      data_addr_in_wdata[15:8]  = fifo_output[15:8];
+      data_addr_in_wdata[23:16] = fifo_output[23:16];
+      data_addr_in_wdata[31:24] = fifo_output[31:24];
+
+      case (write_address[1:0])
+        2'b00: ;
+
+        2'b01: data_addr_in_wdata[15:8] = fifo_output[7:0];
+
+        2'b10: begin
+          data_addr_in_wdata[23:16] = fifo_output[7:0];
+          data_addr_in_wdata[31:24] = fifo_output[15:8];
+        end
+
+        2'b11: data_addr_in_wdata[31:24] = fifo_output[7:0];
+      endcase
+
+    end else begin
+      data_addr_in_wdata = 32'd0;
+    end
+
   end
 
   assign fifo_addr_input = data_addr_in_rdata;  //never misaligned, always 32b
@@ -460,7 +540,7 @@ module dma #(
     endcase
   end
 
-  // Read address master FSM
+  // Read address master & Write broadcast master FSM
   always_comb begin : proc_dma_addr_read_fsm_logic
 
     dma_read_addr_fsm_n_state = DMA_READ_FSM_IDLE;
@@ -476,26 +556,45 @@ module dma #(
 
       DMA_READ_FSM_IDLE: begin
         // Wait for start signal
-        if (dma_start == 1'b1 && address_mode) begin
+        if (address_mode && dma_start == 1'b1) begin
           dma_read_addr_fsm_n_state = DMA_READ_FSM_ON;
           fifo_addr_flush = 1'b1;
+        end else if (broadcast_mode && dma_start == 1'b1) begin
+          dma_read_addr_fsm_n_state = DMA_READ_FSM_ON;
         end else begin
           dma_read_addr_fsm_n_state = DMA_READ_FSM_IDLE;
         end
       end
       // Read one word
       DMA_READ_FSM_ON: begin
-        // If all input data read exit
-        if (|dma_addr_cnt == 1'b0) begin
-          dma_read_addr_fsm_n_state = DMA_READ_FSM_IDLE;
-        end else begin
-          dma_read_addr_fsm_n_state = DMA_READ_FSM_ON;
-          // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
-          if (fifo_addr_full == 1'b0 && fifo_addr_alm_full == 1'b0) begin
-            data_addr_in_req  = 1'b1;
-            data_addr_in_we   = 1'b0;
-            data_addr_in_be   = 4'b1111;  // always read all bytes
-            data_addr_in_addr = addr_ptr_reg;
+        if (address_mode) begin
+          // If all input data read exit
+          if (|dma_addr_cnt == 1'b0) begin
+            dma_read_addr_fsm_n_state = DMA_READ_FSM_IDLE;
+          end else begin
+            dma_read_addr_fsm_n_state = DMA_READ_FSM_ON;
+            // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
+            if (fifo_addr_full == 1'b0 && fifo_addr_alm_full == 1'b0) begin
+              data_addr_in_req  = 1'b1;
+              data_addr_in_we   = 1'b0;
+              data_addr_in_be   = 4'b1111;  // always read all bytes
+              data_addr_in_addr = addr_ptr_reg;
+            end
+          end
+        end
+        if (broadcast_mode) begin
+          // If all input data read exit
+          if (fifo_empty == 1'b1 && dma_read_fsm_state == DMA_READ_FSM_IDLE) begin
+            dma_read_addr_fsm_n_state = dma_done ? DMA_READ_FSM_IDLE : DMA_READ_FSM_ON;
+          end else begin
+            dma_read_addr_fsm_n_state = DMA_READ_FSM_ON;
+            // Wait if fifo is empty or if the SPI TX is not ready for new data (only in SPI mode 2).
+            if (fifo_empty == 1'b0 && wait_for_tx == 1'b0 && fifo_addr_empty_check == 1'b0) begin
+              data_addr_in_req  = 1'b1;
+              data_addr_in_we   = 1'b1;
+              data_addr_in_be   = bcst_byte_enable_out;
+              data_addr_in_addr = bcst_address;
+            end
           end
         end
       end
@@ -559,7 +658,7 @@ module dma #(
       .push_i(data_in_rvalid),
       // as long as the queue is not empty we can pop new elements
       .data_o(fifo_output),
-      .pop_i(data_out_gnt)
+      .pop_i((!broadcast_mode && data_out_gnt) || (broadcast_mode && broadcast_pop))
   );
 
   fifo_v3 #(
@@ -593,6 +692,34 @@ module dma #(
       .hw2reg,
       .devmode_i(1'b1)
   );
+
+  always_ff @(posedge clk_i, negedge rst_ni) begin
+    if (~rst_ni) begin
+      broadcast_pop <= 0;
+      latched_data_out_gnt <= 0;
+      latched_data_addr_in <= 0;
+    end else begin
+
+      if (data_out_gnt) begin
+        latched_data_out_gnt <= 1;
+      end
+
+      if (data_addr_in_gnt) begin
+        latched_data_addr_in <= 1;
+      end
+
+      if ( (data_out_gnt || latched_data_out_gnt) && (data_addr_in_gnt || latched_data_addr_in) ) begin
+        broadcast_pop <= 1;
+        latched_data_addr_in <= 0;
+        latched_data_out_gnt <= 0;
+      end
+
+      if (broadcast_pop == 1) begin
+        broadcast_pop <= 0;
+      end
+
+    end
+  end
 
   // WINDOW EVENT
   // Count gnt write transaction and generate event pulse if WINDOW_SIZE is reached
