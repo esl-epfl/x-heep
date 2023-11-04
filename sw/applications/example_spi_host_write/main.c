@@ -250,7 +250,7 @@ int main(int argc, char *argv[]) {
     // Wait for all the fifo to be drained
     spi_wait_for_tx_empty(&spi_host);
     #ifndef TARGET_SIM
-    spi_wait_4_resp()
+    spi_wait_4_resp();
     #endif // TARGET_SIM
 
     // Read back the data
