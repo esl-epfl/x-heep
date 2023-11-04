@@ -1,6 +1,6 @@
 /**
  * @file main.c
- * @brief Simple spi write example
+ * @brief Simple spi write example using BSP
  *
  * Simple example that read 8 words from memory and checks
  * that the data is correct.
