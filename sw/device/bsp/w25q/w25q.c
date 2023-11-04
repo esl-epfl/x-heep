@@ -162,6 +162,22 @@ uint8_t w25q128jw_init() {
     // Select SPI host as SPI output
     soc_ctrl_select_spi_host(&soc_ctrl);
     #endif // USE_SPI_FLASH
+
+    /*
+     * For whatever reason this is required. If not present simulation 
+     * behave very weirdly.
+     * Is is needed also upon reset?
+    */
+    const uint32_t reset_cmd = 0xFFFFFFFF; // WTF???
+    spi_write_word(&spi, reset_cmd);
+    const uint32_t cmd_reset = spi_create_command((spi_command_t){
+        .len        = 3,
+        .csaat      = false,
+        .speed      = kSpiSpeedStandard,
+        .direction  = kSpiDirTxOnly
+    });
+    spi_set_command(&spi, cmd_reset);
+    spi_wait_for_ready(&spi);
     
     // Enable SPI host device
     spi_set_enable(&spi, true);
@@ -260,6 +276,9 @@ uint8_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t length) {
     // Sanity checks
     if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
 
+    // Pointer arithmetics is not allowed on void pointers
+    uint8_t *data_8bit = (uint8_t *)data;
+
     /*
      * Taking care of misalligned start address.
      * If the start address is not aligned to a 256 bytes boundary,
@@ -267,9 +286,9 @@ uint8_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t length) {
     */
     if (addr % 256 != 0) {
         uint8_t tmp_len = 256 - (addr % 256);
-        page_write(addr, data, tmp_len);
+        page_write(addr, data_8bit, tmp_len);
         addr += tmp_len;
-        data += tmp_len;
+        data_8bit += tmp_len;
         length -= tmp_len;
     }
 
@@ -277,12 +296,12 @@ uint8_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t length) {
     int flag = 1;
     while (flag) {
         if (length > 256) {
-            page_write(addr, data, 256);
+            page_write(addr, data_8bit, 256);
             addr += 256;
-            data += 256;
+            data_8bit += 256;
             length -= 256;
         } else {
-            page_write(addr, data, length);
+            page_write(addr, data_8bit, length);
             flag = 0;
         }
     }
@@ -594,9 +613,7 @@ static void page_write(uint32_t addr, uint8_t *data, uint32_t length) {
     }
     if (length % 4 != 0) {
         uint32_t last_word = 0;
-        for (int i = length % 4; i > 0; i--) {
-            last_word |= data[length - i] << (8*(i-1));
-        }
+        memcpy(&last_word, &data[length - length % 4], length % 4);
         spi_write_word(&spi, last_word);
     }
 
@@ -607,7 +624,7 @@ static void page_write(uint32_t addr, uint8_t *data, uint32_t length) {
         .speed      = kSpiSpeedStandard,
         .direction  = kSpiDirTxOnly
     });
-    spi_set_command(&spi, cmd_write);
+    spi_set_command(&spi, cmd_write_2);
     spi_wait_for_ready(&spi);
 
     // Wait for flash to be ready again (FPGA only)

@@ -33,7 +33,7 @@ uint32_t flash_original_32B[8] = {
 };
 // Test buffer with a not integer number of words
 uint32_t flash_original_30B[8] = {
-    0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0xef
+    0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0xefcc
 };
 // Test buffer with a length = RX_FIFO_depth (64 words)
 uint32_t flash_original_256B[64] = {
@@ -76,34 +76,36 @@ uint32_t flash_original_768B[192] = {
 };
 // ----------------
 
-#define FLASH_ADDR 0x00008500 // 256B data alignment
+#define FLASH_ADDR 0x00008500 // Misalligned!
 
 int main(int argc, char *argv[]) {
     printf("BSP write test\n\r");
     error_codes_t status;
 
+    uint32_t *test_buffer = flash_original_768B;
+    uint32_t len = 768;
 
     // Init SPI host and SPI<->Flash bridge parameters 
     status = w25q128jw_init();
     if (status != FLASH_OK) return EXIT_FAILURE;
 
-    status = w25q128jw_write_standard(FLASH_ADDR, flash_original_32B, 32);
+    // Write to flash memory at specific address
+    status = w25q128jw_write_standard(FLASH_ADDR, test_buffer, len);
     if (status != FLASH_OK) return EXIT_FAILURE;
 
-    status = w25q128jw_read_standard(FLASH_ADDR, flash_data, 32);
+    // Read from flash memory at the same address
+    status = w25q128jw_read_standard(FLASH_ADDR, flash_data, len);
     if (status != FLASH_OK) return EXIT_FAILURE;
 
 
-    // Check if what we read is correct
+    // Check if what we read is correct (i.e. flash_original == flash_data)
     printf("flash vs ram...\n\r");
     uint32_t errors = 0;
-    uint32_t* ram_ptr = flash_original_768B;
-    for (int i=0; i<768/4; i++) {
-        if(flash_data[i] != *ram_ptr) {
-            printf("@%x : %x != %x\n\r", ram_ptr, flash_data[i], *ram_ptr);
+    for (int i=0; i< ((len%4==0) ? len/4 : len/4 + 1); i++) {
+        if(flash_data[i] != test_buffer[i]) {
+            printf("index@%x : %x != %x(ref)\n\r", i, flash_data[i], test_buffer[i]);
             errors++;
         }
-        ram_ptr++;
     }
 
     // Exit status based on errors found
