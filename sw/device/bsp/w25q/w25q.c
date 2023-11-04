@@ -602,7 +602,7 @@ static void page_write(uint32_t addr, uint8_t *data, uint32_t length) {
 
     // Write
     const uint32_t cmd_write_2 = spi_create_command((spi_command_t){
-        .len        = (length*4)-1,
+        .len        = length-1,
         .csaat      = false,
         .speed      = kSpiSpeedStandard,
         .direction  = kSpiDirTxOnly
@@ -610,8 +610,10 @@ static void page_write(uint32_t addr, uint8_t *data, uint32_t length) {
     spi_set_command(&spi, cmd_write);
     spi_wait_for_ready(&spi);
 
-    // Wait for flash to be ready again
+    // Wait for flash to be ready again (FPGA only)
+    #ifdef TARGET_PYNQ_Z2
     flash_wait();
+    #endif // TARGET_PYNQ_Z2
 }
 
 static void flash_write_enable() {

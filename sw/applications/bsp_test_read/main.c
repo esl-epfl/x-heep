@@ -80,7 +80,8 @@ int main(int argc, char *argv[]) {
     error_codes_t status;
 
     // Init SPI host and SPI<->Flash bridge parameters 
-    w25q128jw_init();
+    status = w25q128jw_init();
+    if (status != FLASH_OK) return EXIT_FAILURE;
 
     // Read the flash
     printf("Reading flash: ");
