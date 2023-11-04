@@ -214,14 +214,12 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
     spi_set_command(&spi, cmd_read_2);
     spi_wait_for_ready(&spi);
 
-
-
     /*
      * Set RX watermark to length. The watermark is in words.
      * If the length is not a multiple of 4, the RX watermark is set to length/4+1
      * to take into account the extra bytes.
-     * If the length is higher then the TX FIFO depth, the RX watermark is set to
-     * TX FIFO depth. In this case the flag is not set to 0, so the loop will
+     * If the length is higher then the RX FIFO depth, the RX watermark is set to
+     * RX FIFO depth. In this case the flag is not set to 0, so the loop will
      * continue until all the data is read.
     */
     int flag = 1;
@@ -229,10 +227,10 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
     int i_start = 0;
     uint32_t *data_32bit = (uint32_t *)data;
     while (flag) {
-        if (length >= TX_FIFO_DEPTH) {
-            spi_set_rx_watermark(&spi, TX_FIFO_DEPTH/4);
-            length -= TX_FIFO_DEPTH;
-            to_read += TX_FIFO_DEPTH;
+        if (length >= RX_FIFO_DEPTH) {
+            spi_set_rx_watermark(&spi, RX_FIFO_DEPTH/4);
+            length -= RX_FIFO_DEPTH;
+            to_read += RX_FIFO_DEPTH;
         }
         else {
             spi_set_rx_watermark(&spi, (length%4==0 ? length/4 : length/4+1));
@@ -246,7 +244,7 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
             spi_read_word(&spi, &data_32bit[i]); // Writes a full word
         }
         // Update the starting index
-        i_start += TX_FIFO_DEPTH/4;
+        i_start += RX_FIFO_DEPTH/4;
     }
     // Take into account the extra bytes (if any)
     if (length%4 != 0) {

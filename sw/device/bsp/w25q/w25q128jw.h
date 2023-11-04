@@ -107,7 +107,7 @@
 /**
  * @brief SPI RX FIFO depth in bytes.
 */
-#define RX_FIFO_DEPTH 72 * 4
+#define RX_FIFO_DEPTH 64 * 4
 
 #ifdef __cplusplus
 extern "C" {

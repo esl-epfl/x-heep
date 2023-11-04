@@ -34,7 +34,7 @@ uint32_t flash_original_32B[8] = {
 uint32_t flash_original_30B[8] = {
     0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0xef
 };
-// Test buffer with a length = TX_FIFO_depth (64 words)
+// Test buffer with a length = RX_FIFO_depth (64 words)
 uint32_t flash_original_256B[64] = {
     0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,
     0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,
@@ -46,7 +46,7 @@ uint32_t flash_original_256B[64] = {
     0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,
     0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef
 };
-// Test buffer with a length higher than TX_FIFO_depth (64 words)
+// Test buffer with a length higher than RX_FIFO_depth (64 words)
 uint32_t flash_original_768B[192] = {
     0x76543211, 0xfedcba99, 0x579a6f91, 0x657d5bef, 0x758ee420, 0x01234568, 0xfedbca97, 0x89abde00,
     0x76543212, 0xfedcba9a, 0x579a6f92, 0x657d5bf0, 0x758ee421, 0x01234569, 0xfedbca98, 0x89abde01,
@@ -85,14 +85,14 @@ int main(int argc, char *argv[]) {
     // Read the flash
     printf("Reading flash: ");
     printf("768B buffer...\n\r");
-    status = w25q128jw_read_standard(flash_original_32B, (void*)flash_data, 32);
+    status = w25q128jw_read_standard(flash_original_768B, (void*)flash_data, 768);
     if (status != FLASH_OK) return EXIT_FAILURE;
 
     // Check if what we read is correct
     printf("flash vs ram...\n\r");
     uint32_t errors = 0;
-    uint32_t* ram_ptr = flash_original_32B;
-    for (int i=0; i<32/4; i++) {
+    uint32_t* ram_ptr = flash_original_768B;
+    for (int i=0; i<768/4; i++) {
         if(flash_data[i] != *ram_ptr) {
             printf("@%x : %x != %x\n\r", ram_ptr, flash_data[i], *ram_ptr);
             errors++;
