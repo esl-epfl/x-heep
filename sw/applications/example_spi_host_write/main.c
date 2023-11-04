@@ -173,6 +173,36 @@ static inline __attribute__((always_inline)) void spi_config() {
     spi_wait_for_ready(&spi_host);
 }
 
+static inline __attribute__((always_inline)) void spi_wait_4_resp()
+{
+    // Check status register status waiting for ready
+    bool flash_busy = true;
+    uint8_t flash_resp[4] = {0xff,0xff,0xff,0xff};
+    while(flash_busy){
+        uint32_t flash_cmd = 0x00000005; // [CMD] Read status register
+        spi_write_word(&spi_host, flash_cmd); // Push TX buffer
+        uint32_t spi_status_cmd = spi_create_command((spi_command_t){
+            .len        = 0,
+            .csaat      = true,
+            .speed      = kSpiSpeedStandard,
+            .direction  = kSpiDirTxOnly
+        });
+        uint32_t spi_status_read_cmd = spi_create_command((spi_command_t){
+            .len        = 0,
+            .csaat      = false,
+            .speed      = kSpiSpeedStandard,
+            .direction  = kSpiDirRxOnly
+        });
+        spi_set_command(&spi_host, spi_status_cmd);
+        spi_wait_for_ready(&spi_host);
+        spi_set_command(&spi_host, spi_status_read_cmd);
+        spi_wait_for_ready(&spi_host);
+        spi_wait_for_rx_watermark(&spi_host);
+        spi_read_word(&spi_host, &flash_resp[0]);
+        if ((flash_resp[0] & 0x01) == 0) flash_busy = false;
+    }
+}
+
 
 int main(int argc, char *argv[]) {
     soc_ctrl_t soc_ctrl;
@@ -220,7 +250,7 @@ int main(int argc, char *argv[]) {
     // Wait for all the fifo to be drained
     spi_wait_for_tx_empty(&spi_host);
     #ifndef TARGET_SIM
-    // wait_also_flash
+    spi_wait_4_resp()
     #endif // TARGET_SIM
 
     // Read back the data
