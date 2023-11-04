@@ -221,6 +221,27 @@ module spiflash (
 				end
 			end
 
+			if (powered_up && write_enable && spi_cmd == 'h 32) begin
+				if (bytecount == 1)
+					write_enable_reset = 1;
+
+				if (bytecount == 2)
+					spi_addr[23:16] = buffer;
+
+				if (bytecount == 3)
+					spi_addr[15:8] = buffer;
+
+				if (bytecount == 4) begin
+					spi_addr[7:0] = buffer;
+					mode = mode_qspi_rd;
+				end
+
+				if (bytecount >= 5 && bytecount <= 260) begin
+					memory[spi_addr] = buffer;
+					spi_addr = spi_addr + 1;
+				end
+			end
+
 			if (powered_up && spi_cmd == 'h ed) begin
 				if (bytecount == 1)
 					next_mode = mode_qspi_ddr_rd;
