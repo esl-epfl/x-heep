@@ -94,8 +94,9 @@ static void flash_reset(void);
  * @param addr 24-bit address to write to.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
+ * @param quad if 1, the write is performed at quad speed.
 */
-static void page_write(uint32_t addr, uint8_t *data, uint32_t length);
+static void page_write(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad);
 
 /**
  * @brief Enable flash write.
@@ -279,6 +280,9 @@ uint8_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t length) {
     // Pointer arithmetics is not allowed on void pointers
     uint8_t *data_8bit = (uint8_t *)data;
 
+    // Page programm speed is standard
+    uint8_t speed = 0;
+
     /*
      * Taking care of misalligned start address.
      * If the start address is not aligned to a 256 bytes boundary,
@@ -286,7 +290,7 @@ uint8_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t length) {
     */
     if (addr % 256 != 0) {
         uint8_t tmp_len = 256 - (addr % 256);
-        page_write(addr, data_8bit, tmp_len);
+        page_write(addr, data_8bit, tmp_len, speed);
         addr += tmp_len;
         data_8bit += tmp_len;
         length -= tmp_len;
@@ -296,12 +300,12 @@ uint8_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t length) {
     int flag = 1;
     while (flag) {
         if (length > 256) {
-            page_write(addr, data_8bit, 256);
+            page_write(addr, data_8bit, 256, speed);
             addr += 256;
             data_8bit += 256;
             length -= 256;
         } else {
-            page_write(addr, data_8bit, length);
+            page_write(addr, data_8bit, length, speed);
             flag = 0;
         }
     }
@@ -319,7 +323,7 @@ uint8_t w25q128jw_write_standard_dma(uint32_t addr, uint8_t *data, uint32_t leng
     return FLASH_ERROR; // Not implemented
 }
 
-uint8_t w25q128jw_read_quad(uint32_t addr, uint32_t *data, uint32_t length) {
+uint8_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t length) {
     // Sanity checks
     if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
 
@@ -416,6 +420,46 @@ uint8_t w25q128jw_read_quad(uint32_t addr, uint32_t *data, uint32_t length) {
     }
 
     return FLASH_OK;
+}
+
+uint8_t w25q128jw_write_quad(uint32_t addr, void *data, uint32_t length) {
+    // Sanity checks
+    if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
+
+    // Pointer arithmetics is not allowed on void pointers
+    uint8_t *data_8bit = (uint8_t *)data;
+
+    // Page programm speed is quad
+    uint8_t speed = 1;
+
+    /*
+     * Taking care of misalligned start address.
+     * If the start address is not aligned to a 256 bytes boundary,
+     * the first page is written with the first 256 - (addr % 256) bytes.
+    */
+    if (addr % 256 != 0) {
+        uint8_t tmp_len = 256 - (addr % 256);
+        page_write(addr, data_8bit, tmp_len, speed);
+        addr += tmp_len;
+        data_8bit += tmp_len;
+        length -= tmp_len;
+    }
+
+    // I cannot program more than a page (256 Bytes) at a time.
+    int flag = 1;
+    while (flag) {
+        if (length > 256) {
+            page_write(addr, data_8bit, 256, speed);
+            addr += 256;
+            data_8bit += 256;
+            length -= 256;
+        } else {
+            page_write(addr, data_8bit, length, speed);
+            flag = 0;
+        }
+    }
+
+    return FLASH_OK; // Success
 }
 
 void w25q128jw_4k_erase(uint32_t addr) {
@@ -690,11 +734,14 @@ static void flash_reset() {
     spi_wait_for_ready(&spi);
 }
 
-static void page_write(uint32_t addr, uint8_t *data, uint32_t length) {
+static void page_write(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad) {
     flash_write_enable();
 
-    // Write command
-    const uint32_t write_byte_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_PP);
+    /*
+     * Build and send write command (24bit address + command).
+     * The command is picked based on the quad flag.
+    */
+    const uint32_t write_byte_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | (quad ? FC_PPQ : FC_PP));
     spi_write_word(&spi, write_byte_cmd);
     const uint32_t cmd_write = spi_create_command((spi_command_t){
         .len        = 3,
@@ -720,7 +767,7 @@ static void page_write(uint32_t addr, uint8_t *data, uint32_t length) {
     const uint32_t cmd_write_2 = spi_create_command((spi_command_t){
         .len        = length-1,
         .csaat      = false,
-        .speed      = kSpiSpeedStandard,
+        .speed      = quad ? kSpiSpeedQuad : kSpiSpeedStandard,
         .direction  = kSpiDirTxOnly
     });
     spi_set_command(&spi, cmd_write_2);
@@ -745,9 +792,17 @@ static void flash_write_enable() {
 }
 
 static uint8_t sanity_checks(uint32_t addr, uint8_t *data, uint32_t length) {
-    if (addr > 0x00ffffff || addr < 0) return 0; // Error: address out of range
-    if (data == NULL) return 0; // Error: data pointer is NULL
-    if (length <= 0) return 0; // Error: length is 0 (or less)
+    // Check if address is out of range
+    if (addr > 0x00ffffff || addr < 0) return 0;
+
+    // Check if data pointer is NULL
+    if (data == NULL) return 0;
+
+    // Check if length is 0
+    if (length <= 0) return 0;
+    
+    // Check if current address + length is out of range
+    if (addr + length > 0x00ffffff) return 0;
 
     return 1; // Success
 }

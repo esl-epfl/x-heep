@@ -64,6 +64,7 @@
 #define FC_FR      0x0B /** Fast Read */
 #define FC_RDQIO   0xEB /** Fast Read Quad I/O */
 #define FC_PP      0x02 /** Page Program */
+#define FC_PPQ     0x32 /** Quad Input Page Program */
 #define FC_SE      0x20 /** Sector Erase 4kb */
 #define FC_BE32    0x52 /** Block Erase 32kb */
 #define FC_BE64    0xD8 /** Block Erase 64kb */
@@ -206,7 +207,17 @@ uint8_t w25q128jw_write_standard_dma(uint32_t addr, uint8_t* data, uint32_t leng
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
 */
-uint8_t w25q128jw_read_quad(uint32_t addr, uint32_t* data, uint32_t length);
+uint8_t w25q128jw_read_quad(uint32_t addr, void* data, uint32_t length);
+
+/**
+ * @brief Write to flash at quad speed.
+ * 
+ * @param addr 24-bit address to write to.
+ * @param data pointer to the data buffer.
+ * @param length number of bytes to write.
+ * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
+*/
+uint8_t w25q128jw_write_quad(uint32_t addr, void* data, uint32_t length);
 
 
 // TODO
