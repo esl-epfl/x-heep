@@ -319,6 +319,105 @@ uint8_t w25q128jw_write_standard_dma(uint32_t addr, uint8_t *data, uint32_t leng
     return FLASH_ERROR; // Not implemented
 }
 
+uint8_t w25q128jw_read_quad(uint32_t addr, uint32_t *data, uint32_t length) {
+    // Sanity checks
+    if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
+
+    // Send quad read command at standard speed
+    uint32_t cmd_read_quadIO = FC_RDQIO;
+    spi_write_word(&spi, cmd_read_quadIO);
+    const uint32_t cmd_read = spi_create_command((spi_command_t){
+        .len        = 0,                 // 1 Byte
+        .csaat      = true,              // Command not finished
+        .speed      = kSpiSpeedStandard, // Single speed
+        .direction  = kSpiDirTxOnly      // Write only
+    });
+    spi_set_command(&spi, cmd_read);
+    spi_wait_for_ready(&spi);
+
+    /*
+     * Send address at quad speed.
+     * Last byte is Fxh (here FFh) required by W25Q128JW
+    */
+    uint32_t read_byte_cmd = (REVERT_24b_ADDR(addr) | (0xFF << 24));
+    spi_write_word(&spi, read_byte_cmd);
+    const uint32_t cmd_address = spi_create_command((spi_command_t){
+        .len        = 3,                // 3 Byte
+        .csaat      = true,             // Command not finished
+        .speed      = kSpiSpeedQuad,    // Quad speed
+        .direction  = kSpiDirTxOnly     // Write only
+    });
+    spi_set_command(&spi, cmd_address);
+    spi_wait_for_ready(&spi);
+
+    // Quad read requires dummy clocks
+    const uint32_t dummy_clocks_cmd = spi_create_command((spi_command_t){
+        #ifdef TARGET_PYNQ_Z2
+        .len        = 3,               // W25Q128JW flash needs 4 dummy cycles
+        #else
+        .len        = 7,               // SPI flash simulation model needs 8 dummy cycles
+        #endif
+        .csaat      = true,            // Command not finished
+        .speed      = kSpiSpeedQuad,   // Quad speed
+        .direction  = kSpiDirDummy     // Dummy
+    });
+    spi_set_command(&spi, dummy_clocks_cmd);
+    spi_wait_for_ready(&spi);
+
+    // Read back the requested data at quad speed
+    const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
+        .len        = length-1,        // 32 Byte
+        .csaat      = false,           // End command
+        .speed      = kSpiSpeedQuad,   // Quad speed
+        .direction  = kSpiDirRxOnly    // Read only
+    });
+    spi_set_command(&spi, cmd_read_rx);
+    spi_wait_for_ready(&spi);
+
+    /* COMMAND FINISHED */
+
+    /*
+     * Set RX watermark to length. The watermark is in words.
+     * If the length is not a multiple of 4, the RX watermark is set to length/4+1
+     * to take into account the extra bytes.
+     * If the length is higher then the RX FIFO depth, the RX watermark is set to
+     * RX FIFO depth. In this case the flag is not set to 0, so the loop will
+     * continue until all the data is read.
+    */
+    int flag = 1;
+    int to_read = 0;
+    int i_start = 0;
+    uint32_t *data_32bit = (uint32_t *)data;
+    while (flag) {
+        if (length >= RX_FIFO_DEPTH) {
+            spi_set_rx_watermark(&spi, RX_FIFO_DEPTH/4);
+            length -= RX_FIFO_DEPTH;
+            to_read += RX_FIFO_DEPTH;
+        }
+        else {
+            spi_set_rx_watermark(&spi, (length%4==0 ? length/4 : length/4+1));
+            to_read += length;
+            flag = 0;
+        }
+        // Wait till SPI RX FIFO is full (or I read all the data)
+        spi_wait_for_rx_watermark(&spi);
+        // Read data from SPI RX FIFO
+        for (int i = i_start; i < to_read/4; i++) {
+            spi_read_word(&spi, &data_32bit[i]); // Writes a full word
+        }
+        // Update the starting index
+        i_start += RX_FIFO_DEPTH/4;
+    }
+    // Take into account the extra bytes (if any)
+    if (length%4 != 0) {
+        uint32_t last_word = 0;
+        spi_read_word(&spi, &last_word);
+        memcpy(&data[length - (length%4)], &last_word, length%4);
+    }
+
+    return FLASH_OK;
+}
+
 void w25q128jw_4k_erase(uint32_t addr) {
     // Sanity checks
     if (addr > 0x00ffffff || addr < 0) return FLASH_ERROR;
