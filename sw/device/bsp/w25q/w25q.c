@@ -93,6 +93,21 @@ static void flash_wait(void);
 static void flash_reset(void);
 
 /**
+ * @brief Wrapper for page write.
+ * 
+ * It performs the sanity checks and calls the page_write function with 
+ * the correct speed paramether. A wrapper is necessary as it is not possible
+ * to program more than a page (256 bytes) at a time. So multiple calls
+ * to page_write can be needed.
+ * 
+ * @param addr 24-bit address to write to.
+ * @param data pointer to the data buffer.
+ * @param length number of bytes to write.
+ * @param quad if 1, the write is performed at quad speed.
+*/
+static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad)
+
+/**
  * @brief Write (up to) a page to the flash.
  * 
  * @param addr 24-bit address to write to.
@@ -278,43 +293,8 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
 }
 
 uint8_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t length) {
-    // Sanity checks
-    if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
-
-    // Pointer arithmetics is not allowed on void pointers
-    uint8_t *data_8bit = (uint8_t *)data;
-
-    // Page programm speed is standard
-    uint8_t speed = 0;
-
-    /*
-     * Taking care of misalligned start address.
-     * If the start address is not aligned to a 256 bytes boundary,
-     * the first page is written with the first 256 - (addr % 256) bytes.
-    */
-    if (addr % 256 != 0) {
-        uint8_t tmp_len = 256 - (addr % 256);
-        page_write(addr, data_8bit, tmp_len, speed);
-        addr += tmp_len;
-        data_8bit += tmp_len;
-        length -= tmp_len;
-    }
-
-    // I cannot program more than a page (256 Bytes) at a time.
-    int flag = 1;
-    while (flag) {
-        if (length > 256) {
-            page_write(addr, data_8bit, 256, speed);
-            addr += 256;
-            data_8bit += 256;
-            length -= 256;
-        } else {
-            page_write(addr, data_8bit, length, speed);
-            flag = 0;
-        }
-    }
-
-    return FLASH_OK; // Success
+    // Call the wrapper with quad = 0
+    return page_write_wrapper(addr, data, length, 0);
 }
 
 uint8_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length) {
@@ -404,7 +384,7 @@ uint8_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length) 
     return FLASH_OK;
 }
 
-uint8_t w25q128jw_write_standard_dma(uint32_t addr, uint8_t *data, uint32_t length) {
+uint8_t w25q128jw_write_standard_dma(uint32_t addr, void *data, uint32_t length) {
     
     return FLASH_ERROR; // Not implemented
 }
@@ -509,43 +489,121 @@ uint8_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t length) {
 }
 
 uint8_t w25q128jw_write_quad(uint32_t addr, void *data, uint32_t length) {
+    // Call the wrapper with quad = 1
+    return page_write_wrapper(addr, data, length, 1);
+}
+
+uint8_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t length) {
     // Sanity checks
     if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
 
-    // Pointer arithmetics is not allowed on void pointers
-    uint8_t *data_8bit = (uint8_t *)data;
-
-    // Page programm speed is quad
-    uint8_t speed = 1;
+    // Send quad read command at standard speed
+    uint32_t cmd_read_quadIO = FC_RDQIO;
+    spi_write_word(&spi, cmd_read_quadIO);
+    const uint32_t cmd_read = spi_create_command((spi_command_t){
+        .len        = 0,                 // 1 Byte
+        .csaat      = true,              // Command not finished
+        .speed      = kSpiSpeedStandard, // Single speed
+        .direction  = kSpiDirTxOnly      // Write only
+    });
+    spi_set_command(&spi, cmd_read);
+    spi_wait_for_ready(&spi);
 
     /*
-     * Taking care of misalligned start address.
-     * If the start address is not aligned to a 256 bytes boundary,
-     * the first page is written with the first 256 - (addr % 256) bytes.
+     * Send address at quad speed.
+     * Last byte is Fxh (here FFh) required by W25Q128JW
     */
-    if (addr % 256 != 0) {
-        uint8_t tmp_len = 256 - (addr % 256);
-        page_write(addr, data_8bit, tmp_len, speed);
-        addr += tmp_len;
-        data_8bit += tmp_len;
-        length -= tmp_len;
-    }
+    uint32_t read_byte_cmd = (REVERT_24b_ADDR(addr) | (0xFF << 24));
+    spi_write_word(&spi, read_byte_cmd);
+    const uint32_t cmd_address = spi_create_command((spi_command_t){
+        .len        = 3,                // 3 Byte
+        .csaat      = true,             // Command not finished
+        .speed      = kSpiSpeedQuad,    // Quad speed
+        .direction  = kSpiDirTxOnly     // Write only
+    });
+    spi_set_command(&spi, cmd_address);
+    spi_wait_for_ready(&spi);
 
-    // I cannot program more than a page (256 Bytes) at a time.
-    int flag = 1;
-    while (flag) {
-        if (length > 256) {
-            page_write(addr, data_8bit, 256, speed);
-            addr += 256;
-            data_8bit += 256;
-            length -= 256;
-        } else {
-            page_write(addr, data_8bit, length, speed);
-            flag = 0;
-        }
-    }
+    // Quad read requires dummy clocks
+    const uint32_t dummy_clocks_cmd = spi_create_command((spi_command_t){
+        #ifdef TARGET_PYNQ_Z2
+        .len        = 3,               // W25Q128JW flash needs 4 dummy cycles
+        #else
+        .len        = 7,               // SPI flash simulation model needs 8 dummy cycles
+        #endif
+        .csaat      = true,            // Command not finished
+        .speed      = kSpiSpeedQuad,   // Quad speed
+        .direction  = kSpiDirDummy     // Dummy
+    });
+    spi_set_command(&spi, dummy_clocks_cmd);
+    spi_wait_for_ready(&spi);
 
-    return FLASH_OK; // Success
+    // Read back the requested data at quad speed
+    const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
+        .len        = length-1,        // 32 Byte
+        .csaat      = false,           // End command
+        .speed      = kSpiSpeedQuad,   // Quad speed
+        .direction  = kSpiDirRxOnly    // Read only
+    });
+    spi_set_command(&spi, cmd_read_rx);
+    spi_wait_for_ready(&spi);
+
+    /* COMMAND FINISHED */
+
+    /*
+     * SET UP DMA
+    */
+    // SPI and SPI_FLASH are the same IP so same register map
+    uint32_t *fifo_ptr_rx = spi.base_addr.base + SPI_HOST_RXDATA_REG_OFFSET;
+
+    // Init DMA, the integrated DMA is used (peri == NULL)
+    dma_init(NULL);
+
+    // The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
+    #ifndef USE_SPI_FLASH
+        uint8_t slot = DMA_TRIG_SLOT_SPI_RX;
+    #else
+        uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_RX;
+    #endif
+
+    // Set up DMA source target
+    static dma_target_t tgt_src = {
+        .inc_du = 0, // Target is peripheral, no increment
+        .type = DMA_DATA_TYPE_WORD, // Data type is byte
+    };
+    // Size is in data units (words in this case)
+    tgt_src.size_du = (length%4==0) ? length/4 : length/4+1;
+    // Target is SPI RX FIFO
+    tgt_src.ptr = (uint8_t*)fifo_ptr_rx;
+    // Trigger to control the data flow
+    tgt_src.trig = slot;
+
+    // Set up DMA destination target
+    static dma_target_t tgt_dst = {
+        .inc_du = 1, // Increment by 1 data unit (word)
+        .type = DMA_DATA_TYPE_WORD, // Data type is byte
+        .trig = DMA_TRIG_MEMORY, // Read-write operation to memory
+    };
+    tgt_dst.ptr = (uint8_t*)data; // Target is the data buffer
+
+    // Set up DMA transaction
+    static dma_trans_t trans = {
+        .src = &tgt_src,
+        .dst = &tgt_dst,
+        .end = DMA_TRANS_END_POLLING,
+    };
+
+    // Validate, load and launch DMA transaction
+    dma_config_flags_t res;
+    res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    res = dma_load_transaction(&trans);
+    res = dma_launch(&trans);
+
+    // Wait for DMA to finish transaction
+    printf("Waiting for DMA to finish...\n\r");
+    while(!dma_is_ready());
+
+    return FLASH_OK;
 }
 
 void w25q128jw_4k_erase(uint32_t addr) {
@@ -817,6 +875,46 @@ static void flash_reset() {
     });
     spi_set_command(&spi, cmd_reset);
     spi_wait_for_ready(&spi);
+}
+
+static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad) {
+    // Sanity checks
+    if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
+
+    // Pointer arithmetics is not allowed on void pointers
+    uint8_t *data_8bit = (uint8_t *)data;
+
+    // Page programm speed is standard
+    uint8_t speed = quad==1 ? 1 : 0;
+
+    /*
+     * Taking care of misalligned start address.
+     * If the start address is not aligned to a 256 bytes boundary,
+     * the first page is written with the first 256 - (addr % 256) bytes.
+    */
+    if (addr % 256 != 0) {
+        uint8_t tmp_len = 256 - (addr % 256);
+        page_write(addr, data_8bit, tmp_len, speed);
+        addr += tmp_len;
+        data_8bit += tmp_len;
+        length -= tmp_len;
+    }
+
+    // I cannot program more than a page (256 Bytes) at a time.
+    int flag = 1;
+    while (flag) {
+        if (length > 256) {
+            page_write(addr, data_8bit, 256, speed);
+            addr += 256;
+            data_8bit += 256;
+            length -= 256;
+        } else {
+            page_write(addr, data_8bit, length, speed);
+            flag = 0;
+        }
+    }
+
+    return FLASH_OK;
 }
 
 static void page_write(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad) {
