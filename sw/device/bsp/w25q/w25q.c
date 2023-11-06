@@ -104,8 +104,9 @@ static void flash_reset(void);
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @param quad if 1, the write is performed at quad speed.
+ * @param dma if 1, the write is performed using DMA.
 */
-static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad)
+static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad, uint8_t dma);
 
 /**
  * @brief Write (up to) a page to the flash.
@@ -114,8 +115,17 @@ static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length,
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @param quad if 1, the write is performed at quad speed.
+ * @param dma if 1, the write is performed using DMA.
 */
-static void page_write(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad);
+static void page_write(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad, uint8_t dma);
+
+/**
+ * @brief Copy length bytes from data to the SPI TX FIFO, using DMA.
+ * 
+ * @param data pointer to the data buffer.
+ * @param length number of bytes to copy.
+*/
+static uint8_t dma_send_toflash(uint8_t *data, uint32_t length);
 
 /**
  * @brief Enable flash write.
@@ -293,8 +303,8 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
 }
 
 uint8_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t length) {
-    // Call the wrapper with quad = 0
-    return page_write_wrapper(addr, data, length, 0);
+    // Call the wrapper with quad = 0, dma = 0
+    return page_write_wrapper(addr, data, length, 0, 0);
 }
 
 uint8_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length) {
@@ -378,15 +388,14 @@ uint8_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length) 
     spi_wait_for_ready(&spi);
 
     // Wait for DMA to finish transaction
-    printf("Waiting for DMA to finish...\n\r");
     while(!dma_is_ready());
 
     return FLASH_OK;
 }
 
 uint8_t w25q128jw_write_standard_dma(uint32_t addr, void *data, uint32_t length) {
-    
-    return FLASH_ERROR; // Not implemented
+    // Call the wrapper with quad = 0, dma = 1
+    return page_write_wrapper(addr, data, length, 0, 1);
 }
 
 uint8_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t length) {
@@ -489,8 +498,8 @@ uint8_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t length) {
 }
 
 uint8_t w25q128jw_write_quad(uint32_t addr, void *data, uint32_t length) {
-    // Call the wrapper with quad = 1
-    return page_write_wrapper(addr, data, length, 1);
+    // Call the wrapper with quad = 1, dma = 0
+    return page_write_wrapper(addr, data, length, 1, 0);
 }
 
 uint8_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t length) {
@@ -540,7 +549,7 @@ uint8_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t length) {
 
     // Read back the requested data at quad speed
     const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
-        .len        = length-1,        // 32 Byte
+        .len        = length-1,        // length bytes
         .csaat      = false,           // End command
         .speed      = kSpiSpeedQuad,   // Quad speed
         .direction  = kSpiDirRxOnly    // Read only
@@ -600,10 +609,14 @@ uint8_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t length) {
     res = dma_launch(&trans);
 
     // Wait for DMA to finish transaction
-    printf("Waiting for DMA to finish...\n\r");
     while(!dma_is_ready());
 
     return FLASH_OK;
+}
+
+uint8_t w25q128jw_write_quad_dma(uint32_t addr, void *data, uint32_t length) {
+    // Call the wrapper with quad = 1, dma = 1
+    return page_write_wrapper(addr, data, length, 1, 1);
 }
 
 void w25q128jw_4k_erase(uint32_t addr) {
@@ -711,20 +724,27 @@ void w25q128jw_chip_erase() {
 }
 
 void w25q128jw_reset() {
+    // Wait for ongoing operation to finish (if any)
     flash_wait();
+
+    // Build and send reset command
     flash_reset();
+
+    // Wait for the reset operation to be finished
     flash_wait();
 }
 
 void w25q128jw_reset_force() {
-    flash_reset();    
+    // Build and send reset command without waiting for ongoing operation
+    flash_reset(); 
+
+    // Wait for the reset operation to be finished   
     flash_wait();
 }
 
 void w25q128jw_power_down() {
     // Build and send power down command
     spi_write_word(&spi, FC_PD);
-    spi_wait_for_ready(&spi);
     const uint32_t cmd_power_down = spi_create_command((spi_command_t){
         .len        = 0,                 // 1 Byte
         .csaat      = false,             // End command
@@ -802,8 +822,6 @@ static uint8_t set_QE_bit() {
 
 static void configure_spi(soc_ctrl_t soc_ctrl) {
     // Configure SPI clock
-    // SPI clk freq = 1/2 core clk freq when clk_div = 0
-    // SPI_CLK = CORE_CLK/(2 + 2 * CLK_DIV) <= CLK_MAX => CLK_DIV > (CORE_CLK/CLK_MAX - 2)/2
     uint32_t core_clk = soc_ctrl_get_frequency(&soc_ctrl);
     uint16_t clk_div = 0;
     if(FLASH_CLK_MAX_HZ < core_clk/2){
@@ -877,15 +895,19 @@ static void flash_reset() {
     spi_wait_for_ready(&spi);
 }
 
-static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad) {
+static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad, uint8_t dma) {
     // Sanity checks
     if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
 
     // Pointer arithmetics is not allowed on void pointers
     uint8_t *data_8bit = (uint8_t *)data;
 
-    // Page programm speed is standard
+    /*
+     * Set speed and DMA flags.
+     * Robust implementation: no need to perform safety checks on the flags.
+    */
     uint8_t speed = quad==1 ? 1 : 0;
+    uint8_t dma_flag = dma==1 ? 1 : 0;
 
     /*
      * Taking care of misalligned start address.
@@ -894,7 +916,7 @@ static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length,
     */
     if (addr % 256 != 0) {
         uint8_t tmp_len = 256 - (addr % 256);
-        page_write(addr, data_8bit, tmp_len, speed);
+        page_write(addr, data_8bit, tmp_len, speed, dma_flag);
         addr += tmp_len;
         data_8bit += tmp_len;
         length -= tmp_len;
@@ -904,20 +926,20 @@ static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length,
     int flag = 1;
     while (flag) {
         if (length > 256) {
-            page_write(addr, data_8bit, 256, speed);
+            page_write(addr, data_8bit, 256, speed, dma_flag);
             addr += 256;
             data_8bit += 256;
             length -= 256;
         } else {
-            page_write(addr, data_8bit, length, speed);
+            page_write(addr, data_8bit, length, speed, dma_flag);
             flag = 0;
         }
     }
-
     return FLASH_OK;
 }
 
-static void page_write(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad) {
+static void page_write(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad, uint8_t dma) {
+    // Required every time before issuing a write command
     flash_write_enable();
 
     /*
@@ -936,17 +958,24 @@ static void page_write(uint32_t addr, uint8_t *data, uint32_t length, uint8_t qu
     spi_wait_for_ready(&spi);
 
     // Place data in TX FIFO
-    uint32_t *data_32bit = (uint32_t *)data;
-    for (int i = 0; i < length/4; i++) {
-        spi_write_word(&spi, data_32bit[i]);
-    }
-    if (length % 4 != 0) {
-        uint32_t last_word = 0;
-        memcpy(&last_word, &data[length - length % 4], length % 4);
-        spi_write_word(&spi, last_word);
+    if (dma) {
+        dma_send_toflash(data, length);
+    } else {
+        uint32_t *data_32bit = (uint32_t *)data;
+        for (int i = 0; i < length/4; i++) {
+            spi_write_word(&spi, data_32bit[i]);
+        }
+        if (length % 4 != 0) {
+            uint32_t last_word = 0;
+            memcpy(&last_word, &data[length - length % 4], length % 4);
+            spi_write_word(&spi, last_word);
+        }
     }
 
-    // Write
+    /*
+     * Set up segment parameters -> send data.
+     * Speed is quad if quad flag is set, standard otherwise.
+    */
     const uint32_t cmd_write_2 = spi_create_command((spi_command_t){
         .len        = length-1,
         .csaat      = false,
@@ -960,6 +989,63 @@ static void page_write(uint32_t addr, uint8_t *data, uint32_t length, uint8_t qu
     #ifdef TARGET_PYNQ_Z2
     flash_wait();
     #endif // TARGET_PYNQ_Z2
+}
+
+static uint8_t dma_send_toflash(uint8_t *data, uint32_t length) {
+    // SPI and SPI_FLASH are the same IP so same register map
+    uint32_t *fifo_ptr_tx = spi.base_addr.base + SPI_HOST_TXDATA_REG_OFFSET;
+
+    // Init DMA, the integrated DMA is used (peri == NULL)
+    dma_init(NULL);
+
+    // The DMA will wait for the SPI HOST/FLASH TX FIFO valid signal
+    #ifndef USE_SPI_FLASH
+        uint8_t slot = DMA_TRIG_SLOT_SPI_TX;
+    #else
+        uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_TX;
+    #endif
+
+    // Set up DMA source target
+    static dma_target_t tgt_src = {
+        .inc_du = 1, // Increment by 1 data unit (word)
+        .type = DMA_DATA_TYPE_WORD, // Data type is word
+    };
+    // Size is in data units (words in this case)
+    tgt_src.size_du = (length%4==0) ? length/4 : length/4+1;
+    // Target is data buffer
+    tgt_src.ptr = data;
+    // Reads from memory
+    tgt_src.trig = DMA_TRIG_MEMORY;
+
+    // Set up DMA destination target
+    static dma_target_t tgt_dst = {
+        .inc_du = 0, // It's a peripheral, no increment
+        .type = DMA_DATA_TYPE_WORD, // Data type is word
+    };
+    tgt_dst.trig = slot;
+    tgt_dst.ptr = (uint8_t*)fifo_ptr_tx; // Target is SPI TX FIFO
+
+    // Set up DMA transaction
+    static dma_trans_t trans = {
+        .src = &tgt_src,
+        .dst = &tgt_dst,
+        .mode = DMA_TRANS_MODE_SINGLE,
+        .win_du = 0,
+        .end = DMA_TRANS_END_POLLING,
+    };
+
+    // Validate, load and launch DMA transaction
+    dma_config_flags_t res;
+    res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    if (res != DMA_CONFIG_OK) return 1;
+    res = dma_load_transaction(&trans);
+    if (res != DMA_CONFIG_OK) return 1;
+    res = dma_launch(&trans);
+    if (res != DMA_CONFIG_OK) return 1;
+
+    // Wait for DMA to finish transaction
+    while(!dma_is_ready());
+    return 0;
 }
 
 static void flash_write_enable() {
@@ -989,16 +1075,6 @@ static uint8_t sanity_checks(uint32_t addr, uint8_t *data, uint32_t length) {
 
     return 1; // Success
 }
-
-// Non-weak definition of "fast interrupt controller irq for spi flash"
-void fic_irq_spi_flash(void) {
-    // Disable SPI interrupts
-    spi_enable_evt_intr(&spi, false);
-    spi_enable_rxwm_intr(&spi, false);
-    // spi_intr_flag = 1;
-}
-
-
 
 /****************************************************************************/
 /**                                                                        **/
