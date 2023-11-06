@@ -186,7 +186,7 @@ uint8_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t length);
  * @param length number of bytes to read.
  * @return FLASH_OK if the read is successful, @ref error_codes otherwise.
 */
-uint8_t w25q128jw_read_standard_dma(uint32_t addr, uint32_t* data, uint32_t length);
+uint8_t w25q128jw_read_standard_dma(uint32_t addr, void* data, uint32_t length);
 
 
 /**
