@@ -1,4 +1,4 @@
-# get started
+# Get started
 
 ## 1. OS requirements
 

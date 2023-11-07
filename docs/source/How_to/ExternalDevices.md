@@ -1,4 +1,4 @@
-# interface with external devices
+# Interface with external devices
 
 The top module [`core_v_mini_mcu`]((./../../../hw/core-v-mini-mcu/corecore_v_mini_mcu.sv) exposes several external interfaces:
 

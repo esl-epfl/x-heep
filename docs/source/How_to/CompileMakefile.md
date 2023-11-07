@@ -1,4 +1,4 @@
-# compile with Makefile
+# Compile with Makefile
 
 You can compile the example applications and the platform using the Makefile. Type 'make help' or 'make' for more information. Moreover, please, check the different 'clean' commands to verify that you are using the corret one.
 

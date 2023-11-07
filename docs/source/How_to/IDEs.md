@@ -1,4 +1,4 @@
-# set up an IDE
+# Set up an IDE
 
 For FW development, `X-HEEP` can be used together with different Integrated Development Environments (IDEs) flavours. Up to now, full support is just provided by [Segger Embedded Studio (SES)](https://www.segger.com/products/development-tools/embedded-studio/editions/risc-v/). This readme guides you through all the needed steps to get SES working and debugging when prototyping `X-HEEP` into the pynq-z2 board.
 

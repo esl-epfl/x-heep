@@ -1,4 +1,4 @@
-#  execute Code from FLASH
+#  Execute Code from FLASH
 
 ## Boot Procedure
 
