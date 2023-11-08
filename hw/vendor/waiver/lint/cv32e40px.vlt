@@ -111,3 +111,6 @@ lint_off -rule WIDTH -file "*/rtl/cv32e40px_controller.sv" -match "Logical opera
 lint_off -rule WIDTH -file "*/rtl/cv32e40px_controller.sv" -match "Logical operator IF expects 1 bit on the If, but If's VARREF 'COREV_PULP' generates 32 bits."
 lint_off -rule WIDTH -file "*/rtl/cv32e40px_cs_registers.sv" -match "Logical operator LOGNOT expects 1 bit on the LHS, but LHS's VARREF 'COREV_PULP' generates 32 bits."
 lint_off -rule WIDTH -file "*/rtl/cv32e40px_decoder.sv" -match "Logical operator LOGAND expects 1 bit on the LHS, but LHS's VARREF 'FPU' generates 32 bits*"
+lint_off -rule WIDTH -file "*/rtl/cv32e40px_controller.sv" -match "Logical operator LOGAND expects 1 bit on the LHS, but LHS's VARREF 'FPU' generates 32 bits.*"
+lint_off -rule WIDTH -file "*/rtl/cv32e40px_cs_registers.sv" -match "Logical operator LOGOR expects 1 bit on the LHS, but LHS's VARREF 'FPU' generates 32 bits.*"
+lint_off -rule LATCH -file "*/rtl/cv32e40px_id_stage.sv" -match "Latch inferred for signal*apu_read_regs*"

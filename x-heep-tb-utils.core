@@ -30,6 +30,8 @@ filesets:
     - pulp-platform.org::pulpissimo_simjtag
 
   tb-harness:
+    depend:
+    - pulp-platform.org:ip:fpu_ss
     files:
     - tb/tb_util.svh: {is_include_file: true}
     - tb/testharness_pkg.sv
