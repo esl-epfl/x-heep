@@ -45,15 +45,26 @@ module cv32e40p_rvfi_trace
 
     input logic [ 4:0] rvfi_rs1_addr,
     input logic [ 4:0] rvfi_rs2_addr,
+    input logic [ 4:0] rvfi_rs3_addr,
     input logic [31:0] rvfi_rs1_rdata,
     input logic [31:0] rvfi_rs2_rdata,
+    input logic [31:0] rvfi_rs3_rdata,
 
     input logic [ 4:0] rvfi_frs1_addr,
     input logic [ 4:0] rvfi_frs2_addr,
+    input logic [ 4:0] rvfi_frs3_addr,
     input logic        rvfi_frs1_rvalid,
     input logic        rvfi_frs2_rvalid,
+    input logic        rvfi_frs3_rvalid,
     input logic [31:0] rvfi_frs1_rdata,
-    input logic [31:0] rvfi_frs2_rdata
+    input logic [31:0] rvfi_frs2_rdata,
+    input logic [31:0] rvfi_frs3_rdata,
+
+    input logic [31:0] rvfi_mem_addr,
+    input logic [ 3:0] rvfi_mem_rmask,
+    input logic [ 3:0] rvfi_mem_wmask,
+    input logic [31:0] rvfi_mem_rdata,
+    input logic [31:0] rvfi_mem_wdata
 );
 
   import cv32e40p_tracer_pkg::*;
@@ -106,6 +117,14 @@ module cv32e40p_rvfi_trace
       rs2_value = rvfi_rs2_rdata;
     end
 
+    if (rvfi_frs3_rvalid) begin
+      rs3 = {1'b1, rvfi_frs3_addr};
+      rs3_value = rvfi_frs3_rdata;
+    end else begin
+      rs3 = {1'b0, rvfi_rs3_addr};
+      rs3_value = rvfi_rs3_rdata;
+    end
+
     if (rvfi_frd_wvalid[0]) begin
       rd = {1'b1, rvfi_frd_addr[0]};
     end else begin
@@ -113,9 +132,7 @@ module cv32e40p_rvfi_trace
     end
   end
 
-  assign rs3 = '0;
-  assign rs4 = '0;
-  assign rs3_value = rvfi_rd_wdata[0];
+  assign rs4 = rs3;
 
   assign imm_i_type = {{20{rvfi_insn[31]}}, rvfi_insn[31:20]};
   assign imm_iz_type = {20'b0, rvfi_insn[31:20]};
@@ -157,14 +174,33 @@ instr_trace_t trace_retire;
 
   function void apply_reg_write();
     foreach (trace_retire.regs_write[i]) begin
-      if (trace_retire.regs_write[i].addr == rvfi_rd_addr[0]) begin
+      if (rvfi_frd_wvalid[0] && (trace_retire.regs_write[i].addr == {1'b1, rvfi_frd_addr[0]})) begin
+        trace_retire.regs_write[i].value = rvfi_frd_wdata[0];
+      end else if (trace_retire.regs_write[i].addr == rvfi_rd_addr[0]) begin
         trace_retire.regs_write[i].value = rvfi_rd_wdata[0];
       end
-      if (trace_retire.regs_write[i].addr == rvfi_rd_addr[1]) begin
+      if (rvfi_frd_wvalid[1] && (trace_retire.regs_write[i].addr == {1'b1, rvfi_frd_addr[1]})) begin
+        trace_retire.regs_write[i].value = rvfi_frd_wdata[1];
+      end else if (trace_retire.regs_write[i].addr == rvfi_rd_addr[1]) begin
         trace_retire.regs_write[i].value = rvfi_rd_wdata[1];
       end
     end
   endfunction : apply_reg_write
+
+  function void apply_mem_access();
+    mem_acc_t mem_acc;
+
+    mem_acc.addr = rvfi_mem_addr;
+    if (rvfi_mem_wmask) begin
+      mem_acc.we    = 1'b1;
+      mem_acc.wdata = rvfi_mem_wdata;
+      trace_retire.mem_access.push_back(mem_acc);
+    end else if (rvfi_mem_rmask) begin
+      mem_acc.we = 1'b0;
+      mem_acc.wdata = 'x;
+      trace_retire.mem_access.push_back(mem_acc);
+    end
+  endfunction : apply_mem_access
 
   // cycle counter
   always_ff @(posedge clk_i, negedge rst_ni) begin
@@ -176,6 +212,7 @@ instr_trace_t trace_retire;
     if (rvfi_valid) begin
       trace_retire = trace_new_instr();
       apply_reg_write();
+      apply_mem_access();
       trace_retire.printInstrTrace();
     end
   end

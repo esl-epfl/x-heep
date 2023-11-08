@@ -182,8 +182,13 @@ First, you have to generate the SystemVerilog package and C header file of the c
 make mcu-gen
 ```
 
-To change the default cpu type (i.e., cv32e20), the default bus type (i.e., onetoM),
-the default continuous memory size (i.e., 2 continuous banks) or the default interleaved memory size (i.e., 0 interleaved banks):
+By default, `X-HEEP` deploys the [cv32e20](https://github.com/openhwgroup/cve2) RISC-V CPU.
+Other supported CPUs are: the [cv32e40p](https://github.com/openhwgroup/cv32e40p), [cv32e40x](https://github.com/openhwgroup/cv32e40x), and the [cv32e40px](https://github.com/esl-epfl/cv32e40px).
+The default bus type of `X-HEEP` is a single-master-at-a-time architecture, (called `onetoM`), but the cross-bar architecture is also supported by setting
+the bus to `NtoM`. Also, the user can select the number of 32kB banks addressed in continuous mode and/or the interleaved mode.
+By default, `X-HEEP` is generated with 2 continuous banks and 0 interleaved banks.
+
+Below an example that changes the default configuration:
 
 ```
 make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=12 MEMORY_BANKS_IL=4
@@ -238,9 +243,11 @@ Or, if you use the OpenHW Group [GCC](https://www.embecosm.com/resources/tool-ch
 make app COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_xcvhwlp1p0_xcvmem1p0_xcvmac1p0_xcvbi1p0_xcvalu1p0_xcvsimd1p0_xcvbitmanip1p0
 ```
 
-This will create the executable file to be loaded in your target system (ASIC, FPGA, Simulation).
+This will create the executable file to be loaded into your target system (ASIC, FPGA, Simulation).
 Remember that, `X-HEEP` is using CMake to compile and link. Thus, the generated files after having
 compiled and linked are under `sw\build`
+
+Alternatively, in case you are doing pure FW development and you are used to developing using Integrated Development Evironments (IDEs), please check [the IDE readme](./IDEs.md).
 
 ## FreeROTS based applications
 
@@ -462,6 +469,8 @@ The success of the script is not required for merging of a PR.
 
 Follow the [Debug](./Debug.md) guide to debug core-v-mini-mcu.
 
+Alternatively, in case you are used to developing using Integrated Development Environments (IDEs), please check [the IDE readme](./IDEs.md).
+
 ## Execute From Flash
 
 Follow the [ExecuteFromFlash](./ExecuteFromFlash.md) guide to exxecute code directly from the FLASH with modelsim, FPGA, or ASIC.
@@ -505,8 +514,19 @@ to load the binaries with the HS2 cable over JTAG,
 or follow the [ExecuteFromFlash](./ExecuteFromFlash.md)
 guide if you have a FLASH attached to the FPGA.
 
-
 Do not forget that the `pynq-z2` board requires you to have the ethernet cable attached to the board while running.
+
+For example, if you want to run your application using flash_exec, do as follow:
+
+compile your application, e.g. `make app PROJECT=example_matfadd TARGET=pynq-z2 ARCH=rv32imfc LINKER=flash_exec`
+
+and then follow the [ExecuteFromFlash](./ExecuteFromFlash.md) to program the flash and set the boot buttons on the FPGA correctly.
+
+To look at the output of your printf, run in another terminal:
+
+`picocom -b 9600 -r -l --imap lfcrlf /dev/ttyUSB2`
+
+Please be sure to use the right `ttyUSB` number (you can discover it with `dmesg --time-format iso | grep FTDI` for example).
 
 
 ### Linux-FEMU (Linux Fpga EMUlation)

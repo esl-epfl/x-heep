@@ -1,0 +1,155 @@
+<!DOCTYPE CrossStudio_Project_File>
+<solution Name="xheep_ses" target="20" version="2">
+  <configuration Name="Debug" hidden="Yes" />
+  <configuration
+    Name="Debug External"
+    build_toolchain_directory="$(ProjectDir)/tools/riscv/bin"
+    inherited_configurations="External GNU" />
+  <configuration
+    Name="Debug Internal"
+    inherited_configurations="Internal;Debug" />
+  <configuration Name="External GNU" Platform="RISCV" hidden="Yes" />
+  <configuration
+    Name="Release"
+    c_preprocessor_definitions="NDEBUG"
+    gcc_debugging_level="Level 2"
+    gcc_omit_frame_pointer="Yes"
+    gcc_optimization_level="Level 2 balanced"
+    hidden="Yes" />
+  <configuration
+    Name="Release External"
+    inherited_configurations="External GNU" />
+  <configuration
+    Name="Release Internal"
+    inherited_configurations="Internal;Release" />
+  <project Name="helloworld">
+    <configuration
+      LIBRARY_HEAP_TYPE="None"
+      LIBRARY_IO_TYPE="SEMIHOST (host-formatted)"
+      Name="Common"
+      arm_keep_assembly="Yes"
+      arm_linker_search_path="$(ProjectDir)/../../sw/device/lib/base/;$(ProjectDir)/../../sw/device/lib/base/freestanding/;$(ProjectDir)/../../sw/device/lib/runtime/;$(ProjectDir)/../../sw/device/lib/drivers/uart/;$(ProjectDir)/../../sw/device/lib/drivers/rv_plic/;$(ProjectDir)/../../sw/device/lib/drivers/fast_intr_ctrl/;$(ProjectDir)/../../sw/device/lib/drivers/soc_ctrl/;$(ProjectDir)/../../sw/device/lib/drivers/i2s/;$(ProjectDir)/../../sw/device/lib/drivers/i2c/;$(ProjectDir)/../../sw/device/lib/drivers/gpio/;$(ProjectDir)/../../sw/device/lib/drivers/dma/;$(ProjectDir)/../../sw/device/lib/drivers/spi_host/;$(ProjectDir)/../../sw/device/target/pynq-z2/"
+      build_always_rebuild="Yes"
+      build_quietly="No"
+      build_toolchain_directory=""
+      compiler_diagnostics_show_caret="No"
+      debug_target_connection="GDB Server"
+      gcc_debugging_level="Level 3"
+      gcc_dwarf_generate_pubnames="No"
+      gcc_dwarf_version="None"
+      gcc_short_enum="None"
+      gcc_use_cxa_at_exit="No"
+      gdb_server_allow_memory_access_during_execution="Yes"
+      gdb_server_autostart_server="No"
+      gdb_server_command_line=""
+      gdb_server_ignore_checksum_errors="No"
+      gdb_server_port="3333"
+      gdb_server_register_access="General and Individual"
+      gdb_server_reset_command="reset halt"
+      gdb_server_type="OpenOCD"
+      link_include_standard_libraries="No"
+      link_linker_script_file="$(ProjectDir)/../../sw/linker/link.ld"
+      link_use_linker_script_file="Yes"
+      linker_additional_files=""
+      linker_output_format="hex"
+      linker_pre_build_command="$(StudioDir)/bin/mkld -section-placement-file $(StudioDir)/targets/flash_placement_riscv.xml -memory-map-segments &quot;$(MemorySegments)&quot; -symbols __STACKSIZE__=1024;__HEAPSIZE__=1024 Setup/flash_rv32.ld"
+      linker_section_placements_segments="RAM0 RX 0x00000000 0x00000C800;RAM1 RWX 0x00000C800 0x00003800"
+      project_directory=""
+      project_type="Executable"
+      rv_abi="ilp32"
+      rv_architecture="rv32imc"
+      rv_relax="No"
+      target_device_name="RV32" />
+    <configuration
+      BUILD_OPTIONS="RV32 GNU"
+      Name="Debug External"
+      RISCV_TOOLCHAIN_VARIANT="Standard"
+      arm_assembler_variant="gcc"
+      arm_compiler_variant="gcc"
+      build_always_rebuild="Yes"
+      build_generic_options_file_name=""
+      build_toolchain_directory="/home/< user >/tools/riscv/bin"
+      c_additional_options="-march=rv32imc  -w -Os -g  -nostdlib"
+      c_include_files=""
+      c_preprocessor_definitions="HOST_BUILD;ON_CHIP"
+      c_user_include_directories="$(ProjectDir)/../../sw/device/lib/base/;$(ProjectDir)/../../sw/device/lib/base/freestanding/;$(ProjectDir)/../../sw/device/lib/runtime/;$(ProjectDir)/../../sw/device/lib/drivers/uart/;$(ProjectDir)/../../sw/device/lib/drivers/rv_plic/;$(ProjectDir)/../../sw/device/lib/drivers/fast_intr_ctrl/;$(ProjectDir)/../../sw/device/lib/drivers/soc_ctrl/;$(ProjectDir)/../../sw/device/lib/drivers/i2s/;$(ProjectDir)/../../sw/device/lib/drivers/i2c/;$(ProjectDir)/../../sw/device/lib/drivers/gpio/;$(ProjectDir)/../../sw/device/lib/drivers/dma/;$(ProjectDir)/../../sw/device/lib/drivers/spi_host/;$(ProjectDir)/../../sw/device/target/pynq-z2/"
+      c_user_include_directories_c_only=""
+      debug_target_connection="GDB Server"
+      external_build_file_name=""
+      external_c_compile_command="&quot;$(ToolChainDir)/$(GCCPrefix)gcc&quot; $(COptions) $(COnlyOptions) $(Defines) $(Undefines) $(Includes) $(IncludeFiles) -c &quot;$(RelInputPath)&quot; -o &quot;$(RelTargetPath)&quot;"
+      external_cpp_compile_command="&quot;$(ToolChainDir)/$(GCCPrefix)g++&quot; -c $(COptions) $(CppOnlyOptions) $(Defines) $(Undefines) $(Includes) $(IncludeFiles) &quot;$(RelInputPath)&quot; -MD -MF &quot;$(RelDependencyPath)&quot; -fno-diagnostics-show-caret -o &quot;$(RelTargetPath)&quot;"
+      external_cpp_link_command="&quot;$(ToolChainDir)/$(GCCPrefix)g++&quot; $(Objects) $(LinkOptions) -T &quot;$(RelLinkerScriptPath)&quot; -o &quot;$(RelTargetPath)&quot; -Xlinker -Map=&quot;$(RelMapPath)&quot;"
+      external_link_command="&quot;$(ToolChainDir)/$(GCCPrefix)gcc&quot; $(Objects) $(LinkOptions)  -Wl,-Map=&quot;$(RelMapPath)&quot; -T &quot;$(RelLinkerScriptPath)&quot; -o &quot;$(RelTargetPath)&quot;"
+      external_load_file_type="Detect"
+      gcc_cl_dwarf_version="None"
+      gdb_breakpoint_types="Hardware Only"
+      gdb_server_allow_memory_access_during_execution="Yes"
+      gdb_server_autostart_server="Yes"
+      gdb_server_command_line="/home/< user >/tools/openocd/bin/openocd -f &quot;$(ProjectDir)/../../tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg&quot;"
+      gdb_server_ignore_checksum_errors="No"
+      gdb_server_log_file="$(ProjectDir)/gdb_out.txt"
+      gdb_server_port="3333"
+      gdb_server_register_access="General and Individual"
+      gdb_server_reset_command="reset halt"
+      gdb_server_type="OpenOCD"
+      gnu_cl_enable_debug_info="Yes"
+      gnu_cl_optimization_level="None"
+      link_linker_script_file="$(ProjectDir)/../../sw/linker/link.ld"
+      linker_additional_options="-I &quot;$(ProjectDir)/../../sw/device/lib/base/&quot;;-I &quot;$(ProjectDir)/../../sw/device/lib/base/freestanding/&quot;;-I &quot;$(ProjectDir)/../../sw/device/lib/runtime/&quot;;-I &quot;$(ProjectDir)/../../sw/device/lib/drivers/uart/&quot;;-I &quot;$(ProjectDir)/../../sw/device/lib/drivers/rv_plic/&quot;;-I &quot;$(ProjectDir)/../../sw/device/lib/drivers/fast_intr_ctrl/&quot;;-I &quot;$(ProjectDir)/../../sw/device/lib/drivers/soc_ctrl/&quot;;-I &quot;$(ProjectDir)/../../sw/device/lib/drivers/i2s/&quot;;-I &quot;$(ProjectDir)/../../sw/device/lib/drivers/i2c/&quot;;-I &quot;$(ProjectDir)/../../sw/device/lib/drivers/gpio/&quot;;-I &quot;$(ProjectDir)/../../sw/device/lib/drivers/dma/&quot;;-I &quot;$(ProjectDir)/../../sw/device/lib/drivers/spi_host/&quot;;-I &quot;$(ProjectDir)/../../sw/device/target/pynq-z2/&quot;;-static &quot;$(ProjectDir)/../../sw/device/lib/crt/crt0.S&quot; &quot;$(ProjectDir)/../../sw/device/lib/crt/vectors.S&quot;;-L &quot;$(ToolChainDir)/../riscv32-unknown-elf/lib&quot;;-lc -lm -lgcc -flto -ffunction-sections -fdata-sections -specs=nano.specs -w -march=rv32imc  -Os -g  -nostdlib"
+      linker_post_build_command="$(ToolChainDir)/riscv32-unknown-elf-objdump -S  &quot;$(ProjectDir)/$(OutDir)/$(ProjectName).elf&quot; &gt; &quot;$(ProjectDir)/$(OutDir)/$(ProjectName).disasm&quot;"
+      linker_pre_build_command=""
+      linker_section_placements_segments="RAM0 RX 0x00000000 0x00000C800;RAM1 RWX 0x00000C800 0x00003800"
+      post_build_command="$(ToolChainDir)/riscv32-unknown-elf-objcopy -O verilog  &quot;$(ProjectDir)/$(OutDir)/$(ProjectName).elf&quot; &quot;$(ProjectDir)/$(OutDir)/$(ProjectName)_vfmt.hex&quot;"
+      pre_build_command=""
+      rv32gnu_cl_arch="rv32imc"
+      rv_arch_ext=""
+      rv_arch_zicsr="Yes"
+      rv_arch_zifencei="Yes"
+      rv_debug_extensions="None"
+      rv_toolchain_prefix=""
+      use_compiler_driver="No" />
+    <configuration
+      BUILD_OPTIONS="RV32 GNU"
+      Name="External GNU"
+      build_generic_options_file_name="$(StudioDir)/targets/RV32GNU_build_options.xml"
+      build_toolchain_directory=""
+      gcc_prefix="riscv32-unknown-elf-"
+      link_linker_script_file="Setup/flash_rv32.ld"
+      link_use_linker_script_file="Yes"
+      linker_additional_options=""
+      linker_pre_build_command="$(StudioDir)/bin/mkld -section-placement-file $(StudioDir)/targets/flash_placement_riscv.xml -memory-map-segments &quot;$(MemorySegments)&quot; -symbols __STACKSIZE__=1024;__HEAPSIZE__=1024 Setup/flash_rv32.ld"
+      project_type="Externally Built Executable"
+      rv32gnu_cl_abi="ilp32"
+      rv32gnu_cl_arch="rv32i" />
+    <configuration
+      Name="Release External"
+      gnu_cl_enable_debug_info="No"
+      gnu_cl_optimization_level="Level 1" />
+    <folder Name="base">
+      <file file_name="../../sw/device/lib/base/bitfield.c" />
+      <file file_name="../../sw/device/lib/base/memory.c" />
+      <file file_name="../../sw/device/lib/base/memory.h" />
+      <file file_name="../../sw/device/lib/base/mmio.c" />
+    </folder>
+    <folder Name="crt">
+      <file file_name="../../sw/device/lib/crt/crt0.S" />
+      <file file_name="../../sw/device/lib/crt/vectors.S" />
+    </folder>
+    <folder Name="drivers">
+      <file file_name="../../sw/device/lib/drivers/dma/dma.c" />
+      <file file_name="../../sw/device/lib/drivers/fast_intr_ctrl/fast_intr_ctrl.c" />
+      <file file_name="../../sw/device/lib/drivers/gpio/gpio.c" />
+      <file file_name="../../sw/device/lib/drivers/rv_plic/rv_plic.c" />
+      <file file_name="../../sw/device/lib/drivers/soc_ctrl/soc_ctrl.c" />
+      <file file_name="../../sw/device/lib/drivers/uart/uart.c" />
+    </folder>
+    <folder Name="runtime">
+      <file file_name="../../sw/device/lib/runtime/handler.c" />
+      <file file_name="../../sw/device/lib/runtime/init.c" />
+      <file file_name="../../sw/device/lib/runtime/syscalls.c" />
+    </folder>
+    <folder Name="source">
+      <file file_name="../../sw/applications/hello_world/main.c" />
+    </folder>
+  </project>
+</solution>
