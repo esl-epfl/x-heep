@@ -21,33 +21,18 @@
 #include "fast_intr_ctrl_regs.h"
 #include "x-heep.h"
 #include "w25q128jw.h"
+#include "test_buffer.h"
 
+// Flash address to write to (different from the address where the buffer is stored)
+#define FLASH_ADDR 0x00008500
+
+// Len in bytes of the test buffer
+#define MAX_TEST_BUF_LEN 768
 
 // End buffer
-uint32_t flash_data[256];
+uint32_t flash_data[MAX_TEST_BUF_LEN/4];
 
-// Test buffers:
-// ----------------
-uint32_t flash_original_32B[8] = {
-    0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef
-};
-// Test buffer with a not integer number of words
-uint32_t flash_original_30B[8] = {
-    0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0xabcd
-};
-// Test buffer with a length = RX_FIFO_depth (64 words)
-uint32_t flash_original_256B[64] = {
-    0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,
-    0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,
-    0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,
-    0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,
-    0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,
-    0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,
-    0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,
-    0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef,
-    0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef
-};
-// Test buffer with a length higher than RX_FIFO_depth (64 words)
+// Test buffer
 uint32_t flash_original_768B[192] = {
     0x76543211, 0xfedcba99, 0x579a6f91, 0x657d5bef, 0x758ee420, 0x01234568, 0xfedbca97, 0x89abde00,
     0x76543212, 0xfedcba9a, 0x579a6f92, 0x657d5bf0, 0x758ee421, 0x01234569, 0xfedbca98, 0x89abde01,
@@ -74,42 +59,38 @@ uint32_t flash_original_768B[192] = {
     0x76543227, 0xfedcbaaf, 0x579a6fa7, 0x657d5c05, 0x758ee436, 0x0123457e, 0xfadbcaad, 0x89abde16,
     0x76543228, 0xfedcbab0, 0x579a6fa8, 0x657d5c06, 0x758ee437, 0x0123457f, 0xfadbcaae, 0x89abde17,
 };
-// ----------------
 
-#define FLASH_ADDR 0x00008500 // Misalligned!
+
 
 int main(int argc, char *argv[]) {
-    printf("BSP write test\n\r");
+    printf("BSP profiling\n\r");
     error_codes_t status;
-
-    uint32_t *test_buffer = flash_original_32B;
-    uint32_t len = 32;
+    uint32_t errors = 0;
 
     // Init SPI host and SPI<->Flash bridge parameters 
     status = w25q128jw_init();
     if (status != FLASH_OK) return EXIT_FAILURE;
 
-    // Write to flash memory at specific address
-    uint32_t test_zeros[8] = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
-    status = w25q128jw_write_quad_dma(FLASH_ADDR, test_zeros, 32);
-    if (status != FLASH_OK) return EXIT_FAILURE;
+    uint32_t *test_buffer = flash_original_768B;
 
-    status = w25q128jw_write_quad_dma(FLASH_ADDR, test_buffer, 30);
-    if (status != FLASH_OK) return EXIT_FAILURE;
+    for (int i = 0; i < MAX_TEST_BUF_LEN; i++) {
 
-    // Read from flash memory at the same address
-    status = w25q128jw_read_standard(FLASH_ADDR, flash_data, len);
-    if (status != FLASH_OK) return EXIT_FAILURE;
+        // Write to flash memory at specific address
+        status = w25q128jw_write_standard(FLASH_ADDR, test_buffer, i);
+        if (status != FLASH_OK) return EXIT_FAILURE;
+
+        // Read from flash memory at the same address
+        status = w25q128jw_read_standard(FLASH_ADDR, flash_data, i);
+        if (status != FLASH_OK) return EXIT_FAILURE;
 
 
-    // Check if what we read is correct (i.e. flash_original == flash_data)
-    printf("flash vs ram...\n\r");
-    uint32_t errors = 0;
-    for (int i=0; i< ((len%4==0) ? len/4 : len/4 + 1); i++) {
-        printf("index@%x : %x == %x(ref)\n\r", i, flash_data[i], test_buffer[i]);
-        if(flash_data[i] != test_buffer[i]) {
-            printf("index@%x : %x != %x(ref)\n\r", i, flash_data[i], test_buffer[i]);
-            errors++;
+        // Check if what we read is correct (i.e. flash_original == flash_data)
+        printf("flash vs ram...\n\r");
+        for (int i=0; i< ((i%4==0) ? i/4 : i/4 + 1); i++) {
+            if(flash_data[i] != test_buffer[i]) {
+                printf("index@%x : %x != %x(ref)\n\r", i, flash_data[i], test_buffer[i]);
+                errors++;
+            }
         }
     }
 
