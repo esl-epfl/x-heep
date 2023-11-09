@@ -558,3 +558,12 @@ We are working on supporting OpenRoad and SkyWater 130nm PDK, please refer to th
 [OpenRoadFlow](./OpenRoadFlow.md) page. This is not ready yet, it has not been tested.
 
 This relies on a fork of [edalize](https://github.com/davideschiavone/edalize) that contains templates for Design Compiler and OpenRoad.
+
+## References
+
+1. [Schiavone, Pasquale Davide, et al. "X-HEEP: An Open-Source, Configurable and Extendible RISC-V Microcontroller." 
+Proceedings of the 20th ACM International Conference on Computing Frontiers. 2023.](https://dl.acm.org/doi/pdf/10.1145/3587135.3591431?casa_token=cAs3isVd0zkAAAAA:gmQBe3ip7X0Fz0hO8lSFbGN5-2fdu5vni1dxWWAIe9zCxQDW1PPerubUigOcl_an8HiZOhPuNrwzIw8)
+
+
+
+
