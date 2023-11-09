@@ -93,6 +93,21 @@ static void flash_wait(void);
 static void flash_reset(void);
 
 /**
+ * @brief Erase the flash and write the data.
+ * 
+ * It read 4k (a sector) at a time, erase it and write the data back.
+ * Befor writing the data back, it modifies the buffer in order to
+ * add the new data without modifing the other bytes. All the bytes
+ * that are not going to be modified will be copied back as is.
+ * 
+ * @param addr 24-bit address to write to.
+ * @param data pointer to the data buffer.
+ * @param length number of bytes to write.
+ * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
+*/
+static uint8_t erase_and_write(uint32_t addr, uint8_t *data ,uint32_t length);
+
+/**
  * @brief Wrapper for page write.
  * 
  * It performs the sanity checks and calls the page_write function with 
@@ -141,6 +156,11 @@ static void flash_write_enable(void);
  * 
  * Checks if the address is valid, the data pointer is not NULL
  * and the length is not 0.
+ * 
+ * @param addr 24-bit address.
+ * @param data pointer to the data buffer.
+ * @param length number of bytes to read/write.
+ * @return 1 if the checks are passed, 0 otherwise.
 */
 static uint8_t sanity_checks(uint32_t addr, uint8_t *data, uint32_t length);
 
@@ -227,7 +247,29 @@ uint8_t w25q128jw_init() {
     return FLASH_OK; // Success
 }
 
+uint8_t w25q128jw_read(uint32_t addr, void *data, uint32_t length) {
+    // Sanity checks
+    if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
 
+    // Check DMA availability
+    uint32_t dma_avail = dma_is_ready();
+
+    // TODO
+
+    return 0;
+}
+
+uint8_t w25q128jw_write(uint32_t addr, void *data, uint32_t length, uint8_t erase_before_write) {
+    // Sanity checks
+    if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
+
+    // Check DMA availability
+    uint32_t dma_avail = dma_is_ready();
+
+    // TODO
+
+    return 0;
+}
 
 uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
     // Sanity checks
@@ -893,6 +935,49 @@ static void flash_reset() {
     });
     spi_set_command(&spi, cmd_reset);
     spi_wait_for_ready(&spi);
+}
+
+uint8_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length) {
+    // Sanity checks
+    if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
+
+    uint32_t remaining_length = length;
+    uint32_t current_addr = addr;
+    uint8_t *current_data = data;
+
+    // Allocate a buffer to store the sector data
+    uint8_t *sector_data = (uint8_t *)malloc(4096);
+    if (sector_data == NULL) return FLASH_ERROR;
+
+    while (remaining_length > 0) {
+        // Start address of the sector to erase
+        uint32_t sector_start_addr = current_addr & 0xfffff000;
+
+        // Read the full sector and save it into RAM
+        w25q128jw_read(sector_start_addr, sector_data, 4096);
+
+        // Erase the sector
+        w25q128jw_4k_erase(sector_start_addr);
+
+        // Calculate the length of data to write in this sector
+        uint32_t write_length = MIN(4096 - (current_addr - sector_start_addr), remaining_length);
+
+        // Modify the data in RAM to include the new data
+        memcpy(&sector_data[current_addr - sector_start_addr], current_data, write_length);
+
+        // Write the modified data back to the flash (without erasing this time)
+        w25q128jw_write(sector_start_addr, sector_data, 4096, 0);
+
+        // Update the remaining length, address and data pointer
+        remaining_length -= write_length;
+        current_addr += write_length;
+        current_data += write_length;
+    }
+
+    // Free the sector data buffer
+    free(sector_data);
+
+    return FLASH_OK;
 }
 
 static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad, uint8_t dma) {

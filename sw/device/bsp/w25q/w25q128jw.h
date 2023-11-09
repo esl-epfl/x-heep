@@ -153,6 +153,35 @@ typedef uint8_t error_codes_t;
 */
 uint8_t w25q128jw_init();
 
+/**
+ * @brief Read from flash.
+ * 
+ * The function automatically uses the best parameters based on
+ * the current state of the system and the length of the data to read.
+ * 
+ * @param addr 24-bit address to read from.
+ * @param data pointer to the data buffer to be filled.
+ * @param length number of bytes to read.
+ * @return FLASH_OK if the read is successful, @ref error_codes otherwise.
+*/
+uint8_t w25q128jw_read(uint32_t addr, void* data, uint32_t length);
+
+/**
+ * @brief Write to flash.
+ * 
+ * The function automatically uses the best parameters based on
+ * the current state of the system and the length of the data to write.
+ * If erase_before_write is set, the function will take care of erasing
+ * the correct sectors before writing. All the bytes not written will be
+ * copied back in their current state before the write operation.
+ * 
+ * @param addr 24-bit address to write to.
+ * @param data pointer to the data buffer.
+ * @param length number of bytes to write.
+ * @param erase_before_write if set to 1, the function will take care of erasing
+ * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
+*/
+uint8_t w25q128jw_write(uint32_t addr, void* data, uint32_t length, uint8_t erase_before_write);
 
 /**
  * @brief Read from flash at standard speed.
@@ -238,15 +267,6 @@ uint8_t w25q128jw_read_quad_dma(uint32_t addr, void* data, uint32_t length);
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
 */
 uint8_t w25q128jw_write_quad_dma(uint32_t addr, void* data, uint32_t length);
-
-
-// TODO
-/*
-uint8_t w25q128jw_read(uint32_t addr, uint32_t* data, uint32_t length);
-
-uint8_t w25q128jw_write(uint32_t addr, uint32_t* data, uint32_t length);
-*/
-
 
 /**
  * @brief Erase a 4kb sector.
