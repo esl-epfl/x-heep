@@ -398,9 +398,11 @@ int main(int argc, char *argv[])
     uint32_t errors = 0;
     uint32_t* ram_ptr = flash_original;
     for (int i=0; i<8; i++) {
-        PRINTF("@%x : %x == %x(ref)\n\r", ram_ptr, flash_data[i], *ram_ptr);
         if(flash_data[i] != *ram_ptr) {
+            PRINTF("@%x : %x != %x(ref)\n\r", ram_ptr, flash_data[i], *ram_ptr);
             errors++;
+        } else {
+            PRINTF("@%x : %x == %x(ref)\n\r", ram_ptr, flash_data[i], *ram_ptr);
         }
         ram_ptr++;
     }
