@@ -111,6 +111,10 @@
 */
 #define RX_FIFO_DEPTH 64 * 4
 
+
+#define USE_SPI_FLASH
+#define TARGET_PYNQ_Z2
+
 #ifdef __cplusplus
 extern "C" {
 #endif
