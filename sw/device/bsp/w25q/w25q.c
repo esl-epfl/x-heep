@@ -241,7 +241,7 @@ uint8_t w25q128jw_init() {
     flash_power_up();
     // Set QE bit (only FPGA, simulation do not support status registers at all)
     #ifdef TARGET_PYNQ_Z2
-    if (set_QE_bit() == 0) return FLASH_ERROR; // Error occurred while setting QE bit
+    // if (set_QE_bit() == 0) return FLASH_ERROR; // Error occurred while setting QE bit
     #endif // TARGET_PYNQ_Z2
 
     return FLASH_OK; // Success
