@@ -372,7 +372,7 @@ uint8_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length) 
     // Set up DMA source target
     static dma_target_t tgt_src = {
         .inc_du = 0, // Target is peripheral, no increment
-        .type = DMA_DATA_TYPE_WORD, // Data type is byte
+        .type = DMA_DATA_TYPE_WORD, // Data type is word
     };
     // Size is in data units (words in this case)
     tgt_src.size_du = (length%4==0) ? length/4 : length/4+1;
@@ -430,6 +430,7 @@ uint8_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length) 
     spi_wait_for_ready(&spi);
 
     // Wait for DMA to finish transaction
+    printf("Waiting dma...\n");
     while(!dma_is_ready());
 
     return FLASH_OK;
