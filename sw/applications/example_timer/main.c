@@ -59,5 +59,23 @@ int main() {
     // Print the counter value
     printf("Counter value: %u\n", counter_value);
 
-    return 0;
+    // Reset the counter
+    mmio_region_write32(
+        timer->base_addr,
+        reg_for_hart(hart_id, RV_TIMER_TIMER_V_LOWER0_REG_OFFSET), 0x0
+    );
+    mmio_region_write32(
+        timer->base_addr,
+        reg_for_hart(hart_id, RV_TIMER_TIMER_V_UPPER0_REG_OFFSET), 0x0
+    );
+
+    // Read the counter value
+    rv_timer_counter_read(&timer_0_1, hart_id, &counter_value);
+
+    // Print the counter value. It must be 0.
+    printf("Counter value: %u (expected: 0)\n", counter_value);
+
+    // Exit code
+    if (counter_value != 0) return EXIT_FAILURE;
+    else return EXIT_SUCCESS;
 }
