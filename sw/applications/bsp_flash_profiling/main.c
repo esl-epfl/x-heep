@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
     uint8_t *test_buffer = flash_original_32;
     uint8_t *flash_data = flash_data_32;
 
-    printf("Start profile routine at standard speed...\n\r");
+    printf("Start profile routine - standard speed...\n\r");
     for (int i = 1; i <= MAX_TEST_BUF_LEN; i++) {
         // Reset timer
         reset_timer(hart_id);
@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
     }
 
 
-    printf("Start profile routine at quad speed...\n\r");
+    printf("Start profile routine - quad speed...\n\r");
     for (int i = 1; i <= MAX_TEST_BUF_LEN; i++) {
         // Reset timer
         reset_timer(hart_id);
