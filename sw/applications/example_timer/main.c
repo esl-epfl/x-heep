@@ -12,6 +12,11 @@
 #include "fast_intr_ctrl_regs.h"
 #include "x-heep.h"
 #include "rv_timer.h"
+#include "rv_timer_regs.h"
+
+#include "power_manager.h"
+#include "rv_plic.h"
+#include "rv_plic_regs.h"
 
 // Timer handler
 static rv_timer_t timer_0_1;
@@ -61,11 +66,11 @@ int main() {
 
     // Reset the counter
     mmio_region_write32(
-        timer->base_addr,
+        timer_0_1_reg,
         reg_for_hart(hart_id, RV_TIMER_TIMER_V_LOWER0_REG_OFFSET), 0x0
     );
     mmio_region_write32(
-        timer->base_addr,
+        timer_0_1_reg,
         reg_for_hart(hart_id, RV_TIMER_TIMER_V_UPPER0_REG_OFFSET), 0x0
     );
 

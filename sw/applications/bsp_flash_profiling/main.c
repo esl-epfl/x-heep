@@ -26,11 +26,16 @@
 #include "rv_plic.h"
 #include "rv_plic_regs.h"
 
+#include "power_manager.h"
+#include "rv_plic.h"
+#include "rv_plic_regs.h"
+#include "rv_timer_regs.h"
+
 // Flash address to write to (different from the address where the buffer is stored)
 #define FLASH_ADDR 0x00008500
 
 // Len in bytes of the test buffer, 1kB
-#define MAX_TEST_BUF_LEN 1024
+#define MAX_TEST_BUF_LEN 5 // 1024 MAX POSSIBLE
 
 // End buffer
 uint32_t flash_data_32[MAX_TEST_BUF_LEN];
@@ -40,12 +45,13 @@ uint32_t flash_data_32[MAX_TEST_BUF_LEN];
 // const uint32_t flash_original_32[] = {...}
 
 // Private functions
-static void init_timer(void);
+static mmio_region_t init_timer(void);
 static void reset_timer(uint32_t hart_id);
 
 // Global variables
 int hart_id = 0;
-static rv_timer_t timer_0_1;
+rv_timer_t timer_0_1;
+mmio_region_t timer_0_1_reg;
 
 
 int main(int argc, char *argv[]) {
@@ -60,7 +66,7 @@ int main(int argc, char *argv[]) {
     if (status != FLASH_OK) return EXIT_FAILURE;
 
     // Init timer
-    init_timer();
+    timer_0_1_reg = init_timer();
 
     uint8_t *test_buffer = flash_original_32;
     uint8_t *flash_data = flash_data_32;
@@ -194,7 +200,7 @@ int main(int argc, char *argv[]) {
 // Private functions
 // -----------------
 
-static void init_timer(void) {
+static mmio_region_t init_timer(void) {
     // Get current Frequency
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
@@ -218,11 +224,11 @@ static void init_timer(void) {
 
 static void reset_timer(uint32_t hart_id) {
     mmio_region_write32(
-        timer->base_addr,
+        timer_0_1_reg,
         reg_for_hart(hart_id, RV_TIMER_TIMER_V_LOWER0_REG_OFFSET), 0x0
     );
     mmio_region_write32(
-        timer->base_addr,
+        timer_0_1_reg,
         reg_for_hart(hart_id, RV_TIMER_TIMER_V_UPPER0_REG_OFFSET), 0x0
     );
 }
