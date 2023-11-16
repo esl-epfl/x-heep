@@ -336,7 +336,7 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
         i_start += RX_FIFO_DEPTH/4;
     }
     // Take into account the extra bytes (if any)
-    if (length%4 != 0) {
+    if (length_original%4 != 0) {
         uint32_t last_word = 0;
         spi_read_word(&spi, &last_word);
         memcpy(&data_32bit[length_original/4], &last_word, length%4);
