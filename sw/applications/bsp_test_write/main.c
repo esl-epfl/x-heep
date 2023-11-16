@@ -85,14 +85,14 @@ uint32_t flash_original_1024B[256] = {
 };
 // ----------------
 
-#define FLASH_ADDR 0x00008500 // Misalligned!
+#define FLASH_ADDR 0x00008523 // Misalligned!
 
 int main(int argc, char *argv[]) {
     printf("BSP write test\n\r");
     error_codes_t status;
 
-    uint32_t *test_buffer = flash_original_32B;
-    uint32_t len = 32;
+    uint32_t *test_buffer = flash_original_1024B;
+    uint32_t len = 1023;
 
     // Init SPI host and SPI<->Flash bridge parameters 
     status = w25q128jw_init();
@@ -110,10 +110,20 @@ int main(int argc, char *argv[]) {
     // Check if what we read is correct (i.e. flash_original == flash_data)
     printf("flash vs ram...\n\r");
     uint32_t errors = 0;
-    for (int i=0; i< ((len%4==0) ? len/4 : len/4 + 1); i++) {
-        if(flash_data[i] != test_buffer[i]) {
-            printf("index@%x : %x != %x(ref)\n\r", i, flash_data[i], test_buffer[i]);
-            errors++;
+    for (int i=0; i < ((len%4==0) ? len/4 : len/4 + 1); i++) {
+        if (i < len/4 ) {
+            if(flash_data[i] != test_buffer[i]) {
+                printf("index@%u : %x != %x(ref)\n\r", i, flash_data[i], test_buffer[i]);
+                errors++;
+            }
+        } else {
+            uint32_t last_bytes = 0;
+            uint32_t remaining_bytes = len % 4;
+            memcpy(&last_bytes, &test_buffer[i], remaining_bytes);
+            if (flash_data[i] != last_bytes) {
+                printf("index@%u : %x != %x(ref)\n\r", i, flash_data[i], last_bytes);
+                errors++;
+            }
         }
     }
 
