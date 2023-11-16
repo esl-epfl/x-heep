@@ -313,6 +313,7 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
     int flag = 1;
     int to_read = 0;
     int i_start = 0;
+    int length_original = length;
     uint32_t *data_32bit = (uint32_t *)data;
     while (flag) {
         if (length >= RX_FIFO_DEPTH) {
@@ -338,7 +339,7 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
     if (length%4 != 0) {
         uint32_t last_word = 0;
         spi_read_word(&spi, &last_word);
-        memcpy(&data[length - (length%4)], &last_word, length%4);
+        memcpy(&data_32bit[length_original/4], &last_word, length%4);
     }
 
     return FLASH_OK; // Success
