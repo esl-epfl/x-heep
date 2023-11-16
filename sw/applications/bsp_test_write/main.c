@@ -118,8 +118,7 @@ int main(int argc, char *argv[]) {
             }
         } else {
             uint32_t last_bytes = 0;
-            uint32_t remaining_bytes = len % 4;
-            memcpy(&last_bytes, &test_buffer[i], remaining_bytes);
+            memcpy(&last_bytes, &test_buffer[i], len % 4);
             if (flash_data[i] != last_bytes) {
                 printf("index@%u : %x != %x(ref)\n\r", i, flash_data[i], last_bytes);
                 errors++;
