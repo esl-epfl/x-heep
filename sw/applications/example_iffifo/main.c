@@ -38,16 +38,20 @@ void dma_intr_handler_trans_done()
 {
   dma_intr_flag = 1;
 }
+
 void protected_wait_for_dma_interrupt(void)
 {
-  enable_all_fast_interrupts(false);
-  while (dma_intr_flag == 0) { wait_for_interrupt(); }
-  dma_intr_flag = 0;
-  enable_all_fast_interrupts(true);
+  while(!dma_is_ready()) {
+    CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+    if (!dma_is_ready()) {
+        wait_for_interrupt();
+    }
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+  }
 }
 
 iffifo_intr_flag = 0;
-void handler_irq_iffifo(uint32_t id)    
+static void handler_irq_iffifo( uint32_t int_id )
 {
   mmio_region_t iffifo_base_addr = mmio_region_from_addr((uintptr_t)IFFIFO_START_ADDRESS);
   mmio_region_write32(iffifo_base_addr, IFFIFO_INTERRUPTS_REG_OFFSET, 0b0);
@@ -98,6 +102,8 @@ int main(int argc, char *argv[]) {
     if(plic_irq_set_priority(EXT_INTR_1, 1)) {return EXIT_FAILURE;};
     if(plic_irq_set_enabled(EXT_INTR_1, kPlicToggleEnabled)) {return EXIT_FAILURE;};
     
+    plic_assign_external_irq_handler(EXT_INTR_1, &handler_irq_iffifo);
+    
     mmio_region_write32(iffifo_base_addr, IFFIFO_WATERMARK_REG_OFFSET, 2);
     mmio_region_write32(iffifo_base_addr, IFFIFO_INTERRUPTS_REG_OFFSET, 0b1);
     
@@ -131,8 +137,10 @@ int main(int argc, char *argv[]) {
     print_status_register();
     
     PRINTF("Launch MM -> Stream DMA\n");
+    // Launch a 6-word TX DMA transaction to a 4-word FIFO. The FIFO will be full.
     dma_launch( &trans );
     
+    // To terminate the DMA transaction, 2 words must be manually popped from the FIFO.
     int32_t read0 = mmio_region_read32(iffifo_base_addr, IFFIFO_FIFO_OUT_REG_OFFSET);
     int32_t read1 = mmio_region_read32(iffifo_base_addr, IFFIFO_FIFO_OUT_REG_OFFSET);
     

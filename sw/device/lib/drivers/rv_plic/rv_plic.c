@@ -49,7 +49,6 @@
 #include "i2s.h"
 #include "dma.h"
 #include "spi_host.h"
-#include "iffifo.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -407,10 +406,6 @@ void plic_reset_handlers_list(void)
     else if ( i == DMA_ID)
     {
       handlers[i] = &handler_irq_dma;
-    }
-    else if ( i == EXT_INTR_1)
-    {
-      handlers[i] = &handler_irq_iffifo;
     }
     else
     {
