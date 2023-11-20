@@ -275,8 +275,7 @@ void dma_init( dma *peri )
     /* Clear all values in the DMA registers. */
     dma_cb.peri->SRC_PTR       = 0;
     dma_cb.peri->DST_PTR       = 0;
-    dma_cb.peri->ADDR_PTR      = 0;
-    dma_cb.peri->DST_BCST_PTR  = 0;
+    dma_cb.peri->ADDR_BCST_PTR = 0;
     dma_cb.peri->SIZE          = 0;
     dma_cb.peri->PTR_INC       = 0;
     dma_cb.peri->SLOT          = 0;
@@ -702,14 +701,14 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
         */
         dma_cb.peri->DST_PTR = dma_cb.trans->dst->ptr;
 
-	// Populates DST_BCST_PTR (pointer to broadcast destination register)
+	// Populates ADDR_BCST_PTR (pointer to broadcast destination register)
         if (dma_cb.trans->mode == DMA_TRANS_MODE_BROADCAST) {
-          dma_cb.peri->DST_BCST_PTR = dma_cb.trans->dst_bcst->ptr;
+          dma_cb.peri->ADDR_BCST_PTR = dma_cb.trans->dst_bcst->ptr;
         }
      }
      else
      {
-        dma_cb.peri->ADDR_PTR = dma_cb.trans->src_addr->ptr;
+        dma_cb.peri->ADDR_BCST_PTR = dma_cb.trans->src_addr->ptr;
      }
      
     /*

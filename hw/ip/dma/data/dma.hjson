@@ -25,20 +25,12 @@
         { bits: "31:0", name: "PTR_OUT", desc: "Output data pointer (word aligned)" }
       ]
     },
-    { name:     "DST_BCST_PTR",
-      desc:     "Broadcast output data pointer (word aligned)",
+    { name:     "ADDR_BCST_PTR",
+      desc:     "Addess/Broadcast data pointer (word aligned)",
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "PTR_OUT", desc: "Output data pointer (word aligned)" }
-      ]
-    },
-    { name:     "ADDR_PTR",
-      desc:     "Addess data pointer (word aligned)",
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "31:0", name: "PTR_ADDR", desc: "Address data pointer (word aligned) - used only in Address mode" }
+        { bits: "31:0", name: "PTR_ADDR", desc: "Address/Broadcast data pointer (word aligned) - used only in Address and Broadcast modes" }
       ]
     },
     { name:     "SIZE",

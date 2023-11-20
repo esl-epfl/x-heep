@@ -112,12 +112,12 @@ int main(int argc, char *argv[])
     if (dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY )) {return EXIT_FAILURE;}
     if (dma_load_transaction(&trans)) {return EXIT_FAILURE;}
     
-    print_fifo_array();
+    //print_fifo_array();
     
-    PRINTF("Launch DMA SRC > DST >> IFFIFO transaction\n");
+    //PRINTF("Launch DMA SRC > DST >> IFFIFO transaction\n");
     if (dma_launch( &trans )) {return EXIT_FAILURE;}
     
-    print_fifo_array();
+    //print_fifo_array();
     
     dma_init(NULL);
     tgt_src.ptr        = IFFIFO_START_ADDRESS + IFFIFO_FIFO_OUT_REG_OFFSET;
@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
     if (dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY )) {return EXIT_FAILURE;}
     if (dma_load_transaction(&trans)) {return EXIT_FAILURE;}
     
-    PRINTF("Launch IFFIFO > DST_BCST transaction\n");
+    //PRINTF("Launch IFFIFO > DST_BCST transaction\n");
     if (dma_launch( &trans )) {return EXIT_FAILURE;}
     
     print_fifo_array();

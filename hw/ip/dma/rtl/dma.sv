@@ -273,7 +273,7 @@ module dma #(
       addr_ptr_reg <= '0;
     end else begin
       if (dma_start == 1'b1 && address_mode) begin
-        addr_ptr_reg <= reg2hw.addr_ptr.q;
+        addr_ptr_reg <= reg2hw.addr_bcst_ptr.q;
       end else if (data_addr_in_gnt == 1'b1 && address_mode) begin
         addr_ptr_reg <= addr_ptr_reg + 32'h4;  //always continuos in 32b
       end
@@ -312,7 +312,7 @@ module dma #(
       bcst_ptr_reg <= '0;
     end else begin
       if (dma_start == 1'b1) begin
-        bcst_ptr_reg <= reg2hw.dst_bcst_ptr.q;
+        bcst_ptr_reg <= reg2hw.addr_bcst_ptr.q;
       end else if (data_addr_in_gnt == 1'b1) begin
         bcst_ptr_reg <= bcst_ptr_reg + {24'h0, reg2hw.ptr_inc.bcst_ptr_inc.q};
       end
