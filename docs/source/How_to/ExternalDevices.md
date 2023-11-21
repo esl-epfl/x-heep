@@ -97,3 +97,55 @@ For example, launching the script [`memcopy_periph_gen.sh`](./../../../hw/ip_exa
 1. `memcopy_periph_reg_top.sv`: the register file module. It can be directly instantiated inside your peripheral RTL code (e.g., [`memcopy_periph.sv`](./../../../hw/ip_examples/memcopy_periph/rtl/memcopy_periph.sv)) and connected to the peripheral device controller(s).
 2. `memcopy_periph_reg_pkg.sv`: SystemVerilog package containing the definitions used in the SystemVerilog module above.
 3. `memcopy_periph_regs.h`: C/C++ header file defining the address offset of the peripheral configuration registers. Take a look at the C code [here](./../../../sw/applications/example_external_peripheral/memcopy_periph.c) for a usage example.
+
+## External Interrupts
+
+X-HEEP includes several empty external interrupts slots that can be assigned both in HW and SW.
+
+Firstly, connect your external device's interrupt to one of the slots of the `external_interrupt_vector` of X-HEEP:
+
+```systemverilog
+
+logic [core_v_mini_mcu_pkg::NEXT_INT-1:0] ext_intr_vector;
+
+always_comb begin
+for (int i = 0; i < core_v_mini_mcu_pkg::NEXT_INT; i++) begin
+    ext_intr_vector[i] = 1'b0;    // All interrupt lines set to zero by default
+end
+ext_intr_vector[0] = my_device_int;  // Re-assign the interrupt lines used here
+end
+
+x_heep_system #(
+    . . .
+) x_heep_system_i (
+    .intr_vector_ext_i(ext_intr_vector),
+    . . .
+)
+
+```
+
+Then, when initializing the PLIC system in software, do not forget to assign the corresponding interrupt ID to your custom handler.
+
+```C
+#define MY_DEVICE_INTR EXT_INTR_0
+
+void handler_irq_my_device(uint32_t id) {
+    my_device_intr_flag = 1;
+    // Do whatever you need here
+}
+
+void main() {
+    plic_Init(); // Init the PLIC, this will clear all external interrupts assigned previously.
+    plic_irq_set_priority(MY_DEVICE_INTR, 1); // Set the priority of the external device's interrupt.
+    plic_irq_set_enabled(MY_DEVICE_INTR, kPlicToggleEnabled); // Enable the external device's interrupt.
+    plic_assign_external_irq_handler( MY_DEVICE_INTR, (void *) &handler_irq_my_device); // Assign a handler taht will be called when this interrupt is triggered.
+
+    // Enable global interrupt for machine-level interrupts
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    // Set mie.MEIE bit to one to enable machine-level external interrupts
+    const uint32_t mask = 1 << 11;//IRQ_EXT_ENABLE_OFFSET;
+    CSR_SET_BITS(CSR_REG_MIE, mask);
+
+    . . .
+}
+```
