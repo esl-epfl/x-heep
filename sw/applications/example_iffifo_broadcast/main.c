@@ -13,26 +13,9 @@
 #include "rv_plic.h"
 #include "iffifo_regs.h"
 
-#define TEST_SINGULAR_MODE
-#define TEST_PENDING_TRANSACTION
-#define TEST_WINDOW
-#define TEST_ADDRESS_MODE
-#define TEST_ADDRESS_MODE_EXTERNAL_DEVICE
-
-#define TEST_DATA_SIZE      16
-#define TEST_DATA_LARGE     1024
-#define TRANSACTIONS_N      3       // Only possible to perform transaction at a time, others should be blocked
-#define TEST_WINDOW_SIZE_DU  1024    // if put at <=71 the isr is too slow to react to the interrupt
-
-
-
-#if TEST_DATA_LARGE < 2* TEST_DATA_SIZE
-    #errors("TEST_DATA_LARGE must be at least 2*TEST_DATA_SIZE")
-#endif
-
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   1
+#define PRINTF_IN_SIM   0
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -40,6 +23,10 @@
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
+#endif
+
+#if TARGET_PYNQ_Z2
+#error This example requires the IFFIFO peripheral, instantiated in the test bench only.
 #endif
 
 unsigned int IFFIFO_START_ADDRESS = EXT_PERIPHERAL_START_ADDRESS + 0x2000;
@@ -98,11 +85,6 @@ int main(int argc, char *argv[])
     tgt_dst_bcst.trig   = DMA_TRIG_SLOT_EXT_TX;
     tgt_dst_bcst.type   = DMA_DATA_TYPE_WORD;
     
-    // tgt_dst_bcst.ptr    = dst_bcst;
-    // tgt_dst_bcst.inc_du = 1;
-    // tgt_dst_bcst.trig   = DMA_TRIG_MEMORY;
-    // tgt_dst_bcst.type   = DMA_DATA_TYPE_WORD;
-    
     trans.src      = &tgt_src;
     trans.dst      = &tgt_dst;
     trans.dst_bcst = &tgt_dst_bcst;
@@ -112,12 +94,12 @@ int main(int argc, char *argv[])
     if (dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY )) {return EXIT_FAILURE;}
     if (dma_load_transaction(&trans)) {return EXIT_FAILURE;}
     
-    //print_fifo_array();
+    print_fifo_array();
     
-    //PRINTF("Launch DMA SRC > DST >> IFFIFO transaction\n");
+    PRINTF("Launch DMA SRC > DST >> IFFIFO transaction\n");
     if (dma_launch( &trans )) {return EXIT_FAILURE;}
     
-    //print_fifo_array();
+    print_fifo_array();
     
     dma_init(NULL);
     tgt_src.ptr        = IFFIFO_START_ADDRESS + IFFIFO_FIFO_OUT_REG_OFFSET;
@@ -138,7 +120,7 @@ int main(int argc, char *argv[])
     if (dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY )) {return EXIT_FAILURE;}
     if (dma_load_transaction(&trans)) {return EXIT_FAILURE;}
     
-    //PRINTF("Launch IFFIFO > DST_BCST transaction\n");
+    PRINTF("Launch IFFIFO > DST_BCST transaction\n");
     if (dma_launch( &trans )) {return EXIT_FAILURE;}
     
     print_fifo_array();
