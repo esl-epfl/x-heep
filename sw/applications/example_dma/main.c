@@ -17,6 +17,8 @@
 #define TEST_WINDOW
 #define TEST_ADDRESS_MODE
 #define TEST_ADDRESS_MODE_EXTERNAL_DEVICE
+#define TEST_HALFWORD2WORD
+#define TEST_BROADCAST
 
 #define TEST_DATA_SIZE      16
 #define TEST_DATA_LARGE     1024
@@ -73,7 +75,11 @@ int main(int argc, char *argv[])
     static uint32_t test_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = {
       0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef, 0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa, 0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98};
     static uint32_t copied_data_4B[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
+    static uint16_t broadcast_data_4B[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
     static uint32_t test_data_large[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
+    
+    static uint16_t test_data_halfword_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = {
+      0x6420, 0xeca8, 0x7af0, 0x5dbe, 0x5e4f, 0x1357, 0xeba8, 0x9bdf, 0x782e, 0xf22b, 0x6b51, 0x85da, 0x9c5b, 0x6b34, 0x5467, 0x5fa8};
 
      // this array will contain the even address of copied_data_4B
     uint32_t* test_addr_4B_PTR = &test_data_large[0];
@@ -398,6 +404,137 @@ int main(int argc, char *argv[])
     }
 
 #endif // TEST_WINDOW
+
+#ifdef TEST_HALFWORD2WORD
+                                
+    tgt_src.ptr = test_data_halfword_4B;
+    tgt_src.inc_du = 1;
+    tgt_src.size_du = TEST_DATA_SIZE;
+    tgt_src.trig = DMA_TRIG_MEMORY;
+    tgt_src.type = DMA_DATA_TYPE_HALF_WORD;
+          
+    tgt_dst.ptr = copied_data_4B;
+    tgt_dst.inc_du = 1;
+    tgt_dst.size_du = TEST_DATA_SIZE;
+    tgt_dst.trig = DMA_TRIG_MEMORY;
+    tgt_src.type = DMA_DATA_TYPE_WORD;
+                                
+    trans.src = &tgt_src;
+    trans.dst = &tgt_dst;
+    trans.mode = DMA_TRANS_MODE_SINGLE;
+    trans.win_du = 0;
+    trans.end = DMA_TRANS_END_INTR;
+
+    PRINTF("\n\n\r===================================\n\n\r");
+    PRINTF("    TESTING HALF WORD TO WORD  ");
+    PRINTF("\n\n\r===================================\n\n\r");
+
+    res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res = dma_load_transaction(&trans);
+    PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res = dma_launch(&trans);
+    PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+
+    while( ! dma_is_ready()) {
+        // disable_interrupts
+        // this does not prevent waking up the core as this is controlled by the MIP register
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+        if ( dma_is_ready() == 0 ) {
+            wait_for_interrupt();
+            //from here we wake up even if we did not jump to the ISR
+        }
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    }
+    PRINTF(">> Finished transaction. \n\r");
+
+    for(uint32_t i = 0; i < trans.size_b; i++ ) {
+        if ( ((uint8_t*)copied_data_4B)[i] != ((uint8_t*)test_data_halfword_4B)[i] ) {
+            PRINTF("ERROR [%d]: %04x != %04x\n\r", i, ((uint8_t*)copied_data_4B)[i], ((uint8_t*)test_data_halfword_4B)[i]);
+            errors++;
+        }
+    }
+
+    if (errors == 0) {
+        PRINTF("DMA halfword to word success.\n\r");
+    } else {
+        PRINTF("DMA halfword to word failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
+        return EXIT_FAILURE;
+    }
+
+#endif // TEST_HALFWORD2WORD
+
+#ifdef TEST_BROADCAST
+                                
+    tgt_src.ptr = test_data_halfword_4B;
+    tgt_src.inc_du = 1;
+    tgt_src.size_du = TEST_DATA_SIZE;
+    tgt_src.trig = DMA_TRIG_MEMORY;
+    tgt_src.type = DMA_DATA_TYPE_HALF_WORD;
+          
+    tgt_dst.ptr = copied_data_4B;
+    tgt_dst.inc_du = 1;
+    tgt_dst.size_du = TEST_DATA_SIZE;
+    tgt_dst.trig = DMA_TRIG_MEMORY;
+    tgt_src.type = DMA_DATA_TYPE_WORD;
+    
+    dma_target_t tgt_bcst = {
+                                .ptr        = broadcast_data_4B,
+                                .inc_du     = 1,
+                                .size_du    = TEST_DATA_SIZE,
+                                .trig       = DMA_TRIG_MEMORY,
+                                .type       = DMA_DATA_TYPE_HALF_WORD
+                                };
+                                
+    trans.src = &tgt_src;
+    trans.dst = &tgt_dst;
+    trans.dst_bcst = &tgt_bcst;
+    trans.mode = DMA_TRANS_MODE_BROADCAST;
+    trans.win_du = 0;
+    trans.end = DMA_TRANS_END_INTR;
+
+    PRINTF("\n\n\r===================================\n\n\r");
+    PRINTF("    TESTING BROADCAST  ");
+    PRINTF("\n\n\r===================================\n\n\r");
+
+    res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res = dma_load_transaction(&trans);
+    PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res = dma_launch(&trans);
+    PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+
+    while( ! dma_is_ready()) {
+        // disable_interrupts
+        // this does not prevent waking up the core as this is controlled by the MIP register
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+        if ( dma_is_ready() == 0 ) {
+            wait_for_interrupt();
+            //from here we wake up even if we did not jump to the ISR
+        }
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    }
+    PRINTF(">> Finished transaction. \n\r");
+
+    for(uint32_t i = 0; i < trans.size_b; i++ ) {
+        if ( ((uint8_t*)copied_data_4B)[i] != ((uint8_t*)test_data_halfword_4B)[i] ) {
+            PRINTF("ERROR [%d]: %04x != %04x\n\r", i, ((uint8_t*)copied_data_4B)[i], ((uint8_t*)test_data_halfword_4B)[i]);
+            errors++;
+        }
+        if ( ((uint8_t*)broadcast_data_4B)[i] != ((uint8_t*)test_data_halfword_4B)[i] ) {
+            PRINTF("BROADCAST ERROR [%d]: %04x != %04x\n\r", i, ((uint8_t*)broadcast_data_4B)[i], ((uint8_t*)test_data_halfword_4B)[i]);
+            errors++;
+        }
+    }
+
+    if (errors == 0) {
+        PRINTF("DMA broadcast success.\n\r");
+    } else {
+        PRINTF("DMA broadcast failure: %d errors out of %d bytes checked\n\r", errors, trans.size_b );
+        return EXIT_FAILURE;
+    }
+
+#endif // TEST_BROADCAST
 
 
     return EXIT_SUCCESS;
