@@ -26,7 +26,17 @@
 #include "fast_intr_ctrl.h"
 
 
-#define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+/* By default, printfs are activated for FPGA and disabled for simulation. */
+#define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   1
+
+#if TARGET_SIM && PRINTF_IN_SIM
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+#else
+    #define PRINTF(...)
+#endif
 
 unsigned int IFFIFO_START_ADDRESS = EXT_PERIPHERAL_START_ADDRESS + 0x2000;
 
@@ -80,11 +90,18 @@ void print_status_register(void)
   mmio_region_t iffifo_base_addr = mmio_region_from_addr((uintptr_t)IFFIFO_START_ADDRESS);
   int32_t status = mmio_region_read32(iffifo_base_addr, IFFIFO_STATUS_REG_OFFSET);
   PRINTF("STATUS = ");
-  PRINTF(status & 1 ? "E" : "-"); // FIFO empty
-  PRINTF(status & 2 ? "A" : "-"); // Data available in FIFO
-  PRINTF(status & 4 ? "R" : "-"); // Watermark reached
-  PRINTF(status & 8 ? "F" : "-"); // FIFO full
+  PRINTF(status & (1 << IFFIFO_STATUS_EMPTY_BIT)     ? "E" : "-"); // FIFO empty
+  PRINTF(status & (1 << IFFIFO_STATUS_AVAILABLE_BIT) ? "A" : "-"); // Data available in FIFO
+  PRINTF(status & (1 << IFFIFO_STATUS_REACHED_BIT)   ? "R" : "-"); // Watermark reached
+  PRINTF(status & (1 << IFFIFO_STATUS_FULL_BIT)      ? "F" : "-"); // FIFO full
   PRINTF("\n");
+}
+
+int is_iffifo_full(void)
+{
+  mmio_region_t iffifo_base_addr = mmio_region_from_addr((uintptr_t)IFFIFO_START_ADDRESS);
+  int32_t status = mmio_region_read32(iffifo_base_addr, IFFIFO_STATUS_REG_OFFSET);
+  return status & (1 << IFFIFO_STATUS_FULL_BIT);
 }
 
 int main(int argc, char *argv[]) {
@@ -141,7 +158,9 @@ int main(int argc, char *argv[]) {
     dma_launch( &trans );
     
     // To terminate the DMA transaction, 2 words must be manually popped from the FIFO.
+    while(!is_iffifo_full());
     int32_t read0 = mmio_region_read32(iffifo_base_addr, IFFIFO_FIFO_OUT_REG_OFFSET);
+    while(!is_iffifo_full());
     int32_t read1 = mmio_region_read32(iffifo_base_addr, IFFIFO_FIFO_OUT_REG_OFFSET);
     
     print_status_register();
