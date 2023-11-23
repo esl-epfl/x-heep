@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
     // ----------------END COMMAND----------------
 
-    /*
+    
 
     // W25Q128JW requires the QE (Quad Enable) bit to be set in order to operate at quad speed
     // The Verilog flash do not model this behavior and no actions are required
@@ -244,8 +244,6 @@ int main(int argc, char *argv[])
     PRINTF("before reg2_data = 0x%x\n\r", reg2_data);
     reg2_data |= 0x2;
     PRINTF("after reg2_data = 0x%x\n\r", reg2_data);
-    uint8_t reg2_data_8bit = reg2_data & 0xFF; // Explicit cast to 8 bit
-    PRINTF("after reg2_data_8bit = 0x%x\n\r", reg2_data_8bit);
 
 
     // ----------------COMMAND----------------
@@ -284,7 +282,7 @@ int main(int argc, char *argv[])
 
 
     // Create segment 2
-    spi_write_word(&spi_host, 0x02);
+    spi_write_word(&spi_host, reg2_data);
     spi_wait_for_ready(&spi_host);
 
     const uint32_t reg2_write_2 = spi_create_command((spi_command_t){
@@ -311,7 +309,6 @@ int main(int argc, char *argv[])
 
     #endif
 
-    */
 
    // Set RX watermark to 8 word (32 bytes)
     spi_set_rx_watermark(&spi_host,8);
