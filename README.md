@@ -153,7 +153,7 @@ sudo apt-get install -y gtkwave
 
 We use version v0.0-1824-ga3b5bedf
 
-See: [Install Verible](https://opentitan.org/guides/getting_started/index.html#step-6a-install-verible-optional)
+See: [Install Verible](https://opentitan.org/guides/getting_started/index.html#step-7a-install-verible-optional)
 
 To format your RTL code type:
 
@@ -514,8 +514,19 @@ to load the binaries with the HS2 cable over JTAG,
 or follow the [ExecuteFromFlash](./ExecuteFromFlash.md)
 guide if you have a FLASH attached to the FPGA.
 
-
 Do not forget that the `pynq-z2` board requires you to have the ethernet cable attached to the board while running.
+
+For example, if you want to run your application using flash_exec, do as follow:
+
+compile your application, e.g. `make app PROJECT=example_matfadd TARGET=pynq-z2 ARCH=rv32imfc LINKER=flash_exec`
+
+and then follow the [ExecuteFromFlash](./ExecuteFromFlash.md) to program the flash and set the boot buttons on the FPGA correctly.
+
+To look at the output of your printf, run in another terminal:
+
+`picocom -b 9600 -r -l --imap lfcrlf /dev/ttyUSB2`
+
+Please be sure to use the right `ttyUSB` number (you can discover it with `dmesg --time-format iso | grep FTDI` for example).
 
 
 ### Linux-FEMU (Linux Fpga EMUlation)
@@ -547,3 +558,12 @@ We are working on supporting OpenRoad and SkyWater 130nm PDK, please refer to th
 [OpenRoadFlow](./OpenRoadFlow.md) page. This is not ready yet, it has not been tested.
 
 This relies on a fork of [edalize](https://github.com/davideschiavone/edalize) that contains templates for Design Compiler and OpenRoad.
+
+## References
+
+1. [Schiavone, Pasquale Davide, et al. "X-HEEP: An Open-Source, Configurable and Extendible RISC-V Microcontroller." 
+Proceedings of the 20th ACM International Conference on Computing Frontiers. 2023.](https://dl.acm.org/doi/pdf/10.1145/3587135.3591431?casa_token=cAs3isVd0zkAAAAA:gmQBe3ip7X0Fz0hO8lSFbGN5-2fdu5vni1dxWWAIe9zCxQDW1PPerubUigOcl_an8HiZOhPuNrwzIw8)
+
+
+
+

@@ -48,6 +48,9 @@ module x_heep_system
 
     output logic [31:0] exit_value_o,
 
+    input logic ext_dma_slot_tx_i,
+    input logic ext_dma_slot_rx_i,
+
     // eXtension interface
     if_xif.cpu_compressed xif_compressed_if,
     if_xif.cpu_issue      xif_issue_if,
@@ -137,7 +140,9 @@ ${pad.core_v_mini_mcu_bonding}
     .external_subsystem_rst_no,
     .external_ram_banks_set_retentive_no,
     .external_subsystem_clkgate_en_no,
-    .exit_value_o
+    .exit_value_o,
+    .ext_dma_slot_tx_i,
+    .ext_dma_slot_rx_i
   );
 
   pad_ring pad_ring_i (

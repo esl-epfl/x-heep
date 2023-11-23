@@ -1,0 +1,26 @@
+CAPI=2:
+
+name: "example:ip:iffifo"
+description: "core-v-mini-mcu iffifo peripheral"
+
+# Copyright 2023 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+#
+# Author: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
+# Date: 18.10.2023
+
+filesets:
+  files_rtl:
+    depend:
+      - pulp-platform.org::common_cells
+    files:
+    - rtl/iffifo_reg_pkg.sv
+    - rtl/iffifo_reg_top.sv
+    - rtl/iffifo.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl
