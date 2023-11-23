@@ -67,6 +67,7 @@ uint32_t flash_data[8];
 
 // This is the vector that the spi_host is reading from the flash
 uint32_t flash_original[8] = {0x76543210,0xfedcba98,0x579a6f90,0x657d5bee,0x758ee41f,0x01234567,0xfedbca98,0x89abcdef};
+// uint32_t flash_original[8] = {0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF};
 
 #ifndef USE_SPI_FLASH
 void fic_irq_spi(void)
@@ -128,31 +129,25 @@ int main(int argc, char *argv[])
 
     uint32_t core_clk = soc_ctrl_get_frequency(&soc_ctrl);
 
-    // Enable interrupt on processor side
-    // Enable global interrupt for machine-level interrupts
-    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    // Set mie.MEIE bit to one to enable machine-level fast spi interrupt
-    #ifndef USE_SPI_FLASH
-        const uint32_t mask = 1 << 20;
-    #else
-        const uint32_t mask = 1 << 21;
-    #endif
-    CSR_SET_BITS(CSR_REG_MIE, mask);
-    spi_intr_flag = 0;
-
     #ifdef USE_SPI_FLASH
-        // Select SPI host as SPI output
-        soc_ctrl_select_spi_host(&soc_ctrl);
+    // Select SPI host as SPI output
+    soc_ctrl_select_spi_host(&soc_ctrl);
     #endif
 
+    // Reset
+    const uint32_t reset_cmd = 0xFFFFFFFF;
+    spi_write_word(&spi_host, reset_cmd);
+    const uint32_t cmd_reset = spi_create_command((spi_command_t){
+        .len        = 3,
+        .csaat      = false,
+        .speed      = kSpiSpeedStandard,
+        .direction  = kSpiDirTxOnly
+    });
+    spi_set_command(&spi_host, cmd_reset);
+    spi_wait_for_ready(&spi_host);
 
     // Enable SPI host device
     spi_set_enable(&spi_host, true);
-
-    // Enable event interrupt
-    spi_enable_evt_intr(&spi_host, true);
-    // Enable RX watermark interrupt
-    spi_enable_rxwm_intr(&spi_host, true);
     // Enable SPI output
     spi_output_enable(&spi_host, true);
 
@@ -181,9 +176,6 @@ int main(int argc, char *argv[])
     // Set RX watermark to 8 word
     spi_set_rx_watermark(&spi_host, 8);
 
-    uint32_t *flash_data_ptr = flash_data[0];
-
-
     // ----------------COMMAND----------------
     // Power up flash
     // ----------------COMMAND----------------
@@ -203,6 +195,7 @@ int main(int argc, char *argv[])
     spi_wait_for_ready(&spi_host);
     // ----------------END COMMAND----------------
 
+    /*
 
     // W25Q128JW requires the QE (Quad Enable) bit to be set in order to operate at quad speed
     // The Verilog flash do not model this behavior and no actions are required
@@ -316,11 +309,12 @@ int main(int argc, char *argv[])
     spi_read_word(&spi_host, &reg2_data_check);
     PRINTF("reg2_data_check = 0x%x\n\r", reg2_data_check);
 
-    spi_set_rx_watermark(&spi_host,8);
     #endif
 
+    */
 
-    volatile uint32_t data_addr = flash_original;
+   // Set RX watermark to 8 word (32 bytes)
+    spi_set_rx_watermark(&spi_host,8);
     
 
     // ----------------COMMAND----------------
@@ -391,23 +385,8 @@ int main(int argc, char *argv[])
 
 
     // Wait transaction is finished (polling register)
-    // spi_wait_for_rx_watermark(&spi_host);
-    // or wait for SPI interrupt
     PRINTF("Waiting for SPI...\n\r");
-
-    while( spi_intr_flag == 0 ) {
-        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-
-        if( spi_intr_flag == 0 )
-            wait_for_interrupt();
-
-        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    }
-
-    // Enable event interrupt
-    spi_enable_evt_intr(&spi_host, true);
-    // Enable RX watermark interrupt
-    spi_enable_rxwm_intr(&spi_host, true);
+    spi_wait_for_rx_watermark(&spi_host);
 
     // Read data from SPI RX FIFO
     for (int i=0; i<8; i++) {
@@ -420,8 +399,10 @@ int main(int argc, char *argv[])
     uint32_t* ram_ptr = flash_original;
     for (int i=0; i<8; i++) {
         if(flash_data[i] != *ram_ptr) {
-            PRINTF("@%x : %x != %x\n\r", ram_ptr, flash_data[i], *ram_ptr);
+            PRINTF("@%x : %x != %x(ref)\n\r", ram_ptr, flash_data[i], *ram_ptr);
             errors++;
+        } else {
+            PRINTF("@%x : %x == %x(ref)\n\r", ram_ptr, flash_data[i], *ram_ptr);
         }
         ram_ptr++;
     }
@@ -434,5 +415,4 @@ int main(int argc, char *argv[])
     }
 
     return EXIT_SUCCESS;
-
 }

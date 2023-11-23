@@ -6,6 +6,7 @@ MAKE                       = make
 
 # Get the absolute path
 mkfile_path := $(shell dirname "$(realpath $(firstword $(MAKEFILE_LIST)))")
+$(info $$You are executing from: $(mkfile_path))
 
 # Include the self-documenting tool
 FILE=$(mkfile_path)/Makefile
@@ -49,13 +50,16 @@ COMPILER_PREFIX ?= riscv32-unknown-
 ARCH     ?= rv32imc
 
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
-SOURCE 	 ?= "."
+SOURCE 	 ?= $(".")
 
 # Simulation engines options are verilator (default) and questasim
 SIMULATOR ?= verilator
 
 # Timeout for simulation, default 120
 TIMEOUT ?= 120
+
+# Export variables to sub-makefiles
+export
 
 ## @section Conda
 conda: environment.yml
@@ -175,7 +179,7 @@ run-helloworld: mcu-gen verilator-sim
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
 run-blinkyfreertos: mcu-gen verilator-sim
-	$(MAKE) -C sw PROJECT=blinky_freertos TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
+	$(MAKE) -C sw PROJECT=example_freertos_blinky TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
 	./Vtestharness +firmware=../../../sw/build/main.hex; \
 	cat uart0.log; \
