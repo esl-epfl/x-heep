@@ -289,7 +289,7 @@ int main(int argc, char *argv[])
         .len        = 0,                 // 1 Byte
         .csaat      = false,             // End command
         .speed      = kSpiSpeedStandard, // Standard speed
-        .direction  = kSpiDirRxOnly      // Write only
+        .direction  = kSpiDirTxOnly      // Write only
     });
     spi_set_command(&spi_host, reg2_write_2);
     spi_wait_for_ready(&spi_host);
