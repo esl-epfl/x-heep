@@ -309,12 +309,6 @@ void mpsse_init(int ifnum, const char *devstr, bool slow_clock)
 
 	mpsse_ftdic_open = true;
 
-	/* Reset the BITMODE. Set all pins to output. */
-	if (ftdi_set_bitmode(&mpsse_ftdic, 0x00, BITMODE_RESET) < 0) {
-		fprintf(stderr, "Failed to set BITMODE_RESET on iCE FTDI USB device.\n");
-		mpsse_error(2);
-	}
-
 	if (ftdi_usb_reset(&mpsse_ftdic)) {
 		fprintf(stderr, "Failed to reset iCE FTDI USB device.\n");
 		mpsse_error(2);
@@ -364,9 +358,6 @@ void mpsse_close(void)
 {
 	ftdi_set_latency_timer(&mpsse_ftdic, mpsse_ftdi_latency);
 	ftdi_disable_bitbang(&mpsse_ftdic);
-
-	ftdi_set_bitmode(&mpsse_ftdic, 0x00,  BITMODE_BITBANG);
-
 	ftdi_usb_close(&mpsse_ftdic);
 	ftdi_deinit(&mpsse_ftdic);
 }
