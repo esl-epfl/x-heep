@@ -241,7 +241,7 @@ uint8_t w25q128jw_init() {
     flash_power_up();
     // Set QE bit (only FPGA, simulation do not support status registers at all)
     #ifdef TARGET_PYNQ_Z2
-    // if (set_QE_bit() == 0) return FLASH_ERROR; // Error occurred while setting QE bit
+    if (set_QE_bit() == FLASH_ERROR) return FLASH_ERROR; // Error occurred while setting QE bit
     #endif // TARGET_PYNQ_Z2
 
     return FLASH_OK; // Success
@@ -821,48 +821,83 @@ static void flash_power_up() {
 }
 
 static uint8_t set_QE_bit() {
-    flash_write_enable();
+    spi_set_rx_watermark(&spi,1);
 
-    const uint32_t cmd_set_qe = ((0x02 << 8) | FC_WSR2);
-    spi_write_word(&spi, cmd_set_qe);
-    spi_wait_for_ready(&spi);
-    const uint32_t cmd_set_qe_2 = spi_create_command((spi_command_t){
-        .len        = 1,                 // 2 Bytes
-        .csaat      = false,             // End command
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
-    });
-    spi_set_command(&spi, cmd_set_qe_2);
-    spi_wait_for_ready(&spi);
+    // Read Status Register 2
+    const uint32_t reg2_read_cmd = FC_RSR2;
+    spi_write_word(&spi, reg2_read_cmd);
 
-    flash_wait();
-
-    // Read back to check if QE bit is set
-    spi_set_rx_watermark(&spi, 1);
-    uint32_t SR2_data = 0;
-    spi_write_word(&spi, FC_RSR2);
-    spi_wait_for_ready(&spi);
-    const uint32_t cmd_read_qe = spi_create_command((spi_command_t){
-        .len        = 0,                 // 1 Bytes
+    const uint32_t reg2_read_1 = spi_create_command((spi_command_t){
+        .len        = 0,                 // 1 Byte
         .csaat      = true,              // Command not finished
         .speed      = kSpiSpeedStandard, // Single speed
         .direction  = kSpiDirTxOnly      // Write only
     });
-    spi_set_command(&spi, cmd_read_qe);
+    spi_set_command(&spi, reg2_read_1);
     spi_wait_for_ready(&spi);
-    const uint32_t cmd_read_qe_2 = spi_create_command((spi_command_t){
-        .len        = 0,                 // 1 Bytes
+
+    const uint32_t reg2_read_2 = spi_create_command((spi_command_t){
+        .len        = 0,                 // 1 Byte
         .csaat      = false,             // End command
-        .speed      = kSpiSpeedStandard, // Single speed
+        .speed      = kSpiSpeedStandard, // Standard speed
         .direction  = kSpiDirRxOnly      // Read only
     });
-    spi_set_command(&spi, cmd_read_qe_2);
+    spi_set_command(&spi, reg2_read_2);
     spi_wait_for_ready(&spi);
     spi_wait_for_rx_watermark(&spi);
-    spi_read_word(&spi, &SR2_data);
-    if ((SR2_data & 0x02) != 0x02) return FLASH_ERROR; // Error: failed to set QE bit
+    
+    /* 
+     * the partial word will be zero-padded and inserted into the RX FIFO once the segment is completed
+     * The actual register is 8 bit, but the SPI host gives a full word
+    */
+    uint32_t reg2_data;
+    spi_read_word(&spi, &reg2_data);
 
-    return 1; // Success
+    // Set bit in position 1 (QE bit), leaving the others unchanged
+    reg2_data |= 0x2;
+
+    // Enable write operation
+    flash_write_enable();
+
+    // Write Status Register 2 (set QE bit)
+    const uint32_t reg2_write_cmd = FC_WSR2;
+    spi_write_word(&spi, reg2_write_cmd);
+
+    const uint32_t reg2_write_1 = spi_create_command((spi_command_t){
+        .len        = 0,                 // 1 Byte
+        .csaat      = true,              // Command not finished
+        .speed      = kSpiSpeedStandard, // Single speed
+        .direction  = kSpiDirTxOnly      // Write only
+    });
+    spi_set_command(&spi, reg2_write_1);
+    spi_wait_for_ready(&spi);
+
+    // Load data to TX FIFO
+    spi_write_word(&spi, reg2_data);
+
+    // Create command segment
+    const uint32_t reg2_write_2 = spi_create_command((spi_command_t){
+        .len        = 0,                 // 1 Byte
+        .csaat      = false,             // End command
+        .speed      = kSpiSpeedStandard, // Standard speed
+        .direction  = kSpiDirTxOnly      // Write only
+    });
+    spi_set_command(&spi, reg2_write_2);
+    spi_wait_for_ready(&spi);
+    
+    // Read back Status Register 2
+    spi_write_word(&spi, reg2_read_cmd);
+    spi_set_command(&spi, reg2_read_1);
+    spi_wait_for_ready(&spi);
+    spi_set_command(&spi, reg2_read_2);
+    spi_wait_for_ready(&spi);
+    spi_wait_for_rx_watermark(&spi);
+    uint32_t reg2_data_check = 0x00;
+    spi_read_word(&spi, &reg2_data_check);
+
+    // Check if the QE bit is set
+    if ((reg2_data_check & 0x2) == 0) return FLASH_ERROR;
+    else return FLASH_OK;
 }
 
 static void configure_spi(soc_ctrl_t soc_ctrl) {
