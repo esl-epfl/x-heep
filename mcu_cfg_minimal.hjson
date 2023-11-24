@@ -31,7 +31,6 @@
         heap_size: 0x800,
     }
 
-
     debug: {
         address: 0x10000000,
         length:  0x00100000,
