@@ -1048,7 +1048,7 @@ int main(int argc, char **argv)
 				size_t len = 0;
 				uint8_t buffer[256];
 				int count = 0;
-				while (true) {					
+				while (true) {
 					rc = getline(&line_buffer, &len, f);
 					if (rc <= 0){
 						if(count > 0){
@@ -1123,7 +1123,7 @@ int main(int argc, char **argv)
 			int rc, addr = 0;
 			size_t len = 0;
 			uint8_t buffer_flash[256], buffer_file[256];
-			while (true) {					
+			while (true) {
 				rc = getline(&line_buffer, &len, f);
 				if (rc <= 0)
 					break;
