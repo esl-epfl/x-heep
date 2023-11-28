@@ -315,7 +315,10 @@ module core_v_mini_mcu
     output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_no,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_no,
 
-    output logic [31:0] exit_value_o
+    output logic [31:0] exit_value_o,
+
+    input logic ext_dma_slot_tx_i,
+    input logic ext_dma_slot_rx_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -628,7 +631,9 @@ module core_v_mini_mcu
       .uart_intr_rx_parity_err_o(uart_intr_rx_parity_err),
       .i2s_rx_valid_i(i2s_rx_valid),
       .ext_peripheral_slave_req_o,
-      .ext_peripheral_slave_resp_i
+      .ext_peripheral_slave_resp_i,
+      .ext_dma_slot_tx_i,
+      .ext_dma_slot_rx_i
   );
 
   peripheral_subsystem peripheral_subsystem_i (
