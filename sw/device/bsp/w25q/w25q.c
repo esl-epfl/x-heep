@@ -164,6 +164,19 @@ static void flash_write_enable(void);
 */
 static uint8_t sanity_checks(uint32_t addr, uint8_t *data, uint32_t length);
 
+/**
+ * @brief Return the minimum between two numbers.
+ * 
+ * The function uses signed integers in order to handle also negative numbers.
+ * 
+ * @param a first number.
+ * @param b second number.
+ * @return the minimum between a and b.
+*/
+static int32_t MIN(int32_t a, int32_t b) {
+    return (a < b) ? a : b;
+}
+
 
 /****************************************************************************/
 /**                                                                        **/
@@ -241,8 +254,7 @@ uint8_t w25q128jw_init() {
     flash_power_up();
     // Set QE bit (only FPGA, simulation do not support status registers at all)
     #ifdef TARGET_PYNQ_Z2
-    // if (set_QE_bit() == FLASH_ERROR) return FLASH_ERROR; // Error occurred while setting QE bit
-    printf("Skipping QE bit set...\n");
+    if (set_QE_bit() == FLASH_ERROR) return FLASH_ERROR; // Error occurred while setting QE bit
     #endif // TARGET_PYNQ_Z2
 
     return FLASH_OK; // Success

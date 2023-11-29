@@ -80,124 +80,17 @@ int main(int argc, char *argv[]) {
     printf("BSP read test\n\r");
     error_codes_t status;
 
+    uint32_t *test_buffer = flash_original_768B;
+    uint32_t len = 768;
+
     // Init SPI host and SPI<->Flash bridge parameters 
-    // status = w25q128jw_init();
-    // if (status != FLASH_OK) return EXIT_FAILURE;
+    status = w25q128jw_init();
+    if (status != FLASH_OK) return EXIT_FAILURE;
 
     // Read the flash
-    printf("Reading flash: ");
-    printf("32B buffer...\n\r");
-    // status = w25q128jw_read_standard(flash_original_32B, (void*)flash_data, 32);
-    // if (status != FLASH_OK) return EXIT_FAILURE;
-
-    spi_host_t spi;
-    #ifndef USE_SPI_FLASH
-        spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
-    #else
-        spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
-    #endif
-
-    // INIT
-    soc_ctrl_t soc_ctrl;
-    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
-
-    #ifdef USE_SPI_FLASH
-    // Select SPI host as SPI output
-    soc_ctrl_select_spi_host(&soc_ctrl);
-    #endif
-
-    // Enable SPI host device
-    spi_set_enable(&spi, true);
-
-    // Enable event interrupt
-    spi_enable_evt_intr(&spi, true);
-    // Enable RX watermark interrupt
-    spi_enable_rxwm_intr(&spi, true);
-    // Enable SPI output
-    spi_output_enable(&spi, true);
-
-    // Configure SPI clock
-    // SPI clk freq = 1/2 core clk freq when clk_div = 0
-    // SPI_CLK = CORE_CLK/(2 + 2 * CLK_DIV) <= CLK_MAX => CLK_DIV > (CORE_CLK/CLK_MAX - 2)/2
-    uint32_t core_clk = soc_ctrl_get_frequency(&soc_ctrl);
-    uint16_t clk_div = 0;
-    if(FLASH_CLK_MAX_HZ < core_clk/2){
-        clk_div = (core_clk/(FLASH_CLK_MAX_HZ) - 2)/2; // The value is truncated
-        if (core_clk/(2 + 2 * clk_div) > FLASH_CLK_MAX_HZ) clk_div += 1; // Adjust if the truncation was not 0
-    }
-    // SPI Configuration
-    // Configure chip 0 (flash memory)
-    const uint32_t chip_cfg = spi_create_configopts((spi_configopts_t){
-        .clkdiv     = clk_div,
-        .csnidle    = 0xF,
-        .csntrail   = 0xF,
-        .csnlead    = 0xF,
-        .fullcyc    = false,
-        .cpha       = 0,
-        .cpol       = 0
-    });
-    spi_set_configopts(&spi, 0, chip_cfg);
-    spi_set_csid(&spi, 0);
-
-    // Set RX watermark to 8 word
-    spi_set_rx_watermark(&spi, 8);
-
-    // Power up flash
-    const uint32_t powerup_byte_cmd = 0xab;
-    spi_write_word(&spi, powerup_byte_cmd);
-    // Load command FIFO with command (1 Byte at single speed)
-    const uint32_t cmd_powerup = spi_create_command((spi_command_t){
-        .len        = 3,
-        .csaat      = false,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
-    });
-    spi_set_command(&spi, cmd_powerup);
-    spi_wait_for_ready(&spi);
-
-
-
-
-    // READ
-
-    // Address
-    uint32_t read_byte_cmd = ((REVERT_24b_ADDR(flash_original_32B) << 8) | 0x03);
-    // Set RX watermark to 8 word
-    spi_set_rx_watermark(&spi, 8);
-    // Fill TX FIFO with TX data (read command + 3B address)
-    spi_write_word(&spi, read_byte_cmd);
-    // Wait for readiness to process commands
-    spi_wait_for_ready(&spi);
-
-    // Load command FIFO with read command (1 Byte at single speed)
-    const uint32_t cmd_read = spi_create_command((spi_command_t){
-        .len        = 3,
-        .csaat      = true,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
-    });
-    spi_set_command(&spi, cmd_read);
-    spi_wait_for_ready(&spi);
-
-    const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
-        .len        = 31,
-        .csaat      = false,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirRxOnly
-    });
-    spi_set_command(&spi, cmd_read_rx);
-    spi_wait_for_ready(&spi);
-
-    // Wait transaction is finished (polling register)
-    printf("Waiting flash...\n");
-    spi_wait_for_rx_watermark(&spi);
-
-    // Read data from SPI RX FIFO
-    for (int i=0; i<8; i++) {
-        spi_read_word(&spi, &flash_data[i]);
-    }
-
-
+    printf("Reading flash - %uB: ", len);
+    status = w25q128jw_read_standard(flash_original_32B, (void*)flash_data, 32);
+    if (status != FLASH_OK) return EXIT_FAILURE;
 
 
     // Check if what we read is correct
