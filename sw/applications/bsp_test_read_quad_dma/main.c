@@ -78,7 +78,7 @@ uint32_t flash_original_768B[192] = {
 
 int main(int argc, char *argv[]) {
     printf("BSP read DMA test\n\r");
-    error_codes_t status;
+    w25q_error_codes_t status;
 
     // Select the buffer to read
     uint32_t *test_buffer = flash_original_30B;

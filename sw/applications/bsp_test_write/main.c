@@ -89,7 +89,7 @@ uint32_t flash_original_1024B[256] = {
 
 int main(int argc, char *argv[]) {
     printf("BSP write test\n\r");
-    error_codes_t status;
+    w25q_error_codes_t status;
 
     uint32_t *test_buffer = flash_original_1024B;
     uint32_t len = 1023;

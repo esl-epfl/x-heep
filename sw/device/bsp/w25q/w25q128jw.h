@@ -37,6 +37,7 @@
 #include "spi_host.h"
 #include "soc_ctrl.h"
 #include "core_v_mini_mcu.h"
+#include "x-heep.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -102,18 +103,11 @@
 /** @} */
 
 /**
- * @brief SPI TX FIFO depth in bytes.
+ * @bref If the target is the FPGA, use the SPI FLASH.
 */
-#define TX_FIFO_DEPTH 64 * 4
-
-/**
- * @brief SPI RX FIFO depth in bytes.
-*/
-#define RX_FIFO_DEPTH 64 * 4
-
-
+#ifdef TARGET_PYNQ_Z2
 #define USE_SPI_FLASH
-#define TARGET_PYNQ_Z2
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -128,7 +122,7 @@ extern "C" {
 /**
  * @brief Return status type.
 */
-typedef uint8_t error_codes_t;
+typedef uint8_t w25q_error_codes_t;
 
 /****************************************************************************/
 /**                                                                        **/

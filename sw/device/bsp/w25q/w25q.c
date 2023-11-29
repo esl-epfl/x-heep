@@ -42,6 +42,9 @@
 /* To manage DMA. */
 #include "dma.h"
 
+/* To get TX and RX FIFO depth */
+#include "spi_host_regs.h"
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        DEFINITIONS AND MACROS                            */
@@ -316,10 +319,10 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
     int length_original = length;
     uint32_t *data_32bit = (uint32_t *)data;
     while (flag) {
-        if (length >= RX_FIFO_DEPTH) {
-            spi_set_rx_watermark(&spi, RX_FIFO_DEPTH/4);
-            length -= RX_FIFO_DEPTH;
-            to_read += RX_FIFO_DEPTH;
+        if (length >= SPI_HOST_PARAM_RX_DEPTH) {
+            spi_set_rx_watermark(&spi, SPI_HOST_PARAM_RX_DEPTH/4);
+            length -= SPI_HOST_PARAM_RX_DEPTH;
+            to_read += SPI_HOST_PARAM_RX_DEPTH;
         }
         else {
             spi_set_rx_watermark(&spi, (length%4==0 ? length/4 : length/4+1));
@@ -333,7 +336,7 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
             spi_read_word(&spi, &data_32bit[i]); // Writes a full word
         }
         // Update the starting index
-        i_start += RX_FIFO_DEPTH/4;
+        i_start += SPI_HOST_PARAM_RX_DEPTH/4;
     }
     // Take into account the extra bytes (if any)
     if (length_original%4 != 0) {
@@ -513,10 +516,10 @@ uint8_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t length) {
     int length_original = length;
     uint32_t *data_32bit = (uint32_t *)data;
     while (flag) {
-        if (length >= RX_FIFO_DEPTH) {
-            spi_set_rx_watermark(&spi, RX_FIFO_DEPTH/4);
-            length -= RX_FIFO_DEPTH;
-            to_read += RX_FIFO_DEPTH;
+        if (length >= SPI_HOST_PARAM_RX_DEPTH) {
+            spi_set_rx_watermark(&spi, SPI_HOST_PARAM_RX_DEPTH/4);
+            length -= SPI_HOST_PARAM_RX_DEPTH;
+            to_read += SPI_HOST_PARAM_RX_DEPTH;
         }
         else {
             spi_set_rx_watermark(&spi, (length%4==0 ? length/4 : length/4+1));
@@ -530,7 +533,7 @@ uint8_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t length) {
             spi_read_word(&spi, &data_32bit[i]); // Writes a full word
         }
         // Update the starting index
-        i_start += RX_FIFO_DEPTH/4;
+        i_start += SPI_HOST_PARAM_RX_DEPTH/4;
     }
     // Take into account the extra bytes (if any)
     if (length_original%4 != 0) {

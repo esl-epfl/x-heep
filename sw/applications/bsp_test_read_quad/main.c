@@ -78,7 +78,7 @@ uint32_t flash_original_768B[192] = {
 
 int main(int argc, char *argv[]) {
     printf("BSP quad read test\n\r");
-    error_codes_t status;
+    w25q_error_codes_t status;
 
     uint32_t *test_buffer = flash_original_768B;
     uint32_t len = 768;

@@ -80,7 +80,7 @@ uint32_t flash_original_768B[192] = {
 
 int main(int argc, char *argv[]) {
     printf("BSP write test\n\r");
-    error_codes_t status;
+    w25q_error_codes_t status;
 
     uint32_t *test_buffer = flash_original_32B;
     uint32_t len = 32;

@@ -78,7 +78,7 @@ uint32_t flash_original_768B[192] = {
 
 int main(int argc, char *argv[]) {
     printf("BSP read test\n\r");
-    error_codes_t status;
+    w25q_error_codes_t status;
 
     // Init SPI host and SPI<->Flash bridge parameters 
     // status = w25q128jw_init();
