@@ -40,8 +40,8 @@ module ext_bus #(
     input  obi_pkg::obi_req_t  heep_dma_write_ch0_req_i,
     output obi_pkg::obi_resp_t heep_dma_write_ch0_resp_o,
 
-    input  obi_pkg::obi_req_t  heep_dma_addr_ch0_req_i,
-    output obi_pkg::obi_resp_t heep_dma_addr_ch0_resp_o,
+    input  obi_pkg::obi_req_t  heep_dma_addr_bcst_ch0_req_i,
+    output obi_pkg::obi_resp_t heep_dma_addr_bcst_ch0_resp_o,
 
     // External master ports
     input  obi_pkg::obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_master_req_i,
@@ -82,7 +82,7 @@ module ext_bus #(
   assign master_req[DEBUG_MASTER_IDX] = heep_debug_master_req_i;
   assign master_req[DMA_READ_CH0_IDX] = heep_dma_read_ch0_req_i;
   assign master_req[DMA_WRITE_CH0_IDX] = heep_dma_write_ch0_req_i;
-  assign master_req[DMA_ADDR_CH0_IDX] = heep_dma_addr_ch0_req_i;
+  assign master_req[DMA_ADDR_BCST_CH0_IDX] = heep_dma_addr_bcst_ch0_req_i;
   generate
     for (genvar i = 0; i < EXT_XBAR_NMASTER; i++) begin : gen_ext_master_req_map
       assign master_req[SYSTEM_XBAR_NMASTER+i] = demux_xbar_req[i][DEMUX_XBAR_EXT_SLAVE_IDX];
@@ -95,7 +95,7 @@ module ext_bus #(
   assign heep_debug_master_resp_o = master_resp[DEBUG_MASTER_IDX];
   assign heep_dma_read_ch0_resp_o = master_resp[DMA_READ_CH0_IDX];
   assign heep_dma_write_ch0_resp_o = master_resp[DMA_WRITE_CH0_IDX];
-  assign heep_dma_addr_ch0_resp_o = master_resp[DMA_ADDR_CH0_IDX];
+  assign heep_dma_addr_bcst_ch0_resp_o = master_resp[DMA_ADDR_BCST_CH0_IDX];
 
   // X-HEEP slave requests
   generate

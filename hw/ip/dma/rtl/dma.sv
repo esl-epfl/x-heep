@@ -24,8 +24,8 @@ module dma #(
     output obi_req_t  dma_write_ch0_req_o,
     input  obi_resp_t dma_write_ch0_resp_i,
 
-    output obi_req_t  dma_addr_ch0_req_o,
-    input  obi_resp_t dma_addr_ch0_resp_i,
+    output obi_req_t  dma_addr_bcst_ch0_req_o,
+    input  obi_resp_t dma_addr_bcst_ch0_resp_i,
 
     input logic [SLOT_NUM-1:0] trigger_slot_i,
 
@@ -42,12 +42,10 @@ module dma #(
   dma_hw2reg_t                       hw2reg;
 
   logic        [               31:0] read_ptr_reg;
-  logic        [               31:0] addr_ptr_reg;
+  logic        [               31:0] addr_bcst_ptr_reg;
   logic        [               31:0] read_ptr_valid_reg;
   logic        [               31:0] write_ptr_reg;
-  logic        [               31:0] bcst_ptr_reg;
   logic        [               31:0] write_address;
-  logic        [               31:0] bcst_address;
   logic        [               31:0] dma_cnt;
   logic        [               31:0] dma_addr_cnt;
   logic        [                2:0] dma_cnt_dec;
@@ -71,15 +69,15 @@ module dma #(
   logic                              data_in_rvalid;
   logic        [               31:0] data_in_rdata;
 
-  logic                              data_addr_in_req;
-  logic                              data_addr_in_we;
-  logic        [                3:0] data_addr_in_be;
-  logic        [               31:0] data_addr_in_addr;
-  logic                              data_addr_in_gnt;
-  logic                              data_addr_in_rvalid;
-  logic        [               31:0] data_addr_in_rdata;
+  logic                              data_addr_bcst_inout_req;
+  logic                              data_addr_bcst_inout_we;
+  logic        [                3:0] data_addr_bcst_inout_be;
+  logic        [               31:0] data_addr_bcst_inout_addr;
+  logic                              data_addr_bcst_inout_gnt;
+  logic                              data_addr_bcst_inout_rvalid;
+  logic        [               31:0] data_addr_bcst_inout_rdata;
 
-  logic        [               31:0] data_addr_in_wdata;
+  logic        [               31:0] data_addr_bcst_inout_wdata;
 
   logic                              data_out_req;
   logic                              data_out_we;
@@ -117,7 +115,7 @@ module dma #(
 
   logic        dma_start_pending;
 
-  logic broadcast_pop, latched_data_out_gnt, latched_data_addr_in;
+  logic broadcast_pop, data_out_gnt_q, data_addr_bcst_inout_q;
 
   enum {
     DMA_READY,
@@ -151,16 +149,16 @@ module dma #(
   assign data_in_rvalid = dma_read_ch0_resp_i.rvalid;
   assign data_in_rdata = dma_read_ch0_resp_i.rdata;
 
-  // ADDRESS channel
-  assign dma_addr_ch0_req_o.req = data_addr_in_req;
-  assign dma_addr_ch0_req_o.we = data_addr_in_we;
-  assign dma_addr_ch0_req_o.be = data_addr_in_be;
-  assign dma_addr_ch0_req_o.addr = data_addr_in_addr;
-  assign dma_addr_ch0_req_o.wdata = data_addr_in_wdata;
+  // ADDRESS+BROADCAST channel
+  assign dma_addr_bcst_ch0_req_o.req = data_addr_bcst_inout_req;
+  assign dma_addr_bcst_ch0_req_o.we = data_addr_bcst_inout_we;
+  assign dma_addr_bcst_ch0_req_o.be = data_addr_bcst_inout_be;
+  assign dma_addr_bcst_ch0_req_o.addr = data_addr_bcst_inout_addr;
+  assign dma_addr_bcst_ch0_req_o.wdata = data_addr_bcst_inout_wdata;
 
-  assign data_addr_in_gnt = dma_addr_ch0_resp_i.gnt;
-  assign data_addr_in_rvalid = dma_addr_ch0_resp_i.rvalid;
-  assign data_addr_in_rdata = dma_addr_ch0_resp_i.rdata;
+  assign data_addr_bcst_inout_gnt = dma_addr_bcst_ch0_resp_i.gnt;
+  assign data_addr_bcst_inout_rvalid = dma_addr_bcst_ch0_resp_i.rvalid;
+  assign data_addr_bcst_inout_rdata = dma_addr_bcst_ch0_resp_i.rdata;
 
   // WRITE channel
   assign dma_write_ch0_req_o.req = data_out_req;
@@ -191,7 +189,6 @@ module dma #(
   assign broadcast_mode = reg2hw.mode.q == 3;
 
   assign write_address = address_mode ? fifo_addr_output : write_ptr_reg;
-  assign bcst_address = bcst_ptr_reg;
 
   assign wait_for_rx = |(reg2hw.slot.rx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
   assign wait_for_tx = |(reg2hw.slot.tx_trigger_slot.q[SLOT_NUM-1:0] & (~trigger_slot_i));
@@ -270,12 +267,14 @@ module dma #(
   // Store address data pointer and increment everytime read request is granted - only in address mode
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_ptr_addr_reg
     if (~rst_ni) begin
-      addr_ptr_reg <= '0;
+      addr_bcst_ptr_reg <= '0;
     end else begin
-      if (dma_start == 1'b1 && address_mode) begin
-        addr_ptr_reg <= reg2hw.addr_bcst_ptr.q;
-      end else if (data_addr_in_gnt == 1'b1 && address_mode) begin
-        addr_ptr_reg <= addr_ptr_reg + 32'h4;  //always continuos in 32b
+      if (dma_start == 1'b1 && (address_mode || broadcast_mode)) begin
+        addr_bcst_ptr_reg <= reg2hw.addr_bcst_ptr.q;
+      end else if (data_addr_bcst_inout_gnt == 1'b1 && address_mode) begin
+        addr_bcst_ptr_reg <= addr_bcst_ptr_reg + 32'h4;  //always continuos in 32b
+      end else if (data_addr_bcst_inout_gnt == 1'b1 && broadcast_mode) begin
+        addr_bcst_ptr_reg <= addr_bcst_ptr_reg + {24'h0, reg2hw.ptr_inc.bcst_ptr_inc.q};
       end
     end
   end
@@ -306,19 +305,6 @@ module dma #(
     end
   end
 
-  // Store broadcast output data pointer and increment everytime write request is granted
-  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_bcst_ptr_out_reg
-    if (~rst_ni) begin
-      bcst_ptr_reg <= '0;
-    end else begin
-      if (dma_start == 1'b1) begin
-        bcst_ptr_reg <= reg2hw.addr_bcst_ptr.q;
-      end else if (data_addr_in_gnt == 1'b1) begin
-        bcst_ptr_reg <= bcst_ptr_reg + {24'h0, reg2hw.ptr_inc.bcst_ptr_inc.q};
-      end
-    end
-  end
-
   // Store dma transfer size and decrement it everytime input data rvalid is asserted
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_cnt_reg
     if (~rst_ni) begin
@@ -339,7 +325,7 @@ module dma #(
     end else begin
       if (dma_start == 1'b1 && address_mode) begin
         dma_addr_cnt <= reg2hw.size.q;
-      end else if (data_addr_in_gnt == 1'b1 && address_mode) begin
+      end else if (data_addr_bcst_inout_gnt == 1'b1 && address_mode) begin
         dma_addr_cnt <= dma_addr_cnt - 32'h4;  //address always 32b
       end
     end
@@ -383,7 +369,7 @@ module dma #(
       2'b00: bcst_byte_enable_out = 4'b1111;  // Writing a word (32 bits)
 
       2'b01: begin  // Writing a half-word (16 bits)
-        case (bcst_address[1])
+        case (addr_bcst_ptr_reg[1])
           1'b0: bcst_byte_enable_out = 4'b0011;
           1'b1: bcst_byte_enable_out = 4'b1100;
         endcase
@@ -391,7 +377,7 @@ module dma #(
       end
 
       2'b10, 2'b11: begin  // Writing a byte (8 bits)
-        case (bcst_address[1:0])
+        case (addr_bcst_ptr_reg[1:0])
           2'b00: bcst_byte_enable_out = 4'b0001;
           2'b01: bcst_byte_enable_out = 4'b0010;
           2'b10: bcst_byte_enable_out = 4'b0100;
@@ -430,31 +416,31 @@ module dma #(
 
     if (broadcast_mode) begin
 
-      data_addr_in_wdata[7:0]   = fifo_output[7:0];
-      data_addr_in_wdata[15:8]  = fifo_output[15:8];
-      data_addr_in_wdata[23:16] = fifo_output[23:16];
-      data_addr_in_wdata[31:24] = fifo_output[31:24];
+      data_addr_bcst_inout_wdata[7:0]   = fifo_output[7:0];
+      data_addr_bcst_inout_wdata[15:8]  = fifo_output[15:8];
+      data_addr_bcst_inout_wdata[23:16] = fifo_output[23:16];
+      data_addr_bcst_inout_wdata[31:24] = fifo_output[31:24];
 
       case (write_address[1:0])
         2'b00: ;
 
-        2'b01: data_addr_in_wdata[15:8] = fifo_output[7:0];
+        2'b01: data_addr_bcst_inout_wdata[15:8] = fifo_output[7:0];
 
         2'b10: begin
-          data_addr_in_wdata[23:16] = fifo_output[7:0];
-          data_addr_in_wdata[31:24] = fifo_output[15:8];
+          data_addr_bcst_inout_wdata[23:16] = fifo_output[7:0];
+          data_addr_bcst_inout_wdata[31:24] = fifo_output[15:8];
         end
 
-        2'b11: data_addr_in_wdata[31:24] = fifo_output[7:0];
+        2'b11: data_addr_bcst_inout_wdata[31:24] = fifo_output[7:0];
       endcase
 
     end else begin
-      data_addr_in_wdata = 32'd0;
+      data_addr_bcst_inout_wdata = 32'd0;
     end
 
   end
 
-  assign fifo_addr_input = data_addr_in_rdata;  //never misaligned, always 32b
+  assign fifo_addr_input = data_addr_bcst_inout_rdata;  //never misaligned, always 32b
 
   // Input data shift: shift the input data to be on the LSB of the fifo
   always_comb begin : proc_input_data
@@ -493,7 +479,7 @@ module dma #(
       outstanding_req <= outstanding_req + (data_in_req && data_in_gnt) - data_in_rvalid;
 
       if (address_mode)
-        outstanding_addr_req <= outstanding_addr_req + (data_addr_in_req && data_addr_in_gnt) - data_addr_in_rvalid;
+        outstanding_addr_req <= outstanding_addr_req + (data_addr_bcst_inout_req && data_addr_bcst_inout_gnt) - data_addr_bcst_inout_rvalid;
 
     end
   end
@@ -545,10 +531,10 @@ module dma #(
 
     dma_read_addr_fsm_n_state = DMA_READ_FSM_IDLE;
 
-    data_addr_in_req = '0;
-    data_addr_in_we = '0;
-    data_addr_in_be = '0;
-    data_addr_in_addr = '0;
+    data_addr_bcst_inout_req = '0;
+    data_addr_bcst_inout_we = '0;
+    data_addr_bcst_inout_be = '0;
+    data_addr_bcst_inout_addr = '0;
 
     fifo_addr_flush = 1'b0;
 
@@ -575,10 +561,10 @@ module dma #(
             dma_read_addr_fsm_n_state = DMA_READ_FSM_ON;
             // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
             if (fifo_addr_full == 1'b0 && fifo_addr_alm_full == 1'b0) begin
-              data_addr_in_req  = 1'b1;
-              data_addr_in_we   = 1'b0;
-              data_addr_in_be   = 4'b1111;  // always read all bytes
-              data_addr_in_addr = addr_ptr_reg;
+              data_addr_bcst_inout_req  = 1'b1;
+              data_addr_bcst_inout_we   = 1'b0;
+              data_addr_bcst_inout_be   = 4'b1111;  // always read all bytes
+              data_addr_bcst_inout_addr = addr_bcst_ptr_reg;
             end
           end
         end
@@ -590,10 +576,10 @@ module dma #(
             dma_read_addr_fsm_n_state = DMA_READ_FSM_ON;
             // Wait if fifo is empty or if the SPI TX is not ready for new data (only in SPI mode 2).
             if (fifo_empty == 1'b0 && wait_for_tx == 1'b0 && fifo_addr_empty_check == 1'b0) begin
-              data_addr_in_req  = 1'b1;
-              data_addr_in_we   = 1'b1;
-              data_addr_in_be   = bcst_byte_enable_out;
-              data_addr_in_addr = bcst_address;
+              data_addr_bcst_inout_req  = 1'b1;
+              data_addr_bcst_inout_we   = 1'b1;
+              data_addr_bcst_inout_be   = bcst_byte_enable_out;
+              data_addr_bcst_inout_addr = addr_bcst_ptr_reg;
             end
           end
         end
@@ -674,7 +660,7 @@ module dma #(
       .usage_o(fifo_addr_usage),
       // as long as the queue is not full we can push new data
       .data_i(fifo_addr_input),
-      .push_i(data_addr_in_rvalid),
+      .push_i(data_addr_bcst_inout_rvalid),
       // as long as the queue is not empty we can pop new elements
       .data_o(fifo_addr_output),
       .pop_i(data_out_gnt && address_mode)
@@ -693,25 +679,27 @@ module dma #(
       .devmode_i(1'b1)
   );
 
+  // In BROADCAST mode, awaits both locations to be written
+  // before popping a new element from the read FIFO.
   always_ff @(posedge clk_i, negedge rst_ni) begin
     if (~rst_ni) begin
       broadcast_pop <= 0;
-      latched_data_out_gnt <= 0;
-      latched_data_addr_in <= 0;
+      data_out_gnt_q <= 0;
+      data_addr_bcst_inout_q <= 0;
     end else begin
 
       if (data_out_gnt) begin
-        latched_data_out_gnt <= 1;
+        data_out_gnt_q <= 1;
       end
 
-      if (data_addr_in_gnt) begin
-        latched_data_addr_in <= 1;
+      if (data_addr_bcst_inout_gnt) begin
+        data_addr_bcst_inout_q <= 1;
       end
 
-      if ( (data_out_gnt || latched_data_out_gnt) && (data_addr_in_gnt || latched_data_addr_in) ) begin
+      if ( (data_out_gnt || data_out_gnt_q) && (data_addr_bcst_inout_gnt || data_addr_bcst_inout_q) ) begin
         broadcast_pop <= 1;
-        latched_data_addr_in <= 0;
-        latched_data_out_gnt <= 0;
+        data_addr_bcst_inout_q <= 0;
+        data_out_gnt_q <= 0;
       end
 
       if (broadcast_pop == 1) begin

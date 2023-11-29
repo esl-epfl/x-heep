@@ -92,8 +92,8 @@ module testharness #(
   obi_resp_t heep_dma_read_ch0_resp;
   obi_req_t heep_dma_write_ch0_req;
   obi_resp_t heep_dma_write_ch0_resp;
-  obi_req_t heep_dma_addr_ch0_req;
-  obi_resp_t heep_dma_addr_ch0_resp;
+  obi_req_t heep_dma_addr_bcst_ch0_req;
+  obi_resp_t heep_dma_addr_bcst_ch0_resp;
   obi_req_t [EXT_XBAR_NSLAVE-1:0] ext_slave_req;
   obi_resp_t [EXT_XBAR_NSLAVE-1:0] ext_slave_resp;
   reg_req_t periph_slave_req;
@@ -244,8 +244,8 @@ module testharness #(
       .ext_dma_read_ch0_resp_i(heep_dma_read_ch0_resp),
       .ext_dma_write_ch0_req_o(heep_dma_write_ch0_req),
       .ext_dma_write_ch0_resp_i(heep_dma_write_ch0_resp),
-      .ext_dma_addr_ch0_req_o(heep_dma_addr_ch0_req),
-      .ext_dma_addr_ch0_resp_i(heep_dma_addr_ch0_resp),
+      .ext_dma_addr_bcst_ch0_req_o(heep_dma_addr_bcst_ch0_req),
+      .ext_dma_addr_bcst_ch0_resp_i(heep_dma_addr_bcst_ch0_resp),
       .ext_peripheral_slave_req_o(periph_slave_req),
       .ext_peripheral_slave_resp_i(periph_slave_rsp),
       .external_subsystem_powergate_switch_no(external_subsystem_powergate_switch_n),
@@ -266,28 +266,28 @@ module testharness #(
       .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER),
       .EXT_XBAR_NSLAVE (EXT_XBAR_NSLAVE)
   ) ext_bus_i (
-      .clk_i                    (clk_i),
-      .rst_ni                   (rst_ni),
-      .addr_map_i               (EXT_XBAR_ADDR_RULES),
-      .default_idx_i            (SLOW_MEMORY_IDX[LOG_EXT_XBAR_NSLAVE-1:0]),
-      .heep_core_instr_req_i    (heep_core_instr_req),
-      .heep_core_instr_resp_o   (heep_core_instr_resp),
-      .heep_core_data_req_i     (heep_core_data_req),
-      .heep_core_data_resp_o    (heep_core_data_resp),
-      .heep_debug_master_req_i  (heep_debug_master_req),
-      .heep_debug_master_resp_o (heep_debug_master_resp),
-      .heep_dma_read_ch0_req_i  (heep_dma_read_ch0_req),
-      .heep_dma_read_ch0_resp_o (heep_dma_read_ch0_resp),
-      .heep_dma_write_ch0_req_i (heep_dma_write_ch0_req),
-      .heep_dma_write_ch0_resp_o(heep_dma_write_ch0_resp),
-      .heep_dma_addr_ch0_req_i  (heep_dma_addr_ch0_req),
-      .heep_dma_addr_ch0_resp_o (heep_dma_addr_ch0_resp),
-      .ext_master_req_i         (ext_master_req),
-      .ext_master_resp_o        (ext_master_resp),
-      .heep_slave_req_o         (heep_slave_req),
-      .heep_slave_resp_i        (heep_slave_resp),
-      .ext_slave_req_o          (ext_slave_req),
-      .ext_slave_resp_i         (ext_slave_resp)
+      .clk_i                        (clk_i),
+      .rst_ni                       (rst_ni),
+      .addr_map_i                   (EXT_XBAR_ADDR_RULES),
+      .default_idx_i                (SLOW_MEMORY_IDX[LOG_EXT_XBAR_NSLAVE-1:0]),
+      .heep_core_instr_req_i        (heep_core_instr_req),
+      .heep_core_instr_resp_o       (heep_core_instr_resp),
+      .heep_core_data_req_i         (heep_core_data_req),
+      .heep_core_data_resp_o        (heep_core_data_resp),
+      .heep_debug_master_req_i      (heep_debug_master_req),
+      .heep_debug_master_resp_o     (heep_debug_master_resp),
+      .heep_dma_read_ch0_req_i      (heep_dma_read_ch0_req),
+      .heep_dma_read_ch0_resp_o     (heep_dma_read_ch0_resp),
+      .heep_dma_write_ch0_req_i     (heep_dma_write_ch0_req),
+      .heep_dma_write_ch0_resp_o    (heep_dma_write_ch0_resp),
+      .heep_dma_addr_bcst_ch0_req_i (heep_dma_addr_bcst_ch0_req),
+      .heep_dma_addr_bcst_ch0_resp_o(heep_dma_addr_bcst_ch0_resp),
+      .ext_master_req_i             (ext_master_req),
+      .ext_master_resp_o            (ext_master_resp),
+      .heep_slave_req_o             (heep_slave_req),
+      .heep_slave_resp_i            (heep_slave_resp),
+      .ext_slave_req_o              (ext_slave_req),
+      .ext_slave_resp_i             (ext_slave_resp)
   );
 
   logic pdm;
@@ -429,8 +429,8 @@ module testharness #(
           .dma_read_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER0_IDX]),
           .dma_write_ch0_req_o(ext_master_req[testharness_pkg::EXT_MASTER1_IDX]),
           .dma_write_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER1_IDX]),
-          .dma_addr_ch0_req_o(),
-          .dma_addr_ch0_resp_i('0),
+          .dma_addr_bcst_ch0_req_o(),
+          .dma_addr_bcst_ch0_resp_i('0),
           .trigger_slot_i('0),
           .dma_done_intr_o(memcopy_intr),
           .dma_window_intr_o()
