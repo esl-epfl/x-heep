@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
     static uint32_t test_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = {
       0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef, 0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa, 0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98};
     static uint32_t copied_data_4B[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
-    static uint16_t broadcast_data_4B[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
+    static uint16_t broadcast_data_4B[4*TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
     static uint32_t test_data_large[TEST_DATA_LARGE] __attribute__ ((aligned (4))) = { 0 };
     
     static uint16_t test_data_halfword_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = {
