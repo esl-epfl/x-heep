@@ -978,6 +978,7 @@ int main(int argc, char **argv)
 		flash_power_up();
 
 		flash_disable_quad();
+		flash_enable_quad();
 
 		flash_read_id();
 

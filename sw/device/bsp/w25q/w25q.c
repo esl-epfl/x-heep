@@ -167,6 +167,19 @@ static void flash_write_enable(void);
 */
 static uint8_t sanity_checks(uint32_t addr, uint8_t *data, uint32_t length);
 
+/**
+ * @brief Return the minimum between two numbers.
+ * 
+ * The function uses signed integers in order to handle also negative numbers.
+ * 
+ * @param a first number.
+ * @param b second number.
+ * @return the minimum between a and b.
+*/
+static int32_t MIN(int32_t a, int32_t b) {
+    return (a < b) ? a : b;
+}
+
 
 /****************************************************************************/
 /**                                                                        **/
@@ -270,8 +283,10 @@ uint8_t w25q128jw_write(uint32_t addr, void *data, uint32_t length, uint8_t eras
     uint32_t dma_avail = dma_is_ready();
 
     // TODO
+    uint8_t status = erase_and_write(addr, data, length);
+    if (status == FLASH_ERROR) printf("Flash error");
 
-    return 0;
+    return FLASH_OK;
 }
 
 uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
