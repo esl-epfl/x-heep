@@ -24,6 +24,18 @@
     #define USE_SPI_FLASH
 #endif
 
+// W25Q128JW flash commands supported by Questasim flash model
+// Also FFh and EDh are supported by the simulation model, but not by the phisical flash
+#define W25Q128JW_CMD_RELEASE_POWERDOWN  0xab
+#define W25Q128JW_CMD_POWERDOWN          0xb9
+#define W25Q128JW_CMD_READ               0x03
+#define W25Q128JW_CMD_READ_DUALIO        0xbb
+#define W25Q128JW_CMD_READ_QUADIO        0xeb
+// Not supported in Verilog flash model
+#define W25Q128JW_CMD_READ_REG2          0x35
+#define W25Q128JW_CMD_WRITE_REG2         0x31
+#define W25Q128JW_CMD_WRITE_ENABLE       0x06
+
 #define REVERT_24b_ADDR(addr) ((((uint32_t)addr & 0xff0000) >> 16) | ((uint32_t)addr & 0xff00) | (((uint32_t)addr & 0xff) << 16))
 #define FLASH_ADDR 0x00008500 // 256B data alignment
 #define FLASH_CLK_MAX_HZ (133*1000*1000) // In Hz (133 MHz for the flash w25q128jvsim used in the EPFL Programmer)
@@ -163,17 +175,6 @@ static inline __attribute__((always_inline)) void spi_config() {
     spi_set_command(&spi_host, cmd_powerup);
     spi_wait_for_ready(&spi_host);
 
-    // Write enable
-    const uint32_t write_enable_cmd = 0x06;
-    spi_write_word(&spi_host, write_enable_cmd);
-    const uint32_t cmd_write_en = spi_create_command((spi_command_t){
-        .len        = 0,
-        .csaat      = false,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
-    });
-    spi_set_command(&spi_host, cmd_write_en);
-    spi_wait_for_ready(&spi_host);
 }
 
 static inline __attribute__((always_inline)) void spi_wait_4_resp()
@@ -231,6 +232,18 @@ int main(int argc, char *argv[]) {
     */
     set_QE_bit();
 
+    // Write enable
+    const uint32_t write_enable_cmd = 0x06;
+    spi_write_word(&spi_host, write_enable_cmd);
+    const uint32_t cmd_write_en = spi_create_command((spi_command_t){
+        .len        = 0,
+        .csaat      = false,
+        .speed      = kSpiSpeedStandard,
+        .direction  = kSpiDirTxOnly
+    });
+    spi_set_command(&spi_host, cmd_write_en);
+    spi_wait_for_ready(&spi_host);
+
     // Write command - Program Page + address
     const uint32_t write_byte_cmd = ((REVERT_24b_ADDR(FLASH_ADDR) << 8) | 0x32); // QUAD SPEED COMMAND
     spi_write_word(&spi_host, write_byte_cmd);
@@ -259,7 +272,7 @@ int main(int argc, char *argv[]) {
     // Wait for all the fifo to be drained
     spi_wait_for_tx_empty(&spi_host);
     #ifndef TARGET_SIM
-    spi_wait_4_resp()
+    spi_wait_4_resp();
     #endif // TARGET_SIM
 
     // Read back the data
