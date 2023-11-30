@@ -26,7 +26,7 @@
 // updates output signals 1ns after the SPI clock edge.
 //
 // Supported commands:
-//    AB, B9, FF, 03, BB, EB, ED, 06, 02
+//    AB, B9, FF, 03, BB, EB, ED, 06, 02, 32
 //
 // Well written SPI flash data sheets:
 //    Cypress S25FL064L http://www.cypress.com/file/316661/download

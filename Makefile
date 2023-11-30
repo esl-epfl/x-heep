@@ -224,12 +224,12 @@ openroad-sky130:
 
 ## Read the id from the EPFL_Programmer flash
 flash-readid:
-	cd sw/vendor/yosyshq_icestorm/iceprog; \
+	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
 	./iceprog -d i:0x0403:0x6011 -I B -t;
 
 ## Loads the obtained binary to the EPFL_Programmer flash
 flash-prog:
-	cd sw/vendor/yosyshq_icestorm/iceprog; \
+	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
 	./iceprog -d i:0x0403:0x6011 -I B $(mkfile_path)/sw/build/main.hex;
 
 ## Run openOCD w/ EPFL_Programmer
