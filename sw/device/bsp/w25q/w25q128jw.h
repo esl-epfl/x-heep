@@ -37,7 +37,6 @@
 #include "spi_host.h"
 #include "soc_ctrl.h"
 #include "core_v_mini_mcu.h"
-#include "x-heep.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -102,13 +101,6 @@
 #define FLASH_ERROR 1 /** Generic error @hideinitializer*/
 /** @} */
 
-/**
- * @bref If the target is the FPGA, use the SPI FLASH.
-*/
-#ifdef TARGET_PYNQ_Z2
-#define USE_SPI_FLASH
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -157,7 +149,7 @@ uint8_t w25q128jw_init();
  * The function automatically uses the best parameters based on
  * the current state of the system and the length of the data to read.
  * 
- * @param addr 24-bit address to read from.
+ * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer to be filled.
  * @param length number of bytes to read.
  * @return FLASH_OK if the read is successful, @ref error_codes otherwise.
@@ -173,7 +165,7 @@ uint8_t w25q128jw_read(uint32_t addr, void* data, uint32_t length);
  * the correct sectors before writing. All the bytes not written will be
  * copied back in their current state before the write operation.
  * 
- * @param addr 24-bit address to write to.
+ * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @param erase_before_write if set to 1, the function will take care of erasing
@@ -185,7 +177,7 @@ uint8_t w25q128jw_write(uint32_t addr, void* data, uint32_t length, uint8_t eras
  * @brief Read from flash at standard speed.
  * 
  * 
- * @param addr 24-bit address to read from.
+ * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer to be filled.
  * @param length number of bytes to read.
  * @retval FLASH_OK if the read is successful, @ref error_codes otherwise.
@@ -197,7 +189,7 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length);
  * @brief Write to flash at standard speed.
  * 
  * 
- * @param addr 24-bit address to write to.
+ * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
@@ -208,7 +200,7 @@ uint8_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t length);
 /**
  * @brief Read from flash at standard speed using DMA
  * 
- * @param addr 24-bit address to read from.
+ * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to read.
  * @return FLASH_OK if the read is successful, @ref error_codes otherwise.
@@ -219,7 +211,7 @@ uint8_t w25q128jw_read_standard_dma(uint32_t addr, void* data, uint32_t length);
 /**
  * @brief Write to flash at standard speed using DMA
  * 
- * @param addr 24-bit address to write to.
+ * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
@@ -229,7 +221,7 @@ uint8_t w25q128jw_write_standard_dma(uint32_t addr, void* data, uint32_t length)
 /**
  * @brief Read from flash at quad speed.
  * 
- * @param addr 24-bit address to write to.
+ * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
@@ -239,7 +231,7 @@ uint8_t w25q128jw_read_quad(uint32_t addr, void* data, uint32_t length);
 /**
  * @brief Write to flash at quad speed.
  * 
- * @param addr 24-bit address to write to.
+ * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
@@ -249,7 +241,7 @@ uint8_t w25q128jw_write_quad(uint32_t addr, void* data, uint32_t length);
 /**
  * @brief Read from flash at quad speed using DMA.
  * 
- * @param addr 24-bit address to write to.
+ * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
@@ -259,7 +251,7 @@ uint8_t w25q128jw_read_quad_dma(uint32_t addr, void* data, uint32_t length);
 /**
  * @brief Write to flash at quad speed using DMA.
  * 
- * @param addr 24-bit address to write to.
+ * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.

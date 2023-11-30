@@ -45,6 +45,9 @@
 /* To get TX and RX FIFO depth */
 #include "spi_host_regs.h"
 
+/* To get the target of the compilation (sim or pynq) */
+#include "x-heep.h"
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        DEFINITIONS AND MACROS                            */
@@ -56,6 +59,13 @@
  * in order to provide the MSB first.
 */
 #define REVERT_24b_ADDR(addr) ((((uint32_t)(addr) & 0xff0000) >> 16) | ((uint32_t)(addr) & 0xff00) | (((uint32_t)(addr) & 0xff) << 16))
+
+/**
+ * @bref If the target is the FPGA, use the SPI FLASH.
+*/
+#ifdef TARGET_PYNQ_Z2
+#define USE_SPI_FLASH
+#endif
 
 /****************************************************************************/
 /**                                                                        **/
