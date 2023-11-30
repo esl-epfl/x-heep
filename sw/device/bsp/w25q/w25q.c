@@ -912,6 +912,9 @@ static uint8_t set_QE_bit() {
     });
     spi_set_command(&spi, reg2_write_2);
     spi_wait_for_ready(&spi);
+
+    // Wait flash to complete write routine
+    flash_wait();
     
     // Read back Status Register 2
     spi_write_word(&spi, reg2_read_cmd);
