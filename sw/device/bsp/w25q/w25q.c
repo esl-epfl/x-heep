@@ -364,7 +364,7 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
         i_start += SPI_HOST_PARAM_RX_DEPTH/4;
     }
     // Take into account the extra bytes (if any)
-    if (length_original%4 != 0) {
+    if (length_original % 4 != 0) {
         uint32_t last_word = 0;
         spi_read_word(&spi, &last_word);
         memcpy(&data_32bit[length_original/4], &last_word, length%4);
@@ -459,8 +459,7 @@ uint8_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length) 
     spi_wait_for_ready(&spi);
 
     // Wait for DMA to finish transaction
-    printf("Waiting dma...\n");
-    while(!dma_is_ready());
+        while(!dma_is_ready());
 
     return FLASH_OK;
 }
@@ -1067,11 +1066,15 @@ static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length,
     */
     if (addr % 256 != 0) {
         uint8_t tmp_len = 256 - (addr % 256);
+        tmp_len = MIN(tmp_len, length);
         page_write(addr, data_8bit, tmp_len, speed, dma_flag);
         addr += tmp_len;
         data_8bit += tmp_len;
         length -= tmp_len;
     }
+
+    // Check if we already finished
+    if ((int32_t)length == 0) return FLASH_OK;
 
     // I cannot program more than a page (256 Bytes) at a time.
     int flag = 1;
