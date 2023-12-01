@@ -85,14 +85,14 @@ uint32_t flash_original_1024B[256] = {
 };
 // ----------------
 
-#define FLASH_ADDR 0x00088500 // Misalligned!
+#define FLASH_ADDR 0x00008500 // Misalligned!
 
 int main(int argc, char *argv[]) {
     printf("BSP write test\n\r");
     w25q_error_codes_t status;
 
     uint32_t *test_buffer = flash_original_1024B;
-    uint32_t len = 1024;
+    uint32_t len = 789;
 
     // Init SPI host and SPI<->Flash bridge parameters 
     status = w25q128jw_init();

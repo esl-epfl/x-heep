@@ -1005,36 +1005,47 @@ static void flash_reset() {
     spi_wait_for_ready(&spi);
 }
 
+/*
+ * TODO: update calls to read and write functions
+*/
 uint8_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length) {
-    // Sanity checks
-    if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
+    printf("Erase and write\n");
 
     uint32_t remaining_length = length;
     uint32_t current_addr = addr;
     uint8_t *current_data = data;
 
-    // Allocate a buffer to store the sector data
+    // Allocate a buffer (of 4kB) to store the sector data
     uint8_t *sector_data = (uint8_t *)malloc(4096);
     if (sector_data == NULL) return FLASH_ERROR;
+    printf("Allocated sector data buffer\n");
 
     while (remaining_length > 0) {
-        // Start address of the sector to erase
+        // Start address of the sector to erase, 4kB aligned
         uint32_t sector_start_addr = current_addr & 0xfffff000;
 
         // Read the full sector and save it into RAM
-        w25q128jw_read(sector_start_addr, sector_data, 4096);
+        printf("Read sector %x\n", sector_start_addr);
+        w25q128jw_read_standard(sector_start_addr, sector_data, 4096);
+        printf("Read sector end\n", sector_start_addr);
 
-        // Erase the sector
+        // Erase the sector (no need to do so in simulation)
+        #ifdef TARGET_PYNQ_Z2
         w25q128jw_4k_erase(sector_start_addr);
+        #endif // TARGET_PYNQ_Z2
 
         // Calculate the length of data to write in this sector
         uint32_t write_length = MIN(4096 - (current_addr - sector_start_addr), remaining_length);
+        printf("Remaining length: %d\n", remaining_length);
+        printf("Other term: %d\n", 4096 - (current_addr - sector_start_addr));
+        printf("Write length: %d\n", write_length);
 
         // Modify the data in RAM to include the new data
         memcpy(&sector_data[current_addr - sector_start_addr], current_data, write_length);
 
         // Write the modified data back to the flash (without erasing this time)
-        w25q128jw_write(sector_start_addr, sector_data, 4096, 0);
+        w25q128jw_write_standard(sector_start_addr, sector_data, 4096);
+        printf("Wrote sector %x\n", sector_start_addr);
 
         // Update the remaining length, address and data pointer
         remaining_length -= write_length;
