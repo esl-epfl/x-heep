@@ -338,12 +338,14 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
      * RX FIFO depth. In this case the flag is not set to 0, so the loop will
      * continue until all the data is read.
     */
+    printf("Before data start arriving...\n");
     int flag = 1;
     int to_read = 0;
     int i_start = 0;
     int length_original = length;
     uint32_t *data_32bit = (uint32_t *)data;
     while (flag) {
+        printf("%u \n", length);
         if (length >= SPI_HOST_PARAM_RX_DEPTH) {
             spi_set_rx_watermark(&spi, SPI_HOST_PARAM_RX_DEPTH/4);
             length -= SPI_HOST_PARAM_RX_DEPTH;
@@ -370,6 +372,7 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
         memcpy(&data_32bit[length_original/4], &last_word, length%4);
     }
 
+    printf("Flash ok\n");
     return FLASH_OK; // Success
 }
 
