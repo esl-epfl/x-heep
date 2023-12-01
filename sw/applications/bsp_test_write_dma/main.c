@@ -90,11 +90,11 @@ int main(int argc, char *argv[]) {
     if (status != FLASH_OK) return EXIT_FAILURE;
 
     // Write to flash memory at specific address
-    uint32_t test_zeros[8] = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
-    status = w25q128jw_write_quad_dma(FLASH_ADDR, test_zeros, 32);
-    if (status != FLASH_OK) return EXIT_FAILURE;
+    // uint32_t test_zeros[8] = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
+    // status = w25q128jw_write_quad_dma(FLASH_ADDR, test_zeros, 32);
+    // if (status != FLASH_OK) return EXIT_FAILURE;
 
-    status = w25q128jw_write_quad_dma(FLASH_ADDR, test_buffer, 30);
+    status = w25q128jw_write_standard_dma(FLASH_ADDR, test_buffer, len);
     if (status != FLASH_OK) return EXIT_FAILURE;
 
     // Read from flash memory at the same address
