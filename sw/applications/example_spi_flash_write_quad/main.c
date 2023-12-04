@@ -150,18 +150,7 @@ static inline __attribute__((always_inline)) void spi_config() {
     spi_set_configopts(&spi_host, 0, chip_cfg);
     spi_set_csid(&spi_host, 0);
 
-    // Reset
-    const uint32_t reset_cmd = 0xFFFFFFFF; // ???
-    spi_write_word(&spi_host, reset_cmd);
-    const uint32_t cmd_reset = spi_create_command((spi_command_t){
-        .len        = 3,
-        .csaat      = false,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
-    });
-    spi_set_command(&spi_host, cmd_reset);
-    spi_wait_for_ready(&spi_host);
-    spi_set_rx_watermark(&spi_host,1);
+    // Reset is not needed. The flash is in reset state at startup.
 
     // Power up flash
     const uint32_t powerup_byte_cmd = 0xab;
@@ -271,9 +260,11 @@ int main(int argc, char *argv[]) {
 
     // Wait for all the fifo to be drained
     spi_wait_for_tx_empty(&spi_host);
-    #ifndef TARGET_SIM
+
+    // Wait for the flash to be ready (FPGA only)
+    #ifdef TARGET_PYNQ_Z2
     spi_wait_4_resp();
-    #endif // TARGET_SIM
+    #endif
 
     // Read back the data
     // Fill TX FIFO with TX data (read command + 3B address)
@@ -332,8 +323,8 @@ int main(int argc, char *argv[]) {
 }
 
 void set_QE_bit() {
-    // W25Q128JW requires the QE (Quad Enable) bit to be set in order to operate at quad speed
-    // The Verilog flash do not model this behavior and no actions are required
+    // W25Q128JW requires the QE (Quad Enable) bit to be set in order to operate at quad speed.
+    // The Verilog flash do not model this behavior and no actions are required.
     #ifdef TARGET_PYNQ_Z2
 
     PRINTF("FPGA target: setting QE bit...\n\r");
