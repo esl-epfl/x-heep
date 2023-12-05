@@ -183,17 +183,7 @@ static inline __attribute__((always_inline)) void spi_config()
     spi_set_configopts(&spi_host, 0, chip_cfg);
     spi_set_csid(&spi_host, 0);
 
-    // Reset
-    const uint32_t reset_cmd = 0xFFFFFFFF;
-    spi_write_word(&spi_host, reset_cmd);
-    const uint32_t cmd_reset = spi_create_command((spi_command_t){
-        .len        = 3,
-        .csaat      = false,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
-    });
-    spi_set_command(&spi_host, cmd_reset);
-    spi_wait_for_ready(&spi_host);
+    // Set read watermark to 1 word
     spi_set_rx_watermark(&spi_host,1);
 
     // Power up flash

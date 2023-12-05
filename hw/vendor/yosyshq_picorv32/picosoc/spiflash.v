@@ -131,7 +131,6 @@ module spiflash (
 
 				if (spi_cmd == 8'h ff)
 					xip_cmd = 0;
-				
 				if (spi_cmd == 8'h 06)
 					write_enable = 1;
 			end
