@@ -482,6 +482,7 @@ This project offers two different X-HEEP implementetions on the Xilinx FPGAs, ca
 ### Standalone-FEMU (Standalone Fpga EMUlation)
 
 In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the FPGA, and its input/output are connected to the available headers on the FPGA board.
+Two FPGA boards are actually supported: the Xilinx Pynq-z2 and Nexys-A7-100t.
 
 Make sure you have the FPGA board files installed in your Vivado.
 
@@ -491,6 +492,12 @@ To build and program the bitstream for your FPGA with vivado, type:
 
 ```
 make vivado-fpga FPGA_BOARD=pynq-z2
+```
+
+or
+
+```
+make vivado-fpga FPGA_BOARD=nexys-a7-100t
 ```
 
 or add the flag `use_bscane_xilinx` to use the native Xilinx scanchain:
