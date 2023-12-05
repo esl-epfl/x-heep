@@ -28,7 +28,7 @@ static const ptrdiff_t kHartRegisterSpacing = 0x100;
  * Returns the MMIO offset for the register `reg_offset`, for the zero-indexed
  * `hart`.
  */
-ptrdiff_t reg_for_hart(uint32_t hart, ptrdiff_t reg_offset) {
+static ptrdiff_t reg_for_hart(uint32_t hart, ptrdiff_t reg_offset) {
   return kHartRegisterSpacing * hart + reg_offset;
 }
 

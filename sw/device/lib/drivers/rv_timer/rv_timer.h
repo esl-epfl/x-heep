@@ -320,8 +320,6 @@ rv_timer_result_t rv_timer_irq_restore(const rv_timer_t *timer,
                                                uint32_t hart_id,
                                                uint32_t state);
 
-ptrdiff_t reg_for_hart(uint32_t hart, ptrdiff_t reg_offset);
-
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus
