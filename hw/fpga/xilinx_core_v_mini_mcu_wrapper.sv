@@ -33,7 +33,7 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic uart_rx_i,
     inout logic uart_tx_o,
 
-    inout logic [19:0] gpio_io,
+    inout logic [17:0] gpio_io,
 
     output logic exit_value_o,
     inout  logic exit_valid_o,
