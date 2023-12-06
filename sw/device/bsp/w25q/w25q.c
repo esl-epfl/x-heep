@@ -255,24 +255,38 @@ uint8_t w25q128jw_read(uint32_t addr, void *data, uint32_t length) {
     // Sanity checks
     if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
 
-    // Check DMA availability
-    uint32_t dma_avail = dma_is_ready();
+    // Define the status variable
+    w25q_error_codes_t status;
 
-    // TODO
+    if (length < RX_DMA_THRESHOLD) {
+        status = w25q128jw_read_quad(addr, data, length);
+        if (status != FLASH_OK) return status;
+    } else {
+        // Wait DMA to be free
+        while(!dma_is_ready());
+        status = w25q128jw_read_quad_dma(addr, data, length);
+        if (status != FLASH_OK) return status;
+    }
 
-    return 0;
+    return FLASH_OK;
 }
 
 uint8_t w25q128jw_write(uint32_t addr, void *data, uint32_t length, uint8_t erase_before_write) {
     // Sanity checks
     if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
 
-    // Check DMA availability
-    uint32_t dma_avail = dma_is_ready();
+    // Define the status variable
+    w25q_error_codes_t status;
 
-    // TODO
-    uint8_t status = erase_and_write(addr, data, length);
-    if (status == FLASH_ERROR) printf("Flash error");
+    if (erase_before_write == 1) {
+        status = erase_and_write(addr, data, length);
+        if (status != FLASH_OK) return status;
+    } else {
+        // Wait DMA to be free
+        while(!dma_is_ready());
+        status = w25q128jw_write_quad_dma(addr, data, length);
+        if (status != FLASH_OK) return status;
+    }
 
     return FLASH_OK;
 }
@@ -350,7 +364,6 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
         memcpy(&data_32bit[length_original/4], &last_word, length%4);
     }
 
-    printf("Flash ok\n");
     return FLASH_OK; // Success
 }
 

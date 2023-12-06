@@ -101,6 +101,21 @@
 #define FLASH_ERROR 1 /** Generic error @hideinitializer*/
 /** @} */
 
+/**
+/**
+ * @brief Threshold value for switching to DMA in read mode.
+ *        If the number of bytes to be read exceeds this threshold,
+ *        DMA is the more efficient data transfer.
+ */
+#define RX_DMA_THRESHOLD 75
+
+/**
+ * @brief Threshold value for switching to DMA in write mode.
+ *        If the number of bytes to be wrote exceeds this threshold,
+ *        DMA is the more efficient data transfer.
+ */
+#define TX_DMA_THRESHOLD 0
+
 #ifdef __cplusplus
 extern "C" {
 #endif

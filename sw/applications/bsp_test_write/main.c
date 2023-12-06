@@ -88,7 +88,7 @@ uint32_t flash_original_1024B[256] = {
 };
 // ----------------
 
-#define FLASH_ADDR 0x00008500 // Misalligned!
+#define FLASH_ADDR 0x00008500
 
 int main(int argc, char *argv[]) {
     printf("BSP write test\n\r");
