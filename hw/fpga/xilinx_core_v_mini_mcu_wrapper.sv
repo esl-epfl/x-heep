@@ -69,9 +69,9 @@ module xilinx_core_v_mini_mcu_wrapper
 
   // low active reset
 `ifdef FPGA_NEXYS
-  assign rst_n   = rst_i;
+  assign rst_n = rst_i;
 `else
-  assign rst_n   = !rst_i;
+  assign rst_n = !rst_i;
 `endif
 
   // reset LED for debugging
