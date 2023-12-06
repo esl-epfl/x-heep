@@ -198,12 +198,7 @@ static int32_t MIN(int32_t a, int32_t b) {
 /****************************************************************************/
 
 /**
- * @brief Flag to signal the end of a SPI transaction.
-*/
-// volatile int8_t spi_intr_flag;
-
-/**
- * @brief SPI host structure.
+ * @brief SPI structure.
 */
 spi_host_t spi;
 
@@ -213,58 +208,41 @@ spi_host_t spi;
 /*                           EXPORTED FUNCTIONS                             */
 /**                                                                        **/
 /****************************************************************************/
-uint8_t w25q128jw_init() {
+uint8_t w25q128jw_init(spi_host_t spi_host) {
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
     /*
-    * To support both simulation and FPGA execution
-    */
-    #ifndef USE_SPI_FLASH
-    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
-    #else
-    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
-    #endif
-
-    /*
-    * Check if memory mapped SPI is enabled. Current version of the bsp
-    * does not support memory mapped SPI.
+     * Check if memory mapped SPI is enabled. Current version of the bsp
+     * does not support memory mapped SPI.
     */
     if (get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO) {
         return FLASH_ERROR; // Error
     }
 
+    // Set the global spi variable to the one passed as argument.
+    spi = spi_host;
+
     #ifdef USE_SPI_FLASH
     // Select SPI host as SPI output
     soc_ctrl_select_spi_host(&soc_ctrl);
     #endif // USE_SPI_FLASH
-
-    /*
-     * For whatever reason this is required. If not present simulation 
-     * behave very weirdly.
-     * Is is needed also upon reset?
-    */
-    const uint32_t reset_cmd = 0xFFFFFFFF; // WTF???
-    spi_write_word(&spi, reset_cmd);
-    const uint32_t cmd_reset = spi_create_command((spi_command_t){
-        .len        = 3,
-        .csaat      = false,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
-    });
-    spi_set_command(&spi, cmd_reset);
-    spi_wait_for_ready(&spi);
     
     // Enable SPI host device
     spi_set_enable(&spi, true);
+
     // Enable SPI output
     spi_output_enable(&spi, true);
+
     // Configure SPI<->Flash connection on CSID 0
     configure_spi(soc_ctrl);
+
     // Set CSID
     spi_set_csid(&spi, 0);
+
     // Power up flash
     flash_power_up();
+
     // Set QE bit (only FPGA, simulation do not support status registers at all)
     #ifdef TARGET_PYNQ_Z2
     if (set_QE_bit() == FLASH_ERROR) return FLASH_ERROR; // Error occurred while setting QE bit

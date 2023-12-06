@@ -136,12 +136,14 @@ typedef uint8_t w25q_error_codes_t;
  * It also set the QE bit in order to accept Quad I/O commands.
  * By default both error and event interrupts are disabled.
  * 
+ * @param spi_host SPI host to use.
+ * 
  * @note The flash uses CSID 0. If the CSID register value is changed, it must be
  * restored back to 0 before using the flash again.
  * 
  * @return FLASH_OK if the flash is correctly initialized, @ref error_codes otherwise.
 */
-uint8_t w25q128jw_init();
+uint8_t w25q128jw_init(spi_host_t spi_host);
 
 /**
  * @brief Read from flash.

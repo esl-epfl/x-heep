@@ -22,6 +22,9 @@
 #include "x-heep.h"
 #include "w25q128jw.h"
 
+#ifdef TARGET_PYNQ_Z2
+#define USE_SPI_FLASH
+#endif
 
 // End buffer
 uint32_t flash_data[256];
@@ -92,14 +95,22 @@ int main(int argc, char *argv[]) {
     w25q_error_codes_t status;
 
     uint32_t *test_buffer = flash_original_1024B;
-    uint32_t len = 789;
+    uint32_t len = 32;
+
+    spi_host_t spi;
+
+    #ifndef USE_SPI_FLASH
+    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
+    #else
+    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
+    #endif
 
     // Init SPI host and SPI<->Flash bridge parameters 
-    status = w25q128jw_init();
+    status = w25q128jw_init(spi);
     if (status != FLASH_OK) return EXIT_FAILURE;
 
     // Write to flash memory at specific address
-    status = w25q128jw_write(FLASH_ADDR, test_buffer, len, 1);
+    status = w25q128jw_write_standard(FLASH_ADDR, test_buffer, len);
     if (status != FLASH_OK) return EXIT_FAILURE;
 
     // Read from flash memory at the same address
