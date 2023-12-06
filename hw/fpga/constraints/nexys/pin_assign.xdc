@@ -9,8 +9,7 @@ set_property -dict { PACKAGE_PIN C12   IOSTANDARD LVCMOS33 } [get_ports { rst_i 
 
 ## LEDs
 set_property -dict { PACKAGE_PIN H17   IOSTANDARD LVCMOS33 } [get_ports { rst_led }];
-set_property -dict { PACKAGE_PIN K15   IOSTANDARD LVCMOS33 } [get_ports { clk_led }];
-set_property -dict { PACKAGE_PIN J13   IOSTANDARD LVCMOS33 } [get_ports { clk_out }];
+set_property -dict { PACKAGE_PIN J13   IOSTANDARD LVCMOS33 } [get_ports { clk_led }];
 set_property -dict { PACKAGE_PIN N14   IOSTANDARD LVCMOS33 } [get_ports { exit_valid_o }];
 set_property -dict { PACKAGE_PIN R18   IOSTANDARD LVCMOS33 } [get_ports { exit_value_o }];
 
@@ -43,7 +42,7 @@ set_property -dict  { PACKAGE_PIN J2    IOSTANDARD LVCMOS33 } [get_ports { spi_s
 set_property -dict  { PACKAGE_PIN G6    IOSTANDARD LVCMOS33 } [get_ports { spi_sd_io[1] }]; #IO_L19P_T3_35 Sch=jc[4]
 set_property -dict  { PACKAGE_PIN E7    IOSTANDARD LVCMOS33 } [get_ports { spi_sd_io[2] }]; #IO_L6P_T0_35 Sch=jc[7]
 set_property -dict  { PACKAGE_PIN J3    IOSTANDARD LVCMOS33 } [get_ports { spi_sd_io[3] }]; #IO_L22P_T3_35 Sch=jc[8]
-#set_property -dict { PACKAGE_PIN J4    IOSTANDARD LVCMOS33 } [get_ports { JC[9] }]; #IO_L21P_T3_DQS_35 Sch=jc[9]
+set_property -dict  { PACKAGE_PIN J4    IOSTANDARD LVCMOS33 } [get_ports { clk_out }]; #IO_L21P_T3_DQS_35 Sch=jc[9]
 #set_property -dict { PACKAGE_PIN E6    IOSTANDARD LVCMOS33 } [get_ports { JC[10] }]; #IO_L5P_T0_AD13P_35 Sch=jc[10]
 
 

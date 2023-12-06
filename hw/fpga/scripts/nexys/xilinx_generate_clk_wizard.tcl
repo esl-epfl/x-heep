@@ -19,13 +19,12 @@ set_property -dict [ list CONFIG.FREQ_HZ [ expr $out_clk_freq_MHz * 1000000 ] ] 
 # Create instance and set properties
 set clk_wiz_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:clk_wiz:6.0 clk_wiz_0 ]
 set_property -dict [ list \
- CONFIG.CLKIN1_JITTER_PS {80.0} \
- CONFIG.CLKOUT1_JITTER {172.798} \
- CONFIG.CLKOUT1_PHASE_ERROR {96.948} \
+ CONFIG.CLKOUT1_JITTER {333.843} \
+ CONFIG.CLKOUT1_PHASE_ERROR {293.793} \
  CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {15} \
- CONFIG.MMCM_CLKFBOUT_MULT_F {8.000} \
- CONFIG.MMCM_CLKIN1_PERIOD {8.000} \
- CONFIG.MMCM_CLKOUT0_DIVIDE_F {50.000} \
+ CONFIG.MMCM_DIVCLK_DIVIDE {5} \
+ CONFIG.MMCM_CLKFBOUT_MULT_F {49.875} \
+ CONFIG.MMCM_CLKOUT0_DIVIDE_F {66.500} \
  CONFIG.PRIM_IN_FREQ $in_clk_freq_MHz \
  CONFIG.USE_LOCKED {false} \
  CONFIG.USE_RESET {false} \
