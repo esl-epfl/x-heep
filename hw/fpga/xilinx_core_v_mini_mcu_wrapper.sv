@@ -68,7 +68,7 @@ module xilinx_core_v_mini_mcu_wrapper
   logic [CLK_LED_COUNT_LENGTH - 1:0] clk_count;
 
   // low active reset
-  assign rst_n   = !rst_i;
+  assign rst_n   = rst_i;
 
   // reset LED for debugging
   assign rst_led = rst_n;
