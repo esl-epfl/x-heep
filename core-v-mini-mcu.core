@@ -121,6 +121,7 @@ filesets:
 
   ip-fpga-nexys:
     files:
+    - hw/fpga/scripts/nexys/set_board.tcl: { file_type: tclSource }
     - hw/fpga/scripts/nexys/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
 
   fpga-arm-emulation:
