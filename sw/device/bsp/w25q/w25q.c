@@ -202,6 +202,15 @@ static int32_t MIN(int32_t a, int32_t b) {
 */
 spi_host_t spi;
 
+/**
+ * @brief Static vector used in the erase_and_write function.
+ * 
+ * It is used to store the data of a sector (4k) of the flash. Given the dimensions
+ * of the vector, is not possible to allocate it dinamically as it would cause a stack
+ * or heap overflow.
+*/
+uint8_t sector_data[4096];
+
 
 /****************************************************************************/
 /**                                                                        **/
@@ -1009,11 +1018,6 @@ uint8_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length) {
     uint32_t current_addr = addr;
     uint8_t *current_data = data;
 
-    // Allocate a buffer (of 4kB) to store the sector data
-    uint8_t *sector_data = (uint8_t *)malloc(4096);
-    if (sector_data == NULL) return FLASH_ERROR;
-    printf("Allocated sector data buffer\n");
-
     while (remaining_length > 0) {
         // Start address of the sector to erase, 4kB aligned
         uint32_t sector_start_addr = current_addr & 0xfffff000;
@@ -1038,6 +1042,7 @@ uint8_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length) {
         memcpy(&sector_data[current_addr - sector_start_addr], current_data, write_length);
 
         // Write the modified data back to the flash (without erasing this time)
+        printf("Start writing back...\n");
         w25q128jw_write_standard(sector_start_addr, sector_data, 4096);
         printf("Wrote sector %x\n", sector_start_addr);
 
@@ -1046,9 +1051,6 @@ uint8_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length) {
         current_addr += write_length;
         current_data += write_length;
     }
-
-    // Free the sector data buffer
-    free(sector_data);
 
     return FLASH_OK;
 }
