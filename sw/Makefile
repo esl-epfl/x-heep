@@ -25,7 +25,7 @@ PROJECT  ?= hello_world
 # Linker options are 'on_chip' (default),'flash_load','flash_exec'
 LINKER   ?= on_chip
 
-# Target options are 'sim' (default) and 'pynq-z2'
+# Target options are 'sim' (default), 'pynq-z2', and 'nexys-a7-100t'
 TARGET   ?= sim
 
 # Compiler options are 'gcc' (default) and 'clang'
