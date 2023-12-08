@@ -48,6 +48,12 @@
 /* To get the target of the compilation (sim or pynq) */
 #include "x-heep.h"
 
+/* To get the soc_ctrl base address */
+#include "soc_ctrl_structs.h"
+
+/* For word swap operations*/
+#include "bitfield.h"
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        DEFINITIONS AND MACROS                            */
@@ -57,8 +63,9 @@
 /**
  * The flash is expecting the address in Big endian format, so a swap is needed
  * in order to provide the MSB first.
+ * Shift is needed as the byteswap is performed on 32-bit words.
 */
-#define REVERT_24b_ADDR(addr) ((((uint32_t)(addr) & 0xff0000) >> 16) | ((uint32_t)(addr) & 0xff00) | (((uint32_t)(addr) & 0xff) << 16))
+#define REVERT_24b_ADDR(addr) (bitfield_byteswap32(addr) >> 8)
 
 /**
  * @bref If the target is the FPGA, use the SPI FLASH.
@@ -87,10 +94,8 @@ static uint8_t set_QE_bit(void);
 
 /**
  * @brief Configure the SPI<->Flash connection paramethers.
- * 
- * @param soc_ctrl pointer to the soc_ctrl_t structure.
 */
-static void configure_spi(soc_ctrl_t soc_ctrl);
+static void configure_spi();
 
 /**
  * @brief Wait for the flash to be ready.
@@ -209,7 +214,7 @@ spi_host_t spi;
  * of the vector, is not possible to allocate it dinamically as it would cause a stack
  * or heap overflow.
 */
-uint8_t sector_data[4096];
+uint8_t sector_data[FLASH_SECTOR_SIZE];
 
 
 /****************************************************************************/
@@ -218,14 +223,11 @@ uint8_t sector_data[4096];
 /**                                                                        **/
 /****************************************************************************/
 uint8_t w25q128jw_init(spi_host_t spi_host) {
-    soc_ctrl_t soc_ctrl;
-    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
-
     /*
      * Check if memory mapped SPI is enabled. Current version of the bsp
      * does not support memory mapped SPI.
     */
-    if (get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO) {
+    if (soc_ctrl_peri->USE_SPIMEMIO == 1) {
         return FLASH_ERROR; // Error
     }
 
@@ -244,7 +246,7 @@ uint8_t w25q128jw_init(spi_host_t spi_host) {
     spi_output_enable(&spi, true);
 
     // Configure SPI<->Flash connection on CSID 0
-    configure_spi(soc_ctrl);
+    configure_spi();
 
     // Set CSID
     spi_set_csid(&spi, 0);
@@ -301,6 +303,7 @@ uint8_t w25q128jw_write(uint32_t addr, void *data, uint32_t length, uint8_t eras
 }
 
 uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
+    printf("Entering reading function...\n\r");
     // Sanity checks
     if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
 
@@ -353,14 +356,14 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
             to_read += SPI_HOST_PARAM_RX_DEPTH;
         }
         else {
-            spi_set_rx_watermark(&spi, (length%4==0 ? length/4 : length/4+1));
+            spi_set_rx_watermark(&spi, (length%4==0 ? length>>2 : (length>>2)+1));
             to_read += length;
             flag = 0;
         }
         // Wait till SPI RX FIFO is full (or I read all the data)
         spi_wait_for_rx_watermark(&spi);
         // Read data from SPI RX FIFO
-        for (int i = i_start; i < to_read/4; i++) {
+        for (int i = i_start; i < to_read>>2; i++) {
             spi_read_word(&spi, &data_32bit[i]); // Writes a full word
         }
         // Update the starting index
@@ -506,9 +509,9 @@ uint8_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t length) {
     // Quad read requires dummy clocks
     const uint32_t dummy_clocks_cmd = spi_create_command((spi_command_t){
         #ifdef TARGET_PYNQ_Z2
-        .len        = 3,               // W25Q128JW flash needs 4 dummy cycles
+        .len        = DUMMY_CLOCKS_FAST_READ_QUAD_IO,
         #else
-        .len        = 7,               // SPI flash simulation model needs 8 dummy cycles
+        .len        = DUMMY_CLOCKS_SIM,               
         #endif
         .csaat      = true,            // Command not finished
         .speed      = kSpiSpeedQuad,   // Quad speed
@@ -933,9 +936,9 @@ static uint8_t set_QE_bit() {
     else return FLASH_OK;
 }
 
-static void configure_spi(soc_ctrl_t soc_ctrl) {
+static void configure_spi() {
     // Configure SPI clock
-    uint32_t core_clk = soc_ctrl_get_frequency(&soc_ctrl);
+    uint32_t core_clk = soc_ctrl_peri->SYSTEM_FREQUENCY_HZ;
     uint16_t clk_div = 0;
     if(FLASH_CLK_MAX_HZ < core_clk/2){
         clk_div = (core_clk/(FLASH_CLK_MAX_HZ) - 2)/2; // The value is truncated
@@ -1008,9 +1011,6 @@ static void flash_reset() {
     spi_wait_for_ready(&spi);
 }
 
-/*
- * TODO: update calls to read and write functions
-*/
 uint8_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length) {
     printf("Erase and write\n");
 
@@ -1024,7 +1024,7 @@ uint8_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length) {
 
         // Read the full sector and save it into RAM
         printf("Read sector %x\n", sector_start_addr);
-        w25q128jw_read_standard(sector_start_addr, sector_data, 4096);
+        w25q128jw_read(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
         printf("Read sector end\n", sector_start_addr);
 
         // Erase the sector (no need to do so in simulation)
@@ -1033,9 +1033,9 @@ uint8_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length) {
         #endif // TARGET_PYNQ_Z2
 
         // Calculate the length of data to write in this sector
-        uint32_t write_length = MIN(4096 - (current_addr - sector_start_addr), remaining_length);
+        uint32_t write_length = MIN(FLASH_SECTOR_SIZE - (current_addr - sector_start_addr), remaining_length);
         printf("Remaining length: %d\n", remaining_length);
-        printf("Other term: %d\n", 4096 - (current_addr - sector_start_addr));
+        printf("Other term: %d\n", FLASH_SECTOR_SIZE - (current_addr - sector_start_addr));
         printf("Write length: %d\n", write_length);
 
         // Modify the data in RAM to include the new data
@@ -1043,7 +1043,7 @@ uint8_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length) {
 
         // Write the modified data back to the flash (without erasing this time)
         printf("Start writing back...\n");
-        w25q128jw_write_standard(sector_start_addr, sector_data, 4096);
+        w25q128jw_write(sector_start_addr, sector_data, FLASH_SECTOR_SIZE, 0);
         printf("Wrote sector %x\n", sector_start_addr);
 
         // Update the remaining length, address and data pointer
@@ -1074,8 +1074,8 @@ static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length,
      * If the start address is not aligned to a 256 bytes boundary,
      * the first page is written with the first 256 - (addr % 256) bytes.
     */
-    if (addr % 256 != 0) {
-        uint8_t tmp_len = 256 - (addr % 256);
+    if (addr % FLASH_PAGE_SIZE != 0) {
+        uint8_t tmp_len = FLASH_PAGE_SIZE - (addr % FLASH_PAGE_SIZE);
         tmp_len = MIN(tmp_len, length);
         page_write(addr, data_8bit, tmp_len, speed, dma_flag);
         addr += tmp_len;
@@ -1084,16 +1084,16 @@ static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length,
     }
 
     // Check if we already finished
-    if ((int32_t)length == 0) return FLASH_OK;
+    if (length == 0) return FLASH_OK;
 
     // I cannot program more than a page (256 Bytes) at a time.
     int flag = 1;
     while (flag) {
-        if (length > 256) {
-            page_write(addr, data_8bit, 256, speed, dma_flag);
-            addr += 256;
-            data_8bit += 256;
-            length -= 256;
+        if (length > FLASH_PAGE_SIZE) {
+            page_write(addr, data_8bit, FLASH_PAGE_SIZE, speed, dma_flag);
+            addr += FLASH_PAGE_SIZE;
+            data_8bit += FLASH_PAGE_SIZE;
+            length -= FLASH_PAGE_SIZE;
         } else {
             page_write(addr, data_8bit, length, speed, dma_flag);
             flag = 0;

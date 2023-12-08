@@ -116,6 +116,27 @@
  */
 #define TX_DMA_THRESHOLD 0
 
+/**
+ * @brief Dimension of a flash page, in bytes.
+*/
+#define FLASH_PAGE_SIZE 256
+
+/**
+ * @brief Dimension of a flash sector, in bytes.
+*/
+#define FLASH_SECTOR_SIZE 4096
+
+/**
+ * @brief Number of dummy clocks cycles required by the simulation model.
+*/
+#define DUMMY_CLOCKS_SIM 8
+
+/**
+ * @brief Number of dummy clocks cycles required by the flash during
+ * fast read quad I/O operations (command code: EBh).
+*/
+#define DUMMY_CLOCKS_FAST_READ_QUAD_IO 4
+
 #ifdef __cplusplus
 extern "C" {
 #endif
