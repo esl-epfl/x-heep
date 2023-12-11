@@ -1,8 +1,26 @@
 diff --git a/picosoc/spiflash.v b/picosoc/spiflash.v
-index 22b337b..e0eef9f 100644
+index 22b337b..88582b3 100644
 --- a/picosoc/spiflash.v
 +++ b/picosoc/spiflash.v
-@@ -102,8 +102,14 @@ module spiflash (
+@@ -26,7 +26,7 @@
+ // updates output signals 1ns after the SPI clock edge.
+ //
+ // Supported commands:
+-//    AB, B9, FF, 03, BB, EB, ED
++//    AB, B9, FF, 03, BB, EB, ED, 06, 02, 32
+ //
+ // Well written SPI flash data sheets:
+ //    Cypress S25FL064L http://www.cypress.com/file/316661/download
+@@ -61,6 +61,8 @@ module spiflash (
+ 	reg spi_io_vld;
+ 
+ 	reg powered_up = 0;
++	reg write_enable = 0;
++	reg write_enable_reset = 0;
+ 
+ 	localparam [3:0] mode_spi         = 1;
+ 	localparam [3:0] mode_dspi_rd     = 2;
+@@ -102,8 +104,14 @@ module spiflash (
  	reg [7:0] memory [0:16*1024*1024-1];
  
  	reg [1023:0] firmware_file;
@@ -18,3 +36,78 @@ index 22b337b..e0eef9f 100644
  			firmware_file = "firmware.hex";
  		$readmemh(firmware_file, memory);
  	end
+@@ -123,6 +131,9 @@ module spiflash (
+ 
+ 				if (spi_cmd == 8'h ff)
+ 					xip_cmd = 0;
++
++				if (spi_cmd == 8'h 06)
++					write_enable = 1;
+ 			end
+ 
+ 			if (powered_up && spi_cmd == 'h 03) begin
+@@ -141,6 +152,25 @@ module spiflash (
+ 				end
+ 			end
+ 
++			if (powered_up && write_enable && spi_cmd == 'h 02) begin
++				if (bytecount == 1)
++					write_enable_reset = 1;
++
++				if (bytecount == 2)
++					spi_addr[23:16] = buffer;
++
++				if (bytecount == 3)
++					spi_addr[15:8] = buffer;
++
++				if (bytecount == 4)
++					spi_addr[7:0] = buffer;
++
++				if (bytecount >= 5 && bytecount <= 260) begin
++					memory[spi_addr] = buffer;
++					spi_addr = spi_addr + 1;
++				end
++			end
++
+ 			if (powered_up && spi_cmd == 'h bb) begin
+ 				if (bytecount == 1)
+ 					mode = mode_dspi_rd;
+@@ -191,6 +221,27 @@ module spiflash (
+ 				end
+ 			end
+ 
++			if (powered_up && write_enable && spi_cmd == 'h 32) begin
++				if (bytecount == 1)
++					write_enable_reset = 1;
++
++				if (bytecount == 2)
++					spi_addr[23:16] = buffer;
++
++				if (bytecount == 3)
++					spi_addr[15:8] = buffer;
++
++				if (bytecount == 4) begin
++					spi_addr[7:0] = buffer;
++					mode = mode_qspi_rd;
++				end
++
++				if (bytecount >= 5 && bytecount <= 260) begin
++					memory[spi_addr] = buffer;
++					spi_addr = spi_addr + 1;
++				end
++			end
++
+ 			if (powered_up && spi_cmd == 'h ed) begin
+ 				if (bytecount == 1)
+ 					next_mode = mode_qspi_ddr_rd;
+@@ -268,6 +319,10 @@ module spiflash (
+ 				$display("");
+ 				$fflush;
+ 			end
++			if (write_enable_reset) begin
++				write_enable = 0;
++				write_enable_reset = 0;
++			end
+ 			buffer = 0;
+ 			bitcount = 0;
+ 			bytecount = 0;

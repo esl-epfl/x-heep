@@ -191,17 +191,7 @@ static inline __attribute__((always_inline)) void spi_config(DATA_TYPE* flash_ad
     spi_set_configopts(&spi_host, 0, chip_cfg);
     spi_set_csid(&spi_host, 0);
 
-    // Reset
-    const uint32_t reset_cmd = 0xFFFFFFFF;
-    spi_write_word(&spi_host, reset_cmd);
-    const uint32_t cmd_reset = spi_create_command((spi_command_t){
-        .len        = 3,
-        .csaat      = false,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
-    });
-    spi_set_command(&spi_host, cmd_reset);
-    spi_wait_for_ready(&spi_host);
+    // Set read watermark to 1 word
     spi_set_rx_watermark(&spi_host,1);
 
     // Power up flash
@@ -279,13 +269,6 @@ DATA_TYPE __attribute__((section(".xheep_data_flash_only"))) flash_buffer[COPY_D
 
 int main(int argc, char *argv[])
 {
-
-#ifdef TARGET_SIM
-  #pragma message("This app does not allow Flash write operations in simulation!")
-    PRINTF("Flash writes are not permitted during Simulation, only on FPGA\n");
-    return EXIT_SUCCESS;
-#endif
-
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
@@ -379,12 +362,15 @@ int main(int argc, char *argv[])
     }
     PRINTF("triggered\n\r");
 
+    // In simulation there is no need to wait
+    #ifdef USE_SPI_FLASH
     spi_wait_4_resp();
+    #endif //USE_SPI_FLASH
 
     PRINTF("%d Bytes written in Flash at @ 0x%08x \n\r", COPY_DATA_UNITS*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE), flash_buffer);
 
 
-#endif //TEST_SPI_2_MEM
+#endif // TEST_MEM_2_SPI
 
 #ifdef TEST_SPI_2_MEM
 
