@@ -264,13 +264,15 @@ static inline __attribute__((always_inline)) void spi_wait_4_resp()
 }
 
 // Reserve memory array
-DATA_TYPE __attribute__((section(".xheep_data_flash_only"))) flash_buffer[COPY_DATA_UNITS] __attribute__ ((aligned (256))); // 256B data alignment
+DATA_TYPE flash_original[COPY_DATA_UNITS] __attribute__ ((aligned (256))); // 256B data alignment
 
 
 int main(int argc, char *argv[])
 {
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+
+    uint32_t* flash_original_lma = get_data_address_lma(flash_original);
 
 #ifdef USE_SPI_FLASH
    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO )
@@ -279,7 +281,9 @@ int main(int argc, char *argv[])
         return EXIT_SUCCESS;
     }
 #endif
-    spi_config(flash_buffer);
+
+
+    spi_config(flash_original_lma);
     dma_init(NULL);
 
     dma_config_flags_t res;
@@ -367,7 +371,7 @@ int main(int argc, char *argv[])
     spi_wait_4_resp();
     #endif //USE_SPI_FLASH
 
-    PRINTF("%d Bytes written in Flash at @ 0x%08x \n\r", COPY_DATA_UNITS*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE), flash_buffer);
+    PRINTF("%d Bytes written in Flash at @ 0x%08x \n\r", COPY_DATA_UNITS*DMA_DATA_TYPE_2_SIZE(TEST_DATA_TYPE), flash_original);
 
 
 #endif // TEST_MEM_2_SPI
@@ -415,7 +419,7 @@ int main(int argc, char *argv[])
     PRINTF("load: %u \n\r", res);
 
     // The address bytes sent through the SPI to the Flash are in reverse order
-    const int32_t read_byte_cmd = ((REVERT_24b_ADDR(flash_buffer) << 8) | 0x03);
+    const int32_t read_byte_cmd = ((REVERT_24b_ADDR(flash_original_lma) << 8) | 0x03);
 
     // Fill TX FIFO with TX data (read command + 3B address)
     spi_write_word(&spi_host, read_byte_cmd);
