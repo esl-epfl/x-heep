@@ -26,7 +26,7 @@
 // updates output signals 1ns after the SPI clock edge.
 //
 // Supported commands:
-//    AB, B9, FF, 03, BB, EB, ED
+//    AB, B9, FF, 03, BB, EB, ED, 06, 02, 32
 //
 // Well written SPI flash data sheets:
 //    Cypress S25FL064L http://www.cypress.com/file/316661/download
@@ -61,6 +61,8 @@ module spiflash (
 	reg spi_io_vld;
 
 	reg powered_up = 0;
+	reg write_enable = 0;
+	reg write_enable_reset = 0;
 
 	localparam [3:0] mode_spi         = 1;
 	localparam [3:0] mode_dspi_rd     = 2;
@@ -129,6 +131,9 @@ module spiflash (
 
 				if (spi_cmd == 8'h ff)
 					xip_cmd = 0;
+
+				if (spi_cmd == 8'h 06)
+					write_enable = 1;
 			end
 
 			if (powered_up && spi_cmd == 'h 03) begin
@@ -143,6 +148,25 @@ module spiflash (
 
 				if (bytecount >= 4) begin
 					buffer = memory[spi_addr];
+					spi_addr = spi_addr + 1;
+				end
+			end
+
+			if (powered_up && write_enable && spi_cmd == 'h 02) begin
+				if (bytecount == 1)
+					write_enable_reset = 1;
+
+				if (bytecount == 2)
+					spi_addr[23:16] = buffer;
+
+				if (bytecount == 3)
+					spi_addr[15:8] = buffer;
+
+				if (bytecount == 4)
+					spi_addr[7:0] = buffer;
+
+				if (bytecount >= 5 && bytecount <= 260) begin
+					memory[spi_addr] = buffer;
 					spi_addr = spi_addr + 1;
 				end
 			end
@@ -193,6 +217,27 @@ module spiflash (
 
 				if (bytecount >= 5) begin
 					buffer = memory[spi_addr];
+					spi_addr = spi_addr + 1;
+				end
+			end
+
+			if (powered_up && write_enable && spi_cmd == 'h 32) begin
+				if (bytecount == 1)
+					write_enable_reset = 1;
+
+				if (bytecount == 2)
+					spi_addr[23:16] = buffer;
+
+				if (bytecount == 3)
+					spi_addr[15:8] = buffer;
+
+				if (bytecount == 4) begin
+					spi_addr[7:0] = buffer;
+					mode = mode_qspi_rd;
+				end
+
+				if (bytecount >= 5 && bytecount <= 260) begin
+					memory[spi_addr] = buffer;
 					spi_addr = spi_addr + 1;
 				end
 			end
@@ -273,6 +318,10 @@ module spiflash (
 			if (verbose) begin
 				$display("");
 				$fflush;
+			end
+			if (write_enable_reset) begin
+				write_enable = 0;
+				write_enable_reset = 0;
 			end
 			buffer = 0;
 			bitcount = 0;
