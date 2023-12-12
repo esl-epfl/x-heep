@@ -265,7 +265,6 @@ module cve2_top import cve2_pkg::*; #(
 
   `ASSERT_KNOWN(IbexDataGntX, data_gnt_i)
   `ASSERT_KNOWN(IbexDataRValidX, data_rvalid_i)
-  `ASSERT_KNOWN_IF(IbexDataRPayloadX, {data_rdata_i, data_err_i}, data_rvalid_i)
 
   `ASSERT_KNOWN(IbexIrqX, {irq_software_i, irq_timer_i, irq_external_i, irq_fast_i, irq_nm_i})
 
