@@ -6,3 +6,6 @@
 
 lint_off -rule DECLFILENAME -file "*bhv/cve2_sim_clock_gate.sv" -match "*Filename 'cve2_sim_clock_gate' does not match MODULE name: 'cve2_clock_gate'*"
 lint_off -rule UNOPTFLAT -file "*rtl/*.sv" -match "*"
+lint_off -rule UNUSED -file "*rtl/cve2_core.sv" -match "Signal is not used: 'rf_ren_a'*"
+lint_off -rule UNUSED -file "*rtl/cve2_core.sv" -match "Signal is not used: 'rf_ren_b'*"
+lint_off -rule UNUSED -file "*rtl/cve2_wb.sv" -match "Signal is not used:*"

@@ -13,7 +13,7 @@ filesets:
     - x-heep::packages
     - openhwgroup.org:ip:cv32e40p
     - openhwgroup.org:ip:cv32e40x
-    - openhwgroup.org:ip:cve2
+    - openhwgroup:cve2:cve2_top
     - esl_epfl:ip:cv32e40px
     - pulp-platform.org:ip:gpio
     - pulp-platform.org::common_cells
@@ -351,6 +351,7 @@ targets:
         - -override_timescale 1ns/1ps
         - -suppress vlog-2583
         - -suppress vlog-2577
+        - -suppress vlog-2720
         - -pedanticerrors
         - -define MODELSIM
         vsim_options:

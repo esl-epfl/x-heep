@@ -27,4 +27,4 @@ module cve2_clock_gate (
 
   assign clk_o = clk_i & clk_en;
 
-endmodule  // cv32e40p_clock_gate
+endmodule  // cve2_clock_gate
