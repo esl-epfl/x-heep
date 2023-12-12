@@ -97,8 +97,9 @@
  * @defgroup error_codes Error codes
  * @{
 */
-#define FLASH_OK    0  /** No error @hideinitializer*/
-#define FLASH_ERROR 1 /** Generic error @hideinitializer*/
+#define FLASH_OK    0      /** No error @hideinitializer*/
+#define FLASH_ERROR 1      /** Generic error @hideinitializer*/
+#define FLASH_ERROR_DMA 2  /** DMA error @hideinitializer*/
 /** @} */
 
 /**
@@ -136,6 +137,11 @@
  * fast read quad I/O operations (command code: EBh).
 */
 #define DUMMY_CLOCKS_FAST_READ_QUAD_IO 4
+
+/**
+ * @brief Upper bound (not included) for the flash address.
+*/
+#define MAX_FLASH_ADDR 0x00ffffffff
 
 #ifdef __cplusplus
 extern "C" {
@@ -179,7 +185,7 @@ typedef uint8_t w25q_error_codes_t;
  * 
  * @return FLASH_OK if the flash is correctly initialized, @ref error_codes otherwise.
 */
-uint8_t w25q128jw_init(spi_host_t spi_host);
+w25q_error_codes_t w25q128jw_init(spi_host_t spi_host);
 
 /**
  * @brief Read from flash.
@@ -192,7 +198,7 @@ uint8_t w25q128jw_init(spi_host_t spi_host);
  * @param length number of bytes to read.
  * @return FLASH_OK if the read is successful, @ref error_codes otherwise.
 */
-uint8_t w25q128jw_read(uint32_t addr, void* data, uint32_t length);
+w25q_error_codes_t w25q128jw_read(uint32_t addr, void* data, uint32_t length);
 
 /**
  * @brief Write to flash.
@@ -209,7 +215,7 @@ uint8_t w25q128jw_read(uint32_t addr, void* data, uint32_t length);
  * @param erase_before_write if set to 1, the function will take care of erasing
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
 */
-uint8_t w25q128jw_write(uint32_t addr, void* data, uint32_t length, uint8_t erase_before_write);
+w25q_error_codes_t w25q128jw_write(uint32_t addr, void* data, uint32_t length, uint8_t erase_before_write);
 
 /**
  * @brief Read from flash at standard speed.
@@ -220,7 +226,7 @@ uint8_t w25q128jw_write(uint32_t addr, void* data, uint32_t length, uint8_t eras
  * @param length number of bytes to read.
  * @retval FLASH_OK if the read is successful, @ref error_codes otherwise.
 */
-uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length);
+w25q_error_codes_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length);
 
 
 /**
@@ -232,7 +238,7 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length);
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
 */
-uint8_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t length);
+w25q_error_codes_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t length);
 
 
 /**
@@ -243,7 +249,7 @@ uint8_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t length);
  * @param length number of bytes to read.
  * @return FLASH_OK if the read is successful, @ref error_codes otherwise.
 */
-uint8_t w25q128jw_read_standard_dma(uint32_t addr, void* data, uint32_t length);
+w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void* data, uint32_t length);
 
 
 /**
@@ -254,7 +260,7 @@ uint8_t w25q128jw_read_standard_dma(uint32_t addr, void* data, uint32_t length);
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
 */
-uint8_t w25q128jw_write_standard_dma(uint32_t addr, void* data, uint32_t length);
+w25q_error_codes_t w25q128jw_write_standard_dma(uint32_t addr, void* data, uint32_t length);
 
 /**
  * @brief Read from flash at quad speed.
@@ -264,7 +270,7 @@ uint8_t w25q128jw_write_standard_dma(uint32_t addr, void* data, uint32_t length)
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
 */
-uint8_t w25q128jw_read_quad(uint32_t addr, void* data, uint32_t length);
+w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void* data, uint32_t length);
 
 /**
  * @brief Write to flash at quad speed.
@@ -274,7 +280,7 @@ uint8_t w25q128jw_read_quad(uint32_t addr, void* data, uint32_t length);
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
 */
-uint8_t w25q128jw_write_quad(uint32_t addr, void* data, uint32_t length);
+w25q_error_codes_t w25q128jw_write_quad(uint32_t addr, void* data, uint32_t length);
 
 /**
  * @brief Read from flash at quad speed using DMA.
@@ -284,7 +290,7 @@ uint8_t w25q128jw_write_quad(uint32_t addr, void* data, uint32_t length);
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
 */
-uint8_t w25q128jw_read_quad_dma(uint32_t addr, void* data, uint32_t length);
+w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void* data, uint32_t length);
 
 /**
  * @brief Write to flash at quad speed using DMA.
@@ -294,7 +300,7 @@ uint8_t w25q128jw_read_quad_dma(uint32_t addr, void* data, uint32_t length);
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
 */
-uint8_t w25q128jw_write_quad_dma(uint32_t addr, void* data, uint32_t length);
+w25q_error_codes_t w25q128jw_write_quad_dma(uint32_t addr, void* data, uint32_t length);
 
 /**
  * @brief Erase a 4kb sector.

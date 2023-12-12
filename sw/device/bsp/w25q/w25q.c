@@ -88,14 +88,14 @@ static void flash_power_up(void);
 /**
  * @brief Set the QE bit in the flash status register.
  * 
- * @return 1 if the QE bit is set, 0 otherwise.
+ * @return FLASH_OK if the QE bit is set, @ref error_codes otherwise.
 */
-static uint8_t set_QE_bit(void);
+static w25q_error_codes_t set_QE_bit(void);
 
 /**
  * @brief Configure the SPI<->Flash connection paramethers.
 */
-static void configure_spi();
+static void configure_spi(void);
 
 /**
  * @brief Wait for the flash to be ready.
@@ -123,7 +123,7 @@ static void flash_reset(void);
  * @param length number of bytes to write.
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
 */
-static uint8_t erase_and_write(uint32_t addr, uint8_t *data ,uint32_t length);
+static w25q_error_codes_t erase_and_write(uint32_t addr, uint8_t *data ,uint32_t length);
 
 /**
  * @brief Wrapper for page write.
@@ -138,8 +138,9 @@ static uint8_t erase_and_write(uint32_t addr, uint8_t *data ,uint32_t length);
  * @param length number of bytes to write.
  * @param quad if 1, the write is performed at quad speed.
  * @param dma if 1, the write is performed using DMA.
+ * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
 */
-static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad, uint8_t dma);
+static w25q_error_codes_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad, uint8_t dma);
 
 /**
  * @brief Write (up to) a page to the flash.
@@ -150,15 +151,17 @@ static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length,
  * @param quad if 1, the write is performed at quad speed.
  * @param dma if 1, the write is performed using DMA.
 */
-static void page_write(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad, uint8_t dma);
+static w25q_error_codes_t page_write(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad, uint8_t dma);
 
 /**
  * @brief Copy length bytes from data to the SPI TX FIFO, using DMA.
  * 
  * @param data pointer to the data buffer.
  * @param length number of bytes to copy.
+ 
+ * @return FLASH_OK if the operation is successful, @ref error_codes otherwise.
 */
-static uint8_t dma_send_toflash(uint8_t *data, uint32_t length);
+static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length);
 
 /**
  * @brief Enable flash write.
@@ -178,9 +181,9 @@ static void flash_write_enable(void);
  * @param addr 24-bit address.
  * @param data pointer to the data buffer.
  * @param length number of bytes to read/write.
- * @return 1 if the checks are passed, 0 otherwise.
+ * @return FLASH_OK if the sanity checks are passed, @ref error_codes otherwise.
 */
-static uint8_t sanity_checks(uint32_t addr, uint8_t *data, uint32_t length);
+static w25q_error_codes_t sanity_checks(uint32_t addr, uint8_t *data, uint32_t length);
 
 /**
  * @brief Return the minimum between two numbers.
@@ -222,7 +225,7 @@ uint8_t sector_data[FLASH_SECTOR_SIZE];
 /*                           EXPORTED FUNCTIONS                             */
 /**                                                                        **/
 /****************************************************************************/
-uint8_t w25q128jw_init(spi_host_t spi_host) {
+w25q_error_codes_t w25q128jw_init(spi_host_t spi_host) {
     /*
      * Check if memory mapped SPI is enabled. Current version of the bsp
      * does not support memory mapped SPI.
@@ -236,7 +239,7 @@ uint8_t w25q128jw_init(spi_host_t spi_host) {
 
     #ifdef USE_SPI_FLASH
     // Select SPI host as SPI output
-    soc_ctrl_select_spi_host(&soc_ctrl);
+    soc_ctrl_select_spi_host((soc_ctrl_t*)soc_ctrl_peri);
     #endif // USE_SPI_FLASH
     
     // Enable SPI host device
@@ -262,9 +265,9 @@ uint8_t w25q128jw_init(spi_host_t spi_host) {
     return FLASH_OK; // Success
 }
 
-uint8_t w25q128jw_read(uint32_t addr, void *data, uint32_t length) {
+w25q_error_codes_t w25q128jw_read(uint32_t addr, void *data, uint32_t length) {
     // Sanity checks
-    if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
+    if (sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     // Define the status variable
     w25q_error_codes_t status;
@@ -282,30 +285,28 @@ uint8_t w25q128jw_read(uint32_t addr, void *data, uint32_t length) {
     return FLASH_OK;
 }
 
-uint8_t w25q128jw_write(uint32_t addr, void *data, uint32_t length, uint8_t erase_before_write) {
+w25q_error_codes_t w25q128jw_write(uint32_t addr, void *data, uint32_t length, uint8_t erase_before_write) {
     // Sanity checks
-    if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
+    if (sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     // Define the status variable
-    w25q_error_codes_t status;
+    w25q_error_codes_t status = FLASH_OK;
 
     if (erase_before_write == 1) {
         status = erase_and_write(addr, data, length);
-        if (status != FLASH_OK) return status;
     } else {
         // Wait DMA to be free
         while(!dma_is_ready());
         status = w25q128jw_write_quad_dma(addr, data, length);
-        if (status != FLASH_OK) return status;
     }
 
-    return FLASH_OK;
+    return status;
 }
 
-uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
+w25q_error_codes_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
     printf("Entering reading function...\n\r");
     // Sanity checks
-    if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
+    if (sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     // Address + Read command
     uint32_t read_byte_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_RD);
@@ -351,7 +352,7 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
     while (flag) {
         printf("%u \n", length);
         if (length >= SPI_HOST_PARAM_RX_DEPTH) {
-            spi_set_rx_watermark(&spi, SPI_HOST_PARAM_RX_DEPTH/4);
+            spi_set_rx_watermark(&spi, SPI_HOST_PARAM_RX_DEPTH>>2);
             length -= SPI_HOST_PARAM_RX_DEPTH;
             to_read += SPI_HOST_PARAM_RX_DEPTH;
         }
@@ -367,26 +368,26 @@ uint8_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
             spi_read_word(&spi, &data_32bit[i]); // Writes a full word
         }
         // Update the starting index
-        i_start += SPI_HOST_PARAM_RX_DEPTH/4;
+        i_start += SPI_HOST_PARAM_RX_DEPTH>>2;
     }
     // Take into account the extra bytes (if any)
     if (length_original % 4 != 0) {
         uint32_t last_word = 0;
         spi_read_word(&spi, &last_word);
-        memcpy(&data_32bit[length_original/4], &last_word, length%4);
+        memcpy(&data_32bit[length_original>>2], &last_word, length%4);
     }
 
     return FLASH_OK; // Success
 }
 
-uint8_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t length) {
+w25q_error_codes_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t length) {
     // Call the wrapper with quad = 0, dma = 0
     return page_write_wrapper(addr, data, length, 0, 0);
 }
 
-uint8_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length) {
+w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length) {
     // Sanity checks
-    if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
+    if (sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     /*
      * SET UP DMA
@@ -410,7 +411,7 @@ uint8_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length) 
         .type = DMA_DATA_TYPE_WORD, // Data type is word
     };
     // Size is in data units (words in this case)
-    tgt_src.size_du = (length%4==0) ? length/4 : length/4+1;
+    tgt_src.size_du = (length%4==0) ? length>>2 : (length>>2)+1;
     // Target is SPI RX FIFO
     tgt_src.ptr = (uint8_t*)fifo_ptr_rx;
     // Trigger to control the data flow
@@ -470,14 +471,14 @@ uint8_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length) 
     return FLASH_OK;
 }
 
-uint8_t w25q128jw_write_standard_dma(uint32_t addr, void *data, uint32_t length) {
+w25q_error_codes_t w25q128jw_write_standard_dma(uint32_t addr, void *data, uint32_t length) {
     // Call the wrapper with quad = 0, dma = 1
     return page_write_wrapper(addr, data, length, 0, 1);
 }
 
-uint8_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t length) {
+w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t length) {
     // Sanity checks
-    if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
+    if (sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     // Send quad read command at standard speed
     uint32_t cmd_read_quadIO = FC_RDQIO;
@@ -509,9 +510,9 @@ uint8_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t length) {
     // Quad read requires dummy clocks
     const uint32_t dummy_clocks_cmd = spi_create_command((spi_command_t){
         #ifdef TARGET_PYNQ_Z2
-        .len        = DUMMY_CLOCKS_FAST_READ_QUAD_IO,
+        .len        = DUMMY_CLOCKS_FAST_READ_QUAD_IO-1,
         #else
-        .len        = DUMMY_CLOCKS_SIM,               
+        .len        = DUMMY_CLOCKS_SIM-1,               
         #endif
         .csaat      = true,            // Command not finished
         .speed      = kSpiSpeedQuad,   // Quad speed
@@ -547,42 +548,42 @@ uint8_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t length) {
     uint32_t *data_32bit = (uint32_t *)data;
     while (flag) {
         if (length >= SPI_HOST_PARAM_RX_DEPTH) {
-            spi_set_rx_watermark(&spi, SPI_HOST_PARAM_RX_DEPTH/4);
+            spi_set_rx_watermark(&spi, SPI_HOST_PARAM_RX_DEPTH>>2);
             length -= SPI_HOST_PARAM_RX_DEPTH;
             to_read += SPI_HOST_PARAM_RX_DEPTH;
         }
         else {
-            spi_set_rx_watermark(&spi, (length%4==0 ? length/4 : length/4+1));
+            spi_set_rx_watermark(&spi, (length%4==0 ? length>>2 : (length>>2)+1));
             to_read += length;
             flag = 0;
         }
         // Wait till SPI RX FIFO is full (or I read all the data)
         spi_wait_for_rx_watermark(&spi);
         // Read data from SPI RX FIFO
-        for (int i = i_start; i < to_read/4; i++) {
+        for (int i = i_start; i < to_read>>2; i++) {
             spi_read_word(&spi, &data_32bit[i]); // Writes a full word
         }
         // Update the starting index
-        i_start += SPI_HOST_PARAM_RX_DEPTH/4;
+        i_start += SPI_HOST_PARAM_RX_DEPTH>>2;
     }
     // Take into account the extra bytes (if any)
     if (length_original%4 != 0) {
         uint32_t last_word = 0;
         spi_read_word(&spi, &last_word);
-        memcpy(&data_32bit[length_original/4], &last_word, length%4);
+        memcpy(&data_32bit[length_original>>2], &last_word, length%4);
     }
 
     return FLASH_OK; // Success
 }
 
-uint8_t w25q128jw_write_quad(uint32_t addr, void *data, uint32_t length) {
+w25q_error_codes_t w25q128jw_write_quad(uint32_t addr, void *data, uint32_t length) {
     // Call the wrapper with quad = 1, dma = 0
     return page_write_wrapper(addr, data, length, 1, 0);
 }
 
-uint8_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t length) {
+w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t length) {
     // Sanity checks
-    if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
+    if (sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     // Send quad read command at standard speed
     uint32_t cmd_read_quadIO = FC_RDQIO;
@@ -614,13 +615,13 @@ uint8_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t length) {
     // Quad read requires dummy clocks
     const uint32_t dummy_clocks_cmd = spi_create_command((spi_command_t){
         #ifdef TARGET_PYNQ_Z2
-        .len        = 3,               // W25Q128JW flash needs 4 dummy cycles
+        .len        = DUMMY_CLOCKS_FAST_READ_QUAD_IO-1, // W25Q128JW flash needs 4 dummy cycles
         #else
-        .len        = 7,               // SPI flash simulation model needs 8 dummy cycles
+        .len        = DUMMY_CLOCKS_SIM-1, // SPI flash simulation model needs 8 dummy cycles
         #endif
-        .csaat      = true,            // Command not finished
-        .speed      = kSpiSpeedQuad,   // Quad speed
-        .direction  = kSpiDirDummy     // Dummy
+        .csaat      = true,              // Command not finished
+        .speed      = kSpiSpeedQuad,     // Quad speed
+        .direction  = kSpiDirDummy       // Dummy
     });
     spi_set_command(&spi, dummy_clocks_cmd);
     spi_wait_for_ready(&spi);
@@ -659,7 +660,7 @@ uint8_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t length) {
         .type = DMA_DATA_TYPE_WORD, // Data type is byte
     };
     // Size is in data units (words in this case)
-    tgt_src.size_du = (length%4==0) ? length/4 : length/4+1;
+    tgt_src.size_du = (length%4==0) ? length>>2 : (length>>2)+1;
     // Target is SPI RX FIFO
     tgt_src.ptr = (uint8_t*)fifo_ptr_rx;
     // Trigger to control the data flow
@@ -692,14 +693,14 @@ uint8_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t length) {
     return FLASH_OK;
 }
 
-uint8_t w25q128jw_write_quad_dma(uint32_t addr, void *data, uint32_t length) {
+w25q_error_codes_t w25q128jw_write_quad_dma(uint32_t addr, void *data, uint32_t length) {
     // Call the wrapper with quad = 1, dma = 1
     return page_write_wrapper(addr, data, length, 1, 1);
 }
 
 void w25q128jw_4k_erase(uint32_t addr) {
     // Sanity checks
-    if (addr > 0x00ffffff || addr < 0) return FLASH_ERROR;
+    if (addr > MAX_FLASH_ADDR || addr < 0) return FLASH_ERROR;
 
     // Wait any other operation to finish
     flash_wait();
@@ -840,7 +841,7 @@ void w25q128jw_power_down() {
 /**                                                                        **/
 /****************************************************************************/
 
-static void flash_power_up() {
+static void flash_power_up(void) {
     spi_write_word(&spi, FC_RPD);
     spi_wait_for_ready(&spi);
     const uint32_t cmd_powerup = spi_create_command((spi_command_t){
@@ -853,7 +854,7 @@ static void flash_power_up() {
     spi_wait_for_ready(&spi);
 }
 
-static uint8_t set_QE_bit() {
+static w25q_error_codes_t set_QE_bit(void) {
     spi_set_rx_watermark(&spi,1);
 
     // Read Status Register 2
@@ -936,7 +937,7 @@ static uint8_t set_QE_bit() {
     else return FLASH_OK;
 }
 
-static void configure_spi() {
+static void configure_spi(void) {
     // Configure SPI clock
     uint32_t core_clk = soc_ctrl_peri->SYSTEM_FREQUENCY_HZ;
     uint16_t clk_div = 0;
@@ -958,7 +959,7 @@ static void configure_spi() {
     spi_set_configopts(&spi, 0, chip_cfg);
 }
 
-static void flash_wait() {
+static void flash_wait(void) {
     spi_set_rx_watermark(&spi,1);
     bool flash_busy = true;
     uint8_t flash_resp[4] = {0xff,0xff,0xff,0xff};
@@ -988,7 +989,7 @@ static void flash_wait() {
     }
 }
 
-static void flash_reset() {
+static void flash_reset(void) {
     spi_write_word(&spi, FC_ERESET);
     spi_write_word(&spi, FC_RESET);
     spi_wait_for_ready(&spi);
@@ -1011,12 +1012,14 @@ static void flash_reset() {
     spi_wait_for_ready(&spi);
 }
 
-uint8_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length) {
+w25q_error_codes_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length) {
     printf("Erase and write\n");
 
     uint32_t remaining_length = length;
     uint32_t current_addr = addr;
     uint8_t *current_data = data;
+
+    w25q_error_codes_t status;
 
     while (remaining_length > 0) {
         // Start address of the sector to erase, 4kB aligned
@@ -1024,7 +1027,8 @@ uint8_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length) {
 
         // Read the full sector and save it into RAM
         printf("Read sector %x\n", sector_start_addr);
-        w25q128jw_read(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        status = w25q128jw_read(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        if (status != FLASH_OK) return FLASH_ERROR;
         printf("Read sector end\n", sector_start_addr);
 
         // Erase the sector (no need to do so in simulation)
@@ -1043,7 +1047,8 @@ uint8_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length) {
 
         // Write the modified data back to the flash (without erasing this time)
         printf("Start writing back...\n");
-        w25q128jw_write(sector_start_addr, sector_data, FLASH_SECTOR_SIZE, 0);
+        status = w25q128jw_write(sector_start_addr, sector_data, FLASH_SECTOR_SIZE, 0);
+        if (status != FLASH_OK) return FLASH_ERROR;
         printf("Wrote sector %x\n", sector_start_addr);
 
         // Update the remaining length, address and data pointer
@@ -1055,9 +1060,9 @@ uint8_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length) {
     return FLASH_OK;
 }
 
-static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad, uint8_t dma) {
+static w25q_error_codes_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad, uint8_t dma) {
     // Sanity checks
-    if (sanity_checks(addr, data, length) == 0) return FLASH_ERROR;
+    if (sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     // Pointer arithmetics is not allowed on void pointers
     uint8_t *data_8bit = (uint8_t *)data;
@@ -1102,7 +1107,7 @@ static uint8_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length,
     return FLASH_OK;
 }
 
-static void page_write(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad, uint8_t dma) {
+static w25q_error_codes_t page_write(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad, uint8_t dma) {
     // Required every time before issuing a write command
     flash_write_enable();
 
@@ -1126,7 +1131,7 @@ static void page_write(uint32_t addr, uint8_t *data, uint32_t length, uint8_t qu
         dma_send_toflash(data, length);
     } else {
         uint32_t *data_32bit = (uint32_t *)data;
-        for (int i = 0; i < length/4; i++) {
+        for (int i = 0; i < length>>2; i++) {
             spi_write_word(&spi, data_32bit[i]);
         }
         if (length % 4 != 0) {
@@ -1155,7 +1160,7 @@ static void page_write(uint32_t addr, uint8_t *data, uint32_t length, uint8_t qu
     #endif // TARGET_PYNQ_Z2
 }
 
-static uint8_t dma_send_toflash(uint8_t *data, uint32_t length) {
+static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
     // SPI and SPI_FLASH are the same IP so same register map
     uint32_t *fifo_ptr_tx = spi.base_addr.base + SPI_HOST_TXDATA_REG_OFFSET;
 
@@ -1175,7 +1180,7 @@ static uint8_t dma_send_toflash(uint8_t *data, uint32_t length) {
         .type = DMA_DATA_TYPE_WORD, // Data type is word
     };
     // Size is in data units (words in this case)
-    tgt_src.size_du = (length%4==0) ? length/4 : length/4+1;
+    tgt_src.size_du = (length%4==0) ? length>>2 : (length>>2)+1;
     // Target is data buffer
     tgt_src.ptr = data;
     // Reads from memory
@@ -1201,18 +1206,18 @@ static uint8_t dma_send_toflash(uint8_t *data, uint32_t length) {
     // Validate, load and launch DMA transaction
     dma_config_flags_t res;
     res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-    if (res != DMA_CONFIG_OK) return 1;
+    if (res != DMA_CONFIG_OK) return FLASH_ERROR_DMA;
     res = dma_load_transaction(&trans);
-    if (res != DMA_CONFIG_OK) return 1;
+    if (res != DMA_CONFIG_OK) return FLASH_ERROR_DMA;
     res = dma_launch(&trans);
-    if (res != DMA_CONFIG_OK) return 1;
+    if (res != DMA_CONFIG_OK) return FLASH_ERROR_DMA;
 
     // Wait for DMA to finish transaction
     while(!dma_is_ready());
-    return 0;
+    return FLASH_OK;
 }
 
-static void flash_write_enable() {
+static void flash_write_enable(void) {
     spi_write_word(&spi, FC_WE);
     const uint32_t cmd_write_en = spi_create_command((spi_command_t){
         .len        = 0,
@@ -1224,20 +1229,20 @@ static void flash_write_enable() {
     spi_wait_for_ready(&spi);
 }
 
-static uint8_t sanity_checks(uint32_t addr, uint8_t *data, uint32_t length) {
+static w25q_error_codes_t sanity_checks(uint32_t addr, uint8_t *data, uint32_t length) {
     // Check if address is out of range
-    if (addr > 0x00ffffff || addr < 0) return 0;
+    if (addr > 0x00ffffff || addr < 0) return FLASH_ERROR;
 
     // Check if data pointer is NULL
-    if (data == NULL) return 0;
+    if (data == NULL) return FLASH_ERROR;
 
     // Check if length is 0
-    if (length <= 0) return 0;
+    if (length <= 0) return FLASH_ERROR;
     
     // Check if current address + length is out of range
-    if (addr + length > 0x00ffffff) return 0;
+    if (addr + length > 0x00ffffff) return FLASH_ERROR;
 
-    return 1; // Success
+    return FLASH_OK; // Success
 }
 
 /****************************************************************************/
