@@ -4,6 +4,9 @@
  *
  * Simple example that writes a 1kB buffer to flash memory at a specific address
  * and then read it back to check if the data was written correctly.
+ * By default the error checks after every operation are disabled, in order to
+ * execute all four configurations of the test (standard, standard_dma, quad, quad_dma)
+ * even if one fails.
  * 
  * @note The application assume the correct functioning of the read operation.
  *
@@ -18,17 +21,17 @@
 
 
 // Test functions
-void test_read(uint32_t *test_buffer, uint32_t len);
-void test_read_dma(uint32_t *test_buffer, uint32_t len);
-void test_read_quad(uint32_t *test_buffer, uint32_t len);
-void test_read_quad_dma(uint32_t *test_buffer, uint32_t len);
+w25q_error_codes_t test_read(uint32_t *test_buffer, uint32_t len);
+w25q_error_codes_t test_read_dma(uint32_t *test_buffer, uint32_t len);
+w25q_error_codes_t test_read_quad(uint32_t *test_buffer, uint32_t len);
+w25q_error_codes_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len);
 
 // Check function
 void check_result(uint32_t *test_buffer, uint32_t len);
 
 
 // Start buffers (the original data)
-#include "buffer.bin"
+#include "buffer.h"
 // End buffer (where what is read is stored)
 uint32_t flash_data[256];
 
@@ -63,17 +66,26 @@ int main(int argc, char *argv[]) {
     if (global_status != FLASH_OK) return EXIT_FAILURE;
 
     // Test simple read
-    test_read(test_buffer, len);
+    printf("Testing simple read...\n\r");
+    global_status = test_read(test_buffer, len);
+    // if (global_status != FLASH_OK) return EXIT_FAILURE;
 
+    printf("Testing simple read with DMA...\n\r");
     // Test simple read with DMA
-    test_read_dma(test_buffer, len);
+    global_status = test_read_dma(test_buffer, len);
+    // if (global_status != FLASH_OK) return EXIT_FAILURE;
 
+    printf("Testing quad read...\n\r");
     // Test quad read
-    test_read_quad(test_buffer, len);
+    global_status = test_read_quad(test_buffer, len);
+    // if (global_status != FLASH_OK) return EXIT_FAILURE;
 
+    printf("Testing quad read with DMA...\n\r");
     // Test quad read with DMA
-    test_read_quad_dma(test_buffer, len);
+    global_status = test_read_quad_dma(test_buffer, len);
+    // if (global_status != FLASH_OK) return EXIT_FAILURE;
 
+    printf("\n--------TEST FINISHED--------\n");
     if (global_errors == 0) {
         printf("All tests passed!\n\r");
         return EXIT_SUCCESS;
@@ -84,44 +96,51 @@ int main(int argc, char *argv[]) {
     
 }
 
-void test_read(uint32_t *test_buffer, uint32_t len) {
+w25q_error_codes_t test_read(uint32_t *test_buffer, uint32_t len) {
     // Read from flash memory at the same address
     global_status = w25q128jw_read(test_buffer, flash_data, len);
     if (global_status != FLASH_OK) return EXIT_FAILURE;
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
     check_result(test_buffer, len);
+
+    return EXIT_SUCCESS;
 }
 
-void test_read_dma(uint32_t *test_buffer, uint32_t len) {
+w25q_error_codes_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
     // Read from flash memory at the same address
     global_status = w25q128jw_read(test_buffer, flash_data, len);
     if (global_status != FLASH_OK) return EXIT_FAILURE;
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
     check_result(test_buffer, len);
+
+    return EXIT_SUCCESS;
 }
 
-void test_read_quad(uint32_t *test_buffer, uint32_t len) {
+w25q_error_codes_t test_read_quad(uint32_t *test_buffer, uint32_t len) {
     // Read from flash memory at the same address
     global_status = w25q128jw_read(test_buffer, flash_data, len);
     if (global_status != FLASH_OK) return EXIT_FAILURE;
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
     check_result(test_buffer, len);
+
+    return EXIT_SUCCESS;
 }
 
-void test_read_quad_dma(uint32_t *test_buffer, uint32_t len) {
+w25q_error_codes_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len) {
     // Read from flash memory at the same address
     global_status = w25q128jw_read(test_buffer, flash_data, len);
     if (global_status != FLASH_OK) return EXIT_FAILURE;
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
     check_result(test_buffer, len);
+
+    return EXIT_SUCCESS;
 }
 
 void check_result(uint32_t *test_buffer, uint32_t len) {
-    printf("flash vs ram...\n\r");
     uint32_t errors = 0;
     for (int i=0; i < ((len%4==0) ? len/4 : len/4 + 1); i++) {
         if (i < len/4 ) {

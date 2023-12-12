@@ -4,6 +4,9 @@
  *
  * Simple example that writes a 1kB buffer to flash memory at a specific address
  * and then read it back to check if the data was written correctly.
+ * By default the error checks after every operation are disabled, in order to
+ * execute all four configurations of the test (standard, standard_dma, quad, quad_dma)
+ * even if one fails.
  * 
  * @note The application assume the correct functioning of the read operation.
  *
@@ -18,17 +21,17 @@
 
 
 // Test functions
-void test_write(uint32_t *test_buffer, uint32_t len);
-void test_write_dma(uint32_t *test_buffer, uint32_t len);
-void test_write_quad(uint32_t *test_buffer, uint32_t len);
-void test_write_quad_dma(uint32_t *test_buffer, uint32_t len);
+w25q_error_codes_t test_write(uint32_t *test_buffer, uint32_t len);
+w25q_error_codes_t test_write_dma(uint32_t *test_buffer, uint32_t len);
+w25q_error_codes_t test_write_quad(uint32_t *test_buffer, uint32_t len);
+w25q_error_codes_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len);
 
 // Check function
 void check_result(uint32_t *test_buffer, uint32_t len);
 
 
 // Start buffers:
-#include "buffer.bin"
+#include "buffer.h"
 // End buffer
 uint32_t flash_data[256];
 // Flash address to write to
@@ -64,16 +67,24 @@ int main(int argc, char *argv[]) {
     if (global_status != FLASH_OK) return EXIT_FAILURE;
 
     // Test simple write
-    test_write(test_buffer, len);
+    printf("Testing simple write...\n\r");
+    global_status = test_write(test_buffer, len);
+    // if (global_status != FLASH_OK) return EXIT_FAILURE;
 
     // Test simple write with DMA
-    test_write_dma(test_buffer, len);
+    printf("Testing simple write with DMA...\n\r");
+    global_status = test_write_dma(test_buffer, len);
+    // if (global_status != FLASH_OK) return EXIT_FAILURE;
 
     // Test quad write
-    test_write_quad(test_buffer, len);
+    printf("Testing quad write...\n\r");
+    global_status = test_write_quad(test_buffer, len);
+    // if (global_status != FLASH_OK) return EXIT_FAILURE;
 
     // Test quad write with DMA
-    test_write_quad_dma(test_buffer, len);
+    printf("Testing quad write with DMA...\n\r");
+    global_status = test_write_quad_dma(test_buffer, len);
+    // if (global_status != FLASH_OK) return EXIT_FAILURE;
 
     if (global_errors == 0) {
         printf("All tests passed!\n\r");
@@ -84,7 +95,7 @@ int main(int argc, char *argv[]) {
     }
 }
 
-void test_write(uint32_t *test_buffer, uint32_t len) {
+w25q_error_codes_t test_write(uint32_t *test_buffer, uint32_t len) {
     // Write to flash memory at specific address
     global_status = w25q128jw_write_standard(FLASH_ADDR, test_buffer, len);
     if (global_status != FLASH_OK) return EXIT_FAILURE;
@@ -98,9 +109,11 @@ void test_write(uint32_t *test_buffer, uint32_t len) {
 
     // Clean memory for next test
     w25q128jw_4k_erase(FLASH_ADDR);
+
+    return EXIT_SUCCESS;
 }
 
-void test_write_dma(uint32_t *test_buffer, uint32_t len) {
+w25q_error_codes_t test_write_dma(uint32_t *test_buffer, uint32_t len) {
     // Write to flash memory at specific address
     global_status = w25q128jw_write_standard_dma(FLASH_ADDR, test_buffer, len);
     if (global_status != FLASH_OK) return EXIT_FAILURE;
@@ -114,9 +127,11 @@ void test_write_dma(uint32_t *test_buffer, uint32_t len) {
 
     // Clean memory for next test
     w25q128jw_4k_erase(FLASH_ADDR);
+
+    return EXIT_SUCCESS;
 }
 
-void test_write_quad(uint32_t *test_buffer, uint32_t len) {
+w25q_error_codes_t test_write_quad(uint32_t *test_buffer, uint32_t len) {
     // Write to flash memory at specific address
     global_status = w25q128jw_write_quad(FLASH_ADDR, test_buffer, len);
     if (global_status != FLASH_OK) return EXIT_FAILURE;
@@ -130,9 +145,11 @@ void test_write_quad(uint32_t *test_buffer, uint32_t len) {
 
     // Clean memory for next test
     w25q128jw_4k_erase(FLASH_ADDR);
+
+    return EXIT_SUCCESS;
 }
 
-void test_write_quad_dma(uint32_t *test_buffer, uint32_t len) {
+w25q_error_codes_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len) {
     // Write to flash memory at specific address
     global_status = w25q128jw_write_quad_dma(FLASH_ADDR, test_buffer, len);
     if (global_status != FLASH_OK) return EXIT_FAILURE;
@@ -146,6 +163,8 @@ void test_write_quad_dma(uint32_t *test_buffer, uint32_t len) {
 
     // Clean memory for next test
     w25q128jw_4k_erase(FLASH_ADDR);
+
+    return EXIT_SUCCESS;
 }
 
 void check_result(uint32_t *test_buffer, uint32_t len) {
