@@ -59,7 +59,10 @@ module cpu_subsystem
 
   if (CPU_TYPE == cv32e20) begin : gen_cv32e20
 
-    cve2_top cv32e20_i (
+    cve2_top #(
+        .DmHaltAddr(DM_HALTADDRESS),
+        .DmExceptionAddr('0)
+    ) cv32e20_i (
         .clk_i (clk_i),
         .rst_ni(rst_ni),
 

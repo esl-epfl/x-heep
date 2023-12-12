@@ -140,7 +140,6 @@ module cve2_controller #(
   logic enter_debug_mode;
   logic ebreak_into_debug;
   logic handle_irq;
-  logic irq_enabled;
   logic [3:0] mfip_id;
   logic       unused_irq_timer;
 
@@ -290,9 +289,6 @@ module cve2_controller #(
   assign ebreak_into_debug = priv_mode_i == PRIV_LVL_M ? debug_ebreakm_i :
                              priv_mode_i == PRIV_LVL_U ? debug_ebreaku_i :
                                                          1'b0;
-
-  // MIE bit only applies when in M mode
-  assign irq_enabled = csr_mstatus_mie_i | (priv_mode_i == PRIV_LVL_U);
 
   // Interrupts including NMI are ignored,
   // - while in debug mode [Debug Spec v0.13.2, p.39],
