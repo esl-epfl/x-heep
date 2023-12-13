@@ -29,6 +29,10 @@
     #define PRINTF(...)
 #endif
 
+#ifdef TARGET_PYNQ_Z2
+    #define USE_SPI_FLASH
+#endif
+
 
 // Start buffers (the original data)
 #include "buffer.h"
@@ -64,7 +68,7 @@ int main(int argc, char *argv[]) {
 
     // Pick the correct spi device based on simulation type
     spi_host_t spi;
-    #ifndef TARGET_PYNQ_Z2
+    #ifndef USE_SPI_FLASH
     spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
     #else
     spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
