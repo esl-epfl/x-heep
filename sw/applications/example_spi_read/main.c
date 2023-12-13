@@ -7,8 +7,6 @@
  * By default the error checks after every operation are disabled, in order to
  * execute all four configurations of the test (standard, standard_dma, quad, quad_dma)
  * even if one fails.
- * 
- * @note The application assume the correct functioning of the read operation.
  *
 */
 
