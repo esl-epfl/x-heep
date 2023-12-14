@@ -33,7 +33,7 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic uart_rx_i,
     inout logic uart_tx_o,
 
-    inout logic [19:0] gpio_io,
+    inout logic [17:0] gpio_io,
 
     output logic exit_value_o,
     inout  logic exit_valid_o,
@@ -46,10 +46,7 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic spi_csb_o,
     inout logic spi_sck_o,
 
-    inout logic spi2_sd_0_io,
-    inout logic spi2_sd_1_io,
-    inout logic spi2_sd_2_io,
-    inout logic spi2_sd_3_io,
+    inout logic [3:0] spi2_sd_io,
     inout logic [1:0] spi2_csb_o,
     inout logic spi2_sck_o,
 
@@ -71,7 +68,11 @@ module xilinx_core_v_mini_mcu_wrapper
   logic [CLK_LED_COUNT_LENGTH - 1:0] clk_count;
 
   // low active reset
-  assign rst_n   = !rst_i;
+`ifdef FPGA_NEXYS
+  assign rst_n = rst_i;
+`else
+  assign rst_n = !rst_i;
+`endif
 
   // reset LED for debugging
   assign rst_led = rst_n;
@@ -94,7 +95,11 @@ module xilinx_core_v_mini_mcu_wrapper
   assign clk_out = clk_gen;
 
   xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
+`ifdef FPGA_NEXYS
+      .clk_100MHz(clk_i),
+`else
       .clk_125MHz(clk_i),
+`endif
       .clk_out1_0(clk_gen)
   );
 
@@ -180,10 +185,10 @@ module xilinx_core_v_mini_mcu_wrapper
       .spi_sck_io(spi_sck_o),
       .i2c_scl_io,
       .i2c_sda_io,
-      .spi2_sd_0_io(spi2_sd_0_io),
-      .spi2_sd_1_io(spi2_sd_1_io),
-      .spi2_sd_2_io(spi2_sd_2_io),
-      .spi2_sd_3_io(spi2_sd_3_io),
+      .spi2_sd_0_io(spi2_sd_io[0]),
+      .spi2_sd_1_io(spi2_sd_io[1]),
+      .spi2_sd_2_io(spi2_sd_io[2]),
+      .spi2_sd_3_io(spi2_sd_io[3]),
       .spi2_cs_0_io(spi2_csb_o[0]),
       .spi2_cs_1_io(spi2_csb_o[1]),
       .spi2_sck_io(spi2_sck_o),
@@ -191,7 +196,9 @@ module xilinx_core_v_mini_mcu_wrapper
       .pdm2pcm_pdm_io,
       .i2s_sck_io(i2s_sck_io),
       .i2s_ws_io(i2s_ws_io),
-      .i2s_sd_io(i2s_sd_io)
+      .i2s_sd_io(i2s_sd_io),
+      .ext_dma_slot_tx_i('0),
+      .ext_dma_slot_rx_i('0)
   );
 
   assign exit_value_o = exit_value[0];
