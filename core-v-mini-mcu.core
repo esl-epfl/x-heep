@@ -124,6 +124,11 @@ filesets:
     - hw/fpga/scripts/nexys/set_board.tcl: { file_type: tclSource }
     - hw/fpga/scripts/nexys/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
 
+  ip-fpga-zcu104:
+    files:
+    - hw/fpga/scripts/zcu104/set_board.tcl: { file_type: tclSource }
+    - hw/fpga/scripts/zcu104/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
+
   fpga-arm-emulation:
     depend:
     - pulp-platform.org::axi_spi_slave
@@ -162,6 +167,12 @@ filesets:
     files:
     - hw/fpga/constraints/pynq-z2/pin_assign.xdc
     - hw/fpga/constraints/pynq-z2/constraints.xdc
+    file_type: xdc
+
+  xdc-fpga-zcu104:
+    files:
+    - hw/fpga/constraints/zcu104/pin_assign.xdc
+    - hw/fpga/constraints/zcu104/constraints.xdc
     file_type: xdc
 
   netlist-fpga:
@@ -272,6 +283,10 @@ parameters:
     paramtype: vlogdefine
     default: false
   FPGA_NEXYS:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
+  FPGA_ZCU104:
     datatype: bool
     paramtype: vlogdefine
     default: false
@@ -431,6 +446,28 @@ targets:
     tools:
       vivado:
         part: xc7z020clg400-1
+    toplevel: [xilinx_core_v_mini_mcu_wrapper]
+
+  zcu104:
+    <<: *default_target
+    default_tool: vivado
+    description: ZCU104 Evaluation Board
+    filesets_append:
+    - x_heep_system
+    - rtl-fpga
+    - ip-fpga-zcu104
+    - ip-fpga
+    - xdc-fpga-zcu104
+    parameters:
+    - COREV_PULP
+    - FPU
+    - X_EXT
+    - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
+    - FPGA_ZCU104=true
+    tools:
+      vivado:
+        part: xczu7ev-ffvc1156-2-e
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
 
   pynq-z2-arm-emulation:

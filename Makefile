@@ -200,7 +200,7 @@ app-simulate-all:
 ## @section Vivado
 
 ## Builds (synthesis and implementation) the bitstream for the FPGA version using Vivado
-## @param FPGA_BOARD=nexys-a7-100t,pynq-z2
+## @param FPGA_BOARD=nexys-a7-100t,pynq-z2,zcu104
 ## @param FUSESOC_FLAGS=--flag=<flagname>
 vivado-fpga:
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildvivado.log
