@@ -1,0 +1,115 @@
+CAPI=2:
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+name: "openhwgroup:cve2:cve2_core:0.1"
+description: "Ibex CPU Core Components"
+
+filesets:
+  files_rtl:
+    depend:
+      - lowrisc:prim:assert
+      - openhwgroup:cve2:cve2_pkg
+      - lowrisc:dv:dv_fcov_macros
+    files:
+      - rtl/cve2_alu.sv
+      - rtl/cve2_branch_predict.sv
+      - rtl/cve2_compressed_decoder.sv
+      - rtl/cve2_controller.sv
+      - rtl/cve2_cs_registers.sv
+      - rtl/cve2_csr.sv
+      - rtl/cve2_counter.sv
+      - rtl/cve2_decoder.sv
+      - rtl/cve2_ex_block.sv
+      - rtl/cve2_fetch_fifo.sv
+      - rtl/cve2_id_stage.sv
+      - rtl/cve2_if_stage.sv
+      - rtl/cve2_load_store_unit.sv
+      - rtl/cve2_multdiv_fast.sv
+      - rtl/cve2_multdiv_slow.sv
+      - rtl/cve2_prefetch_buffer.sv
+      - rtl/cve2_pmp.sv
+      - rtl/cve2_wb.sv
+      - rtl/cve2_core.sv
+      - rtl/cve2_pmp_reset_default.svh: {is_include_file: true}
+    file_type: systemVerilogSource
+
+  files_lint_verilator:
+    files:
+      - lint/verilator_waiver.vlt: {file_type: vlt}
+
+  files_lint_verible:
+    files:
+      - lint/verible_waiver.vbw: {file_type: veribleLintWaiver}
+
+  files_check_tool_requirements:
+    depend:
+     - lowrisc:tool:check_tool_requirements
+
+parameters:
+  RVFI:
+    datatype: bool
+    paramtype: vlogdefine
+
+  SYNTHESIS:
+    datatype: bool
+    paramtype: vlogdefine
+
+  FPGA_XILINX:
+    datatype: bool
+    description: Identifies Xilinx FPGA targets to set DSP pragmas for performance counters.
+    default: false
+    paramtype: vlogdefine
+
+  RV32E:
+    datatype: int
+    default: 0
+    paramtype: vlogparam
+
+  RV32M:
+    datatype: str
+    default: cve2_pkg::RV32MFast
+    paramtype: vlogdefine
+    description: "RV32M implementation parameter enum. See the cve2_pkg::rv32m_e enum in cve2_pkg.sv for permitted values."
+
+  RV32B:
+    datatype: str
+    default: cve2_pkg::RV32BNone
+    paramtype: vlogdefine
+    description: "Bitmanip implementation parameter enum. See the cve2_pkg::rv32b_e enum in cve2_pkg.sv for permitted values."
+
+targets:
+  default: &default_target
+    filesets:
+      - tool_verilator ? (files_lint_verilator)
+      - tool_veriblelint ? (files_lint_verible)
+      - files_rtl
+    toplevel: cve2_core
+    parameters:
+      - tool_vivado ? (FPGA_XILINX=true)
+  lint:
+    <<: *default_target
+    parameters:
+      - SYNTHESIS=true
+      - RVFI=true
+    default_tool: verilator
+    tools:
+      verilator:
+        mode: lint-only
+        verilator_options:
+          - "-Wall"
+          # RAM primitives wider than 64bit (required for ECC) fail to build in
+          # Verilator without increasing the unroll count (see Verilator#1266)
+          - "--unroll-count 72"
+  format:
+    filesets:
+      - files_rtl
+    parameters:
+      - SYNTHESIS=true
+      - RVFI=true
+    default_tool: veribleformat
+    toplevel: cve2_core
+    tools:
+      veribleformat:
+        verible_format_args:
+          - "--inplace"

@@ -1,0 +1,20 @@
+CAPI=2:
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+name: "lowrisc:cve2:cve2_tracer:0.1"
+description: "Tracer for use with Ibex using the RVFI interface"
+filesets:
+  files_rtl:
+    depend:
+      - lowrisc:prim:assert
+      - lowrisc:cve2:cve2_pkg
+    files:
+      - rtl/cve2_tracer_pkg.sv
+      - rtl/cve2_tracer.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+      - files_rtl

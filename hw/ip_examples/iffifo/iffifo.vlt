@@ -1,0 +1,15 @@
+// Copyright 2023 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+//
+// Author: Pierre Guillod <pierre.guillod@epfl.ch>, EPFL, STI-SEL
+// Date: 18.10.2023
+
+`verilator_config
+
+lint_off -rule DECLFILENAME -file "*/iffifo/rtl/iffifo_reg_top.sv" -match "Filename 'iffifo_reg_top' does not match MODULE name: 'iffifo_reg_top_intf'*"
+lint_off -rule WIDTH -file "*/iffifo/rtl/iffifo_reg_top.sv" -match "Operator ASSIGNW expects 3 bits on the Assign RHS, but Assign RHS's SEL generates 32*"
+lint_off -rule UNUSED -file "*/iffifo/rtl/iffifo.sv" -match "Bits of signal are not used: 'reg2hw'[0]*"
+
+lint_off -rule UNUSED -file "*/iffifo/rtl/iffifo_window.sv" -match "Bits of signal are not used: 'rx_win_i'[67:64,31:0]"
+lint_off -rule WIDTH -file "*/iffifo/rtl/iffifo_*.sv" -match "Operator ASSIGNW expects*"

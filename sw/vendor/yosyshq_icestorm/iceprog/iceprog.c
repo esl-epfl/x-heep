@@ -480,6 +480,34 @@ static void flash_enable_quad()
 	fprintf(stderr, "SR2: %08x\n", data[1]);
 }
 
+static void flash_disable_quad()
+{
+	fprintf(stderr, "Disabling Quad operation...\n");
+
+	// Allow write
+	flash_write_enable();
+
+	// Write Status Register 2 <- 0x00
+	uint8_t data[2] = { FC_WSR2, 0x00 };
+	flash_chip_select();
+	mpsse_xfer_spi(data, 2);
+	flash_chip_deselect();
+
+	flash_wait();
+
+	// Read Status Register 1
+	data[0] = FC_RSR2;
+
+	flash_chip_select();
+	mpsse_xfer_spi(data, 2);
+	flash_chip_deselect();
+
+	if ((data[1] & 0x02) != 0x00)
+		fprintf(stderr, "failed to set QE=0, SR2 now equal to 0x%02x (expected 0x%02x)\n", data[1], data[1] | 0x00);
+
+	fprintf(stderr, "SR2: %08x\n", data[1]);
+}
+
 // ---------------------------------------------------------
 // iceprog implementation
 // ---------------------------------------------------------
@@ -949,6 +977,8 @@ int main(int argc, char **argv)
 		flash_reset();
 		flash_power_up();
 
+		flash_disable_quad();
+
 		flash_read_id();
 
 
@@ -1018,7 +1048,7 @@ int main(int argc, char **argv)
 				size_t len = 0;
 				uint8_t buffer[256];
 				int count = 0;
-				while (true) {					
+				while (true) {
 					rc = getline(&line_buffer, &len, f);
 					if (rc <= 0){
 						if(count > 0){
@@ -1093,7 +1123,7 @@ int main(int argc, char **argv)
 			int rc, addr = 0;
 			size_t len = 0;
 			uint8_t buffer_flash[256], buffer_file[256];
-			while (true) {					
+			while (true) {
 				rc = getline(&line_buffer, &len, f);
 				if (rc <= 0)
 					break;
