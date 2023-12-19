@@ -95,7 +95,7 @@ module xilinx_core_v_mini_mcu_wrapper
   assign clk_out = clk_gen;
 
   xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
-`ifdef FPGA_NEXYS 
+`ifdef FPGA_NEXYS
       .clk_100MHz(clk_i),
 `else
       .clk_125MHz(clk_i),
