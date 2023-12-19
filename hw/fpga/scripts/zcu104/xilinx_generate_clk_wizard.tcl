@@ -4,7 +4,7 @@
 # Define design macros
 
 set design_name      xilinx_clk_wizard
-set in_clk_freq_MHz  100
+set in_clk_freq_MHz  125
 set out_clk_freq_MHz 15
 
 
@@ -12,7 +12,7 @@ set out_clk_freq_MHz 15
 create_bd_design $design_name
 
 # Create ports
-set clk_100MHz [ create_bd_port -dir I -type clk -freq_hz [ expr $in_clk_freq_MHz * 1000000 ] clk_100MHz ]
+set clk_125MHz [ create_bd_port -dir I -type clk -freq_hz [ expr $in_clk_freq_MHz * 1000000 ] clk_125MHz ]
 set clk_out1_0 [ create_bd_port -dir O -type clk clk_out1_0 ]
 set_property -dict [ list CONFIG.FREQ_HZ [ expr $out_clk_freq_MHz * 1000000 ] ] $clk_out1_0
 
@@ -32,7 +32,7 @@ set_property -dict [ list \
  ] $clk_wiz_0
 
 # Create port connections
-connect_bd_net -net clk_in1_0_1 [get_bd_ports clk_100MHz] [get_bd_pins clk_wiz_0/clk_in1]
+connect_bd_net -net clk_in1_0_1 [get_bd_ports clk_125MHz] [get_bd_pins clk_wiz_0/clk_in1]
 connect_bd_net -net clk_wiz_0_clk_out1 [ get_bd_ports clk_out1_0 ] [ get_bd_pins clk_wiz_0/clk_out1 ]
 
 # Save and close block design
