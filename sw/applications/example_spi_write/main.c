@@ -21,7 +21,7 @@
 
 /* By default, PRINTFs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   1
+#define PRINTF_IN_SIM   0
 
 #if TARGET_SIM && PRINTF_IN_SIM
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -73,7 +73,7 @@ uint32_t global_errors = 0;
 w25q_error_codes_t global_status;
 
 int main(int argc, char *argv[]) {
-    PRINTF("BSP write test\n\r");
+    PRINTF("BSP write test\n");
 
     // Pick the correct spi device
     spi_host_t spi;
@@ -88,31 +88,31 @@ int main(int argc, char *argv[]) {
     if (global_status != FLASH_OK) return EXIT_FAILURE;
 
     // Test simple write
-    PRINTF("Testing simple write...\n\r");
+    PRINTF("Testing simple write...\n");
     global_status = test_write(TEST_BUFFER, LENGTH);
     // if (global_status != FLASH_OK) return EXIT_FAILURE;
 
     // Test simple write with DMA
-    PRINTF("Testing simple write with DMA...\n\r");
+    PRINTF("Testing simple write with DMA...\n");
     global_status = test_write_dma(TEST_BUFFER, LENGTH);
     // if (global_status != FLASH_OK) return EXIT_FAILURE;
 
     // Test quad write
-    PRINTF("Testing quad write...\n\r");
+    PRINTF("Testing quad write...\n");
     global_status = test_write_quad(TEST_BUFFER, LENGTH);
     // if (global_status != FLASH_OK) return EXIT_FAILURE;
 
     // Test quad write with DMA
-    PRINTF("Testing quad write with DMA...\n\r");
+    PRINTF("Testing quad write with DMA...\n");
     global_status = test_write_quad_dma(TEST_BUFFER, LENGTH);
     // if (global_status != FLASH_OK) return EXIT_FAILURE;
 
     PRINTF("\n--------TEST FINISHED--------\n");
     if (global_errors == 0) {
-        PRINTF("All tests passed!\n\r");
+        PRINTF("All tests passed!\n");
         return EXIT_SUCCESS;
     } else {
-        PRINTF("Some tests failed!\n\r");
+        PRINTF("Some tests failed!\n");
         return EXIT_FAILURE;
     }
 }
@@ -194,23 +194,23 @@ void check_result(uint32_t *test_buffer, uint32_t len) {
     for (int i=0; i < ((len%4==0) ? len/4 : len/4 + 1); i++) {
         if (i < len/4 ) {
             if(flash_data[i] != test_buffer[i]) {
-                PRINTF("index@%u : %x != %x(ref)\n\r", i, flash_data[i], test_buffer[i]);
+                PRINTF("index@%u : %x != %x(ref)\n", i, flash_data[i], test_buffer[i]);
                 errors++;
             }
         } else {
             uint32_t last_bytes = 0;
             memcpy(&last_bytes, &test_buffer[i], len % 4);
             if (flash_data[i] != last_bytes) {
-                PRINTF("index@%u : %x != %x(ref)\n\r", i, flash_data[i], last_bytes);
+                PRINTF("index@%u : %x != %x(ref)\n", i, flash_data[i], last_bytes);
                 errors++;
             }
         }
     }
 
     if (errors == 0) {
-        PRINTF("success!\n\r");
+        PRINTF("success!\n");
     } else {
-        PRINTF("failure, %d errors!\n\r", errors);
+        PRINTF("failure, %d errors!\n", errors);
         global_errors += errors;
     }
 }
