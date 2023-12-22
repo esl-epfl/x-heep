@@ -1126,12 +1126,17 @@ static w25q_error_codes_t page_write(uint32_t addr, uint8_t *data, uint32_t leng
     spi_set_command(&spi, cmd_write);
     spi_wait_for_ready(&spi);
 
-    // Place data in TX FIFO
+    /*
+     * Place data in TX FIFO
+     * In simulation it do not wait for the flash to be ready, so we must check
+     * if the FIFO is full before writing.
+    */
     if (dma) {
         dma_send_toflash(data, length);
     } else {
         uint32_t *data_32bit = (uint32_t *)data;
         for (int i = 0; i < length>>2; i++) {
+            spi_wait_for_tx_not_full(&spi);
             spi_write_word(&spi, data_32bit[i]);
         }
         if (length % 4 != 0) {
