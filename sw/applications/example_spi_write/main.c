@@ -21,12 +21,12 @@
 
 /* By default, PRINTFs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_SIM   1
 
 #if TARGET_SIM && PRINTF_IN_SIM
-        #define PRINTF(fmt, ...)    PRINTF(fmt, ## __VA_ARGS__)
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
-    #define PRINTF(fmt, ...)    PRINTF(fmt, ## __VA_ARGS__)
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
 #endif
@@ -63,6 +63,9 @@ w25q_error_codes_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len);
 
 // Check function
 void check_result(uint32_t *test_buffer, uint32_t len);
+
+// Erase memory function
+void erase_memory(uint32_t addr);
 
 // Global flag to keep track of errors
 uint32_t global_errors = 0;
@@ -104,6 +107,7 @@ int main(int argc, char *argv[]) {
     global_status = test_write_quad_dma(TEST_BUFFER, LENGTH);
     // if (global_status != FLASH_OK) return EXIT_FAILURE;
 
+    PRINTF("\n--------TEST FINISHED--------\n");
     if (global_errors == 0) {
         PRINTF("All tests passed!\n\r");
         return EXIT_SUCCESS;
@@ -126,7 +130,7 @@ w25q_error_codes_t test_write(uint32_t *test_buffer, uint32_t len) {
     check_result(test_buffer, len);
 
     // Clean memory for next test
-    w25q128jw_4k_erase(FLASH_ADDR);
+    erase_memory(FLASH_ADDR);
 
     return FLASH_OK;
 }
@@ -144,7 +148,7 @@ w25q_error_codes_t test_write_dma(uint32_t *test_buffer, uint32_t len) {
     check_result(test_buffer, len);
 
     // Clean memory for next test
-    w25q128jw_4k_erase(FLASH_ADDR);
+    erase_memory(FLASH_ADDR);
 
     return FLASH_OK;
 }
@@ -162,7 +166,7 @@ w25q_error_codes_t test_write_quad(uint32_t *test_buffer, uint32_t len) {
     check_result(test_buffer, len);
 
     // Clean memory for next test
-    w25q128jw_4k_erase(FLASH_ADDR);
+    erase_memory(FLASH_ADDR);
 
     return FLASH_OK;
 }
@@ -180,13 +184,12 @@ w25q_error_codes_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len) {
     check_result(test_buffer, len);
 
     // Clean memory for next test
-    w25q128jw_4k_erase(FLASH_ADDR);
+    erase_memory(FLASH_ADDR);
 
     return FLASH_OK;
 }
 
 void check_result(uint32_t *test_buffer, uint32_t len) {
-    PRINTF("flash vs ram...\n\r");
     uint32_t errors = 0;
     for (int i=0; i < ((len%4==0) ? len/4 : len/4 + 1); i++) {
         if (i < len/4 ) {
@@ -210,4 +213,11 @@ void check_result(uint32_t *test_buffer, uint32_t len) {
         PRINTF("failure, %d errors!\n\r", errors);
         global_errors += errors;
     }
+}
+
+// Erase the memory only if FPGA is used
+void erase_memory(uint32_t addr) {
+    #ifdef USE_SPI_FLASH
+    w25q128jw_4k_erase(FLASH_ADDR);
+    #endif
 }
