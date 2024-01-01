@@ -21,7 +21,7 @@
 
 /* By default, PRINTFs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_SIM   1
 
 #if TARGET_SIM && PRINTF_IN_SIM
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -56,19 +56,17 @@ uint32_t flash_data[256];
 
 
 // Test functions
-w25q_error_codes_t test_write(uint32_t *test_buffer, uint32_t len);
-w25q_error_codes_t test_write_dma(uint32_t *test_buffer, uint32_t len);
-w25q_error_codes_t test_write_quad(uint32_t *test_buffer, uint32_t len);
-w25q_error_codes_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len);
+int32_t test_write(uint32_t *test_buffer, uint32_t len);
+int32_t test_write_dma(uint32_t *test_buffer, uint32_t len);
+int32_t test_write_quad(uint32_t *test_buffer, uint32_t len);
+int32_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len);
 
 // Check function
-void check_result(uint32_t *test_buffer, uint32_t len);
+int32_t check_result(uint32_t *test_buffer, uint32_t len);
 
 // Erase memory function
 void erase_memory(uint32_t addr);
 
-// Global flag to keep track of errors
-uint32_t global_errors = 0;
 // Define global status variable
 w25q_error_codes_t global_status;
 
@@ -83,32 +81,30 @@ int main(int argc, char *argv[]) {
     spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif
 
+    // Define status variable
+    int32_t errors = 0;
+
     // Init SPI host and SPI<->Flash bridge parameters 
-    global_status = w25q128jw_init(spi);
-    if (global_status != FLASH_OK) return EXIT_FAILURE;
+    if (w25q128jw_init(spi) != FLASH_OK) return EXIT_FAILURE;
 
     // Test simple write
     PRINTF("Testing simple write...\n");
-    global_status = test_write(TEST_BUFFER, LENGTH);
-    // if (global_status != FLASH_OK) return EXIT_FAILURE;
+    errors += test_write(TEST_BUFFER, LENGTH);
 
     // Test simple write with DMA
     PRINTF("Testing simple write with DMA...\n");
-    global_status = test_write_dma(TEST_BUFFER, LENGTH);
-    // if (global_status != FLASH_OK) return EXIT_FAILURE;
+    errors += test_write_dma(TEST_BUFFER, LENGTH);
 
     // Test quad write
     PRINTF("Testing quad write...\n");
-    global_status = test_write_quad(TEST_BUFFER, LENGTH);
-    // if (global_status != FLASH_OK) return EXIT_FAILURE;
+    errors += test_write_quad(TEST_BUFFER, LENGTH);
 
     // Test quad write with DMA
     PRINTF("Testing quad write with DMA...\n");
-    global_status = test_write_quad_dma(TEST_BUFFER, LENGTH);
-    // if (global_status != FLASH_OK) return EXIT_FAILURE;
+    errors += test_write_quad_dma(TEST_BUFFER, LENGTH);
 
     PRINTF("\n--------TEST FINISHED--------\n");
-    if (global_errors == 0) {
+    if (errors == 0) {
         PRINTF("All tests passed!\n");
         return EXIT_SUCCESS;
     } else {
@@ -117,79 +113,79 @@ int main(int argc, char *argv[]) {
     }
 }
 
-w25q_error_codes_t test_write(uint32_t *test_buffer, uint32_t len) {
+int32_t test_write(uint32_t *test_buffer, uint32_t len) {
     // Write to flash memory at specific address
     global_status = w25q128jw_write_standard(FLASH_ADDR, test_buffer, len);
-    if (global_status != FLASH_OK) return FLASH_ERROR;
+    if (global_status != FLASH_OK) return -1;
 
     // Read from flash memory at the same address
     global_status = w25q128jw_read(FLASH_ADDR, flash_data, len);
-    if (global_status != FLASH_OK) return FLASH_ERROR;
+    if (global_status != FLASH_OK) return -1;
 
     // Check if what we read is correct (i.e. flash_original == flash_data)
-    check_result(test_buffer, len);
+    int32_t result = check_result(test_buffer, len);
 
     // Clean memory for next test
     erase_memory(FLASH_ADDR);
 
-    return FLASH_OK;
+    return result;
 }
 
-w25q_error_codes_t test_write_dma(uint32_t *test_buffer, uint32_t len) {
+int32_t test_write_dma(uint32_t *test_buffer, uint32_t len) {
     // Write to flash memory at specific address
     global_status = w25q128jw_write_standard_dma(FLASH_ADDR, test_buffer, len);
-    if (global_status != FLASH_OK) return FLASH_ERROR;
+    if (global_status != FLASH_OK) return -1;
 
     // Read from flash memory at the same address
     global_status = w25q128jw_read(FLASH_ADDR, flash_data, len);
-    if (global_status != FLASH_OK) return FLASH_ERROR;
+    if (global_status != FLASH_OK) return -1;
 
     // Check if what we read is correct (i.e. flash_original == flash_data)
-    check_result(test_buffer, len);
+    int32_t result = check_result(test_buffer, len);
 
     // Clean memory for next test
     erase_memory(FLASH_ADDR);
 
-    return FLASH_OK;
+    return result;
 }
 
-w25q_error_codes_t test_write_quad(uint32_t *test_buffer, uint32_t len) {
+int32_t test_write_quad(uint32_t *test_buffer, uint32_t len) {
     // Write to flash memory at specific address
     global_status = w25q128jw_write_quad(FLASH_ADDR, test_buffer, len);
-    if (global_status != FLASH_OK) return FLASH_ERROR;
+    if (global_status != FLASH_OK) return -1;
 
     // Read from flash memory at the same address
     global_status = w25q128jw_read(FLASH_ADDR, flash_data, len);
-    if (global_status != FLASH_OK) return FLASH_ERROR;
+    if (global_status != FLASH_OK) return -1;
 
     // Check if what we read is correct (i.e. flash_original == flash_data)
-    check_result(test_buffer, len);
+    int32_t result = check_result(test_buffer, len);
 
     // Clean memory for next test
     erase_memory(FLASH_ADDR);
 
-    return FLASH_OK;
+    return result;
 }
 
-w25q_error_codes_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len) {
+int32_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len) {
     // Write to flash memory at specific address
     global_status = w25q128jw_write_quad_dma(FLASH_ADDR, test_buffer, len);
-    if (global_status != FLASH_OK) return FLASH_ERROR;
+    if (global_status != FLASH_OK) return -1;
 
     // Read from flash memory at the same address
     global_status = w25q128jw_read(FLASH_ADDR, flash_data, len);
-    if (global_status != FLASH_OK) return FLASH_ERROR;
+    if (global_status != FLASH_OK) return -1;
 
     // Check if what we read is correct (i.e. flash_original == flash_data)
-    check_result(test_buffer, len);
+    int32_t result = check_result(test_buffer, len);
 
     // Clean memory for next test
     erase_memory(FLASH_ADDR);
 
-    return FLASH_OK;
+    return result;
 }
 
-void check_result(uint32_t *test_buffer, uint32_t len) {
+int32_t check_result(uint32_t *test_buffer, uint32_t len) {
     uint32_t errors = 0;
     for (int i=0; i < ((len%4==0) ? len/4 : len/4 + 1); i++) {
         if (i < len/4 ) {
@@ -211,8 +207,9 @@ void check_result(uint32_t *test_buffer, uint32_t len) {
         PRINTF("success!\n");
     } else {
         PRINTF("failure, %d errors!\n", errors);
-        global_errors += errors;
     }
+
+    return errors;
 }
 
 // Erase the memory only if FPGA is used
