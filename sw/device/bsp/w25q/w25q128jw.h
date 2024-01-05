@@ -338,7 +338,7 @@ void w25q128jw_64k_erase(uint32_t addr);
  * Sets all memory within the chip to the erased state of all 1s (FFh).
  * After the erase is issued, waits for the flash to be ready.
 */
-void w25q128jw_chip_erase();
+void w25q128jw_chip_erase(void);
 
 
 /**
@@ -348,7 +348,7 @@ void w25q128jw_chip_erase();
  * any ongoing read/write operation in order to preserve data integrity.
  * After the reset is issued, wait for the flash to be ready.
 */
-void w25q128jw_reset();
+void w25q128jw_reset(void);
 
 /**
  * @brief Reset the flash without checking for ongoing operations.
@@ -358,7 +358,7 @@ void w25q128jw_reset();
  * Upon receiving the reset command, the flash will abort any ongoing operation.
  * After the reset is issued, waits for the flash to be ready.
 */
-void w25q128jw_reset_force();
+void w25q128jw_reset_force(void);
 
 /**
  * @brief Power down the flash.
@@ -367,7 +367,7 @@ void w25q128jw_reset_force();
  * release power down command. All other commands are going to be ignored
  * by the flash.
 */
-void w25q128jw_power_down();
+void w25q128jw_power_down(void);
 
 /****************************************************************************/
 /**                                                                        **/

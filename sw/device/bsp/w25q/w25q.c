@@ -779,7 +779,7 @@ void w25q128jw_64k_erase(uint32_t addr) {
     flash_wait();
 }
 
-void w25q128jw_chip_erase() {
+void w25q128jw_chip_erase(void) {
     // Wait any other operation to finish
     flash_wait();
 
@@ -802,7 +802,7 @@ void w25q128jw_chip_erase() {
     flash_wait();
 }
 
-void w25q128jw_reset() {
+void w25q128jw_reset(void) {
     // Wait for ongoing operation to finish (if any)
     flash_wait();
 
@@ -813,7 +813,7 @@ void w25q128jw_reset() {
     flash_wait();
 }
 
-void w25q128jw_reset_force() {
+void w25q128jw_reset_force(void) {
     // Build and send reset command without waiting for ongoing operation
     flash_reset(); 
 
@@ -821,7 +821,7 @@ void w25q128jw_reset_force() {
     flash_wait();
 }
 
-void w25q128jw_power_down() {
+void w25q128jw_power_down(void) {
     // Build and send power down command
     spi_write_word(&spi, FC_PD);
     const uint32_t cmd_power_down = spi_create_command((spi_command_t){
