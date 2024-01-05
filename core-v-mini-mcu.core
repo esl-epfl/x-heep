@@ -172,7 +172,6 @@ filesets:
   xdc-fpga-zcu104:
     files:
     - hw/fpga/constraints/zcu104/pin_assign.xdc
-    - hw/fpga/constraints/zcu104/constraints.xdc
     file_type: xdc
 
   netlist-fpga:

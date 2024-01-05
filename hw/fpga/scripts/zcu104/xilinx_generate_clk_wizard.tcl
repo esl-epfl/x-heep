@@ -3,42 +3,38 @@
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 # Define design macros
 
-set design_name      xilinx_clk_wizard
-set in_clk_freq_MHz  125
-set out_clk_freq_MHz 15
-
+set design_name xilinx_clk_wizard
 
 # Create block design
 create_bd_design $design_name
 
-# Create ports
-set clk_125MHz [ create_bd_port -dir I -type clk -freq_hz [ expr $in_clk_freq_MHz * 1000000 ] clk_125MHz ]
-set clk_out1_0 [ create_bd_port -dir O -type clk clk_out1_0 ]
-set_property -dict [ list CONFIG.FREQ_HZ [ expr $out_clk_freq_MHz * 1000000 ] ] $clk_out1_0
-
-
 # Create instance and set properties
-set clk_wiz_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:clk_wiz:6.0 clk_wiz_0 ]
-set_property -dict [ list \
- CONFIG.CLKOUT1_JITTER {323.873} \
- CONFIG.CLKOUT1_PHASE_ERROR {394.762} \
- CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {15} \
- CONFIG.MMCM_CLKFBOUT_MULT_F {111.375} \
- CONFIG.MMCM_CLKOUT0_DIVIDE_F {74.250} \
- CONFIG.MMCM_DIVCLK_DIVIDE {10} \
- CONFIG.PRIM_IN_FREQ $in_clk_freq_MHz \
- CONFIG.USE_LOCKED {false} \
- CONFIG.USE_RESET {false} \
- ] $clk_wiz_0
+create_bd_cell -type ip -vlnv xilinx.com:ip:clk_wiz:6.0 clk_wiz_0
+set_property -dict [list \
+  CONFIG.CLKIN1_JITTER_PS {33.330000000000005} \
+  CONFIG.CLKOUT1_JITTER {282.792} \
+  CONFIG.CLKOUT1_PHASE_ERROR {207.545} \
+  CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {15} \
+  CONFIG.CLK_IN1_BOARD_INTERFACE {clk_300mhz} \
+  CONFIG.MMCM_CLKFBOUT_MULT_F {32.875} \
+  CONFIG.MMCM_CLKIN1_PERIOD {3.333} \
+  CONFIG.MMCM_CLKIN2_PERIOD {10.0} \
+  CONFIG.MMCM_CLKOUT0_DIVIDE_F {65.750} \
+  CONFIG.MMCM_DIVCLK_DIVIDE {10} \
+  CONFIG.OPTIMIZE_CLOCKING_STRUCTURE_EN {true} \
+  CONFIG.PRIM_SOURCE {Differential_clock_capable_pin} \
+  CONFIG.USE_LOCKED {false} \
+  CONFIG.USE_RESET {true} \
+] [get_bd_cells clk_wiz_0]
 
-# Create port connections
-connect_bd_net -net clk_in1_0_1 [get_bd_ports clk_125MHz] [get_bd_pins clk_wiz_0/clk_in1]
-connect_bd_net -net clk_wiz_0_clk_out1 [ get_bd_ports clk_out1_0 ] [ get_bd_pins clk_wiz_0/clk_out1 ]
+# Create ports
+make_bd_pins_external [get_bd_cells clk_wiz_0]
+make_bd_intf_pins_external [get_bd_cells clk_wiz_0]
 
 # Save and close block design
 save_bd_design
 close_bd_design $design_name
 
-# create wrapper
+# Create wrapper
 set wrapper_path [ make_wrapper -fileset sources_1 -files [ get_files -norecurse xilinx_clk_wizard.bd ] -top ]
 add_files -norecurse -fileset sources_1 $wrapper_path
