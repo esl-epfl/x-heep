@@ -7,7 +7,7 @@
 
   upstream: {
     url: "https://github.com/esl-epfl/zcu104_board_files.git",
-    rev: "f4c7e9afef085b6c7afa9f331300617870ccebc1",
+    rev: "53e4affbaeec73809304940be8f5351ae147227a",
   },
 
   exclude_from_upstream: [
