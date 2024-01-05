@@ -304,7 +304,6 @@ w25q_error_codes_t w25q128jw_write(uint32_t addr, void *data, uint32_t length, u
 }
 
 w25q_error_codes_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
-    printf("Entering reading function...\n\r");
     // Sanity checks
     if (sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
@@ -343,14 +342,12 @@ w25q_error_codes_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t l
      * RX FIFO depth. In this case the flag is not set to 0, so the loop will
      * continue until all the data is read.
     */
-    printf("Before data start arriving...\n");
     int flag = 1;
     int to_read = 0;
     int i_start = 0;
     int length_original = length;
     uint32_t *data_32bit = (uint32_t *)data;
     while (flag) {
-        printf("%u \n", length);
         if (length >= SPI_HOST_PARAM_RX_DEPTH) {
             spi_set_rx_watermark(&spi, SPI_HOST_PARAM_RX_DEPTH>>2);
             length -= SPI_HOST_PARAM_RX_DEPTH;
@@ -1013,7 +1010,6 @@ static void flash_reset(void) {
 }
 
 w25q_error_codes_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length) {
-    printf("Erase and write\n");
 
     uint32_t remaining_length = length;
     uint32_t current_addr = addr;
@@ -1026,10 +1022,8 @@ w25q_error_codes_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length
         uint32_t sector_start_addr = current_addr & 0xfffff000;
 
         // Read the full sector and save it into RAM
-        printf("Read sector %x\n", sector_start_addr);
         status = w25q128jw_read(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
         if (status != FLASH_OK) return FLASH_ERROR;
-        printf("Read sector end\n", sector_start_addr);
 
         // Erase the sector (no need to do so in simulation)
         #ifdef TARGET_PYNQ_Z2
@@ -1038,18 +1032,13 @@ w25q_error_codes_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length
 
         // Calculate the length of data to write in this sector
         uint32_t write_length = MIN(FLASH_SECTOR_SIZE - (current_addr - sector_start_addr), remaining_length);
-        printf("Remaining length: %d\n", remaining_length);
-        printf("Other term: %d\n", FLASH_SECTOR_SIZE - (current_addr - sector_start_addr));
-        printf("Write length: %d\n", write_length);
 
         // Modify the data in RAM to include the new data
         memcpy(&sector_data[current_addr - sector_start_addr], current_data, write_length);
 
         // Write the modified data back to the flash (without erasing this time)
-        printf("Start writing back...\n");
         status = w25q128jw_write(sector_start_addr, sector_data, FLASH_SECTOR_SIZE, 0);
         if (status != FLASH_OK) return FLASH_ERROR;
-        printf("Wrote sector %x\n", sector_start_addr);
 
         // Update the remaining length, address and data pointer
         remaining_length -= write_length;
