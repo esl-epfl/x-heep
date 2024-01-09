@@ -139,9 +139,9 @@
 #define DUMMY_CLOCKS_FAST_READ_QUAD_IO 4
 
 /**
- * @brief Upper bound (not included) for the flash address.
+ * @brief Upper bound for the flash address.
 */
-#define MAX_FLASH_ADDR 0x00ffffffff
+#define MAX_FLASH_ADDR 0x00ffffff
 
 #ifdef __cplusplus
 extern "C" {

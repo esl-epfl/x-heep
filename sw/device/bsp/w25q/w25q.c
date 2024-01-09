@@ -1225,7 +1225,7 @@ static void flash_write_enable(void) {
 
 static w25q_error_codes_t sanity_checks(uint32_t addr, uint8_t *data, uint32_t length) {
     // Check if address is out of range
-    if (addr > 0x00ffffff || addr < 0) return FLASH_ERROR;
+    if (addr > MAX_FLASH_ADDR || addr < 0) return FLASH_ERROR;
 
     // Check if data pointer is NULL
     if (data == NULL) return FLASH_ERROR;
@@ -1234,7 +1234,7 @@ static w25q_error_codes_t sanity_checks(uint32_t addr, uint8_t *data, uint32_t l
     if (length <= 0) return FLASH_ERROR;
     
     // Check if current address + length is out of range
-    if (addr + length > 0x00ffffff) return FLASH_ERROR;
+    if (addr + length > MAX_FLASH_ADDR) return FLASH_ERROR;
 
     return FLASH_OK; // Success
 }
