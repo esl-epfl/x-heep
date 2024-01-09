@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
 
 int32_t test_read(uint32_t *test_buffer, uint32_t len) {
     // Read from flash memory at the same address
-    w25q_error_codes_t status = w25q128jw_read(test_buffer, flash_data, len);
+    w25q_error_codes_t status = w25q128jw_read_standard(test_buffer, flash_data, len);
     if (status != FLASH_OK) return -1;
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
@@ -113,7 +113,7 @@ int32_t test_read(uint32_t *test_buffer, uint32_t len) {
 
 int32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
     // Read from flash memory at the same address
-    w25q_error_codes_t status = w25q128jw_read(test_buffer, flash_data, len);
+    w25q_error_codes_t status = w25q128jw_read_standard_dma(test_buffer, flash_data, len);
     if (status != FLASH_OK) return -1;
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
@@ -122,7 +122,7 @@ int32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
 
 int32_t test_read_quad(uint32_t *test_buffer, uint32_t len) {
     // Read from flash memory at the same address
-    w25q_error_codes_t status = w25q128jw_read(test_buffer, flash_data, len);
+    w25q_error_codes_t status = w25q128jw_read_quad(test_buffer, flash_data, len);
     if (status != FLASH_OK) return -1;
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
@@ -131,7 +131,7 @@ int32_t test_read_quad(uint32_t *test_buffer, uint32_t len) {
 
 int32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len) {
     // Read from flash memory at the same address
-    w25q_error_codes_t status = w25q128jw_read(test_buffer, flash_data, len);
+    w25q_error_codes_t status = w25q128jw_read_quad_dma(test_buffer, flash_data, len);
     if (status != FLASH_OK) return -1;
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
