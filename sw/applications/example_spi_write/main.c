@@ -71,6 +71,15 @@ void erase_memory(uint32_t addr);
 w25q_error_codes_t global_status;
 
 int main(int argc, char *argv[]) {
+    soc_ctrl_t soc_ctrl;
+    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+
+    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO ) {
+        PRINTF("This application cannot work with the memory mapped SPI FLASH"
+            "module - do not use the FLASH_EXEC linker script for this application\n");
+        return EXIT_SUCCESS;
+    }
+    
     PRINTF("BSP write test\n");
 
     // Pick the correct spi device
