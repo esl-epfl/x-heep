@@ -47,10 +47,10 @@ uint32_t flash_data[256];
 #define LENGTH 1024
 
 // Test functions
-int32_t test_read(uint32_t *test_buffer, uint32_t len);
-int32_t test_read_dma(uint32_t *test_buffer, uint32_t len);
-int32_t test_read_quad(uint32_t *test_buffer, uint32_t len);
-int32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len);
+uint32_t test_read(uint32_t *test_buffer, uint32_t len);
+uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len);
+uint32_t test_read_quad(uint32_t *test_buffer, uint32_t len);
+uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len);
 
 // Check function
 uint32_t check_result(uint8_t *test_buffer, uint32_t len);
@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
     
 }
 
-int32_t test_read(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_read(uint32_t *test_buffer, uint32_t len) {
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_standard(test_buffer, flash_data, len);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
@@ -123,7 +123,7 @@ int32_t test_read(uint32_t *test_buffer, uint32_t len) {
     memset(flash_data, 0, len * sizeof(uint8_t));
 }
 
-int32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_standard_dma(test_buffer, flash_data, len);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
@@ -135,7 +135,7 @@ int32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
     memset(flash_data, 0, len * sizeof(uint8_t));
 }
 
-int32_t test_read_quad(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_read_quad(uint32_t *test_buffer, uint32_t len) {
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_quad(test_buffer, flash_data, len);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
@@ -147,7 +147,7 @@ int32_t test_read_quad(uint32_t *test_buffer, uint32_t len) {
     memset(flash_data, 0, len * sizeof(uint8_t));
 }
 
-int32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len) {
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_quad_dma(test_buffer, flash_data, len);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
