@@ -56,13 +56,13 @@ uint32_t flash_data[256];
 
 
 // Test functions
-int32_t test_write(uint32_t *test_buffer, uint32_t len);
-int32_t test_write_dma(uint32_t *test_buffer, uint32_t len);
-int32_t test_write_quad(uint32_t *test_buffer, uint32_t len);
-int32_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len);
+uint32_t test_write(uint32_t *test_buffer, uint32_t len);
+uint32_t test_write_dma(uint32_t *test_buffer, uint32_t len);
+uint32_t test_write_quad(uint32_t *test_buffer, uint32_t len);
+uint32_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len);
 
 // Check function
-int32_t check_result(uint32_t *test_buffer, uint32_t len);
+uint32_t check_result(uint8_t *test_buffer, uint32_t len);
 
 // Erase memory function
 void erase_memory(uint32_t addr);
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
             "module - do not use the FLASH_EXEC linker script for this application\n");
         return EXIT_SUCCESS;
     }
-    
+
     PRINTF("BSP write test\n");
 
     // Pick the correct spi device
@@ -122,14 +122,14 @@ int main(int argc, char *argv[]) {
     }
 }
 
-int32_t test_write(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_write(uint32_t *test_buffer, uint32_t len) {
     // Write to flash memory at specific address
     global_status = w25q128jw_write_standard(FLASH_ADDR, test_buffer, len);
-    if (global_status != FLASH_OK) return -1;
+    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Read from flash memory at the same address
     global_status = w25q128jw_read(FLASH_ADDR, flash_data, len);
-    if (global_status != FLASH_OK) return -1;
+    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_original == flash_data)
     int32_t result = check_result(test_buffer, len);
@@ -137,17 +137,20 @@ int32_t test_write(uint32_t *test_buffer, uint32_t len) {
     // Clean memory for next test
     erase_memory(FLASH_ADDR);
 
+    // Reset the flash data buffer
+    memset(flash_data, 0, len * sizeof(uint8_t));
+
     return result;
 }
 
-int32_t test_write_dma(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_write_dma(uint32_t *test_buffer, uint32_t len) {
     // Write to flash memory at specific address
     global_status = w25q128jw_write_standard_dma(FLASH_ADDR, test_buffer, len);
-    if (global_status != FLASH_OK) return -1;
+    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Read from flash memory at the same address
     global_status = w25q128jw_read(FLASH_ADDR, flash_data, len);
-    if (global_status != FLASH_OK) return -1;
+    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_original == flash_data)
     int32_t result = check_result(test_buffer, len);
@@ -155,17 +158,20 @@ int32_t test_write_dma(uint32_t *test_buffer, uint32_t len) {
     // Clean memory for next test
     erase_memory(FLASH_ADDR);
 
+    // Reset the flash data buffer
+    memset(flash_data, 0, len * sizeof(uint8_t));
+
     return result;
 }
 
-int32_t test_write_quad(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_write_quad(uint32_t *test_buffer, uint32_t len) {
     // Write to flash memory at specific address
     global_status = w25q128jw_write_quad(FLASH_ADDR, test_buffer, len);
-    if (global_status != FLASH_OK) return -1;
+    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Read from flash memory at the same address
     global_status = w25q128jw_read(FLASH_ADDR, flash_data, len);
-    if (global_status != FLASH_OK) return -1;
+    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_original == flash_data)
     int32_t result = check_result(test_buffer, len);
@@ -173,17 +179,20 @@ int32_t test_write_quad(uint32_t *test_buffer, uint32_t len) {
     // Clean memory for next test
     erase_memory(FLASH_ADDR);
 
+    // Reset the flash data buffer
+    memset(flash_data, 0, len * sizeof(uint8_t));
+
     return result;
 }
 
-int32_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len) {
+uint32_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len) {
     // Write to flash memory at specific address
     global_status = w25q128jw_write_quad_dma(FLASH_ADDR, test_buffer, len);
-    if (global_status != FLASH_OK) return -1;
+    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Read from flash memory at the same address
     global_status = w25q128jw_read(FLASH_ADDR, flash_data, len);
-    if (global_status != FLASH_OK) return -1;
+    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_original == flash_data)
     int32_t result = check_result(test_buffer, len);
@@ -191,24 +200,20 @@ int32_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len) {
     // Clean memory for next test
     erase_memory(FLASH_ADDR);
 
+    // Reset the flash data buffer
+    memset(flash_data, 0, len * sizeof(uint8_t));
+
     return result;
 }
 
-int32_t check_result(uint32_t *test_buffer, uint32_t len) {
+uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
     uint32_t errors = 0;
-    for (int i=0; i < ((len%4==0) ? len/4 : len/4 + 1); i++) {
-        if (i < len/4 ) {
-            if(flash_data[i] != test_buffer[i]) {
-                PRINTF("index@%u : %x != %x(ref)\n", i, flash_data[i], test_buffer[i]);
-                errors++;
-            }
-        } else {
-            uint32_t last_bytes = 0;
-            memcpy(&last_bytes, &test_buffer[i], len % 4);
-            if (flash_data[i] != last_bytes) {
-                PRINTF("index@%u : %x != %x(ref)\n", i, flash_data[i], last_bytes);
-                errors++;
-            }
+    uint8_t *flash_data_char = (uint8_t *)flash_data;
+
+    for (uint32_t i = 0; i < len; i++) {
+        if (test_buffer[i] != flash_data_char[i]) {
+            PRINTF("Error at position %d: expected %x, got %x\n", i, test_buffer[i], flash_data_char[i]);
+            errors++;
         }
     }
 
