@@ -53,7 +53,7 @@ int32_t test_read_quad(uint32_t *test_buffer, uint32_t len);
 int32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len);
 
 // Check function
-uint32_t check_result(uint32_t *test_buffer, uint32_t len);
+uint32_t check_result(uint8_t *test_buffer, uint32_t len);
 
 // Define global status variable
 w25q_error_codes_t global_status;
@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
         return EXIT_SUCCESS;
     }
 
-    PRINTF("BSP read test\n");
+    PRINTF("BSP read test\n", LENGTH);
 
     // Pick the correct spi device based on simulation type
     spi_host_t spi;
@@ -114,54 +114,56 @@ int main(int argc, char *argv[]) {
 int32_t test_read(uint32_t *test_buffer, uint32_t len) {
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_standard(test_buffer, flash_data, len);
-    if (status != FLASH_OK) return -1;
+    if (status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
     return check_result(test_buffer, len);
+
+    // Reset the flash data buffer
+    memset(flash_data, 0, len * sizeof(uint8_t));
 }
 
 int32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_standard_dma(test_buffer, flash_data, len);
-    if (status != FLASH_OK) return -1;
+    if (status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
     return check_result(test_buffer, len);
+
+    // Reset the flash data buffer
+    memset(flash_data, 0, len * sizeof(uint8_t));
 }
 
 int32_t test_read_quad(uint32_t *test_buffer, uint32_t len) {
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_quad(test_buffer, flash_data, len);
-    if (status != FLASH_OK) return -1;
+    if (status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
     return check_result(test_buffer, len);
+
+    // Reset the flash data buffer
+    memset(flash_data, 0, len * sizeof(uint8_t));
 }
 
 int32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len) {
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_quad_dma(test_buffer, flash_data, len);
-    if (status != FLASH_OK) return -1;
+    if (status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
     return check_result(test_buffer, len);
 }
 
-uint32_t check_result(uint32_t *test_buffer, uint32_t len) {
+uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
     uint32_t errors = 0;
-    for (int i=0; i < ((len%4==0) ? len/4 : len/4 + 1); i++) {
-        if (i < len/4 ) {
-            if(flash_data[i] != test_buffer[i]) {
-                PRINTF("index@%u : %x != %x(ref)\n", i, flash_data[i], test_buffer[i]);
-                errors++;
-            }
-        } else {
-            uint32_t last_bytes = 0;
-            memcpy(&last_bytes, &test_buffer[i], len % 4);
-            if (flash_data[i] != last_bytes) {
-                PRINTF("index@%u : %x != %x(ref)\n", i, flash_data[i], last_bytes);
-                errors++;
-            }
+    uint8_t *flash_data_char = (uint8_t *)flash_data;
+
+    for (uint32_t i = 0; i < len; i++) {
+        if (test_buffer[i] != flash_data_char[i]) {
+            PRINTF("Error at position %d: expected %x, got %x\n", i, test_buffer[i], flash_data_char[i]);
+            errors++;
         }
     }
 
