@@ -4,9 +4,9 @@
  *
  * Simple example that writes a 1kB buffer to flash memory at a specific address
  * and then read it back to check if the data was written correctly.
- * By default the error checks after every operation are disabled, in order to
- * execute all four configurations of the test (standard, standard_dma, quad, quad_dma)
- * even if one fails.
+ * For buffers bigger than 4kB (or even smaller buffers that are not aligned to 4kB),
+ * the erase operation must be tweeked to erase all the sectors that contain the
+ * buffer.
  * 
  * @note The application assume the correct functioning of the read operation.
  *
