@@ -21,7 +21,7 @@
 
 /* By default, PRINTFs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   1
+#define PRINTF_IN_SIM   0
 
 #if TARGET_SIM && PRINTF_IN_SIM
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -51,7 +51,7 @@ uint32_t flash_data[256];
  * location.
 */
 #define TEST_BUFFER flash_original_1024B
-#define LENGTH 1024
+#define LENGTH 533
 #define FLASH_ADDR 0x00008500
 
 
