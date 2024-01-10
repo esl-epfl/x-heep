@@ -154,6 +154,9 @@ uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len) {
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
     return check_result(test_buffer, len);
+
+    // Reset the flash data buffer
+    memset(flash_data, 0, len * sizeof(uint8_t));
 }
 
 uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
