@@ -107,7 +107,6 @@ or to execute all these three steps type:
 make run-helloworld
 ```
 
-
 ### Compiling for VCS
 
 To simulate your application with VCS, first compile the HDL:
@@ -238,7 +237,6 @@ The available parameters are:
 * LINKER: `on_chip`(default), `flash_load` or `flash_exec` (can provide more than one)
 * TIMEOUT: Integer number of seconds (default 120)
 
-
 #### Usage
 
 ##### Comands
@@ -344,7 +342,6 @@ To look at the output of your printf, run in another terminal:
 `picocom -b 9600 -r -l --imap lfcrlf /dev/ttyUSB2`
 
 Please be sure to use the right `ttyUSB` number (you can discover it with `dmesg --time-format iso | grep FTDI` for example).
-
 
 ### FPGA EMUlation Platform (FEMU)
 
