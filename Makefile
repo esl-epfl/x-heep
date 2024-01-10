@@ -68,13 +68,6 @@ conda: environment.yml
 environment.yml: python-requirements.txt
 	util/python-requirements2conda.sh
 
-## @section Linux-Emulation
-
-## Generates FEMU
-linux-femu-gen: mcu-gen
-	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir linux_femu/rtl/ --tpl-sv linux_femu/rtl/linux_femu.sv.tpl
-	$(MAKE) verible
-
 ## @section Installation
 
 ## Generates mcu files core-v-mini-mcu files and build the design with fusesoc

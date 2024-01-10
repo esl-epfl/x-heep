@@ -440,7 +440,7 @@ make app-simulate-all
 ```
 Note that both commands allow the previous parameters to specify compiling or simulation options. E.g.:
 ```
-make app-simulate-all LINKER=on_chip SIMULATOR=questasim COMPILER=clang TIMEOUT=150 
+make app-simulate-all LINKER=on_chip SIMULATOR=questasim COMPILER=clang TIMEOUT=150
 ```
 
 ##### Manually
@@ -477,16 +477,17 @@ Follow the [ExecuteFromFlash](./ExecuteFromFlash.md) guide to exxecute code dire
 
 ## Emulation on Xilinx FPGAs
 
-This project offers two different X-HEEP implementetions on the Xilinx FPGAs, called Standalone-FEMU and Linux-FEMU.
+This project offers two different X-HEEP implementetions on Xilinx FPGAs, called Standalone and FEMU.
 
-### Standalone-FEMU (Standalone Fpga EMUlation)
+### Standalone
 
 In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the FPGA, and its input/output are connected to the available headers on the FPGA board.
-Two FPGA boards are actually supported: the Xilinx Pynq-z2 and Nexys-A7-100t.
+
+Two FPGA boards are supported: the Xilinx Pynq-z2 and Nexys-A7-100t.
 
 Make sure you have the FPGA board files installed in your Vivado.
 
-For example, for the Xilinx Pynq-Z2 board, use the documentation provided at the following [link](https://pynq.readthedocs.io/en/v2.5/overlay_design_methodology/board_settings.html) to download and install them:
+For example, for the Pynq-Z2 board, use the documentation provided at the following [link](https://pynq.readthedocs.io/en/v2.5/overlay_design_methodology/board_settings.html) to download and install them:
 
 To build and program the bitstream for your FPGA with vivado, type:
 
@@ -536,11 +537,11 @@ To look at the output of your printf, run in another terminal:
 Please be sure to use the right `ttyUSB` number (you can discover it with `dmesg --time-format iso | grep FTDI` for example).
 
 
-### Linux-FEMU (Linux Fpga EMUlation)
+### FPGA EMUlation Platform (FEMU)
 
-In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the FPGA and Linux is run on the ARM-based processing system (PS) side of the same chip.
+In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the Xilinx Zynq-7020 chip on the Pynq-Z2 board and Linux is run on the ARM-based processing system (PS) side of the same chip.
 
-Read the [following](./linux_femu/README.md) documentation to have more information about this implementation.
+NOTE: This platform is not part of this repository, but you can access it with the following link: [FEMU](https://github.com/esl-epfl/x-heep-femu-sdk).
 
 
 # ASIC Implementation
@@ -568,9 +569,5 @@ This relies on a fork of [edalize](https://github.com/davideschiavone/edalize) t
 
 ## References
 
-1. [Schiavone, Pasquale Davide, et al. "X-HEEP: An Open-Source, Configurable and Extendible RISC-V Microcontroller." 
+1. [Schiavone, Pasquale Davide, et al. "X-HEEP: An Open-Source, Configurable and Extendible RISC-V Microcontroller."
 Proceedings of the 20th ACM International Conference on Computing Frontiers. 2023.](https://dl.acm.org/doi/pdf/10.1145/3587135.3591431?casa_token=cAs3isVd0zkAAAAA:gmQBe3ip7X0Fz0hO8lSFbGN5-2fdu5vni1dxWWAIe9zCxQDW1PPerubUigOcl_an8HiZOhPuNrwzIw8)
-
-
-
-
