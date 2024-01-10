@@ -408,7 +408,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
         .type = DMA_DATA_TYPE_WORD, // Data type is word
     };
     // Size is in data units (words in this case)
-    tgt_src.size_du = (length%4==0) ? length>>2 : (length>>2)+1;
+    tgt_src.size_du = length>>2;
     // Target is SPI RX FIFO
     tgt_src.ptr = (uint8_t*)fifo_ptr_rx;
     // Trigger to control the data flow
@@ -463,7 +463,14 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     spi_wait_for_ready(&spi);
 
     // Wait for DMA to finish transaction
-        while(!dma_is_ready());
+    while(!dma_is_ready());
+
+    // Take into account the extra bytes (if any)
+    if (length % 4 != 0) {
+        uint32_t last_word = 0;
+        spi_read_word(&spi, &last_word);
+        memcpy(&data[length - length%4], &last_word, length%4);
+    }
 
     return FLASH_OK;
 }
@@ -657,7 +664,7 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
         .type = DMA_DATA_TYPE_WORD, // Data type is byte
     };
     // Size is in data units (words in this case)
-    tgt_src.size_du = (length%4==0) ? length>>2 : (length>>2)+1;
+    tgt_src.size_du = length>>2;
     // Target is SPI RX FIFO
     tgt_src.ptr = (uint8_t*)fifo_ptr_rx;
     // Trigger to control the data flow
@@ -686,6 +693,13 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
 
     // Wait for DMA to finish transaction
     while(!dma_is_ready());
+
+    // Take into account the extra bytes (if any)
+    if (length % 4 != 0) {
+        uint32_t last_word = 0;
+        spi_read_word(&spi, &last_word);
+        memcpy(&data[length - length%4], &last_word, length%4);
+    }
 
     return FLASH_OK;
 }
@@ -1174,7 +1188,7 @@ static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
         .type = DMA_DATA_TYPE_WORD, // Data type is word
     };
     // Size is in data units (words in this case)
-    tgt_src.size_du = (length%4==0) ? length>>2 : (length>>2)+1;
+    tgt_src.size_du = length>>2;
     // Target is data buffer
     tgt_src.ptr = data;
     // Reads from memory
@@ -1208,6 +1222,13 @@ static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
 
     // Wait for DMA to finish transaction
     while(!dma_is_ready());
+
+    // Take into account the extra bytes (if any)
+    if (length % 4 != 0) {
+        uint32_t last_word = 0;
+        memcpy(&last_word, &data[length - length % 4], length % 4);
+        spi_write_word(&spi, last_word);
+    }
     return FLASH_OK;
 }
 
