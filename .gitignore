@@ -7,7 +7,7 @@ build/
 *.dis
 *.map
 *.do
-.venv/*
+.venv/
 util/__pycache__/*
 
 # ignore apps output file
