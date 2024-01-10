@@ -4,15 +4,13 @@
 
 ## Clock signal
 set_property -dict {PACKAGE_PIN E3 IOSTANDARD LVCMOS33} [get_ports {clk_i}]; #IO_L12P_T1_MRCC_35 Sch=clk100mhz
-create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports {clk_i}];
 
 
 set_property -dict {PACKAGE_PIN C12 IOSTANDARD LVCMOS33} [get_ports {rst_i}]; #IO_L3P_T0_DQS_AD1P_15 Sch=cpu_resetn
 
 ## LEDs
-set_property -dict {PACKAGE_PIN V11 IOSTANDARD LVCMOS33} [get_ports {rst_led}];
-set_property -dict {PACKAGE_PIN K15 IOSTANDARD LVCMOS33} [get_ports {clk_out}];
-set_property -dict {PACKAGE_PIN J13 IOSTANDARD LVCMOS33} [get_ports {clk_led}];
+set_property -dict {PACKAGE_PIN V11 IOSTANDARD LVCMOS33} [get_ports {rst_led_o}];
+set_property -dict {PACKAGE_PIN J13 IOSTANDARD LVCMOS33} [get_ports {clk_led_o}];
 set_property -dict {PACKAGE_PIN N14 IOSTANDARD LVCMOS33} [get_ports {exit_valid_o}];
 set_property -dict {PACKAGE_PIN R18 IOSTANDARD LVCMOS33} [get_ports {exit_value_o}];
 set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets rst_led_OBUF]
