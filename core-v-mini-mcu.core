@@ -124,16 +124,6 @@ filesets:
     - hw/fpga/scripts/nexys/set_board.tcl: { file_type: tclSource }
     - hw/fpga/scripts/nexys/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
 
-  fpga-arm-emulation:
-    depend:
-    - pulp-platform.org::axi_spi_slave
-    files:
-    - linux_femu/scripts/xilinx_generate_processing_system.tcl: {file_type: tclSource}
-    - linux_femu/rtl/axi_address_hijacker.v: {file_type: verilogSource}
-    - linux_femu/rtl/linux_femu.sv: {file_type: systemVerilogSource}
-    - linux_femu/constraints/pin_assign.xdc: {file_type: xdc}
-    - linux_femu/constraints/constraints.xdc: {file_type: xdc}
-
   ip-asic:
     depend:
     - technology::prim_mytech
@@ -432,27 +422,6 @@ targets:
       vivado:
         part: xc7z020clg400-1
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
-
-  pynq-z2-arm-emulation:
-    <<: *default_target
-    default_tool: vivado
-    description: TUL Pynq-Z2 Board
-    filesets_append:
-    - x_heep_system
-    - rtl-fpga
-    - ip-fpga
-    - fpga-arm-emulation
-    parameters:
-    - COREV_PULP
-    - FPU
-    - X_EXT
-    - SYNTHESIS=true
-    - REMOVE_OBI_FIFO
-    tools:
-      vivado:
-        part: xc7z020clg400-1
-        jobs: 4
-    toplevel: [linux_femu]
 
   asic_synthesis:
     <<: *default_target

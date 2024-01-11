@@ -59,7 +59,6 @@ It has been tested only on `Ubuntu 20`, and we know it does NOT WORK on `Ubuntu 
 
 ## 2. Python
 
-
 We rely on either (a) `miniconda`, or (b) `virtual environment` enviroment.
 
 Choose between `2.a` or `2.b` to setup your enviroment.
@@ -78,7 +77,6 @@ You need to do it only the first time, then just activate the environment everyt
 ```bash
 conda activate core-v-mini-mcu
 ```
-
 
 ### 2.b Virtual Environment
 
@@ -206,7 +204,6 @@ make mcu-gen MCU_CFG=mcu_cfg_minimal.hjson
 
 The `minimal` configuration is a work-in-progress, thus not all the APPs have been tested.
 
-
 ## Compiling Software
 
 Don't forget to set the `RISCV` env variable to the compiler folder (without the `/bin` included).
@@ -237,7 +234,6 @@ make app TARGET=pynq-z2
 ```
 
 Or, if you use the OpenHW Group [GCC](https://www.embecosm.com/resources/tool-chain-downloads/#corev) compiler with CORE_PULP extensions, make sure to point the `RISCV` env variable to the OpenHW Group compiler, then just run:
-
 
 ```
 make app COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_xcvhwlp1p0_xcvmem1p0_xcvmac1p0_xcvbi1p0_xcvalu1p0_xcvsimd1p0_xcvbitmanip1p0
@@ -295,7 +291,6 @@ or to execute all these three steps type:
 ```
 make run-helloworld
 ```
-
 
 ### Compiling for VCS
 
@@ -427,7 +422,6 @@ The available parameters are:
 * LINKER: `on_chip`(default), `flash_load` or `flash_exec` (can provide more than one)
 * TIMEOUT: Integer number of seconds (default 120)
 
-
 #### Usage
 
 ##### Comands
@@ -440,7 +434,7 @@ make app-simulate-all
 ```
 Note that both commands allow the previous parameters to specify compiling or simulation options. E.g.:
 ```
-make app-simulate-all LINKER=on_chip SIMULATOR=questasim COMPILER=clang TIMEOUT=150 
+make app-simulate-all LINKER=on_chip SIMULATOR=questasim COMPILER=clang TIMEOUT=150
 ```
 
 ##### Manually
@@ -477,16 +471,17 @@ Follow the [ExecuteFromFlash](./ExecuteFromFlash.md) guide to exxecute code dire
 
 ## Emulation on Xilinx FPGAs
 
-This project offers two different X-HEEP implementetions on the Xilinx FPGAs, called Standalone-FEMU and Linux-FEMU.
+This project offers two different X-HEEP implementetions on Xilinx FPGAs, called Standalone and FEMU.
 
-### Standalone-FEMU (Standalone Fpga EMUlation)
+### Standalone
 
 In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the FPGA, and its input/output are connected to the available headers on the FPGA board.
-Two FPGA boards are actually supported: the Xilinx Pynq-z2 and Nexys-A7-100t.
+
+Two FPGA boards are supported: the Xilinx Pynq-z2 and Nexys-A7-100t.
 
 Make sure you have the FPGA board files installed in your Vivado.
 
-For example, for the Xilinx Pynq-Z2 board, use the documentation provided at the following [link](https://pynq.readthedocs.io/en/v2.5/overlay_design_methodology/board_settings.html) to download and install them:
+For example, for the Pynq-Z2 board, use the documentation provided at the following [link](https://pynq.readthedocs.io/en/v2.5/overlay_design_methodology/board_settings.html) to download and install them:
 
 To build and program the bitstream for your FPGA with vivado, type:
 
@@ -535,13 +530,11 @@ To look at the output of your printf, run in another terminal:
 
 Please be sure to use the right `ttyUSB` number (you can discover it with `dmesg --time-format iso | grep FTDI` for example).
 
+### FPGA EMUlation Platform (FEMU)
 
-### Linux-FEMU (Linux Fpga EMUlation)
+In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the Xilinx Zynq-7020 chip on the Pynq-Z2 board and Linux is run on the ARM-based processing system (PS) side of the same chip.
 
-In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the FPGA and Linux is run on the ARM-based processing system (PS) side of the same chip.
-
-Read the [following](./linux_femu/README.md) documentation to have more information about this implementation.
-
+NOTE: This platform is not part of this repository, but you can access it with the following link: [FEMU](https://github.com/esl-epfl/x-heep-femu-sdk).
 
 # ASIC Implementation
 
@@ -568,9 +561,5 @@ This relies on a fork of [edalize](https://github.com/davideschiavone/edalize) t
 
 ## References
 
-1. [Schiavone, Pasquale Davide, et al. "X-HEEP: An Open-Source, Configurable and Extendible RISC-V Microcontroller." 
+1. [Schiavone, Pasquale Davide, et al. "X-HEEP: An Open-Source, Configurable and Extendible RISC-V Microcontroller."
 Proceedings of the 20th ACM International Conference on Computing Frontiers. 2023.](https://dl.acm.org/doi/pdf/10.1145/3587135.3591431?casa_token=cAs3isVd0zkAAAAA:gmQBe3ip7X0Fz0hO8lSFbGN5-2fdu5vni1dxWWAIe9zCxQDW1PPerubUigOcl_an8HiZOhPuNrwzIw8)
-
-
-
-
