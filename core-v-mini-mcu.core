@@ -13,7 +13,7 @@ filesets:
     - x-heep::packages
     - openhwgroup.org:ip:cv32e40p
     - openhwgroup.org:ip:cv32e40x
-    - openhwgroup.org:ip:cve2
+    - openhwgroup:cve2:cve2_top
     - esl_epfl:ip:cv32e40px
     - pulp-platform.org:ip:gpio
     - pulp-platform.org::common_cells
@@ -102,7 +102,6 @@ filesets:
 
   ip-fpga:
     files:
-    - hw/fpga/scripts/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
     - hw/fpga/scripts/generate_sram.tcl:  { file_type: tclSource }
     - hw/fpga/prim_xilinx_clk.sv:  { file_type: systemVerilogSource }
     - hw/fpga/cv32e40p_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
@@ -115,15 +114,15 @@ filesets:
     - hw/fpga/pad_cell_bypass_input_xilinx.sv:  { file_type: systemVerilogSource }
     - hw/fpga/pad_cell_bypass_output_xilinx.sv:  { file_type: systemVerilogSource }
 
-  fpga-arm-emulation:
-    depend:
-    - pulp-platform.org::axi_spi_slave
+  ip-fpga-pynq-z2:
     files:
-    - linux_femu/scripts/xilinx_generate_processing_system.tcl: {file_type: tclSource}
-    - linux_femu/rtl/axi_address_hijacker.v: {file_type: verilogSource}
-    - linux_femu/rtl/linux_femu.sv: {file_type: systemVerilogSource}
-    - linux_femu/constraints/pin_assign.xdc: {file_type: xdc}
-    - linux_femu/constraints/constraints.xdc: {file_type: xdc}
+    - hw/fpga/scripts/pynq-z2/set_board.tcl: { file_type: tclSource }
+    - hw/fpga/scripts/pynq-z2/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
+
+  ip-fpga-nexys:
+    files:
+    - hw/fpga/scripts/nexys/set_board.tcl: { file_type: tclSource }
+    - hw/fpga/scripts/nexys/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
 
   ip-asic:
     depend:
@@ -262,7 +261,7 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     default: false
-  FPGA_NETLIST:
+  FPGA_NEXYS:
     datatype: bool
     paramtype: vlogdefine
     default: false
@@ -342,6 +341,7 @@ targets:
         - -override_timescale 1ns/1ps
         - -suppress vlog-2583
         - -suppress vlog-2577
+        - -suppress vlog-2720
         - -pedanticerrors
         - -define MODELSIM
         vsim_options:
@@ -385,7 +385,9 @@ targets:
     default_tool: vivado
     description: Digilent Nexys-A7-100T Board
     filesets_append:
+    - x_heep_system
     - rtl-fpga
+    - ip-fpga-nexys
     - ip-fpga
     - xdc-fpga-nexys
     parameters:
@@ -394,6 +396,7 @@ targets:
     - X_EXT
     - SYNTHESIS=true
     - REMOVE_OBI_FIFO
+    - FPGA_NEXYS=true
     tools:
       vivado:
         part: xc7a100tcsg324-1
@@ -406,6 +409,7 @@ targets:
     filesets_append:
     - x_heep_system
     - rtl-fpga
+    - ip-fpga-pynq-z2
     - ip-fpga
     - xdc-fpga-pynq-z2
     parameters:
@@ -418,27 +422,6 @@ targets:
       vivado:
         part: xc7z020clg400-1
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
-
-  pynq-z2-arm-emulation:
-    <<: *default_target
-    default_tool: vivado
-    description: TUL Pynq-Z2 Board
-    filesets_append:
-    - x_heep_system
-    - rtl-fpga
-    - ip-fpga
-    - fpga-arm-emulation
-    parameters:
-    - COREV_PULP
-    - FPU
-    - X_EXT
-    - SYNTHESIS=true
-    - REMOVE_OBI_FIFO
-    tools:
-      vivado:
-        part: xc7z020clg400-1
-        jobs: 4
-    toplevel: [linux_femu]
 
   asic_synthesis:
     <<: *default_target

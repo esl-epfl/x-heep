@@ -34,7 +34,7 @@ PROJECT  ?= hello_world
 # Linker options are 'on_chip' (default),'flash_load','flash_exec','freertos'
 LINKER   ?= on_chip
 
-# Target options are 'sim' (default) and 'pynq-z2'
+# Target options are 'sim' (default) and 'pynq-z2' and 'nexys-a7-100t'
 TARGET   	?= sim
 MCU_CFG  	?= mcu_cfg.hjson
 PAD_CFG  	?= pad_cfg.hjson
@@ -67,13 +67,6 @@ conda: environment.yml
 
 environment.yml: python-requirements.txt
 	util/python-requirements2conda.sh
-
-## @section Linux-Emulation
-
-## Generates FEMU
-linux-femu-gen: mcu-gen
-	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir linux_femu/rtl/ --tpl-sv linux_femu/rtl/linux_femu.sv.tpl
-	$(MAKE) verible
 
 ## @section Installation
 
@@ -119,7 +112,7 @@ verible:
 
 ## Generates the build folder in sw using CMake to build (compile and linking)
 ## @param PROJECT=<folder_name_of_the_project_to_be_built>
-## @param TARGET=sim(default),pynq-z2
+## @param TARGET=sim(default),pynq-z2,nexys-a7-100t
 ## @param LINKER=on_chip(default),flash_load,flash_exec
 ## @param COMPILER=gcc(default), clang
 ## @param COMPILER_PREFIX=riscv32-unknown-(default)

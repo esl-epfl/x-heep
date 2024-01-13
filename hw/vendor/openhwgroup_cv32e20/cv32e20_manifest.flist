@@ -1,0 +1,63 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2022 OpenHW Group
+//
+// Licensed under the Solderpad Hardware Licence, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://solderpad.org/licenses/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+///////////////////////////////////////////////////////////////////////////////
+//
+// Manifest for the CV32E20 RTL model.
+//   - Format based on manifest used by other CORE-V cores.
+//   - Intended to be used by both synthesis and simulation.
+//   - Relevent synthesis and simulation scripts/Makefiles must set the shell
+//     ENV variable DESIGN_RTL_DIR as required.
+//
+// TODO: Replace once-and-for-all with unified manifest (FuseSoc?)
+//
+///////////////////////////////////////////////////////////////////////////////
+
++incdir+${DESIGN_RTL_DIR}/../shared/rtl/
++incdir+${DESIGN_RTL_DIR}/../rtl
++incdir+${DESIGN_RTL_DIR}/../shared/rtl/sim
++incdir+${DESIGN_RTL_DIR}/../vendor/lowrisc_ip/ip/prim/rtl
++incdir+${DESIGN_RTL_DIR}/../vendor/lowrisc_ip/dv/sv/dv_utils
+
+${DESIGN_RTL_DIR}/cve2_pkg.sv
+${DESIGN_RTL_DIR}/cve2_tracer_pkg.sv
+${DESIGN_RTL_DIR}/../vendor/lowrisc_ip/ip/prim/rtl/prim_secded_pkg.sv
+${DESIGN_RTL_DIR}/../vendor/lowrisc_ip/ip/prim/rtl/prim_ram_1p_pkg.sv
+${DESIGN_RTL_DIR}/cve2_alu.sv
+${DESIGN_RTL_DIR}/cve2_compressed_decoder.sv
+${DESIGN_RTL_DIR}/cve2_controller.sv
+${DESIGN_RTL_DIR}/cve2_cs_registers.sv
+${DESIGN_RTL_DIR}/cve2_csr.sv
+${DESIGN_RTL_DIR}/cve2_counter.sv
+${DESIGN_RTL_DIR}/cve2_decoder.sv
+${DESIGN_RTL_DIR}/cve2_ex_block.sv
+${DESIGN_RTL_DIR}/cve2_fetch_fifo.sv
+${DESIGN_RTL_DIR}/cve2_id_stage.sv
+${DESIGN_RTL_DIR}/cve2_if_stage.sv
+${DESIGN_RTL_DIR}/cve2_load_store_unit.sv
+${DESIGN_RTL_DIR}/cve2_multdiv_fast.sv
+${DESIGN_RTL_DIR}/cve2_multdiv_slow.sv
+${DESIGN_RTL_DIR}/cve2_prefetch_buffer.sv
+${DESIGN_RTL_DIR}/cve2_pmp.sv
+${DESIGN_RTL_DIR}/cve2_register_file_ff.sv
+${DESIGN_RTL_DIR}/cve2_wb.sv
+${DESIGN_RTL_DIR}/cve2_core.sv
+${DESIGN_RTL_DIR}/cve2_top.sv
+${DESIGN_RTL_DIR}/cve2_top_tracing.sv
+${DESIGN_RTL_DIR}/cve2_tracer.sv
+
+${DESIGN_RTL_DIR}/../bhv/cve2_sim_clock_gate.sv
