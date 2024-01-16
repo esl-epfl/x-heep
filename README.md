@@ -41,9 +41,7 @@ The block diagram below shows the `X-HEEP` MCU
 
 # Reference
 
-If you use X-HEEP in your academic work you can cite us:
-
-[X-HEEP Paper](https://arxiv.org/abs/2401.05548)
+If you use X-HEEP in your academic work you can cite us: [X-HEEP Paper](https://arxiv.org/abs/2401.05548)
 
 ```
 @misc{machetti2024xheep,
