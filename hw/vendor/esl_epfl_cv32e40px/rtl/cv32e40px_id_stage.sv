@@ -72,6 +72,7 @@ module cv32e40px_id_stage
     output logic        branch_in_ex_o,
     input  logic        branch_decision_i,
     output logic [31:0] jump_target_o,
+    output logic [ 1:0] ctrl_transfer_insn_in_dec_o,
 
     // IF and ID stage signals
     output logic       clear_instr_valid_o,
@@ -263,10 +264,12 @@ module cv32e40px_id_stage
     // Forward Signals
     input logic [5:0] regfile_waddr_wb_i,
     input logic regfile_we_wb_i,
+    input logic regfile_we_wb_power_i,
     input  logic [31:0] regfile_wdata_wb_i, // From wb_stage: selects data from data memory, ex_stage result and sp rdata
 
     input logic [ 5:0] regfile_alu_waddr_fw_i,
     input logic        regfile_alu_we_fw_i,
+    input logic        regfile_alu_we_fw_power_i,
     input logic [31:0] regfile_alu_wdata_fw_i,
 
     // from ALU
@@ -301,6 +304,9 @@ module cv32e40px_id_stage
 
   localparam REG_D_MSB = 11;
   localparam REG_D_LSB = 7;
+
+
+  localparam REGFILE_NUM_READ_PORTS = ((COREV_X_IF == 1) & (X_DUALREAD == 1)) ? 2 : 1;
 
   logic [31:0] instr;
 
@@ -381,9 +387,9 @@ module cv32e40px_id_stage
   logic [ 5:0] regfile_alu_waddr_id;
   logic regfile_alu_we_id, regfile_alu_we_dec_id;
 
-  logic [31:0] regfile_data_ra_id;
-  logic [31:0] regfile_data_rb_id;
-  logic [31:0] regfile_data_rc_id;
+  logic [REGFILE_NUM_READ_PORTS-1:0][31:0] regfile_data_ra_id;
+  logic [REGFILE_NUM_READ_PORTS-1:0][31:0] regfile_data_rb_id;
+  logic [REGFILE_NUM_READ_PORTS-1:0][31:0] regfile_data_rc_id;
 
   // ALU Control
   logic alu_en;
@@ -438,8 +444,8 @@ module cv32e40px_id_stage
   logic [2:0][4:0] x_rs_addr;
   logic x_mem_data_req;
   logic x_mem_valid;
-  logic [2:0] x_ex_fwd;
-  logic [2:0] x_wb_fwd;
+  logic [RF_READ_PORTS-1:0] x_ex_fwd;
+  logic [RF_READ_PORTS-1:0] x_wb_fwd;
 
   // Register Write Control
   logic regfile_we_id;
@@ -622,17 +628,18 @@ module cv32e40px_id_stage
   //  \___/ \__,_|_| |_| |_| .__/    |_|\__,_|_|  \__, |\___|\__| //
   //                       |_|                    |___/           //
   //////////////////////////////////////////////////////////////////
+  generate
+    always_comb begin : jump_target_mux
+      unique case (ctrl_transfer_target_mux_sel)
+        JT_JAL:  jump_target = pc_id_i + imm_uj_type;
+        JT_COND: jump_target = pc_id_i + imm_sb_type;
 
-  always_comb begin : jump_target_mux
-    unique case (ctrl_transfer_target_mux_sel)
-      JT_JAL:  jump_target = pc_id_i + imm_uj_type;
-      JT_COND: jump_target = pc_id_i + imm_sb_type;
-
-      // JALR: Cannot forward RS1, since the path is too long
-      JT_JALR: jump_target = regfile_data_ra_id + imm_i_type;
-      default: jump_target = regfile_data_ra_id + imm_i_type;
-    endcase
-  end
+        // JALR: Cannot forward RS1, since the path is too long
+        JT_JALR: jump_target = regfile_data_ra_id[0] + imm_i_type;
+        default: jump_target = regfile_data_ra_id[0] + imm_i_type;
+      endcase
+    end
+  endgenerate
 
   assign jump_target_o = jump_target;
 
@@ -666,16 +673,18 @@ module cv32e40px_id_stage
     endcase
   end
 
-  // Operand a forwarding mux
-  always_comb begin : operand_a_fw_mux
-    case (operand_a_fw_mux_sel)
-      SEL_FW_EX:   operand_a_fw_id = regfile_alu_wdata_fw_i;
-      SEL_FW_WB:   operand_a_fw_id = regfile_wdata_wb_i;
-      SEL_REGFILE: operand_a_fw_id = regfile_data_ra_id;
-      default:     operand_a_fw_id = regfile_data_ra_id;
-    endcase
-    ;  // case (operand_a_fw_mux_sel)
-  end
+  generate
+    // Operand a forwarding mux
+    always_comb begin : operand_a_fw_mux
+      case (operand_a_fw_mux_sel)
+        SEL_FW_EX:   operand_a_fw_id = regfile_alu_wdata_fw_i;
+        SEL_FW_WB:   operand_a_fw_id = regfile_wdata_wb_i;
+        SEL_REGFILE: operand_a_fw_id = regfile_data_ra_id[0];
+        default:     operand_a_fw_id = regfile_data_ra_id[0];
+      endcase
+      ;  // case (operand_a_fw_mux_sel)
+    end
+  endgenerate
 
   //////////////////////////////////////////////////////
   //   ___                                 _   ____   //
@@ -732,16 +741,31 @@ module cv32e40px_id_stage
   assign alu_operand_b = (scalar_replication == 1'b1) ? operand_b_vec : operand_b;
 
 
-  // Operand b forwarding mux
-  always_comb begin : operand_b_fw_mux
-    case (operand_b_fw_mux_sel)
-      SEL_FW_EX:   operand_b_fw_id = regfile_alu_wdata_fw_i;
-      SEL_FW_WB:   operand_b_fw_id = regfile_wdata_wb_i;
-      SEL_REGFILE: operand_b_fw_id = regfile_data_rb_id;
-      default:     operand_b_fw_id = regfile_data_rb_id;
-    endcase
-    ;  // case (operand_b_fw_mux_sel)
-  end
+  generate
+    if (X_DUALREAD == 0) begin : no_dualread_fw_b
+      // Operand b forwarding mux
+      always_comb begin : operand_b_fw_mux
+        case (operand_b_fw_mux_sel)
+          SEL_FW_EX:   operand_b_fw_id = regfile_alu_wdata_fw_i;
+          SEL_FW_WB:   operand_b_fw_id = regfile_wdata_wb_i;
+          SEL_REGFILE: operand_b_fw_id = regfile_data_rb_id;
+          default:     operand_b_fw_id = regfile_data_rb_id;
+        endcase
+        ;  // case (operand_b_fw_mux_sel)
+      end
+    end else begin : dualread_fw_b
+      // Operand b forwarding mux
+      always_comb begin : operand_b_fw_mux
+        case (operand_b_fw_mux_sel)
+          SEL_FW_EX:   operand_b_fw_id = regfile_alu_wdata_fw_i;
+          SEL_FW_WB:   operand_b_fw_id = regfile_wdata_wb_i;
+          SEL_REGFILE: operand_b_fw_id = regfile_data_rb_id[0];
+          default:     operand_b_fw_id = regfile_data_rb_id[0];
+        endcase
+        ;  // case (operand_b_fw_mux_sel)
+      end
+    end
+  endgenerate
 
 
   //////////////////////////////////////////////////////
@@ -777,17 +801,31 @@ module cv32e40px_id_stage
   assign alu_operand_c = (scalar_replication_c == 1'b1) ? operand_c_vec : operand_c;
 
 
-  // Operand c forwarding mux
-  always_comb begin : operand_c_fw_mux
-    case (operand_c_fw_mux_sel)
-      SEL_FW_EX:   operand_c_fw_id = regfile_alu_wdata_fw_i;
-      SEL_FW_WB:   operand_c_fw_id = regfile_wdata_wb_i;
-      SEL_REGFILE: operand_c_fw_id = regfile_data_rc_id;
-      default:     operand_c_fw_id = regfile_data_rc_id;
-    endcase
-    ;  // case (operand_c_fw_mux_sel)
-  end
-
+  generate
+    if (X_DUALREAD == 0) begin : no_dualread_fw_c
+      // Operand c forwarding mux
+      always_comb begin : operand_c_fw_mux
+        case (operand_c_fw_mux_sel)
+          SEL_FW_EX:   operand_c_fw_id = regfile_alu_wdata_fw_i;
+          SEL_FW_WB:   operand_c_fw_id = regfile_wdata_wb_i;
+          SEL_REGFILE: operand_c_fw_id = regfile_data_rc_id;
+          default:     operand_c_fw_id = regfile_data_rc_id;
+        endcase
+        ;  // case (operand_c_fw_mux_sel)
+      end
+    end else begin : dualread_fw_c
+      // Operand c forwarding mux
+      always_comb begin : operand_c_fw_mux
+        case (operand_c_fw_mux_sel)
+          SEL_FW_EX:   operand_c_fw_id = regfile_alu_wdata_fw_i;
+          SEL_FW_WB:   operand_c_fw_id = regfile_wdata_wb_i;
+          SEL_REGFILE: operand_c_fw_id = regfile_data_rc_id[0];
+          default:     operand_c_fw_id = regfile_data_rc_id[0];
+        endcase
+        ;  // case (operand_c_fw_mux_sel)
+      end
+    end
+  endgenerate
 
   ///////////////////////////////////////////////////////////////////////////
   //  ___                              _ _       _              ___ ____   //
@@ -865,6 +903,9 @@ module cv32e40px_id_stage
             if (ctrl_transfer_target_mux_sel == JT_JALR) begin
               apu_read_regs[0]       = regfile_addr_ra_id;
               apu_read_regs_valid[0] = 1'b1;
+            end else begin
+              apu_read_regs[0]       = regfile_addr_ra_id;
+              apu_read_regs_valid[0] = 1'b0;
             end
           end  // OP_A_CURRPC:
           OP_A_REGA_OR_FWD: begin
@@ -982,12 +1023,16 @@ module cv32e40px_id_stage
       .ADDR_WIDTH(6),
       .DATA_WIDTH(32),
       .FPU       (FPU),
-      .ZFINX     (ZFINX)
+      .ZFINX     (ZFINX),
+      .COREV_X_IF(COREV_X_IF),
+      .X_DUALREAD(X_DUALREAD)
   ) register_file_i (
       .clk  (clk),
       .rst_n(rst_n),
 
       .scan_cg_en_i(scan_cg_en_i),
+
+      .dualread_i(x_issue_resp_i.dualread),
 
       // Read port a
       .raddr_a_i(regfile_addr_ra_id),
@@ -1004,12 +1049,12 @@ module cv32e40px_id_stage
       // Write port a
       .waddr_a_i(regfile_waddr_wb_i),
       .wdata_a_i(regfile_wdata_wb_i),
-      .we_a_i   (regfile_we_wb_i),
+      .we_a_i   (regfile_we_wb_power_i),
 
       // Write port b
       .waddr_b_i(regfile_alu_waddr_fw_i),
       .wdata_b_i(regfile_alu_wdata_fw_i),
-      .we_b_i   (regfile_alu_we_fw_i)
+      .we_b_i   (regfile_alu_we_fw_power_i)
   );
 
   logic [1:0] x_mem_data_type_id;
@@ -1037,6 +1082,7 @@ module cv32e40px_id_stage
           .x_issue_valid_o         (x_issue_valid_o),
           .x_issue_ready_i         (x_issue_ready_i),
           .x_issue_resp_writeback_i(x_issue_resp_i.writeback),
+          .x_issue_resp_dualread_i (x_issue_resp_i.dualread),
           .x_issue_resp_accept_i   (x_issue_resp_i.accept),
           .x_issue_resp_loadstore_i(x_issue_resp_i.loadstore),
           .x_issue_req_rs_valid_o  (x_issue_req_o.rs_valid),
@@ -1118,22 +1164,25 @@ module cv32e40px_id_stage
       assign x_mem_valid = x_mem_valid_i;
 
       // xif integer souce operand selection
-      for (genvar i = 0; i < 3; i++) begin : xif_operand_assignment
-        always_comb begin
-          if (i == 0) begin
-            x_issue_req_o.rs[i] = regfile_data_ra_id;
-          end else if (i == 1) begin
-            x_issue_req_o.rs[i] = regfile_data_rb_id;
-          end else begin
-            x_issue_req_o.rs[i] = regfile_data_rc_id;
-          end
-          if (x_ex_fwd[i]) begin
-            x_issue_req_o.rs[i] = result_fw_to_x_i;
-          end else if (x_wb_fwd[i]) begin
-            x_issue_req_o.rs[i] = regfile_wdata_wb_i;
+      for (genvar j = 0; j < REGFILE_NUM_READ_PORTS; j++) begin : xif_operand_assignment_dualread
+        for (genvar i = 0; i < 3; i++) begin : xif_operand_assignment
+          always_comb begin
+            if (i == 0) begin
+              x_issue_req_o.rs[i+3*j] = regfile_data_ra_id[j];
+            end else if (i == 1) begin
+              x_issue_req_o.rs[i+3*j] = regfile_data_rb_id[j];
+            end else begin
+              x_issue_req_o.rs[i+3*j] = regfile_data_rc_id[j];
+            end
+            if (x_ex_fwd[i+3*j]) begin
+              x_issue_req_o.rs[i+3*j] = result_fw_to_x_i;
+            end else if (x_wb_fwd[i+3*j]) begin
+              x_issue_req_o.rs[i+3*j] = regfile_wdata_wb_i;
+            end
           end
         end
       end
+
       // LSU signal assignment/MUX
       always_comb begin
         x_mem_data_type_id = 2'b00;
@@ -1300,7 +1349,7 @@ module cv32e40px_id_stage
       .debug_wfi_no_sleep_i(debug_wfi_no_sleep),
 
       // jump/branches
-      .ctrl_transfer_insn_in_dec_o   (ctrl_transfer_insn_in_dec),
+      .ctrl_transfer_insn_in_dec_o   (ctrl_transfer_insn_in_dec_o),
       .ctrl_transfer_insn_in_id_o    (ctrl_transfer_insn_in_id),
       .ctrl_transfer_target_mux_sel_o(ctrl_transfer_target_mux_sel),
 
@@ -1400,7 +1449,7 @@ module cv32e40px_id_stage
       // jump/branch control
       .branch_taken_ex_i          (branch_taken_ex),
       .ctrl_transfer_insn_in_id_i (ctrl_transfer_insn_in_id),
-      .ctrl_transfer_insn_in_dec_i(ctrl_transfer_insn_in_dec),
+      .ctrl_transfer_insn_in_dec_i(ctrl_transfer_insn_in_dec_o),
 
       // Interrupt signals
       .irq_wu_ctrl_i     (irq_wu_ctrl),
