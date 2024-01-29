@@ -14,11 +14,6 @@
 #include "core_v_mini_mcu.h"
 #include "soc_ctrl_regs.h"
 
-/* In case the operation is to load from FLASH
-*/
-#ifdef FLASH_LOAD
-#include "w25q128jw.h"
-#endif
 
 /* Entry point for bare metal programs */
 .section .text.start
