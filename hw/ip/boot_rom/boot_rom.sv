@@ -22,7 +22,7 @@ module boot_rom
 );
   import core_v_mini_mcu_pkg::*;
 
-  localparam int unsigned RomSize = 59;
+  localparam int unsigned RomSize = 58;
 
   logic [RomSize-1:0][31:0] mem;
   assign mem = {
@@ -47,8 +47,7 @@ module boot_rom
     32'h0ff40a93,
     32'h09000437,
     32'h10000b13,
-    32'h44818006,
-    32'h86936685,
+    32'h44816685,
     32'hfe07dfe3,
     32'h49dc0001,
     32'hd1d8070d,
