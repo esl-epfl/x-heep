@@ -77,6 +77,9 @@ int main(int argc, char *argv[])
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
     uint32_t read_byte_cmd;
     uint32_t* flash_data_lma = heep_get_data_address_lma(flash_data);
+    //set MS 8 bits to 0 as the flash only uses 24b
+    flash_data_lma = (uint32_t*) ((uint32_t)(flash_data_lma) & 0x00FFFFFF);
+
 
    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO )
     {
