@@ -7,6 +7,7 @@
 
 // functions
 uint32_t * heep_get_data_address_lma(uint32_t* data_address_vma);
+uint32_t * heep_get_flash_address_offset(uint32_t* data_address_lma);
 
 // LINKER symbol, the value is defined in the LINKER script
 extern const uint32_t _lma_vma_data_offset;
@@ -17,4 +18,12 @@ uint32_t * heep_get_data_address_lma(uint32_t* data_address_vma){
     uint32_t* data_address_lma = (uint32_t*) ((uint32_t)&(_lma_vma_data_offset) + (uint32_t)(data_address_vma));
 
     return data_address_lma;
+}
+
+// this translates the logical address of the FLASH relative to 0 instead of FLASH_MEM_START_ADDRESS, as used by the BSP
+uint32_t * heep_get_flash_address_offset(uint32_t* data_address_lma){
+
+    uint32_t* data_address_adjusted = (uint32_t*) ((uint32_t)(data_address_lma) - FLASH_MEM_START_ADDRESS);
+
+    return data_address_adjusted;
 }
