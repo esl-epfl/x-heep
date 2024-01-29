@@ -306,6 +306,7 @@ endif()
 set(COMPILER_LINKER_FLAGS "\
   -march=${CMAKE_SYSTEM_PROCESSOR} \
   -w -Os -g  -nostdlib  \
+  -ffunction-sections \
   -DHOST_BUILD \
   -D${CRT_TYPE} \
   -D${CRTO} \
