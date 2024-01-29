@@ -87,7 +87,7 @@ static void flash_power_up(void);
 
 /**
  * @brief Set the QE bit in the flash status register.
- * 
+ *
  * @return FLASH_OK if the QE bit is set, @ref error_codes otherwise.
 */
 static w25q_error_codes_t set_QE_bit(void);
@@ -99,7 +99,7 @@ static void configure_spi(void);
 
 /**
  * @brief Wait for the flash to be ready.
- * 
+ *
  * It pools the BUSY bit in the flash status register.
  * It is not checking the SUS bit status.
 */
@@ -112,12 +112,12 @@ static void flash_reset(void);
 
 /**
  * @brief Erase the flash and write the data.
- * 
+ *
  * It read 4k (a sector) at a time, erase it and write the data back.
  * Befor writing the data back, it modifies the buffer in order to
  * add the new data without modifing the other bytes. All the bytes
  * that are not going to be modified will be copied back as is.
- * 
+ *
  * @param addr 24-bit address to write to.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
@@ -127,12 +127,12 @@ static w25q_error_codes_t erase_and_write(uint32_t addr, uint8_t *data ,uint32_t
 
 /**
  * @brief Wrapper for page write.
- * 
- * It performs the sanity checks and calls the page_write function with 
+ *
+ * It performs the sanity checks and calls the page_write function with
  * the correct speed paramether. A wrapper is necessary as it is not possible
  * to program more than a page (256 bytes) at a time. So multiple calls
  * to page_write can be needed.
- * 
+ *
  * @param addr 24-bit address to write to.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
@@ -144,7 +144,7 @@ static w25q_error_codes_t page_write_wrapper(uint32_t addr, uint8_t *data, uint3
 
 /**
  * @brief Write (up to) a page to the flash.
- * 
+ *
  * @param addr 24-bit address to write to.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
@@ -155,17 +155,17 @@ static w25q_error_codes_t page_write(uint32_t addr, uint8_t *data, uint32_t leng
 
 /**
  * @brief Copy length bytes from data to the SPI TX FIFO, using DMA.
- * 
+ *
  * @param data pointer to the data buffer.
  * @param length number of bytes to copy.
- 
+
  * @return FLASH_OK if the operation is successful, @ref error_codes otherwise.
 */
 static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length);
 
 /**
  * @brief Enable flash write.
- * 
+ *
  * It sets the WEL bit in the flash status register.
  * Every action that require the WEL to be set is goig to automatically
  * clear it.
@@ -174,10 +174,10 @@ static void flash_write_enable(void);
 
 /**
  * @brief Performs sanity checks on the input parameters.
- * 
+ *
  * Checks if the address is valid, the data pointer is not NULL
  * and the length is not 0.
- * 
+ *
  * @param addr 24-bit address.
  * @param data pointer to the data buffer.
  * @param length number of bytes to read/write.
@@ -187,9 +187,9 @@ static w25q_error_codes_t sanity_checks(uint32_t addr, uint8_t *data, uint32_t l
 
 /**
  * @brief Return the minimum between two numbers.
- * 
+ *
  * The function uses signed integers in order to handle also negative numbers.
- * 
+ *
  * @param a first number.
  * @param b second number.
  * @return the minimum between a and b.
@@ -212,7 +212,7 @@ spi_host_t spi;
 
 /**
  * @brief Static vector used in the erase_and_write function.
- * 
+ *
  * It is used to store the data of a sector (4k) of the flash. Given the dimensions
  * of the vector, is not possible to allocate it dinamically as it would cause a stack
  * or heap overflow.
@@ -225,6 +225,13 @@ uint8_t sector_data[FLASH_SECTOR_SIZE];
 /*                           EXPORTED FUNCTIONS                             */
 /**                                                                        **/
 /****************************************************************************/
+
+
+void w25q128jw_init_crt0() {
+    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
+    return;
+}
+
 w25q_error_codes_t w25q128jw_init(spi_host_t spi_host) {
     /*
      * Check if memory mapped SPI is enabled. Current version of the bsp
@@ -241,7 +248,7 @@ w25q_error_codes_t w25q128jw_init(spi_host_t spi_host) {
     // Select SPI host as SPI output
     soc_ctrl_select_spi_host((soc_ctrl_t*)soc_ctrl_peri);
     #endif // USE_SPI_FLASH
-    
+
     // Enable SPI host device
     spi_set_enable(&spi, true);
 
@@ -516,7 +523,7 @@ w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t lengt
         #ifdef TARGET_PYNQ_Z2
         .len        = DUMMY_CLOCKS_FAST_READ_QUAD_IO-1,
         #else
-        .len        = DUMMY_CLOCKS_SIM-1,               
+        .len        = DUMMY_CLOCKS_SIM-1,
         #endif
         .csaat      = true,            // Command not finished
         .speed      = kSpiSpeedQuad,   // Quad speed
@@ -766,7 +773,7 @@ void w25q128jw_32k_erase(uint32_t addr) {
 void w25q128jw_64k_erase(uint32_t addr) {
     // Sanity checks
     if (addr > 0x00ffffff || addr < 0) return FLASH_ERROR;
-    
+
     // Wait any other operation to finish
     flash_wait();
 
@@ -826,9 +833,9 @@ void w25q128jw_reset(void) {
 
 void w25q128jw_reset_force(void) {
     // Build and send reset command without waiting for ongoing operation
-    flash_reset(); 
+    flash_reset();
 
-    // Wait for the reset operation to be finished   
+    // Wait for the reset operation to be finished
     flash_wait();
 }
 
@@ -890,8 +897,8 @@ static w25q_error_codes_t set_QE_bit(void) {
     spi_set_command(&spi, reg2_read_2);
     spi_wait_for_ready(&spi);
     spi_wait_for_rx_watermark(&spi);
-    
-    /* 
+
+    /*
      * the partial word will be zero-padded and inserted into the RX FIFO once the segment is completed
      * The actual register is 8 bit, but the SPI host gives a full word
     */
@@ -932,7 +939,7 @@ static w25q_error_codes_t set_QE_bit(void) {
 
     // Wait flash to complete write routine
     flash_wait();
-    
+
     // Read back Status Register 2
     spi_write_word(&spi, reg2_read_cmd);
     spi_set_command(&spi, reg2_read_1);
@@ -1253,7 +1260,7 @@ static w25q_error_codes_t sanity_checks(uint32_t addr, uint8_t *data, uint32_t l
 
     // Check if length is 0
     if (length <= 0) return FLASH_ERROR;
-    
+
     // Check if current address + length is out of range
     if (addr + length > MAX_FLASH_ADDR) return FLASH_ERROR;
 

@@ -56,6 +56,7 @@ SECTIONS {
         . = ALIGN(4);
         __text_start = .; /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
         *(.text)           /* .text sections (code) */
+        *(.text.w25q128jw_init_crt0)
         *(.text.w25q128jw_read_standard) /* as this function is used in the crt0, link it in the top, should be before 1024 Bytes loaded by the bootrom */
         *(.text*)          /* .text* sections (code) */
         *(.rodata)         /* .rodata sections (constants, strings, etc.) */

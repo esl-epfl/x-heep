@@ -43,14 +43,16 @@ _start:
 
 #ifdef FLASH_LOAD
 
+    call w25q128jw_init_crt0
+
     // This assumes ram base address is 0x00000000 and the section .text stars from ram0 (in the first RAMSIZE_COPIEDBY_BOOTROM Byte)
-    li     s1, RAMSIZE_COPIEDBY_BOOTROM // dst ptr (ram)
+    li     s1, RAMSIZE_COPIEDBY_BOOTROM
+    li     s2, FLASH_MEM_START_ADDRESS
 
     // copy the remaining (if any) text and data sections //
     // Setup the in/out pointers and copy size knowing 1KiB as already been copied
-    li     a0, FLASH_MEM_START_ADDRESS // src ptr (flash)
+    mv     a0, s2 // src ptr (flash)
     add   a0, a0, s1
-
 
     la     a1, _etext
     // Skip if everything has already been copied, and copy the data section
@@ -63,6 +65,11 @@ _start:
     mv     a1, s1
 
     // copy the remaining data --> w25q128jw_read_standard(a0 is src addr, a1 is dest ptr data, a2 is length)
+
+    // this sub is redundat as we could have simply set a0 to RAMSIZE_COPIEDBY_BOOTROM+0x0,
+    // but like this is more readable as we set the FLASH address as memory mapped to FLASH_MEM_START_ADDRESS, and then remove the offset
+    // as required bz the w25q128jw_read_standard function
+    sub    a0,a0,s2
     call w25q128jw_read_standard
 
 _init_data_section:
@@ -76,6 +83,7 @@ _init_data_section:
 
     bltz   a2, _init_data_interleaved_section // dont do anything if you do not have data
 
+    sub    a0,a0,s2
     call w25q128jw_read_standard
 
 
@@ -91,6 +99,7 @@ _init_data_interleaved_section:
 
     bltz   a2, _init_bss // dont do anything if you do not have interleaved data
 
+    sub    a0,a0,s2
     call w25q128jw_read_standard
 #endif
 
