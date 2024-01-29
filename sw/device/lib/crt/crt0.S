@@ -42,8 +42,6 @@ _start:
 
 #ifdef FLASH_LOAD
 
-    li  s2, 0 #init the s2 dirty state to 0
-
     // copy the remaining (if any) text and data sections //
     // Setup the in/out pointers and copy size knowing 1KiB as already been copied
     li     a0, FLASH_MEM_START_ADDRESS // src ptr (flash)
@@ -68,9 +66,10 @@ _init_data_section:
     // src ptr
     la     a0, _lma_data_start
     // dst ptr
-    la     a1, _lma_data_end
+    la     a1, __data_start
     // copy size in bytes
-    sub    a2, a1, a0
+    la     a2, _lma_data_end
+    sub    a2, a2, a0
 
     bltz   a2, _init_data_interleaved_section // dont do anything if you do not have data
 
@@ -82,9 +81,10 @@ _init_data_interleaved_section:
     // src ptr
     la     a0, _lma_data_interleaved_start
     // dst ptr
-    la     a1, _lma_data_interleaved_end
+    la     a1, __data_interleaved_start
     // copy size in bytes
-    sub    a2, a1, a0
+    la     a2, _lma_data_interleaved_end
+    sub    a2, a2, a0
 
     bltz   a2, _init_bss // dont do anything if you do not have interleaved data
 
