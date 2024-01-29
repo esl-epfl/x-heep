@@ -31,7 +31,9 @@ module cv32e40px_register_file #(
     parameter ADDR_WIDTH = 5,
     parameter DATA_WIDTH = 32,
     parameter FPU        = 0,
-    parameter ZFINX      = 0
+    parameter ZFINX      = 0,
+    parameter COREV_X_IF = 0,
+    parameter X_DUALREAD = 0
 ) (
     // Clock and Reset
     input logic clk,
@@ -39,17 +41,19 @@ module cv32e40px_register_file #(
 
     input logic scan_cg_en_i,
 
+    input logic [2:0] dualread_i,
+
     //Read port R1
-    input  logic [ADDR_WIDTH-1:0] raddr_a_i,
-    output logic [DATA_WIDTH-1:0] rdata_a_o,
+    input logic [ADDR_WIDTH-1:0] raddr_a_i,
+    output logic [X_DUALREAD:0][DATA_WIDTH-1:0] rdata_a_o,
 
     //Read port R2
-    input  logic [ADDR_WIDTH-1:0] raddr_b_i,
-    output logic [DATA_WIDTH-1:0] rdata_b_o,
+    input logic [ADDR_WIDTH-1:0] raddr_b_i,
+    output logic [X_DUALREAD:0][DATA_WIDTH-1:0] rdata_b_o,
 
     //Read port R3
-    input  logic [ADDR_WIDTH-1:0] raddr_c_i,
-    output logic [DATA_WIDTH-1:0] rdata_c_o,
+    input logic [ADDR_WIDTH-1:0] raddr_c_i,
+    output logic [X_DUALREAD:0][DATA_WIDTH-1:0] rdata_c_o,
 
     // Write port W1
     input logic [ADDR_WIDTH-1:0] waddr_a_i,
@@ -86,17 +90,53 @@ module cv32e40px_register_file #(
   //-----------------------------------------------------------------------------
   //-- READ : Read address decoder RAD
   //-----------------------------------------------------------------------------
-  assign rdata_a_o = raddr_a_i[5] ? mem_fp[raddr_a_i[4:0]] : mem[raddr_a_i[4:0]];
-  assign rdata_b_o = raddr_b_i[5] ? mem_fp[raddr_b_i[4:0]] : mem[raddr_b_i[4:0]];
-  assign rdata_c_o = raddr_c_i[5] ? mem_fp[raddr_c_i[4:0]] : mem[raddr_c_i[4:0]];
-
+  generate
+    if (COREV_X_IF != 0) begin
+      if (X_DUALREAD) begin
+        always_comb begin
+          rdata_a_o[0] = raddr_a_i[5] ? mem_fp[raddr_a_i[4:0]] : mem[raddr_a_i[4:0]];
+          rdata_b_o[0] = raddr_b_i[5] ? mem_fp[raddr_b_i[4:0]] : mem[raddr_b_i[4:0]];
+          rdata_c_o[0] = raddr_c_i[5] ? mem_fp[raddr_c_i[4:0]] : mem[raddr_c_i[4:0]];
+          if (dualread_i[0] == 1)
+            rdata_a_o[1] = raddr_a_i[5] ? (mem_fp[{
+              raddr_a_i[4:1], raddr_a_i[0]|1'b1
+            }]) : (mem[{
+              raddr_a_i[4:1], raddr_a_i[0]|1'b1
+            }]);
+          else rdata_a_o[1] = '0;
+          if (dualread_i[1] == 1)
+            rdata_b_o[1] = raddr_b_i[5] ? (mem_fp[{
+              raddr_b_i[4:1], raddr_b_i[0]|1'b1
+            }]) : (mem[{
+              raddr_b_i[4:1], raddr_b_i[0]|1'b1
+            }]);
+          else rdata_b_o[1] = '0;
+          if (dualread_i[2] == 1)
+            rdata_c_o[1] = raddr_c_i[5] ? (mem_fp[{
+              raddr_c_i[4:1], raddr_c_i[0]|1'b1
+            }]) : (mem[{
+              raddr_c_i[4:1], raddr_c_i[0]|1'b1
+            }]);
+          else rdata_c_o[1] = '0;
+        end
+      end else begin
+        assign rdata_a_o = raddr_a_i[5] ? mem_fp[raddr_a_i[4:0]] : mem[raddr_a_i[4:0]];
+        assign rdata_b_o = raddr_b_i[5] ? mem_fp[raddr_b_i[4:0]] : mem[raddr_b_i[4:0]];
+        assign rdata_c_o = raddr_c_i[5] ? mem_fp[raddr_c_i[4:0]] : mem[raddr_c_i[4:0]];
+      end
+    end else begin
+      assign rdata_a_o = raddr_a_i[5] ? mem_fp[raddr_a_i[4:0]] : mem[raddr_a_i[4:0]];
+      assign rdata_b_o = raddr_b_i[5] ? mem_fp[raddr_b_i[4:0]] : mem[raddr_b_i[4:0]];
+      assign rdata_c_o = raddr_c_i[5] ? mem_fp[raddr_c_i[4:0]] : mem[raddr_c_i[4:0]];
+    end
+  endgenerate
   //-----------------------------------------------------------------------------
   //-- WRITE : Write Address Decoder (WAD), combinatorial process
   //-----------------------------------------------------------------------------
 
   // Mask top bit of write address to disable fp regfile
-  assign waddr_a   = waddr_a_i;
-  assign waddr_b   = waddr_b_i;
+  assign waddr_a = waddr_a_i;
+  assign waddr_b = waddr_b_i;
 
   genvar gidx;
   generate
