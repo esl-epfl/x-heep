@@ -70,23 +70,13 @@ uint32_t copy_data[COPY_DATA_NUM] __attribute__ ((aligned (4)))  = { 0 };
 
 #define COPY_DATA_TYPE (COPY_DATA_NUM/(sizeof(uint32_t)/sizeof(DATA_TYPE)))
 
-extern const uint32_t _lma_vma_data_offset;
-
-uint32_t * get_data_address_lma(uint32_t* data_address_vma){
-
-    uint32_t* data_address_lma = (uint32_t*) ((uint32_t)&(_lma_vma_data_offset) + (uint32_t)(data_address_vma));
-    //set MS 8 bits to 0 as the flash only uses 24b
-    data_address_lma = (uint32_t*) ((uint32_t)(data_address_lma) & 0x00FFFFFF);
-    return data_address_lma;
-}
-
 int main(int argc, char *argv[])
 {
 
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
     uint32_t read_byte_cmd;
-    uint32_t* flash_data_lma = get_data_address_lma(flash_data);
+    uint32_t* flash_data_lma = heep_get_data_address_lma(flash_data);
 
    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO )
     {
