@@ -14,6 +14,7 @@
 #include "core_v_mini_mcu.h"
 #include "soc_ctrl_regs.h"
 
+#define RAMSIZE_COPIEDBY_BOOTROM 4096
 
 /* Entry point for bare metal programs */
 .section .text.start
@@ -42,22 +43,24 @@ _start:
 
 #ifdef FLASH_LOAD
 
+    // This assumes ram base address is 0x00000000 and the section .text stars from ram0 (in the first RAMSIZE_COPIEDBY_BOOTROM Byte)
+    li     s1, RAMSIZE_COPIEDBY_BOOTROM // dst ptr (ram)
+
     // copy the remaining (if any) text and data sections //
     // Setup the in/out pointers and copy size knowing 1KiB as already been copied
     li     a0, FLASH_MEM_START_ADDRESS // src ptr (flash)
-    addi   a0, a0, 1024
+    add   a0, a0, s1
 
-    // This assumes ram base address is 0x00000000 and the section .text stars from ram0 (in the first 1024B)
-    li     s1, 1024 // dst ptr (ram)
+
     la     a1, _etext
     // Skip if everything has already been copied, and copy the data section
     blt    a1, s1, _init_data_section
 
-    // copy size in bytes, i.e. _etext - 1024
-    addi   a2, a1, -1024
+    // copy size in bytes, i.e. _etext - RAMSIZE_COPIEDBY_BOOTROM
+    sub   a2, a1, s1
 
     // dst ptr (ram)
-    li     a1, 1024
+    mv     a1, s1
 
     // copy the remaining data --> w25q128jw_read_standard(a0 is src addr, a1 is dest ptr data, a2 is length)
     call w25q128jw_read_standard
