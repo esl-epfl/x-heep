@@ -103,9 +103,12 @@ int main(int argc, char *argv[]) {
     PRINTF("Testing simple write...\n");
     errors += test_write(TEST_BUFFER, BYTES_TO_WRITE);
 
+
+#ifndef ON_CHIP
     // Test simple write on flash_only data
     PRINTF("Testing simple write. on flash only data..\n");
     errors += test_write_flash_only(TEST_BUFFER, BYTES_TO_WRITE);
+#endif
 
     // Test simple write with DMA
     PRINTF("Testing simple write with DMA...\n");
