@@ -71,9 +71,6 @@ void erase_memory(uint32_t addr);
 // Define global status variable
 w25q_error_codes_t global_status;
 
-// LINKER symbol, the value is defined in the LINKER script
-extern const uint32_t _lma_vma_data_offset;
-
 int main(int argc, char *argv[]) {
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
