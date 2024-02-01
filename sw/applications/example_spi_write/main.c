@@ -53,14 +53,16 @@ uint32_t flash_data[256];
 #define TEST_BUFFER flash_original_1024B
 #define BYTES_TO_WRITE 533 //in bytes, must be less than 256*4=1024
 
-uint32_t flash_write_buffer[256] __attribute__ ((aligned (16)));
+uint32_t flash_write_buffer[256] ;
 
+int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__ ((aligned (16))) flash_only_write_buffer[256];
 
 // Test functions
 uint32_t test_write(uint32_t *test_buffer, uint32_t len);
 uint32_t test_write_dma(uint32_t *test_buffer, uint32_t len);
 uint32_t test_write_quad(uint32_t *test_buffer, uint32_t len);
 uint32_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len);
+uint32_t test_write_flash_only(uint32_t *test_buffer, uint32_t len);
 
 // Check function
 uint32_t check_result(uint8_t *test_buffer, uint32_t len);
@@ -101,6 +103,10 @@ int main(int argc, char *argv[]) {
     PRINTF("Testing simple write...\n");
     errors += test_write(TEST_BUFFER, BYTES_TO_WRITE);
 
+    // Test simple write on flash_only data
+    PRINTF("Testing simple write. on flash only data..\n");
+    errors += test_write_flash_only(TEST_BUFFER, BYTES_TO_WRITE);
+
     // Test simple write with DMA
     PRINTF("Testing simple write with DMA...\n");
     errors += test_write_dma(TEST_BUFFER, BYTES_TO_WRITE);
@@ -122,6 +128,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 }
+
 
 uint32_t test_write(uint32_t *test_buffer, uint32_t len) {
 
@@ -223,6 +230,30 @@ uint32_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len) {
     return result;
 }
 
+uint32_t test_write_flash_only(uint32_t *test_buffer, uint32_t len) {
+
+    //remove FLASH offset as required by the BSP, here VMA does not exist as these data are only mapped on FLASH
+    uint32_t *test_buffer_flash = heep_get_flash_address_offset(flash_only_write_buffer);
+
+    // Write to flash memory at specific address
+    global_status = w25q128jw_write_standard(test_buffer_flash, test_buffer, len);
+    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
+
+    // Read from flash memory at the same address
+    global_status = w25q128jw_read(test_buffer_flash, flash_data, len);
+    if (global_status != FLASH_OK) exit(EXIT_FAILURE);
+
+    // Check if what we read is correct (i.e. flash_original == flash_data)
+    int32_t result = check_result(test_buffer, len);
+
+    // Clean memory for next test
+    erase_memory(test_buffer_flash);
+
+    // Reset the flash data buffer
+    memset(flash_data, 0, len * sizeof(uint8_t));
+
+    return result;
+}
 uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
     uint32_t errors = 0;
     uint8_t *flash_data_char = (uint8_t *)flash_data;
