@@ -1152,6 +1152,7 @@ static w25q_error_codes_t page_write(uint32_t addr, uint8_t *data, uint32_t leng
         if (length % 4 != 0) {
             uint32_t last_word = 0;
             memcpy(&last_word, &data[length - length % 4], length % 4);
+            spi_wait_for_tx_not_full(&spi);
             spi_write_word(&spi, last_word);
         }
     }
@@ -1234,6 +1235,7 @@ static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
     if (length % 4 != 0) {
         uint32_t last_word = 0;
         memcpy(&last_word, &data[length - length % 4], length % 4);
+        spi_wait_for_tx_not_full(&spi);
         spi_write_word(&spi, last_word);
     }
     return FLASH_OK;
