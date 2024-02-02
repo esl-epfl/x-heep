@@ -307,6 +307,8 @@ targets:
     - files_rtl_generic
     - target_sim ? (rtl-simulation)
     - target_sim ? (tool_verilator? (files_verilator_waiver))
+    - target_sim_sc ? (rtl-simulation)
+    - target_sim_sc ? (tool_verilator? (files_verilator_waiver))
     toplevel: [core_v_mini_mcu]
 
   sim:
@@ -319,7 +321,7 @@ targets:
     - tool_modelsim? (pre_patch_modelsim_Makefile)
     - tool_vcs? (cfile_uartdpi)
     - tool_vcs? (pre_build_remote_bitbang)
-    - tool_verilator? (tb-sc-verilator)
+    - tool_verilator? (tb-verilator)
     - tool_modelsim? (tb-sv)
     - tool_vcs? (tb-sv)
     - "!integrated_heep? (x_heep_system)"
@@ -381,9 +383,9 @@ targets:
           - '--trace-max-array 1024'
           - '--x-assign unique'
           - '--x-initial unique'
-          - '--exe tb_sc_top.cpp'
-          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive -I$(SYSTEMC_INCLUDE)"'
-          - '-LDFLAGS "-pthread -lutil -lelf $(SYSTEMC_LIBDIR)/libsystemc.a"'
+          - '--exe tb_top.cpp'
+          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive'
+          - '-LDFLAGS "-pthread -lutil -lelf'
           - "-Wall"
 
   sim_sc:
