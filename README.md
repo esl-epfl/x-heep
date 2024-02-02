@@ -281,7 +281,7 @@ For example, if you want to set the `FPU` and `COREV_PULP` parameters of the `cv
 you need to add next to your compilation command `FUSESOC_PARAM="--COREV_PULP=1 --FPU=1"`
 Below the different EDA examples commands.
 
-### Compiling for Verilator
+### Compiling for Verilator (C++ testbench)
 
 To simulate your application with Verilator, first compile the HDL:
 
@@ -293,6 +293,32 @@ then, go to your target system built folder
 
 ```
 cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
+```
+
+and type to run your compiled software:
+
+```
+./Vtestharness +firmware=../../../sw/build/main.hex
+```
+
+or to execute all these three steps type:
+
+```
+make run-helloworld
+```
+
+### Compiling for Verilator (SystemC testbench)
+
+To simulate your application with Verilator using SystemC, first compile the HDL:
+
+```
+make verilator-sim-sc
+```
+
+then, go to your target system built folder
+
+```
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim_sc-verilator
 ```
 
 and type to run your compiled software:
