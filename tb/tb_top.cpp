@@ -26,9 +26,8 @@ void runCycles(unsigned int ncycles, Vtestharness *dut, VerilatedFstC *m_trace){
 int main (int argc, char * argv[])
 {
 
-  unsigned int SRAM_SIZE;
-  std::string firmware, arg_execute_from_flash;
-  unsigned int max_sim_time, boot_sel, execute_from_flash, exit_val, i, j;
+  std::string firmware;
+  unsigned int max_sim_time, boot_sel, exit_val;
   bool use_openocd;
   bool run_all = false;
 

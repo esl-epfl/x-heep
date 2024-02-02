@@ -5,6 +5,7 @@
 #include "verilated.h"
 #include "verilated_fst_c.h"
 #include "Vtestharness.h"
+#include "Vtestharness__Syms.h"
 #include "systemc.h"
 #include <stdlib.h>
 #include <iostream>
@@ -16,16 +17,77 @@ SC_MODULE(testbench)
 
   sc_in<bool> clk_i;
   sc_out<bool> clk_o;
+  sc_out<bool> rst_no;
+  sc_out<bool> boot_select_o;
+  sc_out<bool> execute_from_flash_o;
+  sc_out<bool> jtag_tck_o;
+  sc_out<bool> jtag_tms_o;
+  sc_out<bool> jtag_trst_n_o;
+  sc_out<bool> jtag_tdi_o;
 
-  void make_clock () {
+  bool boot_select_option;
+  unsigned int reset_cycles = 30;
 
-    for(int i=0;i<30;i++){
+  void do_reset_cycle () {
+    //active low
+
+    //-----
+    rst_no.write(false);
+
+    for(int i=0;i<reset_cycles;i++){
       clk_o.write(false);
       wait();
       clk_o.write(true);
       wait();
       std::cout<<sc_time_stamp()<<std::endl;
     }
+
+
+    //-----|||||||
+    rst_no.write(true);
+
+    for(int i=0;i<reset_cycles;i++){
+      clk_o.write(false);
+      wait();
+      clk_o.write(true);
+      wait();
+      std::cout<<sc_time_stamp()<<std::endl;
+    }
+
+    //-----|||||||------
+    rst_no.write(false);
+
+    for(int i=0;i<reset_cycles;i++){
+      clk_o.write(false);
+      wait();
+      clk_o.write(true);
+      wait();
+      std::cout<<sc_time_stamp()<<std::endl;
+    }
+
+    //-----|||||||------||||||
+    rst_no.write(true);
+
+    for(int i=0;i<reset_cycles;i++){
+      clk_o.write(false);
+      wait();
+      clk_o.write(true);
+      wait();
+      std::cout<<sc_time_stamp()<<std::endl;
+    }
+
+  }
+
+  void make_clock () {
+
+    boot_select_o.write(boot_select_option);
+    execute_from_flash_o.write(true);
+    jtag_tck_o.write(false);
+    jtag_tms_o.write(false);
+    jtag_trst_n_o.write(false);
+    jtag_tdi_o.write(false);
+
+    do_reset_cycle();
 
     sc_stop();
   }
@@ -36,13 +98,18 @@ SC_MODULE(testbench)
     SC_CTHREAD(make_clock, clk_i.pos());
 
   }
+
+
+
 };
 
 int sc_main (int argc, char * argv[])
 {
 
-  sc_clock clock_sig("clock", 10, SC_NS, 0.5);
-
+  std::string firmware;
+  unsigned int max_sim_time, boot_sel, exit_val;
+  bool use_openocd;
+  bool run_all = false;
   Verilated::commandArgs(argc, argv);
 
   XHEEP_CmdLineOptions* cmd_lines_options = new XHEEP_CmdLineOptions(argc,argv);
@@ -57,15 +124,27 @@ int sc_main (int argc, char * argv[])
 
   boot_sel     = cmd_lines_options->get_boot_sel();
 
+  if(use_openocd) {
+    std::cout<<"[TESTBENCH]: ERROR: Executing from OpenOCD in SystemC is not supported (yet) in X-HEEP"<<std::endl;
+    std::cout<<"exit simulation..."<<std::endl;
+    exit(EXIT_FAILURE);
+  }
+
   if(boot_sel == 1) {
     std::cout<<"[TESTBENCH]: ERROR: Executing from SPI is not supported (yet) in Verilator"<<std::endl;
     std::cout<<"exit simulation..."<<std::endl;
     exit(EXIT_FAILURE);
   }
 
-  Vtestharness dut("testharness");
 
+  // generate clock
+  sc_clock clock_sig("clock", 10, SC_NS, 0.5);
+
+  Vtestharness dut("TOP");
   testbench tb("testbench");
+
+  // static values
+  tb.boot_select_option = boot_sel == 1;
 
   sc_signal<bool, SC_MANY_WRITERS>     clk;
   sc_signal<bool, SC_MANY_WRITERS>     rst_n;
@@ -79,9 +158,16 @@ int sc_main (int argc, char * argv[])
   sc_signal<uint32_t> exit_value;
   sc_signal<bool, SC_MANY_WRITERS>     exit_valid;
 
-
   tb.clk_i(clock_sig);
   tb.clk_o(clk);
+  tb.rst_no(rst_n);
+  tb.boot_select_o(boot_select);
+  tb.execute_from_flash_o(execute_from_flash);
+  tb.jtag_tck_o(jtag_tck);
+  tb.jtag_tms_o(jtag_tms);
+  tb.jtag_trst_n_o(jtag_trst_n);
+  tb.jtag_tdi_o(jtag_tdi);
+
 
   dut.clk_i(clk);
   dut.rst_ni(rst_n);
@@ -103,9 +189,29 @@ int sc_main (int argc, char * argv[])
 
   sc_trace(fp, dut.clk_i, "clock");
   sc_trace(fp, dut.rst_ni, "rst_ni");
+  sc_trace(fp, dut.execute_from_flash_i, "execute_from_flash_i");
+  sc_trace(fp, dut.boot_select_i, "boot_select_i");
+  sc_trace(fp, dut.jtag_tck_i, "jtag_tck_i");
+
+
 
   //simulation start
-  sc_start(100,SC_NS);
+  sc_start( );
+
+
+  svSetScope(svGetScopeFromName("TOP.testharness"));
+  svScope scope = svGetScope();
+  if (!scope) {
+    std::cout<<"Warning: svGetScope failed"<< std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  if(use_openocd==false || boot_sel == 1) {
+    dut.tb_loadHEX(firmware.c_str());
+    std::cout<<"Memory Loaded"<< std::endl;
+  } else {
+    std::cout<<"Waiting for GDB"<< std::endl;
+  }
 
   sc_close_vcd_trace_file(fp);
 
