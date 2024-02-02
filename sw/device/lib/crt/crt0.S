@@ -14,7 +14,7 @@
 #include "core_v_mini_mcu.h"
 #include "soc_ctrl_regs.h"
 
-#define RAMSIZE_COPIEDBY_BOOTROM 4096
+#define RAMSIZE_COPIEDBY_BOOTROM 1024
 
 /* Entry point for bare metal programs */
 .section .text.start
@@ -56,7 +56,7 @@ _start:
 
     la     a1, _etext
     // Skip if everything has already been copied, and copy the data section
-    blt    a1, s1, _init_data_section
+    blt    a1, s1, _load_data_section
 
     // copy size in bytes, i.e. _etext - RAMSIZE_COPIEDBY_BOOTROM
     sub   a2, a1, s1
@@ -72,7 +72,7 @@ _start:
     sub    a0,a0,s2
     call w25q128jw_read_standard
 
-_init_data_section:
+_load_data_section:
     // src ptr
     la     a0, _lma_data_start
     // dst ptr
@@ -81,14 +81,14 @@ _init_data_section:
     la     a2, _lma_data_end
     sub    a2, a2, a0
 
-    bltz   a2, _init_data_interleaved_section // dont do anything if you do not have data
+    bltz   a2, _load_data_interleaved_section // dont do anything if you do not have data
 
     sub    a0,a0,s2
     call w25q128jw_read_standard
 
 
-_init_data_interleaved_section:
-#ifdef HAS_MEMORY_BANKS_IL
+_load_data_interleaved_section:
+    #ifdef HAS_MEMORY_BANKS_IL
     // src ptr
     la     a0, _lma_data_interleaved_start
     // dst ptr
@@ -101,6 +101,8 @@ _init_data_interleaved_section:
 
     sub    a0,a0,s2
     call w25q128jw_read_standard
+    #endif
+
 #endif
 
 /* clear the bss segment */
@@ -110,14 +112,6 @@ _init_bss:
     sub    a2, a2, a0
     li     a1, 0
     call   memset
-#else
-/* clear the bss segment */
-   la a0, __bss_start
-   la a2, __bss_end
-   sub a2, a2, a0
-   li a1, 0
-   call memset
-#endif
 
 #ifdef FLASH_EXEC
 /* copy initialized data sections from flash to ram (to be verified, copied from picosoc)*/
