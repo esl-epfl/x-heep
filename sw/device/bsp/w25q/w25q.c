@@ -183,7 +183,7 @@ static void flash_write_enable(void);
  * @param length number of bytes to read/write.
  * @return FLASH_OK if the sanity checks are passed, @ref error_codes otherwise.
 */
-static w25q_error_codes_t sanity_checks(uint32_t addr, uint8_t *data, uint32_t length);
+static w25q_error_codes_t w25q128jw_sanity_checks(uint32_t addr, uint8_t *data, uint32_t length);
 
 /**
  * @brief Return the minimum between two numbers.
@@ -274,7 +274,7 @@ w25q_error_codes_t w25q128jw_init(spi_host_t spi_host) {
 
 w25q_error_codes_t w25q128jw_read(uint32_t addr, void *data, uint32_t length) {
     // Sanity checks
-    if (sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
+    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     // Define the status variable
     w25q_error_codes_t status;
@@ -294,7 +294,7 @@ w25q_error_codes_t w25q128jw_read(uint32_t addr, void *data, uint32_t length) {
 
 w25q_error_codes_t w25q128jw_write(uint32_t addr, void *data, uint32_t length, uint8_t erase_before_write) {
     // Sanity checks
-    if (sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
+    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     // Define the status variable
     w25q_error_codes_t status = FLASH_OK;
@@ -312,7 +312,7 @@ w25q_error_codes_t w25q128jw_write(uint32_t addr, void *data, uint32_t length, u
 
 w25q_error_codes_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
     // Sanity checks
-    if (sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
+    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     // Address + Read command
     uint32_t read_byte_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_RD);
@@ -391,7 +391,7 @@ w25q_error_codes_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t 
 
 w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length) {
     // Sanity checks
-    if (sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
+    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     /*
      * SET UP DMA
@@ -489,7 +489,7 @@ w25q_error_codes_t w25q128jw_write_standard_dma(uint32_t addr, void *data, uint3
 
 w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t length) {
     // Sanity checks
-    if (sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
+    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     // Send quad read command at standard speed
     uint32_t cmd_read_quadIO = FC_RDQIO;
@@ -594,7 +594,7 @@ w25q_error_codes_t w25q128jw_write_quad(uint32_t addr, void *data, uint32_t leng
 
 w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t length) {
     // Sanity checks
-    if (sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
+    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     // Send quad read command at standard speed
     uint32_t cmd_read_quadIO = FC_RDQIO;
@@ -1072,7 +1072,7 @@ w25q_error_codes_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length
 
 static w25q_error_codes_t page_write_wrapper(uint32_t addr, uint8_t *data, uint32_t length, uint8_t quad, uint8_t dma) {
     // Sanity checks
-    if (sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
+    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     // Pointer arithmetics is not allowed on void pointers
     uint8_t *data_8bit = (uint8_t *)data;
@@ -1253,7 +1253,7 @@ static void flash_write_enable(void) {
     spi_wait_for_ready(&spi);
 }
 
-static w25q_error_codes_t sanity_checks(uint32_t addr, uint8_t *data, uint32_t length) {
+static w25q_error_codes_t w25q128jw_sanity_checks(uint32_t addr, uint8_t *data, uint32_t length) {
     // Check if address is out of range
     if (addr > MAX_FLASH_ADDR || addr < 0) return FLASH_ERROR;
 

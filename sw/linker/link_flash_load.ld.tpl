@@ -48,6 +48,18 @@ SECTIONS {
     {
         KEEP (*(SORT_NONE(.init)))
         KEEP (*(.text.start))
+        KEEP (*(.text.w25q128jw_init_crt0))
+        KEEP (*(.text.w25q128jw_sanity_checks))
+        KEEP (*(.text.spi_write_word*))
+        KEEP (*(.text.spi_wait_for_ready*))
+        KEEP (*(.text.spi_create_command*))
+        KEEP (*(.text.spi_set_command*))
+        KEEP (*(.text.spi_set_rx_watermark*))
+        KEEP (*(.text.spi_wait_for_rx_watermark*))
+        KEEP (*(.text.spi_read_word*))
+        KEEP (*(.text.memcpy))
+        KEEP (*(.text.w25q128jw_read_standard)) /* as this function is used in the crt0, link it in the top, should be before 1024 Bytes loaded by the bootrom */
+
     } >ram0 AT >FLASH
 
     /* The program code and other data goes into FLASH */
@@ -55,8 +67,6 @@ SECTIONS {
     {
         . = ALIGN(4);
         __text_start = .; /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
-        *(.text.w25q128jw_init_crt0)
-        *(.text.w25q128jw_read_standard) /* as this function is used in the crt0, link it in the top, should be before 1024 Bytes loaded by the bootrom */
         *(.text)           /* .text sections (code) */
         *(.text*)          /* .text* sections (code) */
         *(.rodata)         /* .rodata sections (constants, strings, etc.) */
