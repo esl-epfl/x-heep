@@ -371,6 +371,40 @@ targets:
          - +lint=TFIPC-L
          - -V
       verilator:
+        mode: cc
+        verilator_options:
+          - '--cc'
+          - '--trace'
+          - '--trace-fst'
+          - '--trace-structs'
+          - '--trace-params'
+          - '--trace-max-array 1024'
+          - '--x-assign unique'
+          - '--x-initial unique'
+          - '--exe tb_sc_top.cpp'
+          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive -I$(SYSTEMC_INCLUDE)"'
+          - '-LDFLAGS "-pthread -lutil -lelf $(SYSTEMC_LIBDIR)/libsystemc.a"'
+          - "-Wall"
+
+  sim_sc:
+    <<: *default_target
+    default_tool: modelsim
+    filesets_append:
+    - tb-utils
+    - tool_verilator? (tb-sc-verilator)
+    - "!integrated_heep? (x_heep_system)"
+    toplevel:
+    - tool_verilator? (testharness)
+    parameters:
+    - COREV_PULP
+    - FPU
+    - JTAG_DPI
+    - X_EXT
+    - USE_EXTERNAL_DEVICE_EXAMPLE
+    - USE_UPF
+    - REMOVE_OBI_FIFO
+    tools:
+      verilator:
         mode: sc
         verilator_options:
           - '--sc'
