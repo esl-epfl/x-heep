@@ -43,7 +43,7 @@ int main (int argc, char * argv[])
   dut->trace (m_trace, 99);
   m_trace->open ("waveform.vcd");
 
-  XHEEP_CmdLineOptions* cmd_lines_options = new XHEEP_CmdLineOptions(arcg,argv);
+  XHEEP_CmdLineOptions* cmd_lines_options = new XHEEP_CmdLineOptions(argc,argv);
 
   use_openocd = cmd_lines_options->get_use_openocd();
   firmware = cmd_lines_options->get_firmware();
@@ -58,7 +58,7 @@ int main (int argc, char * argv[])
   if(boot_sel == 1) {
     std::cout<<"[TESTBENCH]: ERROR: Executing from SPI is not supported (yet) in Verilator"<<std::endl;
     std::cout<<"exit simulation..."<<std::endl;
-    return -1;
+    exit(EXIT_FAILURE);
   }
 
   svSetScope(svGetScopeFromName("TOP.testharness"));

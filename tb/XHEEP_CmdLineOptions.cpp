@@ -1,11 +1,11 @@
 #include "XHEEP_CmdLineOptions.hh"
+#include <iostream>
+#include <string>
 
 XHEEP_CmdLineOptions::XHEEP_CmdLineOptions(int argc, char* argv[]) // define default constructor
 {
-    this->run_all = false;
     this->argc = argc;
     this->argv = argv;
-
 }
 
 std::string XHEEP_CmdLineOptions::getCmdOption(int argc, char* argv[], const std::string& option)
@@ -29,7 +29,8 @@ bool XHEEP_CmdLineOptions::get_use_openocd()
 
   std::string arg_openocd = this->getCmdOption(this->argc, this->argv, "+openOCD=");;
 
-  use_openocd = false;
+  bool use_openocd = false;
+
   if(arg_openocd.empty()){
     std::cout<<"[TESTBENCH]: No OpenOCD is used"<<std::endl;
   } else {
@@ -44,7 +45,7 @@ bool XHEEP_CmdLineOptions::get_use_openocd()
 std::string XHEEP_CmdLineOptions::get_firmware()
 {
 
-  std::string firmware; = this->getCmdOption(this->argc, this->argv, "+firmware=");;
+  std::string firmware = this->getCmdOption(this->argc, this->argv, "+firmware=");
 
   if(firmware.empty()){
     std::cout<<"[TESTBENCH]: No firmware  specified"<<std::endl;
@@ -59,7 +60,7 @@ std::string XHEEP_CmdLineOptions::get_firmware()
 unsigned int XHEEP_CmdLineOptions::get_max_sim_time(bool& run_all)
 {
 
-  std::string arg_max_sim_time; = this->getCmdOption(this->argc, this->argv, "+max_sim_time=");;
+  std::string arg_max_sim_time = this->getCmdOption(this->argc, this->argv, "+max_sim_time=");
   unsigned int max_sim_time;
 
   max_sim_time     = 0;
@@ -95,5 +96,5 @@ unsigned int XHEEP_CmdLineOptions::get_boot_sel()
     }
   }
 
-  return boot_sel
+  return boot_sel;
 }

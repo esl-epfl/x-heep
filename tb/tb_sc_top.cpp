@@ -8,6 +8,7 @@
 #include "systemc.h"
 #include <stdlib.h>
 #include <iostream>
+#include "XHEEP_CmdLineOptions.hh"
 
 
 SC_MODULE(testbench)
@@ -43,6 +44,24 @@ int sc_main (int argc, char * argv[])
   sc_clock clock_sig("clock", 10, SC_NS, 0.5);
 
   Verilated::commandArgs(argc, argv);
+
+  XHEEP_CmdLineOptions* cmd_lines_options = new XHEEP_CmdLineOptions(argc,argv);
+
+  use_openocd = cmd_lines_options->get_use_openocd();
+  firmware = cmd_lines_options->get_firmware();
+
+  if(firmware.empty() && use_openocd==false)
+      exit(EXIT_FAILURE);
+
+  max_sim_time = cmd_lines_options->get_max_sim_time(run_all);
+
+  boot_sel     = cmd_lines_options->get_boot_sel();
+
+  if(boot_sel == 1) {
+    std::cout<<"[TESTBENCH]: ERROR: Executing from SPI is not supported (yet) in Verilator"<<std::endl;
+    std::cout<<"exit simulation..."<<std::endl;
+    exit(EXIT_FAILURE);
+  }
 
   Vtestharness dut("testharness");
 
