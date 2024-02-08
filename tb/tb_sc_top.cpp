@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 #include "verilated.h"
-#include "verilated_fst_c.h"
+#include "verilated_fst_sc.h"
 #include "Vtestharness.h"
 #include "Vtestharness__Syms.h"
 #include "systemc.h"
@@ -36,8 +36,10 @@ SC_MODULE(testbench)
 
     for(int i=0;i<reset_cycles;i++){
       clk_o.write(false);
+      //m_trace->dump(1);
       wait();
       clk_o.write(true);
+      //m_trace->dump(1);
       wait();
       std::cout<<sc_time_stamp()<<std::endl;
     }
@@ -48,8 +50,10 @@ SC_MODULE(testbench)
 
     for(int i=0;i<reset_cycles;i++){
       clk_o.write(false);
+      //m_trace->dump(1);
       wait();
       clk_o.write(true);
+      //m_trace->dump(1);
       wait();
       std::cout<<sc_time_stamp()<<std::endl;
     }
@@ -59,8 +63,10 @@ SC_MODULE(testbench)
 
     for(int i=0;i<reset_cycles;i++){
       clk_o.write(false);
+      //m_trace->dump(1);
       wait();
       clk_o.write(true);
+      //m_trace->dump(1);
       wait();
       std::cout<<sc_time_stamp()<<std::endl;
     }
@@ -70,8 +76,10 @@ SC_MODULE(testbench)
 
     for(int i=0;i<reset_cycles;i++){
       clk_o.write(false);
+      //m_trace->dump(1);
       wait();
       clk_o.write(true);
+      //m_trace->dump(1);
       wait();
       std::cout<<sc_time_stamp()<<std::endl;
     }
@@ -111,6 +119,7 @@ int sc_main (int argc, char * argv[])
   bool use_openocd;
   bool run_all = false;
   Verilated::commandArgs(argc, argv);
+  Verilated::traceEverOn(true);
 
   XHEEP_CmdLineOptions* cmd_lines_options = new XHEEP_CmdLineOptions(argc,argv);
 
@@ -181,24 +190,29 @@ int sc_main (int argc, char * argv[])
   dut.exit_value_o(exit_value);
   dut.exit_valid_o(exit_valid);
 
+  VerilatedFstC *m_trace = new VerilatedFstC;
+  m_trace->open ("waveform.vcd");
+  dut.trace (m_trace, 99);
 
-  //tracing
-  sc_trace_file *fp;
-  fp=sc_create_vcd_trace_file("vcd_trace");
-  fp->set_time_unit(1, SC_NS);
+  // You must do one evaluation before enabling waves, in order to allow
+  // SystemC to interconnect everything for testing.
+  sc_start(SC_ZERO_TIME);
 
-  sc_trace(fp, dut.clk_i, "clock");
-  sc_trace(fp, dut.rst_ni, "rst_ni");
-  sc_trace(fp, dut.execute_from_flash_i, "execute_from_flash_i");
-  sc_trace(fp, dut.boot_select_i, "boot_select_i");
-  sc_trace(fp, dut.jtag_tck_i, "jtag_tck_i");
+  // Simulate until $finish
+  while ((sc_time_stamp() > sc_time(1, SC_NS) && sc_time_stamp() < sc_time(10, SC_NS))) {
 
+      m_trace->flush();
+      m_trace->dump(sc_time_stamp().to_double());
+
+      // Simulate 1ns
+      sc_start(1, SC_NS);
+  }
 
 
   //simulation start
   sc_start( );
 
-
+/*
   svSetScope(svGetScopeFromName("TOP.testharness"));
   svScope scope = svGetScope();
   if (!scope) {
@@ -212,8 +226,8 @@ int sc_main (int argc, char * argv[])
   } else {
     std::cout<<"Waiting for GDB"<< std::endl;
   }
-
-  sc_close_vcd_trace_file(fp);
+*/
+  m_trace->close();
 
   return 0;
 
