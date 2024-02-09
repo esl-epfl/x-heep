@@ -59,7 +59,7 @@ SECTIONS {
         KEEP (*(.text.spi_read_word*))
         KEEP (*(.text.memcpy))
         KEEP (*(.text.w25q128jw_read_standard)) /* as this function is used in the crt0, link it in the top, should be before 1024 Bytes loaded by the bootrom */
-
+        *(.xheep_init_data_crt0) /* this global variables are used in the crt0 */
     } >ram0 AT >FLASH
 
     /* The program code and other data goes into FLASH */

@@ -208,7 +208,7 @@ static int32_t MIN(int32_t a, int32_t b) {
 /**
  * @brief SPI structure.
 */
-spi_host_t spi;
+spi_host_t __attribute__((section(".xheep_init_data_crt0"))) spi; //this variable is also used by the crt0, thus keep it in this section
 
 /**
  * @brief Static vector used in the erase_and_write function.
@@ -228,6 +228,7 @@ uint8_t sector_data[FLASH_SECTOR_SIZE];
 
 
 void w25q128jw_init_crt0() {
+    //make sure spi variable is into the xheep_init_data_crt0 section
     spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     return;
 }
