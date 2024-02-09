@@ -53,7 +53,7 @@ uint32_t flash_data[256];
 #define TEST_BUFFER flash_original_1024B
 #define BYTES_TO_WRITE 533 //in bytes, must be less than 256*4=1024
 
-uint32_t flash_write_buffer[256] ;
+uint32_t __attribute__ ((aligned (16))) flash_write_buffer[256] ;
 
 int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__ ((aligned (16))) flash_only_write_buffer[256];
 
@@ -103,6 +103,7 @@ int main(int argc, char *argv[]) {
     PRINTF("Testing simple write...\n");
     errors += test_write(TEST_BUFFER, BYTES_TO_WRITE);
 
+    if(errors) return EXIT_FAILURE;
 
 #ifndef ON_CHIP
     // Test simple write on flash_only data
@@ -265,6 +266,7 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
         if (test_buffer[i] != flash_data_char[i]) {
             PRINTF("Error at position %d: expected %x, got %x\n", i, test_buffer[i], flash_data_char[i]);
             errors++;
+            break;
         }
     }
 

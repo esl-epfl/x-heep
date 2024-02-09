@@ -81,9 +81,8 @@ SECTIONS {
     The program executes knowing that the data is in the RAM
     but the loader puts the initial values in the FLASH (inidata).
     It is one task of the startup to copy the initial values from FLASH to RAM. */
-    .data : ALIGN_WITH_INPUT
+    .data : ALIGN(256)
     {
-        . = ALIGN(256);
         __data_start = .; /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
         _sidata = LOADADDR(.data);
         _lma_data_start = LOADADDR(.data);
@@ -101,8 +100,9 @@ SECTIONS {
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
 
-    .power_manager : ALIGN(4096)
+    .power_manager : ALIGN_WITH_INPUT
     {
+        . = ALIGN(4);
        PROVIDE(__power_manager_start = .);
        . += 256;
     } >ram1 AT >FLASH
