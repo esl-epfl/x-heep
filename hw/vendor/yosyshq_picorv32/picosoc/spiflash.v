@@ -109,7 +109,7 @@ module spiflash (
 
 	initial begin
 		for (i=0;i<=16*1024*1024;i=i+1)
-			memory[i] = '0;
+			memory[i] = 8'h00;
 		result = $value$plusargs("firmware=%s", firmware_file);
 		if (!result)
 			firmware_file = "firmware.hex";
