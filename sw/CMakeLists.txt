@@ -192,6 +192,8 @@ endif()
 
 SET(LIB_CRT_P	  "${ROOT_PROJECT}device/lib/crt/crt0.S")
 SET(LIB_VCTR_P  "${ROOT_PROJECT}device/lib/crt/vectors.S")
+SET(LIB_PWRMNGRE_P   "${ROOT_PROJECT}device/lib/drivers/power_manager/power_manager_cpu_restore.S")
+SET(LIB_PWRMNGST_P   "${ROOT_PROJECT}device/lib/drivers/power_manager/power_manager_cpu_store.S")
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Look for external CRT files
@@ -266,6 +268,8 @@ message( "${Magenta}Target: ${TARGET}${ColourReset}")
 SET(LINKED_FILES    "${LIB_CRT_P} \
                      ${LIB_VCTR_P} \
                      ${LIB_CRT_EXT_P} \
+                     ${LIB_PWRMNGRE_P} \
+                     ${LIB_PWRMNGST_P} \
                      ${c_dir_list}")
 
 message( "${Magenta}Linked files: ${LINKED_FILES}${ColourReset}")
