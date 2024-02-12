@@ -103,8 +103,6 @@ int main(int argc, char *argv[]) {
     PRINTF("Testing simple write...\n");
     errors += test_write(TEST_BUFFER, BYTES_TO_WRITE);
 
-    if(errors) return EXIT_FAILURE;
-
 #ifndef ON_CHIP
     // Test simple write on flash_only data
     PRINTF("Testing simple write. on flash only data..\n");
@@ -266,7 +264,6 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
         if (test_buffer[i] != flash_data_char[i]) {
             PRINTF("Error at position %d: expected %x, got %x\n", i, test_buffer[i], flash_data_char[i]);
             errors++;
-            break;
         }
     }
 
