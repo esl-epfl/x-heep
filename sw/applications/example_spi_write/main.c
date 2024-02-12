@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
 uint32_t test_write(uint32_t *test_buffer, uint32_t len) {
 
     //adjust the address (vma to lma, then remove FLASH offset as required by the BSP)
-    uint32_t *test_buffer_flash = heep_get_flash_address_offset(heep_get_data_address_lma(flash_write_buffer));
+    uint32_t *test_buffer_flash = heep_get_flash_address_offset(flash_write_buffer);
 
     // Write to flash memory at specific address
     global_status = w25q128jw_write_standard(test_buffer_flash, test_buffer, len);
@@ -160,7 +160,7 @@ uint32_t test_write(uint32_t *test_buffer, uint32_t len) {
 uint32_t test_write_dma(uint32_t *test_buffer, uint32_t len) {
 
     //adjust the address (vma to lma, then remove FLASH offset as required by the BSP)
-    uint32_t *test_buffer_flash = heep_get_flash_address_offset(heep_get_data_address_lma(flash_write_buffer));
+    uint32_t *test_buffer_flash = heep_get_flash_address_offset(flash_write_buffer);
 
     // Write to flash memory at specific address
     global_status = w25q128jw_write_standard_dma(test_buffer_flash, test_buffer, len);
@@ -185,7 +185,7 @@ uint32_t test_write_dma(uint32_t *test_buffer, uint32_t len) {
 uint32_t test_write_quad(uint32_t *test_buffer, uint32_t len) {
 
     //adjust the address (vma to lma, then remove FLASH offset as required by the BSP)
-    uint32_t *test_buffer_flash = heep_get_flash_address_offset(heep_get_data_address_lma(flash_write_buffer));
+    uint32_t *test_buffer_flash = heep_get_flash_address_offset(flash_write_buffer);
 
     // Write to flash memory at specific address
     global_status = w25q128jw_write_quad(test_buffer_flash, test_buffer, len);
@@ -210,7 +210,7 @@ uint32_t test_write_quad(uint32_t *test_buffer, uint32_t len) {
 uint32_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len) {
 
     //adjust the address (vma to lma, then remove FLASH offset as required by the BSP)
-    uint32_t *test_buffer_flash = heep_get_flash_address_offset(heep_get_data_address_lma(flash_write_buffer));
+    uint32_t *test_buffer_flash = heep_get_flash_address_offset(flash_write_buffer);
 
     // Write to flash memory at specific address
     global_status = w25q128jw_write_quad_dma(test_buffer_flash, test_buffer, len);

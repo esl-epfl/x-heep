@@ -7,14 +7,18 @@ ENTRY(_start)
 
 MEMORY
 {
-    FLASH (rx)      : ORIGIN = 0x${flash_mem_start_address}, LENGTH = 0x${flash_mem_size_address}
     ram0 (rwxai) : ORIGIN = 0x${linker_onchip_code_start_address}, LENGTH = 0x${linker_onchip_code_size_address}
     ram1 (rwxai) : ORIGIN = 0x${linker_onchip_data_start_address}, LENGTH = 0x${linker_onchip_data_size_address}
+    FLASH0 (rx)   : ORIGIN = 0x${linker_flash_code_start_address}, LENGTH = 0x${linker_onchip_code_size_address}
+    FLASH1 (rx)   : ORIGIN = 0x${linker_flash_data_start_address}, LENGTH = 0x${linker_onchip_data_size_address}
   % if ram_numbanks_cont > 1 and ram_numbanks_il > 0:
     ram_il (rwxai) : ORIGIN = 0x${linker_onchip_il_start_address}, LENGTH = 0x${linker_onchip_il_size_address}
+    FLASH_il (rx)   : ORIGIN = 0x${linker_flash_il_start_address}, LENGTH = 0x${linker_onchip_il_size_address}
   % endif
-
+    FLASH_left (rx)   : ORIGIN = 0x${linker_flash_left_start_address}, LENGTH = 0x${linker_flash_left_size_address}
 }
+
+
 
 SECTIONS {
 
@@ -33,7 +37,7 @@ SECTIONS {
         _lma_text_start = LOADADDR(.vectors);
         KEEP(*(.vectors));
         __VECTORS_AT = .;
-    } >ram0 AT >FLASH
+    } >ram0 AT >FLASH0
 
     /* Fill memory up to __boot_address */
     .fill :
@@ -41,7 +45,7 @@ SECTIONS {
         FILL(0xDEADBEEF);
         . = ORIGIN(ram0) + (__boot_address) - 1;
         BYTE(0xEE)
-    } >ram0 AT >FLASH
+    } >ram0 AT >FLASH0
 
     /* crt0 init code */
     .init (__boot_address):
@@ -60,7 +64,7 @@ SECTIONS {
         KEEP (*(.text.memcpy))
         KEEP (*(.text.w25q128jw_read_standard)) /* as this function is used in the crt0, link it in the top, should be before 1024 Bytes loaded by the bootrom */
         *(.xheep_init_data_crt0) /* this global variables are used in the crt0 */
-    } >ram0 AT >FLASH
+    } >ram0 AT >FLASH0
 
     /* The program code and other data goes into FLASH */
     .text : ALIGN_WITH_INPUT
@@ -75,7 +79,7 @@ SECTIONS {
         *(.srodata*)       /* .rodata* sections (constants, strings, etc.) */
         . = ALIGN(4);
         _etext = .;        /* define a global symbol at end of code */
-    } >ram0 AT >FLASH
+    } >ram0 AT >FLASH0
 
     /* This is the initialized data section
     The program executes knowing that the data is in the RAM
@@ -95,7 +99,7 @@ SECTIONS {
         __SDATA_BEGIN__ = .;
         *(.sdata)           /* .sdata sections */
         *(.sdata*)          /* .sdata* sections */
-    } >ram1 AT >FLASH
+    } >ram1 AT >FLASH1
 
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
@@ -105,7 +109,7 @@ SECTIONS {
         . = ALIGN(4);
        PROVIDE(__power_manager_start = .);
        . += 256;
-    } >ram1 AT >FLASH
+    } >ram1 AT >FLASH1
 
     /* Uninitialized data section */
     .bss : ALIGN_WITH_INPUT
@@ -121,7 +125,7 @@ SECTIONS {
         . = ALIGN(4);
         __bss_end = .;         /* define a global symbol at bss end; used by startup code */
         __BSS_END__ = .;
-    } >ram1 AT >FLASH
+    } >ram1 AT >FLASH1
 
     _lma_data_end = _lma_data_start + SIZEOF(.data) + SIZEOF(.power_manager) + SIZEOF(.bss);
     _lma_vma_data_offset = _lma_data_start - __data_start;
@@ -162,7 +166,7 @@ SECTIONS {
         . = ALIGN(4);
         *(.xheep_data_interleaved)
         . = ALIGN(4);
-    } >ram_il AT >FLASH
+    } >ram_il AT >FLASH_il
 
    . = ALIGN(4);
   _eddata_interleaved = .;
@@ -175,6 +179,6 @@ SECTIONS {
         . = ALIGN(4);
         *(.xheep_data_flash_only)
         . = ALIGN(4);
-    } >FLASH
+    } >FLASH_left
 
 }

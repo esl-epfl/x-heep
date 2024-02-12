@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
 uint32_t test_read(uint32_t *test_buffer, uint32_t len) {
 
     //adjust the address (vma to lma, then remove FLASH offset as required by the BSP)
-    uint32_t *test_buffer_flash = heep_get_flash_address_offset(heep_get_data_address_lma(test_buffer));
+    uint32_t *test_buffer_flash = heep_get_flash_address_offset(test_buffer);
 
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_standard(test_buffer_flash, flash_data, len);
@@ -132,7 +132,7 @@ uint32_t test_read(uint32_t *test_buffer, uint32_t len) {
 uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
 
     //adjust the address (vma to lma, then remove FLASH offset as required by the BSP)
-    uint32_t *test_buffer_flash = heep_get_flash_address_offset(heep_get_data_address_lma(test_buffer));
+    uint32_t *test_buffer_flash = heep_get_flash_address_offset(test_buffer);
 
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_standard_dma(test_buffer_flash, flash_data, len);
@@ -150,7 +150,7 @@ uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
 uint32_t test_read_quad(uint32_t *test_buffer, uint32_t len) {
 
     //adjust the address (vma to lma, then remove FLASH offset as required by the BSP)
-    uint32_t *test_buffer_flash = heep_get_flash_address_offset(heep_get_data_address_lma(test_buffer));
+    uint32_t *test_buffer_flash = heep_get_flash_address_offset(test_buffer);
 
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_quad(test_buffer_flash, flash_data, len);
@@ -168,7 +168,7 @@ uint32_t test_read_quad(uint32_t *test_buffer, uint32_t len) {
 uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len) {
 
     //adjust the address (vma to lma, then remove FLASH offset as required by the BSP)
-    uint32_t *test_buffer_flash = heep_get_flash_address_offset(heep_get_data_address_lma(test_buffer));
+    uint32_t *test_buffer_flash = heep_get_flash_address_offset(test_buffer);
 
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_quad_dma(test_buffer_flash, flash_data, len);
