@@ -110,8 +110,7 @@ module simple_accelerator #(
   assign acc_write_ch0_req_o.addr = data_out_addr;
 
   //complete the function
-  assign acc_write_ch0_req_o.wdata = data_out_wdata > threshold_q ? data_out_wdata : threshold_q;
-  //assign acc_write_ch0_req_o.wdata = data_out_wdata;
+  assign acc_write_ch0_req_o.wdata = data_out_wdata;
 
   assign data_out_gnt = acc_write_ch0_resp_i.gnt;
 
