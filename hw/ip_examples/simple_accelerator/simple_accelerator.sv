@@ -108,7 +108,10 @@ module simple_accelerator #(
   assign acc_write_ch0_req_o.we = data_out_we;
   assign acc_write_ch0_req_o.be = data_out_be;
   assign acc_write_ch0_req_o.addr = data_out_addr;
-  assign acc_write_ch0_req_o.wdata = data_out_wdata;
+
+  //complete the function
+  assign acc_write_ch0_req_o.wdata = data_out_wdata > threshold_q ? data_out_wdata : threshold_q;
+  //assign acc_write_ch0_req_o.wdata = data_out_wdata;
 
   assign data_out_gnt = acc_write_ch0_resp_i.gnt;
 
@@ -184,7 +187,8 @@ module simple_accelerator #(
           address_read_q <= reg_req_i.wdata;
         end
       end else begin
-        status_ready_q <= status_ready_d;
+        if (dma_done) status_ready_q <= 1'b1;
+        status_start_q <= '0;
       end
     end
   end
@@ -287,7 +291,7 @@ module simple_accelerator #(
       if (dma_start == 1'b1) begin
         dma_cnt <= size_q;
       end else if (data_in_gnt == 1'b1) begin
-        dma_cnt <= dma_cnt - 10'h4;
+        dma_cnt <= dma_cnt - 10'h1;
       end
     end
   end
