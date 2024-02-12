@@ -65,7 +65,11 @@ package testharness_pkg;
       },
       '{idx: AMS_IDX, start_addr: AMS_START_ADDRESS, end_addr: AMS_END_ADDRESS},
       '{idx: IFFIFO_IDX, start_addr: IFFIFO_START_ADDRESS, end_addr: IFFIFO_END_ADDRESS},
-      '{idx: SIMPLE_ACC_IDX, start_addr: SIMPLE_ACC_START_ADDRESS, end_addr: SIMPLE_ACC_END_ADDRESS}
+      '{
+          idx: SIMPLE_ACC_IDX,
+          start_addr: SIMPLE_ACC_START_ADDRESS,
+          end_addr: SIMPLE_ACC_END_ADDRESS
+      }
   };
 
   localparam int unsigned EXT_PERIPHERALS_PORT_SEL_WIDTH = EXT_NPERIPHERALS > 1 ? $clog2(

@@ -28,50 +28,50 @@ module simple_accelerator #(
   logic status_ready_d, status_ready_q, status_start_q;
   logic [31:0] address_read_q, address_write_q;
   logic [31:0] threshold_q;
-  logic [9:0] size_q;
+  logic [ 9:0] size_q;
 
   localparam int unsigned LastFifoUsage = FIFO_DEPTH - 1;
   localparam int unsigned Addr_Fifo_Depth = (FIFO_DEPTH > 1) ? $clog2(FIFO_DEPTH) : 1;
 
 
-  logic        [               31:0] read_ptr_reg;
-  logic        [               31:0] read_ptr_valid_reg;
-  logic        [               31:0] write_ptr_reg;
-  logic        [               31:0] write_address;
-  logic        [               9:0] dma_cnt;
-  logic                              dma_start;
-  logic                              dma_done;
+  logic [               31:0] read_ptr_reg;
+  logic [               31:0] read_ptr_valid_reg;
+  logic [               31:0] write_ptr_reg;
+  logic [               31:0] write_address;
+  logic [                9:0] dma_cnt;
+  logic                       dma_start;
+  logic                       dma_done;
 
 
-  logic        [Addr_Fifo_Depth-1:0] fifo_usage;
-  logic                              fifo_alm_full;
+  logic [Addr_Fifo_Depth-1:0] fifo_usage;
+  logic                       fifo_alm_full;
 
-  logic                              data_in_req;
-  logic                              data_in_we;
-  logic        [                3:0] data_in_be;
-  logic        [               31:0] data_in_addr;
-  logic                              data_in_gnt;
-  logic                              data_in_rvalid;
-  logic        [               31:0] data_in_rdata;
+  logic                       data_in_req;
+  logic                       data_in_we;
+  logic [                3:0] data_in_be;
+  logic [               31:0] data_in_addr;
+  logic                       data_in_gnt;
+  logic                       data_in_rvalid;
+  logic [               31:0] data_in_rdata;
 
-  logic                              data_out_req;
-  logic                              data_out_we;
-  logic        [                3:0] data_out_be;
-  logic        [               31:0] data_out_addr;
-  logic        [               31:0] data_out_wdata;
-  logic                              data_out_gnt;
+  logic                       data_out_req;
+  logic                       data_out_we;
+  logic [                3:0] data_out_be;
+  logic [               31:0] data_out_addr;
+  logic [               31:0] data_out_wdata;
+  logic                       data_out_gnt;
 
-  logic                              fifo_flush;
-  logic                              fifo_full;
-  logic                              fifo_empty;
+  logic                       fifo_flush;
+  logic                       fifo_full;
+  logic                       fifo_empty;
 
 
-  logic [31:0] fifo_input;
-  logic [31:0] fifo_output;
+  logic [               31:0] fifo_input;
+  logic [               31:0] fifo_output;
 
-  logic [ 3:0] byte_enable_out;
+  logic [                3:0] byte_enable_out;
 
-  logic        dma_start_pending;
+  logic                       dma_start_pending;
 
   enum {
     DMA_READY,
@@ -128,13 +128,12 @@ module simple_accelerator #(
   //C READY
   //10 SIZE
   //14 START
-  always_comb
-  begin
+  always_comb begin
     reg_rsp_o.rdata = '0;
     reg_rsp_o.error = 1'b0;
     reg_rsp_o.ready = 1'b1;
 
-    if(reg_req_i.valid) begin
+    if (reg_req_i.valid) begin
       if (reg_req_i.addr[7:0] == 8'h14) begin
         reg_rsp_o.rdata = {31'h0, status_start_q};
       end
@@ -156,17 +155,16 @@ module simple_accelerator #(
     end
   end
 
-  always_ff @(posedge clk_i or negedge rst_ni)
-  begin
-    if(~rst_ni) begin
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (~rst_ni) begin
       status_start_q <= '0;
       size_q <= '0;
       status_ready_q <= '0;
       threshold_q <= '0;
       address_write_q <= '0;
-      address_read_q <='0;
+      address_read_q <= '0;
     end else begin
-      if(reg_req_i.valid && reg_req_i.write) begin
+      if (reg_req_i.valid && reg_req_i.write) begin
         if (reg_req_i.addr[7:0] == 8'h14) begin
           status_start_q <= reg_req_i.wdata[0];
         end
