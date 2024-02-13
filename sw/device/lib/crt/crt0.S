@@ -14,7 +14,7 @@
 #include "core_v_mini_mcu.h"
 #include "soc_ctrl_regs.h"
 
-#define RAMSIZE_COPIEDBY_BOOTROM 1024
+#define RAMSIZE_COPIEDBY_BOOTROM 2048
 
 /* Entry point for bare metal programs */
 .section .text.start
