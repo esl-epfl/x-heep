@@ -524,7 +524,19 @@ To program the bitstream, open Vivado,
 open --> Hardware Manager --> Open Target --> Autoconnect --> Program Device
 ```
 
-and choose the file `openhwgroup.org_systems_core-v-mini-mcu_0.bit`
+and choose the file `openhwgroup.org_systems_core-v-mini-mcu_0.bit`.
+
+Or simply type:
+
+```
+bash vivado-fpga-pgm FPGA_BOARD=pynq-z2
+```
+
+or
+
+```
+make vivado-fpga-pgm FPGA_BOARD=nexys-a7-100t
+```
 
 To run SW, follow the [Debug](./Debug.md) guide
 to load the binaries with the HS2 cable over JTAG,
