@@ -436,6 +436,22 @@ module testharness #(
           .dma_window_intr_o()
       );
 
+      simple_accelerator #(
+          .reg_req_t (reg_pkg::reg_req_t),
+          .reg_rsp_t (reg_pkg::reg_rsp_t),
+          .obi_req_t (obi_pkg::obi_req_t),
+          .obi_resp_t(obi_pkg::obi_resp_t)
+      ) simple_accelerator_i (
+          .clk_i,
+          .rst_ni,
+          .reg_req_i(ext_periph_slv_req[testharness_pkg::SIMPLE_ACC_IDX]),
+          .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::SIMPLE_ACC_IDX]),
+          .acc_read_ch0_req_o(ext_master_req[testharness_pkg::EXT_MASTER2_IDX]),
+          .acc_read_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER2_IDX]),
+          .acc_write_ch0_req_o(ext_master_req[testharness_pkg::EXT_MASTER3_IDX]),
+          .acc_write_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER3_IDX])
+      );
+
       // AMS external peripheral
       ams #(
           .reg_req_t(reg_pkg::reg_req_t),

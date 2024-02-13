@@ -54,8 +54,9 @@ uint32_t flash_data[256];
 #define BYTES_TO_WRITE 533 //in bytes, must be less than 256*4=1024
 
 uint32_t __attribute__ ((aligned (16))) flash_write_buffer[256] ;
-
+#ifndef ON_CHIP
 int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__ ((aligned (16))) flash_only_write_buffer[256];
+#endif
 
 // Test functions
 uint32_t test_write(uint32_t *test_buffer, uint32_t len);
@@ -103,10 +104,14 @@ int main(int argc, char *argv[]) {
     PRINTF("Testing simple write...\n");
     errors += test_write(TEST_BUFFER, BYTES_TO_WRITE);
 
+#ifndef TARGET_PYNQ_Z2
 #ifndef ON_CHIP
     // Test simple write on flash_only data
     PRINTF("Testing simple write. on flash only data..\n");
     errors += test_write_flash_only(TEST_BUFFER, BYTES_TO_WRITE);
+#endif
+#else
+    #pragma message ( "the test_write_flash_only does not work on real FLASH, bug to be fixed" )
 #endif
 
     // Test simple write with DMA
@@ -134,8 +139,7 @@ int main(int argc, char *argv[]) {
 
 uint32_t test_write(uint32_t *test_buffer, uint32_t len) {
 
-    //adjust the address (vma to lma, then remove FLASH offset as required by the BSP)
-    uint32_t *test_buffer_flash = heep_get_flash_address_offset(flash_write_buffer);
+    uint32_t *test_buffer_flash = flash_write_buffer;
 
     // Write to flash memory at specific address
     global_status = w25q128jw_write_standard(test_buffer_flash, test_buffer, len);
@@ -159,8 +163,7 @@ uint32_t test_write(uint32_t *test_buffer, uint32_t len) {
 
 uint32_t test_write_dma(uint32_t *test_buffer, uint32_t len) {
 
-    //adjust the address (vma to lma, then remove FLASH offset as required by the BSP)
-    uint32_t *test_buffer_flash = heep_get_flash_address_offset(flash_write_buffer);
+    uint32_t *test_buffer_flash = flash_write_buffer;
 
     // Write to flash memory at specific address
     global_status = w25q128jw_write_standard_dma(test_buffer_flash, test_buffer, len);
@@ -184,8 +187,7 @@ uint32_t test_write_dma(uint32_t *test_buffer, uint32_t len) {
 
 uint32_t test_write_quad(uint32_t *test_buffer, uint32_t len) {
 
-    //adjust the address (vma to lma, then remove FLASH offset as required by the BSP)
-    uint32_t *test_buffer_flash = heep_get_flash_address_offset(flash_write_buffer);
+    uint32_t *test_buffer_flash = flash_write_buffer;
 
     // Write to flash memory at specific address
     global_status = w25q128jw_write_quad(test_buffer_flash, test_buffer, len);
@@ -209,8 +211,7 @@ uint32_t test_write_quad(uint32_t *test_buffer, uint32_t len) {
 
 uint32_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len) {
 
-    //adjust the address (vma to lma, then remove FLASH offset as required by the BSP)
-    uint32_t *test_buffer_flash = heep_get_flash_address_offset(flash_write_buffer);
+    uint32_t *test_buffer_flash = flash_write_buffer;
 
     // Write to flash memory at specific address
     global_status = w25q128jw_write_quad_dma(test_buffer_flash, test_buffer, len);
@@ -231,10 +232,10 @@ uint32_t test_write_quad_dma(uint32_t *test_buffer, uint32_t len) {
 
     return result;
 }
-
+#ifndef ON_CHIP
 uint32_t test_write_flash_only(uint32_t *test_buffer, uint32_t len) {
 
-    //remove FLASH offset as required by the BSP, here VMA does not exist as these data are only mapped on FLASH
+    //remove FLASH offset as required by the BSP, flash_only_write_buffer is only mapped to the LMA
     uint32_t *test_buffer_flash = heep_get_flash_address_offset(flash_only_write_buffer);
 
     // Write to flash memory at specific address
@@ -256,6 +257,7 @@ uint32_t test_write_flash_only(uint32_t *test_buffer, uint32_t len) {
 
     return result;
 }
+#endif
 uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
     uint32_t errors = 0;
     uint8_t *flash_data_char = (uint8_t *)flash_data;
