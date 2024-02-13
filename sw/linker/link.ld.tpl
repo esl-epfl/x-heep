@@ -24,7 +24,7 @@ MEMORY
   ram1 (rwxai) : ORIGIN = 0x${linker_onchip_data_start_address}, LENGTH = 0x${linker_onchip_data_size_address}
 % if ram_numbanks_cont > 1 and ram_numbanks_il > 0:
   ram_il (rwxai) : ORIGIN = 0x${linker_onchip_il_start_address}, LENGTH = 0x${linker_onchip_il_size_address}
-% endif  
+% endif
 }
 
 /*
@@ -45,44 +45,6 @@ SECTIONS
   /* Read-only sections, merged into text segment: */
   PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x10000)); . = SEGMENT_START("text-segment", 0x10000) + SIZEOF_HEADERS;
 
-  /* We don't do any dynamic linking so we remove everything related to it */
-/*
-  .interp         : { *(.interp) }
-  .note.gnu.build-id : { *(.note.gnu.build-id) }
-  .hash           : { *(.hash) }
-  .gnu.hash       : { *(.gnu.hash) }
-  .dynsym         : { *(.dynsym) }
-  .dynstr         : { *(.dynstr) }
-  .gnu.version    : { *(.gnu.version) }
-  .gnu.version_d  : { *(.gnu.version_d) }
-  .gnu.version_r  : { *(.gnu.version_r) }
-  .rela.dyn       :
-    {
-      *(.rela.init)
-      *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)
-      *(.rela.fini)
-      *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)
-      *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)
-      *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*)
-      *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*)
-      *(.rela.ctors)
-      *(.rela.dtors)
-      *(.rela.got)
-      *(.rela.sdata .rela.sdata.* .rela.gnu.linkonce.s.*)
-      *(.rela.sbss .rela.sbss.* .rela.gnu.linkonce.sb.*)
-      *(.rela.sdata2 .rela.sdata2.* .rela.gnu.linkonce.s2.*)
-      *(.rela.sbss2 .rela.sbss2.* .rela.gnu.linkonce.sb2.*)
-      *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)
-      PROVIDE_HIDDEN (__rela_iplt_start = .);
-      *(.rela.iplt)
-      PROVIDE_HIDDEN (__rela_iplt_end = .);
-    }
-  .rela.plt       :
-    {
-      *(.rela.plt)
-    }
-*/
-
   /* interrupt vectors */
   .vectors (ORIGIN(ram0)):
   {
@@ -97,11 +59,6 @@ SECTIONS
     KEEP (*(.text.start))
   } >ram0
 
-  /* More dynamic linking sections */
-/*
-  .plt            : { *(.plt) }
-  .iplt           : { *(.iplt) }
-*/
 
   /* the bulk of the program: main, libc, functions etc. */
   .text           :
@@ -268,6 +225,8 @@ SECTIONS
     *(.data1)
   } >ram1
 
+  _lma_vma_data_offset = 0x0;
+
   /* no dynamic linking, no object tables required */
   /* .got            : { *(.got.plt) *(.igot.plt) *(.got) *(.igot) } */
 
@@ -338,6 +297,9 @@ SECTIONS
 % if ram_numbanks_cont > 1 and ram_numbanks_il > 0:
   .data_interleaved :
   {
+    . = ALIGN(4);
+    *(.xheep_data_interleaved)
+    . = ALIGN(4);
   } >ram_il
 % endif
 

@@ -49,7 +49,7 @@
 */
 #define FLASH_CLK_MAX_HZ (133*1000*1000)
 
-/** 
+/**
  * @defgroup flash_commands Flash commands
  * @{
  */
@@ -171,28 +171,34 @@ typedef uint8_t w25q_error_codes_t;
 /****************************************************************************/
 
 /**
+ * @brief Initialize data structure used by crt0 flash_load.
+ *
+*/
+void w25q128jw_init_crt0();
+
+/**
  * @brief Power up and itialize the flash.
- * 
+ *
  * Enable the SPI interface.
  * Power up the flash and set the SPI configuration specific to the flash.
  * It also set the QE bit in order to accept Quad I/O commands.
  * By default both error and event interrupts are disabled.
- * 
+ *
  * @param spi_host SPI host to use.
- * 
+ *
  * @note The flash uses CSID 0. If the CSID register value is changed, it must be
  * restored back to 0 before using the flash again.
- * 
+ *
  * @return FLASH_OK if the flash is correctly initialized, @ref error_codes otherwise.
 */
 w25q_error_codes_t w25q128jw_init(spi_host_t spi_host);
 
 /**
  * @brief Read from flash.
- * 
+ *
  * The function automatically uses the best parameters based on
  * the current state of the system and the length of the data to read.
- * 
+ *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer to be filled.
  * @param length number of bytes to read.
@@ -202,13 +208,13 @@ w25q_error_codes_t w25q128jw_read(uint32_t addr, void* data, uint32_t length);
 
 /**
  * @brief Write to flash.
- * 
+ *
  * The function automatically uses the best parameters based on
  * the current state of the system and the length of the data to write.
  * If erase_before_write is set, the function will take care of erasing
  * the correct sectors before writing. All the bytes not written will be
  * copied back in their current state before the write operation.
- * 
+ *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
@@ -219,8 +225,8 @@ w25q_error_codes_t w25q128jw_write(uint32_t addr, void* data, uint32_t length, u
 
 /**
  * @brief Read from flash at standard speed.
- * 
- * 
+ *
+ *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer to be filled.
  * @param length number of bytes to read.
@@ -231,8 +237,8 @@ w25q_error_codes_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t l
 
 /**
  * @brief Write to flash at standard speed.
- * 
- * 
+ *
+ *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
@@ -243,7 +249,7 @@ w25q_error_codes_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t 
 
 /**
  * @brief Read from flash at standard speed using DMA
- * 
+ *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to read.
@@ -254,7 +260,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void* data, uint32
 
 /**
  * @brief Write to flash at standard speed using DMA
- * 
+ *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
@@ -264,7 +270,7 @@ w25q_error_codes_t w25q128jw_write_standard_dma(uint32_t addr, void* data, uint3
 
 /**
  * @brief Read from flash at quad speed.
- * 
+ *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
@@ -274,7 +280,7 @@ w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void* data, uint32_t lengt
 
 /**
  * @brief Write to flash at quad speed.
- * 
+ *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
@@ -284,7 +290,7 @@ w25q_error_codes_t w25q128jw_write_quad(uint32_t addr, void* data, uint32_t leng
 
 /**
  * @brief Read from flash at quad speed using DMA.
- * 
+ *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
@@ -294,7 +300,7 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void* data, uint32_t l
 
 /**
  * @brief Write to flash at quad speed using DMA.
- * 
+ *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
  * @param length number of bytes to write.
@@ -304,37 +310,37 @@ w25q_error_codes_t w25q128jw_write_quad_dma(uint32_t addr, void* data, uint32_t 
 
 /**
  * @brief Erase a 4kb sector.
- * 
+ *
  * Sets all memory within a 4kb sector to the erased state of all 1s (FFh).
  * After the erase is issued, waits for the flash to be ready.
- * 
+ *
  * @param addr 24-bit address of the sector to erase.
 */
 void w25q128jw_4k_erase(uint32_t addr);
 
 /**
  * @brief Erase a 32kb block.
- * 
+ *
  * Sets all memory within a 32kb block to the erased state of all 1s (FFh).
  * After the erase is issued, waits for the flash to be ready.
- * 
+ *
  * @param addr 24-bit address of the block to erase.
 */
 void w25q128jw_32k_erase(uint32_t addr);
 
 /**
  * @brief Erase a 64kb block.
- * 
+ *
  * Sets all memory within a 64kb block to the erased state of all 1s (FFh).
  * After the erase is issued, waits for the flash to be ready.
- * 
+ *
  * @param addr 24-bit address of the block to erase.
 */
 void w25q128jw_64k_erase(uint32_t addr);
 
 /**
  * @brief Erase the entire chip.
- * 
+ *
  * Sets all memory within the chip to the erased state of all 1s (FFh).
  * After the erase is issued, waits for the flash to be ready.
 */
@@ -343,7 +349,7 @@ void w25q128jw_chip_erase(void);
 
 /**
  * @brief Reset the flash.
- * 
+ *
  * Before issuing the reset command, the function checks (and eventually wait)
  * any ongoing read/write operation in order to preserve data integrity.
  * After the reset is issued, wait for the flash to be ready.
@@ -352,7 +358,7 @@ void w25q128jw_reset(void);
 
 /**
  * @brief Reset the flash without checking for ongoing operations.
- * 
+ *
  * This function is used to reset the flash when it is not possible to check
  * for ongoing operations (e.g. when the flash is not responding).
  * Upon receiving the reset command, the flash will abort any ongoing operation.
@@ -362,7 +368,7 @@ void w25q128jw_reset_force(void);
 
 /**
  * @brief Power down the flash.
- * 
+ *
  * During power down state, the only command that can be issued is the
  * release power down command. All other commands are going to be ignored
  * by the flash.
@@ -376,7 +382,7 @@ void w25q128jw_power_down(void);
 /****************************************************************************/
 #ifdef __cplusplus
 } // extern "C"
-#endif 
+#endif
 
 #endif /* W25Q128JW_H */
 /****************************************************************************/
