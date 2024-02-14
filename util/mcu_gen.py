@@ -552,7 +552,7 @@ def main():
         linker_flash_left_start_address   = str('{:08X}'.format(int(linker_flash_data_start_address,16) + int(linker_onchip_data_size_address,16)))
         linker_flash_left_size_address    = str('{:08X}'.format(int(flash_mem_size_address,16) - int(linker_onchip_code_size_address,16) - int(linker_onchip_data_size_address,16)))
     else:
-        linker_flash_left_start_address   = str('{:08X}'.format(int(linker_onchip_il_start_address,16) + int(linker_onchip_il_size_address,16)))
+        linker_flash_left_start_address   = str('{:08X}'.format(int(linker_flash_il_start_address,16) + int(linker_onchip_il_size_address,16)))
         linker_flash_left_size_address    = str('{:08X}'.format(int(flash_mem_size_address,16) - int(linker_onchip_code_size_address,16) - int(linker_onchip_data_size_address,16) - int(linker_onchip_il_size_address,16)))
 
 
