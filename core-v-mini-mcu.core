@@ -375,6 +375,7 @@ targets:
         - -vtimescale 1ns/10ps
         - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi.so
         - -sv_lib ../../../hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang/librbs.so
+        - -define XCELIUM
       verilator:
         mode: cc
         verilator_options:
