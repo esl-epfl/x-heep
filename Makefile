@@ -63,6 +63,12 @@ FLASHREAD_ADDR ?= 0
 FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.txt
 FLASHREAD_BYTES ?= 32
 
+#max address in the hex file, used to program the flash
+MAX_HEX_ADDRESS  = $(shell cat sw/build/main.hex | grep "@" | tail -1 | cut -c2-)
+MAX_HEX_ADDRESS_DEC = $(shell printf "%d" 0x$(MAX_HEX_ADDRESS))
+BYTES_AFTER_MAX_HEX_ADDRESS = $(shell tac sw/build/main.hex | awk 'BEGIN {count=0} /@/ {print count; exit} {count++}')
+FLASHRWITE_BYTES = $(shell echo $(MAX_HEX_ADDRESS_DEC) + $(BYTES_AFTER_MAX_HEX_ADDRESS)*16 | bc)
+
 # Export variables to sub-makefiles
 export
 
@@ -231,7 +237,7 @@ flash-readid:
 ## Loads the obtained binary to the EPFL_Programmer flash
 flash-prog:
 	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
-	./iceprog -d i:0x0403:0x6011 -I B $(mkfile_path)/sw/build/main.hex;
+	./iceprog -e $(FLASHRWITE_BYTES) -d i:0x0403:0x6011 -I B $(mkfile_path)/sw/build/main.hex;
 
 ## Read the EPFL_Programmer flash
 flash-read:
