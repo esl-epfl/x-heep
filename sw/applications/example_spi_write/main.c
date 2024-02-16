@@ -104,15 +104,12 @@ int main(int argc, char *argv[]) {
     PRINTF("Testing simple write...\n");
     errors += test_write(TEST_BUFFER, BYTES_TO_WRITE);
 
-#ifndef TARGET_PYNQ_Z2
 #ifndef ON_CHIP
     // Test simple write on flash_only data
     PRINTF("Testing simple write. on flash only data..\n");
     errors += test_write_flash_only(TEST_BUFFER, BYTES_TO_WRITE);
 #endif
-#else
-    #pragma message ( "the test_write_flash_only does not work on real FLASH, bug to be fixed" )
-#endif
+
 
     // Test simple write with DMA
     PRINTF("Testing simple write with DMA...\n");
@@ -238,6 +235,9 @@ uint32_t test_write_flash_only(uint32_t *test_buffer, uint32_t len) {
     //remove FLASH offset as required by the BSP, flash_only_write_buffer is only mapped to the LMA
     uint32_t *test_buffer_flash = heep_get_flash_address_offset(flash_only_write_buffer);
 
+    // Clean memory
+    erase_memory(test_buffer_flash);
+
     // Write to flash memory at specific address
     global_status = w25q128jw_write_standard(test_buffer_flash, test_buffer, len);
     if (global_status != FLASH_OK) exit(EXIT_FAILURE);
@@ -281,6 +281,6 @@ uint32_t check_result(uint8_t *test_buffer, uint32_t len) {
 // Erase the memory only if FPGA is used
 void erase_memory(uint32_t addr) {
     #ifdef USE_SPI_FLASH
-    w25q128jw_4k_erase(flash_write_buffer);
+    w25q128jw_4k_erase(addr);
     #endif
 }
