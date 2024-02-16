@@ -59,7 +59,7 @@ SIMULATOR ?= verilator
 TIMEOUT ?= 120
 
 # Flash read address for testing, in hexadecimal format 0x0000
-FLASHREAD_ADDR ?= 0
+FLASHREAD_ADDR ?= 0x0
 FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.txt
 FLASHREAD_BYTES ?= 32
 

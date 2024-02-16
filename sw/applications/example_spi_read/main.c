@@ -84,7 +84,6 @@ int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__ ((align
     0xABCDEF1E,
     0xABCDEF1F,
 };
-#endif
 
 int32_t __attribute__ ((aligned (16))) flash_only_buffer_golden_value[FLASH_ONLY_WORDS] = {
     0xABCDEF00,
@@ -120,6 +119,7 @@ int32_t __attribute__ ((aligned (16))) flash_only_buffer_golden_value[FLASH_ONLY
     0xABCDEF1E,
     0xABCDEF1F,
 };
+#endif
 
 // Test functions
 uint32_t test_read(uint32_t *test_buffer, uint32_t len);
