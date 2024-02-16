@@ -58,6 +58,11 @@ SIMULATOR ?= verilator
 # Timeout for simulation, default 120
 TIMEOUT ?= 120
 
+# Flash read address for testing, in hexadecimal format 0x0000
+FLASHREAD_ADDR ?= 0
+FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.txt
+FLASHREAD_BYTES ?= 32
+
 # Export variables to sub-makefiles
 export
 
@@ -227,6 +232,11 @@ flash-readid:
 flash-prog:
 	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
 	./iceprog -d i:0x0403:0x6011 -I B $(mkfile_path)/sw/build/main.hex;
+
+## Read the EPFL_Programmer flash
+flash-read:
+	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
+	./iceprog -d i:0x0403:0x6011 -I B -o $(shell printf "%d" $(FLASHREAD_ADDR)) -R $(FLASHREAD_BYTES) $(FLASHREAD_FILE);
 
 ## Run openOCD w/ EPFL_Programmer
 openOCD_epflp:
