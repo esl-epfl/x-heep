@@ -12,7 +12,6 @@ util/__pycache__/*
 
 # ignore apps output file
 run_verif_rtl_log.txt
-flashcontent.txt
 
 # ignore the following hw automatically generated files
 environment.yml

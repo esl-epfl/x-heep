@@ -60,8 +60,8 @@ TIMEOUT ?= 120
 
 # Flash read address for testing, in hexadecimal format 0x0000
 FLASHREAD_ADDR ?= 0x0
-FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.txt
-FLASHREAD_BYTES ?= 32
+FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.hex
+FLASHREAD_BYTES ?= 256
 
 #max address in the hex file, used to program the flash
 MAX_HEX_ADDRESS  = $(shell cat sw/build/main.hex | grep "@" | tail -1 | cut -c2-)
@@ -237,7 +237,7 @@ flash-readid:
 ## Loads the obtained binary to the EPFL_Programmer flash
 flash-prog:
 	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
-	./iceprog -e $(FLASHRWITE_BYTES) -d i:0x0403:0x6011 -I B $(mkfile_path)/sw/build/main.hex;
+	./iceprog -a $(FLASHRWITE_BYTES) -d i:0x0403:0x6011 -I B $(mkfile_path)/sw/build/main.hex;
 
 ## Read the EPFL_Programmer flash
 flash-read:
