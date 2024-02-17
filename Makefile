@@ -69,6 +69,9 @@ MAX_HEX_ADDRESS_DEC = $(shell printf "%d" 0x$(MAX_HEX_ADDRESS))
 BYTES_AFTER_MAX_HEX_ADDRESS = $(shell tac sw/build/main.hex | awk 'BEGIN {count=0} /@/ {print count; exit} {count++}')
 FLASHRWITE_BYTES = $(shell echo $(MAX_HEX_ADDRESS_DEC) + $(BYTES_AFTER_MAX_HEX_ADDRESS)*16 | bc)
 
+#binary to store in flash memory
+FLASHWRITE_FILE = $(mkfile_path)/sw/build/main.hex
+
 # Export variables to sub-makefiles
 export
 
@@ -237,7 +240,7 @@ flash-readid:
 ## Loads the obtained binary to the EPFL_Programmer flash
 flash-prog:
 	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
-	./iceprog -a $(FLASHRWITE_BYTES) -d i:0x0403:0x6011 -I B $(mkfile_path)/sw/build/main.hex;
+	./iceprog -a $(FLASHRWITE_BYTES) -d i:0x0403:0x6011 -I B $(FLASHWRITE_FILE);
 
 ## Read the EPFL_Programmer flash
 flash-read:
