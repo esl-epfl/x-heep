@@ -22,10 +22,10 @@ SIM_TIMEOUT_S = 120
 LINKER        = 'on_chip'
 COMPILER      = 'gcc'
 
-repo = Repo(search_parent_directories=True)
-hw_diff_to_main = repo.head.commit.diff("main", "hw") + repo.head.commit.diff("main", "tb")
-sw_diff_to_main = repo.head.commit.diff("main", "sw")
-ci_diff_to_main = repo.head.commit.diff("main", ".github/workflows")
+# repo = Repo(search_parent_directories=True)
+# hw_diff_to_main = repo.head.commit.diff("main", "hw") + repo.head.commit.diff("main", "tb")
+# sw_diff_to_main = repo.head.commit.diff("main", "sw")
+# ci_diff_to_main = repo.head.commit.diff("main", ".github/workflows")
 
 # Blacklist of apps to skip
 blacklist = [ "example_pdm2pcm",
@@ -34,33 +34,35 @@ blacklist = [ "example_pdm2pcm",
               "example_spi_read",
             ]
 
-hw_diff = False
-ci_diff = False
-sw_diff = False
+# hw_diff = False
+# ci_diff = False
+# sw_diff = False
 
-if len(hw_diff_to_main) > 0:
-    print(bcolors.OKCYAN + "HW differences found!" + bcolors.ENDC)
-    print(bcolors.OKCYAN + "All applications will be tested." + bcolors.ENDC)
-    hw_diff = True
+# if len(hw_diff_to_main) > 0:
+#     print(bcolors.OKCYAN + "HW differences found!" + bcolors.ENDC)
+#     print(bcolors.OKCYAN + "All applications will be tested." + bcolors.ENDC)
+#     hw_diff = True
 
-if len(sw_diff_to_main) > 0:
-    print(bcolors.OKCYAN + "SW differences found!" + bcolors.ENDC)
-    print(bcolors.OKCYAN + "Just the applications modified will be tested." + bcolors.ENDC)
-    sw_diff = True
+# if len(sw_diff_to_main) > 0:
+#     print(bcolors.OKCYAN + "SW differences found!" + bcolors.ENDC)
+#     print(bcolors.OKCYAN + "Just the applications modified will be tested." + bcolors.ENDC)
+#     sw_diff = True
 
-if len(ci_diff_to_main) > 0:
-    print(bcolors.OKCYAN + "CI differences found!" + bcolors.ENDC)
-    print(bcolors.OKCYAN + "All applications will be tested." + bcolors.ENDC)
-    ci_diff = True
+# if len(ci_diff_to_main) > 0:
+#     print(bcolors.OKCYAN + "CI differences found!" + bcolors.ENDC)
+#     print(bcolors.OKCYAN + "All applications will be tested." + bcolors.ENDC)
+#     ci_diff = True
 
-if sw_diff and not hw_diff and not ci_diff:
-    app_list = [app for app in os.listdir('sw/applications') if app in [file.a_path.split("/")[-2] for file in sw_diff_to_main]]
-else:
-    app_list = [app for app in os.listdir('sw/applications')]
+# if sw_diff and not hw_diff and not ci_diff:
+#     app_list = [app for app in os.listdir('sw/applications') if app in [file.a_path.split("/")[-2] for file in sw_diff_to_main]]
+# else:
+#     app_list = [app for app in os.listdir('sw/applications')]
+app_list = [app for app in os.listdir('sw/applications')]
 
 print(bcolors.OKCYAN + "Apps to test:" + bcolors.ENDC)
 for app in app_list:
-    print(bcolors.OKCYAN + f"    - {app}" + bcolors.ENDC)
+    if app not in blacklist:
+        print(bcolors.OKCYAN + f"    - {app}" + bcolors.ENDC)
 
 apps = {
     app : {"building" : "", "simulation" : ""} for app in app_list

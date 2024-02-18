@@ -17,5 +17,4 @@ jobs:
           conda activate core-v-mini-mcu
           make clean-all
           make mcu-gen MEMORY_BANKS=6
-          git config --global --add safe.directory .
           python3 .github/workflows/sim-apps-job/test-apps.py
