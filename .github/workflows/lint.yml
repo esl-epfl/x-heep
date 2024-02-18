@@ -39,9 +39,6 @@ jobs:
       image: luigi2898/x-heep:light
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
     - name: Run Gen
       run: |
         conda init bash
