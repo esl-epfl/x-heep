@@ -1,33 +1,32 @@
 # Copyright 2022 OpenHW Group
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
-
 # Run all lint checks
 name: lint
 on: [push, pull_request]
-
 env:
   VERIBLE_VERSION: 0.0-1824-ga3b5bedf
-
 jobs:
-
   #####################
   # Vendor Up-to-Date #
   #####################
   # Check that all vendored sources are up-to-date.
   check-vendor:
     name: Vendor Up-to-Date
-    runs-on: ubuntu-lastest
-    container:
-      image: luigi2898/x-heep:light
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Install requirements
+      run: pip install -r python-requirements.txt
     - name: Re-vendor and diff
       run: |
         find . \
-            -name '*.vendor.hjson' \
-            | xargs -n1 util/vendor.py --verbose \
-            && util/git-diff.py --error-msg "::error ::Found differences, please re-vendor."
+        -name '*.vendor.hjson' \
+        | xargs -n1 util/vendor.py --verbose \
+        && util/git-diff.py --error-msg "::error ::Found differences, please re-vendor."
   ##################
   # MCU Generator  #
   ##################
@@ -35,14 +34,26 @@ jobs:
     name: Generates sv files
     # This job runs on Linux (fixed ubuntu version)
     runs-on: ubuntu-latest
-    container:
-      image: luigi2898/x-heep:light
     steps:
     - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install requirements
+      run: |
+        make venv
+        echo "PATH=`pwd`/.venv/bin:$PATH" >> $GITHUB_ENV
+        pip install -r python-requirements.txt
+    - name: Install Verible
+      run: |
+        set -e
+        mkdir -p build/verible
+        cd build/verible
+        curl -Ls -o verible.tar.gz https://github.com/google/verible/releases/download/v$VERIBLE_VERSION/verible-v$VERIBLE_VERSION-Ubuntu-18.04-bionic-x86_64.tar.gz
+        sudo mkdir -p /tools/verible && sudo chmod 777 /tools/verible
+        tar -C /tools/verible -xf verible.tar.gz --strip-components=1
+        echo "PATH=$PATH:/tools/verible/bin" >> $GITHUB_ENV
     - name: Run Gen
       run: |
-        conda init bash
-        source /root/.bashrc
-        conda activate core-v-mini-mcu
         make mcu-gen
         util/git-diff.py --error-msg "::error ::Found differences in SystemVerilog files generated with default configuration."
