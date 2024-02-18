@@ -56,5 +56,4 @@ jobs:
     - name: Run Gen
       run: |
         make mcu-gen
-        git config --global --add safe.directory .
         util/git-diff.py --error-msg "::error ::Found differences in SystemVerilog files generated with default configuration."
