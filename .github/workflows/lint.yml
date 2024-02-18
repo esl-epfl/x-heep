@@ -44,5 +44,8 @@ jobs:
         python-version: 3.8
     - name: Run Gen
       run: |
+        conda init bash
+        source /root/.bashrc
+        conda activate core-v-mini-mcu
         make mcu-gen
         util/git-diff.py --error-msg "::error ::Found differences in SystemVerilog files generated with default configuration."
