@@ -17,7 +17,9 @@ jobs:
   # Check that all vendored sources are up-to-date.
   check-vendor:
     name: Vendor Up-to-Date
-    runs-on: luigi2898/x-heep:light
+    runs-on: ubuntu-lastest
+    container:
+      image: luigi2898/x-heep:light
     steps:
     - uses: actions/checkout@v2
     - name: Re-vendor and diff
@@ -32,7 +34,9 @@ jobs:
   mcu_generator:
     name: Generates sv files
     # This job runs on Linux (fixed ubuntu version)
-    runs-on: luigi2898/x-heep:light
+    runs-on: ubuntu-latest
+    container:
+      image: luigi2898/x-heep:light
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
