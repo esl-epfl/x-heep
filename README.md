@@ -173,6 +173,32 @@ To format your RTL code type:
 ```
 make verible
 ```
+
+## Docker alternative
+
+A docker image containing all the required software dependancies is available on [docker-hub](https://hub.docker.com/r/luigi2898/x-heep).
+
+It is only required to install [`docker`](https://docs.docker.com/get-docker/) and pull the image. Two versions of the docker image are available:
+
+- _latests_: Contains a full featured ubuntu image with all the requeride software (around 25GB)
+- _light_: Contains just the required software and some basic OS utilities (around 5GB)
+
+```bash
+docker pull luigi2898/x-heep:light
+```
+
+Assuming that X-HEEP has been cloned to `X-HEEP-DIR=\absolute\path\to\x-HEEP\folder`, it is possible to directly run the docker mounting `X-HEEP-DIR` to the path `\workspace\x-heep` in the docker.
+
+```bash
+docker run -it -v ${X-HEEP-DIR}:/workspace/x-heep luigi2898/x-heep:light 
+```
+
+Take care to indicate the absolute path to the local clone of X-HEEP, otherwise `docker` will not be able to properly nount the local folder in the container.
+
+All the command listed in the README can be execute in the docker container, except for:
+- Simulation with Questasim and VCS, synthesis with Design Compiler (licenses are required to use these tools, so they are not installed in the container)
+- OpenRoad flow is not installed in the container, so it is not possible to run the related make commands
+
 ## Compilation Flow and Package Manager
 
 We use [FuseSoC](https://github.com/olofk/fusesoc) for all the tools we use.
