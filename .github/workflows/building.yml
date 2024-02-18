@@ -5,7 +5,7 @@ jobs:
   test_applications:
     runs-on: ubuntu-latest
     container: 
-      image: ghcr.io/esl-epfl/xheep-compiler:latest
+      image: luigi2898/x-heep:light
     name: Builds apps with gcc and clang. All must build successfully.
     steps:
       - name: Checkout the pushed code. 
