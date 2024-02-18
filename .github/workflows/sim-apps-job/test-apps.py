@@ -36,15 +36,15 @@ apps = {
 # dirty_o = open("dirty_output.txt", "w")
 
 # Generate core-v-mini-mcu
-print(bcolors.OKBLUE + "Generating core-v-mini-mcu..." + bcolors.ENDC)
-generate_output = subprocess.run(['make', 'mcu-gen MEMORY_BANKS=6'], capture_output=True)
-if 'Error' in str(generate_output.stdout):
-    print(bcolors.FAIL + "=====================================" + bcolors.ENDC)
-    print(bcolors.FAIL + "Error generating core-v-mini-mcu!" + bcolors.ENDC)
-    print(bcolors.FAIL + "=====================================" + bcolors.ENDC)
-    print(str(generate_output.stdout))
-    exit(1)
-print(bcolors.OKGREEN + "Generated core-v-mini-mcu successfully!" + bcolors.ENDC)
+# print(bcolors.OKBLUE + "Generating core-v-mini-mcu..." + bcolors.ENDC)
+# generate_output = subprocess.run(['make', 'mcu-gen MEMORY_BANKS=6'], capture_output=True)
+# if 'Error' in str(generate_output.stdout):
+#     print(bcolors.FAIL + "=====================================" + bcolors.ENDC)
+#     print(bcolors.FAIL + "Error generating core-v-mini-mcu!" + bcolors.ENDC)
+#     print(bcolors.FAIL + "=====================================" + bcolors.ENDC)
+#     print(str(generate_output.stdout))
+#     exit(1)
+# print(bcolors.OKGREEN + "Generated core-v-mini-mcu successfully!" + bcolors.ENDC)
 
 # dirty_o.write(str(generate_output.stdout.decode('utf-8')) + "\n")
 

@@ -28,4 +28,6 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 make clean-all
 
+make mcu-gen MEMORY_BANKS=6
+
 python3 $SCRIPT_DIR/test-apps.py
