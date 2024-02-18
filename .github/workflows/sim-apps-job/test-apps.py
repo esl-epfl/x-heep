@@ -136,4 +136,7 @@ if len(timed_out_apps) > 0:
         print(bcolors.FAIL + f"    - {app}" + bcolors.ENDC)
 print(bcolors.BOLD + "=================================" + bcolors.ENDC)
 
+if len(no_build_apps) > 0 or len(no_sim_apps) > 0:
+    exit(1)
+
 # dirty_o.close()
