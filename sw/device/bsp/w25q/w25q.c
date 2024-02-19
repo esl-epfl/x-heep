@@ -390,6 +390,50 @@ w25q_error_codes_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t 
     return page_write_wrapper(addr, data, length, 0, 0);
 }
 
+
+w25q_error_codes_t w25q128jw_erase_and_write_standard(uint32_t addr, void* data, uint32_t length){
+
+    uint32_t remaining_length = length;
+    uint32_t current_addr = addr;
+    uint8_t *current_data = data;
+
+    w25q_error_codes_t status;
+
+    while (remaining_length > 0) {
+        // Start address of the sector to erase, 4kB aligned
+        uint32_t sector_start_addr = current_addr & 0xfffff000;
+
+        // Read the full sector and save it into RAM
+        status = w25q128jw_read_standard(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        if (status != FLASH_OK) return FLASH_ERROR;
+
+        // Erase the sector (no need to do so in simulation)
+        #ifdef TARGET_PYNQ_Z2
+        w25q128jw_4k_erase(sector_start_addr);
+        #endif // TARGET_PYNQ_Z2
+
+        // Calculate the length of data to write in this sector
+        uint32_t write_length = MIN(FLASH_SECTOR_SIZE - (current_addr - sector_start_addr), remaining_length);
+
+        // Modify the data in RAM to include the new data
+        memcpy(&sector_data[current_addr - sector_start_addr], current_data, write_length);
+
+        // Write the modified data back to the flash
+        status = w25q128jw_write_standard(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        if (status != FLASH_OK) return FLASH_ERROR;
+
+        // Update the remaining length, address and data pointer
+        remaining_length -= write_length;
+        current_addr += write_length;
+        current_data += write_length;
+    }
+
+    return FLASH_OK;
+
+}
+
+
+
 w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length) {
     // Sanity checks
     if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
@@ -487,6 +531,48 @@ w25q_error_codes_t w25q128jw_write_standard_dma(uint32_t addr, void *data, uint3
     // Call the wrapper with quad = 0, dma = 1
     return page_write_wrapper(addr, data, length, 0, 1);
 }
+
+w25q_error_codes_t w25q128jw_erase_and_write_standard_dma(uint32_t addr, void* data, uint32_t length){
+
+    uint32_t remaining_length = length;
+    uint32_t current_addr = addr;
+    uint8_t *current_data = data;
+
+    w25q_error_codes_t status;
+
+    while (remaining_length > 0) {
+        // Start address of the sector to erase, 4kB aligned
+        uint32_t sector_start_addr = current_addr & 0xfffff000;
+
+        // Read the full sector and save it into RAM
+        status = w25q128jw_read_standard_dma(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        if (status != FLASH_OK) return FLASH_ERROR;
+
+        // Erase the sector (no need to do so in simulation)
+        #ifdef TARGET_PYNQ_Z2
+        w25q128jw_4k_erase(sector_start_addr);
+        #endif // TARGET_PYNQ_Z2
+
+        // Calculate the length of data to write in this sector
+        uint32_t write_length = MIN(FLASH_SECTOR_SIZE - (current_addr - sector_start_addr), remaining_length);
+
+        // Modify the data in RAM to include the new data
+        memcpy(&sector_data[current_addr - sector_start_addr], current_data, write_length);
+
+        // Write the modified data back to the flash
+        status = w25q128jw_write_standard_dma(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        if (status != FLASH_OK) return FLASH_ERROR;
+
+        // Update the remaining length, address and data pointer
+        remaining_length -= write_length;
+        current_addr += write_length;
+        current_data += write_length;
+    }
+
+    return FLASH_OK;
+
+}
+
 
 w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t length) {
     // Sanity checks
@@ -592,6 +678,49 @@ w25q_error_codes_t w25q128jw_write_quad(uint32_t addr, void *data, uint32_t leng
     // Call the wrapper with quad = 1, dma = 0
     return page_write_wrapper(addr, data, length, 1, 0);
 }
+
+
+w25q_error_codes_t w25q128jw_erase_and_write_quad(uint32_t addr, void *data, uint32_t length) {
+
+    uint32_t remaining_length = length;
+    uint32_t current_addr = addr;
+    uint8_t *current_data = data;
+
+    w25q_error_codes_t status;
+
+    while (remaining_length > 0) {
+        // Start address of the sector to erase, 4kB aligned
+        uint32_t sector_start_addr = current_addr & 0xfffff000;
+
+        // Read the full sector and save it into RAM
+        status = w25q128jw_read_quad(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        if (status != FLASH_OK) return FLASH_ERROR;
+
+        // Erase the sector (no need to do so in simulation)
+        #ifdef TARGET_PYNQ_Z2
+        w25q128jw_4k_erase(sector_start_addr);
+        #endif // TARGET_PYNQ_Z2
+
+        // Calculate the length of data to write in this sector
+        uint32_t write_length = MIN(FLASH_SECTOR_SIZE - (current_addr - sector_start_addr), remaining_length);
+
+        // Modify the data in RAM to include the new data
+        memcpy(&sector_data[current_addr - sector_start_addr], current_data, write_length);
+
+        // Write the modified data back to the flash
+        status = w25q128jw_write_quad(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        if (status != FLASH_OK) return FLASH_ERROR;
+
+        // Update the remaining length, address and data pointer
+        remaining_length -= write_length;
+        current_addr += write_length;
+        current_data += write_length;
+    }
+
+    return FLASH_OK;
+
+}
+
 
 w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t length) {
     // Sanity checks
@@ -715,6 +844,47 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
 w25q_error_codes_t w25q128jw_write_quad_dma(uint32_t addr, void *data, uint32_t length) {
     // Call the wrapper with quad = 1, dma = 1
     return page_write_wrapper(addr, data, length, 1, 1);
+}
+
+w25q_error_codes_t w25q128jw_erase_and_write_quad_dma(uint32_t addr, void *data, uint32_t length) {
+
+    uint32_t remaining_length = length;
+    uint32_t current_addr = addr;
+    uint8_t *current_data = data;
+
+    w25q_error_codes_t status;
+
+    while (remaining_length > 0) {
+        // Start address of the sector to erase, 4kB aligned
+        uint32_t sector_start_addr = current_addr & 0xfffff000;
+
+        // Read the full sector and save it into RAM
+        status = w25q128jw_read_quad_dma(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        if (status != FLASH_OK) return FLASH_ERROR;
+
+        // Erase the sector (no need to do so in simulation)
+        #ifdef TARGET_PYNQ_Z2
+        w25q128jw_4k_erase(sector_start_addr);
+        #endif // TARGET_PYNQ_Z2
+
+        // Calculate the length of data to write in this sector
+        uint32_t write_length = MIN(FLASH_SECTOR_SIZE - (current_addr - sector_start_addr), remaining_length);
+
+        // Modify the data in RAM to include the new data
+        memcpy(&sector_data[current_addr - sector_start_addr], current_data, write_length);
+
+        // Write the modified data back to the flash
+        status = w25q128jw_write_quad_dma(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        if (status != FLASH_OK) return FLASH_ERROR;
+
+        // Update the remaining length, address and data pointer
+        remaining_length -= write_length;
+        current_addr += write_length;
+        current_data += write_length;
+    }
+
+    return FLASH_OK;
+
 }
 
 void w25q128jw_4k_erase(uint32_t addr) {
