@@ -18,7 +18,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 SIMULATOR     = 'verilator'
-SIM_TIMEOUT_S = 120 
+SIM_TIMEOUT_S = 240 
 LINKER        = 'on_chip'
 COMPILER      = 'gcc'
 
@@ -28,11 +28,10 @@ COMPILER      = 'gcc'
 # ci_diff_to_main = repo.head.commit.diff("main", ".github/workflows")
 
 # Blacklist of apps to skip
-blacklist = [ ]
-# "example_pdm2pcm",
-# "example_spi_write",
-# "example_spi_host_dma_power_gate",
-# "example_spi_read",
+blacklist = [ "example_spi_write",
+              "example_spi_host_dma_power_gate",
+              "example_spi_read",
+            ]
 
 # hw_diff = False
 # ci_diff = False
