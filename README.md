@@ -176,21 +176,18 @@ make verible
 
 ## Docker alternative
 
-A docker image containing all the required software dependancies is available on [docker-hub](https://hub.docker.com/r/luigi2898/x-heep).
+A docker image containing all the required software dependancies is available on [github-packages](https://github.com/orgs/esl-epfl/packages/container/package/x-heep-toolchain).
 
-It is only required to install [`docker`](https://docs.docker.com/get-docker/) and pull the image. Two versions of the docker image are available:
-
-- _latests_: Contains a full featured ubuntu image with all the requeride software (around 25GB)
-- _light_: Contains just the required software and some basic OS utilities (around 5GB)
+It is only required to install [`docker`](https://docs.docker.com/get-docker/) and pull the image.
 
 ```bash
-docker pull luigi2898/x-heep:light
+docker pull ghcr.io/esl-epfl/x-heep-toolchain:latest
 ```
 
 Assuming that X-HEEP has been cloned to `X-HEEP-DIR=\absolute\path\to\x-HEEP\folder`, it is possible to directly run the docker mounting `X-HEEP-DIR` to the path `\workspace\x-heep` in the docker.
 
 ```bash
-docker run -it -v ${X-HEEP-DIR}:/workspace/x-heep luigi2898/x-heep:light 
+docker run -it -v ${X-HEEP-DIR}:/workspace/x-heep ghcr.io/esl-epfl/x-heep-toolchain
 ```
 
 Take care to indicate the absolute path to the local clone of X-HEEP, otherwise `docker` will not be able to properly nount the local folder in the container.
