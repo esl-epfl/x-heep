@@ -1,8 +1,43 @@
 diff --git a/iceprog/iceprog.c b/iceprog/iceprog.c
-index 8ee6443..38e308f 100644
+index 8ee6443..25c7b0e 100644
 --- a/iceprog/iceprog.c
 +++ b/iceprog/iceprog.c
-@@ -506,6 +506,7 @@ static void help(const char *progname)
+@@ -480,6 +480,34 @@ static void flash_enable_quad()
+ 	fprintf(stderr, "SR2: %08x\n", data[1]);
+ }
+ 
++static void flash_disable_quad()
++{
++	fprintf(stderr, "Disabling Quad operation...\n");
++
++	// Allow write
++	flash_write_enable();
++
++	// Write Status Register 2 <- 0x00
++	uint8_t data[2] = { FC_WSR2, 0x00 };
++	flash_chip_select();
++	mpsse_xfer_spi(data, 2);
++	flash_chip_deselect();
++
++	flash_wait();
++
++	// Read Status Register 1
++	data[0] = FC_RSR2;
++
++	flash_chip_select();
++	mpsse_xfer_spi(data, 2);
++	flash_chip_deselect();
++
++	if ((data[1] & 0x02) != 0x00)
++		fprintf(stderr, "failed to set QE=0, SR2 now equal to 0x%02x (expected 0x%02x)\n", data[1], data[1] | 0x00);
++
++	fprintf(stderr, "SR2: %08x\n", data[1]);
++}
++
+ // ---------------------------------------------------------
+ // iceprog implementation
+ // ---------------------------------------------------------
+@@ -506,6 +534,7 @@ static void help(const char *progname)
  	fprintf(stderr, "  -s                    slow SPI (50 kHz instead of 6 MHz)\n");
  	fprintf(stderr, "  -k                    keep flash in powered up state (i.e. skip power down command)\n");
  	fprintf(stderr, "  -v                    verbose output\n");
@@ -10,7 +45,7 @@ index 8ee6443..38e308f 100644
  	fprintf(stderr, "  -i [4,32,64]          select erase block size [default: 64k]\n");
  	fprintf(stderr, "\n");
  	fprintf(stderr, "Mode of operation:\n");
-@@ -587,6 +588,8 @@ int main(int argc, char **argv)
+@@ -587,6 +616,8 @@ int main(int argc, char **argv)
  	const char *devstr = NULL;
  	int ifnum = 0;
  
@@ -19,7 +54,7 @@ index 8ee6443..38e308f 100644
  #ifdef _WIN32
  	_setmode(_fileno(stdin), _O_BINARY);
  	_setmode(_fileno(stdout), _O_BINARY);
-@@ -600,7 +603,7 @@ int main(int argc, char **argv)
+@@ -600,7 +631,7 @@ int main(int argc, char **argv)
  	/* Decode command line parameters */
  	int opt;
  	char *endptr;
@@ -28,7 +63,7 @@ index 8ee6443..38e308f 100644
  		switch (opt) {
  		case 'd': /* device string */
  			devstr = optarg;
-@@ -696,6 +699,9 @@ int main(int argc, char **argv)
+@@ -696,6 +727,9 @@ int main(int argc, char **argv)
  		case 'v': /* provide verbose output */
  			verbose = true;
  			break;
@@ -38,7 +73,16 @@ index 8ee6443..38e308f 100644
  		case 's': /* use slow SPI clock */
  			slow_clock = true;
  			break;
-@@ -997,22 +1003,59 @@ int main(int argc, char **argv)
+@@ -943,6 +977,8 @@ int main(int argc, char **argv)
+ 		flash_reset();
+ 		flash_power_up();
+ 
++		flash_disable_quad();
++
+ 		flash_read_id();
+ 
+ 
+@@ -997,22 +1033,59 @@ int main(int argc, char **argv)
  				}
  			}
  
@@ -62,7 +106,7 @@ index 8ee6443..38e308f 100644
 +				size_t len = 0;
 +				uint8_t buffer[256];
 +				int count = 0;
-+				while (true) {					
++				while (true) {
 +					rc = getline(&line_buffer, &len, f);
 +					if (rc <= 0){
 +						if(count > 0){
@@ -107,7 +151,7 @@ index 8ee6443..38e308f 100644
  				fprintf(stderr, "                      \r");
  				fprintf(stderr, "done.\n");
  
-@@ -1026,6 +1069,12 @@ int main(int argc, char **argv)
+@@ -1026,6 +1099,12 @@ int main(int argc, char **argv)
  		// ---------------------------------------------------------
  
  		if (read_mode) {
@@ -120,7 +164,7 @@ index 8ee6443..38e308f 100644
  			fprintf(stderr, "reading..\n");
  			for (int addr = 0; addr < read_size; addr += 256) {
  				uint8_t buffer[256];
-@@ -1037,23 +1086,40 @@ int main(int argc, char **argv)
+@@ -1037,23 +1116,40 @@ int main(int argc, char **argv)
  			fprintf(stderr, "                      \r");
  			fprintf(stderr, "done.\n");
  		} else if (!erase_mode && !disable_verify) {
@@ -134,7 +178,7 @@ index 8ee6443..38e308f 100644
 +			int rc, addr = 0;
 +			size_t len = 0;
 +			uint8_t buffer_flash[256], buffer_file[256];
-+			while (true) {					
++			while (true) {
 +				rc = getline(&line_buffer, &len, f);
  				if (rc <= 0)
  					break;

@@ -14,11 +14,7 @@
 #include "core_v_mini_mcu.h"
 #include "soc_ctrl_regs.h"
 
-/* In case the operation is to load from FLASH
-*/
-#ifdef FLASH_LOAD
-#include "spi_host_regs.h"
-#endif
+#define RAMSIZE_COPIEDBY_BOOTROM 2048
 
 /* Entry point for bare metal programs */
 .section .text.start
@@ -46,139 +42,69 @@ _start:
 #endif
 
 #ifdef FLASH_LOAD
-/* copy the remaining (if any) text and data sections */
+
+    call w25q128jw_init_crt0
+
+    // This assumes ram base address is 0x00000000 and the section .text stars from ram0 (in the first RAMSIZE_COPIEDBY_BOOTROM Byte)
+    li     s1, RAMSIZE_COPIEDBY_BOOTROM
+    li     s2, FLASH_MEM_START_ADDRESS
+
+    // copy the remaining (if any) text and data sections //
     // Setup the in/out pointers and copy size knowing 1KiB as already been copied
-    li     a2, FLASH_MEM_START_ADDRESS # src ptr (flash)
-    addi   a2, a2, 1024
-    // This assumes ram base address is 0x00000000
-    li     s1, 1024 # dst ptr (ram)
-    la     a0, _edata
-    addi   a0, a0, -4 # _edata point to next address, so decrease it by one word
-    // Skip if everything has already been copied
-    blt    a0, s1, _init_bss
-    addi   a3, a0, -1024 # copy size in bytes (_edata is word aligned, so -1020 to make sure last word is copied)
+    mv     a0, s2 // src ptr (flash)
+    add   a0, a0, s1
 
-    li     a1, SPI_FLASH_START_ADDRESS
-    // Spi should already be enabled, powered-up and TXWM to 8
-    // Address in byte reversed order (might be useless for the 1KiB address value)
-    // Highest byte is discarded(address on 3 bytes)
-    // ((x << 24) | (((x>>16)<<24)>>16) |  (((x<<16)>>24)<<16))
-    slli   a4, a2, 24
-    srli   s0, a2, 16
-    slli   s0, s0, 24
-    srli   s0, s0, 16
-    slli   a5, a2, 16
-    srli   a5, a5, 24
-    slli   a5, a5, 16
-    or     a4, a4, s0
-    or     a2, a4, a5
-    or     a2, a2, 0x03
-    sw     a2, SPI_HOST_TXDATA_REG_OFFSET(a1)
-    nop    # otherwise ready bit check is too fast
+    la     a1, _etext
+    // Skip if everything has already been copied, and copy the data section
+    blt    a1, s1, _load_data_section
 
-_wait_spi_ready_read_prog:
-    lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
-    bgez   a5, _wait_spi_ready_read_prog
-    // Read command: 0x11000003
-    lui    a4, 0x11000
-    addi   a4, a4, 3 # spi cmd: txonly + stdspeed + csaat + 4B
-    sw     a4, SPI_HOST_COMMAND_REG_OFFSET(a1)
-    nop    # otherwise ready bit check is too fast
+    // copy size in bytes, i.e. _etext - RAMSIZE_COPIEDBY_BOOTROM
+    sub   a2, a1, s1
 
-_wait_spi_ready_copy_cmd:
-    lw     a4, SPI_HOST_STATUS_REG_OFFSET(a1)
-    bgez   a4, _wait_spi_ready_copy_cmd
+    // dst ptr (ram)
+    mv     a1, s1
 
-    // For loop until the copy from flash to ram is done
-    // Try first to do as much as 256-bytes copies as possible
-    // mv     s0, a3
-    li     s6, 256
-    // Read command: 0x90000FF
-   lui    s5, 0x9000
-    addi   s5, s5, 255 # spi cmd: rxonly + stdspeed + csaat + 255 bytes
+    // copy the remaining data --> w25q128jw_read_standard(a0 is src addr, a1 is dest ptr data, a2 is length)
 
-_32B_chunk_loop:
-    blt    s6, a3, _read_32B_chunk
-    // Read remaining bytes
-    lui    a5, 0x8000
-    addi   a4, a3, -1
-    or     a5, a5, a4 # spi cmd: rxonly + stdspeed + remaining bytes (a3-1)
-    sw     a5, SPI_HOST_COMMAND_REG_OFFSET(a1)
-    nop    # otherwise ready bit check is too fast
+    // this sub is redundat as we could have simply set a0 to RAMSIZE_COPIEDBY_BOOTROM+0x0,
+    // but like this is more readable as we set the FLASH address as memory mapped to FLASH_MEM_START_ADDRESS, and then remove the offset
+    // as required bz the w25q128jw_read_standard function
+    sub    a0,a0,s2
+    call w25q128jw_read_standard
 
-_wait_spi_ready_remaining_bytes:
-    lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
-    bgez   a5, _wait_spi_ready_remaining_bytes
-    li     s4, 32
-    j      _last_bytes_read_start
+_load_data_section:
+    // src ptr
+    la     a0, _lma_data_start
+    // dst ptr
+    la     a1, __data_start
+    // copy size in bytes
+    la     a2, _lma_data_end
+    sub    a2, a2, a0
 
-_read_32B_chunk:
-    sw     s5, SPI_HOST_COMMAND_REG_OFFSET(a1)
-    nop    # otherwise ready bit check is too fast
+    bltz   a2, _load_data_interleaved_section // dont do anything if you do not have data
 
-_wait_spi_ready_read_32B_chunk:
-    lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
-    bgez   a5, _wait_spi_ready_read_32B_chunk
-    addi   s7, s1, 256 # add 32*8 (256 bytes) to dst ptr
+    sub    a0,a0,s2
+    call w25q128jw_read_standard
 
-_wait_spi_rxwm_8_words:
-    lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
-    srli   a5, a5, 0x14
-    andi   a5, a5, 1 # SPI_HOST_STATUS_RXWM_BIT
-    beqz   a5, _wait_spi_rxwm_8_words
-    addi   a2, s1, 32 # add 32 bytes (4 words) to dst ptr
 
-_spi_fifo_read_8_words:
-    // Read 32B (8 words) from RX FIFO
-    lw     a7, SPI_HOST_RXDATA_REG_OFFSET(a1)
-    sw     a7, 0(s1)
-    addi   s1, s1, 4
-    bne    s1, a2, _spi_fifo_read_8_words
-    bne    s1, s7, _wait_spi_rxwm_8_words
-    addi   a3, a3, -256
-    j      _32B_chunk_loop
+_load_data_interleaved_section:
+    #ifdef HAS_MEMORY_BANKS_IL
+    // src ptr
+    la     a0, _lma_data_interleaved_start
+    // dst ptr
+    la     a1, __data_interleaved_start
+    // copy size in bytes
+    la     a2, _lma_data_interleaved_end
+    sub    a2, a2, a0
 
-_wait_spi_rxwm_8_words_1:
-    lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
-    srli   a5, a5, 0x14
-    andi   a5, a5, 1 # SPI_HOST_STATUS_RXWM_BIT
-    beqz   a5, _wait_spi_rxwm_8_words_1
-    addi   a2, s1, 32 # add 32 bytes (4 words) to dst ptr
+    bltz   a2, _init_bss // dont do anything if you do not have interleaved data
 
-_spi_fifo_read_8_words_1:
-    // Read 32B (8 words) from RX FIFO
-    lw     a7, SPI_HOST_RXDATA_REG_OFFSET(a1)
-    sw     a7, 0(s1)
-    addi   s1, s1, 4
-    bne    s1, a2, _spi_fifo_read_8_words_1
-    addi   a3, a3, -32
+    sub    a0,a0,s2
+    call w25q128jw_read_standard
+    #endif
 
-_last_bytes_read_start:
-    bltu   s4, a3, _wait_spi_rxwm_8_words_1
-    // Update RX watermark with remaining words (<=8)
-    lw     a4, SPI_HOST_CONTROL_REG_OFFSET(a1)
-    andi   a4, a4, -256 # ~SPI_HOST_CONTROL_RX_WATERMARK_MASK
-    srli   a5, a3, 0x2 # 4 bytes = 1 word
-    or     a5, a5, a4
-    sw     a5, SPI_HOST_CONTROL_REG_OFFSET(a1)
+#endif
 
-_wait_spi_rxwm_n_words:
-    lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
-    srli   a5, a5, 0x14
-    andi   a5, a5, 1 # SPI_HOST_STATUS_RXWM_BIT
-    beqz   a5, _wait_spi_rxwm_n_words
-
-_remaining_bytes_loop:
-    bnez   a3, _spi_read_word
-    j      _init_bss
-
-_spi_read_word:
-    lw     a7, SPI_HOST_RXDATA_REG_OFFSET(a1)
-    sw     a7, 0(s1)
-    addi   a3, a3, -4
-    addi   s1, s1, 4
-    j      _remaining_bytes_loop
-	
 /* clear the bss segment */
 _init_bss:
     la     a0, __bss_start
@@ -186,14 +112,6 @@ _init_bss:
     sub    a2, a2, a0
     li     a1, 0
     call   memset
-#else
-/* clear the bss segment */
-   la a0, __bss_start
-   la a2, __bss_end
-   sub a2, a2, a0
-   li a1, 0
-   call memset
-#endif
 
 #ifdef FLASH_EXEC
 /* copy initialized data sections from flash to ram (to be verified, copied from picosoc)*/

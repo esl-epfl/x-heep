@@ -1,6 +1,0 @@
-name: boot_rom
-channels:
-  - defaults
-dependencies:
-  - python=2.7.18
-

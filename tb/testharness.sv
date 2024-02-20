@@ -74,6 +74,9 @@ module testharness #(
 
   logic [EXT_PERIPHERALS_PORT_SEL_WIDTH-1:0] ext_periph_select;
 
+  logic iffifo_in_ready, iffifo_out_valid;
+  logic iffifo_int_o;
+
   // External xbar master/slave and peripheral ports
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_req;
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] heep_slave_req;
@@ -132,6 +135,7 @@ module testharness #(
     end
     // Re-assign the interrupt lines used here
     intr_vector_ext[0] = memcopy_intr;
+    intr_vector_ext[1] = iffifo_int_o;
   end
 
   //log parameters
@@ -249,7 +253,9 @@ module testharness #(
       .external_subsystem_powergate_iso_no(external_subsystem_powergate_iso_n),
       .external_subsystem_rst_no(external_subsystem_rst_n),
       .external_ram_banks_set_retentive_no(external_ram_banks_set_retentive_n),
-      .external_subsystem_clkgate_en_no(external_subsystem_clkgate_en_n)
+      .external_subsystem_clkgate_en_no(external_subsystem_clkgate_en_n),
+      .ext_dma_slot_tx_i(iffifo_in_ready),
+      .ext_dma_slot_rx_i(iffifo_out_valid)
   );
 
   // Testbench external bus
@@ -430,6 +436,22 @@ module testharness #(
           .dma_window_intr_o()
       );
 
+      simple_accelerator #(
+          .reg_req_t (reg_pkg::reg_req_t),
+          .reg_rsp_t (reg_pkg::reg_rsp_t),
+          .obi_req_t (obi_pkg::obi_req_t),
+          .obi_resp_t(obi_pkg::obi_resp_t)
+      ) simple_accelerator_i (
+          .clk_i,
+          .rst_ni,
+          .reg_req_i(ext_periph_slv_req[testharness_pkg::SIMPLE_ACC_IDX]),
+          .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::SIMPLE_ACC_IDX]),
+          .acc_read_ch0_req_o(ext_master_req[testharness_pkg::EXT_MASTER2_IDX]),
+          .acc_read_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER2_IDX]),
+          .acc_write_ch0_req_o(ext_master_req[testharness_pkg::EXT_MASTER3_IDX]),
+          .acc_write_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER3_IDX])
+      );
+
       // AMS external peripheral
       ams #(
           .reg_req_t(reg_pkg::reg_req_t),
@@ -439,6 +461,22 @@ module testharness #(
           .rst_ni,
           .reg_req_i(ext_periph_slv_req[testharness_pkg::AMS_IDX]),
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::AMS_IDX])
+      );
+
+      // InterFaced FIFO (IFFIFO) external peripheral
+      iffifo #(
+          .reg_req_t(reg_pkg::reg_req_t),
+          .reg_rsp_t(reg_pkg::reg_rsp_t)
+      ) iffifo_i (
+          .clk_i,
+          .rst_ni,
+          .reg_req_i(ext_periph_slv_req[testharness_pkg::IFFIFO_IDX]),
+          .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::IFFIFO_IDX]),
+          // DMA slots
+          .iffifo_in_ready_o(iffifo_in_ready),
+          .iffifo_out_valid_o(iffifo_out_valid),
+          // Interrupt lines
+          .iffifo_int_o(iffifo_int_o)
       );
 
       addr_decode #(
@@ -557,6 +595,7 @@ module testharness #(
       assign ext_master_req[testharness_pkg::EXT_MASTER0_IDX].wdata = '0;
 
       assign memcopy_intr = '0;
+      assign iffifo_int_o = '0;
       assign periph_slave_rsp = '0;
 
     end

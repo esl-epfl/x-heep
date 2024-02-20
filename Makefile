@@ -6,6 +6,7 @@ MAKE                       = make
 
 # Get the absolute path
 mkfile_path := $(shell dirname "$(realpath $(firstword $(MAKEFILE_LIST)))")
+$(info $$You are executing from: $(mkfile_path))
 
 # Include the self-documenting tool
 FILE=$(mkfile_path)/Makefile
@@ -33,7 +34,7 @@ PROJECT  ?= hello_world
 # Linker options are 'on_chip' (default),'flash_load','flash_exec','freertos'
 LINKER   ?= on_chip
 
-# Target options are 'sim' (default) and 'pynq-z2'
+# Target options are 'sim' (default) and 'pynq-z2' and 'nexys-a7-100t'
 TARGET   	?= sim
 MCU_CFG  	?= mcu_cfg.hjson
 PAD_CFG  	?= pad_cfg.hjson
@@ -49,7 +50,7 @@ COMPILER_PREFIX ?= riscv32-unknown-
 ARCH     ?= rv32imc
 
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
-SOURCE 	 ?= "."
+SOURCE 	 ?= $(".")
 
 # Simulation engines options are verilator (default) and questasim
 SIMULATOR ?= verilator
@@ -57,19 +58,15 @@ SIMULATOR ?= verilator
 # Timeout for simulation, default 120
 TIMEOUT ?= 120
 
+# Export variables to sub-makefiles
+export
+
 ## @section Conda
 conda: environment.yml
 	conda env create -f environment.yml
 
 environment.yml: python-requirements.txt
 	util/python-requirements2conda.sh
-
-## @section Linux-Emulation
-
-## Generates FEMU
-linux-femu-gen: mcu-gen
-	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir linux_femu/rtl/ --tpl-sv linux_femu/rtl/linux_femu.sv.tpl
-	$(MAKE) verible
 
 ## @section Installation
 
@@ -115,7 +112,7 @@ verible:
 
 ## Generates the build folder in sw using CMake to build (compile and linking)
 ## @param PROJECT=<folder_name_of_the_project_to_be_built>
-## @param TARGET=sim(default),pynq-z2
+## @param TARGET=sim(default),pynq-z2,nexys-a7-100t
 ## @param LINKER=on_chip(default),flash_load,flash_exec
 ## @param COMPILER=gcc(default), clang
 ## @param COMPILER_PREFIX=riscv32-unknown-(default)
@@ -175,7 +172,7 @@ run-helloworld: mcu-gen verilator-sim
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
 run-blinkyfreertos: mcu-gen verilator-sim
-	$(MAKE) -C sw PROJECT=blinky_freertos TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
+	$(MAKE) -C sw PROJECT=example_freertos_blinky TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
 	./Vtestharness +firmware=../../../sw/build/main.hex; \
 	cat uart0.log; \
@@ -204,6 +201,9 @@ vivado-fpga:
 vivado-fpga-nobuild:
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildvivado.log
 
+vivado-fpga-pgm:
+	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/$(FPGA_BOARD)-vivado pgm
+
 ## @section ASIC
 ## Note that for this step you need to provide technology-dependent files (e.g., libs, constraints)
 asic:
@@ -220,12 +220,12 @@ openroad-sky130:
 
 ## Read the id from the EPFL_Programmer flash
 flash-readid:
-	cd sw/vendor/yosyshq_icestorm/iceprog; \
+	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
 	./iceprog -d i:0x0403:0x6011 -I B -t;
 
 ## Loads the obtained binary to the EPFL_Programmer flash
 flash-prog:
-	cd sw/vendor/yosyshq_icestorm/iceprog; \
+	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
 	./iceprog -d i:0x0403:0x6011 -I B $(mkfile_path)/sw/build/main.hex;
 
 ## Run openOCD w/ EPFL_Programmer
