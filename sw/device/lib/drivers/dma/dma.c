@@ -700,24 +700,10 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
         */
         dma_cb.peri->DST_PTR = dma_cb.trans->dst->ptr;
      }
-     else
-     {
-        dma_cb.peri->ADDR_PTR = dma_cb.trans->src_addr->ptr;
-     }
-
-    if(dma_cb.trans->mode != DMA_TRANS_MODE_ADDRESS)
+    else
     {
-        /*
-            Write to the destination pointers only if we are not in address mode,
-            otherwise the destination address is read in a separate port in parallel with the data
-            from the address port
-        */
-        dma_cb.peri->DST_PTR = dma_cb.trans->dst->ptr;
-     }
-     else
-     {
-        dma_cb.peri->ADDR_PTR = dma_cb.trans->src_addr->ptr;
-     }
+    dma_cb.peri->ADDR_PTR = dma_cb.trans->src_addr->ptr;
+    }
 
     /*
      * SET THE INCREMENTS
