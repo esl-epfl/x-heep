@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 #include "verilated.h"
-#include "verilated_fst_sc.h"
+#include <verilated_vcd_sc.h>
 #include "Vtestharness.h"
 #include "Vtestharness__Syms.h"
 #include "systemc.h"
@@ -33,13 +33,12 @@ SC_MODULE(testbench)
 
     //-----
     rst_no.write(false);
+    printf("RST L\n");
 
     for(int i=0;i<reset_cycles;i++){
       clk_o.write(false);
-      //m_trace->dump(1);
       wait();
       clk_o.write(true);
-      //m_trace->dump(1);
       wait();
       std::cout<<sc_time_stamp()<<std::endl;
     }
@@ -47,39 +46,35 @@ SC_MODULE(testbench)
 
     //-----|||||||
     rst_no.write(true);
-
+    printf("RST H\n");
     for(int i=0;i<reset_cycles;i++){
       clk_o.write(false);
-      //m_trace->dump(1);
       wait();
       clk_o.write(true);
-      //m_trace->dump(1);
       wait();
       std::cout<<sc_time_stamp()<<std::endl;
     }
 
     //-----|||||||------
     rst_no.write(false);
+    printf("RST L\n");
 
     for(int i=0;i<reset_cycles;i++){
       clk_o.write(false);
-      //m_trace->dump(1);
       wait();
       clk_o.write(true);
-      //m_trace->dump(1);
       wait();
       std::cout<<sc_time_stamp()<<std::endl;
     }
 
     //-----|||||||------||||||
     rst_no.write(true);
+    printf("RST H\n");
 
     for(int i=0;i<reset_cycles;i++){
       clk_o.write(false);
-      //m_trace->dump(1);
       wait();
       clk_o.write(true);
-      //m_trace->dump(1);
       wait();
       std::cout<<sc_time_stamp()<<std::endl;
     }
@@ -126,8 +121,10 @@ int sc_main (int argc, char * argv[])
   use_openocd = cmd_lines_options->get_use_openocd();
   firmware = cmd_lines_options->get_firmware();
 
-  if(firmware.empty() && use_openocd==false)
-      exit(EXIT_FAILURE);
+  if(firmware.empty() && use_openocd==false) {
+    printf("You must specify the firmware if you are not using OpenOCD\n");
+    exit(EXIT_FAILURE);
+  }
 
   max_sim_time = cmd_lines_options->get_max_sim_time(run_all);
 
@@ -190,44 +187,34 @@ int sc_main (int argc, char * argv[])
   dut.exit_value_o(exit_value);
   dut.exit_valid_o(exit_valid);
 
-  VerilatedFstC *m_trace = new VerilatedFstC;
-  m_trace->open ("waveform.vcd");
-  dut.trace (m_trace, 99);
-
   // You must do one evaluation before enabling waves, in order to allow
   // SystemC to interconnect everything for testing.
-  sc_start(SC_ZERO_TIME);
+  sc_start(1, SC_NS);
+
+
+  VerilatedVcdSc* tfp = nullptr;
+  tfp = new VerilatedVcdSc;
+  dut.trace(tfp, 99);  // Trace 99 levels of hierarchy
+  tfp->open("waveform.vcd");
 
   // Simulate until $finish
-  while ((sc_time_stamp() > sc_time(1, SC_NS) && sc_time_stamp() < sc_time(10, SC_NS))) {
-
-      m_trace->flush();
-      m_trace->dump(sc_time_stamp().to_double());
-
+  while (!Verilated::gotFinish() && sc_time_stamp() < sc_time(2000, SC_NS)) {
+      // Flush the wave files each cycle so we can immediately see the output
+      // Don't do this in "real" programs, do it in an abort() handler instead
+      if (tfp) tfp->flush();
       // Simulate 1ns
       sc_start(1, SC_NS);
   }
 
+  // Final model cleanup
+  dut.final();
 
-  //simulation start
-  sc_start( );
-
-/*
-  svSetScope(svGetScopeFromName("TOP.testharness"));
-  svScope scope = svGetScope();
-  if (!scope) {
-    std::cout<<"Warning: svGetScope failed"<< std::endl;
-    exit(EXIT_FAILURE);
+  // Close trace if opened
+  if (tfp) {
+      tfp->close();
+      tfp = nullptr;
   }
 
-  if(use_openocd==false || boot_sel == 1) {
-    dut.tb_loadHEX(firmware.c_str());
-    std::cout<<"Memory Loaded"<< std::endl;
-  } else {
-    std::cout<<"Waiting for GDB"<< std::endl;
-  }
-*/
-  m_trace->close();
 
   return 0;
 

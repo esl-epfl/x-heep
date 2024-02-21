@@ -415,7 +415,6 @@ targets:
         verilator_options:
           - '--sc'
           - '--trace'
-          - '--trace-fst'
           - '--trace-structs'
           - '--trace-params'
           - '--trace-max-array 1024'
