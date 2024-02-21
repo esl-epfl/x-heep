@@ -148,6 +148,13 @@ or just run the entire execution with the continue command and then check the `u
 (gdb) continue
 ```
 
+If you want to reset the non-debug modules (as the CPU):
+
+```
+(gdb) mon reset halt
+```
+
+
 You can also run all the gdb steps by running:
 ```
 make gdb_connect MAINFILE=<main_file_name_of_the_project_that WAS_built WITHOUT EXTENSION>
