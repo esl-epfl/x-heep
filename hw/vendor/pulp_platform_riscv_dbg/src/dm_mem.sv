@@ -224,7 +224,7 @@ module dm_mem #(
   // read/write logic
   logic [dm::DataCount-1:0][31:0] data_bits;
   logic [7:0][7:0] rdata;
-  always_comb begin : p_rw_logic
+  always_comb (* xprop_off *) begin : p_rw_logic
 
     halted_d_aligned   = NrHartsAligned'(halted_q);
     resuming_d_aligned = NrHartsAligned'(resuming_q);
@@ -497,6 +497,7 @@ module dm_mem #(
   if (HasSndScratch) begin : gen_rom_snd_scratch
     debug_rom i_debug_rom (
       .clk_i,
+      .rst_ni,
       .req_i,
       .addr_i  ( rom_addr  ),
       .rdata_o ( rom_rdata )
@@ -507,6 +508,7 @@ module dm_mem #(
     // be saved.
     debug_rom_one_scratch i_debug_rom (
       .clk_i,
+      .rst_ni,
       .req_i,
       .addr_i  ( rom_addr  ),
       .rdata_o ( rom_rdata )
