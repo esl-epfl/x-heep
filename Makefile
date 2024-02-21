@@ -232,7 +232,7 @@ flash-prog:
 openOCD_epflp:
 	xterm -e openocd -f ./tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg;
 
-## Run openOCD w/ BSCAN of Xilinx FPGAs
+## Run openOCD w/ BSCAN of the Pynq-Z2 board
 openOCD_bscan:
 	xterm -e openocd -f ./tb/core-v-mini-mcu-pynq-z2-bscan.cfg;
 
