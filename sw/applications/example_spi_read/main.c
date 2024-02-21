@@ -208,7 +208,7 @@ uint32_t test_read(uint32_t *test_buffer, uint32_t len) {
 
     return res;
 }
-
+#ifndef ON_CHIP
 uint32_t test_read_flash_only(uint32_t *test_buffer, uint32_t len) {
 
     uint32_t *test_buffer_flash = heep_get_flash_address_offset(test_buffer);
@@ -227,7 +227,7 @@ uint32_t test_read_flash_only(uint32_t *test_buffer, uint32_t len) {
 
     return res;
 }
-
+#endif
 uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
 
     uint32_t *test_buffer_flash = test_buffer;
