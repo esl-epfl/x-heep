@@ -476,7 +476,7 @@ The success of the script is not required for merging of a PR.
 
 ## Debug
 
-Follow the [Debug](./Debug.md) guide to debug core-v-mini-mcu.
+Follow the [Debug](./docs/source/How_to/Debug.md) guide to debug core-v-mini-mcu.
 
 Alternatively, in case you are used to developing using Integrated Development Environments (IDEs), please check [the IDE readme](./IDEs.md).
 
