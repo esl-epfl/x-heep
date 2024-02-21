@@ -64,10 +64,18 @@ FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.hex
 FLASHREAD_BYTES ?= 256
 
 #max address in the hex file, used to program the flash
-MAX_HEX_ADDRESS  = $(shell cat sw/build/main.hex | grep "@" | tail -1 | cut -c2-)
-MAX_HEX_ADDRESS_DEC = $(shell printf "%d" 0x$(MAX_HEX_ADDRESS))
-BYTES_AFTER_MAX_HEX_ADDRESS = $(shell tac sw/build/main.hex | awk 'BEGIN {count=0} /@/ {print count; exit} {count++}')
-FLASHRWITE_BYTES = $(shell echo $(MAX_HEX_ADDRESS_DEC) + $(BYTES_AFTER_MAX_HEX_ADDRESS)*16 | bc)
+ifeq ($(wildcard sw/build/main.hex),)
+	MAX_HEX_ADDRESS  = 0
+	MAX_HEX_ADDRESS_DEC = 0
+	BYTES_AFTER_MAX_HEX_ADDRESS = 0
+	FLASHRWITE_BYTES = 0
+else
+	MAX_HEX_ADDRESS  = $(shell cat sw/build/main.hex | grep "@" | tail -1 | cut -c2-)
+	MAX_HEX_ADDRESS_DEC = $(shell printf "%d" 0x$(MAX_HEX_ADDRESS))
+	BYTES_AFTER_MAX_HEX_ADDRESS = $(shell tac sw/build/main.hex | awk 'BEGIN {count=0} /@/ {print count; exit} {count++}')
+	FLASHRWITE_BYTES = $(shell echo $(MAX_HEX_ADDRESS_DEC) + $(BYTES_AFTER_MAX_HEX_ADDRESS)*16 | bc)
+endif
+
 
 #binary to store in flash memory
 FLASHWRITE_FILE = $(mkfile_path)/sw/build/main.hex
