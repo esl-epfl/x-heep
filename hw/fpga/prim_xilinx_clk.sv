@@ -158,3 +158,12 @@ module tc_clk_xor2 (
   assign clk_o = clk0_i ^ clk1_i;
 
 endmodule
+
+module tc_clk_inverter (
+    input  logic clk_i,
+    output logic clk_o
+);
+
+  xilinx_clk_inverter clk_inv_i (.*);
+
+endmodule

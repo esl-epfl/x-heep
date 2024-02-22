@@ -16,35 +16,41 @@
 // Auto-generated code
 module debug_rom_one_scratch (
   input  logic         clk_i,
+  input  logic         rst_ni,
   input  logic         req_i,
   input  logic [63:0]  addr_i,
   output logic [63:0]  rdata_o
 );
 
-  localparam int unsigned RomSize = 13;
+  localparam int unsigned RomSize = 14;
 
   logic [RomSize-1:0][63:0] mem;
   assign mem = {
-    64'h00000000_7b200073,
-    64'h7b202473_10802423,
-    64'hf1402473_ab1ff06f,
-    64'h7b202473_10002223,
-    64'h00100073_7b202473,
-    64'h10002623_fddff06f,
-    64'hfc0418e3_00247413,
-    64'h40044403_f1402473,
-    64'h02041263_00147413,
-    64'h40044403_10802023,
-    64'hf1402473_7b241073,
-    64'h0ff0000f_0340006f,
-    64'h0500006f_00c0006f
+    64'h7b200073_7b202473,
+    64'h10802823_f1402473,
+    64'haa5ff06f_7b202473,
+    64'h10002423_00100073,
+    64'h7b202473_10002c23,
+    64'hfddff06f_fc0414e3,
+    64'h00247413_40044403,
+    64'hf1402473_02041263,
+    64'h00147413_40044403,
+    64'h10802023_f1402473,
+    64'h7b241073_0ff0000f,
+    64'h00000013_0380006f,
+    64'h00000013_0580006f,
+    64'h00000013_0180006f
   };
 
-  logic [$clog2(RomSize)-1:0] addr_q;
+  logic [$clog2(RomSize)-1:0] addr_d, addr_q;
 
-  always_ff @(posedge clk_i) begin
-    if (req_i) begin
-      addr_q <= addr_i[$clog2(RomSize)-1+3:3];
+  assign addr_d = req_i ? addr_i[$clog2(RomSize)-1+3:3] : addr_q;
+
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      addr_q <= '0;
+    end else begin
+      addr_q <= addr_d;
     end
   end
 
@@ -53,7 +59,7 @@ module debug_rom_one_scratch (
   always_comb begin : p_outmux
     rdata_o = '0;
     if (addr_q < $clog2(RomSize)'(RomSize)) begin
-        rdata_o = mem[addr_q];
+      rdata_o = mem[addr_q];
     end
   end
 
