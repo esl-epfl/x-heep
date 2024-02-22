@@ -75,7 +75,7 @@ module debug_subsystem
       .ndmreset_o   (ndmreset),
       .dmactive_o   (),
       .debug_req_o  (debug_core_req_o),
-      .unavailable_i(~(1'b01)),
+      .unavailable_i(~(1'b1)),
       .hartinfo_i   (hartinfo),
 
       .slave_req_i   (debug_slave_req_i.req),
