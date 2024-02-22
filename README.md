@@ -181,7 +181,7 @@ The `fusesoc` commands are inside the Makefile.
 
 # Adding external IPs
 
-This repository relies on [Vendor](https://opentitan.org/book/util/doc/vendor.html) to add new IPs. The `vendor.py` script in the [`./util`](./util/) folder implements what is describeb above, while [this](./ExternalDevices.md) file contains additional information on how to connect external devices to the system.
+This repository relies on [Vendor](https://opentitan.org/book/util/doc/vendor.html) to add new IPs. The `vendor.py` script in the [`./util`](./util/) folder implements what is described above, while [this](./docs/source/How_to/ExternalDevices.md) file contains additional information on how to connect external devices to the system.
 
 # Compiling with Makefile
 
@@ -582,6 +582,6 @@ make asic
 ## OpenRoad support for SkyWater 130nm
 
 We are working on supporting OpenRoad and SkyWater 130nm PDK, please refer to the
-[OpenRoadFlow](./OpenRoadFlow.md) page. This is not ready yet, it has not been tested.
+[Implement on ASIC](./docs/source/How_to/ImplementASIC.md) page. This is not ready yet, it has not been tested.
 
 This relies on a fork of [edalize](https://github.com/davideschiavone/edalize) that contains templates for Design Compiler and OpenRoad.
