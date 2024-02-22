@@ -209,6 +209,16 @@ or with the EPFL Programmer also using this other command (**strongly recommende
 make openOCD_epflp
 ```
 
+or with the BSCAN of the Pynq-Z2 board using this command:
+```
+openocd -f ./tb/core-v-mini-mcu-pynq-z2-bscan.cfg
+```
+
+or with the BSCAN of the Pynq-Z2 board also using this other command (**strongly recommended**):
+
+```
+make openOCD_bscan
+```
 
 If you get this error:
 
