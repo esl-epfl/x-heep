@@ -177,7 +177,7 @@ or just run the entire execution with the and then check the `uart0.log` to see 
 If you want to reset the non-debug modules (as the CPU):
 
 ```
-(gdb) mon reset halt
+(gdb) monitor reset halt
 ```
 
 Set a breakpoint to a specific instruction address:
