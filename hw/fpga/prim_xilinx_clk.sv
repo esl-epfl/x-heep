@@ -160,8 +160,8 @@ module tc_clk_xor2 (
 endmodule
 
 module tc_clk_inverter (
-  input  logic clk_i,
-  output logic clk_o
+    input  logic clk_i,
+    output logic clk_o
 );
 
   xilinx_clk_inverter clk_inv_i (.*);
