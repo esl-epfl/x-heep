@@ -11,7 +11,7 @@ MEMORY
     ram1 (rwxai) : ORIGIN = 0x${linker_onchip_data_start_address}, LENGTH = 0x${linker_onchip_data_size_address}
     FLASH0 (rx)   : ORIGIN = 0x${linker_flash_code_start_address}, LENGTH = 0x${linker_onchip_code_size_address}
     FLASH1 (rx)   : ORIGIN = 0x${linker_flash_data_start_address}, LENGTH = 0x${linker_onchip_data_size_address}
-  % if ram_numbanks_cont > 1 and ram_numbanks_il > 0:
+  % if xheep.ram_numbanks_cont() > 1 and xheep.has_il_ram():
     ram_il (rwxai) : ORIGIN = 0x${linker_onchip_il_start_address}, LENGTH = 0x${linker_onchip_il_size_address}
     FLASH_il (rx)   : ORIGIN = 0x${linker_flash_il_start_address}, LENGTH = 0x${linker_onchip_il_size_address}
   % endif
@@ -158,7 +158,7 @@ SECTIONS {
        PROVIDE(__freertos_irq_stack_top = .);
     } >ram1
 
-  % if ram_numbanks_cont > 1 and ram_numbanks_il > 0:
+  % if xheep.ram_numbanks_cont() > 1 and xheep.has_il_ram():
     .data_interleaved : ALIGN_WITH_INPUT
     {
         PROVIDE(__data_interleaved_start = .);
