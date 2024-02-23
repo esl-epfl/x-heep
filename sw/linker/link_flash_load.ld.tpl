@@ -7,9 +7,18 @@ ENTRY(_start)
 
 MEMORY
 {
-    FLASH (rx)      : ORIGIN = 0x${flash_mem_start_address}, LENGTH = 0x${flash_mem_size_address}
-    RAM (xrw)       : ORIGIN = 0x${'{:08X}'.format(int(ram_start_address,16))}, LENGTH = 0x${'{:08X}'.format(int(ram_size_address,16) - 4)}
+    ram0 (rwxai) : ORIGIN = 0x${linker_onchip_code_start_address}, LENGTH = 0x${linker_onchip_code_size_address}
+    ram1 (rwxai) : ORIGIN = 0x${linker_onchip_data_start_address}, LENGTH = 0x${linker_onchip_data_size_address}
+    FLASH0 (rx)   : ORIGIN = 0x${linker_flash_code_start_address}, LENGTH = 0x${linker_onchip_code_size_address}
+    FLASH1 (rx)   : ORIGIN = 0x${linker_flash_data_start_address}, LENGTH = 0x${linker_onchip_data_size_address}
+  % if ram_numbanks_cont > 1 and ram_numbanks_il > 0:
+    ram_il (rwxai) : ORIGIN = 0x${linker_onchip_il_start_address}, LENGTH = 0x${linker_onchip_il_size_address}
+    FLASH_il (rx)   : ORIGIN = 0x${linker_flash_il_start_address}, LENGTH = 0x${linker_onchip_il_size_address}
+  % endif
+    FLASH_left (rx)   : ORIGIN = 0x${linker_flash_left_start_address}, LENGTH = 0x${linker_flash_left_size_address}
 }
+
+
 
 SECTIONS {
 
@@ -22,32 +31,46 @@ SECTIONS {
     __heap_size = DEFINED(__heap_size) ? __heap_size : 0x${heap_size};
 
     /* interrupt vectors */
-    .vectors (ORIGIN(RAM)):
+    .vectors (ORIGIN(ram0)):
     {
         PROVIDE(__vector_start = .);
+        _lma_text_start = LOADADDR(.vectors);
         KEEP(*(.vectors));
         __VECTORS_AT = .;
-    } >RAM AT >FLASH
+    } >ram0 AT >FLASH0
 
     /* Fill memory up to __boot_address */
     .fill :
     {
         FILL(0xDEADBEEF);
-        . = ORIGIN(RAM) + (__boot_address) - 1;
+        . = ORIGIN(ram0) + (__boot_address) - 1;
         BYTE(0xEE)
-    } >RAM AT >FLASH
+    } >ram0 AT >FLASH0
 
     /* crt0 init code */
     .init (__boot_address):
     {
         KEEP (*(SORT_NONE(.init)))
         KEEP (*(.text.start))
-    } >RAM AT >FLASH
+        KEEP (*(.text.w25q128jw_init_crt0))
+        KEEP (*(.text.w25q128jw_sanity_checks))
+        KEEP (*(.text.spi_write_word*))
+        KEEP (*(.text.spi_wait_for_ready*))
+        KEEP (*(.text.spi_create_command*))
+        KEEP (*(.text.spi_set_command*))
+        KEEP (*(.text.spi_set_rx_watermark*))
+        KEEP (*(.text.spi_wait_for_rx_watermark*))
+        KEEP (*(.text.spi_read_word*))
+        KEEP (*(.text.memcpy))
+        KEEP (*(.text.w25q128jw_read_standard)) /* as this function is used in the crt0, link it in the top, should be before 1024 Bytes loaded by the bootrom */
+        *(.xheep_init_data_crt0) /* this global variables are used in the crt0 */
+    } >ram0 AT >FLASH0
 
     /* The program code and other data goes into FLASH */
     .text : ALIGN_WITH_INPUT
     {
         . = ALIGN(4);
+        __text_start = .; /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
         *(.text)           /* .text sections (code) */
         *(.text*)          /* .text* sections (code) */
         *(.rodata)         /* .rodata sections (constants, strings, etc.) */
@@ -56,16 +79,17 @@ SECTIONS {
         *(.srodata*)       /* .rodata* sections (constants, strings, etc.) */
         . = ALIGN(4);
         _etext = .;        /* define a global symbol at end of code */
-    } >RAM AT >FLASH
+    } >ram0 AT >FLASH0
 
     /* This is the initialized data section
     The program executes knowing that the data is in the RAM
     but the loader puts the initial values in the FLASH (inidata).
     It is one task of the startup to copy the initial values from FLASH to RAM. */
-    .data : ALIGN_WITH_INPUT
+    .data : ALIGN(256)
     {
-        . = ALIGN(4);
+        __data_start = .; /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
         _sidata = LOADADDR(.data);
+        _lma_data_start = LOADADDR(.data);
         _sdata = .;        /* create a global symbol at data start; used by startup code in order to initialise the .data section in RAM */
         _ram_start = .;    /* create a global symbol at ram start for garbage collector */
         . = ALIGN(4);
@@ -75,18 +99,20 @@ SECTIONS {
         __SDATA_BEGIN__ = .;
         *(.sdata)           /* .sdata sections */
         *(.sdata*)          /* .sdata* sections */
-        . = ALIGN(4);
-        _edata = .;        /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
-    } >RAM AT >FLASH
+    } >ram1 AT >FLASH1
 
-    .power_manager : ALIGN(4096)
+    . = ALIGN(4);
+    _edata = .;        /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
+
+    .power_manager : ALIGN_WITH_INPUT
     {
+        . = ALIGN(4);
        PROVIDE(__power_manager_start = .);
        . += 256;
-    } >RAM
+    } >ram1 AT >FLASH1
 
     /* Uninitialized data section */
-    .bss :
+    .bss : ALIGN_WITH_INPUT
     {
         . = ALIGN(4);
         __bss_start = .;         /* define a global symbol at bss start; used by startup code */
@@ -99,7 +125,14 @@ SECTIONS {
         . = ALIGN(4);
         __bss_end = .;         /* define a global symbol at bss end; used by startup code */
         __BSS_END__ = .;
-    } >RAM
+    } >ram1 AT >FLASH1
+
+    _lma_data_end = _lma_data_start + SIZEOF(.data) + SIZEOF(.power_manager) + SIZEOF(.bss);
+    _lma_vma_data_offset = _lma_data_start - __data_start;
+
+    _lma_text_end = _lma_text_start + SIZEOF(.vectors) + SIZEOF(.init) + SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.power_manager) + SIZEOF(.bss);
+    _lma_text_vma_offset = _lma_text_start - __vector_start;
+
 
     /* The compiler uses this to access data in the .sdata, .data, .sbss and .bss
      sections with fewer instructions (relaxation). This reduces code size. */
@@ -112,7 +145,7 @@ SECTIONS {
         PROVIDE(__heap_start = .);
         . = __heap_size;
         PROVIDE(__heap_end = .);
-    } >RAM
+    } >ram1
 
     /* stack: we should consider putting this further to the top of the address
     space */
@@ -123,5 +156,29 @@ SECTIONS {
        PROVIDE(_sp = .);
        PROVIDE(__stack_end = .);
        PROVIDE(__freertos_irq_stack_top = .);
-    } >RAM
+    } >ram1
+
+  % if ram_numbanks_cont > 1 and ram_numbanks_il > 0:
+    .data_interleaved : ALIGN_WITH_INPUT
+    {
+        PROVIDE(__data_interleaved_start = .);
+        _lma_data_interleaved_start = LOADADDR(.data_interleaved);
+        . = ALIGN(4);
+        *(.xheep_data_interleaved)
+        . = ALIGN(4);
+    } >ram_il AT >FLASH_il
+
+   . = ALIGN(4);
+  _eddata_interleaved = .;
+  _lma_data_interleaved_end = _lma_data_interleaved_start + SIZEOF(.data_interleaved);
+
+  % endif
+
+    .data_flash_only : ALIGN(256)
+    {
+        . = ALIGN(4);
+        *(.xheep_data_flash_only)
+        . = ALIGN(4);
+    } >FLASH_left
+
 }

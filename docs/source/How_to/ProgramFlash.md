@@ -92,30 +92,28 @@ Generate the C program you want to execute as described in the [ExecuteFromFlash
 then program the FLASH as:
 
 ```
-./iceprog -d i:0x0403:0x6011 -I B ../../../build/main.hex
-```
-
-You can also program the FLASH by running:
-
-```
-make flash-prog MAINFILE=<main_file_name_of_the_project_that WAS_built WITHOUT EXTENSION>
+make flash-prog
 ```
 
 You can read the content of the FLASH as:
 
 ```
-./iceprog -d i:0x0403:0x6011 -I B -r flash_content.txt
-xxd flash_content.txt > flash_content.dump.txt
+make flash-read FLASHREAD_ADDR=0x10000 FLASHREAD_BYTES=16; xxd flashcontent.hex
 ```
+
+In this example, we are reading `16` bytes from the flash address `0x10000`.
+
 
 Now program the FPGA with the x-heep bitstream:
 
 
 ```
-cd build/openhwgroup.org_systems_core-v-mini-mcu_0/pynq-z2-vivado
+make vivado-fpga-pgm FPGA_BOARD=pynq-z2
 ```
 
-Remember to set the `boot_sel_i` and `execute_from_flash_i` switches to 1.
+Remember to set the `boot_sel_i` and `execute_from_flash_i` switches to `1` if you `execute from flash`,
+or just  `boot_sel_i` to `1` and `execute_from_flash_i` to `0`  if you `load from flash`.
+
 Reset the logic (so the x-heep reset and not the bitstream reset) and enjoy.
 
 Additional note: To use the flash directly from X-HEEP, you first need to execute from the PC any iceprog command targeting the Flash. On the exit of any iceprog program, the FTDI pins will be set to high impedance. If this is not performed, the pins from the FTDI won't be on high impedance and the SPI signals cannot be driven from X-HEEP (or any other device).

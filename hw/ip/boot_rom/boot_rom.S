@@ -99,7 +99,7 @@ _wait_spi_ready_tx_init:
 _wait_spi_ready_read_prog:
        lw     a5, SPI_HOST_STATUS_REG_OFFSET(a1)
        bgez   a5, _wait_spi_ready_read_prog
-       li     a3, 1024 # 1KB copy size
+       li     a3, 2048 # 2KB copy size
        li     s1, 0 # dst ptr (ram)
 
        // For loop until the 1KB copy from flash to ram is done

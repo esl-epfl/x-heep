@@ -41,13 +41,89 @@ uint32_t flash_data[256];
  * The buffer is defined in the file buffer.h. As multiple buffers can
  * be defined, this is userful to pick the right one.
  * Also the length is specified, to test different length cases. In any case
- * length <= test_buffer length. 
+ * length <= test_buffer length.
 */
 #define TEST_BUFFER flash_original_1024B
 #define LENGTH 1024
 
+#ifndef ON_CHIP
+#define FLASH_ONLY_WORDS 32
+#define FLASH_ONLY_BYTES (FLASH_ONLY_WORDS*4)
+
+int32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__ ((aligned (16))) flash_only_buffer[FLASH_ONLY_WORDS] = {
+    0xABCDEF00,
+    0xABCDEF01,
+    0xABCDEF02,
+    0xABCDEF03,
+    0xABCDEF04,
+    0xABCDEF05,
+    0xABCDEF06,
+    0xABCDEF07,
+    0xABCDEF08,
+    0xABCDEF09,
+    0xABCDEF0A,
+    0xABCDEF0B,
+    0xABCDEF0C,
+    0xABCDEF0D,
+    0xABCDEF0E,
+    0xABCDEF0F,
+    0xABCDEF10,
+    0xABCDEF11,
+    0xABCDEF12,
+    0xABCDEF13,
+    0xABCDEF14,
+    0xABCDEF15,
+    0xABCDEF16,
+    0xABCDEF17,
+    0xABCDEF18,
+    0xABCDEF19,
+    0xABCDEF1A,
+    0xABCDEF1B,
+    0xABCDEF1C,
+    0xABCDEF1D,
+    0xABCDEF1E,
+    0xABCDEF1F,
+};
+
+int32_t __attribute__ ((aligned (16))) flash_only_buffer_golden_value[FLASH_ONLY_WORDS] = {
+    0xABCDEF00,
+    0xABCDEF01,
+    0xABCDEF02,
+    0xABCDEF03,
+    0xABCDEF04,
+    0xABCDEF05,
+    0xABCDEF06,
+    0xABCDEF07,
+    0xABCDEF08,
+    0xABCDEF09,
+    0xABCDEF0A,
+    0xABCDEF0B,
+    0xABCDEF0C,
+    0xABCDEF0D,
+    0xABCDEF0E,
+    0xABCDEF0F,
+    0xABCDEF10,
+    0xABCDEF11,
+    0xABCDEF12,
+    0xABCDEF13,
+    0xABCDEF14,
+    0xABCDEF15,
+    0xABCDEF16,
+    0xABCDEF17,
+    0xABCDEF18,
+    0xABCDEF19,
+    0xABCDEF1A,
+    0xABCDEF1B,
+    0xABCDEF1C,
+    0xABCDEF1D,
+    0xABCDEF1E,
+    0xABCDEF1F,
+};
+#endif
+
 // Test functions
 uint32_t test_read(uint32_t *test_buffer, uint32_t len);
+uint32_t test_read_flash_only(uint32_t *test_buffer, uint32_t len);
 uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len);
 uint32_t test_read_quad(uint32_t *test_buffer, uint32_t len);
 uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len);
@@ -81,12 +157,17 @@ int main(int argc, char *argv[]) {
     // Define status variable
     int32_t errors = 0;
 
-    // Init SPI host and SPI<->Flash bridge parameters 
+    // Init SPI host and SPI<->Flash bridge parameters
     if (w25q128jw_init(spi) != FLASH_OK) return EXIT_FAILURE;
 
     // Test simple read
     PRINTF("Testing simple read...\n");
     errors += test_read(TEST_BUFFER, LENGTH);
+
+#ifndef ON_CHIP
+    PRINTF("Testing simple read on flash only data...\n");
+    errors += test_read_flash_only(flash_only_buffer, FLASH_ONLY_BYTES);
+#endif
 
     // Test simple read with DMA
     PRINTF("Testing simple read with DMA...\n");
@@ -108,12 +189,15 @@ int main(int argc, char *argv[]) {
         PRINTF("Some tests failed!\n");
         return EXIT_FAILURE;
     }
-    
+
 }
 
 uint32_t test_read(uint32_t *test_buffer, uint32_t len) {
+
+    uint32_t *test_buffer_flash = test_buffer;
+
     // Read from flash memory at the same address
-    w25q_error_codes_t status = w25q128jw_read_standard(test_buffer, flash_data, len);
+    w25q_error_codes_t status = w25q128jw_read_standard(test_buffer_flash, flash_data, len);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
@@ -124,10 +208,32 @@ uint32_t test_read(uint32_t *test_buffer, uint32_t len) {
 
     return res;
 }
+#ifndef ON_CHIP
+uint32_t test_read_flash_only(uint32_t *test_buffer, uint32_t len) {
 
-uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
+    uint32_t *test_buffer_flash = heep_get_flash_address_offset(test_buffer);
+
     // Read from flash memory at the same address
-    w25q_error_codes_t status = w25q128jw_read_standard_dma(test_buffer, flash_data, len);
+    w25q_error_codes_t status = w25q128jw_read_standard(test_buffer_flash, flash_data, len);
+    if (status != FLASH_OK) exit(EXIT_FAILURE);
+
+    printf("Checking Results \n");
+
+    // Check if what we read is correct (i.e. flash_data == test_buffer)
+    uint32_t res =  check_result(flash_only_buffer_golden_value, len);
+
+    // Reset the flash data buffer
+    memset(flash_data, 0, len * sizeof(uint8_t));
+
+    return res;
+}
+#endif
+uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
+
+    uint32_t *test_buffer_flash = test_buffer;
+
+    // Read from flash memory at the same address
+    w25q_error_codes_t status = w25q128jw_read_standard_dma(test_buffer_flash, flash_data, len);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
@@ -140,8 +246,11 @@ uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
 }
 
 uint32_t test_read_quad(uint32_t *test_buffer, uint32_t len) {
+
+    uint32_t *test_buffer_flash = test_buffer;
+
     // Read from flash memory at the same address
-    w25q_error_codes_t status = w25q128jw_read_quad(test_buffer, flash_data, len);
+    w25q_error_codes_t status = w25q128jw_read_quad(test_buffer_flash, flash_data, len);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)
@@ -154,8 +263,11 @@ uint32_t test_read_quad(uint32_t *test_buffer, uint32_t len) {
 }
 
 uint32_t test_read_quad_dma(uint32_t *test_buffer, uint32_t len) {
+
+    uint32_t *test_buffer_flash = test_buffer;
+
     // Read from flash memory at the same address
-    w25q_error_codes_t status = w25q128jw_read_quad_dma(test_buffer, flash_data, len);
+    w25q_error_codes_t status = w25q128jw_read_quad_dma(test_buffer_flash, flash_data, len);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)

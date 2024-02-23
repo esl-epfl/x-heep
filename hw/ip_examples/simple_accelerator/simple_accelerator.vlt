@@ -1,0 +1,10 @@
+// Copyright 2024 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+//
+// Author: Davide Schiavone <davide.schiavone@epfl.ch>, EPFL, STI-SEL
+// Date: 12.02.2024
+
+`verilator_config
+
+lint_off -rule UNUSED -file "*/simple_accelerator/simple_accelerator.sv" -match "*"
