@@ -25,63 +25,65 @@ SC_MODULE(testbench)
   sc_out<bool> jtag_trst_n_o;
   sc_out<bool> jtag_tdi_o;
 
+  Vtestharness* dut;
+  std::string* firmware;
+
   bool boot_select_option;
   unsigned int reset_cycles = 30;
+
+  void make_clock () {
+    while(1) {
+      clk_o.write(false);
+      wait();
+      clk_o.write(true);
+      wait();
+    }
+  }
 
   void do_reset_cycle () {
     //active low
 
     //-----
     rst_no.write(false);
-    printf("RST L\n");
 
     for(int i=0;i<reset_cycles;i++){
-      clk_o.write(false);
       wait();
-      clk_o.write(true);
-      wait();
-      std::cout<<sc_time_stamp()<<std::endl;
     }
-
 
     //-----|||||||
     rst_no.write(true);
-    printf("RST H\n");
     for(int i=0;i<reset_cycles;i++){
-      clk_o.write(false);
       wait();
-      clk_o.write(true);
-      wait();
-      std::cout<<sc_time_stamp()<<std::endl;
     }
 
     //-----|||||||------
     rst_no.write(false);
-    printf("RST L\n");
 
     for(int i=0;i<reset_cycles;i++){
-      clk_o.write(false);
       wait();
-      clk_o.write(true);
-      wait();
-      std::cout<<sc_time_stamp()<<std::endl;
     }
 
     //-----|||||||------||||||
     rst_no.write(true);
-    printf("RST H\n");
 
     for(int i=0;i<reset_cycles;i++){
-      clk_o.write(false);
       wait();
-      clk_o.write(true);
-      wait();
-      std::cout<<sc_time_stamp()<<std::endl;
     }
 
   }
 
-  void make_clock () {
+
+  void load_firmware () {
+    wait();
+    dut->tb_loadHEX(firmware->c_str());
+  }
+
+  void set_exit_loop () {
+    wait();
+    dut->tb_set_exit_loop();
+  }
+
+  void make_stimuli () {
 
     boot_select_o.write(boot_select_option);
     execute_from_flash_o.write(true);
@@ -90,15 +92,24 @@ SC_MODULE(testbench)
     jtag_trst_n_o.write(false);
     jtag_tdi_o.write(false);
 
+    std::cout<<"Start Reset Cycle: "<<sc_time_stamp()<< std::endl;
     do_reset_cycle();
+    std::cout<<"Reset Released: "<<sc_time_stamp()<< std::endl;
 
-    sc_stop();
+    std::cout<<"Loading firmware "<<firmware->c_str()<<std::endl;
+    load_firmware ();
+
+    std::cout<<"Set Exit Loop"<< std::endl;
+    set_exit_loop ();
+
+    //sc_stop();
   }
 
   SC_CTOR(testbench)
   {
 
     SC_CTHREAD(make_clock, clk_i.pos());
+    SC_CTHREAD(make_stimuli, clk_i.pos());
 
   }
 
@@ -122,7 +133,7 @@ int sc_main (int argc, char * argv[])
   firmware = cmd_lines_options->get_firmware();
 
   if(firmware.empty() && use_openocd==false) {
-    printf("You must specify the firmware if you are not using OpenOCD\n");
+    std::cout<<"You must specify the firmware if you are not using OpenOCD"<<std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -142,12 +153,19 @@ int sc_main (int argc, char * argv[])
     exit(EXIT_FAILURE);
   }
 
-
   // generate clock
   sc_clock clock_sig("clock", 10, SC_NS, 0.5);
 
   Vtestharness dut("TOP");
   testbench tb("testbench");
+
+  svSetScope(svGetScopeFromName("TOP.testharness"));
+  svScope scope = svGetScope();
+  if (!scope) {
+    std::cout<<"Warning: svGetScope failed"<< std::endl;
+    exit(EXIT_FAILURE);
+  }
+
 
   // static values
   tb.boot_select_option = boot_sel == 1;
@@ -174,6 +192,8 @@ int sc_main (int argc, char * argv[])
   tb.jtag_trst_n_o(jtag_trst_n);
   tb.jtag_tdi_o(jtag_tdi);
 
+  tb.dut = &dut;
+  tb.firmware = &firmware;
 
   dut.clk_i(clk);
   dut.rst_ni(rst_n);
@@ -198,13 +218,18 @@ int sc_main (int argc, char * argv[])
   tfp->open("waveform.vcd");
 
   // Simulate until $finish
-  while (!Verilated::gotFinish() && sc_time_stamp() < sc_time(2000, SC_NS)) {
+  while (!Verilated::gotFinish() && exit_valid !=1 ) {
       // Flush the wave files each cycle so we can immediately see the output
       // Don't do this in "real" programs, do it in an abort() handler instead
       if (tfp) tfp->flush();
       // Simulate 1ns
       sc_start(1, SC_NS);
   }
+
+  if(exit_valid == 1) {
+    std::cout<<"Program Finished with value "<< exit_value <<std::endl;
+    exit_val = EXIT_SUCCESS;
+  } else exit_val = EXIT_FAILURE;
 
   // Final model cleanup
   dut.final();
@@ -216,6 +241,6 @@ int sc_main (int argc, char * argv[])
   }
 
 
-  return 0;
+  exit(exit_val);
 
 }

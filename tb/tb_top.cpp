@@ -47,8 +47,10 @@ int main (int argc, char * argv[])
   use_openocd = cmd_lines_options->get_use_openocd();
   firmware = cmd_lines_options->get_firmware();
 
-  if(firmware.empty() && use_openocd==false)
+  if(firmware.empty() && use_openocd==false){
+      std::cout<<"You must specify the firmware if you are not using OpenOCD"<<std::endl;
       exit(EXIT_FAILURE);
+  }
 
   max_sim_time = cmd_lines_options->get_max_sim_time(run_all);
 
