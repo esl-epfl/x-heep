@@ -157,8 +157,8 @@ module system_bus
 
   // Internal slave requests
   assign error_slave_req = int_slave_req[core_v_mini_mcu_pkg::ERROR_IDX];
-% for bank in range(ram_numbanks):
-  assign ram_req_o[${bank}] = int_slave_req[core_v_mini_mcu_pkg::RAM${bank}_IDX];
+% for bank in xheep.iter_ram_banks():
+  assign ram_req_o[${bank.name()}] = int_slave_req[core_v_mini_mcu_pkg::RAM${bank.name()}_IDX];
 % endfor
   assign debug_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::DEBUG_IDX];
   assign ao_peripheral_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX];
@@ -175,8 +175,8 @@ module system_bus
 
   // Internal slave responses
   assign int_slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
-% for bank in range(ram_numbanks):
-  assign int_slave_resp[core_v_mini_mcu_pkg::RAM${bank}_IDX] = ram_resp_i[${bank}];
+% for bank in xheep.iter_ram_banks():
+  assign int_slave_resp[core_v_mini_mcu_pkg::RAM${bank.name()}_IDX] = ram_resp_i[${bank.name()}];
 % endfor
   assign int_slave_resp[core_v_mini_mcu_pkg::DEBUG_IDX] = debug_slave_resp_i;
   assign int_slave_resp[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX] = ao_peripheral_slave_resp_i;

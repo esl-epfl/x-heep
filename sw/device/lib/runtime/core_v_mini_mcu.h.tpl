@@ -9,8 +9,8 @@
 extern "C" {
 #endif  // __cplusplus
 
-#define MEMORY_BANKS ${ram_numbanks}
-% if ram_numbanks_il > 0:
+#define MEMORY_BANKS ${xheep.ram_numbanks()}
+% if xheep.has_il_ram():
 #define HAS_MEMORY_BANKS_IL
 % endif
 

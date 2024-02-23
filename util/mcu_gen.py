@@ -18,6 +18,7 @@ from jsonref import JsonRef
 from mako.template import Template
 import collections
 from math import log2
+import xheep_gen
 
 class Pad:
 
@@ -284,6 +285,7 @@ def write_template(tpl_path, outdir, outfile, **kwargs):
             raise FileNotFoundError
 
 def main():
+    xheep = xheep_gen.main()
     parser = argparse.ArgumentParser(prog="mcugen")
     parser.add_argument("--cfg",
                         "-c",
@@ -318,24 +320,6 @@ def main():
                         nargs='?',
                         default="",
                         help="CPU type (default value from cfg file)")
-
-    parser.add_argument("--bus",
-                        metavar="onetoM,NtoM",
-                        nargs='?',
-                        default="",
-                        help="Bus type (default value from cfg file)")
-
-    parser.add_argument("--memorybanks",
-                        metavar="from 2 to 16",
-                        nargs='?',
-                        default="",
-                        help="Number of 32KB Banks (default value from cfg file)")
-
-    parser.add_argument("--memorybanks_il",
-                        metavar="0, 2, 4 or 8",
-                        nargs='?',
-                        default="",
-                        help="Number of interleaved memory banks (default value from cfg file)")
 
     parser.add_argument("--external_domains",
                         metavar="from 0 to 32",
@@ -409,42 +393,6 @@ def main():
     else:
         cpu_type = obj['cpu_type']
 
-    if args.bus != None and args.bus != '':
-        bus_type = args.bus
-    else:
-        bus_type = obj['bus_type']
-
-    if args.memorybanks != None and args.memorybanks != '':
-        ram_numbanks_cont = int(args.memorybanks)
-    else:
-        ram_numbanks_cont = int(obj['ram']['numbanks'])
-
-    if args.memorybanks_il != None and args.memorybanks_il != '':
-        ram_numbanks_il = int(args.memorybanks_il)
-    else:
-        ram_numbanks_il = int(obj['ram']['numbanks_interleaved'])
-
-    if ram_numbanks_il != 0:
-        log_ram_numbanks_il = int(log2(ram_numbanks_il))
-
-        if not log2(ram_numbanks_il).is_integer():
-            exit("ram interleaved numbanks must be a power of 2 instead of " + str(ram_numbanks_il))
-    else:
-        log_ram_numbanks_il = 0
-
-    if ram_numbanks_il != 0 and bus_type == 'onetoM':
-        exit("bus type must be 'NtoM' instead 'onetoM' to access the interleaved memory banks in parallel" + str(args.bus))
-
-    if ram_numbanks_cont + ram_numbanks_il < 2 and ram_numbanks_cont + ram_numbanks_il > 16:
-        exit("ram numbanks must be between 2 and 16 instead of " + str(ram_numbanks_cont + ram_numbanks_il))
-    else:
-        ram_numbanks = ram_numbanks_cont + ram_numbanks_il
-
-    ram_start_address = string2int(obj['ram']['address'])
-    if int(ram_start_address,16) != 0:
-        exit("ram start address must be 0 instead of " + str(ram_start_address))
-
-    ram_size_address = '{:08X}'.format(ram_numbanks*32*1024)
 
     if args.external_domains != None and args.external_domains != '':
         external_domains = int(args.external_domains)
@@ -527,18 +475,18 @@ def main():
 
     linker_onchip_data_start_address  = string2int(obj['linker_script']['onchip_ls']['data']['address'])
     if (obj['linker_script']['onchip_ls']['data']['lenght'].split()[0].split(",")[0] == "whatisleft"):
-        if ram_numbanks_il == 0 or (ram_numbanks_cont == 1 and ram_numbanks_il > 0):
-            linker_onchip_data_size_address  = str('{:08X}'.format(int(ram_size_address,16) - int(linker_onchip_code_size_address,16)))
+        if xheep.ram_numbanks_il() == 0 or (xheep.ram_numbanks_cont() == 1 and xheep.ram_numbanks_il() > 0):
+            linker_onchip_data_size_address  = str('{:08X}'.format(xheep.ram_size_address() - int(linker_onchip_code_size_address,16)))
         else:
-            linker_onchip_data_size_address  = str('{:08X}'.format(int(ram_size_address,16) - int(linker_onchip_code_size_address,16) - ram_numbanks_il*32*1024))
+            linker_onchip_data_size_address  = str('{:08X}'.format(xheep.ram_size_address() - int(linker_onchip_code_size_address,16) - xheep.ram_il_size()))
     else:
-        if ram_numbanks_il == 0 or (ram_numbanks_cont == 1 and ram_numbanks_il > 0):
+        if xheep.ram_numbanks_il() == 0 or (xheep.ram_numbanks_cont() == 1 and xheep.ram_numbanks_il() > 0):
             linker_onchip_data_size_address  = string2int(obj['linker_script']['onchip_ls']['data']['lenght'])
         else:
-            linker_onchip_data_size_address  = str('{:08X}'.format(int(string2int(obj['linker_script']['onchip_ls']['data']['lenght']),16) - ram_numbanks_il*32*1024))
+            linker_onchip_data_size_address  = str('{:08X}'.format(int(string2int(obj['linker_script']['onchip_ls']['data']['lenght']),16) - xheep.ram_il_size()))
 
     linker_onchip_il_start_address = str('{:08X}'.format(int(linker_onchip_data_start_address,16) + int(linker_onchip_data_size_address,16)))
-    linker_onchip_il_size_address = str('{:08X}'.format(ram_numbanks_il*32*1024))
+    linker_onchip_il_size_address = str('{:08X}'.format(xheep.ram_il_size()))
 
     stack_size  = string2int(obj['linker_script']['stack_size'])
     heap_size  = string2int(obj['linker_script']['heap_size'])
@@ -548,7 +496,7 @@ def main():
     linker_flash_data_start_address  = str('{:08X}'.format(int(linker_onchip_data_start_address,16) + int(flash_mem_start_address,16)))
     linker_flash_il_start_address    = str('{:08X}'.format(int(linker_onchip_il_start_address,16)   + int(flash_mem_start_address,16)))
 
-    if ram_numbanks_il == 0 or (ram_numbanks_cont == 1 and ram_numbanks_il > 0):
+    if xheep.ram_numbanks_il() == 0 or (xheep.ram_numbanks_cont() == 1 and xheep.ram_numbanks_il() > 0):
         linker_flash_left_start_address   = str('{:08X}'.format(int(linker_flash_data_start_address,16) + int(linker_onchip_data_size_address,16)))
         linker_flash_left_size_address    = str('{:08X}'.format(int(flash_mem_size_address,16) - int(linker_onchip_code_size_address,16) - int(linker_onchip_data_size_address,16)))
     else:
@@ -556,10 +504,10 @@ def main():
         linker_flash_left_size_address    = str('{:08X}'.format(int(flash_mem_size_address,16) - int(linker_onchip_code_size_address,16) - int(linker_onchip_data_size_address,16) - int(linker_onchip_il_size_address,16)))
 
 
-    if ((int(linker_onchip_data_size_address,16) + int(linker_onchip_code_size_address,16)) > int(ram_size_address,16)):
+    if ((int(linker_onchip_data_size_address,16) + int(linker_onchip_code_size_address,16)) > xheep.ram_size_address()):
         exit("The code and data section must fit in the RAM size, instead they takes " + str(linker_onchip_data_size_address + linker_onchip_code_size_address))
     
-    if ((int(stack_size,16) + int(heap_size,16)) > int(ram_size_address,16)):
+    if ((int(stack_size,16) + int(heap_size,16)) > xheep.ram_size_address()):
         exit("The stack and heap section must fit in the RAM size, instead they takes " + str(stack_size + heap_size))
 
 
@@ -838,15 +786,9 @@ def main():
     total_pad_list.append(last_pad)
 
     kwargs = {
+        "xheep"                            : xheep,
         "cpu_type"                         : cpu_type,
-        "bus_type"                         : bus_type,
-        "ram_start_address"                : ram_start_address,
-        "ram_numbanks"                     : ram_numbanks,
-        "ram_numbanks_cont"                : ram_numbanks_cont,
-        "ram_numbanks_il"                  : ram_numbanks_il,
-        "log_ram_numbanks_il"              : log_ram_numbanks_il,
         "external_domains"                 : external_domains,
-        "ram_size_address"                 : ram_size_address,
         "debug_start_address"              : debug_start_address,
         "debug_size_address"               : debug_size_address,
         "ao_peripheral_start_address"      : ao_peripheral_start_address,

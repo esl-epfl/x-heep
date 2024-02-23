@@ -105,16 +105,16 @@ typedef struct power_manager_ram_map_t {
   uint32_t monitor_power_gate;
 } power_manager_ram_map_t;
 
-static power_manager_ram_map_t power_manager_ram_map[${ram_numbanks}] = {
-% for bank in range(ram_numbanks):
+static power_manager_ram_map_t power_manager_ram_map[${xheep.ram_numbanks()}] = {
+% for bank in xheep.iter_ram_banks():
   (power_manager_ram_map_t) {
-    .clk_gate = POWER_MANAGER_RAM_${bank}_CLK_GATE_REG_OFFSET,
-    .power_gate_ack = POWER_MANAGER_POWER_GATE_RAM_BLOCK_${bank}_ACK_REG_OFFSET,
-    .switch_off = POWER_MANAGER_RAM_${bank}_SWITCH_REG_OFFSET,
-    .wait_ack_switch = POWER_MANAGER_RAM_${bank}_WAIT_ACK_SWITCH_ON_REG_OFFSET,
-    .iso = POWER_MANAGER_RAM_${bank}_ISO_REG_OFFSET,
-    .retentive = POWER_MANAGER_RAM_${bank}_RETENTIVE_REG_OFFSET,
-    .monitor_power_gate = POWER_MANAGER_MONITOR_POWER_GATE_RAM_BLOCK_${bank}_REG_OFFSET
+    .clk_gate = POWER_MANAGER_RAM_${bank.name()}_CLK_GATE_REG_OFFSET,
+    .power_gate_ack = POWER_MANAGER_POWER_GATE_RAM_BLOCK_${bank.name()}_ACK_REG_OFFSET,
+    .switch_off = POWER_MANAGER_RAM_${bank.name()}_SWITCH_REG_OFFSET,
+    .wait_ack_switch = POWER_MANAGER_RAM_${bank.name()}_WAIT_ACK_SWITCH_ON_REG_OFFSET,
+    .iso = POWER_MANAGER_RAM_${bank.name()}_ISO_REG_OFFSET,
+    .retentive = POWER_MANAGER_RAM_${bank.name()}_RETENTIVE_REG_OFFSET,
+    .monitor_power_gate = POWER_MANAGER_MONITOR_POWER_GATE_RAM_BLOCK_${bank.name()}_REG_OFFSET
   },
 % endfor
 };

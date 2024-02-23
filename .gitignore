@@ -8,7 +8,7 @@ build/
 *.map
 *.do
 .venv/
-util/__pycache__/*
+__pycache__/
 
 # ignore apps output file
 run_verif_rtl_log.txt
@@ -45,6 +45,9 @@ sw/device/lib/drivers/**/*_structs.h
 
 # openroad
 flow/OpenROAD-flow-scripts
+
+# automatically generated docs
+/docs/source/Configuration/generated
 
 # User-dependent configuration files
 .vscode
