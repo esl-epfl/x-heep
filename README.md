@@ -309,7 +309,18 @@ make run-helloworld
 
 ### Compiling for Verilator (SystemC testbench)
 
-To simulate your application with Verilator using SystemC, first compile the HDL:
+To simulate your application with Verilator using `SystemC`,
+
+make sure you have `SystemC 2.3.3` installed, if not, find it [here](https://www.accellera.org/downloads/standards/systemc).
+
+Make sure to have the following env variables set:
+
+```
+export SYSTEMC_INCLUDE=/your_path_to_systemc/systemc/include/
+export SYSTEMC_LIBDIR=/your_path_to_systemc/systemc/lib-linux64/
+```
+
+Compile the HDL:
 
 ```
 make verilator-sim-sc
@@ -325,12 +336,6 @@ and type to run your compiled software:
 
 ```
 ./Vtestharness +firmware=../../../sw/build/main.hex
-```
-
-or to execute all these three steps type:
-
-```
-make run-helloworld
 ```
 
 ### Compiling for VCS

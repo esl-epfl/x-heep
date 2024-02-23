@@ -421,8 +421,8 @@ targets:
           - '--x-assign unique'
           - '--x-initial unique'
           - '--exe tb_sc_top.cpp'
-          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive -I$(SYSTEMC_INCLUDE)"'
-          - '-LDFLAGS "-pthread -lutil -lelf $(SYSTEMC_LIBDIR)/libsystemc.a"'
+          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive"'
+          - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
 
   nexys-a7-100t:
