@@ -122,6 +122,7 @@ ${pad.core_v_mini_mcu_interface}
 
   // signals to debug unit
   logic debug_core_req;
+  logic debug_reset_n;
 
   // core
   logic core_sleep;
@@ -213,7 +214,7 @@ ${pad.core_v_mini_mcu_interface}
   ) cpu_subsystem_i (
       // Clock and Reset
       .clk_i,
-      .rst_ni(cpu_subsystem_rst_n),
+      .rst_ni(cpu_subsystem_rst_n && debug_reset_n),
       .core_instr_req_o(core_instr_req),
       .core_instr_resp_i(core_instr_resp),
       .core_data_req_o(core_data_req),
@@ -242,6 +243,7 @@ ${pad.core_v_mini_mcu_interface}
       .jtag_tdi_i,
       .jtag_tdo_o,
       .debug_core_req_o(debug_core_req),
+      .debug_ndmreset_no(debug_reset_n),
       .debug_slave_req_i(debug_slave_req),
       .debug_slave_resp_o(debug_slave_resp),
       .debug_master_req_o(debug_master_req),
@@ -253,7 +255,7 @@ ${pad.core_v_mini_mcu_interface}
       .EXT_XBAR_NMASTER(EXT_XBAR_NMASTER)
   ) system_bus_i (
       .clk_i,
-      .rst_ni,
+      .rst_ni(rst_ni && debug_reset_n),
       .core_instr_req_i(core_instr_req),
       .core_instr_resp_o(core_instr_resp),
       .core_data_req_i(core_data_req),
@@ -296,7 +298,7 @@ ${pad.core_v_mini_mcu_interface}
       .NUM_BANKS(core_v_mini_mcu_pkg::NUM_BANKS)
   ) memory_subsystem_i (
       .clk_i,
-      .rst_ni,
+      .rst_ni(rst_ni && debug_reset_n),
       .clk_gate_en_ni(memory_subsystem_clkgate_en_n),
       .ram_req_i(ram_slave_req),
       .ram_resp_o(ram_slave_resp),
@@ -305,7 +307,7 @@ ${pad.core_v_mini_mcu_interface}
 
   ao_peripheral_subsystem ao_peripheral_subsystem_i (
       .clk_i,
-      .rst_ni,
+      .rst_ni(rst_ni && debug_reset_n),
       .slave_req_i(ao_peripheral_slave_req),
       .slave_resp_o(ao_peripheral_slave_resp),
       .boot_select_i,
@@ -390,7 +392,7 @@ ${pad.core_v_mini_mcu_interface}
 
   peripheral_subsystem peripheral_subsystem_i (
       .clk_i,
-      .rst_ni(peripheral_subsystem_rst_n),
+      .rst_ni(peripheral_subsystem_rst_n && debug_reset_n),
       .clk_gate_en_ni(peripheral_subsystem_clkgate_en_n),
       .slave_req_i(peripheral_slave_req),
       .slave_resp_o(peripheral_slave_resp),

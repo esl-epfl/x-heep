@@ -236,7 +236,7 @@ w25q_error_codes_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t l
 
 
 /**
- * @brief Write to flash at standard speed.
+ * @brief Write to flash at standard speed. Use this function only to write to unitialized data
  *
  *
  * @param addr 24-bit flash address to read from.
@@ -246,6 +246,17 @@ w25q_error_codes_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t l
 */
 w25q_error_codes_t w25q128jw_write_standard(uint32_t addr, void* data, uint32_t length);
 
+
+/**
+ * @brief Erase and Write to flash at standard speed.
+ *
+ *
+ * @param addr 24-bit flash address to read from.
+ * @param data pointer to the data buffer.
+ * @param length number of bytes to write.
+ * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
+*/
+w25q_error_codes_t w25q128jw_erase_and_write_standard(uint32_t addr, void* data, uint32_t length);
 
 /**
  * @brief Read from flash at standard speed using DMA
@@ -259,7 +270,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void* data, uint32
 
 
 /**
- * @brief Write to flash at standard speed using DMA
+ * @brief Write to flash at standard speed using DMA. Use this function only to write to unitialized data
  *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
@@ -267,6 +278,16 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void* data, uint32
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
 */
 w25q_error_codes_t w25q128jw_write_standard_dma(uint32_t addr, void* data, uint32_t length);
+
+/**
+ * @brief Erase and Write to flash at standard speed using DMA
+ *
+ * @param addr 24-bit flash address to read from.
+ * @param data pointer to the data buffer.
+ * @param length number of bytes to write.
+ * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
+*/
+w25q_error_codes_t w25q128jw_erase_and_write_standard_dma(uint32_t addr, void* data, uint32_t length);
 
 /**
  * @brief Read from flash at quad speed.
@@ -279,7 +300,7 @@ w25q_error_codes_t w25q128jw_write_standard_dma(uint32_t addr, void* data, uint3
 w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void* data, uint32_t length);
 
 /**
- * @brief Write to flash at quad speed.
+ * @brief Write to flash at quad speed. Use this function only to write to unitialized data
  *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
@@ -287,6 +308,16 @@ w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void* data, uint32_t lengt
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
 */
 w25q_error_codes_t w25q128jw_write_quad(uint32_t addr, void* data, uint32_t length);
+
+/**
+ * @brief Erase and Write to flash at quad speed.
+ *
+ * @param addr 24-bit flash address to read from.
+ * @param data pointer to the data buffer.
+ * @param length number of bytes to write.
+ * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
+*/
+w25q_error_codes_t w25q128jw_erase_and_write_quad(uint32_t addr, void* data, uint32_t length);
 
 /**
  * @brief Read from flash at quad speed using DMA.
@@ -299,7 +330,7 @@ w25q_error_codes_t w25q128jw_write_quad(uint32_t addr, void* data, uint32_t leng
 w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void* data, uint32_t length);
 
 /**
- * @brief Write to flash at quad speed using DMA.
+ * @brief Write to flash at quad speed using DMA. Use this function only to write to unitialized data
  *
  * @param addr 24-bit flash address to read from.
  * @param data pointer to the data buffer.
@@ -307,6 +338,16 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void* data, uint32_t l
  * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
 */
 w25q_error_codes_t w25q128jw_write_quad_dma(uint32_t addr, void* data, uint32_t length);
+
+/**
+ * @brief Erase and Write to flash at quad speed using DMA. Use this function only to write to unitialized data
+ *
+ * @param addr 24-bit flash address to read from.
+ * @param data pointer to the data buffer.
+ * @param length number of bytes to write.
+ * @return FLASH_OK if the write is successful, @ref error_codes otherwise.
+*/
+w25q_error_codes_t w25q128jw_erase_and_write_quad_dma(uint32_t addr, void* data, uint32_t length);
 
 /**
  * @brief Erase a 4kb sector.
