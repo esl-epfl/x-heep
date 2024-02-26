@@ -1,5 +1,5 @@
 diff --git a/picosoc/spiflash.v b/picosoc/spiflash.v
-index 22b337b..88582b3 100644
+index 22b337b..55342b5 100644
 --- a/picosoc/spiflash.v
 +++ b/picosoc/spiflash.v
 @@ -26,7 +26,7 @@
@@ -30,7 +30,7 @@ index 22b337b..88582b3 100644
  	initial begin
 -		if (!$value$plusargs("firmware=%s", firmware_file))
 +		for (i=0;i<=16*1024*1024;i=i+1)
-+			memory[i] = '0;
++			memory[i] = 8'h00;
 +		result = $value$plusargs("firmware=%s", firmware_file);
 +		if (!result)
  			firmware_file = "firmware.hex";
