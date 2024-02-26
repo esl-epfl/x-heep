@@ -20,7 +20,8 @@
     #define PRINTF(...)
 #endif
 
-void __attribute__ ((noinline)) matrixMul(int32_t * A, int32_t * B, int32_t * C, int N, int M);
+void __attribute__ ((noinline)) matrixMul8(int8_t *  A, int8_t *  Bt, int32_t *  C, int N);
+
 uint32_t check_results(int32_t * C, int N);
 
 int32_t m_c[SIZE*SIZE];
