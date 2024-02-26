@@ -82,9 +82,9 @@ module uartdpi #(
     end
   end
 
-`ifndef XCELIUM
 `ifndef VCS
 `ifndef MODELSIM
+`ifndef XCELIUM
   initial begin
     // Prevent falling edges of rx_i before reset causing spurious characters
     seen_reset = 0;
