@@ -275,7 +275,7 @@ Moreover, FreeRTOS is being fetch from 'https://github.com/FreeRTOS/FreeRTOS-Ker
 
 ## Simulating
 
-This project supports simulation with Verilator, Synopsys VCS, and Siemens Questasim.
+This project supports simulation with Verilator, Synopsys VCS, Siemens Questasim and Cadence Xcelium.
 It relies on `fusesoc` to handle multiple EDA tools and parameters.
 For example, if you want to set the `FPU` and `COREV_PULP` parameters of the `cv32e40p` CPU,
 you need to add next to your compilation command `FUSESOC_PARAM="--COREV_PULP=1 --FPU=1"`
@@ -430,6 +430,26 @@ make run RUN_OPT=1 RUN_UPF=1 PLUSARGS="c firmware=../../../sw/build/main.hex"
 ```
 
 Questasim version must be >= Questasim 2020.4
+
+### Compiling for Xcelium
+
+To simulate your application with Xcelium, first compile the HDL:
+
+```
+make xcelium-sim
+```
+
+then, go to your target system built folder
+
+```
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-xcelium/
+```
+
+and type to run your compiled software:
+
+```
+make run PLUSARGS="c firmware=../../../sw/build/main.hex"
+```
 
 ### UART DPI
 

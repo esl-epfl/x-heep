@@ -7,8 +7,8 @@
 // Description: I2s core logic 
 
 module i2s_core #(
-    parameter MaxWordWidth,
-    parameter ClkDividerWidth
+    parameter MaxWordWidth = 32,
+    parameter ClkDividerWidth = 8
 ) (
     input logic clk_i,
     input logic rst_ni,
