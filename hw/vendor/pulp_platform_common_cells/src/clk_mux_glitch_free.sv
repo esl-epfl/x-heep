@@ -191,7 +191,7 @@ endmodule
 
 // Helper Module to generate an N-input clock OR-gate from a tree of tc_clk_or2 cells.
 module clk_or_tree #(
-  parameter int unsigned NUM_INPUTS
+  parameter int unsigned NUM_INPUTS = 1
 ) (
   input logic [NUM_INPUTS-1:0] clks_i,
   output logic clk_o

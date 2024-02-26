@@ -180,6 +180,10 @@ vcs-sim:
 vcs-ams-sim:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --flag "ams_sim" --tool=vcs $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildsim.log
 
+## xcelium simulation
+xcelium-sim:
+	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=xcelium $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildsim.log
+
 ## Generates the build output for helloworld application
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
