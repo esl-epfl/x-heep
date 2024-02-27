@@ -54,6 +54,9 @@
 /* For word swap operations*/
 #include "bitfield.h"
 
+/* for memcpy */
+#include <string.h>
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        DEFINITIONS AND MACROS                            */
@@ -887,7 +890,7 @@ w25q_error_codes_t w25q128jw_erase_and_write_quad_dma(uint32_t addr, void *data,
 
 }
 
-void w25q128jw_4k_erase(uint32_t addr) {
+w25q_error_codes_t w25q128jw_4k_erase(uint32_t addr) {
     // Sanity checks
     if (addr > MAX_FLASH_ADDR || addr < 0) return FLASH_ERROR;
 
@@ -912,9 +915,11 @@ void w25q128jw_4k_erase(uint32_t addr) {
 
     // Wait for the erase operation to be finished
     flash_wait();
+
+    return FLASH_OK;
 }
 
-void w25q128jw_32k_erase(uint32_t addr) {
+w25q_error_codes_t w25q128jw_32k_erase(uint32_t addr) {
     // Sanity checks
     if (addr > 0x00ffffff || addr < 0) return FLASH_ERROR;
 
@@ -939,9 +944,11 @@ void w25q128jw_32k_erase(uint32_t addr) {
 
     // Wait for the erase operation to be finished
     flash_wait();
+
+    return FLASH_OK;
 }
 
-void w25q128jw_64k_erase(uint32_t addr) {
+w25q_error_codes_t w25q128jw_64k_erase(uint32_t addr) {
     // Sanity checks
     if (addr > 0x00ffffff || addr < 0) return FLASH_ERROR;
 
@@ -966,6 +973,8 @@ void w25q128jw_64k_erase(uint32_t addr) {
 
     // Wait for the erase operation to be finished
     flash_wait();
+
+    return FLASH_OK;
 }
 
 void w25q128jw_chip_erase(void) {
@@ -1173,7 +1182,7 @@ static void flash_wait(void) {
         spi_set_command(&spi, spi_status_read_cmd);
         spi_wait_for_ready(&spi);
         spi_wait_for_rx_watermark(&spi);
-        spi_read_word(&spi, &flash_resp[0]);
+        spi_read_word(&spi, (uint32_t*)&flash_resp[0]);
         if ((flash_resp[0] & 0x01) == 0) flash_busy = false;
     }
 }

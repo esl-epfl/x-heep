@@ -357,7 +357,7 @@ w25q_error_codes_t w25q128jw_erase_and_write_quad_dma(uint32_t addr, void* data,
  *
  * @param addr 24-bit address of the sector to erase.
 */
-void w25q128jw_4k_erase(uint32_t addr);
+w25q_error_codes_t w25q128jw_4k_erase(uint32_t addr);
 
 /**
  * @brief Erase a 32kb block.
@@ -367,7 +367,7 @@ void w25q128jw_4k_erase(uint32_t addr);
  *
  * @param addr 24-bit address of the block to erase.
 */
-void w25q128jw_32k_erase(uint32_t addr);
+w25q_error_codes_t w25q128jw_32k_erase(uint32_t addr);
 
 /**
  * @brief Erase a 64kb block.
@@ -377,7 +377,7 @@ void w25q128jw_32k_erase(uint32_t addr);
  *
  * @param addr 24-bit address of the block to erase.
 */
-void w25q128jw_64k_erase(uint32_t addr);
+w25q_error_codes_t w25q128jw_64k_erase(uint32_t addr);
 
 /**
  * @brief Erase the entire chip.
