@@ -21,6 +21,17 @@ module testharness #(
     inout wire boot_select_i,
     inout wire execute_from_flash_i,
 
+`ifdef SIM_SYSTEMC
+    output logic        ext_systemc_req_req_o,
+    output logic        ext_systemc_req_we_o,
+    output logic [ 3:0] ext_systemc_req_be_o,
+    output logic [31:0] ext_systemc_req_addr_o,
+    output logic [31:0] ext_systemc_req_wdata_o,
+
+    input  logic        ext_systemc_resp_gnt_i,
+    input  logic        ext_systemc_resp_rvalid_i,
+    input  logic [31:0] ext_systemc_resp_rdata_i,
+`endif
     input  wire         jtag_tck_i,
     input  wire         jtag_tms_i,
     input  wire         jtag_trst_ni,
@@ -366,20 +377,40 @@ module testharness #(
       .exit()
   );
 
-  assign mux_jtag_tck                    = JTAG_DPI ? sim_jtag_tck : jtag_tck_i;
-  assign mux_jtag_tms                    = JTAG_DPI ? sim_jtag_tms : jtag_tms_i;
-  assign mux_jtag_tdi                    = JTAG_DPI ? sim_jtag_tdi : jtag_tdi_i;
-  assign mux_jtag_trstn                  = JTAG_DPI ? sim_jtag_trstn : jtag_trst_ni;
+  assign mux_jtag_tck   = JTAG_DPI ? sim_jtag_tck : jtag_tck_i;
+  assign mux_jtag_tms   = JTAG_DPI ? sim_jtag_tms : jtag_tms_i;
+  assign mux_jtag_tdi   = JTAG_DPI ? sim_jtag_tdi : jtag_tdi_i;
+  assign mux_jtag_trstn = JTAG_DPI ? sim_jtag_trstn : jtag_trst_ni;
 
-  assign sim_jtag_tdo                    = JTAG_DPI ? mux_jtag_tdo : '0;
-  assign jtag_tdo_o                      = !JTAG_DPI ? mux_jtag_tdo : '0;
+  assign sim_jtag_tdo   = JTAG_DPI ? mux_jtag_tdo : '0;
+  assign jtag_tdo_o     = !JTAG_DPI ? mux_jtag_tdo : '0;
 
+`ifndef SIM_SYSTEMC
   assign slow_ram_slave_req              = ext_slave_req[SLOW_MEMORY_IDX];
   assign ext_slave_resp[SLOW_MEMORY_IDX] = slow_ram_slave_resp;
+`else
+
+  obi_req_t  ext_systemc_req;
+  obi_resp_t ext_systemc_resp;
+
+  assign ext_systemc_req_req_o           = ext_systemc_req.req;
+  assign ext_systemc_req_we_o            = ext_systemc_req.we;
+  assign ext_systemc_req_be_o            = ext_systemc_req.be;
+  assign ext_systemc_req_addr_o          = ext_systemc_req.addr;
+  assign ext_systemc_req_wdata_o         = ext_systemc_req.wdata;
+
+  assign ext_systemc_resp.gnt            = ext_systemc_resp_gnt_i;
+  assign ext_systemc_resp.rvalid         = ext_systemc_resp_rvalid_i;
+  assign ext_systemc_resp.rdata          = ext_systemc_resp_rdata_i;
+
+  assign ext_systemc_req                 = ext_slave_req[SLOW_MEMORY_IDX];
+  assign ext_slave_resp[SLOW_MEMORY_IDX] = ext_systemc_resp;
+`endif
 
   generate
     if (USE_EXTERNAL_DEVICE_EXAMPLE) begin : gen_USE_EXTERNAL_DEVICE_EXAMPLE
 
+`ifndef SIM_SYSTEMC
       obi_pkg::obi_req_t  slave_fifoout_req;
       obi_pkg::obi_resp_t slave_fifoout_resp;
 
@@ -410,6 +441,7 @@ module testharness #(
           .rdata_o(slave_fifoout_resp.rdata),
           .rvalid_o(slave_fifoout_resp.rvalid)
       );
+`endif
 
       parameter DMA_TRIGGER_SLOT_NUM = 4;
 

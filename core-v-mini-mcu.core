@@ -271,6 +271,10 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     default: false
+  SIM_SYSTEMC:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
   FPGA_NEXYS:
     datatype: bool
     paramtype: vlogdefine
@@ -421,6 +425,7 @@ targets:
     - USE_EXTERNAL_DEVICE_EXAMPLE
     - USE_UPF
     - REMOVE_OBI_FIFO
+    - SIM_SYSTEMC=true
     tools:
       verilator:
         mode: sc
