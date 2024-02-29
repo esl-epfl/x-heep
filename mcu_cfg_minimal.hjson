@@ -27,6 +27,8 @@
                 lenght: whatisleft, #keyword used to calculate the size as: ram.length - code.lenght
             }
         },
+        stack_size: 0x800,
+        heap_size: 0x800,
     }
 
     debug: {

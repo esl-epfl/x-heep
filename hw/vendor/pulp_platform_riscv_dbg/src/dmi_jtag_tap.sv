@@ -94,8 +94,9 @@ module dmi_jtag_tap #(
       jtag_ir_d = ir_reg_e'(jtag_ir_shift_q);
     end
 
-    // According to JTAG spec we have to reset the IR to IDCODE in test_logic_reset
     if (test_logic_reset) begin
+      // Bring all TAP state to the initial value.
+      jtag_ir_shift_d = '0;
       jtag_ir_d = IDCODE;
     end
   end
@@ -134,6 +135,12 @@ module dmi_jtag_tap #(
     if (shift_dr) begin
       if (idcode_select)  idcode_d = {td_i, 31'(idcode_q >> 1)};
       if (bypass_select)  bypass_d = td_i;
+    end
+
+    if (test_logic_reset) begin
+      // Bring all TAP state to the initial value.
+      idcode_d = IdcodeValue;
+      bypass_d = 1'b0;
     end
   end
 
@@ -180,12 +187,12 @@ module dmi_jtag_tap #(
   // ----------------
   logic tck_n, tck_ni;
 
-  cluster_clock_inverter i_tck_inv (
+  tc_clk_inverter i_tck_inv (
     .clk_i ( tck_i  ),
     .clk_o ( tck_ni )
   );
 
-  pulp_clock_mux2 i_dft_tck_mux (
+  tc_clk_mux2 i_dft_tck_mux (
     .clk0_i    ( tck_ni     ),
     .clk1_i    ( tck_i      ), // bypass the inverted clock for testing
     .clk_sel_i ( testmode_i ),

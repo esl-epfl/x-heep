@@ -7,15 +7,11 @@ build/
 *.dis
 *.map
 *.do
-.venv/*
+.venv/
 util/__pycache__/*
 
 # ignore apps output file
 run_verif_rtl_log.txt
-
-#ignore femu generated hw
-linux_femu/rtl/linux_femu.sv
-.venv/
 
 # ignore the following hw automatically generated files
 environment.yml

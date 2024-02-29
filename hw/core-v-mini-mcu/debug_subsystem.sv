@@ -16,6 +16,7 @@ module debug_subsystem
     input  logic jtag_tdi_i,
     output logic jtag_tdo_o,
 
+    output logic debug_ndmreset_no,
     output logic debug_core_req_o,
 
     input  obi_req_t  debug_slave_req_i,
@@ -42,7 +43,9 @@ module debug_subsystem
   dm::dmi_resp_t dmi_resp;
   logic          dmi_resp_ready;
   logic          dmi_resp_valid;
+  logic          ndmreset;
 
+  assign debug_ndmreset_no = ~ndmreset;
 
   dmi_jtag #(
       .IdcodeValue(JTAG_IDCODE)
@@ -69,10 +72,10 @@ module debug_subsystem
       .clk_i        (clk_i),
       .rst_ni       (rst_ni),
       .testmode_i   (1'b0),
-      .ndmreset_o   (),
+      .ndmreset_o   (ndmreset),
       .dmactive_o   (),
       .debug_req_o  (debug_core_req_o),
-      .unavailable_i(~(1'b01)),
+      .unavailable_i(~(1'b1)),
       .hartinfo_i   (hartinfo),
 
       .slave_req_i   (debug_slave_req_i.req),

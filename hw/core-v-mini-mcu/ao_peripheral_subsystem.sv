@@ -118,7 +118,10 @@ module ao_peripheral_subsystem
 
     // EXTERNAL PERIPH
     output reg_req_t ext_peripheral_slave_req_o,
-    input  reg_rsp_t ext_peripheral_slave_resp_i
+    input  reg_rsp_t ext_peripheral_slave_resp_i,
+
+    input logic ext_dma_slot_tx_i,
+    input logic ext_dma_slot_rx_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -364,13 +367,15 @@ module ao_peripheral_subsystem
       .intr_timer_expired_1_0_o(rv_timer_1_intr_o)
   );
 
-  parameter DMA_TRIGGER_SLOT_NUM = 5;
+  parameter DMA_TRIGGER_SLOT_NUM = 7;
   logic [DMA_TRIGGER_SLOT_NUM-1:0] dma_trigger_slots;
   assign dma_trigger_slots[0] = spi_rx_valid;
   assign dma_trigger_slots[1] = spi_tx_ready;
   assign dma_trigger_slots[2] = spi_flash_rx_valid;
   assign dma_trigger_slots[3] = spi_flash_tx_ready;
   assign dma_trigger_slots[4] = i2s_rx_valid_i;
+  assign dma_trigger_slots[5] = ext_dma_slot_tx_i;
+  assign dma_trigger_slots[6] = ext_dma_slot_rx_i;
 
   dma #(
       .reg_req_t (reg_pkg::reg_req_t),

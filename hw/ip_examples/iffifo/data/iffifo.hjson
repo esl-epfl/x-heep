@@ -1,0 +1,76 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{ name: "iffifo"
+  clock_primary: "clk_i"
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ],
+  regwidth: 32
+  registers: [
+  
+    { name:     "FIFO_OUT"
+      desc:     "Data coming from the FIFO (Fifo Output/Software RX)"
+      swaccess: "ro"
+      hwaccess: "hrw" # required for RE signal
+      hwext: "true"   # required for RE signal
+      hwre: "true"    # Used to emulate a window behaviour
+      fields: [
+        { bits: "31:0" }
+      ]
+    }
+    
+    { name:     "FIFO_IN"
+      desc:     "Data sent to the FIFO (Fifo Input/Software TX)"
+      hwaccess: "hro"
+      swaccess: "rw"  # required for QE signal
+      hwqe: "true"    # Used to emulate a window behaviour
+      fields: [
+        { bits: "31:0" }
+      ]
+    }
+    
+    { name:     "STATUS"
+      desc:     "General purpose status register"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "0", name: "EMPTY",   desc: "Asserted when FIFO empty." }
+        { bits: "1", name: "AVAILABLE", desc: "Asserted when data is available in FIFO." }
+        { bits: "2", name: "REACHED", desc: "Asserted when occupied data slots count greater than threshold." }
+        { bits: "3", name: "FULL",    desc: "Asserted when all FIFO slots are occupied." }
+      ]
+    }
+    
+    { name:     "OCCUPANCY"
+      desc:     "Current number of occupied FIFO slots"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0" }
+      ]
+    }
+    
+    { name:     "WATERMARK"
+      desc:     "FIFO occupancy at which the STATUS:REACHED bit is asserted"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "31:0" }
+      ]
+    }
+    
+    { name:     "INTERRUPTS"
+      desc:     "Write any value to assert an interrupt. Write 0 or 1 to disable or enable an interrupt."
+      swaccess: "rw"
+      hwaccess: "hro"
+      hwqe: "true"    # Used to catch software writes
+      fields: [
+        { bits: "0", name: "REACHED",     desc: "Watermark reached interrupt" }
+      ]
+    }
+    
+  ]
+}
+

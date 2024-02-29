@@ -1,0 +1,114 @@
+CAPI=2:
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+name: "openhwgroup:cve2:cve2_top:0.1"
+description: "Ibex, a small RV32 CPU core"
+
+filesets:
+  files_rtl:
+    depend:
+      - openhwgroup:cve2:cve2_pkg
+      - openhwgroup:cve2:cve2_core
+      - lowrisc:prim:buf
+      - lowrisc:prim:clock_mux2
+      - lowrisc:prim:flop
+      - lowrisc:prim:ram_1p_scr
+    files:
+      - rtl/cve2_register_file_ff.sv # generic FF-based
+      - rtl/cve2_top.sv
+    file_type: systemVerilogSource
+
+  files_lint_verilator:
+    files:
+      - lint/verilator_waiver.vlt: {file_type: vlt}
+
+  files_lint_verible:
+    files:
+      - lint/verible_waiver.vbw: {file_type: veribleLintWaiver}
+
+  files_check_tool_requirements:
+    depend:
+     - lowrisc:tool:check_tool_requirements
+
+  files_clk_gate:
+    files:
+      - bhv/cve2_sim_clock_gate.sv
+    file_type: systemVerilogSource
+
+parameters:
+  RVFI:
+    datatype: bool
+    paramtype: vlogdefine
+
+  SYNTHESIS:
+    datatype: bool
+    paramtype: vlogdefine
+
+  FPGA_XILINX:
+    datatype: bool
+    description: Identifies Xilinx FPGA targets to set DSP pragmas for performance counters.
+    default: false
+    paramtype: vlogdefine
+
+  RV32E:
+    datatype: int
+    default: 0
+    paramtype: vlogparam
+
+  RV32M:
+    datatype: str
+    default: cve2_pkg::RV32MFast
+    paramtype: vlogdefine
+    description: "RV32M implementation parameter enum. See the cve2_pkg::rv32m_e enum in cve2_pkg.sv for permitted values."
+
+  RV32B:
+    datatype: str
+    default: cve2_pkg::RV32BNone
+    paramtype: vlogdefine
+    description: "Bitmanip implementation parameter enum. See the cve2_pkg::rv32b_e enum in cve2_pkg.sv for permitted values."
+
+targets:
+  default: &default_target
+    filesets:
+      - tool_verilator ? (files_lint_verilator)
+      - tool_veriblelint ? (files_lint_verible)
+      - files_rtl
+      - target_sim ? (files_clk_gate)
+    toplevel: cve2_top
+    parameters:
+      - tool_vivado ? (FPGA_XILINX=true)
+
+  lint:
+    <<: *default_target
+    parameters:
+      - SYNTHESIS=true
+      - RVFI=true
+    filesets_append:
+    - files_clk_gate
+    default_tool: verilator
+    tools:
+      verilator:
+        mode: lint-only
+        verilator_options:
+          - "-Wall"
+          # RAM primitives wider than 64bit (required for ECC) fail to build in
+          # Verilator without increasing the unroll count (see Verilator#1266)
+          - "--unroll-count 72"
+
+  format:
+    filesets:
+      - files_rtl
+    parameters:
+      - SYNTHESIS=true
+      - RVFI=true
+    default_tool: veribleformat
+    toplevel: cve2_top
+    tools:
+      veribleformat:
+        verible_format_args:
+          - "--inplace"
+          - "--formal_parameters_indentation=indent"
+          - "--named_parameter_indentation=indent"
+          - "--named_port_indentation=indent"
+          - "--port_declarations_indentation=indent"

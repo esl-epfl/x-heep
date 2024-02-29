@@ -96,7 +96,7 @@ endtask
 
 % for bank in range(ram_numbanks):
 task tb_writetoSram${bank};
-  input integer addr;
+  input int addr;
   input [7:0] val3;
   input [7:0] val2;
   input [7:0] val1;

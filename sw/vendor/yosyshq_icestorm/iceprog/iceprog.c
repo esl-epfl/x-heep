@@ -480,6 +480,34 @@ static void flash_enable_quad()
 	fprintf(stderr, "SR2: %08x\n", data[1]);
 }
 
+static void flash_disable_quad()
+{
+	fprintf(stderr, "Disabling Quad operation...\n");
+
+	// Allow write
+	flash_write_enable();
+
+	// Write Status Register 2 <- 0x00
+	uint8_t data[2] = { FC_WSR2, 0x00 };
+	flash_chip_select();
+	mpsse_xfer_spi(data, 2);
+	flash_chip_deselect();
+
+	flash_wait();
+
+	// Read Status Register 1
+	data[0] = FC_RSR2;
+
+	flash_chip_select();
+	mpsse_xfer_spi(data, 2);
+	flash_chip_deselect();
+
+	if ((data[1] & 0x02) != 0x00)
+		fprintf(stderr, "failed to set QE=0, SR2 now equal to 0x%02x (expected 0x%02x)\n", data[1], data[1] | 0x00);
+
+	fprintf(stderr, "SR2: %08x\n", data[1]);
+}
+
 // ---------------------------------------------------------
 // iceprog implementation
 // ---------------------------------------------------------
@@ -512,6 +540,7 @@ static void help(const char *progname)
 	fprintf(stderr, "Mode of operation:\n");
 	fprintf(stderr, "  [default]             write file contents to flash, then verify\n");
 	fprintf(stderr, "  -X                    write file contents to flash only\n");	
+	fprintf(stderr, "  -a <size in bytes>    provides file size of the file to program\n");
 	fprintf(stderr, "  -r                    read first 256 kB from flash and write to file\n");
 	fprintf(stderr, "  -R <size in bytes>    read the specified number of bytes from flash\n");
 	fprintf(stderr, "                          (append 'k' to the argument for size in kilobytes,\n");
@@ -579,6 +608,7 @@ int main(int argc, char **argv)
 	bool bulk_erase = false;
 	bool dont_erase = false;
 	bool prog_sram = false;
+	bool filesize_mode = false;
 	int  test_mode = 0;
 	bool slow_clock = false;
 	bool disable_protect = false;
@@ -589,6 +619,7 @@ int main(int argc, char **argv)
 	int ifnum = 0;
 
 	bool stop_spi = false;
+	long file_size = -1;
 
 #ifdef _WIN32
 	_setmode(_fileno(stdin), _O_BINARY);
@@ -603,7 +634,7 @@ int main(int argc, char **argv)
 	/* Decode command line parameters */
 	int opt;
 	char *endptr;
-	while ((opt = getopt_long(argc, argv, "d:i:I:rR:e:o:cbnStQvTspXk", long_options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "d:i:I:rR:e:o:a:cbnStQvTspXk", long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'd': /* device string */
 			devstr = optarg;
@@ -646,6 +677,20 @@ int main(int argc, char **argv)
 				read_size *= 1024;
 			else if (!strcmp(endptr, "M"))
 				read_size *= 1024 * 1024;
+			else {
+				fprintf(stderr, "%s: `%s' is not a valid size\n", my_name, optarg);
+				return EXIT_FAILURE;
+			}
+			break;
+		case 'a': /* filesize used to program flash */
+			filesize_mode = true;
+			file_size = strtol(optarg, &endptr, 0);
+			if (*endptr == '\0')
+				/* ok */;
+			else if (!strcmp(endptr, "k"))
+				file_size *= 1024;
+			else if (!strcmp(endptr, "M"))
+				file_size *= 1024 * 1024;
 			else {
 				fprintf(stderr, "%s: `%s' is not a valid size\n", my_name, optarg);
 				return EXIT_FAILURE;
@@ -784,7 +829,7 @@ int main(int argc, char **argv)
 	   so we can fail before initializing the hardware */
 
 	FILE *f = NULL;
-	long file_size = -1;
+
 
 	if (test_mode) {
 		/* nop */;
@@ -815,7 +860,7 @@ int main(int argc, char **argv)
 		   named pipe, or contrarily, the standard input may be an
 		   ordinary file. */
 
-		if (!prog_sram && !check_mode) {
+		if (!prog_sram && !check_mode && !filesize_mode) {
 			if (fseek(f, 0L, SEEK_END) != -1) {
 				file_size = ftell(f);
 				if (file_size == -1) {
@@ -949,6 +994,8 @@ int main(int argc, char **argv)
 		flash_reset();
 		flash_power_up();
 
+		flash_disable_quad();
+
 		flash_read_id();
 
 
@@ -974,7 +1021,10 @@ int main(int argc, char **argv)
 				}
 				else
 				{
-					fprintf(stderr, "file size: %ld\n", file_size);
+					if(filesize_mode)
+						fprintf(stderr, "provided file size: %ld\n", file_size);
+					else
+						fprintf(stderr, "file size: %ld\n", file_size);
 
 					int block_size = erase_block_size << 10;
 					int block_mask = block_size - 1;
@@ -1018,7 +1068,7 @@ int main(int argc, char **argv)
 				size_t len = 0;
 				uint8_t buffer[256];
 				int count = 0;
-				while (true) {					
+				while (true) {
 					rc = getline(&line_buffer, &len, f);
 					if (rc <= 0){
 						if(count > 0){
@@ -1075,7 +1125,7 @@ int main(int argc, char **argv)
 				getchar();
 			}
 
-			fprintf(stderr, "reading..\n");
+			fprintf(stderr, "reading..");
 			for (int addr = 0; addr < read_size; addr += 256) {
 				uint8_t buffer[256];
 				fprintf(stderr, "                      \r");
@@ -1093,7 +1143,7 @@ int main(int argc, char **argv)
 			int rc, addr = 0;
 			size_t len = 0;
 			uint8_t buffer_flash[256], buffer_file[256];
-			while (true) {					
+			while (true) {
 				rc = getline(&line_buffer, &len, f);
 				if (rc <= 0)
 					break;
