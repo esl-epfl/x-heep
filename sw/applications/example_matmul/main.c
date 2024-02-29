@@ -71,12 +71,8 @@ void __attribute__ ((noinline)) matrixMul8_blocksize(int8_t *  A, int8_t *  B, i
             int32_t acc = 0;
             for(int k = 0; k < N; k++) {
                 acc+= A[i*N+k] * B[k*N+j];
-                PRINTF("A(%d,%d) %d\n",i,k,A[i*N+k]);
-                PRINTF("B(%d,%d) %d\n",k,j,B[k*N+j]);
             }
             C[i*N+j] += acc;
-            PRINTF("C(%d,%d) %d\n",i,j,C[i*N+j]);
-
         }
     }
 
