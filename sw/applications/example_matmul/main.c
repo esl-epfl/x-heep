@@ -28,7 +28,7 @@ uint32_t check_results(int32_t * C, int N);
 
 int32_t m_c[SIZE*SIZE];
 
-#define BLOCK_SIZE 2
+#define BLOCK_SIZE 4
 
 // Define a macro for accessing matrix elements
 #define A(i,j) &A[i*SIZE+j]
