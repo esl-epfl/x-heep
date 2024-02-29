@@ -70,9 +70,9 @@ void __attribute__ ((noinline)) matrixMul8_blocksize(int8_t *  A, int8_t *  B, i
         for(int j = 0; j < N; j++) {
             int32_t acc = 0;
             for(int k = 0; k < N; k++) {
-                acc+= A[i*N+k] * B[k*N+j];
+                acc+= A[i*SIZE+k] * B[k*SIZE+j];
             }
-            C[i*N+j] += acc;
+            C[i*SIZE+j] += acc;
         }
     }
 
