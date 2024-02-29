@@ -11,6 +11,76 @@
 #include <iostream>
 #include "XHEEP_CmdLineOptions.hh"
 
+sc_event reset_done_event;
+sc_event obi_new_gnt;
+sc_event obi_new_rvalid;
+sc_event obi_new_req;
+
+
+#include "MemoryRequest.h"
+#include "Memory.h"
+
+SC_MODULE(external_memory)
+{
+  MemoryRequest *memory_request;
+  Memory    *memory;
+
+  sc_in<bool>          clk_i;
+  sc_in<bool>          ext_systemc_req_req_i;
+  sc_in<bool>          ext_systemc_req_we_i;
+  sc_in<uint32_t>      ext_systemc_req_be_i;
+  sc_in<uint32_t>      ext_systemc_req_addr_i;
+  sc_in<uint32_t>      ext_systemc_req_wdata_i;
+  sc_out<bool>         ext_systemc_resp_gnt_o;
+  sc_out<bool>         ext_systemc_resp_rvalid_o;
+  sc_out<uint32_t>     ext_systemc_resp_rdata_o;
+
+  void notify_obi_transaction () {
+    if(ext_systemc_req_req_i) {
+      obi_new_req.notify();
+      memory_request->we_i    = ext_systemc_req_we_i;
+      memory_request->be_i    = ext_systemc_req_be_i;
+      memory_request->addr_i  = ext_systemc_req_addr_i;
+      memory_request->rwdata_io = ext_systemc_req_wdata_i;
+    }
+  }
+
+  void give_gnt_back () {
+    while (true) {
+      ext_systemc_resp_gnt_o.write(false);
+      wait(obi_new_gnt);
+      ext_systemc_resp_gnt_o.write(true);
+      wait();
+    }
+  }
+
+  void give_rvalid_rdata_back () {
+    while (true) {
+      ext_systemc_resp_rvalid_o.write(false);
+      wait(obi_new_rvalid);
+      ext_systemc_resp_rvalid_o.write(true);
+      ext_systemc_resp_rdata_o.write(memory_request->rwdata_io);
+      wait();
+    }
+  }
+
+  SC_CTOR(external_memory)
+  {
+    // Instantiate components
+    memory_request = new MemoryRequest("memory_request");
+    memory    = new Memory   ("memory");
+
+    SC_METHOD(notify_obi_transaction);
+    sensitive << ext_systemc_req_req_i;
+
+    SC_CTHREAD(give_gnt_back, clk_i.pos());
+    SC_CTHREAD(give_rvalid_rdata_back, clk_i.pos());
+
+    // Bind memory_request socket to target socket
+    memory_request->socket.bind( memory->socket );
+  }
+};
+
 
 SC_MODULE(testbench)
 {
@@ -42,34 +112,22 @@ SC_MODULE(testbench)
 
   void do_reset_cycle () {
     //active low
-
     //-----
     rst_no.write(false);
 
-    for(int i=0;i<reset_cycles;i++){
-      wait();
-    }
+    for(int i=0;i<reset_cycles;i++) wait();
 
     //-----|||||||
     rst_no.write(true);
-    for(int i=0;i<reset_cycles;i++){
-      wait();
-    }
+    for(int i=0;i<reset_cycles;i++) wait();
 
     //-----|||||||------
     rst_no.write(false);
-
-    for(int i=0;i<reset_cycles;i++){
-      wait();
-    }
+    for(int i=0;i<reset_cycles;i++) wait();
 
     //-----|||||||------||||||
     rst_no.write(true);
-
-    for(int i=0;i<reset_cycles;i++){
-      wait();
-    }
-
+    for(int i=0;i<reset_cycles;i++) wait();
   }
 
 
@@ -101,6 +159,8 @@ SC_MODULE(testbench)
 
     std::cout<<"Set Exit Loop"<< std::endl;
     set_exit_loop ();
+
+    reset_done_event.notify();
 
     //sc_stop();
   }
@@ -158,6 +218,7 @@ int sc_main (int argc, char * argv[])
 
   Vtestharness dut("TOP");
   testbench tb("testbench");
+  external_memory ext_mem("external_memory");
 
   svSetScope(svGetScopeFromName("TOP.testharness"));
   svScope scope = svGetScope();
@@ -170,6 +231,8 @@ int sc_main (int argc, char * argv[])
   // static values
   tb.boot_select_option = boot_sel == 1;
 
+
+  // Vtestharness interface
   sc_signal<bool, SC_MANY_WRITERS>     clk;
   sc_signal<bool, SC_MANY_WRITERS>     rst_n;
   sc_signal<bool, SC_MANY_WRITERS>     boot_select;
@@ -181,6 +244,16 @@ int sc_main (int argc, char * argv[])
   sc_signal<bool>     jtag_tdo;
   sc_signal<uint32_t> exit_value;
   sc_signal<bool, SC_MANY_WRITERS>     exit_valid;
+  sc_signal<bool>      ext_systemc_req_req;
+  sc_signal<bool>      ext_systemc_req_we;
+  sc_signal<uint32_t>  ext_systemc_req_be;
+  sc_signal<uint32_t>  ext_systemc_req_addr;
+  sc_signal<uint32_t>  ext_systemc_req_wdata;
+  sc_signal<bool>      ext_systemc_resp_gnt;
+  sc_signal<bool>      ext_systemc_resp_rvalid;
+  sc_signal<uint32_t>  ext_systemc_resp_rdata;
+
+
 
   tb.clk_i(clock_sig);
   tb.clk_o(clk);
@@ -206,6 +279,26 @@ int sc_main (int argc, char * argv[])
   dut.jtag_tdo_o(jtag_tdo);
   dut.exit_value_o(exit_value);
   dut.exit_valid_o(exit_valid);
+  dut.ext_systemc_req_req_o(ext_systemc_req_req);
+  dut.ext_systemc_req_we_o(ext_systemc_req_we);
+  dut.ext_systemc_req_be_o(ext_systemc_req_be);
+  dut.ext_systemc_req_addr_o(ext_systemc_req_addr);
+  dut.ext_systemc_req_wdata_o(ext_systemc_req_wdata);
+  dut.ext_systemc_resp_gnt_i(ext_systemc_resp_gnt);
+  dut.ext_systemc_resp_rvalid_i(ext_systemc_resp_rvalid);
+  dut.ext_systemc_resp_rdata_i(ext_systemc_resp_rdata);
+
+  ext_mem.clk_i(clk);
+  ext_mem.ext_systemc_req_req_i(ext_systemc_req_req);
+  ext_mem.ext_systemc_req_we_i(ext_systemc_req_we);
+  ext_mem.ext_systemc_req_be_i(ext_systemc_req_be);
+  ext_mem.ext_systemc_req_addr_i(ext_systemc_req_addr);
+  ext_mem.ext_systemc_req_wdata_i(ext_systemc_req_wdata);
+  ext_mem.ext_systemc_resp_gnt_o(ext_systemc_resp_gnt);
+  ext_mem.ext_systemc_resp_rdata_o(ext_systemc_resp_rdata);
+  ext_mem.ext_systemc_resp_rvalid_o(ext_systemc_resp_rvalid);
+
+
 
   // You must do one evaluation before enabling waves, in order to allow
   // SystemC to interconnect everything for testing.

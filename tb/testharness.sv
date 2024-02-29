@@ -113,10 +113,6 @@ module testharness #(
   reg_pkg::reg_req_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_req;
   reg_pkg::reg_rsp_t [testharness_pkg::EXT_NPERIPHERALS-1:0] ext_periph_slv_rsp;
 
-  // External xbar slave example port
-  obi_req_t slow_ram_slave_req;
-  obi_resp_t slow_ram_slave_resp;
-
   // External interrupts
   logic [NEXT_INT_RND-1:0] intr_vector_ext;
   logic memcopy_intr;
@@ -385,7 +381,12 @@ module testharness #(
   assign sim_jtag_tdo   = JTAG_DPI ? mux_jtag_tdo : '0;
   assign jtag_tdo_o     = !JTAG_DPI ? mux_jtag_tdo : '0;
 
+  // External xbar slave example port
+  obi_req_t slow_ram_slave_req;
+  obi_resp_t slow_ram_slave_resp;
+
 `ifndef SIM_SYSTEMC
+
   assign slow_ram_slave_req              = ext_slave_req[SLOW_MEMORY_IDX];
   assign ext_slave_resp[SLOW_MEMORY_IDX] = slow_ram_slave_resp;
 `else
