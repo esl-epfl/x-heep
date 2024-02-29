@@ -10,6 +10,9 @@ extern "C" {
 #endif  // __cplusplus
 
 #define MEMORY_BANKS ${ram_numbanks}
+% if ram_numbanks_il > 0:
+#define HAS_MEMORY_BANKS_IL
+% endif
 
 #define EXTERNAL_DOMAINS ${external_domains}
 
@@ -66,6 +69,7 @@ extern "C" {
 % endif
 
 #define GPIO_AO_DOMAIN_LIMIT 8
+
 
 #ifdef __cplusplus
 }  // extern "C"

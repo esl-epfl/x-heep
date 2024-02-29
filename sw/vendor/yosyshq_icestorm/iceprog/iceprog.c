@@ -540,6 +540,7 @@ static void help(const char *progname)
 	fprintf(stderr, "Mode of operation:\n");
 	fprintf(stderr, "  [default]             write file contents to flash, then verify\n");
 	fprintf(stderr, "  -X                    write file contents to flash only\n");	
+	fprintf(stderr, "  -a <size in bytes>    provides file size of the file to program\n");
 	fprintf(stderr, "  -r                    read first 256 kB from flash and write to file\n");
 	fprintf(stderr, "  -R <size in bytes>    read the specified number of bytes from flash\n");
 	fprintf(stderr, "                          (append 'k' to the argument for size in kilobytes,\n");
@@ -607,6 +608,7 @@ int main(int argc, char **argv)
 	bool bulk_erase = false;
 	bool dont_erase = false;
 	bool prog_sram = false;
+	bool filesize_mode = false;
 	int  test_mode = 0;
 	bool slow_clock = false;
 	bool disable_protect = false;
@@ -617,6 +619,7 @@ int main(int argc, char **argv)
 	int ifnum = 0;
 
 	bool stop_spi = false;
+	long file_size = -1;
 
 #ifdef _WIN32
 	_setmode(_fileno(stdin), _O_BINARY);
@@ -631,7 +634,7 @@ int main(int argc, char **argv)
 	/* Decode command line parameters */
 	int opt;
 	char *endptr;
-	while ((opt = getopt_long(argc, argv, "d:i:I:rR:e:o:cbnStQvTspXk", long_options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "d:i:I:rR:e:o:a:cbnStQvTspXk", long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'd': /* device string */
 			devstr = optarg;
@@ -674,6 +677,20 @@ int main(int argc, char **argv)
 				read_size *= 1024;
 			else if (!strcmp(endptr, "M"))
 				read_size *= 1024 * 1024;
+			else {
+				fprintf(stderr, "%s: `%s' is not a valid size\n", my_name, optarg);
+				return EXIT_FAILURE;
+			}
+			break;
+		case 'a': /* filesize used to program flash */
+			filesize_mode = true;
+			file_size = strtol(optarg, &endptr, 0);
+			if (*endptr == '\0')
+				/* ok */;
+			else if (!strcmp(endptr, "k"))
+				file_size *= 1024;
+			else if (!strcmp(endptr, "M"))
+				file_size *= 1024 * 1024;
 			else {
 				fprintf(stderr, "%s: `%s' is not a valid size\n", my_name, optarg);
 				return EXIT_FAILURE;
@@ -812,7 +829,7 @@ int main(int argc, char **argv)
 	   so we can fail before initializing the hardware */
 
 	FILE *f = NULL;
-	long file_size = -1;
+
 
 	if (test_mode) {
 		/* nop */;
@@ -843,7 +860,7 @@ int main(int argc, char **argv)
 		   named pipe, or contrarily, the standard input may be an
 		   ordinary file. */
 
-		if (!prog_sram && !check_mode) {
+		if (!prog_sram && !check_mode && !filesize_mode) {
 			if (fseek(f, 0L, SEEK_END) != -1) {
 				file_size = ftell(f);
 				if (file_size == -1) {
@@ -1004,7 +1021,10 @@ int main(int argc, char **argv)
 				}
 				else
 				{
-					fprintf(stderr, "file size: %ld\n", file_size);
+					if(filesize_mode)
+						fprintf(stderr, "provided file size: %ld\n", file_size);
+					else
+						fprintf(stderr, "file size: %ld\n", file_size);
 
 					int block_size = erase_block_size << 10;
 					int block_mask = block_size - 1;
@@ -1105,7 +1125,7 @@ int main(int argc, char **argv)
 				getchar();
 			}
 
-			fprintf(stderr, "reading..\n");
+			fprintf(stderr, "reading..");
 			for (int addr = 0; addr < read_size; addr += 256) {
 				uint8_t buffer[256];
 				fprintf(stderr, "                      \r");

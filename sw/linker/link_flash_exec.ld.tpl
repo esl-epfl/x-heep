@@ -70,6 +70,8 @@ SECTIONS {
         _edata = .;        /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
     } >RAM AT >FLASH
 
+    _lma_vma_data_offset = 0x0;
+
     .power_manager : ALIGN(4096)
     {
        PROVIDE(__power_manager_start = .);

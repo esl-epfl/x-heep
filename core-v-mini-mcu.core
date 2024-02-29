@@ -124,16 +124,6 @@ filesets:
     - hw/fpga/scripts/nexys/set_board.tcl: { file_type: tclSource }
     - hw/fpga/scripts/nexys/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
 
-  fpga-arm-emulation:
-    depend:
-    - pulp-platform.org::axi_spi_slave
-    files:
-    - linux_femu/scripts/xilinx_generate_processing_system.tcl: {file_type: tclSource}
-    - linux_femu/rtl/axi_address_hijacker.v: {file_type: verilogSource}
-    - linux_femu/rtl/linux_femu.sv: {file_type: systemVerilogSource}
-    - linux_femu/constraints/pin_assign.xdc: {file_type: xdc}
-    - linux_femu/constraints/constraints.xdc: {file_type: xdc}
-
   ip-asic:
     depend:
     - technology::prim_mytech
@@ -323,13 +313,17 @@ targets:
     - tool_modelsim? (pre_patch_modelsim_Makefile)
     - tool_vcs? (cfile_uartdpi)
     - tool_vcs? (pre_build_remote_bitbang)
+    - tool_xcelium? (pre_build_remote_bitbang)
+    - tool_xcelium? (pre_build_uartdpi)
     - tool_verilator? (tb-verilator)
     - tool_modelsim? (tb-sv)
     - tool_vcs? (tb-sv)
+    - tool_xcelium? (tb-sv)
     - "!integrated_heep? (x_heep_system)"
     toplevel:
     - tool_modelsim? (tb_top)
     - tool_vcs? (tb_top)
+    - tool_xcelium? (tb_top)
     - tool_verilator? (testharness)
     hooks:
       pre_build:
@@ -337,6 +331,8 @@ targets:
         - tool_modelsim? (pre_build_remote_bitbang)
         - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
         - ams_sim? (pre_patch_vcs_ams_Makefile)
+        - tool_xcelium? (pre_build_uartdpi)
+        - tool_xcelium? (pre_build_remote_bitbang)
     parameters:
     - COREV_PULP
     - FPU
@@ -374,6 +370,12 @@ targets:
          - -LDFLAGS "-pthread -lutil"
          - +lint=TFIPC-L
          - -V
+      xcelium:
+        xrun_options:
+        - -vtimescale 1ns/10ps
+        - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi.so
+        - -sv_lib ../../../hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang/librbs.so
+        - -define XCELIUM
       verilator:
         mode: cc
         verilator_options:
@@ -432,27 +434,6 @@ targets:
       vivado:
         part: xc7z020clg400-1
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
-
-  pynq-z2-arm-emulation:
-    <<: *default_target
-    default_tool: vivado
-    description: TUL Pynq-Z2 Board
-    filesets_append:
-    - x_heep_system
-    - rtl-fpga
-    - ip-fpga
-    - fpga-arm-emulation
-    parameters:
-    - COREV_PULP
-    - FPU
-    - X_EXT
-    - SYNTHESIS=true
-    - REMOVE_OBI_FIFO
-    tools:
-      vivado:
-        part: xc7z020clg400-1
-        jobs: 4
-    toplevel: [linux_femu]
 
   asic_synthesis:
     <<: *default_target

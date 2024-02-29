@@ -543,6 +543,19 @@ def main():
     stack_size  = string2int(obj['linker_script']['stack_size'])
     heap_size  = string2int(obj['linker_script']['heap_size'])
 
+
+    linker_flash_code_start_address  = str('{:08X}'.format(int(linker_onchip_code_start_address,16) + int(flash_mem_start_address,16)))
+    linker_flash_data_start_address  = str('{:08X}'.format(int(linker_onchip_data_start_address,16) + int(flash_mem_start_address,16)))
+    linker_flash_il_start_address    = str('{:08X}'.format(int(linker_onchip_il_start_address,16)   + int(flash_mem_start_address,16)))
+
+    if ram_numbanks_il == 0 or (ram_numbanks_cont == 1 and ram_numbanks_il > 0):
+        linker_flash_left_start_address   = str('{:08X}'.format(int(linker_flash_data_start_address,16) + int(linker_onchip_data_size_address,16)))
+        linker_flash_left_size_address    = str('{:08X}'.format(int(flash_mem_size_address,16) - int(linker_onchip_code_size_address,16) - int(linker_onchip_data_size_address,16)))
+    else:
+        linker_flash_left_start_address   = str('{:08X}'.format(int(linker_flash_il_start_address,16) + int(linker_onchip_il_size_address,16)))
+        linker_flash_left_size_address    = str('{:08X}'.format(int(flash_mem_size_address,16) - int(linker_onchip_code_size_address,16) - int(linker_onchip_data_size_address,16) - int(linker_onchip_il_size_address,16)))
+
+
     if ((int(linker_onchip_data_size_address,16) + int(linker_onchip_code_size_address,16)) > int(ram_size_address,16)):
         exit("The code and data section must fit in the RAM size, instead they takes " + str(linker_onchip_data_size_address + linker_onchip_code_size_address))
     
@@ -848,6 +861,11 @@ def main():
         "ext_slave_size_address"           : ext_slave_size_address,
         "flash_mem_start_address"          : flash_mem_start_address,
         "flash_mem_size_address"           : flash_mem_size_address,
+        "linker_flash_code_start_address"  : linker_flash_code_start_address,
+        "linker_flash_data_start_address"  : linker_flash_data_start_address,
+        "linker_flash_il_start_address"    : linker_flash_il_start_address,
+        "linker_flash_left_start_address"  : linker_flash_left_start_address,
+        "linker_flash_left_size_address"   : linker_flash_left_size_address,
         "linker_onchip_code_start_address" : linker_onchip_code_start_address,
         "linker_onchip_code_size_address"  : linker_onchip_code_size_address,
         "linker_onchip_data_start_address" : linker_onchip_data_start_address,
