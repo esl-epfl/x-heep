@@ -20,11 +20,20 @@
     #define PRINTF(...)
 #endif
 
-void __attribute__ ((noinline)) matrixMul8(int8_t *  A, int8_t *  Bt, int32_t *  C, int N);
+void __attribute__ ((noinline)) matrixMul8_blocksize(int8_t *  A, int8_t *  B, int32_t *  C, int N);
+
+void __attribute__ ((noinline)) matrixMul8_tiled(int8_t *  A, int8_t *  B, int32_t *  C, int N);
 
 uint32_t check_results(int32_t * C, int N);
 
 int32_t m_c[SIZE*SIZE];
+
+#define BLOCK_SIZE 2
+
+// Define a macro for accessing matrix elements
+#define A(i,j) &A[i*SIZE+j]
+#define B(i,j) &B[i*SIZE+j]
+#define C(i,j) &C[i*SIZE+j]
 
 int main()
 {
@@ -37,8 +46,14 @@ int main()
 
     CSR_WRITE(CSR_REG_MCYCLE, 0);
 
+    for(int i =0;i<SIZE;i++) {
+        for(int j =0;j<SIZE;j++) {
+            m_c[i*SIZE+j] = 0;
+        }
+    }
+
     //execute the kernel
-    matrixMul8(m_a, m_b_transposed, m_c, SIZE);
+    matrixMul8_tiled(m_a, m_b, m_c, SIZE);
 
     CSR_READ(CSR_REG_MCYCLE, &cycles);
 
@@ -48,18 +63,47 @@ int main()
     return errors;
 }
 
-void __attribute__ ((noinline)) matrixMul8(int8_t *  A, int8_t *  Bt, int32_t *  C, int N)
+void __attribute__ ((noinline)) matrixMul8_blocksize(int8_t *  A, int8_t *  B, int32_t *  C, int N)
 {
+
     for(int i = 0; i < N; i++) {
         for(int j = 0; j < N; j++) {
             int32_t acc = 0;
             for(int k = 0; k < N; k++) {
-                acc+= A[i*N+k] * Bt[k*N+j];
+                acc+= A[i*N+k] * B[k*N+j];
+                PRINTF("A(%d,%d) %d\n",i,k,A[i*N+k]);
+                PRINTF("B(%d,%d) %d\n",k,j,B[k*N+j]);
             }
-            C[i*N+j] = acc;
+            C[i*N+j] += acc;
+            PRINTF("C(%d,%d) %d\n",i,j,C[i*N+j]);
+
         }
     }
+
 }
+
+
+// Define a recursive function that multiplies two matrices using the tiled algorithm
+void __attribute__ ((noinline)) matrixMul8_tiled(int8_t* A, int8_t* B, int32_t* C, int N) {
+    // use the elementary function
+    if (N == BLOCK_SIZE) {
+        matrixMul8_blocksize(A, B, C, N);
+    }
+    //split the matrices into four blocks each
+    else {
+        N = N >> 1; // Half the size
+        // Multiply the blocks and add them to the corresponding blocks of C
+        matrixMul8_tiled(A(0, 0), B(0, 0), C(0, 0), N); // C_00 += A_00 * B_00
+        matrixMul8_tiled(A(0, N), B(N, 0), C(0, 0), N); // C_00 += A_01 * B_10
+        matrixMul8_tiled(A(0, 0), B(0, N), C(0, N), N); // C_01 += A_00 * B_01
+        matrixMul8_tiled(A(0, N), B(N, N), C(0, N), N); // C_01 += A_01 * B_11
+        matrixMul8_tiled(A(N, 0), B(0, 0), C(N, 0), N); // C_10 += A_10 * B_00
+        matrixMul8_tiled(A(N, N), B(N, 0), C(N, 0), N); // C_10 += A_11 * B_10
+        matrixMul8_tiled(A(N, 0), B(0, N), C(N, N), N); // C_11 += A_10 * B_01
+        matrixMul8_tiled(A(N, N), B(N, N), C(N, N), N); // C_11 += A_11 * B_11
+    }
+}
+
 
 uint32_t check_results(int32_t * C, int N)
 {
