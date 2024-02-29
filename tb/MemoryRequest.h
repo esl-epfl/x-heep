@@ -43,6 +43,10 @@ SC_MODULE(MemoryRequest)
       std::cout << "X-HEEP tlm_generic_payload REQ: { " << (we_i ? 'W' : 'R') << ", @0x" << hex << addr_i
                 << " , DATA = 0x" << hex << rwdata_io << " BE = " << hex << be_i <<", at time " << sc_time_stamp() << " }" << std::endl;
 
+      if(be_i!=0xF) {
+        SC_REPORT_ERROR("OBI External Memory SystemC", "ByteEnable different than 0xF is not supported");
+      }
+
       //wait some time before giving the gnt
       wait(delay_gnt);
 
