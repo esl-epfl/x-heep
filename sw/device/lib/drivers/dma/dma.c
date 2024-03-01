@@ -562,7 +562,7 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
          * No further operations are done to prevent corrupting information
          * that could be useful for debugging purposes.
          */
-        uint8_t isEnv = (uint8_t)p_trans->dst->env;
+        uint8_t isEnv = (p_trans->dst->env != NULL);
         uint8_t isOutb = is_region_outbound(
                                     p_trans->dst->ptr,
                                     p_trans->dst->env->end,
@@ -1093,7 +1093,7 @@ static inline uint8_t is_region_outbound(   uint8_t  *p_start,
    */
     uint32_t affectedUnits      = ( p_size_du - 1 ) * p_inc_du + 1;
     uint32_t rangeSize          = DMA_DATA_TYPE_2_SIZE(p_type) * affectedUnits;
-    uint32_t lasByteInsideRange = (uint32_t)(p_start + rangeSize -1);
+    uint32_t lasByteInsideRange = (uint32_t)p_start + rangeSize -1;
     return ( p_end < lasByteInsideRange );
     // Size is be guaranteed to be non-zero before calling this function.
 }

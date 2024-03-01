@@ -29,6 +29,8 @@
 /*                             MODULES USED                                 */
 /**                                                                        **/
 /****************************************************************************/
+#include "string.h"
+
 #include "w25q128jw.h"
 
 /* To manage addresses. */
@@ -53,9 +55,6 @@
 
 /* For word swap operations*/
 #include "bitfield.h"
-
-/* for memcpy */
-#include <string.h>
 
 /****************************************************************************/
 /**                                                                        **/
@@ -915,8 +914,6 @@ w25q_error_codes_t w25q128jw_4k_erase(uint32_t addr) {
 
     // Wait for the erase operation to be finished
     flash_wait();
-
-    return FLASH_OK;
 }
 
 w25q_error_codes_t w25q128jw_32k_erase(uint32_t addr) {
@@ -944,8 +941,6 @@ w25q_error_codes_t w25q128jw_32k_erase(uint32_t addr) {
 
     // Wait for the erase operation to be finished
     flash_wait();
-
-    return FLASH_OK;
 }
 
 w25q_error_codes_t w25q128jw_64k_erase(uint32_t addr) {
@@ -973,8 +968,6 @@ w25q_error_codes_t w25q128jw_64k_erase(uint32_t addr) {
 
     // Wait for the erase operation to be finished
     flash_wait();
-
-    return FLASH_OK;
 }
 
 void w25q128jw_chip_erase(void) {
@@ -1182,7 +1175,7 @@ static void flash_wait(void) {
         spi_set_command(&spi, spi_status_read_cmd);
         spi_wait_for_ready(&spi);
         spi_wait_for_rx_watermark(&spi);
-        spi_read_word(&spi, (uint32_t*)&flash_resp[0]);
+        spi_read_word(&spi, (uint32_t *)flash_resp);
         if ((flash_resp[0] & 0x01) == 0) flash_busy = false;
     }
 }
