@@ -382,7 +382,7 @@ module testharness #(
   assign jtag_tdo_o     = !JTAG_DPI ? mux_jtag_tdo : '0;
 
   // External xbar slave example port
-  obi_req_t slow_ram_slave_req;
+  obi_req_t  slow_ram_slave_req;
   obi_resp_t slow_ram_slave_resp;
 
 `ifndef SIM_SYSTEMC
