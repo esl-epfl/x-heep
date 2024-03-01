@@ -35,16 +35,13 @@ int32_t m_c[SIZE*SIZE];
 #define B(i,j) &B[i*SIZE+j]
 #define C(i,j) &C[i*SIZE+j]
 
+#define HIGHEST_PERF
+
 int main()
 {
 
     uint32_t errors = 0;
     unsigned int instr, cycles;
-
-    //enable mcycle csr
-    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-
-    CSR_WRITE(CSR_REG_MCYCLE, 0);
 
     for(int i =0;i<SIZE;i++) {
         for(int j =0;j<SIZE;j++) {
@@ -52,8 +49,17 @@ int main()
         }
     }
 
+    //enable mcycle csr
+    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+
+    CSR_WRITE(CSR_REG_MCYCLE, 0);
+
+#ifdef HIGHEST_PERF
+    matrixMul8_blocksize(m_a, m_b, m_c, SIZE);
+#else
     //execute the kernel
     matrixMul8_tiled(m_a, m_b, m_c, SIZE);
+#endif
 
     CSR_READ(CSR_REG_MCYCLE, &cycles);
 
