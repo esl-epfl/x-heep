@@ -18,6 +18,7 @@
  */
 
 #include <sys/stat.h>
+#include <string.h>
 #include <newlib.h>
 #include <unistd.h>
 #include <reent.h>
@@ -27,7 +28,6 @@
 #include "core_v_mini_mcu.h"
 #include "error.h"
 #include "x-heep.h"
-#include <string.h>
 #include <stdio.h>
 
 #undef errno
