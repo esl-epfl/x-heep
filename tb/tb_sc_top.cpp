@@ -17,13 +17,13 @@ sc_event obi_new_rvalid;
 sc_event obi_new_req;
 
 
-#include "MemoryRequest.h"
-#include "Memory.h"
+#include "systemc_tb/MemoryRequest.h"
+#include "systemc_tb/MainMemory.h"
 
 SC_MODULE(external_memory)
 {
   MemoryRequest *memory_request;
-  Memory    *memory;
+  MainMemory    *memory;
 
   sc_in<bool>          clk_i;
   sc_in<bool>          ext_systemc_req_req_i;
@@ -68,7 +68,7 @@ SC_MODULE(external_memory)
   {
     // Instantiate components
     memory_request = new MemoryRequest("memory_request");
-    memory    = new Memory   ("memory");
+    memory         = new MainMemory   ("main_memory");
 
     SC_METHOD(notify_obi_transaction);
     sensitive << ext_systemc_req_req_i;

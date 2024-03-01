@@ -13,19 +13,22 @@ using namespace std;
 #include "tlm_utils/simple_target_socket.h"
 
 
-// Target module representing a simple memory
-SC_MODULE(Memory)
+// Target module representing a simple direct mapped cache
+SC_MODULE(MainMemory)
 {
   // TLM-2 socket, defaults to 32-bits wide, base protocol
-  tlm_utils::simple_target_socket<Memory> socket;
+  tlm_utils::simple_target_socket<MainMemory> socket;
 
-  enum { SIZE = 256 };
+  enum { SIZE = 32*1024/4 }; //32KB word addressable
 
-  SC_CTOR(Memory)
+  int32_t mem[SIZE];
+
+
+  SC_CTOR(MainMemory)
   : socket("socket")
   {
     // Register callback for incoming b_transport interface method call
-    socket.register_b_transport(this, &Memory::b_transport);
+    socket.register_b_transport(this, &MainMemory::b_transport);
 
     // Initialize memory with random data
     for (int i = 0; i < SIZE; i++)
@@ -60,7 +63,6 @@ SC_MODULE(Memory)
     trans.set_response_status( tlm::TLM_OK_RESPONSE );
   }
 
-  int mem[SIZE];
 };
 
 #endif
