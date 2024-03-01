@@ -8,6 +8,7 @@
 
 #include "csr.h"
 #include "stdasm.h"
+#include <stdio.h>'
 
 /**
  * Return value of mtval
