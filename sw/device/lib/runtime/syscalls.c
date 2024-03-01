@@ -28,10 +28,7 @@
 #include "core_v_mini_mcu.h"
 #include "error.h"
 #include "x-heep.h"
-#include <string.h>
 #include <stdio.h>
-
-ssize_t _write();
 
 #undef errno
 extern int errno;
