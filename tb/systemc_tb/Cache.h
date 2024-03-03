@@ -9,6 +9,8 @@ using namespace std;
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 
 // Target module representing a simple direct mapped cache
@@ -23,7 +25,7 @@ public:
   typedef struct cache_line {
     uint32_t tag;
     bool    valid;
-    int8_t* data;
+    uint8_t* data;
   } cache_line_t;
 
   cache_line_t* cache_array;
@@ -35,12 +37,12 @@ public:
   }
 
   void create_cache() {
-      cache_array = new cache_line_t[cache_size_byte];
+      cache_array = new cache_line_t[number_of_blocks];
   }
 
   void create_cache(uint32_t cache_size_byte) {
       this->cache_size_byte = cache_size_byte;
-      cache_array = new cache_line_t[cache_size_byte];
+      cache_array = new cache_line_t[number_of_blocks];
   }
 
   uint32_t initialize_cache() {
@@ -49,11 +51,13 @@ public:
       }
       uint32_t block_size_byte = get_block_size();
       // Initialize memory with random data
-      for (int i = 0; i < cache_size_byte; i++) {
+      for (int i = 0; i < number_of_blocks; i++) {
         cache_array[i].valid = false;
         cache_array[i].tag   = 0;
-        cache_array[i].data = new int8_t[block_size_byte];
-        for(int j = 0; j<block_size_byte;j++) cache_array[i].data[j] = (int8_t)(rand() % 127);
+        cache_array[i].data = new uint8_t[block_size_byte];
+        for(int j = 0; j<block_size_byte;j++) {
+          cache_array[i].data[j] = (uint8_t)(i*j);
+        }
       }
       return 0;
   }
@@ -83,7 +87,7 @@ public:
     return ( cache_array[index].valid && tag == cache_array[index].tag);
   }
 
-  void add_entry(uint32_t address, int8_t* new_data) {
+  void add_entry(uint32_t address, uint8_t* new_data) {
     uint32_t index = get_index(address);
     uint32_t tag   = get_tag(address);
     uint32_t block_size_byte = this->get_block_size();
@@ -92,7 +96,7 @@ public:
     memcpy(cache_array[index].data, new_data, block_size_byte);
   }
 
-  void get_data(uint32_t address, int8_t* new_data) {
+  void get_data(uint32_t address, uint8_t* new_data) {
     uint32_t index = get_index(address);
     uint32_t block_size_byte = this->get_block_size();
     memcpy(new_data, cache_array[index].data, block_size_byte);
@@ -102,7 +106,7 @@ public:
     int32_t data_word = 0;
     uint32_t block_size_byte = this->get_block_size();
     uint32_t block_offset = this->get_block_offset(address);
-    int8_t* new_data = new int8_t[block_size_byte];
+    uint8_t* new_data = new uint8_t[block_size_byte];
     this->get_data(address, new_data);
     data_word = *((int32_t *)new_data[block_offset]);
     delete new_data;
@@ -112,7 +116,7 @@ public:
   void set_word(uint32_t address, int32_t data_word) {
     uint32_t block_size_byte = this->get_block_size();
     uint32_t block_offset = this->get_block_offset(address);
-    int8_t* new_data = new int8_t[block_size_byte];
+    uint8_t* new_data = new uint8_t[block_size_byte];
     this->get_data(address, new_data);
     *((int32_t *)new_data[block_offset]) = data_word;
     this->add_entry(address, new_data);
@@ -127,17 +131,32 @@ public:
 
   void print_cache_status(uint32_t operation_id) {
     if (cacheFile.is_open()) {
+      std::string log_cache = "";
+      std::ostringstream ss;
 
-      cacheFile << operation_id << std::endl;
-      cacheFile << "INDEX | TAG | DATA BLOCK | VALID" << std::endl;
+      log_cache+= std::to_string(operation_id) + "\n";
+      log_cache+= "INDEX | TAG | DATA BLOCK | VALID\n";
+
       uint32_t block_size_byte = get_block_size();
 
       for(int i=0;i<number_of_blocks;i++) {
-        cacheFile << i << " | " << cache_array[i].tag << " | 0x";
-        for(int j = 0; j<block_size_byte; j++) {
-          cacheFile << hex << cache_array[i].data[j];
-        }
-        cacheFile << " | " << cache_array[i].valid << std::endl;
+        ss << "0x" << std::setw(2) << std::setfill('0') << std::hex << static_cast<uint32_t>(i);
+        log_cache+= ss.str() + " | ";
+        ss.str("");
+        ss.clear();
+        ss << "0x" << std::hex << cache_array[i].tag;
+        log_cache+= ss.str() + " | 0x";
+        ss.str("");
+        ss.clear();
+        for(int j = 0; j<block_size_byte; j++)
+          ss << ":" << std::setw(2) << std::setfill('0') << std::hex << static_cast<uint16_t>(cache_array[i].data[j]);
+        log_cache+= ss.str() + " | ";
+        log_cache+= std::string( cache_array[i].valid ? "1" : "0" ) + "\n";
+
+        cacheFile << log_cache;
+        ss.str("");
+        ss.clear();
+        log_cache = std::string("");
       }
     } else {
       std::cout << "Failed to create the Cache file." << std::endl;

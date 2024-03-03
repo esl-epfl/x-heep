@@ -46,8 +46,8 @@ SC_MODULE(MemoryRequest)
 
     uint32_t cache_block_size_byte = cache->get_block_size();
     uint32_t cache_block_size_word = cache->get_block_size()/4;
-    int8_t*  cache_data = new int8_t[cache_block_size_byte];
-    int32_t* main_mem_data = new uint32_t[cache_block_size_word];
+    uint8_t*  cache_data = new uint8_t[cache_block_size_byte];
+    int32_t* main_mem_data = new int32_t[cache_block_size_word];
 
     while(true) {
 
@@ -118,7 +118,7 @@ SC_MODULE(MemoryRequest)
         }
 
         //now replace the entry in cache
-        cache->add_entry(addr_i, (int8_t*)main_mem_data);
+        cache->add_entry(addr_i, (uint8_t*)main_mem_data);
 
         //now give back the rdata
         rwdata_io = main_mem_data[0];
