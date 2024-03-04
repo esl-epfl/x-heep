@@ -62,19 +62,19 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] ERROR_END_ADDRESS = ERROR_START_ADDRESS + ERROR_SIZE;
   localparam logic[31:0] ERROR_IDX = 32'd0;
 
-%for bank in xheep.iter_ram_banks():
+% for bank in xheep.iter_ram_banks():
   localparam logic [31:0] RAM${bank.name()}_IDX = 32'd${bank.map_idx()};
   localparam logic [31:0] RAM${bank.name()}_SIZE = 32'h${f'{bank.size():08X}'};
   localparam logic [31:0] RAM${bank.name()}_START_ADDRESS = 32'h${f'{bank.start_address():08X}'};
   localparam logic [31:0] RAM${bank.name()}_END_ADDRESS = 32'h${f'{bank.end_address():08X}'};
 % endfor
 
-% if xheep.has_il_ram():
-  localparam logic [31:0] RAM_IL_START_ADDRESS = 32'h${f'{xheep.il_ram_start_address():08X}'};
-  localparam logic [31:0] RAM_IL_SIZE = 32'h${f'{xheep.il_ram_size():08X}'};
-  localparam logic [31:0] RAM_IL_END_ADDRESS = RAM_IL_START_ADDRESS + RAM_IL_SIZE;
-  localparam logic [31:0] RAM_IL_IDX = RAM${next(xheep.iter_il_ram_banks()).name()}_IDX;
-% endif
+% for i, group in enumerate(xheep.iter_il_groups()):
+  localparam logic [31:0] RAM_IL${i}_START_ADDRESS = 32'h${f'{group.start:08X}'};
+  localparam logic [31:0] RAM_IL${i}_SIZE = 32'h${f'{group.size:08X}'};
+  localparam logic [31:0] RAM_IL${i}_END_ADDRESS = RAM_IL${i}_START_ADDRESS + RAM_IL${i}_SIZE;
+  localparam logic [31:0] RAM_IL${i}_IDX = RAM${group.first_name}_IDX;
+% endfor
 
   localparam logic[31:0] DEBUG_START_ADDRESS = 32'h${debug_start_address};
   localparam logic[31:0] DEBUG_SIZE = 32'h${debug_size_address};
