@@ -56,6 +56,36 @@ SC_MODULE(MemoryRequest)
     SC_THREAD(thread_process);
   }
 
+
+  uint32_t memory_copy(uint32_t addr, int32_t* buffer_data, int N, bool write_enable, tlm::tlm_generic_payload* trans, sc_time delay) {
+
+    tlm::tlm_command cmd = write_enable ? tlm::TLM_WRITE_COMMAND : tlm::TLM_READ_COMMAND;
+
+    //first read block_size bytes from memory to place them in cache regardless of the cmd
+    for(int i=0; i < N; i++){
+      trans->set_command( cmd );
+      trans->set_address( (addr + i*4) & 0x00007FFF ); //15bits
+      trans->set_data_ptr( reinterpret_cast<unsigned char*>(&buffer_data[i]) );
+      trans->set_data_length( 4 );
+      trans->set_streaming_width( 4 ); // = data_length to indicate no streaming
+      trans->set_byte_enable_ptr( 0 ); // 0 indicates unused
+      trans->set_dmi_allowed( false ); // Mandatory initial value
+      trans->set_response_status( tlm::TLM_INCOMPLETE_RESPONSE ); // Mandatory initial value
+      socket->b_transport( *trans, delay );  // Blocking transport call
+
+      if(write_enable)
+        cache_mem_transactions << "Cache Writing to Mem[" << hex << ((addr + i*4) & 0x00007FFF) << "]: " << buffer_data[i] << " at time " << sc_time_stamp() <<std::endl;
+      else
+        cache_mem_transactions << "Cache Reading from Mem[" << hex << ((addr + i*4) & 0x00007FFF) << "]: " << buffer_data[i] << " at time " << sc_time_stamp() <<std::endl;
+
+      // Initiator obliged to check response status and delay
+      if ( trans->is_response_error() )
+        SC_REPORT_ERROR("TLM-2", "Response error from b_transport");
+    }
+    return N;
+  }
+
+
   void thread_process()
   {
     // TLM-2 generic payload transaction, reused across calls to b_transport
@@ -83,6 +113,10 @@ SC_MODULE(MemoryRequest)
       //if we are writing 1 to last address, flush cache
       if(we_i && ((addr_i & 0x00007FFF) == 0x7FFC) && rwdata_io == 1){
         heep_mem_transactions << "X-HEEP Flush Cache, at time " << sc_time_stamp() << " }" << std::endl;
+
+        //memory_copy(uint32_t addr, int32_t* buffer_data, int N, bool write_enable, tlm::tlm_generic_payload* trans, sc_time delay);
+
+        obi_new_gnt.notify();
         wait(delay_rvalid);
       }
 
@@ -112,50 +146,15 @@ SC_MODULE(MemoryRequest)
           uint32_t addr_to_read = cache->get_base_address(addr_i);
 
           //first read block_size bytes from memory to place them in cache regardless of the cmd
-          for(int i=0; i < cache_block_size_word; i++){
-            trans->set_command( tlm::TLM_READ_COMMAND );
-            trans->set_address( (addr_to_read + i*4) & 0x00007FFF ); //15bits
-            trans->set_data_ptr( reinterpret_cast<unsigned char*>(&main_mem_data[i]) );
-            trans->set_data_length( 4 );
-            trans->set_streaming_width( 4 ); // = data_length to indicate no streaming
-            trans->set_byte_enable_ptr( 0 ); // 0 indicates unused
-            trans->set_dmi_allowed( false ); // Mandatory initial value
-            trans->set_response_status( tlm::TLM_INCOMPLETE_RESPONSE ); // Mandatory initial value
-            socket->b_transport( *trans, delay );  // Blocking transport call
-
-            cache_mem_transactions << "Cache Reading from Mem[" << hex << ((addr_to_read + i*4) & 0x00007FFF) << "]: " << main_mem_data[i] << " at time " << sc_time_stamp() <<std::endl;
-
-            // Initiator obliged to check response status and delay
-            if ( trans->is_response_error() )
-              SC_REPORT_ERROR("TLM-2", "Response error from b_transport");
-          }
+          memory_copy(addr_to_read, main_mem_data, cache_block_size_word, false, trans, delay);
 
           //always write back what will be replace if valid as we do not have dirty bits for simplicity
           if (cache->is_entry_valid(addr_i)) {
-
             //if we are going to replace a valid entry
             cache->get_data(addr_i, cache_data);
             uint32_t address_to_replace = cache->get_address(addr_i);
-
             //write back
-            for(int i=0; i < cache_block_size_word; i++){
-              trans->set_command( tlm::TLM_WRITE_COMMAND );
-              trans->set_address( (address_to_replace + i*4) & 0x00007FFF ); //15bits
-              trans->set_data_ptr( reinterpret_cast<unsigned char*>(&cache_data[i]) );
-              trans->set_data_length( 4 );
-              trans->set_streaming_width( 4 ); // = data_length to indicate no streaming
-              trans->set_byte_enable_ptr( 0 ); // 0 indicates unused
-              trans->set_dmi_allowed( false ); // Mandatory initial value
-              trans->set_response_status( tlm::TLM_INCOMPLETE_RESPONSE ); // Mandatory initial value
-              socket->b_transport( *trans, delay );  // Blocking transport call
-
-              uint32_t* old_cache_data_ptr = (uint32_t *)(cache_data);
-
-              cache_mem_transactions << "Cache Writing Back from Mem[" << hex << ((address_to_replace + i*4) & 0x00007FFF) << "]: " << old_cache_data_ptr[i] << " at time " << sc_time_stamp() <<std::endl;
-              // Initiator obliged to check response status and delay
-              if ( trans->is_response_error() )
-                SC_REPORT_ERROR("TLM-2", "Response error from b_transport");
-            }
+            memory_copy(address_to_replace, (uint32_t *)cache_data, cache_block_size_word, true, trans, delay);
           }
 
           //now replace the entry in cache
@@ -167,7 +166,6 @@ SC_MODULE(MemoryRequest)
 
           //now give back the rdata
           rwdata_io = main_mem_data[0];
-
 
           //wait some time before giving the rvalid
           wait(delay_rvalid);
