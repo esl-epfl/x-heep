@@ -16,7 +16,7 @@
 
 int main(int argc, char *argv[])
 {
-        unsigned int AMS_START_ADDRESS = EXT_PERIPHERAL_START_ADDRESS + 0x1000;
+        unsigned int AMS_START_ADDRESS = EXT_PERIPHERAL_START_ADDRESS + 0x10000;
         mmio_region_t ams_base_addr = mmio_region_from_addr((uintptr_t)AMS_START_ADDRESS);
 
         printf("0");

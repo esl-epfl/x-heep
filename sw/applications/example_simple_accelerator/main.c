@@ -22,7 +22,7 @@
 int32_t errors = 0;
 
 //defined in the testharness_pkg.sv
-#define SIMPLE_ACC_START_ADDRESS EXT_PERIPHERAL_START_ADDRESS + 0x3000;
+#define SIMPLE_ACC_START_ADDRESS EXT_PERIPHERAL_START_ADDRESS + 0x30000;
 
 // Simple accelerator Decoder (address for bytes)
 //0 READ ADDRESS
