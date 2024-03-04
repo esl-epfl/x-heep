@@ -303,15 +303,27 @@ endif()
 # Set CMAKE flags
 
 # specify the C standard
-set(COMPILER_LINKER_FLAGS "\
-  -march=${CMAKE_SYSTEM_PROCESSOR} \
-  -w -Os -g  -nostdlib  \
-  -ffunction-sections \
-  -DHOST_BUILD \
-  -D${CRT_TYPE} \
-  -D${CRTO} \
-  -DportasmHANDLE_INTERRUPT=vSystemIrqHandler\
-")
+if(NOT ${PROJECT} MATCHES "coremark")
+  set(COMPILER_LINKER_FLAGS "\
+    -march=${CMAKE_SYSTEM_PROCESSOR} \
+    -w -O2 -g  -nostdlib  \
+    -ffunction-sections \
+    -DHOST_BUILD \
+    -D${CRT_TYPE} \
+    -D${CRTO} \
+    -DportasmHANDLE_INTERRUPT=vSystemIrqHandler\
+  ")
+else()
+  set(COMPILER_LINKER_FLAGS "\
+    -march=${CMAKE_SYSTEM_PROCESSOR} \
+    -w -O3 -g  -nostdlib -falign-functions=16 -funroll-all-loops -falign-jumps=4 -finline-functions -Wall -static -pedantic -DPERFORMANCE_RUN=1 -DITERATIONS=1 -DHAS_STDIO=1 -DHAS_PRINTF=1 \
+    -ffunction-sections \
+    -DHOST_BUILD \
+    -D${CRT_TYPE} \
+    -D${CRTO} \
+    -DportasmHANDLE_INTERRUPT=vSystemIrqHandler\
+  ")
+endif()
 set(CMAKE_C_FLAGS ${COMPILER_LINKER_FLAGS})
 
 if (${COMPILER} MATCHES "clang")
