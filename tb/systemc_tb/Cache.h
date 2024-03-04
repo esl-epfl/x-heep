@@ -1,12 +1,6 @@
 #ifndef CACHE_H
 #define CACHE_H
 
-#include "systemc"
-using namespace sc_core;
-using namespace sc_dt;
-using namespace std;
-
-
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -27,6 +21,7 @@ public:
   uint32_t block_size_byte    = 0;
 
   enum { ARCHITECTURE_bits = 32 };
+
   std::ofstream cacheFile;
 
   typedef struct cache_line {
@@ -119,6 +114,13 @@ public:
     memcpy(new_data, cache_array[index].data, block_size_byte);
   }
 
+  uint32_t get_address(uint32_t address){
+    uint32_t index = get_index(address);
+    uint32_t tag   = cache_array[index].tag;
+    uint32_t new_address = tag << (nbits_index+nbits_blocks) | (index<<nbits_blocks);
+    return new_address;
+  }
+
   int32_t get_word(uint32_t address) {
     int32_t data_word = 0;
     uint32_t block_offset = this->get_block_offset(address);
@@ -145,12 +147,12 @@ public:
     return cache_array[index].valid;
   }
 
-  void print_cache_status(uint32_t operation_id) {
+  void print_cache_status(uint32_t operation_id, std::string time_str) {
     if (cacheFile.is_open()) {
       std::string log_cache = "";
       std::ostringstream ss;
 
-      log_cache+= std::to_string(operation_id) + "\n";
+      log_cache+= std::to_string(operation_id) + "):  " + time_str + "\n";
       log_cache+= "INDEX | TAG | DATA BLOCK | VALID\n";
 
       for(int i=0;i<number_of_blocks;i++) {

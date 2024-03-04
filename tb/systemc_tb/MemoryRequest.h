@@ -11,6 +11,11 @@ using namespace std;
 
 #include "Cache.h"
 
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
+
 // MemoryRequest module generating generic payload transactions
 
 SC_MODULE(MemoryRequest)
@@ -22,6 +27,8 @@ SC_MODULE(MemoryRequest)
   uint32_t                                      addr_i;
   uint32_t                                      rwdata_io;
   CacheMemory*                                  cache;
+  std::ofstream                                 heep_mem_transactions;
+  std::ofstream                                 cache_mem_transactions;
 
   typedef struct cache_statistics
   {
@@ -33,7 +40,9 @@ SC_MODULE(MemoryRequest)
   cache_statistics_t cache_stat;
 
   SC_CTOR(MemoryRequest)
-  : socket("socket")  // Construct and name socket
+  : socket("socket"),  // Construct and name socket
+    heep_mem_transactions("heep_mem_transactions.log"),
+    cache_mem_transactions("cache_mem_transactions.log")
   {
 
     cache = new CacheMemory;
@@ -42,13 +51,10 @@ SC_MODULE(MemoryRequest)
     cache_stat.number_of_transactions = 0;
     cache_stat.number_of_hit = 0;
     cache_stat.number_of_miss = 0;
-    cache->print_cache_status(cache_stat.number_of_transactions++);
+    cache->print_cache_status(cache_stat.number_of_transactions++, sc_time_stamp().to_string());
 
     SC_THREAD(thread_process);
   }
-
-
-
 
   void thread_process()
   {
@@ -67,66 +73,49 @@ SC_MODULE(MemoryRequest)
 
       wait(obi_new_req);
 
-      std::cout << "X-HEEP tlm_generic_payload REQ: { " << (we_i ? 'W' : 'R') << ", @0x" << hex << addr_i
+      heep_mem_transactions << "X-HEEP tlm_generic_payload REQ: { " << (we_i ? 'W' : 'R') << ", @0x" << hex << addr_i
                 << " , DATA = 0x" << hex << rwdata_io << " BE = " << hex << be_i <<", at time " << sc_time_stamp() << " }" << std::endl;
 
       if(be_i!=0xF) {
         SC_REPORT_ERROR("OBI External Memory SystemC", "ByteEnable different than 0xF is not supported");
       }
 
-      // we use the cache only to read
-      if(cache->cache_hit(addr_i)){
-
-        cache_stat.number_of_hit++;
-        obi_new_gnt.notify();
-        main_mem_data[0] = cache->get_word(addr_i);
-        //if Write, writes to cache
-        if(we_i)
-          cache->set_word(addr_i, rwdata_io);
-        else
-          rwdata_io = main_mem_data[0];
-        //wait some time before giving the rvalid
+      //if we are writing 1 to last address, flush cache
+      if(we_i && ((addr_i & 0x00007FFF) == 0x7FFC) && rwdata_io == 1){
+        heep_mem_transactions << "X-HEEP Flush Cache, at time " << sc_time_stamp() << " }" << std::endl;
         wait(delay_rvalid);
       }
 
-      else { //miss case
+      else{
+        // we use the cache only to read
+        if(cache->cache_hit(addr_i)){
 
-        cache_stat.number_of_miss++;
-
-        //wait some time before giving the gnt as we have a miss
-        wait(delay_gnt);
-        obi_new_gnt.notify();
-        uint32_t addr_to_read = cache->get_base_address(addr_i);
-
-        //first read block_size bytes from memory to place them in cache regardless of the cmd
-        for(int i=0; i < cache_block_size_word; i++){
-          trans->set_command( tlm::TLM_READ_COMMAND );
-          trans->set_address( (addr_to_read + i*4) & 0x00007FFF ); //15bits
-          trans->set_data_ptr( reinterpret_cast<unsigned char*>(&main_mem_data[i]) );
-          trans->set_data_length( 4 );
-          trans->set_streaming_width( 4 ); // = data_length to indicate no streaming
-          trans->set_byte_enable_ptr( 0 ); // 0 indicates unused
-          trans->set_dmi_allowed( false ); // Mandatory initial value
-          trans->set_response_status( tlm::TLM_INCOMPLETE_RESPONSE ); // Mandatory initial value
-          socket->b_transport( *trans, delay );  // Blocking transport call
-
-          printf("Reading from Mem[%x] %x\n", (addr_to_read + i*4), main_mem_data[i]);
-
-          // Initiator obliged to check response status and delay
-          if ( trans->is_response_error() )
-            SC_REPORT_ERROR("TLM-2", "Response error from b_transport");
+          cache_stat.number_of_hit++;
+          obi_new_gnt.notify();
+          main_mem_data[0] = cache->get_word(addr_i);
+          //if Write, writes to cache
+          if(we_i)
+            cache->set_word(addr_i, rwdata_io);
+          else
+            rwdata_io = main_mem_data[0];
+          //wait some time before giving the rvalid
+          wait(delay_rvalid);
         }
 
-        //always write back what will be replace if valid as we do not have dirty bits for simplicity
-        if (cache->is_entry_valid(addr_i)) {
-          //if we are going to replace a valid entry
-          cache->get_data(addr_i, cache_data);
+        else { //miss case
 
-          //write back
+          cache_stat.number_of_miss++;
+
+          //wait some time before giving the gnt as we have a miss
+          wait(delay_gnt);
+          obi_new_gnt.notify();
+          uint32_t addr_to_read = cache->get_base_address(addr_i);
+
+          //first read block_size bytes from memory to place them in cache regardless of the cmd
           for(int i=0; i < cache_block_size_word; i++){
-            trans->set_command( tlm::TLM_WRITE_COMMAND );
+            trans->set_command( tlm::TLM_READ_COMMAND );
             trans->set_address( (addr_to_read + i*4) & 0x00007FFF ); //15bits
-            trans->set_data_ptr( reinterpret_cast<unsigned char*>(&cache_data[i]) );
+            trans->set_data_ptr( reinterpret_cast<unsigned char*>(&main_mem_data[i]) );
             trans->set_data_length( 4 );
             trans->set_streaming_width( 4 ); // = data_length to indicate no streaming
             trans->set_byte_enable_ptr( 0 ); // 0 indicates unused
@@ -134,30 +123,59 @@ SC_MODULE(MemoryRequest)
             trans->set_response_status( tlm::TLM_INCOMPLETE_RESPONSE ); // Mandatory initial value
             socket->b_transport( *trans, delay );  // Blocking transport call
 
-            printf("Writing back to Mem[%x] %x\n", (addr_to_read + i*4), cache_data[i]);
+            cache_mem_transactions << "Cache Reading from Mem[" << hex << ((addr_to_read + i*4) & 0x00007FFF) << "]: " << main_mem_data[i] << " at time " << sc_time_stamp() <<std::endl;
+
             // Initiator obliged to check response status and delay
             if ( trans->is_response_error() )
               SC_REPORT_ERROR("TLM-2", "Response error from b_transport");
           }
+
+          //always write back what will be replace if valid as we do not have dirty bits for simplicity
+          if (cache->is_entry_valid(addr_i)) {
+
+            //if we are going to replace a valid entry
+            cache->get_data(addr_i, cache_data);
+            uint32_t address_to_replace = cache->get_address(addr_i);
+
+            //write back
+            for(int i=0; i < cache_block_size_word; i++){
+              trans->set_command( tlm::TLM_WRITE_COMMAND );
+              trans->set_address( (address_to_replace + i*4) & 0x00007FFF ); //15bits
+              trans->set_data_ptr( reinterpret_cast<unsigned char*>(&cache_data[i]) );
+              trans->set_data_length( 4 );
+              trans->set_streaming_width( 4 ); // = data_length to indicate no streaming
+              trans->set_byte_enable_ptr( 0 ); // 0 indicates unused
+              trans->set_dmi_allowed( false ); // Mandatory initial value
+              trans->set_response_status( tlm::TLM_INCOMPLETE_RESPONSE ); // Mandatory initial value
+              socket->b_transport( *trans, delay );  // Blocking transport call
+
+              uint32_t* old_cache_data_ptr = (uint32_t *)(cache_data);
+
+              cache_mem_transactions << "Cache Writing Back from Mem[" << hex << ((address_to_replace + i*4) & 0x00007FFF) << "]: " << old_cache_data_ptr[i] << " at time " << sc_time_stamp() <<std::endl;
+              // Initiator obliged to check response status and delay
+              if ( trans->is_response_error() )
+                SC_REPORT_ERROR("TLM-2", "Response error from b_transport");
+            }
+          }
+
+          //now replace the entry in cache
+          cache->add_entry(addr_i, (uint8_t*)main_mem_data);
+
+          //if Write, writes to cache
+          if(we_i)
+            cache->set_word(addr_i, rwdata_io);
+
+          //now give back the rdata
+          rwdata_io = main_mem_data[0];
+
+
+          //wait some time before giving the rvalid
+          wait(delay_rvalid);
         }
-
-        //now replace the entry in cache
-        cache->add_entry(addr_i, (uint8_t*)main_mem_data);
-
-        //if Write, writes to cache
-        if(we_i)
-          cache->set_word(addr_i, rwdata_io);
-
-        //now give back the rdata
-        rwdata_io = main_mem_data[0];
-
-
-        //wait some time before giving the rvalid
-        wait(delay_rvalid);
       } //miss case
 
-      std::cout << "X-HEEP tlm_generic_payload RESP: { DATA = 0x" << hex << rwdata_io <<", at time " << sc_time_stamp() << " }" << std::endl;
-      cache->print_cache_status(cache_stat.number_of_transactions++);
+      heep_mem_transactions << "X-HEEP tlm_generic_payload RESP: { DATA = 0x" << hex << rwdata_io <<", at time " << sc_time_stamp() << " }" << std::endl;
+      cache->print_cache_status(cache_stat.number_of_transactions++, sc_time_stamp().to_string());
 
       obi_new_rvalid.notify();
 
