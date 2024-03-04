@@ -18,8 +18,15 @@ class CacheMemory
 {
 
 public:
-  uint32_t cache_size_byte  = 4*1024;
-  uint32_t number_of_blocks = 256;
+  uint32_t cache_size_byte    = 4*1024;
+  uint32_t number_of_blocks   = 256;
+
+  uint32_t nbits_blocks       = 0;
+  uint32_t nbits_tags         = 0;
+  uint32_t nbits_index        = 0;
+  uint32_t block_size_byte    = 0;
+
+  enum { ARCHITECTURE_bits = 32 };
   std::ofstream cacheFile;
 
   typedef struct cache_line {
@@ -38,18 +45,27 @@ public:
 
   void create_cache() {
       cache_array = new cache_line_t[number_of_blocks];
+      this->block_size_byte = get_block_size();
+      this->nbits_blocks    = log2(block_size_byte);
+      this->nbits_index     = log2(number_of_blocks);
+      this->nbits_tags      = ARCHITECTURE_bits - nbits_index - nbits_blocks;
+      printf("bits block %d, index %d, tags %d\n",nbits_blocks, nbits_index, nbits_tags );
   }
 
-  void create_cache(uint32_t cache_size_byte) {
+  void create_cache(uint32_t cache_size_byte, uint32_t number_of_blocks) {
       this->cache_size_byte = cache_size_byte;
+      this->number_of_blocks = number_of_blocks;
       cache_array = new cache_line_t[number_of_blocks];
+      this->block_size_byte = get_block_size();
+      this->nbits_blocks    = log2(block_size_byte);
+      this->nbits_index     = log2(number_of_blocks);
+      this->nbits_tags      = ARCHITECTURE_bits - nbits_index - nbits_blocks;
   }
 
   uint32_t initialize_cache() {
       if(cache_array == NULL) {
         return -1;
       }
-      uint32_t block_size_byte = get_block_size();
       // Initialize memory with random data
       for (int i = 0; i < number_of_blocks; i++) {
         cache_array[i].valid = false;
@@ -67,17 +83,19 @@ public:
   }
 
   uint32_t get_index(uint32_t address) {
-    uint32_t block_size_byte = this->get_block_size();
     return (uint32_t)((address % number_of_blocks) / block_size_byte );
   }
 
   uint32_t get_block_offset(uint32_t address) {
-    uint32_t block_size_byte = this->get_block_size();
     return (uint32_t)(address % block_size_byte);
   }
 
+  uint32_t get_base_address(uint32_t address) {
+    uint32_t block_size_byte_log2 = log2(block_size_byte);
+    return (uint32_t)((address >> block_size_byte_log2) << block_size_byte_log2);
+  }
+
   uint32_t get_tag(uint32_t address) {
-    uint32_t block_size_byte = this->get_block_size();
     return (uint32_t)(address / cache_size_byte);
   }
 
@@ -85,12 +103,12 @@ public:
     uint32_t index = get_index(address);
     uint32_t tag   = get_tag(address);
     return ( cache_array[index].valid && tag == cache_array[index].tag);
+
   }
 
   void add_entry(uint32_t address, uint8_t* new_data) {
     uint32_t index = get_index(address);
     uint32_t tag   = get_tag(address);
-    uint32_t block_size_byte = this->get_block_size();
     cache_array[index].valid = true;
     cache_array[index].tag   = tag;
     memcpy(cache_array[index].data, new_data, block_size_byte);
@@ -98,27 +116,25 @@ public:
 
   void get_data(uint32_t address, uint8_t* new_data) {
     uint32_t index = get_index(address);
-    uint32_t block_size_byte = this->get_block_size();
     memcpy(new_data, cache_array[index].data, block_size_byte);
   }
 
   int32_t get_word(uint32_t address) {
     int32_t data_word = 0;
-    uint32_t block_size_byte = this->get_block_size();
     uint32_t block_offset = this->get_block_offset(address);
     uint8_t* new_data = new uint8_t[block_size_byte];
     this->get_data(address, new_data);
-    data_word = *((int32_t *)new_data[block_offset]);
+    data_word = *((int32_t *)&new_data[block_offset]);
     delete new_data;
     return data_word;
   }
 
   void set_word(uint32_t address, int32_t data_word) {
-    uint32_t block_size_byte = this->get_block_size();
     uint32_t block_offset = this->get_block_offset(address);
     uint8_t* new_data = new uint8_t[block_size_byte];
     this->get_data(address, new_data);
-    *((int32_t *)new_data[block_offset]) = data_word;
+    *((int32_t *)&new_data[block_offset]) = data_word;
+    for(int i=0;i<block_size_byte;i++)
     this->add_entry(address, new_data);
     delete new_data;
   }
@@ -137,14 +153,12 @@ public:
       log_cache+= std::to_string(operation_id) + "\n";
       log_cache+= "INDEX | TAG | DATA BLOCK | VALID\n";
 
-      uint32_t block_size_byte = get_block_size();
-
       for(int i=0;i<number_of_blocks;i++) {
-        ss << "0x" << std::setw(2) << std::setfill('0') << std::hex << static_cast<uint32_t>(i);
+        ss << "0x" << std::setw(this->nbits_index/4) << std::setfill('0') << std::hex << static_cast<uint32_t>(i);
         log_cache+= ss.str() + " | ";
         ss.str("");
         ss.clear();
-        ss << "0x" << std::hex << cache_array[i].tag;
+        ss << "0x" << std::setw(this->nbits_tags/4) << std::setfill('0') << std::hex << cache_array[i].tag;
         log_cache+= ss.str() + " | 0x";
         ss.str("");
         ss.clear();
