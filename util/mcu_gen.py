@@ -467,46 +467,10 @@ def main():
     flash_mem_start_address  = string2int(obj['flash_mem']['address'])
     flash_mem_size_address  = string2int(obj['flash_mem']['length'])
 
-    linker_onchip_code_start_address  = string2int(obj['linker_script']['onchip_ls']['code']['address'])
-    linker_onchip_code_size_address  = string2int(obj['linker_script']['onchip_ls']['code']['lenght'])
-
-    if int(linker_onchip_code_size_address,16) < 32*1024:
-        exit("The code section must be at least 32KB, instead it is " + str(linker_onchip_code_size_address))
-
-    linker_onchip_data_start_address  = string2int(obj['linker_script']['onchip_ls']['data']['address'])
-    if (obj['linker_script']['onchip_ls']['data']['lenght'].split()[0].split(",")[0] == "whatisleft"):
-        if xheep.ram_numbanks_il() == 0 or (xheep.ram_numbanks_cont() == 1 and xheep.ram_numbanks_il() > 0):
-            linker_onchip_data_size_address  = str('{:08X}'.format(xheep.ram_size_address() - int(linker_onchip_code_size_address,16)))
-        else:
-            linker_onchip_data_size_address  = str('{:08X}'.format(xheep.ram_size_address() - int(linker_onchip_code_size_address,16) - xheep.ram_il_size()))
-    else:
-        if xheep.ram_numbanks_il() == 0 or (xheep.ram_numbanks_cont() == 1 and xheep.ram_numbanks_il() > 0):
-            linker_onchip_data_size_address  = string2int(obj['linker_script']['onchip_ls']['data']['lenght'])
-        else:
-            linker_onchip_data_size_address  = str('{:08X}'.format(int(string2int(obj['linker_script']['onchip_ls']['data']['lenght']),16) - xheep.ram_il_size()))
-
-    linker_onchip_il_start_address = str('{:08X}'.format(int(linker_onchip_data_start_address,16) + int(linker_onchip_data_size_address,16)))
-    linker_onchip_il_size_address = str('{:08X}'.format(xheep.ram_il_size()))
-
     stack_size  = string2int(obj['linker_script']['stack_size'])
     heap_size  = string2int(obj['linker_script']['heap_size'])
 
 
-    linker_flash_code_start_address  = str('{:08X}'.format(int(linker_onchip_code_start_address,16) + int(flash_mem_start_address,16)))
-    linker_flash_data_start_address  = str('{:08X}'.format(int(linker_onchip_data_start_address,16) + int(flash_mem_start_address,16)))
-    linker_flash_il_start_address    = str('{:08X}'.format(int(linker_onchip_il_start_address,16)   + int(flash_mem_start_address,16)))
-
-    if xheep.ram_numbanks_il() == 0 or (xheep.ram_numbanks_cont() == 1 and xheep.ram_numbanks_il() > 0):
-        linker_flash_left_start_address   = str('{:08X}'.format(int(linker_flash_data_start_address,16) + int(linker_onchip_data_size_address,16)))
-        linker_flash_left_size_address    = str('{:08X}'.format(int(flash_mem_size_address,16) - int(linker_onchip_code_size_address,16) - int(linker_onchip_data_size_address,16)))
-    else:
-        linker_flash_left_start_address   = str('{:08X}'.format(int(linker_flash_il_start_address,16) + int(linker_onchip_il_size_address,16)))
-        linker_flash_left_size_address    = str('{:08X}'.format(int(flash_mem_size_address,16) - int(linker_onchip_code_size_address,16) - int(linker_onchip_data_size_address,16) - int(linker_onchip_il_size_address,16)))
-
-
-    if ((int(linker_onchip_data_size_address,16) + int(linker_onchip_code_size_address,16)) > xheep.ram_size_address()):
-        exit("The code and data section must fit in the RAM size, instead they takes " + str(linker_onchip_data_size_address + linker_onchip_code_size_address))
-    
     if ((int(stack_size,16) + int(heap_size,16)) > xheep.ram_size_address()):
         exit("The stack and heap section must fit in the RAM size, instead they takes " + str(stack_size + heap_size))
 
@@ -803,17 +767,6 @@ def main():
         "ext_slave_size_address"           : ext_slave_size_address,
         "flash_mem_start_address"          : flash_mem_start_address,
         "flash_mem_size_address"           : flash_mem_size_address,
-        "linker_flash_code_start_address"  : linker_flash_code_start_address,
-        "linker_flash_data_start_address"  : linker_flash_data_start_address,
-        "linker_flash_il_start_address"    : linker_flash_il_start_address,
-        "linker_flash_left_start_address"  : linker_flash_left_start_address,
-        "linker_flash_left_size_address"   : linker_flash_left_size_address,
-        "linker_onchip_code_start_address" : linker_onchip_code_start_address,
-        "linker_onchip_code_size_address"  : linker_onchip_code_size_address,
-        "linker_onchip_data_start_address" : linker_onchip_data_start_address,
-        "linker_onchip_data_size_address"  : linker_onchip_data_size_address,
-        "linker_onchip_il_start_address"   : linker_onchip_il_start_address,
-        "linker_onchip_il_size_address"    : linker_onchip_il_size_address,
         "stack_size"                       : stack_size,
         "heap_size"                        : heap_size,
         "plic_used_n_interrupts"           : plic_used_n_interrupts,

@@ -1,3 +1,5 @@
+from dataclasses import *
+
 def is_pow2(n: int) -> bool:
     """
     check if n is a power of two
@@ -111,5 +113,21 @@ class Bank():
         """
         return self._il_offset
     
+@dataclass
+class ILRamGroup():
+    """
+    Dataclass to represent information about interleaved memory banks group.
+    """
+    
+    start: int
+    """start address of the group"""
 
+    size: int
+    """size of the group"""
+
+    n: int
+    """number of banks in the group"""
+
+    first_name: str
+    """name of the first bank"""
     

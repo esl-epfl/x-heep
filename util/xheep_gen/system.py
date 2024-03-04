@@ -1,6 +1,7 @@
 from typing import Iterable
 from enum import Enum
-from .ram_bank import Bank, is_pow2
+from .ram_bank import Bank, is_pow2, ILRamGroup
+from .linker_section import LinkerSection
 
 class BusType(Enum):
     """Enumeration of all supported bus types"""
@@ -39,34 +40,47 @@ class XHeep():
         self._ram_start_address: int = ram_start_address
         self._ram_banks: list[Bank] = []
         self._ram_banks_il_idx: list[int] = []
+        self._ram_banks_il_groups: list[ILRamGroup] = []
         self._il_banks_present: bool = False
         self._ram_next_idx: int = 1
         self._ram_next_addr: int = self._ram_start_address
+        self._linker_sections: list[LinkerSection] = []
+        self._used_section_names: set[str] = set()
 
 
-    def add_ram_banks(self, bank_sizes: "list[int]"):
+    def add_ram_banks(self, bank_sizes: "list[int]", section_name: str):
         """
         Add ram banks in continous address mode to the system.
         The bank size should be a power of two and at least 1kiB.
 
         :param list[int] bank_sizes: list of bank sizes in kiB that should be added to the system
+        :param str section_name: name of the section for the linker script the two first sections should be code and then data, the names must be unique and not be used by the linker for other purposes.
         :raise TypeError: when arguments are of wrong type
         :raise ValueError: when banks have an incorrect size.
+        :raise ValueError: if the name was allready used for another section or the first and second are not code and data.
+        :raise ValueError: if bank_sizes list is empty
         """
         if not type(bank_sizes) == list:
             raise TypeError("bank_sizes should be of type list")
+        if not type(section_name) == str:
+            raise TypeError("section_name should be of type str")
+        if len(bank_sizes) == 0:
+            raise ValueError("bank_sizes is empty")
+
         banks: list[Bank] = []
         for b in bank_sizes:
             banks.append(Bank(b, self._ram_next_addr, self._ram_next_idx, 0, 0))
             self._ram_next_addr = banks[-1]._end_address
             self._ram_next_idx += 1
         
+        self._add_linker_section(banks, section_name)
         # Add all new banks if no error was raised
         self._ram_banks += banks
+
     
 
 
-    def add_ram_banks_il(self, num: int, bank_size: int):
+    def add_ram_banks_il(self, num: int, bank_size: int, section_name: str):
         """
         Add ram banks in interleaved mode to the system.
         The bank size should be a power of two and at least 1kiB,
@@ -74,17 +88,19 @@ class XHeep():
 
         :param int num: number of banks to add
         :param int bank_size: size of the banks in kiB
+        :param str section_name: name of the section for the linker script the two first sections should be code and then data, the names must be unique and not be used by the linker for other purposes.
         :raise TypeError: when arguments are of wrong type
         :raise ValueError: when banks have an incorrect size or their number is not a power of two.
+        :raise ValueError: if the name was allready used for another section or the first and second are not code and data.
         """
         if not self._bus_type in self.IL_COMPATIBLE_BUS_TYPES:
             raise RuntimeError(f"This system has a {self._bus_type} bus, one of {self.IL_COMPATIBLE_BUS_TYPES} is required for interleaved memory")
-        if self._il_banks_present:
-            raise RuntimeError("At this time only one interleaved bank group is possible")
         if not type(num) == int:
             raise TypeError("num should be of type int")
         if not is_pow2(num):
             raise ValueError(f"A power of two is required for the number of banks, got {num}")
+        if not type(section_name) == str:
+            raise TypeError("section_name should be of type str")
 
         first_il = self.ram_numbanks()
 
@@ -95,12 +111,37 @@ class XHeep():
         
         self._ram_next_addr = banks[-1]._end_address
         
+        self._add_linker_section(banks, section_name)
         # Add all new banks if no error was raised
         self._ram_banks += banks
 
-        self._ram_banks_il_idx += range(first_il, first_il + num)
+        indices = range(first_il, first_il + num)
+        self._ram_banks_il_idx += indices
+        self._ram_banks_il_groups.append(ILRamGroup(banks[0].start_address(), bank_size*num*1024, len(banks), banks[0].name()))
         self._il_banks_present = True
     
+
+
+    def _add_linker_section(self, banks: "list[Bank]", name: str):
+        """
+        Internal function to add linker sections
+        :param list[Bank] banks: list of banks that compose the section, assumed to be continous in memory
+        :param str name: the name of the section.
+        :raise ValueError: if the name was allready used for another section or the first and second are not code and data.
+        """
+        if name in self._used_section_names:
+            raise ValueError("linker section names should be unique")
+        
+        if len(self._linker_sections) == 0 and name != "code":
+            raise ValueError("The first linker section sould be called code.")
+        
+        if len(self._linker_sections) == 1 and name != "data":
+            raise ValueError("The first linker section sould be called data.")
+        
+        self._used_section_names.add(name)
+        self._linker_sections.append(LinkerSection(name, banks[0].start_address(), banks[-1].end_address()))
+        
+
 
     def bus_type(self) -> BusType:
         """
@@ -134,6 +175,15 @@ class XHeep():
     def validate(self) -> bool:
         if not self.ram_numbanks() in range(2, 17):
             print(f"The number of banks should be between 2 and 16 instead of {self.ram_numbanks()}") #TODO: clarify upper limit
+            return False
+        
+        if not ("code" in self._used_section_names and "data" in self._used_section_names):
+            print("The code and data sections are needed")
+            return False
+
+        #TODO: clarify why
+        if self._linker_sections[0].size < 32*1024:
+            print("The code section must be at least 32KB, instead it is " + self._linker_sections[0].size)
             return False
         return True
     
@@ -193,3 +243,9 @@ class XHeep():
             return None
         
         return self.il_ram_end_address() - self.il_ram_start_address()
+    
+    def iter_il_groups(self) -> Iterable[ILRamGroup]:
+        return iter(self._ram_banks_il_groups)
+    
+    def iter_linker_sections(self) -> Iterable[LinkerSection]:
+        return iter(self._linker_sections)
