@@ -114,8 +114,18 @@ public:
     memcpy(new_data, cache_array[index].data, block_size_byte);
   }
 
+  void get_data_at_index(uint32_t index, uint8_t* new_data) {
+    memcpy(new_data, cache_array[index].data, block_size_byte);
+  }
+
   uint32_t get_address(uint32_t address){
     uint32_t index = get_index(address);
+    uint32_t tag   = cache_array[index].tag;
+    uint32_t new_address = tag << (nbits_index+nbits_blocks) | (index<<nbits_blocks);
+    return new_address;
+  }
+
+  uint32_t get_address_at_index(uint32_t index){
     uint32_t tag   = cache_array[index].tag;
     uint32_t new_address = tag << (nbits_index+nbits_blocks) | (index<<nbits_blocks);
     return new_address;
@@ -143,7 +153,10 @@ public:
 
   bool is_entry_valid(uint32_t address) {
     uint32_t index = get_index(address);
-    uint32_t tag   = get_tag(address);
+    return cache_array[index].valid;
+  }
+
+  bool is_entry_valid_at_index(uint32_t index) {
     return cache_array[index].valid;
   }
 
