@@ -35,9 +35,12 @@ int main(int argc, char *argv[])
 
     uint32_t random_number = 0;
 
+    heep_init_lfsr();
+
     for(int i=0;i<BUFF_LEN;i++) {
         ext_memory[i] = i;
-        random_number = rand() % BUFF_LEN;
+        random_number = heep_rand_lfsr() % BUFF_LEN;
+        printf("rn: %x\n",random_number);
         buffer_rnd_index[i] = random_number;
     }
 
