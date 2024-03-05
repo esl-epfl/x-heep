@@ -20,6 +20,9 @@ sc_event obi_new_req;
 #include "systemc_tb/MemoryRequest.h"
 #include "systemc_tb/MainMemory.h"
 
+
+#define CLK_PERIOD 10
+
 SC_MODULE(external_memory)
 {
   MemoryRequest *memory_request;
@@ -213,8 +216,8 @@ int sc_main (int argc, char * argv[])
     exit(EXIT_FAILURE);
   }
 
-  // generate clock
-  sc_clock clock_sig("clock", 10, SC_NS, 0.5);
+  // generate clock, twice the speed as we generate it by dividing it by 2
+  sc_clock clock_sig("clock", CLK_PERIOD>>1, SC_NS, 0.5);
 
   Vtestharness dut("TOP");
   testbench tb("testbench");

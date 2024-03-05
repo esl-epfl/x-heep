@@ -30,6 +30,7 @@ SC_MODULE(MemoryRequest)
   std::ofstream                                 heep_mem_transactions;
   std::ofstream                                 cache_mem_transactions;
   bool                                          bypass_state = false;
+
   typedef struct cache_statistics
   {
     uint32_t number_of_transactions;
@@ -96,9 +97,13 @@ SC_MODULE(MemoryRequest)
   {
     // TLM-2 generic payload transaction, reused across calls to b_transport
     tlm::tlm_generic_payload* trans = new tlm::tlm_generic_payload;
-    sc_time delay_gnt = sc_time(1000, SC_NS);
-    sc_time delay_rvalid = sc_time(1000, SC_NS);
-    sc_time delay = sc_time(10, SC_NS);
+
+    sc_time delay_gnt_miss = sc_time(100, SC_NS);
+    sc_time delay_rvalid_miss = sc_time(100, SC_NS);
+
+    sc_time delay_rvalid_hit = sc_time(20, SC_NS); //as of today, it must be >=20
+
+    sc_time delay = sc_time(1, SC_NS);
 
     uint32_t cache_block_size_byte = cache->get_block_size();
     uint32_t cache_block_size_word = cache->get_block_size()/4;
@@ -144,25 +149,24 @@ SC_MODULE(MemoryRequest)
           cache_mem_transactions<<"Cache ByPass set at time "<<sc_time_stamp()<<std::endl;
           heep_mem_transactions << "X-HEEP Bypass Cache, at time " << sc_time_stamp() << " }" << std::endl;
         }
-
-        //memory_copy(uint32_t addr, int32_t* buffer_data, int N, bool write_enable, tlm::tlm_generic_payload* trans, sc_time delay);
-
         obi_new_gnt.notify();
-        wait(delay_rvalid);
+        wait(delay_rvalid_miss);
       }
 
       else{
 
         if (bypass_state) {
-          wait(delay_gnt);
+          wait(delay_gnt_miss);
           obi_new_gnt.notify();
           memory_copy(addr_i, &rwdata_io, 1, we_i == true, trans, delay);
-          wait(delay_rvalid);
+          wait(delay_rvalid_miss);
         } else {
           // we use the cache only to read
           if(cache->cache_hit(addr_i)){
 
+
             cache_stat.number_of_hit++;
+
             obi_new_gnt.notify();
             main_mem_data[0] = cache->get_word(addr_i);
             //if Write, writes to cache
@@ -170,8 +174,7 @@ SC_MODULE(MemoryRequest)
               cache->set_word(addr_i, rwdata_io);
             else
               rwdata_io = main_mem_data[0];
-            //wait some time before giving the rvalid
-            wait(delay_rvalid);
+            wait(delay_rvalid_hit);
           }
 
           else { //miss case
@@ -179,8 +182,9 @@ SC_MODULE(MemoryRequest)
             cache_stat.number_of_miss++;
 
             //wait some time before giving the gnt as we have a miss
-            wait(delay_gnt);
+            wait(delay_gnt_miss);
             obi_new_gnt.notify();
+
             uint32_t addr_to_read = cache->get_base_address(addr_i);
 
             //first read block_size bytes from memory to place them in cache regardless of the cmd
@@ -206,7 +210,8 @@ SC_MODULE(MemoryRequest)
             rwdata_io = main_mem_data[0];
 
             //wait some time before giving the rvalid
-            wait(delay_rvalid);
+            wait(delay_rvalid_miss);
+
           }
         }
       }
