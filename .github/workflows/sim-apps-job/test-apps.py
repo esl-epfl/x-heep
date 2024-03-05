@@ -18,44 +18,13 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 SIMULATOR     = 'verilator'
-SIM_TIMEOUT_S = 240 
+SIM_TIMEOUT_S = 300 
 LINKER        = 'on_chip'
 COMPILER      = 'gcc'
 
-# repo = Repo(search_parent_directories=True)
-# hw_diff_to_main = repo.head.commit.diff("main", "hw") + repo.head.commit.diff("main", "tb")
-# sw_diff_to_main = repo.head.commit.diff("main", "sw")
-# ci_diff_to_main = repo.head.commit.diff("main", ".github/workflows")
-
 # Blacklist of apps to skip
-blacklist = [ "example_spi_write",
-              "example_spi_host_dma_power_gate",
-              "example_spi_read",
-            ]
+blacklist = [ ]
 
-# hw_diff = False
-# ci_diff = False
-# sw_diff = False
-
-# if len(hw_diff_to_main) > 0:
-#     print(bcolors.OKCYAN + "HW differences found!" + bcolors.ENDC)
-#     print(bcolors.OKCYAN + "All applications will be tested." + bcolors.ENDC)
-#     hw_diff = True
-
-# if len(sw_diff_to_main) > 0:
-#     print(bcolors.OKCYAN + "SW differences found!" + bcolors.ENDC)
-#     print(bcolors.OKCYAN + "Just the applications modified will be tested." + bcolors.ENDC)
-#     sw_diff = True
-
-# if len(ci_diff_to_main) > 0:
-#     print(bcolors.OKCYAN + "CI differences found!" + bcolors.ENDC)
-#     print(bcolors.OKCYAN + "All applications will be tested." + bcolors.ENDC)
-#     ci_diff = True
-
-# if sw_diff and not hw_diff and not ci_diff:
-#     app_list = [app for app in os.listdir('sw/applications') if app in [file.a_path.split("/")[-2] for file in sw_diff_to_main]]
-# else:
-#     app_list = [app for app in os.listdir('sw/applications')]
 app_list = [app for app in os.listdir('sw/applications')]
 
 print(bcolors.OKCYAN + "Apps to test:" + bcolors.ENDC)
@@ -68,19 +37,6 @@ apps = {
 }
 
 # dirty_o = open("dirty_output.txt", "w")
-
-# Generate core-v-mini-mcu
-# print(bcolors.OKBLUE + "Generating core-v-mini-mcu..." + bcolors.ENDC)
-# generate_output = subprocess.run(['make', 'mcu-gen MEMORY_BANKS=6'], capture_output=True)
-# if 'Error' in str(generate_output.stdout):
-#     print(bcolors.FAIL + "=====================================" + bcolors.ENDC)
-#     print(bcolors.FAIL + "Error generating core-v-mini-mcu!" + bcolors.ENDC)
-#     print(bcolors.FAIL + "=====================================" + bcolors.ENDC)
-#     print(str(generate_output.stdout))
-#     exit(1)
-# print(bcolors.OKGREEN + "Generated core-v-mini-mcu successfully!" + bcolors.ENDC)
-
-# dirty_o.write(str(generate_output.stdout.decode('utf-8')) + "\n")
 
 # Compile the {SIMULATOR} model and suppress the output
 print(bcolors.OKBLUE + f"Generating {SIMULATOR} model of X-HEEP..." + bcolors.ENDC)
