@@ -427,14 +427,14 @@ module testharness #(
 
       // External xbar slave memory example
       slow_memory #(
-          .NumWords (128),
+          .NumWords (8192),
           .DataWidth(32'd32)
       ) slow_ram_i (
           .clk_i,
           .rst_ni,
           .req_i(slave_fifoout_req.req),
           .we_i(slave_fifoout_req.we),
-          .addr_i(slave_fifoout_req.addr[8:2]),
+          .addr_i(slave_fifoout_req.addr[15:2]),
           .wdata_i(slave_fifoout_req.wdata),
           .be_i(slave_fifoout_req.be),
           // output ports

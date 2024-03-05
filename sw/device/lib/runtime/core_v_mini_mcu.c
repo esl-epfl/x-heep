@@ -8,7 +8,7 @@
 //heep functions prototypes
 uint32_t * heep_get_flash_address_offset(uint32_t* data_address_lma);
 void heep_init_lfsr();
-unsigned int heep_rand_lfsr();
+uint32_t heep_rand_lfsr();
 
 // this translates the logical address of the FLASH relative to 0 instead of FLASH_MEM_START_ADDRESS, as used by the BSP
 uint32_t * heep_get_flash_address_offset(uint32_t* data_address_lma){
@@ -24,14 +24,14 @@ uint32_t * heep_get_flash_address_offset(uint32_t* data_address_lma){
 }
 
 //get random values
-unsigned int lfsr;
+uint32_t lfsr;
 
 void heep_init_lfsr() {
-    lfsr = (unsigned int)0xAABBCCDD;
+    lfsr = (uint32_t)0xAABBCCDD;
 }
 
-unsigned int heep_rand_lfsr() {
-    unsigned int bit = (lfsr ^ (lfsr >> 10) ^ (lfsr >> 11) ^ (lfsr >> 12)) & 1;
+uint32_t heep_rand_lfsr() {
+    uint32_t bit = (lfsr ^ (lfsr >> 10) ^ (lfsr >> 11) ^ (lfsr >> 12)) & 1;
     lfsr = (lfsr >> 1) | (bit << 31);
     return lfsr;
 }

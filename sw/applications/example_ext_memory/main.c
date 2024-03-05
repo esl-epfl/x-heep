@@ -10,15 +10,16 @@
 
 #define BUFF_LEN 100
 
-uint32_t  buffer[BUFF_LEN];
-uint32_t  buffer_copy[BUFF_LEN];
 uint32_t  buffer_rnd_index[BUFF_LEN];
 
 #ifdef TARGET_SYSTEMC
 #define CACHE_FLUSH   1
 #define CACHE_BYPASS  2
-#define CACHE_SIZE    32*1024
+#define CACHE_SIZE    4*1024
 #endif
+
+#define MEMORY_SIZE       32*1024
+#define MEMORY_ADDR_MASK  0x7FFF
 
 int main(int argc, char *argv[])
 {
@@ -34,20 +35,38 @@ int main(int argc, char *argv[])
     #endif
 
     uint32_t random_number = 0;
+    uint32_t errors = 0;
 
     heep_init_lfsr();
 
+    //test 1
     for(int i=0;i<BUFF_LEN;i++) {
         ext_memory[i] = i;
-        random_number = heep_rand_lfsr() % BUFF_LEN;
-        printf("rn: %x\n",random_number);
-        buffer_rnd_index[i] = random_number;
     }
-
 
     for(int i=0;i<BUFF_LEN;i++){
-        buffer_copy[i] = ext_memory[buffer_rnd_index[i]];
+        if (ext_memory[i] != i) {
+            printf("base memory address: Expected %x, got %x\n",i,ext_memory[i]);
+            errors++;
+        }
     }
+
+    //test 2
+    for(int i=0;i<BUFF_LEN;i++) {
+        random_number = (uint32_t)(heep_rand_lfsr()) & MEMORY_ADDR_MASK;
+        buffer_rnd_index[i] = random_number;
+        ext_memory[buffer_rnd_index[i]] = i*16;
+    }
+
+    for(int i=0;i<BUFF_LEN;i++){
+        if (ext_memory[buffer_rnd_index[i]] != i*16) {
+            printf("random memory address: Expected %x, got %x\n",i*16, ext_memory[buffer_rnd_index[i]]);
+            errors++;
+        }
+    }
+
+
+    //test 3
 
     //as the memory is 32kB, and the cache has 256 blocks
     //replace some cache line
@@ -66,19 +85,18 @@ int main(int argc, char *argv[])
     #endif
 
     for(int i=0;i<BUFF_LEN;i++){
-        if (ext_memory[i] != i)
-            printf("base memory address: Expected %x, got %x\n",i,ext_memory[i]);
-        if (myptr1[i] != i*32)
+        if (myptr1[i] != i*32) {
             printf("extended memory address: Expected %x, got %x\n",i*32,myptr1[i]);
-        if (buffer_copy[i] != ext_memory[buffer_rnd_index[i]])
-            printf("random memory address: Expected %x, got %x\n",ext_memory[buffer_rnd_index[i]],buffer_copy[i]);
-
+            errors++;
+        }
     }
+
+    return errors;
 
 #else
    #pragma message ( "this application must be ran only in the testbench" )
+    return EXIT_SUCCESS;
 #endif
 
-    return EXIT_SUCCESS;
 }
 
