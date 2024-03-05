@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
 
 #endif // TEST_ADDRESS_MODE
 
-#if defined(TARGET_SIM) || defined(TARGET_SIM_SYSTEMC)
+#if defined(TARGET_SIM) || defined(TARGET_SYSTEMC)
 
 #ifdef TEST_ADDRESS_MODE_EXTERNAL_DEVICE
 
