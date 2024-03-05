@@ -204,7 +204,7 @@ The `fusesoc` commands are inside the Makefile.
 
 # Adding external IPs
 
-This repository relies on [Vendor](https://opentitan.org/book/util/doc/vendor.html) to add new IPs. The `vendor.py` script in the [`./util`](./util/) folder implements what is describeb above, while [this](./ExternalDevices.md) file contains additional information on how to connect external devices to the system.
+This repository relies on [Vendor](https://opentitan.org/book/util/doc/vendor.html) to add new IPs. The `vendor.py` script in the [`./util`](./util/) folder implements what is described above, while [this](./docs/source/How_to/ExternalDevices.md) file contains additional information on how to connect external devices to the system.
 
 # Compiling with Makefile
 
@@ -274,7 +274,7 @@ make app TARGET=pynq-z2
 Or, if you use the OpenHW Group [GCC](https://www.embecosm.com/resources/tool-chain-downloads/#corev) compiler with CORE_PULP extensions, make sure to point the `RISCV` env variable to the OpenHW Group compiler, then just run:
 
 ```
-make app COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_xcvhwlp1p0_xcvmem1p0_xcvmac1p0_xcvbi1p0_xcvalu1p0_xcvsimd1p0_xcvbitmanip1p0
+make app COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_xcvhwlp_xcvmem_xcvmac_xcvbi_xcvalu_xcvsimd_xcvbitmanip
 ```
 
 This will create the executable file to be loaded into your target system (ASIC, FPGA, Simulation).
@@ -298,7 +298,7 @@ Moreover, FreeRTOS is being fetch from 'https://github.com/FreeRTOS/FreeRTOS-Ker
 
 ## Simulating
 
-This project supports simulation with Verilator, Synopsys VCS, and Siemens Questasim.
+This project supports simulation with Verilator, Synopsys VCS, Siemens Questasim and Cadence Xcelium.
 It relies on `fusesoc` to handle multiple EDA tools and parameters.
 For example, if you want to set the `FPU` and `COREV_PULP` parameters of the `cv32e40p` CPU,
 you need to add next to your compilation command `FUSESOC_PARAM="--COREV_PULP=1 --FPU=1"`
@@ -370,7 +370,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-vcs
 
 and running the same executable as for the digital simulation. Note that with Verdi you can view both the digital and the analog waveforms.
 
-Additional instructions on how to run an analog / mixed-signal simulation of X-HEEP can be found [here](AnalogMixedSignal.md). To try out the simulation, we provide an example SPICE netlist of an simple 1-bit ADC created by us and exported from [xschem](https://xschem.sourceforge.io/stefan/index.html) and which uses the PTM 65nm bulk CMOS model from [https://ptm.asu.edu](https://ptm.asu.edu/).
+Additional instructions on how to run an analog / mixed-signal simulation of X-HEEP can be found [here](./docs/source/How_to/AnalogMixedSignal.md). To try out the simulation, we provide an example SPICE netlist of an simple 1-bit ADC created by us and exported from [xschem](https://xschem.sourceforge.io/stefan/index.html) and which uses the PTM 65nm bulk CMOS model from [https://ptm.asu.edu](https://ptm.asu.edu/).
 
 ### Compiling for Questasim
 
@@ -422,6 +422,26 @@ make run RUN_OPT=1 RUN_UPF=1 PLUSARGS="c firmware=../../../sw/build/main.hex"
 ```
 
 Questasim version must be >= Questasim 2020.4
+
+### Compiling for Xcelium
+
+To simulate your application with Xcelium, first compile the HDL:
+
+```
+make xcelium-sim
+```
+
+then, go to your target system built folder
+
+```
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-xcelium/
+```
+
+and type to run your compiled software:
+
+```
+make run PLUSARGS="c firmware=../../../sw/build/main.hex"
+```
 
 ### UART DPI
 
@@ -499,13 +519,13 @@ The success of the script is not required for merging of a PR.
 
 ## Debug
 
-Follow the [Debug](./Debug.md) guide to debug core-v-mini-mcu.
+Follow the [Debug](./docs/source/How_to/Debug.md) guide to debug core-v-mini-mcu.
 
 Alternatively, in case you are used to developing using Integrated Development Environments (IDEs), please check [the IDE readme](./IDEs.md).
 
 ## Execute From Flash
 
-Follow the [ExecuteFromFlash](./ExecuteFromFlash.md) guide to exxecute code directly from the FLASH with modelsim, FPGA, or ASIC.
+Follow the [ExecuteFromFlash](./docs/source/How_to/ExecuteFromFlash.md) guide to exxecute code directly from the FLASH with modelsim, FPGA, or ASIC.
 
 ## Emulation on Xilinx FPGAs
 
@@ -561,9 +581,9 @@ or
 make vivado-fpga-pgm FPGA_BOARD=nexys-a7-100t
 ```
 
-To run SW, follow the [Debug](./Debug.md) guide
+To run SW, follow the [Debug](./docs/source/How_to/Debug.md) guide
 to load the binaries with the HS2 cable over JTAG,
-or follow the [ExecuteFromFlash](./ExecuteFromFlash.md)
+or follow the [ExecuteFromFlash](./docs/source/How_to/ExecuteFromFlash.md)
 guide if you have a FLASH attached to the FPGA.
 
 Do not forget that the `pynq-z2` board requires you to have the ethernet cable attached to the board while running.
@@ -572,7 +592,7 @@ For example, if you want to run your application using flash_exec, do as follow:
 
 compile your application, e.g. `make app PROJECT=example_matfadd TARGET=pynq-z2 ARCH=rv32imfc LINKER=flash_exec`
 
-and then follow the [ExecuteFromFlash](./ExecuteFromFlash.md) to program the flash and set the boot buttons on the FPGA correctly.
+and then follow the [ExecuteFromFlash](./docs/source/How_to/ExecuteFromFlash.md) to program the flash and set the boot buttons on the FPGA correctly.
 
 To look at the output of your printf, run in another terminal:
 
@@ -605,6 +625,6 @@ make asic
 ## OpenRoad support for SkyWater 130nm
 
 We are working on supporting OpenRoad and SkyWater 130nm PDK, please refer to the
-[OpenRoadFlow](./OpenRoadFlow.md) page. This is not ready yet, it has not been tested.
+[Implement on ASIC](./docs/source/How_to/ImplementASIC.md) page. This is not ready yet, it has not been tested.
 
 This relies on a fork of [edalize](https://github.com/davideschiavone/edalize) that contains templates for Design Compiler and OpenRoad.

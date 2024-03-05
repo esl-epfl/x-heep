@@ -10,7 +10,7 @@
 // by Antonio Pullini (pullinia@iis.ee.ethz.ch)
 
 module i2s_ws_gen #(
-    parameter MaxWordWidth,
+    parameter MaxWordWidth = 32,
     localparam int unsigned CounterWidth = $clog2(MaxWordWidth)
 ) (
     input logic sck_i,

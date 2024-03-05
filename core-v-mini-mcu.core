@@ -313,13 +313,17 @@ targets:
     - tool_modelsim? (pre_patch_modelsim_Makefile)
     - tool_vcs? (cfile_uartdpi)
     - tool_vcs? (pre_build_remote_bitbang)
+    - tool_xcelium? (pre_build_remote_bitbang)
+    - tool_xcelium? (pre_build_uartdpi)
     - tool_verilator? (tb-verilator)
     - tool_modelsim? (tb-sv)
     - tool_vcs? (tb-sv)
+    - tool_xcelium? (tb-sv)
     - "!integrated_heep? (x_heep_system)"
     toplevel:
     - tool_modelsim? (tb_top)
     - tool_vcs? (tb_top)
+    - tool_xcelium? (tb_top)
     - tool_verilator? (testharness)
     hooks:
       pre_build:
@@ -327,6 +331,8 @@ targets:
         - tool_modelsim? (pre_build_remote_bitbang)
         - tool_modelsim? (pre_patch_modelsim_Makefile) # this is required by Questa 2020 on
         - ams_sim? (pre_patch_vcs_ams_Makefile)
+        - tool_xcelium? (pre_build_uartdpi)
+        - tool_xcelium? (pre_build_remote_bitbang)
     parameters:
     - COREV_PULP
     - FPU
@@ -364,6 +370,12 @@ targets:
          - -LDFLAGS "-pthread -lutil"
          - +lint=TFIPC-L
          - -V
+      xcelium:
+        xrun_options:
+        - -vtimescale 1ns/10ps
+        - -sv_lib ../../../hw/vendor/lowrisc_opentitan/hw/dv/dpi/uartdpi/uartdpi.so
+        - -sv_lib ../../../hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang/librbs.so
+        - -define XCELIUM
       verilator:
         mode: cc
         verilator_options:
