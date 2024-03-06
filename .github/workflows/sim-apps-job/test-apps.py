@@ -20,7 +20,7 @@ class bcolors:
 
 
 SIMULATOR = "verilator"
-SIM_TIMEOUT_S = 300
+SIM_TIMEOUT_S = 600
 LINKER = "on_chip"
 COMPILER = "gcc"
 
@@ -44,22 +44,24 @@ apps = {app: {"building": "", "simulation": ""} for app in app_list}
 
 # Compile the {SIMULATOR} model and suppress the output
 print(bcolors.OKBLUE + f"Generating {SIMULATOR} model of X-HEEP..." + bcolors.ENDC)
-simulation_build_output = subprocess.run(
-    ["make", f"{SIMULATOR}-sim"], capture_output=True, check=False
-)
-# Check if the {SIMULATOR} model was built successfully
+try:
+    simulation_build_output = subprocess.run(
+        ["make", f"{SIMULATOR}-sim"], capture_output=True, check=False
+    )
+Check if the {SIMULATOR} model was built successfully
 
-if "ERROR:" in str(simulation_build_output.stdout.decode("utf-8")):
+except subprocess.CalledProcessError:
     print(bcolors.FAIL + "=====================================" + bcolors.ENDC)
     print(bcolors.FAIL + "Error building verilated model!" + bcolors.ENDC)
     print(bcolors.FAIL + "=====================================" + bcolors.ENDC)
     print(str(simulation_build_output.stdout.decode("utf-8")))
     exit(1)
-print(
-    bcolors.OKGREEN
-    + f"Generated {SIMULATOR} model of X-HEEP successfully!"
-    + bcolors.ENDC
-)
+else:
+    print(
+        bcolors.OKGREEN
+        + f"Generated {SIMULATOR} model of X-HEEP successfully!"
+        + bcolors.ENDC
+    )
 
 # dirty_o.write(str(simulation_build_output.stdout.decode('utf-8')) + "\n")
 
@@ -70,20 +72,21 @@ for an_app in apps.keys():
     if an_app not in blacklist:
         apps[an_app] = {"building": "OK", "simulation": "OK"}
         print(bcolors.OKBLUE + f"Compiling {an_app}..." + bcolors.ENDC)
-        compile_output = subprocess.run(
-            [
-                "make",
-                "app",
-                f"PROJECT={an_app}",
-                f"COMPILER={COMPILER}",
-                f"LINKER={LINKER}",
-            ],
-            capture_output=True,
-            check=False,
-        )
-        if "Error" in str(compile_output.stdout.decode("utf-8")):
+        try:
+            compile_output = subprocess.run(
+                [
+                    "make",
+                    "app",
+                    f"PROJECT={an_app}",
+                    f"COMPILER={COMPILER}",
+                    f"LINKER={LINKER}",
+                ],
+                capture_output=True,
+                check=True,
+            )
+        except subprocess.CalledProcessError as exc:
             print(bcolors.FAIL + f"Error compiling {an_app}!" + bcolors.ENDC)
-            print(str(compile_output.stdout.decode("utf-8")))
+            print(exc.stderr.decode("utf-8"))
             apps[an_app] = {"building": "Failed", "simulation": "Skipped"}
         else:
             apps[an_app] = {"building": "OK", "simulation": "Skipped"}
@@ -120,6 +123,7 @@ for an_app in apps.keys():
                     uart_output = open(
                         "build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator/uart0.log",
                         "r",
+                        "utf-8",
                     )
                     print(bcolors.FAIL + "UART output:" + bcolors.ENDC)
                     print(bcolors.FAIL + uart_output.read() + bcolors.ENDC)
