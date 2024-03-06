@@ -180,11 +180,7 @@ class XHeep():
         if not ("code" in self._used_section_names and "data" in self._used_section_names):
             print("The code and data sections are needed")
             return False
-
-        #TODO: clarify why
-        if self._linker_sections[0].size < 32*1024:
-            print("The code section must be at least 32KB, instead it is " + self._linker_sections[0].size)
-            return False
+        
         return True
     
 
