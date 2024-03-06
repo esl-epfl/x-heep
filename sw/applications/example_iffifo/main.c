@@ -38,7 +38,7 @@
     #define PRINTF(...)
 #endif
 
-unsigned int IFFIFO_START_ADDRESS = EXT_PERIPHERAL_START_ADDRESS + 0x20000;
+unsigned int IFFIFO_START_ADDRESS = EXT_PERIPHERAL_START_ADDRESS + 0x2000;
 
 int32_t to_fifo  [6]   __attribute__ ((aligned (4)))  = { 1, 2, 3, 4, 5, 6 };
 int32_t from_fifo[4]   __attribute__ ((aligned (4)))  = { 0, 0, 0, 0 };
