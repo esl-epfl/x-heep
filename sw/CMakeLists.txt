@@ -62,11 +62,11 @@ SET(MAINFILE "main")
 FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.h)
 SET(dir_list_str "")
 FOREACH(file_path ${new_list})
-SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
-if(${file_path} MATCHES "${ROOT_PROJECT}device/")
-  if(${file_path} MATCHES "${ROOT_PROJECT}device/target/") # Add it if its not in target, or if its in target/${TARGET}
-    if(${file_path} MATCHES "${ROOT_PROJECT}device/target/${TARGET}")
-      SET(add 1)
+  SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
+  if(${file_path} MATCHES "${ROOT_PROJECT}device/")
+    if(${file_path} MATCHES "${ROOT_PROJECT}device/target/") # Add it if its not in target, or if its in target/${TARGET}
+      if(${file_path} MATCHES "${ROOT_PROJECT}device/target/${TARGET}")
+        SET(add 1)
       endif()
     else()
       SET(add 1)
