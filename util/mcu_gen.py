@@ -18,7 +18,7 @@ from jsonref import JsonRef
 from mako.template import Template
 import collections
 from math import log2
-import xheep_gen
+import x_heep_gen
 
 class Pad:
 
@@ -285,7 +285,7 @@ def write_template(tpl_path, outdir, outfile, **kwargs):
             raise FileNotFoundError
 
 def main():
-    xheep = xheep_gen.main()
+    xheep = x_heep_gen.main()
     parser = argparse.ArgumentParser(prog="mcugen")
     parser.add_argument("--cfg",
                         "-c",

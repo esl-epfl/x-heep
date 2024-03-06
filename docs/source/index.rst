@@ -82,3 +82,11 @@ Index
    :caption: Peripherals
 
    ./Peripherals/*
+
+.. toctree::
+   :maxdepth: 4
+   :glob:
+   :caption: Configuration
+
+   ./Configuration/*
+   ./Configuration/generated/modules.rst
