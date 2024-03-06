@@ -371,7 +371,7 @@ plic_result_t plic_assign_external_irq_handler( uint32_t id,
 {
   if( id >= EXT_IRQ_START && id <= QTY_INTR )
   {
-    handlers[ id ] = (handler_funct_t*) handler;
+    handlers[ id ] = (handler_funct_t) handler;
     return kPlicOk;
   }
   return kPlicBadArg;

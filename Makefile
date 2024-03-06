@@ -58,6 +58,28 @@ SIMULATOR ?= verilator
 # Timeout for simulation, default 120
 TIMEOUT ?= 120
 
+# Flash read address for testing, in hexadecimal format 0x0000
+FLASHREAD_ADDR ?= 0x0
+FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.hex
+FLASHREAD_BYTES ?= 256
+
+#max address in the hex file, used to program the flash
+ifeq ($(wildcard sw/build/main.hex),)
+	MAX_HEX_ADDRESS  = 0
+	MAX_HEX_ADDRESS_DEC = 0
+	BYTES_AFTER_MAX_HEX_ADDRESS = 0
+	FLASHRWITE_BYTES = 0
+else
+	MAX_HEX_ADDRESS  = $(shell cat sw/build/main.hex | grep "@" | tail -1 | cut -c2-)
+	MAX_HEX_ADDRESS_DEC = $(shell printf "%d" 0x$(MAX_HEX_ADDRESS))
+	BYTES_AFTER_MAX_HEX_ADDRESS = $(shell tac sw/build/main.hex | awk 'BEGIN {count=0} /@/ {print count; exit} {count++}')
+	FLASHRWITE_BYTES = $(shell echo $(MAX_HEX_ADDRESS_DEC) + $(BYTES_AFTER_MAX_HEX_ADDRESS)*16 | bc)
+endif
+
+
+#binary to store in flash memory
+FLASHWRITE_FILE = $(mkfile_path)/sw/build/main.hex
+
 # Export variables to sub-makefiles
 export
 
@@ -67,13 +89,6 @@ conda: environment.yml
 
 environment.yml: python-requirements.txt
 	util/python-requirements2conda.sh
-
-## @section Linux-Emulation
-
-## Generates FEMU
-linux-femu-gen: mcu-gen
-	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir linux_femu/rtl/ --tpl-sv linux_femu/rtl/linux_femu.sv.tpl
-	$(MAKE) verible
 
 ## @section Installation
 
@@ -165,6 +180,10 @@ vcs-sim:
 vcs-ams-sim:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --flag "ams_sim" --tool=vcs $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildsim.log
 
+## xcelium simulation
+xcelium-sim:
+	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=xcelium $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildsim.log
+
 ## Generates the build output for helloworld application
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
@@ -208,6 +227,9 @@ vivado-fpga:
 vivado-fpga-nobuild:
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildvivado.log
 
+vivado-fpga-pgm:
+	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/$(FPGA_BOARD)-vivado pgm
+
 ## @section ASIC
 ## Note that for this step you need to provide technology-dependent files (e.g., libs, constraints)
 asic:
@@ -230,11 +252,20 @@ flash-readid:
 ## Loads the obtained binary to the EPFL_Programmer flash
 flash-prog:
 	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
-	./iceprog -d i:0x0403:0x6011 -I B $(mkfile_path)/sw/build/main.hex;
+	./iceprog -a $(FLASHRWITE_BYTES) -d i:0x0403:0x6011 -I B $(FLASHWRITE_FILE);
+
+## Read the EPFL_Programmer flash
+flash-read:
+	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
+	./iceprog -d i:0x0403:0x6011 -I B -o $(shell printf "%d" $(FLASHREAD_ADDR)) -R $(FLASHREAD_BYTES) $(FLASHREAD_FILE);
 
 ## Run openOCD w/ EPFL_Programmer
 openOCD_epflp:
 	xterm -e openocd -f ./tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg;
+
+## Run openOCD w/ BSCAN of the Pynq-Z2 board
+openOCD_bscan:
+	xterm -e openocd -f ./tb/core-v-mini-mcu-pynq-z2-bscan.cfg;
 
 ## Start GDB
 gdb_connect:

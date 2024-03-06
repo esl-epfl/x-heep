@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "handler.h"
-
 #include "csr.h"
 #include "stdasm.h"
+#include <stdio.h>'
 
 /**
  * Return value of mtval
