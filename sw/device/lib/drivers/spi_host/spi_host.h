@@ -1,42 +1,61 @@
-// Copyright EPFL contributors.
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
-// SPDX-License-Identifier: Apache-2.0
+/*
+                              *******************
+******************************* C SOURCE FILE *****************************
+**                            *******************
+**
+** project  : X-HEEP
+** filename : spi_host.h
+** version  : 1
+** date     : 06/03/24
+**
+***************************************************************************
+**
+** Copyright (c) EPFL contributors.
+** All rights reserved.
+**
+***************************************************************************
+*/
 
-// Basic device functions for opentitan SPI host
+/***************************************************************************/
+/***************************************************************************/
+/**
+* @file   spi_host.h
+* @date   06/03/24
+* @brief  The Serial Peripheral Interface (SPI) driver to set up and use the
+* SPI peripheral
+*/
 
 #ifndef _DRIVERS_SPI_HOST_H_
 #define _DRIVERS_SPI_HOST_H_
 
+/****************************************************************************/
+/**                                                                        **/
+/**                            MODULES USED                                **/
+/**                                                                        **/
+/****************************************************************************/
+
 #include <stdint.h>
 
 #include "mmio.h"
-#include "spi_host_regs.h"
-#include "spi_host_structs.h"
+
+#include "spi_host_regs.h"       // Generated
+#include "spi_host_structs.h"    // Generated
+
+/****************************************************************************/
+/**                                                                        **/
+/**                       DEFINITIONS AND MACROS                           **/
+/**                                                                        **/
+/****************************************************************************/
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * Initialization parameters for SPI.
- *
- */
-typedef struct spi {
-    /**
-    * The base address for the SPI hardware registers.
-    */
-    mmio_region_t base_addr;
-} spi_host_t;
-
-/**
-* SPI channel status structure
-*/
-typedef struct spi_ch_status {
-    bool empty : 1;
-    bool full  : 1;
-    bool wm    : 1;
-    bool stall : 1;
-} spi_ch_status_t;
+/****************************************************************************/
+/**                                                                        **/
+/**                       TYPEDEFS AND STRUCTURES                          **/
+/**                                                                        **/
+/****************************************************************************/
 
 /**
 * SPI speed type
@@ -56,6 +75,31 @@ typedef enum {
     kSpiDirTxOnly       = 2,
     kSpiDirBidir        = 3
 } spi_dir_e;
+
+/**
+ * Initialization parameters for SPI.
+ * 
+ * @ToDo Remove from here and place in the .c file as global variable holding 
+ * pointer to the spi_host structure to mirror dma module behaviour
+ */
+typedef struct spi {
+    /**
+    * The base address for the SPI hardware registers.
+    */
+    mmio_region_t base_addr;
+} spi_host_t;
+
+/**
+* SPI channel (TX/RX) status structure
+*/
+typedef struct spi_ch_status {
+    bool empty : 1; // channel FIFO is empty
+    bool full  : 1; // channel FIFO is full
+    bool wm    : 1; // amount of words in channel FIFO exceeds watermark (if 
+                    // RX) or is currently less than watermark (if TX)
+    bool stall : 1; // RX FIFO is full and SPI is waiting for software to remove
+                    // data or TX FIFO is empty and SPI is waiting for data
+} spi_ch_status_t;
 
 /**
 * SPI chip (slave) configuration structure
@@ -80,6 +124,18 @@ typedef struct spi_command {
     spi_speed_e speed       : 2;
     spi_dir_e   direction   : 2;
 } spi_command_t;
+
+/****************************************************************************/
+/**                                                                        **/
+/**                          EXPORTED VARIABLES                            **/
+/**                                                                        **/
+/****************************************************************************/
+
+/****************************************************************************/
+/**                                                                        **/
+/**                          EXPORTED FUNCTIONS                            **/
+/**                                                                        **/
+/****************************************************************************/
 
 // SPI registers access functions
 
@@ -235,8 +291,11 @@ void spi_enable_txempty_intr(const spi_host_t *spi, bool enable);
  */
 void spi_output_enable(const spi_host_t *spi, bool enable);
 
-
-// Inline functions
+/****************************************************************************/
+/**                                                                        **/
+/**                          INLINE FUNCTIONS                              **/
+/**                                                                        **/
+/****************************************************************************/
 
 /**
  * Read SPI status register
@@ -363,3 +422,9 @@ __attribute__((weak, optimize("O0"))) void handler_irq_spi(uint32_t id);
 #endif
 
 #endif // _DRIVERS_SPI_HOST_H_
+
+/****************************************************************************/
+/**                                                                        **/
+/**                                EOF                                     **/
+/**                                                                        **/
+/****************************************************************************/
