@@ -18,8 +18,18 @@ uint32_t  buffer_rnd_index[BUFF_LEN];
 #define CACHE_SIZE    4*1024
 #endif
 
-#define MEMORY_SIZE       32*1024
-#define MEMORY_ADDR_MASK  0x7FFF
+#define MEMORY_SIZE           32*1024
+#define MEMORY_ADDR_MASK       0x7FFF
+#define MEMORY_MAX_WORD_INDEX  (MEMORY_SIZE/4)
+
+int is_in_array(uint32_t number, uint32_t* array, int N ) {
+
+    for (int i=0;i<N;i++) {
+        if (number == array[i])
+            return 1;
+    }
+    return 0;
+}
 
 int main(int argc, char *argv[])
 {
@@ -53,7 +63,11 @@ int main(int argc, char *argv[])
 
     //test 2
     for(int i=0;i<BUFF_LEN;i++) {
-        random_number = (uint32_t)(heep_rand_lfsr()) & MEMORY_ADDR_MASK;
+
+        do {
+            random_number = (uint32_t)(heep_rand_lfsr()) % MEMORY_MAX_WORD_INDEX;
+        } while ( is_in_array(random_number, buffer_rnd_index, i) );
+
         buffer_rnd_index[i] = random_number;
         ext_memory[buffer_rnd_index[i]] = i*16;
     }
