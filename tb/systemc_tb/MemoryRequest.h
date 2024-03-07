@@ -188,6 +188,7 @@ SC_MODULE(MemoryRequest)
             obi_new_gnt.notify();
 
             uint32_t addr_to_read = cache->get_base_address(addr_i);
+            uint32_t addr_offset  = cache->get_block_offset(addr_i);
 
             //first read block_size bytes from memory to place them in cache regardless of the cmd
             memory_copy(addr_to_read, main_mem_data, cache_block_size_word, false, trans, delay);
@@ -219,7 +220,7 @@ SC_MODULE(MemoryRequest)
               cache->set_word(addr_i, rwdata_io);
 
             //now give back the rdata
-            rwdata_io = main_mem_data[0];
+            rwdata_io = main_mem_data[addr_offset>>2]; //>>2 as addr_offset is for byte address, not words
 
             //wait some time before giving the rvalid
             wait(delay_rvalid_miss);

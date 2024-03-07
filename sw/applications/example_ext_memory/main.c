@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
     for(int i=0;i<BUFF_LEN;i++){
         if (ext_memory[i] != i) {
-            printf("base memory address: Expected %x, got %x\n",i,ext_memory[i]);
+            printf("%d) T1: exp. %x, got %x (@%x)\n",i, i,ext_memory[i],&ext_memory[i]);
             errors++;
         }
     }
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 
     for(int i=0;i<BUFF_LEN;i++){
         if (ext_memory[buffer_rnd_index[i]] != i*16) {
-            printf("random memory address: Expected %x, got %x\n",i*16, ext_memory[buffer_rnd_index[i]]);
+            printf("%d) T2: exp. %x, got %x (@%x)\n",i, i*16,ext_memory[buffer_rnd_index[i]],&ext_memory[buffer_rnd_index[i]]);
             errors++;
         }
     }
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 
     for(int i=0;i<BUFF_LEN;i++){
         if (myptr1[i] != i*32) {
-            printf("extended memory address: Expected %x, got %x\n",i*32,myptr1[i]);
+            printf("%d) T3: exp. %x, got %x (@%x)\n",i, i*32,myptr1[i],&myptr1[i]);
             errors++;
         }
     }
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 
     for(int i=0;i<BUFF_LEN;i++){
         if (myptr1[i] != i*32) {
-            printf("flushed and bypass cache, memory address: Expected %x, got %x\n",i*32,myptr1[i]);
+            printf("%d) T4: exp. %x, got %x (@%x)\n",i, i*32,myptr1[i],&myptr1[i]);
             errors++;
         }
     }
