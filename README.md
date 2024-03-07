@@ -338,6 +338,8 @@ and type to run your compiled software:
 ./Vtestharness +firmware=../../../sw/build/main.hex
 ```
 
+If you want to know what is special about the SystemC testbench, have a look [here](./docs/source/How_to/SystemC.md)
+
 ### Compiling for VCS
 
 To simulate your application with VCS, first compile the HDL:
