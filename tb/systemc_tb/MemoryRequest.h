@@ -28,7 +28,6 @@ SC_MODULE(MemoryRequest)
   uint32_t                                      rwdata_io;
   CacheMemory*                                  cache;
   std::ofstream                                 heep_mem_transactions;
-  std::ofstream                                 cache_mem_transactions;
   bool                                          bypass_state = false;
 
   typedef struct cache_statistics
@@ -42,8 +41,7 @@ SC_MODULE(MemoryRequest)
 
   SC_CTOR(MemoryRequest)
   : socket("socket"),  // Construct and name socket
-    heep_mem_transactions("heep_mem_transactions.log"),
-    cache_mem_transactions("cache_mem_transactions.log")
+    heep_mem_transactions("heep_mem_transactions.log")
   {
 
     cache = new CacheMemory;
@@ -81,9 +79,9 @@ SC_MODULE(MemoryRequest)
           heep_mem_transactions << "Reading from Mem[" << hex << ((addr + i*4) & 0x00007FFF) << "]: " << buffer_data[i] << " at time " << sc_time_stamp() <<std::endl;
       } else {
         if(write_enable)
-          cache_mem_transactions << "Cache Writing to Mem[" << hex << ((addr + i*4) & 0x00007FFF) << "]: " << buffer_data[i] << " at time " << sc_time_stamp() <<std::endl;
+          heep_mem_transactions << "Cache Writing to Mem[" << hex << ((addr + i*4) & 0x00007FFF) << "]: " << buffer_data[i] << " at time " << sc_time_stamp() <<std::endl;
         else
-          cache_mem_transactions << "Cache Reading from Mem[" << hex << ((addr + i*4) & 0x00007FFF) << "]: " << buffer_data[i] << " at time " << sc_time_stamp() <<std::endl;
+          heep_mem_transactions << "Cache Reading from Mem[" << hex << ((addr + i*4) & 0x00007FFF) << "]: " << buffer_data[i] << " at time " << sc_time_stamp() <<std::endl;
       }
       // Initiator obliged to check response status and delay
       if ( trans->is_response_error() )
@@ -130,7 +128,7 @@ SC_MODULE(MemoryRequest)
           //FLUSH Cache
           heep_mem_transactions << "X-HEEP Flush Cache, at time " << sc_time_stamp() << " }" << std::endl;
           uint32_t cache_number_of_blocks = cache->number_of_blocks;
-          cache_mem_transactions<<"Cache Flushing at time "<<sc_time_stamp()<<std::endl;
+          heep_mem_transactions<<"Cache Flushing at time "<<sc_time_stamp()<<std::endl;
           cache_flushed=0;
           for(int i=0;i<cache_number_of_blocks;i++){
               if (cache->is_entry_valid_at_index(i)) {
@@ -142,11 +140,11 @@ SC_MODULE(MemoryRequest)
                 memory_copy(address_to_replace, (uint32_t *)cache_data, cache_block_size_word, true, trans, delay);
             }
           }
-          cache_mem_transactions<<"Cache Flushed "<< dec << cache_flushed << " entries"<<std::endl;
+          heep_mem_transactions<<"Cache Flushed "<< dec << cache_flushed << " entries"<<std::endl;
         } else if (rwdata_io == 2){
           //ByPass Flash from next transaction
           bypass_state = true;
-          cache_mem_transactions<<"Cache ByPass set at time "<<sc_time_stamp()<<std::endl;
+          heep_mem_transactions<<"Cache ByPass set at time "<<sc_time_stamp()<<std::endl;
           heep_mem_transactions << "X-HEEP Bypass Cache, at time " << sc_time_stamp() << " }" << std::endl;
         }
         obi_new_gnt.notify();
@@ -156,6 +154,7 @@ SC_MODULE(MemoryRequest)
       else{
 
         if (bypass_state) {
+          heep_mem_transactions << "Cache in bypass state at time " << sc_time_stamp() <<std::endl;
           wait(delay_gnt_miss);
           obi_new_gnt.notify();
           memory_copy(addr_i, &rwdata_io, 1, we_i == true, trans, delay);
@@ -164,6 +163,7 @@ SC_MODULE(MemoryRequest)
           // we use the cache only to read
           if(cache->cache_hit(addr_i)){
 
+            heep_mem_transactions << "Cache HIT on address " << hex << addr_i << " at time " << sc_time_stamp() <<std::endl;
 
             cache_stat.number_of_hit++;
 
@@ -181,6 +181,8 @@ SC_MODULE(MemoryRequest)
 
             cache_stat.number_of_miss++;
 
+            heep_mem_transactions << "Cache MISS on address " << hex << addr_i << " at time " << sc_time_stamp() <<std::endl;
+
             //wait some time before giving the gnt as we have a miss
             wait(delay_gnt_miss);
             obi_new_gnt.notify();
@@ -189,12 +191,22 @@ SC_MODULE(MemoryRequest)
 
             //first read block_size bytes from memory to place them in cache regardless of the cmd
             memory_copy(addr_to_read, main_mem_data, cache_block_size_word, false, trans, delay);
+            uint32_t index_to_add = cache->get_index(addr_i);
+            uint32_t tag_to_add       = cache->get_tag(addr_i);
+
+            heep_mem_transactions << "Adding to Cache TAG " << hex << tag_to_add << " and index " << hex << index_to_add <<std::endl;
 
             //always write back what will be replace if valid as we do not have dirty bits for simplicity
             if (cache->is_entry_valid(addr_i)) {
               //if we are going to replace a valid entry
               cache->get_data(addr_i, cache_data);
               address_to_replace = cache->get_address(addr_i);
+              uint32_t index_to_replace = cache->get_index(addr_i);
+              uint32_t tag_to_replace = cache->get_tag_from_index(index_to_replace);
+
+              heep_mem_transactions << "Cache Replace address " << hex << addr_i << " with address " << hex << address_to_replace << " due to the MISS at time " << sc_time_stamp() <<std::endl;
+              heep_mem_transactions << "Index to replace " << hex << index_to_replace << " Tag to replace " << tag_to_replace <<std::endl;
+
               //write back
               memory_copy(address_to_replace, (uint32_t *)cache_data, cache_block_size_word, true, trans, delay);
             }

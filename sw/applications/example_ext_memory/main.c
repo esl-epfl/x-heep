@@ -13,6 +13,7 @@
 uint32_t  buffer_rnd_index[BUFF_LEN];
 
 #ifdef TARGET_SYSTEMC
+//make app PROJECT=example_ext_memory TARGET=systemc
 #define CACHE_FLUSH   1
 #define CACHE_BYPASS  2
 #define CACHE_SIZE    4*1024
@@ -41,7 +42,7 @@ int main(int argc, char *argv[])
 
     #ifdef TARGET_SYSTEMC
     //last address of systemC memory used as a configuration register to flush or bypass
-    volatile uint32_t* cache_cfg = (uint32_t*)(EXT_SLAVE_START_ADDRESS + CACHE_SIZE - 4);
+    volatile uint32_t* cache_cfg = (uint32_t*)(EXT_SLAVE_START_ADDRESS + MEMORY_SIZE - 4);
     #endif
 
     uint32_t random_number = 0;
@@ -92,6 +93,14 @@ int main(int argc, char *argv[])
         myptr1[i] = i*32;
     }
 
+    for(int i=0;i<BUFF_LEN;i++){
+        if (myptr1[i] != i*32) {
+            printf("extended memory address: Expected %x, got %x\n",i*32,myptr1[i]);
+            errors++;
+        }
+    }
+
+    //test 4, flush and bypass
     #ifdef TARGET_SYSTEMC
     //make sure you store everything back to main memory and bypass the flash
     *cache_cfg = CACHE_FLUSH;
@@ -100,10 +109,13 @@ int main(int argc, char *argv[])
 
     for(int i=0;i<BUFF_LEN;i++){
         if (myptr1[i] != i*32) {
-            printf("extended memory address: Expected %x, got %x\n",i*32,myptr1[i]);
+            printf("flushed and bypass cache, memory address: Expected %x, got %x\n",i*32,myptr1[i]);
             errors++;
         }
     }
+
+
+
 
     return errors;
 

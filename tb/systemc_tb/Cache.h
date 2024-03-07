@@ -78,21 +78,27 @@ public:
   }
 
   uint32_t get_index(uint32_t address) {
-    return (uint32_t)((address % number_of_blocks) / block_size_byte );
+    uint32_t mask_index = (1 << nbits_index) - 1;
+    return (uint32_t)((address >> nbits_blocks) & mask_index );
   }
 
   uint32_t get_block_offset(uint32_t address) {
-    return (uint32_t)(address % block_size_byte);
+    uint32_t mask_block = (1 << nbits_blocks) - 1;
+    return (uint32_t)(address & mask_block);
   }
 
   uint32_t get_base_address(uint32_t address) {
-    uint32_t block_size_byte_log2 = log2(block_size_byte);
-    return (uint32_t)((address >> block_size_byte_log2) << block_size_byte_log2);
+    return (uint32_t)((address >> nbits_blocks) << nbits_blocks);
   }
 
   uint32_t get_tag(uint32_t address) {
-    return (uint32_t)(address / cache_size_byte);
+    return (uint32_t)(address >> (nbits_index+nbits_blocks));
   }
+
+  uint32_t get_tag_from_index(uint32_t index) {
+    return cache_array[index].tag;
+  }
+
 
   bool cache_hit(uint32_t address) {
     uint32_t index = get_index(address);
@@ -121,13 +127,13 @@ public:
   uint32_t get_address(uint32_t address){
     uint32_t index = get_index(address);
     uint32_t tag   = cache_array[index].tag;
-    uint32_t new_address = tag << (nbits_index+nbits_blocks) | (index<<nbits_blocks);
+    uint32_t new_address = (tag << (nbits_index+nbits_blocks)) | (index<<nbits_blocks); //<<2 as words
     return new_address;
   }
 
   uint32_t get_address_at_index(uint32_t index){
     uint32_t tag   = cache_array[index].tag;
-    uint32_t new_address = tag << (nbits_index+nbits_blocks) | (index<<nbits_blocks);
+    uint32_t new_address = tag << (nbits_index+nbits_blocks) | (index<<nbits_blocks); //<<2 as words
     return new_address;
   }
 
