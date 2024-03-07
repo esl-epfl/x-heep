@@ -49,6 +49,7 @@ void *  _sbrk (ptrdiff_t __incr);
 int     _unlink (const char *__path);
 ssize_t _write (int __fd, const void *__buf, size_t __nbyte);
 int     _execve (const char *__path, char * const __argv[], char * const __envp[]);
+int     _kill (pid_t pid, int sig);
 #endif
 
 
@@ -163,7 +164,7 @@ int _isatty(int file)
     return (file == STDOUT_FILENO);
 }
 
-int _kill(int pid, int sig)
+int _kill(pid_t pid, int sig)
 {
     errno = EINVAL;
     return -1;

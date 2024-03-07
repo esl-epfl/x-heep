@@ -231,7 +231,7 @@ make app
 To run any other application, please use the following command with appropiate parameters:
 
 ```
-app PROJECT=<folder_name_of_the_project_to_be_built> TARGET=sim(default),pynq-z2 LINKER=on_chip(default),flash_load,flash_exec COMPILER=gcc(default),clang COMPILER_PREFIX=riscv32-unknown-(default) ARCH=rv32imc(default),<any RISC-V ISA string supported by the CPU>
+app PROJECT=<folder_name_of_the_project_to_be_built> TARGET=sim(default),systemc,pynq-z2,nexys-a7-100t LINKER=on_chip(default),flash_load,flash_exec COMPILER=gcc(default),clang COMPILER_PREFIX=riscv32-unknown-(default) ARCH=rv32imc(default),<any RISC-V ISA string supported by the CPU>
 
 Params:
 - PROJECT (ex: <folder_name_of_the_project_to_be_built>, hello_world(default))
@@ -281,7 +281,7 @@ For example, if you want to set the `FPU` and `COREV_PULP` parameters of the `cv
 you need to add next to your compilation command `FUSESOC_PARAM="--COREV_PULP=1 --FPU=1"`
 Below the different EDA examples commands.
 
-### Compiling for Verilator
+### Compiling for Verilator (C++ testbench)
 
 To simulate your application with Verilator, first compile the HDL:
 
@@ -306,6 +306,39 @@ or to execute all these three steps type:
 ```
 make run-helloworld
 ```
+
+### Compiling for Verilator (SystemC testbench)
+
+To simulate your application with Verilator using `SystemC`,
+
+make sure you have `SystemC 2.3.3` installed, if not, find it [here](https://www.accellera.org/downloads/standards/systemc).
+
+Make sure to have the following env variables set:
+
+```
+export SYSTEMC_INCLUDE=/your_path_to_systemc/systemc/include/
+export SYSTEMC_LIBDIR=/your_path_to_systemc/systemc/lib-linux64/
+```
+
+Compile the HDL:
+
+```
+make verilator-sim-sc
+```
+
+then, go to your target system built folder
+
+```
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim_sc-verilator
+```
+
+and type to run your compiled software:
+
+```
+./Vtestharness +firmware=../../../sw/build/main.hex
+```
+
+If you want to know what is special about the SystemC testbench, have a look [here](./docs/source/How_to/SystemC.md)
 
 ### Compiling for VCS
 
