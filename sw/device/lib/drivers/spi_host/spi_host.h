@@ -90,6 +90,51 @@ typedef enum {
 } spi_return_flags_e;
 
 /**
+* SPI Watermark Set Return Flags
+*/
+typedef enum {
+    SPI_WATERMARK_OK        = 0x00,    /*!< The Watermark was correctly set */
+    SPI_WATERMARK_EXCEEDS   = 0x01     /*!< The Watermark exceeded SPI_HOST_PARAM_TX_DEPTH 
+    or SPI_HOST_PARAM_RX_DEPTH and was therefore not set */
+} spi_watermark_flags_e;
+
+/**
+* SPI CSID Set Return Flags
+*/
+typedef enum {
+    SPI_CSID_OK         = 0x00,    /*!< The CSID was correctly set */
+    SPI_CSID_INVALID    = 0x01     /*!< The CSID was out of the bounds specified in 
+    SPI_HOST_PARAM_NUM_C_S */
+} spi_csid_flags_e;
+
+/**
+* SPI Configopts Set Return Flags
+*/
+typedef enum {
+    SPI_CONFIGOPTS_OK               = 0x00, /*!< The configopts was correctly set for the provided CSID */
+    SPI_CONFIGOPTS_CSID_INVALID     = 0x01  /*!< The CSID was out of the bounds 
+    specified in SPI_HOST_PARAM_NUM_C_S. @Note that this is equal to SPI_CSID_INVALID */
+} spi_configopts_flags_e;
+
+/**
+* SPI Command Set Return Flags
+*/
+typedef enum {
+    SPI_COMMAND_OK              = 0x00, /*!< The command was correctly written in the register */
+    SPI_COMMAND_QUEUE_FULL      = 0x01, /*!< The CMD FIFO is currently full so couldn't write command */
+    SPI_COMMAND_SPEED_INVALID   = 0x02  /*!< The specified speed is not valid (i.e. = 3) so couldn't write command */
+} spi_command_flags_e;
+
+/**
+* SPI Read/Write Return Flags
+*/
+typedef enum {
+    SPI_READ_WRITE_OK           = 0x00, /*!< Word correctly read / written */
+    SPI_READ_WRITE_QUEUE_FULL   = 0x01, /*!< The TX Queue is full, thus could not write to TX register */
+    SPI_READ_WRITE_QUEUE_EMPTY  = 0x02  /*!< The RX Queue is empty, thus could not read from RX register */
+} spi_read_write_flags_e;
+
+/**
  * Initialization parameters for SPI.
  */
 typedef struct spi {
