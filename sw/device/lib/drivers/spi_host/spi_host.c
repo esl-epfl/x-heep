@@ -76,7 +76,6 @@
 
 volatile uint8_t spi_get_tx_queue_depth(const spi_host_t *spi) {
     volatile uint32_t status_reg = spi_get_status(spi);
-    // return bitfield_field32_read(status_reg, SPI_HOST_STATUS_TXQD_FIELD);
     return bitfield_read(status_reg, SPI_HOST_STATUS_TXQD_MASK, SPI_HOST_STATUS_TXQD_OFFSET);
 }
 
@@ -125,19 +124,25 @@ void spi_set_enable(const spi_host_t *spi, bool enable) {
     spi_host_peri->CONTROL = ctrl_reg;
 }
 
-void spi_set_tx_watermark(const spi_host_t *spi, uint8_t watermark) {
+spi_watermark_flags_e spi_set_tx_watermark(const spi_host_t *spi, uint8_t watermark) {
+    if (watermark > SPI_HOST_PARAM_TX_DEPTH) return SPI_WATERMARK_EXCEEDS;
     volatile uint32_t ctrl_reg = spi_host_peri->CONTROL;
     ctrl_reg = bitfield_write(ctrl_reg, SPI_HOST_CONTROL_TX_WATERMARK_MASK, SPI_HOST_CONTROL_TX_WATERMARK_OFFSET, watermark);
     spi_host_peri->CONTROL = ctrl_reg;
+    return SPI_WATERMARK_OK;
 }
 
-void spi_set_rx_watermark(const spi_host_t *spi, uint8_t watermark) {
+spi_watermark_flags_e spi_set_rx_watermark(const spi_host_t *spi, uint8_t watermark) {
+    if (watermark > SPI_HOST_PARAM_RX_DEPTH) return SPI_WATERMARK_EXCEEDS;
     volatile uint32_t ctrl_reg = spi_host_peri->CONTROL;
     ctrl_reg = bitfield_write(ctrl_reg, SPI_HOST_CONTROL_RX_WATERMARK_MASK, SPI_HOST_CONTROL_RX_WATERMARK_OFFSET, watermark);
     spi_host_peri->CONTROL = ctrl_reg;
+    return SPI_WATERMARK_OK;
 }
 
-void spi_set_configopts(const spi_host_t *spi, uint32_t csid, const uint32_t conf_reg) {
+spi_configopts_flags_e spi_set_configopts(const spi_host_t *spi, uint32_t csid, const uint32_t conf_reg) {
+    // TODO: check if this could be generalized to more than 2 CSIDs... because right 
+    // now not very consistent with spi_set_csid which uses SPI_HOST_PARAM_NUM_C_S
     switch (csid)
     {
     case 0:
@@ -147,24 +152,35 @@ void spi_set_configopts(const spi_host_t *spi, uint32_t csid, const uint32_t con
         spi_host_peri->CONFIGOPTS1 = conf_reg;
         break;
     default:
+        return SPI_CONFIGOPTS_CSID_INVALID;
         break;
     }
+    return SPI_CONFIGOPTS_OK;
 }
 
-void spi_set_csid(const spi_host_t* spi, uint32_t csid) {
+spi_csid_flags_e spi_set_csid(const spi_host_t* spi, uint32_t csid) {
+    if (csid >= SPI_HOST_PARAM_NUM_C_S) return SPI_CSID_INVALID;
     spi_host_peri->CSID = csid;
+    return SPI_CSID_OK;
 }
 
-void spi_set_command(const spi_host_t *spi, const uint32_t cmd_reg) {
+spi_command_flags_e spi_set_command(const spi_host_t *spi, const uint32_t cmd_reg) {
+    if (bitfield_read(spi_get_status(spi), SPI_HOST_STATUS_CMDQD_MASK, SPI_HOST_STATUS_CMDQD_OFFSET) >= SPI_HOST_PARAM_CMD_DEPTH) return SPI_COMMAND_QUEUE_FULL;
+    if (bitfield_read(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, SPI_HOST_COMMAND_SPEED_OFFSET) == 3) return SPI_COMMAND_SPEED_INVALID;
     spi_host_peri->COMMAND = cmd_reg;
+    return SPI_COMMAND_OK;
 }
 
-void spi_write_word(const spi_host_t *spi, uint32_t wdata) {
+spi_read_write_flags_e spi_write_word(const spi_host_t *spi, uint32_t wdata) {
+    if (spi_get_tx_queue_depth(spi) >= SPI_HOST_PARAM_TX_DEPTH) return SPI_READ_WRITE_QUEUE_FULL;
     spi_host_peri->TXDATA = wdata;
+    return SPI_READ_WRITE_OK;
 }
 
-void spi_read_word(const spi_host_t *spi, uint32_t* dst) {
+spi_read_write_flags_e spi_read_word(const spi_host_t *spi, uint32_t* dst) {
+    if (spi_get_rx_queue_depth(spi) == 0) return SPI_READ_WRITE_QUEUE_EMPTY;
     *dst = spi_host_peri->RXDATA;
+    return SPI_READ_WRITE_OK;
 }
 
 void spi_enable_evt_intr(const spi_host_t *spi, bool enable) {
