@@ -77,10 +77,52 @@ typedef enum {
 } spi_dir_e;
 
 /**
+* SPI Watermark Set Return Flags
+*/
+typedef enum {
+    SPI_WATERMARK_OK        = 0x00,    /*!< The Watermark was correctly set */
+    SPI_WATERMARK_EXCEEDS   = 0x01     /*!< The Watermark exceeded SPI_HOST_PARAM_TX_DEPTH 
+    or SPI_HOST_PARAM_RX_DEPTH and was therefore not set */
+} spi_watermark_flags_e;
+
+/**
+* SPI CSID Set Return Flags
+*/
+typedef enum {
+    SPI_CSID_OK         = 0x00,    /*!< The CSID was correctly set */
+    SPI_CSID_INVALID    = 0x01     /*!< The CSID was out of the bounds specified in 
+    SPI_HOST_PARAM_NUM_C_S */
+} spi_csid_flags_e;
+
+/**
+* SPI Configopts Set Return Flags
+*/
+typedef enum {
+    SPI_CONFIGOPTS_OK               = 0x00, /*!< The configopts was correctly set for the provided CSID */
+    SPI_CONFIGOPTS_CSID_INVALID     = 0x01  /*!< The CSID was out of the bounds 
+    specified in SPI_HOST_PARAM_NUM_C_S. @Note that this is equal to SPI_CSID_INVALID */
+} spi_configopts_flags_e;
+
+/**
+* SPI Command Set Return Flags
+*/
+typedef enum {
+    SPI_COMMAND_OK              = 0x00, /*!< The command was correctly written in the register */
+    SPI_COMMAND_QUEUE_FULL      = 0x01, /*!< The CMD FIFO is currently full so couldn't write command */
+    SPI_COMMAND_SPEED_INVALID   = 0x02  /*!< The specified speed is not valid (i.e. = 3) so couldn't write command */
+} spi_command_flags_e;
+
+/**
+* SPI Read/Write Return Flags
+*/
+typedef enum {
+    SPI_READ_WRITE_OK           = 0x00, /*!< Word correctly read / written */
+    SPI_READ_WRITE_QUEUE_FULL   = 0x01, /*!< The TX Queue is full, thus could not write to TX register */
+    SPI_READ_WRITE_QUEUE_EMPTY  = 0x02  /*!< The RX Queue is empty, thus could not read from RX register */
+} spi_read_write_flags_e;
+
+/**
  * Initialization parameters for SPI.
- * 
- * @ToDo Remove from here and place in the .c file as global variable holding 
- * pointer to the spi_host structure to mirror dma module behaviour
  */
 typedef struct spi {
     /**
@@ -199,16 +241,20 @@ void spi_set_enable(const spi_host_t *spi, bool enable);
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param watermark Queue/fifo trigger level (minimum level).
+ * @return Flag indicating problems. Returns SPI_WATERMARK_OK == 0 if everithing
+ * went well.
  */
-void spi_set_tx_watermark(const spi_host_t *spi, uint8_t watermark);
+spi_watermark_flags_e spi_set_tx_watermark(const spi_host_t *spi, uint8_t watermark);
 
 /**
  * Set the receive queue watermark level (to enable interrupt triggering).
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param watermark Queue/fifo trigger level (maximum level).
+ * @return Flag indicating problems. Returns SPI_WATERMARK_OK == 0 if everithing
+ * went well.
  */
-void spi_set_rx_watermark(const spi_host_t *spi, uint8_t watermark);
+spi_watermark_flags_e spi_set_rx_watermark(const spi_host_t *spi, uint8_t watermark);
 
 /**
  * Set the requirement of a target device (i.e., a slave).
@@ -216,40 +262,50 @@ void spi_set_rx_watermark(const spi_host_t *spi, uint8_t watermark);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param csid Chip Select (CS) ID.
  * @param conf_reg Slave transmission configuration.
+ * @return Flag indicating problems. Returns SPI_CONFIGOPTS_OK == 0 if everithing
+ * went well.
  */
-void spi_set_configopts(const spi_host_t *spi, uint32_t csid, uint32_t conf_reg);
+spi_configopts_flags_e spi_set_configopts(const spi_host_t *spi, uint32_t csid, uint32_t conf_reg);
 
 /**
  * Select which device to target with the next command.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param csid Chip Select (SC) ID.
+ * @return Flag indicating problems. Returns SPI_CSID_OK == 0 if everithing went
+ * well.
  */
-void spi_set_csid(const spi_host_t *spi, uint32_t csid);
+spi_csid_flags_e spi_set_csid(const spi_host_t *spi, uint32_t csid);
 
 /**
  * Set the next command (one for all attached SPI devices).
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param cmd_reg Command register value (Length, speed, ...).
+ * @return Flag indicating problems. Returns SPI_COMMAND_OK == 0 if everithing
+ * went well.
  */
-void spi_set_command(const spi_host_t *spi, uint32_t cmd_reg);
+spi_command_flags_e spi_set_command(const spi_host_t *spi, uint32_t cmd_reg);
 
 /**
  * Write one word to the TX FIFO.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param wdata Data to write.
+ * @return Flag indicating problems. Returns SPI_READ_WRITE_OK == 0 if everithing
+ * went well.
  */
-void spi_write_word(const spi_host_t *spi, uint32_t wdata);
+spi_read_write_flags_e spi_write_word(const spi_host_t *spi, uint32_t wdata);
 
 /**
  * Read one word to the RX FIFO.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param rdata Read data.
+ * @return Flag indicating problems. Returns SPI_READ_WRITE_OK == 0 if everithing
+ * went well.
  */
-void spi_read_word(const spi_host_t *spi, uint32_t* dst);
+spi_read_write_flags_e spi_read_word(const spi_host_t *spi, uint32_t* dst);
 
 /**
  * Enable SPI event interrupt
