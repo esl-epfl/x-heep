@@ -166,6 +166,7 @@ spi_csid_flags_e spi_set_csid(const spi_host_t* spi, uint32_t csid) {
 
 spi_command_flags_e spi_set_command(const spi_host_t *spi, const uint32_t cmd_reg) {
     if (bitfield_read(spi_get_status(spi), SPI_HOST_STATUS_CMDQD_MASK, SPI_HOST_STATUS_CMDQD_OFFSET) >= SPI_HOST_PARAM_CMD_DEPTH) return SPI_COMMAND_QUEUE_FULL;
+    // TODO: add a definition for the number 3
     if (bitfield_read(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, SPI_HOST_COMMAND_SPEED_OFFSET) == 3) return SPI_COMMAND_SPEED_INVALID;
     spi_host_peri->COMMAND = cmd_reg;
     return SPI_COMMAND_OK;
