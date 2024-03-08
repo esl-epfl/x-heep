@@ -302,7 +302,6 @@ void spi_output_enable(const spi_host_t *spi, bool enable);
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) volatile uint32_t spi_get_status(const spi_host_t *spi) {
-    // return mmio_region_read32(spi->base_addr, SPI_HOST_STATUS_REG_OFFSET);
     return spi_host_peri->STATUS;
 }
 
@@ -313,7 +312,6 @@ static inline __attribute__((always_inline)) volatile uint32_t spi_get_status(co
  */
 static inline __attribute__((always_inline)) volatile bool spi_get_active(const spi_host_t *spi) {
     volatile uint32_t status_reg = spi_get_status(spi);
-    // return bitfield_bit32_read(status_reg, SPI_HOST_STATUS_ACTIVE_BIT);
     return bitfield_read(status_reg, BIT_MASK_1, SPI_HOST_STATUS_ACTIVE_BIT);
 }
 
@@ -324,7 +322,6 @@ static inline __attribute__((always_inline)) volatile bool spi_get_active(const 
  */
 static inline __attribute__((always_inline)) volatile bool spi_get_ready(const spi_host_t *spi) {
     volatile uint32_t status_reg = spi_get_status(spi);
-    // return bitfield_bit32_read(status_reg, SPI_HOST_STATUS_READY_BIT);
     return bitfield_read(status_reg, BIT_MASK_1, SPI_HOST_STATUS_READY_BIT);
 }
 
@@ -343,7 +340,6 @@ static inline __attribute__((always_inline)) void spi_wait_for_ready(const spi_h
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(const spi_host_t *spi) {
-    // while (!mmio_region_get_bit32(spi->base_addr, SPI_HOST_STATUS_REG_OFFSET, SPI_HOST_STATUS_TXWM_BIT));
     while (!bitfield_read(spi_host_peri->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXWM_BIT));
 }
 
@@ -353,7 +349,6 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(cons
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const spi_host_t *spi) {
-    // while (!mmio_region_get_bit32(spi->base_addr, SPI_HOST_STATUS_REG_OFFSET, SPI_HOST_STATUS_TXEMPTY_BIT));
     while (!bitfield_read(spi_host_peri->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
 }
 
@@ -363,7 +358,6 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const sp
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(const spi_host_t *spi) {
-    // while (mmio_region_get_bit32(spi->base_addr, SPI_HOST_STATUS_REG_OFFSET, SPI_HOST_STATUS_TXEMPTY_BIT));
     while (!bitfield_read(spi_host_peri->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
 }
 
@@ -373,7 +367,6 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(cons
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const spi_host_t *spi) {
-    // while (mmio_region_get_bit32(spi->base_addr, SPI_HOST_STATUS_REG_OFFSET, SPI_HOST_STATUS_TXFULL_BIT));
     while (!bitfield_read(spi_host_peri->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXFULL_BIT));
 }
 
@@ -383,7 +376,6 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_rx_watermark(const spi_host_t *spi) {
-    // while (!mmio_region_get_bit32(spi->base_addr, SPI_HOST_STATUS_REG_OFFSET, SPI_HOST_STATUS_RXWM_BIT));
     while (!bitfield_read(spi_host_peri->STATUS, BIT_MASK_1, SPI_HOST_STATUS_RXWM_BIT));
 }
 
@@ -394,13 +386,6 @@ static inline __attribute__((always_inline)) void spi_wait_for_rx_watermark(cons
  */
 static inline __attribute__((always_inline)) __attribute__((const)) uint32_t spi_create_configopts(const spi_configopts_t configopts) {
     uint32_t conf_reg = 0;
-    // conf_reg = bitfield_field32_write(conf_reg, SPI_HOST_CONFIGOPTS_0_CLKDIV_0_FIELD, configopts.clkdiv);
-    // conf_reg = bitfield_field32_write(conf_reg, SPI_HOST_CONFIGOPTS_0_CSNIDLE_0_FIELD, configopts.csnidle);
-    // conf_reg = bitfield_field32_write(conf_reg, SPI_HOST_CONFIGOPTS_0_CSNTRAIL_0_FIELD, configopts.csntrail);
-    // conf_reg = bitfield_field32_write(conf_reg, SPI_HOST_CONFIGOPTS_0_CSNLEAD_0_FIELD, configopts.csnlead);
-    // conf_reg = bitfield_bit32_write(conf_reg, SPI_HOST_CONFIGOPTS_0_FULLCYC_0_BIT, configopts.fullcyc);
-    // conf_reg = bitfield_bit32_write(conf_reg, SPI_HOST_CONFIGOPTS_0_CPHA_0_BIT, configopts.cpha);
-    // conf_reg = bitfield_bit32_write(conf_reg, SPI_HOST_CONFIGOPTS_0_CPOL_0_BIT, configopts.cpol);
     conf_reg = bitfield_write(conf_reg, SPI_HOST_CONFIGOPTS_0_CLKDIV_0_MASK, SPI_HOST_CONFIGOPTS_0_CLKDIV_0_OFFSET, configopts.clkdiv);
     conf_reg = bitfield_write(conf_reg, SPI_HOST_CONFIGOPTS_0_CSNIDLE_0_MASK, SPI_HOST_CONFIGOPTS_0_CSNIDLE_0_OFFSET, configopts.csnidle);
     conf_reg = bitfield_write(conf_reg, SPI_HOST_CONFIGOPTS_0_CSNTRAIL_0_MASK, SPI_HOST_CONFIGOPTS_0_CSNTRAIL_0_OFFSET, configopts.csntrail);
@@ -418,10 +403,6 @@ static inline __attribute__((always_inline)) __attribute__((const)) uint32_t spi
  */
 static inline __attribute__((always_inline)) __attribute__((const)) uint32_t spi_create_command(const spi_command_t command) {
     uint32_t cmd_reg = 0;
-    // cmd_reg = bitfield_field32_write(cmd_reg, SPI_HOST_COMMAND_LEN_FIELD, command.len);
-    // cmd_reg = bitfield_bit32_write(cmd_reg, SPI_HOST_COMMAND_CSAAT_BIT, command.csaat);
-    // cmd_reg = bitfield_field32_write(cmd_reg, SPI_HOST_COMMAND_SPEED_FIELD, command.speed);
-    // cmd_reg = bitfield_field32_write(cmd_reg, SPI_HOST_COMMAND_DIRECTION_FIELD, command.direction);
     cmd_reg = bitfield_write(cmd_reg, SPI_HOST_COMMAND_LEN_MASK, SPI_HOST_COMMAND_LEN_OFFSET, command.len);
     cmd_reg = bitfield_write(cmd_reg, BIT_MASK_1, SPI_HOST_COMMAND_CSAAT_BIT, command.csaat);
     cmd_reg = bitfield_write(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, SPI_HOST_COMMAND_SPEED_OFFSET, command.speed);
