@@ -67,3 +67,4 @@ targets:
     filesets:
       - files_rtl
       - target_sim? (files_clk_gate)
+      - target_sim_sc? (files_clk_gate)

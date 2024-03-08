@@ -64,3 +64,4 @@ targets:
     - files_rtl
     - ff_regfile
     - target_sim? (files_clk_gate)
+    - target_sim_sc? (files_clk_gate)
