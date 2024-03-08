@@ -231,11 +231,11 @@ make app
 To run any other application, please use the following command with appropiate parameters:
 
 ```
-app PROJECT=<folder_name_of_the_project_to_be_built> TARGET=sim(default),pynq-z2 LINKER=on_chip(default),flash_load,flash_exec COMPILER=gcc(default),clang COMPILER_PREFIX=riscv32-unknown-(default) ARCH=rv32imc(default),<any RISC-V ISA string supported by the CPU>
+app PROJECT=<folder_name_of_the_project_to_be_built> TARGET=sim(default),pynq-z2,nexys-a7-100t,zcu104 LINKER=on_chip(default),flash_load,flash_exec COMPILER=gcc(default),clang COMPILER_PREFIX=riscv32-unknown-(default) ARCH=rv32imc(default),<any RISC-V ISA string supported by the CPU>
 
 Params:
 - PROJECT (ex: <folder_name_of_the_project_to_be_built>, hello_world(default))
-- TARGET (ex: sim(default),pynq-z2)
+- TARGET (ex: sim(default),pynq-z2,nexys-a7-100t,zcu104)
 - LINKER (ex: on_chip(default),flash_load,flash_exec)
 - COMPILER (ex: gcc(default),clang)
 - COMPILER_PREFIX (ex: riscv32-unknown-(default))
@@ -512,7 +512,7 @@ This project offers two different X-HEEP implementetions on Xilinx FPGAs, called
 
 In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the FPGA, and its input/output are connected to the available headers on the FPGA board.
 
-Two FPGA boards are supported: the Xilinx Pynq-z2 and Nexys-A7-100t.
+Two FPGA boards are supported: the Xilinx Pynq-z2, Nexys-A7-100t, Zynq Ultrascale+ ZCU104.
 
 Make sure you have the FPGA board files installed in your Vivado.
 
@@ -528,6 +528,12 @@ or
 
 ```
 make vivado-fpga FPGA_BOARD=nexys-a7-100t
+```
+
+or
+
+```
+make vivado-fpga FPGA_BOARD=zcu104
 ```
 
 or add the flag `use_bscane_xilinx` to use the native Xilinx scanchain:
