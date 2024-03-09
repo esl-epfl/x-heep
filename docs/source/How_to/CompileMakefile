@@ -14,11 +14,19 @@ To change the default cpu type (i.e., cv32e20), the default bus type (i.e., onet
 the default continuous memory size (i.e., 2 continuous banks) or the default interleaved memory size (i.e., 0 interleaved banks):
 
 ```
-make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=12 MEMORY_BANKS_IL=4
+make mcu-gen CPU=cv32e40p
 ```
 
-The last command generates x-heep with the cv32e40p core, with a parallel bus, and 16 memory banks (12 continuous and 4 interleaved),
-each 32KB, for a total memory of 512KB.
+The last command generates x-heep with the cv32e40p core.
+
+
+To configure the ram banks edit `configs/general.hjson` or provided your own one
+
+```
+make mcu-gen X_HEEP_CFG=configs/my_config.hjson
+```
+
+For more information see Configuration section.
 
 ## Compiling Software
 
