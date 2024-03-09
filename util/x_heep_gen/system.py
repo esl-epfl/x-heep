@@ -50,7 +50,7 @@ class XHeep():
 
     def add_ram_banks(self, bank_sizes: "list[int]", section_name: str):
         """
-        Add ram banks in continous address mode to the system.
+        Add ram banks in continuous address mode to the system.
         The bank size should be a power of two and at least 1kiB.
 
         :param list[int] bank_sizes: list of bank sizes in kiB that should be added to the system
@@ -125,7 +125,7 @@ class XHeep():
     def _add_linker_section(self, banks: "list[Bank]", name: str):
         """
         Internal function to add linker sections
-        :param list[Bank] banks: list of banks that compose the section, assumed to be continous in memory
+        :param list[Bank] banks: list of banks that compose the section, assumed to be continuous in memory
         :param str name: the name of the section.
         :raise ValueError: if the name was allready used for another section or the first and second are not code and data.
         """

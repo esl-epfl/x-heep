@@ -1,0 +1,17 @@
+{
+    bus_type: "NtoM",
+    ram_banks: {
+        code: {sizes: 64}
+        data: {
+            type: continuous
+            num: 2
+            sizes: 32
+        }
+        data_interleaved: {
+            // the name is used by example_matadd_interleaved as .xheep_data_interleaved
+            type: interleaved
+            num: 4
+            size: 16
+        }
+    }
+}

@@ -1,0 +1,10 @@
+{
+    bus_type: "onetoM",
+    ram_banks: {
+        code: {sizes: 64}
+        data: {
+            num: 2
+            sizes: 32
+        }
+    }
+}
