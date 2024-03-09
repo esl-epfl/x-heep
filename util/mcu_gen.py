@@ -18,7 +18,7 @@ from jsonref import JsonRef
 from mako.template import Template
 import collections
 from math import log2
-import x_heep_gen
+import x_heep_gen.load_config
 
 class Pad:
 
@@ -285,7 +285,6 @@ def write_template(tpl_path, outdir, outfile, **kwargs):
             raise FileNotFoundError
 
 def main():
-    xheep = x_heep_gen.main()
     parser = argparse.ArgumentParser(prog="mcugen")
     parser.add_argument("--cfg",
                         "-c",
@@ -293,6 +292,12 @@ def main():
                         type=argparse.FileType('r'),
                         required=True,
                         help="A configuration file")
+    
+    parser.add_argument("--config",
+                        metavar="file",
+                        type=str,
+                        required=True,
+                        help="X-Heep general configuration")
 
     parser.add_argument("--pads_cfg",
                         "-pc",
@@ -362,6 +367,8 @@ def main():
 
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
+    
+    xheep = x_heep_gen.load_config.load_cfg_file(pathlib.PurePath(str(args.config)))
 
     # Read HJSON description of System.
     with args.cfg as file:
