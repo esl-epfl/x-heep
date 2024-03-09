@@ -28,7 +28,7 @@ The CPU subsystem is based on the `RISC-V lowRISC Ibex <https://github.com/lowRI
 Memory banks domains
 ^^^^^^^^^^^^^^^^^^^^
 
-The memory subsystem is divided into 4 32KB banks of memory used to both program instructions and data. Banks are connected to the bus with dedicated interfaces and this allows you to access multiple banks at the same time without conflicts. Each bank can be individually clock-gated or set in retention to save dynamic and leakage power, respectively. Moreover, the memory subsystem is thought to be fine-grained power-gated, switching off each bank that is not needed.
+The memory subsystem is divided into multiple banks that can have different sizes of memory used to both program instructions and data. Banks are connected to the bus with dedicated interfaces and this allows you to access multiple banks at the same time without conflicts. Each bank can be individually clock-gated or set in retention to save dynamic and leakage power, respectively. Moreover, the memory subsystem is thought to be fine-grained power-gated, switching off each bank that is not needed.
 
 Peripheral subsystem domain
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

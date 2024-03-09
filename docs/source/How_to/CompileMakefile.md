@@ -19,6 +19,16 @@ make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=12 MEMORY_BANKS_IL=4
 
 The last command generates x-heep with the cv32e40p core, with a parallel bus, and 16 memory banks (12 continuous and 4 interleaved),
 each 32KB, for a total memory of 512KB.
+This method is limmited to 32KB banks.
+
+To configure the ram banks with more flexibility, edit `configs/general.hjson` or provided your own one.
+Both method work together the first one overrides the second.
+
+```
+make mcu-gen X_HEEP_CFG=configs/my_config.hjson
+```
+
+For more information see Configuration section.
 
 ## Compiling Software
 
