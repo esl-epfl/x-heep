@@ -198,17 +198,16 @@ make mcu-gen
 By default, `X-HEEP` deploys the [cv32e20](https://github.com/openhwgroup/cve2) RISC-V CPU.
 Other supported CPUs are: the [cv32e40p](https://github.com/openhwgroup/cv32e40p), [cv32e40x](https://github.com/openhwgroup/cv32e40x), and the [cv32e40px](https://github.com/esl-epfl/cv32e40px).
 The default bus type of `X-HEEP` is a single-master-at-a-time architecture, (called `onetoM`), but the cross-bar architecture is also supported by setting
-the bus to `NtoM`. Also, the user can select the number of 32kB banks addressed in continuous mode and/or the interleaved mode.
+the bus to `NtoM`. Also, the user can select the number of Banks addressed in continuous mode and/or the interleaved mode and their sizes.
 By default, `X-HEEP` is generated with 2 continuous banks and 0 interleaved banks.
 
 Below an example that changes the default configuration:
 
 ```
-make mcu-gen CPU=cv32e40p BUS=NtoM MEMORY_BANKS=12 MEMORY_BANKS_IL=4
+make mcu-gen CPU=cv32e40p
 ```
 
-The last command generates x-heep with the cv32e40p core, with a parallel bus, and 16 memory banks (12 continuous and 4 interleaved),
-each 32KB, for a total memory of 512KB.
+The last command generates x-heep with the cv32e40p core.
 
 If you are using `X-HEEP` just as a controller for your own system and you do not need any peripheral, you can use the `minimal` configuration file
 when generating the MCU as:
