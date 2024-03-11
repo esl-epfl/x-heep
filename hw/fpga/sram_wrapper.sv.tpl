@@ -26,15 +26,22 @@ module sram_wrapper #(
     // output ports
     output logic [31:0] rdata_o
 );
-
-  xilinx_mem_gen_0 tc_ram_i (
-      .clka (clk_i),
-      .ena  (req_i),
-      .wea  ({4{req_i & we_i}} & be_i),
-      .addra(addr_i),
-      .dina (wdata_i),
-      // output ports
-      .douta(rdata_o)
-  );
-
+<%el = ""%>
+% for num_words in xheep.iter_bank_numwords():
+  ${el}if (NumWords == 32'd${num_words}) begin
+    xilinx_mem_gen_${num_words} tc_ram_i (
+        .clka (clk_i),
+        .ena  (req_i),
+        .wea  ({4{req_i & we_i}} & be_i),
+        .addra(addr_i),
+        .dina (wdata_i),
+        // output ports
+        .douta(rdata_o)
+    );
+  end
+<%el = "else "%>
+% endfor
+  else begin
+    $error("Bank size not generated.");
+  end
 endmodule
