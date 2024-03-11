@@ -153,23 +153,27 @@ package core_v_mini_mcu_pkg;
 
   localparam int unsigned AO_PERIPHERALS_PORT_SEL_WIDTH = AO_PERIPHERALS > 1 ? $clog2(AO_PERIPHERALS) : 32'd1;
 
+
+<%
+  domain = next(xheep.iter_peripheral_domains())
+%>
 ######################################################################
 ## Automatically add all peripherals listed
 ######################################################################
   // switch-on/off peripherals
   // -------------------------
-  localparam PERIPHERALS = ${peripherals_count};
+  localparam PERIPHERALS = ${domain.peripheral_count()};
 
-% for peripheral, addr in peripherals.items():
-  localparam logic [31:0] ${peripheral.upper()}_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${addr["offset"]};
-  localparam logic [31:0] ${peripheral.upper()}_SIZE = 32'h${addr["length"]};
-  localparam logic [31:0] ${peripheral.upper()}_END_ADDRESS = ${peripheral.upper()}_START_ADDRESS + ${peripheral.upper()}_SIZE;
-  localparam logic [31:0] ${peripheral.upper()}_IDX = 32'd${loop.index};
+% for i, periph in enumerate(domain.iter_peripherals()):
+  localparam logic [31:0] ${periph.full_name.upper()}_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${f"{periph.get_offset():08X}"};
+  localparam logic [31:0] ${periph.full_name.upper()}_SIZE = 32'h${f"{periph.get_address_length():08X}"};
+  localparam logic [31:0] ${periph.full_name.upper()}_END_ADDRESS = ${periph.full_name.upper()}_START_ADDRESS + ${periph.full_name.upper()}_SIZE;
+  localparam logic [31:0] ${periph.full_name.upper()}_IDX = 32'd${i};
   
 % endfor
   localparam addr_map_rule_t [PERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
-% for peripheral, addr in peripherals.items():
-      '{ idx: ${peripheral.upper()}_IDX, start_addr: ${peripheral.upper()}_START_ADDRESS, end_addr: ${peripheral.upper()}_END_ADDRESS }${"," if not loop.last else ""}
+% for i, periph in enumerate(domain.iter_peripherals()):
+      '{ idx: ${periph.full_name.upper()}_IDX, start_addr: ${periph.full_name.upper()}_START_ADDRESS, end_addr: ${periph.full_name.upper()}_END_ADDRESS }${"," if i < domain.peripheral_count()-1 else ""}
 % endfor
   };
 
@@ -177,16 +181,16 @@ package core_v_mini_mcu_pkg;
 
   // Interrupts
   // ----------
-  localparam PLIC_NINT = ${plit_n_interrupts};
-  localparam PLIC_USED_NINT = ${plic_used_n_interrupts};
-  localparam NEXT_INT = PLIC_NINT - PLIC_USED_NINT;
+  ##localparam PLIC_NINT = ${plit_n_interrupts};
+  ##localparam PLIC_USED_NINT = ${plic_used_n_interrupts};
+  localparam NEXT_INT = ${xheep.get_ext_intr()};
 
-% for pad in total_pad_list:
-  localparam ${pad.localparam} = ${pad.index};
+% for i, name in enumerate(xheep.get_pad_manager().iterate_pad_index()):
+  localparam ${name} = ${i};
 % endfor
 
-  localparam NUM_PAD = ${total_pad};
-  localparam NUM_PAD_MUXED = ${total_pad_muxed};
+  localparam NUM_PAD = ${xheep.get_pad_manager().get_pad_num()};
+  localparam NUM_PAD_MUXED = ${xheep.get_pad_manager().get_muxed_pad_num()};
 
   localparam int unsigned NUM_PAD_PORT_SEL_WIDTH = NUM_PAD > 1 ? $clog2(NUM_PAD) : 32'd1;
 

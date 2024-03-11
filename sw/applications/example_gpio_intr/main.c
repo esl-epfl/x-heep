@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
         // wait_for_interrupt();
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }
-    gpio_res = gpio_write(GPIO_TB_OUT, false);
+    gpio_res = gpio_write(gpio_1_peri, GPIO_TB_OUT, false);
 
     gpio_assign_irq_handler( GPIO_INTR, &handler_2 );
     gpio_intr_flag = 0;

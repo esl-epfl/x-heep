@@ -69,11 +69,8 @@ module ao_peripheral_subsystem
     // EXTERNAL PERIPH
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
-
-    if_bundle__ao_periph__root.ao_periph bundle__ao_periph__root__if,
-    if_bundle__ao_periph__pd_peripheral.ao_periph bundle__ao_periph__pd_peripheral__if,
-    if_bundle__ao_periph__pad_ring.ao_periph bundle__ao_periph__pad_ring__if,
-    if_bundle__ao_periph__core_v_mini_mcu.ao_periph bundle__ao_periph__core_v_mini_mcu__if
+    
+    ${xheep.get_rh().get_node_ports(xheep.get_ao_node()).strip(",")}
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -93,8 +90,7 @@ module ao_peripheral_subsystem
 
   logic use_spimemio;
 
-  logic spi_flash_dma_rx_valid;
-  logic spi_flash_dma_tx_valid;
+  ${xheep.get_rh().get_node_local_signals(xheep.get_ao_node())}
 
 
   obi_pkg::obi_req_t slave_fifo_req_sel;
@@ -191,10 +187,10 @@ module ao_peripheral_subsystem
       .rst_ni,
       .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SOC_CTRL_IDX]),
-      .boot_select_i(bundle__ao_periph__pad_ring__if.boot_select),
-      .execute_from_flash_i(bundle__ao_periph__pad_ring__if.execute_from_flash),
+      .boot_select_i(${xheep.get_rh().use_source_as_sv("boot_select", xheep.get_ao_node())}),
+      .execute_from_flash_i(${xheep.get_rh().use_source_as_sv("execute_from_flash", xheep.get_ao_node())}),
       .use_spimemio_o(use_spimemio),
-      .exit_valid_o(bundle__ao_periph__pad_ring__if.exit_valid),
+      .exit_valid_o(${xheep.get_rh().use_source_as_sv("exit_valid", xheep.get_ao_node())}),
       .exit_value_o
   );
 
@@ -213,38 +209,38 @@ module ao_peripheral_subsystem
       .yo_reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_MEMIO_IDX]),
       .ot_reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::SPI_FLASH_IDX]),
       .ot_reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_FLASH_IDX]),
-      .spi_flash_sck_o(bundle__ao_periph__pad_ring__if.spi_flash_sck_o),
-      .spi_flash_sck_en_o(bundle__ao_periph__pad_ring__if.spi_flash_sck_en_o),
+      .spi_flash_sck_o(${xheep.get_rh().use_source_as_sv("spi_flash_sck_o", xheep.get_ao_node())}),
+      .spi_flash_sck_en_o(${xheep.get_rh().use_source_as_sv("spi_flash_sck_en_o", xheep.get_ao_node())}),
       .spi_flash_csb_o({
-        bundle__ao_periph__pad_ring__if.spi_flash_csb_1_o,
-        bundle__ao_periph__pad_ring__if.spi_flash_csb_0_o
+        ${xheep.get_rh().use_source_as_sv("spi_flash_csb_1_o", xheep.get_ao_node())},
+        ${xheep.get_rh().use_source_as_sv("spi_flash_csb_0_o", xheep.get_ao_node())}
       }),
       .spi_flash_csb_en_o({
-        bundle__ao_periph__pad_ring__if.spi_flash_csb_1_en_o,
-        bundle__ao_periph__pad_ring__if.spi_flash_csb_0_en_o
+        ${xheep.get_rh().use_source_as_sv("spi_flash_csb_1_en_o", xheep.get_ao_node())},
+        ${xheep.get_rh().use_source_as_sv("spi_flash_csb_0_en_o", xheep.get_ao_node())}
       }),
       .spi_flash_sd_o({
-        bundle__ao_periph__pad_ring__if.spi_flash_sd_3_o,
-        bundle__ao_periph__pad_ring__if.spi_flash_sd_2_o,
-        bundle__ao_periph__pad_ring__if.spi_flash_sd_1_o,
-        bundle__ao_periph__pad_ring__if.spi_flash_sd_0_o
+        ${xheep.get_rh().use_source_as_sv("spi_flash_sd_3_o", xheep.get_ao_node())},
+        ${xheep.get_rh().use_source_as_sv("spi_flash_sd_2_o", xheep.get_ao_node())},
+        ${xheep.get_rh().use_source_as_sv("spi_flash_sd_1_o", xheep.get_ao_node())},
+        ${xheep.get_rh().use_source_as_sv("spi_flash_sd_0_o", xheep.get_ao_node())}
       }),
       .spi_flash_sd_en_o({
-        bundle__ao_periph__pad_ring__if.spi_flash_sd_3_en_o,
-        bundle__ao_periph__pad_ring__if.spi_flash_sd_2_en_o,
-        bundle__ao_periph__pad_ring__if.spi_flash_sd_1_en_o,
-        bundle__ao_periph__pad_ring__if.spi_flash_sd_0_en_o
+        ${xheep.get_rh().use_source_as_sv("spi_flash_sd_3_en_o", xheep.get_ao_node())},
+        ${xheep.get_rh().use_source_as_sv("spi_flash_sd_2_en_o", xheep.get_ao_node())},
+        ${xheep.get_rh().use_source_as_sv("spi_flash_sd_1_en_o", xheep.get_ao_node())},
+        ${xheep.get_rh().use_source_as_sv("spi_flash_sd_0_en_o", xheep.get_ao_node())}
       }),
       .spi_flash_sd_i({
-        bundle__ao_periph__pad_ring__if.spi_flash_sd_3_i,
-        bundle__ao_periph__pad_ring__if.spi_flash_sd_2_i,
-        bundle__ao_periph__pad_ring__if.spi_flash_sd_1_i,
-        bundle__ao_periph__pad_ring__if.spi_flash_sd_0_i
+        ${xheep.get_rh().use_source_as_sv("spi_flash_sd_3_i", xheep.get_ao_node())},
+        ${xheep.get_rh().use_source_as_sv("spi_flash_sd_2_i", xheep.get_ao_node())},
+        ${xheep.get_rh().use_source_as_sv("spi_flash_sd_1_i", xheep.get_ao_node())},
+        ${xheep.get_rh().use_source_as_sv("spi_flash_sd_0_i", xheep.get_ao_node())}
       }),
       .spi_flash_intr_error_o(),
-      .spi_flash_intr_event_o(bundle__ao_periph__core_v_mini_mcu__if.spi_flash_intr),
-      .spi_flash_rx_valid_o(spi_flash_dma_rx_valid),
-      .spi_flash_tx_ready_o(spi_flash_dma_tx_valid)
+      .spi_flash_intr_event_o(${xheep.get_rh().use_source_as_sv("spi_flash_intr", xheep.get_ao_node())}),
+      .spi_flash_rx_valid_o(${xheep.get_rh().use_source_as_sv("spi_flash_dma_rx_valid", xheep.get_ao_node())}),
+      .spi_flash_tx_ready_o(${xheep.get_rh().use_source_as_sv("spi_flash_dma_tx_valid", xheep.get_ao_node())})
   );
 
   power_manager #(
@@ -302,21 +298,13 @@ module ao_peripheral_subsystem
       .rst_ni,
       .tl_i(rv_timer_tl_h2d),
       .tl_o(rv_timer_tl_d2h),
-      .intr_timer_expired_0_0_o(bundle__ao_periph__core_v_mini_mcu__if.rv_timer_0_intr),
-      .intr_timer_expired_1_0_o(bundle__ao_periph__core_v_mini_mcu__if.rv_timer_1_intr)
+      .intr_timer_expired_0_0_o(${xheep.get_rh().use_source_as_sv("rv_timer_0_intr", xheep.get_ao_node())}),
+      .intr_timer_expired_1_0_o(${xheep.get_rh().use_source_as_sv("rv_timer_1_intr", xheep.get_ao_node())})
   );
 
-  parameter DMA_TRIGGER_SLOT_NUM = 7;
+  parameter DMA_TRIGGER_SLOT_NUM = ${xheep.get_rh().get_target_ep_copy("dma_default_target").count};
   logic [DMA_TRIGGER_SLOT_NUM-1:0] dma_trigger_slots;
-  assign dma_trigger_slots = {
-    bundle__ao_periph__pd_peripheral__if.i2s_0_rx_valid,
-    bundle__ao_periph__pd_peripheral__if.spi_host_0_tx_valid,
-    bundle__ao_periph__pd_peripheral__if.spi_host_0_rx_valid,
-    bundle__ao_periph__root__if.dma_ext_tx,
-    bundle__ao_periph__root__if.dma_ext_rx,
-    spi_flash_dma_tx_valid,
-    spi_flash_dma_rx_valid
-  };
+  assign dma_trigger_slots = ${xheep.get_rh().use_target_as_sv_array_multi("dma_default_target", xheep.get_ao_node(), xheep.get_rh().get_target_ep_copy("dma_default_target").count)};
 
   dma #(
       .reg_req_t (reg_pkg::reg_req_t),
@@ -336,8 +324,8 @@ module ao_peripheral_subsystem
       .dma_addr_ch0_req_o,
       .dma_addr_ch0_resp_i,
       .trigger_slot_i(dma_trigger_slots),
-      .dma_done_intr_o(bundle__ao_periph__core_v_mini_mcu__if.dma_done_intr),
-      .dma_window_intr_o(bundle__ao_periph__pd_peripheral__if.dma_window_intr)
+      .dma_done_intr_o(${xheep.get_rh().use_source_as_sv("dma_done_intr", xheep.get_ao_node())}),
+      .dma_window_intr_o(${xheep.get_rh().use_source_as_sv("dma_window_intr", xheep.get_ao_node())})
   );
 
   assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_CONTROL_IDX];

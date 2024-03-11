@@ -62,9 +62,9 @@ extern "C" {
 #define ${key.upper()} ${value}
 % endfor
 
-% if pads_attributes != None:
-% for pad in pad_list:
-#define ${pad.localparam}_ATTRIBUTE ${pad.index}
+% if xheep.get_pad_manager().get_attr_bits() != 0:
+% for i, pad in enumerate(xheep.get_pad_manager().iterate_pad_index()):
+#define ${pad}_ATTRIBUTE ${i}
 % endfor
 % endif
 
