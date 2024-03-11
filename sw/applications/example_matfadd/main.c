@@ -23,93 +23,112 @@
     #define PRINTF(...)
 #endif
 
-typedef enum
-{
-    DEC1 = 10,
-    DEC2 = 100,
-    DEC3 = 1000,
-    DEC4 = 10000,
-    DEC5 = 100000,
-    DEC6 = 1000000,
-
-} tPrecision;
-
 void __attribute__ ((noinline)) matrixAdd(float * A, float * B, float * C, int N, int M);
 uint32_t check_results(float *  C, int N, int M);
 
 float m_c[HEIGHT*WIDTH];
 
-void swap(char *a, char *b)
+void putlong(long i)
 {
-    char temp = *a;
-    *a = *b;
-    *b = temp;
+    char int_str[20]; // An array to store the digits
+    int len = 0; // The length of the string
+    do
+    {
+        // Get the last digit and store it in the array
+        int_str[len] = '0' + i % 10;
+        len++;
+        // Remove the last digit from i
+        i /= 10;
+    } while (i > 0);
+
+    // Print the  reversed string of digits
+    for (int j = len - 1; j >= 0; j--)
+    {
+        putchar(int_str[j]);
+    }
 }
 
-// A function to print a long number using putchar recursively
-void putLong(long x)
+// A function to print a floating point number using putchar
+void putfloat(float x, int p)
 {
-    if(x < 0)
+    // Check if x is negative
+    if (x < 0)
     {
+        // Print a minus sign
         putchar('-');
+        // Make x positive
         x = -x;
     }
-    if (x >= 10) 
+
+    float f = x - (long)x; // Get the fractional part of x
+
+    // Get the p most significant digits of the fractional part as the
+    // integer part of f.
+    // Count the number of initial zeros.
+    int initial_zeros = 0;
+    // Check if the fraction will overflow to the integer part when
+    // rounding up (i.e. if the fraction is 0.999...)
+    int fraction_overflow = 1;
+    for (int j = 0; j < p; j++)
     {
-        putLong(x / 10);
-    }
-    putchar(x % 10+'0');
-}
-
-// A function to print a floating point number
-void putfloat(float x, tPrecision p)
-{
-    // print integer part
-    long i = (long)x;
-    putLong( i ) ;
-
-    // print decimal
-    putchar('.') ;
-
-    // print p zeros directly if x * p < 0.5f 
-    if ( ( x - i ) * p < 0.5f) {
-        long dec_zero = p;
-        while(dec_zero > 1) {
-            putchar('0');
-            dec_zero /= 10;
+        f *= 10;
+        if (f < 1)
+        {
+            // exclude the last digit with round up
+            if (!(j == p - 1 && f >= 0.5f))
+                initial_zeros++;
         }
-        return;
+        if (fraction_overflow && (long)f % 10 < 9)
+        {
+            fraction_overflow = 0;
+        }
     }
 
-    // print zero after the decimal point
-    x = x - i;
-    long scale = 1;
-    while(scale < p) {
-        if ((x * scale * 10 > 0.5f))
-            break;
-        putchar('0');
-        scale *= 10;
-    }
-
-    // scale up decimal part to print it using putlong
-    x = x * p;
-    i = fabs((long)x);
-
-    // round up if necessary
-    if( fabs(x) - i >= 0.5f )
+    // Round up if necessary
+    if ((f - (long)f) >= 0.5f)
     {
-        i++ ;
+        // If the rounding causes a digit to overflow in the fractional
+        // part, then we need to print one less zero
+        if (fraction_overflow == 0)
+        {
+            f += 1;
+            if (f >= 10 && initial_zeros > 0)
+            {
+                initial_zeros--;
+            }
+        }
+        // If the overflow is in the integer part, then we need to print
+        // one more digit in the integer part, and none in the fractional
+        else
+        {
+            f = 0;
+            x += 1;
+            initial_zeros = p - 1;
+        }
     }
 
-    // print decimal part
-    putLong( i ) ;
+    // Convert the integer part of x into a string of digits
+    putlong((long)x);
+
+    // Print a decimal point
+    putchar('.');
+
+    // Print the initial zeros
+    while (initial_zeros--)
+    {
+        putchar('0');
+    }
+
+    // Convert the fractional part of x into a string of digits
+    if (f > 1)
+        putlong((long)f);
 }
 
 void __attribute__ ((noinline)) printMatrix(float *  C, int N, int M)
 {
     for(int i = 0; i < N; i++) {
         for(int j = 0; j < M; j++) {
-            putfloat(C[i*N+j], DEC3);
+            putfloat(C[i*N+j], 2);
             if( j != M -1)
                 printf(", ");
         }
