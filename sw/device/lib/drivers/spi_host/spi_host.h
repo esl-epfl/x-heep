@@ -11,6 +11,7 @@
 
 #include "mmio.h"
 #include "spi_host_regs.h"
+#include "spi_host_structs.h"
 
 #ifdef __cplusplus
 extern "C" {
