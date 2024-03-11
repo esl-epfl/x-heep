@@ -79,12 +79,21 @@ module slow_memory #(
 
 
   always_comb begin
-    gnt_o = 1'b0;
-    rvalid_o = rvalid_q;
-    state_n = state_q;
-    counter_n = counter_q - 1;
-    rvalid_n = rvalid_q;
-
+    gnt_o       = 1'b0;
+    rvalid_o    = rvalid_q;
+    state_n     = state_q;
+    counter_n   = counter_q - 1;
+    rvalid_n    = rvalid_q;
+    mem_req     = '0;
+    mem_we      = '0;
+    mem_addr    = '0;
+    mem_wdata   = '0;
+    mem_be      = '0;
+    mem_req_n   = mem_req_q;
+    mem_we_n    = mem_we_q;
+    mem_addr_n  = mem_addr_q;
+    mem_wdata_n = mem_wdata_q;
+    mem_be_n    = mem_be_q;
     unique case (state_q)
 
       READY: begin
@@ -92,13 +101,13 @@ module slow_memory #(
         if (req_i) begin
           gnt_o = random1[0];
           if (gnt_o) begin
-            state_n   = WAIT_RVALID;
-            counter_n = random2[4:0] + 1;
-            mem_req_n <= req_i;
-            mem_we_n <= we_i;
-            mem_addr_n <= addr_i;
-            mem_wdata_n <= wdata_i;
-            mem_be_n <= be_i;
+            state_n     = WAIT_RVALID;
+            counter_n   = random2[4:0] + 1;
+            mem_req_n   = req_i;
+            mem_we_n    = we_i;
+            mem_addr_n  = addr_i;
+            mem_wdata_n = wdata_i;
+            mem_be_n    = be_i;
           end
         end
       end
