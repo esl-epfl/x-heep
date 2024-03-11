@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Generator, Iterable
 from enum import Enum
 from .ram_bank import Bank, is_pow2, ILRamGroup
 from .linker_section import LinkerSection
@@ -158,21 +158,41 @@ class XHeep():
         return self._ram_start_address
 
     def ram_numbanks(self) -> int:
+        """
+        :return: the number of banks.
+        :rtype: int
+        """
         return len(self._ram_banks)
     
 
 
     def ram_numbanks_il(self) -> int:
+        """
+        :return: the number of interleaved banks.
+        :rtype: int
+        """
         return len(self._ram_banks_il_idx)
     
 
 
     def ram_numbanks_cont(self) -> int:
+        """
+        :return: the number of continuous banks.
+        :rtype: int
+        """
         return self.ram_numbanks() - self.ram_numbanks_il()
     
 
 
     def validate(self) -> bool:
+        """
+        Does some basics checks on the configuration
+
+        This should be called before using the XHeep object to generate the project.
+
+        :return: the validity of the configuration
+        :rtype: bool
+        """
         if not self.ram_numbanks() in range(2, 17):
             print(f"The number of banks should be between 2 and 16 instead of {self.ram_numbanks()}") #TODO: clarify upper limit
             return False
@@ -186,6 +206,10 @@ class XHeep():
 
 
     def ram_size_address(self) -> int:
+        """
+        :return: the size of the addressable ram memory.
+        :rtype: int
+        """
         size = 0
         for bank in self._ram_banks:
             size += bank.size()
@@ -194,6 +218,10 @@ class XHeep():
 
 
     def ram_il_size(self) -> int:
+        """
+        :return: the memory size of the interleaved sizes.
+        :rtype: int
+        """
         size = 0
         for i in self._ram_banks_il_idx:
             size += self._ram_banks[i].size()
@@ -202,46 +230,70 @@ class XHeep():
 
 
     def iter_ram_banks(self) -> Iterable[Bank]:
+        """
+        :return: an iterator over all banks.
+        :rtype: Iterable[Bank]
+        """
         return iter(self._ram_banks)
 
 
 
     def iter_cont_ram_banks(self) -> Iterable[Bank]:
+        """
+        :return: an iterator over all continuous banks.
+        :rtype: Iterable[Bank]
+        """
         m = map((lambda b: None if b[0] in self._ram_banks_il_idx else b[1]), enumerate(self._ram_banks))
         return filter(lambda b: not b == None, m)
     
 
 
     def iter_il_ram_banks(self) -> Iterable[Bank]:
+        """
+        :return: an iterator over all interleaved banks.
+        :rtype: Iterable[Bank]
+        """
         m = map((lambda b: None if not b[0] in self._ram_banks_il_idx else b[1]), enumerate(self._ram_banks))
         return filter(lambda b: not b == None, m)
 
 
+
     def has_il_ram(self) -> bool:
+        """
+        :return: `True` if the system has interleaved ram.
+        :rtype: bool
+        """
         return self._il_banks_present
     
+    
 
-
-    def il_ram_start_address(self) -> "int|None":
-        if not self.has_il_ram():
-            return None
-        
-        return self._ram_banks[self._ram_banks_il_idx[0]].start_address()
-    
-    def il_ram_end_address(self) -> "int|None":
-        if not self.has_il_ram():
-            return None
-        
-        return self._ram_banks[self._ram_banks_il_idx[-1]].end_address()
-    
-    def il_ram_size(self) -> "int|None":
-        if not self.has_il_ram():
-            return None
-        
-        return self.il_ram_end_address() - self.il_ram_start_address()
-    
     def iter_il_groups(self) -> Iterable[ILRamGroup]:
+        """
+        :return: an iterator over the interleaved ram bank groups.
+        :rtype: Iterable[ILRamGroup]
+        """
         return iter(self._ram_banks_il_groups)
     
+
+
     def iter_linker_sections(self) -> Iterable[LinkerSection]:
+        """
+        :return: an iterator over the linker sections
+        :rtype: Iterable[LinkerSection]
+        """
         return iter(self._linker_sections)
+    
+
+
+    def iter_bank_numwords(self) -> Generator[int, None, None]:
+        """
+        Iterates over the size of the ram banks in number of words.
+
+        :return: Generator over the sizes
+        :rtype: Generator[int, None, None]
+        """
+        sizes = set()
+        for b in self._ram_banks:
+            if b.size() not in sizes:
+                sizes.add(b.size())
+                yield b.size() // 4

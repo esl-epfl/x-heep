@@ -121,6 +121,8 @@ mcu-gen:
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir sw/linker --linker_script sw/linker/link_flash_exec.ld.tpl
 	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir sw/linker --linker_script sw/linker/link_flash_load.ld.tpl
 	$(PYTHON) ./util/structs_periph_gen.py
+	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir hw/fpga/ --tpl-sv hw/fpga/sram_wrapper.sv.tpl
+	$(PYTHON) util/mcu_gen.py --config $(X_HEEP_CFG) --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir hw/fpga/scripts/ --tpl-sv hw/fpga/scripts/generate_sram.tcl.tpl
 	$(MAKE) verible
 
 ## Display mcu_gen.py help
