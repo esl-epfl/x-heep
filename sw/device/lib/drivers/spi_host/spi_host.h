@@ -47,6 +47,9 @@
 /**                                                                        **/
 /****************************************************************************/
 
+// TODO: Find a better solution
+#define SPI_NULL_PTR ~0
+
 #ifdef __cplusplus
 extern "C" {
 #endif
