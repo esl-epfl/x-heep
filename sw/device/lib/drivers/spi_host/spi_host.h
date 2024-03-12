@@ -352,13 +352,17 @@ void spi_output_enable(const spi_host_t *spi, bool enable);
 /**                                                                        **/
 /****************************************************************************/
 
+static inline __attribute__((always_inline)) volatile spi_host* spi_cast_struct(const spi_host_t *spi) {
+    return (volatile spi_host*) (uintptr_t) spi->base_addr.base;
+}
+
 /**
  * Read SPI status register
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) volatile uint32_t spi_get_status(const spi_host_t *spi) {
-    return spi_host_peri->STATUS;
+    return spi_cast_struct(spi)->STATUS;
 }
 
 /**
@@ -396,7 +400,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_ready(const spi_h
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(const spi_host_t *spi) {
-    while (!bitfield_read(spi_host_peri->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXWM_BIT));
+    while (!bitfield_read(spi_cast_struct(spi)->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXWM_BIT));
 }
 
 /**
@@ -405,7 +409,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(cons
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const spi_host_t *spi) {
-    while (!bitfield_read(spi_host_peri->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
+    while (!bitfield_read(spi_cast_struct(spi)->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
 }
 
 /**
@@ -414,7 +418,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const sp
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(const spi_host_t *spi) {
-    while (!bitfield_read(spi_host_peri->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
+    while (!bitfield_read(spi_cast_struct(spi)->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
 }
 
 /**
@@ -423,7 +427,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(cons
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const spi_host_t *spi) {
-    while (!bitfield_read(spi_host_peri->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXFULL_BIT));
+    while (!bitfield_read(spi_cast_struct(spi)->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXFULL_BIT));
 }
 
 /**
@@ -432,7 +436,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_rx_watermark(const spi_host_t *spi) {
-    while (!bitfield_read(spi_host_peri->STATUS, BIT_MASK_1, SPI_HOST_STATUS_RXWM_BIT));
+    while (!bitfield_read(spi_cast_struct(spi)->STATUS, BIT_MASK_1, SPI_HOST_STATUS_RXWM_BIT));
 }
 
 /**
