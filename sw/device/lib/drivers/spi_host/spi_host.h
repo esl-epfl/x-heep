@@ -46,6 +46,9 @@
 /**                                                                        **/
 /****************************************************************************/
 
+// TODO: Find a better solution
+#define SPI_NULL_PTR ~0
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -371,6 +374,8 @@ static inline __attribute__((always_inline)) volatile uint32_t spi_get_status(co
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) volatile bool spi_get_active(const spi_host_t *spi) {
+    // TODO: Find better approach to inform user
+    if (spi == NULL) return false;
     volatile uint32_t status_reg = spi_get_status(spi);
     return bitfield_read(status_reg, BIT_MASK_1, SPI_HOST_STATUS_ACTIVE_BIT);
 }
@@ -381,6 +386,8 @@ static inline __attribute__((always_inline)) volatile bool spi_get_active(const 
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) volatile bool spi_get_ready(const spi_host_t *spi) {
+    // TODO: Find better approach to inform user
+    if (spi == NULL) return false;
     volatile uint32_t status_reg = spi_get_status(spi);
     return bitfield_read(status_reg, BIT_MASK_1, SPI_HOST_STATUS_READY_BIT);
 }
@@ -391,6 +398,8 @@ static inline __attribute__((always_inline)) volatile bool spi_get_ready(const s
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_ready(const spi_host_t *spi) {
+    // TODO: Find better approach to inform user
+    if (spi == NULL) return;
     while (!spi_get_ready(spi));
 }
 
@@ -400,6 +409,8 @@ static inline __attribute__((always_inline)) void spi_wait_for_ready(const spi_h
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(const spi_host_t *spi) {
+    // TODO: Find better approach to inform user
+    if (spi == NULL) return;
     while (!bitfield_read(spi_cast_struct(spi)->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXWM_BIT));
 }
 
@@ -409,6 +420,8 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(cons
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const spi_host_t *spi) {
+    // TODO: Find better approach to inform user
+    if (spi == NULL) return;
     while (!bitfield_read(spi_cast_struct(spi)->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
 }
 
@@ -418,6 +431,8 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const sp
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(const spi_host_t *spi) {
+    // TODO: Find better approach to inform user
+    if (spi == NULL) return;
     while (!bitfield_read(spi_cast_struct(spi)->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
 }
 
@@ -427,6 +442,8 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(cons
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const spi_host_t *spi) {
+    // TODO: Find better approach to inform user
+    if (spi == NULL) return;
     while (!bitfield_read(spi_cast_struct(spi)->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXFULL_BIT));
 }
 
@@ -436,6 +453,8 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) void spi_wait_for_rx_watermark(const spi_host_t *spi) {
+    // TODO: Find better approach to inform user
+    if (spi == NULL) return;
     while (!bitfield_read(spi_cast_struct(spi)->STATUS, BIT_MASK_1, SPI_HOST_STATUS_RXWM_BIT));
 }
 
