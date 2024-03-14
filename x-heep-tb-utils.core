@@ -71,6 +71,11 @@ filesets:
     - tb/tb_top.cpp
     file_type: cppSource
 
+  tb-sc-verilator:
+    files:
+    - tb/tb_sc_top.cpp
+    file_type: cppSource
+
 targets:
   default: &default_target
     filesets:
