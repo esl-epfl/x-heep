@@ -40,19 +40,19 @@ package testharness_pkg;
   localparam logic [31:0] MEMCOPY_CTRL_IDX = 32'd0;
 
   // External AMS Peripheral
-  localparam logic [31:0] AMS_START_ADDRESS = core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS + 32'h001000;
+  localparam logic [31:0] AMS_START_ADDRESS = core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS + 32'h01000;
   localparam logic [31:0] AMS_SIZE = 32'h100;
   localparam logic [31:0] AMS_END_ADDRESS = AMS_START_ADDRESS + AMS_SIZE;
   localparam logic [31:0] AMS_IDX = 32'd1;
 
   // External InterFaced FIFO (IFFIFO) Peripheral
-  localparam logic [31:0] IFFIFO_START_ADDRESS = core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS + 32'h002000;
+  localparam logic [31:0] IFFIFO_START_ADDRESS = core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS + 32'h02000;
   localparam logic [31:0] IFFIFO_SIZE = 32'h100;
   localparam logic [31:0] IFFIFO_END_ADDRESS = IFFIFO_START_ADDRESS + IFFIFO_SIZE;
   localparam logic [31:0] IFFIFO_IDX = 32'd2;
 
   // External Simple Accelerator Peripheral
-  localparam logic [31:0] SIMPLE_ACC_START_ADDRESS = core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS + 32'h003000;
+  localparam logic [31:0] SIMPLE_ACC_START_ADDRESS = core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS + 32'h03000;
   localparam logic [31:0] SIMPLE_ACC_SIZE = 32'h100;
   localparam logic [31:0] SIMPLE_ACC_END_ADDRESS = SIMPLE_ACC_START_ADDRESS + SIMPLE_ACC_SIZE;
   localparam logic [31:0] SIMPLE_ACC_IDX = 32'd3;

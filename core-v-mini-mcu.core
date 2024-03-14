@@ -124,6 +124,11 @@ filesets:
     - hw/fpga/scripts/nexys/set_board.tcl: { file_type: tclSource }
     - hw/fpga/scripts/nexys/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
 
+  ip-fpga-zcu104:
+    files:
+    - hw/fpga/scripts/zcu104/set_board.tcl: { file_type: tclSource }
+    - hw/fpga/scripts/zcu104/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
+
   ip-asic:
     depend:
     - technology::prim_mytech
@@ -152,6 +157,11 @@ filesets:
     files:
     - hw/fpga/constraints/pynq-z2/pin_assign.xdc
     - hw/fpga/constraints/pynq-z2/constraints.xdc
+    file_type: xdc
+
+  xdc-fpga-zcu104:
+    files:
+    - hw/fpga/constraints/zcu104/pin_assign.xdc
     file_type: xdc
 
   netlist-fpga:
@@ -193,6 +203,8 @@ filesets:
 
   tb-verilator:
     files:
+    - tb/XHEEP_CmdLineOptions.hh: { is_include_file: true }
+    - tb/XHEEP_CmdLineOptions.cpp
     - tb/tb_top.cpp
     file_type: cppSource
 
@@ -200,6 +212,14 @@ filesets:
     files:
     - tb/tb_top.sv
     file_type: systemVerilogSource
+
+  tb-sc-verilator:
+    files:
+    - tb/XHEEP_CmdLineOptions.hh: { is_include_file: true }
+    - tb/XHEEP_CmdLineOptions.cpp
+    - tb/tb_sc_top.cpp
+    file_type: cppSource
+
 
   openroad_base_files:
     files:
@@ -261,7 +281,15 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     default: false
+  SIM_SYSTEMC:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
   FPGA_NEXYS:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
+  FPGA_ZCU104:
     datatype: bool
     paramtype: vlogdefine
     default: false
@@ -301,6 +329,8 @@ targets:
     - files_rtl_generic
     - target_sim ? (rtl-simulation)
     - target_sim ? (tool_verilator? (files_verilator_waiver))
+    - target_sim_sc ? (rtl-simulation)
+    - target_sim_sc ? (tool_verilator? (files_verilator_waiver))
     toplevel: [core_v_mini_mcu]
 
   sim:
@@ -392,6 +422,40 @@ targets:
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
 
+  sim_sc:
+    <<: *default_target
+    default_tool: modelsim
+    filesets_append:
+    - tb-utils
+    - tool_verilator? (tb-sc-verilator)
+    - "!integrated_heep? (x_heep_system)"
+    toplevel:
+    - tool_verilator? (testharness)
+    parameters:
+    - COREV_PULP
+    - FPU
+    - JTAG_DPI
+    - X_EXT
+    - USE_EXTERNAL_DEVICE_EXAMPLE
+    - USE_UPF
+    - REMOVE_OBI_FIFO
+    - SIM_SYSTEMC=true
+    tools:
+      verilator:
+        mode: sc
+        verilator_options:
+          - '--sc'
+          - '--trace'
+          - '--trace-structs'
+          - '--trace-params'
+          - '--trace-max-array 1024'
+          - '--x-assign unique'
+          - '--x-initial unique'
+          - '--exe tb_sc_top.cpp'
+          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive"'
+          - '-LDFLAGS "-pthread -lutil -lelf $(SYSTEMC_LIBDIR)/libsystemc.a"'
+          - "-Wall"
+
   nexys-a7-100t:
     <<: *default_target
     default_tool: vivado
@@ -435,6 +499,28 @@ targets:
         part: xc7z020clg400-1
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
 
+  zcu104:
+    <<: *default_target
+    default_tool: vivado
+    description: ZCU104 Evaluation Board
+    filesets_append:
+    - x_heep_system
+    - rtl-fpga
+    - ip-fpga-zcu104
+    - ip-fpga
+    - xdc-fpga-zcu104
+    parameters:
+    - COREV_PULP
+    - FPU
+    - X_EXT
+    - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
+    - FPGA_ZCU104=true
+    tools:
+      vivado:
+        part: xczu7ev-ffvc1156-2-e
+    toplevel: [xilinx_core_v_mini_mcu_wrapper]
+    
   asic_synthesis:
     <<: *default_target
     default_tool: design_compiler

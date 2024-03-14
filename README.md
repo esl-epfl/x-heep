@@ -173,6 +173,29 @@ To format your RTL code type:
 ```
 make verible
 ```
+
+## Docker alternative
+
+A docker image containing all the required software dependancies is available on [github-packages](https://github.com/orgs/esl-epfl/packages/container/package/x-heep-toolchain).
+
+It is only required to install [`docker`](https://docs.docker.com/get-docker/) and pull the image.
+
+```bash
+docker pull ghcr.io/esl-epfl/x-heep-toolchain:latest
+```
+
+Assuming that X-HEEP has been cloned to `X-HEEP-DIR=\absolute\path\to\x-HEEP\folder`, it is possible to directly run the docker mounting `X-HEEP-DIR` to the path `\workspace\x-heep` in the docker.
+
+```bash
+docker run -it -v ${X-HEEP-DIR}:/workspace/x-heep ghcr.io/esl-epfl/x-heep-toolchain
+```
+
+Take care to indicate the absolute path to the local clone of X-HEEP, otherwise `docker` will not be able to properly nount the local folder in the container.
+
+All the command listed in the README can be execute in the docker container, except for:
+- Simulation with Questasim and VCS, synthesis with Design Compiler (licenses are required to use these tools, so they are not installed in the container)
+- OpenRoad flow is not installed in the container, so it is not possible to run the related make commands
+
 ## Compilation Flow and Package Manager
 
 We use [FuseSoC](https://github.com/olofk/fusesoc) for all the tools we use.
@@ -231,11 +254,11 @@ make app
 To run any other application, please use the following command with appropiate parameters:
 
 ```
-app PROJECT=<folder_name_of_the_project_to_be_built> TARGET=sim(default),pynq-z2 LINKER=on_chip(default),flash_load,flash_exec COMPILER=gcc(default),clang COMPILER_PREFIX=riscv32-unknown-(default) ARCH=rv32imc(default),<any RISC-V ISA string supported by the CPU>
+app PROJECT=<folder_name_of_the_project_to_be_built> TARGET=sim(default),systemc,pynq-z2,nexys-a7-100t,zcu104 LINKER=on_chip(default),flash_load,flash_exec COMPILER=gcc(default),clang COMPILER_PREFIX=riscv32-unknown-(default) ARCH=rv32imc(default),<any RISC-V ISA string supported by the CPU>
 
 Params:
 - PROJECT (ex: <folder_name_of_the_project_to_be_built>, hello_world(default))
-- TARGET (ex: sim(default),pynq-z2)
+- TARGET (ex: sim(default),systemc,pynq-z2,nexys-a7-100t,zcu104)
 - LINKER (ex: on_chip(default),flash_load,flash_exec)
 - COMPILER (ex: gcc(default),clang)
 - COMPILER_PREFIX (ex: riscv32-unknown-(default))
@@ -281,7 +304,7 @@ For example, if you want to set the `FPU` and `COREV_PULP` parameters of the `cv
 you need to add next to your compilation command `FUSESOC_PARAM="--COREV_PULP=1 --FPU=1"`
 Below the different EDA examples commands.
 
-### Compiling for Verilator
+### Compiling for Verilator (C++ testbench)
 
 To simulate your application with Verilator, first compile the HDL:
 
@@ -306,6 +329,39 @@ or to execute all these three steps type:
 ```
 make run-helloworld
 ```
+
+### Compiling for Verilator (SystemC testbench)
+
+To simulate your application with Verilator using `SystemC`,
+
+make sure you have `SystemC 2.3.3` installed, if not, find it [here](https://www.accellera.org/downloads/standards/systemc).
+
+Make sure to have the following env variables set:
+
+```
+export SYSTEMC_INCLUDE=/your_path_to_systemc/systemc/include/
+export SYSTEMC_LIBDIR=/your_path_to_systemc/systemc/lib-linux64/
+```
+
+Compile the HDL:
+
+```
+make verilator-sim-sc
+```
+
+then, go to your target system built folder
+
+```
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim_sc-verilator
+```
+
+and type to run your compiled software:
+
+```
+./Vtestharness +firmware=../../../sw/build/main.hex
+```
+
+If you want to know what is special about the SystemC testbench, have a look [here](./docs/source/How_to/SystemC.md)
 
 ### Compiling for VCS
 
@@ -512,7 +568,7 @@ This project offers two different X-HEEP implementetions on Xilinx FPGAs, called
 
 In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the FPGA, and its input/output are connected to the available headers on the FPGA board.
 
-Two FPGA boards are supported: the Xilinx Pynq-z2 and Nexys-A7-100t.
+Three FPGA boards are supported: the Xilinx Pynq-z2, Nexys-A7-100t, Zynq Ultrascale+ ZCU104.
 
 Make sure you have the FPGA board files installed in your Vivado.
 
@@ -528,6 +584,12 @@ or
 
 ```
 make vivado-fpga FPGA_BOARD=nexys-a7-100t
+```
+
+or
+
+```
+make vivado-fpga FPGA_BOARD=zcu104
 ```
 
 or add the flag `use_bscane_xilinx` to use the native Xilinx scanchain:

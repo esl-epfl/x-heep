@@ -1,16 +1,12 @@
 # Copyright 2022 OpenHW Group
 # Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 # SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
-
 # Run all lint checks
 name: lint
 on: [push, pull_request]
-
 env:
   VERIBLE_VERSION: 0.0-1824-ga3b5bedf
-
 jobs:
-
   #####################
   # Vendor Up-to-Date #
   #####################
@@ -28,9 +24,9 @@ jobs:
     - name: Re-vendor and diff
       run: |
         find . \
-            -name '*.vendor.hjson' \
-            | xargs -n1 util/vendor.py --verbose \
-            && util/git-diff.py --error-msg "::error ::Found differences, please re-vendor."
+        -name '*.vendor.hjson' \
+        | xargs -n1 util/vendor.py --verbose \
+        && util/git-diff.py --error-msg "::error ::Found differences, please re-vendor."
   ##################
   # MCU Generator  #
   ##################
