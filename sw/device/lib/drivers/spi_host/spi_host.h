@@ -47,6 +47,8 @@
 /**                                                                        **/
 /****************************************************************************/
 
+#define SPI_MAX_IDX 3
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -56,6 +58,16 @@ extern "C" {
 /**                       TYPEDEFS AND STRUCTURES                          **/
 /**                                                                        **/
 /****************************************************************************/
+
+/**
+* SPI Peripheral IDX
+*/
+typedef enum {
+    SPI_IDX_FLASH       = 0,
+    SPI_IDX_MMIO        = 1,
+    SPI_IDX_HOST        = 2,
+    SPI_IDX_HOST_2      = 3
+} spi_idx_e;
 
 /**
 * SPI speed type
@@ -76,6 +88,9 @@ typedef enum {
     SPI_DIR_BIDIR       = 3
 } spi_dir_e;
 
+/**
+* SPI functions return flags, informs user what problem there was or if all OK
+*/
 typedef enum {
     SPI_FLAG_OK                 = 0x00,
     SPI_FLAG_NULL_PTR           = 0x01,
@@ -141,6 +156,10 @@ typedef struct spi_command {
 /**                                                                        **/
 /****************************************************************************/
 
+// TODO: This array must get out of header file !
+//       Hence must get rid of all inline functions...
+extern volatile spi_host* const spi_peris[4];
+
 /****************************************************************************/
 /**                                                                        **/
 /**                          EXPORTED FUNCTIONS                            **/
@@ -155,7 +174,7 @@ typedef struct spi_command {
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return TX FIFO depth.
  */
-volatile uint8_t spi_get_tx_queue_depth(const spi_host_t *spi);
+volatile uint8_t spi_get_tx_queue_depth(const spi_idx_e peri_id);
 
 /**
  * Read the TX channel status register.
@@ -163,7 +182,7 @@ volatile uint8_t spi_get_tx_queue_depth(const spi_host_t *spi);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return TX channel status structure.
  */
-volatile spi_ch_status_t spi_get_tx_channel_status(const spi_host_t *spi);
+volatile spi_ch_status_t spi_get_tx_channel_status(const spi_idx_e peri_id);
 
 /**
  * Read the RX FIFO depth register.
@@ -171,7 +190,7 @@ volatile spi_ch_status_t spi_get_tx_channel_status(const spi_host_t *spi);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return RX FIFO depth.
  */
-volatile uint8_t spi_get_rx_queue_depth(const spi_host_t *spi);
+volatile uint8_t spi_get_rx_queue_depth(const spi_idx_e peri_id);
 
 /**
  * Read the RX channel status register.
@@ -179,7 +198,7 @@ volatile uint8_t spi_get_rx_queue_depth(const spi_host_t *spi);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return RX channel status structure.
  */
-volatile spi_ch_status_t spi_get_rx_channel_status(const spi_host_t *spi);
+volatile spi_ch_status_t spi_get_rx_channel_status(const spi_idx_e peri_id);
 
 /**
  * Read the Chip Select (CS) ID register.
@@ -187,14 +206,14 @@ volatile spi_ch_status_t spi_get_rx_channel_status(const spi_host_t *spi);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return Chip Select (CS) ID.
  */
-volatile uint32_t spi_get_csid(const spi_host_t *spi);
+volatile uint32_t spi_get_csid(const spi_idx_e peri_id);
 
 /**
  * Reset the SPI from software.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-spi_return_flags_e spi_sw_reset(const spi_host_t *spi);
+spi_return_flags_e spi_sw_reset(const spi_idx_e peri_id);
 
 /**
  * Enable the SPI host.
@@ -202,7 +221,7 @@ spi_return_flags_e spi_sw_reset(const spi_host_t *spi);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI enable register value.
  */
-spi_return_flags_e spi_set_enable(const spi_host_t *spi, bool enable);
+spi_return_flags_e spi_set_enable(const spi_idx_e peri_id, bool enable);
 
 /**
  * Set the transmit queue watermark level (to enable interrupt triggering).
@@ -212,7 +231,7 @@ spi_return_flags_e spi_set_enable(const spi_host_t *spi, bool enable);
  * @return Flag indicating problems. Returns SPI_WATERMARK_OK == 0 if everithing
  * went well.
  */
-spi_return_flags_e spi_set_tx_watermark(const spi_host_t *spi, uint8_t watermark);
+spi_return_flags_e spi_set_tx_watermark(const spi_idx_e peri_id, uint8_t watermark);
 
 /**
  * Set the receive queue watermark level (to enable interrupt triggering).
@@ -222,7 +241,7 @@ spi_return_flags_e spi_set_tx_watermark(const spi_host_t *spi, uint8_t watermark
  * @return Flag indicating problems. Returns SPI_WATERMARK_OK == 0 if everithing
  * went well.
  */
-spi_return_flags_e spi_set_rx_watermark(const spi_host_t *spi, uint8_t watermark);
+spi_return_flags_e spi_set_rx_watermark(const spi_idx_e peri_id, uint8_t watermark);
 
 /**
  * Set the requirement of a target device (i.e., a slave).
@@ -233,7 +252,7 @@ spi_return_flags_e spi_set_rx_watermark(const spi_host_t *spi, uint8_t watermark
  * @return Flag indicating problems. Returns SPI_CONFIGOPTS_OK == 0 if everithing
  * went well.
  */
-spi_return_flags_e spi_set_configopts(const spi_host_t *spi, uint32_t csid, uint32_t conf_reg);
+spi_return_flags_e spi_set_configopts(const spi_idx_e peri_id, uint32_t csid, uint32_t conf_reg);
 
 /**
  * Select which device to target with the next command.
@@ -243,7 +262,7 @@ spi_return_flags_e spi_set_configopts(const spi_host_t *spi, uint32_t csid, uint
  * @return Flag indicating problems. Returns SPI_CSID_OK == 0 if everithing went
  * well.
  */
-spi_return_flags_e spi_set_csid(const spi_host_t *spi, uint32_t csid);
+spi_return_flags_e spi_set_csid(const spi_idx_e peri_id, uint32_t csid);
 
 /**
  * Set the next command (one for all attached SPI devices).
@@ -253,7 +272,7 @@ spi_return_flags_e spi_set_csid(const spi_host_t *spi, uint32_t csid);
  * @return Flag indicating problems. Returns SPI_COMMAND_OK == 0 if everithing
  * went well.
  */
-spi_return_flags_e spi_set_command(const spi_host_t *spi, uint32_t cmd_reg);
+spi_return_flags_e spi_set_command(const spi_idx_e peri_id, uint32_t cmd_reg);
 
 /**
  * Write one word to the TX FIFO.
@@ -263,7 +282,7 @@ spi_return_flags_e spi_set_command(const spi_host_t *spi, uint32_t cmd_reg);
  * @return Flag indicating problems. Returns SPI_READ_WRITE_OK == 0 if everithing
  * went well.
  */
-spi_return_flags_e spi_write_word(const spi_host_t *spi, uint32_t wdata);
+spi_return_flags_e spi_write_word(const spi_idx_e peri_id, uint32_t wdata);
 
 /**
  * Read one word to the RX FIFO.
@@ -273,7 +292,7 @@ spi_return_flags_e spi_write_word(const spi_host_t *spi, uint32_t wdata);
  * @return Flag indicating problems. Returns SPI_READ_WRITE_OK == 0 if everithing
  * went well.
  */
-spi_return_flags_e spi_read_word(const spi_host_t *spi, uint32_t* dst);
+spi_return_flags_e spi_read_word(const spi_idx_e peri_id, uint32_t* dst);
 
 /**
  * Enable SPI event interrupt
@@ -281,7 +300,7 @@ spi_return_flags_e spi_read_word(const spi_host_t *spi, uint32_t* dst);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI event interrupt bit value.
  */
-spi_return_flags_e spi_enable_evt_intr(const spi_host_t *spi, bool enable);
+spi_return_flags_e spi_enable_evt_intr(const spi_idx_e peri_id, bool enable);
 
 /**
  * Enable SPI error interrupt
@@ -289,7 +308,7 @@ spi_return_flags_e spi_enable_evt_intr(const spi_host_t *spi, bool enable);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI error interrupt bit value.
  */
-spi_return_flags_e spi_enable_error_intr(const spi_host_t *spi, bool enable);
+spi_return_flags_e spi_enable_error_intr(const spi_idx_e peri_id, bool enable);
 
 /**
  * Enable SPI watermark event interrupt
@@ -297,7 +316,7 @@ spi_return_flags_e spi_enable_error_intr(const spi_host_t *spi, bool enable);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI RX watermark interrupt bit value.
  */
-spi_return_flags_e spi_enable_rxwm_intr(const spi_host_t *spi, bool enable);
+spi_return_flags_e spi_enable_rxwm_intr(const spi_idx_e peri_id, bool enable);
 
 /**
  * Enable SPI TX empty event interrupt
@@ -305,7 +324,7 @@ spi_return_flags_e spi_enable_rxwm_intr(const spi_host_t *spi, bool enable);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI TX empty interrupt bit value.
  */
-spi_return_flags_e spi_enable_txempty_intr(const spi_host_t *spi, bool enable);
+spi_return_flags_e spi_enable_txempty_intr(const spi_idx_e peri_id, bool enable);
 
 /**
  * Enable SPI output
@@ -313,7 +332,7 @@ spi_return_flags_e spi_enable_txempty_intr(const spi_host_t *spi, bool enable);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI TX empty interrupt bit value.
  */
-spi_return_flags_e spi_output_enable(const spi_host_t *spi, bool enable);
+spi_return_flags_e spi_output_enable(const spi_idx_e peri_id, bool enable);
 
 /****************************************************************************/
 /**                                                                        **/
@@ -321,8 +340,14 @@ spi_return_flags_e spi_output_enable(const spi_host_t *spi, bool enable);
 /**                                                                        **/
 /****************************************************************************/
 
-static inline __attribute__((always_inline)) volatile spi_host* spi_cast_struct(const spi_host_t *spi) {
-    return (volatile spi_host*) (uintptr_t) spi->base_addr.base;
+/*   TODO:
+ *      Get rid of all these inline functions. There is no good reason I can think
+ *      of that justifies the use of static inline AND there is a very good reason
+ *      to encapsulate the spi_peris inside the .c file.
+ */
+
+static inline __attribute__((always_inline)) const uintptr_t spi_get_base_addr(const spi_idx_e peri_id) {
+    return (uintptr_t) spi_peris[peri_id];
 }
 
 /**
@@ -330,8 +355,8 @@ static inline __attribute__((always_inline)) volatile spi_host* spi_cast_struct(
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) volatile uint32_t spi_get_status(const spi_host_t *spi) {
-    return spi_cast_struct(spi)->STATUS;
+static inline __attribute__((always_inline)) volatile uint32_t spi_get_status(const spi_idx_e peri_id) {
+    return spi_peris[peri_id]->STATUS;
 }
 
 /**
@@ -339,10 +364,10 @@ static inline __attribute__((always_inline)) volatile uint32_t spi_get_status(co
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) volatile bool spi_get_active(const spi_host_t *spi) {
+static inline __attribute__((always_inline)) volatile bool spi_get_active(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (spi == NULL) return false;
-    volatile uint32_t status_reg = spi_get_status(spi);
+    if (peri_id > SPI_MAX_IDX) return false;
+    volatile uint32_t status_reg = spi_get_status(peri_id);
     return bitfield_read(status_reg, BIT_MASK_1, SPI_HOST_STATUS_ACTIVE_BIT);
 }
 
@@ -351,10 +376,10 @@ static inline __attribute__((always_inline)) volatile bool spi_get_active(const 
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) volatile bool spi_get_ready(const spi_host_t *spi) {
+static inline __attribute__((always_inline)) volatile bool spi_get_ready(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (spi == NULL) return false;
-    volatile uint32_t status_reg = spi_get_status(spi);
+    if (peri_id > SPI_MAX_IDX) return false;
+    volatile uint32_t status_reg = spi_get_status(peri_id);
     return bitfield_read(status_reg, BIT_MASK_1, SPI_HOST_STATUS_READY_BIT);
 }
 
@@ -363,10 +388,10 @@ static inline __attribute__((always_inline)) volatile bool spi_get_ready(const s
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_ready(const spi_host_t *spi) {
+static inline __attribute__((always_inline)) void spi_wait_for_ready(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (spi == NULL) return;
-    while (!spi_get_ready(spi));
+    if (peri_id > SPI_MAX_IDX) return;
+    while (!spi_get_ready(peri_id));
 }
 
 /**
@@ -374,10 +399,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_ready(const spi_h
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(const spi_host_t *spi) {
+static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (spi == NULL) return;
-    while (!bitfield_read(spi_cast_struct(spi)->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXWM_BIT));
+    if (peri_id > SPI_MAX_IDX) return;
+    while (!bitfield_read(spi_peris[peri_id]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXWM_BIT));
 }
 
 /**
@@ -385,10 +410,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(cons
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const spi_host_t *spi) {
+static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (spi == NULL) return;
-    while (!bitfield_read(spi_cast_struct(spi)->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
+    if (peri_id > SPI_MAX_IDX) return;
+    while (!bitfield_read(spi_peris[peri_id]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
 }
 
 /**
@@ -396,10 +421,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const sp
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(const spi_host_t *spi) {
+static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (spi == NULL) return;
-    while (!bitfield_read(spi_cast_struct(spi)->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
+    if (peri_id > SPI_MAX_IDX) return;
+    while (!bitfield_read(spi_peris[peri_id]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
 }
 
 /**
@@ -407,10 +432,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(cons
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const spi_host_t *spi) {
+static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (spi == NULL) return;
-    while (!bitfield_read(spi_cast_struct(spi)->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXFULL_BIT));
+    if (peri_id > SPI_MAX_IDX) return;
+    while (!bitfield_read(spi_peris[peri_id]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXFULL_BIT));
 }
 
 /**
@@ -418,10 +443,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_rx_watermark(const spi_host_t *spi) {
+static inline __attribute__((always_inline)) void spi_wait_for_rx_watermark(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (spi == NULL) return;
-    while (!bitfield_read(spi_cast_struct(spi)->STATUS, BIT_MASK_1, SPI_HOST_STATUS_RXWM_BIT));
+    if (peri_id > SPI_MAX_IDX) return;
+    while (!bitfield_read(spi_peris[peri_id]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_RXWM_BIT));
 }
 
 /**
