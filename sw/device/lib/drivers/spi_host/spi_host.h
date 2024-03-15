@@ -47,9 +47,6 @@
 /**                                                                        **/
 /****************************************************************************/
 
-// TODO: Find a better solution
-#define SPI_NULL_PTR ~0
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -64,65 +61,33 @@ extern "C" {
 * SPI speed type
 */
 typedef enum {
-    kSpiSpeedStandard   = 0,
-    kSpiSpeedDual       = 1,
-    kSpiSpeedQuad       = 2
+    SPI_SPEED_STANDARD   = 0,
+    SPI_SPEED_DUAL       = 1,
+    SPI_SPEED_QUAD       = 2
 } spi_speed_e;
 
 /**
 * SPI directionality
 */
 typedef enum {
-    kSpiDirDummy        = 0,
-    kSpiDirRxOnly       = 1,
-    kSpiDirTxOnly       = 2,
-    kSpiDirBidir        = 3
+    SPI_DIR_DUMMY       = 0,
+    SPI_DIR_RX_ONLY     = 1,
+    SPI_DIR_TX_ONLY     = 2,
+    SPI_DIR_BIDIR       = 3
 } spi_dir_e;
 
-/**
-* SPI Watermark Set Return Flags
-*/
 typedef enum {
-    SPI_WATERMARK_OK        = 0x00,    /*!< The Watermark was correctly set */
-    SPI_WATERMARK_EXCEEDS   = 0x01     /*!< The Watermark exceeded SPI_HOST_PARAM_TX_DEPTH 
+    SPI_FLAG_OK                 = 0x00,
+    SPI_FLAG_NULL_PTR           = 0x01,
+    SPI_FLAG_WATERMARK_EXCEEDS  = 0x02, /*!< The Watermark exceeded SPI_HOST_PARAM_TX_DEPTH 
     or SPI_HOST_PARAM_RX_DEPTH and was therefore not set */
-} spi_watermark_flags_e;
-
-/**
-* SPI CSID Set Return Flags
-*/
-typedef enum {
-    SPI_CSID_OK         = 0x00,    /*!< The CSID was correctly set */
-    SPI_CSID_INVALID    = 0x01     /*!< The CSID was out of the bounds specified in 
+    SPI_FLAG_CSID_INVALID       = 0x04, /*!< The CSID was out of the bounds specified in 
     SPI_HOST_PARAM_NUM_C_S */
-} spi_csid_flags_e;
-
-/**
-* SPI Configopts Set Return Flags
-*/
-typedef enum {
-    SPI_CONFIGOPTS_OK               = 0x00, /*!< The configopts was correctly set for the provided CSID */
-    SPI_CONFIGOPTS_CSID_INVALID     = 0x01  /*!< The CSID was out of the bounds 
-    specified in SPI_HOST_PARAM_NUM_C_S. @Note that this is equal to SPI_CSID_INVALID */
-} spi_configopts_flags_e;
-
-/**
-* SPI Command Set Return Flags
-*/
-typedef enum {
-    SPI_COMMAND_OK              = 0x00, /*!< The command was correctly written in the register */
-    SPI_COMMAND_QUEUE_FULL      = 0x01, /*!< The CMD FIFO is currently full so couldn't write command */
-    SPI_COMMAND_SPEED_INVALID   = 0x02  /*!< The specified speed is not valid (i.e. = 3) so couldn't write command */
-} spi_command_flags_e;
-
-/**
-* SPI Read/Write Return Flags
-*/
-typedef enum {
-    SPI_READ_WRITE_OK           = 0x00, /*!< Word correctly read / written */
-    SPI_READ_WRITE_QUEUE_FULL   = 0x01, /*!< The TX Queue is full, thus could not write to TX register */
-    SPI_READ_WRITE_QUEUE_EMPTY  = 0x02  /*!< The RX Queue is empty, thus could not read from RX register */
-} spi_read_write_flags_e;
+    SPI_FLAG_COMMAND_FULL       = 0x08, /*!< The CMD FIFO is currently full so couldn't write command */
+    SPI_FLAG_SPEED_INVALID      = 0x10, /*!< The specified speed is not valid (i.e. = 3) so couldn't write command */
+    SPI_FLAG_TX_QUEUE_FULL      = 0x20, /*!< The TX Queue is full, thus could not write to TX register */
+    SPI_FLAG_RX_QUEUE_EMPTY     = 0x40  /*!< The RX Queue is empty, thus could not read from RX register */
+} spi_return_flags_e;
 
 /**
  * Initialization parameters for SPI.
@@ -229,7 +194,7 @@ volatile uint32_t spi_get_csid(const spi_host_t *spi);
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-void spi_sw_reset(const spi_host_t *spi);
+spi_return_flags_e spi_sw_reset(const spi_host_t *spi);
 
 /**
  * Enable the SPI host.
@@ -237,7 +202,7 @@ void spi_sw_reset(const spi_host_t *spi);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI enable register value.
  */
-void spi_set_enable(const spi_host_t *spi, bool enable);
+spi_return_flags_e spi_set_enable(const spi_host_t *spi, bool enable);
 
 /**
  * Set the transmit queue watermark level (to enable interrupt triggering).
@@ -247,7 +212,7 @@ void spi_set_enable(const spi_host_t *spi, bool enable);
  * @return Flag indicating problems. Returns SPI_WATERMARK_OK == 0 if everithing
  * went well.
  */
-spi_watermark_flags_e spi_set_tx_watermark(const spi_host_t *spi, uint8_t watermark);
+spi_return_flags_e spi_set_tx_watermark(const spi_host_t *spi, uint8_t watermark);
 
 /**
  * Set the receive queue watermark level (to enable interrupt triggering).
@@ -257,7 +222,7 @@ spi_watermark_flags_e spi_set_tx_watermark(const spi_host_t *spi, uint8_t waterm
  * @return Flag indicating problems. Returns SPI_WATERMARK_OK == 0 if everithing
  * went well.
  */
-spi_watermark_flags_e spi_set_rx_watermark(const spi_host_t *spi, uint8_t watermark);
+spi_return_flags_e spi_set_rx_watermark(const spi_host_t *spi, uint8_t watermark);
 
 /**
  * Set the requirement of a target device (i.e., a slave).
@@ -268,7 +233,7 @@ spi_watermark_flags_e spi_set_rx_watermark(const spi_host_t *spi, uint8_t waterm
  * @return Flag indicating problems. Returns SPI_CONFIGOPTS_OK == 0 if everithing
  * went well.
  */
-spi_configopts_flags_e spi_set_configopts(const spi_host_t *spi, uint32_t csid, uint32_t conf_reg);
+spi_return_flags_e spi_set_configopts(const spi_host_t *spi, uint32_t csid, uint32_t conf_reg);
 
 /**
  * Select which device to target with the next command.
@@ -278,7 +243,7 @@ spi_configopts_flags_e spi_set_configopts(const spi_host_t *spi, uint32_t csid, 
  * @return Flag indicating problems. Returns SPI_CSID_OK == 0 if everithing went
  * well.
  */
-spi_csid_flags_e spi_set_csid(const spi_host_t *spi, uint32_t csid);
+spi_return_flags_e spi_set_csid(const spi_host_t *spi, uint32_t csid);
 
 /**
  * Set the next command (one for all attached SPI devices).
@@ -288,7 +253,7 @@ spi_csid_flags_e spi_set_csid(const spi_host_t *spi, uint32_t csid);
  * @return Flag indicating problems. Returns SPI_COMMAND_OK == 0 if everithing
  * went well.
  */
-spi_command_flags_e spi_set_command(const spi_host_t *spi, uint32_t cmd_reg);
+spi_return_flags_e spi_set_command(const spi_host_t *spi, uint32_t cmd_reg);
 
 /**
  * Write one word to the TX FIFO.
@@ -298,7 +263,7 @@ spi_command_flags_e spi_set_command(const spi_host_t *spi, uint32_t cmd_reg);
  * @return Flag indicating problems. Returns SPI_READ_WRITE_OK == 0 if everithing
  * went well.
  */
-spi_read_write_flags_e spi_write_word(const spi_host_t *spi, uint32_t wdata);
+spi_return_flags_e spi_write_word(const spi_host_t *spi, uint32_t wdata);
 
 /**
  * Read one word to the RX FIFO.
@@ -308,7 +273,7 @@ spi_read_write_flags_e spi_write_word(const spi_host_t *spi, uint32_t wdata);
  * @return Flag indicating problems. Returns SPI_READ_WRITE_OK == 0 if everithing
  * went well.
  */
-spi_read_write_flags_e spi_read_word(const spi_host_t *spi, uint32_t* dst);
+spi_return_flags_e spi_read_word(const spi_host_t *spi, uint32_t* dst);
 
 /**
  * Enable SPI event interrupt
@@ -316,7 +281,7 @@ spi_read_write_flags_e spi_read_word(const spi_host_t *spi, uint32_t* dst);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI event interrupt bit value.
  */
-void spi_enable_evt_intr(const spi_host_t *spi, bool enable);
+spi_return_flags_e spi_enable_evt_intr(const spi_host_t *spi, bool enable);
 
 /**
  * Enable SPI error interrupt
@@ -324,7 +289,7 @@ void spi_enable_evt_intr(const spi_host_t *spi, bool enable);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI error interrupt bit value.
  */
-void spi_enable_error_intr(const spi_host_t *spi, bool enable);
+spi_return_flags_e spi_enable_error_intr(const spi_host_t *spi, bool enable);
 
 /**
  * Enable SPI watermark event interrupt
@@ -332,7 +297,7 @@ void spi_enable_error_intr(const spi_host_t *spi, bool enable);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI RX watermark interrupt bit value.
  */
-void spi_enable_rxwm_intr(const spi_host_t *spi, bool enable);
+spi_return_flags_e spi_enable_rxwm_intr(const spi_host_t *spi, bool enable);
 
 /**
  * Enable SPI TX empty event interrupt
@@ -340,7 +305,7 @@ void spi_enable_rxwm_intr(const spi_host_t *spi, bool enable);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI TX empty interrupt bit value.
  */
-void spi_enable_txempty_intr(const spi_host_t *spi, bool enable);
+spi_return_flags_e spi_enable_txempty_intr(const spi_host_t *spi, bool enable);
 
 /**
  * Enable SPI output
@@ -348,7 +313,7 @@ void spi_enable_txempty_intr(const spi_host_t *spi, bool enable);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI TX empty interrupt bit value.
  */
-void spi_output_enable(const spi_host_t *spi, bool enable);
+spi_return_flags_e spi_output_enable(const spi_host_t *spi, bool enable);
 
 /****************************************************************************/
 /**                                                                        **/

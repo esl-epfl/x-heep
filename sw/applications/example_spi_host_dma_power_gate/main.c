@@ -208,8 +208,8 @@ int main(int argc, char *argv[])
     const uint32_t cmd_reset = spi_create_command((spi_command_t){
         .len        = 3,
         .csaat      = false,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
+        .speed      = SPI_SPEED_STANDARD,
+        .direction  = SPI_DIR_TX_ONLY
     });
     spi_set_command(&spi_host, cmd_reset);
     spi_wait_for_ready(&spi_host);
@@ -220,8 +220,8 @@ int main(int argc, char *argv[])
     const uint32_t cmd_powerup = spi_create_command((spi_command_t){
         .len        = 0,
         .csaat      = false,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
+        .speed      = SPI_SPEED_STANDARD,
+        .direction  = SPI_DIR_TX_ONLY
     });
     spi_set_command(&spi_host, cmd_powerup);
     spi_wait_for_ready(&spi_host);
@@ -230,8 +230,8 @@ int main(int argc, char *argv[])
     const uint32_t cmd_read = spi_create_command((spi_command_t){
         .len        = 3,
         .csaat      = true,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
+        .speed      = SPI_SPEED_STANDARD,
+        .direction  = SPI_DIR_TX_ONLY
     });
 
     dma_intr_flag = 0;
@@ -247,8 +247,8 @@ int main(int argc, char *argv[])
         const uint32_t cmd_read_rx = spi_create_command((spi_command_t){ // Single transaction
             .len        = COPY_DATA_NUM*sizeof(DATA_TYPE) - 1, // In bytes - 1
             .csaat      = false,
-            .speed      = kSpiSpeedStandard,
-            .direction  = kSpiDirRxOnly
+            .speed      = SPI_SPEED_STANDARD,
+            .direction  = SPI_DIR_RX_ONLY
         });
         spi_write_word(&spi_host, read_byte_cmd); // Fill TX FIFO with TX data (read command + 3B address)
         spi_wait_for_ready(&spi_host); // Wait for readiness to process commands
@@ -260,8 +260,8 @@ int main(int argc, char *argv[])
         const uint32_t cmd_read_rx = spi_create_command((spi_command_t){ // Multiple transactions of the data type
             .len        = (sizeof(DATA_TYPE) - 1),
             .csaat      = false,
-            .speed      = kSpiSpeedStandard,
-            .direction  = kSpiDirRxOnly
+            .speed      = SPI_SPEED_STANDARD,
+            .direction  = SPI_DIR_RX_ONLY
         });
         DATA_TYPE* flash_ptr = (DATA_TYPE *)flash_data_lma;
         for (int i = 0; i<COPY_DATA_NUM; i++) { // Multiple 8 or 16-bit transactions, just to try a new mode, we could treat it as int32
@@ -310,8 +310,8 @@ int main(int argc, char *argv[])
     const uint32_t cmd_powerdown = spi_create_command((spi_command_t){
         .len        = 0,
         .csaat      = false,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
+        .speed      = SPI_SPEED_STANDARD,
+        .direction  = SPI_DIR_TX_ONLY
     });
     spi_set_command(&spi_host, cmd_powerdown);
     spi_wait_for_ready(&spi_host);
