@@ -574,5 +574,85 @@ package cve2_pkg;
   // alter this to point to their system specific configuration data structure.
   localparam logic [31:0] CSR_MCONFIGPTR_VALUE = 32'b0;
 
+ // RVFI CSR element
+  typedef struct packed {
+    bit [63:0] rdata;
+    bit [63:0] rmask;
+    bit [63:0] wdata;
+    bit [63:0] wmask;
+  } rvfi_csr_elmt_t;
+
+  // RVFI CSR structure
+  typedef struct packed {
+    rvfi_csr_elmt_t fflags;
+    rvfi_csr_elmt_t frm;
+    rvfi_csr_elmt_t fcsr;
+    rvfi_csr_elmt_t ftran;
+    rvfi_csr_elmt_t dcsr;
+    rvfi_csr_elmt_t dpc;
+    rvfi_csr_elmt_t dscratch0;
+    rvfi_csr_elmt_t dscratch1;
+    rvfi_csr_elmt_t sstatus;
+    rvfi_csr_elmt_t sie;
+    rvfi_csr_elmt_t sip;
+    rvfi_csr_elmt_t stvec;
+    rvfi_csr_elmt_t scounteren;
+    rvfi_csr_elmt_t sscratch;
+    rvfi_csr_elmt_t sepc;
+    rvfi_csr_elmt_t scause;
+    rvfi_csr_elmt_t stval;
+    rvfi_csr_elmt_t satp;
+    rvfi_csr_elmt_t mstatus;
+    rvfi_csr_elmt_t mstatush;
+    rvfi_csr_elmt_t misa;
+    rvfi_csr_elmt_t medeleg;
+    rvfi_csr_elmt_t mideleg;
+    rvfi_csr_elmt_t mie;
+    rvfi_csr_elmt_t mtvec;
+    rvfi_csr_elmt_t mcounteren;
+    rvfi_csr_elmt_t mscratch;
+    rvfi_csr_elmt_t mepc;
+    rvfi_csr_elmt_t mcause;
+    rvfi_csr_elmt_t mtval;
+    rvfi_csr_elmt_t mip;
+    rvfi_csr_elmt_t menvcfg;
+    rvfi_csr_elmt_t menvcfgh;
+    rvfi_csr_elmt_t mvendorid;
+    rvfi_csr_elmt_t marchid;
+    rvfi_csr_elmt_t mhartid;
+    rvfi_csr_elmt_t mcountinhibit;
+    rvfi_csr_elmt_t mcycle;
+    rvfi_csr_elmt_t mcycleh;
+    rvfi_csr_elmt_t minstret;
+    rvfi_csr_elmt_t minstreth;
+    rvfi_csr_elmt_t cycle;
+    rvfi_csr_elmt_t cycleh;
+    rvfi_csr_elmt_t instret;
+    rvfi_csr_elmt_t instreth;
+    rvfi_csr_elmt_t dcache;
+    rvfi_csr_elmt_t icache;
+    rvfi_csr_elmt_t acc_cons;
+    rvfi_csr_elmt_t pmpcfg0;
+    rvfi_csr_elmt_t pmpcfg1;
+    rvfi_csr_elmt_t pmpcfg2;
+    rvfi_csr_elmt_t pmpcfg3;
+    rvfi_csr_elmt_t pmpaddr0;
+    rvfi_csr_elmt_t pmpaddr1;
+    rvfi_csr_elmt_t pmpaddr2;
+    rvfi_csr_elmt_t pmpaddr3;
+    rvfi_csr_elmt_t pmpaddr4;
+    rvfi_csr_elmt_t pmpaddr5;
+    rvfi_csr_elmt_t pmpaddr6;
+    rvfi_csr_elmt_t pmpaddr7;
+    rvfi_csr_elmt_t pmpaddr8;
+    rvfi_csr_elmt_t pmpaddr9;
+    rvfi_csr_elmt_t pmpaddr10;
+    rvfi_csr_elmt_t pmpaddr11;
+    rvfi_csr_elmt_t pmpaddr12;
+    rvfi_csr_elmt_t pmpaddr13;
+    rvfi_csr_elmt_t pmpaddr14;
+    rvfi_csr_elmt_t pmpaddr15;
+  } rvfi_csr_t;
+
 endpackage
 
