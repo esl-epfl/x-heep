@@ -151,12 +151,15 @@ int main(int argc, char *argv[]) {
 
     PRINTF("BSP write test\n");
 
-    // Pick the correct spi device
-    spi_host_t spi;
+    // Pick the correct spi device based on simulation type
+    // spi_host_t spi;
+    spi_idx_e spi;
     #ifndef USE_SPI_FLASH
-    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
+    // spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
+    spi = SPI_IDX_HOST;
     #else
-    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
+    // spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
+    spi = SPI_IDX_FLASH;
     #endif
 
     // Define status variable
