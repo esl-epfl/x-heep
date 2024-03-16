@@ -157,9 +157,9 @@ spi_return_flags_e spi_set_tx_watermark(const spi_idx_e peri_id, uint8_t waterma
 spi_return_flags_e spi_set_rx_watermark(const spi_idx_e peri_id, uint8_t watermark) {
     if (peri_id > SPI_MAX_IDX) return SPI_FLAG_NULL_PTR;
     if (watermark > SPI_HOST_PARAM_RX_DEPTH) return SPI_FLAG_WATERMARK_EXCEEDS;
-    volatile uint32_t ctrl_reg = spi_peris[peri_id]->CONTROL;
+    volatile uint32_t ctrl_reg = spi_peris[0]->CONTROL;
     ctrl_reg = bitfield_write(ctrl_reg, SPI_HOST_CONTROL_RX_WATERMARK_MASK, SPI_HOST_CONTROL_RX_WATERMARK_OFFSET, watermark);
-    spi_peris[peri_id]->CONTROL = ctrl_reg;
+    spi_peris[0]->CONTROL = ctrl_reg;
     return SPI_FLAG_OK;
 }
 
@@ -195,21 +195,21 @@ spi_return_flags_e spi_set_command(const spi_idx_e peri_id, const uint32_t cmd_r
         return SPI_FLAG_COMMAND_FULL;
     if (bitfield_read(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, SPI_HOST_COMMAND_SPEED_OFFSET) > MAX_SPEED)
         return SPI_FLAG_SPEED_INVALID;
-    spi_peris[peri_id]->COMMAND = cmd_reg;
+    spi_peris[0]->COMMAND = cmd_reg;
     return SPI_FLAG_OK;
 }
 
 spi_return_flags_e spi_write_word(const spi_idx_e peri_id, uint32_t wdata) {
     if (peri_id > SPI_MAX_IDX) return SPI_FLAG_NULL_PTR;
     if (spi_get_tx_queue_depth(peri_id) >= SPI_HOST_PARAM_TX_DEPTH) return SPI_FLAG_TX_QUEUE_FULL;
-    spi_peris[peri_id]->TXDATA = wdata;
+    spi_peris[0]->TXDATA = wdata;
     return SPI_FLAG_OK;
 }
 
 spi_return_flags_e spi_read_word(const spi_idx_e peri_id, uint32_t* dst) {
     if (peri_id > SPI_MAX_IDX) return SPI_FLAG_NULL_PTR;
     if (spi_get_rx_queue_depth(peri_id) == 0) return SPI_FLAG_RX_QUEUE_EMPTY;
-    *dst = spi_peris[peri_id]->RXDATA;
+    *dst = spi_peris[0]->RXDATA;
     return SPI_FLAG_OK;
 }
 
