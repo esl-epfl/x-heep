@@ -1,4 +1,4 @@
-from typing import Generator, Iterable
+from typing import Generator, Iterable, List, Set
 from enum import Enum
 from .ram_bank import Bank, is_pow2, ILRamGroup
 from .linker_section import LinkerSection
@@ -22,7 +22,7 @@ class XHeep():
     :raise TypeError: when parameters are of incorrect type.
     """
 
-    IL_COMPATIBLE_BUS_TYPES: "set[BusType]" = set([BusType.NtoM])
+    IL_COMPATIBLE_BUS_TYPES: "Set[BusType]" = set([BusType.NtoM])
     """Constant set of bus types that support interleaved memory banks"""
     
     
@@ -38,22 +38,22 @@ class XHeep():
 
         self._bus_type: BusType = bus_type
         self._ram_start_address: int = ram_start_address
-        self._ram_banks: list[Bank] = []
-        self._ram_banks_il_idx: list[int] = []
-        self._ram_banks_il_groups: list[ILRamGroup] = []
+        self._ram_banks: List[Bank] = []
+        self._ram_banks_il_idx: List[int] = []
+        self._ram_banks_il_groups: List[ILRamGroup] = []
         self._il_banks_present: bool = False
         self._ram_next_idx: int = 1
         self._ram_next_addr: int = self._ram_start_address
-        self._linker_sections: list[LinkerSection] = []
-        self._used_section_names: set[str] = set()
+        self._linker_sections: List[LinkerSection] = []
+        self._used_section_names: Set[str] = set()
 
 
-    def add_ram_banks(self, bank_sizes: "list[int]", section_name: str):
+    def add_ram_banks(self, bank_sizes: "List[int]", section_name: str):
         """
         Add ram banks in continuous address mode to the system.
         The bank size should be a power of two and at least 1kiB.
 
-        :param list[int] bank_sizes: list of bank sizes in kiB that should be added to the system
+        :param List[int] bank_sizes: list of bank sizes in kiB that should be added to the system
         :param str section_name: name of the section for the linker script the two first sections should be code and then data, the names must be unique and not be used by the linker for other purposes.
         :raise TypeError: when arguments are of wrong type
         :raise ValueError: when banks have an incorrect size.
@@ -67,7 +67,7 @@ class XHeep():
         if len(bank_sizes) == 0:
             raise ValueError("bank_sizes is empty")
 
-        banks: list[Bank] = []
+        banks: List[Bank] = []
         for b in bank_sizes:
             banks.append(Bank(b, self._ram_next_addr, self._ram_next_idx, 0, 0))
             self._ram_next_addr = banks[-1]._end_address
@@ -104,7 +104,7 @@ class XHeep():
 
         first_il = self.ram_numbanks()
 
-        banks: list[Bank] = []
+        banks: List[Bank] = []
         for i in range(num):
             banks.append(Bank(bank_size, self._ram_next_addr, self._ram_next_idx, num.bit_length()-1, i))
             self._ram_next_idx += 1
@@ -122,10 +122,10 @@ class XHeep():
     
 
 
-    def _add_linker_section(self, banks: "list[Bank]", name: str):
+    def _add_linker_section(self, banks: "List[Bank]", name: str):
         """
         Internal function to add linker sections
-        :param list[Bank] banks: list of banks that compose the section, assumed to be continuous in memory
+        :param List[Bank] banks: list of banks that compose the section, assumed to be continuous in memory
         :param str name: the name of the section.
         :raise ValueError: if the name was allready used for another section or the first and second are not code and data.
         """
@@ -244,7 +244,7 @@ class XHeep():
         :rtype: Iterable[Bank]
         """
         m = map((lambda b: None if b[0] in self._ram_banks_il_idx else b[1]), enumerate(self._ram_banks))
-        return filter(lambda b: not b == None, m)
+        return filter(None, m)
     
 
 
@@ -254,7 +254,7 @@ class XHeep():
         :rtype: Iterable[Bank]
         """
         m = map((lambda b: None if not b[0] in self._ram_banks_il_idx else b[1]), enumerate(self._ram_banks))
-        return filter(lambda b: not b == None, m)
+        return filter(None, m)
 
 
 

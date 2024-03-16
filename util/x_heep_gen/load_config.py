@@ -1,15 +1,15 @@
 import importlib
 from pathlib import PurePath
-from typing import Type
+from typing import List
 import hjson
 
 from .system import BusType, XHeep
 
-def ram_list(l: "list[int]", entry):
+def ram_list(l: "List[int]", entry):
     """
     Parses the hjson ram bank configuration in continuous mode.
 
-    :param list[int] l: the list where bank sizes in kiB should be added
+    :param List[int] l: the list where bank sizes in kiB should be added
     :enrtry: the entry to be parsed. It should be a list an integer or an continuous dictionary
     :raise RuntimeError: when an invalid configuration is processed.
     """
@@ -43,11 +43,11 @@ def ram_list(l: "list[int]", entry):
 
 
 
-def load_ram_configuration(system: Type[XHeep], mem: hjson.OrderedDict):
+def load_ram_configuration(system: XHeep, mem: hjson.OrderedDict):
     """
     Reads the whole ram configuration.
 
-    :param Type[XHeep] system: the system object where the ram should be added.
+    :param XHeep system: the system object where the ram should be added.
     :param hjson.OrderedDict mem: The configuration part with the ram informations.
     :raise TypeError: when arguments do not have the right type
     :raise RuntimeError: when an invlaid configuration is procesed.
@@ -79,7 +79,7 @@ def load_ram_configuration(system: Type[XHeep], mem: hjson.OrderedDict):
             system.add_ram_banks_il(int(value["num"]), int(value["size"]), key)
 
         elif t == "continuous":
-            banks: list[int] = []
+            banks: List[int] = []
             ram_list(banks, value)
             system.add_ram_banks(banks, key)
 
@@ -130,11 +130,11 @@ def _chk_purep(f):
 
 
 
-def load_cfg_hjson_file(f: Type[PurePath]) -> XHeep:
+def load_cfg_hjson_file(f: PurePath) -> XHeep:
     """
     Loads the configuration passed in the path as hjson and creates an object representing the mcu.
 
-    :param Type[PurePath] f: path of the configuration
+    :param PurePath f: path of the configuration
     :return: the object representing the mcu configuration
     :rtype: XHeep
     :raise RuntimeError: when and invalid configuration is passed or when the sanity checks failed
@@ -146,7 +146,7 @@ def load_cfg_hjson_file(f: Type[PurePath]) -> XHeep:
     
 
 
-def load_cfg_script_file(f: Type[PurePath]) -> Type[XHeep]:
+def load_cfg_script_file(f: PurePath) -> XHeep:
     """
     Executes the python file passed as argument to cinfigure the system.
 
@@ -154,7 +154,7 @@ def load_cfg_script_file(f: Type[PurePath]) -> Type[XHeep]:
     The script can import modules from the util directory.
     The script should not have side effects as it is called multiple time in the current makefile.
 
-    :param Type[PurePath] f: path of the configuration
+    :param PurePath f: path of the configuration
     :return: the object representing the mcu configuration
     :rtype: XHeep
     :raise RuntimeError: when and invalid configuration is passed or when the sanity checks failed
@@ -169,11 +169,11 @@ def load_cfg_script_file(f: Type[PurePath]) -> Type[XHeep]:
     
 
 
-def load_cfg_file(f: Type[PurePath]) -> XHeep:
+def load_cfg_file(f: PurePath) -> XHeep:
     """
     Load the Configuration by extension type. It currently supports .hjson and .py
 
-    :param Type[PurePath] f: path of the configuration
+    :param PurePath f: path of the configuration
     :return: the object representing the mcu configuration
     :rtype: XHeep
     :raise RuntimeError: when and invalid configuration is passed or when the sanity checks failed
