@@ -1,0 +1,24 @@
+#-----------------------------------------------------------
+# Vivado Lab Edition v2023.2 (64-bit)
+# SW Build 4029153 on Fri Oct 13 20:13:54 MDT 2023
+# 
+# 
+# Start of session at: Sat Mar 16 14:53:42 2024
+# Process ID: 5497
+# Current directory: /home/llorenc/Documents/x-heep
+# Command line: vivado_lab
+# Log file: /home/llorenc/Documents/x-heep/vivado_lab.log
+# Journal file: /home/llorenc/Documents/x-heep/vivado_lab.jou
+# Running On: llorenc--Laptop-HP, OS: Linux, CPU Frequency: 1500.000 MHz, CPU Physical cores: 4, Host memory: 16534 MB
+#-----------------------------------------------------------
+start_gui
+open_hw_manager
+connect_hw_server -allow_non_jtag
+open_hw_target
+current_hw_device [get_hw_devices xc7z020_1]
+refresh_hw_device -update_hw_probes false [lindex [get_hw_devices xc7z020_1] 0]
+set_property PROBES.FILE {} [get_hw_devices xc7z020_1]
+set_property FULL_PROBES.FILE {} [get_hw_devices xc7z020_1]
+set_property PROGRAM.FILE {/home/llorenc/Downloads/openhwgroup.XHEEP.bit} [get_hw_devices xc7z020_1]
+program_hw_devices [get_hw_devices xc7z020_1]
+refresh_hw_device [lindex [get_hw_devices xc7z020_1] 0]

@@ -1,0 +1,164 @@
+/*
+
+AMD Vivado Lab Edition v2023.2 (64-bit) [Major: 2023, Minor: 2]
+SW Build: 4029153 on Fri Oct 13 20:13:54 MDT 2023
+
+Process ID (PID): 5497
+License: Customer
+Mode: GUI Mode
+
+Current time: 	Sat Mar 16 14:53:55 CET 2024
+Time zone: 	Central European Standard Time (Europe/Zurich)
+
+OS: Ubuntu
+OS Version: 5.15.0-100-generic
+OS Architecture: amd64
+Available processors (cores): 8
+LSB Release Description: DISTRIB_ID=Ubuntu
+
+Display: 0
+Screen size: 1920x1080
+Local screen bounds: x = 60, y = 27, width = 1860, height = 1053
+Screen resolution (DPI): 100
+Available screens: 2
+Default font: family=Dialog,name=Dialog,style=plain,size=12
+Scale size: 12
+OS font scaling: 100%
+Anti-Alias Enabled: false
+
+Java version: 	17.0.7 64-bit
+JavaFX version: 17.0.1
+Java home: 	/tools/Xilinx/Vivado_Lab/2023.2/tps/lnx64/jre17.0.7_7
+Java executable: 	/tools/Xilinx/Vivado_Lab/2023.2/tps/lnx64/jre17.0.7_7/bin/java
+Java arguments: 	[-Dsun.java2d.pmoffscreen=false, -Dhttps.protocols=TLSv1,TLSv1.1,TLSv1.2, -Dsun.java2d.xrender=false, -Djdk.gtk.version=2, -Dsun.java2d.uiScale.enabled=false, -Dswing.aatext=true, -XX:-UsePerfData, -Djdk.map.althashing.threshold=512, -XX:StringTableSize=4072, -XX:+UseStringDeduplication, -XX:MaxGCPauseMillis=200, -XX:+ParallelRefProcEnabled, --add-opens=java.desktop/javax.swing.plaf.synth=ALL-UNNAMED, --add-opens=java.base/java.nio=ALL-UNNAMED, --add-opens=java.desktop/sun.swing=ALL-UNNAMED, --add-opens=java.desktop/javax.swing=ALL-UNNAMED, --add-opens=java.desktop/javax.swing.tree=ALL-UNNAMED, --add-opens=java.desktop/javax.swing.plaf.basic=ALL-UNNAMED, --add-opens=java.desktop/javax.swing.plaf.synth=ALL-UNNAMED, --add-opens=java.desktop/javax.swing.plaf.basic=ALL-UNNAMED, --add-opens=java.desktop/javax.swing=ALL-UNNAMED, --add-opens=java.desktop/javax.swing.tree=ALL-UNNAMED, --add-opens=java.desktop/java.awt.event=ALL-UNNAMED, --add-exports=java.desktop/javax.swing.plaf.synth=ALL-UNNAMED, --add-exports=java.base/java.nio=ALL-UNNAMED, --add-exports=java.desktop/sun.swing=ALL-UNNAMED, --add-exports=java.desktop/javax.swing=ALL-UNNAMED, --add-exports=java.desktop/javax.swing.tree=ALL-UNNAMED, --add-exports=java.desktop/javax.swing.plaf.basic=ALL-UNNAMED, --add-exports=java.desktop/sun.swing=ALL-UNNAMED, --add-exports=java.desktop/sun.swing.table=ALL-UNNAMED, --add-exports=java.desktop/sun.swing.plaf.synth=ALL-UNNAMED, --add-exports=java.desktop/sun.awt.shell=ALL-UNNAMED, --add-exports=java.base/sun.security.action=ALL-UNNAMED, --add-exports=java.desktop/sun.font=ALL-UNNAMED, --add-opens=java.desktop/sun.awt.X11=ALL-UNNAMED, -XX:NewSize=80m, -XX:MaxNewSize=80m, -Xms512m, -Xmx4072m, -Xss10m, -Xrs]
+Java initial memory (-Xms): 	512 MB
+Java maximum memory (-Xmx):	 3 GB
+
+User name: 	llorenc
+User home directory: /home/llorenc
+User working directory: /home/llorenc/Documents/x-heep
+User country: 	US
+User language: 	en
+User locale: 	en_US
+
+RDI_BASEROOT: /tools/Xilinx/Vivado_Lab
+HDI_APPROOT: /tools/Xilinx/Vivado_Lab/2023.2
+RDI_DATADIR: /tools/Xilinx/Vivado_Lab/2023.2/data
+RDI_BINDIR: /tools/Xilinx/Vivado_Lab/2023.2/bin
+
+Vivado Lab Edition preferences file: /home/llorenc/.Xilinx/vivado_lab/2023.2/vivado_lab.xml
+Vivado Lab Edition preferences directory: /home/llorenc/.Xilinx/vivado_lab/2023.2/
+Vivado Lab Edition layouts directory: /home/llorenc/.Xilinx/vivado_lab/2023.2/data/layouts
+PlanAhead jar file: 	/tools/Xilinx/Vivado_Lab/2023.2/lib/classes/planAhead.jar
+Vivado Lab Edition log file: 	/home/llorenc/Documents/x-heep/vivado_lab.log
+Vivado Lab Edition journal file: 	/home/llorenc/Documents/x-heep/vivado_lab.jou
+Engine tmp dir: 	./.Xil/vivado_lab-5497-llorenc--Laptop-HP
+Non-Default Parameters:	[]
+
+Xilinx & AMD Environment Variables
+--------------------------------------------------------------------------------------------
+GNOME_SHELL_SESSION_MODE: ubuntu
+RDI_APPROOT: /tools/Xilinx/Vivado_Lab/2023.2
+RDI_BASEROOT: /tools/Xilinx/Vivado_Lab
+RDI_BINROOT: /tools/Xilinx/Vivado_Lab/2023.2/bin
+RDI_BUILD: yes
+RDI_DATADIR: /tools/Xilinx/Vivado_Lab/2023.2/data
+RDI_INSTALLROOT: /tools/Xilinx
+RDI_INSTALLVER: 2023.2
+RDI_JAVA_PLATFORM: 
+RDI_JAVA_VERSION: 17.0.7_7
+RDI_LABTOOLS_STANDALONE_MODE: 1
+RDI_LIBDIR: /tools/Xilinx/Vivado_Lab/2023.2/lib/lnx64.o/Ubuntu/20:/tools/Xilinx/Vivado_Lab/2023.2/lib/lnx64.o/Ubuntu:/tools/Xilinx/Vivado_Lab/2023.2/lib/lnx64.o
+RDI_OPT_EXT: .o
+RDI_PATCHROOT: 
+RDI_PLATFORM: lnx64
+RDI_PROG: /tools/Xilinx/Vivado_Lab/2023.2/bin/unwrapped/lnx64.o/vivado_lab
+RDI_SESSION_INFO: /home/llorenc/Documents/x-heep:llorenc--Laptop-HP_1710597221_5456
+RDI_SHARED_DATA: /tools/Xilinx/SharedData/2023.2/data
+RDI_SUPPORT_32: 1
+RDI_USE_JDK17: 1
+SHELL: /bin/bash
+XILINX_DSP: 
+XILINX_PLANAHEAD: /tools/Xilinx/Vivado_Lab/2023.2
+XILINX_VIVADO: /tools/Xilinx/Vivado_Lab/2023.2
+
+
+GUI allocated memory:	512 MB
+GUI max memory:		4,072 MB
+Engine allocated memory: 1,290 MB
+
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+
+*/
+
+// TclEventType: START_GUI
+// Tcl Message: start_gui 
+// HMemoryUtils.trashcanNow. Engine heap size: 1,292 MB. GUI used memory: 49 MB. Current time: 3/16/24, 2:53:56 PM CET
+// WARNING: HEventQueue.dispatchEvent() is taking  1001 ms.
+// WARNING: HEventQueue.dispatchEvent() is taking  1001 ms.
+// WARNING: HEventQueue.dispatchEvent() is taking  1001 ms.
+// WARNING: HEventQueue.dispatchEvent() is taking  1001 ms.
+// WARNING: HEventQueue.dispatchEvent() is taking  1001 ms.
+selectButton(PAResourceEtoH.GettingStartedView_OPEN_HARDWARE_MANAGER, "Open Hardware Manager"); // u (PAResourceEtoH.GettingStartedView_OPEN_HARDWARE_MANAGER)
+// Run Command: PAResourceCommand.PACommandNames_OPEN_HARDWARE_MANAGER
+// Tcl (Dont Echo) Command: 'rdi::info_commands get_hw_probes'
+// TclEventType: DEBUG_PROBE_SET_CHANGE
+// TclEventType: PROJECT_NEW
+// WARNING: HEventQueue.dispatchEvent() is taking  1349 ms.
+// TclEventType: HW_SESSION_OPEN
+// HMemoryUtils.trashcanNow. Engine heap size: 1,372 MB. GUI used memory: 54 MB. Current time: 3/16/24, 2:55:07 PM CET
+// Tcl Message: open_hw_manager 
+// TclEventType: HW_SESSION_OPEN
+// [GUI Memory]: 59 MB (+59300kb) [00:01:21]
+// [Engine Memory]: 1,381 MB (+1296263kb) [00:01:21]
+dismissDialog("Open Hardware Manager"); // bq (Open Hardware Manager Progress)
+selectButton(PAResourceOtoP.ProgramDebugTab_OPEN_TARGET, "Open target"); // g (PAResourceOtoP.ProgramDebugTab_OPEN_TARGET)
+selectMenuItem(PAResourceCommand.PACommandNames_AUTO_CONNECT_TARGET, "Auto Connect"); // ao (PAResourceCommand.PACommandNames_AUTO_CONNECT_TARGET, auto_connect_target_menu)
+// Run Command: PAResourceCommand.PACommandNames_AUTO_CONNECT_TARGET
+// TclEventType: HW_SERVER_UPDATE
+// Tcl Message: connect_hw_server -allow_non_jtag 
+// Tcl Message: INFO: [Labtools 27-2285] Connecting to hw_server url TCP:localhost:3121 INFO: [Labtools 27-2222] Launching hw_server... INFO: [Labtools 27-2221] Launch Output:  ****** Xilinx hw_server v2023.2   **** Build date : Oct 13 2023 at 20:26:23     ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.   INFO: [Labtools 27-3415] Connecting to cs_server url TCP:localhost:0 INFO: [Labtools 27-3417] Launching cs_server... 
+// TclEventType: HW_SERVER_UPDATE
+// Tcl Message: INFO: [Labtools 27-2221] Launch Output:   ******** Xilinx cs_server v2023.2.0   ****** Build date   : Oct 10 2023-06:01:56     **** Build number : 2023.2.1696910516       ** Copyright 2017-2022 Xilinx, Inc. All Rights Reserved.       ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.    
+// TclEventType: HW_TARGET_CHANGE
+// TclEventType: HW_TARGET_CLOSE
+// Tcl Message: open_hw_target 
+// Tcl Message: INFO: [Labtoolstcl 44-466] Opening hw_target localhost:3121/xilinx_tcf/Xilinx/1234-tulA 
+// TclEventType: HW_DEVICE_CHANGE
+// TclEventType: HW_SYSMON_ADD
+// TclEventType: HW_TARGET_UPDATE
+// Tcl Message: current_hw_device [get_hw_devices xc7z020_1] 
+// TclEventType: HW_DEVICE_CHANGE
+// TclEventType: HW_SYSMON_CHANGE
+// TclEventType: HW_DEVICE_UPDATE
+// TclEventType: HW_DEVICE_CHANGE
+// Tcl Message: refresh_hw_device -update_hw_probes false [lindex [get_hw_devices xc7z020_1] 0] 
+// Tcl Message: INFO: [Labtools 27-1435] Device xc7z020 (JTAG device index = 1) is not programmed (DONE status = 0). 
+dismissDialog("Auto Connect"); // bq (Auto Connect Progress)
+selectButton(PAResourceOtoP.ProgramDebugTab_PROGRAM_DEVICE, "Program device"); // g (PAResourceOtoP.ProgramDebugTab_PROGRAM_DEVICE)
+// Run Command: PAResourceCommand.PACommandNames_PROGRAM_FPGA
+selectMoreButton(PAResourceOtoP.ProgramFpgaDialog_SPECIFY_BITSTREAM_FILE, (String) null); // r (PAResourceOtoP.ProgramFpgaDialog_SPECIFY_BITSTREAM_FILE)
+setFileChooser("/home/llorenc/Downloads/openhwgroup.XHEEP.bit");
+selectButton(PAResourceOtoP.ProgramFpgaDialog_PROGRAM, "Program"); // a (PAResourceOtoP.ProgramFpgaDialog_PROGRAM, RDIResource.BaseDialog_OK)
+// TclEventType: HW_DEVICE_CHANGE
+dismissDialog("Program Device"); // aP (dialog0)
+// Tcl Message: set_property PROBES.FILE {} [get_hw_devices xc7z020_1] 
+// Tcl Message: set_property FULL_PROBES.FILE {} [get_hw_devices xc7z020_1] 
+// TclEventType: HW_DEVICE_CHANGE
+// Tcl Message: set_property PROGRAM.FILE {/home/llorenc/Downloads/openhwgroup.XHEEP.bit} [get_hw_devices xc7z020_1] 
+// Tcl Message: program_hw_devices [get_hw_devices xc7z020_1] 
+// TclEventType: HW_DEVICE_CHANGE
+// Tcl Message: INFO: [Labtools 27-3164] End of startup status: HIGH 
+// TclEventType: HW_DEVICE_CHANGE
+// TclEventType: HW_SYSMON_CHANGE
+// TclEventType: HW_DEVICE_UPDATE
+// TclEventType: HW_DEVICE_CHANGE
+// TclEventType: HW_DEVICE_PROBES_CHANGE
+// TclEventType: DEBUG_PROBE_SET_CHANGE
+// TclEventType: HW_DEVICE_PROBES_CHANGE
+// Tcl Message: refresh_hw_device [lindex [get_hw_devices xc7z020_1] 0] 
+// Tcl Message: INFO: [Labtools 27-1434] Device xc7z020 (JTAG device index = 1) is programmed with a design that has no supported debug core(s) in it. 
+// 'D' command handler elapsed time: 12 seconds
+// [GUI Memory]: 85 MB (+24094kb) [00:01:48]
+dismissDialog("Program Device"); // bq (Program Device Progress)
