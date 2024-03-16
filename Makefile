@@ -89,6 +89,7 @@ export
 ## @section Conda
 conda: environment.yml
 	conda env create -f environment.yml
+	sed 's,ROOT_PATH,$(shell pwd),g' x_heep_pythonpath.pth > `conda run -n core-v-mini-mcu python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])'`/x_heep_pythonpath.pth
 
 environment.yml: python-requirements.txt
 	util/python-requirements2conda.sh

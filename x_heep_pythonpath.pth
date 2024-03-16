@@ -1,0 +1,1 @@
+import sys, os; sys.path.insert(0, os.path.abspath("ROOT_PATH/util")); sys.path.insert(0, os.path.abspath("ROOT_PATH/hw/vendor/pulp_platform_register_interface/vendor/lowrisc_opentitan/util"))
