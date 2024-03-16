@@ -356,7 +356,7 @@ static inline __attribute__((always_inline)) const uintptr_t spi_get_base_addr(c
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) volatile uint32_t spi_get_status(const spi_idx_e peri_id) {
-    return spi_peris[peri_id]->STATUS;
+    return spi_peris[0]->STATUS;
 }
 
 /**
@@ -446,7 +446,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const
 static inline __attribute__((always_inline)) void spi_wait_for_rx_watermark(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
     if (peri_id > SPI_MAX_IDX) return;
-    while (!bitfield_read(spi_peris[peri_id]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_RXWM_BIT));
+    while (!bitfield_read(spi_peris[0]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_RXWM_BIT));
 }
 
 /**
