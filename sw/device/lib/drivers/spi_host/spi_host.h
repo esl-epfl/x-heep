@@ -157,7 +157,7 @@ typedef struct spi_command {
 
 // TODO: This array must get out of header file !
 //       Hence must get rid of all inline functions...
-extern volatile spi_host* const spi_peris[4];
+// extern volatile spi_host* const spi_peris[4];
 
 /****************************************************************************/
 /**                                                                        **/
@@ -166,6 +166,9 @@ extern volatile spi_host* const spi_peris[4];
 /****************************************************************************/
 
 // SPI registers access functions
+
+volatile const uint32_t spi_get_status(const spi_idx_e peri_id);
+const uintptr_t spi_get_base_addr(const spi_idx_e peri_id);
 
 /**
  * Read the TX FIFO depth register.
@@ -345,18 +348,18 @@ spi_return_flags_e spi_output_enable(const spi_idx_e peri_id, bool enable);
  *      to encapsulate the spi_peris inside the .c file.
  */
 
-static inline __attribute__((always_inline)) const uintptr_t spi_get_base_addr(const spi_idx_e peri_id) {
-    return (uintptr_t) spi_peris[peri_id];
-}
+// static inline __attribute__((always_inline)) const uintptr_t spi_get_base_addr(const spi_idx_e peri_id) {
+//     return (uintptr_t) spi_peris[peri_id];
+// }
 
 /**
  * Read SPI status register
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) volatile uint32_t spi_get_status(const spi_idx_e peri_id) {
-    return spi_peris[peri_id]->STATUS;
-}
+// static inline __attribute__((always_inline)) volatile uint32_t spi_get_status(const spi_idx_e peri_id) {
+//     return spi_peris[peri_id]->STATUS;
+// }
 
 /**
  * Read SPI active bit from status register
@@ -401,7 +404,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_ready(const spi_i
 static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
     if (peri_id > SPI_MAX_IDX) return;
-    while (!bitfield_read(spi_peris[peri_id]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXWM_BIT));
+    while (!bitfield_read(spi_get_status(peri_id), BIT_MASK_1, SPI_HOST_STATUS_TXWM_BIT));
 }
 
 /**
@@ -412,7 +415,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(cons
 static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
     if (peri_id > SPI_MAX_IDX) return;
-    while (!bitfield_read(spi_peris[peri_id]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
+    while (!bitfield_read(spi_get_status(peri_id), BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
 }
 
 /**
@@ -423,7 +426,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const sp
 static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
     if (peri_id > SPI_MAX_IDX) return;
-    while (!bitfield_read(spi_peris[peri_id]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
+    while (!bitfield_read(spi_get_status(peri_id), BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
 }
 
 /**
@@ -434,7 +437,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(cons
 static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
     if (peri_id > SPI_MAX_IDX) return;
-    while (!bitfield_read(spi_peris[peri_id]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXFULL_BIT));
+    while (!bitfield_read(spi_get_status(peri_id), BIT_MASK_1, SPI_HOST_STATUS_TXFULL_BIT));
 }
 
 /**
@@ -445,7 +448,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const
 static inline __attribute__((always_inline)) void spi_wait_for_rx_watermark(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
     if (peri_id > SPI_MAX_IDX) return;
-    while (!bitfield_read(spi_peris[peri_id]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_RXWM_BIT));
+    while (!bitfield_read(spi_get_status(peri_id), BIT_MASK_1, SPI_HOST_STATUS_RXWM_BIT));
 }
 
 /**

@@ -62,7 +62,13 @@
 /**                                                                        **/
 /****************************************************************************/
 
-volatile spi_host* const spi_peris[4] = {
+/****************************************************************************/
+/**                                                                        **/
+/*                            GLOBAL VARIABLES                              */
+/**                                                                        **/
+/****************************************************************************/
+
+static volatile spi_host* const spi_peris[4] = {
     ((volatile spi_host *) SPI_FLASH_START_ADDRESS),
     ((volatile spi_host *) SPI_MEMIO_START_ADDRESS),
     ((volatile spi_host *) SPI_HOST_START_ADDRESS),
@@ -71,17 +77,21 @@ volatile spi_host* const spi_peris[4] = {
 
 /****************************************************************************/
 /**                                                                        **/
-/*                            GLOBAL VARIABLES                              */
-/**                                                                        **/
-/****************************************************************************/
-
-/****************************************************************************/
-/**                                                                        **/
 /*                           EXPORTED FUNCTIONS                             */
 /**                                                                        **/
 /****************************************************************************/
 
 // SPI get functions
+
+// return max(uint32_t) on NULL pointer
+volatile const uint32_t spi_get_status(const spi_idx_e peri_id) {
+    if (peri_id > SPI_MAX_IDX) return -1;
+    return spi_peris[peri_id]->STATUS;
+}
+
+const uintptr_t spi_get_base_addr(const spi_idx_e peri_id) {
+    return (uintptr_t) spi_peris[peri_id];
+}
 
 // return max(uint8_t) on NULL pointer
 volatile uint8_t spi_get_tx_queue_depth(const spi_idx_e peri_id) {
