@@ -11,7 +11,6 @@ module cve2_top_tracing import cve2_pkg::*; #(
   parameter int unsigned MHPMCounterWidth = 40,
   parameter bit          RV32E            = 1'b0,
   parameter rv32m_e      RV32M            = RV32MFast,
-  parameter bit          BranchPredictor  = 1'b0,
   parameter int unsigned DmHaltAddr       = 32'h1A110800,
   parameter int unsigned DmExceptionAddr  = 32'h1A110808
 ) (
@@ -112,7 +111,6 @@ module cve2_top_tracing import cve2_pkg::*; #(
     .MHPMCounterWidth ( MHPMCounterWidth ),
     .RV32E            ( RV32E            ),
     .RV32M            ( RV32M            ),
-    .BranchPredictor  ( BranchPredictor  ),
     .DmHaltAddr       ( DmHaltAddr       ),
     .DmExceptionAddr  ( DmExceptionAddr  )
   ) u_cve2_top (
