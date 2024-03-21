@@ -46,6 +46,8 @@
 
 /* To get TX and RX FIFO depth */
 #include "spi_host_regs.h"
+/* To get SPI functions */
+#include "spi_host.h"
 
 /* To get the target of the compilation (sim or pynq) */
 #include "x-heep.h"
