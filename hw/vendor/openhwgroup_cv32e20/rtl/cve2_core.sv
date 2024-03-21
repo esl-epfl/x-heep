@@ -625,14 +625,12 @@ module cve2_core import cve2_pkg::*; #(
   assign outstanding_store_id = id_stage_i.instr_executing & id_stage_i.lsu_req_dec &
                                 id_stage_i.lsu_we;
 
-  begin : gen_no_wb_stage
-    // Without writeback stage only look into whether load or store is in ID to determine if
-    // a response is expected.
-    assign outstanding_load_resp  = outstanding_load_id;
-    assign outstanding_store_resp = outstanding_store_id;
+  // Without writeback stage only look into whether load or store is in ID to determine if
+  // a response is expected.
+  assign outstanding_load_resp  = outstanding_load_id;
+  assign outstanding_store_resp = outstanding_store_id;
 
-    `ASSERT(NoMemRFWriteWithoutPendingLoad, rf_we_lsu |-> outstanding_load_id, clk_i, !rst_ni)
-  end
+  `ASSERT(NoMemRFWriteWithoutPendingLoad, rf_we_lsu |-> outstanding_load_id, clk_i, !rst_ni)
 
   `ASSERT(NoMemResponseWithoutPendingAccess,
     data_rvalid_i |-> outstanding_load_resp | outstanding_store_resp, clk_i, !rst_ni)
@@ -1093,6 +1091,9 @@ module cve2_core import cve2_pkg::*; #(
             rvfi_ext_stage_nmi[i+1]       <= rvfi_ext_stage_nmi[i];
             rvfi_ext_stage_debug_req[i+1] <= rvfi_ext_stage_debug_req[i];
             rvfi_ext_stage_mcycle[i]      <= cs_registers_i.mcycle_counter_i.counter_val_o;
+          end
+          else begin
+            rvfi_stage_trap[i]            <= 0;
           end
         end else begin
             rvfi_stage_halt[i]      <= rvfi_stage_halt[i-1];
