@@ -76,19 +76,6 @@ typedef enum {
     SPI_DIR_BIDIR       = 3
 } spi_dir_e;
 
-typedef enum {
-    SPI_FLAG_OK                 = 0x00,
-    SPI_FLAG_NULL_PTR           = 0x01,
-    SPI_FLAG_WATERMARK_EXCEEDS  = 0x02, /*!< The Watermark exceeded SPI_HOST_PARAM_TX_DEPTH 
-    or SPI_HOST_PARAM_RX_DEPTH and was therefore not set */
-    SPI_FLAG_CSID_INVALID       = 0x04, /*!< The CSID was out of the bounds specified in 
-    SPI_HOST_PARAM_NUM_C_S */
-    SPI_FLAG_COMMAND_FULL       = 0x08, /*!< The CMD FIFO is currently full so couldn't write command */
-    SPI_FLAG_SPEED_INVALID      = 0x10, /*!< The specified speed is not valid (i.e. = 3) so couldn't write command */
-    SPI_FLAG_TX_QUEUE_FULL      = 0x20, /*!< The TX Queue is full, thus could not write to TX register */
-    SPI_FLAG_RX_QUEUE_EMPTY     = 0x40  /*!< The RX Queue is empty, thus could not read from RX register */
-} spi_return_flags_e;
-
 /**
 * SPI Watermark Set Return Flags
 */
