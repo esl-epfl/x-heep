@@ -1,0 +1,21 @@
+name: Simulate all apps
+on: [pull_request]
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/esl-epfl/x-heep-toolchain:latest
+    name: Simulate all apps. All must pass.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Run all apps
+        run: |
+          conda init bash
+          source /root/.bashrc
+          conda activate core-v-mini-mcu
+          make clean-all
+          sed 's/is_included: "no",/is_included: "yes",/' -i mcu_cfg.hjson
+          make mcu-gen MEMORY_BANKS=6
+          python3 .github/workflows/sim-apps-job/test_apps.py
