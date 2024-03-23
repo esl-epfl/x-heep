@@ -484,7 +484,7 @@ There are 6 applications using the DMA:
 * `dma_example`: Tests memory-to-memory transfer, the blocking of transactions while another one is in progress, and window interrupts.
 * `example_external_peripheral`: Tests the use of the DMA HAL one a DMA instance external to X-HEEP. Only available for simulation.
 * `example_virtual_flash`: Tests the transfer to/from an external flash through the DMA.
-* `spi_flash_write`: Tests the transfer to/from the flash. Tests circular mode. Not available on FPGA if linker is `flash-exec`. Should be used with `mcu gen CPU=cv32e40p` and the bus should be changed to **NtoM** to test circular mode.
+* `spi_flash_write`: Tests the transfer to/from the flash. Tests circular mode. Not available on FPGA if linker is `flash-exec`. Should be used with `mcu gen BUS=NtoM CPU=cv32e40p` to test circular mode.
 * `spi_host_dma_exampe`: Test the transfer of data through the SPI host. Not available on Verilator.
 * `spi_host_dma_power_gate_example`: Test the transfer of data through the SPI host. Not available on Verilator.
 

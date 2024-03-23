@@ -19,6 +19,7 @@ from mako.template import Template
 import collections
 from math import log2
 import x_heep_gen.load_config
+from x_heep_gen.system import BusType
 
 class Pad:
 
@@ -326,6 +327,24 @@ def main():
                         default="",
                         help="CPU type (default value from cfg file)")
 
+    parser.add_argument("--bus",
+                        metavar="onetoM,NtoM",
+                        nargs='?',
+                        default="",
+                        help="Bus type (default value from cfg file)")
+
+    parser.add_argument("--memorybanks",
+                        metavar="from 2 to 16",
+                        nargs='?',
+                        default="",
+                        help="Number of 32KB Banks (default value from cfg file)")
+
+    parser.add_argument("--memorybanks_il",
+                        metavar="0, 2, 4 or 8",
+                        nargs='?',
+                        default="",
+                        help="Number of interleaved memory banks (default value from cfg file)")
+
     parser.add_argument("--external_domains",
                         metavar="from 0 to 32",
                         nargs='?',
@@ -367,8 +386,6 @@ def main():
 
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
-    
-    xheep = x_heep_gen.load_config.load_cfg_file(pathlib.PurePath(str(args.config)))
 
     # Read HJSON description of System.
     with args.cfg as file:
@@ -395,11 +412,21 @@ def main():
 
     outfile = args.outfile
 
+    config_override = x_heep_gen.system.Override(None, None, None)
+
     if args.cpu != None and args.cpu != '':
         cpu_type = args.cpu
     else:
         cpu_type = obj['cpu_type']
 
+    if args.bus != None and args.bus != '':
+        config_override.bus_type = BusType(args.bus)
+
+    if args.memorybanks != None and args.memorybanks != '':
+        config_override.numbanks = int(args.memorybanks)
+
+    if args.memorybanks_il != None and args.memorybanks_il != '':
+        config_override.numbanks_il = int(args.memorybanks_il)
 
     if args.external_domains != None and args.external_domains != '':
         external_domains = int(args.external_domains)
@@ -408,6 +435,12 @@ def main():
 
     if  external_domains > 32:
         exit("external_domains must be less than 32 instead of " + str(external_domains))
+
+
+
+    xheep = x_heep_gen.load_config.load_cfg_file(pathlib.PurePath(str(args.config)), config_override)
+
+
 
     debug_start_address = string2int(obj['debug']['address'])
     if int(debug_start_address, 16) < int('10000', 16):
