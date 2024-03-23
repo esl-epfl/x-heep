@@ -31,19 +31,11 @@ module memory_subsystem
 % endfor
 
 % for i, bank in enumerate(xheep.iter_ram_banks()):
-% if bank.il_level() == 0:
-  assign ram_req_addr_${i} = ram_req_i[${i}].addr[${bank.size().bit_length()-1}-1:2];
-% else:
 <%
   p1 = bank.size().bit_length()-1 + bank.il_level()
-  p2 = bank.size().bit_length()-1
-  p3 = 2 + bank.il_level()
+  p2 = 2 + bank.il_level()
 %>
-  assign ram_req_addr_${i} = {
-    ram_req_i[${i}].addr[${p1}-1:${p2}] - core_v_mini_mcu_pkg::RAM${bank.name()}_START_ADDRESS[${p1}-1:${p2}],
-    ram_req_i[${i}].addr[${p2}-1:${p3}]
-  };
-% endif
+  assign ram_req_addr_${i} = ram_req_i[${i}].addr[${p1}-1:${p2}];
 % endfor
 
   for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_sram

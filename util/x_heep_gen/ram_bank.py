@@ -55,9 +55,9 @@ class Bank():
         if self._il_offset >= 2**self._il_level:
             raise ValueError(f"il_offset is to big for an il_level of {self._il_level}")
         
-        mask = self._size_k * 1024 - 1
+        mask = 0b11
         if not self._start_address & mask == 0:
-            raise ValueError(f"start_address is not aligned on size")
+            raise ValueError(f"start_address is not aligned on word size")
         
 
         #TODO: Validate start address
