@@ -287,7 +287,7 @@ def write_template(tpl_path, outdir, outfile, **kwargs):
 
 def main():
     parser = argparse.ArgumentParser(prog="mcugen")
-    parser.add_argument("--cfg",
+    parser.add_argument("--cfg_peripherals",
                         "-c",
                         metavar="file",
                         type=argparse.FileType('r'),
@@ -388,7 +388,7 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
 
     # Read HJSON description of System.
-    with args.cfg as file:
+    with args.cfg_peripherals as file:
         try:
             srcfull = file.read()
             obj = hjson.loads(srcfull, use_decimal=True)
