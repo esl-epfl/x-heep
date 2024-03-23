@@ -48,6 +48,7 @@
 /****************************************************************************/
 
 #define SPI_MAX_IDX 3
+#define SPI_IDX_INVALID(idx) idx > SPI_MAX_IDX
 
 #ifdef __cplusplus
 extern "C" {
@@ -87,6 +88,32 @@ typedef enum {
     SPI_DIR_TX_ONLY     = 2,
     SPI_DIR_BIDIR       = 3
 } spi_dir_e;
+
+/**
+* SPI events
+*/
+typedef enum {
+    SPI_EVENT_RXFULL    = (1 << 0),
+    SPI_EVENT_TXEMPTY   = (1 << 1),
+    SPI_EVENT_RXWM      = (1 << 2),
+    SPI_EVENT_TXWM      = (1 << 3),
+    SPI_EVENT_READY     = (1 << 4),
+    SPI_EVENT_IDLE      = (1 << 5),
+    __SPI_EVENT_INVALID = (1 << 6)
+} spi_event_e;
+
+/**
+* SPI errors
+*/
+// TODO: NOT same amount of errors enable and errors status /!\.
+typedef enum {
+    SPI_ERROR_CMDBUSY       = (1 << SPI_HOST_ERROR_ENABLE_CMDBUSY_BIT),
+    SPI_ERROR_OVERFLOW      = (1 << SPI_HOST_ERROR_ENABLE_OVERFLOW_BIT),
+    SPI_ERROR_UNDERFLOW     = (1 << SPI_HOST_ERROR_ENABLE_UNDERFLOW_BIT),
+    SPI_ERROR_CMDINVAL      = (1 << SPI_HOST_ERROR_ENABLE_CMDINVAL_BIT),
+    SPI_ERROR_CSIDINVAL     = (1 << SPI_HOST_ERROR_ENABLE_CSIDINVAL_BIT),
+    __SPI_ERROR_INVALID     = (1 << SPI_HOST_ERROR_ENABLE_CSIDINVAL_BIT+1)
+} spi_error_e;
 
 /**
 * SPI functions return flags, informs user what problem there was or if all OK
@@ -165,6 +192,27 @@ extern volatile spi_host* const spi_peris[4];
 /**                          EXPORTED FUNCTIONS                            **/
 /**                                                                        **/
 /****************************************************************************/
+
+
+volatile spi_event_e spi_get_events_enabled(const spi_idx_e peri_id);
+
+volatile spi_event_e spi_set_events_enabled(const spi_idx_e peri_id, spi_event_e events, bool enable);
+
+volatile spi_event_e spi_get_events(const spi_idx_e peri_id);
+
+volatile spi_error_e spi_get_errors_enabled(const spi_idx_e peri_id);
+
+volatile spi_error_e spi_set_errors_enabled(const spi_idx_e peri_id, spi_error_e errors, bool enable);
+
+volatile spi_error_e spi_get_errors(const spi_idx_e peri_id);
+
+spi_return_flags_e spi_transaction(const spi_idx_e peri_id, const uint32_t* segments, const uint8_t len);
+
+uint8_t spi_read(const spi_idx_e peri_id, uint32_t* dst, const uint8_t len);
+
+uint8_t spi_write(const spi_idx_e peri_id, uint32_t* src, const uint8_t len);
+
+
 
 // SPI registers access functions
 
@@ -366,7 +414,7 @@ static inline __attribute__((always_inline)) volatile uint32_t spi_get_status(co
  */
 static inline __attribute__((always_inline)) volatile bool spi_get_active(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (peri_id > SPI_MAX_IDX) return false;
+    if (SPI_IDX_INVALID(peri_id)) return false;
     volatile uint32_t status_reg = spi_get_status(peri_id);
     return bitfield_read(status_reg, BIT_MASK_1, SPI_HOST_STATUS_ACTIVE_BIT);
 }
@@ -378,7 +426,7 @@ static inline __attribute__((always_inline)) volatile bool spi_get_active(const 
  */
 static inline __attribute__((always_inline)) volatile bool spi_get_ready(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (peri_id > SPI_MAX_IDX) return false;
+    if (SPI_IDX_INVALID(peri_id)) return false;
     volatile uint32_t status_reg = spi_get_status(peri_id);
     return bitfield_read(status_reg, BIT_MASK_1, SPI_HOST_STATUS_READY_BIT);
 }
@@ -390,7 +438,7 @@ static inline __attribute__((always_inline)) volatile bool spi_get_ready(const s
  */
 static inline __attribute__((always_inline)) void spi_wait_for_ready(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (peri_id > SPI_MAX_IDX) return;
+    if (SPI_IDX_INVALID(peri_id)) return;
     while (!spi_get_ready(peri_id));
 }
 
@@ -401,7 +449,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_ready(const spi_i
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (peri_id > SPI_MAX_IDX) return;
+    if (SPI_IDX_INVALID(peri_id)) return;
     while (!bitfield_read(spi_peris[peri_id]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXWM_BIT));
 }
 
@@ -412,7 +460,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(cons
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (peri_id > SPI_MAX_IDX) return;
+    if (SPI_IDX_INVALID(peri_id)) return;
     while (!bitfield_read(spi_peris[peri_id]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
 }
 
@@ -423,7 +471,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const sp
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (peri_id > SPI_MAX_IDX) return;
+    if (SPI_IDX_INVALID(peri_id)) return;
     while (!bitfield_read(spi_peris[peri_id]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
 }
 
@@ -434,7 +482,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(cons
  */
 static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (peri_id > SPI_MAX_IDX) return;
+    if (SPI_IDX_INVALID(peri_id)) return;
     while (!bitfield_read(spi_peris[peri_id]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_TXFULL_BIT));
 }
 
@@ -445,7 +493,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const
  */
 static inline __attribute__((always_inline)) void spi_wait_for_rx_watermark(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (peri_id > SPI_MAX_IDX) return;
+    if (SPI_IDX_INVALID(peri_id)) return;
     while (!bitfield_read(spi_peris[peri_id]->STATUS, BIT_MASK_1, SPI_HOST_STATUS_RXWM_BIT));
 }
 
