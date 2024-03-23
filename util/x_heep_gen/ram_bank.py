@@ -19,7 +19,7 @@ class Bank():
     :param int size_k: size in kiB
     :param int start_address: start address of the bank, in interleaved mode it should be the start address od the whole group
     :param int map_idx: index in the global address map. Has to be unique. Interleaved mode banks should have consecutive indices.
-    :param int il_level(): number of bits used for interleaving.
+    :param int il_level: number of bits used for interleaving.
     :param int il_offset: position in interleaved bank group if in any else 0. Should be consistent with map_idx.
     :raise TypeError: when parameters don't have the right type.
     :raise ValueError: when size_k isn't a power of two.
