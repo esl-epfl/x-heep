@@ -18,6 +18,8 @@ from jsonref import JsonRef
 from mako.template import Template
 import collections
 from math import log2
+import x_heep_gen.load_config
+from x_heep_gen.system import BusType
 
 class Pad:
 
@@ -285,12 +287,18 @@ def write_template(tpl_path, outdir, outfile, **kwargs):
 
 def main():
     parser = argparse.ArgumentParser(prog="mcugen")
-    parser.add_argument("--cfg",
+    parser.add_argument("--cfg_peripherals",
                         "-c",
                         metavar="file",
                         type=argparse.FileType('r'),
                         required=True,
                         help="A configuration file")
+    
+    parser.add_argument("--config",
+                        metavar="file",
+                        type=str,
+                        required=True,
+                        help="X-Heep general configuration")
 
     parser.add_argument("--pads_cfg",
                         "-pc",
@@ -380,7 +388,7 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
 
     # Read HJSON description of System.
-    with args.cfg as file:
+    with args.cfg_peripherals as file:
         try:
             srcfull = file.read()
             obj = hjson.loads(srcfull, use_decimal=True)
@@ -404,47 +412,21 @@ def main():
 
     outfile = args.outfile
 
+    config_override = x_heep_gen.system.Override(None, None, None)
+
     if args.cpu != None and args.cpu != '':
         cpu_type = args.cpu
     else:
         cpu_type = obj['cpu_type']
 
     if args.bus != None and args.bus != '':
-        bus_type = args.bus
-    else:
-        bus_type = obj['bus_type']
+        config_override.bus_type = BusType(args.bus)
 
     if args.memorybanks != None and args.memorybanks != '':
-        ram_numbanks_cont = int(args.memorybanks)
-    else:
-        ram_numbanks_cont = int(obj['ram']['numbanks'])
+        config_override.numbanks = int(args.memorybanks)
 
     if args.memorybanks_il != None and args.memorybanks_il != '':
-        ram_numbanks_il = int(args.memorybanks_il)
-    else:
-        ram_numbanks_il = int(obj['ram']['numbanks_interleaved'])
-
-    if ram_numbanks_il != 0:
-        log_ram_numbanks_il = int(log2(ram_numbanks_il))
-
-        if not log2(ram_numbanks_il).is_integer():
-            exit("ram interleaved numbanks must be a power of 2 instead of " + str(ram_numbanks_il))
-    else:
-        log_ram_numbanks_il = 0
-
-    if ram_numbanks_il != 0 and bus_type == 'onetoM':
-        exit("bus type must be 'NtoM' instead 'onetoM' to access the interleaved memory banks in parallel" + str(args.bus))
-
-    if ram_numbanks_cont + ram_numbanks_il < 2 and ram_numbanks_cont + ram_numbanks_il > 16:
-        exit("ram numbanks must be between 2 and 16 instead of " + str(ram_numbanks_cont + ram_numbanks_il))
-    else:
-        ram_numbanks = ram_numbanks_cont + ram_numbanks_il
-
-    ram_start_address = string2int(obj['ram']['address'])
-    if int(ram_start_address,16) != 0:
-        exit("ram start address must be 0 instead of " + str(ram_start_address))
-
-    ram_size_address = '{:08X}'.format(ram_numbanks*32*1024)
+        config_override.numbanks_il = int(args.memorybanks_il)
 
     if args.external_domains != None and args.external_domains != '':
         external_domains = int(args.external_domains)
@@ -453,6 +435,12 @@ def main():
 
     if  external_domains > 32:
         exit("external_domains must be less than 32 instead of " + str(external_domains))
+
+
+
+    xheep = x_heep_gen.load_config.load_cfg_file(pathlib.PurePath(str(args.config)), config_override)
+
+
 
     debug_start_address = string2int(obj['debug']['address'])
     if int(debug_start_address, 16) < int('10000', 16):
@@ -519,47 +507,11 @@ def main():
     flash_mem_start_address  = string2int(obj['flash_mem']['address'])
     flash_mem_size_address  = string2int(obj['flash_mem']['length'])
 
-    linker_onchip_code_start_address  = string2int(obj['linker_script']['onchip_ls']['code']['address'])
-    linker_onchip_code_size_address  = string2int(obj['linker_script']['onchip_ls']['code']['lenght'])
-
-    if int(linker_onchip_code_size_address,16) < 32*1024:
-        exit("The code section must be at least 32KB, instead it is " + str(linker_onchip_code_size_address))
-
-    linker_onchip_data_start_address  = string2int(obj['linker_script']['onchip_ls']['data']['address'])
-    if (obj['linker_script']['onchip_ls']['data']['lenght'].split()[0].split(",")[0] == "whatisleft"):
-        if ram_numbanks_il == 0 or (ram_numbanks_cont == 1 and ram_numbanks_il > 0):
-            linker_onchip_data_size_address  = str('{:08X}'.format(int(ram_size_address,16) - int(linker_onchip_code_size_address,16)))
-        else:
-            linker_onchip_data_size_address  = str('{:08X}'.format(int(ram_size_address,16) - int(linker_onchip_code_size_address,16) - ram_numbanks_il*32*1024))
-    else:
-        if ram_numbanks_il == 0 or (ram_numbanks_cont == 1 and ram_numbanks_il > 0):
-            linker_onchip_data_size_address  = string2int(obj['linker_script']['onchip_ls']['data']['lenght'])
-        else:
-            linker_onchip_data_size_address  = str('{:08X}'.format(int(string2int(obj['linker_script']['onchip_ls']['data']['lenght']),16) - ram_numbanks_il*32*1024))
-
-    linker_onchip_il_start_address = str('{:08X}'.format(int(linker_onchip_data_start_address,16) + int(linker_onchip_data_size_address,16)))
-    linker_onchip_il_size_address = str('{:08X}'.format(ram_numbanks_il*32*1024))
-
     stack_size  = string2int(obj['linker_script']['stack_size'])
     heap_size  = string2int(obj['linker_script']['heap_size'])
 
 
-    linker_flash_code_start_address  = str('{:08X}'.format(int(linker_onchip_code_start_address,16) + int(flash_mem_start_address,16)))
-    linker_flash_data_start_address  = str('{:08X}'.format(int(linker_onchip_data_start_address,16) + int(flash_mem_start_address,16)))
-    linker_flash_il_start_address    = str('{:08X}'.format(int(linker_onchip_il_start_address,16)   + int(flash_mem_start_address,16)))
-
-    if ram_numbanks_il == 0 or (ram_numbanks_cont == 1 and ram_numbanks_il > 0):
-        linker_flash_left_start_address   = str('{:08X}'.format(int(linker_flash_data_start_address,16) + int(linker_onchip_data_size_address,16)))
-        linker_flash_left_size_address    = str('{:08X}'.format(int(flash_mem_size_address,16) - int(linker_onchip_code_size_address,16) - int(linker_onchip_data_size_address,16)))
-    else:
-        linker_flash_left_start_address   = str('{:08X}'.format(int(linker_flash_il_start_address,16) + int(linker_onchip_il_size_address,16)))
-        linker_flash_left_size_address    = str('{:08X}'.format(int(flash_mem_size_address,16) - int(linker_onchip_code_size_address,16) - int(linker_onchip_data_size_address,16) - int(linker_onchip_il_size_address,16)))
-
-
-    if ((int(linker_onchip_data_size_address,16) + int(linker_onchip_code_size_address,16)) > int(ram_size_address,16)):
-        exit("The code and data section must fit in the RAM size, instead they takes " + str(linker_onchip_data_size_address + linker_onchip_code_size_address))
-    
-    if ((int(stack_size,16) + int(heap_size,16)) > int(ram_size_address,16)):
+    if ((int(stack_size,16) + int(heap_size,16)) > xheep.ram_size_address()):
         exit("The stack and heap section must fit in the RAM size, instead they takes " + str(stack_size + heap_size))
 
 
@@ -838,15 +790,9 @@ def main():
     total_pad_list.append(last_pad)
 
     kwargs = {
+        "xheep"                            : xheep,
         "cpu_type"                         : cpu_type,
-        "bus_type"                         : bus_type,
-        "ram_start_address"                : ram_start_address,
-        "ram_numbanks"                     : ram_numbanks,
-        "ram_numbanks_cont"                : ram_numbanks_cont,
-        "ram_numbanks_il"                  : ram_numbanks_il,
-        "log_ram_numbanks_il"              : log_ram_numbanks_il,
         "external_domains"                 : external_domains,
-        "ram_size_address"                 : ram_size_address,
         "debug_start_address"              : debug_start_address,
         "debug_size_address"               : debug_size_address,
         "ao_peripheral_start_address"      : ao_peripheral_start_address,
@@ -861,17 +807,6 @@ def main():
         "ext_slave_size_address"           : ext_slave_size_address,
         "flash_mem_start_address"          : flash_mem_start_address,
         "flash_mem_size_address"           : flash_mem_size_address,
-        "linker_flash_code_start_address"  : linker_flash_code_start_address,
-        "linker_flash_data_start_address"  : linker_flash_data_start_address,
-        "linker_flash_il_start_address"    : linker_flash_il_start_address,
-        "linker_flash_left_start_address"  : linker_flash_left_start_address,
-        "linker_flash_left_size_address"   : linker_flash_left_size_address,
-        "linker_onchip_code_start_address" : linker_onchip_code_start_address,
-        "linker_onchip_code_size_address"  : linker_onchip_code_size_address,
-        "linker_onchip_data_start_address" : linker_onchip_data_start_address,
-        "linker_onchip_data_size_address"  : linker_onchip_data_size_address,
-        "linker_onchip_il_start_address"   : linker_onchip_il_start_address,
-        "linker_onchip_il_size_address"    : linker_onchip_il_size_address,
         "stack_size"                       : stack_size,
         "heap_size"                        : heap_size,
         "plic_used_n_interrupts"           : plic_used_n_interrupts,

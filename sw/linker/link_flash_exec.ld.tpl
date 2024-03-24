@@ -8,7 +8,7 @@ ENTRY(_start)
 MEMORY
 {
     FLASH (rx)      : ORIGIN = 0x${flash_mem_start_address}, LENGTH = 0x${flash_mem_size_address}
-    RAM (xrw)       : ORIGIN = 0x${'{:08X}'.format(int(ram_start_address,16) + 4)}, LENGTH = 0x${'{:08X}'.format(int(ram_size_address,16) - 4)}
+    RAM (xrw)       : ORIGIN = 0x${f'{xheep.ram_start_address()+4:08X}'}, LENGTH = 0x${f'{xheep.ram_size_address()-4:08X}'}
 }
 
 SECTIONS {

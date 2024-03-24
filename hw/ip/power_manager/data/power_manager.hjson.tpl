@@ -214,64 +214,64 @@
     }
 
 
-% for bank in range(ram_numbanks):
-    { name:     "RAM_${bank}_CLK_GATE",
-      desc:     "Clock-gates the RAM_${bank} domain",
+% for bank in xheep.iter_ram_banks():
+    { name:     "RAM_${bank.name()}_CLK_GATE",
+      desc:     "Clock-gates the RAM_${bank.name()} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "RAM_${bank}_CLK_GATE", desc: "Clock-gates the RAM_${bank} domain" }
+        { bits: "0", name: "RAM_${bank.name()}_CLK_GATE", desc: "Clock-gates the RAM_${bank.name()} domain" }
       ]
     }
 
-    { name:     "POWER_GATE_RAM_BLOCK_${bank}_ACK",
-      desc:     "Used by the ram ${bank} switch to ack the power manager",
+    { name:     "POWER_GATE_RAM_BLOCK_${bank.name()}_ACK",
+      desc:     "Used by the ram ${bank.name()} switch to ack the power manager",
       resval:   "0x00000000"
       swaccess: "ro",
       hwaccess: "hrw",
       fields: [
-        { bits: "0", name: "POWER_GATE_RAM_BLOCK_${bank}_ACK", desc: "Power Gate Ram Block ${bank} Ack Reg" }
+        { bits: "0", name: "POWER_GATE_RAM_BLOCK_${bank.name()}_ACK", desc: "Power Gate Ram Block ${bank.name()} Ack Reg" }
       ]
     }
 
-    { name:     "RAM_${bank}_SWITCH",
-      desc:     "Switch off the RAM_${bank} domain",
+    { name:     "RAM_${bank.name()}_SWITCH",
+      desc:     "Switch off the RAM_${bank.name()} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "RAM_${bank}_SWITCH", desc: "Switch off RAM_${bank} domain" }
+        { bits: "0", name: "RAM_${bank.name()}_SWITCH", desc: "Switch off RAM_${bank.name()} domain" }
       ]
     }
 
-    { name:     "RAM_${bank}_WAIT_ACK_SWITCH_ON",
-      desc:     "Wait for the RAM_${bank} domain switch ack",
+    { name:     "RAM_${bank.name()}_WAIT_ACK_SWITCH_ON",
+      desc:     "Wait for the RAM_${bank.name()} domain switch ack",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "RAM_${bank}_WAIT_ACK_SWITCH_ON", desc: "Wait RAM_${bank} domain switch ack" }
+        { bits: "0", name: "RAM_${bank.name()}_WAIT_ACK_SWITCH_ON", desc: "Wait RAM_${bank.name()} domain switch ack" }
       ]
     }
 
-    { name:     "RAM_${bank}_ISO",
-      desc:     "Set on the isolation of the RAM_${bank} domain",
+    { name:     "RAM_${bank.name()}_ISO",
+      desc:     "Set on the isolation of the RAM_${bank.name()} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "RAM_${bank}_ISO", desc: "Set on isolation of RAM_${bank} domain" }
+        { bits: "0", name: "RAM_${bank.name()}_ISO", desc: "Set on isolation of RAM_${bank.name()} domain" }
       ]
     }
 
-    { name:     "RAM_${bank}_RETENTIVE",
-      desc:     "Set on retentive mode for the RAM_${bank} domain",
+    { name:     "RAM_${bank.name()}_RETENTIVE",
+      desc:     "Set on retentive mode for the RAM_${bank.name()} domain",
       resval:   "0x00000000"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "RAM_${bank}_RETENTIVE", desc: "Set on retentive mode for RAM_${bank} domain" }
+        { bits: "0", name: "RAM_${bank.name()}_RETENTIVE", desc: "Set on retentive mode for RAM_${bank.name()} domain" }
       ]
     }
 
@@ -368,14 +368,14 @@
       ]
     }
 
-% for bank in range(ram_numbanks):
-    { name:     "MONITOR_POWER_GATE_RAM_BLOCK_${bank}",
-      desc:     "Used to monitor the signals to power gate ram block ${bank}",
+% for bank in xheep.iter_ram_banks():
+    { name:     "MONITOR_POWER_GATE_RAM_BLOCK_${bank.name()}",
+      desc:     "Used to monitor the signals to power gate ram block ${bank.name()}",
       resval:   "0x00000000"
       swaccess: "ro",
       hwaccess: "hwo",
       fields: [
-        { bits: "1:0", name: "MONITOR_POWER_GATE_RAM_BLOCK_${bank}", desc: "Monitor Signals Power Gate Ram Block ${bank} Reg" }
+        { bits: "1:0", name: "MONITOR_POWER_GATE_RAM_BLOCK_${bank.name()}", desc: "Monitor Signals Power Gate Ram Block ${bank.name()} Reg" }
       ]
     }
 

@@ -338,7 +338,7 @@ sed 's/is_included: "no",/is_included: "yes",/' -i mcu_cfg.hjson
 
 if [ $DEBUG -eq 0 ];	 then
 	# The MCU is generated with several memory banks to avoid example code not fitting.
-	make mcu-gen MEMORY_BANKS=3 EXTERNAL_DOMAINS=1
+	make mcu-gen X_HEEP_CFG=configs/testall.hjson EXTERNAL_DOMAINS=1
 
 	if [ "$SIMULATOR" != "none" ]; then
 	# Make the simualtion model
