@@ -29,7 +29,7 @@ task tb_loadHEX;
   input string file;
   //whether to use debug to write to memories
   logic [7:0] stimuli[core_v_mini_mcu_pkg::MEM_SIZE];
-  int i, stimuli_base, stimuli_w_addr, NumBytes;
+  int i, stimuli_base, w_addr, NumBytes;
   logic [31:0] addr;
 
   tb_readHEX(file, stimuli);
@@ -70,11 +70,12 @@ task tb_loadHEX;
 
 `else
 % for bank in xheep.iter_ram_banks():
-  stimuli_base = ${bank.start_address()};
-  for (i=0; i < ${bank.size()}; i = i + 4) begin
-    stimuli_w_addr = stimuli_base + i*${2**bank.il_level()} + 4*${bank.il_offset()};
-    tb_writetoSram${bank.name()}(i / 4, stimuli[stimuli_w_addr+3], stimuli[stimuli_w_addr+2],
-                                        stimuli[stimuli_w_addr+1], stimuli[stimuli_w_addr]);
+  for (i=${bank.start_address()}; i < ${bank.end_address()}; i = i + 4) begin
+    if (((i/4) & ${2**bank.il_level()-1}) == ${bank.il_offset()}) begin
+      w_addr = (i/4) >> ${bank.il_level()} % ${bank.size()//4};
+      tb_writetoSram${bank.name()}(w_addr, stimuli[i+3], stimuli[i+2],
+                                          stimuli[i+1], stimuli[i]);
+    end
   end
 % endfor
 
