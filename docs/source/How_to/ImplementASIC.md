@@ -1,4 +1,4 @@
-# implement on ASIC
+# Implement on ASIC
 
 This project can be implemented using standard cells based ASIC flow.
 
