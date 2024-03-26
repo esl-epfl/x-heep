@@ -6,14 +6,14 @@ Disassembly of section .text:
 
 00000000 <entry>:
    0:	200405b7          	lui	a1,0x20040
-   4:	0005c503          	lbu	a0,0(a1) # 20040000 <_end+0x2003ff16>
+   4:	0005c503          	lbu	a0,0(a1) # 20040000 <_end+0x2003ff14>
    8:	c119                	beqz	a0,e <boot>
    a:	41c8                	lw	a0,4(a1)
    c:	9502                	jalr	a0
 
 0000000e <boot>:
    e:	200005b7          	lui	a1,0x20000
-  12:	0085c503          	lbu	a0,8(a1) # 20000008 <_end+0x1fffff1e>
+  12:	0085c503          	lbu	a0,8(a1) # 20000008 <_end+0x1fffff1c>
   16:	e511                	bnez	a0,22 <_jump_to_flash>
 
 00000018 <_jump_to_debug_rom>:
@@ -31,7 +31,7 @@ Disassembly of section .text:
   2c:	4505                	li	a0,1
   2e:	c188                	sw	a0,0(a1)
   30:	400005b7          	lui	a1,0x40000
-  34:	18058593          	addi	a1,a1,384 # 40000180 <_end+0x40000096>
+  34:	18058593          	addi	a1,a1,384 # 40000180 <_end+0x40000094>
   38:	9582                	jalr	a1
 
 0000003a <_copy_from_flash>:
@@ -73,41 +73,42 @@ Disassembly of section .text:
 0000008a <_wait_spi_ready_read_prog>:
   8a:	49dc                	lw	a5,20(a1)
   8c:	fe07dfe3          	bgez	a5,8a <_wait_spi_ready_read_prog>
-  90:	40000693          	li	a3,1024
-  94:	4481                	li	s1,0
-  96:	10000b13          	li	s6,256
-  9a:	09000437          	lui	s0,0x9000
-  9e:	0ff40a93          	addi	s5,s0,255 # 90000ff <_end+0x9000015>
+  90:	6685                	lui	a3,0x1
+  92:	80068693          	addi	a3,a3,-2048 # 800 <_end+0x714>
+  96:	4481                	li	s1,0
+  98:	10000b13          	li	s6,256
+  9c:	09000437          	lui	s0,0x9000
+  a0:	0ff40a93          	addi	s5,s0,255 # 90000ff <_end+0x9000013>
 
-000000a2 <_32B_chunk_loop>:
-  a2:	00db4663          	blt	s6,a3,ae <_read_32B_chunk>
-  a6:	08000437          	lui	s0,0x8000
-  aa:	0ff40a93          	addi	s5,s0,255 # 80000ff <_end+0x8000015>
+000000a4 <_32B_chunk_loop>:
+  a4:	00db4663          	blt	s6,a3,b0 <_read_32B_chunk>
+  a8:	08000437          	lui	s0,0x8000
+  ac:	0ff40a93          	addi	s5,s0,255 # 80000ff <_end+0x8000013>
 
-000000ae <_read_32B_chunk>:
-  ae:	0355a223          	sw	s5,36(a1) # 20020024 <_end+0x2001ff3a>
-  b2:	0001                	nop
+000000b0 <_read_32B_chunk>:
+  b0:	0355a223          	sw	s5,36(a1) # 20020024 <_end+0x2001ff38>
+  b4:	0001                	nop
 
-000000b4 <_wait_spi_ready_read_32B_chunk>:
-  b4:	49dc                	lw	a5,20(a1)
-  b6:	fe07dfe3          	bgez	a5,b4 <_wait_spi_ready_read_32B_chunk>
-  ba:	10048b93          	addi	s7,s1,256
+000000b6 <_wait_spi_ready_read_32B_chunk>:
+  b6:	49dc                	lw	a5,20(a1)
+  b8:	fe07dfe3          	bgez	a5,b6 <_wait_spi_ready_read_32B_chunk>
+  bc:	10048b93          	addi	s7,s1,256
 
-000000be <_wait_spi_rxwm_8_words>:
-  be:	49dc                	lw	a5,20(a1)
-  c0:	83d1                	srli	a5,a5,0x14
-  c2:	8b85                	andi	a5,a5,1
-  c4:	dfed                	beqz	a5,be <_wait_spi_rxwm_8_words>
-  c6:	02048613          	addi	a2,s1,32
+000000c0 <_wait_spi_rxwm_8_words>:
+  c0:	49dc                	lw	a5,20(a1)
+  c2:	83d1                	srli	a5,a5,0x14
+  c4:	8b85                	andi	a5,a5,1
+  c6:	dfed                	beqz	a5,c0 <_wait_spi_rxwm_8_words>
+  c8:	02048613          	addi	a2,s1,32
 
-000000ca <_spi_fifo_read_8_words>:
-  ca:	0285a883          	lw	a7,40(a1)
-  ce:	0114a023          	sw	a7,0(s1)
-  d2:	0491                	addi	s1,s1,4
-  d4:	fec49be3          	bne	s1,a2,ca <_spi_fifo_read_8_words>
-  d8:	ff7493e3          	bne	s1,s7,be <_wait_spi_rxwm_8_words>
-  dc:	f0068693          	addi	a3,a3,-256
-  e0:	f2e9                	bnez	a3,a2 <_32B_chunk_loop>
-  e2:	200005b7          	lui	a1,0x20000
-  e6:	4990                	lw	a2,16(a1)
-  e8:	9602                	jalr	a2
+000000cc <_spi_fifo_read_8_words>:
+  cc:	0285a883          	lw	a7,40(a1)
+  d0:	0114a023          	sw	a7,0(s1)
+  d4:	0491                	addi	s1,s1,4
+  d6:	fec49be3          	bne	s1,a2,cc <_spi_fifo_read_8_words>
+  da:	ff7493e3          	bne	s1,s7,c0 <_wait_spi_rxwm_8_words>
+  de:	f0068693          	addi	a3,a3,-256
+  e2:	f2e9                	bnez	a3,a4 <_32B_chunk_loop>
+  e4:	200005b7          	lui	a1,0x20000
+  e8:	4990                	lw	a2,16(a1)
+  ea:	9602                	jalr	a2

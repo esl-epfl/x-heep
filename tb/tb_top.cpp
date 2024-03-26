@@ -10,25 +10,9 @@
 #include <stdlib.h>
 #include <iostream>
 
+#include "XHEEP_CmdLineOptions.hh"
 
 vluint64_t sim_time = 0;
-
-
-std::string getCmdOption(int argc, char* argv[], const std::string& option)
-{
-    std::string cmd;
-     for( int i = 0; i < argc; ++i)
-     {
-          std::string arg = argv[i];
-          size_t arg_size = arg.length();
-          size_t option_size = option.length();
-
-          if(arg.find(option)==0){
-            cmd = arg.substr(option_size,arg_size-option_size);
-          }
-     }
-     return cmd;
-}
 
 void runCycles(unsigned int ncycles, Vtestharness *dut, VerilatedFstC *m_trace){
   for(unsigned int i = 0; i < ncycles; i++) {
@@ -42,12 +26,11 @@ void runCycles(unsigned int ncycles, Vtestharness *dut, VerilatedFstC *m_trace){
 int main (int argc, char * argv[])
 {
 
-  unsigned int SRAM_SIZE;
-  std::string firmware, arg_max_sim_time, arg_openocd, arg_boot_sel, arg_execute_from_flash;
-  unsigned int max_sim_time;
+  std::string firmware;
+  unsigned int max_sim_time, boot_sel, exit_val;
   bool use_openocd;
   bool run_all = false;
-  int i,j, exit_val, boot_sel, execute_from_flash;
+
   Verilated::commandArgs(argc, argv);
 
   // Instantiate the model
@@ -59,59 +42,24 @@ int main (int argc, char * argv[])
   dut->trace (m_trace, 99);
   m_trace->open ("waveform.vcd");
 
-  arg_openocd = getCmdOption(argc, argv, "+openOCD=");
-  use_openocd = false;
-  if(arg_openocd.empty()){
-    std::cout<<"[TESTBENCH]: No OpenOCD is used"<<std::endl;
-  } else {
-    std::cout<<"[TESTBENCH]: OpenOCD is used"<<std::endl;
-    use_openocd = true;
-  }
+  XHEEP_CmdLineOptions* cmd_lines_options = new XHEEP_CmdLineOptions(argc,argv);
 
-  firmware = getCmdOption(argc, argv, "+firmware=");
-  if(firmware.empty()){
-    std::cout<<"[TESTBENCH]: No firmware  specified"<<std::endl;
-    if(use_openocd==false)
+  use_openocd = cmd_lines_options->get_use_openocd();
+  firmware = cmd_lines_options->get_firmware();
+
+  if(firmware.empty() && use_openocd==false){
+      std::cout<<"You must specify the firmware if you are not using OpenOCD"<<std::endl;
       exit(EXIT_FAILURE);
-  } else {
-    std::cout<<"[TESTBENCH]: loading firmware  "<<firmware<<std::endl;
   }
 
-  arg_max_sim_time = getCmdOption(argc, argv, "+max_sim_time=");
-  max_sim_time     = 0;
-  if(arg_max_sim_time.empty()){
-    std::cout<<"[TESTBENCH]: No Max time specified"<<std::endl;
-    run_all = true;
-  } else {
-    max_sim_time = stoi(arg_max_sim_time);
-    std::cout<<"[TESTBENCH]: Max Times is  "<<max_sim_time<<std::endl;
-  }
+  max_sim_time = cmd_lines_options->get_max_sim_time(run_all);
 
-  arg_boot_sel = getCmdOption(argc, argv, "+boot_sel=");
-  boot_sel     = 0;
-  if(arg_boot_sel.empty()){
-    std::cout<<"[TESTBENCH]: No Boot Option specified, using jtag (boot_sel=0)"<<std::endl;
-    boot_sel = 0;
-  } else {
-    if(arg_boot_sel.compare("1") == 0) {
-      boot_sel = 1;
-      std::cout<<"[TESTBENCH]: Booting from flash"<<std::endl;
-    } else if(arg_boot_sel.compare("0") == 0) {
-      boot_sel = 0;
-      std::cout<<"[TESTBENCH]: Booting from jtag"<<std::endl;
-    } else {
-      std::cout<<"[TESTBENCH]: Wrong Boot Option specified (jtag, flash) - using jtag (boot_sel=0)"<<std::endl;
-      boot_sel = 0;
-    }
-  }
-
-  arg_boot_sel = getCmdOption(argc, argv, "+execute_from_flash=");
-  execute_from_flash = 1;
+  boot_sel     = cmd_lines_options->get_boot_sel();
 
   if(boot_sel == 1) {
     std::cout<<"[TESTBENCH]: ERROR: Executing from SPI is not supported (yet) in Verilator"<<std::endl;
     std::cout<<"exit simulation..."<<std::endl;
-    return -1;
+    exit(EXIT_FAILURE);
   }
 
   svSetScope(svGetScopeFromName("TOP.testharness"));
@@ -127,7 +75,7 @@ int main (int argc, char * argv[])
   dut->jtag_tms_i           = 0;
   dut->jtag_trst_ni         = 0;
   dut->jtag_tdi_i           = 0;
-  dut->execute_from_flash_i = execute_from_flash;
+  dut->execute_from_flash_i = 1; //this cause boot_sel cannot be 1 anyway
   dut->boot_select_i        = boot_sel;
 
   dut->eval();
@@ -172,6 +120,7 @@ int main (int argc, char * argv[])
 
   m_trace->close();
   delete dut;
+  delete cmd_lines_options;
 
   exit(exit_val);
 

@@ -19,6 +19,8 @@ These three modes are mainly controlled by the two inputs pins
 | 1			       | 1				              | SPI Flash Execution  |
 | 1			       | 0				              | SPI Flash Loading    |
 
+
+On the FPGA, such inputs are mapped to two switch buttons.
 Below, a description of the three modes is provided.
 
 ### JTAG Boot Procedure

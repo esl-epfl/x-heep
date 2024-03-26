@@ -7,8 +7,9 @@ echo ========================================
 echo ========================================
 
 # Create the virtual environment and install the requirements. 
-make venv
-. .venv/bin/activate
+conda init bash
+source /root/.bashrc
+conda activate core-v-mini-mcu
 
 echo ========================================
 echo ========================================
@@ -17,7 +18,7 @@ echo ========================================
 echo ========================================
 
 # The variable could also be obtained from the container.
-export RISCV='/home/root/tools/riscv' &&\
+export RISCV='/tools/riscv' &&\
 
 # All peripherals are included to make sure all apps can be built.
 sed 's/is_included: "no",/is_included: "yes",/' -i mcu_cfg.hjson

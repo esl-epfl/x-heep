@@ -70,6 +70,7 @@ module cv32e40p_id_stage
     output logic        branch_in_ex_o,
     input  logic        branch_decision_i,
     output logic [31:0] jump_target_o,
+    output logic [ 1:0] ctrl_transfer_insn_in_dec_o,
 
     // IF and ID stage signals
     output logic       clear_instr_valid_o,
@@ -225,10 +226,12 @@ module cv32e40p_id_stage
     // Forward Signals
     input logic [5:0] regfile_waddr_wb_i,
     input logic regfile_we_wb_i,
+    input logic regfile_we_wb_power_i,
     input  logic [31:0] regfile_wdata_wb_i, // From wb_stage: selects data from data memory, ex_stage result and sp rdata
 
     input logic [ 5:0] regfile_alu_waddr_fw_i,
     input logic        regfile_alu_we_fw_i,
+    input logic        regfile_alu_we_fw_power_i,
     input logic [31:0] regfile_alu_wdata_fw_i,
 
     // from ALU
@@ -809,6 +812,9 @@ module cv32e40p_id_stage
             if (ctrl_transfer_target_mux_sel == JT_JALR) begin
               apu_read_regs[0]       = regfile_addr_ra_id;
               apu_read_regs_valid[0] = 1'b1;
+            end else begin
+              apu_read_regs[0]       = regfile_addr_ra_id;
+              apu_read_regs_valid[0] = 1'b0;
             end
           end  // OP_A_CURRPC:
           OP_A_REGA_OR_FWD: begin
@@ -948,12 +954,12 @@ module cv32e40p_id_stage
       // Write port a
       .waddr_a_i(regfile_waddr_wb_i),
       .wdata_a_i(regfile_wdata_wb_i),
-      .we_a_i   (regfile_we_wb_i),
+      .we_a_i   (regfile_we_wb_power_i),
 
       // Write port b
       .waddr_b_i(regfile_alu_waddr_fw_i),
       .wdata_b_i(regfile_alu_wdata_fw_i),
-      .we_b_i   (regfile_alu_we_fw_i)
+      .we_b_i   (regfile_alu_we_fw_power_i)
   );
 
 
@@ -1087,7 +1093,7 @@ module cv32e40p_id_stage
       .debug_wfi_no_sleep_i(debug_wfi_no_sleep),
 
       // jump/branches
-      .ctrl_transfer_insn_in_dec_o   (ctrl_transfer_insn_in_dec),
+      .ctrl_transfer_insn_in_dec_o   (ctrl_transfer_insn_in_dec_o),
       .ctrl_transfer_insn_in_id_o    (ctrl_transfer_insn_in_id),
       .ctrl_transfer_target_mux_sel_o(ctrl_transfer_target_mux_sel),
 
@@ -1187,7 +1193,7 @@ module cv32e40p_id_stage
       // jump/branch control
       .branch_taken_ex_i          (branch_taken_ex),
       .ctrl_transfer_insn_in_id_i (ctrl_transfer_insn_in_id),
-      .ctrl_transfer_insn_in_dec_i(ctrl_transfer_insn_in_dec),
+      .ctrl_transfer_insn_in_dec_i(ctrl_transfer_insn_in_dec_o),
 
       // Interrupt signals
       .irq_wu_ctrl_i     (irq_wu_ctrl),

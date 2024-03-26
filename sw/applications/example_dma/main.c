@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
 
 #endif // TEST_ADDRESS_MODE
 
-#ifndef TARGET_PYNQ_Z2
+#if defined(TARGET_SIM) || defined(TARGET_SYSTEMC)
 
 #ifdef TEST_ADDRESS_MODE_EXTERNAL_DEVICE
 
@@ -275,7 +275,7 @@ int main(int argc, char *argv[])
 #endif //TEST_ADDRESS_MODE_EXTERNAL_DEVICE
 
 #else
-    #pragma message( "TEST_ADDRESS_MODE_EXTERNAL_DEVICE is not executed on PYNQ Z2" )
+    #pragma message( "TEST_ADDRESS_MODE_EXTERNAL_DEVICE is not executed on target different than TARGET_SIM" )
 #endif
 
 #ifdef TEST_PENDING_TRANSACTION

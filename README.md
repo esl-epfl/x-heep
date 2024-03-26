@@ -43,3 +43,18 @@ The original `README` is still available in `docs/source/old_documentation/READA
     ├── tb
     ├── util
     └── README.md
+
+# Reference
+
+If you use X-HEEP in your academic work you can cite us: [X-HEEP Paper](https://arxiv.org/abs/2401.05548)
+
+```
+@misc{machetti2024xheep,
+      title={X-HEEP: An Open-Source, Configurable and Extendible RISC-V Microcontroller for the Exploration of Ultra-Low-Power Edge Accelerators},
+      author={Simone Machetti and Pasquale Davide Schiavone and Thomas Christoph Müller and Miguel Peón-Quirós and David Atienza},
+      year={2024},
+      eprint={2401.05548},
+      archivePrefix={arXiv},
+      primaryClass={cs.AR}
+}
+```

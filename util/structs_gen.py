@@ -1,4 +1,5 @@
 import hjson
+from  math import ceil
 import string
 import argparse
 import sys
@@ -297,7 +298,7 @@ def add_registers(peripheral_json):
                 n_bits += count_bits(f["bits"])
 
             # computes the number of registers needed to pack all the bit fields needed
-            n_multireg = int((count * n_bits) /  int(peripheral_json["regwidth"]))
+            n_multireg = ceil((count * n_bits) /  int(peripheral_json["regwidth"]))
             
             # generate the multiregisters
             for r in range(n_multireg):

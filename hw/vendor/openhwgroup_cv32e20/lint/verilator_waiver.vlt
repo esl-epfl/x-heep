@@ -12,7 +12,7 @@
 `verilator_config
 lint_off -rule PINCONNECTEMPTY
 
-// We have some boolean top-level parameters in e.g. ibex_core_tracing.sv.
+// We have some boolean top-level parameters in e.g. cve2_core_tracing.sv.
 // When building with fusesoc, these get set with defines like
 // -GRV32M=1 (rather than -GRV32M=1'b1), leading to warnings like:
 //
@@ -23,13 +23,13 @@ lint_off -rule PINCONNECTEMPTY
 // matches when you set a 1-bit value to a literal 1, so it won't hide
 // silly mistakes like setting it to 2.
 //
-lint_off -rule WIDTH -file "*/rtl/ibex_top_tracing.sv"
+lint_off -rule WIDTH -file "*/rtl/cve2_top_tracing.sv"
          -match "*expects 1 bits*Initial value's CONST '32'h1'*"
 
 // Operator expects 1 bit on initial value but initial value's CONST generates
 // 32 bits, need a specific RV32B waiver as it uses enums so the above catch-all
 // waiver doesn't work.
-lint_off -rule WIDTH -file "*/rtl/ibex_top_tracing.sv" -match "*'RV32B'*"
+lint_off -rule WIDTH -file "*/rtl/cve2_top_tracing.sv" -match "*'RV32B'*"
 
 // Bits of signal are not used: be_i[3:1]
 // Bits of signal are not used: addr_i[31:10,1:0]
@@ -52,21 +52,25 @@ lint_off -rule UNUSED -file "*/rtl/timer.sv" -match "*'timer_addr_i'[31:10]*"
 
 // Signal is not used: clk_i
 // leaving clk and reset connected in-case we want to add assertions
-lint_off -rule UNUSED -file "*/rtl/ibex_pmp.sv" -match "*clk_i*"
-lint_off -rule UNUSED -file "*/rtl/ibex_compressed_decoder.sv" -match "*clk_i*"
-lint_off -rule UNUSED -file "*/rtl/ibex_decoder.sv" -match "*clk_i*"
-lint_off -rule UNUSED -file "*/rtl/ibex_branch_predict.sv" -match "*clk_i*"
+lint_off -rule UNUSED -file "*/rtl/cve2_pmp.sv" -match "*clk_i*"
+lint_off -rule UNUSED -file "*/rtl/cve2_compressed_decoder.sv" -match "*clk_i*"
+lint_off -rule UNUSED -file "*/rtl/cve2_decoder.sv" -match "*clk_i*"
+lint_off -rule UNUSED -file "*/rtl/cve2_branch_predict.sv" -match "*clk_i*"
 
 // Signal is not used: rst_ni
 // leaving clk and reset connected in-case we want to add assertions
-lint_off -rule UNUSED -file "*/rtl/ibex_pmp.sv" -match "*rst_ni*"
-lint_off -rule UNUSED -file "*/rtl/ibex_compressed_decoder.sv" -match "*rst_ni*"
-lint_off -rule UNUSED -file "*/rtl/ibex_decoder.sv" -match "*rst_ni*"
-lint_off -rule UNUSED -file "*/rtl/ibex_branch_predict.sv" -match "*rst_ni*"
+lint_off -rule UNUSED -file "*/rtl/cve2_pmp.sv" -match "*rst_ni*"
+lint_off -rule UNUSED -file "*/rtl/cve2_compressed_decoder.sv" -match "*rst_ni*"
+lint_off -rule UNUSED -file "*/rtl/cve2_decoder.sv" -match "*rst_ni*"
+lint_off -rule UNUSED -file "*/rtl/cve2_branch_predict.sv" -match "*rst_ni*"
 
 // Temporary waivers until OpenTitan primitives are lint-clean
 // https://github.com/lowRISC/opentitan/issues/2313
 lint_off -file "*/lowrisc_prim_*/rtl/*.sv"
 
-lint_off -rule UNUSED -file "*/rtl/ibex_top_tracing.sv" -match "*RndCnstLfsrSeed*"
-lint_off -rule UNUSED -file "*/rtl/ibex_top_tracing.sv" -match "*RndCnstLfsrPerm*"
+lint_off -rule UNUSED -file "*/rtl/cve2_top_tracing.sv" -match "*RndCnstLfsrSeed*"
+lint_off -rule UNUSED -file "*/rtl/cve2_top_tracing.sv" -match "*RndCnstLfsrPerm*"
+lint_off -rule DECLFILENAME -file "*/bhv/cve2_sim_clock_gate.sv" -match "Filename 'cve2_sim_clock_gate' does not match MODULE name: 'cve2_clock_gate'"
+lint_off -rule UNOPTFLAT -file "*/rtl/cve2_core.sv" -match "Signal unoptimizable: Feedback to clock or circular logic: 'cve2_top.u_cve2_core.irqs'"
+lint_off -rule UNUSED -file "*/rtl/cve2_wb.sv" -match "Signal is not used: 'clk_i'*"
+lint_off -rule UNUSED -file "*/rtl/cve2_wb.sv" -match "Signal is not used: 'rst_ni'*"
