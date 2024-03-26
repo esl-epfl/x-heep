@@ -147,7 +147,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-vcs
 
 and running the same executable as for the digital simulation. Note that with Verdi you can view both the digital and the analog waveforms.
 
-Additional instructions on how to run an analog / mixed-signal simulation of X-HEEP can be found [here](./docs/source/How_to/AnalogMixedSignal.md). To try out the simulation, we provide an example SPICE netlist of an simple 1-bit ADC created by us and exported from [xschem](https://xschem.sourceforge.io/stefan/index.html) and which uses the PTM 65nm bulk CMOS model from [https://ptm.asu.edu](https://ptm.asu.edu/).
+Additional instructions on how to run an analog / mixed-signal simulation of X-HEEP can be found [here](./AnalogMixedSignal.md). To try out the simulation, we provide an example SPICE netlist of an simple 1-bit ADC created by us and exported from [xschem](https://xschem.sourceforge.io/stefan/index.html) and which uses the PTM 65nm bulk CMOS model from [https://ptm.asu.edu](https://ptm.asu.edu/).
 
 ### Compiling for Questasim
 
@@ -296,11 +296,11 @@ The success of the script is not required for merging of a PR.
 
 ## Debug
 
-Follow the [Debug](./docs/source/How_to/Debug.md) guide to debug core-v-mini-mcu.
+Follow the [Debug](./Debug.md) guide to debug core-v-mini-mcu.
 
 ## Execute From Flash
 
-Follow the [ExecuteFromFlash](./docs/source/How_to/ExecuteFromFlash.md) guide to exxecute code directly from the FLASH with modelsim, FPGA, or ASIC.
+Follow the [ExecuteFromFlash](./ExecuteFromFlash.md) guide to exxecute code directly from the FLASH with modelsim, FPGA, or ASIC.
 
 ## Emulation on Xilinx FPGAs
 
@@ -356,16 +356,16 @@ or
 make vivado-fpga-pgm FPGA_BOARD=nexys-a7-100t
 ```
 
-To run SW, follow the [Debug](./docs/source/How_to/Debug.md) guide
+To run SW, follow the [Debug](./Debug.md) guide
 to load the binaries with the HS2 cable over JTAG,
-or follow the [ExecuteFromFlash](./docs/source/How_to/ExecuteFromFlash.md)
+or follow the [ExecuteFromFlash](./ExecuteFromFlash.md)
 guide if you have a FLASH attached to the FPGA.
 
 Do not forget that the `pynq-z2` board requires you to have the ethernet cable attached to the board while running.
 
 For example, if you want to run your application using flash_exec, do as follow:
 compile your application, e.g. `make app PROJECT=example_matfadd TARGET=pynq-z2 ARCH=rv32imfc LINKER=flash_exec`
-and then follow the [ExecuteFromFlash](./docs/source/How_to/ExecuteFromFlash.md) to program the flash and set the boot buttons on the FPGA correctly.
+and then follow the [ExecuteFromFlash](./ExecuteFromFlash.md) to program the flash and set the boot buttons on the FPGA correctly.
 To look at the output of your printf, run in another terminal:
 `picocom -b 9600 -r -l --imap lfcrlf /dev/ttyUSB2`
 Please be sure to use the right `ttyUSB` number (you can discover it with `dmesg --time-format iso | grep FTDI` for example).
