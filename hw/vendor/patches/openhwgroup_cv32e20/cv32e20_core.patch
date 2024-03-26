@@ -1,0 +1,12 @@
+diff --git a/cve2_top.core b/cve2_top.core
+index cb4e23b4..0d9d2c5c 100644
+--- a/cve2_top.core
++++ b/cve2_top.core
+@@ -75,6 +75,7 @@ targets:
+       - tool_veriblelint ? (files_lint_verible)
+       - files_rtl
+       - target_sim ? (files_clk_gate)
++      - target_sim_sc ? (files_clk_gate)
+     toplevel: cve2_top
+     parameters:
+       - tool_vivado ? (FPGA_XILINX=true)

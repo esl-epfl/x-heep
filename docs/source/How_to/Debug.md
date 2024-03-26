@@ -40,7 +40,7 @@ Now we are going to Simulate debugging with core-v-mini-mcu.
 In this setup, OpenOCD communicates with the remote bitbang server by means of DPIs.
 The remote bitbang server is simplemented in the folder ./hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang and it will be compiled using fusesoc.
 
-### Verilator
+### Verilator (C++ only)
 
 To simulate your application with Questasim using the remote_bitbang server, you need to compile you system adding the `JTAG DPI` functions:
 
@@ -130,22 +130,84 @@ Transfer rate: 67 bytes/sec, 798 bytes/write.
 
 `gdb` automatically set the `program counter` to start from `_start`, check with:
 
+Anytime you want to check the `disassemble`, just do:
+
+
 ```
-(gdb) i r pc
+(gdb) disassemble
 ```
-It should give you `0x180`.
+
+and get an output that look like:
+
+```
+Dump of assembler code for function _start:
+=> 0x00000180 <+0>: auipc   gp,0xd
+   0x00000184 <+4>: addi    gp,gp,964 # 0xd544 <m_a+184>
+   0x00000188 <+8>: auipc   sp,0xf
+   0x0000018c <+12>:    addi    sp,sp,-1080 # 0xed50
+   0x00000190 <+16>:    lui a0,0x20000
+   ...
+```
+
+```
+(gdb) info reg pc
+```
+Gives you the program counter.
 
 Now you can play with `gdb`
 
 e.g: Ask for the content of register `a0`
 
 ```
-(gdb) i r a0
+(gdb) info reg a0
 ```
-or just run the entire execution with the continue command and then check the `uart0.log` to see the printed hello world string:
+
+or set it to `15` as:
+
+```
+(gdb) set $a0=15
+```
+
+or just run the entire execution with the and then check the `uart0.log` to see the printed hello world string:
 
 ```
 (gdb) continue
+```
+
+If you want to reset the non-debug modules (as the CPU):
+
+```
+(gdb) monitor reset halt
+```
+
+Set a breakpoint to a specific instruction address:
+
+```
+(gdb) b *0x0000019c
+Breakpoint 1 at 0x19c: file /x-heep/sw/device/lib/crt/crt0.S, line 38.
+```
+
+and continue the execution untill the breakpoint as:
+
+```
+(gdb) continue
+```
+
+Then check the breakpoint status:
+
+```
+(gdb) info b
+Num     Type           Disp Enb Address    What
+1       breakpoint     keep y   0x0000019c /x-heep/sw/device/lib/crt/crt0.S:38
+    breakpoint already hit 1 time
+```
+
+and finally delete it:
+
+```
+(gdb) delete 1
+(gdb) info b
+No breakpoints or watchpoints.
 ```
 
 You can also run all the gdb steps by running:
@@ -202,6 +264,16 @@ or with the EPFL Programmer also using this other command (**strongly recommende
 make openOCD_epflp
 ```
 
+or with the BSCAN of the Pynq-Z2 board using this command:
+```
+openocd -f ./tb/core-v-mini-mcu-pynq-z2-bscan.cfg
+```
+
+or with the BSCAN of the Pynq-Z2 board also using this other command (**strongly recommended**):
+
+```
+make openOCD_bscan
+```
 
 If you get this error:
 

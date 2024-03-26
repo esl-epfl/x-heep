@@ -13,13 +13,16 @@ module xilinx_core_v_mini_mcu_wrapper
     parameter CLK_LED_COUNT_LENGTH = 27
 ) (
 
+`ifdef FPGA_ZCU104
+    inout logic clk_300mhz_n,
+    inout logic clk_300mhz_p,
+`else
     inout logic clk_i,
+`endif
     inout logic rst_i,
 
-    //visibility signals
-    output logic rst_led,
-    output logic clk_led,
-    output logic clk_out,
+    output logic rst_led_o,
+    output logic clk_led_o,
 
     inout logic boot_select_i,
     inout logic execute_from_flash_i,
@@ -33,7 +36,7 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic uart_rx_i,
     inout logic uart_tx_o,
 
-    inout logic [19:0] gpio_io,
+    inout logic [17:0] gpio_io,
 
     output logic exit_value_o,
     inout  logic exit_valid_o,
@@ -46,10 +49,7 @@ module xilinx_core_v_mini_mcu_wrapper
     inout logic spi_csb_o,
     inout logic spi_sck_o,
 
-    inout logic spi2_sd_0_io,
-    inout logic spi2_sd_1_io,
-    inout logic spi2_sd_2_io,
-    inout logic spi2_sd_3_io,
+    inout logic [3:0] spi2_sd_io,
     inout logic [1:0] spi2_csb_o,
     inout logic spi2_sck_o,
 
@@ -71,13 +71,17 @@ module xilinx_core_v_mini_mcu_wrapper
   logic [CLK_LED_COUNT_LENGTH - 1:0] clk_count;
 
   // low active reset
-  assign rst_n   = !rst_i;
+`ifdef FPGA_NEXYS
+  assign rst_n = rst_i;
+`else
+  assign rst_n = !rst_i;
+`endif
 
   // reset LED for debugging
-  assign rst_led = rst_n;
+  assign rst_led_o = rst_n;
 
   // counter to blink an LED
-  assign clk_led = clk_count[CLK_LED_COUNT_LENGTH-1];
+  assign clk_led_o = clk_count[CLK_LED_COUNT_LENGTH-1];
 
   always_ff @(posedge clk_gen or negedge rst_n) begin : clk_count_process
     if (!rst_n) begin
@@ -90,13 +94,23 @@ module xilinx_core_v_mini_mcu_wrapper
   // eXtension Interface
   if_xif #() ext_if ();
 
-  // clock output for debugging
-  assign clk_out = clk_gen;
-
+`ifdef FPGA_ZCU104
+  xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
+      .CLK_IN1_D_0_clk_n(clk_300mhz_n),
+      .CLK_IN1_D_0_clk_p(clk_300mhz_p),
+      .clk_out1_0(clk_gen)
+  );
+`elsif FPGA_NEXYS
+  xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
+      .clk_100MHz(clk_i),
+      .clk_out1_0(clk_gen)
+  );
+`else  // FPGA PYNQ-Z2
   xilinx_clk_wizard_wrapper xilinx_clk_wizard_wrapper_i (
       .clk_125MHz(clk_i),
       .clk_out1_0(clk_gen)
   );
+`endif
 
   x_heep_system #(
       .X_EXT(X_EXT),
@@ -180,10 +194,10 @@ module xilinx_core_v_mini_mcu_wrapper
       .spi_sck_io(spi_sck_o),
       .i2c_scl_io,
       .i2c_sda_io,
-      .spi2_sd_0_io(spi2_sd_0_io),
-      .spi2_sd_1_io(spi2_sd_1_io),
-      .spi2_sd_2_io(spi2_sd_2_io),
-      .spi2_sd_3_io(spi2_sd_3_io),
+      .spi2_sd_0_io(spi2_sd_io[0]),
+      .spi2_sd_1_io(spi2_sd_io[1]),
+      .spi2_sd_2_io(spi2_sd_io[2]),
+      .spi2_sd_3_io(spi2_sd_io[3]),
       .spi2_cs_0_io(spi2_csb_o[0]),
       .spi2_cs_1_io(spi2_csb_o[1]),
       .spi2_sck_io(spi2_sck_o),
@@ -191,7 +205,9 @@ module xilinx_core_v_mini_mcu_wrapper
       .pdm2pcm_pdm_io,
       .i2s_sck_io(i2s_sck_io),
       .i2s_ws_io(i2s_ws_io),
-      .i2s_sd_io(i2s_sd_io)
+      .i2s_sd_io(i2s_sd_io),
+      .ext_dma_slot_tx_i('0),
+      .ext_dma_slot_rx_i('0)
   );
 
   assign exit_value_o = exit_value[0];

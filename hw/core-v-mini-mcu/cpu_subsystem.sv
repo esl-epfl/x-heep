@@ -59,20 +59,15 @@ module cpu_subsystem
 
   if (CPU_TYPE == cv32e20) begin : gen_cv32e20
 
-    logic [4:0] rf_raddr_a, rf_raddr_b, rf_waddr_wb;
-    logic [31:0] rf_rdata_a, rf_rdata_b, rf_wdata_wb;
-    logic rf_we_wb;
-
-    import ibex_pkg::*;
-
-    ibex_core #(
+    cve2_top #(
         .DmHaltAddr(DM_HALTADDRESS),
-        .DmExceptionAddr(32'h0),
-        .DbgTriggerEn(1'b1),
-        .ResetAll(1'b1)
+        .DmExceptionAddr('0)
     ) cv32e20_i (
         .clk_i (clk_i),
         .rst_ni(rst_ni),
+
+        .test_en_i(1'b0),
+        .ram_cfg_i('0),
 
         .hart_id_i  (32'h0),
         .boot_addr_i(BOOT_ADDR),
@@ -94,78 +89,19 @@ module cpu_subsystem
         .data_rvalid_i(core_data_resp_i.rvalid),
         .data_err_i   (1'b0),
 
-        .dummy_instr_id_o (),
-        .rf_raddr_a_o     (rf_raddr_a),
-        .rf_raddr_b_o     (rf_raddr_b),
-        .rf_waddr_wb_o    (rf_waddr_wb),
-        .rf_we_wb_o       (rf_we_wb),
-        .rf_wdata_wb_ecc_o(rf_wdata_wb),
-        .rf_rdata_a_ecc_i (rf_rdata_a),
-        .rf_rdata_b_ecc_i (rf_rdata_b),
-
-        .ic_tag_req_o      (),
-        .ic_tag_write_o    (),
-        .ic_tag_addr_o     (),
-        .ic_tag_wdata_o    (),
-        .ic_tag_rdata_i    (),
-        .ic_data_req_o     (),
-        .ic_data_write_o   (),
-        .ic_data_addr_o    (),
-        .ic_data_wdata_o   (),
-        .ic_data_rdata_i   (),
-        .ic_scr_key_valid_i(),
-
         .irq_software_i(irq_i[3]),
         .irq_timer_i   (irq_i[7]),
         .irq_external_i(irq_i[11]),
-        .irq_fast_i    (irq_i[30:16]),
-        .irq_nm_i      (irq_i[31]),
-        .irq_pending_o (),
+        .irq_fast_i    (irq_i[31:16]),
+        .irq_nm_i      (1'b0),
 
-        .debug_req_i(debug_req_i),
+        .debug_req_i (debug_req_i),
         .crash_dump_o(),
-        .double_fault_seen_o(),
 
         .fetch_enable_i(fetch_enable),
-        .alert_minor_o (),
-        .alert_major_o (),
-        .icache_inval_o(),
+
         .core_sleep_o
     );
-
-    cv32e40p_register_file #(
-        .ADDR_WIDTH(6)
-    ) cv32e20_register_file_i (
-        // Clock and Reset
-        .clk  (clk_i),
-        .rst_n(rst_ni),
-
-        .scan_cg_en_i(1'b0),
-
-        //Read port R1
-        .raddr_a_i({1'b0, rf_raddr_a}),
-        .rdata_a_o(rf_rdata_a),
-
-        //Read port R2
-        .raddr_b_i({1'b0, rf_raddr_b}),
-        .rdata_b_o(rf_rdata_b),
-
-        //Read port R3
-        .raddr_c_i('0),
-        .rdata_c_o(),
-
-        // Write port W1
-        .waddr_a_i({1'b0, rf_waddr_wb}),
-        .wdata_a_i(rf_wdata_wb),
-        .we_a_i(rf_we_wb),
-
-        // Write port W2
-        .waddr_b_i('0),
-        .wdata_b_i('0),
-        .we_b_i('0)
-    );
-
-
 
     assign irq_ack_o = '0;
     assign irq_id_o  = '0;

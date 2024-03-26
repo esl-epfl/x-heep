@@ -7,7 +7,7 @@
 
   upstream: {
     url: "https://github.com/pulp-platform/fpnew.git",
-    rev: "d6e581628f3517a1fb1257507d3214e599f7859d",
+    rev: "79e453139072df42c9ec8f697132ba485d74e23d",
   },
 
   exclude_from_upstream: [

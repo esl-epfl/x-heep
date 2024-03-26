@@ -1,1 +1,1 @@
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets x_heep_system_i/pad_ring_i/pad_clk_i/xilinx_iobuf_i/O]
+create_clock -add -name sys_clk_pin -period 8.00 -waveform {0 5} [get_ports {clk_i}];

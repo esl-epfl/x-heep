@@ -6,6 +6,7 @@ MAKE                       = make
 
 # Get the absolute path
 mkfile_path := $(shell dirname "$(realpath $(firstword $(MAKEFILE_LIST)))")
+$(info $$You are executing from: $(mkfile_path))
 
 # Include the self-documenting tool
 FILE=$(mkfile_path)/Makefile
@@ -33,7 +34,7 @@ PROJECT  ?= hello_world
 # Linker options are 'on_chip' (default),'flash_load','flash_exec','freertos'
 LINKER   ?= on_chip
 
-# Target options are 'sim' (default) and 'pynq-z2'
+# Target options are 'sim' (default) and 'pynq-z2' and 'nexys-a7-100t'
 TARGET   	?= sim
 MCU_CFG  	?= mcu_cfg.hjson
 PAD_CFG  	?= pad_cfg.hjson
@@ -49,7 +50,7 @@ COMPILER_PREFIX ?= riscv32-unknown-
 ARCH     ?= rv32imc
 
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
-SOURCE 	 ?= "."
+SOURCE 	 ?= $(".")
 
 # Simulation engines options are verilator (default) and questasim
 SIMULATOR ?= verilator
@@ -57,19 +58,37 @@ SIMULATOR ?= verilator
 # Timeout for simulation, default 120
 TIMEOUT ?= 120
 
+# Flash read address for testing, in hexadecimal format 0x0000
+FLASHREAD_ADDR ?= 0x0
+FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.hex
+FLASHREAD_BYTES ?= 256
+
+#max address in the hex file, used to program the flash
+ifeq ($(wildcard sw/build/main.hex),)
+	MAX_HEX_ADDRESS  = 0
+	MAX_HEX_ADDRESS_DEC = 0
+	BYTES_AFTER_MAX_HEX_ADDRESS = 0
+	FLASHRWITE_BYTES = 0
+else
+	MAX_HEX_ADDRESS  = $(shell cat sw/build/main.hex | grep "@" | tail -1 | cut -c2-)
+	MAX_HEX_ADDRESS_DEC = $(shell printf "%d" 0x$(MAX_HEX_ADDRESS))
+	BYTES_AFTER_MAX_HEX_ADDRESS = $(shell tac sw/build/main.hex | awk 'BEGIN {count=0} /@/ {print count; exit} {count++}')
+	FLASHRWITE_BYTES = $(shell echo $(MAX_HEX_ADDRESS_DEC) + $(BYTES_AFTER_MAX_HEX_ADDRESS)*16 | bc)
+endif
+
+
+#binary to store in flash memory
+FLASHWRITE_FILE = $(mkfile_path)/sw/build/main.hex
+
+# Export variables to sub-makefiles
+export
+
 ## @section Conda
 conda: environment.yml
 	conda env create -f environment.yml
 
 environment.yml: python-requirements.txt
 	util/python-requirements2conda.sh
-
-## @section Linux-Emulation
-
-## Generates FEMU
-linux-femu-gen: mcu-gen
-	$(PYTHON) util/mcu_gen.py --cfg $(MCU_CFG) --pads_cfg $(PAD_CFG) --outdir linux_femu/rtl/ --tpl-sv linux_femu/rtl/linux_femu.sv.tpl
-	$(MAKE) verible
 
 ## @section Installation
 
@@ -115,7 +134,7 @@ verible:
 
 ## Generates the build folder in sw using CMake to build (compile and linking)
 ## @param PROJECT=<folder_name_of_the_project_to_be_built>
-## @param TARGET=sim(default),pynq-z2
+## @param TARGET=sim(default),systemc,pynq-z2,nexys-a7-100t,zcu104
 ## @param LINKER=on_chip(default),flash_load,flash_exec
 ## @param COMPILER=gcc(default), clang
 ## @param COMPILER_PREFIX=riscv32-unknown-(default)
@@ -134,9 +153,13 @@ app-compile-all:
 
 ## @section Simulation
 
-## Verilator simulation
+## Verilator simulation with C++
 verilator-sim:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=verilator $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildsim.log
+
+## Verilator simulation with SystemC
+verilator-sim-sc:
+	$(FUSESOC) --cores-root . run --no-export --target=sim_sc --tool=verilator $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildsim.log
 
 ## Questasim simulation
 questasim-sim:
@@ -161,6 +184,10 @@ vcs-sim:
 vcs-ams-sim:
 	$(FUSESOC) --cores-root . run --no-export --target=sim --flag "ams_sim" --tool=vcs $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildsim.log
 
+## xcelium simulation
+xcelium-sim:
+	$(FUSESOC) --cores-root . run --no-export --target=sim --tool=xcelium $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildsim.log
+
 ## Generates the build output for helloworld application
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
@@ -175,7 +202,7 @@ run-helloworld: mcu-gen verilator-sim
 ## Uses verilator to simulate the HW model and run the FW
 ## UART Dumping in uart0.log to show recollected results
 run-blinkyfreertos: mcu-gen verilator-sim
-	$(MAKE) -C sw PROJECT=blinky_freertos TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
+	$(MAKE) -C sw PROJECT=example_freertos_blinky TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH);
 	cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator; \
 	./Vtestharness +firmware=../../../sw/build/main.hex; \
 	cat uart0.log; \
@@ -196,13 +223,16 @@ app-simulate-all:
 ## @section Vivado
 
 ## Builds (synthesis and implementation) the bitstream for the FPGA version using Vivado
-## @param FPGA_BOARD=nexys-a7-100t,pynq-z2
+## @param FPGA_BOARD=nexys-a7-100t,pynq-z2,zcu104
 ## @param FUSESOC_FLAGS=--flag=<flagname>
 vivado-fpga:
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --build openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildvivado.log
 
 vivado-fpga-nobuild:
 	$(FUSESOC) --cores-root . run --no-export --target=$(FPGA_BOARD) $(FUSESOC_FLAGS) --setup openhwgroup.org:systems:core-v-mini-mcu ${FUSESOC_PARAM} 2>&1 | tee buildvivado.log
+
+vivado-fpga-pgm:
+	$(MAKE) -C build/openhwgroup.org_systems_core-v-mini-mcu_0/$(FPGA_BOARD)-vivado pgm
 
 ## @section ASIC
 ## Note that for this step you need to provide technology-dependent files (e.g., libs, constraints)
@@ -220,17 +250,26 @@ openroad-sky130:
 
 ## Read the id from the EPFL_Programmer flash
 flash-readid:
-	cd sw/vendor/yosyshq_icestorm/iceprog; \
+	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
 	./iceprog -d i:0x0403:0x6011 -I B -t;
 
 ## Loads the obtained binary to the EPFL_Programmer flash
 flash-prog:
-	cd sw/vendor/yosyshq_icestorm/iceprog; \
-	./iceprog -d i:0x0403:0x6011 -I B $(mkfile_path)/sw/build/main.hex;
+	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
+	./iceprog -a $(FLASHRWITE_BYTES) -d i:0x0403:0x6011 -I B $(FLASHWRITE_FILE);
+
+## Read the EPFL_Programmer flash
+flash-read:
+	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
+	./iceprog -d i:0x0403:0x6011 -I B -o $(shell printf "%d" $(FLASHREAD_ADDR)) -R $(FLASHREAD_BYTES) $(FLASHREAD_FILE);
 
 ## Run openOCD w/ EPFL_Programmer
 openOCD_epflp:
 	xterm -e openocd -f ./tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg;
+
+## Run openOCD w/ BSCAN of the Pynq-Z2 board
+openOCD_bscan:
+	xterm -e openocd -f ./tb/core-v-mini-mcu-pynq-z2-bscan.cfg;
 
 ## Start GDB
 gdb_connect:

@@ -17,9 +17,9 @@ SECTIONS {
     PROVIDE(__boot_address = 0x40000180);
 
     /* stack and heap related settings */
-    __stack_size = DEFINED(__stack_size) ? __stack_size : 0x1000;
+    __stack_size = DEFINED(__stack_size) ? __stack_size : 0x${stack_size};
     PROVIDE(__stack_size = __stack_size);
-    __heap_size = DEFINED(__heap_size) ? __heap_size : 0x1000;
+    __heap_size = DEFINED(__heap_size) ? __heap_size : 0x${heap_size};
 
     /* interrupt vectors */
     .vectors (ORIGIN(FLASH)):
@@ -69,6 +69,8 @@ SECTIONS {
         . = ALIGN(4);
         _edata = .;        /* define a global symbol at data end; used by startup code in order to initialise the .data section in RAM */
     } >RAM AT >FLASH
+
+    _lma_vma_data_offset = 0x0;
 
     .power_manager : ALIGN(4096)
     {
