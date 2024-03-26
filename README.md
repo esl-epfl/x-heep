@@ -17,8 +17,6 @@ The block diagram below shows the `X-HEEP` MCU
 
 > :bookmark_tabs: Please refer to the documentation in [Read the Docs](https://x-heep.readthedocs.io/en/latest/index.html)
 
-The original `README` is still available in `docs/source/old_documentation/READAME.md`.
-
 # Repository folder structure
 
     .
