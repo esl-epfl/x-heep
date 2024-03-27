@@ -8,7 +8,7 @@
 {
   upstream:
   {
-    url: https://github.com/openhwgroup/cve2.git
-    rev: 1786fbfab7e0e2128fbf94495e9bd3c4896d526b
+    url: https://github.com/esl-epfl/zcu104_board_files.git
+    rev: 53e4affbaeec73809304940be8f5351ae147227a
   }
 }
