@@ -93,43 +93,48 @@ typedef enum {
 * SPI events
 */
 typedef enum {
+    SPI_EVENT_NONE      = (1 << SPI_HOST_EVENT_ENABLE_RXFULL_BIT),
     SPI_EVENT_RXFULL    = (1 << SPI_HOST_EVENT_ENABLE_RXFULL_BIT),
     SPI_EVENT_TXEMPTY   = (1 << SPI_HOST_EVENT_ENABLE_TXEMPTY_BIT),
     SPI_EVENT_RXWM      = (1 << SPI_HOST_EVENT_ENABLE_RXWM_BIT),
     SPI_EVENT_TXWM      = (1 << SPI_HOST_EVENT_ENABLE_TXWM_BIT),
     SPI_EVENT_READY     = (1 << SPI_HOST_EVENT_ENABLE_READY_BIT),
     SPI_EVENT_IDLE      = (1 << SPI_HOST_EVENT_ENABLE_IDLE_BIT),
-    __SPI_EVENT_INVALID = (1 << SPI_HOST_EVENT_ENABLE_IDLE_BIT+1)
+    SPI_EVENT_ALL       = (1 << SPI_HOST_EVENT_ENABLE_IDLE_BIT+1) - 1
 } spi_event_e;
 
 /**
 * SPI errors
 */
-// TODO: NOT same amount of errors enable and errors status /!\.
 typedef enum {
+    SPI_ERROR_NONE          = 0,
     SPI_ERROR_CMDBUSY       = (1 << SPI_HOST_ERROR_ENABLE_CMDBUSY_BIT),
     SPI_ERROR_OVERFLOW      = (1 << SPI_HOST_ERROR_ENABLE_OVERFLOW_BIT),
     SPI_ERROR_UNDERFLOW     = (1 << SPI_HOST_ERROR_ENABLE_UNDERFLOW_BIT),
     SPI_ERROR_CMDINVAL      = (1 << SPI_HOST_ERROR_ENABLE_CMDINVAL_BIT),
     SPI_ERROR_CSIDINVAL     = (1 << SPI_HOST_ERROR_ENABLE_CSIDINVAL_BIT),
-    __SPI_ERROR_INVALID     = (1 << SPI_HOST_ERROR_ENABLE_CSIDINVAL_BIT+1)
+    SPI_ERROR_CSIDINVAL     = (1 << SPI_HOST_ERROR_STATUS_ACCESSINVAL_BIT),
+    SPI_ERROR_IRQALL        = (1 << SPI_HOST_ERROR_ENABLE_CSIDINVAL_BIT+1) - 1,
+    SPI_ERROR_ALL           = (1 << SPI_HOST_ERROR_STATUS_ACCESSINVAL_BIT+1) - 1
 } spi_error_e;
 
 /**
 * SPI functions return flags, informs user what problem there was or if all OK
 */
 typedef enum {
-    SPI_FLAG_OK                 = 0x00,
-    SPI_FLAG_NULL_PTR           = 0x01,
-    SPI_FLAG_WATERMARK_EXCEEDS  = 0x02, /*!< The Watermark exceeded SPI_HOST_PARAM_TX_DEPTH 
+    SPI_FLAG_OK                 = 0x0000,
+    SPI_FLAG_NULL_PTR           = 0x0001,
+    SPI_FLAG_WATERMARK_EXCEEDS  = 0x0002, /*!< The Watermark exceeded SPI_HOST_PARAM_TX_DEPTH 
     or SPI_HOST_PARAM_RX_DEPTH and was therefore not set */
-    SPI_FLAG_CSID_INVALID       = 0x04, /*!< The CSID was out of the bounds specified in 
+    SPI_FLAG_CSID_INVALID       = 0x0004, /*!< The CSID was out of the bounds specified in 
     SPI_HOST_PARAM_NUM_C_S */
-    SPI_FLAG_COMMAND_FULL       = 0x08, /*!< The CMD FIFO is currently full so couldn't write command */
-    SPI_FLAG_SPEED_INVALID      = 0x10, /*!< The specified speed is not valid (i.e. = 3) so couldn't write command */
-    SPI_FLAG_TX_QUEUE_FULL      = 0x20, /*!< The TX Queue is full, thus could not write to TX register */
-    SPI_FLAG_RX_QUEUE_EMPTY     = 0x40, /*!< The RX Queue is empty, thus could not read from RX register */
-    SPI_FLAG_NOT_READY          = 0x80  /*!< The SPI is not ready */
+    SPI_FLAG_COMMAND_FULL       = 0x0008, /*!< The CMD FIFO is currently full so couldn't write command */
+    SPI_FLAG_SPEED_INVALID      = 0x0010, /*!< The specified speed is not valid (i.e. = 3) so couldn't write command */
+    SPI_FLAG_TX_QUEUE_FULL      = 0x0020, /*!< The TX Queue is full, thus could not write to TX register */
+    SPI_FLAG_RX_QUEUE_EMPTY     = 0x0040, /*!< The RX Queue is empty, thus could not read from RX register */
+    SPI_FLAG_NOT_READY          = 0x0080, /*!< The SPI is not ready */
+    SPI_FLAG_EVENT_INVALID  = 0x0100, /*!< The event to enable is not a valid event */
+    SPI_FLAG_ERROR_INVALID  = 0x0200  /*!< The error irq to enable is not a valid error irq */
 } spi_return_flags_e;
 
 /**
@@ -179,6 +184,28 @@ typedef struct spi_command {
     spi_dir_e   direction   : 2;
 } spi_command_t;
 
+/**
+* SPI status structure
+* @TODO: Check if can be done with union
+*/
+// typedef struct spi_status {
+//     uint8_t txqd        : 8;
+//     uint8_t rxqd        : 8;
+//     uint8_t cmdqd       : 4;
+//     bool    rxwm        : 1;
+//     bool    __rsvd0     : 1;
+//     bool    byteorder   : 1;
+//     bool    rxstall     : 1;
+//     bool    rxempty     : 1;
+//     bool    rxfull      : 1;
+//     bool    txwm        : 1;
+//     bool    txstall     : 1;
+//     bool    txempty     : 1;
+//     bool    txfull      : 1;
+//     bool    active      : 1;
+//     bool    ready       : 1;
+// } spi_status_t;
+
 /****************************************************************************/
 /**                                                                        **/
 /**                          EXPORTED VARIABLES                            **/
@@ -196,17 +223,17 @@ extern volatile spi_host* const spi_peris[4];
 /****************************************************************************/
 
 
-volatile spi_event_e spi_get_events_enabled(const spi_idx_e peri_id);
+spi_return_flags_e spi_get_events_enabled(const spi_idx_e peri_id, spi_event_e* events);
 
-volatile spi_event_e spi_set_events_enabled(const spi_idx_e peri_id, spi_event_e events, bool enable);
+spi_return_flags_e spi_set_events_enabled(const spi_idx_e peri_id, spi_event_e* events, bool enable);
 
-volatile spi_event_e spi_get_events(const spi_idx_e peri_id);
+spi_return_flags_e spi_get_events(const spi_idx_e peri_id, spi_event_e* events);
 
-volatile spi_error_e spi_get_errors_enabled(const spi_idx_e peri_id);
+spi_return_flags_e spi_get_errors_enabled(const spi_idx_e peri_id, spi_error_e* errors);
 
-volatile spi_error_e spi_set_errors_enabled(const spi_idx_e peri_id, spi_error_e errors, bool enable);
+spi_return_flags_e spi_set_errors_enabled(const spi_idx_e peri_id, spi_error_e* errors, bool enable);
 
-volatile spi_error_e spi_get_errors(const spi_idx_e peri_id);
+spi_return_flags_e spi_get_errors(const spi_idx_e peri_id, spi_error_e* errors);
 
 spi_return_flags_e spi_transaction(const spi_idx_e peri_id, const uint32_t* segments, const uint8_t len);
 
@@ -547,9 +574,9 @@ void fic_irq_spi(void);
  */
 void fic_irq_spi_flash(void);
 
-__attribute__((weak, optimize("O0"))) void spi_intr_handler_event();
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_event(spi_event_e events);
 
-__attribute__((weak, optimize("O0"))) void spi_intr_handler_error();
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_error(spi_error_e errors);
 
 
 #ifdef __cplusplus
