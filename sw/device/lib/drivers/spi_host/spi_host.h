@@ -93,13 +93,13 @@ typedef enum {
 * SPI events
 */
 typedef enum {
-    SPI_EVENT_RXFULL    = (1 << 0),
-    SPI_EVENT_TXEMPTY   = (1 << 1),
-    SPI_EVENT_RXWM      = (1 << 2),
-    SPI_EVENT_TXWM      = (1 << 3),
-    SPI_EVENT_READY     = (1 << 4),
-    SPI_EVENT_IDLE      = (1 << 5),
-    __SPI_EVENT_INVALID = (1 << 6)
+    SPI_EVENT_RXFULL    = (1 << SPI_HOST_EVENT_ENABLE_RXFULL_BIT),
+    SPI_EVENT_TXEMPTY   = (1 << SPI_HOST_EVENT_ENABLE_TXEMPTY_BIT),
+    SPI_EVENT_RXWM      = (1 << SPI_HOST_EVENT_ENABLE_RXWM_BIT),
+    SPI_EVENT_TXWM      = (1 << SPI_HOST_EVENT_ENABLE_TXWM_BIT),
+    SPI_EVENT_READY     = (1 << SPI_HOST_EVENT_ENABLE_READY_BIT),
+    SPI_EVENT_IDLE      = (1 << SPI_HOST_EVENT_ENABLE_IDLE_BIT),
+    __SPI_EVENT_INVALID = (1 << SPI_HOST_EVENT_ENABLE_IDLE_BIT+1)
 } spi_event_e;
 
 /**
@@ -128,11 +128,13 @@ typedef enum {
     SPI_FLAG_COMMAND_FULL       = 0x08, /*!< The CMD FIFO is currently full so couldn't write command */
     SPI_FLAG_SPEED_INVALID      = 0x10, /*!< The specified speed is not valid (i.e. = 3) so couldn't write command */
     SPI_FLAG_TX_QUEUE_FULL      = 0x20, /*!< The TX Queue is full, thus could not write to TX register */
-    SPI_FLAG_RX_QUEUE_EMPTY     = 0x40  /*!< The RX Queue is empty, thus could not read from RX register */
+    SPI_FLAG_RX_QUEUE_EMPTY     = 0x40, /*!< The RX Queue is empty, thus could not read from RX register */
+    SPI_FLAG_NOT_READY          = 0x80  /*!< The SPI is not ready */
 } spi_return_flags_e;
 
 /**
  * Initialization parameters for SPI.
+ * @TODO: This has become obsolete
  */
 typedef struct spi {
     /**
@@ -531,7 +533,23 @@ static inline __attribute__((always_inline)) __attribute__((const)) uint32_t spi
 /**
  * @brief Attends the plic interrupt.
  */
-__attribute__((weak, optimize("O0"))) void handler_irq_spi(uint32_t id);
+void handler_irq_spi(uint32_t id);
+
+/**
+ * @brief This is a non-weak implementation of the function declared in
+ * fast_intr_ctrl.c
+ */
+void fic_irq_spi(void);
+
+/**
+ * @brief This is a non-weak implementation of the function declared in
+ * fast_intr_ctrl.c
+ */
+void fic_irq_spi_flash(void);
+
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_event();
+
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_error();
 
 
 #ifdef __cplusplus

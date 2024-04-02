@@ -140,7 +140,7 @@ uint8_t spi_read(const spi_idx_e peri_id, uint32_t* dst, const uint8_t len) {
 
 uint8_t spi_write(const spi_idx_e peri_id, uint32_t* src, const uint8_t len) {
     // TODO: Think if it is not better to abort whole writing if not enough space
-    uint8_t tx_depth = spi_get_rx_queue_depth(peri_id);
+    uint8_t tx_depth = spi_get_tx_queue_depth(peri_id);
     uint8_t true_len = len < tx_depth ? tx_depth : len;
     for (int i = 0; i < true_len; i++)
     {
@@ -214,8 +214,11 @@ spi_return_flags_e spi_set_enable(const spi_idx_e peri_id, bool enable) {
 }
 
 spi_return_flags_e spi_set_tx_watermark(const spi_idx_e peri_id, uint8_t watermark) {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    if (watermark > SPI_HOST_PARAM_TX_DEPTH) return SPI_FLAG_WATERMARK_EXCEEDS;
+    spi_return_flags_e flags = SPI_FLAG_OK;
+    if (SPI_IDX_INVALID(peri_id)) flags += SPI_FLAG_NULL_PTR;
+    if (watermark > SPI_HOST_PARAM_TX_DEPTH) flags += SPI_FLAG_WATERMARK_EXCEEDS;
+    if (flags) return flags;
+
     volatile uint32_t ctrl_reg = spi_peris[peri_id]->CONTROL;
     ctrl_reg = bitfield_write(ctrl_reg, SPI_HOST_CONTROL_TX_WATERMARK_MASK, SPI_HOST_CONTROL_TX_WATERMARK_OFFSET, watermark);
     spi_peris[peri_id]->CONTROL = ctrl_reg;
@@ -223,8 +226,11 @@ spi_return_flags_e spi_set_tx_watermark(const spi_idx_e peri_id, uint8_t waterma
 }
 
 spi_return_flags_e spi_set_rx_watermark(const spi_idx_e peri_id, uint8_t watermark) {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    if (watermark > SPI_HOST_PARAM_RX_DEPTH) return SPI_FLAG_WATERMARK_EXCEEDS;
+    spi_return_flags_e flags = SPI_FLAG_OK;
+    if (SPI_IDX_INVALID(peri_id)) flags += SPI_FLAG_NULL_PTR;
+    if (watermark > SPI_HOST_PARAM_RX_DEPTH) flags += SPI_FLAG_WATERMARK_EXCEEDS;
+    if (flags) return flags;
+
     volatile uint32_t ctrl_reg = spi_peris[peri_id]->CONTROL;
     ctrl_reg = bitfield_write(ctrl_reg, SPI_HOST_CONTROL_RX_WATERMARK_MASK, SPI_HOST_CONTROL_RX_WATERMARK_OFFSET, watermark);
     spi_peris[peri_id]->CONTROL = ctrl_reg;
@@ -251,18 +257,28 @@ spi_return_flags_e spi_set_configopts(const spi_idx_e peri_id, uint32_t csid, co
 }
 
 spi_return_flags_e spi_set_csid(const spi_idx_e peri_id, uint32_t csid) {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    if (csid >= SPI_HOST_PARAM_NUM_C_S) return SPI_FLAG_CSID_INVALID;
+    spi_return_flags_e flags = SPI_FLAG_OK;
+    if (SPI_IDX_INVALID(peri_id)) flags += SPI_FLAG_NULL_PTR;
+    if (csid >= SPI_HOST_PARAM_NUM_C_S) flags += SPI_FLAG_CSID_INVALID;
+    if (flags) return flags;
+
     spi_peris[peri_id]->CSID = csid;
     return SPI_FLAG_OK;
 }
 
 spi_return_flags_e spi_set_command(const spi_idx_e peri_id, const uint32_t cmd_reg) {
     if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
+
+    spi_return_flags_e flags = SPI_FLAG_OK;
     if (bitfield_read(spi_get_status(peri_id), SPI_HOST_STATUS_CMDQD_MASK, SPI_HOST_STATUS_CMDQD_OFFSET) >= SPI_HOST_PARAM_CMD_DEPTH)
-        return SPI_FLAG_COMMAND_FULL;
-    if (bitfield_read(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, SPI_HOST_COMMAND_SPEED_OFFSET) > MAX_SPEED)
-        return SPI_FLAG_SPEED_INVALID;
+        flags += SPI_FLAG_COMMAND_FULL;
+    spi_speed_e speed = bitfield_read(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, SPI_HOST_COMMAND_SPEED_OFFSET);
+    spi_dir_e direction = bitfield_read(cmd_reg, SPI_HOST_COMMAND_DIRECTION_MASK, SPI_HOST_COMMAND_DIRECTION_OFFSET);
+    if (speed > MAX_SPEED || (direction == SPI_DIR_BIDIR && speed != SPI_SPEED_STANDARD))
+        flags += SPI_FLAG_SPEED_INVALID;
+    if (!spi_get_ready(peri_id)) flags += SPI_FLAG_NOT_READY;
+    if (flags) return flags;
+
     spi_peris[peri_id]->COMMAND = cmd_reg;
     return SPI_FLAG_OK;
 }
@@ -321,9 +337,27 @@ spi_return_flags_e spi_output_enable(const spi_idx_e peri_id, bool enable){
     return SPI_FLAG_OK;
 }
 
-__attribute__((weak, optimize("O0"))) void handler_irq_spi(uint32_t id)
+void handler_irq_spi(uint32_t id)
 {
  // Replace this function with a non-weak implementation
+}
+
+void fic_irq_spi(void)
+{
+ // Replace this function with a non-weak implementation
+}
+
+void fic_irq_spi_flash(void)
+{
+ // Replace this function with a non-weak implementation
+}
+
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_event() {
+
+}
+
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_error() {
+
 }
 
 /****************************************************************************/
