@@ -95,9 +95,9 @@ spi_return_flags_e spi_get_events_enabled(const spi_idx_e peri_id, spi_event_e* 
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_events_enabled(const spi_idx_e peri_id, 
-                                          spi_event_e* events, 
-                                          bool enable) 
+spi_return_flags_e spi_set_events_enabled(const spi_idx_e   peri_id, 
+                                          spi_event_e*      events, 
+                                          bool              enable) 
 {
     if (SPI_IDX_INVALID(peri_id)) return SPI_EVENT_NONE;
     if (*events > SPI_EVENT_ALL) return SPI_FLAG_EVENT_INVALID;
@@ -125,9 +125,9 @@ spi_return_flags_e spi_get_errors_enabled(const spi_idx_e peri_id, spi_error_e* 
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_errors_enabled(const spi_idx_e peri_id,
-                                          spi_error_e* errors,
-                                          bool enable)
+spi_return_flags_e spi_set_errors_enabled(const spi_idx_e   peri_id,
+                                          spi_error_e*      errors,
+                                          bool              enable)
 {
     if (SPI_IDX_INVALID(peri_id)) return SPI_ERROR_NONE;
     if (*errors > SPI_ERROR_IRQALL) return SPI_FLAG_ERROR_INVALID;
@@ -150,11 +150,13 @@ spi_return_flags_e spi_get_errors(const spi_idx_e peri_id, spi_error_e* errors)
 }
 
 // TODO: This is dangerous at the moment, needs more safety checks
-spi_return_flags_e spi_transaction(const spi_idx_e peri_id,
-                                   const uint32_t* segments,
-                                   const uint8_t len)
+spi_return_flags_e spi_transaction(const spi_idx_e  peri_id,
+                                   const uint8_t    csid,
+                                   const uint32_t*  segments,
+                                   const uint8_t    len)
 {
     if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
+    if (csid >= SPI_HOST_PARAM_NUM_C_S) return SPI_FLAG_CSID_INVALID;
     for (int i = 0; i < len; i++) {
         spi_wait_for_ready(peri_id);
         spi_return_flags_e flag = spi_set_command(peri_id, segments[i]);
