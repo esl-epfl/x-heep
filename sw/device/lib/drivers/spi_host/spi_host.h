@@ -48,7 +48,8 @@
 /****************************************************************************/
 
 #define SPI_MAX_IDX 3
-#define SPI_IDX_INVALID(idx) idx > SPI_MAX_IDX
+#define SPI_IDX_INVALID(idx)    idx > SPI_MAX_IDX
+#define SPI_CSID_INVALID(csid)  csid >= SPI_HOST_PARAM_NUM_C_S
 
 #ifdef __cplusplus
 extern "C" {
@@ -186,7 +187,7 @@ typedef struct spi_command {
 
 /**
 * SPI status structure
-* @TODO: Check if can be done with union
+* @TODO: Check if the fields should be volatile if this approach is implemented
 */
 // typedef struct spi_status {
 //     uint8_t txqd        : 8;
@@ -235,11 +236,13 @@ spi_return_flags_e spi_set_errors_enabled(const spi_idx_e peri_id, spi_error_e* 
 
 spi_return_flags_e spi_get_errors(const spi_idx_e peri_id, spi_error_e* errors);
 
-spi_return_flags_e spi_transaction(const spi_idx_e peri_id, const uint8_t csid, const uint32_t* segments, const uint8_t len);
+spi_return_flags_e spi_write_byte(const spi_idx_e peri_id, uint8_t bdata);
 
-uint8_t spi_read(const spi_idx_e peri_id, uint32_t* dst, const uint8_t len);
+spi_return_flags_e spi_enable_error_intr_test(const spi_idx_e peri_id, bool enable);
 
-uint8_t spi_write(const spi_idx_e peri_id, uint32_t* src, const uint8_t len);
+spi_return_flags_e spi_enable_evt_intr_test(const spi_idx_e peri_id, bool enable);
+
+spi_return_flags_e spi_enable_alert_test(const spi_idx_e peri_id, bool enable);
 
 
 
@@ -388,22 +391,6 @@ spi_return_flags_e spi_enable_evt_intr(const spi_idx_e peri_id, bool enable);
 spi_return_flags_e spi_enable_error_intr(const spi_idx_e peri_id, bool enable);
 
 /**
- * Enable SPI watermark event interrupt
- *
- * @param spi Pointer to spi_host_t representing the target SPI.
- * @param enable SPI RX watermark interrupt bit value.
- */
-spi_return_flags_e spi_enable_rxwm_intr(const spi_idx_e peri_id, bool enable);
-
-/**
- * Enable SPI TX empty event interrupt
- *
- * @param spi Pointer to spi_host_t representing the target SPI.
- * @param enable SPI TX empty interrupt bit value.
- */
-spi_return_flags_e spi_enable_txempty_intr(const spi_idx_e peri_id, bool enable);
-
-/**
  * Enable SPI output
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
@@ -417,6 +404,29 @@ spi_return_flags_e spi_output_enable(const spi_idx_e peri_id, bool enable);
 /**                                                                        **/
 /****************************************************************************/
 
+
+// TODO: This is lacking sanity checks but by coherence shouldn't have sanity check
+//       hence check the proper way to implement this
+
+static inline __attribute__((always_inline)) const bool spi_get_evt_intr_state(const spi_idx_e peri_id) {
+    return bitfield_read(spi_peris[peri_id]->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_SPI_EVENT_BIT);
+}
+
+static inline __attribute__((always_inline)) const bool spi_get_error_intr_state(const spi_idx_e peri_id) {
+    return bitfield_read(spi_peris[peri_id]->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_ERROR_BIT);
+}
+
+static inline __attribute__((always_inline)) const bool spi_get_evt_intr_enable(const spi_idx_e peri_id) {
+    return bitfield_read(spi_peris[peri_id]->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_SPI_EVENT_BIT);
+}
+
+static inline __attribute__((always_inline)) const bool spi_get_error_intr_enable(const spi_idx_e peri_id) {
+    return bitfield_read(spi_peris[peri_id]->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_ERROR_BIT);
+}
+// ============================================================================
+
+
+// TODO: This function shouldn't exist... check how to adapt things for w25q.c to work
 static inline __attribute__((always_inline)) const uintptr_t spi_get_base_addr(const spi_idx_e peri_id) {
     return (uintptr_t) spi_peris[peri_id];
 }
@@ -427,6 +437,8 @@ static inline __attribute__((always_inline)) const uintptr_t spi_get_base_addr(c
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) volatile uint32_t spi_get_status(const spi_idx_e peri_id) {
+    // TODO: Check if this is a good idea
+    // return (spi_status_t*) &spi_peris[peri_id]->STATUS;
     return spi_peris[peri_id]->STATUS;
 }
 
