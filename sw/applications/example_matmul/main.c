@@ -105,7 +105,6 @@ void __attribute__ ((noinline)) matrixMul8_tiled(int8_t* A, int8_t* B, int32_t* 
     }
 }
 
-
 uint32_t check_results(int32_t * C, int N)
 {
     // check

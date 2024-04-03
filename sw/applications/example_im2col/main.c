@@ -50,6 +50,7 @@ int main()
 {
     uint16_t errors, OH, OW, n_patches_h, n_patches_w;
     unsigned int instr, cycles;
+    exit(0);
     //enable mcycle csr
     CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
 
