@@ -114,7 +114,7 @@ typedef enum {
     SPI_ERROR_UNDERFLOW     = (1 << SPI_HOST_ERROR_ENABLE_UNDERFLOW_BIT),
     SPI_ERROR_CMDINVAL      = (1 << SPI_HOST_ERROR_ENABLE_CMDINVAL_BIT),
     SPI_ERROR_CSIDINVAL     = (1 << SPI_HOST_ERROR_ENABLE_CSIDINVAL_BIT),
-    SPI_ERROR_CSIDINVAL     = (1 << SPI_HOST_ERROR_STATUS_ACCESSINVAL_BIT),
+    SPI_ERROR_ACCESSINVAL   = (1 << SPI_HOST_ERROR_STATUS_ACCESSINVAL_BIT),
     SPI_ERROR_IRQALL        = (1 << SPI_HOST_ERROR_ENABLE_CSIDINVAL_BIT+1) - 1,
     SPI_ERROR_ALL           = (1 << SPI_HOST_ERROR_STATUS_ACCESSINVAL_BIT+1) - 1
 } spi_error_e;
@@ -134,8 +134,8 @@ typedef enum {
     SPI_FLAG_TX_QUEUE_FULL      = 0x0020, /*!< The TX Queue is full, thus could not write to TX register */
     SPI_FLAG_RX_QUEUE_EMPTY     = 0x0040, /*!< The RX Queue is empty, thus could not read from RX register */
     SPI_FLAG_NOT_READY          = 0x0080, /*!< The SPI is not ready */
-    SPI_FLAG_EVENT_INVALID  = 0x0100, /*!< The event to enable is not a valid event */
-    SPI_FLAG_ERROR_INVALID  = 0x0200  /*!< The error irq to enable is not a valid error irq */
+    SPI_FLAG_EVENT_INVALID      = 0x0100, /*!< The event to enable is not a valid event */
+    SPI_FLAG_ERROR_INVALID      = 0x0200  /*!< The error irq to enable is not a valid error irq */
 } spi_return_flags_e;
 
 /**
