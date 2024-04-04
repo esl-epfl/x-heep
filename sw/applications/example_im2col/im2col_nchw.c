@@ -7,9 +7,9 @@
 // - output: Pointer to the output tensor structure where the transformed data will be stored.
 // - params: Pointer to the structure containing the parameters for the im2col operation such as kernel size, stride, and padding.
 
-#include <im2col_nchw.h>
+#include "im2col_nchw.h"
 
-static int im2col_nchw_f32(struct tensor *input, struct tensor *output,
+int im2col_nchw_f32(struct tensor *input, struct tensor *output,
                                    struct im2col_params *params)
 {
     // Retrieve the pointer to the input data casted to float, assuming the input data is stored in floating-point format.
@@ -59,7 +59,6 @@ static int im2col_nchw_f32(struct tensor *input, struct tensor *output,
 
                     // Calculate the index in the flattened output array where this value should be stored.
                     int32_t col_index = ((c * batch + b) * patches_h + h) * patches_w + w;
-                    printf("col_index: %d\n", col_index);
                     // If the calculated indices are outside the bounds of the input image, set the output to 0 (padding effect).
                     // Otherwise, fetch the value from the input image and store it in the output array.
                     if (im_row < 0 || im_col < 0 || im_row >= height || im_col >= width) {
@@ -67,8 +66,11 @@ static int im2col_nchw_f32(struct tensor *input, struct tensor *output,
                     } else {
                         output_data[col_index] = input_data[get_index(input->dim, b, im_c, im_row, im_col)];
                     }
+
+                    printf("%d ", output_data[col_index]);
                 }
             }
+            printf("\n");
         }
     }
     // Return a 1 to indicate a success
@@ -88,9 +90,9 @@ uint16_t verify(uint32_t * output_tbt, uint16_t * output_gold, uint16_t OH, uint
 
     for (uint16_t i=0; i<OH; i++)
     {
-        for (uint16_t j=0; i<OW; j++)
+        for (uint16_t j=0; j<OW; j++)
         {
-            if (output_gold[i*OH + j] != output_tbt[i*OH + j])
+            if (output_gold[i*OW + j] != output_tbt[i*OW + j])
             {
                 errors ++;
             }

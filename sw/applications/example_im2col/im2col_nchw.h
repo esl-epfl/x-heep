@@ -1,3 +1,6 @@
+#ifndef _IM2COL_
+#define _IM2COL_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -21,8 +24,12 @@ struct im2col_params {
     int32_t kernel_w;              /**< Kernel width */
 };
 
-static int im2col_nchw_f32(struct tensor *input, struct tensor *output,
+int im2col_nchw_f32(struct tensor *input, struct tensor *output,
                                    struct im2col_params *params);
 
 int32_t get_index(int32_t *dim, int32_t index0, int32_t index1, int32_t index2,
                           int32_t index3);
+                
+uint16_t verify(uint32_t * output_tbt, uint16_t * output_gold, uint16_t OH, uint16_t OW);
+
+#endif

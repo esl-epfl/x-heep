@@ -4,11 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <x-heep.h>
+#include "x-heep.h"
 #include <math.h>
-#include <im2col_nchw.h>
+#include "im2col_nchw.h"
 #include "csr.h"
-#include <im2colGolden.h>
+#include "im2colGolden.h"
 
 int main()
 {
@@ -31,7 +31,7 @@ int main()
 
     struct tensor input, output;
     input.data = input_image;
-    input.dim[0] = 0; // batch
+    input.dim[0] = 1; // batch
     input.dim[1] = CH; // channel
     input.dim[2] = IH; // input h
     input.dim[3] = IW; // input w
@@ -41,11 +41,16 @@ int main()
     OH = FW * FH * CH;
     OW = patches_h * patches_w;
 
+    //output.data = malloc(OH * OW * sizeof(uint32_t));
+
     im2col_nchw_f32(&input, &output, &parameters);
-    
-    errors = verify(output.data, OH, OW);
 
     CSR_READ(CSR_REG_MCYCLE, &cycles);
+    
+    errors = verify(output.data, golden_im2col, OH, OW);
+
+    //free(output.data);
+    //output.data = NULL;
 
     if (errors != 0)
     {
