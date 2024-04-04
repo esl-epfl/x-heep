@@ -16,8 +16,8 @@ n_patches_h = (image_height + 2 * padding - filter_height) // stride + 1
 n_patches_w = (image_width + 2 * padding - filter_width) // stride + 1
 
 # Calculate the dimensions of the output matrix
-OW = filter_width * filter_height * channels
-OH = n_patches_h * n_patches_w
+OH = filter_width * filter_height * channels # Number of rows in a column -> size of a column
+OW = n_patches_h * n_patches_w # Numver of columns in a row -> size of a row
 
 random_image=[]
 
@@ -44,7 +44,8 @@ if padding != 0:
 
 print(random_image)
 
-output_image = np.zeros((OW, OH))
+output_image = np.zeros((OH, OW))
+print(output_image)
 
 column = 0
 row = 0
@@ -75,54 +76,40 @@ print(output_image)
 with open('im2colGolden.h', 'w') as f:
     f.write('#ifndef IMAGE_AND_COL_H\n')
     f.write('#define IMAGE_AND_COL_H\n\n')
-    f.write('const uint32_t input_image[%d]' % channels)
-    f.write('[%d]' % image_height)
-    f.write('[%d] = {\n' % image_width)
-
-    for i in range(channels):
-        f.write('{')
-        for j in range(image_height):
-            f.write('{')
-            for k in range(image_width):
-                if k != image_width - 1:
-                    f.write('%d, ' % random_image[i][j][k])
-                else:
-                    f.write('%d' % random_image[i][j][k])
-            if j != image_height - 1:
-                f.write('},\n')
-            else:
-                f.write('}\n')
-        if i != channels - 1:
-            f.write('},\n')
-        else:
-            f.write('}')
-    f.write('};\n\n')
-
-    f.write('const uint32_t golden_im2col[%d]' % OH)
-    f.write('[%d] = {\n' % OW)
-    
-    count_row = 0
-    count_column = 0
-
-    for column in range(OW):
-        f.write('{')
-        for row in range(OH):
-            if row != OH - 1:
-                f.write('%d, ' % output_image[column][row])
-            else:
-                f.write('%d' % output_image[column][row])
-        if column != OW - 1:
-            f.write('},\n')
-        else:
-            f.write('}')
-    f.write('};\n\n')
-
     f.write('#define IW %d\n' % image_width)
     f.write('#define IH %d\n' % image_height)
     f.write('#define CH %d\n' % channels)
     f.write('#define FW %d\n' % filter_width)
     f.write('#define FH %d\n' % filter_height)
     f.write('#define S %d\n' % stride)
-    f.write('#define P %d\n' % padding)
+    f.write('#define P %d\n\n' % padding)
+
+    f.write('const uint32_t input_image[%d] = {\n' % (channels * image_height * image_width))
+
+    for i in range(channels):
+        for j in range(image_height):
+            for k in range(image_width):
+                if k != image_width - 1 or j != image_height - 1 or i != channels - 1:
+                    f.write('%d, ' % random_image[i][j][k])
+                else:
+                    f.write('%d' % random_image[i][j][k])
+            f.write('\n')
+    f.write('};\n\n')
+
+    f.write('const uint32_t golden_im2col[%d] = {\n' % (OW*OH))
+    
+    count_row = 0
+    count_column = 0
+
+    for column in range(OH):
+        for row in range(OW):
+            if row != OW - 1 or column != OH -1:
+                f.write('%d, ' % output_image[column][row])
+            else:
+                f.write('%d' % output_image[column][row])
+        f.write('\n')    
+    f.write('};\n\n')
+
+    
     
     f.write('#endif\n')
