@@ -45,7 +45,6 @@ if padding != 0:
 print(random_image)
 
 output_image = np.zeros((OH, OW))
-print(output_image)
 
 column = 0
 row = 0
@@ -84,6 +83,18 @@ with open('im2colGolden.h', 'w') as f:
     f.write('#define S %d\n' % stride)
     f.write('#define P %d\n\n' % padding)
 
+    f.write('#include <stdint.h>\n')
+
+    f.write('extern const uint32_t input_image[%d];\n' % (channels * image_height * image_width))
+    f.write('extern const uint32_t golden_im2col[%d];\n' % (OW*OH))
+
+    f.write('#endif\n')
+
+
+with open('im2colGolden.c', 'w') as f:
+
+    f.write('#include "im2colGolden.h"\n\n')
+    
     f.write('const uint32_t input_image[%d] = {\n' % (channels * image_height * image_width))
 
     for i in range(channels):
@@ -112,4 +123,3 @@ with open('im2colGolden.h', 'w') as f:
 
     
     
-    f.write('#endif\n')
