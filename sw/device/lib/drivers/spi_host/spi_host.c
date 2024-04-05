@@ -220,6 +220,14 @@ spi_return_flags_e spi_sw_reset(const spi_idx_e peri_id) {
     volatile uint32_t ctrl_reg = spi_peris[peri_id]->CONTROL;
     ctrl_reg = bitfield_write(ctrl_reg, BIT_MASK_1, SPI_HOST_CONTROL_SW_RST_BIT, 1);
     spi_peris[peri_id]->CONTROL = ctrl_reg;
+    volatile uint32_t status = spi_get_status(peri_id);
+    while (status & (1 << SPI_HOST_STATUS_ACTIVE_BIT
+                     | SPI_HOST_STATUS_TXQD_MASK << SPI_HOST_STATUS_TXQD_OFFSET
+                     | SPI_HOST_STATUS_RXQD_MASK << SPI_HOST_STATUS_RXQD_OFFSET)
+          );
+    ctrl_reg = spi_peris[peri_id]->CONTROL;
+    ctrl_reg = bitfield_write(ctrl_reg, BIT_MASK_1, SPI_HOST_CONTROL_SW_RST_BIT, 0);
+    spi_peris[peri_id]->CONTROL = ctrl_reg;
     return SPI_FLAG_OK;
 }
 
