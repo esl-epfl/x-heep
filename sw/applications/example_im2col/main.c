@@ -18,6 +18,8 @@ int main()
 
     CSR_WRITE(CSR_REG_MCYCLE, 0);
 
+    printf("...\n");
+    
     im2col_nchw_f32();
 
     CSR_READ(CSR_REG_MCYCLE, &cycles);
@@ -26,14 +28,25 @@ int main()
 
     if (errors != 0)
     {
-        printf("Im2col test FAILED with %d errors.\n");
+        #if DEBUG==0
+        printf("\n\rFAIL\n");
+        fflush(stdout);
+        #endif
+        #if DEBUG==1 || DEBUG==2
+        printf("\n\rFAIL: %d errors", errors);
+        fflush(stdout);
+        #endif
     } 
     else 
     {
-        printf("Im2col test PASSED!\n");
+        printf("\n\rPASS\n");
+        fflush(stdout);
     }
 
-    printf("Performance anlysis: this iteration lastes %d cycles\n\n", cycles);
+    #if DEBUG==1 || DEBUG==2
+    printf("\n\r%d cycles", cycles);
+    fflush(stdout);
+    #endif
 
     return 0;
 }
