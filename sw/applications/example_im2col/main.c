@@ -6,8 +6,13 @@
 #include <stdint.h>
 #include "x-heep.h"
 #include <math.h>
-#include "im2col_nchw.h"
+#include "im2col_lib.h"
 #include "csr.h"
+
+// Define the format of the im2col to test:
+// 0: NCHW
+// 1: NHWC
+#define FORMAT 0
 
 int main()
 {
@@ -17,10 +22,12 @@ int main()
     CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
 
     CSR_WRITE(CSR_REG_MCYCLE, 0);
-
-    printf("...\n");
     
-    im2col_nchw_f32();
+    #if FORMAT==0
+    im2col_nchw_int32();
+    #elif FORMAT==1
+    im2col_nhwc_int32();
+    #endif
 
     CSR_READ(CSR_REG_MCYCLE, &cycles);
     

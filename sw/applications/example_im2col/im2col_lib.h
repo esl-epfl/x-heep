@@ -5,6 +5,11 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "im2colGolden.h"
+#include "dma.h"
+#include "core_v_mini_mcu.h"
+#include "x-heep.h"
+#include "csr.h"
+#include "rv_plic.h"
 
 /* 
     WORK IN PROGRESS!
@@ -13,7 +18,7 @@
     - 1: Exploit standard DMA
     - 2: Exploit multichannel DMA
 */
-#define HW_CONFIG 0
+#define HW_CONFIG 1
 
 // Define the dimensions of the input tensor and the kernel
 
@@ -23,11 +28,11 @@
 #define OH FW * FH * CH
 #define OW (N_PATCHES_W) * (N_PATCHES_H)
 
-#define DEBUG 1 // Set to 1 to enable simple debug prints, 2 to enable more detailed debug prints
+#define DEBUG 2 // Set to 1 to enable simple debug prints, 2 to enable more detailed debug prints
 
 int im2col_nchw_f32();
 
-int32_t get_index(int32_t index0, int32_t index1, int32_t index2, int32_t index3);
+int32_t get_index(int32_t dim1, int32_t dim2, int32_t dim3, int32_t index0, int32_t index1, int32_t index2, int32_t index3);
                 
 uint16_t verify();
 

@@ -1,17 +1,21 @@
 import numpy as np
 import torch
+import torch.nn.functional as F
+
+# import tensorflow as tf
 
 #######################################################################################################
-def torch_im2col(input_tensor, kernel_size, stride=1, padding=0, dilation=1):
+def torch_im2col_ncwh(input_tensor, kernel_size, stride=1, padding=0, dilation=1):
     """
-    Applies the im2col operation to an input tensor using PyTorch's unfold method.
+    Applies the im2col operation to an input tensor using PyTorch's unfold method, supporting both NCHW and NHWC formats.
 
     Parameters:
-    - input_tensor: A 4D input tensor of shape (batch_size, channels, height, width).
+    - input_tensor: A 4D input tensor.
     - kernel_size: The size of the kernel. Can be a single integer or a tuple (kH, kW).
     - stride: The stride of the convolution. Can be a single integer or a tuple (sH, sW). Default is 1.
     - padding: Implicit paddings on both sides of the input. Can be a single integer or a tuple (padH, padW). Default is 0.
     - dilation: The spacing between kernel elements. Can be a single integer or a tuple (dH, dW). Default is 1.
+    - format: The format of the input tensor ('NCHW' or 'NHWC').
 
     Returns:
     - A 2D tensor of shape (batch_size*output_height*output_width, channels*kernel_height*kernel_width)
@@ -28,16 +32,45 @@ def torch_im2col(input_tensor, kernel_size, stride=1, padding=0, dilation=1):
     if isinstance(dilation, int):
         dilation = (dilation, dilation)
 
-    # Unfold the input tensor
-    unfolded = input_tensor.unfold(2, kernel_size[0], stride[0]).unfold(3, kernel_size[1], stride[1])
+    # Adjust padding format for F.pad (expects pad_left, pad_right, pad_top, pad_bottom)
+    padding_format = (padding[1], padding[1], padding[0], padding[0]) # Right, Left, Bottom, Top
+
+    # Apply zero padding
+    padded_input = F.pad(input_tensor, padding_format, "constant", 0)
+
+    
+    # Unfold the padded input tensor
+    unfolded = padded_input.unfold(2, kernel_size[0], stride[0]).unfold(3, kernel_size[1], stride[1])
+
+    unfolded = unfolded.permute(0, 2, 3, 1, 4, 5)
 
     # Reshape to get the 2D tensor where each row is a flattened receptive field
-    return unfolded.permute(0, 2, 3, 1, 4, 5).contiguous().view(-1, input_tensor.size(1) * kernel_size[0] * kernel_size[1])
+    # For NHWC, the channel size is now at the last position
+    channel_dim = padded_input.size(1)
+    return unfolded.contiguous().view(-1, channel_dim * kernel_size[0] * kernel_size[1]).t()
 
+def torch_im2col_nhwc(input_tensor, kernel_size, stride=1, padding=0, dilation=1):
+    if padding != 0:
+        paddings = [[0, 0], [padding[0], padding[1]], [padding[2], padding[3]], [0, 0]]
+        input_tensor = tf.pad(input_tensor, paddings, "CONSTANT")
+
+    patches = tf.image.extract_patches(
+        images=input_tensor,
+        sizes=[1, kernel_size[0], kernel_size[1], 1],
+        strides=[1, stride[0], stride[1], 1],
+        rates=[1, 1, 1, 1],
+        padding='VALID'  # Use 'VALID' since we're manually adding padding
+    )
+    
+    # Reshape extracted patches
+    batch_size, height, width, channels = input_tensor.shape
+    patch_dim = kernel_size[0] * kernel_size[1] * channels
+    patches_reshaped = tf.reshape(patches, [-1, patch_dim])
+    
 
 # Function to save a tensor to a C file
 
-def torch_save(tensor, variable_name):
+def torch_save(tensor, variable_name, dim, row_len):
     """
     Saves a tensor to a C file as an array.
 
@@ -50,16 +83,46 @@ def torch_save(tensor, variable_name):
     tensor_flat = tensor.cpu().flatten()
 
     # Start generating the C code
-    c_code = f"const uint32_t {variable_name}[] ="+ " {\n    "
+    c_code = f"const uint32_t {variable_name}[{dim}] ="+ " {\n    "
 
-    # Convert each element to string and join with commas
-    c_code += ", ".join([f"{val}" for val in tensor_flat.numpy()])
+    # Group elements into chunks of size row_len and convert each element to string
+    elements = [str(val) for val in tensor_flat.numpy()]
+    rows = [", ".join(elements[i:i+row_len]) for i in range(0, len(elements), row_len)]
+
+    # Join the rows with ',\n    ' to add a newline and indentation after every row_len elements
+    c_code += ",\n    ".join(rows)
 
     # End the array definition
     c_code += "\n};\n"
 
     # Write to the file
     f.write(c_code)
+
+def tensor_save(tensor, variable_name, dim, row_len):
+    """
+    Saves a tensor to a C file as a statically defined array.
+    
+    Parameters:
+    - tensor: A NumPy array containing the tensor data.
+    - variable_name: The name of the array variable in the generated C code.
+    - filename: The name of the file to save the array to.
+    """
+    # Convert the tensor to a numpy array if it's not already one
+    if not isinstance(tensor, np.ndarray):
+        tensor = np.array(tensor)
+    
+    # Open the file for writing
+    f.write(f"const uint32_t {variable_name}[{dim}] =" + " {\n")
+        
+    # Iterate over the tensor data and write each element to the file
+    for i, value in enumerate(np.nditer(tensor)):
+        f.write(f"    {value}")
+        if i < tensor.size - 1:
+            f.write(",\n")
+        
+    # Close the array definition
+    f.write("\n};\n")
+
 
 #######################################################################################################
 # Parameters
@@ -75,15 +138,15 @@ im2col_format = 0
 im2col_tool = 1
 
 # Parameters of the random image, padding excluded
-image_height = 5
-image_width = 5
-channels = 3
+image_height = 4
+image_width = 4
+channels = 2
 batch = 1
 
 # Parameters of the filter
-filter_height = 3
-filter_width = 3
-padding = 0
+filter_height = 2
+filter_width = 2
+padding = 2
 stride = 1
 
 # Calculate the number of patches, i.e. the number the filter can fit along one dimention during convolution
@@ -122,9 +185,9 @@ if im2col_tool == 0:
             padded_channels.append(ch)
         random_image = np.stack(padded_channels, axis=0)
 
-    print(random_image)
+    # print(random_image)
 
-    output_image = np.zeros((OH, OW))
+    output_matrix = np.zeros((OH, OW))
 
     column = 0
     row = 0
@@ -138,7 +201,7 @@ if im2col_tool == 0:
                 for u in range(n_patches_w):
                     for k in range(filter_height):
                         for x in range(filter_width):
-                            output_image[row][column] = random_image[c][i + k][j + x]
+                            output_matrix[row][column] = random_image[c][i + k][j + x]
                             row += 1
                     row -= filter_height * filter_width
                     column += 1
@@ -153,16 +216,17 @@ if im2col_tool == 0:
         print("Not implemented yet")
         exit(1)
 
-    print(output_image)
+    print(output_matrix)
 
 elif im2col_tool == 1:
     # Perform the im2col operation using torch.nn.functional.unfold
-    input_tensor = torch.randint(0, 65500, (batch, channels, image_height, image_width), dtype=torch.int32)
-    if im2col_format == 1:
-        input_tensor = input_tensor.permute(0, 2, 3, 1)
-        
-    output_image = torch_im2col(input_tensor, (filter_height, filter_width), stride, padding)
-    print(output_image)
+    if im2col_format == 0:
+        input_tensor = torch.randint(0, 65500, (batch, channels, image_height, image_width), dtype=torch.int32)
+        output_matrix = torch_im2col_ncwh(input_tensor, (filter_height, filter_width), stride, padding)
+    else:
+        input_tensor = tf.random.uniform((batch, image_height, image_width, channels), dtype=tf.int32)
+
+    # print(output_matrix)
 
 
 # Dump input image and output col to header file
@@ -212,13 +276,17 @@ with open('im2colGolden.c', 'w') as f:
         for column in range(OH):
             for row in range(OW):
                 if row != OW - 1 or column != OH -1:
-                    f.write('%d, ' % output_image[column][row])
+                    f.write('%d, ' % output_matrix[column][row])
                 else:
-                    f.write('%d' % output_image[column][row])
+                    f.write('%d' % output_matrix[column][row])
             f.write('\n')    
         f.write('};\n\n')
 
     elif im2col_tool == 1:
-        torch_save(input_tensor, "input_image")
-        torch_save(output_image, "golden_im2col")
+        if im2col_format == 0:
+            torch_save(input_tensor, "input_image", channels * image_height * image_width, image_width)
+            torch_save(output_matrix, "golden_im2col", OW*OH, OW)
+        else:
+            tensor_save(input_tensor, "input_image", channels * image_height * image_width, image_width)
+            tensor_save(output_matrix, "golden_im2col", OW*OH, OW)
     

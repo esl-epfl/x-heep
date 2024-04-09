@@ -59,6 +59,7 @@ done
 
 for arg in "$@"
 do
+    # If requested compile the hw
     if [ "$arg" = "-make_ver" ]; then
         make verilator-sim
         break
@@ -66,9 +67,24 @@ do
 done
 
 if [ $STOP -eq 0 ]; then 
+    # Compile the sw
     make app PROJECT=example_im2col
     cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
-    ./Vtestharness +firmware=../../../sw/build/main.hex
+    FLAG=0
+
+    # Run the FW and capture the output to start the correct UART    
+    ./Vtestharness +firmware=../../../sw/build/main.hex | while IFS= read -r line; do
+    echo "$line" # Process each line, can also tee to /dev/tty for console output
+    # Check for /dev/pts pattern and act upon it
+    if [[ $line =~ /dev/pts/([0-9]+) ]]; then
+        if [ $FLAG -eq 1 ]; then
+            pts_value="${BASH_REMATCH[1]}"
+            echo "Extracted PTS value: $pts_value"
+            gnome-terminal -- /bin/sh -c "cd '$PWD'; screen /dev/pts/"$pts_value"; exit; exec bash"
+        fi
+        FLAG=1
+    fi
+    done
     cd ../../../scripts
 else
     cd ./scripts
