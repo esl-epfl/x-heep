@@ -1,6 +1,7 @@
 #!/bin/bash
 
 MIN_ARGS=1
+FPGA=0
 
 cd ../
 
@@ -51,7 +52,11 @@ while [ $# -gt 0 ]; do
             make verilator-sim
             break
         fi
-        
+        ;;
+
+        -make_fpga)
+        FPGA=1
+
         ;;
     esac
     shift # Shift past the current argument to move to the next
@@ -68,7 +73,12 @@ done
 
 if [ $STOP -eq 0 ]; then 
     # Compile the sw
+    if [$FPGA -eq 1]; then
+        make app PROJECT=example_im2col_fpga
+    else    
     make app PROJECT=example_im2col
+    fi
+
     cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator
     FLAG=0
 
