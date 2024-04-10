@@ -12,7 +12,7 @@ uint32_t output_data[OH*OW];
 int im2col_nchw_int32()
 {
     #if DEBUG==2
-    printf("OH: %d, OW: %d\n", OH, OW);
+    printf("%d %d\n", OH, OW);
     #endif
     // Dimensions of the input tensor: batch size, number of channels, height, and width.
     int32_t batch = 1;
@@ -66,6 +66,10 @@ int im2col_nchw_int32()
                         output_data[col_index] = 0;
                     } else {
                         output_data[col_index] = input_image[get_index(CH, IH, IW, b, im_c, im_row, im_col)];
+                        #if DEBUG==2
+                        printf("\n\r%d ", get_index(CH, IH, IW, b, im_c, im_row, im_col));
+                        fflush(stdout);
+                        #endif
                     }
 
                     counter ++;
@@ -97,11 +101,8 @@ int im2col_nchw_int32()
     uint32_t* input_image_ptr = &input_image[0];
     uint32_t* output_data_ptr = &output_data[0];
 
-    // Initialize the output buffer with zeros
-    zeros(output_data, OH*OW);
-
     // The DMA is initialized (i.e. Any current transaction is cleaned.)
-    dma_init(NULL);
+    dma_init(NULL); // NULL becaus ewe want to use the integrated DMA
 
     dma_config_flags_t res;
 
@@ -109,33 +110,23 @@ int im2col_nchw_int32()
                                 .ptr        = input_image,
                                 .inc_du     = 1,
                                 .size_du    = height*width*channel,
-                                .trig       = DMA_TRIG_MEMORY,
-                                .type       = DMA_DATA_TYPE_WORD,
                                 };
     dma_target_t tgt_dst = {
                                 .ptr        = output_data_ptr,
-                                .inc_du     = 1,
-                                .size_du    = OH*OW,
-                                .trig       = DMA_TRIG_MEMORY,
-                                };
-
-    dma_target_t tgt_addr = {
-                                .ptr        = input_image_ptr,
-                                .inc_du     = 1,
-                                .size_du    = OH*OW,
-                                .trig       = DMA_TRIG_MEMORY,
+                                .inc_du     = 1
                                 };
 
     dma_trans_t trans = {
                                 .src        = &tgt_src,
-                                .dst        = &tgt_dst,
-                                .src_addr   = &tgt_addr,
-                                .mode       = DMA_TRANS_MODE_SINGLE,
-                                .win_du     = 0,
-                                .end        = DMA_TRANS_END_INTR,
+                                .dst        = &tgt_dst
                                 };
-    // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.
 
+    uint32_t* ptr; 
+    // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.
+    #if DEBUG==2    
+    printf("\n\r* %p", output_data_ptr);
+    fflush(stdout);
+    #endif
 
     for (int c = 0; c < output_h; ++c) {
         // Calculate offsets within the kernel window.
@@ -149,12 +140,18 @@ int im2col_nchw_int32()
         for (int32_t b = 0; b < batch; ++b) {
             // Iterate over each patch on the width of the input matrix.
             for (int h = 0; h < patches_h; ++h) {
+                int32_t im_row = h_offset + h * stride_h - P;
+                int32_t im_col = w_offset - P;
 
                 // Iterate over each patch on the heigth in the output matrix.
 
                 /* 
                     To optimize everything, this is the explicit input image index:
-                    (B * CH + im_c) * IH + im_row * IW + im_col
+                    b, im_c, im_row, im_col
+                    ((index0 * dim1 + index1) * dim2 + index2) * dim3 + index3
+                    ((b * CH + im_c) * IH + im_row) * IW + im_col
+                    ((b * CH + c / (ksize_h * ksize_w)) * IH + h_offset + h * stride_h - P) * IW + w_offset + w * stride_w - P
+
                     (B * CH + c / (ksize_h * ksize_w)) * IH + (c / ksize_w) % ksize_h + h * stride_h - P * IW + c % ksize_w + w * stride_w - P
                     We can easyly calculate the next index by adding stride_w to the previous one! So its possible to set the DMA with a fixed 
                     loop increment!
@@ -190,77 +187,81 @@ int im2col_nchw_int32()
                         - Set one DMA call in the case of im_col >= width (basically when P is more than 0), which will write abs(im_col - width + 1) / stride_w zeros & update the output pointer
 
                     Even better: we could initialize the part of memory we want to use for the output matrix with zeros, and then we
-                    can entirely avoid saving zeros, because they are already there!
+                    can entirely avoid saving zeros, because they are already there! 
+                    Initialize is actually a memory access, but the memory is by default wiped out, 
+                    so it may be a useless step.
                 */
+                
 
                 if (h_offset + h * stride_h - P < 0)
                 {
                     // im_row < 0 case: only the output_image_ptr needs to be updated
                     output_data_ptr += patches_w;
+                    #if DEBUG==2    
+                    printf("\n\rA %p", output_data_ptr);
+                    fflush(stdout);
+                    #endif
                 } 
                 else if (h_offset + h * stride_h - P > height)
                 {
                     // im_row >= height case:
                     output_data_ptr += patches_w;
+                    #if DEBUG==2    
+                    printf("\n\rB %p", output_data_ptr);
+                    fflush(stdout);
+                    #endif
                 }
                 else
                 {
                     if (P > 0)
                     {
                         // im_col < 0 case: only the output_image_ptr needs to be updated
-                        output_data_ptr += (P - w_offset) / stride_w;
+                        output_data_ptr += abs(P - w_offset) / stride_w;
+                        #if DEBUG==2    
+                        printf("\n\rC %p", output_data_ptr);
+                        fflush(stdout);
+                        #endif
+                        im_col += P;
                     }
 
+                    input_image_ptr = &input_image[0] + get_index(CH, IH, IW, b, im_c, im_row, im_col);
                     tgt_src.ptr = input_image_ptr;
-                    tgt_src.size_du = patches_w;
+                    tgt_src.size_du = (patches_w-P) * sizeof(uint32_t);
                     tgt_src.inc_du = stride_w;
 
                     tgt_dst.ptr = output_data_ptr;
-                    tgt_dst.size_du = patches_w;
+                    tgt_dst.size_du = (patches_w-P) * sizeof(uint32_t);
                     
                     dma_run(&trans);
+
+                    ptr = output_data_ptr;
+                    #if DEBUG==2  || DEBUG==1  
+                    for (int i=0; i<patches_w; i++)
+                    {
+                        printf("\n\r%p %d", ptr, *ptr);
+                        fflush(stdout);
+                        ptr += 1;
+                    }
+                    #endif
                     output_data_ptr += patches_w;
-                    input_image_ptr += patches_w;
+
+                    #if DEBUG==2
+                    printf("\n\r%p %p", output_data_ptr, input_image_ptr);
+                    fflush(stdout);
+                    #endif
 
                     if (P > 0)
                     {
                         // im_col < 0 case: only the output_image_ptr needs to be updated
-                        output_data_ptr += (P - w_offset) / stride_w;
+                        output_data_ptr += abs(P - w_offset) / stride_w;
+                        #if DEBUG==2    
+                        printf("\n\rC %p", output_data_ptr);
+                        fflush(stdout);
+                        #endif
+                        im_col += P;
                     }
-                }
-
-                dma_run(&trans);
-
-                for (int w = 0; w < patches_w; ++w) {
-                    // Calculate the row and column indices in the original input image, applying the stride and offset.
-                    int32_t im_row = h_offset + h * stride_h - P; // This is constant during the w loop
-                    int32_t im_col = w_offset + w * stride_w - P; // This is increased by stride_w during the w loop !!
-
-                    // Calculate the index in the flattened output array where this value should be stored.
-                    int32_t col_index = ((c * batch + b) * patches_h + h) * patches_w + w; // This is increased by 1 during the w loop !!!
-                    
-                    
-
-                    // If the calculated indices are outside the bounds of the input image, set the output to 0 (padding effect).
-                    // Otherwise, fetch the value from the input image and store it in the output array.
-                    if (im_row < 0 || im_col < 0 || im_row >= height || im_col >= width) {
-                        output_data[col_index] = 0;
-                    } else {
-                        output_data[col_index] = input_image[get_index(CH, IH, IW, b, im_c, im_row, im_col)];
-                    }
-
-                    counter ++;
-
-                    #if DEBUG==1
-                    if (counter == 50)
-                    {
-                        counter = 0;
-                        printf("*");
-                    }
-                    #endif
-
-                    #if DEBUG==2
-                    printf("\r\n%d ", output_data[col_index]);
+                    #if DEBUG==2    
+                    printf("\n\r");
                     fflush(stdout);
                     #endif
                 }
@@ -274,6 +275,18 @@ int im2col_nchw_int32()
     #elif HW_CONFIG == 2
     // Use DMA 2D for im2col
     #endif
+
+    for (int i=0; i<OH; i++)
+    {
+        for (int j=0; j<OW; j++)
+        {
+            #if DEBUG==3
+            printf("%d ", output_data[i*OW + j]);
+            #endif
+        }
+        printf("\n\r");
+    }
+
     // Return a 1 to indicate a success
     return 1;
 }
@@ -397,11 +410,11 @@ uint16_t verify()
 void dma_run(dma_trans_t * trans)
 {
     int res = dma_validate_transaction(trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-    PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
-    res = dma_load_transaction(&trans);
-    PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
-    res = dma_launch(&trans);
-    PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    //PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res = dma_load_transaction(trans);
+    //PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res = dma_launch(trans);
+    //PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
 
     while( ! dma_is_ready()) {
         // disable_interrupts
@@ -413,13 +426,6 @@ void dma_run(dma_trans_t * trans)
         }
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
     }
-    return;
-}
 
-void zeros(uint32_t* ptr, uint32_t size)
-{
-    for (uint32_t i=0; i<size; i++)
-    {
-        ptr[i] = 0;
-    }
+    return;
 }

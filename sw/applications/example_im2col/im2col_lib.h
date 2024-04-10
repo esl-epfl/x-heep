@@ -28,7 +28,7 @@
 #define OH FW * FH * CH
 #define OW (N_PATCHES_W) * (N_PATCHES_H)
 
-#define DEBUG 2 // Set to 1 to enable simple debug prints, 2 to enable more detailed debug prints
+#define DEBUG 3 // Set to 1 to enable simple debug prints, 2 to enable more detailed debug prints
 
 int im2col_nchw_f32();
 

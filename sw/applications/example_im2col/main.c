@@ -33,6 +33,11 @@ int main()
     
     errors = verify();
 
+    #if DEBUG==1 || DEBUG==2
+    printf("\n\r%d cycles", cycles);
+    fflush(stdout);
+    #endif
+
     if (errors != 0)
     {
         #if DEBUG==0
@@ -43,17 +48,12 @@ int main()
         printf("\n\rFAIL: %d errors", errors);
         fflush(stdout);
         #endif
+        return 1;
     } 
-    else 
+    else
     {
         printf("\n\rPASS\n");
         fflush(stdout);
     }
-
-    #if DEBUG==1 || DEBUG==2
-    printf("\n\r%d cycles", cycles);
-    fflush(stdout);
-    #endif
-
     return 0;
 }

@@ -134,19 +134,19 @@ im2col_format = 0
 
 # Define which tool to use to generate the golden reference
 # 0: my own implementation
-# 1: torch.nn.functional.unfold
+# 1: torch.nn.functional.unfold/tensorflow.image.extract_patches
 im2col_tool = 1
 
 # Parameters of the random image, padding excluded
 image_height = 4
 image_width = 4
-channels = 2
+channels = 1
 batch = 1
 
 # Parameters of the filter
 filter_height = 2
 filter_width = 2
-padding = 2
+padding = 1
 stride = 1
 
 # Calculate the number of patches, i.e. the number the filter can fit along one dimention during convolution
