@@ -20,6 +20,8 @@ extensions = [
     'myst_parser',
 ]
 
+html_static_path = ['_static']
+
 source_suffix = ['.rst', '.md']
 
 intersphinx_mapping = {
