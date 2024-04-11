@@ -14,7 +14,7 @@
 ## Enums
 
 ### `spi_idx_e`
-Defines SPI peripheral indexes.
+Defines SPI peripheral identifier indexes.
 - `SPI_IDX_FLASH`: SPI index for Flash.
 - `SPI_IDX_MMIO`: SPI index for MMIO.
 - `SPI_IDX_HOST`: SPI index for the Host.
@@ -46,16 +46,21 @@ Defines SPI events.
 
 ### `spi_error_e`
 Defines SPI errors.
-- Various errors such as `SPI_ERROR_NONE`, `SPI_ERROR_CMDBUSY`, etc.
+- `SPI_ERROR_NONE`: No error.
+- `SPI_ERROR_CMDBUSY`: Write to COMMAND when SPI not READY.
+- `SPI_ERROR_OVERFLOW`: TX FIFO overflow.
+- `SPI_ERROR_UNDERFLOW`: RX read when RX FIFO was empty.
+- `SPI_ERROR_CMDINVAL`: Invalid Command Segment.
+- `SPI_ERROR_CSIDINVAL`: Invalid CSID.
+- `SPI_ERROR_ACCESSINVAL`: TLUL tried to write 'zero byte' to TXDATA.
+- `SPI_ERROR_IRQALL`: All errors generating an interrupt.
+- `SPI_ERROR_ALL`: All errors.
 
 ### `spi_return_flags_e`
 Defines SPI function return flags.
-- Flags such as `SPI_FLAG_OK`, `SPI_FLAG_NULL_PTR`, etc.
+... To be continued
 
 ## Structures
-
-### `spi_host_t`
-Initialization parameters for SPI.
 
 ### `spi_ch_status_t`
 SPI channel (TX/RX) status structure.
