@@ -213,8 +213,6 @@ typedef struct spi_command {
 /**                                                                        **/
 /****************************************************************************/
 
-// TODO: This array must get out of header file !
-//       Hence must get rid of all inline functions...
 extern volatile spi_host* const spi_peris[4];
 
 /****************************************************************************/
@@ -224,21 +222,99 @@ extern volatile spi_host* const spi_peris[4];
 /****************************************************************************/
 
 
+/**
+ * Initialize SPI for flash device.
+ *
+ * @return The SPI peripheral identifier index for flash.
+ */
+spi_idx_e spi_init_flash();
+
+/**
+ * Initialize SPI for host device.
+ *
+ * @return The SPI peripheral identifier index for host.
+ */
+spi_idx_e spi_init_host();
+
+/**
+ * Initialize SPI for secondary host device.
+ *
+ * @return The SPI peripheral identifier index for secondary host.
+ */
+spi_idx_e spi_init_host2();
+
+/**
+ * Get enabled events for a specified SPI peripheral.
+ *
+ * @param peri_id The SPI peripheral identifier index.
+ * @param events Pointer to store enabled event interrupts.
+ * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
+ */
 spi_return_flags_e spi_get_events_enabled(const spi_idx_e peri_id, spi_event_e* events);
 
+/**
+ * Set enabled events for a specified SPI peripheral.
+ *
+ * @param peri_id The SPI peripheral identifier index.
+ * @param events Pointer to events to enable/disable.
+ * @param enable Flag to enable (true) or disable (false) the specified event interrupts.
+ * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
+ */
 spi_return_flags_e spi_set_events_enabled(const spi_idx_e peri_id, spi_event_e* events, bool enable);
 
+/**
+ * Get enabled error interrupts for a specified SPI peripheral.
+ *
+ * @param peri_id The SPI peripheral identifier index.
+ * @param errors Pointer to store enabled error interrupts.
+ * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
+ */
 spi_return_flags_e spi_get_errors_enabled(const spi_idx_e peri_id, spi_error_e* errors);
 
+/**
+ * Set enabled error interrupts for a specified SPI peripheral.
+ *
+ * @param peri_id The SPI peripheral identifier index.
+ * @param errors Pointer to error interrupts to enable/disable.
+ * @param enable Flag to enable (true) or disable (false) the specified error interrupts.
+ * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
+ */
 spi_return_flags_e spi_set_errors_enabled(const spi_idx_e peri_id, spi_error_e* errors, bool enable);
 
+/**
+ * Write a byte of data to the transmit queue of a specified SPI peripheral.
+ *
+ * @param peri_id The SPI peripheral identifier index.
+ * @param bdata Byte of data to write.
+ * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
+ */
 spi_return_flags_e spi_write_byte(const spi_idx_e peri_id, uint8_t bdata);
 
+/**
+ * Enable or disable error interrupt test mode for a specified SPI peripheral.
+ *
+ * @param peri_id The SPI peripheral identifier index.
+ * @param enable Flag to enable (true) or disable (false) error interrupt test mode.
+ * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
+ */
 spi_return_flags_e spi_enable_error_intr_test(const spi_idx_e peri_id, bool enable);
 
+/**
+ * Enable or disable event interrupt test mode for a specified SPI peripheral.
+ *
+ * @param peri_id The SPI peripheral identifier index.
+ * @param enable Flag to enable (true) or disable (false) event interrupt test mode.
+ * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
+ */
 spi_return_flags_e spi_enable_evt_intr_test(const spi_idx_e peri_id, bool enable);
 
-spi_return_flags_e spi_enable_alert_test(const spi_idx_e peri_id, bool enable);
+/**
+ * Trigger a fatal fault test alert for a specified SPI peripheral.
+ *
+ * @param peri_id The SPI peripheral identifier index.
+ * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
+ */
+spi_return_flags_e spi_alert_test_fatal_fault_trigger(const spi_idx_e peri_id);
 
 
 
@@ -603,27 +679,56 @@ static inline __attribute__((always_inline)) __attribute__((const)) uint32_t spi
 void handler_irq_spi(uint32_t id);
 
 /**
- * @brief This is a non-weak implementation of the function declared in
- * fast_intr_ctrl.c
+ * @brief Attends the plic interrupt.
  */
 void fic_irq_spi(void);
 
 /**
- * @brief This is a non-weak implementation of the function declared in
- * fast_intr_ctrl.c
+ * @brief Attends the plic interrupt.
  */
 void fic_irq_spi_flash(void);
 
+
+/**
+ * @brief weak implementation of the function that gets called when an event interrupt is
+ *        triggered on the SPI Flash.
+ *        Replace with your own implementation.
+ */
 __attribute__((weak, optimize("O0"))) void spi_intr_handler_event_flash(spi_event_e events);
 
+/**
+ * @brief weak implementation of the function that gets called when an error interrupt is
+ *        triggered on the SPI Flash.
+ *        Replace with your own implementation.
+ */
 __attribute__((weak, optimize("O0"))) void spi_intr_handler_error_flash(spi_error_e errors);
 
+/**
+ * @brief weak implementation of the function that gets called when an event interrupt is
+ *        triggered on the SPI Host.
+ *        Replace with your own implementation.
+ */
 __attribute__((weak, optimize("O0"))) void spi_intr_handler_event_host(spi_event_e events);
 
+/**
+ * @brief weak implementation of the function that gets called when an error interrupt is
+ *        triggered on the SPI Host.
+ *        Replace with your own implementation.
+ */
 __attribute__((weak, optimize("O0"))) void spi_intr_handler_error_host(spi_error_e errors);
 
+/**
+ * @brief weak implementation of the function that gets called when an event interrupt is
+ *        triggered on the SPI Host 2.
+ *        Replace with your own implementation.
+ */
 __attribute__((weak, optimize("O0"))) void spi_intr_handler_event_host2(spi_event_e events);
 
+/**
+ * @brief weak implementation of the function that gets called when an error interrupt is
+ *        triggered on the SPI Host 2.
+ *        Replace with your own implementation.
+ */
 __attribute__((weak, optimize("O0"))) void spi_intr_handler_error_host2(spi_error_e errors);
 
 

@@ -89,6 +89,24 @@ volatile spi_host* const spi_peris[4] = {
 /****************************************************************************/
 
 
+spi_idx_e spi_init_flash() {
+    spi_sw_reset(SPI_IDX_FLASH);
+    spi_set_enable(SPI_IDX_FLASH, true);
+    return SPI_IDX_FLASH;
+}
+
+spi_idx_e spi_init_host() {
+    spi_sw_reset(SPI_IDX_HOST);
+    spi_set_enable(SPI_IDX_HOST, true);
+    return SPI_IDX_HOST;
+}
+
+spi_idx_e spi_init_host2() {
+    spi_sw_reset(SPI_IDX_HOST_2);
+    spi_set_enable(SPI_IDX_HOST_2, true);
+    return SPI_IDX_HOST_2;
+}
+
 spi_return_flags_e spi_get_events_enabled(const spi_idx_e peri_id, spi_event_e* events) 
 {
     if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
@@ -149,11 +167,10 @@ spi_return_flags_e spi_enable_evt_intr_test(const spi_idx_e peri_id, bool enable
     return SPI_FLAG_OK;
 }
 
-// TODO: Improve the implementation for this function since this is for fatal_fault alert only
-spi_return_flags_e spi_enable_alert_test(const spi_idx_e peri_id, bool enable) {
+spi_return_flags_e spi_alert_test_fatal_fault_trigger(const spi_idx_e peri_id) {
     if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
     volatile uint32_t intr_enable_reg = spi_peris[peri_id]->ALERT_TEST;
-    intr_enable_reg = bitfield_write(intr_enable_reg, BIT_MASK_1, SPI_HOST_ALERT_TEST_FATAL_FAULT_BIT, enable);
+    intr_enable_reg = bitfield_write(intr_enable_reg, BIT_MASK_1, SPI_HOST_ALERT_TEST_FATAL_FAULT_BIT, true);
     spi_peris[peri_id]->ALERT_TEST = intr_enable_reg;
     return SPI_FLAG_OK;
 }
