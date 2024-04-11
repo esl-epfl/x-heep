@@ -212,7 +212,7 @@ typedef struct spi_status {
 /**                                                                        **/
 /****************************************************************************/
 
-extern volatile spi_host* const spi_peris[4];
+// extern volatile spi_host* const spi_peris[4];
 
 /****************************************************************************/
 /**                                                                        **/
@@ -498,11 +498,6 @@ static inline __attribute__((always_inline)) const bool spi_get_error_intr_enabl
 }
 // ============================================================================
 
-
-// TODO: This function shouldn't exist... check how to adapt things for w25q.c to work
-static inline __attribute__((always_inline)) const uintptr_t spi_get_base_addr(spi_host_t* spi) {
-    return (uintptr_t) spi->peri;
-}
 
 /**
  * Read SPI status register

@@ -69,12 +69,12 @@ spi_return_flags_e spi_get_errors(spi_host_t* spi, spi_error_e* errors);
 /**                                                                        **/
 /****************************************************************************/
 
-volatile spi_host* const spi_peris[4] = {
-    ((volatile spi_host *) SPI_FLASH_START_ADDRESS),
-    ((volatile spi_host *) SPI_MEMIO_START_ADDRESS),
-    ((volatile spi_host *) SPI_HOST_START_ADDRESS),
-    ((volatile spi_host *) SPI2_START_ADDRESS)
-};
+// volatile spi_host* const spi_peris[4] = {
+//     ((volatile spi_host *) SPI_FLASH_START_ADDRESS),
+//     ((volatile spi_host *) SPI_MEMIO_START_ADDRESS),
+//     ((volatile spi_host *) SPI_HOST_START_ADDRESS),
+//     ((volatile spi_host *) SPI2_START_ADDRESS)
+// };
 
 /****************************************************************************/
 /**                                                                        **/
