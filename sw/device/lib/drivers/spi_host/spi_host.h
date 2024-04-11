@@ -227,21 +227,21 @@ extern volatile spi_host* const spi_peris[4];
  *
  * @return The SPI peripheral identifier index for flash.
  */
-spi_host_t spi_init_flash();
+spi_host_t spi_init_flash(bool output_en);
 
 /**
  * Initialize SPI for host device.
  *
  * @return The SPI peripheral identifier index for host.
  */
-spi_host_t spi_init_host();
+spi_host_t spi_init_host(bool output_en);
 
 /**
  * Initialize SPI for secondary host device.
  *
  * @return The SPI peripheral identifier index for host 2.
  */
-spi_host_t spi_init_host2();
+spi_host_t spi_init_host2(bool output_en);
 
 /**
  * Get enabled events for a specified SPI peripheral.
@@ -534,7 +534,7 @@ static inline __attribute__((always_inline)) volatile bool spi_get_active(const 
  */
 static inline __attribute__((always_inline)) volatile bool spi_get_ready(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
-    if (SPI_IDX_INVALID(peri_id)) return false;
+    if (SPI_IDX_INVALID(peri_id)) return true;
     return bitfield_read(spi_get_status(peri_id), BIT_MASK_1, SPI_HOST_STATUS_READY_BIT);
 }
 

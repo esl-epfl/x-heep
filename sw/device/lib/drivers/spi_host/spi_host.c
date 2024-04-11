@@ -89,33 +89,36 @@ volatile spi_host* const spi_peris[4] = {
 /****************************************************************************/
 
 
-spi_host_t spi_init_flash() {
+spi_host_t spi_init_flash(bool output_en) {
     spi_host_t spi = {
         .peri = ((volatile spi_host *) SPI_FLASH_START_ADDRESS),
         .base_addr = mmio_region_from_addr(SPI_FLASH_START_ADDRESS)
     };
-    // spi_sw_reset(&spi);
-    // spi_set_enable(&spi, true);
+    spi_sw_reset(&spi);
+    spi_set_enable(&spi, true);
+    spi_output_enable(&spi, output_en);
     return spi;
 }
 
-spi_host_t spi_init_host() {
+spi_host_t spi_init_host(bool output_en) {
     spi_host_t spi = {
         .peri = ((volatile spi_host *) SPI_HOST_START_ADDRESS),
         .base_addr = mmio_region_from_addr(SPI_HOST_START_ADDRESS)
     };
-    // spi_sw_reset(&spi);
-    // spi_set_enable(&spi, true);
+    spi_sw_reset(&spi);
+    spi_set_enable(&spi, true);
+    spi_output_enable(&spi, output_en);
     return spi;
 }
 
-spi_host_t spi_init_host2() {
+spi_host_t spi_init_host2(bool output_en) {
     spi_host_t spi = {
         .peri = ((volatile spi_host *) SPI2_START_ADDRESS),
         .base_addr = mmio_region_from_addr(SPI2_START_ADDRESS)
     };
-    // spi_sw_reset(&spi);
-    // spi_set_enable(&spi, true);
+    spi_sw_reset(&spi);
+    spi_set_enable(&spi, true);
+    spi_output_enable(&spi, output_en);
     return spi;
 }
 
@@ -245,7 +248,7 @@ spi_return_flags_e spi_sw_reset(const spi_idx_e peri_id) {
                      | SPI_HOST_STATUS_TXQD_MASK << SPI_HOST_STATUS_TXQD_OFFSET
                      | SPI_HOST_STATUS_RXQD_MASK << SPI_HOST_STATUS_RXQD_OFFSET)
           );
-    ctrl_reg = spi_peris[peri_id]->CONTROL;
+    // ctrl_reg = spi_peris[peri_id]->CONTROL;
     ctrl_reg = bitfield_write(ctrl_reg, BIT_MASK_1, SPI_HOST_CONTROL_SW_RST_BIT, 0);
     spi_peris[peri_id]->CONTROL = ctrl_reg;
     return SPI_FLAG_OK;
