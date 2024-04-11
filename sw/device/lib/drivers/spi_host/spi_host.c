@@ -60,6 +60,9 @@
 /**                                                                        **/
 /****************************************************************************/
 
+spi_return_flags_e spi_get_events(const spi_idx_e peri_id, spi_event_e* events);
+spi_return_flags_e spi_get_errors(const spi_idx_e peri_id, spi_error_e* errors);
+
 /****************************************************************************/
 /**                                                                        **/
 /*                           EXPORTED VARIABLES                             */
@@ -88,14 +91,14 @@ volatile spi_host* const spi_peris[4] = {
 
 spi_return_flags_e spi_get_events_enabled(const spi_idx_e peri_id, spi_event_e* events) 
 {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_EVENT_NONE;
+    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
     *events = bitfield_read(spi_peris[peri_id]->EVENT_ENABLE, SPI_EVENTS_MASK, SPI_EVENTS_INDEX);
     return SPI_FLAG_OK;
 }
 
 spi_return_flags_e spi_set_events_enabled(const spi_idx_e peri_id, spi_event_e* events, bool enable) 
 {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_EVENT_NONE;
+    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
     if (*events > SPI_EVENT_ALL) return SPI_FLAG_EVENT_INVALID;
     if (enable) spi_peris[peri_id]->EVENT_ENABLE |= *events;
     else        spi_peris[peri_id]->EVENT_ENABLE &= ~*events;
@@ -104,14 +107,9 @@ spi_return_flags_e spi_set_events_enabled(const spi_idx_e peri_id, spi_event_e* 
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_get_events(const spi_idx_e peri_id, spi_event_e* events) {
-    // TODO: Implement this function...
-    return SPI_FLAG_OK;
-}
-
 spi_return_flags_e spi_get_errors_enabled(const spi_idx_e peri_id, spi_error_e* errors) 
 {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_ERROR_NONE;
+    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
 
     *errors = bitfield_read(spi_peris[peri_id]->ERROR_ENABLE, SPI_ERRORS_IRQ_MASK, SPI_ERRORS_INDEX);
     return SPI_FLAG_OK;
@@ -119,19 +117,12 @@ spi_return_flags_e spi_get_errors_enabled(const spi_idx_e peri_id, spi_error_e* 
 
 spi_return_flags_e spi_set_errors_enabled(const spi_idx_e peri_id, spi_error_e* errors, bool enable)
 {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_ERROR_NONE;
+    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
     if (*errors > SPI_ERROR_IRQALL) return SPI_FLAG_ERROR_INVALID;
     if (enable) spi_peris[peri_id]->ERROR_ENABLE |= *errors;
     else        spi_peris[peri_id]->ERROR_ENABLE &= ~*errors;
 
     *errors = bitfield_read(spi_peris[peri_id]->ERROR_ENABLE, SPI_ERRORS_IRQ_MASK, SPI_ERRORS_INDEX);
-    return SPI_FLAG_OK;
-}
-
-spi_return_flags_e spi_get_errors(const spi_idx_e peri_id, spi_error_e* errors)
-{
-    if (SPI_IDX_INVALID(peri_id)) return SPI_ERROR_NONE;
-    *errors = bitfield_read(spi_peris[peri_id]->ERROR_ENABLE, SPI_ERRORS_MASK, SPI_ERRORS_INDEX);
     return SPI_FLAG_OK;
 }
 
@@ -350,24 +341,68 @@ spi_return_flags_e spi_output_enable(const spi_idx_e peri_id, bool enable){
 
 void handler_irq_spi(uint32_t id)
 {
- // Replace this function with a non-weak implementation
+    spi_error_e errors;
+    spi_get_errors(spi_peris[SPI_IDX_HOST_2], &errors);
+    if (errors) {
+        spi_intr_handler_error_host2(errors);
+    }
+    else {
+        spi_event_e events;
+        spi_get_events(spi_peris[SPI_IDX_HOST_2], &events);
+        spi_intr_handler_event_host2(events);
+    }
 }
 
 void fic_irq_spi(void)
 {
- // Replace this function with a non-weak implementation
+    spi_error_e errors;
+    spi_get_errors(spi_peris[SPI_IDX_HOST], &errors);
+    if (errors) {
+        spi_intr_handler_error_host(errors);
+    }
+    else {
+        spi_event_e events;
+        spi_get_events(spi_peris[SPI_IDX_HOST], &events);
+        spi_intr_handler_event_host(events);
+    }
 }
 
 void fic_irq_spi_flash(void)
 {
- // Replace this function with a non-weak implementation
+    spi_error_e errors;
+    spi_get_errors(spi_peris[SPI_IDX_FLASH], &errors);
+    if (errors) {
+        spi_intr_handler_error_flash(errors);
+    }
+    else {
+        spi_event_e events;
+        spi_get_events(spi_peris[SPI_IDX_FLASH], &events);
+        spi_intr_handler_event_flash(events);
+    }
 }
 
-__attribute__((weak, optimize("O0"))) void spi_intr_handler_event(spi_event_e events) {
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_event_flash(spi_event_e events) {
 
 }
 
-__attribute__((weak, optimize("O0"))) void spi_intr_handler_error(spi_error_e errors) {
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_error_flash(spi_error_e errors) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_event_host(spi_event_e events) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_error_host(spi_error_e errors) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_event_host2(spi_event_e events) {
+
+}
+
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_error_host2(spi_error_e errors) {
+
 
 }
 
@@ -376,6 +411,25 @@ __attribute__((weak, optimize("O0"))) void spi_intr_handler_error(spi_error_e er
 /*                            LOCAL FUNCTIONS                               */
 /**                                                                        **/
 /****************************************************************************/
+
+spi_return_flags_e spi_get_events(const spi_idx_e peri_id, spi_event_e* events) {
+    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
+    volatile uint32_t status = spi_get_status(peri_id);
+    *events |= bitfield_read(status, BIT_MASK_1, SPI_HOST_STATUS_RXFULL_BIT)  << SPI_HOST_EVENT_ENABLE_RXFULL_BIT
+             | bitfield_read(status, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT) << SPI_HOST_EVENT_ENABLE_TXEMPTY_BIT
+             | bitfield_read(status, BIT_MASK_1, SPI_HOST_STATUS_RXWM_BIT)    << SPI_HOST_EVENT_ENABLE_RXWM_BIT
+             | bitfield_read(status, BIT_MASK_1, SPI_HOST_STATUS_TXWM_BIT)    << SPI_HOST_EVENT_ENABLE_TXWM_BIT
+             | bitfield_read(status, BIT_MASK_1, SPI_HOST_STATUS_READY_BIT)   << SPI_HOST_EVENT_ENABLE_READY_BIT
+             | ~bitfield_read(status, BIT_MASK_1, SPI_HOST_STATUS_ACTIVE_BIT) << SPI_HOST_EVENT_ENABLE_IDLE_BIT;
+    return SPI_FLAG_OK;
+}
+
+spi_return_flags_e spi_get_errors(const spi_idx_e peri_id, spi_error_e* errors)
+{
+    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
+    *errors = bitfield_read(spi_peris[peri_id]->ERROR_ENABLE, SPI_ERRORS_MASK, SPI_ERRORS_INDEX);
+    return SPI_FLAG_OK;
+}
 
 /****************************************************************************/
 /**                                                                        **/

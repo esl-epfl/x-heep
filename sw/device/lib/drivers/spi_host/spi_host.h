@@ -94,7 +94,7 @@ typedef enum {
 * SPI events
 */
 typedef enum {
-    SPI_EVENT_NONE      = (1 << SPI_HOST_EVENT_ENABLE_RXFULL_BIT),
+    SPI_EVENT_NONE      = 0,
     SPI_EVENT_RXFULL    = (1 << SPI_HOST_EVENT_ENABLE_RXFULL_BIT),
     SPI_EVENT_TXEMPTY   = (1 << SPI_HOST_EVENT_ENABLE_TXEMPTY_BIT),
     SPI_EVENT_RXWM      = (1 << SPI_HOST_EVENT_ENABLE_RXWM_BIT),
@@ -228,13 +228,9 @@ spi_return_flags_e spi_get_events_enabled(const spi_idx_e peri_id, spi_event_e* 
 
 spi_return_flags_e spi_set_events_enabled(const spi_idx_e peri_id, spi_event_e* events, bool enable);
 
-spi_return_flags_e spi_get_events(const spi_idx_e peri_id, spi_event_e* events);
-
 spi_return_flags_e spi_get_errors_enabled(const spi_idx_e peri_id, spi_error_e* errors);
 
 spi_return_flags_e spi_set_errors_enabled(const spi_idx_e peri_id, spi_error_e* errors, bool enable);
-
-spi_return_flags_e spi_get_errors(const spi_idx_e peri_id, spi_error_e* errors);
 
 spi_return_flags_e spi_write_byte(const spi_idx_e peri_id, uint8_t bdata);
 
@@ -618,9 +614,17 @@ void fic_irq_spi(void);
  */
 void fic_irq_spi_flash(void);
 
-__attribute__((weak, optimize("O0"))) void spi_intr_handler_event(spi_event_e events);
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_event_flash(spi_event_e events);
 
-__attribute__((weak, optimize("O0"))) void spi_intr_handler_error(spi_error_e errors);
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_error_flash(spi_error_e errors);
+
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_event_host(spi_event_e events);
+
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_error_host(spi_error_e errors);
+
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_event_host2(spi_event_e events);
+
+__attribute__((weak, optimize("O0"))) void spi_intr_handler_error_host2(spi_error_e errors);
 
 
 #ifdef __cplusplus
