@@ -64,12 +64,15 @@ Defines SPI function return flags.
 
 ### `spi_ch_status_t`
 SPI channel (TX/RX) status structure.
+... To be continued
 
 ### `spi_configopts_t`
 SPI chip (slave) configuration structure.
+... To be continued
 
 ### `spi_command_t`
 SPI command structure.
+... To be continued
 
 ## Functions
 
@@ -86,16 +89,16 @@ SPI command structure.
 
 - **Data Transmission**
   - `spi_return_flags_e spi_write_byte(const spi_idx_e peri_id, uint8_t bdata)`: Write a byte of data.
-  - Various other functions for managing SPI communication, such as `spi_enable_error_intr_test`, `spi_enable_evt_intr_test`, etc.
+  - ... To be continued
 
 - **Queue and FIFO Management**
-  - Functions to manage TX/RX FIFOs and queue depths, such as `spi_get_tx_queue_depth`, `spi_get_rx_queue_depth`, etc.
+  - ... To be continued
 
 - **Configuration and Status**
-  - Functions to configure SPI settings, read status registers, and manage chip selects, such as `spi_sw_reset`, `spi_set_enable`, `spi_set_csid`, etc.
+  - ... To be continued
 
 - **Inline Functions**
-  - Inline functions for quick status checks and configurations, such as `spi_get_evt_intr_state`, `spi_wait_for_ready`, etc.
+  - ... To be continued
 
 ## Weak Functions
-- Functions like `spi_intr_handler_event_flash`, `spi_intr_handler_error_flash`, etc., are provided with a weak linkage. Users can override these with their implementations.
+- ... To be continued
