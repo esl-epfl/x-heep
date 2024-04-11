@@ -1,4 +1,4 @@
-# compile with Makefile
+# Compile with Makefile
 
 You can compile the example applications and the platform using the Makefile. Type 'make help' or 'make' for more information. Moreover, please, check the different 'clean' commands to verify that you are using the corret one.
 
@@ -53,7 +53,7 @@ Or, if you use the OpenHW Group [GCC](https://www.embecosm.com/resources/tool-ch
 
 
 ```
-make app COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_xcvhwlp1p0_xcvmem1p0_xcvmac1p0_xcvbi1p0_xcvalu1p0_xcvsimd1p0_xcvbitmanip1p0
+make app COMPILER_PREFIX=riscv32-corev- ARCH=rv32imc_zicsr_zifencei_xcvhwlp_xcvmem_xcvmac_xcvbi_xcvalu_xcvsimd_xcvbitmanip
 ```
 
 This will create the executable file to be loaded in your target system (ASIC, FPGA, Simulation).
@@ -75,7 +75,7 @@ Moreover, FreeRTOS is being fetch from 'https://github.com/FreeRTOS/FreeRTOS-Ker
 
 ## Simulating
 
-This project supports simulation with Verilator, Synopsys VCS, and Siemens Questasim.
+This project supports simulation with Verilator, Synopsys VCS, Siemens Questasim and Cadence Xcelium.
 It relies on `fusesoc` to handle multiple EDA tools and parameters.
 For example, if you want to set the `FPU` and `COREV_PULP` parameters of the `cv32e40p` CPU,
 you need to add next to your compilation command `FUSESOC_PARAM="--COREV_PULP=1 --FPU=1"`
@@ -147,7 +147,7 @@ cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-vcs
 
 and running the same executable as for the digital simulation. Note that with Verdi you can view both the digital and the analog waveforms.
 
-Additional instructions on how to run an analog / mixed-signal simulation of X-HEEP can be found [here](AnalogMixedSignal.md). To try out the simulation, we provide an example SPICE netlist of an simple 1-bit ADC created by us and exported from [xschem](https://xschem.sourceforge.io/stefan/index.html) and which uses the PTM 65nm bulk CMOS model from [https://ptm.asu.edu](https://ptm.asu.edu/).
+Additional instructions on how to run an analog / mixed-signal simulation of X-HEEP can be found [here](./AnalogMixedSignal.md). To try out the simulation, we provide an example SPICE netlist of an simple 1-bit ADC created by us and exported from [xschem](https://xschem.sourceforge.io/stefan/index.html) and which uses the PTM 65nm bulk CMOS model from [https://ptm.asu.edu](https://ptm.asu.edu/).
 
 ### Compiling for Questasim
 
@@ -199,6 +199,26 @@ make run RUN_OPT=1 RUN_UPF=1 PLUSARGS="c firmware=../../../sw/build/main.hex"
 ```
 
 Questasim version must be >= Questasim 2020.4
+
+### Compiling for Xcelium
+
+To simulate your application with Xcelium, first compile the HDL:
+
+```
+make xcelium-sim
+```
+
+then, go to your target system built folder
+
+```
+cd ./build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-xcelium/
+```
+
+and type to run your compiled software:
+
+```
+make run PLUSARGS="c firmware=../../../sw/build/main.hex"
+```
 
 ### UART DPI
 
@@ -322,7 +342,19 @@ To program the bitstream, open Vivado,
 open --> Hardware Manager --> Open Target --> Autoconnect --> Program Device
 ```
 
-and choose the file `openhwgroup.org_systems_core-v-mini-mcu_0.bit`
+and choose the file `openhwgroup.org_systems_core-v-mini-mcu_0.bit`.
+
+Or simply type:
+
+```
+bash vivado-fpga-pgm FPGA_BOARD=pynq-z2
+```
+
+or
+
+```
+make vivado-fpga-pgm FPGA_BOARD=nexys-a7-100t
+```
 
 To run SW, follow the [Debug](./Debug.md) guide
 to load the binaries with the HS2 cable over JTAG,
@@ -332,15 +364,10 @@ guide if you have a FLASH attached to the FPGA.
 Do not forget that the `pynq-z2` board requires you to have the ethernet cable attached to the board while running.
 
 For example, if you want to run your application using flash_exec, do as follow:
-
 compile your application, e.g. `make app PROJECT=example_matfadd TARGET=pynq-z2 ARCH=rv32imfc LINKER=flash_exec`
-
 and then follow the [ExecuteFromFlash](./ExecuteFromFlash.md) to program the flash and set the boot buttons on the FPGA correctly.
-
 To look at the output of your printf, run in another terminal:
-
 `picocom -b 9600 -r -l --imap lfcrlf /dev/ttyUSB2`
-
 Please be sure to use the right `ttyUSB` number (you can discover it with `dmesg --time-format iso | grep FTDI` for example).
 
 ### FPGA EMUlation Platform (FEMU)

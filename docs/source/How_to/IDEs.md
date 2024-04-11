@@ -1,14 +1,14 @@
+# Set up an IDE
 
 For FW development, `X-HEEP` can be used together with different Integrated Development Environments (IDEs) flavours. Up to now, full support is just provided by [Segger Embedded Studio (SES)](https://www.segger.com/products/development-tools/embedded-studio/editions/risc-v/). This readme guides you through all the needed steps to get SES working and debugging when prototyping `X-HEEP` into the pynq-z2 board.
 
-# Prerequisite
 
-## 1. SES installation. 
+## 1. SES installation.
 The platform was only tested under Linux and version 7.32 of the Embedded Studio for RISC-V. Please, go to the Segger [download center](https://www.segger.com/downloads/embedded-studio/) to get that version. It is assumed that you have already installed the RISC-V compiler and openOCD. If the latter is not true, check the main [Readme](https://github.com/esl-epfl/x-heep) please.
 
 # Configuration
 
-After installing SES, you need to indicate to Segger your Toolchain directory (RISC-V Compiler) as well as your openOCD installation folder. Those need to be specified into `xheep.emProject` file. 
+After installing SES, you need to indicate to Segger your Toolchain directory (RISC-V Compiler) as well as your openOCD installation folder. Those need to be specified into `xheep.emProject` file.
 
 For the RISC-V Compiler path, **line 71**:
 ```
@@ -34,7 +34,7 @@ Note that on the right part, you have the memory usage based on the linker we ha
 
 # Debugging
 
-Finally, after building (compile and linking), you can directly start debugging by pressing `F5` or also `Target > Connect GDB Server` and `Debug > Go`. You also have the possibility to activate the terminal to see directly into the SES window the printing characters. 
+Finally, after building (compile and linking), you can directly start debugging by pressing `F5` or also `Target > Connect GDB Server` and `Debug > Go`. You also have the possibility to activate the terminal to see directly into the SES window the printing characters.
 
 The output should be something like this:
 
