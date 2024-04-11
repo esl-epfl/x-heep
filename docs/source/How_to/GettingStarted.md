@@ -1,4 +1,4 @@
-# get started
+# Get started
 
 ## 1. OS requirements
 
@@ -108,7 +108,7 @@ sudo apt-get install -y gtkwave
 
 We use version v0.0-1824-ga3b5bedf
 
-See: [Install Verible](https://opentitan.org/guides/getting_started/index.html#step-6a-install-verible-optional)
+See: [Install Verible](https://opentitan.org/guides/getting_started/index.html#step-7a-install-verible-optional)
 
 To format your RTL code type:
 
