@@ -89,22 +89,34 @@ volatile spi_host* const spi_peris[4] = {
 /****************************************************************************/
 
 
-spi_idx_e spi_init_flash() {
-    spi_sw_reset(SPI_IDX_FLASH);
-    spi_set_enable(SPI_IDX_FLASH, true);
-    return SPI_IDX_FLASH;
+spi_host_t spi_init_flash() {
+    spi_host_t spi = {
+        .peri = ((volatile spi_host *) SPI_FLASH_START_ADDRESS),
+        .base_addr = mmio_region_from_addr(SPI_FLASH_START_ADDRESS)
+    };
+    // spi_sw_reset(&spi);
+    // spi_set_enable(&spi, true);
+    return spi;
 }
 
-spi_idx_e spi_init_host() {
-    spi_sw_reset(SPI_IDX_HOST);
-    spi_set_enable(SPI_IDX_HOST, true);
-    return SPI_IDX_HOST;
+spi_host_t spi_init_host() {
+    spi_host_t spi = {
+        .peri = ((volatile spi_host *) SPI_HOST_START_ADDRESS),
+        .base_addr = mmio_region_from_addr(SPI_HOST_START_ADDRESS)
+    };
+    // spi_sw_reset(&spi);
+    // spi_set_enable(&spi, true);
+    return spi;
 }
 
-spi_idx_e spi_init_host2() {
-    spi_sw_reset(SPI_IDX_HOST_2);
-    spi_set_enable(SPI_IDX_HOST_2, true);
-    return SPI_IDX_HOST_2;
+spi_host_t spi_init_host2() {
+    spi_host_t spi = {
+        .peri = ((volatile spi_host *) SPI2_START_ADDRESS),
+        .base_addr = mmio_region_from_addr(SPI2_START_ADDRESS)
+    };
+    // spi_sw_reset(&spi);
+    // spi_set_enable(&spi, true);
+    return spi;
 }
 
 spi_return_flags_e spi_get_events_enabled(const spi_idx_e peri_id, spi_event_e* events) 

@@ -140,12 +140,12 @@ typedef enum {
 
 /**
  * Initialization parameters for SPI.
- * @TODO: This has become obsolete
  */
 typedef struct spi {
     /**
     * The base address for the SPI hardware registers.
     */
+    spi_host* peri;
     mmio_region_t base_addr;
 } spi_host_t;
 
@@ -227,21 +227,21 @@ extern volatile spi_host* const spi_peris[4];
  *
  * @return The SPI peripheral identifier index for flash.
  */
-spi_idx_e spi_init_flash();
+spi_host_t spi_init_flash();
 
 /**
  * Initialize SPI for host device.
  *
  * @return The SPI peripheral identifier index for host.
  */
-spi_idx_e spi_init_host();
+spi_host_t spi_init_host();
 
 /**
  * Initialize SPI for secondary host device.
  *
- * @return The SPI peripheral identifier index for secondary host.
+ * @return The SPI peripheral identifier index for host 2.
  */
-spi_idx_e spi_init_host2();
+spi_host_t spi_init_host2();
 
 /**
  * Get enabled events for a specified SPI peripheral.
@@ -256,7 +256,8 @@ spi_return_flags_e spi_get_events_enabled(const spi_idx_e peri_id, spi_event_e* 
  * Set enabled events for a specified SPI peripheral.
  *
  * @param peri_id The SPI peripheral identifier index.
- * @param events Pointer to events to enable/disable.
+ * @param events Pointer to events to enable/disable and to store the currently enabled
+ *               event interrupts.
  * @param enable Flag to enable (true) or disable (false) the specified event interrupts.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
@@ -275,7 +276,8 @@ spi_return_flags_e spi_get_errors_enabled(const spi_idx_e peri_id, spi_error_e* 
  * Set enabled error interrupts for a specified SPI peripheral.
  *
  * @param peri_id The SPI peripheral identifier index.
- * @param errors Pointer to error interrupts to enable/disable.
+ * @param errors Pointer to error interrupts to enable/disable and to store the currently
+ *               enabled error interrupts.
  * @param enable Flag to enable (true) or disable (false) the specified error interrupts.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
