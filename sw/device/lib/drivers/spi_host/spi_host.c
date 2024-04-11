@@ -195,18 +195,17 @@ spi_return_flags_e spi_alert_test_fatal_fault_trigger(const spi_idx_e peri_id) {
 // return max(uint8_t) on NULL pointer
 volatile uint8_t spi_get_tx_queue_depth(const spi_idx_e peri_id) {
     if (SPI_IDX_INVALID(peri_id)) return -1;
-    volatile uint32_t status_reg = spi_get_status(peri_id);
-    return bitfield_read(status_reg, SPI_HOST_STATUS_TXQD_MASK, SPI_HOST_STATUS_TXQD_OFFSET);
+    return spi_get_status(peri_id)->txqd;
 }
 
 volatile spi_ch_status_t spi_get_tx_channel_status(const spi_idx_e peri_id) {
     // TODO: Find a good idea to return error flag if spi == NULL
-    volatile uint32_t status_reg = spi_get_status(peri_id);
+    volatile spi_status_t* status = spi_get_status(peri_id);
     spi_ch_status_t ch_status = {
-        .empty = bitfield_read(status_reg, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT),
-        .full = bitfield_read(status_reg, BIT_MASK_1, SPI_HOST_STATUS_TXFULL_BIT),
-        .stall = bitfield_read(status_reg, BIT_MASK_1, SPI_HOST_STATUS_TXSTALL_BIT),
-        .wm = bitfield_read(status_reg, BIT_MASK_1, SPI_HOST_STATUS_TXWM_BIT)
+        .empty  = status->txempty,
+        .full   = status->txfull,
+        .stall  = status->txstall,
+        .wm     = status->txwm
     };
     return ch_status;
 }
@@ -214,18 +213,17 @@ volatile spi_ch_status_t spi_get_tx_channel_status(const spi_idx_e peri_id) {
 // return max(uint8_t) on NULL pointer
 volatile uint8_t spi_get_rx_queue_depth(const spi_idx_e peri_id) {
     if (SPI_IDX_INVALID(peri_id)) return -1;
-    volatile uint32_t status_reg = spi_get_status(peri_id);
-    return bitfield_read(status_reg, SPI_HOST_STATUS_RXQD_MASK, SPI_HOST_STATUS_RXQD_OFFSET);
+    return spi_get_status(peri_id)->rxqd;
 }
 
 volatile spi_ch_status_t spi_get_rx_channel_status(const spi_idx_e peri_id) {
     // TODO: Find a good idea to return error flag if spi == NULL
-    volatile uint32_t status_reg = spi_get_status(peri_id);
+    volatile spi_status_t* status = spi_get_status(peri_id);
     spi_ch_status_t ch_status = {
-        .empty = bitfield_read(status_reg, BIT_MASK_1, SPI_HOST_STATUS_RXEMPTY_BIT),
-        .full = bitfield_read(status_reg, BIT_MASK_1, SPI_HOST_STATUS_RXFULL_BIT),
-        .stall = bitfield_read(status_reg, BIT_MASK_1, SPI_HOST_STATUS_RXSTALL_BIT),
-        .wm = bitfield_read(status_reg, BIT_MASK_1, SPI_HOST_STATUS_RXWM_BIT)
+        .empty  = status->rxempty,
+        .full   = status->rxfull,
+        .stall  = status->rxstall,
+        .wm     = status->rxwm
     };
     return ch_status;
 }
@@ -243,11 +241,8 @@ spi_return_flags_e spi_sw_reset(const spi_idx_e peri_id) {
     volatile uint32_t ctrl_reg = spi_peris[peri_id]->CONTROL;
     ctrl_reg = bitfield_write(ctrl_reg, BIT_MASK_1, SPI_HOST_CONTROL_SW_RST_BIT, 1);
     spi_peris[peri_id]->CONTROL = ctrl_reg;
-    volatile uint32_t status = spi_get_status(peri_id);
-    while (status & (1 << SPI_HOST_STATUS_ACTIVE_BIT
-                     | SPI_HOST_STATUS_TXQD_MASK << SPI_HOST_STATUS_TXQD_OFFSET
-                     | SPI_HOST_STATUS_RXQD_MASK << SPI_HOST_STATUS_RXQD_OFFSET)
-          );
+    volatile spi_status_t* status = spi_get_status(peri_id);
+    while (status->active | status->txqd | status->rxqd);
     // ctrl_reg = spi_peris[peri_id]->CONTROL;
     ctrl_reg = bitfield_write(ctrl_reg, BIT_MASK_1, SPI_HOST_CONTROL_SW_RST_BIT, 0);
     spi_peris[peri_id]->CONTROL = ctrl_reg;
@@ -322,7 +317,7 @@ spi_return_flags_e spi_set_command(const spi_idx_e peri_id, const uint32_t cmd_r
     spi_speed_e speed = bitfield_read(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, SPI_HOST_COMMAND_SPEED_OFFSET);
     spi_dir_e direction = bitfield_read(cmd_reg, SPI_HOST_COMMAND_DIRECTION_MASK, SPI_HOST_COMMAND_DIRECTION_OFFSET);
 
-    if (bitfield_read(spi_get_status(peri_id), SPI_HOST_STATUS_CMDQD_MASK, SPI_HOST_STATUS_CMDQD_OFFSET) >= SPI_HOST_PARAM_CMD_DEPTH)
+    if (spi_get_status(peri_id)->cmdqd >= SPI_HOST_PARAM_CMD_DEPTH)
         flags += SPI_FLAG_COMMAND_FULL;
     if (speed > SPI_SPEED_QUAD || (direction == SPI_DIR_BIDIR && speed != SPI_SPEED_STANDARD))
         flags += SPI_FLAG_SPEED_INVALID;
@@ -374,13 +369,13 @@ spi_return_flags_e spi_output_enable(const spi_idx_e peri_id, bool enable){
 void handler_irq_spi(uint32_t id)
 {
     spi_error_e errors;
-    spi_get_errors(spi_peris[SPI_IDX_HOST_2], &errors);
+    spi_get_errors(SPI_IDX_HOST_2, &errors);
     if (errors) {
         spi_intr_handler_error_host2(errors);
     }
     else {
         spi_event_e events;
-        spi_get_events(spi_peris[SPI_IDX_HOST_2], &events);
+        spi_get_events(SPI_IDX_HOST_2, &events);
         spi_intr_handler_event_host2(events);
     }
 }
@@ -388,13 +383,13 @@ void handler_irq_spi(uint32_t id)
 void fic_irq_spi(void)
 {
     spi_error_e errors;
-    spi_get_errors(spi_peris[SPI_IDX_HOST], &errors);
+    spi_get_errors(SPI_IDX_HOST, &errors);
     if (errors) {
         spi_intr_handler_error_host(errors);
     }
     else {
         spi_event_e events;
-        spi_get_events(spi_peris[SPI_IDX_HOST], &events);
+        spi_get_events(SPI_IDX_HOST, &events);
         spi_intr_handler_event_host(events);
     }
 }
@@ -402,13 +397,13 @@ void fic_irq_spi(void)
 void fic_irq_spi_flash(void)
 {
     spi_error_e errors;
-    spi_get_errors(spi_peris[SPI_IDX_FLASH], &errors);
+    spi_get_errors(SPI_IDX_FLASH, &errors);
     if (errors) {
         spi_intr_handler_error_flash(errors);
     }
     else {
         spi_event_e events;
-        spi_get_events(spi_peris[SPI_IDX_FLASH], &events);
+        spi_get_events(SPI_IDX_FLASH, &events);
         spi_intr_handler_event_flash(events);
     }
 }
@@ -446,13 +441,13 @@ __attribute__((weak, optimize("O0"))) void spi_intr_handler_error_host2(spi_erro
 
 spi_return_flags_e spi_get_events(const spi_idx_e peri_id, spi_event_e* events) {
     if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    volatile uint32_t status = spi_get_status(peri_id);
-    *events |= bitfield_read(status, BIT_MASK_1, SPI_HOST_STATUS_RXFULL_BIT)  << SPI_HOST_EVENT_ENABLE_RXFULL_BIT
-             | bitfield_read(status, BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT) << SPI_HOST_EVENT_ENABLE_TXEMPTY_BIT
-             | bitfield_read(status, BIT_MASK_1, SPI_HOST_STATUS_RXWM_BIT)    << SPI_HOST_EVENT_ENABLE_RXWM_BIT
-             | bitfield_read(status, BIT_MASK_1, SPI_HOST_STATUS_TXWM_BIT)    << SPI_HOST_EVENT_ENABLE_TXWM_BIT
-             | bitfield_read(status, BIT_MASK_1, SPI_HOST_STATUS_READY_BIT)   << SPI_HOST_EVENT_ENABLE_READY_BIT
-             | ~bitfield_read(status, BIT_MASK_1, SPI_HOST_STATUS_ACTIVE_BIT) << SPI_HOST_EVENT_ENABLE_IDLE_BIT;
+    volatile spi_status_t* status = spi_get_status(peri_id);
+    *events = status->rxfull  << SPI_HOST_EVENT_ENABLE_RXFULL_BIT
+            | status->txempty << SPI_HOST_EVENT_ENABLE_TXEMPTY_BIT
+            | status->rxwm    << SPI_HOST_EVENT_ENABLE_RXWM_BIT
+            | status->txwm    << SPI_HOST_EVENT_ENABLE_TXWM_BIT
+            | status->ready   << SPI_HOST_EVENT_ENABLE_READY_BIT
+            | ~status->active << SPI_HOST_EVENT_ENABLE_IDLE_BIT;
     return SPI_FLAG_OK;
 }
 

@@ -187,25 +187,24 @@ typedef struct spi_command {
 
 /**
 * SPI status structure
-* @TODO: Check if the fields should be volatile if this approach is implemented
 */
-// typedef struct spi_status {
-//     uint8_t txqd        : 8;
-//     uint8_t rxqd        : 8;
-//     uint8_t cmdqd       : 4;
-//     bool    rxwm        : 1;
-//     bool    __rsvd0     : 1;
-//     bool    byteorder   : 1;
-//     bool    rxstall     : 1;
-//     bool    rxempty     : 1;
-//     bool    rxfull      : 1;
-//     bool    txwm        : 1;
-//     bool    txstall     : 1;
-//     bool    txempty     : 1;
-//     bool    txfull      : 1;
-//     bool    active      : 1;
-//     bool    ready       : 1;
-// } spi_status_t;
+typedef struct spi_status {
+    uint8_t txqd        : 8;
+    uint8_t rxqd        : 8;
+    uint8_t cmdqd       : 4;
+    bool    rxwm        : 1;
+    bool    __rsvd0     : 1;
+    bool    byteorder   : 1;
+    bool    rxstall     : 1;
+    bool    rxempty     : 1;
+    bool    rxfull      : 1;
+    bool    txwm        : 1;
+    bool    txstall     : 1;
+    bool    txempty     : 1;
+    bool    txfull      : 1;
+    bool    active      : 1;
+    bool    ready       : 1;
+} spi_status_t;
 
 /****************************************************************************/
 /**                                                                        **/
@@ -510,10 +509,9 @@ static inline __attribute__((always_inline)) const uintptr_t spi_get_base_addr(c
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) volatile uint32_t spi_get_status(const spi_idx_e peri_id) {
+static inline __attribute__((always_inline)) volatile spi_status_t* spi_get_status(const spi_idx_e peri_id) {
     // TODO: Check if this is a good idea
-    // return (spi_status_t*) &spi_peris[peri_id]->STATUS;
-    return spi_peris[peri_id]->STATUS;
+    return (volatile spi_status_t*) &spi_peris[peri_id]->STATUS;
 }
 
 /**
@@ -524,7 +522,7 @@ static inline __attribute__((always_inline)) volatile uint32_t spi_get_status(co
 static inline __attribute__((always_inline)) volatile bool spi_get_active(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
     if (SPI_IDX_INVALID(peri_id)) return false;
-    return bitfield_read(spi_get_status(peri_id), BIT_MASK_1, SPI_HOST_STATUS_ACTIVE_BIT);
+    return spi_get_status(peri_id)->active;
 }
 
 /**
@@ -535,7 +533,7 @@ static inline __attribute__((always_inline)) volatile bool spi_get_active(const 
 static inline __attribute__((always_inline)) volatile bool spi_get_ready(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
     if (SPI_IDX_INVALID(peri_id)) return true;
-    return bitfield_read(spi_get_status(peri_id), BIT_MASK_1, SPI_HOST_STATUS_READY_BIT);
+    return spi_get_status(peri_id)->ready;
 }
 
 /**
@@ -564,7 +562,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_idle(const spi_id
 static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
     if (SPI_IDX_INVALID(peri_id)) return;
-    while (!bitfield_read(spi_get_status(peri_id), BIT_MASK_1, SPI_HOST_STATUS_TXWM_BIT));
+    while (!spi_get_status(peri_id)->txwm);
 }
 
 /**
@@ -575,7 +573,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(cons
 static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
     if (SPI_IDX_INVALID(peri_id)) return;
-    while (!bitfield_read(spi_get_status(peri_id), BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
+    while (!spi_get_status(peri_id)->txempty);
 }
 
 /**
@@ -586,7 +584,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const sp
 static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
     if (SPI_IDX_INVALID(peri_id)) return;
-    while (!bitfield_read(spi_get_status(peri_id), BIT_MASK_1, SPI_HOST_STATUS_TXEMPTY_BIT));
+    while (spi_get_status(peri_id)->txempty);
 }
 
 /**
@@ -597,7 +595,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(cons
 static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
     if (SPI_IDX_INVALID(peri_id)) return;
-    while (!bitfield_read(spi_get_status(peri_id), BIT_MASK_1, SPI_HOST_STATUS_TXFULL_BIT));
+    while (spi_get_status(peri_id)->txfull);
 }
 
 /**
@@ -608,7 +606,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const
 static inline __attribute__((always_inline)) void spi_wait_for_rx_empty(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
     if (SPI_IDX_INVALID(peri_id)) return;
-    while (!bitfield_read(spi_get_status(peri_id), BIT_MASK_1, SPI_HOST_STATUS_RXEMPTY_BIT));
+    while (!spi_get_status(peri_id)->rxempty);
 }
 
 /**
@@ -619,7 +617,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_rx_empty(const sp
 static inline __attribute__((always_inline)) void spi_wait_for_rx_not_empty(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
     if (SPI_IDX_INVALID(peri_id)) return;
-    while (!bitfield_read(spi_get_status(peri_id), BIT_MASK_1, SPI_HOST_STATUS_RXEMPTY_BIT));
+    while (spi_get_status(peri_id)->rxempty);
 }
 
 /**
@@ -630,7 +628,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_rx_not_empty(cons
 static inline __attribute__((always_inline)) void spi_wait_for_rx_not_full(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
     if (SPI_IDX_INVALID(peri_id)) return;
-    while (!bitfield_read(spi_get_status(peri_id), BIT_MASK_1, SPI_HOST_STATUS_RXFULL_BIT));
+    while (spi_get_status(peri_id)->rxfull);
 }
 
 /**
@@ -641,7 +639,7 @@ static inline __attribute__((always_inline)) void spi_wait_for_rx_not_full(const
 static inline __attribute__((always_inline)) void spi_wait_for_rx_watermark(const spi_idx_e peri_id) {
     // TODO: Find better approach to inform user
     if (SPI_IDX_INVALID(peri_id)) return;
-    while (!bitfield_read(spi_get_status(peri_id), BIT_MASK_1, SPI_HOST_STATUS_RXWM_BIT));
+    while (!spi_get_status(peri_id)->rxwm);
 }
 
 /**
