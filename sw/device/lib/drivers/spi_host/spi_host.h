@@ -145,7 +145,7 @@ typedef struct spi {
     /**
     * The base address for the SPI hardware registers.
     */
-    spi_host* peri;
+    volatile spi_host* peri;
     mmio_region_t base_addr;
 } spi_host_t;
 
@@ -249,7 +249,7 @@ spi_host_t spi_init_host2(bool output_en);
  * @param events Pointer to store enabled event interrupts.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
-spi_return_flags_e spi_get_events_enabled(const spi_idx_e peri_id, spi_event_e* events);
+spi_return_flags_e spi_get_events_enabled(spi_host_t* spi, spi_event_e* events);
 
 /**
  * Set enabled events for a specified SPI peripheral.
@@ -260,7 +260,7 @@ spi_return_flags_e spi_get_events_enabled(const spi_idx_e peri_id, spi_event_e* 
  * @param enable Flag to enable (true) or disable (false) the specified event interrupts.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
-spi_return_flags_e spi_set_events_enabled(const spi_idx_e peri_id, spi_event_e* events, bool enable);
+spi_return_flags_e spi_set_events_enabled(spi_host_t* spi, spi_event_e* events, bool enable);
 
 /**
  * Get enabled error interrupts for a specified SPI peripheral.
@@ -269,7 +269,7 @@ spi_return_flags_e spi_set_events_enabled(const spi_idx_e peri_id, spi_event_e* 
  * @param errors Pointer to store enabled error interrupts.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
-spi_return_flags_e spi_get_errors_enabled(const spi_idx_e peri_id, spi_error_e* errors);
+spi_return_flags_e spi_get_errors_enabled(spi_host_t* spi, spi_error_e* errors);
 
 /**
  * Set enabled error interrupts for a specified SPI peripheral.
@@ -280,7 +280,7 @@ spi_return_flags_e spi_get_errors_enabled(const spi_idx_e peri_id, spi_error_e* 
  * @param enable Flag to enable (true) or disable (false) the specified error interrupts.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
-spi_return_flags_e spi_set_errors_enabled(const spi_idx_e peri_id, spi_error_e* errors, bool enable);
+spi_return_flags_e spi_set_errors_enabled(spi_host_t* spi, spi_error_e* errors, bool enable);
 
 /**
  * Write a byte of data to the transmit queue of a specified SPI peripheral.
@@ -289,7 +289,7 @@ spi_return_flags_e spi_set_errors_enabled(const spi_idx_e peri_id, spi_error_e* 
  * @param bdata Byte of data to write.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
-spi_return_flags_e spi_write_byte(const spi_idx_e peri_id, uint8_t bdata);
+spi_return_flags_e spi_write_byte(spi_host_t* spi, uint8_t bdata);
 
 /**
  * Enable or disable error interrupt test mode for a specified SPI peripheral.
@@ -298,7 +298,7 @@ spi_return_flags_e spi_write_byte(const spi_idx_e peri_id, uint8_t bdata);
  * @param enable Flag to enable (true) or disable (false) error interrupt test mode.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
-spi_return_flags_e spi_enable_error_intr_test(const spi_idx_e peri_id, bool enable);
+spi_return_flags_e spi_enable_error_intr_test(spi_host_t* spi, bool enable);
 
 /**
  * Enable or disable event interrupt test mode for a specified SPI peripheral.
@@ -307,7 +307,7 @@ spi_return_flags_e spi_enable_error_intr_test(const spi_idx_e peri_id, bool enab
  * @param enable Flag to enable (true) or disable (false) event interrupt test mode.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
-spi_return_flags_e spi_enable_evt_intr_test(const spi_idx_e peri_id, bool enable);
+spi_return_flags_e spi_enable_evt_intr_test(spi_host_t* spi, bool enable);
 
 /**
  * Trigger a fatal fault test alert for a specified SPI peripheral.
@@ -315,7 +315,7 @@ spi_return_flags_e spi_enable_evt_intr_test(const spi_idx_e peri_id, bool enable
  * @param peri_id The SPI peripheral identifier index.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
-spi_return_flags_e spi_alert_test_fatal_fault_trigger(const spi_idx_e peri_id);
+spi_return_flags_e spi_alert_test_fatal_fault_trigger(spi_host_t* spi);
 
 
 
@@ -327,7 +327,7 @@ spi_return_flags_e spi_alert_test_fatal_fault_trigger(const spi_idx_e peri_id);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return TX FIFO depth.
  */
-volatile uint8_t spi_get_tx_queue_depth(const spi_idx_e peri_id);
+volatile uint8_t spi_get_tx_queue_depth(spi_host_t* spi);
 
 /**
  * Read the TX channel status register.
@@ -335,7 +335,7 @@ volatile uint8_t spi_get_tx_queue_depth(const spi_idx_e peri_id);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return TX channel status structure.
  */
-volatile spi_ch_status_t spi_get_tx_channel_status(const spi_idx_e peri_id);
+volatile spi_ch_status_t spi_get_tx_channel_status(spi_host_t* spi);
 
 /**
  * Read the RX FIFO depth register.
@@ -343,7 +343,7 @@ volatile spi_ch_status_t spi_get_tx_channel_status(const spi_idx_e peri_id);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return RX FIFO depth.
  */
-volatile uint8_t spi_get_rx_queue_depth(const spi_idx_e peri_id);
+volatile uint8_t spi_get_rx_queue_depth(spi_host_t* spi);
 
 /**
  * Read the RX channel status register.
@@ -351,7 +351,7 @@ volatile uint8_t spi_get_rx_queue_depth(const spi_idx_e peri_id);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return RX channel status structure.
  */
-volatile spi_ch_status_t spi_get_rx_channel_status(const spi_idx_e peri_id);
+volatile spi_ch_status_t spi_get_rx_channel_status(spi_host_t* spi);
 
 /**
  * Read the Chip Select (CS) ID register.
@@ -359,14 +359,14 @@ volatile spi_ch_status_t spi_get_rx_channel_status(const spi_idx_e peri_id);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return Chip Select (CS) ID.
  */
-volatile uint32_t spi_get_csid(const spi_idx_e peri_id);
+volatile uint32_t spi_get_csid(spi_host_t* spi);
 
 /**
  * Reset the SPI from software.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-spi_return_flags_e spi_sw_reset(const spi_idx_e peri_id);
+spi_return_flags_e spi_sw_reset(spi_host_t* spi);
 
 /**
  * Enable the SPI host.
@@ -374,7 +374,7 @@ spi_return_flags_e spi_sw_reset(const spi_idx_e peri_id);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI enable register value.
  */
-spi_return_flags_e spi_set_enable(const spi_idx_e peri_id, bool enable);
+spi_return_flags_e spi_set_enable(spi_host_t* spi, bool enable);
 
 /**
  * Set the transmit queue watermark level (to enable interrupt triggering).
@@ -384,7 +384,7 @@ spi_return_flags_e spi_set_enable(const spi_idx_e peri_id, bool enable);
  * @return Flag indicating problems. Returns SPI_WATERMARK_OK == 0 if everithing
  * went well.
  */
-spi_return_flags_e spi_set_tx_watermark(const spi_idx_e peri_id, uint8_t watermark);
+spi_return_flags_e spi_set_tx_watermark(spi_host_t* spi, uint8_t watermark);
 
 /**
  * Set the receive queue watermark level (to enable interrupt triggering).
@@ -394,7 +394,7 @@ spi_return_flags_e spi_set_tx_watermark(const spi_idx_e peri_id, uint8_t waterma
  * @return Flag indicating problems. Returns SPI_WATERMARK_OK == 0 if everithing
  * went well.
  */
-spi_return_flags_e spi_set_rx_watermark(const spi_idx_e peri_id, uint8_t watermark);
+spi_return_flags_e spi_set_rx_watermark(spi_host_t* spi, uint8_t watermark);
 
 /**
  * Set the requirement of a target device (i.e., a slave).
@@ -405,7 +405,7 @@ spi_return_flags_e spi_set_rx_watermark(const spi_idx_e peri_id, uint8_t waterma
  * @return Flag indicating problems. Returns SPI_CONFIGOPTS_OK == 0 if everithing
  * went well.
  */
-spi_return_flags_e spi_set_configopts(const spi_idx_e peri_id, uint32_t csid, uint32_t conf_reg);
+spi_return_flags_e spi_set_configopts(spi_host_t* spi, uint32_t csid, uint32_t conf_reg);
 
 /**
  * Select which device to target with the next command.
@@ -415,7 +415,7 @@ spi_return_flags_e spi_set_configopts(const spi_idx_e peri_id, uint32_t csid, ui
  * @return Flag indicating problems. Returns SPI_CSID_OK == 0 if everithing went
  * well.
  */
-spi_return_flags_e spi_set_csid(const spi_idx_e peri_id, uint32_t csid);
+spi_return_flags_e spi_set_csid(spi_host_t* spi, uint32_t csid);
 
 /**
  * Set the next command (one for all attached SPI devices).
@@ -425,7 +425,7 @@ spi_return_flags_e spi_set_csid(const spi_idx_e peri_id, uint32_t csid);
  * @return Flag indicating problems. Returns SPI_COMMAND_OK == 0 if everithing
  * went well.
  */
-spi_return_flags_e spi_set_command(const spi_idx_e peri_id, uint32_t cmd_reg);
+spi_return_flags_e spi_set_command(spi_host_t* spi, uint32_t cmd_reg);
 
 /**
  * Write one word to the TX FIFO.
@@ -435,7 +435,7 @@ spi_return_flags_e spi_set_command(const spi_idx_e peri_id, uint32_t cmd_reg);
  * @return Flag indicating problems. Returns SPI_READ_WRITE_OK == 0 if everithing
  * went well.
  */
-spi_return_flags_e spi_write_word(const spi_idx_e peri_id, uint32_t wdata);
+spi_return_flags_e spi_write_word(spi_host_t* spi, uint32_t wdata);
 
 /**
  * Read one word to the RX FIFO.
@@ -445,7 +445,7 @@ spi_return_flags_e spi_write_word(const spi_idx_e peri_id, uint32_t wdata);
  * @return Flag indicating problems. Returns SPI_READ_WRITE_OK == 0 if everithing
  * went well.
  */
-spi_return_flags_e spi_read_word(const spi_idx_e peri_id, uint32_t* dst);
+spi_return_flags_e spi_read_word(spi_host_t* spi, uint32_t* dst);
 
 /**
  * Enable SPI event interrupt
@@ -453,7 +453,7 @@ spi_return_flags_e spi_read_word(const spi_idx_e peri_id, uint32_t* dst);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI event interrupt bit value.
  */
-spi_return_flags_e spi_enable_evt_intr(const spi_idx_e peri_id, bool enable);
+spi_return_flags_e spi_enable_evt_intr(spi_host_t* spi, bool enable);
 
 /**
  * Enable SPI error interrupt
@@ -461,7 +461,7 @@ spi_return_flags_e spi_enable_evt_intr(const spi_idx_e peri_id, bool enable);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI error interrupt bit value.
  */
-spi_return_flags_e spi_enable_error_intr(const spi_idx_e peri_id, bool enable);
+spi_return_flags_e spi_enable_error_intr(spi_host_t* spi, bool enable);
 
 /**
  * Enable SPI output
@@ -469,7 +469,7 @@ spi_return_flags_e spi_enable_error_intr(const spi_idx_e peri_id, bool enable);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI TX empty interrupt bit value.
  */
-spi_return_flags_e spi_output_enable(const spi_idx_e peri_id, bool enable);
+spi_return_flags_e spi_output_enable(spi_host_t* spi, bool enable);
 
 /****************************************************************************/
 /**                                                                        **/
@@ -481,27 +481,27 @@ spi_return_flags_e spi_output_enable(const spi_idx_e peri_id, bool enable);
 // TODO: This is lacking sanity checks but by coherence shouldn't have sanity check
 //       hence check the proper way to implement this
 
-static inline __attribute__((always_inline)) const bool spi_get_evt_intr_state(const spi_idx_e peri_id) {
-    return bitfield_read(spi_peris[peri_id]->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_SPI_EVENT_BIT);
+static inline __attribute__((always_inline)) const bool spi_get_evt_intr_state(spi_host_t* spi) {
+    return bitfield_read(spi->peri->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_SPI_EVENT_BIT);
 }
 
-static inline __attribute__((always_inline)) const bool spi_get_error_intr_state(const spi_idx_e peri_id) {
-    return bitfield_read(spi_peris[peri_id]->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_ERROR_BIT);
+static inline __attribute__((always_inline)) const bool spi_get_error_intr_state(spi_host_t* spi) {
+    return bitfield_read(spi->peri->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_ERROR_BIT);
 }
 
-static inline __attribute__((always_inline)) const bool spi_get_evt_intr_enable(const spi_idx_e peri_id) {
-    return bitfield_read(spi_peris[peri_id]->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_SPI_EVENT_BIT);
+static inline __attribute__((always_inline)) const bool spi_get_evt_intr_enable(spi_host_t* spi) {
+    return bitfield_read(spi->peri->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_SPI_EVENT_BIT);
 }
 
-static inline __attribute__((always_inline)) const bool spi_get_error_intr_enable(const spi_idx_e peri_id) {
-    return bitfield_read(spi_peris[peri_id]->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_ERROR_BIT);
+static inline __attribute__((always_inline)) const bool spi_get_error_intr_enable(spi_host_t* spi) {
+    return bitfield_read(spi->peri->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_ERROR_BIT);
 }
 // ============================================================================
 
 
 // TODO: This function shouldn't exist... check how to adapt things for w25q.c to work
-static inline __attribute__((always_inline)) const uintptr_t spi_get_base_addr(const spi_idx_e peri_id) {
-    return (uintptr_t) spi_peris[peri_id];
+static inline __attribute__((always_inline)) const uintptr_t spi_get_base_addr(spi_host_t* spi) {
+    return (uintptr_t) spi->peri;
 }
 
 /**
@@ -509,9 +509,9 @@ static inline __attribute__((always_inline)) const uintptr_t spi_get_base_addr(c
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) volatile spi_status_t* spi_get_status(const spi_idx_e peri_id) {
+static inline __attribute__((always_inline)) volatile spi_status_t* spi_get_status(spi_host_t* spi) {
     // TODO: Check if this is a good idea
-    return (volatile spi_status_t*) &spi_peris[peri_id]->STATUS;
+    return (volatile spi_status_t*) &spi->peri->STATUS;
 }
 
 /**
@@ -519,10 +519,10 @@ static inline __attribute__((always_inline)) volatile spi_status_t* spi_get_stat
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) volatile bool spi_get_active(const spi_idx_e peri_id) {
+static inline __attribute__((always_inline)) volatile bool spi_get_active(spi_host_t* spi) {
     // TODO: Find better approach to inform user
-    if (SPI_IDX_INVALID(peri_id)) return false;
-    return spi_get_status(peri_id)->active;
+    if (spi == NULL) return false;
+    return spi_get_status(spi)->active;
 }
 
 /**
@@ -530,10 +530,10 @@ static inline __attribute__((always_inline)) volatile bool spi_get_active(const 
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) volatile bool spi_get_ready(const spi_idx_e peri_id) {
+static inline __attribute__((always_inline)) volatile bool spi_get_ready(spi_host_t* spi) {
     // TODO: Find better approach to inform user
-    if (SPI_IDX_INVALID(peri_id)) return true;
-    return spi_get_status(peri_id)->ready;
+    if (spi == NULL) return true;
+    return spi_get_status(spi)->ready;
 }
 
 /**
@@ -541,8 +541,8 @@ static inline __attribute__((always_inline)) volatile bool spi_get_ready(const s
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_ready(const spi_idx_e peri_id) {
-    while (!spi_get_ready(peri_id));
+static inline __attribute__((always_inline)) void spi_wait_for_ready(spi_host_t* spi) {
+    while (!spi_get_ready(spi));
 }
 
 /**
@@ -550,8 +550,8 @@ static inline __attribute__((always_inline)) void spi_wait_for_ready(const spi_i
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_idle(const spi_idx_e peri_id) {
-    while (spi_get_active(peri_id));
+static inline __attribute__((always_inline)) void spi_wait_for_idle(spi_host_t* spi) {
+    while (spi_get_active(spi));
 }
 
 /**
@@ -559,10 +559,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_idle(const spi_id
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(const spi_idx_e peri_id) {
+static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(spi_host_t* spi) {
     // TODO: Find better approach to inform user
-    if (SPI_IDX_INVALID(peri_id)) return;
-    while (!spi_get_status(peri_id)->txwm);
+    if (spi == NULL) return;
+    while (!spi_get_status(spi)->txwm);
 }
 
 /**
@@ -570,10 +570,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(cons
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const spi_idx_e peri_id) {
+static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(spi_host_t* spi) {
     // TODO: Find better approach to inform user
-    if (SPI_IDX_INVALID(peri_id)) return;
-    while (!spi_get_status(peri_id)->txempty);
+    if (spi == NULL) return;
+    while (!spi_get_status(spi)->txempty);
 }
 
 /**
@@ -581,10 +581,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(const sp
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(const spi_idx_e peri_id) {
+static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(spi_host_t* spi) {
     // TODO: Find better approach to inform user
-    if (SPI_IDX_INVALID(peri_id)) return;
-    while (spi_get_status(peri_id)->txempty);
+    if (spi == NULL) return;
+    while (spi_get_status(spi)->txempty);
 }
 
 /**
@@ -592,10 +592,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(cons
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const spi_idx_e peri_id) {
+static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(spi_host_t* spi) {
     // TODO: Find better approach to inform user
-    if (SPI_IDX_INVALID(peri_id)) return;
-    while (spi_get_status(peri_id)->txfull);
+    if (spi == NULL) return;
+    while (spi_get_status(spi)->txfull);
 }
 
 /**
@@ -603,10 +603,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(const
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_rx_empty(const spi_idx_e peri_id) {
+static inline __attribute__((always_inline)) void spi_wait_for_rx_empty(spi_host_t* spi) {
     // TODO: Find better approach to inform user
-    if (SPI_IDX_INVALID(peri_id)) return;
-    while (!spi_get_status(peri_id)->rxempty);
+    if (spi == NULL) return;
+    while (!spi_get_status(spi)->rxempty);
 }
 
 /**
@@ -614,10 +614,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_rx_empty(const sp
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_rx_not_empty(const spi_idx_e peri_id) {
+static inline __attribute__((always_inline)) void spi_wait_for_rx_not_empty(spi_host_t* spi) {
     // TODO: Find better approach to inform user
-    if (SPI_IDX_INVALID(peri_id)) return;
-    while (spi_get_status(peri_id)->rxempty);
+    if (spi == NULL) return;
+    while (spi_get_status(spi)->rxempty);
 }
 
 /**
@@ -625,10 +625,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_rx_not_empty(cons
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_rx_not_full(const spi_idx_e peri_id) {
+static inline __attribute__((always_inline)) void spi_wait_for_rx_not_full(spi_host_t* spi) {
     // TODO: Find better approach to inform user
-    if (SPI_IDX_INVALID(peri_id)) return;
-    while (spi_get_status(peri_id)->rxfull);
+    if (spi == NULL) return;
+    while (spi_get_status(spi)->rxfull);
 }
 
 /**
@@ -636,10 +636,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_rx_not_full(const
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_rx_watermark(const spi_idx_e peri_id) {
+static inline __attribute__((always_inline)) void spi_wait_for_rx_watermark(spi_host_t* spi) {
     // TODO: Find better approach to inform user
-    if (SPI_IDX_INVALID(peri_id)) return;
-    while (!spi_get_status(peri_id)->rxwm);
+    if (spi == NULL) return;
+    while (!spi_get_status(spi)->rxwm);
 }
 
 /**

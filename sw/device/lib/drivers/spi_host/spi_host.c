@@ -60,8 +60,8 @@
 /**                                                                        **/
 /****************************************************************************/
 
-spi_return_flags_e spi_get_events(const spi_idx_e peri_id, spi_event_e* events);
-spi_return_flags_e spi_get_errors(const spi_idx_e peri_id, spi_error_e* errors);
+spi_return_flags_e spi_get_events(spi_host_t* spi, spi_event_e* events);
+spi_return_flags_e spi_get_errors(spi_host_t* spi, spi_error_e* errors);
 
 /****************************************************************************/
 /**                                                                        **/
@@ -122,85 +122,85 @@ spi_host_t spi_init_host2(bool output_en) {
     return spi;
 }
 
-spi_return_flags_e spi_get_events_enabled(const spi_idx_e peri_id, spi_event_e* events) 
+spi_return_flags_e spi_get_events_enabled(spi_host_t* spi, spi_event_e* events) 
 {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    *events = bitfield_read(spi_peris[peri_id]->EVENT_ENABLE, SPI_EVENTS_MASK, SPI_EVENTS_INDEX);
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    *events = bitfield_read(spi->peri->EVENT_ENABLE, SPI_EVENTS_MASK, SPI_EVENTS_INDEX);
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_events_enabled(const spi_idx_e peri_id, spi_event_e* events, bool enable) 
+spi_return_flags_e spi_set_events_enabled(spi_host_t* spi, spi_event_e* events, bool enable) 
 {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
     if (*events > SPI_EVENT_ALL) return SPI_FLAG_EVENT_INVALID;
-    if (enable) spi_peris[peri_id]->EVENT_ENABLE |= *events;
-    else        spi_peris[peri_id]->EVENT_ENABLE &= ~*events;
+    if (enable) spi->peri->EVENT_ENABLE |= *events;
+    else        spi->peri->EVENT_ENABLE &= ~*events;
 
-    *events = bitfield_read(spi_peris[peri_id]->EVENT_ENABLE, SPI_EVENTS_MASK, SPI_EVENTS_INDEX);
+    *events = bitfield_read(spi->peri->EVENT_ENABLE, SPI_EVENTS_MASK, SPI_EVENTS_INDEX);
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_get_errors_enabled(const spi_idx_e peri_id, spi_error_e* errors) 
+spi_return_flags_e spi_get_errors_enabled(spi_host_t* spi, spi_error_e* errors) 
 {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
 
-    *errors = bitfield_read(spi_peris[peri_id]->ERROR_ENABLE, SPI_ERRORS_IRQ_MASK, SPI_ERRORS_INDEX);
+    *errors = bitfield_read(spi->peri->ERROR_ENABLE, SPI_ERRORS_IRQ_MASK, SPI_ERRORS_INDEX);
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_errors_enabled(const spi_idx_e peri_id, spi_error_e* errors, bool enable)
+spi_return_flags_e spi_set_errors_enabled(spi_host_t* spi, spi_error_e* errors, bool enable)
 {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
     if (*errors > SPI_ERROR_IRQALL) return SPI_FLAG_ERROR_INVALID;
-    if (enable) spi_peris[peri_id]->ERROR_ENABLE |= *errors;
-    else        spi_peris[peri_id]->ERROR_ENABLE &= ~*errors;
+    if (enable) spi->peri->ERROR_ENABLE |= *errors;
+    else        spi->peri->ERROR_ENABLE &= ~*errors;
 
-    *errors = bitfield_read(spi_peris[peri_id]->ERROR_ENABLE, SPI_ERRORS_IRQ_MASK, SPI_ERRORS_INDEX);
+    *errors = bitfield_read(spi->peri->ERROR_ENABLE, SPI_ERRORS_IRQ_MASK, SPI_ERRORS_INDEX);
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_write_byte(const spi_idx_e peri_id, uint8_t bdata) {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    if (spi_get_tx_queue_depth(peri_id) >= SPI_HOST_PARAM_TX_DEPTH) return SPI_FLAG_TX_QUEUE_FULL;
-    spi_peris[peri_id]->TXDATA = bdata;
+spi_return_flags_e spi_write_byte(spi_host_t* spi, uint8_t bdata) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    if (spi_get_tx_queue_depth(spi) >= SPI_HOST_PARAM_TX_DEPTH) return SPI_FLAG_TX_QUEUE_FULL;
+    spi->peri->TXDATA = bdata;
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_enable_error_intr_test(const spi_idx_e peri_id, bool enable) {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    volatile uint32_t intr_enable_reg = spi_peris[peri_id]->INTR_TEST;
+spi_return_flags_e spi_enable_error_intr_test(spi_host_t* spi, bool enable) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    volatile uint32_t intr_enable_reg = spi->peri->INTR_TEST;
     intr_enable_reg = bitfield_write(intr_enable_reg, BIT_MASK_1, SPI_HOST_INTR_TEST_ERROR_BIT, enable);
-    spi_peris[peri_id]->INTR_TEST = intr_enable_reg;
+    spi->peri->INTR_TEST = intr_enable_reg;
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_enable_evt_intr_test(const spi_idx_e peri_id, bool enable) {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    volatile uint32_t intr_enable_reg = spi_peris[peri_id]->INTR_TEST;
+spi_return_flags_e spi_enable_evt_intr_test(spi_host_t* spi, bool enable) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    volatile uint32_t intr_enable_reg = spi->peri->INTR_TEST;
     intr_enable_reg = bitfield_write(intr_enable_reg, BIT_MASK_1, SPI_HOST_INTR_TEST_SPI_EVENT_BIT, enable);
-    spi_peris[peri_id]->INTR_TEST = intr_enable_reg;
+    spi->peri->INTR_TEST = intr_enable_reg;
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_alert_test_fatal_fault_trigger(const spi_idx_e peri_id) {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    volatile uint32_t intr_enable_reg = spi_peris[peri_id]->ALERT_TEST;
+spi_return_flags_e spi_alert_test_fatal_fault_trigger(spi_host_t* spi) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    volatile uint32_t intr_enable_reg = spi->peri->ALERT_TEST;
     intr_enable_reg = bitfield_write(intr_enable_reg, BIT_MASK_1, SPI_HOST_ALERT_TEST_FATAL_FAULT_BIT, true);
-    spi_peris[peri_id]->ALERT_TEST = intr_enable_reg;
+    spi->peri->ALERT_TEST = intr_enable_reg;
     return SPI_FLAG_OK;
 }
 
 // SPI get functions
 
 // return max(uint8_t) on NULL pointer
-volatile uint8_t spi_get_tx_queue_depth(const spi_idx_e peri_id) {
-    if (SPI_IDX_INVALID(peri_id)) return -1;
-    return spi_get_status(peri_id)->txqd;
+volatile uint8_t spi_get_tx_queue_depth(spi_host_t* spi) {
+    if (spi == NULL) return -1;
+    return spi_get_status(spi)->txqd;
 }
 
-volatile spi_ch_status_t spi_get_tx_channel_status(const spi_idx_e peri_id) {
+volatile spi_ch_status_t spi_get_tx_channel_status(spi_host_t* spi) {
     // TODO: Find a good idea to return error flag if spi == NULL
-    volatile spi_status_t* status = spi_get_status(peri_id);
+    volatile spi_status_t* status = spi_get_status(spi);
     spi_ch_status_t ch_status = {
         .empty  = status->txempty,
         .full   = status->txfull,
@@ -211,14 +211,14 @@ volatile spi_ch_status_t spi_get_tx_channel_status(const spi_idx_e peri_id) {
 }
 
 // return max(uint8_t) on NULL pointer
-volatile uint8_t spi_get_rx_queue_depth(const spi_idx_e peri_id) {
-    if (SPI_IDX_INVALID(peri_id)) return -1;
-    return spi_get_status(peri_id)->rxqd;
+volatile uint8_t spi_get_rx_queue_depth(spi_host_t* spi) {
+    if (spi == NULL) return -1;
+    return spi_get_status(spi)->rxqd;
 }
 
-volatile spi_ch_status_t spi_get_rx_channel_status(const spi_idx_e peri_id) {
+volatile spi_ch_status_t spi_get_rx_channel_status(spi_host_t* spi) {
     // TODO: Find a good idea to return error flag if spi == NULL
-    volatile spi_status_t* status = spi_get_status(peri_id);
+    volatile spi_status_t* status = spi_get_status(spi);
     spi_ch_status_t ch_status = {
         .empty  = status->rxempty,
         .full   = status->rxfull,
@@ -229,69 +229,69 @@ volatile spi_ch_status_t spi_get_rx_channel_status(const spi_idx_e peri_id) {
 }
 
 // return max(uint32_t) on NULL pointer
-volatile uint32_t spi_get_csid(const spi_idx_e peri_id) {
-    if (SPI_IDX_INVALID(peri_id)) return -1;
-    return spi_peris[peri_id]->CSID;
+volatile uint32_t spi_get_csid(spi_host_t* spi) {
+    if (spi == NULL) return -1;
+    return spi->peri->CSID;
 }
 
 // SPI set functions
 
-spi_return_flags_e spi_sw_reset(const spi_idx_e peri_id) {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    volatile uint32_t ctrl_reg = spi_peris[peri_id]->CONTROL;
+spi_return_flags_e spi_sw_reset(spi_host_t* spi) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    volatile uint32_t ctrl_reg = spi->peri->CONTROL;
     ctrl_reg = bitfield_write(ctrl_reg, BIT_MASK_1, SPI_HOST_CONTROL_SW_RST_BIT, 1);
-    spi_peris[peri_id]->CONTROL = ctrl_reg;
-    volatile spi_status_t* status = spi_get_status(peri_id);
+    spi->peri->CONTROL = ctrl_reg;
+    volatile spi_status_t* status = spi_get_status(spi);
     while (status->active | status->txqd | status->rxqd);
-    // ctrl_reg = spi_peris[peri_id]->CONTROL;
+    // ctrl_reg = spi->peri->CONTROL;
     ctrl_reg = bitfield_write(ctrl_reg, BIT_MASK_1, SPI_HOST_CONTROL_SW_RST_BIT, 0);
-    spi_peris[peri_id]->CONTROL = ctrl_reg;
+    spi->peri->CONTROL = ctrl_reg;
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_enable(const spi_idx_e peri_id, bool enable) {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    volatile uint32_t ctrl_reg = spi_peris[peri_id]->CONTROL;
+spi_return_flags_e spi_set_enable(spi_host_t* spi, bool enable) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    volatile uint32_t ctrl_reg = spi->peri->CONTROL;
     ctrl_reg = bitfield_write(ctrl_reg, BIT_MASK_1, SPI_HOST_CONTROL_SPIEN_BIT, enable);
-    spi_peris[peri_id]->CONTROL = ctrl_reg;
+    spi->peri->CONTROL = ctrl_reg;
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_tx_watermark(const spi_idx_e peri_id, uint8_t watermark) {
+spi_return_flags_e spi_set_tx_watermark(spi_host_t* spi, uint8_t watermark) {
     spi_return_flags_e flags = SPI_FLAG_OK;
-    if (SPI_IDX_INVALID(peri_id)) flags += SPI_FLAG_NULL_PTR;
+    if (spi == NULL) flags += SPI_FLAG_NULL_PTR;
     if (watermark > SPI_HOST_PARAM_TX_DEPTH) flags += SPI_FLAG_WATERMARK_EXCEEDS;
     if (flags) return flags;
 
-    volatile uint32_t ctrl_reg = spi_peris[peri_id]->CONTROL;
+    volatile uint32_t ctrl_reg = spi->peri->CONTROL;
     ctrl_reg = bitfield_write(ctrl_reg, SPI_HOST_CONTROL_TX_WATERMARK_MASK, SPI_HOST_CONTROL_TX_WATERMARK_OFFSET, watermark);
-    spi_peris[peri_id]->CONTROL = ctrl_reg;
+    spi->peri->CONTROL = ctrl_reg;
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_rx_watermark(const spi_idx_e peri_id, uint8_t watermark) {
+spi_return_flags_e spi_set_rx_watermark(spi_host_t* spi, uint8_t watermark) {
     spi_return_flags_e flags = SPI_FLAG_OK;
-    if (SPI_IDX_INVALID(peri_id)) flags += SPI_FLAG_NULL_PTR;
+    if (spi == NULL) flags += SPI_FLAG_NULL_PTR;
     if (watermark > SPI_HOST_PARAM_RX_DEPTH) flags += SPI_FLAG_WATERMARK_EXCEEDS;
     if (flags) return flags;
 
-    volatile uint32_t ctrl_reg = spi_peris[peri_id]->CONTROL;
+    volatile uint32_t ctrl_reg = spi->peri->CONTROL;
     ctrl_reg = bitfield_write(ctrl_reg, SPI_HOST_CONTROL_RX_WATERMARK_MASK, SPI_HOST_CONTROL_RX_WATERMARK_OFFSET, watermark);
-    spi_peris[peri_id]->CONTROL = ctrl_reg;
+    spi->peri->CONTROL = ctrl_reg;
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_configopts(const spi_idx_e peri_id, uint32_t csid, const uint32_t conf_reg) {
+spi_return_flags_e spi_set_configopts(spi_host_t* spi, uint32_t csid, const uint32_t conf_reg) {
     // TODO: check if this could be generalized to more than 2 CSIDs... because right 
     // now not very consistent with spi_set_csid which uses SPI_HOST_PARAM_NUM_C_S
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
     switch (csid)
     {
     case 0:
-        spi_peris[peri_id]->CONFIGOPTS0 = conf_reg;
+        spi->peri->CONFIGOPTS0 = conf_reg;
         break;
     case 1:
-        spi_peris[peri_id]->CONFIGOPTS1 = conf_reg;
+        spi->peri->CONFIGOPTS1 = conf_reg;
         break;
     default:
         return SPI_FLAG_CSID_INVALID;
@@ -300,69 +300,69 @@ spi_return_flags_e spi_set_configopts(const spi_idx_e peri_id, uint32_t csid, co
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_csid(const spi_idx_e peri_id, uint32_t csid) {
+spi_return_flags_e spi_set_csid(spi_host_t* spi, uint32_t csid) {
     spi_return_flags_e flags = SPI_FLAG_OK;
-    if (SPI_IDX_INVALID(peri_id)) flags += SPI_FLAG_NULL_PTR;
+    if (spi == NULL) flags += SPI_FLAG_NULL_PTR;
     if (SPI_CSID_INVALID(csid)) flags += SPI_FLAG_CSID_INVALID;
     if (flags) return flags;
 
-    spi_peris[peri_id]->CSID = csid;
+    spi->peri->CSID = csid;
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_command(const spi_idx_e peri_id, const uint32_t cmd_reg) {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
+spi_return_flags_e spi_set_command(spi_host_t* spi, const uint32_t cmd_reg) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
 
     spi_return_flags_e flags = SPI_FLAG_OK;
     spi_speed_e speed = bitfield_read(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, SPI_HOST_COMMAND_SPEED_OFFSET);
     spi_dir_e direction = bitfield_read(cmd_reg, SPI_HOST_COMMAND_DIRECTION_MASK, SPI_HOST_COMMAND_DIRECTION_OFFSET);
 
-    if (spi_get_status(peri_id)->cmdqd >= SPI_HOST_PARAM_CMD_DEPTH)
+    if (spi_get_status(spi)->cmdqd >= SPI_HOST_PARAM_CMD_DEPTH)
         flags += SPI_FLAG_COMMAND_FULL;
     if (speed > SPI_SPEED_QUAD || (direction == SPI_DIR_BIDIR && speed != SPI_SPEED_STANDARD))
         flags += SPI_FLAG_SPEED_INVALID;
-    if (!spi_get_ready(peri_id)) flags += SPI_FLAG_NOT_READY;
+    if (!spi_get_ready(spi)) flags += SPI_FLAG_NOT_READY;
     if (flags) return flags;
 
-    spi_peris[peri_id]->COMMAND = cmd_reg;
+    spi->peri->COMMAND = cmd_reg;
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_write_word(const spi_idx_e peri_id, uint32_t wdata) {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    if (spi_get_tx_queue_depth(peri_id) >= SPI_HOST_PARAM_TX_DEPTH) return SPI_FLAG_TX_QUEUE_FULL;
-    spi_peris[peri_id]->TXDATA = wdata;
+spi_return_flags_e spi_write_word(spi_host_t* spi, uint32_t wdata) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    if (spi_get_tx_queue_depth(spi) >= SPI_HOST_PARAM_TX_DEPTH) return SPI_FLAG_TX_QUEUE_FULL;
+    spi->peri->TXDATA = wdata;
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_read_word(const spi_idx_e peri_id, uint32_t* dst) {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    if (spi_get_rx_queue_depth(peri_id) == 0) return SPI_FLAG_RX_QUEUE_EMPTY;
-    *dst = spi_peris[peri_id]->RXDATA;
+spi_return_flags_e spi_read_word(spi_host_t* spi, uint32_t* dst) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    if (spi_get_rx_queue_depth(spi) == 0) return SPI_FLAG_RX_QUEUE_EMPTY;
+    *dst = spi->peri->RXDATA;
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_enable_evt_intr(const spi_idx_e peri_id, bool enable) {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    volatile uint32_t intr_enable_reg = spi_peris[peri_id]->INTR_ENABLE;
+spi_return_flags_e spi_enable_evt_intr(spi_host_t* spi, bool enable) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    volatile uint32_t intr_enable_reg = spi->peri->INTR_ENABLE;
     intr_enable_reg = bitfield_write(intr_enable_reg, BIT_MASK_1, SPI_HOST_INTR_ENABLE_SPI_EVENT_BIT, enable);
-    spi_peris[peri_id]->INTR_ENABLE = intr_enable_reg;
+    spi->peri->INTR_ENABLE = intr_enable_reg;
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_enable_error_intr(const spi_idx_e peri_id, bool enable) {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    volatile uint32_t intr_enable_reg = spi_peris[peri_id]->INTR_ENABLE;
+spi_return_flags_e spi_enable_error_intr(spi_host_t* spi, bool enable) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    volatile uint32_t intr_enable_reg = spi->peri->INTR_ENABLE;
     intr_enable_reg = bitfield_write(intr_enable_reg, BIT_MASK_1, SPI_HOST_INTR_STATE_ERROR_BIT, enable);
-    spi_peris[peri_id]->INTR_ENABLE = intr_enable_reg;
+    spi->peri->INTR_ENABLE = intr_enable_reg;
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_output_enable(const spi_idx_e peri_id, bool enable){
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    volatile uint32_t output_enable_reg = spi_peris[peri_id]->CONTROL;
+spi_return_flags_e spi_output_enable(spi_host_t* spi, bool enable){
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    volatile uint32_t output_enable_reg = spi->peri->CONTROL;
     output_enable_reg = bitfield_write(output_enable_reg, BIT_MASK_1, SPI_HOST_CONTROL_OUTPUT_EN_BIT, enable);
-    spi_peris[peri_id]->CONTROL = output_enable_reg;
+    spi->peri->CONTROL = output_enable_reg;
     return SPI_FLAG_OK;
 }
 
@@ -439,9 +439,9 @@ __attribute__((weak, optimize("O0"))) void spi_intr_handler_error_host2(spi_erro
 /**                                                                        **/
 /****************************************************************************/
 
-spi_return_flags_e spi_get_events(const spi_idx_e peri_id, spi_event_e* events) {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    volatile spi_status_t* status = spi_get_status(peri_id);
+spi_return_flags_e spi_get_events(spi_host_t* spi, spi_event_e* events) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    volatile spi_status_t* status = spi_get_status(spi);
     *events = status->rxfull  << SPI_HOST_EVENT_ENABLE_RXFULL_BIT
             | status->txempty << SPI_HOST_EVENT_ENABLE_TXEMPTY_BIT
             | status->rxwm    << SPI_HOST_EVENT_ENABLE_RXWM_BIT
@@ -451,10 +451,10 @@ spi_return_flags_e spi_get_events(const spi_idx_e peri_id, spi_event_e* events) 
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_get_errors(const spi_idx_e peri_id, spi_error_e* errors)
+spi_return_flags_e spi_get_errors(spi_host_t* spi, spi_error_e* errors)
 {
-    if (SPI_IDX_INVALID(peri_id)) return SPI_FLAG_NULL_PTR;
-    *errors = bitfield_read(spi_peris[peri_id]->ERROR_ENABLE, SPI_ERRORS_MASK, SPI_ERRORS_INDEX);
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    *errors = bitfield_read(spi->peri->ERROR_ENABLE, SPI_ERRORS_MASK, SPI_ERRORS_INDEX);
     return SPI_FLAG_OK;
 }
 
