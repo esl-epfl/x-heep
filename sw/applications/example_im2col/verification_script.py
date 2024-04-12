@@ -138,15 +138,15 @@ im2col_format = 0
 im2col_tool = 1
 
 # Parameters of the random image, padding excluded
-image_height = 5
-image_width = 5
-channels = 3
+image_height = 6
+image_width = 6
+channels = 1
 batch = 2
 
 # Parameters of the filter
 filter_height = 3
 filter_width = 3
-padding = 0
+padding = 2
 stride = 1
 
 # Calculate the number of patches, i.e. the number the filter can fit along one dimention during convolution
@@ -244,7 +244,7 @@ with open('im2colGolden.h', 'w') as f:
 
     f.write('#include <stdint.h>\n')
 
-    f.write('extern const uint32_t input_image[%d];\n' % (channels * image_height * image_width))
+    f.write('extern const uint32_t input_image[%d];\n' % (channels * image_height * image_width * batch))
     f.write('extern const uint32_t golden_im2col[%d];\n' % (OW*OH))
 
     f.write('#endif\n')
@@ -257,7 +257,7 @@ with open('im2colGolden.c', 'w') as f:
 
     if im2col_tool == 0:
     
-        f.write('const uint32_t input_image[%d] = {\n' % (channels * image_height * image_width))
+        f.write('const uint32_t input_image[%d] = {\n' % (channels * image_height * image_width * batch))
 
         for i in range(channels):
             for j in range(image_height):
@@ -285,7 +285,7 @@ with open('im2colGolden.c', 'w') as f:
 
     elif im2col_tool == 1:
         if im2col_format == 0:
-            torch_save(input_tensor, "input_image", channels * image_height * image_width, image_width)
+            torch_save(input_tensor, "input_image", channels * image_height * image_width * batch, image_width)
             torch_save(output_matrix, "golden_im2col", OW*OH, OW)
         else:
             tensor_save(input_tensor, "input_image", channels * image_height * image_width, image_width)

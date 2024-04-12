@@ -18,7 +18,7 @@
     - 1: Exploit standard DMA
     - 2: Exploit multichannel DMA
 */
-#define HW_CONFIG 0
+#define HW_CONFIG 1
 
 // Define the dimensions of the input tensor and the kernel
 
@@ -28,7 +28,7 @@
 #define OH FW * FH * CH * B
 #define OW (N_PATCHES_W) * (N_PATCHES_H)
 
-#define DEBUG 2 // Set to 1 to enable simple debug prints, 2 to enable more detailed debug prints
+#define DEBUG 1 // Set to 1 to enable simple debug prints, 2 to enable more detailed debug prints
 
 int im2col_nchw_int32();
 

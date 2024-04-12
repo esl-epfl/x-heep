@@ -17,6 +17,7 @@
 int main()
 {
     printf("\nStarting test...\n\n");
+    
     uint16_t errors;
     unsigned int instr, cycles;
     
@@ -33,27 +34,24 @@ int main()
     CSR_READ(CSR_REG_MCYCLE, &cycles);
     
     errors = verify();
-
-    #if DEBUG==1 || DEBUG==2
-    printf("\n\r%d cycles", cycles);
+    
+    printf("\n\rim2col test executed in %d cycles", cycles);
     fflush(stdout);
-    #endif
 
     if (errors != 0)
     {
-        #if DEBUG==0
-        printf("\n\rFAIL\n");
+        printf("\n\rFAILED TEST\n");
         fflush(stdout);
-        #endif
+
         #if DEBUG==1 || DEBUG==2
-        printf("\n\rFAIL: %d errors", errors);
+        printf("\n\r%d errors", errors);
         fflush(stdout);
         #endif
         return 1;
     } 
     else
     {
-        printf("\n\rPASS\n");
+        printf("\n\rPASSED TEST\n");
         fflush(stdout);
     }
     return 0;
