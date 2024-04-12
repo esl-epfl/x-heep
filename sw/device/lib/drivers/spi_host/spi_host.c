@@ -225,16 +225,14 @@ volatile uint8_t spi_get_tx_queue_depth(spi_host_t* spi) {
     return spi_get_status(spi)->txqd;
 }
 
-volatile spi_ch_status_t spi_get_tx_channel_status(spi_host_t* spi) {
-    // TODO: Find a good idea to return error flag if spi == NULL
+volatile spi_return_flags_e spi_get_tx_channel_status(spi_host_t* spi, volatile spi_ch_status_t* ch_status) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
     volatile spi_status_t* status = spi_get_status(spi);
-    spi_ch_status_t ch_status = {
-        .empty  = status->txempty,
-        .full   = status->txfull,
-        .stall  = status->txstall,
-        .wm     = status->txwm
-    };
-    return ch_status;
+    ch_status->empty = status->txempty;
+    ch_status->full  = status->txfull;
+    ch_status->stall = status->txstall;
+    ch_status->wm    = status->txwm;
+    return SPI_FLAG_OK;
 }
 
 // return max(uint8_t) on NULL pointer
@@ -243,16 +241,14 @@ volatile uint8_t spi_get_rx_queue_depth(spi_host_t* spi) {
     return spi_get_status(spi)->rxqd;
 }
 
-volatile spi_ch_status_t spi_get_rx_channel_status(spi_host_t* spi) {
-    // TODO: Find a good idea to return error flag if spi == NULL
+volatile spi_return_flags_e spi_get_rx_channel_status(spi_host_t* spi, volatile spi_ch_status_t* ch_status) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
     volatile spi_status_t* status = spi_get_status(spi);
-    spi_ch_status_t ch_status = {
-        .empty  = status->rxempty,
-        .full   = status->rxfull,
-        .stall  = status->rxstall,
-        .wm     = status->rxwm
-    };
-    return ch_status;
+    ch_status->empty = status->rxempty;
+    ch_status->full  = status->rxfull;
+    ch_status->stall = status->rxstall;
+    ch_status->wm    = status->rxwm;
+    return SPI_FLAG_OK;
 }
 
 // return max(uint32_t) on NULL pointer

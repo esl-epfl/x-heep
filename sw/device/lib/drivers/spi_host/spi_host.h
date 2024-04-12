@@ -139,6 +139,12 @@ typedef enum {
     SPI_FLAG_ERROR_INVALID      = 0x0200  /*!< The error irq to enable is not a valid error irq */
 } spi_return_flags_e;
 
+typedef enum {
+    SPI_TRISTATE_ERROR  = 0,
+    SPI_TRISTATE_TRUE   = 1,
+    SPI_TRISTATE_FALSE  = 2
+} spi_tristate_e;
+
 /**
  * Initialization parameters for SPI.
  */
@@ -338,7 +344,7 @@ volatile uint8_t spi_get_tx_queue_depth(spi_host_t* spi);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return TX channel status structure.
  */
-volatile spi_ch_status_t spi_get_tx_channel_status(spi_host_t* spi);
+volatile spi_return_flags_e spi_get_tx_channel_status(spi_host_t* spi, volatile spi_ch_status_t* ch_status);
 
 /**
  * Read the RX FIFO depth register.
@@ -354,7 +360,7 @@ volatile uint8_t spi_get_rx_queue_depth(spi_host_t* spi);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return RX channel status structure.
  */
-volatile spi_ch_status_t spi_get_rx_channel_status(spi_host_t* spi);
+volatile spi_return_flags_e spi_get_rx_channel_status(spi_host_t* spi, volatile spi_ch_status_t* ch_status);
 
 /**
  * Read the Chip Select (CS) ID register.
@@ -480,35 +486,38 @@ spi_return_flags_e spi_output_enable(spi_host_t* spi, bool enable);
 /**                                                                        **/
 /****************************************************************************/
 
-
-// TODO: This is lacking sanity checks but by coherence shouldn't have sanity check
-//       hence check the proper way to implement this
-
-static inline __attribute__((always_inline)) const bool spi_get_evt_intr_state(spi_host_t* spi) {
-    return bitfield_read(spi->peri->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_SPI_EVENT_BIT);
+static inline __attribute__((always_inline)) spi_tristate_e spi_get_evt_intr_state(spi_host_t* spi) {
+    if (spi == NULL) return SPI_TRISTATE_ERROR;
+    return bitfield_read(spi->peri->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_SPI_EVENT_BIT)
+           ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
-static inline __attribute__((always_inline)) const bool spi_get_error_intr_state(spi_host_t* spi) {
-    return bitfield_read(spi->peri->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_ERROR_BIT);
+static inline __attribute__((always_inline)) spi_tristate_e spi_get_error_intr_state(spi_host_t* spi) {
+    if (spi == NULL) return SPI_TRISTATE_ERROR;
+    return bitfield_read(spi->peri->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_ERROR_BIT)
+           ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
-static inline __attribute__((always_inline)) const bool spi_get_evt_intr_enable(spi_host_t* spi) {
-    return bitfield_read(spi->peri->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_SPI_EVENT_BIT);
+static inline __attribute__((always_inline)) spi_tristate_e spi_get_evt_intr_enable(spi_host_t* spi) {
+    if (spi == NULL) return SPI_TRISTATE_ERROR;
+    return bitfield_read(spi->peri->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_SPI_EVENT_BIT)
+           ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
-static inline __attribute__((always_inline)) const bool spi_get_error_intr_enable(spi_host_t* spi) {
-    return bitfield_read(spi->peri->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_ERROR_BIT);
+static inline __attribute__((always_inline)) spi_tristate_e spi_get_error_intr_enable(spi_host_t* spi) {
+    if (spi == NULL) return SPI_TRISTATE_ERROR;
+    return bitfield_read(spi->peri->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_ERROR_BIT)
+           ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
-// ============================================================================
-
 
 /**
  * Read SPI status register
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) volatile spi_status_t* spi_get_status(spi_host_t* spi) {
-    return (volatile spi_status_t*) &spi->peri->STATUS;
+static inline __attribute__((always_inline)) const volatile spi_status_t* spi_get_status(spi_host_t* spi) {
+    if (spi == NULL) return NULL;
+    return (const volatile spi_status_t*) &spi->peri->STATUS;
 }
 
 /**
@@ -516,10 +525,10 @@ static inline __attribute__((always_inline)) volatile spi_status_t* spi_get_stat
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) volatile bool spi_get_active(spi_host_t* spi) {
+static inline __attribute__((always_inline)) spi_tristate_e spi_get_active(spi_host_t* spi) {
     // TODO: Find better approach to inform user
-    if (spi == NULL) return false;
-    return spi_get_status(spi)->active;
+    if (spi == NULL) return SPI_TRISTATE_ERROR;
+    return spi_get_status(spi)->active ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
 /**
@@ -527,10 +536,10 @@ static inline __attribute__((always_inline)) volatile bool spi_get_active(spi_ho
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) volatile bool spi_get_ready(spi_host_t* spi) {
+static inline __attribute__((always_inline)) spi_tristate_e spi_get_ready(spi_host_t* spi) {
     // TODO: Find better approach to inform user
-    if (spi == NULL) return true;
-    return spi_get_status(spi)->ready;
+    if (spi == NULL) return SPI_TRISTATE_ERROR;
+    return spi_get_status(spi)->ready ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
 /**
@@ -538,8 +547,10 @@ static inline __attribute__((always_inline)) volatile bool spi_get_ready(spi_hos
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_ready(spi_host_t* spi) {
-    while (!spi_get_ready(spi));
+static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_ready(spi_host_t* spi) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    while (spi_get_ready(spi) == SPI_TRISTATE_FALSE);
+    return SPI_FLAG_OK;
 }
 
 /**
@@ -547,8 +558,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_ready(spi_host_t*
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_idle(spi_host_t* spi) {
-    while (spi_get_active(spi));
+static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_idle(spi_host_t* spi) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    while (spi_get_active(spi) == SPI_TRISTATE_TRUE);
+    return SPI_FLAG_OK;
 }
 
 /**
@@ -556,10 +569,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_idle(spi_host_t* 
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(spi_host_t* spi) {
-    // TODO: Find better approach to inform user
-    if (spi == NULL) return;
+static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_watermark(spi_host_t* spi) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
     while (!spi_get_status(spi)->txwm);
+    return SPI_FLAG_OK;
 }
 
 /**
@@ -567,10 +580,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_watermark(spi_
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(spi_host_t* spi) {
-    // TODO: Find better approach to inform user
-    if (spi == NULL) return;
+static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_empty(spi_host_t* spi) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
     while (!spi_get_status(spi)->txempty);
+    return SPI_FLAG_OK;
 }
 
 /**
@@ -578,10 +591,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_empty(spi_host
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(spi_host_t* spi) {
-    // TODO: Find better approach to inform user
-    if (spi == NULL) return;
+static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_not_empty(spi_host_t* spi) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
     while (spi_get_status(spi)->txempty);
+    return SPI_FLAG_OK;
 }
 
 /**
@@ -589,10 +602,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_empty(spi_
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(spi_host_t* spi) {
-    // TODO: Find better approach to inform user
-    if (spi == NULL) return;
+static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_not_full(spi_host_t* spi) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
     while (spi_get_status(spi)->txfull);
+    return SPI_FLAG_OK;
 }
 
 /**
@@ -600,10 +613,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_tx_not_full(spi_h
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_rx_empty(spi_host_t* spi) {
-    // TODO: Find better approach to inform user
-    if (spi == NULL) return;
+static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_empty(spi_host_t* spi) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
     while (!spi_get_status(spi)->rxempty);
+    return SPI_FLAG_OK;
 }
 
 /**
@@ -611,10 +624,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_rx_empty(spi_host
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_rx_not_empty(spi_host_t* spi) {
-    // TODO: Find better approach to inform user
-    if (spi == NULL) return;
+static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_not_empty(spi_host_t* spi) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
     while (spi_get_status(spi)->rxempty);
+    return SPI_FLAG_OK;
 }
 
 /**
@@ -622,10 +635,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_rx_not_empty(spi_
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_rx_not_full(spi_host_t* spi) {
-    // TODO: Find better approach to inform user
-    if (spi == NULL) return;
+static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_not_full(spi_host_t* spi) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
     while (spi_get_status(spi)->rxfull);
+    return SPI_FLAG_OK;
 }
 
 /**
@@ -633,10 +646,10 @@ static inline __attribute__((always_inline)) void spi_wait_for_rx_not_full(spi_h
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
-static inline __attribute__((always_inline)) void spi_wait_for_rx_watermark(spi_host_t* spi) {
-    // TODO: Find better approach to inform user
-    if (spi == NULL) return;
+static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_watermark(spi_host_t* spi) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
     while (!spi_get_status(spi)->rxwm);
+    return SPI_FLAG_OK;
 }
 
 /**
@@ -684,7 +697,6 @@ void fic_irq_spi(void);
  * @brief Attends the plic interrupt.
  */
 void fic_irq_spi_flash(void);
-
 
 /**
  * @brief weak implementation of the function that gets called when an event interrupt is
