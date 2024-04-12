@@ -48,6 +48,8 @@
 #define SPI_ERRORS_MASK     BIT_MASK_6
 #define SPI_ERRORS_INDEX    0
 
+#define SPI_CLEAR_ERRORS_STATE_VALUE (1 << SPI_ERRORS_MASK + 1) - 1
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        TYPEDEFS AND STRUCTURES                           */
@@ -61,7 +63,6 @@
 /****************************************************************************/
 
 spi_return_flags_e spi_get_events(spi_host_t* spi, spi_event_e* events);
-spi_return_flags_e spi_get_errors(spi_host_t* spi, spi_error_e* errors);
 
 /****************************************************************************/
 /**                                                                        **/
@@ -82,6 +83,24 @@ spi_return_flags_e spi_get_errors(spi_host_t* spi, spi_error_e* errors);
 /**                                                                        **/
 /****************************************************************************/
 
+static spi_host_t _spi_flash = {
+    .peri       = ((volatile spi_host *) SPI_FLASH_START_ADDRESS),
+    .base_addr  = SPI_FLASH_START_ADDRESS,
+    .is_init    = false
+};
+
+static spi_host_t _spi_host = {
+    .peri       = ((volatile spi_host *) SPI_FLASH_START_ADDRESS),
+    .base_addr  = SPI_FLASH_START_ADDRESS,
+    .is_init    = false
+};
+
+static spi_host_t _spi_host2 = {
+    .peri       = ((volatile spi_host *) SPI_FLASH_START_ADDRESS),
+    .base_addr  = SPI_FLASH_START_ADDRESS,
+    .is_init    = false
+};
+
 /****************************************************************************/
 /**                                                                        **/
 /*                           EXPORTED FUNCTIONS                             */
@@ -89,37 +108,31 @@ spi_return_flags_e spi_get_errors(spi_host_t* spi, spi_error_e* errors);
 /****************************************************************************/
 
 
-spi_host_t spi_init_flash(bool output_en) {
-    spi_host_t spi = {
-        .peri = ((volatile spi_host *) SPI_FLASH_START_ADDRESS),
-        .base_addr = mmio_region_from_addr(SPI_FLASH_START_ADDRESS)
-    };
-    spi_sw_reset(&spi);
-    spi_set_enable(&spi, true);
-    spi_output_enable(&spi, output_en);
-    return spi;
+spi_host_t* spi_init_flash(bool output_en) {
+    if (_spi_flash.is_init) return &_spi_flash;
+    spi_sw_reset(&_spi_flash);
+    spi_set_enable(&_spi_flash, true);
+    spi_output_enable(&_spi_flash, output_en);
+    _spi_flash.is_init = true;
+    return &_spi_flash;
 }
 
-spi_host_t spi_init_host(bool output_en) {
-    spi_host_t spi = {
-        .peri = ((volatile spi_host *) SPI_HOST_START_ADDRESS),
-        .base_addr = mmio_region_from_addr(SPI_HOST_START_ADDRESS)
-    };
-    spi_sw_reset(&spi);
-    spi_set_enable(&spi, true);
-    spi_output_enable(&spi, output_en);
-    return spi;
+spi_host_t* spi_init_host(bool output_en) {
+    if (_spi_host.is_init) return &_spi_host;
+    spi_sw_reset(&_spi_host);
+    spi_set_enable(&_spi_host, true);
+    spi_output_enable(&_spi_host, output_en);
+    _spi_host.is_init = true;
+    return &_spi_host;
 }
 
-spi_host_t spi_init_host2(bool output_en) {
-    spi_host_t spi = {
-        .peri = ((volatile spi_host *) SPI2_START_ADDRESS),
-        .base_addr = mmio_region_from_addr(SPI2_START_ADDRESS)
-    };
-    spi_sw_reset(&spi);
-    spi_set_enable(&spi, true);
-    spi_output_enable(&spi, output_en);
-    return spi;
+spi_host_t* spi_init_host2(bool output_en) {
+    if (_spi_host2.is_init) return &_spi_host2;
+    spi_sw_reset(&_spi_host2);
+    spi_set_enable(&_spi_host2, true);
+    spi_output_enable(&_spi_host2, output_en);
+    _spi_host2.is_init = true;
+    return &_spi_host2;
 }
 
 spi_return_flags_e spi_get_events_enabled(spi_host_t* spi, spi_event_e* events) 
@@ -156,6 +169,20 @@ spi_return_flags_e spi_set_errors_enabled(spi_host_t* spi, spi_error_e* errors, 
     else        spi->peri->ERROR_ENABLE &= ~*errors;
 
     *errors = bitfield_read(spi->peri->ERROR_ENABLE, SPI_ERRORS_IRQ_MASK, SPI_ERRORS_INDEX);
+    return SPI_FLAG_OK;
+}
+
+spi_return_flags_e spi_get_errors(spi_host_t* spi, spi_error_e* errors)
+{
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    *errors = bitfield_read(spi->peri->ERROR_STATUS, SPI_ERRORS_MASK, SPI_ERRORS_INDEX);
+    return SPI_FLAG_OK;
+}
+
+spi_return_flags_e spi_acknowledge_errors(spi_host_t* spi) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    bitfield_write(spi->peri->ERROR_STATUS, SPI_ERRORS_MASK, SPI_ERRORS_INDEX, SPI_CLEAR_ERRORS_STATE_VALUE);
+    bitfield_write(spi->peri->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_ERROR_BIT, 1);
     return SPI_FLAG_OK;
 }
 
@@ -368,42 +395,48 @@ spi_return_flags_e spi_output_enable(spi_host_t* spi, bool enable){
 
 void handler_irq_spi(uint32_t id)
 {
+    if (!_spi_host2.is_init) return;
     spi_error_e errors;
-    spi_get_errors(SPI_IDX_HOST_2, &errors);
+    spi_get_errors(&_spi_host2, &errors);
     if (errors) {
         spi_intr_handler_error_host2(errors);
+        spi_acknowledge_errors(&_spi_host2);
     }
     else {
         spi_event_e events;
-        spi_get_events(SPI_IDX_HOST_2, &events);
+        spi_get_events(&_spi_host2, &events);
         spi_intr_handler_event_host2(events);
     }
 }
 
 void fic_irq_spi(void)
 {
+    if (!_spi_host.is_init) return;
     spi_error_e errors;
-    spi_get_errors(SPI_IDX_HOST, &errors);
+    spi_get_errors(&_spi_host, &errors);
     if (errors) {
         spi_intr_handler_error_host(errors);
+        spi_acknowledge_errors(&_spi_host);
     }
     else {
         spi_event_e events;
-        spi_get_events(SPI_IDX_HOST, &events);
+        spi_get_events(&_spi_host, &events);
         spi_intr_handler_event_host(events);
     }
 }
 
 void fic_irq_spi_flash(void)
 {
+    if (!_spi_flash.is_init) return;
     spi_error_e errors;
-    spi_get_errors(SPI_IDX_FLASH, &errors);
+    spi_get_errors(&_spi_flash, &errors);
     if (errors) {
         spi_intr_handler_error_flash(errors);
+        spi_acknowledge_errors(&_spi_flash);
     }
     else {
         spi_event_e events;
-        spi_get_events(SPI_IDX_FLASH, &events);
+        spi_get_events(&_spi_flash, &events);
         spi_intr_handler_event_flash(events);
     }
 }
@@ -430,7 +463,6 @@ __attribute__((weak, optimize("O0"))) void spi_intr_handler_event_host2(spi_even
 
 __attribute__((weak, optimize("O0"))) void spi_intr_handler_error_host2(spi_error_e errors) {
 
-
 }
 
 /****************************************************************************/
@@ -448,13 +480,6 @@ spi_return_flags_e spi_get_events(spi_host_t* spi, spi_event_e* events) {
             | status->txwm    << SPI_HOST_EVENT_ENABLE_TXWM_BIT
             | status->ready   << SPI_HOST_EVENT_ENABLE_READY_BIT
             | ~status->active << SPI_HOST_EVENT_ENABLE_IDLE_BIT;
-    return SPI_FLAG_OK;
-}
-
-spi_return_flags_e spi_get_errors(spi_host_t* spi, spi_error_e* errors)
-{
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
-    *errors = bitfield_read(spi->peri->ERROR_ENABLE, SPI_ERRORS_MASK, SPI_ERRORS_INDEX);
     return SPI_FLAG_OK;
 }
 

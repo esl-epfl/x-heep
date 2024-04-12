@@ -47,6 +47,7 @@
 /**                                                                        **/
 /****************************************************************************/
 
+// TODO: Remove these once sure
 #define SPI_MAX_IDX 3
 #define SPI_IDX_INVALID(idx)    idx > SPI_MAX_IDX
 #define SPI_CSID_INVALID(csid)  csid >= SPI_HOST_PARAM_NUM_C_S
@@ -142,11 +143,9 @@ typedef enum {
  * Initialization parameters for SPI.
  */
 typedef struct spi {
-    /**
-    * The base address for the SPI hardware registers.
-    */
-    volatile spi_host* peri;
-    mmio_region_t base_addr;
+    volatile spi_host* const peri;
+    const uintptr_t          base_addr;
+    bool                     is_init;
 } spi_host_t;
 
 /**
@@ -226,26 +225,26 @@ typedef struct spi_status {
  *
  * @return The SPI peripheral identifier index for flash.
  */
-spi_host_t spi_init_flash(bool output_en);
+spi_host_t* spi_init_flash(bool output_en);
 
 /**
  * Initialize SPI for host device.
  *
  * @return The SPI peripheral identifier index for host.
  */
-spi_host_t spi_init_host(bool output_en);
+spi_host_t* spi_init_host(bool output_en);
 
 /**
  * Initialize SPI for secondary host device.
  *
  * @return The SPI peripheral identifier index for host 2.
  */
-spi_host_t spi_init_host2(bool output_en);
+spi_host_t* spi_init_host2(bool output_en);
 
 /**
  * Get enabled events for a specified SPI peripheral.
  *
- * @param peri_id The SPI peripheral identifier index.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @param events Pointer to store enabled event interrupts.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
@@ -254,7 +253,7 @@ spi_return_flags_e spi_get_events_enabled(spi_host_t* spi, spi_event_e* events);
 /**
  * Set enabled events for a specified SPI peripheral.
  *
- * @param peri_id The SPI peripheral identifier index.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @param events Pointer to events to enable/disable and to store the currently enabled
  *               event interrupts.
  * @param enable Flag to enable (true) or disable (false) the specified event interrupts.
@@ -265,7 +264,7 @@ spi_return_flags_e spi_set_events_enabled(spi_host_t* spi, spi_event_e* events, 
 /**
  * Get enabled error interrupts for a specified SPI peripheral.
  *
- * @param peri_id The SPI peripheral identifier index.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @param errors Pointer to store enabled error interrupts.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
@@ -274,7 +273,7 @@ spi_return_flags_e spi_get_errors_enabled(spi_host_t* spi, spi_error_e* errors);
 /**
  * Set enabled error interrupts for a specified SPI peripheral.
  *
- * @param peri_id The SPI peripheral identifier index.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @param errors Pointer to error interrupts to enable/disable and to store the currently
  *               enabled error interrupts.
  * @param enable Flag to enable (true) or disable (false) the specified error interrupts.
@@ -282,10 +281,14 @@ spi_return_flags_e spi_get_errors_enabled(spi_host_t* spi, spi_error_e* errors);
  */
 spi_return_flags_e spi_set_errors_enabled(spi_host_t* spi, spi_error_e* errors, bool enable);
 
+spi_return_flags_e spi_get_errors(spi_host_t* spi, spi_error_e* errors);
+
+spi_return_flags_e spi_acknowledge_errors(spi_host_t* spi);
+
 /**
  * Write a byte of data to the transmit queue of a specified SPI peripheral.
  *
- * @param peri_id The SPI peripheral identifier index.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @param bdata Byte of data to write.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
@@ -294,7 +297,7 @@ spi_return_flags_e spi_write_byte(spi_host_t* spi, uint8_t bdata);
 /**
  * Enable or disable error interrupt test mode for a specified SPI peripheral.
  *
- * @param peri_id The SPI peripheral identifier index.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable Flag to enable (true) or disable (false) error interrupt test mode.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
@@ -303,7 +306,7 @@ spi_return_flags_e spi_enable_error_intr_test(spi_host_t* spi, bool enable);
 /**
  * Enable or disable event interrupt test mode for a specified SPI peripheral.
  *
- * @param peri_id The SPI peripheral identifier index.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable Flag to enable (true) or disable (false) event interrupt test mode.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
@@ -312,7 +315,7 @@ spi_return_flags_e spi_enable_evt_intr_test(spi_host_t* spi, bool enable);
 /**
  * Trigger a fatal fault test alert for a specified SPI peripheral.
  *
- * @param peri_id The SPI peripheral identifier index.
+ * @param spi Pointer to spi_host_t representing the target SPI.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
 spi_return_flags_e spi_alert_test_fatal_fault_trigger(spi_host_t* spi);
@@ -505,7 +508,6 @@ static inline __attribute__((always_inline)) const bool spi_get_error_intr_enabl
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) volatile spi_status_t* spi_get_status(spi_host_t* spi) {
-    // TODO: Check if this is a good idea
     return (volatile spi_status_t*) &spi->peri->STATUS;
 }
 
