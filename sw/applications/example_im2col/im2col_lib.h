@@ -18,19 +18,19 @@
     - 1: Exploit standard DMA
     - 2: Exploit multichannel DMA
 */
-#define HW_CONFIG 1
+#define HW_CONFIG 0
 
 // Define the dimensions of the input tensor and the kernel
 
 #define MAX_DIM 8
 #define N_PATCHES_H (IH + (P + P) - FH)/ S + 1
 #define N_PATCHES_W (IW + (P + P) - FW)/ S + 1
-#define OH FW * FH * CH
+#define OH FW * FH * CH * B
 #define OW (N_PATCHES_W) * (N_PATCHES_H)
 
-#define DEBUG 3 // Set to 1 to enable simple debug prints, 2 to enable more detailed debug prints
+#define DEBUG 2 // Set to 1 to enable simple debug prints, 2 to enable more detailed debug prints
 
-int im2col_nchw_f32();
+int im2col_nchw_int32();
 
 int32_t get_index(int32_t dim1, int32_t dim2, int32_t dim3, int32_t index0, int32_t index1, int32_t index2, int32_t index3);
                 

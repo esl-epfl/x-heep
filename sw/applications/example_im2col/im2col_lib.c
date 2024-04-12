@@ -15,7 +15,7 @@ int im2col_nchw_int32()
     printf("%d %d\n", OH, OW);
     #endif
     // Dimensions of the input tensor: batch size, number of channels, height, and width.
-    int32_t batch = 1;
+    int32_t batch = B;
     int32_t channel = CH;
     int32_t height = IH;
     int32_t width = IW;
@@ -67,7 +67,7 @@ int im2col_nchw_int32()
                     } else {
                         output_data[col_index] = input_image[get_index(CH, IH, IW, b, im_c, im_row, im_col)];
                         #if DEBUG==2
-                        printf("\n\r%d ", get_index(CH, IH, IW, b, im_c, im_row, im_col));
+                        printf("\n%d ", get_index(CH, IH, IW, b, im_c, im_row, im_col));
                         fflush(stdout);
                         #endif
                     }
@@ -83,7 +83,7 @@ int im2col_nchw_int32()
                     #endif
 
                     #if DEBUG==2
-                    printf("\r\n%d ", output_data[col_index]);
+                    printf("\n%d ", output_data[col_index]);
                     fflush(stdout);
                     #endif
                 }
@@ -122,9 +122,10 @@ int im2col_nchw_int32()
                                 };
 
     uint32_t* ptr; 
+
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.
     #if DEBUG==2    
-    printf("\n\r* %p", output_data_ptr);
+    printf("\n* %p", output_data_ptr);
     fflush(stdout);
     #endif
 
@@ -132,16 +133,32 @@ int im2col_nchw_int32()
         // Calculate offsets within the kernel window.
         // These are used to move the filter around the input image
 
-        int w_offset = c % ksize_w;  
-        int h_offset = (c / ksize_w) % ksize_h;
+        int w_offset = c % ksize_w;  // the offset ALONG the width
+        int h_offset = (c / ksize_w) % ksize_h; // the ofset ALONG the height
         int32_t im_c = c / (ksize_h * ksize_w); // Gets the channel on which the im2col is being performed depending on the row of the output image (c)
 
         // Iterate over each batch.
         for (int32_t b = 0; b < batch; ++b) {
             // Iterate over each patch on the width of the input matrix.
             for (int h = 0; h < patches_h; ++h) {
+
                 int32_t im_row = h_offset + h * stride_h - P;
+
                 int32_t im_col = w_offset - P;
+
+                char zeros_before = 0;
+                char zeros_after = 0;
+
+                int n_zeros_before = 0;
+                int n_zeros_after = 0;
+                int tot_acquisitions = 0;
+
+                int size_transfer = 0;
+
+                #if DEBUG==2    
+                printf("\nim_row: %d, im_col: %d", im_row, im_col);
+                printf("\nw_offset: %d, h_offset: %d\n", w_offset, h_offset);
+                #endif
 
                 // Iterate over each patch on the heigth in the output matrix.
 
@@ -193,98 +210,148 @@ int im2col_nchw_int32()
                 */
                 
 
-                if (h_offset + h * stride_h - P < 0)
+                if (P>0 && im_row < 0)
                 {
                     // im_row < 0 case: only the output_image_ptr needs to be updated
                     output_data_ptr += patches_w;
                     #if DEBUG==2    
-                    printf("\n\rA %p", output_data_ptr);
+                    printf("\nAdded the initial full row of 0s, %d elements", patches_w);
                     fflush(stdout);
                     #endif
                 } 
-                else if (h_offset + h * stride_h - P > height)
+                else if (P>0 && im_row >= width)
                 {
                     // im_row >= height case:
                     output_data_ptr += patches_w;
                     #if DEBUG==2    
-                    printf("\n\rB %p", output_data_ptr);
+                    printf("\nAdded the final full row of 0s, %d elements", patches_w);
                     fflush(stdout);
                     #endif
                 }
                 else
                 {
-                    if (P > 0)
+                    // Computing the total number of times the filter can be applied to the initial zeros padded part of the row
+                    // considering the fact that the filter can be applied partially because after the 0s of course there is the image itself
+                    tot_acquisitions = (P - 1)/(stride_w) + 1;
+                    n_zeros_before = (w_offset >= P - (tot_acquisitions - 1) * stride_w) ? tot_acquisitions -1 : tot_acquisitions;
+                    // abs(P - w_offset) / stride_w;
+
+                    // Computing the total number of times the filter can be applied to the final zeros padded part of the row,
+                    // now considering the fact that the filter in this case must be applied completely, because of course after the 0s the image ends
+                    tot_acquisitions = (P - ksize_w)/(stride_w) + 1;
+                    n_zeros_after = (ksize_w - 1 - w_offset >= P - (tot_acquisitions - 1) * stride_w) ? tot_acquisitions -1: tot_acquisitions;
+                    // abs(P - (ksize_w - 1 - w_offset)  ) / stride_w;
+                    /*
+                    if ((P - w_offset) > 0 && (P - w_offset) < stride_w)
+                    {
+                        n_zeros_before = 1;
+                    }
+
+                    if ((P - (ksize_w - 1 - w_offset)) > 0 && (P - (ksize_w - 1 - w_offset)) < stride_w)
+                    {
+                        n_zeros_after = 1;
+                    }
+                    */
+
+                    #if DEBUG==2
+                    printf("\nzeros_befor:%d zeros_after:%d tot_acquisitions:%d", n_zeros_before, n_zeros_after, tot_acquisitions);  
+                    #endif
+
+                    size_transfer = patches_w - n_zeros_before - n_zeros_after;
+
+                    if (n_zeros_before > 0)
                     {
                         // im_col < 0 case: only the output_image_ptr needs to be updated
-                        output_data_ptr += abs(P - w_offset) / stride_w;
+                        output_data_ptr += n_zeros_before;
+
                         #if DEBUG==2    
-                        printf("\n\rC %p", output_data_ptr);
-                        fflush(stdout);
+                        printf("\nAdded %d '0's before",  n_zeros_before);
                         #endif
-                        im_col += P;
+
+                        im_col += n_zeros_before * stride_w;
                     }
 
                     input_image_ptr = &input_image[0] + get_index(CH, IH, IW, b, im_c, im_row, im_col);
                     tgt_src.ptr = input_image_ptr;
-                    tgt_src.size_du = (patches_w-P) * sizeof(uint32_t);
+                    tgt_src.size_du = size_transfer;
                     tgt_src.inc_du = stride_w;
 
                     tgt_dst.ptr = output_data_ptr;
-                    tgt_dst.size_du = (patches_w-P) * sizeof(uint32_t);
+                    tgt_dst.size_du = size_transfer;
                     
                     dma_run(&trans);
 
                     ptr = output_data_ptr;
-                    #if DEBUG==2  || DEBUG==1  
-                    for (int i=0; i<patches_w; i++)
+
+                    #if DEBUG==2
+                    printf("\nWrote %d elements from input", tgt_src.size_du);
+                    for (int i=0; i<tgt_src.size_du/sizeof(uint32_t); i++)
                     {
-                        printf("\n\r%p %d", ptr, *ptr);
+                        printf("\n%p %d", ptr, *ptr);
                         fflush(stdout);
                         ptr += 1;
                     }
                     #endif
-                    output_data_ptr += patches_w;
 
-                    #if DEBUG==2
-                    printf("\n\r%p %p", output_data_ptr, input_image_ptr);
-                    fflush(stdout);
+                    output_data_ptr += size_transfer;
+
+                    #if DEBUG==4
+                    printf("\n%d", im_col + (patches_w-1) * stride_w);
                     #endif
 
-                    if (P > 0)
+                    if (n_zeros_after > 0)
                     {
                         // im_col < 0 case: only the output_image_ptr needs to be updated
-                        output_data_ptr += abs(P - w_offset) / stride_w;
+                        output_data_ptr += n_zeros_after;
                         #if DEBUG==2    
-                        printf("\n\rC %p", output_data_ptr);
+                        printf("\nAdded %d '0's after",  n_zeros_after);
                         fflush(stdout);
                         #endif
-                        im_col += P;
                     }
                     #if DEBUG==2    
-                    printf("\n\r");
+                    printf("\n");
                     fflush(stdout);
                     #endif
                 }
+                #if DEBUG==2
+                printf("\nCurrent output matrix: \n");
+                for (int i=0; i<OH; i++)
+                {
+                    for (int j=0; j<OW; j++)
+                    {
+                        #if DEBUG==3 || DEBUG==2 || DEBUG==1
+                        printf("%d ", output_data[i*OW + j]);
+                        #endif
+                    }
+                    printf("\n");
+                }
+                #endif
+                }
+                #if DEBUG==2
+                printf("\n");
+                #endif
             }
-            #if DEBUG==2
-            printf("\n");
-            #endif
-        }
         
     }
     #elif HW_CONFIG == 2
     // Use DMA 2D for im2col
     #endif
 
+    // Finished!
+
+    #if DEBUG==3 || DEBUG==2 || DEBUG==1
+    printf("Final output matrix:\n\n");
+    #endif
+
     for (int i=0; i<OH; i++)
     {
         for (int j=0; j<OW; j++)
         {
-            #if DEBUG==3
+            #if DEBUG==3 || DEBUG==2 || DEBUG==1
             printf("%d ", output_data[i*OW + j]);
             #endif
         }
-        printf("\n\r");
+        printf("\n");
     }
 
     // Return a 1 to indicate a success
@@ -362,7 +429,7 @@ int im2col_nhwc_int32()
 
 
                     #if DEBUG==2
-                    printf("\r%d ", output_data[col_index]);
+                    printf("%d ", output_data[col_index]);
                     fflush(stdout);
                     #endif
                 }
@@ -399,7 +466,9 @@ uint16_t verify()
         {    
             if (golden_im2col[i*OW + j] != output_data[i*OW + j])
             {
-                
+                #if DEBUG==2    
+                printf("ERROR: Golden: %d, Output: %d, at %d %d\n", golden_im2col[i*OW + j], output_data[i*OW + j], i, j);
+                #endif
                 errors ++;
             }
         }
@@ -410,11 +479,11 @@ uint16_t verify()
 void dma_run(dma_trans_t * trans)
 {
     int res = dma_validate_transaction(trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-    //PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    //PRINTF("tran: %u \t%s\n", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     res = dma_load_transaction(trans);
-    //PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    //PRINTF("load: %u \t%s\n", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     res = dma_launch(trans);
-    //PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    //PRINTF("laun: %u \t%s\n", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
 
     while( ! dma_is_ready()) {
         // disable_interrupts

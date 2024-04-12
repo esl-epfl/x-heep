@@ -16,6 +16,7 @@
 
 int main()
 {
+    printf("\nStarting test...\n\n");
     uint16_t errors;
     unsigned int instr, cycles;
     

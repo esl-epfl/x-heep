@@ -138,15 +138,15 @@ im2col_format = 0
 im2col_tool = 1
 
 # Parameters of the random image, padding excluded
-image_height = 4
-image_width = 4
-channels = 1
-batch = 1
+image_height = 5
+image_width = 5
+channels = 3
+batch = 2
 
 # Parameters of the filter
-filter_height = 2
-filter_width = 2
-padding = 1
+filter_height = 3
+filter_width = 3
+padding = 0
 stride = 1
 
 # Calculate the number of patches, i.e. the number the filter can fit along one dimention during convolution
@@ -154,7 +154,7 @@ n_patches_h = (image_height + 2 * padding - filter_height) // stride + 1
 n_patches_w = (image_width + 2 * padding - filter_width) // stride + 1
 
 # Calculate the dimensions of the output matrix
-OH = filter_width * filter_height * channels # Number of rows in a column -> size of a column
+OH = filter_width * filter_height * channels * batch # Number of rows in a column -> size of a column
 OW = n_patches_h * n_patches_w # Numver of columns in a row -> size of a row
 
 
@@ -240,6 +240,7 @@ with open('im2colGolden.h', 'w') as f:
     f.write('#define FH %d\n' % filter_height)
     f.write('#define S %d\n' % stride)
     f.write('#define P %d\n\n' % padding)
+    f.write('#define B %d\n' % batch)
 
     f.write('#include <stdint.h>\n')
 

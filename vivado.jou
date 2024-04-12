@@ -1,0 +1,16 @@
+#-----------------------------------------------------------
+# Vivado v2023.2 (64-bit)
+# SW Build 4029153 on Fri Oct 13 20:13:54 MDT 2023
+# IP Build 4028589 on Sat Oct 14 00:45:43 MDT 2023
+# SharedData Build 4025554 on Tue Oct 10 17:18:54 MDT 2023
+# Start of session at: Wed Apr 10 16:26:28 2024
+# Process ID: 21093
+# Current directory: /home/ubuntu/Desktop/Xheep/Source/x-heep
+# Command line: vivado
+# Log file: /home/ubuntu/Desktop/Xheep/Source/x-heep/vivado.log
+# Journal file: /home/ubuntu/Desktop/Xheep/Source/x-heep/vivado.jou
+# Running On: ubuntu2004, OS: Linux, CPU Frequency: 2496.012 MHz, CPU Physical cores: 8, Host memory: 11195 MB
+#-----------------------------------------------------------
+start_gui
+open_hw_manager
+connect_hw_server -allow_non_jtag
