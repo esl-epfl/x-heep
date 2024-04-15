@@ -47,6 +47,11 @@ int im2col_nchw_int32()
     int32_t im_c = 0; // Gets the channel on which the im2col is being performed depending on the row of the output image (c)
     int col_index = 0;
     int minimum = 0;
+    int start_max = 0;
+    int start_min = 0;
+    int stray_elements = 0;
+    int last_position = 0;
+    int tmp_pad = 0;
 
     // Exploit the CPU for im2col
     #if HW_CONFIG == 0
@@ -157,6 +162,11 @@ int im2col_nchw_int32()
                 last_covered = 0;
                 size_transfer = 0;
                 minimum = 0;
+                start_max = 0;
+                start_min = 0;
+                stray_elements = 0;
+                last_position = 0;
+                tmp_pad = 0;
 
                 #if DEBUG==2    
                 printf("\nim_row: %d, im_col: %d", im_row, im_col);
@@ -212,8 +222,7 @@ int im2col_nchw_int32()
                     so it may be a useless step.
                 */
                 
-
-                if (P>0 && im_row < 0)
+                if (P > 0 && im_row < 0)
                 {
                     // im_row < 0 case: only the output_image_ptr needs to be updated
                     output_data_ptr += patches_w;
@@ -222,7 +231,7 @@ int im2col_nchw_int32()
                     fflush(stdout);
                     #endif
                 } 
-                else if (P>0 && im_row >= width)
+                else if (P > 0 && im_row >= width)
                 {
                     // im_row >= height case:
                     output_data_ptr += patches_w;
@@ -233,61 +242,53 @@ int im2col_nchw_int32()
                 }
                 else
                 {
-                    // Computing the total number of times the filter can be applied to the initial zeros padded part of the row
-                    // considering the fact that the filter can be applied partially because after the 0s of course there is the image itself
-                    tot_acquisitions_before = (P - 1)/(stride_w) + 1;
-                    
-                    if ( ksize_w > P )
+                    // Computing the number of zeros before the first element of the patch
+                    // In the offset of the element in the filter is bigger than P, then no zeros are needed
+                    if ( w_offset >= P)
                     {
-                        n_zeros_before = (P - w_offset -1) / stride_w + 1;
-                    } 
-                    else 
-                    {
-                        n_zeros_before = (w_offset >= P - (tot_acquisitions_before - 1) * stride_w) ? tot_acquisitions_before - 1 : tot_acquisitions_before;
+                        n_zeros_before = 0;
                     }
-                    
-                    // abs(P - w_offset) / stride_w;
-
-                    // DO P > KSIZE_W CASE
-
-                    // Computing the total number of times the filter can be applied to the final zeros padded part of the row,
-                    // now considering the fact that the filter in this case must be applied completely, because of course after the 0s the image ends
-                    tot_acquisitions_after = (P - ksize_w)/(stride_w) + 1;
-
-                    // To this number we must add a 1 if the filter is partially applied during the first time it encounters the final
-                    // 0-padded part of the row. e.g.
-                    // In a row of 3 elements and with padding=1 (so 3 elements + 2 0s), when considerind the second column of a filter 
-                    // with a width of 2 and a stride of 3, the tot_acquisitions should be 1!
-                    //last_covered = (2*P + width - ksize_w)/(stride_w) * stride_w + ksize_w - 1;
-                    //( last_covered >= P + width ) ? tot_acquisitions_after ++ : tot_acquisitions_after;
-
-                    if ( ksize_w > P )
+                    else if ( (P - w_offset) % stride_w == 0 )
                     {
-                        minimum = ( 2*P + width - w_offset - 1 < 2*P + width - ksize_w ) ? 2*P + width - w_offset - 1 : 2*P + width - ksize_w;
-                        n_zeros_after = (minimum - (P + width - w_offset) ) / stride_w + 1;
-                    } 
-                    else 
-                    {
-                        n_zeros_after = (ksize_w - 1 - w_offset >= P - (tot_acquisitions_after - 1) * stride_w) ? tot_acquisitions_after -1: tot_acquisitions_after;
-
+                        n_zeros_before = (P - w_offset) / stride_w;
                     }
-                    // abs(P - (ksize_w - 1 - w_offset)  ) / stride_w;
-                    /*
-                    if ((P - w_offset) > 0 && (P - w_offset) < stride_w)
+                    else
                     {
-                        n_zeros_before = 1;
+                        n_zeros_before = (P - w_offset) / stride_w + 1;
                     }
 
-                    if ((P - (ksize_w - 1 - w_offset)) > 0 && (P - (ksize_w - 1 - w_offset)) < stride_w)
+                    // Computing the number of zeros after the last element of the patch
+
+                    // The stray elements are the elements that are not covered by the patches
+                    stray_elements = (2*P + width) - stride_w * (patches_w - 1) - ksize_w;
+
+                    // This computes the last position of the current element of the filter
+                    last_position = 2*P + width - stray_elements - ksize_w + w_offset;
+
+                    // To adapt the final case to the formulas used to the beginning padded region, let's compute an "adapted" padded region,
+                    // by removing the elements of the row uncovered by the sliding filter
+                    tmp_pad = P - stray_elements;
+
+                    if (ksize_w - 1 - w_offset >= P)
                     {
-                        n_zeros_after = 1;
+                        n_zeros_after = 0;
                     }
-                    */
+                    else if ( (tmp_pad - (ksize_w - 1 - w_offset)) % stride_w == 0 )
+                    {
+                        n_zeros_after = (tmp_pad - (ksize_w - 1 - w_offset)) / stride_w;
+                    }
+                    else
+                    {
+                        n_zeros_after = (tmp_pad - (ksize_w - 1 - w_offset)) / stride_w + 1;
+                    }
 
                     #if DEBUG==2
                     printf("\nzeros_before:%d zeros_after:%d tot_acquisitions_before:%d tot_acquisitions_after:%d last_cov:%d", n_zeros_before, n_zeros_after, tot_acquisitions_before, tot_acquisitions_after, last_covered);  
+                    printf("\nminimum: %d start_min:%d start_max:%d", minimum, start_min, start_max);
+                    printf("\nlast_position: %d stray_elements: %d patches_w: %d", last_position, stray_elements, patches_w);
                     #endif
 
+                    // Compute the number of elements to transfer
                     size_transfer = patches_w - n_zeros_before - n_zeros_after;
 
                     if (n_zeros_before > 0)
@@ -301,6 +302,8 @@ int im2col_nchw_int32()
 
                         im_col += n_zeros_before * stride_w;
                     }
+
+                    // DMA setup and transaction run
 
                     input_image_ptr = &input_image[0] + get_index(CH, IH, IW, b, im_c, im_row, im_col);
                     tgt_src.ptr = input_image_ptr;
@@ -316,10 +319,9 @@ int im2col_nchw_int32()
 
                     #if DEBUG==2
                     printf("\nWrote %d elements from input", tgt_src.size_du);
-                    for (int i=0; i<tgt_src.size_du/sizeof(uint32_t); i++)
+                    for (int i=0; i<tgt_src.size_du; i++)
                     {
                         printf("\n%p %d", ptr, *ptr);
-                        fflush(stdout);
                         ptr += 1;
                     }
                     #endif
@@ -332,12 +334,10 @@ int im2col_nchw_int32()
                         output_data_ptr += n_zeros_after;
                         #if DEBUG==2    
                         printf("\nAdded %d '0's after",  n_zeros_after);
-                        fflush(stdout);
                         #endif
                     }
                     #if DEBUG==2    
                     printf("\n");
-                    fflush(stdout);
                     #endif
                 }
                 #if DEBUG==2
@@ -357,8 +357,7 @@ int im2col_nchw_int32()
                 #if DEBUG==2
                 printf("\n");
                 #endif
-            }
-        
+            }        
     }
     #elif HW_CONFIG == 2
     // Use DMA 2D for im2col
