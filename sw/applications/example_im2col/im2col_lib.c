@@ -36,9 +36,6 @@ int im2col_nchw_int32()
     int counter = 0;
     int n_zeros_before = 0;
     int n_zeros_after = 0;
-    int tot_acquisitions_before = 0;
-    int tot_acquisitions_after = 0;
-    int last_covered = 0;
     int size_transfer = 0;
     uint32_t im_row = 0;
     uint32_t im_col = 0;
@@ -52,6 +49,11 @@ int im2col_nchw_int32()
     int stray_elements = 0;
     int last_position = 0;
     int tmp_pad = 0;
+    unsigned int cycles_A = 0;
+    unsigned int cycles_B = 0;
+    unsigned int avg_first_zeros;
+    unsigned int avg_last_zeros;
+    unsigned int avg_patch = 0;
 
     // Exploit the CPU for im2col
     #if HW_CONFIG == 0
@@ -157,9 +159,6 @@ int im2col_nchw_int32()
 
                 n_zeros_before = 0;
                 n_zeros_after = 0;
-                tot_acquisitions_before = 0;
-                tot_acquisitions_after = 0;
-                last_covered = 0;
                 size_transfer = 0;
                 minimum = 0;
                 start_max = 0;
@@ -174,53 +173,6 @@ int im2col_nchw_int32()
                 #endif
 
                 // Iterate over each patch on the heigth in the output matrix.
-
-                /* 
-                    To optimize everything, this is the explicit input image index:
-                    b, im_c, im_row, im_col
-                    ((index0 * dim1 + index1) * dim2 + index2) * dim3 + index3
-                    ((b * CH + im_c) * IH + im_row) * IW + im_col
-                    ((b * CH + c / (ksize_h * ksize_w)) * IH + h_offset + h * stride_h - P) * IW + w_offset + w * stride_w - P
-
-                    (B * CH + c / (ksize_h * ksize_w)) * IH + (c / ksize_w) % ksize_h + h * stride_h - P * IW + c % ksize_w + w * stride_w - P
-                    We can easyly calculate the next index by adding stride_w to the previous one! So its possible to set the DMA with a fixed 
-                    loop increment!
-                    Padding will happen if at least one of these conditions is met:
-                    - im_row < 0 : It happens when we are sourcing from the first rows of the input image, which with padding
-                        have been thoretically filled with zeros.
-                        Since it's constant in the w loop, it can be calculated before calling the dma. There will be
-                        patch_w zeros at the beginning of the row of the output matrix
-                    - im_col < 0 : Happens when sourcing the first columns of the input image.
-                        To compute how many iterations are needed to reach the first valid row, we can use the formula:
-                                                    #zeros: abs(P - w_offset) / stride_w
-                    - im_row >= height: Happens when sourcing from the last rows of the input image.
-                        As before, it will write patch_w zeros in the output matrix.
-                    - im_col >= width: Happens when sourcing from the last columns of the input image.
-                        To compute how many iterations are needed to reach the last valid column, we can use the formula:
-                                                    #zeros: abs(im_col - width + 1) / stride_w
-                */
-
-                /*
-                    Because of the way this im2col is computed, it will always have:
-                    - some zeros at the beginning of the w patch 
-                    - numbers
-                    - some zeros at the end of the w patch
-                    So for each iteration of the h loop:
-                    If im_row < 0:
-                    - Set one DMA call in the case of im_row < 0, which will write w_patch zeros in the output matrix & update the output pointer
-                    Elsif im_row >= height:
-                    - Set one DMA call in the case of im_row >= height, which will write w_patch zeros & update the output pointer
-                    Else:   
-                        - Set one DMA call in the case of im_call < 0 (basically when P is more than 0), which will write (P - w_offset) / stride_w zeros & update the output pointer
-                        - Set one DMA call for the normal case, which will copy the input image starting from the last point & update the output & input pointer
-                            of the previous DMA call for patches_w times and with a step of stride_w
-                        - Set one DMA call in the case of im_col >= width (basically when P is more than 0), which will write abs(im_col - width + 1) / stride_w zeros & update the output pointer
-
-                    Even better: we could initialize the part of memory we want to use for the output matrix with zeros, and then we
-                    can entirely avoid saving zeros, because they are already there! 
-                    Initialize is actually a memory access, but the memory is by default wiped out, 
-                    so it may be a useless step.
-                */
                 
                 if (P > 0 && im_row < 0)
                 {
@@ -233,7 +185,7 @@ int im2col_nchw_int32()
                 } 
                 else if (P > 0 && im_row >= width)
                 {
-                    // im_row >= height case:
+                    // im_row >= height case: only the output_image_ptr needs to be updated
                     output_data_ptr += patches_w;
                     #if DEBUG==2    
                     printf("\nAdded the final full row of 0s, %d elements", patches_w);
@@ -242,7 +194,12 @@ int im2col_nchw_int32()
                 }
                 else
                 {
+                    #if TIMING==1   
+                    CSR_READ(CSR_REG_MCYCLE, &cycles_A);
+                    #endif
+
                     // Computing the number of zeros before the first element of the patch
+
                     // In the offset of the element in the filter is bigger than P, then no zeros are needed
                     if ( w_offset >= P)
                     {
@@ -257,6 +214,12 @@ int im2col_nchw_int32()
                         n_zeros_before = (P - w_offset) / stride_w + 1;
                     }
 
+                    #if TIMING==1
+                    CSR_READ(CSR_REG_MCYCLE, &cycles_B);
+                    avg_first_zeros += cycles_B - cycles_A;
+                    CSR_READ(CSR_REG_MCYCLE, &cycles_A);
+                    #endif
+
                     // Computing the number of zeros after the last element of the patch
 
                     // The stray elements are the elements that are not covered by the patches
@@ -265,7 +228,7 @@ int im2col_nchw_int32()
                     // This computes the last position of the current element of the filter
                     last_position = 2*P + width - stray_elements - ksize_w + w_offset;
 
-                    // To adapt the final case to the formulas used to the beginning padded region, let's compute an "adapted" padded region,
+                    // To adapt the final case to the formulas used to the first padded region, let's compute an "adapted" padded region,
                     // by removing the elements of the row uncovered by the sliding filter
                     tmp_pad = P - stray_elements;
 
@@ -282,10 +245,9 @@ int im2col_nchw_int32()
                         n_zeros_after = (tmp_pad - (ksize_w - 1 - w_offset)) / stride_w + 1;
                     }
 
-                    #if DEBUG==2
-                    printf("\nzeros_before:%d zeros_after:%d tot_acquisitions_before:%d tot_acquisitions_after:%d last_cov:%d", n_zeros_before, n_zeros_after, tot_acquisitions_before, tot_acquisitions_after, last_covered);  
-                    printf("\nminimum: %d start_min:%d start_max:%d", minimum, start_min, start_max);
-                    printf("\nlast_position: %d stray_elements: %d patches_w: %d", last_position, stray_elements, patches_w);
+                    #if TIMING==1
+                    CSR_READ(CSR_REG_MCYCLE, &cycles_B);
+                    avg_last_zeros += cycles_B - cycles_A;
                     #endif
 
                     // Compute the number of elements to transfer
@@ -303,6 +265,10 @@ int im2col_nchw_int32()
                         im_col += n_zeros_before * stride_w;
                     }
 
+                    #if TIMING==1
+                    CSR_READ(CSR_REG_MCYCLE, &cycles_A);
+                    #endif
+
                     // DMA setup and transaction run
 
                     input_image_ptr = &input_image[0] + get_index(CH, IH, IW, b, im_c, im_row, im_col);
@@ -316,6 +282,11 @@ int im2col_nchw_int32()
                     dma_run(&trans);
 
                     ptr = output_data_ptr;
+
+                    #if TIMING==1
+                    CSR_READ(CSR_REG_MCYCLE, &cycles_B);
+                    avg_patch += cycles_B - cycles_A;
+                    #endif
 
                     #if DEBUG==2
                     printf("\nWrote %d elements from input", tgt_src.size_du);
@@ -340,6 +311,7 @@ int im2col_nchw_int32()
                     printf("\n");
                     #endif
                 }
+
                 #if DEBUG==2
                 printf("\nCurrent output matrix: \n");
                 for (int i=0; i<OH; i++)
@@ -364,6 +336,12 @@ int im2col_nchw_int32()
     #endif
 
     // Finished!
+
+    #if TIMING==1
+    printf("\nAverage cycles for the first zeros: %d/%d", avg_first_zeros , (OW*OH));
+    printf("\nAverage cycles for the last zeros: %d/%d", avg_last_zeros , (OW*OH));
+    printf("\nAverage cycles for the patch: %d/%d", avg_patch , (OW*OH));
+    #endif
 
     #if DEBUG==2 || DEBUG==1
     printf("Final output matrix:\n\n");
