@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "x-heep.h"
-#include <math.h>
 #include "im2col_lib.h"
 #include "csr.h"
 
@@ -16,7 +15,7 @@
 
 int main()
 {
-    printf("\nStarting test...\n\n");
+    PRINTF("\nStarting test...\n\n");
     
     uint16_t errors;
     unsigned int cycles;
@@ -25,26 +24,26 @@ int main()
 
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     
-    #if FORMAT==0
-    im2col_nchw_int32();
-    #elif FORMAT==1
-    im2col_nhwc_int32();
+    #if FORMAT == 0
+        im2col_nchw_int32();
+    #elif FORMAT == 1
+        im2col_nhwc_int32();
     #endif
 
     CSR_READ(CSR_REG_MCYCLE, &cycles);
     
     errors = verify();
     
-    printf("im2col test executed in %d cycles\n", cycles);
+    PRINTF("im2col test executed in %d cycles\n", cycles);
 
     if (errors != 0)
     {
-        printf("TEST FAILED: %d errors\n", errors);
+        PRINTF("TEST FAILED: %d errors\n", errors);
         return 1;
     } 
     else
     {
-        printf("TEST PASSED!\n");
+        PRINTF("TEST PASSED!\n");
     }
     return 0;
 }

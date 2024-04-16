@@ -20,15 +20,34 @@
 */ 
 #define HW_CONFIG 0
 
+// By default, printfs are activated for FPGA and disabled for simulation.
+#define PRINTF_IN_FPGA  1
+#define PRINTF_IN_SIM   0
+#define TARGET_PYNQ_Z2  1
+#define DEBUG 0 // Set to 1 to enable debug prints
+#define TIMING 0 // Set to 1 to enable timing measurements
+
+#if TARGET_SIM && PRINTF_IN_SIM
+        #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+        #define PRINTF_DEB(...)    
+#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+    #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+    #if DEBUG
+        #define PRINTF_DEB(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+    #else
+        #define PRINTF_DEB(...)
+    #endif
+#else
+    #define PRINTF(...)
+    #define PRINTF_DEB(...)
+#endif
+
 // Define the dimensions of the input tensor and the kernel
 
-#define N_PATCHES_H (IH + (P + P) - FH)/ S + 1
-#define N_PATCHES_W (IW + (P + P) - FW)/ S + 1
-#define OH FW * FH * CH * B
+#define N_PATCHES_H (IH + (PAD + PAD) - FH)/ STRIDES + 1
+#define N_PATCHES_W (IW + (PAD + PAD) - FW)/ STRIDES + 1
+#define OH FW * FH * CH * BATCH
 #define OW (N_PATCHES_W) * (N_PATCHES_H)
-
-#define DEBUG 0 // Set to 1 to enable simple debug prints, 2 to enable more detailed debug prints
-#define TIMING 0 // Set to 1 to enable timing measurements
 
 int im2col_nchw_int32();
 int im2col_nhwc_int32();

@@ -1,16 +1,18 @@
 #ifndef IMAGE_AND_COL_H
 #define IMAGE_AND_COL_H
 
-#define IW 17
-#define IH 17
-#define CH 3
-#define FW 3
-#define FH 3
-#define S 3
-#define P 4
-
-#define B 1
 #include <stdint.h>
-extern const uint32_t input_image[867];
-extern const uint32_t golden_im2col[1728];
+
+#define IW 4
+#define IH 4
+#define CH 3
+#define FW 2
+#define FH 2
+#define STRIDES 1
+#define PAD 0
+
+#define BATCH 1
+
+extern const uint32_t input_image[48];
+extern const uint32_t golden_im2col[108];
 #endif

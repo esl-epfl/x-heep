@@ -11,37 +11,24 @@ uint32_t output_data[OH*OW];
 
 int im2col_nchw_int32()
 {
-    #if DEBUG==2
-    printf("%d %d\n", OH, OW);
-    #endif
-    // Dimensions of the input tensor: batch size, number of channels, height, and width.
-    int32_t batch = B;
-    int32_t channel = CH;
-    int32_t height = IH;
-    int32_t width = IW;
+    PRINTF("%d %d\n", OH, OW);
 
-    // Extract the kernel size (height and width), stride (height and width) from the parameters.
-    int32_t ksize_h = FH;
-    int32_t ksize_w = FW;
-    int32_t stride_h = S;
-    int32_t stride_w = S;
-
-    // Calculate the height and width of the output matrix (column) based on the input dimensions, padding, kernel size, and stride.
+    // Calculate the IH and IW of the output matrix (column) based on the input dimensions, padding, kernel size, and stride.
     // This essentially calculates how many sliding window positions fit into the input dimensions.
-    int patches_h = (height + P + P - ksize_h) / stride_h + 1;
-    int patches_w = (width + P + P - ksize_w) / stride_w + 1;
+    int patches_h = (IH + PAD + PAD - FH) / STRIDES + 1;
+    int patches_w = (IW + PAD + PAD - FW) / STRIDES + 1;
 
     // Calculate the heigth of the output matrix
-    int output_h = channel * ksize_h * ksize_w; 
+    int output_h = CH * FH * FW; 
     int counter = 0;
     int n_zeros_before = 0;
     int n_zeros_after = 0;
     int size_transfer = 0;
     uint32_t im_row = 0;
     uint32_t im_col = 0;
-    int w_offset = 0;  // the offset ALONG the width
-    int h_offset = 0; // the ofset ALONG the height
-    int32_t im_c = 0; // Gets the channel on which the im2col is being performed depending on the row of the output image (c)
+    int w_offset = 0;  // the offset ALONG the IW
+    int h_offset = 0; // the ofset ALONG the IH
+    int32_t im_c = 0; // Gets the CH on which the im2col is being performed depending on the row of the output image (c)
     int col_index = 0;
     int minimum = 0;
     int start_max = 0;
@@ -63,45 +50,32 @@ int im2col_nchw_int32()
         // Calculate offsets within the kernel window.
         // These are used to move the filter around the input image
 
-        w_offset = c % ksize_w;  
-        h_offset = (c / ksize_w) % ksize_h;
-        im_c = c / (ksize_h * ksize_w); // Gets the channel on which the im2col is being performed depending on the row of the output image (c)
+        w_offset = c % FW;  
+        h_offset = (c / FW) % FH;
+        im_c = c / (FH * FW); // Gets the CH on which the im2col is being performed depending on the row of the output image (c)
 
-        // Iterate over each batch.
-        for (int32_t b = 0; b < batch; ++b) {
-            // Iterate over each patch on the width of the input matrix.
+        // Iterate over each BATCH.
+        for (int32_t b = 0; b < BATCH; ++b) {
+            // Iterate over each patch on the IW of the input matrix.
             for (int h = 0; h < patches_h; ++h) {
                 // Iterate over each patch on the heigth in the output matrix.
                 for (int w = 0; w < patches_w; ++w) {
                     // Calculate the row and column indices in the original input image, applying the stride and offset.
-                    im_row = h_offset + h * stride_h - P;
-                    im_col = w_offset + w * stride_w - P;
+                    im_row = h_offset + h * STRIDES - PAD;
+                    im_col = w_offset + w * STRIDES - PAD;
 
                     // Calculate the index in the flattened output array where this value should be stored.
-                    col_index = ((c * batch + b) * patches_h + h) * patches_w + w;
+                    col_index = ((c * BATCH + b) * patches_h + h) * patches_w + w;
                     
                     // If the calculated indices are outside the bounds of the input image, set the output to 0 (padding effect).
                     // Otherwise, fetch the value from the input image and store it in the output array.
-                    if (im_row < 0 || im_col < 0 || im_row >= height || im_col >= width) {
+                    if (im_row < 0 || im_col < 0 || im_row >= IH || im_col >= IW) {
                         output_data[col_index] = 0;
                     } else {
                         output_data[col_index] = input_image[get_index(CH, IH, IW, b, im_c, im_row, im_col)];
                     }
-
-                    counter ++;
-
-                    #if DEBUG==1
-                    if (counter == 50)
-                    {
-                        counter = 0;
-                        printf("*");
-                    }
-                    #endif
                 }
             }
-            #if DEBUG==2
-            printf("\n");
-            #endif
         }
         
     }
@@ -120,7 +94,7 @@ int im2col_nchw_int32()
     dma_target_t tgt_src = {
                                 .ptr        = input_image,
                                 .inc_du     = 1,
-                                .size_du    = height*width*channel,
+                                .size_du    = IH*IW*CH,
                                 };
     dma_target_t tgt_dst = {
                                 .ptr        = output_data_ptr,
@@ -138,18 +112,18 @@ int im2col_nchw_int32()
         // Calculate offsets within the kernel window.
         // These are used to move the filter around the input image
 
-        w_offset = c % ksize_w;  // Offset along the width
-        h_offset = (c / ksize_w) % ksize_h; // Offset along the height
-        im_c = c / (ksize_h * ksize_w); // Gets the channel on which the im2col is being performed depending on the row of the output image (c)
+        w_offset = c % FW;  // Offset along the IW
+        h_offset = (c / FW) % FH; // Offset along the IH
+        im_c = c / (FH * FW); // Gets the CH on which the im2col is being performed depending on the row of the output image (c)
 
-        // Iterate over each batch.
-        for (int32_t b = 0; b < batch; ++b) {
-            // Iterate over each patch on the width of the input matrix.
+        // Iterate over each BATCH.
+        for (int32_t b = 0; b < BATCH; ++b) {
+            // Iterate over each patch on the IW of the input matrix.
             for (int h = 0; h < patches_h; ++h) {
 
-                im_row = h_offset + h * stride_h - P;
+                im_row = h_offset + h * STRIDES - PAD;
 
-                im_col = w_offset - P;
+                im_col = w_offset - PAD;
 
                 n_zeros_before = 0;
                 n_zeros_after = 0;
@@ -161,52 +135,46 @@ int im2col_nchw_int32()
                 last_position = 0;
                 tmp_pad = 0;
 
-                #if DEBUG==2    
-                printf("\nim_row: %d, im_col: %d", im_row, im_col);
-                printf("\nw_offset: %d, h_offset: %d\n", w_offset, h_offset);
-                #endif
+                PRINTF_DEB("\nim_row: %d, im_col: %d", im_row, im_col);
+                PRINTF_DEB("\nw_offset: %d, h_offset: %d\n", w_offset, h_offset);
 
                 // Iterate over each patch on the heigth in the output matrix.
                 
-                if (P > 0 && im_row < 0)
+                if (PAD > 0 && im_row < 0)
                 {
                     // im_row < 0 case: only the output_image_ptr needs to be updated
                     output_data_ptr += patches_w;
-                    #if DEBUG==2    
-                    printf("\nAdded the initial full row of 0s, %d elements", patches_w);
-                    #endif
+                    PRINTF_DEB("\nAdded the initial full row of 0s, %d elements", patches_w);
                 } 
-                else if (P > 0 && im_row >= width)
+                else if (PAD > 0 && im_row >= IW)
                 {
-                    // im_row >= height case: only the output_image_ptr needs to be updated
+                    // im_row >= IH case: only the output_image_ptr needs to be updated
                     output_data_ptr += patches_w;
-                    #if DEBUG==2    
-                    printf("\nAdded the final full row of 0s, %d elements", patches_w);
-                    #endif
+                    PRINTF("\nAdded the final full row of 0s, %d elements", patches_w);
                 }
                 else
                 {
-                    #if TIMING==1   
+                    #if TIMING
                     CSR_READ(CSR_REG_MCYCLE, &cycles_A);
                     #endif
 
                     // Computing the number of zeros before the first element of the patch
 
                     // In the offset of the element in the filter is bigger than P, then no zeros are needed
-                    if ( w_offset >= P)
+                    if ( w_offset >= PAD)
                     {
                         n_zeros_before = 0;
                     }
-                    else if ( (P - w_offset) % stride_w == 0 )
+                    else if ( (PAD - w_offset) % STRIDES == 0 )
                     {
-                        n_zeros_before = (P - w_offset) / stride_w;
+                        n_zeros_before = (PAD - w_offset) / STRIDES;
                     }
                     else
                     {
-                        n_zeros_before = (P - w_offset) / stride_w + 1;
+                        n_zeros_before = (PAD - w_offset) / STRIDES + 1;
                     }
 
-                    #if TIMING==1
+                    #if TIMING
                     CSR_READ(CSR_REG_MCYCLE, &cycles_B);
                     avg_first_zeros += cycles_B - cycles_A;
                     CSR_READ(CSR_REG_MCYCLE, &cycles_A);
@@ -215,29 +183,29 @@ int im2col_nchw_int32()
                     // Computing the number of zeros after the last element of the patch
 
                     // The stray elements are the elements that are not covered by the patches
-                    stray_elements = (2*P + width) - stride_w * (patches_w - 1) - ksize_w;
+                    stray_elements = (2*PAD + IW) - STRIDES * (patches_w - 1) - FW;
 
                     // This computes the last position of the current element of the filter
-                    last_position = 2*P + width - stray_elements - ksize_w + w_offset;
+                    last_position = 2*PAD + IW - stray_elements - FW + w_offset;
 
                     // To adapt the final case to the formulas used to the first padded region, let's compute an "adapted" padded region,
                     // by removing the elements of the row uncovered by the sliding filter
-                    tmp_pad = P - stray_elements;
+                    tmp_pad = PAD - stray_elements;
 
-                    if (ksize_w - 1 - w_offset >= P)
+                    if (FW - 1 - w_offset >= PAD)
                     {
                         n_zeros_after = 0;
                     }
-                    else if ( (tmp_pad - (ksize_w - 1 - w_offset)) % stride_w == 0 )
+                    else if ( (tmp_pad - (FW - 1 - w_offset)) % STRIDES == 0 )
                     {
-                        n_zeros_after = (tmp_pad - (ksize_w - 1 - w_offset)) / stride_w;
+                        n_zeros_after = (tmp_pad - (FW - 1 - w_offset)) / STRIDES;
                     }
                     else
                     {
-                        n_zeros_after = (tmp_pad - (ksize_w - 1 - w_offset)) / stride_w + 1;
+                        n_zeros_after = (tmp_pad - (FW - 1 - w_offset)) / STRIDES + 1;
                     }
 
-                    #if TIMING==1
+                    #if TIMING
                     CSR_READ(CSR_REG_MCYCLE, &cycles_B);
                     avg_last_zeros += cycles_B - cycles_A;
                     #endif
@@ -249,15 +217,13 @@ int im2col_nchw_int32()
                     {
                         // im_col < 0 case: only the output_image_ptr needs to be updated
                         output_data_ptr += n_zeros_before;
+                        
+                        PRINTF_DEB("\nAdded %d '0's before",  n_zeros_before);
 
-                        #if DEBUG==2    
-                        printf("\nAdded %d '0's before",  n_zeros_before);
-                        #endif
-
-                        im_col += n_zeros_before * stride_w;
+                        im_col += n_zeros_before * STRIDES;
                     }
 
-                    #if TIMING==1
+                    #if TIMING
                     CSR_READ(CSR_REG_MCYCLE, &cycles_A);
                     #endif
 
@@ -266,7 +232,7 @@ int im2col_nchw_int32()
                     input_image_ptr = &input_image[0] + get_index(CH, IH, IW, b, im_c, im_row, im_col);
                     tgt_src.ptr = input_image_ptr;
                     tgt_src.size_du = size_transfer;
-                    tgt_src.inc_du = stride_w;
+                    tgt_src.inc_du = STRIDES;
 
                     tgt_dst.ptr = output_data_ptr;
                     tgt_dst.size_du = size_transfer;
@@ -275,16 +241,16 @@ int im2col_nchw_int32()
 
                     ptr = output_data_ptr;
 
-                    #if TIMING==1
+                    #if TIMING
                     CSR_READ(CSR_REG_MCYCLE, &cycles_B);
                     avg_patch += cycles_B - cycles_A;
                     #endif
 
-                    #if DEBUG==2
-                    printf("\nWrote %d elements from input", tgt_src.size_du);
+                    #if DEBUG
+                    PRINTF_DEB("\nWrote %d elements from input", tgt_src.size_du);
                     for (int i=0; i<tgt_src.size_du; i++)
                     {
-                        printf("\n%p %d", ptr, *ptr);
+                        PRINTF_DEB("\n%p %d", ptr, *ptr);
                         ptr += 1;
                     }
                     #endif
@@ -295,32 +261,24 @@ int im2col_nchw_int32()
                     {
                         // im_col < 0 case: only the output_image_ptr needs to be updated
                         output_data_ptr += n_zeros_after;
-                        #if DEBUG==2    
-                        printf("\nAdded %d '0's after",  n_zeros_after);
-                        #endif
-                    }
-                    #if DEBUG==2    
-                    printf("\n");
-                    #endif
+                        PRINTF_DEB("\nAdded %d '0's after",  n_zeros_after);
+                    } 
+                    PRINTF_DEB("\n");
                 }
 
-                #if DEBUG==2
-                printf("\nCurrent output matrix: \n");
+                #if DEBUG
+                PRINTF_DEB("\nCurrent output matrix: \n");
                 for (int i=0; i<OH; i++)
                 {
                     for (int j=0; j<OW; j++)
                     {
-                        #if DEBUG==2
-                        printf("%d ", output_data[i*OW + j]);
-                        #endif
+                        PRINTF_DEB("%d ", output_data[i*OW + j]);
                     }
-                    printf("\n");
+                    PRINTF_DEB("\n");
                 }
                 #endif
                 }
-                #if DEBUG==2
-                printf("\n");
-                #endif
+                PRINTF_DEB("\n");
             }        
     }
     #elif HW_CONFIG == 2
@@ -329,109 +287,76 @@ int im2col_nchw_int32()
 
     // Finished!
 
-    #if TIMING==1
-    printf("\nAverage cycles for the first zeros: %d/%d", avg_first_zeros , (OW*OH));
-    printf("\nAverage cycles for the last zeros: %d/%d", avg_last_zeros , (OW*OH));
-    printf("\nAverage cycles for the patch: %d/%d", avg_patch , (OW*OH));
+    #if TIMING
+    PRINTF("\nAverage cycles for the first zeros: %d/%d", avg_first_zeros , (OW*OH));
+    PRINTF("\nAverage cycles for the last zeros: %d/%d", avg_last_zeros , (OW*OH));
+    PRINTF("\nAverage cycles for the patch: %d/%d", avg_patch , (OW*OH));
     #endif
 
-    #if DEBUG==2 || DEBUG==1
-    printf("Final output matrix:\n\n");
-    #endif
+    PRINTF("Final output matrix:\n\n");
 
+    #if DEBUG
     for (int i=0; i<OH; i++)
     {
         for (int j=0; j<OW; j++)
         {
-            #if DEBUG==2 || DEBUG==1
-            printf("%d ", output_data[i*OW + j]);
-            #endif
+            PRINTF("%d ", output_data[i*OW + j]);
         }
-        printf("\n");
+        PRINTF("\n");
     }
+    #endif
 
-    // Return a 1 to indicate a success
-    return 1;
+    // Return a 0 to indicate a success
+    return 0;
 }
 
 int im2col_nhwc_int32()
 {
-    #if DEBUG==2
-    printf("OH: %d, OW: %d\n", OH, OW);
-    #endif
-    // Dimensions of the input tensor: batch size, number of channels, height, and width.
-    int32_t batch = 1;
-    int32_t channel = CH;
-    int32_t height = IH;
-    int32_t width = IW;
-
-    // Extract the kernel size (height and width), stride (height and width) from the parameters.
-    int32_t ksize_h = FH;
-    int32_t ksize_w = FW;
-    int32_t stride_h = S;
-    int32_t stride_w = S;
-
-    // Calculate the height and width of the output matrix (column) based on the input dimensions, padding, kernel size, and stride.
+    PRINTF("OH: %d, OW: %d\n", OH, OW);
+    
+    // Calculate the IH and IW of the output matrix (column) based on the input dimensions, padding, kernel size, and stride.
     // This essentially calculates how many sliding window positions fit into the input dimensions.
-    int patches_h = (height + P + P - ksize_h) / stride_h + 1;
-    int patches_w = (width + P + P - ksize_w) / stride_w + 1;
+    int patches_h = (IH + PAD + PAD - FH) / STRIDES + 1;
+    int patches_w = (IW + PAD + PAD - FW) / STRIDES + 1;
 
     // Calculate the heigth of the output matrix
-    int output_h = channel * ksize_h * ksize_w; 
+    int output_h = CH * FH * FW; 
     int counter = 0;
 
     // Exploit the CPU for im2col
     #if HW_CONFIG == 0
     // Iterate over each row of the output matrix.
-    for (int32_t b = 0; b < batch; ++b) {
-        // Iterate over each batch.
+    for (int32_t b = 0; b < BATCH; ++b) {
+        // Iterate over each BATCH.
         for (int h = 0; h < patches_h; ++h) {
-            // Iterate over each patch on the width of the input matrix.
+            // Iterate over each patch on the IW of the input matrix.
             for (int w = 0; w < patches_w; ++w) {
                 // Iterate over each patch on the heigth in the output matrix.
                 for (int c = 0; c < output_h; ++c) {
                     // Calculate offsets within the kernel window.
                     // These are used to move the filter around the input image
 
-                    int w_offset = c % ksize_w;  
-                    int h_offset = (c / ksize_w) % ksize_h;
-                    int32_t im_c = c / (ksize_h * ksize_w); // Gets the channel on which the im2col is being performed depending on the row of the output image (c)
+                    int w_offset = c % FW;  
+                    int h_offset = (c / FW) % FH;
+                    int32_t im_c = c / (FH * FW); // Gets the CH on which the im2col is being performed depending on the row of the output image (c)
 
                     
                     // Calculate the row and column indices in the original input image, applying the stride and offset.
-                    int32_t im_row = h_offset + h * stride_h - P;
-                    int32_t im_col = w_offset + w * stride_w - P;
+                    int32_t im_row = h_offset + h * STRIDES - PAD;
+                    int32_t im_col = w_offset + w * STRIDES - PAD;
 
                     // Calculate the index in the flattened output array where this value should be stored.
-                    int32_t col_index = ((b * patches_h + h) * patches_w + w) * output_h + c; //  ((c * batch + b) * patches_h + h) * patches_w + w;
+                    int32_t col_index = ((b * patches_h + h) * patches_w + w) * output_h + c; //  ((c * BATCH + b) * patches_h + h) * patches_w + w;
                     
                     // If the calculated indices are outside the bounds of the input image, set the output to 0 (padding effect).
                     // Otherwise, fetch the value from the input image and store it in the output array.
-                    if (im_row < 0 || im_col < 0 || im_row >= height || im_col >= width) {
+                    if (im_row < 0 || im_col < 0 || im_row >= IH || im_col >= IW) {
                         output_data[col_index] = 0;
                     } else {
                         output_data[col_index] = input_image[get_index(IH, IW, CH, b, im_row, im_col, im_c)];
                     }
-
-                    counter ++;
-
-                    #if DEBUG==1
-                    if (counter == 50)
-                    {
-                        counter = 0;
-                        printf("*");
-                    }
-                    #endif
-
-
-                    #if DEBUG==2
-                    printf("%d ", output_data[col_index]);
-                    #endif
                 }
             }
-            #if DEBUG==2
-            printf("\n");
-            #endif
         }
     }
     #elif HW_CONFIG == 1
@@ -440,9 +365,24 @@ int im2col_nhwc_int32()
     #elif HW_CONFIG == 2
     // Use DMA 2D for im2col
     #endif
-    // Return a 1 to indicate a success
-    return 1;
+
+    PRINTF("Final output matrix:\n\n");
+
+    #if DEBUG
+    for (int i=0; i<OH; i++)
+    {
+        for (int j=0; j<OW; j++)
+        {
+            PRINTF("%d ", output_data[i*OW + j]);
+        }
+        PRINTF("\n");
+    }
+    #endif
+
+    // Return a 0 to indicate a success
+    return 0;
 }
+
 
 int32_t get_index(int32_t dim1, int32_t dim2, int32_t dim3, int32_t index0, int32_t index1, int32_t index2,
                           int32_t index3)
@@ -461,9 +401,7 @@ uint16_t verify()
         {    
             if (golden_im2col[i*OW + j] != output_data[i*OW + j])
             {
-                #if DEBUG==2 || DEBUG==1    
-                printf("ERROR: Golden: %d, Output: %d, at %d %d\n", golden_im2col[i*OW + j], output_data[i*OW + j], i, j);
-                #endif
+                PRINTF("ERROR: Golden: %d, Output: %d, at %d %d\n", golden_im2col[i*OW + j], output_data[i*OW + j], i, j);
                 errors ++;
             }
         }

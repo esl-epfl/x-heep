@@ -138,16 +138,16 @@ im2col_format = 0
 im2col_tool = 1
 
 # Parameters of the random image, padding excluded
-image_height = 17
-image_width = 17
+image_height = 4
+image_width = 4
 channels = 3
 batch = 1
 
 # Parameters of the filter
-filter_height = 3
-filter_width = 3
-padding = 4
-stride = 3
+filter_height = 2
+filter_width = 2
+padding = 0
+stride = 1
 
 # Calculate the number of patches, i.e. the number the filter can fit along one dimention during convolution
 n_patches_h = (image_height + 2 * padding - filter_height) // stride + 1
@@ -233,16 +233,15 @@ elif im2col_tool == 1:
 with open('im2colGolden.h', 'w') as f:
     f.write('#ifndef IMAGE_AND_COL_H\n')
     f.write('#define IMAGE_AND_COL_H\n\n')
+    f.write('#include <stdint.h>\n\n')
     f.write('#define IW %d\n' % image_width)
     f.write('#define IH %d\n' % image_height)
     f.write('#define CH %d\n' % channels)
     f.write('#define FW %d\n' % filter_width)
     f.write('#define FH %d\n' % filter_height)
-    f.write('#define S %d\n' % stride)
-    f.write('#define P %d\n\n' % padding)
-    f.write('#define B %d\n' % batch)
-
-    f.write('#include <stdint.h>\n')
+    f.write('#define STRIDES %d\n' % stride)
+    f.write('#define PAD %d\n\n' % padding)
+    f.write('#define BATCH %d\n\n' % batch)
 
     f.write('extern const uint32_t input_image[%d];\n' % (channels * image_height * image_width * batch))
     f.write('extern const uint32_t golden_im2col[%d];\n' % (OW*OH))
