@@ -328,7 +328,6 @@ set(CMAKE_C_FLAGS ${COMPILER_LINKER_FLAGS})
 
 if (${COMPILER} MATCHES "clang")
      set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=riscv32 \
-                                          -mabi=ilp32 \
                                           --gcc-toolchain=${RISCV} \
                                           --sysroot=${RISCV}/${COMPILER_PREFIX}elf \
                                           -static \
