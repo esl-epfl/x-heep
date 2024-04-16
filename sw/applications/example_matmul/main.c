@@ -25,6 +25,7 @@ void __attribute__ ((noinline)) matrixMul8_blocksize(int8_t *  A, int8_t *  B, i
 void __attribute__ ((noinline)) matrixMul8_tiled(int8_t *  A, int8_t *  B, int32_t *  C, int N);
 
 uint32_t check_results(int32_t * C, int N);
+
 int32_t m_c[SIZE*SIZE];
 
 #define BLOCK_SIZE 4
@@ -104,6 +105,7 @@ void __attribute__ ((noinline)) matrixMul8_tiled(int8_t* A, int8_t* B, int32_t* 
         matrixMul8_tiled(A(N, N), B(N, N), C(N, N), N); // C_11 += A_11 * B_11
     }
 }
+
 
 uint32_t check_results(int32_t * C, int N)
 {
