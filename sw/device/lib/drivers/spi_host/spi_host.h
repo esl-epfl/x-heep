@@ -344,7 +344,7 @@ volatile uint8_t spi_get_tx_queue_depth(spi_host_t* spi);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return TX channel status structure.
  */
-volatile spi_return_flags_e spi_get_tx_channel_status(spi_host_t* spi, volatile spi_ch_status_t* ch_status);
+spi_return_flags_e spi_get_tx_channel_status(spi_host_t* spi, volatile spi_ch_status_t* ch_status);
 
 /**
  * Read the RX FIFO depth register.
@@ -360,7 +360,7 @@ volatile uint8_t spi_get_rx_queue_depth(spi_host_t* spi);
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return RX channel status structure.
  */
-volatile spi_return_flags_e spi_get_rx_channel_status(spi_host_t* spi, volatile spi_ch_status_t* ch_status);
+spi_return_flags_e spi_get_rx_channel_status(spi_host_t* spi, volatile spi_ch_status_t* ch_status);
 
 /**
  * Read the Chip Select (CS) ID register.

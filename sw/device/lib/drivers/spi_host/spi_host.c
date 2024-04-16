@@ -225,7 +225,7 @@ volatile uint8_t spi_get_tx_queue_depth(spi_host_t* spi) {
     return spi_get_status(spi)->txqd;
 }
 
-volatile spi_return_flags_e spi_get_tx_channel_status(spi_host_t* spi, volatile spi_ch_status_t* ch_status) {
+spi_return_flags_e spi_get_tx_channel_status(spi_host_t* spi, volatile spi_ch_status_t* ch_status) {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
     volatile spi_status_t* status = spi_get_status(spi);
     ch_status->empty = status->txempty;
@@ -241,7 +241,7 @@ volatile uint8_t spi_get_rx_queue_depth(spi_host_t* spi) {
     return spi_get_status(spi)->rxqd;
 }
 
-volatile spi_return_flags_e spi_get_rx_channel_status(spi_host_t* spi, volatile spi_ch_status_t* ch_status) {
+spi_return_flags_e spi_get_rx_channel_status(spi_host_t* spi, volatile spi_ch_status_t* ch_status) {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
     volatile spi_status_t* status = spi_get_status(spi);
     ch_status->empty = status->rxempty;
