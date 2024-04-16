@@ -138,16 +138,16 @@ im2col_format = 0
 im2col_tool = 1
 
 # Parameters of the random image, padding excluded
-image_height = 6
-image_width = 6
-channels = 1
-batch = 2
+image_height = 17
+image_width = 17
+channels = 3
+batch = 1
 
 # Parameters of the filter
 filter_height = 3
 filter_width = 3
-padding = 2
-stride = 1
+padding = 4
+stride = 3
 
 # Calculate the number of patches, i.e. the number the filter can fit along one dimention during convolution
 n_patches_h = (image_height + 2 * padding - filter_height) // stride + 1
