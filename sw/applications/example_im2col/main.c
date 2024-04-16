@@ -19,7 +19,7 @@ int main()
     printf("\nStarting test...\n\n");
     
     uint16_t errors;
-    unsigned int instr, cycles;
+    unsigned int cycles;
     
     CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
 
@@ -35,24 +35,16 @@ int main()
     
     errors = verify();
     
-    printf("\n\rim2col test executed in %d cycles", cycles);
-    fflush(stdout);
+    printf("im2col test executed in %d cycles\n", cycles);
 
     if (errors != 0)
     {
-        printf("\n\rFAILED TEST\n");
-        fflush(stdout);
-
-        #if DEBUG==1 || DEBUG==2
-        printf("\n\r%d errors", errors);
-        fflush(stdout);
-        #endif
+        printf("TEST FAILED: %d errors\n", errors);
         return 1;
     } 
     else
     {
-        printf("\n\rPASSED TEST\n");
-        fflush(stdout);
+        printf("TEST PASSED!\n");
     }
     return 0;
 }

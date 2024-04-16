@@ -113,7 +113,7 @@ int im2col_nchw_int32()
     uint32_t* output_data_ptr = &output_data[0];
 
     // The DMA is initialized (i.e. Any current transaction is cleaned.)
-    dma_init(NULL); // NULL becaus ewe want to use the integrated DMA
+    dma_init(NULL); // NULL because we want to use the integrated DMA
 
     dma_config_flags_t res;
 
@@ -134,18 +134,12 @@ int im2col_nchw_int32()
 
     uint32_t* ptr; 
 
-    // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.
-    #if DEBUG==2    
-    printf("\n* %p", output_data_ptr);
-    fflush(stdout);
-    #endif
-
     for (int c = 0; c < output_h; ++c) {
         // Calculate offsets within the kernel window.
         // These are used to move the filter around the input image
 
-        w_offset = c % ksize_w;  // the offset ALONG the width
-        h_offset = (c / ksize_w) % ksize_h; // the ofset ALONG the height
+        w_offset = c % ksize_w;  // Offset along the width
+        h_offset = (c / ksize_w) % ksize_h; // Offset along the height
         im_c = c / (ksize_h * ksize_w); // Gets the channel on which the im2col is being performed depending on the row of the output image (c)
 
         // Iterate over each batch.
@@ -180,7 +174,6 @@ int im2col_nchw_int32()
                     output_data_ptr += patches_w;
                     #if DEBUG==2    
                     printf("\nAdded the initial full row of 0s, %d elements", patches_w);
-                    fflush(stdout);
                     #endif
                 } 
                 else if (P > 0 && im_row >= width)
@@ -189,7 +182,6 @@ int im2col_nchw_int32()
                     output_data_ptr += patches_w;
                     #if DEBUG==2    
                     printf("\nAdded the final full row of 0s, %d elements", patches_w);
-                    fflush(stdout);
                     #endif
                 }
                 else
@@ -434,7 +426,6 @@ int im2col_nhwc_int32()
 
                     #if DEBUG==2
                     printf("%d ", output_data[col_index]);
-                    fflush(stdout);
                     #endif
                 }
             }

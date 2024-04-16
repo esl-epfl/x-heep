@@ -18,18 +18,17 @@
     - 1: Exploit standard DMA
     - 2: Exploit 2D DMA
 */ 
-#define HW_CONFIG 1
+#define HW_CONFIG 0
 
 // Define the dimensions of the input tensor and the kernel
 
-#define MAX_DIM 8
 #define N_PATCHES_H (IH + (P + P) - FH)/ S + 1
 #define N_PATCHES_W (IW + (P + P) - FW)/ S + 1
 #define OH FW * FH * CH * B
 #define OW (N_PATCHES_W) * (N_PATCHES_H)
 
 #define DEBUG 0 // Set to 1 to enable simple debug prints, 2 to enable more detailed debug prints
-#define TIMING 1 // Set to 1 to enable timing measurements
+#define TIMING 0 // Set to 1 to enable timing measurements
 
 int im2col_nchw_int32();
 int im2col_nhwc_int32();
