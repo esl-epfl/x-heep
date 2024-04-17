@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-# import tensorflow as tf
+import tensorflow as tf
 
 #######################################################################################################
 def torch_im2col_ncwh(input_tensor, kernel_size, stride=1, padding=0, dilation=1):
@@ -49,7 +49,7 @@ def torch_im2col_ncwh(input_tensor, kernel_size, stride=1, padding=0, dilation=1
     channel_dim = padded_input.size(1)
     return unfolded.contiguous().view(-1, channel_dim * kernel_size[0] * kernel_size[1]).t()
 
-def torch_im2col_nhwc(input_tensor, kernel_size, stride=1, padding=0, dilation=1):
+def tf_im2col_nhwc(input_tensor, kernel_size, stride, padding, dilation=1):
     if padding != 0:
         paddings = [[0, 0], [padding[0], padding[1]], [padding[2], padding[3]], [0, 0]]
         input_tensor = tf.pad(input_tensor, paddings, "CONSTANT")
@@ -66,6 +66,7 @@ def torch_im2col_nhwc(input_tensor, kernel_size, stride=1, padding=0, dilation=1
     batch_size, height, width, channels = input_tensor.shape
     patch_dim = kernel_size[0] * kernel_size[1] * channels
     patches_reshaped = tf.reshape(patches, [-1, patch_dim])
+    return patches_reshaped
     
 
 # Function to save a tensor to a C file
@@ -83,7 +84,7 @@ def torch_save(tensor, variable_name, dim, row_len):
     tensor_flat = tensor.cpu().flatten()
 
     # Start generating the C code
-    c_code = f"const uint32_t {variable_name}[{dim}] ="+ " {\n    "
+    c_code = ("const uint32_t %s[%d] = {\n    " % (variable_name, dim))
 
     # Group elements into chunks of size row_len and convert each element to string
     elements = [str(val) for val in tensor_flat.numpy()]
@@ -98,7 +99,7 @@ def torch_save(tensor, variable_name, dim, row_len):
     # Write to the file
     f.write(c_code)
 
-def tensor_save(tensor, variable_name, dim, row_len):
+def tf_save(tensor, variable_name, dim, row_len):
     """
     Saves a tensor to a C file as a statically defined array.
     
@@ -112,13 +113,16 @@ def tensor_save(tensor, variable_name, dim, row_len):
         tensor = np.array(tensor)
     
     # Open the file for writing
-    f.write(f"const uint32_t {variable_name}[{dim}] =" + " {\n")
+    f.write("const uint32_t %s[%d] = {\n" % (variable_name, dim))
         
     # Iterate over the tensor data and write each element to the file
     for i, value in enumerate(np.nditer(tensor)):
-        f.write(f"    {value}")
+        f.write(" %d" % value)
         if i < tensor.size - 1:
-            f.write(",\n")
+             if i % row_len == 0:
+                  f.write(",\n")
+             else:
+                  f.write(",")
         
     # Close the array definition
     f.write("\n};\n")
@@ -130,7 +134,7 @@ def tensor_save(tensor, variable_name, dim, row_len):
 # Define the type of operation to perform
 # 0: nchw
 # 1: nhwc
-im2col_format = 0
+im2col_format = 1
 
 # Define which tool to use to generate the golden reference
 # 0: my own implementation
@@ -224,10 +228,10 @@ elif im2col_tool == 1:
         input_tensor = torch.randint(0, 65500, (batch, channels, image_height, image_width), dtype=torch.int32)
         output_matrix = torch_im2col_ncwh(input_tensor, (filter_height, filter_width), stride, padding)
     else:
-        input_tensor = tf.random.uniform((batch, image_height, image_width, channels), dtype=tf.int32)
-
-    # print(output_matrix)
-
+        input_tensor = tf.random.uniform((batch, image_height, image_width, channels), minval=0, maxval=65000, dtype=tf.int32)
+        output_matrix = tf_im2col_nhwc(input_tensor, (filter_height, filter_width), (stride, stride), (padding, padding, padding, padding)) 
+    print(input_tensor)
+    print(output_matrix)
 
 # Dump input image and output col to header file
 with open('im2colGolden.h', 'w') as f:
@@ -295,6 +299,6 @@ with open('im2colGolden.c', 'w') as f:
             torch_save(input_tensor, "input_image", channels * image_height * image_width * batch, image_width)
             torch_save(output_matrix, "golden_im2col", OW*OH, OW)
         else:
-            tensor_save(input_tensor, "input_image", channels * image_height * image_width, image_width)
-            tensor_save(output_matrix, "golden_im2col", OW*OH, OW)
+            tf_save(input_tensor, "input_image", channels * image_height * image_width, image_width)
+            tf_save(output_matrix, "golden_im2col", OW*OH, OW)
     
