@@ -5,7 +5,7 @@
 
     Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
     
-    Info: Example application of im2col algorithm with configurable format, hardware, verification and performance analysis.
+    Info: Example application of im2col algorithm with configurable format, verification and performance analysis.
 */
 
 #include <stdio.h>
@@ -19,7 +19,7 @@
 // 0: NCHW
 // 1: NHWC
 
-#define FORMAT 0
+#define FORMAT 1
 
 int main()
 {

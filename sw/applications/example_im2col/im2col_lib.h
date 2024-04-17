@@ -5,8 +5,7 @@
 
     Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
     
-    Info: Header file of im2col_lib.c, containing the function prototypes, parameters macros and the configuration of hardware, 
-    prints and performance analysis.
+    Info: Header file of im2col_lib.c, containing the function prototypes, parameters macros and the configuration of prints and performance analysis.
 */
 
 #ifndef _IM2COL_
@@ -21,15 +20,6 @@
 #include "x-heep.h"
 #include "csr.h"
 #include "rv_plic.h"
-
-/* 
-    WORK IN PROGRESS!
-    Used to choose between several HW configurations:
-    - 0: Only CPU
-    - 1: Exploit standard DMA
-    - 2: Exploit 2D DMA
-*/ 
-#define HW_CONFIG 0
 
 // By default, printfs are activated for FPGA and disabled for simulation.
 #define PRINTF_IN_FPGA  1
