@@ -72,23 +72,8 @@ _start:
     sub    a0,a0,s2
     call w25q128jw_read_standard
 
-_load_data_section:
-    // src ptr
-    la     a0, _lma_data_start
-    // dst ptr
-    la     a1, __data_start
-    // copy size in bytes
-    la     a2, _lma_data_end
-    sub    a2, a2, a0
-
-    bltz   a2, _load_data_section_end // dont do anything if you do not have data
-
-    sub    a0,a0,s2
-    call w25q128jw_read_standard
-_load_data_section_end:
-
 % for i, section in enumerate(xheep.iter_linker_sections()):
-% if not section.name in ["code", "data"]:
+% if section.name != "code":
 _load_${section.name}_section:
     // src ptr
     la     a0, _lma_${section.name}_start
