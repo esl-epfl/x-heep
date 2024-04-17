@@ -81,27 +81,31 @@ _load_data_section:
     la     a2, _lma_data_end
     sub    a2, a2, a0
 
-    bltz   a2, _load_data_interleaved_section // dont do anything if you do not have data
+    bltz   a2, _load_data_section_end // dont do anything if you do not have data
 
     sub    a0,a0,s2
     call w25q128jw_read_standard
+_load_data_section_end:
 
-
-_load_data_interleaved_section:
-    #ifdef HAS_MEMORY_BANKS_IL
+% for i, section in enumerate(xheep.iter_linker_sections()):
+% if not section.name in ["code", "data"]:
+_load_${section.name}_section:
     // src ptr
-    la     a0, _lma_data_interleaved_start
+    la     a0, _lma_${section.name}_start
     // dst ptr
-    la     a1, __data_interleaved_start
+    la     a1, __${section.name}_start
     // copy size in bytes
-    la     a2, _lma_data_interleaved_end
+    la     a2, _lma_${section.name}_end
     sub    a2, a2, a0
 
-    bltz   a2, _init_bss // dont do anything if you do not have interleaved data
+    bltz   a2, _load_${section.name}_section_end // dont do anything if you do not have something in ${section.name}
 
     sub    a0,a0,s2
     call w25q128jw_read_standard
-    #endif
+_load_${section.name}_section_end:
+
+% endif
+% endfor
 
 #endif
 
