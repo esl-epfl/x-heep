@@ -18,12 +18,12 @@
 #define CH 3
 #define FW 2
 #define FH 2
-#define STRIDES 1
+#define STRIDES 2
 #define PAD 1
 
 #define BATCH 1
 
 extern const uint32_t input_image[48];
-extern const uint32_t golden_im2col[300];
+extern const uint32_t golden_im2col[108];
 
 #endif
