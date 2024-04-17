@@ -49,7 +49,7 @@ void test_fxp_sqrt() {
 }
 
 int main() {
-    printf("\033[1;93m====== Test FXP =========\n");
+    printf("\033[1;93m====== Test FXP ==========\n");
     printf("\033[0m====== Test Basic ========\n");
     test_fxp_basic();
     test_fxp_sqrt();
