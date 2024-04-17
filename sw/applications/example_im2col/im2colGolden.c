@@ -10,14 +10,7 @@
 
 #include "im2colGolden.h"
 
-// Define the format of data representation:
-// 0: NCHW
-// 1: NHWC
-#define FORMAT 0
-
-#if FORMAT == 0
-
-const uint32_t input_image[48] = {
+const uint32_t input_image_nchw[48] = {
     13932, 24003, 46802, 9895,
     46807, 33972, 44507, 1507,
     14638, 51479, 39560, 22725,
@@ -32,7 +25,7 @@ const uint32_t input_image[48] = {
     3158, 21127, 28588, 61815
 };
 
-const uint32_t golden_im2col[108] = {
+const uint32_t golden_im2col_nchw[108] = {
     0, 0, 0, 0, 33972, 1507, 0, 35631, 39503,
     0, 0, 0, 46807, 44507, 0, 38212, 40479, 0,
     0, 24003, 9895, 0, 51479, 22725, 0, 0, 0,
@@ -47,9 +40,8 @@ const uint32_t golden_im2col[108] = {
     43660, 52141, 0, 52033, 35992, 0, 0, 0, 0
 };
 
-#else
 
-const uint32_t input_image[48] = {
+const uint32_t input_image_nhwc[48] = {
  4047, 16986, 10416,
  22393, 36967, 57252,
  30217, 40720, 42651,
@@ -68,7 +60,7 @@ const uint32_t input_image[48] = {
  25888, 50886, 35445
 };
 
-const uint32_t golden_im2col[108] = {
+const uint32_t golden_im2col_nhwc[108] = {
  0, 0, 0, 4047, 0, 0, 0, 16986, 0, 0, 0, 10416,
  0, 0, 22393, 30217, 0, 0, 36967, 40720, 0, 0, 57252, 42651,
  0, 0, 3810, 0, 0, 0, 4754, 0, 0, 0, 56157, 0,
@@ -79,5 +71,3 @@ const uint32_t golden_im2col[108] = {
  19673, 55137, 0, 0, 37744, 1975, 0, 0, 24015, 54009, 0, 0,
  25888, 0, 0, 0, 50886, 0, 0, 0, 35445, 0, 0, 0
 };
-
-#endif

@@ -15,43 +15,22 @@
 
 #include "im2col_lib.h"
 
-uint32_t output_data[OH*OW];
+int output_data[OH_NCHW*OW_NCHW];
 
 int im2col_nchw_int32()
 {
-    PRINTF("%d %d\n", OH, OW);
+    PRINTF("%d %d\n", OH_NCHW, OW_NCHW);
 
-    // Calculate the IH and IW of the output matrix (column) based on the input dimensions, padding, kernel size, and stride.
-    // This essentially calculates how many sliding window positions fit into the input dimensions.
-    int patches_h = (IH + PAD + PAD - FH) / STRIDES + 1;
-    int patches_w = (IW + PAD + PAD - FW) / STRIDES + 1;
-
-    // Calculate the heigth of the output matrix
-    int output_h = CH * FH * FW; 
-    int counter = 0;
-    int n_zeros_before = 0;
-    int n_zeros_after = 0;
     int size_transfer = 0;
-    uint32_t im_row = 0;
-    uint32_t im_col = 0;
+    int im_row = 0;
+    int im_col = 0;
     int w_offset = 0;  // the offset ALONG the IW
-    int h_offset = 0; // the ofset ALONG the IH
-    int32_t im_c = 0; // Gets the CH on which the im2col is being performed depending on the row of the output image (c)
+    int h_offset = 0; // the offset ALONG the IH
+    int im_c = 0; // Gets the CH on which the im2col is being performed depending on the row of the output image (c)
     int col_index = 0;
-    int minimum = 0;
-    int start_max = 0;
-    int start_min = 0;
-    int stray_elements = 0;
-    int last_position = 0;
-    int tmp_pad = 0;
-    unsigned int cycles_A = 0;
-    unsigned int cycles_B = 0;
-    unsigned int avg_first_zeros;
-    unsigned int avg_last_zeros;
-    unsigned int avg_patch = 0;
     
     // Iterate over each row of the output matrix.
-    for (int c = 0; c < output_h; ++c) {
+    for (int c = 0; c < CH_COL; ++c) {
         // Calculate offsets within the kernel window.
         // These are used to move the filter around the input image
 
@@ -60,24 +39,24 @@ int im2col_nchw_int32()
         im_c = c / (FH * FW); // Gets the CH on which the im2col is being performed depending on the row of the output image (c)
 
         // Iterate over each BATCH.
-        for (int32_t b = 0; b < BATCH; ++b) {
+        for (int b = 0; b < BATCH; ++b) {
             // Iterate over each patch on the IW of the input matrix.
-            for (int h = 0; h < patches_h; ++h) {
+            for (int h = 0; h < N_PATCHES_H; ++h) {
                 // Iterate over each patch on the heigth in the output matrix.
-                for (int w = 0; w < patches_w; ++w) {
+                for (int w = 0; w < N_PATCHES_W; ++w) {
                     // Calculate the row and column indices in the original input image, applying the stride and offset.
                     im_row = h_offset + h * STRIDES - PAD;
                     im_col = w_offset + w * STRIDES - PAD;
 
                     // Calculate the index in the flattened output array where this value should be stored.
-                    col_index = ((c * BATCH + b) * patches_h + h) * patches_w + w;
+                    col_index = ((c * BATCH + b) * N_PATCHES_H + h) * N_PATCHES_W + w;
                     
                     // If the calculated indices are outside the bounds of the input image, set the output to 0 (padding effect).
                     // Otherwise, fetch the value from the input image and store it in the output array.
                     if (im_row < 0 || im_col < 0 || im_row >= IH || im_col >= IW) {
                         output_data[col_index] = 0;
                     } else {
-                        output_data[col_index] = input_image[get_index(CH, IH, IW, b, im_c, im_row, im_col)];                        
+                        output_data[col_index] = input_image_nchw[get_index(CH, IH, IW, b, im_c, im_row, im_col)];                        
                     }
                 }
             }
@@ -85,12 +64,6 @@ int im2col_nchw_int32()
     }
 
     // Finished!
-
-    #if TIMING
-    PRINTF("\nAverage cycles for the first zeros: %d/%d", avg_first_zeros , (OW*OH));
-    PRINTF("\nAverage cycles for the last zeros: %d/%d", avg_last_zeros , (OW*OH));
-    PRINTF("\nAverage cycles for the patch: %d/%d", avg_patch , (OW*OH));
-    #endif
 
     PRINTF("Final output matrix:\n\n");
 
@@ -111,45 +84,46 @@ int im2col_nchw_int32()
 
 int im2col_nhwc_int32()
 {
-    PRINTF("OH: %d, OW: %d\n", OH, OW);
-    
-    // Calculate the IH and IW of the output matrix (column) based on the input dimensions, padding, kernel size, and stride.
-    // This essentially calculates how many sliding window positions fit into the input dimensions.
-    int patches_h = (IH + PAD + PAD - FH) / STRIDES + 1;
-    int patches_w = (IW + PAD + PAD - FW) / STRIDES + 1;
+    PRINTF("OH: %d, OW: %d\n", OH_NHWC, OW_NHWC);
+
+    int size_transfer = 0;
+    int im_row = 0;
+    int im_col = 0;
+    int w_offset = 0;  // the offset ALONG the IW
+    int h_offset = 0; // the offset ALONG the IH
+    int im_c = 0; // Gets the CH on which the im2col is being performed depending on the row of the output image (c)
+    int col_index = 0;
 
     // Calculate the heigth of the output matrix
-    int output_h = CH * FH * FW; 
-    int counter = 0;
 
     // Iterate over each row of the output matrix.
-    for (int32_t b = 0; b < BATCH; ++b) {
+    for (int b = 0; b < BATCH; ++b) {
         // Iterate over each BATCH.
-        for (int h = 0; h < patches_h; ++h) {
+        for (int h = 0; h < N_PATCHES_H; ++h) {
             // Iterate over each patch on the IW of the input matrix.
-            for (int w = 0; w < patches_w; ++w) {
+            for (int w = 0; w < N_PATCHES_W; ++w) {
                 // Iterate over each patch on the heigth in the output matrix.
-                for (int c = 0; c < output_h; ++c) {
+                for (int c = 0; c < CH_COL; ++c) {
                     // Calculate offsets within the kernel window.
                     // These are used to move the filter around the input image
 
-                    int w_offset = c % FW;  
-                    int h_offset = (c / FW) % FH;
-                    int32_t im_c = c / (FH * FW); // Gets the CH on which the im2col is being performed depending on the row of the output image (c)
+                    w_offset = c % FW;  
+                    h_offset = (c / FW) % FH;
+                    im_c = c / (FH * FW); // Gets the CH on which the im2col is being performed depending on the row of the output image (c)
                     
                     // Calculate the row and column indices in the original input image, applying the stride and offset.
-                    int32_t im_row = h_offset + h * STRIDES - PAD;
-                    int32_t im_col = w_offset + w * STRIDES - PAD;
+                    im_row = h_offset + h * STRIDES - PAD;
+                    im_col = w_offset + w * STRIDES - PAD;
 
                     // Calculate the index in the flattened output array where this value should be stored.
-                    int32_t col_index = ((b * patches_h + h) * patches_w + w) * output_h + c; //  ((c * BATCH + b) * patches_h + h) * patches_w + w;
+                    col_index = ((b * N_PATCHES_H + h) * N_PATCHES_W + w) * CH_COL + c; //  ((c * BATCH + b) * N_PATCHES_H + h) * N_PATCHES_W + w;
                     
                     // If the calculated indices are outside the bounds of the input image, set the output to 0 (padding effect).
                     // Otherwise, fetch the value from the input image and store it in the output array.
                     if (im_row < 0 || im_col < 0 || im_row >= IH || im_col >= IW) {
                         output_data[col_index] = 0;
                     } else {
-                        output_data[col_index] = input_image[get_index(IH, IW, CH, b, im_row, im_col, im_c)];
+                        output_data[col_index] = input_image_nhwc[get_index(IH, IW, CH, b, im_row, im_col, im_c)];
                     }                    
                 }
             }
@@ -174,25 +148,42 @@ int im2col_nhwc_int32()
 }
 
 
-int32_t get_index(int32_t dim1, int32_t dim2, int32_t dim3, int32_t index0, int32_t index1, int32_t index2,
-                          int32_t index3)
+int get_index(int dim1, int dim2, int dim3, int index0, int index1, int index2,
+                          int index3)
 {
     return ((index0 * dim1 + index1) * dim2 + index2) * dim3 + index3;
 }
 
 // Verifies the im2col using golden values generated by "verification_script.py"
-uint16_t verify()
+int verify(int format)
 {
-    uint16_t errors = 0;
+    int errors = 0;
 
-    for (uint16_t i=0; i<OH; i++)
+    if (format == 0)
     {
-        for (uint16_t j=0; j<OW; j++)
-        {    
-            if (golden_im2col[i*OW + j] != output_data[i*OW + j])
-            {
-                PRINTF("ERROR: Golden: %d, Output: %d, at %d %d\n", golden_im2col[i*OW + j], output_data[i*OW + j], i, j);
-                errors ++;
+        for (int i=0; i<OH_NCHW; i++)
+        {
+            for (int j=0; j<OW_NCHW; j++)
+            {    
+                if (golden_im2col_nchw[i*OW_NCHW + j] != output_data[i*OW_NCHW + j])
+                {
+                    PRINTF("ERROR: Golden: %d, Output: %d, at %d %d\n", golden_im2col_nchw[i*OW_NCHW + j], output_data[i*OW_NCHW + j], i, j);
+                    errors ++;
+                }
+            }
+        }
+    }
+    else
+    {
+        for (int i=0; i<OH_NHWC; i++)
+        {
+            for (int j=0; j<OW_NHWC; j++)
+            {    
+                if (golden_im2col_nhwc[i*OW_NHWC + j] != output_data[i*OW_NHWC + j])
+                {
+                    PRINTF("ERROR: Golden: %d, Output: %d, at %d %d\n", golden_im2col_nhwc[i*OW_NHWC + j], output_data[i*OW_NHWC + j], i, j);
+                    errors ++;
+                }
             }
         }
     }

@@ -13,36 +13,33 @@
 #include <stdint.h>
 #include "x-heep.h"
 #include "im2col_lib.h"
-#include "csr.h"
 
-// Define the format of the im2col to test:
-// 0: NCHW
-// 1: NHWC
-
-#define FORMAT 1
+#define NCHW_FORMAT 0
+#define NHWC_FORMAT 1
 
 int main()
 {
     PRINTF("\nStarting test...\n\n");
     
-    uint16_t errors;
+    int errors;
     unsigned int cycles;
     
-    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-
-    CSR_WRITE(CSR_REG_MCYCLE, 0);
+    #if TIMING
+        CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+        CSR_WRITE(CSR_REG_MCYCLE, 0);
+    #endif 
     
-    #if FORMAT == 0
-        im2col_nchw_int32();
-    #elif FORMAT == 1
-        im2col_nhwc_int32();
+    im2col_nchw_int32(); // Execute the im2col algorithm with NCHW format
+
+    #if TIMING
+        CSR_READ(CSR_REG_MCYCLE, &cycles);
     #endif
+    
+    errors = verify(NCHW_FORMAT);
 
-    CSR_READ(CSR_REG_MCYCLE, &cycles);
+    PRINTF("im2col NCHW test executed\n");
     
-    errors = verify();
-    
-    PRINTF("im2col test executed in %d cycles\n", cycles);
+    PRINTF_TIM("Total number of cycles: [%d]\n\n", cycles);
 
     if (errors != 0)
     {
@@ -53,5 +50,32 @@ int main()
     {
         PRINTF("TEST PASSED!\n");
     }
+
+    #if TIMING
+        CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+        CSR_WRITE(CSR_REG_MCYCLE, 0);
+    #endif
+
+    im2col_nhwc_int32(); // Execute the im2col algorithm with NHWC format
+
+    #if TIMING
+        CSR_READ(CSR_REG_MCYCLE, &cycles);
+    #endif
+
+    errors = verify(NHWC_FORMAT);
+
+    PRINTF("im2col NHWC test executed\n");
+    PRINTF_TIM("Total number of cycles: [%d]\n\n", cycles);
+
+    if (errors != 0)
+    {
+        PRINTF("TEST FAILED: %d errors\n", errors);
+        return 1;
+    } 
+    else
+    {
+        PRINTF("TEST PASSED!\n");
+    }
+
     return 0;
 }
