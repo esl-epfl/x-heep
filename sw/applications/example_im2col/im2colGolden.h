@@ -1,3 +1,12 @@
+/*
+   Copyright EPFL contributors.
+  Licensed under the Apache License, Version 2.0, see LICENSE for details.
+  SPDX-License-Identifier: Apache-2.0
+
+  Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
+
+  Info: Header file of im2colGolden, contains activations parameters and the prototypes of both input tensors and golden output.
+*/
 #ifndef IMAGE_AND_COL_H
 #define IMAGE_AND_COL_H
 

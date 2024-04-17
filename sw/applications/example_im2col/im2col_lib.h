@@ -1,3 +1,14 @@
+/*
+    Copyright EPFL contributors.
+    Licensed under the Apache License, Version 2.0, see LICENSE for details.
+    SPDX-License-Identifier: Apache-2.0
+
+    Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
+    
+    Info: Header file of im2col_lib.c, containing the function prototypes, parameters macros and the configuration of hardware, 
+    prints and performance analysis.
+*/
+
 #ifndef _IM2COL_
 #define _IM2COL_
 

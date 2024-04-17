@@ -1,6 +1,13 @@
 /*
-    Testbench for verification and performance analysis of im2col algorithm.
+    Copyright EPFL contributors.
+    Licensed under the Apache License, Version 2.0, see LICENSE for details.
+    SPDX-License-Identifier: Apache-2.0
+
+    Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
+    
+    Info: Example application of im2col algorithm with configurable format, hardware, verification and performance analysis.
 */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -11,6 +18,7 @@
 // Define the format of the im2col to test:
 // 0: NCHW
 // 1: NHWC
+
 #define FORMAT 0
 
 int main()
