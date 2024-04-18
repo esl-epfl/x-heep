@@ -1,40 +1,76 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "/home/antoine/FORKs/CMSIS-DSP-PULPino/inc/riscv_math.h"
-#include "/home/antoine/FORKs/CMSIS-DSP-PULPino/inc/x_heep_emul.h"
-// HAD RO MODIFY THE X_HEEP_EMUL FILE AND ADD ADD2v
-int main(int argc, char *argv[])
-{
-   /*
-    void perf_enable_id( int eventid){
-        cpu_perf_conf_events(SPR_PCER_EVENT_MASK(eventid));
-        cpu_perf_conf(SPR_PCMR_ACTIVE | SPR_PCMR_SATURATE);
-    };
-    */
-    #define PRINT_F32(X,Y) printf("\n"); for(int i =0 ; i < (Y); i++) printf("%d  ",(int)(X[i]*100)); \
-    printf("\n\n")
-    #define PRINT_Q(X,Y) printf("\n"); for(int i =0 ; i < (Y); i++) printf("0x%x  ",X[i]); \
-    printf("\n\n")
-    //#define PRINT_OUTPUT  /*for testing functionality for each function, removed while benchmarking*/
-    #define MAX_BLOCKSIZE     32
-    #define EVENT_ID 0x00  /*number of cycles ID for benchmarking*/
-    q7_t result_q7[MAX_BLOCKSIZE];
-    q7_t srcA_buf_q7[MAX_BLOCKSIZE] =
-{
-   0x75,  0x13,   0x15,
-   0x44,  0x11,   0x1C,
-   0x52,  0x0B,   0x83,
-   0x91,  0x33,   0x25,
-   0x1A,  0x4D,   0x6F,
-   0x26,  0x01,   0xF1,
-   0xAC,  0x66,   0x76,
-   0x54,  0x87,   0x36,
-   0x22,  0x33,   0xE1,
-   0x61,  0x54,   0x35,
-   0x91,  0x49
-};
+/* ----------------------------------------------------------------------    
+* Copyright (C) 2010-2014 ARM Limited. All rights reserved.    
+*    
+* $Date:        19. March 2015
+* $Revision: 	V.1.4.5
+*    
+* Project: 	    CMSIS DSP Library    
+* Title:		arm_shift_q7.c    
+*    
+* Description:	Processing function for the Q7 Shifting    
+*    
+* Target Processor: Cortex-M4/Cortex-M3/Cortex-M0
+*  
+* Redistribution and use in source and binary forms, with or without 
+* modification, are permitted provided that the following conditions
+* are met:
+*   - Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   - Redistributions in binary form must reproduce the above copyright
+*     notice, this list of conditions and the following disclaimer in
+*     the documentation and/or other materials provided with the 
+*     distribution.
+*   - Neither the name of ARM LIMITED nor the names of its contributors
+*     may be used to endorse or promote products derived from this
+*     software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+* COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+* BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+* LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+* ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+* POSSIBILITY OF SUCH DAMAGE.   
 
-  void riscv_shift_q7(
+ Modifications 2017  Mostafa Saleh       (Ported to RISC-V PULPino)
+* -------------------------------------------------------------------- */
+
+#include "riscv_math.h"
+#include "x_heep_emul.h"
+/**        
+ * @ingroup groupMath        
+ */
+
+/**        
+ * @addtogroup shift        
+ * @{        
+ */
+
+
+/**        
+ * @brief  Shifts the elements of a Q7 vector a specified number of bits.        
+ * @param[in]  *pSrc points to the input vector        
+ * @param[in]  shiftBits number of bits to shift.  A positive value shifts left; a negative value shifts right.        
+ * @param[out]  *pDst points to the output vector        
+ * @param[in]  blockSize number of samples in the vector        
+ * @return none.        
+ *    
+ * \par Conditions for optimum performance    
+ *  Input and output buffers should be aligned by 32-bit    
+ *    
+ *        
+ * <b>Scaling and Overflow Behavior:</b>        
+ * \par        
+ * The function uses saturating arithmetic.        
+ * Results outside of the allowable Q7 range [0x8 0x7F] will be saturated.        
+ */
+
+void riscv_shift_q7(
   q7_t * pSrc,
   int8_t shiftBits,
   q7_t * pDst,
@@ -127,11 +163,6 @@ int main(int argc, char *argv[])
 
 }
 
-    riscv_shift_q7(srcA_buf_q7, 3, result_q7, MAX_BLOCKSIZE);    
-    PRINT_Q(result_q7,MAX_BLOCKSIZE);
-    printf("\nCorrect answer:\n");
-    printf("0x7F 0x7F 0x7F 0x7F 0x7F 0x7F 0x7F 0x58 0x80 0x80 0x7F 0x7F 0x7F 0x7F 0x7F 0x7F 0x08 0x88 0x80 0x7F 0x7F 0x7F 0x80 0x7F 0x7F 0x7F 0x80 0x7F 0x7F 0x7F 0x80 0x7F");    printf("\n");
-    
-    printf("hello world!\n");
-    return EXIT_SUCCESS;
-}
+/**        
+ * @} end of shift group        
+ */

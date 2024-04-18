@@ -1,39 +1,72 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "/home/antoine/FORKs/CMSIS-DSP-PULPino/inc/riscv_math.h"
-#include "/home/antoine/FORKs/CMSIS-DSP-PULPino/inc/x_heep_emul.h"
-// HAD RO MODIFY THE X_HEEP_EMUL FILE AND ADD NEG2
-int main(int argc, char *argv[])
-{
-    /*
-        void perf_enable_id( int eventid){
-            cpu_perf_conf_events(SPR_PCER_EVENT_MASK(eventid));
-            cpu_perf_conf(SPR_PCMR_ACTIVE | SPR_PCMR_SATURATE);
-        };
-    */
-    #define PRINT_F32(X,Y) printf("\n"); for(int i =0 ; i < (Y); i++) printf("%d  ",(int)(X[i]*100)); \
-    printf("\n\n")
-    #define PRINT_Q(X,Y) printf("\n"); for(int i =0 ; i < (Y); i++) printf("0x%X  ",X[i]); \
-    printf("\n\n")
-    //#define PRINT_OUTPUT  /*for testing functionality for each function, removed while benchmarking*/
-    #define MAX_BLOCKSIZE     32
-    #define EVENT_ID 0x00  /*number of cycles ID for benchmarking*/
-    q15_t result_q15[MAX_BLOCKSIZE];
+/* ----------------------------------------------------------------------    
+* Copyright (C) 2010-2014 ARM Limited. All rights reserved.    
+*    
+* $Date:        19. March 2015
+* $Revision: 	V.1.4.5
+*    
+* Project: 	    CMSIS DSP Library    
+* Title:		arm_shift_q15.c    
+*    
+* Description:	Shifts the elements of a Q15 vector by a specified number of bits.    
+*    
+* Target Processor: Cortex-M4/Cortex-M3/Cortex-M0
+*  
+* Redistribution and use in source and binary forms, with or without 
+* modification, are permitted provided that the following conditions
+* are met:
+*   - Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   - Redistributions in binary form must reproduce the above copyright
+*     notice, this list of conditions and the following disclaimer in
+*     the documentation and/or other materials provided with the 
+*     distribution.
+*   - Neither the name of ARM LIMITED nor the names of its contributors
+*     may be used to endorse or promote products derived from this
+*     software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+* COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+* BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+* LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+* ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+* POSSIBILITY OF SUCH DAMAGE. 
 
-    q15_t srcA_buf_q15[MAX_BLOCKSIZE] =
-    {
-    0x7512,  0x1375,   0x1565,
-    0x44C3,  0x1188,   0x1CA1,
-    0x5264,  0x0B20,   0x8305,
-    0x9112,  0x3399,   0x2518,
-    0x1AB2,  0x4D01,   0x6F23,
-    0x26FF,  0x0121,   0xF123,
-    0xAC47,  0x6688,   0x76A2,
-    0x5476,  0x8756,   0x36B3,
-    0x2245,  0x3373,   0xE1A9,
-    0x610A,  0x5419,   0x3501,
-    0x9100,  0x4469
-    };
+ Modifications 2017  Mostafa Saleh       (Ported to RISC-V PULPino)
+ Modifications 2024  ESL
+* -------------------------------------------------------------------- */
+
+#include "riscv_math.h"
+#include "x_heep_emul.h"
+
+/**    
+ * @ingroup groupMath    
+ */
+
+/**    
+ * @addtogroup shift    
+ * @{    
+ */
+
+/**    
+ * @brief  Shifts the elements of a Q15 vector a specified number of bits.    
+ * @param[in]  *pSrc points to the input vector    
+ * @param[in]  shiftBits number of bits to shift.  A positive value shifts left; a negative value shifts right.    
+ * @param[out]  *pDst points to the output vector    
+ * @param[in]  blockSize number of samples in the vector    
+ * @return none.    
+ *    
+ * <b>Scaling and Overflow Behavior:</b>    
+ * \par    
+ * The function uses saturating arithmetic.    
+ * Results outside of the allowable Q15 range [0x8000 0x7FFF] will be saturated.    
+ */
+
 
 void riscv_shift_q15(
   q15_t * pSrc,
@@ -126,16 +159,10 @@ void riscv_shift_q15(
       blkCnt--;
     }
   }
-
-}
-riscv_shift_q15(srcA_buf_q15, 2, result_q15, MAX_BLOCKSIZE);
-PRINT_Q(result_q15,MAX_BLOCKSIZE);
-printf("\nCorrect answer:\n");
-printf("0x7FFF 0x4DD4 0x5594 0x7FFF 0x4620 0x7284 0x7FFF 0x2C80 0x8000 0x8000 0x7FFF 0x7FFF 0x6AC8 0x7FFF 0x7FFF 0x7FFF 0x0484 0xC48C 0x8000 0x7FFF 0x7FFF 0x7FFF 0x8000 0x7FFF 0x7FFF 0x7FFF 0x86A4 0x7FFF 0x7FFF 0x7FFF 0x8000 0x7FFF");
-printf("\n");
-printf("hello world!\n");
-return EXIT_SUCCESS;
 }
 
+/**    
+ * @} end of shift group    
+ */
 
 

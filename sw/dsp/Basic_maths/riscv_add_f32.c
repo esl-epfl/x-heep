@@ -20,5 +20,3 @@ void riscv_add_f32(
     blkCnt--;
   }
 }
-return EXIT_SUCCESS;
-}

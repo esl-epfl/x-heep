@@ -1,4 +1,4 @@
-#include "/home/antoine/FORKs/CMSIS-DSP-PULPino/inc/riscv_math.h"
+#include "riscv_math.h"
 //CHANGE IN THE INLINE FUNCTION (ALWAYS INLINE)
 void riscv_mult_q31(
   q31_t * pSrcA,
@@ -12,8 +12,7 @@ void riscv_mult_q31(
     {
         /* C = A * B */
         /* Multiply the inputs and then store the results in the destination buffer. */
-        *pDst++ =
-        (q31_t) clip_q63_to_q31(((q63_t) (*pSrcA++) * (*pSrcB++)) >> 31);
+        *pDst++ = (q31_t) clip_q63_to_q31(((q63_t) (*pSrcA++) * (*pSrcB++)) >> 31);
 
         /* Decrement the blockSize loop counter */
         blkCnt--;

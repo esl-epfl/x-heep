@@ -1,4 +1,4 @@
-#include "/home/antoine/FORKs/CMSIS-DSP-PULPino/inc/riscv_math.h"
+#include "riscv_math.h"
 
   void riscv_negate_q31(
   q31_t * pSrc,

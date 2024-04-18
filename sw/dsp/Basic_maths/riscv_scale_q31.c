@@ -1,3 +1,5 @@
+#include "riscv_math.h"
+
 void riscv_scale_q31(
   q31_t * pSrc,
   q31_t scaleFract,

@@ -1,43 +1,78 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "/home/antoine/FORKs/CMSIS-DSP-PULPino/inc/riscv_math.h"
+/* ----------------------------------------------------------------------    
+* Copyright (C) 2010-2014 ARM Limited. All rights reserved.    
+*    
+* $Date:        19. March 2015
+* $Revision: 	V.1.4.5
+*    
+* Project: 	    CMSIS DSP Library    
+* Title:		arm_sub_f32.c    
+*    
+* Description:	Floating-point vector subtraction.    
+*    
+* Target Processor: Cortex-M4/Cortex-M3/Cortex-M0
+*  
+* Redistribution and use in source and binary forms, with or without 
+* modification, are permitted provided that the following conditions
+* are met:
+*   - Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+*   - Redistributions in binary form must reproduce the above copyright
+*     notice, this list of conditions and the following disclaimer in
+*     the documentation and/or other materials provided with the 
+*     distribution.
+*   - Neither the name of ARM LIMITED nor the names of its contributors
+*     may be used to endorse or promote products derived from this
+*     software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+* COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+* BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+* LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+* ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+* POSSIBILITY OF SUCH DAMAGE. 
 
-int main(int argc, char *argv[])
-{
-    #define PRINT_F32(X,Y) printf("\n"); for(int i =0 ; i < (Y); i++) printf("%d  ",(int)(X[i]*100)); \
-    printf("\n\n")
-    #define MAX_BLOCKSIZE     32
-    float32_t result_f32[MAX_BLOCKSIZE];  
-float32_t srcA_buf_f32[MAX_BLOCKSIZE] =
-{
-  -0.4325648115282207,  -1.6655843782380970,  0.1253323064748307,
-   0.2876764203585489,  -1.1464713506814637,  1.1909154656429988,
-   1.1891642016521031,  -0.0376332765933176,  0.3272923614086541,
-   0.1746391428209245,  -0.1867085776814394,  0.7257905482933027,
-  -0.5883165430141887,   2.1831858181971011, -0.1363958830865957,
-   0.1139313135208096,   1.0667682113591888,  0.0592814605236053,
-  -0.0956484054836690,  -0.8323494636500225,  0.2944108163926404,
-  -1.3361818579378040,   0.7143245518189522,  1.6235620644462707,
-  -0.6917757017022868,   0.8579966728282626,  1.2540014216025324,
-  -1.5937295764474768,  -1.4409644319010200,  0.5711476236581780,
-  -0.3998855777153632,   0.6899973754643451
-};
+ Modifications 2017  Mostafa Saleh       (Ported to RISC-V PULPino) 
+ Modifications 2024  ESL 
+* ---------------------------------------------------------------------------- */
+
+#include "riscv_math.h"
+
+/**        
+ * @ingroup groupMath        
+ */
+
+/**        
+ * @defgroup BasicSub Vector Subtraction        
+ *        
+ * Element-by-element subtraction of two vectors.        
+ *        
+ * <pre>        
+ *     pDst[n] = pSrcA[n] - pSrcB[n],   0 <= n < blockSize.        
+ * </pre>        
+ *        
+ * There are separate functions for floating-point, Q7, Q15, and Q31 data types.        
+ */
+
+/**        
+ * @addtogroup BasicSub        
+ * @{        
+ */
 
 
- float32_t srcB_buf_f32[MAX_BLOCKSIZE] =
-{
-   1.7491401329284098,  0.1325982188803279,   0.3252281811989881,
-  -0.7938091410349637,  0.3149236145048914,  -0.5272704888029532,
-   0.9322666565031119,  1.1646643544607362,  -2.0456694357357357,
-  -0.6443728590041911,  1.7410657940825480,   0.4867684246821860,
-   1.0488288293660140,  1.4885752747099299,   1.2705014969484090,
-  -1.8561241921210170,  2.1343209047321410,  1.4358467535865909,
-  -0.9173023332875400, -1.1060770780029008,   0.8105708062681296,
-   0.6985430696369063, -0.4015827425012831,   1.2687512030669628,
-  -0.7836083053674872,  0.2132664971465569,   0.7878984786088954,
-   0.8966819356782295, -0.1869172943544062,   1.0131816724341454,
-   0.2484350696132857,  0.0596083377937976
-};
+/**        
+ * @brief Floating-point vector subtraction.        
+ * @param[in]       *pSrcA points to the first input vector        
+ * @param[in]       *pSrcB points to the second input vector        
+ * @param[out]      *pDst points to the output vector        
+ * @param[in]       blockSize number of samples in each vector        
+ * @return none.        
+ */
 
 void riscv_sub_f32(
   float32_t * pSrcA,
@@ -59,9 +94,7 @@ void riscv_sub_f32(
     blkCnt--;
   }
 }
-riscv_sub_f32(srcA_buf_f32, srcB_buf_f32, result_f32, MAX_BLOCKSIZE);
-  
-PRINT_F32(result_f32,MAX_BLOCKSIZE);
-return EXIT_SUCCESS;
-}
 
+/**        
+ * @} end of BasicSub group        
+ */
