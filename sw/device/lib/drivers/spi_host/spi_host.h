@@ -151,7 +151,6 @@ typedef enum {
 typedef struct spi {
     volatile spi_host* peri;
     uintptr_t          base_addr;
-    bool                     is_init;
 } spi_host_t;
 
 /**
@@ -229,23 +228,23 @@ typedef struct spi_status {
 /**
  * Initialize SPI for flash device.
  *
- * @return The SPI peripheral identifier index for flash.
+ * @return The SPI peripheral structure for flash.
  */
-spi_host_t spi_init_flash(bool output_en);
+spi_host_t spi_init_flash();
 
 /**
  * Initialize SPI for host device.
  *
- * @return The SPI peripheral identifier index for host.
+ * @return The SPI peripheral structure for host.
  */
-spi_host_t spi_init_host(bool output_en);
+spi_host_t spi_init_host();
 
 /**
  * Initialize SPI for secondary host device.
  *
- * @return The SPI peripheral identifier index for host 2.
+ * @return The SPI peripheral structure for host 2.
  */
-spi_host_t spi_init_host2(bool output_en);
+spi_host_t spi_init_host2();
 
 /**
  * Get enabled events for a specified SPI peripheral.
@@ -325,10 +324,6 @@ spi_return_flags_e spi_enable_evt_intr_test(spi_host_t spi, bool enable);
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
 spi_return_flags_e spi_alert_test_fatal_fault_trigger(spi_host_t spi);
-
-
-
-// SPI registers access functions
 
 /**
  * Read the TX FIFO depth register.
@@ -487,25 +482,25 @@ spi_return_flags_e spi_output_enable(spi_host_t spi, bool enable);
 /****************************************************************************/
 
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_evt_intr_state(spi_host_t spi) {
-    // if (spi == NULL) return SPI_TRISTATE_ERROR;
+    if (spi.peri == NULL) return SPI_TRISTATE_ERROR;
     return bitfield_read(spi.peri->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_SPI_EVENT_BIT)
            ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_error_intr_state(spi_host_t spi) {
-    // if (spi == NULL) return SPI_TRISTATE_ERROR;
+    if (spi.peri == NULL) return SPI_TRISTATE_ERROR;
     return bitfield_read(spi.peri->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_ERROR_BIT)
            ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_evt_intr_enable(spi_host_t spi) {
-    // if (spi == NULL) return SPI_TRISTATE_ERROR;
+    if (spi.peri == NULL) return SPI_TRISTATE_ERROR;
     return bitfield_read(spi.peri->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_SPI_EVENT_BIT)
            ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_error_intr_enable(spi_host_t spi) {
-    // if (spi == NULL) return SPI_TRISTATE_ERROR;
+    if (spi.peri == NULL) return SPI_TRISTATE_ERROR;
     return bitfield_read(spi.peri->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_ERROR_BIT)
            ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
@@ -516,7 +511,7 @@ static inline __attribute__((always_inline)) spi_tristate_e spi_get_error_intr_e
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) const volatile spi_status_t* spi_get_status(spi_host_t spi) {
-    // if (spi == NULL) return NULL;
+    if (spi.peri == NULL) return NULL;
     return (const volatile spi_status_t*) &spi.peri->STATUS;
 }
 
@@ -527,7 +522,7 @@ static inline __attribute__((always_inline)) const volatile spi_status_t* spi_ge
  */
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_active(spi_host_t spi) {
     // TODO: Find better approach to inform user
-    // if (spi == NULL) return SPI_TRISTATE_ERROR;
+    if (spi.peri == NULL) return SPI_TRISTATE_ERROR;
     return spi_get_status(spi)->active ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
@@ -538,7 +533,7 @@ static inline __attribute__((always_inline)) spi_tristate_e spi_get_active(spi_h
  */
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_ready(spi_host_t spi) {
     // TODO: Find better approach to inform user
-    // if (spi == NULL) return SPI_TRISTATE_ERROR;
+    if (spi.peri == NULL) return SPI_TRISTATE_ERROR;
     return spi_get_status(spi)->ready ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
@@ -548,7 +543,7 @@ static inline __attribute__((always_inline)) spi_tristate_e spi_get_ready(spi_ho
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_ready(spi_host_t spi) {
-    // if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
     while (spi_get_ready(spi) == SPI_TRISTATE_FALSE);
     return SPI_FLAG_OK;
 }
@@ -559,7 +554,7 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rea
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_idle(spi_host_t spi) {
-    // if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
     while (spi_get_active(spi) == SPI_TRISTATE_TRUE);
     return SPI_FLAG_OK;
 }
@@ -570,7 +565,7 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_idl
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_watermark(spi_host_t spi) {
-    // if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
     while (!spi_get_status(spi)->txwm);
     return SPI_FLAG_OK;
 }
@@ -581,7 +576,7 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_empty(spi_host_t spi) {
-    // if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
     while (!spi_get_status(spi)->txempty);
     return SPI_FLAG_OK;
 }
@@ -592,7 +587,7 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_not_empty(spi_host_t spi) {
-    // if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
     while (spi_get_status(spi)->txempty);
     return SPI_FLAG_OK;
 }
@@ -603,7 +598,7 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_not_full(spi_host_t spi) {
-    // if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
     while (spi_get_status(spi)->txfull);
     return SPI_FLAG_OK;
 }
@@ -614,7 +609,7 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_empty(spi_host_t spi) {
-    // if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
     while (!spi_get_status(spi)->rxempty);
     return SPI_FLAG_OK;
 }
@@ -625,7 +620,7 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_not_empty(spi_host_t spi) {
-    // if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
     while (spi_get_status(spi)->rxempty);
     return SPI_FLAG_OK;
 }
@@ -636,7 +631,7 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_not_full(spi_host_t spi) {
-    // if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
     while (spi_get_status(spi)->rxfull);
     return SPI_FLAG_OK;
 }
@@ -647,7 +642,7 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_watermark(spi_host_t spi) {
-    // if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
     while (!spi_get_status(spi)->rxwm);
     return SPI_FLAG_OK;
 }
