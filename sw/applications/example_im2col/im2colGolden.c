@@ -40,7 +40,6 @@ const uint32_t golden_im2col_nchw[108] = {
     43660, 52141, 0, 52033, 35992, 0, 0, 0, 0
 };
 
-
 const uint32_t input_image_nhwc[48] = {
  4047, 16986, 10416,
  22393, 36967, 57252,

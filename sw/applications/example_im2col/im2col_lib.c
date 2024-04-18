@@ -19,7 +19,7 @@ int output_data[OH_NCHW*OW_NCHW];
 
 int im2col_nchw_int32()
 {
-    PRINTF("%d %d\n", OH_NCHW, OW_NCHW);
+    PRINTF("OH: %d, OW: %d\n", OH_NCHW, OW_NCHW);
 
     int size_transfer = 0;
     int im_row = 0;
