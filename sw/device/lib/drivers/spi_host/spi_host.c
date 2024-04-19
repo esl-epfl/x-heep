@@ -82,13 +82,13 @@ static spi_host_t _spi_flash = {
 };
 
 static spi_host_t _spi_host = {
-    .peri       = ((volatile spi_host *) SPI_FLASH_START_ADDRESS),
-    .base_addr  = SPI_FLASH_START_ADDRESS,
+    .peri       = ((volatile spi_host *) SPI_HOST_START_ADDRESS),
+    .base_addr  = SPI_HOST_START_ADDRESS,
 };
 
 static spi_host_t _spi_host2 = {
-    .peri       = ((volatile spi_host *) SPI_FLASH_START_ADDRESS),
-    .base_addr  = SPI_FLASH_START_ADDRESS,
+    .peri       = ((volatile spi_host *) SPI2_START_ADDRESS),
+    .base_addr  = SPI2_START_ADDRESS,
 };
 
 /****************************************************************************/
