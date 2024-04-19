@@ -23,7 +23,7 @@ export RISCV='/tools/riscv' &&\
 # All peripherals are included to make sure all apps can be built.
 sed 's/is_included: "no",/is_included: "yes",/' -i mcu_cfg.hjson
 # The MCU is generated with various memory banks to avoid example code not fitting. 	
-make mcu-gen MEMORY_BANKS=6
+make mcu-gen X_HEEP_CFG=configs/ci.hjson
 
 echo ========================================
 echo ========================================

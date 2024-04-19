@@ -22,30 +22,21 @@ module memory_subsystem
     input logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] set_retentive_ni
 );
 
-  localparam int NumWords = 32 * 1024 / 4;
-  localparam int AddrWidth = $clog2(32 * 1024);
-% if ram_numbanks_il != 0:
-  localparam int ilAddrWidth = $clog2(${ram_numbanks_il} * 32 * 1024);
-% endif
-
   logic [NUM_BANKS-1:0] ram_valid_q;
   // Clock-gating
   logic [NUM_BANKS-1:0] clk_cg;
-% if ram_numbanks_il != 0:
-  logic [NUM_BANKS-1:0][AddrWidth-3:0] ram_req_addr;
 
-  for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_addr_napot
-    if (i >= NUM_BANKS - ${ram_numbanks_il}) begin
-      assign ram_req_addr[i] = {
-        ram_req_i[i].addr[ilAddrWidth-1:AddrWidth] -
-        core_v_mini_mcu_pkg::RAM${ram_numbanks_cont}_START_ADDRESS[ilAddrWidth-1:AddrWidth],
-        ram_req_i[i].addr[AddrWidth-1:${2+log_ram_numbanks_il}]
-      };
-    end else begin
-      assign ram_req_addr[i] = ram_req_i[i].addr[AddrWidth-1:2];
-    end
-  end
-% endif
+% for i, bank in enumerate(xheep.iter_ram_banks()):
+  logic [${bank.size().bit_length()-1 -2}-1:0] ram_req_addr_${i};
+% endfor
+
+% for i, bank in enumerate(xheep.iter_ram_banks()):
+<%
+  p1 = bank.size().bit_length()-1 + bank.il_level()
+  p2 = 2 + bank.il_level()
+%>
+  assign ram_req_addr_${i} = ram_req_i[${i}].addr[${p1}-1:${p2}];
+% endfor
 
   for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_sram
 
@@ -66,27 +57,24 @@ module memory_subsystem
 
     assign ram_resp_o[i].gnt = ram_req_i[i].req;
     assign ram_resp_o[i].rvalid = ram_valid_q[i];
-
-    //Fixed to 8KWords per bank (32KB)
-    sram_wrapper #(
-        .NumWords (NumWords),
-        .DataWidth(32'd32)
-    ) ram_i (
-        .clk_i(clk_cg[i]),
-        .rst_ni(rst_ni),
-        .req_i(ram_req_i[i].req),
-        .we_i(ram_req_i[i].we),
-% if ram_numbanks_il == 0:
-        .addr_i(ram_req_i[i].addr[AddrWidth-1:2]),
-% else:
-        .addr_i(ram_req_addr[i]),
-% endif
-        .wdata_i(ram_req_i[i].wdata),
-        .be_i(ram_req_i[i].be),
-        .set_retentive_ni(set_retentive_ni[i]),
-        .rdata_o(ram_resp_o[i].rdata)
-    );
-
   end
+
+%for i, bank in enumerate(xheep.iter_ram_banks()):
+  sram_wrapper #(
+      .NumWords (${bank.size() // 4}),
+      .DataWidth(32'd32)
+  ) ram${bank.name()}_i (
+      .clk_i(clk_cg[${i}]),
+      .rst_ni(rst_ni),
+      .req_i(ram_req_i[${i}].req),
+      .we_i(ram_req_i[${i}].we),
+      .addr_i(ram_req_addr_${i}),
+      .wdata_i(ram_req_i[${i}].wdata),
+      .be_i(ram_req_i[${i}].be),
+      .set_retentive_ni(set_retentive_ni[${i}]),
+      .rdata_o(ram_resp_o[${i}].rdata)
+  );
+
+%endfor
 
 endmodule

@@ -7,26 +7,7 @@
 
     cpu_type: cv32e20
 
-    bus_type: onetoM
-
-    ram: {
-        address: 0x00000000, #only tried with 0, cannot be changed for now
-        numbanks: 2, #each bank is 32kB, cannot be changed for now
-        numbanks_interleaved: 0,
-    },
-
     linker_script: {
-        #value used for the on-chip linker script, the on-flash linker script is generated using FLASH values and the whole RAM values
-        onchip_ls: {
-            code: {
-                address: 0x00000000,
-                lenght: 0x00000C800, #minimum size for freeRTOS and clang
-            }
-            data: {
-                address: 0x00000C800,
-                lenght: whatisleft, #keyword used to calculate the size as: ram.length - code.lenght
-            }
-        },
         stack_size: 0x800,
         heap_size: 0x800,
     }
