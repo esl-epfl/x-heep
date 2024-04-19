@@ -521,10 +521,11 @@ If you know what you are doing and want to minimize the overhead of using the DM
     /* Set the data transfer type as half-words.*/
     dma_cb.peri->TYPE = DMA_DATA_TYPE_HALF_WORD;
 
-    /* Set the transaction size, this will launch the transaction.*/
+    /* Set the transaction size, this will launch the transaction.
+    If you want to restart the same transaction again, just run from here.*/
     dma_cb.peri->SIZE = HALF_WORDS_TO_COPY;
 
-    /* Go to sleep until the DMA finishes. */
+    /* Go to sleep until the DMA finishes.*/
     while( dma_cb.peri->STATUS == 0 ) {
       /* Disable the interrupts MSTATUS to avoid going to sleep AFTER the interrupt
       was triggered.*/
