@@ -4,9 +4,9 @@
 **                            *******************
 **
 ** project  : X-HEEP
-** filename : spi_host.h
+** filename : spi_sdk.h
 ** version  : 1
-** date     : 06/03/24
+** date     : 18/04/24
 **
 ***************************************************************************
 **
@@ -19,9 +19,9 @@
 /***************************************************************************/
 /***************************************************************************/
 /**
-* @file   spi_host.h
-* @date   06/03/24
-* @brief  The Serial Peripheral Interface (SPI) driver to set up and use the
+* @file   spi_sdk.h
+* @date   18/04/24
+* @brief  The Serial Peripheral Interface (SPI) SDK to set up and use the
 * SPI peripheral
 */
 
@@ -38,13 +38,14 @@
 
 #include "mmio.h"
 
-#include "spi_host.h"
-
 /****************************************************************************/
 /**                                                                        **/
 /**                       DEFINITIONS AND MACROS                           **/
 /**                                                                        **/
 /****************************************************************************/
+
+#define SPI_MAX_IDX 3
+#define SPI_IDX_INVALID(idx)    idx > SPI_MAX_IDX
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,11 +58,19 @@ extern "C" {
 /****************************************************************************/
 
 /**
+* SPI Peripheral IDX
+*/
+typedef enum {
+    SPI_IDX_FLASH       = 0,
+    SPI_IDX_HOST        = 1,
+    SPI_IDX_HOST_2      = 2
+} spi_idx_e;
+
+/**
  * Initialization parameters for SPI.
  */
 typedef struct {
-    spi_host_t device;
-    bool initialized;
+    spi_idx_e spi_idx;
 } spi_t;
 
 /****************************************************************************/
@@ -75,6 +84,8 @@ typedef struct {
 /**                          EXPORTED FUNCTIONS                            **/
 /**                                                                        **/
 /****************************************************************************/
+
+spi_t spi_init(spi_idx_e idx);
 
 /****************************************************************************/
 /**                                                                        **/

@@ -47,9 +47,6 @@
 /**                                                                        **/
 /****************************************************************************/
 
-// TODO: Remove these once sure
-#define SPI_MAX_IDX 3
-#define SPI_IDX_INVALID(idx)    idx > SPI_MAX_IDX
 #define SPI_CSID_INVALID(csid)  csid >= SPI_HOST_PARAM_NUM_C_S
 
 #ifdef __cplusplus
@@ -61,16 +58,6 @@ extern "C" {
 /**                       TYPEDEFS AND STRUCTURES                          **/
 /**                                                                        **/
 /****************************************************************************/
-
-/**
-* SPI Peripheral IDX
-*/
-typedef enum {
-    SPI_IDX_FLASH       = 0,
-    SPI_IDX_MMIO        = 1,
-    SPI_IDX_HOST        = 2,
-    SPI_IDX_HOST_2      = 3
-} spi_idx_e;
 
 /**
 * SPI speed type
@@ -216,14 +203,11 @@ typedef struct spi_status {
 /**                                                                        **/
 /****************************************************************************/
 
-// extern volatile spi_host* const spi_peris[4];
-
 /****************************************************************************/
 /**                                                                        **/
 /**                          EXPORTED FUNCTIONS                            **/
 /**                                                                        **/
 /****************************************************************************/
-
 
 /**
  * Initialize SPI for flash device.

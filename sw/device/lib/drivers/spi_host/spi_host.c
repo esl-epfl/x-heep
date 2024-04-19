@@ -97,7 +97,6 @@ static spi_host_t _spi_host2 = {
 /**                                                                        **/
 /****************************************************************************/
 
-
 spi_host_t spi_init_flash() {
     return _spi_flash;
 }
