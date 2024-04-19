@@ -116,7 +116,6 @@ filesets:
 
   ip-fpga-pynq-z2:
     files:
-    - hw/fpga/scripts/pynq-z2/set_board.tcl: { file_type: tclSource }
     - hw/fpga/scripts/pynq-z2/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
 
   ip-fpga-nexys:
@@ -497,6 +496,8 @@ targets:
     tools:
       vivado:
         part: xc7z020clg400-1
+        board_part: tul.com.tw:pynq-z2:part0:1.0
+        board_repo_paths: [../../../hw/fpga/board_files/vendor/esl_epfl_pynq_z2_board_files]
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
 
   zcu104:
