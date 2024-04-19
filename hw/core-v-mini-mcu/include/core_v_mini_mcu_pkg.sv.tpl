@@ -13,6 +13,8 @@
  *
  */
 
+`include "axi/typedef.svh"
+
 package core_v_mini_mcu_pkg;
 
   import addr_map_rule_pkg::*;
@@ -194,6 +196,32 @@ package core_v_mini_mcu_pkg;
   localparam NUM_PAD_MUXED = ${total_pad_muxed};
 
   localparam int unsigned NUM_PAD_PORT_SEL_WIDTH = NUM_PAD > 1 ? $clog2(NUM_PAD) : 32'd1;
-
+    parameter int unsigned AXI_ADDR_WIDTH = 32;
+    parameter int unsigned AXI_DATA_WIDTH = 32;
+    parameter int unsigned AxiDataWidth = 32;
+    parameter int unsigned RegDataWidth = 32;
+    parameter int unsigned StreamDataBytes = 32;
+        localparam int unsigned AxiStrbWidth = AxiDataWidth / 8;
+    localparam int unsigned RegStrbWidth = RegDataWidth / 8;
+      typedef logic [StreamDataBytes*8-1:0] tdata_t;
+    typedef logic [StreamDataBytes-1:0] tstrb_t;
+    typedef logic [StreamDataBytes-1:0] tkeep_t;
+    typedef logic tlast_t;
+    typedef logic id_t;
+    typedef logic tdest_t;
+    typedef logic tuser_t;
+    typedef logic tready_t;
+    typedef logic[AXI_ADDR_WIDTH-1:0] axi_addr_t;
+    typedef logic[AXI_DATA_WIDTH-1:0] axi_data_t;
+    typedef logic[AxiStrbWidth-1:0] axi_strb_t;
+    typedef logic[7:0] axi_user_t;
+    typedef logic[7:0] axi_id_t;
+    `AXI_TYPEDEF_AW_CHAN_T(axi_aw_t, axi_addr_t, axi_id_t, axi_user_t)
+    `AXI_TYPEDEF_W_CHAN_T(axi_w_t, axi_data_t, axi_strb_t, axi_user_t)
+    `AXI_TYPEDEF_B_CHAN_T(axi_b_t, axi_id_t, axi_user_t)
+    `AXI_TYPEDEF_AR_CHAN_T(axi_ar_t, axi_addr_t, axi_id_t, axi_user_t)
+    `AXI_TYPEDEF_R_CHAN_T(axi_r_t, axi_data_t, axi_id_t, axi_user_t)
+    `AXI_TYPEDEF_REQ_T(axi_req_t, axi_aw_t, axi_w_t, axi_ar_t)
+    `AXI_TYPEDEF_RESP_T(axi_resp_t, axi_b_t, axi_r_t)
 
 endpackage

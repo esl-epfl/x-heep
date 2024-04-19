@@ -2,10 +2,17 @@
 // Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
+
+
+
+
 module core_v_mini_mcu
   import obi_pkg::*;
   import reg_pkg::*;
+  import axi_pkg::*;
+//  import serial_link_pkg::*;
 #(
+
     parameter COREV_PULP = 0,
     parameter FPU = 0,
     parameter ZFINX = 0,
@@ -105,6 +112,45 @@ ${pad.core_v_mini_mcu_interface}
   obi_resp_t dma_write_ch0_resp;
   obi_req_t dma_addr_ch0_req;
   obi_resp_t dma_addr_ch0_resp;
+  
+
+  % for peripheral in peripherals.items():
+  % if peripheral[0] in ("obi2axi"):
+  % if peripheral[1]['is_included'] in ("yes"):
+  // axi2obi obi2axi
+    obi_req_t obi_req_obi2axi;
+    obi_resp_t obi_resp_obi2axi;
+
+  % endif
+  % endif
+  % endfor
+
+ // OBI2AXI internal signal declaration 
+  % for peripheral in peripherals.items():
+  % if peripheral[0] in ("serial_link"):
+  % if peripheral[1]['is_included'] in ("yes"):
+  // axi2obi obi2axi
+
+
+    
+    core_v_mini_mcu_pkg::axi_req_t  axi_in_req_i,  axi_out_req_o;
+    core_v_mini_mcu_pkg::axi_resp_t  axi_in_rsp_o,  axi_out_rsp_i;
+    //`AXIS_TYPEDEF_S_T(__name``_s_chan_t, __tdata_t, __tstrb_t, __tkeep_t, __tlast_t, __tid_t, __tdest_t, __tuser_t)  \
+    //`AXIS_TYPEDEF_REQ_T(__name``_req_t,__name``_s_chan_t)  \
+    //`AXIS_TYPEDEF_RSP_T(__name``_rsp_t, __tready_t)
+
+
+    //axi_req_t   axi_in_req_i;
+    //axi_rsp_t   axi_in_rsp_o;
+    //axi_req_t   axi_out_req_o;
+    //axi_rsp_t   axi_out_rsp_i;
+    //cfg_req_t   cfg_req_i;
+    //cfg_rsp_t   cfg_rsp_o;
+  % endif
+  % endif
+  % endfor
+
+
 
   // ram signals
   obi_req_t [core_v_mini_mcu_pkg::NUM_BANKS-1:0] ram_slave_req;
@@ -187,6 +233,9 @@ ${pad.core_v_mini_mcu_interface}
 
   // I2s
   logic i2s_rx_valid;
+
+ 
+
 
   assign intr = {
     1'b0, irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
@@ -440,6 +489,169 @@ ${pad.core_v_mini_mcu_interface}
       .i2s_sd_i(i2s_sd_i),
       .i2s_rx_valid_o(i2s_rx_valid)
   );
+
+
+  // CORE(OBI)2AXI 
+% for peripheral in peripherals.items():
+% if peripheral[0] in ("obi2axi"):
+% if peripheral[1]['is_included'] in ("yes"):
+
+  core2axi #(
+    .AXI4_WDATA_WIDTH(AXI_DATA_WIDTH),
+    .AXI4_RDATA_WIDTH(AXI_DATA_WIDTH)
+  ) obi2axi_bridge_virtual_obi_i (
+    .clk_i,
+    .rst_ni,
+
+    .data_req_i(obi_req_obi2axi.req),
+    .data_gnt_o(obi_resp_obi2axi.gnt),
+    .data_rvalid_o(obi_resp_obi2axi.rvalid),
+    .data_addr_i(obi_req_obi2axi.addr),
+    .data_we_i(obi_req_obi2axi.we),
+    .data_be_i(obi_req_obi2axi.be),
+    .data_rdata_o(obi_resp_obi2axi.rdata),
+    .data_wdata_i(obi_req_obi2axi.wdata),
+
+    .aw_id_o(axi_out_req_o.aw.id),
+    .aw_addr_o(axi_out_req_o.aw.addr),
+    .aw_len_o(axi_out_req_o.aw.len),
+    .aw_size_o(axi_out_req_o.aw.size),
+    .aw_burst_o(axi_out_req_o.aw.burst),
+    .aw_lock_o(axi_out_req_o.aw.lock),
+    .aw_cache_o(axi_out_req_o.aw.cache),
+    .aw_prot_o(axi_out_req_o.aw.prot),
+    .aw_region_o(axi_out_req_o.aw.region),
+    .aw_user_o(axi_out_req_o.aw.user),
+    .aw_qos_o(axi_out_req_o.aw.qos),
+    .aw_valid_o(axi_out_req_o.aw_valid),
+    .aw_ready_i(axi_out_rsp_i.aw_ready),
+
+    .w_data_o(axi_out_req_o.w.data),
+    .w_strb_o(axi_out_req_o.w.strb),
+    .w_last_o(axi_out_req_o.w.last),
+    .w_user_o(axi_out_req_o.w.user),
+    .w_valid_o(axi_out_req_o.w_valid),
+    .w_ready_i(axi_out_rsp_i.w_ready),
+
+    .b_id_i(axi_out_rsp_i.b.id),
+    .b_resp_i(axi_out_rsp_i.b.resp),
+    .b_valid_i(axi_out_rsp_i.b_valid),
+    .b_user_i(axi_out_rsp_i.b.user),
+    .b_ready_o(axi_out_req_o.b_ready),
+
+    .ar_id_o(axi_out_req_o.ar.id),
+    .ar_addr_o(axi_out_req_o.ar.addr),
+    .ar_len_o(axi_out_req_o.ar.len),
+    .ar_size_o(axi_out_req_o.ar.size),
+    .ar_burst_o(axi_out_req_o.ar.burst),
+    .ar_lock_o(axi_out_req_o.ar.lock),
+    .ar_cache_o(axi_out_req_o.ar.cache),
+    .ar_prot_o(axi_out_req_o.ar.prot),
+    .ar_region_o(axi_out_req_o.ar.region),
+    .ar_user_o(axi_out_req_o.ar.user),
+    .ar_qos_o(axi_out_req_o.ar.qos),
+    .ar_valid_o(axi_out_req_o.ar_valid),
+    .ar_ready_i(axi_out_rsp_i.ar_ready),
+
+    .r_id_i(axi_out_rsp_i.r.id),
+    .r_data_i(axi_out_rsp_i.r.data),
+    .r_resp_i(axi_out_rsp_i.r.resp),
+    .r_last_i(axi_out_rsp_i.r.last),
+    .r_user_i(axi_out_rsp_i.r.user), //.r_user_i('0),
+    .r_valid_i(axi_out_rsp_i.r_valid),
+    .r_ready_o(axi_out_req_o.r_ready)
+  );
+% else:
+
+% endif
+% endif
+% endfor
+
+// AXI2CORE(OBI)
+% for peripheral in peripherals.items():
+% if peripheral[0] in ("obi2axi"):
+% if peripheral[1]['is_included'] in ("yes"):
+  axi2obi #(
+    .C_S00_AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+    .C_S00_AXI_ADDR_WIDTH(AXI_ADDR_WIDTH)
+  ) axi2obi_bridge_virtual_r_obi_i (
+    .gnt_i(obi_resp_obi2axi.gnt),
+    .rvalid_i(obi_resp_obi2axi.rvalid),
+    .we_o(obi_req_obi2axi.we),
+    .be_o(obi_req_obi2axi.be),
+    .addr_o(obi_req_obi2axi),
+    .wdata_o(obi_req_obi2axi.wdata),
+    .rdata_i(obi_resp_obi2axi.rdata),
+    .req_o(obi_req_obi2axi.req),
+
+    .s00_axi_aclk(clk_i),
+    .s00_axi_aresetn(rst_ni),
+
+    .s00_axi_araddr(axi_in_req_i.ar.addr),
+    .s00_axi_arvalid(axi_in_req_i.ar_valid),
+    .s00_axi_arready(axi_in_rsp_o.ar_ready),
+    .s00_axi_arprot(axi_in_req_i.ar.prot),
+
+    .s00_axi_rdata(axi_in_rsp_o.r.data),
+    .s00_axi_rresp(axi_in_rsp_o.r.resp),
+    .s00_axi_rvalid(axi_in_rsp_o.r_valid),
+    .s00_axi_rready(axi_in_req_i.r_ready),
+
+    .s00_axi_awaddr(axi_in_req_i.aw.addr),
+    .s00_axi_awvalid(axi_in_req_i.aw_valid),
+    .s00_axi_awready(axi_in_rsp_o.aw_ready),
+    .s00_axi_awprot(axi_in_req_i.aw.prot),
+
+    .s00_axi_wdata(axi_in_req_i.w.data),
+    .s00_axi_wvalid(axi_in_req_i.w_valid),
+    .s00_axi_wready(axi_in_rsp_o.w_ready),
+    .s00_axi_wstrb(axi_in_req_i.w.strb),
+
+    .s00_axi_bresp(axi_in_rsp_o.b.resp),
+    .s00_axi_bvalid(axi_in_rsp_o.b_valid),
+    .s00_axi_bready(axi_in_req_i.b_ready)
+  );
+  % endif
+% endif
+% endfor
+
+
+// SERIAL LINK
+% for peripheral in peripherals.items():
+% if peripheral[0] in ("serial_link"):
+% if peripheral[1]['is_included'] in ("yes"):
+  serial_link_occamy_wrapper #(
+    .NumChannels(1),
+    .NumLanes(1)
+  ) serial_link_occamy_wrapper_i (
+    .clk_i(clk_i),
+    .rst_ni(rst_ni),
+    .clk_reg_i(clk_i),    //intended for clock gating purposes
+    .rst_reg_ni(rst_ni),  //intended for SW reset purposes
+
+    .testmode_i('0),
+
+    .axi_in_req_i(axi_in_req_i),
+    .axi_in_rsp_o(axi_in_rsp_o),
+    .axi_out_req_o(axi_out_req_o),
+    .axi_out_rsp_i(axi_out_rsp_i),
+
+    .cfg_req_i(rst_ni),                 // register configuration
+    .cfg_rsp_o(),
+
+    .ddr_rcv_clk_i(),
+    .ddr_rcv_clk_o(),
+    .ddr_i(),
+    .ddr_o()
+  );
+  % endif
+% endif
+% endfor
+
+
+
+
+
 
   assign pdm2pcm_pdm_o = 0;
   assign pdm2pcm_pdm_oe_o = 0;

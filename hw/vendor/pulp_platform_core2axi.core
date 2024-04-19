@@ -1,0 +1,12 @@
+CAPI=2:
+name : pulp-platform.org::core2axi
+
+filesets:
+  rtl:
+    files: [core2axi/rtl/core2axi.sv]
+    file_type : verilogSource
+
+targets:
+  default:
+    filesets: [rtl]
+

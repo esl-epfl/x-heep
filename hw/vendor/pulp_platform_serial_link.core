@@ -1,0 +1,19 @@
+CAPI=2:
+name : pulp-platform.org::serial-link
+
+filesets:
+  rtl:
+    files:
+    - serial_link/src/axis/include/axis/typedef.svh : { is_include_file: true, include_path: serial_link/src/axis/include}
+    - serial_link/src/serial_link_pkg.sv
+    - serial_link/src/regs/serial_link_reg_pkg.sv
+    - serial_link/src/regs/serial_link_single_channel_reg_pkg.sv
+    - serial_link/src/serial_link.sv
+    - serial_link/src/serial_link_occamy_wrapper.sv
+
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets: [rtl]
+

@@ -1,0 +1,60 @@
+# Copyright 2022 ETH Zurich and University of Bologna.
+# Solderpad Hardware License, Version 0.51, see LICENSE for details.
+# SPDX-License-Identifier: SHL-0.51
+
+package:
+  name: serial_link
+  authors:
+    - "Tim Fischer <fischeti@iis.ee.ethz.ch>"
+    - "Manuel Eggimann <meggimann@iis.ee.ethz.ch>"
+    - "Thomas Benz <tbenz@iis.ee.ethz.ch>"
+    - "Paul Scheffler <paulsc@iis.ee.ethz.ch>"
+
+dependencies:
+  common_cells:        { git: "https://github.com/pulp-platform/common_cells.git",       version: 1.28.0 }
+  axi:                 { git: "https://github.com/pulp-platform/axi.git",                version: 0.38.0 }
+  register_interface:  { git: "https://github.com/pulp-platform/register_interface.git", version: 0.3.8  }
+
+export_include_dirs:
+  - src/axis/include
+
+sources:
+  files:
+
+    # Configuration Registers
+    - src/regs/serial_link_reg_pkg.sv
+    - src/regs/serial_link_reg_top.sv
+    - src/regs/serial_link_single_channel_reg_pkg.sv
+    - src/regs/serial_link_single_channel_reg_top.sv
+
+    # Parametrization
+    - src/serial_link_pkg.sv
+
+    # Abstraction Layers
+    - src/channel_allocator/stream_chopper.sv
+    - src/channel_allocator/stream_dechopper.sv
+    - src/channel_allocator/channel_despread_sfr.sv
+    - src/channel_allocator/channel_spread_sfr.sv
+    - src/channel_allocator/serial_link_channel_allocator.sv
+    - src/serial_link_network.sv
+    - src/serial_link_data_link.sv
+    - src/serial_link_physical.sv
+
+    # Serial Link Wrapper
+    - src/serial_link.sv
+
+    # Wrapper for Occamy
+    - src/serial_link_occamy_wrapper.sv
+
+    - target: synthesis
+      files:
+      - src/serial_link_synth_wrapper.sv
+
+    - target: simulation
+      files:
+      - test/axi_channel_compare.sv
+      - test/tb_axi_serial_link.sv
+      - test/tb_ch_calib_serial_link.sv
+      - test/tb_stream_chopper.sv
+      - test/tb_stream_chopper_dechopper.sv
+      - test/tb_channel_allocator.sv

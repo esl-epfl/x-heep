@@ -1,0 +1,27 @@
+# Copyright 2022 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Author: Tim Fischer <fischeti@iis.ee.ethz.ch>
+
+name: gitlab-ci
+
+on: [ push, pull_request ]
+
+jobs:
+
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Mirror and check
+        uses: pulp-platform/pulp-actions/gitlab-ci@v2
+        # Skip on forks or pull requests from forks due to missing secrets.
+        if: >
+          github.repository == 'pulp-platform/serial_link' &&
+          (github.event_name != 'pull_request' ||
+          github.event.pull_request.head.repo.full_name == github.repository)
+        with:
+          domain: iis-git.ee.ethz.ch
+          repo: github-mirror/serial_link
+          token: ${{ secrets.GITLAB_TOKEN }}

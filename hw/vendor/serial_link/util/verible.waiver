@@ -1,0 +1,16 @@
+# Copyright 2022 ETH Zurich and University of Bologna.
+# Solderpad Hardware License, Version 0.51, see LICENSE for details.
+# SPDX-License-Identifier: SHL-0.51
+
+# This rule does not apply to flip-flops that drive other FF's clock pin. There non-blocking assingments can cause race conditions!
+waive --rule=always-ff-non-blocking --line=69 --location="src/serial_link_physical.sv"
+waive --rule=always-ff-non-blocking --line=75 --location="src/serial_link_physical.sv"
+waive --rule=always-ff-non-blocking --line=82 --location="src/serial_link_physical.sv"
+# The AXIS package is waived to stay compatible with other AXIS IPs
+waive --rule=parameter-name-style --location="src/axis/*"
+waive --rule=interface-name-style --location="src/axis/*"
+waive --rule=explicit-parameter-storage-type --location="src/axis/*"
+waive --rule=explicit-function-task-parameter-type --location="src/axis/*"
+# Auto-generated configuration registers are waived
+waive --rule=typedef-structs-unions --location="src/regs/*"
+waive --rule=line-length --location="src/regs/*"

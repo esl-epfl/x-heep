@@ -30,6 +30,7 @@
 // `AXI_TYPEDEF_R_CHAN_T(axi_r_t, axi_data_t, axi_id_t, axi_user_t)
 // `AXI_TYPEDEF_REQ_T(axi_req_t, axi_aw_t, axi_w_t, axi_ar_t)
 // `AXI_TYPEDEF_RESP_T(axi_resp_t, axi_b_t, axi_r_t)
+
 `define AXI_TYPEDEF_AW_CHAN_T(aw_chan_t, addr_t, id_t, user_t)  \
   typedef struct packed {                                       \
     id_t              id;                                       \

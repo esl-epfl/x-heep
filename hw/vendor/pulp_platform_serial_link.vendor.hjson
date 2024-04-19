@@ -1,0 +1,17 @@
+/*
+* Copyright 2023 EPFL
+* Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+* SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+*
+* Author: Anna Burdina - anna.burdina@epfl.ch
+*/
+
+{
+  name: "serial_link",
+  target_dir: "serial_link",
+
+  upstream: {
+    url: "https://github.com/pulp-platform/serial_link.git",
+    rev: "v1.1.1",
+  },
+}

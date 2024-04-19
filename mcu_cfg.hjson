@@ -102,6 +102,16 @@
     peripherals: {
         address: 0x30000000,
         length:  0x00100000,
+        serial_link:{
+            offset:  0x00020000,
+            length:  0x00010000,
+            is_included: "yes"
+        }
+        obi2axi:{
+            offset:  0x00020000,
+            length:  0x00010000,
+            is_included: "yes"
+        }
         rv_plic: {
             offset:  0x00000000,
             length:  0x00010000,

@@ -1,0 +1,13 @@
+CAPI=2:
+name : pulp-platform.org::axi_pkg
+
+filesets:
+  rtl:
+    files: 
+    - pulp_platform_axi/include/axi/typedef.svh : { is_include_file: true, include_path: pulp_platform_axi/include}
+    - pulp_platform_axi/src/axi_pkg.sv
+    file_type : verilogSource
+
+targets:
+  default:
+    filesets: [rtl]
