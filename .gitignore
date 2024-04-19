@@ -8,6 +8,7 @@ build/
 *.map
 *.do
 *.jou
+*.str
 .venv/
 __pycache__/
 
