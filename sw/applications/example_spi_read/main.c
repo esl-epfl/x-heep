@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
 
     // Pick the correct spi device based on simulation type
     // spi_host_t spi;
-    spi_host_t* spi;
+    spi_host_t spi;
     #ifndef USE_SPI_FLASH
     spi = spi_init_host(true);
     #else

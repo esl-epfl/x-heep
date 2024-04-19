@@ -46,10 +46,12 @@
 /**                                                                        **/
 /****************************************************************************/
 
-typedef struct spi_device {
-    spi_host_t device;
-    bool initialized;
-} spi_device_t;
+typedef struct {
+    spi_host_t instance;
+    bool busy;
+    uint32_t* txbuffer;
+    uint32_t* rxbuffer;
+} spi_t;
 
 /****************************************************************************/
 /**                                                                        **/
@@ -69,7 +71,7 @@ typedef struct spi_device {
 /**                                                                        **/
 /****************************************************************************/
 
-spi_device_t* devices[] = {NULL, NULL, NULL};
+spi_t* _spi_array[] = {NULL, NULL, NULL};
 
 /****************************************************************************/
 /**                                                                        **/
@@ -77,10 +79,28 @@ spi_device_t* devices[] = {NULL, NULL, NULL};
 /**                                                                        **/
 /****************************************************************************/
 
-spi_t spi_init(spi_idx_e idx) {
-    if (devices[idx] != NULL) {
-        
-    }
+spi_codes_e spi_init(spi_idx_e idx) {
+    if (SPI_IDX_INVALID(idx))    return SPI_CODE_IDX_INVAL;
+    if (_spi_array[idx] != NULL) return SPI_CODE_INIT;
+
+    spi_t* spi    = malloc(sizeof(spi_t));
+    spi->instance = spi_init_flash();
+    spi->busy     = false;
+    spi->txbuffer = NULL;
+    spi->rxbuffer = NULL;
+
+    _spi_array[idx] = spi;
+    return SPI_CODE_OK;
+}
+
+spi_codes_e spi_deinit(spi_idx_e idx) {
+    if (SPI_IDX_INVALID(idx))    return SPI_CODE_IDX_INVAL;
+    if (_spi_array[idx] == NULL) return SPI_CODE_NOT_INIT;
+
+    free(_spi_array[idx]);
+
+    _spi_array[idx] = NULL;
+    return SPI_CODE_OK;
 }
 
 /****************************************************************************/

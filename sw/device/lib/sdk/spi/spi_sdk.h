@@ -66,12 +66,23 @@ typedef enum {
     SPI_IDX_HOST_2      = 2
 } spi_idx_e;
 
+typedef enum {
+    SPI_CODE_OK         = 0,
+    SPI_CODE_IDX_INVAL  = 1,
+    SPI_CODE_INIT       = 2,
+    SPI_CODE_NOT_INIT   = 4
+} spi_codes_e;
+
 /**
  * Initialization parameters for SPI.
  */
+// typedef struct {
+//     spi_idx_e spi_idx;
+// } spi_t;
+
 typedef struct {
-    spi_idx_e spi_idx;
-} spi_t;
+
+} spi_slave_t;
 
 /****************************************************************************/
 /**                                                                        **/
@@ -85,7 +96,16 @@ typedef struct {
 /**                                                                        **/
 /****************************************************************************/
 
-spi_t spi_init(spi_idx_e idx);
+spi_codes_e spi_init(spi_idx_e idx);
+spi_codes_e spi_deinit(spi_idx_e idx);
+spi_codes_e spi_config_slave();
+spi_codes_e spi_transmit();
+spi_codes_e spi_receive();
+spi_codes_e spi_transceive();
+spi_codes_e spi_exec(void* commands, uint8_t len);
+void spi_write(uint32_t* src_buffer, uint32_t len);
+void spi_write_bytes(uint8_t* src_buffer, uint32_t len);
+void spi_read(uint32_t* dest_buffer, uint32_t len);
 
 /****************************************************************************/
 /**                                                                        **/
