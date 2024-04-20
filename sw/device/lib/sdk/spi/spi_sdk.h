@@ -67,10 +67,13 @@ typedef enum {
 } spi_idx_e;
 
 typedef enum {
-    SPI_CODE_OK         = 0,
-    SPI_CODE_IDX_INVAL  = 1,
-    SPI_CODE_INIT       = 2,
-    SPI_CODE_NOT_INIT   = 4
+    SPI_CODE_OK                 = 0x0000,
+    SPI_CODE_BASE_ERROR         = 0x0001,
+    SPI_CODE_IDX_INVAL          = 0x0002,
+    SPI_CODE_INIT               = 0x0004,
+    SPI_CODE_NOT_INIT           = 0x0008,
+    SPI_CODE_SLAVE_CSID_INVAL   = 0x0010,
+    SPI_CODE_SLAVE_FREQ_INVAL   = 0x0020
 } spi_codes_e;
 
 /**
@@ -81,7 +84,14 @@ typedef enum {
 // } spi_t;
 
 typedef struct {
-
+    uint8_t  csid       : 2;
+    bool     polarity   : 1;
+    bool     phase      : 1;
+    bool     full_cycle : 1;
+    uint8_t  csn_lead   : 4;
+    uint8_t  csn_trail  : 4;
+    uint8_t  csn_idle   : 4;
+    uint32_t freq       : 32;
 } spi_slave_t;
 
 /****************************************************************************/
@@ -96,9 +106,10 @@ typedef struct {
 /**                                                                        **/
 /****************************************************************************/
 
-spi_codes_e spi_init(spi_idx_e idx);
-spi_codes_e spi_deinit(spi_idx_e idx);
-spi_codes_e spi_config_slave();
+spi_codes_e spi_init(const spi_idx_e idx);
+spi_codes_e spi_deinit(const spi_idx_e idx);
+spi_codes_e spi_set_slave(const spi_idx_e idx, const spi_slave_t slave);
+spi_codes_e spi_get_slave(const spi_idx_e idx, const uint8_t csid, spi_slave_t* slave);
 spi_codes_e spi_transmit();
 spi_codes_e spi_receive();
 spi_codes_e spi_transceive();
