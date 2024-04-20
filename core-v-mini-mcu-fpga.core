@@ -1,0 +1,72 @@
+CAPI=2:
+
+# Copyright 2024 EPFL
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+name: openhwgroup.org:systems:core-v-mini-mcu-fpga
+description: CORE-V MINI-MCU FPGA related files.
+
+filesets:
+  rtl-fpga:
+    depend:
+    - x-heep::packages
+    files:
+    - hw/fpga/sram_wrapper.sv
+    file_type: systemVerilogSource
+
+  ip-fpga:
+    files:
+    - hw/fpga/scripts/generate_sram.tcl:  { file_type: tclSource }
+    - hw/fpga/prim_xilinx_clk.sv:  { file_type: systemVerilogSource }
+    - hw/fpga/cv32e40p_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
+    - hw/fpga/cv32e40x_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
+    - hw/fpga/cve2_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
+    - hw/fpga/cv32e40px_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
+    - hw/fpga/pad_cell_input_xilinx.sv:  { file_type: systemVerilogSource }
+    - hw/fpga/pad_cell_output_xilinx.sv:  { file_type: systemVerilogSource }
+    - hw/fpga/pad_cell_inout_xilinx.sv:  { file_type: systemVerilogSource }
+    - hw/fpga/pad_cell_bypass_input_xilinx.sv:  { file_type: systemVerilogSource }
+    - hw/fpga/pad_cell_bypass_output_xilinx.sv:  { file_type: systemVerilogSource }
+
+  ip-fpga-pynq-z2:
+    files:
+    - hw/fpga/scripts/pynq-z2/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
+
+  ip-fpga-nexys:
+    files:
+    - hw/fpga/scripts/nexys/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
+
+  ip-fpga-zcu104:
+    files:
+    - hw/fpga/scripts/zcu104/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
+
+  xdc-fpga-nexys:
+    files:
+    - hw/fpga/constraints/nexys/pin_assign.xdc
+    - hw/fpga/constraints/nexys/constraints.xdc
+    file_type: xdc
+
+  xdc-fpga-pynq-z2:
+    files:
+    - hw/fpga/constraints/pynq-z2/pin_assign.xdc
+    - hw/fpga/constraints/pynq-z2/constraints.xdc
+    file_type: xdc
+
+  xdc-fpga-zcu104:
+    files:
+    - hw/fpga/constraints/zcu104/pin_assign.xdc
+    file_type: xdc
+
+
+targets:
+  default: &default_target
+    filesets:
+    - rtl-fpga
+    - ip-fpga
+    - target_pynq-z2 ? (ip-fpga-pynq-z2)
+    - target_pynq-z2 ? (xdc-fpga-pynq-z2)
+    - target_nexys-a7-100t ? (ip-fpga-nexys)
+    - target_nexys-a7-100t ? (xdc-fpga-nexys)
+    - target_zcu104 ? (ip-fpga-zcu104)
+    - target_zcu104 ? (xdc-fpga-zcu104)
