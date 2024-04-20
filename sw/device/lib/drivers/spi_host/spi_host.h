@@ -393,7 +393,18 @@ spi_return_flags_e spi_set_rx_watermark(spi_host_t spi, uint8_t watermark);
  * @return Flag indicating problems. Returns SPI_CONFIGOPTS_OK == 0 if everithing
  * went well.
  */
-spi_return_flags_e spi_set_configopts(spi_host_t spi, uint32_t csid, uint32_t conf_reg);
+spi_return_flags_e spi_set_configopts(spi_host_t spi, uint32_t csid, const uint32_t conf_reg);
+
+/**
+ * Get the requirement of a target device (i.e., a slave).
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ * @param csid Chip Select (CS) ID.
+ * @param conf_reg Slave transmission configuration.
+ * @return Flag indicating problems. Returns SPI_CONFIGOPTS_OK == 0 if everithing
+ * went well.
+ */
+spi_return_flags_e spi_get_configopts(spi_host_t spi, uint32_t csid, uint32_t* conf_reg);
 
 /**
  * Select which device to target with the next command.
@@ -646,6 +657,24 @@ static inline __attribute__((always_inline)) __attribute__((const)) uint32_t spi
     conf_reg = bitfield_write(conf_reg, BIT_MASK_1, SPI_HOST_CONFIGOPTS_0_CPHA_0_BIT, configopts.cpha);
     conf_reg = bitfield_write(conf_reg, BIT_MASK_1, SPI_HOST_CONFIGOPTS_0_CPOL_0_BIT, configopts.cpol);
     return conf_reg;
+}
+
+/**
+ * Create SPI target device configuration word.
+ *
+ * @param configopts Target device configuation structure.
+ */
+static inline __attribute__((always_inline)) spi_configopts_t spi_create_configopts_structure(const uint32_t config_reg) {
+    spi_configopts_t configopts = {
+        .clkdiv   = bitfield_read(config_reg, SPI_HOST_CONFIGOPTS_0_CLKDIV_0_MASK, SPI_HOST_CONFIGOPTS_0_CLKDIV_0_OFFSET),
+        .csnidle  = bitfield_read(config_reg, SPI_HOST_CONFIGOPTS_0_CSNIDLE_0_MASK, SPI_HOST_CONFIGOPTS_0_CSNIDLE_0_OFFSET),
+        .csntrail = bitfield_read(config_reg, SPI_HOST_CONFIGOPTS_0_CSNTRAIL_0_MASK, SPI_HOST_CONFIGOPTS_0_CSNTRAIL_0_OFFSET),
+        .csnlead  = bitfield_read(config_reg, SPI_HOST_CONFIGOPTS_0_CSNLEAD_0_MASK, SPI_HOST_CONFIGOPTS_0_CSNLEAD_0_OFFSET),
+        .fullcyc  = bitfield_read(config_reg, BIT_MASK_1, SPI_HOST_CONFIGOPTS_0_FULLCYC_0_BIT),
+        .cpha     = bitfield_read(config_reg, BIT_MASK_1, SPI_HOST_CONFIGOPTS_0_CPHA_0_BIT),
+        .cpol     = bitfield_read(config_reg, BIT_MASK_1, SPI_HOST_CONFIGOPTS_0_CPOL_0_BIT)
+    };
+    return configopts;
 }
 
 /**
