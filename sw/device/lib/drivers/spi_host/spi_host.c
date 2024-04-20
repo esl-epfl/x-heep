@@ -287,7 +287,24 @@ spi_return_flags_e spi_set_configopts(spi_host_t spi, uint32_t csid, const uint3
         break;
     default:
         return SPI_FLAG_CSID_INVALID;
+    }
+    return SPI_FLAG_OK;
+}
+
+spi_return_flags_e spi_get_configopts(spi_host_t spi, uint32_t csid, uint32_t* conf_reg) {
+    // TODO: check if this could be generalized to more than 2 CSIDs... because right 
+    // now not very consistent with spi_set_csid which uses SPI_HOST_PARAM_NUM_C_S
+    if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
+    switch (csid)
+    {
+    case 0:
+        *conf_reg = spi.peri->CONFIGOPTS0;
         break;
+    case 1:
+        *conf_reg = spi.peri->CONFIGOPTS1;
+        break;
+    default:
+        return SPI_FLAG_CSID_INVALID;
     }
     return SPI_FLAG_OK;
 }
