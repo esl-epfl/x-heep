@@ -45,7 +45,7 @@
 /****************************************************************************/
 
 #define SPI_MAX_IDX 3
-#define SPI_IDX_INVALID(idx)    idx > SPI_MAX_IDX
+#define SPI_IDX_INVALID(idx) idx > SPI_MAX_IDX
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,22 +76,21 @@ typedef enum {
     SPI_CODE_SLAVE_FREQ_INVAL   = 0x0020
 } spi_codes_e;
 
-/**
- * Initialization parameters for SPI.
- */
-// typedef struct {
-//     spi_idx_e spi_idx;
-// } spi_t;
+typedef enum {
+    SPI_DATA_MODE_0 = 0,     // cpol = 0, cpha = 0
+    SPI_DATA_MODE_1 = 1,     // cpol = 0, cpha = 1
+    SPI_DATA_MODE_2 = 2,     // cpol = 1, cpha = 0
+    SPI_DATA_MODE_3 = 3      // cpol = 1, cpha = 1
+} spi_datamode_e;
 
 typedef struct {
-    uint8_t  csid       : 2;
-    bool     polarity   : 1;
-    bool     phase      : 1;
-    bool     full_cycle : 1;
-    uint8_t  csn_lead   : 4;
-    uint8_t  csn_trail  : 4;
-    uint8_t  csn_idle   : 4;
-    uint32_t freq       : 32;
+    uint8_t        csid       : 2;
+    spi_datamode_e data_mode  : 2;
+    bool           full_cycle : 1;
+    uint8_t        csn_lead   : 4;
+    uint8_t        csn_trail  : 4;
+    uint8_t        csn_idle   : 4;
+    uint32_t       freq       : 32;
 } spi_slave_t;
 
 /****************************************************************************/
@@ -117,6 +116,7 @@ spi_codes_e spi_exec(void* commands, uint8_t len);
 void spi_write(uint32_t* src_buffer, uint32_t len);
 void spi_write_bytes(uint8_t* src_buffer, uint32_t len);
 void spi_read(uint32_t* dest_buffer, uint32_t len);
+void spi_read_bytes(uint8_t* dest_buffer, uint32_t len);
 
 /****************************************************************************/
 /**                                                                        **/

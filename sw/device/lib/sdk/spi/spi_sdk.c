@@ -34,12 +34,16 @@
 #include "spi_sdk.h"
 #include "spi_host.h"
 #include "soc_ctrl_structs.h"
+#include "bitfield.h"
 
 /****************************************************************************/
 /**                                                                        **/
 /**                       DEFINITIONS AND MACROS                           **/
 /**                                                                        **/
 /****************************************************************************/
+
+#define DATA_MODE_CPOL_OFFS 1
+#define DATA_MODE_CPHA_OFFS 0
 
 /****************************************************************************/
 /**                                                                        **/
@@ -49,9 +53,11 @@
 
 typedef struct {
     spi_host_t instance;
-    bool busy;
-    uint32_t* txbuffer;
-    uint32_t* rxbuffer;
+    bool       busy;
+    uint32_t*  txbuffer;
+    uint32_t   txbuffer_len;
+    uint32_t*  rxbuffer;
+    uint32_t   rxbuffer_len;
 } spi_t;
 
 /****************************************************************************/
@@ -87,11 +93,13 @@ spi_codes_e spi_init(const spi_idx_e idx) {
     spi_codes_e error = spi_check_init(idx);
     if (error) return error;
 
-    spi_t* spi    = malloc(sizeof(spi_t));
-    spi->instance = spi_init_flash();
-    spi->busy     = false;
-    spi->txbuffer = NULL;
-    spi->rxbuffer = NULL;
+    spi_t* spi        = malloc(sizeof(spi_t));
+    spi->instance     = spi_init_flash();
+    spi->busy         = false;
+    spi->txbuffer     = NULL;
+    spi->txbuffer_len = 0;
+    spi->rxbuffer     = NULL;
+    spi->rxbuffer_len = 0;
 
     _spi_array[idx] = spi;
     return SPI_CODE_OK;
@@ -117,13 +125,13 @@ spi_codes_e spi_set_slave(const spi_idx_e idx, const spi_slave_t slave) {
     if (soc_ctrl_peri->SYSTEM_FREQUENCY_HZ / (2 * (clk_div + 1)) > slave.freq)
         clk_div++;
     spi_configopts_t config = {
-        .clkdiv = clk_div,
-        .cpha = slave.phase,
-        .cpol = slave.polarity,
-        .csnidle = slave.csn_idle,
-        .csnlead = slave.csn_lead,
+        .clkdiv   = clk_div,
+        .cpha     = bitfield_read(slave.data_mode, BIT_MASK_1, DATA_MODE_CPHA_OFFS),
+        .cpol     = bitfield_read(slave.data_mode, BIT_MASK_1, DATA_MODE_CPOL_OFFS),
+        .csnidle  = slave.csn_idle,
+        .csnlead  = slave.csn_lead,
         .csntrail = slave.csn_trail,
-        .fullcyc = slave.full_cycle
+        .fullcyc  = slave.full_cycle
     };
     spi_return_flags_e config_error = spi_set_configopts(_spi_array[idx]->instance, 
                                                          slave.csid,
@@ -138,7 +146,19 @@ spi_codes_e spi_get_slave(const spi_idx_e idx, const uint8_t csid, spi_slave_t* 
     if (error) return error;
     if (SPI_CSID_INVALID(csid)) return SPI_CODE_SLAVE_CSID_INVAL;
 
-    
+    uint32_t config_reg;
+    if (spi_get_configopts(_spi_array[idx]->instance, csid, &config_reg)) return SPI_CODE_BASE_ERROR;
+    spi_configopts_t configopts = spi_create_configopts_structure(config_reg);
+    slave->csid       = csid;
+    slave->csn_idle   = configopts.csnidle;
+    slave->csn_lead   = configopts.csnlead;
+    slave->csn_trail  = configopts.csntrail;
+    slave->full_cycle = configopts.fullcyc;
+    slave->data_mode  = (configopts.cpol << DATA_MODE_CPOL_OFFS)
+                      | (configopts.cpha << DATA_MODE_CPHA_OFFS);
+    slave->freq       = soc_ctrl_peri->SYSTEM_FREQUENCY_HZ / (2 * (configopts.clkdiv + 1));
+
+    return SPI_CODE_OK;
 }
 
 /****************************************************************************/
