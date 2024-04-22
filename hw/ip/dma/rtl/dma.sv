@@ -46,9 +46,8 @@ module dma #(
   logic        [               31:0] read_ptr_valid_reg;
   logic        [               31:0] write_ptr_reg;
   logic        [               31:0] write_address;
-  logic        [               31:0] dma_cnt;
   logic        [               31:0] dma_addr_cnt;
-  logic        [                2:0] dma_cnt_dec;
+  logic        [                2:0] dma_cnt_du;
   logic                              dma_start;
   logic                              dma_done;
   logic                              dma_window_event;
@@ -85,6 +84,14 @@ module dma #(
   logic                              data_out_gnt;
   logic                              data_out_rvalid;
   logic        [               31:0] data_out_rdata;
+
+  // 2D DMA signals
+
+  logic                              dma_conf_1d; // Dimensionality configuration: 0-> 1D, 1-> 2D
+  logic                              dma_conf_2d; // Dimensionality configuration: 0-> 1D, 1-> 2D
+  logic        [               31:0] dma_cnt_d1; // d1 counter
+  logic        [               31:0] dma_cnt_d2; // d2 counter
+  logic        [               31:0] dma_d2_inc; // d2 increment
 
   logic                              fifo_flush;
   logic                              fifo_full;
@@ -165,9 +172,7 @@ module dma #(
   assign dma_done_intr_o = dma_done & reg2hw.interrupt_en.transaction_done.q;
   assign dma_window_intr_o = dma_window_event & reg2hw.interrupt_en.window_done.q;
 
-
   logic [31:0] window_counter;
-
 
   assign data_type = reg2hw.data_type.q;
 
@@ -177,6 +182,18 @@ module dma #(
 
   assign circular_mode = reg2hw.mode.q == 1;
   assign address_mode = reg2hw.mode.q == 2;
+
+  // DMA Dimensionality configuration flags
+  assign dma_conf_1d = reg2hw.dim_config.q == 0;
+  assign dma_conf_2d = reg2hw.dim_config.q == 1;
+
+  // DMA 2D increment
+
+  // To get the number of 1d lenghts to jump, we need to left shift the len(1d) for the number of 2d jumps.
+  // To mantain uniformity, src_ptr_inc_d1 and d2 are not meant to be written as "rows" or "columns" to skip but as byte addressable cells.
+  // So to skip one row, we should skip a 32bit value, i.e. inc = 4
+
+  assign dma_d2_inc = {16'h0, reg2hw.size_in.d1.q} << ( {24'h0, reg2hw.ptr_inc.src_ptr_inc_d2.q} >> 2) - reg2hw.size_tr_d1.q;
 
   assign write_address = address_mode ? fifo_addr_output : write_ptr_reg;
 
@@ -227,7 +244,6 @@ module dma #(
     end
   end
 
-
   // DMA pulse start when dma_start register is written
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start
     if (~rst_ni) begin
@@ -235,7 +251,7 @@ module dma #(
     end else begin
       if (dma_start == 1'b1) begin
         dma_start_pending <= 1'b0;
-      end else if (reg2hw.size.qe & |reg2hw.size.q) begin
+      end else if ((reg2hw.size_tr_d1.qe & |reg2hw.size_tr_d1.q)) begin
         dma_start_pending <= 1'b1;
       end
     end
@@ -248,8 +264,19 @@ module dma #(
     end else begin
       if (dma_start == 1'b1) begin
         read_ptr_reg <= reg2hw.src_ptr.q;
-      end else if (data_in_gnt == 1'b1) begin
-        read_ptr_reg <= read_ptr_reg + {24'h0, reg2hw.ptr_inc.src_ptr_inc.q};
+      end else if (data_in_gnt == 1'b1) begin // The read request is granted, so increment the read pointer to the next value
+        if (dma_conf_1d == 1'b1) begin
+          // Increase the pointer by the amount written in ptr_inc
+          read_ptr_reg <= read_ptr_reg + {24'h0, reg2hw.ptr_inc.src_ptr_inc_d1.q};
+        end else if (dma_conf_2d == 1'b1) begin
+          if (|dma_cnt_d1 == 1'b0 && |dma_cnt_d2 == 1'b1) begin
+            // In this case, the d1 is finished, so we need to increment the pointer by sizeof(d1)*data_unit
+
+            read_ptr_reg <= read_ptr_reg + dma_d2_inc;                                                          
+          end else begin
+            read_ptr_reg <= read_ptr_reg + {24'h0, reg2hw.ptr_inc.src_ptr_inc_d1.q}; // Increment of the d1 increment (stride)
+          end
+        end
       end
     end
   end
@@ -275,7 +302,18 @@ module dma #(
       if (dma_start == 1'b1) begin
         read_ptr_valid_reg <= reg2hw.src_ptr.q;
       end else if (data_in_rvalid == 1'b1) begin
-        read_ptr_valid_reg <= read_ptr_valid_reg + {24'h0, reg2hw.ptr_inc.src_ptr_inc.q};
+        if (dma_conf_1d == 1'b1) begin
+          // 1D case
+          read_ptr_valid_reg <= read_ptr_valid_reg + {24'h0, reg2hw.ptr_inc.src_ptr_inc_d1.q};
+        end else if (dma_conf_2d == 1'b1) begin
+          // 2D case
+          if (|dma_cnt_d1 == 1'b0 && |dma_cnt_d2 == 1'b1) begin
+            // In this case, the d1 is finished, so we need to increment the pointer by sizeof(d1)*data_unit
+            read_ptr_valid_reg <= read_ptr_valid_reg + dma_d2_inc; // TEMPORARY                                                           
+          end else begin
+            read_ptr_valid_reg <= read_ptr_valid_reg + {24'h0, reg2hw.ptr_inc.src_ptr_inc_d1.q}; // Increment just of one du, since we need to increase the 1d
+          end
+        end
       end
     end
   end
@@ -288,20 +326,40 @@ module dma #(
       if (dma_start == 1'b1) begin
         write_ptr_reg <= reg2hw.dst_ptr.q;
       end else if (data_out_gnt == 1'b1) begin
-        write_ptr_reg <= write_ptr_reg + {24'h0, reg2hw.ptr_inc.dst_ptr_inc.q};
+        if (dma_conf_1d == 1'b1) begin
+          write_ptr_reg <= write_ptr_reg + {24'h0, reg2hw.ptr_inc.dst_ptr_inc.q};
+        end else if (dma_conf_2d == 1'b1) begin
+          write_ptr_reg <= write_ptr_reg + {29'h0, dma_cnt_du}; // Increment just of one du, since in v0.1 the output is written
+        end
       end
     end
   end
 
-  // Store dma transfer size and decrement it everytime input data rvalid is asserted
+  // Store dma transfer size and decrement it everytime input data rvalid is asserted.
+  // Perform additional checks for 2D DMA
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_cnt_reg
     if (~rst_ni) begin
-      dma_cnt <= '0;
+      dma_cnt_d1 <= '0;
+      dma_cnt_d2 <= '0;
     end else begin
       if (dma_start == 1'b1) begin
-        dma_cnt <= reg2hw.size.q;
+        dma_cnt_d1 <= reg2hw.size_tr_d1.q;
+        dma_cnt_d2 <= reg2hw.size_tr_d2.q;
       end else if (data_in_gnt == 1'b1) begin
-        dma_cnt <= dma_cnt - {29'h0, dma_cnt_dec};
+        if (dma_conf_1d == 1'b1) begin
+          // 1D case
+          dma_cnt_d1 <= dma_cnt_d1 - {29'h0, dma_cnt_du};
+        end else if (dma_conf_2d == 1'b1) begin
+          // 2D case
+          if (|dma_cnt_d1 == 1'b0) begin
+            // In this case, the d1 is finished, so we need to decrement the d2 size and reset the d2 size
+            dma_cnt_d2 <= dma_cnt_d2 - {29'h0, dma_cnt_du};
+            dma_cnt_d1 <= reg2hw.size_tr_d1.q;
+          end else begin
+            // In this case, the d1 isn't finished, so we need to decrement the d1 size
+            dma_cnt_d1 <= dma_cnt_d1 - {29'h0, dma_cnt_du};
+          end
+        end
       end
     end
   end
@@ -312,7 +370,7 @@ module dma #(
       dma_addr_cnt <= '0;
     end else begin
       if (dma_start == 1'b1 && address_mode) begin
-        dma_addr_cnt <= reg2hw.size.q;
+        dma_addr_cnt <= reg2hw.size_tr_d1.q;
       end else if (data_addr_in_gnt == 1'b1 && address_mode) begin
         dma_addr_cnt <= dma_addr_cnt - 32'h4;  //address always 32b
       end
@@ -321,9 +379,9 @@ module dma #(
 
   always_comb begin
     case (data_type)
-      2'b00: dma_cnt_dec = 3'h4;
-      2'b01: dma_cnt_dec = 3'h2;
-      2'b10, 2'b11: dma_cnt_dec = 3'h1;
+      2'b00: dma_cnt_du = 3'h4;
+      2'b01: dma_cnt_du = 3'h2;
+      2'b10, 2'b11: dma_cnt_du = 3'h1;
     endcase
   end
 
@@ -410,7 +468,9 @@ module dma #(
       dma_read_fsm_state <= dma_read_fsm_n_state;
       dma_write_fsm_state <= dma_write_fsm_n_state;
       dma_read_addr_fsm_state <= dma_read_addr_fsm_n_state;
-      outstanding_req <= outstanding_req + (data_in_req && data_in_gnt) - data_in_rvalid;
+
+      // From copilot: outstanding_req keeps track of the number of requests that have been granted but not completed
+      outstanding_req <= outstanding_req + (data_in_req && data_in_gnt) - data_in_rvalid; 
 
       if (address_mode)
         outstanding_addr_req <= outstanding_addr_req + (data_addr_in_req && data_addr_in_gnt) - data_addr_in_rvalid;
@@ -444,16 +504,34 @@ module dma #(
       // Read one word
       DMA_READ_FSM_ON: begin
         // If all input data read exit
-        if (|dma_cnt == 1'b0) begin
-          dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
-        end else begin
-          dma_read_fsm_n_state = DMA_READ_FSM_ON;
-          // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
-          if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
-            data_in_req  = 1'b1;
-            data_in_we   = 1'b0;
-            data_in_be   = 4'b1111;  // always read all bytes
-            data_in_addr = read_ptr_reg;
+        if (dma_conf_1d == 1'b1) begin
+          // 1D DMA case
+          if (|dma_cnt_d1 == 1'b0) begin
+            dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
+          end else begin
+            dma_read_fsm_n_state = DMA_READ_FSM_ON;
+            // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
+            if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
+              data_in_req  = 1'b1;
+              data_in_we   = 1'b0;
+              data_in_be   = 4'b1111;  // always read all bytes
+              data_in_addr = read_ptr_reg;
+            end
+          end
+        end else if (dma_conf_2d == 1'b1) begin
+          // 2D DMA case: exit only if both 1d and 2d counters are at 0
+          if (|dma_cnt_d1 == 1'b0 && |dma_cnt_d2 == 1'b0) begin
+            dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
+          end else begin
+            // The read operation is the same in both cases
+            dma_read_fsm_n_state = DMA_READ_FSM_ON;
+            // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
+            if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
+              data_in_req  = 1'b1;
+              data_in_we   = 1'b0;
+              data_in_be   = 4'b1111;  // always read all bytes
+              data_in_addr = read_ptr_reg;
+            end
           end
         end
       end
@@ -528,6 +606,8 @@ module dma #(
         // If all input data read exit
         if (fifo_empty == 1'b1 && dma_read_fsm_state == DMA_READ_FSM_IDLE) begin
           dma_done = outstanding_req == '0 && outstanding_addr_req == '0;
+          // If all input data has been read (dma_read_fsm_state == DMA_READ_FSM_IDLE, set when all data has been read) 
+          // and all requests have been granted, (outstanding_req == 0) then we are done
           dma_write_fsm_n_state = dma_done ? DMA_WRITE_FSM_IDLE : DMA_WRITE_FSM_ON;
         end else begin
           dma_write_fsm_n_state = DMA_WRITE_FSM_ON;
@@ -598,7 +678,7 @@ module dma #(
   // Count gnt write transaction and generate event pulse if WINDOW_SIZE is reached
   assign dma_window_event = |reg2hw.window_size.q &  data_out_gnt & (window_counter + 'h1 >= reg2hw.window_size.q);
 
-  always_ff @(posedge clk_i, negedge rst_ni) begin
+  always_ff @(posedge clk_i, negedge rst_ni) begin: proc_dma_window_cnt
     if (~rst_ni) begin
       window_counter <= 'h0;
     end else begin
@@ -617,7 +697,7 @@ module dma #(
   end
 
   // Update WINDOW_COUNT register
-  always_comb begin
+  always_comb begin: proc_dma_window_cnt_reg
     hw2reg.window_count.d  = reg2hw.window_count.q + 'h1;
     hw2reg.window_count.de = 1'b0;
     if (dma_start) begin
@@ -631,7 +711,7 @@ module dma #(
   // update window_done flag
   // set on dma_window_event
   // reset on read
-  always_ff @(posedge clk_i, negedge rst_ni) begin
+  always_ff @(posedge clk_i, negedge rst_ni) begin: proc_dma_window_done
     if (~rst_ni) begin
       window_done_q <= 1'b0;
     end else begin
