@@ -12,17 +12,21 @@
 #include "csr.h"
 #include "rv_plic.h"
 
-#define TEST_SINGULAR_MODE
-#define TEST_PENDING_TRANSACTION
-#define TEST_WINDOW
-#define TEST_ADDRESS_MODE
-#define TEST_ADDRESS_MODE_EXTERNAL_DEVICE
+//#define TEST_SINGULAR_MODE
+//#define TEST_PENDING_TRANSACTION
+//#define TEST_WINDOW
+//#define TEST_ADDRESS_MODE
+//#define TEST_ADDRESS_MODE_EXTERNAL_DEVICE
+#define TEST_2D_MODE
 
 #define TEST_DATA_SIZE      16
 #define TEST_DATA_LARGE     1024
 #define TRANSACTIONS_N      3       // Only possible to perform transaction at a time, others should be blocked
 #define TEST_WINDOW_SIZE_DU  1024    // if put at <=71 the isr is too slow to react to the interrupt
 
+// Defines for low-level fw
+#define DMA_REGISTER_SIZE_BYTES sizeof(int)
+#define DMA_SELECTION_OFFSET_START 0
 
 
 #if TEST_DATA_LARGE < 2* TEST_DATA_SIZE
@@ -31,7 +35,7 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_SIM   1
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -399,6 +403,137 @@ int main(int argc, char *argv[])
 
 #endif // TEST_WINDOW
 
+#ifdef TEST_2D_MODE
 
-    return EXIT_SUCCESS;
+/*
+PRINTF("\n\n\r===================================\n\n\r");
+PRINTF("    TESTING 2D MODE   ");
+PRINTF("\n\n\r===================================\n\n\r");
+*/
+
+void write_register( uint32_t  p_val,
+                                uint32_t  p_offset,
+                                uint32_t  p_mask,
+                                uint8_t   p_sel,
+                                dma* peri ) 
+    {
+        /*
+        * The index is computed to avoid needing to access the structure
+        * as a structure.
+        */
+        uint8_t index = p_offset / DMA_REGISTER_SIZE_BYTES;
+        /*
+        * An intermediate variable "value" is used to prevent writing twice into
+        * the register.
+        */
+        uint32_t value  =  (( uint32_t * ) peri ) [ index ];
+        value           &= ~( p_mask << p_sel );
+        value           |= (p_val & p_mask) << p_sel;
+        (( uint32_t * ) peri ) [ index ] = value;
+
+    };
+
+dma *peri = dma_peri;
+
+// Let's try to move a 2x2 window from a 4x4 matrix
+
+uint32_t test_data_2D[16] = {
+    0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 
+    0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef,
+    0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa,
+    0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98
+};
+
+uint32_t copied_data_2D[4];
+
+// Now I need to set up the pointers
+
+peri->SRC_PTR = test_data_2D;
+peri->DST_PTR = copied_data_2D;
+
+// Now set up the dimensionality configuration
+
+write_register(  0x1,
+                DMA_DIM_CONFIG_REG_OFFSET,
+                0x1,
+                DMA_DIM_CONFIG_DMA_DIM_BIT,
+                peri );
+
+// Set the operation mode
+
+peri->MODE = DMA_TRANS_MODE_SINGLE;
+
+// Enable the interrupt
+
+write_register(  0x1,
+                DMA_INTERRUPT_EN_REG_OFFSET,
+                0x1,
+                DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT,
+                peri );
+
+// Set the input dimensions
+
+write_register(  0x4 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
+                DMA_SIZE_IN_REG_OFFSET,
+                DMA_SIZE_IN_D1_MASK,
+                DMA_SIZE_IN_D1_OFFSET,
+                peri );
+
+write_register(  0x4 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
+                DMA_SIZE_IN_REG_OFFSET,
+                DMA_SIZE_IN_D2_MASK,
+                DMA_SIZE_IN_D2_OFFSET,
+                peri );
+
+// Set the data type
+
+write_register(  DMA_DATA_TYPE_WORD,
+                DMA_DATA_TYPE_REG_OFFSET,
+                DMA_DATA_TYPE_DATA_TYPE_MASK,
+                DMA_SELECTION_OFFSET_START,
+                peri );
+
+// Set the strides
+
+write_register(  0x2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
+                DMA_PTR_INC_REG_OFFSET,
+                DMA_PTR_INC_SRC_PTR_INC_D1_MASK,
+                DMA_PTR_INC_SRC_PTR_INC_D1_OFFSET,
+                peri );
+
+write_register(  0x1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
+                DMA_PTR_INC_REG_OFFSET,
+                DMA_PTR_INC_SRC_PTR_INC_D2_MASK,
+                DMA_PTR_INC_SRC_PTR_INC_D2_OFFSET,
+                peri );
+
+// Set the sizes
+
+peri->SIZE_D2 = 0x2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ); 
+
+peri->SIZE_D1 = 0x2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ); // Now the transaction should start
+
+while( peri->STATUS == 0 ) {
+      /* Disable the interrupts MSTATUS to avoid going to sleep AFTER the interrupt
+      was triggered.*/
+      CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+      /* If the transaction has not yet finished, go to sleep*/
+      if (peri->STATUS == 0) {
+          /* If a interrupt happened before, the core would still wake-up,
+          but will not jump to the interrupt handler MSTATUS is not re-set. */
+          { asm volatile("wfi"); }
+      }
+      /* Restore the interrupts. */
+      CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+}
+
+PRINTF("output[0][0]: %08x\n\r", copied_data_2D[0]);
+PRINTF("output[0][1]: %08x\n\r", copied_data_2D[1]);
+PRINTF("output[1][0]: %08x\n\r", copied_data_2D[3]);
+PRINTF("output[1][1]: %08x\n\r", copied_data_2D[4]);
+PRINTF("output[0][0]: %08x\n\r", copied_data_2D[0]);
+
+#endif // TEST_2D_MODE
+
+return EXIT_SUCCESS;
 }

@@ -33,13 +33,32 @@
         { bits: "31:0", name: "PTR_ADDR", desc: "Address data pointer (word aligned) - used only in Address mode" }
       ]
     },
-    { name:     "SIZE",
-      desc:     "Number of bytes to copy - Once a value is written, the copy starts",
+    { name:     "SIZE_TR_D1",
+      desc:     "Number of bytes to copy from, defined with respect to the first dimension - Once a value is written, the copy starts",
       swaccess: "rw",
       hwaccess: "hro",
       hwqe:     "true", // enable `qe` latched signal of software write pulse
       fields: [
-        { bits: "31:0", name: "SIZE", desc: "DMA counter and start" }
+        { bits: "31:0", name: "SIZE", desc: "DMA counter D1 and start" }
+      ]
+    },
+    { name:     "SIZE_TR_D2",
+      desc:     "Number of bytes to copy from, defined with respect to the second dimension",
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
+      fields: [
+        { bits: "31:0", name: "SIZE", desc: "DMA counter D2" }
+      ]
+    },
+    { name:     "SIZE_IN",
+      desc:     "Dimensions of the input matrix",
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
+      fields: [
+        { bits: "15:0", name: "D1", desc: "Size of dimension 1" },
+        { bits: "31:16", name: "D2", desc: "Size of dimension 2" }
       ]
     },
     { name:     "STATUS",
@@ -50,7 +69,7 @@
       hwre:     "true", // enable `re` latched signal of software read pulse
       resval:   1,
       fields: [
-        { bits: "0", name: "READY", desc: "Transaction iss done"},
+        { bits: "0", name: "READY", desc: "Transaction is done"},
         { bits: "1", name: "WINDOW_DONE", desc: "set if DMA is copying second half"},
       ]
     },
@@ -60,11 +79,16 @@
       hwaccess: "hro",
       fields: [
         { bits: "7:0", 
-          name: "SRC_PTR_INC", 
-          desc: "Source pointer increment",
+          name: "SRC_PTR_INC_D1", 
+          desc: "Source pointer d1 increment",
           resval:4
         },
         { bits: "15:8", 
+          name: "SRC_PTR_INC_D2", 
+          desc: "Source pointer d2 increment",
+          resval:4
+        },
+        { bits: "23:16", 
           name: "DST_PTR_INC", 
           desc: "Destination pointer increment",
           resval:4
@@ -117,6 +141,15 @@
             { value: "2", name: "ADDRESS_MODE" , desc: "Transfers data using as destination address the data from ADD_PTR"},
           ]
         }
+      ]
+    },
+    { name:     "DIM_CONFIG",
+      desc:     '''Set the dimensionality of the DMA''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   0,
+      fields: [
+        { bits: "0:0", name: "DMA_DIM", desc: "DMA transfer dimensionality"}
       ]
     },
     { name:    "WINDOW_SIZE",
