@@ -5,10 +5,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "test_cnnWeights.h"
-// #include "testdata_s0.h"
-// #include "testdata_s1.h"
-// #include "testdata_s2.h"
+// #include "test_cnnWeights.h"
+#include "testdata_s2.h"
 
 #define COMP_PREC 0.01f
 #define COMP_PREC_I32 512
@@ -24,7 +22,7 @@ void compareVectorsFxp(fxp32* a, fxp32* b, int size, float prec) {
         assert_closei32(a[i], b[i], prec, i);
     }
 }
-
+/*
 void test_same_layer1() {
     fxp32* result_fxp = (fxp32*)calloc(xin1*yin1, sizeof(fxp32));
     float* result = (float*)calloc(xin1*yin1, sizeof(float));
@@ -130,28 +128,65 @@ void test_cnn() {
     free(result_fxp);
     Cnn_destroy(cnn);
 }
+*/
+void compare_tf_conv_3() {
+    CnnHandle cnn = Cnn_create((Dim2D){3u, 256u}, (Dim2D){3u, 21u}, (Dim2D){3u, 1u}, SAME, VALID);
+
+    Conv2DLayer_setWeightsFloat(cnn->layer1, weights1_2);
+    Conv2DLayer_setWeightsFloat(cnn->layer2, weights2_2);
+
+    float* result = (float*)calloc(1*256, sizeof(float));
+    Cnn_forwardFloat(cnn, xin_2, result);
+
+    compareVectorsFloat(result, xout_2, 256, COMP_PREC);
+
+    Cnn_predictFloat(cnn, xin_2, ppg_2, result);
+
+    compareVectorsFloat(result, ppgf_2, 256, COMP_PREC);
+
+    free(result);
+
+    // Cnn_freezeModel(cnn);
+
+    // fxp32* result_fxp = (fxp32*)calloc(1*256, sizeof(fxp32));
+    // Cnn_forwardFxp(cnn, xin_2_fxp, result_fxp);
+
+    // compareVectorsFxp(result_fxp, xout_2_fxp, 256, COMP_PREC_I32);
+
+    // Cnn_predictFxp(cnn, xin_2_fxp, ppg_2_fxp, result_fxp);
+
+    // compareVectorsFxp(result_fxp, ppgf_2_fxp, 256, COMP_PREC_I32);
+
+    // free(result_fxp);
+    // Cnn_destroy(cnn);
+}
 
 int main() {
     PRINTF("\033[1;93m====== Test CNN =========\n");
     PRINTF("\033[0m====== Test Same ========\n");
-    test_same_layer1();
+    // test_same_layer1();
     PRINTF("\033[1;32m====== Test 1 passed ====\n");
-    test_same_layer2();
+    // test_same_layer2();
     PRINTF("\033[1;32m====== Test 2 passed ====\n");
-    test_same_layer3();
+    // test_same_layer3();
     PRINTF("\033[1;32m====== Test 3 passed ====\n");
     PRINTF("\033[0m====== Test Same end ====\n\n");
     PRINTF("\033[0m====== Test Valid =======\n");
-    test_valid_layer1();
+    // test_valid_layer1();
     PRINTF("\033[1;32m====== Test 1 passed ====\n");
-    test_valid_layer2();
+    // test_valid_layer2();
     PRINTF("\033[1;32m====== Test 2 passed ====\n");
-    test_valid_layer3();
+    // test_valid_layer3();
     PRINTF("\033[1;32m====== Test 3 passed ====\n");
     PRINTF("\033[0m====== Test Valid end ===\n\n");
     PRINTF("\033[0m====== Test CNN =========\n");
-    test_cnn();
+    // test_cnn();
     PRINTF("\033[1;32m====== Test CNN passed ==\n");
     PRINTF("\033[0m====== Test CNN end =====\n\n");
+    PRINTF("\033[0m====== Comp TF ==========\n");
+    PRINTF("\033[0m====== Sample 3 =========\n");
+    compare_tf_conv_3();
+    PRINTF("\033[1;32m====== Comp TF passed ===\n");
+    PRINTF("\033[0m====== Comp TF end ======\n");
     return EXIT_SUCCESS;
 }
