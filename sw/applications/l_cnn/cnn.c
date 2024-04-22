@@ -21,16 +21,35 @@ void Cnn_destroy(CnnHandle self) {
     free(self);
 }
 
-void Cnn_forward(CnnHandle self, fxp32* input, fxp32* output) {
+void Cnn_forwardFxp(CnnHandle self, fxp32* input, fxp32* output) {
     fxp32* layer1Output = (fxp32*)calloc(self->inputDim.x * self->inputDim.y, sizeof(fxp32));
     Conv2DLayer_forwardFxp(self->layer1, self->inputDim, input, layer1Output);
     Conv2DLayer_forwardFxp(self->layer2, self->inputDim, layer1Output, output);
     free(layer1Output);
 }
 
-void Cnn_predict(CnnHandle self, fxp32* acc, fxp32* ppg, fxp32* output) {
-    Cnn_forward(self, acc, output);
+void Cnn_forwardFloat(CnnHandle self, float* input, float* output) {
+    float* layer1Output = (float*)calloc(self->inputDim.x * self->inputDim.y, sizeof(float));
+    Conv2DLayer_forwardFloat(self->layer1, self->inputDim, input, layer1Output);
+    Conv2DLayer_forwardFloat(self->layer2, self->inputDim, layer1Output, output);
+    free(layer1Output);
+}
+
+void Cnn_predictFxp(CnnHandle self, fxp32* acc, fxp32* ppg, fxp32* output) {
+    Cnn_forwardFxp(self, acc, output);
     for (int i = 0; i < self->outputDim.y * self->outputDim.x; ++i) {
         output[i] = ppg[i] - output[i];
     }
+}
+
+void Cnn_predictFloat(CnnHandle self, float* acc, float* ppg, float* output) {
+    Cnn_forwardFloat(self, acc, output);
+    for (int i = 0; i < self->outputDim.y * self->outputDim.x; ++i) {
+        output[i] = ppg[i] - output[i];
+    }
+}
+
+void Cnn_freezeModel(CnnHandle self) {
+    Conv2DLayer_transformWeightsToFxp(self->layer1);
+    Conv2DLayer_transformWeightsToFxp(self->layer2);
 }

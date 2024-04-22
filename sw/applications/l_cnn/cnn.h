@@ -20,8 +20,12 @@ CnnHandle Cnn_create(Dim2D inputDim, Dim2D layer1Dim, Dim2D layer2Dim, Conv2DPad
                      Conv2DPadding layer2Pad);
 void Cnn_destroy(CnnHandle self);
 
-void Cnn_forward(CnnHandle self, fxp32* input, fxp32* output);
+void Cnn_forwardFxp(CnnHandle self, fxp32* input, fxp32* output);
+void Cnn_forwardFloat(CnnHandle self, float* input, float* output);
 
-void Cnn_predict(CnnHandle self, fxp32* acc, fxp32* ppg, fxp32* output);
+void Cnn_predictFxp(CnnHandle self, fxp32* acc, fxp32* ppg, fxp32* output);
+void Cnn_predictFloat(CnnHandle self, float* acc, float* ppg, float* output);
+
+void Cnn_freezeModel(CnnHandle self);
 
 #endif // CNN_H

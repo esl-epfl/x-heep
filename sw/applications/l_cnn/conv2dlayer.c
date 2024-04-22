@@ -18,19 +18,33 @@ Conv2DLayerHandle Conv2DLayer_create(Dim2D dim, Conv2DPadding padding) {
     Conv2DLayerHandle self = (Conv2DLayerHandle)malloc(sizeof(Conv2DLayer));
     self->dim = dim;
     self->padding = padding;
-    self->weights = (fxp32*)calloc(dim.x * dim.y, sizeof(fxp32));
+    self->weightsFxp = (fxp32*)calloc(dim.x * dim.y, sizeof(fxp32));
+    self->weightsFloat = (float*)calloc(dim.x * dim.y, sizeof(float));
     return self;
 }
 
 void Conv2DLayer_destroy(Conv2DLayerHandle self) {
-    free(self->weights);
+    free(self->weightsFxp);
+    free(self->weightsFloat);
     free(self);
 }
 
-bool Conv2DLayer_setWeights(Conv2DLayerHandle self, fxp32* weights) {
-    memcpy(self->weights, weights, self->dim.x * self->dim.y * sizeof(fxp32));
+bool Conv2DLayer_setWeightsFxp(Conv2DLayerHandle self, fxp32* weights) {
+    memcpy(self->weightsFxp, weights, self->dim.x * self->dim.y * sizeof(fxp32));
     // TODO: make sure we get the right size of weights
     return true;
+}
+
+bool Conv2DLayer_setWeightsFloat(Conv2DLayerHandle self, float* weights) {
+    memcpy(self->weightsFloat, weights, self->dim.x * self->dim.y * sizeof(float));
+    // TODO: make sure we get the right size of weights
+    return true;
+}
+
+void Conv2DLayer_transformWeightsToFxp(Conv2DLayerHandle self) {
+    for (int i = 0; i < self->dim.x * self->dim.y; ++i) {
+        self->weightsFxp[i] = fxp32_fromFloat(self->weightsFloat[i]);
+    }
 }
 
 // Could be optimized
@@ -99,7 +113,7 @@ void convolve2DFxp(fxp32* input, fxp32* output, fxp32* kernel, int inx, int iny,
 }
 
 // Could be optimized
-void convolve2D(float* input, float* output, float* kernel, int inx, int iny, int kerx, int kery, bool valid) {
+void convolve2DFloat(float* input, float* output, float* kernel, int inx, int iny, int kerx, int kery, bool valid) {
     // get kernel center
     if (kerx % 2 != 1 || kery % 2 != 1) {
         printf("Kernel size must be odd\n");
@@ -153,6 +167,11 @@ void convolve2D(float* input, float* output, float* kernel, int inx, int iny, in
 }
 
 void Conv2DLayer_forwardFxp(Conv2DLayerHandle self, Dim2D inputDim, fxp32* input, fxp32* output) {
-    convolve2DFxp(input, output, self->weights, inputDim.x, inputDim.y, self->dim.x, self->dim.y,
+    convolve2DFxp(input, output, self->weightsFxp, inputDim.x, inputDim.y, self->dim.x, self->dim.y,
                   self->padding == VALID);
+}
+
+void Conv2DLayer_forwardFloat(Conv2DLayerHandle self, Dim2D inputDim, float* input, float* output) {
+    convolve2DFloat(input, output, self->weightsFloat, inputDim.x, inputDim.y, self->dim.x, self->dim.y,
+                    self->padding == VALID);
 }
