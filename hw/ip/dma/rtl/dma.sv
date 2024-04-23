@@ -193,7 +193,7 @@ module dma #(
   // To mantain uniformity, src_ptr_inc_d1 and d2 are not meant to be written as "rows" or "columns" to skip but as byte addressable cells.
   // So to skip one row, we should skip a 32bit value, i.e. inc = 4
 
-  assign dma_d2_inc = {16'h0, reg2hw.size_in.d1.q} << ( {24'h0, reg2hw.ptr_inc.src_ptr_inc_d2.q} >> 2) - reg2hw.size_tr_d1.q;
+  assign dma_d2_inc = {16'h0, reg2hw.ptr_inc.src_ptr_inc_d2.q};
 
   assign write_address = address_mode ? fifo_addr_output : write_ptr_reg;
 
@@ -269,8 +269,8 @@ module dma #(
           // Increase the pointer by the amount written in ptr_inc
           read_ptr_reg <= read_ptr_reg + {24'h0, reg2hw.ptr_inc.src_ptr_inc_d1.q};
         end else if (dma_conf_2d == 1'b1) begin
-          if (|dma_cnt_d1 == 1'b0 && |dma_cnt_d2 == 1'b1) begin
-            // In this case, the d1 is finished, so we need to increment the pointer by sizeof(d1)*data_unit
+          if (dma_cnt_d1 == {29'h0, dma_cnt_du} && |dma_cnt_d2 == 1'b1) begin
+            // In this case, the d1 is almost finished, so we need to increment the pointer by sizeof(d1)*data_unit
 
             read_ptr_reg <= read_ptr_reg + dma_d2_inc;                                                          
           end else begin
@@ -307,9 +307,9 @@ module dma #(
           read_ptr_valid_reg <= read_ptr_valid_reg + {24'h0, reg2hw.ptr_inc.src_ptr_inc_d1.q};
         end else if (dma_conf_2d == 1'b1) begin
           // 2D case
-          if (|dma_cnt_d1 == 1'b0 && |dma_cnt_d2 == 1'b1) begin
-            // In this case, the d1 is finished, so we need to increment the pointer by sizeof(d1)*data_unit
-            read_ptr_valid_reg <= read_ptr_valid_reg + dma_d2_inc; // TEMPORARY                                                           
+          if (dma_cnt_d1 == {29'h0, dma_cnt_du}  && |dma_cnt_d2 == 1'b1) begin
+            // In this case, the d1 is finished, so we need to increment the pointer by sizeof(d1)*data_unit*strides
+            read_ptr_valid_reg <= read_ptr_valid_reg + dma_d2_inc;                                                          
           end else begin
             read_ptr_valid_reg <= read_ptr_valid_reg + {24'h0, reg2hw.ptr_inc.src_ptr_inc_d1.q}; // Increment just of one du, since we need to increase the 1d
           end
@@ -351,7 +351,7 @@ module dma #(
           dma_cnt_d1 <= dma_cnt_d1 - {29'h0, dma_cnt_du};
         end else if (dma_conf_2d == 1'b1) begin
           // 2D case
-          if (|dma_cnt_d1 == 1'b0) begin
+          if (dma_cnt_d1 == {29'h0, dma_cnt_du}) begin
             // In this case, the d1 is finished, so we need to decrement the d2 size and reset the d2 size
             dma_cnt_d2 <= dma_cnt_d2 - {29'h0, dma_cnt_du};
             dma_cnt_d1 <= reg2hw.size_tr_d1.q;
@@ -520,7 +520,7 @@ module dma #(
           end
         end else if (dma_conf_2d == 1'b1) begin
           // 2D DMA case: exit only if both 1d and 2d counters are at 0
-          if (|dma_cnt_d1 == 1'b0 && |dma_cnt_d2 == 1'b0) begin
+          if (dma_cnt_d1 == reg2hw.size_tr_d1.q && |dma_cnt_d2 == 1'b0) begin
             dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
           end else begin
             // The read operation is the same in both cases

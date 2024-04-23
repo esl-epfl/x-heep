@@ -96,8 +96,8 @@ module dma_reg_top #(
   logic [7:0] ptr_inc_src_ptr_inc_d1_qs;
   logic [7:0] ptr_inc_src_ptr_inc_d1_wd;
   logic ptr_inc_src_ptr_inc_d1_we;
-  logic [7:0] ptr_inc_src_ptr_inc_d2_qs;
-  logic [7:0] ptr_inc_src_ptr_inc_d2_wd;
+  logic [15:0] ptr_inc_src_ptr_inc_d2_qs;
+  logic [15:0] ptr_inc_src_ptr_inc_d2_wd;
   logic ptr_inc_src_ptr_inc_d2_we;
   logic [7:0] ptr_inc_dst_ptr_inc_qs;
   logic [7:0] ptr_inc_dst_ptr_inc_wd;
@@ -117,6 +117,18 @@ module dma_reg_top #(
   logic dim_config_qs;
   logic dim_config_wd;
   logic dim_config_we;
+  logic [7:0] pad_left_pad_qs;
+  logic [7:0] pad_left_pad_wd;
+  logic pad_left_pad_we;
+  logic [7:0] pad_right_pad_qs;
+  logic [7:0] pad_right_pad_wd;
+  logic pad_right_pad_we;
+  logic [7:0] pad_top_pad_qs;
+  logic [7:0] pad_top_pad_wd;
+  logic pad_top_pad_we;
+  logic [7:0] pad_bottom_pad_qs;
+  logic [7:0] pad_bottom_pad_wd;
+  logic pad_bottom_pad_we;
   logic [31:0] window_size_qs;
   logic [31:0] window_size_wd;
   logic window_size_we;
@@ -378,11 +390,11 @@ module dma_reg_top #(
   );
 
 
-  //   F[src_ptr_inc_d2]: 15:8
+  //   F[src_ptr_inc_d2]: 23:8
   prim_subreg #(
-    .DW      (8),
+    .DW      (16),
     .SWACCESS("RW"),
-    .RESVAL  (8'h4)
+    .RESVAL  (16'h4)
   ) u_ptr_inc_src_ptr_inc_d2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -404,7 +416,7 @@ module dma_reg_top #(
   );
 
 
-  //   F[dst_ptr_inc]: 23:16
+  //   F[dst_ptr_inc]: 31:24
   prim_subreg #(
     .DW      (8),
     .SWACCESS("RW"),
@@ -565,6 +577,112 @@ module dma_reg_top #(
   );
 
 
+  // R[pad]: V(False)
+
+  //   F[left_pad]: 7:0
+  prim_subreg #(
+    .DW      (8),
+    .SWACCESS("RW"),
+    .RESVAL  (8'h0)
+  ) u_pad_left_pad (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (pad_left_pad_we),
+    .wd     (pad_left_pad_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.pad.left_pad.q ),
+
+    // to register interface (read)
+    .qs     (pad_left_pad_qs)
+  );
+
+
+  //   F[right_pad]: 15:8
+  prim_subreg #(
+    .DW      (8),
+    .SWACCESS("RW"),
+    .RESVAL  (8'h0)
+  ) u_pad_right_pad (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (pad_right_pad_we),
+    .wd     (pad_right_pad_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.pad.right_pad.q ),
+
+    // to register interface (read)
+    .qs     (pad_right_pad_qs)
+  );
+
+
+  //   F[top_pad]: 23:16
+  prim_subreg #(
+    .DW      (8),
+    .SWACCESS("RW"),
+    .RESVAL  (8'h0)
+  ) u_pad_top_pad (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (pad_top_pad_we),
+    .wd     (pad_top_pad_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.pad.top_pad.q ),
+
+    // to register interface (read)
+    .qs     (pad_top_pad_qs)
+  );
+
+
+  //   F[bottom_pad]: 31:24
+  prim_subreg #(
+    .DW      (8),
+    .SWACCESS("RW"),
+    .RESVAL  (8'h0)
+  ) u_pad_bottom_pad (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (pad_bottom_pad_we),
+    .wd     (pad_bottom_pad_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.pad.bottom_pad.q ),
+
+    // to register interface (read)
+    .qs     (pad_bottom_pad_qs)
+  );
+
+
   // R[window_size]: V(False)
 
   prim_subreg #(
@@ -674,7 +792,7 @@ module dma_reg_top #(
 
 
 
-  logic [14:0] addr_hit;
+  logic [15:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[ 0] = (reg_addr == DMA_SRC_PTR_OFFSET);
@@ -689,9 +807,10 @@ module dma_reg_top #(
     addr_hit[ 9] = (reg_addr == DMA_DATA_TYPE_OFFSET);
     addr_hit[10] = (reg_addr == DMA_MODE_OFFSET);
     addr_hit[11] = (reg_addr == DMA_DIM_CONFIG_OFFSET);
-    addr_hit[12] = (reg_addr == DMA_WINDOW_SIZE_OFFSET);
-    addr_hit[13] = (reg_addr == DMA_WINDOW_COUNT_OFFSET);
-    addr_hit[14] = (reg_addr == DMA_INTERRUPT_EN_OFFSET);
+    addr_hit[12] = (reg_addr == DMA_PAD_OFFSET);
+    addr_hit[13] = (reg_addr == DMA_WINDOW_SIZE_OFFSET);
+    addr_hit[14] = (reg_addr == DMA_WINDOW_COUNT_OFFSET);
+    addr_hit[15] = (reg_addr == DMA_INTERRUPT_EN_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -713,7 +832,8 @@ module dma_reg_top #(
                (addr_hit[11] & (|(DMA_PERMIT[11] & ~reg_be))) |
                (addr_hit[12] & (|(DMA_PERMIT[12] & ~reg_be))) |
                (addr_hit[13] & (|(DMA_PERMIT[13] & ~reg_be))) |
-               (addr_hit[14] & (|(DMA_PERMIT[14] & ~reg_be)))));
+               (addr_hit[14] & (|(DMA_PERMIT[14] & ~reg_be))) |
+               (addr_hit[15] & (|(DMA_PERMIT[15] & ~reg_be)))));
   end
 
   assign src_ptr_we = addr_hit[0] & reg_we & !reg_error;
@@ -745,10 +865,10 @@ module dma_reg_top #(
   assign ptr_inc_src_ptr_inc_d1_wd = reg_wdata[7:0];
 
   assign ptr_inc_src_ptr_inc_d2_we = addr_hit[7] & reg_we & !reg_error;
-  assign ptr_inc_src_ptr_inc_d2_wd = reg_wdata[15:8];
+  assign ptr_inc_src_ptr_inc_d2_wd = reg_wdata[23:8];
 
   assign ptr_inc_dst_ptr_inc_we = addr_hit[7] & reg_we & !reg_error;
-  assign ptr_inc_dst_ptr_inc_wd = reg_wdata[23:16];
+  assign ptr_inc_dst_ptr_inc_wd = reg_wdata[31:24];
 
   assign slot_rx_trigger_slot_we = addr_hit[8] & reg_we & !reg_error;
   assign slot_rx_trigger_slot_wd = reg_wdata[15:0];
@@ -765,13 +885,25 @@ module dma_reg_top #(
   assign dim_config_we = addr_hit[11] & reg_we & !reg_error;
   assign dim_config_wd = reg_wdata[0];
 
-  assign window_size_we = addr_hit[12] & reg_we & !reg_error;
+  assign pad_left_pad_we = addr_hit[12] & reg_we & !reg_error;
+  assign pad_left_pad_wd = reg_wdata[7:0];
+
+  assign pad_right_pad_we = addr_hit[12] & reg_we & !reg_error;
+  assign pad_right_pad_wd = reg_wdata[15:8];
+
+  assign pad_top_pad_we = addr_hit[12] & reg_we & !reg_error;
+  assign pad_top_pad_wd = reg_wdata[23:16];
+
+  assign pad_bottom_pad_we = addr_hit[12] & reg_we & !reg_error;
+  assign pad_bottom_pad_wd = reg_wdata[31:24];
+
+  assign window_size_we = addr_hit[13] & reg_we & !reg_error;
   assign window_size_wd = reg_wdata[31:0];
 
-  assign interrupt_en_transaction_done_we = addr_hit[14] & reg_we & !reg_error;
+  assign interrupt_en_transaction_done_we = addr_hit[15] & reg_we & !reg_error;
   assign interrupt_en_transaction_done_wd = reg_wdata[0];
 
-  assign interrupt_en_window_done_we = addr_hit[14] & reg_we & !reg_error;
+  assign interrupt_en_window_done_we = addr_hit[15] & reg_we & !reg_error;
   assign interrupt_en_window_done_wd = reg_wdata[1];
 
   // Read data return
@@ -810,8 +942,8 @@ module dma_reg_top #(
 
       addr_hit[7]: begin
         reg_rdata_next[7:0] = ptr_inc_src_ptr_inc_d1_qs;
-        reg_rdata_next[15:8] = ptr_inc_src_ptr_inc_d2_qs;
-        reg_rdata_next[23:16] = ptr_inc_dst_ptr_inc_qs;
+        reg_rdata_next[23:8] = ptr_inc_src_ptr_inc_d2_qs;
+        reg_rdata_next[31:24] = ptr_inc_dst_ptr_inc_qs;
       end
 
       addr_hit[8]: begin
@@ -832,14 +964,21 @@ module dma_reg_top #(
       end
 
       addr_hit[12]: begin
-        reg_rdata_next[31:0] = window_size_qs;
+        reg_rdata_next[7:0] = pad_left_pad_qs;
+        reg_rdata_next[15:8] = pad_right_pad_qs;
+        reg_rdata_next[23:16] = pad_top_pad_qs;
+        reg_rdata_next[31:24] = pad_bottom_pad_qs;
       end
 
       addr_hit[13]: begin
-        reg_rdata_next[31:0] = window_count_qs;
+        reg_rdata_next[31:0] = window_size_qs;
       end
 
       addr_hit[14]: begin
+        reg_rdata_next[31:0] = window_count_qs;
+      end
+
+      addr_hit[15]: begin
         reg_rdata_next[0] = interrupt_en_transaction_done_qs;
         reg_rdata_next[1] = interrupt_en_window_done_qs;
       end

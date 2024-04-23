@@ -83,12 +83,12 @@
           desc: "Source pointer d1 increment",
           resval:4
         },
-        { bits: "15:8", 
+        { bits: "23:8", 
           name: "SRC_PTR_INC_D2", 
           desc: "Source pointer d2 increment",
           resval:4
         },
-        { bits: "23:16", 
+        { bits: "31:24", 
           name: "DST_PTR_INC", 
           desc: "Destination pointer increment",
           resval:4
@@ -150,6 +150,18 @@
       resval:   0,
       fields: [
         { bits: "0:0", name: "DMA_DIM", desc: "DMA transfer dimensionality"}
+      ]
+    },
+    { name:     "PAD",
+      desc:     '''Set the padding options''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   0,
+      fields: [
+        { bits: "7:0", name: "LEFT_PAD", desc: "Left margin padding (1D/2D)"},
+        { bits: "15:8", name: "RIGHT_PAD", desc: "Right margin padding (1D/2D)"},
+        { bits: "23:16", name: "TOP_PAD", desc: "Top margin padding (2D)"},
+        { bits: "31:24", name: "BOTTOM_PAD", desc: "Bottom margin padding (2D)"}
       ]
     },
     { name:    "WINDOW_SIZE",

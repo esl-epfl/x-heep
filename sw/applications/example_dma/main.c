@@ -49,6 +49,29 @@
 int32_t errors = 0;
 int8_t cycles = 0;
 
+
+static inline void write_register( uint32_t  p_val,
+                                uint32_t  p_offset,
+                                uint32_t  p_mask,
+                                uint8_t   p_sel,
+                                dma* peri ) 
+    {
+        /*
+        * The index is computed to avoid needing to access the structure
+        * as a structure.
+        */
+        uint8_t index = p_offset / DMA_REGISTER_SIZE_BYTES;
+        /*
+        * An intermediate variable "value" is used to prevent writing twice into
+        * the register.
+        */
+        uint32_t value  =  (( uint32_t * ) peri ) [ index ];
+        value           &= ~( p_mask << p_sel );
+        value           |= (p_val & p_mask) << p_sel;
+        (( uint32_t * ) peri ) [ index ] = value;
+
+    };
+
 void dma_intr_handler_trans_done()
 {
     cycles++;
@@ -405,50 +428,46 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_2D_MODE
 
+#define SIZE_IN_D1 16
+#define SIZE_IN_D2 16
+#define SIZE_OUT_D1 0x4
+#define SIZE_OUT_D2 0x4
+
 /*
 PRINTF("\n\n\r===================================\n\n\r");
 PRINTF("    TESTING 2D MODE   ");
 PRINTF("\n\n\r===================================\n\n\r");
 */
 
-void write_register( uint32_t  p_val,
-                                uint32_t  p_offset,
-                                uint32_t  p_mask,
-                                uint8_t   p_sel,
-                                dma* peri ) 
-    {
-        /*
-        * The index is computed to avoid needing to access the structure
-        * as a structure.
-        */
-        uint8_t index = p_offset / DMA_REGISTER_SIZE_BYTES;
-        /*
-        * An intermediate variable "value" is used to prevent writing twice into
-        * the register.
-        */
-        uint32_t value  =  (( uint32_t * ) peri ) [ index ];
-        value           &= ~( p_mask << p_sel );
-        value           |= (p_val & p_mask) << p_sel;
-        (( uint32_t * ) peri ) [ index ] = value;
-
-    };
-
 dma *peri = dma_peri;
 
 // Let's try to move a 2x2 window from a 4x4 matrix
 
-uint32_t test_data_2D[16] = {
-    0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 
-    0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef,
-    0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa,
-    0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98
+uint32_t test_data_2D[SIZE_IN_D1 * SIZE_IN_D2] = {
+    12, 34, 85, 46, 95, 17, 58, 89, 23, 44, 68, 91, 14, 63, 24, 79,
+    25, 80, 47, 56, 73, 89, 20, 31, 42, 57, 68, 92, 103, 210, 180, 150,
+    45, 64, 23, 85, 95, 60, 20, 40, 55, 65, 75, 85, 120, 130, 140, 160,
+    35, 70, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160,
+    165, 170, 175, 180, 185, 190, 195, 200, 205, 210, 215, 220, 225, 230, 235, 240,
+    245, 250, 255, 260, 265, 270, 275, 280, 285, 290, 295, 300, 305, 310, 315, 320,
+    325, 330, 335, 340, 345, 350, 355, 360, 365, 370, 375, 380, 385, 390, 395, 400,
+    405, 410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 460, 465, 470, 475, 480,
+    485, 490, 495, 500, 505, 510, 515, 520, 525, 530, 535, 540, 545, 550, 555, 560,
+    565, 570, 575, 580, 585, 590, 595, 600, 605, 610, 615, 620, 625, 630, 635, 640,
+    645, 650, 655, 660, 665, 670, 675, 680, 685, 690, 695, 700, 705, 710, 715, 720,
+    725, 730, 735, 740, 745, 750, 755, 760, 765, 770, 775, 780, 785, 790, 795, 800,
+    805, 810, 815, 820, 825, 830, 835, 840, 845, 850, 855, 860, 865, 870, 875, 880,
+    885, 890, 895, 900, 905, 910, 915, 920, 925, 930, 935, 940, 945, 950, 955, 960,
+    965, 970, 975, 980, 985, 990, 995, 1000, 1005, 1010, 1015, 1020, 1025, 1030, 1035, 1040,
+    1045, 1050, 1055, 1060, 1065, 1070, 1075, 1080, 1085, 1090, 1095, 1100, 1105, 1110, 1115, 1120
 };
 
-uint32_t copied_data_2D[4];
+
+uint32_t copied_data_2D[16];
 
 // Now I need to set up the pointers
 
-peri->SRC_PTR = test_data_2D;
+peri->SRC_PTR = &test_data_2D[1];
 peri->DST_PTR = copied_data_2D;
 
 // Now set up the dimensionality configuration
@@ -463,23 +482,15 @@ write_register(  0x1,
 
 peri->MODE = DMA_TRANS_MODE_SINGLE;
 
-// Enable the interrupt
-
-write_register(  0x1,
-                DMA_INTERRUPT_EN_REG_OFFSET,
-                0x1,
-                DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT,
-                peri );
-
 // Set the input dimensions
 
-write_register(  0x4 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
+write_register(  SIZE_IN_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
                 DMA_SIZE_IN_REG_OFFSET,
                 DMA_SIZE_IN_D1_MASK,
                 DMA_SIZE_IN_D1_OFFSET,
                 peri );
 
-write_register(  0x4 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
+write_register(  SIZE_IN_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
                 DMA_SIZE_IN_REG_OFFSET,
                 DMA_SIZE_IN_D2_MASK,
                 DMA_SIZE_IN_D2_OFFSET,
@@ -495,23 +506,39 @@ write_register(  DMA_DATA_TYPE_WORD,
 
 // Set the strides
 
-write_register(  0x2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
+uint32_t size_trans_d1 = SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD );
+
+int stride_amount_d1 = 2;
+int stride_amount_d2 = 1;
+
+uint32_t stride_d1 = stride_amount_d1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD );
+
+// The d2 stride is not the tipitcal stride but rather the distance between the first element of the next row and the first element of the current row
+uint32_t stride_d2 = stride_amount_d2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ) * SIZE_IN_D1 - (size_trans_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ) + (stride_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD )) * (SIZE_OUT_D1 - 1));
+
+PRINTF("s_d2: %08x\n\r", stride_d2);
+
+write_register(  stride_d1,
                 DMA_PTR_INC_REG_OFFSET,
                 DMA_PTR_INC_SRC_PTR_INC_D1_MASK,
                 DMA_PTR_INC_SRC_PTR_INC_D1_OFFSET,
                 peri );
 
-write_register(  0x1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
+write_register(  stride_d2,
                 DMA_PTR_INC_REG_OFFSET,
                 DMA_PTR_INC_SRC_PTR_INC_D2_MASK,
                 DMA_PTR_INC_SRC_PTR_INC_D2_OFFSET,
                 peri );
 
+// Enable the interrupt
+
+peri->INTERRUPT_EN = 0x1;
+
 // Set the sizes
 
-peri->SIZE_D2 = 0x2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ); 
+peri->SIZE_D2 = SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ); 
 
-peri->SIZE_D1 = 0x2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ); // Now the transaction should start
+peri->SIZE_D1 = SIZE_OUT_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ); // Now the transaction should start
 
 while( peri->STATUS == 0 ) {
       /* Disable the interrupts MSTATUS to avoid going to sleep AFTER the interrupt
@@ -527,11 +554,11 @@ while( peri->STATUS == 0 ) {
       CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
 }
 
-PRINTF("output[0][0]: %08x\n\r", copied_data_2D[0]);
-PRINTF("output[0][1]: %08x\n\r", copied_data_2D[1]);
-PRINTF("output[1][0]: %08x\n\r", copied_data_2D[3]);
-PRINTF("output[1][1]: %08x\n\r", copied_data_2D[4]);
-PRINTF("output[0][0]: %08x\n\r", copied_data_2D[0]);
+PRINTF("\n\r");
+PRINTF("%08x\n\r", copied_data_2D[0]);
+PRINTF("%08x\n\r", copied_data_2D[1]);
+PRINTF("%08x\n\r", copied_data_2D[2]);
+PRINTF("%08x\n\r", copied_data_2D[3]);
 
 #endif // TEST_2D_MODE
 

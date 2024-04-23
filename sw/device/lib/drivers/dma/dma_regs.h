@@ -54,12 +54,12 @@ extern "C" {
 #define DMA_PTR_INC_SRC_PTR_INC_D1_OFFSET 0
 #define DMA_PTR_INC_SRC_PTR_INC_D1_FIELD \
   ((bitfield_field32_t) { .mask = DMA_PTR_INC_SRC_PTR_INC_D1_MASK, .index = DMA_PTR_INC_SRC_PTR_INC_D1_OFFSET })
-#define DMA_PTR_INC_SRC_PTR_INC_D2_MASK 0xff
+#define DMA_PTR_INC_SRC_PTR_INC_D2_MASK 0xffff
 #define DMA_PTR_INC_SRC_PTR_INC_D2_OFFSET 8
 #define DMA_PTR_INC_SRC_PTR_INC_D2_FIELD \
   ((bitfield_field32_t) { .mask = DMA_PTR_INC_SRC_PTR_INC_D2_MASK, .index = DMA_PTR_INC_SRC_PTR_INC_D2_OFFSET })
 #define DMA_PTR_INC_DST_PTR_INC_MASK 0xff
-#define DMA_PTR_INC_DST_PTR_INC_OFFSET 16
+#define DMA_PTR_INC_DST_PTR_INC_OFFSET 24
 #define DMA_PTR_INC_DST_PTR_INC_FIELD \
   ((bitfield_field32_t) { .mask = DMA_PTR_INC_DST_PTR_INC_MASK, .index = DMA_PTR_INC_DST_PTR_INC_OFFSET })
 
@@ -99,14 +99,33 @@ extern "C" {
 #define DMA_DIM_CONFIG_REG_OFFSET 0x2c
 #define DMA_DIM_CONFIG_DMA_DIM_BIT 0
 
+// Set the padding options
+#define DMA_PAD_REG_OFFSET 0x30
+#define DMA_PAD_LEFT_PAD_MASK 0xff
+#define DMA_PAD_LEFT_PAD_OFFSET 0
+#define DMA_PAD_LEFT_PAD_FIELD \
+  ((bitfield_field32_t) { .mask = DMA_PAD_LEFT_PAD_MASK, .index = DMA_PAD_LEFT_PAD_OFFSET })
+#define DMA_PAD_RIGHT_PAD_MASK 0xff
+#define DMA_PAD_RIGHT_PAD_OFFSET 8
+#define DMA_PAD_RIGHT_PAD_FIELD \
+  ((bitfield_field32_t) { .mask = DMA_PAD_RIGHT_PAD_MASK, .index = DMA_PAD_RIGHT_PAD_OFFSET })
+#define DMA_PAD_TOP_PAD_MASK 0xff
+#define DMA_PAD_TOP_PAD_OFFSET 16
+#define DMA_PAD_TOP_PAD_FIELD \
+  ((bitfield_field32_t) { .mask = DMA_PAD_TOP_PAD_MASK, .index = DMA_PAD_TOP_PAD_OFFSET })
+#define DMA_PAD_BOTTOM_PAD_MASK 0xff
+#define DMA_PAD_BOTTOM_PAD_OFFSET 24
+#define DMA_PAD_BOTTOM_PAD_FIELD \
+  ((bitfield_field32_t) { .mask = DMA_PAD_BOTTOM_PAD_MASK, .index = DMA_PAD_BOTTOM_PAD_OFFSET })
+
 // Will trigger a every "WINDOW_SIZE" writes
-#define DMA_WINDOW_SIZE_REG_OFFSET 0x30
+#define DMA_WINDOW_SIZE_REG_OFFSET 0x34
 
 // Number of times the end of the window was reached since the beginning.
-#define DMA_WINDOW_COUNT_REG_OFFSET 0x34
+#define DMA_WINDOW_COUNT_REG_OFFSET 0x38
 
 // Interrupt Enable Register
-#define DMA_INTERRUPT_EN_REG_OFFSET 0x38
+#define DMA_INTERRUPT_EN_REG_OFFSET 0x3c
 #define DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT 0
 #define DMA_INTERRUPT_EN_WINDOW_DONE_BIT 1
 
