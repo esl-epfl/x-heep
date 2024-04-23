@@ -10,10 +10,10 @@
 // specific language governing permissions and limitations under the License.
 //
 // Authors:
-// - Wolfgang Roenninger <wroennin@iis.ee.ethz.ch>
 // - Andreas Kurth <akurth@iis.ee.ethz.ch>
+// - Wolfgang Roenninger <wroennin@iis.ee.ethz.ch>
 // - Fabian Schuiki <fschuiki@iis.ee.ethz.ch>
-// - Florian Zaruba <zarubaf@iis.ee.ethz.ch>
+// - Thomas Benz <tbenz@iis.ee.ethz.ch>
 // - Matheus Cavalcante <matheusd@iis.ee.ethz.ch>
 
 
@@ -591,6 +591,92 @@ package axi_test;
       axi.r_ready <= #TA 0;
     endtask
 
+    /// Monitor the AW channel and return the next beat.
+    task mon_aw (
+      output ax_beat_t beat
+    );
+      cycle_start();
+      while (!(axi.aw_valid && axi.aw_ready)) begin cycle_end(); cycle_start(); end
+      beat = new;
+      beat.ax_id     = axi.aw_id;
+      beat.ax_addr   = axi.aw_addr;
+      beat.ax_len    = axi.aw_len;
+      beat.ax_size   = axi.aw_size;
+      beat.ax_burst  = axi.aw_burst;
+      beat.ax_lock   = axi.aw_lock;
+      beat.ax_cache  = axi.aw_cache;
+      beat.ax_prot   = axi.aw_prot;
+      beat.ax_qos    = axi.aw_qos;
+      beat.ax_region = axi.aw_region;
+      beat.ax_atop   = axi.aw_atop;
+      beat.ax_user   = axi.aw_user;
+      cycle_end();
+    endtask
+
+    /// Monitor the W channel and return the next beat.
+    task mon_w (
+      output w_beat_t beat
+    );
+      cycle_start();
+      while (!(axi.w_valid && axi.w_ready)) begin cycle_end(); cycle_start(); end
+      beat = new;
+      beat.w_data = axi.w_data;
+      beat.w_strb = axi.w_strb;
+      beat.w_last = axi.w_last;
+      beat.w_user = axi.w_user;
+      cycle_end();
+    endtask
+
+    /// Monitor the B channel and return the next beat.
+    task mon_b (
+      output b_beat_t beat
+    );
+      cycle_start();
+      while (!(axi.b_valid && axi.b_ready)) begin cycle_end(); cycle_start(); end
+      beat = new;
+      beat.b_id   = axi.b_id;
+      beat.b_resp = axi.b_resp;
+      beat.b_user = axi.b_user;
+      cycle_end();
+    endtask
+
+    /// Monitor the AR channel and return the next beat.
+    task mon_ar (
+      output ax_beat_t beat
+    );
+      cycle_start();
+      while (!(axi.ar_valid && axi.ar_ready)) begin cycle_end(); cycle_start(); end
+      beat = new;
+      beat.ax_id     = axi.ar_id;
+      beat.ax_addr   = axi.ar_addr;
+      beat.ax_len    = axi.ar_len;
+      beat.ax_size   = axi.ar_size;
+      beat.ax_burst  = axi.ar_burst;
+      beat.ax_lock   = axi.ar_lock;
+      beat.ax_cache  = axi.ar_cache;
+      beat.ax_prot   = axi.ar_prot;
+      beat.ax_qos    = axi.ar_qos;
+      beat.ax_region = axi.ar_region;
+      beat.ax_atop   = 'X;  // Not defined on the AR channel.
+      beat.ax_user   = axi.ar_user;
+      cycle_end();
+    endtask
+
+    /// Monitor the R channel and return the next beat.
+    task mon_r (
+      output r_beat_t beat
+    );
+      cycle_start();
+      while (!(axi.r_valid && axi.r_ready)) begin cycle_end(); cycle_start(); end
+      beat = new;
+      beat.r_id   = axi.r_id;
+      beat.r_data = axi.r_data;
+      beat.r_resp = axi.r_resp;
+      beat.r_last = axi.r_last;
+      beat.r_user = axi.r_user;
+      cycle_end();
+    endtask
+
   endclass
 
   class axi_rand_master #(
@@ -613,6 +699,7 @@ package axi_test;
     parameter int   RESP_MIN_WAIT_CYCLES = 0,
     parameter int   RESP_MAX_WAIT_CYCLES = 20,
     // AXI feature usage
+    parameter int   SIZE_ALIGN        = 0,
     parameter int   AXI_MAX_BURST_LEN = 0, // maximum number of beats in burst; 0 = AXI max (256)
     parameter int   TRAFFIC_SHAPING   = 0,
     parameter bit   AXI_EXCLS         = 1'b0,
@@ -776,7 +863,9 @@ package axi_test;
         for (int i = 0; i < traffic_shape.size(); i++)
           if (traffic_shape[i].cprob > cprob) begin
             len = traffic_shape[i].len;
-            assert (ax_beat.ax_burst == BURST_WRAP -> len inside {len_t'(1), len_t'(3), len_t'(7), len_t'(15)});
+            if (ax_beat.ax_burst == BURST_WRAP) begin
+              assert (len inside {len_t'(1), len_t'(3), len_t'(7), len_t'(15)});
+            end
             break;
           end
 
@@ -839,7 +928,7 @@ package axi_test;
         end
       end
 
-      ax_beat.ax_addr = addr;
+      ax_beat.ax_addr =  axi_pkg::aligned_addr(addr, axi_pkg::size_t'(SIZE_ALIGN) );
       rand_success = std::randomize(id); assert(rand_success);
       rand_success = std::randomize(qos); assert(rand_success);
       // The random ID *must* be legalized with `legalize_id()` before the beat is sent!  This is
@@ -871,7 +960,7 @@ package axi_test;
         end
         // Determine `ax_size` and `ax_len`.
         if (2**beat.ax_size < AXI_STRB_WIDTH) begin
-          // Transaction does *not* occupy full data bus, so we must send just one beat. [E2.1.3]
+          // Transaction does *not* occupy full data bus, so we must send just one beat. [E1.1.3]
           beat.ax_len = '0;
         end else begin
           automatic int unsigned bytes;
@@ -897,10 +986,10 @@ package axi_test;
         end
         // Determine `ax_addr` and `ax_burst`.
         if (beat.ax_atop == axi_pkg::ATOP_ATOMICCMP) begin
-          // The address must be aligned to half the outbound data size. [E2-337]
+          // The address must be aligned to half the outbound data size. [E1.1.3]
           beat.ax_addr = beat.ax_addr & ~((1'b1 << beat.ax_size) - 1);
           // If the address is aligned to the total size of outgoing data, the burst type must be
-          // INCR. Otherwise, it must be WRAP. [E2-338]
+          // INCR. Otherwise, it must be WRAP. [E1.1.3]
           beat.ax_burst = (beat.ax_addr % ((beat.ax_len+1) * 2**beat.ax_size) == 0) ?
               axi_pkg::BURST_INCR : axi_pkg::BURST_WRAP;
           // If we are not allowed to emit WRAP bursts, align the address to the total size of
@@ -910,7 +999,7 @@ package axi_test;
             beat.ax_burst = axi_pkg::BURST_INCR;
           end
         end else begin
-          // The address must be aligned to the data size. [E2-337]
+          // The address must be aligned to the data size. [E1.1.3]
           beat.ax_addr = beat.ax_addr & ~((1'b1 << (beat.ax_size+1)) - 1);
           // Only INCR allowed.
           beat.ax_burst = axi_pkg::BURST_INCR;
@@ -1011,7 +1100,7 @@ package axi_test;
         if (beat.ax_atop != 2'b00) begin
           // This is an ATOP, so it gives rise to a write response.
           atop_resp_b[beat.ax_id] = 1'b1;
-          if (beat.ax_atop[5]) begin
+          if (beat.ax_atop[axi_pkg::ATOP_R_RESP]) begin
             // This ATOP type additionally gives rise to a read response.
             atop_resp_r[beat.ax_id] = 1'b1;
           end
@@ -1102,12 +1191,19 @@ package axi_test;
         static logic rand_success;
         wait (w_queue.size() > 0 || (aw_done && w_queue.size() == 0));
         aw_beat = w_queue.pop_front();
-        addr = aw_beat.ax_addr;
         for (int unsigned i = 0; i < aw_beat.ax_len + 1; i++) begin
           automatic w_beat_t w_beat = new;
           automatic int unsigned begin_byte, end_byte, n_bytes;
           automatic logic [AXI_STRB_WIDTH-1:0] rand_strb, strb_mask;
+          addr = axi_pkg::beat_addr(aw_beat.ax_addr, aw_beat.ax_size, aw_beat.ax_len,
+                                    aw_beat.ax_burst, i);
+`ifdef XSIM
+          // std::randomize(w_beat) may behave differently to w_beat.randomize() wrt. limited ranges
+          // Keeping alternate implementation for XSIM only
+          rand_success = std::randomize(w_beat); assert (rand_success);
+`else
           rand_success = w_beat.randomize(); assert (rand_success);
+`endif
           // Determine strobe.
           w_beat.w_strb = '0;
           n_bytes = 2**aw_beat.ax_size;
@@ -1122,8 +1218,6 @@ package axi_test;
           w_beat.w_last = (i == aw_beat.ax_len);
           rand_wait(W_MIN_WAIT_CYCLES, W_MAX_WAIT_CYCLES);
           drv.send_w(w_beat);
-          if (aw_beat.ax_burst == axi_pkg::BURST_INCR)
-            addr += n_bytes;
         end
       end
     endtask
@@ -1181,7 +1275,11 @@ package axi_test;
     parameter int   R_MIN_WAIT_CYCLES = 0,
     parameter int   R_MAX_WAIT_CYCLES = 5,
     parameter int   RESP_MIN_WAIT_CYCLES = 0,
-    parameter int   RESP_MAX_WAIT_CYCLES = 20
+    parameter int   RESP_MAX_WAIT_CYCLES = 20,
+    /// This parameter eneables an internal memory, which gets randomly initialized, if it is read
+    /// and retains written data. This mode does currently not support `axi_pkg::BURST_WRAP`!
+    /// All responses are `axi_pkg::RESP_OKAY` when in this mode.
+    parameter bit   MAPPED = 1'b0
   );
     typedef axi_test::axi_driver #(
       .AW(AW), .DW(DW), .IW(IW), .UW(UW), .TA(TA), .TT(TT)
@@ -1195,10 +1293,16 @@ package axi_test;
     typedef axi_driver_t::r_beat_t r_beat_t;
     typedef axi_driver_t::w_beat_t w_beat_t;
 
+    typedef logic [AW-1:0] addr_t;
+    typedef logic [7:0]    byte_t;
+
     axi_driver_t          drv;
     rand_ax_beat_queue_t  ar_queue;
     ax_beat_t             aw_queue[$];
     int unsigned          b_wait_cnt;
+
+    // Memory array for when the `MAPPED` parameter is set.
+    byte_t memory_q[addr_t];
 
     function new(
       virtual AXI_BUS_DV #(
@@ -1215,7 +1319,8 @@ package axi_test;
     endfunction
 
     function void reset();
-      drv.reset_slave();
+      this.drv.reset_slave();
+      this.memory_q.delete();
     endfunction
 
     // TODO: The `rand_wait` task exists in `rand_verif_pkg`, but that task cannot be called with
@@ -1235,6 +1340,10 @@ package axi_test;
         automatic ax_beat_t ar_beat;
         rand_wait(AX_MIN_WAIT_CYCLES, AX_MAX_WAIT_CYCLES);
         drv.recv_ar(ar_beat);
+        if (MAPPED) begin
+          assert (ar_beat.ax_burst != axi_pkg::BURST_WRAP) else
+            $error("axi_pkg::BURST_WRAP not supported in MAPPED mode.");
+        end
         ar_queue.push(ar_beat.ax_id, ar_beat);
       end
     endtask
@@ -1243,10 +1352,30 @@ package axi_test;
       forever begin
         automatic logic rand_success;
         automatic ax_beat_t ar_beat;
-        automatic r_beat_t r_beat = new;
-        wait (!ar_queue.empty());
-        ar_beat = ar_queue.peek();
+        automatic r_beat_t  r_beat = new;
+        automatic addr_t    byte_addr;
+        wait (ar_queue.size > 0);
+        ar_beat      = ar_queue.peek();
+        byte_addr    = axi_pkg::aligned_addr(ar_beat.ax_addr, axi_pkg::size_t'($clog2(DW/8)));
+`ifdef XSIM
+        // std::randomize(r_beat) may behave differently to r_beat.randomize() wrt. limited ranges
+        // Keeping alternate implementation for XSIM only
+        rand_success = std::randomize(r_beat); assert(rand_success);
+`else
         rand_success = r_beat.randomize(); assert(rand_success);
+`endif
+        if (MAPPED) begin
+          // Either use the actual data, or save the random generated.
+          for (int unsigned i = 0; i < (DW/8); i++) begin
+            if (this.memory_q.exists(byte_addr)) begin
+              r_beat.r_data[i*8+:8] = this.memory_q[byte_addr];
+            end else begin
+              this.memory_q[byte_addr] = r_beat.r_data[i*8+:8];
+            end
+            byte_addr++;
+          end
+          r_beat.r_resp = axi_pkg::RESP_OKAY;
+        end
         r_beat.r_id = ar_beat.ax_id;
         if (RAND_RESP && !ar_beat.ax_atop[axi_pkg::ATOP_R_RESP])
           r_beat.r_resp[1] = $random();
@@ -1257,6 +1386,10 @@ package axi_test;
           r_beat.r_last = 1'b1;
           void'(ar_queue.pop_id(ar_beat.ax_id));
         end else begin
+          if ((ar_beat.ax_burst == axi_pkg::BURST_INCR) && MAPPED) begin
+            ar_beat.ax_addr = axi_pkg::aligned_addr(ar_beat.ax_addr, ar_beat.ax_size) +
+                                  2**ar_beat.ax_size;
+          end
           ar_beat.ax_len--;
           ar_queue.set(ar_beat.ax_id, ar_beat);
         end
@@ -1269,9 +1402,15 @@ package axi_test;
         automatic ax_beat_t aw_beat;
         rand_wait(AX_MIN_WAIT_CYCLES, AX_MAX_WAIT_CYCLES);
         drv.recv_aw(aw_beat);
+        if (MAPPED) begin
+          assert (aw_beat.ax_atop == '0) else
+            $error("ATOP not supported in MAPPED mode.");
+          assert (aw_beat.ax_burst != axi_pkg::BURST_WRAP) else
+            $error("axi_pkg::BURST_WRAP not supported in MAPPED mode.");
+        end
         aw_queue.push_back(aw_beat);
         // Atomic{Load,Swap,Compare}s require an R response.
-        if (aw_beat.ax_atop[5]) begin
+        if (aw_beat.ax_atop[axi_pkg::ATOP_R_RESP]) begin
           ar_queue.push(aw_beat.ax_id, aw_beat);
         end
       end
@@ -1280,10 +1419,30 @@ package axi_test;
     task recv_ws();
       forever begin
         automatic ax_beat_t aw_beat;
+        automatic addr_t    byte_addr;
         forever begin
           automatic w_beat_t w_beat;
           rand_wait(RESP_MIN_WAIT_CYCLES, RESP_MAX_WAIT_CYCLES);
           drv.recv_w(w_beat);
+          if (MAPPED) begin
+            wait (aw_queue.size() > 0);
+            aw_beat = aw_queue[0];
+            byte_addr    = axi_pkg::aligned_addr(aw_beat.ax_addr, $clog2(DW/8));
+
+            // Write Data if the strobe is defined
+            for (int unsigned i = 0; i < (DW/8); i++) begin
+              if (w_beat.w_strb[i]) begin
+                this.memory_q[byte_addr] = w_beat.w_data[i*8+:8];
+              end
+              byte_addr++;
+            end
+            // Update address in beat
+            if (aw_beat.ax_burst == axi_pkg::BURST_INCR) begin
+              aw_beat.ax_addr = axi_pkg::aligned_addr(aw_beat.ax_addr, aw_beat.ax_size) +
+                                    2**aw_beat.ax_size;
+            end
+            aw_queue[0] = aw_beat;
+          end
           if (w_beat.w_last)
             break;
         end
@@ -1298,7 +1457,13 @@ package axi_test;
         automatic logic rand_success;
         wait (b_wait_cnt > 0 && (aw_queue.size() != 0));
         aw_beat = aw_queue.pop_front();
-        rand_success = b_beat.randomize(); assert(rand_success);
+`ifdef XSIM
+        // std::randomize(b_beat) may behave differently to b_beat.randomize() wrt. limited ranges
+        // Keeping alternate implementation for XSIM only
+        rand_success = std::randomize(b_beat); assert (rand_success);
+`else
+        rand_success = b_beat.randomize(); assert (rand_success);
+`endif
         b_beat.b_id = aw_beat.ax_id;
         if (RAND_RESP && !aw_beat.ax_atop[axi_pkg::ATOP_R_RESP])
           b_beat.b_resp[1] = $random();
@@ -1306,6 +1471,9 @@ package axi_test;
           b_beat.b_resp[0]= $random();
         end
         rand_wait(RESP_MIN_WAIT_CYCLES, RESP_MAX_WAIT_CYCLES);
+        if (MAPPED) begin
+          b_beat.b_resp = axi_pkg::RESP_OKAY;
+        end
         drv.send_b(b_beat);
         b_wait_cnt--;
       end
@@ -1394,7 +1562,7 @@ package axi_test;
         ar_addr = addr_t'($urandom_range(MIN_ADDR, MAX_ADDR));
         ar_prot = prot_t'($urandom());
         this.ar_queue.push_back(ar_addr);
-        $display("%0t %s> Send AR with ADDR: %h PROT: %b", $time(), this.name, ar_addr, ar_prot);
+        // $display("%0t %s> Send AR with ADDR: %h PROT: %b", $time(), this.name, ar_addr, ar_prot);
         drv.send_ar(ar_addr, ar_prot);
       end
     endtask : send_ars
@@ -1408,7 +1576,7 @@ package axi_test;
         ar_addr = this.ar_queue.pop_front();
         rand_wait(RESP_MIN_WAIT_CYCLES, RESP_MAX_WAIT_CYCLES);
         drv.recv_r(r_data, r_resp);
-        $display("%0t %s> Recv  R with DATA: %h RESP: %0h", $time(), this.name, r_data, r_resp);
+        // $display("%0t %s> Recv  R with DATA: %h RESP: %0h", $time(), this.name, r_data, r_resp);
       end
     endtask : recv_rs
 
@@ -1420,7 +1588,7 @@ package axi_test;
         aw_addr = addr_t'($urandom_range(MIN_ADDR, MAX_ADDR));
         aw_prot = prot_t'($urandom());
         this.aw_queue.push_back(aw_addr);
-        $display("%0t %s> Send AW with ADDR: %h PROT: %b", $time(), this.name, aw_addr, aw_prot);
+        // $display("%0t %s> Send AW with ADDR: %h PROT: %b", $time(), this.name, aw_addr, aw_prot);
         this.drv.send_aw(aw_addr, aw_prot);
         this.b_queue.push_back(1'b1);
       end
@@ -1437,7 +1605,7 @@ package axi_test;
         aw_addr = aw_queue.pop_front();
         rand_success = std::randomize(w_data); assert(rand_success);
         rand_success = std::randomize(w_strb); assert(rand_success);
-        $display("%0t %s> Send  W with DATA: %h STRB: %h", $time(), this.name, w_data, w_strb);
+        // $display("%0t %s> Send  W with DATA: %h STRB: %h", $time(), this.name, w_data, w_strb);
         this.drv.send_w(w_data, w_strb);
         w_queue.push_back(1'b1);
       end
@@ -1452,7 +1620,7 @@ package axi_test;
         go_b = this.w_queue.pop_front();
         rand_wait(RESP_MIN_WAIT_CYCLES, RESP_MAX_WAIT_CYCLES);
         this.drv.recv_b(b_resp);
-        $display("%0t %s> Recv  B with RESP: %h", $time(), this.name, b_resp);
+        // $display("%0t %s> Recv  B with RESP: %h", $time(), this.name, b_resp);
       end
     endtask : recv_bs
 
@@ -1470,26 +1638,26 @@ package axi_test;
     // write data to a specific address
     task automatic write(input addr_t w_addr, input prot_t w_prot = prot_t'(0), input data_t w_data,
                          input strb_t w_strb, output axi_pkg::resp_t b_resp);
-      $display("%0t %s> Write to ADDR: %h, PROT: %b DATA: %h, STRB: %h",
-          $time(), this.name, w_addr, w_prot, w_data, w_strb);
+      // $display("%0t %s> Write to ADDR: %h, PROT: %b DATA: %h, STRB: %h",
+      //     $time(), this.name, w_addr, w_prot, w_data, w_strb);
       fork
         this.drv.send_aw(w_addr, w_prot);
         this.drv.send_w(w_data, w_strb);
       join
       this.drv.recv_b(b_resp);
-      $display("%0t %s> Received write response from ADDR: %h RESP: %h",
-          $time(), this.name, w_addr, b_resp);
+      // $display("%0t %s> Received write response from ADDR: %h RESP: %h",
+      //     $time(), this.name, w_addr, b_resp);
     endtask : write
 
     // read data from a specific location
     task automatic read(input addr_t r_addr, input prot_t r_prot = prot_t'(0),
                         output data_t r_data, output axi_pkg::resp_t r_resp);
-      $display("%0t %s> Read from ADDR: %h PROT: %b",
-          $time(), this.name, r_addr, r_prot);
+      // $display("%0t %s> Read from ADDR: %h PROT: %b",
+      //     $time(), this.name, r_addr, r_prot);
       this.drv.send_ar(r_addr, r_prot);
       this.drv.recv_r(r_data, r_resp);
-      $display("%0t %s> Recieved read response from ADDR: %h DATA: %h RESP: %h",
-          $time(), this.name, r_addr, r_data, r_resp);
+      // $display("%0t %s> Recieved read response from ADDR: %h DATA: %h RESP: %h",
+      //     $time(), this.name, r_addr, r_data, r_resp);
     endtask : read
   endclass
 
@@ -1555,22 +1723,24 @@ package axi_test;
         automatic prot_t ar_prot;
         rand_wait(AX_MIN_WAIT_CYCLES, AX_MAX_WAIT_CYCLES);
         this.drv.recv_ar(ar_addr, ar_prot);
-        $display("%0t %s> Recv AR with ADDR: %h PROT: %b", $time(), this.name, ar_addr, ar_prot);
+        // $display("%0t %s> Recv AR with ADDR: %h PROT: %b", $time(), this.name, ar_addr, ar_prot);
         this.ar_queue.push_back(ar_addr);
       end
     endtask : recv_ars
 
     task automatic send_rs();
       forever begin
-        automatic logic rand_success;
-        automatic addr_t ar_addr;
-        automatic data_t r_data;
+        automatic logic           rand_success;
+        automatic addr_t          ar_addr;
+        automatic data_t          r_data;
+        automatic axi_pkg::resp_t r_resp;
         wait (ar_queue.size() > 0);
         ar_addr = this.ar_queue.pop_front();
         rand_success = std::randomize(r_data); assert(rand_success);
+        rand_success = std::randomize(r_resp); assert(rand_success);
         rand_wait(R_MIN_WAIT_CYCLES, R_MAX_WAIT_CYCLES);
-        $display("%0t %s> Send  R with DATA: %h", $time(), this.name, r_data);
-        this.drv.send_r(r_data, axi_pkg::RESP_OKAY);
+        // $display("%0t %s> Send  R with DATA: %h RESP: %h", $time(), this.name, r_data, r_resp);
+        this.drv.send_r(r_data, r_resp);
       end
     endtask : send_rs
 
@@ -1580,7 +1750,7 @@ package axi_test;
         automatic prot_t aw_prot;
         rand_wait(AX_MIN_WAIT_CYCLES, AX_MAX_WAIT_CYCLES);
         this.drv.recv_aw(aw_addr, aw_prot);
-        $display("%0t %s> Recv AW with ADDR: %h PROT: %b", $time(), this.name, aw_addr, aw_prot);
+        // $display("%0t %s> Recv AW with ADDR: %h PROT: %b", $time(), this.name, aw_addr, aw_prot);
         this.aw_queue.push_back(aw_addr);
       end
     endtask : recv_aws
@@ -1591,7 +1761,7 @@ package axi_test;
         automatic strb_t w_strb;
         rand_wait(RESP_MIN_WAIT_CYCLES, RESP_MAX_WAIT_CYCLES);
         this.drv.recv_w(w_data, w_strb);
-        $display("%0t %s> Recv  W with DATA: %h SRTB: %h", $time(), this.name, w_data, w_strb);
+        // $display("%0t %s> Recv  W with DATA: %h SRTB: %h", $time(), this.name, w_data, w_strb);
         this.b_queue.push_back(1'b1);
       end
     endtask : recv_ws
@@ -1607,7 +1777,7 @@ package axi_test;
         go_b  = this.b_queue.pop_front();
         rand_wait(RESP_MIN_WAIT_CYCLES, RESP_MAX_WAIT_CYCLES);
         rand_success = std::randomize(b_resp); assert(rand_success);
-        $display("%0t %s> Send  B with RESP: %h", $time(), this.name, b_resp);
+        // $display("%0t %s> Send  B with RESP: %h", $time(), this.name, b_resp);
         this.drv.send_b(b_resp);
       end
     endtask : send_bs
@@ -1619,6 +1789,80 @@ package axi_test;
         recv_aws();
         recv_ws();
         send_bs();
+      join
+    endtask
+  endclass
+
+  /// AXI Monitor.
+  class axi_monitor #(
+    /// AXI4+ATOP ID width
+    parameter int unsigned IW = 0,
+    /// AXI4+ATOP address width
+    parameter int unsigned AW = 0,
+    /// AXI4+ATOP data width
+    parameter int unsigned DW = 0,
+    /// AXI4+ATOP user width
+    parameter int unsigned UW = 0,
+    /// Stimuli test time
+    parameter time TT = 0ns
+  );
+
+    typedef axi_test::axi_driver #(
+      .AW(AW), .DW(DW), .IW(IW), .UW(UW), .TA(TT), .TT(TT)
+    ) axi_driver_t;
+
+    typedef axi_driver_t::ax_beat_t ax_beat_t;
+    typedef axi_driver_t::w_beat_t w_beat_t;
+    typedef axi_driver_t::b_beat_t b_beat_t;
+    typedef axi_driver_t::r_beat_t r_beat_t;
+
+    axi_driver_t          drv;
+    mailbox aw_mbx = new, w_mbx = new, b_mbx = new,
+            ar_mbx = new, r_mbx = new;
+
+    function new(
+      virtual AXI_BUS_DV #(
+        .AXI_ADDR_WIDTH(AW),
+        .AXI_DATA_WIDTH(DW),
+        .AXI_ID_WIDTH(IW),
+        .AXI_USER_WIDTH(UW)
+      ) axi
+    );
+      this.drv = new(axi);
+    endfunction
+
+    task monitor;
+      fork
+        // AW
+        forever begin
+          automatic ax_beat_t ax;
+          this.drv.mon_aw(ax);
+          aw_mbx.put(ax);
+        end
+        // W
+        forever begin
+          automatic w_beat_t w;
+          this.drv.mon_w(w);
+          w_mbx.put(w);
+        end
+        // B
+        forever begin
+          automatic b_beat_t b;
+          this.drv.mon_b(b);
+          b_mbx.put(b);
+        end
+        // AR
+        forever begin
+          automatic ax_beat_t ax;
+          this.drv.mon_ar(ax);
+          ar_mbx.put(ax);
+        end
+        // R
+        forever begin
+          automatic r_beat_t r;
+          this.drv.mon_r(r);
+          r_mbx.put(r);
+        end
       join
     endtask
   endclass
@@ -1647,15 +1891,15 @@ package axi_test;
   /// end
   class axi_scoreboard #(
     /// AXI4+ATOP ID width
-    parameter int unsigned IW,
+    parameter int unsigned IW = 0,
     /// AXI4+ATOP address width
-    parameter int unsigned AW,
+    parameter int unsigned AW = 0,
     /// AXI4+ATOP data width
-    parameter int unsigned DW,
+    parameter int unsigned DW = 0,
     /// AXI4+ATOP user width
-    parameter int unsigned UW,
+    parameter int unsigned UW = 0,
     /// Stimuli test time
-    parameter time TT
+    parameter time TT = 0ns
   );
     // Number of checks
     localparam int unsigned NUM_CHECKS  = 32'd3;
@@ -1777,8 +2021,6 @@ package axi_test;
         b_beat  = b_sample[id].pop_front();
         if (check_en[BRespCheck]) begin
           assert (b_beat.b_id   == id);
-          assert (b_beat.b_resp == axi_pkg::RESP_OKAY) else
-              $warning("Behavior for b_resp != axi_pkg::RESP_OKAY not modeled.");
         end
         // pop all accessed memory locations by this beat
         for (int unsigned i = 0; i <= aw_beat.ax_len; i++) begin
@@ -1786,7 +2028,11 @@ package axi_test;
               axi_pkg::beat_addr(aw_beat.ax_addr, aw_beat.ax_size, aw_beat.ax_len, aw_beat.ax_burst,
                   i), BUS_SIZE);
           for (int j = 0; j < axi_pkg::num_bytes(BUS_SIZE); j++) begin
-            memory_q[bus_address+j].delete(0);
+            if (b_beat.b_resp inside {axi_pkg::RESP_OKAY, axi_pkg::RESP_EXOKAY}) begin
+              memory_q[bus_address+j].delete(0);
+            end else begin
+              memory_q[bus_address+j].delete(memory_q[bus_address+j].size() - 1);
+            end
           end
         end
       end
@@ -1800,6 +2046,7 @@ package axi_test;
       byte_t     act_data;
       byte_t     exp_data[$];
       byte_t     tst_data[$];
+      int        first_byte_to_check;
       forever begin
         wait (this.ar_sample[id].size() > 0);
         ar_beat = this.ar_sample[id].pop_front();
@@ -1814,28 +2061,39 @@ package axi_test;
               ar_beat.ax_burst, i);
           beat_address = axi_pkg::aligned_addr(beat_address, ar_beat.ax_size);
           bus_address  = axi_pkg::aligned_addr(beat_address, BUS_SIZE);
+          if(i!=0)
+            first_byte_to_check = 0;
+          else
+            first_byte_to_check = ar_beat.ax_addr - beat_address;
           if (!this.memory_q.exists(bus_address)) begin
             for (int unsigned j = 0; j < axi_pkg::num_bytes(BUS_SIZE); j++) begin
               this.memory_q[bus_address+j].push_back(8'bxxxxxxxx);
             end
           end
           // Assert that the correct data is read.
-          if (this.check_en[ReadCheck]) begin
-            for (int unsigned j = 0; j < axi_pkg::num_bytes(ar_beat.ax_size); j++) begin
+          if (this.check_en[ReadCheck] &&
+              (r_beat.r_resp inside {axi_pkg::RESP_OKAY, axi_pkg::RESP_EXOKAY})) begin
+            for (int unsigned j = first_byte_to_check; j < axi_pkg::num_bytes(ar_beat.ax_size); j++) begin
               idx_data  = 8*BUS_SIZE'(beat_address+j);
               act_data  = r_beat.r_data[idx_data+:8];
               exp_data  = this.memory_q[beat_address+j];
-              tst_data  = exp_data.find with (item === 8'hxx || item === act_data);
-              assert (tst_data.size() > 0) else begin
-                $warning("Unexpected RData ID: %0h Addr: %0h Byte Idx: %0h Exp Data : %0h Data: %h",
-                r_beat.r_id, beat_address+j, idx_data, exp_data, act_data);
+              if (exp_data.size() > 0) begin
+                tst_data  = exp_data.find with (item === 8'hxx || item === act_data);
+                assert (tst_data.size() > 0) else begin
+                  $warning("Unexpected RData ID: %0h \n \
+                            Addr:     %h \n \
+                            Byte Idx: %h \n \
+                            Exp Data: %h \n \
+                            Act Data: %h \n \
+                            BeatData: %h",
+                  r_beat.r_id, beat_address+j, idx_data, exp_data, act_data, r_beat.r_data);
+                end
               end
             end
           end
         end
         if (this.check_en[RRespCheck]) begin
           assert (r_beat.r_id   == id);
-          assert (r_beat.r_resp == axi_pkg::RESP_OKAY);
           assert (r_beat.r_last);
         end
       end
@@ -2020,7 +2278,266 @@ package axi_test;
         assert(this.b_queue[i].size()   == 0);
       end
     endtask : reset
+
+    /// Check that the byte in memory_q is the same as check_data.
+    task automatic check_byte(axi_addr_t check_addr, byte_t check_data);
+      assert(this.memory_q[check_addr][0] === check_data) else
+        $warning("Byte at ADDR: %h does not match: memory_q: %h check_data: %h",
+            check_addr, this.memory_q[check_addr][0], check_data);
+    endtask : check_byte
+
+    /// Clear a byte from memoy. Can be used to partially delete mem space.
+    task clear_byte(axi_addr_t clear_addr);
+      if (this.memory_q.exists(clear_addr)) begin
+        this.memory_q.delete(clear_addr);
+      end
+    endtask : clear_byte
+
+    /// Clear a memory range.
+    /// The end address alo gets cleared.
+    task automatic clear_range(axi_addr_t clear_start_addr, clear_end_addr);
+      axi_addr_t curr_addr = clear_start_addr;
+      while (curr_addr <= clear_end_addr) begin
+        this.clear_byte(curr_addr);
+        curr_addr++;
+      end
+    endtask : clear_range
+
+    /// Get a byte from the modeled memory.
+    task automatic get_byte(input axi_addr_t byte_addr, output byte_t byte_data);
+      if (this.memory_q.exists(byte_addr)) begin
+        byte_data = this.memory_q[byte_addr][0];
+      end else begin
+        byte_data = 8'hxx;
+      end
+    endtask : get_byte
+
   endclass : axi_scoreboard
+
+
+  class axi_file_master #(
+    // AXI interface parameters
+    parameter int   AW = 32,
+    parameter int   DW = 32,
+    parameter int   IW = 8,
+    parameter int   UW = 1,
+    // Stimuli application and test time
+    parameter time  TA = 0ps,
+    parameter time  TT = 0ps
+  );
+
+    typedef axi_test::axi_driver #(
+      .AW(AW), .DW(DW), .IW(IW), .UW(UW), .TA(TA), .TT(TT)
+    ) axi_driver_t;
+
+    typedef axi_driver_t::ax_beat_t ax_beat_t;
+    typedef axi_driver_t::b_beat_t  b_beat_t;
+    typedef axi_driver_t::r_beat_t  r_beat_t;
+    typedef axi_driver_t::w_beat_t  w_beat_t;
+
+    axi_driver_t drv;
+
+    int read_fd, write_fd;
+
+    // store holding read/write transactions between aw-b and ar-r
+    logic b_outst[$];
+    logic r_outst[$];
+
+    // proper decoupling: populate queues from file
+    ax_beat_t aw_queue[$];
+     w_beat_t  w_queue[$];
+    ax_beat_t ar_queue[$];
+
+    // populated by read file function
+    int num_reads;
+    int num_writes;
+
+    function new(
+      virtual AXI_BUS_DV #(
+        .AXI_ADDR_WIDTH(AW),
+        .AXI_DATA_WIDTH(DW),
+        .AXI_ID_WIDTH(IW),
+        .AXI_USER_WIDTH(UW)
+      ) axi
+    );
+      this.drv = new(axi);
+      this.reset();
+    endfunction
+
+    function void reset();
+      drv.reset_master();
+    endfunction
+
+    function void parse_write();
+      // parsing works
+      int parse_ok;
+
+      // populate according to file
+      while (!$feof(this.write_fd)) begin
+        automatic ax_beat_t current_aw = new;
+        parse_ok = 1;
+        parse_ok = parse_ok & ($fscanf(this.write_fd, "%d\n",   current_aw.ax_id    ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.write_fd, "0x%x\n", current_aw.ax_addr  ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.write_fd, "%d\n",   current_aw.ax_len   ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.write_fd, "%d\n",   current_aw.ax_size  ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.write_fd, "%d\n",   current_aw.ax_burst ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.write_fd, "%d\n",   current_aw.ax_lock  ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.write_fd, "%d\n",   current_aw.ax_cache ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.write_fd, "%d\n",   current_aw.ax_prot  ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.write_fd, "%d\n",   current_aw.ax_qos   ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.write_fd, "%d\n",   current_aw.ax_region) != -1);
+        parse_ok = parse_ok & ($fscanf(this.write_fd, "%d\n",   current_aw.ax_atop  ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.write_fd, "%d\n",   current_aw.ax_user  ) != -1);
+        if (parse_ok) begin
+          this.aw_queue.push_back(current_aw);
+          this.b_outst.push_back(1'b1);
+          // $display("%p", current_aw);
+        end else begin
+          $warning("Issue parsing AW: %p", current_aw);
+        end
+
+        // get write data + strobe
+        for (int i = 0; i <= current_aw.ax_len; i++) begin
+          automatic  w_beat_t current_w  = new;
+          parse_ok = parse_ok & ($fscanf(this.write_fd, "0x%x 0x%x %d\n", current_w.w_data, current_w.w_strb, current_w.w_user) != -1);
+          current_w.w_last = 1'b0;
+          if (i == current_aw.ax_len) begin
+            current_w.w_last = 1'b1;
+          end
+          if (parse_ok) begin
+            this.w_queue.push_back(current_w);
+            // $display("%p", current_w);
+          end else begin
+            $warning("Issue parsing W: %p of AW: %p", current_w, current_aw);
+          end
+        end
+      end
+
+      // debug: print queues
+      // $display("%p", this.aw_queue);
+      // $display("%p", this.w_queue);
+    endfunction
+
+    function void parse_read();
+      // parsing works
+      int parse_ok;
+
+      // populate according to file
+      while (!$feof(this.read_fd)) begin
+        automatic ax_beat_t current_ar = new;
+        parse_ok = 1;
+        parse_ok = parse_ok & ($fscanf(this.read_fd, "%d\n",   current_ar.ax_id    ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.read_fd, "0x%x\n", current_ar.ax_addr  ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.read_fd, "%d\n",   current_ar.ax_len   ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.read_fd, "%d\n",   current_ar.ax_size  ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.read_fd, "%d\n",   current_ar.ax_burst ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.read_fd, "%d\n",   current_ar.ax_lock  ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.read_fd, "%d\n",   current_ar.ax_cache ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.read_fd, "%d\n",   current_ar.ax_prot  ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.read_fd, "%d\n",   current_ar.ax_qos   ) != -1);
+        parse_ok = parse_ok & ($fscanf(this.read_fd, "%d\n",   current_ar.ax_region) != -1);
+        parse_ok = parse_ok & ($fscanf(this.read_fd, "%d\n",   current_ar.ax_user  ) != -1);
+        if (parse_ok) begin
+          this.ar_queue.push_back(current_ar);
+          this.r_outst.push_back(1'b1);
+          // $display("%p", current_ar);
+        end else begin
+          $warning("Issue parsing AR: %p", current_ar);
+        end
+      end
+
+      // debug: print queues
+      // $display("%p", this.ar_queue);
+    endfunction
+
+    function void load_files(
+      string read_file_name,
+      string write_file_name
+    );
+      this.read_fd = $fopen(read_file_name, "r");
+      this.write_fd = $fopen(write_file_name, "r");
+
+      // check if files are opened
+      if (this.read_fd) begin
+        $info("File %s opened successfully as %d", read_file_name, this.read_fd);
+      end else begin
+        $fatal(1, "File %s not found", read_file_name);
+      end
+      if (this.write_fd) begin
+        $info("File %s opened successfully as %d", write_file_name, this.write_fd);
+      end else begin
+        $fatal(1, "File %s not found", write_file_name);
+      end
+
+      // read files
+      this.parse_read();
+      this.parse_write();
+
+      // update status
+      this.num_reads  = this.ar_queue.size();
+      this.num_writes = this.aw_queue.size();
+    endfunction
+
+    task run_aw();
+      // send aws while there are some left
+      while (this.aw_queue.size() > 0) begin
+        // display("Sending AW: %p", this.aw_queue[0]);
+        drv.send_aw(this.aw_queue[0]);
+        void'(this.aw_queue.pop_front());
+      end
+    endtask
+
+    task run_w();
+      // send ws while there are some left
+      while (this.w_queue.size() > 0) begin
+        // $display("Sending  W: %p", this.w_queue[0]);
+        drv.send_w(this.w_queue[0]);
+        void'(this.w_queue.pop_front());
+      end
+    endtask
+
+    task run_ar();
+      // send ars while there are some left
+      while (this.ar_queue.size() > 0) begin
+        // $display("Sending AR: %p", this.ar_queue[0]);
+        drv.send_ar(this.ar_queue[0]);
+        void'(this.ar_queue.pop_front());
+      end
+    endtask
+
+    task wait_b();
+      automatic b_beat_t b_beat = new;
+      // wait for bs while there are some left
+      while (this.b_outst.size() > 0) begin
+        // $display("Waiting B");
+        drv.recv_b(b_beat);
+        void'(this.b_outst.pop_front());
+      end
+    endtask
+
+    task wait_r();
+      automatic r_beat_t r_beat = new;
+      // wait for rs while there are some left
+      while (this.r_outst.size() > 0) begin
+        // $display("Waiting R");
+        do begin
+          drv.recv_r(r_beat);
+        end while (r_beat.r_last !== 1'b1);
+        void'(this.r_outst.pop_front());
+      end
+    endtask
+
+    task run();
+      fork
+        this.run_aw();
+        this.run_w ();
+        this.run_ar();
+        this.wait_b();
+        this.wait_r();
+      join
+    endtask
+
+  endclass
 
 endpackage
 
@@ -2095,7 +2612,7 @@ module axi_chan_logger #(
         end
 
         // inject AR into queue, if there is an atomic
-        if (aw_chan_i.atop[5]) begin
+        if (aw_chan_i.atop[axi_pkg::ATOP_R_RESP]) begin
           $display("Atomic detected with response");
           ar_beat.id     = aw_chan_i.id;
           ar_beat.addr   = aw_chan_i.addr;

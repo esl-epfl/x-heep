@@ -103,6 +103,20 @@ artifacts:
     outputs:
       - build/axi_dw_upsizer-%.tested
 
+  axi_fifo-%:
+    inputs:
+      - Bender.yml
+      - include
+      - scripts/run_vsim.sh
+      - src/axi_pkg.sv
+      - src/axi_intf.sv
+      - src/axi_test.sv
+      - src/axi_fifo.sv
+      - test/tb_axi_fifo.sv
+    outputs:
+      - build/axi_fifo-%.tested
+
+
   axi_isolate-%:
     inputs:
       - Bender.yml
@@ -115,6 +129,51 @@ artifacts:
       - test/tb_axi_isolate.sv
     outputs:
       - build/axi_isolate-%.tested
+
+  axi_iw_converter-%:
+    inputs:
+      - Bender.yml
+      - include
+      - scripts/run_vsim.sh
+      - src/axi_pkg.sv
+      - src/axi_intf.sv
+      - src/axi_test.sv
+      - src/axi_id_prepend.sv
+      - src/axi_id_remap.sv
+      - src/axi_demux.sv
+      - src/axi_serializer.sv
+      - src/axi_mux.sv
+      - src/axi_id_serialize.sv
+      - src/axi_iw_converter.sv
+      - test/tb_axi_iw_converter.sv
+    outputs:
+      - build/axi_iw_converter-%.tested
+
+  axi_lite_dw_converter-%:
+    inputs:
+      - Bender.yml
+      - include
+      - scripts/run_vsim.sh
+      - src/axi_pkg.sv
+      - src/axi_intf.sv
+      - src/axi_test.sv
+      - src/axi_lite_dw_converter.sv
+      - test/tb_axi_lite_dw_converter.sv
+    outputs:
+      - build/axi_lite_dw_converter-%.tested
+
+  axi_lite_mailbox-%:
+    inputs:
+      - Bender.yml
+      - include
+      - scripts/run_vsim.sh
+      - src/axi_pkg.sv
+      - src/axi_intf.sv
+      - src/axi_test.sv
+      - src/axi_lite_mailbox.sv
+      - test/tb_axi_lite_mailbox.sv
+    outputs:
+      - build/axi_lite_mailbox-%.tested
 
   axi_lite_regs-%:
     inputs:
@@ -154,19 +213,6 @@ artifacts:
       - test/tb_axi_lite_to_axi.sv
     outputs:
       - build/axi_lite_to_axi-%.tested
-
-  axi_lite_mailbox-%:
-    inputs:
-      - Bender.yml
-      - include
-      - scripts/run_vsim.sh
-      - src/axi_pkg.sv
-      - src/axi_intf.sv
-      - src/axi_test.sv
-      - src/axi_lite_mailbox.sv
-      - test/tb_axi_lite_mailbox.sv
-    outputs:
-      - build/axi_lite_mailbox-%.tested
 
   axi_lite_xbar-%:
     inputs:
@@ -238,6 +284,22 @@ artifacts:
       - test/tb_axi_to_axi_lite.sv
     outputs:
       - build/axi_to_axi_lite-%.tested
+
+  axi_to_mem_banked-%:
+    inputs:
+      - Bender.yml
+      - include
+      - scripts/run_vsim.sh
+      - src/axi_pkg.sv
+      - src/axi_intf.sv
+      - src/axi_test.sv
+      - src/axi_demux.sv
+      - src/axi_to_detailed_mem.sv
+      - src/axi_to_mem.sv
+      - src/axi_to_mem_banked.sv
+      - test/tb_axi_to_mem_banked.sv
+    outputs:
+      - build/axi_to_mem_banked-%.tested
 
   axi_xbar-%:
     inputs:

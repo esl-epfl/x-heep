@@ -372,6 +372,10 @@ module core_v_mini_mcu
 
   core_v_mini_mcu_pkg::axi_req_t axi_in_req_i, axi_out_req_o;
   core_v_mini_mcu_pkg::axi_resp_t axi_in_rsp_o, axi_out_rsp_i;
+  reg_req_t cfg_req_t;
+  reg_rsp_t cfg_rsp_t;
+
+
   //`AXIS_TYPEDEF_S_T(__name``_s_chan_t, __tdata_t, __tstrb_t, __tkeep_t, __tlast_t, __tid_t, __tdest_t, __tuser_t)      //`AXIS_TYPEDEF_REQ_T(__name``_req_t,__name``_s_chan_t)      //`AXIS_TYPEDEF_RSP_T(__name``_rsp_t, __tready_t)
 
 
@@ -743,6 +747,17 @@ module core_v_mini_mcu
       .data_rdata_o(obi_resp_obi2axi.rdata),
       .data_wdata_i(obi_req_obi2axi.wdata),
 
+      //.data_req_i(core_instr_req.req),
+      //.data_gnt_o(core_instr_resp.gnt),
+      //.data_rvalid_o(core_instr_resp.rvalid),
+      //.data_addr_i(core_instr_req.addr),
+      //.data_we_i(core_instr_req.we),
+      //.data_be_i(core_instr_req.be),
+      //.data_rdata_o(core_instr_resp.rdata),
+      //.data_wdata_i(core_instr_req.wdata),
+
+
+
       .aw_id_o(axi_out_req_o.aw.id),
       .aw_addr_o(axi_out_req_o.aw.addr),
       .aw_len_o(axi_out_req_o.aw.len),
@@ -838,8 +853,12 @@ module core_v_mini_mcu
 
   // SERIAL LINK
   serial_link_occamy_wrapper #(
-      .NumChannels(1),
-      .NumLanes(1)
+      .axi_req_t(core_v_mini_mcu_pkg::axi_req_t),
+      .axi_rsp_t(core_v_mini_mcu_pkg::axi_resp_t),
+      .cfg_rsp_t(reg_rsp_t),
+      .cfg_req_t(reg_req_t)
+      //.NumChannels(1),
+      //.NumLanes(1)
   ) serial_link_occamy_wrapper_i (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
@@ -853,8 +872,8 @@ module core_v_mini_mcu
       .axi_out_req_o(axi_out_req_o),
       .axi_out_rsp_i(axi_out_rsp_i),
 
-      .cfg_req_i(rst_ni),  // register configuration
-      .cfg_rsp_o(),
+      .cfg_req_i(cfg_req_t),  // register configuration
+      .cfg_rsp_o(cfg_rsp_t),
 
       .ddr_rcv_clk_i(),
       .ddr_rcv_clk_o(),

@@ -4,8 +4,8 @@ name : pulp-platform.org::serial-link-pkg
 filesets:
   rtl:
     files: 
-    - serial_link/src/serial_link_pkg.sv
-    - serial_link/src/axis/include/axis/typedef.svh : { is_include_file: true, include_path: serial_link/src/axis/include}
+      - serial_link/src/axis/include/axis/typedef.svh : { is_include_file: true, include_path: serial_link/src/axis/include}
+      - serial_link/src/serial_link_pkg.sv
     file_type : systemVerilogSource
 
 targets:

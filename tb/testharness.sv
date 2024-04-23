@@ -263,6 +263,7 @@ module testharness #(
       .external_subsystem_clkgate_en_no(external_subsystem_clkgate_en_n),
       .ext_dma_slot_tx_i(iffifo_in_ready),
       .ext_dma_slot_rx_i(iffifo_out_valid)
+      //.axi_req_i(axi_req)
   );
 
   // Testbench external bus
@@ -424,6 +425,8 @@ module testharness #(
           .consumer_req_o (slave_fifoout_req),
           .consumer_resp_i(slave_fifoout_resp)
       );
+
+
 
       // External xbar slave memory example
       slow_memory #(
