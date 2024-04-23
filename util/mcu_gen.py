@@ -32,13 +32,25 @@ class Pad:
 
   def create_pad_ring(self):
 
+    # Mapping dictionary from string to integer
+    mapping_dict = {
+        'top' : 0,
+        'right' : 1,
+        'bottom' : 2,
+        'left' : 3
+    }
+
+    mapping = ''
+    if self.pad_mapping is not None:
+        mapping = ', .SIDE(' + mapping_dict[self.pad_mapping] + ')'
+
     self.interface = '    inout wire ' + self.name + '_io,\n'
 
     if self.pad_type == 'input':
         self.pad_ring_io_interface = '    inout wire ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    output logic ' + self.signal_name + 'o,'
         self.pad_ring_instance = \
-            'pad_cell_input #(.PADATTR('+ str(self.attribute_bits) +')) ' + self.cell_name + ' ( \n' + \
+            'pad_cell_input #(.PADATTR('+ str(self.attribute_bits) +')' + mapping + ') ' + self.cell_name + ' ( \n' + \
             '   .pad_in_i(1\'b0),\n' + \
             '   .pad_oe_i(1\'b0),\n' + \
             '   .pad_out_o(' + self.signal_name + 'o),\n' + \
@@ -47,7 +59,7 @@ class Pad:
         self.pad_ring_io_interface = '    inout wire ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'i,'
         self.pad_ring_instance = \
-            'pad_cell_output #(.PADATTR('+ str(self.attribute_bits) +')) ' + self.cell_name + ' ( \n' + \
+            'pad_cell_output #(.PADATTR('+ str(self.attribute_bits) +')' + mapping + ') ' + self.cell_name + ' ( \n' + \
             '   .pad_in_i(' + self.signal_name + 'i),\n' + \
             '   .pad_oe_i(1\'b1),\n' + \
             '   .pad_out_o(),\n' + \
@@ -58,7 +70,7 @@ class Pad:
         self.pad_ring_ctrl_interface += '    output logic ' + self.signal_name + 'o,\n'
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'oe_i,'
         self.pad_ring_instance = \
-            'pad_cell_inout #(.PADATTR('+ str(self.attribute_bits) +')) ' + self.cell_name + ' ( \n' + \
+            'pad_cell_inout #(.PADATTR('+ str(self.attribute_bits) +')' + mapping + ') ' + self.cell_name + ' ( \n' + \
             '   .pad_in_i(' + self.signal_name + 'i),\n' + \
             '   .pad_oe_i(' + self.signal_name + 'oe_i),\n' + \
             '   .pad_out_o(' + self.signal_name + 'o),\n' + \
@@ -573,6 +585,11 @@ def main():
             pad_active = pads[key]['active']
         except KeyError:
             pad_active = 'high'
+        
+        try:
+            pad_mapping = pads[key]['mapping']
+        except KeyError:
+            pad_mapping = None
 
         try:
             pad_mux_list_hjson = pads[key]['mux']
