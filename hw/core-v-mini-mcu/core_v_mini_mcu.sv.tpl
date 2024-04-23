@@ -162,7 +162,7 @@ ${pad.core_v_mini_mcu_interface}
   logic dma_window_intr;
 
   // SPI
-  logic spi_flash_intr, spi_intr;
+  logic spi_flash_intr, spi_intr, spi_rx_valid, spi_tx_ready;
 
   // GPIO
   logic [31:8] gpio_in;
@@ -323,13 +323,6 @@ ${pad.core_v_mini_mcu_interface}
       .spi_flash_sd_o({spi_flash_sd_3_o,spi_flash_sd_2_o, spi_flash_sd_1_o, spi_flash_sd_0_o}),
       .spi_flash_sd_en_o({spi_flash_sd_3_oe_o,spi_flash_sd_2_oe_o, spi_flash_sd_1_oe_o, spi_flash_sd_0_oe_o}),
       .spi_flash_sd_i({spi_flash_sd_3_i,spi_flash_sd_2_i, spi_flash_sd_1_i, spi_flash_sd_0_i}),
-      .spi_sck_o,
-      .spi_sck_en_o(spi_sck_oe_o),
-      .spi_csb_o({spi_cs_1_o,spi_cs_0_o}),
-      .spi_csb_en_o({spi_cs_1_oe_o, spi_cs_0_oe_o}),
-      .spi_sd_o({spi_sd_3_o,spi_sd_2_o, spi_sd_1_o, spi_sd_0_o}),
-      .spi_sd_en_o({spi_sd_3_oe_o,spi_sd_2_oe_o, spi_sd_1_oe_o, spi_sd_0_oe_o}),
-      .spi_sd_i({spi_sd_3_i,spi_sd_2_i, spi_sd_1_i, spi_sd_0_i}),
       .intr_i(intr),
       .intr_vector_ext_i,
       .core_sleep_i(core_sleep),
@@ -363,7 +356,6 @@ ${pad.core_v_mini_mcu_interface}
       .dma_addr_ch0_resp_i(dma_addr_ch0_resp),
       .dma_done_intr_o(dma_done_intr),
       .dma_window_intr_o(dma_window_intr),
-      .spi_intr_event_o(spi_intr),
       .spi_flash_intr_event_o(spi_flash_intr),
       .pad_req_o,
       .pad_resp_i,
@@ -383,6 +375,8 @@ ${pad.core_v_mini_mcu_interface}
       .uart_intr_rx_break_err_o(uart_intr_rx_break_err),
       .uart_intr_rx_timeout_o(uart_intr_rx_timeout),
       .uart_intr_rx_parity_err_o(uart_intr_rx_parity_err),
+      .spi_rx_valid_i(spi_rx_valid),
+      .spi_tx_ready_i(spi_tx_ready),
       .i2s_rx_valid_i(i2s_rx_valid),
       .ext_peripheral_slave_req_o,
       .ext_peripheral_slave_resp_i,
@@ -417,6 +411,16 @@ ${pad.core_v_mini_mcu_interface}
       .cio_sda_i(i2c_sda_i),
       .cio_sda_o(i2c_sda_o),
       .cio_sda_en_o(i2c_sda_oe_o),
+      .spi_sck_o,
+      .spi_sck_en_o(spi_sck_oe_o),
+      .spi_csb_o({spi_cs_1_o,spi_cs_0_o}),
+      .spi_csb_en_o({spi_cs_1_oe_o, spi_cs_0_oe_o}),
+      .spi_sd_o({spi_sd_3_o,spi_sd_2_o, spi_sd_1_o, spi_sd_0_o}),
+      .spi_sd_en_o({spi_sd_3_oe_o,spi_sd_2_oe_o, spi_sd_1_oe_o, spi_sd_0_oe_o}),
+      .spi_sd_i({spi_sd_3_i,spi_sd_2_i, spi_sd_1_i, spi_sd_0_i}),
+      .spi_intr_event_o(spi_intr),
+      .spi_rx_valid_o(spi_rx_valid),
+      .spi_tx_ready_o(spi_tx_ready),
       .spi2_sck_o,
       .spi2_sck_en_o(spi2_sck_oe_o),
       .spi2_csb_o({spi2_cs_1_o, spi2_cs_0_o}),

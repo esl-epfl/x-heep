@@ -36,15 +36,10 @@ module ao_peripheral_subsystem
     input  logic [                        3:0] spi_flash_sd_i,
 
     // OpenTitan SPI interface to external spi slaves
-    output logic                               spi_sck_o,
-    output logic                               spi_sck_en_o,
-    output logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_o,
-    output logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_en_o,
-    output logic [                        3:0] spi_sd_o,
-    output logic [                        3:0] spi_sd_en_o,
-    input  logic [                        3:0] spi_sd_i,
-    output logic                               spi_intr_event_o,
-    output logic                               spi_flash_intr_event_o,
+    input logic spi_rx_valid_i,
+    input logic spi_tx_ready_i,
+
+    output logic spi_flash_intr_event_o,
 
     // POWER MANAGER
     input logic [31:0] intr_i,
@@ -144,8 +139,6 @@ module ao_peripheral_subsystem
 
   logic use_spimemio;
 
-  logic spi_rx_valid;
-  logic spi_tx_ready;
   logic spi_flash_rx_valid;
   logic spi_flash_tx_ready;
 
@@ -283,31 +276,6 @@ module ao_peripheral_subsystem
       .spi_flash_tx_ready_o(spi_flash_tx_ready)
   );
 
-  spi_host #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
-  ) spi_host_dma_i (
-      .clk_i,
-      .rst_ni,
-      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
-      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
-      .alert_rx_i(),
-      .alert_tx_o(),
-      .passthrough_i(spi_device_pkg::PASSTHROUGH_REQ_DEFAULT),
-      .passthrough_o(),
-      .cio_sck_o(spi_sck_o),
-      .cio_sck_en_o(spi_sck_en_o),
-      .cio_csb_o(spi_csb_o),
-      .cio_csb_en_o(spi_csb_en_o),
-      .cio_sd_o(spi_sd_o),
-      .cio_sd_en_o(spi_sd_en_o),
-      .cio_sd_i(spi_sd_i),
-      .rx_valid_o(spi_rx_valid),
-      .tx_ready_o(spi_tx_ready),
-      .intr_error_o(),
-      .intr_spi_event_o(spi_intr_event_o)
-  );
-
   power_manager #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -369,8 +337,8 @@ module ao_peripheral_subsystem
 
   parameter DMA_TRIGGER_SLOT_NUM = 7;
   logic [DMA_TRIGGER_SLOT_NUM-1:0] dma_trigger_slots;
-  assign dma_trigger_slots[0] = spi_rx_valid;
-  assign dma_trigger_slots[1] = spi_tx_ready;
+  assign dma_trigger_slots[0] = spi_rx_valid_i;
+  assign dma_trigger_slots[1] = spi_tx_ready_i;
   assign dma_trigger_slots[2] = spi_flash_rx_valid;
   assign dma_trigger_slots[3] = spi_flash_tx_ready;
   assign dma_trigger_slots[4] = i2s_rx_valid_i;

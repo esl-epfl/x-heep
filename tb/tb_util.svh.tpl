@@ -72,7 +72,7 @@ task tb_loadHEX;
 % for bank in xheep.iter_ram_banks():
   for (i=${bank.start_address()}; i < ${bank.end_address()}; i = i + 4) begin
     if (((i/4) & ${2**bank.il_level()-1}) == ${bank.il_offset()}) begin
-      w_addr = (i/4) >> ${bank.il_level()} % ${bank.size()//4};
+      w_addr = ((i/4) >> ${bank.il_level()}) % ${bank.size()//4};
       tb_writetoSram${bank.name()}(w_addr, stimuli[i+3], stimuli[i+2],
                                           stimuli[i+1], stimuli[i]);
     end
