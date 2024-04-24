@@ -55,9 +55,9 @@ typedef struct {
     spi_host_t instance;
     bool       busy;
     uint32_t*  txbuffer;
-    uint32_t   txbuffer_len;
+    uint32_t   txlen;
     uint32_t*  rxbuffer;
-    uint32_t   rxbuffer_len;
+    uint32_t   rxlen;
 } spi_t;
 
 /****************************************************************************/
@@ -66,8 +66,8 @@ typedef struct {
 /**                                                                        **/
 /****************************************************************************/
 
-spi_codes_e spi_check_init(const spi_idx_e idx);
-spi_codes_e spi_validate_slave(const spi_slave_t slave);
+spi_codes_e spi_check_init(spi_idx_e idx);
+spi_codes_e spi_validate_slave(spi_slave_t slave);
 
 /****************************************************************************/
 /**                                                                        **/
@@ -89,7 +89,7 @@ spi_t* _spi_array[] = {NULL, NULL, NULL};
 /**                                                                        **/
 /****************************************************************************/
 
-spi_codes_e spi_init(const spi_idx_e idx) {
+spi_codes_e spi_init(spi_idx_e idx) {
     spi_codes_e error = spi_check_init(idx);
     if (error) return error;
 
@@ -97,15 +97,15 @@ spi_codes_e spi_init(const spi_idx_e idx) {
     spi->instance     = spi_init_flash();
     spi->busy         = false;
     spi->txbuffer     = NULL;
-    spi->txbuffer_len = 0;
+    spi->txlen        = 0;
     spi->rxbuffer     = NULL;
-    spi->rxbuffer_len = 0;
+    spi->rxlen        = 0;
 
     _spi_array[idx] = spi;
     return SPI_CODE_OK;
 }
 
-spi_codes_e spi_deinit(const spi_idx_e idx) {
+spi_codes_e spi_deinit(spi_idx_e idx) {
     if (SPI_IDX_INVALID(idx))    return SPI_CODE_IDX_INVAL;
     if (_spi_array[idx] == NULL) return SPI_CODE_NOT_INIT;
 
@@ -115,7 +115,16 @@ spi_codes_e spi_deinit(const spi_idx_e idx) {
     return SPI_CODE_OK;
 }
 
-spi_codes_e spi_set_slave(const spi_idx_e idx, const spi_slave_t slave) {
+spi_codes_e spi_reset(spi_idx_e idx) {
+    spi_codes_e error = spi_check_init(idx);
+    if (error) return error;
+
+    if (spi_sw_reset(_spi_array[idx]->instance)) return SPI_CODE_BASE_ERROR;
+
+    return SPI_CODE_OK;
+}
+
+spi_codes_e spi_set_slave(spi_idx_e idx, spi_slave_t slave) {
     spi_codes_e error = spi_check_init(idx);
     if (error) return error;
     error = spi_validate_slave(slave);
@@ -141,7 +150,7 @@ spi_codes_e spi_set_slave(const spi_idx_e idx, const spi_slave_t slave) {
     return SPI_CODE_OK;
 }
 
-spi_codes_e spi_get_slave(const spi_idx_e idx, const uint8_t csid, spi_slave_t* slave) {
+spi_codes_e spi_get_slave(spi_idx_e idx, uint8_t csid, spi_slave_t* slave) {
     spi_codes_e error = spi_check_init(idx);
     if (error) return error;
     if (SPI_CSID_INVALID(csid)) return SPI_CODE_SLAVE_CSID_INVAL;
@@ -161,19 +170,31 @@ spi_codes_e spi_get_slave(const spi_idx_e idx, const uint8_t csid, spi_slave_t* 
     return SPI_CODE_OK;
 }
 
+spi_codes_e spi_transmit(spi_idx_e idx, const uint32_t* src_buffer, uint32_t len) {
+
+}
+
+spi_codes_e spi_receive(spi_idx_e idx, uint32_t* dest_buffer, uint32_t len) {
+
+}
+
+spi_codes_e spi_transceive(spi_idx_e idx, const uint32_t* src_buffer, uint32_t* dest_buffer, uint32_t len) {
+
+}
+
 /****************************************************************************/
 /**                                                                        **/
 /*                            LOCAL FUNCTIONS                               */
 /**                                                                        **/
 /****************************************************************************/
 
-spi_codes_e spi_check_init(const spi_idx_e idx) {
+spi_codes_e spi_check_init(spi_idx_e idx) {
     if (SPI_IDX_INVALID(idx))    return SPI_CODE_IDX_INVAL;
     if (_spi_array[idx] != NULL) return SPI_CODE_INIT;
     return SPI_CODE_OK;
 }
 
-spi_codes_e spi_validate_slave(const spi_slave_t slave) {
+spi_codes_e spi_validate_slave(spi_slave_t slave) {
     spi_codes_e error = SPI_CODE_OK;
     if (SPI_CSID_INVALID(slave.csid)) error += SPI_CODE_SLAVE_CSID_INVAL;
     if (slave.freq > soc_ctrl_peri->SYSTEM_FREQUENCY_HZ / 2) error += SPI_CODE_SLAVE_FREQ_INVAL;

@@ -105,18 +105,23 @@ typedef struct {
 /**                                                                        **/
 /****************************************************************************/
 
-spi_codes_e spi_init(const spi_idx_e idx);
-spi_codes_e spi_deinit(const spi_idx_e idx);
-spi_codes_e spi_set_slave(const spi_idx_e idx, const spi_slave_t slave);
-spi_codes_e spi_get_slave(const spi_idx_e idx, const uint8_t csid, spi_slave_t* slave);
-spi_codes_e spi_transmit();
-spi_codes_e spi_receive();
-spi_codes_e spi_transceive();
-spi_codes_e spi_exec(void* commands, uint8_t len);
-void spi_write(uint32_t* src_buffer, uint32_t len);
-void spi_write_bytes(uint8_t* src_buffer, uint32_t len);
-void spi_read(uint32_t* dest_buffer, uint32_t len);
-void spi_read_bytes(uint8_t* dest_buffer, uint32_t len);
+spi_codes_e spi_init(spi_idx_e idx);
+
+spi_codes_e spi_deinit(spi_idx_e idx);
+
+spi_codes_e spi_reset(spi_idx_e idx);
+
+spi_codes_e spi_set_slave(spi_idx_e idx, spi_slave_t slave);
+
+spi_codes_e spi_get_slave(spi_idx_e idx, uint8_t csid, spi_slave_t* slave);
+
+spi_codes_e spi_transmit(spi_idx_e idx, const uint32_t* src_buffer, uint32_t len);
+
+spi_codes_e spi_receive(spi_idx_e idx, uint32_t* dest_buffer, uint32_t len);
+
+spi_codes_e spi_transceive(spi_idx_e idx, const uint32_t* src_buffer, uint32_t* dest_buffer, uint32_t len);
+
+// spi_codes_e spi_exec(void* commands, uint8_t len);
 
 /****************************************************************************/
 /**                                                                        **/
