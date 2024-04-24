@@ -73,7 +73,7 @@
         { bits: "1", name: "WINDOW_DONE", desc: "set if DMA is copying second half"},
       ]
     },
-    { name:     "PTR_INC",
+    { name:     "SRC_PTR_INC",
       desc:     "Increment number of src/dst pointer every time a word is copied",
       swaccess: "rw",
       hwaccess: "hro",
@@ -87,10 +87,22 @@
           name: "SRC_PTR_INC_D2", 
           desc: "Source pointer d2 increment",
           resval:4
-        },
-        { bits: "31:24", 
-          name: "DST_PTR_INC", 
+        }
+      ]
+    },
+    { name:     "DST_PTR_INC",
+      desc:     "Increment number of src/dst pointer every time a word is copied",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "7:0", 
+          name: "DST_PTR_INC_D1", 
           desc: "Destination pointer increment",
+          resval:4
+        },
+        { bits: "23:8", 
+          name: "DST_PTR_INC_D2", 
+          desc: "Address pointer increment",
           resval:4
         }
       ]
@@ -156,6 +168,7 @@
       desc:     '''Set the padding options''',
       swaccess: "rw",
       hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
       resval:   0,
       fields: [
         { bits: "7:0", name: "LEFT_PAD", desc: "Left margin padding (1D/2D)"},

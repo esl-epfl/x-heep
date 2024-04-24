@@ -275,8 +275,8 @@ void dma_init( dma *peri )
     /* Clear all values in the DMA registers. */
     dma_cb.peri->SRC_PTR       = 0;
     dma_cb.peri->DST_PTR       = 0;
-    dma_cb.peri->SIZE_D1          = 0;
-    dma_cb.peri->PTR_INC       = 0;
+    dma_cb.peri->SIZE_TR_D1          = 0;
+    dma_cb.peri->SRC_PTR_INC       = 0;
     dma_cb.peri->SLOT          = 0;
     dma_cb.peri->DATA_TYPE     = 0;
     dma_cb.peri->MODE          = 0;
@@ -720,18 +720,18 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      */
 
     write_register(  get_increment_b( dma_cb.trans->src ),
-                    DMA_PTR_INC_REG_OFFSET,
-                    DMA_PTR_INC_SRC_PTR_INC_D1_MASK,
-                    DMA_PTR_INC_SRC_PTR_INC_D1_OFFSET );
+                    DMA_SRC_PTR_INC_REG_OFFSET,
+                    DMA_SRC_PTR_INC_SRC_PTR_INC_D1_MASK,
+                    DMA_SRC_PTR_INC_SRC_PTR_INC_D1_OFFSET );
 
 
 
     if(dma_cb.trans->mode != DMA_TRANS_MODE_ADDRESS)
     {
         write_register(  get_increment_b( dma_cb.trans->dst ),
-                        DMA_PTR_INC_REG_OFFSET,
-                        DMA_PTR_INC_DST_PTR_INC_MASK,
-                        DMA_PTR_INC_DST_PTR_INC_OFFSET );
+                        DMA_SRC_PTR_INC_REG_OFFSET,
+                        DMA_DST_PTR_INC_DST_PTR_INC_D1_MASK,
+                        DMA_DST_PTR_INC_DST_PTR_INC_D1_OFFSET );
     }
 
 
@@ -804,7 +804,7 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans )
     dma_cb.intrFlag = 0;
 
     /* Load the size and start the transaction. */
-    dma_cb.peri->SIZE_D1 = dma_cb.trans->size_b;
+    dma_cb.peri->SIZE_TR_D1 = dma_cb.trans->size_b;
 
     /*
      * If the end event was set to wait for the interrupt, the dma_launch

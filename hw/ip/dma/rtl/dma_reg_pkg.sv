@@ -7,23 +7,17 @@
 package dma_reg_pkg;
 
   // Address widths within the block
-  parameter int BlockAw = 6;
+  parameter int BlockAw = 7;
 
   ////////////////////////////
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {
-    logic [31:0] q;
-  } dma_reg2hw_src_ptr_reg_t;
+  typedef struct packed {logic [31:0] q;} dma_reg2hw_src_ptr_reg_t;
 
-  typedef struct packed {
-    logic [31:0] q;
-  } dma_reg2hw_dst_ptr_reg_t;
+  typedef struct packed {logic [31:0] q;} dma_reg2hw_dst_ptr_reg_t;
 
-  typedef struct packed {
-    logic [31:0] q;
-  } dma_reg2hw_addr_ptr_reg_t;
+  typedef struct packed {logic [31:0] q;} dma_reg2hw_addr_ptr_reg_t;
 
   typedef struct packed {
     logic [31:0] q;
@@ -48,87 +42,55 @@ package dma_reg_pkg;
 
   typedef struct packed {
     struct packed {
-      logic        q;
-      logic        re;
+      logic q;
+      logic re;
     } ready;
     struct packed {
-      logic        q;
-      logic        re;
+      logic q;
+      logic re;
     } window_done;
   } dma_reg2hw_status_reg_t;
 
   typedef struct packed {
-    struct packed {
-      logic [7:0]  q;
-    } src_ptr_inc_d1;
-    struct packed {
-      logic [15:0] q;
-    } src_ptr_inc_d2;
-    struct packed {
-      logic [7:0]  q;
-    } dst_ptr_inc;
-  } dma_reg2hw_ptr_inc_reg_t;
+    struct packed {logic [7:0] q;} src_ptr_inc_d1;
+    struct packed {logic [15:0] q;} src_ptr_inc_d2;
+  } dma_reg2hw_src_ptr_inc_reg_t;
 
   typedef struct packed {
-    struct packed {
-      logic [15:0] q;
-    } rx_trigger_slot;
-    struct packed {
-      logic [15:0] q;
-    } tx_trigger_slot;
+    struct packed {logic [7:0] q;} dst_ptr_inc_d1;
+    struct packed {logic [15:0] q;} dst_ptr_inc_d2;
+  } dma_reg2hw_dst_ptr_inc_reg_t;
+
+  typedef struct packed {
+    struct packed {logic [15:0] q;} rx_trigger_slot;
+    struct packed {logic [15:0] q;} tx_trigger_slot;
   } dma_reg2hw_slot_reg_t;
 
-  typedef struct packed {
-    logic [1:0]  q;
-  } dma_reg2hw_data_type_reg_t;
+  typedef struct packed {logic [1:0] q;} dma_reg2hw_data_type_reg_t;
+
+  typedef struct packed {logic [1:0] q;} dma_reg2hw_mode_reg_t;
+
+  typedef struct packed {logic q;} dma_reg2hw_dim_config_reg_t;
 
   typedef struct packed {
-    logic [1:0]  q;
-  } dma_reg2hw_mode_reg_t;
-
-  typedef struct packed {
-    logic        q;
-  } dma_reg2hw_dim_config_reg_t;
-
-  typedef struct packed {
-    struct packed {
-      logic [7:0]  q;
-    } left_pad;
-    struct packed {
-      logic [7:0]  q;
-    } right_pad;
-    struct packed {
-      logic [7:0]  q;
-    } top_pad;
-    struct packed {
-      logic [7:0]  q;
-    } bottom_pad;
+    struct packed {logic [7:0] q;} left_pad;
+    struct packed {logic [7:0] q;} right_pad;
+    struct packed {logic [7:0] q;} top_pad;
+    struct packed {logic [7:0] q;} bottom_pad;
   } dma_reg2hw_pad_reg_t;
 
-  typedef struct packed {
-    logic [31:0] q;
-  } dma_reg2hw_window_size_reg_t;
+  typedef struct packed {logic [31:0] q;} dma_reg2hw_window_size_reg_t;
+
+  typedef struct packed {logic [31:0] q;} dma_reg2hw_window_count_reg_t;
 
   typedef struct packed {
-    logic [31:0] q;
-  } dma_reg2hw_window_count_reg_t;
-
-  typedef struct packed {
-    struct packed {
-      logic        q;
-    } transaction_done;
-    struct packed {
-      logic        q;
-    } window_done;
+    struct packed {logic q;} transaction_done;
+    struct packed {logic q;} window_done;
   } dma_reg2hw_interrupt_en_reg_t;
 
   typedef struct packed {
-    struct packed {
-      logic        d;
-    } ready;
-    struct packed {
-      logic        d;
-    } window_done;
+    struct packed {logic d;} ready;
+    struct packed {logic d;} window_done;
   } dma_hw2reg_status_reg_t;
 
   typedef struct packed {
@@ -138,52 +100,54 @@ package dma_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    dma_reg2hw_src_ptr_reg_t src_ptr; // [366:335]
-    dma_reg2hw_dst_ptr_reg_t dst_ptr; // [334:303]
-    dma_reg2hw_addr_ptr_reg_t addr_ptr; // [302:271]
-    dma_reg2hw_size_tr_d1_reg_t size_tr_d1; // [270:238]
-    dma_reg2hw_size_tr_d2_reg_t size_tr_d2; // [237:205]
-    dma_reg2hw_size_in_reg_t size_in; // [204:171]
-    dma_reg2hw_status_reg_t status; // [170:167]
-    dma_reg2hw_ptr_inc_reg_t ptr_inc; // [166:135]
-    dma_reg2hw_slot_reg_t slot; // [134:103]
-    dma_reg2hw_data_type_reg_t data_type; // [102:101]
-    dma_reg2hw_mode_reg_t mode; // [100:99]
-    dma_reg2hw_dim_config_reg_t dim_config; // [98:98]
-    dma_reg2hw_pad_reg_t pad; // [97:66]
-    dma_reg2hw_window_size_reg_t window_size; // [65:34]
-    dma_reg2hw_window_count_reg_t window_count; // [33:2]
-    dma_reg2hw_interrupt_en_reg_t interrupt_en; // [1:0]
+    dma_reg2hw_src_ptr_reg_t src_ptr;  // [382:351]
+    dma_reg2hw_dst_ptr_reg_t dst_ptr;  // [350:319]
+    dma_reg2hw_addr_ptr_reg_t addr_ptr;  // [318:287]
+    dma_reg2hw_size_tr_d1_reg_t size_tr_d1;  // [286:254]
+    dma_reg2hw_size_tr_d2_reg_t size_tr_d2;  // [253:221]
+    dma_reg2hw_size_in_reg_t size_in;  // [220:187]
+    dma_reg2hw_status_reg_t status;  // [186:183]
+    dma_reg2hw_src_ptr_inc_reg_t src_ptr_inc;  // [182:159]
+    dma_reg2hw_dst_ptr_inc_reg_t dst_ptr_inc;  // [158:135]
+    dma_reg2hw_slot_reg_t slot;  // [134:103]
+    dma_reg2hw_data_type_reg_t data_type;  // [102:101]
+    dma_reg2hw_mode_reg_t mode;  // [100:99]
+    dma_reg2hw_dim_config_reg_t dim_config;  // [98:98]
+    dma_reg2hw_pad_reg_t pad;  // [97:66]
+    dma_reg2hw_window_size_reg_t window_size;  // [65:34]
+    dma_reg2hw_window_count_reg_t window_count;  // [33:2]
+    dma_reg2hw_interrupt_en_reg_t interrupt_en;  // [1:0]
   } dma_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    dma_hw2reg_status_reg_t status; // [34:33]
-    dma_hw2reg_window_count_reg_t window_count; // [32:0]
+    dma_hw2reg_status_reg_t status;  // [34:33]
+    dma_hw2reg_window_count_reg_t window_count;  // [32:0]
   } dma_hw2reg_t;
 
   // Register offsets
-  parameter logic [BlockAw-1:0] DMA_SRC_PTR_OFFSET = 6'h 0;
-  parameter logic [BlockAw-1:0] DMA_DST_PTR_OFFSET = 6'h 4;
-  parameter logic [BlockAw-1:0] DMA_ADDR_PTR_OFFSET = 6'h 8;
-  parameter logic [BlockAw-1:0] DMA_SIZE_TR_D1_OFFSET = 6'h c;
-  parameter logic [BlockAw-1:0] DMA_SIZE_TR_D2_OFFSET = 6'h 10;
-  parameter logic [BlockAw-1:0] DMA_SIZE_IN_OFFSET = 6'h 14;
-  parameter logic [BlockAw-1:0] DMA_STATUS_OFFSET = 6'h 18;
-  parameter logic [BlockAw-1:0] DMA_PTR_INC_OFFSET = 6'h 1c;
-  parameter logic [BlockAw-1:0] DMA_SLOT_OFFSET = 6'h 20;
-  parameter logic [BlockAw-1:0] DMA_DATA_TYPE_OFFSET = 6'h 24;
-  parameter logic [BlockAw-1:0] DMA_MODE_OFFSET = 6'h 28;
-  parameter logic [BlockAw-1:0] DMA_DIM_CONFIG_OFFSET = 6'h 2c;
-  parameter logic [BlockAw-1:0] DMA_PAD_OFFSET = 6'h 30;
-  parameter logic [BlockAw-1:0] DMA_WINDOW_SIZE_OFFSET = 6'h 34;
-  parameter logic [BlockAw-1:0] DMA_WINDOW_COUNT_OFFSET = 6'h 38;
-  parameter logic [BlockAw-1:0] DMA_INTERRUPT_EN_OFFSET = 6'h 3c;
+  parameter logic [BlockAw-1:0] DMA_SRC_PTR_OFFSET = 7'h0;
+  parameter logic [BlockAw-1:0] DMA_DST_PTR_OFFSET = 7'h4;
+  parameter logic [BlockAw-1:0] DMA_ADDR_PTR_OFFSET = 7'h8;
+  parameter logic [BlockAw-1:0] DMA_SIZE_TR_D1_OFFSET = 7'hc;
+  parameter logic [BlockAw-1:0] DMA_SIZE_TR_D2_OFFSET = 7'h10;
+  parameter logic [BlockAw-1:0] DMA_SIZE_IN_OFFSET = 7'h14;
+  parameter logic [BlockAw-1:0] DMA_STATUS_OFFSET = 7'h18;
+  parameter logic [BlockAw-1:0] DMA_SRC_PTR_INC_OFFSET = 7'h1c;
+  parameter logic [BlockAw-1:0] DMA_DST_PTR_INC_OFFSET = 7'h20;
+  parameter logic [BlockAw-1:0] DMA_SLOT_OFFSET = 7'h24;
+  parameter logic [BlockAw-1:0] DMA_DATA_TYPE_OFFSET = 7'h28;
+  parameter logic [BlockAw-1:0] DMA_MODE_OFFSET = 7'h2c;
+  parameter logic [BlockAw-1:0] DMA_DIM_CONFIG_OFFSET = 7'h30;
+  parameter logic [BlockAw-1:0] DMA_PAD_OFFSET = 7'h34;
+  parameter logic [BlockAw-1:0] DMA_WINDOW_SIZE_OFFSET = 7'h38;
+  parameter logic [BlockAw-1:0] DMA_WINDOW_COUNT_OFFSET = 7'h3c;
+  parameter logic [BlockAw-1:0] DMA_INTERRUPT_EN_OFFSET = 7'h40;
 
   // Reset values for hwext registers and their fields
-  parameter logic [1:0] DMA_STATUS_RESVAL = 2'h 1;
-  parameter logic [0:0] DMA_STATUS_READY_RESVAL = 1'h 1;
-  parameter logic [0:0] DMA_STATUS_WINDOW_DONE_RESVAL = 1'h 0;
+  parameter logic [1:0] DMA_STATUS_RESVAL = 2'h1;
+  parameter logic [0:0] DMA_STATUS_READY_RESVAL = 1'h1;
+  parameter logic [0:0] DMA_STATUS_WINDOW_DONE_RESVAL = 1'h0;
 
   // Register index
   typedef enum int {
@@ -194,7 +158,8 @@ package dma_reg_pkg;
     DMA_SIZE_TR_D2,
     DMA_SIZE_IN,
     DMA_STATUS,
-    DMA_PTR_INC,
+    DMA_SRC_PTR_INC,
+    DMA_DST_PTR_INC,
     DMA_SLOT,
     DMA_DATA_TYPE,
     DMA_MODE,
@@ -206,23 +171,24 @@ package dma_reg_pkg;
   } dma_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] DMA_PERMIT [16] = '{
-    4'b 1111, // index[ 0] DMA_SRC_PTR
-    4'b 1111, // index[ 1] DMA_DST_PTR
-    4'b 1111, // index[ 2] DMA_ADDR_PTR
-    4'b 1111, // index[ 3] DMA_SIZE_TR_D1
-    4'b 1111, // index[ 4] DMA_SIZE_TR_D2
-    4'b 1111, // index[ 5] DMA_SIZE_IN
-    4'b 0001, // index[ 6] DMA_STATUS
-    4'b 1111, // index[ 7] DMA_PTR_INC
-    4'b 1111, // index[ 8] DMA_SLOT
-    4'b 0001, // index[ 9] DMA_DATA_TYPE
-    4'b 0001, // index[10] DMA_MODE
-    4'b 0001, // index[11] DMA_DIM_CONFIG
-    4'b 1111, // index[12] DMA_PAD
-    4'b 1111, // index[13] DMA_WINDOW_SIZE
-    4'b 1111, // index[14] DMA_WINDOW_COUNT
-    4'b 0001  // index[15] DMA_INTERRUPT_EN
+  parameter logic [3:0] DMA_PERMIT[17] = '{
+      4'b1111,  // index[ 0] DMA_SRC_PTR
+      4'b1111,  // index[ 1] DMA_DST_PTR
+      4'b1111,  // index[ 2] DMA_ADDR_PTR
+      4'b1111,  // index[ 3] DMA_SIZE_TR_D1
+      4'b1111,  // index[ 4] DMA_SIZE_TR_D2
+      4'b1111,  // index[ 5] DMA_SIZE_IN
+      4'b0001,  // index[ 6] DMA_STATUS
+      4'b0111,  // index[ 7] DMA_SRC_PTR_INC
+      4'b0111,  // index[ 8] DMA_DST_PTR_INC
+      4'b1111,  // index[ 9] DMA_SLOT
+      4'b0001,  // index[10] DMA_DATA_TYPE
+      4'b0001,  // index[11] DMA_MODE
+      4'b0001,  // index[12] DMA_DIM_CONFIG
+      4'b1111,  // index[13] DMA_PAD
+      4'b1111,  // index[14] DMA_WINDOW_SIZE
+      4'b1111,  // index[15] DMA_WINDOW_COUNT
+      4'b0001  // index[16] DMA_INTERRUPT_EN
   };
 
 endpackage
