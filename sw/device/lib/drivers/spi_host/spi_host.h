@@ -63,6 +63,14 @@ extern "C" {
 * SPI speed type
 */
 typedef enum {
+    SPI_BYTE_ORDER_BIG_ENDIAN      = 0,
+    SPI_BYTE_ORDER_LITTLE_ENDIAN   = 1
+} spi_byte_order_e;
+
+/**
+* SPI speed type
+*/
+typedef enum {
     SPI_SPEED_STANDARD   = 0,
     SPI_SPEED_DUAL       = 1,
     SPI_SPEED_QUAD       = 2
