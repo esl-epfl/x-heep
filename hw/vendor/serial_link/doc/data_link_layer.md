@@ -1,6 +1,0 @@
-## Data Link Layer
-
-The Data Link layer doesn't play a big role in the Serial Link. It mainly acts as an adapter between the Network Layer and the Channel Allocator. In the network layer the AXI Stream payload is split into multiple channel-sized packets which can then be reshuffled in the *Channel Allocator* which is a separate module. Further it also implements a Raw-Mode which is described in more detail below.
-
-### Raw Mode
-To calibrate and bring-up the Serial Link in the beginning, it is advantageous to be able to control channels independently and decouple the AXI interface. This feature is implemented in the Serial Link as the *Raw Mode* and it allows to detect if some of the channels have faults. The *Raw Mode* is fully SW controllable and can be configured throught the configuration registers which are mapped in to the configuration address space of the Serial Link. The logic includes a FIFO which can be filled with a sequence of calibration patterns which can be defined at runtime. An output mask can be configured to select the channels which should send out a the sequence of calibration patterns to the other side e.g. single-channel, multi-channel or broadcasting of patterns is possible. On the receiving side, each channel stores the sequence of patterns in a FIFO where it can be subsequently read out.

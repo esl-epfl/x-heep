@@ -1,0 +1,9 @@
+// Copyright 2022 OpenHW Group
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule DECLFILENAME -file "*/src/serial_link_physical.sv" -match "*"
+lint_off -rule DECLFILENAME -file "*/src/serial_link_single_channel_reg_top.sv" -match "*"
+lint_off -rule VARHIDDEN -file "*/src/serial_link.sv" -match "*"

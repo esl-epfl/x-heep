@@ -75,20 +75,10 @@ module serial_link_network #(
     // 2) AR/AW beats have priority unless there is already a same request in flight
     // 3) R/W beats have lowest priority unless there already is an AR/AW beat in flight.
     //    Additionally, W are not granted before the coresponding AW
-    
-
-
     unique case(commiter_state_q)
       Idle: begin
         if (axi_in_req_i.aw_valid) begin
-          //if (1'b1) begin
-          if (axi_in_req_i.ar_valid)begin
-          aw_gnt =  entropy_q;
-
-          end          else begin
-             aw_gnt = 1'b1;
-          end
-          //aw_gnt = (1'b0)? entropy_q : 1'b1;
+          aw_gnt = (axi_in_req_i.ar_valid)? entropy_q : 1'b1;
         end
         if (axi_in_req_i.ar_valid) begin
           ar_gnt = (axi_in_req_i.aw_valid)? ~entropy_q : 1'b1;

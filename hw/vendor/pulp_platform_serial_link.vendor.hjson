@@ -7,11 +7,21 @@
 */
 
 {
-  name: "serial_link",
-  target_dir: "serial_link",
+  name: "pulp_platform_serial_link",
+  target_dir: "pulp_platform_serial_link",
 
   upstream: {
     url: "https://github.com/pulp-platform/serial_link.git",
     rev: "v1.1.1",
   },
+
+    exclude_from_upstream: [
+    ".gitignore",
+    ".github",
+    "test",
+    "doc",
+    "util",
+    ".gitlab-ci.yml",
+    "Bender.yml",
+  ]
 }

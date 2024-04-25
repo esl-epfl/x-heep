@@ -4,27 +4,19 @@ name : pulp-platform.org::serial-link
 filesets:
   rtl:
     files:
-    - serial_link/src/axis/include/axis/typedef.svh : { is_include_file: true, include_path: serial_link/src/axis/include}
-    - pulp_platform_axi/src/axi_isolate.sv
-    - pulp_platform_axi/src/axi_isolate_inner.sv
-    - pulp_platform_axi/src/axi_isolate_intf.sv
-    - serial_link/src/serial_link_pkg.sv
-    - serial_link/src/regs/serial_link_reg_pkg.sv
-    - serial_link/src/regs/serial_link_single_channel_reg_pkg.sv
-    - serial_link/src/serial_link_network.sv
-    - serial_link/src/serial_link_physical.sv
-    - serial_link/src/serial_link_physical_tx.sv
-    - serial_link/src/serial_link_physical_rx.sv
-    - serial_link/src/serial_link_data_link.sv
-    - serial_link/src/regs/serial_link_single_channel_reg_top.sv
-    - serial_link/src/regs/serial_link_single_channel_reg_top_intf.sv
-    - pulp_platform_register_interface/src/reg_cdc.sv
-    - serial_link/src/serial_link.sv
-    - serial_link/src/serial_link_occamy_wrapper.sv
-
+    - pulp_platform_serial_link/src/axis/include/axis/typedef.svh : { is_include_file: true, include_path: pulp_platform_serial_link/src/axis/include}
+    - pulp_platform_serial_link/src/serial_link_pkg.sv
+    - pulp_platform_serial_link/src/regs/serial_link_reg_pkg.sv
+    - pulp_platform_serial_link/src/regs/serial_link_single_channel_reg_pkg.sv
+    - pulp_platform_serial_link/src/serial_link_network.sv
+    - pulp_platform_serial_link/src/serial_link_physical.sv
+    - pulp_platform_serial_link/src/serial_link_data_link.sv
+    - pulp_platform_serial_link/src/regs/serial_link_single_channel_reg_top.sv
+    - pulp_platform_serial_link/src/serial_link.sv
+    - pulp_platform_serial_link/src/serial_link_occamy_wrapper.sv
     file_type: systemVerilogSource
 
 targets:
   default:
-    filesets: [rtl]
-
+    filesets:
+    - rtl

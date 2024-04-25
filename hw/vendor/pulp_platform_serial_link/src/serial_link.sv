@@ -26,7 +26,6 @@ import serial_link_pkg::*;
   parameter type hw2reg_t  = logic,
   parameter type reg2hw_t  = logic,
   parameter int NumChannels = serial_link_pkg::NumChannels,
-  //parameter int NumChannels = 1,
   parameter int NumLanes = serial_link_pkg::NumLanes,
   parameter int MaxClkDiv = serial_link_pkg::MaxClkDiv,
   parameter bit NoRegCdc = 1'b0,
@@ -67,13 +66,14 @@ import serial_link_pkg::*;
   import serial_link_pkg::*;
 
   // Determine the largest sized AXI channel
-  //localparam int AxiChannels[5] = {$bits(b_chan_t),
-  //                        $bits(aw_chan_t),
-  //                        $bits(w_chan_t),
-  //                        $bits(ar_chan_t),
-  //                        $bits(r_chan_t)};
-  //localparam int MaxAxiChannelBits = serial_link_pkg::find_max_channel(AxiChannels);
-  localparam int MaxAxiChannelBits = 128; // to be removed after $bits is fixed
+  localparam int AxiChannels[5] = {$bits(b_chan_t),
+                          $bits(aw_chan_t),
+                          $bits(w_chan_t),
+                          $bits(ar_chan_t),
+                          $bits(r_chan_t)};
+  localparam int MaxAxiChannelBits =
+  serial_link_pkg::find_max_channel(AxiChannels);
+
   // The payload that is converted into an AXI stream consists of
   // 1) AXI Beat
   // 2) B Channel (which is always transmitted)
