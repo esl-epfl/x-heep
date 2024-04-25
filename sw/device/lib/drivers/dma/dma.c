@@ -975,7 +975,6 @@ dma_config_flags_t validate_target( dma_target_t *p_tgt )
         {
             flags |= DMA_CONFIG_INCOMPATIBLE;
         }
-
     }
 
     /*
@@ -1097,11 +1096,6 @@ static inline uint8_t is_region_outbound(   uint8_t  *p_start,
     uint32_t affectedUnits      = ( p_size_du - 1 ) * p_inc_du + 1;
     uint32_t rangeSize          = DMA_DATA_TYPE_2_SIZE(p_type) * affectedUnits;
     uint32_t lasByteInsideRange = (uint32_t)p_start + rangeSize -1;
-
-/*
-400 1000 e593 24c0006f
-1 4 3001002f 24c0006f
-*/
 
     return ( p_end < lasByteInsideRange );
     // Size is be guaranteed to be non-zero before calling this function.
