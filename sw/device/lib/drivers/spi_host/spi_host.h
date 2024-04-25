@@ -563,6 +563,17 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_idl
 }
 
 /**
+ * Wait CMD FIFO not full.
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ */
+static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_cmdqd_not_full(spi_host_t spi) {
+    if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
+    while (spi_get_status(spi)->cmdqd >= SPI_HOST_PARAM_CMD_DEPTH);
+    return SPI_FLAG_OK;
+}
+
+/**
  * Wait TX FIFO reach watermark.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
