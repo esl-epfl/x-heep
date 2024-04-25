@@ -25,11 +25,25 @@ import serial_link_pkg::*;
   parameter type cfg_rsp_t  = logic,
   parameter type hw2reg_t  = logic,
   parameter type reg2hw_t  = logic,
+  parameter AXI4_ADDRESS_WIDTH = 32,
+  parameter AXI4_RDATA_WIDTH   = 32,
+  parameter AXI4_WDATA_WIDTH   = 32,
+  parameter AXI4_ID_WIDTH      = 16,
+  parameter AXI4_USER_WIDTH    = 10,
+
+
+
+
   parameter int NumChannels = serial_link_pkg::NumChannels,
   parameter int NumLanes = serial_link_pkg::NumLanes,
   parameter int MaxClkDiv = serial_link_pkg::MaxClkDiv,
   parameter bit NoRegCdc = 1'b0,
   localparam int Log2NumChannels = (NumChannels > 1)? $clog2(NumChannels) : 1
+
+
+
+
+  
 ) (
   // There are 3 different clock/resets:
   // 1) clk_i & rst_ni: "always-on" clock & reset coming from the SoC domain. Only config registers are conected to this clock
@@ -61,18 +75,67 @@ import serial_link_pkg::*;
   output logic                      clk_ena_o,
   // synch-reset register
   output logic                      reset_no
+
+
+
+
+
 );
 
   import serial_link_pkg::*;
 
+
+
+
+
   // Determine the largest sized AXI channel
-  localparam int AxiChannels[5] = {$bits(b_chan_t),
-                          $bits(aw_chan_t),
-                          $bits(w_chan_t),
-                          $bits(ar_chan_t),
-                          $bits(r_chan_t)};
-  localparam int MaxAxiChannelBits =
-  serial_link_pkg::find_max_channel(AxiChannels);
+  //localparam int AxiChannels[5] = {$bits(b_chan_t),
+  //                        $bits(aw_chan_t),
+  //                        $bits(w_chan_t),
+  //                        $bits(ar_chan_t),
+  //                        $bits(r_chan_t)};
+  //localparam int AxiChannels[5] = {b_size,
+  //                        aw_size,
+  //                        w_size,
+  //                        ar_size,
+  //                        r_size};
+  //localparam int = b_size, aw_size_l, w_size, ar_size, r_size;
+  //assign aw_size = AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + 33 + AXI4_USER_WIDTH;
+  //assign w_size  = AXI4_WDATA_WIDTH + AXI4_USER_WIDTH + AXI4_WDATA_WIDTH/8 +3;
+  //assign b_size = AXI4_ID_WIDTH + 4 + AXI4_USER_WIDTH;
+  //assign ar_size = AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + AXI4_USER_WIDTH + 31;
+  //assign r_size = AXI4_ID_WIDTH + AXI4_RDATA_WIDTH + AXI4_USER_WIDTH + 5;
+
+
+
+
+
+//localparam aw_size_l= aw_size;
+  //function automatic int find_max_channel(input int AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + 33 + AXI4_USER_WIDTH,
+  //                        AXI4_WDATA_WIDTH + AXI4_USER_WIDTH + AXI4_WDATA_WIDTH/8 +3,
+  //                        AXI4_ID_WIDTH + 4 + AXI4_USER_WIDTH,
+  //                        AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + AXI4_USER_WIDTH + 31,
+  //                        AXI4_ID_WIDTH + AXI4_RDATA_WIDTH + AXI4_USER_WIDTH + 5);
+    localparam int max_value = 0;
+      if (max_value < (AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + 33 + AXI4_USER_WIDTH)) begin
+      assign max_value = (AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + 33 + AXI4_USER_WIDTH);end 
+      if (max_value < AXI4_WDATA_WIDTH + AXI4_USER_WIDTH + AXI4_WDATA_WIDTH/8 +3) begin
+       assign max_value = AXI4_WDATA_WIDTH + AXI4_USER_WIDTH + AXI4_WDATA_WIDTH/8 +3; end
+      if (max_value < AXI4_ID_WIDTH + 4 + AXI4_USER_WIDTH) begin
+      assign max_value = AXI4_ID_WIDTH + 4 + AXI4_USER_WIDTH; end
+      if (max_value < AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + AXI4_USER_WIDTH + 31) begin
+      assign   max_value = AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + AXI4_USER_WIDTH + 31; end
+      if (max_value < AXI4_ID_WIDTH + AXI4_RDATA_WIDTH + AXI4_USER_WIDTH + 5) begin
+       assign max_value = AXI4_ID_WIDTH + AXI4_RDATA_WIDTH + AXI4_USER_WIDTH + 5; end
+
+
+
+
+
+
+  localparam int MaxAxiChannelBits = max_value;
+
+  //serial_link_pkg::find_max_channel(AxiChannels);
 
   // The payload that is converted into an AXI stream consists of
   // 1) AXI Beat

@@ -5,6 +5,9 @@ filesets:
   rtl:
     files:
     - pulp_platform_serial_link/src/axis/include/axis/typedef.svh : { is_include_file: true, include_path: pulp_platform_serial_link/src/axis/include}
+    - pulp_platform_axi/src/axi_isolate.sv
+    - pulp_platform_register_interface/src/reg_cdc.sv
+    - pulp_platform_axi/src/axi_isolate_inner.sv
     - pulp_platform_serial_link/src/serial_link_pkg.sv
     - pulp_platform_serial_link/src/regs/serial_link_reg_pkg.sv
     - pulp_platform_serial_link/src/regs/serial_link_single_channel_reg_pkg.sv

@@ -53,6 +53,8 @@ module core2axi
     output logic [ 3:0]                   aw_qos_o,
     output logic                          aw_valid_o,
     input  logic                          aw_ready_i,
+
+    //output int                            aw_size,
     // ---------------------------------------------------------
 
     //AXI write data bus -------------- // USED// --------------
@@ -62,6 +64,8 @@ module core2axi
     output logic [AXI4_USER_WIDTH-1:0]    w_user_o,
     output logic                          w_valid_o,
     input  logic                          w_ready_i,
+
+    //output int                            w_size,
     // ---------------------------------------------------------
 
     //AXI write response bus -------------- // USED// ----------
@@ -70,6 +74,8 @@ module core2axi
     input  logic                          b_valid_i,
     input  logic   [AXI4_USER_WIDTH-1:0]  b_user_i,
     output logic                          b_ready_o,
+
+    //output int                            b_size,
     // ---------------------------------------------------------
 
     //AXI read address bus -------------------------------------
@@ -86,6 +92,8 @@ module core2axi
     output logic [ 3:0]                   ar_qos_o,
     output logic                          ar_valid_o,
     input  logic                          ar_ready_i,
+
+    //output int                            ar_size,
     // ---------------------------------------------------------
 
     //AXI read data bus ----------------------------------------
@@ -96,10 +104,17 @@ module core2axi
     input  logic [AXI4_USER_WIDTH-1:0]   r_user_i,
     input  logic                         r_valid_i,
     output logic                         r_ready_o
+
+    //output int                           r_size
     // ---------------------------------------------------------
   );
 
-
+  //assign aw_size = AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + 33 + AXI4_USER_WIDTH;
+  //assign w_size  = AXI4_WDATA_WIDTH + AXI4_USER_WIDTH + AXI4_WDATA_WIDTH/8 +3;
+  //assign b_size = AXI4_ID_WIDTH + 4 + AXI4_USER_WIDTH;
+  //assign ar_size = AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + AXI4_USER_WIDTH + 31;
+  //assign r_size = AXI4_ID_WIDTH + AXI4_RDATA_WIDTH + AXI4_USER_WIDTH + 5;
+  
   enum logic [2:0] { IDLE, READ_WAIT, WRITE_DATA, WRITE_ADDR, WRITE_WAIT } CS, NS;
 
   logic [31:0]  rdata;

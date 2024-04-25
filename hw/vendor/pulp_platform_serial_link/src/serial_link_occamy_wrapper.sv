@@ -35,6 +35,10 @@ module serial_link_occamy_wrapper #(
   output logic [NumChannels-1:0]    ddr_rcv_clk_o,
   input  logic [NumChannels-1:0][NumLanes-1:0] ddr_i,
   output logic [NumChannels-1:0][NumLanes-1:0] ddr_o
+
+
+
+
 );
 
   logic clk_serial_link;
@@ -122,7 +126,14 @@ module serial_link_occamy_wrapper #(
       .reg2hw_t         ( serial_link_reg_pkg::serial_link_reg2hw_t ),
       .NumChannels      ( NumChannels ),
       .NumLanes         ( NumLanes    ),
-      .MaxClkDiv        ( MaxClkDiv   )
+      .MaxClkDiv        ( MaxClkDiv   ),
+
+
+
+      
+
+
+
     ) i_serial_link (
       .clk_i          ( clk_i             ),
       .rst_ni         ( rst_ni            ),
@@ -145,6 +156,9 @@ module serial_link_occamy_wrapper #(
       .isolate_o      ( isolate           ),
       .clk_ena_o      ( clk_ena           ),
       .reset_no       ( reset_n           )
+
+      
+
     );
   end else begin : gen_single_channel_serial_link
     serial_link #(
@@ -161,7 +175,13 @@ module serial_link_occamy_wrapper #(
       .reg2hw_t         ( serial_link_single_channel_reg_pkg::serial_link_single_channel_reg2hw_t ),
       .NumChannels      ( NumChannels ),
       .NumLanes         ( NumLanes    ),
-      .MaxClkDiv        ( MaxClkDiv   )
+      .MaxClkDiv        ( MaxClkDiv   ),
+
+
+      
+
+
+
     ) i_serial_link (
       .clk_i          ( clk_i             ),
       .rst_ni         ( rst_ni            ),
@@ -184,6 +204,11 @@ module serial_link_occamy_wrapper #(
       .isolate_o      ( isolate           ),
       .clk_ena_o      ( clk_ena           ),
       .reset_no       ( reset_n           )
+
+
+
+
+
     );
   end
 

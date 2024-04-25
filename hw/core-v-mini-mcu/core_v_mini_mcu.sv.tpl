@@ -80,6 +80,17 @@ ${pad.core_v_mini_mcu_interface}
 
     input logic ext_dma_slot_tx_i,
     input logic ext_dma_slot_rx_i
+
+  //% for peripheral in peripherals.items():
+  //% if peripheral[0] in ("serial_link"):
+  //% if peripheral[1]['is_included'] in ("yes"):
+
+  //  output obi_req_t obi_req_obi2axi,
+  //  input obi_resp_t obi_resp_obi2axi
+  //% endif
+  //% endif
+  //% endfor
+
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -138,6 +149,7 @@ ${pad.core_v_mini_mcu_interface}
     reg_req_t cfg_req_t;
     reg_rsp_t cfg_rsp_t;
 
+    int aw_size, w_size, b_size, ar_size, r_size;
 
     //`AXIS_TYPEDEF_S_T(__name``_s_chan_t, __tdata_t, __tstrb_t, __tkeep_t, __tlast_t, __tid_t, __tdest_t, __tuser_t)  \
     //`AXIS_TYPEDEF_REQ_T(__name``_req_t,__name``_s_chan_t)  \
@@ -540,6 +552,7 @@ ${pad.core_v_mini_mcu_interface}
     .aw_qos_o(axi_out_req_o.aw.qos),
     .aw_valid_o(axi_out_req_o.aw_valid),
     .aw_ready_i(axi_out_rsp_i.aw_ready),
+    //.aw_size,
 
     .w_data_o(axi_out_req_o.w.data),
     .w_strb_o(axi_out_req_o.w.strb),
@@ -547,12 +560,14 @@ ${pad.core_v_mini_mcu_interface}
     .w_user_o(axi_out_req_o.w.user),
     .w_valid_o(axi_out_req_o.w_valid),
     .w_ready_i(axi_out_rsp_i.w_ready),
+    //.w_size,
 
     .b_id_i(axi_out_rsp_i.b.id),
     .b_resp_i(axi_out_rsp_i.b.resp),
     .b_valid_i(axi_out_rsp_i.b_valid),
     .b_user_i(axi_out_rsp_i.b.user),
     .b_ready_o(axi_out_req_o.b_ready),
+    //.b_size,
 
     .ar_id_o(axi_out_req_o.ar.id),
     .ar_addr_o(axi_out_req_o.ar.addr),
@@ -567,6 +582,7 @@ ${pad.core_v_mini_mcu_interface}
     .ar_qos_o(axi_out_req_o.ar.qos),
     .ar_valid_o(axi_out_req_o.ar_valid),
     .ar_ready_i(axi_out_rsp_i.ar_ready),
+    //.ar_size,
 
     .r_id_i(axi_out_rsp_i.r.id),
     .r_data_i(axi_out_rsp_i.r.data),
@@ -575,6 +591,7 @@ ${pad.core_v_mini_mcu_interface}
     .r_user_i(axi_out_rsp_i.r.user), //.r_user_i('0),
     .r_valid_i(axi_out_rsp_i.r_valid),
     .r_ready_o(axi_out_req_o.r_ready)
+    //.r_size
   );
 % else:
 
@@ -638,11 +655,32 @@ ${pad.core_v_mini_mcu_interface}
   serial_link_occamy_wrapper #(
     .axi_req_t(core_v_mini_mcu_pkg::axi_req_t),
     .axi_rsp_t(core_v_mini_mcu_pkg::axi_resp_t),
+
+    .aw_chan_t(core_v_mini_mcu_pkg::axi_aw_t),
+    .ar_chan_t(core_v_mini_mcu_pkg::axi_ar_t),
+    .r_chan_t(core_v_mini_mcu_pkg::axi_r_t),
+    .w_chan_t(core_v_mini_mcu_pkg::axi_w_t),
+    .b_chan_t(core_v_mini_mcu_pkg::axi_b_t),
+
+
+
+   
+
+
     .cfg_rsp_t(reg_rsp_t),
     .cfg_req_t(reg_req_t)
     //.NumChannels(1),
     //.NumLanes(1)
   ) serial_link_occamy_wrapper_i (
+    //.aw_size,
+    //.w_size,
+    //.b_size,
+    //.ar_size,
+    //.r_size,
+
+
+
+
     .clk_i(clk_i),
     .rst_ni(rst_ni),
     .clk_reg_i(clk_i),    //intended for clock gating purposes
