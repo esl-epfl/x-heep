@@ -323,7 +323,7 @@ spi_return_flags_e spi_set_command(spi_host_t spi, const uint32_t cmd_reg) {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
 
     spi_return_flags_e flags = SPI_FLAG_OK;
-    spi_speed_e speed = bitfield_read(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, SPI_HOST_COMMAND_SPEED_OFFSET);
+    spi_speed_e speed   = bitfield_read(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, SPI_HOST_COMMAND_SPEED_OFFSET);
     spi_dir_e direction = bitfield_read(cmd_reg, SPI_HOST_COMMAND_DIRECTION_MASK, SPI_HOST_COMMAND_DIRECTION_OFFSET);
 
     if (spi_get_status(spi)->cmdqd >= SPI_HOST_PARAM_CMD_DEPTH)

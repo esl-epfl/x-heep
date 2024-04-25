@@ -170,7 +170,7 @@ typedef struct spi_configopts {
 * SPI command structure
 */
 typedef struct spi_command {
-    uint8_t     len         : 8;
+    uint32_t    len         : 24;
     bool        csaat       : 1;
     spi_speed_e speed       : 2;
     spi_dir_e   direction   : 2;
