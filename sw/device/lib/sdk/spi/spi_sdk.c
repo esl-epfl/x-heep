@@ -53,11 +53,7 @@
 
 typedef struct {
     spi_host_t instance;
-    bool       busy;
-    uint32_t*  txbuffer;
-    uint32_t   txlen;
-    uint32_t*  rxbuffer;
-    uint32_t   rxlen;
+    bool slaves_init[SPI_HOST_PARAM_NUM_C_S];
 } spi_t;
 
 /****************************************************************************/
@@ -95,11 +91,7 @@ spi_codes_e spi_init(spi_idx_e idx) {
 
     spi_t* spi        = malloc(sizeof(spi_t));
     spi->instance     = spi_init_flash();
-    spi->busy         = false;
-    spi->txbuffer     = NULL;
-    spi->txlen        = 0;
-    spi->rxbuffer     = NULL;
-    spi->rxlen        = 0;
+    for (int i = 0; i < SPI_HOST_PARAM_NUM_C_S; i++) spi->slaves_init[i] = false;
 
     _spi_array[idx] = spi;
     return SPI_CODE_OK;
@@ -125,10 +117,9 @@ spi_codes_e spi_reset(spi_idx_e idx) {
 }
 
 spi_codes_e spi_set_slave(spi_idx_e idx, spi_slave_t slave) {
-    spi_codes_e error = spi_check_init(idx);
+    spi_codes_e error = spi_check_init(idx) | spi_validate_slave(slave);
     if (error) return error;
-    error = spi_validate_slave(slave);
-    if (error) return error;
+    if (spi_get_active(_spi_array[idx]->instance) == SPI_TRISTATE_TRUE) return SPI_CODE_NOT_IDLE;
 
     uint16_t clk_div = soc_ctrl_peri->SYSTEM_FREQUENCY_HZ / (2 * slave.freq) - 1;
     if (soc_ctrl_peri->SYSTEM_FREQUENCY_HZ / (2 * (clk_div + 1)) > slave.freq)
@@ -147,6 +138,7 @@ spi_codes_e spi_set_slave(spi_idx_e idx, spi_slave_t slave) {
                                                          spi_create_configopts(config)
                                                         );
     if (config_error) return SPI_CODE_BASE_ERROR;
+    _spi_array[idx]->slaves_init[slave.csid] = true;
     return SPI_CODE_OK;
 }
 
@@ -182,6 +174,13 @@ spi_codes_e spi_transceive(spi_idx_e idx, const uint32_t* src_buffer, uint32_t* 
 
 }
 
+spi_codes_e spi_execute(spi_idx_e idx, const spi_transaction_t* transaction) {
+    spi_codes_e error = spi_check_init(idx);
+    if (SPI_CSID_INVALID(transaction->csid)) error |= SPI_CODE_SLAVE_CSID_INVAL;
+    else if (!_spi_array[idx]->slaves_init[transaction->csid]) error |= SPI_CODE_SLAVE_NOT_INIT;
+    if (error) return error;
+}
+
 /****************************************************************************/
 /**                                                                        **/
 /*                            LOCAL FUNCTIONS                               */
@@ -196,8 +195,8 @@ spi_codes_e spi_check_init(spi_idx_e idx) {
 
 spi_codes_e spi_validate_slave(spi_slave_t slave) {
     spi_codes_e error = SPI_CODE_OK;
-    if (SPI_CSID_INVALID(slave.csid)) error += SPI_CODE_SLAVE_CSID_INVAL;
-    if (slave.freq > soc_ctrl_peri->SYSTEM_FREQUENCY_HZ / 2) error += SPI_CODE_SLAVE_FREQ_INVAL;
+    if (SPI_CSID_INVALID(slave.csid)) error |= SPI_CODE_SLAVE_CSID_INVAL;
+    if (slave.freq > soc_ctrl_peri->SYSTEM_FREQUENCY_HZ / 2) error |= SPI_CODE_SLAVE_FREQ_INVAL;
     return error;
 }
 

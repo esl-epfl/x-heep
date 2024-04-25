@@ -73,7 +73,9 @@ typedef enum {
     SPI_CODE_INIT               = 0x0004,
     SPI_CODE_NOT_INIT           = 0x0008,
     SPI_CODE_SLAVE_CSID_INVAL   = 0x0010,
-    SPI_CODE_SLAVE_FREQ_INVAL   = 0x0020
+    SPI_CODE_SLAVE_FREQ_INVAL   = 0x0020,
+    SPI_CODE_NOT_IDLE           = 0x0040,
+    SPI_CODE_SLAVE_NOT_INIT     = 0x0080
 } spi_codes_e;
 
 typedef enum {
@@ -92,6 +94,22 @@ typedef struct {
     uint8_t        csn_idle   : 4;
     uint32_t       freq       : 32;
 } spi_slave_t;
+
+typedef struct {
+    uint32_t    len         : 24;
+    spi_speed_e speed       : 2;
+    spi_dir_e   direction   : 2;
+} spi_segment_t;
+
+typedef struct {
+    const spi_segment_t* segments;
+    const uint8_t        seglen;
+    const uint8_t        csid;
+    const void*          txbuffer;
+    const uint32_t       txlen;
+    void*                rxbuffer;
+    const uint32_t       rxlen;
+} spi_transaction_t;
 
 /****************************************************************************/
 /**                                                                        **/
@@ -121,7 +139,7 @@ spi_codes_e spi_receive(spi_idx_e idx, uint32_t* dest_buffer, uint32_t len);
 
 spi_codes_e spi_transceive(spi_idx_e idx, const uint32_t* src_buffer, uint32_t* dest_buffer, uint32_t len);
 
-// spi_codes_e spi_exec(void* commands, uint8_t len);
+spi_codes_e spi_execute(spi_idx_e idx, const spi_transaction_t* transaction);
 
 /****************************************************************************/
 /**                                                                        **/
