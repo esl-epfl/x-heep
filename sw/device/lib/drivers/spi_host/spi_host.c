@@ -76,20 +76,20 @@ spi_return_flags_e spi_get_events(spi_host_t spi, spi_event_e* events);
 /**                                                                        **/
 /****************************************************************************/
 
-static spi_host_t _spi_flash = {
-    .peri       = ((volatile spi_host *) SPI_FLASH_START_ADDRESS),
-    .base_addr  = SPI_FLASH_START_ADDRESS,
-};
+// static spi_host_t _spi_flash = {
+//     .peri       = ((volatile spi_host *) SPI_FLASH_START_ADDRESS),
+//     .base_addr  = SPI_FLASH_START_ADDRESS,
+// };
 
-static spi_host_t _spi_host = {
-    .peri       = ((volatile spi_host *) SPI_HOST_START_ADDRESS),
-    .base_addr  = SPI_HOST_START_ADDRESS,
-};
+// static spi_host_t _spi_host = {
+//     .peri       = ((volatile spi_host *) SPI_HOST_START_ADDRESS),
+//     .base_addr  = SPI_HOST_START_ADDRESS,
+// };
 
-static spi_host_t _spi_host2 = {
-    .peri       = ((volatile spi_host *) SPI2_START_ADDRESS),
-    .base_addr  = SPI2_START_ADDRESS,
-};
+// static spi_host_t _spi_host2 = {
+//     .peri       = ((volatile spi_host *) SPI2_START_ADDRESS),
+//     .base_addr  = SPI2_START_ADDRESS,
+// };
 
 /****************************************************************************/
 /**                                                                        **/
@@ -98,15 +98,15 @@ static spi_host_t _spi_host2 = {
 /****************************************************************************/
 
 spi_host_t spi_init_flash() {
-    return _spi_flash;
+    return SPI_FLASH_INIT;
 }
 
 spi_host_t spi_init_host() {
-    return _spi_host;
+    return SPI_HOST_INIT;
 }
 
 spi_host_t spi_init_host2() {
-    return _spi_host2;
+    return SPI_HOST2_INIT;
 }
 
 spi_return_flags_e spi_get_events_enabled(spi_host_t spi, spi_event_e* events) 
@@ -325,12 +325,13 @@ spi_return_flags_e spi_set_command(spi_host_t spi, const uint32_t cmd_reg) {
     spi_return_flags_e flags = SPI_FLAG_OK;
     spi_speed_e speed   = bitfield_read(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, SPI_HOST_COMMAND_SPEED_OFFSET);
     spi_dir_e direction = bitfield_read(cmd_reg, SPI_HOST_COMMAND_DIRECTION_MASK, SPI_HOST_COMMAND_DIRECTION_OFFSET);
+    uint32_t len = bitfield_read(cmd_reg, SPI_HOST_COMMAND_LEN_MASK, SPI_HOST_COMMAND_LEN_OFFSET);
+    if (len == 0) return SPI_FLAG_OK;
 
     if (spi_get_status(spi)->cmdqd >= SPI_HOST_PARAM_CMD_DEPTH)
-        flags += SPI_FLAG_COMMAND_FULL;
-    if (speed > SPI_SPEED_QUAD || (direction == SPI_DIR_BIDIR && speed != SPI_SPEED_STANDARD))
-        flags += SPI_FLAG_SPEED_INVALID;
-    if (!spi_get_ready(spi)) flags += SPI_FLAG_NOT_READY;
+        flags |= SPI_FLAG_COMMAND_FULL;
+    if (!spi_validate_cmd(direction, speed)) flags |= SPI_FLAG_SPEED_INVALID;
+    if (!spi_get_ready(spi)) flags |= SPI_FLAG_NOT_READY;
     if (flags) return flags;
 
     spi.peri->COMMAND = cmd_reg;
@@ -377,6 +378,7 @@ spi_return_flags_e spi_output_enable(spi_host_t spi, bool enable){
 
 void handler_irq_spi(uint32_t id)
 {
+    spi_host_t _spi_host2 = SPI_HOST2_INIT;
     spi_error_e errors;
     spi_get_errors(_spi_host2, &errors);
     if (errors) {
@@ -392,6 +394,7 @@ void handler_irq_spi(uint32_t id)
 
 void fic_irq_spi(void)
 {
+    spi_host_t _spi_host = SPI_HOST_INIT;
     spi_error_e errors;
     spi_get_errors(_spi_host, &errors);
     if (errors) {
@@ -407,6 +410,7 @@ void fic_irq_spi(void)
 
 void fic_irq_spi_flash(void)
 {
+    spi_host_t _spi_flash = SPI_FLASH_INIT;
     spi_error_e errors;
     spi_get_errors(_spi_flash, &errors);
     if (errors) {

@@ -75,7 +75,8 @@ typedef enum {
     SPI_CODE_SLAVE_CSID_INVAL   = 0x0010,
     SPI_CODE_SLAVE_FREQ_INVAL   = 0x0020,
     SPI_CODE_NOT_IDLE           = 0x0040,
-    SPI_CODE_SLAVE_NOT_INIT     = 0x0080
+    SPI_CODE_SLAVE_NOT_INIT     = 0x0080,
+    SPI_CODE_SEGMENT_INVAL      = 0x0100
 } spi_codes_e;
 
 typedef enum {
@@ -84,6 +85,21 @@ typedef enum {
     SPI_DATA_MODE_2 = 2,     // cpol = 1, cpha = 0
     SPI_DATA_MODE_3 = 3      // cpol = 1, cpha = 1
 } spi_datamode_e;
+
+typedef enum {
+    SPI_MODE_DUMMY   = 0,
+    SPI_MODE_RX_STD  = 1,
+    SPI_MODE_TX_STD  = 2,
+    SPI_MODE_BIDIR   = 3,
+    // 4 is same than DUMMY
+    SPI_MODE_RX_DUAL = 5,
+    SPI_MODE_TX_DUAL = 6,
+    // 7 will be unvalidated by HAL
+    // 8 is same than DUMMY
+    SPI_MODE_RX_QUAD = 9,
+    SPI_MODE_TX_QUAD = 10
+    // everything > 10 will be unvalidated by HAL
+} spi_mode_e;
 
 typedef struct {
     uint8_t        csid       : 2;
@@ -96,20 +112,24 @@ typedef struct {
 } spi_slave_t;
 
 typedef struct {
-    uint32_t    len         : 24;
-    spi_speed_e speed       : 2;
-    spi_dir_e   direction   : 2;
+    uint32_t   len        : 24;
+    spi_mode_e mode       : 4;
 } spi_segment_t;
 
 typedef struct {
     const spi_segment_t* segments;
-    const uint8_t        seglen;
-    const uint8_t        csid;
+    uint8_t              seglen;
     const void*          txbuffer;
-    const uint32_t       txlen;
+    uint32_t             txlen;
     void*                rxbuffer;
-    const uint32_t       rxlen;
+    uint32_t             rxlen;
 } spi_transaction_t;
+
+typedef struct {
+    const spi_idx_e idx;
+    bool init;
+    spi_slave_t slave; // TODO: Find a way of having multiple slaves...
+} spi_t;
 
 /****************************************************************************/
 /**                                                                        **/
@@ -123,23 +143,21 @@ typedef struct {
 /**                                                                        **/
 /****************************************************************************/
 
-spi_codes_e spi_init(spi_idx_e idx);
+spi_t spi_init(spi_idx_e idx, spi_slave_t slave);
 
-spi_codes_e spi_deinit(spi_idx_e idx);
+spi_codes_e spi_deinit(spi_t* spi);
 
-spi_codes_e spi_reset(spi_idx_e idx);
+spi_codes_e spi_reset(spi_t* spi);
 
-spi_codes_e spi_set_slave(spi_idx_e idx, spi_slave_t slave);
+spi_codes_e spi_get_slave(spi_t* spi, uint8_t csid, spi_slave_t* slave);
 
-spi_codes_e spi_get_slave(spi_idx_e idx, uint8_t csid, spi_slave_t* slave);
+spi_codes_e spi_transmit(spi_t* spi, const uint32_t* src_buffer, uint32_t len);
 
-spi_codes_e spi_transmit(spi_idx_e idx, const uint32_t* src_buffer, uint32_t len);
+spi_codes_e spi_receive(spi_t* spi, uint32_t* dest_buffer, uint32_t len);
 
-spi_codes_e spi_receive(spi_idx_e idx, uint32_t* dest_buffer, uint32_t len);
+spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer, uint32_t* dest_buffer, uint32_t len);
 
-spi_codes_e spi_transceive(spi_idx_e idx, const uint32_t* src_buffer, uint32_t* dest_buffer, uint32_t len);
-
-spi_codes_e spi_execute(spi_idx_e idx, const spi_transaction_t* transaction);
+spi_codes_e spi_execute(spi_t* spi, const spi_transaction_t* transaction);
 
 /****************************************************************************/
 /**                                                                        **/

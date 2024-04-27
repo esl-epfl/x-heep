@@ -49,6 +49,21 @@
 
 #define SPI_CSID_INVALID(csid)  csid >= SPI_HOST_PARAM_NUM_C_S
 
+#define SPI_FLASH_INIT (spi_host_t) { \
+    .peri       = ((volatile spi_host *) SPI_FLASH_START_ADDRESS), \
+    .base_addr  = SPI_FLASH_START_ADDRESS \
+}
+
+#define SPI_HOST_INIT (spi_host_t) { \
+    .peri       = ((volatile spi_host *) SPI_HOST_START_ADDRESS), \
+    .base_addr  = SPI_HOST_START_ADDRESS \
+}
+
+#define SPI_HOST2_INIT (spi_host_t) { \
+    .peri       = ((volatile spi_host *) SPI2_START_ADDRESS), \
+    .base_addr  = SPI2_START_ADDRESS \
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -126,7 +141,7 @@ typedef enum {
     SPI_FLAG_CSID_INVALID       = 0x0004, /*!< The CSID was out of the bounds specified in 
     SPI_HOST_PARAM_NUM_C_S */
     SPI_FLAG_COMMAND_FULL       = 0x0008, /*!< The CMD FIFO is currently full so couldn't write command */
-    SPI_FLAG_SPEED_INVALID      = 0x0010, /*!< The specified speed is not valid (i.e. = 3) so couldn't write command */
+    SPI_FLAG_SPEED_INVALID      = 0x0010, /*!< The specified speed is not valid so couldn't write command */
     SPI_FLAG_TX_QUEUE_FULL      = 0x0020, /*!< The TX Queue is full, thus could not write to TX register */
     SPI_FLAG_RX_QUEUE_EMPTY     = 0x0040, /*!< The RX Queue is empty, thus could not read from RX register */
     SPI_FLAG_NOT_READY          = 0x0080, /*!< The SPI is not ready */
@@ -484,6 +499,12 @@ spi_return_flags_e spi_output_enable(spi_host_t spi, bool enable);
 /**                                                                        **/
 /****************************************************************************/
 
+static inline __attribute__((always_inline)) bool spi_validate_cmd(uint8_t direction, uint8_t speed) {
+    if (speed > SPI_SPEED_QUAD || (direction == SPI_DIR_BIDIR && speed != SPI_SPEED_STANDARD))
+        return false;
+    else return true;
+}
+
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_evt_intr_state(spi_host_t spi) {
     if (spi.peri == NULL) return SPI_TRISTATE_ERROR;
     return bitfield_read(spi.peri->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_SPI_EVENT_BIT)
@@ -683,7 +704,7 @@ static inline __attribute__((always_inline)) __attribute__((const)) uint32_t spi
  *
  * @param configopts Target device configuation structure.
  */
-static inline __attribute__((always_inline)) spi_configopts_t spi_create_configopts_structure(const uint32_t config_reg) {
+static inline __attribute__((always_inline)) __attribute__((const)) spi_configopts_t spi_create_configopts_structure(const uint32_t config_reg) {
     spi_configopts_t configopts = {
         .clkdiv   = bitfield_read(config_reg, SPI_HOST_CONFIGOPTS_0_CLKDIV_0_MASK, SPI_HOST_CONFIGOPTS_0_CLKDIV_0_OFFSET),
         .csnidle  = bitfield_read(config_reg, SPI_HOST_CONFIGOPTS_0_CSNIDLE_0_MASK, SPI_HOST_CONFIGOPTS_0_CSNIDLE_0_OFFSET),
