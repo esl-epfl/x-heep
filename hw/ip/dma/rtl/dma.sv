@@ -92,11 +92,33 @@ module dma #(
   logic        [               31:0] dma_src_cnt_d1;  // d1 src counter
   logic        [               31:0] dma_src_cnt_d2;  // d2 src counter
   logic        [               31:0] dma_dst_cnt_d1;  // d2 dst counter
-  
   logic        [               31:0] dma_src_d2_inc;  // d2 source increment
   logic        [               31:0] dma_dst_d2_inc;  // d2 destination increment
+  logic                              pad_fifo_on;  // Padding flag for FIFO
+  logic                              pad_cnt_on;  // Padding flag for counters
 
-  logic                              pad_on;  // Padding flag
+  // Padding FSM conditions
+
+  logic                              idle_to_left_ex;
+  logic                              idle_to_top_ex;
+  logic                              idle_to_right_ex;
+  logic                              idle_to_bottom_ex;
+  logic                              top_ex_to_top_dn;
+  logic                              top_ex_to_left_ex;
+  logic                              top_dn_to_right_ex;
+  logic                              top_dn_to_bottom_ex;
+  logic                              top_dn_to_idle;
+  logic                              left_ex_to_left_dn;
+  logic                              left_dn_to_left_ex;
+  logic                              left_dn_to_right_ex;  
+  logic                              left_dn_to_bottom_ex; 
+  logic                              left_dn_to_idle;
+  logic                              right_ex_to_right_dn;
+  logic                              right_ex_to_left_ex; 
+  logic                              right_dn_to_right_ex;
+  logic                              right_dn_to_idle;
+  logic                              right_ex_to_bottom_ex; 
+  logic                              bottom_ex_to_idle;
 
   logic                              fifo_flush;
   logic                              fifo_full;
@@ -144,7 +166,7 @@ module dma #(
     RIGHT_PAD_DONE,
     BOTTOM_PAD_DONE
   }
-      pad_state_q, pad_state_d;
+      pad_state_q, pad_state_d, pad_state_x;
 
   logic [Addr_Fifo_Depth-1:0] outstanding_req, outstanding_addr_req;
 
@@ -212,6 +234,32 @@ module dma #(
 
   assign dma_src_d2_inc = {16'h0, reg2hw.src_ptr_inc.src_ptr_inc_d2.q};
   assign dma_dst_d2_inc = {16'h0, reg2hw.dst_ptr_inc.dst_ptr_inc_d2.q};
+
+  // Padding FSM conditions assignments
+
+  
+  assign idle_to_top_ex = {|reg2hw.pad.top_pad.q == 1'b1 && dma_start == 1'b1};
+  assign idle_to_left_ex = {|reg2hw.pad.top_pad.q == 1'b0 && |reg2hw.pad.left_pad.q == 1'b1 && dma_start == 1'b1} ;
+  assign idle_to_right_ex = {|reg2hw.pad.top_pad.q == 1'b0 && |reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b1 
+                      && dma_src_cnt_d1 == ({24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du}) && dma_start == 1'b1 };
+  assign idle_to_bottom_ex = {|reg2hw.pad.top_pad.q == 1'b0 && |reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b1 
+                      && dma_src_cnt_d2 == ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && dma_start == 1'b1 };
+  assign top_ex_to_top_dn = {dma_src_cnt_d2 == (reg2hw.size_tr_d2.q + {24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b0};
+  assign top_ex_to_left_ex = {dma_src_cnt_d2 == (reg2hw.size_tr_d2.q + {24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b1};
+  assign top_dn_to_right_ex = {|reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b1 && dma_src_cnt_d1 == ({24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du})};
+  assign top_dn_to_bottom_ex = {|reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b1 && dma_src_cnt_d2 == ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du})};
+  assign top_dn_to_idle = {|reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b0 && |dma_src_cnt_d2 == 1'b0};
+  assign left_ex_to_left_dn = {dma_src_cnt_d1 == (reg2hw.size_tr_d1.q + {24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du})};
+  assign left_dn_to_left_ex = {dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && dma_src_cnt_d2 != ({29'h0, dma_cnt_du} + {24'h0, reg2hw.pad.bottom_pad.q}) && |reg2hw.pad.right_pad.q == 1'b0};
+  assign left_dn_to_right_ex = {|reg2hw.pad.right_pad.q == 1'b1 && dma_src_cnt_d1 == ({24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du})};  
+  assign left_dn_to_bottom_ex = {|reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b1 && dma_src_cnt_d2 == ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du})}; 
+  assign left_dn_to_idle = {|reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b0 && |dma_src_cnt_d2 == 1'b0};
+  assign right_ex_to_right_dn = {dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && dma_src_cnt_d2 != ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b0};
+  assign right_ex_to_left_ex = {dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && dma_src_cnt_d2 != ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b1}; 
+  assign right_ex_to_bottom_ex = {|reg2hw.pad.bottom_pad.q == 1'b1 && dma_src_cnt_d2 == ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du})}; 
+  assign right_dn_to_right_ex = {dma_src_cnt_d1 == ({24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b0};
+  assign right_dn_to_idle = {|reg2hw.pad.bottom_pad.q == 1'b0 && |dma_src_cnt_d2 == 1'b0};
+  assign bottom_ex_to_idle = {|dma_src_cnt_d2 == 1'b0};
 
   assign write_address = address_mode ? fifo_addr_output : write_ptr_reg;
 
@@ -286,7 +334,7 @@ module dma #(
         if (dma_conf_1d == 1'b1) begin
           // Increase the pointer by the amount written in ptr_inc
           read_ptr_reg <= read_ptr_reg + {24'h0, reg2hw.src_ptr_inc.src_ptr_inc_d1.q};
-        end else if (dma_conf_2d == 1'b1) begin
+        end else if (dma_conf_2d == 1'b1 && pad_cnt_on == 1'b0) begin
           if (dma_src_cnt_d1 == {29'h0, dma_cnt_du} && |dma_src_cnt_d2 == 1'b1) begin
             // In this case, the d1 is almost finished, so we need to increment the pointer by sizeof(d1)*data_unit
 
@@ -377,7 +425,7 @@ module dma #(
           if (dma_src_cnt_d1 == {29'h0, dma_cnt_du}) begin
             // In this case, the d1 is finished, so we need to decrement the d2 size and reset the d2 size
             dma_src_cnt_d2 <= dma_src_cnt_d2 - {29'h0, dma_cnt_du};
-            dma_src_cnt_d1 <= reg2hw.size_tr_d1.q;
+            dma_src_cnt_d1 <= reg2hw.size_tr_d1.q + {24'h0, reg2hw.pad.left_pad.q} + {24'h0, reg2hw.pad.right_pad.q};
           end else begin
             // In this case, the d1 isn't finished, so we need to decrement the d1 size
             dma_src_cnt_d1 <= dma_src_cnt_d1 - {29'h0, dma_cnt_du};
@@ -397,7 +445,7 @@ module dma #(
       dma_dst_cnt_d1 <= '0;
     end else begin
       if (dma_start == 1'b1) begin
-        dma_dst_cnt_d1 <= reg2hw.size_tr_d1.q;
+        dma_dst_cnt_d1 <= reg2hw.size_tr_d1.q + {24'h0, reg2hw.pad.left_pad.q} + {24'h0, reg2hw.pad.right_pad.q};
       end else if (data_out_gnt == 1'b1) begin
         if (dma_conf_1d == 1'b1) begin
           // 1D case
@@ -406,7 +454,7 @@ module dma #(
           // 2D case
           if (dma_dst_cnt_d1 == {29'h0, dma_cnt_du}) begin
             // In this case, the d1 is finished, so we need to reset the d2 size
-            dma_dst_cnt_d1 <= reg2hw.size_tr_d1.q;
+            dma_dst_cnt_d1 <= reg2hw.size_tr_d1.q + {24'h0, reg2hw.pad.left_pad.q} + {24'h0, reg2hw.pad.right_pad.q};
           end else begin
             // In this case, the d1 isn't finished, so we need to decrement the d1 size
             dma_dst_cnt_d1 <= dma_dst_cnt_d1 - {29'h0, dma_cnt_du};
@@ -489,7 +537,7 @@ module dma #(
   // Input data shift: shift the input data to be on the LSB of the fifo
   always_comb begin : proc_input_data
 
-    if (pad_on) begin
+    if (pad_fifo_on) begin
       fifo_input = 32'h0;
     end else begin
       fifo_input[7:0]   = data_in_rdata[7:0];
@@ -537,105 +585,143 @@ module dma #(
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_pad_state
     if (~rst_ni) begin
       pad_state_q <= PAD_IDLE;
+      pad_state_x <= PAD_IDLE;
+    end else if (dma_start == 1'b1 && |reg2hw.pad.top_pad.q == 1'b1) begin
+      pad_state_q <= TOP_PAD_EXEC;
+      pad_state_x <= TOP_PAD_EXEC;
+    end else if (dma_start == 1'b1 && |reg2hw.pad.left_pad.q == 1'b1) begin
+      pad_state_q <= LEFT_PAD_EXEC;
+      pad_state_x <= LEFT_PAD_EXEC;
     end else begin
-      pad_state_q <= pad_state_d;
+      pad_state_x <= pad_state_d;
+      if (data_in_rvalid == 1'b1) begin
+        pad_state_q <= pad_state_x;
+      end
     end
+  end
+
+  // Pad fifo flag logic
+
+  always_comb begin : proc_pad_fifo_on
+    case (pad_state_q)
+      TOP_PAD_EXEC, LEFT_PAD_EXEC, RIGHT_PAD_EXEC, BOTTOM_PAD_EXEC: 
+      pad_fifo_on = 1'b1;
+
+      PAD_IDLE:
+      dma_done = 1'b1;
+      
+      default: pad_fifo_on = 1'b0;
+    endcase
+  end
+
+  // Pad counter flag logic
+
+  always_comb begin : proc_pad_cnt_on
+    pad_cnt_on = pad_fifo_on;
+    case (pad_state_q)
+      TOP_PAD_DONE: begin
+        if (top_dn_to_right_ex) begin
+          pad_cnt_on = 1'b1;
+        end
+      end
+
+      LEFT_PAD_DONE: begin
+        if (left_dn_to_right_ex) begin
+          pad_cnt_on = 1'b1;
+        end
+      end
+
+      RIGHT_PAD_DONE: begin
+        if (right_dn_to_right_ex) begin
+          pad_cnt_on = 1'b1;
+        end
+      end
+      
+      RIGHT_PAD_EXEC: begin
+        if (right_ex_to_right_dn || right_ex_to_left_ex) begin
+          pad_cnt_on = 1'b0;
+        end
+      end
+    endcase
   end
 
   // Padding FSM logic
   always_comb begin : proc_pad_fsm_logic
-    pad_state_d = pad_state_q;
-    unique case (pad_state_q)
+    if (dma_start == 1'b1 && |reg2hw.pad.top_pad.q == 1'b1) begin
+      pad_state_d = TOP_PAD_EXEC;
+    end else if (dma_start == 1'b1 && |reg2hw.pad.left_pad.q == 1'b1) begin
+      pad_state_d = LEFT_PAD_EXEC;
+    end else begin
+      pad_state_d = pad_state_x;
+    end
+
+    unique case (pad_state_x)
       PAD_IDLE: begin
-        if (|reg2hw.pad.top_pad.q == 1'b1 && dma_start == 1'b1) begin
+        if (idle_to_top_ex) begin
           pad_state_d = TOP_PAD_EXEC;
-          pad_on = 1'b1;
-        end else if (|reg2hw.pad.top_pad.q == 1'b0 && |reg2hw.pad.left_pad.q == 1'b1 && dma_start == 1'b1) begin
+        end else if (idle_to_left_ex) begin
           pad_state_d = LEFT_PAD_EXEC;
-          pad_on = 1'b1;
-        end else if (|reg2hw.pad.top_pad.q == 1'b0 && |reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b1 
-                      && dma_src_cnt_d1 == ({24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du}) && dma_start == 1'b1 ) begin
+        end else if (idle_to_right_ex) begin
           pad_state_d = RIGHT_PAD_EXEC;
-          pad_on = 1'b1;
-        end else if (|reg2hw.pad.top_pad.q == 1'b0 && |reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b1 
-                      && dma_src_cnt_d2 == ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_start == 1'b1 ) begin
+        end else if (idle_to_bottom_ex) begin
           pad_state_d = BOTTOM_PAD_EXEC;
-          pad_on = 1'b1;
-        end else begin
-          pad_on = 1'b0;
         end
       end
 
       TOP_PAD_EXEC: begin
-        if (dma_src_cnt_d2 == (reg2hw.size_tr_d2.q + {24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du})) begin
+        if (top_ex_to_left_ex) begin
+          pad_state_d = LEFT_PAD_EXEC;
+        end else if (top_ex_to_top_dn) begin
           pad_state_d = TOP_PAD_DONE;
         end
       end
       TOP_PAD_DONE: begin
-        if (data_in_gnt == 1'b1) begin
-          if (|reg2hw.pad.left_pad.q == 1'b1) begin
-            pad_state_d = LEFT_PAD_EXEC;
-            pad_on = 1'b1;
-          end else if (|reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b1 && dma_src_cnt_d1 == ({24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du})) begin
+        if (top_dn_to_right_ex) begin
             pad_state_d = RIGHT_PAD_EXEC;
-            pad_on = 1'b1;
-          end else if (|reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b1 && dma_src_cnt_d2 == ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du})) begin
-            pad_state_d = BOTTOM_PAD_EXEC;
-            pad_on = 1'b1;
-          end else if (|reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b0) begin
-            pad_state_d = PAD_IDLE;
-            pad_on = 1'b0;
-          end
-        end else begin
-          pad_on = 1'b0;
+        end else if (top_dn_to_bottom_ex) begin
+          pad_state_d = BOTTOM_PAD_EXEC;
+        end else if (top_dn_to_idle) begin
+          pad_state_d = PAD_IDLE;
         end
       end
       LEFT_PAD_EXEC: begin
-        if (dma_src_cnt_d1 == (reg2hw.size_tr_d2.q - {24'h0, reg2hw.pad.left_pad.q})) begin
+        if (left_ex_to_left_dn) begin
           pad_state_d = LEFT_PAD_DONE;
         end 
       end
       LEFT_PAD_DONE: begin
-        if (data_in_gnt == 1'b1) begin
-          if (|reg2hw.pad.right_pad.q == 1'b1 && dma_src_cnt_d1 == ({24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du})) begin
-            pad_state_d = RIGHT_PAD_EXEC;
-            pad_on = 1'b1;
-          end else if (|reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b1 && dma_src_cnt_d2 == ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du})) begin
-            pad_state_d = BOTTOM_PAD_EXEC;
-            pad_on = 1'b1;
-          end else if (|reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b0) begin
-            pad_state_d = PAD_IDLE;
-            pad_on = 1'b0;
-          end
-        end else begin
-          pad_on = 1'b0;
-        end
+        if (left_dn_to_right_ex) begin
+          pad_state_d = RIGHT_PAD_EXEC;
+        end else if (left_dn_to_bottom_ex) begin
+          pad_state_d = BOTTOM_PAD_EXEC;
+        end else if (left_dn_to_left_ex) begin
+          pad_state_d = LEFT_PAD_EXEC;
+        end else if (left_dn_to_idle) begin
+          pad_state_d = PAD_IDLE;
+        end 
       end
       RIGHT_PAD_EXEC: begin
-        if (dma_src_cnt_d1 == {29'h0, dma_cnt_du}) begin
+        if (right_ex_to_right_dn) begin
           pad_state_d = RIGHT_PAD_DONE;
+        end else if (right_ex_to_left_ex) begin
+          pad_state_d = LEFT_PAD_EXEC;
+        end else if (right_ex_to_bottom_ex) begin
+          pad_state_d = BOTTOM_PAD_EXEC;
         end
       end
       RIGHT_PAD_DONE: begin
-        if (data_in_gnt == 1'b1) begin
-          if (|reg2hw.pad.bottom_pad.q == 1'b1 && dma_src_cnt_d2 == ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du})) begin
-            pad_state_d = BOTTOM_PAD_EXEC;
-            pad_on = 1'b1;
-          end else if (|reg2hw.pad.bottom_pad.q == 1'b0) begin
-            pad_state_d = PAD_IDLE;
-            pad_on = 1'b0;
-          end
-        end else begin
-          pad_on = 1'b0;
+        if (right_dn_to_idle) begin
+          pad_state_d = PAD_IDLE;
+        end else if (right_dn_to_right_ex) begin
+          pad_state_d = RIGHT_PAD_EXEC;
         end
       end
       BOTTOM_PAD_EXEC: begin
-        if (dma_src_cnt_d2 == {29'h0, dma_cnt_du}) begin
+        if (bottom_ex_to_idle) begin
           pad_state_d = PAD_IDLE;
-          pad_on = 1'b0;
         end
       end
-    endcase
+    endcase 
   end
 
   // Read master FSM
@@ -680,7 +766,7 @@ module dma #(
           end
         end else if (dma_conf_2d == 1'b1) begin
           // 2D DMA case: exit only if both 1d and 2d counters are at 0
-          if (dma_src_cnt_d1 == reg2hw.size_tr_d1.q && |dma_src_cnt_d2 == 1'b0) begin
+          if (dma_src_cnt_d1 == reg2hw.size_tr_d1.q + {24'h0, reg2hw.pad.left_pad.q} + {24'h0, reg2hw.pad.right_pad.q} && |dma_src_cnt_d2 == 1'b0) begin
             dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
           end else begin
             // The read operation is the same in both cases

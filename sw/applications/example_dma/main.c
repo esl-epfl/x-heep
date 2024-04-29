@@ -473,15 +473,19 @@ uint32_t test_data_2D[SIZE_IN_D1 * SIZE_IN_D2] = {
 };
 
 
-uint32_t copied_data_2D[OUT_DIM] = {0};
+uint32_t copied_data_2D_DMA[OUT_DIM];
+uint32_t cycles_dma, cycles_cpu;
 
-PRINTF("cpy_sz: %d\n\r", OUT_DIM);
+//PRINTF("cpy_sz: %d\n\r", OUT_DIM);
 
+// Testing the DMA
 
+CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+CSR_WRITE(CSR_REG_MCYCLE, 0);
 // Now I need to set up the pointers
 
 peri->SRC_PTR = &test_data_2D[0];
-peri->DST_PTR = copied_data_2D;
+peri->DST_PTR = copied_data_2D_DMA;
 
 // Now set up the dimensionality configuration
 
@@ -526,6 +530,8 @@ uint32_t src_stride_d1 = STRIDE_IN_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD
 // The d2 stride is not the tipitcal stride but rather the distance between the first element of the next row and the first element of the current row
 uint32_t src_stride_d2 = STRIDE_IN_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ) * SIZE_IN_D1 - (size_src_trans_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ) + (src_stride_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD )) * (SIZE_OUT_D1 - 1));
 
+//PRINTF("src_s_d2: %d\n\r", src_stride_d2);
+
 write_register(  src_stride_d1,
                 DMA_SRC_PTR_INC_REG_OFFSET,
                 DMA_SRC_PTR_INC_SRC_PTR_INC_D1_MASK,
@@ -544,7 +550,7 @@ uint32_t size_dst_trans_d1 = SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_W
 uint32_t dst_stride_d1 = STRIDE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD );
 
 // The d2 stride is not the tipitcal stride but rather the distance between the first element of the next row and the first element of the current row
-uint32_t dst_stride_d2 = STRIDE_OUT_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ) * OUT_D1 - (size_dst_trans_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ) + (dst_stride_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD )) * (SIZE_OUT_D1 - 1));
+uint32_t dst_stride_d2 = STRIDE_OUT_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ) * (OUT_D1 - LEFT_PAD - RIGHT_PAD) - (size_dst_trans_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ) + (dst_stride_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD )) * (SIZE_OUT_D1 - 1));
 
 write_register(  dst_stride_d1,
                 DMA_DST_PTR_INC_REG_OFFSET,
@@ -608,12 +614,81 @@ while( peri->STATUS == 0 ) {
       CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
 }
 
+CSR_READ(CSR_REG_MCYCLE, &cycles_dma);
+
+CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+CSR_WRITE(CSR_REG_MCYCLE, 0);
+
+// Now let's do the same with the CPU
+int left_pad_cnt = 0;
+int top_pad_cnt = 0;
+uint32_t copied_data_2D_CPU[OUT_DIM] = {0};
+
+for (int i=0; i < OUT_D2; i++)
+{
+    for (int j=0; j < OUT_D1; j++)
+    {
+        if (i < TOP_PAD || i >= SIZE_OUT_D2 + BOTTOM_PAD || j < LEFT_PAD || j >= SIZE_OUT_D1 + RIGHT_PAD)
+        {
+            copied_data_2D_CPU[(i + STRIDE_OUT_D2 - 1) * OUT_D1 + j + STRIDE_OUT_D1 - 1] = 0;
+        }
+        else
+        {
+            copied_data_2D_CPU[(i + STRIDE_OUT_D2 - 1) * OUT_D1 + j + STRIDE_OUT_D1 - 1] = test_data_2D[(i - top_pad_cnt + STRIDE_IN_D2 - 1) * SIZE_IN_D1 + j - left_pad_cnt + STRIDE_IN_D1 - 1];
+            }
+        if (j < LEFT_PAD && i >= TOP_PAD)
+        {
+            left_pad_cnt++;
+        }
+        PRINTF("i: %d, j: %d, %d, %d\n\r", i, j, (i + STRIDE_OUT_D2 - 1) * OUT_D1 + j + STRIDE_OUT_D1 - 1, (i - top_pad_cnt + STRIDE_IN_D2 - 1) * SIZE_IN_D1 + j - left_pad_cnt + STRIDE_IN_D1 - 1);
+        
+    }
+    if (i < TOP_PAD)
+    {
+        top_pad_cnt++;
+    }
+}
+
+CSR_READ(CSR_REG_MCYCLE, &cycles_cpu);
+
+PRINTF("DMA: %d\n\r", cycles_dma);
+PRINTF("CPU: %d - ... = %d\n\r", cycles_cpu, cycles_cpu - cycles_dma);
+
 PRINTF("\n\r");
+
+/*
 for (int i = 0; i < OUT_D2; i++) {
     for (int j = 0; j < OUT_D1; j++) {
-        PRINTF("%d ", copied_data_2D[i * OUT_D1 + j]);
+        PRINTF("%d ", copied_data_2D_DMA[i * OUT_D1 + j]);
     }
     PRINTF("\n\r");
+}
+
+PRINTF("\n\r");
+
+for (int i = 0; i < OUT_D2; i++) {
+    for (int j = 0; j < OUT_D1; j++) {
+        PRINTF("%d ", copied_data_2D_CPU[i * OUT_D1 + j]);
+    }
+    PRINTF("\n\r");
+}
+*/
+
+char passed = 1;
+
+for (int i = 0; i < OUT_D2; i++) {
+    for (int j = 0; j < OUT_D1; j++) {
+        if (copied_data_2D_DMA[i * OUT_D1 + j] != copied_data_2D_CPU[i * OUT_D1 + j]) {
+            passed = 0;
+        }
+    }
+}
+
+if (passed) {
+    PRINTF("Success\n\r");
+} else {
+    PRINTF("Fail\n\r");
+    return EXIT_FAILURE;
 }
 
 #endif // TEST_2D_MODE
