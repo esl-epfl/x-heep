@@ -276,7 +276,7 @@ spi_codes_e spi_execute(spi_t* spi, const spi_transaction_t* transaction) {
             uint32_t cmd_reg = spi_create_command((spi_command_t) {
                 .direction = bitfield_read(transaction->segments[scnt].mode, BIT_MASK_2, 2),
                 .speed     = bitfield_read(transaction->segments[scnt].mode, BIT_MASK_2, 0),
-                .csaat     = 1,
+                .csaat     = wcnt < transaction->seglen - 1 ? 1 : 0,
                 .len       = transaction->segments[scnt].len
             });
             spi_set_command(_peripherals[spi->idx].instance, cmd_reg);
