@@ -57,6 +57,8 @@ extern "C" {
 /**                                                                        **/
 /****************************************************************************/
 
+typedef void (*intr_callback_t)(void);
+
 /**
 * SPI Peripheral IDX
 */
@@ -128,7 +130,9 @@ typedef struct {
 typedef struct {
     const spi_idx_e idx;
     bool init;
-    spi_slave_t slave; // TODO: Find a way of having multiple slaves...
+    spi_slave_t slave; // TODO: Find a way of having multiple slaves... ptr ?
+    intr_callback_t event_callback;
+    intr_callback_t error_callback;
 } spi_t;
 
 /****************************************************************************/

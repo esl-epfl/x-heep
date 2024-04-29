@@ -545,7 +545,6 @@ static inline __attribute__((always_inline)) const volatile spi_status_t* spi_ge
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_active(spi_host_t spi) {
-    // TODO: Find better approach to inform user
     if (spi.peri == NULL) return SPI_TRISTATE_ERROR;
     return spi_get_status(spi)->active ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
@@ -556,7 +555,6 @@ static inline __attribute__((always_inline)) spi_tristate_e spi_get_active(spi_h
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_ready(spi_host_t spi) {
-    // TODO: Find better approach to inform user
     if (spi.peri == NULL) return SPI_TRISTATE_ERROR;
     return spi_get_status(spi)->ready ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
