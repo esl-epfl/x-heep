@@ -1,0 +1,40 @@
+{
+    bus_type: "NtoM",
+    ram_banks: {
+        code_and_data: {
+            sizes: 64
+        }
+        more_data: {
+            type: continuous
+            num: 2
+            sizes: 32
+        }
+        data_interleaved: {
+            auto_section: auto
+            // the name is used by example_matadd_interleaved as .xheep_data_interleaved
+            type: interleaved
+            num: 4
+            size: 16
+        }
+        data_interleaved_2: {
+            auto_section: auto
+            type: interleaved
+            num: 2
+            size: 16
+        }
+    }
+
+    linker_sections: 
+    [
+        {
+            name: code
+            start: 0
+            // minimum size for freeRTOS and clang
+            size: 0x00000C800
+        },
+        {
+            name: data
+            start: 0x00000C800
+        }
+    ]
+}
