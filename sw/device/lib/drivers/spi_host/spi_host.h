@@ -49,17 +49,17 @@
 
 #define SPI_CSID_INVALID(csid)  csid >= SPI_HOST_PARAM_NUM_C_S
 
-#define SPI_FLASH_INIT (spi_host_t) { \
+#define SPI_FLASH_INIT { \
     .peri       = ((volatile spi_host *) SPI_FLASH_START_ADDRESS), \
     .base_addr  = SPI_FLASH_START_ADDRESS \
 }
 
-#define SPI_HOST_INIT (spi_host_t) { \
+#define SPI_HOST_INIT { \
     .peri       = ((volatile spi_host *) SPI_HOST_START_ADDRESS), \
     .base_addr  = SPI_HOST_START_ADDRESS \
 }
 
-#define SPI_HOST2_INIT (spi_host_t) { \
+#define SPI_HOST2_INIT { \
     .peri       = ((volatile spi_host *) SPI2_START_ADDRESS), \
     .base_addr  = SPI2_START_ADDRESS \
 }

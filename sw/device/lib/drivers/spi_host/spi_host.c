@@ -83,15 +83,15 @@ spi_return_flags_e spi_get_events(spi_host_t spi, spi_event_e* events);
 /****************************************************************************/
 
 spi_host_t spi_init_flash() {
-    return SPI_FLASH_INIT;
+    return (spi_host_t) SPI_FLASH_INIT;
 }
 
 spi_host_t spi_init_host() {
-    return SPI_HOST_INIT;
+    return (spi_host_t) SPI_HOST_INIT;
 }
 
 spi_host_t spi_init_host2() {
-    return SPI_HOST2_INIT;
+    return (spi_host_t) SPI_HOST2_INIT;
 }
 
 spi_return_flags_e spi_get_events_enabled(spi_host_t spi, spi_event_e* events) 
