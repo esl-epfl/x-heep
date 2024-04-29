@@ -38,7 +38,7 @@ module system_xbar
   localparam int unsigned RESP_AGG_DATA_WIDTH = 32;
 
   //Address Decoder
-% if ram_numbanks_il == 0:
+% if not xheep.has_il_ram():
   logic [XBAR_NMASTER-1:0][LOG_XBAR_NSLAVE-1:0] port_sel;
 % else:
   logic [XBAR_NMASTER-1:0][LOG_XBAR_NSLAVE-1:0] port_sel, pre_port_sel;
@@ -75,7 +75,7 @@ module system_xbar
       ) addr_decode_i (
           .addr_i(master_req_i[i].addr),
           .addr_map_i,
-% if ram_numbanks_il == 0:
+% if not xheep.has_il_ram():
           .idx_o(port_sel[i]),
 % else:
           .idx_o(pre_port_sel[i]),
@@ -86,21 +86,21 @@ module system_xbar
           .default_idx_i
       );
     end
-% if ram_numbanks_il != 0:
+% if xheep.has_il_ram():
 
     localparam ZERO = 32'h0;
 
     for (genvar j = 0; j < XBAR_NMASTER; j++) begin : gen_addr_napot
       always_comb begin
-        port_sel[j] = 1;
-        post_master_req_addr[j] = '0;
-        if (pre_port_sel[j] == NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - (NUM_BANKS_IL[LOG_XBAR_NSLAVE-1:0]-1)) begin
-            port_sel[j] = NUM_BANKS[LOG_XBAR_NSLAVE-1:0] - (NUM_BANKS_IL[LOG_XBAR_NSLAVE-1:0]-1) + {ZERO[LOG_XBAR_NSLAVE-${1+log_ram_numbanks_il}:0],master_req_i[j].addr[${1+log_ram_numbanks_il}:2]};
-          post_master_req_addr[j] = {master_req_i[j].addr[31:${2+log_ram_numbanks_il}], ${2+log_ram_numbanks_il}'h0};
-        end else begin
-          port_sel[j] = pre_port_sel[j];
-          post_master_req_addr[j] = master_req_i[j].addr;
+        port_sel[j] = pre_port_sel[j];
+        post_master_req_addr[j] = master_req_i[j].addr;
+% for i, group in enumerate(xheep.iter_il_groups()):
+
+        if (pre_port_sel[j] == RAM_IL${i}_IDX[LOG_XBAR_NSLAVE-1:0]) begin
+          port_sel[j] = RAM_IL${i}_IDX[LOG_XBAR_NSLAVE-1:0] + {ZERO[LOG_XBAR_NSLAVE-${1+group.n.bit_length()}:0],master_req_i[j].addr[${group.n.bit_length()-1 +1}:2]};
+          post_master_req_addr[j] = {master_req_i[j].addr[31:${2+group.n.bit_length()-1}], ${2+group.n.bit_length()-1}'h0};
         end
+% endfor
       end
     end
 % endif    
@@ -113,7 +113,7 @@ module system_xbar
         req: master_req_i[i].req,
         we: master_req_i[i].we,
         be: master_req_i[i].be,
-  % if ram_numbanks_il == 0:
+  % if not xheep.has_il_ram():
         addr: master_req_i[i].addr,
   % else:
         addr: post_master_req_addr[i],
