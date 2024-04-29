@@ -5,7 +5,7 @@
 1. Install the required linux tools:
 
 ```
-sudo apt install pkg-config libftdi1-2 libusb-1.0-4
+sudo apt install pkg-config libftdi1-2
 ```
 
 You need at least gcc>10, so in case you do not have it:

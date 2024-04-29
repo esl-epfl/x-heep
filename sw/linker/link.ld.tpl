@@ -20,11 +20,9 @@ MEMORY
   /* Our testbench is a bit weird in that we initialize the RAM (thus
      allowing initialized sections to be placed there). Infact we dump all
      sections to ram. */
-  ram0 (rwxai) : ORIGIN = 0x${linker_onchip_code_start_address}, LENGTH = 0x${linker_onchip_code_size_address}
-  ram1 (rwxai) : ORIGIN = 0x${linker_onchip_data_start_address}, LENGTH = 0x${linker_onchip_data_size_address}
-% if ram_numbanks_cont > 1 and ram_numbanks_il > 0:
-  ram_il (rwxai) : ORIGIN = 0x${linker_onchip_il_start_address}, LENGTH = 0x${linker_onchip_il_size_address}
-% endif
+  % for i, section in enumerate(xheep.iter_linker_sections()):
+    ram${i} (rwxai) : ORIGIN = ${f"{section.start:#08x}"}, LENGTH = ${f"{section.size:#08x}"}
+% endfor
 }
 
 /*
@@ -294,14 +292,16 @@ SECTIONS
    PROVIDE(__freertos_irq_stack_top = .);
   } >ram1
 
-% if ram_numbanks_cont > 1 and ram_numbanks_il > 0:
-  .data_interleaved :
+% for i, section in enumerate(xheep.iter_linker_sections()):
+% if not section.name in ["code", "data"]:
+  .${section.name} :
   {
     . = ALIGN(4);
-    *(.xheep_data_interleaved)
+    *(.xheep_${section.name})
     . = ALIGN(4);
-  } >ram_il
+  } >ram${i}
 % endif
+% endfor
 
   /* Stabs debugging sections.  */
   .stab          0 : { *(.stab) }

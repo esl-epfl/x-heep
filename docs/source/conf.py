@@ -4,6 +4,10 @@
 #
 # Author: Embedded Systems Laboratory (EPFL)
 
+import os
+import sys
+sys.path.insert(0, os.path.abspath("../../util"))
+
 project = 'X-HEEP'
 copyright = '2023, EPFL'
 author = 'ESL'
@@ -17,8 +21,11 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
+    'sphinxcontrib.apidoc',
     'myst_parser',
 ]
+
+html_static_path = ['_static']
 
 source_suffix = ['.rst', '.md']
 
@@ -33,3 +40,7 @@ templates_path = ['_templates']
 html_theme = 'sphinx_rtd_theme'
 
 epub_show_urls = 'footnote'
+
+apidoc_module_dir = '../../util/x_heep_gen'
+apidoc_output_dir = 'Configuration/generated'
+apidoc_separate_modules = True
