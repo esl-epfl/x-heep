@@ -34,10 +34,10 @@ class Pad:
 
     # Mapping dictionary from string to integer
     mapping_dict = {
-        'top' : 0,
-        'right' : 1,
-        'bottom' : 2,
-        'left' : 3
+        'top' : 'core_v_mini_mcu_pkg::TOP',
+        'right' : 'core_v_mini_mcu_pkg::RIGHT',
+        'bottom' : 'core_v_mini_mcu_pkg::BOTTOM',
+        'left' : 'core_v_mini_mcu_pkg::LEFT'
     }
 
     mapping = ''
@@ -575,7 +575,7 @@ def main():
 
         pad_name = key
         pad_num  = pads[key]['num']
-        pad_type = pads[key]['type']
+        pad_type = pads[key]['type'].strip(',')
 
         try:
             pad_offset = int(pads[key]['num_offset'])
@@ -588,7 +588,7 @@ def main():
             pad_active = 'high'
         
         try:
-            pad_mapping = pads[key]['mapping']
+            pad_mapping = pads[key]['mapping'].strip(',')
         except KeyError:
             pad_mapping = None
 
