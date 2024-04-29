@@ -46,6 +46,9 @@ module system_bus
     input  obi_req_t  dma_addr_ch0_req_i,
     output obi_resp_t dma_addr_ch0_resp_o,
 
+    input  obi_req_t  axi_sl_m_req_i,
+    output obi_resp_t axi_sl_m_resp_o,
+
     // External master ports
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
@@ -65,6 +68,9 @@ module system_bus
 
     output obi_req_t  flash_mem_slave_req_o,
     input  obi_resp_t flash_mem_slave_resp_i,
+
+    output obi_req_t  axi_sl_slave_req_o,
+    input  obi_resp_t axi_sl_slave_resp_i,
 
     // External slave ports
     output obi_req_t  ext_core_instr_req_o,
@@ -122,6 +128,7 @@ module system_bus
   assign int_master_req[core_v_mini_mcu_pkg::DMA_READ_CH0_IDX] = dma_read_ch0_req_i;
   assign int_master_req[core_v_mini_mcu_pkg::DMA_WRITE_CH0_IDX] = dma_write_ch0_req_i;
   assign int_master_req[core_v_mini_mcu_pkg::DMA_ADDR_CH0_IDX] = dma_addr_ch0_req_i;
+  assign int_master_req[core_v_mini_mcu_pkg::AXI_SL_M_IDX] = axi_sl_m_req_i;
 
   // Internal + external master requests
   generate
@@ -145,6 +152,7 @@ module system_bus
   assign dma_read_ch0_resp_o = int_master_resp[core_v_mini_mcu_pkg::DMA_READ_CH0_IDX];
   assign dma_write_ch0_resp_o = int_master_resp[core_v_mini_mcu_pkg::DMA_WRITE_CH0_IDX];
   assign dma_addr_ch0_resp_o = int_master_resp[core_v_mini_mcu_pkg::DMA_ADDR_CH0_IDX];
+  assign axi_sl_m_resp_o = int_master_resp[core_v_mini_mcu_pkg::AXI_SL_M_IDX];
 
   // External master responses
   if (EXT_XBAR_NMASTER == 0) begin
@@ -164,6 +172,7 @@ module system_bus
   assign ao_peripheral_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX];
   assign peripheral_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::PERIPHERAL_IDX];
   assign flash_mem_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::FLASH_MEM_IDX];
+  assign axi_sl_slave_req_o = int_slave_req[core_v_mini_mcu_pkg::AXI_SL_SLAVE_IDX];
 
   // External slave requests
   assign ext_core_instr_req_o = demux_xbar_req[CORE_INSTR_IDX][DEMUX_XBAR_EXT_SLAVE_IDX];
@@ -182,6 +191,7 @@ module system_bus
   assign int_slave_resp[core_v_mini_mcu_pkg::AO_PERIPHERAL_IDX] = ao_peripheral_slave_resp_i;
   assign int_slave_resp[core_v_mini_mcu_pkg::PERIPHERAL_IDX] = peripheral_slave_resp_i;
   assign int_slave_resp[core_v_mini_mcu_pkg::FLASH_MEM_IDX] = flash_mem_slave_resp_i;
+  assign int_slave_resp[core_v_mini_mcu_pkg::AXI_SL_SLAVE_IDX] = axi_sl_slave_resp_i;
 
   // External slave responses
   assign demux_xbar_resp[CORE_INSTR_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_core_instr_resp_i;

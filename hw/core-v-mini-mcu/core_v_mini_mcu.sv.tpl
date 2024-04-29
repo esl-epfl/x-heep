@@ -12,6 +12,10 @@ module core_v_mini_mcu
   import axi_pkg::*;
 //  import serial_link_pkg::*;
 #(
+    // serial link parameters
+    parameter int NumChannels = 1,
+    parameter int NumLanes = 4,
+    parameter int MaxClkDiv = 32,
 
     parameter COREV_PULP = 0,
     parameter FPU = 0,
@@ -58,6 +62,10 @@ ${pad.core_v_mini_mcu_interface}
     output obi_req_t  ext_dma_addr_ch0_req_o,
     input  obi_resp_t ext_dma_addr_ch0_resp_i,
 
+
+
+    // external salve ports 
+
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
@@ -79,17 +87,25 @@ ${pad.core_v_mini_mcu_interface}
     output logic [31:0] exit_value_o,
 
     input logic ext_dma_slot_tx_i,
-    input logic ext_dma_slot_rx_i
+    input logic ext_dma_slot_rx_i,
 
-  //% for peripheral in peripherals.items():
-  //% if peripheral[0] in ("serial_link"):
-  //% if peripheral[1]['is_included'] in ("yes"):
+    % for peripheral in peripherals.items():
+    % if peripheral[0] in ("serial_link"):
+    % if peripheral[1]['is_included'] in ("yes"):
 
-  //  output obi_req_t obi_req_obi2axi,
-  //  input obi_resp_t obi_resp_obi2axi
-  //% endif
-  //% endif
-  //% endfor
+    //input  logic [NumChannels-1:0]    ddr_rcv_clk_i,  // adapt for multi channel
+    //output logic [NumChannels-1:0]    ddr_rcv_clk_o,
+    //input  logic [NumChannels-1:0][NumLanes-1:0] ddr_i,
+    //output logic [NumChannels-1:0][NumLanes-1:0] ddr_o
+    input  logic [NumLanes-1:0] ddr_i,
+    output logic [NumLanes-1:0] ddr_o
+
+
+    //  output obi_req_t obi_req_obi2axi,
+    //  input obi_resp_t obi_resp_obi2axi
+    % endif
+    % endif
+    % endfor
 
 );
 
@@ -129,9 +145,11 @@ ${pad.core_v_mini_mcu_interface}
   % if peripheral[0] in ("obi2axi"):
   % if peripheral[1]['is_included'] in ("yes"):
   // axi2obi obi2axi
-    obi_req_t obi_req_obi2axi;
-    obi_resp_t obi_resp_obi2axi;
+    obi_req_t axi_sl_m_req;
+    obi_resp_t axi_sl_m_resp;
 
+    obi_req_t axi_sl_slave_req;
+    obi_resp_t axi_sl_slave_resp;
   % endif
   % endif
   % endfor
@@ -333,6 +351,8 @@ ${pad.core_v_mini_mcu_interface}
       .dma_write_ch0_resp_o(dma_write_ch0_resp),
       .dma_addr_ch0_req_i(dma_addr_ch0_req),
       .dma_addr_ch0_resp_o(dma_addr_ch0_resp),
+      .axi_sl_m_req_i(axi_sl_m_req),
+      .axi_sl_m_resp_o(axi_sl_m_resp),
       .ext_xbar_master_req_i(ext_xbar_master_req_i),
       .ext_xbar_master_resp_o(ext_xbar_master_resp_o),
       .ram_req_o(ram_slave_req),
@@ -345,6 +365,8 @@ ${pad.core_v_mini_mcu_interface}
       .peripheral_slave_resp_i(peripheral_slave_resp),
       .flash_mem_slave_req_o(flash_mem_slave_req),
       .flash_mem_slave_resp_i(flash_mem_slave_resp),
+      .axi_sl_slave_req_o(axi_sl_slave_req),
+      .axi_sl_slave_resp_i(axi_sl_slave_resp),
       .ext_core_instr_req_o(ext_core_instr_req_o),
       .ext_core_instr_resp_i(ext_core_instr_resp_i),
       .ext_core_data_req_o(ext_core_data_req_o),
@@ -513,20 +535,36 @@ ${pad.core_v_mini_mcu_interface}
 % if peripheral[1]['is_included'] in ("yes"):
 
   core2axi #(
-    .AXI4_WDATA_WIDTH(AXI_DATA_WIDTH),
-    .AXI4_RDATA_WIDTH(AXI_DATA_WIDTH)
+    //.AXI4_WDATA_WIDTH(AXI_DATA_WIDTH),
+    //.AXI4_RDATA_WIDTH(AXI_DATA_WIDTH)
   ) obi2axi_bridge_virtual_obi_i (
     .clk_i,
     .rst_ni,
 
-    .data_req_i(obi_req_obi2axi.req),
-    .data_gnt_o(obi_resp_obi2axi.gnt),
-    .data_rvalid_o(obi_resp_obi2axi.rvalid),
-    .data_addr_i(obi_req_obi2axi.addr),
-    .data_we_i(obi_req_obi2axi.we),
-    .data_be_i(obi_req_obi2axi.be),
-    .data_rdata_o(obi_resp_obi2axi.rdata),
-    .data_wdata_i(obi_req_obi2axi.wdata),
+    //.data_req_i(obi_req_obi2axi.req),
+    //.data_gnt_o(obi_resp_obi2axi.gnt),
+    //.data_rvalid_o(obi_resp_obi2axi.rvalid),
+    //.data_addr_i(obi_req_obi2axi.addr),
+    //.data_we_i(obi_req_obi2axi.we),
+    //.data_be_i(obi_req_obi2axi.be),
+    //.data_rdata_o(obi_resp_obi2axi.rdata),
+    //.data_wdata_i(obi_req_obi2axi.wdata),
+
+    .data_req_i(axi_sl_m_req.req),
+    .data_gnt_o(axi_sl_m_resp.gnt),
+    .data_rvalid_o(axi_sl_m_resp.rvalid),
+    .data_addr_i(axi_sl_m_req.addr),
+    .data_we_i(axi_sl_m_req.we),
+    .data_be_i(axi_sl_m_req.be),
+    .data_rdata_o(axi_sl_m_resp.rdata),
+    .data_wdata_i(axi_sl_m_req.wdata),
+    
+
+
+
+
+
+
     
     //.data_req_i(core_instr_req.req),
     //.data_gnt_o(core_instr_resp.gnt),
@@ -604,17 +642,17 @@ ${pad.core_v_mini_mcu_interface}
 % if peripheral[0] in ("obi2axi"):
 % if peripheral[1]['is_included'] in ("yes"):
   axi2obi #(
-    .C_S00_AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-    .C_S00_AXI_ADDR_WIDTH(AXI_ADDR_WIDTH)
+    //.C_S00_AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+    //.C_S00_AXI_ADDR_WIDTH(AXI_ADDR_WIDTH)
   ) axi2obi_bridge_virtual_r_obi_i (
-    .gnt_i(obi_resp_obi2axi.gnt),
-    .rvalid_i(obi_resp_obi2axi.rvalid),
-    .we_o(obi_req_obi2axi.we),
-    .be_o(obi_req_obi2axi.be),
-    .addr_o(obi_req_obi2axi),
-    .wdata_o(obi_req_obi2axi.wdata),
-    .rdata_i(obi_resp_obi2axi.rdata),
-    .req_o(obi_req_obi2axi.req),
+    .gnt_i(axi_sl_slave_resp.gnt),
+    .rvalid_i(axi_sl_slave_resp.rvalid),
+    .we_o(axi_sl_slave_req.we),
+    .be_o(axi_sl_slave_req.be),
+    .addr_o(axi_sl_slave_req),
+    .wdata_o(axi_sl_slave_req.wdata),
+    .rdata_i(axi_sl_slave_resp.rdata),
+    .req_o(axi_sl_slave_req.req),
 
     .s00_axi_aclk(clk_i),
     .s00_axi_aresetn(rst_ni),
@@ -683,8 +721,8 @@ ${pad.core_v_mini_mcu_interface}
 
     .clk_i(clk_i),
     .rst_ni(rst_ni),
-    .clk_reg_i(clk_i),    //intended for clock gating purposes
-    .rst_reg_ni(rst_ni),  //intended for SW reset purposes
+    .clk_reg_i(clk_i),        //intended for clock gating purposes
+    .rst_reg_ni(rst_ni),      //intended for SW reset purposes
 
     .testmode_i('0),
 
@@ -693,13 +731,13 @@ ${pad.core_v_mini_mcu_interface}
     .axi_out_req_o(axi_out_req_o),
     .axi_out_rsp_i(axi_out_rsp_i),
 
-    .cfg_req_i(cfg_req_t),                 // register configuration
+    .cfg_req_i(cfg_req_t),    //register configuration
     .cfg_rsp_o(cfg_rsp_t),
 
-    .ddr_rcv_clk_i(),
-    .ddr_rcv_clk_o(),
-    .ddr_i(),
-    .ddr_o()
+    .ddr_rcv_clk_i(clk_i),         //Source-synchronous input clock to sample data. One clock per channel   
+    .ddr_rcv_clk_o(),         //Source-synchronous output clock which is forwarded together with the data. One clock per channel
+    .ddr_i(ddr_i),                 //Double-Data-Rate (DDR) input data
+    .ddr_o(ddr_o)                  //Double-Data-Rate (DDR) output data
   );
   % endif
 % endif

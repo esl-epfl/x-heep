@@ -6,6 +6,11 @@ module x_heep_system
   import obi_pkg::*;
   import reg_pkg::*;
 #(
+    // serial link parameters
+    parameter int NumChannels = 1,
+    parameter int NumLanes = 4,
+    parameter int MaxClkDiv = 32,
+
     parameter COREV_PULP = 0,
     parameter FPU = 0,
     parameter ZFINX = 0,
@@ -17,6 +22,27 @@ module x_heep_system
     parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
 
 ) (
+    % for peripheral in peripherals.items():
+    % if peripheral[0] in ("serial_link"):
+    % if peripheral[1]['is_included'] in ("yes"):
+
+    //input  logic [NumChannels-1:0]    ddr_rcv_clk_i,  // adapt for multi channel
+    //output logic [NumChannels-1:0]    ddr_rcv_clk_o,
+    //input  logic [NumChannels-1:0][NumLanes-1:0] ddr_i,
+    //output logic [NumChannels-1:0][NumLanes-1:0] ddr_o
+    input  logic [NumLanes-1:0] ddr_i,
+    output logic [NumLanes-1:0] ddr_o,
+
+
+      //output obi_req_t obi_req_obi2axi,
+      //input obi_resp_t obi_resp_obi2axi,
+    % endif
+    % endif
+    % endfor
+
+
+
+
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
 
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
@@ -142,7 +168,9 @@ ${pad.core_v_mini_mcu_bonding}
     .external_subsystem_clkgate_en_no,
     .exit_value_o,
     .ext_dma_slot_tx_i,
-    .ext_dma_slot_rx_i
+    .ext_dma_slot_rx_i,
+    .ddr_i(),
+    .ddr_o()
   );
 
   pad_ring pad_ring_i (

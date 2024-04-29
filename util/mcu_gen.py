@@ -519,6 +519,10 @@ def main():
     flash_mem_start_address  = string2int(obj['flash_mem']['address'])
     flash_mem_size_address  = string2int(obj['flash_mem']['length'])
 
+    axi_sl_slave_start_address  = string2int(obj['axi_sl_slave']['address'])
+    axi_sl_slave_size_address  = string2int(obj['axi_sl_slave']['length'])
+
+
     linker_onchip_code_start_address  = string2int(obj['linker_script']['onchip_ls']['code']['address'])
     linker_onchip_code_size_address  = string2int(obj['linker_script']['onchip_ls']['code']['lenght'])
 
@@ -861,6 +865,8 @@ def main():
         "ext_slave_size_address"           : ext_slave_size_address,
         "flash_mem_start_address"          : flash_mem_start_address,
         "flash_mem_size_address"           : flash_mem_size_address,
+        "axi_sl_slave_start_address"       : axi_sl_slave_start_address,
+        "axi_sl_slave_size_address"        : axi_sl_slave_size_address,
         "linker_flash_code_start_address"  : linker_flash_code_start_address,
         "linker_flash_data_start_address"  : linker_flash_data_start_address,
         "linker_flash_il_start_address"    : linker_flash_il_start_address,

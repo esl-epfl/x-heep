@@ -133,7 +133,7 @@ module axi2obi #(
     s00_axi_bvalid = '0;
 
     case (CS)
-      // wait for a request to come in from the core
+      // wait for a request to come in from the serial link
       IDLE: begin
         if (s00_axi_arvalid) begin
           assign NS = READ1;

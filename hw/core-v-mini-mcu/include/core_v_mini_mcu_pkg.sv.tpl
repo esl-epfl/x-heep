@@ -42,15 +42,16 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] DMA_READ_CH0_IDX = 3;
   localparam logic [31:0] DMA_WRITE_CH0_IDX = 4;
   localparam logic [31:0] DMA_ADDR_CH0_IDX = 5;
+  localparam logic [31:0] AXI_SL_M_IDX = 6;
 
-  localparam SYSTEM_XBAR_NMASTER = 6;
+  localparam SYSTEM_XBAR_NMASTER = 7;
 
   // Internal slave memory map and index
   // -----------------------------------
   //must be power of two
   localparam int unsigned MEM_SIZE = 32'h${ram_size_address};
 
-  localparam SYSTEM_XBAR_NSLAVE = ${int(ram_numbanks) + 5};
+  localparam SYSTEM_XBAR_NSLAVE = ${int(ram_numbanks) + 6};
 
   localparam int unsigned LOG_SYSTEM_XBAR_NMASTER = SYSTEM_XBAR_NMASTER > 1 ? $clog2(SYSTEM_XBAR_NMASTER) : 32'd1;
   localparam int unsigned LOG_SYSTEM_XBAR_NSLAVE = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(SYSTEM_XBAR_NSLAVE) : 32'd1;
@@ -100,6 +101,11 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] FLASH_MEM_END_ADDRESS = FLASH_MEM_START_ADDRESS + FLASH_MEM_SIZE;
   localparam logic[31:0] FLASH_MEM_IDX = 32'd${int(ram_numbanks) + 4};
 
+  localparam logic[31:0] AXI_SL_SLAVE_START_ADDRESS = 32'h${axi_sl_slave_start_address};
+  localparam logic[31:0] AXI_SL_SLAVE_SIZE = 32'h${axi_sl_slave_size_address};
+  localparam logic[31:0] AXI_SL_SLAVE_END_ADDRESS = AXI_SL_SLAVE_START_ADDRESS + AXI_SL_SLAVE_SIZE;
+  localparam logic[31:0] AXI_SL_SLAVE_IDX = 32'd${int(ram_numbanks) + 5};
+
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{ idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS },
 % for bank in range(ram_numbanks_cont):
@@ -111,7 +117,8 @@ package core_v_mini_mcu_pkg;
       '{ idx: DEBUG_IDX, start_addr: DEBUG_START_ADDRESS, end_addr: DEBUG_END_ADDRESS },
       '{ idx: AO_PERIPHERAL_IDX, start_addr: AO_PERIPHERAL_START_ADDRESS, end_addr: AO_PERIPHERAL_END_ADDRESS },
       '{ idx: PERIPHERAL_IDX, start_addr: PERIPHERAL_START_ADDRESS, end_addr: PERIPHERAL_END_ADDRESS },
-      '{ idx: FLASH_MEM_IDX, start_addr: FLASH_MEM_START_ADDRESS, end_addr: FLASH_MEM_END_ADDRESS }
+      '{ idx: FLASH_MEM_IDX, start_addr: FLASH_MEM_START_ADDRESS, end_addr: FLASH_MEM_END_ADDRESS },
+      '{ idx: AXI_SL_SLAVE_IDX, start_addr: AXI_SL_SLAVE_START_ADDRESS, end_addr: AXI_SL_SLAVE_END_ADDRESS }
   };
 
   // External slave address map

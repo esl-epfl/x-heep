@@ -36,9 +36,6 @@ module serial_link_occamy_wrapper #(
   input  logic [NumChannels-1:0][NumLanes-1:0] ddr_i,
   output logic [NumChannels-1:0][NumLanes-1:0] ddr_o
 
-
-
-
 );
 
   logic clk_serial_link;

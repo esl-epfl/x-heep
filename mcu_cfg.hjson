@@ -102,16 +102,6 @@
     peripherals: {
         address: 0x30000000,
         length:  0x00100000,
-        serial_link:{
-            offset:  0x00020000,
-            length:  0x00010000,
-            is_included: "yes"
-        }
-        obi2axi:{
-            offset:  0x00020000,
-            length:  0x00010000,
-            is_included: "yes"
-        }
         rv_plic: {
             offset:  0x00000000,
             length:  0x00010000,
@@ -153,10 +143,25 @@
             is_included: "yes",
             path:    "./hw/ip/i2s/data/i2s.hjson"
         },
+        serial_link:{
+            offset:  0x00080000,
+            length:  0x00010000,
+            is_included: "yes"
+        },
+        obi2axi:{
+            offset:  0x00090000,
+            length:  0x00010000,
+            is_included: "yes"
+        },
     },
 
     flash_mem: {
         address: 0x40000000,
+        length:  0x01000000,
+    },
+
+    axi_sl_slave:    {
+        address: 0x50000000,
         length:  0x01000000,
     },
 
