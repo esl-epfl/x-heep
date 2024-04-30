@@ -225,5 +225,11 @@ package core_v_mini_mcu_pkg;
     `AXI_TYPEDEF_R_CHAN_T(axi_r_t, axi_data_t, axi_id_t, axi_user_t)
     `AXI_TYPEDEF_REQ_T(axi_req_t, axi_aw_t, axi_w_t, axi_ar_t)
     `AXI_TYPEDEF_RESP_T(axi_resp_t, axi_b_t, axi_r_t)
+  typedef enum logic [1:0] {
+    TOP,
+    RIGHT,
+    BOTTOM,
+    LEFT
+  } pad_side_e;
 
 endpackage
