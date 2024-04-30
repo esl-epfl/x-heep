@@ -47,7 +47,7 @@
 volatile int8_t dma_intr_flag;
 int8_t core_sleep_flag;
 // spi_host_t spi_host;
-spi_idx_e spi_host;
+spi_host_t spi_host;
 
 static power_manager_t power_manager;
 
@@ -101,10 +101,10 @@ int main(int argc, char *argv[])
 
     #ifndef USE_SPI_FLASH
         // spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
-        spi_host = SPI_IDX_HOST;
+        spi_host = spi_init_host();
     #else
         // spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
-        spi_host = SPI_IDX_FLASH;
+        spi_host = spi_init_flash();
     #endif
 
     // Setup power_manager
