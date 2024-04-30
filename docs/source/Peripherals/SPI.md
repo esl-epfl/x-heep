@@ -13,8 +13,8 @@
 
 ## Enums
 
-[!WARNING]
-TEST
+> [!WARNING]
+> TEST
 
 ### `spi_idx_e`
 Defines SPI peripheral identifier indexes.
