@@ -523,28 +523,6 @@ def main():
     axi_sl_slave_start_address  = string2int(obj['axi_sl_slave']['address'])
     axi_sl_slave_size_address  = string2int(obj['axi_sl_slave']['length'])
 
-
-    linker_onchip_code_start_address  = string2int(obj['linker_script']['onchip_ls']['code']['address'])
-    linker_onchip_code_size_address  = string2int(obj['linker_script']['onchip_ls']['code']['lenght'])
-
-    if int(linker_onchip_code_size_address,16) < 32*1024:
-        exit("The code section must be at least 32KB, instead it is " + str(linker_onchip_code_size_address))
-
-    linker_onchip_data_start_address  = string2int(obj['linker_script']['onchip_ls']['data']['address'])
-    if (obj['linker_script']['onchip_ls']['data']['lenght'].split()[0].split(",")[0] == "whatisleft"):
-        if ram_numbanks_il == 0 or (ram_numbanks_cont == 1 and ram_numbanks_il > 0):
-            linker_onchip_data_size_address  = str('{:08X}'.format(int(ram_size_address,16) - int(linker_onchip_code_size_address,16)))
-        else:
-            linker_onchip_data_size_address  = str('{:08X}'.format(int(ram_size_address,16) - int(linker_onchip_code_size_address,16) - ram_numbanks_il*32*1024))
-    else:
-        if ram_numbanks_il == 0 or (ram_numbanks_cont == 1 and ram_numbanks_il > 0):
-            linker_onchip_data_size_address  = string2int(obj['linker_script']['onchip_ls']['data']['lenght'])
-        else:
-            linker_onchip_data_size_address  = str('{:08X}'.format(int(string2int(obj['linker_script']['onchip_ls']['data']['lenght']),16) - ram_numbanks_il*32*1024))
-
-    linker_onchip_il_start_address = str('{:08X}'.format(int(linker_onchip_data_start_address,16) + int(linker_onchip_data_size_address,16)))
-    linker_onchip_il_size_address = str('{:08X}'.format(ram_numbanks_il*32*1024))
-
     stack_size  = string2int(obj['linker_script']['stack_size'])
     heap_size  = string2int(obj['linker_script']['heap_size'])
 
