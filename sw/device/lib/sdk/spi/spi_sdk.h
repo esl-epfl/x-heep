@@ -57,7 +57,7 @@ extern "C" {
 /**                                                                        **/
 /****************************************************************************/
 
-typedef void (*intr_callback_t)(void);
+typedef void (*spi_cb_t)(void);
 
 /**
 * SPI Peripheral IDX
@@ -121,9 +121,9 @@ typedef struct {
 typedef struct {
     const spi_segment_t* segments;
     uint8_t              seglen;
-    const void*          txbuffer;
+    const uint32_t*      txbuffer;
     uint32_t             txlen;
-    void*                rxbuffer;
+    uint32_t*            rxbuffer;
     uint32_t             rxlen;
 } spi_transaction_t;
 
@@ -131,8 +131,6 @@ typedef struct {
     const spi_idx_e idx;
     bool init;
     spi_slave_t slave; // TODO: Find a way of having multiple slaves... ptr ?
-    intr_callback_t event_callback;
-    intr_callback_t error_callback;
 } spi_t;
 
 /****************************************************************************/
@@ -161,7 +159,7 @@ spi_codes_e spi_receive(spi_t* spi, uint32_t* dest_buffer, uint32_t len);
 
 spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer, uint32_t* dest_buffer, uint32_t len);
 
-spi_codes_e spi_execute(spi_t* spi, const spi_transaction_t* transaction);
+spi_codes_e spi_execute(spi_t* spi, spi_transaction_t transaction);
 
 /****************************************************************************/
 /**                                                                        **/

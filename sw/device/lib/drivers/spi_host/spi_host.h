@@ -271,7 +271,7 @@ spi_return_flags_e spi_get_events_enabled(spi_host_t spi, spi_event_e* events);
  * @param enable Flag to enable (true) or disable (false) the specified event interrupts.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
-spi_return_flags_e spi_set_events_enabled(spi_host_t spi, spi_event_e* events, bool enable);
+spi_return_flags_e spi_set_events_enabled(spi_host_t spi, spi_event_e events, bool enable);
 
 /**
  * Get enabled error interrupts for a specified SPI peripheral.
@@ -291,7 +291,7 @@ spi_return_flags_e spi_get_errors_enabled(spi_host_t spi, spi_error_e* errors);
  * @param enable Flag to enable (true) or disable (false) the specified error interrupts.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
  */
-spi_return_flags_e spi_set_errors_enabled(spi_host_t spi, spi_error_e* errors, bool enable);
+spi_return_flags_e spi_set_errors_enabled(spi_host_t spi, spi_error_e errors, bool enable);
 
 spi_return_flags_e spi_get_errors(spi_host_t spi, spi_error_e* errors);
 

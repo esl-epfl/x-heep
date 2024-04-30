@@ -101,15 +101,14 @@ spi_return_flags_e spi_get_events_enabled(spi_host_t spi, spi_event_e* events)
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_events_enabled(spi_host_t spi, spi_event_e* events, bool enable) 
+spi_return_flags_e spi_set_events_enabled(spi_host_t spi, spi_event_e events, bool enable) 
 {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
-    if (*events > SPI_EVENT_ALL) return SPI_FLAG_EVENT_INVALID;
+    if (events > SPI_EVENT_ALL) return SPI_FLAG_EVENT_INVALID;
 
-    if (enable) spi.peri->EVENT_ENABLE |= *events;
-    else        spi.peri->EVENT_ENABLE &= ~*events;
+    if (enable) spi.peri->EVENT_ENABLE |= events;
+    else        spi.peri->EVENT_ENABLE &= ~events;
 
-    *events = bitfield_read(spi.peri->EVENT_ENABLE, SPI_EVENTS_MASK, SPI_EVENTS_INDEX);
     return SPI_FLAG_OK;
 }
 
@@ -120,15 +119,14 @@ spi_return_flags_e spi_get_errors_enabled(spi_host_t spi, spi_error_e* errors)
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_errors_enabled(spi_host_t spi, spi_error_e* errors, bool enable)
+spi_return_flags_e spi_set_errors_enabled(spi_host_t spi, spi_error_e errors, bool enable)
 {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
-    if (*errors > SPI_ERROR_IRQALL) return SPI_FLAG_ERROR_INVALID;
+    if (errors > SPI_ERROR_IRQALL) return SPI_FLAG_ERROR_INVALID;
 
-    if (enable) spi.peri->ERROR_ENABLE |= *errors;
-    else        spi.peri->ERROR_ENABLE &= ~*errors;
+    if (enable) spi.peri->ERROR_ENABLE |= errors;
+    else        spi.peri->ERROR_ENABLE &= ~errors;
 
-    *errors = bitfield_read(spi.peri->ERROR_ENABLE, SPI_ERRORS_IRQ_MASK, SPI_ERRORS_INDEX);
     return SPI_FLAG_OK;
 }
 

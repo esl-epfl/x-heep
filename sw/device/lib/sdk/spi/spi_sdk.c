@@ -56,8 +56,13 @@
 
 typedef struct {
     spi_host_t instance;
-    bool busy;
-    bool interrupt;
+    volatile bool busy;
+    spi_transaction_t txn;
+    uint32_t scnt;
+    uint32_t wcnt;
+    uint32_t rcnt;
+    spi_cb_t evt_cb;
+    spi_cb_t err_cb;
 } spi_peripheral_t;
 
 /****************************************************************************/
@@ -70,8 +75,10 @@ spi_codes_e spi_check_valid(spi_t* spi);
 spi_codes_e spi_validate_slave(spi_slave_t slave);
 spi_codes_e spi_set_slave(spi_t* spi);
 spi_codes_e spi_prepare_for_xfer(spi_t* spi, uint32_t len);
-uint32_t spi_fill_tx(spi_t* spi, const uint32_t* src_buffer, uint32_t* counter, uint32_t len);
-uint32_t spi_empty_rx(spi_t* spi, uint32_t* dest_buffer, uint32_t* counter, uint32_t len);
+void spi_fill_tx(spi_peripheral_t* peri);
+void spi_empty_rx(spi_peripheral_t* peri);
+void spi_reset_peri(spi_peripheral_t* peri);
+void spi_event_handler(spi_peripheral_t* peri, spi_event_e events);
 
 /****************************************************************************/
 /**                                                                        **/
@@ -89,17 +96,32 @@ static spi_peripheral_t _peripherals[] = {
     (spi_peripheral_t) {
         .instance  = SPI_FLASH_INIT,
         .busy      = false,
-        .interrupt = false
+        .txn = {0},
+        .scnt = 0,
+        .wcnt = 0,
+        .rcnt = 0,
+        .evt_cb = NULL,
+        .err_cb = NULL
     },
     (spi_peripheral_t) {
         .instance  = SPI_HOST_INIT,
         .busy      = false,
-        .interrupt = false
+        .txn = {0},
+        .scnt = 0,
+        .wcnt = 0,
+        .rcnt = 0,
+        .evt_cb = NULL,
+        .err_cb = NULL
     },
     (spi_peripheral_t) {
         .instance  = SPI_HOST2_INIT,
         .busy      = false,
-        .interrupt = false
+        .txn = {0},
+        .scnt = 0,
+        .wcnt = 0,
+        .rcnt = 0,
+        .evt_cb = NULL,
+        .err_cb = NULL
     }
 };
 
@@ -116,9 +138,7 @@ spi_t spi_init(spi_idx_e idx, spi_slave_t slave) {
         return (spi_t) {
             .idx   = -1,
             .init  = false,
-            .slave = slave,
-            .event_callback = NULL,
-            .error_callback = NULL
+            .slave = slave
         };
     // NOTE: Not a bad idea: set idx to -1, init to false, and slave make pointer and
     // set to NULL. Advantage of pointer we can have NULL and we may have multiple
@@ -130,9 +150,7 @@ spi_t spi_init(spi_idx_e idx, spi_slave_t slave) {
     return (spi_t) {
         .idx   = idx,
         .init  = true,
-        .slave = slave,
-        .event_callback = NULL,
-        .error_callback = NULL
+        .slave = slave
     };
 }
 
@@ -173,10 +191,17 @@ spi_codes_e spi_transmit(spi_t* spi, const uint32_t* src_buffer, uint32_t len) {
     spi_codes_e error = spi_prepare_for_xfer(spi, len);
     if (error) return error;
 
-    _peripherals[spi->idx].busy = true;
-    uint32_t count = 0;
+    spi_transaction_t txn = {0};
+    txn.txbuffer = src_buffer;
+    txn.txlen    = len;
 
-    spi_fill_tx(spi, src_buffer, &count, len);
+    _peripherals[spi->idx].busy = true;
+    _peripherals[spi->idx].txn  = txn;
+
+    spi_fill_tx(&_peripherals[spi->idx]);
+
+    spi_set_events_enabled(_peripherals[spi->idx].instance, SPI_EVENT_IDLE | SPI_EVENT_TXWM, true);
+    spi_enable_evt_intr(_peripherals[spi->idx].instance, true);
 
     // Issue command
     uint32_t cmd = spi_create_command((spi_command_t) {
@@ -187,12 +212,8 @@ spi_codes_e spi_transmit(spi_t* spi, const uint32_t* src_buffer, uint32_t len) {
     });
     spi_set_command(_peripherals[spi->idx].instance, cmd); // TODO: Verify this doesn't return error...
 
-    while (count < len)
-        spi_fill_tx(spi, src_buffer, &count, len);
-    
-    spi_wait_for_idle(_peripherals[spi->idx].instance);
+    while (_peripherals[spi->idx].busy);
 
-    _peripherals[spi->idx].busy = false;
     return SPI_CODE_OK;
 }
 
@@ -200,8 +221,15 @@ spi_codes_e spi_receive(spi_t* spi, uint32_t* dest_buffer, uint32_t len) {
     spi_codes_e error = spi_prepare_for_xfer(spi, len);
     if (error) return error;
 
+    spi_transaction_t txn = {0};
+    txn.rxbuffer = dest_buffer;
+    txn.rxlen    = len;
+
     _peripherals[spi->idx].busy = true;
-    uint32_t count = 0;
+    _peripherals[spi->idx].txn  = txn;
+
+    spi_set_events_enabled(_peripherals[spi->idx].instance, SPI_EVENT_IDLE | SPI_EVENT_RXWM, true);
+    spi_enable_evt_intr(_peripherals[spi->idx].instance, true);
 
     // Issue command
     uint32_t cmd = spi_create_command((spi_command_t) {
@@ -212,10 +240,8 @@ spi_codes_e spi_receive(spi_t* spi, uint32_t* dest_buffer, uint32_t len) {
     });
     spi_set_command(_peripherals[spi->idx].instance, cmd); // TODO: Verify this doesn't return error...
 
-    while (count < len)
-        spi_empty_rx(spi, dest_buffer, &count, len);
+    while (_peripherals[spi->idx].busy);
 
-    _peripherals[spi->idx].busy = false;
     return SPI_CODE_OK;
 }
 
@@ -223,11 +249,21 @@ spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer, uint32_t* des
     spi_codes_e error = spi_prepare_for_xfer(spi, len);
     if (error) return error;
 
+    spi_transaction_t txn = {
+        .segments = NULL,
+        .seglen   = 0,
+        .txbuffer = src_buffer,
+        .txlen    = len,
+        .rxbuffer = dest_buffer,
+        .rxlen    = len
+    };
     _peripherals[spi->idx].busy = true;
-    uint32_t w_count = 0;
-    uint32_t r_count = 0;
+    _peripherals[spi->idx].txn  = txn;
 
-    spi_fill_tx(spi, src_buffer, &w_count, len);
+    spi_fill_tx(&_peripherals[spi->idx]);
+
+    spi_set_events_enabled(_peripherals[spi->idx].instance, SPI_EVENT_IDLE | SPI_EVENT_TXWM | SPI_EVENT_RXWM, true);
+    spi_enable_evt_intr(_peripherals[spi->idx].instance, true);
 
     // Issue command
     uint32_t cmd = spi_create_command((spi_command_t) {
@@ -238,54 +274,43 @@ spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer, uint32_t* des
     });
     spi_set_command(_peripherals[spi->idx].instance, cmd); // TODO: Verify this doesn't return error...
 
-    while (w_count < len || r_count < len)
-    {
-        spi_fill_tx(spi, src_buffer, &w_count, len);
-        spi_empty_rx(spi, dest_buffer, &r_count, len);
-    }
-    spi_wait_for_idle(_peripherals[spi->idx].instance);
+    while (_peripherals[spi->idx].busy);
 
-    _peripherals[spi->idx].busy = false;
     return SPI_CODE_OK;
 }
 
-spi_codes_e spi_execute(spi_t* spi, const spi_transaction_t* transaction) {
+spi_codes_e spi_execute(spi_t* spi, spi_transaction_t transaction) {
     // TODO: replace this 1, good thing is we don't care about len because segments already limit length
     spi_codes_e error = spi_prepare_for_xfer(spi, 1);
     if (error) return error;
 
     // Validate all segments before commencing with transfer
-    for (int i = 0; i < transaction->seglen; i++)
+    for (int i = 0; i < transaction.seglen; i++)
     {
-        uint8_t direction = bitfield_read(transaction->segments[i].mode, BIT_MASK_2, 2);
-        uint8_t speed     = bitfield_read(transaction->segments[i].mode, BIT_MASK_2, 0);
+        uint8_t direction = bitfield_read(transaction.segments[i].mode, BIT_MASK_2, 2);
+        uint8_t speed     = bitfield_read(transaction.segments[i].mode, BIT_MASK_2, 0);
         if (!spi_validate_cmd(direction, speed)) return SPI_CODE_SEGMENT_INVAL;
     }
     
     _peripherals[spi->idx].busy = true;
-    uint32_t wcnt = 0;
-    uint32_t rcnt = 0;
-    uint32_t scnt = 0;
+    _peripherals[spi->idx].txn  = transaction;
 
-    while (wcnt < transaction->txlen || rcnt < transaction->rxlen || scnt < transaction->seglen)
-    {
-        spi_fill_tx(spi, transaction->txbuffer, &wcnt, transaction->txlen);
-        spi_empty_rx(spi, transaction->rxbuffer, &rcnt, transaction->rxlen);
-        if (scnt < transaction->seglen && spi_get_ready(_peripherals[spi->idx].instance) == SPI_TRISTATE_TRUE)
-        {
-            uint32_t cmd_reg = spi_create_command((spi_command_t) {
-                .direction = bitfield_read(transaction->segments[scnt].mode, BIT_MASK_2, 2),
-                .speed     = bitfield_read(transaction->segments[scnt].mode, BIT_MASK_2, 0),
-                .csaat     = wcnt < transaction->seglen - 1 ? 1 : 0,
-                .len       = transaction->segments[scnt].len
-            });
-            spi_set_command(_peripherals[spi->idx].instance, cmd_reg);
-            scnt++;
-        }
-    }
-    spi_wait_for_idle(_peripherals[spi->idx].instance);
+    spi_fill_tx(&_peripherals[spi->idx]);
 
-    _peripherals[spi->idx].busy = false;
+    spi_set_events_enabled(_peripherals[spi->idx].instance, SPI_EVENT_IDLE | SPI_EVENT_READY | SPI_EVENT_TXWM | SPI_EVENT_RXWM, true);
+    spi_enable_evt_intr(_peripherals[spi->idx].instance, true);
+
+    uint32_t cmd_reg = spi_create_command((spi_command_t) {
+        .direction = bitfield_read(transaction.segments[0].mode, BIT_MASK_2, 2),
+        .speed     = bitfield_read(transaction.segments[0].mode, BIT_MASK_2, 0),
+        .csaat     = 0 < transaction.seglen - 1 ? 1 : 0,
+        .len       = transaction.segments[0].len
+    });
+    spi_set_command(_peripherals[spi->idx].instance, cmd_reg);
+    _peripherals[spi->idx].scnt++;
+
+    while (_peripherals[spi->idx].busy);
+
     return SPI_CODE_OK;
 }
 
@@ -338,6 +363,8 @@ spi_codes_e spi_prepare_for_xfer(spi_t* spi, uint32_t len) {
     if (len * BYTES_PER_WORD - 1 > MAX_COMMAND_LENGTH) return SPI_CODE_OK; // TODO: must return error
 
     spi_wait_for_idle(_peripherals[spi->idx].instance);
+    spi_set_tx_watermark(_peripherals[spi->idx].instance, SPI_HOST_PARAM_TX_DEPTH / 4);
+    spi_set_rx_watermark(_peripherals[spi->idx].instance, SPI_HOST_PARAM_RX_DEPTH - 12);
 
     error = spi_set_slave(spi);
     if (error) return error;
@@ -345,12 +372,107 @@ spi_codes_e spi_prepare_for_xfer(spi_t* spi, uint32_t len) {
     return SPI_CODE_OK;
 }
 
-uint32_t spi_fill_tx(spi_t* spi, const uint32_t* src_buffer, uint32_t* counter, uint32_t len) {
-    while (*counter < len && !spi_write_word(_peripherals[spi->idx].instance, src_buffer[*counter])) *counter++;
+void spi_fill_tx(spi_peripheral_t* peri) {
+    if (peri->txn.txbuffer != NULL && peri->wcnt < peri->txn.txlen)
+    {
+        while (
+            peri->wcnt < peri->txn.txlen 
+            && !spi_write_word(peri->instance, peri->txn.txbuffer[peri->wcnt])
+        ) 
+        peri->wcnt++;
+    }
 }
 
-uint32_t spi_empty_rx(spi_t* spi, uint32_t* dest_buffer, uint32_t* counter, uint32_t len) {
-    while (*counter < len && !spi_read_word(_peripherals[spi->idx].instance, &dest_buffer[*counter])) *counter++;
+void spi_empty_rx(spi_peripheral_t* peri) {
+    if (peri->txn.rxbuffer != NULL && peri->rcnt < peri->txn.rxlen)
+    {
+        while (
+            peri->rcnt < peri->txn.rxlen 
+            && !spi_read_word(peri->instance, &peri->txn.rxbuffer[peri->rcnt])
+        ) 
+        peri->rcnt++;
+    }
+}
+
+void spi_reset_peri(spi_peripheral_t* peri) {
+    peri->busy   = false;
+    peri->scnt   = 0;
+    peri->wcnt   = 0;
+    peri->rcnt   = 0;
+    peri->txn    = (spi_transaction_t) {0};
+    peri->evt_cb = NULL;
+    peri->err_cb = NULL;
+}
+
+void spi_event_handler(spi_peripheral_t* peri, spi_event_e events) {
+    switch (events)
+    {
+    case SPI_EVENT_READY:
+        if (peri->txn.segments != NULL && peri->scnt < peri->txn.seglen)
+        {
+            uint32_t cmd_reg = spi_create_command((spi_command_t) {
+                .direction = bitfield_read(peri->txn.segments[peri->scnt].mode, BIT_MASK_2, 2),
+                .speed     = bitfield_read(peri->txn.segments[peri->scnt].mode, BIT_MASK_2, 0),
+                .csaat     = peri->scnt < peri->txn.seglen - 1 ? 1 : 0,
+                .len       = peri->txn.segments[peri->scnt].len
+            });
+            spi_set_command(peri->instance, cmd_reg);
+            peri->scnt++;
+        }
+        break;
+    
+    case SPI_EVENT_IDLE:
+        spi_set_events_enabled(peri->instance, SPI_EVENT_ALL, false);
+        spi_enable_evt_intr(peri->instance, false);
+        spi_empty_rx(peri);
+        if (peri->evt_cb != NULL) peri->evt_cb();
+        spi_reset_peri(peri);
+        break;
+    
+    case SPI_EVENT_TXWM:
+        spi_fill_tx(peri);
+        break;
+    
+    case SPI_EVENT_RXWM:
+        spi_empty_rx(peri);
+        break;
+    
+    default:
+        break;
+    }
+}
+
+/****************************************************************************/
+/**                                                                        **/
+/*                               INTERRUPTS                                 */
+/**                                                                        **/
+/****************************************************************************/
+
+void spi_intr_handler_event_flash(spi_event_e events) {
+    if (!_peripherals[SPI_IDX_FLASH].busy) return;
+    spi_event_handler(&_peripherals[SPI_IDX_FLASH], events);
+}
+
+void spi_intr_handler_error_flash(spi_error_e errors) {
+
+}
+
+void spi_intr_handler_event_host(spi_event_e events) {
+    if (!_peripherals[SPI_IDX_HOST].busy) return;
+    spi_event_handler(&_peripherals[SPI_IDX_HOST], events);
+}
+
+void spi_intr_handler_error_host(spi_error_e errors) {
+
+}
+
+void spi_intr_handler_event_host2(spi_event_e events) {
+    if (!_peripherals[SPI_IDX_HOST_2].busy) return;
+    spi_event_handler(&_peripherals[SPI_IDX_HOST_2], events);
+}
+
+void spi_intr_handler_error_host2(spi_error_e errors) {
+
 }
 
 /****************************************************************************/
