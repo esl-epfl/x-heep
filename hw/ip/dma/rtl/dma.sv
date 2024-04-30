@@ -110,14 +110,14 @@ module dma #(
   logic                              top_dn_to_idle;
   logic                              left_ex_to_left_dn;
   logic                              left_dn_to_left_ex;
-  logic                              left_dn_to_right_ex;  
-  logic                              left_dn_to_bottom_ex; 
+  logic                              left_dn_to_right_ex;
+  logic                              left_dn_to_bottom_ex;
   logic                              left_dn_to_idle;
   logic                              right_ex_to_right_dn;
-  logic                              right_ex_to_left_ex; 
+  logic                              right_ex_to_left_ex;
   logic                              right_dn_to_right_ex;
   logic                              right_dn_to_idle;
-  logic                              right_ex_to_bottom_ex; 
+  logic                              right_ex_to_bottom_ex;
   logic                              bottom_ex_to_idle;
 
   logic                              fifo_flush;
@@ -237,27 +237,61 @@ module dma #(
 
   // Padding FSM conditions assignments
 
-  
+
   assign idle_to_top_ex = {|reg2hw.pad.top_pad.q == 1'b1 && dma_start == 1'b1};
-  assign idle_to_left_ex = {|reg2hw.pad.top_pad.q == 1'b0 && |reg2hw.pad.left_pad.q == 1'b1 && dma_start == 1'b1} ;
-  assign idle_to_right_ex = {|reg2hw.pad.top_pad.q == 1'b0 && |reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b1 
-                      && dma_src_cnt_d1 == ({24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du}) && dma_start == 1'b1 };
-  assign idle_to_bottom_ex = {|reg2hw.pad.top_pad.q == 1'b0 && |reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b1 
-                      && dma_src_cnt_d2 == ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && dma_start == 1'b1 };
-  assign top_ex_to_top_dn = {dma_src_cnt_d2 == (reg2hw.size_tr_d2.q + {24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b0};
-  assign top_ex_to_left_ex = {dma_src_cnt_d2 == (reg2hw.size_tr_d2.q + {24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b1};
-  assign top_dn_to_right_ex = {|reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b1 && dma_src_cnt_d1 == ({24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du})};
-  assign top_dn_to_bottom_ex = {|reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b1 && dma_src_cnt_d2 == ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du})};
-  assign top_dn_to_idle = {|reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b0 && |dma_src_cnt_d2 == 1'b0};
-  assign left_ex_to_left_dn = {dma_src_cnt_d1 == (reg2hw.size_tr_d1.q + {24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du})};
-  assign left_dn_to_left_ex = {dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && dma_src_cnt_d2 != ({29'h0, dma_cnt_du} + {24'h0, reg2hw.pad.bottom_pad.q}) && |reg2hw.pad.right_pad.q == 1'b0};
-  assign left_dn_to_right_ex = {|reg2hw.pad.right_pad.q == 1'b1 && dma_src_cnt_d1 == ({24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du})};  
-  assign left_dn_to_bottom_ex = {|reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b1 && dma_src_cnt_d2 == ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du})}; 
-  assign left_dn_to_idle = {|reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b0 && |dma_src_cnt_d2 == 1'b0};
-  assign right_ex_to_right_dn = {dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && dma_src_cnt_d2 != ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b0};
-  assign right_ex_to_left_ex = {dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && dma_src_cnt_d2 != ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b1}; 
-  assign right_ex_to_bottom_ex = {|reg2hw.pad.bottom_pad.q == 1'b1 && dma_src_cnt_d2 == ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du})}; 
-  assign right_dn_to_right_ex = {dma_src_cnt_d1 == ({24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b0};
+  assign idle_to_left_ex = {
+    |reg2hw.pad.top_pad.q == 1'b0 && |reg2hw.pad.left_pad.q == 1'b1 && dma_start == 1'b1
+  };
+  assign idle_to_right_ex = {
+    |reg2hw.pad.top_pad.q == 1'b0 && |reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b1 
+                      && dma_src_cnt_d1 == ({24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du}) && dma_start == 1'b1
+  };
+  assign idle_to_bottom_ex = {
+    |reg2hw.pad.top_pad.q == 1'b0 && |reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b1 
+                      && dma_src_cnt_d2 == ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && dma_start == 1'b1
+  };
+  assign top_ex_to_top_dn = {
+    dma_src_cnt_d2 == (reg2hw.size_tr_d2.q + {24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b0
+  };
+  assign top_ex_to_left_ex = {
+    dma_src_cnt_d2 == (reg2hw.size_tr_d2.q + {24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b1
+  };
+  assign top_dn_to_right_ex = {
+    |reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b1 && dma_src_cnt_d1 == ({24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du})
+  };
+  assign top_dn_to_bottom_ex = {
+    |reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b1 && dma_src_cnt_d2 == ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du})
+  };
+  assign top_dn_to_idle = {
+    |reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b0 && |dma_src_cnt_d2 == 1'b0
+  };
+  assign left_ex_to_left_dn = {
+    dma_src_cnt_d1 == (reg2hw.size_tr_d1.q + {24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du})
+  };
+  assign left_dn_to_left_ex = {
+    dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && dma_src_cnt_d2 != ({29'h0, dma_cnt_du} + {24'h0, reg2hw.pad.bottom_pad.q}) && |reg2hw.pad.right_pad.q == 1'b0
+  };
+  assign left_dn_to_right_ex = {
+    |reg2hw.pad.right_pad.q == 1'b1 && dma_src_cnt_d1 == ({24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du})
+  };
+  assign left_dn_to_bottom_ex = {
+    |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b1 && dma_src_cnt_d2 == ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du})
+  };
+  assign left_dn_to_idle = {
+    |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b0 && |dma_src_cnt_d2 == 1'b0
+  };
+  assign right_ex_to_right_dn = {
+    dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && dma_src_cnt_d2 != ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b0
+  };
+  assign right_ex_to_left_ex = {
+    dma_src_cnt_d1 == ({29'h0, dma_cnt_du}) && dma_src_cnt_d2 != ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b1
+  };
+  assign right_ex_to_bottom_ex = {
+    |reg2hw.pad.bottom_pad.q == 1'b1 && dma_src_cnt_d2 == ({24'h0, reg2hw.pad.bottom_pad.q} + {29'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({29'h0, dma_cnt_du})
+  };
+  assign right_dn_to_right_ex = {
+    dma_src_cnt_d1 == ({24'h0, reg2hw.pad.right_pad.q} + {29'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b0
+  };
   assign right_dn_to_idle = {|reg2hw.pad.bottom_pad.q == 1'b0 && |dma_src_cnt_d2 == 1'b0};
   assign bottom_ex_to_idle = {|dma_src_cnt_d2 == 1'b0};
 
@@ -604,12 +638,10 @@ module dma #(
 
   always_comb begin : proc_pad_fifo_on
     case (pad_state_q)
-      TOP_PAD_EXEC, LEFT_PAD_EXEC, RIGHT_PAD_EXEC, BOTTOM_PAD_EXEC: 
-      pad_fifo_on = 1'b1;
+      TOP_PAD_EXEC, LEFT_PAD_EXEC, RIGHT_PAD_EXEC, BOTTOM_PAD_EXEC: pad_fifo_on = 1'b1;
 
-      PAD_IDLE:
-      dma_done = 1'b1;
-      
+      PAD_IDLE: dma_done = 1'b1;
+
       default: pad_fifo_on = 1'b0;
     endcase
   end
@@ -636,7 +668,7 @@ module dma #(
           pad_cnt_on = 1'b1;
         end
       end
-      
+
       RIGHT_PAD_EXEC: begin
         if (right_ex_to_right_dn || right_ex_to_left_ex) begin
           pad_cnt_on = 1'b0;
@@ -677,7 +709,7 @@ module dma #(
       end
       TOP_PAD_DONE: begin
         if (top_dn_to_right_ex) begin
-            pad_state_d = RIGHT_PAD_EXEC;
+          pad_state_d = RIGHT_PAD_EXEC;
         end else if (top_dn_to_bottom_ex) begin
           pad_state_d = BOTTOM_PAD_EXEC;
         end else if (top_dn_to_idle) begin
@@ -687,7 +719,7 @@ module dma #(
       LEFT_PAD_EXEC: begin
         if (left_ex_to_left_dn) begin
           pad_state_d = LEFT_PAD_DONE;
-        end 
+        end
       end
       LEFT_PAD_DONE: begin
         if (left_dn_to_right_ex) begin
@@ -698,7 +730,7 @@ module dma #(
           pad_state_d = LEFT_PAD_EXEC;
         end else if (left_dn_to_idle) begin
           pad_state_d = PAD_IDLE;
-        end 
+        end
       end
       RIGHT_PAD_EXEC: begin
         if (right_ex_to_right_dn) begin
@@ -721,7 +753,7 @@ module dma #(
           pad_state_d = PAD_IDLE;
         end
       end
-    endcase 
+    endcase
   end
 
   // Read master FSM

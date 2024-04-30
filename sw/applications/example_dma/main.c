@@ -49,7 +49,7 @@
 int32_t errors = 0;
 int8_t cycles = 0;
 
-static inline void write_register( uint32_t  p_val,
+static inline volatile void write_register( uint32_t  p_val,
                                 uint32_t  p_offset,
                                 uint32_t  p_mask,
                                 uint8_t   p_sel,
@@ -141,17 +141,18 @@ int main(int argc, char *argv[])
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.
 
 #ifdef TEST_SINGULAR_MODE
-
+    /*
     PRINTF("\n\n\r===================================\n\n\r");
     PRINTF("    TESTING SINGLE MODE   ");
     PRINTF("\n\n\r===================================\n\n\r");
+    */
 
     res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
-    PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    //PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     res = dma_load_transaction(&trans);
-    PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    //PRINTF("load: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     res = dma_launch(&trans);
-    PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    //PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
 
     while( ! dma_is_ready()) {
         // disable_interrupts
@@ -429,19 +430,23 @@ int main(int argc, char *argv[])
 
 #define SIZE_IN_D1 16
 #define SIZE_IN_D2 16
-#define SIZE_OUT_D1 4
-#define SIZE_OUT_D2 4
+#define SIZE_OUT_D1 14
+#define SIZE_OUT_D2 14
 #define STRIDE_IN_D1 1
 #define STRIDE_IN_D2 1
 #define STRIDE_OUT_D1 1
 #define STRIDE_OUT_D2 1
-#define TOP_PAD 1
-#define BOTTOM_PAD 1
-#define LEFT_PAD 1
-#define RIGHT_PAD 1
-#define OUT_D1 6
-#define OUT_D2 6
+#define TOP_PAD 4
+#define BOTTOM_PAD 4
+#define LEFT_PAD 4
+#define RIGHT_PAD 4
+#define OUT_D1 (SIZE_OUT_D1 + LEFT_PAD + RIGHT_PAD)
+#define OUT_D2 (SIZE_OUT_D2 + TOP_PAD + BOTTOM_PAD)
 #define OUT_DIM ( OUT_D1 * OUT_D2 )
+#define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ) )
+#define DMA_DATA_TYPE DMA_DATA_TYPE_HALF_WORD
+
+typedef uint16_t dma_data_type_tmp; // Change the datatype depending on the DMA_DATA_TYPE
 
 /*
 PRINTF("\n\n\r===================================\n\n\r");
@@ -453,7 +458,7 @@ dma *peri = dma_peri;
 
 // Let's try to move a 2x2 window from a 4x4 matrix
 
-uint32_t test_data_2D[SIZE_IN_D1 * SIZE_IN_D2] = {
+dma_data_type_tmp test_data_2D[SIZE_IN_D1 * SIZE_IN_D2] = {
     12, 34, 85, 46, 95, 17, 58, 89, 23, 44, 68, 91, 14, 63, 24, 79,
     25, 80, 47, 56, 73, 89, 20, 31, 42, 57, 68, 92, 103, 210, 180, 150,
     45, 64, 23, 85, 95, 60, 20, 40, 55, 65, 75, 85, 120, 130, 140, 160,
@@ -472,9 +477,18 @@ uint32_t test_data_2D[SIZE_IN_D1 * SIZE_IN_D2] = {
     1045, 1050, 1055, 1060, 1065, 1070, 1075, 1080, 1085, 1090, 1095, 1100, 1105, 1110, 1115, 1120
 };
 
-
-uint32_t copied_data_2D_DMA[OUT_DIM];
+int left_pad_cnt = 0;
+int top_pad_cnt = 0;
+dma_data_type_tmp copied_data_2D_DMA[OUT_DIM];
+dma_data_type_tmp copied_data_2D_CPU[OUT_DIM];
 uint32_t cycles_dma, cycles_cpu;
+uint32_t size_dst_trans_d1;
+uint32_t dst_stride_d1;
+uint32_t dst_stride_d2;
+uint32_t size_src_trans_d1;
+uint32_t src_stride_d1;
+uint32_t src_stride_d2;
+char passed = 1;
 
 //PRINTF("cpy_sz: %d\n\r", OUT_DIM);
 
@@ -482,6 +496,13 @@ uint32_t cycles_dma, cycles_cpu;
 
 CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
 CSR_WRITE(CSR_REG_MCYCLE, 0);
+
+// Enable the interrupt
+
+peri->INTERRUPT_EN = 0x1;
+CSR_CLEAR_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+
 // Now I need to set up the pointers
 
 peri->SRC_PTR = &test_data_2D[0];
@@ -501,13 +522,13 @@ peri->MODE = DMA_TRANS_MODE_SINGLE;
 
 // Set the input dimensions
 
-write_register(  SIZE_IN_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
+write_register(  SIZE_IN_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
                 DMA_SIZE_IN_REG_OFFSET,
                 DMA_SIZE_IN_D1_MASK,
                 DMA_SIZE_IN_D1_OFFSET,
                 peri );
 
-write_register(  SIZE_IN_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
+write_register(  SIZE_IN_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
                 DMA_SIZE_IN_REG_OFFSET,
                 DMA_SIZE_IN_D2_MASK,
                 DMA_SIZE_IN_D2_OFFSET,
@@ -515,7 +536,7 @@ write_register(  SIZE_IN_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
 
 // Set the data type
 
-write_register(  DMA_DATA_TYPE_WORD,
+write_register(  DMA_DATA_TYPE,
                 DMA_DATA_TYPE_REG_OFFSET,
                 DMA_DATA_TYPE_DATA_TYPE_MASK,
                 DMA_SELECTION_OFFSET_START,
@@ -523,12 +544,12 @@ write_register(  DMA_DATA_TYPE_WORD,
 
 // Set the source strides
 
-uint32_t size_src_trans_d1 = SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD );
+size_src_trans_d1 = SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE );
 
-uint32_t src_stride_d1 = STRIDE_IN_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD );
+src_stride_d1 = STRIDE_IN_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE );
 
 // The d2 stride is not the tipitcal stride but rather the distance between the first element of the next row and the first element of the current row
-uint32_t src_stride_d2 = STRIDE_IN_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ) * SIZE_IN_D1 - (size_src_trans_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ) + (src_stride_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD )) * (SIZE_OUT_D1 - 1));
+src_stride_d2 = STRIDE_IN_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ) * SIZE_IN_D1 - (size_src_trans_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ) + (src_stride_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE )) * (SIZE_OUT_D1 - 1));
 
 //PRINTF("src_s_d2: %d\n\r", src_stride_d2);
 
@@ -545,12 +566,12 @@ write_register(  src_stride_d2,
                 peri );
 
 // Set the output strides
-uint32_t size_dst_trans_d1 = SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD );
+size_dst_trans_d1 = SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE );
 
-uint32_t dst_stride_d1 = STRIDE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD );
+dst_stride_d1 = STRIDE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE );
 
 // The d2 stride is not the tipitcal stride but rather the distance between the first element of the next row and the first element of the current row
-uint32_t dst_stride_d2 = STRIDE_OUT_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ) * (OUT_D1 - LEFT_PAD - RIGHT_PAD) - (size_dst_trans_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ) + (dst_stride_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD )) * (SIZE_OUT_D1 - 1));
+dst_stride_d2 = STRIDE_OUT_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ) * (OUT_D1 - LEFT_PAD - RIGHT_PAD) - (size_dst_trans_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ) + (dst_stride_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE )) * (SIZE_OUT_D1 - 1));
 
 write_register(  dst_stride_d1,
                 DMA_DST_PTR_INC_REG_OFFSET,
@@ -564,65 +585,56 @@ write_register(  dst_stride_d2,
                 DMA_DST_PTR_INC_DST_PTR_INC_D2_OFFSET,
                 peri );
 
-// Enable the interrupt
-
-peri->INTERRUPT_EN = 0x1;
-
 // Set the padding
 
-write_register(  TOP_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
+write_register(  TOP_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
                 DMA_PAD_REG_OFFSET,
                 DMA_PAD_TOP_PAD_MASK,
                 DMA_PAD_TOP_PAD_OFFSET,
                 peri );
 
-write_register(  RIGHT_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
+write_register(  RIGHT_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
                 DMA_PAD_REG_OFFSET,
                 DMA_PAD_RIGHT_PAD_MASK,
                 DMA_PAD_RIGHT_PAD_OFFSET,
                 peri );
 
-write_register(  LEFT_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
+write_register(  LEFT_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
                 DMA_PAD_REG_OFFSET,
                 DMA_PAD_LEFT_PAD_MASK,
                 DMA_PAD_LEFT_PAD_OFFSET,
                 peri );
 
-write_register(  BOTTOM_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ),
+write_register(  BOTTOM_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
                 DMA_PAD_REG_OFFSET,
                 DMA_PAD_BOTTOM_PAD_MASK,
                 DMA_PAD_BOTTOM_PAD_OFFSET,
                 peri );
 
 // Set the sizes
+    
+peri->SIZE_TR_D2 = SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ); 
 
-peri->SIZE_TR_D2 = SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ); 
+peri->SIZE_TR_D1 = SIZE_OUT_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ); // Now the transaction should start
 
-peri->SIZE_TR_D1 = SIZE_OUT_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE_WORD ); // Now the transaction should start
-
-while( peri->STATUS == 0 ) {
-      /* Disable the interrupts MSTATUS to avoid going to sleep AFTER the interrupt
-      was triggered.*/
-      CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-      /* If the transaction has not yet finished, go to sleep*/
-      if (peri->STATUS == 0) {
-          /* If a interrupt happened before, the core would still wake-up,
-          but will not jump to the interrupt handler MSTATUS is not re-set. */
-          { asm volatile("wfi"); }
-      }
-      /* Restore the interrupts. */
-      CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+while( ! dma_is_ready()) {
+    // disable_interrupts
+    // this does not prevent waking up the core as this is controlled by the MIP register
+    CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+    if ( dma_is_ready() == 0 ) {
+        //wait_for_interrupt();
+        //from here we wake up even if we did not jump to the ISR
+    }
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
 }
 
 CSR_READ(CSR_REG_MCYCLE, &cycles_dma);
 
 CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+
 CSR_WRITE(CSR_REG_MCYCLE, 0);
 
 // Now let's do the same with the CPU
-int left_pad_cnt = 0;
-int top_pad_cnt = 0;
-uint32_t copied_data_2D_CPU[OUT_DIM] = {0};
 
 for (int i=0; i < OUT_D2; i++)
 {
@@ -630,40 +642,41 @@ for (int i=0; i < OUT_D2; i++)
     {
         if (i < TOP_PAD || i >= SIZE_OUT_D2 + BOTTOM_PAD || j < LEFT_PAD || j >= SIZE_OUT_D1 + RIGHT_PAD)
         {
-            copied_data_2D_CPU[(i + STRIDE_OUT_D2 - 1) * OUT_D1 + j + STRIDE_OUT_D1 - 1] = 0;
+            copied_data_2D_CPU[i * STRIDE_OUT_D2 * OUT_D1 + j * STRIDE_OUT_D1] = 0;
         }
         else
         {
-            copied_data_2D_CPU[(i + STRIDE_OUT_D2 - 1) * OUT_D1 + j + STRIDE_OUT_D1 - 1] = test_data_2D[(i - top_pad_cnt + STRIDE_IN_D2 - 1) * SIZE_IN_D1 + j - left_pad_cnt + STRIDE_IN_D1 - 1];
-            }
+            copied_data_2D_CPU[i * STRIDE_OUT_D2 * OUT_D1 + j * STRIDE_OUT_D1] = test_data_2D[(i - top_pad_cnt ) * STRIDE_IN_D2 * SIZE_IN_D1 + (j - left_pad_cnt) * STRIDE_IN_D1 ];
+        }
         if (j < LEFT_PAD && i >= TOP_PAD)
         {
             left_pad_cnt++;
         }
-        PRINTF("i: %d, j: %d, %d, %d\n\r", i, j, (i + STRIDE_OUT_D2 - 1) * OUT_D1 + j + STRIDE_OUT_D1 - 1, (i - top_pad_cnt + STRIDE_IN_D2 - 1) * SIZE_IN_D1 + j - left_pad_cnt + STRIDE_IN_D1 - 1);
+        //PRINTF("i: %d, j: %d, %d, %d, %d, %d\n\r", i, j, (i + STRIDE_OUT_D2 - 1) * OUT_D1 + j + STRIDE_OUT_D1 - 1, (i - top_pad_cnt + STRIDE_IN_D2 - 1) * SIZE_IN_D1 + j - left_pad_cnt + STRIDE_IN_D1 - 1, copied_data_2D_CPU[(i + STRIDE_OUT_D2 - 1) * OUT_D1 + j + STRIDE_OUT_D1 - 1], test_data_2D[(i - top_pad_cnt + STRIDE_IN_D2 - 1) * SIZE_IN_D1 + j - left_pad_cnt + STRIDE_IN_D1 - 1]);
         
     }
     if (i < TOP_PAD)
     {
         top_pad_cnt++;
     }
+    left_pad_cnt = 0;
 }
 
 CSR_READ(CSR_REG_MCYCLE, &cycles_cpu);
 
 PRINTF("DMA: %d\n\r", cycles_dma);
-PRINTF("CPU: %d - ... = %d\n\r", cycles_cpu, cycles_cpu - cycles_dma);
+PRINTF("CPU: %d \n\r", cycles_cpu);
 
 PRINTF("\n\r");
 
-/*
+
 for (int i = 0; i < OUT_D2; i++) {
     for (int j = 0; j < OUT_D1; j++) {
         PRINTF("%d ", copied_data_2D_DMA[i * OUT_D1 + j]);
     }
     PRINTF("\n\r");
 }
-
+/*
 PRINTF("\n\r");
 
 for (int i = 0; i < OUT_D2; i++) {
@@ -673,8 +686,6 @@ for (int i = 0; i < OUT_D2; i++) {
     PRINTF("\n\r");
 }
 */
-
-char passed = 1;
 
 for (int i = 0; i < OUT_D2; i++) {
     for (int j = 0; j < OUT_D1; j++) {
