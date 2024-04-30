@@ -47,7 +47,7 @@
 volatile int8_t dma_intr_flag;
 int8_t core_sleep_flag;
 // spi_host_t spi_host;
-spi_host_t spi;
+spi_host_t spi_peri;
 
 static power_manager_t power_manager;
 
@@ -101,10 +101,10 @@ int main(int argc, char *argv[])
 
     #ifndef USE_SPI_FLASH
         // spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
-        spi = spi_init_host();
+        spi_peri = spi_init_host();
     #else
         // spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
-        spi = spi_init_flash();
+        spi_peri = spi_init_flash();
     #endif
 
     // Setup power_manager
@@ -134,12 +134,12 @@ int main(int argc, char *argv[])
     #endif
 
     // Enable SPI host device
-    spi_set_enable(spi, true);
+    spi_set_enable(spi_peri, true);
     // Enable SPI output
-    spi_output_enable(spi, true);
+    spi_output_enable(spi_peri, true);
 
     // SPI and SPI_FLASH are the same IP so same register map
-    uint32_t *fifo_ptr_rx = spi.base_addr + SPI_HOST_RXDATA_REG_OFFSET;
+    uint32_t *fifo_ptr_rx = spi_peri.base_addr + SPI_HOST_RXDATA_REG_OFFSET;
 
     core_sleep_flag = 0;
 
@@ -202,32 +202,32 @@ int main(int argc, char *argv[])
         .cpha       = 0,
         .cpol       = 0
     });
-    spi_set_configopts(spi, 0, chip_cfg);
-    spi_set_csid(spi, 0);
+    spi_set_configopts(spi_peri, 0, chip_cfg);
+    spi_set_csid(spi_peri, 0);
 
     // Reset
     const uint32_t reset_cmd = 0xFFFFFFFF;
-    spi_write_word(spi, reset_cmd);
+    spi_write_word(spi_peri, reset_cmd);
     const uint32_t cmd_reset = spi_create_command((spi_command_t){
         .len        = 3,
         .csaat      = false,
         .speed      = SPI_SPEED_STANDARD,
         .direction  = SPI_DIR_TX_ONLY
     });
-    spi_set_command(spi, cmd_reset);
-    spi_wait_for_ready(spi);
+    spi_set_command(spi_peri, cmd_reset);
+    spi_wait_for_ready(spi_peri);
 
     // Power up flash
     const uint32_t powerup_byte_cmd = 0xab;
-    spi_write_word(spi, powerup_byte_cmd);
+    spi_write_word(spi_peri, powerup_byte_cmd);
     const uint32_t cmd_powerup = spi_create_command((spi_command_t){
         .len        = 0,
         .csaat      = false,
         .speed      = SPI_SPEED_STANDARD,
         .direction  = SPI_DIR_TX_ONLY
     });
-    spi_set_command(spi, cmd_powerup);
-    spi_wait_for_ready(spi);
+    spi_set_command(spi_peri, cmd_powerup);
+    spi_wait_for_ready(spi_peri);
 
     // Load command FIFO with read command (1 Byte at single speed)
     const uint32_t cmd_read = spi_create_command((spi_command_t){
@@ -253,12 +253,12 @@ int main(int argc, char *argv[])
             .speed      = SPI_SPEED_STANDARD,
             .direction  = SPI_DIR_RX_ONLY
         });
-        spi_write_word(spi, read_byte_cmd); // Fill TX FIFO with TX data (read command + 3B address)
-        spi_wait_for_ready(spi); // Wait for readiness to process commands
-        spi_set_command(spi, cmd_read); // Send read command to the external device through SPI
-        spi_wait_for_ready(spi);
-        spi_set_command(spi, cmd_read_rx); // Receive data in RX
-        spi_wait_for_ready(spi);
+        spi_write_word(spi_peri, read_byte_cmd); // Fill TX FIFO with TX data (read command + 3B address)
+        spi_wait_for_ready(spi_peri); // Wait for readiness to process commands
+        spi_set_command(spi_peri, cmd_read); // Send read command to the external device through SPI
+        spi_wait_for_ready(spi_peri);
+        spi_set_command(spi_peri, cmd_read_rx); // Receive data in RX
+        spi_wait_for_ready(spi_peri);
     #else
         const uint32_t cmd_read_rx = spi_create_command((spi_command_t){ // Multiple transactions of the data type
             .len        = (sizeof(DATA_TYPE) - 1),
@@ -273,12 +273,12 @@ int main(int argc, char *argv[])
                 read_byte_cmd = ((REVERT_24b_ADDR(&flash_ptr[i]) << 8) | 0x03); // The address bytes sent through the SPI to the Flash are in reverse order
             else
                 read_byte_cmd = ((REVERT_24b_ADDR(i) << 8) | 0x03);
-            spi_write_word(spi, read_byte_cmd); // Fill TX FIFO with TX data (read command + 3B address)
-            spi_wait_for_ready(spi); // Wait for readiness to process commands
-            spi_set_command(spi, cmd_read); // Send read command to the external device through SPI
-            spi_wait_for_ready(spi);
-            spi_set_command(spi, cmd_read_rx); // Receive data in RX
-            spi_wait_for_ready(spi);
+            spi_write_word(spi_peri, read_byte_cmd); // Fill TX FIFO with TX data (read command + 3B address)
+            spi_wait_for_ready(spi_peri); // Wait for readiness to process commands
+            spi_set_command(spi_peri, cmd_read); // Send read command to the external device through SPI
+            spi_wait_for_ready(spi_peri);
+            spi_set_command(spi_peri, cmd_read_rx); // Receive data in RX
+            spi_wait_for_ready(spi_peri);
         }
     #endif
 
@@ -309,15 +309,15 @@ int main(int argc, char *argv[])
 
     // Power down flash
     const uint32_t powerdown_byte_cmd = 0xb9;
-    spi_write_word(spi, powerdown_byte_cmd);
+    spi_write_word(spi_peri, powerdown_byte_cmd);
     const uint32_t cmd_powerdown = spi_create_command((spi_command_t){
         .len        = 0,
         .csaat      = false,
         .speed      = SPI_SPEED_STANDARD,
         .direction  = SPI_DIR_TX_ONLY
     });
-    spi_set_command(spi, cmd_powerdown);
-    spi_wait_for_ready(spi);
+    spi_set_command(spi_peri, cmd_powerdown);
+    spi_wait_for_ready(spi_peri);
 
     // The data is already in memory -- Check results
     PRINTF("flash vs ram...\n\r");
