@@ -75,7 +75,7 @@ extern "C" {
 /****************************************************************************/
 
 /**
-* SPI speed type
+* SPI endianness
 */
 typedef enum {
     SPI_BYTE_ORDER_BIG_ENDIAN      = 0,

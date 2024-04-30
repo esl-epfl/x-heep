@@ -42,13 +42,8 @@
 /**                                                                        **/
 /****************************************************************************/
 
-#define SPI_EVENTS_MASK     BIT_MASK_6
 #define SPI_EVENTS_INDEX    0
-#define SPI_ERRORS_IRQ_MASK BIT_MASK_5
-#define SPI_ERRORS_MASK     BIT_MASK_6
 #define SPI_ERRORS_INDEX    0
-
-#define SPI_CLEAR_ERRORS_STATE_VALUE (1 << SPI_ERRORS_MASK + 1) - 1
 
 /****************************************************************************/
 /**                                                                        **/
@@ -97,7 +92,7 @@ spi_host_t spi_init_host2() {
 spi_return_flags_e spi_get_events_enabled(spi_host_t spi, spi_event_e* events) 
 {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
-    *events = bitfield_read(spi.peri->EVENT_ENABLE, SPI_EVENTS_MASK, SPI_EVENTS_INDEX);
+    *events = bitfield_read(spi.peri->EVENT_ENABLE, SPI_EVENT_ALL, SPI_EVENTS_INDEX);
     return SPI_FLAG_OK;
 }
 
@@ -115,7 +110,7 @@ spi_return_flags_e spi_set_events_enabled(spi_host_t spi, spi_event_e events, bo
 spi_return_flags_e spi_get_errors_enabled(spi_host_t spi, spi_error_e* errors) 
 {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
-    *errors = bitfield_read(spi.peri->ERROR_ENABLE, SPI_ERRORS_IRQ_MASK, SPI_ERRORS_INDEX);
+    *errors = bitfield_read(spi.peri->ERROR_ENABLE, SPI_ERROR_IRQALL, SPI_ERRORS_INDEX);
     return SPI_FLAG_OK;
 }
 
@@ -133,13 +128,13 @@ spi_return_flags_e spi_set_errors_enabled(spi_host_t spi, spi_error_e errors, bo
 spi_return_flags_e spi_get_errors(spi_host_t spi, spi_error_e* errors)
 {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
-    *errors = bitfield_read(spi.peri->ERROR_STATUS, SPI_ERRORS_MASK, SPI_ERRORS_INDEX);
+    *errors = bitfield_read(spi.peri->ERROR_STATUS, SPI_ERROR_ALL, SPI_ERRORS_INDEX);
     return SPI_FLAG_OK;
 }
 
 spi_return_flags_e spi_acknowledge_errors(spi_host_t spi) {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
-    spi.peri->ERROR_STATUS = bitfield_write(spi.peri->ERROR_STATUS, SPI_ERRORS_MASK, SPI_ERRORS_INDEX, SPI_CLEAR_ERRORS_STATE_VALUE);
+    spi.peri->ERROR_STATUS = bitfield_write(spi.peri->ERROR_STATUS, SPI_ERROR_ALL, SPI_ERRORS_INDEX, SPI_ERROR_ALL);
     spi.peri->INTR_STATE   = bitfield_write(spi.peri->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_ERROR_BIT, 1);
     return SPI_FLAG_OK;
 }
