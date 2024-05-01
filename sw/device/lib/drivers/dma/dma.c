@@ -275,13 +275,16 @@ void dma_init( dma *peri )
     /* Clear all values in the DMA registers. */
     dma_cb.peri->SRC_PTR       = 0;
     dma_cb.peri->DST_PTR       = 0;
-    dma_cb.peri->SIZE_TR_D1          = 0;
-    dma_cb.peri->SRC_PTR_INC       = 0;
+    dma_cb.peri->SIZE_TR_D1    = 0;
+    dma_cb.peri->SIZE_TR_D2    = 0;
+    dma_cb.peri->SRC_PTR_INC   = 0;
+    dma_cb.peri->DIM_CONFIG    = 0;
     dma_cb.peri->SLOT          = 0;
     dma_cb.peri->DATA_TYPE     = 0;
     dma_cb.peri->MODE          = 0;
     dma_cb.peri->WINDOW_SIZE   = 0;
     dma_cb.peri->INTERRUPT_EN  = 0;
+    dma_cb.peri->PAD           = 0;
 }
 
 dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
@@ -931,7 +934,7 @@ dma_config_flags_t validate_target( dma_target_t *p_tgt )
          */
         if( p_tgt->size_du != 0 )
         {
-            uint8_t isOutb = is_region_outbound(  p_tgt->ptr,
+            uint8_t isOutb = is_region_outbound_1D(  p_tgt->ptr,
                                           p_tgt->env->end,
                                           p_tgt->type,
                                           p_tgt->size_du,
@@ -1093,8 +1096,29 @@ static inline uint8_t is_region_outbound(   uint8_t  *p_start,
    */
     uint32_t affectedUnits      = ( p_size_du - 1 ) * p_inc_du + 1;
     uint32_t rangeSize          = DMA_DATA_TYPE_2_SIZE(p_type) * affectedUnits;
-    uint32_t lasByteInsideRange = (uint32_t)p_start + rangeSize -1;
-    return ( p_end < lasByteInsideRange );
+    uint32_t lastByteInsideRange = (uint32_t)p_start + rangeSize -1;
+    return ( p_end < lastByteInsideRange );
+    // Size is be guaranteed to be non-zero before calling this function.
+}
+
+static inline uint8_t is_region_outbound_2D(   uint8_t  *p_start,
+                                            uint8_t  *p_end,
+                                            uint32_t p_type,
+                                            uint32_t p_size_d1_du,
+                                            uint32_t p_size_d2_du,
+                                            uint32_t p_inc_d1_du,
+                                            uint32_t p_inc_d2_du )
+{
+  /* 
+   * If the environment ends before the last affected byte, then there is
+   * outbound writing and the function returns 1.
+   */
+
+    uint32_t affectedUnits      = (( p_size_d1_du - 1 ) * p_inc_d1_du + 1) * (p_size_d2_du) + p_inc_d2_du * (p_size_d2_du - 1);
+    uint32_t rangeSize          = DMA_DATA_TYPE_2_SIZE(p_type) * affectedUnits;
+    uint32_t lastByteInsideRange = (uint32_t)p_start + rangeSize -1;
+    return ( p_end < lastByteInsideRange );
+
     // Size is be guaranteed to be non-zero before calling this function.
 }
 

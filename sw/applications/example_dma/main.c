@@ -428,6 +428,8 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_2D_MODE
 
+// This example tests the 2D operations of the DMA
+
 #define SIZE_IN_D1 16
 #define SIZE_IN_D2 16
 #define SIZE_OUT_D1 14

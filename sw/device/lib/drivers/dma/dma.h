@@ -282,10 +282,16 @@ typedef struct
     uint16_t                inc_du;  /*!< How much the pointer will increase
     every time a read/write operation is done. It is a multiple of the data units.
     Can be left blank if the target is a peripheral. */
+    uint16_t                inc_d2_du; /*!< How much the D2 pointer will increase
+    every time the DMA finishes to read a #D1 of data units. */
     uint32_t                size_du; /*!< The size (in data units) of the data to
     be copied. Can be left blank if the target will only be used as destination.*/
+    uint32_t                size_d2_du; /*!< The size (in data units) of the data
+    to be copied along D2.*/
     dma_data_type_t         type;    /*!< The type of data to be transferred.
     Can be left blank if the target will only be used as destination. */
+    uint8_t                 dimensionality; /*!< Sets the dimensionality of the
+    DMA, either 1D or 2D. */
     dma_trigger_slot_mask_t trig;    /*!< If the target is a peripheral, a
     trigger can be set to control the data flow.  */
 } dma_target_t;
@@ -306,7 +312,9 @@ typedef struct
     copied. - only valid in address mode */
     uint16_t            inc_b;  /*!< A common increment in case both targets
     need to use one same increment. */
-    uint32_t            size_b; /*!< The size of the transfer, in bytes (in
+    uint32_t            size_b; /*!< The size of the transfer along D1, in bytes (in
+    contrast, the size stored in the targets is in data units). */
+    uint32_t            size_d2_b; /*!< The size of the transfer along D2, in bytes (in
     contrast, the size stored in the targets is in data units). */
     dma_data_type_t     type;   /*!< The data type to use. One is chosen among
     the targets. */
