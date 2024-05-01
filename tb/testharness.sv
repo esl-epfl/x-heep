@@ -39,6 +39,8 @@ module testharness #(
     output wire         jtag_tdo_o,
     output logic [31:0] exit_value_o,
     inout  wire         exit_valid_o
+
+
 );
 
 
@@ -124,6 +126,13 @@ module testharness #(
   logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_n;
   logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_n;
   logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_n;
+
+  //seial link check ddr
+  logic [3:0] ddr;
+
+
+
+
 
   // eXtension Interface
   if_xif #(
@@ -263,8 +272,8 @@ module testharness #(
       .external_subsystem_clkgate_en_no(external_subsystem_clkgate_en_n),
       .ext_dma_slot_tx_i(iffifo_in_ready),
       .ext_dma_slot_rx_i(iffifo_out_valid),
-      .ddr_i(),
-      .ddr_o()
+      .ddr_i(ddr),
+      .ddr_o(ddr)
       //.axi_req_i(axi_req)
   );
 

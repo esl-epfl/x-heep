@@ -545,42 +545,16 @@ ${pad.core_v_mini_mcu_interface}
     .clk_i,
     .rst_ni,
 
-    //.data_req_i(obi_req_obi2axi.req),
-    //.data_gnt_o(obi_resp_obi2axi.gnt),
-    //.data_rvalid_o(obi_resp_obi2axi.rvalid),
-    //.data_addr_i(obi_req_obi2axi.addr),
-    //.data_we_i(obi_req_obi2axi.we),
-    //.data_be_i(obi_req_obi2axi.be),
-    //.data_rdata_o(obi_resp_obi2axi.rdata),
-    //.data_wdata_i(obi_req_obi2axi.wdata),
-
-    .data_req_i(axi_sl_m_req.req),
-    .data_gnt_o(axi_sl_m_resp.gnt),
-    .data_rvalid_o(axi_sl_m_resp.rvalid),
-    .data_addr_i(axi_sl_m_req.addr),
-    .data_we_i(axi_sl_m_req.we),
-    .data_be_i(axi_sl_m_req.be),
-    .data_rdata_o(axi_sl_m_resp.rdata),
-    .data_wdata_i(axi_sl_m_req.wdata),
+    .data_req_i(axi_sl_slave_req.req),
+    //.data_req_i('1),
+    .data_gnt_o(axi_sl_slave_resp.gnt),
+    .data_rvalid_o(axi_sl_slave_resp.rvalid),
+    .data_addr_i(axi_sl_slave_req.addr),
+    .data_we_i(axi_sl_slave_req.we),
+    .data_be_i(axi_sl_slave_req.be),
+    .data_rdata_o(axi_sl_slave_resp.rdata),
+    .data_wdata_i(axi_sl_slave_req.wdata),
     
-
-
-
-
-
-
-    
-    //.data_req_i(core_instr_req.req),
-    //.data_gnt_o(core_instr_resp.gnt),
-    //.data_rvalid_o(core_instr_resp.rvalid),
-    //.data_addr_i(core_instr_req.addr),
-    //.data_we_i(core_instr_req.we),
-    //.data_be_i(core_instr_req.be),
-    //.data_rdata_o(core_instr_resp.rdata),
-    //.data_wdata_i(core_instr_req.wdata),
-
-
-
     .aw_id_o(axi_out_req_o.aw.id),
     .aw_addr_o(axi_out_req_o.aw.addr),
     .aw_len_o(axi_out_req_o.aw.len),
@@ -594,6 +568,7 @@ ${pad.core_v_mini_mcu_interface}
     .aw_qos_o(axi_out_req_o.aw.qos),
     .aw_valid_o(axi_out_req_o.aw_valid),
     .aw_ready_i(axi_out_rsp_i.aw_ready),
+    //.aw_ready_i('1),
     //.aw_size,
 
     .w_data_o(axi_out_req_o.w.data),
@@ -602,6 +577,7 @@ ${pad.core_v_mini_mcu_interface}
     .w_user_o(axi_out_req_o.w.user),
     .w_valid_o(axi_out_req_o.w_valid),
     .w_ready_i(axi_out_rsp_i.w_ready),
+    //.w_ready_i('1),
     //.w_size,
 
     .b_id_i(axi_out_rsp_i.b.id),
@@ -649,14 +625,14 @@ ${pad.core_v_mini_mcu_interface}
     //.C_S00_AXI_DATA_WIDTH(AXI_DATA_WIDTH),
     //.C_S00_AXI_ADDR_WIDTH(AXI_ADDR_WIDTH)
   ) axi2obi_bridge_virtual_r_obi_i (
-    .gnt_i(axi_sl_slave_resp.gnt),
-    .rvalid_i(axi_sl_slave_resp.rvalid),
-    .we_o(axi_sl_slave_req.we),
-    .be_o(axi_sl_slave_req.be),
-    .addr_o(axi_sl_slave_req),
-    .wdata_o(axi_sl_slave_req.wdata),
-    .rdata_i(axi_sl_slave_resp.rdata),
-    .req_o(axi_sl_slave_req.req),
+    .gnt_i(axi_sl_m_resp.gnt),
+    .rvalid_i(axi_sl_m_resp.rvalid),
+    .we_o(axi_sl_m_req.we),
+    .be_o(axi_sl_m_req.be),
+    .addr_o(axi_sl_m_req),
+    .wdata_o(axi_sl_m_req.wdata),
+    .rdata_i(axi_sl_m_resp.rdata),
+    .req_o(axi_sl_m_req.req),
 
     .s00_axi_aclk(clk_i),
     .s00_axi_aresetn(rst_ni),
@@ -703,26 +679,11 @@ ${pad.core_v_mini_mcu_interface}
     .r_chan_t(core_v_mini_mcu_pkg::axi_r_t),
     .w_chan_t(core_v_mini_mcu_pkg::axi_w_t),
     .b_chan_t(core_v_mini_mcu_pkg::axi_b_t),
-
-
-
-   
-
-
     .cfg_rsp_t(reg_rsp_t),
     .cfg_req_t(reg_req_t)
     //.NumChannels(1),
     //.NumLanes(1)
   ) serial_link_occamy_wrapper_i (
-    //.aw_size,
-    //.w_size,
-    //.b_size,
-    //.ar_size,
-    //.r_size,
-
-
-
-
     .clk_i(clk_i),
     .rst_ni(rst_ni),
     .clk_reg_i(clk_i),        //intended for clock gating purposes
@@ -738,10 +699,10 @@ ${pad.core_v_mini_mcu_interface}
     .cfg_req_i(cfg_req_t),    //register configuration
     .cfg_rsp_o(cfg_rsp_t),
 
-    .ddr_rcv_clk_i(clk_i),         //Source-synchronous input clock to sample data. One clock per channel   
+    .ddr_rcv_clk_i(clk_i),    //Source-synchronous input clock to sample data. One clock per channel   
     .ddr_rcv_clk_o(),         //Source-synchronous output clock which is forwarded together with the data. One clock per channel
-    .ddr_i(ddr_i),                 //Double-Data-Rate (DDR) input data
-    .ddr_o(ddr_o)                  //Double-Data-Rate (DDR) output data
+    .ddr_i,                   //Double-Data-Rate (DDR) input data
+    .ddr_o                    //Double-Data-Rate (DDR) output data
   );
   % endif
 % endif

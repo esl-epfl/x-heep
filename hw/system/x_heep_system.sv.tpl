@@ -169,8 +169,8 @@ ${pad.core_v_mini_mcu_bonding}
     .exit_value_o,
     .ext_dma_slot_tx_i,
     .ext_dma_slot_rx_i,
-    .ddr_i(),
-    .ddr_o()
+    .ddr_i,
+    .ddr_o
   );
 
   pad_ring pad_ring_i (

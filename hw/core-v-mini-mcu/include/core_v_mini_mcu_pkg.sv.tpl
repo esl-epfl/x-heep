@@ -102,7 +102,7 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] AXI_SL_SLAVE_START_ADDRESS = 32'h${axi_sl_slave_start_address};
   localparam logic[31:0] AXI_SL_SLAVE_SIZE = 32'h${axi_sl_slave_size_address};
   localparam logic[31:0] AXI_SL_SLAVE_END_ADDRESS = AXI_SL_SLAVE_START_ADDRESS + AXI_SL_SLAVE_SIZE;
-  localparam logic[31:0] AXI_SL_SLAVE_IDX = 32'd${int(ram_numbanks) + 5};
+  localparam logic[31:0] AXI_SL_SLAVE_IDX = 32'd${int(xheep.ram_numbanks()) + 5};
 
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{ idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS },
@@ -203,9 +203,9 @@ package core_v_mini_mcu_pkg;
     parameter int unsigned AxiDataWidth = 32;
     parameter int unsigned RegDataWidth = 32;
     parameter int unsigned StreamDataBytes = 32;
-        localparam int unsigned AxiStrbWidth = AxiDataWidth / 8;
+    localparam int unsigned AxiStrbWidth = AxiDataWidth / 8;
     localparam int unsigned RegStrbWidth = RegDataWidth / 8;
-      typedef logic [StreamDataBytes*8-1:0] tdata_t;
+    typedef logic [StreamDataBytes*8-1:0] tdata_t;
     typedef logic [StreamDataBytes-1:0] tstrb_t;
     typedef logic [StreamDataBytes-1:0] tkeep_t;
     typedef logic tlast_t;
