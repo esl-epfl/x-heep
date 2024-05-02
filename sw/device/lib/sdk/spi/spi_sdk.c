@@ -49,6 +49,9 @@
 #define MAX_COMMAND_LENGTH SPI_HOST_COMMAND_LEN_MASK
 #define BYTES_PER_WORD     SPI_HOST_PARAM_REG_WIDTH / sizeof(uint8_t)
 
+#define TX_WATERMARK SPI_HOST_PARAM_TX_DEPTH / 4
+#define RX_WATERMARK SPI_HOST_PARAM_RX_DEPTH - 12
+
 /****************************************************************************/
 /**                                                                        **/
 /**                       TYPEDEFS AND STRUCTURES                          **/
@@ -140,7 +143,7 @@ spi_t spi_init(spi_idx_e idx, spi_slave_t slave) {
         return (spi_t) {
             .idx   = -1,
             .init  = false,
-            .slave = slave
+            .slave = {0}
         };
     spi_set_enable(_peripherals[idx].instance, true);
     spi_output_enable(_peripherals[idx].instance, true);
@@ -153,10 +156,9 @@ spi_t spi_init(spi_idx_e idx, spi_slave_t slave) {
 }
 
 spi_codes_e spi_deinit(spi_t* spi) {
-    // NOTE: A bit shady this implementation
-    *(spi_idx_e*)(&spi->idx)     = -1;
-    *(bool*)(&spi->init)         = false;
-    *(spi_slave_t*)(&spi->slave) = (spi_slave_t) {0};
+    spi->idx   = -1;
+    spi->init  = false;
+    spi->slave = (spi_slave_t) {0};
     return SPI_CODE_OK;
 }
 
@@ -164,7 +166,7 @@ spi_codes_e spi_reset(spi_t* spi) {
     spi_codes_e error = spi_check_valid(spi);
     if (error) return error;
 
-    if (spi_sw_reset(_peripherals[spi->idx].instance)) return SPI_CODE_BASE_ERROR;
+    spi_sw_reset(_peripherals[spi->idx].instance);
 
     return SPI_CODE_OK;
 }
@@ -279,9 +281,8 @@ spi_codes_e spi_execute(spi_t* spi, spi_transaction_t transaction) {
     spi_set_events_enabled(_peripherals[spi->idx].instance, SPI_EVENT_IDLE | SPI_EVENT_READY | SPI_EVENT_TXWM | SPI_EVENT_RXWM, true);
     spi_enable_evt_intr   (_peripherals[spi->idx].instance, true);
 
-    spi_issue_cmd(_peripherals[spi->idx], transaction.segments[0], 0 < transaction.seglen - 1 ? 1 : 0);
-
     _peripherals[spi->idx].scnt++;
+    spi_issue_cmd(_peripherals[spi->idx], transaction.segments[0], 0 < transaction.seglen - 1 ? 1 : 0);
 
     while (_peripherals[spi->idx].busy);
 
@@ -327,6 +328,7 @@ spi_codes_e spi_set_slave(spi_t* spi) {
                                                          spi_create_configopts(config)
                                                         );
     if (config_error) return SPI_CODE_SLAVE_INVAL;
+    spi_set_csid(_peripherals[spi->idx].instance, spi->slave.csid);
     return SPI_CODE_OK;
 }
 
@@ -339,8 +341,8 @@ spi_codes_e spi_prepare_for_xfer(spi_t* spi) {
     error = spi_set_slave(spi);
     if (error) return error;
 
-    spi_set_tx_watermark(_peripherals[spi->idx].instance, SPI_HOST_PARAM_TX_DEPTH / 4);
-    spi_set_rx_watermark(_peripherals[spi->idx].instance, SPI_HOST_PARAM_RX_DEPTH - 12);
+    spi_set_tx_watermark(_peripherals[spi->idx].instance, TX_WATERMARK);
+    spi_set_rx_watermark(_peripherals[spi->idx].instance, RX_WATERMARK);
 
     return SPI_CODE_OK;
 }

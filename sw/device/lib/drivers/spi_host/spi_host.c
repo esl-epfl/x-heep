@@ -170,11 +170,13 @@ spi_return_flags_e spi_alert_test_fatal_fault_trigger(spi_host_t spi) {
     return SPI_FLAG_OK;
 }
 
+// TODO: This is redundant... just use get_status...
 volatile uint8_t spi_get_tx_queue_depth(spi_host_t spi) {
     if (spi.peri == NULL) return UINT8_MAX;
     return spi_get_status(spi)->txqd;
 }
 
+// TODO: This is redundant... just use get_status...
 spi_return_flags_e spi_get_tx_channel_status(spi_host_t spi, volatile spi_ch_status_t* ch_status) {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
     volatile spi_status_t* status = spi_get_status(spi);
@@ -185,11 +187,13 @@ spi_return_flags_e spi_get_tx_channel_status(spi_host_t spi, volatile spi_ch_sta
     return SPI_FLAG_OK;
 }
 
+// TODO: This is redundant... just use get_status...
 volatile uint8_t spi_get_rx_queue_depth(spi_host_t spi) {
     if (spi.peri == NULL) return UINT8_MAX;
     return spi_get_status(spi)->rxqd;
 }
 
+// TODO: This is redundant... just use get_status...
 spi_return_flags_e spi_get_rx_channel_status(spi_host_t spi, volatile spi_ch_status_t* ch_status) {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
     volatile spi_status_t* status = spi_get_status(spi);

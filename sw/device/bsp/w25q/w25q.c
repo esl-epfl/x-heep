@@ -213,7 +213,6 @@ static int32_t MIN(int32_t a, int32_t b) {
  * @brief SPI structure.
 */
 spi_host_t __attribute__((section(".xheep_init_data_crt0"))) spi; //this variable is also used by the crt0, thus keep it in this section
-// spi_idx_e __attribute__((section(".xheep_init_data_crt0"))) spi; //this variable is also used by the crt0, thus keep it in this section
 
 /**
  * @brief Static vector used in the erase_and_write function.

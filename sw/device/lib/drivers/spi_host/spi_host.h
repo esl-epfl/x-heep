@@ -735,12 +735,12 @@ static inline __attribute__((always_inline)) __attribute__((const)) uint32_t spi
 void handler_irq_spi(uint32_t id);
 
 /**
- * @brief Attends the plic interrupt.
+ * @brief Attends the fic interrupt.
  */
 void fic_irq_spi(void);
 
 /**
- * @brief Attends the plic interrupt.
+ * @brief Attends the fic interrupt.
  */
 void fic_irq_spi_flash(void);
 
