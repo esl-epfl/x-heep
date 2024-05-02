@@ -47,6 +47,57 @@
 #define SPI_MAX_IDX 3
 #define SPI_IDX_INVALID(idx) idx > SPI_MAX_IDX
 
+// NOTE: This seems quite useless since most SPI devices are different...
+#define SPI_SLAVE(csid, freq) (spi_slave_t) { \
+    .csid       = csid, \
+    .data_mode  = SPI_DATA_MODE_0, \
+    .full_cycle = false, \
+    .csn_lead   = 0, \
+    .csn_trail  = 0, \
+    .csn_idle   = 0, \
+    .freq       = freq \
+}
+
+#define SPI_SEG_DUMMY(cycles) (spi_segment_t) { \
+    .len  = cycles, \
+    .mode = SPI_MODE_DUMMY \
+}
+
+#define SPI_SEG_TX(bytes) (spi_segment_t) { \
+    .len  = bytes, \
+    .mode = SPI_MODE_TX_STD \
+}
+
+#define SPI_SEG_RX(bytes) (spi_segment_t) { \
+    .len  = bytes, \
+    .mode = SPI_MODE_RX_STD \
+}
+
+#define SPI_SEG_BIDIR(bytes) (spi_segment_t) { \
+    .len  = bytes, \
+    .mode = SPI_MODE_BIDIR \
+}
+
+#define SPI_SEG_TX_DUAL(bytes) (spi_segment_t) { \
+    .len  = bytes, \
+    .mode = SPI_MODE_TX_DUAL \
+}
+
+#define SPI_SEG_RX_DUAL(bytes) (spi_segment_t) { \
+    .len  = bytes, \
+    .mode = SPI_MODE_RX_DUAL \
+}
+
+#define SPI_SEG_TX_QUAD(bytes) (spi_segment_t) { \
+    .len  = bytes, \
+    .mode = SPI_MODE_TX_QUAD \
+}
+
+#define SPI_SEG_RX_QUAD(bytes) (spi_segment_t) { \
+    .len  = bytes, \
+    .mode = SPI_MODE_RX_QUAD \
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -77,8 +128,10 @@ typedef enum {
     SPI_CODE_SLAVE_CSID_INVAL   = 0x0010,
     SPI_CODE_SLAVE_FREQ_INVAL   = 0x0020,
     SPI_CODE_NOT_IDLE           = 0x0040,
-    SPI_CODE_SLAVE_NOT_INIT     = 0x0080,
-    SPI_CODE_SEGMENT_INVAL      = 0x0100
+    SPI_CODE_SLAVE_INVAL        = 0x0080,
+    SPI_CODE_SEGMENT_INVAL      = 0x0100,
+    SPI_CODE_IS_BUSY            = 0x0200,
+    SPI_CODE_TXN_LEN_INVAL      = 0x0400
 } spi_codes_e;
 
 typedef enum {
@@ -130,7 +183,7 @@ typedef struct {
 typedef struct {
     const spi_idx_e idx;
     bool init;
-    spi_slave_t slave; // TODO: Find a way of having multiple slaves... ptr ?
+    const spi_slave_t slave; // TODO: Would an array be better ???
 } spi_t;
 
 /****************************************************************************/
@@ -151,7 +204,7 @@ spi_codes_e spi_deinit(spi_t* spi);
 
 spi_codes_e spi_reset(spi_t* spi);
 
-spi_codes_e spi_get_slave(spi_t* spi, uint8_t csid, spi_slave_t* slave);
+spi_codes_e spi_is_busy(spi_t* spi);
 
 spi_codes_e spi_transmit(spi_t* spi, const uint32_t* src_buffer, uint32_t len);
 
