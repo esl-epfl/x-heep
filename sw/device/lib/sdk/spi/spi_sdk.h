@@ -181,8 +181,8 @@ typedef struct {
 } spi_transaction_t;
 
 typedef struct {
-    const spi_idx_e idx;
-    bool init;
+    const spi_idx_e   idx;
+    bool              init;
     const spi_slave_t slave; // TODO: Would an array be better ???
 } spi_t;
 

@@ -56,14 +56,14 @@
 /****************************************************************************/
 
 typedef struct {
-    spi_host_t instance;
-    volatile bool busy;
+    spi_host_t        instance;
+    volatile bool     busy;
     spi_transaction_t txn;
-    uint32_t scnt;
-    uint32_t wcnt;
-    uint32_t rcnt;
-    spi_cb_t evt_cb;
-    spi_cb_t err_cb;
+    uint32_t          scnt;
+    uint32_t          wcnt;
+    uint32_t          rcnt;
+    spi_cb_t          evt_cb;
+    spi_cb_t          err_cb;
 } spi_peripheral_t;
 
 /****************************************************************************/
@@ -98,32 +98,32 @@ static spi_peripheral_t _peripherals[] = {
     (spi_peripheral_t) {
         .instance  = SPI_FLASH_INIT,
         .busy      = false,
-        .txn = {0},
-        .scnt = 0,
-        .wcnt = 0,
-        .rcnt = 0,
-        .evt_cb = NULL,
-        .err_cb = NULL
+        .txn       = {0},
+        .scnt      = 0,
+        .wcnt      = 0,
+        .rcnt      = 0,
+        .evt_cb    = NULL,
+        .err_cb    = NULL
     },
     (spi_peripheral_t) {
         .instance  = SPI_HOST_INIT,
         .busy      = false,
-        .txn = {0},
-        .scnt = 0,
-        .wcnt = 0,
-        .rcnt = 0,
-        .evt_cb = NULL,
-        .err_cb = NULL
+        .txn       = {0},
+        .scnt      = 0,
+        .wcnt      = 0,
+        .rcnt      = 0,
+        .evt_cb    = NULL,
+        .err_cb    = NULL
     },
     (spi_peripheral_t) {
         .instance  = SPI_HOST2_INIT,
         .busy      = false,
-        .txn = {0},
-        .scnt = 0,
-        .wcnt = 0,
-        .rcnt = 0,
-        .evt_cb = NULL,
-        .err_cb = NULL
+        .txn       = {0},
+        .scnt      = 0,
+        .wcnt      = 0,
+        .rcnt      = 0,
+        .evt_cb    = NULL,
+        .err_cb    = NULL
     }
 };
 
@@ -153,6 +153,10 @@ spi_t spi_init(spi_idx_e idx, spi_slave_t slave) {
 }
 
 spi_codes_e spi_deinit(spi_t* spi) {
+    // NOTE: A bit shady this implementation
+    *(spi_idx_e*)(&spi->idx)     = -1;
+    *(bool*)(&spi->init)         = false;
+    *(spi_slave_t*)(&spi->slave) = (spi_slave_t) {0};
     return SPI_CODE_OK;
 }
 
@@ -187,7 +191,7 @@ spi_codes_e spi_transmit(spi_t* spi, const uint32_t* src_buffer, uint32_t len) {
     spi_fill_tx(&_peripherals[spi->idx]);
 
     spi_set_events_enabled(_peripherals[spi->idx].instance, SPI_EVENT_IDLE | SPI_EVENT_TXWM, true);
-    spi_enable_evt_intr(_peripherals[spi->idx].instance, true);
+    spi_enable_evt_intr   (_peripherals[spi->idx].instance, true);
 
     if(spi_issue_cmd(_peripherals[spi->idx], SPI_SEG_TX(len * BYTES_PER_WORD), false))
         return SPI_CODE_SEGMENT_INVAL;
@@ -210,7 +214,7 @@ spi_codes_e spi_receive(spi_t* spi, uint32_t* dest_buffer, uint32_t len) {
     _peripherals[spi->idx].txn  = txn;
 
     spi_set_events_enabled(_peripherals[spi->idx].instance, SPI_EVENT_IDLE | SPI_EVENT_RXWM, true);
-    spi_enable_evt_intr(_peripherals[spi->idx].instance, true);
+    spi_enable_evt_intr   (_peripherals[spi->idx].instance, true);
 
     if(spi_issue_cmd(_peripherals[spi->idx], SPI_SEG_RX(len * BYTES_PER_WORD), false))
         return SPI_CODE_SEGMENT_INVAL;
@@ -239,7 +243,7 @@ spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer, uint32_t* des
     spi_fill_tx(&_peripherals[spi->idx]);
 
     spi_set_events_enabled(_peripherals[spi->idx].instance, SPI_EVENT_IDLE | SPI_EVENT_TXWM | SPI_EVENT_RXWM, true);
-    spi_enable_evt_intr(_peripherals[spi->idx].instance, true);
+    spi_enable_evt_intr   (_peripherals[spi->idx].instance, true);
 
     if(spi_issue_cmd(_peripherals[spi->idx], SPI_SEG_BIDIR(len * BYTES_PER_WORD), false))
         return SPI_CODE_SEGMENT_INVAL;
@@ -250,7 +254,6 @@ spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer, uint32_t* des
 }
 
 spi_codes_e spi_execute(spi_t* spi, spi_transaction_t transaction) {
-    // TODO: replace this 1, good thing is we don't care about len because segments already limit length
     spi_codes_e error = spi_prepare_for_xfer(spi);
     if (error) return error;
 
@@ -263,10 +266,9 @@ spi_codes_e spi_execute(spi_t* spi, spi_transaction_t transaction) {
         uint8_t direction = bitfield_read(transaction.segments[i].mode, BIT_MASK_2, 2);
         uint8_t speed     = bitfield_read(transaction.segments[i].mode, BIT_MASK_2, 0);
         if (!spi_validate_cmd(direction, speed)) return SPI_CODE_SEGMENT_INVAL;
-        if (direction & SPI_DIR_TX_ONLY) wcnt += transaction.segments[i].len / BYTES_PER_WORD;
-        if (direction & SPI_DIR_RX_ONLY) rcnt += transaction.segments[i].len / BYTES_PER_WORD;
+        if (direction == SPI_DIR_TX_ONLY || direction == SPI_DIR_BIDIR) wcnt += transaction.segments[i].len / BYTES_PER_WORD;
+        if (direction == SPI_DIR_RX_ONLY || direction == SPI_DIR_BIDIR) rcnt += transaction.segments[i].len / BYTES_PER_WORD;
     }
-
     if (wcnt >transaction.txlen || rcnt > transaction.rxlen) return SPI_CODE_TXN_LEN_INVAL;
     
     _peripherals[spi->idx].busy = true;
@@ -275,7 +277,7 @@ spi_codes_e spi_execute(spi_t* spi, spi_transaction_t transaction) {
     spi_fill_tx(&_peripherals[spi->idx]);
 
     spi_set_events_enabled(_peripherals[spi->idx].instance, SPI_EVENT_IDLE | SPI_EVENT_READY | SPI_EVENT_TXWM | SPI_EVENT_RXWM, true);
-    spi_enable_evt_intr(_peripherals[spi->idx].instance, true);
+    spi_enable_evt_intr   (_peripherals[spi->idx].instance, true);
 
     spi_issue_cmd(_peripherals[spi->idx], transaction.segments[0], 0 < transaction.seglen - 1 ? 1 : 0);
 
@@ -300,7 +302,7 @@ spi_codes_e spi_check_valid(spi_t* spi) {
 
 spi_codes_e spi_validate_slave(spi_slave_t slave) {
     spi_codes_e error = SPI_CODE_OK;
-    if (SPI_CSID_INVALID(slave.csid)) error |= SPI_CODE_SLAVE_CSID_INVAL;
+    if (SPI_CSID_INVALID(slave.csid))                        error |= SPI_CODE_SLAVE_CSID_INVAL;
     if (slave.freq > soc_ctrl_peri->SYSTEM_FREQUENCY_HZ / 2) error |= SPI_CODE_SLAVE_FREQ_INVAL;
     return error;
 }
