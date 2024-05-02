@@ -311,6 +311,12 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
     /* The checks request should be a valid request. */
     DMA_STATIC_ASSERT( p_check         < DMA_PERFORM_CHECKS__size,
                        "Check request not valid");
+    /* The padding should be a valid number */
+    DMA_STATIC_ASSERT( (p_trans->pad_top >= 0 && p_trans->pad_bottom >= 0 && 
+                       p_trans->pad_left >= 0 && p_trans->pad_right >= 0), 
+                       "Padding not valid");
+    /* The dimensionality should be valid*/
+    DMA_STATIC_ASSERT( (p_trans->dim < DMA_DIM_CONF__size), "Dimensionality not valid");
 
     /*
      * CHECK IF TARGETS HAVE ERRORS
@@ -336,6 +342,39 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
     if( p_trans->flags & DMA_CONFIG_CRITICAL_ERROR )
     {
         return p_trans->flags;
+    }
+
+    /*
+     * CHECK IF THERE ARE INCREMENTS INCONSISTENCIES
+     */
+
+    if (p_check)
+    {
+        // If the transaction is 2D, check that the D2 increment of the targets are non zero.
+        // If the transaction is 1D, check that the D2 increment of the targets are zero.
+        if((p_trans->dim == DMA_DIM_CONF_D2 && (p_trans->src->inc_d2_du == 0 || p_trans->dst->inc_d2_du == 0)) ||
+           (p_trans->dim == DMA_DIM_CONF_D1 && (p_trans->src->inc_d2_du != 0 || p_trans->dst->inc_d2_du != 0)))
+        {
+            p_trans->flags |= DMA_CONFIG_INCOMPATIBLE;
+            p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
+            return p_trans->flags;
+        }
+    }
+
+    /*
+     * CHECK IF THERE ARE PADDING INCONSISTENCIES
+     */
+
+    if (p_check)
+    {
+        // If the transaction is 1D, check that the D2 increment of the targets are zero.
+        if((p_trans->dim == DMA_DIM_CONF_D1 && (p_trans->pad_top != 0 || p_trans->pad_bottom != 0 || p_trans->size_d2_b != 0)) ||
+           (p_trans->dim == DMA_DIM_CONF_D2 && p_trans->size_d2_b != 0))
+        {
+            p_trans->flags |= DMA_CONFIG_INCOMPATIBLE;
+            p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
+            return p_trans->flags;
+        }
     }
 
     /*
@@ -688,6 +727,34 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
             dma_cb.peri->INTERRUPT_EN |= INTR_EN_WINDOW_DONE;
         }
     }
+    /*
+     * SET THE PADDING
+     * If the left and/or right padding are set and the dimensionality is set to 1D, set the DIM_CONFIG register
+     * to 2D in order to enable padding.
+     */
+
+    if (dma_cb.trans->pad_top != 0 || dma_cb.trans->pad_bottom != 0 || dma_cb.trans->pad_left != 0 || dma_cb.trans->pad_right != 0)
+    {
+        write_register( dma_cb.trans->pad_top,
+                        DMA_PAD_REG_OFFSET,
+                        DMA_PAD_TOP_PAD_MASK,
+                        DMA_PAD_TOP_PAD_OFFSET);
+
+        write_register( dma_cb.trans->pad_bottom,
+                        DMA_PAD_REG_OFFSET,
+                        DMA_PAD_RIGHT_PAD_MASK,
+                        DMA_PAD_RIGHT_PAD_OFFSET);
+
+        write_register( dma_cb.trans->pad_left,
+                        DMA_PAD_REG_OFFSET,
+                        DMA_PAD_LEFT_PAD_MASK,
+                        DMA_PAD_LEFT_PAD_OFFSET);
+
+        write_register( dma_cb.trans->pad_right,
+                        DMA_PAD_REG_OFFSET,
+                        DMA_PAD_BOTTOM_PAD_MASK,
+                        DMA_PAD_BOTTOM_PAD_OFFSET);
+    }
 
     /*
      * SET THE POINTERS
@@ -905,13 +972,18 @@ dma_config_flags_t validate_target( dma_target_t *p_tgt )
 
     /* Increment can be 0 when a trigger is used. */
     DMA_STATIC_ASSERT( p_tgt->inc_du   >= 0 , "Increment not valid");
+    /* Increment on D2 has to be 0 for 1D operations */
+    DMA_STATIC_ASSERT( p_tgt->inc_d2_du  >= 0 , "Increment not valid");
     /* The size could be 0 if the target is only going to be used as a
     destination. */
     DMA_STATIC_ASSERT( p_tgt->size_du  >=  0 , "Size not valid");
+    /* The size can be 0 or 1 if the target is involved in a 1D padded transaction */
+    DMA_STATIC_ASSERT( p_tgt->size_d2_du >= 0 , "Size not valid");
     /* The data type must be a valid type */
     DMA_STATIC_ASSERT( p_tgt->type     < DMA_DATA_TYPE__size , "Type not valid");
     /* The trigger must be among the valid trigger values. */
     DMA_STATIC_ASSERT( p_tgt->trig     < DMA_TRIG__size , "Trigger not valid");
+    
 
     /*
      * INTEGRITY CHECKS
@@ -1146,6 +1218,7 @@ static inline void write_register( uint32_t  p_val,
 // @ToDo: mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_SLOT_REG_OFFSET), (tx_slot_mask << DMA_SLOT_TX_TRIGGER_SLOT_OFFSET) + rx_slot_mask)
 
 }
+
 
 static inline uint32_t get_increment_b( dma_target_t * p_tgt )
 {

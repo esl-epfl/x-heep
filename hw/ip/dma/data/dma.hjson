@@ -38,8 +38,9 @@
       swaccess: "rw",
       hwaccess: "hro",
       hwqe:     "true", // enable `qe` latched signal of software write pulse
+      // Dimensioned to 16 bits to allow for 64kB transfers on 1D
       fields: [
-        { bits: "31:0", name: "SIZE", desc: "DMA counter D1 and start" }
+        { bits: "15:0", name: "SIZE", desc: "DMA counter D1 and start" }
       ]
     },
     { name:     "SIZE_TR_D2",
@@ -47,18 +48,9 @@
       swaccess: "rw",
       hwaccess: "hro",
       hwqe:     "true", // enable `qe` latched signal of software write pulse
+      // Dimensioned to 16 bits to allow for 64kB transfers on 2D
       fields: [
-        { bits: "31:0", name: "SIZE", desc: "DMA counter D2" }
-      ]
-    },
-    { name:     "SIZE_IN",
-      desc:     "Dimensions of the input matrix",
-      swaccess: "rw",
-      hwaccess: "hro",
-      hwqe:     "true", // enable `qe` latched signal of software write pulse
-      fields: [
-        { bits: "15:0", name: "D1", desc: "Size of dimension 1" },
-        { bits: "31:16", name: "D2", desc: "Size of dimension 2" }
+        { bits: "15:0", name: "SIZE", desc: "DMA counter D2" }
       ]
     },
     { name:     "STATUS",
@@ -77,13 +69,15 @@
       desc:     "Increment number of src/dst pointer every time a word is copied",
       swaccess: "rw",
       hwaccess: "hro",
+      // Dimensioned to allow a maximum of 64 byte stride (a stride of 15 places for a data_type_word case) 
+      // for the 1D case and 64kB stride for the 2D case (a stride of 15 places for a data_type_word case)
       fields: [
-        { bits: "7:0", 
+        { bits: "5:0", 
           name: "SRC_PTR_INC_D1", 
           desc: "Source pointer d1 increment",
           resval:4
         },
-        { bits: "23:8", 
+        { bits: "28:6", 
           name: "SRC_PTR_INC_D2", 
           desc: "Source pointer d2 increment",
           resval:4
@@ -95,12 +89,12 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "7:0", 
+        { bits: "5:0", 
           name: "DST_PTR_INC_D1", 
           desc: "Destination pointer increment",
           resval:4
         },
-        { bits: "23:8", 
+        { bits: "28:6", 
           name: "DST_PTR_INC_D2", 
           desc: "Address pointer increment",
           resval:4
@@ -171,10 +165,10 @@
       hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
       resval:   0,
       fields: [
-        { bits: "7:0", name: "LEFT_PAD", desc: "Left margin padding (1D/2D)"},
-        { bits: "15:8", name: "RIGHT_PAD", desc: "Right margin padding (1D/2D)"},
-        { bits: "23:16", name: "TOP_PAD", desc: "Top margin padding (2D)"},
-        { bits: "31:24", name: "BOTTOM_PAD", desc: "Bottom margin padding (2D)"}
+        { bits: "5:0", name: "LEFT_PAD", desc: "Left margin padding (1D/2D)"},
+        { bits: "11:6", name: "RIGHT_PAD", desc: "Right margin padding (1D/2D)"},
+        { bits: "17:12", name: "TOP_PAD", desc: "Top margin padding (2D)"},
+        { bits: "22:17", name: "BOTTOM_PAD", desc: "Bottom margin padding (2D)"}
       ]
     },
     { name:    "WINDOW_SIZE",
@@ -183,7 +177,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "WINDOW_SIZE", desc: ""}
+        { bits: "12:0", name: "WINDOW_SIZE", desc: ""}
       ]
     },
     { name:    "WINDOW_COUNT",
@@ -194,7 +188,7 @@
       hwaccess: "hrw",
       resval: 0,
       fields: [
-        { bits: "31:0", name: "WINDOW_COUNT", desc: "Number of windows transferred in the transaction" }
+        { bits: "7:0", name: "WINDOW_COUNT", desc: "Number of windows transferred in the transaction" }
       ]
     },
     { name:    "INTERRUPT_EN",

@@ -76,6 +76,32 @@ void dma_intr_handler_trans_done()
     cycles++;
 }
 
+#ifdef TEST_2D_MODE
+
+#define SIZE_IN_D1 30
+#define SIZE_IN_D2 30
+#define SIZE_OUT_D1 16
+#define SIZE_OUT_D2 16
+#define STRIDE_IN_D1 1
+#define STRIDE_IN_D2 1
+#define STRIDE_OUT_D1 1
+#define STRIDE_OUT_D2 1
+#define TOP_PAD 1
+#define BOTTOM_PAD 1
+#define LEFT_PAD 1
+#define RIGHT_PAD 1
+#define OUT_D1 (SIZE_OUT_D1 + LEFT_PAD + RIGHT_PAD)
+#define OUT_D2 (SIZE_OUT_D2 + TOP_PAD + BOTTOM_PAD)
+#define OUT_DIM ( OUT_D1 * OUT_D2 )
+#define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ) )
+#define DMA_DATA_TYPE DMA_DATA_TYPE_WORD
+
+// Change the input datatype depending on the DMA_DATA_TYPE
+typedef uint32_t dma_input_data_type;
+
+dma_input_data_type test_data_2D[SIZE_IN_D1 * SIZE_IN_D2] = {253 ,207 ,382 ,390 ,301 ,174 ,86 ,342 ,313 ,367 ,384 ,322 ,164 ,403 ,312 ,110 ,464 ,245 ,461 ,249 ,280 ,198 ,376 ,374 ,55 ,23 ,111 ,42 ,265 ,141,180 ,157 ,65 ,302 ,15 ,18 ,256 ,79 ,237 ,270 ,313 ,232 ,384 ,493 ,124 ,72 ,284 ,485 ,50 ,407 ,109 ,251 ,175 ,283 ,258 ,77 ,113 ,301 ,292 ,212,319 ,58 ,379 ,266 ,419 ,290 ,350 ,4 ,351 ,206 ,423 ,311 ,242 ,301 ,3 ,45 ,486 ,485 ,10 ,349 ,311 ,1 ,142 ,170 ,411 ,247 ,128 ,297 ,428 ,498,207 ,288 ,137 ,52 ,388 ,291 ,475 ,45 ,16 ,354 ,464 ,139 ,153 ,318 ,227 ,115 ,312 ,292 ,438 ,78 ,385 ,72 ,321 ,196 ,459 ,376 ,413 ,206 ,438 ,33,477 ,472 ,112 ,324 ,477 ,319 ,289 ,137 ,368 ,107 ,342 ,243 ,326 ,231 ,84 ,431 ,301 ,428 ,200 ,228 ,290 ,61 ,297 ,115 ,462 ,76 ,318 ,267 ,335 ,258,354 ,488 ,420 ,479 ,331 ,352 ,254 ,255 ,433 ,128 ,147 ,77 ,446 ,265 ,165 ,65 ,370 ,47 ,93 ,33 ,149 ,35 ,188 ,278 ,309 ,376 ,213 ,311 ,441 ,139,488 ,129 ,403 ,464 ,98 ,417 ,442 ,277 ,407 ,13 ,419 ,309 ,6 ,414 ,226 ,8 ,240 ,19 ,101 ,126 ,422 ,443 ,491 ,87 ,376 ,319 ,490 ,61 ,495 ,73,120 ,458 ,2 ,29 ,428 ,415 ,72 ,20 ,181 ,395 ,352 ,66 ,452 ,429 ,475 ,229 ,186 ,62 ,442 ,250 ,205 ,282 ,63 ,176 ,181 ,185 ,218 ,51 ,316 ,191,146 ,29 ,270 ,224 ,316 ,383 ,394 ,207 ,424 ,411 ,19 ,211 ,25 ,410 ,12 ,49 ,66 ,445 ,18 ,333 ,216 ,106 ,68 ,129 ,290 ,211 ,276 ,376 ,167 ,94,466 ,383 ,90 ,161 ,312 ,80 ,291 ,480 ,115 ,242 ,267 ,130 ,15 ,459 ,51 ,335 ,454 ,280 ,4 ,384 ,178 ,211 ,22 ,366 ,305 ,390 ,493 ,59 ,245 ,392,100 ,468 ,61 ,290 ,53 ,452 ,166 ,454 ,339 ,159 ,83 ,340 ,338 ,374 ,163 ,483 ,103 ,22 ,172 ,161 ,468 ,270 ,397 ,356 ,480 ,295 ,165 ,374 ,384 ,53,101 ,493 ,126 ,321 ,476 ,197 ,21 ,103 ,62 ,361 ,276 ,224 ,468 ,277 ,79 ,490 ,228 ,19 ,365 ,147 ,241 ,406 ,375 ,2 ,75 ,488 ,378 ,357 ,458 ,296,153 ,146 ,470 ,73 ,32 ,92 ,192 ,118 ,450 ,308 ,89 ,186 ,383 ,342 ,489 ,176 ,422 ,29 ,108 ,317 ,412 ,248 ,299 ,15 ,434 ,143 ,240 ,307 ,26 ,190,271 ,243 ,74 ,439 ,170 ,298 ,349 ,115 ,138 ,126 ,273 ,475 ,375 ,137 ,334 ,453 ,26 ,281 ,348 ,392 ,198 ,355 ,295 ,280 ,252 ,316 ,12 ,463 ,129 ,495,32 ,102 ,239 ,370 ,67 ,4 ,237 ,248 ,126 ,81 ,266 ,21 ,298 ,124 ,375 ,20 ,240 ,67 ,58 ,387 ,176 ,390 ,402 ,360 ,72 ,320 ,304 ,63 ,41 ,444,189 ,495 ,142 ,333 ,206 ,203 ,106 ,183 ,39 ,345 ,145 ,498 ,63 ,56 ,22 ,381 ,94 ,178 ,63 ,78 ,235 ,326 ,412 ,339 ,431 ,333 ,483 ,175 ,83 ,320,330 ,103 ,135 ,284 ,134 ,163 ,84 ,280 ,56 ,83 ,168 ,294 ,446 ,151 ,191 ,371 ,127 ,74 ,474 ,358 ,44 ,9 ,231 ,427 ,469 ,183 ,12 ,220 ,469 ,95,31 ,350 ,246 ,119 ,158 ,402 ,494 ,235 ,241 ,112 ,79 ,339 ,472 ,394 ,125 ,282 ,349 ,270 ,91 ,333 ,214 ,365 ,138 ,144 ,370 ,178 ,410 ,317 ,108 ,205,35 ,276 ,125 ,186 ,143 ,259 ,385 ,303 ,427 ,290 ,241 ,484 ,293 ,209 ,264 ,211 ,124 ,351 ,441 ,432 ,258 ,80 ,480 ,287 ,387 ,429 ,162 ,476 ,187 ,401,382 ,488 ,312 ,100 ,194 ,398 ,365 ,60 ,474 ,120 ,357 ,399 ,306 ,13 ,255 ,446 ,174 ,489 ,166 ,110 ,155 ,273 ,262 ,351 ,179 ,99 ,244 ,409 ,243 ,490,89 ,322 ,265 ,392 ,117 ,384 ,104 ,231 ,475 ,442 ,333 ,485 ,62 ,203 ,248 ,103 ,130 ,21 ,320 ,312 ,239 ,144 ,259 ,110 ,118 ,462 ,175 ,83 ,90 ,175,410 ,334 ,265 ,117 ,497 ,277 ,400 ,1 ,140 ,410 ,197 ,289 ,58 ,286 ,471 ,137 ,363 ,221 ,60 ,341 ,391 ,181 ,478 ,377 ,203 ,12 ,51 ,399 ,286 ,428,371 ,477 ,243 ,326 ,20 ,126 ,159 ,251 ,248 ,500 ,275 ,483 ,490 ,365 ,451 ,145 ,104 ,66 ,99 ,66 ,176 ,328 ,60 ,222 ,394 ,120 ,108 ,218 ,287 ,437,492 ,82 ,2 ,30 ,404 ,482 ,187 ,474 ,137 ,122 ,161 ,30 ,491 ,145 ,426 ,487 ,91 ,285 ,142 ,304 ,431 ,488 ,144 ,492 ,129 ,98 ,409 ,349 ,134 ,391,321 ,128 ,238 ,494 ,497 ,377 ,247 ,64 ,428 ,191 ,105 ,423 ,402 ,434 ,47 ,277 ,278 ,87 ,150 ,41 ,228 ,311 ,47 ,33 ,69 ,411 ,165 ,101 ,393 ,365,174 ,287 ,463 ,462 ,214 ,417 ,256 ,116 ,267 ,406 ,140 ,159 ,494 ,119 ,468 ,274 ,361 ,53 ,224 ,267 ,382 ,419 ,75 ,462 ,492 ,367 ,375 ,204 ,276 ,78,48 ,300 ,140 ,350 ,480 ,122 ,316 ,282 ,470 ,495 ,376 ,244 ,250 ,401 ,488 ,375 ,53 ,221 ,186 ,308 ,448 ,393 ,316 ,115 ,406 ,198 ,296 ,442 ,399 ,40,27 ,148 ,430 ,392 ,450 ,385 ,111 ,345 ,273 ,61 ,109 ,411 ,408 ,3 ,94 ,485 ,210 ,424 ,295 ,274 ,436 ,84 ,213 ,35 ,438 ,432 ,80 ,321 ,19 ,355,482 ,444 ,361 ,268 ,210 ,109 ,480 ,415 ,406 ,350 ,141 ,38 ,28 ,334 ,313 ,230 ,494 ,153 ,410 ,363 ,370 ,292 ,190 ,457 ,97 ,26 ,415 ,77 ,67 ,412,126 ,216 ,231 ,485 ,298 ,113 ,141 ,122 ,289 ,89 ,194 ,413 ,390 ,71 ,207 ,82 ,421 ,316 ,404 ,134 ,451 ,477 ,176 ,128 ,470 ,360 ,467 ,345 ,292 ,453};
+#endif
+
 
 #ifdef TEST_WINDOW
 
@@ -428,61 +454,20 @@ int main(int argc, char *argv[])
 
 #ifdef TEST_2D_MODE
 
-// This example tests the 2D operations of the DMA
+// This example tests the 2D operations of the DMA and its padding capabilites
 
-#define SIZE_IN_D1 16
-#define SIZE_IN_D2 16
-#define SIZE_OUT_D1 14
-#define SIZE_OUT_D2 14
-#define STRIDE_IN_D1 1
-#define STRIDE_IN_D2 1
-#define STRIDE_OUT_D1 1
-#define STRIDE_OUT_D2 1
-#define TOP_PAD 4
-#define BOTTOM_PAD 4
-#define LEFT_PAD 4
-#define RIGHT_PAD 4
-#define OUT_D1 (SIZE_OUT_D1 + LEFT_PAD + RIGHT_PAD)
-#define OUT_D2 (SIZE_OUT_D2 + TOP_PAD + BOTTOM_PAD)
-#define OUT_DIM ( OUT_D1 * OUT_D2 )
-#define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ) )
-#define DMA_DATA_TYPE DMA_DATA_TYPE_HALF_WORD
 
-typedef uint16_t dma_data_type_tmp; // Change the datatype depending on the DMA_DATA_TYPE
-
-/*
 PRINTF("\n\n\r===================================\n\n\r");
 PRINTF("    TESTING 2D MODE   ");
 PRINTF("\n\n\r===================================\n\n\r");
-*/
+
 
 dma *peri = dma_peri;
 
-// Let's try to move a 2x2 window from a 4x4 matrix
-
-dma_data_type_tmp test_data_2D[SIZE_IN_D1 * SIZE_IN_D2] = {
-    12, 34, 85, 46, 95, 17, 58, 89, 23, 44, 68, 91, 14, 63, 24, 79,
-    25, 80, 47, 56, 73, 89, 20, 31, 42, 57, 68, 92, 103, 210, 180, 150,
-    45, 64, 23, 85, 95, 60, 20, 40, 55, 65, 75, 85, 120, 130, 140, 160,
-    35, 70, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160,
-    165, 170, 175, 180, 185, 190, 195, 200, 205, 210, 215, 220, 225, 230, 235, 240,
-    245, 250, 255, 260, 265, 270, 275, 280, 285, 290, 295, 300, 305, 310, 315, 320,
-    325, 330, 335, 340, 345, 350, 355, 360, 365, 370, 375, 380, 385, 390, 395, 400,
-    405, 410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 460, 465, 470, 475, 480,
-    485, 490, 495, 500, 505, 510, 515, 520, 525, 530, 535, 540, 545, 550, 555, 560,
-    565, 570, 575, 580, 585, 590, 595, 600, 605, 610, 615, 620, 625, 630, 635, 640,
-    645, 650, 655, 660, 665, 670, 675, 680, 685, 690, 695, 700, 705, 710, 715, 720,
-    725, 730, 735, 740, 745, 750, 755, 760, 765, 770, 775, 780, 785, 790, 795, 800,
-    805, 810, 815, 820, 825, 830, 835, 840, 845, 850, 855, 860, 865, 870, 875, 880,
-    885, 890, 895, 900, 905, 910, 915, 920, 925, 930, 935, 940, 945, 950, 955, 960,
-    965, 970, 975, 980, 985, 990, 995, 1000, 1005, 1010, 1015, 1020, 1025, 1030, 1035, 1040,
-    1045, 1050, 1055, 1060, 1065, 1070, 1075, 1080, 1085, 1090, 1095, 1100, 1105, 1110, 1115, 1120
-};
-
 int left_pad_cnt = 0;
 int top_pad_cnt = 0;
-dma_data_type_tmp copied_data_2D_DMA[OUT_DIM];
-dma_data_type_tmp copied_data_2D_CPU[OUT_DIM];
+dma_input_data_type copied_data_2D_DMA[OUT_DIM];
+dma_input_data_type copied_data_2D_CPU[OUT_DIM];
 uint32_t cycles_dma, cycles_cpu;
 uint32_t size_dst_trans_d1;
 uint32_t dst_stride_d1;
@@ -492,17 +477,24 @@ uint32_t src_stride_d1;
 uint32_t src_stride_d2;
 char passed = 1;
 
-//PRINTF("cpy_sz: %d\n\r", OUT_DIM);
-
-// Testing the DMA
+// Reset the counter to evaluate the performance of the DMA
 
 CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
 CSR_WRITE(CSR_REG_MCYCLE, 0);
 
 // Enable the interrupt
 
-peri->INTERRUPT_EN = 0x1;
-CSR_CLEAR_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+// Enable the DMA interrupt logic
+write_register(  
+                0x1,
+                DMA_INTERRUPT_EN_REG_OFFSET,
+                0x1,
+                DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT,
+                peri );
+
+// Enable global interrupts
+CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+// Enable fast interrupts
 CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
 
 // Now I need to set up the pointers
@@ -512,7 +504,8 @@ peri->DST_PTR = copied_data_2D_DMA;
 
 // Now set up the dimensionality configuration
 
-write_register(  0x1,
+write_register(  
+                0x1,
                 DMA_DIM_CONFIG_REG_OFFSET,
                 0x1,
                 DMA_DIM_CONFIG_DMA_DIM_BIT,
@@ -520,20 +513,11 @@ write_register(  0x1,
 
 // Set the operation mode
 
-peri->MODE = DMA_TRANS_MODE_SINGLE;
-
-// Set the input dimensions
-
-write_register(  SIZE_IN_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
-                DMA_SIZE_IN_REG_OFFSET,
-                DMA_SIZE_IN_D1_MASK,
-                DMA_SIZE_IN_D1_OFFSET,
-                peri );
-
-write_register(  SIZE_IN_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
-                DMA_SIZE_IN_REG_OFFSET,
-                DMA_SIZE_IN_D2_MASK,
-                DMA_SIZE_IN_D2_OFFSET,
+write_register(  
+                DMA_TRANS_MODE_SINGLE,
+                DMA_MODE_REG_OFFSET,
+                DMA_MODE_MODE_MASK,
+                DMA_MODE_MODE_OFFSET,
                 peri );
 
 // Set the data type
@@ -553,8 +537,6 @@ src_stride_d1 = STRIDE_IN_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE );
 // The d2 stride is not the tipitcal stride but rather the distance between the first element of the next row and the first element of the current row
 src_stride_d2 = STRIDE_IN_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ) * SIZE_IN_D1 - (size_src_trans_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ) + (src_stride_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE )) * (SIZE_OUT_D1 - 1));
 
-//PRINTF("src_s_d2: %d\n\r", src_stride_d2);
-
 write_register(  src_stride_d1,
                 DMA_SRC_PTR_INC_REG_OFFSET,
                 DMA_SRC_PTR_INC_SRC_PTR_INC_D1_MASK,
@@ -572,7 +554,8 @@ size_dst_trans_d1 = SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE );
 
 dst_stride_d1 = STRIDE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE );
 
-// The d2 stride is not the tipitcal stride but rather the distance between the first element of the next row and the first element of the current row
+// The d2 stride is not the tipical stride but rather the distance between 
+// the first element of the next row and the first element of the current row
 dst_stride_d2 = STRIDE_OUT_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ) * (OUT_D1 - LEFT_PAD - RIGHT_PAD) - (size_dst_trans_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ) + (dst_stride_d1 - DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE )) * (SIZE_OUT_D1 - 1));
 
 write_register(  dst_stride_d1,
@@ -589,35 +572,43 @@ write_register(  dst_stride_d2,
 
 // Set the padding
 
-write_register(  TOP_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+write_register( TOP_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
                 DMA_PAD_REG_OFFSET,
                 DMA_PAD_TOP_PAD_MASK,
                 DMA_PAD_TOP_PAD_OFFSET,
                 peri );
 
-write_register(  RIGHT_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+write_register( RIGHT_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
                 DMA_PAD_REG_OFFSET,
                 DMA_PAD_RIGHT_PAD_MASK,
                 DMA_PAD_RIGHT_PAD_OFFSET,
                 peri );
 
-write_register(  LEFT_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+write_register( LEFT_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
                 DMA_PAD_REG_OFFSET,
                 DMA_PAD_LEFT_PAD_MASK,
                 DMA_PAD_LEFT_PAD_OFFSET,
                 peri );
 
-write_register(  BOTTOM_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+write_register( BOTTOM_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
                 DMA_PAD_REG_OFFSET,
                 DMA_PAD_BOTTOM_PAD_MASK,
                 DMA_PAD_BOTTOM_PAD_OFFSET,
                 peri );
 
 // Set the sizes
-    
-peri->SIZE_TR_D2 = SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ); 
 
-peri->SIZE_TR_D1 = SIZE_OUT_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ); // Now the transaction should start
+write_register( SIZE_OUT_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+                DMA_SIZE_TR_D2_REG_OFFSET,
+                DMA_SIZE_TR_D2_SIZE_MASK,
+                DMA_SIZE_TR_D2_SIZE_OFFSET,
+                peri );
+
+write_register( SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+                DMA_SIZE_TR_D1_REG_OFFSET,
+                DMA_SIZE_TR_D1_SIZE_MASK,
+                DMA_SIZE_TR_D1_SIZE_OFFSET,
+                peri );
 
 while( ! dma_is_ready()) {
     // disable_interrupts
@@ -630,32 +621,34 @@ while( ! dma_is_ready()) {
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
 }
 
+// Read the cycles count after the DMA run
 CSR_READ(CSR_REG_MCYCLE, &cycles_dma);
 
+// Reset the performance counter to evaluate the CPU performance
 CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-
 CSR_WRITE(CSR_REG_MCYCLE, 0);
 
-// Now let's do the same with the CPU
+int read_ptr = 0, write_ptr = 0;
 
+// Run the same computation on the CPU
 for (int i=0; i < OUT_D2; i++)
 {
     for (int j=0; j < OUT_D1; j++)
     {
+        read_ptr = i * STRIDE_OUT_D2 * OUT_D1 + j * STRIDE_OUT_D1;
+        write_ptr = (i - top_pad_cnt ) * STRIDE_IN_D2 * SIZE_IN_D1 + (j - left_pad_cnt) * STRIDE_IN_D1;
         if (i < TOP_PAD || i >= SIZE_OUT_D2 + BOTTOM_PAD || j < LEFT_PAD || j >= SIZE_OUT_D1 + RIGHT_PAD)
         {
-            copied_data_2D_CPU[i * STRIDE_OUT_D2 * OUT_D1 + j * STRIDE_OUT_D1] = 0;
+            copied_data_2D_CPU[read_ptr] = 0;
         }
         else
         {
-            copied_data_2D_CPU[i * STRIDE_OUT_D2 * OUT_D1 + j * STRIDE_OUT_D1] = test_data_2D[(i - top_pad_cnt ) * STRIDE_IN_D2 * SIZE_IN_D1 + (j - left_pad_cnt) * STRIDE_IN_D1 ];
+            copied_data_2D_CPU[read_ptr] = test_data_2D[write_ptr];
         }
         if (j < LEFT_PAD && i >= TOP_PAD)
         {
             left_pad_cnt++;
         }
-        //PRINTF("i: %d, j: %d, %d, %d, %d, %d\n\r", i, j, (i + STRIDE_OUT_D2 - 1) * OUT_D1 + j + STRIDE_OUT_D1 - 1, (i - top_pad_cnt + STRIDE_IN_D2 - 1) * SIZE_IN_D1 + j - left_pad_cnt + STRIDE_IN_D1 - 1, copied_data_2D_CPU[(i + STRIDE_OUT_D2 - 1) * OUT_D1 + j + STRIDE_OUT_D1 - 1], test_data_2D[(i - top_pad_cnt + STRIDE_IN_D2 - 1) * SIZE_IN_D1 + j - left_pad_cnt + STRIDE_IN_D1 - 1]);
-        
     }
     if (i < TOP_PAD)
     {
@@ -664,11 +657,11 @@ for (int i=0; i < OUT_D2; i++)
     left_pad_cnt = 0;
 }
 
+// Read the cycles count after the CPU run
 CSR_READ(CSR_REG_MCYCLE, &cycles_cpu);
 
 PRINTF("DMA: %d\n\r", cycles_dma);
 PRINTF("CPU: %d \n\r", cycles_cpu);
-
 PRINTF("\n\r");
 
 
@@ -678,7 +671,7 @@ for (int i = 0; i < OUT_D2; i++) {
     }
     PRINTF("\n\r");
 }
-/*
+
 PRINTF("\n\r");
 
 for (int i = 0; i < OUT_D2; i++) {
@@ -687,8 +680,8 @@ for (int i = 0; i < OUT_D2; i++) {
     }
     PRINTF("\n\r");
 }
-*/
 
+// Verify that the DMA and the CPU outputs are the same
 for (int i = 0; i < OUT_D2; i++) {
     for (int j = 0; j < OUT_D1; j++) {
         if (copied_data_2D_DMA[i * OUT_D1 + j] != copied_data_2D_CPU[i * OUT_D1 + j]) {

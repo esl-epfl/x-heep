@@ -134,6 +134,20 @@ typedef enum
     DMA_DATA_TYPE__undef,   /*!< DMA will not be used. */
 } dma_data_type_t;
 
+typedef enum
+{
+    DMA_DIM_CONF_D1 = 0, // The DMA will copy data along D1 only.
+    DMA_DIM_CONF_D2 = 1, // The DMA will copy data along D1 and D2.
+    DMA_DIM_CONF__size,  // Not used, only for sanity checks.
+    /*
+        Padding is enabled with the 2D mode. This means that to pad a 1D
+        data structure, i.e. an array, the DMA would have to be set in 2D
+        mode with the D2 dimension set to 1.
+        This case is handled by the DMA HAL, so it's transparent to the user.
+     */
+} dma_dim_t;
+
+
 /**
  * It is possible to choose the level of safety with which the DMA operation
  * should be configured.
@@ -290,8 +304,6 @@ typedef struct
     to be copied along D2.*/
     dma_data_type_t         type;    /*!< The type of data to be transferred.
     Can be left blank if the target will only be used as destination. */
-    uint8_t                 dimensionality; /*!< Sets the dimensionality of the
-    DMA, either 1D or 2D. */
     dma_trigger_slot_mask_t trig;    /*!< If the target is a peripheral, a
     trigger can be set to control the data flow.  */
 } dma_target_t;
@@ -316,6 +328,12 @@ typedef struct
     contrast, the size stored in the targets is in data units). */
     uint32_t            size_d2_b; /*!< The size of the transfer along D2, in bytes (in
     contrast, the size stored in the targets is in data units). */
+    dma_dim_t           dim; /*!< Sets the dimensionality of the
+    DMA, either 1D or 2D. */
+    uint8_t             pad_top; /*!< Padding at the top of the 2D transfer. */
+    uint8_t             pad_bottom; /*!< Padding at the bottom of the 2D transfer. */
+    uint8_t             pad_left; /*!< Padding at the left of the 2D transfer. */
+    uint8_t             pad_right; /*!< Padding at the right of the 2D transfer. */
     dma_data_type_t     type;   /*!< The data type to use. One is chosen among
     the targets. */
     dma_trans_mode_t    mode;   /*!< The copy mode to use. */
