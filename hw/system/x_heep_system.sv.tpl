@@ -32,7 +32,8 @@ module x_heep_system
     //output logic [NumChannels-1:0][NumLanes-1:0] ddr_o
     input  logic [NumLanes-1:0] ddr_i,
     output logic [NumLanes-1:0] ddr_o,
-
+    input  logic [NumChannels-1:0]    ddr_rcv_clk_i,  // adapt for multi channel
+    output logic [NumChannels-1:0]    ddr_rcv_clk_o,
 
       //output obi_req_t obi_req_obi2axi,
       //input obi_resp_t obi_resp_obi2axi,
@@ -170,7 +171,9 @@ ${pad.core_v_mini_mcu_bonding}
     .ext_dma_slot_tx_i,
     .ext_dma_slot_rx_i,
     .ddr_i,
-    .ddr_o
+    .ddr_rcv_clk_i,
+    .ddr_o,
+    .ddr_rcv_clk_o
   );
 
   pad_ring pad_ring_i (

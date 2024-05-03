@@ -8,13 +8,14 @@ package testharness_pkg;
   import core_v_mini_mcu_pkg::*;
 
   localparam EXT_XBAR_NMASTER = 5;  //4
-  localparam EXT_XBAR_NSLAVE = 1;
+  localparam EXT_XBAR_NSLAVE = 2;
 
   //master idx
   localparam logic [31:0] EXT_MASTER0_IDX = 0;
   localparam logic [31:0] EXT_MASTER1_IDX = 1;
   localparam logic [31:0] EXT_MASTER2_IDX = 2;
   localparam logic [31:0] EXT_MASTER3_IDX = 3;
+  localparam logic [31:0] EXT_MASTER4_IDX = 4;  // serial link external master
 
   //slave mmap and idx
   localparam logic [31:0] SLOW_MEMORY_START_ADDRESS = core_v_mini_mcu_pkg::EXT_SLAVE_START_ADDRESS;
@@ -22,12 +23,14 @@ package testharness_pkg;
   localparam logic [31:0] SLOW_MEMORY_END_ADDRESS = SLOW_MEMORY_START_ADDRESS + SLOW_MEMORY_SIZE;
   localparam logic [31:0] SLOW_MEMORY_IDX = 32'd0;
 
+
   localparam addr_map_rule_t [EXT_XBAR_NSLAVE-1:0] EXT_XBAR_ADDR_RULES = '{
       '{
           idx: SLOW_MEMORY_IDX,
           start_addr: SLOW_MEMORY_START_ADDRESS,
           end_addr: SLOW_MEMORY_END_ADDRESS
-      }
+      },
+      '{idx: SL_IDX, start_addr: SL_START_ADDRESS, end_addr: SL_END_ADDRESS}
   };
 
   //slave encoder
@@ -57,6 +60,13 @@ package testharness_pkg;
   localparam logic [31:0] SIMPLE_ACC_END_ADDRESS = SIMPLE_ACC_START_ADDRESS + SIMPLE_ACC_SIZE;
   localparam logic [31:0] SIMPLE_ACC_IDX = 32'd3;
 
+  // External Serial Link
+  localparam logic [31:0] SL_START_ADDRESS = core_v_mini_mcu_pkg::EXT_SLAVE_START_ADDRESS+ 32'h04000;
+  localparam logic [31:0] SL_SIZE = 32'h200;
+  localparam logic [31:0] SL_END_ADDRESS = SL_START_ADDRESS + SL_SIZE;
+  localparam logic [31:0] SL_IDX = 32'd4;
+
+
   localparam addr_map_rule_t [EXT_NPERIPHERALS-1:0] EXT_PERIPHERALS_ADDR_RULES = '{
       '{
           idx: MEMCOPY_CTRL_IDX,
@@ -65,6 +75,7 @@ package testharness_pkg;
       },
       '{idx: AMS_IDX, start_addr: AMS_START_ADDRESS, end_addr: AMS_END_ADDRESS},
       '{idx: IFFIFO_IDX, start_addr: IFFIFO_START_ADDRESS, end_addr: IFFIFO_END_ADDRESS},
+
       '{
           idx: SIMPLE_ACC_IDX,
           start_addr: SIMPLE_ACC_START_ADDRESS,

@@ -97,10 +97,11 @@ ${pad.core_v_mini_mcu_interface}
     //output logic [NumChannels-1:0]    ddr_rcv_clk_o,
     //input  logic [NumChannels-1:0][NumLanes-1:0] ddr_i,
     //output logic [NumChannels-1:0][NumLanes-1:0] ddr_o
-    input  logic [NumLanes-1:0] ddr_i,
-    output logic [NumLanes-1:0] ddr_o
-
-
+    input  logic [NumLanes-1:0]     ddr_i,
+    input  logic [NumChannels-1:0]  ddr_rcv_clk_i,
+    output logic [NumLanes-1:0]     ddr_o,
+    output logic [NumChannels-1:0]  ddr_rcv_clk_o
+     
     //  output obi_req_t obi_req_obi2axi,
     //  input obi_resp_t obi_resp_obi2axi
     % endif
@@ -690,19 +691,32 @@ ${pad.core_v_mini_mcu_interface}
     .rst_reg_ni(rst_ni),      //intended for SW reset purposes
 
     .testmode_i('0),
-
+    //from x-heep to outside
     .axi_in_req_i(axi_in_req_i),
-    .axi_in_rsp_o(axi_in_rsp_o),
+    .axi_in_rsp_o(axi_out_rsp_i),
+
+    //from outside to x-heep
     .axi_out_req_o(axi_out_req_o),
-    .axi_out_rsp_i(axi_out_rsp_i),
+    .axi_out_rsp_i(axi_in_rsp_o),
 
     .cfg_req_i(cfg_req_t),    //register configuration
     .cfg_rsp_o(cfg_rsp_t),
 
+    //from x-heep to outside
     .ddr_rcv_clk_i(clk_i),    //Source-synchronous input clock to sample data. One clock per channel   
-    .ddr_rcv_clk_o(),         //Source-synchronous output clock which is forwarded together with the data. One clock per channel
     .ddr_i,                   //Double-Data-Rate (DDR) input data
+
+    //from outside to x-heep
+    .ddr_rcv_clk_o(),         //Source-synchronous output clock which is forwarded together with the data. One clock per channel
     .ddr_o                    //Double-Data-Rate (DDR) output data
+
+
+
+
+    ///input  axi_req_t                  axi_in_req_i,
+  //output axi_rsp_t                  axi_in_rsp_o,
+  //output axi_req_t                  axi_out_req_o,
+  //input  axi_rsp_t                  axi_out_rsp_i,
   );
   % endif
 % endif
