@@ -318,14 +318,6 @@ w25q_error_codes_t w25q128jw_write(uint32_t addr, void *data, uint32_t length, u
 }
 
 w25q_error_codes_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t length) {
-    /*  FIX
-     *  
-     *  vvvvv  NEEDS TO BE FIXED  vvvvv
-     */
-    // spi = SPI_IDX_FLASH;
-    /*
-     *  ===============================
-     */
     // Sanity checks
     if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
