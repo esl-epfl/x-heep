@@ -42,13 +42,8 @@
 /**                                                                        **/
 /****************************************************************************/
 
-#define SPI_EVENTS_MASK     BIT_MASK_6
 #define SPI_EVENTS_INDEX    0
-#define SPI_ERRORS_IRQ_MASK BIT_MASK_5
-#define SPI_ERRORS_MASK     BIT_MASK_6
 #define SPI_ERRORS_INDEX    0
-
-#define SPI_CLEAR_ERRORS_STATE_VALUE (1 << SPI_ERRORS_MASK + 1) - 1
 
 /****************************************************************************/
 /**                                                                        **/
@@ -76,21 +71,6 @@ spi_return_flags_e spi_get_events(spi_host_t spi, spi_event_e* events);
 /**                                                                        **/
 /****************************************************************************/
 
-static spi_host_t _spi_flash = {
-    .peri       = ((volatile spi_host *) SPI_FLASH_START_ADDRESS),
-    .base_addr  = SPI_FLASH_START_ADDRESS,
-};
-
-static spi_host_t _spi_host = {
-    .peri       = ((volatile spi_host *) SPI_HOST_START_ADDRESS),
-    .base_addr  = SPI_HOST_START_ADDRESS,
-};
-
-static spi_host_t _spi_host2 = {
-    .peri       = ((volatile spi_host *) SPI2_START_ADDRESS),
-    .base_addr  = SPI2_START_ADDRESS,
-};
-
 /****************************************************************************/
 /**                                                                        **/
 /*                           EXPORTED FUNCTIONS                             */
@@ -98,64 +78,64 @@ static spi_host_t _spi_host2 = {
 /****************************************************************************/
 
 spi_host_t spi_init_flash() {
-    return _spi_flash;
+    return (spi_host_t) SPI_FLASH_INIT;
 }
 
 spi_host_t spi_init_host() {
-    return _spi_host;
+    return (spi_host_t) SPI_HOST_INIT;
 }
 
 spi_host_t spi_init_host2() {
-    return _spi_host2;
+    return (spi_host_t) SPI_HOST2_INIT;
 }
 
 spi_return_flags_e spi_get_events_enabled(spi_host_t spi, spi_event_e* events) 
 {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
-    *events = bitfield_read(spi.peri->EVENT_ENABLE, SPI_EVENTS_MASK, SPI_EVENTS_INDEX);
+    *events = bitfield_read(spi.peri->EVENT_ENABLE, SPI_EVENT_ALL, SPI_EVENTS_INDEX);
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_events_enabled(spi_host_t spi, spi_event_e* events, bool enable) 
+spi_return_flags_e spi_set_events_enabled(spi_host_t spi, spi_event_e events, bool enable) 
 {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
-    if (*events > SPI_EVENT_ALL) return SPI_FLAG_EVENT_INVALID;
-    if (enable) spi.peri->EVENT_ENABLE |= *events;
-    else        spi.peri->EVENT_ENABLE &= ~*events;
+    if (events > SPI_EVENT_ALL) return SPI_FLAG_EVENT_INVALID;
 
-    *events = bitfield_read(spi.peri->EVENT_ENABLE, SPI_EVENTS_MASK, SPI_EVENTS_INDEX);
+    if (enable) spi.peri->EVENT_ENABLE |= events;
+    else        spi.peri->EVENT_ENABLE &= ~events;
+
     return SPI_FLAG_OK;
 }
 
 spi_return_flags_e spi_get_errors_enabled(spi_host_t spi, spi_error_e* errors) 
 {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
-    *errors = bitfield_read(spi.peri->ERROR_ENABLE, SPI_ERRORS_IRQ_MASK, SPI_ERRORS_INDEX);
+    *errors = bitfield_read(spi.peri->ERROR_ENABLE, SPI_ERROR_IRQALL, SPI_ERRORS_INDEX);
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_errors_enabled(spi_host_t spi, spi_error_e* errors, bool enable)
+spi_return_flags_e spi_set_errors_enabled(spi_host_t spi, spi_error_e errors, bool enable)
 {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
-    if (*errors > SPI_ERROR_IRQALL) return SPI_FLAG_ERROR_INVALID;
-    if (enable) spi.peri->ERROR_ENABLE |= *errors;
-    else        spi.peri->ERROR_ENABLE &= ~*errors;
+    if (errors > SPI_ERROR_IRQALL) return SPI_FLAG_ERROR_INVALID;
 
-    *errors = bitfield_read(spi.peri->ERROR_ENABLE, SPI_ERRORS_IRQ_MASK, SPI_ERRORS_INDEX);
+    if (enable) spi.peri->ERROR_ENABLE |= errors;
+    else        spi.peri->ERROR_ENABLE &= ~errors;
+
     return SPI_FLAG_OK;
 }
 
 spi_return_flags_e spi_get_errors(spi_host_t spi, spi_error_e* errors)
 {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
-    *errors = bitfield_read(spi.peri->ERROR_STATUS, SPI_ERRORS_MASK, SPI_ERRORS_INDEX);
+    *errors = bitfield_read(spi.peri->ERROR_STATUS, SPI_ERROR_ALL, SPI_ERRORS_INDEX);
     return SPI_FLAG_OK;
 }
 
 spi_return_flags_e spi_acknowledge_errors(spi_host_t spi) {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
-    bitfield_write(spi.peri->ERROR_STATUS, SPI_ERRORS_MASK, SPI_ERRORS_INDEX, SPI_CLEAR_ERRORS_STATE_VALUE);
-    bitfield_write(spi.peri->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_ERROR_BIT, 1);
+    spi.peri->ERROR_STATUS = bitfield_write(spi.peri->ERROR_STATUS, SPI_ERROR_ALL, SPI_ERRORS_INDEX, SPI_ERROR_ALL);
+    spi.peri->INTR_STATE   = bitfield_write(spi.peri->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_ERROR_BIT, 1);
     return SPI_FLAG_OK;
 }
 
@@ -190,12 +170,13 @@ spi_return_flags_e spi_alert_test_fatal_fault_trigger(spi_host_t spi) {
     return SPI_FLAG_OK;
 }
 
-// return max(uint8_t) on NULL pointer
+// TODO: This is redundant... just use get_status...
 volatile uint8_t spi_get_tx_queue_depth(spi_host_t spi) {
-    if (spi.peri == NULL) return -1;
+    if (spi.peri == NULL) return UINT8_MAX;
     return spi_get_status(spi)->txqd;
 }
 
+// TODO: This is redundant... just use get_status...
 spi_return_flags_e spi_get_tx_channel_status(spi_host_t spi, volatile spi_ch_status_t* ch_status) {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
     volatile spi_status_t* status = spi_get_status(spi);
@@ -206,12 +187,13 @@ spi_return_flags_e spi_get_tx_channel_status(spi_host_t spi, volatile spi_ch_sta
     return SPI_FLAG_OK;
 }
 
-// return max(uint8_t) on NULL pointer
+// TODO: This is redundant... just use get_status...
 volatile uint8_t spi_get_rx_queue_depth(spi_host_t spi) {
-    if (spi.peri == NULL) return -1;
+    if (spi.peri == NULL) return UINT8_MAX;
     return spi_get_status(spi)->rxqd;
 }
 
+// TODO: This is redundant... just use get_status...
 spi_return_flags_e spi_get_rx_channel_status(spi_host_t spi, volatile spi_ch_status_t* ch_status) {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
     volatile spi_status_t* status = spi_get_status(spi);
@@ -222,22 +204,28 @@ spi_return_flags_e spi_get_rx_channel_status(spi_host_t spi, volatile spi_ch_sta
     return SPI_FLAG_OK;
 }
 
-// return max(uint32_t) on NULL pointer
 volatile uint32_t spi_get_csid(spi_host_t spi) {
-    if (spi.peri == NULL) return -1;
+    if (spi.peri == NULL) return UINT32_MAX;
     return spi.peri->CSID;
 }
 
 spi_return_flags_e spi_sw_reset(spi_host_t spi) {
     if (spi.peri == NULL) return SPI_FLAG_NULL_PTR;
+
+    // Assert spi reset bit
     volatile uint32_t ctrl_reg = spi.peri->CONTROL;
-    ctrl_reg = bitfield_write(ctrl_reg, BIT_MASK_1, SPI_HOST_CONTROL_SW_RST_BIT, 1);
+    ctrl_reg = bitfield_write(ctrl_reg, BIT_MASK_1, SPI_HOST_CONTROL_SW_RST_BIT, true);
     spi.peri->CONTROL = ctrl_reg;
+
     volatile spi_status_t* status = spi_get_status(spi);
-    while (status->active | status->txqd | status->rxqd);
-    // ctrl_reg = spi.peri->CONTROL;
-    ctrl_reg = bitfield_write(ctrl_reg, BIT_MASK_1, SPI_HOST_CONTROL_SW_RST_BIT, 0);
+
+    // Wait for spi active and txqd & rxqd both go to 0
+    while (status->active || status->txqd || status->rxqd);
+
+    // Deassert spi reset bit
+    ctrl_reg = bitfield_write(ctrl_reg, BIT_MASK_1, SPI_HOST_CONTROL_SW_RST_BIT, false);
     spi.peri->CONTROL = ctrl_reg;
+    
     return SPI_FLAG_OK;
 }
 
@@ -251,8 +239,8 @@ spi_return_flags_e spi_set_enable(spi_host_t spi, bool enable) {
 
 spi_return_flags_e spi_set_tx_watermark(spi_host_t spi, uint8_t watermark) {
     spi_return_flags_e flags = SPI_FLAG_OK;
-    if (spi.peri == NULL) flags += SPI_FLAG_NULL_PTR;
-    if (watermark > SPI_HOST_PARAM_TX_DEPTH) flags += SPI_FLAG_WATERMARK_EXCEEDS;
+    if (spi.peri == NULL)                    flags |= SPI_FLAG_NULL_PTR;
+    if (watermark > SPI_HOST_PARAM_TX_DEPTH) flags |= SPI_FLAG_WATERMARK_EXCEEDS;
     if (flags) return flags;
 
     volatile uint32_t ctrl_reg = spi.peri->CONTROL;
@@ -263,8 +251,8 @@ spi_return_flags_e spi_set_tx_watermark(spi_host_t spi, uint8_t watermark) {
 
 spi_return_flags_e spi_set_rx_watermark(spi_host_t spi, uint8_t watermark) {
     spi_return_flags_e flags = SPI_FLAG_OK;
-    if (spi.peri == NULL) flags += SPI_FLAG_NULL_PTR;
-    if (watermark > SPI_HOST_PARAM_RX_DEPTH) flags += SPI_FLAG_WATERMARK_EXCEEDS;
+    if (spi.peri == NULL)                    flags |= SPI_FLAG_NULL_PTR;
+    if (watermark > SPI_HOST_PARAM_RX_DEPTH) flags |= SPI_FLAG_WATERMARK_EXCEEDS;
     if (flags) return flags;
 
     volatile uint32_t ctrl_reg = spi.peri->CONTROL;
@@ -311,8 +299,8 @@ spi_return_flags_e spi_get_configopts(spi_host_t spi, uint32_t csid, uint32_t* c
 
 spi_return_flags_e spi_set_csid(spi_host_t spi, uint32_t csid) {
     spi_return_flags_e flags = SPI_FLAG_OK;
-    if (spi.peri == NULL) flags += SPI_FLAG_NULL_PTR;
-    if (SPI_CSID_INVALID(csid)) flags += SPI_FLAG_CSID_INVALID;
+    if (spi.peri == NULL)       flags |= SPI_FLAG_NULL_PTR;
+    if (SPI_CSID_INVALID(csid)) flags |= SPI_FLAG_CSID_INVALID;
     if (flags) return flags;
 
     spi.peri->CSID = csid;
@@ -326,11 +314,8 @@ spi_return_flags_e spi_set_command(spi_host_t spi, const uint32_t cmd_reg) {
     spi_speed_e speed   = bitfield_read(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, SPI_HOST_COMMAND_SPEED_OFFSET);
     spi_dir_e direction = bitfield_read(cmd_reg, SPI_HOST_COMMAND_DIRECTION_MASK, SPI_HOST_COMMAND_DIRECTION_OFFSET);
 
-    if (spi_get_status(spi)->cmdqd >= SPI_HOST_PARAM_CMD_DEPTH)
-        flags += SPI_FLAG_COMMAND_FULL;
-    if (speed > SPI_SPEED_QUAD || (direction == SPI_DIR_BIDIR && speed != SPI_SPEED_STANDARD))
-        flags += SPI_FLAG_SPEED_INVALID;
-    if (!spi_get_ready(spi)) flags += SPI_FLAG_NOT_READY;
+    if (!spi_validate_cmd(direction, speed))     flags |= SPI_FLAG_SPEED_INVALID;
+    if (spi_get_ready(spi) != SPI_TRISTATE_TRUE) flags |= SPI_FLAG_NOT_READY;
     if (flags) return flags;
 
     spi.peri->COMMAND = cmd_reg;
@@ -377,6 +362,7 @@ spi_return_flags_e spi_output_enable(spi_host_t spi, bool enable){
 
 void handler_irq_spi(uint32_t id)
 {
+    spi_host_t _spi_host2 = SPI_HOST2_INIT;
     spi_error_e errors;
     spi_get_errors(_spi_host2, &errors);
     if (errors) {
@@ -392,6 +378,7 @@ void handler_irq_spi(uint32_t id)
 
 void fic_irq_spi(void)
 {
+    spi_host_t _spi_host = SPI_HOST_INIT;
     spi_error_e errors;
     spi_get_errors(_spi_host, &errors);
     if (errors) {
@@ -407,6 +394,7 @@ void fic_irq_spi(void)
 
 void fic_irq_spi_flash(void)
 {
+    spi_host_t _spi_flash = SPI_FLASH_INIT;
     spi_error_e errors;
     spi_get_errors(_spi_flash, &errors);
     if (errors) {
