@@ -59,7 +59,7 @@
 /****************************************************************************/
 
 typedef struct {
-    spi_host_t        instance;
+    spi_host_t*       instance;
     volatile bool     busy;
     spi_transaction_t txn;
     uint32_t          scnt;
@@ -99,7 +99,7 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events);
 
 static spi_peripheral_t _peripherals[] = {
     (spi_peripheral_t) {
-        .instance  = SPI_FLASH_INIT,
+        .instance  = spi_flash,
         .busy      = false,
         .txn       = {0},
         .scnt      = 0,
@@ -109,7 +109,7 @@ static spi_peripheral_t _peripherals[] = {
         .err_cb    = NULL
     },
     (spi_peripheral_t) {
-        .instance  = SPI_HOST_INIT,
+        .instance  = spi_host1,
         .busy      = false,
         .txn       = {0},
         .scnt      = 0,
@@ -119,7 +119,7 @@ static spi_peripheral_t _peripherals[] = {
         .err_cb    = NULL
     },
     (spi_peripheral_t) {
-        .instance  = SPI_HOST2_INIT,
+        .instance  = spi_host2,
         .busy      = false,
         .txn       = {0},
         .scnt      = 0,

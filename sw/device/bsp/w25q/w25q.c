@@ -212,7 +212,8 @@ static int32_t MIN(int32_t a, int32_t b) {
 /**
  * @brief SPI structure.
 */
-spi_host_t __attribute__((section(".xheep_init_data_crt0"))) spi; //this variable is also used by the crt0, thus keep it in this section
+spi_host_t* __attribute__((section(".xheep_init_data_crt0"))) spi; //this variable is also used by the crt0, thus keep it in this section
+// spi_idx_e __attribute__((section(".xheep_init_data_crt0"))) spi; //this variable is also used by the crt0, thus keep it in this section
 
 /**
  * @brief Static vector used in the erase_and_write function.
@@ -234,12 +235,12 @@ uint8_t sector_data[FLASH_SECTOR_SIZE];
 void w25q128jw_init_crt0() {
     //make sure spi variable is into the xheep_init_data_crt0 section
     // spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
-    spi = spi_init_flash();
+    spi = spi_flash;
     return;
 }
 
 // w25q_error_codes_t w25q128jw_init(spi_host_t spi_host) {
-w25q_error_codes_t w25q128jw_init(spi_host_t spi_host) {
+w25q_error_codes_t w25q128jw_init(spi_host_t* spi_host) {
     /*
      * Check if memory mapped SPI is enabled. Current version of the bsp
      * does not support memory mapped SPI.
@@ -448,7 +449,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
      * SET UP DMA
     */
     // SPI and SPI_FLASH are the same IP so same register map
-    uint32_t *fifo_ptr_rx = spi.base_addr + SPI_HOST_RXDATA_REG_OFFSET;
+    uint32_t *fifo_ptr_rx = (uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET;
 
     // Init DMA, the integrated DMA is used (peri == NULL)
     dma_init(NULL);
@@ -789,7 +790,7 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
      * SET UP DMA
     */
     // SPI and SPI_FLASH are the same IP so same register map
-    uint32_t *fifo_ptr_rx = spi.base_addr + SPI_HOST_RXDATA_REG_OFFSET;
+    uint32_t *fifo_ptr_rx = (uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET;
 
     // Init DMA, the integrated DMA is used (peri == NULL)
     dma_init(NULL);
@@ -1355,7 +1356,7 @@ static w25q_error_codes_t page_write(uint32_t addr, uint8_t *data, uint32_t leng
 
 static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
     // SPI and SPI_FLASH are the same IP so same register map
-    uint32_t *fifo_ptr_tx = spi.base_addr + SPI_HOST_TXDATA_REG_OFFSET;
+    uint32_t *fifo_ptr_tx = (uintptr_t)spi + SPI_HOST_TXDATA_REG_OFFSET;
 
     // Init DMA, the integrated DMA is used (peri == NULL)
     dma_init(NULL);
