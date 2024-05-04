@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    spi_segment_t segments[2] = {SPI_SEG_TX(1),SPI_SEG_RX(10)};
+    spi_segment_t segments[2] = {SPI_SEG_TX(4),SPI_SEG_RX(40)};
     uint32_t read_byte_cmd = ((bitfield_byteswap32(10 & 0x00ffffff)) | 0x03);
 
     uint32_t rxbuffer[10];
