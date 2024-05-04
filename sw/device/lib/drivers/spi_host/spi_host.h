@@ -720,42 +720,42 @@ void fic_irq_spi_flash(void);
  *        triggered on the SPI Flash.
  *        Replace with your own implementation.
  */
-__attribute__((weak, optimize("O0"))) void spi_intr_handler_event_flash(spi_event_e events);
+void spi_intr_handler_event_flash(spi_event_e events);
 
 /**
  * @brief weak implementation of the function that gets called when an error interrupt is
  *        triggered on the SPI Flash.
  *        Replace with your own implementation.
  */
-__attribute__((weak, optimize("O0"))) void spi_intr_handler_error_flash(spi_error_e errors);
+void spi_intr_handler_error_flash(spi_error_e errors);
 
 /**
  * @brief weak implementation of the function that gets called when an event interrupt is
  *        triggered on the SPI Host.
  *        Replace with your own implementation.
  */
-__attribute__((weak, optimize("O0"))) void spi_intr_handler_event_host(spi_event_e events);
+void spi_intr_handler_event_host(spi_event_e events);
 
 /**
  * @brief weak implementation of the function that gets called when an error interrupt is
  *        triggered on the SPI Host.
  *        Replace with your own implementation.
  */
-__attribute__((weak, optimize("O0"))) void spi_intr_handler_error_host(spi_error_e errors);
+void spi_intr_handler_error_host(spi_error_e errors);
 
 /**
  * @brief weak implementation of the function that gets called when an event interrupt is
  *        triggered on the SPI Host 2.
  *        Replace with your own implementation.
  */
-__attribute__((weak, optimize("O0"))) void spi_intr_handler_event_host2(spi_event_e events);
+void spi_intr_handler_event_host2(spi_event_e events);
 
 /**
  * @brief weak implementation of the function that gets called when an error interrupt is
  *        triggered on the SPI Host 2.
  *        Replace with your own implementation.
  */
-__attribute__((weak, optimize("O0"))) void spi_intr_handler_error_host2(spi_error_e errors);
+void spi_intr_handler_error_host2(spi_error_e errors);
 
 
 #ifdef __cplusplus

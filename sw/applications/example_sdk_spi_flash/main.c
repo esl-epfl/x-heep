@@ -12,6 +12,8 @@
 
 #include "x-heep.h"
 #include "spi_sdk.h"
+#include "spi_host.h"
+// #include "spi_host_structs.h"
 #include "soc_ctrl_structs.h"
 #include "bitfield.h"
 
@@ -39,7 +41,7 @@ int main(int argc, char *argv[]) {
         .csn_trail = 15,
         .data_mode = SPI_DATA_MODE_0,
         .full_cycle = false,
-        .freq = soc_ctrl_peri->SYSTEM_FREQUENCY_HZ / 4
+        .freq = (133*1000*1000)
     };
     spi_t spi = spi_init(SPI_IDX_FLASH, slave);
 
@@ -47,11 +49,12 @@ int main(int argc, char *argv[]) {
         PRINTF("Failed to initialize spi\n");
         return -1;
     }
+    PRINTF("SPI initialized\n");
 
     spi_segment_t segments[2] = {SPI_SEG_TX(4),SPI_SEG_RX(40)};
     uint32_t read_byte_cmd = ((bitfield_byteswap32(10 & 0x00ffffff)) | 0x03);
 
-    uint32_t rxbuffer[10];
+    uint32_t rxbuffer[10] = {0};//{UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX};
 
     spi_transaction_t txn = {
         .segments = segments,
@@ -61,19 +64,38 @@ int main(int argc, char *argv[]) {
         .rxbuffer = rxbuffer,
         .rxlen = 10
     };
+    PRINTF("Launching TXN\n");
+    spi_event_e evts;
+    spi_error_e errs;
+    uint32_t cnfopts = UINT32_MAX;
+    spi_get_events_enabled(spi_flash, &evts);
+    spi_get_errors(spi_flash, &errs);
+    spi_get_configopts(spi_flash, 0, &cnfopts);
+    PRINTF("STATUS %08X\n", *(uint32_t*) spi_get_status(spi_flash));
+    PRINTF("EVENTS %08X\n", evts);
+    PRINTF("ERRORS %08X\n", errs);
+    PRINTF("CNFOPT %08X\n", cnfopts);
 
     spi_codes_e error = spi_execute(&spi, txn);
-    if (!error) {
+    if (error) {
         PRINTF("Failed to execute command\n");
         PRINTF("Error Code: %i", error);
         return -1;
     }
+    spi_get_events_enabled(spi_flash, &evts);
+    spi_get_errors(spi_flash, &errs);
+    spi_get_configopts(spi_flash, 0, &cnfopts);
+    PRINTF("STATUS %08X\n", *(uint32_t*) spi_get_status(spi_flash));
+    PRINTF("EVENTS %08X\n", evts);
+    PRINTF("ERRORS %08X\n", errs);
+    PRINTF("CNFOPT %08X\n", cnfopts);
+    PRINTF("BUSY   %04X\n", spi_is_busy(&spi));
 
     PRINTF("SUCCESS\n\n");
 
     for (int i = 0; i < 10; i++)
     {
-        PRINTF("0x%032X\n", rxbuffer[i]);
+        PRINTF("0x%08X\n", rxbuffer[i]);
     }
     return 0;
 }

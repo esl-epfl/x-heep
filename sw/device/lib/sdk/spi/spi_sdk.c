@@ -36,6 +36,7 @@
 #include "spi_host_regs.h"
 #include "soc_ctrl_structs.h"
 #include "bitfield.h"
+#include "fast_intr_ctrl.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -97,7 +98,7 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events);
 /**                                                                        **/
 /****************************************************************************/
 
-static spi_peripheral_t _peripherals[] = {
+static volatile spi_peripheral_t _peripherals[] = {
     (spi_peripheral_t) {
         .instance  = spi_flash,
         .busy      = false,
@@ -139,6 +140,7 @@ static spi_peripheral_t _peripherals[] = {
 spi_t spi_init(spi_idx_e idx, spi_slave_t slave) {
     spi_codes_e error = spi_validate_slave(slave);
     if (SPI_CSID_INVALID(idx)) error |= SPI_CODE_IDX_INVAL;
+    error |= enable_all_fast_interrupts(true);
     if (error)
         return (spi_t) {
             .idx   = -1,
@@ -265,8 +267,8 @@ spi_codes_e spi_execute(spi_t* spi, spi_transaction_t transaction) {
     // Validate all segments before commencing with transfer
     for (int i = 0; i < transaction.seglen; i++)
     {
-        uint8_t direction = bitfield_read(transaction.segments[i].mode, BIT_MASK_2, 2);
-        uint8_t speed     = bitfield_read(transaction.segments[i].mode, BIT_MASK_2, 0);
+        uint8_t direction = bitfield_read(transaction.segments[i].mode, 0b11, 2);
+        uint8_t speed     = bitfield_read(transaction.segments[i].mode, 0b11, 0);
         if (!spi_validate_cmd(direction, speed)) return SPI_CODE_SEGMENT_INVAL;
         if (direction == SPI_DIR_TX_ONLY || direction == SPI_DIR_BIDIR) wcnt += transaction.segments[i].len / BYTES_PER_WORD;
         if (direction == SPI_DIR_RX_ONLY || direction == SPI_DIR_BIDIR) rcnt += transaction.segments[i].len / BYTES_PER_WORD;
@@ -279,12 +281,20 @@ spi_codes_e spi_execute(spi_t* spi, spi_transaction_t transaction) {
     spi_fill_tx(&_peripherals[spi->idx]);
 
     spi_set_events_enabled(_peripherals[spi->idx].instance, SPI_EVENT_IDLE | SPI_EVENT_READY | SPI_EVENT_TXWM | SPI_EVENT_RXWM, true);
+    // spi_set_events_enabled(_peripherals[spi->idx].instance, SPI_EVENT_IDLE | SPI_EVENT_TXWM | SPI_EVENT_RXWM, true);
     spi_enable_evt_intr   (_peripherals[spi->idx].instance, true);
 
     _peripherals[spi->idx].scnt++;
-    spi_issue_cmd(_peripherals[spi->idx], transaction.segments[0], 0 < transaction.seglen - 1 ? 1 : 0);
+    if (!spi_issue_cmd(_peripherals[spi->idx], transaction.segments[0], 0 < transaction.seglen - 1 ? 1 : 0))
+        return SPI_CODE_BASE_ERROR;
+    // _peripherals[spi->idx].scnt++;
+    // if (!spi_issue_cmd(_peripherals[spi->idx], transaction.segments[1], 1 < transaction.seglen - 1 ? 1 : 0))
+    //     return SPI_CODE_BASE_ERROR;
 
-    while (_peripherals[spi->idx].busy);
+    // while (_peripherals[spi->idx].busy);
+    spi_wait_for_idle(_peripherals[spi->idx].instance);
+
+    // spi_empty_rx(&_peripherals[spi->idx]);
 
     return SPI_CODE_OK;
 }
@@ -304,16 +314,19 @@ spi_codes_e spi_check_valid(spi_t* spi) {
 spi_codes_e spi_validate_slave(spi_slave_t slave) {
     spi_codes_e error = SPI_CODE_OK;
     if (SPI_CSID_INVALID(slave.csid))                        error |= SPI_CODE_SLAVE_CSID_INVAL;
-    if (slave.freq > soc_ctrl_peri->SYSTEM_FREQUENCY_HZ / 2) error |= SPI_CODE_SLAVE_FREQ_INVAL;
+    // if (slave.freq > soc_ctrl_peri->SYSTEM_FREQUENCY_HZ / 2) error |= SPI_CODE_SLAVE_FREQ_INVAL;
     return error;
 }
 
 spi_codes_e spi_set_slave(spi_t* spi) {
     if (spi_get_active(_peripherals[spi->idx].instance) == SPI_TRISTATE_TRUE) return SPI_CODE_NOT_IDLE;
 
-    uint16_t clk_div = soc_ctrl_peri->SYSTEM_FREQUENCY_HZ / (2 * spi->slave.freq) - 1;
-    if (soc_ctrl_peri->SYSTEM_FREQUENCY_HZ / (2 * (clk_div + 1)) > spi->slave.freq)
-        clk_div++;
+    uint16_t clk_div = 1;
+    if (spi->slave.freq < soc_ctrl_peri->SYSTEM_FREQUENCY_HZ / 2) {
+        clk_div = soc_ctrl_peri->SYSTEM_FREQUENCY_HZ / (2 * spi->slave.freq) - 1;
+        if (soc_ctrl_peri->SYSTEM_FREQUENCY_HZ / (2 * (clk_div + 1)) > spi->slave.freq)
+            clk_div++;
+    }
     spi_configopts_t config = {
         .clkdiv   = clk_div,
         .cpha     = bitfield_read(spi->slave.data_mode, BIT_MASK_1, DATA_MODE_CPHA_OFFS),
@@ -369,8 +382,8 @@ void spi_empty_rx(spi_peripheral_t* peri) {
 
 bool spi_issue_cmd(spi_peripheral_t peri, spi_segment_t seg, bool csaat) {
     uint32_t cmd_reg = spi_create_command((spi_command_t) {
-        .direction = bitfield_read(seg.mode, BIT_MASK_2, 2),
-        .speed     = bitfield_read(seg.mode, BIT_MASK_2, 0),
+        .direction = bitfield_read(seg.mode, 0b11, 0),
+        .speed     = bitfield_read(seg.mode, 0b11, 2),
         .csaat     = csaat,
         .len       = seg.len - 1
     });
@@ -426,11 +439,13 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events) {
 /****************************************************************************/
 
 void spi_intr_handler_event_flash(spi_event_e events) {
-    if (!_peripherals[SPI_IDX_FLASH].busy) return;
+    // if (!_peripherals[SPI_IDX_FLASH].busy) return;
+    _peripherals[SPI_IDX_FLASH].busy = false;
     spi_event_handler(&_peripherals[SPI_IDX_FLASH], events);
 }
 
 void spi_intr_handler_error_flash(spi_error_e errors) {
+    _peripherals[SPI_IDX_FLASH].busy = false;
     if (!_peripherals[SPI_IDX_FLASH].busy) return;
     // Abort transaction
     // Error Callback
