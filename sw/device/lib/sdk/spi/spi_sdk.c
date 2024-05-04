@@ -401,6 +401,8 @@ void spi_reset_peri(spi_peripheral_t* peri) {
 }
 
 void spi_event_handler(spi_peripheral_t* peri, spi_event_e events) {
+    // TODO: This will be changed since it is not a proper implementation
+    //       if-blocks should be more appropriate to the current design
     switch (events)
     {
     case SPI_EVENT_READY:
