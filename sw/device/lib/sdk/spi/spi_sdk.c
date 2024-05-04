@@ -139,7 +139,7 @@ static volatile spi_peripheral_t _peripherals[] = {
 
 spi_t spi_init(spi_idx_e idx, spi_slave_t slave) {
     spi_codes_e error = spi_validate_slave(slave);
-    if (SPI_CSID_INVALID(idx)) error |= SPI_CODE_IDX_INVAL;
+    if (SPI_IDX_INVALID(idx)) error |= SPI_CODE_IDX_INVAL;
     error |= enable_all_fast_interrupts(true);
     if (error)
         return (spi_t) {
