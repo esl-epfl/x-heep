@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
     #ifndef USE_SPI_FLASH
     spi = spi_init_host();
     #else
-    spi = spi_init_host();
+    spi = spi_init_flash();
     #endif
 
     // Define status variable

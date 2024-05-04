@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
     spi = spi_init_host();
     #else
     // spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
-    spi = SPI_IDX_FLASH;
+    spi = spi_init_flash();
     #endif
 
     // Define status variable
