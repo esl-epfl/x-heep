@@ -47,7 +47,7 @@
 /****************************************************************************/
 
 typedef struct {
-    spi_host_t instance;
+    spi_host_t* instance;
     bool busy;
     uint32_t* txbuffer;
     uint32_t* rxbuffer;

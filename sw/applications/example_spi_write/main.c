@@ -153,7 +153,7 @@ int main(int argc, char *argv[]) {
 
     // Pick the correct spi device based on simulation type
     // spi_host_t spi;
-    spi_host_t spi;
+    spi_host_t* spi;
     #ifndef USE_SPI_FLASH
     // spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
     spi = spi_init_host();
