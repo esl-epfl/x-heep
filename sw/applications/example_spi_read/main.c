@@ -150,9 +150,9 @@ int main(int argc, char *argv[]) {
     // spi_host_t spi;
     spi_host_t* spi;
     #ifndef USE_SPI_FLASH
-    spi = spi_init_host();
+    spi = spi_host1;
     #else
-    spi = spi_init_flash();
+    spi = spi_flash;
     #endif
 
     // Define status variable

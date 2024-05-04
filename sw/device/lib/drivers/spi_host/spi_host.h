@@ -225,27 +225,6 @@ typedef struct spi_status {
 /****************************************************************************/
 
 /**
- * Initialize SPI for flash device.
- *
- * @return The SPI peripheral structure for flash.
- */
-spi_host_t* spi_init_flash();
-
-/**
- * Initialize SPI for host device.
- *
- * @return The SPI peripheral structure for host.
- */
-spi_host_t* spi_init_host();
-
-/**
- * Initialize SPI for secondary host device.
- *
- * @return The SPI peripheral structure for host 2.
- */
-spi_host_t* spi_init_host2();
-
-/**
  * Get enabled events for a specified SPI peripheral.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.

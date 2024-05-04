@@ -235,7 +235,7 @@ uint8_t sector_data[FLASH_SECTOR_SIZE];
 void w25q128jw_init_crt0() {
     //make sure spi variable is into the xheep_init_data_crt0 section
     // spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
-    spi = spi_init_flash();
+    spi = spi_flash;
     return;
 }
 

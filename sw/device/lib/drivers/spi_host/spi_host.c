@@ -77,18 +77,6 @@ spi_return_flags_e spi_get_events(spi_host_t* spi, spi_event_e* events);
 /**                                                                        **/
 /****************************************************************************/
 
-spi_host_t* spi_init_flash() {
-    return spi_flash;
-}
-
-spi_host_t* spi_init_host() {
-    return spi_host1;
-}
-
-spi_host_t* spi_init_host2() {
-    return spi_host2;
-}
-
 spi_return_flags_e spi_get_events_enabled(spi_host_t* spi, spi_event_e* events) 
 {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
