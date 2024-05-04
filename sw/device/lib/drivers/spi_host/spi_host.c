@@ -313,8 +313,6 @@ spi_return_flags_e spi_set_command(spi_host_t spi, const uint32_t cmd_reg) {
     spi_return_flags_e flags = SPI_FLAG_OK;
     spi_speed_e speed   = bitfield_read(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, SPI_HOST_COMMAND_SPEED_OFFSET);
     spi_dir_e direction = bitfield_read(cmd_reg, SPI_HOST_COMMAND_DIRECTION_MASK, SPI_HOST_COMMAND_DIRECTION_OFFSET);
-    uint32_t len        = bitfield_read(cmd_reg, SPI_HOST_COMMAND_LEN_MASK, SPI_HOST_COMMAND_LEN_OFFSET);
-    if (len == 0) return SPI_FLAG_OK; // TODO: should this be error ?
 
     if (!spi_validate_cmd(direction, speed))     flags |= SPI_FLAG_SPEED_INVALID;
     if (spi_get_ready(spi) != SPI_TRISTATE_TRUE) flags |= SPI_FLAG_NOT_READY;
