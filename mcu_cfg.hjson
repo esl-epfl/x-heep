@@ -128,7 +128,8 @@
         serial_link:{
             offset:  0x00080000,
             length:  0x00010000,
-            is_included: "yes"
+            is_included: "yes",
+            path:    "./hw/vendor/pulp_platform_serial_link/src/regs/serial_link.hjson"
         },
         obi2axi:{
             offset:  0x00090000,

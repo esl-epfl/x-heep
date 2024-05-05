@@ -44,8 +44,8 @@ module serial_link_occamy_wrapper #(
   logic clk_ena;
   logic reset_n;
 
-  axi_req_t axi_in_req, axi_out_req;
-  axi_rsp_t axi_in_rsp, axi_out_rsp;
+  //axi_req_t axi_in_req, axi_out_req;
+  //axi_rsp_t axi_in_rsp, axi_out_rsp;
 
   // Quadrant clock gate controlled by register
   tc_clk_gating i_tc_clk_gating (
@@ -64,9 +64,9 @@ module serial_link_occamy_wrapper #(
     .clk_o (rst_serial_link_n)
   );
 
-  logic [1:0] isolated, isolate;
+  //logic [1:0] isolated, isolate;
 
-  axi_isolate #(
+ /*  axi_isolate #(
     .TerminateTransaction(0),
     .AtopSupport(1),
     .AxiIdWidth($bits(axi_in_req_i.aw.id)),
@@ -106,7 +106,7 @@ module serial_link_occamy_wrapper #(
     .mst_resp_i   ( axi_out_rsp_i ),
     .isolate_i    ( isolate[1]    ),
     .isolated_o   ( isolated[1]   )
-  );
+  ); */
 
   if (NumChannels > 1) begin : gen_multi_channel_serial_link
     serial_link #(
@@ -139,18 +139,18 @@ module serial_link_occamy_wrapper #(
       .clk_reg_i      ( clk_reg_i         ),
       .rst_reg_ni     ( rst_reg_ni        ),
       .testmode_i     ( 1'b0              ),
-      .axi_in_req_i   ( axi_in_req        ),
-      .axi_in_rsp_o   ( axi_in_rsp        ),
-      .axi_out_req_o  ( axi_out_req       ),
-      .axi_out_rsp_i  ( axi_out_rsp       ),
+      .axi_in_req_i   ( axi_in_req_i      ),
+      .axi_in_rsp_o   ( axi_in_rsp_o      ),
+      .axi_out_req_o  ( axi_out_req_o     ),
+      .axi_out_rsp_i  ( axi_out_rsp_i     ),
       .cfg_req_i      ( cfg_req_i         ),
       .cfg_rsp_o      ( cfg_rsp_o         ),
       .ddr_rcv_clk_i  ( ddr_rcv_clk_i     ),
       .ddr_rcv_clk_o  ( ddr_rcv_clk_o     ),
       .ddr_i          ( ddr_i             ),
       .ddr_o          ( ddr_o             ),
-      .isolated_i     ( isolated          ),
-      .isolate_o      ( isolate           ),
+      .isolated_i     ( 2'b0              ),
+      .isolate_o      (              ),
       .clk_ena_o      ( clk_ena           ),
       .reset_no       ( reset_n           )
 
@@ -187,18 +187,18 @@ module serial_link_occamy_wrapper #(
       .clk_reg_i      ( clk_reg_i         ),
       .rst_reg_ni     ( rst_reg_ni        ),
       .testmode_i     ( 1'b0              ),
-      .axi_in_req_i   ( axi_in_req        ),
-      .axi_in_rsp_o   ( axi_in_rsp        ),
-      .axi_out_req_o  ( axi_out_req       ),
-      .axi_out_rsp_i  ( axi_out_rsp       ),
+      .axi_in_req_i   ( axi_in_req_i      ),
+      .axi_in_rsp_o   ( axi_in_rsp_o      ),
+      .axi_out_req_o  ( axi_out_req_o     ),
+      .axi_out_rsp_i  ( axi_out_rsp_i     ),
       .cfg_req_i      ( cfg_req_i         ),
       .cfg_rsp_o      ( cfg_rsp_o         ),
       .ddr_rcv_clk_i  ( ddr_rcv_clk_i     ),
       .ddr_rcv_clk_o  ( ddr_rcv_clk_o     ),
       .ddr_i          ( ddr_i             ),
       .ddr_o          ( ddr_o             ),
-      .isolated_i     ( isolated          ),
-      .isolate_o      ( isolate           ),
+      .isolated_i     ( 2'b0              ),
+      .isolate_o      (                   ),
       .clk_ena_o      ( clk_ena           ),
       .reset_no       ( reset_n           )
 

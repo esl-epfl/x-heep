@@ -116,7 +116,11 @@ module ao_peripheral_subsystem
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
     input logic ext_dma_slot_tx_i,
-    input logic ext_dma_slot_rx_i
+    input logic ext_dma_slot_rx_i,
+
+    // CFG SERIAL LINK
+    output reg_req_t cfg_req_sl,
+    input  reg_rsp_t cfg_rsp_sl
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -152,6 +156,10 @@ module ao_peripheral_subsystem
 
   assign ext_peripheral_slave_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPHERAL_IDX];
   assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPHERAL_IDX] = ext_peripheral_slave_resp_i;
+
+  // CFG SERIAL LINK
+  assign cfg_req_sl = ao_peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_IDX];
+  assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_IDX] = cfg_rsp_sl;
 
 `ifdef REMOVE_OBI_FIFO
 

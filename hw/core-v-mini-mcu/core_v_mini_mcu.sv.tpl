@@ -165,8 +165,8 @@ ${pad.core_v_mini_mcu_interface}
     
     core_v_mini_mcu_pkg::axi_req_t  axi_in_req_i,  axi_out_req_o;
     core_v_mini_mcu_pkg::axi_resp_t  axi_in_rsp_o,  axi_out_rsp_i;
-    reg_req_t cfg_req_t;
-    reg_rsp_t cfg_rsp_t;
+    reg_req_t cfg_req_sl;
+    reg_rsp_t cfg_rsp_sl;
 
     int aw_size, w_size, b_size, ar_size, r_size;
 
@@ -179,8 +179,8 @@ ${pad.core_v_mini_mcu_interface}
     //axi_rsp_t   axi_in_rsp_o;
     //axi_req_t   axi_out_req_o;
     //axi_rsp_t   axi_out_rsp_i;
-    //cfg_req_t   cfg_req_i;
-    //cfg_rsp_t   cfg_rsp_o;
+    //cfg_req_sl   cfg_req_i;
+    //cfg_rsp_sl   cfg_rsp_o;
   % endif
   % endif
   % endfor
@@ -469,7 +469,10 @@ ${pad.core_v_mini_mcu_interface}
       .ext_peripheral_slave_req_o,
       .ext_peripheral_slave_resp_i,
       .ext_dma_slot_tx_i,
-      .ext_dma_slot_rx_i
+      .ext_dma_slot_rx_i,
+
+      .cfg_req_sl(cfg_req_sl),
+      .cfg_rsp_sl(cfg_rsp_sl)
   );
 
   peripheral_subsystem peripheral_subsystem_i (
@@ -691,16 +694,16 @@ ${pad.core_v_mini_mcu_interface}
     .rst_reg_ni(rst_ni),      //intended for SW reset purposes
 
     .testmode_i('0),
-    //from x-heep to outside
-    .axi_in_req_i(axi_in_req_i),
+   
+    .axi_in_req_i(axi_out_req_o),
     .axi_in_rsp_o(axi_out_rsp_i),
 
-    //from outside to x-heep
-    .axi_out_req_o(axi_out_req_o),
+    
+    .axi_out_req_o(axi_in_req_i), //axi_in_req_i
     .axi_out_rsp_i(axi_in_rsp_o),
 
-    .cfg_req_i(cfg_req_t),    //register configuration
-    .cfg_rsp_o(cfg_rsp_t),
+    .cfg_req_i(cfg_req_sl),    //register configuration
+    .cfg_rsp_o(cfg_rsp_sl),
 
     //from x-heep to outside
     .ddr_rcv_clk_i(clk_i),    //Source-synchronous input clock to sample data. One clock per channel   
