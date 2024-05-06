@@ -300,18 +300,24 @@ void dma_init( dma *peri )
     /* Clear the loaded transaction */
     dma_cb.trans = NULL;
     /* Clear all values in the DMA registers. */
-    dma_cb.peri->SRC_PTR       = 0;
-    dma_cb.peri->DST_PTR       = 0;
-    dma_cb.peri->SIZE_TR_D1    = 0;
-    dma_cb.peri->SIZE_TR_D2    = 0;
-    dma_cb.peri->SRC_PTR_INC   = 0;
-    dma_cb.peri->DIM_CONFIG    = 0;
-    dma_cb.peri->SLOT          = 0;
-    dma_cb.peri->DATA_TYPE     = 0;
-    dma_cb.peri->MODE          = 0;
-    dma_cb.peri->WINDOW_SIZE   = 0;
-    dma_cb.peri->INTERRUPT_EN  = 0;
-    dma_cb.peri->PAD           = 0;
+    dma_cb.peri->SRC_PTR        = 0;
+    dma_cb.peri->DST_PTR        = 0;
+    dma_cb.peri->SIZE_D1        = 0;
+    dma_cb.peri->SIZE_D2        = 0;
+    dma_cb.peri->SRC_PTR_INC_D1 = 0;
+    dma_cb.peri->SRC_PTR_INC_D2 = 0;
+    dma_cb.peri->DST_PTR_INC_D1 = 0;
+    dma_cb.peri->DST_PTR_INC_D2 = 0;
+    dma_cb.peri->DIM_CONFIG     = 0;
+    dma_cb.peri->SLOT           = 0;
+    dma_cb.peri->DATA_TYPE      = 0;
+    dma_cb.peri->MODE           = 0;
+    dma_cb.peri->WINDOW_SIZE    = 0;
+    dma_cb.peri->INTERRUPT_EN   = 0;
+    dma_cb.peri->PAD_TOP        = 0;
+    dma_cb.peri->PAD_BOTTOM     = 0;
+    dma_cb.peri->PAD_LEFT       = 0;
+    dma_cb.peri->PAD_RIGHT      = 0;
 }
 
 dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
@@ -774,6 +780,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
                     );
         }
     }
+
     /*
      * SET THE PADDING
      */
@@ -973,31 +980,14 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans)
      * will not return until the interrupt arrives.
      */
 
-    /*
+    
     while(    p_trans->end == DMA_TRANS_END_INTR_WAIT
           && ( dma_cb.intrFlag != 0x0 ) ) {
-        if(p_trans->perf == DMA_PERFORMANCE_ANALYSIS_OFF)
-        {
             wait_for_interrupt();
-        }
-    }*/
-    while( ! dma_is_ready()) {
-    // disable_interrupts
-    // this does not prevent waking up the core as this is controlled by the MIP register
-    CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if ( dma_is_ready() == 0 ) {
-        if(p_trans->perf == DMA_PERFORMANCE_ANALYSIS_OFF)
-        {
-            wait_for_interrupt();
-        }
-        //from here we wake up even if we did not jump to the ISR
     }
-    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-}
 
     return DMA_CONFIG_OK;
 }
-
 
 __attribute__((optimize("O0"))) uint32_t dma_is_ready(void)
 {

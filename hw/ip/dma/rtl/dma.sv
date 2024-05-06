@@ -89,19 +89,26 @@ module dma #(
 
   /* 2D signals */
 
+  /* Dimensionality configuration */
   logic                              dma_conf_1d;  // Dimensionality configuration: 0-> 1D, 1-> 2D
   logic                              dma_conf_2d;  // Dimensionality configuration: 0-> 1D, 1-> 2D
+
+  /* Counters */
   logic        [               16:0] dma_src_cnt_d1;  // d1 src counter
   logic        [               16:0] dma_src_cnt_d2;  // d2 src counter
   logic        [               16:0] dma_dst_cnt_d1;  // d2 dst counter
+
+  /* Increments */
   logic        [                5:0] dma_src_d1_inc;  // d1 source increment
   logic        [               22:0] dma_src_d2_inc;  // d2 source increment
   logic        [                5:0] dma_dst_d1_inc;  // d1 destination increment
   logic        [               22:0] dma_dst_d2_inc;  // d2 destination increment
+
+  /* Flags */
   logic                              pad_fifo_on;  // Padding flag for FIFO
   logic                              pad_cnt_on;  // Padding flag for counters
 
-  // Padding FSM conditions
+  /* Padding FSM conditions */
 
   logic                              idle_to_left_ex;
   logic                              idle_to_top_ex;
@@ -123,6 +130,8 @@ module dma #(
   logic                              right_dn_to_idle;
   logic                              right_ex_to_bottom_ex;
   logic                              bottom_ex_to_idle;
+
+  /* FIFO signals */
 
   logic                              fifo_flush;
   logic                              fifo_full;
@@ -156,8 +165,7 @@ module dma #(
   }
       dma_state_q, dma_state_d;
 
-
-  // Padding fsm states
+  /* Padding FSM states */
 
   enum {
     PAD_IDLE,
@@ -172,8 +180,6 @@ module dma #(
   }
       pad_state_q, pad_state_d, pad_state_x;
 
-  logic [Addr_Fifo_Depth-1:0] outstanding_req, outstanding_addr_req;
-
   enum logic {
     DMA_READ_FSM_IDLE,
     DMA_READ_FSM_ON
@@ -185,6 +191,9 @@ module dma #(
     DMA_WRITE_FSM_ON
   }
       dma_write_fsm_state, dma_write_fsm_n_state;
+
+  logic [Addr_Fifo_Depth-1:0] outstanding_req, outstanding_addr_req;
+  logic [31:0] window_counter;
 
   assign dma_read_ch0_req_o.req = data_in_req;
   assign dma_read_ch0_req_o.we = data_in_we;
@@ -219,8 +228,6 @@ module dma #(
   assign dma_done_intr_o = dma_done & reg2hw.interrupt_en.transaction_done.q;
   assign dma_window_intr_o = dma_window_event & reg2hw.interrupt_en.window_done.q;
 
-  logic [31:0] window_counter;
-
   assign data_type = reg2hw.data_type.q;
 
   assign hw2reg.status.ready.d = (dma_state_q == DMA_READY);
@@ -230,18 +237,18 @@ module dma #(
   assign circular_mode = reg2hw.mode.q == 1;
   assign address_mode = reg2hw.mode.q == 2;
 
-  // DMA Dimensionality configuration flags
+  /* DMA Dimensionality configuration flags */
   assign dma_conf_1d = reg2hw.dim_config.q == 0;
   assign dma_conf_2d = reg2hw.dim_config.q == 1;
 
-  // DMA 2D increment
+  /* DMA 2D increment */
 
   assign dma_src_d2_inc = reg2hw.src_ptr_inc_d2.q;
   assign dma_src_d1_inc = reg2hw.src_ptr_inc_d1.q;
   assign dma_dst_d2_inc = reg2hw.dst_ptr_inc_d2.q;
   assign dma_dst_d1_inc = reg2hw.dst_ptr_inc_d1.q;
 
-  // Padding FSM conditions assignments
+  /* Padding FSM conditions assignments */
 
 
   assign idle_to_top_ex = {|reg2hw.pad_top.q == 1'b1 && dma_start == 1'b1};
@@ -323,6 +330,7 @@ module dma #(
   // RUNNING : waiting for transaction finish
   //           when `dma_done` rises either enter ready or restart in circular mode
   //
+  
   always_comb begin
     dma_state_d = dma_state_q;
     case (dma_state_q)
@@ -343,7 +351,7 @@ module dma #(
     endcase
   end
 
-  // update state
+  /* Update DMA state */
   always_ff @(posedge clk_i, negedge rst_ni) begin
     if (~rst_ni) begin
       dma_state_q <= DMA_READY;
@@ -352,7 +360,7 @@ module dma #(
     end
   end
 
-  // DMA pulse start when dma_start register is written
+  /* DMA pulse start when dma_start register is written */
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_dma_start
     if (~rst_ni) begin
       dma_start_pending <= 1'b0;
@@ -365,24 +373,24 @@ module dma #(
     end
   end
 
-  // Store input data pointer and increment everytime read request is granted
+  /*/ Store input data pointer and increment everytime read request is granted */
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_ptr_in_reg
     if (~rst_ni) begin
       read_ptr_reg <= '0;
     end else begin
       if (dma_start == 1'b1) begin
         read_ptr_reg <= reg2hw.src_ptr.q;
-      end else if (data_in_gnt == 1'b1) begin // The read request is granted, so increment the read pointer to the next value
+      end else if (data_in_gnt == 1'b1) begin 
         if (dma_conf_1d == 1'b1) begin
-          // Increase the pointer by the amount written in ptr_inc
+          /* Increase the pointer by the amount written in ptr_inc */
           read_ptr_reg <= read_ptr_reg + {26'h0, dma_src_d1_inc};
         end else if (dma_conf_2d == 1'b1 && pad_cnt_on == 1'b0) begin
           if (dma_src_cnt_d1 == {14'h0, dma_cnt_du} && |dma_src_cnt_d2 == 1'b1) begin
-            // In this case, the d1 is almost finished, so we need to increment the pointer by sizeof(d1)*data_unit
+            /* In this case, the d1 is almost finished, so we need to increment the pointer by sizeof(d1)*data_unit */
 
             read_ptr_reg <= read_ptr_reg + {9'h0, dma_src_d2_inc};
           end else begin
-            read_ptr_reg <= read_ptr_reg + {26'h0, dma_src_d1_inc}; // Increment of the d1 increment (stride)
+            read_ptr_reg <= read_ptr_reg + {26'h0, dma_src_d1_inc}; /* Increment of the d1 increment (stride) */
           end
         end
       end

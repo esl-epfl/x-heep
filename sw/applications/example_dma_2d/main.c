@@ -20,11 +20,12 @@
 
 /* 
  *  Select which test to run
- *  0: Extract a NxM matrix, perform optional padding and copy it to a AxB matrix
- *  1: Extract a 1xN matrix (array), perform optional padding and copy it to an array
+ *  0: Extract a NxM matrix, perform optional padding and copy it to a AxB matrix, using HALs
+ *  1: Extract a 1xN matrix (array), perform optional padding and copy it to an array, using HALs
+ *  2: Extract a NxM matrix, perform optional padding and copy it to a AxB matrix, using direct regoster writes
  */
 
-#define TEST_ID 1
+#define TEST_ID 2
 
 /* Enable performance analysis */
 #define EN_PERF 1
@@ -33,8 +34,8 @@
 #define EN_VERIF 1
 
 /* Parameters */
-#define SIZE_OUT_D1 20
-#define SIZE_OUT_D2 20
+#define SIZE_OUT_D1 100
+#define SIZE_OUT_D2 100
 #define STRIDE_IN_D1 1
 #define STRIDE_IN_D2 1
 #define STRIDE_OUT_D1 1
@@ -47,6 +48,11 @@
 #define OUT_D2 (SIZE_OUT_D2 + TOP_PAD + BOTTOM_PAD)
 #define OUT_DIM_1D ( OUT_D1 )
 #define OUT_DIM_2D ( OUT_D1 * OUT_D2 )
+
+/* Parameters for LL example */
+#define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ))
+#define DMA_DATA_TYPE DMA_DATA_TYPE_WORD
+typedef uint32_t dma_input_data_type;
 
 /* Pointer increments computation */
 #define SRC_INC_D1 STRIDE_IN_D1
@@ -93,11 +99,36 @@ void dma_intr_handler_trans_done()
     cycles++;
 }
 
-int main()
+#if TEST_ID == 2
+
+static inline volatile void write_register( uint32_t  p_val,
+                                uint32_t  p_offset,
+                                uint32_t  p_mask,
+                                uint8_t   p_sel,
+                                dma* peri ) 
 {
-    /* Testing copy and padding of a NxM matrix */
-    
+    /*
+     * The index is computed to avoid needing to access the structure
+     * as a structure.
+     */
+    uint8_t index = p_offset / sizeof(int);
+
+    /*
+     * An intermediate variable "value" is used to prevent writing twice into
+     * the register.
+     */
+    uint32_t value  =  (( uint32_t * ) peri ) [ index ];
+    value           &= ~( p_mask << p_sel );
+    value           |= (p_val & p_mask) << p_sel;
+    (( uint32_t * ) peri ) [ index ] = value;
+};
+#endif
+
+int main()
+{    
     #if TEST_ID == 0
+    
+    /* Testing copy and padding of a NxM matrix using HALs */
     
     #if EN_PERF
 
@@ -133,30 +164,50 @@ int main()
                                 .pad_left_du    = LEFT_PAD,
                                 .pad_right_du   = RIGHT_PAD,
                                 .win_du         = 0,
-                                .end            = DMA_TRANS_END_INTR_WAIT,
-                                .perf           = EN_PERF ? DMA_PERFORMANCE_ANALYSIS_ON : DMA_PERFORMANCE_ANALYSIS_OFF,
+                                .end            = DMA_TRANS_END_INTR
                             };
-
+    
     dma_init(NULL);
+    
+    #if EN_PERF
+
     res_valid = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
     res_load = dma_load_transaction(&trans);
     res_launch = dma_launch(&trans);
     
-    #if !EN_PERF
+    #else
 
+    res_valid = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
     PRINTF("tran: %u \t%s\n\r", res_valid, res_valid == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res_load = dma_load_transaction(&trans);
     PRINTF("load: %u \t%s\n\r", res_load, res_load == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res_launch = dma_launch(&trans);
     PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     #endif
 
-    #if EN_PERF
+    while( ! dma_is_ready()) {
+        #if !EN_PERF
+        /* Disable_interrupts */
+        /* This does not prevent waking up the core as this is controlled by the MIP register */
+        
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+        if ( dma_is_ready() == 0 ) {
+            wait_for_interrupt();
+            /* From here the core wakes up even if we did not jump to the ISR */
+        }
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+        #endif
+    }
+
+    #if EN_PERF    
 
     /* Read the cycles count after the DMA run */
     CSR_READ(CSR_REG_MCYCLE, &cycles_dma);
 
     /* Reset the performance counter to evaluate the CPU performance */
-    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
     CSR_WRITE(CSR_REG_MCYCLE, 0);
+    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
     #endif
 
     #if EN_VERIF
@@ -221,9 +272,9 @@ int main()
     }
     #endif
 
-    /* Testing copy and padding of a 1xN matrix (an array) */
-
     #elif TEST_ID == 1
+
+    /* Testing copy and padding of a 1xN matrix (an array) */
 
     #if EN_PERF
 
@@ -254,21 +305,40 @@ int main()
                                 .pad_left_du    = LEFT_PAD,
                                 .pad_right_du   = RIGHT_PAD,
                                 .win_du         = 0,
-                                .end            = DMA_TRANS_END_INTR_WAIT,
-                                .perf           = EN_PERF ? DMA_PERFORMANCE_ANALYSIS_ON : DMA_PERFORMANCE_ANALYSIS_OFF,
+                                .end            = DMA_TRANS_END_INTR
                             };
 
     dma_init(NULL);
+    
+    #if EN_PERF
+
     res_valid = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
     res_load = dma_load_transaction(&trans);
     res_launch = dma_launch(&trans);
     
-    #if !EN_PERF
+    #else
 
+    res_valid = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
     PRINTF("tran: %u \t%s\n\r", res_valid, res_valid == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res_load = dma_load_transaction(&trans);
     PRINTF("load: %u \t%s\n\r", res_load, res_load == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res_launch = dma_launch(&trans);
     PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     #endif
+
+    while( ! dma_is_ready()) {
+        #if !EN_PERF
+        /* Disable_interrupts */
+        /* This does not prevent waking up the core as this is controlled by the MIP register */
+        
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+        if ( dma_is_ready() == 0 ) {
+            wait_for_interrupt();
+            /* From here the core wakes up even if we did not jump to the ISR */
+        }
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+        #endif
+    }
 
     #if EN_PERF
 
@@ -276,8 +346,9 @@ int main()
     CSR_READ(CSR_REG_MCYCLE, &cycles_dma);
 
     /* Reset the performance counter to evaluate the CPU performance */
-    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
     CSR_WRITE(CSR_REG_MCYCLE, 0);
+    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
     #endif
 
     #if EN_VERIF
@@ -312,22 +383,6 @@ int main()
     PRINTF("CPU cycles: %d \n\r", cycles_cpu);
     PRINTF("\n\r");
     #endif
-/*
-    for (int i = 0; i < OUT_D2; i++) {
-        for (int j = 0; j < OUT_D1; j++) {
-            printf("%d ", copied_data_2D_DMA[i * OUT_D1 + j]);
-        }
-        printf("\n\r");
-    }
-
-    printf("\n\r");
-
-    for (int i = 0; i < OUT_D2; i++) {
-        for (int j = 0; j < OUT_D1; j++) {
-            printf("%d ", copied_data_2D_CPU[i * OUT_D1 + j]);
-        }
-        printf("\n\r");
-    }*/
 
     #if EN_VERIF
     
@@ -348,6 +403,210 @@ int main()
         return EXIT_FAILURE;
     }
     #endif
+
+    #elif TEST_ID == 2
+
+    /* Testing copy and padding of a NxM matrix using Low Level contro, i.e. register writes.
+     * This strategy allows for maximum performance but doesn't perform any checks on the data integrity.
+     */
+    
+    #if EN_PERF
+
+    /* Reset the counter to evaluate the performance of the DMA */
+    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    CSR_WRITE(CSR_REG_MCYCLE, 0);
+    #endif
+
+    /* The DMA is initialized (i.e. Any current transaction is cleaned.) */
+    dma_init(NULL);
+
+    /* Enable the DMA interrupt logic */
+    write_register( 0x1,
+                    DMA_INTERRUPT_EN_REG_OFFSET,
+                    0x1,
+                    DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT,
+                    peri );
+
+    /* Enable global interrupts */
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+
+    /* Enable fast interrupts */
+    CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK);
+
+    /* Pointer set up */
+    peri->SRC_PTR = &test_data[0];
+    peri->DST_PTR = copied_data_2D_DMA;
+
+    /* Dimensionality configuration */
+    write_register( 0x1,
+                    DMA_DIM_CONFIG_REG_OFFSET,
+                    0x1,
+                    DMA_DIM_CONFIG_DMA_DIM_BIT,
+                    peri );
+
+    /* Operation mode configuration */
+    write_register( DMA_TRANS_MODE_SINGLE,
+                    DMA_MODE_REG_OFFSET,
+                    DMA_MODE_MODE_MASK,
+                    DMA_MODE_MODE_OFFSET,
+                    peri );
+    
+    /* Data type configuration */
+    write_register( DMA_DATA_TYPE,
+                    DMA_DATA_TYPE_REG_OFFSET,
+                    DMA_DATA_TYPE_DATA_TYPE_MASK,
+                    DMA_DATA_TYPE_DATA_TYPE_OFFSET,
+                    peri );
+
+    /* Set the source strides */
+    write_register( SRC_INC_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+                    DMA_SRC_PTR_INC_D1_REG_OFFSET,
+                    DMA_SRC_PTR_INC_D1_INC_MASK,
+                    DMA_SRC_PTR_INC_D1_INC_OFFSET,
+                    peri );
+    
+    write_register( SRC_INC_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+                    DMA_SRC_PTR_INC_D2_REG_OFFSET,
+                    DMA_SRC_PTR_INC_D2_INC_MASK,
+                    DMA_SRC_PTR_INC_D2_INC_OFFSET,
+                    peri );
+    
+    write_register( DST_INC_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+                    DMA_DST_PTR_INC_D1_REG_OFFSET,
+                    DMA_DST_PTR_INC_D1_INC_MASK,
+                    DMA_DST_PTR_INC_D1_INC_OFFSET,
+                    peri );
+    
+    write_register( DST_INC_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+                    DMA_DST_PTR_INC_D2_REG_OFFSET,
+                    DMA_DST_PTR_INC_D2_INC_MASK,
+                    DMA_DST_PTR_INC_D2_INC_OFFSET,
+                    peri );
+
+    /* Padding configuration */
+    write_register( TOP_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+                    DMA_PAD_TOP_REG_OFFSET,
+                    DMA_PAD_TOP_PAD_MASK,
+                    DMA_PAD_TOP_PAD_OFFSET,
+                    peri );
+
+    write_register( RIGHT_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+                    DMA_PAD_RIGHT_REG_OFFSET,
+                    DMA_PAD_RIGHT_PAD_MASK,
+                    DMA_PAD_RIGHT_PAD_OFFSET,
+                    peri );
+
+    write_register( LEFT_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+                    DMA_PAD_LEFT_REG_OFFSET,
+                    DMA_PAD_LEFT_PAD_MASK,
+                    DMA_PAD_LEFT_PAD_OFFSET,
+                    peri );
+
+    write_register( BOTTOM_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+                    DMA_PAD_BOTTOM_REG_OFFSET,
+                    DMA_PAD_BOTTOM_PAD_MASK,
+                    DMA_PAD_BOTTOM_PAD_OFFSET,
+                    peri );
+
+    /* Set the sizes */
+
+    write_register( SIZE_OUT_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+                    DMA_SIZE_D2_REG_OFFSET,
+                    DMA_SIZE_D2_SIZE_MASK,
+                    DMA_SIZE_D2_SIZE_OFFSET,
+                    peri );
+
+    write_register( SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+                    DMA_SIZE_D1_REG_OFFSET,
+                    DMA_SIZE_D1_SIZE_MASK,
+                    DMA_SIZE_D1_SIZE_OFFSET,
+                    peri );
+
+    while( ! dma_is_ready()) {
+        #if !EN_PERF
+        /* Disable_interrupts */
+        /* This does not prevent waking up the core as this is controlled by the MIP register */
+        
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+        if ( dma_is_ready() == 0 ) {
+            wait_for_interrupt();
+            /* From here the core wakes up even if we did not jump to the ISR */
+        }
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+        #endif
+    }
+
+    #if EN_PERF
+
+    /* Read the cycles count after the DMA run */
+    CSR_READ(CSR_REG_MCYCLE, &cycles_dma);
+
+    /* Reset the performance counter to evaluate the CPU performance */
+    CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    CSR_WRITE(CSR_REG_MCYCLE, 0);
+    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    #endif
+
+    #if EN_VERIF
+
+    /* Run the same computation on the CPU */
+    for (int i=0; i < OUT_D2; i++)
+    {
+        for (int j=0; j < OUT_D1; j++)
+        {
+            read_ptr = i * STRIDE_OUT_D2 * OUT_D1 + j * STRIDE_OUT_D1;
+            write_ptr = (i - top_pad_cnt ) * STRIDE_IN_D2 * SIZE_IN_D1 + (j - left_pad_cnt) * STRIDE_IN_D1;
+            if (i < TOP_PAD || i >= SIZE_OUT_D2 + BOTTOM_PAD || j < LEFT_PAD || j >= SIZE_OUT_D1 + RIGHT_PAD)
+            {
+                copied_data_2D_CPU[read_ptr] = 0;
+            }
+            else
+            {
+                copied_data_2D_CPU[read_ptr] = test_data[write_ptr];
+            }
+            if (j < LEFT_PAD && i >= TOP_PAD)
+            {
+                left_pad_cnt++;
+            }
+        }
+        if (i < TOP_PAD)
+        {
+            top_pad_cnt++;
+        }
+        left_pad_cnt = 0;
+    }
+    
+    #endif
+
+    #if EN_PERF
+
+    /* Read the cycles count after the CPU run */
+    CSR_READ(CSR_REG_MCYCLE, &cycles_cpu);
+
+    PRINTF("DMA cycles: %d\n\r", cycles_dma);
+    PRINTF("CPU cycles: %d \n\r", cycles_cpu);
+    PRINTF("\n\r");
+    #endif
+
+    #if EN_VERIF
+    
+    /* Verify that the DMA and the CPU outputs are the same */
+    for (int j = 0; j < OUT_D1; j++) {
+        if (copied_data_1D_DMA[j] != copied_data_1D_CPU[j]) {
+            passed = 0;
+        }
+    }
+
+    if (passed) {
+        PRINTF("Success\n\r");
+    } 
+    else 
+    {
+        PRINTF("Fail\n\r");
+        return EXIT_FAILURE;
+    }
+
+    #endif 
 
     #endif
 }

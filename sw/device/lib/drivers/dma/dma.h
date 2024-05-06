@@ -149,12 +149,6 @@ typedef enum
      */
 } dma_dim_t;
 
-typedef enum
-{
-    DMA_PERFORMANCE_ANALYSIS_ON  = 0x1,
-    DMA_PERFORMANCE_ANALYSIS_OFF = 0x0,
-} dma_perf_config_t;
-
 /**
  * It is possible to choose the level of safety with which the DMA operation
  * should be configured.
@@ -350,8 +344,6 @@ typedef struct
     can be set to 0 to disable this functionality. */
     dma_trans_end_evt_t end;    /*!< What should happen after the transaction
     is launched. */
-    dma_perf_config_t   perf;   /*!< Enables or disables the wait_for_interrupt()
-    depending on the performance analysis settings. */
     dma_config_flags_t  flags;  /*!< A mask with possible issues aroused from
     the creation of the transaction. */
 } dma_trans_t;
