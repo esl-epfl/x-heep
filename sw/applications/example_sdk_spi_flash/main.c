@@ -17,6 +17,10 @@
 #include "soc_ctrl_structs.h"
 #include "bitfield.h"
 
+#include "fast_intr_ctrl.h"
+#include "csr.h"
+#include "csr_registers.h"
+
 /* By default, PRINTFs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
 #define PRINTF_IN_SIM   0
@@ -50,11 +54,15 @@ int main(int argc, char *argv[]) {
         return -1;
     }
     PRINTF("SPI initialized\n");
+    enable_all_fast_interrupts(true);
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    const uint32_t mask = 1 << 21;
+    CSR_SET_BITS(CSR_REG_MIE, mask);
 
-    spi_segment_t segments[2] = {SPI_SEG_TX(4),SPI_SEG_RX(40)};
+    spi_segment_t segments[2] = {SPI_SEG_TX(4),SPI_SEG_RX(4*70)};
     uint32_t read_byte_cmd = ((bitfield_byteswap32(10 & 0x00ffffff)) | 0x03);
 
-    uint32_t rxbuffer[10] = {0};//{UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX};
+    uint32_t rxbuffer[70] = {0};//{UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX};
 
     spi_transaction_t txn = {
         .segments = segments,
@@ -62,7 +70,7 @@ int main(int argc, char *argv[]) {
         .txbuffer = &read_byte_cmd,
         .txlen = 1,
         .rxbuffer = rxbuffer,
-        .rxlen = 10
+        .rxlen = 70
     };
     PRINTF("Launching TXN\n");
     spi_event_e evts;
@@ -75,6 +83,8 @@ int main(int argc, char *argv[]) {
     PRINTF("EVENTS %08X\n", evts);
     PRINTF("ERRORS %08X\n", errs);
     PRINTF("CNFOPT %08X\n", cnfopts);
+    PRINTF("INTRST %04X\n", spi_get_evt_intr_state(spi_flash));
+    PRINTF("INTREN %04X\n", spi_get_evt_intr_enable(spi_flash));
 
     spi_codes_e error = spi_execute(&spi, txn);
     if (error) {
@@ -89,6 +99,8 @@ int main(int argc, char *argv[]) {
     PRINTF("EVENTS %08X\n", evts);
     PRINTF("ERRORS %08X\n", errs);
     PRINTF("CNFOPT %08X\n", cnfopts);
+    PRINTF("INTRST %04X\n", spi_get_evt_intr_state(spi_flash));
+    PRINTF("INTREN %04X\n", spi_get_evt_intr_enable(spi_flash));
     PRINTF("BUSY   %04X\n", spi_is_busy(&spi));
 
     PRINTF("SUCCESS\n\n");
