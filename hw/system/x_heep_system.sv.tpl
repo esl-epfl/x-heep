@@ -23,7 +23,7 @@ module x_heep_system
 
 ) (
     % for peripheral in peripherals.items():
-    % if peripheral[0] in ("serial_link"):
+    % if peripheral[0] in ("obi2axi"):
     % if peripheral[1]['is_included'] in ("yes"):
 
     //input  logic [NumChannels-1:0]    ddr_rcv_clk_i,  // adapt for multi channel

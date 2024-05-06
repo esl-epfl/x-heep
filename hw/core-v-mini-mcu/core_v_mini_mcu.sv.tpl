@@ -90,7 +90,7 @@ ${pad.core_v_mini_mcu_interface}
     input logic ext_dma_slot_rx_i,
 
     % for peripheral in peripherals.items():
-    % if peripheral[0] in ("serial_link"):
+    % if peripheral[0] in ("obi2axi"):
     % if peripheral[1]['is_included'] in ("yes"):
 
     //input  logic [NumChannels-1:0]    ddr_rcv_clk_i,  // adapt for multi channel
@@ -157,7 +157,7 @@ ${pad.core_v_mini_mcu_interface}
 
  // OBI2AXI internal signal declaration 
   % for peripheral in peripherals.items():
-  % if peripheral[0] in ("serial_link"):
+  % if peripheral[0] in ("obi2axi"):
   % if peripheral[1]['is_included'] in ("yes"):
   // axi2obi obi2axi
 
@@ -672,7 +672,7 @@ ${pad.core_v_mini_mcu_interface}
 
 // SERIAL LINK
 % for peripheral in peripherals.items():
-% if peripheral[0] in ("serial_link"):
+% if peripheral[0] in ("obi2axi"):
 % if peripheral[1]['is_included'] in ("yes"):
   serial_link_occamy_wrapper #(
     .axi_req_t(core_v_mini_mcu_pkg::axi_req_t),

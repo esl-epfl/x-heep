@@ -7,16 +7,39 @@
 
 int main(int argc, char *argv[])
 {
-    /* write something to stdout */
+    /*REG CONFIG*/ 
+
+    int32_t *addr_p_reg =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_CTRL_REG_OFFSET); 
+    //*addr_p_reg = (*addr_p_reg) & 0x11111101; // reset_n 
+    *addr_p_reg = (*addr_p_reg)| 0x00000001; // clock enable
+    
+    // ROW MODE
+    int32_t *addr_p_reg_RAW_MODE =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_RAW_MODE_EN_REG_OFFSET); 
+    //*addr_p_reg = (*addr_p_reg)& 0x11111101;
+    *addr_p_reg_RAW_MODE = (*addr_p_reg_RAW_MODE)| 0x00000001; // clock enable reg
+
+    // AXI ISOLATE 
+    // all channels are isolated by default
+    //int32_t *addr_p_reg_RAW_MODE =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_CTRL_REG_OFFSET); 
+    //*addr_p_reg_RAW_MODE = (*addr_p_reg_RAW_MODE)& 0x01111111; // axi_in_isolate
+
+    //int32_t *addr_p_reg_RAW_MODE =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_CTRL_REG_OFFSET);
+    //*addr_p_reg_RAW_MODE = (*addr_p_reg_RAW_MODE)| 0x00000001; // axi_out_isolate
+
+
+
+
+    /* WRITING TO SL */
     printf("start!\n");
     int32_t *addr_p = 0x50000040; // bus serial link
-
-    int32_t *addr_p_reg =SERIAL_LINK_START_ADDRESS + SERIAL_LINK_CTRL_REG_OFFSET; // register
-    *addr_p_reg = (*addr_p_reg)| 0x00000001;
     printf("writing to %p started\n", addr_p);
     *addr_p = 2345;
     
     printf("addr_p = %p -> %x\n", addr_p, *addr_p);
+
+    
+
+
 
     printf("success!\n");
     return EXIT_SUCCESS;
