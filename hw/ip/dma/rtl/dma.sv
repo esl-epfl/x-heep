@@ -1,8 +1,10 @@
-// Copyright 2022 EPFL
-// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
-// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+/*
+ * Copyright 2022 EPFL
+ * Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+ * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+ */
 
-// DMA assume a read request is not granted before previous request rvalid is asserted
+/* DMA assume a read request is not granted before previous request rvalid is asserted */
 
 module dma #(
     parameter int unsigned FIFO_DEPTH = 4,
@@ -85,7 +87,7 @@ module dma #(
   logic                              data_out_rvalid;
   logic        [               31:0] data_out_rdata;
 
-  // 2D DMA signals
+  /* 2D signals */
 
   logic                              dma_conf_1d;  // Dimensionality configuration: 0-> 1D, 1-> 2D
   logic                              dma_conf_2d;  // Dimensionality configuration: 0-> 1D, 1-> 2D
@@ -234,69 +236,69 @@ module dma #(
 
   // DMA 2D increment
 
-  assign dma_src_d2_inc = reg2hw.src_ptr_inc.src_ptr_inc_d2.q;
-  assign dma_src_d1_inc = reg2hw.src_ptr_inc.src_ptr_inc_d1.q;
-  assign dma_dst_d2_inc = reg2hw.dst_ptr_inc.dst_ptr_inc_d2.q;
-  assign dma_dst_d1_inc = reg2hw.dst_ptr_inc.dst_ptr_inc_d1.q;
+  assign dma_src_d2_inc = reg2hw.src_ptr_inc_d2.q;
+  assign dma_src_d1_inc = reg2hw.src_ptr_inc_d1.q;
+  assign dma_dst_d2_inc = reg2hw.dst_ptr_inc_d2.q;
+  assign dma_dst_d1_inc = reg2hw.dst_ptr_inc_d1.q;
 
   // Padding FSM conditions assignments
 
 
-  assign idle_to_top_ex = {|reg2hw.pad.top_pad.q == 1'b1 && dma_start == 1'b1};
+  assign idle_to_top_ex = {|reg2hw.pad_top.q == 1'b1 && dma_start == 1'b1};
   assign idle_to_left_ex = {
-    |reg2hw.pad.top_pad.q == 1'b0 && |reg2hw.pad.left_pad.q == 1'b1 && dma_start == 1'b1
+    |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b1 && dma_start == 1'b1
   };
   assign idle_to_right_ex = {
-    |reg2hw.pad.top_pad.q == 1'b0 && |reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b1 
-                      && dma_src_cnt_d1 == ({11'h0, reg2hw.pad.right_pad.q} + {14'h0, dma_cnt_du}) && dma_start == 1'b1
+    |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b1 
+                      && dma_src_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + {14'h0, dma_cnt_du}) && dma_start == 1'b1
   };
   assign idle_to_bottom_ex = {
-    |reg2hw.pad.top_pad.q == 1'b0 && |reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b1 
-                      && dma_src_cnt_d2 == ({11'h0, reg2hw.pad.bottom_pad.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && dma_start == 1'b1
+    |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 
+                      && dma_src_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && dma_start == 1'b1
   };
   assign top_ex_to_top_dn = {
-    dma_src_cnt_d2 == ({1'h0, reg2hw.size_tr_d2.q} + {11'h0, reg2hw.pad.bottom_pad.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b0
+    dma_src_cnt_d2 == ({1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && |reg2hw.pad_left.q == 1'b0
   };
   assign top_ex_to_left_ex = {
-    dma_src_cnt_d2 == ({1'h0, reg2hw.size_tr_d2.q} + {11'h0, reg2hw.pad.bottom_pad.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b1
+    dma_src_cnt_d2 == ({1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && |reg2hw.pad_left.q == 1'b1
   };
   assign top_dn_to_right_ex = {
-    |reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b1 && dma_src_cnt_d1 == ({11'h0, reg2hw.pad.right_pad.q} + {14'h0, dma_cnt_du})
+    |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b1 && dma_src_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + {14'h0, dma_cnt_du})
   };
   assign top_dn_to_bottom_ex = {
-    |reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b1 && dma_src_cnt_d2 == ({11'h0, reg2hw.pad.bottom_pad.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du})
+    |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 && dma_src_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du})
   };
   assign top_dn_to_idle = {
-    |reg2hw.pad.left_pad.q == 1'b0 && |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b0 && |dma_src_cnt_d2 == 1'b0
+    |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b0 && |dma_src_cnt_d2 == 1'b0
   };
   assign left_ex_to_left_dn = {
-    dma_src_cnt_d1 == ({1'h0, reg2hw.size_tr_d1.q} + {11'h0, reg2hw.pad.right_pad.q} + {14'h0, dma_cnt_du})
+    dma_src_cnt_d1 == ({1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_right.q} + {14'h0, dma_cnt_du})
   };
   assign left_dn_to_left_ex = {
-    dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && dma_src_cnt_d2 != ({14'h0, dma_cnt_du} + {11'h0, reg2hw.pad.bottom_pad.q}) && |reg2hw.pad.right_pad.q == 1'b0
+    dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && dma_src_cnt_d2 != ({14'h0, dma_cnt_du} + {11'h0, reg2hw.pad_bottom.q}) && |reg2hw.pad_right.q == 1'b0
   };
   assign left_dn_to_right_ex = {
-    |reg2hw.pad.right_pad.q == 1'b1 && dma_src_cnt_d1 == ({11'h0, reg2hw.pad.right_pad.q} + {14'h0, dma_cnt_du})
+    |reg2hw.pad_right.q == 1'b1 && dma_src_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + {14'h0, dma_cnt_du})
   };
   assign left_dn_to_bottom_ex = {
-    |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b1 && dma_src_cnt_d2 == ({11'h0, reg2hw.pad.bottom_pad.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du})
+    |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 && dma_src_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du})
   };
   assign left_dn_to_idle = {
-    |reg2hw.pad.right_pad.q == 1'b0 && |reg2hw.pad.bottom_pad.q == 1'b0 && |dma_src_cnt_d2 == 1'b0
+    |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b0 && |dma_src_cnt_d2 == 1'b0
   };
   assign right_ex_to_right_dn = {
-    dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && dma_src_cnt_d2 != ({11'h0, reg2hw.pad.bottom_pad.q} + {14'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b0
+    dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && dma_src_cnt_d2 != ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && |reg2hw.pad_left.q == 1'b0
   };
   assign right_ex_to_left_ex = {
-    dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && dma_src_cnt_d2 != ({11'h0, reg2hw.pad.bottom_pad.q} + {14'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b1
+    dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && dma_src_cnt_d2 != ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && |reg2hw.pad_left.q == 1'b1
   };
   assign right_ex_to_bottom_ex = {
-    |reg2hw.pad.bottom_pad.q == 1'b1 && dma_src_cnt_d2 == ({11'h0, reg2hw.pad.bottom_pad.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du})
+    |reg2hw.pad_bottom.q == 1'b1 && dma_src_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du})
   };
   assign right_dn_to_right_ex = {
-    dma_src_cnt_d1 == ({11'h0, reg2hw.pad.right_pad.q} + {14'h0, dma_cnt_du}) && |reg2hw.pad.left_pad.q == 1'b0
+    dma_src_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + {14'h0, dma_cnt_du}) && |reg2hw.pad_left.q == 1'b0
   };
-  assign right_dn_to_idle = {|reg2hw.pad.bottom_pad.q == 1'b0 && |dma_src_cnt_d2 == 1'b0};
+  assign right_dn_to_idle = {|reg2hw.pad_bottom.q == 1'b0 && |dma_src_cnt_d2 == 1'b0};
   assign bottom_ex_to_idle = {
     dma_src_cnt_d1 == {14'h0, dma_cnt_du} && dma_src_cnt_d2 == {14'h0, dma_cnt_du}
   };
@@ -357,7 +359,7 @@ module dma #(
     end else begin
       if (dma_start == 1'b1) begin
         dma_start_pending <= 1'b0;
-      end else if ((reg2hw.size_tr_d1.qe & |reg2hw.size_tr_d1.q)) begin
+      end else if ((reg2hw.size_d1.qe & |reg2hw.size_d1.q)) begin
         dma_start_pending <= 1'b1;
       end
     end
@@ -454,8 +456,8 @@ module dma #(
       dma_src_cnt_d2 <= '0;
     end else begin
       if (dma_start == 1'b1) begin
-        dma_src_cnt_d1 <= {1'h0, reg2hw.size_tr_d1.q} + {11'h0, reg2hw.pad.left_pad.q} + {11'h0, reg2hw.pad.right_pad.q};
-        dma_src_cnt_d2 <= {1'h0, reg2hw.size_tr_d2.q} + {11'h0, reg2hw.pad.top_pad.q} + {11'h0, reg2hw.pad.bottom_pad.q};
+        dma_src_cnt_d1 <= {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q};
+        dma_src_cnt_d2 <= {1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_top.q} + {11'h0, reg2hw.pad_bottom.q};
       end else if (data_in_gnt == 1'b1) begin
         if (dma_conf_1d == 1'b1) begin
           // 1D case
@@ -465,7 +467,7 @@ module dma #(
           if (dma_src_cnt_d1 == {14'h0, dma_cnt_du}) begin
             // In this case, the d1 is finished, so we need to decrement the d2 size and reset the d2 size
             dma_src_cnt_d2 <= dma_src_cnt_d2 - {14'h0, dma_cnt_du};
-            dma_src_cnt_d1 <= {1'h0, reg2hw.size_tr_d1.q} + {11'h0, reg2hw.pad.left_pad.q} + {11'h0, reg2hw.pad.right_pad.q};
+            dma_src_cnt_d1 <= {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q};
           end else begin
             // In this case, the d1 isn't finished, so we need to decrement the d1 size
             dma_src_cnt_d1 <= dma_src_cnt_d1 - {14'h0, dma_cnt_du};
@@ -485,7 +487,7 @@ module dma #(
       dma_dst_cnt_d1 <= '0;
     end else begin
       if (dma_start == 1'b1) begin
-        dma_dst_cnt_d1 <= {1'h0, reg2hw.size_tr_d1.q} + {11'h0, reg2hw.pad.left_pad.q} + {11'h0, reg2hw.pad.right_pad.q};
+        dma_dst_cnt_d1 <= {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q};
       end else if (data_out_gnt == 1'b1) begin
         if (dma_conf_1d == 1'b1) begin
           // 1D case
@@ -494,7 +496,7 @@ module dma #(
           // 2D case
           if (dma_dst_cnt_d1 == {14'h0, dma_cnt_du}) begin
             // In this case, the d1 is finished, so we need to reset the d2 size
-            dma_dst_cnt_d1 <= {1'h0, reg2hw.size_tr_d1.q} + {11'h0, reg2hw.pad.left_pad.q} + {11'h0, reg2hw.pad.right_pad.q};
+            dma_dst_cnt_d1 <= {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q};
           end else begin
             // In this case, the d1 isn't finished, so we need to decrement the d1 size
             dma_dst_cnt_d1 <= dma_dst_cnt_d1 - {14'h0, dma_cnt_du};
@@ -510,7 +512,7 @@ module dma #(
       dma_addr_cnt <= '0;
     end else begin
       if (dma_start == 1'b1 && address_mode) begin
-        dma_addr_cnt <= {16'h0, reg2hw.size_tr_d1.q};
+        dma_addr_cnt <= {16'h0, reg2hw.size_d1.q};
       end else if (data_addr_in_gnt == 1'b1 && address_mode) begin
         dma_addr_cnt <= dma_addr_cnt - 32'h4;  //address always 32b
       end
@@ -627,10 +629,10 @@ module dma #(
       pad_state_q <= PAD_IDLE;
       pad_state_x <= PAD_IDLE;
     end else if (dma_conf_2d == 1'b1) begin
-      if (dma_start == 1'b1 && |reg2hw.pad.top_pad.q == 1'b1) begin
+      if (dma_start == 1'b1 && |reg2hw.pad_top.q == 1'b1) begin
         pad_state_q <= TOP_PAD_EXEC;
         pad_state_x <= TOP_PAD_EXEC;
-      end else if (dma_start == 1'b1 && |reg2hw.pad.left_pad.q == 1'b1) begin
+      end else if (dma_start == 1'b1 && |reg2hw.pad_left.q == 1'b1) begin
         pad_state_q <= LEFT_PAD_EXEC;
         pad_state_x <= LEFT_PAD_EXEC;
       end else begin
@@ -692,9 +694,9 @@ module dma #(
     if (dma_conf_1d == 1'b1) begin
       pad_state_d = PAD_IDLE;
     end else begin
-      if (dma_start == 1'b1 && |reg2hw.pad.top_pad.q == 1'b1) begin
+      if (dma_start == 1'b1 && |reg2hw.pad_top.q == 1'b1) begin
         pad_state_d = TOP_PAD_EXEC;
-      end else if (dma_start == 1'b1 && |reg2hw.pad.left_pad.q == 1'b1) begin
+      end else if (dma_start == 1'b1 && |reg2hw.pad_left.q == 1'b1) begin
         pad_state_d = LEFT_PAD_EXEC;
       end else begin
         pad_state_d = pad_state_x;
@@ -812,7 +814,7 @@ module dma #(
           end
         end else if (dma_conf_2d == 1'b1) begin
           // 2D DMA case: exit only if both 1d and 2d counters are at 0
-          if (dma_src_cnt_d1 == {1'h0, reg2hw.size_tr_d1.q} + {11'h0, reg2hw.pad.left_pad.q} + {11'h0, reg2hw.pad.right_pad.q} && |dma_src_cnt_d2 == 1'b0) begin
+          if (dma_src_cnt_d1 == {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q} && |dma_src_cnt_d2 == 1'b0) begin
             dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
           end else begin
             // The read operation is the same in both cases

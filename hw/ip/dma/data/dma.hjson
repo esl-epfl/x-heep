@@ -33,7 +33,7 @@
         { bits: "31:0", name: "PTR_ADDR", desc: "Address data pointer (word aligned) - used only in Address mode" }
       ]
     },
-    { name:     "SIZE_TR_D1",
+    { name:     "SIZE_D1",
       desc:     "Number of bytes to copy from, defined with respect to the first dimension - Once a value is written, the copy starts",
       swaccess: "rw",
       hwaccess: "hro",
@@ -43,7 +43,7 @@
         { bits: "15:0", name: "SIZE", desc: "DMA counter D1 and start" }
       ]
     },
-    { name:     "SIZE_TR_D2",
+    { name:     "SIZE_D2",
       desc:     "Number of bytes to copy from, defined with respect to the second dimension",
       swaccess: "rw",
       hwaccess: "hro",
@@ -65,38 +65,52 @@
         { bits: "1", name: "WINDOW_DONE", desc: "set if DMA is copying second half"},
       ]
     },
-    { name:     "SRC_PTR_INC",
-      desc:     "Increment number of src/dst pointer every time a word is copied",
+    { name:     "SRC_PTR_INC_D1",
+      desc:     "Increment the D1 source pointer every time a word is copied",
       swaccess: "rw",
       hwaccess: "hro",
-      // Dimensioned to allow a maximum of 64 byte stride (a stride of 15 places for a data_type_word case) 
-      // for the 1D case and 64kB stride for the 2D case (a stride of 15 places for a data_type_word case)
+      // Dimensioned to allow a maximum of a 15 element stride for a data_type_word case
       fields: [
         { bits: "5:0", 
-          name: "SRC_PTR_INC_D1", 
+          name: "INC", 
           desc: "Source pointer d1 increment",
           resval:4
-        },
-        { bits: "28:6", 
-          name: "SRC_PTR_INC_D2", 
+        }
+      ]
+    },
+    { name:     "SRC_PTR_INC_D2",
+      desc:     "Increment the D2 source pointer every time a word is copied",
+      swaccess: "rw",
+      hwaccess: "hro",
+      // Dimensioned to allow a maximum of 15 element stride for a data_type_word
+      fields: [
+        { bits: "22:0", 
+          name: "INC", 
           desc: "Source pointer d2 increment",
           resval:4
         }
       ]
     },
-    { name:     "DST_PTR_INC",
-      desc:     "Increment number of src/dst pointer every time a word is copied",
+    { name:     "DST_PTR_INC_D1",
+      desc:     "Increment the D1 destination pointer every time a word is copied",
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
         { bits: "5:0", 
-          name: "DST_PTR_INC_D1", 
-          desc: "Destination pointer increment",
+          name: "INC", 
+          desc: "Destination pointer d1 increment",
           resval:4
-        },
-        { bits: "28:6", 
-          name: "DST_PTR_INC_D2", 
-          desc: "Address pointer increment",
+        }
+      ]
+    },
+    { name:     "DST_PTR_INC_D2",
+      desc:     "Increment the D2 destination pointer every time a word is copied",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "22:0", 
+          name: "INC", 
+          desc: "Destination pointer d2 increment",
           resval:4
         }
       ]
@@ -158,17 +172,44 @@
         { bits: "0:0", name: "DMA_DIM", desc: "DMA transfer dimensionality"}
       ]
     },
-    { name:     "PAD",
-      desc:     '''Set the padding options''',
+    { name:     "PAD_TOP",
+      desc:     '''Set the top padding''',
       swaccess: "rw",
       hwaccess: "hro",
       hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
       resval:   0,
       fields: [
-        { bits: "5:0", name: "LEFT_PAD", desc: "Left margin padding (1D/2D)"},
-        { bits: "11:6", name: "RIGHT_PAD", desc: "Right margin padding (1D/2D)"},
-        { bits: "17:12", name: "TOP_PAD", desc: "Top margin padding (2D)"},
-        { bits: "22:17", name: "BOTTOM_PAD", desc: "Bottom margin padding (2D)"}
+        { bits: "5:0", name: "PAD", desc: "Top margin padding (2D)"}
+      ]
+    },
+    { name:     "PAD_BOTTOM",
+      desc:     '''Set the bottom padding''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
+      resval:   0,
+      fields: [
+        { bits: "5:0", name: "PAD", desc: "Bottom margin padding (2D)"}
+      ]
+    },
+    { name:     "PAD_RIGHT",
+      desc:     '''Set the right padding''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
+      resval:   0,
+      fields: [
+        { bits: "5:0", name: "PAD", desc: "Right margin padding (1D/2D)"}
+      ]
+    },
+    { name:     "PAD_LEFT",
+      desc:     '''Set the left padding''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
+      resval:   0,
+      fields: [
+        { bits: "5:0", name: "PAD", desc: "Left margin padding (1D/2D)"}
       ]
     },
     { name:    "WINDOW_SIZE",
