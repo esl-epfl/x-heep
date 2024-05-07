@@ -36,6 +36,8 @@
 #include "mmio.h"
 #include "bitfield.h"
 
+#include "fast_intr_ctrl.h"
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        DEFINITIONS AND MACROS                            */
@@ -58,6 +60,7 @@
 /****************************************************************************/
 
 spi_return_flags_e spi_get_events(spi_host_t* spi, spi_event_e* events);
+spi_return_flags_e spi_acknowledge_event(spi_host_t* spi);
 
 /****************************************************************************/
 /**                                                                        **/
@@ -358,6 +361,7 @@ void handler_irq_spi(uint32_t id)
     }
     else {
         spi_event_e events;
+        spi_acknowledge_event(spi_host2);
         spi_get_events(spi_host2, &events);
         spi_intr_handler_event_host2(events);
     }
@@ -373,6 +377,7 @@ void fic_irq_spi(void)
     }
     else {
         spi_event_e events;
+        spi_acknowledge_event(spi_host1);
         spi_get_events(spi_host1, &events);
         spi_intr_handler_event_host(events);
     }
@@ -388,6 +393,7 @@ void fic_irq_spi_flash(void)
     }
     else {
         spi_event_e events;
+        spi_acknowledge_event(spi_flash);
         spi_get_events(spi_flash, &events);
         spi_intr_handler_event_flash(events);
     }
@@ -426,12 +432,18 @@ __attribute__((weak, optimize("O0"))) void spi_intr_handler_error_host2(spi_erro
 spi_return_flags_e spi_get_events(spi_host_t* spi, spi_event_e* events) {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
     volatile spi_status_t* status = spi_get_status(spi);
-    *events = status->rxfull  << SPI_HOST_EVENT_ENABLE_RXFULL_BIT
-            | status->txempty << SPI_HOST_EVENT_ENABLE_TXEMPTY_BIT
-            | status->rxwm    << SPI_HOST_EVENT_ENABLE_RXWM_BIT
-            | status->txwm    << SPI_HOST_EVENT_ENABLE_TXWM_BIT
-            | status->ready   << SPI_HOST_EVENT_ENABLE_READY_BIT
-            | ~status->active << SPI_HOST_EVENT_ENABLE_IDLE_BIT;
+    *events = bitfield_write(*events, BIT_MASK_1, SPI_HOST_EVENT_ENABLE_RXFULL_BIT, status->rxfull);
+    *events = bitfield_write(*events, BIT_MASK_1, SPI_HOST_EVENT_ENABLE_TXEMPTY_BIT, status->txempty);
+    *events = bitfield_write(*events, BIT_MASK_1, SPI_HOST_EVENT_ENABLE_RXWM_BIT, status->rxwm);
+    *events = bitfield_write(*events, BIT_MASK_1, SPI_HOST_EVENT_ENABLE_TXWM_BIT, status->txwm);
+    *events = bitfield_write(*events, BIT_MASK_1, SPI_HOST_EVENT_ENABLE_READY_BIT, status->ready);
+    *events = bitfield_write(*events, BIT_MASK_1, SPI_HOST_EVENT_ENABLE_IDLE_BIT, ~status->active);
+    return SPI_FLAG_OK;
+}
+
+spi_return_flags_e spi_acknowledge_event(spi_host_t* spi) {
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_HOST_HW(spi)->INTR_STATE = bitfield_write(SPI_HOST_HW(spi)->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_SPI_EVENT_BIT, 1);
     return SPI_FLAG_OK;
 }
 

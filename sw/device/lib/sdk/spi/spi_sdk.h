@@ -172,15 +172,6 @@ typedef struct {
 } spi_segment_t;
 
 typedef struct {
-    const spi_segment_t* segments;
-    uint8_t              seglen;
-    const uint32_t*      txbuffer;
-    uint32_t             txlen;
-    uint32_t*            rxbuffer;
-    uint32_t             rxlen;
-} spi_transaction_t;
-
-typedef struct {
     spi_idx_e   idx;
     bool        init;
     spi_slave_t slave; // TODO: Would an array be better ???
@@ -212,7 +203,7 @@ spi_codes_e spi_receive(spi_t* spi, uint32_t* dest_buffer, uint32_t len);
 
 spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer, uint32_t* dest_buffer, uint32_t len);
 
-spi_codes_e spi_execute(spi_t* spi, spi_transaction_t transaction);
+spi_codes_e spi_execute(spi_t* spi, const spi_segment_t* segments, uint32_t segments_len, const uint32_t* src_buffer, uint32_t* dest_buffer);
 
 /****************************************************************************/
 /**                                                                        **/
