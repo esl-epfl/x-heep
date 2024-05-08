@@ -648,20 +648,23 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
          * that could be useful for debugging purposes.
          */
         uint8_t isEnv = (p_trans->dst->env != NULL);
-        uint8_t isOutb = is_region_outbound_1D(
-                                    p_trans->dst->ptr,
-                                    p_trans->dst->env->end,
-                                    p_trans->type,
-                                    p_trans->src->size_du,
-                                    p_trans->dst->inc_du );
-        if( isEnv && isOutb )
-        {
-            p_trans->flags |= DMA_CONFIG_DST;
-            p_trans->flags |= DMA_CONFIG_OUTBOUNDS;
-            p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
-            return p_trans->flags;
-        }
 
+        if(isEnv) {
+            uint8_t isOutb = is_region_outbound_1D(
+                                        p_trans->dst->ptr,
+                                        p_trans->dst->env->end,
+                                        p_trans->type,
+                                        p_trans->src->size_du,
+                                        p_trans->dst->inc_du );
+            if( isOutb )
+            {
+                p_trans->flags |= DMA_CONFIG_DST;
+                p_trans->flags |= DMA_CONFIG_OUTBOUNDS;
+                p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
+
+                return p_trans->flags;
+            }
+        }
         // @ToDo: It should also be checked that the destination is behind the
         // source if there will be overlap.
         // @ToDo: Consider if (when a destination target has no environment)
@@ -1098,7 +1101,6 @@ dma_config_flags_t validate_target( dma_target_t *p_tgt )
     {
         /* Check if the environment was properly formed.*/
         flags |= validate_environment( p_tgt->env );
-
         /*
          * Check if the target selected size goes beyond the boundaries of
          * the environment.
