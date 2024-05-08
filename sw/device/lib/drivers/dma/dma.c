@@ -1118,6 +1118,21 @@ dma_config_flags_t validate_target( dma_target_t *p_tgt )
                 flags |= DMA_CONFIG_OUTBOUNDS;
             }
         }
+        /* Do the same but for 2D case */
+        if( p_tgt->size_d2_du != 0 )
+        {
+            uint8_t isOutb = is_region_outbound_2D(  p_tgt->ptr,
+                                          p_tgt->env->end,
+                                          p_tgt->type,
+                                          p_tgt->size_du,
+                                          p_tgt->size_d2_du,
+                                          p_tgt->inc_du,
+                                          p_tgt->inc_d2_du);
+            if( isOutb )
+            {
+                flags |= DMA_CONFIG_OUTBOUNDS;
+            }
+        }
 
         /* Check if the target starts before the environment starts. */
         uint8_t beforeEnv = ( p_tgt->ptr < p_tgt->env->start );
