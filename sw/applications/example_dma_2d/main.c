@@ -19,13 +19,13 @@
 #include "test_data.h"
 
 /* 
- *  Select which test to run
+ *  Select which test to run:
  *  0: Extract a NxM matrix, perform optional padding and copy it to a AxB matrix, using HALs
  *  1: Extract a 1xN matrix (array), perform optional padding and copy it to an array, using HALs
- *  2: Extract a NxM matrix, perform optional padding and copy it to a AxB matrix, using direct regoster writes
+ *  2: Extract a NxM matrix, perform optional padding and copy it to a AxB matrix, using direct register writes
  */
 
-#define TEST_ID 2
+#define TEST_ID 0
 
 /* Enable performance analysis */
 #define EN_PERF 1
@@ -34,25 +34,23 @@
 #define EN_VERIF 1
 
 /* Parameters */
-#define SIZE_OUT_D1 100
-#define SIZE_OUT_D2 100
+#define SIZE_OUT_D1 5
+#define SIZE_OUT_D2 5
 #define STRIDE_IN_D1 1
 #define STRIDE_IN_D2 1
 #define STRIDE_OUT_D1 1
 #define STRIDE_OUT_D2 1
-#define TOP_PAD 1
+#define TOP_PAD 2
 #define BOTTOM_PAD 1
-#define LEFT_PAD 1
-#define RIGHT_PAD 1
+#define LEFT_PAD 2
+#define RIGHT_PAD 3
 #define OUT_D1 (SIZE_OUT_D1 + LEFT_PAD + RIGHT_PAD)
 #define OUT_D2 (SIZE_OUT_D2 + TOP_PAD + BOTTOM_PAD)
 #define OUT_DIM_1D ( OUT_D1 )
 #define OUT_DIM_2D ( OUT_D1 * OUT_D2 )
 
-/* Parameters for LL example */
+/* Mask for LL example */
 #define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ))
-#define DMA_DATA_TYPE DMA_DATA_TYPE_WORD
-typedef uint32_t dma_input_data_type;
 
 /* Pointer increments computation */
 #define SRC_INC_D1 STRIDE_IN_D1
@@ -144,7 +142,7 @@ int main()
                                 .size_du        = SIZE_OUT_D1,
                                 .size_d2_du     = SIZE_OUT_D2,
                                 .trig           = DMA_TRIG_MEMORY,
-                                .type           = DMA_DATA_TYPE_WORD,
+                                .type           = DMA_DATA_TYPE,
                             };
 
     dma_target_t tgt_dst = {
@@ -219,7 +217,7 @@ int main()
         {
             read_ptr = i * STRIDE_OUT_D2 * OUT_D1 + j * STRIDE_OUT_D1;
             write_ptr = (i - top_pad_cnt ) * STRIDE_IN_D2 * SIZE_IN_D1 + (j - left_pad_cnt) * STRIDE_IN_D1;
-            if (i < TOP_PAD || i >= SIZE_OUT_D2 + BOTTOM_PAD || j < LEFT_PAD || j >= SIZE_OUT_D1 + RIGHT_PAD)
+            if (i < TOP_PAD || i >= SIZE_OUT_D2 + TOP_PAD || j < LEFT_PAD || j >= SIZE_OUT_D1 + LEFT_PAD)
             {
                 copied_data_2D_CPU[read_ptr] = 0;
             }
@@ -244,13 +242,30 @@ int main()
 
     /* Read the cycles count after the CPU run */
     CSR_READ(CSR_REG_MCYCLE, &cycles_cpu);
-
-    PRINTF("DMA cycles: %d\n\r", cycles_dma);
+    /*PRINTF("DMA cycles: %d\n\r", cycles_dma);
     PRINTF("CPU cycles: %d \n\r", cycles_cpu);
+    PRINTF("\n\r");*/
+    PRINTF("%d\n\r", cycles_dma);
+    PRINTF("%d \n\r", cycles_cpu);
     PRINTF("\n\r");
+
     #endif
 
     #if EN_VERIF
+/*
+    for (int i = 0; i < OUT_D2; i++) {
+        for (int j = 0; j < OUT_D1; j++) {
+            PRINTF("%d ", copied_data_2D_DMA[i * OUT_D1 + j]);
+        }
+        PRINTF("\n\r");
+    }
+
+    for (int i = 0; i < OUT_D2; i++) {
+        for (int j = 0; j < OUT_D1; j++) {
+            PRINTF("%d ", copied_data_2D_CPU[i * OUT_D1 + j]);
+        }
+        PRINTF("\n\r");
+    }*/
     
     /* Verify that the DMA and the CPU outputs are the same */
     for (int i = 0; i < OUT_D2; i++) {
@@ -288,7 +303,7 @@ int main()
                                 .inc_du         = SRC_INC_D1,
                                 .size_du        = SIZE_OUT_D1,
                                 .trig           = DMA_TRIG_MEMORY,
-                                .type           = DMA_DATA_TYPE_WORD,
+                                .type           = DMA_DATA_TYPE,
                             };
 
     dma_target_t tgt_dst = {
@@ -459,50 +474,50 @@ int main()
                     peri );
 
     /* Set the source strides */
-    write_register( SRC_INC_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+    write_register( SRC_INC_D1 * DMA_DATA_TYPE_2_SIZE(DMA_DATA_TYPE),
                     DMA_SRC_PTR_INC_D1_REG_OFFSET,
                     DMA_SRC_PTR_INC_D1_INC_MASK,
                     DMA_SRC_PTR_INC_D1_INC_OFFSET,
                     peri );
     
-    write_register( SRC_INC_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+    write_register( SRC_INC_D2 * DMA_DATA_TYPE_2_SIZE(DMA_DATA_TYPE),
                     DMA_SRC_PTR_INC_D2_REG_OFFSET,
                     DMA_SRC_PTR_INC_D2_INC_MASK,
                     DMA_SRC_PTR_INC_D2_INC_OFFSET,
                     peri );
     
-    write_register( DST_INC_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+    write_register( DST_INC_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                     DMA_DST_PTR_INC_D1_REG_OFFSET,
                     DMA_DST_PTR_INC_D1_INC_MASK,
                     DMA_DST_PTR_INC_D1_INC_OFFSET,
                     peri );
     
-    write_register( DST_INC_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+    write_register( DST_INC_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                     DMA_DST_PTR_INC_D2_REG_OFFSET,
                     DMA_DST_PTR_INC_D2_INC_MASK,
                     DMA_DST_PTR_INC_D2_INC_OFFSET,
                     peri );
 
     /* Padding configuration */
-    write_register( TOP_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+    write_register( TOP_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                     DMA_PAD_TOP_REG_OFFSET,
                     DMA_PAD_TOP_PAD_MASK,
                     DMA_PAD_TOP_PAD_OFFSET,
                     peri );
 
-    write_register( RIGHT_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+    write_register( RIGHT_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                     DMA_PAD_RIGHT_REG_OFFSET,
                     DMA_PAD_RIGHT_PAD_MASK,
                     DMA_PAD_RIGHT_PAD_OFFSET,
                     peri );
 
-    write_register( LEFT_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+    write_register( LEFT_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                     DMA_PAD_LEFT_REG_OFFSET,
                     DMA_PAD_LEFT_PAD_MASK,
                     DMA_PAD_LEFT_PAD_OFFSET,
                     peri );
 
-    write_register( BOTTOM_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+    write_register( BOTTOM_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                     DMA_PAD_BOTTOM_REG_OFFSET,
                     DMA_PAD_BOTTOM_PAD_MASK,
                     DMA_PAD_BOTTOM_PAD_OFFSET,
@@ -510,13 +525,13 @@ int main()
 
     /* Set the sizes */
 
-    write_register( SIZE_OUT_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+    write_register( SIZE_OUT_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                     DMA_SIZE_D2_REG_OFFSET,
                     DMA_SIZE_D2_SIZE_MASK,
                     DMA_SIZE_D2_SIZE_OFFSET,
                     peri );
 
-    write_register( SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE ),
+    write_register( SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                     DMA_SIZE_D1_REG_OFFSET,
                     DMA_SIZE_D1_SIZE_MASK,
                     DMA_SIZE_D1_SIZE_OFFSET,

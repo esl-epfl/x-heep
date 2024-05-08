@@ -330,7 +330,7 @@ module dma #(
   // RUNNING : waiting for transaction finish
   //           when `dma_done` rises either enter ready or restart in circular mode
   //
-  
+
   always_comb begin
     dma_state_d = dma_state_q;
     case (dma_state_q)
@@ -380,7 +380,7 @@ module dma #(
     end else begin
       if (dma_start == 1'b1) begin
         read_ptr_reg <= reg2hw.src_ptr.q;
-      end else if (data_in_gnt == 1'b1) begin 
+      end else if (data_in_gnt == 1'b1) begin
         if (dma_conf_1d == 1'b1) begin
           /* Increase the pointer by the amount written in ptr_inc */
           read_ptr_reg <= read_ptr_reg + {26'h0, dma_src_d1_inc};
@@ -410,7 +410,9 @@ module dma #(
     end
   end
 
-  // Only update read_ptr_valid_reg when the data is stored in the fifo
+  // Only update read_ptr_valid_reg when the data is stored in the fifo.
+  // Since every input grant is followed by a rvalid, the read_ptr_valid_reg is a mere sample of the read_ptr_reg
+  // synched with the rvalid signal.
   always_ff @(posedge clk_i or negedge rst_ni) begin : proc_ptr_valid_in_reg
     if (~rst_ni) begin
       read_ptr_valid_reg <= '0;
@@ -418,18 +420,7 @@ module dma #(
       if (dma_start == 1'b1) begin
         read_ptr_valid_reg <= reg2hw.src_ptr.q;
       end else if (data_in_rvalid == 1'b1) begin
-        if (dma_conf_1d == 1'b1) begin
-          // 1D case
-          read_ptr_valid_reg <= read_ptr_valid_reg + {26'h0, dma_src_d1_inc};
-        end else if (dma_conf_2d == 1'b1 && pad_cnt_on == 1'b0) begin
-          // 2D case
-          if (dma_src_cnt_d1 == {14'h0, dma_cnt_du} && |dma_src_cnt_d2 == 1'b1) begin
-            // In this case, the d1 is finished, so we need to increment the pointer by sizeof(d1)*data_unit*strides
-            read_ptr_valid_reg <= read_ptr_valid_reg + {9'h0, dma_src_d2_inc};
-          end else begin
-            read_ptr_valid_reg <= read_ptr_valid_reg + {26'h0, dma_src_d1_inc}; // Increment just of one du, since we need to increase the 1d
-          end
-        end
+        read_ptr_valid_reg <= read_ptr_reg;
       end
     end
   end
@@ -653,13 +644,10 @@ module dma #(
   end
 
   // Pad fifo flag logic
-
   always_comb begin : proc_pad_fifo_on
     if (dma_conf_2d == 1'b1) begin
       case (pad_state_q)
         TOP_PAD_EXEC, LEFT_PAD_EXEC, RIGHT_PAD_EXEC, BOTTOM_PAD_EXEC: pad_fifo_on = 1'b1;
-
-        //PAD_IDLE: dma_done = 1'b1;
 
         default: pad_fifo_on = 1'b0;
       endcase
@@ -667,33 +655,41 @@ module dma #(
   end
 
   // Pad counter flag logic
-
   always_comb begin : proc_pad_cnt_on
-    pad_cnt_on = pad_fifo_on;
     case (pad_state_q)
       TOP_PAD_DONE: begin
         if (top_dn_to_right_ex) begin
           pad_cnt_on = 1'b1;
+        end else begin
+          pad_cnt_on = pad_fifo_on;
         end
       end
 
       LEFT_PAD_DONE: begin
         if (left_dn_to_right_ex) begin
           pad_cnt_on = 1'b1;
+        end else begin
+          pad_cnt_on = pad_fifo_on;
         end
       end
 
       RIGHT_PAD_DONE: begin
         if (right_dn_to_right_ex) begin
           pad_cnt_on = 1'b1;
+        end else begin
+          pad_cnt_on = pad_fifo_on;
         end
       end
 
       RIGHT_PAD_EXEC: begin
         if (right_ex_to_right_dn || right_ex_to_left_ex) begin
           pad_cnt_on = 1'b0;
+        end else begin
+          pad_cnt_on = pad_fifo_on;
         end
       end
+
+      default: pad_cnt_on = pad_fifo_on;
     endcase
   end
 
