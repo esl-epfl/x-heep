@@ -18,32 +18,40 @@
  */
 
 #include <sys/stat.h>
+#include <string.h>
 #include <newlib.h>
 #include <unistd.h>
+#include <reent.h>
 #include <errno.h>
 #include "uart.h"
 #include "soc_ctrl.h"
 #include "core_v_mini_mcu.h"
 #include "error.h"
 #include "x-heep.h"
+#include <stdio.h>
 
 #undef errno
 extern int errno;
 
 #define STDOUT_FILENO 1
 
-/* It turns out that older newlib versions use different symbol names which goes
- * against newlib recommendations. Anyway this is fixed in later version.
- */
-#if __NEWLIB__ <= 2 && __NEWLIB_MINOR__ <= 5
-#    define _sbrk sbrk
-#    define _write write
-#    define _close close
-#    define _lseek lseek
-#    define _read read
-#    define _fstat fstat
-#    define _isatty isatty
+#ifndef _LIBC
+/* Provide prototypes for most of the _<systemcall> names that are
+   provided in newlib for some compilers.  */
+int     _close (int __fildes);
+pid_t   _fork (void);
+pid_t   _getpid (void);
+int     _isatty (int __fildes);
+int     _link (const char *__path1, const char *__path2);
+_off_t  _lseek (int __fildes, _off_t __offset, int __whence);
+ssize_t _read (int __fd, void *__buf, size_t __nbyte);
+void *  _sbrk (ptrdiff_t __incr);
+int     _unlink (const char *__path);
+ssize_t _write (int __fd, const void *__buf, size_t __nbyte);
+int     _execve (const char *__path, char * const __argv[], char * const __envp[]);
+int     _kill (pid_t pid, int sig);
 #endif
+
 
 void unimplemented_syscall()
 {
@@ -108,7 +116,7 @@ int _faccessat(int dirfd, const char *file, int mode, int flags)
     return -1;
 }
 
-int _fork(void)
+pid_t _fork(void)
 {
     errno = EAGAIN;
     return -1;
@@ -140,7 +148,7 @@ char *_getcwd(char *buf, size_t size)
     return NULL;
 }
 
-int _getpid()
+pid_t _getpid()
 {
     return 1;
 }
@@ -156,7 +164,7 @@ int _isatty(int file)
     return (file == STDOUT_FILENO);
 }
 
-int _kill(int pid, int sig)
+int _kill(pid_t pid, int sig)
 {
     errno = EINVAL;
     return -1;

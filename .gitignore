@@ -7,8 +7,10 @@ build/
 *.dis
 *.map
 *.do
+*.jou
+*.str
 .venv/
-util/__pycache__/*
+__pycache__/
 
 # ignore apps output file
 run_verif_rtl_log.txt
@@ -32,8 +34,11 @@ hw/system/pad_control/data/pad_control.hjson
 hw/system/pad_control/rtl/pad_control.sv
 hw/system/pad_control/rtl/pad_control_reg_pkg.sv
 hw/system/pad_control/rtl/pad_control_reg_top.sv
+hw/fpga/sram_wrapper.sv
+hw/fpga/scripts/generate_sram.tcl
 
-# same for the C header file and linker scripts
+# same for the C header file and linker scripts and assembly files
+sw/device/lib/crt/crt0.S
 sw/device/lib/runtime/core_v_mini_mcu.h
 sw/linker/link.ld
 sw/linker/link_flash_exec.ld
@@ -45,6 +50,9 @@ sw/device/lib/drivers/**/*_structs.h
 
 # openroad
 flow/OpenROAD-flow-scripts
+
+# automatically generated docs
+/docs/source/Configuration/generated
 
 # User-dependent configuration files
 .vscode

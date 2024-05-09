@@ -33,6 +33,7 @@ module cv32e40p_ex_stage
   import cv32e40p_pkg::*;
   import cv32e40p_apu_core_pkg::*;
 #(
+    parameter COREV_PULP       = 0,
     parameter FPU              = 0,
     parameter APU_NARGS_CPU    = 3,
     parameter APU_WOP_CPU      = 6,
@@ -80,6 +81,8 @@ module cv32e40p_ex_stage
     input logic data_rvalid_i,
     input logic data_misaligned_ex_i,
     input logic data_misaligned_i,
+
+    input logic [1:0] ctrl_transfer_insn_in_dec_i,
 
     // FPU signals
     output logic fpu_fflags_we_o,
@@ -138,11 +141,13 @@ module cv32e40p_ex_stage
     // Output of EX stage pipeline
     output logic [ 5:0] regfile_waddr_wb_o,
     output logic        regfile_we_wb_o,
+    output logic        regfile_we_wb_power_o,
     output logic [31:0] regfile_wdata_wb_o,
 
     // Forwarding ports : to ID stage
     output logic [ 5:0] regfile_alu_waddr_fw_o,
     output logic        regfile_alu_we_fw_o,
+    output logic        regfile_alu_we_fw_power_o,
     output logic [31:0] regfile_alu_wdata_fw_o,  // forward to RF and ID/EX pipe, ALU & MUL
 
     // To IF: Jump and branch target and decision
@@ -190,22 +195,27 @@ module cv32e40p_ex_stage
 
   // ALU write port mux
   always_comb begin
-    regfile_alu_wdata_fw_o = '0;
-    regfile_alu_waddr_fw_o = '0;
-    regfile_alu_we_fw_o    = '0;
-    wb_contention          = 1'b0;
+    regfile_alu_wdata_fw_o    = '0;
+    regfile_alu_waddr_fw_o    = '0;
+    regfile_alu_we_fw_o       = 1'b0;
+    regfile_alu_we_fw_power_o = 1'b0;
+    wb_contention             = 1'b0;
 
-    // APU single cycle operations, and multicycle operations (>2cycles) are written back on ALU port
+    // APU single cycle operations, and multicycle operations (> 2cycles) are written back on ALU port
     if (apu_valid & (apu_singlecycle | apu_multicycle)) begin
-      regfile_alu_we_fw_o    = 1'b1;
-      regfile_alu_waddr_fw_o = apu_waddr;
-      regfile_alu_wdata_fw_o = apu_result;
+      regfile_alu_we_fw_o       = 1'b1;
+      regfile_alu_we_fw_power_o = 1'b1;
+      regfile_alu_waddr_fw_o    = apu_waddr;
+      regfile_alu_wdata_fw_o    = apu_result;
 
       if (regfile_alu_we_i & ~apu_en_i) begin
         wb_contention = 1'b1;
       end
     end else begin
-      regfile_alu_we_fw_o    = regfile_alu_we_i & ~apu_en_i;  // private fpu incomplete?
+      regfile_alu_we_fw_o = regfile_alu_we_i & ~apu_en_i;
+      regfile_alu_we_fw_power_o = (COREV_PULP == 0) ? regfile_alu_we_i & ~apu_en_i : 
+                                                     regfile_alu_we_i & ~apu_en_i &
+                                                     mult_ready & alu_ready & lsu_ready_ex_i;
       regfile_alu_waddr_fw_o = regfile_alu_waddr_i;
       if (alu_en_i) regfile_alu_wdata_fw_o = alu_result;
       if (mult_en_i) regfile_alu_wdata_fw_o = mult_result;
@@ -215,21 +225,24 @@ module cv32e40p_ex_stage
 
   // LSU write port mux
   always_comb begin
-    regfile_we_wb_o    = 1'b0;
-    regfile_waddr_wb_o = regfile_waddr_lsu;
-    regfile_wdata_wb_o = lsu_rdata_i;
-    wb_contention_lsu  = 1'b0;
+    regfile_we_wb_o       = 1'b0;
+    regfile_we_wb_power_o = 1'b0;
+    regfile_waddr_wb_o    = regfile_waddr_lsu;
+    regfile_wdata_wb_o    = lsu_rdata_i;
+    wb_contention_lsu     = 1'b0;
 
     if (regfile_we_lsu) begin
-      regfile_we_wb_o = 1'b1;
+      regfile_we_wb_o       = 1'b1;
+      regfile_we_wb_power_o = (COREV_PULP == 0) ? 1'b1 : ~data_misaligned_ex_i & wb_ready_i;
       if (apu_valid & (!apu_singlecycle & !apu_multicycle)) begin
         wb_contention_lsu = 1'b1;
       end
       // APU two-cycle operations are written back on LSU port
     end else if (apu_valid & (!apu_singlecycle & !apu_multicycle)) begin
-      regfile_we_wb_o    = 1'b1;
-      regfile_waddr_wb_o = apu_waddr;
-      regfile_wdata_wb_o = apu_result;
+      regfile_we_wb_o       = 1'b1;
+      regfile_we_wb_power_o = 1'b1;
+      regfile_waddr_wb_o    = apu_waddr;
+      regfile_wdata_wb_o    = apu_result;
     end
   end
 
@@ -371,11 +384,20 @@ module cv32e40p_ex_stage
           apu_result_q <= 'b0;
           apu_flags_q  <= 'b0;
         end else begin
-          if (apu_rvalid_i && apu_multicycle && (data_misaligned_i || data_misaligned_ex_i || (data_req_i && regfile_alu_we_i) || (mulh_active && (mult_operator_i == MUL_H)))) begin
+          if (apu_rvalid_i && apu_multicycle &&
+              (data_misaligned_i || data_misaligned_ex_i ||
+               ((data_req_i || data_rvalid_i) && regfile_alu_we_i) ||
+               (mulh_active && (mult_operator_i == MUL_H)) ||
+               ((ctrl_transfer_insn_in_dec_i == BRANCH_JALR) &&
+                regfile_alu_we_i && ~apu_read_dep_for_jalr_o))) begin
             apu_rvalid_q <= 1'b1;
             apu_result_q <= apu_result_i;
             apu_flags_q  <= apu_flags_i;
-          end else if (apu_rvalid_q && !(data_misaligned_i || data_misaligned_ex_i || ((data_req_i || data_rvalid_i) && regfile_alu_we_i) || (mulh_active && (mult_operator_i == MUL_H)))) begin
+          end else if (apu_rvalid_q && !(data_misaligned_i || data_misaligned_ex_i ||
+                                         ((data_req_i || data_rvalid_i) && regfile_alu_we_i) ||
+                                         (mulh_active && (mult_operator_i == MUL_H)) ||
+                                         ((ctrl_transfer_insn_in_dec_i == BRANCH_JALR) &&
+                                          regfile_alu_we_i && ~apu_read_dep_for_jalr_o))) begin
             apu_rvalid_q <= 1'b0;
           end
         end
@@ -383,7 +405,12 @@ module cv32e40p_ex_stage
 
       assign apu_req_o = apu_req;
       assign apu_gnt = apu_gnt_i;
-      assign apu_valid = (apu_multicycle && (data_misaligned_i || data_misaligned_ex_i || ((data_req_i || data_rvalid_i) && regfile_alu_we_i) || (mulh_active && (mult_operator_i == MUL_H)))) ? 1'b0 : (apu_rvalid_i || apu_rvalid_q);
+      assign apu_valid = (apu_multicycle && (data_misaligned_i || data_misaligned_ex_i ||
+                                             ((data_req_i || data_rvalid_i) && regfile_alu_we_i) ||
+                                             (mulh_active && (mult_operator_i == MUL_H)) ||
+                                             ((ctrl_transfer_insn_in_dec_i == BRANCH_JALR) &&
+                                              regfile_alu_we_i && ~apu_read_dep_for_jalr_o)))
+                         ? 1'b0 : (apu_rvalid_i || apu_rvalid_q);
       assign apu_operands_o = apu_operands_i;
       assign apu_op_o = apu_op_i;
       assign apu_result = apu_rvalid_q ? apu_result_q : apu_result_i;

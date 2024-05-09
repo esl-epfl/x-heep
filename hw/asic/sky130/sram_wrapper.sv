@@ -21,6 +21,10 @@ module sram_wrapper #(
     output logic [         31:0] rdata_o   // read data
 );
 
+  if (NumWords != 8192) begin
+    $error("Bank size not implemented.");
+  end
+
   logic [8-1:0] unused;
   logic [8-1:0] cs;
 

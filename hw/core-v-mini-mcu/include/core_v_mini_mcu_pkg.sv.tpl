@@ -31,7 +31,7 @@ package core_v_mini_mcu_pkg;
     onetoM
   } bus_type_e;
 
-  localparam bus_type_e BusType = ${bus_type};
+  localparam bus_type_e BusType = ${xheep.bus_type().value};
 
   //master idx
   localparam logic [31:0] CORE_INSTR_IDX = 0;
@@ -46,15 +46,15 @@ package core_v_mini_mcu_pkg;
   // Internal slave memory map and index
   // -----------------------------------
   //must be power of two
-  localparam int unsigned MEM_SIZE = 32'h${ram_size_address};
+  localparam int unsigned MEM_SIZE = 32'h${f'{xheep.ram_size_address():08X}'};
 
-  localparam SYSTEM_XBAR_NSLAVE = ${int(ram_numbanks) + 5};
+  localparam SYSTEM_XBAR_NSLAVE = ${xheep.ram_numbanks() + 5};
 
   localparam int unsigned LOG_SYSTEM_XBAR_NMASTER = SYSTEM_XBAR_NMASTER > 1 ? $clog2(SYSTEM_XBAR_NMASTER) : 32'd1;
   localparam int unsigned LOG_SYSTEM_XBAR_NSLAVE = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(SYSTEM_XBAR_NSLAVE) : 32'd1;
 
-  localparam int unsigned NUM_BANKS = ${ram_numbanks};
-  localparam int unsigned NUM_BANKS_IL = ${ram_numbanks_il};
+  localparam int unsigned NUM_BANKS = ${xheep.ram_numbanks()};
+  localparam int unsigned NUM_BANKS_IL = ${xheep.ram_numbanks_il()};
   localparam int unsigned EXTERNAL_DOMAINS = ${external_domains};
 
   localparam logic[31:0] ERROR_START_ADDRESS = 32'hBADACCE5;
@@ -62,49 +62,44 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] ERROR_END_ADDRESS = ERROR_START_ADDRESS + ERROR_SIZE;
   localparam logic[31:0] ERROR_IDX = 32'd0;
 
-% for bank in range(ram_numbanks_cont):
-  localparam logic [31:0] RAM${bank}_START_ADDRESS = 32'h${'{:08X}'.format(int(ram_start_address) + bank*32*1024)};
-  localparam logic [31:0] RAM${bank}_SIZE = 32'h${hex(32*1024)[2:]};
-  localparam logic [31:0] RAM${bank}_END_ADDRESS = RAM${bank}_START_ADDRESS + RAM${bank}_SIZE;
-  localparam logic [31:0] RAM${bank}_IDX = 32'd${bank + 1};
+% for bank in xheep.iter_ram_banks():
+  localparam logic [31:0] RAM${bank.name()}_IDX = 32'd${bank.map_idx()};
+  localparam logic [31:0] RAM${bank.name()}_SIZE = 32'h${f'{bank.size():08X}'};
+  localparam logic [31:0] RAM${bank.name()}_START_ADDRESS = 32'h${f'{bank.start_address():08X}'};
+  localparam logic [31:0] RAM${bank.name()}_END_ADDRESS = 32'h${f'{bank.end_address():08X}'};
 % endfor
-% if ram_numbanks_il != 0:
-  localparam logic [31:0] RAM${ram_numbanks_cont}_START_ADDRESS = 32'h${'{:08X}'.format(int(ram_start_address) + int(ram_numbanks_cont)*32*1024)};
-  localparam logic [31:0] RAM${ram_numbanks_cont}_SIZE = 32'h${hex(int(ram_numbanks_il)*32*1024)[2:]};
-  localparam logic [31:0] RAM${ram_numbanks_cont}_END_ADDRESS = RAM${ram_numbanks_cont}_START_ADDRESS + RAM${ram_numbanks_cont}_SIZE;
-  localparam logic [31:0] RAM${ram_numbanks_cont}_IDX = 32'd${ram_numbanks_cont + 1};
-% for bank in range(ram_numbanks_il - 1):
-  localparam logic [31:0] RAM${int(ram_numbanks_cont) + bank + 1}_IDX = 32'd${int(ram_numbanks_cont) + bank + 2};
+
+% for i, group in enumerate(xheep.iter_il_groups()):
+  localparam logic [31:0] RAM_IL${i}_START_ADDRESS = 32'h${f'{group.start:08X}'};
+  localparam logic [31:0] RAM_IL${i}_SIZE = 32'h${f'{group.size:08X}'};
+  localparam logic [31:0] RAM_IL${i}_END_ADDRESS = RAM_IL${i}_START_ADDRESS + RAM_IL${i}_SIZE;
+  localparam logic [31:0] RAM_IL${i}_IDX = RAM${group.first_name}_IDX;
 % endfor
-% endif
 
   localparam logic[31:0] DEBUG_START_ADDRESS = 32'h${debug_start_address};
   localparam logic[31:0] DEBUG_SIZE = 32'h${debug_size_address};
   localparam logic[31:0] DEBUG_END_ADDRESS = DEBUG_START_ADDRESS + DEBUG_SIZE;
-  localparam logic[31:0] DEBUG_IDX = 32'd${int(ram_numbanks) + 1};
+  localparam logic[31:0] DEBUG_IDX = 32'd${xheep.ram_numbanks() + 1};
 
   localparam logic[31:0] AO_PERIPHERAL_START_ADDRESS = 32'h${ao_peripheral_start_address};
   localparam logic[31:0] AO_PERIPHERAL_SIZE = 32'h${ao_peripheral_size_address};
   localparam logic[31:0] AO_PERIPHERAL_END_ADDRESS = AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE;
-  localparam logic[31:0] AO_PERIPHERAL_IDX = 32'd${int(ram_numbanks) + 2};
+  localparam logic[31:0] AO_PERIPHERAL_IDX = 32'd${xheep.ram_numbanks() + 2};
 
   localparam logic[31:0] PERIPHERAL_START_ADDRESS = 32'h${peripheral_start_address};
   localparam logic[31:0] PERIPHERAL_SIZE = 32'h${peripheral_size_address};
   localparam logic[31:0] PERIPHERAL_END_ADDRESS = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE;
-  localparam logic[31:0] PERIPHERAL_IDX = 32'd${int(ram_numbanks) + 3};
+  localparam logic[31:0] PERIPHERAL_IDX = 32'd${xheep.ram_numbanks() + 3};
 
   localparam logic[31:0] FLASH_MEM_START_ADDRESS = 32'h${flash_mem_start_address};
   localparam logic[31:0] FLASH_MEM_SIZE = 32'h${flash_mem_size_address};
   localparam logic[31:0] FLASH_MEM_END_ADDRESS = FLASH_MEM_START_ADDRESS + FLASH_MEM_SIZE;
-  localparam logic[31:0] FLASH_MEM_IDX = 32'd${int(ram_numbanks) + 4};
+  localparam logic[31:0] FLASH_MEM_IDX = 32'd${xheep.ram_numbanks() + 4};
 
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{ idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS },
-% for bank in range(ram_numbanks_cont):
-      '{ idx: RAM${bank}_IDX, start_addr: RAM${bank}_START_ADDRESS, end_addr: RAM${bank}_END_ADDRESS },
-% endfor
-% for bank in range(ram_numbanks_il):
-      '{ idx: RAM${int(ram_numbanks_cont) + bank}_IDX, start_addr: RAM${ram_numbanks_cont}_START_ADDRESS, end_addr: RAM${ram_numbanks_cont}_END_ADDRESS },
+% for bank in xheep.iter_ram_banks():
+      '{ idx: RAM${bank.name()}_IDX, start_addr: RAM${bank.name()}_START_ADDRESS, end_addr: RAM${bank.name()}_END_ADDRESS },
 % endfor
       '{ idx: DEBUG_IDX, start_addr: DEBUG_START_ADDRESS, end_addr: DEBUG_END_ADDRESS },
       '{ idx: AO_PERIPHERAL_IDX, start_addr: AO_PERIPHERAL_START_ADDRESS, end_addr: AO_PERIPHERAL_END_ADDRESS },
@@ -195,5 +190,11 @@ package core_v_mini_mcu_pkg;
 
   localparam int unsigned NUM_PAD_PORT_SEL_WIDTH = NUM_PAD > 1 ? $clog2(NUM_PAD) : 32'd1;
 
+  typedef enum logic [1:0] {
+    TOP,
+    RIGHT,
+    BOTTOM,
+    LEFT
+  } pad_side_e;
 
 endpackage

@@ -1,6 +1,12 @@
-# get started
+# Get started
 
-## 1. OS requirements
+## Docker setup
+
+
+
+## Manual setup
+
+### 1. OS requirements
 
 To use `X-HEEP`, first make sure you have the following apt packages, or install them as:
 
@@ -10,16 +16,14 @@ sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 lib
 
 In general, have a look at the [Install required software](https://opentitan.org/guides/getting_started/index.html) section of the OpenTitan documentation.
 
-It has been tested only on `Ubuntu 20`, and we know it does NOT WORK on `Ubuntu 22`.
-
-## 2. Python
+### 2. Python
 
 
 We rely on either (a) `miniconda`, or (b) `virtual environment` enviroment.
 
 Choose between `2.a` or `2.b` to setup your enviroment.
 
-### 2.a Miniconda
+#### 2.a Miniconda
 
 Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html#linux-installers) python 3.8 version as described in the link,
 and create the Conda enviroment:
@@ -35,7 +39,7 @@ conda activate core-v-mini-mcu
 ```
 
 
-### 2.b Virtual Environment
+#### 2.b Virtual Environment
 
 Install the python virtual environment just as:
 
@@ -49,7 +53,7 @@ You need to do it only the first time, then just activate the environment everyt
 source .venv/bin/activate
 ```
 
-## 3. Install the RISC-V Compiler:
+### 3. Install the RISC-V Compiler:
 
 ```
 git clone --branch 2022.01.17 --recursive https://github.com/riscv/riscv-gnu-toolchain
@@ -75,7 +79,7 @@ cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Releas
 cmake --build . --target install
 ```
 
-## 4. Install Verilator:
+### 4. Install Verilator:
 
 ```
 export VERILATOR_VERSION=4.210
@@ -104,18 +108,18 @@ sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
 sudo apt-get install -y gtkwave
 ```
 
-## Files are formatted with Verible
+### Files are formatted with Verible
 
 We use version v0.0-1824-ga3b5bedf
 
-See: [Install Verible](https://opentitan.org/guides/getting_started/index.html#step-6a-install-verible-optional)
+See: [Install Verible](https://opentitan.org/guides/getting_started/index.html#step-7a-install-verible-optional)
 
 To format your RTL code type:
 
 ```
 make verible
 ```
-## Compilation Flow and Package Manager
+### Compilation Flow and Package Manager
 
 We use [FuseSoC](https://github.com/olofk/fusesoc) for all the tools we use.
 

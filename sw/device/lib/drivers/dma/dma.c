@@ -562,21 +562,24 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
          * No further operations are done to prevent corrupting information
          * that could be useful for debugging purposes.
          */
-        uint8_t isEnv = p_trans->dst->env;
-        uint8_t isOutb = is_region_outbound(
-                                    p_trans->dst->ptr,
-                                    p_trans->dst->env->end,
-                                    p_trans->type,
-                                    p_trans->src->size_du,
-                                    p_trans->dst->inc_du );
-        if( isEnv && isOutb )
-        {
-            p_trans->flags |= DMA_CONFIG_DST;
-            p_trans->flags |= DMA_CONFIG_OUTBOUNDS;
-            p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
-            return p_trans->flags;
-        }
+        uint8_t isEnv = (p_trans->dst->env != NULL);
 
+        if(isEnv) {
+            uint8_t isOutb = is_region_outbound(
+                                        p_trans->dst->ptr,
+                                        p_trans->dst->env->end,
+                                        p_trans->type,
+                                        p_trans->src->size_du,
+                                        p_trans->dst->inc_du );
+            if( isOutb )
+            {
+                p_trans->flags |= DMA_CONFIG_DST;
+                p_trans->flags |= DMA_CONFIG_OUTBOUNDS;
+                p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
+
+                return p_trans->flags;
+            }
+        }
         // @ToDo: It should also be checked that the destination is behind the
         // source if there will be overlap.
         // @ToDo: Consider if (when a destination target has no environment)
@@ -689,7 +692,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
     /*
      * SET THE POINTERS
      */
-    dma_cb.peri->SRC_PTR = dma_cb.trans->src->ptr;
+    dma_cb.peri->SRC_PTR = (uint32_t)dma_cb.trans->src->ptr;
 
     if(dma_cb.trans->mode != DMA_TRANS_MODE_ADDRESS)
     {
@@ -698,11 +701,11 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
         otherwise the destination address is read in a separate port in parallel with the data
         from the address port
         */
-        dma_cb.peri->DST_PTR = dma_cb.trans->dst->ptr;
+        dma_cb.peri->DST_PTR = (uint32_t)dma_cb.trans->dst->ptr;
     }
     else
     {
-        dma_cb.peri->ADDR_PTR = dma_cb.trans->src_addr->ptr;
+        dma_cb.peri->ADDR_PTR = (uint32_t)dma_cb.trans->src_addr->ptr;
     }
 
     /*
@@ -923,7 +926,6 @@ dma_config_flags_t validate_target( dma_target_t *p_tgt )
     {
         /* Check if the environment was properly formed.*/
         flags |= validate_environment( p_tgt->env );
-
         /*
          * Check if the target selected size goes beyond the boundaries of
          * the environment.
@@ -1093,7 +1095,8 @@ static inline uint8_t is_region_outbound(   uint8_t  *p_start,
    */
     uint32_t affectedUnits      = ( p_size_du - 1 ) * p_inc_du + 1;
     uint32_t rangeSize          = DMA_DATA_TYPE_2_SIZE(p_type) * affectedUnits;
-    uint32_t lasByteInsideRange = p_start + rangeSize -1;
+    uint32_t lasByteInsideRange = (uint32_t)p_start + rangeSize -1;
+
     return ( p_end < lasByteInsideRange );
     // Size is be guaranteed to be non-zero before calling this function.
 }

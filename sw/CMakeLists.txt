@@ -63,19 +63,19 @@ FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.h)
 SET(dir_list_str "")
 FOREACH(file_path ${new_list})
   SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
-  if(${file_path} MATCHES "/device/")
-    if(${file_path} MATCHES "/target/") # Add it if its not in target, or if its in target/${TARGET}
-      if(${file_path} MATCHES ${TARGET})
+  if(${file_path} MATCHES "${SOURCE_PATH}device/")
+    if(${file_path} MATCHES "${SOURCE_PATH}device/target/") # Add it if its not in target, or if its in target/${TARGET}
+      if(${file_path} MATCHES "${SOURCE_PATH}device/target/${TARGET}")
         SET(add 1)
       endif()
     else()
       SET(add 1)
     endif()
-  elseif(${file_path} MATCHES ${PROJECT})
+  elseif(${file_path} MATCHES ${SOURCE_PATH}applications/${PROJECT}/)
     SET(add 1)
-  elseif( ( ${file_path} MATCHES "/freertos/" ) AND ( ${PROJECT} MATCHES "freertos" ) )
+  elseif( ( ${file_path} MATCHES "${SOURCE_PATH}freertos/" ) AND ( ${PROJECT} MATCHES "freertos" ) )
     SET(add 1)
-  elseif( ${file_path} MATCHES "/external/" )
+  elseif( ${file_path} MATCHES "${SOURCE_PATH}external/" )
     SET(add 1)
   endif()
 
@@ -124,14 +124,14 @@ SET( c_dir_list "" )
 SET( app_found 0 )
 FOREACH(file_path IN LISTS new_list)
   SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
-  if(${file_path} MATCHES "/device/")
+  if(${file_path} MATCHES "${SOURCE_PATH}device/")
     SET(add 1)
-  elseif( ${file_path} MATCHES "/external/" )
+  elseif( ${file_path} MATCHES "${SOURCE_PATH}external/" )
     SET(add 1)
-  elseif( ( ${file_path} MATCHES "/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES ${MAINFILE} ) )
-    SET(add 1)
-    elseif( ( ${file_path} MATCHES "/${PROJECT}/" ) AND ( ${file_path} MATCHES ${MAINFILE} ) )
+  elseif( ${file_path} MATCHES "${SOURCE_PATH}applications/${PROJECT}/.*${MAINFILE}\." ) # look for main.*
     SET(app_found 1)
+  elseif( ${file_path} MATCHES "${SOURCE_PATH}applications/${PROJECT}/" ) # other sources
+    SET(add 1)
   endif()
 
   if( add EQUAL 1 ) # If the file path mathced one of the criterion, add it to the list
@@ -153,9 +153,9 @@ if( app_found EQUAL 0 )
   SET(c_dir_list "")
   FOREACH(file_path IN LISTS new_list)
     SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
-    if(${file_path} MATCHES "/device/")
+    if(${file_path} MATCHES "${ROOT_PROJECT}device/")
       SET(add 1)
-    elseif( ( ${file_path} MATCHES "/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES ${MAINFILE} ) )
+    elseif( ( ${file_path} MATCHES "${ROOT_PROJECT}/applications/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES "${ROOT_PROJECT}applications/${PROJECT}/.*${MAINFILE}\." ) )
       SET(add 1)
     endif()
 
@@ -303,20 +303,31 @@ endif()
 # Set CMAKE flags
 
 # specify the C standard
-set(COMPILER_LINKER_FLAGS "\
-  -march=${CMAKE_SYSTEM_PROCESSOR} \
-  -w -Os -g  -nostdlib  \
-  -ffunction-sections \
-  -DHOST_BUILD \
-  -D${CRT_TYPE} \
-  -D${CRTO} \
-  -DportasmHANDLE_INTERRUPT=vSystemIrqHandler\
-")
+if(NOT ${PROJECT} MATCHES "coremark")
+  set(COMPILER_LINKER_FLAGS "\
+    -march=${CMAKE_SYSTEM_PROCESSOR} \
+    -w -O2 -g  -nostdlib  \
+    -ffunction-sections \
+    -DHOST_BUILD \
+    -D${CRT_TYPE} \
+    -D${CRTO} \
+    -DportasmHANDLE_INTERRUPT=vSystemIrqHandler\
+  ")
+else()
+  set(COMPILER_LINKER_FLAGS "\
+    -march=${CMAKE_SYSTEM_PROCESSOR} \
+    -w -O3 -g  -nostdlib -falign-functions=16 -funroll-all-loops -falign-jumps=4 -finline-functions -Wall -static -pedantic -DPERFORMANCE_RUN=1 -DITERATIONS=1 -DHAS_STDIO=1 -DHAS_PRINTF=1 \
+    -ffunction-sections \
+    -DHOST_BUILD \
+    -D${CRT_TYPE} \
+    -D${CRTO} \
+    -DportasmHANDLE_INTERRUPT=vSystemIrqHandler\
+  ")
+endif()
 set(CMAKE_C_FLAGS ${COMPILER_LINKER_FLAGS})
 
 if (${COMPILER} MATCHES "clang")
      set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=riscv32 \
-                                          -mabi=ilp32 \
                                           --gcc-toolchain=${RISCV} \
                                           --sysroot=${RISCV}/${COMPILER_PREFIX}elf \
                                           -static \
