@@ -52,10 +52,19 @@
     .csid       = csid, \
     .data_mode  = SPI_DATA_MODE_0, \
     .full_cycle = false, \
-    .csn_lead   = 0, \
-    .csn_trail  = 0, \
-    .csn_idle   = 0, \
+    .csn_lead   = 10, \
+    .csn_trail  = 10, \
+    .csn_idle   = 10, \
     .freq       = freq \
+}
+
+#define SPI_TXN(segs, segs_len, txbuff, rxbuff) (spi_transaction_t) { \
+    .segments = segs, \
+    .seglen   = segs_len, \
+    .txbuffer = txbuff, \
+    .txlen    = 0, \
+    .rxbuffer = rxbuff, \
+    .rxlen    = 0 \
 }
 
 #define SPI_SEG_DUMMY(cycles) (spi_segment_t) { \
@@ -108,8 +117,6 @@ extern "C" {
 /**                                                                        **/
 /****************************************************************************/
 
-typedef void (*spi_cb_t)(void);
-
 /**
 * SPI Peripheral IDX
 */
@@ -131,7 +138,9 @@ typedef enum {
     SPI_CODE_SLAVE_INVAL        = 0x0080,
     SPI_CODE_SEGMENT_INVAL      = 0x0100,
     SPI_CODE_IS_BUSY            = 0x0200,
-    SPI_CODE_TXN_LEN_INVAL      = 0x0400
+    SPI_CODE_TXN_LEN_INVAL      = 0x0400,
+    SPI_CODE_TXN_DONE           = 0x0800,
+    SPI_CODE_TXN_ERROR          = 0x1000
 } spi_codes_e;
 
 typedef enum {
@@ -156,6 +165,14 @@ typedef enum {
     // everything > 10 will be unvalidated by HAL
 } spi_mode_e;
 
+typedef enum {
+    SPI_STATE_NONE         = 0x00,
+    SPI_STATE_BUSY         = 0x01,
+    SPI_STATE_DONE         = 0x02,
+    SPI_STATE_ERROR        = 0x04,
+    SPI_STATE_ARG_INVAL    = 0x08
+} spi_state_e;
+
 typedef struct {
     uint8_t        csid       : 2;
     spi_datamode_e data_mode  : 2;
@@ -172,9 +189,20 @@ typedef struct {
 } spi_segment_t;
 
 typedef struct {
+    const spi_segment_t* segments;
+    uint8_t              seglen;
+    const uint32_t*      txbuffer;
+    uint32_t             txlen;
+    uint32_t*            rxbuffer;
+    uint32_t             rxlen;
+} spi_transaction_t;
+
+typedef void (*spi_cb_t)(const uint32_t*, uint32_t, uint32_t*, uint32_t); // done, error callbacks
+
+typedef struct {
     spi_idx_e   idx;
     bool        init;
-    spi_slave_t slave; // TODO: Would an array be better ???
+    spi_slave_t slave;
 } spi_t;
 
 /****************************************************************************/
@@ -195,7 +223,7 @@ spi_codes_e spi_deinit(spi_t* spi);
 
 spi_codes_e spi_reset(spi_t* spi);
 
-spi_codes_e spi_is_busy(spi_t* spi);
+spi_state_e spi_get_state(spi_t* spi);
 
 spi_codes_e spi_transmit(spi_t* spi, const uint32_t* src_buffer, uint32_t len);
 
@@ -203,7 +231,27 @@ spi_codes_e spi_receive(spi_t* spi, uint32_t* dest_buffer, uint32_t len);
 
 spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer, uint32_t* dest_buffer, uint32_t len);
 
-spi_codes_e spi_execute(spi_t* spi, const spi_segment_t* segments, uint32_t segments_len, const uint32_t* src_buffer, uint32_t* dest_buffer);
+spi_codes_e spi_execute(spi_t* spi, 
+                        const spi_segment_t* segments, 
+                        uint32_t segments_len, 
+                        const uint32_t* src_buffer, 
+                        uint32_t* dest_buffer
+                       );
+
+spi_codes_e spi_transmit_nb(spi_t* spi, const uint32_t* src_buffer, uint32_t len, spi_cb_t done_cb, spi_cb_t error_cb);
+
+spi_codes_e spi_receive_nb(spi_t* spi, uint32_t* dest_buffer, uint32_t len, spi_cb_t done_cb, spi_cb_t error_cb);
+
+spi_codes_e spi_transceive_nb(spi_t* spi, const uint32_t* src_buffer, uint32_t* dest_buffer, uint32_t len, spi_cb_t done_cb, spi_cb_t error_cb);
+
+spi_codes_e spi_execute_nb(spi_t* spi, 
+                           const spi_segment_t* segments, 
+                           uint32_t segments_len, 
+                           const uint32_t* src_buffer, 
+                           uint32_t* dest_buffer, 
+                           spi_cb_t done_cb, 
+                           spi_cb_t error_cb
+                          );
 
 /****************************************************************************/
 /**                                                                        **/

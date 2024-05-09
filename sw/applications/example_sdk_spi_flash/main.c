@@ -109,6 +109,8 @@ bool flash_erase_sector(spi_t* spi, uint32_t addr);
 bool flash_write_sector(spi_t* spi, uint32_t addr, uint32_t* src_buff);
 void flash_wait(spi_t* spi);
 
+void done_cb(const uint32_t* txbuff, uint32_t txlen, uint32_t* rxbuff, uint32_t rxlen);
+
 // ========================= MAIN =========================
 
 int main(int argc, char *argv[]) {
@@ -190,6 +192,7 @@ bool flash_read(spi_t* spi, uint32_t addr, uint32_t* dest_buff, uint32_t len) {
     spi_segment_t segments[2] = { SPI_SEG_TX(4), SPI_SEG_RX(len) };
 
     // TX SPI command to send to flash for read
+    // Flash uses Big Endian, CPU Little Endian, hence swap bytes
     uint32_t read_byte_cmd = ((bitfield_byteswap32(addr & 0x00ffffff)) | FC_RD);
 
     PRINTF("Reading %4i Bytes at 0x%08X\n", len, addr);
@@ -207,6 +210,7 @@ bool flash_erase_sector(spi_t* spi, uint32_t addr) {
     // Sector start address
     const uint32_t sect_start = addr & 0xfffff000;
     // Sector erase command
+    // Flash uses Big Endian, CPU Little Endian, hence swap bytes
     const uint32_t cmd = ((bitfield_byteswap32(sect_start & 0x00ffffff)) | FC_SE);
 
     PRINTF("Erasing 4096 Bytes at 0x%08X\n", sect_start);
@@ -240,14 +244,15 @@ bool flash_write_sector(spi_t* spi, uint32_t addr, uint32_t* src_buff) {
         // Our segments for the SPI transaction
         spi_segment_t segments[2] = { SPI_SEG_TX(4), SPI_SEG_TX(PAGE_LEN) };
 
+        // Flash uses Big Endian, CPU Little Endian, hence swap bytes
         wbuff[0] = ((bitfield_byteswap32(curr_addr & 0x00ffffff)) | FC_PP);
         memcpy(&wbuff[1], &src_buff[i * (PAGE_LEN/4)], PAGE_LEN);
 
         if (!flash_write_enable(spi)) return false;
 
         // Start transaction
-        // Note that since segments are only TX we could have used transmit
-        // instead of execute, but both work perfectly fine
+        // Note that since segments are only TX we could have used spi_transmit
+        // instead of spi_execute, but both work perfectly fine
         spi_codes_e error = spi_execute(spi, segments, 2, wbuff, NULL);
         if (error) {
             PRINTF("FAILED! Error Code: %i\n", error);
@@ -291,8 +296,12 @@ void flash_wait(spi_t* spi) {
     while (busy)
     {
         spi_execute(spi, segments, 2, &cmd, &resp);
-        busy = (resp & 0x01) == 1;
+        busy = resp & 0x01;
     }
+}
+
+void done_cb(const uint32_t* txbuff, uint32_t txlen, uint32_t* rxbuff, uint32_t rxlen) {
+    PRINTF("DONE %i, %i\n", txlen, rxlen);
 }
 
 // ========================= THE END =========================
