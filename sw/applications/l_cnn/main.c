@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 #include "test_cnnWeights.h"
-// #include "testdata_s2.h"
+#include "testdata_s2.h"
 
 #define COMP_PREC 0.01f
 #define COMP_PREC_I32 512
@@ -131,22 +131,22 @@ void test_cnn() {
     Cnn_destroy(cnn);
 }
 
-// void compare_tf_conv_3() {
-//     CnnHandle cnn = Cnn_create((Dim2D){3u, 256u}, (Dim2D){3u, 21u}, (Dim2D){3u, 1u}, SAME, VALID);
+void compare_tf_conv_3() {
+    CnnHandle cnn = Cnn_create((Dim2D){3u, 256u}, (Dim2D){3u, 21u}, (Dim2D){3u, 1u}, SAME, VALID);
 
-//     Conv2DLayer_setWeightsFloat(cnn->layer1, weights1_2);
-//     Conv2DLayer_setWeightsFloat(cnn->layer2, weights2_2);
+    Conv2DLayer_setWeightsFloat(cnn->layer1, weights1_2);
+    Conv2DLayer_setWeightsFloat(cnn->layer2, weights2_2);
 
-//     float* result = (float*)calloc(1*256, sizeof(float));
-//     Cnn_forwardFloat(cnn, xin_2, result);
+    float* result = (float*)calloc(1*256, sizeof(float));
+    Cnn_forwardFloat(cnn, xin_2, result);
 
-//     compareVectorsFloat(result, xout_2, 256, COMP_PREC);
+    compareVectorsFloat(result, xout_2, 256, COMP_PREC);
 
-//     Cnn_predictFloat(cnn, xin_2, ppg_2, result);
+    Cnn_predictFloat(cnn, xin_2, ppg_2, result);
 
-//     compareVectorsFloat(result, ppgf_2, 256, COMP_PREC);
+    compareVectorsFloat(result, ppgf_2, 256, COMP_PREC);
 
-//     free(result);
+    free(result);
 
     // Cnn_freezeModel(cnn);
 
@@ -160,8 +160,8 @@ void test_cnn() {
     // compareVectorsFxp(result_fxp, ppgf_2_fxp, 256, COMP_PREC_I32);
 
     // free(result_fxp);
-    // Cnn_destroy(cnn);
-// }
+    Cnn_destroy(cnn);
+}
 
 int main() {
     PRINTF("\033[1;93m====== Test CNN =========\n");
