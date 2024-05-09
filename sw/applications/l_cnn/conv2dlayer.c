@@ -56,6 +56,7 @@ void convolve2DFxp(fxp32* input, fxp32* output, fxp32* kernel, int inx, int iny,
     // get kernel center
     if (kerx % 2 != 1 || kery % 2 != 1) {
         printf("Kernel size must be odd\n");
+        printf("kerx: %d, kery: %d\n", kerx, kery);
         exit(EXIT_FAILURE);
     }
     int cx = kerx / 2;
@@ -92,6 +93,7 @@ void convolve2DFxp(fxp32* input, fxp32* output, fxp32* kernel, int inx, int iny,
                     // cy);
                     w = kernel[(m - i + cx) * kery + (n - j + cy)];
                     sum += fxp32_mul(w, in);
+                    // printf("m: %d, n: %d, sum: %d\n", m, n, sum);
                     // if (sum > max) {
                     //     max = sum;
                     // }
@@ -105,8 +107,8 @@ void convolve2DFxp(fxp32* input, fxp32* output, fxp32* kernel, int inx, int iny,
                 output[(i - cx) * (iny - kery + 1) + (j - cy)] = sum;
             else
                 output[i * iny + j] = sum;
-            // printf("access output: %d\n", (i-cx)*(iny - kery + 1) + (j-cy));
-            // printf("sum = %.2f\n", sum);
+            // printf("access output: %d, address: %d\n", i * iny + j, &output[i * iny + j]);
+            // printf("sum = %d\n", sum);
         }
     }
     // printf("max: %.6f, min: %.6f\n", max, min);
@@ -117,6 +119,7 @@ void convolve2DFloat(float* input, float* output, float* kernel, int inx, int in
     // get kernel center
     if (kerx % 2 != 1 || kery % 2 != 1) {
         printf("Kernel size must be odd\n");
+        printf("kerx: %d, kery: %d\n", kerx, kery);
         exit(EXIT_FAILURE);
     }
     int cx = kerx / 2;

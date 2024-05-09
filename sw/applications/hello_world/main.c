@@ -22,8 +22,7 @@
 int main(int argc, char *argv[])
 {
     /* write something to stdout */
-    while(1)
-        printf("hello world!\n");
+    printf("hello world!\n");
     return EXIT_SUCCESS;
 }
 

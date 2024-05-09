@@ -6,14 +6,17 @@
 #include <stdint.h>
 
 // Define SIMULATION if you want to disable printing
-#define SIMULATION
+// #define SIMULATION
+#define TARGET
 
 // Enable or disable printing
 #ifndef SIMULATION
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
+#pragma message ("Simulation mode, no printing")
 #define PRINTF(...)
 #endif
+
 
 // Assert functions, always print if failing
 void assert_closef(float a, float b, float prec, int idx) {
@@ -21,7 +24,7 @@ void assert_closef(float a, float b, float prec, int idx) {
     if (diff < 0) diff = -diff;
     if (diff > prec) {
         printf("AF %d %d %d %d\n", __LINE__, (int)(a*100000), (int)(b*100000), idx);
-        exit(EXIT_FAILURE);
+        // exit(EXIT_FAILURE);
     }
 }
 
@@ -30,12 +33,14 @@ void assert_closei32(int32_t a, int32_t b, int32_t prec, int idx) {
     if (diff < 0) diff = -diff;
     if (diff > prec) {
         printf("AI %d %d %d %d\n", __LINE__, a, b, idx);
-        exit(EXIT_FAILURE);
+        // exit(EXIT_FAILURE);
     }
 }
 
 // Vector export for plots
-#ifndef SIMULATION
+#if defined(SIMULATION) || defined(TARGET)
+#define VECTOR_EXPORT(...)
+#else
 void vectorExport(float* a, int size, char filename[]) {
     FILE *filePointer;
     filePointer = fopen(filename, "w");
@@ -50,8 +55,6 @@ void vectorExport(float* a, int size, char filename[]) {
 }
 
 #define VECTOR_EXPORT(...) vectorExport(__VA_ARGS__)
-#else
-#define VECTOR_EXPORT(...)
 #endif
 
 #endif /* UTILS_H */

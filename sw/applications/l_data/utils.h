@@ -6,12 +6,13 @@
 #include <stdint.h>
 
 // Define SIMULATION if you want to disable printing
-#define SIMULATION
+// #define SIMULATION
 
 // Enable or disable printing
 #ifndef SIMULATION
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
+#pragma message ("Simulation mode, no printing")
 #define PRINTF(...)
 #endif
 
