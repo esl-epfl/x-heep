@@ -20,4 +20,5 @@ lint_off -rule UNOPTFLAT -file "*/src/serial_link_network.sv" -match "*"
 lint_off -rule BLKSEQ -file "*/src/serial_link_physical.sv" -match "*"
 lint_off -rule UNOPTFLAT -file "*/src/regs/serial_link_single_channel_reg_top.sv" -match "*"
 lint_off -rule UNUSED -file "*/src/serial_link.sv" -match "*"
-lint_off -rule UNUSED -file "*/src/regs/serial_link_single_channel_reg_top.sv" -match "*"
+lint_off -rule UNUSED -file "*/src/regs/serial_link_single_channel_reg_top.sv" -match "*" // AW = 6
+//lint_off -rule WIDTH -file "*/src/regs/serial_link_single_channel_reg_top.sv" -match "*"

@@ -189,16 +189,17 @@ module core2axi
 
       // we have sent the address and data and just wait for the write data to
       // be done
+      // serial link does not send any b_valid signal
       WRITE_WAIT:
       begin
         b_ready_o = 1'b1;
 
-        if (b_valid_i)
-        begin
+        //if (b_valid_i)
+        //begin
           valid = 1'b1;
 
           NS = IDLE;
-        end
+        //end
       end
 
       // we wait for the read response, address has been sent successfully

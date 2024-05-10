@@ -77,7 +77,7 @@
             offset:  0x000B0000,
             length:  0x00010000,
             //is_included: "yes",
-            path:    "./hw/vendor/pulp_platform_serial_link/src/regs/serial_link.hjson"
+            path:    "./hw/vendor/pulp_platform_serial_link/src/regs/serial_link_single_channel.hjson" //serial_link.hjson
         },
     },
 

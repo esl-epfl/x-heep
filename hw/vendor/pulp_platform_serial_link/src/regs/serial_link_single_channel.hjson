@@ -105,7 +105,7 @@
         hwaccess: "hro",
         compact: false,
         fields: [
-          { bits: "Log2MaxClkDiv:0",
+          { bits: "10:0",
             desc: "Clock division factor of TX clock",
             name: "clk_divs",
             resval: 8
@@ -123,7 +123,7 @@
         swaccess: "rw",
         hwaccess: "hro",
         fields: [
-          { bits: "Log2MaxClkDiv:0",
+          { bits: "10:0",
             name: "clk_shift_start",
             desc: "Positive Edge of divided, shifted clock",
             resval: 2
@@ -141,7 +141,7 @@
         swaccess: "rw",
         hwaccess: "hro",
         fields: [
-          { bits: "Log2MaxClkDiv:0",
+          { bits: "10:0",
             name: "clk_shift_end",
             desc: "Negative Edge of divided, shifted clock",
             resval: 6

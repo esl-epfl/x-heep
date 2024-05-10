@@ -127,10 +127,11 @@ module testharness #(
   logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_n;
   logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_n;
 
-  //seial link check ddr
+  //serial link check ddr
   logic [3:0] ddr_i_xheep;  // check NumLanes parameter 
   logic [3:0] ddr_o_xheep;
-
+  logic clk_sl_int2ext;
+  logic clk_sl_ext2int;
 
 
 
@@ -275,8 +276,8 @@ module testharness #(
       .ext_dma_slot_rx_i(iffifo_out_valid),
       .ddr_i(ddr_i_xheep),
       .ddr_o(ddr_o_xheep),
-      .ddr_rcv_clk_i(),
-      .ddr_rcv_clk_o()
+      .ddr_rcv_clk_i(clk_sl_ext2int),
+      .ddr_rcv_clk_o(clk_sl_int2ext)
   );
 
   // Testbench external bus
@@ -595,18 +596,31 @@ module testharness #(
 
 
 
-      obi_req_t sl_slave_req;
-      assign sl_slave_req = ext_master_req[testharness_pkg::SL_IDX];
-      obi_resp_t sl_slave_resp;
-      assign sl_slave_resp = ext_master_resp[testharness_pkg::SL_IDX];
-      obi_req_t sl_m_req;
-      assign sl_m_req = ext_master_req[testharness_pkg::EXT_MASTER4_IDX];
-      obi_resp_t sl_m_resp;
-      assign sl_m_resp = ext_master_resp[testharness_pkg::EXT_MASTER4_IDX];
+      obi_req_t sl_obi2axi_req;
+      assign sl_obi2axi_req = ext_master_req[testharness_pkg::EXT_MASTER4_IDX];//ext_master_req[testharness_pkg::SL_EXT_IDX];
+      obi_resp_t sl_obi2axi_resp;
+      assign sl_obi2axi_resp = ext_master_resp[testharness_pkg::EXT_MASTER4_IDX];//ext_master_resp[testharness_pkg::SL_EXT_IDX];
+      obi_req_t sl_axi2obi_req;
+      assign sl_axi2obi_req = ext_master_req[testharness_pkg::SL_EXT_IDX];//ext_master_req[testharness_pkg::EXT_MASTER4_IDX];
+      obi_resp_t sl_axi2obi_resp;
+      assign sl_axi2obi_resp = ext_master_resp[testharness_pkg::SL_EXT_IDX];//ext_master_resp[testharness_pkg::EXT_MASTER4_IDX];
       core_v_mini_mcu_pkg::axi_req_t axi_in_req_i, axi_out_req_o;
       core_v_mini_mcu_pkg::axi_resp_t axi_in_rsp_o, axi_out_rsp_i;
-      reg_req_t cfg_req_t;
-      reg_rsp_t cfg_rsp_t;
+      //serial_link_single_channel_reg_pkg::reg_req_t cfg_req_ext;
+      //serial_link_single_channel_reg_pkg::reg_rsp_t cfg_rsp_ext;
+
+      reg_req_t cfg_req_ext;
+      assign cfg_req_ext = ext_periph_slv_req[testharness_pkg::SL_REG_IDX];
+      reg_rsp_t cfg_rsp_ext;
+      assign ext_periph_slv_rsp[testharness_pkg::SL_REG_IDX] = cfg_rsp_ext;
+
+      // assign cfg_req_sl = ao_peripheral_slv_req[core_v_mini_mcu_pkg::SERIAL_LINK_IDX];
+      // assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SERIAL_LINK_IDX] = cfg_rsp_sl;
+
+      //.reg_req_i(ext_periph_slv_req[testharness_pkg::MEMCOPY_CTRL_IDX]),
+      //.reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::MEMCOPY_CTRL_IDX]),
+      //.dma_read_ch0_req_o(ext_master_req[testharness_pkg::EXT_MASTER0_IDX]),
+      //.dma_read_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER0_IDX]),
 
       // test serial link 
       // CORE(OBI)2AXI 
@@ -618,15 +632,15 @@ module testharness #(
           .clk_i,
           .rst_ni,
 
-          .data_req_i(sl_slave_req.req),
+          .data_req_i(sl_obi2axi_req.req),
           //.data_req_i('1),
-          .data_gnt_o(sl_slave_resp.gnt),
-          .data_rvalid_o(sl_slave_resp.rvalid),
-          .data_addr_i(sl_slave_req.addr),
-          .data_we_i(sl_slave_req.we),
-          .data_be_i(sl_slave_req.be),
-          .data_rdata_o(sl_slave_resp.rdata),
-          .data_wdata_i(sl_slave_req.wdata),
+          .data_gnt_o(sl_obi2axi_resp.gnt),
+          .data_rvalid_o(sl_obi2axi_resp.rvalid),
+          .data_addr_i(sl_obi2axi_req.addr),
+          .data_we_i(sl_obi2axi_req.we),
+          .data_be_i(sl_obi2axi_req.be),
+          .data_rdata_o(sl_obi2axi_resp.rdata),
+          .data_wdata_i(sl_obi2axi_req.wdata),
 
           .aw_id_o(axi_out_req_o.aw.id),
           .aw_addr_o(axi_out_req_o.aw.addr),
@@ -692,14 +706,14 @@ module testharness #(
       //.C_S00_AXI_DATA_WIDTH(AXI_DATA_WIDTH),
       //.C_S00_AXI_ADDR_WIDTH(AXI_ADDR_WIDTH)
       ) axi2obi_bridge_virtual_r_obi_i (
-          .gnt_i(sl_m_resp.gnt),
-          .rvalid_i(sl_m_resp.rvalid),
-          .we_o(sl_m_req.we),
-          .be_o(sl_m_req.be),
-          .addr_o(sl_m_req),
-          .wdata_o(sl_m_req.wdata),
-          .rdata_i(sl_m_resp.rdata),
-          .req_o(sl_m_req.req),
+          .gnt_i(sl_axi2obi_resp.gnt),
+          .rvalid_i(sl_axi2obi_resp.rvalid),
+          .we_o(sl_axi2obi_req.we),
+          .be_o(sl_axi2obi_req.be),
+          .addr_o(sl_axi2obi_req),
+          .wdata_o(sl_axi2obi_req.wdata),
+          .rdata_i(sl_axi2obi_resp.rdata),
+          .req_o(sl_axi2obi_req.req),
 
           .s00_axi_aclk(clk_i),
           .s00_axi_aresetn(rst_ni),
@@ -753,22 +767,26 @@ module testharness #(
 
           .testmode_i  ('0),
           //from x-heep to outside
-          .axi_in_req_i(axi_in_req_i),
-          .axi_in_rsp_o(axi_in_rsp_o),
+          .axi_in_req_i(axi_out_req_o),
+          .axi_in_rsp_o(axi_out_rsp_i),
 
-          //from outside to x-heep
-          .axi_out_req_o(axi_out_req_o),
-          .axi_out_rsp_i(axi_out_rsp_i),
 
-          .cfg_req_i(cfg_req_t),  //register configuration
-          .cfg_rsp_o(cfg_rsp_t),
+          .axi_out_req_o(axi_in_req_i),
+          .axi_out_rsp_i(axi_in_rsp_o),
+
+          .cfg_req_i(cfg_req_ext),  //register configuration
+          .cfg_rsp_o(cfg_rsp_ext),
+
 
           //from x-heep to outside
-          .ddr_rcv_clk_i(clk_i),    //Source-synchronous input clock to sample data. One clock per channel   
+          //.ddr_rcv_clk_i(clk_i),    //Source-synchronous input clock to sample data. One clock per channel   
           .ddr_i(ddr_o_xheep),  //Double-Data-Rate (DDR) input data
-
+          .ddr_rcv_clk_i(clk_sl_int2ext),
+          .ddr_rcv_clk_o(clk_sl_ext2int),
+          //.ddr_rcv_clk_i(clk_i),
+          //.ddr_rcv_clk_o(),
           //from outside to x-heep
-          .ddr_rcv_clk_o(),         //Source-synchronous output clock which is forwarded together with the data. One clock per channel
+          //Source-synchronous output clock which is forwarded together with the data. One clock per channel
           .ddr_o(ddr_i_xheep)  //Double-Data-Rate (DDR) output data
       );
 
