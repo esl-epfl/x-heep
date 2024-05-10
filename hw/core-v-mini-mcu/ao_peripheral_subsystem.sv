@@ -345,26 +345,27 @@ module ao_peripheral_subsystem
   assign dma_trigger_slots[5] = ext_dma_slot_tx_i;
   assign dma_trigger_slots[6] = ext_dma_slot_rx_i;
 
-  dma #(
+  m2s_dma #(
       .reg_req_t (reg_pkg::reg_req_t),
       .reg_rsp_t (reg_pkg::reg_rsp_t),
       .obi_req_t (obi_pkg::obi_req_t),
       .obi_resp_t(obi_pkg::obi_resp_t),
       .SLOT_NUM  (DMA_TRIGGER_SLOT_NUM)
-  ) dma_i (
+  ) m2s_dma_i (
       .clk_i,
       .rst_ni,
-      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
-      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::DMA_IDX]),
-      .dma_read_ch0_req_o,
-      .dma_read_ch0_resp_i,
-      .dma_write_ch0_req_o,
-      .dma_write_ch0_resp_i,
-      .dma_addr_ch0_req_o,
-      .dma_addr_ch0_resp_i,
+      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::M2S_DMA_IDX]),
+      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::M2S_DMA_IDX]),
+
+      .m2s_dma_read_ch0_req_o(dma_read_ch0_req_o),
+      .m2s_dma_read_ch0_resp_i(dma_read_ch0_resp_i),
+      .m2s_dma_write_ch0_req_o(dma_write_ch0_req_o),
+      .m2s_dma_write_ch0_resp_i(dma_write_ch0_resp_i),
+      .m2s_dma_addr_ch0_req_o(dma_addr_ch0_req_o),
+      .m2s_dma_addr_ch0_resp_i(dma_addr_ch0_resp_i),
       .trigger_slot_i(dma_trigger_slots),
-      .dma_done_intr_o(dma_done_intr_o),
-      .dma_window_intr_o(dma_window_intr_o)
+      .m2s_dma_done_intr_o(dma_done_intr_o),
+      .m2s_dma_window_intr_o(dma_window_intr_o)
   );
 
   assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_CONTROL_IDX];

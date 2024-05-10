@@ -1,0 +1,23 @@
+CAPI=2:
+
+name: "x-heep:ip:m2s_dma"
+description: "core-v-mini-mcu m2s dma peripheral system"
+
+# Copyright 2024 OpenHW Group
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+filesets:
+  files_rtl:
+    depend:
+      - pulp-platform.org::common_cells
+    files:
+    - rtl/m2s_dma_reg_pkg.sv
+    - rtl/m2s_dma_reg_top.sv
+    - rtl/m2s_dma.sv
+    file_type: systemVerilogSource
+
+targets:
+  default:
+    filesets:
+    - files_rtl

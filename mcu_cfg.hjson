@@ -37,10 +37,11 @@
             offset:  0x00028000,
             length:  0x00008000,
         },
-        dma: {
+        m2s_dma: {
             offset:  0x00030000,
             length:  0x00010000,
-            path:    "./hw/ip/dma/data/dma.hjson"
+            path:    "./hw/ip/m2s_dma/data/m2s_dma.hjson",
+            channel_number: 0x2
         },
         power_manager: {
             offset:  0x00040000,

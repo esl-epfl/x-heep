@@ -137,17 +137,31 @@ package core_v_mini_mcu_pkg;
   // always-on peripherals
   // ---------------------
   localparam AO_PERIPHERALS = ${ao_peripherals_count};
+  localparam M2S_DMA_CH_NUM = ${m2s_dma_count};
 
 % for peripheral, addr in ao_peripherals.items():
   localparam logic [31:0] ${peripheral.upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${addr["offset"]};
   localparam logic [31:0] ${peripheral.upper()}_SIZE = 32'h${addr["length"]};
   localparam logic [31:0] ${peripheral.upper()}_END_ADDRESS = ${peripheral.upper()}_START_ADDRESS + ${peripheral.upper()}_SIZE;
   localparam logic [31:0] ${peripheral.upper()}_IDX = 32'd${loop.index};
-  
 % endfor
+
   localparam addr_map_rule_t [AO_PERIPHERALS-1:0] AO_PERIPHERALS_ADDR_RULES = '{
 % for peripheral, addr in ao_peripherals.items():
       '{ idx: ${peripheral.upper()}_IDX, start_addr: ${peripheral.upper()}_START_ADDRESS, end_addr: ${peripheral.upper()}_END_ADDRESS }${"," if not loop.last else ""}
+% endfor
+  };
+
+% for channel, addr in m2s_dma.items():
+  localparam logic [31:0] ${channel.upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${addr["offset"]};
+  localparam logic [31:0] ${channel.upper()}_SIZE = 32'h${addr["length"]};
+  localparam logic [31:0] ${channel.upper()}_END_ADDRESS = ${channel.upper()}_START_ADDRESS + ${channel.upper()}_SIZE;
+  localparam logic [31:0] ${channel.upper()}_IDX = 32'd${loop.index};
+% endfor
+
+localparam addr_map_rule_t [M2S_DMA_CH_NUM-1:0] M2S_DMA_ADDR_RULES = '{
+  % for channel, addr in m2s_dma.items():
+      '{ idx: ${channel.upper()}_IDX, start_addr: ${channel.upper()}_START_ADDRESS, end_addr: ${channel.upper()}_END_ADDRESS }${"," if not loop.last else ""}
 % endfor
   };
 

@@ -504,7 +504,19 @@ def main():
 
     ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
     ao_peripherals_count = len(ao_peripherals)
-
+    
+    m2s_dma_count = string2int(obj['ao_peripherals']['m2s_dma']['channel_number'])
+    m2s_dma = {}
+    sub_dict = {}
+    sub_dict['offset'] = string2int(obj['ao_peripherals']['m2s_dma']['offset'])
+    sub_dict['length'] = "00000" + string2int(hex(0x100))
+    m2s_dma['m2s_dma_sys_regs'] = sub_dict
+    for i in range(int(m2s_dma_count)):
+        sub_dict = {}
+        sub_dict['offset'] = "000" + string2int(hex(int(obj['ao_peripherals']['m2s_dma']['offset'].split(',')[0], 16) + (i+1)*int(0x100)))
+        sub_dict['length'] = "00000" + string2int(hex(0x100))
+        m2s_dma[f"m2s_dma_ch{i}"] = sub_dict
+    
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
@@ -822,6 +834,8 @@ def main():
         "ao_peripheral_size_address"       : ao_peripheral_size_address,
         "ao_peripherals"                   : ao_peripherals,
         "ao_peripherals_count"             : ao_peripherals_count,
+        "m2s_dma"                          : m2s_dma,
+        "m2s_dma_count"                    : m2s_dma_count,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
         "peripherals"                      : peripherals,

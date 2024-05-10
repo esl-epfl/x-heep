@@ -231,16 +231,6 @@
       fields: [
         { bits: "7:0", name: "WINDOW_COUNT", desc: "Number of windows transferred in the transaction" }
       ]
-    },
-    { name:    "INTERRUPT_EN",
-      desc:    '''Interrupt Enable Register 
-                  (Only the interrupt with the lowest id will be triggered)''',
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "0", name: "TRANSACTION_DONE", desc: "Enables transaction done interrupt" }
-        { bits: "1", name: "WINDOW_DONE", desc: "Enables window done interrupt" }
-      ]
     }
    ]
 }

@@ -1,0 +1,37 @@
+// Copyright EPFL contributors.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{ name: "m2s_dma",
+  clock_primary: "clk_i",
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ],
+  regwidth: "32",
+  registers: [
+    { name:     "CONTROL",
+      desc:     "Control register",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "0", name: "SDC_EN", desc: "Enables the external Smart DMA Controller" }
+      ]
+    },
+    { name:     "TRANSACITON_IFR",
+      desc:     "Transaction done interrupt flag register, enables the transaction done interrupt",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "7:0", name: "EN", desc: "Default to 0, set to 1 (by CPU) transaction interrupt enable and lowered by transaction done" },
+      ]
+    },
+    { name:     "WINDOW_IFR",
+      desc:     "Window done interrupt flag register, enables the window done interrupt",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "7:0", name: "EN", desc: "Default to 0, set to 1 (by CPU) by window interrupt enable and lowered by window done" },
+      ]
+    }
+   ]
+}

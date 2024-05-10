@@ -30,6 +30,7 @@ filesets:
     - x-heep:obi_spimemio:0.1.0
     - x-heep:ip:boot_rom
     - x-heep:ip:dma
+    - x-heep:ip:m2s_dma
     - x-heep:ip:i2s
     - x-heep:ip:power_manager
     - x-heep:ip:fast_intr_ctrl
@@ -84,6 +85,7 @@ filesets:
     - hw/ip/boot_rom/boot_rom.vlt
     - hw/ip/obi_spimemio/obi_spimemio.vlt
     - hw/ip/dma/dma.vlt
+    - hw/ip/m2s_dma/m2s_dma.vlt
     - hw/ip/pdm2pcm/pdm2pcm.vlt
     - hw/ip_examples/pdm2pcm_dummy/pdm2pcm_dummy.vlt
     - hw/ip/power_manager/power_manager.vlt

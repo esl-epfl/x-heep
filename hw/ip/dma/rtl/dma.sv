@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 EPFL
+ * Copyright 2024 EPFL
  * Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
  * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
  */
@@ -31,8 +31,11 @@ module dma #(
 
     input logic [SLOT_NUM-1:0] trigger_slot_i,
 
-    output dma_done_intr_o,
-    output dma_window_intr_o
+    output dma_done_o,
+    output dma_window_o,
+
+    input dma_trans_intr_en_i,
+    input dma_window_intr_en_i
 );
 
   import dma_reg_pkg::*;
@@ -225,9 +228,6 @@ module dma #(
   assign data_out_rvalid = dma_write_ch0_resp_i.rvalid;
   assign data_out_rdata = dma_write_ch0_resp_i.rdata;
 
-  assign dma_done_intr_o = dma_done & reg2hw.interrupt_en.transaction_done.q;
-  assign dma_window_intr_o = dma_window_event & reg2hw.interrupt_en.window_done.q;
-
   assign data_type = reg2hw.data_type.q;
 
   assign hw2reg.status.ready.d = (dma_state_q == DMA_READY);
@@ -242,15 +242,12 @@ module dma #(
   assign dma_conf_2d = reg2hw.dim_config.q == 1;
 
   /* DMA 2D increment */
-
   assign dma_src_d2_inc = reg2hw.src_ptr_inc_d2.q;
   assign dma_src_d1_inc = reg2hw.src_ptr_inc_d1.q;
   assign dma_dst_d2_inc = reg2hw.dst_ptr_inc_d2.q;
   assign dma_dst_d1_inc = reg2hw.dst_ptr_inc_d1.q;
 
   /* Padding FSM conditions assignments */
-
-
   assign idle_to_top_ex = {|reg2hw.pad_top.q == 1'b1 && dma_start == 1'b1};
   assign idle_to_left_ex = {
     |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b1 && dma_start == 1'b1
@@ -309,6 +306,11 @@ module dma #(
   assign bottom_ex_to_idle = {
     dma_src_cnt_d1 == {14'h0, dma_cnt_du} && dma_src_cnt_d2 == {14'h0, dma_cnt_du}
   };
+
+  /* Exposed done signal */
+
+  assign dma_done_o = dma_done;
+  assign dma_window_o = dma_window_event;
 
   assign write_address = address_mode ? fifo_addr_output : write_ptr_reg;
 
