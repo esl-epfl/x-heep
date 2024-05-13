@@ -37,6 +37,26 @@ void assert_closei32(int32_t a, int32_t b, int32_t prec, int idx) {
     }
 }
 
+void* my_calloc(size_t num, size_t size) {
+    void *ptr = calloc(num, size);
+    if (ptr != NULL) {
+        printf("Allocated memory range: [%p - %p]\n", ptr, (char*)ptr + num * size - 1);
+    } else {
+        printf("Failed to allocate memory\n");
+    }
+    return ptr;
+}
+
+void* my_malloc(size_t size) {
+    void *ptr = malloc(size);
+    if (ptr != NULL) {
+        printf("Allocated memory range: [%p - %p]\n", ptr, (char*)ptr + size - 1);
+    } else {
+        printf("Failed to allocate memory\n");
+    }
+    return ptr;
+}
+
 // Vector export for plots
 #if defined(SIMULATION) || defined(TARGET)
 #define VECTOR_EXPORT(...)
