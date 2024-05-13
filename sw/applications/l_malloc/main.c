@@ -21,6 +21,17 @@ void* my_malloc(size_t size) {
     return ptr;
 }
 
+int* alloc_array_ret() {
+    printf("allocate array and return\n");
+    int* myarr = (int*)my_malloc(5 * sizeof(int));
+
+    for (int i = 0; i < 5; ++i) {
+        myarr[i] = i;
+    }
+
+    return myarr;
+}
+
 void alloc_array() {
     printf("allocate arrays\n");
     int* arr = (int*)my_malloc(10 * sizeof(int));
@@ -33,6 +44,7 @@ void alloc_array() {
 }
 
 int main(int argc, char *argv[]) {
+    int* ret = alloc_array_ret();
     alloc_array();
     return EXIT_SUCCESS;
 }
