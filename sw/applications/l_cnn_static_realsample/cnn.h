@@ -32,8 +32,8 @@ typedef struct __complex_t {
 void Cnn_forwardFxp(CnnHandle self, fxp32* input, fxp32* output);
 void Cnn_forwardFloat(CnnHandle self, float* input, float* output);
 
-// void Cnn_predictFxp(CnnHandle self, fxp32* acc, fxp32* ppg, fxp32* output);
-// void Cnn_predictFloat(CnnHandle self, float* acc, float* ppg, float* output);
+void Cnn_predictFxp(CnnHandle self, fxp32* acc, fxp32* ppg, fxp32* output);
+void Cnn_predictFloat(CnnHandle self, float* acc, float* ppg, float* output);
 
 // float Cnn_sampleLoss(CnnHandle self, complex_t* ypred, complex_t* ytrue);
 
