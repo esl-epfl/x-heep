@@ -59,7 +59,26 @@
 /**                                                                        **/
 /****************************************************************************/
 
+/**
+ * @brief Function that translates the status register to spi_event_e type. This
+ * has been implemented because the SPI peripheral has no other way to know which
+ * event was triggered other than reading the status.
+ * This function has been made local since only the event interrupt handler should
+ * need it.
+ * 
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ * @param events Pointer to store the events that were triggered.
+ * @return spi_return_flags_e indicating problems, SPI_FLAG_OK if all went well.
+ */
 spi_return_flags_e spi_get_events(spi_host_t* spi, spi_event_e* events);
+
+/**
+ * @brief Function to acknoledge event interrupts once received to prevent them
+ * from triggering again.
+ * 
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return spi_return_flags_e indicating problems, SPI_FLAG_OK if all went well.
+ */
 spi_return_flags_e spi_acknowledge_event(spi_host_t* spi);
 
 /****************************************************************************/
