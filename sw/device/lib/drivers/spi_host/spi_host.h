@@ -129,8 +129,8 @@ typedef enum {
 * SPI functions return flags, informs user what problem there was or if all OK
 */
 typedef enum {
-    SPI_FLAG_OK                 = 0x0000,
-    SPI_FLAG_NULL_PTR           = 0x0001,
+    SPI_FLAG_OK                 = 0x0000, /*!< Everithing went well */
+    SPI_FLAG_NULL_PTR           = 0x0001, /*!< The SPI variabled passed was a null pointer */
     SPI_FLAG_WATERMARK_EXCEEDS  = 0x0002, /*!< The Watermark exceeded SPI_HOST_PARAM_TX_DEPTH 
     or SPI_HOST_PARAM_RX_DEPTH and was therefore not set */
     SPI_FLAG_CSID_INVALID       = 0x0004, /*!< The CSID was out of the bounds specified in 
@@ -144,6 +144,9 @@ typedef enum {
     SPI_FLAG_ERROR_INVALID      = 0x0200  /*!< The error irq to enable is not a valid error irq */
 } spi_return_flags_e;
 
+/**
+* Extended bool to return if a function catched an error
+*/
 typedef enum {
     SPI_TRISTATE_ERROR  = 0,
     SPI_TRISTATE_TRUE   = 1,
@@ -153,12 +156,13 @@ typedef enum {
 /**
  * Initialization parameters for SPI.
  */
-typedef struct spi spi_host_t;
+typedef struct spi_s spi_host_t;
 
+// TODO: obsolete
 /**
 * SPI channel (TX/RX) status structure
 */
-typedef struct spi_ch_status {
+typedef struct spi_ch_status_s {
     bool empty : 1; // channel FIFO is empty
     bool full  : 1; // channel FIFO is full
     bool wm    : 1; // amount of words in channel FIFO exceeds watermark (if 
@@ -170,46 +174,46 @@ typedef struct spi_ch_status {
 /**
 * SPI chip (slave) configuration structure
 */
-typedef struct spi_configopts {
-    uint16_t clkdiv     : 16;
-    uint8_t  csnidle    : 4;
-    uint8_t  csntrail   : 4;
-    uint8_t  csnlead    : 4;
-    bool     __rsvd0    : 1;
-    bool     fullcyc    : 1;
-    bool     cpha       : 1;
-    bool     cpol       : 1;
+typedef struct spi_configopts_s {
+    uint16_t clkdiv     : 16; // The clock divider to use with a paricular slave
+    uint8_t  csnidle    : 4;  // Indicates the minimum number of sck half-cycles to hold cs_n high between commands
+    uint8_t  csntrail   : 4;  // Indicates the number of half sck cycles, CSNTRAIL+1, to leave between last edge of sck and the rising edge of cs_n
+    uint8_t  csnlead    : 4;  // Indicates the number of half sck cycles, CSNLEAD+1, to leave between the falling edge of cs_n and the first edge of sck
+    bool     __rsvd0    : 1;  // Will be ignored by hardware
+    bool     fullcyc    : 1;  // If 1 data is sampled a full cycle after shifting data out, instead of half cycle
+    bool     cpha       : 1;  // If 0 data lines change on trailing edge and sample done on leading edge, if 1 it is the opposite
+    bool     cpol       : 1;  // If 0 sck is low when idle, and emits high pulses. If 1 sck is high when idle, and emits of low pulses
 } spi_configopts_t;
 
 /**
 * SPI command structure
 */
-typedef struct spi_command {
-    uint32_t    len         : 24;
-    bool        csaat       : 1;
-    spi_speed_e speed       : 2;
-    spi_dir_e   direction   : 2;
+typedef struct spi_command_s {
+    uint32_t    len         : 24; // Length-1 in bytes for the command to transmit/receive
+    bool        csaat       : 1;  // Keep CS line active after command has finished (allows to instruct series of commands)
+    spi_speed_e speed       : 2;  // Speed of communication
+    spi_dir_e   direction   : 2;  // Direction of communication
 } spi_command_t;
 
 /**
 * SPI status structure
 */
-typedef struct spi_status {
-    uint8_t txqd        : 8;
-    uint8_t rxqd        : 8;
-    uint8_t cmdqd       : 4;
-    bool    rxwm        : 1;
-    bool    __rsvd0     : 1;
-    bool    byteorder   : 1;
-    bool    rxstall     : 1;
-    bool    rxempty     : 1;
-    bool    rxfull      : 1;
-    bool    txwm        : 1;
-    bool    txstall     : 1;
-    bool    txempty     : 1;
-    bool    txfull      : 1;
-    bool    active      : 1;
-    bool    ready       : 1;
+typedef struct spi_status_s {
+    uint8_t txqd        : 8;  // TX queue depth (how many unsent words are in the FIFO)
+    uint8_t rxqd        : 8;  // RX queue depth (how many unread words are in the FIFO)
+    uint8_t cmdqd       : 4;  // CMD queue depth (how many unprocessed commands are in the FIFO)
+    bool    rxwm        : 1;  // Indicates wether rxqd is above the RX Watermark
+    bool    __rsvd0     : 1;  // Not used
+    bool    byteorder   : 1;  // The endianness of the SPI Peripheral
+    bool    rxstall     : 1;  // Indicates if the SPI still still has more data to read but the RX FIFO is full
+    bool    rxempty     : 1;  // Indicates RX FIFO is empty
+    bool    rxfull      : 1;  // Indicates RX FIFO is full
+    bool    txwm        : 1;  // Indicates wether txqd is below the TX Watermark
+    bool    txstall     : 1;  // Indicates if the SPI still has more data to send but the TX FIFO is empty
+    bool    txempty     : 1;  // Indicates TX FIFO is empty
+    bool    txfull      : 1;  // Indicates TX FIFO is full
+    bool    active      : 1;  // Indicates if the SPI peripheral is currently processing a command
+    bool    ready       : 1;  // Indicates if the SPI peripheral is ready to receive more commands
 } spi_status_t;
 
 /****************************************************************************/
@@ -225,7 +229,7 @@ typedef struct spi_status {
 /****************************************************************************/
 
 /**
- * Get enabled events for a specified SPI peripheral.
+ * @brief Get enabled events for a specified SPI peripheral.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param events Pointer to store enabled event interrupts.
@@ -234,7 +238,7 @@ typedef struct spi_status {
 spi_return_flags_e spi_get_events_enabled(spi_host_t* spi, spi_event_e* events);
 
 /**
- * Set enabled events for a specified SPI peripheral.
+ * @brief Set enabled events for a specified SPI peripheral.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param events Pointer to events to enable/disable and to store the currently enabled
@@ -245,7 +249,7 @@ spi_return_flags_e spi_get_events_enabled(spi_host_t* spi, spi_event_e* events);
 spi_return_flags_e spi_set_events_enabled(spi_host_t* spi, spi_event_e events, bool enable);
 
 /**
- * Get enabled error interrupts for a specified SPI peripheral.
+ * @brief Get enabled error interrupts for a specified SPI peripheral.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param errors Pointer to store enabled error interrupts.
@@ -254,7 +258,7 @@ spi_return_flags_e spi_set_events_enabled(spi_host_t* spi, spi_event_e events, b
 spi_return_flags_e spi_get_errors_enabled(spi_host_t* spi, spi_error_e* errors);
 
 /**
- * Set enabled error interrupts for a specified SPI peripheral.
+ * @brief Set enabled error interrupts for a specified SPI peripheral.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param errors Pointer to error interrupts to enable/disable and to store the currently
@@ -264,12 +268,25 @@ spi_return_flags_e spi_get_errors_enabled(spi_host_t* spi, spi_error_e* errors);
  */
 spi_return_flags_e spi_set_errors_enabled(spi_host_t* spi, spi_error_e errors, bool enable);
 
+/**
+ * @brief Get the errors that have raised if any.
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ * @param errors Pointer to store the errors.
+ * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
+ */
 spi_return_flags_e spi_get_errors(spi_host_t* spi, spi_error_e* errors);
 
+/**
+ * @brief Acknoledge the errors that have raised once solved in order to renable the SPI peripheral operation.
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
+ */
 spi_return_flags_e spi_acknowledge_errors(spi_host_t* spi);
 
 /**
- * Write a byte of data to the transmit queue of a specified SPI peripheral.
+ * @brief Write a byte of data to the transmit queue of a specified SPI peripheral.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param bdata Byte of data to write.
@@ -278,7 +295,7 @@ spi_return_flags_e spi_acknowledge_errors(spi_host_t* spi);
 spi_return_flags_e spi_write_byte(spi_host_t* spi, uint8_t bdata);
 
 /**
- * Enable or disable error interrupt test mode for a specified SPI peripheral.
+ * @brief Enable or disable error interrupt test mode for a specified SPI peripheral.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable Flag to enable (true) or disable (false) error interrupt test mode.
@@ -287,7 +304,7 @@ spi_return_flags_e spi_write_byte(spi_host_t* spi, uint8_t bdata);
 spi_return_flags_e spi_enable_error_intr_test(spi_host_t* spi, bool enable);
 
 /**
- * Enable or disable event interrupt test mode for a specified SPI peripheral.
+ * @brief Enable or disable event interrupt test mode for a specified SPI peripheral.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable Flag to enable (true) or disable (false) event interrupt test mode.
@@ -296,7 +313,7 @@ spi_return_flags_e spi_enable_error_intr_test(spi_host_t* spi, bool enable);
 spi_return_flags_e spi_enable_evt_intr_test(spi_host_t* spi, bool enable);
 
 /**
- * Trigger a fatal fault test alert for a specified SPI peripheral.
+ * @brief Trigger a fatal fault test alert for a specified SPI peripheral.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return Flag indicating problems. Returns SPI_FLAG_OK if everything went well.
@@ -304,7 +321,7 @@ spi_return_flags_e spi_enable_evt_intr_test(spi_host_t* spi, bool enable);
 spi_return_flags_e spi_alert_test_fatal_fault_trigger(spi_host_t* spi);
 
 /**
- * Read the TX FIFO depth register.
+ * @brief Read the TX FIFO depth register.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return TX FIFO depth.
@@ -312,7 +329,7 @@ spi_return_flags_e spi_alert_test_fatal_fault_trigger(spi_host_t* spi);
 volatile uint8_t spi_get_tx_queue_depth(spi_host_t* spi);
 
 /**
- * Read the TX channel status register.
+ * @brief Read the TX channel status register.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return TX channel status structure.
@@ -320,7 +337,7 @@ volatile uint8_t spi_get_tx_queue_depth(spi_host_t* spi);
 spi_return_flags_e spi_get_tx_channel_status(spi_host_t* spi, volatile spi_ch_status_t* ch_status);
 
 /**
- * Read the RX FIFO depth register.
+ * @brief Read the RX FIFO depth register.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return RX FIFO depth.
@@ -328,7 +345,7 @@ spi_return_flags_e spi_get_tx_channel_status(spi_host_t* spi, volatile spi_ch_st
 volatile uint8_t spi_get_rx_queue_depth(spi_host_t* spi);
 
 /**
- * Read the RX channel status register.
+ * @brief Read the RX channel status register.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return RX channel status structure.
@@ -336,7 +353,7 @@ volatile uint8_t spi_get_rx_queue_depth(spi_host_t* spi);
 spi_return_flags_e spi_get_rx_channel_status(spi_host_t* spi, volatile spi_ch_status_t* ch_status);
 
 /**
- * Read the Chip Select (CS) ID register.
+ * @brief Read the Chip Select (CS) ID register.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return Chip Select (CS) ID.
@@ -344,14 +361,14 @@ spi_return_flags_e spi_get_rx_channel_status(spi_host_t* spi, volatile spi_ch_st
 volatile uint32_t spi_get_csid(spi_host_t* spi);
 
 /**
- * Reset the SPI from software.
+ * @brief Reset the SPI from software.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  */
 spi_return_flags_e spi_sw_reset(spi_host_t* spi);
 
 /**
- * Enable the SPI host.
+ * @brief Enable the SPI host.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI enable register value.
@@ -359,7 +376,7 @@ spi_return_flags_e spi_sw_reset(spi_host_t* spi);
 spi_return_flags_e spi_set_enable(spi_host_t* spi, bool enable);
 
 /**
- * Set the transmit queue watermark level (to enable interrupt triggering).
+ * @brief Set the transmit queue watermark level (to enable interrupt triggering).
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param watermark Queue/fifo trigger level (minimum level).
@@ -369,7 +386,7 @@ spi_return_flags_e spi_set_enable(spi_host_t* spi, bool enable);
 spi_return_flags_e spi_set_tx_watermark(spi_host_t* spi, uint8_t watermark);
 
 /**
- * Set the receive queue watermark level (to enable interrupt triggering).
+ * @brief Set the receive queue watermark level (to enable interrupt triggering).
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param watermark Queue/fifo trigger level (maximum level).
@@ -379,7 +396,7 @@ spi_return_flags_e spi_set_tx_watermark(spi_host_t* spi, uint8_t watermark);
 spi_return_flags_e spi_set_rx_watermark(spi_host_t* spi, uint8_t watermark);
 
 /**
- * Set the requirement of a target device (i.e., a slave).
+ * @brief Set the requirement of a target device (i.e., a slave).
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param csid Chip Select (CS) ID.
@@ -390,7 +407,7 @@ spi_return_flags_e spi_set_rx_watermark(spi_host_t* spi, uint8_t watermark);
 spi_return_flags_e spi_set_configopts(spi_host_t* spi, uint32_t csid, const uint32_t conf_reg);
 
 /**
- * Get the requirement of a target device (i.e., a slave).
+ * @brief Get the requirement of a target device (i.e., a slave).
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param csid Chip Select (CS) ID.
@@ -401,7 +418,7 @@ spi_return_flags_e spi_set_configopts(spi_host_t* spi, uint32_t csid, const uint
 spi_return_flags_e spi_get_configopts(spi_host_t* spi, uint32_t csid, uint32_t* conf_reg);
 
 /**
- * Select which device to target with the next command.
+ * @brief Select which device to target with the next command.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param csid Chip Select (SC) ID.
@@ -411,7 +428,7 @@ spi_return_flags_e spi_get_configopts(spi_host_t* spi, uint32_t csid, uint32_t* 
 spi_return_flags_e spi_set_csid(spi_host_t* spi, uint32_t csid);
 
 /**
- * Set the next command (one for all attached SPI devices).
+ * @brief Set the next command (one for all attached SPI devices).
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param cmd_reg Command register value (Length, speed, ...).
@@ -421,7 +438,7 @@ spi_return_flags_e spi_set_csid(spi_host_t* spi, uint32_t csid);
 spi_return_flags_e spi_set_command(spi_host_t* spi, uint32_t cmd_reg);
 
 /**
- * Write one word to the TX FIFO.
+ * @brief Write one word to the TX FIFO.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param wdata Data to write.
@@ -431,7 +448,7 @@ spi_return_flags_e spi_set_command(spi_host_t* spi, uint32_t cmd_reg);
 spi_return_flags_e spi_write_word(spi_host_t* spi, uint32_t wdata);
 
 /**
- * Read one word to the RX FIFO.
+ * @brief Read one word to the RX FIFO.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param rdata Read data.
@@ -441,7 +458,7 @@ spi_return_flags_e spi_write_word(spi_host_t* spi, uint32_t wdata);
 spi_return_flags_e spi_read_word(spi_host_t* spi, uint32_t* dst);
 
 /**
- * Enable SPI event interrupt
+ * @brief Enable SPI event interrupt
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI event interrupt bit value.
@@ -449,7 +466,7 @@ spi_return_flags_e spi_read_word(spi_host_t* spi, uint32_t* dst);
 spi_return_flags_e spi_enable_evt_intr(spi_host_t* spi, bool enable);
 
 /**
- * Enable SPI error interrupt
+ * @brief Enable SPI error interrupt
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI error interrupt bit value.
@@ -457,7 +474,7 @@ spi_return_flags_e spi_enable_evt_intr(spi_host_t* spi, bool enable);
 spi_return_flags_e spi_enable_error_intr(spi_host_t* spi, bool enable);
 
 /**
- * Enable SPI output
+ * @brief Enable SPI output
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @param enable SPI TX empty interrupt bit value.
@@ -470,30 +487,63 @@ spi_return_flags_e spi_output_enable(spi_host_t* spi, bool enable);
 /**                                                                        **/
 /****************************************************************************/
 
+/**
+ * @brief Check if a given direction and speed are compatible.
+ * i.e. bidirectional communication only possible at standard speed
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ * @param direction spi_dir_e direction of communication.
+ * @param speed spi_speed_e speed of communication.
+ * @return true if compatible false otherwise.
+ */
 static inline __attribute__((always_inline)) bool spi_validate_cmd(uint8_t direction, uint8_t speed) {
     if (speed > SPI_SPEED_QUAD || (direction == SPI_DIR_BIDIR && speed != SPI_SPEED_STANDARD))
         return false;
     else return true;
 }
 
+/**
+ * @brief Get the state of the event interrupt flag (indicates if event has been triggered).
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return SPI_TRISTATE_ERROR if null pointer, else SPI_TRISTATE_TRUE if flag active or SPI_TRISTATE_FALSE if not active.
+ */
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_evt_intr_state(spi_host_t* spi) {
     if (spi == NULL) return SPI_TRISTATE_ERROR;
     return bitfield_read(SPI_HOST_HW(spi)->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_SPI_EVENT_BIT)
            ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
+/**
+ * @brief Get the state of the error interrupt flag (indicates if error has been triggered).
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return SPI_TRISTATE_ERROR if null pointer, else SPI_TRISTATE_TRUE if flag active or SPI_TRISTATE_FALSE if not active.
+ */
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_error_intr_state(spi_host_t* spi) {
     if (spi == NULL) return SPI_TRISTATE_ERROR;
     return bitfield_read(SPI_HOST_HW(spi)->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_ERROR_BIT)
            ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
+/**
+ * @brief Check if event interrupts are enabled.
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return SPI_TRISTATE_ERROR if null pointer, else SPI_TRISTATE_TRUE if enabled or SPI_TRISTATE_FALSE otherwise.
+ */
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_evt_intr_enable(spi_host_t* spi) {
     if (spi == NULL) return SPI_TRISTATE_ERROR;
     return bitfield_read(SPI_HOST_HW(spi)->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_SPI_EVENT_BIT)
            ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
+/**
+ * @brief Check if error interrupts are enabled.
+ *
+ * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return SPI_TRISTATE_ERROR if null pointer, else SPI_TRISTATE_TRUE if enabled or SPI_TRISTATE_FALSE otherwise.
+ */
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_error_intr_enable(spi_host_t* spi) {
     if (spi == NULL) return SPI_TRISTATE_ERROR;
     return bitfield_read(SPI_HOST_HW(spi)->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_ERROR_BIT)
@@ -501,29 +551,34 @@ static inline __attribute__((always_inline)) spi_tristate_e spi_get_error_intr_e
 }
 
 /**
- * Read SPI status register
+ * @brief Read SPI status register
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return pointer to spi_status_t structure
  */
 static inline __attribute__((always_inline)) const volatile spi_status_t* spi_get_status(spi_host_t* spi) {
     if (spi == NULL) return NULL;
     return (const volatile spi_status_t*) &SPI_HOST_HW(spi)->STATUS;
 }
 
+// TODO: check if this still makes sense
 /**
- * Read SPI active bit from status register
+ * @brief Read SPI active bit from status register (indicates if SPI peripheral is currently processing a command)
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return SPI_TRISTATE_ERROR if null pointer, else SPI_TRISTATE_TRUE if active or SPI_TRISTATE_FALSE otherwise.
  */
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_active(spi_host_t* spi) {
     if (spi == NULL) return SPI_TRISTATE_ERROR;
     return spi_get_status(spi)->active ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
+// TODO: check if this still makes sense
 /**
- * Read SPI ready bit from status register
+ * @brief Read SPI ready bit from status register (indicates if SPI peripheral is ready to receive more commands)
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return SPI_TRISTATE_ERROR if null pointer, else SPI_TRISTATE_TRUE if ready or SPI_TRISTATE_FALSE otherwise.
  */
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_ready(spi_host_t* spi) {
     if (spi == NULL) return SPI_TRISTATE_ERROR;
@@ -531,9 +586,10 @@ static inline __attribute__((always_inline)) spi_tristate_e spi_get_ready(spi_ho
 }
 
 /**
- * Wait SPI is ready to receive commands.
+ * @brief Wait SPI is ready to receive commands.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return errors if any, SPI_FLAG_OK otherwise.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_ready(spi_host_t* spi) {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
@@ -542,9 +598,10 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rea
 }
 
 /**
- * Wait SPI is no longer processing commands.
+ * @brief Wait SPI is no longer processing commands.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return errors if any, SPI_FLAG_OK otherwise.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_idle(spi_host_t* spi) {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
@@ -553,9 +610,10 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_idl
 }
 
 /**
- * Wait CMD FIFO not full.
+ * @brief Wait CMD FIFO not full.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return errors if any, SPI_FLAG_OK otherwise.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_cmdqd_not_full(spi_host_t* spi) {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
@@ -564,9 +622,10 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_cmd
 }
 
 /**
- * Wait TX FIFO reach watermark.
+ * @brief Wait TX FIFO reach watermark.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return errors if any, SPI_FLAG_OK otherwise.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_watermark(spi_host_t* spi) {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
@@ -575,9 +634,10 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_
 }
 
 /**
- * Wait TX FIFO empty.
+ * @brief Wait TX FIFO empty.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return errors if any, SPI_FLAG_OK otherwise.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_empty(spi_host_t* spi) {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
@@ -585,10 +645,12 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_
     return SPI_FLAG_OK;
 }
 
+// TODO: does this make sense?
 /**
- * Wait TX FIFO not empty.
+ * @brief Wait TX FIFO not empty.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return errors if any, SPI_FLAG_OK otherwise.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_not_empty(spi_host_t* spi) {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
@@ -596,10 +658,12 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_
     return SPI_FLAG_OK;
 }
 
+// TODO: does this make sense?
 /**
- * Wait TX FIFO not full.
+ * @brief Wait TX FIFO not full.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return errors if any, SPI_FLAG_OK otherwise.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_not_full(spi_host_t* spi) {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
@@ -607,10 +671,12 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_tx_
     return SPI_FLAG_OK;
 }
 
+// TODO: does this make sense?
 /**
- * Wait RX FIFO empty.
+ * @brief Wait RX FIFO empty.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return errors if any, SPI_FLAG_OK otherwise.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_empty(spi_host_t* spi) {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
@@ -619,9 +685,10 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_
 }
 
 /**
- * Wait RX FIFO not empty.
+ * @brief Wait RX FIFO not empty.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return errors if any, SPI_FLAG_OK otherwise.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_not_empty(spi_host_t* spi) {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
@@ -629,10 +696,12 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_
     return SPI_FLAG_OK;
 }
 
+// TODO: does this make sense?
 /**
- * Wait RX FIFO not full.
+ * @brief Wait RX FIFO not full.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return errors if any, SPI_FLAG_OK otherwise.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_not_full(spi_host_t* spi) {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
@@ -641,9 +710,10 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_
 }
 
 /**
- * Wait RX FIFO reach watermark.
+ * @brief Wait RX FIFO reach watermark.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
+ * @return errors if any, SPI_FLAG_OK otherwise.
  */
 static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_watermark(spi_host_t* spi) {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
@@ -652,9 +722,10 @@ static inline __attribute__((always_inline)) spi_return_flags_e spi_wait_for_rx_
 }
 
 /**
- * Create SPI target device configuration word.
+ * @brief Create SPI target device configuration word.
  *
  * @param configopts Target device configuation structure.
+ * @return uint32 representing the configopts.
  */
 static inline __attribute__((always_inline)) __attribute__((const)) uint32_t spi_create_configopts(const spi_configopts_t configopts) {
     uint32_t conf_reg = 0;
@@ -669,9 +740,10 @@ static inline __attribute__((always_inline)) __attribute__((const)) uint32_t spi
 }
 
 /**
- * Create SPI target device configuration word.
+ * @brief Convert SPI target device configuration word to spi_configopts_t structure.
  *
  * @param configopts Target device configuation structure.
+ * @return uint32 representing the configopts.
  */
 static inline __attribute__((always_inline)) __attribute__((const)) spi_configopts_t spi_create_configopts_structure(const uint32_t config_reg) {
     spi_configopts_t configopts = {
@@ -687,9 +759,10 @@ static inline __attribute__((always_inline)) __attribute__((const)) spi_configop
 }
 
 /**
- * Create SPI command word.
+ * @brief Create SPI command word.
  *
  * @param command Command configuration structure.
+ * @return uint32 representing the command.
  */
 static inline __attribute__((always_inline)) __attribute__((const)) uint32_t spi_create_command(const spi_command_t command) {
     uint32_t cmd_reg = 0;
@@ -701,17 +774,17 @@ static inline __attribute__((always_inline)) __attribute__((const)) uint32_t spi
 }
 
 /**
- * @brief Attends the plic interrupt.
+ * @brief Attends the plic interrupt for SPI Host 2.
  */
 void handler_irq_spi(uint32_t id);
 
 /**
- * @brief Attends the fic interrupt.
+ * @brief Attends the fic interrupt for SPI Host.
  */
 void fic_irq_spi(void);
 
 /**
- * @brief Attends the fic interrupt.
+ * @brief Attends the fic interrupt for SPI Flash.
  */
 void fic_irq_spi_flash(void);
 
