@@ -376,6 +376,7 @@ void handler_irq_spi(uint32_t id)
     spi_get_errors(spi_host2, &errors);
     if (errors) {
         spi_intr_handler_error_host2(errors);
+        // TODO: maybe set a flag to enable/disable auto acknowledge
         spi_acknowledge_errors(spi_host2);
     }
     else {
@@ -392,6 +393,7 @@ void fic_irq_spi(void)
     spi_get_errors(spi_host1, &errors);
     if (errors) {
         spi_intr_handler_error_host(errors);
+        // TODO: maybe set a flag to enable/disable auto acknowledge
         spi_acknowledge_errors(spi_host1);
     }
     else {
@@ -408,6 +410,7 @@ void fic_irq_spi_flash(void)
     spi_get_errors(spi_flash, &errors);
     if (errors) {
         spi_intr_handler_error_flash(errors);
+        // TODO: maybe set a flag to enable/disable auto acknowledge
         spi_acknowledge_errors(spi_flash);
     }
     else {
@@ -462,7 +465,7 @@ spi_return_flags_e spi_get_events(spi_host_t* spi, spi_event_e* events) {
 
 spi_return_flags_e spi_acknowledge_event(spi_host_t* spi) {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
-    SPI_HOST_HW(spi)->INTR_STATE = bitfield_write(SPI_HOST_HW(spi)->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_SPI_EVENT_BIT, 1);
+    SPI_HOST_HW(spi)->INTR_STATE = bitfield_write(SPI_HOST_HW(spi)->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_SPI_EVENT_BIT, true);
     return SPI_FLAG_OK;
 }
 
