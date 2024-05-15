@@ -275,10 +275,10 @@ module m2s_dma #(
   /* Delayed interrupt signals */
   always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_intr
     if (~rst_ni) begin
-      m2s_dma_done_intr_n <= '0;
+      m2s_dma_done_intr_n   <= '0;
       m2s_dma_window_intr_n <= '0;
     end else begin
-      m2s_dma_done_intr_n <= m2s_dma_done_intr;
+      m2s_dma_done_intr_n   <= m2s_dma_done_intr;
       m2s_dma_window_intr_n <= m2s_dma_window_intr;
     end
   end

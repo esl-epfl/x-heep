@@ -8,44 +8,44 @@
 `include "common_cells/assertions.svh"
 
 module m2s_dma_reg_top #(
-  parameter type reg_req_t = logic,
-  parameter type reg_rsp_t = logic,
-  parameter int AW = 4
+    parameter type reg_req_t = logic,
+    parameter type reg_rsp_t = logic,
+    parameter int AW = 4
 ) (
-  input logic clk_i,
-  input logic rst_ni,
-  input  reg_req_t reg_req_i,
-  output reg_rsp_t reg_rsp_o,
-  // To HW
-  output m2s_dma_reg_pkg::m2s_dma_reg2hw_t reg2hw, // Write
-  input  m2s_dma_reg_pkg::m2s_dma_hw2reg_t hw2reg, // Read
+    input logic clk_i,
+    input logic rst_ni,
+    input reg_req_t reg_req_i,
+    output reg_rsp_t reg_rsp_o,
+    // To HW
+    output m2s_dma_reg_pkg::m2s_dma_reg2hw_t reg2hw,  // Write
+    input m2s_dma_reg_pkg::m2s_dma_hw2reg_t hw2reg,  // Read
 
 
-  // Config
-  input devmode_i // If 1, explicit error return for unmapped register access
+    // Config
+    input devmode_i  // If 1, explicit error return for unmapped register access
 );
 
-  import m2s_dma_reg_pkg::* ;
+  import m2s_dma_reg_pkg::*;
 
   localparam int DW = 32;
-  localparam int DBW = DW/8;                    // Byte Width
+  localparam int DBW = DW / 8;  // Byte Width
 
   // register signals
   logic           reg_we;
   logic           reg_re;
-  logic [AW-1:0]  reg_addr;
-  logic [DW-1:0]  reg_wdata;
+  logic [ AW-1:0] reg_addr;
+  logic [ DW-1:0] reg_wdata;
   logic [DBW-1:0] reg_be;
-  logic [DW-1:0]  reg_rdata;
+  logic [ DW-1:0] reg_rdata;
   logic           reg_error;
 
-  logic          addrmiss, wr_err;
+  logic addrmiss, wr_err;
 
   logic [DW-1:0] reg_rdata_next;
 
   // Below register interface can be changed
-  reg_req_t  reg_intf_req;
-  reg_rsp_t  reg_intf_rsp;
+  reg_req_t reg_intf_req;
+  reg_rsp_t reg_intf_rsp;
 
 
   assign reg_intf_req = reg_req_i;
@@ -61,7 +61,7 @@ module m2s_dma_reg_top #(
   assign reg_intf_rsp.error = reg_error;
   assign reg_intf_rsp.ready = 1'b1;
 
-  assign reg_rdata = reg_rdata_next ;
+  assign reg_rdata = reg_rdata_next;
   assign reg_error = (devmode_i & addrmiss) | wr_err;
 
 
@@ -82,81 +82,81 @@ module m2s_dma_reg_top #(
   // R[control]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_control (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (control_we),
-    .wd     (control_wd),
+      // from register interface
+      .we(control_we),
+      .wd(control_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.control.q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.control.q),
 
-    // to register interface (read)
-    .qs     (control_qs)
+      // to register interface (read)
+      .qs(control_qs)
   );
 
 
   // R[transaction_ifr]: V(False)
 
   prim_subreg #(
-    .DW      (2),
-    .SWACCESS("RW"),
-    .RESVAL  (2'h0)
+      .DW      (2),
+      .SWACCESS("RW"),
+      .RESVAL  (2'h0)
   ) u_transaction_ifr (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (transaction_ifr_we),
-    .wd     (transaction_ifr_wd),
+      // from register interface
+      .we(transaction_ifr_we),
+      .wd(transaction_ifr_wd),
 
-    // from internal hardware
-    .de     (hw2reg.transaction_ifr.de),
-    .d      (hw2reg.transaction_ifr.d ),
+      // from internal hardware
+      .de(hw2reg.transaction_ifr.de),
+      .d (hw2reg.transaction_ifr.d),
 
-    // to internal hardware
-    .qe     (reg2hw.transaction_ifr.qe),
-    .q      (reg2hw.transaction_ifr.q ),
+      // to internal hardware
+      .qe(reg2hw.transaction_ifr.qe),
+      .q (reg2hw.transaction_ifr.q),
 
-    // to register interface (read)
-    .qs     (transaction_ifr_qs)
+      // to register interface (read)
+      .qs(transaction_ifr_qs)
   );
 
 
   // R[window_ifr]: V(False)
 
   prim_subreg #(
-    .DW      (2),
-    .SWACCESS("RW"),
-    .RESVAL  (2'h0)
+      .DW      (2),
+      .SWACCESS("RW"),
+      .RESVAL  (2'h0)
   ) u_window_ifr (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (window_ifr_we),
-    .wd     (window_ifr_wd),
+      // from register interface
+      .we(window_ifr_we),
+      .wd(window_ifr_wd),
 
-    // from internal hardware
-    .de     (hw2reg.window_ifr.de),
-    .d      (hw2reg.window_ifr.d ),
+      // from internal hardware
+      .de(hw2reg.window_ifr.de),
+      .d (hw2reg.window_ifr.d),
 
-    // to internal hardware
-    .qe     (reg2hw.window_ifr.qe),
-    .q      (reg2hw.window_ifr.q ),
+      // to internal hardware
+      .qe(reg2hw.window_ifr.qe),
+      .q (reg2hw.window_ifr.q),
 
-    // to register interface (read)
-    .qs     (window_ifr_qs)
+      // to register interface (read)
+      .qs(window_ifr_qs)
   );
 
 
@@ -170,7 +170,7 @@ module m2s_dma_reg_top #(
     addr_hit[2] = (reg_addr == M2S_DMA_WINDOW_IFR_OFFSET);
   end
 
-  assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
+  assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
 
   // Check sub-word write is permitted
   always_comb begin
@@ -225,24 +225,23 @@ module m2s_dma_reg_top #(
 
 endmodule
 
-module m2s_dma_reg_top_intf
-#(
-  parameter int AW = 4,
-  localparam int DW = 32
+module m2s_dma_reg_top_intf #(
+    parameter  int AW = 4,
+    localparam int DW = 32
 ) (
-  input logic clk_i,
-  input logic rst_ni,
-  REG_BUS.in  regbus_slave,
-  // To HW
-  output m2s_dma_reg_pkg::m2s_dma_reg2hw_t reg2hw, // Write
-  input  m2s_dma_reg_pkg::m2s_dma_hw2reg_t hw2reg, // Read
-  // Config
-  input devmode_i // If 1, explicit error return for unmapped register access
+    input logic clk_i,
+    input logic rst_ni,
+    REG_BUS.in regbus_slave,
+    // To HW
+    output m2s_dma_reg_pkg::m2s_dma_reg2hw_t reg2hw,  // Write
+    input m2s_dma_reg_pkg::m2s_dma_hw2reg_t hw2reg,  // Read
+    // Config
+    input devmode_i  // If 1, explicit error return for unmapped register access
 );
- localparam int unsigned STRB_WIDTH = DW/8;
+  localparam int unsigned STRB_WIDTH = DW / 8;
 
-`include "register_interface/typedef.svh"
-`include "register_interface/assign.svh"
+  `include "register_interface/typedef.svh"
+  `include "register_interface/assign.svh"
 
   // Define structs for reg_bus
   typedef logic [AW-1:0] addr_t;
@@ -252,27 +251,27 @@ module m2s_dma_reg_top_intf
 
   reg_bus_req_t s_reg_req;
   reg_bus_rsp_t s_reg_rsp;
-  
+
   // Assign SV interface to structs
   `REG_BUS_ASSIGN_TO_REQ(s_reg_req, regbus_slave)
   `REG_BUS_ASSIGN_FROM_RSP(regbus_slave, s_reg_rsp)
 
-  
+
 
   m2s_dma_reg_top #(
-    .reg_req_t(reg_bus_req_t),
-    .reg_rsp_t(reg_bus_rsp_t),
-    .AW(AW)
+      .reg_req_t(reg_bus_req_t),
+      .reg_rsp_t(reg_bus_rsp_t),
+      .AW(AW)
   ) i_regs (
-    .clk_i,
-    .rst_ni,
-    .reg_req_i(s_reg_req),
-    .reg_rsp_o(s_reg_rsp),
-    .reg2hw, // Write
-    .hw2reg, // Read
-    .devmode_i
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(s_reg_req),
+      .reg_rsp_o(s_reg_rsp),
+      .reg2hw,  // Write
+      .hw2reg,  // Read
+      .devmode_i
   );
-  
+
 endmodule
 
 

@@ -5,8 +5,11 @@
  *
  *  Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
  *  
- *  Info: Example application of matrix manipulation by exploiting the Multichannel Multidimensional Smart DMA, 
- *  a.k.a. M2S DMA, perform verification and performance comparison w.r.t. CPU.
+ *  Info: Example application of matrix manipulation by exploiting the Multichannel Multidimensional Smart DMA (M2S DMA).
+ *        In this code, there are some optional features:
+ *        - Verification of matrix operations carried out by the M2S DMA
+ *        - Performance comparison between the M2S DMA and the CPU, obtained by performing similar matrix operations
+ *          and monitoring the performance counter.
  */
 
 #include <stdio.h>
@@ -21,7 +24,8 @@
 /* 
  *  Select which test to run:
  *  
- *  0: 2D copy using 2 channels
+ *  0: Extract a NxM matrix, perform optional padding and copy the result to two separate
+ *     AxB matrices using 2 channels at the same time
  *  1: 1D copy using 1 channel
  *  2: 2D copy using 2 channels and HALs
  * 
@@ -38,33 +42,43 @@
 #define EN_VERIF 1
 
 /* Parameters */
-#define SIZE_OUT_D1 10
-#define SIZE_OUT_D2 10
+
+/* Size of the extracted matrix (including strides on the input, excluding strides on the outputs) */
+#define SIZE_EXTR_D1 10
+#define SIZE_EXTR_D2 10
+
+/* Set strides of the input ad output matrix */
 #define STRIDE_IN_D1 1
-#define STRIDE_IN_D2 1
-#define STRIDE_OUT_D1 1
-#define STRIDE_OUT_D2 1
-#define TOP_PAD 1
+#define STRIDE_IN_D2 2
+#define STRIDE_OUT_D1 3
+#define STRIDE_OUT_D2 2
+
+/* Set the padding parameters */
+#define TOP_PAD 2
 #define BOTTOM_PAD 1
-#define LEFT_PAD 1
-#define RIGHT_PAD 1
-#define OUT_D1 (SIZE_OUT_D1 + LEFT_PAD + RIGHT_PAD)
-#define OUT_D2 (SIZE_OUT_D2 + TOP_PAD + BOTTOM_PAD)
-#define OUT_DIM_1D ( OUT_D1 )
-#define OUT_DIM_2D ( OUT_D1 * OUT_D2 )
+#define LEFT_PAD 3
+#define RIGHT_PAD 2
+
+/* Macros for dimensions computation */
+#define OUT_D1_PAD ( SIZE_EXTR_D1 + LEFT_PAD + RIGHT_PAD )
+#define OUT_D2_PAD ( SIZE_EXTR_D2  + TOP_PAD + BOTTOM_PAD )
+#define OUT_D1_PAD_STRIDE ( (OUT_D1_PAD * STRIDE_OUT_D1) - (STRIDE_OUT_D1 - 1)  )
+#define OUT_D2_PAD_STRIDE ( (OUT_D2_PAD * STRIDE_OUT_D2) - (STRIDE_OUT_D2 - 1)  )
+#define OUT_DIM_1D ( OUT_D1_PAD_STRIDE  )
+#define OUT_DIM_2D ( OUT_D1_PAD_STRIDE * OUT_D2_PAD_STRIDE )
 
 /* Defines for M2S DMA */
 #define M2S_DMA_CH0_IDX 0
 #define M2S_DMA_CH1_IDX 1
 
-/* Mask for LL example */
+/* Mask for direct register operations example */
 #define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ))
 
 /* Pointer increments computation */
 #define SRC_INC_D1 STRIDE_IN_D1
 #define DST_INC_D1 STRIDE_OUT_D1
-#define SRC_INC_D2 (STRIDE_IN_D2 * SIZE_IN_D1 - (SIZE_OUT_D1 - 1 + (STRIDE_IN_D1 - 1) * (SIZE_OUT_D1 - 1)))
-#define DST_INC_D2 (STRIDE_OUT_D2 * SIZE_OUT_D1 - (SIZE_OUT_D1 - 1 + (STRIDE_OUT_D1 - 1) * (SIZE_OUT_D1 - 1)))
+#define SRC_INC_D2 (STRIDE_IN_D2 * SIZE_IN_D1 - (SIZE_EXTR_D1 - 1 + (STRIDE_IN_D1 - 1) * (SIZE_EXTR_D1 - 1)))
+#define DST_INC_D2 ((STRIDE_OUT_D2 - 1) * OUT_DIM_1D + 1)
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
@@ -94,7 +108,7 @@ dma *peri_ch0 = dma_peri(0);
 
 m2s_dma *peri_m2s_dma = m2s_dma_peri;
 
-uint32_t read_ptr = 0, write_ptr = 0;
+uint32_t dst_ptr = 0, src_ptr = 0;
 uint32_t cycles_dma, cycles_cpu;
 uint32_t size_dst_trans_d1;
 uint32_t dst_stride_d1;
@@ -102,9 +116,12 @@ uint32_t dst_stride_d2;
 uint32_t size_src_trans_d1;
 uint32_t src_stride_d1;
 uint32_t src_stride_d2;
+uint32_t i_in;
+uint32_t j_in;
 uint16_t left_pad_cnt = 0;
 uint16_t top_pad_cnt = 0;
-int8_t cycles = 0;
+uint8_t stride_1d_cnt = 0;
+uint8_t stride_2d_cnt = 0;
 char ch0_done = 0;
 char ch1_done = 0;
 uint8_t transaction_ifr[2];
@@ -128,9 +145,9 @@ void dma_intr_handler_trans_done()
     }
     
    index_tr++;
-
 }
 
+/* Function used to simplify the register operations */
 static inline volatile void write_register( uint32_t  p_val,
                                 uint32_t  p_offset,
                                 uint32_t  p_mask,
@@ -153,13 +170,15 @@ static inline volatile void write_register( uint32_t  p_val,
     (( uint32_t * ) peri_ch0 ) [ index ] = value;
 };
 
+
 int main()
 {
     #if TEST_ID == 0
 
-    /* Testing copy and padding of a NxM matrix using Low Level control, i.e. register writes.
+    /* 
+     * Testing copy and padding of a NxM matrix using direct register operations.
      * This strategy allows for maximum performance but doesn't perform any checks on the data integrity.
-     * The data is copied using both ch0 and ch1 to two different memory locations, obtaining two identical copies.
+     * The data is copied tusing both CH0 and CH1 to two different memory locations.
      */
     
     #if EN_PERF
@@ -331,32 +350,31 @@ int main()
 
     /* Set the sizes */
 
-    write_register( SIZE_OUT_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
+    write_register( SIZE_EXTR_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                     DMA_SIZE_D2_REG_OFFSET,
                     DMA_SIZE_D2_SIZE_MASK,
                     DMA_SIZE_D2_SIZE_OFFSET,
                     peri_ch0 );
 
-    write_register( SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
+    write_register( SIZE_EXTR_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                     DMA_SIZE_D1_REG_OFFSET,
                     DMA_SIZE_D1_SIZE_MASK,
                     DMA_SIZE_D1_SIZE_OFFSET,
                     peri_ch0 );
 
-    write_register( SIZE_OUT_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
+    write_register( SIZE_EXTR_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                     DMA_SIZE_D2_REG_OFFSET,
                     DMA_SIZE_D2_SIZE_MASK,
                     DMA_SIZE_D2_SIZE_OFFSET,
                     peri_ch1 );
 
-    write_register( SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
+    write_register( SIZE_EXTR_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                     DMA_SIZE_D1_REG_OFFSET,
                     DMA_SIZE_D1_SIZE_MASK,
                     DMA_SIZE_D1_SIZE_OFFSET,
                     peri_ch1 );
 
-    //wait_for_interrupt();
-    //wait_for_interrupt();
+    wait_for_interrupt();
     
 
     #if EN_PERF
@@ -373,31 +391,59 @@ int main()
     #if EN_VERIF
 
     /* Run the same computation on the CPU */
-    for (int i=0; i < OUT_D2; i++)
+    for (int i=0; i < OUT_D2_PAD_STRIDE; i++)
     {
-        for (int j=0; j < OUT_D1; j++)
+        stride_1d_cnt = 0;
+        j_in = 0;
+
+        for (int j=0; j < OUT_D1_PAD_STRIDE; j++)
         {
-            read_ptr = i * STRIDE_OUT_D2 * OUT_D1 + j * STRIDE_OUT_D1;
-            write_ptr = (i - top_pad_cnt ) * STRIDE_IN_D2 * SIZE_IN_D1 + (j - left_pad_cnt) * STRIDE_IN_D1;
-            if (i < TOP_PAD || i >= SIZE_OUT_D2 + BOTTOM_PAD || j < LEFT_PAD || j >= SIZE_OUT_D1 + RIGHT_PAD)
+            dst_ptr = i * OUT_D1_PAD_STRIDE + j;
+            src_ptr = (i_in - top_pad_cnt ) * STRIDE_IN_D2 * SIZE_IN_D1 + (j_in - left_pad_cnt) * STRIDE_IN_D1;
+            if (i_in < TOP_PAD || i_in >= SIZE_EXTR_D2 + TOP_PAD || j_in < LEFT_PAD || j_in >= SIZE_EXTR_D1 + LEFT_PAD ||
+                stride_1d_cnt != 0 || stride_2d_cnt != 0)
             {
-                copied_data_2D_CPU_ch0[read_ptr] = 0;
-                copied_data_2D_CPU_ch1[read_ptr] = 0;
+                copied_data_2D_CPU_ch0[dst_ptr] = 0;
+                copied_data_2D_CPU_ch1[dst_ptr] = 0;
             }
             else
             {
-                copied_data_2D_CPU_ch0[read_ptr] = test_data[write_ptr];
-                copied_data_2D_CPU_ch1[read_ptr] = test_data[write_ptr];
+                copied_data_2D_CPU_ch0[dst_ptr] = test_data[src_ptr];
+                copied_data_2D_CPU_ch1[dst_ptr] = test_data[src_ptr];
             }
-            if (j < LEFT_PAD && i >= TOP_PAD)
+
+            if (j_in < LEFT_PAD && i_in >= TOP_PAD && stride_1d_cnt == 0 && stride_2d_cnt == 0)
             {
                 left_pad_cnt++;
             }
+
+            if (stride_1d_cnt == STRIDE_OUT_D1 - 1)
+            {
+                stride_1d_cnt = 0;
+                j_in++;
+            }
+            else
+            {
+                stride_1d_cnt++;
+            }
+
         }
-        if (i < TOP_PAD)
+
+        if (i_in < TOP_PAD && stride_2d_cnt == 0)
         {
             top_pad_cnt++;
         }
+        
+        if (stride_2d_cnt == STRIDE_OUT_D2 - 1)
+        {
+            stride_2d_cnt = 0;
+            i_in++;
+        }
+        else
+        {
+            stride_2d_cnt++;
+        }
+
         left_pad_cnt = 0;
     }
     
@@ -418,9 +464,13 @@ int main()
     PRINTF("%d %d %d %d %d %d\n\r", ch0_done, ch1_done, flag, transaction_ifr[0], transaction_ifr[1], index_tr);
 
     /* Verify that the DMA and the CPU outputs are the same */
-    for (int j = 0; j < OUT_D1; j++) {
-        if ((copied_data_2D_DMA_ch0[j] != copied_data_2D_CPU_ch0[j]) || (copied_data_2D_DMA_ch1[j] != copied_data_2D_CPU_ch0[j])) {
-            passed = 0;
+    for (int i = 0; i < OUT_D2_PAD_STRIDE; i++) {
+        for (int j = 0; j < OUT_D1_PAD_STRIDE; j++) {
+            if ((copied_data_2D_DMA_ch0[i * OUT_D1_PAD_STRIDE + j] != copied_data_2D_CPU_ch0[i * OUT_D1_PAD_STRIDE + j]) &
+                (copied_data_2D_DMA_ch1[i * OUT_D1_PAD_STRIDE + j] != copied_data_2D_CPU_ch1[i * OUT_D1_PAD_STRIDE + j])) 
+            {
+                passed = 0;
+            }
         }
     }
 
