@@ -1,6 +1,4 @@
 #!/bin/bash
-
-FILE=Makefile
 RULE_COLOR="$(tput setaf 6)"
 SECTION_COLOR="$(tput setaf 3)"
 VARIABLE_COLOR="$(tput setaf 2)"
@@ -23,7 +21,7 @@ PARAM_REGEX="@param\s+([a-zA-Z_]+)(=([^\s]+))?\s*(.*$)?"
 COMMENT=""
 PARAMS=""
 PARAMS_DOC=""
-cat $FILE | while read line
+cat $FILE_FOR_HELP | while read line
 do
     # do something with $line here
     if [[ ! -z $line ]]

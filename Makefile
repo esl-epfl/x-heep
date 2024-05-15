@@ -9,8 +9,10 @@ mkfile_path := $(shell dirname "$(realpath $(firstword $(MAKEFILE_LIST)))")
 $(info $$You are executing from: $(mkfile_path))
 
 # Include the self-documenting tool
-FILE=$(mkfile_path)/Makefile
-include $(mkfile_path)/util/generate-makefile-help
+export FILE_FOR_HELP=$(mkfile_path)/Makefile
+
+help:
+	${mkfile_path}/util/MakefileHelp
 
 # Setup to autogenerate python virtual environment
 VENVDIR?=$(WORKDIR)/.venv
@@ -64,22 +66,22 @@ FLASHREAD_ADDR ?= 0x0
 FLASHREAD_FILE ?= $(mkfile_path)/flashcontent.hex
 FLASHREAD_BYTES ?= 256
 
-#max address in the hex file, used to program the flash
-ifeq ($(wildcard sw/build/main.hex),)
-	MAX_HEX_ADDRESS  = 0
-	MAX_HEX_ADDRESS_DEC = 0
-	BYTES_AFTER_MAX_HEX_ADDRESS = 0
-	FLASHRWITE_BYTES = 0
-else
-	MAX_HEX_ADDRESS  = $(shell cat sw/build/main.hex | grep "@" | tail -1 | cut -c2-)
-	MAX_HEX_ADDRESS_DEC = $(shell printf "%d" 0x$(MAX_HEX_ADDRESS))
-	BYTES_AFTER_MAX_HEX_ADDRESS = $(shell tac sw/build/main.hex | awk 'BEGIN {count=0} /@/ {print count; exit} {count++}')
-	FLASHRWITE_BYTES = $(shell echo $(MAX_HEX_ADDRESS_DEC) + $(BYTES_AFTER_MAX_HEX_ADDRESS)*16 | bc)
-endif
-
 
 #binary to store in flash memory
 FLASHWRITE_FILE = $(mkfile_path)/sw/build/main.hex
+
+#max address in the hex file, used to program the flash
+ifeq ($(wildcard $(FLASHWRITE_FILE)),)
+	MAX_HEX_ADDRESS  := 0
+	MAX_HEX_ADDRESS_DEC := 0
+	BYTES_AFTER_MAX_HEX_ADDRESS := 0
+	FLASHWRITE_BYTES := 0
+else
+	MAX_HEX_ADDRESS  := $(shell cat $(FLASHWRITE_FILE) | grep "@" | tail -1 | cut -c2-)
+	MAX_HEX_ADDRESS_DEC := $(shell printf "%d" 0x$(MAX_HEX_ADDRESS))
+	BYTES_AFTER_MAX_HEX_ADDRESS := $(shell tac $(FLASHWRITE_FILE) | awk 'BEGIN {count=0} /@/ {print count; exit} {count++}')
+	FLASHWRITE_BYTES := $(shell echo $(MAX_HEX_ADDRESS_DEC) + $(BYTES_AFTER_MAX_HEX_ADDRESS)*16 | bc)
+endif
 
 # Export variables to sub-makefiles
 export
@@ -260,7 +262,7 @@ flash-readid:
 ## Loads the obtained binary to the EPFL_Programmer flash
 flash-prog:
 	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
-	./iceprog -a $(FLASHRWITE_BYTES) -d i:0x0403:0x6011 -I B $(FLASHWRITE_FILE);
+	./iceprog -a $(FLASHWRITE_BYTES) -d i:0x0403:0x6011 -I B $(FLASHWRITE_FILE);
 
 ## Read the EPFL_Programmer flash
 flash-read:

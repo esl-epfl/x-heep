@@ -42,7 +42,7 @@ The remote bitbang server is simplemented in the folder ./hw/vendor/pulp_platfor
 
 ### Verilator (C++ only)
 
-To simulate your application with Questasim using the remote_bitbang server, you need to compile you system adding the `JTAG DPI` functions:
+To simulate your application with Verilator using the remote_bitbang server, you need to compile you system adding the `JTAG DPI` functions:
 
 ```
 make verilator-sim FUSESOC_PARAM="--JTAG_DPI=1"
