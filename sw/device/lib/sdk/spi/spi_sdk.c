@@ -49,18 +49,27 @@
 #define DATA_MODE_CPOL_OFFS 1
 #define DATA_MODE_CPHA_OFFS 0
 
+// Maximum length of data (in bytes) for a command segment (currently 2^24)
 #define MAX_COMMAND_LENGTH SPI_HOST_COMMAND_LEN_MASK
 #define BYTES_PER_WORD     4
+// Convert byte count to word count
 #define LEN_WORDS(bytes)   ((bytes / BYTES_PER_WORD) + (bytes % BYTES_PER_WORD ? 1 : 0))
 
+// The standard watermark for all transactions (seems reasonable)
 #define TX_WATERMARK (SPI_HOST_PARAM_TX_DEPTH / 4)  // Arbirarily chosen
 #define RX_WATERMARK (SPI_HOST_PARAM_RX_DEPTH - 12) // Arbirarily chosen
 
+// SPI peripheral busy checks
 #define SPI_BUSY(peri)     peri.state == SPI_STATE_BUSY
 #define SPI_NOT_BUSY(peri) peri.state != SPI_STATE_BUSY
 
+// Check command length validity
 #define SPI_INVALID_LEN(len) (len == 0 || len > MAX_COMMAND_LENGTH)
 
+/**
+ * @brief Allows easy TX Transaction instantiation.
+ * 
+ */
 #define SPI_TXN_TX(segment, txbuff, len) (spi_transaction_t) { \
     .segments = segment, \
     .seglen   = 1, \
@@ -70,6 +79,10 @@
     .rxlen    = 0 \
 }
 
+/**
+ * @brief Allows easy RX Transaction instantiation.
+ * 
+ */
 #define SPI_TXN_RX(segment, rxbuff, len) (spi_transaction_t) { \
     .segments = segment, \
     .seglen   = 1, \
@@ -79,6 +92,10 @@
     .rxlen    = len \
 }
 
+/**
+ * @brief Allows easy BIDIR Transaction instantiation.
+ * 
+ */
 #define SPI_TXN_BIDIR(segment, txbuff, rxbuff, len) (spi_transaction_t) { \
     .segments = segment, \
     .seglen   = 1, \
@@ -88,30 +105,54 @@
     .rxlen    = len \
 }
 
+/**
+ * @brief Allows easy generic Transaction instantiation.
+ * 
+ */
+#define SPI_TXN(segment, seg_len, txbuff, rxbuff) (spi_transaction_t) { \
+    .segments = segment, \
+    .seglen   = seg_len, \
+    .txbuffer = txbuff, \
+    .txlen    = 0, \
+    .rxbuffer = rxbuff, \
+    .rxlen    = 0 \
+}
+
 /****************************************************************************/
 /**                                                                        **/
 /**                       TYPEDEFS AND STRUCTURES                          **/
 /**                                                                        **/
 /****************************************************************************/
 
+/**
+ * @brief Transaction Structure. Holds all information relevant to a transaction.
+ * 
+ */
 typedef struct {
-    const spi_segment_t* segments;
-    uint8_t              seglen;
-    const uint32_t*      txbuffer;
-    uint32_t             txlen;
-    uint32_t*            rxbuffer;
-    uint32_t             rxlen;
+    const spi_segment_t* segments;  // Pointer to array/buffer of command segments
+    uint8_t              seglen;    // Size of the command segents array/buffer
+    const uint32_t*      txbuffer;  // Pointer to array/buffer of TX data
+    uint32_t             txlen;     // Size of TX array/buffer
+    uint32_t*            rxbuffer;  // Pointer to array/buffer for RX data
+    uint32_t             rxlen;     // Size of RX array/buffer
 } spi_transaction_t;
 
+/**
+ * @brief Structure to hold all relative information about a particular peripheral.
+ *  _peripherals variable in this file holds an instance of this structure for every
+ *  SPI peripheral defined in the HAL. This is in order to store relevant information
+ *  of the peripheral current status, transaction info, and peripheral instance.
+ * 
+ */
 typedef struct {
-    spi_host_t*       instance;
-    spi_state_e       state;
-    spi_transaction_t txn;
-    uint32_t          scnt;
-    uint32_t          wcnt;
-    uint32_t          rcnt;
-    spi_cb_t          done_cb;
-    spi_cb_t          error_cb;
+    spi_host_t*       instance;  // Instance of peripheral defined in HAL
+    spi_state_e       state;     // Current state of device
+    spi_transaction_t txn;       // Current transaction being processed
+    uint32_t          scnt;      // Counter to track segment to process
+    uint32_t          wcnt;      // Counter to track TX word being processed
+    uint32_t          rcnt;      // Counter to track RX word being processed
+    spi_cb_t          done_cb;   // Callback function to call when done
+    spi_cb_t          error_cb;  // Callback function to call if hardware error
 } spi_peripheral_t;
 
 /****************************************************************************/
@@ -120,17 +161,109 @@ typedef struct {
 /**                                                                        **/
 /****************************************************************************/
 
+/**
+ * @brief Validates the idx and init variables of spi_t.
+ * 
+ * @param spi Pointer to spi_t structure obtained through spi_init call
+ * @return spi_codes_e information about error. SPI_CODE_OK if all went well
+ */
 spi_codes_e spi_check_valid(spi_t* spi);
+
+/**
+ * @brief Validates slave csid.
+ * 
+ * @param slave to validate
+ * @return spi_codes_e information about error. SPI_CODE_OK if all went well
+ */
 spi_codes_e spi_validate_slave(spi_slave_t slave);
+
+/**
+ * @brief Sets the slave configuration options and the slave CSID.
+ * 
+ * @param spi Pointer to spi_t structure obtained through spi_init call
+ * @return spi_codes_e information about error. SPI_CODE_OK if all went well
+ */
 spi_codes_e spi_set_slave(spi_t* spi);
+
+/**
+ * @brief Validation and configuration of device prior to any transaction.
+ * 
+ * @param spi Pointer to spi_t structure obtained through spi_init call
+ * @return spi_codes_e information about error. SPI_CODE_OK if all went well
+ */
 spi_codes_e spi_prepare_transfer(spi_t* spi);
+
+/**
+ * @brief Validates all the provided segments and counts the number of words for
+ *  TX and RX buffers.
+ * 
+ * @param segments An array of segments to validate
+ * @param segments_len The length of the array of segments
+ * @param tx_count Variable to store the counted TX words
+ * @param rx_count Variable to store the counted RX words
+ * @return true if all segments are valid
+ * @return false otherwise
+ */
 bool spi_validate_segments(const spi_segment_t* segments, uint32_t segments_len, uint32_t* tx_count, uint32_t* rx_count);
+
+/**
+ * @brief Fills the TX FIFO until no more space or no more data.
+ * 
+ * @param peri Pointer to the spi_peripheral_t instance with the relevant data
+ */
 void spi_fill_tx(spi_peripheral_t* peri);
+
+/**
+ * @brief Empties the RX FIFO.
+ * 
+ * @param peri Pointer to the spi_peripheral_t instance with the relevant data
+ */
 void spi_empty_rx(spi_peripheral_t* peri);
+
+/**
+ * @brief Proceeds to initiate transaction once all tests passed.
+ * 
+ * @param peri Pointer to the relevant spi_peripheral_t instance
+ * @param spi Pointer to the spi_t that requested transaction
+ * @param txn Transaction data (segments, buffers, lengths)
+ * @param done_cb The callback to be called once transaction is over
+ * @param error_cb The callback to be called if a Hardware error occurs
+ */
 void spi_launch(spi_peripheral_t* peri, spi_t* spi, spi_transaction_t txn, spi_cb_t done_cb, spi_cb_t error_cb);
+
+/**
+ * @brief Issue a command segment.
+ * 
+ * @param peri Pointer to the relevant spi_peripheral_t instance
+ * @param seg The segment to be issued
+ * @param csaat If the CS line should remain active once segment is done
+ */
 void spi_issue_cmd(const spi_peripheral_t* peri, spi_segment_t seg, bool csaat);
+
+/**
+ * @brief Resets the variables of the spi_peripheral_t to their initial values
+ *  (except the callbacks which are always reset at the beginning of a transaction)
+ * 
+ * @param peri Pointer to the relevant spi_peripheral_t instance
+ */
 void spi_reset_peri(spi_peripheral_t* peri);
+
+/**
+ * @brief Function that gets called on each Event Interrupt. Handles all the logic
+ *  of a transacton since all transactions use the interrupt.
+ * 
+ * @param peri Pointer to the relevant spi_peripheral_t instance
+ * @param events Variable holding all the current events
+ */
 void spi_event_handler(spi_peripheral_t* peri, spi_event_e events);
+
+/**
+ * @brief Function that handles the harware errors. It is responsible of aborting
+ *  any current transaction, resetting variables and calling the error callback if any.
+ * 
+ * @param peri Pointer to the relevant spi_peripheral_t instance
+ * @param error Variable holding all the errors that occured
+ */
 void spi_error_handler(spi_peripheral_t* peri, spi_error_e error);
 
 /****************************************************************************/
@@ -196,6 +329,7 @@ spi_t spi_init(spi_idx_e idx, spi_slave_t slave) {
     spi_set_enable(_peripherals[idx].instance, true);
     spi_output_enable(_peripherals[idx].instance, true);
     spi_set_errors_enabled(_peripherals[idx].instance, SPI_ERROR_IRQALL, true);
+    _peripherals[idx].state = SPI_STATE_INIT;
     return (spi_t) {
         .idx      = idx,
         .init     = true,
@@ -522,31 +656,55 @@ void spi_error_handler(spi_peripheral_t* peri, spi_error_e error) {
 /**                                                                        **/
 /****************************************************************************/
 
+/**
+ * @brief Implementation of the weak function of the HAL
+ * 
+ */
 void spi_intr_handler_event_flash(spi_event_e events) {
     if (SPI_NOT_BUSY(_peripherals[SPI_IDX_FLASH])) return;
     spi_event_handler(&_peripherals[SPI_IDX_FLASH], events);
 }
 
+/**
+ * @brief Implementation of the weak function of the HAL
+ * 
+ */
 void spi_intr_handler_error_flash(spi_error_e errors) {
     if (SPI_NOT_BUSY(_peripherals[SPI_IDX_FLASH])) return;
     spi_error_handler(&_peripherals[SPI_IDX_FLASH], errors);
 }
 
+/**
+ * @brief Implementation of the weak function of the HAL
+ * 
+ */
 void spi_intr_handler_event_host(spi_event_e events) {
     if (SPI_NOT_BUSY(_peripherals[SPI_IDX_HOST])) return;
     spi_event_handler(&_peripherals[SPI_IDX_HOST], events);
 }
 
+/**
+ * @brief Implementation of the weak function of the HAL
+ * 
+ */
 void spi_intr_handler_error_host(spi_error_e errors) {
     if (SPI_NOT_BUSY(_peripherals[SPI_IDX_HOST])) return;
     spi_error_handler(&_peripherals[SPI_IDX_HOST], errors);
 }
 
+/**
+ * @brief Implementation of the weak function of the HAL
+ * 
+ */
 void spi_intr_handler_event_host2(spi_event_e events) {
     if (SPI_NOT_BUSY(_peripherals[SPI_IDX_HOST_2])) return;
     spi_event_handler(&_peripherals[SPI_IDX_HOST_2], events);
 }
 
+/**
+ * @brief Implementation of the weak function of the HAL
+ * 
+ */
 void spi_intr_handler_error_host2(spi_error_e errors) {
     if (SPI_NOT_BUSY(_peripherals[SPI_IDX_HOST_2])) return;
     spi_error_handler(&_peripherals[SPI_IDX_HOST_2], errors);
