@@ -180,13 +180,11 @@ spi_return_flags_e spi_alert_test_fatal_fault_trigger(spi_host_t* spi) {
     return SPI_FLAG_OK;
 }
 
-// TODO: This is redundant... just use get_status...
 volatile uint8_t spi_get_tx_queue_depth(spi_host_t* spi) {
     if (spi == NULL) return UINT8_MAX;
     return spi_get_status(spi)->txqd;
 }
 
-// TODO: This is redundant... just use get_status...
 volatile uint8_t spi_get_rx_queue_depth(spi_host_t* spi) {
     if (spi == NULL) return UINT8_MAX;
     return spi_get_status(spi)->rxqd;
