@@ -57,7 +57,7 @@
 #define spi_host2 ((spi_host_t*) spi_host2_peri)
 #define spi_flash ((spi_host_t*) spi_flash_peri)
 
-#define SPI_HOST_HW(spi_inst) ((volatile spi_host *) spi_inst)
+#define SPI_HW(spi_inst) ((volatile spi_host *) spi_inst)
 
 #ifdef __cplusplus
 extern "C" {
@@ -157,19 +157,6 @@ typedef enum {
  * Initialization parameters for SPI.
  */
 typedef struct spi_s spi_host_t;
-
-// TODO: obsolete
-/**
-* SPI channel (TX/RX) status structure
-*/
-typedef struct spi_ch_status_s {
-    bool empty : 1; // channel FIFO is empty
-    bool full  : 1; // channel FIFO is full
-    bool wm    : 1; // amount of words in channel FIFO exceeds watermark (if 
-                    // RX) or is currently less than watermark (if TX)
-    bool stall : 1; // RX FIFO is full and SPI is waiting for software to remove
-                    // data or TX FIFO is empty and SPI is waiting for data
-} spi_ch_status_t;
 
 /**
 * SPI chip (slave) configuration structure
@@ -329,28 +316,12 @@ spi_return_flags_e spi_alert_test_fatal_fault_trigger(spi_host_t* spi);
 volatile uint8_t spi_get_tx_queue_depth(spi_host_t* spi);
 
 /**
- * @brief Read the TX channel status register.
- *
- * @param spi Pointer to spi_host_t representing the target SPI.
- * @return TX channel status structure.
- */
-spi_return_flags_e spi_get_tx_channel_status(spi_host_t* spi, volatile spi_ch_status_t* ch_status);
-
-/**
  * @brief Read the RX FIFO depth register.
  *
  * @param spi Pointer to spi_host_t representing the target SPI.
  * @return RX FIFO depth.
  */
 volatile uint8_t spi_get_rx_queue_depth(spi_host_t* spi);
-
-/**
- * @brief Read the RX channel status register.
- *
- * @param spi Pointer to spi_host_t representing the target SPI.
- * @return RX channel status structure.
- */
-spi_return_flags_e spi_get_rx_channel_status(spi_host_t* spi, volatile spi_ch_status_t* ch_status);
 
 /**
  * @brief Read the Chip Select (CS) ID register.
@@ -510,7 +481,7 @@ static inline __attribute__((always_inline)) bool spi_validate_cmd(uint8_t direc
  */
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_evt_intr_state(spi_host_t* spi) {
     if (spi == NULL) return SPI_TRISTATE_ERROR;
-    return bitfield_read(SPI_HOST_HW(spi)->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_SPI_EVENT_BIT)
+    return bitfield_read(SPI_HW(spi)->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_SPI_EVENT_BIT)
            ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
@@ -522,7 +493,7 @@ static inline __attribute__((always_inline)) spi_tristate_e spi_get_evt_intr_sta
  */
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_error_intr_state(spi_host_t* spi) {
     if (spi == NULL) return SPI_TRISTATE_ERROR;
-    return bitfield_read(SPI_HOST_HW(spi)->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_ERROR_BIT)
+    return bitfield_read(SPI_HW(spi)->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_ERROR_BIT)
            ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
@@ -534,7 +505,7 @@ static inline __attribute__((always_inline)) spi_tristate_e spi_get_error_intr_s
  */
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_evt_intr_enable(spi_host_t* spi) {
     if (spi == NULL) return SPI_TRISTATE_ERROR;
-    return bitfield_read(SPI_HOST_HW(spi)->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_SPI_EVENT_BIT)
+    return bitfield_read(SPI_HW(spi)->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_SPI_EVENT_BIT)
            ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
@@ -546,7 +517,7 @@ static inline __attribute__((always_inline)) spi_tristate_e spi_get_evt_intr_ena
  */
 static inline __attribute__((always_inline)) spi_tristate_e spi_get_error_intr_enable(spi_host_t* spi) {
     if (spi == NULL) return SPI_TRISTATE_ERROR;
-    return bitfield_read(SPI_HOST_HW(spi)->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_ERROR_BIT)
+    return bitfield_read(SPI_HW(spi)->INTR_ENABLE, BIT_MASK_1, SPI_HOST_INTR_ENABLE_ERROR_BIT)
            ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
@@ -558,10 +529,9 @@ static inline __attribute__((always_inline)) spi_tristate_e spi_get_error_intr_e
  */
 static inline __attribute__((always_inline)) const volatile spi_status_t* spi_get_status(spi_host_t* spi) {
     if (spi == NULL) return NULL;
-    return (const volatile spi_status_t*) &SPI_HOST_HW(spi)->STATUS;
+    return (const volatile spi_status_t*) &SPI_HW(spi)->STATUS;
 }
 
-// TODO: check if this still makes sense
 /**
  * @brief Read SPI active bit from status register (indicates if SPI peripheral is currently processing a command)
  *
@@ -573,7 +543,6 @@ static inline __attribute__((always_inline)) spi_tristate_e spi_get_active(spi_h
     return spi_get_status(spi)->active ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
-// TODO: check if this still makes sense
 /**
  * @brief Read SPI ready bit from status register (indicates if SPI peripheral is ready to receive more commands)
  *
