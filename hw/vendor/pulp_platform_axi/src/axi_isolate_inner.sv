@@ -16,7 +16,6 @@
 `include "axi/typedef.svh"
 `include "common_cells/registers.svh"
 
-`include "axi/assign.svh"
 /// This module can isolate the AXI4+ATOPs bus on the master port from the slave port.  When the
 /// isolation is not active, the two ports are directly connected.
 ///
@@ -38,6 +37,8 @@
 ///
 /// If `TerminateTransaction` is set to `1'b0`, the transaction will block indefinitely until the
 /// module is de-isolated again.
+
+
 module axi_isolate_inner #(
   parameter int unsigned NumPending = 32'd16,
   parameter type         axi_req_t  = logic,
@@ -283,11 +284,3 @@ module axi_isolate_inner #(
 `endif
 // pragma translate_on
 endmodule
-
-
-
-/// Interface variant of [`axi_isolate`](module.axi_isolate).
-///
-/// See the documentation of the main module for the definition of ports and parameters.
-
-

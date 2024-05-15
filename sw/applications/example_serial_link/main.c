@@ -17,29 +17,29 @@ int main(int argc, char *argv[])
     //*addr_p_reg = (*addr_p_reg) & 0x11111101; // reset_n 
     *addr_p_reg_ext = (*addr_p_reg_ext)| 0x00000001; // clock enable external
     
-    // ROW MODE
+    // RAW MODE
     //int32_t *addr_p_reg_RAW_MODE =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_RAW_MODE_EN_REG_OFFSET); 
     //*addr_p_reg = (*addr_p_reg)& 0x11111101;
     //*addr_p_reg_RAW_MODE = (*addr_p_reg_RAW_MODE)| 0x00000001; // raw mode en
 
     // AXI ISOLATE 
-    // all channels are isolated by default
-    //int32_t *addr_p_reg_ISOLATE_IN =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_AXI_IN_ISOLATE_BIT); 
-    //*addr_p_reg_ISOLATE_IN = (*addr_p_reg_ISOLATE_IN)& (0x0 << 8); // axi_in_isolate
-
-    //int32_t *addr_p_reg_ISOLATE_OUT =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_AXI_OUT_ISOLATE_BIT);
-    //*addr_p_reg_ISOLATE_OUT = (*addr_p_reg_ISOLATE_OUT)& (0x0 << 9); // axi_out_isolate
+    // all channels are isolated by default *( will work only with original occamy wrapper)
+    //int32_t *addr_p_reg_ISOLATE_IN =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); 
+    //*addr_p_reg_ISOLATE_IN = (*addr_p_reg_ISOLATE_IN)& (0 << 8); // axi_in_isolate
+    //int32_t *addr_p_reg_ISOLATE_OUT =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
+    //*addr_p_reg_ISOLATE_OUT = (*addr_p_reg_ISOLATE_OUT)& (0 << 9); // axi_out_isolate
 
 
 
 
     /* WRITING TO SL */
     printf("start!\n");
-    int32_t num_to_check = 1234;
+    int32_t num_to_check = 13;
     int32_t *addr_p = 0x50000040; // bus serial link from hjson
     *addr_p = num_to_check;
     printf("writing %d  to %p \n",num_to_check, addr_p);
-    
+    //int32_t *addr_p_reg_ISOLATE_OUT =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
+    //*addr_p_reg_ISOLATE_OUT = (*addr_p_reg_ISOLATE_OUT)& (0 << 9); // axi_out_isolate
     
     //printf("addr_p = %p -> %x\n", addr_p, *addr_p);
     /* READING FROM SL EXT */

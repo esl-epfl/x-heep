@@ -89,11 +89,11 @@ import serial_link_pkg::*;
 
 
   // Determine the largest sized AXI channel
-  //localparam int AxiChannels[5] = {$bits(b_chan_t),
-  //                        $bits(aw_chan_t),
-  //                        $bits(w_chan_t),
-  //                        $bits(ar_chan_t),
-  //                        $bits(r_chan_t)};
+  localparam int AxiChannels[5] = {$bits(b_chan_t),
+                          $bits(aw_chan_t),
+                          $bits(w_chan_t),
+                          $bits(ar_chan_t),
+                          $bits(r_chan_t)};
   //localparam int AxiChannels[5] = {b_size,
   //                        aw_size,
   //                        w_size,
@@ -116,26 +116,25 @@ import serial_link_pkg::*;
   //                        AXI4_ID_WIDTH + 4 + AXI4_USER_WIDTH,
   //                        AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + AXI4_USER_WIDTH + 31,
   //                        AXI4_ID_WIDTH + AXI4_RDATA_WIDTH + AXI4_USER_WIDTH + 5);
-    localparam int max_value = 0;
-      if (max_value < (AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + 33 + AXI4_USER_WIDTH)) begin
-      assign max_value = (AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + 33 + AXI4_USER_WIDTH);end 
-      if (max_value < AXI4_WDATA_WIDTH + AXI4_USER_WIDTH + AXI4_WDATA_WIDTH/8 +3) begin
-       assign max_value = AXI4_WDATA_WIDTH + AXI4_USER_WIDTH + AXI4_WDATA_WIDTH/8 +3; end
-      if (max_value < AXI4_ID_WIDTH + 4 + AXI4_USER_WIDTH) begin
-      assign max_value = AXI4_ID_WIDTH + 4 + AXI4_USER_WIDTH; end
-      if (max_value < AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + AXI4_USER_WIDTH + 31) begin
-      assign   max_value = AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + AXI4_USER_WIDTH + 31; end
-      if (max_value < AXI4_ID_WIDTH + AXI4_RDATA_WIDTH + AXI4_USER_WIDTH + 5) begin
-       assign max_value = AXI4_ID_WIDTH + AXI4_RDATA_WIDTH + AXI4_USER_WIDTH + 5; end
+   
+
+//localparam int max_value = 0;
+//      if (max_value < (AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + 33 + AXI4_USER_WIDTH)) begin
+//      assign max_value = (AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + 33 + AXI4_USER_WIDTH);end 
+//      if (max_value < AXI4_WDATA_WIDTH + AXI4_USER_WIDTH + AXI4_WDATA_WIDTH/8 +3) begin
+//       assign max_value = AXI4_WDATA_WIDTH + AXI4_USER_WIDTH + AXI4_WDATA_WIDTH/8 +3; end
+//      if (max_value < AXI4_ID_WIDTH + 4 + AXI4_USER_WIDTH) begin
+//      assign max_value = AXI4_ID_WIDTH + 4 + AXI4_USER_WIDTH; end
+//      if (max_value < AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + AXI4_USER_WIDTH + 31) begin
+//      assign   max_value = AXI4_ID_WIDTH + AXI4_ADDRESS_WIDTH + AXI4_USER_WIDTH + 31; end
+//      if (max_value < AXI4_ID_WIDTH + AXI4_RDATA_WIDTH + AXI4_USER_WIDTH + 5) begin
+//       assign max_value = AXI4_ID_WIDTH + AXI4_RDATA_WIDTH + AXI4_USER_WIDTH + 5; end
 
 
 
 
-
-
-  localparam int MaxAxiChannelBits = max_value;
-
-  //serial_link_pkg::find_max_channel(AxiChannels);
+  localparam int MaxAxiChannelBits = 83;//serial_link_pkg::find_max_channel(AxiChannels);
+  // 53 numero magico, in realta esce dal valore di wdata_t di axi. Guarda serial_link_network
 
   // The payload that is converted into an AXI stream consists of
   // 1) AXI Beat
@@ -156,6 +155,12 @@ import serial_link_pkg::*;
 
   // Axi stream dimension must be a multiple of 8 bits
   localparam int StreamDataBytes = ($bits(payload_t) + 7) / 8;
+  localparam int CheckBitsVerilogFunction_Payload = $bits(payload_t);
+  localparam int CheckBitsVerilogFunction_B = $bits(b_chan_t);
+  localparam int CheckBitsVerilogFunction_AW = $bits(aw_chan_t);
+  localparam int CheckBitsVerilogFunction_W = $bits(w_chan_t);
+  localparam int CheckBitsVerilogFunction_AR = $bits(ar_chan_t);
+  localparam int CheckBitsVerilogFunction_R = $bits(r_chan_t);
 
   // Typdefs for Axi Stream interface
   // All except tdata_t are unused at the moment

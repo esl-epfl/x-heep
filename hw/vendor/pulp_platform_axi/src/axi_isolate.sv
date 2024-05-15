@@ -46,13 +46,13 @@ module axi_isolate #(
   /// Support atomic operations (ATOPs)
   parameter bit AtopSupport = 1'b1,
   /// Address width of all AXI4+ATOP ports
-  parameter int signed AxiAddrWidth = 32'd0,
+  parameter int unsigned AxiAddrWidth = 32'd0,
   /// Data width of all AXI4+ATOP ports
-  parameter int signed AxiDataWidth = 32'd0,
+  parameter int unsigned AxiDataWidth = 32'd0,
   /// ID width of all AXI4+ATOP ports
-  parameter int signed AxiIdWidth = 32'd0,
+  parameter int unsigned AxiIdWidth = 32'd0,
   /// User signal width of all AXI4+ATOP ports
-  parameter int signed AxiUserWidth = 32'd0,
+  parameter int unsigned AxiUserWidth = 32'd0,
   /// Request struct type of all AXI4+ATOP ports
   parameter type         axi_req_t  = logic,
   /// Response struct type of all AXI4+ATOP ports
@@ -107,6 +107,7 @@ module axi_isolate #(
       // We don't need many bits here as the common case will be to go for the pass-through.
       .AxiLookBits    ( 1           ),
       .UniqueIds      ( 1'b0        ),
+      .FallThrough    ( 1'b1        ),
       .SpillAw        ( 1'b0        ),
       .SpillW         ( 1'b0        ),
       .SpillB         ( 1'b0        ),
@@ -159,5 +160,6 @@ module axi_isolate #(
     .isolated_o
   );
 endmodule
+
 
 

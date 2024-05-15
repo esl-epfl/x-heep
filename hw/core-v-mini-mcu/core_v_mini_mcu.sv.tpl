@@ -710,7 +710,7 @@ ${pad.core_v_mini_mcu_interface}
     .ddr_i,                   //Double-Data-Rate (DDR) input data
 
     //from outside to x-heep
-    .ddr_rcv_clk_o(),         //Source-synchronous output clock which is forwarded together with the data. One clock per channel
+    .ddr_rcv_clk_o,         //Source-synchronous output clock which is forwarded together with the data. One clock per channel
     .ddr_o                    //Double-Data-Rate (DDR) output data
 
 

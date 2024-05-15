@@ -24,8 +24,6 @@
 module axi_cdc_dst #(
   /// Depth of the FIFO crossing the clock domain, given as 2**LOG_DEPTH.
   parameter int unsigned LogDepth = 1,
-  /// Number of synchronization registers to insert on the async pointers
-  parameter int unsigned SyncStages = 2,
   parameter type aw_chan_t = logic,
   parameter type w_chan_t = logic,
   parameter type b_chan_t = logic,
@@ -65,8 +63,7 @@ module axi_cdc_dst #(
     // Other tools, such as VCS, have problems with type parameters constructed through `$bits()`.
     .T          ( aw_chan_t                     ),
 `endif
-    .LOG_DEPTH   ( LogDepth                     ),
-    .SYNC_STAGES ( SyncStages                   )
+    .LOG_DEPTH  ( LogDepth                      )
   ) i_cdc_fifo_gray_dst_aw (
     .async_data_i ( async_data_slave_aw_data_i  ),
     .async_wptr_i ( async_data_slave_aw_wptr_i  ),
@@ -84,8 +81,7 @@ module axi_cdc_dst #(
 `else
     .T          ( w_chan_t                    ),
 `endif
-    .LOG_DEPTH   ( LogDepth                    ),
-    .SYNC_STAGES ( SyncStages                  )
+    .LOG_DEPTH  ( LogDepth                    )
   ) i_cdc_fifo_gray_dst_w (
     .async_data_i ( async_data_slave_w_data_i ),
     .async_wptr_i ( async_data_slave_w_wptr_i ),
@@ -103,8 +99,7 @@ module axi_cdc_dst #(
 `else
     .T          ( b_chan_t                    ),
 `endif
-    .LOG_DEPTH   ( LogDepth                    ),
-    .SYNC_STAGES ( SyncStages                  )
+    .LOG_DEPTH  ( LogDepth                    )
   ) i_cdc_fifo_gray_src_b (
     .src_clk_i    ( dst_clk_i                 ),
     .src_rst_ni   ( dst_rst_ni                ),
@@ -122,8 +117,7 @@ module axi_cdc_dst #(
 `else
     .T          ( ar_chan_t                     ),
 `endif
-    .LOG_DEPTH   ( LogDepth                     ),
-    .SYNC_STAGES ( SyncStages                   )
+    .LOG_DEPTH  ( LogDepth                      )
   ) i_cdc_fifo_gray_dst_ar (
     .dst_clk_i,
     .dst_rst_ni,
@@ -141,8 +135,7 @@ module axi_cdc_dst #(
 `else
     .T          ( r_chan_t                    ),
 `endif
-    .LOG_DEPTH   ( LogDepth                    ),
-    .SYNC_STAGES ( SyncStages                  )
+    .LOG_DEPTH  ( LogDepth                    )
   ) i_cdc_fifo_gray_src_r (
     .src_clk_i    ( dst_clk_i                 ),
     .src_rst_ni   ( dst_rst_ni                ),
@@ -163,9 +156,7 @@ module axi_cdc_dst_intf #(
   parameter int unsigned AXI_DATA_WIDTH = 0,
   parameter int unsigned AXI_USER_WIDTH = 0,
   /// Depth of the FIFO crossing the clock domain, given as 2**LOG_DEPTH.
-  parameter int unsigned LOG_DEPTH = 1,
-  /// Number of synchronization registers to insert on the async pointers
-  parameter int unsigned SYNC_STAGES = 2
+  parameter int unsigned LOG_DEPTH = 1
 ) (
   // asynchronous slave port
   AXI_BUS_ASYNC_GRAY.Slave  src,
@@ -192,15 +183,14 @@ module axi_cdc_dst_intf #(
   resp_t dst_resp;
 
   axi_cdc_dst #(
-    .aw_chan_t  ( aw_chan_t   ),
-    .w_chan_t   ( w_chan_t    ),
-    .b_chan_t   ( b_chan_t    ),
-    .ar_chan_t  ( ar_chan_t   ),
-    .r_chan_t   ( r_chan_t    ),
-    .axi_req_t  ( req_t       ),
-    .axi_resp_t ( resp_t      ),
-    .LogDepth   ( LOG_DEPTH   ),
-    .SyncStages ( SYNC_STAGES )
+    .aw_chan_t  ( aw_chan_t ),
+    .w_chan_t   ( w_chan_t  ),
+    .b_chan_t   ( b_chan_t  ),
+    .ar_chan_t  ( ar_chan_t ),
+    .r_chan_t   ( r_chan_t  ),
+    .axi_req_t  ( req_t     ),
+    .axi_resp_t ( resp_t    ),
+    .LogDepth   ( LOG_DEPTH )
   ) i_axi_cdc_dst (
     .async_data_slave_aw_data_i ( src.aw_data ),
     .async_data_slave_aw_wptr_i ( src.aw_wptr ),
@@ -233,9 +223,7 @@ module axi_lite_cdc_dst_intf #(
   parameter int unsigned AXI_ADDR_WIDTH = 0,
   parameter int unsigned AXI_DATA_WIDTH = 0,
   /// Depth of the FIFO crossing the clock domain, given as 2**LOG_DEPTH.
-  parameter int unsigned LOG_DEPTH = 1,
-  /// Number of synchronization registers to insert on the async pointers
-  parameter int unsigned SYNC_STAGES = 2
+  parameter int unsigned LOG_DEPTH = 1
 ) (
   // asynchronous slave port
   AXI_LITE_ASYNC_GRAY.Slave   src,
@@ -260,15 +248,14 @@ module axi_lite_cdc_dst_intf #(
   resp_t  dst_resp;
 
   axi_cdc_dst #(
-    .aw_chan_t  ( aw_chan_t   ),
-    .w_chan_t   ( w_chan_t    ),
-    .b_chan_t   ( b_chan_t    ),
-    .ar_chan_t  ( ar_chan_t   ),
-    .r_chan_t   ( r_chan_t    ),
-    .axi_req_t  ( req_t       ),
-    .axi_resp_t ( resp_t      ),
-    .LogDepth   ( LOG_DEPTH   ),
-    .SyncStages ( SYNC_STAGES )
+    .aw_chan_t  ( aw_chan_t ),
+    .w_chan_t   ( w_chan_t  ),
+    .b_chan_t   ( b_chan_t  ),
+    .ar_chan_t  ( ar_chan_t ),
+    .r_chan_t   ( r_chan_t  ),
+    .axi_req_t  ( req_t     ),
+    .axi_resp_t ( resp_t    ),
+    .LogDepth   ( LOG_DEPTH )
   ) i_axi_cdc_dst (
     .async_data_slave_aw_data_i ( src.aw_data ),
     .async_data_slave_aw_wptr_i ( src.aw_wptr ),

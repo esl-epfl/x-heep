@@ -149,8 +149,8 @@ module serial_link_occamy_wrapper #(
       .ddr_rcv_clk_o  ( ddr_rcv_clk_o     ),
       .ddr_i          ( ddr_i             ),
       .ddr_o          ( ddr_o             ),
-      .isolated_i     ( 2'b0              ),
-      .isolate_o      (              ),
+      .isolated_i     (   2'b0            ), //2'b0
+      .isolate_o      (               ), //2'b0
       .clk_ena_o      ( clk_ena           ),
       .reset_no       ( reset_n           )
 
@@ -198,7 +198,7 @@ module serial_link_occamy_wrapper #(
       .ddr_i          ( ddr_i             ),
       .ddr_o          ( ddr_o             ),
       .isolated_i     ( 2'b0              ),
-      .isolate_o      (                   ),
+      .isolate_o      (               ),
       .clk_ena_o      ( clk_ena           ),
       .reset_no       ( reset_n           )
 

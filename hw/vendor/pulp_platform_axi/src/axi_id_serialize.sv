@@ -11,7 +11,6 @@
 //
 // Authors:
 // - Andreas Kurth <akurth@iis.ee.ethz.ch>
-// - Paul Scheffler <paulsc@iis.ee.ethz.ch>
 
 `include "axi/assign.svh"
 `include "axi/typedef.svh"
@@ -47,8 +46,6 @@ module axi_id_serialize #(
   parameter int unsigned AxiDataWidth = 32'd0,
   /// User width of both AXI4+ATOP ports
   parameter int unsigned AxiUserWidth = 32'd0,
-  /// Enable support for AXI4+ATOP atomics
-  parameter bit          AtopSupport  = 1'b1,
   /// Request struct type of the AXI4+ATOP slave port
   parameter type slv_req_t = logic,
   /// Response struct type of the AXI4+ATOP slave port
@@ -56,17 +53,7 @@ module axi_id_serialize #(
   /// Request struct type of the AXI4+ATOP master port
   parameter type mst_req_t = logic,
   /// Response struct type of the AXI4+ATOP master port
-  parameter type mst_resp_t = logic,
-  /// A custom offset (modulo `AxiMstPortMaxUniqIds`, ignored for input IDs remapped through
-  /// `IdMap`) for the assigned output IDs.
-  parameter int unsigned MstIdBaseOffset = 32'd0,
-  /// Explicit input-output ID map. If an input ID `id` does not appear in this mapping (default),
-  /// it is simply mapped to the output ID `id % AxiMstPortMaxUniqIds`. If `id` appears in more
-  /// than one entry, it is matched to the *last* matching entry's output ID.
-  /// Number of Entries in the explicit ID map (default: None)
-  parameter int unsigned IdMapNumEntries = 32'd0,
-  /// Explicit ID map; index [0] in each entry is the input ID to match, index [1] the output ID.
-  parameter int unsigned IdMap [IdMapNumEntries-1:0][0:1] = '{default: {32'b0, 32'b0}}
+  parameter type mst_resp_t = logic
 ) (
   /// Rising-edge clock of both ports
   input  logic      clk_i,
@@ -154,27 +141,9 @@ module axi_id_serialize #(
   /// R channel at master port
   `AXI_TYPEDEF_R_CHAN_T(mst_r_t, data_t, mst_id_t, user_t)
 
-  /// Type for slave ID map
-  typedef mst_id_t [2**AxiSlvPortIdWidth-1:0] slv_id_map_t;
-
-  /// Resolve target output ID for each possible input ID as a parameter
-  function automatic slv_id_map_t map_slv_ids();
-    slv_id_map_t ret = '0;
-    // Populate output with default mapping, including `MstIdBaseOffset`
-    for (int unsigned i = 0; i < 2**AxiSlvPortIdWidth; ++i)
-      ret[i] = (i + MstIdBaseOffset) % AxiMstPortMaxUniqIds;
-    // For each explicitly mapped input ID, set the desired output ID
-    for (int unsigned i = 0; i < IdMapNumEntries; ++i)
-      ret[IdMap[i][0]] = IdMap[i][1];
-    return ret;
-  endfunction
-
-  /// Input-to-output ID map used
-  localparam slv_id_map_t SlvIdMap = map_slv_ids();
-
   select_t slv_aw_select, slv_ar_select;
-  assign slv_aw_select = select_t'(SlvIdMap[slv_req_i.aw.id]);
-  assign slv_ar_select = select_t'(SlvIdMap[slv_req_i.ar.id]);
+  assign slv_aw_select = select_t'(slv_req_i.aw.id % AxiMstPortMaxUniqIds); // TODO: customizable base
+  assign slv_ar_select = select_t'(slv_req_i.ar.id % AxiMstPortMaxUniqIds);
 
   slv_req_t  [AxiMstPortMaxUniqIds-1:0] to_serializer_reqs;
   slv_resp_t [AxiMstPortMaxUniqIds-1:0] to_serializer_resps;
@@ -191,7 +160,7 @@ module axi_id_serialize #(
     .NoMstPorts  ( AxiMstPortMaxUniqIds ),
     .MaxTrans    ( AxiSlvPortMaxTxns    ),
     .AxiLookBits ( AxiSlvPortIdWidth    ),
-    .AtopSupport ( AtopSupport          ),
+    .FallThrough ( 1'b1                 ),
     .SpillAw     ( 1'b1                 ),
     .SpillW      ( 1'b0                 ),
     .SpillB      ( 1'b0                 ),
