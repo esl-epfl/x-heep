@@ -287,7 +287,7 @@ w25q_error_codes_t w25q128jw_read(uint32_t addr, void *data, uint32_t length) {
         if (status != FLASH_OK) return status;
     } else {
         // Wait DMA to be free
-        while(!dma_is_ready());
+        while(!dma_is_ready(0));
         status = w25q128jw_read_quad_dma(addr, data, length);
         if (status != FLASH_OK) return status;
     }
@@ -306,7 +306,7 @@ w25q_error_codes_t w25q128jw_write(uint32_t addr, void *data, uint32_t length, u
         status = erase_and_write(addr, data, length);
     } else {
         // Wait DMA to be free
-        while(!dma_is_ready());
+        while(!dma_is_ready(0));
         status = w25q128jw_write_quad_dma(addr, data, length);
     }
 
@@ -517,7 +517,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     spi_wait_for_ready(&spi);
 
     // Wait for DMA to finish transaction
-    while(!dma_is_ready());
+    while(!dma_is_ready(0));
 
     // Take into account the extra bytes (if any)
     if (length % 4 != 0) {
@@ -831,7 +831,7 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
     res = dma_launch(&trans);
 
     // Wait for DMA to finish transaction
-    while(!dma_is_ready());
+    while(!dma_is_ready(0));
 
     // Take into account the extra bytes (if any)
     if (length % 4 != 0) {
@@ -1402,7 +1402,7 @@ static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
     if (res != DMA_CONFIG_OK) return FLASH_ERROR_DMA;
 
     // Wait for DMA to finish transaction
-    while(!dma_is_ready());
+    while(!dma_is_ready(0));
 
     // Take into account the extra bytes (if any)
     if (length % 4 != 0) {

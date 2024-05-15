@@ -159,13 +159,15 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] ${channel.upper()}_IDX = 32'd${loop.index};
 % endfor
 
-localparam addr_map_rule_t [M2S_DMA_CH_NUM-1:0] M2S_DMA_ADDR_RULES = '{
+localparam addr_map_rule_t [M2S_DMA_CH_NUM:0] M2S_DMA_ADDR_RULES = '{
   % for channel, addr in m2s_dma.items():
       '{ idx: ${channel.upper()}_IDX, start_addr: ${channel.upper()}_START_ADDRESS, end_addr: ${channel.upper()}_END_ADDRESS }${"," if not loop.last else ""}
 % endfor
   };
 
   localparam int unsigned AO_PERIPHERALS_PORT_SEL_WIDTH = AO_PERIPHERALS > 1 ? $clog2(AO_PERIPHERALS) : 32'd1;
+
+  localparam int unsigned M2S_DMA_PORT_SEL_WIDTH = M2S_DMA_CH_NUM > 1 ? $clog2(M2S_DMA_CH_NUM) : 32'd1;
 
 ######################################################################
 ## Automatically add all peripherals listed

@@ -32,10 +32,7 @@ module dma #(
     input logic [SLOT_NUM-1:0] trigger_slot_i,
 
     output dma_done_o,
-    output dma_window_o,
-
-    input dma_trans_intr_en_i,
-    input dma_window_intr_en_i
+    output dma_window_o
 );
 
   import dma_reg_pkg::*;

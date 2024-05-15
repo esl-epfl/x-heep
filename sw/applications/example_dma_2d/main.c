@@ -77,7 +77,7 @@ dma_input_data_type copied_data_1D_CPU[OUT_DIM_2D];
 
 dma_config_flags_t res_valid, res_load, res_launch;
 
-dma *peri = dma_peri;
+dma *peri = dma_peri(0);
 
 uint32_t read_ptr = 0, write_ptr = 0;
 uint32_t cycles_dma, cycles_cpu;
@@ -183,7 +183,7 @@ int main()
     PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     #endif
 
-    while( ! dma_is_ready()) {
+    while( ! dma_is_ready(0)) {
         #if !EN_PERF
         /* Disable_interrupts */
         /* This does not prevent waking up the core as this is controlled by the MIP register */
@@ -421,7 +421,7 @@ int main()
 
     #elif TEST_ID == 2
 
-    /* Testing copy and padding of a NxM matrix using Low Level contro, i.e. register writes.
+    /* Testing copy and padding of a NxM matrix using Low Level control, i.e. register writes.
      * This strategy allows for maximum performance but doesn't perform any checks on the data integrity.
      */
     

@@ -465,9 +465,7 @@ module testharness #(
           .dma_addr_ch0_req_o(),
           .dma_addr_ch0_resp_i('0),
           .trigger_slot_i('0),
-          .dma_trans_intr_en_i(),
-          .dma_window_intr_en_i(),
-          .dma_done_o(),
+          .dma_done_o(memcopy_intr),
           .dma_window_o()
       );
 

@@ -364,6 +364,7 @@ module ao_peripheral_subsystem
       .m2s_dma_addr_ch0_req_o(dma_addr_ch0_req_o),
       .m2s_dma_addr_ch0_resp_i(dma_addr_ch0_resp_i),
       .trigger_slot_i(dma_trigger_slots),
+      .peripheral_req_i(peripheral_req),
       .m2s_dma_done_intr_o(dma_done_intr_o),
       .m2s_dma_window_intr_o(dma_window_intr_o)
   );

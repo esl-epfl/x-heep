@@ -505,6 +505,7 @@ def main():
     ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
     ao_peripherals_count = len(ao_peripherals)
     
+    # M2S DMA registers
     m2s_dma_count = string2int(obj['ao_peripherals']['m2s_dma']['channel_number'])
     m2s_dma = {}
     sub_dict = {}
@@ -516,7 +517,7 @@ def main():
         sub_dict['offset'] = "000" + string2int(hex(int(obj['ao_peripherals']['m2s_dma']['offset'].split(',')[0], 16) + (i+1)*int(0x100)))
         sub_dict['length'] = "00000" + string2int(hex(0x100))
         m2s_dma[f"m2s_dma_ch{i}"] = sub_dict
-    
+            
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):

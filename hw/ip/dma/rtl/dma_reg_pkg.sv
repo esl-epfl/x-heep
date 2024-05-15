@@ -84,11 +84,6 @@ package dma_reg_pkg;
   typedef struct packed {logic [7:0] q;} dma_reg2hw_window_count_reg_t;
 
   typedef struct packed {
-    struct packed {logic q;} transaction_done;
-    struct packed {logic q;} window_done;
-  } dma_reg2hw_interrupt_en_reg_t;
-
-  typedef struct packed {
     struct packed {logic d;} ready;
     struct packed {logic d;} window_done;
   } dma_hw2reg_status_reg_t;
@@ -100,27 +95,26 @@ package dma_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    dma_reg2hw_src_ptr_reg_t src_ptr;  // [279:248]
-    dma_reg2hw_dst_ptr_reg_t dst_ptr;  // [247:216]
-    dma_reg2hw_addr_ptr_reg_t addr_ptr;  // [215:184]
-    dma_reg2hw_size_d1_reg_t size_d1;  // [183:167]
-    dma_reg2hw_size_d2_reg_t size_d2;  // [166:150]
-    dma_reg2hw_status_reg_t status;  // [149:146]
-    dma_reg2hw_src_ptr_inc_d1_reg_t src_ptr_inc_d1;  // [145:140]
-    dma_reg2hw_src_ptr_inc_d2_reg_t src_ptr_inc_d2;  // [139:117]
-    dma_reg2hw_dst_ptr_inc_d1_reg_t dst_ptr_inc_d1;  // [116:111]
-    dma_reg2hw_dst_ptr_inc_d2_reg_t dst_ptr_inc_d2;  // [110:88]
-    dma_reg2hw_slot_reg_t slot;  // [87:56]
-    dma_reg2hw_data_type_reg_t data_type;  // [55:54]
-    dma_reg2hw_mode_reg_t mode;  // [53:52]
-    dma_reg2hw_dim_config_reg_t dim_config;  // [51:51]
-    dma_reg2hw_pad_top_reg_t pad_top;  // [50:44]
-    dma_reg2hw_pad_bottom_reg_t pad_bottom;  // [43:37]
-    dma_reg2hw_pad_right_reg_t pad_right;  // [36:30]
-    dma_reg2hw_pad_left_reg_t pad_left;  // [29:23]
-    dma_reg2hw_window_size_reg_t window_size;  // [22:10]
-    dma_reg2hw_window_count_reg_t window_count;  // [9:2]
-    dma_reg2hw_interrupt_en_reg_t interrupt_en;  // [1:0]
+    dma_reg2hw_src_ptr_reg_t src_ptr;  // [277:246]
+    dma_reg2hw_dst_ptr_reg_t dst_ptr;  // [245:214]
+    dma_reg2hw_addr_ptr_reg_t addr_ptr;  // [213:182]
+    dma_reg2hw_size_d1_reg_t size_d1;  // [181:165]
+    dma_reg2hw_size_d2_reg_t size_d2;  // [164:148]
+    dma_reg2hw_status_reg_t status;  // [147:144]
+    dma_reg2hw_src_ptr_inc_d1_reg_t src_ptr_inc_d1;  // [143:138]
+    dma_reg2hw_src_ptr_inc_d2_reg_t src_ptr_inc_d2;  // [137:115]
+    dma_reg2hw_dst_ptr_inc_d1_reg_t dst_ptr_inc_d1;  // [114:109]
+    dma_reg2hw_dst_ptr_inc_d2_reg_t dst_ptr_inc_d2;  // [108:86]
+    dma_reg2hw_slot_reg_t slot;  // [85:54]
+    dma_reg2hw_data_type_reg_t data_type;  // [53:52]
+    dma_reg2hw_mode_reg_t mode;  // [51:50]
+    dma_reg2hw_dim_config_reg_t dim_config;  // [49:49]
+    dma_reg2hw_pad_top_reg_t pad_top;  // [48:42]
+    dma_reg2hw_pad_bottom_reg_t pad_bottom;  // [41:35]
+    dma_reg2hw_pad_right_reg_t pad_right;  // [34:28]
+    dma_reg2hw_pad_left_reg_t pad_left;  // [27:21]
+    dma_reg2hw_window_size_reg_t window_size;  // [20:8]
+    dma_reg2hw_window_count_reg_t window_count;  // [7:0]
   } dma_reg2hw_t;
 
   // HW -> register type
@@ -150,7 +144,6 @@ package dma_reg_pkg;
   parameter logic [BlockAw-1:0] DMA_PAD_LEFT_OFFSET = 7'h44;
   parameter logic [BlockAw-1:0] DMA_WINDOW_SIZE_OFFSET = 7'h48;
   parameter logic [BlockAw-1:0] DMA_WINDOW_COUNT_OFFSET = 7'h4c;
-  parameter logic [BlockAw-1:0] DMA_INTERRUPT_EN_OFFSET = 7'h50;
 
   // Reset values for hwext registers and their fields
   parameter logic [1:0] DMA_STATUS_RESVAL = 2'h1;
@@ -178,12 +171,11 @@ package dma_reg_pkg;
     DMA_PAD_RIGHT,
     DMA_PAD_LEFT,
     DMA_WINDOW_SIZE,
-    DMA_WINDOW_COUNT,
-    DMA_INTERRUPT_EN
+    DMA_WINDOW_COUNT
   } dma_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] DMA_PERMIT[21] = '{
+  parameter logic [3:0] DMA_PERMIT[20] = '{
       4'b1111,  // index[ 0] DMA_SRC_PTR
       4'b1111,  // index[ 1] DMA_DST_PTR
       4'b1111,  // index[ 2] DMA_ADDR_PTR
@@ -203,8 +195,7 @@ package dma_reg_pkg;
       4'b0001,  // index[16] DMA_PAD_RIGHT
       4'b0001,  // index[17] DMA_PAD_LEFT
       4'b0011,  // index[18] DMA_WINDOW_SIZE
-      4'b0001,  // index[19] DMA_WINDOW_COUNT
-      4'b0001  // index[20] DMA_INTERRUPT_EN
+      4'b0001  // index[19] DMA_WINDOW_COUNT
   };
 
 endpackage

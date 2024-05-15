@@ -32,6 +32,16 @@ extern "C" {
 
 %endfor
 
+% for name, peripheral in m2s_dma.items():
+#define ${name.upper()}_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${peripheral['offset']})
+#define ${name.upper()}_SIZE 0x${peripheral['length']}
+#define ${name.upper()}_END_ADDRESS (${name.upper()}_START_ADDRESS + ${name.upper()}_SIZE)
+
+%endfor
+
+#define M2S_DMA_CH_NUM ${m2s_dma_count}
+
+
 //switch-on/off peripherals
 #define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}
 #define PERIPHERAL_SIZE 0x${peripheral_size_address}

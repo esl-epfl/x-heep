@@ -22,15 +22,15 @@ extern "C" {
 
 // Transaction done interrupt flag register, enables the transaction done
 // interrupt
-#define M2S_DMA_TRANSACITON_IFR_REG_OFFSET 0x4
-#define M2S_DMA_TRANSACITON_IFR_EN_MASK 0xff
-#define M2S_DMA_TRANSACITON_IFR_EN_OFFSET 0
-#define M2S_DMA_TRANSACITON_IFR_EN_FIELD \
-  ((bitfield_field32_t) { .mask = M2S_DMA_TRANSACITON_IFR_EN_MASK, .index = M2S_DMA_TRANSACITON_IFR_EN_OFFSET })
+#define M2S_DMA_TRANSACTION_IFR_REG_OFFSET 0x4
+#define M2S_DMA_TRANSACTION_IFR_EN_MASK 0x3
+#define M2S_DMA_TRANSACTION_IFR_EN_OFFSET 0
+#define M2S_DMA_TRANSACTION_IFR_EN_FIELD \
+  ((bitfield_field32_t) { .mask = M2S_DMA_TRANSACTION_IFR_EN_MASK, .index = M2S_DMA_TRANSACTION_IFR_EN_OFFSET })
 
 // Window done interrupt flag register, enables the window done interrupt
 #define M2S_DMA_WINDOW_IFR_REG_OFFSET 0x8
-#define M2S_DMA_WINDOW_IFR_EN_MASK 0xff
+#define M2S_DMA_WINDOW_IFR_EN_MASK 0x3
 #define M2S_DMA_WINDOW_IFR_EN_OFFSET 0
 #define M2S_DMA_WINDOW_IFR_EN_FIELD \
   ((bitfield_field32_t) { .mask = M2S_DMA_WINDOW_IFR_EN_MASK, .index = M2S_DMA_WINDOW_IFR_EN_OFFSET })

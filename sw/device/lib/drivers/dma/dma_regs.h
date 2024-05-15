@@ -151,11 +151,6 @@ extern "C" {
 #define DMA_WINDOW_COUNT_WINDOW_COUNT_FIELD \
   ((bitfield_field32_t) { .mask = DMA_WINDOW_COUNT_WINDOW_COUNT_MASK, .index = DMA_WINDOW_COUNT_WINDOW_COUNT_OFFSET })
 
-// Interrupt Enable Register
-#define DMA_INTERRUPT_EN_REG_OFFSET 0x50
-#define DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT 0
-#define DMA_INTERRUPT_EN_WINDOW_DONE_BIT 1
-
 #ifdef __cplusplus
 }  // extern "C"
 #endif

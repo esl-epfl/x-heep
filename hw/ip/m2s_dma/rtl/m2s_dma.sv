@@ -3,11 +3,11 @@
  * Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
  * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
  *
- *  Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
+ * Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
  *  
- *  Info: Multichannel Multidimensional Smart DMA subsystem, in instantiates 1 to 8 DMA modules and
- *  manages the data transfers, the configuration registers transfers, the window counters and the 
- *  interrupt generation. 
+ * Info: Multichannel Multidimensional Smart DMA subsystem, in instantiates 1 to 8 DMA modules and
+ * manages the data transfers, the configuration registers transfers, the window counters and the 
+ * interrupt generation. 
  */
 
 module m2s_dma #(
@@ -33,9 +33,7 @@ module m2s_dma #(
     input  obi_resp_t m2s_dma_addr_ch0_resp_i,
 
     input logic [SLOT_NUM-1:0] trigger_slot_i,
-
-    input reg_pkg::reg_req_t peripheral_req_i, // This comes from the peripheral_to_reg of the ao per
-    output reg_pkg::reg_rsp_t peripheral_rsp_o,  // This goes to the peripheral_to_reg of the ao per
+    input reg_req_t peripheral_req_i,  // This comes from the peripheral_to_reg of the ao per
 
     output m2s_dma_done_intr_o,
     output m2s_dma_window_intr_o
@@ -55,26 +53,22 @@ module m2s_dma #(
   obi_req_t [core_v_mini_mcu_pkg::M2S_DMA_CH_NUM-1:0] xbar_address_req;
 
   /* Masters response from the bus*/
-  obi_req_t [core_v_mini_mcu_pkg::M2S_DMA_CH_NUM-1:0] xbar_write_resp;
-  obi_req_t [core_v_mini_mcu_pkg::M2S_DMA_CH_NUM-1:0] xbar_read_resp;
-  obi_req_t [core_v_mini_mcu_pkg::M2S_DMA_CH_NUM-1:0] xbar_address_resp;
-
-  /* DMA to bus/xbars signals */
-  obi_req_t dma_read_ch0_req[core_v_mini_mcu_pkg::M2S_DMA_CH_NUM];
-  obi_resp_t dma_read_ch0_resp[core_v_mini_mcu_pkg::M2S_DMA_CH_NUM];
-  obi_req_t dma_write_ch0_req[core_v_mini_mcu_pkg::M2S_DMA_CH_NUM];
-  obi_resp_t dma_write_ch0_resp[core_v_mini_mcu_pkg::M2S_DMA_CH_NUM];
-  obi_req_t dma_addr_ch0_req[core_v_mini_mcu_pkg::M2S_DMA_CH_NUM];
-  obi_resp_t dma_addr_ch0_resp[core_v_mini_mcu_pkg::M2S_DMA_CH_NUM];
+  obi_resp_t [core_v_mini_mcu_pkg::M2S_DMA_CH_NUM-1:0] xbar_write_resp;
+  obi_resp_t [core_v_mini_mcu_pkg::M2S_DMA_CH_NUM-1:0] xbar_read_resp;
+  obi_resp_t [core_v_mini_mcu_pkg::M2S_DMA_CH_NUM-1:0] xbar_address_resp;
 
   /* Interrupt signals */
-  logic [core_v_mini_mcu_pkg::M2S_DMA_CH_NUM-1:0] dma_done_intr;
-  logic [core_v_mini_mcu_pkg::M2S_DMA_CH_NUM-1:0] dma_window_intr;
-  logic [7:0] transaction_ifr;
-  logic [7:0] window_ifr;
+  logic [core_v_mini_mcu_pkg::M2S_DMA_CH_NUM-1:0] dma_trans_done;
+  logic [core_v_mini_mcu_pkg::M2S_DMA_CH_NUM-1:0] dma_window_done;
+  logic [core_v_mini_mcu_pkg::M2S_DMA_CH_NUM-1:0] transaction_ifr;
+  logic [core_v_mini_mcu_pkg::M2S_DMA_CH_NUM-1:0] window_ifr;
+  logic m2s_dma_done_intr_n;
+  logic m2s_dma_window_intr_n;
+  logic m2s_dma_done_intr;
+  logic m2s_dma_window_intr;
 
   /* Register interface routing signals */
-  logic [core_v_mini_mcu_pkg::M2S_DMA_CH_NUM:0] submodules_select; // It's channel_num and not channel_num -1 because for 2 dmas we have 2 registers + 1 for the M2SD
+  logic [core_v_mini_mcu_pkg::M2S_DMA_PORT_SEL_WIDTH:0] submodules_select;
 
   /* Register interfaces from register demux to DMAs */
   reg_pkg::reg_req_t [core_v_mini_mcu_pkg::M2S_DMA_CH_NUM:0] submodules_req;
@@ -90,7 +84,7 @@ module m2s_dma #(
 
   /* DMA modules */
   generate
-    for (i = 0; i < core_v_mini_mcu_pkg::M2S_DMA_CH_NUM; i++) begin : proc_gen_dma
+    for (genvar i = 0; i < core_v_mini_mcu_pkg::M2S_DMA_CH_NUM; i++) begin : dma_i_gen
       dma #(
           .reg_req_t (reg_pkg::reg_req_t),
           .reg_rsp_t (reg_pkg::reg_rsp_t),
@@ -102,17 +96,15 @@ module m2s_dma #(
           .rst_ni,
           .reg_req_i(submodules_req[i+1]),  // +1 because the first register is the M2S DMA register
           .reg_rsp_o(submodules_rsp[i+1]),
-          .dma_addr_ch0_req_o(dma_read_ch0_req[i]),
-          .dma_addr_ch0_resp_i(dma_read_ch0_resp[i]),
-          .dma_write_ch0_req_o(dma_write_ch0_req[i]),
-          .dma_write_ch0_resp_i(dma_write_ch0_resp[i]),
-          .dma_addr_ch0_req_o(dma_addr_ch0_req[i]),
-          .dma_addr_ch0_resp_i(dma_addr_ch0_resp[i]),
-          .trigger_slot_i(trigger_slots_i),
-          .dma_done_o(dma_done_intr[i]),
-          .dma_window_o(dma_window_intr[i]),
-          .dma_trans_intr_en_i(transaction_ifr[i]),
-          .dma_window_intr_en_i(window_ifr[i])
+          .dma_read_ch0_req_o(xbar_read_req[i]),
+          .dma_read_ch0_resp_i(xbar_read_resp[i]),
+          .dma_write_ch0_req_o(xbar_write_req[i]),
+          .dma_write_ch0_resp_i(xbar_write_resp[i]),
+          .dma_addr_ch0_req_o(xbar_address_req[i]),
+          .dma_addr_ch0_resp_i(xbar_address_resp[i]),
+          .trigger_slot_i(trigger_slot_i),
+          .dma_done_o(dma_trans_done[i]),
+          .dma_window_o(dma_window_done[i])
       );
     end
   endgenerate
@@ -168,36 +160,34 @@ module m2s_dma #(
   /* Bus ports routing in the case of a single DMA */
   generate
     if (core_v_mini_mcu_pkg::M2S_DMA_CH_NUM == 1) begin
-      assign m2s_dma_read_ch0_req_o = dma_read_ch0_req[0];
-      assign dma_read_ch0_resp[0] = m2s_dma_read_ch0_resp_i;
-      assign m2s_dma_write_ch0_req_o = dma_write_ch0_req[0];
-      assign dma_write_ch0_resp[0] = m2s_dma_write_ch0_resp_i;
-      assign m2s_dma_addr_ch0_req_o = dma_addr_ch0_req[0];
-      assign dma_addr_ch0_resp[0] = m2s_dma_addr_ch0_resp_i;
+      assign m2s_dma_read_ch0_req_o = xbar_read_req[0];
+      assign xbar_read_resp[0] = m2s_dma_read_ch0_resp_i;
+      assign m2s_dma_write_ch0_req_o = xbar_write_req[0];
+      assign xbar_write_resp[0] = m2s_dma_write_ch0_resp_i;
+      assign m2s_dma_addr_ch0_req_o = xbar_address_req[0];
+      assign xbar_address_resp[0] = m2s_dma_addr_ch0_resp_i;
     end
   endgenerate
 
   /* Internal address decoder */
-  if (core_v_mini_mcu_pkg::M2S_DMA_CH_NUM > 1) begin : addr_decode_gen
-    addr_decode #(
-        .NoIndices(core_v_mini_mcu_pkg::M2S_DMA_CH_NUM),
-        .NoRules(core_v_mini_mcu_pkg::M2S_DMA_CH_NUM),
-        .addr_t(logic [31:0]),
-        .rule_t(addr_map_rule_pkg::addr_map_rule_t)
-    ) addr_dec_i (
-        .addr_i(peripheral_req_i.addr),
-        .addr_map_i(core_v_mini_mcu_pkg::M2S_DMA_ADDR_RULES),
-        .idx_o(submodules_select),
-        .dec_valid_o(),
-        .dec_error_o(),
-        .en_default_idx_i(1'b0),
-        .default_idx_i('0)
-    );
-  end
+  addr_decode #(
+      .NoIndices(core_v_mini_mcu_pkg::M2S_DMA_CH_NUM + 1),
+      .NoRules(core_v_mini_mcu_pkg::M2S_DMA_CH_NUM + 1), // +1 because the first map space is for the M2S DMA registers
+      .addr_t(logic [31:0]),
+      .rule_t(addr_map_rule_pkg::addr_map_rule_t)
+  ) addr_dec_i (
+      .addr_i(peripheral_req_i.addr),
+      .addr_map_i(core_v_mini_mcu_pkg::M2S_DMA_ADDR_RULES),
+      .idx_o(submodules_select),
+      .dec_valid_o(),
+      .dec_error_o(),
+      .en_default_idx_i(1'b0),
+      .default_idx_i('0)
+  );
 
   /* Register demux */
   reg_demux #(
-      .NoPorts(core_v_mini_mcu_pkg::M2S_DMA_CH_NUM),
+      .NoPorts(core_v_mini_mcu_pkg::M2S_DMA_CH_NUM + 1),
       .req_t  (reg_pkg::reg_req_t),
       .rsp_t  (reg_pkg::reg_rsp_t)
   ) reg_demux_i (
@@ -211,19 +201,18 @@ module m2s_dma #(
   );
 
   /* M2S DMA registers */
-  m2s_dma_reg #(
+  m2s_dma_reg_top #(
       .reg_req_t(reg_req_t),
       .reg_rsp_t(reg_rsp_t)
-  ) dma_reg_i (
+  ) m2s_dma_reg_i (
       .clk_i,
       .rst_ni,
-      .reg_req_i(submodules_req[core_v_mini_mcu_pkg::M2S_DMA_SYS_REGS_IDX]), //@ToD0: add the indexes to core_v_mini_mcu_pkg
-      .reg_req_i(submodules_rsp[core_v_mini_mcu_pkg::M2S_DMA_SYS_REGS_IDX]),
+      .reg_req_i(submodules_req[core_v_mini_mcu_pkg::M2S_DMA_SYS_REGS_IDX]),
+      .reg_rsp_o(submodules_rsp[core_v_mini_mcu_pkg::M2S_DMA_SYS_REGS_IDX]),
       .reg2hw,
       .hw2reg,
       .devmode_i(1'b1)
   );
-
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -234,42 +223,63 @@ module m2s_dma #(
   // TBD
 
   /* Interrupt logic 
- * The interrupt signals are ORed together to generate the final interrupt signals. To check which DMA raised the interrupt,
- * the user has to read the status register of the M2S DMA, which holds the values of the dma_done and window_done signals.
- */
-  assign m2s_dma_done_intr_o = |dma_done_intr;
-  assign m2s_dma_window_intr_o = |dma_window_intr;
-  assign hw2reg.transaction_ifr.d = transaction_ifr;
+   * The interrupt signals AND the interrupt flag register are ORed together to generate the final interrupt signals. 
+   * To check which DMA raised the interrupt, the user has to read the interrupt flag register.
+   */
+  assign m2s_dma_done_intr = |({dma_trans_done} & reg2hw.transaction_ifr.q);
+  assign m2s_dma_window_intr = |(dma_window_done & reg2hw.window_ifr.q);
   assign hw2reg.window_ifr.d = window_ifr;
+  assign m2s_dma_done_intr_o = m2s_dma_done_intr_n;
+  assign m2s_dma_window_intr_o = m2s_dma_window_intr_n;
 
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Sequential statements */
 
   /* Transaction IFR update */
-  always_ff @(posedge clk_i, negedge rst_ni) begin
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_transaction_ifr
     if (~rst_ni) begin
       transaction_ifr <= '0;
       window_ifr <= '0;
     end else begin
+      hw2reg.transaction_ifr.d <= transaction_ifr;
+
       for (int i = 0; i < core_v_mini_mcu_pkg::M2S_DMA_CH_NUM; i++) begin
-        if (dma_done_intr[i] == 1'b1) begin
+        if (dma_trans_done[i] == 1'b1) begin
           transaction_ifr[i] <= 1'b0;
+        end else if (reg2hw.transaction_ifr.qe == 1'b1) begin
+          transaction_ifr[i] <= reg2hw.transaction_ifr.q[i];
+          hw2reg.transaction_ifr.de <= 1'b1;
+        end else begin
+          hw2reg.transaction_ifr.de <= 1'b0;
         end
       end
     end
   end
 
   /* Window IFR update */
-  always_ff @(posedge clk_i, negedge rst_ni) begin
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_window_ifr
     if (~rst_ni) begin
       window_ifr <= '0;
     end else begin
       for (int i = 0; i < core_v_mini_mcu_pkg::M2S_DMA_CH_NUM; i++) begin
-        if (dma_window_intr[i] == 1'b1) begin
+        if (dma_window_done[i] == 1'b1) begin
           window_ifr[i] <= 1'b0;
+        end else if (reg2hw.window_ifr.qe == 1'b1) begin
+          window_ifr[i] <= reg2hw.window_ifr.q[i];
         end
       end
+    end
+  end
+
+  /* Delayed interrupt signals */
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_intr
+    if (~rst_ni) begin
+      m2s_dma_done_intr_n <= '0;
+      m2s_dma_window_intr_n <= '0;
+    end else begin
+      m2s_dma_done_intr_n <= m2s_dma_done_intr;
+      m2s_dma_window_intr_n <= m2s_dma_window_intr;
     end
   end
 

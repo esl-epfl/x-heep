@@ -1,0 +1,29 @@
+/*
+ * Copyright 2024 EPFL
+ * Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+ * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+ *
+ * Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
+ *  
+ * Info: 
+ *     Derived from Occamy: https://github.com/pulp-platform/snitch/blob/master/hw/system/occamy/src/occamy_cfg.hjson
+ *     DMA channels configuration for M2S DMA system.
+*/
+
+{
+  dma_channels:
+  {
+    dma_ch0:
+    {
+      offset: 0x00030100
+      length: 0x00000100
+      path: ./hw/ip/dma/data/dma.hjson
+    }
+    dma_ch1:
+    {
+      offset: 0x00030200
+      length: 0x00000100
+      path: ./hw/ip/dma/data/dma.hjson
+    }
+  }
+}
