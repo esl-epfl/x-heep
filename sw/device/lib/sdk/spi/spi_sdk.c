@@ -21,6 +21,7 @@
 /**
 * @file   spi_sdk.c
 * @date   18/04/24
+* @author Llorenç Muela
 * @brief  The Serial Peripheral Interface (SPI) SDK to set up and use the
 * SPI peripheral
 */
@@ -92,6 +93,15 @@
 /**                       TYPEDEFS AND STRUCTURES                          **/
 /**                                                                        **/
 /****************************************************************************/
+
+typedef struct {
+    const spi_segment_t* segments;
+    uint8_t              seglen;
+    const uint32_t*      txbuffer;
+    uint32_t             txlen;
+    uint32_t*            rxbuffer;
+    uint32_t             rxlen;
+} spi_transaction_t;
 
 typedef struct {
     spi_host_t*       instance;

@@ -21,6 +21,7 @@
 /**
 * @file   spi_host.c
 * @date   06/03/24
+* @author Llorenç Muela
 * @brief  The Serial Peripheral Interface (SPI) driver to set up and use the
 * SPI peripheral
 */
@@ -71,7 +72,6 @@
  * @return spi_return_flags_e indicating problems, SPI_FLAG_OK if all went well.
  */
 spi_return_flags_e spi_get_events(spi_host_t* spi, spi_event_e* events);
-spi_return_flags_e spi_acknowledge_event(spi_host_t* spi);
 
 /**
  * @brief Function to acknoledge event interrupts once received to prevent them

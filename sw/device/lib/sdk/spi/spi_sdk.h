@@ -21,6 +21,7 @@
 /**
 * @file   spi_sdk.h
 * @date   18/04/24
+* @author Llorenç Muela
 * @brief  The Serial Peripheral Interface (SPI) SDK to set up and use the
 * SPI peripheral
 */
@@ -56,15 +57,6 @@
     .csn_trail  = 10, \
     .csn_idle   = 10, \
     .freq       = freq \
-}
-
-#define SPI_TXN(segs, segs_len, txbuff, rxbuff) (spi_transaction_t) { \
-    .segments = segs, \
-    .seglen   = segs_len, \
-    .txbuffer = txbuff, \
-    .txlen    = 0, \
-    .rxbuffer = rxbuff, \
-    .rxlen    = 0 \
 }
 
 #define SPI_SEG_DUMMY(cycles) (spi_segment_t) { \
@@ -188,15 +180,6 @@ typedef struct {
     spi_mode_e mode       : 4;
 } spi_segment_t;
 
-typedef struct {
-    const spi_segment_t* segments;
-    uint8_t              seglen;
-    const uint32_t*      txbuffer;
-    uint32_t             txlen;
-    uint32_t*            rxbuffer;
-    uint32_t             rxlen;
-} spi_transaction_t;
-
 typedef void (*spi_cb_t)(const uint32_t*, uint32_t, uint32_t*, uint32_t); // done, error callbacks
 
 typedef struct {
@@ -219,6 +202,7 @@ typedef struct {
 
 spi_t spi_init(spi_idx_e idx, spi_slave_t slave);
 
+// TODO: Not really useful in my opinion...
 spi_codes_e spi_deinit(spi_t* spi);
 
 spi_codes_e spi_reset(spi_t* spi);

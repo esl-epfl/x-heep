@@ -21,6 +21,7 @@
 /**
 * @file   spi_host.h
 * @date   06/03/24
+* @author Llorenç Muela
 * @brief  The Serial Peripheral Interface (SPI) driver to set up and use the
 * SPI peripheral
 */
