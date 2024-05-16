@@ -107,6 +107,9 @@ module dma #(
   /* Flags */
   logic                              pad_fifo_on;  // Padding flag for FIFO
   logic                              pad_cnt_on;  // Padding flag for counters
+  /* verilator lint_off UNUSED */
+  logic                              sign_extend;  // Do the sign extension
+  /* verilator lint_on UNUSED */
 
   /* Padding FSM conditions */
 
@@ -144,7 +147,8 @@ module dma #(
   logic        wait_for_rx;
   logic        wait_for_tx;
 
-  logic [ 1:0] data_type;
+  logic [ 1:0] dst_data_type;
+  logic [ 1:0] src_data_type;
 
   logic [31:0] fifo_input;
   logic [31:0] fifo_addr_input;
@@ -228,7 +232,8 @@ module dma #(
   assign dma_done_intr_o = dma_done & reg2hw.interrupt_en.transaction_done.q;
   assign dma_window_intr_o = dma_window_event & reg2hw.interrupt_en.window_done.q;
 
-  assign data_type = reg2hw.data_type.q;
+  assign dst_data_type = reg2hw.dst_data_type.q;
+  assign src_data_type = reg2hw.src_data_type.q;
 
   assign hw2reg.status.ready.d = (dma_state_q == DMA_READY);
 
@@ -248,8 +253,11 @@ module dma #(
   assign dma_dst_d2_inc = reg2hw.dst_ptr_inc_d2.q;
   assign dma_dst_d1_inc = reg2hw.dst_ptr_inc_d1.q;
 
-  /* Padding FSM conditions assignments */
+  /* Sign extend flag */
 
+  assign sign_extend = reg2hw.sign_ext.q & ( (src_data_type[1] & ~dst_data_type[1]) | ((src_data_type[1] == dst_data_type[1]) & (src_data_type[0] & ~dst_data_type[0])));
+
+  /* Padding FSM conditions assignments */
 
   assign idle_to_top_ex = {|reg2hw.pad_top.q == 1'b1 && dma_start == 1'b1};
   assign idle_to_left_ex = {
@@ -519,7 +527,7 @@ module dma #(
   end
 
   always_comb begin
-    case (data_type)
+    case (dst_data_type)
       2'b00: dma_cnt_du = 3'h4;
       2'b01: dma_cnt_du = 3'h2;
       2'b10, 2'b11: dma_cnt_du = 3'h1;
@@ -527,7 +535,7 @@ module dma #(
   end
 
   always_comb begin : proc_byte_enable_out
-    case (data_type)  // Data type 00 Word, 01 Half word, 11,10 byte
+    case (dst_data_type)  // Data type 00 Word, 01 Half word, 11,10 byte
       2'b00: byte_enable_out = 4'b1111;  // Writing a word (32 bits)
 
       2'b01: begin  // Writing a half-word (16 bits)
@@ -548,7 +556,7 @@ module dma #(
         ;  // case(write_address[1:0])
       end
     endcase
-    ;  // case (data_type)
+    ;  // case (src_data_type)
   end
 
   // Output data shift
@@ -560,18 +568,50 @@ module dma #(
     data_out_wdata[31:24] = fifo_output[31:24];
 
     case (write_address[1:0])
-      2'b00: ;
+      2'b00: begin
+        if (sign_extend) begin
+          case (src_data_type)
+            2'b00: ;
+            2'b01: data_out_wdata[31:16] = {16{fifo_output[15]}};
+            2'b10: data_out_wdata[31:8] = {24{fifo_output[7]}};
+            2'b11: data_out_wdata[31:8] = {24{fifo_output[7]}};
+          endcase
+        end else begin
+          case (src_data_type)
+            2'b00: ;
+            2'b01: data_out_wdata[31:16] = 16'b0;
+            2'b10: data_out_wdata[31:8] = 24'b0;
+            2'b11: data_out_wdata[31:8] = 24'b0;
+          endcase
+        end
+      end
 
-      2'b01: data_out_wdata[15:8] = fifo_output[7:0];
-
+      2'b01: begin
+         data_out_wdata[15:8] = fifo_output[7:0];
+      end
       2'b10: begin
         data_out_wdata[23:16] = fifo_output[7:0];
         data_out_wdata[31:24] = fifo_output[15:8];
+        if (sign_extend) begin
+          case (src_data_type)
+            2'b00: ;
+            2'b01: ;
+            2'b10: data_out_wdata[31:24] = {8{fifo_output[23]}};
+            2'b11: data_out_wdata[31:24] = {8{fifo_output[23]}};
+          endcase
+        end else begin
+          case (src_data_type)
+            2'b00: ;
+            2'b01: ;
+            2'b10: data_out_wdata[31:24] = 8'b0;
+            2'b11: data_out_wdata[31:24] = 8'b0;
+          endcase
+        end
       end
-
       2'b11: data_out_wdata[31:24] = fifo_output[7:0];
     endcase
   end
+  
 
   assign fifo_addr_input = data_addr_in_rdata;  //never misaligned, always 32b
 

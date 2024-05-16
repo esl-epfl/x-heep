@@ -310,7 +310,9 @@ void dma_init( dma *peri )
     dma_cb.peri->DST_PTR_INC_D2 = 0;
     dma_cb.peri->DIM_CONFIG     = 0;
     dma_cb.peri->SLOT           = 0;
-    dma_cb.peri->DATA_TYPE      = 0;
+    dma_cb.peri->SRC_DATA_TYPE  = 0;
+    dma_cb.peri->DST_DATA_TYPE  = 0;
+    dma_cb.peri->SIGN_EXT       = 0;
     dma_cb.peri->MODE           = 0;
     dma_cb.peri->WINDOW_SIZE    = 0;
     dma_cb.peri->INTERRUPT_EN   = 0;
@@ -919,10 +921,10 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
                     DMA_SLOT_TX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_TX_TRIGGER_SLOT_OFFSET );
 
-    write_register(  dma_cb.trans->type,
-                    DMA_DATA_TYPE_REG_OFFSET,
-                    DMA_DATA_TYPE_DATA_TYPE_MASK,
-                    DMA_SELECTION_OFFSET_START );
+    // write_register(  dma_cb.trans->type,
+    //                 DMA_DST_DATA_TYPE_REG_OFFSET,
+    //                 DMA_DST_DATA_TYPE_DATA_TYPE_MASK,
+    //                 DMA_SELECTION_OFFSET_START );
 
     return DMA_CONFIG_OK;
 }

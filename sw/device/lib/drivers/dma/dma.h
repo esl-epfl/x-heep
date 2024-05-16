@@ -120,11 +120,11 @@ typedef enum
  */
 typedef enum
 {
-    DMA_DATA_TYPE_WORD      = DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD,/*!<
+    DMA_DATA_TYPE_WORD      = DMA_SRC_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD,/*!<
     Word      = 4 bytes = 32 bits */
-    DMA_DATA_TYPE_HALF_WORD = DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_16BIT_WORD,/*!<
+    DMA_DATA_TYPE_HALF_WORD = DMA_SRC_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD,/*!<
     Half Word = 2 bytes = 16 bits */
-    DMA_DATA_TYPE_BYTE      = DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD,/*!<
+    DMA_DATA_TYPE_BYTE      = DMA_SRC_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD,/*!<
      Byte      = 1 byte  = 8 bits  */
     /* DMA_DATA_TYPE_BYTE_alt = DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD_2,
      * BYTE and BYTE_alt are interchangeable in hw, but we advice against
