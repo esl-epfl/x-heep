@@ -587,7 +587,7 @@ module dma #(
       end
 
       2'b01: begin
-         data_out_wdata[15:8] = fifo_output[7:0];
+        data_out_wdata[15:8] = fifo_output[7:0];
       end
       2'b10: begin
         data_out_wdata[23:16] = fifo_output[7:0];
@@ -611,7 +611,7 @@ module dma #(
       2'b11: data_out_wdata[31:24] = fifo_output[7:0];
     endcase
   end
-  
+
 
   assign fifo_addr_input = data_addr_in_rdata;  //never misaligned, always 32b
 
