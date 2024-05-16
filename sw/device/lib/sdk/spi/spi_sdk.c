@@ -58,6 +58,11 @@
 // Convert byte count to word count
 #define LEN_WORDS(bytes)   ((bytes / BYTES_PER_WORD) + (bytes % BYTES_PER_WORD ? 1 : 0))
 
+// Bitmasks for speed and direction relative to spi_mode_e
+#define DIR_SPD_MASK 0b11
+#define DIR_INDEX    0
+#define SPD_INDEX    2
+
 // The standard watermark for all transactions (seems reasonable)
 #define TX_WATERMARK (SPI_HOST_PARAM_TX_DEPTH / 4)  // Arbirarily chosen
 #define RX_WATERMARK (SPI_HOST_PARAM_RX_DEPTH - 12) // Arbirarily chosen
@@ -85,7 +90,6 @@
 
 /**
  * @brief Allows easy RX Transaction instantiation.
- * 
  */
 #define SPI_TXN_RX(segment, rxbuff, len) (spi_transaction_t) { \
     .segments = segment, \
@@ -98,7 +102,6 @@
 
 /**
  * @brief Allows easy BIDIR Transaction instantiation.
- * 
  */
 #define SPI_TXN_BIDIR(segment, txbuff, rxbuff, len) (spi_transaction_t) { \
     .segments = segment, \
@@ -111,7 +114,6 @@
 
 /**
  * @brief Allows easy generic Transaction instantiation.
- * 
  */
 #define SPI_TXN(segment, seg_len, txbuff, rxbuff) (spi_transaction_t) { \
     .segments = segment, \
@@ -130,7 +132,6 @@
 
 /**
  * @brief Transaction Structure. Holds all information relevant to a transaction.
- * 
  */
 typedef struct {
     const spi_segment_t* segments;  // Pointer to array/buffer of command segments
@@ -143,7 +144,7 @@ typedef struct {
 
 /**
  * @brief Structure to hold all relative information about a particular peripheral.
- *  _peripherals variable in this file holds an instance of this structure for every
+ *  peripherals variable in this file holds an instance of this structure for every
  *  SPI peripheral defined in the HAL. This is in order to store relevant information
  *  of the peripheral current status, transaction info, and peripheral instance.
  * 
@@ -153,8 +154,8 @@ typedef struct {
     spi_state_e       state;     // Current state of device
     spi_transaction_t txn;       // Current transaction being processed
     uint32_t          scnt;      // Counter to track segment to process
-    uint32_t          wcnt;      // Counter to track TX word being processed
-    uint32_t          rcnt;      // Counter to track RX word being processed
+    uint32_t          txcnt;      // Counter to track TX word being processed
+    uint32_t          rxcnt;      // Counter to track RX word being processed
     spi_callbacks_t   callbacks; // Callback function to call when done
 } spi_peripheral_t;
 
@@ -201,7 +202,7 @@ spi_codes_e spi_prepare_transfer(spi_t* spi);
  *  frequency.
  * 
  * @param freq Frequency defined by user
- * @return uint32_t True frequency after determining the SPI clk divisor
+ * @return uint32_t True frequency after determining the SPI clk divider
  */
 uint32_t spi_true_slave_freq(uint32_t freq);
 
@@ -246,13 +247,13 @@ void spi_launch(spi_peripheral_t* peri, spi_t* spi, spi_transaction_t txn,
                 spi_callbacks_t callbacks);
 
 /**
- * @brief Issue a command segment.
+ * @brief Issues a command segment and increments counter (post inc.).
+ *        Determines value of CSAAT bit based on if it is last segment of
+ *        transaction or not.
  * 
  * @param peri Pointer to the relevant spi_peripheral_t instance
- * @param seg The segment to be issued
- * @param csaat If the CS line should remain active once segment is done
  */
-void spi_issue_cmd(const spi_peripheral_t* peri, spi_segment_t seg, bool csaat);
+void spi_issue_next_seg(spi_peripheral_t* peri);
 
 /**
  * @brief Resets the variables of the spi_peripheral_t to their initial values
@@ -292,14 +293,20 @@ void spi_error_handler(spi_peripheral_t* peri, spi_error_e error);
 /**                                                                        **/
 /****************************************************************************/
 
-static volatile spi_peripheral_t _peripherals[] = {
+/**
+ * @brief Static variable representing each SPI peripheral (FLASH, HOST, HOST2)
+ *        We can have infinitely many spi_t variables but all reference one of
+ *        these spi_peripheral_t. Each variable here holds all the relevant
+ *        information about the current transaction the peripheral is executing.
+ */
+static volatile spi_peripheral_t peripherals[] = {
     (spi_peripheral_t) {
         .instance  = spi_flash,
         .state     = SPI_STATE_NONE,
         .txn       = {0},
         .scnt      = 0,
-        .wcnt      = 0,
-        .rcnt      = 0,
+        .txcnt     = 0,
+        .rxcnt     = 0,
         .callbacks = NULL_CALLBACKS
     },
     (spi_peripheral_t) {
@@ -307,8 +314,8 @@ static volatile spi_peripheral_t _peripherals[] = {
         .state     = SPI_STATE_NONE,
         .txn       = {0},
         .scnt      = 0,
-        .wcnt      = 0,
-        .rcnt      = 0,
+        .txcnt     = 0,
+        .rxcnt     = 0,
         .callbacks = NULL_CALLBACKS
     },
     (spi_peripheral_t) {
@@ -316,8 +323,8 @@ static volatile spi_peripheral_t _peripherals[] = {
         .state     = SPI_STATE_NONE,
         .txn       = {0},
         .scnt      = 0,
-        .wcnt      = 0,
-        .rcnt      = 0,
+        .txcnt     = 0,
+        .rxcnt     = 0,
         .callbacks = NULL_CALLBACKS
     }
 };
@@ -330,7 +337,9 @@ static volatile spi_peripheral_t _peripherals[] = {
 
 spi_t spi_init(spi_idx_e idx, spi_slave_t slave) 
 {
+    // Make sure all parameters of the slave are valid.
     spi_codes_e error = spi_validate_slave(slave);
+    // Check that the SPI peripheral identifier is valid.
     if (SPI_IDX_INVALID(idx)) error |= SPI_CODE_IDX_INVAL;
     if (error)
         return (spi_t) {
@@ -338,10 +347,17 @@ spi_t spi_init(spi_idx_e idx, spi_slave_t slave)
             .init     = false,
             .slave    = (spi_slave_t) {0}
         };
-    spi_set_enable(_peripherals[idx].instance, true);
-    spi_output_enable(_peripherals[idx].instance, true);
-    spi_set_errors_enabled(_peripherals[idx].instance, SPI_ERROR_IRQALL, true);
-    _peripherals[idx].state = SPI_STATE_INIT;
+    // Enable SPI peripheral. We do not check return value since we know here that
+    // it will never return an error.
+    spi_set_enable(peripherals[idx].instance, true);
+    spi_output_enable(peripherals[idx].instance, true);
+    // Enable all error interrupts so that the SPI peripheral doesn't get stuck if
+    // there is an error. And we don't check return value since we know it's error free.
+    spi_set_errors_enabled(peripherals[idx].instance, SPI_ERROR_IRQALL, true);
+    // Just set a state so user can see it has been initialized somewhen.
+    peripherals[idx].state = SPI_STATE_INIT;
+    // Set the true frequency at which the SCK will be for that particular slave
+    // so the user can know the real frequency.
     slave.freq = spi_true_slave_freq(slave.freq);
     return (spi_t) {
         .idx      = idx,
@@ -352,17 +368,18 @@ spi_t spi_init(spi_idx_e idx, spi_slave_t slave)
 
 void spi_deinit(spi_t* spi) 
 {
-    spi->idx      = UINT32_MAX;
-    spi->init     = false;
-    spi->slave    = (spi_slave_t) {0};
+    // Set all values to something that will prevent spi variable to be used.
+    spi->idx   = UINT32_MAX;
+    spi->init  = false;
+    spi->slave = (spi_slave_t) {0};
 }
 
 spi_codes_e spi_reset(spi_t* spi) 
 {
     spi_codes_e error = spi_check_valid(spi);
     if (error) return error;
-
-    spi_sw_reset(_peripherals[spi->idx].instance);
+    // Reset the SPI peripheral (at hardware level)
+    spi_sw_reset(peripherals[spi->idx].instance);
 
     return SPI_CODE_OK;
 }
@@ -370,39 +387,53 @@ spi_codes_e spi_reset(spi_t* spi)
 spi_state_e spi_get_state(spi_t* spi) 
 {
     spi_codes_e error = spi_check_valid(spi);
-    if (error) return SPI_STATE_ARG_INVAL;
+    if (error) return SPI_STATE_ARG_INVAL; // The spi parameter passed is invalid
 
-    return _peripherals[spi->idx].state;
+    return peripherals[spi->idx].state;
 }
 
 spi_codes_e spi_transmit(spi_t* spi, const uint32_t* src_buffer, uint32_t len) 
 {
+    // Make validity checks and set the slave at hardware level
     spi_codes_e error = spi_prepare_transfer(spi);
+    // Check that length doesn't exceed maximum and is not 0
     if (SPI_INVALID_LEN(len)) error |= SPI_CODE_TXN_LEN_INVAL;
     if (error) return error;
 
+    // Create command segment for TX transaction
     spi_segment_t     seg = SPI_SEG_TX(len);
+    // Create the transaction with the created segment
     spi_transaction_t txn = SPI_TXN_TX(&seg, src_buffer, LEN_WORDS(len));
 
-    spi_launch(&_peripherals[spi->idx], spi, txn, NULL_CALLBACKS);
+    // Launch the transaction. All data has been verified, launch doesn't check 
+    // anything. No callbacks since function is blocking.
+    spi_launch(&peripherals[spi->idx], spi, txn, NULL_CALLBACKS);
 
-    while (SPI_BUSY(_peripherals[spi->idx])) wait_for_interrupt();
+    // Wait until transaction has finished
+    while (SPI_BUSY(peripherals[spi->idx])) wait_for_interrupt();
 
     return SPI_CODE_OK;
 }
 
 spi_codes_e spi_receive(spi_t* spi, uint32_t* dest_buffer, uint32_t len) 
 {
+    // Make validity checks and set the slave at hardware level
     spi_codes_e error = spi_prepare_transfer(spi);
+    // Check that length doesn't exceed maximum and is not 0
     if (SPI_INVALID_LEN(len)) error |= SPI_CODE_TXN_LEN_INVAL;
     if (error) return error;
 
+    // Create command segment for RX transaction
     spi_segment_t     seg = SPI_SEG_RX(len);
+    // Create the transaction with the created segment
     spi_transaction_t txn = SPI_TXN_RX(&seg, dest_buffer, LEN_WORDS(len));
 
-    spi_launch(&_peripherals[spi->idx], spi, txn, NULL_CALLBACKS);
+    // Launch the transaction. All data has been verified, launch doesn't check 
+    // anything. No callbacks since function is blocking.
+    spi_launch(&peripherals[spi->idx], spi, txn, NULL_CALLBACKS);
 
-    while (SPI_BUSY(_peripherals[spi->idx])) wait_for_interrupt();
+    // Wait until transaction has finished
+    while (SPI_BUSY(peripherals[spi->idx])) wait_for_interrupt();
 
     return SPI_CODE_OK;
 }
@@ -410,16 +441,23 @@ spi_codes_e spi_receive(spi_t* spi, uint32_t* dest_buffer, uint32_t len)
 spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer, 
                            uint32_t* dest_buffer, uint32_t len) 
 {
+    // Make validity checks and set the slave at hardware level
     spi_codes_e error = spi_prepare_transfer(spi);
+    // Check that length doesn't exceed maximum and is not 0
     if (SPI_INVALID_LEN(len)) error |= SPI_CODE_TXN_LEN_INVAL;
     if (error) return error;
 
+    // Create command segment for BIDIR transaction
     spi_segment_t     seg = SPI_SEG_BIDIR(len);
+    // Create the transaction with the created segment
     spi_transaction_t txn = SPI_TXN_BIDIR(&seg, src_buffer, dest_buffer, LEN_WORDS(len));
 
-    spi_launch(&_peripherals[spi->idx], spi, txn, NULL_CALLBACKS);
+    // Launch the transaction. All data has been verified, launch doesn't check 
+    // anything. No callbacks since function is blocking.
+    spi_launch(&peripherals[spi->idx], spi, txn, NULL_CALLBACKS);
 
-    while (SPI_BUSY(_peripherals[spi->idx])) wait_for_interrupt();
+    // Wait until transaction has finished
+    while (SPI_BUSY(peripherals[spi->idx])) wait_for_interrupt();
 
     return SPI_CODE_OK;
 }
@@ -428,17 +466,25 @@ spi_codes_e spi_execute(spi_t* spi, const spi_segment_t* segments,
                         uint32_t segments_len, const uint32_t* src_buffer, 
                         uint32_t* dest_buffer) 
 {
+    // Make validity checks and set the slave at hardware level
     spi_codes_e error = spi_prepare_transfer(spi);
     if (error) return error;
 
+    // Create the transaction with the provided segments
     spi_transaction_t txn = SPI_TXN(segments, segments_len, src_buffer, dest_buffer);
 
+    // We check every segment for validity since they are defined by user.
+    // This function also counts the number of words of TX and RX the entire
+    // transaction is composed of.
     if (!spi_validate_segments(txn.segments, txn.seglen, &txn.txlen, &txn.rxlen)) 
         return SPI_CODE_SEGMENT_INVAL;
 
-    spi_launch(&_peripherals[spi->idx], spi, txn, NULL_CALLBACKS);
+    // Launch the transaction. All data has been verified, launch doesn't check 
+    // anything. No callbacks since function is blocking.
+    spi_launch(&peripherals[spi->idx], spi, txn, NULL_CALLBACKS);
 
-    while (SPI_BUSY(_peripherals[spi->idx])) wait_for_interrupt();
+    // Wait until transaction has finished
+    while (SPI_BUSY(peripherals[spi->idx])) wait_for_interrupt();
 
     return SPI_CODE_OK;
 }
@@ -446,14 +492,20 @@ spi_codes_e spi_execute(spi_t* spi, const spi_segment_t* segments,
 spi_codes_e spi_transmit_nb(spi_t* spi, const uint32_t* src_buffer, uint32_t len, 
                             spi_callbacks_t callbacks) 
 {
+    // Make validity checks and set the slave at hardware level
     spi_codes_e error = spi_prepare_transfer(spi);
+    // Check that length doesn't exceed maximum and is not 0
     if (SPI_INVALID_LEN(len)) error |= SPI_CODE_TXN_LEN_INVAL;
     if (error) return error;
 
+    // Create command segment for TX transaction
     spi_segment_t     seg = SPI_SEG_TX(len);
+    // Create the transaction with the created segment
     spi_transaction_t txn = SPI_TXN_TX(&seg, src_buffer, LEN_WORDS(len));
 
-    spi_launch(&_peripherals[spi->idx], spi, txn, callbacks);
+    // Launch the transaction. All data has been verified, launch doesn't check 
+    // anything. Here user callbacks are used because non-blocking function.
+    spi_launch(&peripherals[spi->idx], spi, txn, callbacks);
 
     return SPI_CODE_OK;
 }
@@ -461,14 +513,20 @@ spi_codes_e spi_transmit_nb(spi_t* spi, const uint32_t* src_buffer, uint32_t len
 spi_codes_e spi_receive_nb(spi_t* spi, uint32_t* dest_buffer, uint32_t len, 
                            spi_callbacks_t callbacks) 
 {
+    // Make validity checks and set the slave at hardware level
     spi_codes_e error = spi_prepare_transfer(spi);
+    // Check that length doesn't exceed maximum and is not 0
     if (SPI_INVALID_LEN(len)) error |= SPI_CODE_TXN_LEN_INVAL;
     if (error) return error;
 
+    // Create command segment for RX transaction
     spi_segment_t     seg = SPI_SEG_RX(len);
+    // Create the transaction with the created segment
     spi_transaction_t txn = SPI_TXN_RX(&seg, dest_buffer, LEN_WORDS(len));
 
-    spi_launch(&_peripherals[spi->idx], spi, txn, callbacks);
+    // Launch the transaction. All data has been verified, launch doesn't check 
+    // anything. Here user callbacks are used because non-blocking function.
+    spi_launch(&peripherals[spi->idx], spi, txn, callbacks);
 
     return SPI_CODE_OK;
 }
@@ -476,14 +534,20 @@ spi_codes_e spi_receive_nb(spi_t* spi, uint32_t* dest_buffer, uint32_t len,
 spi_codes_e spi_transceive_nb(spi_t* spi, const uint32_t* src_buffer, uint32_t* dest_buffer, 
                               uint32_t len, spi_callbacks_t callbacks) 
 {
+    // Make validity checks and set the slave at hardware level
     spi_codes_e error = spi_prepare_transfer(spi);
+    // Check that length doesn't exceed maximum and is not 0
     if (SPI_INVALID_LEN(len)) error |= SPI_CODE_TXN_LEN_INVAL;
     if (error) return error;
 
+    // Create command segment for BIDIR transaction
     spi_segment_t     seg = SPI_SEG_BIDIR(len);
+    // Create the transaction with the created segment
     spi_transaction_t txn = SPI_TXN_BIDIR(&seg, src_buffer, dest_buffer, LEN_WORDS(len));
 
-    spi_launch(&_peripherals[spi->idx], spi, txn, callbacks);
+    // Launch the transaction. All data has been verified, launch doesn't check 
+    // anything. Here user callbacks are used because non-blocking function.
+    spi_launch(&peripherals[spi->idx], spi, txn, callbacks);
 
     return SPI_CODE_OK;
 }
@@ -492,15 +556,22 @@ spi_codes_e spi_execute_nb(spi_t* spi, const spi_segment_t* segments,
                            uint32_t segments_len, const uint32_t* src_buffer, 
                            uint32_t* dest_buffer, spi_callbacks_t callbacks) 
 {
+    // Make validity checks and set the slave at hardware level
     spi_codes_e error = spi_prepare_transfer(spi);
     if (error) return error;
 
+    // Create the transaction with the provided segments
     spi_transaction_t txn = SPI_TXN(segments, segments_len, src_buffer, dest_buffer);
 
+    // We check every segment for validity since they are defined by user.
+    // This function also counts the number of words of TX and RX the entire
+    // transaction is composed of.
     if (!spi_validate_segments(txn.segments, txn.seglen, &txn.txlen, &txn.rxlen)) 
         return SPI_CODE_SEGMENT_INVAL;
 
-    spi_launch(&_peripherals[spi->idx], spi, txn, callbacks);
+    // Launch the transaction. All data has been verified, launch doesn't check 
+    // anything. Here user callbacks are used because non-blocking function.
+    spi_launch(&peripherals[spi->idx], spi, txn, callbacks);
 
     return SPI_CODE_OK;
 }
@@ -513,7 +584,9 @@ spi_codes_e spi_execute_nb(spi_t* spi, const spi_segment_t* segments,
 
 spi_codes_e spi_check_valid(spi_t* spi) 
 {
+    // Is SPI peripheral identifier valid?
     if (SPI_IDX_INVALID(spi->idx)) return SPI_CODE_IDX_INVAL;
+    // Has the spi been initialized (i.e. base validity checks made)?
     if (!spi->init)                return SPI_CODE_NOT_INIT;
     return SPI_CODE_OK;
 }
@@ -521,21 +594,31 @@ spi_codes_e spi_check_valid(spi_t* spi)
 spi_codes_e spi_validate_slave(spi_slave_t slave) 
 {
     spi_codes_e error = SPI_CODE_OK;
+    // Is chip select line number a valid one?
     if (SPI_CSID_INVALID(slave.csid)) error |= SPI_CODE_SLAVE_CSID_INVAL;
+    // Is the slave max frequency less than the minimum frequency?
     if (slave.freq < SPI_MIN_FREQ)    error |= SPI_CODE_SLAVE_FREQ_INVAL;
     return error;
 }
 
 spi_codes_e spi_set_slave(spi_t* spi) 
 {
-    if (spi_get_active(_peripherals[spi->idx].instance) == SPI_TRISTATE_TRUE) 
+    // If SPI peripheral is executing a transaction don't change the slave configopts!
+    // Otherwise it could cause unexpected behaviour. This is mainly if for whatever
+    // reason the HAL was being used simultaneously with the SDK.
+    // Prior to calling this function we do in fact check that the SPI is not busy,
+    // but if HAL executed a transaction the SDK wouldn't be aware of SPI peripheral's
+    // activity status.
+    if (spi_get_active(peripherals[spi->idx].instance) == SPI_TRISTATE_TRUE) 
       return SPI_CODE_NOT_IDLE;
 
+    // Compute the best clock divider
     uint16_t clk_div = 0;
     if (spi->slave.freq < SYS_FREQ / 2) {
         clk_div = (SYS_FREQ / spi->slave.freq - 2) / 2;
         if (SYS_FREQ / (2 * clk_div + 2) > spi->slave.freq) clk_div++;
     }
+    // Build the HAL configopts to be set based on our slave
     spi_configopts_t config = {
         .clkdiv   = clk_div,
         .cpha     = bitfield_read(spi->slave.data_mode, BIT_MASK_1, DATA_MODE_CPHA_OFFS),
@@ -545,21 +628,33 @@ spi_codes_e spi_set_slave(spi_t* spi)
         .csntrail = spi->slave.csn_trail,
         .fullcyc  = spi->slave.full_cycle
     };
-    spi_return_flags_e config_error = spi_set_configopts(_peripherals[spi->idx].instance, 
+    // Set the configopts
+    spi_return_flags_e config_error = spi_set_configopts(peripherals[spi->idx].instance, 
                                                          spi->slave.csid,
                                                          spi_create_configopts(config));
+    // CSID is invalid! This can only happen if user didn't properly initialize spi_t!
     if (config_error) return SPI_CODE_SLAVE_INVAL;
-    spi_set_csid(_peripherals[spi->idx].instance, spi->slave.csid);
+    // We already made sure csid was valid by calling spi_set_configopts. And we know
+    // instance is not NULL by definition. Hence won't return any errors.
+    spi_set_csid(peripherals[spi->idx].instance, spi->slave.csid);
     return SPI_CODE_OK;
 }
 
 spi_codes_e spi_prepare_transfer(spi_t* spi) 
 {
+    // Check the idx and init of spi_t parameter.
+    // Notice that we do not check for slave's validity. This is because we assume
+    // that the user properly initialized his spi_t and didn't change its slave.
+    // Anyway spi_set_slave will give an error if the slave is invalid. But user
+    // should follow guidelines!
     spi_codes_e error = spi_check_valid(spi);
     if (error) return error;
 
-    if (SPI_BUSY(_peripherals[spi->idx])) return SPI_CODE_IS_BUSY;
+    // If busy don't start a new transaction...
+    if (SPI_BUSY(peripherals[spi->idx])) return SPI_CODE_IS_BUSY;
 
+    // Set the slave at start of transaction. This allows to have as many slaves
+    // as we want.
     error = spi_set_slave(spi);
     if (error) return error;
 
@@ -568,26 +663,41 @@ spi_codes_e spi_prepare_transfer(spi_t* spi)
 
 uint32_t spi_true_slave_freq(uint32_t freq) 
 {
+    // Compute the best clock divider
     uint16_t clk_div = 0;
     if (freq < SYS_FREQ / 2) {
         clk_div = (SYS_FREQ / freq - 2) / 2;
         if (SYS_FREQ / (2 * clk_div + 2) > freq) clk_div++;
     }
+    // Based on the computed divider return the true frequency the SCK will be at
     return SYS_FREQ / (2 * clk_div + 2);
 }
 
 bool spi_validate_segments(const spi_segment_t* segments, uint32_t segments_len, 
                            uint32_t* tx_count, uint32_t* rx_count) 
 {
+    // Check that there are any segments
+    if (segments_len == 0) return false;
+
+    // Make sure our word counters start at 0
     *tx_count = 0;
     *rx_count = 0;
 
     for (int i = 0; i < segments_len; i++)
     {
-        uint8_t direction = bitfield_read(segments[i].mode, 0b11, 0);
-        uint8_t speed     = bitfield_read(segments[i].mode, 0b11, 2);
+        // Check that speed and direction are compatible and valid.
+        // Unfortunately this check will be done twice since when we set the command
+        // through the HAL the check will be done again.
+        // The problem is that, since starting a full transaction before being sure
+        // that all segments are valid would be undesirable, we have to check each
+        // segment before initiating a transaction.
+        uint8_t direction = bitfield_read(segments[i].mode, DIR_SPD_MASK, DIR_INDEX);
+        uint8_t speed     = bitfield_read(segments[i].mode, DIR_SPD_MASK, SPD_INDEX);
         if (!spi_validate_cmd(direction, speed)) return false;
+        // Translate bytes len to words len
         uint32_t word_len = LEN_WORDS(segments[i].len);
+        // Increase corresponding counter. There are dummy cycles, hence we need to
+        // specifically check for the exact direction.
         if (direction == SPI_DIR_TX_ONLY || direction == SPI_DIR_BIDIR) 
             *tx_count += word_len;
         if (direction == SPI_DIR_RX_ONLY || direction == SPI_DIR_BIDIR) 
@@ -599,96 +709,131 @@ bool spi_validate_segments(const spi_segment_t* segments, uint32_t segments_len,
 
 void spi_fill_tx(spi_peripheral_t* peri) 
 {
-    if (peri->txn.txbuffer != NULL && peri->wcnt < peri->txn.txlen) {
+    // If we have a TX buffer and didn't exceed the count then fill the TX FIFO
+    if (peri->txn.txbuffer != NULL && peri->txcnt < peri->txn.txlen) {
+        // While there is still data to be fed and there wasn't an error from HAL
+        // continue. HAL error in this case means that the fifo is full since
+        // it's the only possibility.
         while (
-            peri->wcnt < peri->txn.txlen 
-            && !spi_write_word(peri->instance, peri->txn.txbuffer[peri->wcnt])
-        ) peri->wcnt++;
+            peri->txcnt < peri->txn.txlen 
+            && !spi_write_word(peri->instance, peri->txn.txbuffer[peri->txcnt])
+        ) peri->txcnt++; // Keep track of counter
     }
 }
 
 void spi_empty_rx(spi_peripheral_t* peri) 
 {
-    if (peri->txn.rxbuffer != NULL && peri->rcnt < peri->txn.rxlen) {
+    // If we have a RX buffer and didn't exceed the count then read from RX FIFO
+    if (peri->txn.rxbuffer != NULL && peri->rxcnt < peri->txn.rxlen) {
+        // While there is still data to be read and there wasn't an error from HAL
+        // continue. HAL error in this case means that the fifo is empty since
+        // it's the only possibility.
         while (
-            peri->rcnt < peri->txn.rxlen 
-            && !spi_read_word(peri->instance, &peri->txn.rxbuffer[peri->rcnt])
-        ) peri->rcnt++;
+            peri->rxcnt < peri->txn.rxlen 
+            && !spi_read_word(peri->instance, &peri->txn.rxbuffer[peri->rxcnt])
+        ) peri->rxcnt++; // Keep track of counter
     }
 }
 
 void spi_launch(spi_peripheral_t* peri, spi_t* spi, spi_transaction_t txn, 
                 spi_callbacks_t callbacks) 
 {
+    // All checks have been made, therefore there can't be any error here.
+    // This also means that we can safely set the state since we know we will
+    // proceed to launch without any doubt.
     peri->state     = SPI_STATE_BUSY;
+    // Set all transaction data to our static peripheral variable
     peri->txn       = txn;
+    // Indicate the callbacks that should be called
     peri->callbacks = callbacks;
 
+    // Set the given watermarks
     spi_set_tx_watermark(peri->instance, TX_WATERMARK);
     spi_set_rx_watermark(peri->instance, RX_WATERMARK);
 
+    // Fill the TX fifo before starting so there is data once command launched
     spi_fill_tx(peri);
 
+    // TODO: Check if this makes sense since if we use SDK, HAL cannot use events
     spi_set_events_enabled(peri->instance, 
                            SPI_EVENT_IDLE|SPI_EVENT_READY|SPI_EVENT_TXWM|SPI_EVENT_RXWM, 
                            true);
+    // Enable event interrupts since they are enabled only during a transaction
     spi_enable_evt_intr   (peri->instance, true);
 
+    // Wait for the SPI peripheral to be ready before writing a command segment.
     spi_wait_for_ready(peri->instance);
-    peri->scnt++;
-    spi_issue_cmd(peri, txn.segments[0], 0 < txn.seglen - 1 ? true : false);
+    // Write command segment. This immediately triggers the SPI peripheral into action.
+    spi_issue_next_seg(peri);
 }
 
-void spi_issue_cmd(const spi_peripheral_t* peri, spi_segment_t seg, bool csaat) 
+void spi_issue_next_seg(spi_peripheral_t* peri) 
 {
+    const spi_segment_t seg = peri->txn.segments[peri->scnt];
+    peri->scnt++;
+    // Construct our word command to be passed to HAL
     uint32_t cmd_reg = spi_create_command((spi_command_t) {
-        .direction = bitfield_read(seg.mode, 0b11, 0),
-        .speed     = bitfield_read(seg.mode, 0b11, 2),
-        .csaat     = csaat,
-        .len       = seg.len - 1
+        .direction = bitfield_read(seg.mode, DIR_SPD_MASK, DIR_INDEX),
+        .speed     = bitfield_read(seg.mode, DIR_SPD_MASK, SPD_INDEX),
+        .csaat     = peri->txn.seglen == peri->scnt ? false : true,
+        .len       = seg.len - 1 // -1 because of SPI Host IP specifications
     });
+    // Since all checks were already made we do not need to check the result of function
     spi_set_command(peri->instance, cmd_reg);
 }
 
 void spi_reset_peri(spi_peripheral_t* peri) 
 {
-    peri->scnt     = 0;
-    peri->wcnt     = 0;
-    peri->rcnt     = 0;
-    peri->txn      = (spi_transaction_t) {0};
+    // Reset all variables relative to the transaction of the static peripheral
+    // instance
+    peri->scnt      = 0;
+    peri->txcnt     = 0;
+    peri->rxcnt     = 0;
+    peri->txn       = (spi_transaction_t) {0};
     peri->callbacks = NULL_CALLBACKS;
 }
 
 void spi_event_handler(spi_peripheral_t* peri, spi_event_e events) 
 {
+    // Ready means it is ready to accept new command segments. So we have two
+    // possibilities if the device is ready:
+    //  1) It is ready but not idle
+    //  2) It is ready and idle
     if (events & SPI_EVENT_READY) 
     {
-        // If SPI is ready and there are still commands to add, add them to queue
+        // If SPI is ready and there are still commands to execute, issue next command
         if (peri->txn.segments != NULL && peri->scnt < peri->txn.seglen) 
         {
-            spi_issue_cmd(peri, peri->txn.segments[peri->scnt], 
-                          peri->scnt < peri->txn.seglen-1 ? true : false);
+            spi_issue_next_seg(peri);
             peri->scnt++;
         }
-        // If no more commands and SPI is idle, then the transaction is over
+        // If no more commands and SPI is idle, it means the transaction is over
         else if (events & SPI_EVENT_IDLE) 
         {
+            // Disable all event interrupts
+            // TODO: Again check if makes sense since HAL not able to use interrupts
             spi_set_events_enabled(peri->instance, SPI_EVENT_ALL, false);
             spi_enable_evt_intr   (peri->instance, false);
+            // Read the last data from the RX fifo
             spi_empty_rx(peri);
+            // Set the state to Transaction is done (meaning successful)
             peri->state = SPI_STATE_DONE;
+            // If there is a callback defined call it
             if (peri->callbacks.done_cb != NULL) 
             {
                 peri->callbacks.done_cb(peri->txn.txbuffer, peri->txn.txlen, 
                                         peri->txn.rxbuffer, peri->txn.rxlen);
             }
+            // Reset all transaction related variables
             spi_reset_peri(peri);
             return;
         }
     }
     if (events & SPI_EVENT_TXWM)
     {
+        // TX watermark reached. Refill TX fifo if more data
         spi_fill_tx(peri);
+        // If there is a callback defined call it
         if (peri->callbacks.txwm_cb != NULL)
         {
             peri->callbacks.txwm_cb(peri->txn.txbuffer, peri->txn.txlen, 
@@ -697,7 +842,9 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events)
     }
     if (events & SPI_EVENT_RXWM)
     {
+        // RX watermark reached. Empty RX fifo to get more data
         spi_empty_rx(peri);
+        // If there is a callback defined call it
         if (peri->callbacks.rxwm_cb != NULL)
         {
             peri->callbacks.rxwm_cb(peri->txn.txbuffer, peri->txn.txlen, 
@@ -708,14 +855,19 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events)
 
 void spi_error_handler(spi_peripheral_t* peri, spi_error_e error) 
 {
+    // Disable event interrupts
+    // TODO: Again check if makes sense
     spi_set_events_enabled(peri->instance, SPI_EVENT_ALL, false);
     spi_enable_evt_intr   (peri->instance, false);
+    // Set the state to error
     peri->state = SPI_STATE_ERROR;
+    // If there is a callback defined call it
     if (peri->callbacks.error_cb != NULL) 
     {
         peri->callbacks.error_cb(peri->txn.txbuffer, peri->txn.txlen, 
                                  peri->txn.rxbuffer, peri->txn.rxlen);
     }
+    // Reset all transaction related variables
     spi_reset_peri(peri);
 }
 
@@ -731,8 +883,8 @@ void spi_error_handler(spi_peripheral_t* peri, spi_error_e error)
  */
 void spi_intr_handler_event_flash(spi_event_e events) 
 {
-    if (SPI_NOT_BUSY(_peripherals[SPI_IDX_FLASH])) return;
-    spi_event_handler(&_peripherals[SPI_IDX_FLASH], events);
+    if (SPI_NOT_BUSY(peripherals[SPI_IDX_FLASH])) return;
+    spi_event_handler(&peripherals[SPI_IDX_FLASH], events);
 }
 
 /**
@@ -741,8 +893,8 @@ void spi_intr_handler_event_flash(spi_event_e events)
  */
 void spi_intr_handler_error_flash(spi_error_e errors) 
 {
-    if (SPI_NOT_BUSY(_peripherals[SPI_IDX_FLASH])) return;
-    spi_error_handler(&_peripherals[SPI_IDX_FLASH], errors);
+    if (SPI_NOT_BUSY(peripherals[SPI_IDX_FLASH])) return;
+    spi_error_handler(&peripherals[SPI_IDX_FLASH], errors);
 }
 
 /**
@@ -751,8 +903,8 @@ void spi_intr_handler_error_flash(spi_error_e errors)
  */
 void spi_intr_handler_event_host(spi_event_e events) 
 {
-    if (SPI_NOT_BUSY(_peripherals[SPI_IDX_HOST])) return;
-    spi_event_handler(&_peripherals[SPI_IDX_HOST], events);
+    if (SPI_NOT_BUSY(peripherals[SPI_IDX_HOST])) return;
+    spi_event_handler(&peripherals[SPI_IDX_HOST], events);
 }
 
 /**
@@ -761,8 +913,8 @@ void spi_intr_handler_event_host(spi_event_e events)
  */
 void spi_intr_handler_error_host(spi_error_e errors) 
 {
-    if (SPI_NOT_BUSY(_peripherals[SPI_IDX_HOST])) return;
-    spi_error_handler(&_peripherals[SPI_IDX_HOST], errors);
+    if (SPI_NOT_BUSY(peripherals[SPI_IDX_HOST])) return;
+    spi_error_handler(&peripherals[SPI_IDX_HOST], errors);
 }
 
 /**
@@ -771,8 +923,8 @@ void spi_intr_handler_error_host(spi_error_e errors)
  */
 void spi_intr_handler_event_host2(spi_event_e events) 
 {
-    if (SPI_NOT_BUSY(_peripherals[SPI_IDX_HOST_2])) return;
-    spi_event_handler(&_peripherals[SPI_IDX_HOST_2], events);
+    if (SPI_NOT_BUSY(peripherals[SPI_IDX_HOST_2])) return;
+    spi_event_handler(&peripherals[SPI_IDX_HOST_2], events);
 }
 
 /**
@@ -781,8 +933,8 @@ void spi_intr_handler_event_host2(spi_event_e events)
  */
 void spi_intr_handler_error_host2(spi_error_e errors) 
 {
-    if (SPI_NOT_BUSY(_peripherals[SPI_IDX_HOST_2])) return;
-    spi_error_handler(&_peripherals[SPI_IDX_HOST_2], errors);
+    if (SPI_NOT_BUSY(peripherals[SPI_IDX_HOST_2])) return;
+    spi_error_handler(&peripherals[SPI_IDX_HOST_2], errors);
 }
 
 /****************************************************************************/

@@ -62,7 +62,6 @@
 
 /**
  * @brief Macro to instantiate a Dummy Segment
- * 
  */
 #define SPI_SEG_DUMMY(cycles) (spi_segment_t) { \
     .len  = cycles, \
@@ -71,7 +70,6 @@
 
 /**
  * @brief Macro to instantiate a TX Segment
- * 
  */
 #define SPI_SEG_TX(bytes) (spi_segment_t) { \
     .len  = bytes, \
@@ -80,7 +78,6 @@
 
 /**
  * @brief Macro to instantiate a RX Segment
- * 
  */
 #define SPI_SEG_RX(bytes) (spi_segment_t) { \
     .len  = bytes, \
@@ -89,7 +86,6 @@
 
 /**
  * @brief Macro to instantiate a BIDIR Segment
- * 
  */
 #define SPI_SEG_BIDIR(bytes) (spi_segment_t) { \
     .len  = bytes, \
@@ -98,7 +94,6 @@
 
 /**
  * @brief Macro to instantiate a Dual Speed TX Segment
- * 
  */
 #define SPI_SEG_TX_DUAL(bytes) (spi_segment_t) { \
     .len  = bytes, \
@@ -107,7 +102,6 @@
 
 /**
  * @brief Macro to instantiate a Dual Speed RX Segment
- * 
  */
 #define SPI_SEG_RX_DUAL(bytes) (spi_segment_t) { \
     .len  = bytes, \
@@ -116,7 +110,6 @@
 
 /**
  * @brief Macro to instantiate a Quad Speed TX Segment
- * 
  */
 #define SPI_SEG_TX_QUAD(bytes) (spi_segment_t) { \
     .len  = bytes, \
@@ -125,7 +118,6 @@
 
 /**
  * @brief Macro to instantiate a Quad Speed RX Segment
- * 
  */
 #define SPI_SEG_RX_QUAD(bytes) (spi_segment_t) { \
     .len  = bytes, \
@@ -158,7 +150,7 @@ typedef enum {
     SPI_CODE_INIT               = 0x0004, // 
     SPI_CODE_NOT_INIT           = 0x0008, // The provided spi_t was not initialized
     SPI_CODE_SLAVE_CSID_INVAL   = 0x0010, // The csid of the slave is not valid
-    SPI_CODE_SLAVE_FREQ_INVAL   = 0x0020, // 
+    SPI_CODE_SLAVE_FREQ_INVAL   = 0x0020, // Max frequency of the slave is too low
     SPI_CODE_NOT_IDLE           = 0x0040, // The SPI device is busy (but not from SDK)
     SPI_CODE_SLAVE_INVAL        = 0x0080, // Something was wrong with the slave configuration
     SPI_CODE_SEGMENT_INVAL      = 0x0100, // The spi_mode_e of the segment was invalid
@@ -188,6 +180,9 @@ typedef enum {
     // everything > 10 is invalid
 } spi_mode_e;
 
+// State is useful to know if the peripheral is busy, but also very useful if a
+// blocking transaction was made and we want to check the result of the blocking
+// transation (i.e. error or success)
 typedef enum {
     SPI_STATE_NONE      = 0x00,  // Indicates SPI device was never initialized 
                                  // (should never happen!)
@@ -198,7 +193,7 @@ typedef enum {
                                  // a transaction
     SPI_STATE_ERROR     = 0x08,  // Indicates there was an error during transaction
     SPI_STATE_ARG_INVAL = 0x10   // Indicates the argument passed to spi_get_state 
-                                    // was not valid
+                                 // was not valid
 } spi_state_e;
 
 /**
@@ -267,7 +262,7 @@ typedef struct {
  *  This method has to be called prior to any use of other functions of the SDK.
  * 
  *  Important: This method validates the provided slave and adapts its frequency
- *  based on the MCU frequency and the SCK divisor. If you do not create the spi_t
+ *  based on the MCU frequency and the SCK divider. If you do not create the spi_t
  *  structure by calling this function the slave may be invalid resulting in errors.
  * 
  * @param idx spi_idx_e representing the SPI device
