@@ -282,10 +282,14 @@ void *_sbrk(ptrdiff_t incr)
         return NULL;
     }
 
-    if ((brk += incr) < __heap_end) {
+    if ((brk + incr) < __heap_end && (brk + incr) >= old_brk) {
+    /* Here:         ^ imo we could put <= as well, depends on the 
+       definition of the heep region...*/
         brk += incr;
     } else {
+    /* Here we need to return NULL, else the heap will just overflow*/
         brk = __heap_end;
+        return NULL;
     }
-    return old_brk;
+    return (void*)old_brk;
 }
