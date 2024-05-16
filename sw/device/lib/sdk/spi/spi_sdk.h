@@ -143,7 +143,7 @@ extern "C" {
 /****************************************************************************/
 
 /**
-* SPI Peripheral IDX
+* @brief SPI Peripheral IDX
 */
 typedef enum {
     SPI_IDX_FLASH       = 0,  // Identifier for the SPI FLASH peripheral
@@ -189,42 +189,60 @@ typedef enum {
 } spi_mode_e;
 
 typedef enum {
-    SPI_STATE_NONE         = 0x00,  // Indicates SPI device was never initialized (should never happen!)
-    SPI_STATE_INIT         = 0x01,  // Indicates SPI device never executed a transaction
-    SPI_STATE_BUSY         = 0x02,  // Indicates SPI device is currently processing a transaction
-    SPI_STATE_DONE         = 0x04,  // Indicates SPI device has successfully executes a transaction
-    SPI_STATE_ERROR        = 0x08,  // Indicates there was an error during transaction
-    SPI_STATE_ARG_INVAL    = 0x10   // Indicates the argument passed to spi_get_state was not valid
+    SPI_STATE_NONE      = 0x00,  // Indicates SPI device was never initialized 
+                                 // (should never happen!)
+    SPI_STATE_INIT      = 0x01,  // Indicates SPI device never executed a transaction
+    SPI_STATE_BUSY      = 0x02,  // Indicates SPI device is currently processing 
+                                 // a transaction
+    SPI_STATE_DONE      = 0x04,  // Indicates SPI device has successfully executes 
+                                 // a transaction
+    SPI_STATE_ERROR     = 0x08,  // Indicates there was an error during transaction
+    SPI_STATE_ARG_INVAL = 0x10   // Indicates the argument passed to spi_get_state 
+                                    // was not valid
 } spi_state_e;
 
 /**
  * @brief Type defining the configuration of the slave device with whom to communicate
- * 
  */
 typedef struct {
     uint8_t        csid       : 2;  // The Chip Select line where device connected
-    spi_datamode_e data_mode  : 2;  // The data sampling and transmitting mode (polarity and phase)
-    bool           full_cycle : 1;  // If 1 data is sampled a full cycle after shifting data out, instead of half cycle
-    uint8_t        csn_idle   : 4;  // The minimum number of sck half-cycles to hold cs_n high between commands
-    uint8_t        csn_trail  : 4;  // The number of half sck cycles, CSNTRAIL+1, to leave between last edge of sck and the rising edge of cs_n
-    uint8_t        csn_lead   : 4;  // The number of half sck cycles, CSNLEAD+1, to leave between the falling edge of cs_n and the first edge of sck
+    spi_datamode_e data_mode  : 2;  // The data sampling and transmitting mode 
+                                    // (polarity and phase)
+    bool           full_cycle : 1;  // If 1 data is sampled a full cycle after shifting 
+                                    // data out, instead of half cycle
+    uint8_t        csn_idle   : 4;  // The minimum number of sck half-cycles to hold 
+                                    // cs_n high between commands
+    uint8_t        csn_trail  : 4;  // The number of half sck cycles, CSNTRAIL+1, to leave 
+                                    // between last edge of sck and the rising edge of cs_n
+    uint8_t        csn_lead   : 4;  // The number of half sck cycles, CSNLEAD+1, to leave 
+                                    // between the falling edge of cs_n and the first edge of sck
     uint32_t       freq       : 32; // The maximum frequency in hertz of the slave
 } spi_slave_t;
 
 /**
  * @brief Type defining a command segment
- * 
  */
 typedef struct {
-    uint32_t   len        : 24;  // Length of data in bytes for the particular segment
-    spi_mode_e mode       : 4;   // Communication mode (TX, BIDIR, RX_QUAD, ...)
+    uint32_t   len  : 24;  // Length of data in bytes for the particular segment
+    spi_mode_e mode : 4;   // Communication mode (TX, BIDIR, RX_QUAD, ...)
 } spi_segment_t;
 
-typedef void (*spi_cb_t)(const uint32_t*, uint32_t, uint32_t*, uint32_t); // done, error callbacks
+// Event / Error interrupt callback  (txbuffer, txlen, rxbuffer, rxlen)
+typedef void (*spi_cb_t)(const uint32_t*, uint32_t, uint32_t*, uint32_t);
 
 /**
- * @brief Type holding information to use SDK.
- * 
+ * @brief Structure holding all the callbacks for a transaction.
+ *        Each callback may be NULL if you don't want it to be called.
+ */
+typedef struct {
+    spi_cb_t done_cb;   // Called once transaction is done
+    spi_cb_t txwm_cb;   // Called each time TX watermark event is triggered
+    spi_cb_t rxwm_cb;   // Called each time RX watermark event is triggered
+    spi_cb_t error_cb;  // Called when there was an error during transaction
+} spi_callbacks_t;
+
+/**
+ * @brief Type holding Information to use SDK.
  */
 typedef struct {
     spi_idx_e   idx;   // The identifier for the desired SPI devide
@@ -248,21 +266,29 @@ typedef struct {
  * @brief Initialize desired SPI device and obtain structure to use SDK functions.
  *  This method has to be called prior to any use of other functions of the SDK.
  * 
+ *  Important: This method validates the provided slave and adapts its frequency
+ *  based on the MCU frequency and the SCK divisor. If you do not create the spi_t
+ *  structure by calling this function the slave may be invalid resulting in errors.
+ * 
  * @param idx spi_idx_e representing the SPI device
  * @param slave spi_slave_t correctly configured slave SPI device to interact with
  * @return spi_t structure to use SDK functions
  */
 spi_t spi_init(spi_idx_e idx, spi_slave_t slave);
 
-// TODO: Not really useful in my opinion...
-spi_codes_e spi_deinit(spi_t* spi);
+/**
+ * @brief Uninitializes the spi by unsetting all fields
+ * 
+ * @param spi Pointer to spi_t structure obtained through spi_init call
+ */
+void spi_deinit(spi_t* spi);
 
 /**
  * @brief Completely reset the SPI device (clears all status, stops all transactions,
  * empties FIFOs)
  * 
- * @param spi pointer to spi_t structure obtained through spi_init call
- * @return spi_codes_e information about error. SPI_CODE_OK if all went well
+ * @param spi Pointer to spi_t structure obtained through spi_init call
+ * @return spi_codes_e Information about error. SPI_CODE_OK if all went well
  */
 spi_codes_e spi_reset(spi_t* spi);
 
@@ -272,12 +298,12 @@ spi_codes_e spi_reset(spi_t* spi);
  *    SPI_STATE_NONE      : Indicates SPI device was never initialized (should never happen!)
  *    SPI_STATE_INIT      : Indicates SPI device never executed a transaction
  *    SPI_STATE_BUSY      : Indicates SPI device is currently processing a transaction
- *    SPI_STATE_DONE      : Indicates SPI device has successfully executes a transaction
+ *    SPI_STATE_DONE      : Indicates SPI device has successfully executed a transaction
  *    SPI_STATE_ERROR     : Indicates there was an error during transaction
  *    SPI_STATE_ARG_INVAL : Indicates the argument passed to this function was not valid
  * 
- * @param spi pointer to spi_t structure obtained through spi_init call
- * @return spi_state_e indicating the current state of SPI device
+ * @param spi Pointer to spi_t structure obtained through spi_init call
+ * @return spi_state_e Indicating the current state of SPI device
  */
 spi_state_e spi_get_state(spi_t* spi);
 
@@ -285,10 +311,10 @@ spi_state_e spi_get_state(spi_t* spi);
  * @brief Executes a TX command.
  *  /!\ Caution: len is in bytes
  * 
- * @param spi pointer to spi_t structure obtained through spi_init call
+ * @param spi Pointer to spi_t structure obtained through spi_init call
  * @param src_buffer An initialized buffer/array with all the data to send
  * @param len The size in bytes of the transaction (/!\ must be coherent with src_buffer size)
- * @return spi_codes_e information about error. SPI_CODE_OK if all went well
+ * @return spi_codes_e Information about error. SPI_CODE_OK if all went well
  */
 spi_codes_e spi_transmit(spi_t* spi, const uint32_t* src_buffer, uint32_t len);
 
@@ -296,10 +322,10 @@ spi_codes_e spi_transmit(spi_t* spi, const uint32_t* src_buffer, uint32_t len);
  * @brief Executes an RX command.
  *  /!\ Caution: len is in bytes
  * 
- * @param spi pointer to spi_t structure obtained through spi_init call
+ * @param spi Pointer to spi_t structure obtained through spi_init call
  * @param dest_buffer An initialized buffer/array to store the received data
  * @param len The size in bytes of the transaction (/!\ must be coherent with dest_buffer size)
- * @return spi_codes_e information about error. SPI_CODE_OK if all went well
+ * @return spi_codes_e Information about error. SPI_CODE_OK if all went well
  */
 spi_codes_e spi_receive(spi_t* spi, uint32_t* dest_buffer, uint32_t len);
 
@@ -307,103 +333,107 @@ spi_codes_e spi_receive(spi_t* spi, uint32_t* dest_buffer, uint32_t len);
  * @brief Executes a Bidirectional (TX and RX) command.
  *  /!\ Caution: len is in bytes and is for the TX AS WELL AS RX
  * 
- * @param spi pointer to spi_t structure obtained through spi_init call
+ * @param spi Pointer to spi_t structure obtained through spi_init call
  * @param src_buffer An initialized buffer/array with all the data to send
  * @param dest_buffer An initialized buffer/array to store the received data
  * @param len The size in bytes of the transaction (/!\ must be coherent with src_buffer
  *  and dest_buffer size)
- * @return spi_codes_e information about error. SPI_CODE_OK if all went well
+ * @return spi_codes_e Information about error. SPI_CODE_OK if all went well
  */
-spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer, uint32_t* dest_buffer, uint32_t len);
+spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer, 
+                           uint32_t* dest_buffer, uint32_t len);
 
 /**
  * @brief Executes a transacton composed of multiple command segments.
- *  Each segment already contains the information about the length and the src/dest
+ *  Each segment already contains the Information about the length and the src/dest
  *  buffer concerned. Therefore no need for length parameter here.
  *  /!\ Caution: please be consistent with the length of src_buffer/dest_buffer
  *               and the lenghts specified for the segments
  * 
- * @param spi pointer to spi_t structure obtained through spi_init call
+ * @param spi Pointer to spi_t structure obtained through spi_init call
  * @param segments An array of command segments
  * @param segments_len The size of segments array
  * @param src_buffer An initialized buffer/array with all the data to send
  * @param dest_buffer An initialized buffer/array to store the received data
- * @return spi_codes_e information about error. SPI_CODE_OK if all went well
+ * @return spi_codes_e Information about error. SPI_CODE_OK if all went well
  */
-spi_codes_e spi_execute(spi_t* spi, 
-                        const spi_segment_t* segments, 
-                        uint32_t segments_len, 
-                        const uint32_t* src_buffer, 
-                        uint32_t* dest_buffer
-                       );
+spi_codes_e spi_execute(spi_t* spi, const spi_segment_t* segments, 
+                        uint32_t segments_len, const uint32_t* src_buffer, 
+                        uint32_t* dest_buffer);
 
 /**
  * @brief Executes a TX command. This is Non-Blocking, the function will return immediately.
  *  /!\ Caution: len is in bytes
  *
- * @param spi pointer to spi_t structure obtained through spi_init call
+ * @param spi Pointer to spi_t structure obtained through spi_init call
  * @param src_buffer An initialized buffer/array with all the data to send
  * @param len The size in bytes of the transaction (/!\ must be coherent with src_buffer size)
- * @param done_cb A callback function of type spi_cb_t that gets called when transaction id done
- * @param error_cb A callback function of type spi_cb_t that gets called when there is an error during transaction
- * @return spi_codes_e information about error. SPI_CODE_OK if all went well
+ * @param done_cb A callback function of type spi_cb_t that gets called when transaction 
+ *                is done
+ * @param error_cb A callback function of type spi_cb_t that gets called when there 
+ *                 is an error during transaction
+ * @return spi_codes_e Information about error. SPI_CODE_OK if all went well
  */
-spi_codes_e spi_transmit_nb(spi_t* spi, const uint32_t* src_buffer, uint32_t len, spi_cb_t done_cb, spi_cb_t error_cb);
+spi_codes_e spi_transmit_nb(spi_t* spi, const uint32_t* src_buffer, uint32_t len, 
+                            spi_callbacks_t callbacks);
 
 /**
  * @brief Executes an RX command. This is Non-Blocking, the function will return immediately.
  *  /!\ Caution: len is in bytes
  * 
- * @param spi pointer to spi_t structure obtained through spi_init call
+ * @param spi Pointer to spi_t structure obtained through spi_init call
  * @param dest_buffer An initialized buffer/array to store the received data
  * @param len The size in bytes of the transaction (/!\ must be coherent with dest_buffer size)
- * @param done_cb A callback function of type spi_cb_t that gets called when transaction id done
- * @param error_cb A callback function of type spi_cb_t that gets called when there is an error during transaction
- * @return spi_codes_e information about error. SPI_CODE_OK if all went well
+ * @param done_cb A callback function of type spi_cb_t that gets called when transaction 
+ *                is done
+ * @param error_cb A callback function of type spi_cb_t that gets called when there 
+ *                 is an error during transaction
+ * @return spi_codes_e Information about error. SPI_CODE_OK if all went well
  */
-spi_codes_e spi_receive_nb(spi_t* spi, uint32_t* dest_buffer, uint32_t len, spi_cb_t done_cb, spi_cb_t error_cb);
+spi_codes_e spi_receive_nb(spi_t* spi, uint32_t* dest_buffer, uint32_t len, 
+                           spi_callbacks_t callbacks);
 
 /**
  * @brief Executes a Bidirectional (TX and RX) command. This is Non-Blocking, the 
  *  function will return immediately.
  *  /!\ Caution: len is in bytes and is for the TX AS WELL AS RX
  * 
- * @param spi pointer to spi_t structure obtained through spi_init call
+ * @param spi Pointer to spi_t structure obtained through spi_init call
  * @param src_buffer An initialized buffer/array with all the data to send
  * @param dest_buffer An initialized buffer/array to store the received data
  * @param len The size in bytes of the transaction (/!\ must be coherent with src_buffer
  *  and dest_buffer size)
- * @param done_cb A callback function of type spi_cb_t that gets called when transaction id done
- * @param error_cb A callback function of type spi_cb_t that gets called when there is an error during transaction
- * @return spi_codes_e information about error. SPI_CODE_OK if all went well
+ * @param done_cb A callback function of type spi_cb_t that gets called when transaction 
+ *                is done
+ * @param error_cb A callback function of type spi_cb_t that gets called when there 
+ *                 is an error during transaction
+ * @return spi_codes_e Information about error. SPI_CODE_OK if all went well
  */
-spi_codes_e spi_transceive_nb(spi_t* spi, const uint32_t* src_buffer, uint32_t* dest_buffer, uint32_t len, spi_cb_t done_cb, spi_cb_t error_cb);
+spi_codes_e spi_transceive_nb(spi_t* spi, const uint32_t* src_buffer, uint32_t* dest_buffer, 
+                              uint32_t len, spi_callbacks_t callbacks);
 
 /**
  * @brief Executes a transacton composed of multiple command segments. This is 
  *  Non-Blocking, the function will return immediately.
- *  Each segment already contains the information about the length and the src/dest
+ *  Each segment already contains the Information about the length and the src/dest
  *  buffer concerned. Therefore no need for length parameter here.
  *  /!\ Caution: please be consistent with the length of src_buffer/dest_buffer
  *               and the lenghts specified for the segments
  * 
- * @param spi pointer to spi_t structure obtained through spi_init call
+ * @param spi Pointer to spi_t structure obtained through spi_init call
  * @param segments An array of command segments
  * @param segments_len The size of segments array
  * @param src_buffer An initialized buffer/array with all the data to send
  * @param dest_buffer An initialized buffer/array to store the received data
- * @param done_cb A callback function of type spi_cb_t that gets called when transaction id done
- * @param error_cb A callback function of type spi_cb_t that gets called when there is an error during transaction
- * @return spi_codes_e information about error. SPI_CODE_OK if all went well
+ * @param done_cb A callback function of type spi_cb_t that gets called when 
+ *                transaction is done
+ * @param error_cb A callback function of type spi_cb_t that gets called when there 
+ *                 is an error during transaction
+ * @return spi_codes_e Information about error. SPI_CODE_OK if all went well
  */
-spi_codes_e spi_execute_nb(spi_t* spi, 
-                           const spi_segment_t* segments, 
-                           uint32_t segments_len, 
-                           const uint32_t* src_buffer, 
-                           uint32_t* dest_buffer, 
-                           spi_cb_t done_cb, 
-                           spi_cb_t error_cb
-                          );
+spi_codes_e spi_execute_nb(spi_t* spi, const spi_segment_t* segments, 
+                           uint32_t segments_len, const uint32_t* src_buffer, 
+                           uint32_t* dest_buffer, spi_callbacks_t callbacks);
 
 /****************************************************************************/
 /**                                                                        **/
