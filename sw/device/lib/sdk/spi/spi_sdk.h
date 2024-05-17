@@ -147,7 +147,7 @@ typedef enum {
     SPI_CODE_OK                 = 0x0000, // Everything Okay
     SPI_CODE_BASE_ERROR         = 0x0001, // HAL complained (should never happen)
     SPI_CODE_IDX_INVAL          = 0x0002, // The idx of the provided spi_t is not valid
-    SPI_CODE_INIT               = 0x0004, // 
+    SPI_CODE_WM_EXCEEDS         = 0x0004, // The provided watermark is too large
     SPI_CODE_NOT_INIT           = 0x0008, // The provided spi_t was not initialized
     SPI_CODE_SLAVE_CSID_INVAL   = 0x0010, // The csid of the slave is not valid
     SPI_CODE_SLAVE_FREQ_INVAL   = 0x0020, // Max frequency of the slave is too low
@@ -286,6 +286,44 @@ void spi_deinit(spi_t* spi);
  * @return spi_codes_e Information about error. SPI_CODE_OK if all went well
  */
 spi_codes_e spi_reset(spi_t* spi);
+
+/**
+ * @brief Change the TX watermark of the specific SPI Host peripheral
+ *  Maximum is 72 (at moment of writing...). Check SPI_HOST_PARAM_TX_DEPTH in HAL.
+ * 
+ * @param spi Pointer to spi_t structure obtained through spi_init call
+ * @param watermark The desired new watermark
+ * @return spi_codes_e Information about error. SPI_CODE_OK if all went well
+ */
+spi_codes_e spi_set_txwm(spi_t* spi, uint8_t watermark);
+
+/**
+ * @brief Get the TX watermark of the specific SPI Host peripheral
+ * 
+ * @param spi Pointer to spi_t structure obtained through spi_init call
+ * @param watermark The current watermark will be stored in this variable
+ * @return spi_codes_e Information about error. SPI_CODE_OK if all went well
+ */
+spi_codes_e spi_get_txwm(spi_t* spi, uint8_t* watermark);
+
+/**
+ * @brief Change the RX watermark of the specific SPI Host peripheral
+ *  Maximum is 64 (at moment of writing...). Check SPI_HOST_PARAM_RX_DEPTH in HAL.
+ * 
+ * @param spi Pointer to spi_t structure obtained through spi_init call
+ * @param watermark The desired new watermark
+ * @return spi_codes_e Information about error. SPI_CODE_OK if all went well
+ */
+spi_codes_e spi_set_rxwm(spi_t* spi, uint8_t watermark);
+
+/**
+ * @brief Get the RX watermark of the specific SPI Host peripheral
+ * 
+ * @param spi Pointer to spi_t structure obtained through spi_init call
+ * @param watermark The current watermark will be stored in this variable
+ * @return spi_codes_e Information about error. SPI_CODE_OK if all went well
+ */
+spi_codes_e spi_get_rxwm(spi_t* spi, uint8_t* watermark);
 
 /**
  * @brief Read the SPI current state.

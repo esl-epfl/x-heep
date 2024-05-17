@@ -64,8 +64,8 @@
 #define SPD_INDEX    2
 
 // The standard watermark for all transactions (seems reasonable)
-#define TX_WATERMARK (SPI_HOST_PARAM_TX_DEPTH / 4)  // Arbirarily chosen
-#define RX_WATERMARK (SPI_HOST_PARAM_RX_DEPTH - 12) // Arbirarily chosen
+#define TXWM_DEFAULT (SPI_HOST_PARAM_TX_DEPTH / 4)  // Arbirarily chosen
+#define RXWM_DEFAULT (SPI_HOST_PARAM_RX_DEPTH - 12) // Arbirarily chosen
 
 #define NULL_CALLBACKS (spi_callbacks_t) {NULL, NULL, NULL, NULL}
 
@@ -151,11 +151,13 @@ typedef struct {
  */
 typedef struct {
     spi_host_t*       instance;  // Instance of peripheral defined in HAL
+    uint8_t           txwm;
+    uint8_t           rxwm;
     spi_state_e       state;     // Current state of device
     spi_transaction_t txn;       // Current transaction being processed
     uint32_t          scnt;      // Counter to track segment to process
-    uint32_t          txcnt;      // Counter to track TX word being processed
-    uint32_t          rxcnt;      // Counter to track RX word being processed
+    uint32_t          txcnt;     // Counter to track TX word being processed
+    uint32_t          rxcnt;     // Counter to track RX word being processed
     spi_callbacks_t   callbacks; // Callback function to call when done
 } spi_peripheral_t;
 
@@ -302,6 +304,8 @@ void spi_error_handler(spi_peripheral_t* peri, spi_error_e error);
 static volatile spi_peripheral_t peripherals[] = {
     (spi_peripheral_t) {
         .instance  = spi_flash,
+        .txwm      = TXWM_DEFAULT,
+        .rxwm      = RXWM_DEFAULT,
         .state     = SPI_STATE_NONE,
         .txn       = {0},
         .scnt      = 0,
@@ -311,6 +315,8 @@ static volatile spi_peripheral_t peripherals[] = {
     },
     (spi_peripheral_t) {
         .instance  = spi_host1,
+        .txwm      = TXWM_DEFAULT,
+        .rxwm      = RXWM_DEFAULT,
         .state     = SPI_STATE_NONE,
         .txn       = {0},
         .scnt      = 0,
@@ -320,6 +326,8 @@ static volatile spi_peripheral_t peripherals[] = {
     },
     (spi_peripheral_t) {
         .instance  = spi_host2,
+        .txwm      = TXWM_DEFAULT,
+        .rxwm      = RXWM_DEFAULT,
         .state     = SPI_STATE_NONE,
         .txn       = {0},
         .scnt      = 0,
@@ -380,6 +388,52 @@ spi_codes_e spi_reset(spi_t* spi)
     if (error) return error;
     // Reset the SPI peripheral (at hardware level)
     spi_sw_reset(peripherals[spi->idx].instance);
+
+    return SPI_CODE_OK;
+}
+
+spi_codes_e spi_set_txwm(spi_t* spi, uint8_t watermark) {
+    spi_codes_e error = spi_check_valid(spi);
+    if (error) return error;
+    // Do not change watermark if SPI is busy
+    if (SPI_BUSY(peripherals[spi->idx])) return SPI_CODE_IS_BUSY;
+    // Set the new value at hardware level
+    if (spi_set_tx_watermark(peripherals[spi->idx].instance, watermark))
+        return SPI_CODE_WM_EXCEEDS;
+    // Store the watermark if previous operation succeeded
+    peripherals[spi->idx].txwm = watermark;
+
+    return SPI_CODE_OK;
+}
+
+spi_codes_e spi_get_txwm(spi_t* spi, uint8_t* watermark) {
+    spi_codes_e error = spi_check_valid(spi);
+    if (error) return error;
+
+    *watermark = peripherals[spi->idx].txwm;
+
+    return SPI_CODE_OK;
+}
+
+spi_codes_e spi_set_rxwm(spi_t* spi, uint8_t watermark) {
+    spi_codes_e error = spi_check_valid(spi);
+    if (error) return error;
+    // Do not change watermark if SPI is busy
+    if (SPI_BUSY(peripherals[spi->idx])) return SPI_CODE_IS_BUSY;
+    // Set the new value at hardware level
+    if (spi_set_rx_watermark(peripherals[spi->idx].instance, watermark))
+        return SPI_CODE_WM_EXCEEDS;
+    // Store the watermark if previous operation succeeded
+    peripherals[spi->idx].rxwm = watermark;
+
+    return SPI_CODE_OK;
+}
+
+spi_codes_e spi_get_rxwm(spi_t* spi, uint8_t* watermark) {
+    spi_codes_e error = spi_check_valid(spi);
+    if (error) return error;
+
+    *watermark = peripherals[spi->idx].rxwm;
 
     return SPI_CODE_OK;
 }
@@ -748,8 +802,8 @@ void spi_launch(spi_peripheral_t* peri, spi_t* spi, spi_transaction_t txn,
     peri->callbacks = callbacks;
 
     // Set the given watermarks
-    spi_set_tx_watermark(peri->instance, TX_WATERMARK);
-    spi_set_rx_watermark(peri->instance, RX_WATERMARK);
+    spi_set_tx_watermark(peri->instance, peri->txwm);
+    spi_set_rx_watermark(peri->instance, peri->rxwm);
 
     // Fill the TX fifo before starting so there is data once command launched
     spi_fill_tx(peri);
