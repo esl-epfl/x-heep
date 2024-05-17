@@ -104,6 +104,7 @@ uint32_t flash_original_1024B[PAGE_LEN] = {
 // ====================== PROTOTYPES ======================
 
 bool flash_read(spi_t* spi, uint32_t addr, uint32_t* dest_buff, uint32_t len);
+bool flash_read_non_blocking(spi_t* spi, uint32_t addr, uint32_t* dest_buff, uint32_t len);
 bool flash_write_enable(spi_t* spi);
 bool flash_erase_sector(spi_t* spi, uint32_t addr);
 bool flash_write_sector(spi_t* spi, uint32_t addr, uint32_t* src_buff);
@@ -115,15 +116,7 @@ void done_cb(const uint32_t* txbuff, uint32_t txlen, uint32_t* rxbuff, uint32_t 
 
 int main(int argc, char *argv[]) {
     // Create our slave (flash device) with its specifications
-    spi_slave_t slave = {
-        .csid = 0,
-        .csn_idle = 15,
-        .csn_lead = 15,
-        .csn_trail = 15,
-        .data_mode = SPI_DATA_MODE_0,
-        .full_cycle = false,
-        .freq = FLASH_MAX_FREQ
-    };
+    spi_slave_t slave = SPI_SLAVE(0, FLASH_MAX_FREQ);
 
     // Initialize the spi device that is CONNECTED to the flash with our slave
     #ifdef USE_SPI_FLASH
@@ -135,7 +128,7 @@ int main(int argc, char *argv[]) {
     // Check if initialization succeeded
     if (!spi.init) {
         PRINTF("\nFailed to initialize spi\n");
-        return -1;
+        return EXIT_FAILURE;
     }
 
     PRINTF("\nSPI initialized\n");
@@ -150,19 +143,20 @@ int main(int argc, char *argv[]) {
     uint32_t rxbuffer[READ_WRITE_LEN] = {0};
 
     // Read whole sector containing the desired START_ADDRESS
-    if (!flash_read(&spi, SECT_ADDRESS, sect_data, SECT_LEN)) return -1;
+    if (!flash_read_non_blocking(&spi, SECT_ADDRESS, sect_data, SECT_LEN)) 
+        return EXIT_FAILURE;
 
     #ifdef USE_SPI_FLASH
     // Erase that sector
-    if (!flash_erase_sector(&spi, START_ADDRESS)) return -1;
+    if (!flash_erase_sector(&spi, START_ADDRESS)) return EXIT_FAILURE;
     #endif
 
     // Copy the data to overwrite
     memcpy(&sect_data[START_ADDRESS - SECT_ADDRESS], flash_original_1024B, READ_WRITE_LEN * 4);
     // Write the whole sector with the new data back to flash
-    if (!flash_write_sector(&spi, START_ADDRESS, sect_data)) return -1;
+    if (!flash_write_sector(&spi, START_ADDRESS, sect_data)) return EXIT_FAILURE;
     // Read the modified part
-    if (!flash_read(&spi, START_ADDRESS, rxbuffer, 4*READ_WRITE_LEN)) return -1;
+    if (!flash_read(&spi, START_ADDRESS, rxbuffer, 4*READ_WRITE_LEN)) return EXIT_FAILURE;
 
     // Compare the modified part with the data used to modify
     if (memcmp(rxbuffer, flash_original_1024B, 4*READ_WRITE_LEN))
@@ -182,7 +176,7 @@ int main(int argc, char *argv[]) {
     PRINTF("\n==================================================\n\n");
     
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 // ========================= FUNCTIONS =========================
@@ -195,7 +189,7 @@ bool flash_read(spi_t* spi, uint32_t addr, uint32_t* dest_buff, uint32_t len) {
     // Flash uses Big Endian, CPU Little Endian, hence swap bytes
     uint32_t read_byte_cmd = ((bitfield_byteswap32(addr & 0x00ffffff)) | FC_RD);
 
-    PRINTF("Reading %4i Bytes at 0x%08X\n", len, addr);
+    PRINTF("Blocking Reading %4i Bytes at 0x%08X\n", len, addr);
 
     // Start transaction
     spi_codes_e error = spi_execute(spi, segments, 2, &read_byte_cmd, dest_buff);
@@ -206,6 +200,39 @@ bool flash_read(spi_t* spi, uint32_t addr, uint32_t* dest_buff, uint32_t len) {
     return true;
 }
 
+bool flash_read_non_blocking(spi_t* spi, uint32_t addr, uint32_t* dest_buff, uint32_t len) {
+    // Transaction segments
+    spi_segment_t segments[2] = { SPI_SEG_TX(4), SPI_SEG_RX(len) };
+
+    // TX SPI command to send to flash for read
+    // Flash uses Big Endian, CPU Little Endian, hence swap bytes
+    uint32_t read_byte_cmd = ((bitfield_byteswap32(addr & 0x00ffffff)) | FC_RD);
+
+    PRINTF("\nNon-Blocking Reading %4i Bytes at 0x%08X\n", len, addr);
+    PRINTF("Counter set to 0.\n");
+
+    uint32_t counter = 0;
+    spi_callbacks_t callbacks = {
+        .done_cb  = &done_cb,
+        .error_cb = NULL,
+        .rxwm_cb  = NULL,
+        .txwm_cb  = NULL
+    };
+
+    // Start transaction
+    spi_codes_e error = spi_execute_nb(spi, segments, 2, &read_byte_cmd, dest_buff, callbacks);
+    if (error) {
+        PRINTF("FAILED! Error Code: %i\n", error);
+        return false;
+    }
+
+    while(spi_get_state(spi) == SPI_STATE_BUSY) counter++;
+
+    PRINTF("Counter reached %4i. => Non Blocking\n\n", counter);
+
+    return true;
+}
+
 bool flash_erase_sector(spi_t* spi, uint32_t addr) {
     // Sector start address
     const uint32_t sect_start = addr & 0xfffff000;
@@ -213,7 +240,7 @@ bool flash_erase_sector(spi_t* spi, uint32_t addr) {
     // Flash uses Big Endian, CPU Little Endian, hence swap bytes
     const uint32_t cmd = ((bitfield_byteswap32(sect_start & 0x00ffffff)) | FC_SE);
 
-    PRINTF("Erasing 4096 Bytes at 0x%08X\n", sect_start);
+    PRINTF("Blocking Erasing 4096 Bytes at 0x%08X\n", sect_start);
 
     // Enable write before erase
     if (!flash_write_enable(spi)) return false;
@@ -260,7 +287,7 @@ bool flash_write_sector(spi_t* spi, uint32_t addr, uint32_t* src_buff) {
         }
         curr_addr += PAGE_LEN;
 
-        PRINTF("\rWritten %4i/4096 Bytes at 0x%08X", (i+1) * PAGE_LEN, sect);
+        PRINTF("\rBlocking Written %4i/4096 Bytes at 0x%08X", (i+1) * PAGE_LEN, sect);
 
         // Wait flash finished processing
         flash_wait(spi);
@@ -301,7 +328,7 @@ void flash_wait(spi_t* spi) {
 }
 
 void done_cb(const uint32_t* txbuff, uint32_t txlen, uint32_t* rxbuff, uint32_t rxlen) {
-    PRINTF("DONE %i, %i\n", txlen, rxlen);
+    PRINTF("\x1b[33mTXN DONE CALLBACK with txlen: %i, rxlen: %i\x1b[m\n", txlen, rxlen);
 }
 
 // ========================= THE END =========================

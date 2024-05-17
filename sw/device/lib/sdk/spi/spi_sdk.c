@@ -311,7 +311,7 @@ static volatile spi_peripheral_t peripherals[] = {
         .scnt      = 0,
         .txcnt     = 0,
         .rxcnt     = 0,
-        .callbacks = NULL_CALLBACKS
+        .callbacks = {0}
     },
     (spi_peripheral_t) {
         .instance  = spi_host1,
@@ -322,7 +322,7 @@ static volatile spi_peripheral_t peripherals[] = {
         .scnt      = 0,
         .txcnt     = 0,
         .rxcnt     = 0,
-        .callbacks = NULL_CALLBACKS
+        .callbacks = {0}
     },
     (spi_peripheral_t) {
         .instance  = spi_host2,
@@ -333,7 +333,7 @@ static volatile spi_peripheral_t peripherals[] = {
         .scnt      = 0,
         .txcnt     = 0,
         .rxcnt     = 0,
-        .callbacks = NULL_CALLBACKS
+        .callbacks = {0}
     }
 };
 

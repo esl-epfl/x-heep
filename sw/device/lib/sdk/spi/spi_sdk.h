@@ -50,14 +50,14 @@
 #define SPI_IDX_INVALID(idx) idx > SPI_MAX_IDX
 
 // NOTE: This seems quite useless since most SPI devices are different...
-#define SPI_SLAVE(csid, freq) (spi_slave_t) { \
-    .csid       = csid, \
+#define SPI_SLAVE(cs_id, freq_max) (spi_slave_t) { \
+    .csid       = cs_id, \
     .data_mode  = SPI_DATA_MODE_0, \
     .full_cycle = false, \
-    .csn_lead   = 10, \
-    .csn_trail  = 10, \
-    .csn_idle   = 10, \
-    .freq       = freq \
+    .csn_lead   = 15, \
+    .csn_trail  = 15, \
+    .csn_idle   = 15, \
+    .freq       = freq_max \
 }
 
 /**
