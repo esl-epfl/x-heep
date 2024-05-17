@@ -875,8 +875,8 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events)
             // If there is a callback defined call it
             if (peri->callbacks.done_cb != NULL) 
             {
-                peri->callbacks.done_cb(peri->txn.txbuffer, peri->txn.txlen, 
-                                        peri->txn.rxbuffer, peri->txn.rxlen);
+                peri->callbacks.done_cb(peri->txn.txbuffer, peri->txcnt, 
+                                        peri->txn.rxbuffer, peri->rxcnt);
             }
             // Reset all transaction related variables
             spi_reset_peri(peri);
@@ -890,8 +890,8 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events)
         // If there is a callback defined call it
         if (peri->callbacks.txwm_cb != NULL)
         {
-            peri->callbacks.txwm_cb(peri->txn.txbuffer, peri->txn.txlen, 
-                                    peri->txn.rxbuffer, peri->txn.rxlen);
+            peri->callbacks.txwm_cb(peri->txn.txbuffer, peri->txcnt, 
+                                    peri->txn.rxbuffer, peri->rxcnt);
         }
     }
     if (events & SPI_EVENT_RXWM)
@@ -901,8 +901,8 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events)
         // If there is a callback defined call it
         if (peri->callbacks.rxwm_cb != NULL)
         {
-            peri->callbacks.rxwm_cb(peri->txn.txbuffer, peri->txn.txlen, 
-                                    peri->txn.rxbuffer, peri->txn.rxlen);
+            peri->callbacks.rxwm_cb(peri->txn.txbuffer, peri->txcnt, 
+                                    peri->txn.rxbuffer, peri->rxcnt);
         }
     }
 }
@@ -918,8 +918,8 @@ void spi_error_handler(spi_peripheral_t* peri, spi_error_e error)
     // If there is a callback defined call it
     if (peri->callbacks.error_cb != NULL) 
     {
-        peri->callbacks.error_cb(peri->txn.txbuffer, peri->txn.txlen, 
-                                 peri->txn.rxbuffer, peri->txn.rxlen);
+        peri->callbacks.error_cb(peri->txn.txbuffer, peri->txcnt, 
+                                 peri->txn.rxbuffer, peri->rxcnt);
     }
     // Reset all transaction related variables
     spi_reset_peri(peri);
