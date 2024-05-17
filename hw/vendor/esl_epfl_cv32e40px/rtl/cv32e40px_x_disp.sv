@@ -8,16 +8,16 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
-////////////////////////////////////////////////////////////////////////////////
-// Engineer:       Moritz Imfeld - moimfeld@student.ethz.ch                   //
-//                                                                            //
-// Design Name:    x-interface dispatcher                                     //
-// Project Name:   cv32e40px                                                   //
-// Language:       SystemVerilog                                              //
-//                                                                            //
-// Description:    Dispatcher for sending instructions to the x-interface.    //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+// Engineer:       Moritz Imfeld - moimfeld@ee.ethz.ch                     //
+//                                                                         //
+// Design Name:    x-interface dispatcher                                  //
+// Project Name:   cv32e40px                                               //
+// Language:       SystemVerilog                                           //
+//                                                                         //
+// Description:    Dispatcher for sending instructions to the x-interface. //
+//                                                                         //
+/////////////////////////////////////////////////////////////////////////////
 
 module cv32e40px_x_disp
   import cv32e40px_core_v_xif_pkg::*;
@@ -243,7 +243,7 @@ module cv32e40px_x_disp
     end
   end
 
-  // illegal instruction assertion
+  // illegal instruction assignment
   always_comb begin
     x_illegal_insn_o = 1'b0;
     if (x_issue_valid_o & x_issue_ready_i & ~x_issue_resp_accept_i) begin
