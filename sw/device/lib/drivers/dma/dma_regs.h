@@ -109,50 +109,54 @@ extern "C" {
 #define DMA_DIM_CONFIG_REG_OFFSET 0x34
 #define DMA_DIM_CONFIG_DMA_DIM_BIT 0
 
+// DMA dimensionality inversion selector
+#define DMA_DIM_INV_REG_OFFSET 0x38
+#define DMA_DIM_INV_SEL_BIT 0
+
 // Set the top padding
-#define DMA_PAD_TOP_REG_OFFSET 0x38
+#define DMA_PAD_TOP_REG_OFFSET 0x3c
 #define DMA_PAD_TOP_PAD_MASK 0x3f
 #define DMA_PAD_TOP_PAD_OFFSET 0
 #define DMA_PAD_TOP_PAD_FIELD \
   ((bitfield_field32_t) { .mask = DMA_PAD_TOP_PAD_MASK, .index = DMA_PAD_TOP_PAD_OFFSET })
 
 // Set the bottom padding
-#define DMA_PAD_BOTTOM_REG_OFFSET 0x3c
+#define DMA_PAD_BOTTOM_REG_OFFSET 0x40
 #define DMA_PAD_BOTTOM_PAD_MASK 0x3f
 #define DMA_PAD_BOTTOM_PAD_OFFSET 0
 #define DMA_PAD_BOTTOM_PAD_FIELD \
   ((bitfield_field32_t) { .mask = DMA_PAD_BOTTOM_PAD_MASK, .index = DMA_PAD_BOTTOM_PAD_OFFSET })
 
 // Set the right padding
-#define DMA_PAD_RIGHT_REG_OFFSET 0x40
+#define DMA_PAD_RIGHT_REG_OFFSET 0x44
 #define DMA_PAD_RIGHT_PAD_MASK 0x3f
 #define DMA_PAD_RIGHT_PAD_OFFSET 0
 #define DMA_PAD_RIGHT_PAD_FIELD \
   ((bitfield_field32_t) { .mask = DMA_PAD_RIGHT_PAD_MASK, .index = DMA_PAD_RIGHT_PAD_OFFSET })
 
 // Set the left padding
-#define DMA_PAD_LEFT_REG_OFFSET 0x44
+#define DMA_PAD_LEFT_REG_OFFSET 0x48
 #define DMA_PAD_LEFT_PAD_MASK 0x3f
 #define DMA_PAD_LEFT_PAD_OFFSET 0
 #define DMA_PAD_LEFT_PAD_FIELD \
   ((bitfield_field32_t) { .mask = DMA_PAD_LEFT_PAD_MASK, .index = DMA_PAD_LEFT_PAD_OFFSET })
 
 // Will trigger a every "WINDOW_SIZE" writes
-#define DMA_WINDOW_SIZE_REG_OFFSET 0x48
+#define DMA_WINDOW_SIZE_REG_OFFSET 0x4c
 #define DMA_WINDOW_SIZE_WINDOW_SIZE_MASK 0x1fff
 #define DMA_WINDOW_SIZE_WINDOW_SIZE_OFFSET 0
 #define DMA_WINDOW_SIZE_WINDOW_SIZE_FIELD \
   ((bitfield_field32_t) { .mask = DMA_WINDOW_SIZE_WINDOW_SIZE_MASK, .index = DMA_WINDOW_SIZE_WINDOW_SIZE_OFFSET })
 
 // Number of times the end of the window was reached since the beginning.
-#define DMA_WINDOW_COUNT_REG_OFFSET 0x4c
+#define DMA_WINDOW_COUNT_REG_OFFSET 0x50
 #define DMA_WINDOW_COUNT_WINDOW_COUNT_MASK 0xff
 #define DMA_WINDOW_COUNT_WINDOW_COUNT_OFFSET 0
 #define DMA_WINDOW_COUNT_WINDOW_COUNT_FIELD \
   ((bitfield_field32_t) { .mask = DMA_WINDOW_COUNT_WINDOW_COUNT_MASK, .index = DMA_WINDOW_COUNT_WINDOW_COUNT_OFFSET })
 
 // Interrupt Enable Register
-#define DMA_INTERRUPT_EN_REG_OFFSET 0x50
+#define DMA_INTERRUPT_EN_REG_OFFSET 0x54
 #define DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT 0
 #define DMA_INTERRUPT_EN_WINDOW_DONE_BIT 1
 

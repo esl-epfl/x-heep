@@ -339,6 +339,7 @@ typedef struct
     dma_data_type_t     type;   /*!< The data type to use. One is chosen among
     the targets. */
     dma_trans_mode_t    mode;   /*!< The copy mode to use. */
+    uint8_t                dim_inv; /*!< If the D1 and D2 dimensions are inverted, i.e. perform transposition. */
     uint32_t            win_du;  /*!< The amount of data units every which the
     WINDOW_DONE flag is raised and its corresponding interrupt triggered. It
     can be set to 0 to disable this functionality. */
