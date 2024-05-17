@@ -39,7 +39,8 @@
         },
         dma: {
             offset:  0x00030000,
-            length:  0x00010000,
+            length:  0x00000100,
+            num_channels: 0x2,
             path:    "./hw/ip/dma/data/dma.hjson"
         },
         power_manager: {
