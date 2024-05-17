@@ -109,20 +109,20 @@ else {
 }
 ```
 
-> Note
->
-> A slave with predefined standard values can be created with the macro:
-> ```c
-> #define SPI_SLAVE(csid, freq) (spi_slave_t) { \
->     .csid       = csid, \
->     .data_mode  = SPI_DATA_MODE_0, \
->     .full_cycle = false, \
->     .csn_lead   = 10, \
->     .csn_trail  = 10, \
->     .csn_idle   = 10, \
->     .freq       = freq \
-> }
-> ```
+````{tip}
+A slave with predefined standard values can be created with the macro:
+```c
+#define SPI_SLAVE(csid, freq) (spi_slave_t) { \
+    .csid       = csid, \
+    .data_mode  = SPI_DATA_MODE_0, \
+    .full_cycle = false, \
+    .csn_lead   = 10, \
+    .csn_trail  = 10, \
+    .csn_idle   = 10, \
+    .freq       = freq \
+}
+```
+````
 
 #### Transactions
 
@@ -161,16 +161,20 @@ _DUMMY_ mode refers to a period where the _SPI Host IP_ will send _SCK_ pulses b
 neither read nor send data. The amount of _SCK_ cylces will be determined by the
 `len` field. For example, to send 10 _SCK_ pulses, `len` must be set to 10.
 
-> Note: There is no _Dual_ or _Quad_ speed for the _Bidirectional_ mode. This is
-> because the _SPI Host IP_ doesn't support it.
+```{note}
+There is no _Dual_ or _Quad_ speed for the _Bidirectional_ mode. This is because 
+the _SPI Host IP_ doesn't support it.
+```
 
-> Note: For each segment _mode_ there is also a macro defined, which allows for simple
-> command segment creation.
->
-> The macros are: `SPI_SEG_DUMMY`, `SPI_SEG_TX`, `SPI_SEG_RX`, `SPI_SEG_BIDIR`,
-> `SPI_SEG_TX_DUAL`, `SPI_SEG_RX_DUAL`, `SPI_SEG_TX_QUAD`, and `SPI_SEG_RX_QUAD`
->
-> Each of these macros take one argument which is set to the `len` field.
+```{tip}
+Note: For each segment _mode_ there is also a macro defined, which allows for simple
+command segment creation.
+
+The macros are: `SPI_SEG_DUMMY`, `SPI_SEG_TX`, `SPI_SEG_RX`, `SPI_SEG_BIDIR`,
+`SPI_SEG_TX_DUAL`, `SPI_SEG_RX_DUAL`, `SPI_SEG_TX_QUAD`, and `SPI_SEG_RX_QUAD`
+
+Each of these macros take one argument which is set to the `len` field.
+```
 
 As mentioned before, a transaction comprises various command segments. Therefore,
 in order to execute transactions we have to make an array of segments.
@@ -189,12 +193,11 @@ Therefore, since in our example we used 4 bytes of TX and 256 bytes of RX, we co
 declare the following buffers:
 
 ```c
-uint32_t src_buffer;
-uint32_t dest_buffer[64];
+uint32_t src_buffer      = 0;
+uint32_t dest_buffer[64] = {0};
 ```
 
-**Very Important**:
-
+```{caution}
 We could make segments with lengths that are not multiple of 4 (which is perfectly 
 fine), but the buffers _absolutely_ need to be of a size multiple of 4 bytes. This
 is due to the fact that the SDK handles the write/read to the _SPI Host IP_ TX and
@@ -208,14 +211,14 @@ would have been required to track the alignment of each particular segment with
 respect to the buffer. And since transactions read/write are handled during interrupts
 it seemed a fair trade-off to lose some "useless bytes" in order to gain computational
 speed.
+```
 
 
 Now, once we have our buffers, and our segments ready we can issue the transaction
 by calling the function:
 
 ```c
-spi_codes_e spi_execute(spi_t* spi, const spi_segment_t* segments, uint32_t 
-segments_len, const uint32_t* src_buffer, uint32_t* dest_buffer);
+spi_codes_e spi_execute(spi_t* spi, const spi_segment_t* segments, uint32_t segments_len, const uint32_t* src_buffer, uint32_t* dest_buffer);
 ```
 
 Hence, our complete example for executing a transaction would be:
@@ -224,8 +227,8 @@ Hence, our complete example for executing a transaction would be:
 // Defining the transaction command segments
 spi_segment_t segments[2] = { SPI_SEG_TX(4), SPI_SEG_RX(256) };
 // Initializating the data buffers
-uint32_t src_buffer;
-uint32_t dest_buffer[64];
+uint32_t src_buffer      = 0;
+uint32_t dest_buffer[64] = {0};
 // Executing the transaction
 spi_execute(&spi, segments, 2, &src_buffer, dest_buffer);
 ```
