@@ -10,15 +10,16 @@
 
 #### Initialization
 
-The most important is `spi_t`, which holds all the necessary information to identify 
+The most important structure of the SDK is `spi_t`, which holds all the necessary information to identify 
 an external SPI device. It specifies which _SPI Host IP_ hardware to use and contains 
 all the data related to the external SPI slave.
 
 ```c
 typedef struct {
-    spi_idx_e   idx;
-    bool        init;
-    spi_slave_t slave;
+    spi_idx_e   idx;   // The identifier for the desired SPI devide
+    uint32_t    id;    // spi_t instance ID
+    bool        init;  // Indicates if initialization was successful
+    spi_slave_t slave; // The slave with whom to communicate configuration 
 } spi_t;
 ```
 
@@ -201,6 +202,7 @@ uint32_t dest_buffer[64] = {0};
 
 ```{caution}
 :name: caution-seglen-bufflen
+
 While segments with lengths not multiple of 4 are allowed, buffers **must** be multiples 
 of 4 bytes due to the SDK's handling of write/read operations to the _SPI Host IP_ TX and 
 RX _FIFOs_ one word at a time (and not one byte at a time).
