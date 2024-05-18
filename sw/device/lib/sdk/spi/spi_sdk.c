@@ -63,6 +63,8 @@
 #define DIR_INDEX    0
 #define SPD_INDEX    2
 
+#define TRIGGERING_EVENTS SPI_EVENT_IDLE | SPI_EVENT_READY | SPI_EVENT_TXWM | SPI_EVENT_RXWM
+
 // The standard watermark for all transactions (seems reasonable)
 #define TXWM_DEFAULT (SPI_HOST_PARAM_TX_DEPTH / 4)  // Arbirarily chosen
 #define RXWM_DEFAULT (SPI_HOST_PARAM_RX_DEPTH - 12) // Arbirarily chosen
@@ -153,6 +155,7 @@ typedef struct {
     spi_host_t*       instance;  // Instance of peripheral defined in HAL
     uint8_t           txwm;
     uint8_t           rxwm;
+    uint32_t          last_id;
     spi_state_e       state;     // Current state of device
     spi_transaction_t txn;       // Current transaction being processed
     uint32_t          scnt;      // Counter to track segment to process
@@ -296,6 +299,11 @@ void spi_error_handler(spi_peripheral_t* peri, spi_error_e error);
 /****************************************************************************/
 
 /**
+ * @brief Global SDK spi_t instance counter to assign each instance a different ID.
+ */
+static uint32_t global_id = 0;
+
+/**
  * @brief Static variable representing each SPI peripheral (FLASH, HOST, HOST2)
  *        We can have infinitely many spi_t variables but all reference one of
  *        these spi_peripheral_t. Each variable here holds all the relevant
@@ -306,6 +314,7 @@ static volatile spi_peripheral_t peripherals[] = {
         .instance  = spi_flash,
         .txwm      = TXWM_DEFAULT,
         .rxwm      = RXWM_DEFAULT,
+        .last_id   = 0,
         .state     = SPI_STATE_NONE,
         .txn       = {0},
         .scnt      = 0,
@@ -317,6 +326,7 @@ static volatile spi_peripheral_t peripherals[] = {
         .instance  = spi_host1,
         .txwm      = TXWM_DEFAULT,
         .rxwm      = RXWM_DEFAULT,
+        .last_id   = 0,
         .state     = SPI_STATE_NONE,
         .txn       = {0},
         .scnt      = 0,
@@ -328,6 +338,7 @@ static volatile spi_peripheral_t peripherals[] = {
         .instance  = spi_host2,
         .txwm      = TXWM_DEFAULT,
         .rxwm      = RXWM_DEFAULT,
+        .last_id   = 0,
         .state     = SPI_STATE_NONE,
         .txn       = {0},
         .scnt      = 0,
@@ -348,12 +359,16 @@ spi_t spi_init(spi_idx_e idx, spi_slave_t slave)
     // Make sure all parameters of the slave are valid.
     spi_codes_e error = spi_validate_slave(slave);
     // Check that the SPI peripheral identifier is valid.
-    if (SPI_IDX_INVALID(idx)) error |= SPI_CODE_IDX_INVAL;
+    if (SPI_IDX_INVALID(idx))       error |= SPI_CODE_IDX_INVAL;
+    // Since watermark is set here, not a good idea to allow for initialization.
+    // Anyways not very elegant to initialize while being busy... right?
+    if (SPI_BUSY(peripherals[idx])) error |= SPI_CODE_IS_BUSY;
     if (error)
         return (spi_t) {
-            .idx      = UINT32_MAX,
-            .init     = false,
-            .slave    = (spi_slave_t) {0}
+            .idx   = UINT32_MAX,
+            .id    = 0,
+            .init  = false,
+            .slave = (spi_slave_t) {0}
         };
     // Enable SPI peripheral. We do not check return value since we know here that
     // it will never return an error.
@@ -362,15 +377,19 @@ spi_t spi_init(spi_idx_e idx, spi_slave_t slave)
     // Enable all error interrupts so that the SPI peripheral doesn't get stuck if
     // there is an error. And we don't check return value since we know it's error free.
     spi_set_errors_enabled(peripherals[idx].instance, SPI_ERROR_IRQALL, true);
+    // Set the watermarks for the specific peripheral
+    spi_set_tx_watermark(peripherals[idx].instance, peripherals[idx].txwm);
+    spi_set_rx_watermark(peripherals[idx].instance, peripherals[idx].rxwm);
     // Just set a state so user can see it has been initialized somewhen.
     peripherals[idx].state = SPI_STATE_INIT;
     // Set the true frequency at which the SCK will be for that particular slave
     // so the user can know the real frequency.
     slave.freq = spi_true_slave_freq(slave.freq);
     return (spi_t) {
-        .idx      = idx,
-        .init     = true,
-        .slave    = slave
+        .idx   = idx,
+        .id    = ++global_id,
+        .init  = true,
+        .slave = slave
     };
 }
 
@@ -378,6 +397,7 @@ void spi_deinit(spi_t* spi)
 {
     // Set all values to something that will prevent spi variable to be used.
     spi->idx   = UINT32_MAX;
+    spi->id    = 0;
     spi->init  = false;
     spi->slave = (spi_slave_t) {0};
 }
@@ -388,6 +408,8 @@ spi_codes_e spi_reset(spi_t* spi)
     if (error) return error;
     // Reset the SPI peripheral (at hardware level)
     spi_sw_reset(peripherals[spi->idx].instance);
+    // Reset static peripheral variables
+    spi_reset_peri(&peripherals[spi->idx]);
 
     return SPI_CODE_OK;
 }
@@ -585,8 +607,9 @@ spi_codes_e spi_receive_nb(spi_t* spi, uint32_t* dest_buffer, uint32_t len,
     return SPI_CODE_OK;
 }
 
-spi_codes_e spi_transceive_nb(spi_t* spi, const uint32_t* src_buffer, uint32_t* dest_buffer, 
-                              uint32_t len, spi_callbacks_t callbacks) 
+spi_codes_e spi_transceive_nb(spi_t* spi, const uint32_t* src_buffer, 
+                              uint32_t* dest_buffer, uint32_t len, 
+                              spi_callbacks_t callbacks) 
 {
     // Make validity checks and set the slave at hardware level
     spi_codes_e error = spi_prepare_transfer(spi);
@@ -657,15 +680,6 @@ spi_codes_e spi_validate_slave(spi_slave_t slave)
 
 spi_codes_e spi_set_slave(spi_t* spi) 
 {
-    // If SPI peripheral is executing a transaction don't change the slave configopts!
-    // Otherwise it could cause unexpected behaviour. This is mainly if for whatever
-    // reason the HAL was being used simultaneously with the SDK.
-    // Prior to calling this function we do in fact check that the SPI is not busy,
-    // but if HAL executed a transaction the SDK wouldn't be aware of SPI peripheral's
-    // activity status.
-    if (spi_get_active(peripherals[spi->idx].instance) == SPI_TRISTATE_TRUE) 
-      return SPI_CODE_NOT_IDLE;
-
     // Compute the best clock divider
     uint16_t clk_div = 0;
     if (spi->slave.freq < SYS_FREQ / 2) {
@@ -706,11 +720,18 @@ spi_codes_e spi_prepare_transfer(spi_t* spi)
 
     // If busy don't start a new transaction...
     if (SPI_BUSY(peripherals[spi->idx])) return SPI_CODE_IS_BUSY;
+    // Check also at hardware level if busy, we don't know if maybe there is a
+    // problem somewhere
+    if (spi_get_active(peripherals[spi->idx].instance) == SPI_TRISTATE_TRUE) 
+      return SPI_CODE_NOT_IDLE;
 
-    // Set the slave at start of transaction. This allows to have as many slaves
-    // as we want.
-    error = spi_set_slave(spi);
-    if (error) return error;
+    // If the last spi instance was NOT the same as the current, slave may have
+    // changed, therefore set the "new" slave. Otherwise don't bother.
+    if (spi->id != peripherals[spi->idx].last_id)
+    {
+        error = spi_set_slave(spi);
+        if (error) return error;
+    }
 
     return SPI_CODE_OK;
 }
@@ -801,18 +822,14 @@ void spi_launch(spi_peripheral_t* peri, spi_t* spi, spi_transaction_t txn,
     // Indicate the callbacks that should be called
     peri->callbacks = callbacks;
 
-    // Set the given watermarks
-    spi_set_tx_watermark(peri->instance, peri->txwm);
-    spi_set_rx_watermark(peri->instance, peri->rxwm);
+    // spi_set_tx_watermark(peri->instance, peri->txwm);
+    // spi_set_rx_watermark(peri->instance, peri->rxwm);
 
     // Fill the TX fifo before starting so there is data once command launched
     spi_fill_tx(peri);
 
-    // TODO: Check if this makes sense since if we use SDK, HAL cannot use events
-    spi_set_events_enabled(peri->instance, 
-                           SPI_EVENT_IDLE|SPI_EVENT_READY|SPI_EVENT_TXWM|SPI_EVENT_RXWM, 
-                           true);
     // Enable event interrupts since they are enabled only during a transaction
+    spi_set_events_enabled(peri->instance, TRIGGERING_EVENTS, true);
     spi_enable_evt_intr   (peri->instance, true);
 
     // Wait for the SPI peripheral to be ready before writing a command segment.
@@ -865,7 +882,6 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events)
         else if (events & SPI_EVENT_IDLE) 
         {
             // Disable all event interrupts
-            // TODO: Again check if makes sense since HAL not able to use interrupts
             spi_set_events_enabled(peri->instance, SPI_EVENT_ALL, false);
             spi_enable_evt_intr   (peri->instance, false);
             // Read the last data from the RX fifo
@@ -910,7 +926,6 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events)
 void spi_error_handler(spi_peripheral_t* peri, spi_error_e error) 
 {
     // Disable event interrupts
-    // TODO: Again check if makes sense
     spi_set_events_enabled(peri->instance, SPI_EVENT_ALL, false);
     spi_enable_evt_intr   (peri->instance, false);
     // Set the state to error
@@ -923,6 +938,8 @@ void spi_error_handler(spi_peripheral_t* peri, spi_error_e error)
     }
     // Reset all transaction related variables
     spi_reset_peri(peri);
+    // We have to acknowledge the errors to the hardware
+    spi_acknowledge_errors(peri->instance);
 }
 
 /****************************************************************************/

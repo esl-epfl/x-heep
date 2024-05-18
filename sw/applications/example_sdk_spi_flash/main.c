@@ -214,7 +214,7 @@ bool flash_read_non_blocking(spi_t* spi, uint32_t addr, uint32_t* dest_buff, uin
     uint32_t counter = 0;
     spi_callbacks_t callbacks = {
         .done_cb  = &done_cb,
-        .error_cb = NULL,
+        .error_cb = NULL,//&done_cb,
         .rxwm_cb  = NULL,
         .txwm_cb  = NULL
     };
@@ -227,6 +227,10 @@ bool flash_read_non_blocking(spi_t* spi, uint32_t addr, uint32_t* dest_buff, uin
     }
 
     while(spi_get_state(spi) == SPI_STATE_BUSY) counter++;
+    if (spi_get_state(spi) == SPI_STATE_BUSY) {
+        PRINTF("FAILED! Hardware ERROR !\n");
+        return false;
+    }
 
     PRINTF("Counter reached %4i. => Non Blocking\n\n", counter);
 

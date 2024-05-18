@@ -111,7 +111,7 @@ spi_return_flags_e spi_set_events_enabled(spi_host_t* spi, spi_event_e events, b
 {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
     if (events > SPI_EVENT_ALL) return SPI_FLAG_EVENT_INVALID;
-
+    // Since spi_event_e is mapped to EVENT_ENABLE: | = set, & ~ = clear
     if (enable) SPI_HW(spi)->EVENT_ENABLE |= events;
     else        SPI_HW(spi)->EVENT_ENABLE &= ~events;
 
@@ -129,7 +129,7 @@ spi_return_flags_e spi_set_errors_enabled(spi_host_t* spi, spi_error_e errors, b
 {
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
     if (errors > SPI_ERROR_IRQALL) return SPI_FLAG_ERROR_INVALID;
-
+    // Since spi_error_e is mapped to ERROR_ENABLE: | = set, & ~ = clear
     if (enable) SPI_HW(spi)->ERROR_ENABLE |= errors;
     else        SPI_HW(spi)->ERROR_ENABLE &= ~errors;
 
@@ -143,112 +143,119 @@ spi_return_flags_e spi_get_errors(spi_host_t* spi, spi_error_e* errors)
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_acknowledge_errors(spi_host_t* spi) {
+spi_return_flags_e spi_acknowledge_errors(spi_host_t* spi)
+{
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
-    SPI_HW(spi)->ERROR_STATUS = bitfield_write(SPI_HW(spi)->ERROR_STATUS, SPI_ERROR_ALL, SPI_ERRORS_INDEX, SPI_ERROR_ALL);
-    SPI_HW(spi)->INTR_STATE   = bitfield_write(SPI_HW(spi)->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_ERROR_BIT, 1);
+    // Write a one to each bit in ERROR_STATUS to clear these bits
+    SPI_HW(spi)->ERROR_STATUS = bitfield_write(SPI_HW(spi)->ERROR_STATUS, 
+                                               SPI_ERROR_ALL, SPI_ERRORS_INDEX, 
+                                               SPI_ERROR_ALL);
+    // Write a one to INTR_STATE error bit to clear the error
+    SPI_HW(spi)->INTR_STATE   = bitfield_write(SPI_HW(spi)->INTR_STATE, BIT_MASK_1, 
+                                               SPI_HOST_INTR_STATE_ERROR_BIT, true);
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_write_byte(spi_host_t* spi, uint8_t bdata) {
+spi_return_flags_e spi_enable_error_intr_test(spi_host_t* spi, bool enable)
+{
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
-    if (spi_get_tx_queue_depth(spi) >= SPI_HOST_PARAM_TX_DEPTH) return SPI_FLAG_TX_QUEUE_FULL;
-    SPI_HW(spi)->TXDATA = bdata;
+    SPI_HW(spi)->INTR_TEST = bitfield_write(SPI_HW(spi)->INTR_TEST, BIT_MASK_1, 
+                                            SPI_HOST_INTR_TEST_ERROR_BIT, enable);
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_enable_error_intr_test(spi_host_t* spi, bool enable) {
+spi_return_flags_e spi_enable_evt_intr_test(spi_host_t* spi, bool enable)
+{
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
-    volatile uint32_t intr_enable_reg = SPI_HW(spi)->INTR_TEST;
-    intr_enable_reg = bitfield_write(intr_enable_reg, BIT_MASK_1, SPI_HOST_INTR_TEST_ERROR_BIT, enable);
-    SPI_HW(spi)->INTR_TEST = intr_enable_reg;
+    SPI_HW(spi)->INTR_TEST = bitfield_write(SPI_HW(spi)->INTR_TEST, BIT_MASK_1, 
+                                            SPI_HOST_INTR_TEST_SPI_EVENT_BIT, enable);
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_enable_evt_intr_test(spi_host_t* spi, bool enable) {
+spi_return_flags_e spi_alert_test_fatal_fault_trigger(spi_host_t* spi)
+{
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
-    volatile uint32_t intr_enable_reg = SPI_HW(spi)->INTR_TEST;
-    intr_enable_reg = bitfield_write(intr_enable_reg, BIT_MASK_1, SPI_HOST_INTR_TEST_SPI_EVENT_BIT, enable);
-    SPI_HW(spi)->INTR_TEST = intr_enable_reg;
+    SPI_HW(spi)->ALERT_TEST = bitfield_write(SPI_HW(spi)->ALERT_TEST, BIT_MASK_1, 
+                                             SPI_HOST_ALERT_TEST_FATAL_FAULT_BIT, true);
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_alert_test_fatal_fault_trigger(spi_host_t* spi) {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
-    volatile uint32_t intr_enable_reg = SPI_HW(spi)->ALERT_TEST;
-    intr_enable_reg = bitfield_write(intr_enable_reg, BIT_MASK_1, SPI_HOST_ALERT_TEST_FATAL_FAULT_BIT, true);
-    SPI_HW(spi)->ALERT_TEST = intr_enable_reg;
-    return SPI_FLAG_OK;
-}
-
-volatile uint8_t spi_get_tx_queue_depth(spi_host_t* spi) {
+volatile uint8_t spi_get_tx_queue_depth(spi_host_t* spi)
+{
+    // Returning an impossible value (tx fifo is 76 words long...)
     if (spi == NULL) return UINT8_MAX;
     return spi_get_status(spi)->txqd;
 }
 
-volatile uint8_t spi_get_rx_queue_depth(spi_host_t* spi) {
+volatile uint8_t spi_get_rx_queue_depth(spi_host_t* spi)
+{
+    // Returning an impossible value (rx fifo is 64 words long...)
     if (spi == NULL) return UINT8_MAX;
     return spi_get_status(spi)->rxqd;
 }
 
-volatile uint32_t spi_get_csid(spi_host_t* spi) {
+volatile uint32_t spi_get_csid(spi_host_t* spi)
+{
     if (spi == NULL) return UINT32_MAX;
     return SPI_HW(spi)->CSID;
 }
 
-spi_return_flags_e spi_sw_reset(spi_host_t* spi) {
+spi_return_flags_e spi_sw_reset(spi_host_t* spi)
+{
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
-
     // Assert spi reset bit
-    volatile uint32_t ctrl_reg = SPI_HW(spi)->CONTROL;
-    ctrl_reg = bitfield_write(ctrl_reg, BIT_MASK_1, SPI_HOST_CONTROL_SW_RST_BIT, true);
-    SPI_HW(spi)->CONTROL = ctrl_reg;
+    SPI_HW(spi)->CONTROL = bitfield_write(SPI_HW(spi)->CONTROL, BIT_MASK_1, 
+                                          SPI_HOST_CONTROL_SW_RST_BIT, true);
 
     volatile spi_status_t* status = spi_get_status(spi);
-
     // Wait for spi active and txqd & rxqd both go to 0
     while (status->active || status->txqd || status->rxqd);
-
     // Deassert spi reset bit
-    ctrl_reg = bitfield_write(ctrl_reg, BIT_MASK_1, SPI_HOST_CONTROL_SW_RST_BIT, false);
-    SPI_HW(spi)->CONTROL = ctrl_reg;
-    
+    SPI_HW(spi)->CONTROL = bitfield_write(SPI_HW(spi)->CONTROL, BIT_MASK_1, 
+                                          SPI_HOST_CONTROL_SW_RST_BIT, false);
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_enable(spi_host_t* spi, bool enable) {
+spi_return_flags_e spi_set_enable(spi_host_t* spi, bool enable)
+{
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
-    volatile uint32_t ctrl_reg = SPI_HW(spi)->CONTROL;
-    ctrl_reg = bitfield_write(ctrl_reg, BIT_MASK_1, SPI_HOST_CONTROL_SPIEN_BIT, enable);
-    SPI_HW(spi)->CONTROL = ctrl_reg;
+    SPI_HW(spi)->CONTROL = bitfield_write(SPI_HW(spi)->CONTROL, BIT_MASK_1, 
+                                          SPI_HOST_CONTROL_SPIEN_BIT, enable);
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_tx_watermark(spi_host_t* spi, uint8_t watermark) {
+spi_return_flags_e spi_set_tx_watermark(spi_host_t* spi, uint8_t watermark)
+{
     spi_return_flags_e flags = SPI_FLAG_OK;
-    if (spi == NULL)                    flags |= SPI_FLAG_NULL_PTR;
+    if (spi == NULL) flags |= SPI_FLAG_NULL_PTR;
+    // Check that watermark is not bigger than the fifo size (makes no sense otherwise)
     if (watermark > SPI_HOST_PARAM_TX_DEPTH) flags |= SPI_FLAG_WATERMARK_EXCEEDS;
     if (flags) return flags;
 
-    volatile uint32_t ctrl_reg = SPI_HW(spi)->CONTROL;
-    ctrl_reg = bitfield_write(ctrl_reg, SPI_HOST_CONTROL_TX_WATERMARK_MASK, SPI_HOST_CONTROL_TX_WATERMARK_OFFSET, watermark);
-    SPI_HW(spi)->CONTROL = ctrl_reg;
+    SPI_HW(spi)->CONTROL = bitfield_write(SPI_HW(spi)->CONTROL, 
+                                          SPI_HOST_CONTROL_TX_WATERMARK_MASK, 
+                                          SPI_HOST_CONTROL_TX_WATERMARK_OFFSET, 
+                                          watermark);
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_rx_watermark(spi_host_t* spi, uint8_t watermark) {
+spi_return_flags_e spi_set_rx_watermark(spi_host_t* spi, uint8_t watermark)
+{
     spi_return_flags_e flags = SPI_FLAG_OK;
-    if (spi == NULL)                    flags |= SPI_FLAG_NULL_PTR;
+    if (spi == NULL) flags |= SPI_FLAG_NULL_PTR;
+    // Check that watermark is not bigger than the fifo size (makes no sense otherwise)
     if (watermark > SPI_HOST_PARAM_RX_DEPTH) flags |= SPI_FLAG_WATERMARK_EXCEEDS;
     if (flags) return flags;
 
-    volatile uint32_t ctrl_reg = SPI_HW(spi)->CONTROL;
-    ctrl_reg = bitfield_write(ctrl_reg, SPI_HOST_CONTROL_RX_WATERMARK_MASK, SPI_HOST_CONTROL_RX_WATERMARK_OFFSET, watermark);
-    SPI_HW(spi)->CONTROL = ctrl_reg;
+    SPI_HW(spi)->CONTROL = bitfield_write(SPI_HW(spi)->CONTROL, 
+                                          SPI_HOST_CONTROL_RX_WATERMARK_MASK, 
+                                          SPI_HOST_CONTROL_RX_WATERMARK_OFFSET, 
+                                          watermark);
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_configopts(spi_host_t* spi, uint32_t csid, const uint32_t conf_reg) {
+spi_return_flags_e spi_set_configopts(spi_host_t* spi, uint32_t csid, const uint32_t conf_reg)
+{
     // TODO: check if this could be generalized to more than 2 CSIDs... because right 
     // now not very consistent with spi_set_csid which uses SPI_HOST_PARAM_NUM_C_S
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
@@ -266,7 +273,8 @@ spi_return_flags_e spi_set_configopts(spi_host_t* spi, uint32_t csid, const uint
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_get_configopts(spi_host_t* spi, uint32_t csid, uint32_t* conf_reg) {
+spi_return_flags_e spi_get_configopts(spi_host_t* spi, uint32_t csid, uint32_t* conf_reg)
+{
     // TODO: check if this could be generalized to more than 2 CSIDs... because right 
     // now not very consistent with spi_set_csid which uses SPI_HOST_PARAM_NUM_C_S
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
@@ -284,9 +292,10 @@ spi_return_flags_e spi_get_configopts(spi_host_t* spi, uint32_t csid, uint32_t* 
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_csid(spi_host_t* spi, uint32_t csid) {
+spi_return_flags_e spi_set_csid(spi_host_t* spi, uint32_t csid)
+{
     spi_return_flags_e flags = SPI_FLAG_OK;
-    if (spi == NULL)       flags |= SPI_FLAG_NULL_PTR;
+    if (spi == NULL)            flags |= SPI_FLAG_NULL_PTR;
     if (SPI_CSID_INVALID(csid)) flags |= SPI_FLAG_CSID_INVALID;
     if (flags) return flags;
 
@@ -294,14 +303,19 @@ spi_return_flags_e spi_set_csid(spi_host_t* spi, uint32_t csid) {
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_set_command(spi_host_t* spi, const uint32_t cmd_reg) {
+spi_return_flags_e spi_set_command(spi_host_t* spi, const uint32_t cmd_reg)
+{
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
 
     spi_return_flags_e flags = SPI_FLAG_OK;
-    spi_speed_e speed   = bitfield_read(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, SPI_HOST_COMMAND_SPEED_OFFSET);
-    spi_dir_e direction = bitfield_read(cmd_reg, SPI_HOST_COMMAND_DIRECTION_MASK, SPI_HOST_COMMAND_DIRECTION_OFFSET);
+    spi_speed_e speed   = bitfield_read(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, 
+                                        SPI_HOST_COMMAND_SPEED_OFFSET);
+    spi_dir_e direction = bitfield_read(cmd_reg, SPI_HOST_COMMAND_DIRECTION_MASK, 
+                                        SPI_HOST_COMMAND_DIRECTION_OFFSET);
 
+    // Incompatible speed and direction produces an error
     if (!spi_validate_cmd(direction, speed))     flags |= SPI_FLAG_SPEED_INVALID;
+    // Writing a command while not ready produces an error
     if (spi_get_ready(spi) != SPI_TRISTATE_TRUE) flags |= SPI_FLAG_NOT_READY;
     if (flags) return flags;
 
@@ -309,91 +323,120 @@ spi_return_flags_e spi_set_command(spi_host_t* spi, const uint32_t cmd_reg) {
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_write_word(spi_host_t* spi, uint32_t wdata) {
+spi_return_flags_e spi_write_word(spi_host_t* spi, uint32_t wdata)
+{
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
-    if (spi_get_tx_queue_depth(spi) >= SPI_HOST_PARAM_TX_DEPTH) return SPI_FLAG_TX_QUEUE_FULL;
+    // Check we're not overflowing
+    if (spi_get_tx_queue_depth(spi) >= SPI_HOST_PARAM_TX_DEPTH) 
+        return SPI_FLAG_TX_QUEUE_FULL;
     SPI_HW(spi)->TXDATA = wdata;
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_read_word(spi_host_t* spi, uint32_t* dst) {
+spi_return_flags_e spi_write_byte(spi_host_t* spi, uint8_t bdata)
+{
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    // Check we're not overflowing
+    if (spi_get_tx_queue_depth(spi) >= SPI_HOST_PARAM_TX_DEPTH) 
+        return SPI_FLAG_TX_QUEUE_FULL;
+    SPI_HW(spi)->TXDATA = bdata;
+    return SPI_FLAG_OK;
+}
+
+spi_return_flags_e spi_read_word(spi_host_t* spi, uint32_t* dst)
+{
+    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    // Check we're not underflowing
     if (spi_get_rx_queue_depth(spi) == 0) return SPI_FLAG_RX_QUEUE_EMPTY;
     *dst = SPI_HW(spi)->RXDATA;
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_enable_evt_intr(spi_host_t* spi, bool enable) {
+spi_return_flags_e spi_enable_evt_intr(spi_host_t* spi, bool enable)
+{
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
-    volatile uint32_t intr_enable_reg = SPI_HW(spi)->INTR_ENABLE;
-    intr_enable_reg = bitfield_write(intr_enable_reg, BIT_MASK_1, SPI_HOST_INTR_ENABLE_SPI_EVENT_BIT, enable);
-    SPI_HW(spi)->INTR_ENABLE = intr_enable_reg;
+    SPI_HW(spi)->INTR_ENABLE = bitfield_write(SPI_HW(spi)->INTR_ENABLE, BIT_MASK_1, 
+                                              SPI_HOST_INTR_ENABLE_SPI_EVENT_BIT, 
+                                              enable);
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_enable_error_intr(spi_host_t* spi, bool enable) {
+spi_return_flags_e spi_enable_error_intr(spi_host_t* spi, bool enable)
+{
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
-    volatile uint32_t intr_enable_reg = SPI_HW(spi)->INTR_ENABLE;
-    intr_enable_reg = bitfield_write(intr_enable_reg, BIT_MASK_1, SPI_HOST_INTR_STATE_ERROR_BIT, enable);
-    SPI_HW(spi)->INTR_ENABLE = intr_enable_reg;
+    SPI_HW(spi)->INTR_ENABLE = bitfield_write(SPI_HW(spi)->INTR_ENABLE, BIT_MASK_1, 
+                                              SPI_HOST_INTR_STATE_ERROR_BIT, 
+                                              enable);
     return SPI_FLAG_OK;
 }
 
-spi_return_flags_e spi_output_enable(spi_host_t* spi, bool enable){
+spi_return_flags_e spi_output_enable(spi_host_t* spi, bool enable)
+{
     if (spi == NULL) return SPI_FLAG_NULL_PTR;
-    volatile uint32_t output_enable_reg = SPI_HW(spi)->CONTROL;
-    output_enable_reg = bitfield_write(output_enable_reg, BIT_MASK_1, SPI_HOST_CONTROL_OUTPUT_EN_BIT, enable);
-    SPI_HW(spi)->CONTROL = output_enable_reg;
+    SPI_HW(spi)->CONTROL = bitfield_write(SPI_HW(spi)->CONTROL, BIT_MASK_1, 
+                                          SPI_HOST_CONTROL_OUTPUT_EN_BIT, enable);
     return SPI_FLAG_OK;
 }
 
+// PLIC handles SPI Host 2 interrupts
 void handler_irq_spi(uint32_t id)
 {
     spi_error_e errors;
+    // Get errors and check if error triggered the interrupt
     spi_get_errors(spi_host2, &errors);
     if (errors) {
+        // Call either weak error handler in this module, or user implementation
         spi_intr_handler_error_host2(errors);
-        // TODO: maybe set a flag to enable/disable auto acknowledge
-        spi_acknowledge_errors(spi_host2);
     }
     else {
+        // If it wasn't an error it must have been an event
         spi_event_e events;
+        // We need to acknowledge the event to avoid triggering in loop
         spi_acknowledge_event(spi_host2);
         spi_get_events(spi_host2, &events);
+        // Call either weak event handler in this module, or user implementation
         spi_intr_handler_event_host2(events);
     }
 }
 
+// FIC SPI Host 1 interrupt handler
 void fic_irq_spi(void)
 {
     spi_error_e errors;
+    // Get errors and check if error triggered the interrupt
     spi_get_errors(spi_host1, &errors);
     if (errors) {
+        // Call either weak error handler in this module, or user implementation
         spi_intr_handler_error_host(errors);
-        // TODO: maybe set a flag to enable/disable auto acknowledge
-        spi_acknowledge_errors(spi_host1);
     }
     else {
+        // If it wasn't an error it must have been an event
         spi_event_e events;
+        // We need to acknowledge the event to avoid triggering in loop
         spi_acknowledge_event(spi_host1);
         spi_get_events(spi_host1, &events);
+        // Call either weak event handler in this module, or user implementation
         spi_intr_handler_event_host(events);
     }
 }
 
+// FIC SPI Flash interrupt handler
 void fic_irq_spi_flash(void)
 {
     spi_error_e errors;
+    // Get errors and check if error triggered the interrupt
     spi_get_errors(spi_flash, &errors);
     if (errors) {
+        // Call either weak error handler in this module, or user implementation
         spi_intr_handler_error_flash(errors);
-        // TODO: maybe set a flag to enable/disable auto acknowledge
-        spi_acknowledge_errors(spi_flash);
     }
     else {
+        // If it wasn't an error it must have been an event
         spi_event_e events;
+        // We need to acknowledge the event to avoid triggering in loop
         spi_acknowledge_event(spi_flash);
         spi_get_events(spi_flash, &events);
+        // Call either weak event handler in this module, or user implementation
         spi_intr_handler_event_flash(events);
     }
 }
@@ -429,20 +472,35 @@ __attribute__((weak, optimize("O0"))) void spi_intr_handler_error_host2(spi_erro
 /****************************************************************************/
 
 spi_return_flags_e spi_get_events(spi_host_t* spi, spi_event_e* events) {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    // This function is somewhat a little cheat. Since there is no hardware implementation
+    // telling which event triggered the interrupt, we just read the status register and
+    // map the statuses to their respective event. This allows to pass a pseudo-event
+    // variable to the event handlers.
     volatile spi_status_t* status = spi_get_status(spi);
-    *events = bitfield_write(*events, BIT_MASK_1, SPI_HOST_EVENT_ENABLE_RXFULL_BIT,  status->rxfull);
-    *events = bitfield_write(*events, BIT_MASK_1, SPI_HOST_EVENT_ENABLE_TXEMPTY_BIT, status->txempty);
-    *events = bitfield_write(*events, BIT_MASK_1, SPI_HOST_EVENT_ENABLE_RXWM_BIT,    status->rxwm);
-    *events = bitfield_write(*events, BIT_MASK_1, SPI_HOST_EVENT_ENABLE_TXWM_BIT,    status->txwm);
-    *events = bitfield_write(*events, BIT_MASK_1, SPI_HOST_EVENT_ENABLE_READY_BIT,   status->ready);
-    *events = bitfield_write(*events, BIT_MASK_1, SPI_HOST_EVENT_ENABLE_IDLE_BIT,   ~status->active);
+    // Also, we do not need any NULL check since this function is made to be called
+    // __ONLY__ from `handler_irq_spi`, `fic_irq_spi`, `fic_irq_spi_flash`.
+    // Therefore we know that spi argument will not be NULL.
+    *events = bitfield_write(*events, BIT_MASK_1, 
+                             SPI_HOST_EVENT_ENABLE_RXFULL_BIT,  status->rxfull);
+    *events = bitfield_write(*events, BIT_MASK_1, 
+                             SPI_HOST_EVENT_ENABLE_TXEMPTY_BIT, status->txempty);
+    *events = bitfield_write(*events, BIT_MASK_1, 
+                             SPI_HOST_EVENT_ENABLE_RXWM_BIT,    status->rxwm);
+    *events = bitfield_write(*events, BIT_MASK_1, 
+                             SPI_HOST_EVENT_ENABLE_TXWM_BIT,    status->txwm);
+    *events = bitfield_write(*events, BIT_MASK_1, 
+                             SPI_HOST_EVENT_ENABLE_READY_BIT,   status->ready);
+    *events = bitfield_write(*events, BIT_MASK_1, 
+                             SPI_HOST_EVENT_ENABLE_IDLE_BIT,   ~status->active);
     return SPI_FLAG_OK;
 }
 
 spi_return_flags_e spi_acknowledge_event(spi_host_t* spi) {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
-    SPI_HW(spi)->INTR_STATE = bitfield_write(SPI_HW(spi)->INTR_STATE, BIT_MASK_1, SPI_HOST_INTR_STATE_SPI_EVENT_BIT, true);
+    // We do not need any NULL check since this function is made to be called
+    // __ONLY__ from `handler_irq_spi`, `fic_irq_spi`, `fic_irq_spi_flash`.
+    // Therefore we know that spi argument will not be NULL.
+    SPI_HW(spi)->INTR_STATE = bitfield_write(SPI_HW(spi)->INTR_STATE, BIT_MASK_1, 
+                                             SPI_HOST_INTR_STATE_SPI_EVENT_BIT, true);
     return SPI_FLAG_OK;
 }
 

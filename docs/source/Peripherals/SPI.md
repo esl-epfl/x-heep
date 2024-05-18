@@ -652,3 +652,8 @@ mapped to the `STATUS` register of the _SPI Host_ device.
 
 If `spi_host_t* spi` is `NULL`, this function returns a `NULL` pointer.
 Check for `NULL` before accessing fields.
+
+
+
+
+## Using HAL Together With SDK
