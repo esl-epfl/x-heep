@@ -41,6 +41,7 @@
 * -------------------------------------------------------------------- */
 
 #include "riscv_math.h"
+#include "x_heep_emul.h"
 
 /**   
  * @ingroup groupFilters   
@@ -317,10 +318,10 @@ void riscv_correlate_q15(
         VectInC[1] = b; /*y[srcBLen - 2] */
 
         /* acc0 +=  x[0] * y[0] + x[1] * y[1] */
-        acc0 += dotpv2(VectInA, VectInC);
+        acc0 += x_heep_dotp2(VectInA, VectInC);
 
         /* acc1 +=  x[1] * y[0] + x[2] * y[1] */
-        acc1 += dotpv2(VectInB, VectInC);
+        acc1 += x_heep_dotp2(VectInB, VectInC);
 
         /* Read x[2], x[3], x[4] */
         a = *px;
@@ -332,10 +333,10 @@ void riscv_correlate_q15(
         VectInE[0] = b; /*x3*/
         VectInE[1] = a; /*x4*/
         /* acc2 +=  x[2] * y[0] + x[3] * y[1] */
-        acc2 += dotpv2(VectInD, VectInC);
+        acc2 += x_heep_dotp2(VectInD, VectInC);
 
         /* acc3 +=  x[3] * y[0] + x[4] * y[1] */
-        acc3 += dotpv2(VectInE, VectInC);
+        acc3 += x_heep_dotp2(VectInE, VectInC);
 
         /* Read y[2] and y[3] */
         a = *(py + 2);
@@ -345,10 +346,10 @@ void riscv_correlate_q15(
         py += 4u;
 	
         /* acc0 +=  x[2] * y[2] + x[3] * y[3] */
-        acc0 += dotpv2(VectInD, VectInC);
+        acc0 += x_heep_dotp2(VectInD, VectInC);
 
         /* acc1 +=  x[3] * y[2] + x[4] * y[3] */
-        acc1 += dotpv2(VectInE, VectInC);
+        acc1 += x_heep_dotp2(VectInE, VectInC);
 
         /* Read x[4], x[5], x[6] */
         a = *(px + 2);
@@ -362,10 +363,10 @@ void riscv_correlate_q15(
         px += 4u;
 
         /* acc2 +=  x[4] * y[2] + x[5] * y[3] */
-        acc2 += dotpv2(VectInA, VectInC);
+        acc2 += x_heep_dotp2(VectInA, VectInC);
 
         /* acc3 +=  x[5] * y[2] + x[6] * y[3] */
-        acc3 += dotpv2(VectInB, VectInC);
+        acc3 += x_heep_dotp2(VectInB, VectInC);
 
       } while(--k);
 
@@ -392,10 +393,10 @@ void riscv_correlate_q15(
         px++;
 
         /* Perform the multiply-accumulates */
-        acc0 += dotpv2(VectInA, VectInC);
-        acc1 += dotpv2(VectInB, VectInC);
-        acc2 += dotpv2(VectInB, VectInC);
-        acc3 += dotpv2(VectInD, VectInC);
+        acc0 += x_heep_dotp2(VectInA, VectInC);
+        acc1 += x_heep_dotp2(VectInB, VectInC);
+        acc2 += x_heep_dotp2(VectInB, VectInC);
+        acc3 += x_heep_dotp2(VectInD, VectInC);
       }
 
       if(k == 2u)
@@ -417,10 +418,10 @@ void riscv_correlate_q15(
         px += 2u;
 
         /* Perform the multiply-accumulates */
-        acc0 += dotpv2(VectInA, VectInC);
-        acc1 += dotpv2(VectInB, VectInC);
-        acc2 += dotpv2(VectInE, VectInC);
-        acc3 += dotpv2(VectInD, VectInC);
+        acc0 += x_heep_dotp2(VectInA, VectInC);
+        acc1 += x_heep_dotp2(VectInB, VectInC);
+        acc2 += x_heep_dotp2(VectInE, VectInC);
+        acc3 += x_heep_dotp2(VectInD, VectInC);
       }
 
       if(k == 3u)
@@ -443,10 +444,10 @@ void riscv_correlate_q15(
         VectInD[0] = b; /*x8*/
         VectInD[1] = a; /*x9*/
         /* Perform the multiply-accumulates */
-        acc0 += dotpv2(VectInA, VectInC);
-        acc1 += dotpv2(VectInB, VectInC);
-        acc2 += dotpv2(VectInE, VectInC);
-        acc3 += dotpv2(VectInD, VectInC);
+        acc0 += x_heep_dotp2(VectInA, VectInC);
+        acc1 += x_heep_dotp2(VectInB, VectInC);
+        acc2 += x_heep_dotp2(VectInE, VectInC);
+        acc3 += x_heep_dotp2(VectInD, VectInC);
 
         VectInC[0] = VectInC[1]; 
         VectInC[1] = 0;
@@ -459,10 +460,10 @@ void riscv_correlate_q15(
         px += 3u;
 
         /* Perform the multiply-accumulates */
-        acc0 += dotpv2(VectInB, VectInC);
-        acc1 += dotpv2(VectInD, VectInC);
-        acc2 += dotpv2(VectInD, VectInC);
-        acc3 += dotpv2(VectInE, VectInC);
+        acc0 += x_heep_dotp2(VectInB, VectInC);
+        acc1 += x_heep_dotp2(VectInD, VectInC);
+        acc2 += x_heep_dotp2(VectInD, VectInC);
+        acc3 += x_heep_dotp2(VectInE, VectInC);
       }
 
       /* Store the result in the accumulator in the destination buffer. */

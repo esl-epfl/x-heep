@@ -41,6 +41,7 @@
 * -------------------------------------------------------------------- */
 
 #include "riscv_math.h"
+#include "x_heep_emul.h"
 /**    
  * @ingroup groupFilters    
  */
@@ -133,12 +134,12 @@ void riscv_lms_q15(
       px+=2;
       VectInB = *(shortV*)pb;
       pb+=2;
-      acc += dotpv2(VectInA,VectInB);
+      acc += x_heep_dotp2(VectInA,VectInB);
       VectInA = *(shortV*)px;
       px+=2;
       VectInB = *(shortV*)pb;
       pb+=2;
-      acc += dotpv2(VectInA,VectInB);
+      acc += x_heep_dotp2(VectInA,VectInB);
       /* Decrement the loop counter */
       tapCnt--;
     }
@@ -165,7 +166,7 @@ void riscv_lms_q15(
     acc = (uint32_t) acc_l >> lShift | acc_h << uShift;
 
     /* Converting the result to 1.15 format and saturate the output */
-    acc = clip(acc, -32768,32767);
+    acc = x_heep_clip(acc, 15);
 
     /* Store the result from accumulator into the destination buffer. */
     *pOut++ = (q15_t) acc;
@@ -192,13 +193,13 @@ void riscv_lms_q15(
     while(tapCnt > 0u)
     {
       coef = (q31_t) * pb + (((q31_t) alpha * (*px++)) >> 15);
-      *pb++ = (q15_t) clip((coef), -32768,32767);;
+      *pb++ = (q15_t) x_heep_clip((coef), 15);;
       coef = (q31_t) * pb + (((q31_t) alpha * (*px++)) >> 15);
-      *pb++ = (q15_t) clip((coef), -32768,32767);
+      *pb++ = (q15_t) x_heep_clip((coef), 15);
       coef = (q31_t) * pb + (((q31_t) alpha * (*px++)) >> 15);
-      *pb++ = (q15_t) clip((coef), -32768,32767);
+      *pb++ = (q15_t) x_heep_clip((coef), 15);
       coef = (q31_t) * pb + (((q31_t) alpha * (*px++)) >> 15);
-      *pb++ = (q15_t) clip((coef), -32768,32767);
+      *pb++ = (q15_t) x_heep_clip((coef), 15);
 
       /* Decrement the loop counter */
       tapCnt--;
@@ -211,7 +212,7 @@ void riscv_lms_q15(
     {
       /* Perform the multiply-accumulate */
       coef = (q31_t) * pb + (((q31_t) alpha * (*px++)) >> 15);
-      *pb++ = (q15_t) clip((coef), -32768,32767);
+      *pb++ = (q15_t) x_heep_clip((coef), 15);
 
       /* Decrement the loop counter */
       tapCnt--;

@@ -392,7 +392,7 @@ void riscv_correlate_opt_q7(
     {
 
       /* accumlate the results */
-      acc0 = mac(*pScr1++ , *pScr2++ ,acc0);
+      acc0 = x_heep_macs(acc0,*pScr1++ , *pScr2++);
 
       /* Decrement the loop counter */
       tapCnt--;

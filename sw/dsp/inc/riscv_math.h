@@ -448,7 +448,7 @@ typedef unsigned char  v4u __attribute__((vector_size (4)));
   }
 
 
-/*
+
   static uint32_t riscv_recip_q31(
   q31_t in,
   q31_t * dst,
@@ -469,39 +469,39 @@ typedef unsigned char  v4u __attribute__((vector_size (4)));
       signBits = ((uint32_t) (__CLZ(-in) - 1));
     }
 
-    Convert input sample to 1.31 format 
+    //Convert input sample to 1.31 format 
     in = (in << signBits);
 
-    calculation of index for initial approximated Val 
+    //calculation of index for initial approximated Val 
     index = (uint32_t)(in >> 24);
     index = (index & INDEX_MASK);
-    /* 1.31 with exp 1 
+    /* 1.31 with exp 1 */
     out = pRecipTable[index];
     /* calculation of reciprocal value 
-    /* running approximation for two iterations 
+    /* running approximation for two iterations */
     for (i = 0u; i < 2u; i++)
     {
       tempVal = (uint32_t) (((q63_t) in * out) >> 31);
       tempVal = 0x7FFFFFFFu - tempVal;
       /*      1.31 with exp 1 */
-      /* out = (q31_t) (((q63_t) out * tempVal) >> 30); 
+       out = (q31_t) (((q63_t) out * tempVal) >> 30); 
       uint32_t  x = tempVal;
       uint32_t y  = out;
       uint32_t out1;
-      //out1 = (q31_t)clip_q63_to_q31( ((q63_t)x * y) >> 30);
+      out1 = (q31_t)clip_q63_to_q31( ((q63_t)x * y) >> 30);
       tempo= (q63_t)((uint64_t)x * y) >> 30;
       if(tempo > 2147483647) out1 = 0x7FFFFFFF;
       else if (tempo < -2147483648) out1 = 0x80000000;
       else out1 = tempo & 0x00000000FFFFFFFF;
       out = out1;
     }
-    /* write output 
+    /* write output */
     *dst = out;
 
-    /* return num of signbits of out = 1/in value 
+    /* return num of signbits of out = 1/in value */
     return (signBits + 1u);
   }
-  */
+  
 
 
   /**

@@ -142,7 +142,7 @@ void riscv_fir_lattice_q15(
 
     /* Process fourth sample for first tap */
     fnext4 = (q31_t) ((fcurnt3 * (*pk)) >> 15u) + fcurnt4;
-    fnext4 = clip(fnext4,-32768,32767);
+    fnext4 = x_heep_clip(fnext4,15);
     gnext4 = (q31_t) ((fcurnt4 * (*pk++)) >> 15u) + fcurnt3;
     gnext4 = x_heep_clip(gnext4, 15);
 
@@ -186,7 +186,7 @@ void riscv_fir_lattice_q15(
       /* Process fourth sample for 2nd, 6th .. tap */
       /* fnext4 = fcurnt4 + (*pk) * gnext3; */
       fnext4 = (q31_t) ((gnext3 * (*pk)) >> 15u) + fcurnt4;
-      fnext4 = clip(fnext4,-32768,32767);
+      fnext4 = x_heep_clip(fnext4,15);
 
       /* g1(n) = f0(n) * K1  +  g0(n-1) */
       /* Calculation of state values for next stage */

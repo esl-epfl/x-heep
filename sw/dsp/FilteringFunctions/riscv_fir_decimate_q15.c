@@ -41,7 +41,7 @@
 * -------------------------------------------------------------------- */
 
 #include "riscv_math.h"
-
+#include "x_heep_emul.h"
 /**    
  * @ingroup groupFilters    
  */
@@ -148,8 +148,8 @@ void riscv_fir_decimate_q15(
       VectInB = (shortV*)px1;
       px1+=2;
       /* Perform the multiply-accumulate */
-      acc0 += dotpv2(*VectInA, *VectInC);
-      acc1 += dotpv2(*VectInB, *VectInC);
+      acc0 += x_heep_dotp2(*VectInA, *VectInC);
+      acc1 += x_heep_dotp2(*VectInB, *VectInC);
       /* Read the b[numTaps-3] and b[numTaps-4] coefficient */
       VectInC = (shortV*)pb;
       pb+=2;
@@ -160,8 +160,8 @@ void riscv_fir_decimate_q15(
       VectInB = (shortV*)px1;
       px1+=2;
       /* Perform the multiply-accumulate */
-      acc0 += dotpv2(*VectInA, *VectInC);
-      acc1 += dotpv2(*VectInB, *VectInC);
+      acc0 += x_heep_dotp2(*VectInA, *VectInC);
+      acc1 += x_heep_dotp2(*VectInB, *VectInC);
       /* Decrement the loop counter */
       tapCnt--;
     }
@@ -239,13 +239,13 @@ void riscv_fir_decimate_q15(
       VectInC1 = (shortV*)pb;
       pb+=2;
       /* Perform the multiply-accumulate */
-      sum0 += dotpv2(*VectInA, *VectInC);
+      sum0 += x_heep_dotp2(*VectInA, *VectInC);
 
       /* Read x[n-numTaps-2] and x[n-numTaps-3] sample */
       VectInA = (shortV*)px;
       px+=2;
       /* Perform the multiply-accumulate */
-      sum0 += dotpv2(*VectInA, *VectInC1);
+      sum0 += x_heep_dotp2(*VectInA, *VectInC1);
 
       /* Decrement the loop counter */
       tapCnt--;

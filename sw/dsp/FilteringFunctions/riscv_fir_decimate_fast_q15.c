@@ -41,6 +41,7 @@
 * -------------------------------------------------------------------- */
 
 #include "riscv_math.h"
+#include "x_heep_emul.h"
 
 /**    
  * @ingroup groupFilters    
@@ -151,8 +152,8 @@ void riscv_fir_decimate_fast_q15(
       VectInB = (shortV*)px1;
       px1+=2;
       /* Perform the multiply-accumulate */
-      acc0 = sumdotpv2(*VectInA, *VectInC, acc0);
-      acc1 = sumdotpv2(*VectInB, *VectInC, acc1);
+      acc0 = x_heep_sumdotp2(*VectInA, *VectInC, acc0);
+      acc1 = x_heep_sumdotp2(*VectInB, *VectInC, acc1);
       /* Read the b[numTaps-3] and b[numTaps-4] coefficient */
       VectInC = (shortV*)pb;
       pb+=2;
@@ -162,8 +163,8 @@ void riscv_fir_decimate_fast_q15(
       VectInB = (shortV*)px1;
       px1+=2;
       /* Perform the multiply-accumulate */
-      acc0 = sumdotpv2(*VectInA, *VectInC, acc0);
-      acc1 = sumdotpv2(*VectInB, *VectInC, acc1);
+      acc0 = x_heep_sumdotp2(*VectInA, *VectInC, acc0);
+      acc1 = x_heep_sumdotp2(*VectInB, *VectInC, acc1);
       /* Decrement the loop counter */
       tapCnt--;
     }
@@ -181,8 +182,8 @@ void riscv_fir_decimate_fast_q15(
       x1 = *px1++;
 
       /* Perform the multiply-accumulate */
-      acc0 = mac(x0, c0, acc0);
-      acc1 = mac(x1, c0, acc1);
+      acc0 = x_heep_macs(acc0,x0, c0);
+      acc1 = x_heep_macs(acc1,x1, c0);
       /* Decrement the loop counter */
       tapCnt--;
     }
@@ -193,8 +194,8 @@ void riscv_fir_decimate_fast_q15(
 
     /* Store filter output, smlad returns the values in 2.14 format */
     /* so downsacle by 15 to get output in 1.15 */
-    *pDst++ = (q15_t) (clip((acc0 >> 15), -32768,32767));
-    *pDst++ = (q15_t) (clip((acc1 >> 15), -32768,32767));
+    *pDst++ = (q15_t) (x_heep_clip((acc0 >> 15), 15));
+    *pDst++ = (q15_t) (x_heep_clip((acc1 >> 15), 15));
 
     /* Decrement the loop counter */
     blkCnt--;
@@ -239,12 +240,12 @@ void riscv_fir_decimate_fast_q15(
       VectInC1 = (shortV*)pb;
       pb+=2;
       /* Perform the multiply-accumulate */
-      sum0 = sumdotpv2(*VectInA, *VectInC, sum0);
+      sum0 = x_heep_sumdotp2(*VectInA, *VectInC, sum0);
       /* Read x[n-numTaps-2] and x[n-numTaps-3] sample */
       VectInA = (shortV*)px;
       px+=2;
       /* Perform the multiply-accumulate */
-      sum0 = sumdotpv2(*VectInA, *VectInC1, sum0);
+      sum0 = x_heep_sumdotp2(*VectInA, *VectInC1, sum0);
       /* Decrement the loop counter */
       tapCnt--;
     }
@@ -261,7 +262,7 @@ void riscv_fir_decimate_fast_q15(
       x0 = *px++;
 
       /* Perform the multiply-accumulate */
-      sum0 = mac(x0, c0, sum0);
+      sum0 = x_heep_macs(sum0, x0, c0);
 
       /* Decrement the loop counter */
       tapCnt--;
@@ -273,7 +274,7 @@ void riscv_fir_decimate_fast_q15(
 
     /* Store filter output, smlad returns the values in 2.14 format */
     /* so downsacle by 15 to get output in 1.15 */
-    *pDst++ = (q15_t) (clip((sum0 >> 15), -32768,32767));
+    *pDst++ = (q15_t) (x_heep_clip((sum0 >> 15), 15));
     /* Decrement the loop counter */
     blkCntN3--;
   }

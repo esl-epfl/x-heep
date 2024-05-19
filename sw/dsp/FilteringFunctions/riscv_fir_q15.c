@@ -41,7 +41,7 @@
 * -------------------------------------------------------------------- */
 
 #include "riscv_math.h"
-
+#include "x_heep_emul.h"
 /**       
  * @ingroup groupFilters       
  */
@@ -158,32 +158,32 @@ void riscv_fir_q15(
       VectInC = (shortV*)pb;
       pb+=2;
       /* acc0 +=  b[N] * x[n-N] + b[N-1] * x[n-N-1] */
-      acc0 += dotpv2(*VectInA,*VectInC);
+      acc0 += x_heep_dotp2(*VectInA,*VectInC);
       /* acc1 +=  b[N] * x[n-N-1] + b[N-1] * x[n-N-2] */
-      acc1 += dotpv2(*VectInB,*VectInC);
+      acc1 += x_heep_dotp2(*VectInB,*VectInC);
       /* Read state x[n-N-2], x[n-N-3] */
       VectInD = (shortV*)px1; 
       /* Read state x[n-N-3], x[n-N-4] */
       VectInE = (shortV*)(px1+1u);
       /* acc2 +=  b[N] * x[n-N-2] + b[N-1] * x[n-N-3] */
-      acc2 += dotpv2(*VectInD,*VectInC);
+      acc2 += x_heep_dotp2(*VectInD,*VectInC);
       /* acc3 +=  b[N] * x[n-N-3] + b[N-1] * x[n-N-4] */
-      acc3 += dotpv2(*VectInE,*VectInC);
+      acc3 += x_heep_dotp2(*VectInE,*VectInC);
       /* Read coefficients b[N-2], b[N-3] */
       VectInC = (shortV*)pb;
       pb+=2;
       /* acc0 +=  b[N-2] * x[n-N-2] + b[N-3] * x[n-N-3] */
-      acc0 += dotpv2(*VectInD,*VectInC);
+      acc0 += x_heep_dotp2(*VectInD,*VectInC);
       /* acc1 +=  b[N-2] * x[n-N-3] + b[N-3] * x[n-N-4] */
-      acc1 += dotpv2(*VectInE,*VectInC);
+      acc1 += x_heep_dotp2(*VectInE,*VectInC);
       /* Read state x[n-N-4], x[n-N-5] */
       VectInA = (shortV*)(px1+2u);
       /* Read state x[n-N-5], x[n-N-6] */
       VectInB = (shortV*)(px1+3u);
       /* acc2 +=  b[N-2] * x[n-N-4] + b[N-3] * x[n-N-5] */
-      acc2 += dotpv2(*VectInA,*VectInC);
+      acc2 += x_heep_dotp2(*VectInA,*VectInC);
       /* acc3 +=  b[N-2] * x[n-N-5] + b[N-3] * x[n-N-6] */
-      acc3 += dotpv2(*VectInB,*VectInC);
+      acc3 += x_heep_dotp2(*VectInB,*VectInC);
       px1 += 4u;
 
       tapCnt--;
@@ -202,22 +202,22 @@ void riscv_fir_q15(
       VectInD = (shortV*)px1;
       VectInE = (shortV*)(px1+1u);
       /* Perform the multiply-accumulates */
-      acc0 += dotpv2(*VectInA,*VectInC);
+      acc0 += x_heep_dotp2(*VectInA,*VectInC);
       px1 += 2u;
 
-      acc1 += dotpv2(*VectInB,*VectInC);
-      acc2 += dotpv2(*VectInD,*VectInC);
-      acc3 += dotpv2(*VectInE,*VectInC);
+      acc1 += x_heep_dotp2(*VectInB,*VectInC);
+      acc2 += x_heep_dotp2(*VectInD,*VectInC);
+      acc3 += x_heep_dotp2(*VectInE,*VectInC);
     }
 
     /* The results in the 4 accumulators are in 2.30 format.  Convert to 1.15 with saturation.       
      ** Then store the 4 outputs in the destination buffer. */
    
 
-    *pDst++ = (q15_t) (clip((acc0 >> 15), -32768,32767));
-    *pDst++ = (q15_t) (clip((acc1 >> 15), -32768,32767));
-    *pDst++ = (q15_t) (clip((acc2 >> 15), -32768,32767));
-    *pDst++ = (q15_t) (clip((acc3 >> 15), -32768,32767));
+    *pDst++ = (q15_t) (x_heep_clip((acc0 >> 15), 15));
+    *pDst++ = (q15_t) (x_heep_clip((acc1 >> 15), 15));
+    *pDst++ = (q15_t) (x_heep_clip((acc2 >> 15), 15));
+    *pDst++ = (q15_t) (x_heep_clip((acc3 >> 15), 15));
 
     /* Advance the state pointer by 4 to process the next group of 4 samples */
     pState = pState + 4;
@@ -251,7 +251,7 @@ void riscv_fir_q15(
       pb+=2;
       VectInD = (shortV*)px1;
       px1+=2;
-      acc0 += dotpv2(*VectInA,*VectInC);
+      acc0 += x_heep_dotp2(*VectInA,*VectInC);
       tapCnt--;
     }
     while(tapCnt > 0u);

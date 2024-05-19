@@ -41,6 +41,7 @@
 * -------------------------------------------------------------------- */
 
 #include "riscv_math.h"
+#include "x_heep_emul.h"
 
 /**   
  * @ingroup groupFilters   
@@ -221,7 +222,7 @@ void riscv_correlate_q7(
       VectInC= (charV*)px;
       px+=4;
       py+=4;
-      sum = sumdotpv4(*VectInC, *VectInD, sum);
+      sum = x_heep_sumdotp4(*VectInC, *VectInD, sum);
       /* Decrement the loop counter */
       k--;
     }
@@ -241,7 +242,7 @@ void riscv_correlate_q7(
     }
 
     /* Store the result in the accumulator in the destination buffer. */
-    *pOut = (q7_t) (clip(sum >> 7, -128,127));
+    *pOut = (q7_t) (x_heep_clip(sum >> 7, 7));
     /* Destination pointer is updated according to the address modifier, inc */
     pOut += inc;
 
@@ -355,7 +356,7 @@ void riscv_correlate_q7(
 
         /* acc0 += x[2] * y[2] + x[3] * y[3]  */
 
-        acc0 = sumdotpv4(VectInacc0A, *VectInB, acc0);
+        acc0 = x_heep_sumdotp4(VectInacc0A, *VectInB, acc0);
         /* x[3] and x[4] are packed */
         in1 = (q15_t) x3;
         in2 = (q15_t) x0;
@@ -365,14 +366,14 @@ void riscv_correlate_q7(
 
         /* acc1 += x[3] * y[2] + x[4] * y[3]  */
 
-        acc1 = sumdotpv4(VectInacc1A, *VectInB, acc1);
+        acc1 = x_heep_sumdotp4(VectInacc1A, *VectInB, acc1);
         /* x[4] and x[5] are packed */
         in1 = (q15_t) x0;
         in2 = (q15_t) x1;
         VectInacc2A[2] = in1;
         VectInacc2A[3] = in2;
         /* acc2 += x[4] * y[2] + x[5] * y[3]  */
-        acc2 = sumdotpv4(VectInacc2A, *VectInB, acc2);
+        acc2 = x_heep_sumdotp4(VectInacc2A, *VectInB, acc2);
         /* Read x[6] sample */
         x2 = *px++;
 
@@ -383,7 +384,7 @@ void riscv_correlate_q7(
         VectInacc3A[3] = in2;
 
         /* acc3 += x[5] * y[2] + x[6] * y[3]  */
-        acc3 = sumdotpv4(VectInacc3A, *VectInB, acc3);
+        acc3 = x_heep_sumdotp4(VectInacc3A, *VectInB, acc3);
       } while(--k);
 
       /* If the srcBLen is not a multiple of 4, compute any remaining MACs here.   
@@ -418,17 +419,17 @@ void riscv_correlate_q7(
       }
 
       /* Store the result in the accumulator in the destination buffer. */
-      *pOut = (q7_t) (clip(acc0 >> 7, -128,127));
+      *pOut = (q7_t) (x_heep_clip(acc0 >> 7, 7));
       /* Destination pointer is updated according to the address modifier, inc */
       pOut += inc;
 
-      *pOut = (q7_t) (clip(acc1 >> 7, -128,127));
+      *pOut = (q7_t) (x_heep_clip(acc1 >> 7, 7));
       pOut += inc;
 
-      *pOut = (q7_t) (clip(acc2 >> 7, -128,127));
+      *pOut = (q7_t) (x_heep_clip(acc2 >> 7, 7));
       pOut += inc;
 
-      *pOut = (q7_t) (clip(acc3 >> 7, -128,127));
+      *pOut = (q7_t) (x_heep_clip(acc3 >> 7, 7));
       pOut += inc;
 
 	  count += 4u;
@@ -461,7 +462,7 @@ void riscv_correlate_q7(
       VectInC= (charV*)px;
       px+=4;
       py+=4;
-      sum = sumdotpv4(*VectInC, *VectInD, sum);
+      sum = x_heep_sumdotp4(*VectInC, *VectInD, sum);
         /* Decrement the loop counter */
         k--;
       }
@@ -480,7 +481,7 @@ void riscv_correlate_q7(
       }
 
       /* Store the result in the accumulator in the destination buffer. */
-      *pOut = (q7_t) (clip(sum >> 7, -128,127));
+      *pOut = (q7_t) (x_heep_clip(sum >> 7,7));
       /* Destination pointer is updated according to the address modifier, inc */
       pOut += inc;
 
@@ -519,7 +520,7 @@ void riscv_correlate_q7(
       }
 
       /* Store the result in the accumulator in the destination buffer. */
-      *pOut = (q7_t) (clip(sum >> 7, -128,127));
+      *pOut = (q7_t) (x_heep_clip(sum >> 7, 7));
       /* Destination pointer is updated according to the address modifier, inc */
       pOut += inc;
 
@@ -578,7 +579,7 @@ void riscv_correlate_q7(
       VectInC= (charV*)px;
       px+=4;
       py+=4;
-      sum = sumdotpv4(*VectInC, *VectInD, sum);
+      sum = x_heep_sumdotp4(*VectInC, *VectInD, sum);
       /* Decrement the loop counter */
       k--;
     }
@@ -597,7 +598,7 @@ void riscv_correlate_q7(
     }
 
     /* Store the result in the accumulator in the destination buffer. */
-    *pOut = (q7_t) (clip(sum >> 7, -128,127));
+    *pOut = (q7_t) (x_heep_clip(sum >> 7, 7));
     /* Destination pointer is updated according to the address modifier, inc */
     pOut += inc;
 
