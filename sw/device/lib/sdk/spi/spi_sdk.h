@@ -49,6 +49,9 @@
 #define SPI_MAX_IDX 2
 #define SPI_IDX_INVALID(idx) idx > SPI_MAX_IDX
 
+// Chosen arbitrarily
+#define SPI_CSN_TIMES_DEFAULT 15
+
 /**
  * @brief Macro to create a Slave SPI device with standard parameters.
  */
@@ -56,9 +59,9 @@
     .csid       = cs_id, \
     .data_mode  = SPI_DATA_MODE_0, \
     .full_cycle = false, \
-    .csn_lead   = 15, \
-    .csn_trail  = 15, \
-    .csn_idle   = 15, \
+    .csn_lead   = SPI_CSN_TIMES_DEFAULT, \
+    .csn_trail  = SPI_CSN_TIMES_DEFAULT, \
+    .csn_idle   = SPI_CSN_TIMES_DEFAULT, \
     .freq       = freq_max \
 }
 
@@ -346,18 +349,14 @@ spi_codes_e spi_get_rxwm(spi_t* spi, uint8_t* watermark);
 
 /**
  * @brief Read the SPI current state.
- *  The States:
- *    SPI_STATE_NONE      : SPI device was never initialized (should never happen!)
- *    SPI_STATE_INIT      : SPI device never executed a transaction
- *    SPI_STATE_BUSY      : SPI device is currently processing a transaction
- *    SPI_STATE_DONE      : SPI device has successfully executed a transaction
- *    SPI_STATE_ERROR     : There was an error during transaction
- *    SPI_STATE_ARG_INVAL : The argument passed to this function was not valid
  * 
  * @param spi Pointer to spi_t structure obtained through spi_init call
- * @return SPI_CODE_IDX_INVAL if spi.idx not valid
- * @return SPI_CODE_NOT_INIT  if spi.init false (indicates if spi was initialized)
- * @return SPI_CODE_OK        if success
+ * @return SPI_STATE_NONE      : SPI device was never initialized (should never happen!)
+ * @return SPI_STATE_INIT      : SPI device never executed a transaction
+ * @return SPI_STATE_BUSY      : SPI device is currently processing a transaction
+ * @return SPI_STATE_DONE      : SPI device has successfully executed a transaction
+ * @return SPI_STATE_ERROR     : There was an error during transaction
+ * @return SPI_STATE_ARG_INVAL : The argument passed to this function was not valid
  */
 spi_state_e spi_get_state(spi_t* spi);
 

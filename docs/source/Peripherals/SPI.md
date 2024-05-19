@@ -4,15 +4,57 @@
 :depth: 4
 ```
 
-## Getting Started
+There are three instances of the _SPI Host IP_ in the X-HEEP platform. These will
+be defined throughout the documentation as:
+
+- SPI Host 1
+- SPI Host 2
+- SPI Flash
+
+## Preliminary Definitions
+
+### Transaction
+
+A transaction is defined by one or multiple command segments.
+
+### Command Segment
+
+A command segment is a single instruction provided to the _SPI Host IP_ specifying
+speed, direction and two additional parameters that will be discussed later in this
+documentation.
+
+### SPI Host
+
+SPI Host refers to the particular hardware device for which this SDK and HAL have
+been developed.
+
+SPI Host, SPI Host IP and SPI Host device are used indistinctively throughout this 
+documentation.
+
+### TX and RX
+
+TX refers to transmition related data or operations.
+
+RX refers to reception related data or operations.
+
+### Slave and Target
+
+_Slave_ and _target_ are used indistinctively, and mean the SPI device that 
+responds to the SPI Host.
+
+### Word
+
+A word, when used as a unit of digital information, will always refer to 32 bits
+throughout the entire documentation.
+
+
+## SDK and HAL Usage
 
 ### SDK
 
-#### Initialization
-
-The most important structure of the SDK is `spi_t`, which holds all the necessary information to identify 
-an external SPI device. It specifies which _SPI Host IP_ hardware to use and contains 
-all the data related to the external SPI slave.
+The most important structure of the SDK is `spi_t`, which holds all the necessary 
+information to communicate with an external SPI device. It specifies which _SPI Host IP_ 
+to use and contains all the data related to the external SPI slave.
 
 ```c
 typedef struct {
@@ -26,6 +68,8 @@ typedef struct {
 - `idx` can be `SPI_IDX_FLASH`, `SPI_IDX_HOST` or `SPI_IDX_HOST_2`,
 each referring to a specific _SPI Host IP_.
 
+- `id` is the identifier of the specific `spi_t` instance.
+
 - `init` is a boolean used to verify if the `spi_t` variable is properly initialized.
 
 - `slave` is the structure containing all information about the external SPI slave.
@@ -37,12 +81,21 @@ The `spi_slave_t` structure is defined as:
 
 ```c
 typedef struct {
+    // The Chip Select line where device connected
     uint8_t        csid       : 2;
+    // The data sampling and transmitting mode (polarity and phase)
     spi_datamode_e data_mode  : 2;
+    // If 1 data is sampled a full cycle after shifting data out, instead of half cycle
     bool           full_cycle : 1;
+    // The minimum number of sck half-cycles to hold cs_n high between commands
     uint8_t        csn_idle   : 4;
+    // The number of half sck cycles, CSNTRAIL+1, to leave between last edge of sck 
+    // and the rising edge of cs_n
     uint8_t        csn_trail  : 4;
+    // The number of half sck cycles, CSNLEAD+1, to leave between the falling edge 
+    // of cs_n and the first edge of sck
     uint8_t        csn_lead   : 4;
+    // The maximum frequency in hertz of the slave
     uint32_t       freq       : 32;
 } spi_slave_t;
 ```
@@ -74,6 +127,8 @@ command segment.
 
 - `freq` is the maximum frequency of the external SPI device.
 
+
+#### Initialization
 
 To start using the SDK, you must create an `spi_slave_t` and an `spi_t`. However, 
 the `spi_t` __can't__ be created directly; it must be created through the `spi_init` 
@@ -141,8 +196,8 @@ The command segment structure `spi_segment_t` is as:
 
 ```c
 typedef struct {
-    uint32_t   len  : 24;
-    spi_mode_e mode : 4;
+    uint32_t   len  : 24;  // Length of data in bytes for the particular segment
+    spi_mode_e mode : 4;   // Communication mode (TX, BIDIR, RX_QUAD, ...)
 } spi_segment_t;
 ```
 
@@ -163,7 +218,7 @@ For instance, to send 4 32-bit words, the length would be 16.
 _DUMMY_ mode refers to a period where the _SPI Host IP_ sends _SCK_ pulses without 
 reading or sending any data. The number of _SCK_ pulses is determined by the `len` 
 field. For example, to send 10 _SCK_ pulses, `len` must be set to 10 (seems evident,
-but better safe than sorry).
+but I rather put it explicitly).
 
 ```{note}
 There are no _Dual_ or _Quad_ speeds for _Bidirectional_ mode because the _SPI Host IP_ 
@@ -222,13 +277,15 @@ computational speed at the cost of rendering some minimal bytes useless.
 With the buffers and segments ready, the transaction can be issued using:
 
 ```c
-spi_codes_e spi_execute(spi_t* spi, const spi_segment_t* segments, uint32_t segments_len, const uint32_t* src_buffer, uint32_t* dest_buffer);
+spi_codes_e spi_execute(spi_t* spi, const spi_segment_t* segments, 
+                        uint32_t segments_len, const uint32_t* src_buffer, 
+                        uint32_t* dest_buffer);
 ```
 
 This function returns `SPI_CODE_OK` if the transaction is successfully issued. Otherwise, 
 it returns an error code.
 
-And, fter a transaction has completed, the result can be checked using:
+And, after a transaction has completed, the result can be checked using:
 
 ```c
 spi_state_e spi_get_state(spi_t* spi);
@@ -271,9 +328,10 @@ This method is the most configurable. However, there are simpler methods for com
 transactions:
 
 ```c
-spi_codes_e spi_transmit(spi_t* spi, const uint32_t* src_buffer, uint32_t len);
-spi_codes_e spi_receive(spi_t* spi, uint32_t* dest_buffer, uint32_t len);
-spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer, uint32_t* dest_buffer, uint32_t len);
+spi_codes_e spi_transmit  (spi_t* spi, const uint32_t* src_buffer, uint32_t len);
+spi_codes_e spi_receive   (spi_t* spi, uint32_t* dest_buffer, uint32_t len);
+spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer, 
+                           uint32_t* dest_buffer, uint32_t len);
 ```
 
 ```{caution}
@@ -292,10 +350,19 @@ To allow the main program to continue processing while a transaction executes, e
 transaction function has also a _non-blocking_ variant:
 
 ```c
-spi_codes_e spi_transmit_nb(spi_t* spi, const uint32_t* src_buffer, uint32_t len, spi_callbacks_t callbacks);
-spi_codes_e spi_receive_nb(spi_t* spi, uint32_t* dest_buffer, uint32_t len, spi_callbacks_t callbacks);
-spi_codes_e spi_transceive_nb(spi_t* spi, const uint32_t* src_buffer, uint32_t* dest_buffer, uint32_t len, spi_callbacks_t callbacks);
-spi_codes_e spi_execute_nb(spi_t* spi, const spi_segment_t* segments, uint32_t segments_len, const uint32_t* src_buffer, uint32_t* dest_buffer, spi_callbacks_t callbacks);
+spi_codes_e spi_transmit_nb(spi_t* spi, const uint32_t* src_buffer, uint32_t len,
+                            spi_callbacks_t callbacks);
+
+spi_codes_e spi_receive_nb(spi_t* spi, uint32_t* dest_buffer, uint32_t len, 
+                           spi_callbacks_t callbacks);
+
+spi_codes_e spi_transceive_nb(spi_t* spi, const uint32_t* src_buffer, 
+                              uint32_t* dest_buffer, uint32_t len, 
+                              spi_callbacks_t callbacks);
+
+spi_codes_e spi_execute_nb(spi_t* spi, const spi_segment_t* segments, 
+                           uint32_t segments_len, const uint32_t* src_buffer, 
+                           uint32_t* dest_buffer, spi_callbacks_t callbacks);
 ```
 
 These functions differ in two aspects from their _blocking_ counterpart. First, these 
@@ -385,17 +452,17 @@ and the _RX segment length_ is 45 while _dest\_buffer_ is 48 bytes long.
 For explanation, please refer to [this directive](#caution-seglen-bufflen).
 ```
 
-## Operation
 
 ### HAL
 
 #### Overview
 
-The X-HEEP platform supports three instances of the _SPI Host IP_, defined as:
+The three instances of the _SPI Host IP_ of the X-HEEP platform can be referenced 
+in the HAL with the macros:
 
-- `spi_host1`
-- `spi_host2`
-- `spi_flash`
+- `spi_host1` for _SPI Host 1_.
+- `spi_host2` for _SPI Host 2_.
+- `spi_flash` for _SPI Flash_.
 
 These macros expand to variables of type `spi_host_t*`. They must be passed to any 
 HAL function requiring to reference the specific peripheral.
@@ -409,27 +476,39 @@ the outcome of the operation. Below is the complete list of return flags:
 
 ```c
 typedef enum {
-    SPI_FLAG_OK                 = 0x0000, /*!< Everithing went well */
-    SPI_FLAG_NULL_PTR           = 0x0001, /*!< The SPI variabled passed was a null pointer */
-    SPI_FLAG_WATERMARK_EXCEEDS  = 0x0002, /*!< The Watermark exceeded SPI_HOST_PARAM_TX_DEPTH 
-    or SPI_HOST_PARAM_RX_DEPTH and was therefore not set */
-    SPI_FLAG_CSID_INVALID       = 0x0004, /*!< The CSID was out of the bounds specified in 
-    SPI_HOST_PARAM_NUM_C_S */
-    SPI_FLAG_COMMAND_FULL       = 0x0008, /*!< The CMD FIFO is currently full so couldn't write command */
-    SPI_FLAG_SPEED_INVALID      = 0x0010, /*!< The specified speed is not valid so couldn't write command */
-    SPI_FLAG_TX_QUEUE_FULL      = 0x0020, /*!< The TX Queue is full, thus could not write to TX register */
-    SPI_FLAG_RX_QUEUE_EMPTY     = 0x0040, /*!< The RX Queue is empty, thus could not read from RX register */
-    SPI_FLAG_NOT_READY          = 0x0080, /*!< The SPI is not ready */
-    SPI_FLAG_EVENT_INVALID      = 0x0100, /*!< The event to enable is not a valid event */
-    SPI_FLAG_ERROR_INVALID      = 0x0200  /*!< The error irq to enable is not a valid error irq */
+    // Everithing went well
+    SPI_FLAG_OK                 = 0x0000,
+    // The SPI variabled passed was a null pointer
+    SPI_FLAG_NULL_PTR           = 0x0001,
+    // The Watermark exceeded SPI_HOST_PARAM_TX_DEPTH or SPI_HOST_PARAM_RX_DEPTH 
+    // and was therefore not set
+    SPI_FLAG_WATERMARK_EXCEEDS  = 0x0002,
+    // The CSID was out of the bounds specified inSPI_HOST_PARAM_NUM_C_S 
+    SPI_FLAG_CSID_INVALID       = 0x0004,
+    // The CMD FIFO is currently full so couldn't write command
+    SPI_FLAG_COMMAND_FULL       = 0x0008,
+    // The specified speed is not valid so couldn't write command
+    SPI_FLAG_SPEED_INVALID      = 0x0010,
+    // The TX Queue is full, thus could not write to TX register
+    SPI_FLAG_TX_QUEUE_FULL      = 0x0020,
+    // The RX Queue is empty, thus could not read from RX register
+    SPI_FLAG_RX_QUEUE_EMPTY     = 0x0040,
+    // The SPI is not ready
+    SPI_FLAG_NOT_READY          = 0x0080,
+    // The event to enable is not a valid event
+    SPI_FLAG_EVENT_INVALID      = 0x0100,
+    // The error irq to enable is not a valid error irq
+    SPI_FLAG_ERROR_INVALID      = 0x0200 
 } spi_return_flags_e;
 ```
 
 
 **Note**: All functions in the HAL returning a `spi_return_flags_e` will **always** 
-return `SPI_FLAG_NULL_PTR` when the argument `spi_host_t* spi` is a `NULL` pointer. To 
-avoid repetition, the `SPI_FLAG_NULL_PTR` will be omitted from discussions of function 
-return values.
+return `SPI_FLAG_NULL_PTR` when the argument `spi_host_t* spi` is a `NULL` pointer 
+and `SPI_FLAG_OK` if the operation has suceeded. To avoid repetition, `SPI_FLAG_NULL_PTR` 
+and `SPI_FLAG_OK` will be omitted from discussions of function return values. Only
+`spi_return_flags_e` different from these two will be mentioned. If there is any
+doubt please refer to the functions documentation.
 
 
 #### Target Device Configuration
@@ -443,16 +522,28 @@ _SPI Host IP_.
 
 ```c
 typedef struct spi_configopts_s {
-    uint16_t clkdiv     : 16; // The clock divider to use with a paricular slave
-    uint8_t  csnidle    : 4;  // Indicates the minimum number of sck half-cycles to hold cs_n high between commands
-    uint8_t  csntrail   : 4;  // Indicates the number of half sck cycles, CSNTRAIL+1, to leave between last edge of sck and the rising edge of cs_n
-    uint8_t  csnlead    : 4;  // Indicates the number of half sck cycles, CSNLEAD+1, to leave between the falling edge of cs_n and the first edge of sck
-    bool     __rsvd0    : 1;  // Will be ignored by hardware
-    bool     fullcyc    : 1;  // If 1 data is sampled a full cycle after shifting data out, instead of half cycle
-    bool     cpha       : 1;  // If 0 data lines change on trailing edge and sample done on leading edge, if 1 it is the opposite
-    bool     cpol       : 1;  // If 0 sck is low when idle, and emits high pulses. If 1 sck is high when idle, and emits of low pulses
+    // The clock divider to use with a paricular slave
+    uint16_t clkdiv     : 16;
+    // Indicates the minimum number of sck half-cycles to hold cs_n high between 
+    // commands
+    uint8_t  csnidle    : 4; 
+    // Indicates the number of half sck cycles, CSNTRAIL+1, to leave between last 
+    // edge of sck and the rising edge of cs_n
+    uint8_t  csntrail   : 4;
+    // Indicates the number of half sck cycles, CSNLEAD+1, to leave between the 
+    // falling edge of cs_n and the first edge of sck
+    uint8_t  csnlead    : 4;
+    // Will be ignored by hardware
+    bool     __rsvd0    : 1;
+    // If 1 data is sampled a full cycle after shifting data out, instead of half cycle
+    bool     fullcyc    : 1;
+    // If 0 data lines change on trailing edge and sample done on leading edge, 
+    // if 1 it is the opposite
+    bool     cpha       : 1;
+    // If 0 sck is low when idle, and emits high pulses. If 1 sck is high when idle, 
+    // and emits of low pulses
+    bool     cpol       : 1;
 } spi_configopts_t;
-
 ```
 
 ##### Configuration Functions
@@ -460,7 +551,8 @@ typedef struct spi_configopts_s {
 ```c
 uint32_t spi_create_configopts(const spi_configopts_t configopts);
 
-spi_return_flags_e spi_set_configopts(spi_host_t* spi, uint32_t csid, const uint32_t conf_reg);
+spi_return_flags_e spi_set_configopts(spi_host_t* spi, uint32_t csid, 
+                                      const uint32_t conf_reg);
 ```
 
 ##### Configuration Steps
@@ -476,7 +568,7 @@ ID (`csid`), and the configuration word.
 1. **Verify Configuration**: Ensure the function returns `SPI_FLAG_OK` to confirm 
 successful configuration.
 
-The configuration options persist until overwritten or the _SPI Host IP_ device is reset.
+The configuration options persist until overwritten or the _SPI Host IP_ is reset.
 
 
 #### Enabling the SPI Host
@@ -506,10 +598,15 @@ _SPI Host IP_. Each command instructs the _SPI Host IP_ to execute a transfer
 
 ```c
 typedef struct spi_command_s {
-    uint32_t    len         : 24; // Length-1 in bytes for the command to transmit/receive
-    bool        csaat       : 1;  // Keep CS line active after command has finished (allows to instruct series of commands)
-    spi_speed_e speed       : 2;  // Speed of communication
-    spi_dir_e   direction   : 2;  // Direction of communication
+    // Length-1 in bytes for the command to transmit/receive
+    uint32_t    len         : 24;
+    // Keep CS line active after command has finished (allows to instruct series 
+    // of commands)
+    bool        csaat       : 1;
+    // Speed of communication
+    spi_speed_e speed       : 2;
+    // Direction of communication
+    spi_dir_e   direction   : 2;
 } spi_command_t;
 ```
 
@@ -537,8 +634,7 @@ spi_return_flags_e spi_set_csid(spi_host_t* spi, uint32_t csid);
 
 - `csid`: _Chip Select_ line (0 or 1).
 
-This function returns `SPI_FLAG_CSID_INVALID` if the `csid` is out of range, or 
-`SPI_FLAG_OK` if set correctly.
+This function returns `SPI_FLAG_CSID_INVALID` if the `csid` is out of range.
 
 
 ##### Loading TX FIFO
@@ -562,7 +658,7 @@ full or `SPI_FLAG_OK` if the data has been loaded into the _FIFO_.
 
 ##### Verifying Readiness
 
-Ensure the SPI Host IP is ready to receive commands:
+Ensure the _SPI Host IP_ is ready to receive commands:
 
 ```c
 spi_tristate_e spi_get_ready(spi_host_t* spi);
@@ -590,7 +686,7 @@ Issue commands by following these steps:
 1. **Create Command Word**: Call `spi_create_command` with the command structure.
 1. **Send Command**: Call `spi_set_command` with the generated command word.
 1. **Check for Errors**: `spi_set_command` returns `SPI_FLAG_SPEED_INVALID` for 
-invalid speed, `SPI_FLAG_NOT_READY` if not ready, or `SPI_FLAG_OK` if successful.
+invalid speed or `SPI_FLAG_NOT_READY` if not ready.
 
 
 ##### Reading Received Data
@@ -629,21 +725,36 @@ are provided:
 
 ```c
 typedef struct spi_status_s {
-    uint8_t txqd        : 8;  // TX queue depth (how many unsent words are in the FIFO)
-    uint8_t rxqd        : 8;  // RX queue depth (how many unread words are in the FIFO)
-    uint8_t cmdqd       : 4;  // CMD queue depth (how many unprocessed commands are in the FIFO)
-    bool    rxwm        : 1;  // Indicates wether rxqd is above the RX Watermark
-    bool    __rsvd0     : 1;  // Not used
-    bool    byteorder   : 1;  // The endianness of the SPI Peripheral
-    bool    rxstall     : 1;  // Indicates if the SPI still still has more data to read but the RX FIFO is full
-    bool    rxempty     : 1;  // Indicates RX FIFO is empty
-    bool    rxfull      : 1;  // Indicates RX FIFO is full
-    bool    txwm        : 1;  // Indicates wether txqd is below the TX Watermark
-    bool    txstall     : 1;  // Indicates if the SPI still has more data to send but the TX FIFO is empty
-    bool    txempty     : 1;  // Indicates TX FIFO is empty
-    bool    txfull      : 1;  // Indicates TX FIFO is full
-    bool    active      : 1;  // Indicates if the SPI peripheral is currently processing a command
-    bool    ready       : 1;  // Indicates if the SPI peripheral is ready to receive more commands
+    // TX queue depth (how many unsent words are in the FIFO)
+    uint8_t txqd        : 8;
+    // RX queue depth (how many unread words are in the FIFO)
+    uint8_t rxqd        : 8;
+    // CMD queue depth (how many unprocessed commands are in the FIFO)
+    uint8_t cmdqd       : 4;
+    // Indicates wether rxqd is above the RX Watermark
+    bool    rxwm        : 1;
+    // Not used
+    bool    __rsvd0     : 1;
+    // The endianness of the SPI Peripheral
+    bool    byteorder   : 1;
+    // Indicates if the SPI still still has more data to read but the RX FIFO is full
+    bool    rxstall     : 1;
+    // Indicates RX FIFO is empty
+    bool    rxempty     : 1;
+    // Indicates RX FIFO is full
+    bool    rxfull      : 1;
+    // Indicates wether txqd is below the TX Watermark
+    bool    txwm        : 1;
+    // Indicates if the SPI still has more data to send but the TX FIFO is empty
+    bool    txstall     : 1;
+    // Indicates TX FIFO is empty
+    bool    txempty     : 1;
+    // Indicates TX FIFO is full
+    bool    txfull      : 1;
+    // Indicates if the SPI peripheral is currently processing a command
+    bool    active      : 1;
+    // Indicates if the SPI peripheral is ready to receive more commands
+    bool    ready       : 1;
 } spi_status_t;
 
 const volatile spi_status_t* spi_get_status(spi_host_t* spi);
@@ -656,6 +767,228 @@ If `spi_host_t* spi` is `NULL`, this function returns a `NULL` pointer.
 Check for `NULL` before accessing fields.
 
 
+#### Interrupts
+
+##### Overview of Interrupts
+
+The SPI Host features two types of interrupts:
+
+- **Error Interrupts**: Triggered by specific error conditions.
+- **Event Interrupts**: Triggered by specific event conditions.
+
+To manage these interrupts, you can select which conditions trigger them and 
+then check the specific error/event in the interrupt handler.
+
+##### Interrupt Handling
+
+To use interrupts, first implement the _non-weak_ functions of the _weak_ functions 
+defined in the HAL. Each _SPI Host IP_ instance has its own _weak_ error handling 
+and event handling functions:
+
+For error interrupts:
+
+```c
+void spi_intr_handler_error_host(spi_error_e errors);   // For SPI Host 1
+void spi_intr_handler_error_host2(spi_error_e errors);  // For SPI Host 2
+void spi_intr_handler_error_flash(spi_error_e errors);  // For SPI Flash
+```
+
+For event interrupts:
+
+```c
+void spi_intr_handler_event_host(spi_event_e events);   // For SPI Host 1
+void spi_intr_handler_event_host2(spi_event_e events);  // For SPI Host 2
+void spi_intr_handler_event_flash(spi_event_e events);  // For SPI Flash
+```
+
+These handlers receive an `enum` value indicating the specific error or event 
+condition that triggered the interrupt.
+
+For error interrupts:
+
+```c
+typedef enum {
+    SPI_ERROR_NONE          = 0,
+    // Triggers error interrupt whenever a command is issued while busy.
+    SPI_ERROR_CMDBUSY       = (1 << SPI_HOST_ERROR_ENABLE_CMDBUSY_BIT),
+    // Triggers error interrupt whenever the TX FIFO overflows.
+    SPI_ERROR_OVERFLOW      = (1 << SPI_HOST_ERROR_ENABLE_OVERFLOW_BIT),
+    // Triggers error interrupt whenever there is a read from RXDATA but the RX 
+    // FIFO is empty. 
+    SPI_ERROR_UNDERFLOW     = (1 << SPI_HOST_ERROR_ENABLE_UNDERFLOW_BIT),
+    // Triggers error interrupt whenever a command is sent with invalid values for 
+    // COMMAND.SPEED or COMMAND.DIRECTION.
+    SPI_ERROR_CMDINVAL      = (1 << SPI_HOST_ERROR_ENABLE_CMDINVAL_BIT),
+    // Triggers error interrupt whenever a command is submitted, but CSID exceeds 
+    // NumCS.
+    SPI_ERROR_CSIDINVAL     = (1 << SPI_HOST_ERROR_ENABLE_CSIDINVAL_BIT),
+    // INDICATES that TLUL attempted to write to TXDATA with no bytes enabled.
+    // This error cannot be set (enabled or disabled).
+    // This error should never happen since it is the hardware that controls this.
+    SPI_ERROR_ACCESSINVAL   = (1 << SPI_HOST_ERROR_STATUS_ACCESSINVAL_BIT),
+    // All the above mentioned errors that can be set.
+    SPI_ERROR_IRQALL        = (1 << SPI_HOST_ERROR_ENABLE_CSIDINVAL_BIT+1) - 1,
+    // All the above mentioned errors.
+    SPI_ERROR_ALL           = (1 << SPI_HOST_ERROR_STATUS_ACCESSINVAL_BIT+1) - 1
+} spi_error_e;
+```
+
+For event interrupts:
+
+```c
+typedef enum {
+    SPI_EVENT_NONE      = 0,
+    // Triggers event when RX becomes full
+    SPI_EVENT_RXFULL    = (1 << SPI_HOST_EVENT_ENABLE_RXFULL_BIT),
+    // Triggers event when TX becomes empty
+    SPI_EVENT_TXEMPTY   = (1 << SPI_HOST_EVENT_ENABLE_TXEMPTY_BIT),
+    // Triggers event when RX goes above watermark
+    SPI_EVENT_RXWM      = (1 << SPI_HOST_EVENT_ENABLE_RXWM_BIT),
+    // Triggers event when TX falls below watermark
+    SPI_EVENT_TXWM      = (1 << SPI_HOST_EVENT_ENABLE_TXWM_BIT),
+    // Triggers event as soon as SPI Host IP is ready to receive more commands
+    SPI_EVENT_READY     = (1 << SPI_HOST_EVENT_ENABLE_READY_BIT),
+    // Triggers event as soon as SPI Host IP is not processing any command
+    SPI_EVENT_IDLE      = (1 << SPI_HOST_EVENT_ENABLE_IDLE_BIT),
+    // All the above mentioned events
+    SPI_EVENT_ALL       = (1 << SPI_HOST_EVENT_ENABLE_IDLE_BIT+1) - 1
+} spi_event_e;
+```
+
+```{attention}
+The `spi_event_e events` passed to the event handler does not represent the event 
+that _triggered_ the interrupt. Since the _SPI Host IP_ has no manner of determining
+the specific event that triggered the interrupt, the implemented workaround consists
+in reading the `STATUS` register to map the corresponding status to the related 
+event. Therefore, the `events` variable received by the handler functions is 
+actually the statuses mapped to `spi_event_e`.
+```
+
+###### Interrupt Acknowledgment
+
+After handling an interrupt, it must be acknowledged to the _SPI Host_.
+
+For event interrupts, the HAL handles acknowledgment automatically.
+
+For error interrupts, the user must acknowledge the error once resolved. The 
+_SPI Host_ will remain idle until the error is acknowledged. Use the following 
+function to acknowledge errors:
+
+```c
+spi_return_flags_e spi_acknowledge_errors(spi_host_t* spi);
+```
+
+##### Enabling Interrupts
+
+To enable or disable interrupts, use the following functions:
+
+```c
+// For Error Interrupts
+spi_return_flags_e spi_enable_error_intr(spi_host_t* spi, bool enable);
+
+// For Event Interrupts
+spi_return_flags_e spi_enable_evt_intr(spi_host_t* spi, bool enable);
+```
+
+These functions enable/disable the interrupts but do not specify the conditions 
+that trigger them. To set the conditions, use these functions:
+
+```c
+// For Error Conditions
+spi_return_flags_e spi_set_errors_enabled(spi_host_t* spi, spi_error_e errors, bool enable);
+
+// For Event Conditions
+spi_return_flags_e spi_set_events_enabled(spi_host_t* spi, spi_event_e events, bool enable);
+```
+
+- `spi_set_errors_enabled` returns `SPI_FLAG_ERROR_INVALID` if the provided `errors` 
+are not valid (note that `SPI_ERROR_ACCESSINVAL` and `SPI_ERROR_ALL` are
+**not valid**).
+
+- `spi_set_events_enabled` returns `SPI_FLAG_EVENT_INVALID` if the provided `events` 
+are not valid.
+
+When setting an error or event condition, the other conditions remain unaffected. 
+For instance, if `SPI_EVENT_RXWM` and `SPI_EVENT_TXWM` are enabled and you call 
+`spi_set_events_enabled` to enable `SPI_EVENT_IDLE`, both `SPI_EVENT_RXWM` and 
+`SPI_EVENT_TXWM` will remain enabled.
+
+```{tip}
+It is possible to enable/disable multiple `events` or `errors` simultaneously by 
+OR-ing the different `spi_error_e` or `spi_event_e` values.
+```
+
 
 
 ## Using HAL Together With SDK
+
+While it is possible to use the HAL together with the SDK, there are important 
+considerations to be aware of. Consistency is key: do not mix SDK usage with HAL 
+usage within the same context. If you need to use both, clearly separate the 
+contexts in which each is used.
+
+### Interrupt Handling
+
+### Event and Error Interrupts
+
+Since the SDK already implements the weak interrupt handlers of the HAL, it is 
+not possible to redefine handlers. This means that it is not possible to use any 
+interrupt from the HAL when using the SDK.
+
+Because the SDK uses interrupts to operate, it is **crucial not to change any 
+interrupt triggering configuration**. In any case, it would be pointless to modify 
+it since there is no way to use the interrupts.
+
+### Configuration Management
+
+#### Watermarks
+
+It is possible to modify the TX and RX watermarks using the HAL, but they will 
+not be implicitly reset by the SDK. Hence, if you modify any watermarks, they 
+should be reset if you want to use different watermarks when using the SDK.
+
+The SDK also provides functions to modify the watermarks. If setting the watermarks 
+for SDK usage, it is advised to set them with the SDK's functions rather than with 
+the HAL's functions because the SDK will also internally keep an instance of these 
+watermarks.
+
+#### Slave Configuration Options
+
+It is possible to change the configuration options for a particular _CSID_ using 
+the HAL, but, subsequently, the SDK will not reset the configuration if the same 
+SDK `spi_t` instance was used in the previous SDK transaction.
+
+For example, if you execute a transaction with an `spi_t` instance and then use HAL 
+functions to change the configuration options of the same _CSID_, the SDK will not 
+reset these options in subsequent transactions with the same `spi_t` instance. 
+Therefore, it is important to maintain consistency with configuration changes.
+
+### Transaction Management
+
+#### SPI Host Activeness
+
+Since the tracking of busyness by the SDK is managed internally, the `spi_get_state` 
+function of the SDK will not return `SPI_STATE_BUSY` if the _SPI Host IP_ is 
+processing a transaction that was executed through HAL functions.
+
+It is, anyway, impossible to issue transactions through SDK functions while the _SPI 
+Host IP_ is processing a transaction (whether issued by HAL or SDK), but it would 
+be useless to check the state of the device using the `spi_get_state` function of 
+the SDK.
+
+### Summary of Key Points
+
+- **Consistency**: Do not mix SDK and HAL usage in the same context. Clearly 
+separate their usage.
+
+- **Interrupts**: Do not alter interrupt triggering conditions; SDK relies on 
+its interrupt handlers.
+
+- **Watermarks**: Use SDK functions to modify watermarks when using SDK to 
+maintain consistency.
+
+- **Configuration**: Be consistent with configuration changes, especially when 
+switching between HAL and SDK.
+
+- **Activeness**: The `spi_get_state` function of the SDK will not reflect 
+transactions initiated by HAL functions.
