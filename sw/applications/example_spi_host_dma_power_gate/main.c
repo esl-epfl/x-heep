@@ -47,7 +47,7 @@
 volatile int8_t dma_intr_flag;
 int8_t core_sleep_flag;
 // spi_host_t spi_host;
-spi_host_t spi_peri;
+spi_host_t* spi_peri;
 
 static power_manager_t power_manager;
 
@@ -101,10 +101,10 @@ int main(int argc, char *argv[])
 
     #ifndef USE_SPI_FLASH
         // spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
-        spi_peri = spi_init_host();
+        spi_peri = spi_host1;
     #else
         // spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
-        spi_peri = spi_init_flash();
+        spi_peri = spi_flash;
     #endif
 
     // Setup power_manager
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
     spi_output_enable(spi_peri, true);
 
     // SPI and SPI_FLASH are the same IP so same register map
-    uint32_t *fifo_ptr_rx = spi_peri.base_addr + SPI_HOST_RXDATA_REG_OFFSET;
+    uint32_t *fifo_ptr_rx = (uintptr_t)spi_peri + SPI_HOST_RXDATA_REG_OFFSET;
 
     core_sleep_flag = 0;
 
