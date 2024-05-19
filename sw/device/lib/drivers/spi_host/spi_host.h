@@ -567,7 +567,7 @@ spi_return_flags_e spi_output_enable(spi_host_t* spi, bool enable);
 static inline __attribute__((always_inline)) 
 bool spi_validate_cmd(uint8_t direction, uint8_t speed)
 {
-    if (speed > SPI_SPEED_QUAD || 
+    if (speed > SPI_SPEED_QUAD || direction > SPI_DIR_BIDIR || 
        (direction == SPI_DIR_BIDIR && speed != SPI_SPEED_STANDARD))
         return false;
     else 
