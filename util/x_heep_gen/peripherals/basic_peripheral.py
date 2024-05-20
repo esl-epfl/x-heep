@@ -32,11 +32,14 @@ class BasicPeripheral:
         self._offset: Optional[int] = offset
         self._addr_size: Optional[int] = addr_size
 
-        self._ip_block: IpBlock|None = None
+        self._ip_block: Optional[IpBlock] = None
+        self._ip_block_path: Optional[str] = None
 
         self.io_local_idx: Optional[int] = None
 
         self.interrupt_dest: Union[str, Dict[str, str]] = "plic"
+        self.interrupt_handler: Dict[str, str] = dict()
+        self.interrupt_handler_base: Dict[str, str] = dict()
 
     
     @property
@@ -45,7 +48,9 @@ class BasicPeripheral:
     
     @property
     def full_name(self) -> str:
-        return f"{self._domain}_{self._name}_{self._sp_name_suffix}"
+        if self._sp_name_suffix is not None and self._sp_name_suffix != "":
+            return f"{self._name}_{self._sp_name_suffix}"
+        return self.name
     
     @name.setter
     def name(self, value: "str|None"):
@@ -97,7 +102,7 @@ class BasicPeripheral:
         return n + 1
 
     def _intr_sig_name(self, sig: reggen.signal.Signal) -> str:
-        return f"{self.name}_{self._sp_name_suffix}_{sig.name}_intr_o"
+        return f"{self.name}_{self._sp_name_suffix}_{sig.name}_intr"
     
     def _io_sig_name(self, sig: List[dict]) -> str:
         return f"{self.name}{self._sp_name_suffix}_{sig['name']}"
@@ -115,11 +120,19 @@ class BasicPeripheral:
             else:
                 raise NotImplementedError()
             
+            handler_suffix = ""
+            if sig.name in self.interrupt_handler:
+                handler_suffix = f"{self.interrupt_handler[sig.name]}"
+            
+            handler_name = self.full_name
+            if sig.name in self.interrupt_handler_base:
+                handler_name = f"{self.interrupt_handler_base[sig.name]}"
+
             EP = None
             if intr_dest == "fast":
-                EP = InterruptEP()
+                EP = InterruptEP(handler=f"fic_irq_{handler_name}{handler_suffix}")
             elif intr_dest == "plic":
-                EP = InterruptPlicEP()
+                EP = InterruptPlicEP(handler=f"handler_irq_{handler_name}{handler_suffix}")
             else:
                 raise NotImplementedError(f"interrupt destination {self.interrupt_dest} is not implemented")
             
@@ -279,8 +292,21 @@ class BasicPeripheral:
     def get_offset(self) -> Optional[int]:
         return self._offset
     
+    def get_offset_checked(self) -> int:
+        if type(self._offset) is not int:
+            raise RuntimeError("checked failed offset is not set properly")
+        return self._offset
+    
     def get_address_length(self) -> Optional[int]:
+        return self._addr_size
+    
+    def get_address_length_checked(self) -> int:
+        if type(self._addr_size) is not int:
+            raise RuntimeError("checked failed address size is not set properly")
         return self._addr_size
 
     def set_offset(self, offset: int):
         self._offset = offset
+
+    def get_ip_path(self) -> Optional[str]:
+        return self._ip_block_path

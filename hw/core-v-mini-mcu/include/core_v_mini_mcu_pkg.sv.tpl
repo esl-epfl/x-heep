@@ -48,7 +48,7 @@ package core_v_mini_mcu_pkg;
   //must be power of two
   localparam int unsigned MEM_SIZE = 32'h${f'{xheep.ram_size_address():08X}'};
 
-  localparam SYSTEM_XBAR_NSLAVE = ${xheep.ram_numbanks() + 5};
+  localparam SYSTEM_XBAR_NSLAVE = ${xheep.ram_numbanks() + 3 + xheep.num_peripheral_domains()};
 
   localparam int unsigned LOG_SYSTEM_XBAR_NMASTER = SYSTEM_XBAR_NMASTER > 1 ? $clog2(SYSTEM_XBAR_NMASTER) : 32'd1;
   localparam int unsigned LOG_SYSTEM_XBAR_NSLAVE = SYSTEM_XBAR_NSLAVE > 1 ? $clog2(SYSTEM_XBAR_NSLAVE) : 32'd1;
@@ -81,20 +81,17 @@ package core_v_mini_mcu_pkg;
   localparam logic[31:0] DEBUG_END_ADDRESS = DEBUG_START_ADDRESS + DEBUG_SIZE;
   localparam logic[31:0] DEBUG_IDX = 32'd${xheep.ram_numbanks() + 1};
 
-  localparam logic[31:0] AO_PERIPHERAL_START_ADDRESS = 32'h${ao_peripheral_start_address};
-  localparam logic[31:0] AO_PERIPHERAL_SIZE = 32'h${ao_peripheral_size_address};
-  localparam logic[31:0] AO_PERIPHERAL_END_ADDRESS = AO_PERIPHERAL_START_ADDRESS + AO_PERIPHERAL_SIZE;
-  localparam logic[31:0] AO_PERIPHERAL_IDX = 32'd${xheep.ram_numbanks() + 2};
+% for i, domain in enumerate(xheep.iter_peripheral_domains()):
+  localparam logic[31:0] ${domain.get_name().upper()}_START_ADDRESS = 32'h${f"{domain.get_address():08X}"};
+  localparam logic[31:0] ${domain.get_name().upper()}_SIZE = 32'h${f"{domain.get_address_length():08X}"};
+  localparam logic[31:0] ${domain.get_name().upper()}_END_ADDRESS = ${domain.get_name().upper()}_START_ADDRESS + ${domain.get_name().upper()}_SIZE;
+  localparam logic[31:0] ${domain.get_name().upper()}_IDX = 32'd${xheep.ram_numbanks() + 2 + i};
 
-  localparam logic[31:0] PERIPHERAL_START_ADDRESS = 32'h${peripheral_start_address};
-  localparam logic[31:0] PERIPHERAL_SIZE = 32'h${peripheral_size_address};
-  localparam logic[31:0] PERIPHERAL_END_ADDRESS = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE;
-  localparam logic[31:0] PERIPHERAL_IDX = 32'd${xheep.ram_numbanks() + 3};
-
+% endfor
   localparam logic[31:0] FLASH_MEM_START_ADDRESS = 32'h${flash_mem_start_address};
   localparam logic[31:0] FLASH_MEM_SIZE = 32'h${flash_mem_size_address};
   localparam logic[31:0] FLASH_MEM_END_ADDRESS = FLASH_MEM_START_ADDRESS + FLASH_MEM_SIZE;
-  localparam logic[31:0] FLASH_MEM_IDX = 32'd${xheep.ram_numbanks() + 4};
+  localparam logic[31:0] FLASH_MEM_IDX = 32'd${xheep.ram_numbanks() + 3 + i};
 
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{ idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS },
@@ -102,8 +99,9 @@ package core_v_mini_mcu_pkg;
       '{ idx: RAM${bank.name()}_IDX, start_addr: RAM${bank.name()}_START_ADDRESS, end_addr: RAM${bank.name()}_END_ADDRESS },
 % endfor
       '{ idx: DEBUG_IDX, start_addr: DEBUG_START_ADDRESS, end_addr: DEBUG_END_ADDRESS },
-      '{ idx: AO_PERIPHERAL_IDX, start_addr: AO_PERIPHERAL_START_ADDRESS, end_addr: AO_PERIPHERAL_END_ADDRESS },
-      '{ idx: PERIPHERAL_IDX, start_addr: PERIPHERAL_START_ADDRESS, end_addr: PERIPHERAL_END_ADDRESS },
+% for domain in xheep.iter_peripheral_domains():
+      '{ idx: ${domain.get_name().upper()}_IDX, start_addr: ${domain.get_name().upper()}_START_ADDRESS, end_addr: ${domain.get_name().upper()}_END_ADDRESS },
+% endfor
       '{ idx: FLASH_MEM_IDX, start_addr: FLASH_MEM_START_ADDRESS, end_addr: FLASH_MEM_END_ADDRESS }
   };
 
@@ -131,58 +129,33 @@ package core_v_mini_mcu_pkg;
     }
   };
 
-######################################################################
-## Automatically add all always on peripherals listed
-######################################################################
-  // always-on peripherals
-  // ---------------------
-  localparam AO_PERIPHERALS = ${ao_peripherals_count};
-
-% for peripheral, addr in ao_peripherals.items():
-  localparam logic [31:0] ${peripheral.upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${addr["offset"]};
-  localparam logic [31:0] ${peripheral.upper()}_SIZE = 32'h${addr["length"]};
-  localparam logic [31:0] ${peripheral.upper()}_END_ADDRESS = ${peripheral.upper()}_START_ADDRESS + ${peripheral.upper()}_SIZE;
-  localparam logic [31:0] ${peripheral.upper()}_IDX = 32'd${loop.index};
-  
-% endfor
-  localparam addr_map_rule_t [AO_PERIPHERALS-1:0] AO_PERIPHERALS_ADDR_RULES = '{
-% for peripheral, addr in ao_peripherals.items():
-      '{ idx: ${peripheral.upper()}_IDX, start_addr: ${peripheral.upper()}_START_ADDRESS, end_addr: ${peripheral.upper()}_END_ADDRESS }${"," if not loop.last else ""}
-% endfor
-  };
-
-  localparam int unsigned AO_PERIPHERALS_PORT_SEL_WIDTH = AO_PERIPHERALS > 1 ? $clog2(AO_PERIPHERALS) : 32'd1;
 
 
-<%
-  domain = next(xheep.iter_peripheral_domains())
-%>
 ######################################################################
 ## Automatically add all peripherals listed
 ######################################################################
-  // switch-on/off peripherals
-  // -------------------------
-  localparam PERIPHERALS = ${domain.peripheral_count()};
+% for domain in xheep.iter_peripheral_domains():
+  localparam ${domain.get_name().upper()}_COUNT = ${domain.peripheral_count()};
 
 % for i, periph in enumerate(domain.iter_peripherals()):
-  localparam logic [31:0] ${periph.full_name.upper()}_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h${f"{periph.get_offset():08X}"};
+  localparam logic [31:0] ${periph.full_name.upper()}_START_ADDRESS = ${domain.get_name().upper()}_START_ADDRESS + 32'h${f"{periph.get_offset():08X}"};
   localparam logic [31:0] ${periph.full_name.upper()}_SIZE = 32'h${f"{periph.get_address_length():08X}"};
   localparam logic [31:0] ${periph.full_name.upper()}_END_ADDRESS = ${periph.full_name.upper()}_START_ADDRESS + ${periph.full_name.upper()}_SIZE;
   localparam logic [31:0] ${periph.full_name.upper()}_IDX = 32'd${i};
   
 % endfor
-  localparam addr_map_rule_t [PERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
+  localparam addr_map_rule_t [${domain.get_name().upper()}_COUNT-1:0] ${domain.get_name().upper()}_ADDR_RULES = '{
 % for i, periph in enumerate(domain.iter_peripherals()):
       '{ idx: ${periph.full_name.upper()}_IDX, start_addr: ${periph.full_name.upper()}_START_ADDRESS, end_addr: ${periph.full_name.upper()}_END_ADDRESS }${"," if i < domain.peripheral_count()-1 else ""}
 % endfor
   };
 
-  localparam int unsigned PERIPHERALS_PORT_SEL_WIDTH = PERIPHERALS > 1 ? $clog2(PERIPHERALS) : 32'd1;
+  localparam int unsigned ${domain.get_name().upper()}_PORT_SEL_WIDTH = ${domain.get_name().upper()}_COUNT > 1 ? $clog2(${domain.get_name().upper()}_COUNT) : 32'd1;
+
+% endfor
 
   // Interrupts
   // ----------
-  ##localparam PLIC_NINT = ${plit_n_interrupts};
-  ##localparam PLIC_USED_NINT = ${plic_used_n_interrupts};
   localparam NEXT_INT = ${xheep.get_ext_intr()};
 
 % for i, name in enumerate(xheep.get_pad_manager().iterate_pad_index()):

@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
     }
 
     #ifndef USE_SPI_FLASH
-        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
+        spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_0_START_ADDRESS);
     #else
         spi_host.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
 
     // Set mie.MEIE bit to one to enable machine-level fast dma interrupt
-    const uint32_t mask = 1 << 19;
+    const uint32_t mask = MIE_MASK_DMA;
     CSR_SET_BITS(CSR_REG_MIE, mask);
 
     #ifdef USE_SPI_FLASH
@@ -145,9 +145,9 @@ int main(int argc, char *argv[])
     dma_init(NULL);
 
     #ifndef USE_SPI_FLASH
-        uint8_t slot =  DMA_TRIG_SLOT_SPI_RX ; // The DMA will wait for the SPI RX FIFO valid signal
+        uint8_t slot =  DMA_TRIG_SLOT_SPI_HOST_0_RX ; // The DMA will wait for the SPI RX FIFO valid signal
     #else
-        uint8_t slot =  DMA_TRIG_SLOT_SPI_FLASH_RX ; // The DMA will wait for the SPI FLASH RX FIFO valid signal
+        uint8_t slot =  DMA_TRIG_SLOT_SPI_FLASH_DMA_RX ; // The DMA will wait for the SPI FLASH RX FIFO valid signal
     #endif
 
     static dma_target_t tgt_src = {

@@ -36,7 +36,6 @@
 
 
 #include "i2s.h"
-#include "i2s_structs.h"
 
 
 /****************************************************************************/
@@ -45,16 +44,11 @@
 /**                                                                        **/
 /****************************************************************************/
 
-__attribute__((weak, optimize("O0"))) void handler_irq_i2s(uint32_t id)
-{
- // Replace this function with a non-weak implementation
-}
-
 // i2s base functions
-i2s_result_t i2s_init(uint16_t div_value, i2s_word_length_t word_length)
+i2s_result_t i2s_init(volatile i2s * i2s_peri, uint16_t div_value, i2s_word_length_t word_length)
 {
   // already on ?
-  if (i2s_is_running()) {
+  if (i2s_is_running(i2s_peri)) {
     //printf("ERROR: [I2S HAL] I2S peripheral already running");
     return kI2sError;
   }
@@ -74,7 +68,7 @@ i2s_result_t i2s_init(uint16_t div_value, i2s_word_length_t word_length)
   i2s_peri->CONTROL = control;
 
   // wait for I2S clock domain to acknowledge startup
-  while (! i2s_is_running()) ;
+  while (! i2s_is_running(i2s_peri)) ;
 
   control |= (1 << I2S_CONTROL_EN_WS_BIT); // enable WS gen
   i2s_peri->CONTROL = control;
@@ -82,7 +76,7 @@ i2s_result_t i2s_init(uint16_t div_value, i2s_word_length_t word_length)
   return kI2sOk;
 }
 
-void i2s_terminate(void)
+void i2s_terminate(volatile i2s * i2s_peri)
 {
   i2s_peri->CONTROL &= ~(
     (1 << I2S_CONTROL_EN_WS_BIT)    // disable WS gen
@@ -91,7 +85,7 @@ void i2s_terminate(void)
   );
 }
 
-bool i2s_is_running(void)
+bool i2s_is_running(volatile i2s * i2s_peri)
 {
   // check "running" bit in the STATUS register
   return (i2s_peri->STATUS & (1 << I2S_STATUS_RUNNING_BIT));
@@ -101,19 +95,19 @@ bool i2s_is_running(void)
 // RX Channel
 //
 
-i2s_result_t i2s_rx_start(i2s_channel_sel_t channels)
+i2s_result_t i2s_rx_start(volatile i2s * i2s_peri, i2s_channel_sel_t channels)
 {
-  if (! i2s_is_running()) {
+  if (! i2s_is_running(i2s_peri)) {
     //printf("ERROR: [I2S HAL] I2S peripheral not running");
     return kI2sErrUninit;
   }
 
   if (channels == I2S_DISABLE) {
     // no channels selected -> disable
-    return i2s_rx_stop();
+    return i2s_rx_stop(i2s_peri);
   }
 
-  if (i2s_rx_overflow()) {
+  if (i2s_rx_overflow(i2s_peri)) {
     return kI2sOverflow;
   }
 
@@ -131,14 +125,14 @@ i2s_result_t i2s_rx_start(i2s_channel_sel_t channels)
   return kI2sOk;
 }
 
-i2s_result_t i2s_rx_stop(void)
+i2s_result_t i2s_rx_stop(volatile i2s * i2s_peri)
 {
-  if (! i2s_is_running()) {
+  if (! i2s_is_running(i2s_peri)) {
     //printf("ERROR: [I2S HAL] I2S peripheral not running");
     return kI2sErrUninit;
   }
 
-  bool overflow = i2s_rx_overflow();
+  bool overflow = i2s_rx_overflow(i2s_peri);
 
   // disable rx channel
   uint32_t control = i2s_peri->CONTROL;
@@ -150,7 +144,7 @@ i2s_result_t i2s_rx_stop(void)
     i2s_peri->CONTROL = control | (1 << I2S_CONTROL_RESET_RX_OVERFLOW_BIT);
 
     // overflow bit is going to be reset by rx channel if the sck is running
-    while (i2s_rx_overflow()) ; // wait for one SCK rise - this might take some time as the SCK can be much slower
+    while (i2s_rx_overflow(i2s_peri)) ; // wait for one SCK rise - this might take some time as the SCK can be much slower
 
     // disable WATERMARK counter
     i2s_peri->CONTROL = control & ~(1 << I2S_CONTROL_EN_WATERMARK_BIT);
@@ -159,7 +153,7 @@ i2s_result_t i2s_rx_stop(void)
     // note: this uses much less resources
     for (int i = 0; i < 6; i++) {
       // 4 FIFO + 2 spill registers
-      i2s_rx_read_data(); // read to empty FIFO
+      i2s_rx_read_data(i2s_peri); // read to empty FIFO
     }
 
     i2s_peri->CONTROL = control; // reset control register
@@ -169,19 +163,19 @@ i2s_result_t i2s_rx_stop(void)
 }
 
 
-bool i2s_rx_data_available(void)
+bool i2s_rx_data_available(volatile i2s * i2s_peri)
 {
   // read data ready bit from STATUS register
   return (i2s_peri->STATUS & (1 << I2S_STATUS_RX_DATA_READY_BIT));
 }
 
-uint32_t i2s_rx_read_data(void)
+uint32_t i2s_rx_read_data(volatile i2s * i2s_peri)
 {
   // read RXDATA register
   return i2s_peri->RXDATA;
 }
 
-bool i2s_rx_overflow(void)
+bool i2s_rx_overflow(volatile i2s * i2s_peri)
 {
   // read overflow bit from STATUS register
   return (i2s_peri->STATUS & (1 << I2S_STATUS_RX_OVERFLOW_BIT));
@@ -191,7 +185,7 @@ bool i2s_rx_overflow(void)
 //
 // RX Watermark
 //
-void i2s_rx_enable_watermark(uint16_t watermark, bool interrupt_en)
+void i2s_rx_enable_watermark(volatile i2s * i2s_peri, uint16_t watermark, bool interrupt_en)
 {
   // set watermark (= max of counter) triggers an interrupt if enabled
   i2s_peri->WATERMARK = watermark;
@@ -204,7 +198,7 @@ void i2s_rx_enable_watermark(uint16_t watermark, bool interrupt_en)
   i2s_peri->CONTROL = control;
 }
 
-void i2s_rx_disable_watermark(void)
+void i2s_rx_disable_watermark(volatile i2s * i2s_peri)
 {
   // disable interrupt and disable watermark counter
   i2s_peri->CONTROL &= ~(
@@ -213,13 +207,13 @@ void i2s_rx_disable_watermark(void)
   );
 }
 
-uint16_t i2s_rx_read_waterlevel(void)
+uint16_t i2s_rx_read_waterlevel(volatile i2s * i2s_peri)
 {
   // read WATERLEVEL register
   return (uint16_t) i2s_peri->WATERLEVEL;
 }
 
-void i2s_rx_reset_waterlevel(void)
+void i2s_rx_reset_waterlevel(volatile i2s * i2s_peri)
 {
   // set "reset watermark" bit in CONTROL register
   i2s_peri->CONTROL |= (1 << I2S_CONTROL_RESET_WATERMARK_BIT);

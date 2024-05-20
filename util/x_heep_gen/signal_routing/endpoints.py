@@ -28,13 +28,14 @@ class EndpointType(Enum):
     SOURCE = auto()
 
 class InterruptEP(Endpoint):
-    def __init__(self):
+    def __init__(self, handler=""):
         super().__init__()
         self.t = "logic"
         self.source_direction: str = "output"
         self.target_direction: str = "input"
         self.count = 0
         self.source_names: List[str] = []
+        self.handler = handler
 
     def single_use(self) -> bool:
         return False
@@ -60,13 +61,14 @@ class InterruptDirectEP(Endpoint):
         return "1'b0"
 
 class InterruptPlicEP(Endpoint):
-    def __init__(self):
+    def __init__(self, handler="handler_irq_dummy"):
         super().__init__()
         self.t = "logic"
         self.source_direction: str = "output"
         self.target_direction: str = "input"
         self.count = 0
         self.source_names: List[str] = []
+        self.handler = handler
 
     def single_use(self) -> bool:
         return False

@@ -39,7 +39,9 @@ module power_manager #(
     input logic core_sleep_i,
 
     // Input interrupt array
+    /* verilator lint_off UNUSED */
     input logic [31:0] intr_i,
+    /* verilator lint_on UNUSED */
 
     // External interrupts
     input logic [NEXT_INT_RND-1:0] ext_irq_i,
@@ -76,22 +78,17 @@ module power_manager #(
 
   logic start_on_sequence;
 
-  assign hw2reg.intr_state.d[15:0] = {
-    intr_i[29:22],  // gpio
-    intr_i[21],  // spi_flash
-    intr_i[20],  // spi
-    intr_i[19],  // dma
-    intr_i[18],  // rv_timer_3
-    intr_i[17],  // rv_timer_2
-    intr_i[16],  // rv_timer_1
+  assign hw2reg.intr_state.d[16:0] = {
+    intr_i[30:16], // fast interrupts
     intr_i[11],  // plic
     intr_i[7]  // rv_timer_0
   };
 
-  if (core_v_mini_mcu_pkg::NEXT_INT > 16) begin
-    assign hw2reg.intr_state.d[31:16] = ext_irq_i[15:0];
+  if (core_v_mini_mcu_pkg::NEXT_INT >= 15) begin
+    assign hw2reg.intr_state.d[31:17] = ext_irq_i[14:0];
   end else begin
-    assign hw2reg.intr_state.d[31:16] = $unsigned(ext_irq_i);
+    assign hw2reg.intr_state.d[31:17+NEXT_INT_RND] = 'b0;
+    assign hw2reg.intr_state.d[17+NEXT_INT_RND-1:17] = ext_irq_i;
   end
 
   assign hw2reg.intr_state.de = 1'b1;

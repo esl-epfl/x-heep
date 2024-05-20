@@ -36,7 +36,6 @@
 /****************************************************************************/
 
 #include "rv_plic.h"
-#include "rv_plic_structs.h"
 #include <stddef.h>
 #include "bitfield.h"
 #include "rv_plic_regs.h"  // Generated.
@@ -62,16 +61,6 @@
 const uint32_t plicMinPriority = 0;
 const uint32_t plicMaxPriority = RV_PLIC_PRIO0_PRIO0_MASK;
 
-/****************************************************************************/
-/**                                                                        **/
-/*                        TYPEDEFS AND STRUCTURES                           */
-/**                                                                        **/
-/****************************************************************************/
-
-/**
- * Pointer used to dynamically access the different interrupt handlers.
-*/
-typedef void (*handler_funct_t)(uint32_t);
 
 /****************************************************************************/
 /**                                                                        **/
@@ -103,11 +92,6 @@ static ptrdiff_t plic_offset_from_reg0( uint32_t irq);
  */
 static uint8_t plic_irq_bit_index( uint32_t irq);
 
-/**
- * @brief A dummy function to prevent unassigned irq to access a null pointer.
- */
-__attribute__((optimize("O0"))) static void handler_irq_dummy( uint32_t dummy );
-
 
 /****************************************************************************/
 /**                                                                        **/
@@ -121,13 +105,7 @@ __attribute__((optimize("O0"))) static void handler_irq_dummy( uint32_t dummy );
 /**                                                                        **/
 /****************************************************************************/
 
-/**
- * Array for the ISRs. Length automatically generated when compiling and 
- * assigned to QTY_INTR.
- * Each element will be initialized to be the address of the handler function
- * relative to its index. So each element will be a callable function.
-*/
-handler_funct_t handlers[QTY_INTR];
+
 
 /****************************************************************************/
 /**                                                                        **/
@@ -137,12 +115,14 @@ handler_funct_t handlers[QTY_INTR];
 
 void handler_irq_external(void)
 {
+#ifdef RV_PLIC_0_IS_INCLUDED
   uint32_t int_id = NULL_INTR;
-  plic_result_t res = plic_irq_claim(&int_id);
+  plic_result_t res = plic_irq_claim(&rv_plic_0_inf ,&int_id);
 
-    // Calls the proper handler
-    handlers[int_id](int_id);
-    plic_irq_complete(&int_id);
+  // Calls the proper handler
+  rv_plic_0_inf.handlers[int_id](int_id);
+  plic_irq_complete(&rv_plic_0_inf, &int_id);
+#endif
 }
 
 /*!
@@ -151,50 +131,50 @@ void handler_irq_external(void)
   It writes the default value 0 in them and read back
   the value into the proper register struct
 */
-plic_result_t plic_Init(void)
+plic_result_t plic_Init(rv_plic_inf_t *inf)
 {
 
   /* Clears all the Level/Edge registers */
   for(uint8_t i=0; i<RV_PLIC_LE_MULTIREG_COUNT; i++)
   {
-    (&rv_plic_peri->LE0)[i] = 0;
+    (&inf->rv_plic_peri->LE0)[i] = 0;
   }
 
 
   /* Clears all the priority registers */
   for(uint8_t i=0; i<RV_PLIC_PARAM_NUM_SRC; i++)
   {
-    (&rv_plic_peri->PRIO0)[i] = 0;
+    (&inf->rv_plic_peri->PRIO0)[i] = 0;
   }
 
   /* Clears the Interrupt Enable registers */
   for(uint8_t i=0; i<RV_PLIC_IE0_MULTIREG_COUNT; i++)
   {
-    (&rv_plic_peri->IE00)[i] = 0;
+    (&inf->rv_plic_peri->IE00)[i] = 0;
   }
 
   /* Clears all the threshold registers */
-  rv_plic_peri->THRESHOLD0 = 0;
-  if(rv_plic_peri->THRESHOLD0 != 0)
+  inf->rv_plic_peri->THRESHOLD0 = 0;
+  if(inf->rv_plic_peri->THRESHOLD0 != 0)
   {
     return kPlicError;
   }
 
   /* clears software interrupts registers */
-  rv_plic_peri->MSIP0 = 0;
-  if(rv_plic_peri->MSIP0 != 0)
+  inf->rv_plic_peri->MSIP0 = 0;
+  if(inf->rv_plic_peri->MSIP0 != 0)
   {
     return kPlicError;
   }
 
   /* Fill the handlers array with the fixed peripherals. */
-  plic_reset_handlers_list();
+  plic_reset_handlers_list(inf);
 
   return kPlicOk;
 }
 
 
-plic_result_t plic_irq_set_enabled( uint32_t irq,
+plic_result_t plic_irq_set_enabled(rv_plic_inf_t *inf, uint32_t irq,
                                     plic_toggle_t state)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC)
@@ -216,7 +196,7 @@ plic_result_t plic_irq_set_enabled( uint32_t irq,
 
   // Writes `state` in the amount of bits defined by the mask
   // at position `bit_index` inside the proper Interrupt Enable register
-  (&rv_plic_peri->IE00)[offset] = bitfield_write((&rv_plic_peri->IE00)[offset],
+  (&inf->rv_plic_peri->IE00)[offset] = bitfield_write((&inf->rv_plic_peri->IE00)[offset],
                                                   BIT_MASK_1,
                                                   bit_index,
                                                   state);
@@ -225,7 +205,7 @@ plic_result_t plic_irq_set_enabled( uint32_t irq,
 }
 
 
-plic_result_t plic_irq_get_enabled( uint32_t irq,
+plic_result_t plic_irq_get_enabled(rv_plic_inf_t *inf, uint32_t irq,
                                     plic_toggle_t *state)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC)
@@ -240,14 +220,14 @@ plic_result_t plic_irq_get_enabled( uint32_t irq,
   uint16_t bit_index = plic_irq_bit_index(irq);
 
   // Reads the enabled/disabled bit
-  *state = bitfield_read((&rv_plic_peri->IE00)[offset], BIT_MASK_1, bit_index);
+  *state = bitfield_read((&inf->rv_plic_peri->IE00)[offset], BIT_MASK_1, bit_index);
 
   return kPlicOk;
 
 }
 
 
-plic_result_t plic_irq_set_trigger( uint32_t irq,
+plic_result_t plic_irq_set_trigger(rv_plic_inf_t *inf, uint32_t irq,
                                            plic_irq_trigger_t trigger)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC)
@@ -262,7 +242,7 @@ plic_result_t plic_irq_set_trigger( uint32_t irq,
   uint16_t bit_index = plic_irq_bit_index(irq);
 
   // Updated the register with the new bit
-  (&rv_plic_peri->LE0)[offset] = bitfield_write((&rv_plic_peri->LE0)[offset],
+  (&inf->rv_plic_peri->LE0)[offset] = bitfield_write((&inf->rv_plic_peri->LE0)[offset],
                                                  BIT_MASK_1,
                                                  bit_index,
                                                  trigger);
@@ -272,7 +252,7 @@ plic_result_t plic_irq_set_trigger( uint32_t irq,
 }
 
 
-plic_result_t plic_irq_set_priority( uint32_t irq, uint32_t priority)
+plic_result_t plic_irq_set_priority(rv_plic_inf_t *inf, uint32_t irq, uint32_t priority)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC || priority > plicMaxPriority)
   {
@@ -280,27 +260,27 @@ plic_result_t plic_irq_set_priority( uint32_t irq, uint32_t priority)
   }
 
   // Writes the new priority into the proper register
-  (&rv_plic_peri->PRIO0)[irq] = priority;
+  (&inf->rv_plic_peri->PRIO0)[irq] = priority;
 
   return kPlicOk;
 }
 
 
-plic_result_t plic_target_set_threshold(uint32_t threshold)
+plic_result_t plic_target_set_threshold(rv_plic_inf_t *inf, uint32_t threshold)
 {
   if(threshold > plicMaxPriority)
   {
     return kPlicBadArg;
   }
 
-  rv_plic_peri->THRESHOLD0 = threshold;
+  inf->rv_plic_peri->THRESHOLD0 = threshold;
 
   return kPlicOk;
 
 }
 
 
-plic_result_t plic_irq_is_pending( uint32_t irq,
+plic_result_t plic_irq_is_pending(rv_plic_inf_t *inf, uint32_t irq,
                                           bool *is_pending)
 {
   if(irq >= RV_PLIC_PARAM_NUM_SRC || is_pending == NULL)
@@ -314,26 +294,26 @@ plic_result_t plic_irq_is_pending( uint32_t irq,
   // Get the destination bit in which to write
   uint16_t bit_index = plic_irq_bit_index(irq);
 
-  *is_pending = bitfield_read((&rv_plic_peri->IP0)[offset], BIT_MASK_1, bit_index);
+  *is_pending = bitfield_read((&inf->rv_plic_peri->IP0)[offset], BIT_MASK_1, bit_index);
 
   return kPlicOk;
 }
 
 
-plic_result_t plic_irq_claim( uint32_t *claim_data)
+plic_result_t plic_irq_claim(rv_plic_inf_t *inf, uint32_t *claim_data)
 {
   if (claim_data == NULL)
   {
     return kPlicBadArg;
   }
 
-  *claim_data = rv_plic_peri->CC0;
+  *claim_data = inf->rv_plic_peri->CC0;
 
   return kPlicOk;
 }
 
 
-plic_result_t plic_irq_complete(const uint32_t *complete_data)
+plic_result_t plic_irq_complete(rv_plic_inf_t *inf, const uint32_t *complete_data)
 {
   if (complete_data == NULL)
   {
@@ -342,46 +322,45 @@ plic_result_t plic_irq_complete(const uint32_t *complete_data)
 
   // Write back the claimed IRQ ID to the target specific CC register,
   // to notify the PLIC of the IRQ completion.
-  rv_plic_peri->CC0 = *complete_data;
+  inf->rv_plic_peri->CC0 = *complete_data;
 
   return kPlicOk;
 }
 
 
-void plic_software_irq_force(void)
+void plic_software_irq_force(rv_plic_inf_t *inf)
 {
-  rv_plic_peri->MSIP0 = 1;
+  inf->rv_plic_peri->MSIP0 = 1;
 }
 
 
-void plic_software_irq_acknowledge(void)
+void plic_software_irq_acknowledge(rv_plic_inf_t *inf)
 {
-  rv_plic_peri->MSIP0 = 0;
+  inf->rv_plic_peri->MSIP0 = 0;
 }
 
 
-plic_result_t plic_software_irq_is_pending(void)
+plic_result_t plic_software_irq_is_pending(rv_plic_inf_t *inf)
 {
-  return rv_plic_peri->MSIP0;
+  return inf->rv_plic_peri->MSIP0;
 }
 
 
-plic_result_t plic_assign_external_irq_handler( uint32_t id,
-                                                void *handler )
+plic_result_t plic_assign_irq_handler(rv_plic_inf_t *inf, uint32_t id, rv_plic_handler_funct_t handler )
 {
-  if( id >= EXT_IRQ_START && id <= QTY_INTR )
+  if( id < QTY_INTR_PLIC )
   {
-    handlers[ id ] = (handler_funct_t) handler;
+    inf->handlers[ id ] = handler;
     return kPlicOk;
   }
   return kPlicBadArg;
 }
 
-void plic_reset_handlers_list(void)
+void plic_reset_handlers_list(rv_plic_inf_t *inf)
 {
-  handlers[NULL_INTR] = &handler_irq_dummy;
-
-  for( uint8_t i = NULL_INTR +1; i < QTY_INTR; i++ )
+  memcpy(inf->handlers, inf->default_handlers, sizeof(inf->handlers));
+  /*
+  for( uint8_t i = NULL_INTR +1; i < QTY_INTR_PLIC; i++ )
   {
     if ( i <= UART_ID_END)
     {
@@ -411,7 +390,7 @@ void plic_reset_handlers_list(void)
     {
       handlers[i] = &handler_irq_dummy;
     }
-  }
+  }*/
 }
 
 /****************************************************************************/
@@ -420,9 +399,6 @@ void plic_reset_handlers_list(void)
 /**                                                                        **/
 /****************************************************************************/
 
-__attribute__((optimize("O0"))) static void handler_irq_dummy( uint32_t dummy )
-{
-}
 
 static ptrdiff_t plic_offset_from_reg0( uint32_t irq)
 {

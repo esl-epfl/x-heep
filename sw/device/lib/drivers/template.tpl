@@ -26,7 +26,7 @@
 */
 
 #ifndef _${peripheral_name_upper}_STRUCTS_H
-#define ${peripheral_name_upper}_STRUCTS
+#define _${peripheral_name_upper}_STRUCTS_H
 
 /****************************************************************************/
 /**                                                                        **/
@@ -43,8 +43,7 @@
 /**                                                                        **/
 /****************************************************************************/
 
-#define ${start_address_define}
-
+${start_address_define}
 /****************************************************************************/
 /**                                                                        **/
 /**                       TYPEDEFS AND STRUCTURES                          **/

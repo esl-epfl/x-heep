@@ -34,31 +34,27 @@ typedef enum power_manager_sel_state {
   kRetOn_e  = 2,
   kRetOff_e = 3,
 } power_manager_sel_state_t;
-
+<%
+    intr_sources = xheep.get_rh().use_target_as_sv_multi("fast_irq_target", xheep.get_mcu_node())
+    intrs = []
+    for i, intr_s in enumerate(intr_sources):
+        ep = xheep.get_rh().get_source_ep_copy(intr_s.split(".")[-1])
+        intrs.append(ep.handler)
+%>
 /**
  * Interrupt source.
  */
 typedef enum power_manager_sel_intr {
-  kTimer_0_pm_e  = 0,
-  kPlic_pm_e     = 1,
-  kTimer_1_pm_e  = 2,
-  kTimer_2_pm_e  = 3,
-  kTimer_3_pm_e  = 4,
-  kDma_pm_e      = 5,
-  kSpi_pm_e      = 6,
-  kSpiFlash_pm_e = 7,
-  kGpio_0_pm_e   = 8,
-  kGpio_1_pm_e   = 9,
-  kGpio_2_pm_e   = 10,
-  kGpio_3_pm_e   = 11,
-  kGpio_4_pm_e   = 12,
-  kGpio_5_pm_e   = 13,
-  kGpio_6_pm_e   = 14,
-  kGpio_7_pm_e   = 15,
-  kExt_0_pm_e    = 16,
-  kExt_1_pm_e    = 17,
-  kExt_2_pm_e    = 18,
-  kExt_3_pm_e    = 19,
+  kRv_Timer_0_pm_e = 0,
+  kPlic_pm_e = 1,
+% for i, intr in enumerate(intrs):
+% if intr != "":
+  k${intr[len("fic_irq_"):].title()}_pm_e = ${i+2},
+% endif
+% endfor
+% for i in range(min(15, xheep.get_ext_intr())):
+  kExt_${i}_pm_e = ${17+i},
+% endfor
 } power_manager_sel_intr_t;
 
 /**

@@ -143,8 +143,3 @@ size_t uart_read(const uart_t *uart, const uint8_t *data, size_t len) {
 size_t uart_sink(void *uart, const char *data, size_t len) {
   return uart_write((const uart_t *)uart, (const uint8_t *)data, len);
 }
-
-__attribute__((weak, optimize("O0"))) void handler_irq_uart(uint32_t id)
-{
- // Replace this function with a non-weak implementation
-}

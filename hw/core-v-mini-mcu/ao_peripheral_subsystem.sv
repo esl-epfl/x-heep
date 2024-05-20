@@ -70,10 +70,10 @@ module ao_peripheral_subsystem
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
-    if_bundle__ao_periph__root.ao_periph bundle__ao_periph__root__if,
     if_bundle__ao_periph__pd_peripheral.ao_periph bundle__ao_periph__pd_peripheral__if,
-    if_bundle__ao_periph__pad_ring.ao_periph bundle__ao_periph__pad_ring__if,
-    if_bundle__ao_periph__core_v_mini_mcu.ao_periph bundle__ao_periph__core_v_mini_mcu__if
+    if_bundle__ao_periph__root.ao_periph bundle__ao_periph__root__if,
+    if_bundle__ao_periph__core_v_mini_mcu.ao_periph bundle__ao_periph__core_v_mini_mcu__if,
+    if_bundle__ao_periph__pad_ring.ao_periph bundle__ao_periph__pad_ring__if
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -83,13 +83,13 @@ module ao_peripheral_subsystem
   reg_pkg::reg_req_t peripheral_req;
   reg_pkg::reg_rsp_t peripheral_rsp;
 
-  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::AO_PERIPHERALS-1:0] ao_peripheral_slv_req;
-  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::AO_PERIPHERALS-1:0] ao_peripheral_slv_rsp;
+  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::AO_PERIPHERAL_COUNT-1:0] ao_peripheral_slv_req;
+  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::AO_PERIPHERAL_COUNT-1:0] ao_peripheral_slv_rsp;
 
   tlul_pkg::tl_h2d_t rv_timer_tl_h2d;
   tlul_pkg::tl_d2h_t rv_timer_tl_d2h;
 
-  logic [AO_PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
+  logic [AO_PERIPHERAL_PORT_SEL_WIDTH-1:0] peripheral_select;
 
   logic use_spimemio;
 
@@ -155,13 +155,13 @@ module ao_peripheral_subsystem
   );
 
   addr_decode #(
-      .NoIndices(core_v_mini_mcu_pkg::AO_PERIPHERALS),
-      .NoRules(core_v_mini_mcu_pkg::AO_PERIPHERALS),
+      .NoIndices(core_v_mini_mcu_pkg::AO_PERIPHERAL_COUNT),
+      .NoRules(core_v_mini_mcu_pkg::AO_PERIPHERAL_COUNT),
       .addr_t(logic [31:0]),
       .rule_t(addr_map_rule_pkg::addr_map_rule_t)
   ) i_addr_decode_soc_regbus_periph_xbar (
       .addr_i(peripheral_req.addr),
-      .addr_map_i(core_v_mini_mcu_pkg::AO_PERIPHERALS_ADDR_RULES),
+      .addr_map_i(core_v_mini_mcu_pkg::AO_PERIPHERAL_ADDR_RULES),
       .idx_o(peripheral_select),
       .dec_valid_o(),
       .dec_error_o(),
@@ -170,7 +170,7 @@ module ao_peripheral_subsystem
   );
 
   reg_demux #(
-      .NoPorts(core_v_mini_mcu_pkg::AO_PERIPHERALS),
+      .NoPorts(core_v_mini_mcu_pkg::AO_PERIPHERAL_COUNT),
       .req_t  (reg_pkg::reg_req_t),
       .rsp_t  (reg_pkg::reg_rsp_t)
   ) reg_demux_i (

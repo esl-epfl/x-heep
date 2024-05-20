@@ -69,11 +69,11 @@ module core_v_mini_mcu
 
     output logic [31:0] exit_value_o,
 
-    if_bundle__pd_peripheral__root.pd_peripheral bundle__pd_peripheral__root__if,
-    if_bundle__pad_ring__pd_peripheral.pd_peripheral bundle__pad_ring__pd_peripheral__if,
+    if_bundle__core_v_mini_mcu__pad_ring.core_v_mini_mcu bundle__core_v_mini_mcu__pad_ring__if,
     if_bundle__ao_periph__pad_ring.ao_periph bundle__ao_periph__pad_ring__if,
     if_bundle__ao_periph__root.ao_periph bundle__ao_periph__root__if,
-    if_bundle__core_v_mini_mcu__pad_ring.core_v_mini_mcu bundle__core_v_mini_mcu__pad_ring__if
+    if_bundle__pad_ring__pd_peripheral.pd_peripheral bundle__pad_ring__pd_peripheral__if,
+    if_bundle__pd_peripheral__root.pd_peripheral bundle__pd_peripheral__root__if
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -156,8 +156,8 @@ module core_v_mini_mcu
 
   // Auto generated
   if_bundle__ao_periph__pd_peripheral bundle__ao_periph__pd_peripheral__if;
-  if_bundle__ao_periph__core_v_mini_mcu bundle__ao_periph__core_v_mini_mcu__if;
   if_bundle__core_v_mini_mcu__pd_peripheral bundle__core_v_mini_mcu__pd_peripheral__if;
+  if_bundle__ao_periph__core_v_mini_mcu bundle__ao_periph__core_v_mini_mcu__if;
 
   assign intr = {
     1'b0,
@@ -336,9 +336,9 @@ module core_v_mini_mcu
       .ext_peripheral_slave_req_o,
       .ext_peripheral_slave_resp_i,
       .bundle__ao_periph__pad_ring__if,
+      .bundle__ao_periph__root__if,
       .bundle__ao_periph__pd_peripheral__if(bundle__ao_periph__pd_peripheral__if.ao_periph),
-      .bundle__ao_periph__core_v_mini_mcu__if(bundle__ao_periph__core_v_mini_mcu__if.ao_periph),
-      .bundle__ao_periph__root__if
+      .bundle__ao_periph__core_v_mini_mcu__if(bundle__ao_periph__core_v_mini_mcu__if.ao_periph)
   );
 
   peripheral_subsystem peripheral_subsystem_i (
@@ -347,9 +347,9 @@ module core_v_mini_mcu
       .clk_gate_en_ni(peripheral_subsystem_clkgate_en_n),
       .slave_req_i(peripheral_slave_req),
       .slave_resp_o(peripheral_slave_resp),
-      .bundle__pd_peripheral__root__if,
-      .bundle__pad_ring__pd_peripheral__if,
       .bundle__ao_periph__pd_peripheral__if(bundle__ao_periph__pd_peripheral__if.pd_peripheral),
+      .bundle__pad_ring__pd_peripheral__if,
+      .bundle__pd_peripheral__root__if,
       .bundle__core_v_mini_mcu__pd_peripheral__if(bundle__core_v_mini_mcu__pd_peripheral__if.pd_peripheral)
   );
 

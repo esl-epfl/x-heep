@@ -25,4 +25,8 @@ class RvTimerPeripheral():
             raise TypeError("argument n should be of type int")
         
         self.set_specialized_name(f"{n}_{n+1}")
+        self.interrupt_handler_base = {
+            "timer_expired_0_0" : f"{self.name}_{n}",
+            "timer_expired_1_0" : f"{self.name}_{n + 1}",
+        }
         return n + 2

@@ -19,7 +19,7 @@ class I2SPeripheral():
     def register_connections(self, rh: RoutingHelper, p_node: Node):
         super().register_connections(rh, p_node)
         if self._i2s_uses_dma:
-            rh.add_source(p_node, f"{self.name}_{self._sp_name_suffix}_rx_valid", DmaTriggerEP())
+            rh.add_source(p_node, f"{self.name}_{self._sp_name_suffix}_rx", DmaTriggerEP())
 
     def get_io_prefix(self) -> str:
         return "i2s_"
@@ -35,7 +35,7 @@ class I2SPeripheral():
     def make_instantiation_connections(self, rh: RoutingHelper) -> str:
         out = ""
         if self._i2s_uses_dma:
-            out += f".i2s_rx_valid_o({rh.use_source_as_sv(f'{self.name}_{self._sp_name_suffix}_rx_valid', self._p_node)}),"
+            out += f".i2s_rx_valid_o({rh.use_source_as_sv(f'{self.name}_{self._sp_name_suffix}_rx', self._p_node)}),"
         else:
             out += ".i2s_rx_valid_o(),"
         return super().make_instantiation_connections(rh) + out

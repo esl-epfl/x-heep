@@ -19,7 +19,7 @@
 #include "x-heep.h"
 
 
-#ifndef RV_PLIC_IS_INCLUDED
+#ifndef RV_PLIC_0_IS_INCLUDED
   #error ( "This app does NOT work as the RV_PLIC peripheral is not included" )
 #endif
 
@@ -61,12 +61,12 @@ int main(int argc, char *argv[])
 #ifndef TARGET_PYNQ_Z2
     pad_control_t pad_control;
     pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
-    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_I2C_SCL_REG_OFFSET), 1);
-    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_I2C_SDA_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_PAD_I2C0_SCL_0_REG_OFFSET), 1);
+    pad_control_set_mux(&pad_control, (ptrdiff_t)(PAD_CONTROL_PAD_MUX_PAD_I2C0_SDA_0_REG_OFFSET), 1);
 #endif
 
     // Setup plic
-    plic_Init();
+    plic_Init(&rv_plic_0_inf);
 
     // Get current Frequency
     soc_ctrl_t soc_ctrl;
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     rv_timer_approximate_tick_params(freq_hz, kTickFreqHz, &tick_params);
 
     // Setup rv_timer_2_3
-    mmio_region_t timer_2_3_reg = mmio_region_from_addr(RV_TIMER_START_ADDRESS);
+    mmio_region_t timer_2_3_reg = mmio_region_from_addr(RV_TIMER_2_3_START_ADDRESS);
     rv_timer_init(timer_2_3_reg, (rv_timer_config_t){.hart_count = 2, .comparator_count = 1}, &timer_2_3);
 
     // Init cpu_subsystem's counters
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
     rv_timer_counter_set_enabled(&timer_0_1, 0, kRvTimerEnabled);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (power_gate_core(&power_manager, kTimer_0_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
+    if (power_gate_core(&power_manager, kRv_Timer_0_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
     rv_timer_counter_set_enabled(&timer_0_1, 1, kRvTimerEnabled);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (power_gate_core(&power_manager, kTimer_1_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
+    if (power_gate_core(&power_manager, kRv_Timer_1_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
     rv_timer_counter_set_enabled(&timer_2_3, 0, kRvTimerEnabled);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (power_gate_core(&power_manager, kTimer_2_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
+    if (power_gate_core(&power_manager, kRv_Timer_2_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
     rv_timer_counter_set_enabled(&timer_2_3, 1, kRvTimerEnabled);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (power_gate_core(&power_manager, kTimer_3_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
+    if (power_gate_core(&power_manager, kRv_Timer_3_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail.\n\r");
         return EXIT_FAILURE;
@@ -159,16 +159,16 @@ int main(int argc, char *argv[])
 #ifndef TARGET_PYNQ_Z2
     // Power-gate and wake-up due to plic
 	bool state = false;
-    plic_irq_set_priority(GPIO_INTR_31, 1);
-    plic_irq_set_enabled(GPIO_INTR_31, kPlicToggleEnabled);
+    plic_irq_set_priority(&rv_plic_0_inf, GPIO_31_INTR, 1);
+    plic_irq_set_enabled(&rv_plic_0_inf, GPIO_31_INTR, kPlicToggleEnabled);
 
     gpio_cfg_t pin2_cfg = {.pin = GPIO_TB_IN, .mode = GpioModeIn,.en_input_sampling = true,
         .en_intr = true, .intr_type = GpioIntrEdgeRising};
-    gpio_config (pin2_cfg);
+    gpio_config(gpio_1_peri, pin2_cfg);
 
     gpio_cfg_t pin1_cfg = {.pin = GPIO_TB_OUT, .mode = GpioModeOutPushPull};
-    gpio_config (pin1_cfg);
-    gpio_write(GPIO_TB_OUT, true);
+    gpio_config(gpio_1_peri, pin1_cfg);
+    gpio_write(gpio_1_peri, GPIO_TB_OUT, true);
 
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
     if (power_gate_core(&power_manager, kPlic_pm_e, &power_manager_cpu_counters) != kPowerManagerOk_e)
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
 
     uint32_t intr_num;
-    plic_irq_complete(&intr_num);
+    plic_irq_complete(&rv_plic_0_inf, &intr_num);
 #endif
 
     /* write something to stdout */

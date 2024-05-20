@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
     // Pick the correct spi device
     spi_host_t spi;
     #ifndef USE_SPI_FLASH
-    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
+    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_0_START_ADDRESS);
     #else
     spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
     #endif

@@ -451,9 +451,9 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
 
     // The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
     #ifndef USE_SPI_FLASH
-        uint8_t slot = DMA_TRIG_SLOT_SPI_RX;
+        uint8_t slot = DMA_TRIG_SLOT_SPI_HOST_0_RX;
     #else
-        uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_RX;
+        uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_DMA_RX;
     #endif
 
     // Set up DMA source target
@@ -792,9 +792,9 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
 
     // The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
     #ifndef USE_SPI_FLASH
-        uint8_t slot = DMA_TRIG_SLOT_SPI_RX;
+        uint8_t slot = DMA_TRIG_SLOT_SPI_HOST_0_RX;
     #else
-        uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_RX;
+        uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_DMA_RX;
     #endif
 
     // Set up DMA source target
@@ -1358,9 +1358,9 @@ static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
 
     // The DMA will wait for the SPI HOST/FLASH TX FIFO valid signal
     #ifndef USE_SPI_FLASH
-        uint8_t slot = DMA_TRIG_SLOT_SPI_TX;
+        uint8_t slot = DMA_TRIG_SLOT_SPI_HOST_0_TX;
     #else
-        uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_TX;
+        uint8_t slot = DMA_TRIG_SLOT_SPI_FLASH_DMA_TX;
     #endif
 
     // Set up DMA source target

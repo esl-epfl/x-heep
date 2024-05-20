@@ -34,8 +34,8 @@ class TLULPeripheral(BasicPeripheral):
         ) reg_to_tlul_{self.name}_{self._sp_name_suffix}_i (
             .tl_o({self.tlul_h2d_name}),
             .tl_i({self.tlul_d2h_name}),
-            .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::{self.domain.upper()}_{self.name.upper()}_{self._sp_name_suffix.upper()}_IDX]),
-            .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::{self.domain.upper()}_{self.name.upper()}_{self._sp_name_suffix.upper()}_IDX])
+            .reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::{self.full_name.upper()}_IDX]),
+            .reg_rsp_o(peripheral_slv_rsp[core_v_mini_mcu_pkg::{self.full_name.upper()}_IDX])
         );""" + "\n\n" + super().make_instantiation(rh)
     
     def make_instantiation_connections(self, rh: RoutingHelper) -> str:

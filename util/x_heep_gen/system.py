@@ -133,15 +133,15 @@ class XHeep():
             self._routing_helper.add_source(self._ao_periph_node, f"spi_flash_sd_{i}_i", IoInputEP(), Pad.name_to_target_name("spi_flash_sd", i)+"_i")
     
         self._routing_helper.add_target(self._ao_periph_node, "dma_default_target", DmaTriggerEP())
-        self._routing_helper.add_source(self._ao_periph_node, "spi_flash_dma_rx_valid", DmaTriggerEP())
-        self._routing_helper.add_source(self._ao_periph_node, "spi_flash_dma_tx_valid", DmaTriggerEP())
-        self._routing_helper.add_source(self._ao_periph_node, "spi_flash_intr", InterruptEP())
+        self._routing_helper.add_source(self._ao_periph_node, "spi_flash_dma_rx", DmaTriggerEP())
+        self._routing_helper.add_source(self._ao_periph_node, "spi_flash_dma_tx", DmaTriggerEP())
+        self._routing_helper.add_source(self._ao_periph_node, "spi_flash_intr", InterruptEP(handler="fic_irq_spi_flash"))
 
         self._routing_helper.add_source(self._ao_periph_node, "rv_timer_0_intr", InterruptDirectEP(), "rv_timer_0_direct_irq")
-        self._routing_helper.add_source(self._ao_periph_node, "rv_timer_1_intr", InterruptEP())
+        self._routing_helper.add_source(self._ao_periph_node, "rv_timer_1_intr", InterruptEP(handler="fic_irq_rv_timer_1"))
 
-        self._routing_helper.add_source(self._ao_periph_node, "dma_done_intr", InterruptEP())
-        self._routing_helper.add_source(self._ao_periph_node, "dma_window_intr", InterruptPlicEP())
+        self._routing_helper.add_source(self._ao_periph_node, "dma_done_intr", InterruptEP(handler="fic_irq_dma"))
+        self._routing_helper.add_source(self._ao_periph_node, "dma_window_intr", InterruptPlicEP(handler="handler_irq_dma"))
 
     def add_ram_banks(self, bank_sizes: "List[int]", section_name: str = ""):
         """
@@ -536,6 +536,15 @@ class XHeep():
     def iter_peripheral_domains(self) -> Iterable[PeripheralDomain]:
         return iter(self._peripheral_domains)
     
+    def num_peripheral_domains(self) -> int:
+        return len(self._peripheral_domains)
+    
+    def iter_peripheral_domains_normal(self) -> Iterable[PeripheralDomain]:
+        return filter(lambda d: d.get_type() == "normal", self._peripheral_domains)
+    
+    def iter_peripheral_domains_fixed(self) -> Iterable[PeripheralDomain]:
+        return filter(lambda d: d.get_type() == "fixed", self._peripheral_domains)
+
     def _periph_build(self):
         used_names = {
             "rv_timer": 2,

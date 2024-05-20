@@ -43,48 +43,7 @@
 
 #include "mmio.h"
 #include "macros.h"
-
-
-/****************************************************************************/
-/**                                                                        **/
-/*                        DEFINITIONS AND MACROS                            */
-/**                                                                        **/
-/****************************************************************************/
-
-/**
- * Start and end ID of the UART interrupt request lines
-*/
-#define UART_ID_END     UART_INTR_RX_PARITY_ERR
-
-/**
- * Start and end ID of the GPIO interrupt request lines
-*/
-#define GPIO_ID_END     GPIO_INTR_31
-
-/**
- * Start and end ID of the I2C interrupt request lines
-*/
-#define I2C_ID_END      INTR_HOST_TIMEOUT
-
-/**
- * ID of the SPI interrupt request line
-*/
-#define SPI_ID          SPI2_INTR_EVENT
-
-/**
- * ID of the I2S interrupt request lines
- */
-#define I2S_ID          I2S_INTR_EVENT
-
-/**
- * ID of the DMA interrupt request line
-*/
-#define DMA_ID          DMA_WINDOW_INTR
-
-/**
- * ID of the external interrupt request lines
-*/
-#define EXT_IRQ_START   EXT_INTR_0
+#include "rv_plic_structs.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -159,6 +118,28 @@ typedef enum plic_irq_trigger {
   kPlicIrqTriggerEdge
 } plic_irq_trigger_t;
 
+#define QTY_INTR_PLIC 64
+/**
+ * Pointer used to dynamically access the different interrupt handlers.
+*/
+typedef void (*rv_plic_handler_funct_t)(uint32_t);
+
+/**
+ * Colletions of information about one plic and it's runtime components.
+ */
+typedef struct {
+  RV_PLIC* rv_plic_peri;
+  
+  /**
+    * Array for the ISRs.
+    * Each element will be initialized to be the address of the handler function
+    * relative to its index. So each element will be a callable function.
+    */
+  rv_plic_handler_funct_t handlers[QTY_INTR_PLIC];
+  rv_plic_handler_funct_t default_handlers[QTY_INTR_PLIC];
+} rv_plic_inf_t;
+
+#include "rv_plic_gen.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -183,7 +164,7 @@ void handler_irq_external(void);
  *
  * @return The result of the operation.
  */
-plic_result_t plic_Init(void);
+plic_result_t plic_Init(rv_plic_inf_t *inf);
 
 
 /**
@@ -200,7 +181,7 @@ plic_result_t plic_Init(void);
  * @param state The new toggle state for the interrupt
  * @return The result of the operation
 */
-plic_result_t plic_irq_set_enabled( uint32_t irq,
+plic_result_t plic_irq_set_enabled(rv_plic_inf_t *inf, uint32_t irq,
                                     plic_toggle_t state);
 
 
@@ -218,7 +199,7 @@ plic_result_t plic_irq_set_enabled( uint32_t irq,
  * @param state The toggle state of the interrupt, as read from the IE registers
  * @return The result of the operation
 */
-plic_result_t plic_irq_get_enabled( uint32_t irq,
+plic_result_t plic_irq_get_enabled(rv_plic_inf_t *inf, uint32_t irq,
                                     plic_toggle_t *state);
 
 /**
@@ -234,7 +215,7 @@ plic_result_t plic_irq_get_enabled( uint32_t irq,
  * @result The result of the operation
  *
 */
-plic_result_t plic_irq_set_trigger( uint32_t irq,
+plic_result_t plic_irq_set_trigger(rv_plic_inf_t *inf, uint32_t irq,
                                     plic_irq_trigger_t trigger);
 
 /**
@@ -244,7 +225,7 @@ plic_result_t plic_irq_set_trigger( uint32_t irq,
  * @param priority A priority value to set
  * @return The result of the operation
 */
-plic_result_t plic_irq_set_priority(  uint32_t irq,
+plic_result_t plic_irq_set_priority(rv_plic_inf_t *inf,  uint32_t irq,
                                       uint32_t priority);
 
 /**
@@ -257,7 +238,7 @@ plic_result_t plic_irq_set_priority(  uint32_t irq,
  * @param threshold The threshold value to be set
  * @return The result of the operation
 */
-plic_result_t plic_target_set_threshold(uint32_t threshold);
+plic_result_t plic_target_set_threshold(rv_plic_inf_t *inf, uint32_t threshold);
 
 /**
  * Returns whether a particular interrupt is currently pending.
@@ -265,7 +246,7 @@ plic_result_t plic_target_set_threshold(uint32_t threshold);
  * @param irq An interrupt source identification
  * @param[out] is_pending Boolean flagcorresponding to whether an interrupt is pending or not
 */
-plic_result_t plic_irq_is_pending( uint32_t irq,
+plic_result_t plic_irq_is_pending(rv_plic_inf_t *inf, uint32_t irq,
                                    bool *is_pending);
 
 /**
@@ -287,7 +268,7 @@ plic_result_t plic_irq_is_pending( uint32_t irq,
  * @param[out] claim_data Data that describes the origin of the IRQ.
  * @return The result of the operation.
  */
-plic_result_t plic_irq_claim( uint32_t *claim_data);
+plic_result_t plic_irq_claim(rv_plic_inf_t *inf, uint32_t *claim_data);
 
 /**
  * Completes the claimed interrupt request.
@@ -303,7 +284,7 @@ plic_result_t plic_irq_claim( uint32_t *claim_data);
  * PLIC of the IRQ servicing completion.
  * @return The result of the operation
 */
-plic_result_t plic_irq_complete(const uint32_t *complete_data );
+plic_result_t plic_irq_complete(rv_plic_inf_t *inf, const uint32_t *complete_data );
 
 
 /**
@@ -317,7 +298,7 @@ plic_result_t plic_irq_complete(const uint32_t *complete_data );
  *
  * @return The result of the operation
  */
-void plic_software_irq_force(void);
+void plic_software_irq_force(rv_plic_inf_t *inf);
 
 
 /**
@@ -329,29 +310,28 @@ void plic_software_irq_force(void);
  *
  * @return The result of the operation
  */
-void plic_software_irq_acknowledge(void);
+void plic_software_irq_acknowledge(rv_plic_inf_t *inf);
 
 /**
  * Returns software interrupt pending state
  *
  * @return The result of the operation
 */
-plic_result_t plic_software_irq_is_pending(void);
+plic_result_t plic_software_irq_is_pending(rv_plic_inf_t *inf);
 
 /**
- * Adds a handler function for an external interrupt to the handlers list.
- * @param id The interrupt ID of an external interrupt (from core_v_mini_mcu.h)
+ * Adds a handler function for an interrupt to the handlers list.
+ * @param id The interrupt ID of an interrupt (from core_v_mini_mcu.h)
  * @param handler A pointer to a function that will be called upon interrupt.
  * @return The result of the operation
 */
-plic_result_t plic_assign_external_irq_handler( uint32_t id,
-                                                void  *handler );
+plic_result_t plic_assign_irq_handler(rv_plic_inf_t *inf, uint32_t id, rv_plic_handler_funct_t handler );
 
 /**
  * Resets all peripheral handlers to their pre-set ones. All external handlers
  * are re-set to the dummy handler.
  */
-void plic_reset_handlers_list(void);
+void plic_reset_handlers_list(rv_plic_inf_t *inf);
 
 #endif /* _RV_PLIC_H_ */
 

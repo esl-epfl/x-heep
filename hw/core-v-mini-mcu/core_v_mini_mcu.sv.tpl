@@ -316,7 +316,7 @@ module core_v_mini_mcu
       ${xheep.get_rh().get_instantiation_signals(xheep.get_ao_node()).strip(",")}
   );
 <%
-  domain = next(xheep.iter_peripheral_domains())
+  domain = next(xheep.iter_peripheral_domains_normal())
 %>
   peripheral_subsystem peripheral_subsystem_i (
       .clk_i,

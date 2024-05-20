@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
 <%
-  domain = next(xheep.iter_peripheral_domains())
+  domain = next(xheep.iter_peripheral_domains_normal())
 %>
 
 module peripheral_subsystem
@@ -33,8 +33,8 @@ module peripheral_subsystem
   reg_pkg::reg_req_t peripheral_req;
   reg_pkg::reg_rsp_t peripheral_rsp;
 
-  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::PERIPHERALS-1:0] peripheral_slv_req;
-  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::PERIPHERALS-1:0] peripheral_slv_rsp;
+  reg_pkg::reg_req_t [core_v_mini_mcu_pkg::PERIPHERAL_COUNT-1:0] peripheral_slv_req;
+  reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::PERIPHERAL_COUNT-1:0] peripheral_slv_rsp;
 
 
 % for periph in domain.iter_peripherals():
@@ -47,7 +47,7 @@ module peripheral_subsystem
 
 
   //Address Decoder
-  logic [PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
+  logic [PERIPHERAL_PORT_SEL_WIDTH-1:0] peripheral_select;
 
   obi_pkg::obi_req_t slave_fifo_req_sel;
   obi_pkg::obi_resp_t slave_fifo_resp_sel;
@@ -114,13 +114,13 @@ module peripheral_subsystem
   );
 
   addr_decode #(
-      .NoIndices(core_v_mini_mcu_pkg::PERIPHERALS),
-      .NoRules(core_v_mini_mcu_pkg::PERIPHERALS),
+      .NoIndices(core_v_mini_mcu_pkg::PERIPHERAL_COUNT),
+      .NoRules(core_v_mini_mcu_pkg::PERIPHERAL_COUNT),
       .addr_t(logic [31:0]),
       .rule_t(addr_map_rule_pkg::addr_map_rule_t)
   ) i_addr_decode_soc_regbus_periph_xbar (
       .addr_i(peripheral_req.addr),
-      .addr_map_i(core_v_mini_mcu_pkg::PERIPHERALS_ADDR_RULES),
+      .addr_map_i(core_v_mini_mcu_pkg::PERIPHERAL_ADDR_RULES),
       .idx_o(peripheral_select),
       .dec_valid_o(),
       .dec_error_o(),
@@ -129,7 +129,7 @@ module peripheral_subsystem
   );
 
   reg_demux #(
-      .NoPorts(core_v_mini_mcu_pkg::PERIPHERALS),
+      .NoPorts(core_v_mini_mcu_pkg::PERIPHERAL_COUNT),
       .req_t  (reg_pkg::reg_req_t),
       .rsp_t  (reg_pkg::reg_rsp_t)
   ) reg_demux_i (

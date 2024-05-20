@@ -247,7 +247,7 @@ static uint32_t *spi_flash_fifo_tx = ADDRESS_SPI_FLASH_TX_FIFO;
 
 static dma_target_t tgt2= {
                             .inc_du     = 0,
-                            .trig       = DMA_TRIG_SLOT_SPI_FLASH_TX,
+                            .trig       = DMA_TRIG_SLOT_SPI_FLASH_DMA_TX,
 };
 
 tgt2.ptr = spi_flash_fifo_tx;
@@ -261,7 +261,7 @@ There is no need to assign a value of transaction size or data type. By default,
 
 The increment needs to be set to zero as the pointer should always be set to the FIFO address.
 
-Because the SPI FLASH transmission FIFO has a line connected to slot number 4 (codified as a `1` in the fourth bit of the `trig` element) to let the DMA know if the FIFO is full, a trigger is set in that position by passing `.trig = DMA_TRIG_SLOT_SPI_FLASH_TX`.
+Because the SPI FLASH transmission FIFO has a line connected to slot number 4 (codified as a `1` in the fourth bit of the `trig` element) to let the DMA know if the FIFO is full, a trigger is set in that position by passing `.trig = DMA_TRIG_SLOT_SPI_FLASH_DMA_TX`.
 
 
 The transaction is formed by selecting the source and destination targets
@@ -401,7 +401,7 @@ The source of the data will be a peripheral connected to the SPI, which will be 
 tgt2.ptr        = spi_peripheral_fifo_rx;
 tgt2.size_du    = 2048;
 tgt2.type       = DMA_DATA_TYPE_HALF_WORD;
-tgt2.trig       = DMA_TRIG_SLOT_SPI_RX;
+tgt2.trig       = DMA_TRIG_SLOT_SPI_HOST_0_RX;
 ```
 
 The source pointer is set to the reception FIFO of the SPI, and the appropriate slot is chosen.

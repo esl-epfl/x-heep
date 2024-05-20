@@ -21,9 +21,9 @@ class GpioPeripheral():
             rh.add_source(p_node, Pad.name_to_target_name("gpio", io_num)+"_oe", IoOutputEnEP(), Pad.name_to_target_name("gpio", io_num)+"_oe")
 
             if self._intr_map[io_num] == "fast":
-                rh.add_source(p_node, f"gpio_{io_num}_intr_o", InterruptEP())
+                rh.add_source(p_node, f"gpio_{io_num}_intr", InterruptEP(handler=f"fic_irq_gpio_{io_num}_intr"))
             elif self._intr_map[io_num] == "plic":
-                rh.add_source(p_node, f"gpio_{io_num}_intr_o", InterruptPlicEP())
+                rh.add_source(p_node, f"gpio_{io_num}_intr", InterruptPlicEP(handler=f"handler_irq_gpio_{io_num}_intr"))
         
     
     def make_instantiation(self, rh: RoutingHelper) -> str:
@@ -36,7 +36,7 @@ class GpioPeripheral():
         for i in range(32):
             if i in self._gpios_used:
                 io_num = self._gpios_used[i]
-                intr_sig = rh.use_source_as_sv(f"gpio_{io_num}_intr_o", self._p_node)
+                intr_sig = rh.use_source_as_sv(f"gpio_{io_num}_intr", self._p_node)
                 in_sig = rh.use_source_as_sv(Pad.name_to_target_name("gpio", io_num)+"_i", self._p_node)
                 out_sig = rh.use_source_as_sv(Pad.name_to_target_name("gpio", io_num)+"_o", self._p_node)
                 oe_sig = rh.use_source_as_sv(Pad.name_to_target_name("gpio", io_num)+"_oe", self._p_node)

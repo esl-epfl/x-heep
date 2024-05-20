@@ -318,6 +318,9 @@ class RoutingHelper():
     
     def get_target_ep_copy(self, name: str) -> Endpoint:
         return deepcopy(self._targets[name].ep)
+    
+    def get_source_ep_copy(self, name: str) -> Endpoint:
+        return deepcopy(self._sources[name].ep)
         
 
 

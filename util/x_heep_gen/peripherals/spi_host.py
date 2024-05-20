@@ -18,12 +18,16 @@ class SpiHostPeripheral():
             "error": "plic",
             "spi_event": "fast" if event_is_fast_intr else "plic"
         }
+        self.interrupt_handler = {
+            "error": "error",
+            "spi_event": ""
+        }
     
     def register_connections(self, rh: RoutingHelper, p_node: Node):
         super().register_connections(rh, p_node)
         if self._spi_uses_dma:
-            rh.add_source(p_node, f"{self.name}_{self._sp_name_suffix}_rx_valid", DmaTriggerEP())
-            rh.add_source(p_node, f"{self.name}_{self._sp_name_suffix}_tx_valid", DmaTriggerEP())
+            rh.add_source(p_node, f"{self.name}_{self._sp_name_suffix}_rx", DmaTriggerEP())
+            rh.add_source(p_node, f"{self.name}_{self._sp_name_suffix}_tx", DmaTriggerEP())
 
     def make_instantiation_connections(self, rh: RoutingHelper) -> str:
         out = ""
@@ -32,8 +36,8 @@ class SpiHostPeripheral():
         out += ".passthrough_i(spi_device_pkg::PASSTHROUGH_REQ_DEFAULT),"
         out += ".passthrough_o(),"
         if self._spi_uses_dma:
-            out += f".rx_valid_o({rh.use_source_as_sv(f'{self.name}_{self._sp_name_suffix}_rx_valid', self._p_node)}),"
-            out += f".tx_ready_o({rh.use_source_as_sv(f'{self.name}_{self._sp_name_suffix}_tx_valid', self._p_node)}),"
+            out += f".rx_valid_o({rh.use_source_as_sv(f'{self.name}_{self._sp_name_suffix}_rx', self._p_node)}),"
+            out += f".tx_ready_o({rh.use_source_as_sv(f'{self.name}_{self._sp_name_suffix}_tx', self._p_node)}),"
         else:
             out += ".rx_valid_o(),"
             out += ".tx_ready_o(),"

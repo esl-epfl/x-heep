@@ -351,11 +351,6 @@ static inline __attribute__((always_inline)) __attribute__((const)) uint32_t spi
     return cmd_reg;
 }
 
-/**
- * @brief Attends the plic interrupt.
- */
-__attribute__((weak, optimize("O0"))) void handler_irq_spi(uint32_t id);
-
 
 #ifdef __cplusplus
 }

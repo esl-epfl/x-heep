@@ -9,6 +9,7 @@ build/
 *.do
 *.jou
 *.str
+*.pickle
 .venv/
 __pycache__/
 
@@ -47,6 +48,11 @@ sw/device/lib/drivers/power_manager/power_manager_regs.h
 sw/device/lib/drivers/power_manager/power_manager.h
 sw/device/lib/drivers/pad_control/pad_control_regs.h
 sw/device/lib/drivers/**/*_structs.h
+sw/device/lib/drivers/rv_plic/rv_plic_gen.c
+sw/device/lib/drivers/rv_plic/rv_plic_gen.h
+sw/device/lib/drivers/fast_intr_ctrl/fast_intr_ctrl.c
+sw/device/lib/drivers/fast_intr_ctrl/fast_intr_ctrl.h
+sw/device/lib/drivers/dma/dma.h
 
 # openroad
 flow/OpenROAD-flow-scripts

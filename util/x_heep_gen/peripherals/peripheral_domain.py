@@ -26,7 +26,10 @@ class PeripheralDomain:
 
         self._address: int = address
         self._addr_size: int = addr_size
+        self._type: str = "normal"
 
+    def get_type(self) -> str:
+        return self._type
 
     def add_peripheral(self, p: BasicPeripheral):
         if not isinstance(p, BasicPeripheral):
@@ -166,3 +169,13 @@ class PeripheralDomain:
         for offset, _, p_idx in reserved:
             p = self._peripherals[p_idx]
             p.set_offset(offset)
+
+class FixedDomain(PeripheralDomain):
+    def __init__(self, name: str, address: int, addr_size: int):
+        super().__init__(name, address, addr_size)
+        self._type = "fixed"
+    
+    def specialize_names(self, used_names: Dict[str, int]):
+        pass
+    def addr_setup(self):
+        pass

@@ -1,3 +1,4 @@
+from typing import Set
 from x_heep_gen.peripherals.peripheral_helper import peripheral_from_file
 from x_heep_gen.signal_routing.endpoints import InterruptDirectEP, InterruptPlicEP
 from x_heep_gen.signal_routing.node import Node
@@ -48,3 +49,29 @@ class RvPlicPeripheral():
         out += "\n\n"
 
         return out + super().make_instantiation(rh)
+    
+    def make_intr_defs(self, rh: RoutingHelper) -> str:
+        out = ""
+        intr_sources = rh.use_target_as_sv_multi(self._rv_plic_target_name(), self._p_node)
+        for i, intr in enumerate(intr_sources):
+            intr = intr.split(".")[-1]
+            out += f"#define {intr.upper()} {i+1}\n"
+        return out
+    
+    def make_handler_array(self, rh: RoutingHelper) -> str:
+        out = "handler_irq_dummy,"
+        intr_sources = rh.use_target_as_sv_multi(self._rv_plic_target_name(), self._p_node)
+        for i, intr in enumerate(intr_sources):
+            ep: InterruptPlicEP = rh.get_source_ep_copy(intr.split(".")[-1])
+            out += f"{ep.handler},"
+        for _ in range(i+1, 64):
+             out += "handler_irq_dummy,"
+        return out
+    
+    def make_handler_set(self, rh: RoutingHelper) -> Set[str]:
+        out = {"handler_irq_dummy"}
+        intr_sources = rh.use_target_as_sv_multi(self._rv_plic_target_name(), self._p_node)
+        for intr in intr_sources:
+            ep: InterruptPlicEP = rh.get_source_ep_copy(intr.split(".")[-1])
+            out.add(ep.handler)
+        return out

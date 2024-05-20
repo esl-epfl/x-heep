@@ -25,7 +25,7 @@
 #include "mmio.h"
 #include "groundtruth.h"
 
-#ifndef PDM2PCM_IS_INCLUDED
+#ifndef PDM2PCM_0_IS_INCLUDED
   #error ( "This app does NOT work as the PDM2PCM peripheral is not included" )
 #endif
 
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     PRINTF("PDM2PCM DEMO\n\r");
     PRINTF(" > Start\n\r");
 
-    mmio_region_t pdm2pcm_base_addr = mmio_region_from_addr((uintptr_t)PDM2PCM_START_ADDRESS);
+    mmio_region_t pdm2pcm_base_addr = mmio_region_from_addr((uintptr_t)PDM2PCM_0_START_ADDRESS);
 
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_CLKDIVIDX_REG_OFFSET ,15);
     mmio_region_write32(pdm2pcm_base_addr, PDM2PCM_REACHCOUNT_REG_OFFSET, 1);

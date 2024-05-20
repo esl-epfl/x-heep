@@ -49,36 +49,36 @@ vector_table:
 	j __no_irq_handler
 	// 15 : unmapped
 	j __no_irq_handler
-	// 16 : fast interrupt - timer_1
-	j handler_irq_fast_timer_1
-	// 17 : fast interrupt - timer_2
-	j handler_irq_fast_timer_2
-	// 18 : fast interrupt - timer_3
-	j handler_irq_fast_timer_3
-	// 19 : fast interrupt - dma
-	j handler_irq_fast_dma
-	// 20 : fast interrupt - spi
-	j handler_irq_fast_spi
-	// 21 : fast interrupt - spi_flash
-	j handler_irq_fast_spi_flash
-	// 22 : fast interrupt - gpio_0
-	j handler_irq_fast_gpio_0
-	// 23 : fast interrupt - gpio_1
-	j handler_irq_fast_gpio_1
-	// 24 : fast interrupt - gpio_2
-	j handler_irq_fast_gpio_2
-	// 25 : fast interrupt - gpio_3
-	j handler_irq_fast_gpio_3
-	// 26 : fast interrupt - gpio_4
-	j handler_irq_fast_gpio_4
-	// 27 : fast interrupt - gpio_5
-	j handler_irq_fast_gpio_5
-	// 28 : fast interrupt - gpio_6
-	j handler_irq_fast_gpio_6
-	// 29 : fast interrupt - gpio_7
-	j handler_irq_fast_gpio_7
-	// 30 : fast interrupt - unmapped
-	j __no_irq_handler
+	// 16 : fast interrupt - 0
+	j handler_irq_fast_0
+	// 17 : fast interrupt - 1
+	j handler_irq_fast_1
+	// 18 : fast interrupt - 2
+	j handler_irq_fast_2
+	// 19 : fast interrupt - 3
+	j handler_irq_fast_3
+	// 20 : fast interrupt - 4
+	j handler_irq_fast_4
+	// 21 : fast interrupt - 5
+	j handler_irq_fast_5
+	// 22 : fast interrupt - 6
+	j handler_irq_fast_6
+	// 23 : fast interrupt - 7
+	j handler_irq_fast_7
+	// 24 : fast interrupt - 8
+	j handler_irq_fast_8
+	// 25 : fast interrupt - 9
+	j handler_irq_fast_9
+	// 26 : fast interrupt - 10
+	j handler_irq_fast_10
+	// 27 : fast interrupt - 11
+	j handler_irq_fast_11
+	// 28 : fast interrupt - 12
+	j handler_irq_fast_12
+	// 29 : fast interrupt - 13
+	j handler_irq_fast_13
+	// 30 : fast interrupt - 14
+	j handler_irq_fast_14
 	// vendor interrupts: on Ibex interrupt id 31 is for non-maskable interrupts
 	j __no_irq_handler
 	// 64-32 : not connected on Ibex
