@@ -1,7 +1,7 @@
 # SPI Host
 
 ```{contents} Table of Contents
-:depth: 4
+:depth: 2
 ```
 
 There are three instances of the _SPI Host IP_ in the X-HEEP platform. These will
@@ -19,42 +19,37 @@ A transaction is defined by one or multiple command segments.
 
 ### Command Segment
 
-A command segment is a single instruction provided to the _SPI Host IP_ specifying
-speed, direction and two additional parameters that will be discussed later in this
-documentation.
+A command segment is a single instruction provided to the _SPI Host IP_ specifying 
+speed, direction, and additional parameters discussed later.
 
 ### SPI Host
 
-SPI Host refers to the particular hardware device for which this SDK and HAL have
-been developed.
-
-SPI Host, SPI Host IP and SPI Host device are used indistinctively throughout this 
-documentation.
+SPI Host refers to the particular hardware device for which this SDK and HAL have 
+been developed. _SPI Host_, _SPI Host IP_, and _SPI Host device_ are used 
+interchangeably.
 
 ### TX and RX
 
-TX refers to transmition related data or operations.
+- TX: Transmission-related data or operations.
 
-RX refers to reception related data or operations.
+- RX: Reception-related data or operations.
 
 ### Slave and Target
 
-_Slave_ and _target_ are used indistinctively, and mean the SPI device that 
+_Slave_ and _target_ are used interchangeably, referring to the SPI device that 
 responds to the SPI Host.
 
 ### Word
 
-A word, when used as a unit of digital information, will always refer to 32 bits
+A word, when used as a unit of digital information, always refers to 32 bits
 throughout the entire documentation.
 
 
-## SDK and HAL Usage
+## SDK Usage
 
-### SDK
-
-The most important structure of the SDK is `spi_t`, which holds all the necessary 
-information to communicate with an external SPI device. It specifies which _SPI Host IP_ 
-to use and contains all the data related to the external SPI slave.
+The SDK facilitates communication with external SPI devices through the `spi_t` 
+structure, which holds necessary information, including the specific _SPI Host IP_ 
+and external _SPI slave_ data.
 
 ```c
 typedef struct {
@@ -75,7 +70,7 @@ each referring to a specific _SPI Host IP_.
 - `slave` is the structure containing all information about the external SPI slave.
 
 
-#### The Slave
+### The Slave
 
 The `spi_slave_t` structure is defined as:
 
@@ -128,7 +123,7 @@ command segment.
 - `freq` is the maximum frequency of the external SPI device.
 
 
-#### Initialization
+### Initialization
 
 To start using the SDK, you must create an `spi_slave_t` and an `spi_t`. However, 
 the `spi_t` __can't__ be created directly; it must be created through the `spi_init` 
@@ -180,13 +175,13 @@ A slave with predefined standard values can be created using the macro:
 ```
 ````
 
-#### Transactions
+### Transactions
 
 Once the `spi_t` has been successfully initialized, communication with its slave 
 device can be performed via transactions, which are lists of command segments executed 
 by the _SPI Host IP_.
 
-##### Command Segments
+#### Command Segments
 
 Each command segment consists of a simple instruction dermining the direction of 
 data transfer (TX, RX or Bidirectional), its speed (Standard, Dual, or Quad), and
@@ -242,7 +237,7 @@ For example:
 spi_segment_t segments[2] = { SPI_SEG_TX(4), SPI_SEG_RX(256) };
 ```
 
-##### TX/RX Buffers
+#### TX/RX Buffers
 
 Since these segments transmit/receive data, appropriate TX and RX buffers are needed. 
 These buffers must be large enough to contain the data being transmitted/received to 
@@ -272,7 +267,7 @@ This design choice was made to avoid having various alignment computations, thus
 computational speed at the cost of rendering some minimal bytes useless.
 ```
 
-##### Execution
+#### Execution
 
 With the buffers and segments ready, the transaction can be issued using:
 
@@ -294,7 +289,7 @@ spi_state_e spi_get_state(spi_t* spi);
 Which returns `SPI_STATE_DONE` if the transaction completed successfully
 (i.e. all segments were completed). Otherwise, it returns `SPI_STATE_ERROR`.
 
-##### Example
+#### Example
 
 A complete example of executing a transaction:
 
@@ -322,7 +317,7 @@ else {
 }
 ```
 
-##### Simplified Transaction Functions
+#### Simplified Transaction Functions
 
 This method is the most configurable. However, there are simpler methods for common 
 transactions:
@@ -344,7 +339,7 @@ performs a _Bidirectional Standard_ transaction. They work like `spi_execute` bu
 require command segments to be provided.
 
 
-#### Non-Blocking Transactions
+### Non-Blocking Transactions
 
 To allow the main program to continue processing while a transaction executes, each 
 transaction function has also a _non-blocking_ variant:
@@ -368,9 +363,15 @@ spi_codes_e spi_execute_nb(spi_t* spi, const spi_segment_t* segments,
 These functions differ in two aspects from their _blocking_ counterpart. First, these 
 functions return immediately after launching the transaction, allowing other data 
 processing while the transaction completes. Secondly, they take an additional parameter 
-of type `spi_callbacks_t`, defined as:
+of type `spi_callbacks_t`.
+
+#### Callbacks
 
 ```c
+// Callback type
+typedef void (*spi_cb_t)(const uint32_t*, uint32_t, uint32_t*, uint32_t);
+
+// Callbacks type
 typedef struct {
     spi_cb_t done_cb;   // Called once transaction is done
     spi_cb_t txwm_cb;   // Called each time TX watermark event is triggered
@@ -379,30 +380,24 @@ typedef struct {
 } spi_callbacks_t;
 ```
 
-##### Callbacks
-
-Each field of `spi_callbacks_t` is of type `spi_cb_t`, defined as:
-
-```c
-typedef void (*spi_cb_t)(const uint32_t*, uint32_t, uint32_t*, uint32_t);
-```
-
-This _callback_ type is invoked with four arguments whenever the corresponding event 
-occurs:
+The _callback_ type (`spi_cb_t`) is invoked with four arguments whenever the corresponding 
+event occurs:
 
 1. The _TX buffer_ associated to the transaction.
 1. The current number of items in the _TX buffer_.
 1. The _RX buffer_ associated to the transaction.
 1. The current number of items in the _RX buffer_.
 
-Callbacks can be `NULL` if not needed.
+Callbacks in `spi_callbacks_t` can be `NULL` if not needed.
 
+```{note}
 In this context, the function `spi_get_state` previously explained, can be used to 
 check if the transaction is still ongoing (`SPI_STATE_BUSY`) or has finished. Once
 finished the state will also become `SPI_STATE_DONE` or `SPI_STATE_ERROR` depending 
 on the result of the transaction.
+```
 
-##### Example
+#### Example
 
 ```c
 void done_cb(const uint32_t* txbuff, uint32_t txlen, uint32_t* rxbuff, uint32_t rxlen)
@@ -453,9 +448,9 @@ For explanation, please refer to [this directive](#caution-seglen-bufflen).
 ```
 
 
-### HAL
+## HAL Usage
 
-#### Overview
+### Overview
 
 The three instances of the _SPI Host IP_ of the X-HEEP platform can be referenced 
 in the HAL with the macros:
@@ -466,7 +461,6 @@ in the HAL with the macros:
 
 These macros expand to variables of type `spi_host_t*`. They must be passed to any 
 HAL function requiring to reference the specific peripheral.
-
 
 
 #### Return Flags
@@ -511,14 +505,14 @@ and `SPI_FLAG_OK` will be omitted from discussions of function return values. On
 doubt please refer to the functions documentation.
 
 
-#### Target Device Configuration
+### Target Device Configuration
 
 Using the HAL begins by configuring the slave device(s) you intend to communicate 
 with. For this purpose, a configuration options structure, `spi_configopts_t`, is 
 provided, along with functions to write the slave configuration options to the 
 _SPI Host IP_.
 
-##### Configuration Options Structure
+#### Configuration Options Structure
 
 ```c
 typedef struct spi_configopts_s {
@@ -546,7 +540,7 @@ typedef struct spi_configopts_s {
 } spi_configopts_t;
 ```
 
-##### Configuration Functions
+#### Configuration Functions
 
 ```c
 uint32_t spi_create_configopts(const spi_configopts_t configopts);
@@ -555,7 +549,7 @@ spi_return_flags_e spi_set_configopts(spi_host_t* spi, uint32_t csid,
                                       const uint32_t conf_reg);
 ```
 
-##### Configuration Steps
+#### Configuration Steps
 
 To create and write the configuration options to the hardware:
 
@@ -571,7 +565,7 @@ successful configuration.
 The configuration options persist until overwritten or the _SPI Host IP_ is reset.
 
 
-#### Enabling the SPI Host
+### Enabling the SPI Host
 
 After configuring the slave, enable the _SPI Host IP_ and its output buffers:
 
@@ -587,14 +581,14 @@ Both functions must be called to start communication:
 
 
 
-#### Communication Commands
+### Communication Commands
 
 Communication with SPI slaves involves creating and inputting commands to the 
 _SPI Host IP_. Each command instructs the _SPI Host IP_ to execute a transfer 
 (transmit/receive) for a certain amount of bytes, in a specific direction and speed.
 
 
-##### Command Structure
+#### Command Structure
 
 ```c
 typedef struct spi_command_s {
@@ -624,7 +618,7 @@ The direction `SPI_DIR_BIDIR` can only use the speed `SPI_SPEED_STANDARD`. Confi
 the command.
 ```
 
-##### Setting Chip Select ID
+#### Setting Chip Select ID
 
 Specify the target device by setting the Chip Select line:
 
@@ -637,7 +631,7 @@ spi_return_flags_e spi_set_csid(spi_host_t* spi, uint32_t csid);
 This function returns `SPI_FLAG_CSID_INVALID` if the `csid` is out of range.
 
 
-##### Loading TX FIFO
+#### Loading TX FIFO
 
 If the command transmits data (`SPI_DIR_TX_ONLY` or `SPI_DIR_BIDIR`), load the 
 TX _FIFO_ with data:
@@ -656,7 +650,7 @@ Both write functions will return either `SPI_FLAG_TX_QUEUE_FULL` if the TX _FIFO
 full or `SPI_FLAG_OK` if the data has been loaded into the _FIFO_.
 
 
-##### Verifying Readiness
+#### Verifying Readiness
 
 Ensure the _SPI Host IP_ is ready to receive commands:
 
@@ -673,7 +667,7 @@ Alternatively, you may wait for readiness:
 spi_return_flags_e spi_wait_for_ready(spi_host_t* spi);
 ```
 
-##### Issuing Commands
+#### Issuing Commands
 
 ```c
 uint32_t spi_create_command(const spi_command_t command);
@@ -689,7 +683,7 @@ Issue commands by following these steps:
 invalid speed or `SPI_FLAG_NOT_READY` if not ready.
 
 
-##### Reading Received Data
+#### Reading Received Data
 
 For RX or Bidirectional commands, read received data with:
 
@@ -708,7 +702,7 @@ parameter does not describe full words) will be zero-padded.
 
 
 (hal-advanced-commands)=
-##### Advanced Commands
+#### Advanced Commands
 
 For complex commands (e.g. TX followed by RX without deactivating the CS line, etc.), 
 use the `csaat` field to keep the _CS_ line active:
@@ -718,7 +712,7 @@ use the `csaat` field to keep the _CS_ line active:
 
 
 
-#### SPI Host Status
+### SPI Host Status
 
 To retrieve the current status of the _SPI Host IP_, a structure and a function 
 are provided:
@@ -767,9 +761,9 @@ If `spi_host_t* spi` is `NULL`, this function returns a `NULL` pointer.
 Check for `NULL` before accessing fields.
 
 
-#### Interrupts
+### Interrupts
 
-##### Overview of Interrupts
+#### Overview of Interrupts
 
 The SPI Host features two types of interrupts:
 
@@ -779,7 +773,7 @@ The SPI Host features two types of interrupts:
 To manage these interrupts, you can select which conditions trigger them and 
 then check the specific error/event in the interrupt handler.
 
-##### Interrupt Handling
+#### Interrupt Handling
 
 To use interrupts, first implement the _non-weak_ functions of the _weak_ functions 
 defined in the HAL. Each _SPI Host IP_ instance has its own _weak_ error handling 
@@ -864,7 +858,7 @@ event. Therefore, the `events` variable received by the handler functions is
 actually the statuses mapped to `spi_event_e`.
 ```
 
-###### Interrupt Acknowledgment
+##### Interrupt Acknowledgment
 
 After handling an interrupt, it must be acknowledged to the _SPI Host_.
 
@@ -878,7 +872,7 @@ function to acknowledge errors:
 spi_return_flags_e spi_acknowledge_errors(spi_host_t* spi);
 ```
 
-##### Enabling Interrupts
+#### Enabling Interrupts
 
 To enable or disable interrupts, use the following functions:
 
