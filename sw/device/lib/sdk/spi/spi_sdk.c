@@ -377,6 +377,7 @@ spi_t spi_init(spi_idx_e idx, spi_slave_t slave)
     // Enable all error interrupts so that the SPI peripheral doesn't get stuck if
     // there is an error. And we don't check return value since we know it's error free.
     spi_set_errors_enabled(peripherals[idx].instance, SPI_ERROR_IRQALL, true);
+    spi_enable_error_intr(peripherals[idx].instance, true);
     // Set the watermarks for the specific peripheral
     spi_set_tx_watermark(peripherals[idx].instance, peripherals[idx].txwm);
     spi_set_rx_watermark(peripherals[idx].instance, peripherals[idx].rxwm);
@@ -822,9 +823,6 @@ void spi_launch(spi_peripheral_t* peri, spi_t* spi, spi_transaction_t txn,
     // Indicate the callbacks that should be called
     peri->callbacks = callbacks;
 
-    // spi_set_tx_watermark(peri->instance, peri->txwm);
-    // spi_set_rx_watermark(peri->instance, peri->rxwm);
-
     // Fill the TX fifo before starting so there is data once command launched
     spi_fill_tx(peri);
 
@@ -876,7 +874,6 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events)
         if (peri->txn.segments != NULL && peri->scnt < peri->txn.seglen) 
         {
             spi_issue_next_seg(peri);
-            peri->scnt++;
         }
         // If no more commands and SPI is idle, it means the transaction is over
         else if (events & SPI_EVENT_IDLE) 
