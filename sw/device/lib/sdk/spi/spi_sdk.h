@@ -416,9 +416,10 @@ spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer,
  * @param segments_len The size of segments array
  * @param src_buffer An initialized buffer/array with all the data to send
  * @param dest_buffer An initialized buffer/array to store the received data
- * @return SPI_CODE_IDX_INVAL if spi.idx not valid
- * @return SPI_CODE_NOT_INIT  if spi.init false (indicates if spi was initialized)
- * @return SPI_CODE_OK        if success
+ * @return SPI_CODE_IDX_INVAL     if spi.idx not valid
+ * @return SPI_CODE_NOT_INIT      if spi.init false (indicates if spi was initialized)
+ * @return SPI_CODE_SEGMENT_INVAL if segments contains an invalid segment
+ * @return SPI_CODE_OK            if success
  */
 spi_codes_e spi_execute(spi_t* spi, const spi_segment_t* segments, 
                         uint32_t segments_len, const uint32_t* src_buffer, 
@@ -503,9 +504,10 @@ spi_codes_e spi_transceive_nb(spi_t* spi, const uint32_t* src_buffer,
  *                transaction is done
  * @param error_cb A callback function of type spi_cb_t that gets called when there 
  *                 is an error during transaction
- * @return SPI_CODE_IDX_INVAL if spi.idx not valid
- * @return SPI_CODE_NOT_INIT  if spi.init false (indicates if spi was initialized)
- * @return SPI_CODE_OK        if success
+ * @return SPI_CODE_IDX_INVAL     if spi.idx not valid
+ * @return SPI_CODE_NOT_INIT      if spi.init false (indicates if spi was initialized)
+ * @return SPI_CODE_SEGMENT_INVAL if segments contains an invalid segment
+ * @return SPI_CODE_OK            if success
  */
 spi_codes_e spi_execute_nb(spi_t* spi, const spi_segment_t* segments, 
                            uint32_t segments_len, const uint32_t* src_buffer, 

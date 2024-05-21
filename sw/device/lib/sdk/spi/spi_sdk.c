@@ -229,15 +229,19 @@ bool spi_validate_segments(const spi_segment_t* segments, uint32_t segments_len,
  * @brief Fills the TX FIFO until no more space or no more data.
  * 
  * @param peri Pointer to the spi_peripheral_t instance with the relevant data
+ * @return true if any word has been written to TX fifo
+ * @return false otherwise
  */
-void spi_fill_tx(spi_peripheral_t* peri);
+bool spi_fill_tx(spi_peripheral_t* peri);
 
 /**
  * @brief Empties the RX FIFO.
  * 
  * @param peri Pointer to the spi_peripheral_t instance with the relevant data
+ * @return true if any word has been written to TX fifo
+ * @return false otherwise
  */
-void spi_empty_rx(spi_peripheral_t* peri);
+bool spi_empty_rx(spi_peripheral_t* peri);
 
 /**
  * @brief Proceeds to initiate transaction once all tests passed.
@@ -783,7 +787,7 @@ bool spi_validate_segments(const spi_segment_t* segments, uint32_t segments_len,
     return true;
 }
 
-void spi_fill_tx(spi_peripheral_t* peri) 
+bool spi_fill_tx(spi_peripheral_t* peri) 
 {
     // If we have a TX buffer and didn't exceed the count then fill the TX FIFO
     if (peri->txn.txbuffer != NULL && peri->txcnt < peri->txn.txlen) {
@@ -794,10 +798,12 @@ void spi_fill_tx(spi_peripheral_t* peri)
             peri->txcnt < peri->txn.txlen 
             && !spi_write_word(peri->instance, peri->txn.txbuffer[peri->txcnt])
         ) peri->txcnt++; // Keep track of counter
+        return true;
     }
+    return false;
 }
 
-void spi_empty_rx(spi_peripheral_t* peri) 
+bool spi_empty_rx(spi_peripheral_t* peri) 
 {
     // If we have a RX buffer and didn't exceed the count then read from RX FIFO
     if (peri->txn.rxbuffer != NULL && peri->rxcnt < peri->txn.rxlen) {
@@ -808,7 +814,9 @@ void spi_empty_rx(spi_peripheral_t* peri)
             peri->rxcnt < peri->txn.rxlen 
             && !spi_read_word(peri->instance, &peri->txn.rxbuffer[peri->rxcnt])
         ) peri->rxcnt++; // Keep track of counter
+        return true;
     }
+    return false;
 }
 
 void spi_launch(spi_peripheral_t* peri, spi_t* spi, spi_transaction_t txn, 
@@ -899,9 +907,9 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events)
     if (events & SPI_EVENT_TXWM)
     {
         // TX watermark reached. Refill TX fifo if more data
-        spi_fill_tx(peri);
         // If there is a callback defined call it
-        if (peri->callbacks.txwm_cb != NULL)
+        if (spi_fill_tx(peri) && 
+            peri->callbacks.txwm_cb != NULL)
         {
             peri->callbacks.txwm_cb(peri->txn.txbuffer, peri->txcnt, 
                                     peri->txn.rxbuffer, peri->rxcnt);
@@ -910,9 +918,9 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events)
     if (events & SPI_EVENT_RXWM)
     {
         // RX watermark reached. Empty RX fifo to get more data
-        spi_empty_rx(peri);
         // If there is a callback defined call it
-        if (peri->callbacks.rxwm_cb != NULL)
+        if (spi_empty_rx(peri) && 
+            peri->callbacks.rxwm_cb != NULL)
         {
             peri->callbacks.rxwm_cb(peri->txn.txbuffer, peri->txcnt, 
                                     peri->txn.rxbuffer, peri->rxcnt);
@@ -947,7 +955,6 @@ void spi_error_handler(spi_peripheral_t* peri, spi_error_e error)
 
 /**
  * @brief Implementation of the weak function of the HAL
- * 
  */
 void spi_intr_handler_event_flash(spi_event_e events) 
 {
@@ -957,7 +964,6 @@ void spi_intr_handler_event_flash(spi_event_e events)
 
 /**
  * @brief Implementation of the weak function of the HAL
- * 
  */
 void spi_intr_handler_error_flash(spi_error_e errors) 
 {
@@ -967,7 +973,6 @@ void spi_intr_handler_error_flash(spi_error_e errors)
 
 /**
  * @brief Implementation of the weak function of the HAL
- * 
  */
 void spi_intr_handler_event_host(spi_event_e events) 
 {
@@ -977,7 +982,6 @@ void spi_intr_handler_event_host(spi_event_e events)
 
 /**
  * @brief Implementation of the weak function of the HAL
- * 
  */
 void spi_intr_handler_error_host(spi_error_e errors) 
 {
@@ -987,7 +991,6 @@ void spi_intr_handler_error_host(spi_error_e errors)
 
 /**
  * @brief Implementation of the weak function of the HAL
- * 
  */
 void spi_intr_handler_event_host2(spi_event_e events) 
 {
@@ -997,7 +1000,6 @@ void spi_intr_handler_event_host2(spi_event_e events)
 
 /**
  * @brief Implementation of the weak function of the HAL
- * 
  */
 void spi_intr_handler_error_host2(spi_error_e errors) 
 {

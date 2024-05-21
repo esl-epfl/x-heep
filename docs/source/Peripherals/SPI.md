@@ -264,7 +264,7 @@ For example, an RX segment of length 3 is fine, but the _dest\_buffer_ should be
 4 bytes to avoid unexpected behavior.
 
 This design choice was made to avoid having various alignment computations, thus favoring 
-computational speed at the cost of rendering some minimal bytes useless.
+computational speed at the cost of rendering some minimal amount of bytes useless.
 ```
 
 #### Execution
@@ -371,7 +371,7 @@ of type `spi_callbacks_t`.
 // Callback type
 typedef void (*spi_cb_t)(const uint32_t*, uint32_t, uint32_t*, uint32_t);
 
-// Callbacks type
+// Callbacks structure
 typedef struct {
     spi_cb_t done_cb;   // Called once transaction is done
     spi_cb_t txwm_cb;   // Called each time TX watermark event is triggered
@@ -384,9 +384,9 @@ The _callback_ type (`spi_cb_t`) is invoked with four arguments whenever the cor
 event occurs:
 
 1. The _TX buffer_ associated to the transaction.
-1. The current number of items in the _TX buffer_.
+1. The current number of words in the _TX buffer_.
 1. The _RX buffer_ associated to the transaction.
-1. The current number of items in the _RX buffer_.
+1. The current number of words in the _RX buffer_.
 
 Callbacks in `spi_callbacks_t` can be `NULL` if not needed.
 
@@ -917,13 +917,13 @@ OR-ing the different `spi_error_e` or `spi_event_e` values.
 ## Using HAL Together With SDK
 
 While it is possible to use the HAL together with the SDK, there are important 
-considerations to be aware of. Consistency is key: do not mix SDK usage with HAL 
+considerations to be aware of. Also, consistency is key: do not mix SDK usage with HAL 
 usage within the same context. If you need to use both, clearly separate the 
 contexts in which each is used.
 
 ### Interrupt Handling
 
-### Event and Error Interrupts
+#### Event and Error Interrupts
 
 Since the SDK already implements the weak interrupt handlers of the HAL, it is 
 not possible to redefine handlers. This means that it is not possible to use any 
