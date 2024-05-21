@@ -250,6 +250,15 @@
         { bits: "0", name: "TRANSACTION_DONE", desc: "Enables transaction done interrupt" }
         { bits: "1", name: "WINDOW_DONE", desc: "Enables window done interrupt" }
       ]
+    },
+    { name:    "TRANSACTION_IFR",
+      desc:    '''Interrupt Flag Register for transaction''',
+      swaccess: "rw",
+      hwaccess: "hrw",
+      hwqe:     "true",
+      fields: [
+        { bits: "0", name: "FLAG", desc: "Set for transaction done interrupt" }
+      ]
     }
    ]
 }

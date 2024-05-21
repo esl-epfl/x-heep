@@ -132,6 +132,11 @@ module dma #(
   logic                              right_ex_to_bottom_ex;
   logic                              bottom_ex_to_idle;
 
+  /* Interrupt Flag Register signals */
+  logic                              transaction_ifr;
+  logic                              dma_done_intr_n;
+  logic                              dma_done_intr;
+
   /* FIFO signals */
   logic                              fifo_flush;
   logic                              fifo_full;
@@ -225,8 +230,11 @@ module dma #(
   assign data_out_rvalid = dma_write_ch0_resp_i.rvalid;
   assign data_out_rdata = dma_write_ch0_resp_i.rdata;
 
-  assign dma_done_intr_o = dma_done & reg2hw.interrupt_en.transaction_done.q;
+  assign dma_done_intr = reg2hw.transaction_ifr.q;
   assign dma_window_intr_o = dma_window_event & reg2hw.interrupt_en.window_done.q;
+
+  assign dma_done_intr_o = dma_done_intr_n;
+  assign hw2reg.transaction_ifr.d = transaction_ifr;
 
   assign data_type = reg2hw.data_type.q;
 
@@ -801,6 +809,30 @@ module dma #(
         end
       end
     endcase
+  end
+
+  /* Transaction IFR update */
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_transaction_ifr
+    if (~rst_ni) begin
+      transaction_ifr <= '0;
+    end else if (reg2hw.interrupt_en.transaction_done.q == 1'b1) begin
+      // Enter here only if the transaction_done interrupt is enabled
+      if (dma_done == 1'b1) begin
+        transaction_ifr <= 1'b1;
+      end else if (reg2hw.transaction_ifr.qe == 1'b1 && reg2hw.transaction_ifr.q == 1'b0) begin
+        // If the IFR bit is cleared, then clear the transaction_ifr
+        transaction_ifr <= 1'b0;
+      end
+    end
+  end
+
+  /* Delayed interrupt signals */
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_intr
+    if (~rst_ni) begin
+      dma_done_intr_n <= '0;
+    end else begin
+      dma_done_intr_n <= dma_done_intr;
+    end
   end
 
   // Read master FSM

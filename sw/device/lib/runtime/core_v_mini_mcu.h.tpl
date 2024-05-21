@@ -32,6 +32,8 @@ extern "C" {
 
 %endfor
 
+#define DMA_CH_NUM ${dma_ch_count}
+
 //switch-on/off peripherals
 #define PERIPHERAL_START_ADDRESS 0x${peripheral_start_address}
 #define PERIPHERAL_SIZE 0x${peripheral_size_address}

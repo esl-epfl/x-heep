@@ -345,13 +345,13 @@ module ao_peripheral_subsystem
   assign dma_trigger_slots[5] = ext_dma_slot_tx_i;
   assign dma_trigger_slots[6] = ext_dma_slot_rx_i;
 
-  dma #(
+  dma_subsystem #(
       .reg_req_t (reg_pkg::reg_req_t),
       .reg_rsp_t (reg_pkg::reg_rsp_t),
       .obi_req_t (obi_pkg::obi_req_t),
       .obi_resp_t(obi_pkg::obi_resp_t),
       .SLOT_NUM  (DMA_TRIGGER_SLOT_NUM)
-  ) dma_i (
+  ) dma_subsystem_i (
       .clk_i,
       .rst_ni,
       .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::DMA_IDX]),
@@ -363,6 +363,7 @@ module ao_peripheral_subsystem
       .dma_addr_ch0_req_o,
       .dma_addr_ch0_resp_i,
       .trigger_slot_i(dma_trigger_slots),
+      .peripheral_req_i(peripheral_req),
       .dma_done_intr_o(dma_done_intr_o),
       .dma_window_intr_o(dma_window_intr_o)
   );

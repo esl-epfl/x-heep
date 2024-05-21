@@ -139,6 +139,9 @@ module dma_reg_top #(
   logic interrupt_en_window_done_qs;
   logic interrupt_en_window_done_wd;
   logic interrupt_en_window_done_we;
+  logic transaction_ifr_qs;
+  logic transaction_ifr_wd;
+  logic transaction_ifr_we;
 
   // Register instances
   // R[src_ptr]: V(False)
@@ -793,9 +796,36 @@ module dma_reg_top #(
   );
 
 
+  // R[transaction_ifr]: V(False)
+
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_transaction_ifr (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(transaction_ifr_we),
+      .wd(transaction_ifr_wd),
+
+      // from internal hardware
+      .de(hw2reg.transaction_ifr.de),
+      .d (hw2reg.transaction_ifr.d),
+
+      // to internal hardware
+      .qe(reg2hw.transaction_ifr.qe),
+      .q (reg2hw.transaction_ifr.q),
+
+      // to register interface (read)
+      .qs(transaction_ifr_qs)
+  );
 
 
-  logic [21:0] addr_hit;
+
+
+  logic [22:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[0] = (reg_addr == DMA_SRC_PTR_OFFSET);
@@ -820,6 +850,7 @@ module dma_reg_top #(
     addr_hit[19] = (reg_addr == DMA_WINDOW_SIZE_OFFSET);
     addr_hit[20] = (reg_addr == DMA_WINDOW_COUNT_OFFSET);
     addr_hit[21] = (reg_addr == DMA_INTERRUPT_EN_OFFSET);
+    addr_hit[22] = (reg_addr == DMA_TRANSACTION_IFR_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -848,7 +879,8 @@ module dma_reg_top #(
                (addr_hit[18] & (|(DMA_PERMIT[18] & ~reg_be))) |
                (addr_hit[19] & (|(DMA_PERMIT[19] & ~reg_be))) |
                (addr_hit[20] & (|(DMA_PERMIT[20] & ~reg_be))) |
-               (addr_hit[21] & (|(DMA_PERMIT[21] & ~reg_be)))));
+               (addr_hit[21] & (|(DMA_PERMIT[21] & ~reg_be))) |
+               (addr_hit[22] & (|(DMA_PERMIT[22] & ~reg_be)))));
   end
 
   assign src_ptr_we = addr_hit[0] & reg_we & !reg_error;
@@ -920,6 +952,9 @@ module dma_reg_top #(
 
   assign interrupt_en_window_done_we = addr_hit[21] & reg_we & !reg_error;
   assign interrupt_en_window_done_wd = reg_wdata[1];
+
+  assign transaction_ifr_we = addr_hit[22] & reg_we & !reg_error;
+  assign transaction_ifr_wd = reg_wdata[0];
 
   // Read data return
   always_comb begin
@@ -1014,6 +1049,10 @@ module dma_reg_top #(
       addr_hit[21]: begin
         reg_rdata_next[0] = interrupt_en_transaction_done_qs;
         reg_rdata_next[1] = interrupt_en_window_done_qs;
+      end
+
+      addr_hit[22]: begin
+        reg_rdata_next[0] = transaction_ifr_qs;
       end
 
       default: begin

@@ -146,20 +146,29 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] ${peripheral.upper()}_IDX = 32'd${loop.index};
   
 % endfor
+
   localparam addr_map_rule_t [AO_PERIPHERALS-1:0] AO_PERIPHERALS_ADDR_RULES = '{
 % for peripheral, addr in ao_peripherals.items():
       '{ idx: ${peripheral.upper()}_IDX, start_addr: ${peripheral.upper()}_START_ADDRESS, end_addr: ${peripheral.upper()}_END_ADDRESS }${"," if not loop.last else ""}
 % endfor
   };
 
+  localparam int unsigned AO_PERIPHERALS_PORT_SEL_WIDTH = AO_PERIPHERALS > 1 ? $clog2(AO_PERIPHERALS) : 32'd1;
+
 % for i in range(int(dma_ch_count)):
-  localparam logic [31:0] DMA_CH${i}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${int(ao_peripherals["dma"]["length"])*(i+1)};
-  localparam logic [31:0] DMA_CH${i}_SIZE = 32'h${int(ao_peripherals["dma"]["length"])};
+  localparam logic [31:0] DMA_CH${i}_START_ADDRESS = DMA_START_ADDRESS + 32'h${int(ao_peripherals["dma"]["ch_length"])*(i)};
+  localparam logic [31:0] DMA_CH${i}_SIZE = 32'h${int(ao_peripherals["dma"]["ch_length"])};
   localparam logic [31:0] DMA_CH${i}_END_ADDRESS = DMA_CH${i}_START_ADDRESS + DMA_CH${i}_SIZE;
   localparam logic [31:0] DMA_CH${i}_IDX = 32'd${i};
 % endfor
 
-  localparam int unsigned AO_PERIPHERALS_PORT_SEL_WIDTH = AO_PERIPHERALS > 1 ? $clog2(AO_PERIPHERALS) : 32'd1;
+  localparam addr_map_rule_t [DMA_CH_NUM-1:0] DMA_ADDR_RULES = '{
+  % for i in range(int(dma_ch_count)):
+      '{ idx: DMA_CH${i}_IDX, start_addr: DMA_CH${i}_START_ADDRESS, end_addr: DMA_CH${i}_END_ADDRESS }${"," if not loop.last else ""}
+% endfor
+  };
+  
+  localparam int unsigned DMA_CH_PORT_SEL_WIDTH = DMA_CH_NUM > 1 ? $clog2(DMA_CH_NUM) : 32'd1;
 
 ######################################################################
 ## Automatically add all peripherals listed

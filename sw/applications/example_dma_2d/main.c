@@ -96,7 +96,7 @@ dma_input_data_type copied_data_1D_CPU[OUT_DIM_2D];
 
 dma_config_flags_t res_valid, res_load, res_launch;
 
-dma *peri = dma_peri;
+dma *peri = dma_peri(0);
 
 uint32_t dst_ptr = 0, src_ptr = 0;
 uint32_t cycles_dma, cycles_cpu;
@@ -203,13 +203,13 @@ int main()
     PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     #endif
 
-    while( ! dma_is_ready()) {
+    while( ! dma_is_ready(0)) {
         #if !EN_PERF
         /* Disable_interrupts */
         /* This does not prevent waking up the core as this is controlled by the MIP register */
         
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if ( dma_is_ready() == 0 ) {
+        if ( dma_is_ready(0) == 0 ) {
             wait_for_interrupt();
             /* From here the core wakes up even if we did not jump to the ISR */
         }
@@ -378,13 +378,13 @@ int main()
     PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     #endif
 
-    while( ! dma_is_ready()) {
+    while( ! dma_is_ready(0)) {
         #if !EN_PERF
         /* Disable_interrupts */
         /* This does not prevent waking up the core as this is controlled by the MIP register */
         
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if ( dma_is_ready() == 0 ) {
+        if ( dma_is_ready(0) == 0 ) {
             wait_for_interrupt();
             /* From here the core wakes up even if we did not jump to the ISR */
         }
@@ -573,12 +573,12 @@ int main()
     PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     #endif
 
-    while( ! dma_is_ready()) {
+    while( ! dma_is_ready(0)) {
         #if !EN_PERF
         /* Disable_interrupts */
         
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if ( dma_is_ready() == 0 ) {
+        if ( dma_is_ready(0) == 0 ) {
             wait_for_interrupt();
         }
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -780,13 +780,13 @@ int main()
                     DMA_SIZE_D1_SIZE_OFFSET,
                     peri );
 
-    while( ! dma_is_ready()) {
+    while( ! dma_is_ready(0)) {
         #if !EN_PERF
         /* Disable_interrupts */
         /* This does not prevent waking up the core as this is controlled by the MIP register */
         
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if ( dma_is_ready() == 0 ) {
+        if ( dma_is_ready(0) == 0 ) {
             wait_for_interrupt();
             /* From here the core wakes up even if we did not jump to the ISR */
         }
