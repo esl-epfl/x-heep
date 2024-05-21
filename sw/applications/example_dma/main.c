@@ -22,11 +22,6 @@
 #define TRANSACTIONS_N      3       // Only possible to perform transaction at a time, others should be blocked
 #define TEST_WINDOW_SIZE_DU  1024    // if put at <=71 the isr is too slow to react to the interrupt
 
-// Defines for low-level fw
-#define DMA_REGISTER_SIZE_BYTES sizeof(int)
-#define DMA_SELECTION_OFFSET_START 0
-
-
 #if TEST_DATA_LARGE < 2* TEST_DATA_SIZE
     #errors("TEST_DATA_LARGE must be at least 2*TEST_DATA_SIZE")
 #endif
@@ -45,6 +40,10 @@
 
 int32_t errors = 0;
 int8_t cycles = 0;
+
+void dma_intr_handler_trans_done(void) {
+    cycles++;
+}
 
 #ifdef TEST_WINDOW
 
@@ -395,5 +394,5 @@ int main(int argc, char *argv[])
 
 #endif // TEST_WINDOW
 
-return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
