@@ -26,5 +26,5 @@ def format_dma_channels(file_path, new_string):
         print(f"An error occurred: {str(e)}")
 
 if __name__ == "__main__":
-    new_string = "#define dma_peri(channel) ((volatile dma *) (DMA_START_ADDRESS + DMA_SIZE * channel))"
+    new_string = "#define dma_peri(channel) ((volatile dma *) (DMA_START_ADDRESS + DMA_CH_SIZE * channel))"
     format_dma_channels(out_file_path, new_string)

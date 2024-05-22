@@ -433,7 +433,6 @@ int main()
             {
                 copied_data_2D_CPU[dst_ptr] = test_data[src_ptr];
             }
-            //PRINTF("i: %d j: %d - i_in: %d j_in: %d j_in_last: %d - top_pad_cnt: %d left_pad_cnt: %d - dst: %d src: %d copied: %d - stride_1: %d stride_2 %d\n\r", i, j, i_in, j_in, j_in_last, top_pad_cnt, left_pad_cnt, dst_ptr, src_ptr, copied_data_2D_CPU[dst_ptr], stride_1d_cnt, stride_2d_cnt);
                         
             if (i_in < LEFT_PAD && stride_2d_cnt == 0)
             {
@@ -479,26 +478,6 @@ int main()
 
     #if EN_VERIF
 
-    /*for (int i=0; i < OUT_D2_PAD_STRIDE; i++)
-    {
-        for (int j=0; j < OUT_D1_PAD_STRIDE; j++)
-        {
-            PRINTF("%d ", copied_data_2D_DMA[i * OUT_D1_PAD_STRIDE + j]);
-        }
-        PRINTF("\n\r");
-    }
-
-    PRINTF("\n\r");
-
-    for (int i=0; i < OUT_D2_PAD_STRIDE; i++)
-    {
-        for (int j=0; j < OUT_D1_PAD_STRIDE; j++)
-        {
-            PRINTF("%d ", copied_data_2D_CPU[i * OUT_D1_PAD_STRIDE + j]);
-        }
-        PRINTF("\n\r");
-    }*/
-    
     /* Verify that the DMA and the CPU outputs are the same */
     for (int i = 0; i < OUT_D2_PAD_STRIDE; i++) {
         for (int j = 0; j < OUT_D1_PAD_STRIDE; j++) {

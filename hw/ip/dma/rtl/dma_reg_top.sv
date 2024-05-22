@@ -140,8 +140,7 @@ module dma_reg_top #(
   logic interrupt_en_window_done_wd;
   logic interrupt_en_window_done_we;
   logic transaction_ifr_qs;
-  logic transaction_ifr_wd;
-  logic transaction_ifr_we;
+  logic transaction_ifr_re;
 
   // Register instances
   // R[src_ptr]: V(False)
@@ -796,30 +795,19 @@ module dma_reg_top #(
   );
 
 
-  // R[transaction_ifr]: V(False)
+  // R[transaction_ifr]: V(True)
 
-  prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+  prim_subreg_ext #(
+      .DW(1)
   ) u_transaction_ifr (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(transaction_ifr_we),
-      .wd(transaction_ifr_wd),
-
-      // from internal hardware
-      .de(hw2reg.transaction_ifr.de),
-      .d (hw2reg.transaction_ifr.d),
-
-      // to internal hardware
-      .qe(reg2hw.transaction_ifr.qe),
-      .q (reg2hw.transaction_ifr.q),
-
-      // to register interface (read)
-      .qs(transaction_ifr_qs)
+      .re (transaction_ifr_re),
+      .we (1'b0),
+      .wd ('0),
+      .d  (hw2reg.transaction_ifr.d),
+      .qre(reg2hw.transaction_ifr.re),
+      .qe (reg2hw.transaction_ifr.qe),
+      .q  (reg2hw.transaction_ifr.q),
+      .qs (transaction_ifr_qs)
   );
 
 
@@ -953,8 +941,7 @@ module dma_reg_top #(
   assign interrupt_en_window_done_we = addr_hit[21] & reg_we & !reg_error;
   assign interrupt_en_window_done_wd = reg_wdata[1];
 
-  assign transaction_ifr_we = addr_hit[22] & reg_we & !reg_error;
-  assign transaction_ifr_wd = reg_wdata[0];
+  assign transaction_ifr_re = addr_hit[22] & reg_re & !reg_error;
 
   // Read data return
   always_comb begin

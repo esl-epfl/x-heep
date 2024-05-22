@@ -339,6 +339,7 @@ typedef struct
     dma_data_type_t     type;   /*!< The data type to use. One is chosen among
     the targets. */
     dma_trans_mode_t    mode;   /*!< The copy mode to use. */
+    uint8_t             dim_inv; /*!< If the D1 and D2 dimensions are inverted, i.e. perform transposition. */
     uint32_t            win_du;  /*!< The amount of data units every which the
     WINDOW_DONE flag is raised and its corresponding interrupt triggered. It
     can be set to 0 to disable this functionality. */
@@ -370,7 +371,7 @@ void handler_irq_dma( uint32_t id );
  * @brief This is a non-weak implementation of the function declared in
  * fast_intr_ctrl.c
  */
-void fic_irq_dma(void);
+__attribute__((optimize("O0"))) void fic_irq_dma(void);
 
 /**
  *@brief Takes all DMA configurations to a state where no accidental
@@ -458,7 +459,7 @@ void dma_stop_circular(uint8_t channel);
 * `dma.c` provides a weak definition of this symbol, which can be overridden
 * at link-time by providing an additional non-weak definition.
 */
-void dma_intr_handler_trans_done(void);
+void dma_intr_handler_trans_done(uint8_t channel);
 
 /**
 * @brief DMA interrupt handler.

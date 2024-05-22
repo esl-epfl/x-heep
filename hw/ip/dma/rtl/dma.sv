@@ -230,7 +230,7 @@ module dma #(
   assign data_out_rvalid = dma_write_ch0_resp_i.rvalid;
   assign data_out_rdata = dma_write_ch0_resp_i.rdata;
 
-  assign dma_done_intr = reg2hw.transaction_ifr.q;
+  assign dma_done_intr = transaction_ifr;
   assign dma_window_intr_o = dma_window_event & reg2hw.interrupt_en.window_done.q;
 
   assign dma_done_intr_o = dma_done_intr_n;
@@ -819,8 +819,8 @@ module dma #(
       // Enter here only if the transaction_done interrupt is enabled
       if (dma_done == 1'b1) begin
         transaction_ifr <= 1'b1;
-      end else if (reg2hw.transaction_ifr.qe == 1'b1 && reg2hw.transaction_ifr.q == 1'b0) begin
-        // If the IFR bit is cleared, then clear the transaction_ifr
+      end else if (reg2hw.transaction_ifr.re == 1'b1) begin
+        // If the IFR bit is read, we must clear the transaction_ifr
         transaction_ifr <= 1'b0;
       end
     end

@@ -271,7 +271,6 @@ typedef struct
 
 static struct
 {
-    uint8_t num_channels;
     dma_ch_cb *channels;
 }dma_cb;
 
@@ -293,33 +292,16 @@ void handler_irq_dma(uint32_t id)
 
 void fic_irq_dma(void)
 {
-    /* The flag is raised so the waiting loop can be broken.*/
-    for (uint8_t i = 0; i < dma_cb.num_channels; i++)
-    {
-        if (dma_cb.channels[i].peri->INTERRUPT_EN == 1)
-        {
-            dma_cb.channels[i].intrFlag = 1;
-        }
-    }
-
     /* Find which channel raised the interrupt */
-    uint8_t channel = 255;
-    for (uint8_t i = 0; i < dma_cb.num_channels && channel == 255; i++)
+    for (int i = 0; i < DMA_CH_NUM; i++)
     {
         if (dma_cb.channels[i].peri->TRANSACTION_IFR == 1)
         {
-            channel = i;
+            dma_cb.channels[i].intrFlag = 1;
+            dma_intr_handler_trans_done(i);
+            return;
         }
     }
-
-    /*
-     * Call the weak implementation provided in this module,
-     * or the non-weak implementation.
-     */
-    dma_intr_handler_trans_done();
-
-    /* Clear the correct IFR flag */
-    dma_cb.channels[channel].peri->TRANSACTION_IFR = 0;
 }
 
 void dma_init( dma *channels )
@@ -354,9 +336,9 @@ void dma_init( dma *channels )
         dma_cb.channels[i].peri->PAD_BOTTOM     = 0;
         dma_cb.channels[i].peri->PAD_LEFT       = 0;
         dma_cb.channels[i].peri->PAD_RIGHT      = 0;
+        dma_cb.channels[i].peri->DIM_INV        = 0;
         dma_cb.channels[i].peri->INTERRUPT_EN   = 0;
     }
-    
 }
 
 dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
@@ -890,6 +872,16 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
     }
 
     /*
+     * SET THE TRANSPOSITION MODE
+     */
+
+    write_register(dma_cb.channels[channel].trans->dim_inv,
+                   DMA_DIM_INV_REG_OFFSET,
+                   0x1 << DMA_DIM_INV_SEL_BIT,
+                   DMA_DIM_INV_SEL_BIT,
+                   dma_cb.channels[channel].peri);
+
+    /*
      * SET THE INCREMENTS
      */
 
@@ -1084,7 +1076,7 @@ void dma_stop_circular(uint8_t channel)
 }
 
 
-__attribute__((weak, optimize("O0"))) void dma_intr_handler_trans_done()
+__attribute__((weak, optimize("O0"))) void dma_intr_handler_trans_done(uint8_t channel)
 {
     /*
      * The DMA transaction has finished!

@@ -505,6 +505,7 @@ def main():
     ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
     ao_peripherals_count = len(ao_peripherals)
     dma_ch_count = ao_peripherals["dma"]["num_channels"]
+    dma_ch_size = ao_peripherals["dma"]["ch_length"]
 
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
@@ -824,6 +825,7 @@ def main():
         "ao_peripherals"                   : ao_peripherals,
         "ao_peripherals_count"             : ao_peripherals_count,
         "dma_ch_count"                     : dma_ch_count,
+        "dma_ch_size"                      : dma_ch_size,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
         "peripherals"                      : peripherals,

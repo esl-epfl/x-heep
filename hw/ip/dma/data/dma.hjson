@@ -253,9 +253,11 @@
     },
     { name:    "TRANSACTION_IFR",
       desc:    '''Interrupt Flag Register for transaction''',
-      swaccess: "rw",
+      swaccess: "ro",
       hwaccess: "hrw",
-      hwqe:     "true",
+      hwext:    "true",
+      hwre:     "true", // latched signal of software write pulse
+      resval:        0,
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for transaction done interrupt" }
       ]
