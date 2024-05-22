@@ -153,15 +153,15 @@ typedef struct {
  */
 typedef struct {
     spi_host_t*       instance;  // Instance of peripheral defined in HAL
-    uint8_t           txwm;
-    uint8_t           rxwm;
-    uint32_t          last_id;
+    uint8_t           txwm;      // TX watermark for this particular peripheral
+    uint8_t           rxwm;      // TX watermark for this particular peripheral
+    uint32_t          last_id;   // ID of last used spi_t to avoid resetting slave
     spi_state_e       state;     // Current state of device
     spi_transaction_t txn;       // Current transaction being processed
     uint32_t          scnt;      // Counter to track segment to process
     uint32_t          txcnt;     // Counter to track TX word being processed
     uint32_t          rxcnt;     // Counter to track RX word being processed
-    spi_callbacks_t   callbacks; // Callback function to call when done
+    spi_callbacks_t   callbacks; // Callback functions to call
 } spi_peripheral_t;
 
 /****************************************************************************/

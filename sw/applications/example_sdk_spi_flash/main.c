@@ -111,6 +111,7 @@ bool flash_write_sector(spi_t* spi, uint32_t addr, uint32_t* src_buff);
 void flash_wait(spi_t* spi);
 
 void done_cb(const uint32_t* txbuff, uint32_t txlen, uint32_t* rxbuff, uint32_t rxlen);
+void rxwm_cb(const uint32_t* txbuff, uint32_t txlen, uint32_t* rxbuff, uint32_t rxlen);
 
 // ========================= MAIN =========================
 
@@ -215,7 +216,7 @@ bool flash_read_non_blocking(spi_t* spi, uint32_t addr, uint32_t* dest_buff, uin
     spi_callbacks_t callbacks = {
         .done_cb  = &done_cb,
         .error_cb = NULL,//&done_cb,
-        .rxwm_cb  = NULL,
+        .rxwm_cb  = &rxwm_cb,
         .txwm_cb  = NULL
     };
 
@@ -333,6 +334,10 @@ void flash_wait(spi_t* spi) {
 
 void done_cb(const uint32_t* txbuff, uint32_t txlen, uint32_t* rxbuff, uint32_t rxlen) {
     PRINTF("\x1b[33mTXN DONE CALLBACK with txlen: %i, rxlen: %i\x1b[m\n", txlen, rxlen);
+}
+
+void rxwm_cb(const uint32_t* txbuff, uint32_t txlen, uint32_t* rxbuff, uint32_t rxlen) {
+    PRINTF("\x1b[36mTXN RXWM CALLBACK with txlen: %i, rxlen: %i\x1b[m\n", txlen, rxlen);
 }
 
 // ========================= THE END =========================
