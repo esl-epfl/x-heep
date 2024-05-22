@@ -477,26 +477,6 @@ int main()
     #endif
 
     #if EN_VERIF
-
-    /*for (int i=0; i < OUT_D2_PAD_STRIDE; i++)
-    {
-        for (int j=0; j < OUT_D1_PAD_STRIDE; j++)
-        {
-            PRINTF("%d ", copied_data_2D_DMA[i * OUT_D1_PAD_STRIDE + j]);
-        }
-        PRINTF("\n\r");
-    }
-
-    PRINTF("\n\r");
-
-    for (int i=0; i < OUT_D2_PAD_STRIDE; i++)
-    {
-        for (int j=0; j < OUT_D1_PAD_STRIDE; j++)
-        {
-            PRINTF("%d ", copied_data_2D_CPU[i * OUT_D1_PAD_STRIDE + j]);
-        }
-        PRINTF("\n\r");
-    }*/
     
     /* Verify that the DMA and the CPU outputs are the same */
     for (int i = 0; i < OUT_D2_PAD_STRIDE; i++) {
