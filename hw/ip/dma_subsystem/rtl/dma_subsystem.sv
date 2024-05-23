@@ -32,7 +32,6 @@ module dma_subsystem #(
     input  obi_resp_t dma_addr_ch0_resp_i,
 
     input logic [SLOT_NUM-1:0] trigger_slot_i,
-    input reg_req_t peripheral_req_i,  // This comes from the peripheral_to_reg of the ao per
 
     output dma_done_intr_o,
     output dma_window_intr_o
@@ -165,7 +164,7 @@ module dma_subsystem #(
       .addr_t(logic [31:0]),
       .rule_t(addr_map_rule_pkg::addr_map_rule_t)
   ) addr_dec_i (
-      .addr_i(peripheral_req_i.addr),
+      .addr_i(reg_req_i.addr),
       .addr_map_i(core_v_mini_mcu_pkg::DMA_ADDR_RULES),
       .idx_o(submodules_select),
       .dec_valid_o(),

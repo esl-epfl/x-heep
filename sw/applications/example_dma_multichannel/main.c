@@ -58,8 +58,8 @@
 /* Parameters */
 
 /* Size of the extracted matrix (including strides on the input, excluding strides on the outputs) */
-#define SIZE_EXTR_D1 50
-#define SIZE_EXTR_D2 50
+#define SIZE_EXTR_D1 10
+#define SIZE_EXTR_D2 10
 
 /* Set strides of the input ad output matrix */
 #define STRIDE_IN_D1 1
