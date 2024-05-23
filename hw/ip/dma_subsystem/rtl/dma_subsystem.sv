@@ -199,7 +199,7 @@ module dma_subsystem #(
       .addr_t(logic [31:0]),
       .rule_t(addr_map_rule_pkg::addr_map_rule_t)
   ) addr_dec_i (
-      .addr_i(xbar_sdc_req.addr),
+      .addr_i(reg_req_i.addr),
       .addr_map_i(core_v_mini_mcu_pkg::DMA_ADDR_RULES),
       .idx_o(submodules_select),
       .dec_valid_o(),

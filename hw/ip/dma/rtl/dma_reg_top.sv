@@ -805,7 +805,7 @@ module dma_reg_top #(
       .wd ('0),
       .d  (hw2reg.transaction_ifr.d),
       .qre(reg2hw.transaction_ifr.re),
-      .qe (reg2hw.transaction_ifr.qe),
+      .qe (),
       .q  (reg2hw.transaction_ifr.q),
       .qs (transaction_ifr_qs)
   );
