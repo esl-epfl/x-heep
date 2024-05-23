@@ -19,7 +19,7 @@ module dma_subsystem #(
     input logic clk_i,
     input logic rst_ni,
 
-    input  reg_req_t reg_req_i[core_v_mini_mcu_pkg::DMA_SDC_NUM:0],
+    input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
     output obi_req_t  dma_read_ch0_req_o,
@@ -36,7 +36,6 @@ module dma_subsystem #(
     output dma_done_intr_o,
     output dma_window_intr_o
 );
-
 
   import obi_pkg::*;
   import reg_pkg::*;
@@ -55,11 +54,17 @@ module dma_subsystem #(
   obi_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] xbar_main_bus_read_resp;
   obi_resp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] xbar_main_bus_address_resp;
 
-  /* Request from SDCs registers crossbar */
-  reg_req_t xbar_sdc_req;
+  /* Requests from ao_peripheral & SDCs to the registers crossbar */
+  obi_req_t [core_v_mini_mcu_pkg::DMA_SDC_NUM:0] sdc2xbar_req;
 
-  /* Response to SDCs registers crossbar */
-  reg_rsp_t xbar_sdc_rsp;
+  /* Requests from the registers crossbar to the channels */
+  obi_req_t [core_v_mini_mcu_pkg::DMA_SDC_NUM:0] xbar2ch_req;
+  
+  /* Response from the channels to the registers crossbar */
+  obi_req_t ch2xbar_rsp;
+
+  /* Responses from registers crossbar to the ao_peripheral & SDCs */
+  obi_req_t xbar2sdc_rsp;
 
   /* Interrupt signals */
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_trans_done;
@@ -111,10 +116,10 @@ module dma_subsystem #(
       ) xbar_reg_i (
           .clk_i        (clk_i),
           .rst_ni       (rst_ni),
-          .master_req_i (reg_req_i),
-          .master_resp_o(reg_rsp_o),
-          .slave_req_o  (xbar_sdc_req),
-          .slave_resp_i (xbar_sdc_rsp)
+          .master_req_i (sdc2xbar_req),
+          .master_resp_o(xbar2sdc_rsp),
+          .slave_req_o  (xbar2ch_req),
+          .slave_resp_i (ch2xbar_rsp)
       );
     end
   endgenerate
