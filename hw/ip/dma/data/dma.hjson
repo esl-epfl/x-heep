@@ -261,6 +261,14 @@
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for transaction done interrupt" }
       ]
+    },
+    { name:    "SDC_RESERVED_REG",
+      desc:    '''Reserved register for SDC use''',
+      swaccess: "rw",
+      hwaccess: "none",
+      fields: [
+        { bits: "0", name: "FLAG", desc: "Set by Smart DMA Controllers" }
+      ]
     }
    ]
 }

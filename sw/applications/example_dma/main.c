@@ -122,11 +122,11 @@ int main(int argc, char *argv[])
     res = dma_launch(&trans);
     PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
 
-    while( ! dma_is_ready()) {
+    while( ! dma_is_ready(0)) {
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if ( dma_is_ready() == 0 ) {
+        if ( dma_is_ready(0) == 0 ) {
             wait_for_interrupt();
             //from here we wake up even if we did not jump to the ISR
         }
@@ -170,11 +170,11 @@ int main(int argc, char *argv[])
     res = dma_launch(&trans);
     PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
 
-    while( ! dma_is_ready()) {
+    while( ! dma_is_ready(0)) {
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if ( dma_is_ready() == 0 ) {
+        if ( dma_is_ready(0) == 0 ) {
             wait_for_interrupt();
             //from here we wake up even if we did not jump to the ISR
         }
@@ -237,11 +237,11 @@ int main(int argc, char *argv[])
     res = dma_launch(&trans);
     PRINTF("laun: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
 
-    while( ! dma_is_ready()) {
+    while( ! dma_is_ready(0)) {
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if ( dma_is_ready() == 0 ) {
+        if ( dma_is_ready(0) == 0 ) {
             wait_for_interrupt();
             //from here we wake up even if we did not jump to the ISR
         }
@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
 
     if( trans.end == DMA_TRANS_END_POLLING ){
         while( cycles < consecutive_trans ){
-            while( ! dma_is_ready() );
+            while( ! dma_is_ready(0) );
             cycles++;
         }
     } else {
@@ -367,10 +367,10 @@ int main(int argc, char *argv[])
     dma_launch(&trans);
 
     if( trans.end == DMA_TRANS_END_POLLING ){ //There will be no interrupts whatsoever!
-        while( ! dma_is_ready() );
+        while( ! dma_is_ready(0) );
         PRINTF("?\n\r");
     } else {
-        while( !dma_is_ready() ){
+        while( !dma_is_ready(0) ){
             wait_for_interrupt();
             PRINTF("i\n\r");
         }
