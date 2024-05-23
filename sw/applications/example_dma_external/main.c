@@ -29,7 +29,7 @@
 
 int32_t errors = 0;
 
-void dma_intr_handler_trans_done()
+void dma_intr_handler_trans_done(uint8_t channel)
 {
     PRINTF("D");
 }

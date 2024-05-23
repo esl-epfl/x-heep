@@ -41,7 +41,7 @@
 int32_t errors = 0;
 int8_t cycles = 0;
 
-void dma_intr_handler_trans_done(void) {
+void dma_intr_handler_trans_done(uint8_t channel) {
     cycles++;
 }
 

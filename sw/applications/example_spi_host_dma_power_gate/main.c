@@ -50,7 +50,7 @@ spi_host_t spi_host;
 
 static power_manager_t power_manager;
 
-void dma_intr_handler_trans_done(void)
+void dma_intr_handler_trans_done(uint8_t channel)
 {
     PRINTF("Non-weak implementation of a DMA interrupt\n\r");
     dma_intr_flag = 1;
