@@ -51,9 +51,9 @@ void dma_intr_handler_trans_done()
 
 void protected_wait_for_dma_interrupt(void)
 {
-  while(!dma_is_ready()) {
+  while(!dma_is_ready(0)) {
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (!dma_is_ready()) {
+    if (!dma_is_ready(0)) {
         wait_for_interrupt();
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);

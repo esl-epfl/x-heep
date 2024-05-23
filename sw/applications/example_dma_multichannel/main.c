@@ -47,7 +47,7 @@
  * 
  */
 
-#define TEST_ID 3
+#define TEST_ID 0
 
 /* Enable performance analysis */
 #define EN_PERF 1
@@ -101,7 +101,7 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   1
+#define PRINTF_IN_SIM   0
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -155,13 +155,8 @@ uint16_t left_pad_cnt = 0;
 uint16_t top_pad_cnt = 0;
 uint8_t stride_1d_cnt = 0;
 uint8_t stride_2d_cnt = 0;
-uint8_t transaction_ifr[2];
-uint8_t index_tr = 0;
-char ch0_done = 0;
-char ch1_done = 0;
 char passed = 1;
 char flag = 0;
-char end_trans = 0;
 
 /* Function used to simplify the register operations */
 static inline volatile void write_register( uint32_t  p_val,
@@ -185,21 +180,6 @@ static inline volatile void write_register( uint32_t  p_val,
     value           |= (p_val & p_mask) << p_sel;
     (( uint32_t * ) peri_ch0 ) [ index ] = value;
 };
-
-#if TEST_ID == 0 || TEST_ID == 1
-void dma_intr_handler_trans_done(uint8_t channel)
-{
-    if (channel == 0)
-    {
-        ch0_done = 1;
-    }
-
-    if (channel == 1)
-    {
-        ch1_done = 1;
-    }
-}
-#endif
 
 int main()
 {
@@ -416,8 +396,20 @@ int main()
                     DMA_SIZE_D1_SIZE_OFFSET,
                     peri_ch1 );
 
-    wait_for_interrupt();
-    
+    /* Wait for CH1 to end */
+    while(!dma_is_ready(1)) {
+        #if !EN_PERF
+        /* Disable_interrupts */
+        /* This does not prevent waking up the core as this is controlled by the MIP register */
+        
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+        if ( dma_is_ready(0) == 0 ) {
+            wait_for_interrupt();
+            /* From here the core wakes up even if we did not jump to the ISR */
+        }
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+        #endif
+    }
 
     #if EN_PERF
 
@@ -646,9 +638,22 @@ int main()
                     DMA_SIZE_D1_SIZE_OFFSET,
                     peri_ch0 );
 
-    wait_for_interrupt();
-    /*
-    while( ! dma_is_ready()) {
+    /* Wait for CH0 to end */
+    while( ! dma_is_ready(0)) {
+        #if !EN_PERF
+        /* Disable_interrupts */
+        /* This does not prevent waking up the core as this is controlled by the MIP register */
+        
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+        if ( dma_is_ready(0) == 0 ) {
+            wait_for_interrupt();
+            /* From here the core wakes up even if we did not jump to the ISR */
+        }
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+        #endif
+    }
+    
+    while( ! dma_is_ready(0)) {
         #if !EN_PERF
         
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
@@ -657,7 +662,7 @@ int main()
         }
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
         #endif
-    }*/
+    }
 
     #if EN_PERF
 
@@ -823,8 +828,8 @@ int main()
     PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     #endif
 
-
-    while( ! dma_is_ready(0)) {
+    /* Wait for CH1 to end */
+    while(!dma_is_ready(1)) {
         #if !EN_PERF
         /* Disable_interrupts */
         /* This does not prevent waking up the core as this is controlled by the MIP register */
@@ -1115,11 +1120,8 @@ int main()
     PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     #endif
 
-
-    while( end_trans == 0) {
-        if (dma_is_ready(3) == 1) {
-            end_trans = 1;
-        }
+    /* Wait for CH3 to end */
+    while(!dma_is_ready(3)) {
         #if !EN_PERF
         /* Disable_interrupts */
         /* This does not prevent waking up the core as this is controlled by the MIP register */

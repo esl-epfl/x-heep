@@ -295,7 +295,7 @@ int main(int argc, char *argv[])
     // Wait for DMA interrupt
     if( trans.end == DMA_TRANS_END_POLLING ){
         PRINTF("Waiting for DMA DONE...\n\r");
-        while( ! dma_is_ready() ){};
+        while( ! dma_is_ready(0) ){};
     } else{
         PRINTF("Waiting for the DMA interrupt...\n\r");
         while(dma_intr_flag == 0) {
