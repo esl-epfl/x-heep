@@ -81,7 +81,7 @@ module xbar_varlat_n_to_one #(
   assign {slave_xbar_rsp_error[0], slave_xbar_rsp_ready[0], slave_xbar_rsp_data[0]} = slave_resp_i;
 
   /*_________________________________________________________________________________________________________________________________ */
-  
+
   /* Module instantiation */
 
   /* Xbar module */

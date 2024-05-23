@@ -13,8 +13,11 @@ module ao_peripheral_subsystem
     input logic clk_i,
     input logic rst_ni,
 
-    input  obi_req_t  slave_req_i,
-    output obi_resp_t slave_resp_o,
+    input  obi_req_t bus2ao_req_i,
+    output obi_resp_t ao2bus_resp_o,
+
+    input  obi_req_t spc2ao_req_i[core_v_mini_mcu_pkg::DMA_SPC_NUM:0],
+    input  obi_resp_t ao2spc_resp_i[core_v_mini_mcu_pkg::DMA_SPC_NUM:0],
 
     // SOC CTRL
     input  logic        boot_select_i,
@@ -123,11 +126,28 @@ module ao_peripheral_subsystem
   import tlul_pkg::*;
   import rv_plic_reg_pkg::*;
 
+  /*_________________________________________________________________________________________________________________________________ */
+
+  /* Signals declaration */
+
+  /* Requests from ao_peripheral & SPCs to the registers crossbar */
+  obi_pkg::obi_req_t [core_v_mini_mcu_pkg::DMA_SPC_NUM:0] master2xbar_req;
+
+  /* Requests from the registers crossbar to the channels */
+  obi_pkg::obi_req_t xbar2ch_req;
+
+  /* Responses from registers crossbar to the ao_peripheral & SPCs */
+  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_SPC_NUM:0] xbar2master_resp;
+
+  /* Response from the channels to the registers crossbar */
+  obi_pkg::obi_resp_t ch2xbar_resp;
+
+  /* Peripheral register inteface */
   reg_pkg::reg_req_t peripheral_req;
   reg_pkg::reg_rsp_t peripheral_rsp;
-
   reg_pkg::reg_req_t [core_v_mini_mcu_pkg::AO_PERIPHERALS-1:0] ao_peripheral_slv_req;
   reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::AO_PERIPHERALS-1:0] ao_peripheral_slv_rsp;
+  logic [AO_PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
 
   tlul_pkg::tl_h2d_t rv_timer_tl_h2d;
   tlul_pkg::tl_d2h_t rv_timer_tl_d2h;
@@ -135,52 +155,125 @@ module ao_peripheral_subsystem
   tlul_pkg::tl_h2d_t uart_tl_h2d;
   tlul_pkg::tl_d2h_t uart_tl_d2h;
 
-  logic [AO_PERIPHERALS_PORT_SEL_WIDTH-1:0] peripheral_select;
-
+  /* SPI memory signals */
   logic use_spimemio;
-
   logic spi_flash_rx_valid;
   logic spi_flash_tx_ready;
 
+  /* GPIOs signals */
   logic [23:0] intr_gpio_unused;
   logic [23:0] cio_gpio_unused;
   logic [23:0] cio_gpio_en_unused;
 
+  /* FIFOs signals */
+`ifndef REMOVE_OBI_FIFO
+  obi_pkg::obi_req_t [core_v_mini_mcu_pkg::DMA_SPC_NUM:0] slave_fifo_req_sel;
+  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_SPC_NUM:0] slave_fifo_resp_sel;
+  obi_pkg::obi_req_t [core_v_mini_mcu_pkg::DMA_SPC_NUM:0]  slave_fifoin_req;
+  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_SPC_NUM:0] slave_fifoin_resp;
+  obi_pkg::obi_req_t [core_v_mini_mcu_pkg::DMA_SPC_NUM:0]  slave_fifoout_req;
+  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_SPC_NUM:0] slave_fifoout_resp;
+`endif
 
-  obi_pkg::obi_req_t slave_fifo_req_sel;
-  obi_pkg::obi_resp_t slave_fifo_resp_sel;
+  /* DMA signals */
+  parameter DMA_TRIGGER_SLOT_NUM = 7;
+  logic [DMA_TRIGGER_SLOT_NUM-1:0] dma_trigger_slots;
 
+  /*_________________________________________________________________________________________________________________________________ */
+
+  /* Signal assignment */
+
+  /* Peripheral demuxed register interface */
   assign ext_peripheral_slave_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::EXT_PERIPHERAL_IDX];
   assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::EXT_PERIPHERAL_IDX] = ext_peripheral_slave_resp_i;
+  assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_CONTROL_IDX];
+  assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_CONTROL_IDX] = pad_resp_i;
 
+  /* DMA trigger slots */
+  assign dma_trigger_slots[0] = spi_rx_valid_i;
+  assign dma_trigger_slots[1] = spi_tx_ready_i;
+  assign dma_trigger_slots[2] = spi_flash_rx_valid;
+  assign dma_trigger_slots[3] = spi_flash_tx_ready;
+  assign dma_trigger_slots[4] = i2s_rx_valid_i;
+  assign dma_trigger_slots[5] = ext_dma_slot_tx_i;
+  assign dma_trigger_slots[6] = ext_dma_slot_rx_i;
+
+  /* FIFO assignment */
 `ifdef REMOVE_OBI_FIFO
 
-  assign slave_fifo_req_sel = slave_req_i;
-  assign slave_resp_o       = slave_fifo_resp_sel;
+  assign slave_fifo_req_sel = master2xbar_req;
+  assign ao2bus_resp_o       = slave_fifo_resp_sel;
 
 `else
 
-  obi_pkg::obi_req_t  slave_fifoin_req;
-  obi_pkg::obi_resp_t slave_fifoin_resp;
+  generate
+  /* Start from 1 because 0 is reserved for the main bus */
+  for (genvar i = 1; i < core_v_mini_mcu_pkg::DMA_SPC_NUM; i++) begin : obi_fifo_gen
+      assign slave_fifo_req_sel[i] = slave_fifoout_req[i];
+      assign slave_fifoout_resp[i] = slave_fifo_resp_sel[i];
+      assign slave_fifoin_req[i]   = spc2ao_req[i];
+      assign ao2spc_resp_o[i]       = slave_fifoin_resp[i];
+  
+      obi_fifo obi_fifo_i (
+          .clk_i,
+          .rst_ni,
+          .producer_req_i (slave_fifoin_req[i]),
+          .producer_resp_o(slave_fifoin_resp[i]),
+          .consumer_req_o (slave_fifoout_req[i]),
+          .consumer_resp_i(slave_fifoout_resp[i])
+      );
+  end
 
-  obi_pkg::obi_req_t  slave_fifoout_req;
-  obi_pkg::obi_resp_t slave_fifoout_resp;
-
-  obi_fifo obi_fifo_i (
+  assign slave_fifo_req_sel[0] = slave_fifoout_req[0];
+  assign slave_fifoout_resp[0] = slave_fifo_resp_sel[0];
+  assign slave_fifoin_req[0]   = bus2ao_req_i;
+  assign ao2bus_resp_o       = slave_fifoin_resp[0];
+  
+  obi_fifo obi_fifo_ao_i (
       .clk_i,
       .rst_ni,
-      .producer_req_i (slave_fifoin_req),
-      .producer_resp_o(slave_fifoin_resp),
-      .consumer_req_o (slave_fifoout_req),
-      .consumer_resp_i(slave_fifoout_resp)
+      .producer_req_i (slave_fifoin_req[0]),
+      .producer_resp_o(slave_fifoin_resp[0]),
+      .consumer_req_o (slave_fifoout_req[0]),
+      .consumer_resp_i(slave_fifoout_resp[0])
   );
 
-  assign slave_fifo_req_sel = slave_fifoout_req;
-  assign slave_fifoout_resp = slave_fifo_resp_sel;
-  assign slave_fifoin_req   = slave_req_i;
-  assign slave_resp_o       = slave_fifoin_resp;
+  endgenerate
 
 `endif
+
+  /*_________________________________________________________________________________________________________________________________ */
+
+  /* Module instantiation */
+
+  /* SPC crossbar */
+  generate
+    if (core_v_mini_mcu_pkg::DMA_SPC_NUM > 0) begin
+      for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_SPC_NUM; i++) begin
+          assign master2xbar_req[i] = bus2ao_req_i;
+          assign ao2bus_resp_o = xbar2master_rsp[i];
+      end
+      assign master2xbar_req = bus2ao_req_i;
+      assign ao2bus_resp_o = xbar2master_rsp;
+    end
+  endgenerate
+  generate
+    if (core_v_mini_mcu_pkg::DMA_SPC_NUM > 0) begin : xbar_regs_n_to_one_gen
+      xbar_varlat_n_to_one #(
+          .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_SPC_NUM)
+      ) xbar_reg_i (
+          .clk_i        (clk_i),
+          .rst_ni       (rst_ni),
+          .master_req_i (master2xbar_req),
+          .master_resp_o(xbar2master_rsp),
+          .slave_req_o  (xbar2ch_req),
+          .slave_resp_i (ch2xbar_rsp)
+      );
+    end else begin
+      assign xbar_spc_req = reg_req_i[0];
+      assign reg_rsp_o = xbar_spc_rsp;
+    end 
+  endgenerate
 
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
@@ -335,16 +428,6 @@ module ao_peripheral_subsystem
       .intr_timer_expired_1_0_o(rv_timer_1_intr_o)
   );
 
-  parameter DMA_TRIGGER_SLOT_NUM = 7;
-  logic [DMA_TRIGGER_SLOT_NUM-1:0] dma_trigger_slots;
-  assign dma_trigger_slots[0] = spi_rx_valid_i;
-  assign dma_trigger_slots[1] = spi_tx_ready_i;
-  assign dma_trigger_slots[2] = spi_flash_rx_valid;
-  assign dma_trigger_slots[3] = spi_flash_tx_ready;
-  assign dma_trigger_slots[4] = i2s_rx_valid_i;
-  assign dma_trigger_slots[5] = ext_dma_slot_tx_i;
-  assign dma_trigger_slots[6] = ext_dma_slot_rx_i;
-
   dma_subsystem #(
       .reg_req_t (reg_pkg::reg_req_t),
       .reg_rsp_t (reg_pkg::reg_rsp_t),
@@ -366,9 +449,6 @@ module ao_peripheral_subsystem
       .dma_done_intr_o(dma_done_intr_o),
       .dma_window_intr_o(dma_window_intr_o)
   );
-
-  assign pad_req_o = ao_peripheral_slv_req[core_v_mini_mcu_pkg::PAD_CONTROL_IDX];
-  assign ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::PAD_CONTROL_IDX] = pad_resp_i;
 
   fast_intr_ctrl #(
       .reg_req_t(reg_pkg::reg_req_t),
