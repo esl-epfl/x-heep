@@ -5,8 +5,9 @@
  *
  * Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
  *  
- * Info: Derived from xbar_varlat_n_to_one.sv by Michele Caon, this wrapper unrolls the reg_pkf interface and connects it
- *       to the xbar_varlat logarithmic crossbar.
+ * Info: Derived from xbar_varlat_n_to_one.sv by Michele Caon, this wrapper unrolls the reg_pkg interface and connects it
+ *       to the xbar_varlat logarithmic crossbar. With respect to the original xbar, this one doesn't have the rvalid gating
+ *       logic, as reg_pkg does not have an handshake mechanism.
  */
 
 module xbar_varlat_n_to_one #(
@@ -79,7 +80,11 @@ module xbar_varlat_n_to_one #(
   } = xbar_slave_req_data[0];
   assign {slave_xbar_rsp_error[0], slave_xbar_rsp_ready[0], slave_xbar_rsp_data[0]} = slave_resp_i;
 
-  // Instantiate crossbar
+  /*_________________________________________________________________________________________________________________________________ */
+  
+  /* Module instantiation */
+
+  /* Xbar module */
   xbar_varlat #(
       .AggregateGnt(32'd1),  // all the masters from X-HEEP do not aggregate multiple masters
       .NumIn(XBAR_NMASTER),
@@ -104,64 +109,13 @@ module xbar_varlat_n_to_one #(
       .rdata_i(slave_xbar_rsp_data)
   );
 
-  //block outstanding transactions
-  typedef enum logic {
-    OUTSTANDING_REQ,
-    OUTSTANDING_WAITFOR_VALID
-  } outstanding_req_fsm_e;
+  /*_________________________________________________________________________________________________________________________________ */
 
-  outstanding_req_fsm_e state_n, state_q;
+  /* Signals declaration */
 
-  /* block outstanding transactions
-    The Master M1 may get a GNT at cycle 1, then the Master M2
-    gets a GNT at cycle 2 (from the same or different slaves)
-    As outstanding transactions are not supported (neither in-order nor out-of-order)
-    we need to block the transaction.
-
-    The addr_dec_resp_mux_varlat gates the second request of a master until the valid of the first request returns
-    However, when different masters collides into the 1toM bus, the second part of the xbar sees a single master (the neck) issueing multiple requests (although
-    these 2 reqeusts can actually come from 2 different masters M1 and M2)
-    The second neck.req is gated by the addr_dec_resp_mux_varlat, but not its grant, thus the following FSM gates the gnt as the original master (i.e. the one before the neck)
-    The reason why we have to gate the grant is that the M2 issued a request, although the neck.req is gated by the valid of the M1 request, the grant is propagated
-    to M2, which gets its request granted without begin correct.
-  */
-  always_comb begin
-    state_n = state_q;
-    xbar_slave_req_valid = xbar_slave_req_req[0];
-    slave_xbar_rsp_error = slave_xbar_rsp_error[0];
-
-    case (state_q)
-
-      OUTSTANDING_REQ: begin
-        if (xbar_slave_req_valid && slave_xbar_rsp_error) begin
-          state_n = OUTSTANDING_WAITFOR_VALID;
-        end
-      end
-
-      OUTSTANDING_WAITFOR_VALID: begin
-        xbar_slave_req_valid = 1'b0;
-        slave_xbar_rsp_error = 1'b0;
-        if (slave_xbar_rsp_ready[0]) begin
-          xbar_slave_req_valid = xbar_slave_req_req[0];
-          slave_xbar_rsp_error = slave_xbar_rsp_error[0];
-          if (xbar_slave_req_valid && slave_xbar_rsp_error) begin
-            state_n = OUTSTANDING_WAITFOR_VALID;
-          end else begin
-            state_n = OUTSTANDING_REQ;
-          end
-        end
-      end
-    endcase
-
-  end
-
-  always_ff @(posedge clk_i or negedge rst_ni) begin
-    if (~rst_ni) begin
-      state_q <= OUTSTANDING_REQ;
-    end else begin
-      state_q <= state_n;
-    end
-  end
+  /* Valid & error routing */
+  assign xbar_slave_req_valid = xbar_slave_req_req[0];
+  assign slave_xbar_rsp_error = slave_xbar_rsp_error[0];
 
 
 endmodule
