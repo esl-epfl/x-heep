@@ -127,12 +127,6 @@ module ao_peripheral_subsystem
 
   /* Signals declaration */
 
-  /* Requests from the registers crossbar to the channels */
-  obi_pkg::obi_req_t xbar2ch_req;
-
-  /* Response from the channels to the registers crossbar */
-  obi_pkg::obi_resp_t ch2xbar_resp;
-
   /* NOTE: Additional xbars signals defined in the xbar generate statement */
 
   /* Peripheral register inteface */
@@ -159,14 +153,21 @@ module ao_peripheral_subsystem
   logic [23:0] cio_gpio_en_unused;
 
   /* FIFOs signals */
-  obi_pkg::obi_req_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] slave_fifo_req_sel;
-  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] slave_fifo_resp_sel;
+  obi_pkg::obi_req_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] bus2xbar_fifo_req_sel;
+  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] bus2xbar_fifo_resp_sel;
 
 `ifndef REMOVE_OBI_FIFO
-  obi_pkg::obi_req_t  [core_v_mini_mcu_pkg::AO_SPC_NUM:0] slave_fifoin_req;
-  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] slave_fifoin_resp;
-  obi_pkg::obi_req_t  [core_v_mini_mcu_pkg::AO_SPC_NUM:0] slave_fifoout_req;
-  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] slave_fifoout_resp;
+  obi_pkg::obi_req_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] bus2xbar_fifoin_req;
+  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] bus2xbar_fifoin_resp;
+  obi_pkg::obi_req_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] bus2xbar_fifoout_req;
+  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] bus2xbar_fifoout_resp;
+  obi_pkg::obi_req_t xbar2ch_fifoout_req;
+  obi_pkg::obi_resp_t xbar2ch_fifoout_resp;
+`else
+
+  /* Buffer to break the circular logic with no obi FIFO */
+  obi_pkg::obi_resp_t ao2bus_resp_n[core_v_mini_mcu_pkg::AO_SPC_NUM:0];
+  obi_pkg::obi_resp_t ao2bus_resp  [core_v_mini_mcu_pkg::AO_SPC_NUM:0];
 `endif
 
   /* DMA signals */
@@ -192,60 +193,34 @@ module ao_peripheral_subsystem
   assign dma_trigger_slots[5] = ext_dma_slot_tx_i;
   assign dma_trigger_slots[6] = ext_dma_slot_rx_i;
 
-  /* FIFO assignment */
-`ifdef REMOVE_OBI_FIFO
-
-  generate
-    for (genvar i = 1; i < core_v_mini_mcu_pkg::AO_SPC_NUM + 1; i++) begin : obi_nofifo_gen
-      assign slave_fifo_req_sel[i] = bus2ao_req_i[i];
-      assign ao2bus_resp_o[i]      = slave_fifo_resp_sel[i];
-    end
-  endgenerate
-
-`else
-
-  generate
-    for (genvar i = 0; i < core_v_mini_mcu_pkg::AO_SPC_NUM + 1; i++) begin : obi_fifo_gen
-      assign slave_fifo_req_sel[i] = slave_fifoout_req[i];
-      assign slave_fifoout_resp[i] = slave_fifo_resp_sel[i];
-      assign slave_fifoin_req[i]   = bus2ao_req_i[i];
-      assign ao2bus_resp_o[i]      = slave_fifoin_resp[i];
-
-      obi_fifo obi_fifo_i (
-          .clk_i,
-          .rst_ni,
-          .producer_req_i (slave_fifoin_req[i]),
-          .producer_resp_o(slave_fifoin_resp[i]),
-          .consumer_req_o (slave_fifoout_req[i]),
-          .consumer_resp_i(slave_fifoout_resp[i])
-      );
-    end
-  endgenerate
-
-`endif
-
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Module instantiation */
 
-  /* SPC crossbar */
+  /* SPC crossbar & FIFOs */
   generate
     if (core_v_mini_mcu_pkg::AO_SPC_NUM > 0) begin
 
+      /* Requests from the registers crossbar to the channels */
+      obi_pkg::obi_req_t xbar2ch_req;
+
+      /* Response from the channels to the registers crossbar */
+      obi_pkg::obi_resp_t ch2xbar_resp;
+
       /* Requests from ao_peripheral & SPCs to the registers crossbar */
-      obi_pkg::obi_req_t  [core_v_mini_mcu_pkg::AO_SPC_NUM:0] master2xbar_req;
+      obi_pkg::obi_req_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] master2xbar_req;
 
       /* Responses from registers crossbar to the ao_peripheral & SPCs */
       obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] xbar2master_resp;
 
       /* Loop through AO_SPC_NUM + 1 to include also the system bus port */
       for (genvar i = 0; i < core_v_mini_mcu_pkg::AO_SPC_NUM + 1; i++) begin
-        assign master2xbar_req[i] = slave_fifo_req_sel[i];
-        assign slave_fifo_resp_sel[i] = xbar2master_resp[i];
+        assign master2xbar_req[i] = bus2xbar_fifo_req_sel[i];
+        assign bus2xbar_fifo_resp_sel[i] = xbar2master_resp[i];
       end
 
       xbar_varlat_n_to_one #(
-          .XBAR_NMASTER(core_v_mini_mcu_pkg::AO_SPC_NUM)
+          .XBAR_NMASTER(core_v_mini_mcu_pkg::AO_SPC_NUM + 1)
       ) xbar_reg_i (
           .clk_i        (clk_i),
           .rst_ni       (rst_ni),
@@ -254,11 +229,84 @@ module ao_peripheral_subsystem
           .slave_req_o  (xbar2ch_req),
           .slave_resp_i (ch2xbar_resp)
       );
+
+      always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+          xbar2ch_fifoout_req.req <= 0;
+          xbar2ch_fifoout_req.we <= 0;
+          xbar2ch_fifoout_req.be <= 0;
+          xbar2ch_fifoout_req.addr <= 0;
+          xbar2ch_fifoout_req.wdata <= 0;
+        end else begin
+          xbar2ch_fifoout_req <= xbar2ch_req;
+        end
+      end
+
+      always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+          xbar2ch_fifoout_resp.gnt <= 1'b0;
+          xbar2ch_fifoout_resp.rvalid <= 1'b0;
+          xbar2ch_fifoout_resp.rdata <= 0;
+        end else begin
+          xbar2ch_fifoout_resp <= ch2xbar_resp;
+        end
+      end
+
+    /*
+      obi_fifo obi_fifo_i (
+          .clk_i,
+          .rst_ni,
+          .producer_req_i (xbar2ch_req),
+          .producer_resp_o(ch2xbar_resp),
+          .consumer_req_o (xbar2ch_fifoout_req),
+          .consumer_resp_i(xbar2ch_fifoout_resp)
+      );*/
+  
+      for (genvar i = 0; i < core_v_mini_mcu_pkg::AO_SPC_NUM + 1; i++) begin : obi_fifo_gen
+      assign bus2xbar_fifo_req_sel[i] = bus2xbar_fifoout_req[i];
+      assign bus2xbar_fifoout_resp[i] = bus2xbar_fifo_resp_sel[i];
+      assign bus2xbar_fifoin_req[i]   = bus2ao_req_i[i];
+      assign ao2bus_resp_o[i]         = bus2xbar_fifoin_resp[i];
+  
+      obi_fifo obi_fifo_i (
+          .clk_i,
+          .rst_ni,
+          .producer_req_i (bus2xbar_fifoin_req[i]),
+          .producer_resp_o(bus2xbar_fifoin_resp[i]),
+          .consumer_req_o (bus2xbar_fifoout_req[i]),
+          .consumer_resp_i(bus2xbar_fifoout_resp[i])
+      );
+      end
+
     end else begin
-      assign xbar2ch_req = slave_fifo_req_sel[0];
-      assign slave_fifo_resp_sel[0] = ch2xbar_resp;
+      assign xbar2ch_fifoout_req = bus2xbar_fifo_req_sel[0];
+      assign bus2xbar_fifo_resp_sel[0] = xbar2ch_fifoout_resp;
+
+  /* FIFOs */
+`ifdef REMOVE_OBI_FIFO
+
+    for (genvar i = 1; i < core_v_mini_mcu_pkg::AO_SPC_NUM + 1; i++) begin : obi_nofifo_gen
+      assign bus2xbar_fifo_req_sel[i] = bus2ao_req_i[i];
+      assign ao2bus_resp_o[i]         = bus2xbar_fifo_resp_sel[i];
+    end
+
+`else
+    assign bus2xbar_fifo_req_sel[0] = bus2xbar_fifoout_req[0];
+    assign bus2xbar_fifoout_resp[0] = bus2xbar_fifo_resp_sel[0];
+    assign bus2xbar_fifoin_req[0]   = bus2ao_req_i[0];
+    assign ao2bus_resp_o[0]         = bus2xbar_fifoin_resp[0];
+    obi_fifo obi_fifo_i (
+        .clk_i,
+        .rst_ni,
+        .producer_req_i (bus2xbar_fifoin_req[0]),
+        .producer_resp_o(bus2xbar_fifoin_resp[0]),
+        .consumer_req_o (bus2xbar_fifoout_req[0]),
+        .consumer_resp_i(bus2xbar_fifoout_resp[0])
+    );
     end
   endgenerate
+
+`endif
 
   /* Peripheral to register interface converter*/
   periph_to_reg #(
@@ -268,17 +316,17 @@ module ao_peripheral_subsystem
   ) periph_to_reg_i (
       .clk_i,
       .rst_ni,
-      .req_i(xbar2ch_req.req),
-      .add_i(xbar2ch_req.addr),
-      .wen_i(~xbar2ch_req.we),
-      .wdata_i(xbar2ch_req.wdata),
-      .be_i(xbar2ch_req.be),
+      .req_i(xbar2ch_fifoout_req.req),
+      .add_i(xbar2ch_fifoout_req.addr),
+      .wen_i(~xbar2ch_fifoout_req.we),
+      .wdata_i(xbar2ch_fifoout_req.wdata),
+      .be_i(xbar2ch_fifoout_req.be),
       .id_i('0),
-      .gnt_o(ch2xbar_resp.gnt),
-      .r_rdata_o(ch2xbar_resp.rdata),
+      .gnt_o(xbar2ch_fifoout_resp.gnt),
+      .r_rdata_o(xbar2ch_fifoout_resp.rdata),
       .r_opc_o(),
       .r_id_o(),
-      .r_valid_o(ch2xbar_resp.rvalid),
+      .r_valid_o(xbar2ch_fifoout_resp.rvalid),
       .reg_req_o(peripheral_req),
       .reg_rsp_i(peripheral_rsp)
   );

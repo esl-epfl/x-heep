@@ -20,7 +20,7 @@
     ao_peripherals: {
         address: 0x20000000,
         length:  0x00100000,
-        num_spc:        0x0,
+        num_spc:        0x1,
         soc_ctrl: {
             offset:  0x00000000,
             length:  0x00010000,
