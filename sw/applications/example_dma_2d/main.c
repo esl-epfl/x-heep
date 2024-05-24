@@ -50,10 +50,10 @@
 #define STRIDE_OUT_D2 1
 
 /* Set the padding parameters */
-#define TOP_PAD 0
-#define BOTTOM_PAD 0
-#define LEFT_PAD 0
-#define RIGHT_PAD 0
+#define TOP_PAD 1
+#define BOTTOM_PAD 1
+#define LEFT_PAD 1
+#define RIGHT_PAD 1
 
 /* Macros for dimensions computation */
 #define OUT_D1_PAD ( SIZE_EXTR_D1 + LEFT_PAD + RIGHT_PAD )
@@ -116,7 +116,7 @@ uint8_t stride_1d_cnt = 0;
 uint8_t stride_2d_cnt = 0;
 char passed = 1;
 
-#if TEST_ID == 2
+#if TEST_ID == 3
 
 /* Function used to simplify register operations */
 static inline volatile void write_register( uint32_t  p_val,
