@@ -506,7 +506,7 @@ def main():
     ao_peripherals_count = len(ao_peripherals)
     dma_ch_count = ao_peripherals["dma"]["num_channels"]
     dma_ch_size = ao_peripherals["dma"]["ch_length"]
-    dma_num_sdc = ao_peripherals["dma"]["num_sdc"]
+    ao_peripherals_num_spc = string2int(obj['ao_peripherals']['num_spc'])
 
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
@@ -827,7 +827,7 @@ def main():
         "ao_peripherals_count"             : ao_peripherals_count,
         "dma_ch_count"                     : dma_ch_count,
         "dma_ch_size"                      : dma_ch_size,
-        "dma_num_sdc"                      : dma_num_sdc,
+        "ao_peripherals_num_spc"                      : ao_peripherals_num_spc,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
         "peripherals"                      : peripherals,

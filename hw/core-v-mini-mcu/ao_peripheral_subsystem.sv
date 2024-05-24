@@ -13,11 +13,8 @@ module ao_peripheral_subsystem
     input logic clk_i,
     input logic rst_ni,
 
-    input  obi_req_t bus2ao_req_i,
-    output obi_resp_t ao2bus_resp_o,
-
-    input  obi_req_t spc2ao_req_i[core_v_mini_mcu_pkg::DMA_SPC_NUM:0],
-    input  obi_resp_t ao2spc_resp_i[core_v_mini_mcu_pkg::DMA_SPC_NUM:0],
+    input  obi_req_t  bus2ao_req_i [core_v_mini_mcu_pkg::AO_SPC_NUM:0],
+    output obi_resp_t ao2bus_resp_o[core_v_mini_mcu_pkg::AO_SPC_NUM:0],
 
     // SOC CTRL
     input  logic        boot_select_i,
@@ -130,17 +127,13 @@ module ao_peripheral_subsystem
 
   /* Signals declaration */
 
-  /* Requests from ao_peripheral & SPCs to the registers crossbar */
-  obi_pkg::obi_req_t [core_v_mini_mcu_pkg::DMA_SPC_NUM:0] master2xbar_req;
-
   /* Requests from the registers crossbar to the channels */
   obi_pkg::obi_req_t xbar2ch_req;
 
-  /* Responses from registers crossbar to the ao_peripheral & SPCs */
-  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_SPC_NUM:0] xbar2master_resp;
-
   /* Response from the channels to the registers crossbar */
   obi_pkg::obi_resp_t ch2xbar_resp;
+
+  /* NOTE: Additional xbars signals defined in the xbar generate statement */
 
   /* Peripheral register inteface */
   reg_pkg::reg_req_t peripheral_req;
@@ -166,13 +159,14 @@ module ao_peripheral_subsystem
   logic [23:0] cio_gpio_en_unused;
 
   /* FIFOs signals */
+  obi_pkg::obi_req_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] slave_fifo_req_sel;
+  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] slave_fifo_resp_sel;
+
 `ifndef REMOVE_OBI_FIFO
-  obi_pkg::obi_req_t [core_v_mini_mcu_pkg::DMA_SPC_NUM:0] slave_fifo_req_sel;
-  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_SPC_NUM:0] slave_fifo_resp_sel;
-  obi_pkg::obi_req_t [core_v_mini_mcu_pkg::DMA_SPC_NUM:0]  slave_fifoin_req;
-  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_SPC_NUM:0] slave_fifoin_resp;
-  obi_pkg::obi_req_t [core_v_mini_mcu_pkg::DMA_SPC_NUM:0]  slave_fifoout_req;
-  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::DMA_SPC_NUM:0] slave_fifoout_resp;
+  obi_pkg::obi_req_t  [core_v_mini_mcu_pkg::AO_SPC_NUM:0] slave_fifoin_req;
+  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] slave_fifoin_resp;
+  obi_pkg::obi_req_t  [core_v_mini_mcu_pkg::AO_SPC_NUM:0] slave_fifoout_req;
+  obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] slave_fifoout_resp;
 `endif
 
   /* DMA signals */
@@ -201,19 +195,22 @@ module ao_peripheral_subsystem
   /* FIFO assignment */
 `ifdef REMOVE_OBI_FIFO
 
-  assign slave_fifo_req_sel = master2xbar_req;
-  assign ao2bus_resp_o       = slave_fifo_resp_sel;
+  generate
+    for (genvar i = 1; i < core_v_mini_mcu_pkg::AO_SPC_NUM + 1; i++) begin : obi_nofifo_gen
+      assign slave_fifo_req_sel[i] = bus2ao_req_i[i];
+      assign ao2bus_resp_o[i]      = slave_fifo_resp_sel[i];
+    end
+  endgenerate
 
 `else
 
   generate
-  /* Start from 1 because 0 is reserved for the main bus */
-  for (genvar i = 1; i < core_v_mini_mcu_pkg::DMA_SPC_NUM; i++) begin : obi_fifo_gen
+    for (genvar i = 0; i < core_v_mini_mcu_pkg::AO_SPC_NUM + 1; i++) begin : obi_fifo_gen
       assign slave_fifo_req_sel[i] = slave_fifoout_req[i];
       assign slave_fifoout_resp[i] = slave_fifo_resp_sel[i];
-      assign slave_fifoin_req[i]   = spc2ao_req[i];
-      assign ao2spc_resp_o[i]       = slave_fifoin_resp[i];
-  
+      assign slave_fifoin_req[i]   = bus2ao_req_i[i];
+      assign ao2bus_resp_o[i]      = slave_fifoin_resp[i];
+
       obi_fifo obi_fifo_i (
           .clk_i,
           .rst_ni,
@@ -222,22 +219,7 @@ module ao_peripheral_subsystem
           .consumer_req_o (slave_fifoout_req[i]),
           .consumer_resp_i(slave_fifoout_resp[i])
       );
-  end
-
-  assign slave_fifo_req_sel[0] = slave_fifoout_req[0];
-  assign slave_fifoout_resp[0] = slave_fifo_resp_sel[0];
-  assign slave_fifoin_req[0]   = bus2ao_req_i;
-  assign ao2bus_resp_o       = slave_fifoin_resp[0];
-  
-  obi_fifo obi_fifo_ao_i (
-      .clk_i,
-      .rst_ni,
-      .producer_req_i (slave_fifoin_req[0]),
-      .producer_resp_o(slave_fifoin_resp[0]),
-      .consumer_req_o (slave_fifoout_req[0]),
-      .consumer_resp_i(slave_fifoout_resp[0])
-  );
-
+    end
   endgenerate
 
 `endif
@@ -248,33 +230,37 @@ module ao_peripheral_subsystem
 
   /* SPC crossbar */
   generate
-    if (core_v_mini_mcu_pkg::DMA_SPC_NUM > 0) begin
-      for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_SPC_NUM; i++) begin
-          assign master2xbar_req[i] = bus2ao_req_i;
-          assign ao2bus_resp_o = xbar2master_rsp[i];
+    if (core_v_mini_mcu_pkg::AO_SPC_NUM > 0) begin
+
+      /* Requests from ao_peripheral & SPCs to the registers crossbar */
+      obi_pkg::obi_req_t  [core_v_mini_mcu_pkg::AO_SPC_NUM:0] master2xbar_req;
+
+      /* Responses from registers crossbar to the ao_peripheral & SPCs */
+      obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] xbar2master_resp;
+
+      /* Loop through AO_SPC_NUM + 1 to include also the system bus port */
+      for (genvar i = 0; i < core_v_mini_mcu_pkg::AO_SPC_NUM + 1; i++) begin
+        assign master2xbar_req[i] = slave_fifo_req_sel[i];
+        assign slave_fifo_resp_sel[i] = xbar2master_resp[i];
       end
-      assign master2xbar_req = bus2ao_req_i;
-      assign ao2bus_resp_o = xbar2master_rsp;
-    end
-  endgenerate
-  generate
-    if (core_v_mini_mcu_pkg::DMA_SPC_NUM > 0) begin : xbar_regs_n_to_one_gen
+
       xbar_varlat_n_to_one #(
-          .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_SPC_NUM)
+          .XBAR_NMASTER(core_v_mini_mcu_pkg::AO_SPC_NUM)
       ) xbar_reg_i (
           .clk_i        (clk_i),
           .rst_ni       (rst_ni),
           .master_req_i (master2xbar_req),
-          .master_resp_o(xbar2master_rsp),
+          .master_resp_o(xbar2master_resp),
           .slave_req_o  (xbar2ch_req),
-          .slave_resp_i (ch2xbar_rsp)
+          .slave_resp_i (ch2xbar_resp)
       );
     end else begin
-      assign xbar_spc_req = reg_req_i[0];
-      assign reg_rsp_o = xbar_spc_rsp;
-    end 
+      assign xbar2ch_req = slave_fifo_req_sel[0];
+      assign slave_fifo_resp_sel[0] = ch2xbar_resp;
+    end
   endgenerate
 
+  /* Peripheral to register interface converter*/
   periph_to_reg #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -282,21 +268,22 @@ module ao_peripheral_subsystem
   ) periph_to_reg_i (
       .clk_i,
       .rst_ni,
-      .req_i(slave_fifo_req_sel.req),
-      .add_i(slave_fifo_req_sel.addr),
-      .wen_i(~slave_fifo_req_sel.we),
-      .wdata_i(slave_fifo_req_sel.wdata),
-      .be_i(slave_fifo_req_sel.be),
+      .req_i(xbar2ch_req.req),
+      .add_i(xbar2ch_req.addr),
+      .wen_i(~xbar2ch_req.we),
+      .wdata_i(xbar2ch_req.wdata),
+      .be_i(xbar2ch_req.be),
       .id_i('0),
-      .gnt_o(slave_fifo_resp_sel.gnt),
-      .r_rdata_o(slave_fifo_resp_sel.rdata),
+      .gnt_o(ch2xbar_resp.gnt),
+      .r_rdata_o(ch2xbar_resp.rdata),
       .r_opc_o(),
       .r_id_o(),
-      .r_valid_o(slave_fifo_resp_sel.rvalid),
+      .r_valid_o(ch2xbar_resp.rvalid),
       .reg_req_o(peripheral_req),
       .reg_rsp_i(peripheral_rsp)
   );
 
+  /* Address decoder for the peripheral registers */
   addr_decode #(
       .NoIndices(core_v_mini_mcu_pkg::AO_PERIPHERALS),
       .NoRules(core_v_mini_mcu_pkg::AO_PERIPHERALS),
@@ -312,6 +299,7 @@ module ao_peripheral_subsystem
       .default_idx_i('0)
   );
 
+  /* Register demux */
   reg_demux #(
       .NoPorts(core_v_mini_mcu_pkg::AO_PERIPHERALS),
       .req_t  (reg_pkg::reg_req_t),
@@ -341,11 +329,13 @@ module ao_peripheral_subsystem
       .exit_value_o
   );
 
+  /* Boot ROM */
   boot_rom boot_rom_i (
       .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::BOOTROM_IDX]),
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::BOOTROM_IDX])
   );
 
+  /* SPI subsystem */
   spi_subsystem spi_subsystem_i (
       .clk_i,
       .rst_ni,
@@ -369,6 +359,7 @@ module ao_peripheral_subsystem
       .spi_flash_tx_ready_o(spi_flash_tx_ready)
   );
 
+  /* Power manager */
   power_manager #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -402,6 +393,7 @@ module ao_peripheral_subsystem
       .external_subsystem_clkgate_en_no
   );
 
+  /* ??? */
   reg_to_tlul #(
       .req_t(reg_pkg::reg_req_t),
       .rsp_t(reg_pkg::reg_rsp_t),
@@ -428,6 +420,7 @@ module ao_peripheral_subsystem
       .intr_timer_expired_1_0_o(rv_timer_1_intr_o)
   );
 
+  /* 2D, multichannel DMA */
   dma_subsystem #(
       .reg_req_t (reg_pkg::reg_req_t),
       .reg_rsp_t (reg_pkg::reg_rsp_t),
@@ -462,6 +455,7 @@ module ao_peripheral_subsystem
       .fast_intr_o
   );
 
+  /* GPIO subsystem */
   gpio #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -495,6 +489,7 @@ module ao_peripheral_subsystem
       .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::UART_IDX])
   );
 
+  /* UART */
   uart uart_i (
       .clk_i,
       .rst_ni,

@@ -29,7 +29,7 @@
  *  3: Extract a NxM matrix, perform optional padding and copy it to a AxB matrix, using direct register operations
  */
 
-#define TEST_ID 0
+#define TEST_ID 3
 
 /* Enable performance analysis */
 #define EN_PERF 1
@@ -50,10 +50,10 @@
 #define STRIDE_OUT_D2 1
 
 /* Set the padding parameters */
-#define TOP_PAD 0
-#define BOTTOM_PAD 0
-#define LEFT_PAD 0
-#define RIGHT_PAD 0
+#define TOP_PAD 1
+#define BOTTOM_PAD 1
+#define LEFT_PAD 1
+#define RIGHT_PAD 1
 
 /* Macros for dimensions computation */
 #define OUT_D1_PAD ( SIZE_EXTR_D1 + LEFT_PAD + RIGHT_PAD )
@@ -79,7 +79,7 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_SIM   1
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -116,7 +116,7 @@ uint8_t stride_1d_cnt = 0;
 uint8_t stride_2d_cnt = 0;
 char passed = 1;
 
-#if TEST_ID == 2
+#if TEST_ID == 3
 
 /* Function used to simplify register operations */
 static inline volatile void write_register( uint32_t  p_val,

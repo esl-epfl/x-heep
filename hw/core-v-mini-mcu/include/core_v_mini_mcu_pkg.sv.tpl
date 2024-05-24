@@ -137,9 +137,9 @@ package core_v_mini_mcu_pkg;
   // always-on peripherals
   // ---------------------
   localparam AO_PERIPHERALS = ${ao_peripherals_count};
+  localparam AO_SPC_NUM = ${ao_peripherals_num_spc};
   localparam DMA_CH_NUM = ${dma_ch_count};
-  localparam DMA_SPC_NUM = ${dma_num_sdc};
-
+  
 % for peripheral, addr in ao_peripherals.items():
   localparam logic [31:0] ${peripheral.upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${addr["offset"]};
   localparam logic [31:0] ${peripheral.upper()}_SIZE = 32'h${addr["length"]};

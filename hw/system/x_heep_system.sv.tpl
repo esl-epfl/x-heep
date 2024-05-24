@@ -36,6 +36,11 @@ module x_heep_system
     output obi_req_t  ext_dma_addr_ch0_req_o,
     input  obi_resp_t ext_dma_addr_ch0_resp_i,
 
+    % if int(ao_peripherals_num_spc) > 0:
+    input obi_req_t ext_ao_peripheral_req_i[core_v_mini_mcu_pkg::AO_SPC_NUM:0],
+    output obi_resp_t ext_ao_peripheral_resp_o[core_v_mini_mcu_pkg::AO_SPC_NUM:0],
+    % endif
+
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
@@ -114,6 +119,10 @@ ${pad.core_v_mini_mcu_bonding}
     .pad_resp_i(pad_resp),
     .ext_xbar_master_req_i,
     .ext_xbar_master_resp_o,
+    % if int(ao_peripherals_num_spc) > 0:
+    .ext_ao_peripheral_slave_req_i(ext_ao_peripheral_req_i),
+    .ext_ao_peripheral_slave_resp_o(ext_ao_peripheral_resp_o),
+    % endif
     .ext_core_instr_req_o,
     .ext_core_instr_resp_i,
     .ext_core_data_req_o,

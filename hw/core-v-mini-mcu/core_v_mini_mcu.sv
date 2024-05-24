@@ -283,6 +283,7 @@ module core_v_mini_mcu
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
 
+
     // External slave ports
     output obi_req_t  ext_core_instr_req_o,
     input  obi_resp_t ext_core_instr_resp_i,
@@ -434,6 +435,14 @@ module core_v_mini_mcu
   // I2s
   logic i2s_rx_valid;
 
+  // AO Peripheral Subsystem
+  obi_req_t bus2ao_req[core_v_mini_mcu_pkg::AO_SPC_NUM:0];
+  obi_resp_t ao2bus_resp[core_v_mini_mcu_pkg::AO_SPC_NUM:0];
+
+  assign bus2ao_req[0] = ao_peripheral_slave_req;
+  assign ao_peripheral_slave_resp = ao2bus_resp[0];
+
+
   assign intr = {
     1'b0, irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
   };
@@ -554,8 +563,8 @@ module core_v_mini_mcu
   ao_peripheral_subsystem ao_peripheral_subsystem_i (
       .clk_i,
       .rst_ni(rst_ni && debug_reset_n),
-      .slave_req_i(ao_peripheral_slave_req),
-      .slave_resp_o(ao_peripheral_slave_resp),
+      .bus2ao_req_i(bus2ao_req[core_v_mini_mcu_pkg::AO_SPC_NUM:0]),
+      .ao2bus_resp_o(ao2bus_resp[core_v_mini_mcu_pkg::AO_SPC_NUM:0]),
       .boot_select_i,
       .execute_from_flash_i,
       .exit_valid_o,
