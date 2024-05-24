@@ -154,7 +154,7 @@ typedef struct {
 typedef struct {
     spi_host_t*       instance;  // Instance of peripheral defined in HAL
     uint8_t           txwm;      // TX watermark for this particular peripheral
-    uint8_t           rxwm;      // TX watermark for this particular peripheral
+    uint8_t           rxwm;      // RX watermark for this particular peripheral
     uint32_t          last_id;   // ID of last used spi_t to avoid resetting slave
     spi_state_e       state;     // Current state of device
     spi_transaction_t txn;       // Current transaction being processed
@@ -238,7 +238,7 @@ bool spi_fill_tx(spi_peripheral_t* peri);
  * @brief Empties the RX FIFO.
  * 
  * @param peri Pointer to the spi_peripheral_t instance with the relevant data
- * @return true if any word has been written to TX fifo
+ * @return true if any word has been read to RX fifo
  * @return false otherwise
  */
 bool spi_empty_rx(spi_peripheral_t* peri);
@@ -303,7 +303,7 @@ void spi_error_handler(spi_peripheral_t* peri, spi_error_e error);
 /****************************************************************************/
 
 /**
- * @brief Global SDK spi_t instance counter to assign each instance a different ID.
+ * @brief Global SDK spi_t instance counter to assign each instance a unique ID.
  */
 static uint32_t global_id = 0;
 

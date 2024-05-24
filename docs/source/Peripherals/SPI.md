@@ -986,3 +986,21 @@ switching between HAL and SDK.
 
 - **Activeness**: The `spi_get_state` function of the SDK will not reflect 
 transactions initiated by HAL functions.
+
+
+## 😎 X-pert Zone
+
+Another option for speeding up transaction processing is to use the registers of 
+the _SPI Host_ directly. However, this is not recommended unless you have a strong 
+understanding of the process. For detailed information on the operation of the 
+device, please refer to the following documentation on the _SPI Host_:
+[SPI Host: Theory of Operation](https://opentitan.org/book/hw/ip/spi_host/doc/theory_of_operation.html).
+
+Here is an example of implementing an SPI transaction using this method:
+
+```c
+#include "spi_host_regs.h"
+#include "spi_host_structs.h"
+
+to be continued...
+```
