@@ -120,7 +120,13 @@ respectively. The actual number of cycles will be the specified number + 1. For 
 `csn_lead` is 5, the _CS_ line will go active 6 _half SCK_ cycles before executing the 
 command segment.
 
-- `freq` is the maximum frequency of the external SPI device.
+- `freq` is the maximum desired frequency for the communication. The true frequency
+will be an integer division of half the MCU core frequency. The integer divisor will
+be computed by the SDK based on the maximum desired frequency provided, and will take
+a value between 1 and 65536 (16 bits). This implies that the true frequency will never
+be larger than half the MCU core frequency. The SDK will also return an invalid `spi_t` 
+if the desired maximum frequency provided is lower than half the MCU core frequency 
+divided by 65536.
 
 
 ### Initialization
@@ -174,6 +180,12 @@ A slave with predefined standard values can be created using the macro:
 }
 ```
 ````
+
+```{note}
+After initialization, the `freq` field of the `spi_slave_t` structure of the 
+`slave` field of the obtained `spi_t` structure, will provide the value of the 
+_true_ frequency, no longer the maximum desired frequency provided!
+```
 
 ### Transactions
 
@@ -254,8 +266,8 @@ uint32_t dest_buffer[64] = {0};
 :name: caution-seglen-bufflen
 
 While segments with lengths not multiple of 4 are allowed, buffers **must** be multiples 
-of 4 bytes due to the SDK's handling of write/read operations to the _SPI Host IP_ TX and 
-RX _FIFOs_ one word at a time (and not one byte at a time).
+of 4 bytes because the _SPI Host IP_ only allows reads from the RX _FIFO_ one word at
+a time.
 
 It is the _segment length_ that will ultimately determine the amount of bytes effectively
 transmitted/received, not the buffer size.
@@ -289,12 +301,30 @@ spi_state_e spi_get_state(spi_t* spi);
 Which returns `SPI_STATE_DONE` if the transaction completed successfully
 (i.e. all segments were completed). Otherwise, it returns `SPI_STATE_ERROR`.
 
+````{important}
+The SDK completely relies on _SPI Host IP_ interrupts in order to execute any
+transaction. Therefore, it is crucial to **enable _SPI Host_ interrupts** at machine-
+levele before any transaction is initiated. Failure to do so will cause the SDK 
+to get stuck in an infinite loop when issuing a transaction.
+
+Example
+
+```c
+// Enable global interrupt for machine-level interrupts
+CSR_SET_BITS(CSR_REG_MSTATUS, CSR_INTR_EN);
+// Set mie.MEIE bit to one to enable machine-level fast spi_flash interrupt
+const uint32_t mask = 1 << FIC_FLASH_MEIE;
+CSR_SET_BITS(CSR_REG_MIE, mask);
+```
+````
+
 #### Example
 
 A complete example of executing a transaction:
 
 ```c
-// Assuming spi variable is properly initialized
+// Assuming spi variable is properly initialized and machine-level interrupts have
+// been enabled.
 
 // Define transaction command segments
 spi_segment_t segments[2] = { SPI_SEG_TX(4), SPI_SEG_RX(256) };
@@ -409,7 +439,8 @@ int main(int argc, char *argv[])
 {
     // ...
 
-    // We assume an spi variable has been created by properly initializing it.
+    // We assume an spi variable has been created by properly initializing it and
+    // that machine-level interrupts have been appropriately enabled.
 
     uint32_t src_buffer = 0x1234    // For example a command to send to slave
     uint32_t dest_buffer[12] = {0}  // Slave's response
