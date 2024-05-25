@@ -35,7 +35,7 @@ def config():
     on_off_domain.add_peripheral(I2SPeripheral(dma=True))
     on_off_domain.add_peripheral(RvPlicPeripheral())
     on_off_domain.add_peripheral(Pdm2PcmPeripheral())
-    on_off_domain.add_peripheral(GpioPeripheral(gpios_used={i:i for i in range(0,8)}, intr_map={i:"fast" for i in range(0, 8)}))
+    on_off_domain.add_peripheral(GpioPeripheral(gpios_used={i:i for i in range(0,  8)}, intr_map={i:"fast" for i in range(0,  8)}))
     on_off_domain.add_peripheral(GpioPeripheral(gpios_used={i:i for i in range(8, 32)}, intr_map={i:"plic" for i in range(8, 32)}))
     on_off_domain.add_peripheral(UartPeripheral())
     system.add_domain(on_off_domain)

@@ -325,16 +325,13 @@ echo -e "\n\nStart? (y/N)"
 read yn
 case $yn in
 	[Yy]* ) ;;
-	[Nn]* ) return;;
-	* ) return;;
+	[Nn]* ) exit;;
+	* ) exit;;
 esac
 
 #############################################################
 #					SET-UP THE TOOLS
 #############################################################
-
-# All peripherals are included to make sure all apps can be built.
-sed 's/is_included: "no",/is_included: "yes",/' -i mcu_cfg.hjson
 
 if [ $DEBUG -eq 0 ];	 then
 	# The MCU is generated with several memory banks to avoid example code not fitting.
@@ -398,29 +395,6 @@ do
 		fi
 	fi
 done
-
-#############################################################
-#						FINISH UP
-#############################################################
-
-# Because there were changed made to the mcu_cfg.json file, and the mcu was
-# re-generated, some files were changed with respect to the original state when
-# the script was launched.
-# Ideally, the user should have commited their changes before sourcing the script,
-# but if they didn't they can opt-out of the stashing of the changes and make the stash
-# manually themselves.
-echo -e ${LONG_W}
-
-git status -uno
-
-echo -e "${WHITE}During the execution, some files might have been modified."
-echo -e "${WHITE}Do you want to revert all these changes? (Y/n)${RESET}"
-read yn
-case $yn in
-	[Yy]* ) git restore .;;
-	[Nn]* ) ;;
-	* ) git restore .;;
-esac
 
 #############################################################
 #						SHOW RESULTS

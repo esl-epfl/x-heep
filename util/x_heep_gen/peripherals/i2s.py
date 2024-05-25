@@ -1,12 +1,30 @@
 
-from typing import Dict, List
-from x_heep_gen.peripherals.peripheral_helper import peripheral_from_file
+from typing import Any, Dict, List
+
+import hjson
+from x_heep_gen.config_helpers import to_bool
+from x_heep_gen.peripherals.peripheral_helper import PeripheralConfigFactory, peripheral_from_file
 from x_heep_gen.signal_routing.endpoints import DmaTriggerEP
 from x_heep_gen.signal_routing.node import Node
 from x_heep_gen.signal_routing.routing_helper import RoutingHelper
 
+class I2SConfigFactory(PeripheralConfigFactory):
+    def dict_to_kwargs(self, d: hjson.OrderedDict) -> Dict[str, Any]:
+        ret = dict()
+        dma = None
+        if "dma" in d:
+            dma = to_bool(d.pop("dma"))
+            if dma is None:
+                raise RuntimeError("dma parameter should be a boolean.")
+        else:
+            raise RuntimeError("i2s require the dma argument to be set")
+        
+        ret["dma"] = dma
 
-@peripheral_from_file("./hw/ip/i2s/data/i2s.hjson")
+        ret.update(super().dict_to_kwargs(d))
+        return ret
+
+@peripheral_from_file("./hw/ip/i2s/data/i2s.hjson", config_factory_t=I2SConfigFactory)
 class I2SPeripheral():
     def __init__(self, *args, **kwargs):
         if not "dma" in kwargs:

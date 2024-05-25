@@ -13,7 +13,7 @@ class PeripheralDomain:
     :param str name:
     :param dict[str, int] used_names: Names allready used by another peripheral domain, that should be used to start the suffix counters.
     """
-    def __init__(self, name: str, address: int, addr_size: int):
+    def __init__(self, name: str, address: int, addr_size: int, has_clock_domain: bool = False):
         if type(name) is not str:
             raise TypeError("name should be of type str")
         if name == "":
@@ -27,6 +27,7 @@ class PeripheralDomain:
         self._address: int = address
         self._addr_size: int = addr_size
         self._type: str = "normal"
+        self._has_clock_domain: bool = has_clock_domain
 
     def get_type(self) -> str:
         return self._type
@@ -77,36 +78,6 @@ class PeripheralDomain:
         io_ifs: Dict[str, int] = {}
         for p in self._peripherals:
             pass
-#            if_name = p.make_io_interface_name()
-#            if if_name is not None:
-#                n = 0
-#                if if_name in io_ifs:
-#                    n = io_ifs[if_name] + 1
-#                
-#                p.io_local_idx = n
-#
-#                io_ifs.update({if_name: n})
-#
-#                self._io_ifs.update({if_name: SvSignalArray(if_name, p.make_io_interface_inst_name(), n + 1)})
-#    
-#
-#    def iter_io_interfaces_declarations(self) -> Iterable[SvSignalArray]:
-#        return iter(self._io_ifs.values())
-#    
-#    def iter_io_interfaces(self) -> Iterable[Tuple[str,SvSignalArray]]:
-#        return iter(self._io_ifs.items())
-#    
-#    def make_instantiation(self) -> str:
-#        inst: str = ""
-#        for n, c in self.iter_io_interfaces():
-#            start = self._io_if_offsets[n]
-#            end = start + c.width
-#            inst += f".{c.name}({c.name}[{end}-1:{start}]),"
-#
-#        return inst
-#
-#    def set_io_if_offset(self, name: str, offset : int):
-#        self._io_if_offsets[name] = offset
 
     def peripheral_count(self) -> int:
         return len(self._peripherals)
@@ -169,6 +140,9 @@ class PeripheralDomain:
         for offset, _, p_idx in reserved:
             p = self._peripherals[p_idx]
             p.set_offset(offset)
+    
+    def has_clock_domain(self) -> bool:
+        return self._has_clock_domain
 
 class FixedDomain(PeripheralDomain):
     def __init__(self, name: str, address: int, addr_size: int):

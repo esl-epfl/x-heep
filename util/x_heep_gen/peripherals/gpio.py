@@ -1,15 +1,72 @@
-from typing import Dict
+from typing import Any, Dict
+
+import hjson
+from x_heep_gen.config_helpers import to_int
 from x_heep_gen.pads import IoInputEP, IoOutputEP, IoOutputEnEP, Pad
-from x_heep_gen.peripherals.peripheral_helper import peripheral_from_file
+from x_heep_gen.peripherals.peripheral_helper import PeripheralConfigFactory, peripheral_from_file
 from x_heep_gen.signal_routing.endpoints import InterruptEP, InterruptPlicEP
 from x_heep_gen.signal_routing.node import Node
 from x_heep_gen.signal_routing.routing_helper import RoutingHelper
 
+class GpioPeripheralConfigFactory(PeripheralConfigFactory):
+    def dict_to_kwargs(self, d: hjson.OrderedDict) -> Dict[str, Any]:
+        ret = dict()
 
-@peripheral_from_file("./hw/vendor/pulp_platform_gpio/gpio_regs.hjson")
+        gpios_used = {}
+        io_offset = 0
+        if "io_offset" in d:
+            io_offset = to_int(d.pop("io_offset"))
+            if io_offset is None:
+                raise RuntimeError("io_offset should be an integer")
+        
+        if "gpios_used" in d:
+            gu = d.pop("gpios_used")
+            if isinstance(gu, list):
+                for g in gu:
+                    g = to_int(g)
+                    if g is None:
+                        raise RuntimeError("gpio numbers should be integers")
+                    gpios_used[g] = g + io_offset
+
+            elif isinstance(gu, hjson.OrderedDict):
+                if io_offset != 0:
+                    print("Warning: io_offset is not used for dictionaries in gpio config")
+                for k, v in gu.items():
+                    k = to_int(k)
+                    v = to_int(v)
+                    if v is None or k is None:
+                        raise RuntimeError("gpio numbers should be integers")
+                    gpios_used[k] = v
+            
+            elif gu == "full":
+                gpios_used.update({i:i+io_offset for i in range(32)})
+
+            elif gu == "range":
+                start = to_int(d.pop("start", 0))
+                end = to_int(d.pop("end", 31))
+                if end is None or start is None or start < 0 or  end > 31 or start > end:
+                    raise RuntimeError("start and end should be integers, in range 0-31, start <= end")
+                gpios_used.update({i:i+io_offset for i in range(start, end+1)})
+
+            else:
+                raise RuntimeError("gpios_used should either be a dictionary, a list, range or full")
+            
+        intr = d.pop("intr", "plic")
+        if not intr in ["plic", "fast"]:
+            raise RuntimeError("intr parameter of gpio should either be fast or plic")
+        
+        intr_map = {i:intr for i in gpios_used.values()}
+
+        ret["intr_map"] = intr_map
+        ret["gpios_used"] = gpios_used
+
+        ret.update(super().dict_to_kwargs(d))
+        return ret
+
+@peripheral_from_file("./hw/vendor/pulp_platform_gpio/gpio_regs.hjson", config_factory_t=GpioPeripheralConfigFactory)
 class GpioPeripheral():
     def __init__(self, *args, **kwargs) -> None:
-        self._gpios_used: Dict[int, int] = kwargs.pop("gpios_used")
+        self._gpios_used: Dict[int, int] = kwargs.pop("gpios_used", {})
         self._intr_map: Dict[int, str] = kwargs.pop("intr_map", {i:"plic" for i in self._gpios_used.values()})
         super().__init__(*args, **kwargs)
     

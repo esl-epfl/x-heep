@@ -3,11 +3,15 @@ from pathlib import PurePath
 from typing import List, Optional, Union
 import hjson
 
-from .config_helpers import to_int
+from x_heep_gen.pads import PadManager
+from x_heep_gen.peripherals.peripheral_domain import FixedDomain, PeripheralDomain
+
+from .config_helpers import to_bool, to_int
 
 from .linker_section import LinkerSection
 from .system import BusType, Override, XHeep
-
+from .peripherals.peripheral_helper import peripheral_factories
+from .peripherals.peripherals import *
 
 def ram_list(l: "List[int]", entry):
     """
@@ -151,6 +155,66 @@ def load_linker_config(system: XHeep, config: list):
 
 
 
+def _add_peripheral_to_domain(domain: PeripheralDomain, conf: hjson.OrderedDict):
+    if not "type" in conf or type(conf["type"]) is not str:
+        raise RuntimeError("type parameter of peripheral is mandatory and should be a string")
+    
+    name = conf["type"]
+
+    if not name in peripheral_factories:
+        raise RuntimeError(f"{name} is not a known peripheral name.")
+    domain.add_peripheral(peripheral_factories[name].from_odict(conf))
+
+
+
+def load_peripheral_domains(system: XHeep, peripherals_d: hjson.OrderedDict):
+    if not isinstance(peripherals_d, hjson.OrderedDict):
+        raise RuntimeError("Peripheral domain config should be a dictionary")
+    
+    for name, domain_dict in peripherals_d.items():
+        if not isinstance(domain_dict, hjson.OrderedDict):
+            raise RuntimeError("The config of each domain should be a dictionary")
+        
+        if type(name) is not str or name == "":
+            raise RuntimeError("The name of the peripheral domains (dictionary keys) should be non empty strings")
+
+        if not "address" in domain_dict:
+            raise RuntimeError("Peripheral domains need an address specified")
+        if not "length" in domain_dict:
+            raise RuntimeError("Peripheral domains need a length")
+        
+        address = to_int(domain_dict["address"])
+        length = to_int(domain_dict["length"])
+
+        if address is None:
+            raise RuntimeError("The address of peripheral domains should be integers.")
+        if length is None:
+            raise RuntimeError("The length of peripheral domains should be an integer")
+
+        domain = None
+        t = domain_dict.setdefault("type", "normal")
+        if t == "fixed":
+            domain = FixedDomain(name, address, length)
+        elif t == "normal":
+            hcd = False
+            if "clock_domain" in domain_dict:
+                hcd = to_bool(domain_dict.pop("clock_domain"))
+                if hcd is None:
+                    raise RuntimeError("clock")
+
+            domain = PeripheralDomain(name, address, length, has_clock_domain=hcd)
+        else:
+            raise RuntimeError(f"Unkown peripheral domain type {t}, use fixed or normal(default)")
+        
+        if not "peripherals" in domain_dict:
+            print("Warning: empty peripheral domain.")
+        elif not isinstance(domain_dict["peripherals"], hjson.OrderedDict):
+            raise RuntimeError("Peripheral config list should be dictionaries")
+        else:
+            for _, p in domain_dict["peripherals"].items():
+                _add_peripheral_to_domain(domain, p)
+        system.add_domain(domain)
+
 
 def load_cfg_hjson(src: str, override: Optional[Override] = None) -> XHeep:
     """
@@ -167,6 +231,9 @@ def load_cfg_hjson(src: str, override: Optional[Override] = None) -> XHeep:
     bus_config = None
     ram_address_config = None
     linker_config = None
+    peripheral_config = None
+    pad_file = None
+    external_interrupts = None
 
     for key, value in config.items():
         if key == "ram_banks":
@@ -177,6 +244,12 @@ def load_cfg_hjson(src: str, override: Optional[Override] = None) -> XHeep:
             ram_address_config = value
         elif key == "linker_sections":
             linker_config = value
+        elif key == "peripheral_domains":
+            peripheral_config = value
+        elif key == "pad_file":
+            pad_file = value
+        elif key == "external_interrupts":
+            external_interrupts = value
 
     if mem_config is None:
         raise RuntimeError("No memory configuration found")
@@ -195,6 +268,24 @@ def load_cfg_hjson(src: str, override: Optional[Override] = None) -> XHeep:
     if linker_config is not None:
         load_linker_config(system, linker_config)
 
+    if peripheral_config is not None:
+        load_peripheral_domains(system, peripheral_config)
+    else:
+        print("Warning: No peripheral domains configured. The configuration will likely fail.")
+
+    if pad_file is not None:
+        if type(pad_file) is str:
+            with open(pad_file) as f:
+                system.add_pad_manager(PadManager.load(f.read()))
+    else:
+        print("Warning: no pad file specified")
+
+    if external_interrupts is not None:
+        external_interrupts = to_int(external_interrupts)
+        if external_interrupts is None:
+            raise RuntimeError("external_interrupts should be an integer")
+        system.set_ext_intr(external_interrupts)
+    
     system.build()
     if not system.validate():
         raise RuntimeError("Could not validate system configuration")

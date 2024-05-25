@@ -1,13 +1,14 @@
 {
+    ram_address: 0
     bus_type: "onetoM",
     ram_banks: {
         code_and_data: {
-            num: 3
-            sizes: 32
+            num: 2
+            sizes: [32]
         }
     }
 
-    linker_sections: 
+    linker_sections:
     [
         {
             name: code
@@ -95,49 +96,9 @@
             address: 0x30000000
             length: 0x00100000
             peripherals: {
-                timer: {
-                    type: rv_timer
-                }
-                spi0: {
-                    type: spi_host
-                    event_is_fast_intr: true
-                    dma: true
-                }
-                spi1: {
-                    type: spi_host
-                    dma: false
-                }
-                i2c: {
-                    type: i2c
-                }
-                i2s: {
-                    type: i2s
-                    dma: true
-                }
                 rv_plic: {
                     type: rv_plic
                 }
-                gpio0: {
-                    type: gpio
-                    gpios_used: range
-                    start: 0
-                    end: 7
-                    intr: fast
-                }
-                gpio1: {
-                    type: gpio
-                    gpios_used: range
-                    start: 8
-                    end: 31
-                    intr: plic
-                }
-                uart: {
-                    type: uart
-                }
-                pdm2pcm: {
-                    type: pdm2pcm
-                }
-
             }
         }
     }

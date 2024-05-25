@@ -1,10 +1,36 @@
-from x_heep_gen.peripherals.peripheral_helper import peripheral_from_file
+from typing import Any, Dict
+
+import hjson
+from x_heep_gen.config_helpers import to_bool
+from x_heep_gen.peripherals.peripheral_helper import PeripheralConfigFactory, peripheral_from_file
 from x_heep_gen.signal_routing.endpoints import DmaTriggerEP
 from x_heep_gen.signal_routing.node import Node
 from x_heep_gen.signal_routing.routing_helper import RoutingHelper
 
 
-@peripheral_from_file("./hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson")
+class SpiHostConfigFactory(PeripheralConfigFactory):
+    def dict_to_kwargs(self, d: hjson.OrderedDict) -> Dict[str, Any]:
+        ret = dict()
+        dma = None
+        if "dma" in d:
+            dma = to_bool(d.pop("dma"))
+            if dma is None:
+                raise RuntimeError("dma parameter should be a boolean.")
+        else:
+            raise RuntimeError("spi_host require the dma argument to be set")
+        
+        if "event_is_fast_intr" in d:
+            eifi = to_bool(d["event_is_fast_intr"])
+            if eifi is None:
+                raise RuntimeError("event_is_fast_intr should be a boolean")
+            ret["event_is_fast_intr"] = eifi
+        
+        ret["dma"] = dma
+
+        ret.update(super().dict_to_kwargs(d))
+        return ret
+
+@peripheral_from_file("./hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson", config_factory_t=SpiHostConfigFactory)
 class SpiHostPeripheral():
     def __init__(self, *args, event_is_fast_intr=False, **kwargs):
         if not "dma" in kwargs:

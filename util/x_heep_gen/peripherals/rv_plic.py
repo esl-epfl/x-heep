@@ -5,12 +5,8 @@ from x_heep_gen.signal_routing.node import Node
 from x_heep_gen.signal_routing.routing_helper import RoutingHelper
 
 
-@peripheral_from_file("./hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/data/rv_plic.hjson")
+@peripheral_from_file("./hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/data/rv_plic.hjson", name="rv_plic")
 class RvPlicPeripheral():
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.name = "rv_plic"
-
     def _rv_plic_target_name(self) -> str:
         return "plic_target"
     
