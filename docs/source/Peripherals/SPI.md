@@ -1027,11 +1027,124 @@ understanding of the process. For detailed information on the operation of the
 device, please refer to the following documentation on the _SPI Host_:
 [SPI Host: Theory of Operation](https://opentitan.org/book/hw/ip/spi_host/doc/theory_of_operation.html).
 
-Here is an example of implementing an SPI transaction using this method:
+To access the registers of the _SPI Host_ directly, the `spi_host` structure is 
+defined in `spi_host_structs.h`, along with a pointer variable for each 
+_SPI Host IP_, defined as follows:
+
+- `spi_host1_peri ((volatile spi_host *) SPI_HOST_START_ADDRESS)`
+- `spi_host2_peri ((volatile spi_host *) SPI2_START_ADDRESS)`
+- `spi_flash_peri ((volatile spi_host *) SPI_FLASH_START_ADDRESS)`
+
+Below is an example of implementing an SPI _Standard_ speed transaction with a 
+_W25Q128JW_ Flash slave device using this method:
 
 ```c
+#include "bitfield.h"
+#include "soc_ctrl_structs.h"
 #include "spi_host_regs.h"
 #include "spi_host_structs.h"
 
-to be continued...
+// MCU frequency
+#define SYS_FREQ (soc_ctrl_peri->SYSTEM_FREQUENCY_HZ)
+
+// Flash paramters
+#define FLASH_MAX_FREQ  (133*1000*1000)
+#define FLASH_CSN_TIMES 0x0F
+#define FLASH_POL       0
+#define FLASH_PHA       0
+#define FC_RD           0x03 /* Flash Read Data Command */
+
+// SPI transaction parameters
+#define SPI_TX  0x02
+#define SPI_RX  0x01
+#define SPI_STD 0x00
+
+#define LEN_B = 4096 /* Amount of bytes of data to read from flash */
+
+#define ADDRESS = 0x00800000 /* Flash address where to read */
+
+int main(int argc, char *argv[])
+{
+    // Initialize RX buffer
+    uint8_t dest_buff[LEN_B] = {0};
+
+    // Compute frequency of SPI communication based on slave and MCU frequency
+    uint16_t clk_div = 0;
+    if (FLASH_MAX_FREQ < SYS_FREQ / 2) {
+        clk_div = (SYS_FREQ / FLASH_MAX_FREQ - 2) / 2;
+        if (SYS_FREQ / (2 * clk_div + 2) > FLASH_MAX_FREQ) clk_div++;
+    }
+    // Set slave configuration options
+    spi_flash_peri->CONFIGOPTS0 = (FLASH_CSN_TIMES << SPI_HOST_CONFIGOPTS_0_CSNIDLE_0_OFFSET) |
+                                  (FLASH_CSN_TIMES << SPI_HOST_CONFIGOPTS_0_CSNLEAD_0_OFFSET) |
+                                  (FLASH_CSN_TIMES << SPI_HOST_CONFIGOPTS_0_CSNTRAIL_0_OFFSET) |
+                                  (FLASH_PHA       << SPI_HOST_CONFIGOPTS_0_CPHA_0_BIT) |
+                                  (FLASH_POL       << SPI_HOST_CONFIGOPTS_0_CPOL_0_BIT) |
+                                  (clk_div         << SPI_HOST_CONFIGOPTS_0_CLKDIV_0_OFFSET);
+
+    // Enable SPI Host device and output
+    bitfield_write(spi_flash_peri->CONTROL, BIT_MASK_1, SPI_HOST_CONTROL_SPIEN_BIT,     true);
+    bitfield_write(spi_flash_peri->CONTROL, BIT_MASK_1, SPI_HOST_CONTROL_OUTPUT_EN_BIT, true);
+
+    // Set command to send to slave
+    spi_flash_peri->TXDATA = ((bitfield_byteswap32(ADDRESS & 0x00ffffff)) | FC_RD);
+    // Set CSID line where slave is connected
+    spi_flash_peri->CSID = 0;
+    // Wait for SPI Host to be ready before setting command
+    while (!bitfield_read(spi_flash_peri->STATUS, BIT_MASK_1, SPI_HOST_STATUS_READY_BIT));
+    // Set command
+    spi_flash_peri->COMMAND = (SPI_TX   << SPI_HOST_COMMAND_DIRECTION_OFFSET) |
+                              (SPI_STD  << SPI_HOST_COMMAND_SPEED_OFFSET) |
+                              (0x01     << SPI_HOST_COMMAND_CSAAT_BIT) |
+                              (0x03     << SPI_HOST_COMMAND_LEN_OFFSET);
+    // Wait for SPI Host to be ready before setting command
+    while (!bitfield_read(spi_flash_peri->STATUS, BIT_MASK_1, SPI_HOST_STATUS_READY_BIT));
+    // Set command
+    spi_flash_peri->COMMAND = (SPI_RX   << SPI_HOST_COMMAND_DIRECTION_OFFSET) |
+                              (SPI_STD  << SPI_HOST_COMMAND_SPEED_OFFSET) |
+                              (0x00     << SPI_HOST_COMMAND_CSAAT_BIT) |
+                              (LEN_B-1  << SPI_HOST_COMMAND_LEN_OFFSET);
+
+    // Setup RX word counter and set watermark
+    uint32_t rxcnt = 0;
+    const uint8_t watermark = 48;
+    bitfield_write(spi_flash_peri->CONTROL, SPI_HOST_CONTROL_RX_WATERMARK_MASK, 
+                   SPI_HOST_CONTROL_RX_WATERMARK_OFFSET, watermark);
+
+    // While the SPI Host is active (i.e. still processing transaction)
+    while (bitfield_read(spi_flash_peri->STATUS, BIT_MASK_1, SPI_HOST_STATUS_ACTIVE_BIT))
+    {
+        // If there are still more words to be read than watermark, then wait
+        // for RX watermark to go high
+        if ((LEN_B/4) - rxcnt > watermark)
+            while (!bitfield_read(spi_flash_peri->STATUS, BIT_MASK_1, 
+                                                          SPI_HOST_STATUS_RXWM_BIT))
+        // Needed because too fast otherwise
+        asm volatile ("nop");
+        // Just read as much as possible (but no more than watermark words)
+        for (int i = 0; i < watermark; i++)
+        {
+            // If there are words in the RX FIFO read them
+            if (bitfield_read(spi_flash_peri->STATUS, SPI_HOST_STATUS_RXQD_MASK, 
+                                                      SPI_HOST_STATUS_RXQD_OFFSET))
+            {
+                dest_buff[rxcnt] = spi_flash_peri->RXDATA;
+                rxcnt++;
+            }
+        }
+    }
+    // Read the remaining words if there are any
+    while (bitfield_read(spi_flash_peri->STATUS, SPI_HOST_STATUS_RXQD_MASK, 
+                                                 SPI_HOST_STATUS_RXQD_OFFSET))
+    {
+        dest_buff[rxcnt] = spi_flash_peri->RXDATA;
+        rxcnt++;
+    }
+}
+```
+
+```{note}
+There are practically no sanity checks performed in this example in order to keep it
+as simple as possible. In a practical application there should of course be sanity
+checks wherever needed.
 ```
