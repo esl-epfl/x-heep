@@ -6,8 +6,8 @@
   target_dir: "openhwgroup_cv32e20",
 
   upstream: {
-    url: "https://github.com/openhwgroup/cve2.git",
-    rev: "1786fbfab7e0e2128fbf94495e9bd3c4896d526b",
+    url: "https://github.com/davideschiavone/cve2.git",
+    rev: "014a4ccb73e353d92ad610b165fd072c6d5926bc",
   },
 
   patch_dir: "patches/openhwgroup_cv32e20",
