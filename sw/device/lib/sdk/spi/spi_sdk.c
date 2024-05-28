@@ -465,6 +465,23 @@ spi_codes_e spi_get_rxwm(spi_t* spi, uint8_t* watermark) {
     return SPI_CODE_OK;
 }
 
+spi_codes_e spi_set_slave_freq(spi_t* spi, uint32_t freq) {
+    spi_codes_e error = spi_check_valid(spi);
+    if (error) return error;
+    // Save current freq and change to new freq to check validity
+    const uint32_t old_freq = spi->slave.freq;
+    spi->slave.freq = freq;
+    error = spi_validate_slave(spi->slave);
+    if (error) {
+        // If not valid reset the frequency and return error
+        spi->slave.freq = old_freq;
+        return error;
+    }
+    // If valid set the true frequency and return OK
+    spi->slave.freq = spi_true_slave_freq(freq);
+    return SPI_CODE_OK;
+}
+
 spi_state_e spi_get_state(spi_t* spi) 
 {
     spi_codes_e error = spi_check_valid(spi);
@@ -728,7 +745,7 @@ spi_codes_e spi_prepare_transfer(spi_t* spi)
     // Check also at hardware level if busy, we don't know if maybe there is a
     // problem somewhere
     if (spi_get_active(peripherals[spi->idx].instance) == SPI_TRISTATE_TRUE) 
-      return SPI_CODE_NOT_IDLE;
+        return SPI_CODE_NOT_IDLE;
 
     // If the last spi instance was NOT the same as the current, slave may have
     // changed, therefore set the "new" slave. Otherwise don't bother.

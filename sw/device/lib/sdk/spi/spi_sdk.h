@@ -348,6 +348,21 @@ spi_codes_e spi_set_rxwm(spi_t* spi, uint8_t watermark);
 spi_codes_e spi_get_rxwm(spi_t* spi, uint8_t* watermark);
 
 /**
+ * @brief Change the communication frequency of the slave
+ *        /!\ If the frequency is higher than the maximum frequency it will just
+ *            be capped (i.e. no error)
+ * 
+ * @param spi Pointer to spi_t structure obtained through spi_init call
+ * @param freq The new frequency the slave should be changed
+ * @return SPI_CODE_IDX_INVAL        if spi.idx not valid
+ * @return SPI_CODE_NOT_INIT         if spi.init false (indicates if spi was initialized)
+ * @return SPI_CODE_SLAVE_CSID_INVAL if slave's csid is invalid
+ * @return SPI_CODE_SLAVE_FREQ_INVAL if new frequency is too low
+ * @return SPI_CODE_OK               if success
+ */
+spi_codes_e spi_set_slave_freq(spi_t* spi, uint32_t freq);
+
+/**
  * @brief Read the SPI current state.
  * 
  * @param spi Pointer to spi_t structure obtained through spi_init call

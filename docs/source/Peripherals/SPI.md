@@ -128,6 +128,15 @@ be larger than half the MCU core frequency. The SDK will also return an invalid 
 if the desired maximum frequency provided is lower than half the MCU core frequency 
 divided by 65536.
 
+````{tip}
+It is possible to change the frequency of a particular slave after initialization if
+you wish to decrease or increase the communication speed with:
+
+```c
+spi_codes_e spi_set_slave_freq(spi_t* spi, uint32_t freq);
+```
+````
+
 
 ### Initialization
 
@@ -425,6 +434,11 @@ In this context, the function `spi_get_state` previously explained, can be used 
 check if the transaction is still ongoing (`SPI_STATE_BUSY`) or has finished. Once
 finished the state will also become `SPI_STATE_DONE` or `SPI_STATE_ERROR` depending 
 on the result of the transaction.
+```
+
+```{tip}
+It is possible to get or set the watermark values with the functions `spi_set_txwm`,
+`spi_set_rxwm`, `spi_get_txwm`, and `spi_get_rxwm`.
 ```
 
 #### Example
