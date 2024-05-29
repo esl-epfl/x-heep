@@ -19,7 +19,7 @@
 
 int main()
 {
-    PRINTF("\nStarting test...\n\n");
+    PRINTF("\n\rStarting test...\n\r\n\r");
     
     int errors;
     unsigned int cycles;
@@ -37,18 +37,18 @@ int main()
     
     errors = verify(NCHW_FORMAT);
 
-    PRINTF("im2col NCHW test executed\n");
+    PRINTF("im2col NCHW test executed\n\r");
     
-    PRINTF_TIM("Total number of cycles: [%d]\n\n", cycles);
+    PRINTF_TIM("Total number of cycles: [%d]\n\r\n\r", cycles);
 
     if (errors != 0)
     {
-        PRINTF("TEST FAILED: %d errors\n", errors);
+        PRINTF("TEST FAILED: %d errors\n\r", errors);
         return 1;
     } 
     else
     {
-        PRINTF("TEST PASSED!\n");
+        PRINTF("TEST PASSED!\n\r");
     }
 
     #if TIMING
@@ -64,17 +64,17 @@ int main()
 
     errors = verify(NHWC_FORMAT);
 
-    PRINTF("im2col NHWC test executed\n");
-    PRINTF_TIM("Total number of cycles: [%d]\n\n", cycles);
+    PRINTF("im2col NHWC test executed\n\r");
+    PRINTF_TIM("Total number of cycles: [%d]\n\r\n\r", cycles);
 
     if (errors != 0)
     {
-        PRINTF("TEST FAILED: %d errors\n", errors);
+        PRINTF("TEST FAILED: %d errors\n\r", errors);
         return 1;
     } 
     else
     {
-        PRINTF("TEST PASSED!\n");
+        PRINTF("TEST PASSED!\n\r");
     }
 
     return 0;

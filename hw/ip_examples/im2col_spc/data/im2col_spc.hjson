@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-{ name: "dma",
+{ name: "im2col_spc",
   clock_primary: "clk_i",
   bus_interfaces: [
     { protocol: "reg_iface", direction: "device" }
@@ -25,34 +25,63 @@
         { bits: "31:0", name: "PTR_OUT", desc: "Output data pointer (word aligned)" }
       ]
     },
-    { name:     "ADDR_PTR",
-      desc:     "Addess data pointer (word aligned)",
+    { name:     "IW",
+      desc:     "Image width",
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "PTR_ADDR", desc: "Address data pointer (word aligned) - used only in Address mode" }
+        { bits: "31:0", name: "SIZE", desc: "Image width" }
       ]
     },
-    { name:     "SIZE_D1",
-      desc:     "Number of bytes to copy from, defined with respect to the first dimension - Once a value is written, the copy starts",
+    { name:     "IH",
+      desc:     "Image heigth",
       swaccess: "rw",
       hwaccess: "hro",
-      hwqe:     "true", // enable `qe` latched signal of software write pulse
-      // Dimensioned to 16 bits to allow for 64kB transfers on 1D
       fields: [
-        { bits: "15:0", name: "SIZE", desc: "DMA counter D1 and start" }
+        { bits: "31:0", name: "SIZE", desc: "Image heigth" }
       ]
     },
-    { name:     "SIZE_D2",
-      desc:     "Number of bytes to copy from, defined with respect to the second dimension",
+    { name:     "FW",
+      desc:     "Filter width",
       swaccess: "rw",
       hwaccess: "hro",
-      hwqe:     "true", // enable `qe` latched signal of software write pulse
-      // Dimensioned to 16 bits to allow for 64kB transfers on 2D
       fields: [
-        { bits: "15:0", name: "SIZE", desc: "DMA counter D2" }
+        { bits: "31:0", name: "SIZE", desc: "Filter width" }
       ]
     },
+    { name:     "FH",
+      desc:     "Filter heigth",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "SIZE", desc: "Filter heigth" }
+      ]
+    },
+    { name:     "NUM_CH",
+      desc:     "Number of channels",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "SIZE", desc: "Filter heigth" }
+      ]
+    },
+    { name:     "STRIDE_D1",
+      desc:     "Strides along D1, set to 1 for no stride",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "SIZE", desc: "Stride size" }
+      ]
+    },
+    { name:     "STRIDE_D2",
+      desc:     "Strides along D2, set to 1 for no stride",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "SIZE", desc: "Stride size" }
+      ]
+    },
+    
     { name:     "STATUS",
       desc:     '''Status bits are set to one if a given event occurred''',
       swaccess: "ro",
@@ -148,40 +177,6 @@
         }
       ]
     },
-    { name:     "MODE",
-      desc:     '''Set the operational mode of the DMA''',
-      swaccess: "rw",
-      hwaccess: "hro",
-      resval:        0,
-      fields: [
-        { bits: "1:0", name: "MODE",
-          desc: "DMA operation mode",
-          enum: [
-            { value: "0", name: "LINEAR_MODE", desc: "Transfers data linearly"},
-            { value: "1", name: "CIRCULAR_MODE", desc: "Transfers data in circular mode"},
-            { value: "2", name: "ADDRESS_MODE" , desc: "Transfers data using as destination address the data from ADD_PTR"},
-          ]
-        }
-      ]
-    },
-    { name:     "DIM_CONFIG",
-      desc:     '''Set the dimensionality of the DMA''',
-      swaccess: "rw",
-      hwaccess: "hro",
-      resval:   0,
-      fields: [
-        { bits: "0", name: "DMA_DIM", desc: "DMA transfer dimensionality"}
-      ]
-    },
-    { name:     "DIM_INV",
-      desc:     '''DMA dimensionality inversion selector''',
-      swaccess: "rw",
-      hwaccess: "hro",
-      resval:   0,
-      fields: [
-        { bits: "0", name: "SEL", desc: "DMA dimensionality inversion, used to perform transposition"}
-      ]
-    },
     { name:     "PAD_TOP",
       desc:     '''Set the top padding''',
       swaccess: "rw",
@@ -222,33 +217,11 @@
         { bits: "5:0", name: "PAD", desc: "Left margin padding (1D/2D)"}
       ]
     },
-    { name:    "WINDOW_SIZE",
-      desc:    '''Will trigger a every "WINDOW_SIZE" writes
-                  Set to 0 to disable.''',
-      swaccess: "rw",
-      hwaccess: "hro",
-      resval:        0,
-      fields: [
-        { bits: "12:0", name: "WINDOW_SIZE", desc: ""}
-      ]
-    },
-    { name:    "WINDOW_COUNT",
-      desc:    '''Number of times the end of the window was reached since the beginning.
-                  Reset at start''',
-      swaccess: "ro",
-      // hwext: "true",
-      hwaccess: "hrw",
-      resval: 0,
-      fields: [
-        { bits: "7:0", name: "WINDOW_COUNT", desc: "Number of windows transferred in the transaction" }
-      ]
-    },
     { name:    "INTERRUPT_EN",
       desc:    '''Interrupt Enable Register 
                   (Only the interrupt with the lowest id will be triggered)''',
       swaccess: "rw",
       hwaccess: "hro",
-      resval:        0,
       fields: [
         { bits: "0", name: "TRANSACTION_DONE", desc: "Enables transaction done interrupt" }
         { bits: "1", name: "WINDOW_DONE", desc: "Enables window done interrupt" }
@@ -263,15 +236,6 @@
       resval:        0,
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for transaction done interrupt" }
-      ]
-    },
-    { name:    "SDC_RESERVED_REG",
-      desc:    '''Reserved register for SDC use''',
-      swaccess: "rw",
-      hwaccess: "none",
-      resval:        0,
-      fields: [
-        { bits: "0", name: "FLAG", desc: "Set by Smart DMA Controllers" }
       ]
     }
    ]

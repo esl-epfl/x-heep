@@ -21,17 +21,29 @@
 #include "rv_plic.h"
 #include "csr.h"
 
+/* 
+    Used to choose between several HW configurations:
+    - 0: Only CPU
+    - 1: Exploit standard DMA
+    - 2: Exploit 2D DMA
+*/ 
+#define HW_CONFIG 2
+
 // By default, printfs are activated for FPGA and for simulation.
 #define PRINTF_IN_FPGA  1
 #define PRINTF_IN_SIM   1
-#define DEBUG 0 // Set to 1 to enable debug prints
+#define DEBUG 1 // Set to 1 to enable debug prints
 #define TIMING 0 // Set to 1 to enable timing measurements
 
 // Format is defined in im2colGolden.h
 
 #if TARGET_SIM && PRINTF_IN_SIM
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-    #define PRINTF_DEB(...) 
+    #if DEBUG
+        #define PRINTF_DEB(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+    #else
+        #define PRINTF_DEB(...)
+    #endif
     #define PRINTF_TIM(...)   
 #elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -63,6 +75,9 @@
 
 #define OW_NHWC (FW * FH * CH * BATCH)
 #define OH_NHWC (N_PATCHES_W) * (N_PATCHES_H)
+
+// Computations for 2D DMA
+#define SRC_INC_D2 (STRIDES * IW - (FW - 1 + (STRIDES - 1) * (FW - 1)))
 
 int im2col_nchw_int32();
 int im2col_nhwc_int32();
