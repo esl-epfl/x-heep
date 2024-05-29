@@ -35,7 +35,7 @@
 
 // Type of data frome the SPI. For types different than words the SPI data is requested in separate transactions
 // word(0), half-word(1), byte(2,3)
-#define SPI_DATA_TYPE DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD
+#define SPI_DATA_TYPE DMA_DATA_TYPE_WORD
 
 // Number of elements to copy
 #define COPY_DATA_NUM 16
