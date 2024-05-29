@@ -4,12 +4,14 @@
 
 // Modified version for core-v-mini-mcu
 // original at: https://github.com/lowRISC/opentitan/blob/master/sw/
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "uart.h"
 
 #include <stddef.h>
 #include <stdint.h>
-
+#include "assert.h"
 #include "bitfield.h"
 #include "mmio.h"
 #include "error.h"
@@ -17,8 +19,12 @@
 #include "uart_regs.h"  // Generated.
 
 #define NCO_WIDTH 16
-_Static_assert((1UL << NCO_WIDTH) - 1 == UART_CTRL_NCO_MASK,
-               "Bad value for NCO_WIDTH");
+
+//#ifdef __cplusplus
+static_assert((1UL << NCO_WIDTH) - 1 == UART_CTRL_NCO_MASK, "Bad value for NCO_WIDTH");
+//#else
+static_assert((1UL << NCO_WIDTH) - 1 == UART_CTRL_NCO_MASK, "Bad value for NCO_WIDTH");
+//#endif
 
 static void uart_reset(const uart_t *uart) {
   mmio_region_write32(uart->base_addr, UART_CTRL_REG_OFFSET, 0u);
@@ -148,3 +154,7 @@ __attribute__((weak, optimize("O0"))) void handler_irq_uart(uint32_t id)
 {
  // Replace this function with a non-weak implementation
 }
+
+#ifdef __cplusplus
+}
+#endif

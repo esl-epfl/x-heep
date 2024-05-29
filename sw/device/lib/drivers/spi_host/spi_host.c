@@ -19,8 +19,8 @@ volatile spi_ch_status_t spi_get_tx_channel_status(const spi_host_t *spi) {
     spi_ch_status_t ch_status = {
         .empty = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_TXEMPTY_BIT),
         .full = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_TXFULL_BIT),
-        .stall = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_TXSTALL_BIT),
-        .wm = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_TXWM_BIT)
+        .wm = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_TXWM_BIT),
+        .stall = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_TXSTALL_BIT)
     };
     return ch_status;
 }
@@ -35,8 +35,8 @@ volatile spi_ch_status_t spi_get_rx_channel_status(const spi_host_t *spi) {
     spi_ch_status_t ch_status = {
         .empty = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_RXEMPTY_BIT),
         .full = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_RXFULL_BIT),
-        .stall = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_RXSTALL_BIT),
-        .wm = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_RXWM_BIT)
+        .wm = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_RXWM_BIT),
+        .stall = bitfield_bit32_read(status_reg, SPI_HOST_STATUS_RXSTALL_BIT)  
     };
     return ch_status;
 }

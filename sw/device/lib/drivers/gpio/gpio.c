@@ -23,7 +23,9 @@
 * @version  1
 * @brief    GPIO driver
 */
-
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
 /****************************************************************************/
 /**                                                                        **/
 /*                             MODULES USED                                 */
@@ -573,3 +575,8 @@ __attribute__((optimize("O0"))) static void gpio_handler_irq_dummy( uint32_t dum
 /*                                 EOF                                      */
 /**                                                                        **/
 /****************************************************************************/
+
+
+#ifdef __cplusplus
+}
+#endif  // __cplusplus

@@ -5,6 +5,11 @@
 #ifndef OPENTITAN_SW_DEVICE_LIB_RUNTIME_HART_H_
 #define OPENTITAN_SW_DEVICE_LIB_RUNTIME_HART_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
+
+
 #include <stddef.h>
 #include <stdnoreturn.h>
 
@@ -23,5 +28,10 @@
  * This function may behave as if it is a no-op.
  */
 inline void wait_for_interrupt(void) { asm volatile("wfi"); }
+
+
+#ifdef __cplusplus
+}
+#endif  // __cplusplus
 
 #endif  // OPENTITAN_SW_DEVICE_LIB_RUNTIME_HART_H_

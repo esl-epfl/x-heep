@@ -24,6 +24,10 @@
 * @brief  Source file of the W25Q-family flash memory driver.
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
+
 /****************************************************************************/
 /**                                                                        **/
 /*                             MODULES USED                                 */
@@ -523,7 +527,11 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     if (length % 4 != 0) {
         uint32_t last_word = 0;
         spi_read_word(&spi, &last_word);
-        memcpy(&data[length - length%4], &last_word, length%4);
+    #ifdef __cplusplus
+    memcpy(static_cast<uint8_t*>(data) + length - (length % 4), &last_word, length % 4);
+    #else
+    memcpy(&data[length - length%4], &last_word, length%4);
+    #endif
     }
 
     return FLASH_OK;
@@ -837,7 +845,12 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
     if (length % 4 != 0) {
         uint32_t last_word = 0;
         spi_read_word(&spi, &last_word);
-        memcpy(&data[length - length%4], &last_word, length%4);
+
+    #ifdef __cplusplus
+    memcpy(static_cast<uint8_t*>(data) + length - (length % 4), &last_word, length % 4);
+    #else
+    memcpy(&data[length - length%4], &last_word, length%4);
+    #endif
     }
 
     return FLASH_OK;
@@ -845,14 +858,14 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
 
 w25q_error_codes_t w25q128jw_write_quad_dma(uint32_t addr, void *data, uint32_t length) {
     // Call the wrapper with quad = 1, dma = 1
-    return page_write_wrapper(addr, data, length, 1, 1);
+    return page_write_wrapper(addr, (uint8_t *)data, length, 1, 1);
 }
 
 w25q_error_codes_t w25q128jw_erase_and_write_quad_dma(uint32_t addr, void *data, uint32_t length) {
 
     uint32_t remaining_length = length;
     uint32_t current_addr = addr;
-    uint8_t *current_data = data;
+    uint8_t *current_data = (uint8_t *)data;
 
     w25q_error_codes_t status;
 
@@ -1441,7 +1454,9 @@ static w25q_error_codes_t w25q128jw_sanity_checks(uint32_t addr, uint8_t *data, 
 
     return FLASH_OK; // Success
 }
-
+#ifdef __cplusplus
+} // extern "C"
+#endif  // __cplusplus
 /****************************************************************************/
 /**                                                                        **/
 /*                                 EOF                                      */

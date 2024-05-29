@@ -17,8 +17,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <sys/stat.h>
-#include <string.h>
+#include <string.h> 
+#include <sys/reent.h>
 #include <newlib.h>
 #include <unistd.h>
 #include <reent.h>
@@ -29,6 +34,7 @@
 #include "error.h"
 #include "x-heep.h"
 #include <stdio.h>
+#include <signal.h>
 
 #undef errno
 extern int errno;
@@ -259,9 +265,13 @@ ssize_t _write(int file, const void *ptr, size_t len)
         errno = ENOSYS;
         return -1;
     }
-
     return uart_write(&uart,(uint8_t *)ptr,len);
+}
 
+
+_ssize_t _write_r(struct _reent *ptr, int fd, const void *buf, size_t cnt)
+{
+    return _write(fd,buf,cnt);
 }
 
 extern char __heap_start[];
@@ -270,7 +280,7 @@ static char *brk = __heap_start;
 
 int _brk(void *addr)
 {
-    brk = addr;
+    brk = (char)addr;
     return 0;
 }
 
@@ -289,3 +299,17 @@ void *_sbrk(ptrdiff_t incr)
     }
     return old_brk;
 }
+
+int raise(int sig)
+{
+    return _kill(_getpid(), sig);
+}
+
+void abort(void)
+{
+    _exit(-1);
+}
+
+#ifdef __cplusplus
+}
+#endif

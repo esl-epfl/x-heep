@@ -42,10 +42,10 @@ if(NOT WIN32)
 endif()
 
 # set the project name
-project(${PROJECT} ASM C)
+project(${PROJECT} ASM C CXX)
 
 # set the required CMake standard
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 # Set MAIN file
 SET(MAINFILE "main")
@@ -118,7 +118,7 @@ SET(INCLUDE_FOLDERS "-I ${RISCV}/${COMPILER_PREFIX}elf/include \
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Preliminary list of source files inside the source path
 
-# Make a list of the source files that need to be linked
+# Make a list of the .c source files that need to be linked
 FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
 SET( c_dir_list "" )
 SET( app_found 0 )
@@ -141,6 +141,31 @@ FOREACH(file_path IN LISTS new_list)
   endif()
 
 ENDFOREACH()
+
+# Make a list for the .cpp source files that need to be linked
+FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.cpp)
+SET( cpp_dir_list "" )
+SET( app_found 0 )
+FOREACH(file_path IN LISTS new_list)
+  SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
+  if(${file_path} MATCHES "${SOURCE_PATH}device/")
+    SET(add 1)
+  elseif( ${file_path} MATCHES "${SOURCE_PATH}external/" )
+    SET(add 1)
+  elseif( ${file_path} MATCHES "${SOURCE_PATH}applications/${PROJECT}/.*${MAINFILE}\." ) # look for main.*
+    SET(app_found 1)
+  elseif( ${file_path} MATCHES "${SOURCE_PATH}applications/${PROJECT}/" ) # other sources
+    SET(add 1)
+  endif()
+
+  if( add EQUAL 1 ) # If the file path mathced one of the criterion, add it to the list
+    SET(cpp_dir_list ${cpp_dir_list} "${file_path}\
+    ")
+    string(REPLACE ";" "" cpp_dir_list ${cpp_dir_list})
+  endif()
+
+ENDFOREACH()
+
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # If the app was not found, look into the root project
@@ -168,8 +193,32 @@ if( app_found EQUAL 0 )
     ENDFOREACH()
 endif()
 
-LIST(REMOVE_DUPLICATES c_dir_list)
+#do the same for .cpp files
+if( app_found EQUAL 0 )
+  SET(SOURCE_PATH ${ROOT_PROJECT})
 
+  # Make a list of the source files that need to be linked
+  FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.cpp)
+  SET(cpp_dir_list "")
+  FOREACH(file_path IN LISTS new_list)
+    SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
+    if(${file_path} MATCHES "${ROOT_PROJECT}device/")
+      SET(add 1)
+    elseif( ( ${file_path} MATCHES "${ROOT_PROJECT}/applications/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES "${ROOT_PROJECT}applications/${PROJECT}/.*${MAINFILE}\." ) )
+      SET(add 1)
+    endif()
+
+    if( add EQUAL 1 ) # If the file path mathced one of the criterion, add it to the list
+      SET(cpp_dir_list ${cpp_dir_list} "${file_path}\
+      ")
+      string(REPLACE ";" "" cpp_dir_list ${cpp_dir_list})
+    endif()
+
+    ENDFOREACH()
+endif()
+
+LIST(REMOVE_DUPLICATES c_dir_list)
+LIST(REMOVE_DUPLICATES cpp_dir_list)
 #######################################################################
 #      DETERMINE IF APP IS EXTERNAL
 #######################################################################
@@ -266,7 +315,8 @@ message( "${Magenta}Target: ${TARGET}${ColourReset}")
 SET(LINKED_FILES    "${LIB_CRT_P} \
                      ${LIB_VCTR_P} \
                      ${LIB_CRT_EXT_P} \
-                     ${c_dir_list}")
+                     ${c_dir_list} \
+                     ${cpp_dir_list}")
 
 message( "${Magenta}Linked files: ${LINKED_FILES}${ColourReset}")
 
@@ -325,6 +375,7 @@ else()
   ")
 endif()
 set(CMAKE_C_FLAGS ${COMPILER_LINKER_FLAGS})
+set(CMAKE_CXX_FLAGS ${COMPILER_LINKER_FLAGS})
 
 if (${COMPILER} MATCHES "clang")
      set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=riscv32 \
@@ -346,8 +397,20 @@ endif()
 #######################################################################
 #      SET TARGETS
 #######################################################################
-
+if (${COMPILER} MATCHES "gcc")
+  set(SOURCES ${SOURCE_PATH}applications/${PROJECT}/${MAINFILE}.c)
 set(SOURCES ${SOURCE_PATH}applications/${PROJECT}/${MAINFILE}.c)
+  if(NOT EXISTS ${SOURCES})
+    # If main.c does not exist, set the source file to main.cpp
+    set(SOURCES ${SOURCE_PATH}applications/${PROJECT}/${MAINFILE}.cpp)
+    message("${Red}cpp SOURCES set")
+  endif()
+elseif(${COMPILER} MATCHES "clang")
+  set(SOURCES ${SOURCE_PATH}applications/${PROJECT}/${MAINFILE}.c)
+elseif(${COMPILER} MATCHES "g\\+\\+.*$")
+  set(SOURCES ${SOURCE_PATH}applications/${PROJECT}/${MAINFILE}.cpp)
+endif()
+
 
 # add the executable
 add_executable(${MAINFILE}.elf ${SOURCES})
@@ -377,6 +440,7 @@ SET(CMAKE_EXE_LINKER_FLAGS  "-T ${LINKER_SCRIPT}  \
                              -Wl,-Map=${MAINFILE}.map \
                              -L ${RISCV}/${COMPILER_PREFIX}elf/lib \
                              -lc -lm -lgcc -flto \
+                             -fpermissive -fno-rtti -fno-exceptions -fno-threadsafe-statics  -fno-unwind-tables  \
                             -ffunction-sections -fdata-sections -specs=nano.specs")
 message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/${COMPILER_PREFIX}elf/lib${ColourReset}")
 
@@ -432,12 +496,31 @@ add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
         COMMENT "Invoking: Hexdump")
 
 # Pre-processing command to create disassembly for each source file
-foreach (SRC_MODULE ${MAINFILE} )
+if ((${COMPILER} MATCHES "gcc") OR (${COMPILER} MATCHES "clang"))
+  if(EXISTS ${SOURCE_PATH}applications/${PROJECT}/${MAINFILE}.c)
+   foreach (SRC_MODULE ${MAINFILE} )
+    add_custom_command(TARGET ${MAINFILE}.elf
+                       PRE_LINK
+                       COMMAND ${CMAKE_OBJDUMP} -S ${ROOT_PROJECT}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${SRC_MODULE}.c.obj > ${SRC_MODULE}.s
+                       COMMENT "Invoking: GCC C Disassemble ( CMakeFiles/${MAINFILE}.dir/${SRC_MODULE}.c.obj)")   
+   endforeach()
+  else() #main.cpp targets
+  foreach (SRC_MODULE ${MAINFILE} )
+    add_custom_command(TARGET ${MAINFILE}.elf
+                       PRE_LINK
+                      COMMAND ${CMAKE_OBJDUMP} -S ${ROOT_PROJECT}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${SRC_MODULE}.cpp.obj > ${SRC_MODULE}.s
+                      COMMENT "Invoking:  GCC CPP Disassemble ( CMakeFiles/${MAINFILE}.dir/${SRC_MODULE}.cpp.obj)")
+    endforeach()
+  endif()
+elseif(${COMPILER} MATCHES "g\\+\\+.*$")
+  foreach (SRC_MODULE ${MAINFILE} )
   add_custom_command(TARGET ${MAINFILE}.elf
                      PRE_LINK
-                     COMMAND ${CMAKE_OBJDUMP} -S ${ROOT_PROJECT}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${SRC_MODULE}.c.obj > ${SRC_MODULE}.s
-                     COMMENT "Invoking: Disassemble ( CMakeFiles/${MAINFILE}.dir/${SRC_MODULE}.c.obj)")
-endforeach()
+                    COMMAND ${CMAKE_OBJDUMP} -S ${ROOT_PROJECT}build/CMakeFiles/${MAINFILE}.elf.dir/${OBJ_PATH}applications/${PROJECT}/${SRC_MODULE}.cpp.obj > ${SRC_MODULE}.s
+                    COMMENT "Invoking: G++ Disassemble ( CMakeFiles/${MAINFILE}.dir/${SRC_MODULE}.cpp.obj)")
+  endforeach()
+endif()
+
 
 # Adding gdb command - TBD
 #add_custom_target(gdb DEPENDS ${MAINFILE}.elf)

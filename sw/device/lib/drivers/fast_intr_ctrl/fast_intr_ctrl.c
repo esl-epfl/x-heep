@@ -29,6 +29,9 @@
 /*                             MODULES USED                                 */
 /**                                                                        **/
 /****************************************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "fast_intr_ctrl.h"
 #include "core_v_mini_mcu.h"
@@ -418,6 +421,9 @@ void handler_irq_fast_gpio_7(void)
     // call the weak fic handler
     fic_irq_gpio_7();
 }
+#ifdef __cplusplus
+}
+#endif
 
 /****************************************************************************/
 /**                                                                        **/

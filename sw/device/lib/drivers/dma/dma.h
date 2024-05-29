@@ -38,6 +38,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "dma_structs.h"    // Generated
 #include "dma_regs.h"       // Generated
 
@@ -67,10 +71,6 @@
 #define DMA_SPI_FLASH_RX_SLOT     0x04
 #define DMA_SPI_FLASH_TX_SLOT     0x08
 #define DMA_I2S_RX_SLOT           0x10
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * Returns the size in bytes of a certain datatype, as a sizeof(type) would.
