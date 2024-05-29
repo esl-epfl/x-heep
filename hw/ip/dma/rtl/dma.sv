@@ -43,6 +43,7 @@ module dma #(
   dma_reg2hw_t                       reg2hw;
   dma_hw2reg_t                       hw2reg;
 
+  logic        [               31:0] src_ptr_reg;
   logic        [               31:0] read_ptr_reg;
   logic        [               31:0] addr_ptr_reg;
   logic        [               31:0] read_ptr_valid_reg;
@@ -107,12 +108,11 @@ module dma #(
   /* Flags */
   logic                              pad_fifo_on;  // Padding flag for FIFO
   logic                              pad_cnt_on;  // Padding flag for counters
-  /* verilator lint_off UNUSED */
+
   logic                              sign_extend;  // Do the sign extension
-  /* verilator lint_on UNUSED */
+  logic                              read_ptr_update_sel;  // Select the read pointer update source
 
   /* Padding FSM conditions */
-
   logic                              idle_to_left_ex;
   logic                              idle_to_top_ex;
   logic                              idle_to_right_ex;
@@ -135,7 +135,6 @@ module dma #(
   logic                              bottom_ex_to_idle;
 
   /* FIFO signals */
-
   logic                              fifo_flush;
   logic                              fifo_full;
   logic                              fifo_empty;
@@ -246,8 +245,10 @@ module dma #(
   assign dma_conf_1d = reg2hw.dim_config.q == 0;
   assign dma_conf_2d = reg2hw.dim_config.q == 1;
 
-  /* DMA 2D increment */
+  /* DMA read pointer source selection */
+  assign read_ptr_update_sel = reg2hw.dim_inv.q;
 
+  /* DMA 2D increment */
   assign dma_src_d2_inc = reg2hw.src_ptr_inc_d2.q;
   assign dma_src_d1_inc = reg2hw.src_ptr_inc_d1.q;
   assign dma_dst_d2_inc = reg2hw.dst_ptr_inc_d2.q;
@@ -393,14 +394,40 @@ module dma #(
           /* Increase the pointer by the amount written in ptr_inc */
           read_ptr_reg <= read_ptr_reg + {26'h0, dma_src_d1_inc};
         end else if (dma_conf_2d == 1'b1 && pad_cnt_on == 1'b0) begin
-          if (dma_src_cnt_d1 == {14'h0, dma_cnt_du} && |dma_src_cnt_d2 == 1'b1) begin
-            /* In this case, the d1 is almost finished, so we need to increment the pointer by sizeof(d1)*data_unit */
-
-            read_ptr_reg <= read_ptr_reg + {9'h0, dma_src_d2_inc};
+          if (read_ptr_update_sel == 1'b0) begin
+            if (dma_src_cnt_d1 == {14'h0, dma_cnt_du} && |dma_src_cnt_d2 == 1'b1) begin
+              /* In this case, the d1 is almost finished, so we need to increment the pointer by sizeof(d1)*data_unit */
+              read_ptr_reg <= read_ptr_reg + {9'h0, dma_src_d2_inc};
+            end else begin
+              read_ptr_reg <= read_ptr_reg + {26'h0, dma_src_d1_inc}; /* Increment of the d1 increment (stride) */
+            end
           end else begin
-            read_ptr_reg <= read_ptr_reg + {26'h0, dma_src_d1_inc}; /* Increment of the d1 increment (stride) */
+            if (dma_src_cnt_d1 == {14'h0, dma_cnt_du} && |dma_src_cnt_d2 == 1'b1) begin
+              /* In this case, the d1 is almost finished, so we need to increment the pointer by sizeof(d2)*data_unit */
+              read_ptr_reg <= src_ptr_reg;
+            end else begin
+              read_ptr_reg <= read_ptr_reg + {9'h0, dma_src_d2_inc}; /* Increment of the d1 increment (stride) */
+            end
           end
         end
+      end
+    end
+  end
+
+  /* 
+   * Store input data pointer in source_ptr_reg and increment it every time read request is granted, 
+   * if the d1 has finished reading and the read pointer update is set to 1'b1 
+   */
+
+  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_src_ptr_reg
+    if (~rst_ni) begin
+      src_ptr_reg <= '0;
+    end else begin
+      if (dma_start == 1'b1) begin
+        src_ptr_reg <= reg2hw.src_ptr.q + {26'h0, dma_src_d1_inc};
+      end else if (data_in_gnt == 1'b1 && dma_conf_2d == 1'b1 && pad_cnt_on == 1'b0 && read_ptr_update_sel == 1'b1 &&
+                    (dma_src_cnt_d1 == {14'h0, dma_cnt_du} && |dma_src_cnt_d2 == 1'b1)) begin
+        src_ptr_reg <= src_ptr_reg + {26'h0, dma_src_d1_inc};
       end
     end
   end

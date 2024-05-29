@@ -125,6 +125,10 @@ extern "C" {
 #define DMA_DIM_CONFIG_REG_OFFSET 0x3c
 #define DMA_DIM_CONFIG_DMA_DIM_BIT 0
 
+// DMA dimensionality inversion selector
+#define DMA_DIM_INV_REG_OFFSET 0x38
+#define DMA_DIM_INV_SEL_BIT 0
+
 // Set the top padding
 #define DMA_PAD_TOP_REG_OFFSET 0x40
 #define DMA_PAD_TOP_PAD_MASK 0x3f

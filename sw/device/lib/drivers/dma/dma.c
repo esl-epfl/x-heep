@@ -302,6 +302,7 @@ void dma_init( dma *peri )
     /* Clear all values in the DMA registers. */
     dma_cb.peri->SRC_PTR        = 0;
     dma_cb.peri->DST_PTR        = 0;
+    dma_cb.peri->ADDR_PTR       = 0;
     dma_cb.peri->SIZE_D1        = 0;
     dma_cb.peri->SIZE_D2        = 0;
     dma_cb.peri->SRC_PTR_INC_D1 = 0;
@@ -320,6 +321,7 @@ void dma_init( dma *peri )
     dma_cb.peri->PAD_BOTTOM     = 0;
     dma_cb.peri->PAD_LEFT       = 0;
     dma_cb.peri->PAD_RIGHT      = 0;
+    dma_cb.peri->DIM_INV        = 0;
 }
 
 dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
@@ -770,7 +772,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
         write_register(  
                         0x1,
                         DMA_INTERRUPT_EN_REG_OFFSET,
-                        0x1,
+                        0xffff,
                         DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT
                     );
 
@@ -780,7 +782,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
             write_register(  
                         0x1,
                         DMA_INTERRUPT_EN_REG_OFFSET,
-                        0x1,
+                        0xffff,
                         DMA_INTERRUPT_EN_WINDOW_DONE_BIT
                     );
         }
@@ -845,6 +847,15 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
     }
 
     /*
+     * SET THE TRANSPOSITION MODE
+     */
+
+    write_register(dma_cb.trans->dim_inv,
+                   DMA_DIM_INV_REG_OFFSET,
+                   0x1 << DMA_DIM_INV_SEL_BIT,
+                   DMA_DIM_INV_SEL_BIT);
+
+    /*
      * SET THE INCREMENTS
      */
 
@@ -858,7 +869,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * as the values read from the second port are instead used.
      * In case of a 2D DMA transaction, the second dimension increment is set.
      */
-
+    
     write_register(  get_increment_b_1D( dma_cb.trans->src ),
                     DMA_SRC_PTR_INC_D1_REG_OFFSET,
                     DMA_SRC_PTR_INC_D1_INC_MASK,
@@ -906,7 +917,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      */
     write_register(  dma_cb.trans->dim,
                     DMA_DIM_CONFIG_REG_OFFSET,
-                    0x1,
+                    0x1 << DMA_DIM_CONFIG_DMA_DIM_BIT,
                     DMA_DIM_CONFIG_DMA_DIM_BIT );
 
     /*

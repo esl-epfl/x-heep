@@ -63,6 +63,8 @@ package dma_reg_pkg;
 
   typedef struct packed {logic q;} dma_reg2hw_dim_config_reg_t;
 
+  typedef struct packed {logic q;} dma_reg2hw_dim_inv_reg_t;
+
   typedef struct packed {
     logic [5:0] q;
     logic       qe;
@@ -183,6 +185,7 @@ package dma_reg_pkg;
     DMA_SIGN_EXT,
     DMA_MODE,
     DMA_DIM_CONFIG,
+    DMA_DIM_INV,
     DMA_PAD_TOP,
     DMA_PAD_BOTTOM,
     DMA_PAD_RIGHT,

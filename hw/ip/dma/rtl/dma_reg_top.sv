@@ -120,6 +120,9 @@ module dma_reg_top #(
   logic dim_config_qs;
   logic dim_config_wd;
   logic dim_config_we;
+  logic dim_inv_qs;
+  logic dim_inv_wd;
+  logic dim_inv_we;
   logic [5:0] pad_top_qs;
   logic [5:0] pad_top_wd;
   logic pad_top_we;
@@ -605,6 +608,33 @@ module dma_reg_top #(
 
       // to register interface (read)
       .qs(dim_config_qs)
+  );
+
+
+  // R[dim_inv]: V(False)
+
+  prim_subreg #(
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
+  ) u_dim_inv (
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
+
+      // from register interface
+      .we(dim_inv_we),
+      .wd(dim_inv_wd),
+
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
+
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.dim_inv.q),
+
+      // to register interface (read)
+      .qs(dim_inv_qs)
   );
 
 

@@ -24,8 +24,9 @@
 /* 
  *  Select which test to run:
  *  0: Extract a NxM matrix, perform optional padding and copy it to a AxB matrix, using HALs
- *  1: Extract a 1xN matrix (array), perform optional padding and copy it to an array, using HALs
- *  2: Extract a NxM matrix, perform optional padding and copy it to a AxB matrix, using direct register operations
+ *  1: Extract a NxM matrix and copy its transposed version to AxB matrix, using HALs
+ *  2: Extract a 1xN matrix (array), perform optional padding and copy it to an array, using HALs
+ *  3: Extract a NxM matrix, perform optional padding and copy it to a AxB matrix, using direct register operations
  */
 
 #define TEST_ID 0
@@ -44,15 +45,15 @@
 
 /* Set strides of the input ad output matrix */
 #define STRIDE_IN_D1 1
-#define STRIDE_IN_D2 2
-#define STRIDE_OUT_D1 3
-#define STRIDE_OUT_D2 2
+#define STRIDE_IN_D2 1
+#define STRIDE_OUT_D1 1
+#define STRIDE_OUT_D2 1
 
 /* Set the padding parameters */
-#define TOP_PAD 2
+#define TOP_PAD 1
 #define BOTTOM_PAD 1
-#define LEFT_PAD 3
-#define RIGHT_PAD 2
+#define LEFT_PAD 1
+#define RIGHT_PAD 1
 
 /* Macros for dimensions computation */
 #define OUT_D1_PAD ( SIZE_EXTR_D1 + LEFT_PAD + RIGHT_PAD )
@@ -62,15 +63,19 @@
 #define OUT_DIM_1D ( OUT_D1_PAD_STRIDE  )
 #define OUT_DIM_2D ( OUT_D1_PAD_STRIDE * OUT_D2_PAD_STRIDE )
 
-
 /* Mask for the direct register operations example */
 #define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ))
+
+/* Transposition example def */
+#define TRANSPOSITION_EN 1
 
 /* Pointer increments computation */
 #define SRC_INC_D1 STRIDE_IN_D1
 #define DST_INC_D1 STRIDE_OUT_D1
 #define SRC_INC_D2 (STRIDE_IN_D2 * SIZE_IN_D1 - (SIZE_EXTR_D1 - 1 + (STRIDE_IN_D1 - 1) * (SIZE_EXTR_D1 - 1)))
 #define DST_INC_D2 ((STRIDE_OUT_D2 - 1) * OUT_DIM_1D + 1)
+#define SRC_INC_TRSP_D1 SRC_INC_D1
+#define SRC_INC_TRSP_D2 (STRIDE_IN_D2 * SIZE_IN_D1)
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
@@ -103,13 +108,15 @@ uint32_t src_stride_d1;
 uint32_t src_stride_d2;
 uint32_t i_in;
 uint32_t j_in;
+uint32_t i_in_last;
+uint32_t j_in_last;
 uint16_t left_pad_cnt = 0;
 uint16_t top_pad_cnt = 0;
 uint8_t stride_1d_cnt = 0;
 uint8_t stride_2d_cnt = 0;
 char passed = 1;
 
-#if TEST_ID == 2
+#if TEST_ID == 3
 
 /* Function used to simplify register operations */
 static inline volatile void write_register( uint32_t  p_val,
@@ -313,6 +320,186 @@ int main()
 
     #elif TEST_ID == 1
 
+    /* Testing transposition and copy of a NxM matrix using HALs */
+ 
+    #if EN_PERF
+
+    /* Reset the counter to evaluate the performance of the DMA */
+    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    CSR_WRITE(CSR_REG_MCYCLE, 0);
+    #endif
+
+    dma_target_t tgt_src = {
+                                .ptr            = &test_data[0],
+                                .inc_du         = SRC_INC_TRSP_D1,
+                                .inc_d2_du      = SRC_INC_TRSP_D2,
+                                .size_du        = SIZE_EXTR_D1,
+                                .size_d2_du     = SIZE_EXTR_D2,
+                                .trig           = DMA_TRIG_MEMORY,
+                                .type           = DMA_DATA_TYPE,
+                            };
+
+    dma_target_t tgt_dst = {
+                                .ptr            = copied_data_2D_DMA,
+                                .inc_du         = DST_INC_D1,
+                                .inc_d2_du      = DST_INC_D2,
+                                .trig           = DMA_TRIG_MEMORY,
+                            };
+
+    dma_trans_t trans =     {
+                                .src            = &tgt_src,
+                                .dst            = &tgt_dst,
+                                .mode           = DMA_TRANS_MODE_SINGLE,
+                                .dim            = DMA_DIM_CONF_2D,
+                                .pad_top_du     = TOP_PAD,
+                                .pad_bottom_du  = BOTTOM_PAD,
+                                .pad_left_du    = LEFT_PAD,
+                                .pad_right_du   = RIGHT_PAD,
+                                .dim_inv        = TRANSPOSITION_EN,
+                                .win_du         = 0,
+                                .end            = DMA_TRANS_END_INTR
+                            };
+    
+    dma_init(NULL);
+    
+    #if EN_PERF
+
+    res_valid = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
+    res_load = dma_load_transaction(&trans);
+    res_launch = dma_launch(&trans);
+    
+    #else
+
+    res_valid = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
+    PRINTF("tran: %u \t%s\n\r", res_valid, res_valid == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res_load = dma_load_transaction(&trans);
+    PRINTF("load: %u \t%s\n\r", res_load, res_load == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res_launch = dma_launch(&trans);
+    PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    #endif
+
+    while( ! dma_is_ready()) {
+        #if !EN_PERF
+        /* Disable_interrupts */
+        /* This does not prevent waking up the core as this is controlled by the MIP register */
+        
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+        if ( dma_is_ready() == 0 ) {
+            wait_for_interrupt();
+            /* From here the core wakes up even if we did not jump to the ISR */
+        }
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+        #endif
+    }
+
+    #if EN_PERF    
+
+    /* Read the cycles count after the DMA run */
+    CSR_READ(CSR_REG_MCYCLE, &cycles_dma);
+
+    /* Reset the performance counter to evaluate the CPU performance */
+    CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    CSR_WRITE(CSR_REG_MCYCLE, 0);
+    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    #endif
+
+    #if EN_VERIF
+
+    /* Run the same computation on the CPU */
+    j_in_last = -1;
+    for (int i=0; i < OUT_D2_PAD_STRIDE; i++)
+    {
+        stride_1d_cnt = 0;
+        i_in = 0;
+        top_pad_cnt = 0;
+
+        if (j_in < TOP_PAD && j_in != j_in_last && stride_1d_cnt == 0 && stride_2d_cnt == 0)
+        {
+            left_pad_cnt++;
+        }
+
+        j_in_last = j_in;
+
+        for (int j=0; j < OUT_D1_PAD_STRIDE; j++)
+        {   
+            dst_ptr = i * OUT_D1_PAD_STRIDE + j;
+            src_ptr = (i_in - top_pad_cnt ) * STRIDE_IN_D2 * SIZE_IN_D1 + (j_in - left_pad_cnt) * STRIDE_IN_D1;
+            if (i_in < LEFT_PAD || i_in >= SIZE_EXTR_D1 + LEFT_PAD || j_in < TOP_PAD || j_in >= SIZE_EXTR_D2 + TOP_PAD ||
+                stride_1d_cnt != 0 || stride_2d_cnt != 0)
+            {
+                copied_data_2D_CPU[dst_ptr] = 0;
+            }
+            else
+            {
+                copied_data_2D_CPU[dst_ptr] = test_data[src_ptr];
+            }
+                        
+            if (i_in < LEFT_PAD && stride_2d_cnt == 0)
+            {
+                top_pad_cnt++;
+            }           
+            
+            if (stride_1d_cnt == STRIDE_OUT_D1 - 1)
+            {
+                stride_1d_cnt = 0;
+                i_in++;
+            }
+            else
+            {
+                stride_1d_cnt++;
+            }
+
+        }
+
+        if (stride_2d_cnt == STRIDE_OUT_D2 - 1)
+        {
+            stride_2d_cnt = 0;
+            j_in++;
+        }
+        else
+        {
+            stride_2d_cnt++;
+        }
+        
+        
+
+    }
+    #endif
+
+    #if EN_PERF
+
+    /* Read the cycles count after the CPU run */
+    CSR_READ(CSR_REG_MCYCLE, &cycles_cpu);
+    PRINTF("DMA cycles: %d\n\r", cycles_dma);
+    PRINTF("CPU cycles: %d \n\r", cycles_cpu);
+    PRINTF("\n\r");
+
+    #endif
+
+    #if EN_VERIF
+    
+    /* Verify that the DMA and the CPU outputs are the same */
+    for (int i = 0; i < OUT_D2_PAD_STRIDE; i++) {
+        for (int j = 0; j < OUT_D1_PAD_STRIDE; j++) {
+            if (copied_data_2D_DMA[i * OUT_D1_PAD_STRIDE + j] != copied_data_2D_CPU[i * OUT_D1_PAD_STRIDE + j]) {
+                passed = 0;
+            }
+        }
+    }
+
+    if (passed) {
+        PRINTF("Success\n\r");
+        return EXIT_SUCCESS;
+    } 
+    else 
+    {
+        PRINTF("Fail\n\r");
+        return EXIT_FAILURE;
+    }
+    #endif
+
+    #elif TEST_ID == 2
+
     /* Testing copy and padding of a 1xN matrix (an array) */
 
     #if EN_PERF
@@ -454,7 +641,7 @@ int main()
     }
     #endif
 
-    #elif TEST_ID == 2
+    #elif TEST_ID == 3
 
     /* Testing copy and padding of a NxM matrix using direct register operations.
      * This strategy allows for maximum performance but doesn't perform any checks on the data integrity.
@@ -473,7 +660,7 @@ int main()
     /* Enable the DMA interrupt logic */
     write_register( 0x1,
                     DMA_INTERRUPT_EN_REG_OFFSET,
-                    0x1,
+                    0xffff,
                     DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT,
                     peri );
 
@@ -490,7 +677,7 @@ int main()
     /* Dimensionality configuration */
     write_register( 0x1,
                     DMA_DIM_CONFIG_REG_OFFSET,
-                    0x1,
+                    0xffff,
                     DMA_DIM_CONFIG_DMA_DIM_BIT,
                     peri );
 
