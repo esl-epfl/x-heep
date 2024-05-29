@@ -477,8 +477,8 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
     p_trans->size_b = p_trans->src->size_du * dataSize_b;
     p_trans->size_d2_b = p_trans->src->size_d2_du * dataSize_b;
 
-    /* By default, the source defines the data type.*/
-    p_trans->type = p_trans->src->type;
+    p_trans->src_type = p_trans->src->type;
+    p_trans->dst_type = p_trans->dst->type;
 
     /*
      * By default, the transaction increment is set to 0 and, if required,
@@ -503,12 +503,12 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
 
         if( p_trans->src->trig == DMA_TRIG_MEMORY )
         {
-            misalignment = get_misalignment_b( p_trans->src->ptr, p_trans->type );
+            misalignment = get_misalignment_b( p_trans->src->ptr, p_trans->src_type );
         }
 
         if( p_trans->dst->trig == DMA_TRIG_MEMORY )
         {
-            dstMisalignment = get_misalignment_b( p_trans->dst->ptr, p_trans->type );
+            dstMisalignment = get_misalignment_b( p_trans->dst->ptr, p_trans->dst_type );
         }
 
         p_trans->flags  |= ( misalignment ? DMA_CONFIG_SRC : DMA_CONFIG_OK );
@@ -595,14 +595,14 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
              * a more granular data type is used according to the detected
              * misalignment in order to overcome it.
              */
-            p_trans->type += misalignment;
+            p_trans->dst_type += misalignment;
             /*
              * Source and destination increment should now be of the size
              * of the data.
              * As increments are given in bytes, in both cases should be the
              * size of a data unit.
              */
-            p_trans->inc_b = DMA_DATA_TYPE_2_SIZE( p_trans->type );
+            p_trans->inc_b = DMA_DATA_TYPE_2_SIZE( p_trans->dst_type );
             /* The copy size does not change, as it is already stored in bytes.*/
         }
 
@@ -655,7 +655,7 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
             uint8_t isOutb = is_region_outbound_1D(
                                         p_trans->dst->ptr,
                                         p_trans->dst->env->end,
-                                        p_trans->type,
+                                        p_trans->dst_type,
                                         p_trans->src->size_du,
                                         p_trans->dst->inc_du );
             if( isOutb )
@@ -798,28 +798,28 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
     if (p_trans->dim == DMA_DIM_CONF_1D && (p_trans->pad_left_du != 0 || p_trans->pad_right_du != 0))
     {
         p_trans->dim = DMA_DIM_CONF_2D;
-        p_trans->size_d2_b = DMA_DATA_TYPE_2_SIZE( p_trans->type );
-        p_trans->src->inc_d2_du = DMA_DATA_TYPE_2_SIZE( p_trans->type );
+        p_trans->size_d2_b = DMA_DATA_TYPE_2_SIZE( p_trans->dst_type );
+        p_trans->src->inc_d2_du = DMA_DATA_TYPE_2_SIZE( p_trans->dst_type );
     }
 
     if (dma_cb.trans->pad_top_du != 0 || dma_cb.trans->pad_bottom_du != 0 || dma_cb.trans->pad_left_du != 0 || dma_cb.trans->pad_right_du != 0)
     {
-        write_register( dma_cb.trans->pad_top_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+        write_register( dma_cb.trans->pad_top_du * DMA_DATA_TYPE_2_SIZE( p_trans->dst_type ),
                         DMA_PAD_TOP_REG_OFFSET,
                         DMA_PAD_TOP_PAD_MASK,
                         DMA_PAD_TOP_PAD_OFFSET);
 
-        write_register( dma_cb.trans->pad_bottom_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+        write_register( dma_cb.trans->pad_bottom_du * DMA_DATA_TYPE_2_SIZE( p_trans->dst_type ),
                         DMA_PAD_BOTTOM_REG_OFFSET,
                         DMA_PAD_BOTTOM_PAD_MASK,
                         DMA_PAD_BOTTOM_PAD_OFFSET);
 
-        write_register( dma_cb.trans->pad_left_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+        write_register( dma_cb.trans->pad_left_du * DMA_DATA_TYPE_2_SIZE( p_trans->dst_type ),
                         DMA_PAD_LEFT_REG_OFFSET,
                         DMA_PAD_LEFT_PAD_MASK,
                         DMA_PAD_LEFT_PAD_OFFSET);
 
-        write_register( dma_cb.trans->pad_right_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+        write_register( dma_cb.trans->pad_right_du * DMA_DATA_TYPE_2_SIZE( p_trans->dst_type ),
                         DMA_PAD_RIGHT_REG_OFFSET,
                         DMA_PAD_RIGHT_PAD_MASK,
                         DMA_PAD_RIGHT_PAD_OFFSET);
@@ -1085,7 +1085,7 @@ dma_config_flags_t validate_target( dma_target_t *p_tgt )
     /* The size can be 0 or 1 if the target is involved in a 1D padded transaction */
     DMA_STATIC_ASSERT( p_tgt->size_d2_du >= 0 && p_tgt->size_du  < 65536  , "Size d2 not valid");
     /* The data type must be a valid type */
-    DMA_STATIC_ASSERT( p_tgt->type     < DMA_DATA_TYPE__size , "Type not valid");
+    DMA_STATIC_ASSERT( p_tgt->type     < DMA_DATA_TYPE__size , "Source type not valid");
     /* The trigger must be among the valid trigger values. */
     DMA_STATIC_ASSERT( p_tgt->trig     < DMA_TRIG__size , "Trigger not valid");
     
@@ -1357,7 +1357,7 @@ static inline uint32_t get_increment_b_1D( dma_target_t * p_tgt )
         */
         if( inc_b == 0 )
         {
-            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( dma_cb.trans->type );
+            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( dma_cb.trans->dst_type );
             inc_b = ( p_tgt->inc_du * dataSize_b );
         }
     }
@@ -1382,7 +1382,7 @@ static inline uint32_t get_increment_b_2D( dma_target_t * p_tgt )
         */
         if( inc_b == 0 )
         {
-            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( dma_cb.trans->type );
+            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( dma_cb.trans->dst_type );
             inc_b = ( p_tgt->inc_d2_du * dataSize_b );
         }
     }

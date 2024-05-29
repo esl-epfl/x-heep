@@ -122,9 +122,9 @@ typedef enum
 {
     DMA_DATA_TYPE_WORD      = DMA_SRC_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD,/*!<
     Word      = 4 bytes = 32 bits */
-    DMA_DATA_TYPE_HALF_WORD = DMA_SRC_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD,/*!<
+    DMA_DATA_TYPE_HALF_WORD = DMA_SRC_DATA_TYPE_DATA_TYPE_VALUE_DMA_16BIT_WORD,/*!<
     Half Word = 2 bytes = 16 bits */
-    DMA_DATA_TYPE_BYTE      = DMA_SRC_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD,/*!<
+    DMA_DATA_TYPE_BYTE      = DMA_SRC_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD,/*!<
      Byte      = 1 byte  = 8 bits  */
     /* DMA_DATA_TYPE_BYTE_alt = DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD_2,
      * BYTE and BYTE_alt are interchangeable in hw, but we advice against
@@ -336,8 +336,11 @@ typedef struct
     uint8_t             pad_bottom_du; /*!< Padding at the bottom of the 2D transfer. */
     uint8_t             pad_left_du; /*!< Padding at the left of the 2D transfer. */
     uint8_t             pad_right_du; /*!< Padding at the right of the 2D transfer. */
-    dma_data_type_t     type;   /*!< The data type to use. One is chosen among
+    dma_data_type_t     src_type;   /*!< Source data type to use. One is chosen among
     the targets. */
+    dma_data_type_t     dst_type;   /*!< Destination data type to use. One is chosen among
+    the targets. */
+    uint8_t             sign_ext;   /*!< Whether to sign extend the data. */
     dma_trans_mode_t    mode;   /*!< The copy mode to use. */
     uint32_t            win_du;  /*!< The amount of data units every which the
     WINDOW_DONE flag is raised and its corresponding interrupt triggered. It
