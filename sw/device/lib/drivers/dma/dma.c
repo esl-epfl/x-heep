@@ -473,9 +473,9 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
 
     /* The copy size of the source (in data units -of the source-) is
     transformed to bytes, to be used as default size.*/
-    uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE(p_trans->src->type);
-    p_trans->size_b = p_trans->src->size_du * dataSize_b;
-    p_trans->size_d2_b = p_trans->src->size_d2_du * dataSize_b;
+    uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE(p_trans->dst->type);
+    p_trans->size_b = p_trans->dst->size_du * dataSize_b;
+    p_trans->size_d2_b = p_trans->dst->size_d2_du * dataSize_b;
 
     p_trans->src_type = p_trans->src->type;
     p_trans->dst_type = p_trans->dst->type;
@@ -864,6 +864,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
                     DMA_SRC_PTR_INC_D1_INC_MASK,
                     DMA_SRC_PTR_INC_D1_INC_OFFSET );
 
+
     if(dma_cb.trans->dim == DMA_DIM_CONF_2D)
     {
         write_register(  get_increment_b_2D( dma_cb.trans->src ),
@@ -909,6 +910,12 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
                     DMA_DIM_CONFIG_DMA_DIM_BIT );
 
     /*
+     * SET THE SIGN EXTENSION BIT
+     */
+    dma_cb.peri->SIGN_EXT = p_trans->sign_ext;
+
+
+    /*
      * SET TRIGGER SLOTS AND DATA TYPE
      */
     write_register(  dma_cb.trans->src->trig,
@@ -921,10 +928,15 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
                     DMA_SLOT_TX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_TX_TRIGGER_SLOT_OFFSET );
 
-    // write_register(  dma_cb.trans->type,
-    //                 DMA_DST_DATA_TYPE_REG_OFFSET,
-    //                 DMA_DST_DATA_TYPE_DATA_TYPE_MASK,
-    //                 DMA_SELECTION_OFFSET_START );
+    write_register(  dma_cb.trans->dst_type,
+                    DMA_DST_DATA_TYPE_REG_OFFSET,
+                    DMA_DST_DATA_TYPE_DATA_TYPE_MASK,
+                    DMA_SELECTION_OFFSET_START );
+    
+    write_register(  dma_cb.trans->src_type,
+                    DMA_SRC_DATA_TYPE_REG_OFFSET,
+                    DMA_SRC_DATA_TYPE_DATA_TYPE_MASK,
+                    DMA_SELECTION_OFFSET_START );
 
     return DMA_CONFIG_OK;
 }
@@ -1349,8 +1361,7 @@ static inline uint32_t get_increment_b_1D( dma_target_t * p_tgt )
          * If the transaction increment has been overriden (due to
          * misalignments), then that value is used (it's always set to 1).
          */
-        inc_b = dma_cb.trans->inc_b;
-
+        inc_b = p_tgt->inc_du * DMA_DATA_TYPE_2_SIZE(p_tgt->type);
         /*
         * Otherwise, the target-specific increment is used transformed into
         * bytes).
