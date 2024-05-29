@@ -923,7 +923,10 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
     /*
      * SET THE SIGN EXTENSION BIT
      */
-    dma_cb.peri->SIGN_EXT = p_trans->sign_ext;
+    write_register( dma_cb.trans->sign_ext,
+                    DMA_SIGN_EXT_REG_OFFSET,
+                    0x1 << DMA_SIGN_EXT_SIGNED_BIT,
+                    DMA_SIGN_EXT_SIGNED_BIT );
 
 
     /*
@@ -1372,14 +1375,14 @@ static inline uint32_t get_increment_b_1D( dma_target_t * p_tgt )
          * If the transaction increment has been overriden (due to
          * misalignments), then that value is used (it's always set to 1).
          */
-        inc_b = p_tgt->inc_du * DMA_DATA_TYPE_2_SIZE(p_tgt->type);
+        inc_b = dma_cb.trans->inc_b;
         /*
         * Otherwise, the target-specific increment is used transformed into
         * bytes).
         */
         if( inc_b == 0 )
         {
-            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( dma_cb.trans->dst_type );
+            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( p_tgt->type );
             inc_b = ( p_tgt->inc_du * dataSize_b );
         }
     }
@@ -1404,7 +1407,7 @@ static inline uint32_t get_increment_b_2D( dma_target_t * p_tgt )
         */
         if( inc_b == 0 )
         {
-            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( dma_cb.trans->dst_type );
+            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( p_tgt->type );
             inc_b = ( p_tgt->inc_d2_du * dataSize_b );
         }
     }
