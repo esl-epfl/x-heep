@@ -46,11 +46,11 @@
 /**                                                                        **/
 /****************************************************************************/
 
-#define DATA_MODE_CPOL_OFFS 1
 #define DATA_MODE_CPHA_OFFS 0
+#define DATA_MODE_CPOL_OFFS 1
 
 #define SYS_FREQ      (soc_ctrl_peri->SYSTEM_FREQUENCY_HZ)
-#define SPI_MIN_FREQ  SYS_FREQ / (2 * 65535 + 2)            // 65535 = 2^16 - 1
+#define SPI_MIN_FREQ  (SYS_FREQ / (2 * 65535 + 2))           // 65535 = 2^16 - 1
 
 // Maximum length of data (in bytes) for a command segment (currently 2^24)
 #define MAX_COMMAND_LENGTH SPI_HOST_COMMAND_LEN_MASK
@@ -63,7 +63,7 @@
 #define DIR_INDEX    0
 #define SPD_INDEX    2
 
-#define TRIGGERING_EVENTS SPI_EVENT_IDLE | SPI_EVENT_READY | SPI_EVENT_TXWM | SPI_EVENT_RXWM
+#define TRIGGERING_EVENTS (SPI_EVENT_IDLE | SPI_EVENT_READY | SPI_EVENT_TXWM | SPI_EVENT_RXWM)
 
 // The standard watermark for all transactions (seems reasonable)
 #define TXWM_DEFAULT (SPI_HOST_PARAM_TX_DEPTH / 4)  // Arbirarily chosen
@@ -72,8 +72,8 @@
 #define NULL_CALLBACKS (spi_callbacks_t) {NULL, NULL, NULL, NULL}
 
 // SPI peripheral busy checks
-#define SPI_BUSY(peri)     peri.state == SPI_STATE_BUSY
-#define SPI_NOT_BUSY(peri) peri.state != SPI_STATE_BUSY
+#define SPI_BUSY(peri)     (peri.state == SPI_STATE_BUSY)
+#define SPI_NOT_BUSY(peri) (peri.state != SPI_STATE_BUSY)
 
 // Check command length validity
 #define SPI_INVALID_LEN(len) (len == 0 || len > MAX_COMMAND_LENGTH)
@@ -149,7 +149,6 @@ typedef struct {
  *  peripherals variable in this file holds an instance of this structure for every
  *  SPI peripheral defined in the HAL. This is in order to store relevant information
  *  of the peripheral current status, transaction info, and peripheral instance.
- * 
  */
 typedef struct {
     spi_host_t*       instance;  // Instance of peripheral defined in HAL
@@ -257,20 +256,27 @@ void spi_launch(spi_peripheral_t* peri, spi_t* spi, spi_transaction_t txn,
 
 /**
  * @brief Issues a command segment and increments counter (post inc.).
- *        Determines value of CSAAT bit based on if it is last segment of
- *        transaction or not.
+ *  Determines value of CSAAT bit based on if it is last segment of transaction 
+ *  or not.
  * 
  * @param peri Pointer to the relevant spi_peripheral_t instance
  */
 void spi_issue_next_seg(spi_peripheral_t* peri);
 
 /**
- * @brief Resets the variables of the spi_peripheral_t to their initial values
- *  (except the callbacks which are always reset at the beginning of a transaction)
+ * @brief Resets the entire peripheral, hardware included
  * 
  * @param peri Pointer to the relevant spi_peripheral_t instance
  */
 void spi_reset_peri(spi_peripheral_t* peri);
+
+/**
+ * @brief Resets the transaction-related variables of the spi_peripheral_t to 
+ *  their initial values
+ * 
+ * @param peri Pointer to the relevant spi_peripheral_t instance
+ */
+void spi_reset_transaction(spi_peripheral_t* peri);
 
 /**
  * @brief Function that gets called on each Event Interrupt. Handles all the logic
@@ -309,9 +315,9 @@ static uint32_t global_id = 0;
 
 /**
  * @brief Static variable representing each SPI peripheral (FLASH, HOST, HOST2)
- *        We can have infinitely many spi_t variables but all reference one of
- *        these spi_peripheral_t. Each variable here holds all the relevant
- *        information about the current transaction the peripheral is executing.
+ *  We can have infinitely many spi_t variables but all reference one of these 
+ *  spi_peripheral_t. Each variable here holds all the relevant information about 
+ *  the current transaction the peripheral is executing.
  */
 static volatile spi_peripheral_t peripherals[] = {
     (spi_peripheral_t) {
@@ -411,9 +417,7 @@ spi_codes_e spi_reset(spi_t* spi)
 {
     spi_codes_e error = spi_check_valid(spi);
     if (error) return error;
-    // Reset the SPI peripheral (at hardware level)
-    spi_sw_reset(peripherals[spi->idx].instance);
-    // Reset static peripheral variables
+    // Reset entire peripheral
     spi_reset_peri(&peripherals[spi->idx]);
 
     return SPI_CODE_OK;
@@ -878,6 +882,29 @@ void spi_issue_next_seg(spi_peripheral_t* peri)
 
 void spi_reset_peri(spi_peripheral_t* peri) 
 {
+    // Reset the SPI peripheral (at hardware level)
+    spi_sw_reset(peri->instance);
+    // Reset static peripheral variables
+    spi_reset_transaction(peri);
+    // Enable SPI peripheral. We do not check return value since we know here that
+    // it will never return an error.
+    spi_set_enable(peri->instance, true);
+    spi_output_enable(peri->instance, true);
+    // Enable all error interrupts so that the SPI peripheral doesn't get stuck if
+    // there is an error. And we don't check return value since we know it's error free.
+    spi_set_errors_enabled(peri->instance, SPI_ERROR_IRQALL, true);
+    spi_enable_error_intr(peri->instance, true);
+    // Set the watermarks for the specific peripheral.
+    spi_set_tx_watermark(peri->instance, peri->txwm);
+    spi_set_rx_watermark(peri->instance, peri->rxwm);
+    // Just reset the state.
+    peri->state = SPI_STATE_INIT;
+    // Force the next transaction to set the slave at hardware level
+    peri->last_id = 0;
+}
+
+void spi_reset_transaction(spi_peripheral_t* peri) 
+{
     // Reset all variables relative to the transaction of the static peripheral
     // instance
     peri->scnt      = 0;
@@ -917,7 +944,7 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events)
                                         peri->txn.rxbuffer, peri->rxcnt);
             }
             // Reset all transaction related variables
-            spi_reset_peri(peri);
+            spi_reset_transaction(peri);
             return;
         }
     }
@@ -950,18 +977,15 @@ void spi_error_handler(spi_peripheral_t* peri, spi_error_e error)
     // Disable event interrupts
     spi_set_events_enabled(peri->instance, SPI_EVENT_ALL, false);
     spi_enable_evt_intr   (peri->instance, false);
-    // Set the state to error
-    peri->state = SPI_STATE_ERROR;
-    // If there is a callback defined call it
+    // If there is a callback defined invoke it
     if (peri->callbacks.error_cb != NULL) 
     {
         peri->callbacks.error_cb(peri->txn.txbuffer, peri->txcnt, 
                                  peri->txn.rxbuffer, peri->rxcnt);
     }
-    // Reset all transaction related variables
     spi_reset_peri(peri);
-    // We have to acknowledge the errors to the hardware
-    spi_acknowledge_errors(peri->instance);
+    // Set the state to error
+    peri->state = SPI_STATE_ERROR;
 }
 
 /****************************************************************************/

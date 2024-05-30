@@ -147,6 +147,7 @@ int main(int argc, char *argv[]) {
     if (!flash_read_non_blocking(&spi, SECT_ADDRESS, sect_data, SECT_LEN)) 
         return EXIT_FAILURE;
 
+    // No need to erase if on simulation
     #ifdef USE_SPI_FLASH
     // Erase that sector
     if (!flash_erase_sector(&spi, START_ADDRESS)) return EXIT_FAILURE;
@@ -220,6 +221,11 @@ bool flash_read_non_blocking(spi_t* spi, uint32_t addr, uint32_t* dest_buff, uin
         .txwm_cb  = NULL
     };
 
+    // Save previous watermark to reset it after transaction completes
+    uint8_t watermark;
+    spi_get_rxwm(spi, &watermark);
+    spi_set_rxwm(spi, 12); // Arbitrarily chosen watermark
+
     // Start transaction
     spi_codes_e error = spi_execute_nb(spi, segments, 2, &read_byte_cmd, dest_buff, callbacks);
     if (error) {
@@ -228,10 +234,14 @@ bool flash_read_non_blocking(spi_t* spi, uint32_t addr, uint32_t* dest_buff, uin
     }
 
     while(spi_get_state(spi) == SPI_STATE_BUSY) counter++;
-    if (spi_get_state(spi) == SPI_STATE_BUSY) {
+    // Check if the communication ended because of an error
+    if (spi_get_state(spi) == SPI_STATE_ERROR) {
         PRINTF("FAILED! Hardware ERROR !\n");
         return false;
     }
+
+    // Reset the watermark to its previous value
+    spi_set_rxwm(spi, watermark);
 
     PRINTF("Counter reached %4i. => Non Blocking\n\n", counter);
 
