@@ -102,6 +102,8 @@ int main(int argc, char *argv[])
                                 .src        = &tgt_src,
                                 .dst        = &tgt_dst,
                                 .src_addr   = &tgt_addr,
+                                .src_type   = DMA_DATA_TYPE_WORD,
+                                .dst_type   = DMA_DATA_TYPE_WORD,
                                 .mode       = DMA_TRANS_MODE_SINGLE,
                                 .win_du     = 0,
                                 .end        = DMA_TRANS_END_INTR,
@@ -285,6 +287,7 @@ int main(int argc, char *argv[])
 
     tgt_src.ptr     = test_data_large;
     tgt_src.size_du = TEST_DATA_LARGE;
+    tgt_dst.size_du = TEST_DATA_LARGE;
 
     // trans.end = DMA_TRANS_END_INTR_WAIT; // This option makes no sense, because the launch is blocking the program until the trans finishes.
     trans.end = DMA_TRANS_END_INTR;
