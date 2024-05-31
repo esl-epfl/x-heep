@@ -2,8 +2,21 @@
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 // Derived from Occamy: https://github.com/pulp-platform/snitch/blob/master/hw/system/occamy/src/occamy_cfg.hjson
-// Peripherals configuration for core-v-mini-mcu.
-
+//
+// Pads configuration for core-v-mini-mcu. Read by mcu_gen.py.
+// 
+// The pads contains the list of all the pads available in the design.
+// Each pad is defined by its name and can have the following attributes:
+//    num: <number> (mandatory) - the number of pads of this type
+//    type: <input|output|inout> (mandatory) - the type of the pad
+//    num_offset: <number> (optional) - the offset to the first pad of this type (default 0)
+//    mapping: <top|right|bottom|left> (optional) - the mapping of the pad in the design. Useful for ASICs (default top)
+//    active: <low|high> (optional) - the active level of the pad (default high)
+//    driven_manually: <True|False> (optional) - the pad is driven manually (default False)
+//    mux: <dict> (optional) - the muxing options for the pad
+//    skip_declaration: <True|False> (optional) - skip the declaration of the pad in the top level (default False)
+//    keep_internal: <True|False> (optional) - keep the pad internal to the design (default False)
+// 
 // Add this field at the same level of pads (not inside) if you want to define PADs attributes
 //    attributes: {
 //        bits: 7:0
