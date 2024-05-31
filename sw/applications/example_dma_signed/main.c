@@ -1,6 +1,14 @@
-// Copyright EPFL contributors.
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
-// SPDX-License-Identifier: Apache-2.0
+/*
+ *  Copyright EPFL and PoliTO contributors.
+ *  Licensed under the Apache License, Version 2.0, see LICENSE for details.
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Author: Luigi Giuffrida <luigi.giuffrida@polito.it>
+ *  
+ *  Info: Example application of the DMA peripheral for signed data types
+ *
+ * 
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
