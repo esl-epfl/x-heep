@@ -48,6 +48,9 @@
 #define SPI_EVENTS_INDEX    0
 #define SPI_ERRORS_INDEX    0
 
+#define SPI_REG_ADDR_DELTA  0x04
+#define SPI_CONFIGOPTS_ADDR(spi, csid) ((&SPI_HW(spi)->CONFIGOPTS0) + csid*SPI_REG_ADDR_DELTA)
+
 /****************************************************************************/
 /**                                                                        **/
 /*                        TYPEDEFS AND STRUCTURES                           */
@@ -102,14 +105,14 @@ spi_return_flags_e spi_acknowledge_event(spi_host_t* spi);
 
 spi_return_flags_e spi_get_events_enabled(spi_host_t* spi, spi_event_e* events) 
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     *events = bitfield_read(SPI_HW(spi)->EVENT_ENABLE, SPI_EVENT_ALL, SPI_EVENTS_INDEX);
     return SPI_FLAG_OK;
 }
 
 spi_return_flags_e spi_set_events_enabled(spi_host_t* spi, spi_event_e events, bool enable) 
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     if (events > SPI_EVENT_ALL) return SPI_FLAG_EVENT_INVALID;
     // Since spi_event_e is mapped to EVENT_ENABLE: | = set, & ~ = clear
     if (enable) SPI_HW(spi)->EVENT_ENABLE |= events;
@@ -120,14 +123,14 @@ spi_return_flags_e spi_set_events_enabled(spi_host_t* spi, spi_event_e events, b
 
 spi_return_flags_e spi_get_errors_enabled(spi_host_t* spi, spi_error_e* errors) 
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     *errors = bitfield_read(SPI_HW(spi)->ERROR_ENABLE, SPI_ERROR_IRQALL, SPI_ERRORS_INDEX);
     return SPI_FLAG_OK;
 }
 
 spi_return_flags_e spi_set_errors_enabled(spi_host_t* spi, spi_error_e errors, bool enable)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     if (errors > SPI_ERROR_IRQALL) return SPI_FLAG_ERROR_INVALID;
     // Since spi_error_e is mapped to ERROR_ENABLE: | = set, & ~ = clear
     if (enable) SPI_HW(spi)->ERROR_ENABLE |= errors;
@@ -138,14 +141,14 @@ spi_return_flags_e spi_set_errors_enabled(spi_host_t* spi, spi_error_e errors, b
 
 spi_return_flags_e spi_get_errors(spi_host_t* spi, spi_error_e* errors)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     *errors = bitfield_read(SPI_HW(spi)->ERROR_STATUS, SPI_ERROR_ALL, SPI_ERRORS_INDEX);
     return SPI_FLAG_OK;
 }
 
 spi_return_flags_e spi_acknowledge_errors(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     // Write a one to each bit in ERROR_STATUS to clear these bits
     SPI_HW(spi)->ERROR_STATUS = bitfield_write(SPI_HW(spi)->ERROR_STATUS, 
                                                SPI_ERROR_ALL, SPI_ERRORS_INDEX, 
@@ -158,7 +161,7 @@ spi_return_flags_e spi_acknowledge_errors(spi_host_t* spi)
 
 spi_return_flags_e spi_enable_error_intr_test(spi_host_t* spi, bool enable)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     SPI_HW(spi)->INTR_TEST = bitfield_write(SPI_HW(spi)->INTR_TEST, BIT_MASK_1, 
                                             SPI_HOST_INTR_TEST_ERROR_BIT, enable);
     return SPI_FLAG_OK;
@@ -166,7 +169,7 @@ spi_return_flags_e spi_enable_error_intr_test(spi_host_t* spi, bool enable)
 
 spi_return_flags_e spi_enable_evt_intr_test(spi_host_t* spi, bool enable)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     SPI_HW(spi)->INTR_TEST = bitfield_write(SPI_HW(spi)->INTR_TEST, BIT_MASK_1, 
                                             SPI_HOST_INTR_TEST_SPI_EVENT_BIT, enable);
     return SPI_FLAG_OK;
@@ -174,7 +177,7 @@ spi_return_flags_e spi_enable_evt_intr_test(spi_host_t* spi, bool enable)
 
 spi_return_flags_e spi_alert_test_fatal_fault_trigger(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     SPI_HW(spi)->ALERT_TEST = bitfield_write(SPI_HW(spi)->ALERT_TEST, BIT_MASK_1, 
                                              SPI_HOST_ALERT_TEST_FATAL_FAULT_BIT, true);
     return SPI_FLAG_OK;
@@ -183,26 +186,26 @@ spi_return_flags_e spi_alert_test_fatal_fault_trigger(spi_host_t* spi)
 volatile uint8_t spi_get_tx_queue_depth(spi_host_t* spi)
 {
     // Returning an impossible value (tx fifo is 76 words long...)
-    if (spi == NULL) return UINT8_MAX;
+    SPI_NULL_CHECK(spi, UINT8_MAX)
     return spi_get_status(spi)->txqd;
 }
 
 volatile uint8_t spi_get_rx_queue_depth(spi_host_t* spi)
 {
     // Returning an impossible value (rx fifo is 64 words long...)
-    if (spi == NULL) return UINT8_MAX;
+    SPI_NULL_CHECK(spi, UINT8_MAX)
     return spi_get_status(spi)->rxqd;
 }
 
 volatile uint32_t spi_get_csid(spi_host_t* spi)
 {
-    if (spi == NULL) return UINT32_MAX;
+    SPI_NULL_CHECK(spi, UINT32_MAX)
     return SPI_HW(spi)->CSID;
 }
 
 spi_return_flags_e spi_sw_reset(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     // Assert spi reset bit
     SPI_HW(spi)->CONTROL = bitfield_write(SPI_HW(spi)->CONTROL, BIT_MASK_1, 
                                           SPI_HOST_CONTROL_SW_RST_BIT, true);
@@ -218,7 +221,7 @@ spi_return_flags_e spi_sw_reset(spi_host_t* spi)
 
 spi_return_flags_e spi_set_enable(spi_host_t* spi, bool enable)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     SPI_HW(spi)->CONTROL = bitfield_write(SPI_HW(spi)->CONTROL, BIT_MASK_1, 
                                           SPI_HOST_CONTROL_SPIEN_BIT, enable);
     return SPI_FLAG_OK;
@@ -226,11 +229,9 @@ spi_return_flags_e spi_set_enable(spi_host_t* spi, bool enable)
 
 spi_return_flags_e spi_set_tx_watermark(spi_host_t* spi, uint8_t watermark)
 {
-    spi_return_flags_e flags = SPI_FLAG_OK;
-    if (spi == NULL) flags |= SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     // Check that watermark is not bigger than the fifo size (makes no sense otherwise)
-    if (watermark > SPI_HOST_PARAM_TX_DEPTH) flags |= SPI_FLAG_WATERMARK_EXCEEDS;
-    if (flags) return flags;
+    if (watermark > SPI_HOST_PARAM_TX_DEPTH) return SPI_FLAG_WATERMARK_EXCEEDS;
 
     SPI_HW(spi)->CONTROL = bitfield_write(SPI_HW(spi)->CONTROL, 
                                           SPI_HOST_CONTROL_TX_WATERMARK_MASK, 
@@ -241,11 +242,9 @@ spi_return_flags_e spi_set_tx_watermark(spi_host_t* spi, uint8_t watermark)
 
 spi_return_flags_e spi_set_rx_watermark(spi_host_t* spi, uint8_t watermark)
 {
-    spi_return_flags_e flags = SPI_FLAG_OK;
-    if (spi == NULL) flags |= SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     // Check that watermark is not bigger than the fifo size (makes no sense otherwise)
-    if (watermark > SPI_HOST_PARAM_RX_DEPTH) flags |= SPI_FLAG_WATERMARK_EXCEEDS;
-    if (flags) return flags;
+    if (watermark > SPI_HOST_PARAM_RX_DEPTH) return SPI_FLAG_WATERMARK_EXCEEDS;
 
     SPI_HW(spi)->CONTROL = bitfield_write(SPI_HW(spi)->CONTROL, 
                                           SPI_HOST_CONTROL_RX_WATERMARK_MASK, 
@@ -256,48 +255,28 @@ spi_return_flags_e spi_set_rx_watermark(spi_host_t* spi, uint8_t watermark)
 
 spi_return_flags_e spi_set_configopts(spi_host_t* spi, uint32_t csid, const uint32_t conf_reg)
 {
-    // TODO: check if this could be generalized to more than 2 CSIDs... because right 
-    // now not very consistent with spi_set_csid which uses SPI_HOST_PARAM_NUM_C_S
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
-    switch (csid)
-    {
-    case 0:
-        SPI_HW(spi)->CONFIGOPTS0 = conf_reg;
-        break;
-    case 1:
-        SPI_HW(spi)->CONFIGOPTS1 = conf_reg;
-        break;
-    default:
-        return SPI_FLAG_CSID_INVALID;
-    }
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
+    if (SPI_CSID_INVALID(csid)) return SPI_FLAG_CSID_INVALID;
+    // Since the configopts registers always follow one after another, offset
+    // by csid times address delta
+    *SPI_CONFIGOPTS_ADDR(spi, csid) = conf_reg;
     return SPI_FLAG_OK;
 }
 
 spi_return_flags_e spi_get_configopts(spi_host_t* spi, uint32_t csid, uint32_t* conf_reg)
 {
-    // TODO: check if this could be generalized to more than 2 CSIDs... because right 
-    // now not very consistent with spi_set_csid which uses SPI_HOST_PARAM_NUM_C_S
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
-    switch (csid)
-    {
-    case 0:
-        *conf_reg = SPI_HW(spi)->CONFIGOPTS0;
-        break;
-    case 1:
-        *conf_reg = SPI_HW(spi)->CONFIGOPTS1;
-        break;
-    default:
-        return SPI_FLAG_CSID_INVALID;
-    }
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
+    if (SPI_CSID_INVALID(csid)) return SPI_FLAG_CSID_INVALID;
+    // Since the configopts registers always follow one after another, offset
+    // by csid times address delta
+    *conf_reg = *SPI_CONFIGOPTS_ADDR(spi, csid);
     return SPI_FLAG_OK;
 }
 
 spi_return_flags_e spi_set_csid(spi_host_t* spi, uint32_t csid)
 {
-    spi_return_flags_e flags = SPI_FLAG_OK;
-    if (spi == NULL)            flags |= SPI_FLAG_NULL_PTR;
-    if (SPI_CSID_INVALID(csid)) flags |= SPI_FLAG_CSID_INVALID;
-    if (flags) return flags;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
+    if (SPI_CSID_INVALID(csid)) return SPI_FLAG_CSID_INVALID;
 
     SPI_HW(spi)->CSID = csid;
     return SPI_FLAG_OK;
@@ -305,7 +284,7 @@ spi_return_flags_e spi_set_csid(spi_host_t* spi, uint32_t csid)
 
 spi_return_flags_e spi_set_command(spi_host_t* spi, const uint32_t cmd_reg)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
 
     spi_return_flags_e flags = SPI_FLAG_OK;
     spi_speed_e speed   = bitfield_read(cmd_reg, SPI_HOST_COMMAND_SPEED_MASK, 
@@ -325,7 +304,7 @@ spi_return_flags_e spi_set_command(spi_host_t* spi, const uint32_t cmd_reg)
 
 spi_return_flags_e spi_write_word(spi_host_t* spi, uint32_t wdata)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     // Check we're not overflowing
     if (spi_get_tx_queue_depth(spi) >= SPI_HOST_PARAM_TX_DEPTH) 
         return SPI_FLAG_TX_QUEUE_FULL;
@@ -335,7 +314,7 @@ spi_return_flags_e spi_write_word(spi_host_t* spi, uint32_t wdata)
 
 spi_return_flags_e spi_write_byte(spi_host_t* spi, uint8_t bdata)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     // Check we're not overflowing
     if (spi_get_tx_queue_depth(spi) >= SPI_HOST_PARAM_TX_DEPTH) 
         return SPI_FLAG_TX_QUEUE_FULL;
@@ -345,7 +324,7 @@ spi_return_flags_e spi_write_byte(spi_host_t* spi, uint8_t bdata)
 
 spi_return_flags_e spi_read_word(spi_host_t* spi, uint32_t* dst)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     // Check we're not underflowing
     if (spi_get_rx_queue_depth(spi) == 0) return SPI_FLAG_RX_QUEUE_EMPTY;
     *dst = SPI_HW(spi)->RXDATA;
@@ -354,7 +333,7 @@ spi_return_flags_e spi_read_word(spi_host_t* spi, uint32_t* dst)
 
 spi_return_flags_e spi_enable_evt_intr(spi_host_t* spi, bool enable)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     SPI_HW(spi)->INTR_ENABLE = bitfield_write(SPI_HW(spi)->INTR_ENABLE, BIT_MASK_1, 
                                               SPI_HOST_INTR_ENABLE_SPI_EVENT_BIT, 
                                               enable);
@@ -363,7 +342,7 @@ spi_return_flags_e spi_enable_evt_intr(spi_host_t* spi, bool enable)
 
 spi_return_flags_e spi_enable_error_intr(spi_host_t* spi, bool enable)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     SPI_HW(spi)->INTR_ENABLE = bitfield_write(SPI_HW(spi)->INTR_ENABLE, BIT_MASK_1, 
                                               SPI_HOST_INTR_STATE_ERROR_BIT, 
                                               enable);
@@ -372,7 +351,7 @@ spi_return_flags_e spi_enable_error_intr(spi_host_t* spi, bool enable)
 
 spi_return_flags_e spi_output_enable(spi_host_t* spi, bool enable)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     SPI_HW(spi)->CONTROL = bitfield_write(SPI_HW(spi)->CONTROL, BIT_MASK_1, 
                                           SPI_HOST_CONTROL_OUTPUT_EN_BIT, enable);
     return SPI_FLAG_OK;

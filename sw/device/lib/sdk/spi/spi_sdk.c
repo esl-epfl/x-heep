@@ -49,6 +49,9 @@
 #define DATA_MODE_CPHA_OFFS 0
 #define DATA_MODE_CPOL_OFFS 1
 
+#define SPI_MAX_IDX 2
+#define SPI_IDX_INVALID(idx) idx > SPI_MAX_IDX
+
 #define SYS_FREQ      (soc_ctrl_peri->SYSTEM_FREQUENCY_HZ)
 #define SPI_MIN_FREQ  (SYS_FREQ / (2 * 65535 + 2))           // 65535 = 2^16 - 1
 

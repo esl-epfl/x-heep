@@ -45,10 +45,6 @@
 /**                                                                        **/
 /****************************************************************************/
 
-// TODO: Shall this be in .h or .c ?
-#define SPI_MAX_IDX 2
-#define SPI_IDX_INVALID(idx) idx > SPI_MAX_IDX
-
 // Chosen arbitrarily
 #define SPI_CSN_TIMES_DEFAULT 15
 

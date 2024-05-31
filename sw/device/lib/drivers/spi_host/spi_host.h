@@ -60,6 +60,11 @@
 
 #define SPI_HW(spi_inst) ((volatile spi_host *) spi_inst)
 
+// Sanity check to return retval when spi is NULL.
+// For development purposes. If 100% sure spi will NEVER be NULL, comment out
+// the macro expansion to speed up SPI HAL.
+#define SPI_NULL_CHECK(spi,retval) if (spi == NULL) return retval;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -585,7 +590,7 @@ bool spi_validate_cmd(uint8_t direction, uint8_t speed)
 static inline __attribute__((always_inline)) 
 spi_tristate_e spi_get_evt_intr_state(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_TRISTATE_ERROR;
+    SPI_NULL_CHECK(spi, SPI_TRISTATE_ERROR)
 
     if (bitfield_read(SPI_HW(spi)->INTR_STATE, BIT_MASK_1, 
                       SPI_HOST_INTR_STATE_SPI_EVENT_BIT))
@@ -605,7 +610,7 @@ spi_tristate_e spi_get_evt_intr_state(spi_host_t* spi)
 static inline __attribute__((always_inline)) 
 spi_tristate_e spi_get_error_intr_state(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_TRISTATE_ERROR;
+    SPI_NULL_CHECK(spi, SPI_TRISTATE_ERROR)
 
     if (bitfield_read(SPI_HW(spi)->INTR_STATE, BIT_MASK_1,
                       SPI_HOST_INTR_STATE_ERROR_BIT))
@@ -624,7 +629,7 @@ spi_tristate_e spi_get_error_intr_state(spi_host_t* spi)
 static inline __attribute__((always_inline))
 spi_tristate_e spi_get_evt_intr_enable(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_TRISTATE_ERROR;
+    SPI_NULL_CHECK(spi, SPI_TRISTATE_ERROR)
 
     if (bitfield_read(SPI_HW(spi)->INTR_ENABLE, BIT_MASK_1,
                       SPI_HOST_INTR_ENABLE_SPI_EVENT_BIT))
@@ -643,7 +648,7 @@ spi_tristate_e spi_get_evt_intr_enable(spi_host_t* spi)
 static inline __attribute__((always_inline))
 spi_tristate_e spi_get_error_intr_enable(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_TRISTATE_ERROR;
+    SPI_NULL_CHECK(spi, SPI_TRISTATE_ERROR)
 
     if (bitfield_read(SPI_HW(spi)->INTR_ENABLE, BIT_MASK_1,
                       SPI_HOST_INTR_ENABLE_ERROR_BIT))
@@ -661,7 +666,7 @@ spi_tristate_e spi_get_error_intr_enable(spi_host_t* spi)
 static inline __attribute__((always_inline)) 
 const volatile spi_status_t* spi_get_status(spi_host_t* spi)
 {
-    if (spi == NULL) return NULL;
+    SPI_NULL_CHECK(spi, NULL)
     return (const volatile spi_status_t*) &SPI_HW(spi)->STATUS;
 }
 
@@ -676,7 +681,7 @@ const volatile spi_status_t* spi_get_status(spi_host_t* spi)
 static inline __attribute__((always_inline)) 
 spi_tristate_e spi_get_active(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_TRISTATE_ERROR;
+    SPI_NULL_CHECK(spi, SPI_TRISTATE_ERROR)
     return spi_get_status(spi)->active ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
@@ -691,7 +696,7 @@ spi_tristate_e spi_get_active(spi_host_t* spi)
 static inline __attribute__((always_inline)) 
 spi_tristate_e spi_get_ready(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_TRISTATE_ERROR;
+    SPI_NULL_CHECK(spi, SPI_TRISTATE_ERROR)
     return spi_get_status(spi)->ready ? SPI_TRISTATE_TRUE : SPI_TRISTATE_FALSE;
 }
 
@@ -705,7 +710,7 @@ spi_tristate_e spi_get_ready(spi_host_t* spi)
 static inline __attribute__((always_inline)) 
 spi_return_flags_e spi_wait_for_ready(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     while (spi_get_ready(spi) == SPI_TRISTATE_FALSE);
     return SPI_FLAG_OK;
 }
@@ -720,7 +725,7 @@ spi_return_flags_e spi_wait_for_ready(spi_host_t* spi)
 static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_idle(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     while (spi_get_active(spi) == SPI_TRISTATE_TRUE);
     return SPI_FLAG_OK;
 }
@@ -735,7 +740,7 @@ spi_return_flags_e spi_wait_for_idle(spi_host_t* spi)
 static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_cmdqd_not_full(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     while (spi_get_status(spi)->cmdqd >= SPI_HOST_PARAM_CMD_DEPTH);
     return SPI_FLAG_OK;
 }
@@ -750,7 +755,7 @@ spi_return_flags_e spi_wait_for_cmdqd_not_full(spi_host_t* spi)
 static inline __attribute__((always_inline)) 
 spi_return_flags_e spi_wait_for_tx_watermark(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     while (!spi_get_status(spi)->txwm);
     return SPI_FLAG_OK;
 }
@@ -765,7 +770,7 @@ spi_return_flags_e spi_wait_for_tx_watermark(spi_host_t* spi)
 static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_tx_empty(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     while (!spi_get_status(spi)->txempty);
     return SPI_FLAG_OK;
 }
@@ -780,7 +785,7 @@ spi_return_flags_e spi_wait_for_tx_empty(spi_host_t* spi)
 static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_tx_not_empty(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     while (spi_get_status(spi)->txempty);
     return SPI_FLAG_OK;
 }
@@ -795,7 +800,7 @@ spi_return_flags_e spi_wait_for_tx_not_empty(spi_host_t* spi)
 static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_tx_not_full(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     while (spi_get_status(spi)->txfull);
     return SPI_FLAG_OK;
 }
@@ -810,7 +815,7 @@ spi_return_flags_e spi_wait_for_tx_not_full(spi_host_t* spi)
 static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_rx_empty(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     while (!spi_get_status(spi)->rxempty);
     return SPI_FLAG_OK;
 }
@@ -825,7 +830,7 @@ spi_return_flags_e spi_wait_for_rx_empty(spi_host_t* spi)
 static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_rx_not_empty(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     while (spi_get_status(spi)->rxempty);
     return SPI_FLAG_OK;
 }
@@ -840,7 +845,7 @@ spi_return_flags_e spi_wait_for_rx_not_empty(spi_host_t* spi)
 static inline __attribute__((always_inline))
 spi_return_flags_e spi_wait_for_rx_full(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     while (!spi_get_status(spi)->rxfull);
     return SPI_FLAG_OK;
 }
@@ -855,7 +860,7 @@ spi_return_flags_e spi_wait_for_rx_full(spi_host_t* spi)
 static inline __attribute__((always_inline)) 
 spi_return_flags_e spi_wait_for_rx_watermark(spi_host_t* spi)
 {
-    if (spi == NULL) return SPI_FLAG_NULL_PTR;
+    SPI_NULL_CHECK(spi, SPI_FLAG_NULL_PTR)
     while (!spi_get_status(spi)->rxwm);
     return SPI_FLAG_OK;
 }
