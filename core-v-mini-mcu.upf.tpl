@@ -13,8 +13,8 @@ set_scope .
 create_power_domain PD_TOP -include_scope
 create_power_domain PD_CPU -elements {cpu_subsystem_i}
 create_power_domain PD_PERIP_SUBS -elements {peripheral_subsystem_i}
-% for bank in range(ram_numbanks):
-create_power_domain PD_MEM_BANK_${bank} -elements {memory_subsystem_i/gen_sram[${bank}].ram_i}
+% for bank in xheep.iter_ram_banks():
+create_power_domain PD_MEM_BANK_${bank.name()} -elements {memory_subsystem_i/ram${bank.name()}_i}
 % endfor
 
 
@@ -39,11 +39,11 @@ add_power_state PD_PERIP_SUBS.primary -state PERIP_SUBS_ON <%text>\</%text>
 add_power_state PD_PERIP_SUBS.primary -state PERIP_SUBS_OFF <%text>\</%text>
     {-supply_expr {power == `{OFF} && ground == `{FULL_ON, 0.0}}} -simstate CORRUPT
 
-% for bank in range(ram_numbanks):
-add_power_state PD_MEM_BANK_${bank}.primary -state MEM_BANK_${bank}_ON <%text>\</%text>
+% for bank in xheep.iter_ram_banks():
+add_power_state PD_MEM_BANK_${bank.name()}.primary -state MEM_BANK_${bank.name()}_ON <%text>\</%text>
     {-supply_expr {power == `{FULL_ON, 1.2} && ground == `{FULL_ON, 0.0}}}
 
-add_power_state PD_MEM_BANK_${bank}.primary -state MEM_BANK_${bank}_OFF <%text>\</%text>
+add_power_state PD_MEM_BANK_${bank.name()}.primary -state MEM_BANK_${bank.name()}_OFF <%text>\</%text>
     {-supply_expr {power == `{OFF} && ground == `{FULL_ON, 0.0}}} -simstate CORRUPT
 
 % endfor
@@ -71,9 +71,9 @@ create_supply_set PD_CPU.primary -function {power VDD_CPU} -function {ground VSS
 create_supply_net VDD_PERIP_SUBS
 create_supply_set PD_PERIP_SUBS.primary -function {power VDD_PERIP_SUBS} -function {ground VSS} -update
 
-% for bank in range(ram_numbanks):
-create_supply_net VDD_MEM_BANK_${bank}
-create_supply_set PD_MEM_BANK_${bank}.primary -function {power VDD_MEM_BANK_${bank}} -function {ground VSS} -update
+% for bank in xheep.iter_ram_banks():
+create_supply_net VDD_MEM_BANK_${bank.name()}
+create_supply_set PD_MEM_BANK_${bank.name()}.primary -function {power VDD_MEM_BANK_${bank.name()}} -function {ground VSS} -update
 
 % endfor
 
@@ -103,14 +103,14 @@ create_power_switch switch_PD_PERIP_SUBS <%text>\</%text>
     -on_state           {on_state  sw_in {sw_ctrl}} <%text>\</%text>
     -off_state          {off_state {!sw_ctrl}}
 
-% for bank in range(ram_numbanks):
-create_power_switch switch_PD_MEM_BANK_${bank} <%text>\</%text>
+% for bank in xheep.iter_ram_banks():
+create_power_switch switch_PD_MEM_BANK_${bank.name()} <%text>\</%text>
     -supply_set         PD_TOP.primary <%text>\</%text>
-    -domain             PD_MEM_BANK_${bank} <%text>\</%text>
+    -domain             PD_MEM_BANK_${bank.name()} <%text>\</%text>
     -input_supply_port  {sw_in     VDD} <%text>\</%text>
-    -output_supply_port {sw_out    VDD_MEM_BANK_${bank}} <%text>\</%text>
-    -control_port       {sw_ctrl   memory_subsystem_banks_powergate_switch_no[${bank}]} <%text>\</%text>
-    -ack_port           {sw_ack    memory_subsystem_banks_powergate_switch_ack_ni[${bank}]} <%text>\</%text>
+    -output_supply_port {sw_out    VDD_MEM_BANK_${bank.name()}} <%text>\</%text>
+    -control_port       {sw_ctrl   memory_subsystem_banks_powergate_switch_no[${bank.name()}]} <%text>\</%text>
+    -ack_port           {sw_ack    memory_subsystem_banks_powergate_switch_ack_ni[${bank.name()}]} <%text>\</%text>
     -on_state           {on_state  sw_in {sw_ctrl}} <%text>\</%text>
     -off_state          {off_state {!sw_ctrl}}
 
@@ -144,12 +144,12 @@ set_isolation perip_subs_iso <%text>\</%text>
     -name_prefix cpu_iso_cell <%text>\</%text>
     -location parent
 
-% for bank in range(ram_numbanks):
-set_isolation mem_bank_${bank}_iso <%text>\</%text>
-    -domain PD_MEM_BANK_${bank} <%text>\</%text>
+% for bank in xheep.iter_ram_banks():
+set_isolation mem_bank_${bank.name()}_iso <%text>\</%text>
+    -domain PD_MEM_BANK_${bank.name()} <%text>\</%text>
     -isolation_power_net VDD <%text>\</%text>
     -isolation_ground_net VSS <%text>\</%text>
-    -isolation_signal memory_subsystem_banks_powergate_iso_n[${bank}] <%text>\</%text>
+    -isolation_signal memory_subsystem_banks_powergate_iso_n[${bank.name()}] <%text>\</%text>
     -isolation_sense low <%text>\</%text>
     -clamp_value 0 <%text>\</%text>
     -applies_to outputs <%text>\</%text>

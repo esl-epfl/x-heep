@@ -1,6 +1,11 @@
 X-HEEP
 ======
 
+.. image:: images/x-heep-outline.png
+   :width: 600
+
+
+
 ``X-HEEP`` (eXtendable Heterogeneous Energy-Efficient Platform) is a RISC-V microcontroller described in SystemVerilog that can be configured to target small and tiny platforms as well as extended to support accelerators.
 The cool thing about X-HEEP is that we provide a simple customizable MCU, so CPUs, common peripherals, memories, etc. so that you can extend it with your own accelerator without modifying the MCU, but just instantiating it in your design.
 By doing so, you inherit an IP capable of booting RTOS (such as FreeRTOS) with the whole FW stack, including HAL drivers and SDK, and you can focus on building your special HW or APP supported by the microcontroller.
@@ -23,7 +28,7 @@ The CPU subsystem is based on the `RISC-V lowRISC Ibex <https://github.com/lowRI
 Memory banks domains
 ^^^^^^^^^^^^^^^^^^^^
 
-The memory subsystem is divided into 4 32KB banks of memory used to both program instructions and data. Banks are connected to the bus with dedicated interfaces and this allows you to access multiple banks at the same time without conflicts. Each bank can be individually clock-gated or set in retention to save dynamic and leakage power, respectively. Moreover, the memory subsystem is thought to be fine-grained power-gated, switching off each bank that is not needed.
+The memory subsystem is divided into multiple banks that can have different sizes of memory used to both program instructions and data. Banks are connected to the bus with dedicated interfaces and this allows you to access multiple banks at the same time without conflicts. Each bank can be individually clock-gated or set in retention to save dynamic and leakage power, respectively. Moreover, the memory subsystem is thought to be fine-grained power-gated, switching off each bank that is not needed.
 
 Peripheral subsystem domain
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -77,3 +82,11 @@ Index
    :caption: Peripherals
 
    ./Peripherals/*
+
+.. toctree::
+   :maxdepth: 5
+   :glob:
+   :caption: Configuration
+
+   ./Configuration/*
+   ./Configuration/generated/modules.rst
