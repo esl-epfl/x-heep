@@ -132,6 +132,14 @@ module dma #(
   logic                              right_ex_to_bottom_ex;
   logic                              bottom_ex_to_idle;
 
+  /* Padding synchronization signals */
+  logic                              data_in_rvalid_virt;
+  logic                              data_in_rvalid_virt_n;
+  logic                              data_in_rvalid_virt_n_n;
+  logic                              data_in_gnt_virt;
+  logic                              data_in_gnt_virt_n;
+  logic                              data_in_gnt_virt_n_n;
+
   /* FIFO signals */
   logic                              fifo_flush;
   logic                              fifo_full;
@@ -195,14 +203,14 @@ module dma #(
   logic [Addr_Fifo_Depth-1:0] outstanding_req, outstanding_addr_req;
   logic [31:0] window_counter;
 
-  assign dma_read_ch0_req_o.req = data_in_req;
+  assign dma_read_ch0_req_o.req = data_in_req && ~pad_fifo_on;
   assign dma_read_ch0_req_o.we = data_in_we;
   assign dma_read_ch0_req_o.be = data_in_be;
   assign dma_read_ch0_req_o.addr = data_in_addr;
   assign dma_read_ch0_req_o.wdata = 32'h0;
 
-  assign data_in_gnt = dma_read_ch0_resp_i.gnt;
-  assign data_in_rvalid = dma_read_ch0_resp_i.rvalid;
+  assign data_in_gnt = dma_read_ch0_resp_i.gnt || (data_in_gnt_virt & pad_fifo_on);
+  assign data_in_rvalid = dma_read_ch0_resp_i.rvalid || (data_in_rvalid_virt & pad_fifo_on);
   assign data_in_rdata = dma_read_ch0_resp_i.rdata;
 
   assign dma_addr_ch0_req_o.req = data_addr_in_req;
@@ -640,12 +648,43 @@ module dma #(
       dma_write_fsm_state <= dma_write_fsm_n_state;
       dma_read_addr_fsm_state <= dma_read_addr_fsm_n_state;
 
-      // From copilot: outstanding_req keeps track of the number of requests that have been granted but not completed
       outstanding_req <= outstanding_req + (data_in_req && data_in_gnt) - data_in_rvalid;
 
       if (address_mode)
         outstanding_addr_req <= outstanding_addr_req + (data_addr_in_req && data_addr_in_gnt) - data_addr_in_rvalid;
 
+    end
+  end
+
+  /* Padding synchronization signal generation 
+   * When the pad_fifo_on is asserted, this logic mimics the behaviour of the data_in_rvalid and data_in_gnt signals
+   * coming from the memory. This is done in order to keep the read/write operations working even without an
+   * actual response from memory, reducing power consumptionnby avoiding unnecessary memory accesses.
+   */
+  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_pad_sync_signal
+    if (~rst_ni) begin
+      data_in_rvalid_virt <= 1'b0;
+      data_in_rvalid_virt_n <= 1'b1;
+      data_in_rvalid_virt_n_n <= 1'b0;
+      data_in_gnt_virt <= 1'b1;
+      data_in_gnt_virt_n <= 1'b0;
+      data_in_gnt_virt_n_n <= 1'b0;
+    end else begin
+      if (data_in_req == 1'b1 && pad_fifo_on == 1'b1) begin
+        data_in_rvalid_virt <= data_in_rvalid_virt_n;
+        data_in_rvalid_virt_n <= data_in_rvalid_virt_n_n;
+        data_in_rvalid_virt_n_n <= data_in_rvalid;
+        data_in_gnt_virt <= data_in_gnt_virt_n;
+        data_in_gnt_virt_n <= data_in_gnt_virt_n_n;
+        data_in_gnt_virt_n_n <= data_in_gnt;
+      end else begin
+        data_in_rvalid_virt <= 1'b0;
+        data_in_rvalid_virt_n <= 1'b1;
+        data_in_rvalid_virt_n_n <= 1'b0;
+        data_in_gnt_virt <= 1'b1;
+        data_in_gnt_virt_n <= 1'b0;
+        data_in_gnt_virt_n_n <= 1'b0;
+      end
     end
   end
 

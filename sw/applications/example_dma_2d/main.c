@@ -21,15 +21,18 @@
 #include "rv_plic.h"
 #include "test_data.h"
 
-/* 
- *  Select which test to run:
- *  0: Extract a NxM matrix, perform optional padding and copy it to a AxB matrix, using HALs
- *  1: Extract a NxM matrix and copy its transposed version to AxB matrix, using HALs
- *  2: Extract a 1xN matrix (array), perform optional padding and copy it to an array, using HALs
- *  3: Extract a NxM matrix, perform optional padding and copy it to a AxB matrix, using direct register operations
+/*  
+ *  This code contains four different tests that can be run by defining the corresponding TEST_ID_* macro.
+ *  - Extract a NxM matrix, perform optional padding and copy it to a AxB matrix, using HALs
+ *  - Extract a NxM matrix and copy its transposed version to AxB matrix, using HALs
+ *  - Extract a 1xN matrix (array), perform optional padding and copy it to an array, using HALs
+ *  - Extract a NxM matrix, perform optional padding and copy it to a AxB matrix, using direct register operations
  */
 
-#define TEST_ID 0
+//#define TEST_ID_0
+#define TEST_ID_1
+//#define TEST_ID_2
+//#define TEST_ID_3
 
 /* Enable performance analysis */
 #define EN_PERF 1
@@ -98,6 +101,10 @@ dma_config_flags_t res_valid, res_load, res_launch;
 
 dma *peri = dma_peri;
 
+dma_target_t tgt_src;
+dma_target_t tgt_dst;
+dma_trans_t trans;
+
 uint32_t dst_ptr = 0, src_ptr = 0;
 uint32_t cycles_dma, cycles_cpu;
 uint32_t size_dst_trans_d1;
@@ -109,14 +116,13 @@ uint32_t src_stride_d2;
 uint32_t i_in;
 uint32_t j_in;
 uint32_t i_in_last;
-uint32_t j_in_last;
 uint16_t left_pad_cnt = 0;
 uint16_t top_pad_cnt = 0;
 uint8_t stride_1d_cnt = 0;
 uint8_t stride_2d_cnt = 0;
 char passed = 1;
 
-#if TEST_ID == 3
+#ifdef TEST_ID_3
 
 /* Function used to simplify register operations */
 static inline volatile void write_register( uint32_t  p_val,
@@ -144,7 +150,7 @@ static inline volatile void write_register( uint32_t  p_val,
 
 int main()
 {    
-    #if TEST_ID == 0
+    #ifdef TEST_ID_0
 
     /* Testing copy and padding of a NxM matrix using HALs */
     
@@ -155,35 +161,29 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
-    dma_target_t tgt_src = {
-                                .ptr            = &test_data[0],
-                                .inc_du         = SRC_INC_D1,
-                                .inc_d2_du      = SRC_INC_D2,
-                                .size_du        = SIZE_EXTR_D1,
-                                .size_d2_du     = SIZE_EXTR_D2,
-                                .trig           = DMA_TRIG_MEMORY,
-                                .type           = DMA_DATA_TYPE,
-                            };
+    tgt_src.ptr = &test_data[0];
+    tgt_src.inc_du = SRC_INC_D1;
+    tgt_src.inc_d2_du = SRC_INC_D2;
+    tgt_src.size_du = SIZE_EXTR_D1;
+    tgt_src.size_d2_du = SIZE_EXTR_D2;
+    tgt_src.trig = DMA_TRIG_MEMORY;
+    tgt_src.type = DMA_DATA_TYPE;
+    
+    tgt_dst.ptr = copied_data_2D_DMA;
+    tgt_dst.inc_du = DST_INC_D1;
+    tgt_dst.inc_d2_du = DST_INC_D2;
+    tgt_dst.trig = DMA_TRIG_MEMORY;
 
-    dma_target_t tgt_dst = {
-                                .ptr            = copied_data_2D_DMA,
-                                .inc_du         = DST_INC_D1,
-                                .inc_d2_du      = DST_INC_D2,
-                                .trig           = DMA_TRIG_MEMORY,
-                            };
-
-    dma_trans_t trans =     {
-                                .src            = &tgt_src,
-                                .dst            = &tgt_dst,
-                                .mode           = DMA_TRANS_MODE_SINGLE,
-                                .dim            = DMA_DIM_CONF_2D,
-                                .pad_top_du     = TOP_PAD,
-                                .pad_bottom_du  = BOTTOM_PAD,
-                                .pad_left_du    = LEFT_PAD,
-                                .pad_right_du   = RIGHT_PAD,
-                                .win_du         = 0,
-                                .end            = DMA_TRANS_END_INTR
-                            };
+    trans.src = &tgt_src;
+    trans.dst = &tgt_dst;
+    trans.mode = DMA_TRANS_MODE_SINGLE;
+    trans.dim = DMA_DIM_CONF_2D;
+    trans.pad_top_du     = TOP_PAD,
+    trans.pad_bottom_du  = BOTTOM_PAD,
+    trans.pad_left_du    = LEFT_PAD,
+    trans.pad_right_du   = RIGHT_PAD,
+    trans.win_du         = 0,
+    trans.end            = DMA_TRANS_END_INTR;
     
     dma_init(NULL);
     
@@ -308,17 +308,32 @@ int main()
     }
 
     if (passed) {
-        PRINTF("Success\n\r");
-        return EXIT_SUCCESS;
+        PRINTF("Success test 0\n\n\r");
     } 
     else 
     {
-        PRINTF("Fail\n\r");
+        PRINTF("Fail test 0\n\r");
         return EXIT_FAILURE;
     }
     #endif
 
-    #elif TEST_ID == 1
+    #endif
+    
+    /* Reset for second test */
+    passed = 1;
+    i_in = 0;
+    j_in = 0;
+    left_pad_cnt = 0;
+    top_pad_cnt = 0;
+    stride_1d_cnt = 0;
+    stride_2d_cnt = 0;
+
+    for (int i = 0; i < OUT_DIM_2D; i++) {
+        copied_data_2D_DMA[i] = 0;
+        copied_data_2D_CPU[i] = 0;
+    }
+
+    #ifdef TEST_ID_1
 
     /* Testing transposition and copy of a NxM matrix using HALs */
  
@@ -329,36 +344,30 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
-    dma_target_t tgt_src = {
-                                .ptr            = &test_data[0],
-                                .inc_du         = SRC_INC_TRSP_D1,
-                                .inc_d2_du      = SRC_INC_TRSP_D2,
-                                .size_du        = SIZE_EXTR_D1,
-                                .size_d2_du     = SIZE_EXTR_D2,
-                                .trig           = DMA_TRIG_MEMORY,
-                                .type           = DMA_DATA_TYPE,
-                            };
+    tgt_src.ptr            = &test_data[0];
+    tgt_src.inc_du         = SRC_INC_TRSP_D1;
+    tgt_src.inc_d2_du      = SRC_INC_TRSP_D2;
+    tgt_src.size_du        = SIZE_EXTR_D1;
+    tgt_src.size_d2_du     = SIZE_EXTR_D2;
+    tgt_src.trig           = DMA_TRIG_MEMORY;
+    tgt_src.type           = DMA_DATA_TYPE;
 
-    dma_target_t tgt_dst = {
-                                .ptr            = copied_data_2D_DMA,
-                                .inc_du         = DST_INC_D1,
-                                .inc_d2_du      = DST_INC_D2,
-                                .trig           = DMA_TRIG_MEMORY,
-                            };
+    tgt_dst.ptr            = &copied_data_2D_DMA[0];
+    tgt_dst.inc_du         = DST_INC_D1;
+    tgt_dst.inc_d2_du      = DST_INC_D2;
+    tgt_dst.trig           = DMA_TRIG_MEMORY;
 
-    dma_trans_t trans =     {
-                                .src            = &tgt_src,
-                                .dst            = &tgt_dst,
-                                .mode           = DMA_TRANS_MODE_SINGLE,
-                                .dim            = DMA_DIM_CONF_2D,
-                                .pad_top_du     = TOP_PAD,
-                                .pad_bottom_du  = BOTTOM_PAD,
-                                .pad_left_du    = LEFT_PAD,
-                                .pad_right_du   = RIGHT_PAD,
-                                .dim_inv        = TRANSPOSITION_EN,
-                                .win_du         = 0,
-                                .end            = DMA_TRANS_END_INTR
-                            };
+    trans.src            = &tgt_src;
+    trans.dst            = &tgt_dst;
+    trans.mode           = DMA_TRANS_MODE_SINGLE;
+    trans.dim            = DMA_DIM_CONF_2D;
+    trans.pad_top_du     = TOP_PAD;
+    trans.pad_bottom_du  = BOTTOM_PAD;
+    trans.pad_left_du    = LEFT_PAD;
+    trans.pad_right_du   = RIGHT_PAD;
+    trans.dim_inv        = TRANSPOSITION_EN;
+    trans.win_du         = 0,
+    trans.end            = DMA_TRANS_END_INTR;
     
     dma_init(NULL);
     
@@ -406,25 +415,16 @@ int main()
     #if EN_VERIF
 
     /* Run the same computation on the CPU */
-    j_in_last = -1;
     for (int i=0; i < OUT_D2_PAD_STRIDE; i++)
     {
         stride_1d_cnt = 0;
-        i_in = 0;
-        top_pad_cnt = 0;
-
-        if (j_in < TOP_PAD && j_in != j_in_last && stride_1d_cnt == 0 && stride_2d_cnt == 0)
-        {
-            left_pad_cnt++;
-        }
-
-        j_in_last = j_in;
+        j_in = 0;
 
         for (int j=0; j < OUT_D1_PAD_STRIDE; j++)
-        {   
+        {
             dst_ptr = i * OUT_D1_PAD_STRIDE + j;
-            src_ptr = (i_in - top_pad_cnt ) * STRIDE_IN_D2 * SIZE_IN_D1 + (j_in - left_pad_cnt) * STRIDE_IN_D1;
-            if (i_in < LEFT_PAD || i_in >= SIZE_EXTR_D1 + LEFT_PAD || j_in < TOP_PAD || j_in >= SIZE_EXTR_D2 + TOP_PAD ||
+            src_ptr = (j_in - left_pad_cnt) * STRIDE_IN_D2 * SIZE_IN_D1 + (i_in - top_pad_cnt ) * STRIDE_IN_D1;
+            if (i_in < TOP_PAD || i_in >= SIZE_EXTR_D2 + TOP_PAD || j_in < LEFT_PAD || j_in >= SIZE_EXTR_D1 + LEFT_PAD ||
                 stride_1d_cnt != 0 || stride_2d_cnt != 0)
             {
                 copied_data_2D_CPU[dst_ptr] = 0;
@@ -433,16 +433,16 @@ int main()
             {
                 copied_data_2D_CPU[dst_ptr] = test_data[src_ptr];
             }
-                        
-            if (i_in < LEFT_PAD && stride_2d_cnt == 0)
+
+            if (j_in < LEFT_PAD && i_in >= TOP_PAD && stride_1d_cnt == 0 && stride_2d_cnt == 0)
             {
-                top_pad_cnt++;
-            }           
-            
+                left_pad_cnt++;
+            }
+
             if (stride_1d_cnt == STRIDE_OUT_D1 - 1)
             {
                 stride_1d_cnt = 0;
-                i_in++;
+                j_in++;
             }
             else
             {
@@ -451,18 +451,22 @@ int main()
 
         }
 
+        if (i_in < TOP_PAD && stride_2d_cnt == 0)
+        {
+            top_pad_cnt++;
+        }
+        
         if (stride_2d_cnt == STRIDE_OUT_D2 - 1)
         {
             stride_2d_cnt = 0;
-            j_in++;
+            i_in++;
         }
         else
         {
             stride_2d_cnt++;
         }
-        
-        
 
+        left_pad_cnt = 0;
     }
     #endif
 
@@ -488,17 +492,27 @@ int main()
     }
 
     if (passed) {
-        PRINTF("Success\n\r");
-        return EXIT_SUCCESS;
+        PRINTF("Success test 1\n\n\r");
     } 
     else 
     {
-        PRINTF("Fail\n\r");
+        PRINTF("Fail test 1\n\r");
         return EXIT_FAILURE;
     }
     #endif
 
-    #elif TEST_ID == 2
+    #endif
+    
+    /* Reset for third test */
+    passed = 1;
+    i_in = 0;
+    j_in = 0;
+    left_pad_cnt = 0;
+    top_pad_cnt = 0;
+    stride_1d_cnt = 0;
+    stride_2d_cnt = 0;
+
+    #ifdef TEST_ID_2
 
     /* Testing copy and padding of a 1xN matrix (an array) */
 
@@ -509,30 +523,30 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
-    dma_target_t tgt_src = {
-                                .ptr            = &test_data[0],
-                                .inc_du         = SRC_INC_D1,
-                                .size_du        = SIZE_EXTR_D1,
-                                .trig           = DMA_TRIG_MEMORY,
-                                .type           = DMA_DATA_TYPE,
-                            };
+    tgt_src.ptr            = &test_data[0];
+    tgt_src.inc_du         = SRC_INC_D1;
+    tgt_src.size_du        = SIZE_EXTR_D1;
+    tgt_src.inc_d2_du      = 0;
+    tgt_src.size_d2_du     = 0;
+    tgt_src.trig           = DMA_TRIG_MEMORY;
+    tgt_src.type           = DMA_DATA_TYPE;
 
-    dma_target_t tgt_dst = {
-                                .ptr            = copied_data_1D_DMA,
-                                .inc_du         = DST_INC_D1,
-                                .trig           = DMA_TRIG_MEMORY,
-                            };
+    tgt_dst.ptr            = copied_data_1D_DMA;
+    tgt_dst.inc_du         = DST_INC_D1;
+    tgt_dst.inc_d2_du      = 0;
+    tgt_dst.trig           = DMA_TRIG_MEMORY;
 
-    dma_trans_t trans =     {
-                                .src            = &tgt_src,
-                                .dst            = &tgt_dst,
-                                .mode           = DMA_TRANS_MODE_SINGLE,
-                                .dim            = DMA_DIM_CONF_1D,
-                                .pad_left_du    = LEFT_PAD,
-                                .pad_right_du   = RIGHT_PAD,
-                                .win_du         = 0,
-                                .end            = DMA_TRANS_END_INTR
-                            };
+    trans.src            = &tgt_src;
+    trans.dst            = &tgt_dst;
+    trans.mode           = DMA_TRANS_MODE_SINGLE;
+    trans.dim            = DMA_DIM_CONF_1D;
+    trans.pad_top_du     = 0;
+    trans.pad_bottom_du  = 0;
+    trans.pad_left_du    = LEFT_PAD;
+    trans.pad_right_du   = RIGHT_PAD;
+    trans.dim_inv        = 0;
+    trans.win_du         = 0;
+    trans.end            = DMA_TRANS_END_INTR;
 
     dma_init(NULL);
     
@@ -607,7 +621,7 @@ int main()
         {
             stride_1d_cnt++;
         }
-}
+    }
     
     #endif
 
@@ -631,17 +645,31 @@ int main()
     }
 
     if (passed) {
-        PRINTF("Success\n\r");
-        return EXIT_SUCCESS;
+        PRINTF("Success test 2\n\n\r");
     } 
     else 
     {
-        PRINTF("Fail\n\r");
+        PRINTF("Fail test 2\n\r");
         return EXIT_FAILURE;
     }
     #endif
 
-    #elif TEST_ID == 3
+    #endif
+    
+    /* Reset for fourth test */
+    passed = 1;
+    i_in = 0;
+    j_in = 0;
+    left_pad_cnt = 0;
+    top_pad_cnt = 0;
+    stride_1d_cnt = 0;
+    stride_2d_cnt = 0;
+    for (int i = 0; i < OUT_DIM_2D; i++) {
+        copied_data_2D_DMA[i] = 0;
+        copied_data_2D_CPU[i] = 0;
+    }
+
+    #ifdef TEST_ID_3
 
     /* Testing copy and padding of a NxM matrix using direct register operations.
      * This strategy allows for maximum performance but doesn't perform any checks on the data integrity.
@@ -865,15 +893,16 @@ int main()
     }
 
     if (passed) {
-        PRINTF("Success\n\r");
-        return EXIT_SUCCESS;
+        PRINTF("Success test 3\n\n\r");
     } 
     else 
     {
-        PRINTF("Fail\n\r");
+        PRINTF("Fail test 3\n\r");
         return EXIT_FAILURE;
     }
     #endif
 
     #endif
+
+    return EXIT_SUCCESS;
 }
