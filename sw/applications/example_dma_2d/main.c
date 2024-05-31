@@ -29,10 +29,10 @@
  *  - Extract a NxM matrix, perform optional padding and copy it to a AxB matrix, using direct register operations
  */
 
-//#define TEST_ID_0
+#define TEST_ID_0
 #define TEST_ID_1
-//#define TEST_ID_2
-//#define TEST_ID_3
+#define TEST_ID_2
+#define TEST_ID_3
 
 /* Enable performance analysis */
 #define EN_PERF 1
