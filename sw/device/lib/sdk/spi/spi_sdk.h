@@ -47,6 +47,8 @@
 
 // Chosen arbitrarily
 #define SPI_CSN_TIMES_DEFAULT 15
+// Default timeout for blocking transactions in milliseconds
+#define SPI_TIMEOUT_DEFAULT   100
 
 /**
  * @brief Macro to create a Slave SPI device with standard parameters.
@@ -156,7 +158,8 @@ typedef enum {
     SPI_CODE_SLAVE_INVAL        = 0x0080, // Something was wrong with the slave configuration
     SPI_CODE_SEGMENT_INVAL      = 0x0100, // The spi_mode_e of the segment was invalid
     SPI_CODE_IS_BUSY            = 0x0200, // The SPI device is busy
-    SPI_CODE_TXN_LEN_INVAL      = 0x0400  // The transaction length is 0 or too long
+    SPI_CODE_TXN_LEN_INVAL      = 0x0400, // The transaction length is 0 or too long
+    SPI_CODE_TIMEOUT_INVAL      = 0x0800  // The specified timeout is invalid
 } spi_codes_e;
 
 typedef enum {
@@ -191,12 +194,14 @@ typedef enum {
     SPI_STATE_INIT      = 0x01,
     // Indicates SPI device is currently processing a transaction
     SPI_STATE_BUSY      = 0x02,
-    // Indicates SPI device has successfully executes a transaction
+    // Indicates SPI device has successfully executed a transaction
     SPI_STATE_DONE      = 0x04,
     // Indicates there was an error during transaction
     SPI_STATE_ERROR     = 0x08,
+    // Indicates the transaction execution has timed-out
+    SPI_STATE_TIMEOUT     = 0x10,
     // Indicates the argument passed to spi_get_state was not valid
-    SPI_STATE_ARG_INVAL = 0x10
+    SPI_STATE_ARG_INVAL = 0x20
 } spi_state_e;
 
 /**
@@ -303,9 +308,10 @@ spi_codes_e spi_reset(spi_t* spi);
  * 
  * @param spi Pointer to spi_t structure obtained through spi_init call
  * @param watermark The desired new watermark
- * @return SPI_CODE_IDX_INVAL if spi.idx not valid
- * @return SPI_CODE_NOT_INIT  if spi.init false (indicates if spi was initialized)
- * @return SPI_CODE_OK        if success
+ * @return SPI_CODE_IDX_INVAL  if spi.idx not valid
+ * @return SPI_CODE_NOT_INIT   if spi.init false (indicates if spi was initialized)
+ * @return SPI_CODE_WM_EXCEEDS if specified watermark is too high
+ * @return SPI_CODE_OK         if success
  */
 spi_codes_e spi_set_txwm(spi_t* spi, uint8_t watermark);
 
@@ -326,9 +332,10 @@ spi_codes_e spi_get_txwm(spi_t* spi, uint8_t* watermark);
  * 
  * @param spi Pointer to spi_t structure obtained through spi_init call
  * @param watermark The desired new watermark
- * @return SPI_CODE_IDX_INVAL if spi.idx not valid
- * @return SPI_CODE_NOT_INIT  if spi.init false (indicates if spi was initialized)
- * @return SPI_CODE_OK        if success
+ * @return SPI_CODE_IDX_INVAL  if spi.idx not valid
+ * @return SPI_CODE_NOT_INIT   if spi.init false (indicates if spi was initialized)
+ * @return SPI_CODE_WM_EXCEEDS if specified watermark is too high
+ * @return SPI_CODE_OK         if success
  */
 spi_codes_e spi_set_rxwm(spi_t* spi, uint8_t watermark);
 
@@ -342,6 +349,32 @@ spi_codes_e spi_set_rxwm(spi_t* spi, uint8_t watermark);
  * @return SPI_CODE_OK        if success
  */
 spi_codes_e spi_get_rxwm(spi_t* spi, uint8_t* watermark);
+
+/**
+ * @brief Set the timeout in milliseconds for blocking transactions for the 
+ *        specific SPI Host peripheral.
+ *        Maximum is UINT32_MAX * 1000 / core_frequency.
+ * 
+ * @param spi Pointer to spi_t structure obtained through spi_init call
+ * @param watermark The desired new watermark
+ * @return SPI_CODE_IDX_INVAL     if spi.idx not valid
+ * @return SPI_CODE_NOT_INIT      if spi.init false (indicates if spi was initialized)
+ * @return SPI_CODE_TIMEOUT_INVAL if the specified timout is too large
+ * @return SPI_CODE_OK            if success
+ */
+spi_codes_e spi_set_timeout(spi_t* spi, uint32_t timeout);
+
+/**
+ * @brief Get the timeout in milliseconds for blocking transactions for the 
+ *        specific SPI Host peripheral.
+ * 
+ * @param spi Pointer to spi_t structure obtained through spi_init call
+ * @param timeout The current timeout will be stored in this variable
+ * @return SPI_CODE_IDX_INVAL if spi.idx not valid
+ * @return SPI_CODE_NOT_INIT  if spi.init false (indicates if spi was initialized)
+ * @return SPI_CODE_OK        if success
+ */
+spi_codes_e spi_get_timeout(spi_t* spi, uint32_t* timeout);
 
 /**
  * @brief Change the communication frequency of the slave

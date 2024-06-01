@@ -39,6 +39,7 @@
 #include "bitfield.h"
 #include "fast_intr_ctrl.h"
 #include "hart.h"
+#include "csr.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -158,6 +159,7 @@ typedef struct {
     uint8_t           txwm;      // TX watermark for this particular peripheral
     uint8_t           rxwm;      // RX watermark for this particular peripheral
     uint32_t          last_id;   // ID of last used spi_t to avoid resetting slave
+    uint32_t          timeout;   // Timeout for blocking transactions in ms
     spi_state_e       state;     // Current state of device
     spi_transaction_t txn;       // Current transaction being processed
     uint32_t          scnt;      // Counter to track segment to process
@@ -264,6 +266,15 @@ void spi_launch(spi_peripheral_t* peri, spi_t* spi, spi_transaction_t txn,
  * 
  * @param peri Pointer to the relevant spi_peripheral_t instance
  */
+void spi_wait_transaction_done(spi_peripheral_t* peri);
+
+/**
+ * @brief Issues a command segment and increments counter (post inc.).
+ *  Determines value of CSAAT bit based on if it is last segment of transaction 
+ *  or not.
+ * 
+ * @param peri Pointer to the relevant spi_peripheral_t instance
+ */
 void spi_issue_next_seg(spi_peripheral_t* peri);
 
 /**
@@ -328,6 +339,7 @@ static volatile spi_peripheral_t peripherals[] = {
         .txwm      = TXWM_DEFAULT,
         .rxwm      = RXWM_DEFAULT,
         .last_id   = 0,
+        .timeout   = SPI_TIMEOUT_DEFAULT,
         .state     = SPI_STATE_NONE,
         .txn       = {0},
         .scnt      = 0,
@@ -340,6 +352,7 @@ static volatile spi_peripheral_t peripherals[] = {
         .txwm      = TXWM_DEFAULT,
         .rxwm      = RXWM_DEFAULT,
         .last_id   = 0,
+        .timeout   = SPI_TIMEOUT_DEFAULT,
         .state     = SPI_STATE_NONE,
         .txn       = {0},
         .scnt      = 0,
@@ -352,6 +365,7 @@ static volatile spi_peripheral_t peripherals[] = {
         .txwm      = TXWM_DEFAULT,
         .rxwm      = RXWM_DEFAULT,
         .last_id   = 0,
+        .timeout   = SPI_TIMEOUT_DEFAULT,
         .state     = SPI_STATE_NONE,
         .txn       = {0},
         .scnt      = 0,
@@ -426,7 +440,8 @@ spi_codes_e spi_reset(spi_t* spi)
     return SPI_CODE_OK;
 }
 
-spi_codes_e spi_set_txwm(spi_t* spi, uint8_t watermark) {
+spi_codes_e spi_set_txwm(spi_t* spi, uint8_t watermark)
+{
     spi_codes_e error = spi_check_valid(spi);
     if (error) return error;
     // Do not change watermark if SPI is busy
@@ -440,7 +455,8 @@ spi_codes_e spi_set_txwm(spi_t* spi, uint8_t watermark) {
     return SPI_CODE_OK;
 }
 
-spi_codes_e spi_get_txwm(spi_t* spi, uint8_t* watermark) {
+spi_codes_e spi_get_txwm(spi_t* spi, uint8_t* watermark)
+{
     spi_codes_e error = spi_check_valid(spi);
     if (error) return error;
 
@@ -449,7 +465,8 @@ spi_codes_e spi_get_txwm(spi_t* spi, uint8_t* watermark) {
     return SPI_CODE_OK;
 }
 
-spi_codes_e spi_set_rxwm(spi_t* spi, uint8_t watermark) {
+spi_codes_e spi_set_rxwm(spi_t* spi, uint8_t watermark)
+{
     spi_codes_e error = spi_check_valid(spi);
     if (error) return error;
     // Do not change watermark if SPI is busy
@@ -463,7 +480,8 @@ spi_codes_e spi_set_rxwm(spi_t* spi, uint8_t watermark) {
     return SPI_CODE_OK;
 }
 
-spi_codes_e spi_get_rxwm(spi_t* spi, uint8_t* watermark) {
+spi_codes_e spi_get_rxwm(spi_t* spi, uint8_t* watermark)
+{
     spi_codes_e error = spi_check_valid(spi);
     if (error) return error;
 
@@ -472,7 +490,32 @@ spi_codes_e spi_get_rxwm(spi_t* spi, uint8_t* watermark) {
     return SPI_CODE_OK;
 }
 
-spi_codes_e spi_set_slave_freq(spi_t* spi, uint32_t freq) {
+spi_codes_e spi_set_timeout(spi_t* spi, uint32_t timeout)
+{
+    spi_codes_e error = spi_check_valid(spi);
+    if (error) return error;
+
+    // Verify that the provided timeout will not cause overflow when calling
+    // spi_wait_transaction_done
+    if ((UINT32_MAX / SYS_FREQ) * 1000 > timeout) return SPI_CODE_TIMEOUT_INVAL;
+
+    peripherals[spi->idx].timeout = timeout;
+
+    return SPI_CODE_OK;
+}
+
+spi_codes_e spi_get_timeout(spi_t* spi, uint32_t* timeout)
+{
+    spi_codes_e error = spi_check_valid(spi);
+    if (error) return error;
+
+    *timeout = peripherals[spi->idx].timeout;
+
+    return SPI_CODE_OK;
+}
+
+spi_codes_e spi_set_slave_freq(spi_t* spi, uint32_t freq)
+{
     spi_codes_e error = spi_check_valid(spi);
     if (error) return error;
     // Save current freq and change to new freq to check validity
@@ -514,8 +557,8 @@ spi_codes_e spi_transmit(spi_t* spi, const uint32_t* src_buffer, uint32_t len)
     // anything. No callbacks since function is blocking.
     spi_launch(&peripherals[spi->idx], spi, txn, NULL_CALLBACKS);
 
-    // Wait until transaction has finished
-    while (SPI_BUSY(peripherals[spi->idx])) wait_for_interrupt();
+    spi_wait_transaction_done(&peripherals[spi->idx]);
+    // while (SPI_BUSY(peripherals[spi->idx])) wait_for_interrupt();
 
     return SPI_CODE_OK;
 }
@@ -537,8 +580,8 @@ spi_codes_e spi_receive(spi_t* spi, uint32_t* dest_buffer, uint32_t len)
     // anything. No callbacks since function is blocking.
     spi_launch(&peripherals[spi->idx], spi, txn, NULL_CALLBACKS);
 
-    // Wait until transaction has finished
-    while (SPI_BUSY(peripherals[spi->idx])) wait_for_interrupt();
+    spi_wait_transaction_done(&peripherals[spi->idx]);
+    // while (SPI_BUSY(peripherals[spi->idx])) wait_for_interrupt();
 
     return SPI_CODE_OK;
 }
@@ -561,8 +604,8 @@ spi_codes_e spi_transceive(spi_t* spi, const uint32_t* src_buffer,
     // anything. No callbacks since function is blocking.
     spi_launch(&peripherals[spi->idx], spi, txn, NULL_CALLBACKS);
 
-    // Wait until transaction has finished
-    while (SPI_BUSY(peripherals[spi->idx])) wait_for_interrupt();
+    spi_wait_transaction_done(&peripherals[spi->idx]);
+    // while (SPI_BUSY(peripherals[spi->idx])) wait_for_interrupt();
 
     return SPI_CODE_OK;
 }
@@ -588,8 +631,8 @@ spi_codes_e spi_execute(spi_t* spi, const spi_segment_t* segments,
     // anything. No callbacks since function is blocking.
     spi_launch(&peripherals[spi->idx], spi, txn, NULL_CALLBACKS);
 
-    // Wait until transaction has finished
-    while (SPI_BUSY(peripherals[spi->idx])) wait_for_interrupt();
+    spi_wait_transaction_done(&peripherals[spi->idx]);
+    // while (SPI_BUSY(peripherals[spi->idx])) wait_for_interrupt();
 
     return SPI_CODE_OK;
 }
@@ -711,7 +754,8 @@ spi_codes_e spi_set_slave(spi_t* spi)
 {
     // Compute the best clock divider
     uint16_t clk_div = 0;
-    if (spi->slave.freq < SYS_FREQ / 2) {
+    if (spi->slave.freq < SYS_FREQ / 2)
+    {
         clk_div = (SYS_FREQ / spi->slave.freq - 2) / 2;
         if (SYS_FREQ / (2 * clk_div + 2) > spi->slave.freq) clk_div++;
     }
@@ -769,7 +813,8 @@ uint32_t spi_true_slave_freq(uint32_t freq)
 {
     // Compute the best clock divider
     uint16_t clk_div = 0;
-    if (freq < SYS_FREQ / 2) {
+    if (freq < SYS_FREQ / 2) 
+    {
         clk_div = (SYS_FREQ / freq - 2) / 2;
         if (SYS_FREQ / (2 * clk_div + 2) > freq) clk_div++;
     }
@@ -866,6 +911,38 @@ void spi_launch(spi_peripheral_t* peri, spi_t* spi, spi_transaction_t txn,
     spi_wait_for_ready(peri->instance);
     // Write command segment. This immediately triggers the SPI peripheral into action.
     spi_issue_next_seg(peri);
+}
+
+void spi_wait_transaction_done(spi_peripheral_t* peri) 
+{
+    // Convert ms timeout to clock ticks
+    uint64_t timeout_ticks = peri->timeout * (SYS_FREQ / 1000);
+    uint32_t start[2];
+    uint32_t end[2];
+
+    // Enable tick counter
+    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    // Record start tick counter value
+    CSR_READ(CSR_REG_MCYCLE,      &start[0]);
+    CSR_READ(CSR_REG_MCYCLE+0x04, &start[1]);
+
+    // Wait until transaction has finished or timed-out
+    do
+    {
+        // Read tick counter value
+        CSR_READ(CSR_REG_MCYCLE,      &end[0]);
+        CSR_READ(CSR_REG_MCYCLE+0x04, &end[1]);
+        // If ticks elapsed exceed timeout ticks, cancel transaction and return
+        if (*((uint64_t*)end) - *((uint64_t*)start) >= timeout_ticks)
+        {
+            // Fully reset spi peripheral to cancel transaction, empty fifos, etc.
+            spi_reset_peri(peri);
+            // Indicate to user the transaction has timed-out
+            peri->state = SPI_STATE_TIMEOUT;
+            break;
+        }
+        
+    } while (SPI_BUSY((*peri)));
 }
 
 void spi_issue_next_seg(spi_peripheral_t* peri) 
