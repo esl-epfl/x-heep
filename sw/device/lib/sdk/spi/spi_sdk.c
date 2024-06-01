@@ -923,15 +923,15 @@ void spi_wait_transaction_done(spi_peripheral_t* peri)
     // Enable tick counter
     CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
     // Record start tick counter value
-    CSR_READ(CSR_REG_MCYCLE,      &start[0]);
-    CSR_READ(CSR_REG_MCYCLE+0x04, &start[1]);
+    CSR_READ(CSR_REG_MCYCLE,  &start[0]);
+    CSR_READ(CSR_REG_MCYCLEH, &start[1]);
 
     // Wait until transaction has finished or timed-out
     do
     {
         // Read tick counter value
-        CSR_READ(CSR_REG_MCYCLE,      &end[0]);
-        CSR_READ(CSR_REG_MCYCLE+0x04, &end[1]);
+        CSR_READ(CSR_REG_MCYCLE,  &end[0]);
+        CSR_READ(CSR_REG_MCYCLEH, &end[1]);
         // If ticks elapsed exceed timeout ticks, cancel transaction and return
         if (*((uint64_t*)end) - *((uint64_t*)start) >= timeout_ticks)
         {
