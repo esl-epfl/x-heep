@@ -147,7 +147,6 @@ int main(int argc, char *argv[]) {
     PRINTF("BSP read test\n", LENGTH);
 
     // Pick the correct spi device based on simulation type
-    // spi_host_t spi;
     spi_host_t* spi;
     #ifndef USE_SPI_FLASH
     spi = spi_host1;
