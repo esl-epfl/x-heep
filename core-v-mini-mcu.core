@@ -51,6 +51,7 @@ filesets:
     - hw/core-v-mini-mcu/peripheral_subsystem.sv
     - hw/core-v-mini-mcu/ao_peripheral_subsystem.sv
     - hw/core-v-mini-mcu/axi2obi.sv
+    - hw/core-v-mini-mcu/clock_divider_simple.sv
     file_type: systemVerilogSource
 
   rtl-simulation:

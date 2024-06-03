@@ -199,7 +199,7 @@ module serial_link_network #(
     // There is a potential deadlock situation, when the last credit on the local side
     // is consumed and all the credits from the other side are currently in-flight.
     // To prevent this situation, the last credit is only consumed if credit is also sent back
-    if (credits_out_q == 0 && credits_to_send_q == 0) begin
+    if (credits_out_q == 0) begin //
       axis_reg_valid_in = 1'b0;
     end else if (credits_out_q == 1 && credits_to_send_q == 0) begin
       axis_reg_valid_in = 1'b0;
