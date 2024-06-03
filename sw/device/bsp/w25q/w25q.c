@@ -436,9 +436,9 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard(uint32_t addr, void* data,
 
 
 
-w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length) {
+w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length, uint8_t no_init_dma, uint8_t no_sanity_checks) {
     // Sanity checks
-    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
+    if (!no_sanity_checks)  if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     /*
      * SET UP DMA
@@ -447,7 +447,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     uint32_t *fifo_ptr_rx = spi.base_addr.base + SPI_HOST_RXDATA_REG_OFFSET;
 
     // Init DMA, the integrated DMA is used (peri == NULL)
-    dma_init(NULL);
+    if(!no_init_dma)    dma_init(NULL);
 
     // The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
     #ifndef USE_SPI_FLASH
@@ -484,6 +484,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     };
 
     // Validate, load and launch DMA transaction
+
     dma_config_flags_t res;
     res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     res = dma_load_transaction(&trans);
@@ -547,7 +548,7 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard_dma(uint32_t addr, void* d
         uint32_t sector_start_addr = current_addr & 0xfffff000;
 
         // Read the full sector and save it into RAM
-        status = w25q128jw_read_standard_dma(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        status = w25q128jw_read_standard_dma(sector_start_addr, sector_data, FLASH_SECTOR_SIZE, 0, 0);
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Erase the sector (no need to do so in simulation)

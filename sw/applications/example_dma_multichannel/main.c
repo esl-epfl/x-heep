@@ -27,12 +27,15 @@
 #include "csr.h"
 #include "rv_plic.h"
 #include "test_data.h"
+#include "test_data_flash.h"
+#include "w25q128jw.h"
 
-/*  DISCLAIMER: Before changing from test to test, change the number of channels in mcu_cfg.hjson
+/*  
+ *  DISCLAIMER: Before changing from test to test, change the number of channels in mcu_cfg.hjson
  *  and re-run "make mcu-gen" ... and "make verilator-sim". When using the default memory configuration,
  *  pay attention to the dimensions of the output matrices.
  * 
- *  Select which test to run:
+ *  Select which test to run by defining the correct TEST_ID_*:
  *  
  *  0: Extract a NxM matrix, perform optional padding and copy the result to two separate
  *     AxB matrices using 2 channels at the same time using direct register writes
@@ -44,10 +47,16 @@
  *      - CH1: Extract a NxM matrix, perform optional padding and copy the result
  *      - CH2: Extract a NxM matrix, perform optional padding, transpose it and copy the result
  *      - CH3: Extract a NxM matrix, perform optional padding, transpose it and copy the result
+ *  4: Extract a NxM matrix, perform optional padding and copy the result to a location using one channel using HALs, 
+ *     while using the other channel to read a buffer from SPI and copy it to another location.
  * 
  */
 
-#define TEST_ID 0
+#define TEST_ID_0
+#define TEST_ID_1
+#define TEST_ID_2
+#define TEST_ID_3
+#define TEST_ID_4
 
 /* Enable performance analysis */
 #define EN_PERF 1
@@ -58,8 +67,8 @@
 /* Parameters */
 
 /* Size of the extracted matrix (including strides on the input, excluding strides on the outputs) */
-#define SIZE_EXTR_D1 10
-#define SIZE_EXTR_D2 10
+#define SIZE_EXTR_D1 4
+#define SIZE_EXTR_D2 4
 
 /* Set strides of the input ad output matrix */
 #define STRIDE_IN_D1 1
@@ -81,9 +90,15 @@
 #define OUT_DIM_1D ( OUT_D1_PAD_STRIDE  )
 #define OUT_DIM_2D ( OUT_D1_PAD_STRIDE * OUT_D2_PAD_STRIDE )
 
-/* Defines for DMA */
+/* Defines for DMA channels */
 #define DMA_CH0_IDX 0
 #define DMA_CH1_IDX 1
+#define DMA_CH2_IDX 2
+#define DMA_CH3_IDX 3
+
+/* Assigning a pointer to a define writes the pointed array in the flash */
+#define TEST_DATA_FLASH_PTR test_data_flash
+#define TEST_DATA_FLASH_LEN 32
 
 /* Mask for direct register operations example */
 #define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ))
@@ -111,32 +126,41 @@
     #define PRINTF(...)
 #endif
 
-#if TEST_ID == 0 || TEST_ID == 2 || TEST_ID == 3
+/* Defines for SPI board */
+#if !TARGET_SIM
+    #define USE_SPI_FLASH
+#endif
+
+/* Memory allocation for examples */
+uint32_t copied_test_data_flash[TEST_DATA_FLASH_LEN];
+dma_input_data_type copied_data_1D_DMA[OUT_DIM_1D];
+dma_input_data_type copied_data_1D_CPU[OUT_DIM_1D];
 dma_input_data_type copied_data_2D_DMA_ch0[OUT_DIM_2D];
 dma_input_data_type copied_data_2D_DMA_ch1[OUT_DIM_2D];
-dma_input_data_type copied_data_2D_CPU_ch0[OUT_DIM_2D];
-dma_input_data_type copied_data_2D_CPU_ch1[OUT_DIM_2D];
-#endif
-
-#if TEST_ID == 1
-dma_input_data_type copied_data_1D_DMA[OUT_DIM_2D];
-dma_input_data_type copied_data_1D_CPU[OUT_DIM_2D];
-#endif
-
-#if TEST_ID == 3
 dma_input_data_type copied_data_2D_DMA_ch2[OUT_DIM_2D];
 dma_input_data_type copied_data_2D_DMA_ch3[OUT_DIM_2D];
+dma_input_data_type copied_data_2D_CPU_ch0[OUT_DIM_2D];
+dma_input_data_type copied_data_2D_CPU_ch1[OUT_DIM_2D];
 dma_input_data_type copied_data_2D_CPU_ch2[OUT_DIM_2D];
 dma_input_data_type copied_data_2D_CPU_ch3[OUT_DIM_2D];
-#endif
+
+/* DMA source, destination and transaction */
+dma_target_t tgt_src;
+dma_target_t tgt_dst_ch0;
+dma_target_t tgt_dst_ch1;
+dma_target_t tgt_dst_ch2;
+dma_target_t tgt_dst_ch3;
+dma_trans_t trans_ch0;
+dma_trans_t trans_ch1;
+dma_trans_t trans_ch2;
+dma_trans_t trans_ch3;
+dma_target_t tgt_src_trsp;
 
 dma_config_flags_t res_valid, res_load, res_launch;
 
-#if TEST_ID == 0
+#ifdef TEST_ID_0
 dma *peri_ch0 = dma_peri(0);
 dma *peri_ch1 = dma_peri(1);
-#elif TEST_ID == 1
-dma *peri_ch0 = dma_peri(0);
 #endif
 
 uint32_t dst_ptr = 0, src_ptr = 0;
@@ -184,8 +208,7 @@ static inline volatile void write_register( uint32_t  p_val,
 int main()
 {
 
-    #if TEST_ID == 0
-
+    #ifdef TEST_ID_0
 
     /* 
      * Testing copy and padding of a NxM matrix using direct register operations.
@@ -490,12 +513,9 @@ int main()
 
     PRINTF("DMA cycles: %d\n\r", cycles_dma);
     PRINTF("CPU cycles: %d \n\r", cycles_cpu);
-    PRINTF("\n\r");
     #endif
 
     #if EN_VERIF
-    
-    PRINTF("%d %d\n\r", ch0_done, ch1_done);
 
     /* Verify that the DMA and the CPU outputs are the same */
     for (int i = 0; i < OUT_D2_PAD_STRIDE; i++) {
@@ -509,23 +529,34 @@ int main()
     }
 
     if (passed) {
-        PRINTF("Success\n\r");
+        PRINTF("Success test 0\n\n\r");
     } 
     else 
     {
-        PRINTF("Fail\n\r");
+        PRINTF("Fail test 0\n\r");
         return EXIT_FAILURE;
     }
 
     #endif 
 
-    #elif TEST_ID == 1
+    #endif
+    
+    #ifdef TEST_ID_1
 
     /* Testing copy and padding of a NxM matrix using Low Level control, i.e. register writes.
      * This strategy allows for maximum performance but doesn't perform any checks on the data integrity.
      * The data is copied using both ch0 and ch1 to two different memory locations, obtaining two identical copies.
      */
-    
+
+    /* Reset for second test */
+    passed = 1;
+    i_in = 0;
+    j_in = 0;
+    left_pad_cnt = 0;
+    top_pad_cnt = 0;
+    stride_1d_cnt = 0;
+    stride_2d_cnt = 0;
+
     #if EN_PERF
 
     /* Reset the counter to evaluate the performance of the DMA */
@@ -533,15 +564,15 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
-    /* The M2S DMA is initialized (i.e. Any current transaction is cleaned.) */
+    /* The DMA is initialized (i.e. Any current transaction is cleaned.) */
     dma_init(NULL);
 
-    /* Enable the M2S DMA interrupt logic for channel 0 */
+    /* Enable the DMA interrupt logic for channel 0 */
     write_register( ( 0x1 << DMA_CH0_IDX),
                     DMA_TRANSACTION_IFR_REG_OFFSET,
-                    DMA_TRANSACTION_IFR_EN_MASK,
-                    DMA_TRANSACTION_IFR_EN_OFFSET,
-                    dma_peri );
+                    0x1,
+                    DMA_TRANSACTION_IFR_FLAG_BIT,
+                    peri_ch0 );
 
     /* Enable global interrupts */
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -551,7 +582,7 @@ int main()
 
     /* Pointer set up */
     peri_ch0->SRC_PTR = &test_data[0];
-    peri_ch0->DST_PTR = copied_data_2D_DMA_ch0;
+    peri_ch0->DST_PTR = copied_data_1D_DMA;
 
     /* Dimensionality configuration */
     write_register( 0x1,
@@ -626,13 +657,13 @@ int main()
 
     /* Set the sizes */
 
-    write_register( SIZE_OUT_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
+    write_register( SIZE_EXTR_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                     DMA_SIZE_D2_REG_OFFSET,
                     DMA_SIZE_D2_SIZE_MASK,
                     DMA_SIZE_D2_SIZE_OFFSET,
                     peri_ch0 );
 
-    write_register( SIZE_OUT_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
+    write_register( SIZE_EXTR_D1 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                     DMA_SIZE_D1_REG_OFFSET,
                     DMA_SIZE_D1_SIZE_MASK,
                     DMA_SIZE_D1_SIZE_OFFSET,
@@ -678,32 +709,36 @@ int main()
     #if EN_VERIF
 
     /* Run the same computation on the CPU */
-    for (int i=0; i < OUT_D2; i++)
+    for (int j=0; j < OUT_D1_PAD_STRIDE; j++)
     {
-        for (int j=0; j < OUT_D1; j++)
+        dst_ptr = j;
+        src_ptr = (j_in - left_pad_cnt) * STRIDE_IN_D1;
+
+        if (j_in < LEFT_PAD || j_in >= SIZE_EXTR_D1 + LEFT_PAD ||
+            stride_1d_cnt != 0)
         {
-            read_ptr = i * STRIDE_OUT_D2 * OUT_D1 + j * STRIDE_OUT_D1;
-            write_ptr = (i - top_pad_cnt ) * STRIDE_IN_D2 * SIZE_IN_D1 + (j - left_pad_cnt) * STRIDE_IN_D1;
-            if (i < TOP_PAD || i >= SIZE_OUT_D2 + BOTTOM_PAD || j < LEFT_PAD || j >= SIZE_OUT_D1 + RIGHT_PAD)
-            {
-                copied_data_2D_CPU_ch0[read_ptr] = 0;
-            }
-            else
-            {
-                copied_data_2D_CPU_ch0[read_ptr] = test_data[write_ptr];
-            }
-            if (j < LEFT_PAD && i >= TOP_PAD)
-            {
-                left_pad_cnt++;
-            }
+            copied_data_1D_CPU[dst_ptr] = 0;
         }
-        if (i < TOP_PAD)
+        else
         {
-            top_pad_cnt++;
+            copied_data_1D_CPU[dst_ptr] = test_data[src_ptr];
         }
-        left_pad_cnt = 0;
+
+        if (j_in < LEFT_PAD && stride_1d_cnt == 0)
+        {
+            left_pad_cnt++;
+        }
+
+        if (stride_1d_cnt == STRIDE_OUT_D1 - 1)
+        {
+            stride_1d_cnt = 0;
+            j_in++;
+        }
+        else
+        {
+            stride_1d_cnt++;
+        }
     }
-    
     #endif
 
     #if EN_PERF
@@ -713,35 +748,49 @@ int main()
 
     PRINTF("DMA cycles: %d\n\r", cycles_dma);
     PRINTF("CPU cycles: %d \n\r", cycles_cpu);
-    PRINTF("\n\r");
     #endif
 
     #if EN_VERIF
-    
-    PRINTF("%d %d %d\n\r", ch0_done, ch1_done, flag);
 
     /* Verify that the DMA and the CPU outputs are the same */
-    for (int j = 0; j < OUT_D1; j++) {
-        if (copied_data_2D_DMA_ch0[j] != copied_data_2D_CPU_ch0[j]) {
+    for (int j = 0; j < OUT_D1_PAD_STRIDE; j++) {
+        if (copied_data_1D_DMA[j] != copied_data_1D_CPU[j]) {
             passed = 0;
         }
     }
 
     if (passed) {
-        PRINTF("Success\n\r");
+        PRINTF("Success test 1\n\n\r");
     } 
     else 
     {
-        PRINTF("Fail\n\r");
+        PRINTF("Fail test 1\n\r");
         return EXIT_FAILURE;
     }
 
     #endif 
 
-    #elif TEST_ID == 2
+    #endif 
+
+    #ifdef TEST_ID_2
 
     /* Testing copy and padding of a NxM matrix to two different locations using 2 channels and HALs */
     
+    /* Reset for third test */
+    passed = 1;
+    i_in = 0;
+    j_in = 0;
+    left_pad_cnt = 0;
+    top_pad_cnt = 0;
+    stride_1d_cnt = 0;
+    stride_2d_cnt = 0;
+    for (int i = 0; i < OUT_DIM_2D; i++) {
+        copied_data_2D_DMA_ch0[i] = 0;
+        copied_data_2D_CPU_ch0[i] = 0;
+        copied_data_2D_DMA_ch1[i] = 0;
+        copied_data_2D_CPU_ch1[i] = 0;
+    }
+
     #if EN_PERF
 
     /* Reset the counter to evaluate the performance of the DMA */
@@ -749,57 +798,47 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
-     dma_target_t tgt_src = {
-                                .ptr            = &test_data[0],
-                                .inc_du         = SRC_INC_D1,
-                                .inc_d2_du      = SRC_INC_D2,
-                                .size_du        = SIZE_EXTR_D1,
-                                .size_d2_du     = SIZE_EXTR_D2,
-                                .trig           = DMA_TRIG_MEMORY,
-                                .type           = DMA_DATA_TYPE,
-                            };
+    tgt_src.ptr            = &test_data[0];
+    tgt_src.inc_du         = SRC_INC_D1;
+    tgt_src.inc_d2_du      = SRC_INC_D2;
+    tgt_src.size_du        = SIZE_EXTR_D1;
+    tgt_src.size_d2_du     = SIZE_EXTR_D2;
+    tgt_src.trig           = DMA_TRIG_MEMORY;
+    tgt_src.type           = DMA_DATA_TYPE;
 
-    dma_target_t tgt_dst_ch0 = {
-                                .ptr            = copied_data_2D_DMA_ch0,
-                                .inc_du         = DST_INC_D1,
-                                .inc_d2_du      = DST_INC_D2,
-                                .trig           = DMA_TRIG_MEMORY
-                            };
+    tgt_dst_ch0.ptr            = copied_data_2D_DMA_ch0;
+    tgt_dst_ch0.inc_du         = DST_INC_D1;
+    tgt_dst_ch0.inc_d2_du      = DST_INC_D2;
+    tgt_dst_ch0.trig           = DMA_TRIG_MEMORY;
     
-    dma_target_t tgt_dst_ch1 = {
-                                .ptr            = copied_data_2D_DMA_ch1,
-                                .inc_du         = DST_INC_D1,
-                                .inc_d2_du      = DST_INC_D2,
-                                .trig           = DMA_TRIG_MEMORY
-                            };
+    tgt_dst_ch1.ptr            = copied_data_2D_DMA_ch1;
+    tgt_dst_ch1.inc_du         = DST_INC_D1;
+    tgt_dst_ch1.inc_d2_du      = DST_INC_D2;
+    tgt_dst_ch1.trig           = DMA_TRIG_MEMORY;
 
-    dma_trans_t trans_ch0 =     {
-                                .src            = &tgt_src,
-                                .dst            = &tgt_dst_ch0,
-                                .mode           = DMA_TRANS_MODE_SINGLE,
-                                .dim            = DMA_DIM_CONF_2D,
-                                .pad_top_du     = TOP_PAD,
-                                .pad_bottom_du  = BOTTOM_PAD,
-                                .pad_left_du    = LEFT_PAD,
-                                .pad_right_du   = RIGHT_PAD,
-                                .win_du         = 0,
-                                .end            = DMA_TRANS_END_INTR,
-                                .channel        = 0
-                            };
+    trans_ch0.src            = &tgt_src;
+    trans_ch0.dst            = &tgt_dst_ch0;
+    trans_ch0.mode           = DMA_TRANS_MODE_SINGLE;
+    trans_ch0.dim            = DMA_DIM_CONF_2D;
+    trans_ch0.pad_top_du     = TOP_PAD;
+    trans_ch0.pad_bottom_du  = BOTTOM_PAD;
+    trans_ch0.pad_left_du    = LEFT_PAD;
+    trans_ch0.pad_right_du   = RIGHT_PAD;
+    trans_ch0.win_du         = 0;
+    trans_ch0.end            = DMA_TRANS_END_INTR;
+    trans_ch0.channel        = 0;
 
-    dma_trans_t trans_ch1 =     {
-                                .src            = &tgt_src,
-                                .dst            = &tgt_dst_ch1,
-                                .mode           = DMA_TRANS_MODE_SINGLE,
-                                .dim            = DMA_DIM_CONF_2D,
-                                .pad_top_du     = TOP_PAD,
-                                .pad_bottom_du  = BOTTOM_PAD,
-                                .pad_left_du    = LEFT_PAD,
-                                .pad_right_du   = RIGHT_PAD,
-                                .win_du         = 0,
-                                .end            = DMA_TRANS_END_INTR,
-                                .channel        = 1
-                            };
+    trans_ch1.src            = &tgt_src;
+    trans_ch1.dst            = &tgt_dst_ch1;
+    trans_ch1.mode           = DMA_TRANS_MODE_SINGLE;
+    trans_ch1.dim            = DMA_DIM_CONF_2D;
+    trans_ch1.pad_top_du     = TOP_PAD;
+    trans_ch1.pad_bottom_du  = BOTTOM_PAD;
+    trans_ch1.pad_left_du    = LEFT_PAD;
+    trans_ch1.pad_right_du   = RIGHT_PAD;
+    trans_ch1.win_du         = 0;
+    trans_ch1.end            = DMA_TRANS_END_INTR;
+    trans_ch1.channel        = 1;
     
     dma_init(NULL);
     
@@ -918,30 +957,12 @@ int main()
 
     /* Read the cycles count after the CPU run */
     CSR_READ(CSR_REG_MCYCLE, &cycles_cpu);
-    /*PRINTF("DMA cycles: %d\n\r", cycles_dma);
+    PRINTF("DMA cycles: %d\n\r", cycles_dma);
     PRINTF("CPU cycles: %d \n\r", cycles_cpu);
-    PRINTF("\n\r");*/
-    PRINTF("%d\n\r", cycles_dma);
-    PRINTF("%d \n\r", cycles_cpu);
-    PRINTF("\n\r");
 
     #endif
 
     #if EN_VERIF
-
-    for (int i = 0; i < OUT_D2_PAD_STRIDE; i++) {
-        for (int j = 0; j < OUT_D1_PAD_STRIDE; j++) {
-            PRINTF("%d ", copied_data_2D_DMA_ch0[i * OUT_D1_PAD_STRIDE + j]);
-        }
-        PRINTF("\n\r");
-    }
-
-    for (int i = 0; i < OUT_D2_PAD_STRIDE; i++) {
-        for (int j = 0; j < OUT_D1_PAD_STRIDE; j++) {
-            PRINTF("%d ", copied_data_2D_CPU_ch1[i * OUT_D1_PAD_STRIDE + j]);
-        }
-        PRINTF("\n\r");
-    }
 
     /* Verify that the DMA and the CPU outputs are the same */
     for (int i = 0; i < OUT_D2_PAD_STRIDE; i++) {
@@ -955,20 +976,35 @@ int main()
     }
 
     if (passed) {
-        PRINTF("Success\n\r");
-        return EXIT_SUCCESS;
+        PRINTF("Success test 2\n\n\r");
     } 
     else 
     {
-        PRINTF("Fail\n\r");
+        PRINTF("Fail test 2\n\r");
         return EXIT_FAILURE;
     }
     #endif
 
-    #elif TEST_ID == 3
+    #endif
     
-
+    #ifdef TEST_ID_3
+    
     /* Complex 4 channel DMA test */
+
+    /* Reset for fourth test */
+    passed = 1;
+    i_in = 0;
+    j_in = 0;
+    left_pad_cnt = 0;
+    top_pad_cnt = 0;
+    stride_1d_cnt = 0;
+    stride_2d_cnt = 0;
+    for (int i = 0; i < OUT_DIM_2D; i++) {
+        copied_data_2D_DMA_ch0[i] = 0;
+        copied_data_2D_CPU_ch0[i] = 0;
+        copied_data_2D_DMA_ch1[i] = 0;
+        copied_data_2D_CPU_ch1[i] = 0;
+    }
     
     #if EN_PERF
 
@@ -977,103 +1013,83 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
-     dma_target_t tgt_src = {
-                                .ptr            = &test_data[0],
-                                .inc_du         = SRC_INC_D1,
-                                .inc_d2_du      = SRC_INC_D2,
-                                .size_du        = SIZE_EXTR_D1,
-                                .size_d2_du     = SIZE_EXTR_D2,
-                                .trig           = DMA_TRIG_MEMORY,
-                                .type           = DMA_DATA_TYPE,
-                            };
+    tgt_src.ptr            = &test_data[0];
+    tgt_src.inc_du         = SRC_INC_D1;
+    tgt_src.inc_d2_du      = SRC_INC_D2;
+    tgt_src.size_du        = SIZE_EXTR_D1;
+    tgt_src.size_d2_du     = SIZE_EXTR_D2;
+    tgt_src.trig           = DMA_TRIG_MEMORY;
+    tgt_src.type           = DMA_DATA_TYPE;
 
-    dma_target_t tgt_src_trsp = {
-                                .ptr            = &test_data[0],
-                                .inc_du         = SRC_INC_TRSP_D1,
-                                .inc_d2_du      = SRC_INC_TRSP_D2,
-                                .size_du        = SIZE_EXTR_D1,
-                                .size_d2_du     = SIZE_EXTR_D2,
-                                .trig           = DMA_TRIG_MEMORY,
-                                .type           = DMA_DATA_TYPE,
-                            };
+    tgt_src_trsp.ptr            = &test_data[0];
+    tgt_src_trsp.inc_du         = SRC_INC_TRSP_D1;
+    tgt_src_trsp.inc_d2_du      = SRC_INC_TRSP_D2;
+    tgt_src_trsp.size_du        = SIZE_EXTR_D1;
+    tgt_src_trsp.size_d2_du     = SIZE_EXTR_D2;
+    tgt_src_trsp.trig           = DMA_TRIG_MEMORY;
+    tgt_src_trsp.type           = DMA_DATA_TYPE;
 
-    dma_target_t tgt_dst_ch0 = {
-                                .ptr            = copied_data_2D_DMA_ch0,
-                                .inc_du         = DST_INC_D1,
-                                .inc_d2_du      = DST_INC_D2,
-                                .trig           = DMA_TRIG_MEMORY
-                            };
+    tgt_dst_ch0.ptr            = copied_data_2D_DMA_ch0;
+    tgt_dst_ch0.inc_du         = DST_INC_D1;
+    tgt_dst_ch0.inc_d2_du      = DST_INC_D2;
+    tgt_dst_ch0.trig           = DMA_TRIG_MEMORY;
     
-    dma_target_t tgt_dst_ch1 = {
-                                .ptr            = copied_data_2D_DMA_ch1,
-                                .inc_du         = DST_INC_D1,
-                                .inc_d2_du      = DST_INC_D2,
-                                .trig           = DMA_TRIG_MEMORY
-                            };
+    tgt_dst_ch1.ptr            = copied_data_2D_DMA_ch1;
+    tgt_dst_ch1.inc_du         = DST_INC_D1;
+    tgt_dst_ch1.inc_d2_du      = DST_INC_D2;
+    tgt_dst_ch1.trig           = DMA_TRIG_MEMORY;
 
-    dma_target_t tgt_dst_ch2 = {
-                                .ptr            = copied_data_2D_DMA_ch2,
-                                .inc_du         = DST_INC_D1,
-                                .inc_d2_du      = DST_INC_D2,
-                                .trig           = DMA_TRIG_MEMORY
-                            };
+    tgt_dst_ch2.ptr            = copied_data_2D_DMA_ch2;
+    tgt_dst_ch2.inc_du         = DST_INC_D1;
+    tgt_dst_ch2.inc_d2_du      = DST_INC_D2;
+    tgt_dst_ch2.trig           = DMA_TRIG_MEMORY;
 
-    dma_target_t tgt_dst_ch3 = {
-                                .ptr            = copied_data_2D_DMA_ch3,
-                                .inc_du         = DST_INC_D1,
-                                .inc_d2_du      = DST_INC_D2,
-                                .trig           = DMA_TRIG_MEMORY
-                            };
+    tgt_dst_ch3.ptr            = copied_data_2D_DMA_ch3;
+    tgt_dst_ch3.inc_du         = DST_INC_D1;
+    tgt_dst_ch3.inc_d2_du      = DST_INC_D2;
+    tgt_dst_ch3.trig           = DMA_TRIG_MEMORY;
 
-    dma_trans_t trans_ch0 =     {
-                                .src            = &tgt_src,
-                                .dst            = &tgt_dst_ch0,
-                                .mode           = DMA_TRANS_MODE_SINGLE,
-                                .dim            = DMA_DIM_CONF_2D,
-                                .win_du         = 0,
-                                .end            = DMA_TRANS_END_INTR,
-                                .channel        = 0
-                            };
+    trans_ch0.src            = &tgt_src;
+    trans_ch0.dst            = &tgt_dst_ch0;
+    trans_ch0.mode           = DMA_TRANS_MODE_SINGLE;
+    trans_ch0.dim            = DMA_DIM_CONF_2D;
+    trans_ch0.win_du         = 0;
+    trans_ch0.end            = DMA_TRANS_END_INTR;
+    trans_ch0.channel        = 0;
 
-    dma_trans_t trans_ch1 =     {
-                                .src            = &tgt_src,
-                                .dst            = &tgt_dst_ch1,
-                                .mode           = DMA_TRANS_MODE_SINGLE,
-                                .dim            = DMA_DIM_CONF_2D,
-                                .pad_top_du     = TOP_PAD,
-                                .pad_bottom_du  = BOTTOM_PAD,
-                                .pad_left_du    = LEFT_PAD,
-                                .pad_right_du   = RIGHT_PAD,
-                                .win_du         = 0,
-                                .end            = DMA_TRANS_END_INTR,
-                                .channel        = 1
-                            };
+    trans_ch1.src            = &tgt_src;
+    trans_ch1.dst            = &tgt_dst_ch1;
+    trans_ch1.mode           = DMA_TRANS_MODE_SINGLE;
+    trans_ch1.dim            = DMA_DIM_CONF_2D;
+    trans_ch1.pad_top_du     = TOP_PAD;
+    trans_ch1.pad_bottom_du  = BOTTOM_PAD;
+    trans_ch1.pad_left_du    = LEFT_PAD;
+    trans_ch1.pad_right_du   = RIGHT_PAD;
+    trans_ch1.win_du         = 0;
+    trans_ch1.end            = DMA_TRANS_END_INTR;
+    trans_ch1.channel        = DMA_CH1_IDX;
 
-    dma_trans_t trans_ch2 =     {
-                                .src            = &tgt_src_trsp,
-                                .dst            = &tgt_dst_ch1,
-                                .mode           = DMA_TRANS_MODE_SINGLE,
-                                .dim            = DMA_DIM_CONF_2D,
-                                .win_du         = 0,
-                                .end            = DMA_TRANS_END_INTR,
-                                .dim_inv        = TRANSPOSITION_EN,
-                                .channel        = 2
-                            };
+    trans_ch2.src            = &tgt_src_trsp;
+    trans_ch2.dst            = &tgt_dst_ch1;
+    trans_ch2.mode           = DMA_TRANS_MODE_SINGLE;
+    trans_ch2.dim            = DMA_DIM_CONF_2D;
+    trans_ch2.win_du         = 0;
+    trans_ch2.end            = DMA_TRANS_END_INTR;
+    trans_ch2.dim_inv        = TRANSPOSITION_EN;
+    trans_ch2.channel        = DMA_CH2_IDX;
 
-    dma_trans_t trans_ch3 =     {
-                                .src            = &tgt_src_trsp,
-                                .dst            = &tgt_dst_ch1,
-                                .mode           = DMA_TRANS_MODE_SINGLE,
-                                .dim            = DMA_DIM_CONF_2D,
-                                .pad_top_du     = TOP_PAD,
-                                .pad_bottom_du  = BOTTOM_PAD,
-                                .pad_left_du    = LEFT_PAD,
-                                .pad_right_du   = RIGHT_PAD,
-                                .win_du         = 0,
-                                .end            = DMA_TRANS_END_INTR,
-                                .dim_inv        = TRANSPOSITION_EN,
-                                .channel        = 3
-                            };
+    trans_ch3.src            = &tgt_src_trsp;
+    trans_ch3.dst            = &tgt_dst_ch1;
+    trans_ch3.mode           = DMA_TRANS_MODE_SINGLE;
+    trans_ch3.dim            = DMA_DIM_CONF_2D;
+    trans_ch3.pad_top_du     = TOP_PAD;
+    trans_ch3.pad_bottom_du  = BOTTOM_PAD;
+    trans_ch3.pad_left_du    = LEFT_PAD;
+    trans_ch3.pad_right_du   = RIGHT_PAD;
+    trans_ch3.win_du         = 0;
+    trans_ch3.end            = DMA_TRANS_END_INTR;
+    trans_ch3.dim_inv        = TRANSPOSITION_EN;
+    trans_ch3.channel        = DMA_CH3_IDX;
     
     dma_init(NULL);
     
@@ -1257,7 +1273,7 @@ int main()
         left_pad_cnt = 0;
     }
 
-    /* Run the same computation on the CPU */
+    /* Run the same computation on the CPU for the transposed cases*/
     j_in_last = -1;
     stride_2d_cnt = 0;
     left_pad_cnt = 0;
@@ -1265,21 +1281,13 @@ int main()
     for (int i=0; i < OUT_D2_PAD_STRIDE; i++)
     {
         stride_1d_cnt = 0;
-        i_in = 0;
-        top_pad_cnt = 0;
-
-        if (j_in < TOP_PAD && j_in != j_in_last && stride_1d_cnt == 0 && stride_2d_cnt == 0)
-        {
-            left_pad_cnt++;
-        }
-
-        j_in_last = j_in;
+        j_in = 0;
 
         for (int j=0; j < OUT_D1_PAD_STRIDE; j++)
-        {   
+        {
             dst_ptr = i * OUT_D1_PAD_STRIDE + j;
-            src_ptr = (i_in - top_pad_cnt ) * STRIDE_IN_D2 * SIZE_IN_D1 + (j_in - left_pad_cnt) * STRIDE_IN_D1;
-            if (i_in < LEFT_PAD || i_in >= SIZE_EXTR_D1 + LEFT_PAD || j_in < TOP_PAD || j_in >= SIZE_EXTR_D2 + TOP_PAD ||
+            src_ptr = (j_in - left_pad_cnt) * STRIDE_IN_D2 * SIZE_IN_D1 + (i_in - top_pad_cnt ) * STRIDE_IN_D1;
+            if (i_in < TOP_PAD || i_in >= SIZE_EXTR_D2 + TOP_PAD || j_in < LEFT_PAD || j_in >= SIZE_EXTR_D1 + LEFT_PAD ||
                 stride_1d_cnt != 0 || stride_2d_cnt != 0)
             {
                 copied_data_2D_CPU_ch2[dst_ptr] = 0;
@@ -1289,15 +1297,15 @@ int main()
                 copied_data_2D_CPU_ch2[dst_ptr] = test_data[src_ptr];
             }
 
-            if (i_in < LEFT_PAD && stride_2d_cnt == 0)
+            if (j_in < LEFT_PAD && i_in >= TOP_PAD && stride_1d_cnt == 0 && stride_2d_cnt == 0)
             {
-                top_pad_cnt++;
-            }           
-            
+                left_pad_cnt++;
+            }
+
             if (stride_1d_cnt == STRIDE_OUT_D1 - 1)
             {
                 stride_1d_cnt = 0;
-                i_in++;
+                j_in++;
             }
             else
             {
@@ -1306,15 +1314,22 @@ int main()
 
         }
 
+        if (i_in < TOP_PAD && stride_2d_cnt == 0)
+        {
+            top_pad_cnt++;
+        }
+        
         if (stride_2d_cnt == STRIDE_OUT_D2 - 1)
         {
             stride_2d_cnt = 0;
-            j_in++;
+            i_in++;
         }
         else
         {
             stride_2d_cnt++;
         }
+
+        left_pad_cnt = 0;
     }
 
     j_in_last = -1;
@@ -1324,21 +1339,13 @@ int main()
     for (int i=0; i < OUT_D2_PAD_STRIDE; i++)
     {
         stride_1d_cnt = 0;
-        i_in = 0;
-        top_pad_cnt = 0;
-
-        if (j_in < TOP_PAD && j_in != j_in_last && stride_1d_cnt == 0 && stride_2d_cnt == 0)
-        {
-            left_pad_cnt++;
-        }
-
-        j_in_last = j_in;
+        j_in = 0;
 
         for (int j=0; j < OUT_D1_PAD_STRIDE; j++)
-        {   
+        {
             dst_ptr = i * OUT_D1_PAD_STRIDE + j;
-            src_ptr = (i_in - top_pad_cnt ) * STRIDE_IN_D2 * SIZE_IN_D1 + (j_in - left_pad_cnt) * STRIDE_IN_D1;
-            if (i_in < LEFT_PAD || i_in >= SIZE_EXTR_D1 + LEFT_PAD || j_in < TOP_PAD || j_in >= SIZE_EXTR_D2 + TOP_PAD ||
+            src_ptr = (j_in - left_pad_cnt) * STRIDE_IN_D2 * SIZE_IN_D1 + (i_in - top_pad_cnt ) * STRIDE_IN_D1;
+            if (i_in < TOP_PAD || i_in >= SIZE_EXTR_D2 + TOP_PAD || j_in < LEFT_PAD || j_in >= SIZE_EXTR_D1 + LEFT_PAD ||
                 stride_1d_cnt != 0 || stride_2d_cnt != 0)
             {
                 copied_data_2D_CPU_ch3[dst_ptr] = 0;
@@ -1348,15 +1355,15 @@ int main()
                 copied_data_2D_CPU_ch3[dst_ptr] = test_data[src_ptr];
             }
 
-            if (i_in < LEFT_PAD && stride_2d_cnt == 0)
+            if (j_in < LEFT_PAD && i_in >= TOP_PAD && stride_1d_cnt == 0 && stride_2d_cnt == 0)
             {
-                top_pad_cnt++;
-            }           
-            
+                left_pad_cnt++;
+            }
+
             if (stride_1d_cnt == STRIDE_OUT_D1 - 1)
             {
                 stride_1d_cnt = 0;
-                i_in++;
+                j_in++;
             }
             else
             {
@@ -1365,15 +1372,22 @@ int main()
 
         }
 
+        if (i_in < TOP_PAD && stride_2d_cnt == 0)
+        {
+            top_pad_cnt++;
+        }
+        
         if (stride_2d_cnt == STRIDE_OUT_D2 - 1)
         {
             stride_2d_cnt = 0;
-            j_in++;
+            i_in++;
         }
         else
         {
             stride_2d_cnt++;
         }
+
+        left_pad_cnt = 0;
     }
     
     #endif
@@ -1384,7 +1398,6 @@ int main()
     CSR_READ(CSR_REG_MCYCLE, &cycles_cpu);
     PRINTF("DMA cycles: %d\n\r", cycles_dma);
     PRINTF("CPU cycles: %d \n\r", cycles_cpu);
-    PRINTF("\n\r");
 
     #endif
 
@@ -1404,15 +1417,240 @@ int main()
     }
 
     if (passed) {
-        PRINTF("Success\n\r");
-        return EXIT_SUCCESS;
+        PRINTF("Success test 3\n\n\r");
     } 
     else 
     {
-        PRINTF("Fail\n\r");
+        PRINTF("Fail test 3\n\r");
         return EXIT_FAILURE;
     }
     #endif
 
     #endif
+
+    #ifdef TEST_ID_4
+
+    /* Testing SPI2RAM & RAM2RAM operations on 2 channels */
+
+    /* Reset for third test */
+    passed = 1;
+    i_in = 0;
+    j_in = 0;
+    left_pad_cnt = 0;
+    top_pad_cnt = 0;
+    stride_1d_cnt = 0;
+    stride_2d_cnt = 0;
+    for (int i = 0; i < OUT_DIM_2D; i++) {
+        copied_data_2D_DMA_ch1[i] = 0;
+        copied_data_2D_CPU_ch1[i] = 0;
+    }
+
+    #if EN_PERF
+
+    /* Reset the counter to evaluate the performance of the DMA */
+    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    CSR_WRITE(CSR_REG_MCYCLE, 0);
+    #endif
+
+    tgt_src.ptr            = &test_data[0];
+    tgt_src.inc_du         = SRC_INC_D1;
+    tgt_src.inc_d2_du      = SRC_INC_D2;
+    tgt_src.size_du        = SIZE_EXTR_D1;
+    tgt_src.size_d2_du     = SIZE_EXTR_D2;
+    tgt_src.trig           = DMA_TRIG_MEMORY;
+    tgt_src.type           = DMA_DATA_TYPE;
+
+    tgt_dst_ch1.ptr            = copied_data_2D_DMA_ch1;
+    tgt_dst_ch1.inc_du         = DST_INC_D1;
+    tgt_dst_ch1.inc_d2_du      = DST_INC_D2;
+    tgt_dst_ch1.trig           = DMA_TRIG_MEMORY;
+
+    trans_ch1.src            = &tgt_src;
+    trans_ch1.dst            = &tgt_dst_ch1;
+    trans_ch1.mode           = DMA_TRANS_MODE_SINGLE;
+    trans_ch1.dim            = DMA_DIM_CONF_2D;
+    trans_ch1.pad_top_du     = TOP_PAD;
+    trans_ch1.pad_bottom_du  = BOTTOM_PAD;
+    trans_ch1.pad_left_du    = LEFT_PAD;
+    trans_ch1.pad_right_du   = RIGHT_PAD;
+    trans_ch1.win_du         = 0;
+    trans_ch1.end            = DMA_TRANS_END_INTR;
+    trans_ch1.channel        = DMA_CH1_IDX;
+    
+    /* Initialize the SPI */
+    soc_ctrl_t soc_ctrl;
+    soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
+
+    if ( get_spi_flash_mode(&soc_ctrl) == SOC_CTRL_SPI_FLASH_MODE_SPIMEMIO ) {
+        PRINTF("This application cannot work with the memory mapped SPI FLASH"
+            "module - do not use the FLASH_EXEC linker script for this application\n");
+        return EXIT_SUCCESS;
+    }
+
+    /* Pick the correct spi device based on simulation type */
+    spi_host_t spi;
+    #ifndef USE_SPI_FLASH
+    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
+    #else
+    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
+    #endif
+
+    /* Init SPI host and SPI<->Flash bridge parameters */
+    if (w25q128jw_init(spi) != FLASH_OK)
+    {
+        PRINTF("Error initializing the flash SPI\n\r");
+        return EXIT_FAILURE;
+    }
+
+    /* Start the reading process from the SPI */
+    w25q_error_codes_t status = w25q128jw_read_standard_dma(TEST_DATA_FLASH_PTR, copied_test_data_flash, TEST_DATA_FLASH_LEN*4, 1, 1);
+    if (status != FLASH_OK)
+    {
+        PRINTF("Error reading from flash\n\r");
+        return EXIT_FAILURE;
+    }
+    
+    #if EN_PERF
+
+    dma_validate_transaction(&trans_ch1, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
+    dma_load_transaction(&trans_ch1);
+    dma_launch(&trans_ch1);
+    
+    #else
+
+    res_valid = dma_validate_transaction(&trans_ch1, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
+    PRINTF("tran: %u \t%s\n\r", res_valid, res_valid == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res_load = dma_load_transaction(&trans_ch1);
+    PRINTF("load: %u \t%s\n\r", res_load, res_load == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    res_launch = dma_launch(&trans_ch1);
+    PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+    #endif
+
+    /* Wait for CH1 to end */
+    while(!dma_is_ready(0)) {
+        #if !EN_PERF
+        /* Disable_interrupts */
+        /* This does not prevent waking up the core as this is controlled by the MIP register */
+        
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+        if ( dma_is_ready(0) == 0 ) {
+            wait_for_interrupt();
+            /* From here the core wakes up even if we did not jump to the ISR */
+        }
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+        #endif
+    }
+
+    #if EN_PERF    
+
+    /* Read the cycles count after the DMA run */
+    CSR_READ(CSR_REG_MCYCLE, &cycles_dma);
+
+    /* Reset the performance counter to evaluate the CPU performance */
+    CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    CSR_WRITE(CSR_REG_MCYCLE, 0);
+    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    #endif
+
+    #if EN_VERIF
+
+    /* Run the same computation on the CPU */
+    for (int i=0; i < OUT_D2_PAD_STRIDE; i++)
+    {
+        stride_1d_cnt = 0;
+        j_in = 0;
+
+        for (int j=0; j < OUT_D1_PAD_STRIDE; j++)
+        {
+            dst_ptr = i * OUT_D1_PAD_STRIDE + j;
+            src_ptr = (i_in - top_pad_cnt ) * STRIDE_IN_D2 * SIZE_IN_D1 + (j_in - left_pad_cnt) * STRIDE_IN_D1;
+            if (i_in < TOP_PAD || i_in >= SIZE_EXTR_D2 + TOP_PAD || j_in < LEFT_PAD || j_in >= SIZE_EXTR_D1 + LEFT_PAD ||
+                stride_1d_cnt != 0 || stride_2d_cnt != 0)
+            {
+                copied_data_2D_CPU_ch1[dst_ptr] = 0;
+            }
+            else
+            {
+                copied_data_2D_CPU_ch1[dst_ptr] = test_data[src_ptr];
+            }
+
+            if (j_in < LEFT_PAD && i_in >= TOP_PAD && stride_1d_cnt == 0 && stride_2d_cnt == 0)
+            {
+                left_pad_cnt++;
+            }
+
+            if (stride_1d_cnt == STRIDE_OUT_D1 - 1)
+            {
+                stride_1d_cnt = 0;
+                j_in++;
+            }
+            else
+            {
+                stride_1d_cnt++;
+            }
+
+        }
+
+        if (i_in < TOP_PAD && stride_2d_cnt == 0)
+        {
+            top_pad_cnt++;
+        }
+        
+        if (stride_2d_cnt == STRIDE_OUT_D2 - 1)
+        {
+            stride_2d_cnt = 0;
+            i_in++;
+        }
+        else
+        {
+            stride_2d_cnt++;
+        }
+
+        left_pad_cnt = 0;
+    }
+    #endif
+
+    #if EN_PERF
+
+    /* Read the cycles count after the CPU run */
+    CSR_READ(CSR_REG_MCYCLE, &cycles_cpu);
+    PRINTF("DMA cycles: %d\n\r", cycles_dma);
+    PRINTF("CPU cycles: %d \n\r", cycles_cpu);
+
+    #endif
+
+    #if EN_VERIF
+
+    /* Verify that the DMA and the CPU outputs are the same */
+    for (int i = 0; i < OUT_D2_PAD_STRIDE; i++) {
+        for (int j = 0; j < OUT_D1_PAD_STRIDE; j++) {
+            if ((copied_data_2D_DMA_ch1[i * OUT_D1_PAD_STRIDE + j] != copied_data_2D_CPU_ch1[i * OUT_D1_PAD_STRIDE + j])) 
+            {
+                passed = 0;
+            }
+        }
+    }
+
+    /* Verify that the SPI copy was successful */
+    for (int i=0; i < TEST_DATA_FLASH_LEN; i++)
+    {
+        if (copied_test_data_flash[i] != test_data_flash[i])
+        {
+            passed = 0;
+        }
+    }
+
+    if (passed) {
+        PRINTF("Success test 4\n\r");
+    } 
+    else 
+    {
+        PRINTF("Fail test 4\n\r");
+        return EXIT_FAILURE;
+    }
+    #endif
+
+    #endif
+
+    return EXIT_SUCCESS;
 }
