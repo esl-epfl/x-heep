@@ -270,6 +270,11 @@ flash-read:
 	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
 	./iceprog -d i:0x0403:0x6011 -I B -o $(shell printf "%d" $(FLASHREAD_ADDR)) -R $(FLASHREAD_BYTES) $(FLASHREAD_FILE);
 
+## Erase the EPFL_Programmer flash
+flash-erase:
+	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
+	./iceprog -d i:0x0403:0x6011 -I B -b;
+
 ## Run openOCD w/ EPFL_Programmer
 openOCD_epflp:
 	xterm -e openocd -f ./tb/core-v-mini-mcu-pynq-z2-esl-programmer.cfg;
