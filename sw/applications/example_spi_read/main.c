@@ -20,7 +20,7 @@
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif (TARGET_PYNQ_Z2 || TARGET_ZCU104) && PRINTF_IN_FPGA
+#elif (TARGET_PYNQ_Z2 || TARGET_ZCU104 || TARGET_NEXYS_A7_100T) && PRINTF_IN_FPGA
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)

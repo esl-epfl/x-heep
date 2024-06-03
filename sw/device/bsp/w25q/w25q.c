@@ -72,7 +72,7 @@
 /**
  * @bref If the target is the FPGA, use the SPI FLASH.
 */
-#if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104)
+#if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
 #define USE_SPI_FLASH
 #endif
 
@@ -268,7 +268,7 @@ w25q_error_codes_t w25q128jw_init(spi_host_t spi_host) {
     flash_power_up();
 
     // Set QE bit (only FPGA, simulation do not support status registers at all)
-    #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104)
+    #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
     if (set_QE_bit() == FLASH_ERROR) return FLASH_ERROR; // Error occurred while setting QE bit
     #endif // (TARGET_PYNQ_Z2 || TARGET_ZCU104)
 
@@ -410,7 +410,7 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard(uint32_t addr, void* data,
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Erase the sector (no need to do so in simulation)
-        #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104)
+        #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
         w25q128jw_4k_erase(sector_start_addr);
         #endif // (TARGET_PYNQ_Z2 || TARGET_ZCU104)
 
@@ -551,7 +551,7 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard_dma(uint32_t addr, void* d
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Erase the sector (no need to do so in simulation)
-        #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104)
+        #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
         w25q128jw_4k_erase(sector_start_addr);
         #endif // (TARGET_PYNQ_Z2 || TARGET_ZCU104)
 
@@ -609,7 +609,7 @@ w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t lengt
 
     // Quad read requires dummy clocks
     const uint32_t dummy_clocks_cmd = spi_create_command((spi_command_t){
-        #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104)
+        #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
         .len        = DUMMY_CLOCKS_FAST_READ_QUAD_IO-1,
         #else
         .len        = DUMMY_CLOCKS_SIM-1,
@@ -699,7 +699,7 @@ w25q_error_codes_t w25q128jw_erase_and_write_quad(uint32_t addr, void *data, uin
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Erase the sector (no need to do so in simulation)
-        #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104)
+        #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
         w25q128jw_4k_erase(sector_start_addr);
         #endif // (TARGET_PYNQ_Z2 || TARGET_ZCU104)
 
@@ -757,7 +757,7 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
 
     // Quad read requires dummy clocks
     const uint32_t dummy_clocks_cmd = spi_create_command((spi_command_t){
-        #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104)
+        #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
         .len        = DUMMY_CLOCKS_FAST_READ_QUAD_IO-1, // W25Q128JW flash needs 4 dummy cycles
         #else
         .len        = DUMMY_CLOCKS_SIM-1, // SPI flash simulation model needs 8 dummy cycles
@@ -865,7 +865,7 @@ w25q_error_codes_t w25q128jw_erase_and_write_quad_dma(uint32_t addr, void *data,
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Erase the sector (no need to do so in simulation)
-        #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104)
+        #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
         w25q128jw_4k_erase(sector_start_addr);
         #endif // (TARGET_PYNQ_Z2 || TARGET_ZCU104)
 
@@ -1220,7 +1220,7 @@ w25q_error_codes_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Erase the sector (no need to do so in simulation)
-        #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104)
+        #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
         w25q128jw_4k_erase(sector_start_addr);
         #endif // (TARGET_PYNQ_Z2 || TARGET_ZCU104)
 
@@ -1344,7 +1344,7 @@ static w25q_error_codes_t page_write(uint32_t addr, uint8_t *data, uint32_t leng
     spi_wait_for_ready(&spi);
 
     // Wait for flash to be ready again (FPGA only)
-    #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104)
+    #if defined (TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
     flash_wait();
     #endif // (TARGET_PYNQ_Z2 || TARGET_ZCU104)
 }
