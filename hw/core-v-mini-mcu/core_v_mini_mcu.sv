@@ -917,7 +917,7 @@ module core_v_mini_mcu
       .cfg_rsp_o(cfg_rsp_sl),
 
       //from x-heep to outside
-      .ddr_rcv_clk_i(clk_i),  //Source-synchronous input clock to sample data. One clock per channel
+      .ddr_rcv_clk_i,  //Source-synchronous input clock to sample data. One clock per channel
       .ddr_i,  //Double-Data-Rate (DDR) input data
 
       //from outside to x-heep
