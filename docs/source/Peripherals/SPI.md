@@ -1162,3 +1162,64 @@ There are practically no sanity checks performed in this example in order to kee
 as simple as possible. In a practical application there should of course be sanity
 checks wherever needed.
 ```
+
+
+## Performance Analysis
+
+A performance testing was carried out utilizing the _EPFL Programmer_, which includes
+a _W25Q128JW_ flash memory, and the _PYNQ-Z2_ FPGA. The 
+[SPI Flash Loading Boot Procedure]<!--(/How_to/ExecuteFromFlash.html#spi-flash-loading-boot-procedure)-->
+was employed for all tests.
+
+The test application used the 
+[Clock Cycle Counter `mcycle(h)`](https://ibex-core.readthedocs.io/en/latest/03_reference/performance_counters.html) 
+of X-HEEP, recording time via the `CSR_REG_MCYCLE` register. The test tracked the 
+duration to create and execute a transaction of various command segments with the 
+SDK, where each transaction involved reading 4KiB from the _W25Q128JW_ flash device. 
+This read operation was repeated 500 times to obtain an average.
+
+The exact same procedure was applied to the HAL and the _direct register_ method, 
+which involves direct manipulation of _SPI Host_ registers without using the HAL or 
+SDK. The tests were conducted at both _Standard_ SPI and _Quad_ SPI speeds. For 
+accurate comparison, only essential steps for transaction execution were implemented, 
+avoiding as many sanity checks as possible to maximize performance.
+
+Results indicate that at _Standard_ SPI speed, _direct register_ manipulation was 
+slightly faster than the HAL by approximately 0.8%. At _Quad_ SPI speed, _direct register_ 
+manipulation showed a significant performance gain, being about 18.6% faster than 
+the HAL. Comparing the HAL to the SDK, the HAL was about 1% faster at _Quad_ speed 
+and 0.8% faster at _Standard_ speed.
+
+Exact numbers are provided in the following tables.
+
+```{table}
+:widths: auto
+:align: center
+
+|          | SDK        | HAL        | Register   |
+| :------: | :--------: | :--------: | :--------: |
+| **Standard** | 4472.00 μs | 4437.40 μs | 4402.07 μs |
+| **Quad**     | 1970.00 μs | 1951.40 μs | 1588.00 μs |
+```
+
+To illustrate these numbers rather in percentage of change, the following table 
+shows the speed gain(-) and the speed loss(+) when changing method for a Quad speed 
+read. For example, when switching from the _direct register_ method to the SDK, 
+there is a
+
+```{math}
+\frac{SDK - Register}{Register}\ =\ 24.055\%
+```
+
+change, which means 24.055% slower.
+
+```{table}
+:widths: auto
+:align: center
+
+|          | SDK      | HAL      | Register |
+| :------: | :------: | :------: | :------: |
+| **SDK**      | 0%       | 0.953%   | 24.055%  |
+| **HAL**      | -0.944%  | 0%       | 22.884%  |
+| **Register** | -19.391% | -18.623% | 0%       |
+```
