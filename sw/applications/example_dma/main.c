@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 #include "dma.h"
 #include "core_v_mini_mcu.h"
 #include "x-heep.h"
@@ -23,8 +22,6 @@
 #define TRANSACTIONS_N      3       // Only possible to perform transaction at a time, others should be blocked
 #define TEST_WINDOW_SIZE_DU  1024    // if put at <=71 the isr is too slow to react to the interrupt
 
-
-
 #if TEST_DATA_LARGE < 2* TEST_DATA_SIZE
     #errors("TEST_DATA_LARGE must be at least 2*TEST_DATA_SIZE")
 #endif
@@ -41,15 +38,12 @@
     #define PRINTF(...)
 #endif
 
-
 int32_t errors = 0;
 int8_t cycles = 0;
 
-void dma_intr_handler_trans_done()
-{
+void dma_intr_handler_trans_done(void) {
     cycles++;
 }
-
 
 #ifdef TEST_WINDOW
 
@@ -115,10 +109,11 @@ int main(int argc, char *argv[])
     // Create a target pointing at the buffer to be copied. Whole WORDs, no skippings, in memory, no environment.
 
 #ifdef TEST_SINGULAR_MODE
-
+    
     PRINTF("\n\n\r===================================\n\n\r");
     PRINTF("    TESTING SINGLE MODE   ");
     PRINTF("\n\n\r===================================\n\n\r");
+    
 
     res = dma_validate_transaction( &trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ?  "Ok!" : "Error!");
@@ -398,7 +393,6 @@ int main(int argc, char *argv[])
     }
 
 #endif // TEST_WINDOW
-
 
     return EXIT_SUCCESS;
 }
