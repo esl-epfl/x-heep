@@ -108,8 +108,6 @@ module dma #(
   /* Flags */
   logic                              pad_fifo_on;  // Padding flag for FIFO
   logic                              pad_cnt_on;  // Padding flag for counters
-
-  logic                              sign_extend;  // Do the sign extension
   logic                              read_ptr_update_sel;  // Select the read pointer update source
 
   /* Padding FSM conditions */

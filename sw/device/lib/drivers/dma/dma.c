@@ -875,7 +875,6 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
                     DMA_SRC_PTR_INC_D1_INC_MASK,
                     DMA_SRC_PTR_INC_D1_INC_OFFSET );
 
-
     if(dma_cb.trans->dim == DMA_DIM_CONF_2D)
     {
         write_register(  get_increment_b_2D( dma_cb.trans->src ),
@@ -1408,6 +1407,31 @@ static inline uint32_t get_increment_b_2D( dma_target_t * p_tgt )
         if( inc_b == 0 )
         {
             uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( p_tgt->type );
+            inc_b = ( p_tgt->inc_d2_du * dataSize_b );
+        }
+    }
+    return inc_b;
+}
+
+static inline uint32_t get_increment_b_2D( dma_target_t * p_tgt )
+{
+    uint32_t inc_b = 0;
+    /* If the target uses a trigger, the increment remains 0. */
+    if(  p_tgt->trig  == DMA_TRIG_MEMORY )
+    {
+        /*
+         * If the transaction increment has been overriden (due to
+         * misalignments), then that value is used (it's always set to 1).
+         */
+        inc_b = dma_cb.trans->inc_b;
+
+        /*
+        * Otherwise, the target-specific increment is used transformed into
+        * bytes).
+        */
+        if( inc_b == 0 )
+        {
+            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( dma_cb.trans->type );
             inc_b = ( p_tgt->inc_d2_du * dataSize_b );
         }
     }
