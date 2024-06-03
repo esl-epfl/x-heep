@@ -118,8 +118,12 @@ SET(INCLUDE_FOLDERS "-I ${RISCV}/${COMPILER_PREFIX}elf/include \
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Preliminary list of source files inside the source path
 
-# Make a list of the source files that need to be linked
-FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.{c,s})
+# Make a list of the .c source files that need to be linked
+FILE(GLOB_RECURSE c_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
+# Make a list of the .s source files that need to be linked
+FILE(GLOB_RECURSE s_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.s)
+SET(new_list ${c_files} ${s_files})
+
 SET( c_dir_list "" )
 SET( app_found 0 )
 FOREACH(file_path IN LISTS new_list)
@@ -148,8 +152,12 @@ ENDFOREACH()
 if( app_found EQUAL 0 )
   SET(SOURCE_PATH ${ROOT_PROJECT})
 
-  # Make a list of the source files that need to be linked
-  FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.{c,s})
+  # Make a list of the .c source files that need to be linked
+  FILE(GLOB_RECURSE c_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
+  # Make a list of the .s source files that need to be linked
+  FILE(GLOB_RECURSE s_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.s)
+  SET(new_list ${c_files} ${s_files})
+
   SET(c_dir_list "")
   FOREACH(file_path IN LISTS new_list)
     SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
