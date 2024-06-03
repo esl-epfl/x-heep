@@ -88,6 +88,9 @@ module dma #(
   logic                              data_out_rvalid;
   logic        [               31:0] data_out_rdata;
 
+  /* Sign extension signals */
+  logic                              sign_extend;
+
   /* 2D signals */
 
   /* Dimensionality configuration */
