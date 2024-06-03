@@ -140,6 +140,9 @@ void erase_memory(uint32_t addr);
 w25q_error_codes_t global_status;
 
 int main(int argc, char *argv[]) {
+    // Initialize the DMA
+    dma_init(NULL);
+    
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
