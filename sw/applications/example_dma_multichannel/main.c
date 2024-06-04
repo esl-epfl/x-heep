@@ -1634,7 +1634,7 @@ int main()
     }
 
     /* Verify that the SPI copy was successful */
-    for (int i=0; i < TEST_DATA_FLASH_LEN; i++)
+    for (int i=0; i < TEST_DATA_FLASH_SIZE; i++)
     {
         if (copied_test_data_flash[i] != test_data_flash[i])
         {
