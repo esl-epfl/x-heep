@@ -5,18 +5,15 @@
  *
  *  Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
  *  
- *  Info: Example application of matrix manipulation by exploiting the Multichannel Multidimensional Smart DMA (M2S DMA).
- *        In this code, there are some optional features:
- *        - Verification of matrix operations carried out by the M2S DMA
- *        - Performance comparison between the M2S DMA and the CPU, obtained by performing similar matrix operations
+ *  Info: Example application of matrix manipulation by exploiting the multichannel feature of the DMA subsystem.
+ *        This code is capable of testing the following features:
+ *        - Verification of matrix operations carried out by the DMA subsystem
+ *        - Performance comparison between the DMA multichannel and the CPU, obtained by performing similar matrix operations
  *          and monitoring the performance counter. 
  *          The performance of the DMA is compared against sequential CPU loops for each operation performed by a single channel.
- *          e.g. 
- *          A typical case in which the DMA could be used to improve the performance is a series of matrix operations, like:
- *              - Extract an A matrix from a larger one
- *              - Extract a B matrix from a larger one
- *              - Extract a C matrix from a larger one
- *          By exploiting the DMA, these three separate, serial calls could be performed in parallel.
+ *          A typical case in which the DMA could be used to improve the performance is a series of matrix operations, 
+ *          like extracting 3 matrices from a larger one.
+ *          By exploiting the DMA, these three separate calls can be performed in parallel.
  */
 
 #include <stdio.h>
@@ -102,7 +99,6 @@
 
 /* Assigning a pointer to a define writes the pointed array in the flash */
 #define TEST_DATA_FLASH_PTR test_data_flash
-#define TEST_DATA_FLASH_LEN 32
 
 /* Mask for direct register operations example */
 #define DMA_CSR_REG_MIE_MASK (( 1 << 19 ) | (1 << 11 ))
@@ -136,7 +132,7 @@
 #endif
 
 /* Memory allocation for examples */
-uint32_t copied_test_data_flash[TEST_DATA_FLASH_LEN];
+uint32_t copied_test_data_flash[TEST_DATA_FLASH_SIZE];
 dma_input_data_type copied_data_1D_DMA[OUT_DIM_1D];
 dma_input_data_type copied_data_1D_CPU[OUT_DIM_1D];
 dma_input_data_type copied_data_2D_DMA_ch0[OUT_DIM_2D];
@@ -167,6 +163,7 @@ dma *peri_ch0 = dma_peri(0);
 dma *peri_ch1 = dma_peri(1);
 #endif
 
+/* CPU computation variables */
 uint32_t dst_ptr = 0, src_ptr = 0;
 uint32_t cycles_dma, cycles_cpu;
 uint32_t size_dst_trans_d1;
@@ -547,9 +544,10 @@ int main()
     
     #ifdef TEST_ID_1
 
-    /* Testing copy and padding of a NxM matrix using Low Level control, i.e. register writes.
+    /* 
+     * Testing copy and padding of a NxM matrix using Low Level control direct register writes.
      * This strategy allows for maximum performance but doesn't perform any checks on the data integrity.
-     * The data is copied using both ch0 and ch1 to two different memory locations, obtaining two identical copies.
+     * The data is copied using CH0.
      */
 
     /* Reset for second test */
@@ -1507,7 +1505,7 @@ int main()
     }
 
     /* Start the reading process from the SPI, avoiding both sanity checks and waiting for the DMA to finish */
-    w25q_error_codes_t status = w25q128jw_read_standard_dma(TEST_DATA_FLASH_PTR, copied_test_data_flash, TEST_DATA_FLASH_LEN*4, 1, 1);
+    w25q_error_codes_t status = w25q128jw_read_standard_dma(TEST_DATA_FLASH_PTR, copied_test_data_flash, TEST_DATA_FLASH_SIZE*4, 1, 1);
     if (status != FLASH_OK)
     {
         PRINTF("Error reading from flash\n\r");

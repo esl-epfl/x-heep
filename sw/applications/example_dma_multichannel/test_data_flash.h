@@ -1,7 +1,9 @@
 #ifndef __TEST_DATA_FLASH_H__
 #define __TEST_DATA_FLASH_H__
 
-uint32_t test_data_flash[32] = {
+#define TEST_DATA_FLASH_SIZE 32
+
+uint32_t test_data_flash[TEST_DATA_FLASH_SIZE] = {
     105 ,82 ,221 ,172 ,77 ,62,
     81 ,185 ,33 ,213 ,249 ,117,
     69 ,212 ,99 ,137 ,9 ,233,
