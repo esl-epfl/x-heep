@@ -31,24 +31,28 @@
 #include "w25q128jw.h"
 
 /*  
- *  DISCLAIMER: Before changing from test to test, change the number of channels in mcu_cfg.hjson
- *  and re-run "make mcu-gen" ... and "make verilator-sim". When using the default memory configuration,
- *  pay attention to the dimensions of the output matrices.
+ *  DISCLAIMER: In order to perform every test, the DMA has by default 4 channels. If the number of channels in mcu_cfg.hjson
+ *  has been reduced, some tests might not be performed. 
+ *  When using the default memory configuration (64kB), pay attention to the dimensions of the output matrices.
  * 
- *  Select which test to run by defining the correct TEST_ID_*:
+ *  Enable one or more of the following tests by defining the correct TEST_ID_*:
  *  
  *  0: Extract a NxM matrix, perform optional padding and copy the result to two separate
- *     AxB matrices using 2 channels at the same time using direct register writes
- *  1: 1D copy using 1 channel
+ *     AxB matrices using 2 channels at the same time and using direct register writes.
+ * 
+ *  1: 1D copy using 1 channel using direct register writes.
+ * 
  *  2: Extract a NxM matrix, perform optional padding and copy the result to two separate
- *     AxB matrices using 2 channels at the same time 2D copy using 2 channels using HALs
- *  3: Complex example by using 4 channels and HALS. This is the workload:
+ *     AxB matrices using 2 channels at the same time 2D copy using 2 channels using HALs.
+ * 
+ *  3: Complex example by using 4 channels and HALS. The distribution of the workload is the following:
  *      - CH0: Extract a NxM matrix, perform optional padding and copy the result
  *      - CH1: Extract a NxM matrix, perform optional padding and copy the result
  *      - CH2: Extract a NxM matrix, perform optional padding, transpose it and copy the result
  *      - CH3: Extract a NxM matrix, perform optional padding, transpose it and copy the result
- *  4: Extract a NxM matrix, perform optional padding and copy the result to a location using one channel using HALs, 
- *     while using the other channel to read a buffer from SPI and copy it to another location.
+ * 
+ *  4: Extract a NxM matrix, perform optional padding and copy the result to a location using one channel (with HALs), 
+ *     while at the same time read a buffer from SPI and copy it to another location using another channel (with HALs).
  * 
  */
 
@@ -126,7 +130,7 @@
     #define PRINTF(...)
 #endif
 
-/* Defines for SPI board */
+/* FPGA SPI board selection */
 #if !TARGET_SIM
     #define USE_SPI_FLASH
 #endif
@@ -158,7 +162,7 @@ dma_target_t tgt_src_trsp;
 
 dma_config_flags_t res_valid, res_load, res_launch;
 
-#ifdef TEST_ID_0
+#if defined(TEST_ID_0) || defined(TEST_ID_1)
 dma *peri_ch0 = dma_peri(0);
 dma *peri_ch1 = dma_peri(1);
 #endif
@@ -187,7 +191,7 @@ static inline volatile void write_register( uint32_t  p_val,
                                 uint32_t  p_offset,
                                 uint32_t  p_mask,
                                 uint8_t   p_sel,
-                                dma* peri_ch0 ) 
+                                dma* peri_chx ) 
 {
     /*
      * The index is computed to avoid needing to access the structure
@@ -199,10 +203,10 @@ static inline volatile void write_register( uint32_t  p_val,
      * An intermediate variable "value" is used to prevent writing twice into
      * the register.
      */
-    uint32_t value  =  (( uint32_t * ) peri_ch0 ) [ index ];
+    uint32_t value  =  (( uint32_t * ) peri_chx ) [ index ];
     value           &= ~( p_mask << p_sel );
     value           |= (p_val & p_mask) << p_sel;
-    (( uint32_t * ) peri_ch0 ) [ index ] = value;
+    (( uint32_t * ) peri_chx ) [ index ] = value;
 };
 
 int main()
@@ -1502,7 +1506,7 @@ int main()
         return EXIT_FAILURE;
     }
 
-    /* Start the reading process from the SPI */
+    /* Start the reading process from the SPI, avoiding both sanity checks and waiting for the DMA to finish */
     w25q_error_codes_t status = w25q128jw_read_standard_dma(TEST_DATA_FLASH_PTR, copied_test_data_flash, TEST_DATA_FLASH_LEN*4, 1, 1);
     if (status != FLASH_OK)
     {

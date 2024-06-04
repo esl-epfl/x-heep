@@ -274,11 +274,11 @@ module dma #(
   };
   assign idle_to_right_ex = {
     |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b1 
-                      && dma_src_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + {14'h0, dma_cnt_du}) && dma_start == 1'b1
+                      && dma_src_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + {14'h0, dma_cnt_du})
   };
   assign idle_to_bottom_ex = {
     |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 
-                      && dma_src_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && dma_start == 1'b1
+                      && dma_src_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du})
   };
   assign top_ex_to_top_dn = {
     dma_src_cnt_d2 == ({1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && |reg2hw.pad_left.q == 1'b0
@@ -731,6 +731,14 @@ module dma #(
   // Pad counter flag logic
   always_comb begin : proc_pad_cnt_on
     case (pad_state_q)
+      PAD_IDLE: begin
+        if (idle_to_right_ex || idle_to_bottom_ex || idle_to_left_ex || idle_to_top_ex) begin
+          pad_cnt_on = 1'b1;
+        end else begin
+          pad_cnt_on = pad_fifo_on;
+        end
+      end
+
       TOP_PAD_DONE: begin
         if (top_dn_to_right_ex) begin
           pad_cnt_on = 1'b1;
