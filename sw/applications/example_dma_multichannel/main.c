@@ -50,6 +50,7 @@
  * 
  *  4: Extract a NxM matrix, perform optional padding and copy the result to a location using one channel (with HALs), 
  *     while at the same time read a buffer from SPI and copy it to another location using another channel (with HALs).
+ *     This test can only be performed on FPGA boards or using QuestaSim, by setting the correct macro.
  * 
  */
 
@@ -130,6 +131,9 @@
 #if !TARGET_SIM
     #define USE_SPI_FLASH
 #endif
+
+/* QuestaSim macro to enable test 4, by default is disabled */
+//#define SIM_QUESTASIM
 
 /* Memory allocation for examples */
 uint32_t copied_test_data_flash[TEST_DATA_FLASH_SIZE];
@@ -1430,7 +1434,7 @@ int main()
 
     #endif
 
-    #ifdef TEST_ID_4
+    #if defined(TEST_ID_4) && (TARGET_SIM == 0 || defined(TARGET_QUESTASIM))
 
     /* Testing SPI2RAM & RAM2RAM operations on 2 channels */
 
