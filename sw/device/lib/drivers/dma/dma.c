@@ -895,11 +895,6 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
      * as the values read from the second port are instead used.
      * In case of a 2D DMA transaction, the second dimension increment is set.
      */
-    
-    write_register(  get_increment_b_1D( dma_cb.trans->src ),
-                    DMA_SRC_PTR_INC_D1_REG_OFFSET,
-                    DMA_SRC_PTR_INC_D1_INC_MASK,
-                    DMA_SRC_PTR_INC_D1_INC_OFFSET );
 
     write_register(  get_increment_b_1D( dma_cb.channels[channel].trans->src, channel),
                     DMA_SRC_PTR_INC_D1_REG_OFFSET,
