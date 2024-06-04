@@ -285,7 +285,7 @@ For example, an RX segment of length 3 is fine, but the _dest\_buffer_ should be
 4 bytes to avoid unexpected behavior.
 
 This design choice was made to avoid having various alignment computations, thus favoring 
-computational speed at the cost of rendering some minimal amount of bytes useless.
+computational speed at expense of minimal amount of superfluous bytes.
 ```
 
 #### Execution
@@ -308,13 +308,13 @@ spi_state_e spi_get_state(spi_t* spi);
 ```
 
 Which returns `SPI_STATE_DONE` if the transaction completed successfully
-(i.e. all segments were completed). Otherwise, it returns `SPI_STATE_ERROR`.
+(i.e. all segments were completed), `SPI_STATE_ERROR` if a hardware error occured
+during the transaction, or `SPI_STATE_TIMEOUT` if the transaction has timed-out.
 
 ````{important}
 The SDK completely relies on _SPI Host IP_ interrupts in order to execute any
 transaction. Therefore, it is crucial to **enable _SPI Host_ interrupts** at machine-
-levele before any transaction is initiated. Failure to do so will cause the SDK 
-to get stuck in an infinite loop when issuing a transaction.
+level before any transaction is initiated.
 
 Example
 
@@ -376,6 +376,30 @@ These functions execute basic standard transactions: `spi_transmit` performs a _
 transaction, `spi_receive` performs an _RX Standard_ transaction, and `spi_transceive` 
 performs a _Bidirectional Standard_ transaction. They work like `spi_execute` but do not 
 require command segments to be provided.
+
+#### Timeout
+
+All blocking functions have a maximum allowed time from the start of a transaction 
+to its complete execution. This duration can be easily configured and retrieved 
+using the following functions:
+
+```c
+spi_codes_e spi_set_timeout(spi_t* spi, uint32_t timeout);
+
+spi_codes_e spi_get_timeout(spi_t* spi, uint32_t* timeout);
+```
+
+This timeout is entirely independent for each _SPI Host_ device. It specifies the
+maximum number of **milliseconds** permitted to elapse from the issuance of the 
+first command segment to the hardware until the last 32-bit word is read from the 
+RX FIFO.
+
+The maximum allowed value for the timeout is given by
+{math}`\frac{(2^32-1)\cdot 1000}{f_{MCU}}`. Although this value is sufficiently 
+large for any practical application, caution should be taken when setting a very 
+large timeout or when operating at a very high core clock frequency.
+
+The default timeout value is set to 100ms.
 
 
 ### Non-Blocking Transactions
@@ -1168,7 +1192,7 @@ checks wherever needed.
 
 A performance testing was carried out utilizing the _EPFL Programmer_, which includes
 a _W25Q128JW_ flash memory, and the _PYNQ-Z2_ FPGA. The 
-[SPI Flash Loading Boot Procedure]<!--(/How_to/ExecuteFromFlash.html#spi-flash-loading-boot-procedure)-->
+[SPI Flash Loading Boot Procedure](/How_to/ExecuteFromFlash.html#spi-flash-loading-boot-procedure)
 was employed for all tests.
 
 The test application used the 

@@ -199,7 +199,7 @@ typedef enum {
     // Indicates there was an error during transaction
     SPI_STATE_ERROR     = 0x08,
     // Indicates the transaction execution has timed-out
-    SPI_STATE_TIMEOUT     = 0x10,
+    SPI_STATE_TIMEOUT   = 0x10,
     // Indicates the argument passed to spi_get_state was not valid
     SPI_STATE_ARG_INVAL = 0x20
 } spi_state_e;
