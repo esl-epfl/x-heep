@@ -141,6 +141,7 @@ module dma_subsystem #(
       assign xbar_write_resp[0] = dma_write_ch0_resp_i;
       assign dma_addr_ch0_req_o = xbar_address_req[0];
       assign xbar_address_resp[0] = dma_addr_ch0_resp_i;
+    end
   endgenerate
 
   generate
