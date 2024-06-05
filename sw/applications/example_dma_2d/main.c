@@ -43,8 +43,8 @@
 /* Parameters */
 
 /* Size of the extracted matrix (including strides on the input, excluding strides on the outputs) */
-#define SIZE_EXTR_D1 10
-#define SIZE_EXTR_D2 10
+#define SIZE_EXTR_D1 3
+#define SIZE_EXTR_D2 3
 
 /* Set strides of the input ad output matrix */
 #define STRIDE_IN_D1 1
@@ -53,10 +53,10 @@
 #define STRIDE_OUT_D2 1
 
 /* Set the padding parameters */
-#define TOP_PAD 1
-#define BOTTOM_PAD 1
-#define LEFT_PAD 1
-#define RIGHT_PAD 1
+#define TOP_PAD 0
+#define BOTTOM_PAD 0
+#define LEFT_PAD 0
+#define RIGHT_PAD 0
 
 /* Macros for dimensions computation */
 #define OUT_D1_PAD ( SIZE_EXTR_D1 + LEFT_PAD + RIGHT_PAD )

@@ -111,10 +111,8 @@ module dma_subsystem #(
           .slave_resp_i (dma_read_ch0_resp_i)
       );
     end
-  endgenerate
 
   /* Write operations xbar */
-  generate
     if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : xbar_varlat_n_to_one_write_gen
       xbar_varlat_n_to_one #(
           .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
@@ -127,10 +125,8 @@ module dma_subsystem #(
           .slave_resp_i (dma_write_ch0_resp_i)
       );
     end
-  endgenerate
 
   /* Address mode operations xbar */
-  generate
     if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : xbar_varlat_n_to_one_addr_gen
       xbar_varlat_n_to_one #(
           .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
@@ -143,18 +139,16 @@ module dma_subsystem #(
           .slave_resp_i (dma_addr_ch0_resp_i)
       );
     end
-  endgenerate
+  else generate : noxbar_routing_gen
 
   /* Bus ports routing in the case of a single DMA */
-  generate
-    if (core_v_mini_mcu_pkg::DMA_CH_NUM == 1) begin
+
       assign dma_read_ch0_req_o = xbar_read_req[0];
       assign xbar_read_resp[0] = dma_read_ch0_resp_i;
       assign dma_write_ch0_req_o = xbar_write_req[0];
       assign xbar_write_resp[0] = dma_write_ch0_resp_i;
       assign dma_addr_ch0_req_o = xbar_address_req[0];
       assign xbar_address_resp[0] = dma_addr_ch0_resp_i;
-    end
   endgenerate
 
   /* Internal address decoder */

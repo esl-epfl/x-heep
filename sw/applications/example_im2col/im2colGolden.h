@@ -13,19 +13,19 @@
 
 #include <stdint.h>
 
-// Parameters
-#define IW 4
-#define IH 4
+/* Parameters */
+#define IW 22
+#define IH 22
 #define CH 3
-#define FW 2
-#define FH 2
+#define FW 4
+#define FH 4
 #define STRIDES 2
-#define PAD 1
+#define PAD 2
 #define BATCH 1
 
-extern const uint32_t input_image_nchw[48];
-extern const uint32_t golden_im2col_nchw[108];
-extern const uint32_t input_image_nhwc[48];
-extern const uint32_t golden_im2col_nhwc[108];
+extern const uint32_t input_image_nchw[1452];
+extern const uint32_t golden_im2col_nchw[6912];
+// extern const uint32_t input_image_nhwc[1452];
+// extern const uint32_t golden_im2col_nhwc[6912];
 
 #endif

@@ -195,13 +195,13 @@ module ao_peripheral_subsystem
 
       for (genvar i = 0; i < core_v_mini_mcu_pkg::AO_SPC_NUM + 1; i++) begin : obi_fifo_gen
         obi_fifo obi_fifo_i (
-                .clk_i,
-                .rst_ni,
-                .producer_req_i (bus2ao_req_i[i]),
-                .producer_resp_o(ao2bus_resp_o[i]),
-                .consumer_req_o (busfifo2xbar_req[i]),
-                .consumer_resp_i(xbar2busfifo_resp[i])
-            );
+            .clk_i,
+            .rst_ni,
+            .producer_req_i (bus2ao_req_i[i]),
+            .producer_resp_o(ao2bus_resp_o[i]),
+            .consumer_req_o (busfifo2xbar_req[i]),
+            .consumer_resp_i(xbar2busfifo_resp[i])
+        );
       end
 
       xbar_varlat_n_to_one #(
@@ -225,7 +225,7 @@ module ao_peripheral_subsystem
       );
 
     end else begin
-      assign perfifo2per_req = bus2ao_req_i[0];
+      assign perfifo2per_req  = bus2ao_req_i[0];
       assign ao2bus_resp_o[0] = per2perfifo_resp;
     end
   endgenerate

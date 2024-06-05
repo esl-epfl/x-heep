@@ -27,15 +27,18 @@
     - 1: Exploit standard DMA
     - 2: Exploit 2D DMA
 */ 
-#define HW_CONFIG 2
+#define HW_CONFIG_CPU
+#define HW_CONFIG_DMA_1D
+#define HW_CONFIG_DMA_2D
 
-// By default, printfs are activated for FPGA and for simulation.
+/* By default, printfs are activated for FPGA and for simulation. */
 #define PRINTF_IN_FPGA  1
 #define PRINTF_IN_SIM   1
-#define DEBUG 1 // Set to 1 to enable debug prints
-#define TIMING 0 // Set to 1 to enable timing measurements
 
-// Format is defined in im2colGolden.h
+/* Set to 1 to enable debug prints */
+#define DEBUG 0
+/* Set to 1 to enable timing measurements */
+#define TIMING 1
 
 #if TARGET_SIM && PRINTF_IN_SIM
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -44,7 +47,11 @@
     #else
         #define PRINTF_DEB(...)
     #endif
-    #define PRINTF_TIM(...)   
+    #if TIMING
+        #define PRINTF_TIM(fmt, ...)    printf(fmt, ## __VA_ARGS__)
+    #else
+        #define PRINTF_TIM(...)
+    #endif  
 #elif PRINTF_IN_FPGA
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
     #if DEBUG
@@ -76,11 +83,14 @@
 #define OW_NHWC (FW * FH * CH * BATCH)
 #define OH_NHWC (N_PATCHES_W) * (N_PATCHES_H)
 
+#define TMP_PAD_W (PAD - (2 * PAD + IW) - STRIDES * (N_PATCHES_W - 1) - FW)
+#define TMP_PAD_H (PAD - (2 * PAD + IH) - STRIDES * (N_PATCHES_H - 1) - FH)
+
 // Computations for 2D DMA
 #define SRC_INC_D2 (STRIDES * IW - (FW - 1 + (STRIDES - 1) * (FW - 1)))
 
-int im2col_nchw_int32();
-int im2col_nhwc_int32();
+int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles);
+int im2col_nhwc_int32(uint8_t test_id, unsigned int *cycles);
 
 int get_index(int dim1, int dim2, int dim3, int index0, int index1, int index2, int index3);
                 
