@@ -24,15 +24,16 @@
 #include "csr.h"
 #include "rv_plic.h"
 #include "test_data.h"
-#include "test_data_flash.h"
 #include "w25q128jw.h"
 
 /*  
- *  DISCLAIMER: In order to perform every test, the DMA has by default 4 channels. If the number of channels in mcu_cfg.hjson
+ *  WARNING: 
+ *  In order to perform every test, the DMA has by default 4 channels. If the number of channels in mcu_cfg.hjson
  *  has been reduced, some tests might not be performed. 
  *  When using the default memory configuration (64kB), pay attention to the dimensions of the output matrices.
+ *  When executing TEST_ID_4 on QuestaSim, make sure to enable the SPI
  * 
- *  Enable one or more of the following tests by defining the correct TEST_ID_*:
+ *  Enable one or more of the following tests by defining the correct TEST_ID_* macro:
  *  
  *  0: Extract a NxM matrix, perform optional padding and copy the result to two separate
  *     AxB matrices using 2 channels at the same time and using direct register writes.
@@ -50,8 +51,11 @@
  * 
  *  4: Extract a NxM matrix, perform optional padding and copy the result to a location using one channel (with HALs), 
  *     while at the same time read a buffer from SPI and copy it to another location using another channel (with HALs).
- *     This test can only be performed on FPGA boards or using QuestaSim, by setting the correct macro.
- * 
+ *     This test can only be performed on FPGA boards or using QuestaSim, by setting the correct macro (SIM_QUESTASIM).
+ *     When executing on QuestaSim, make sure to compile in the correct way:
+ *     - Include LINKER=flash_load in "make app ..."
+ *     - Add boot_sel and execute_from_flash: 'make run PLUSARGS="c firmware=../../../sw/build/main.hex boot_sel=1 execute_from_flash=0" '
+ *     
  */
 
 #define TEST_ID_0
@@ -135,6 +139,9 @@
 /* QuestaSim macro to enable test 4, by default is disabled */
 //#define SIM_QUESTASIM
 
+/* Size of FLASH buffer */
+#define TEST_DATA_FLASH_SIZE 32
+
 /* Memory allocation for examples */
 uint32_t copied_test_data_flash[TEST_DATA_FLASH_SIZE];
 dma_input_data_type copied_data_1D_DMA[OUT_DIM_1D];
@@ -147,6 +154,25 @@ dma_input_data_type copied_data_2D_CPU_ch0[OUT_DIM_2D];
 dma_input_data_type copied_data_2D_CPU_ch1[OUT_DIM_2D];
 dma_input_data_type copied_data_2D_CPU_ch2[OUT_DIM_2D];
 dma_input_data_type copied_data_2D_CPU_ch3[OUT_DIM_2D];
+
+/* Data declaration for TEST_ID_4 */
+uint32_t __attribute__((section(".xheep_data_flash_only"))) __attribute__ ((aligned (16))) test_data_flash[TEST_DATA_FLASH_SIZE] = {
+    105 ,82 ,221 ,172 ,77 ,62,
+    81 ,185 ,33 ,213 ,249 ,117,
+    69 ,212 ,99 ,137 ,9 ,233,
+    107 ,105 ,166 ,141 ,53 ,207,
+    53 ,21 ,221 ,102 ,84 ,108,
+    43 ,99 ,123 ,71 ,30 ,179
+    };
+
+uint32_t test_data_flash_golden[TEST_DATA_FLASH_SIZE] = {
+    105 ,82 ,221 ,172 ,77 ,62,
+    81 ,185 ,33 ,213 ,249 ,117,
+    69 ,212 ,99 ,137 ,9 ,233,
+    107 ,105 ,166 ,141 ,53 ,207,
+    53 ,21 ,221 ,102 ,84 ,108,
+    43 ,99 ,123 ,71 ,30 ,179
+    };
 
 /* DMA source, destination and transaction */
 dma_target_t tgt_src;
@@ -1640,7 +1666,7 @@ int main()
     /* Verify that the SPI copy was successful */
     for (int i=0; i < TEST_DATA_FLASH_SIZE; i++)
     {
-        if (copied_test_data_flash[i] != test_data_flash[i])
+        if (copied_test_data_flash[i] != test_data_flash_golden[i])
         {
             passed = 0;
         }
