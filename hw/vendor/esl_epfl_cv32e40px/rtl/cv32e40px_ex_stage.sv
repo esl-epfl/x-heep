@@ -266,7 +266,7 @@ module cv32e40px_ex_stage
 
     if (regfile_we_lsu) begin
       regfile_we_wb_o       = 1'b1;
-      regfile_we_wb_power_o = !COREV_PULP ? 1'b1 : ~data_misaligned_ex_i & wb_ready_i;
+      regfile_we_wb_power_o = (COREV_PULP == 0) ? 1'b1 : ~data_misaligned_ex_i & wb_ready_i;
       if (apu_valid & (!apu_singlecycle & !apu_multicycle)) begin
         wb_contention_lsu = 1'b1;
       end

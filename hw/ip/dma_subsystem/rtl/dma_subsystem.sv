@@ -99,7 +99,7 @@ module dma_subsystem #(
 
   /* Read operations xbar */
   generate
-    if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : xbar_varlat_n_to_one_gen
+    if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : xbar_varlat_n_to_one_read_gen
       xbar_varlat_n_to_one #(
           .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
       ) xbar_read_i (
@@ -115,7 +115,7 @@ module dma_subsystem #(
 
   /* Write operations xbar */
   generate
-    if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : xbar_varlat_n_to_one_gen
+    if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : xbar_varlat_n_to_one_write_gen
       xbar_varlat_n_to_one #(
           .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
       ) xbar_write_i (
@@ -131,7 +131,7 @@ module dma_subsystem #(
 
   /* Address mode operations xbar */
   generate
-    if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : xbar_varlat_n_to_one_gen
+    if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : xbar_varlat_n_to_one_addr_gen
       xbar_varlat_n_to_one #(
           .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
       ) xbar_address_i (

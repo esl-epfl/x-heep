@@ -20,13 +20,13 @@
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+#elif PRINTF_IN_FPGA
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
 #endif
 
-#ifdef TARGET_PYNQ_Z2
+#if defined(TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
     #define USE_SPI_FLASH
 #endif
 
@@ -233,7 +233,7 @@ uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
     uint32_t *test_buffer_flash = test_buffer;
 
     // Read from flash memory at the same address
-    w25q_error_codes_t status = w25q128jw_read_standard_dma(test_buffer_flash, flash_data, len);
+    w25q_error_codes_t status = w25q128jw_read_standard_dma(test_buffer_flash, flash_data, len, 0, 0);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)

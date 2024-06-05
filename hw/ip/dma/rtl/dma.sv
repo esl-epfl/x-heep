@@ -132,6 +132,14 @@ module dma #(
   logic                              right_ex_to_bottom_ex;
   logic                              bottom_ex_to_idle;
 
+  /* Padding synchronization signals */
+  logic                              data_in_rvalid_virt;
+  logic                              data_in_rvalid_virt_n;
+  logic                              data_in_rvalid_virt_n_n;
+  logic                              data_in_gnt_virt;
+  logic                              data_in_gnt_virt_n;
+  logic                              data_in_gnt_virt_n_n;
+
   /* Interrupt Flag Register signals */
   logic                              transaction_ifr;
   logic                              dma_done_intr_n;
@@ -200,14 +208,14 @@ module dma #(
   logic [Addr_Fifo_Depth-1:0] outstanding_req, outstanding_addr_req;
   logic [31:0] window_counter;
 
-  assign dma_read_ch0_req_o.req = data_in_req;
+  assign dma_read_ch0_req_o.req = data_in_req && ~pad_fifo_on;
   assign dma_read_ch0_req_o.we = data_in_we;
   assign dma_read_ch0_req_o.be = data_in_be;
   assign dma_read_ch0_req_o.addr = data_in_addr;
   assign dma_read_ch0_req_o.wdata = 32'h0;
 
-  assign data_in_gnt = dma_read_ch0_resp_i.gnt;
-  assign data_in_rvalid = dma_read_ch0_resp_i.rvalid;
+  assign data_in_gnt = dma_read_ch0_resp_i.gnt || (data_in_gnt_virt & pad_fifo_on);
+  assign data_in_rvalid = dma_read_ch0_resp_i.rvalid || (data_in_rvalid_virt & pad_fifo_on);
   assign data_in_rdata = dma_read_ch0_resp_i.rdata;
 
   assign dma_addr_ch0_req_o.req = data_addr_in_req;
@@ -266,11 +274,11 @@ module dma #(
   };
   assign idle_to_right_ex = {
     |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b1 
-                      && dma_src_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + {14'h0, dma_cnt_du}) && dma_start == 1'b1
+                      && dma_src_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + {14'h0, dma_cnt_du})
   };
   assign idle_to_bottom_ex = {
     |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 
-                      && dma_src_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && dma_start == 1'b1
+                      && dma_src_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du})
   };
   assign top_ex_to_top_dn = {
     dma_src_cnt_d2 == ({1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && |reg2hw.pad_left.q == 1'b0
@@ -648,12 +656,43 @@ module dma #(
       dma_write_fsm_state <= dma_write_fsm_n_state;
       dma_read_addr_fsm_state <= dma_read_addr_fsm_n_state;
 
-      // From copilot: outstanding_req keeps track of the number of requests that have been granted but not completed
       outstanding_req <= outstanding_req + (data_in_req && data_in_gnt) - data_in_rvalid;
 
       if (address_mode)
         outstanding_addr_req <= outstanding_addr_req + (data_addr_in_req && data_addr_in_gnt) - data_addr_in_rvalid;
 
+    end
+  end
+
+  /* Padding synchronization signal generation 
+   * When the pad_fifo_on is asserted, this logic mimics the behaviour of the data_in_rvalid and data_in_gnt signals
+   * coming from the memory. This is done in order to keep the read/write operations working even without an
+   * actual response from memory, reducing power consumptionnby avoiding unnecessary memory accesses.
+   */
+  always_ff @(posedge clk_i or negedge rst_ni) begin : proc_pad_sync_signal
+    if (~rst_ni) begin
+      data_in_rvalid_virt <= 1'b0;
+      data_in_rvalid_virt_n <= 1'b1;
+      data_in_rvalid_virt_n_n <= 1'b0;
+      data_in_gnt_virt <= 1'b1;
+      data_in_gnt_virt_n <= 1'b0;
+      data_in_gnt_virt_n_n <= 1'b0;
+    end else begin
+      if (data_in_req == 1'b1 && pad_fifo_on == 1'b1) begin
+        data_in_rvalid_virt <= data_in_rvalid_virt_n;
+        data_in_rvalid_virt_n <= data_in_rvalid_virt_n_n;
+        data_in_rvalid_virt_n_n <= data_in_rvalid;
+        data_in_gnt_virt <= data_in_gnt_virt_n;
+        data_in_gnt_virt_n <= data_in_gnt_virt_n_n;
+        data_in_gnt_virt_n_n <= data_in_gnt;
+      end else begin
+        data_in_rvalid_virt <= 1'b0;
+        data_in_rvalid_virt_n <= 1'b1;
+        data_in_rvalid_virt_n_n <= 1'b0;
+        data_in_gnt_virt <= 1'b1;
+        data_in_gnt_virt_n <= 1'b0;
+        data_in_gnt_virt_n_n <= 1'b0;
+      end
     end
   end
 
@@ -692,6 +731,14 @@ module dma #(
   // Pad counter flag logic
   always_comb begin : proc_pad_cnt_on
     case (pad_state_q)
+      PAD_IDLE: begin
+        if (idle_to_right_ex || idle_to_bottom_ex || idle_to_left_ex || idle_to_top_ex) begin
+          pad_cnt_on = 1'b1;
+        end else begin
+          pad_cnt_on = pad_fifo_on;
+        end
+      end
+
       TOP_PAD_DONE: begin
         if (top_dn_to_right_ex) begin
           pad_cnt_on = 1'b1;

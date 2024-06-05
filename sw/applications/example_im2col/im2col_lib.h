@@ -45,7 +45,7 @@
         #define PRINTF_DEB(...)
     #endif
     #define PRINTF_TIM(...)   
-#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+#elif PRINTF_IN_FPGA
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
     #if DEBUG
         #define PRINTF_DEB(fmt, ...)    printf(fmt, ## __VA_ARGS__)
