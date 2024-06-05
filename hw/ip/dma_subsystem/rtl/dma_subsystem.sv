@@ -97,9 +97,9 @@ module dma_subsystem #(
     end
   endgenerate
 
-  /* Read operations xbar */
+  /* Read, write & address mode operations xbar*/
   generate
-    if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : xbar_varlat_n_to_one_read_gen
+    if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : xbar_varlat_n_to_one_gen
       xbar_varlat_n_to_one #(
           .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
       ) xbar_read_i (
@@ -107,13 +107,10 @@ module dma_subsystem #(
           .rst_ni       (rst_ni),
           .master_req_i (xbar_read_req),
           .master_resp_o(xbar_read_resp),
-          .slave_req_o  (dma_read_ch0_req_o),  // Request TO the slave, not by the slave
+          .slave_req_o  (dma_read_ch0_req_o), 
           .slave_resp_i (dma_read_ch0_resp_i)
       );
-    end
-
-  /* Write operations xbar */
-    if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : xbar_varlat_n_to_one_write_gen
+      
       xbar_varlat_n_to_one #(
           .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
       ) xbar_write_i (
@@ -124,10 +121,7 @@ module dma_subsystem #(
           .slave_req_o  (dma_write_ch0_req_o),
           .slave_resp_i (dma_write_ch0_resp_i)
       );
-    end
-
-  /* Address mode operations xbar */
-    if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : xbar_varlat_n_to_one_addr_gen
+      
       xbar_varlat_n_to_one #(
           .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
       ) xbar_address_i (
@@ -138,17 +132,21 @@ module dma_subsystem #(
           .slave_req_o  (dma_addr_ch0_req_o),
           .slave_resp_i (dma_addr_ch0_resp_i)
       );
-    end
-  else generate : noxbar_routing_gen
-
-  /* Bus ports routing in the case of a single DMA */
-
+    end else begin
+      
+      /* Bus ports routing in the case of a single DMA */
       assign dma_read_ch0_req_o = xbar_read_req[0];
       assign xbar_read_resp[0] = dma_read_ch0_resp_i;
       assign dma_write_ch0_req_o = xbar_write_req[0];
       assign xbar_write_resp[0] = dma_write_ch0_resp_i;
       assign dma_addr_ch0_req_o = xbar_address_req[0];
       assign xbar_address_resp[0] = dma_addr_ch0_resp_i;
+  endgenerate
+
+  generate
+    if (core_v_mini_mcu_pkg::DMA_CH_NUM == 1) begin
+      
+    end
   endgenerate
 
   /* Internal address decoder */
