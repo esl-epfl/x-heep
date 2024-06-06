@@ -838,8 +838,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
         p_trans->size_d2_b = DMA_DATA_TYPE_2_SIZE( p_trans->type );
         p_trans->src->inc_d2_du = DMA_DATA_TYPE_2_SIZE( p_trans->type );
     }
-
-    if (dma_cb.channels[channel].trans->pad_top_du != 0 || dma_cb.channels[channel].trans->pad_bottom_du != 0 || dma_cb.channels[channel].trans->pad_left_du != 0 || dma_cb.channels[channel].trans->pad_right_du != 0)
+    else if (p_trans->dim == DMA_DIM_CONF_2D)
     {
         write_register( dma_cb.channels[channel].trans->pad_top_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
                         DMA_PAD_TOP_REG_OFFSET,

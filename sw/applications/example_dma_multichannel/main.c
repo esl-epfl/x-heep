@@ -38,7 +38,7 @@
  *  
  *  0: Extract a NxM matrix, perform optional padding and copy the result to two separate
  *     AxB matrices using N channels at the same time and using direct register writes. 
- *     Additionally, each DMA channel is set with a window of M size. For each transaction interrupt,
+ *     Additionally, each DMA channel is set with a window of M size. For each window interrupt,
  *     the correct window flag is set.
  * 
  *  1: Extract a NxM matrix, perform optional padding and copy the result to two separate
@@ -73,8 +73,8 @@
 /* Parameters */
 
 /* Size of the extracted matrix (including strides on the input, excluding strides on the outputs) */
-#define SIZE_EXTR_D1 6
-#define SIZE_EXTR_D2 6
+#define SIZE_EXTR_D1 10
+#define SIZE_EXTR_D2 10
 
 /* Set strides of the input ad output matrix */
 #define STRIDE_IN_D1 1
@@ -95,6 +95,17 @@
 #define OUT_D2_PAD_STRIDE ( (OUT_D2_PAD * STRIDE_OUT_D2) - (STRIDE_OUT_D2 - 1)  )
 #define OUT_DIM_1D ( OUT_D1_PAD_STRIDE  )
 #define OUT_DIM_2D ( OUT_D1_PAD_STRIDE * OUT_D2_PAD_STRIDE )
+
+/* 
+ * Window size for the DMA. Since it has to be > 71 for the ISR to have the time to react,
+ * the OUT_DIM_2D has to be big enough. DMA_WINDOW_SIZE is by default set to 80 for good measure.
+ */
+
+#define DMA_WINDOW_SIZE 80 
+
+#if defined(TEST_ID_0) && ((OUT_DIM_2D < DMA_WINDOW_SIZE) || (DMA_WINDOW_SIZE < 72))
+    #error "In order to correctly execute TEST_ID_0, the matrix output dimension has to be bigger than 72 and bigger than the window dimension.\nCheck these parameters and recompile.\n"
+#endif
 
 /* Defines for DMA channels */
 #define DMA_CH0_IDX 0
@@ -121,7 +132,7 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   0
+#define PRINTF_IN_SIM   1
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
@@ -168,6 +179,7 @@ uint32_t test_data_flash_golden[TEST_DATA_FLASH_SIZE] = {
     43 ,99 ,123 ,71 ,30 ,179
     };
 #endif
+
 /* DMA source, destination and transaction */
 dma_target_t tgt_src;
 dma_target_t tgt_src_trsp;
@@ -256,17 +268,9 @@ int main()
     /* The DMA channels are initialized (i.e. Any current transaction is cleaned.) */
     dma_init(NULL);
 
-    /* Enable the DMA interrupt logic for every channel */
-    for (int i=0; i<DMA_CH_NUM; i++)
-    {
-        write_register(  
-                    0x1,
-                    DMA_INTERRUPT_EN_REG_OFFSET,
-                    0xffff,
-                    DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT,
-                    dma_peri(i)
-                    );
-    }
+    plic_Init();
+    plic_irq_set_priority( DMA_WINDOW_INTR, 1);
+    plic_irq_set_enabled(  DMA_WINDOW_INTR, kPlicToggleEnabled);
 
     /* Enable global interrupts */
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -274,46 +278,53 @@ int main()
     /* Enable fast interrupts */
     CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK);
 
-    /* Pointer set up */
+    
     for (int i=0; i<DMA_CH_NUM; i++)
     {
+        /* Enable the DMA transaction interrupt logic for every channel */
+        write_register(  
+                    0x1,
+                    DMA_INTERRUPT_EN_REG_OFFSET,
+                    0xffff,
+                    DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT,
+                    dma_peri(i)
+                    );
+
+        /* Enable the DMA transaction interrupt logic for every channel */
+        write_register(  
+                    0x1,
+                    DMA_INTERRUPT_EN_REG_OFFSET,
+                    0xffff,
+                    DMA_INTERRUPT_EN_WINDOW_DONE_BIT,
+                    dma_peri(i)
+                    );
+                    
+        /* Pointer set up */
         dma_peri(i)->SRC_PTR = &test_data[0];
         dma_peri(i)->DST_PTR = copied_data_2D_DMA[i];
-    }
 
-    /* Dimensionality configuration */
-    for (int i=0; i<DMA_CH_NUM; i++)
-    {
+        /* Dimensionality configuration */
         write_register( 0x1,
                         DMA_DIM_CONFIG_REG_OFFSET,
                         0x1,
                         DMA_DIM_CONFIG_DMA_DIM_BIT,
                         dma_peri(i) );
-    }
 
-    /* Operation mode configuration */
-    for (int i=0; i<DMA_CH_NUM; i++)
-    {   
+        /* Operation mode configuration */
         write_register( DMA_TRANS_MODE_SINGLE,
                         DMA_MODE_REG_OFFSET,
                         DMA_MODE_MODE_MASK,
                         DMA_MODE_MODE_OFFSET,
                         dma_peri(i) );
-    }
-    
-    /* Data type configuration */
-    for (int i=0; i<DMA_CH_NUM; i++)
-    { 
+
+        /* Data type configuration */
         write_register( DMA_DATA_TYPE,
                         DMA_DATA_TYPE_REG_OFFSET,
                         DMA_DATA_TYPE_DATA_TYPE_MASK,
                         DMA_DATA_TYPE_DATA_TYPE_OFFSET,
                         dma_peri(i) );
-    }
 
-    /* Set the source strides */
-    for (int i=0; i<DMA_CH_NUM; i++)
-    { 
+        /* Set the source strides */
         write_register( SRC_INC_D1 * DMA_DATA_TYPE_2_SIZE(DMA_DATA_TYPE),
                         DMA_SRC_PTR_INC_D1_REG_OFFSET,
                         DMA_SRC_PTR_INC_D1_INC_MASK,
@@ -337,11 +348,8 @@ int main()
                         DMA_DST_PTR_INC_D2_INC_MASK,
                         DMA_DST_PTR_INC_D2_INC_OFFSET,
                         dma_peri(i) );
-    }
-
-    /* Padding configuration */
-    for (int i=0; i<DMA_CH_NUM; i++)
-    { 
+        
+        /* Padding configuration */
         write_register( TOP_PAD * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                         DMA_PAD_TOP_REG_OFFSET,
                         DMA_PAD_TOP_PAD_MASK,
@@ -365,11 +373,18 @@ int main()
                         DMA_PAD_BOTTOM_PAD_MASK,
                         DMA_PAD_BOTTOM_PAD_OFFSET,
                         dma_peri(i) );
+
+        /* Set the window size */
+        write_register( DMA_WINDOW_SIZE,
+                        DMA_WINDOW_SIZE_REG_OFFSET,
+                        DMA_WINDOW_SIZE_WINDOW_SIZE_MASK,
+                        DMA_WINDOW_SIZE_WINDOW_SIZE_OFFSET,
+                        dma_peri(i) );        
     }
 
-    /* Set the sizes */
     for (int i=0; i<DMA_CH_NUM; i++)
-    { 
+    {
+        /* Set the sizes to start the transaction */
         write_register( SIZE_EXTR_D2 * DMA_DATA_TYPE_2_SIZE( DMA_DATA_TYPE),
                         DMA_SIZE_D2_REG_OFFSET,
                         DMA_SIZE_D2_SIZE_MASK,
@@ -500,6 +515,15 @@ int main()
         }
     }
 
+    /* Verify that the window flags where correctly set */
+    for (int c=0; c<DMA_CH_NUM; c++)
+    { 
+        if (window_flag[c] == 0)
+        {
+            passed = 0;
+        }
+    }
+
     if (passed) {
         PRINTF("Success test 0\n\n\r");
     } 
@@ -533,6 +557,8 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
+    dma_init(NULL);
+
     tgt_src.ptr            = &test_data[0];
     tgt_src.inc_du         = SRC_INC_D1;
     tgt_src.inc_d2_du      = SRC_INC_D2;
@@ -560,8 +586,6 @@ int main()
         trans[c].end            = DMA_TRANS_END_INTR;
         trans[c].channel        = c;
         
-        dma_init(NULL);
-        
         #if EN_PERF
 
         dma_validate_transaction(&trans[c], DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
@@ -574,6 +598,16 @@ int main()
         PRINTF("tran: %u \t%s\n\r", res_valid, res_valid == DMA_CONFIG_OK ?  "Ok!" : "Error!");
         res_load = dma_load_transaction(&trans[c]);
         PRINTF("load: %u \t%s\n\r", res_load, res_load == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+        res_launch = dma_launch(&trans[c]);
+        PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+        #endif
+    }
+
+    for (int c=0; c<DMA_CH_NUM; c++)
+    { 
+        #if EN_PERF
+        dma_launch(&trans[c]);
+        #else
         res_launch = dma_launch(&trans[c]);
         PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
         #endif
@@ -751,9 +785,12 @@ int main()
     tgt_src_trsp.size_d2_du     = SIZE_EXTR_D2;
     tgt_src_trsp.trig           = DMA_TRIG_MEMORY;
     tgt_src_trsp.type           = DMA_DATA_TYPE;
-    PRINTF("AAA\n\r");
 
+    dma_init(NULL);
+
+    /* Reset flag to alternate DMA functions */
     flag = 0;
+
     for (int c=0; c<DMA_CH_NUM; c++)
     { 
         tgt_dst[c].ptr            = copied_data_2D_DMA[c];
@@ -793,13 +830,10 @@ int main()
             flag = 0;
         }
         
-        dma_init(NULL);
-        
         #if EN_PERF
 
         dma_validate_transaction(&trans[c], DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
         dma_load_transaction(&trans[c]);
-        dma_launch(&trans[c]);
         
         #else
 
@@ -807,25 +841,34 @@ int main()
         PRINTF("tran: %u \t%s\n\r", res_valid, res_valid == DMA_CONFIG_OK ?  "Ok!" : "Error!");
         res_load = dma_load_transaction(&trans[c]);
         PRINTF("load: %u \t%s\n\r", res_load, res_load == DMA_CONFIG_OK ?  "Ok!" : "Error!");
+        #endif
+    }
+
+    for (int c=0; c<DMA_CH_NUM; c++)
+    { 
+        #if EN_PERF
+        dma_launch(&trans[c]);
+        #else
         res_launch = dma_launch(&trans[c]);
         PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
         #endif
-
-        /* Wait for CH(DMA_CH_NUM-1) to end */
-        while(!dma_is_ready(DMA_CH_NUM-1)) {
-            #if !EN_PERF
-            /* Disable_interrupts */
-            /* This does not prevent waking up the core as this is controlled by the MIP register */
-            
-            CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-            if ( dma_is_ready(0) == 0 ) {
-                wait_for_interrupt();
-                /* From here the core wakes up even if we did not jump to the ISR */
-            }
-            CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-            #endif
-        }
     }
+
+    /* Wait for CH(DMA_CH_NUM-1) to end */
+    while(!dma_is_ready(DMA_CH_NUM-1)) {
+        #if !EN_PERF
+        /* Disable_interrupts */
+        /* This does not prevent waking up the core as this is controlled by the MIP register */
+        
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+        if ( dma_is_ready(0) == 0 ) {
+            wait_for_interrupt();
+            /* From here the core wakes up even if we did not jump to the ISR */
+        }
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+        #endif
+    }
+    
 
     #if EN_PERF    
 
