@@ -160,9 +160,13 @@ extern "C" {
 #define DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT 0
 #define DMA_INTERRUPT_EN_WINDOW_DONE_BIT 1
 
-// Interrupt Flag Register for transaction
+// Interrupt Flag Register for transactions
 #define DMA_TRANSACTION_IFR_REG_OFFSET 0x58
 #define DMA_TRANSACTION_IFR_FLAG_BIT 0
+
+// Interrupt Flag Register for windows
+#define DMA_WINDOW_IFR_REG_OFFSET 0x5c
+#define DMA_WINDOW_IFR_FLAG_BIT 0
 
 #ifdef __cplusplus
 }  // extern "C"

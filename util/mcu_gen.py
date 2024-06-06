@@ -505,8 +505,10 @@ def main():
     ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
     ao_peripherals_count = len(ao_peripherals)
     dma_ch_count = ao_peripherals["dma"]["num_channels"]
-    dma_ch_size = ao_peripherals["dma"]["ch_length"]
+    if int(dma_ch_count, 16) > int('256', 16) or int(dma_ch_count, 16) == 0:
+        exit("Number of DMA channels has to be between 0 and 256, excluded")
 
+    dma_ch_size = ao_peripherals["dma"]["ch_length"]
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):

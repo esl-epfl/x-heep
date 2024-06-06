@@ -283,25 +283,39 @@ static struct
 
 void handler_irq_dma(uint32_t id)
 {
-    /*
-     * Call the weak implementation provided in this module,
+    /* 
+     * Find out which channel raised the interrupt and call
+     * either the weak implementation provided in this module,
      * or the non-weak implementation.
      */
-    dma_intr_handler_window_done();
+
+    for (int i = 0; i < DMA_CH_NUM; i++)
+    {
+        if (dma_cb.channels[i].peri->WINDOW_IFR == 1)
+        {
+            dma_intr_handler_window_done(i);
+        }
+    }
+    return;
 }
 
 void fic_irq_dma(void)
 {
-    /* Find which channel raised the interrupt */
+    /* 
+     * Find out which channel raised the interrupt and call
+     * either the weak implementation provided in this module,
+     * or the non-weak implementation.
+     */
+    
     for (int i = 0; i < DMA_CH_NUM; i++)
     {
         if (dma_cb.channels[i].peri->TRANSACTION_IFR == 1)
         {
             dma_cb.channels[i].intrFlag = 1;
             dma_intr_handler_trans_done(i);
-            return;
         }
     }
+    return;
 }
 
 void dma_init( dma *channels )
@@ -1087,7 +1101,7 @@ __attribute__((weak, optimize("O0"))) void dma_intr_handler_trans_done(uint8_t c
      */
 }
 
-__attribute__((weak, optimize("O0"))) void dma_intr_handler_window_done()
+__attribute__((weak, optimize("O0"))) void dma_intr_handler_window_done(uint8_t channel)
 {
     /*
      * The DMA has copied another window.

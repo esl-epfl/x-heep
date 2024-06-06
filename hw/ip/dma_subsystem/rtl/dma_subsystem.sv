@@ -107,10 +107,10 @@ module dma_subsystem #(
           .rst_ni       (rst_ni),
           .master_req_i (xbar_read_req),
           .master_resp_o(xbar_read_resp),
-          .slave_req_o  (dma_read_ch0_req_o), 
+          .slave_req_o  (dma_read_ch0_req_o),
           .slave_resp_i (dma_read_ch0_resp_i)
       );
-      
+
       xbar_varlat_n_to_one #(
           .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
       ) xbar_write_i (
@@ -121,7 +121,7 @@ module dma_subsystem #(
           .slave_req_o  (dma_write_ch0_req_o),
           .slave_resp_i (dma_write_ch0_resp_i)
       );
-      
+
       xbar_varlat_n_to_one #(
           .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
       ) xbar_address_i (
@@ -133,7 +133,7 @@ module dma_subsystem #(
           .slave_resp_i (dma_addr_ch0_resp_i)
       );
     end else begin
-      
+
       /* Bus ports routing in the case of a single DMA */
       assign dma_read_ch0_req_o = xbar_read_req[0];
       assign xbar_read_resp[0] = dma_read_ch0_resp_i;
@@ -144,20 +144,14 @@ module dma_subsystem #(
     end
   endgenerate
 
-  generate
-    if (core_v_mini_mcu_pkg::DMA_CH_NUM == 1) begin
-      
-    end
-  endgenerate
-
   /* Internal address decoder */
   addr_decode #(
       .NoIndices(core_v_mini_mcu_pkg::DMA_CH_NUM),
       .NoRules(core_v_mini_mcu_pkg::DMA_CH_NUM),
-      .addr_t(logic [31:0]),
-      .rule_t(addr_map_rule_pkg::addr_map_rule_t)
+      .addr_t(logic [7:0]),
+      .rule_t(addr_map_rule_pkg::addr_map_rule_8bit_t)
   ) addr_dec_i (
-      .addr_i(reg_req_i.addr),
+      .addr_i(reg_req_i.addr[15:8]),
       .addr_map_i(core_v_mini_mcu_pkg::DMA_ADDR_RULES),
       .idx_o(submodules_select),
       .dec_valid_o(),
