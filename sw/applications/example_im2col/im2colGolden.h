@@ -25,7 +25,7 @@
 
 extern const uint32_t input_image_nchw[1452];
 extern const uint32_t golden_im2col_nchw[6912];
-// extern const uint32_t input_image_nhwc[1452];
-// extern const uint32_t golden_im2col_nhwc[6912];
+extern const uint32_t input_image_nhwc[1452];
+extern const uint32_t golden_im2col_nhwc[6912];
 
 #endif

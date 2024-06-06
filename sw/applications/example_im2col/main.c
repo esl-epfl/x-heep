@@ -19,7 +19,7 @@
 
 int main()
 {
-    PRINTF("\n\rStarting test...\n\r\n\r");
+    PRINTF("Starting test...\n\r\n\r");
     
     int errors;
     unsigned int cycles;
@@ -45,7 +45,7 @@ int main()
         }
     }
 
-    /*for (int i=0; i<1; i++)
+    for (int i=0; i<1; i++)
     {
         im2col_nhwc_int32(i, &cycles);
         
@@ -64,7 +64,7 @@ int main()
         {
             PRINTF("TEST PASSED!\n\r\n\r");
         }
-    }*/
+    }
 
     return 0;
 }
