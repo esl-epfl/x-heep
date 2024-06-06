@@ -154,9 +154,16 @@ module dma #(
 
   logic        wait_for_rx;
   logic        wait_for_tx;
+  
+  typedef enum logic [1:0] {
+    DMA_DATA_TYPE_WORD,
+    DMA_DATA_TYPE_HALF_WORD,
+    DMA_DATA_TYPE_BYTE,
+    DMA_DATA_TYPE_BYTE_
+  } dma_data_type_t;
 
-  logic [ 1:0] dst_data_type;
-  logic [ 1:0] src_data_type;
+  dma_data_type_t dst_data_type;
+  dma_data_type_t src_data_type;
 
   logic [31:0] fifo_input;
   logic [31:0] fifo_addr_input;
@@ -564,17 +571,17 @@ module dma #(
 
   always_comb begin
     case (dst_data_type)
-      2'b00: dma_cnt_du = 3'h4;
-      2'b01: dma_cnt_du = 3'h2;
-      2'b10, 2'b11: dma_cnt_du = 3'h1;
+      DMA_DATA_TYPE_WORD: dma_cnt_du = 3'h4;
+      DMA_DATA_TYPE_HALF_WORD: dma_cnt_du = 3'h2;
+      DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_BYTE_: dma_cnt_du = 3'h1;
     endcase
   end
 
   always_comb begin : proc_byte_enable_out
     case (dst_data_type)  // Data type 00 Word, 01 Half word, 11,10 byte
-      2'b00: byte_enable_out = 4'b1111;  // Writing a word (32 bits)
+      DMA_DATA_TYPE_WORD: byte_enable_out = 4'b1111;  // Writing a word (32 bits)
 
-      2'b01: begin  // Writing a half-word (16 bits)
+      DMA_DATA_TYPE_HALF_WORD: begin  // Writing a half-word (16 bits)
         case (write_address[1])
           1'b0: byte_enable_out = 4'b0011;
           1'b1: byte_enable_out = 4'b1100;
@@ -582,7 +589,7 @@ module dma #(
         ;  // case(write_address[1:0])
       end
 
-      2'b10, 2'b11: begin  // Writing a byte (8 bits)
+      DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_BYTE_: begin  // Writing a byte (8 bits)
         case (write_address[1:0])
           2'b00: byte_enable_out = 4'b0001;
           2'b01: byte_enable_out = 4'b0010;
@@ -592,7 +599,7 @@ module dma #(
         ;  // case(write_address[1:0])
       end
     endcase
-    ;  // case (src_data_type)
+    ;  // case (dst_data_type)
   end
 
   // Output data shift
@@ -606,45 +613,47 @@ module dma #(
     case (write_address[1:0])
       2'b00: begin
         if (sign_extend) begin
-          case (src_data_type)
-            2'b00: ;
-            2'b01: data_out_wdata[31:16] = {16{fifo_output[15]}};
-            2'b10: data_out_wdata[31:8] = {24{fifo_output[7]}};
-            2'b11: data_out_wdata[31:8] = {24{fifo_output[7]}};
-          endcase
-        end else begin
-          case (src_data_type)
-            2'b00: ;
-            2'b01: data_out_wdata[31:16] = 16'b0;
-            2'b10: data_out_wdata[31:8] = 24'b0;
-            2'b11: data_out_wdata[31:8] = 24'b0;
+          case ({src_data_type, dst_data_type})
+            {DMA_DATA_TYPE_WORD, DMA_DATA_TYPE_WORD}: ;
+            {DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_WORD}: data_out_wdata[31:16] = {16{fifo_output[15]}};
+            {DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_WORD}, {DMA_DATA_TYPE_BYTE_, DMA_DATA_TYPE_WORD}: data_out_wdata[31:8] = {24{fifo_output[7]}};
+            {DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_HALF_WORD}: ;
+            {DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_HALF_WORD}, {DMA_DATA_TYPE_BYTE_, DMA_DATA_TYPE_HALF_WORD}: data_out_wdata[15:8] = {8{fifo_output[7]}};
+            default: ;
           endcase
         end
+        else begin
+          case ({src_data_type, dst_data_type})
+              {DMA_DATA_TYPE_WORD, DMA_DATA_TYPE_WORD}: ;
+              {DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_WORD}: data_out_wdata[31:16] = 16'b0;
+              {DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_WORD}, {DMA_DATA_TYPE_BYTE_, DMA_DATA_TYPE_WORD}: data_out_wdata[31:8] = 24'b0;
+              {DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_HALF_WORD}: ;
+              {DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_HALF_WORD}, {DMA_DATA_TYPE_BYTE_, DMA_DATA_TYPE_HALF_WORD}: data_out_wdata[15:8] = 8'b0;
+              default: ;
+            endcase
+        end
       end
-
-      2'b01: begin
-        data_out_wdata[15:8] = fifo_output[7:0];
-      end
-      2'b10: begin
+      2'b01: data_out_wdata[15:8] = fifo_output[7:0]; // Writing a byte, no need for sign extension
+      2'b10: begin // Writing a half-word or a byte
         data_out_wdata[23:16] = fifo_output[7:0];
         data_out_wdata[31:24] = fifo_output[15:8];
+
         if (sign_extend) begin
-          case (src_data_type)
-            2'b00: ;
-            2'b01: ;
-            2'b10: data_out_wdata[31:24] = {8{fifo_output[23]}};
-            2'b11: data_out_wdata[31:24] = {8{fifo_output[23]}};
+          case ({src_data_type, dst_data_type})
+            {DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_HALF_WORD}: ;
+            {DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_HALF_WORD}, {DMA_DATA_TYPE_BYTE_, DMA_DATA_TYPE_HALF_WORD}: data_out_wdata[31:24] = {8{fifo_output[7]}};
+            default: ;
           endcase
-        end else begin
-          case (src_data_type)
-            2'b00: ;
-            2'b01: ;
-            2'b10: data_out_wdata[31:24] = 8'b0;
-            2'b11: data_out_wdata[31:24] = 8'b0;
+        end
+        else begin
+          case ({src_data_type, dst_data_type})
+            {DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_HALF_WORD}: ;
+            {DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_HALF_WORD}, {DMA_DATA_TYPE_BYTE_, DMA_DATA_TYPE_HALF_WORD}: data_out_wdata[31:24] = 8'b0;
+            default: ;
           endcase
         end
       end
-      2'b11: data_out_wdata[31:24] = fifo_output[7:0];
+      2'b11: data_out_wdata[31:24] = fifo_output[7:0]; // Writing a byte, no need for sign extension
     endcase
   end
 
