@@ -48,6 +48,20 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     unsigned int avg_last_zeros;
     unsigned int avg_patch = 0;
     int src_inc_d2 = 0;
+    int w_offset_counter = 0;
+    int h_offset_counter = 0;
+    int im_c_counter = 0;
+    int w_offset_vs_PAD = 0;
+    int h_offset_vs_PAD = 0;
+    int fw_minus_w_offset_vs_PAD = 0;
+    int fh_minus_h_offset_vs_PAD = 0;
+    int w_offset_tmp = 0;
+    int h_offset_tmp = 0;
+
+    for (int i=0; i<OH_NCHW*OW_NCHW; i++)
+    {
+        output_data[i] = 0;
+    }
 
     #if TIMING
         CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
@@ -297,6 +311,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         /* Implementation of the nchw im2col algorithm using the DMA 2D feature */
 
         /* Iterate over each row of the output matrix. */
+        PRINTF("AAAAA\n\r");
 
         uint32_t* input_image_ptr = &input_image_nchw[0];
         uint32_t* output_data_ptr = &output_data[0];
@@ -333,44 +348,80 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         dma_init(NULL); 
 
         for (int c = 0; c < CH_COL; ++c) {
-            /* Calculate offsets within the kernel window. */
-            w_offset = c % FW; 
-            h_offset = (c / FW) % FH; 
-            im_c = c / (FH * FW); 
+            
+            /* Optimized w_offset computation */
+            if (w_offset_counter == FW)
+            {
+                w_offset_counter = 0;
+                if (w_offset == FW - 1)
+                {
+                    w_offset = 0;
+                } 
+                else
+                {
+                    w_offset++;
+                }
+            } 
+            else
+            {
+                w_offset_counter++;
+            }
+
+            if (h_offset_counter == FW)
+            {
+                h_offset_counter = 0;
+                h_offset++;
+            } 
+            else
+            {
+                h_offset_counter++;
+            }
+
+            if (im_c_counter == FH*FW)
+            {
+                im_c_counter = 0;
+                im_c++;
+            } 
+            else
+            {
+                im_c_counter++;
+            }
 
             /* Precompute constants */
-            im_col = w_offset - PAD;
+
             im_row = h_offset - PAD;
+            im_col = w_offset - PAD;
             fw_minus_w_offset = FW - 1 - w_offset;
             fh_minus_h_offset = FH - 1 - h_offset;
+
+            PRINTF_DEB("\n\rim_row: %d, im_col: %d", im_row, im_col);
+            PRINTF_DEB("\n\rw_offset: %d, h_offset: %d\n\r", w_offset, h_offset);
+
+            /* Computing the number of zeros on the left */
+            n_zeros_left = (w_offset >= PAD) ? 0 : ((PAD - 1 - w_offset)/STRIDES + 1); // (PAD - w_off - 1)/S + 1
+
+            /* Computing the number of zeros on the top */
+            n_zeros_top = (h_offset >= PAD) ? 0 : ((PAD - 1 - h_offset)/STRIDES + 1);
+
+            /* Computing the number of zeros on the right */
+            n_zeros_right = (fw_minus_w_offset >= PAD) ? 0 : ((TMP_PAD_W - fw_minus_w_offset - 1) / STRIDES + 1);
+
+            /* Computing the number of zeros on the bottom */
+            n_zeros_bottom = (fh_minus_h_offset >= PAD) ? 0 : ((TMP_PAD_H - fh_minus_h_offset - 1) / STRIDES + 1);
+
+            /* Compute the number of elements to transfer */
+            size_transfer = N_PATCHES_W - n_zeros_left - n_zeros_right;
+            size_transfer_d2 = N_PATCHES_H - n_zeros_top - n_zeros_bottom;
+
+            PRINTF_DEB("\n\rn_zeros_left: %d, n_zeros_right: %d, n_zeros_top: %d, n_zeros_bottom: %d", n_zeros_left, n_zeros_right, n_zeros_top, n_zeros_bottom);
+            PRINTF_DEB("\n\rsize_transfer: %d, size_transfer_d2: %d", size_transfer, size_transfer_d2);
 
             /* Iterate over each BATCH. */
             for (int32_t b = 0; b < BATCH; ++b) {
                 
-                PRINTF_DEB("\n\rim_row: %d, im_col: %d", im_row, im_col);
-                PRINTF_DEB("\n\rw_offset: %d, h_offset: %d\n\r", w_offset, h_offset);
-
-                /* Computing the number of zeros on the left */
-                n_zeros_left = (w_offset >= PAD) ? 0 : ((PAD - w_offset + STRIDES - 1) / STRIDES);
-
-                /* Computing the number of zeros on the top */
-                n_zeros_top = (h_offset >= PAD) ? 0 : ((PAD - h_offset + STRIDES - 1) / STRIDES);
-
-                /* Computing the number of zeros on the right */
-                n_zeros_right = (fw_minus_w_offset >= PAD) ? 0 : ((TMP_PAD_W - fw_minus_w_offset + STRIDES - 1) / STRIDES);
-
-                /* Computing the number of zeros on the bottom */
-                n_zeros_bottom = (fh_minus_h_offset >= PAD) ? 0 : ((TMP_PAD_H - fh_minus_h_offset + STRIDES - 1) / STRIDES);
-
-                /* Compute the number of elements to transfer */
-                size_transfer = N_PATCHES_W - n_zeros_left - n_zeros_right;
-                size_transfer_d2 = N_PATCHES_H - n_zeros_top - n_zeros_bottom;
-
-                PRINTF_DEB("\n\rn_zeros_left: %d, n_zeros_right: %d, n_zeros_top: %d, n_zeros_bottom: %d", n_zeros_left, n_zeros_right, n_zeros_top, n_zeros_bottom);
-                PRINTF_DEB("\n\rsize_transfer: %d, size_transfer_d2: %d", size_transfer, size_transfer_d2);
-
                 /* DMA setup and transaction run */
                 int index = get_index(CH, IH, IW, b, im_c, im_row + n_zeros_top * STRIDES, im_col + n_zeros_left * STRIDES);
+
                 input_image_ptr = &input_image_nchw[0] + index;
                 tgt_src.ptr = input_image_ptr;
                 tgt_src.size_du = size_transfer;
@@ -535,12 +586,14 @@ int verify(int format)
         {
             for (int j=0; j<OW_NCHW; j++)
             {    
+                PRINTF("%d ", output_data[i*OW_NCHW + j]);
                 if (golden_im2col_nchw[i*OW_NCHW + j] != output_data[i*OW_NCHW + j])
                 {
                     PRINTF("ERROR: Golden: %d, Output: %d, at %d %d\n\r", golden_im2col_nchw[i*OW_NCHW + j], output_data[i*OW_NCHW + j], i, j);
                     errors ++;
                 }
             }
+            PRINTF("\n\r");
         }
     }
     else

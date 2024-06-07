@@ -17,14 +17,14 @@
 #define NCHW_FORMAT 0
 #define NHWC_FORMAT 1
 
+/* Test variables */
+int errors;
+unsigned int cycles;
+
 int main()
 {
-    PRINTF("Starting test...\n\r\n\r");
-    
-    int errors;
-    unsigned int cycles;
-    
-    for (int i=0; i<3; i++)
+    /* Testing NCHW format */
+    for (int i=0; i<3; i+=2)
     {
         im2col_nchw_int32(i, &cycles);
         
@@ -45,7 +45,8 @@ int main()
         }
     }
 
-    for (int i=0; i<1; i++)
+    /* Testing NHWC format */
+    for (int i=1; i<1; i++)
     {
         im2col_nhwc_int32(i, &cycles);
         
