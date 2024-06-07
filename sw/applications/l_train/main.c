@@ -61,7 +61,7 @@ void test_lossTrack1() {
     cnn.momentum = 1e-2f;
 
     // Forward pass
-    Cnn_train(&cnn, xin_0, ppg_0, 1000, false);
+    Cnn_train(&cnn, xin_0, ppg_0, 100, true);
 }
 
 int main() {

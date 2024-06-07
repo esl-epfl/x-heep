@@ -21,7 +21,7 @@
  * @def TRACK_LOSS
  * @brief define this macro to enable tracking of the loss
  */
-// #define TRACK_LOSS
+#define TRACK_LOSS
 
 /**
  * @def LOG_GRADIENTS

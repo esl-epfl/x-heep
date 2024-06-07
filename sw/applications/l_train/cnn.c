@@ -14,6 +14,8 @@
 
 #include "cnn.h"
 
+#include "coremark.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 // clang-format on
@@ -22,7 +24,7 @@
 static complex_t ppgfft[256];
 static complex_t outputfft[256];
 
-static float output[256];
+static float forwardPass[256];
 static float layer1Output[3 * 256];
 
 static complex_t gradGToW2[256];
@@ -30,12 +32,8 @@ static float gradLToM[3 * 256];
 static float w1Velocity[3 * 21] = {0.0f};
 static float w2Velocity[3] = {0.0f};
 
-// #ifndef DYN_ALLOCATION
-// static fxp32 layer1OutputFxp[3 * 256];
-// #endif
-
-#ifdef TRACK_LOSS
-static float absV[256];
+#ifndef DYN_ALLOCATION
+static fxp32 layer1OutputFxp[3 * 256];
 #endif
 
 #ifdef DYN_ALLOCATION
@@ -69,8 +67,8 @@ void Cnn_forwardFxp(CnnHandle self, fxp32* input, fxp32* output) {
     Conv2DLayer_forwardFxp(self->layer2, self->inputDim, layer1Output, output);
     free(layer1Output);
 #else
-    // Conv2DLayer_forwardFxp(self->layer1, self->inputDim, input, layer1OutputFxp);
-    // Conv2DLayer_forwardFxp(self->layer2, self->inputDim, layer1OutputFxp, output);
+    Conv2DLayer_forwardFxp(self->layer1, self->inputDim, input, layer1OutputFxp);
+    Conv2DLayer_forwardFxp(self->layer2, self->inputDim, layer1OutputFxp, output);
 #endif
 }
 
@@ -95,22 +93,13 @@ void Cnn_predictFloat(CnnHandle self, float* acc, float* ppg, float* output) {
 
 float Cnn_sampleLoss(CnnHandle self, complex_t* ypredfft, complex_t* ytruefft) {
     float loss = 0.0f;
-    // NOTE: could be optimized by reusing .r and .i for the abs
-#ifdef DYN_ALLOCATION
-    fxpMul* absV = (fxpMul*)calloc(self->outputDim.y * self->outputDim.x, sizeof(fxpMul));
-#elif !defined(TRACK_LOSS)
-    fxpMul absV[self->outputDim.y * self->outputDim.x];
-#endif
     float ytr, ypr, yti, ypi;
     for (int i = 0; i < self->outputDim.y * self->outputDim.x; ++i) {
         ytr = fxp32_toFloat(ytruefft[i].r);
         ypr = fxp32_toFloat(ypredfft[i].r);
         yti = fxp32_toFloat(ytruefft[i].i);
         ypi = fxp32_toFloat(ypredfft[i].i);
-        absV[i] = (ytr - ypr) * (ytr - ypr) + (yti - ypi) * (yti - ypi);
-    }
-    for (int i = 0; i < self->outputDim.y * self->outputDim.x; ++i) {
-        loss += absV[i];
+        loss += (ytr - ypr) * (ytr - ypr) + (yti - ypi) * (yti - ypi);
     }
     return loss;
 }
@@ -169,14 +158,14 @@ void Cnn_sgdStep(CnnHandle self, float* acc, float* ppg) {
 
     // get ppg-output in time domain and store in output
     for (int i = 0; i < self->outputDim.y * self->outputDim.x; i++) {
-        output[i] = ppg[i] - output[i];
+        forwardPass[i] = ppg[i] - forwardPass[i];
     }
 
     // fill the values in the dL/dm matrix
     for (int i = 0; i < self->inputDim.x; i++) {
         float factor = -512 * self->layer2->weightsFloat[i];
         for (int j = 0; j < self->inputDim.y; j++) {
-            gradLToM[i * self->inputDim.y + j] = output[j] * factor;
+            gradLToM[i * self->inputDim.y + j] = forwardPass[j] * factor;
         }
     }
 
@@ -219,33 +208,21 @@ void Cnn_train(CnnHandle self, float* acc, float* ppg, int nEpochs, bool logAllL
     // FFT of the ppg
     arrToComplex(ppg, ppgfft, self->outputDim.y * self->outputDim.x, 0);
     fft(ppgfft, self->fftBits);
-    // array to track loss
-#ifdef TRACK_LOSS
-    // float lossArr[nEpochs];
-#endif
     for (int i = 0; i < nEpochs; ++i) {
-        Cnn_forwardFloat(self, acc, output);
-        arrToComplex(output, outputfft, self->outputDim.y * self->outputDim.x, 0);
+        start_time();
+        Cnn_forwardFloat(self, acc, forwardPass);
+        arrToComplex(forwardPass, outputfft, self->outputDim.y * self->outputDim.x, 0);
         fft(outputfft, self->fftBits);
-        if (i == 0 || i == nEpochs - 1) {
-            printf("Loss epoch %d: %d\n", i, (int)(Cnn_sampleLoss(self, outputfft, ppgfft)));
-        }
-#ifdef TRACK_LOSS
-        lossArr[i] = Cnn_sampleLoss(self, outputfft, ppgfft);
-#endif
+// #ifdef TRACK_LOSS
+//         if (logAllLosses)
+//             printf("loss epoch %d: %d\n", i, (int)Cnn_sampleLoss(self, outputfft, ppgfft));
+//         else if (i == 0 || i == nEpochs - 1)
+//             printf("loss epoch %d: %d\n", i + 1, (int)Cnn_sampleLoss(self, outputfft, ppgfft));
+// #endif
         Cnn_sgdStep(self, acc, ppg);
+        stop_time();
+        printf("Time epoch %d: %d\n", i+1, get_time());
     }
-#ifdef TRACK_LOSS
-    if (logAllLosses) {
-        for (int i = 0; i < nEpochs; ++i) {
-            printf("Loss epoch %d: %f\n", i, lossArr[i]);
-        }
-    }
-    else {
-        printf("First loss: %f\n", lossArr[0]);
-        printf("Final loss: %f\n", lossArr[nEpochs - 1]);
-    }
-#endif
 }
 
 void Cnn_freezeModel(CnnHandle self) {
