@@ -33,13 +33,24 @@
         { bits: "31:0", name: "PTR_ADDR", desc: "Address data pointer (word aligned) - used only in Address mode" }
       ]
     },
-    { name:     "SIZE",
-      desc:     "Number of bytes to copy - Once a value is written, the copy starts",
+    { name:     "SIZE_D1",
+      desc:     "Number of bytes to copy from, defined with respect to the first dimension - Once a value is written, the copy starts",
       swaccess: "rw",
       hwaccess: "hro",
       hwqe:     "true", // enable `qe` latched signal of software write pulse
+      // Dimensioned to 16 bits to allow for 64kB transfers on 1D
       fields: [
-        { bits: "31:0", name: "SIZE", desc: "DMA counter and start" }
+        { bits: "15:0", name: "SIZE", desc: "DMA counter D1 and start" }
+      ]
+    },
+    { name:     "SIZE_D2",
+      desc:     "Number of bytes to copy from, defined with respect to the second dimension",
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
+      // Dimensioned to 16 bits to allow for 64kB transfers on 2D
+      fields: [
+        { bits: "15:0", name: "SIZE", desc: "DMA counter D2" }
       ]
     },
     { name:     "STATUS",
@@ -50,23 +61,56 @@
       hwre:     "true", // enable `re` latched signal of software read pulse
       resval:   1,
       fields: [
-        { bits: "0", name: "READY", desc: "Transaction iss done"},
+        { bits: "0", name: "READY", desc: "Transaction is done"},
         { bits: "1", name: "WINDOW_DONE", desc: "set if DMA is copying second half"},
       ]
     },
-    { name:     "PTR_INC",
-      desc:     "Increment number of src/dst pointer every time a word is copied",
+    { name:     "SRC_PTR_INC_D1",
+      desc:     "Increment the D1 source pointer every time a word is copied",
+      swaccess: "rw",
+      hwaccess: "hro",
+      // Dimensioned to allow a maximum of a 15 element stride for a data_type_word case
+      fields: [
+        { bits: "5:0", 
+          name: "INC", 
+          desc: "Source pointer d1 increment",
+          resval:4
+        }
+      ]
+    },
+    { name:     "SRC_PTR_INC_D2",
+      desc:     "Increment the D2 source pointer every time a word is copied",
+      swaccess: "rw",
+      hwaccess: "hro",
+      // Dimensioned to allow a maximum of 15 element stride for a data_type_word
+      fields: [
+        { bits: "22:0", 
+          name: "INC", 
+          desc: "Source pointer d2 increment",
+          resval:4
+        }
+      ]
+    },
+    { name:     "DST_PTR_INC_D1",
+      desc:     "Increment the D1 destination pointer every time a word is copied",
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "7:0", 
-          name: "SRC_PTR_INC", 
-          desc: "Source pointer increment",
+        { bits: "5:0", 
+          name: "INC", 
+          desc: "Destination pointer d1 increment",
           resval:4
-        },
-        { bits: "15:8", 
-          name: "DST_PTR_INC", 
-          desc: "Destination pointer increment",
+        }
+      ]
+    },
+    { name:     "DST_PTR_INC_D2",
+      desc:     "Increment the D2 destination pointer every time a word is copied",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "22:0", 
+          name: "INC", 
+          desc: "Destination pointer d2 increment",
           resval:4
         }
       ]
@@ -119,13 +163,71 @@
         }
       ]
     },
+    { name:     "DIM_CONFIG",
+      desc:     '''Set the dimensionality of the DMA''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   0,
+      fields: [
+        { bits: "0", name: "DMA_DIM", desc: "DMA transfer dimensionality"}
+      ]
+    },
+    { name:     "DIM_INV",
+      desc:     '''DMA dimensionality inversion selector''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   0,
+      fields: [
+        { bits: "0", name: "SEL", desc: "DMA dimensionality inversion, used to perform transposition"}
+      ]
+    },
+    { name:     "PAD_TOP",
+      desc:     '''Set the top padding''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
+      resval:   0,
+      fields: [
+        { bits: "5:0", name: "PAD", desc: "Top margin padding (2D)"}
+      ]
+    },
+    { name:     "PAD_BOTTOM",
+      desc:     '''Set the bottom padding''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
+      resval:   0,
+      fields: [
+        { bits: "5:0", name: "PAD", desc: "Bottom margin padding (2D)"}
+      ]
+    },
+    { name:     "PAD_RIGHT",
+      desc:     '''Set the right padding''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
+      resval:   0,
+      fields: [
+        { bits: "5:0", name: "PAD", desc: "Right margin padding (1D/2D)"}
+      ]
+    },
+    { name:     "PAD_LEFT",
+      desc:     '''Set the left padding''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse: used to trigger the padding
+      resval:   0,
+      fields: [
+        { bits: "5:0", name: "PAD", desc: "Left margin padding (1D/2D)"}
+      ]
+    },
     { name:    "WINDOW_SIZE",
       desc:    '''Will trigger a every "WINDOW_SIZE" writes
                   Set to 0 to disable.''',
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "WINDOW_SIZE", desc: ""}
+        { bits: "12:0", name: "WINDOW_SIZE", desc: ""}
       ]
     },
     { name:    "WINDOW_COUNT",
@@ -136,7 +238,7 @@
       hwaccess: "hrw",
       resval: 0,
       fields: [
-        { bits: "31:0", name: "WINDOW_COUNT", desc: "Number of windows transferred in the transaction" }
+        { bits: "7:0", name: "WINDOW_COUNT", desc: "Number of windows transferred in the transaction" }
       ]
     },
     { name:    "INTERRUPT_EN",

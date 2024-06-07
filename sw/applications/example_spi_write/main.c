@@ -25,13 +25,13 @@
 
 #if TARGET_SIM && PRINTF_IN_SIM
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+#elif PRINTF_IN_FPGA
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
 #endif
 
-#ifdef TARGET_PYNQ_Z2
+#if defined(TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
     #define USE_SPI_FLASH
 #endif
 
@@ -140,6 +140,9 @@ void erase_memory(uint32_t addr);
 w25q_error_codes_t global_status;
 
 int main(int argc, char *argv[]) {
+    // Initialize the DMA
+    dma_init(NULL);
+    
     soc_ctrl_t soc_ctrl;
     soc_ctrl.base_addr = mmio_region_from_addr((uintptr_t)SOC_CTRL_START_ADDRESS);
 
