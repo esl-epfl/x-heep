@@ -22,6 +22,10 @@ Sources and destinations are the two pointers that will exchange data. Bytes wil
 ### Data type
 The DMA allows transactions in chunks of 1, 2 or 4 Bytes (`Byte`, `Half-Word` and `Word` respectively). The size in bytes of the chosen data type is called _data unit_ (usually abbreviated as `du`).
 For example, 16 bytes can be 16 data units if the data type is `Byte`, but 8 data units if the data type is `Half Word`.
+Source and destination can have different data types, if the destination type is wider than the source type, data can be sign extended.
+
+### Sign extension
+If specified (setting the bit in the corresponding register) and if the destanation data type is wider than the source type, sign of the source data is extended to fill the size of the destination data type.
 
 ### Increment
 In the case that source and/or destination data are not to be consecutively read/written, a certain increment can be defined.
@@ -156,6 +160,7 @@ static dma_target_t tgt_src = {
                                 .ptr        = copy_buffer,
                                 .inc_du     = 1,
                                 .size_du    = sizeof(copy_buffer),
+                                .type       = DMA_DATA_TYPE_WORD
                                 };
 ```
 
@@ -166,14 +171,16 @@ This configuration is implicitly initializing the rest of the target configurati
 * Data type is set to _word_ (32-bits).
 * The trigger is set to _memory_ (vs. a peripheral).
 
-The destination target can also dispense of a size, as the source size will be used.
-
 ```C
 static dma_target_t tgt_dst = {
                                 .ptr        = copy_buffer,
                                 .inc_du     = 1,
+                                .size_du    = sizeof(copy_buffer),
+                                .type       = DMA_DATA_TYPE_WORD
                                 };
 ```
+
+Both destination and source targets has to contain a data type (they can be different) and size in data units (they should be the same).
 
 Finally, a transaction is created to relate both targets:
 
