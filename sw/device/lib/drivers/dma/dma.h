@@ -68,6 +68,8 @@
 #define DMA_SPI_FLASH_TX_SLOT     0x08
 #define DMA_I2S_RX_SLOT           0x10
 
+#define DMA_INT_TR_START     0x0
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -133,6 +135,19 @@ typedef enum
     DMA_DATA_TYPE__size,    /*!< Not used, only for sanity checks. */
     DMA_DATA_TYPE__undef,   /*!< DMA will not be used. */
 } dma_data_type_t;
+
+typedef enum
+{
+    DMA_DIM_CONF_1D = 0, /* The DMA will copy data along D1 only. */
+    DMA_DIM_CONF_2D = 1, /* The DMA will copy data along D1 and D2. */
+    DMA_DIM_CONF__size,  /* Not used, only for sanity checks. */
+    /*
+        Padding is enabled with the 2D mode. This means that to pad a 1D
+        data structure, i.e. an array, the DMA would have to be set in 2D
+        mode with the D2 dimension set to 1.
+        This case is handled by the DMA HAL, so it's transparent to the user.
+     */
+} dma_dim_t;
 
 /**
  * It is possible to choose the level of safety with which the DMA operation
@@ -279,11 +294,15 @@ typedef struct
     if the target is a peripheral. */
     uint8_t*                ptr;     /*!< Pointer to the start address from/to
     where data will be copied/pasted. */
-    uint16_t                inc_du;  /*!< How much the pointer will increase
+    uint8_t                inc_du;  /*!< How much the pointer will increase
     every time a read/write operation is done. It is a multiple of the data units.
     Can be left blank if the target is a peripheral. */
-    uint32_t                size_du; /*!< The size (in data units) of the data to
+    uint32_t                inc_d2_du; /*!< How much the D2 pointer will increase
+    every time the DMA finishes to read a #D1 of data units. */
+    uint16_t                size_du; /*!< The size (in data units) of the data to
     be copied. Can be left blank if the target will only be used as destination.*/
+    uint16_t                size_d2_du; /*!< The size (in data units) of the data
+    to be copied along D2.*/
     dma_data_type_t         type;    /*!< The type of data to be transferred.
     Can be left blank if the target will only be used as destination. */
     dma_trigger_slot_mask_t trig;    /*!< If the target is a peripheral, a
@@ -296,6 +315,7 @@ typedef struct
  * It also includes control parameters to override the targets' specific ones
  * if needed.
  */
+
 typedef struct
 {
     dma_target_t*       src;   /*!< Target from where the data will be
@@ -306,11 +326,20 @@ typedef struct
     copied. - only valid in address mode */
     uint16_t            inc_b;  /*!< A common increment in case both targets
     need to use one same increment. */
-    uint32_t            size_b; /*!< The size of the transfer, in bytes (in
+    uint32_t            size_b; /*!< The size of the transfer along D1, in bytes (in
     contrast, the size stored in the targets is in data units). */
+    uint32_t            size_d2_b; /*!< The size of the transfer along D2, in bytes (in
+    contrast, the size stored in the targets is in data units). */
+    dma_dim_t           dim; /*!< Sets the dimensionality of the
+    DMA, either 1D or 2D. */
+    uint8_t             pad_top_du; /*!< Padding at the top of the 2D transfer. */
+    uint8_t             pad_bottom_du; /*!< Padding at the bottom of the 2D transfer. */
+    uint8_t             pad_left_du; /*!< Padding at the left of the 2D transfer. */
+    uint8_t             pad_right_du; /*!< Padding at the right of the 2D transfer. */
     dma_data_type_t     type;   /*!< The data type to use. One is chosen among
     the targets. */
     dma_trans_mode_t    mode;   /*!< The copy mode to use. */
+    uint8_t                dim_inv; /*!< If the D1 and D2 dimensions are inverted, i.e. perform transposition. */
     uint32_t            win_du;  /*!< The amount of data units every which the
     WINDOW_DONE flag is raised and its corresponding interrupt triggered. It
     can be set to 0 to disable this functionality. */
@@ -393,7 +422,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans );
  * loaded is not the desired one).
  * @retval DMA_CONFIG_OK == 0 otherwise.
  */
-dma_config_flags_t dma_launch( dma_trans_t* p_trans );
+dma_config_flags_t dma_launch( dma_trans_t* p_trans);
 
 /**
  * @brief Read from the done register of the DMA. Additionally decreases the

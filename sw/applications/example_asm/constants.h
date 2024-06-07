@@ -1,0 +1,1 @@
+#define MULTIPLY_CONSTANT 2
