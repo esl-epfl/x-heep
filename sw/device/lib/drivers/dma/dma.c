@@ -264,15 +264,17 @@ typedef struct
 
 }dma_ch_cb;
 
-/*
- *  Control block of the DMA subsystme. This struct holds the information of the DMA peripheral, 
- *  including a pointer to the dma_ch_cb structs.
- */
+/* Allocate the channel's memory space */
+static dma_ch_cb ch[DMA_CH_NUM];
 
 static struct
 {
     dma_ch_cb *channels;
-}dma_cb;
+}dma_cb = {
+    .channels = ch
+};
+
+
 
 
 /****************************************************************************/
@@ -837,6 +839,18 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
         p_trans->dim = DMA_DIM_CONF_2D;
         p_trans->size_d2_b = DMA_DATA_TYPE_2_SIZE( p_trans->type );
         p_trans->src->inc_d2_du = DMA_DATA_TYPE_2_SIZE( p_trans->type );
+        
+        write_register( dma_cb.channels[channel].trans->pad_left_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+                        DMA_PAD_LEFT_REG_OFFSET,
+                        DMA_PAD_LEFT_PAD_MASK,
+                        DMA_PAD_LEFT_PAD_OFFSET,
+                        dma_cb.channels[channel].peri);
+
+        write_register( dma_cb.channels[channel].trans->pad_right_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+                        DMA_PAD_RIGHT_REG_OFFSET,
+                        DMA_PAD_RIGHT_PAD_MASK,
+                        DMA_PAD_RIGHT_PAD_OFFSET,
+                        dma_cb.channels[channel].peri);
     }
     else if (p_trans->dim == DMA_DIM_CONF_2D)
     {
