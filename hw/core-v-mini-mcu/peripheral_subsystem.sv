@@ -7,7 +7,7 @@ module peripheral_subsystem
   import reg_pkg::*;
 #(
     //do not touch these parameters
-    parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
+    parameter NEXT_INT_RND         = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -20,8 +20,8 @@ module peripheral_subsystem
 
     //PLIC
     input  logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
-    output logic                    irq_plic_o,
-    output logic                    msip_o,
+    output logic                irq_plic_o,
+    output logic                msip_o,
 
     //UART PLIC interrupts
     input logic uart_intr_tx_watermark_i,
@@ -172,7 +172,7 @@ module peripheral_subsystem
   assign intr_vector[48] = i2c_intr_host_timeout;
   assign intr_vector[49] = spi2_intr_event;
   assign intr_vector[50] = i2s_intr_event;
-  assign intr_vector[51] = dma_window_intr_i;
+  assign intr_vector[51]  = dma_window_intr_i;
 
   // External interrupts assignement
   for (genvar i = 0; i < NEXT_INT; i++) begin
@@ -202,18 +202,18 @@ module peripheral_subsystem
 
 `else
 
-  obi_pkg::obi_req_t  slave_fifoin_req;
+  obi_pkg::obi_req_t slave_fifoin_req;
   obi_pkg::obi_resp_t slave_fifoin_resp;
 
-  obi_pkg::obi_req_t  slave_fifoout_req;
+  obi_pkg::obi_req_t slave_fifoout_req;
   obi_pkg::obi_resp_t slave_fifoout_resp;
 
   obi_fifo obi_fifo_i (
       .clk_i(clk_cg),
       .rst_ni,
-      .producer_req_i(slave_fifoin_req),
+      .producer_req_i (slave_fifoin_req),
       .producer_resp_o(slave_fifoin_resp),
-      .consumer_req_o(slave_fifoout_req),
+      .consumer_req_o (slave_fifoout_req),
       .consumer_resp_i(slave_fifoout_resp)
   );
 

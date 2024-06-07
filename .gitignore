@@ -57,3 +57,4 @@ flow/OpenROAD-flow-scripts
 # User-dependent configuration files
 .vscode
 private/
+vivado.jou
