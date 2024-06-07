@@ -13,7 +13,7 @@
 
 // TEST DEFINES AND CONFIGURATION
 
-#define TEST_SINGULAR_MODE
+// #define TEST_SINGULAR_MODE
 #define TEST_ADDRESS_MODE
 #define TEST_PENDING_TRANSACTION
 #define TEST_WINDOW
@@ -30,11 +30,11 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA 1
-#define PRINTF_IN_SIM 0
+#define PRINTF_IN_SIM 1
 
 #if TARGET_SIM && PRINTF_IN_SIM
 #define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
-#elif PRINTF_IN_FPGA
+#elif PRINTF_IN_FPGA && !TARGET_SIM
 #define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
 #else
 #define PRINTF(...)
@@ -256,6 +256,29 @@ int main(int argc, char *argv[])
 
 #endif // TEST_SINGULAR_MODE
 
+    // Initialize the DMA for the next tests
+    tgt_src.ptr = test_data_4B;
+    tgt_src.inc_du = 1;
+    tgt_src.size_du = TEST_DATA_SIZE;
+    tgt_src.trig = DMA_TRIG_MEMORY;
+    tgt_src.type = DMA_DATA_TYPE_WORD;
+
+    tgt_dst.ptr = copied_data_4B;
+    tgt_dst.inc_du = 1;
+    tgt_dst.size_du = TEST_DATA_LARGE;
+    tgt_dst.trig = DMA_TRIG_MEMORY;
+    tgt_dst.type = DMA_DATA_TYPE_WORD;
+
+    trans.src = &tgt_src;
+    trans.dst = &tgt_dst;
+    trans.src_addr = &tgt_addr;
+    trans.src_type = DMA_DATA_TYPE_WORD;
+    trans.dst_type = DMA_DATA_TYPE_WORD;
+    trans.mode = DMA_TRANS_MODE_SINGLE;
+    trans.win_du = 0;
+    trans.sign_ext = 0;
+    trans.end = DMA_TRANS_END_INTR;
+
 #ifdef TEST_ADDRESS_MODE
 
     PRINTF("\n\n\r===================================\n\n\r");
@@ -371,6 +394,7 @@ int main(int argc, char *argv[])
 
     tgt_src.ptr = test_data_large;
     tgt_src.size_du = TEST_DATA_LARGE;
+    tgt_dst.size_du = TEST_DATA_LARGE;
 
     // trans.end = DMA_TRANS_END_INTR_WAIT; // This option makes no sense, because the launch is blocking the program until the trans finishes.
     trans.end = DMA_TRANS_END_INTR;

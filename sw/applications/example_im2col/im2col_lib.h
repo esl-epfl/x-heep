@@ -33,7 +33,7 @@
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
     #define PRINTF_DEB(...) 
     #define PRINTF_TIM(...)   
-#elif PRINTF_IN_FPGA
+#elif PRINTF_IN_FPGA && !TARGET_SIM
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
     #if DEBUG
         #define PRINTF_DEB(fmt, ...)    printf(fmt, ## __VA_ARGS__)
