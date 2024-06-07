@@ -351,6 +351,10 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         for (int c = 0; c < CH_COL; ++c) {
             /* Calculate offsets within the kernel window. */
 
+            w_offset = c % FW; 
+            h_offset = (c / FW) % FH; 
+            im_c = c / (FH * FW); 
+
             /* Iterate over each BATCH. */
             for (int32_t b = 0; b < BATCH; ++b) {
                 /* Iterate over each patch on the IW of the input matrix. */
@@ -358,7 +362,20 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 im_row = h_offset - PAD;
 
                 im_col = w_offset - PAD;
-                
+
+                n_zeros_left = 0;
+                n_zeros_right = 0;
+                n_zeros_top = 0;
+                n_zeros_bottom = 0;
+                size_transfer = 0;
+                size_transfer_d2 = 0;
+                minimum = 0;
+                start_max = 0;
+                start_min = 0;
+                stray_elements = 0;
+                last_position = 0;
+                tmp_pad = 0;
+
                 PRINTF_DEB("\n\rim_row: %d, im_col: %d", im_row, im_col);
                 PRINTF_DEB("\n\rw_offset: %d, h_offset: %d\n\r", w_offset, h_offset);
                 
@@ -410,7 +427,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 /* by removing the elements of the row uncovered by the sliding filter */
                 tmp_pad = PAD - stray_elements;
 
-                if (fw_minus_w_offset >= PAD)
+                if (FW - 1 - w_offset >= PAD)
                 {
                     n_zeros_right = 0;
                 }
@@ -461,8 +478,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     
                 /* DMA setup and transaction run */
                 int index = get_index(CH, IH, IW, b, im_c, im_row + n_zeros_top*STRIDES, im_col + n_zeros_left*STRIDES);
-                src_inc_d2 = (STRIDES * IW - (size_transfer - 1 + (STRIDES - 1) * (size_transfer - 1)));
-                //  SRC_INC_D2 (STRIDE_IN_D2 * SIZE_IN_D1 - (SIZE_EXTR_D1 - 1 + (STRIDE_IN_D1 - 1) * (SIZE_EXTR_D1 - 1)))
+                src_inc_d2 = (STRIDES * IW - (size_transfer * STRIDES - STRIDES + (STRIDES - 1) * (size_transfer * STRIDES - STRIDES)));
                 // size * S * S - S * S
                 PRINTF_DEB("\n\rindex: %d, src_inc_d2: %d", index, src_inc_d2);
                 input_image_ptr = &input_image_nchw[0] + index;
@@ -506,44 +522,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 #endif
             }
                 PRINTF_DEB("\n\r");
-            
-            /* Optimized w_offset computation: w_offset = c % FW */
-            if (w_offset == FW - 1)
-            {
-                w_offset = 0;
-            } 
-            else
-            {
-                w_offset++;
-            }
-
-            /* Optimized h_offset computation: h_offset = (h_offset_tmp) % FH with h_offset_tmp = C / FW */
-            if (h_offset_counter == FW - 1)
-            {
-                h_offset_counter = 0;
-                if (h_offset == FH - 1)
-                {
-                    h_offset = 0;
-                } 
-                else
-                {
-                    h_offset++;
-                }
-            } 
-            else
-            {
-                h_offset_counter++;
-            }
-
-            if (im_c_counter == FH*FW - 1)
-            {
-                im_c_counter = 0;
-                im_c++;
-            } 
-            else
-            {
-                im_c_counter++;
-            }        
+                    
         }
 
         #if TIMING  
@@ -570,94 +549,94 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     return 0;
 }
 
-// int im2col_nhwc_int32(uint8_t test_id, unsigned int *cycles) 
-// {
-//     /* Implementation of the nhwc im2col algorithm using the DMA 2D feature */
+int im2col_nhwc_int32(uint8_t test_id, unsigned int *cycles) 
+{
+    /* Implementation of the nhwc im2col algorithm using the DMA 2D feature */
 
-//     /* Iterate over each row of the output matrix. */
-//     int size_transfer = 0;
-//     int im_row = 0;
-//     int im_col = 0;
-//     int w_offset = 0;  
-//     int h_offset = 0; 
-//     int im_c = 0; 
-//     int col_index = 0;
-//     unsigned int cycles_A = 0;
-//     unsigned int cycles_B = 0;
+    /* Iterate over each row of the output matrix. */
+    int size_transfer = 0;
+    int im_row = 0;
+    int im_col = 0;
+    int w_offset = 0;  
+    int h_offset = 0; 
+    int im_c = 0; 
+    int col_index = 0;
+    unsigned int cycles_A = 0;
+    unsigned int cycles_B = 0;
 
-//     #if TIMING
-//         CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-//         CSR_WRITE(CSR_REG_MCYCLE, 0);
-//         CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-//     #endif
+    #if TIMING
+        CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+        CSR_WRITE(CSR_REG_MCYCLE, 0);
+        CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+    #endif
 
-//     if (test_id == 0)
-//     {
-//         /* Calculate the heigth of the output matrix */
+    if (test_id == 0)
+    {
+        /* Calculate the heigth of the output matrix */
 
-//         #if TIMING  
-//         CSR_READ(CSR_REG_MCYCLE, &cycles_A);
-//         #endif
+        #if TIMING  
+        CSR_READ(CSR_REG_MCYCLE, &cycles_A);
+        #endif
 
-//         /* Iterate over each row of the output matrix. */
-//         for (int b = 0; b < BATCH; ++b) {
-//             /* Iterate over each BATCH. */
-//             for (int h = 0; h < N_PATCHES_H; ++h) {
-//                 /* Iterate over each patch on the IW of the input matrix. */
-//                 for (int w = 0; w < N_PATCHES_W; ++w) {
-//                     /* Iterate over each patch on the heigth in the output matrix. */
-//                     for (int c = 0; c < CH_COL; ++c) {
-//                         /* Calculate offsets within the kernel window. */
-//                         /* These are used to move the filter around the input image */
+        /* Iterate over each row of the output matrix. */
+        for (int b = 0; b < BATCH; ++b) {
+            /* Iterate over each BATCH. */
+            for (int h = 0; h < N_PATCHES_H; ++h) {
+                /* Iterate over each patch on the IW of the input matrix. */
+                for (int w = 0; w < N_PATCHES_W; ++w) {
+                    /* Iterate over each patch on the heigth in the output matrix. */
+                    for (int c = 0; c < CH_COL; ++c) {
+                        /* Calculate offsets within the kernel window. */
+                        /* These are used to move the filter around the input image */
 
-//                         w_offset = c % FW;  
-//                         h_offset = (c / FW) % FH;
-//                         im_c = c / (FH * FW); /* Gets the CH on which the im2col is being performed depending on the row of the output image (c) */
+                        w_offset = c % FW;  
+                        h_offset = (c / FW) % FH;
+                        im_c = c / (FH * FW); /* Gets the CH on which the im2col is being performed depending on the row of the output image (c) */
                         
-//                         /* Calculate the row and column indices in the original input image, applying the stride and offset. */
-//                         im_row = h_offset + h * STRIDES - PAD;
-//                         im_col = w_offset + w * STRIDES - PAD;
+                        /* Calculate the row and column indices in the original input image, applying the stride and offset. */
+                        im_row = h_offset + h * STRIDES - PAD;
+                        im_col = w_offset + w * STRIDES - PAD;
 
-//                         /* Calculate the index in the flattened output array where this value should be stored. */
-//                         col_index = ((b * N_PATCHES_H + h) * N_PATCHES_W + w) * CH_COL + c; 
+                        /* Calculate the index in the flattened output array where this value should be stored. */
+                        col_index = ((b * N_PATCHES_H + h) * N_PATCHES_W + w) * CH_COL + c; 
 
-//                         /* If the calculated indices are outside the bounds of the input image, set the output to 0 (padding effect).
-//                         /* Otherwise, fetch the value from the input image and store it in the output array. */
-//                         if (im_row < 0 || im_col < 0 || im_row >= IH || im_col >= IW) {
-//                             output_data[col_index] = 0;
-//                         } else {
-//                             output_data[col_index] = input_image_nhwc[get_index(IH, IW, CH, b, im_row, im_col, im_c)];
-//                         }                    
-//                     }
-//                 }
-//             }
-//         }
-//         #if TIMING  
-//         CSR_READ(CSR_REG_MCYCLE, &cycles_B);
-//         *cycles = (cycles_B - cycles_A);
-//         #endif
-//     } 
+                        /* If the calculated indices are outside the bounds of the input image, set the output to 0 (padding effect).
+                        /* Otherwise, fetch the value from the input image and store it in the output array. */
+                        if (im_row < 0 || im_col < 0 || im_row >= IH || im_col >= IW) {
+                            output_data[col_index] = 0;
+                        } else {
+                            output_data[col_index] = input_image_nhwc[get_index(IH, IW, CH, b, im_row, im_col, im_c)];
+                        }                    
+                    }
+                }
+            }
+        }
+        #if TIMING  
+        CSR_READ(CSR_REG_MCYCLE, &cycles_B);
+        *cycles = (cycles_B - cycles_A);
+        #endif
+    } 
 
-//     else if (test_id == 2)
-//     {
+    else if (test_id == 2)
+    {
 
-//     }
+    }
 
-//     #if DEBUG
-//     PRINTF("Final output matrix:\n\r\n\r");
-//     for (int i=0; i<OH_NHWC; i++)
-//     {
-//         for (int j=0; j<OW_NHWC; j++)
-//         {
-//             PRINTF("%d ", output_data[i*OW_NHWC + j]);
-//         }
-//         PRINTF("\n\r");
-//     }
-//     #endif
+    #if DEBUG
+    PRINTF("Final output matrix:\n\r\n\r");
+    for (int i=0; i<OH_NHWC; i++)
+    {
+        for (int j=0; j<OW_NHWC; j++)
+        {
+            PRINTF("%d ", output_data[i*OW_NHWC + j]);
+        }
+        PRINTF("\n\r");
+    }
+    #endif
 
-//     /* Return a 0 to indicate a success */
-//     return 0;
-// }
+    /* Return a 0 to indicate a success */
+    return 0;
+}
 
 
 int get_index(int dim1, int dim2, int dim3, int index0, int index1, int index2,
@@ -689,17 +668,17 @@ int verify(int format)
     }
     else
     {
-        // for (int i=0; i<OH_NHWC; i++)
-        // {
-        //     for (int j=0; j<OW_NHWC; j++)
-        //     {    
-        //         if (golden_im2col_nhwc[i*OW_NHWC + j] != output_data[i*OW_NHWC + j])
-        //         {
-        //             PRINTF("ERROR: Golden: %d, Output: %d, at %d %d\n\r", golden_im2col_nhwc[i*OW_NHWC + j], output_data[i*OW_NHWC + j], i, j);
-        //             errors ++;
-        //         }
-        //     }
-        // }
+        for (int i=0; i<OH_NHWC; i++)
+        {
+            for (int j=0; j<OW_NHWC; j++)
+            {    
+                if (golden_im2col_nhwc[i*OW_NHWC + j] != output_data[i*OW_NHWC + j])
+                {
+                    PRINTF("ERROR: Golden: %d, Output: %d, at %d %d\n\r", golden_im2col_nhwc[i*OW_NHWC + j], output_data[i*OW_NHWC + j], i, j);
+                    errors ++;
+                }
+            }
+        }
     }
     return errors;
 }
@@ -707,8 +686,11 @@ int verify(int format)
 void dma_run(dma_trans_t * trans)
 {
     int res = dma_validate_transaction(trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    PRINTF("\n\rDMA validation result: %d\n\r", res);
     res = dma_load_transaction(trans);
+    PRINTF("DMA load result: %d\n\r", res);
     res = dma_launch(trans);
+    PRINTF("DMA launch result: %d\n\r", res);
 
     while( ! dma_is_ready(0))
 
