@@ -394,12 +394,9 @@ maximum number of **milliseconds** permitted to elapse from the issuance of the
 first command segment to the hardware until the last 32-bit word is read from the 
 RX FIFO.
 
-The maximum allowed value for the timeout is given by
-{math}`\frac{(2^32-1)\cdot 1000}{f_{MCU}}`. Although this value is sufficiently 
-large for any practical application, caution should be taken when setting a very 
-large timeout or when operating at a very high core clock frequency.
-
-The default timeout value is set to 100ms.
+The maximum allowed value for the timeout is {math}`2^{32}-1` (unless the core 
+clock frequency exceeds 4 THz, which is unlikely to occur in the near future :) ). 
+And the default timeout value is set to 100ms.
 
 
 ### Non-Blocking Transactions

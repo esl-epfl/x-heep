@@ -34,10 +34,8 @@
 
 #include "spi_host.h"
 
-#include "mmio.h"
 #include "bitfield.h"
 
-#include "fast_intr_ctrl.h"
 
 /****************************************************************************/
 /**                                                                        **/
@@ -48,8 +46,7 @@
 #define SPI_EVENTS_INDEX    0
 #define SPI_ERRORS_INDEX    0
 
-#define SPI_REG_ADDR_DELTA  0x04
-#define SPI_CONFIGOPTS_ADDR(spi, csid) ((&SPI_HW(spi)->CONFIGOPTS0) + csid*SPI_REG_ADDR_DELTA)
+#define SPI_CONFIGOPTS_ADDR(spi, csid) ((&SPI_HW(spi)->CONFIGOPTS0) + csid*sizeof(uint32_t))
 
 /****************************************************************************/
 /**                                                                        **/

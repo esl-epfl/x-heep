@@ -37,8 +37,6 @@
 #include "spi_host_regs.h"
 #include "soc_ctrl_structs.h"
 #include "bitfield.h"
-#include "fast_intr_ctrl.h"
-#include "hart.h"
 #include "csr.h"
 
 /****************************************************************************/
@@ -415,7 +413,7 @@ spi_t spi_init(spi_idx_e idx, spi_slave_t slave)
     slave.freq = spi_true_slave_freq(slave.freq);
     return (spi_t) {
         .idx   = idx,
-        .id    = ++global_id,
+        .id    = ++global_id, // Pre-increment because id 0 defined as invalid
         .init  = true,
         .slave = slave
     };
@@ -494,10 +492,6 @@ spi_codes_e spi_set_timeout(spi_t* spi, uint32_t timeout)
 {
     spi_codes_e error = spi_check_valid(spi);
     if (error) return error;
-
-    // Verify that the provided timeout will not cause overflow when calling
-    // spi_wait_transaction_done
-    if ((UINT32_MAX / SYS_FREQ) * 1000 > timeout) return SPI_CODE_TIMEOUT_INVAL;
 
     peripherals[spi->idx].timeout = timeout;
 
@@ -916,7 +910,7 @@ void spi_launch(spi_peripheral_t* peri, spi_t* spi, spi_transaction_t txn,
 void spi_wait_transaction_done(spi_peripheral_t* peri) 
 {
     // Convert ms timeout to clock ticks
-    uint64_t timeout_ticks = peri->timeout * (SYS_FREQ / 1000);
+    uint64_t timeout_ticks = ((uint64_t) peri->timeout) * (SYS_FREQ / 1000);
     uint32_t start[2];
     uint32_t end[2];
 
@@ -933,7 +927,7 @@ void spi_wait_transaction_done(spi_peripheral_t* peri)
         CSR_READ(CSR_REG_MCYCLE,  &end[0]);
         CSR_READ(CSR_REG_MCYCLEH, &end[1]);
         // If ticks elapsed exceed timeout ticks, cancel transaction and return
-        if (*((uint64_t*)end) - *((uint64_t*)start) >= timeout_ticks)
+        if (*((uint64_t*)end) - *((uint64_t*)start) > timeout_ticks)
         {
             // Fully reset spi peripheral to cancel transaction, empty fifos, etc.
             spi_reset_peri(peri);
@@ -1032,8 +1026,7 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events)
     {
         // TX watermark reached. Refill TX fifo if more data
         // If there is a callback defined call it
-        if (spi_fill_tx(peri) && 
-            peri->callbacks.txwm_cb != NULL)
+        if (spi_fill_tx(peri) && peri->callbacks.txwm_cb != NULL)
         {
             peri->callbacks.txwm_cb(peri->txn.txbuffer, peri->txcnt, 
                                     peri->txn.rxbuffer, peri->rxcnt);
@@ -1043,8 +1036,7 @@ void spi_event_handler(spi_peripheral_t* peri, spi_event_e events)
     {
         // RX watermark reached. Empty RX fifo to get more data
         // If there is a callback defined call it
-        if (spi_empty_rx(peri) && 
-            peri->callbacks.rxwm_cb != NULL)
+        if (spi_empty_rx(peri) && peri->callbacks.rxwm_cb != NULL)
         {
             peri->callbacks.rxwm_cb(peri->txn.txbuffer, peri->txcnt, 
                                     peri->txn.rxbuffer, peri->rxcnt);
