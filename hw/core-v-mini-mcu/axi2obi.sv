@@ -88,14 +88,13 @@ module axi2obi #(
   assign s00_axi_bresp = '0;
 
   //(clk) begin
-  always @(posedge s00_axi_aclk) begin : FSM_SEQ
+  always @(posedge s00_axi_aclk or negedge s00_axi_aresetn) begin : FSM_SEQ
     if (!s00_axi_aresetn) begin
-      assign CS = IDLE;
+        CS <= IDLE;
     end else begin
-      assign CS = NS;
+        CS <= NS;
     end
-
-  end
+end
 
 
   //always @(clk) begin

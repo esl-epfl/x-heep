@@ -133,7 +133,7 @@ import serial_link_pkg::*;
 
 
 
-  localparam int MaxAxiChannelBits = 83;//serial_link_pkg::find_max_channel(AxiChannels);
+  localparam int MaxAxiChannelBits = 83;//serial_link_pkg::find_max_channel(AxiChannels);//83
   // 53 numero magico, in realta esce dal valore di wdata_t di axi. Guarda serial_link_network
 
   // The payload that is converted into an AXI stream consists of

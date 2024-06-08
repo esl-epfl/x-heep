@@ -123,7 +123,7 @@ module serial_link_occamy_wrapper #(
       .reg2hw_t         ( serial_link_reg_pkg::serial_link_reg2hw_t ),
       .NumChannels      ( NumChannels ),
       .NumLanes         ( NumLanes    ),
-      .MaxClkDiv        ( MaxClkDiv   ),
+      .MaxClkDiv        ( MaxClkDiv   )
 
 
 
@@ -172,7 +172,7 @@ module serial_link_occamy_wrapper #(
       .reg2hw_t         ( serial_link_single_channel_reg_pkg::serial_link_single_channel_reg2hw_t ),
       .NumChannels      ( NumChannels ),
       .NumLanes         ( NumLanes    ),
-      .MaxClkDiv        ( MaxClkDiv   ),
+      .MaxClkDiv        ( MaxClkDiv   )
 
 
       

@@ -7,23 +7,50 @@
 
 int main(int argc, char *argv[])
 {
-    /*REG CONFIG*/ 
+    /*  SL within X-heep system      */
 
-    int32_t *addr_p_reg =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); 
-    //*addr_p_reg = (*addr_p_reg) & 0x11111101; // reset_n 
+
+    /*  REG CONFIG                   */
+    /*  CTRL register                */
+
+    volatile int32_t *addr_p_reg =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); 
     *addr_p_reg = (*addr_p_reg)| 0x00000001; // clock enable
-
+     //printf("addr_p %x\n", *addr_p_reg);
     
+    //*addr_p_reg = (*addr_p_reg)| 0x00000010; // rst on
+     *addr_p_reg = (*addr_p_reg)& 0x11111101; // rst on
+     //printf("addr_p %x\n", *addr_p_reg);
+ *addr_p_reg = (*addr_p_reg)| 0x00000002; // rst oFF
+     //printf("addr_p %x\n", *addr_p_reg);
+
+    //*addr_p_reg = (*addr_p_reg) & 0xFFFFFFFD; // rst on (clear the second bit)
+    //*addr_p_reg = (*addr_p_reg) | 0x00000002; // rst off (set the second bit)
+
+
+    //int32_t *addr_p_reg_flow_ctrl =(int32_t *)(SERIAL_LINK_START_ADDRESS  + SERIAL_LINK_SINGLE_CHANNEL_FLOW_CONTROL_FIFO_CLEAR_REG_OFFSET); //0x04000000 
+    //*addr_p_reg_flow_ctrl = (*addr_p_reg_flow_ctrl)& 0x00000001; //0x11111110;
+    
+    
+    
+    
+    
+    //int32_t *addr_p_reg_flow_ctrl =(int32_t *)(SERIAL_LINK_START_ADDRESS  + SERIAL_LINK_SINGLE_CHANNEL_FLOW_CONTROL_FIFO_CLEAR_REG_OFFSET); //0x04000000 
+    //*addr_p_reg_flow_ctrl = (*addr_p_reg_flow_ctrl)& 0x11111111;
+    //*addr_p_reg_flow_ctrl = (*addr_p_reg_flow_ctrl)& 0x11111110;
     //int32_t *addr_p_reg_ext =(int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x04000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); //0x04000000 
-     
     //*addr_p_reg_ext = (*addr_p_reg_ext)| 0x00000001; // clock enable external
     
     //int32_t *addr_p_reg_flow_ctrl =(int32_t *)(SERIAL_LINK_START_ADDRESS  + SERIAL_LINK_SINGLE_CHANNEL_FLOW_CONTROL_FIFO_CLEAR_REG_OFFSET); //0x04000000 
     //*addr_p_reg_flow_ctrl = (*addr_p_reg_flow_ctrl)| 0x00000001; //Clears the flow control Fifo
     //*addr_p_reg_flow_ctrl = (*addr_p_reg_flow_ctrl)& (0 << 0); // clock enable external
     
-    // RAW MODE
-    int32_t *addr_p_reg_RAW_MODE =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_EN_REG_OFFSET); 
+
+
+
+    /* RAW MODE*/
+
+
+    /* int32_t *addr_p_reg_RAW_MODE =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_EN_REG_OFFSET); 
     *addr_p_reg_RAW_MODE = (*addr_p_reg_RAW_MODE)| 0x00000001; // raw mode en
 
     int32_t *addr_p_RAW_MODE_IN_CH_SEL_REG =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_IN_CH_SEL_REG_OFFSET); 
@@ -39,20 +66,61 @@ int main(int argc, char *argv[])
     *addr_p_RAW_MODE_OUT_DATA_FIFO_CTRL_REG = (*addr_p_RAW_MODE_OUT_DATA_FIFO_CTRL_REG)| 0x00000001;
 
     int32_t *addr_p_RAW_MODE_OUT_EN_REG =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_OUT_EN_REG_OFFSET); 
-    *addr_p_RAW_MODE_OUT_EN_REG = (*addr_p_RAW_MODE_OUT_EN_REG)| 0x00000001;
+    *addr_p_RAW_MODE_OUT_EN_REG = (*addr_p_RAW_MODE_OUT_EN_REG)| 0x00000001; */
+
     //int32_t *addr_p_RAW_MODE_IN_DATA_REG =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_IN_DATA_REG_OFFSET); 
     //*addr_p_RAW_MODE_IN_DATA_REG = (*addr_p_RAW_MODE_IN_DATA_REG)| 0x00000001; 
     
     
     
     
-    // AXI ISOLATE 
-    // all channels are isolated by default *( will work only with original occamy wrapper)
-    //int32_t *addr_p_reg_ISOLATE_IN =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); 
-    //*addr_p_reg_ISOLATE_IN = (*addr_p_reg_ISOLATE_IN)& (0 << 8); // axi_in_isolate
-    //int32_t *addr_p_reg_ISOLATE_OUT =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
-    //*addr_p_reg_ISOLATE_OUT = (*addr_p_reg_ISOLATE_OUT)& (0 << 9); // axi_out_isolate
+    /*  AXI ISOLATE                   */ 
+    //  all channels are isolated by default 
+    
+    
+    int32_t *addr_p_reg_ISOLATE_IN =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); 
 
+    //*addr_p_reg_ISOLATE_IN = (*addr_p_reg_ISOLATE_IN)& (8 << 0); // axi_in_isolate
+    *addr_p_reg_ISOLATE_IN &= ~(1<<8);
+    int32_t *addr_p_reg_ISOLATE_OUT =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
+    *addr_p_reg_ISOLATE_OUT &= ~(1<<9); // axi_out_isolate
+
+    
+    
+    
+    /*                     -------                     */
+    /*  SL TESTHARNESS EXTERNAL BUS X-heep system      */
+
+
+    /*  REG CONFIG                   */
+    /*  CTRL register                */
+    int32_t *addr_p_reg_ext =(int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x04000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); //0x04000000 
+    *addr_p_reg_ext = (*addr_p_reg_ext)| 0x00000001; // ctrl clock enable external
+   
+    *addr_p_reg_ext = (*addr_p_reg_ext)& 0x11111101; // rst off
+    *addr_p_reg_ext = (*addr_p_reg_ext)| 0x00000010; // rst on
+
+
+    //int32_t *addr_p_reg_flow_ctrl_ext =(int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x04000  + SERIAL_LINK_SINGLE_CHANNEL_FLOW_CONTROL_FIFO_CLEAR_REG_OFFSET); //0x04000000 
+    //*addr_p_reg_flow_ctrl_ext = (*addr_p_reg_flow_ctrl_ext)& 0x11111110;
+
+    /*  AXI ISOLATE                   */ 
+    // all channels are isolated by default 
+    int32_t *addr_p_reg_ISOLATE_IN_ext =(int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x04000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); 
+    *addr_p_reg_ISOLATE_IN_ext &= ~(1<<8);
+    int32_t *addr_p_reg_ISOLATE_OUT_ext =(int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x04000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
+    *addr_p_reg_ISOLATE_OUT_ext &= ~(1<<9);
+
+    //int32_t *addr_p_reg_RAW_MODE_ext =(int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x04000  + SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_EN_REG_OFFSET); 
+    //*addr_p_reg_RAW_MODE_ext = (*addr_p_reg_RAW_MODE_ext)| 0x00000001; // raw mode en
+    //int32_t *addr_p_RAW_MODE_IN_CH_SEL_REG_ext =(int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x04000 + SERIAL_LINK_SINGLE_CHANNEL_RAW_MODE_IN_DATA_REG_OFFSET); 
+    //*addr_p_RAW_MODE_IN_CH_SEL_REG_ext = (*addr_p_RAW_MODE_IN_CH_SEL_REG_ext)| 0x00000001; // raw mode select channel 
+
+
+
+
+    /*                     -------                     */
+    /*  READ&WRITE SL SINGLE CHANNEL                   */
 
 
 
@@ -63,12 +131,12 @@ int main(int argc, char *argv[])
     *addr_p = num_to_check;
     printf("reading %d  to %p \n",*addr_p, addr_p);
 
-
+   
 
     /* WRITING TO external SL */
     //printf("start writing to external serial link!\n");
-    int32_t num_to_check_external =10;
-    int32_t *addr_p_external =EXT_SLAVE_START_ADDRESS + 0x10000; 
+    //int32_t num_to_check_external =10;
+    //int32_t *addr_p_external =EXT_SLAVE_START_ADDRESS + 0x10000; 
     //*addr_p_external = num_to_check_external;
 
     //int32_t *addr_p_reg_ISOLATE_OUT =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);

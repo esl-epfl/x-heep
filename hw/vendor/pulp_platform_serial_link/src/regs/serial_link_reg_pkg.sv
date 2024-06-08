@@ -328,7 +328,7 @@ package serial_link_reg_pkg;
   parameter logic [BlockAw-1:0] SERIAL_LINK_CHANNEL_ALLOC_RX_CFG_OFFSET = 10'h 20c;
   parameter logic [BlockAw-1:0] SERIAL_LINK_CHANNEL_ALLOC_RX_CTRL_OFFSET = 10'h 210;
   parameter logic [BlockAw-1:0] SERIAL_LINK_CHANNEL_ALLOC_RX_CH_EN_0_OFFSET = 10'h 214;
-  parameter logic [BlockAw-1:0] SERIAL_LINK_CHANNEL_ALLOC_RX_CH_EN_1_OFFSET = 10'h 218;
+  parameter logic [BlockAw-1:0]  SERIAL_LINK_CHANNEL_ALLOC_RX_CH_EN_1_OFFSET = 10'h 218;
 
   // Reset values for hwext registers and their fields
   parameter logic [1:0] SERIAL_LINK_ISOLATED_RESVAL = 2'h 3;

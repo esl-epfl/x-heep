@@ -74,6 +74,13 @@ set_property -dict {PACKAGE_PIN V6 IOSTANDARD LVCMOS33} [get_ports {gpio_io[12]}
 set_property -dict {PACKAGE_PIN U13 IOSTANDARD LVCMOS33} [get_ports {gpio_io[13]}] ; # arduino_gpio_tri_io[2]
 set_property -dict {PACKAGE_PIN V13 IOSTANDARD LVCMOS33} [get_ports {gpio_io[14]}] ; # arduino_gpio_tri_io[3]
 
+# SERIAL LINK
+set_property -dict {PACKAGE_PIN V15 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_i}] ; # arduino_gpio_tri_io[4]
+set_property -dict {PACKAGE_PIN R16 IOSTANDARD LVCMOS33} [get_ports {ddr_rcv_clk_o}] ; # arduino_gpio_tri_io[6]
+set_property -dict {PACKAGE_PIN U17 IOSTANDARD LVCMOS33} [get_ports {ddr_i}] ; # arduino_gpio_tri_io[7]
+set_property -dict {PACKAGE_PIN V17 IOSTANDARD LVCMOS33} [get_ports {ddr_o}] ; # arduino_gpio_tri_io[8]
+
+
 # PDM2PCM
 set_property -dict {PACKAGE_PIN Y9 IOSTANDARD LVCMOS33} [get_ports {pdm2pcm_clk_io}] ; # rpi_gpio_tri_io[13]
 set_property -dict {PACKAGE_PIN A20 IOSTANDARD LVCMOS33} [get_ports {pdm2pcm_pdm_io}] ; # rpi_gpio_tri_io[12]
