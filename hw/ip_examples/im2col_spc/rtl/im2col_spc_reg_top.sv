@@ -7,7 +7,7 @@
 
 `include "common_cells/assertions.svh"
 
-module dma_reg_top #(
+module im2col_spc_reg_top #(
   parameter type reg_req_t = logic,
   parameter type reg_rsp_t = logic,
   parameter int AW = 7
@@ -17,15 +17,15 @@ module dma_reg_top #(
   input  reg_req_t reg_req_i,
   output reg_rsp_t reg_rsp_o,
   // To HW
-  output dma_reg_pkg::dma_reg2hw_t reg2hw, // Write
-  input  dma_reg_pkg::dma_hw2reg_t hw2reg, // Read
+  output im2col_spc_reg_pkg::im2col_spc_reg2hw_t reg2hw, // Write
+  input  im2col_spc_reg_pkg::im2col_spc_hw2reg_t hw2reg, // Read
 
 
   // Config
   input devmode_i // If 1, explicit error return for unmapped register access
 );
 
-  import dma_reg_pkg::* ;
+  import im2col_spc_reg_pkg::* ;
 
   localparam int DW = 32;
   localparam int DBW = DW/8;                    // Byte Width
@@ -74,15 +74,27 @@ module dma_reg_top #(
   logic [31:0] dst_ptr_qs;
   logic [31:0] dst_ptr_wd;
   logic dst_ptr_we;
-  logic [31:0] addr_ptr_qs;
-  logic [31:0] addr_ptr_wd;
-  logic addr_ptr_we;
-  logic [15:0] size_d1_qs;
-  logic [15:0] size_d1_wd;
-  logic size_d1_we;
-  logic [15:0] size_d2_qs;
-  logic [15:0] size_d2_wd;
-  logic size_d2_we;
+  logic [31:0] iw_qs;
+  logic [31:0] iw_wd;
+  logic iw_we;
+  logic [31:0] ih_qs;
+  logic [31:0] ih_wd;
+  logic ih_we;
+  logic [31:0] fw_qs;
+  logic [31:0] fw_wd;
+  logic fw_we;
+  logic [31:0] fh_qs;
+  logic [31:0] fh_wd;
+  logic fh_we;
+  logic [31:0] num_ch_qs;
+  logic [31:0] num_ch_wd;
+  logic num_ch_we;
+  logic [31:0] stride_d1_qs;
+  logic [31:0] stride_d1_wd;
+  logic stride_d1_we;
+  logic [31:0] stride_d2_qs;
+  logic [31:0] stride_d2_wd;
+  logic stride_d2_we;
   logic status_ready_qs;
   logic status_ready_re;
   logic status_window_done_qs;
@@ -108,15 +120,6 @@ module dma_reg_top #(
   logic [1:0] data_type_qs;
   logic [1:0] data_type_wd;
   logic data_type_we;
-  logic [1:0] mode_qs;
-  logic [1:0] mode_wd;
-  logic mode_we;
-  logic dim_config_qs;
-  logic dim_config_wd;
-  logic dim_config_we;
-  logic dim_inv_qs;
-  logic dim_inv_wd;
-  logic dim_inv_we;
   logic [5:0] pad_top_qs;
   logic [5:0] pad_top_wd;
   logic pad_top_we;
@@ -129,21 +132,11 @@ module dma_reg_top #(
   logic [5:0] pad_left_qs;
   logic [5:0] pad_left_wd;
   logic pad_left_we;
-  logic [12:0] window_size_qs;
-  logic [12:0] window_size_wd;
-  logic window_size_we;
-  logic [7:0] window_count_qs;
-  logic interrupt_en_transaction_done_qs;
-  logic interrupt_en_transaction_done_wd;
-  logic interrupt_en_transaction_done_we;
-  logic interrupt_en_window_done_qs;
-  logic interrupt_en_window_done_wd;
-  logic interrupt_en_window_done_we;
-  logic transaction_ifr_qs;
-  logic transaction_ifr_re;
-  logic sdc_reserved_reg_qs;
-  logic sdc_reserved_reg_wd;
-  logic sdc_reserved_reg_we;
+  logic interrupt_en_qs;
+  logic interrupt_en_wd;
+  logic interrupt_en_we;
+  logic spc_ifr_qs;
+  logic spc_ifr_re;
 
   // Register instances
   // R[src_ptr]: V(False)
@@ -200,19 +193,19 @@ module dma_reg_top #(
   );
 
 
-  // R[addr_ptr]: V(False)
+  // R[iw]: V(False)
 
   prim_subreg #(
     .DW      (32),
     .SWACCESS("RW"),
     .RESVAL  (32'h0)
-  ) u_addr_ptr (
+  ) u_iw (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (addr_ptr_we),
-    .wd     (addr_ptr_wd),
+    .we     (iw_we),
+    .wd     (iw_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -220,64 +213,172 @@ module dma_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.addr_ptr.q ),
+    .q      (reg2hw.iw.q ),
 
     // to register interface (read)
-    .qs     (addr_ptr_qs)
+    .qs     (iw_qs)
   );
 
 
-  // R[size_d1]: V(False)
+  // R[ih]: V(False)
 
   prim_subreg #(
-    .DW      (16),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (16'h0)
-  ) u_size_d1 (
+    .RESVAL  (32'h0)
+  ) u_ih (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (size_d1_we),
-    .wd     (size_d1_wd),
+    .we     (ih_we),
+    .wd     (ih_wd),
 
     // from internal hardware
     .de     (1'b0),
     .d      ('0  ),
 
     // to internal hardware
-    .qe     (reg2hw.size_d1.qe),
-    .q      (reg2hw.size_d1.q ),
+    .qe     (),
+    .q      (reg2hw.ih.q ),
 
     // to register interface (read)
-    .qs     (size_d1_qs)
+    .qs     (ih_qs)
   );
 
 
-  // R[size_d2]: V(False)
+  // R[fw]: V(False)
 
   prim_subreg #(
-    .DW      (16),
+    .DW      (32),
     .SWACCESS("RW"),
-    .RESVAL  (16'h0)
-  ) u_size_d2 (
+    .RESVAL  (32'h0)
+  ) u_fw (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (size_d2_we),
-    .wd     (size_d2_wd),
+    .we     (fw_we),
+    .wd     (fw_wd),
 
     // from internal hardware
     .de     (1'b0),
     .d      ('0  ),
 
     // to internal hardware
-    .qe     (reg2hw.size_d2.qe),
-    .q      (reg2hw.size_d2.q ),
+    .qe     (),
+    .q      (reg2hw.fw.q ),
 
     // to register interface (read)
-    .qs     (size_d2_qs)
+    .qs     (fw_qs)
+  );
+
+
+  // R[fh]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_fh (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (fh_we),
+    .wd     (fh_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.fh.q ),
+
+    // to register interface (read)
+    .qs     (fh_qs)
+  );
+
+
+  // R[num_ch]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_num_ch (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (num_ch_we),
+    .wd     (num_ch_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.num_ch.q ),
+
+    // to register interface (read)
+    .qs     (num_ch_qs)
+  );
+
+
+  // R[stride_d1]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_stride_d1 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (stride_d1_we),
+    .wd     (stride_d1_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.stride_d1.q ),
+
+    // to register interface (read)
+    .qs     (stride_d1_qs)
+  );
+
+
+  // R[stride_d2]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_stride_d2 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (stride_d2_we),
+    .wd     (stride_d2_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.stride_d2.q ),
+
+    // to register interface (read)
+    .qs     (stride_d2_qs)
   );
 
 
@@ -502,87 +603,6 @@ module dma_reg_top #(
   );
 
 
-  // R[mode]: V(False)
-
-  prim_subreg #(
-    .DW      (2),
-    .SWACCESS("RW"),
-    .RESVAL  (2'h0)
-  ) u_mode (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (mode_we),
-    .wd     (mode_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.mode.q ),
-
-    // to register interface (read)
-    .qs     (mode_qs)
-  );
-
-
-  // R[dim_config]: V(False)
-
-  prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
-  ) u_dim_config (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (dim_config_we),
-    .wd     (dim_config_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.dim_config.q ),
-
-    // to register interface (read)
-    .qs     (dim_config_qs)
-  );
-
-
-  // R[dim_inv]: V(False)
-
-  prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
-  ) u_dim_inv (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (dim_inv_we),
-    .wd     (dim_inv_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.dim_inv.q ),
-
-    // to register interface (read)
-    .qs     (dim_inv_qs)
-  );
-
-
   // R[pad_top]: V(False)
 
   prim_subreg #(
@@ -691,73 +711,19 @@ module dma_reg_top #(
   );
 
 
-  // R[window_size]: V(False)
-
-  prim_subreg #(
-    .DW      (13),
-    .SWACCESS("RW"),
-    .RESVAL  (13'h0)
-  ) u_window_size (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (window_size_we),
-    .wd     (window_size_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.window_size.q ),
-
-    // to register interface (read)
-    .qs     (window_size_qs)
-  );
-
-
-  // R[window_count]: V(False)
-
-  prim_subreg #(
-    .DW      (8),
-    .SWACCESS("RO"),
-    .RESVAL  (8'h0)
-  ) u_window_count (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    .we     (1'b0),
-    .wd     ('0  ),
-
-    // from internal hardware
-    .de     (hw2reg.window_count.de),
-    .d      (hw2reg.window_count.d ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.window_count.q ),
-
-    // to register interface (read)
-    .qs     (window_count_qs)
-  );
-
-
   // R[interrupt_en]: V(False)
 
-  //   F[transaction_done]: 0:0
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
     .RESVAL  (1'h0)
-  ) u_interrupt_en_transaction_done (
+  ) u_interrupt_en (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (interrupt_en_transaction_done_we),
-    .wd     (interrupt_en_transaction_done_wd),
+    .we     (interrupt_en_we),
+    .wd     (interrupt_en_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -765,111 +731,56 @@ module dma_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.interrupt_en.transaction_done.q ),
+    .q      (reg2hw.interrupt_en.q ),
 
     // to register interface (read)
-    .qs     (interrupt_en_transaction_done_qs)
+    .qs     (interrupt_en_qs)
   );
 
 
-  //   F[window_done]: 1:1
-  prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
-  ) u_interrupt_en_window_done (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (interrupt_en_window_done_we),
-    .wd     (interrupt_en_window_done_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.interrupt_en.window_done.q ),
-
-    // to register interface (read)
-    .qs     (interrupt_en_window_done_qs)
-  );
-
-
-  // R[transaction_ifr]: V(True)
+  // R[spc_ifr]: V(True)
 
   prim_subreg_ext #(
     .DW    (1)
-  ) u_transaction_ifr (
-    .re     (transaction_ifr_re),
+  ) u_spc_ifr (
+    .re     (spc_ifr_re),
     .we     (1'b0),
     .wd     ('0),
-    .d      (hw2reg.transaction_ifr.d),
-    .qre    (reg2hw.transaction_ifr.re),
+    .d      (hw2reg.spc_ifr.d),
+    .qre    (reg2hw.spc_ifr.re),
     .qe     (),
-    .q      (reg2hw.transaction_ifr.q ),
-    .qs     (transaction_ifr_qs)
-  );
-
-
-  // R[sdc_reserved_reg]: V(False)
-
-  prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
-  ) u_sdc_reserved_reg (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (sdc_reserved_reg_we),
-    .wd     (sdc_reserved_reg_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (),
-
-    // to register interface (read)
-    .qs     (sdc_reserved_reg_qs)
+    .q      (reg2hw.spc_ifr.q ),
+    .qs     (spc_ifr_qs)
   );
 
 
 
 
-  logic [23:0] addr_hit;
+  logic [21:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[ 0] = (reg_addr == DMA_SRC_PTR_OFFSET);
-    addr_hit[ 1] = (reg_addr == DMA_DST_PTR_OFFSET);
-    addr_hit[ 2] = (reg_addr == DMA_ADDR_PTR_OFFSET);
-    addr_hit[ 3] = (reg_addr == DMA_SIZE_D1_OFFSET);
-    addr_hit[ 4] = (reg_addr == DMA_SIZE_D2_OFFSET);
-    addr_hit[ 5] = (reg_addr == DMA_STATUS_OFFSET);
-    addr_hit[ 6] = (reg_addr == DMA_SRC_PTR_INC_D1_OFFSET);
-    addr_hit[ 7] = (reg_addr == DMA_SRC_PTR_INC_D2_OFFSET);
-    addr_hit[ 8] = (reg_addr == DMA_DST_PTR_INC_D1_OFFSET);
-    addr_hit[ 9] = (reg_addr == DMA_DST_PTR_INC_D2_OFFSET);
-    addr_hit[10] = (reg_addr == DMA_SLOT_OFFSET);
-    addr_hit[11] = (reg_addr == DMA_DATA_TYPE_OFFSET);
-    addr_hit[12] = (reg_addr == DMA_MODE_OFFSET);
-    addr_hit[13] = (reg_addr == DMA_DIM_CONFIG_OFFSET);
-    addr_hit[14] = (reg_addr == DMA_DIM_INV_OFFSET);
-    addr_hit[15] = (reg_addr == DMA_PAD_TOP_OFFSET);
-    addr_hit[16] = (reg_addr == DMA_PAD_BOTTOM_OFFSET);
-    addr_hit[17] = (reg_addr == DMA_PAD_RIGHT_OFFSET);
-    addr_hit[18] = (reg_addr == DMA_PAD_LEFT_OFFSET);
-    addr_hit[19] = (reg_addr == DMA_WINDOW_SIZE_OFFSET);
-    addr_hit[20] = (reg_addr == DMA_WINDOW_COUNT_OFFSET);
-    addr_hit[21] = (reg_addr == DMA_INTERRUPT_EN_OFFSET);
-    addr_hit[22] = (reg_addr == DMA_TRANSACTION_IFR_OFFSET);
-    addr_hit[23] = (reg_addr == DMA_SDC_RESERVED_REG_OFFSET);
+    addr_hit[ 0] = (reg_addr == IM2COL_SPC_SRC_PTR_OFFSET);
+    addr_hit[ 1] = (reg_addr == IM2COL_SPC_DST_PTR_OFFSET);
+    addr_hit[ 2] = (reg_addr == IM2COL_SPC_IW_OFFSET);
+    addr_hit[ 3] = (reg_addr == IM2COL_SPC_IH_OFFSET);
+    addr_hit[ 4] = (reg_addr == IM2COL_SPC_FW_OFFSET);
+    addr_hit[ 5] = (reg_addr == IM2COL_SPC_FH_OFFSET);
+    addr_hit[ 6] = (reg_addr == IM2COL_SPC_NUM_CH_OFFSET);
+    addr_hit[ 7] = (reg_addr == IM2COL_SPC_STRIDE_D1_OFFSET);
+    addr_hit[ 8] = (reg_addr == IM2COL_SPC_STRIDE_D2_OFFSET);
+    addr_hit[ 9] = (reg_addr == IM2COL_SPC_STATUS_OFFSET);
+    addr_hit[10] = (reg_addr == IM2COL_SPC_SRC_PTR_INC_D1_OFFSET);
+    addr_hit[11] = (reg_addr == IM2COL_SPC_SRC_PTR_INC_D2_OFFSET);
+    addr_hit[12] = (reg_addr == IM2COL_SPC_DST_PTR_INC_D1_OFFSET);
+    addr_hit[13] = (reg_addr == IM2COL_SPC_DST_PTR_INC_D2_OFFSET);
+    addr_hit[14] = (reg_addr == IM2COL_SPC_SLOT_OFFSET);
+    addr_hit[15] = (reg_addr == IM2COL_SPC_DATA_TYPE_OFFSET);
+    addr_hit[16] = (reg_addr == IM2COL_SPC_PAD_TOP_OFFSET);
+    addr_hit[17] = (reg_addr == IM2COL_SPC_PAD_BOTTOM_OFFSET);
+    addr_hit[18] = (reg_addr == IM2COL_SPC_PAD_RIGHT_OFFSET);
+    addr_hit[19] = (reg_addr == IM2COL_SPC_PAD_LEFT_OFFSET);
+    addr_hit[20] = (reg_addr == IM2COL_SPC_INTERRUPT_EN_OFFSET);
+    addr_hit[21] = (reg_addr == IM2COL_SPC_SPC_IFR_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -877,30 +788,28 @@ module dma_reg_top #(
   // Check sub-word write is permitted
   always_comb begin
     wr_err = (reg_we &
-              ((addr_hit[ 0] & (|(DMA_PERMIT[ 0] & ~reg_be))) |
-               (addr_hit[ 1] & (|(DMA_PERMIT[ 1] & ~reg_be))) |
-               (addr_hit[ 2] & (|(DMA_PERMIT[ 2] & ~reg_be))) |
-               (addr_hit[ 3] & (|(DMA_PERMIT[ 3] & ~reg_be))) |
-               (addr_hit[ 4] & (|(DMA_PERMIT[ 4] & ~reg_be))) |
-               (addr_hit[ 5] & (|(DMA_PERMIT[ 5] & ~reg_be))) |
-               (addr_hit[ 6] & (|(DMA_PERMIT[ 6] & ~reg_be))) |
-               (addr_hit[ 7] & (|(DMA_PERMIT[ 7] & ~reg_be))) |
-               (addr_hit[ 8] & (|(DMA_PERMIT[ 8] & ~reg_be))) |
-               (addr_hit[ 9] & (|(DMA_PERMIT[ 9] & ~reg_be))) |
-               (addr_hit[10] & (|(DMA_PERMIT[10] & ~reg_be))) |
-               (addr_hit[11] & (|(DMA_PERMIT[11] & ~reg_be))) |
-               (addr_hit[12] & (|(DMA_PERMIT[12] & ~reg_be))) |
-               (addr_hit[13] & (|(DMA_PERMIT[13] & ~reg_be))) |
-               (addr_hit[14] & (|(DMA_PERMIT[14] & ~reg_be))) |
-               (addr_hit[15] & (|(DMA_PERMIT[15] & ~reg_be))) |
-               (addr_hit[16] & (|(DMA_PERMIT[16] & ~reg_be))) |
-               (addr_hit[17] & (|(DMA_PERMIT[17] & ~reg_be))) |
-               (addr_hit[18] & (|(DMA_PERMIT[18] & ~reg_be))) |
-               (addr_hit[19] & (|(DMA_PERMIT[19] & ~reg_be))) |
-               (addr_hit[20] & (|(DMA_PERMIT[20] & ~reg_be))) |
-               (addr_hit[21] & (|(DMA_PERMIT[21] & ~reg_be))) |
-               (addr_hit[22] & (|(DMA_PERMIT[22] & ~reg_be))) |
-               (addr_hit[23] & (|(DMA_PERMIT[23] & ~reg_be)))));
+              ((addr_hit[ 0] & (|(IM2COL_SPC_PERMIT[ 0] & ~reg_be))) |
+               (addr_hit[ 1] & (|(IM2COL_SPC_PERMIT[ 1] & ~reg_be))) |
+               (addr_hit[ 2] & (|(IM2COL_SPC_PERMIT[ 2] & ~reg_be))) |
+               (addr_hit[ 3] & (|(IM2COL_SPC_PERMIT[ 3] & ~reg_be))) |
+               (addr_hit[ 4] & (|(IM2COL_SPC_PERMIT[ 4] & ~reg_be))) |
+               (addr_hit[ 5] & (|(IM2COL_SPC_PERMIT[ 5] & ~reg_be))) |
+               (addr_hit[ 6] & (|(IM2COL_SPC_PERMIT[ 6] & ~reg_be))) |
+               (addr_hit[ 7] & (|(IM2COL_SPC_PERMIT[ 7] & ~reg_be))) |
+               (addr_hit[ 8] & (|(IM2COL_SPC_PERMIT[ 8] & ~reg_be))) |
+               (addr_hit[ 9] & (|(IM2COL_SPC_PERMIT[ 9] & ~reg_be))) |
+               (addr_hit[10] & (|(IM2COL_SPC_PERMIT[10] & ~reg_be))) |
+               (addr_hit[11] & (|(IM2COL_SPC_PERMIT[11] & ~reg_be))) |
+               (addr_hit[12] & (|(IM2COL_SPC_PERMIT[12] & ~reg_be))) |
+               (addr_hit[13] & (|(IM2COL_SPC_PERMIT[13] & ~reg_be))) |
+               (addr_hit[14] & (|(IM2COL_SPC_PERMIT[14] & ~reg_be))) |
+               (addr_hit[15] & (|(IM2COL_SPC_PERMIT[15] & ~reg_be))) |
+               (addr_hit[16] & (|(IM2COL_SPC_PERMIT[16] & ~reg_be))) |
+               (addr_hit[17] & (|(IM2COL_SPC_PERMIT[17] & ~reg_be))) |
+               (addr_hit[18] & (|(IM2COL_SPC_PERMIT[18] & ~reg_be))) |
+               (addr_hit[19] & (|(IM2COL_SPC_PERMIT[19] & ~reg_be))) |
+               (addr_hit[20] & (|(IM2COL_SPC_PERMIT[20] & ~reg_be))) |
+               (addr_hit[21] & (|(IM2COL_SPC_PERMIT[21] & ~reg_be)))));
   end
 
   assign src_ptr_we = addr_hit[0] & reg_we & !reg_error;
@@ -909,74 +818,68 @@ module dma_reg_top #(
   assign dst_ptr_we = addr_hit[1] & reg_we & !reg_error;
   assign dst_ptr_wd = reg_wdata[31:0];
 
-  assign addr_ptr_we = addr_hit[2] & reg_we & !reg_error;
-  assign addr_ptr_wd = reg_wdata[31:0];
+  assign iw_we = addr_hit[2] & reg_we & !reg_error;
+  assign iw_wd = reg_wdata[31:0];
 
-  assign size_d1_we = addr_hit[3] & reg_we & !reg_error;
-  assign size_d1_wd = reg_wdata[15:0];
+  assign ih_we = addr_hit[3] & reg_we & !reg_error;
+  assign ih_wd = reg_wdata[31:0];
 
-  assign size_d2_we = addr_hit[4] & reg_we & !reg_error;
-  assign size_d2_wd = reg_wdata[15:0];
+  assign fw_we = addr_hit[4] & reg_we & !reg_error;
+  assign fw_wd = reg_wdata[31:0];
 
-  assign status_ready_re = addr_hit[5] & reg_re & !reg_error;
+  assign fh_we = addr_hit[5] & reg_we & !reg_error;
+  assign fh_wd = reg_wdata[31:0];
 
-  assign status_window_done_re = addr_hit[5] & reg_re & !reg_error;
+  assign num_ch_we = addr_hit[6] & reg_we & !reg_error;
+  assign num_ch_wd = reg_wdata[31:0];
 
-  assign src_ptr_inc_d1_we = addr_hit[6] & reg_we & !reg_error;
+  assign stride_d1_we = addr_hit[7] & reg_we & !reg_error;
+  assign stride_d1_wd = reg_wdata[31:0];
+
+  assign stride_d2_we = addr_hit[8] & reg_we & !reg_error;
+  assign stride_d2_wd = reg_wdata[31:0];
+
+  assign status_ready_re = addr_hit[9] & reg_re & !reg_error;
+
+  assign status_window_done_re = addr_hit[9] & reg_re & !reg_error;
+
+  assign src_ptr_inc_d1_we = addr_hit[10] & reg_we & !reg_error;
   assign src_ptr_inc_d1_wd = reg_wdata[5:0];
 
-  assign src_ptr_inc_d2_we = addr_hit[7] & reg_we & !reg_error;
+  assign src_ptr_inc_d2_we = addr_hit[11] & reg_we & !reg_error;
   assign src_ptr_inc_d2_wd = reg_wdata[22:0];
 
-  assign dst_ptr_inc_d1_we = addr_hit[8] & reg_we & !reg_error;
+  assign dst_ptr_inc_d1_we = addr_hit[12] & reg_we & !reg_error;
   assign dst_ptr_inc_d1_wd = reg_wdata[5:0];
 
-  assign dst_ptr_inc_d2_we = addr_hit[9] & reg_we & !reg_error;
+  assign dst_ptr_inc_d2_we = addr_hit[13] & reg_we & !reg_error;
   assign dst_ptr_inc_d2_wd = reg_wdata[22:0];
 
-  assign slot_rx_trigger_slot_we = addr_hit[10] & reg_we & !reg_error;
+  assign slot_rx_trigger_slot_we = addr_hit[14] & reg_we & !reg_error;
   assign slot_rx_trigger_slot_wd = reg_wdata[15:0];
 
-  assign slot_tx_trigger_slot_we = addr_hit[10] & reg_we & !reg_error;
+  assign slot_tx_trigger_slot_we = addr_hit[14] & reg_we & !reg_error;
   assign slot_tx_trigger_slot_wd = reg_wdata[31:16];
 
-  assign data_type_we = addr_hit[11] & reg_we & !reg_error;
+  assign data_type_we = addr_hit[15] & reg_we & !reg_error;
   assign data_type_wd = reg_wdata[1:0];
 
-  assign mode_we = addr_hit[12] & reg_we & !reg_error;
-  assign mode_wd = reg_wdata[1:0];
-
-  assign dim_config_we = addr_hit[13] & reg_we & !reg_error;
-  assign dim_config_wd = reg_wdata[0];
-
-  assign dim_inv_we = addr_hit[14] & reg_we & !reg_error;
-  assign dim_inv_wd = reg_wdata[0];
-
-  assign pad_top_we = addr_hit[15] & reg_we & !reg_error;
+  assign pad_top_we = addr_hit[16] & reg_we & !reg_error;
   assign pad_top_wd = reg_wdata[5:0];
 
-  assign pad_bottom_we = addr_hit[16] & reg_we & !reg_error;
+  assign pad_bottom_we = addr_hit[17] & reg_we & !reg_error;
   assign pad_bottom_wd = reg_wdata[5:0];
 
-  assign pad_right_we = addr_hit[17] & reg_we & !reg_error;
+  assign pad_right_we = addr_hit[18] & reg_we & !reg_error;
   assign pad_right_wd = reg_wdata[5:0];
 
-  assign pad_left_we = addr_hit[18] & reg_we & !reg_error;
+  assign pad_left_we = addr_hit[19] & reg_we & !reg_error;
   assign pad_left_wd = reg_wdata[5:0];
 
-  assign window_size_we = addr_hit[19] & reg_we & !reg_error;
-  assign window_size_wd = reg_wdata[12:0];
+  assign interrupt_en_we = addr_hit[20] & reg_we & !reg_error;
+  assign interrupt_en_wd = reg_wdata[0];
 
-  assign interrupt_en_transaction_done_we = addr_hit[21] & reg_we & !reg_error;
-  assign interrupt_en_transaction_done_wd = reg_wdata[0];
-
-  assign interrupt_en_window_done_we = addr_hit[21] & reg_we & !reg_error;
-  assign interrupt_en_window_done_wd = reg_wdata[1];
-
-  assign transaction_ifr_re = addr_hit[22] & reg_re & !reg_error;
-
-  assign sdc_reserved_reg_we = addr_hit[23] & reg_we & !reg_error;
-  assign sdc_reserved_reg_wd = reg_wdata[0];
+  assign spc_ifr_re = addr_hit[21] & reg_re & !reg_error;
 
   // Read data return
   always_comb begin
@@ -991,94 +894,85 @@ module dma_reg_top #(
       end
 
       addr_hit[2]: begin
-        reg_rdata_next[31:0] = addr_ptr_qs;
+        reg_rdata_next[31:0] = iw_qs;
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[15:0] = size_d1_qs;
+        reg_rdata_next[31:0] = ih_qs;
       end
 
       addr_hit[4]: begin
-        reg_rdata_next[15:0] = size_d2_qs;
+        reg_rdata_next[31:0] = fw_qs;
       end
 
       addr_hit[5]: begin
+        reg_rdata_next[31:0] = fh_qs;
+      end
+
+      addr_hit[6]: begin
+        reg_rdata_next[31:0] = num_ch_qs;
+      end
+
+      addr_hit[7]: begin
+        reg_rdata_next[31:0] = stride_d1_qs;
+      end
+
+      addr_hit[8]: begin
+        reg_rdata_next[31:0] = stride_d2_qs;
+      end
+
+      addr_hit[9]: begin
         reg_rdata_next[0] = status_ready_qs;
         reg_rdata_next[1] = status_window_done_qs;
       end
 
-      addr_hit[6]: begin
+      addr_hit[10]: begin
         reg_rdata_next[5:0] = src_ptr_inc_d1_qs;
       end
 
-      addr_hit[7]: begin
+      addr_hit[11]: begin
         reg_rdata_next[22:0] = src_ptr_inc_d2_qs;
       end
 
-      addr_hit[8]: begin
+      addr_hit[12]: begin
         reg_rdata_next[5:0] = dst_ptr_inc_d1_qs;
       end
 
-      addr_hit[9]: begin
+      addr_hit[13]: begin
         reg_rdata_next[22:0] = dst_ptr_inc_d2_qs;
       end
 
-      addr_hit[10]: begin
+      addr_hit[14]: begin
         reg_rdata_next[15:0] = slot_rx_trigger_slot_qs;
         reg_rdata_next[31:16] = slot_tx_trigger_slot_qs;
       end
 
-      addr_hit[11]: begin
+      addr_hit[15]: begin
         reg_rdata_next[1:0] = data_type_qs;
       end
 
-      addr_hit[12]: begin
-        reg_rdata_next[1:0] = mode_qs;
-      end
-
-      addr_hit[13]: begin
-        reg_rdata_next[0] = dim_config_qs;
-      end
-
-      addr_hit[14]: begin
-        reg_rdata_next[0] = dim_inv_qs;
-      end
-
-      addr_hit[15]: begin
+      addr_hit[16]: begin
         reg_rdata_next[5:0] = pad_top_qs;
       end
 
-      addr_hit[16]: begin
+      addr_hit[17]: begin
         reg_rdata_next[5:0] = pad_bottom_qs;
       end
 
-      addr_hit[17]: begin
+      addr_hit[18]: begin
         reg_rdata_next[5:0] = pad_right_qs;
       end
 
-      addr_hit[18]: begin
+      addr_hit[19]: begin
         reg_rdata_next[5:0] = pad_left_qs;
       end
 
-      addr_hit[19]: begin
-        reg_rdata_next[12:0] = window_size_qs;
-      end
-
       addr_hit[20]: begin
-        reg_rdata_next[7:0] = window_count_qs;
+        reg_rdata_next[0] = interrupt_en_qs;
       end
 
       addr_hit[21]: begin
-        reg_rdata_next[0] = interrupt_en_transaction_done_qs;
-        reg_rdata_next[1] = interrupt_en_window_done_qs;
-      end
-
-      addr_hit[22]: begin
-        reg_rdata_next[0] = transaction_ifr_qs;
-      end
-
-      addr_hit[23]: begin
-        reg_rdata_next[0] = sdc_reserved_reg_qs;
+        reg_rdata_next[0] = spc_ifr_qs;
       end
 
       default: begin
@@ -1101,7 +995,7 @@ module dma_reg_top #(
 
 endmodule
 
-module dma_reg_top_intf
+module im2col_spc_reg_top_intf
 #(
   parameter int AW = 7,
   localparam int DW = 32
@@ -1110,8 +1004,8 @@ module dma_reg_top_intf
   input logic rst_ni,
   REG_BUS.in  regbus_slave,
   // To HW
-  output dma_reg_pkg::dma_reg2hw_t reg2hw, // Write
-  input  dma_reg_pkg::dma_hw2reg_t hw2reg, // Read
+  output im2col_spc_reg_pkg::im2col_spc_reg2hw_t reg2hw, // Write
+  input  im2col_spc_reg_pkg::im2col_spc_hw2reg_t hw2reg, // Read
   // Config
   input devmode_i // If 1, explicit error return for unmapped register access
 );
@@ -1135,7 +1029,7 @@ module dma_reg_top_intf
 
   
 
-  dma_reg_top #(
+  im2col_spc_reg_top #(
     .reg_req_t(reg_bus_req_t),
     .reg_rsp_t(reg_bus_rsp_t),
     .AW(AW)

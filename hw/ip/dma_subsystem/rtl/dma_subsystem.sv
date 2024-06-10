@@ -185,10 +185,6 @@ module dma_subsystem #(
 
   /* Signal assignments */
 
-  /* MUX between AO_peripheral register interface or external SDCs */
-
-  // TBD
-
   assign dma_done_intr_o   = |(dma_trans_done);
   assign dma_window_intr_o = |(dma_window_done);
 

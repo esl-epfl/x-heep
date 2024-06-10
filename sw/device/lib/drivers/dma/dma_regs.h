@@ -164,6 +164,10 @@ extern "C" {
 #define DMA_TRANSACTION_IFR_REG_OFFSET 0x58
 #define DMA_TRANSACTION_IFR_FLAG_BIT 0
 
+// Reserved register for SDC use
+#define DMA_SDC_RESERVED_REG_REG_OFFSET 0x5c
+#define DMA_SDC_RESERVED_REG_FLAG_BIT 0
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif

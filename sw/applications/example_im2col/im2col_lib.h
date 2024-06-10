@@ -72,8 +72,8 @@
 
 // Define the dimensions of the input tensor and the kernel
 
-#define N_PATCHES_H ((IH + (PAD + PAD) - FH)/ STRIDES + 1)
-#define N_PATCHES_W ((IW + (PAD + PAD) - FW)/ STRIDES + 1)
+#define N_PATCHES_H ((IH + (TOP_PAD + BOTTOM_PAD) - FH)/ STRIDE_D2 + 1)
+#define N_PATCHES_W ((IW + (RIGHT_PAD + LEFT_PAD) - FW)/ STRIDE_D1 + 1)
 
 #define CH_COL (CH * FH * FW)
 
@@ -83,11 +83,8 @@
 #define OW_NHWC (FW * FH * CH * BATCH)
 #define OH_NHWC (N_PATCHES_W) * (N_PATCHES_H)
 
-#define TMP_PAD_W (PAD - (2 * PAD + IW) - STRIDES * (N_PATCHES_W - 1) - FW)
-#define TMP_PAD_H (PAD - (2 * PAD + IH) - STRIDES * (N_PATCHES_H - 1) - FH)
-
 // Computations for 2D DMA
-#define SRC_INC_D2 (STRIDES * IW - (FW - 1 + (STRIDES - 1) * (FW - 1)))
+#define SRC_INC_D2 (STRIDE_D2 * IW - (FW - 1 + (STRIDE_D1 - 1) * (FW - 1)))
 
 int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles);
 int im2col_nhwc_int32(uint8_t test_id, unsigned int *cycles);

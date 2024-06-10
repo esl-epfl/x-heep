@@ -218,24 +218,22 @@
       ]
     },
     { name:    "INTERRUPT_EN",
-      desc:    '''Interrupt Enable Register 
-                  (Only the interrupt with the lowest id will be triggered)''',
+      desc:    '''Interrupt Enable Register''',
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "0", name: "TRANSACTION_DONE", desc: "Enables transaction done interrupt" }
-        { bits: "1", name: "WINDOW_DONE", desc: "Enables window done interrupt" }
+        { bits: "0", name: "EN", desc: "Enables operation done interrupt" }
       ]
     },
-    { name:    "TRANSACTION_IFR",
-      desc:    '''Interrupt Flag Register for transaction''',
+    { name:    "SPC_IFR",
+      desc:    '''Interrupt Flag Register for the SPC operation''',
       swaccess: "ro",
       hwaccess: "hrw",
       hwext:    "true",
       hwre:     "true", // latched signal of software write pulse
       resval:        0,
       fields: [
-        { bits: "0", name: "FLAG", desc: "Set for transaction done interrupt" }
+        { bits: "0", name: "FLAG", desc: "Set for operation done interrupt" }
       ]
     }
    ]

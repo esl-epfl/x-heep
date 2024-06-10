@@ -26,9 +26,9 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     int n_zeros_right = 0;
     int n_zeros_top = 0;
     int n_zeros_bottom = 0;
-    uint32_t im_row = 0;
-    uint32_t im_col = 0;
-    int32_t im_c = 0; 
+    int im_row = 0;
+    int im_col = 0;
+    int im_c = 0; 
     int w_offset = 0;  
     int h_offset = 0;
     int col_index = 0;
@@ -40,8 +40,8 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     int tmp_pad = 0;
     int w_offset_pad = 0;
     int h_offset_pad = 0;
-    int fw_minus_w_offset = FW - 1 - w_offset;
-    int fh_minus_h_offset = FH - 1 - h_offset;
+    int fw_minus_w_offset = 0;
+    int fh_minus_h_offset = 0;
     unsigned int cycles_A = 0;
     unsigned int cycles_B = 0;
     unsigned int avg_first_zeros;
@@ -57,6 +57,9 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     int fw_minus_w_offset_vs_PAD = 0;
     int fh_minus_h_offset_vs_PAD = 0;
     int h_offset_tmp = 0;
+    int n_zeros_top_counter = 0;
+    int n_zeros_top_cond = 0;
+    int pad_min_w_offset = 0;
 
     for (int i=0; i<OH_NCHW*OW_NCHW; i++)
     {
@@ -92,18 +95,22 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                     /* Iterate over each patch on the heigth in the output matrix.*/
                     for (int w = 0; w < N_PATCHES_W; ++w) {
                         /* Calculate the row and column indices in the original input image, applying the stride and offset. */
-                        im_row = h_offset + h * STRIDES - PAD;
-                        im_col = w_offset + w * STRIDES - PAD;
+                        im_row = h_offset + h * STRIDE_D2 - TOP_PAD;
+                        im_col = w_offset + w * STRIDE_D1 - LEFT_PAD;
 
                         /* Calculate the index in the flattened output array where this value should be stored. */
                         col_index = ((c * BATCH + b) * N_PATCHES_H + h) * N_PATCHES_W + w;
-                        
+                        PRINTF_DEB("\n\rim_row: %d, im_col: %d,", im_row, im_col);
+                        PRINTF_DEB("\n\rw_offset: %d, h_offset: %d\n\r", w_offset, h_offset);
+
                         /* If the calculated indices are outside the bounds of the input image, perform padding. */
                         /* Otherwise, fetch the value from the input image and store it in the output array. */
                         if (im_row < 0 || im_col < 0 || im_row >= IH || im_col >= IW) {
                             output_data[col_index] = 0;
+                            PRINTF_DEB("Padding with 0\n\r");
                         } else {
                             output_data[col_index] = input_image_nchw[get_index(CH, IH, IW, b, im_c, im_row, im_col)];                        
+                            PRINTF_DEB("Value: %d\n\r", input_image_nchw[get_index(CH, IH, IW, b, im_c, im_row, im_col)]);
                         }
                     }
                 }
@@ -162,9 +169,9 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 /* Iterate over each patch on the IW of the input matrix. */
                 for (int h = 0; h < N_PATCHES_H; ++h) {
 
-                    im_row = h_offset + h * STRIDES - PAD;
+                    im_row = h_offset + h * STRIDE_D2 - TOP_PAD;
 
-                    im_col = w_offset - PAD;
+                    im_col = w_offset - LEFT_PAD;
 
                     n_zeros_left = 0;
                     n_zeros_right = 0;
@@ -176,18 +183,18 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                     last_position = 0;
                     tmp_pad = 0;
 
-                    PRINTF_DEB("\n\rim_row: %d, im_col: %d", im_row, im_col);
+                    PRINTF_DEB("\n\rim_row: %d, im_col: %d, TOP_PAD: %d", im_row, im_col, TOP_PAD);
                     PRINTF_DEB("\n\rw_offset: %d, h_offset: %d\n\r", w_offset, h_offset);
 
                     /* Iterate over each patch on the heigth in the output matrix. */
                     
-                    if (PAD > 0 && im_row < 0)
+                    if (TOP_PAD > 0 && im_row < 0)
                     {
                         /* im_row < 0 case: only the output_image_ptr needs to be updated */
                         output_data_ptr += N_PATCHES_W;
                         PRINTF_DEB("\n\rAdded the initial full row of 0s, %d elements", N_PATCHES_W);
                     } 
-                    else if (PAD > 0 && im_row >= IW)
+                    else if (BOTTOM_PAD > 0 && im_row >= IW)
                     {
                         /* im_row >= IH case: only the output_image_ptr needs to be updated */
                         output_data_ptr += N_PATCHES_W;
@@ -199,42 +206,42 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                         /* Computing the number of zeros before the first element of the patch */
 
                         /* In the offset of the element in the filter is bigger than P, then no zeros are needed */
-                        if ( w_offset >= PAD)
+                        if ( w_offset >= LEFT_PAD)
                         {
                             n_zeros_left = 0;
                         }
-                        else if ( (PAD - w_offset) % STRIDES == 0 )
+                        else if ( (LEFT_PAD - w_offset) % STRIDE_D1 == 0 )
                         {
-                            n_zeros_left = (PAD - w_offset) / STRIDES;
+                            n_zeros_left = (LEFT_PAD - w_offset) / STRIDE_D1;
                         }
                         else
                         {
-                            n_zeros_left = (PAD - w_offset) / STRIDES + 1;
+                            n_zeros_left = (LEFT_PAD - w_offset) / STRIDE_D1 + 1;
                         }
 
                         /* Computing the number of zeros after the last element of the patch */
 
                         /* The stray elements are the elements that are not covered by the patches */
-                        stray_elements = (2*PAD + IW) - STRIDES * (N_PATCHES_W - 1) - FW;
+                        stray_elements = (LEFT_PAD + TOP_PAD + IW) - STRIDE_D1 * (N_PATCHES_W - 1) - FW;
 
                         /* This computes the last position of the current element of the filter */
-                        last_position = 2*PAD + IW - stray_elements - FW + w_offset;
+                        last_position = LEFT_PAD + TOP_PAD + IW - stray_elements - FW + w_offset;
 
                         /* To adapt the final case to the formulas used to the first padded region, let's compute an "adapted" padded region,
                         /* by removing the elements of the row uncovered by the sliding filter */
-                        tmp_pad = PAD - stray_elements;
+                        tmp_pad = RIGHT_PAD - stray_elements; // ToDo: to test if it's right or left pad
 
-                        if (FW - 1 - w_offset >= PAD)
+                        if (FW - 1 - w_offset >= RIGHT_PAD)
                         {
                             n_zeros_right = 0;
                         }
-                        else if ( (tmp_pad - (FW - 1 - w_offset)) % STRIDES == 0 )
+                        else if ( (tmp_pad - (FW - 1 - w_offset)) % STRIDE_D1 == 0 )
                         {
-                            n_zeros_right = (tmp_pad - (FW - 1 - w_offset)) / STRIDES;
+                            n_zeros_right = (tmp_pad - (FW - 1 - w_offset)) / STRIDE_D1;
                         }
                         else
                         {
-                            n_zeros_right = (tmp_pad - (FW - 1 - w_offset)) / STRIDES + 1;
+                            n_zeros_right = (tmp_pad - (FW - 1 - w_offset)) / STRIDE_D1 + 1;
                         }
 
                         /* Compute the number of elements to transfer */
@@ -247,15 +254,18 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                             
                             PRINTF_DEB("\n\rAdded %d '0's before",  n_zeros_left);
 
-                            im_col += n_zeros_left * STRIDES;
+                            im_col += n_zeros_left * STRIDE_D1;
                         }
 
                         /* DMA setup and transaction run */
 
+                        PRINTF_DEB("\n\rn_zeros_left: %d, n_zeros_right: %d", n_zeros_left, n_zeros_right);
+                        PRINTF_DEB("\n\rsize_transfer: %d\n\r", size_transfer);
+    
                         input_image_ptr = &input_image_nchw[0] + get_index(CH, IH, IW, b, im_c, im_row, im_col);
                         tgt_src.ptr = input_image_ptr;
                         tgt_src.size_du = size_transfer;
-                        tgt_src.inc_du = STRIDES;
+                        tgt_src.inc_du = STRIDE_D1;
 
                         tgt_dst.ptr = output_data_ptr;
                         tgt_dst.size_du = size_transfer;
@@ -318,7 +328,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
 
         dma_target_t tgt_src = {
                                     .ptr        = input_image_nchw,
-                                    .inc_du     = STRIDES,
+                                    .inc_du     = STRIDE_D1,
                                     .type       = DMA_DATA_TYPE_WORD
                             };
         dma_target_t tgt_dst = {
@@ -347,17 +357,21 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
 
         w_offset = 0;
         h_offset = 0;
+        pad_min_w_offset = LEFT_PAD;
 
         for (int c = 0; c < CH_COL; ++c) {
+
+            /* Iterate over each patch on the IW of the input matrix. */
+            fw_minus_w_offset = FW - 1 - w_offset;
+            fh_minus_h_offset = FH - 1 - h_offset;
+
             /* Calculate offsets within the kernel window. */
 
             /* Iterate over each BATCH. */
             for (int32_t b = 0; b < BATCH; ++b) {
-                /* Iterate over each patch on the IW of the input matrix. */
 
-                im_row = h_offset - PAD;
-
-                im_col = w_offset - PAD;
+                im_row = h_offset - TOP_PAD;
+                im_col = w_offset - LEFT_PAD;
                 
                 PRINTF_DEB("\n\rim_row: %d, im_col: %d", im_row, im_col);
                 PRINTF_DEB("\n\rw_offset: %d, h_offset: %d\n\r", w_offset, h_offset);
@@ -369,83 +383,77 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 /* Computing the number of zeros on the left */
 
                 /* In the offset of the element in the filter is bigger than P, then no zeros are needed */
-                if ( w_offset >= PAD)
+                if ( w_offset >= LEFT_PAD)
                 {
                     n_zeros_left = 0;
                 }
-                else if ( (PAD - w_offset) % STRIDES == 0 )
+                else if ( (LEFT_PAD - w_offset) % STRIDE_D1 == 0 )
                 {
-                    n_zeros_left = (PAD - w_offset) / STRIDES;
+                    n_zeros_left = (LEFT_PAD - w_offset) / STRIDE_D1;
                 }
                 else
                 {
-                    n_zeros_left = (PAD - w_offset) / STRIDES + 1;
+                    n_zeros_left = (LEFT_PAD - w_offset) / STRIDE_D1 + 1;
                 }
 
                 /* Computing the number of zeros on the top */
 
                 /* In the offset of the element in the filter is bigger than P, then no zeros are needed */
-                if ( h_offset >= PAD)
+                if ( h_offset >= TOP_PAD)
                 {
                     n_zeros_top = 0;
                 }
-                else if ( (PAD - h_offset) % STRIDES == 0 )
+                else if ( (TOP_PAD - h_offset) % STRIDE_D1 == 0 )
                 {
-                    n_zeros_top = (PAD - h_offset) / STRIDES;
+                    n_zeros_top = (TOP_PAD - h_offset) / STRIDE_D1;
                 }
                 else
                 {
-                    n_zeros_top = (PAD - h_offset) / STRIDES + 1;
+                    n_zeros_top = (TOP_PAD - h_offset) / STRIDE_D1 + 1;
                 }
 
                 /* Computing the number of zeros on the right */
 
-                /* The stray elements are the elements that are not covered by the patches */
-                stray_elements = (2*PAD + IW) - STRIDES * (N_PATCHES_W - 1) - FW;
-
                 /* This computes the last position of the current element of the filter */
-                last_position = 2*PAD + IW - stray_elements - FW + w_offset;
+                //last_position =  STRIDE_D1 * (N_PATCHES_W - 1) + w_offset;
 
                 /* To adapt the final case to the formulas used to the first padded region, let's compute an "adapted" padded region,
                 /* by removing the elements of the row uncovered by the sliding filter */
-                tmp_pad = PAD - stray_elements;
+                tmp_pad =  STRIDE_D1 * (N_PATCHES_W - 1) + FW -(LEFT_PAD + IW);
 
-                if (fw_minus_w_offset >= PAD)
+                if (fw_minus_w_offset >= RIGHT_PAD)
                 {
                     n_zeros_right = 0;
                 }
-                else if ( (tmp_pad - (FW - 1 - w_offset)) % STRIDES == 0 )
+                else if ( (tmp_pad - (fw_minus_w_offset)) % STRIDE_D1 == 0 )
                 {
-                    n_zeros_right = (tmp_pad - (FW - 1 - w_offset)) / STRIDES;
+                    n_zeros_right = (tmp_pad - (fw_minus_w_offset)) / STRIDE_D1;
                 }
                 else
                 {
-                    n_zeros_right = (tmp_pad - (FW - 1 - w_offset)) / STRIDES + 1;
+                    n_zeros_right = (tmp_pad - (fw_minus_w_offset)) / STRIDE_D1 + 1;
                 }
 
                 /* Computing the number of zeros on the bottom */
 
-                /* The stray elements are the elements that are not covered by the patches */
-                stray_elements = (2*PAD + IH) - STRIDES * (N_PATCHES_H - 1) - FH;
-
                 /* This computes the last position of the current element of the filter */
-                last_position = 2*PAD + IH - stray_elements - FH + h_offset;
+                //last_position = STRIDE_D1 * (N_PATCHES_H - 1) + h_offset;
 
                 /* To adapt the final case to the formulas used to the first padded region, let's compute an "adapted" padded region,
                 /* by removing the elements of the row uncovered by the sliding filter */
-                tmp_pad = PAD - stray_elements;
+                tmp_pad = STRIDE_D1 * (N_PATCHES_H - 1) + FH - (LEFT_PAD + IH);
 
-                if (FH - 1 - h_offset >= PAD)
+                if (fh_minus_h_offset >= RIGHT_PAD)
                 {
                     n_zeros_bottom = 0;
                 }
-                else if ( (tmp_pad - (FH - 1 - h_offset)) % STRIDES == 0 )
+                else if ( (tmp_pad - (fh_minus_h_offset)) % STRIDE_D1 == 0 )
                 {
-                    n_zeros_bottom = (tmp_pad - (FH - 1 - h_offset)) / STRIDES;
+                    n_zeros_bottom = (tmp_pad - (fh_minus_h_offset)) / STRIDE_D1;
                 }
                 else
                 {
-                    n_zeros_bottom = (tmp_pad - (FH - 1 - h_offset)) / STRIDES + 1;
+                    n_zeros_bottom = (tmp_pad - (fh_minus_h_offset)) / STRIDE_D1 + 1;
                 }
 
                 /* Compute the number of elements to transfer */
@@ -457,14 +465,14 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 #endif
 
                 PRINTF_DEB("\n\rn_zeros_left: %d, n_zeros_right: %d, n_zeros_top: %d, n_zeros_bottom: %d", n_zeros_left, n_zeros_right, n_zeros_top, n_zeros_bottom);
-                PRINTF_DEB("\n\rsize_transfer: %d, size_transfer_d2: %d", size_transfer, size_transfer_d2);
+                PRINTF_DEB("\n\rsize_transfer: %d, size_transfer_d2: %d\n\r", size_transfer, size_transfer_d2);
     
                 /* DMA setup and transaction run */
-                int index = get_index(CH, IH, IW, b, im_c, im_row + n_zeros_top*STRIDES, im_col + n_zeros_left*STRIDES);
-                src_inc_d2 = (STRIDES * IW - (size_transfer - 1 + (STRIDES - 1) * (size_transfer - 1)));
-                //  SRC_INC_D2 (STRIDE_IN_D2 * SIZE_IN_D1 - (SIZE_EXTR_D1 - 1 + (STRIDE_IN_D1 - 1) * (SIZE_EXTR_D1 - 1)))
-                // size * S * S - S * S
+                int index = get_index(CH, IH, IW, b, im_c, im_row + n_zeros_top*STRIDE_D2, im_col + n_zeros_left*STRIDE_D1);
+                src_inc_d2 = (STRIDE_D2 * IW - (size_transfer - 1 + (STRIDE_D1 - 1) * (size_transfer - 1)));
+
                 PRINTF_DEB("\n\rindex: %d, src_inc_d2: %d", index, src_inc_d2);
+
                 input_image_ptr = &input_image_nchw[0] + index;
                 tgt_src.ptr = input_image_ptr;
                 tgt_src.size_du = size_transfer;
@@ -517,7 +525,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 w_offset++;
             }
 
-            /* Optimized h_offset computation: h_offset = (h_offset_tmp) % FH with h_offset_tmp = C / FW */
+            /* Optimized h_offset computation: h_offset = (h_offset_tmp) % FH with h_offset_tmp = c / FW */
             if (h_offset_counter == FW - 1)
             {
                 h_offset_counter = 0;
@@ -535,6 +543,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 h_offset_counter++;
             }
 
+            /* Optimized im_c computation: im_c = c / FW*FH */
             if (im_c_counter == FH*FW - 1)
             {
                 im_c_counter = 0;
@@ -543,7 +552,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
             else
             {
                 im_c_counter++;
-            }        
+            }     
         }
 
         #if TIMING  
@@ -707,8 +716,11 @@ int verify(int format)
 void dma_run(dma_trans_t * trans)
 {
     int res = dma_validate_transaction(trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
+    PRINTF_DEB("DMA validation result: %d\n\r", res);
     res = dma_load_transaction(trans);
+    PRINTF_DEB("DMA load result: %d\n\r", res);
     res = dma_launch(trans);
+    PRINTF_DEB("DMA launch result: %d\n\r", res);
 
     while( ! dma_is_ready(0))
 

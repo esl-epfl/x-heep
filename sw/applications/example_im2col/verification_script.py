@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import tensorflow as tf
 
 #######################################################################################################
-def torch_im2col_ncwh(input_tensor, kernel_size, stride=1, padding=0, dilation=1):
+def torch_im2col_ncwh(input_tensor, kernel_size, stride_d1=1, stride_d2=1, top_pad=0, bottom_pad=0, left_pad=0, right_pad=0, dilation=1):
     """
     Applies the im2col operation to an input tensor using PyTorch's unfold method, supporting both NCHW and NHWC formats.
 
@@ -24,22 +24,18 @@ def torch_im2col_ncwh(input_tensor, kernel_size, stride=1, padding=0, dilation=1
     # Ensure kernel_size, stride, padding, and dilation are tuples
     if isinstance(kernel_size, int):
         kernel_size = (kernel_size, kernel_size)
-    if isinstance(stride, int):
-        stride = (stride, stride)
-    if isinstance(padding, int):
-        padding = (padding, padding)
     if isinstance(dilation, int):
         dilation = (dilation, dilation)
 
     # Adjust padding format for F.pad (expects pad_left, pad_right, pad_top, pad_bottom)
-    padding_format = (padding[1], padding[1], padding[0], padding[0]) # Right, Left, Bottom, Top
+    padding_format = (left_pad, right_pad, top_pad, bottom_pad)
 
     # Apply zero padding
     padded_input = F.pad(input_tensor, padding_format, "constant", 0)
 
     
     # Unfold the padded input tensor
-    unfolded = padded_input.unfold(2, kernel_size[0], stride[0]).unfold(3, kernel_size[1], stride[1])
+    unfolded = padded_input.unfold(2, kernel_size[0], stride_d2).unfold(3, kernel_size[1], stride_d1)
 
     unfolded = unfolded.permute(0, 2, 3, 1, 4, 5)
 
@@ -67,14 +63,14 @@ def tf_im2col_nhwc(input_tensor, kernel_size, stride, padding, dilation=1):
     patches_reshaped = tf.reshape(patches, [-1, patch_dim])
     return patches_reshaped
 
-def shl_im2col_nhwc(input_tensor, kernel_size, stride, padding):  
+def shl_im2col_nhwc(input_tensor, kernel_size, stride, top_pad=0, bottom_pad=0, left_pad=0, right_pad=0):  
     # Get the dimensions of the input tensor
     batch_size, height, width, channels = input_tensor.shape
     input_tensor = input_tensor.flatten()
 
     # Calculate the dimensions of the output tensor
-    n_patches_w = (height + 2 * padding[0] - kernel_size[0]) // stride[0] + 1
-    n_patches_h = (width + 2 * padding[1] - kernel_size[1]) // stride[1] + 1
+    n_patches_w = (height + top_pad + bottom_pad +  - kernel_size[0]) // stride[0] + 1
+    n_patches_h = (width + left_pad + right_pad - kernel_size[1]) // stride[1] + 1
 
     # Create an empty array to hold the output tensor
     output_height = channels * kernel_size[0] * kernel_size[1]
@@ -89,8 +85,8 @@ def shl_im2col_nhwc(input_tensor, kernel_size, stride, padding):
                     h_offset = (c // kernel_size[1]) % kernel_size[0]
                     c_offset = c // (kernel_size[0] * kernel_size[1])
 
-                    im_row = h * stride[0] + h_offset - padding[0]
-                    im_col = w * stride[1] + w_offset - padding[1]
+                    im_row = h * stride[0] + h_offset - top_pad
+                    im_col = w * stride[1] + w_offset - left_pad
                     col_index = ((b * n_patches_h + h) * n_patches_w + w) * output_height + c
                     
                     if im_row < 0 or im_row >= height or im_col < 0 or im_col >= width:
@@ -196,20 +192,24 @@ def shl_save(tensor, variable_name, dim, row_len):
 # 2: SHL implementation
 
 # Parameters of the random image, padding excluded
-image_height = 20
-image_width = 20
-channels = 3
+image_height = 4
+image_width = 4
+channels = 1
 batch = 1
 
 # Parameters of the filter
-filter_height = 4
-filter_width = 4
-padding = 2
-stride = 2
+filter_height = 2
+filter_width = 2
+top_pad = 1
+bottom_pad = 1
+left_pad = 1
+right_pad = 1
+stride_d1 = 2
+stride_d2 = 2
 
 # Calculate the number of patches, i.e. the number the filter can fit along one dimension during convolution
-n_patches_h = (image_height + 2 * padding - filter_height) // stride + 1
-n_patches_w = (image_width + 2 * padding - filter_width) // stride + 1
+n_patches_h = (image_height + top_pad + bottom_pad - filter_height) // stride_d2 + 1
+n_patches_w = (image_width + right_pad + left_pad - filter_width) // stride_d1 + 1
 
 # Calculate the dimensions of the output matrix
 OH = filter_width * filter_height * channels * batch # Number of rows in a column -> size of a column
@@ -217,11 +217,11 @@ OW = n_patches_h * n_patches_w # Numver of columns in a row -> size of a row
 
 
 input_tensor_nchw = torch.randint(0, 65500, (batch, channels, image_height, image_width), dtype=torch.int32)
-output_matrix_nchw = torch_im2col_ncwh(input_tensor_nchw, (filter_height, filter_width), stride, padding)
+output_matrix_nchw = torch_im2col_ncwh(input_tensor_nchw, (filter_height, filter_width), stride_d1, stride_d2, top_pad, bottom_pad, left_pad, right_pad)
 
 # Perform the im2col operation using SHL's implementation
 input_tensor_nhwc = np.random.randint(0, 2**16, size=(batch, image_height, image_width, channels), dtype=np.uint32)
-output_matrix_nhwc = shl_im2col_nhwc(input_tensor_nhwc, (filter_height, filter_width), (stride, stride), (padding, padding))
+output_matrix_nhwc = shl_im2col_nhwc(input_tensor_nhwc, (filter_height, filter_width), (stride_d1, stride_d2), top_pad, bottom_pad, left_pad, right_pad)
 
 # Dump input image and output col to header file
 with open('im2colGolden.h', 'w') as f:
@@ -238,9 +238,13 @@ with open('im2colGolden.h', 'w') as f:
     f.write('#define CH %d\n' % channels)
     f.write('#define FW %d\n' % filter_width)
     f.write('#define FH %d\n' % filter_height)
-    f.write('#define STRIDES %d\n' % stride)
-    f.write('#define PAD %d\n' % padding)
-    f.write('#define BATCH %d\n\n' % batch)
+    f.write('#define BATCH %d\n' % batch)
+    f.write('#define STRIDE_D1 %d\n' % stride_d1)
+    f.write('#define STRIDE_D2 %d\n' % stride_d2)
+    f.write('#define TOP_PAD %d\n' % top_pad)
+    f.write('#define BOTTOM_PAD %d\n' % bottom_pad)
+    f.write('#define LEFT_PAD %d\n' % left_pad)
+    f.write('#define RIGHT_PAD %d\n' % right_pad)
 
     f.write('extern const uint32_t input_image_nchw[%d];\n' % (channels * image_height * image_width * batch))
     f.write('extern const uint32_t golden_im2col_nchw[%d];\n' % (OW*OH))
