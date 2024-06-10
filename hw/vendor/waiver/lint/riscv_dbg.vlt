@@ -12,3 +12,4 @@ lint_off -rule DECLFILENAME -file "*/src/cdc_fifo_gray_clearable.sv" -match "Fil
 lint_off -rule WIDTH -file "*/src/cdc_2phase_clearable.sv" -match "Logical operator GENIF expects 1 bit on the If, but If's VARREF 'CLEAR_ON_ASYNC_RESET' generates 32 bits.*"
 lint_off -rule UNOPTFLAT -file "*/src/cdc_4phase.sv" -match "Signal unoptimizable*"
 lint_off -rule WIDTH -file "*/src/dm_mem.sv" -match "*"
+lint_off -rule CMPCONST -file "*/src/dm_csrs.sv" -match "*"
