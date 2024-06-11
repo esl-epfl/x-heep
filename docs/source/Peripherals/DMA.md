@@ -25,7 +25,7 @@ For example, 16 bytes can be 16 data units if the data type is `Byte`, but 8 dat
 Source and destination can have different data types, if the destination type is wider than the source type, data can be sign extended.
 
 ### Sign extension
-If specified (setting the bit in the corresponding register) and if the destanation data type is wider than the source type, sign of the source data is extended to fill the size of the destination data type.
+If specified (setting the bit in the corresponding register) and if the destination data type is wider than the source type, sign of the source data is extended to fill the size of the destination data type.
 
 ### Increment
 In the case that source and/or destination data are not to be consecutively read/written, a certain increment can be defined.
