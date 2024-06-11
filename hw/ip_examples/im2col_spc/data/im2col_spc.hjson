@@ -58,11 +58,12 @@
       ]
     },
     { name:     "NUM_CH",
-      desc:     "Number of channels",
+      desc:     "Number of channels. When written, the im2col will start executing",
       swaccess: "rw",
       hwaccess: "hro",
+      hwre:     "true",
       fields: [
-        { bits: "31:0", name: "SIZE", desc: "Filter heigth" }
+        { bits: "31:0", name: "NUM", desc: "Number of channels" }
       ]
     },
     { name:     "STRIDE_D1",

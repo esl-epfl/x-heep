@@ -5,8 +5,9 @@
  *
  * Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
  *  
- * Info: This module enables the im2col SPC DMA interface unit to manage multiple channels 
-         and poll between them.
+ * Info: This module enables the im2col SPC DMA interface unit to manage multiple channels runs by
+ *       storing the computed parameters in a circular buffer. 
+ *       It keeps track of the utilized channels so that the DMA if cu doesn't have to.
  */
 
 module dma_queue # (
@@ -17,11 +18,13 @@ module dma_queue # (
     input logic sample_en,
     input dma_if_t dma_if_i,
     input logic dma_if_req_i,
-    output logic dma_channel_o,
+
+    output logic [clog2(NUM_CH)-1:0] dma_channel_o,
     output dma_if_t dma_if_o,
+    output logic dma_if_valid_o,
     output dma_queue_full_o,
     output dma_queue_empty_o
-)
+);
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -55,7 +58,7 @@ module dma_queue # (
       dma_queue_empty <= 1'b1;
     end else begin
       /*
-       * Read operations: sample a new dma_if if the sample signal is asserted 
+       * Read operation: sample a new dma_if if the sample signal is asserted 
        * & if the queue isn't full.
        */
       if (sample_en == 1'b1 && dma_queue_full == 1'b0) begin
@@ -68,15 +71,19 @@ module dma_queue # (
       end
       
       /* 
-       * Pop a dma_if if the queue isn't empty 
+       * Write operation: pop a dma_if if the queue isn't empty 
        */
       if (dma_if_req_i == 1'b1 && dma_queue_empty == 1'b0) begin
+        dma_if_valid_o <= 1'b1;
         dma_if_o <= dma_channels[channel_head_id];
+        dma_channel_o <= channel_head_id;
         dma_channels_full <= dma_channels_full - 1'b1;
         dma_head_id <= dma_head_id + 1'b1;
         if (dma_head_id == NUM_CH-1) begin
           dma_head_id <= '0;
         end
+      end else begin
+        dma_if_valid_o <= 1'b1;
       end
     end
   end
