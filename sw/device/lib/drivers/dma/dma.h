@@ -451,7 +451,7 @@ uint32_t dma_get_window_count(void);
 /**
  * @brief Prevent the DMA from relaunching the transaction automatically after
  * finishing the current one. It does not affect the currently running
- * transaction. It has no effect if the DMA is operating in SINGULAR
+ * transaction. It has no effect if the DMA is operating in SINGLE
  * transaction mode.
  */
 void dma_stop_circular(void);

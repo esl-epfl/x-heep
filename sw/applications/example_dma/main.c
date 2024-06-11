@@ -13,16 +13,16 @@
 
 // TEST DEFINES AND CONFIGURATION
 
-#define TEST_SINGULAR_MODE
+#define TEST_SINGLE_MODE
 #define TEST_ADDRESS_MODE
 #define TEST_PENDING_TRANSACTION
 #define TEST_WINDOW
 #define TEST_ADDRESS_MODE_EXTERNAL_DEVICE
 
-#define TEST_DATA_SIZE 16
-#define TEST_DATA_LARGE 1024
-#define TRANSACTIONS_N 3         // Only possible to perform transaction at a time, others should be blocked
-#define TEST_WINDOW_SIZE_DU 1024 // if put at <=71 the isr is too slow to react to the interrupt
+#define TEST_DATA_SIZE      16
+#define TEST_DATA_LARGE     1024
+#define TRANSACTIONS_N      3       // Only possible to perform one transaction at a time, others should be blocked
+#define TEST_WINDOW_SIZE_DU 1024    // if put at <=71 the isr is too slow to react to the interrupt
 
 #if TEST_DATA_LARGE < 2 * TEST_DATA_SIZE
 #errors("TEST_DATA_LARGE must be at least 2*TEST_DATA_SIZE")
@@ -43,11 +43,11 @@
 // UTILITIES
 
 #define type2name(dma_type)                                                                   \
-    dma_type == DMA_DATA_TYPE_BYTE ? "8-bit" : dma_type == DMA_DATA_TYPE_HALF_WORD ? "16-bit" \
-                                           : dma_type == DMA_DATA_TYPE_WORD        ? "32-bit" \
-                                                                                   : "TYPE NOT VALID"
+    dma_type == DMA_DATA_TYPE_BYTE ? "8-bit"    : dma_type == DMA_DATA_TYPE_HALF_WORD ? "16-bit" \
+                                                : dma_type == DMA_DATA_TYPE_WORD      ? "32-bit" \
+                                                : "TYPE NOT VALID"
 
-dma_data_type_t C2dma_type(int C_type)
+dma_data_type_t C_type_2_dma_type(int C_type)
 {
     switch (C_type)
     {
@@ -137,15 +137,15 @@ dma_data_type_t C2dma_type(int C_type)
     trans.end = DMA_TRANS_END_INTR;
 
 #define TEST(C_src_type, C_dst_type, test_size, sign_extend)                                           \
-    PRINT_TEST(sign_extend, test_size, C2dma_type(sizeof(C_src_type)), C2dma_type(sizeof(C_dst_type))) \
+    PRINT_TEST(sign_extend, test_size, C_type_2_dma_type(sizeof(C_src_type)), C_type_2_dma_type(sizeof(C_dst_type))) \
     DEFINE_DATA(test_size, C_src_type, C_dst_type, sign_extend)                                        \
-    INIT_TEST(sign_extend, test_size, C2dma_type(sizeof(C_src_type)), C2dma_type(sizeof(C_dst_type)))  \
+    INIT_TEST(sign_extend, test_size, C_type_2_dma_type(sizeof(C_src_type)), C_type_2_dma_type(sizeof(C_dst_type)))  \
     RUN_DMA                                                                                            \
     WAIT_DMA                                                                                           \
     CHECK_RESULTS(test_size)                                                                           \
     PRINTF("\n\r")
 
-#define TEST_SINGULAR                                \
+#define TEST_SINGLE                                \
     {                                                \
         TEST(uint8_t, uint8_t, TEST_DATA_SIZE, 0);   \
         errors += errors;                            \
@@ -246,15 +246,15 @@ int main(int argc, char *argv[])
     };
     dma_trans_t trans;
 
-#ifdef TEST_SINGULAR_MODE
+#ifdef TEST_SINGLE_MODE
 
     PRINTF("\n\n\r===================================\n\n\r");
-    PRINTF("    TESTING SINGULAR MODE   ");
+    PRINTF("    TESTING SINGLE MODE   ");
     PRINTF("\n\n\r===================================\n\n\r");
 
-    TEST_SINGULAR
+    TEST_SINGLE
 
-#endif // TEST_SINGULAR_MODE
+#endif // TEST_SINGLE_MODE
 
     // Initialize the DMA for the next tests
     tgt_src.ptr = test_data_4B;
