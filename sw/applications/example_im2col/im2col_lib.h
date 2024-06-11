@@ -23,7 +23,7 @@
 
 // By default, printfs are activated for FPGA and for simulation.
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   1
+#define PRINTF_IN_SIM   0
 #define DEBUG 0 // Set to 1 to enable debug prints
 #define TIMING 0 // Set to 1 to enable timing measurements
 
