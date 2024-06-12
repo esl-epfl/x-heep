@@ -1,10 +1,15 @@
 
 from typing import List
-from x_heep_gen.signal_routing.routing_helper import RoutingHelper
+from ..signal_routing.routing_helper import RoutingHelper
 from .basic_peripheral import BasicPeripheral
 
 
 class RegIfacePeripheral(BasicPeripheral):
+    """
+    A class representing a peripheral connected to the system bus via obi directly.
+
+    It is automatically used by `@peripheral_from_file`.
+    """
     def make_instantiation_connections(self, rh: RoutingHelper) -> str:
         inst: str = ""
         inst += f".reg_req_i(peripheral_slv_req[core_v_mini_mcu_pkg::{self.full_name.upper()}_IDX]),"

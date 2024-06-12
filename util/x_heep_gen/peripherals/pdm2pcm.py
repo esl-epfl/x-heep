@@ -1,9 +1,12 @@
 from typing import Dict, List
-from x_heep_gen.peripherals.peripheral_helper import peripheral_from_file
+from .peripheral_helper import peripheral_from_file
 
 
 @peripheral_from_file("./hw/ip/pdm2pcm/data/pdm2pcm.hjson")
 class Pdm2PcmPeripheral():
+    """
+    A class representing a `pdm2pcm` peripheral.
+    """
     def get_io_prefix(self) -> str:
         return ""
     

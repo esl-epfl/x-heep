@@ -1,14 +1,17 @@
 from typing import Any, Dict
 
 import hjson
-from x_heep_gen.config_helpers import to_bool
-from x_heep_gen.peripherals.peripheral_helper import PeripheralConfigFactory, peripheral_from_file
-from x_heep_gen.signal_routing.endpoints import DmaTriggerEP
-from x_heep_gen.signal_routing.node import Node
-from x_heep_gen.signal_routing.routing_helper import RoutingHelper
+from .peripheral_helper import PeripheralConfigFactory, peripheral_from_file
+from ..config_helpers import to_bool
+from ..signal_routing.endpoints import DmaTriggerEP
+from ..signal_routing.node import Node
+from ..signal_routing.routing_helper import RoutingHelper
 
 
 class SpiHostConfigFactory(PeripheralConfigFactory):
+    """
+    A class adding configuration information for spi hosts
+    """
     def dict_to_kwargs(self, d: hjson.OrderedDict) -> Dict[str, Any]:
         ret = dict()
         dma = None
@@ -32,6 +35,12 @@ class SpiHostConfigFactory(PeripheralConfigFactory):
 
 @peripheral_from_file("./hw/vendor/lowrisc_opentitan_spi_host/data/spi_host.hjson", config_factory_t=SpiHostConfigFactory)
 class SpiHostPeripheral():
+    """
+    A class representing an `spi_host` peripheral
+
+    :param bool event_is_fast_intr: should the event interrupt be connected to the fast interrupt module?
+    :param bool dma: Should the dma trigger be connected?
+    """
     def __init__(self, *args, event_is_fast_intr=False, **kwargs):
         if not "dma" in kwargs:
             raise TypeError("dma keyword argument is required")

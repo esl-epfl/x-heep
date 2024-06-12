@@ -2,12 +2,12 @@
 import functools
 from typing import Any, Dict, List, Optional, Set, Type
 import hjson
+import os
 from reggen.bus_interfaces import BusProtocol
 from reggen.ip_block import IpBlock
 
-from x_heep_gen.config_helpers import to_int
-from x_heep_gen.peripherals.basic_peripheral import BasicPeripheral
-
+from ..config_helpers import to_int
+from .basic_peripheral import BasicPeripheral
 from .reg_iface_peripheral import RegIfacePeripheral
 from .tlul_peripheral import TLULPeripheral
 
@@ -17,12 +17,31 @@ ip_block_paths: Set[str] = { # prefill with fixed only peripherals
     "./hw/ip/dma/data/dma.hjson",
     "./hw/ip/soc_ctrl/data/soc_ctrl.hjson"
 }
+"""All the paths used to make peripherals headers"""
 
 class PeripheralConfigFactory():
+    """
+    A class providing individual peripheral configuration options.
+
+    Peripheral makers should implement `dict_to_kwargs` to parse additional parameters. If `__init__` is overriden `super()` has to be called or its functionality has to be replaced.
+
+    :param Type[BasicPeripheral]: The type of the peripheral to configure.
+    """
     def __init__(self, t: Type[BasicPeripheral]) -> None:
         self.t = t
 
     def dict_to_kwargs(self, d: hjson.OrderedDict) -> Dict[str, Any]:
+        """
+        Converts a dictionary of parameters to a dictionary of kwargs to create the peripheral class.
+
+        Here the parameters can be checked a first time.
+
+        This provides an implementation for `offset` and `length`parameter.
+
+        :param hjson.OrderedDict d:
+        :return: kwargs
+        :rtype: Dict[str, Any]
+        """
         ret = dict()
         if "offset" in d:
             addr = to_int(d.pop("offset"))
@@ -40,14 +59,33 @@ class PeripheralConfigFactory():
         
 
     def from_odict(self, p_dict: hjson.OrderedDict) -> BasicPeripheral:
+        """
+        Creates the peripheral instance based on a config file dictionary.
+
+        :param hjson:OrderedDict p_dict: parameters
+        :return: The peripheral instance.
+        :rtype: BasicPeripheral
+        """
         return self.t(**self.dict_to_kwargs(p_dict))
 
 
 peripheral_factories: Dict[str, PeripheralConfigFactory] = dict()
 def add_peripheral_factory(name: str, t: Type[PeripheralConfigFactory], periph_t: Type[BasicPeripheral]):
+    """manually add a peripheral factory"""
     peripheral_factories[name] = t(periph_t)
 
 def peripheral_from_file(path: str, name: str = "", config_factory_t: Type[PeripheralConfigFactory] = PeripheralConfigFactory):
+    """
+    wrapper for peripheral classes
+
+    It automatically adds parent classes based on a file, also it extracts interrupts and io signals if provided.
+
+    :param str path: the path of the file
+    :param str name: the name if the name in the file is wrong. defualt to the one provided in the file.
+    :param Type[PeripheralConfigFactory] config_factory_t: the class to generate the configs info for configuration files, if no special options are needed a sane default is used.
+    """
+    if "X_HEEP_PROJECT_ROOT" in os.environ:
+        path = os.environ["X_HEEP_PROJECT_ROOT"]+path
     ip_block_paths.add(path)
     name_c = name
     def deco_peripheral_from_file(cls):

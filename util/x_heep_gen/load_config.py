@@ -3,11 +3,9 @@ from pathlib import PurePath
 from typing import List, Optional, Union
 import hjson
 
-from x_heep_gen.pads import PadManager
-from x_heep_gen.peripherals.peripheral_domain import FixedDomain, PeripheralDomain
-
+from .pads import PadManager
+from .peripherals.peripheral_domain import FixedDomain, PeripheralDomain
 from .config_helpers import to_bool, to_int
-
 from .linker_section import LinkerSection
 from .system import BusType, Override, XHeep
 from .peripherals.peripheral_helper import peripheral_factories
@@ -168,6 +166,12 @@ def _add_peripheral_to_domain(domain: PeripheralDomain, conf: hjson.OrderedDict)
 
 
 def load_peripheral_domains(system: XHeep, peripherals_d: hjson.OrderedDict):
+    """
+    Reads the peripheral configuration.
+
+    :param XHeep system: the system to add periperal and peripheral domains to.
+    :param hjson.OrderedDict peripherals_d: ad dictionary with the configuration.
+    """
     if not isinstance(peripherals_d, hjson.OrderedDict):
         raise RuntimeError("Peripheral domain config should be a dictionary")
     

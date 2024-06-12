@@ -1,14 +1,17 @@
 from typing import Any, Dict
 
 import hjson
-from x_heep_gen.config_helpers import to_int
-from x_heep_gen.pads import IoInputEP, IoOutputEP, IoOutputEnEP, Pad
-from x_heep_gen.peripherals.peripheral_helper import PeripheralConfigFactory, peripheral_from_file
-from x_heep_gen.signal_routing.endpoints import InterruptEP, InterruptPlicEP
-from x_heep_gen.signal_routing.node import Node
-from x_heep_gen.signal_routing.routing_helper import RoutingHelper
+from .peripheral_helper import PeripheralConfigFactory, peripheral_from_file
+from ..config_helpers import to_int
+from ..pads import IoInputEP, IoOutputEP, IoOutputEnEP, Pad
+from ..signal_routing.endpoints import InterruptEP, InterruptPlicEP
+from ..signal_routing.node import Node
+from ..signal_routing.routing_helper import RoutingHelper
 
 class GpioPeripheralConfigFactory(PeripheralConfigFactory):
+    """
+    A class adding configuration information for gpio peripherals.
+    """
     def dict_to_kwargs(self, d: hjson.OrderedDict) -> Dict[str, Any]:
         ret = dict()
 
@@ -65,6 +68,12 @@ class GpioPeripheralConfigFactory(PeripheralConfigFactory):
 
 @peripheral_from_file("./hw/vendor/pulp_platform_gpio/gpio_regs.hjson", config_factory_t=GpioPeripheralConfigFactory)
 class GpioPeripheral():
+    """
+    A class representing a gpio peripheral.
+
+    :param Dict[int, int] gpios_used: a dictionairy mapping internal numbers to external number used for port names, a missing number is an unconnected number. Default to `{}`.
+    :param Dict[int, str] intr_map: a dictionary mapping internal oi numbers to interrupt destinations, the destination are either `"fast"` or `"plic"`, defaults to `"plic"` for each io used in `gpios_used`.
+    """
     def __init__(self, *args, **kwargs) -> None:
         self._gpios_used: Dict[int, int] = kwargs.pop("gpios_used", {})
         self._intr_map: Dict[int, str] = kwargs.pop("intr_map", {i:"plic" for i in self._gpios_used.values()})

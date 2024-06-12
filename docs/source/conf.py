@@ -5,8 +5,6 @@
 # Author: Embedded Systems Laboratory (EPFL)
 
 import os
-import sys
-sys.path.insert(0, os.path.abspath("../../util"))
 
 project = 'X-HEEP'
 copyright = '2023, EPFL'
@@ -21,8 +19,8 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
-    'sphinxcontrib.apidoc',
     'myst_parser',
+    'autoapi.extension',
 ]
 
 html_static_path = ['_static']
@@ -41,6 +39,20 @@ html_theme = 'sphinx_rtd_theme'
 
 epub_show_urls = 'footnote'
 
-apidoc_module_dir = '../../util/x_heep_gen'
+apidoc_module_dir = '../../util/x_heep_gen/'
 apidoc_output_dir = 'Configuration/generated'
-apidoc_separate_modules = True
+
+autoapi_dirs = [apidoc_module_dir]
+autoapi_root = apidoc_output_dir
+autoapi_python_use_implicit_namespaces = False
+autoapi_python_class_content = "both"
+autoapi_options = [
+    'members',
+    'undoc-members',
+    'private-members',
+    'show-inheritance',
+    'show-module-summary',
+    'special-members',
+]
+
+os.environ["X_HEEP_PROJECT_ROOT"] = "../"

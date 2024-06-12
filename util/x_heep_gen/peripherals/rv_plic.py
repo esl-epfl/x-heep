@@ -1,12 +1,15 @@
 from typing import Set
-from x_heep_gen.peripherals.peripheral_helper import peripheral_from_file
-from x_heep_gen.signal_routing.endpoints import InterruptDirectEP, InterruptPlicEP
-from x_heep_gen.signal_routing.node import Node
-from x_heep_gen.signal_routing.routing_helper import RoutingHelper
+from .peripheral_helper import peripheral_from_file
+from ..signal_routing.endpoints import InterruptDirectEP, InterruptPlicEP
+from ..signal_routing.node import Node
+from ..signal_routing.routing_helper import RoutingHelper
 
 
 @peripheral_from_file("./hw/vendor/lowrisc_opentitan/hw/ip/rv_plic/data/rv_plic.hjson", name="rv_plic")
 class RvPlicPeripheral():
+    """
+    A class representing an `rv_plic` peripheral.
+    """
     def _rv_plic_target_name(self) -> str:
         return "plic_target"
     

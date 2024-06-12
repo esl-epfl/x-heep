@@ -94,6 +94,9 @@ class XHeep():
 
 
     def _init_fixed_nodes(self):
+        """
+        Internal methode to generate all nodes, source and tragets node set by other abstractions.
+        """
         self._routing_helper: RoutingHelper = RoutingHelper()
         
         self._root_node = self._routing_helper.get_root_node()
@@ -534,18 +537,45 @@ class XHeep():
         self._peripheral_domains.append(deepcopy(pd))
 
     def iter_peripheral_domains(self) -> Iterable[PeripheralDomain]:
+        """
+        Iterates through all peripheral domains.
+        
+        :return: an iterable over peripheral domain
+        :rtype: Iterable[PeripheralDomain]
+        """
         return iter(self._peripheral_domains)
     
     def num_peripheral_domains(self) -> int:
+        """
+        Gets the number of peripheral domains.
+
+        :return: the number of peripheral domains
+        :rtype: int
+        """
         return len(self._peripheral_domains)
     
     def iter_peripheral_domains_normal(self) -> Iterable[PeripheralDomain]:
+        """
+        like `iter_peripheral_domains` but only on the normal type.
+        
+        :return: an iterable over peripheral domain
+        :rtype: Iterable[PeripheralDomain]
+        """
         return filter(lambda d: d.get_type() == "normal", self._peripheral_domains)
     
     def iter_peripheral_domains_fixed(self) -> Iterable[PeripheralDomain]:
+        """
+        like `iter_peripheral_domains` but only on the fixed type.
+        
+        :return: an iterable over peripheral domain
+        :rtype: Iterable[PeripheralDomain]
+        """
         return filter(lambda d: d.get_type() == "fixed", self._peripheral_domains)
 
     def _periph_build(self):
+        """
+        Internal method to build things related to peripherals and peripheral domains.
+        """
         used_names = {
             "rv_timer": 2,
         }
@@ -556,41 +586,41 @@ class XHeep():
         for pd in self._peripheral_domains:
             pd.build()
 
-#            for name, sig in pd.iter_io_interfaces():
-#                width = 0
-#                if name in self._io_ifs:
-#                    width = self._io_ifs[name].width
-#                
-#                lsig = deepcopy(sig)
-#                lsig.width = width + sig.width
-#                pd.set_io_if_offset(name, width)
-#                
-#                self._io_ifs.update({name: lsig})
-#
-#    
-#    def make_io_interfaces(self) -> List[str]:
-#        names: Set[str] = set()
-#        ifs: List[str] = []
-#
-#        for domain in self._peripheral_domains:
-#            for periph in domain.iter_peripherals():
-#                name = periph.make_io_interface_name()
-#                if name is not None and name not in names:
-#                    names.add(name)
-#                    ifs.append(periph.make_io_interface())
-#        
-#        return ifs
-
     def get_rh(self) -> RoutingHelper:
+        """
+        Gets the routing helper used for this system
+        
+        :return: a reference to the routing helper
+        :rtype: RoutingHelper
+        """
         return self._routing_helper
     
     def get_mcu_node(self) -> Node:
+        """
+        Gets the node of the mcu, coresponds to `core_v_mini_mcu` in sv.
+
+        :return: a node
+        :rtype: Node
+        """
         return self._mcu_node
     
     def get_ao_node(self) -> Node:
+        """
+        Gets the node of the ao peripheral domain. Could be removed if the ao domain is made more general.
+
+        :return: a node
+        :rtype: Node
+        """
         return self._ao_periph_node
     
     def add_pad_manager(self, pad_manager: PadManager):
+        """
+        Adds a `PadManager` to the system. Should be called before `build()`.
+        Only one pad manager can be added to the system, latter it can be used with `get_pad_manager()`.
+
+        :param PadManager pad_manager: The padmanager to be added.
+        :raise TypeError: id the parameters are of the wrong type
+        :raise RuntimeError: if this function is used more than one."""
         if not isinstance(pad_manager, PadManager):
             raise TypeError("pad_manager should be an instance of PadManager")
         if self._pad_manager is not None:
@@ -599,10 +629,29 @@ class XHeep():
         self._pad_manager = pad_manager
 
     def get_pad_manager(self) -> PadManager:
+        """
+        Gets the pad manager added by `add_pad_manager()`.
+        
+        :return: a pad manager
+        :rtype: PadManager
+        """
         return self._pad_manager
     
     def set_ext_intr(self, num: int):
+        """
+        Sets the number of external interuppts.
+        If called it should be before `build()`.
+        The default is 0.
+        This interrupts will be connected to the rv_plic.
+        
+        :param int num: the number of external interrupts."""
         self._ext_intr_num = num
 
     def get_ext_intr(self) -> int:
+        """
+        Get the number of external interrupts, if `set_ext_intr` was not called the default is 0.
+        
+        :return: the number of external interrupts
+        :rtype: int
+        """
         return self._ext_intr_num

@@ -2,13 +2,16 @@
 from typing import Any, Dict, List
 
 import hjson
-from x_heep_gen.config_helpers import to_bool
-from x_heep_gen.peripherals.peripheral_helper import PeripheralConfigFactory, peripheral_from_file
-from x_heep_gen.signal_routing.endpoints import DmaTriggerEP
-from x_heep_gen.signal_routing.node import Node
-from x_heep_gen.signal_routing.routing_helper import RoutingHelper
+from .peripheral_helper import PeripheralConfigFactory, peripheral_from_file
+from ..config_helpers import to_bool
+from ..signal_routing.endpoints import DmaTriggerEP
+from ..signal_routing.node import Node
+from ..signal_routing.routing_helper import RoutingHelper
 
 class I2SConfigFactory(PeripheralConfigFactory):
+    """
+    A class adding configureation information for i2s peripherals.
+    """
     def dict_to_kwargs(self, d: hjson.OrderedDict) -> Dict[str, Any]:
         ret = dict()
         dma = None
@@ -26,6 +29,11 @@ class I2SConfigFactory(PeripheralConfigFactory):
 
 @peripheral_from_file("./hw/ip/i2s/data/i2s.hjson", config_factory_t=I2SConfigFactory)
 class I2SPeripheral():
+    """
+    A peripheral used to represent an `i2s` periperhal.
+    
+    :param bool dma: should the dma triggers be connected?
+    """
     def __init__(self, *args, **kwargs):
         if not "dma" in kwargs:
             raise TypeError("dma keyword argument is required")

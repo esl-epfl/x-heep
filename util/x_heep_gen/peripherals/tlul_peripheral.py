@@ -1,10 +1,14 @@
 
 from itertools import chain
 from typing import Iterable
-from x_heep_gen.peripherals.basic_peripheral import SvSignal
 from .basic_peripheral import *
 
 class TLULPeripheral(BasicPeripheral):
+    """
+    A class representing a peripheral connected to the system bus via tlul.
+
+    It is automatically used by `@peripheral_from_file`.
+    """
     def __init__(self, name: "str|None" = None, domain: "str|None" = None):
         super().__init__(name=name, domain=domain)
 

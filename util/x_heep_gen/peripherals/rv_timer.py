@@ -5,6 +5,9 @@ from reggen.ip_block import IpBlock
 
 @peripheral_from_file("./hw/vendor/lowrisc_opentitan/hw/ip/rv_timer/data/rv_timer.hjson")
 class RvTimerPeripheral():
+    """
+    A class representing an `rv_timer` peripheral.
+    """
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
