@@ -141,9 +141,8 @@ module dma_reg_top #(
   logic interrupt_en_window_done_we;
   logic transaction_ifr_qs;
   logic transaction_ifr_re;
-  logic sdc_reserved_reg_qs;
-  logic sdc_reserved_reg_wd;
-  logic sdc_reserved_reg_we;
+  logic window_ifr_qs;
+  logic window_ifr_re;
 
   // Register instances
   // R[src_ptr]: V(False)
@@ -841,6 +840,22 @@ module dma_reg_top #(
   );
 
 
+  // R[window_ifr]: V(True)
+
+  prim_subreg_ext #(
+      .DW(1)
+  ) u_window_ifr (
+      .re (window_ifr_re),
+      .we (1'b0),
+      .wd ('0),
+      .d  (hw2reg.window_ifr.d),
+      .qre(reg2hw.window_ifr.re),
+      .qe (),
+      .q  (reg2hw.window_ifr.q),
+      .qs (window_ifr_qs)
+  );
+
+
 
 
   logic [23:0] addr_hit;
@@ -869,7 +884,7 @@ module dma_reg_top #(
     addr_hit[20] = (reg_addr == DMA_WINDOW_COUNT_OFFSET);
     addr_hit[21] = (reg_addr == DMA_INTERRUPT_EN_OFFSET);
     addr_hit[22] = (reg_addr == DMA_TRANSACTION_IFR_OFFSET);
-    addr_hit[23] = (reg_addr == DMA_SDC_RESERVED_REG_OFFSET);
+    addr_hit[23] = (reg_addr == DMA_WINDOW_IFR_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -975,8 +990,7 @@ module dma_reg_top #(
 
   assign transaction_ifr_re = addr_hit[22] & reg_re & !reg_error;
 
-  assign sdc_reserved_reg_we = addr_hit[23] & reg_we & !reg_error;
-  assign sdc_reserved_reg_wd = reg_wdata[0];
+  assign window_ifr_re = addr_hit[23] & reg_re & !reg_error;
 
   // Read data return
   always_comb begin
@@ -1078,7 +1092,7 @@ module dma_reg_top #(
       end
 
       addr_hit[23]: begin
-        reg_rdata_next[0] = sdc_reserved_reg_qs;
+        reg_rdata_next[0] = window_ifr_qs;
       end
 
       default: begin

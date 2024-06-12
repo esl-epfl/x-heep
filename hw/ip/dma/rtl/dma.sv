@@ -144,6 +144,9 @@ module dma #(
   logic                              transaction_ifr;
   logic                              dma_done_intr_n;
   logic                              dma_done_intr;
+  logic                              window_ifr;
+  logic                              dma_window_intr;
+  logic                              dma_window_intr_n;
 
   /* FIFO signals */
   logic                              fifo_flush;
@@ -239,10 +242,12 @@ module dma #(
   assign data_out_rdata = dma_write_ch0_resp_i.rdata;
 
   assign dma_done_intr = transaction_ifr;
-  assign dma_window_intr_o = dma_window_event & reg2hw.interrupt_en.window_done.q;
+  assign dma_window_intr = window_ifr;
 
   assign dma_done_intr_o = dma_done_intr_n;
   assign hw2reg.transaction_ifr.d = transaction_ifr;
+  assign dma_window_intr_o = dma_window_intr_n;
+  assign hw2reg.window_ifr.d = window_ifr;
 
   assign data_type = reg2hw.data_type.q;
 
@@ -873,12 +878,36 @@ module dma #(
     end
   end
 
-  /* Delayed interrupt signals */
+  /* Delayed transaction interrupt signals */
   always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_intr
     if (~rst_ni) begin
       dma_done_intr_n <= '0;
     end else begin
       dma_done_intr_n <= dma_done_intr;
+    end
+  end
+
+  /* Window IFR update */
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_window_ifr
+    if (~rst_ni) begin
+      window_ifr <= '0;
+    end else if (reg2hw.interrupt_en.window_done.q == 1'b1) begin
+      // Enter here only if the window_done interrupt is enabled
+      if (dma_window_event == 1'b1) begin
+        window_ifr <= 1'b1;
+      end else if (reg2hw.window_ifr.re == 1'b1) begin
+        // If the IFR bit is read, we must clear the window_ifr
+        window_ifr <= 1'b0;
+      end
+    end
+  end
+
+  /* Delayed window interrupt signals */
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_window_intr
+    if (~rst_ni) begin
+      dma_window_intr_n <= '0;
+    end else begin
+      dma_window_intr_n <= dma_window_intr;
     end
   end
 

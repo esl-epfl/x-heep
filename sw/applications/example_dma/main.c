@@ -18,9 +18,9 @@
 #define TEST_ADDRESS_MODE_EXTERNAL_DEVICE
 
 #define TEST_DATA_SIZE      16
-#define TEST_DATA_LARGE     1024
+#define TEST_DATA_LARGE     512
 #define TRANSACTIONS_N      3       // Only possible to perform transaction at a time, others should be blocked
-#define TEST_WINDOW_SIZE_DU  1024    // if put at <=71 the isr is too slow to react to the interrupt
+#define TEST_WINDOW_SIZE_DU  512    // if put at <=71 the isr is too slow to react to the interrupt
 
 #if TEST_DATA_LARGE < 2* TEST_DATA_SIZE
     #errors("TEST_DATA_LARGE must be at least 2*TEST_DATA_SIZE")
@@ -49,7 +49,7 @@ void dma_intr_handler_trans_done(uint8_t channel) {
 
 int32_t window_intr_flag;
 
-void dma_intr_handler_window_done(void) {
+void dma_intr_handler_window_done(uint8_t channel) {
     window_intr_flag ++;
 }
 

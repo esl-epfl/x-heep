@@ -59,9 +59,6 @@ module dma_subsystem #(
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_trans_done;
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_window_done;
 
-  /* Register interface routing signals */
-  logic [core_v_mini_mcu_pkg::DMA_CH_PORT_SEL_WIDTH-1:0] submodules_select;
-
   /* Register interfaces from register demux to DMAs */
   reg_pkg::reg_req_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] submodules_req;
   reg_pkg::reg_rsp_t [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] submodules_rsp;
@@ -97,9 +94,14 @@ module dma_subsystem #(
     end
   endgenerate
 
-  /* Read, write & address mode operations xbar*/
+
   generate
     if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : xbar_varlat_n_to_one_gen
+
+      /* Register interface routing signals */
+      logic [core_v_mini_mcu_pkg::DMA_CH_PORT_SEL_WIDTH-1:0] submodules_select;
+
+      /* Read, write & address mode operations xbar*/
       xbar_varlat_n_to_one #(
           .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
       ) xbar_read_i (
@@ -132,6 +134,38 @@ module dma_subsystem #(
           .slave_req_o  (dma_addr_ch0_req_o),
           .slave_resp_i (dma_addr_ch0_resp_i)
       );
+
+      /* Internal address decoder */
+      addr_decode #(
+          .NoIndices(core_v_mini_mcu_pkg::DMA_CH_NUM),
+          .NoRules(core_v_mini_mcu_pkg::DMA_CH_NUM),
+          .addr_t(logic [7:0]),
+          .rule_t(addr_map_rule_pkg::addr_map_rule_8bit_t)
+      ) addr_dec_i (
+          .addr_i(reg_req_i.addr[15:8]),
+          .addr_map_i(core_v_mini_mcu_pkg::DMA_ADDR_RULES),
+          .idx_o(submodules_select),
+          .dec_valid_o(),
+          .dec_error_o(),
+          .en_default_idx_i(1'b0),
+          .default_idx_i('0)
+      );
+
+      /* Register demux */
+      reg_demux #(
+          .NoPorts(core_v_mini_mcu_pkg::DMA_CH_NUM),
+          .req_t  (reg_pkg::reg_req_t),
+          .rsp_t  (reg_pkg::reg_rsp_t)
+      ) reg_demux_i (
+          .clk_i,
+          .rst_ni,
+          .in_select_i(submodules_select),
+          .in_req_i(reg_req_i),
+          .in_rsp_o(reg_rsp_o),
+          .out_req_o(submodules_req),
+          .out_rsp_i(submodules_rsp)
+      );
+
     end else begin
 
       /* Bus ports routing in the case of a single DMA */
@@ -141,45 +175,11 @@ module dma_subsystem #(
       assign xbar_write_resp[0] = dma_write_ch0_resp_i;
       assign dma_addr_ch0_req_o = xbar_address_req[0];
       assign xbar_address_resp[0] = dma_addr_ch0_resp_i;
+      assign submodules_req[0] = reg_req_i;
+      assign reg_rsp_o = submodules_rsp[0];
     end
   endgenerate
 
-  generate
-    if (core_v_mini_mcu_pkg::DMA_CH_NUM == 1) begin
-
-    end
-  endgenerate
-
-  /* Internal address decoder */
-  addr_decode #(
-      .NoIndices(core_v_mini_mcu_pkg::DMA_CH_NUM),
-      .NoRules(core_v_mini_mcu_pkg::DMA_CH_NUM),
-      .addr_t(logic [31:0]),
-      .rule_t(addr_map_rule_pkg::addr_map_rule_t)
-  ) addr_dec_i (
-      .addr_i(reg_req_i.addr),
-      .addr_map_i(core_v_mini_mcu_pkg::DMA_ADDR_RULES),
-      .idx_o(submodules_select),
-      .dec_valid_o(),
-      .dec_error_o(),
-      .en_default_idx_i(1'b0),
-      .default_idx_i('0)
-  );
-
-  /* Register demux */
-  reg_demux #(
-      .NoPorts(core_v_mini_mcu_pkg::DMA_CH_NUM),
-      .req_t  (reg_pkg::reg_req_t),
-      .rsp_t  (reg_pkg::reg_rsp_t)
-  ) reg_demux_i (
-      .clk_i,
-      .rst_ni,
-      .in_select_i(submodules_select),
-      .in_req_i(reg_req_i),
-      .in_rsp_o(reg_rsp_o),
-      .out_req_o(submodules_req),
-      .out_rsp_i(submodules_rsp)
-  );
 
   /*_________________________________________________________________________________________________________________________________ */
 

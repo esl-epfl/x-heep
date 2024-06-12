@@ -255,7 +255,7 @@
       ]
     },
     { name:    "TRANSACTION_IFR",
-      desc:    '''Interrupt Flag Register for transaction''',
+      desc:    '''Interrupt Flag Register for transactions''',
       swaccess: "ro",
       hwaccess: "hrw",
       hwext:    "true",
@@ -264,15 +264,17 @@
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for transaction done interrupt" }
       ]
-    // },
-    // { name:    "SPC_RESERVED_REG",
-    //   desc:    '''Reserved register for SPC use''',
-    //   swaccess: "rw",
-    //   hwaccess: "none",
-    //   resval:        0,
-    //   fields: [
-    //     { bits: "0", name: "FLAG", desc: "Set by Smart Peripheral Controllers" }
-    //   ]
-    // } TO BE MADE INTO DMA HALs
+    },
+    { name:    "WINDOW_IFR",
+      desc:    '''Interrupt Flag Register for windows''',
+      swaccess: "ro",
+      hwaccess: "hrw",
+      hwext:    "true",
+      hwre:     "true", // latched signal of software write pulse
+      resval:        0,
+      fields: [
+        { bits: "0", name: "FLAG", desc: "Set for window done interrupt" }
+      ]
+    }
    ]
 }

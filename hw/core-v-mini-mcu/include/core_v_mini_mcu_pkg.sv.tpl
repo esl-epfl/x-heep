@@ -156,14 +156,16 @@ package core_v_mini_mcu_pkg;
 
   localparam int unsigned AO_PERIPHERALS_PORT_SEL_WIDTH = AO_PERIPHERALS > 1 ? $clog2(AO_PERIPHERALS) : 32'd1;
 
+  // Relative DMA channels addresses
 % for i in range(int(dma_ch_count)):
-  localparam logic [31:0] DMA_CH${i}_START_ADDRESS = DMA_START_ADDRESS + 32'h${int(ao_peripherals["dma"]["ch_length"])*(i)};
-  localparam logic [31:0] DMA_CH${i}_SIZE = 32'h${int(ao_peripherals["dma"]["ch_length"])};
-  localparam logic [31:0] DMA_CH${i}_END_ADDRESS = DMA_CH${i}_START_ADDRESS + DMA_CH${i}_SIZE;
-  localparam logic [31:0] DMA_CH${i}_IDX = 32'd${i};
+  localparam logic [7:0] DMA_CH${i}_START_ADDRESS = 8'h${hex(int(ao_peripherals["dma"]["ch_length"], 16)*(i) >> 8)[2:]};
+  localparam logic [7:0] DMA_CH${i}_SIZE = 8'h${hex(int(ao_peripherals["dma"]["ch_length"], 16) >> 8)[2:]};
+  localparam logic [7:0] DMA_CH${i}_END_ADDRESS = DMA_CH${i}_START_ADDRESS + DMA_CH${i}_SIZE;
+  localparam logic [7:0] DMA_CH${i}_IDX = 8'd${i};
+
 % endfor
 
-  localparam addr_map_rule_t [DMA_CH_NUM-1:0] DMA_ADDR_RULES = '{
+  localparam addr_map_rule_8bit_t [DMA_CH_NUM-1:0] DMA_ADDR_RULES = '{
   % for i in range(int(dma_ch_count)):
       '{ idx: DMA_CH${i}_IDX, start_addr: DMA_CH${i}_START_ADDRESS, end_addr: DMA_CH${i}_END_ADDRESS }${"," if not loop.last else ""}
 % endfor

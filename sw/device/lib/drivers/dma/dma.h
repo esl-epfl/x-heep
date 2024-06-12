@@ -365,7 +365,7 @@ typedef struct
 /**
  * @brief Attends the plic interrupt.
  */
-void handler_irq_dma( uint32_t id );
+__attribute__((optimize("O0"))) void handler_irq_dma( uint32_t id );
 
 /**
  * @brief This is a non-weak implementation of the function declared in
@@ -466,7 +466,7 @@ void dma_intr_handler_trans_done(uint8_t channel);
 * `dma.c` provides a weak definition of this symbol, which can be overridden
 * at link-time by providing an additional non-weak definition.
 */
-void dma_intr_handler_window_done(void);
+void dma_intr_handler_window_done(uint8_t channel);
 
 /**
  * @brief This weak implementation allows the user to override the threshold

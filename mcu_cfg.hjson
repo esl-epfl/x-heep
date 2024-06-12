@@ -42,7 +42,7 @@
             offset:  0x00030000,
             length:  0x00010000,
             ch_length:    0x100,
-            num_channels:   0x4,
+            num_channels:   0x1,
             path:    "./hw/ip/dma/data/dma.hjson"
         },
         power_manager: {
@@ -119,7 +119,7 @@
         pdm2pcm: {
             offset:  0x00060000,
             length:  0x00010000,
-            is_included: "no",
+            is_included: "yes",
             path:    "./hw/ip/pdm2pcm/data/pdm2pcm.hjson"
         },
         i2s: {

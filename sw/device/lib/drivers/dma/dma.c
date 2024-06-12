@@ -274,6 +274,9 @@ static struct
     .channels = ch
 };
 
+
+
+
 /****************************************************************************/
 /**                                                                        **/
 /*                           EXPORTED FUNCTIONS                             */
@@ -282,25 +285,39 @@ static struct
 
 void handler_irq_dma(uint32_t id)
 {
-    /*
-     * Call the weak implementation provided in this module,
+    /* 
+     * Find out which channel raised the interrupt and call
+     * either the weak implementation provided in this module,
      * or the non-weak implementation.
      */
-    dma_intr_handler_window_done();
+
+    for (int i = 0; i < DMA_CH_NUM; i++)
+    {
+        if (dma_cb.channels[i].peri->WINDOW_IFR == 1)
+        {
+            dma_intr_handler_window_done(i);
+        }
+    }
+    return;
 }
 
 void fic_irq_dma(void)
 {
-    /* Find which channel raised the interrupt */
+    /* 
+     * Find out which channel raised the interrupt and call
+     * either the weak implementation provided in this module,
+     * or the non-weak implementation.
+     */
+    
     for (int i = 0; i < DMA_CH_NUM; i++)
     {
         if (dma_cb.channels[i].peri->TRANSACTION_IFR == 1)
         {
             dma_cb.channels[i].intrFlag = 1;
             dma_intr_handler_trans_done(i);
-            return;
         }
     }
+    return;
 }
 
 void dma_init( dma *channels )
@@ -822,6 +839,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
         p_trans->dim = DMA_DIM_CONF_2D;
         p_trans->size_d2_b = DMA_DATA_TYPE_2_SIZE( p_trans->type );
         p_trans->src->inc_d2_du = DMA_DATA_TYPE_2_SIZE( p_trans->type );
+        
         write_register( dma_cb.channels[channel].trans->pad_left_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
                         DMA_PAD_LEFT_REG_OFFSET,
                         DMA_PAD_LEFT_PAD_MASK,
@@ -833,8 +851,8 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
                         DMA_PAD_RIGHT_PAD_MASK,
                         DMA_PAD_RIGHT_PAD_OFFSET,
                         dma_cb.channels[channel].peri);
-
-    } else if (p_trans->dim == DMA_DIM_CONF_2D)
+    }
+    else if (p_trans->dim == DMA_DIM_CONF_2D)
     {
         write_register( dma_cb.channels[channel].trans->pad_top_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
                         DMA_PAD_TOP_REG_OFFSET,
@@ -1096,7 +1114,7 @@ __attribute__((weak, optimize("O0"))) void dma_intr_handler_trans_done(uint8_t c
      */
 }
 
-__attribute__((weak, optimize("O0"))) void dma_intr_handler_window_done()
+__attribute__((weak, optimize("O0"))) void dma_intr_handler_window_done(uint8_t channel)
 {
     /*
      * The DMA has copied another window.
