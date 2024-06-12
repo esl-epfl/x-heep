@@ -4,7 +4,8 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-#Simplified version of occamygen.py https://github.com/pulp-platform/snitch/blob/master/util/occamygen.py
+# Simplified version of occamygen.py https://github.com/pulp-platform/snitch/blob/master/util/occamygen.py
+# This script generates some templated (.tpl) X-HEEP files according to the desired configuration
 
 import argparse
 import hjson
@@ -298,6 +299,82 @@ def write_template(tpl_path, outdir, outfile, **kwargs):
         else:
             raise FileNotFoundError
 
+
+def get_pads_target_info(pads_target):
+    """
+    Get the pads target information from the targets in the pad configuration file.
+
+    If any of the fields is not present in the target, it is set to None.
+
+    :param pads_target: The target dictionary from the pad configuration file.
+    :return: A dictionary with the target information.
+    """
+
+    try:
+        target_type = pads_target['type'].strip(',')
+    except KeyError:
+        target_type = None
+
+    try:
+        target_package = pads_target['package'].strip(',')
+    except KeyError:
+        target_package = None
+
+    try:
+        target_vendor = pads_target['vendor'].strip(',')
+    except KeyError:
+        target_vendor = None
+
+    try:
+        target_node = pads_target['node'].strip(',')
+    except KeyError:
+        target_node = None
+
+    try:
+        target_mapping = pads_target['mapping']
+    except KeyError:
+        target_mapping = None
+
+    try:
+        target_part = pads_target['part'].strip(',')
+    except KeyError:
+        target_part = None
+
+    try:
+        target_additional_constraints = pads_target['additional_constraints'].strip(',')
+    except KeyError:
+        target_additional_constraints = None
+
+    return {
+        'type': target_type,
+        'package': target_package,
+        'vendor': target_vendor,
+        'node': target_node,
+        'mapping': target_mapping,
+        'part': target_part,
+        'additional_constraints': target_additional_constraints
+    }
+
+
+def get_pad_mapping(pads_target_info, pad_name):
+    """
+    Get the mapping (top, right...) of a pad from an asic target.
+
+    :param pads_target_info: The target information dictionary.
+    :param pad_name: The name of the pad.
+    :return: The mapping of the pad, or None.
+    """
+    if pads_target_info != None:
+        try:
+            if pads_target_info["type"] == "asic":
+                for side, pads in pads_target_info["mapping"].items():
+                    if pad_name in pads.keys():
+                        return side
+        except KeyError:
+            return None
+    return None
+
+
 def main():
     parser = argparse.ArgumentParser(prog="mcugen")
     parser.add_argument("--cfg_peripherals",
@@ -363,6 +440,13 @@ def main():
                         nargs='?',
                         default="1",
                         help="Number of external domains")
+
+    parser.add_argument("--pads_target",
+                        metavar="Has to match any of the ones in the pad configuration file",
+                        nargs='?',
+                        default='',
+                        const='',
+                        help="Target for the pads")
 
     parser.add_argument("--pkg-sv",
                         metavar="PKG_SV",
@@ -537,8 +621,23 @@ def main():
         **ext_int_list
     }
 
+    ###############
+    # PADs kwargs #
+    ###############
 
     pads = obj_pad['pads']
+
+    # Read the target configuration of the pads
+    pads_target_name = args.pads_target
+    if pads_target_name != '':
+        try:
+            pads_target = obj_pad['targets'][pads_target_name]
+        except KeyError:
+            raise SystemExit("Target " + pads_target_name + " not found in the pad configuration file")
+    
+        pads_target_info = get_pads_target_info(pads_target)
+    else:
+        pads_target_info = None
 
     try:
         pads_attributes = obj_pad['attributes']
@@ -587,10 +686,7 @@ def main():
         except KeyError:
             pad_active = 'high'
         
-        try:
-            pad_mapping = pads[key]['mapping'].strip(',')
-        except KeyError:
-            pad_mapping = None
+        pad_mapping = get_pad_mapping(pads_target_info, pad_name)
 
         try:
             pad_mux_list_hjson = pads[key]['mux']
