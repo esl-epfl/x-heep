@@ -16,20 +16,29 @@
 #include <stdint.h>
 #include "im2colGolden.h"
 #include "dma.h"
+#include "im2col_spc_regs.h"
 #include "core_v_mini_mcu.h"
 #include "x-heep.h"
 #include "rv_plic.h"
 #include "csr.h"
 
 /* 
-    Used to choose between several HW configurations:
+    Choose between several HW configurations:
     - 0: Only CPU
     - 1: Exploit standard DMA
     - 2: Exploit 2D DMA
+    - 3: Exploit Smart Peripheral Controller (SPC)
 */ 
 #define HW_CONFIG_CPU
 #define HW_CONFIG_DMA_1D
 #define HW_CONFIG_DMA_2D
+#define HW_CONFIG_SPC
+
+/* Defines how many channels of the DMA are available to the SPC, depending on HW specifications */
+#define SPC_CH_NUM 2 //@ToDo: see what include in the open source version
+
+/* Base address of the im2col SPC */
+#define IM2COL_SPC_BASE_ADDR EXT_PERIPHERAL_START_ADDRESS + 0x4000
 
 /* By default, printfs are activated for FPGA and for simulation. */
 #define PRINTF_IN_FPGA  1

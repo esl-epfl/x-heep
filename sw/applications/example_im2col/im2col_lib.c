@@ -17,6 +17,24 @@
 
 int output_data[OH_NCHW*OW_NCHW];
 
+/* Function used to simplify register operations */
+static inline volatile void write_register( uint32_t  p_val,
+                                uint32_t  p_offset,
+                                uint32_t  p_mask,
+                                uint8_t   p_sel,
+                                uint32_t  p_spc_addr ) 
+{
+    uint32_t* addr  =  (p_spc_addr + p_offset);
+    /*
+     * An intermediate variable "value" is used to prevent writing twice into
+     * the register.
+     */
+    uint32_t value  =  *addr;
+    value           &= ~( p_mask << p_sel );
+    value           |= (p_val & p_mask) << p_sel;
+    *addr = value;
+};
+
 int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
 {
     int size_transfer = 0;
@@ -72,6 +90,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
     #endif
 
+    /* Implementation of im2col algorithm using the CPU */
     if (test_id == 0)
     {
         #if TIMING  
@@ -123,10 +142,9 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         #endif
     }
 
+    /* Implementation of im2col algorithm using the DMA 1D */
     else if (test_id == 1)
     {
-        /* Implementation of im2col algorithm using the DMA 1D */
-
         uint32_t* input_image_ptr = &input_image_nchw[0];
         uint32_t* output_data_ptr = &output_data[0];
 
@@ -316,10 +334,9 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         #endif
     }
 
+    /* Implementation of the nchw im2col algorithm using the DMA 2D feature */
     else if (test_id == 2)
     {
-        /* Implementation of the nchw im2col algorithm using the DMA 2D feature */
-
         /* Iterate over each row of the output matrix. */
         uint32_t* input_image_ptr = &input_image_nchw[0];
         uint32_t* output_data_ptr = &output_data[0];
@@ -419,7 +436,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
 
                 /* To adapt the final case to the formulas used to the first padded region, let's compute an "adapted" padded region,
                 /* by removing the elements of the row uncovered by the sliding filter */
-                tmp_pad =  STRIDE_D1 * (N_PATCHES_W - 1) + FW -(LEFT_PAD + IW);
+                tmp_pad =  STRIDE_D1 * (N_PATCHES_W - 1) + FW - (LEFT_PAD + IW);
 
                 if (fw_minus_w_offset >= RIGHT_PAD)
                 {
@@ -441,13 +458,13 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
 
                 /* To adapt the final case to the formulas used to the first padded region, let's compute an "adapted" padded region,
                 /* by removing the elements of the row uncovered by the sliding filter */
-                tmp_pad = STRIDE_D1 * (N_PATCHES_H - 1) + FH - (LEFT_PAD + IH);
+                tmp_pad = STRIDE_D1 * (N_PATCHES_H - 1) + FH - (TOP_PAD + IH);
 
-                if (fh_minus_h_offset >= RIGHT_PAD)
+                if (fh_minus_h_offset >= RIGHT_PAD || tmp_pad == 0)
                 {
                     n_zeros_bottom = 0;
                 }
-                else if ( (tmp_pad - (fh_minus_h_offset)) % STRIDE_D1 == 0 )
+                else if ( (tmp_pad - (fh_minus_h_offset)) % STRIDE_D1 == 0)
                 {
                     n_zeros_bottom = (tmp_pad - (fh_minus_h_offset)) / STRIDE_D1;
                 }
@@ -472,6 +489,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 src_inc_d2 = (STRIDE_D2 * IW - (size_transfer - 1 + (STRIDE_D1 - 1) * (size_transfer - 1)));
 
                 PRINTF_DEB("\n\rindex: %d, src_inc_d2: %d", index, src_inc_d2);
+                PRINTF("%d %d %d %d %d\n\r ", src_inc_d2, n_zeros_top, n_zeros_bottom, fh_minus_h_offset, tmp_pad);
 
                 input_image_ptr = &input_image_nchw[0] + index;
                 tgt_src.ptr = input_image_ptr;
@@ -561,6 +579,141 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         #endif
     }
 
+    /* Implementation of im2col algorithm using the dedicated Smart Peripheral Controller */
+    else if (test_id == 3 && DMA_CH_NUM > SPC_CH_NUM)
+    {
+        uint32_t* input_image_ptr = &input_image_nchw[0];
+        uint32_t* output_data_ptr = &output_data[0];
+
+        /* Write the source */
+        write_register( input_image_ptr,
+                        IM2COL_SPC_SRC_PTR_REG_OFFSET,
+                        0xffffffff,
+                        0,
+                        IM2COL_SPC_BASE_ADDR );
+        
+        /* Write the destination */
+        write_register( output_data_ptr,
+                        IM2COL_SPC_DST_PTR_REG_OFFSET,
+                        0xffffffff,
+                        0,
+                        IM2COL_SPC_BASE_ADDR );
+
+        /* Write the datatype */
+        write_register( DMA_DATA_TYPE_WORD,
+                        IM2COL_SPC_DATA_TYPE_REG_OFFSET,
+                        IM2COL_SPC_DATA_TYPE_DATA_TYPE_MASK,
+                        IM2COL_SPC_DATA_TYPE_DATA_TYPE_OFFSET,
+                        IM2COL_SPC_BASE_ADDR );
+        
+        /* Write the filter dimensions */
+        write_register( FW,
+                        IM2COL_SPC_FW_REG_OFFSET,
+                        0xffffffff,
+                        0,
+                        IM2COL_SPC_BASE_ADDR );
+        
+        write_register( FH,
+                        IM2COL_SPC_FH_REG_OFFSET,
+                        0xffffffff,
+                        0,
+                        IM2COL_SPC_BASE_ADDR );
+
+        /* Write the image dimensions */
+        write_register( IW,
+                        IM2COL_SPC_IW_REG_OFFSET,
+                        0xffffffff,
+                        0,
+                        IM2COL_SPC_BASE_ADDR );
+        
+        write_register( IH,
+                        IM2COL_SPC_IH_REG_OFFSET,
+                        0xffffffff,
+                        0,
+                        IM2COL_SPC_BASE_ADDR );
+        
+        /* Write the CH_COL */
+        write_register( CH_COL,
+                        IM2COL_SPC_CH_COL_REG_OFFSET,
+                        0xffffffff,
+                        0,
+                        IM2COL_SPC_BASE_ADDR );
+        
+        /* Write n_patches */
+        write_register( N_PATCHES_W,
+                        IM2COL_SPC_N_PATCHES_W_REG_OFFSET,
+                        0xffffffff,
+                        0,
+                        IM2COL_SPC_BASE_ADDR );
+        
+        write_register( N_PATCHES_H,
+                        IM2COL_SPC_N_PATCHES_H_REG_OFFSET,
+                        0xffffffff,
+                        0,
+                        IM2COL_SPC_BASE_ADDR );
+
+        /* Write the padding */
+        write_register( LEFT_PAD,
+                        IM2COL_SPC_PAD_LEFT_REG_OFFSET,
+                        IM2COL_SPC_PAD_LEFT_PAD_MASK,
+                        IM2COL_SPC_PAD_LEFT_PAD_OFFSET,
+                        IM2COL_SPC_BASE_ADDR );
+        
+        write_register( RIGHT_PAD,
+                        IM2COL_SPC_PAD_RIGHT_REG_OFFSET,
+                        IM2COL_SPC_PAD_RIGHT_PAD_MASK,
+                        IM2COL_SPC_PAD_RIGHT_PAD_OFFSET,
+                        IM2COL_SPC_BASE_ADDR );
+        
+        write_register( TOP_PAD,
+                        IM2COL_SPC_PAD_TOP_REG_OFFSET,
+                        IM2COL_SPC_PAD_TOP_PAD_MASK,
+                        IM2COL_SPC_PAD_TOP_PAD_OFFSET,
+                        IM2COL_SPC_BASE_ADDR );
+
+        write_register( BOTTOM_PAD,
+                        IM2COL_SPC_PAD_BOTTOM_REG_OFFSET,
+                        IM2COL_SPC_PAD_BOTTOM_PAD_MASK,
+                        IM2COL_SPC_PAD_BOTTOM_PAD_OFFSET,
+                        IM2COL_SPC_BASE_ADDR );
+        
+        /* 
+         * Write the strides. With respect to test_2 these are the application-point-of-view
+         * strides, so they are the same as STRIDE_D1 and STRIDE_D2.
+         */
+        write_register( STRIDE_D1,
+                        IM2COL_SPC_STRIDES_D1_REG_OFFSET,
+                        0xffffffff,
+                        0,
+                        IM2COL_SPC_BASE_ADDR );
+        
+        write_register( STRIDE_D2,
+                        IM2COL_SPC_STRIDES_D2_REG_OFFSET,
+                        0xffffffff,
+                        0,
+                        IM2COL_SPC_BASE_ADDR );
+
+        /* Write the batch size */
+        write_register( BATCH,
+                        IM2COL_SPC_BATCH_REG_OFFSET,
+                        0xffffffff,
+                        0,
+                        IM2COL_SPC_BASE_ADDR );
+
+        /* Enable the interrupt logic */
+        write_register( 0x1,
+                        IM2COL_SPC_INTERRUPT_EN_REG_OFFSET,
+                        0x1,
+                        IM2COL_SPC_INTERRUPT_EN_EN_BIT,
+                        IM2COL_SPC_BASE_ADDR );
+
+        /* Enable the DMA interrupt logic */
+        write_register( 0x1,
+                        DMA_INTERRUPT_EN_REG_OFFSET,
+                        0xffff,
+                        DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT,
+                        IM2COL_SPC_BASE_ADDR );
+    }
     /* Finished! */
 
     #if DEBUG

@@ -117,7 +117,10 @@ module ao_peripheral_subsystem
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
     input logic ext_dma_slot_tx_i,
-    input logic ext_dma_slot_rx_i
+    input logic ext_dma_slot_rx_i,
+
+    // SPC interface
+    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -410,7 +413,8 @@ module ao_peripheral_subsystem
       .dma_addr_ch0_resp_i,
       .trigger_slot_i(dma_trigger_slots),
       .dma_done_intr_o(dma_done_intr_o),
-      .dma_window_intr_o(dma_window_intr_o)
+      .dma_window_intr_o(dma_window_intr_o),
+      .dma_done_o(dma_done_o)
   );
 
   fast_intr_ctrl #(

@@ -32,7 +32,9 @@ module dma #(
     input logic [SLOT_NUM-1:0] trigger_slot_i,
 
     output dma_done_intr_o,
-    output dma_window_intr_o
+    output dma_window_intr_o,
+
+    output dma_done_o
 );
 
   import dma_reg_pkg::*;
@@ -211,6 +213,8 @@ module dma #(
   logic [Addr_Fifo_Depth-1:0] outstanding_req, outstanding_addr_req;
   logic [31:0] window_counter;
 
+  assign dma_done_o = dma_done;
+
   assign dma_read_ch0_req_o.req = data_in_req && ~pad_fifo_on;
   assign dma_read_ch0_req_o.we = data_in_we;
   assign dma_read_ch0_req_o.be = data_in_be;
@@ -272,7 +276,6 @@ module dma #(
   assign dma_dst_d1_inc = reg2hw.dst_ptr_inc_d1.q;
 
   /* Padding FSM conditions assignments */
-
   assign idle_to_top_ex = {|reg2hw.pad_top.q == 1'b1 && dma_start == 1'b1};
   assign idle_to_left_ex = {
     |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b1 && dma_start == 1'b1

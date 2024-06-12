@@ -86,31 +86,29 @@ module im2col_spc_reg_top #(
   logic [31:0] fh_qs;
   logic [31:0] fh_wd;
   logic fh_we;
+  logic [31:0] batch_qs;
+  logic [31:0] batch_wd;
+  logic batch_we;
   logic [31:0] num_ch_qs;
   logic [31:0] num_ch_wd;
   logic num_ch_we;
-  logic [31:0] stride_d1_qs;
-  logic [31:0] stride_d1_wd;
-  logic stride_d1_we;
-  logic [31:0] stride_d2_qs;
-  logic [31:0] stride_d2_wd;
-  logic stride_d2_we;
-  logic status_ready_qs;
-  logic status_ready_re;
-  logic status_window_done_qs;
-  logic status_window_done_re;
-  logic [5:0] src_ptr_inc_d1_qs;
-  logic [5:0] src_ptr_inc_d1_wd;
-  logic src_ptr_inc_d1_we;
-  logic [22:0] src_ptr_inc_d2_qs;
-  logic [22:0] src_ptr_inc_d2_wd;
-  logic src_ptr_inc_d2_we;
-  logic [5:0] dst_ptr_inc_d1_qs;
-  logic [5:0] dst_ptr_inc_d1_wd;
-  logic dst_ptr_inc_d1_we;
-  logic [22:0] dst_ptr_inc_d2_qs;
-  logic [22:0] dst_ptr_inc_d2_wd;
-  logic dst_ptr_inc_d2_we;
+  logic [31:0] ch_col_qs;
+  logic [31:0] ch_col_wd;
+  logic ch_col_we;
+  logic [31:0] n_patches_w_qs;
+  logic [31:0] n_patches_w_wd;
+  logic n_patches_w_we;
+  logic [31:0] n_patches_h_qs;
+  logic [31:0] n_patches_h_wd;
+  logic n_patches_h_we;
+  logic [31:0] strides_d1_qs;
+  logic [31:0] strides_d1_wd;
+  logic strides_d1_we;
+  logic [31:0] strides_d2_qs;
+  logic [31:0] strides_d2_wd;
+  logic strides_d2_we;
+  logic status_qs;
+  logic status_re;
   logic [15:0] slot_rx_trigger_slot_qs;
   logic [15:0] slot_rx_trigger_slot_wd;
   logic slot_rx_trigger_slot_we;
@@ -301,6 +299,33 @@ module im2col_spc_reg_top #(
   );
 
 
+  // R[batch]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_batch (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (batch_we),
+    .wd     (batch_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.batch.q ),
+
+    // to register interface (read)
+    .qs     (batch_qs)
+  );
+
+
   // R[num_ch]: V(False)
 
   prim_subreg #(
@@ -320,7 +345,7 @@ module im2col_spc_reg_top #(
     .d      ('0  ),
 
     // to internal hardware
-    .qe     (),
+    .qe     (reg2hw.num_ch.qe),
     .q      (reg2hw.num_ch.q ),
 
     // to register interface (read)
@@ -328,19 +353,19 @@ module im2col_spc_reg_top #(
   );
 
 
-  // R[stride_d1]: V(False)
+  // R[ch_col]: V(False)
 
   prim_subreg #(
     .DW      (32),
     .SWACCESS("RW"),
     .RESVAL  (32'h0)
-  ) u_stride_d1 (
+  ) u_ch_col (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (stride_d1_we),
-    .wd     (stride_d1_wd),
+    .we     (ch_col_we),
+    .wd     (ch_col_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -348,26 +373,26 @@ module im2col_spc_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.stride_d1.q ),
+    .q      (reg2hw.ch_col.q ),
 
     // to register interface (read)
-    .qs     (stride_d1_qs)
+    .qs     (ch_col_qs)
   );
 
 
-  // R[stride_d2]: V(False)
+  // R[n_patches_w]: V(False)
 
   prim_subreg #(
     .DW      (32),
     .SWACCESS("RW"),
     .RESVAL  (32'h0)
-  ) u_stride_d2 (
+  ) u_n_patches_w (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
 
     // from register interface
-    .we     (stride_d2_we),
-    .wd     (stride_d2_wd),
+    .we     (n_patches_w_we),
+    .wd     (n_patches_w_wd),
 
     // from internal hardware
     .de     (1'b0),
@@ -375,150 +400,107 @@ module im2col_spc_reg_top #(
 
     // to internal hardware
     .qe     (),
-    .q      (reg2hw.stride_d2.q ),
+    .q      (reg2hw.n_patches_w.q ),
 
     // to register interface (read)
-    .qs     (stride_d2_qs)
+    .qs     (n_patches_w_qs)
+  );
+
+
+  // R[n_patches_h]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_n_patches_h (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (n_patches_h_we),
+    .wd     (n_patches_h_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.n_patches_h.q ),
+
+    // to register interface (read)
+    .qs     (n_patches_h_qs)
+  );
+
+
+  // R[strides_d1]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_strides_d1 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (strides_d1_we),
+    .wd     (strides_d1_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.strides_d1.q ),
+
+    // to register interface (read)
+    .qs     (strides_d1_qs)
+  );
+
+
+  // R[strides_d2]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_strides_d2 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (strides_d2_we),
+    .wd     (strides_d2_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.strides_d2.q ),
+
+    // to register interface (read)
+    .qs     (strides_d2_qs)
   );
 
 
   // R[status]: V(True)
 
-  //   F[ready]: 0:0
   prim_subreg_ext #(
     .DW    (1)
-  ) u_status_ready (
-    .re     (status_ready_re),
+  ) u_status (
+    .re     (status_re),
     .we     (1'b0),
     .wd     ('0),
-    .d      (hw2reg.status.ready.d),
-    .qre    (reg2hw.status.ready.re),
+    .d      (hw2reg.status.d),
+    .qre    (reg2hw.status.re),
     .qe     (),
-    .q      (reg2hw.status.ready.q ),
-    .qs     (status_ready_qs)
-  );
-
-
-  //   F[window_done]: 1:1
-  prim_subreg_ext #(
-    .DW    (1)
-  ) u_status_window_done (
-    .re     (status_window_done_re),
-    .we     (1'b0),
-    .wd     ('0),
-    .d      (hw2reg.status.window_done.d),
-    .qre    (reg2hw.status.window_done.re),
-    .qe     (),
-    .q      (reg2hw.status.window_done.q ),
-    .qs     (status_window_done_qs)
-  );
-
-
-  // R[src_ptr_inc_d1]: V(False)
-
-  prim_subreg #(
-    .DW      (6),
-    .SWACCESS("RW"),
-    .RESVAL  (6'h4)
-  ) u_src_ptr_inc_d1 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (src_ptr_inc_d1_we),
-    .wd     (src_ptr_inc_d1_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.src_ptr_inc_d1.q ),
-
-    // to register interface (read)
-    .qs     (src_ptr_inc_d1_qs)
-  );
-
-
-  // R[src_ptr_inc_d2]: V(False)
-
-  prim_subreg #(
-    .DW      (23),
-    .SWACCESS("RW"),
-    .RESVAL  (23'h4)
-  ) u_src_ptr_inc_d2 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (src_ptr_inc_d2_we),
-    .wd     (src_ptr_inc_d2_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.src_ptr_inc_d2.q ),
-
-    // to register interface (read)
-    .qs     (src_ptr_inc_d2_qs)
-  );
-
-
-  // R[dst_ptr_inc_d1]: V(False)
-
-  prim_subreg #(
-    .DW      (6),
-    .SWACCESS("RW"),
-    .RESVAL  (6'h4)
-  ) u_dst_ptr_inc_d1 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (dst_ptr_inc_d1_we),
-    .wd     (dst_ptr_inc_d1_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.dst_ptr_inc_d1.q ),
-
-    // to register interface (read)
-    .qs     (dst_ptr_inc_d1_qs)
-  );
-
-
-  // R[dst_ptr_inc_d2]: V(False)
-
-  prim_subreg #(
-    .DW      (23),
-    .SWACCESS("RW"),
-    .RESVAL  (23'h4)
-  ) u_dst_ptr_inc_d2 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
-
-    // from register interface
-    .we     (dst_ptr_inc_d2_we),
-    .wd     (dst_ptr_inc_d2_wd),
-
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
-
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.dst_ptr_inc_d2.q ),
-
-    // to register interface (read)
-    .qs     (dst_ptr_inc_d2_qs)
+    .q      (reg2hw.status.q ),
+    .qs     (status_qs)
   );
 
 
@@ -765,14 +747,14 @@ module im2col_spc_reg_top #(
     addr_hit[ 3] = (reg_addr == IM2COL_SPC_IH_OFFSET);
     addr_hit[ 4] = (reg_addr == IM2COL_SPC_FW_OFFSET);
     addr_hit[ 5] = (reg_addr == IM2COL_SPC_FH_OFFSET);
-    addr_hit[ 6] = (reg_addr == IM2COL_SPC_NUM_CH_OFFSET);
-    addr_hit[ 7] = (reg_addr == IM2COL_SPC_STRIDE_D1_OFFSET);
-    addr_hit[ 8] = (reg_addr == IM2COL_SPC_STRIDE_D2_OFFSET);
-    addr_hit[ 9] = (reg_addr == IM2COL_SPC_STATUS_OFFSET);
-    addr_hit[10] = (reg_addr == IM2COL_SPC_SRC_PTR_INC_D1_OFFSET);
-    addr_hit[11] = (reg_addr == IM2COL_SPC_SRC_PTR_INC_D2_OFFSET);
-    addr_hit[12] = (reg_addr == IM2COL_SPC_DST_PTR_INC_D1_OFFSET);
-    addr_hit[13] = (reg_addr == IM2COL_SPC_DST_PTR_INC_D2_OFFSET);
+    addr_hit[ 6] = (reg_addr == IM2COL_SPC_BATCH_OFFSET);
+    addr_hit[ 7] = (reg_addr == IM2COL_SPC_NUM_CH_OFFSET);
+    addr_hit[ 8] = (reg_addr == IM2COL_SPC_CH_COL_OFFSET);
+    addr_hit[ 9] = (reg_addr == IM2COL_SPC_N_PATCHES_W_OFFSET);
+    addr_hit[10] = (reg_addr == IM2COL_SPC_N_PATCHES_H_OFFSET);
+    addr_hit[11] = (reg_addr == IM2COL_SPC_STRIDES_D1_OFFSET);
+    addr_hit[12] = (reg_addr == IM2COL_SPC_STRIDES_D2_OFFSET);
+    addr_hit[13] = (reg_addr == IM2COL_SPC_STATUS_OFFSET);
     addr_hit[14] = (reg_addr == IM2COL_SPC_SLOT_OFFSET);
     addr_hit[15] = (reg_addr == IM2COL_SPC_DATA_TYPE_OFFSET);
     addr_hit[16] = (reg_addr == IM2COL_SPC_PAD_TOP_OFFSET);
@@ -830,30 +812,28 @@ module im2col_spc_reg_top #(
   assign fh_we = addr_hit[5] & reg_we & !reg_error;
   assign fh_wd = reg_wdata[31:0];
 
-  assign num_ch_we = addr_hit[6] & reg_we & !reg_error;
+  assign batch_we = addr_hit[6] & reg_we & !reg_error;
+  assign batch_wd = reg_wdata[31:0];
+
+  assign num_ch_we = addr_hit[7] & reg_we & !reg_error;
   assign num_ch_wd = reg_wdata[31:0];
 
-  assign stride_d1_we = addr_hit[7] & reg_we & !reg_error;
-  assign stride_d1_wd = reg_wdata[31:0];
+  assign ch_col_we = addr_hit[8] & reg_we & !reg_error;
+  assign ch_col_wd = reg_wdata[31:0];
 
-  assign stride_d2_we = addr_hit[8] & reg_we & !reg_error;
-  assign stride_d2_wd = reg_wdata[31:0];
+  assign n_patches_w_we = addr_hit[9] & reg_we & !reg_error;
+  assign n_patches_w_wd = reg_wdata[31:0];
 
-  assign status_ready_re = addr_hit[9] & reg_re & !reg_error;
+  assign n_patches_h_we = addr_hit[10] & reg_we & !reg_error;
+  assign n_patches_h_wd = reg_wdata[31:0];
 
-  assign status_window_done_re = addr_hit[9] & reg_re & !reg_error;
+  assign strides_d1_we = addr_hit[11] & reg_we & !reg_error;
+  assign strides_d1_wd = reg_wdata[31:0];
 
-  assign src_ptr_inc_d1_we = addr_hit[10] & reg_we & !reg_error;
-  assign src_ptr_inc_d1_wd = reg_wdata[5:0];
+  assign strides_d2_we = addr_hit[12] & reg_we & !reg_error;
+  assign strides_d2_wd = reg_wdata[31:0];
 
-  assign src_ptr_inc_d2_we = addr_hit[11] & reg_we & !reg_error;
-  assign src_ptr_inc_d2_wd = reg_wdata[22:0];
-
-  assign dst_ptr_inc_d1_we = addr_hit[12] & reg_we & !reg_error;
-  assign dst_ptr_inc_d1_wd = reg_wdata[5:0];
-
-  assign dst_ptr_inc_d2_we = addr_hit[13] & reg_we & !reg_error;
-  assign dst_ptr_inc_d2_wd = reg_wdata[22:0];
+  assign status_re = addr_hit[13] & reg_re & !reg_error;
 
   assign slot_rx_trigger_slot_we = addr_hit[14] & reg_we & !reg_error;
   assign slot_rx_trigger_slot_wd = reg_wdata[15:0];
@@ -910,36 +890,35 @@ module im2col_spc_reg_top #(
       end
 
       addr_hit[6]: begin
-        reg_rdata_next[31:0] = num_ch_qs;
+        reg_rdata_next[31:0] = batch_qs;
       end
 
       addr_hit[7]: begin
-        reg_rdata_next[31:0] = stride_d1_qs;
+        reg_rdata_next[31:0] = num_ch_qs;
       end
 
       addr_hit[8]: begin
-        reg_rdata_next[31:0] = stride_d2_qs;
+        reg_rdata_next[31:0] = ch_col_qs;
       end
 
       addr_hit[9]: begin
-        reg_rdata_next[0] = status_ready_qs;
-        reg_rdata_next[1] = status_window_done_qs;
+        reg_rdata_next[31:0] = n_patches_w_qs;
       end
 
       addr_hit[10]: begin
-        reg_rdata_next[5:0] = src_ptr_inc_d1_qs;
+        reg_rdata_next[31:0] = n_patches_h_qs;
       end
 
       addr_hit[11]: begin
-        reg_rdata_next[22:0] = src_ptr_inc_d2_qs;
+        reg_rdata_next[31:0] = strides_d1_qs;
       end
 
       addr_hit[12]: begin
-        reg_rdata_next[5:0] = dst_ptr_inc_d1_qs;
+        reg_rdata_next[31:0] = strides_d2_qs;
       end
 
       addr_hit[13]: begin
-        reg_rdata_next[22:0] = dst_ptr_inc_d2_qs;
+        reg_rdata_next[0] = status_qs;
       end
 
       addr_hit[14]: begin

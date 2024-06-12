@@ -64,6 +64,9 @@ module x_heep_system
     if_xif.cpu_mem_result xif_mem_result_if,
     if_xif.cpu_result     xif_result_if,
 
+    // External SPC interface
+    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o,
+
 % for pad in total_pad_list:
 ${pad.x_heep_system_interface}
 % endfor
@@ -151,7 +154,8 @@ ${pad.core_v_mini_mcu_bonding}
     .external_subsystem_clkgate_en_no,
     .exit_value_o,
     .ext_dma_slot_tx_i,
-    .ext_dma_slot_rx_i
+    .ext_dma_slot_rx_i,
+    .dma_done_o
   );
 
   pad_ring pad_ring_i (

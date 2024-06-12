@@ -57,16 +57,48 @@
         { bits: "31:0", name: "SIZE", desc: "Filter heigth" }
       ]
     },
+    { name:     "BATCH",
+      desc:     "Batch number",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "SIZE", desc: "Batch size" }
+      ]
+    },
     { name:     "NUM_CH",
       desc:     "Number of channels. When written, the im2col will start executing",
       swaccess: "rw",
       hwaccess: "hro",
-      hwre:     "true",
+      hwqe:     "true",
       fields: [
         { bits: "31:0", name: "NUM", desc: "Number of channels" }
       ]
     },
-    { name:     "STRIDE_D1",
+    { name:     "CH_COL",
+      desc:     "Number of iterations to perform",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "NUM", desc: "Number of iterations" }
+      ]
+    },
+    { name:     "N_PATCHES_W",
+      desc:     "Number of patches along W",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "NUM", desc: "Number of patches" }
+      ]
+    },
+    { name:     "N_PATCHES_H",
+      desc:     "Number of patches along H",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "NUM", desc: "Number of patches" }
+      ]
+    },
+    { name:     "STRIDES_D1",
       desc:     "Strides along D1, set to 1 for no stride",
       swaccess: "rw",
       hwaccess: "hro",
@@ -74,7 +106,7 @@
         { bits: "31:0", name: "SIZE", desc: "Stride size" }
       ]
     },
-    { name:     "STRIDE_D2",
+    { name:     "STRIDES_D2",
       desc:     "Strides along D2, set to 1 for no stride",
       swaccess: "rw",
       hwaccess: "hro",
@@ -84,65 +116,14 @@
     },
     
     { name:     "STATUS",
-      desc:     '''Status bits are set to one if a given event occurred''',
+      desc:     '''Status bit is set to one when the im2col SPC is ready''',
       swaccess: "ro",
       hwaccess: "hrw",
       hwext: "true",
       hwre:     "true", // enable `re` latched signal of software read pulse
       resval:   1,
       fields: [
-        { bits: "0", name: "READY", desc: "Transaction is done"},
-        { bits: "1", name: "WINDOW_DONE", desc: "set if DMA is copying second half"},
-      ]
-    },
-    { name:     "SRC_PTR_INC_D1",
-      desc:     "Increment the D1 source pointer every time a word is copied",
-      swaccess: "rw",
-      hwaccess: "hro",
-      // Dimensioned to allow a maximum of a 15 element stride for a data_type_word case
-      fields: [
-        { bits: "5:0", 
-          name: "INC", 
-          desc: "Source pointer d1 increment",
-          resval:4
-        }
-      ]
-    },
-    { name:     "SRC_PTR_INC_D2",
-      desc:     "Increment the D2 source pointer every time a word is copied",
-      swaccess: "rw",
-      hwaccess: "hro",
-      // Dimensioned to allow a maximum of 15 element stride for a data_type_word
-      fields: [
-        { bits: "22:0", 
-          name: "INC", 
-          desc: "Source pointer d2 increment",
-          resval:4
-        }
-      ]
-    },
-    { name:     "DST_PTR_INC_D1",
-      desc:     "Increment the D1 destination pointer every time a word is copied",
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "5:0", 
-          name: "INC", 
-          desc: "Destination pointer d1 increment",
-          resval:4
-        }
-      ]
-    },
-    { name:     "DST_PTR_INC_D2",
-      desc:     "Increment the D2 destination pointer every time a word is copied",
-      swaccess: "rw",
-      hwaccess: "hro",
-      fields: [
-        { bits: "22:0", 
-          name: "INC", 
-          desc: "Destination pointer d2 increment",
-          resval:4
-        }
+        { bits: "0", name: "READY", desc: "SPC is done"},
       ]
     },
     { name:     "SLOT",

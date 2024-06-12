@@ -34,7 +34,9 @@ module dma_subsystem #(
     input logic [SLOT_NUM-1:0] trigger_slot_i,
 
     output dma_done_intr_o,
-    output dma_window_intr_o
+    output dma_window_intr_o,
+
+    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o
 );
 
 
@@ -89,7 +91,8 @@ module dma_subsystem #(
           .dma_addr_ch0_resp_i(xbar_address_resp[i]),
           .trigger_slot_i(trigger_slot_i),
           .dma_done_intr_o(dma_trans_done[i]),
-          .dma_window_intr_o(dma_window_done[i])
+          .dma_window_intr_o(dma_window_done[i]),
+          .dma_done_o(dma_done_o[i])
       );
     end
   endgenerate

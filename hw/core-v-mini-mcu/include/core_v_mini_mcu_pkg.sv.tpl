@@ -139,6 +139,7 @@ package core_v_mini_mcu_pkg;
   localparam AO_PERIPHERALS = ${ao_peripherals_count};
   localparam AO_SPC_NUM = ${ao_peripherals_num_spc};
   localparam DMA_CH_NUM = ${dma_ch_count};
+  localparam DMA_CH_SIZE = 32'h${dma_ch_size};
   
 % for peripheral, addr in ao_peripherals.items():
   localparam logic [31:0] ${peripheral.upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${addr["offset"]};

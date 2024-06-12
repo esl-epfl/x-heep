@@ -321,7 +321,10 @@ module core_v_mini_mcu
     output logic [31:0] exit_value_o,
 
     input logic ext_dma_slot_tx_i,
-    input logic ext_dma_slot_rx_i
+    input logic ext_dma_slot_rx_i,
+
+    // External SPC interface
+    output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -646,7 +649,8 @@ module core_v_mini_mcu
       .ext_peripheral_slave_req_o,
       .ext_peripheral_slave_resp_i,
       .ext_dma_slot_tx_i,
-      .ext_dma_slot_rx_i
+      .ext_dma_slot_rx_i,
+      .dma_done_o
   );
 
   peripheral_subsystem peripheral_subsystem_i (

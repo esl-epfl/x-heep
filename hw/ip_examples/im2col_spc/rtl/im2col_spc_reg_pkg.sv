@@ -39,42 +39,37 @@ package im2col_spc_reg_pkg;
 
   typedef struct packed {
     logic [31:0] q;
+  } im2col_spc_reg2hw_batch_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+    logic        qe;
   } im2col_spc_reg2hw_num_ch_reg_t;
 
   typedef struct packed {
     logic [31:0] q;
-  } im2col_spc_reg2hw_stride_d1_reg_t;
+  } im2col_spc_reg2hw_ch_col_reg_t;
 
   typedef struct packed {
     logic [31:0] q;
-  } im2col_spc_reg2hw_stride_d2_reg_t;
+  } im2col_spc_reg2hw_n_patches_w_reg_t;
 
   typedef struct packed {
-    struct packed {
-      logic        q;
-      logic        re;
-    } ready;
-    struct packed {
-      logic        q;
-      logic        re;
-    } window_done;
+    logic [31:0] q;
+  } im2col_spc_reg2hw_n_patches_h_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } im2col_spc_reg2hw_strides_d1_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } im2col_spc_reg2hw_strides_d2_reg_t;
+
+  typedef struct packed {
+    logic        q;
+    logic        re;
   } im2col_spc_reg2hw_status_reg_t;
-
-  typedef struct packed {
-    logic [5:0]  q;
-  } im2col_spc_reg2hw_src_ptr_inc_d1_reg_t;
-
-  typedef struct packed {
-    logic [22:0] q;
-  } im2col_spc_reg2hw_src_ptr_inc_d2_reg_t;
-
-  typedef struct packed {
-    logic [5:0]  q;
-  } im2col_spc_reg2hw_dst_ptr_inc_d1_reg_t;
-
-  typedef struct packed {
-    logic [22:0] q;
-  } im2col_spc_reg2hw_dst_ptr_inc_d2_reg_t;
 
   typedef struct packed {
     struct packed {
@@ -119,12 +114,7 @@ package im2col_spc_reg_pkg;
   } im2col_spc_reg2hw_spc_ifr_reg_t;
 
   typedef struct packed {
-    struct packed {
-      logic        d;
-    } ready;
-    struct packed {
-      logic        d;
-    } window_done;
+    logic        d;
   } im2col_spc_hw2reg_status_reg_t;
 
   typedef struct packed {
@@ -133,20 +123,20 @@ package im2col_spc_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    im2col_spc_reg2hw_src_ptr_reg_t src_ptr; // [414:383]
-    im2col_spc_reg2hw_dst_ptr_reg_t dst_ptr; // [382:351]
-    im2col_spc_reg2hw_iw_reg_t iw; // [350:319]
-    im2col_spc_reg2hw_ih_reg_t ih; // [318:287]
-    im2col_spc_reg2hw_fw_reg_t fw; // [286:255]
-    im2col_spc_reg2hw_fh_reg_t fh; // [254:223]
-    im2col_spc_reg2hw_num_ch_reg_t num_ch; // [222:191]
-    im2col_spc_reg2hw_stride_d1_reg_t stride_d1; // [190:159]
-    im2col_spc_reg2hw_stride_d2_reg_t stride_d2; // [158:127]
-    im2col_spc_reg2hw_status_reg_t status; // [126:123]
-    im2col_spc_reg2hw_src_ptr_inc_d1_reg_t src_ptr_inc_d1; // [122:117]
-    im2col_spc_reg2hw_src_ptr_inc_d2_reg_t src_ptr_inc_d2; // [116:94]
-    im2col_spc_reg2hw_dst_ptr_inc_d1_reg_t dst_ptr_inc_d1; // [93:88]
-    im2col_spc_reg2hw_dst_ptr_inc_d2_reg_t dst_ptr_inc_d2; // [87:65]
+    im2col_spc_reg2hw_src_ptr_reg_t src_ptr; // [483:452]
+    im2col_spc_reg2hw_dst_ptr_reg_t dst_ptr; // [451:420]
+    im2col_spc_reg2hw_iw_reg_t iw; // [419:388]
+    im2col_spc_reg2hw_ih_reg_t ih; // [387:356]
+    im2col_spc_reg2hw_fw_reg_t fw; // [355:324]
+    im2col_spc_reg2hw_fh_reg_t fh; // [323:292]
+    im2col_spc_reg2hw_batch_reg_t batch; // [291:260]
+    im2col_spc_reg2hw_num_ch_reg_t num_ch; // [259:227]
+    im2col_spc_reg2hw_ch_col_reg_t ch_col; // [226:195]
+    im2col_spc_reg2hw_n_patches_w_reg_t n_patches_w; // [194:163]
+    im2col_spc_reg2hw_n_patches_h_reg_t n_patches_h; // [162:131]
+    im2col_spc_reg2hw_strides_d1_reg_t strides_d1; // [130:99]
+    im2col_spc_reg2hw_strides_d2_reg_t strides_d2; // [98:67]
+    im2col_spc_reg2hw_status_reg_t status; // [66:65]
     im2col_spc_reg2hw_slot_reg_t slot; // [64:33]
     im2col_spc_reg2hw_data_type_reg_t data_type; // [32:31]
     im2col_spc_reg2hw_pad_top_reg_t pad_top; // [30:24]
@@ -159,7 +149,7 @@ package im2col_spc_reg_pkg;
 
   // HW -> register type
   typedef struct packed {
-    im2col_spc_hw2reg_status_reg_t status; // [2:1]
+    im2col_spc_hw2reg_status_reg_t status; // [1:1]
     im2col_spc_hw2reg_spc_ifr_reg_t spc_ifr; // [0:0]
   } im2col_spc_hw2reg_t;
 
@@ -170,14 +160,14 @@ package im2col_spc_reg_pkg;
   parameter logic [BlockAw-1:0] IM2COL_SPC_IH_OFFSET = 7'h c;
   parameter logic [BlockAw-1:0] IM2COL_SPC_FW_OFFSET = 7'h 10;
   parameter logic [BlockAw-1:0] IM2COL_SPC_FH_OFFSET = 7'h 14;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_NUM_CH_OFFSET = 7'h 18;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_STRIDE_D1_OFFSET = 7'h 1c;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_STRIDE_D2_OFFSET = 7'h 20;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_STATUS_OFFSET = 7'h 24;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_SRC_PTR_INC_D1_OFFSET = 7'h 28;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_SRC_PTR_INC_D2_OFFSET = 7'h 2c;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_DST_PTR_INC_D1_OFFSET = 7'h 30;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_DST_PTR_INC_D2_OFFSET = 7'h 34;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_BATCH_OFFSET = 7'h 18;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_NUM_CH_OFFSET = 7'h 1c;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_CH_COL_OFFSET = 7'h 20;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_N_PATCHES_W_OFFSET = 7'h 24;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_N_PATCHES_H_OFFSET = 7'h 28;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_STRIDES_D1_OFFSET = 7'h 2c;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_STRIDES_D2_OFFSET = 7'h 30;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_STATUS_OFFSET = 7'h 34;
   parameter logic [BlockAw-1:0] IM2COL_SPC_SLOT_OFFSET = 7'h 38;
   parameter logic [BlockAw-1:0] IM2COL_SPC_DATA_TYPE_OFFSET = 7'h 3c;
   parameter logic [BlockAw-1:0] IM2COL_SPC_PAD_TOP_OFFSET = 7'h 40;
@@ -188,9 +178,8 @@ package im2col_spc_reg_pkg;
   parameter logic [BlockAw-1:0] IM2COL_SPC_SPC_IFR_OFFSET = 7'h 54;
 
   // Reset values for hwext registers and their fields
-  parameter logic [1:0] IM2COL_SPC_STATUS_RESVAL = 2'h 1;
+  parameter logic [0:0] IM2COL_SPC_STATUS_RESVAL = 1'h 1;
   parameter logic [0:0] IM2COL_SPC_STATUS_READY_RESVAL = 1'h 1;
-  parameter logic [0:0] IM2COL_SPC_STATUS_WINDOW_DONE_RESVAL = 1'h 0;
   parameter logic [0:0] IM2COL_SPC_SPC_IFR_RESVAL = 1'h 0;
   parameter logic [0:0] IM2COL_SPC_SPC_IFR_FLAG_RESVAL = 1'h 0;
 
@@ -202,14 +191,14 @@ package im2col_spc_reg_pkg;
     IM2COL_SPC_IH,
     IM2COL_SPC_FW,
     IM2COL_SPC_FH,
+    IM2COL_SPC_BATCH,
     IM2COL_SPC_NUM_CH,
-    IM2COL_SPC_STRIDE_D1,
-    IM2COL_SPC_STRIDE_D2,
+    IM2COL_SPC_CH_COL,
+    IM2COL_SPC_N_PATCHES_W,
+    IM2COL_SPC_N_PATCHES_H,
+    IM2COL_SPC_STRIDES_D1,
+    IM2COL_SPC_STRIDES_D2,
     IM2COL_SPC_STATUS,
-    IM2COL_SPC_SRC_PTR_INC_D1,
-    IM2COL_SPC_SRC_PTR_INC_D2,
-    IM2COL_SPC_DST_PTR_INC_D1,
-    IM2COL_SPC_DST_PTR_INC_D2,
     IM2COL_SPC_SLOT,
     IM2COL_SPC_DATA_TYPE,
     IM2COL_SPC_PAD_TOP,
@@ -228,14 +217,14 @@ package im2col_spc_reg_pkg;
     4'b 1111, // index[ 3] IM2COL_SPC_IH
     4'b 1111, // index[ 4] IM2COL_SPC_FW
     4'b 1111, // index[ 5] IM2COL_SPC_FH
-    4'b 1111, // index[ 6] IM2COL_SPC_NUM_CH
-    4'b 1111, // index[ 7] IM2COL_SPC_STRIDE_D1
-    4'b 1111, // index[ 8] IM2COL_SPC_STRIDE_D2
-    4'b 0001, // index[ 9] IM2COL_SPC_STATUS
-    4'b 0001, // index[10] IM2COL_SPC_SRC_PTR_INC_D1
-    4'b 0111, // index[11] IM2COL_SPC_SRC_PTR_INC_D2
-    4'b 0001, // index[12] IM2COL_SPC_DST_PTR_INC_D1
-    4'b 0111, // index[13] IM2COL_SPC_DST_PTR_INC_D2
+    4'b 1111, // index[ 6] IM2COL_SPC_BATCH
+    4'b 1111, // index[ 7] IM2COL_SPC_NUM_CH
+    4'b 1111, // index[ 8] IM2COL_SPC_CH_COL
+    4'b 1111, // index[ 9] IM2COL_SPC_N_PATCHES_W
+    4'b 1111, // index[10] IM2COL_SPC_N_PATCHES_H
+    4'b 1111, // index[11] IM2COL_SPC_STRIDES_D1
+    4'b 1111, // index[12] IM2COL_SPC_STRIDES_D2
+    4'b 0001, // index[13] IM2COL_SPC_STATUS
     4'b 1111, // index[14] IM2COL_SPC_SLOT
     4'b 0001, // index[15] IM2COL_SPC_DATA_TYPE
     4'b 0001, // index[16] IM2COL_SPC_PAD_TOP

@@ -48,6 +48,7 @@ module testharness #(
   import reg_pkg::*;
   import testharness_pkg::*;
   import addr_map_rule_pkg::*;
+  import core_v_mini_mcu_pkg::*;
 
   localparam SWITCH_ACK_LATENCY = 15;
   localparam EXT_XBAR_NMASTER_RND = USE_EXTERNAL_DEVICE_EXAMPLE ? testharness_pkg::EXT_XBAR_NMASTER : 1;
@@ -134,6 +135,11 @@ module testharness #(
       .X_RFW_WIDTH(fpu_ss_pkg::X_RFW_WIDTH),
       .X_MISA(fpu_ss_pkg::X_MISA)
   ) ext_if ();
+
+  // External SPC interface signals
+  obi_req_t ext_ao_peripheral_req[core_v_mini_mcu_pkg::AO_SPC_NUM:0];
+  obi_resp_t ext_ao_peripheral_resp[core_v_mini_mcu_pkg::AO_SPC_NUM:0];
+  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_busy;
 
   always_comb begin
     // All interrupt lines set to zero by default
@@ -253,8 +259,8 @@ module testharness #(
       .ext_dma_write_ch0_resp_i(heep_dma_write_ch0_resp),
       .ext_dma_addr_ch0_req_o(heep_dma_addr_ch0_req),
       .ext_dma_addr_ch0_resp_i(heep_dma_addr_ch0_resp),
-      .ext_ao_peripheral_req_i(),
-      .ext_ao_peripheral_resp_o(),
+      .ext_ao_peripheral_req_i(ext_ao_peripheral_req),
+      .ext_ao_peripheral_resp_o(ext_ao_peripheral_resp),
       .ext_peripheral_slave_req_o(periph_slave_req),
       .ext_peripheral_slave_resp_i(periph_slave_rsp),
       .external_subsystem_powergate_switch_no(external_subsystem_powergate_switch_n),
@@ -264,7 +270,8 @@ module testharness #(
       .external_ram_banks_set_retentive_no(external_ram_banks_set_retentive_n),
       .external_subsystem_clkgate_en_no(external_subsystem_clkgate_en_n),
       .ext_dma_slot_tx_i(iffifo_in_ready),
-      .ext_dma_slot_rx_i(iffifo_out_valid)
+      .ext_dma_slot_rx_i(iffifo_out_valid),
+      .dma_done_o(dma_busy)
   );
 
   // Testbench external bus
@@ -468,7 +475,8 @@ module testharness #(
           .dma_addr_ch0_resp_i('0),
           .trigger_slot_i('0),
           .dma_done_intr_o(memcopy_intr),
-          .dma_window_intr_o()
+          .dma_window_intr_o(),
+          .dma_done_o()
       );
 
       simple_accelerator #(
@@ -485,6 +493,22 @@ module testharness #(
           .acc_read_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER2_IDX]),
           .acc_write_ch0_req_o(ext_master_req[testharness_pkg::EXT_MASTER3_IDX]),
           .acc_write_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER3_IDX])
+      );
+
+      im2col_spc #(
+          .NUM_CH_SPC(2)
+      ) im2col_spc_i (
+          .clk_i,
+          .rst_ni,
+
+          .aopx2im2col_resp_i(ext_ao_peripheral_resp[0]),
+          .im2col2aopx_req_o (ext_ao_peripheral_req[0]),
+
+          .reg_req_i(ext_periph_slv_req[testharness_pkg::IM2COL_SPC_IDX]),
+          .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::IM2COL_SPC_IDX]),
+
+          .dma_done_i(dma_busy),
+          .im2col_spc_done_int_o()
       );
 
       // AMS external peripheral

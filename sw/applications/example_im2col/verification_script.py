@@ -192,20 +192,20 @@ def shl_save(tensor, variable_name, dim, row_len):
 # 2: SHL implementation
 
 # Parameters of the random image, padding excluded
-image_height = 4
-image_width = 4
+image_height = 10
+image_width = 10
 channels = 1
 batch = 1
 
 # Parameters of the filter
 filter_height = 2
 filter_width = 2
-top_pad = 1
-bottom_pad = 1
-left_pad = 1
-right_pad = 1
-stride_d1 = 2
-stride_d2 = 2
+top_pad = 3
+bottom_pad = 0
+left_pad = 0
+right_pad = 3
+stride_d1 = 1
+stride_d2 = 1
 
 # Calculate the number of patches, i.e. the number the filter can fit along one dimension during convolution
 n_patches_h = (image_height + top_pad + bottom_pad - filter_height) // stride_d2 + 1

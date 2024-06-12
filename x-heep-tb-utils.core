@@ -17,6 +17,7 @@ filesets:
     - example:ip:iffifo
     - example:ip:i2s_microphone
     - example:ip:simple_accelerator
+    - example:ip:im2col_spc
     files:
     file_type: systemVerilogSource
 
@@ -26,6 +27,7 @@ filesets:
     - hw/ip_examples/ams/ams.vlt
     - hw/ip_examples/iffifo/iffifo.vlt
     - hw/ip_examples/simple_accelerator/simple_accelerator.vlt
+    - hw/ip_examples/im2col_spc/im2col_spc.vlt
     - tb/tb.vlt
     file_type: vlt
 

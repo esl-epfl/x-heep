@@ -13,17 +13,11 @@ package dma_reg_pkg;
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {
-    logic [31:0] q;
-  } dma_reg2hw_src_ptr_reg_t;
+  typedef struct packed {logic [31:0] q;} dma_reg2hw_src_ptr_reg_t;
 
-  typedef struct packed {
-    logic [31:0] q;
-  } dma_reg2hw_dst_ptr_reg_t;
+  typedef struct packed {logic [31:0] q;} dma_reg2hw_dst_ptr_reg_t;
 
-  typedef struct packed {
-    logic [31:0] q;
-  } dma_reg2hw_addr_ptr_reg_t;
+  typedef struct packed {logic [31:0] q;} dma_reg2hw_addr_ptr_reg_t;
 
   typedef struct packed {
     logic [15:0] q;
@@ -37,96 +31,68 @@ package dma_reg_pkg;
 
   typedef struct packed {
     struct packed {
-      logic        q;
-      logic        re;
+      logic q;
+      logic re;
     } ready;
     struct packed {
-      logic        q;
-      logic        re;
+      logic q;
+      logic re;
     } window_done;
   } dma_reg2hw_status_reg_t;
 
-  typedef struct packed {
-    logic [5:0]  q;
-  } dma_reg2hw_src_ptr_inc_d1_reg_t;
+  typedef struct packed {logic [5:0] q;} dma_reg2hw_src_ptr_inc_d1_reg_t;
+
+  typedef struct packed {logic [22:0] q;} dma_reg2hw_src_ptr_inc_d2_reg_t;
+
+  typedef struct packed {logic [5:0] q;} dma_reg2hw_dst_ptr_inc_d1_reg_t;
+
+  typedef struct packed {logic [22:0] q;} dma_reg2hw_dst_ptr_inc_d2_reg_t;
 
   typedef struct packed {
-    logic [22:0] q;
-  } dma_reg2hw_src_ptr_inc_d2_reg_t;
-
-  typedef struct packed {
-    logic [5:0]  q;
-  } dma_reg2hw_dst_ptr_inc_d1_reg_t;
-
-  typedef struct packed {
-    logic [22:0] q;
-  } dma_reg2hw_dst_ptr_inc_d2_reg_t;
-
-  typedef struct packed {
-    struct packed {
-      logic [15:0] q;
-    } rx_trigger_slot;
-    struct packed {
-      logic [15:0] q;
-    } tx_trigger_slot;
+    struct packed {logic [15:0] q;} rx_trigger_slot;
+    struct packed {logic [15:0] q;} tx_trigger_slot;
   } dma_reg2hw_slot_reg_t;
 
-  typedef struct packed {
-    logic [1:0]  q;
-  } dma_reg2hw_data_type_reg_t;
+  typedef struct packed {logic [1:0] q;} dma_reg2hw_data_type_reg_t;
+
+  typedef struct packed {logic [1:0] q;} dma_reg2hw_mode_reg_t;
+
+  typedef struct packed {logic q;} dma_reg2hw_dim_config_reg_t;
+
+  typedef struct packed {logic q;} dma_reg2hw_dim_inv_reg_t;
 
   typedef struct packed {
-    logic [1:0]  q;
-  } dma_reg2hw_mode_reg_t;
-
-  typedef struct packed {
-    logic        q;
-  } dma_reg2hw_dim_config_reg_t;
-
-  typedef struct packed {
-    logic        q;
-  } dma_reg2hw_dim_inv_reg_t;
-
-  typedef struct packed {
-    logic [5:0]  q;
-    logic        qe;
+    logic [5:0] q;
+    logic       qe;
   } dma_reg2hw_pad_top_reg_t;
 
   typedef struct packed {
-    logic [5:0]  q;
-    logic        qe;
+    logic [5:0] q;
+    logic       qe;
   } dma_reg2hw_pad_bottom_reg_t;
 
   typedef struct packed {
-    logic [5:0]  q;
-    logic        qe;
+    logic [5:0] q;
+    logic       qe;
   } dma_reg2hw_pad_right_reg_t;
 
   typedef struct packed {
-    logic [5:0]  q;
-    logic        qe;
+    logic [5:0] q;
+    logic       qe;
   } dma_reg2hw_pad_left_reg_t;
 
-  typedef struct packed {
-    logic [12:0] q;
-  } dma_reg2hw_window_size_reg_t;
+  typedef struct packed {logic [12:0] q;} dma_reg2hw_window_size_reg_t;
+
+  typedef struct packed {logic [7:0] q;} dma_reg2hw_window_count_reg_t;
 
   typedef struct packed {
-    logic [7:0]  q;
-  } dma_reg2hw_window_count_reg_t;
-
-  typedef struct packed {
-    struct packed {
-      logic        q;
-    } transaction_done;
-    struct packed {
-      logic        q;
-    } window_done;
+    struct packed {logic q;} transaction_done;
+    struct packed {logic q;} window_done;
   } dma_reg2hw_interrupt_en_reg_t;
 
   typedef struct packed {
-    logic        q;
-    logic        re;
+    logic q;
+    logic re;
   } dma_reg2hw_transaction_ifr_reg_t;
 
   typedef struct packed {
@@ -140,13 +106,11 @@ package dma_reg_pkg;
   } dma_hw2reg_status_reg_t;
 
   typedef struct packed {
-    logic [7:0]  d;
-    logic        de;
+    logic [7:0] d;
+    logic       de;
   } dma_hw2reg_window_count_reg_t;
 
-  typedef struct packed {
-    logic        d;
-  } dma_hw2reg_transaction_ifr_reg_t;
+  typedef struct packed {logic d;} dma_hw2reg_transaction_ifr_reg_t;
 
   typedef struct packed {logic d;} dma_hw2reg_window_ifr_reg_t;
 
