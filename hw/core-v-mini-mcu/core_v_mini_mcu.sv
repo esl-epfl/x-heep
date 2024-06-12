@@ -11,10 +11,12 @@ module core_v_mini_mcu
     parameter ZFINX = 0,
     parameter EXT_XBAR_NMASTER = 0,
     parameter X_EXT = 0,  // eXtension interface in cv32e40x
+    parameter EXT_HARTS = 0,
     //do not touch these parameters
     parameter EXT_XBAR_NMASTER_RND = EXT_XBAR_NMASTER == 0 ? 1 : EXT_XBAR_NMASTER,
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
-    parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT
+    parameter NEXT_INT_RND = core_v_mini_mcu_pkg::NEXT_INT == 0 ? 1 : core_v_mini_mcu_pkg::NEXT_INT,
+    parameter EXT_HARTS_RND = EXT_HARTS == 0 ? 1 : EXT_HARTS
 ) (
 
     input logic rst_ni,
@@ -300,6 +302,8 @@ module core_v_mini_mcu
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
+    output logic [EXT_HARTS_RND-1:0] ext_debug_req_o,
+
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
 
     output logic cpu_subsystem_powergate_switch_no,
@@ -328,6 +332,7 @@ module core_v_mini_mcu
   localparam DM_HALTADDRESS = core_v_mini_mcu_pkg::DEBUG_START_ADDRESS + 32'h00000800; //debug rom code (section .text in linker) starts at 0x800
 
   localparam JTAG_IDCODE = 32'h10001c05;
+  localparam NRHARTS = EXT_HARTS + 1;  //external harts + single hart core-v-mini-mcu
   localparam BOOT_ADDR = core_v_mini_mcu_pkg::BOOTROM_START_ADDRESS;
   localparam NUM_MHPMCOUNTERS = 1;
 
@@ -369,7 +374,7 @@ module core_v_mini_mcu
   // signals to debug unit
   logic debug_core_req;
   logic debug_reset_n;
-
+  logic [NRHARTS-1:0] debug_req;
   // core
   logic core_sleep;
 
@@ -479,6 +484,7 @@ module core_v_mini_mcu
   );
 
   debug_subsystem #(
+      .NRHARTS    (NRHARTS),
       .JTAG_IDCODE(JTAG_IDCODE)
   ) debug_subsystem_i (
       .clk_i,
@@ -488,7 +494,7 @@ module core_v_mini_mcu
       .jtag_trst_ni,
       .jtag_tdi_i,
       .jtag_tdo_o,
-      .debug_core_req_o(debug_core_req),
+      .debug_core_req_o(debug_req),
       .debug_ndmreset_no(debug_reset_n),
       .debug_slave_req_i(debug_slave_req),
       .debug_slave_resp_o(debug_slave_resp),
@@ -692,6 +698,19 @@ module core_v_mini_mcu
       .i2s_sd_i(i2s_sd_i),
       .i2s_rx_valid_o(i2s_rx_valid)
   );
+
+  // Debug_req assign
+  if (NRHARTS == 1) begin
+    assign debug_core_req  = debug_req;
+    assign ext_debug_req_o = 1'b0;
+  end else begin
+    always @(*) begin
+      for (int i = 0; i < NRHARTS; i++) begin
+        if (i == 0) debug_core_req = debug_req[i];
+        else ext_debug_req_o[i-1] = debug_req[i];
+      end
+    end
+  end
 
   assign pdm2pcm_pdm_o    = 0;
   assign pdm2pcm_pdm_oe_o = 0;
