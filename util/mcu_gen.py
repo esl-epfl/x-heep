@@ -13,12 +13,8 @@ import pathlib
 import sys
 import re
 import logging
-from subprocess import run
-import csv
 from jsonref import JsonRef
 from mako.template import Template
-import collections
-from math import log2
 import x_heep_gen.load_config
 from x_heep_gen.system import BusType
 
@@ -375,6 +371,97 @@ def get_pad_mapping(pads_target_info, pad_name):
     return None
 
 
+def _write_pad_io_format(pad_data):
+    parameters = []
+    try:
+        instance = pad_data['instance'].strip(',')
+        if instance != '':
+            parameters.append("inst name=\"{}\"".format(instance))
+    except KeyError:
+        pass
+
+    try:
+        cell = pad_data['cell'].strip(',')
+        if cell != '':
+            parameters.append("cell=\"{}\"".format(cell))
+    except KeyError:
+        pass
+
+    try:
+        parameters.append(pad_data['extra_parameters'].strip(','))
+    except KeyError:
+        pass
+
+    parameters.append("place_status=placed")
+
+    try:
+        comment = pad_data['comment'].strip(',')
+        if comment != '':
+            comment = "# {}".format(comment)
+    except KeyError:
+        comment = ''
+
+    return "      ( {} ) {}".format(" ".join(parameters), comment)
+
+
+def _write_bondpad_io_format(pad_data):
+    try:
+        has_bond_pad = pad_data['bond_pad']
+    except KeyError:
+        has_bond_pad = False
+
+    if has_bond_pad:
+        try:
+            bondpad_extra_parameters = pad_data['bondpad_extra_parameters'].strip(',')
+            if bondpad_extra_parameters != '':
+                extra = "{} ".format(bondpad_extra_parameters)
+            else:
+                extra = ""
+        except KeyError:
+            extra = ""
+
+        return "      ( inst name=\"u_padring/{}_bondpad\" cell=PAD_CELL {})".format(pad_data['pin_name'], extra)
+    else:
+        return("      # no bondpad for {}".format(pad_data['pin_name']))
+
+
+def get_pads_io_format(pads_target_info):
+    """
+    Get the pads io format from an asic target.
+
+    The returned dictionary contains the mapping_pads and
+    mapping_bondpads as keys and a string with the (bond)pads io format
+    as value. The data of each (bond)pad is separated by a new line.
+
+    :param pads_target_info: The target information dictionary.
+    :return: A dictionary with the (bond)pads io format, or None if
+        there is no target info or the type of the target is not asic.
+    """
+    if pads_target_info != None:
+        try:
+            if pads_target_info["type"] == "asic":
+                sides = {}
+                # Get the side (top, right...) and the pads for each side
+                for side, pads in pads_target_info["mapping"].items():
+                    # For each side, pad_rows and bondpad_rows contain a list with the
+                    # data of each pad ordered by layout_pin_number.
+                    pad_rows = []
+                    bondpad_rows = []
+                    data = [pad_data for _, pad_data in pads.items()]
+                    data.sort(key=lambda x: x['layout_pin_number'])
+                    for pad_data in data:
+                        # Add the data of this pad to the lists
+                        pad_rows.append(_write_pad_io_format(pad_data))
+                        bondpad_rows.append(_write_bondpad_io_format(pad_data))
+                    # Add the pads of this side to the dictionaries, writing the data from each pad in a separate line
+                    sides["{}_pads".format(side)] = "\n".join(pad_rows)
+                    sides["{}_bondpads".format(side)] = "\n".join(bondpad_rows)
+                return sides
+        except KeyError:
+            return None
+    return None
+
+
 def main():
     parser = argparse.ArgumentParser(prog="mcugen")
     parser.add_argument("--cfg_peripherals",
@@ -645,6 +732,26 @@ def main():
     except KeyError:
         pads_attributes = None
         pads_attributes_bits = "-1:0"
+
+    pads_io = get_pads_io_format(pads_target_info)
+    try:
+        top_pads = pads_io['top_pads']
+        right_pads = pads_io['right_pads']
+        bottom_pads = pads_io['bottom_pads']
+        left_pads = pads_io['left_pads']
+        top_bondpads = pads_io['top_bondpads']
+        right_bondpads = pads_io['right_bondpads']
+        bottom_bondpads = pads_io['bottom_bondpads']
+        left_bondpads = pads_io['left_bondpads']
+    except KeyError:
+        top_pads = None
+        right_pads = None
+        bottom_pads = None
+        left_pads = None
+        top_bondpads = None
+        right_bondpads = None
+        bottom_bondpads = None
+        left_bondpads = None
 
     # Read HJSON description of External Pads
     if args.external_pads != None:
@@ -941,6 +1048,14 @@ def main():
         "total_pad_muxed"                  : total_pad_muxed,
         "max_total_pad_mux_bitlengh"       : max_total_pad_mux_bitlengh,
         "pads_attributes"                  : pads_attributes,
+        "top_pads"                         : top_pads,
+        "right_pads"                       : right_pads,
+        "bottom_pads"                      : bottom_pads,
+        "left_pads"                        : left_pads,
+        "top_bondpads"                     : top_bondpads,
+        "right_bondpads"                   : right_bondpads,
+        "bottom_bondpads"                  : bottom_bondpads,
+        "left_bondpads"                    : left_bondpads,
     }
 
     ###########

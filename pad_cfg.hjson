@@ -26,6 +26,22 @@
 //    mapping: <dict> (optional) - the mapping of the pads in the design
 //    part: <string> (optional) - the part of the FPGA target (default None)
 //    additional_constraints: <dict> (optional) - additional constraints for the target (default None)
+//
+// The pads in the mapping of the targets are defined by their name,
+// which has to match the name of the pad in the pads list.
+// Each pad can have the following attributes:
+//    cell: <string> (optional) - the cell of the pad. Either cell or type have to be specified
+//    pin_name: <string> (mandatory) - the name of the pin
+//    instance: <string> (optional) - the instance of the pads (default "")
+//    layout_pin_number: <number> (mandatory) - the layout pin number
+//    package_pin_number: <number> (optional) - the package pin number (default -1)
+//    bond_pad: <True|False> (optional) - the pad has a bond pad (default False)
+//    extra_parameters: <string> (optional) - additional parameters for the pad (default "")
+//    bondpad_extra_parameters: <string> (optional) - additional parameters for the bond pad (default "")
+//    comment: <string> (optional) - a comment for the pad (default "")
+//    orientation: <R0|R90|R180|R270> (optional) - the orientation of the pad (default R0)
+//    pin: <string> (optional) - the FPGA pin of the pad (default "")
+//    IO_std: <string> (optional) - the FPGA IO standard of the pad (default "")
 // 
 // Add this field at the same level of pads (not inside) if you want to define PADs attributes
 //    attributes: {
@@ -296,26 +312,36 @@
             mapping: {
                 top: {
                     clk: {
-                        cell: "",  // either type or cell have to be specified
-                        pin_name: auto  // optional
-                        layout_pin_number: -1,  // optional
-                        package_pin_number: -1,  // optional
-                        bond_pad: true,  // optional
-                        extra_parameters: "",  // optional
-                        bondpad_extra_parameters: ""  // optional
+                        cell: "",
+                        pin_name: "clk_i",
+                        instance: "",
+                        layout_pin_number: -1,
+                        package_pin_number: -1,
+                        bond_pad: true,
+                        extra_parameters: "",
+                        bondpad_extra_parameters: "",
+                        comment: "test"
+                    }
+                    boot_select: {
+                        layout_pin_number: 5,
+                        pin_name: "boot_select_i",
+                        bond_pad: true,
+                        instance: "pad_ring_i/pad_boot_select_i/pad_input_i",
                     }
                 },
                 top_right: {
                     corner_tr: {
-                        num: 1,
                         cell: corner_cell_name,
-                        orientation: R0 // One of R90, R180, R270...
+                        pin_name: "CUT",
+                        orientation: R0,
+                        layout_pin_number: -1,
                     }
                 },
                 right: {
                     rst: {
                         cell: "",
-                        pin_name: auto
+                        pin_name: "rst_ni",
+                        layout_pin_number: -1,
                     }
                 },
                 bottom_right: {

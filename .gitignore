@@ -36,6 +36,7 @@ hw/system/pad_control/rtl/pad_control_reg_pkg.sv
 hw/system/pad_control/rtl/pad_control_reg_top.sv
 hw/fpga/sram_wrapper.sv
 hw/fpga/scripts/generate_sram.tcl
+hw/asic/generic_example/pnr/inputs/test.io
 
 # same for the C header file and linker scripts and assembly files
 sw/device/lib/crt/crt0.S
