@@ -462,6 +462,55 @@ def get_pads_io_format(pads_target_info):
     return None
 
 
+def get_pads_io_kwargs(pads_target_info):
+    """
+    Get the kwargs for the pads io configuration.
+
+    :param pads_target_info: The target information dictionary.
+    :return: A list of the pads io kwargs.
+    """
+    top_pads = None
+    right_pads = None
+    bottom_pads = None
+    left_pads = None
+    top_bondpads = None
+    right_bondpads = None
+    bottom_bondpads = None
+    left_bondpads = None
+
+    pads_io = get_pads_io_format(pads_target_info)
+
+    if pads_io != None:
+        pads_io_keys = pads_io.keys()
+        if "top_pads" in pads_io_keys:
+            top_pads = pads_io["top_pads"]
+        if "right_pads" in pads_io_keys:
+            right_pads = pads_io["right_pads"]
+        if "bottom_pads" in pads_io_keys:
+            bottom_pads = pads_io["bottom_pads"]
+        if "left_pads" in pads_io_keys:
+            left_pads = pads_io["left_pads"]
+        if "top_bondpads" in pads_io_keys:
+            top_bondpads = pads_io["top_bondpads"]
+        if "right_bondpads" in pads_io_keys:
+            right_bondpads = pads_io["right_bondpads"]
+        if "bottom_bondpads" in pads_io_keys:
+            bottom_bondpads = pads_io["bottom_bondpads"]
+        if "left_bondpads" in pads_io_keys:
+            left_bondpads = pads_io["left_bondpads"]
+
+    return (
+        top_pads,
+        right_pads,
+        bottom_pads,
+        left_pads,
+        top_bondpads,
+        right_bondpads,
+        bottom_bondpads,
+        left_bondpads,
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(prog="mcugen")
     parser.add_argument("--cfg_peripherals",
@@ -470,7 +519,7 @@ def main():
                         type=argparse.FileType('r'),
                         required=True,
                         help="A configuration file")
-    
+
     parser.add_argument("--config",
                         metavar="file",
                         type=str,
@@ -542,7 +591,6 @@ def main():
     parser.add_argument("--tpl-sv",
                         metavar="TPL_SV",
                         help="Name of SystemVerilog template for your module (output)")
-
 
     parser.add_argument("--header-c",
                         metavar="HEADER_C",
@@ -620,11 +668,7 @@ def main():
     if  external_domains > 32:
         exit("external_domains must be less than 32 instead of " + str(external_domains))
 
-
-
     xheep = x_heep_gen.load_config.load_cfg_file(pathlib.PurePath(str(args.config)), config_override)
-
-
 
     debug_start_address = string2int(obj['debug']['address'])
     if int(debug_start_address, 16) < int('10000', 16):
@@ -637,7 +681,6 @@ def main():
         exit("always on peripheral start address must be greater than 0x10000")
 
     ao_peripheral_size_address = string2int(obj['ao_peripherals']['length'])
-
 
     def extract_peripherals(peripherals):
         result = {}
@@ -653,7 +696,6 @@ def main():
 
         return result
 
-
     def discard_path(peripherals):
         new = {}
         for k,v in peripherals.items():
@@ -668,14 +710,13 @@ def main():
         for name, info in peripherals.items():
             if isinstance(info, dict):
                 for k, v in info.items():
-                   if k in ("is_included"):
-                    if v in ("yes"):
-                        len_ep += 1
+                    if k in ("is_included"):
+                        if v in ("yes"):
+                            len_ep += 1
         return len_ep
 
     ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
     ao_peripherals_count = len(ao_peripherals)
-
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
@@ -694,10 +735,8 @@ def main():
     stack_size  = string2int(obj['linker_script']['stack_size'])
     heap_size  = string2int(obj['linker_script']['heap_size'])
 
-
     if ((int(stack_size,16) + int(heap_size,16)) > xheep.ram_size_address()):
         exit("The stack and heap section must fit in the RAM size, instead they takes " + str(stack_size + heap_size))
-
 
     plic_used_n_interrupts = len(obj['interrupts']['list'])
     plit_n_interrupts = obj['interrupts']['number']
@@ -721,7 +760,7 @@ def main():
             pads_target = obj_pad['targets'][pads_target_name]
         except KeyError:
             raise SystemExit("Target " + pads_target_name + " not found in the pad configuration file")
-    
+
         pads_target_info = get_pads_target_info(pads_target)
     else:
         pads_target_info = None
@@ -733,25 +772,17 @@ def main():
         pads_attributes = None
         pads_attributes_bits = "-1:0"
 
-    pads_io = get_pads_io_format(pads_target_info)
-    try:
-        top_pads = pads_io['top_pads']
-        right_pads = pads_io['right_pads']
-        bottom_pads = pads_io['bottom_pads']
-        left_pads = pads_io['left_pads']
-        top_bondpads = pads_io['top_bondpads']
-        right_bondpads = pads_io['right_bondpads']
-        bottom_bondpads = pads_io['bottom_bondpads']
-        left_bondpads = pads_io['left_bondpads']
-    except KeyError:
-        top_pads = None
-        right_pads = None
-        bottom_pads = None
-        left_pads = None
-        top_bondpads = None
-        right_bondpads = None
-        bottom_bondpads = None
-        left_bondpads = None
+    # Configure the PADs io file
+    (
+        top_pads,
+        right_pads,
+        bottom_pads,
+        left_pads,
+        top_bondpads,
+        right_bondpads,
+        bottom_bondpads,
+        left_bondpads,
+    ) = get_pads_io_kwargs(pads_target_info)
 
     # Read HJSON description of External Pads
     if args.external_pads != None:
@@ -792,7 +823,7 @@ def main():
             pad_active = pads[key]['active']
         except KeyError:
             pad_active = 'high'
-        
+
         pad_mapping = get_pad_mapping(pads_target_info, pad_name)
 
         try:
@@ -1003,8 +1034,7 @@ def main():
     max_total_pad_mux_bitlengh = -1
     for pad in pad_muxed_list:
         if (len(pad.pad_mux_list)-1).bit_length() > max_total_pad_mux_bitlengh:
-          max_total_pad_mux_bitlengh = (len(pad.pad_mux_list)-1).bit_length()
-
+            max_total_pad_mux_bitlengh = (len(pad.pad_mux_list)-1).bit_length()
 
     total_pad = pad_index_counter + external_pad_index_counter
 
