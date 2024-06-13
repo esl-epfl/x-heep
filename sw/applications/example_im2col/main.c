@@ -24,7 +24,7 @@ unsigned int cycles;
 int main()
 {
     /* Testing NCHW format */
-    for (int i=2; i<3; i++)
+    for (int i=3; i<4; i++)
     {
         im2col_nchw_int32(i, &cycles);
         

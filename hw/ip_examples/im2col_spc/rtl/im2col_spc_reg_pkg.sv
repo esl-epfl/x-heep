@@ -60,6 +60,14 @@ package im2col_spc_reg_pkg;
 
   typedef struct packed {
     logic [31:0] q;
+  } im2col_spc_reg2hw_adpt_pad_right_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
+  } im2col_spc_reg2hw_adpt_pad_bottom_reg_t;
+
+  typedef struct packed {
+    logic [31:0] q;
   } im2col_spc_reg2hw_strides_d1_reg_t;
 
   typedef struct packed {
@@ -123,17 +131,19 @@ package im2col_spc_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    im2col_spc_reg2hw_src_ptr_reg_t src_ptr; // [483:452]
-    im2col_spc_reg2hw_dst_ptr_reg_t dst_ptr; // [451:420]
-    im2col_spc_reg2hw_iw_reg_t iw; // [419:388]
-    im2col_spc_reg2hw_ih_reg_t ih; // [387:356]
-    im2col_spc_reg2hw_fw_reg_t fw; // [355:324]
-    im2col_spc_reg2hw_fh_reg_t fh; // [323:292]
-    im2col_spc_reg2hw_batch_reg_t batch; // [291:260]
-    im2col_spc_reg2hw_num_ch_reg_t num_ch; // [259:227]
-    im2col_spc_reg2hw_ch_col_reg_t ch_col; // [226:195]
-    im2col_spc_reg2hw_n_patches_w_reg_t n_patches_w; // [194:163]
-    im2col_spc_reg2hw_n_patches_h_reg_t n_patches_h; // [162:131]
+    im2col_spc_reg2hw_src_ptr_reg_t src_ptr; // [547:516]
+    im2col_spc_reg2hw_dst_ptr_reg_t dst_ptr; // [515:484]
+    im2col_spc_reg2hw_iw_reg_t iw; // [483:452]
+    im2col_spc_reg2hw_ih_reg_t ih; // [451:420]
+    im2col_spc_reg2hw_fw_reg_t fw; // [419:388]
+    im2col_spc_reg2hw_fh_reg_t fh; // [387:356]
+    im2col_spc_reg2hw_batch_reg_t batch; // [355:324]
+    im2col_spc_reg2hw_num_ch_reg_t num_ch; // [323:291]
+    im2col_spc_reg2hw_ch_col_reg_t ch_col; // [290:259]
+    im2col_spc_reg2hw_n_patches_w_reg_t n_patches_w; // [258:227]
+    im2col_spc_reg2hw_n_patches_h_reg_t n_patches_h; // [226:195]
+    im2col_spc_reg2hw_adpt_pad_right_reg_t adpt_pad_right; // [194:163]
+    im2col_spc_reg2hw_adpt_pad_bottom_reg_t adpt_pad_bottom; // [162:131]
     im2col_spc_reg2hw_strides_d1_reg_t strides_d1; // [130:99]
     im2col_spc_reg2hw_strides_d2_reg_t strides_d2; // [98:67]
     im2col_spc_reg2hw_status_reg_t status; // [66:65]
@@ -165,17 +175,19 @@ package im2col_spc_reg_pkg;
   parameter logic [BlockAw-1:0] IM2COL_SPC_CH_COL_OFFSET = 7'h 20;
   parameter logic [BlockAw-1:0] IM2COL_SPC_N_PATCHES_W_OFFSET = 7'h 24;
   parameter logic [BlockAw-1:0] IM2COL_SPC_N_PATCHES_H_OFFSET = 7'h 28;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_STRIDES_D1_OFFSET = 7'h 2c;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_STRIDES_D2_OFFSET = 7'h 30;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_STATUS_OFFSET = 7'h 34;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_SLOT_OFFSET = 7'h 38;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_DATA_TYPE_OFFSET = 7'h 3c;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_PAD_TOP_OFFSET = 7'h 40;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_PAD_BOTTOM_OFFSET = 7'h 44;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_PAD_RIGHT_OFFSET = 7'h 48;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_PAD_LEFT_OFFSET = 7'h 4c;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_INTERRUPT_EN_OFFSET = 7'h 50;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_SPC_IFR_OFFSET = 7'h 54;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_ADPT_PAD_RIGHT_OFFSET = 7'h 2c;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_ADPT_PAD_BOTTOM_OFFSET = 7'h 30;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_STRIDES_D1_OFFSET = 7'h 34;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_STRIDES_D2_OFFSET = 7'h 38;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_STATUS_OFFSET = 7'h 3c;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_SLOT_OFFSET = 7'h 40;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_DATA_TYPE_OFFSET = 7'h 44;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_PAD_TOP_OFFSET = 7'h 48;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_PAD_BOTTOM_OFFSET = 7'h 4c;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_PAD_RIGHT_OFFSET = 7'h 50;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_PAD_LEFT_OFFSET = 7'h 54;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_INTERRUPT_EN_OFFSET = 7'h 58;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_SPC_IFR_OFFSET = 7'h 5c;
 
   // Reset values for hwext registers and their fields
   parameter logic [0:0] IM2COL_SPC_STATUS_RESVAL = 1'h 1;
@@ -196,6 +208,8 @@ package im2col_spc_reg_pkg;
     IM2COL_SPC_CH_COL,
     IM2COL_SPC_N_PATCHES_W,
     IM2COL_SPC_N_PATCHES_H,
+    IM2COL_SPC_ADPT_PAD_RIGHT,
+    IM2COL_SPC_ADPT_PAD_BOTTOM,
     IM2COL_SPC_STRIDES_D1,
     IM2COL_SPC_STRIDES_D2,
     IM2COL_SPC_STATUS,
@@ -210,7 +224,7 @@ package im2col_spc_reg_pkg;
   } im2col_spc_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] IM2COL_SPC_PERMIT [22] = '{
+  parameter logic [3:0] IM2COL_SPC_PERMIT [24] = '{
     4'b 1111, // index[ 0] IM2COL_SPC_SRC_PTR
     4'b 1111, // index[ 1] IM2COL_SPC_DST_PTR
     4'b 1111, // index[ 2] IM2COL_SPC_IW
@@ -222,17 +236,19 @@ package im2col_spc_reg_pkg;
     4'b 1111, // index[ 8] IM2COL_SPC_CH_COL
     4'b 1111, // index[ 9] IM2COL_SPC_N_PATCHES_W
     4'b 1111, // index[10] IM2COL_SPC_N_PATCHES_H
-    4'b 1111, // index[11] IM2COL_SPC_STRIDES_D1
-    4'b 1111, // index[12] IM2COL_SPC_STRIDES_D2
-    4'b 0001, // index[13] IM2COL_SPC_STATUS
-    4'b 1111, // index[14] IM2COL_SPC_SLOT
-    4'b 0001, // index[15] IM2COL_SPC_DATA_TYPE
-    4'b 0001, // index[16] IM2COL_SPC_PAD_TOP
-    4'b 0001, // index[17] IM2COL_SPC_PAD_BOTTOM
-    4'b 0001, // index[18] IM2COL_SPC_PAD_RIGHT
-    4'b 0001, // index[19] IM2COL_SPC_PAD_LEFT
-    4'b 0001, // index[20] IM2COL_SPC_INTERRUPT_EN
-    4'b 0001  // index[21] IM2COL_SPC_SPC_IFR
+    4'b 1111, // index[11] IM2COL_SPC_ADPT_PAD_RIGHT
+    4'b 1111, // index[12] IM2COL_SPC_ADPT_PAD_BOTTOM
+    4'b 1111, // index[13] IM2COL_SPC_STRIDES_D1
+    4'b 1111, // index[14] IM2COL_SPC_STRIDES_D2
+    4'b 0001, // index[15] IM2COL_SPC_STATUS
+    4'b 1111, // index[16] IM2COL_SPC_SLOT
+    4'b 0001, // index[17] IM2COL_SPC_DATA_TYPE
+    4'b 0001, // index[18] IM2COL_SPC_PAD_TOP
+    4'b 0001, // index[19] IM2COL_SPC_PAD_BOTTOM
+    4'b 0001, // index[20] IM2COL_SPC_PAD_RIGHT
+    4'b 0001, // index[21] IM2COL_SPC_PAD_LEFT
+    4'b 0001, // index[22] IM2COL_SPC_INTERRUPT_EN
+    4'b 0001  // index[23] IM2COL_SPC_SPC_IFR
   };
 
 endpackage

@@ -45,7 +45,7 @@
 #define PRINTF_IN_SIM   1
 
 /* Set to 1 to enable debug prints */
-#define DEBUG 0
+#define DEBUG 1
 /* Set to 1 to enable timing measurements */
 #define TIMING 1
 
@@ -83,6 +83,9 @@
 
 #define N_PATCHES_H ((IH + (TOP_PAD + BOTTOM_PAD) - FH)/ STRIDE_D2 + 1)
 #define N_PATCHES_W ((IW + (RIGHT_PAD + LEFT_PAD) - FW)/ STRIDE_D1 + 1)
+
+#define ADPT_PAD_BOTTOM (STRIDE_D2 * (N_PATCHES_H - 1) + FH - (TOP_PAD + IH))
+#define ADPT_PAD_RIGHT (STRIDE_D1 * (N_PATCHES_W - 1) + FW - (LEFT_PAD + IW))
 
 #define CH_COL (CH * FH * FW)
 

@@ -49,18 +49,24 @@ extern "C" {
 // Number of patches along H
 #define IM2COL_SPC_N_PATCHES_H_REG_OFFSET 0x28
 
+// Adapted right padded region
+#define IM2COL_SPC_ADPT_PAD_RIGHT_REG_OFFSET 0x2c
+
+// Adapted bottom padded region
+#define IM2COL_SPC_ADPT_PAD_BOTTOM_REG_OFFSET 0x30
+
 // Strides along D1, set to 1 for no stride
-#define IM2COL_SPC_STRIDES_D1_REG_OFFSET 0x2c
+#define IM2COL_SPC_STRIDES_D1_REG_OFFSET 0x34
 
 // Strides along D2, set to 1 for no stride
-#define IM2COL_SPC_STRIDES_D2_REG_OFFSET 0x30
+#define IM2COL_SPC_STRIDES_D2_REG_OFFSET 0x38
 
 // Status bit is set to one when the im2col SPC is ready
-#define IM2COL_SPC_STATUS_REG_OFFSET 0x34
+#define IM2COL_SPC_STATUS_REG_OFFSET 0x3c
 #define IM2COL_SPC_STATUS_READY_BIT 0
 
 // The DMA will wait for the signal
-#define IM2COL_SPC_SLOT_REG_OFFSET 0x38
+#define IM2COL_SPC_SLOT_REG_OFFSET 0x40
 #define IM2COL_SPC_SLOT_RX_TRIGGER_SLOT_MASK 0xffff
 #define IM2COL_SPC_SLOT_RX_TRIGGER_SLOT_OFFSET 0
 #define IM2COL_SPC_SLOT_RX_TRIGGER_SLOT_FIELD \
@@ -71,7 +77,7 @@ extern "C" {
   ((bitfield_field32_t) { .mask = IM2COL_SPC_SLOT_TX_TRIGGER_SLOT_MASK, .index = IM2COL_SPC_SLOT_TX_TRIGGER_SLOT_OFFSET })
 
 // Width/type of the data to transfer
-#define IM2COL_SPC_DATA_TYPE_REG_OFFSET 0x3c
+#define IM2COL_SPC_DATA_TYPE_REG_OFFSET 0x44
 #define IM2COL_SPC_DATA_TYPE_DATA_TYPE_MASK 0x3
 #define IM2COL_SPC_DATA_TYPE_DATA_TYPE_OFFSET 0
 #define IM2COL_SPC_DATA_TYPE_DATA_TYPE_FIELD \
@@ -82,39 +88,39 @@ extern "C" {
 #define IM2COL_SPC_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD_2 0x3
 
 // Set the top padding
-#define IM2COL_SPC_PAD_TOP_REG_OFFSET 0x40
+#define IM2COL_SPC_PAD_TOP_REG_OFFSET 0x48
 #define IM2COL_SPC_PAD_TOP_PAD_MASK 0x3f
 #define IM2COL_SPC_PAD_TOP_PAD_OFFSET 0
 #define IM2COL_SPC_PAD_TOP_PAD_FIELD \
   ((bitfield_field32_t) { .mask = IM2COL_SPC_PAD_TOP_PAD_MASK, .index = IM2COL_SPC_PAD_TOP_PAD_OFFSET })
 
 // Set the bottom padding
-#define IM2COL_SPC_PAD_BOTTOM_REG_OFFSET 0x44
+#define IM2COL_SPC_PAD_BOTTOM_REG_OFFSET 0x4c
 #define IM2COL_SPC_PAD_BOTTOM_PAD_MASK 0x3f
 #define IM2COL_SPC_PAD_BOTTOM_PAD_OFFSET 0
 #define IM2COL_SPC_PAD_BOTTOM_PAD_FIELD \
   ((bitfield_field32_t) { .mask = IM2COL_SPC_PAD_BOTTOM_PAD_MASK, .index = IM2COL_SPC_PAD_BOTTOM_PAD_OFFSET })
 
 // Set the right padding
-#define IM2COL_SPC_PAD_RIGHT_REG_OFFSET 0x48
+#define IM2COL_SPC_PAD_RIGHT_REG_OFFSET 0x50
 #define IM2COL_SPC_PAD_RIGHT_PAD_MASK 0x3f
 #define IM2COL_SPC_PAD_RIGHT_PAD_OFFSET 0
 #define IM2COL_SPC_PAD_RIGHT_PAD_FIELD \
   ((bitfield_field32_t) { .mask = IM2COL_SPC_PAD_RIGHT_PAD_MASK, .index = IM2COL_SPC_PAD_RIGHT_PAD_OFFSET })
 
 // Set the left padding
-#define IM2COL_SPC_PAD_LEFT_REG_OFFSET 0x4c
+#define IM2COL_SPC_PAD_LEFT_REG_OFFSET 0x54
 #define IM2COL_SPC_PAD_LEFT_PAD_MASK 0x3f
 #define IM2COL_SPC_PAD_LEFT_PAD_OFFSET 0
 #define IM2COL_SPC_PAD_LEFT_PAD_FIELD \
   ((bitfield_field32_t) { .mask = IM2COL_SPC_PAD_LEFT_PAD_MASK, .index = IM2COL_SPC_PAD_LEFT_PAD_OFFSET })
 
 // Interrupt Enable Register
-#define IM2COL_SPC_INTERRUPT_EN_REG_OFFSET 0x50
+#define IM2COL_SPC_INTERRUPT_EN_REG_OFFSET 0x58
 #define IM2COL_SPC_INTERRUPT_EN_EN_BIT 0
 
 // Interrupt Flag Register for the SPC operation
-#define IM2COL_SPC_SPC_IFR_REG_OFFSET 0x54
+#define IM2COL_SPC_SPC_IFR_REG_OFFSET 0x5c
 #define IM2COL_SPC_SPC_IFR_FLAG_BIT 0
 
 #ifdef __cplusplus

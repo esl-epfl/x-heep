@@ -112,8 +112,6 @@ module im2col_spc
   logic [31:0] im_c_counter;
   logic [31:0] ch_col_counter;
   logic [31:0] batch_counter;
-  logic [31:0] tmp_pad_right;
-  logic [31:0] tmp_pad_bottom;
   logic [31:0] input_data_ptr;
   logic [31:0] output_data_ptr;
   logic [31:0] source_inc_d2;
@@ -217,32 +215,34 @@ module im2col_spc
       end
 
       F_MIN_OFFSET_COMP: begin
+        fifo_push = 1'b0;
         param_state_q = IM_COORD_COMP;
       end
 
       IM_COORD_COMP: begin
+        fifo_push = 1'b0;
         param_state_q = N_ZEROS_COMP;
       end
 
       N_ZEROS_COMP: begin
+        fifo_push = 1'b0;
         param_state_q = DMA_RUN_PARAM_COMP;
       end
 
       DMA_RUN_PARAM_COMP: begin
+        fifo_push = 1'b0;
         param_state_q = OUT_PTR_UPDATE;
       end
 
       OUT_PTR_UPDATE: begin
-        if (batch_counter == reg2hw.batch.q) begin
-          param_state_q = IM_OFFSET_UPDATE;
-        end else begin
-          param_state_q = IM_COORD_COMP;
-        end
+        fifo_push = 1'b0;
+        param_state_q = START_DMA_RUN;
       end
 
       IM_OFFSET_UPDATE: begin
+        fifo_push = 1'b0;
         if (ch_col_counter == reg2hw.ch_col.q) begin
-          param_state_q = START_DMA_RUN;
+          param_state_q = IDLE;
         end else begin
           param_state_q = F_MIN_OFFSET_COMP;
         end
@@ -250,10 +250,12 @@ module im2col_spc
 
       START_DMA_RUN: begin
         fifo_push = 1'b1;
-        if (fifo_full == 1'b0 && ch_col_counter != reg2hw.ch_col.q) begin
-          param_state_q = F_MIN_OFFSET_COMP;
-        end else if (fifo_full == 1'b0 && ch_col_counter == reg2hw.ch_col.q) begin
-          param_state_q = IDLE;
+        if (fifo_full == 1'b0) begin
+          if (batch_counter == reg2hw.batch.q - 1) begin
+            param_state_q = IM_OFFSET_UPDATE;
+          end else begin
+            param_state_q = IM_COORD_COMP;
+          end
         end else begin
           param_state_q = START_DMA_RUN;
         end
@@ -304,6 +306,7 @@ module im2col_spc
         F_MIN_OFFSET_COMP: begin
           fw_min_w_offset <= reg2hw.fw.q - 1 - w_offset;  // fw_minus_w_offset = FW - 1 - w_offset;
           fh_min_h_offset <= reg2hw.fh.q - 1 - h_offset;  // fh_minus_h_offset = FH - 1 - h_offset;
+          batch_counter <= '0; // Reset the batch counter before starting a new batch
         end
 
         IM_COORD_COMP: begin
@@ -325,30 +328,28 @@ module im2col_spc
           /* Top zeros computation */
           if (h_offset >= reg2hw.pad_top.q) begin
             n_zeros_top <= 0;
-          end else if (({26'h0, reg2hw.pad_top.q} - h_offset) % reg2hw.strides_d1.q == 0) begin
-            n_zeros_top <= ({26'h0, reg2hw.pad_top.q} - h_offset) / reg2hw.strides_d1.q; // n_zeros_top = TOP_PAD - h_offset;
+          end else if (({26'h0, reg2hw.pad_top.q} - h_offset) % reg2hw.strides_d2.q == 0) begin
+            n_zeros_top <= ({26'h0, reg2hw.pad_top.q} - h_offset) / reg2hw.strides_d2.q; // n_zeros_top = TOP_PAD - h_offset;
           end else begin
-            n_zeros_top <= ({26'h0, reg2hw.pad_top.q} - h_offset) / reg2hw.strides_d1.q + 1;
+            n_zeros_top <= ({26'h0, reg2hw.pad_top.q} - h_offset) / reg2hw.strides_d2.q + 1;
           end
 
-          /* Right & bottom zeros computation */
-          tmp_pad_right <= reg2hw.strides_d1.q * (reg2hw.n_patches_w.q - 1) + reg2hw.fw.q - reg2hw.iw.q - {26'h0, reg2hw.pad_left.q};
-          tmp_pad_bottom <= reg2hw.strides_d1.q * (reg2hw.n_patches_h.q - 1) + reg2hw.fh.q - reg2hw.ih.q - {26'h0, reg2hw.pad_top.q};
-
-          if (fw_min_w_offset >= tmp_pad_right) begin
+          /* Right zeros computation */
+          if (fw_min_w_offset >= reg2hw.pad_right.q || reg2hw.adpt_pad_right.q == 0 ) begin
             n_zeros_right <= 0;
-          end else if ((tmp_pad_right - fw_min_w_offset) % reg2hw.strides_d1.q == 1'0) begin
-            n_zeros_right <= (tmp_pad_right - fw_min_w_offset) / reg2hw.strides_d1.q;
+          end else if ((reg2hw.adpt_pad_right.q - fw_min_w_offset) % reg2hw.strides_d1.q == 1'0) begin
+            n_zeros_right <= (reg2hw.adpt_pad_right.q - fw_min_w_offset) / reg2hw.strides_d1.q;
           end else begin
-            n_zeros_right <= (tmp_pad_right - fw_min_w_offset) / reg2hw.strides_d1.q + 1;
+            n_zeros_right <= (reg2hw.adpt_pad_right.q - fw_min_w_offset) / reg2hw.strides_d1.q + 1;
           end
 
-          if (fh_min_h_offset >= tmp_pad_bottom) begin
+          /* Bottom zeros computation */
+          if (fh_min_h_offset >= reg2hw.pad_bottom.q || reg2hw.adpt_pad_bottom.q == 0) begin
             n_zeros_bottom <= 0;
-          end else if ((tmp_pad_bottom - fh_min_h_offset) % reg2hw.strides_d1.q == 0) begin
-            n_zeros_bottom <= (tmp_pad_bottom - fh_min_h_offset) / reg2hw.strides_d1.q;
+          end else if ((reg2hw.adpt_pad_bottom.q - fh_min_h_offset) % reg2hw.strides_d2.q == 0) begin
+            n_zeros_bottom <= (reg2hw.adpt_pad_bottom.q - fh_min_h_offset) / reg2hw.strides_d2.q;
           end else begin
-            n_zeros_bottom <= (tmp_pad_bottom - fh_min_h_offset) / reg2hw.strides_d1.q + 1;
+            n_zeros_bottom <= (reg2hw.adpt_pad_bottom.q - fh_min_h_offset) / reg2hw.strides_d2.q + 1;
           end
         end
 
@@ -362,11 +363,7 @@ module im2col_spc
 
         OUT_PTR_UPDATE: begin
           output_data_ptr <= output_data_ptr + reg2hw.n_patches_h.q * reg2hw.n_patches_w.q;
-          if (batch_counter == reg2hw.batch.q - 1) begin
-            batch_counter <= 0;
-          end else begin
-            batch_counter <= batch_counter + 1;
-          end
+          batch_counter <= batch_counter + 1;
         end
 
         IM_OFFSET_UPDATE: begin
@@ -423,7 +420,7 @@ module im2col_spc
       IDLE_IF_CU: begin
         fifo_pop = 1'b0;
         dma_if_load = 1'b0;
-        if (fifo_empty == 1'b0 && im2col_done == 1'b1) begin
+        if (fifo_empty == 1'b0 && im2col_done == 1'b0) begin
           dma_if_cu_q = GET_TRANSACTION;
         end else begin
           dma_if_cu_q = IDLE_IF_CU;
@@ -444,7 +441,7 @@ module im2col_spc
         fifo_pop = 1'b0;
         dma_if_load = 1'b1;
         if (dma_if_loaded == 1'b1) begin
-          if (im2col_done == 1'b1) begin
+          if (im2col_done == 1'b0) begin
             dma_if_cu_q = GET_TRANSACTION;
           end else begin
             dma_if_cu_q = IDLE_IF_CU;

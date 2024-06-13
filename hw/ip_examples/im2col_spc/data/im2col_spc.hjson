@@ -98,6 +98,22 @@
         { bits: "31:0", name: "NUM", desc: "Number of patches" }
       ]
     },
+    { name:     "ADPT_PAD_RIGHT",
+      desc:     "Adapted right padded region",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "SIZE", desc: "Size of the adapted padded region" }
+      ]
+    },
+    { name:     "ADPT_PAD_BOTTOM",
+      desc:     "Adapted bottom padded region",
+      swaccess: "rw",
+      hwaccess: "hro",
+      fields: [
+        { bits: "31:0", name: "SIZE", desc: "Size of the adapted padded region" }
+      ]
+    },
     { name:     "STRIDES_D1",
       desc:     "Strides along D1, set to 1 for no stride",
       swaccess: "rw",

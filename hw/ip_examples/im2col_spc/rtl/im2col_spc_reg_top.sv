@@ -101,6 +101,12 @@ module im2col_spc_reg_top #(
   logic [31:0] n_patches_h_qs;
   logic [31:0] n_patches_h_wd;
   logic n_patches_h_we;
+  logic [31:0] adpt_pad_right_qs;
+  logic [31:0] adpt_pad_right_wd;
+  logic adpt_pad_right_we;
+  logic [31:0] adpt_pad_bottom_qs;
+  logic [31:0] adpt_pad_bottom_wd;
+  logic adpt_pad_bottom_we;
   logic [31:0] strides_d1_qs;
   logic [31:0] strides_d1_wd;
   logic strides_d1_we;
@@ -434,6 +440,60 @@ module im2col_spc_reg_top #(
   );
 
 
+  // R[adpt_pad_right]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_adpt_pad_right (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (adpt_pad_right_we),
+    .wd     (adpt_pad_right_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.adpt_pad_right.q ),
+
+    // to register interface (read)
+    .qs     (adpt_pad_right_qs)
+  );
+
+
+  // R[adpt_pad_bottom]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_adpt_pad_bottom (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (adpt_pad_bottom_we),
+    .wd     (adpt_pad_bottom_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.adpt_pad_bottom.q ),
+
+    // to register interface (read)
+    .qs     (adpt_pad_bottom_qs)
+  );
+
+
   // R[strides_d1]: V(False)
 
   prim_subreg #(
@@ -738,7 +798,7 @@ module im2col_spc_reg_top #(
 
 
 
-  logic [21:0] addr_hit;
+  logic [23:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[ 0] = (reg_addr == IM2COL_SPC_SRC_PTR_OFFSET);
@@ -752,17 +812,19 @@ module im2col_spc_reg_top #(
     addr_hit[ 8] = (reg_addr == IM2COL_SPC_CH_COL_OFFSET);
     addr_hit[ 9] = (reg_addr == IM2COL_SPC_N_PATCHES_W_OFFSET);
     addr_hit[10] = (reg_addr == IM2COL_SPC_N_PATCHES_H_OFFSET);
-    addr_hit[11] = (reg_addr == IM2COL_SPC_STRIDES_D1_OFFSET);
-    addr_hit[12] = (reg_addr == IM2COL_SPC_STRIDES_D2_OFFSET);
-    addr_hit[13] = (reg_addr == IM2COL_SPC_STATUS_OFFSET);
-    addr_hit[14] = (reg_addr == IM2COL_SPC_SLOT_OFFSET);
-    addr_hit[15] = (reg_addr == IM2COL_SPC_DATA_TYPE_OFFSET);
-    addr_hit[16] = (reg_addr == IM2COL_SPC_PAD_TOP_OFFSET);
-    addr_hit[17] = (reg_addr == IM2COL_SPC_PAD_BOTTOM_OFFSET);
-    addr_hit[18] = (reg_addr == IM2COL_SPC_PAD_RIGHT_OFFSET);
-    addr_hit[19] = (reg_addr == IM2COL_SPC_PAD_LEFT_OFFSET);
-    addr_hit[20] = (reg_addr == IM2COL_SPC_INTERRUPT_EN_OFFSET);
-    addr_hit[21] = (reg_addr == IM2COL_SPC_SPC_IFR_OFFSET);
+    addr_hit[11] = (reg_addr == IM2COL_SPC_ADPT_PAD_RIGHT_OFFSET);
+    addr_hit[12] = (reg_addr == IM2COL_SPC_ADPT_PAD_BOTTOM_OFFSET);
+    addr_hit[13] = (reg_addr == IM2COL_SPC_STRIDES_D1_OFFSET);
+    addr_hit[14] = (reg_addr == IM2COL_SPC_STRIDES_D2_OFFSET);
+    addr_hit[15] = (reg_addr == IM2COL_SPC_STATUS_OFFSET);
+    addr_hit[16] = (reg_addr == IM2COL_SPC_SLOT_OFFSET);
+    addr_hit[17] = (reg_addr == IM2COL_SPC_DATA_TYPE_OFFSET);
+    addr_hit[18] = (reg_addr == IM2COL_SPC_PAD_TOP_OFFSET);
+    addr_hit[19] = (reg_addr == IM2COL_SPC_PAD_BOTTOM_OFFSET);
+    addr_hit[20] = (reg_addr == IM2COL_SPC_PAD_RIGHT_OFFSET);
+    addr_hit[21] = (reg_addr == IM2COL_SPC_PAD_LEFT_OFFSET);
+    addr_hit[22] = (reg_addr == IM2COL_SPC_INTERRUPT_EN_OFFSET);
+    addr_hit[23] = (reg_addr == IM2COL_SPC_SPC_IFR_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -791,7 +853,9 @@ module im2col_spc_reg_top #(
                (addr_hit[18] & (|(IM2COL_SPC_PERMIT[18] & ~reg_be))) |
                (addr_hit[19] & (|(IM2COL_SPC_PERMIT[19] & ~reg_be))) |
                (addr_hit[20] & (|(IM2COL_SPC_PERMIT[20] & ~reg_be))) |
-               (addr_hit[21] & (|(IM2COL_SPC_PERMIT[21] & ~reg_be)))));
+               (addr_hit[21] & (|(IM2COL_SPC_PERMIT[21] & ~reg_be))) |
+               (addr_hit[22] & (|(IM2COL_SPC_PERMIT[22] & ~reg_be))) |
+               (addr_hit[23] & (|(IM2COL_SPC_PERMIT[23] & ~reg_be)))));
   end
 
   assign src_ptr_we = addr_hit[0] & reg_we & !reg_error;
@@ -827,39 +891,45 @@ module im2col_spc_reg_top #(
   assign n_patches_h_we = addr_hit[10] & reg_we & !reg_error;
   assign n_patches_h_wd = reg_wdata[31:0];
 
-  assign strides_d1_we = addr_hit[11] & reg_we & !reg_error;
+  assign adpt_pad_right_we = addr_hit[11] & reg_we & !reg_error;
+  assign adpt_pad_right_wd = reg_wdata[31:0];
+
+  assign adpt_pad_bottom_we = addr_hit[12] & reg_we & !reg_error;
+  assign adpt_pad_bottom_wd = reg_wdata[31:0];
+
+  assign strides_d1_we = addr_hit[13] & reg_we & !reg_error;
   assign strides_d1_wd = reg_wdata[31:0];
 
-  assign strides_d2_we = addr_hit[12] & reg_we & !reg_error;
+  assign strides_d2_we = addr_hit[14] & reg_we & !reg_error;
   assign strides_d2_wd = reg_wdata[31:0];
 
-  assign status_re = addr_hit[13] & reg_re & !reg_error;
+  assign status_re = addr_hit[15] & reg_re & !reg_error;
 
-  assign slot_rx_trigger_slot_we = addr_hit[14] & reg_we & !reg_error;
+  assign slot_rx_trigger_slot_we = addr_hit[16] & reg_we & !reg_error;
   assign slot_rx_trigger_slot_wd = reg_wdata[15:0];
 
-  assign slot_tx_trigger_slot_we = addr_hit[14] & reg_we & !reg_error;
+  assign slot_tx_trigger_slot_we = addr_hit[16] & reg_we & !reg_error;
   assign slot_tx_trigger_slot_wd = reg_wdata[31:16];
 
-  assign data_type_we = addr_hit[15] & reg_we & !reg_error;
+  assign data_type_we = addr_hit[17] & reg_we & !reg_error;
   assign data_type_wd = reg_wdata[1:0];
 
-  assign pad_top_we = addr_hit[16] & reg_we & !reg_error;
+  assign pad_top_we = addr_hit[18] & reg_we & !reg_error;
   assign pad_top_wd = reg_wdata[5:0];
 
-  assign pad_bottom_we = addr_hit[17] & reg_we & !reg_error;
+  assign pad_bottom_we = addr_hit[19] & reg_we & !reg_error;
   assign pad_bottom_wd = reg_wdata[5:0];
 
-  assign pad_right_we = addr_hit[18] & reg_we & !reg_error;
+  assign pad_right_we = addr_hit[20] & reg_we & !reg_error;
   assign pad_right_wd = reg_wdata[5:0];
 
-  assign pad_left_we = addr_hit[19] & reg_we & !reg_error;
+  assign pad_left_we = addr_hit[21] & reg_we & !reg_error;
   assign pad_left_wd = reg_wdata[5:0];
 
-  assign interrupt_en_we = addr_hit[20] & reg_we & !reg_error;
+  assign interrupt_en_we = addr_hit[22] & reg_we & !reg_error;
   assign interrupt_en_wd = reg_wdata[0];
 
-  assign spc_ifr_re = addr_hit[21] & reg_re & !reg_error;
+  assign spc_ifr_re = addr_hit[23] & reg_re & !reg_error;
 
   // Read data return
   always_comb begin
@@ -910,47 +980,55 @@ module im2col_spc_reg_top #(
       end
 
       addr_hit[11]: begin
-        reg_rdata_next[31:0] = strides_d1_qs;
+        reg_rdata_next[31:0] = adpt_pad_right_qs;
       end
 
       addr_hit[12]: begin
-        reg_rdata_next[31:0] = strides_d2_qs;
+        reg_rdata_next[31:0] = adpt_pad_bottom_qs;
       end
 
       addr_hit[13]: begin
-        reg_rdata_next[0] = status_qs;
+        reg_rdata_next[31:0] = strides_d1_qs;
       end
 
       addr_hit[14]: begin
+        reg_rdata_next[31:0] = strides_d2_qs;
+      end
+
+      addr_hit[15]: begin
+        reg_rdata_next[0] = status_qs;
+      end
+
+      addr_hit[16]: begin
         reg_rdata_next[15:0] = slot_rx_trigger_slot_qs;
         reg_rdata_next[31:16] = slot_tx_trigger_slot_qs;
       end
 
-      addr_hit[15]: begin
+      addr_hit[17]: begin
         reg_rdata_next[1:0] = data_type_qs;
       end
 
-      addr_hit[16]: begin
+      addr_hit[18]: begin
         reg_rdata_next[5:0] = pad_top_qs;
       end
 
-      addr_hit[17]: begin
+      addr_hit[19]: begin
         reg_rdata_next[5:0] = pad_bottom_qs;
       end
 
-      addr_hit[18]: begin
+      addr_hit[20]: begin
         reg_rdata_next[5:0] = pad_right_qs;
       end
 
-      addr_hit[19]: begin
+      addr_hit[21]: begin
         reg_rdata_next[5:0] = pad_left_qs;
       end
 
-      addr_hit[20]: begin
+      addr_hit[22]: begin
         reg_rdata_next[0] = interrupt_en_qs;
       end
 
-      addr_hit[21]: begin
+      addr_hit[23]: begin
         reg_rdata_next[0] = spc_ifr_qs;
       end
 

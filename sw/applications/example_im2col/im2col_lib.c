@@ -420,13 +420,13 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 {
                     n_zeros_top = 0;
                 }
-                else if ( (TOP_PAD - h_offset) % STRIDE_D1 == 0 )
+                else if ( (TOP_PAD - h_offset) % STRIDE_D2 == 0 )
                 {
-                    n_zeros_top = (TOP_PAD - h_offset) / STRIDE_D1;
+                    n_zeros_top = (TOP_PAD - h_offset) / STRIDE_D2;
                 }
                 else
                 {
-                    n_zeros_top = (TOP_PAD - h_offset) / STRIDE_D1 + 1;
+                    n_zeros_top = (TOP_PAD - h_offset) / STRIDE_D2 + 1;
                 }
 
                 /* Computing the number of zeros on the right */
@@ -436,19 +436,18 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
 
                 /* To adapt the final case to the formulas used to the first padded region, let's compute an "adapted" padded region,
                 /* by removing the elements of the row uncovered by the sliding filter */
-                tmp_pad =  STRIDE_D1 * (N_PATCHES_W - 1) + FW - (LEFT_PAD + IW);
-
-                if (fw_minus_w_offset >= RIGHT_PAD)
+                
+                if (fw_minus_w_offset >= RIGHT_PAD || ADPT_PAD_RIGHT == 0)
                 {
                     n_zeros_right = 0;
                 }
-                else if ( (tmp_pad - (fw_minus_w_offset)) % STRIDE_D1 == 0 )
+                else if ( (ADPT_PAD_RIGHT - (fw_minus_w_offset)) % STRIDE_D1 == 0 )
                 {
-                    n_zeros_right = (tmp_pad - (fw_minus_w_offset)) / STRIDE_D1;
+                    n_zeros_right = (ADPT_PAD_RIGHT - (fw_minus_w_offset)) / STRIDE_D1;
                 }
                 else
                 {
-                    n_zeros_right = (tmp_pad - (fw_minus_w_offset)) / STRIDE_D1 + 1;
+                    n_zeros_right = (ADPT_PAD_RIGHT - (fw_minus_w_offset)) / STRIDE_D1 + 1;
                 }
 
                 /* Computing the number of zeros on the bottom */
@@ -458,19 +457,18 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
 
                 /* To adapt the final case to the formulas used to the first padded region, let's compute an "adapted" padded region,
                 /* by removing the elements of the row uncovered by the sliding filter */
-                tmp_pad = STRIDE_D1 * (N_PATCHES_H - 1) + FH - (TOP_PAD + IH);
 
-                if (fh_minus_h_offset >= RIGHT_PAD || tmp_pad == 0)
+                if (fh_minus_h_offset >= BOTTOM_PAD || ADPT_PAD_BOTTOM == 0)
                 {
                     n_zeros_bottom = 0;
                 }
-                else if ( (tmp_pad - (fh_minus_h_offset)) % STRIDE_D1 == 0)
+                else if ( (ADPT_PAD_BOTTOM - (fh_minus_h_offset)) % STRIDE_D2 == 0)
                 {
-                    n_zeros_bottom = (tmp_pad - (fh_minus_h_offset)) / STRIDE_D1;
+                    n_zeros_bottom = (ADPT_PAD_BOTTOM - (fh_minus_h_offset)) / STRIDE_D2;
                 }
                 else
                 {
-                    n_zeros_bottom = (tmp_pad - (fh_minus_h_offset)) / STRIDE_D1 + 1;
+                    n_zeros_bottom = (ADPT_PAD_BOTTOM - (fh_minus_h_offset)) / STRIDE_D2 + 1;
                 }
 
                 /* Compute the number of elements to transfer */
@@ -699,6 +697,19 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                         0xffffffff,
                         0,
                         IM2COL_SPC_BASE_ADDR );
+        
+        /* Write the adapted pad regions */
+        write_register( ADPT_PAD_RIGHT,
+                        IM2COL_SPC_ADPT_PAD_RIGHT_REG_OFFSET,
+                        0xffffffff,
+                        0,
+                        IM2COL_SPC_BASE_ADDR );
+        
+        write_register( ADPT_PAD_BOTTOM,
+                        IM2COL_SPC_ADPT_PAD_BOTTOM_REG_OFFSET,
+                        0xffffffff,
+                        0,
+                        IM2COL_SPC_BASE_ADDR );
 
         /* Enable the interrupt logic */
         write_register( 0x1,
@@ -706,13 +717,18 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                         0x1,
                         IM2COL_SPC_INTERRUPT_EN_EN_BIT,
                         IM2COL_SPC_BASE_ADDR );
-
-        /* Enable the DMA interrupt logic */
-        write_register( 0x1,
-                        DMA_INTERRUPT_EN_REG_OFFSET,
-                        0xffff,
-                        DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT,
+        
+        /* Write the number of channels to start the process */
+        write_register( CH,
+                        IM2COL_SPC_NUM_CH_REG_OFFSET,
+                        0xffffffff,
+                        0,
                         IM2COL_SPC_BASE_ADDR );
+        
+        while ( (int * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_STATUS_REG_OFFSET) == 0)
+        {
+            /* Wait for the SPC to finish */
+        }
     }
     /* Finished! */
 
