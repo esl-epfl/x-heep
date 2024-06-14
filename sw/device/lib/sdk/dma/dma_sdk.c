@@ -19,7 +19,7 @@
 /* ---- GLOBAL VARIABLES ---- */
 /******************************/
 
-volatile uint8_t dma_intr_flag;
+volatile uint8_t dma_sdk_intr_flag;
 
 /**********************************/
 /* ---- FUNCTION DEFINITIONS ---- */
@@ -485,5 +485,5 @@ int dma_copy(const uint8_t *dst, const uint8_t *src, const size_t bytes, const d
 // DMA interrupt handler
 void dma_intr_handler_trans_done()
 {
-    dma_intr_flag = 1;
+    dma_sdk_intr_flag = 1;
 }

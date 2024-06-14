@@ -19,7 +19,7 @@
 /* ---- EXPORTED VARIABLES ---- */
 /********************************/
 
-extern volatile uint8_t dma_intr_flag;
+extern volatile uint8_t dma_sdk_intr_flag;
 
 /********************************/
 /* ---- EXPORTED FUNCTIONS ---- */
