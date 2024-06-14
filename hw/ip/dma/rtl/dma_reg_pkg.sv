@@ -13,11 +13,20 @@ package dma_reg_pkg;
   // Typedefs for registers //
   ////////////////////////////
 
-  typedef struct packed {logic [31:0] q;} dma_reg2hw_src_ptr_reg_t;
+  typedef struct packed {
+    logic [31:0] q;
+    logic        qe;
+  } dma_reg2hw_src_ptr_reg_t;
 
-  typedef struct packed {logic [31:0] q;} dma_reg2hw_dst_ptr_reg_t;
+  typedef struct packed {
+    logic [31:0] q;
+    logic        qe;
+  } dma_reg2hw_dst_ptr_reg_t;
 
-  typedef struct packed {logic [31:0] q;} dma_reg2hw_addr_ptr_reg_t;
+  typedef struct packed {
+    logic [31:0] q;
+    logic        qe;
+  } dma_reg2hw_addr_ptr_reg_t;
 
   typedef struct packed {
     logic [15:0] q;
@@ -40,26 +49,56 @@ package dma_reg_pkg;
     } window_done;
   } dma_reg2hw_status_reg_t;
 
-  typedef struct packed {logic [5:0] q;} dma_reg2hw_src_ptr_inc_d1_reg_t;
-
-  typedef struct packed {logic [22:0] q;} dma_reg2hw_src_ptr_inc_d2_reg_t;
-
-  typedef struct packed {logic [5:0] q;} dma_reg2hw_dst_ptr_inc_d1_reg_t;
-
-  typedef struct packed {logic [22:0] q;} dma_reg2hw_dst_ptr_inc_d2_reg_t;
+  typedef struct packed {
+    logic [5:0] q;
+    logic       qe;
+  } dma_reg2hw_src_ptr_inc_d1_reg_t;
 
   typedef struct packed {
-    struct packed {logic [15:0] q;} rx_trigger_slot;
-    struct packed {logic [15:0] q;} tx_trigger_slot;
+    logic [22:0] q;
+    logic        qe;
+  } dma_reg2hw_src_ptr_inc_d2_reg_t;
+
+  typedef struct packed {
+    logic [5:0] q;
+    logic       qe;
+  } dma_reg2hw_dst_ptr_inc_d1_reg_t;
+
+  typedef struct packed {
+    logic [22:0] q;
+    logic        qe;
+  } dma_reg2hw_dst_ptr_inc_d2_reg_t;
+
+  typedef struct packed {
+    struct packed {
+      logic [15:0] q;
+      logic        qe;
+    } rx_trigger_slot;
+    struct packed {
+      logic [15:0] q;
+      logic        qe;
+    } tx_trigger_slot;
   } dma_reg2hw_slot_reg_t;
 
-  typedef struct packed {logic [1:0] q;} dma_reg2hw_data_type_reg_t;
+  typedef struct packed {
+    logic [1:0] q;
+    logic       qe;
+  } dma_reg2hw_data_type_reg_t;
 
-  typedef struct packed {logic [1:0] q;} dma_reg2hw_mode_reg_t;
+  typedef struct packed {
+    logic [1:0] q;
+    logic       qe;
+  } dma_reg2hw_mode_reg_t;
 
-  typedef struct packed {logic q;} dma_reg2hw_dim_config_reg_t;
+  typedef struct packed {
+    logic q;
+    logic qe;
+  } dma_reg2hw_dim_config_reg_t;
 
-  typedef struct packed {logic q;} dma_reg2hw_dim_inv_reg_t;
+  typedef struct packed {
+    logic q;
+    logic qe;
+  } dma_reg2hw_dim_inv_reg_t;
 
   typedef struct packed {
     logic [5:0] q;
@@ -81,13 +120,25 @@ package dma_reg_pkg;
     logic       qe;
   } dma_reg2hw_pad_left_reg_t;
 
-  typedef struct packed {logic [12:0] q;} dma_reg2hw_window_size_reg_t;
-
-  typedef struct packed {logic [7:0] q;} dma_reg2hw_window_count_reg_t;
+  typedef struct packed {
+    logic [12:0] q;
+    logic        qe;
+  } dma_reg2hw_window_size_reg_t;
 
   typedef struct packed {
-    struct packed {logic q;} transaction_done;
-    struct packed {logic q;} window_done;
+    logic [7:0] q;
+    logic       qe;
+  } dma_reg2hw_window_count_reg_t;
+
+  typedef struct packed {
+    struct packed {
+      logic q;
+      logic qe;
+    } transaction_done;
+    struct packed {
+      logic q;
+      logic qe;
+    } window_done;
   } dma_reg2hw_interrupt_en_reg_t;
 
   typedef struct packed {
@@ -116,28 +167,28 @@ package dma_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    dma_reg2hw_src_ptr_reg_t src_ptr;  // [284:253]
-    dma_reg2hw_dst_ptr_reg_t dst_ptr;  // [252:221]
-    dma_reg2hw_addr_ptr_reg_t addr_ptr;  // [220:189]
-    dma_reg2hw_size_d1_reg_t size_d1;  // [188:172]
-    dma_reg2hw_size_d2_reg_t size_d2;  // [171:155]
-    dma_reg2hw_status_reg_t status;  // [154:151]
-    dma_reg2hw_src_ptr_inc_d1_reg_t src_ptr_inc_d1;  // [150:145]
-    dma_reg2hw_src_ptr_inc_d2_reg_t src_ptr_inc_d2;  // [144:122]
-    dma_reg2hw_dst_ptr_inc_d1_reg_t dst_ptr_inc_d1;  // [121:116]
-    dma_reg2hw_dst_ptr_inc_d2_reg_t dst_ptr_inc_d2;  // [115:93]
-    dma_reg2hw_slot_reg_t slot;  // [92:61]
-    dma_reg2hw_data_type_reg_t data_type;  // [60:59]
-    dma_reg2hw_mode_reg_t mode;  // [58:57]
-    dma_reg2hw_dim_config_reg_t dim_config;  // [56:56]
-    dma_reg2hw_dim_inv_reg_t dim_inv;  // [55:55]
-    dma_reg2hw_pad_top_reg_t pad_top;  // [54:48]
-    dma_reg2hw_pad_bottom_reg_t pad_bottom;  // [47:41]
-    dma_reg2hw_pad_right_reg_t pad_right;  // [40:34]
-    dma_reg2hw_pad_left_reg_t pad_left;  // [33:27]
-    dma_reg2hw_window_size_reg_t window_size;  // [26:14]
-    dma_reg2hw_window_count_reg_t window_count;  // [13:6]
-    dma_reg2hw_interrupt_en_reg_t interrupt_en;  // [5:4]
+    dma_reg2hw_src_ptr_reg_t src_ptr;  // [301:269]
+    dma_reg2hw_dst_ptr_reg_t dst_ptr;  // [268:236]
+    dma_reg2hw_addr_ptr_reg_t addr_ptr;  // [235:203]
+    dma_reg2hw_size_d1_reg_t size_d1;  // [202:186]
+    dma_reg2hw_size_d2_reg_t size_d2;  // [185:169]
+    dma_reg2hw_status_reg_t status;  // [168:165]
+    dma_reg2hw_src_ptr_inc_d1_reg_t src_ptr_inc_d1;  // [164:158]
+    dma_reg2hw_src_ptr_inc_d2_reg_t src_ptr_inc_d2;  // [157:134]
+    dma_reg2hw_dst_ptr_inc_d1_reg_t dst_ptr_inc_d1;  // [133:127]
+    dma_reg2hw_dst_ptr_inc_d2_reg_t dst_ptr_inc_d2;  // [126:103]
+    dma_reg2hw_slot_reg_t slot;  // [102:69]
+    dma_reg2hw_data_type_reg_t data_type;  // [68:66]
+    dma_reg2hw_mode_reg_t mode;  // [65:63]
+    dma_reg2hw_dim_config_reg_t dim_config;  // [62:61]
+    dma_reg2hw_dim_inv_reg_t dim_inv;  // [60:59]
+    dma_reg2hw_pad_top_reg_t pad_top;  // [58:52]
+    dma_reg2hw_pad_bottom_reg_t pad_bottom;  // [51:45]
+    dma_reg2hw_pad_right_reg_t pad_right;  // [44:38]
+    dma_reg2hw_pad_left_reg_t pad_left;  // [37:31]
+    dma_reg2hw_window_size_reg_t window_size;  // [30:17]
+    dma_reg2hw_window_count_reg_t window_count;  // [16:8]
+    dma_reg2hw_interrupt_en_reg_t interrupt_en;  // [7:4]
     dma_reg2hw_transaction_ifr_reg_t transaction_ifr;  // [3:2]
     dma_reg2hw_window_ifr_reg_t window_ifr;  // [1:0]
   } dma_reg2hw_t;

@@ -487,7 +487,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 src_inc_d2 = (STRIDE_D2 * IW - (size_transfer - 1 + (STRIDE_D1 - 1) * (size_transfer - 1)));
 
                 PRINTF_DEB("\n\rindex: %d, src_inc_d2: %d", index, src_inc_d2);
-                PRINTF("%d %d %d %d %d\n\r ", src_inc_d2, n_zeros_top, n_zeros_bottom, fh_minus_h_offset, tmp_pad);
+                //PRINTF("%d %d %d %d %d\n\r ", src_inc_d2, n_zeros_top, n_zeros_bottom, fh_minus_h_offset, tmp_pad);
 
                 input_image_ptr = &input_image_nchw[0] + index;
                 tgt_src.ptr = input_image_ptr;

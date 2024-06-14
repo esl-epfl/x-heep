@@ -37,8 +37,8 @@ module x_heep_system
     input  obi_resp_t ext_dma_addr_ch0_resp_i,
 
     % if int(ao_peripherals_num_spc) > 0:
-    input obi_req_t ext_ao_peripheral_req_i[core_v_mini_mcu_pkg::AO_SPC_NUM:0],
-    output obi_resp_t ext_ao_peripheral_resp_o[core_v_mini_mcu_pkg::AO_SPC_NUM:0],
+    input obi_req_t ext_ao_peripheral_req_i[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
+    output obi_resp_t ext_ao_peripheral_resp_o[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
     % endif
 
     output reg_req_t ext_peripheral_slave_req_o,

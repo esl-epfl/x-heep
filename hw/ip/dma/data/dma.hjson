@@ -13,6 +13,7 @@
       desc:     "Input data pointer (word aligned)",
       swaccess: "rw",
       hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
       fields: [
         { bits: "31:0", name: "PTR_IN", desc: "Input data pointer (word aligned)" }
       ]
@@ -21,6 +22,7 @@
       desc:     "Output data pointer (word aligned)",
       swaccess: "rw",
       hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
       fields: [
         { bits: "31:0", name: "PTR_OUT", desc: "Output data pointer (word aligned)" }
       ]
@@ -29,6 +31,7 @@
       desc:     "Addess data pointer (word aligned)",
       swaccess: "rw",
       hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
       fields: [
         { bits: "31:0", name: "PTR_ADDR", desc: "Address data pointer (word aligned) - used only in Address mode" }
       ]
@@ -69,6 +72,7 @@
       desc:     "Increment the D1 source pointer every time a word is copied",
       swaccess: "rw",
       hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
       // Dimensioned to allow a maximum of a 15 element stride for a data_type_word case
       fields: [
         { bits: "5:0", 
@@ -82,6 +86,7 @@
       desc:     "Increment the D2 source pointer every time a word is copied",
       swaccess: "rw",
       hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
       // Dimensioned to allow a maximum of 15 element stride for a data_type_word
       fields: [
         { bits: "22:0", 
@@ -95,6 +100,7 @@
       desc:     "Increment the D1 destination pointer every time a word is copied",
       swaccess: "rw",
       hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
       fields: [
         { bits: "5:0", 
           name: "INC", 
@@ -107,6 +113,7 @@
       desc:     "Increment the D2 destination pointer every time a word is copied",
       swaccess: "rw",
       hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
       fields: [
         { bits: "22:0", 
           name: "INC", 
@@ -121,6 +128,7 @@
                    on the read and write side respectivly''',
       swaccess: "rw",
       hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
       resval:   0,
       fields: [
         { bits: "15:0", name: "RX_TRIGGER_SLOT",
@@ -135,6 +143,7 @@
       desc:     '''Width/type of the data to transfer''',
       swaccess: "rw",
       hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
       resval:   0,
       fields: [
         { bits: "1:0", name: "DATA_TYPE", 
@@ -153,6 +162,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       resval:        0,
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
       fields: [
         { bits: "1:0", name: "MODE",
           desc: "DMA operation mode",
@@ -168,6 +178,7 @@
       desc:     '''Set the dimensionality of the DMA''',
       swaccess: "rw",
       hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
       resval:   0,
       fields: [
         { bits: "0", name: "DMA_DIM", desc: "DMA transfer dimensionality"}
@@ -177,6 +188,7 @@
       desc:     '''DMA dimensionality inversion selector''',
       swaccess: "rw",
       hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
       resval:   0,
       fields: [
         { bits: "0", name: "SEL", desc: "DMA dimensionality inversion, used to perform transposition"}
@@ -227,6 +239,7 @@
                   Set to 0 to disable.''',
       swaccess: "rw",
       hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
       resval:        0,
       fields: [
         { bits: "12:0", name: "WINDOW_SIZE", desc: ""}
@@ -236,8 +249,8 @@
       desc:    '''Number of times the end of the window was reached since the beginning.
                   Reset at start''',
       swaccess: "ro",
-      // hwext: "true",
       hwaccess: "hrw",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
       resval: 0,
       fields: [
         { bits: "7:0", name: "WINDOW_COUNT", desc: "Number of windows transferred in the transaction" }
@@ -248,6 +261,7 @@
                   (Only the interrupt with the lowest id will be triggered)''',
       swaccess: "rw",
       hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
       resval:        0,
       fields: [
         { bits: "0", name: "TRANSACTION_DONE", desc: "Enables transaction done interrupt" }

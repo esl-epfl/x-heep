@@ -137,8 +137,8 @@ module testharness #(
   ) ext_if ();
 
   // External SPC interface signals
-  obi_req_t ext_ao_peripheral_req[core_v_mini_mcu_pkg::AO_SPC_NUM:0];
-  obi_resp_t ext_ao_peripheral_resp[core_v_mini_mcu_pkg::AO_SPC_NUM:0];
+  obi_req_t ext_ao_peripheral_req[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0];
+  obi_resp_t ext_ao_peripheral_resp[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0];
   logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_busy;
 
   always_comb begin

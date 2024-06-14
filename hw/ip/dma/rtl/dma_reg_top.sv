@@ -164,7 +164,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.src_ptr.qe),
       .q (reg2hw.src_ptr.q),
 
       // to register interface (read)
@@ -191,7 +191,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.dst_ptr.qe),
       .q (reg2hw.dst_ptr.q),
 
       // to register interface (read)
@@ -218,7 +218,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.addr_ptr.qe),
       .q (reg2hw.addr_ptr.q),
 
       // to register interface (read)
@@ -331,7 +331,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.src_ptr_inc_d1.qe),
       .q (reg2hw.src_ptr_inc_d1.q),
 
       // to register interface (read)
@@ -358,7 +358,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.src_ptr_inc_d2.qe),
       .q (reg2hw.src_ptr_inc_d2.q),
 
       // to register interface (read)
@@ -385,7 +385,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.dst_ptr_inc_d1.qe),
       .q (reg2hw.dst_ptr_inc_d1.q),
 
       // to register interface (read)
@@ -412,7 +412,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.dst_ptr_inc_d2.qe),
       .q (reg2hw.dst_ptr_inc_d2.q),
 
       // to register interface (read)
@@ -440,7 +440,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.slot.rx_trigger_slot.qe),
       .q (reg2hw.slot.rx_trigger_slot.q),
 
       // to register interface (read)
@@ -466,7 +466,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.slot.tx_trigger_slot.qe),
       .q (reg2hw.slot.tx_trigger_slot.q),
 
       // to register interface (read)
@@ -493,7 +493,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.data_type.qe),
       .q (reg2hw.data_type.q),
 
       // to register interface (read)
@@ -520,7 +520,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.mode.qe),
       .q (reg2hw.mode.q),
 
       // to register interface (read)
@@ -547,7 +547,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.dim_config.qe),
       .q (reg2hw.dim_config.q),
 
       // to register interface (read)
@@ -574,7 +574,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.dim_inv.qe),
       .q (reg2hw.dim_inv.q),
 
       // to register interface (read)
@@ -709,7 +709,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.window_size.qe),
       .q (reg2hw.window_size.q),
 
       // to register interface (read)
@@ -735,7 +735,7 @@ module dma_reg_top #(
       .d (hw2reg.window_count.d),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.window_count.qe),
       .q (reg2hw.window_count.q),
 
       // to register interface (read)
@@ -763,7 +763,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.interrupt_en.transaction_done.qe),
       .q (reg2hw.interrupt_en.transaction_done.q),
 
       // to register interface (read)
@@ -789,7 +789,7 @@ module dma_reg_top #(
       .d ('0),
 
       // to internal hardware
-      .qe(),
+      .qe(reg2hw.interrupt_en.window_done.qe),
       .q (reg2hw.interrupt_en.window_done.q),
 
       // to register interface (read)

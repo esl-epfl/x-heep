@@ -283,8 +283,8 @@ module core_v_mini_mcu
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
     output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
 
-    input  obi_req_t  ext_ao_peripheral_slave_req_i [core_v_mini_mcu_pkg::AO_SPC_NUM:0],
-    output obi_resp_t ext_ao_peripheral_slave_resp_o[core_v_mini_mcu_pkg::AO_SPC_NUM:0],
+    input  obi_req_t  ext_ao_peripheral_slave_req_i [core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
+    output obi_resp_t ext_ao_peripheral_slave_resp_o[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
 
     // External slave ports
     output obi_req_t  ext_core_instr_req_o,
@@ -449,8 +449,8 @@ module core_v_mini_mcu
 
   generate
     for (genvar i = 1; i < core_v_mini_mcu_pkg::AO_SPC_NUM + 1; i++) begin
-      assign bus2ao_req[i] = ext_ao_peripheral_slave_req_i[i];
-      assign ext_ao_peripheral_slave_resp_o[i] = ao2bus_resp[i];
+      assign bus2ao_req[i] = ext_ao_peripheral_slave_req_i[i-1];
+      assign ext_ao_peripheral_slave_resp_o[i-1] = ao2bus_resp[i];
     end
   endgenerate
 

@@ -45,7 +45,7 @@
 #define PRINTF_IN_SIM   1
 
 /* Set to 1 to enable debug prints */
-#define DEBUG 1
+#define DEBUG 0
 /* Set to 1 to enable timing measurements */
 #define TIMING 1
 

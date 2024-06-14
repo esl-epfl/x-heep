@@ -38,8 +38,8 @@ ${pad.core_v_mini_mcu_interface}
     output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
 
 % if int(ao_peripherals_num_spc) > 0:
-    input obi_req_t ext_ao_peripheral_slave_req_i[core_v_mini_mcu_pkg::AO_SPC_NUM:0],
-    output obi_resp_t ext_ao_peripheral_slave_resp_o[core_v_mini_mcu_pkg::AO_SPC_NUM:0],
+    input obi_req_t ext_ao_peripheral_slave_req_i[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
+    output obi_resp_t ext_ao_peripheral_slave_resp_o[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
 % endif
 
     // External slave ports
@@ -206,8 +206,8 @@ ${pad.core_v_mini_mcu_interface}
   % if int(ao_peripherals_num_spc) > 0:
   generate
     for (genvar i = 1; i < core_v_mini_mcu_pkg::AO_SPC_NUM + 1; i++) begin
-      assign bus2ao_req[i] = ext_ao_peripheral_slave_req_i[i];
-      assign ext_ao_peripheral_slave_resp_o[i] = ao2bus_resp[i];
+      assign bus2ao_req[i] = ext_ao_peripheral_slave_req_i[i-1];
+      assign ext_ao_peripheral_slave_resp_o[i-1] = ao2bus_resp[i];
     end
   endgenerate
   % endif
