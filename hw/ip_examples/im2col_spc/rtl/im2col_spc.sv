@@ -87,7 +87,6 @@ module im2col_spc
   logic dma_if_load_req;
   logic dma_if_load_rvalid;
   logic dma_channels_full;
-  logic dma_channel_found;
 
   /* Regtool signals */
   im2col_spc_reg2hw_t reg2hw;
@@ -896,7 +895,6 @@ module im2col_spc
   /* Channel tracker */
   always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_control_unit
     if (!rst_ni) begin
-      dma_channel_found <= 1'b0;
       dma_channels_full <= 1'b0;
       dma_free_channel <= '0;
       for (int i = 0; i < NUM_CH_SPC; i = i + 1) begin
@@ -911,22 +909,19 @@ module im2col_spc
         end
         
       /* If a transaction has to take place, look for a free channel. 
-       * If one is found, occupy it and set the dma_free_channel to its index */
-      for (int i = 0; i < NUM_CH_SPC; i = i + 1) begin
-        if (dma_if_channels[i] == 1'b0 && dma_channels_full == 1'b0 && fifo_pop == 1'b1) begin
-          dma_free_channel <= i[$clog2(NUM_CH_SPC)-1:0];
-          dma_channel_found <= 1'b1;
-          dma_if_channels[i] <= 1'b1;
-          dma_channels_full <= 1'b0;
-          break;
-        end else begin
-          dma_free_channel <= '0;
-        end
-      end
-
-      /* If a channel was requested but none could be found free, assert the dma_channels_full signal */
-      if (dma_channel_found == 1'b0 && fifo_pop == 1'b1) begin
+       * If one is found, occupy it and set the dma_free_channel to its index.
+       * Also set the channel full flag to 1'b0, otherwise it stays to 1.
+       */
+      if (fifo_pop == 1'b1) begin
         dma_channels_full <= 1'b1;
+        dma_free_channel <= '0;
+        for (int i = 0; i < NUM_CH_SPC; i = i + 1) begin
+          if (dma_if_channels[i] == 1'b0) begin
+            dma_free_channel <= i[$clog2(NUM_CH_SPC)-1:0];
+            dma_if_channels[i] <= 1'b1;
+            dma_channels_full <= 1'b0;
+            break;
+          end 
       end
     end
   end
