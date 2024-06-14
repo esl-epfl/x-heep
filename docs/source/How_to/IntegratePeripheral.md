@@ -206,7 +206,7 @@ module <peripheral> #(
 
 b. The corresponding package must be imported:
 
-```systemverilog
+```
 import <peripheral>_reg_pkg::*;
 ```
 

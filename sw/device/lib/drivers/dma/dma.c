@@ -165,11 +165,31 @@ static inline uint8_t get_misalignment_b(   uint8_t         *p_ptr,
  * @retval 1 There is an outbound.
  * @retval 0 There is NOT an outbound.
  */
-static inline uint8_t is_region_outbound(   uint8_t  *p_start,
+static inline uint8_t is_region_outbound_1D(   uint8_t  *p_start,
                                             uint8_t  *p_end,
                                             uint32_t p_type,
                                             uint32_t p_size_du,
                                             uint32_t p_inc_du );
+
+/**
+ * @brief Determines whether a given region will fit before the end of an
+ * environment with a 2D transaction.
+ * @param p_start Pointer to the beginning of the region.
+ * @param p_end Pointer to the last byte of the environment.
+ * @param p_type The data type to be transferred.
+ * @param p_size_du The number of data units to be transferred. Must be
+ * non-zero.
+ * @param p_inc_du The size in data units of each increment.
+ * @retval 1 There is an outbound.
+ * @retval 0 There is NOT an outbound.
+ */
+static inline uint8_t is_region_outbound_2D(   uint8_t  *p_start,
+                                            uint8_t  *p_end,
+                                            uint32_t p_type,
+                                            uint32_t p_size_d1_du,
+                                            uint32_t p_size_d2_du,
+                                            uint32_t p_inc_d1_du,
+                                            uint32_t p_inc_d2_du );
 
 /**
  * @brief Writes a given value into the specified register. Its operation
@@ -190,11 +210,18 @@ static inline void write_register(  uint32_t p_val,
 
 
 /**
- * @brief Analyzes a target to determine the size of its increment (in bytes).
+ * @brief Analyzes a target to determine the size of its D1 increment (in bytes).
  * @param p_tgt A pointer to the target to analyze.
  * @return The number of bytes of the increment.
  */
-static inline uint32_t get_increment_b( dma_target_t * p_tgt );
+static inline uint32_t get_increment_b_1D( dma_target_t * p_tgt );
+
+/**
+ * @brief Analyzes a target to determine the size of its D2 increment (in bytes).
+ * @param p_tgt A pointer to the target to analyze.
+ * @return The number of bytes of the increment.
+ */
+static inline uint32_t get_increment_b_2D( dma_target_t * p_tgt );
 
 
 /****************************************************************************/
@@ -273,15 +300,28 @@ void dma_init( dma *peri )
     /* Clear the loaded transaction */
     dma_cb.trans = NULL;
     /* Clear all values in the DMA registers. */
-    dma_cb.peri->SRC_PTR       = 0;
-    dma_cb.peri->DST_PTR       = 0;
-    dma_cb.peri->SIZE          = 0;
-    dma_cb.peri->PTR_INC       = 0;
-    dma_cb.peri->SLOT          = 0;
-    dma_cb.peri->DATA_TYPE     = 0;
-    dma_cb.peri->MODE          = 0;
-    dma_cb.peri->WINDOW_SIZE   = 0;
-    dma_cb.peri->INTERRUPT_EN  = 0;
+    dma_cb.peri->SRC_PTR        = 0;
+    dma_cb.peri->DST_PTR        = 0;
+    dma_cb.peri->ADDR_PTR       = 0;
+    dma_cb.peri->SIZE_D1        = 0;
+    dma_cb.peri->SIZE_D2        = 0;
+    dma_cb.peri->SRC_PTR_INC_D1 = 0;
+    dma_cb.peri->SRC_PTR_INC_D2 = 0;
+    dma_cb.peri->DST_PTR_INC_D1 = 0;
+    dma_cb.peri->DST_PTR_INC_D2 = 0;
+    dma_cb.peri->DIM_CONFIG     = 0;
+    dma_cb.peri->SLOT           = 0;
+    dma_cb.peri->SRC_DATA_TYPE  = 0;
+    dma_cb.peri->DST_DATA_TYPE  = 0;
+    dma_cb.peri->SIGN_EXT       = 0;
+    dma_cb.peri->MODE           = 0;
+    dma_cb.peri->WINDOW_SIZE    = 0;
+    dma_cb.peri->INTERRUPT_EN   = 0;
+    dma_cb.peri->PAD_TOP        = 0;
+    dma_cb.peri->PAD_BOTTOM     = 0;
+    dma_cb.peri->PAD_LEFT       = 0;
+    dma_cb.peri->PAD_RIGHT      = 0;
+    dma_cb.peri->DIM_INV        = 0;
 }
 
 dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
@@ -308,6 +348,14 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
     /* The checks request should be a valid request. */
     DMA_STATIC_ASSERT( p_check         < DMA_PERFORM_CHECKS__size,
                        "Check request not valid");
+    /* The padding should be a valid number */
+    DMA_STATIC_ASSERT( ((p_trans->pad_top_du >= 0 && p_trans->pad_top_du < 64) && 
+                        (p_trans->pad_bottom_du >= 0 && p_trans->pad_bottom_du < 64) && 
+                        (p_trans->pad_left_du >= 0 && p_trans->pad_left_du < 64) &&
+                        (p_trans->pad_right_du >= 0 && p_trans->pad_right_du < 64)), 
+                       "Padding not valid");
+    /* The dimensionality should be valid*/
+    DMA_STATIC_ASSERT( p_trans->dim < DMA_DIM_CONF__size, "Dimensionality not valid");
 
     /*
      * CHECK IF TARGETS HAVE ERRORS
@@ -333,6 +381,43 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
     if( p_trans->flags & DMA_CONFIG_CRITICAL_ERROR )
     {
         return p_trans->flags;
+    }
+
+    /*
+     * CHECK IF THERE ARE INCREMENTS INCONSISTENCIES
+     */
+
+    /*
+     * A transaction is considered 2D if the source and/or the destination has a 2D increment.
+     * e.g. It's possible to copy a 1x9 matrix to a 3x3 matrix or to copy a 3x3 matrix to a 1x9 one.
+     */
+
+    if (p_check)
+    {
+        // If the transaction is 2D, check that the D2 increment of the targets are non zero.
+        // If the transaction is 1D, check that the D2 increment of the targets are zero.
+        if((p_trans->dim == DMA_DIM_CONF_2D && (p_trans->src->inc_d2_du == 0 || p_trans->dst->inc_d2_du == 0)) ||
+           (p_trans->dim == DMA_DIM_CONF_1D && (p_trans->src->inc_d2_du != 0 || p_trans->dst->inc_d2_du != 0)))
+        {
+            p_trans->flags |= DMA_CONFIG_INCOMPATIBLE;
+            p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
+            return p_trans->flags;
+        }
+    }
+
+    /*
+     * CHECK IF THERE ARE PADDING INCONSISTENCIES
+     */
+
+    if (p_check)
+    {
+        // If the transaction is 1D, check that the top and bottom paddings are set to zero.
+        if((p_trans->dim == DMA_DIM_CONF_1D && (p_trans->pad_top_du != 0 || p_trans->pad_bottom_du != 0)))
+        {
+            p_trans->flags |= DMA_CONFIG_INCOMPATIBLE;
+            p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
+            return p_trans->flags;
+        }
     }
 
     /*
@@ -387,12 +472,16 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
 
     /* The flags are cleaned in case the structure was used before.*/
     p_trans->flags = DMA_CONFIG_OK;
+
     /* The copy size of the source (in data units -of the source-) is
     transformed to bytes, to be used as default size.*/
-    uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE(p_trans->src->type);
+    uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE(p_trans->dst->type);
     p_trans->size_b = p_trans->src->size_du * dataSize_b;
-    /* By default, the source defines the data type.*/
-    p_trans->type = p_trans->src->type;
+    p_trans->size_d2_b = p_trans->src->size_d2_du * dataSize_b;
+
+    p_trans->src_type = p_trans->src->type;
+    p_trans->dst_type = p_trans->dst->type;
+
     /*
      * By default, the transaction increment is set to 0 and, if required,
      * it will be changed to 1 (in which case both src and dst will have an
@@ -416,12 +505,12 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
 
         if( p_trans->src->trig == DMA_TRIG_MEMORY )
         {
-            misalignment = get_misalignment_b( p_trans->src->ptr, p_trans->type );
+            misalignment = get_misalignment_b( p_trans->src->ptr, p_trans->src_type );
         }
 
         if( p_trans->dst->trig == DMA_TRIG_MEMORY )
         {
-            dstMisalignment = get_misalignment_b( p_trans->dst->ptr, p_trans->type );
+            dstMisalignment = get_misalignment_b( p_trans->dst->ptr, p_trans->dst_type );
         }
 
         p_trans->flags  |= ( misalignment ? DMA_CONFIG_SRC : DMA_CONFIG_OK );
@@ -508,26 +597,26 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
              * a more granular data type is used according to the detected
              * misalignment in order to overcome it.
              */
-            p_trans->type += misalignment;
+            p_trans->dst_type += misalignment;
             /*
              * Source and destination increment should now be of the size
              * of the data.
              * As increments are given in bytes, in both cases should be the
              * size of a data unit.
              */
-            p_trans->inc_b = DMA_DATA_TYPE_2_SIZE( p_trans->type );
+            p_trans->inc_b = DMA_DATA_TYPE_2_SIZE( p_trans->dst_type );
             /* The copy size does not change, as it is already stored in bytes.*/
         }
 
         /*
-         * CHECK IF SOURCE HAS SIZE 0
+         * CHECK IF SOURCE HAS ZERO SIZE(s)
          */
 
         /*
          * No further operations are done to prevent corrupting information
          * that could be useful for debugging purposes.
          */
-        if( p_trans->src->size_du == 0 )
+        if(p_trans->src->size_du == 0 || (p_trans->dim == DMA_DIM_CONF_2D && p_trans->src->size_d2_du == 0))
         {
             p_trans->flags |= DMA_CONFIG_SRC;
             p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
@@ -562,21 +651,24 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
          * No further operations are done to prevent corrupting information
          * that could be useful for debugging purposes.
          */
-        uint8_t isEnv = p_trans->dst->env;
-        uint8_t isOutb = is_region_outbound(
-                                    p_trans->dst->ptr,
-                                    p_trans->dst->env->end,
-                                    p_trans->type,
-                                    p_trans->src->size_du,
-                                    p_trans->dst->inc_du );
-        if( isEnv && isOutb )
-        {
-            p_trans->flags |= DMA_CONFIG_DST;
-            p_trans->flags |= DMA_CONFIG_OUTBOUNDS;
-            p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
-            return p_trans->flags;
-        }
+        uint8_t isEnv = (p_trans->dst->env != NULL);
 
+        if(isEnv) {
+            uint8_t isOutb = is_region_outbound_1D(
+                                        p_trans->dst->ptr,
+                                        p_trans->dst->env->end,
+                                        p_trans->dst_type,
+                                        p_trans->src->size_du,
+                                        p_trans->dst->inc_du );
+            if( isOutb )
+            {
+                p_trans->flags |= DMA_CONFIG_DST;
+                p_trans->flags |= DMA_CONFIG_OUTBOUNDS;
+                p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
+
+                return p_trans->flags;
+            }
+        }
         // @ToDo: It should also be checked that the destination is behind the
         // source if there will be overlap.
         // @ToDo: Consider if (when a destination target has no environment)
@@ -672,24 +764,73 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
 
     if( dma_cb.trans->end != DMA_TRANS_END_POLLING )
     {
-        /* Enable global interrupt for machine-level interrupts. */
+        /* Enable global interrupt. */
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8 );
-        /* @ToDo: What does this do? */
+        /* Enable machine-level fast interrupt. */
         CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
 
-        dma_cb.peri->INTERRUPT_EN |= INTR_EN_TRANS_DONE;
+        write_register(  
+                        0x1,
+                        DMA_INTERRUPT_EN_REG_OFFSET,
+                        0xffff,
+                        DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT
+                    );
 
         /* Only if a window is used should the window interrupt be set. */
         if( p_trans->win_du > 0 )
         {
-            dma_cb.peri->INTERRUPT_EN |= INTR_EN_WINDOW_DONE;
+            write_register(  
+                        0x1,
+                        DMA_INTERRUPT_EN_REG_OFFSET,
+                        0xffff,
+                        DMA_INTERRUPT_EN_WINDOW_DONE_BIT
+                    );
         }
+    }
+
+    /*
+     * SET THE PADDING
+     */
+
+    /*
+    * In the case of a 1D transaction with padding enabled, the DMA has to be configured to treat
+    * the transaction as a 2D one with a second dimension of 1 du and a second dimension increment of 1 du.
+    */
+
+    if (p_trans->dim == DMA_DIM_CONF_1D && (p_trans->pad_left_du != 0 || p_trans->pad_right_du != 0))
+    {
+        p_trans->dim = DMA_DIM_CONF_2D;
+        p_trans->size_d2_b = DMA_DATA_TYPE_2_SIZE( p_trans->dst_type );
+        p_trans->src->inc_d2_du = DMA_DATA_TYPE_2_SIZE( p_trans->dst_type );
+    }
+
+    if (dma_cb.trans->pad_top_du != 0 || dma_cb.trans->pad_bottom_du != 0 || dma_cb.trans->pad_left_du != 0 || dma_cb.trans->pad_right_du != 0)
+    {
+        write_register( dma_cb.trans->pad_top_du * DMA_DATA_TYPE_2_SIZE( p_trans->dst_type ),
+                        DMA_PAD_TOP_REG_OFFSET,
+                        DMA_PAD_TOP_PAD_MASK,
+                        DMA_PAD_TOP_PAD_OFFSET);
+
+        write_register( dma_cb.trans->pad_bottom_du * DMA_DATA_TYPE_2_SIZE( p_trans->dst_type ),
+                        DMA_PAD_BOTTOM_REG_OFFSET,
+                        DMA_PAD_BOTTOM_PAD_MASK,
+                        DMA_PAD_BOTTOM_PAD_OFFSET);
+
+        write_register( dma_cb.trans->pad_left_du * DMA_DATA_TYPE_2_SIZE( p_trans->dst_type ),
+                        DMA_PAD_LEFT_REG_OFFSET,
+                        DMA_PAD_LEFT_PAD_MASK,
+                        DMA_PAD_LEFT_PAD_OFFSET);
+
+        write_register( dma_cb.trans->pad_right_du * DMA_DATA_TYPE_2_SIZE( p_trans->dst_type ),
+                        DMA_PAD_RIGHT_REG_OFFSET,
+                        DMA_PAD_RIGHT_PAD_MASK,
+                        DMA_PAD_RIGHT_PAD_OFFSET);
     }
 
     /*
      * SET THE POINTERS
      */
-    dma_cb.peri->SRC_PTR = dma_cb.trans->src->ptr;
+    dma_cb.peri->SRC_PTR = (uint32_t)dma_cb.trans->src->ptr;
 
     if(dma_cb.trans->mode != DMA_TRANS_MODE_ADDRESS)
     {
@@ -698,12 +839,21 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
         otherwise the destination address is read in a separate port in parallel with the data
         from the address port
         */
-        dma_cb.peri->DST_PTR = dma_cb.trans->dst->ptr;
+        dma_cb.peri->DST_PTR = (uint32_t)dma_cb.trans->dst->ptr;
     }
     else
     {
-        dma_cb.peri->ADDR_PTR = dma_cb.trans->src_addr->ptr;
+        dma_cb.peri->ADDR_PTR = (uint32_t)dma_cb.trans->src_addr->ptr;
     }
+
+    /*
+     * SET THE TRANSPOSITION MODE
+     */
+
+    write_register(dma_cb.trans->dim_inv,
+                   DMA_DIM_INV_REG_OFFSET,
+                   0x1 << DMA_DIM_INV_SEL_BIT,
+                   DMA_DIM_INV_SEL_BIT);
 
     /*
      * SET THE INCREMENTS
@@ -717,23 +867,37 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * In that case, a increment of 0 is necessary.
      * In case of DMA Address mode transaction, the dst pointer is ignored
      * as the values read from the second port are instead used.
+     * In case of a 2D DMA transaction, the second dimension increment is set.
      */
+    
+    write_register(  get_increment_b_1D( dma_cb.trans->src ),
+                    DMA_SRC_PTR_INC_D1_REG_OFFSET,
+                    DMA_SRC_PTR_INC_D1_INC_MASK,
+                    DMA_SRC_PTR_INC_D1_INC_OFFSET );
 
-    write_register(  get_increment_b( dma_cb.trans->src ),
-                    DMA_PTR_INC_REG_OFFSET,
-                    DMA_PTR_INC_SRC_PTR_INC_MASK,
-                    DMA_PTR_INC_SRC_PTR_INC_OFFSET );
-
-
+    if(dma_cb.trans->dim == DMA_DIM_CONF_2D)
+    {
+        write_register(  get_increment_b_2D( dma_cb.trans->src ),
+                        DMA_SRC_PTR_INC_D2_REG_OFFSET,
+                        DMA_SRC_PTR_INC_D2_INC_MASK,
+                        DMA_SRC_PTR_INC_D2_INC_OFFSET );
+    }
 
     if(dma_cb.trans->mode != DMA_TRANS_MODE_ADDRESS)
     {
-        write_register(  get_increment_b( dma_cb.trans->dst ),
-                        DMA_PTR_INC_REG_OFFSET,
-                        DMA_PTR_INC_DST_PTR_INC_MASK,
-                        DMA_PTR_INC_DST_PTR_INC_OFFSET );
+        write_register(  get_increment_b_1D( dma_cb.trans->dst ),
+                        DMA_DST_PTR_INC_D1_REG_OFFSET,
+                        DMA_DST_PTR_INC_D1_INC_MASK,
+                        DMA_DST_PTR_INC_D1_INC_OFFSET );
+        
+        if(dma_cb.trans->dim == DMA_DIM_CONF_2D)
+        {
+            write_register(  get_increment_b_2D( dma_cb.trans->dst ),
+                        DMA_DST_PTR_INC_D2_REG_OFFSET,
+                        DMA_DST_PTR_INC_D2_INC_MASK,
+                        DMA_DST_PTR_INC_D2_INC_OFFSET );
+        }
     }
-
 
     /*
      * SET THE OPERATION MODE AND WINDOW SIZE
@@ -746,6 +910,23 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
     dma_cb.peri->WINDOW_SIZE =   dma_cb.trans->win_du
                             ? dma_cb.trans->win_du
                             : dma_cb.trans->size_b;
+
+    /* 
+     * SET THE DIMENSIONALITY
+     */
+    write_register(  dma_cb.trans->dim,
+                    DMA_DIM_CONFIG_REG_OFFSET,
+                    0x1 << DMA_DIM_CONFIG_DMA_DIM_BIT,
+                    DMA_DIM_CONFIG_DMA_DIM_BIT );
+
+    /*
+     * SET THE SIGN EXTENSION BIT
+     */
+    write_register( dma_cb.trans->sign_ext,
+                    DMA_SIGN_EXT_REG_OFFSET,
+                    0x1 << DMA_SIGN_EXT_SIGNED_BIT,
+                    DMA_SIGN_EXT_SIGNED_BIT );
+
 
     /*
      * SET TRIGGER SLOTS AND DATA TYPE
@@ -760,15 +941,20 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
                     DMA_SLOT_TX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_TX_TRIGGER_SLOT_OFFSET );
 
-    write_register(  dma_cb.trans->type,
-                    DMA_DATA_TYPE_REG_OFFSET,
-                    DMA_DATA_TYPE_DATA_TYPE_MASK,
+    write_register(  dma_cb.trans->dst_type,
+                    DMA_DST_DATA_TYPE_REG_OFFSET,
+                    DMA_DST_DATA_TYPE_DATA_TYPE_MASK,
+                    DMA_SELECTION_OFFSET_START );
+    
+    write_register(  dma_cb.trans->src_type,
+                    DMA_SRC_DATA_TYPE_REG_OFFSET,
+                    DMA_SRC_DATA_TYPE_DATA_TYPE_MASK,
                     DMA_SELECTION_OFFSET_START );
 
     return DMA_CONFIG_OK;
 }
 
-dma_config_flags_t dma_launch( dma_trans_t *p_trans )
+dma_config_flags_t dma_launch( dma_trans_t *p_trans)
 {
     /*
      * Make sure that the loaded transaction is the intended transaction.
@@ -803,21 +989,35 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans )
      */
     dma_cb.intrFlag = 0;
 
-    /* Load the size and start the transaction. */
-    dma_cb.peri->SIZE = dma_cb.trans->size_b;
+    /* Load the size(s) and start the transaction. */
 
+    if(dma_cb.trans->dim == DMA_DIM_CONF_2D)
+    {
+        write_register( dma_cb.trans->size_d2_b,
+                        DMA_SIZE_D2_REG_OFFSET,
+                        DMA_SIZE_D2_SIZE_MASK,
+                        DMA_SIZE_D2_SIZE_OFFSET
+                      );
+    }
+
+    write_register( dma_cb.trans->size_b,
+                DMA_SIZE_D1_REG_OFFSET,
+                DMA_SIZE_D1_SIZE_MASK,
+                DMA_SIZE_D1_SIZE_OFFSET
+    ); 
     /*
      * If the end event was set to wait for the interrupt, the dma_launch
      * will not return until the interrupt arrives.
      */
+
+    
     while(    p_trans->end == DMA_TRANS_END_INTR_WAIT
-          && ( dma_cb.intrFlag != 0 ) ) { // @ToDo: add a label for this 0
-        wait_for_interrupt();
+          && ( dma_cb.intrFlag != 0x0 ) ) {
+            wait_for_interrupt();
     }
 
     return DMA_CONFIG_OK;
 }
-
 
 __attribute__((optimize("O0"))) uint32_t dma_is_ready(void)
 {
@@ -901,14 +1101,19 @@ dma_config_flags_t validate_target( dma_target_t *p_tgt )
      */
 
     /* Increment can be 0 when a trigger is used. */
-    DMA_STATIC_ASSERT( p_tgt->inc_du   >= 0 , "Increment not valid");
+    DMA_STATIC_ASSERT( p_tgt->inc_du   >= 0  &&  p_tgt->inc_du < 64 , "Increment not valid");
+    /* Increment on D2 has to be 0 for 1D operations */
+    DMA_STATIC_ASSERT( p_tgt->inc_d2_du  >= 0  &&  p_tgt->inc_d2_du < 4194304 , "Increment d2 not valid");
     /* The size could be 0 if the target is only going to be used as a
     destination. */
-    DMA_STATIC_ASSERT( p_tgt->size_du  >=  0 , "Size not valid");
+    DMA_STATIC_ASSERT( p_tgt->size_du  >= 0 && p_tgt->size_du  < 65536 , "Size not valid");
+    /* The size can be 0 or 1 if the target is involved in a 1D padded transaction */
+    DMA_STATIC_ASSERT( p_tgt->size_d2_du >= 0 && p_tgt->size_du  < 65536  , "Size d2 not valid");
     /* The data type must be a valid type */
-    DMA_STATIC_ASSERT( p_tgt->type     < DMA_DATA_TYPE__size , "Type not valid");
+    DMA_STATIC_ASSERT( p_tgt->type     < DMA_DATA_TYPE__size , "Source type not valid");
     /* The trigger must be among the valid trigger values. */
     DMA_STATIC_ASSERT( p_tgt->trig     < DMA_TRIG__size , "Trigger not valid");
+    
 
     /*
      * INTEGRITY CHECKS
@@ -923,7 +1128,6 @@ dma_config_flags_t validate_target( dma_target_t *p_tgt )
     {
         /* Check if the environment was properly formed.*/
         flags |= validate_environment( p_tgt->env );
-
         /*
          * Check if the target selected size goes beyond the boundaries of
          * the environment.
@@ -931,11 +1135,26 @@ dma_config_flags_t validate_target( dma_target_t *p_tgt )
          */
         if( p_tgt->size_du != 0 )
         {
-            uint8_t isOutb = is_region_outbound(  p_tgt->ptr,
+            uint8_t isOutb = is_region_outbound_1D(  p_tgt->ptr,
                                           p_tgt->env->end,
                                           p_tgt->type,
                                           p_tgt->size_du,
                                           p_tgt->inc_du );
+            if( isOutb )
+            {
+                flags |= DMA_CONFIG_OUTBOUNDS;
+            }
+        }
+        /* Do the same but for 2D case */
+        if( p_tgt->size_d2_du != 0 )
+        {
+            uint8_t isOutb = is_region_outbound_2D(  p_tgt->ptr,
+                                          p_tgt->env->end,
+                                          p_tgt->type,
+                                          p_tgt->size_du,
+                                          p_tgt->size_d2_du,
+                                          p_tgt->inc_du,
+                                          p_tgt->inc_d2_du);
             if( isOutb )
             {
                 flags |= DMA_CONFIG_OUTBOUNDS;
@@ -1071,7 +1290,7 @@ static inline uint8_t get_misalignment_b(   uint8_t         *p_ptr,
     return misalignment;
 }
 
-static inline uint8_t is_region_outbound(   uint8_t  *p_start,
+static inline uint8_t is_region_outbound_1D(   uint8_t  *p_start,
                                             uint8_t  *p_end,
                                             uint32_t p_type,
                                             uint32_t p_size_du,
@@ -1093,8 +1312,29 @@ static inline uint8_t is_region_outbound(   uint8_t  *p_start,
    */
     uint32_t affectedUnits      = ( p_size_du - 1 ) * p_inc_du + 1;
     uint32_t rangeSize          = DMA_DATA_TYPE_2_SIZE(p_type) * affectedUnits;
-    uint32_t lasByteInsideRange = p_start + rangeSize -1;
-    return ( p_end < lasByteInsideRange );
+    uint32_t lastByteInsideRange = (uint32_t)p_start + rangeSize -1;
+    return ( p_end < lastByteInsideRange );
+    // Size is be guaranteed to be non-zero before calling this function.
+}
+
+static inline uint8_t is_region_outbound_2D(   uint8_t  *p_start,
+                                            uint8_t  *p_end,
+                                            uint32_t p_type,
+                                            uint32_t p_size_d1_du,
+                                            uint32_t p_size_d2_du,
+                                            uint32_t p_inc_d1_du,
+                                            uint32_t p_inc_d2_du )
+{
+  /* 
+   * If the environment ends before the last affected byte, then there is
+   * outbound writing and the function returns 1.
+   */
+
+    uint32_t affectedUnits      = (( p_size_d1_du - 1 ) * p_inc_d1_du + 1) * (p_size_d2_du) + p_inc_d2_du * (p_size_d2_du - 1);
+    uint32_t rangeSize          = DMA_DATA_TYPE_2_SIZE(p_type) * affectedUnits;
+    uint32_t lastByteInsideRange = (uint32_t)p_start + rangeSize -1;
+    return ( p_end < lastByteInsideRange );
+
     // Size is be guaranteed to be non-zero before calling this function.
 }
 
@@ -1123,7 +1363,32 @@ static inline void write_register( uint32_t  p_val,
 
 }
 
-static inline uint32_t get_increment_b( dma_target_t * p_tgt )
+
+static inline uint32_t get_increment_b_1D( dma_target_t * p_tgt )
+{
+    uint32_t inc_b = 0;
+    /* If the target uses a trigger, the increment remains 0. */
+    if(  p_tgt->trig  == DMA_TRIG_MEMORY )
+    {
+        /*
+         * If the transaction increment has been overriden (due to
+         * misalignments), then that value is used (it's always set to 1).
+         */
+        inc_b = dma_cb.trans->inc_b;
+        /*
+        * Otherwise, the target-specific increment is used transformed into
+        * bytes).
+        */
+        if( inc_b == 0 )
+        {
+            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( p_tgt->type );
+            inc_b = ( p_tgt->inc_du * dataSize_b );
+        }
+    }
+    return inc_b;
+}
+
+static inline uint32_t get_increment_b_2D( dma_target_t * p_tgt )
 {
     uint32_t inc_b = 0;
     /* If the target uses a trigger, the increment remains 0. */
@@ -1141,8 +1406,8 @@ static inline uint32_t get_increment_b( dma_target_t * p_tgt )
         */
         if( inc_b == 0 )
         {
-            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( dma_cb.trans->type );
-            inc_b = ( p_tgt->inc_du * dataSize_b );
+            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( p_tgt->type );
+            inc_b = ( p_tgt->inc_d2_du * dataSize_b );
         }
     }
     return inc_b;

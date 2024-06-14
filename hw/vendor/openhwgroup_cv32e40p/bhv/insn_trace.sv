@@ -1,5 +1,26 @@
-// Copyright 2022 Dolphin Design
-// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.0
+// Copyright 2024 OpenHW Group and Dolphin Design
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+//
+// Licensed under the Solderpad Hardware License v 2.1 (the "License");
+// you may not use this file except in compliance with the License, or,
+// at your option, the Apache License version 2.0.
+// You may obtain a copy of the License at
+//
+// https://solderpad.org/licenses/SHL-2.1/
+//
+// Unless required by applicable law or agreed to in writing, any work
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+////////////////////////////////////////////////////////////////////////////////////
+//                                                                                //
+// Contributors: Yoann Pruvost, Dolphin Design <yoann.pruvost@dolphin.fr>         //
+//                                                                                //
+// Description:  Macros and Functions to print information on RVFI interface      //
+//                                                                                //
+////////////////////////////////////////////////////////////////////////////////////
 
   `define DEFINE_CSR(CSR_NAME) \
     logic ``CSR_NAME``_we; \
@@ -23,6 +44,10 @@
   class insn_trace_t;
     bit m_valid;
     logic [63:0] m_order;
+    integer      m_start_cycle;
+    integer      m_stop_cycle;
+    time         m_start_time;
+    time         m_stop_time;
     bit          m_skip_order; //next order was used by trap;
     logic [31:0] m_pc_rdata;
     logic [31:0] m_insn;
@@ -65,12 +90,15 @@
     bit m_move_down_pipe;
 
     int m_instret_cnt;
+    int m_instret_smaple_trigger; //We need to sample minstret from csr 2 cycle after id is doen
+
+    bit m_sample_csr_write_in_ex;
 
     struct {
       logic [31:0] addr ;
-      logic [ 3:0] rmask;
+      logic [31:0] rmask;
       logic [31:0] rdata;
-      logic [ 3:0] wmask;
+      logic [31:0] wmask;
       logic [31:0] wdata;
     } m_mem;
 
@@ -100,9 +128,28 @@
       `DEFINE_CSR(mscratch)
       `DEFINE_CSR(mepc)
       `DEFINE_CSR(mcause)
+      `DEFINE_CSR(mcycle)
       `DEFINE_CSR(minstret)
       bit got_minstret;
+      `DEFINE_CSR(mcycleh)
+      `DEFINE_CSR(minstreth)
+      `DEFINE_CSR(cycle)
+      `DEFINE_CSR(instret)
+      // bit got_minstret;
+      `DEFINE_CSR(cycleh)
+      `DEFINE_CSR(instreth)
 
+      logic [31:0][ 1:0]    mhpmcounter_we;
+      logic [31:0][63:0] mhpmcounter_rdata;
+      logic [31:0][63:0] mhpmcounter_rmask;
+      logic [31:0][63:0] mhpmcounter_wdata;
+      logic [31:0][63:0] mhpmcounter_wmask;
+
+      logic [31:0]          mhpmevent_we;
+      logic [31:0][31:0] mhpmevent_rdata;
+      logic [31:0][31:0] mhpmevent_rmask;
+      logic [31:0][31:0] mhpmevent_wdata;
+      logic [31:0][31:0] mhpmevent_wmask;
       `DEFINE_CSR(mip)
       //mnxti
       //mintstatus
@@ -145,32 +192,38 @@
 
 
     function new();
-      this.m_order             = 0;
-      this.m_skip_order        = 1'b0;
-      this.m_valid             = 1'b0;
-      this.m_move_down_pipe    = 1'b0;
-      this.m_data_missaligned  = 1'b0;
-      this.m_got_first_data    = 1'b0;
-      this.m_got_ex_reg        = 1'b0;
-      this.m_intr              = '0;
-      this.m_dbg_taken         = 1'b0;
-      this.m_dbg_cause         = '0;
-      this.m_is_ebreak         = '0;
-      this.m_is_illegal        = '0;
-      this.m_is_irq            = '0;
-      this.m_is_memory         = 1'b0;
-      this.m_is_load           = 1'b0;
-      this.m_is_apu            = 1'b0;
-      this.m_is_apu_ok         = 1'b0;
-      this.m_apu_req_id        = 0;
-      this.m_mem_req_id[0]     = 0;
-      this.m_mem_req_id[1]     = 0;
-      this.m_mem_req_id_valid  = '0;
-      this.m_trap              = 1'b0;
-      this.m_fflags_we_non_apu = 1'b0;
-      this.m_frm_we_non_apu    = 1'b0;
-      this.m_fcsr_we_non_apu   = 1'b0;
-      this.m_instret_cnt       = 0;
+      this.m_order                  = 0;
+      this.m_start_cycle            = 0;
+      this.m_stop_cycle             = 0;
+      this.m_start_time             = 0;
+      this.m_stop_time              = 0;
+      this.m_skip_order             = 1'b0;
+      this.m_valid                  = 1'b0;
+      this.m_move_down_pipe         = 1'b0;
+      this.m_data_missaligned       = 1'b0;
+      this.m_got_first_data         = 1'b0;
+      this.m_got_ex_reg             = 1'b0;
+      this.m_intr                   = '0;
+      this.m_dbg_taken              = 1'b0;
+      this.m_dbg_cause              = '0;
+      this.m_is_ebreak              = '0;
+      this.m_is_illegal             = '0;
+      this.m_is_irq                 = '0;
+      this.m_is_memory              = 1'b0;
+      this.m_is_load                = 1'b0;
+      this.m_is_apu                 = 1'b0;
+      this.m_is_apu_ok              = 1'b0;
+      this.m_apu_req_id             = 0;
+      this.m_mem_req_id[0]          = 0;
+      this.m_mem_req_id[1]          = 0;
+      this.m_mem_req_id_valid       = '0;
+      this.m_trap                   = 1'b0;
+      this.m_fflags_we_non_apu      = 1'b0;
+      this.m_frm_we_non_apu         = 1'b0;
+      this.m_fcsr_we_non_apu        = 1'b0;
+      this.m_instret_cnt            = 0;
+      this.m_instret_smaple_trigger = 0;
+      this.m_sample_csr_write_in_ex = 1'b1;
     endfunction
 
     function void get_mnemonic();
@@ -610,12 +663,12 @@
           INSTR_CVCMPLEB     : this.m_mnemonic = "cv.cmple.b";
           INSTR_CVCMPLESCB   : this.m_mnemonic = "cv.cmple.sc.b";
           INSTR_CVCMPLESCIB  : this.m_mnemonic = "cv.cmple.sci.b";
-          INSTR_CVCMPGTUH    : this.m_mnemonic = "cv.cmptu.h";
-          INSTR_CVCMPGTUSCH  : this.m_mnemonic = "cv.cmptu.sc.h";
-          INSTR_CVCMPGTUSCIH : this.m_mnemonic = "cv.cmptu.sci.h";
-          INSTR_CVCMPGTUB    : this.m_mnemonic = "cv.cmptu.b";
-          INSTR_CVCMPGTUSCB  : this.m_mnemonic = "cv.cmptu.sc.b";
-          INSTR_CVCMPGTUSCIB : this.m_mnemonic = "cv.cmptu.sci.b";
+          INSTR_CVCMPGTUH    : this.m_mnemonic = "cv.cmpgtu.h";
+          INSTR_CVCMPGTUSCH  : this.m_mnemonic = "cv.cmpgtu.sc.h";
+          INSTR_CVCMPGTUSCIH : this.m_mnemonic = "cv.cmpgtu.sci.h";
+          INSTR_CVCMPGTUB    : this.m_mnemonic = "cv.cmpgtu.b";
+          INSTR_CVCMPGTUSCB  : this.m_mnemonic = "cv.cmpgtu.sc.b";
+          INSTR_CVCMPGTUSCIB : this.m_mnemonic = "cv.cmpgtu.sci.b";
           INSTR_CVCMPGEUH    : this.m_mnemonic = "cv.cmpgeu.h";
           INSTR_CVCMPGEUSCH  : this.m_mnemonic = "cv.cmpgeu.sc.h";
           INSTR_CVCMPGEUSCIH : this.m_mnemonic = "cv.cmpgeu.sci.h";
@@ -844,7 +897,18 @@
       `INIT_CSR(mscratch)
       `INIT_CSR(mepc)
       `INIT_CSR(mcause)
+      `INIT_CSR(mcycle)
       `INIT_CSR(minstret)
+      `INIT_CSR(mcycleh)
+      `INIT_CSR(minstreth)
+      `INIT_CSR(cycle)
+      `INIT_CSR(instret)
+      `INIT_CSR(cycleh)
+      `INIT_CSR(instreth)
+      this.m_csr.mhpmcounter_we = '0;
+      this.m_csr.mhpmcounter_wmask = '0;
+      this.m_csr.mhpmevent_we = '0;
+      this.m_csr.mhpmevent_wmask = '0;
       `INIT_CSR(mip)
       `INIT_CSR(tdata1)
       `INIT_CSR(tdata2)
@@ -872,40 +936,46 @@
       this.m_valid            = 1'b1;
       this.m_stage            = ID;
       this.m_order            = this.m_order + 64'h1;
+      this.m_start_cycle      = cycles;
+      this.m_stop_cycle       = 0;
+      this.m_start_time       = $time;
+      this.m_stop_time        = 0;
       if(this.m_skip_order) begin
         this.m_order            = this.m_order + 64'h1;
       end
-      this.m_skip_order        = 1'b0;
-      this.m_pc_rdata          = r_pipe_freeze_trace.pc_id;
-      this.m_is_illegal        = 1'b0;
-      this.m_is_irq            = 1'b0;
-      this.m_is_memory         = 1'b0;
-      this.m_is_load           = 1'b0;
-      this.m_is_apu            = 1'b0;
-      this.m_is_apu_ok         = 1'b0;
-      this.m_apu_req_id        = 0;
-      this.m_mem_req_id[0]     = 0;
-      this.m_mem_req_id[1]     = 0;
-      this.m_mem_req_id_valid  = '0;
-      this.m_data_missaligned  = 1'b0;
-      this.m_got_first_data    = 1'b0;
-      this.m_got_ex_reg        = 1'b0;
-      this.m_got_regs_write    = 1'b0;
-      this.m_move_down_pipe    = 1'b0;
-      this.m_instret_cnt       = 0;
-      this.m_rd_addr[0]        = '0;
-      this.m_rd_addr[1]        = '0;
-      this.m_2_rd_insn         = 1'b0;
-      this.m_rs1_addr          = '0;
-      this.m_rs2_addr          = '0;
-      this.m_rs3_addr          = '0;
-      this.m_ex_fw             = '0;
-      this.m_csr.got_minstret  = '0;
-      this.m_dbg_taken         = '0;
-      this.m_trap              = 1'b0;
-      this.m_fflags_we_non_apu = 1'b0;
-      this.m_frm_we_non_apu    = 1'b0;
-      this.m_fcsr_we_non_apu   = 1'b0;
+      this.m_skip_order             = 1'b0;
+      this.m_pc_rdata               = r_pipe_freeze_trace.pc_id;
+      this.m_is_illegal             = 1'b0;
+      this.m_is_irq                 = 1'b0;
+      this.m_is_memory              = 1'b0;
+      this.m_is_load                = 1'b0;
+      this.m_is_apu                 = 1'b0;
+      this.m_is_apu_ok              = 1'b0;
+      this.m_apu_req_id             = 0;
+      this.m_mem_req_id[0]          = 0;
+      this.m_mem_req_id[1]          = 0;
+      this.m_mem_req_id_valid       = '0;
+      this.m_data_missaligned       = 1'b0;
+      this.m_got_first_data         = 1'b0;
+      this.m_got_ex_reg             = 1'b0;
+      this.m_got_regs_write         = 1'b0;
+      this.m_move_down_pipe         = 1'b0;
+      this.m_instret_cnt            = 0;
+      this.m_instret_smaple_trigger = 0;
+      this.m_sample_csr_write_in_ex = 1'b1;
+      this.m_rd_addr[0]             = '0;
+      this.m_rd_addr[1]             = '0;
+      this.m_2_rd_insn              = 1'b0;
+      this.m_rs1_addr               = '0;
+      this.m_rs2_addr               = '0;
+      this.m_rs3_addr               = '0;
+      this.m_ex_fw                  = '0;
+      this.m_csr.got_minstret       = '0;
+      this.m_dbg_taken              = '0;
+      this.m_trap                   = 1'b0;
+      this.m_fflags_we_non_apu      = 1'b0;
+      this.m_frm_we_non_apu         = 1'b0;
+      this.m_fcsr_we_non_apu        = 1'b0;
       this.m_csr.mcause_we = '0;
       if (is_compressed_id_i) begin
         this.m_insn[31:16] = '0;
@@ -944,47 +1014,53 @@
     endfunction
 
     function void copy_full(insn_trace_t m_source);
-      this.m_valid              = m_source.m_valid;
-      this.m_stage              = m_source.m_stage;
-      this.m_order              = m_source.m_order;
-      this.m_pc_rdata           = m_source.m_pc_rdata;
-      this.m_insn               = m_source.m_insn;
-      this.m_mnemonic           = m_source.m_mnemonic;
-      this.m_is_memory          = m_source.m_is_memory;
-      this.m_is_load            = m_source.m_is_load;
-      this.m_is_apu             = m_source.m_is_apu;
-      this.m_is_apu_ok          = m_source.m_is_apu_ok;
-      this.m_apu_req_id         = m_source.m_apu_req_id;
-      this.m_mem_req_id         = m_source.m_mem_req_id;
-      this.m_mem_req_id_valid   = m_source.m_mem_req_id_valid;
-      this.m_data_missaligned   = m_source.m_data_missaligned;
-      this.m_got_first_data     = m_source.m_got_first_data;
-      this.m_got_ex_reg         = m_source.m_got_ex_reg;
-      this.m_dbg_taken          = m_source.m_dbg_taken;
-      this.m_dbg_cause          = m_source.m_dbg_cause;
-      this.m_is_ebreak          = m_source.m_is_ebreak;
-      this.m_is_illegal         = m_source.m_is_illegal;
-      this.m_is_irq             = m_source.m_is_irq;
-      this.m_instret_cnt        = m_source.m_instret_cnt;
-      this.m_rs1_addr           = m_source.m_rs1_addr;
-      this.m_rs2_addr           = m_source.m_rs2_addr;
-      this.m_rs3_addr           = m_source.m_rs3_addr;
-      this.m_rs1_rdata          = m_source.m_rs1_rdata;
-      this.m_rs2_rdata          = m_source.m_rs2_rdata;
-      this.m_rs3_rdata          = m_source.m_rs3_rdata;
+      this.m_valid                  = m_source.m_valid;
+      this.m_stage                  = m_source.m_stage;
+      this.m_order                  = m_source.m_order;
+      this.m_start_cycle            = m_source.m_start_cycle;
+      this.m_stop_cycle             = m_source.m_stop_cycle;
+      this.m_start_time             = m_source.m_start_time;
+      this.m_stop_time              = m_source.m_stop_time;
+      this.m_pc_rdata               = m_source.m_pc_rdata;
+      this.m_insn                   = m_source.m_insn;
+      this.m_mnemonic               = m_source.m_mnemonic;
+      this.m_is_memory              = m_source.m_is_memory;
+      this.m_is_load                = m_source.m_is_load;
+      this.m_is_apu                 = m_source.m_is_apu;
+      this.m_is_apu_ok              = m_source.m_is_apu_ok;
+      this.m_apu_req_id             = m_source.m_apu_req_id;
+      this.m_mem_req_id             = m_source.m_mem_req_id;
+      this.m_mem_req_id_valid       = m_source.m_mem_req_id_valid;
+      this.m_data_missaligned       = m_source.m_data_missaligned;
+      this.m_got_first_data         = m_source.m_got_first_data;
+      this.m_got_ex_reg             = m_source.m_got_ex_reg;
+      this.m_dbg_taken              = m_source.m_dbg_taken;
+      this.m_dbg_cause              = m_source.m_dbg_cause;
+      this.m_is_ebreak              = m_source.m_is_ebreak;
+      this.m_is_illegal             = m_source.m_is_illegal;
+      this.m_is_irq                 = m_source.m_is_irq;
+      this.m_instret_cnt            = m_source.m_instret_cnt;
+      this.m_instret_smaple_trigger = m_source.m_instret_smaple_trigger;
+      this.m_sample_csr_write_in_ex = m_source.m_sample_csr_write_in_ex;
+      this.m_rs1_addr               = m_source.m_rs1_addr;
+      this.m_rs2_addr               = m_source.m_rs2_addr;
+      this.m_rs3_addr               = m_source.m_rs3_addr;
+      this.m_rs1_rdata              = m_source.m_rs1_rdata;
+      this.m_rs2_rdata              = m_source.m_rs2_rdata;
+      this.m_rs3_rdata              = m_source.m_rs3_rdata;
 
-      this.m_ex_fw              = m_source.m_ex_fw;
-      this.m_rd_addr            = m_source.m_rd_addr;
-      this.m_2_rd_insn          = m_source.m_2_rd_insn;
-      this.m_rd_wdata           = m_source.m_rd_wdata;
+      this.m_ex_fw                  = m_source.m_ex_fw;
+      this.m_rd_addr                = m_source.m_rd_addr;
+      this.m_2_rd_insn              = m_source.m_2_rd_insn;
+      this.m_rd_wdata               = m_source.m_rd_wdata;
 
-      this.m_intr               = m_source.m_intr;
-      this.m_trap               = m_source.m_trap;
-      this.m_fflags_we_non_apu  = m_source.m_fflags_we_non_apu;
-      this.m_frm_we_non_apu     = m_source.m_frm_we_non_apu   ;
-      this.m_fcsr_we_non_apu    = m_source.m_fcsr_we_non_apu;
+      this.m_intr                   = m_source.m_intr;
+      this.m_trap                   = m_source.m_trap;
+      this.m_fflags_we_non_apu      = m_source.m_fflags_we_non_apu;
+      this.m_frm_we_non_apu         = m_source.m_frm_we_non_apu   ;
+      this.m_fcsr_we_non_apu        = m_source.m_fcsr_we_non_apu;
 
-      this.m_mem                = m_source.m_mem;
+      this.m_mem                    = m_source.m_mem;
       //CRS
       `ASSIGN_CSR(mstatus)
       `ASSIGN_CSR(mstatus_fs)
@@ -995,8 +1071,26 @@
       `ASSIGN_CSR(mscratch)
       `ASSIGN_CSR(mepc)
       `ASSIGN_CSR(mcause)
+      `ASSIGN_CSR(mcycle)
       `ASSIGN_CSR(minstret)
       this.m_csr.got_minstret = m_source.m_csr.got_minstret;
+      `ASSIGN_CSR(mcycleh)
+      `ASSIGN_CSR(minstreth)
+      `ASSIGN_CSR(cycle)
+      `ASSIGN_CSR(instret)
+      // this.m_csr.got_minstret = m_source.m_csr.got_minstret;
+      `ASSIGN_CSR(cycleh)
+      `ASSIGN_CSR(instreth)
+      this.m_csr.mhpmcounter_we = m_source.m_csr.mhpmcounter_we;
+      this.m_csr.mhpmcounter_rdata = m_source.m_csr.mhpmcounter_rdata;
+      this.m_csr.mhpmcounter_rmask = m_source.m_csr.mhpmcounter_rmask;
+      this.m_csr.mhpmcounter_wdata = m_source.m_csr.mhpmcounter_wdata;
+      this.m_csr.mhpmcounter_wmask = m_source.m_csr.mhpmcounter_wmask;
+      this.m_csr.mhpmevent_we = m_source.m_csr.mhpmevent_we;
+      this.m_csr.mhpmevent_rdata = m_source.m_csr.mhpmevent_rdata;
+      this.m_csr.mhpmevent_rmask = m_source.m_csr.mhpmevent_rmask;
+      this.m_csr.mhpmevent_wdata = m_source.m_csr.mhpmevent_wdata;
+      this.m_csr.mhpmevent_wmask = m_source.m_csr.mhpmevent_wmask;
       `ASSIGN_CSR(mip)
       `ASSIGN_CSR(tdata1)
       `ASSIGN_CSR(tdata2)

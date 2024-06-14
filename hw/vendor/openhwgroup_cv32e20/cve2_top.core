@@ -75,6 +75,7 @@ targets:
       - tool_veriblelint ? (files_lint_verible)
       - files_rtl
       - target_sim ? (files_clk_gate)
+      - target_sim_sc ? (files_clk_gate)
     toplevel: cve2_top
     parameters:
       - tool_vivado ? (FPGA_XILINX=true)

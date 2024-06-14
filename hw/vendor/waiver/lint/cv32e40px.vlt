@@ -114,3 +114,6 @@ lint_off -rule WIDTH -file "*/rtl/cv32e40px_decoder.sv" -match "Logical operator
 lint_off -rule WIDTH -file "*/rtl/cv32e40px_controller.sv" -match "Logical operator LOGAND expects 1 bit on the LHS, but LHS's VARREF 'FPU' generates 32 bits.*"
 lint_off -rule WIDTH -file "*/rtl/cv32e40px_cs_registers.sv" -match "Logical operator LOGOR expects 1 bit on the LHS, but LHS's VARREF 'FPU' generates 32 bits.*"
 lint_off -rule LATCH -file "*/rtl/cv32e40px_id_stage.sv" -match "Latch inferred for signal*apu_read_regs*"
+lint_off -rule WIDTH -file "*/rtl/cv32e40px_register_file_ff.sv" -match "Logical operator COND expects 1 bit on the Conditional Test*"
+lint_off -rule WIDTH -file "*/rtl/cv32e40px_decoder.sv" -match "Logical operator LOGNOT expects 1 bit on the LHS*"
+lint_off -rule WIDTH -file "*/rtl/cv32e40px_ex_stage.sv" -match "Logical operator LOGNOT expects 1 bit on the LHS*"

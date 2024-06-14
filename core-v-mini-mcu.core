@@ -95,34 +95,11 @@ filesets:
     file_type: vlt
 
   rtl-fpga:
+    depend:
+    - openhwgroup.org:systems:core-v-mini-mcu-fpga
     files:
     - hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv
-    - hw/fpga/sram_wrapper.sv
     file_type: systemVerilogSource
-
-  ip-fpga:
-    files:
-    - hw/fpga/scripts/generate_sram.tcl:  { file_type: tclSource }
-    - hw/fpga/prim_xilinx_clk.sv:  { file_type: systemVerilogSource }
-    - hw/fpga/cv32e40p_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
-    - hw/fpga/cv32e40x_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
-    - hw/fpga/cve2_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
-    - hw/fpga/cv32e40px_xilinx_clock_gate.sv:  { file_type: systemVerilogSource }
-    - hw/fpga/pad_cell_input_xilinx.sv:  { file_type: systemVerilogSource }
-    - hw/fpga/pad_cell_output_xilinx.sv:  { file_type: systemVerilogSource }
-    - hw/fpga/pad_cell_inout_xilinx.sv:  { file_type: systemVerilogSource }
-    - hw/fpga/pad_cell_bypass_input_xilinx.sv:  { file_type: systemVerilogSource }
-    - hw/fpga/pad_cell_bypass_output_xilinx.sv:  { file_type: systemVerilogSource }
-
-  ip-fpga-pynq-z2:
-    files:
-    - hw/fpga/scripts/pynq-z2/set_board.tcl: { file_type: tclSource }
-    - hw/fpga/scripts/pynq-z2/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
-
-  ip-fpga-nexys:
-    files:
-    - hw/fpga/scripts/nexys/set_board.tcl: { file_type: tclSource }
-    - hw/fpga/scripts/nexys/xilinx_generate_clk_wizard.tcl:  { file_type: tclSource }
 
   ip-asic:
     depend:
@@ -141,23 +118,6 @@ filesets:
   lib-sky130:
     files:
       - hw/asic/sky130/sky130_sram_4kbyte_1rw_32x1024_8_TT_1p8V_25C.lib : { copyto: lib/sky130_sram_4kbyte_1rw_32x1024_8_TT_1p8V_25C.lib }
-
-  xdc-fpga-nexys:
-    files:
-    - hw/fpga/constraints/nexys/pin_assign.xdc
-    - hw/fpga/constraints/nexys/constraints.xdc
-    file_type: xdc
-
-  xdc-fpga-pynq-z2:
-    files:
-    - hw/fpga/constraints/pynq-z2/pin_assign.xdc
-    - hw/fpga/constraints/pynq-z2/constraints.xdc
-    file_type: xdc
-
-  netlist-fpga:
-    files:
-    - build/openhwgroup.org_systems_core-v-mini-mcu_0/nexys-a7-100t-vivado/core_v_mini_mcu_xiling_postsynth.v
-    file_type: verilogSource
 
   # Scripts for hooks
   post_build_modelsim_scripts:
@@ -193,6 +153,8 @@ filesets:
 
   tb-verilator:
     files:
+    - tb/XHEEP_CmdLineOptions.hh: { is_include_file: true }
+    - tb/XHEEP_CmdLineOptions.cpp
     - tb/tb_top.cpp
     file_type: cppSource
 
@@ -200,6 +162,14 @@ filesets:
     files:
     - tb/tb_top.sv
     file_type: systemVerilogSource
+
+  tb-sc-verilator:
+    files:
+    - tb/XHEEP_CmdLineOptions.hh: { is_include_file: true }
+    - tb/XHEEP_CmdLineOptions.cpp
+    - tb/tb_sc_top.cpp
+    file_type: cppSource
+
 
   openroad_base_files:
     files:
@@ -261,7 +231,15 @@ parameters:
     datatype: bool
     paramtype: vlogdefine
     default: false
+  SIM_SYSTEMC:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
   FPGA_NEXYS:
+    datatype: bool
+    paramtype: vlogdefine
+    default: false
+  FPGA_ZCU104:
     datatype: bool
     paramtype: vlogdefine
     default: false
@@ -301,6 +279,8 @@ targets:
     - files_rtl_generic
     - target_sim ? (rtl-simulation)
     - target_sim ? (tool_verilator? (files_verilator_waiver))
+    - target_sim_sc ? (rtl-simulation)
+    - target_sim_sc ? (tool_verilator? (files_verilator_waiver))
     toplevel: [core_v_mini_mcu]
 
   sim:
@@ -392,6 +372,40 @@ targets:
           - '-LDFLAGS "-pthread -lutil -lelf"'
           - "-Wall"
 
+  sim_sc:
+    <<: *default_target
+    default_tool: modelsim
+    filesets_append:
+    - tb-utils
+    - tool_verilator? (tb-sc-verilator)
+    - "!integrated_heep? (x_heep_system)"
+    toplevel:
+    - tool_verilator? (testharness)
+    parameters:
+    - COREV_PULP
+    - FPU
+    - JTAG_DPI
+    - X_EXT
+    - USE_EXTERNAL_DEVICE_EXAMPLE
+    - USE_UPF
+    - REMOVE_OBI_FIFO
+    - SIM_SYSTEMC=true
+    tools:
+      verilator:
+        mode: sc
+        verilator_options:
+          - '--sc'
+          - '--trace'
+          - '--trace-structs'
+          - '--trace-params'
+          - '--trace-max-array 1024'
+          - '--x-assign unique'
+          - '--x-initial unique'
+          - '--exe tb_sc_top.cpp'
+          - '-CFLAGS "-std=c++11 -Wall -g -fpermissive"'
+          - '-LDFLAGS "-pthread -lutil -lelf $(SYSTEMC_LIBDIR)/libsystemc.a"'
+          - "-Wall"
+
   nexys-a7-100t:
     <<: *default_target
     default_tool: vivado
@@ -399,9 +413,6 @@ targets:
     filesets_append:
     - x_heep_system
     - rtl-fpga
-    - ip-fpga-nexys
-    - ip-fpga
-    - xdc-fpga-nexys
     parameters:
     - COREV_PULP
     - FPU
@@ -412,6 +423,8 @@ targets:
     tools:
       vivado:
         part: xc7a100tcsg324-1
+        board_part: digilentinc.com:nexys-a7-100t:part0:1.3
+        board_repo_paths: [../../../hw/fpga/board_files/vendor/esl_epfl_nexys_a7_100t_board_files]
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
 
   pynq-z2:
@@ -421,9 +434,6 @@ targets:
     filesets_append:
     - x_heep_system
     - rtl-fpga
-    - ip-fpga-pynq-z2
-    - ip-fpga
-    - xdc-fpga-pynq-z2
     parameters:
     - COREV_PULP
     - FPU
@@ -433,8 +443,31 @@ targets:
     tools:
       vivado:
         part: xc7z020clg400-1
+        board_part: tul.com.tw:pynq-z2:part0:1.0
+        board_repo_paths: [../../../hw/fpga/board_files/vendor/esl_epfl_pynq_z2_board_files]
     toplevel: [xilinx_core_v_mini_mcu_wrapper]
 
+  zcu104:
+    <<: *default_target
+    default_tool: vivado
+    description: ZCU104 Evaluation Board
+    filesets_append:
+    - x_heep_system
+    - rtl-fpga
+    parameters:
+    - COREV_PULP
+    - FPU
+    - X_EXT
+    - SYNTHESIS=true
+    - REMOVE_OBI_FIFO
+    - FPGA_ZCU104=true
+    tools:
+      vivado:
+        part: xczu7ev-ffvc1156-2-e
+        board_part: xilinx.com:zcu104:part0:1.0
+        board_repo_paths: [../../../hw/fpga/board_files/vendor/esl_epfl_zcu104_board_files]
+    toplevel: [xilinx_core_v_mini_mcu_wrapper]
+    
   asic_synthesis:
     <<: *default_target
     default_tool: design_compiler

@@ -17,7 +17,7 @@
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+#elif PRINTF_IN_FPGA && !TARGET_SIM
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
@@ -28,11 +28,24 @@ uint32_t check_results(float *  C, int N, int M);
 
 float m_c[HEIGHT*WIDTH];
 
-void swap(char *a, char *b)
+void putlong(long i)
 {
-    char temp = *a;
-    *a = *b;
-    *b = temp;
+    char int_str[20]; // An array to store the digits
+    int len = 0; // The length of the string
+    do
+    {
+        // Get the last digit and store it in the array
+        int_str[len] = '0' + i % 10;
+        len++;
+        // Remove the last digit from i
+        i /= 10;
+    } while (i > 0);
+
+    // Print the  reversed string of digits
+    for (int j = len - 1; j >= 0; j--)
+    {
+        putchar(int_str[j]);
+    }
 }
 
 // A function to print a floating point number using putchar
@@ -47,57 +60,68 @@ void putfloat(float x, int p)
         x = -x;
     }
 
+    float f = x - (long)x; // Get the fractional part of x
+
+    // Get the p most significant digits of the fractional part as the
+    // integer part of f.
+    // Count the number of initial zeros.
+    int initial_zeros = 0;
+    // Check if the fraction will overflow to the integer part when
+    // rounding up (i.e. if the fraction is 0.999...)
+    int fraction_overflow = 1;
+    for (int j = 0; j < p; j++)
+    {
+        f *= 10;
+        if (f < 1)
+        {
+            // exclude the last digit with round up
+            if (!(j == p - 1 && f >= 0.5f))
+                initial_zeros++;
+        }
+        if (fraction_overflow && (long)f % 10 < 9)
+        {
+            fraction_overflow = 0;
+        }
+    }
+
+    // Round up if necessary
+    if ((f - (long)f) >= 0.5f)
+    {
+        // If the rounding causes a digit to overflow in the fractional
+        // part, then we need to print one less zero
+        if (fraction_overflow == 0)
+        {
+            f += 1;
+            if (f >= 10 && initial_zeros > 0)
+            {
+                initial_zeros--;
+            }
+        }
+        // If the overflow is in the integer part, then we need to print
+        // one more digit in the integer part, and none in the fractional
+        else
+        {
+            f = 0;
+            x += 1;
+            initial_zeros = p - 1;
+        }
+    }
+
     // Convert the integer part of x into a string of digits
-    long i = (long)x; // Get the integer part
-    char int_str[20]; // An array to store the digits
-    int len = 0; // The length of the string
-    do
-    {
-        // Get the last digit and store it in the array
-        int_str[len] = '0' + i % 10;
-        len++;
-        // Remove the last digit from i
-        i /= 10;
-    } while (i > 0);
-
-    // Reverse the string of digits
-    for (int j = 0; j < len / 2; j++)
-    {
-        // Swap the elements at both ends
-        swap(&int_str[j], &int_str[len - 1 - j]);
-    }
-
-    // Print the string of digits
-    for (int j = 0; j < len; j++)
-    {
-        putchar(int_str[j]);
-    }
+    putlong((long)x);
 
     // Print a decimal point
     putchar('.');
 
-    // Convert the fractional part of x into a string of digits
-    float f = x - (long)x; // Get the fractional part
-    char frac_str[20]; // An array to store the digits
-    len = 0; // The length of the string
-    while (p--)
+    // Print the initial zeros
+    while (initial_zeros--)
     {
-        // Get the first digit after the decimal point and store it in the array
-        f = (f - (long)f) * 10;
-        frac_str[len] = '0' + (long)f;
-        len++;
-        // Round up if necessary
-        if (fabs(f - (long)f) >= 0.5f)
-        {
-            frac_str[len - 1]++;
-        }
+        putchar('0');
     }
 
-    // Print the string of digits
-    for (int j = 0; j < len; j++)
-    {
-        putchar(frac_str[j]);
-    }
+    // Convert the fractional part of x into a string of digits
+    if (f > 1)
+        putlong((long)f);
 }
 
 void __attribute__ ((noinline)) printMatrix(float *  C, int N, int M)

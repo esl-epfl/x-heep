@@ -7,15 +7,13 @@ ENTRY(_start)
 
 MEMORY
 {
-    ram0 (rwxai) : ORIGIN = 0x${linker_onchip_code_start_address}, LENGTH = 0x${linker_onchip_code_size_address}
-    ram1 (rwxai) : ORIGIN = 0x${linker_onchip_data_start_address}, LENGTH = 0x${linker_onchip_data_size_address}
-    FLASH0 (rx)   : ORIGIN = 0x${linker_flash_code_start_address}, LENGTH = 0x${linker_onchip_code_size_address}
-    FLASH1 (rx)   : ORIGIN = 0x${linker_flash_data_start_address}, LENGTH = 0x${linker_onchip_data_size_address}
-  % if ram_numbanks_cont > 1 and ram_numbanks_il > 0:
-    ram_il (rwxai) : ORIGIN = 0x${linker_onchip_il_start_address}, LENGTH = 0x${linker_onchip_il_size_address}
-    FLASH_il (rx)   : ORIGIN = 0x${linker_flash_il_start_address}, LENGTH = 0x${linker_onchip_il_size_address}
-  % endif
-    FLASH_left (rx)   : ORIGIN = 0x${linker_flash_left_start_address}, LENGTH = 0x${linker_flash_left_size_address}
+<%flash_end = 0%>
+% for i, section in enumerate(xheep.iter_linker_sections()):
+    ram${i} (rwxai) : ORIGIN = ${f"{section.start:#08x}"}, LENGTH = ${f"{section.size:#08x}"}
+    FLASH${i} (rx)  : ORIGIN = ${f"{section.start + int(flash_mem_start_address,16):#08x}"}, LENGTH = ${f"{section.size:#08x}"}
+<%flash_end = section.end%>
+% endfor
+    FLASH_left (rx) : ORIGIN = ${f"{flash_end + int(flash_mem_start_address,16):#08x}"}, LENGTH = ${f"{int(flash_mem_size_address,16) - flash_end:#08x}"}
 }
 
 
@@ -62,7 +60,7 @@ SECTIONS {
         KEEP (*(.text.spi_wait_for_rx_watermark*))
         KEEP (*(.text.spi_read_word*))
         KEEP (*(.text.memcpy))
-        KEEP (*(.text.w25q128jw_read_standard)) /* as this function is used in the crt0, link it in the top, should be before 1024 Bytes loaded by the bootrom */
+        KEEP (*(.text.w25q128jw_read_standard*)) /* as this function is used in the crt0, link it in the top, should be before 1024 Bytes loaded by the bootrom */
         *(.xheep_init_data_crt0) /* this global variables are used in the crt0 */
     } >ram0 AT >FLASH0
 
@@ -158,21 +156,23 @@ SECTIONS {
        PROVIDE(__freertos_irq_stack_top = .);
     } >ram1
 
-  % if ram_numbanks_cont > 1 and ram_numbanks_il > 0:
-    .data_interleaved : ALIGN_WITH_INPUT
+  % for i, section in enumerate(xheep.iter_linker_sections()):
+  % if not section.name in ["code", "data"]:
+    .${section.name} : ALIGN_WITH_INPUT
     {
-        PROVIDE(__data_interleaved_start = .);
-        _lma_data_interleaved_start = LOADADDR(.data_interleaved);
+        PROVIDE(__${section.name}_start = .);
+        _lma_${section.name}_start = LOADADDR(.${section.name});
         . = ALIGN(4);
-        *(.xheep_data_interleaved)
+        *(.xheep_${section.name})
         . = ALIGN(4);
-    } >ram_il AT >FLASH_il
+    } >ram${i} AT >FLASH${i}
 
    . = ALIGN(4);
-  _eddata_interleaved = .;
-  _lma_data_interleaved_end = _lma_data_interleaved_start + SIZEOF(.data_interleaved);
+  _ed${section.name} = .;
+  _lma_${section.name}_end = _lma_${section.name}_start + SIZEOF(.${section.name});
 
   % endif
+  % endfor
 
     .data_flash_only : ALIGN(256)
     {

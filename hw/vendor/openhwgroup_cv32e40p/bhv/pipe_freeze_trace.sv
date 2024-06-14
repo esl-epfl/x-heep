@@ -1,27 +1,29 @@
-// Copyright (c) 2023 OpenHW Group
+// Copyright 2024 OpenHW Group and Dolphin Design
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 //
-// Licensed under the Solderpad Hardware Licence, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
+// Licensed under the Solderpad Hardware License v 2.1 (the "License");
+// you may not use this file except in compliance with the License, or,
+// at your option, the Apache License version 2.0.
 // You may obtain a copy of the License at
 //
-// https://solderpad.org/licenses/
+// https://solderpad.org/licenses/SHL-2.1/
 //
-// Unless required by applicable law or agreed to in writing, software
+// Unless required by applicable law or agreed to in writing, any work
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.0
 
-// CV32E40P
-//
-// Contributors: Yoann Pruvost, Dolphin Design <yoann.pruvost@dolphin.fr>
+////////////////////////////////////////////////////////////////////////////////////
+//                                                                                //
+// Contributors: Yoann Pruvost, Dolphin Design <yoann.pruvost@dolphin.fr>         //
+//                                                                                //
+// Description:  Structures, Functions and Task used to store all information     //
+//               coming from the core pipeline at every posedge.                  //
+//               Those information will then be processed by RVFI.                //
+//                                                                                //
+////////////////////////////////////////////////////////////////////////////////////
 
-/*
-   * This struct is used to store all information comming from the core at every posedge
-   * The information will then be processed
-   */
 typedef struct {
   logic is_decoding;
   logic is_illegal;
@@ -64,6 +66,9 @@ typedef struct {
   logic is_compressed_id;
 
   logic ebrk_insn_dec;
+  logic ecall_insn_dec;
+  logic mret_insn_dec;
+  logic mret_dec;
 
   logic [5:0] csr_cause;
 
@@ -111,6 +116,9 @@ typedef struct {
   logic [31:0] data_addr_ex;
   logic [31:0] data_wdata_ex;
   logic lsu_split_q_ex;
+
+  logic mult_ready;
+  logic alu_ready;
 
   //// WB probes ////
   logic [31:0] pc_wb;
@@ -197,6 +205,8 @@ typedef struct {
     logic mepc_we;
     logic mcause_we;
     logic dcsr_we;
+
+    logic fregs_we;
 
     logic jvt_we;
     Status_t mstatus_n;
@@ -341,6 +351,7 @@ function compute_csr_we();
   r_pipe_freeze_trace.csr.fflags_we     = 1'b0;
   r_pipe_freeze_trace.csr.frm_we        = 1'b0;
   r_pipe_freeze_trace.csr.fcsr_we       = 1'b0;
+  r_pipe_freeze_trace.csr.mhpmevent_we  = '0;
   r_pipe_freeze_trace.csr.dpc_we        = csr_dpc_we_i;
   if (r_pipe_freeze_trace.csr.we) begin
     case (r_pipe_freeze_trace.csr.addr)
@@ -348,17 +359,32 @@ function compute_csr_we();
         r_pipe_freeze_trace.csr.mstatus_we    = 1'b1;
         r_pipe_freeze_trace.csr.mstatus_fs_we = 1'b1;
       end
-      CSR_MISA:     r_pipe_freeze_trace.csr.misa_we = 1'b1;
-      CSR_MTVEC:    r_pipe_freeze_trace.csr.mtvec_we = 1'b1;
-      CSR_MSCRATCH: r_pipe_freeze_trace.csr.mscratch_we = 1'b1;
-      CSR_MEPC:     r_pipe_freeze_trace.csr.mepc_we = 1'b1;
-      CSR_MCAUSE:   r_pipe_freeze_trace.csr.mcause_we = 1'b1;
-      CSR_DCSR:     r_pipe_freeze_trace.csr.dcsr_we = 1'b1;
-      CSR_FFLAGS:   r_pipe_freeze_trace.csr.fflags_we = 1'b1;
-      CSR_FRM:      r_pipe_freeze_trace.csr.frm_we = 1'b1;
-      CSR_FCSR:     r_pipe_freeze_trace.csr.fcsr_we = 1'b1;
-      CSR_DPC:      r_pipe_freeze_trace.csr.dpc_we = 1'b1;
+      CSR_MISA:      r_pipe_freeze_trace.csr.misa_we = 1'b1;
+      CSR_MTVEC:     r_pipe_freeze_trace.csr.mtvec_we = 1'b1;
+      CSR_MSCRATCH:  r_pipe_freeze_trace.csr.mscratch_we = 1'b1;
+      CSR_MEPC:      r_pipe_freeze_trace.csr.mepc_we = 1'b1;
+      CSR_MCAUSE:    r_pipe_freeze_trace.csr.mcause_we = 1'b1;
+      CSR_DCSR:      r_pipe_freeze_trace.csr.dcsr_we = 1'b1;
+      CSR_FFLAGS: begin
+        r_pipe_freeze_trace.csr.fflags_we = 1'b1;
+        r_pipe_freeze_trace.csr.mstatus_fs_we = 1'b1;
+      end
+      CSR_FRM: begin
+        r_pipe_freeze_trace.csr.frm_we = 1'b1;
+        r_pipe_freeze_trace.csr.mstatus_fs_we = 1'b1;
+      end
+      CSR_FCSR: begin
+        r_pipe_freeze_trace.csr.fcsr_we = 1'b1;
+        r_pipe_freeze_trace.csr.mstatus_fs_we = 1'b1;
+      end
+      CSR_DPC:       r_pipe_freeze_trace.csr.dpc_we = 1'b1;
+      CSR_DSCRATCH0: r_pipe_freeze_trace.csr.dscratch0_we = 1'b1;
+      CSR_DSCRATCH1: r_pipe_freeze_trace.csr.dscratch1_we = 1'b1;
     endcase
+  end
+
+  if (csr_mhpmevent_we_i) begin
+    r_pipe_freeze_trace.csr.mhpmevent_we[r_pipe_freeze_trace.csr.addr[4:0]] = 1'b1;
   end
   // CSR_MCAUSE:   r_pipe_freeze_trace.csr.mcause_we = r_pipe_freeze_trace.csr.mcause_n != r_pipe_freeze_trace.csr.mcause_q; //for debug purpose
 endfunction
@@ -416,6 +442,9 @@ task monitor_pipeline();
     r_pipe_freeze_trace.jump_target_id = jump_target_id_i;
     r_pipe_freeze_trace.is_compressed_id = is_compressed_id_i;
     r_pipe_freeze_trace.ebrk_insn_dec = ebrk_insn_dec_i;
+    r_pipe_freeze_trace.ecall_insn_dec = ecall_insn_dec_i;
+    r_pipe_freeze_trace.mret_insn_dec = mret_insn_dec_i;
+    r_pipe_freeze_trace.mret_dec = mret_dec_i;
     r_pipe_freeze_trace.csr_cause = csr_cause_i;
     r_pipe_freeze_trace.debug_csr_save = debug_csr_save_i;
     r_pipe_freeze_trace.minstret = minstret_i;
@@ -462,6 +491,8 @@ task monitor_pipeline();
     r_pipe_freeze_trace.data_wdata_ex = data_wdata_ex_i;
     r_pipe_freeze_trace.lsu_split_q_ex = lsu_split_q_ex_i;
 
+    r_pipe_freeze_trace.mult_ready = mult_ready_i;
+    r_pipe_freeze_trace.alu_ready = alu_ready_i;
     //// WB probes ////
     r_pipe_freeze_trace.pc_wb = pc_wb_i;
     r_pipe_freeze_trace.wb_ready = wb_ready_i;
@@ -526,6 +557,8 @@ task monitor_pipeline();
     r_pipe_freeze_trace.csr.we = csr_we_i;
     r_pipe_freeze_trace.csr.wdata_int = csr_wdata_int_i;
 
+    r_pipe_freeze_trace.csr.fregs_we = csr_fregs_we_i;
+
     r_pipe_freeze_trace.csr.jvt_we = csr_jvt_we_i;
     r_pipe_freeze_trace.csr.mstatus_n = csr_mstatus_n_i;
     r_pipe_freeze_trace.csr.mstatus_q = csr_mstatus_q_i;
@@ -550,7 +583,6 @@ task monitor_pipeline();
     r_pipe_freeze_trace.csr.mcountinhibit_we = csr_mcountinhibit_we_i;
     r_pipe_freeze_trace.csr.mhpmevent_n = csr_mhpmevent_n_i;
     r_pipe_freeze_trace.csr.mhpmevent_q = csr_mhpmevent_q_i;
-    r_pipe_freeze_trace.csr.mhpmevent_we = csr_mhpmevent_we_i;
     r_pipe_freeze_trace.csr.mscratch_n = csr_mscratch_n_i;
     r_pipe_freeze_trace.csr.mscratch_q = csr_mscratch_q_i;
     r_pipe_freeze_trace.csr.mepc_n = csr_mepc_n_i;
@@ -650,10 +682,6 @@ task monitor_pipeline();
     if (r_pipe_freeze_trace.csr.fcsr_we) begin
       r_pipe_freeze_trace.csr.fflags_we = 1'b1;
       r_pipe_freeze_trace.csr.frm_we    = 1'b1;
-    end else begin
-      if (r_pipe_freeze_trace.csr.fflags_we || r_pipe_freeze_trace.csr.frm_we) begin
-        r_pipe_freeze_trace.csr.fcsr_we = 1'b1;
-      end
     end
 
     if (csr_fcsr_fflags_we_i) begin

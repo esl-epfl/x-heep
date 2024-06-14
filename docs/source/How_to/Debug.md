@@ -1,11 +1,11 @@
-#  debug
+#  Debug
 
 ## Prerequisite
 
 1. Install the required linux tools:
 
 ```
-sudo apt install pkg-config libftdi1-2 libusb-1.0-4
+sudo apt install pkg-config libftdi1-2
 ```
 
 You need at least gcc>10, so in case you do not have it:
@@ -40,9 +40,9 @@ Now we are going to Simulate debugging with core-v-mini-mcu.
 In this setup, OpenOCD communicates with the remote bitbang server by means of DPIs.
 The remote bitbang server is simplemented in the folder ./hw/vendor/pulp_platform_pulpissimo/rtl/tb/remote_bitbang and it will be compiled using fusesoc.
 
-### Verilator
+### Verilator (C++ only)
 
-To simulate your application with Questasim using the remote_bitbang server, you need to compile you system adding the `JTAG DPI` functions:
+To simulate your application with Verilator using the remote_bitbang server, you need to compile you system adding the `JTAG DPI` functions:
 
 ```
 make verilator-sim FUSESOC_PARAM="--JTAG_DPI=1"
