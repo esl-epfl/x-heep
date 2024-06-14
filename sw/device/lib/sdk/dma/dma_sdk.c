@@ -483,7 +483,7 @@ int dma_copy(const uint8_t *dst, const uint8_t *src, const size_t bytes, const d
 }
 
 // DMA interrupt handler
-void dma_intr_handler_trans_done()
+void dma_sdk_intr_handler_trans_done()
 {
     dma_sdk_intr_flag = 1;
 }
