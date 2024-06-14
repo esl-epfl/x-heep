@@ -70,6 +70,34 @@
 
 #define DMA_INT_TR_START     0x0
 
+/* 
+ * For multichannel configurations, a priority mechanism can be set up to allow the interrupt handler 
+ * to prioritize a set of channels.
+ * 
+ * In order to enable this feature, the user must define DMA_HP_INTR_INDEX.
+ * 
+ * When an interrupt is raised, the handler will loop through the channels. If the channel that
+ * raised the interrupt is part of the high priority channels (index <= DMA_HP_INTR_INDEX), 
+ * it will call the actual handler and exit the loop. 
+ * It this way, low index channels will always be serviced first.
+ * 
+ * However, this feature could cause low priority channels to never be serviced if the high priority
+ * interrupts are raised at a faster frequency.
+ * In order to avoid this, the user can define DMA_NUM_HP_INTR (uint16_t).
+ * This macro puts a limit to the number of consecutive interrupts raised by high priority channels 
+ * that can trigger a "return".
+ * If N = DMA_NUM_HP_INTR interrupts are raised by high priority channels, the N+1 interrupt will be
+ * serviced and then no "return" will be triggered, thus allowing the handler's loop to continue and 
+ * low priority channels to be serviced, if necessary.
+ * 
+ * The priority mechanism is applied to both transaction done and window done interrupts, if enabled.
+ * Separate counters are used for each type of interrupt.
+ */
+
+//#define DMA_HP_INTR_INDEX 0
+//#define DMA_NUM_HP_INTR 5
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif

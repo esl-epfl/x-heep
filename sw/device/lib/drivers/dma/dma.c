@@ -270,7 +270,9 @@ typedef struct
 /* Allocate the channel's memory space */
 static dma_ch_cb dma_subsys_per[DMA_CH_NUM];
 
-
+/* High priority interrupts counters */
+uint16_t dma_hp_tr_intr_counter = 0;
+uint16_t dma_hp_win_intr_counter = 0;
 
 
 /****************************************************************************/
@@ -292,6 +294,31 @@ void handler_irq_dma(uint32_t id)
         if (dma_subsys_per[i].peri->WINDOW_IFR == 1)
         {
             dma_intr_handler_window_done(i);
+
+             #ifdef DMA_HP_INTR_INDEX
+            /* 
+             * If the channel that raised the interrupt is among the high priority channels,
+             * return to break the loop. 
+             */
+            #ifdef DMA_NUM_HP_INTR
+            if (i <= DMA_HP_INTR_INDEX && dma_hp_win_intr_counter < DMA_NUM_HP_INTR)
+            {
+                dma_hp_win_intr_counter++;
+                return;
+            } else if (i > DMA_HP_INTR_INDEX)
+            {
+                dma_hp_win_intr_counter = 0;
+            }
+
+            #else
+
+            if (i <= DMA_HP_INTR_INDEX)
+            {
+                return;
+            }
+            #endif
+
+            #endif
         }
     }
     return;
@@ -311,6 +338,32 @@ void fic_irq_dma(void)
         {
             dma_subsys_per[i].intrFlag = 1;
             dma_intr_handler_trans_done(i);
+
+            #ifdef DMA_HP_INTR_INDEX
+            /* 
+             * If the channel that raised the interrupt is among the high priority channels,
+             * return to break the loop. 
+             */
+            #ifdef DMA_NUM_HP_INTR
+            if (i <= DMA_HP_INTR_INDEX && dma_hp_tr_intr_counter < DMA_NUM_HP_INTR)
+            {
+                dma_hp_tr_intr_counter++;
+                return;
+            }
+            else if (i > DMA_HP_INTR_INDEX)
+            {
+                dma_hp_tr_intr_counter = 0;
+            }
+
+            #else
+
+            if (i <= DMA_HP_INTR_INDEX)
+            {
+                return;
+            }
+            #endif
+
+            #endif
         }
     }
     return;
