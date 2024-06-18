@@ -45,7 +45,7 @@ endif()
 project(${PROJECT} ASM C CXX)
 
 # set the required CMake standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 
 # Set MAIN file
 SET(MAINFILE "main")
@@ -89,16 +89,17 @@ FOREACH(file_path ${new_list})
     # Add it to the string format list
     SET(dir_list_str ${dir_list_str} "-I ${dir_path} \
     ")
-    string(REPLACE ";" "" dir_list_str ${dir_list_str})
-
+    
     # Add it to the header list
     SET(h_dir_list_ ${h_dir_list_} "${dir_path}")
   endif()
 
 ENDFOREACH()
 
-LIST(REMOVE_DUPLICATES dir_list_str)
+LIST(REMOVE_DUPLICATES dir_list_str) 
+string(REPLACE ";" "" dir_list_str ${dir_list_str}) #This has been moved here to avoid multiple includes of the same path, see: https://github.com/esl-epfl/x-heep/issues/470
 LIST(REMOVE_DUPLICATES h_dir_list_)
+
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Add list to the directories to be included
@@ -108,8 +109,7 @@ SET(INCLUDE_FOLDERS "-I ${RISCV}/${COMPILER_PREFIX}elf/include \
                      -I ${RISCV}/${COMPILER_PREFIX}elf/include/ \
                      -I ${ROOT_PROJECT} \
                      -I ${SOURCE_PATH} \
-					           ${dir_list_str}")
-
+					           ${dir_list_str}")                                      
 
 #######################################################################
 #      FIND SOURCE FILES TO BE INCLUDED
@@ -119,14 +119,22 @@ SET(INCLUDE_FOLDERS "-I ${RISCV}/${COMPILER_PREFIX}elf/include \
 # Preliminary list of source files inside the source path
 
 # Make a list of the .c source files that need to be linked
-FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
+FILE(GLOB_RECURSE c_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
+# Make a list of the .s source files that need to be linked
+FILE(GLOB_RECURSE s_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.s)
+# Make a list of the .S source files that need to be linked
+FILE(GLOB_RECURSE S_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.S)
+SET(new_list ${c_files} ${s_files} ${S_files})
+
 SET( c_dir_list "" )
 SET( app_found 0 )
 FOREACH(file_path IN LISTS new_list)
   SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
   if(${file_path} MATCHES "${SOURCE_PATH}device/")
-    SET(add 1)
-  elseif( ${file_path} MATCHES "${SOURCE_PATH}external/" )
+    if(NOT ${file_path} MATCHES "\\.S$")
+      SET(add 1)
+    endif()
+  elseif( (${file_path} MATCHES "${SOURCE_PATH}external/") AND ( NOT  ${file_path} MATCHES "exclude" ) )
     SET(add 1)
   elseif( ${file_path} MATCHES "${SOURCE_PATH}applications/${PROJECT}/.*${MAINFILE}\." ) # look for main.*
     SET(app_found 1)
@@ -134,7 +142,7 @@ FOREACH(file_path IN LISTS new_list)
     SET(add 1)
   endif()
 
-  if( add EQUAL 1 ) # If the file path mathced one of the criterion, add it to the list
+  if( add EQUAL 1 ) # If the file path matched one of the criteria, add it to the list
     SET(c_dir_list ${c_dir_list} "${file_path}\
     ")
     string(REPLACE ";" "" c_dir_list ${c_dir_list})
@@ -142,83 +150,64 @@ FOREACH(file_path IN LISTS new_list)
 
 ENDFOREACH()
 
-# Make a list for the .cpp source files that need to be linked
-FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.cpp)
-SET( cpp_dir_list "" )
-SET( app_found 0 )
-FOREACH(file_path IN LISTS new_list)
-  SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
-  if(${file_path} MATCHES "${SOURCE_PATH}device/")
-    SET(add 1)
-  elseif( ${file_path} MATCHES "${SOURCE_PATH}external/" )
-    SET(add 1)
-  elseif( ${file_path} MATCHES "${SOURCE_PATH}applications/${PROJECT}/.*${MAINFILE}\." ) # look for main.*
-    SET(app_found 1)
-  elseif( ${file_path} MATCHES "${SOURCE_PATH}applications/${PROJECT}/" ) # other sources
-    SET(add 1)
-  endif()
-
-  if( add EQUAL 1 ) # If the file path mathced one of the criterion, add it to the list
-    SET(cpp_dir_list ${cpp_dir_list} "${file_path}\
-    ")
-    string(REPLACE ";" "" cpp_dir_list ${cpp_dir_list})
-  endif()
-
-ENDFOREACH()
-
-
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # If the app was not found, look into the root project
 
 if( app_found EQUAL 0 )
   SET(SOURCE_PATH ${ROOT_PROJECT})
 
-  # Make a list of the source files that need to be linked
-  FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
+  # Make a list of the .c source files that need to be linked
+  FILE(GLOB_RECURSE c_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
+  # Make a list of the .cpp source files that need to be linked
+  FILE(GLOB_RECURSE cpp_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.cpp)
+  # Make a list of the .s source files that need to be linked
+  FILE(GLOB_RECURSE s_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.s)
+  # Make a list of the .S source files that need to be linked
+  FILE(GLOB_RECURSE S_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.S)
+  SET(new_list ${c_files} ${s_files} ${S_files})
+
   SET(c_dir_list "")
   FOREACH(file_path IN LISTS new_list)
     SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
     if(${file_path} MATCHES "${ROOT_PROJECT}device/")
-      SET(add 1)
-    elseif( ( ${file_path} MATCHES "${ROOT_PROJECT}/applications/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES "${ROOT_PROJECT}applications/${PROJECT}/.*${MAINFILE}\." ) )
+      if(NOT ${file_path} MATCHES "\\.S$")
+        SET(add 1)
+      endif()
+    elseif( ( ${file_path} MATCHES "${ROOT_PROJECT}/applications/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES "${ROOT_PROJECT}applications/${PROJECT}/.*${MAINFILE}\." ) AND ( NOT  ${file_path} MATCHES "exclude" ) )
       SET(add 1)
     endif()
 
-    if( add EQUAL 1 ) # If the file path mathced one of the criterion, add it to the list
+    if( add EQUAL 1 ) # If the file path matched one of the criteria, add it to the list
       SET(c_dir_list ${c_dir_list} "${file_path}\
       ")
       string(REPLACE ";" "" c_dir_list ${c_dir_list})
     endif()
 
     ENDFOREACH()
-endif()
 
-#do the same for .cpp files
-if( app_found EQUAL 0 )
-  SET(SOURCE_PATH ${ROOT_PROJECT})
-
-  # Make a list of the source files that need to be linked
-  FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.cpp)
-  SET(cpp_dir_list "")
-  FOREACH(file_path IN LISTS new_list)
-    SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
-    if(${file_path} MATCHES "${ROOT_PROJECT}device/")
-      SET(add 1)
-    elseif( ( ${file_path} MATCHES "${ROOT_PROJECT}/applications/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES "${ROOT_PROJECT}applications/${PROJECT}/.*${MAINFILE}\." ) )
+SET(cpp_dir_list "")
+FOREACH(file_path IN LISTS new_list)
+  SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
+  if(${file_path} MATCHES "${ROOT_PROJECT}device/")
+    if(NOT ${file_path} MATCHES "\\.S$")
       SET(add 1)
     endif()
+  elseif( ( ${file_path} MATCHES "${ROOT_PROJECT}/applications/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES "${ROOT_PROJECT}applications/${PROJECT}/.*${MAINFILE}\." ) AND ( NOT  ${file_path} MATCHES "exclude" ) )
+    SET(add 1)
+  endif()
 
-    if( add EQUAL 1 ) # If the file path mathced one of the criterion, add it to the list
-      SET(cpp_dir_list ${cpp_dir_list} "${file_path}\
-      ")
-      string(REPLACE ";" "" cpp_dir_list ${cpp_dir_list})
-    endif()
+  if( add EQUAL 1 ) # If the file path matched one of the criteria, add it to the list
+    SET(cpp_dir_list ${cpp_dir_list} "${file_path}\
+    ")
+    string(REPLACE ";" "" cpp_dir_list ${cpp_dir_list})
+  endif()
 
-    ENDFOREACH()
+  ENDFOREACH()
 endif()
 
 LIST(REMOVE_DUPLICATES c_dir_list)
 LIST(REMOVE_DUPLICATES cpp_dir_list)
+
 #######################################################################
 #      DETERMINE IF APP IS EXTERNAL
 #######################################################################
@@ -399,7 +388,6 @@ endif()
 #######################################################################
 if (${COMPILER} MATCHES "gcc")
   set(SOURCES ${SOURCE_PATH}applications/${PROJECT}/${MAINFILE}.c)
-set(SOURCES ${SOURCE_PATH}applications/${PROJECT}/${MAINFILE}.c)
   if(NOT EXISTS ${SOURCES})
     # If main.c does not exist, set the source file to main.cpp
     set(SOURCES ${SOURCE_PATH}applications/${PROJECT}/${MAINFILE}.cpp)
@@ -410,7 +398,6 @@ elseif(${COMPILER} MATCHES "clang")
 elseif(${COMPILER} MATCHES "g\\+\\+.*$")
   set(SOURCES ${SOURCE_PATH}applications/${PROJECT}/${MAINFILE}.cpp)
 endif()
-
 
 # add the executable
 add_executable(${MAINFILE}.elf ${SOURCES})
@@ -440,7 +427,7 @@ SET(CMAKE_EXE_LINKER_FLAGS  "-T ${LINKER_SCRIPT}  \
                              -Wl,-Map=${MAINFILE}.map \
                              -L ${RISCV}/${COMPILER_PREFIX}elf/lib \
                              -lc -lm -lgcc -flto \
-                             -fpermissive -fno-rtti -fno-exceptions -fno-threadsafe-statics  -fno-unwind-tables  \
+                             -fpermissive -fno-rtti -fno-exceptions -fno-threadsafe-statics \
                             -ffunction-sections -fdata-sections -specs=nano.specs")
 message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/${COMPILER_PREFIX}elf/lib${ColourReset}")
 
