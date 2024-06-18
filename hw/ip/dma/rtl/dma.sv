@@ -46,93 +46,184 @@ module dma #(
 
   //TO DELETE - FOR DEBUGGING
   integer file;
-
-  initial begin
-    // Open the file for writing
-    file = $fopen("dma_output.txt", "a");
-    if (!file) begin
-      $display("Error: Failed to open the file.");
-    end
-  end
+  int file_opened = 0;
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (~rst_ni) begin
-      $fdisplay(file, "Reset");
+      $fdisplay(file, "Time: %0t - Reset", $time);
+      if (file_opened == 0) begin
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "w");
+        file_opened <= 1;
+        if (!file) begin
+          $display("Error: Failed to open the file.");
+        end else begin
+          $display("Succefully opened the file.");
+        end
+      end
     end else begin
+      if (dma_start == 1'b1) begin
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        $fdisplay(file, "Time: %0t - DMA_START\n", $time);
+        $display("DMA_START");
+        $fclose(file);
+      end
+
+      if(dma_done == 1'b1) begin
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        $fdisplay(file, "Time: %0t - DMA_DONE\n", $time);
+        $display("DMA_DONE");
+        $fclose(file);
+      end
+
       if (reg2hw.dim_config.qe) begin
-        $fdisplay(file, "DIM_CONFIG: %0d\n", reg2hw.dim_config.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        $fdisplay(file, "Time: %0t - DIM_CONFIG: %0d\n", $time, reg2hw.dim_config.q);
+        $display("DIM_CONFIG: %0d", reg2hw.dim_config.q);
+        $fclose(file);
       end
 
       if (reg2hw.src_ptr_inc_d1.qe) begin
-        $fdisplay(file, "SRC_PTR_INC_D1: %0d\n", reg2hw.src_ptr_inc_d1.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - SRC_PTR_INC_D1: %0d\n", $time, reg2hw.src_ptr_inc_d1.q);
+        $display("SRC_PTR_INC_D1: %0d", reg2hw.src_ptr_inc_d1.q);
+        $fclose(file);
       end
 
       if (reg2hw.src_ptr_inc_d2.qe) begin
-        $fdisplay(file, "SRC_PTR_INC_D2: %0d\n", reg2hw.src_ptr_inc_d2.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - SRC_PTR_INC_D2: %0d\n", $time, reg2hw.src_ptr_inc_d2.q);
+        $display("SRC_PTR_INC_D2: %0d", reg2hw.src_ptr_inc_d2.q);
+        $fclose(file);
       end
 
       if (reg2hw.dst_ptr_inc_d1.qe) begin
-        $fdisplay(file, "DST_PTR_INC_D1: %0d\n", reg2hw.dst_ptr_inc_d1.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - DST_PTR_INC_D1: %0d\n", $time, reg2hw.dst_ptr_inc_d1.q);
+        $display("DST_PTR_INC_D1: %0d", reg2hw.dst_ptr_inc_d1.q);
+        $fclose(file);
       end
 
       if (reg2hw.dst_ptr_inc_d2.qe) begin
-        $fdisplay(file, "DST_PTR_INC_D2: %0d\n", reg2hw.dst_ptr_inc_d2.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - DST_PTR_INC_D2: %0d\n", $time, reg2hw.dst_ptr_inc_d2.q);
+        $display("DST_PTR_INC_D2: %0d", reg2hw.dst_ptr_inc_d2.q);
+        $fclose(file);
       end
 
       if (reg2hw.pad_top.qe) begin
-        $fdisplay(file, "PAD_TOP: %0d\n", reg2hw.pad_top.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - PAD_TOP: %0d\n", $time, reg2hw.pad_top.q);
+        $display("PAD_TOP: %0d", reg2hw.pad_top.q);
+        $fclose(file);
       end
 
       if (reg2hw.pad_left.qe) begin
-        $fdisplay(file, "PAD_LEFT: %0d\n", reg2hw.pad_left.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - PAD_LEFT: %0d\n", $time, reg2hw.pad_left.q);
+        $display("PAD_LEFT: %0d", reg2hw.pad_left.q);
+        $fclose(file);
       end
 
       if (reg2hw.pad_right.qe) begin
-        $fdisplay(file, "PAD_RIGHT: %0d\n", reg2hw.pad_right.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - PAD_RIGHT: %0d\n", $time, reg2hw.pad_right.q);
+        $display("PAD_RIGHT: %0d", reg2hw.pad_right.q);
+        $fclose(file);
       end
 
       if (reg2hw.pad_bottom.qe) begin
-        $fdisplay(file, "PAD_BOTTOM: %0d\n", reg2hw.pad_bottom.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - PAD_BOTTOM: %0d\n", $time, reg2hw.pad_bottom.q);
+        $display("PAD_BOTTOM: %0d", reg2hw.pad_bottom.q);
+        $fclose(file);
       end
 
       if (reg2hw.size_d1.qe) begin
-        $fdisplay(file, "SIZE_D1: %0d\n", reg2hw.size_d1.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - SIZE_D1: %0d\n", $time, reg2hw.size_d1.q);
+        $display("SIZE_D1: %0d", reg2hw.size_d1.q);
+        $fclose(file);
       end
 
       if (reg2hw.size_d2.qe) begin
-        $fdisplay(file, "SIZE_D2: %0d\n", reg2hw.size_d2.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - SIZE_D2: %0d\n", $time, reg2hw.size_d2.q);
+        $display("SIZE_D2: %0d", reg2hw.size_d2.q);
+        $fclose(file);
       end
 
       if (reg2hw.mode.qe) begin
-        $fdisplay(file, "MODE: %0d\n", reg2hw.mode.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - MODE: %0d\n", $time, reg2hw.mode.q);
+        $display("MODE: %0d", reg2hw.mode.q);
+        $fclose(file);
       end
 
       if (reg2hw.data_type.qe) begin
-        $fdisplay(file, "DATA_TYPE: %0d\n", reg2hw.data_type.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - DATA_TYPE: %0d\n", $time, reg2hw.data_type.q);
+        $display("DATA_TYPE: %0d", reg2hw.data_type.q);
+        $fclose(file);
       end
 
       if (reg2hw.dim_config.qe) begin
-        $fdisplay(file, "DIM_CONFIG: %0d\n", reg2hw.dim_config.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - DIM_CONFIG: %0d\n", $time, reg2hw.dim_config.q);
+        $display("DIM_CONFIG: %0d", reg2hw.dim_config.q);
+        $fclose(file);
       end
 
       if (reg2hw.dim_inv.qe) begin
-        $fdisplay(file, "DIM_INV: %0d\n", reg2hw.dim_inv.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - DIM_INV: %0d\n", $time, reg2hw.dim_inv.q);
+        $display("DIM_INV: %0d", reg2hw.dim_inv.q);
+        $fclose(file);
       end
 
       if (reg2hw.slot.rx_trigger_slot.qe) begin
-        $fdisplay(file, "RX_TRIGGER_SLOT: %0d\n", reg2hw.slot.rx_trigger_slot.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - RX_TRIGGER_SLOT: %0d\n", $time, reg2hw.slot.rx_trigger_slot.q);
+        $display("RX_TRIGGER_SLOT: %0d", reg2hw.slot.rx_trigger_slot.q);
+        $fclose(file);
       end
 
       if (reg2hw.slot.tx_trigger_slot.qe) begin
-        $fdisplay(file, "TX_TRIGGER_SLOT: %0d\n", reg2hw.slot.tx_trigger_slot.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - TX_TRIGGER_SLOT: %0d\n", $time, reg2hw.slot.tx_trigger_slot.q);
+        $display("TX_TRIGGER_SLOT: %0d", reg2hw.slot.tx_trigger_slot.q);
+        $fclose(file);
       end
 
       if (reg2hw.src_ptr.qe) begin
-        $fdisplay(file, "SRC_PTR: %0d\n", reg2hw.src_ptr.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - SRC_PTR: %0d\n", $time, reg2hw.src_ptr.q);
+        $display("SRC_PTR: %0d", reg2hw.src_ptr.q);
+        $fclose(file);
       end
 
       if (reg2hw.dst_ptr.qe) begin
-        $fdisplay(file, "DST_PTR: %0d\n", reg2hw.dst_ptr.q);
+        file = $fopen("/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/device/lib/drivers/dma/dma_output.txt", "a");
+        
+        $fdisplay(file, "Time: %0t - DST_PTR: %0d\n", $time, reg2hw.dst_ptr.q);
+        $display("DST_PTR: %0d", reg2hw.dst_ptr.q);
+        $fclose(file);
       end
 
     end
@@ -1252,11 +1343,12 @@ module dma #(
     end
   end
 
-  final begin
-    if (file) begin
-      $fclose(file);
-    end
-  end
+  // final begin
+  //   if (file) begin
+  //     $fclose(file);
+  //     $display("File closed");
+  //   end
+  // end
 
 
 endmodule : dma

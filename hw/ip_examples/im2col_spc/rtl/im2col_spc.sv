@@ -62,8 +62,9 @@ module im2col_spc
   /* Signals declaration */
 
   /* Control Unit signals */
-  logic stall_parameters;
   logic im2col_start;
+  logic im2col_fsms_done;
+  logic im2col_done;
 
   /* Interrupt management signals */
   logic im2col_spc_ifr;
@@ -76,11 +77,13 @@ module im2col_spc
   logic fifo_push;
   dma_if_t fifo_output;
   logic fifo_pop;
+  logic [$clog2(FIFO_DEPTH)-1:0] fifo_usage;
 
   /* DMA interface unit signals */
-  logic im2col_done;
+  logic im2col_param_done;
   logic [NUM_CH_SPC-1:0] dma_if_channels;
-  logic [$clog2(NUM_CH_SPC)-1:0] dma_free_channel;
+  logic [(NUM_CH_SPC == 1) ? 0 : ($clog2(NUM_CH_SPC) - 1):0] dma_free_channel;
+ 
   logic dma_if_load;
   logic dma_if_loaded;
   logic dma_if_load_continue;
@@ -190,7 +193,7 @@ module im2col_spc
       // status flags
       .full_o(fifo_full),
       .empty_o(fifo_empty),
-      .usage_o(),
+      .usage_o(fifo_usage),
       // as long as the queue is not full we can push new data
       .data_i(fifo_input),
       .push_i(fifo_push),
@@ -237,17 +240,25 @@ module im2col_spc
 
       DMA_RUN_PARAM_COMP_2: begin
         fifo_push = 1'b0;
-        param_state_q = OUT_PTR_UPDATE;
+        if (fifo_full == 1'b0) begin
+          param_state_q = START_DMA_RUN;
+        end else begin
+          param_state_q = DMA_RUN_PARAM_COMP_2;
+        end
       end
 
       OUT_PTR_UPDATE: begin
         fifo_push = 1'b0;
-        param_state_q = START_DMA_RUN;
+        if (batch_counter == reg2hw.batch.q - 1) begin
+          param_state_q = IM_OFFSET_UPDATE;
+        end else begin
+          param_state_q = IM_COORD_COMP;
+        end
       end
 
       IM_OFFSET_UPDATE: begin
         fifo_push = 1'b0;
-        if (ch_col_counter == reg2hw.ch_col.q) begin
+        if (im2col_param_done == 1'b1) begin
           param_state_q = IDLE;
         end else begin
           param_state_q = F_MIN_OFFSET_COMP;
@@ -256,15 +267,7 @@ module im2col_spc
 
       START_DMA_RUN: begin
         fifo_push = 1'b1;
-        if (fifo_full == 1'b0) begin
-          if (batch_counter == reg2hw.batch.q) begin
-            param_state_q = IM_OFFSET_UPDATE;
-          end else begin
-            param_state_q = IM_COORD_COMP;
-          end
-        end else begin
-          param_state_q = START_DMA_RUN;
-        end
+        param_state_q = OUT_PTR_UPDATE;
       end
     endcase
   end
@@ -363,53 +366,51 @@ module im2col_spc
           size_transfer_1d <= reg2hw.n_patches_w.q - n_zeros_left - n_zeros_right;
           size_transfer_2d <= reg2hw.n_patches_h.q - n_zeros_top - n_zeros_bottom;
           index <= ((batch_counter * reg2hw.num_ch.q + im_c) * reg2hw.ih.q + (im_row + n_zeros_top * reg2hw.strides_d2.q)) * reg2hw.iw.q + im_col + n_zeros_left * reg2hw.strides_d1.q;
-          input_data_ptr <= reg2hw.src_ptr.q + index;
         end
 
         DMA_RUN_PARAM_COMP_2: begin
           source_inc_d2 <= ((reg2hw.strides_d2.q * reg2hw.iw.q) - (size_transfer_1d - 1 + (reg2hw.strides_d1.q- 1) * (size_transfer_1d - 1)));
+          input_data_ptr <= reg2hw.src_ptr.q + index * 4;
         end
 
         OUT_PTR_UPDATE: begin
-          output_data_ptr <= output_data_ptr + reg2hw.n_patches_h.q * reg2hw.n_patches_w.q;
+          output_data_ptr <= output_data_ptr + (reg2hw.n_patches_h.q * reg2hw.n_patches_w.q) * 4;
           batch_counter   <= batch_counter + 1;
         end
 
         IM_OFFSET_UPDATE: begin
-          if (stall_parameters == 1'b0) begin
-            /* w_offset update */
-            if (w_offset == reg2hw.fw.q - 1) begin
-              w_offset <= '0;
-            end else begin
-              w_offset <= w_offset + 1;
-            end
+          /* w_offset update */
+          if (w_offset == reg2hw.fw.q - 1) begin
+            w_offset <= '0;
+          end else begin
+            w_offset <= w_offset + 1;
+          end
 
-            /* h_offset update */
-            if (h_offset_counter == 0) begin
-              h_offset_counter <= '0;
-              if (h_offset == reg2hw.fh.q - 1) begin
-                h_offset <= '0;
-              end else begin
-                h_offset <= h_offset + 1;
-              end
+          /* h_offset update */
+          if (h_offset_counter == reg2hw.fw.q - 1) begin
+            h_offset_counter <= '0;
+            if (h_offset == reg2hw.fh.q - 1) begin
+              h_offset <= '0;
             end else begin
-              h_offset_counter <= h_offset_counter + 1;
+              h_offset <= h_offset + 1;
             end
+          end else begin
+            h_offset_counter <= h_offset_counter + 1;
+          end
 
-            /* im_c update */
-            if (im_c_counter == reg2hw.fh.q * reg2hw.fw.q) begin
-              im_c_counter <= '0;
-              im_c <= '0;
-            end else begin
-              im_c_counter <= im_c_counter + 1;
-            end
+          /* im_c update */
+          if (im_c_counter == reg2hw.fh.q * reg2hw.fw.q) begin
+            im_c_counter <= '0;
+            im_c <= '0;
+          end else begin
+            im_c_counter <= im_c_counter + 1;
+          end
 
-            /* ch_col_counter update */
-            if (ch_col_counter == reg2hw.ch_col.q - 1) begin
-              ch_col_counter <= '0;
-            end else begin
-              ch_col_counter <= ch_col_counter + 1;
-            end
+          /* ch_col_counter update */
+          if (ch_col_counter == reg2hw.ch_col.q - 1) begin
+            ch_col_counter <= '0;
+          end else begin
+            ch_col_counter <= ch_col_counter + 1;
           end
         end
       endcase
@@ -420,7 +421,7 @@ module im2col_spc
   always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_param_state_dq
     if (!rst_ni) begin
       param_state_d <= IDLE;
-    end else if (stall_parameters == 1'b0) begin
+    end else begin
       param_state_d <= param_state_q;
     end
   end
@@ -429,9 +430,8 @@ module im2col_spc
   always_comb begin : proc_comb_dma_if_fsm
     unique case (dma_if_cu_d)
       IDLE_IF_CU: begin
-        fifo_pop = 1'b0;
         dma_if_load = 1'b0;
-        if (fifo_empty == 1'b0 && im2col_done == 1'b0 && dma_channels_full == 1'b0) begin
+        if (fifo_empty == 1'b0 && im2col_fsms_done == 1'b0 && dma_channels_full == 1'b0) begin
           dma_if_cu_q = GET_TRANSACTION;
         end else begin
           dma_if_cu_q = IDLE_IF_CU;
@@ -439,7 +439,6 @@ module im2col_spc
       end
 
       GET_TRANSACTION: begin
-        fifo_pop = 1'b1;
         dma_if_load = 1'b0;
         if (fifo_empty == 1'b0 && dma_channels_full == 1'b0) begin
           dma_if_cu_q = LOAD_TRANSACTION;
@@ -449,10 +448,9 @@ module im2col_spc
       end
 
       LOAD_TRANSACTION: begin
-        fifo_pop = 1'b0;
         dma_if_load = 1'b1;
         if (dma_if_loaded == 1'b1) begin
-          if (im2col_done == 1'b0) begin
+          if (im2col_fsms_done == 1'b0) begin
             dma_if_cu_q = GET_TRANSACTION;
           end else begin
             dma_if_cu_q = IDLE_IF_CU;
@@ -477,7 +475,8 @@ module im2col_spc
   always_comb begin : proc_comb_dma_if_trans_load_fsm
     unique case (dma_if_cu_load_d)
       IDLE_IF_LOAD: begin
-        if (dma_if_load == 1'b1 && dma_channels_full == 1'b0) begin
+        fifo_pop = 1'b0;
+        if (dma_if_load == 1'b1 && im2col_fsms_done == 1'b0) begin
           dma_if_cu_load_q = WRITE_DIMENSIONALITY;
         end else begin
           dma_if_cu_load_q = IDLE_IF_LOAD;
@@ -485,14 +484,18 @@ module im2col_spc
       end
 
       WRITE_DIMENSIONALITY: begin
+        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_DATATYPE;
+        end else if (dma_if_cu_d == IDLE_IF_CU) begin
+          dma_if_cu_load_q = IDLE_IF_LOAD;
         end else begin
           dma_if_cu_load_q = WRITE_DIMENSIONALITY;
         end
       end
 
       WRITE_DATATYPE: begin
+        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_TOP_PAD;
         end else begin
@@ -501,6 +504,7 @@ module im2col_spc
       end
 
       WRITE_TOP_PAD: begin
+        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_BOTTOM_PAD;
         end else begin
@@ -509,6 +513,7 @@ module im2col_spc
       end
 
       WRITE_BOTTOM_PAD: begin
+        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_LEFT_PAD;
         end else begin
@@ -517,6 +522,7 @@ module im2col_spc
       end
 
       WRITE_LEFT_PAD: begin
+        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_RIGHT_PAD;
         end else begin
@@ -525,6 +531,7 @@ module im2col_spc
       end
 
       WRITE_RIGHT_PAD: begin
+        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_INPUT_PTR;
         end else begin
@@ -533,6 +540,7 @@ module im2col_spc
       end
 
       WRITE_INPUT_PTR: begin
+        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_OUTPUT_PTR;
         end else begin
@@ -541,6 +549,7 @@ module im2col_spc
       end
 
       WRITE_OUTPUT_PTR: begin
+        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_INC_SRC_D1;
         end else begin
@@ -549,6 +558,7 @@ module im2col_spc
       end
 
       WRITE_INC_SRC_D1: begin
+        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_INC_SRC_D2;
         end else begin
@@ -557,6 +567,7 @@ module im2col_spc
       end
 
       WRITE_INC_SRC_D2: begin
+        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_INC_DST_D1;
         end else begin
@@ -565,6 +576,7 @@ module im2col_spc
       end
 
       WRITE_INC_DST_D1: begin
+        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_INC_DST_D2;
         end else begin
@@ -573,6 +585,7 @@ module im2col_spc
       end
 
       WRITE_INC_DST_D2: begin
+        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_SIZE_D2;
         end else begin
@@ -581,6 +594,7 @@ module im2col_spc
       end
 
       WRITE_SIZE_D2: begin
+        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_SIZE_D1;
         end else begin
@@ -589,6 +603,7 @@ module im2col_spc
       end
 
       WRITE_SIZE_D1: begin
+        fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = DONE;
         end else begin
@@ -597,6 +612,7 @@ module im2col_spc
       end
 
       DONE: begin
+        fifo_pop = 1'b1;
         dma_if_cu_load_q = IDLE_IF_LOAD;
       end
     endcase
@@ -610,6 +626,8 @@ module im2col_spc
       unique case (dma_if_cu_load_d)
         IDLE_IF_LOAD: begin
           dma_if_loaded <= 1'b0;
+          im2col2aopx_req_o.req <= 1'b0;
+          dma_if_load_req <= 1'b0;
         end
 
         WRITE_DIMENSIONALITY: begin
@@ -642,7 +660,7 @@ module im2col_spc
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_DATATYPE_OFFSET;
-            im2col2aopx_req_o.wdata <= {30'h0, reg2hw.data_type.q};
+            im2col2aopx_req_o.wdata <= {30'h0, reg2hw.data_type.q} & 32'h3; // Mask
           end else if (dma_if_load_rvalid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
@@ -662,7 +680,7 @@ module im2col_spc
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_TOP_PAD_OFFSET;
-            im2col2aopx_req_o.wdata <= fifo_output.n_zeros_top * (4 >> reg2hw.data_type.q);
+            im2col2aopx_req_o.wdata <= fifo_output.n_zeros_top * (4 >> reg2hw.data_type.q) & 32'h3f; // Mask
           end else if (dma_if_load_rvalid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
@@ -682,7 +700,7 @@ module im2col_spc
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_BOTTOM_PAD_OFFSET;
-            im2col2aopx_req_o.wdata <= fifo_output.n_zeros_bottom * (4 >> reg2hw.data_type.q);
+            im2col2aopx_req_o.wdata <= fifo_output.n_zeros_bottom * (4 >> reg2hw.data_type.q) & 32'h3f; // Mask
           end else if (dma_if_load_rvalid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
@@ -702,7 +720,7 @@ module im2col_spc
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_LEFT_PAD_OFFSET;
-            im2col2aopx_req_o.wdata <= fifo_output.n_zeros_left * (4 >> reg2hw.data_type.q);
+            im2col2aopx_req_o.wdata <= fifo_output.n_zeros_left * (4 >> reg2hw.data_type.q) & 32'h3f; // Mask
           end else if (dma_if_load_rvalid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
@@ -722,7 +740,7 @@ module im2col_spc
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_RIGHT_PAD_OFFSET;
-            im2col2aopx_req_o.wdata <= fifo_output.n_zeros_right * (4 >> reg2hw.data_type.q);
+            im2col2aopx_req_o.wdata <= fifo_output.n_zeros_right * (4 >> reg2hw.data_type.q) & 32'h3f; // Mask
           end else if (dma_if_load_rvalid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
@@ -782,7 +800,7 @@ module im2col_spc
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_INC_SRC_D1_OFFSET;
-            im2col2aopx_req_o.wdata <= reg2hw.strides_d1.q * (4 >> reg2hw.data_type.q);
+            im2col2aopx_req_o.wdata <= reg2hw.strides_d1.q * (4 >> reg2hw.data_type.q) & 32'h3f; // Mask;
           end else if (dma_if_load_rvalid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
@@ -802,7 +820,7 @@ module im2col_spc
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_INC_SRC_D2_OFFSET;
-            im2col2aopx_req_o.wdata <= fifo_output.in_inc_d2 * (4 >> reg2hw.data_type.q);
+            im2col2aopx_req_o.wdata <= fifo_output.in_inc_d2 * (4 >> reg2hw.data_type.q) & 32'h7fffff; // Mask
           end else if (dma_if_load_rvalid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
@@ -822,7 +840,7 @@ module im2col_spc
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_INC_DST_D1_OFFSET;
-            im2col2aopx_req_o.wdata <= 4 >> reg2hw.data_type.q;
+            im2col2aopx_req_o.wdata <= (4 >> reg2hw.data_type.q)  & 32'h3f; // Mask;
           end else if (dma_if_load_rvalid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
@@ -842,7 +860,7 @@ module im2col_spc
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_INC_DST_D2_OFFSET;
-            im2col2aopx_req_o.wdata <= 4 >> reg2hw.data_type.q;
+            im2col2aopx_req_o.wdata <= (4 >> reg2hw.data_type.q) & 32'h7fffff; // Mask
           end else if (dma_if_load_rvalid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
@@ -862,7 +880,7 @@ module im2col_spc
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_SIZE_D2_OFFSET;
-            im2col2aopx_req_o.wdata <= fifo_output.size_du_d2 * (4 >> reg2hw.data_type.q);
+            im2col2aopx_req_o.wdata <= fifo_output.size_du_d2 * (4 >> reg2hw.data_type.q) & 32'hffff; // Mask
           end else if (dma_if_load_rvalid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
@@ -882,7 +900,7 @@ module im2col_spc
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_SIZE_D1_OFFSET;
-            im2col2aopx_req_o.wdata <= fifo_output.size_du_d1 * (4 >> reg2hw.data_type.q);
+            im2col2aopx_req_o.wdata <= fifo_output.size_du_d1 * (4 >> reg2hw.data_type.q) & 32'hffff; // Mask
           end else if (dma_if_load_rvalid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
@@ -909,15 +927,6 @@ module im2col_spc
     end
   end
 
-  /* Control unit */
-  always_comb begin : proc_comb_control_unit
-    if (fifo_full == 1'b1) begin
-      stall_parameters = 1'b1;
-    end else begin
-      stall_parameters = 1'b0;
-    end
-  end
-
   /* Channel tracker */
   always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_control_unit
     if (!rst_ni) begin
@@ -937,11 +946,11 @@ module im2col_spc
        * If one is found, occupy it and set the dma_free_channel to its index.
        * Also set the channel full flag to 1'b0, otherwise it stays to 1.
        */
-      if (fifo_pop == 1'b1) begin
+      if (dma_if_cu_d == GET_TRANSACTION) begin
         dma_free_channel <= '0;
         for (int i = 0; i < NUM_CH_SPC; i = i + 1) begin
           if (dma_if_channels[i] == 1'b0) begin
-            dma_free_channel   <= i[$clog2(NUM_CH_SPC)-1:0];
+            dma_free_channel   <= i[(NUM_CH_SPC == 1) ? 0 : ($clog2(NUM_CH_SPC) - 1):0];
             dma_if_channels[i] <= 1'b1;
             break;
           end
@@ -964,12 +973,51 @@ module im2col_spc
     if (~rst_ni) begin
       im2col_spc_ifr <= '0;
     end else if (reg2hw.interrupt_en.q == 1'b1) begin
-      // Enter here only if the im2col_done interrupt is enabled
-      if (im2col_done == 1'b1) begin
+      // Enter here only if the im2col_fsms_done interrupt is enabled
+      if (im2col_fsms_done == 1'b1) begin
         im2col_spc_ifr <= 1'b1;
       end else if (reg2hw.spc_ifr.re == 1'b1) begin
         // If the IFR bit is read, we must clear the transaction_ifr
         im2col_spc_ifr <= 1'b0;
+      end
+    end
+  end
+
+  /* Parameter computation done signal update */
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_param_done
+    if (!rst_ni) begin
+      im2col_param_done <= 1'b0;
+    end else begin
+      if (ch_col_counter == (reg2hw.ch_col.q - 1) && batch_counter == reg2hw.batch.q) begin
+        im2col_param_done <= 1'b1;
+      end else if (im2col_start == 1'b1) begin
+        im2col_param_done <= 1'b0;
+      end
+    end
+  end
+
+  /* Global fsm done signal update logic */
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_spc_done
+    if (!rst_ni) begin
+      im2col_fsms_done <= 1'b0;
+    end else begin
+      if (dma_if_cu_load_d == DONE && im2col_param_done == 1'b1 && fifo_usage == 1) begin
+        im2col_fsms_done <= 1'b1;
+      end else if (im2col_start == 1'b1) begin
+        im2col_fsms_done <= 1'b0;
+      end
+    end
+  end
+
+  /* Global done signal update logic */
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_done
+    if (!rst_ni) begin
+      im2col_done <= 1'b0;
+    end else begin
+      if (im2col_fsms_done == 1'b1 && |dma_if_channels == 1'b0) begin
+        im2col_done <= 1'b1;
+      end else if (im2col_start == 1'b1) begin
+        im2col_done <= 1'b0;
       end
     end
   end
@@ -993,8 +1041,7 @@ module im2col_spc
   assign fifo_input.size_du_d2 = size_transfer_2d;
 
   /* Transaction loading process */
-  assign dma_if_load_rvalid = aopx2im2col_resp_i.rvalid;
-  assign im2col_done = (ch_col_counter == reg2hw.ch_col.q && batch_counter == reg2hw.batch.q);
+  assign dma_if_load_rvalid = aopx2im2col_resp_i.rvalid && dma_if_load;
   assign hw2reg.status.d = im2col_done;
   assign dma_channels_full = &dma_if_channels;
 

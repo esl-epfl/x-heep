@@ -490,6 +490,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 //PRINTF("%d %d %d %d %d\n\r ", src_inc_d2, n_zeros_top, n_zeros_bottom, fh_minus_h_offset, tmp_pad);
 
                 input_image_ptr = &input_image_nchw[0] + index;
+                PRINTF_DEB("\n\rsrc_ptr: %x dst_ptr: %x\n\r", input_image_ptr, output_data_ptr);
                 tgt_src.ptr = input_image_ptr;
                 tgt_src.size_du = size_transfer;
                 tgt_src.size_d2_du = size_transfer_d2;
@@ -517,7 +518,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
 
                 PRINTF_DEB("\n\r");
 
-                #if DEBUG
+                #ifndef DEBUG
                 PRINTF_DEB("\n\rCurrent output matrix: \n\r");
                 for (int i=0; i<OH_NCHW; i++)
                 {
@@ -582,6 +583,12 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     {
         uint32_t* input_image_ptr = &input_image_nchw[0];
         uint32_t* output_data_ptr = &output_data[0];
+        
+        #if TIMING  
+        CSR_READ(CSR_REG_MCYCLE, &cycles_A);
+        #endif
+        
+        dma_init(NULL);
 
         /* Write the source */
         write_register( input_image_ptr,
@@ -725,10 +732,15 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                         0,
                         IM2COL_SPC_BASE_ADDR );
         
-        while ( (int * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_STATUS_REG_OFFSET) == 0)
+        while ( * (volatile uint32_t * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_STATUS_REG_OFFSET) == 0)
         {
             /* Wait for the SPC to finish */
         }
+
+        #if TIMING  
+        CSR_READ(CSR_REG_MCYCLE, &cycles_B);
+        *cycles = (cycles_B - cycles_A);
+        #endif
     }
     /* Finished! */
 
