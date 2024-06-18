@@ -956,10 +956,10 @@ void spi_issue_next_seg(spi_peripheral_t* peri)
 
 void spi_reset_peri(spi_peripheral_t* peri) 
 {
-    // Reset the SPI peripheral (at hardware level)
-    spi_sw_reset(peri->instance);
     // Reset static peripheral variables
     spi_reset_transaction(peri);
+    // Reset the SPI peripheral (at hardware level)
+    spi_sw_reset(peri->instance);
     // Enable SPI peripheral. We do not check return value since we know here that
     // it will never return an error.
     spi_set_enable(peri->instance, true);
