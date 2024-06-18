@@ -68,7 +68,7 @@ FLASHREAD_BYTES ?= 256
 
 
 #binary to store in flash memory
-FLASHWRITE_FILE = $(mkfile_path)/sw/build/main.hex
+FLASHWRITE_FILE ?= $(mkfile_path)/sw/build/main.hex
 
 #max address in the hex file, used to program the flash
 ifeq ($(wildcard $(FLASHWRITE_FILE)),)
@@ -268,6 +268,11 @@ flash-prog:
 flash-read:
 	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
 	./iceprog -d i:0x0403:0x6011 -I B -o $(shell printf "%d" $(FLASHREAD_ADDR)) -R $(FLASHREAD_BYTES) $(FLASHREAD_FILE);
+
+## Erase the EPFL_Programmer flash
+flash-erase:
+	cd sw/vendor/yosyshq_icestorm/iceprog; make; \
+	./iceprog -d i:0x0403:0x6011 -I B -b;
 
 ## Run openOCD w/ EPFL_Programmer
 openOCD_epflp:

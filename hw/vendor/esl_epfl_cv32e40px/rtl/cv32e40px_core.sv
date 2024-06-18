@@ -72,7 +72,8 @@ module cv32e40px_core
     output logic [31:0] data_wdata_o,
     input  logic [31:0] data_rdata_i,
 
-    // apu-interconnect
+    // CVFPU interface
+    output logic                              apu_busy_o,
     // handshake signals
     output logic                              apu_req_o,
     input  logic                              apu_gnt_i,
@@ -199,7 +200,6 @@ module cv32e40px_core
   logic               ctrl_busy;
   logic               if_busy;
   logic               lsu_busy;
-  logic               apu_busy;
 
   logic        [31:0] pc_ex;  // PC of last executed branch or cv.elw
 
@@ -445,7 +445,7 @@ module cv32e40px_core
       .if_busy_i  (if_busy),
       .ctrl_busy_i(ctrl_busy),
       .lsu_busy_i (lsu_busy),
-      .apu_busy_i (apu_busy),
+      .apu_busy_i (apu_busy_o),
 
       // PULP cluster
       .pulp_clock_en_i       (pulp_clock_en_i),
@@ -690,7 +690,7 @@ module cv32e40px_core
       .apu_write_regs_valid_o (apu_write_regs_valid),
       .apu_write_dep_i        (apu_write_dep),
       .apu_perf_dep_o         (perf_apu_dep),
-      .apu_busy_i             (apu_busy),
+      .apu_busy_i             (apu_busy_o),
 
       // CORE-V-XIF
       // Compressed Interface
@@ -909,9 +909,9 @@ module cv32e40px_core
       .apu_perf_cont_o(perf_apu_cont),
       .apu_perf_wb_o  (perf_apu_wb),
       .apu_ready_wb_o (apu_ready_wb),
-      .apu_busy_o     (apu_busy),
+      .apu_busy_o     (apu_busy_o),
 
-      // apu-interconnect
+      // CVFPU interface
       // handshake signals
       .apu_req_o     (apu_req_o),
       .apu_gnt_i     (apu_gnt_i),
@@ -1160,9 +1160,9 @@ module cv32e40px_core
   assign csr_addr_int = csr_num_e'(csr_access_ex ? alu_operand_b_ex[11:0] : '0);
 
   //  Floating-Point registers write
-  assign fregs_we     = (FPU & !ZFINX) ? ((regfile_alu_we_fw && regfile_alu_waddr_fw[5]) ||
-                                          (regfile_we_wb     && regfile_waddr_fw_wb_o[5]))
-                                       : 1'b0;
+  assign fregs_we     = (FPU == 1 & ZFINX == 0) ? ((regfile_alu_we_fw && regfile_alu_waddr_fw[5]) ||
+                                                   (regfile_we_wb     && regfile_waddr_fw_wb_o[5]))
+                                                : 1'b0;
 
   ///////////////////////////
   //   ____  __  __ ____   //

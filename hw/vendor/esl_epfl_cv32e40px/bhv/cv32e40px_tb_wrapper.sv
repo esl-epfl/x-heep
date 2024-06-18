@@ -1,45 +1,49 @@
-// Copyright (c) 2020 OpenHW Group
+// Copyright 2024 Dolphin Design
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 //
-// Licensed under the Solderpad Hardware Licence, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
+// Licensed under the Solderpad Hardware License v 2.1 (the "License");
+// you may not use this file except in compliance with the License, or,
+// at your option, the Apache License version 2.0.
 // You may obtain a copy of the License at
 //
-// https://solderpad.org/licenses/
+// https://solderpad.org/licenses/SHL-2.1/
 //
-// Unless required by applicable law or agreed to in writing, software
+// Unless required by applicable law or agreed to in writing, any work
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.0
 
-// Wrapper for a cv32e40px, containing cv32e40px_top, and rvfi_tracer
-//
-// Contributors: Davide Schiavone, OpenHW Group <davide@openhwgroup.org>
-//               Yoann Pruvost, Dolphin Design <yoann.pruvost@dolphin.fr>
+////////////////////////////////////////////////////////////////////////////////////
+//                                                                                //
+// Contributors: Davide Schiavone, OpenHW Group <davide@openhwgroup.org>          //
+//               Yoann Pruvost, Dolphin Design <yoann.pruvost@dolphin.fr>         //
+//                                                                                //
+// Description:  Test-bench wrapper for cv32e40px_top, tracer and and rvfi_tracer  //
+//                                                                                //
+////////////////////////////////////////////////////////////////////////////////////
 
-`ifdef CV32E40P_ASSERT_ON
+`ifdef CV32E40PX_ASSERT_ON
 `include "cv32e40px_prefetch_controller_sva.sv"
 `endif
 
-`ifdef CV32E40P_CORE_LOG
+`ifdef CV32E40PX_CORE_LOG
 `include "cv32e40px_core_log.sv"
 `endif
 
-`ifdef CV32E40P_APU_TRACE
+`ifdef CV32E40PX_APU_TRACE
 `include "cv32e40px_apu_tracer.sv"
 `endif
 
-`ifdef CV32E40P_TRACE_EXECUTION
+`ifdef CV32E40PX_TRACE_EXECUTION
 `include "cv32e40px_tracer.sv"
 `endif
 
-`ifdef CV32E40P_RVFI
+`ifdef CV32E40PX_RVFI
 `include "cv32e40px_rvfi.sv"
 `endif
 
-`ifdef CV32E40P_RVFI_TRACE_EXECUTION
+`ifdef CV32E40PX_RVFI_TRACE_EXECUTION
 `include "cv32e40px_rvfi_trace.sv"
 `endif
 
@@ -101,7 +105,7 @@ module cv32e40px_tb_wrapper
     output logic core_sleep_o
 );
 
-`ifdef CV32E40P_ASSERT_ON
+`ifdef CV32E40PX_ASSERT_ON
 
   // RTL Assertions
   bind cv32e40px_prefetch_controller:
@@ -114,9 +118,9 @@ module cv32e40px_tb_wrapper
       .FIFO_ADDR_DEPTH(FIFO_ADDR_DEPTH)
   ) prefetch_controller_sva (.*);
 
-`endif  // CV32E40P_ASSERT_ON
+`endif  // CV32E40PX_ASSERT_ON
 
-`ifdef CV32E40P_CORE_LOG
+`ifdef CV32E40PX_CORE_LOG
   cv32e40px_core_log #(
       .COREV_PULP      (COREV_PULP),
       .COREV_CLUSTER   (COREV_CLUSTER),
@@ -130,9 +134,9 @@ module cv32e40px_tb_wrapper
       .hart_id_i         (cv32e40px_top_i.core_i.hart_id_i),
       .pc_id_i           (cv32e40px_top_i.core_i.pc_id)
   );
-`endif  // CV32E40P_CORE_LOG
+`endif  // CV32E40PX_CORE_LOG
 
-`ifdef CV32E40P_APU_TRACE
+`ifdef CV32E40PX_APU_TRACE
   cv32e40px_apu_tracer apu_tracer_i (
       .clk_i       (cv32e40px_top_i.core_i.rst_ni),
       .rst_n       (cv32e40px_top_i.core_i.clk_i),
@@ -143,7 +147,7 @@ module cv32e40px_tb_wrapper
   );
 `endif
 
-`ifdef CV32E40P_TRACE_EXECUTION
+`ifdef CV32E40PX_TRACE_EXECUTION
   cv32e40px_tracer #(
       .FPU  (FPU),
       .ZFINX(ZFINX)
@@ -210,11 +214,11 @@ module cv32e40px_tb_wrapper
       .apu_en_i         (cv32e40px_top_i.apu_req),
       .apu_singlecycle_i(cv32e40px_top_i.core_i.ex_stage_i.apu_singlecycle),
       .apu_multicycle_i (cv32e40px_top_i.core_i.ex_stage_i.apu_multicycle),
-      .apu_rvalid_i     (cv32e40px_top_i.apu_rvalid)
+      .apu_rvalid_i     (cv32e40px_top_i.core_i.ex_stage_i.apu_valid)
   );
 `endif
 
-`ifdef CV32E40P_RVFI
+`ifdef CV32E40PX_RVFI
   logic [1:0][31:0] hwlp_start_q;
   logic [1:0][31:0] hwlp_end_q;
   logic [1:0][31:0] hwlp_counter_q;
@@ -234,8 +238,9 @@ module cv32e40px_tb_wrapper
   endgenerate
 
   cv32e40px_rvfi #(
-      .FPU  (FPU),
-      .ZFINX(ZFINX)
+      .FPU(FPU),
+      .ZFINX(ZFINX),
+      .NUM_MHPMCOUNTERS(NUM_MHPMCOUNTERS)
   ) rvfi_i (
       .clk_i (cv32e40px_top_i.core_i.clk_i),
       .rst_ni(cv32e40px_top_i.core_i.rst_ni),
@@ -399,6 +404,9 @@ module cv32e40px_tb_wrapper
       .csr_mcountinhibit_n_i (cv32e40px_top_i.core_i.cs_registers_i.mcountinhibit_n),
       .csr_mcountinhibit_we_i(cv32e40px_top_i.core_i.cs_registers_i.mcountinhibit_we),
 
+      .csr_mhpmevent_n_i(cv32e40px_top_i.core_i.cs_registers_i.mhpmevent_n),
+      .csr_mhpmevent_q_i(cv32e40px_top_i.core_i.cs_registers_i.mhpmevent_q),
+      .csr_mhpmevent_we_i(cv32e40px_top_i.core_i.cs_registers_i.mhpmevent_we),
       .csr_mscratch_q_i(cv32e40px_top_i.core_i.cs_registers_i.mscratch_q),
       .csr_mscratch_n_i(cv32e40px_top_i.core_i.cs_registers_i.mscratch_n),
       .csr_mepc_q_i(cv32e40px_top_i.core_i.cs_registers_i.mepc_q),
@@ -441,8 +449,7 @@ module cv32e40px_tb_wrapper
   );
 `endif
 
-
-`ifdef CV32E40P_RVFI_TRACE_EXECUTION
+`ifdef CV32E40PX_RVFI_TRACE_EXECUTION
   bind cv32e40px_rvfi: rvfi_i cv32e40px_rvfi_trace #(
       .FPU  (FPU),
       .ZFINX(ZFINX)
@@ -455,22 +462,38 @@ module cv32e40px_tb_wrapper
 
       .rvfi_valid(rvfi_valid),
       .rvfi_insn(rvfi_insn),
+      .rvfi_start_cycle(rvfi_start_cycle),
+      .rvfi_start_time(rvfi_start_time),
+      .rvfi_stop_cycle(rvfi_stop_cycle),
+      .rvfi_stop_time(rvfi_stop_time),
       .rvfi_pc_rdata(rvfi_pc_rdata),
+      .rvfi_trap(rvfi_trap),
       .rvfi_rd_addr(rvfi_rd_addr),
       .rvfi_rd_wdata(rvfi_rd_wdata),
       .rvfi_frd_wvalid(rvfi_frd_wvalid),
       .rvfi_frd_addr(rvfi_frd_addr),
       .rvfi_frd_wdata(rvfi_frd_wdata),
+      .rvfi_2_rd(rvfi_2_rd),
       .rvfi_rs1_addr(rvfi_rs1_addr),
       .rvfi_rs2_addr(rvfi_rs2_addr),
+      .rvfi_rs3_addr(rvfi_rs3_addr),
       .rvfi_rs1_rdata(rvfi_rs1_rdata),
       .rvfi_rs2_rdata(rvfi_rs2_rdata),
+      .rvfi_rs3_rdata(rvfi_rs3_rdata),
       .rvfi_frs1_addr(rvfi_frs1_addr),
       .rvfi_frs2_addr(rvfi_frs2_addr),
+      .rvfi_frs3_addr(rvfi_frs3_addr),
       .rvfi_frs1_rvalid(rvfi_frs1_rvalid),
       .rvfi_frs2_rvalid(rvfi_frs2_rvalid),
+      .rvfi_frs3_rvalid(rvfi_frs3_rvalid),
       .rvfi_frs1_rdata(rvfi_frs1_rdata),
-      .rvfi_frs2_rdata(rvfi_frs2_rdata)
+      .rvfi_frs2_rdata(rvfi_frs2_rdata),
+      .rvfi_frs3_rdata(rvfi_frs3_rdata),
+      .rvfi_mem_addr(rvfi_mem_addr),
+      .rvfi_mem_rmask(rvfi_mem_rmask),
+      .rvfi_mem_wmask(rvfi_mem_wmask),
+      .rvfi_mem_rdata(rvfi_mem_rdata),
+      .rvfi_mem_wdata(rvfi_mem_wdata)
   );
 `endif
   // Instantiate the Core and the optinal FPU

@@ -333,6 +333,24 @@ make mcu-gen CPU=cv32e40x
 </details>
 
 
+### Excluding files from compilation
+If you have files that need to be excluded from the gcc compilation flow, you can add them to a directory containing the keyword `exclude`, and/or rename the file to include the keyword `exclude`. 
+In the following example, the files marked with ✅ will be compiled, and the ones marked with ❌ will not.  
+
+    BASE
+    ├── sw
+    │   ├── applications
+    │   │   └── your_app
+    │   │       ├── ✅ main.c      
+    │   │       ├── ✅ your_app.c
+    │   │       ├──    your_app.h
+    │   │       ├── ❌ my_kernel_exclude.c
+    │   │       ├──    my_kernel.h
+    │   │       └── exclude_files
+    │   │           └── ❌ kernel_asm.S
+
+
+
 ### Makefile help
 If you want that the commands `make` or `make help` show the help for your external Makefile, add the following lines before the first `include` directive or target.
 
