@@ -461,7 +461,7 @@ void dma_stop_circular(void);
 * `dma.c` provides a weak definition of this symbol, which can be overridden
 * at link-time by providing an additional non-weak definition.
 */
-void dma_sdk_intr_handler_trans_done(void);
+void dma_intr_handler_trans_done(void);
 
 /**
 * @brief DMA interrupt handler.
