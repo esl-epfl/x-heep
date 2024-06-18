@@ -202,6 +202,7 @@ static inline uint8_t is_region_outbound_2D(   uint8_t  *p_start,
  * register.
  * @param p_sel The selection index (i.e. From which bit inside the register
  * the value is to be written).
+ * @param p_peri The peripheral where the register is located.
  */
 static inline void write_register(  uint32_t p_val,
                                     uint32_t p_offset,
@@ -213,6 +214,7 @@ static inline void write_register(  uint32_t p_val,
 /**
  * @brief Analyzes a target to determine the size of its D1 increment (in bytes).
  * @param p_tgt A pointer to the target to analyze.
+ * @param channel The channel to use as target.
  * @return The number of bytes of the increment.
  */
 static inline uint32_t get_increment_b_1D( dma_target_t * p_tgt,
@@ -221,6 +223,7 @@ static inline uint32_t get_increment_b_1D( dma_target_t * p_tgt,
 /**
  * @brief Analyzes a target to determine the size of its D2 increment (in bytes).
  * @param p_tgt A pointer to the target to analyze.
+ * @param channel The channel to use as target.
  * @return The number of bytes of the increment.
  */
 static inline uint32_t get_increment_b_2D( dma_target_t * p_tgt,
@@ -265,16 +268,11 @@ typedef struct
 }dma_ch_cb;
 
 /* Allocate the channel's memory space */
-static dma_ch_cb ch[DMA_CH_NUM];
+static dma_ch_cb dma_subsys_per[DMA_CH_NUM];
 
-static struct
-{
-    dma_ch_cb *channels;
-}dma_cb = {
-    .channels = ch
-};
-
-
+/* High priority interrupts counters */
+uint16_t dma_hp_tr_intr_counter = 0;
+uint16_t dma_hp_win_intr_counter = 0;
 
 
 /****************************************************************************/
@@ -293,9 +291,34 @@ void handler_irq_dma(uint32_t id)
 
     for (int i = 0; i < DMA_CH_NUM; i++)
     {
-        if (dma_cb.channels[i].peri->WINDOW_IFR == 1)
+        if (dma_subsys_per[i].peri->WINDOW_IFR == 1)
         {
             dma_intr_handler_window_done(i);
+
+             #ifdef DMA_HP_INTR_INDEX
+            /* 
+             * If the channel that raised the interrupt is among the high priority channels,
+             * return to break the loop. 
+             */
+            #ifdef DMA_NUM_HP_INTR
+            if (i <= DMA_HP_INTR_INDEX && dma_hp_win_intr_counter < DMA_NUM_HP_INTR)
+            {
+                dma_hp_win_intr_counter++;
+                return;
+            } else if (i > DMA_HP_INTR_INDEX)
+            {
+                dma_hp_win_intr_counter = 0;
+            }
+
+            #else
+
+            if (i <= DMA_HP_INTR_INDEX)
+            {
+                return;
+            }
+            #endif
+
+            #endif
         }
     }
     return;
@@ -311,49 +334,76 @@ void fic_irq_dma(void)
     
     for (int i = 0; i < DMA_CH_NUM; i++)
     {
-        if (dma_cb.channels[i].peri->TRANSACTION_IFR == 1)
+        if (dma_subsys_per[i].peri->TRANSACTION_IFR == 1)
         {
-            dma_cb.channels[i].intrFlag = 1;
+            dma_subsys_per[i].intrFlag = 1;
             dma_intr_handler_trans_done(i);
+
+            #ifdef DMA_HP_INTR_INDEX
+            /* 
+             * If the channel that raised the interrupt is among the high priority channels,
+             * return to break the loop. 
+             */
+            #ifdef DMA_NUM_HP_INTR
+            if (i <= DMA_HP_INTR_INDEX && dma_hp_tr_intr_counter < DMA_NUM_HP_INTR)
+            {
+                dma_hp_tr_intr_counter++;
+                return;
+            }
+            else if (i > DMA_HP_INTR_INDEX)
+            {
+                dma_hp_tr_intr_counter = 0;
+            }
+
+            #else
+
+            if (i <= DMA_HP_INTR_INDEX)
+            {
+                return;
+            }
+            #endif
+
+            #endif
         }
     }
     return;
 }
 
-void dma_init( dma *channels )
+void dma_init( dma *dma_peri )
 {
     /*
-     * If a DMA peripheral, i.e. a channel array, was provided, use that one, otherwise use the
+     * If a DMA peripheral was provided, use that one, otherwise use the
      * integrated one.
      */
 
     for (int i = 0; i < DMA_CH_NUM; i++)
     {
-        dma_cb.channels[i].peri = channels ? channels : dma_peri(i);
+        dma_subsys_per[i].peri = dma_peri ? dma_peri : dma_peri(i);
+
         /* Clear the loaded transaction */
-        dma_cb.channels[i].trans = NULL;
+        dma_subsys_per[i].trans = NULL;
 
         /* Clear all values in the DMA registers. */
-        dma_cb.channels[i].peri->SRC_PTR        = 0;
-        dma_cb.channels[i].peri->DST_PTR        = 0;
-        dma_cb.channels[i].peri->SIZE_D1        = 0;
-        dma_cb.channels[i].peri->SIZE_D2        = 0;
-        dma_cb.channels[i].peri->SRC_PTR_INC_D1 = 0;
-        dma_cb.channels[i].peri->SRC_PTR_INC_D2 = 0;
-        dma_cb.channels[i].peri->DST_PTR_INC_D1 = 0;
-        dma_cb.channels[i].peri->DST_PTR_INC_D2 = 0;
-        dma_cb.channels[i].peri->DIM_CONFIG     = 0;
-        dma_cb.channels[i].peri->DIM_INV        = 0;
-        dma_cb.channels[i].peri->SLOT           = 0;
-        dma_cb.channels[i].peri->DATA_TYPE      = 0;
-        dma_cb.channels[i].peri->MODE           = 0;
-        dma_cb.channels[i].peri->WINDOW_SIZE    = 0;
-        dma_cb.channels[i].peri->PAD_TOP        = 0;
-        dma_cb.channels[i].peri->PAD_BOTTOM     = 0;
-        dma_cb.channels[i].peri->PAD_LEFT       = 0;
-        dma_cb.channels[i].peri->PAD_RIGHT      = 0;
-        dma_cb.channels[i].peri->DIM_INV        = 0;
-        dma_cb.channels[i].peri->INTERRUPT_EN   = 0;
+        dma_subsys_per[i].peri->SRC_PTR        = 0;
+        dma_subsys_per[i].peri->DST_PTR        = 0;
+        dma_subsys_per[i].peri->SIZE_D1        = 0;
+        dma_subsys_per[i].peri->SIZE_D2        = 0;
+        dma_subsys_per[i].peri->SRC_PTR_INC_D1 = 0;
+        dma_subsys_per[i].peri->SRC_PTR_INC_D2 = 0;
+        dma_subsys_per[i].peri->DST_PTR_INC_D1 = 0;
+        dma_subsys_per[i].peri->DST_PTR_INC_D2 = 0;
+        dma_subsys_per[i].peri->DIM_CONFIG     = 0;
+        dma_subsys_per[i].peri->DIM_INV        = 0;
+        dma_subsys_per[i].peri->SLOT           = 0;
+        dma_subsys_per[i].peri->DATA_TYPE      = 0;
+        dma_subsys_per[i].peri->MODE           = 0;
+        dma_subsys_per[i].peri->WINDOW_SIZE    = 0;
+        dma_subsys_per[i].peri->PAD_TOP        = 0;
+        dma_subsys_per[i].peri->PAD_BOTTOM     = 0;
+        dma_subsys_per[i].peri->PAD_LEFT       = 0;
+        dma_subsys_per[i].peri->PAD_RIGHT      = 0;
+        dma_subsys_per[i].peri->DIM_INV        = 0;
+        dma_subsys_per[i].peri->INTERRUPT_EN   = 0;
     }
 }
 
@@ -761,7 +811,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
      */
     if( p_trans->flags & DMA_CONFIG_CRITICAL_ERROR )
     {
-        dma_cb.channels[channel].trans = NULL;
+        dma_subsys_per[channel].trans = NULL;
         return DMA_CONFIG_CRITICAL_ERROR;
     }
 
@@ -782,21 +832,21 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
     }
 
     /* Save the current transaction */
-    dma_cb.channels[channel].trans = p_trans;
+    dma_subsys_per[channel].trans = p_trans;
 
     /*
      * ENABLE/DISABLE INTERRUPTS
      */
 
     /*
-     * If the selected en event is polling, interrupts are disabled.
+     * If the selected end event is polling, interrupts are disabled.
      * Otherwise the mie.MEIE bit is set to one to enable machine-level
      * fast DMA interrupt.
      */
-    //dma_cb.channels[channel].peri->INTERRUPT_EN = INTR_EN_NONE;
+    dma_subsys_per[channel].peri->INTERRUPT_EN = INTR_EN_NONE;
     CSR_CLEAR_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
 
-    if( dma_cb.channels[channel].trans->end != DMA_TRANS_END_POLLING )
+    if( dma_subsys_per[channel].trans->end != DMA_TRANS_END_POLLING )
     {
         /* Enable global interrupt. */
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8 );
@@ -809,7 +859,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
                         DMA_INTERRUPT_EN_REG_OFFSET,
                         0xffff,
                         DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT,
-                        dma_cb.channels[channel].peri
+                        dma_subsys_per[channel].peri
                     );
 
         /* Only if a window is used should the window interrupt be set. */
@@ -820,7 +870,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
                         DMA_INTERRUPT_EN_REG_OFFSET,
                         0xffff,
                         DMA_INTERRUPT_EN_WINDOW_DONE_BIT,
-                        dma_cb.channels[channel].peri
+                        dma_subsys_per[channel].peri
                     );
         }
     }
@@ -840,73 +890,72 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
         p_trans->size_d2_b = DMA_DATA_TYPE_2_SIZE( p_trans->type );
         p_trans->src->inc_d2_du = DMA_DATA_TYPE_2_SIZE( p_trans->type );
         
-        write_register( dma_cb.channels[channel].trans->pad_left_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+        write_register( dma_subsys_per[channel].trans->pad_left_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
                         DMA_PAD_LEFT_REG_OFFSET,
                         DMA_PAD_LEFT_PAD_MASK,
                         DMA_PAD_LEFT_PAD_OFFSET,
-                        dma_cb.channels[channel].peri);
+                        dma_subsys_per[channel].peri);
 
-        write_register( dma_cb.channels[channel].trans->pad_right_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+        write_register( dma_subsys_per[channel].trans->pad_right_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
                         DMA_PAD_RIGHT_REG_OFFSET,
                         DMA_PAD_RIGHT_PAD_MASK,
                         DMA_PAD_RIGHT_PAD_OFFSET,
-                        dma_cb.channels[channel].peri);
+                        dma_subsys_per[channel].peri);
     }
     else if (p_trans->dim == DMA_DIM_CONF_2D)
     {
-        write_register( dma_cb.channels[channel].trans->pad_top_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+        write_register( dma_subsys_per[channel].trans->pad_top_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
                         DMA_PAD_TOP_REG_OFFSET,
                         DMA_PAD_TOP_PAD_MASK,
                         DMA_PAD_TOP_PAD_OFFSET,
-                        dma_cb.channels[channel].peri);
+                        dma_subsys_per[channel].peri);
 
-        write_register( dma_cb.channels[channel].trans->pad_bottom_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+        write_register( dma_subsys_per[channel].trans->pad_bottom_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
                         DMA_PAD_BOTTOM_REG_OFFSET,
                         DMA_PAD_BOTTOM_PAD_MASK,
                         DMA_PAD_BOTTOM_PAD_OFFSET,
-                        dma_cb.channels[channel].peri);
+                        dma_subsys_per[channel].peri);
 
-        write_register( dma_cb.channels[channel].trans->pad_left_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+        write_register( dma_subsys_per[channel].trans->pad_left_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
                         DMA_PAD_LEFT_REG_OFFSET,
                         DMA_PAD_LEFT_PAD_MASK,
                         DMA_PAD_LEFT_PAD_OFFSET,
-                        dma_cb.channels[channel].peri);
+                        dma_subsys_per[channel].peri);
 
-        write_register( dma_cb.channels[channel].trans->pad_right_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+        write_register( dma_subsys_per[channel].trans->pad_right_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
                         DMA_PAD_RIGHT_REG_OFFSET,
                         DMA_PAD_RIGHT_PAD_MASK,
                         DMA_PAD_RIGHT_PAD_OFFSET,
-                        dma_cb.channels[channel].peri);
-        
+                        dma_subsys_per[channel].peri);
     }
     /*
      * SET THE POINTERS
      */
-    dma_cb.channels[channel].peri->SRC_PTR = (uint32_t)dma_cb.channels[channel].trans->src->ptr;
+    dma_subsys_per[channel].peri->SRC_PTR = (uint32_t)dma_subsys_per[channel].trans->src->ptr;
 
-    if(dma_cb.channels[channel].trans->mode != DMA_TRANS_MODE_ADDRESS)
+    if(dma_subsys_per[channel].trans->mode != DMA_TRANS_MODE_ADDRESS)
     {
         /*
         Write to the destination pointers only if we are not in address mode,
         otherwise the destination address is read in a separate port in parallel with the data
         from the address port
         */
-        dma_cb.channels[channel].peri->DST_PTR = (uint32_t)dma_cb.channels[channel].trans->dst->ptr;
+        dma_subsys_per[channel].peri->DST_PTR = (uint32_t)dma_subsys_per[channel].trans->dst->ptr;
     }
     else
     {
-        dma_cb.channels[channel].peri->ADDR_PTR = (uint32_t)dma_cb.channels[channel].trans->src_addr->ptr;
+        dma_subsys_per[channel].peri->ADDR_PTR = (uint32_t)dma_subsys_per[channel].trans->src_addr->ptr;
     }
 
     /*
      * SET THE TRANSPOSITION MODE
      */
 
-    write_register(dma_cb.channels[channel].trans->dim_inv,
+    write_register(dma_subsys_per[channel].trans->dim_inv,
                    DMA_DIM_INV_REG_OFFSET,
                    0x1 << DMA_DIM_INV_SEL_BIT,
                    DMA_DIM_INV_SEL_BIT,
-                   dma_cb.channels[channel].peri);
+                   dma_subsys_per[channel].peri);
 
     /*
      * SET THE INCREMENTS
@@ -923,36 +972,36 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
      * In case of a 2D DMA transaction, the second dimension increment is set.
      */
 
-    write_register(  get_increment_b_1D( dma_cb.channels[channel].trans->src, channel),
+    write_register(  get_increment_b_1D( dma_subsys_per[channel].trans->src, channel),
                     DMA_SRC_PTR_INC_D1_REG_OFFSET,
                     DMA_SRC_PTR_INC_D1_INC_MASK,
                     DMA_SRC_PTR_INC_D1_INC_OFFSET,
-                    dma_cb.channels[channel].peri);
+                    dma_subsys_per[channel].peri);
 
-    if(dma_cb.channels[channel].trans->dim == DMA_DIM_CONF_2D)
+    if(dma_subsys_per[channel].trans->dim == DMA_DIM_CONF_2D)
     {
-        write_register(  get_increment_b_2D( dma_cb.channels[channel].trans->src, channel),
+        write_register(  get_increment_b_2D( dma_subsys_per[channel].trans->src, channel),
                         DMA_SRC_PTR_INC_D2_REG_OFFSET,
                         DMA_SRC_PTR_INC_D2_INC_MASK,
                         DMA_SRC_PTR_INC_D2_INC_OFFSET,
-                        dma_cb.channels[channel].peri );
+                        dma_subsys_per[channel].peri );
     }
 
-    if(dma_cb.channels[channel].trans->mode != DMA_TRANS_MODE_ADDRESS)
+    if(dma_subsys_per[channel].trans->mode != DMA_TRANS_MODE_ADDRESS)
     {
-        write_register(  get_increment_b_1D( dma_cb.channels[channel].trans->dst, channel),
+        write_register(  get_increment_b_1D( dma_subsys_per[channel].trans->dst, channel),
                         DMA_DST_PTR_INC_D1_REG_OFFSET,
                         DMA_DST_PTR_INC_D1_INC_MASK,
                         DMA_DST_PTR_INC_D1_INC_OFFSET,
-                        dma_cb.channels[channel].peri );
+                        dma_subsys_per[channel].peri );
         
-        if(dma_cb.channels[channel].trans->dim == DMA_DIM_CONF_2D)
+        if(dma_subsys_per[channel].trans->dim == DMA_DIM_CONF_2D)
         {
-            write_register(  get_increment_b_2D( dma_cb.channels[channel].trans->dst, channel),
+            write_register(  get_increment_b_2D( dma_subsys_per[channel].trans->dst, channel),
                         DMA_DST_PTR_INC_D2_REG_OFFSET,
                         DMA_DST_PTR_INC_D2_INC_MASK,
                         DMA_DST_PTR_INC_D2_INC_OFFSET,
-                        dma_cb.channels[channel].peri );
+                        dma_subsys_per[channel].peri );
         }
     }
 
@@ -960,43 +1009,43 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
      * SET THE OPERATION MODE AND WINDOW SIZE
      */
 
-    dma_cb.channels[channel].peri->MODE = dma_cb.channels[channel].trans->mode;
+    dma_subsys_per[channel].peri->MODE = dma_subsys_per[channel].trans->mode;
     /* The window size is set to the transaction size if it was set to 0 in
     order to disable the functionality (it will never be triggered). */
 
-    dma_cb.channels[channel].peri->WINDOW_SIZE =   dma_cb.channels[channel].trans->win_du
-                            ? dma_cb.channels[channel].trans->win_du
-                            : dma_cb.channels[channel].trans->size_b;
+    dma_subsys_per[channel].peri->WINDOW_SIZE =   dma_subsys_per[channel].trans->win_du
+                            ? dma_subsys_per[channel].trans->win_du
+                            : dma_subsys_per[channel].trans->size_b;
 
     /* 
      * SET THE DIMENSIONALITY
      */
-    write_register(  dma_cb.channels[channel].trans->dim,
+    write_register(  dma_subsys_per[channel].trans->dim,
                     DMA_DIM_CONFIG_REG_OFFSET,
                     0x1,
                     DMA_DIM_CONFIG_DMA_DIM_BIT,
-                    dma_cb.channels[channel].peri );
+                    dma_subsys_per[channel].peri );
 
     /*
      * SET TRIGGER SLOTS AND DATA TYPE
      */
-    write_register(  dma_cb.channels[channel].trans->src->trig,
+    write_register(  dma_subsys_per[channel].trans->src->trig,
                     DMA_SLOT_REG_OFFSET,
                     DMA_SLOT_RX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_RX_TRIGGER_SLOT_OFFSET,
-                    dma_cb.channels[channel].peri );
+                    dma_subsys_per[channel].peri );
 
-    write_register(  dma_cb.channels[channel].trans->dst->trig,
+    write_register(  dma_subsys_per[channel].trans->dst->trig,
                     DMA_SLOT_REG_OFFSET,
                     DMA_SLOT_TX_TRIGGER_SLOT_MASK,
                     DMA_SLOT_TX_TRIGGER_SLOT_OFFSET,
-                    dma_cb.channels[channel].peri );
+                    dma_subsys_per[channel].peri );
 
-    write_register(  dma_cb.channels[channel].trans->type,
+    write_register(  dma_subsys_per[channel].trans->type,
                     DMA_DATA_TYPE_REG_OFFSET,
                     DMA_DATA_TYPE_DATA_TYPE_MASK,
                     DMA_SELECTION_OFFSET_START,
-                    dma_cb.channels[channel].peri );
+                    dma_subsys_per[channel].peri );
 
     return DMA_CONFIG_OK;
 }
@@ -1011,7 +1060,7 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans)
      * launched.
      */
     if(     ( p_trans == NULL )
-        ||  ( dma_cb.channels[channel].trans != p_trans ) ) // @ToDo: Check per-element.
+        ||  ( dma_subsys_per[channel].trans != p_trans ) ) // @ToDo: Check per-element.
     {
         return DMA_CONFIG_CRITICAL_ERROR;
     }
@@ -1036,25 +1085,25 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans)
      * This has to be done prior to writing the register because otherwise
      * the interrupt could arrive before it is lowered.
      */
-    dma_cb.channels[channel].intrFlag = 0;
+    dma_subsys_per[channel].intrFlag = 0;
 
     /* Load the size(s) and start the transaction. */
 
-    if(dma_cb.channels[channel].trans->dim == DMA_DIM_CONF_2D)
+    if(dma_subsys_per[channel].trans->dim == DMA_DIM_CONF_2D)
     {
-        write_register( dma_cb.channels[channel].trans->size_d2_b,
+        write_register( dma_subsys_per[channel].trans->size_d2_b,
                         DMA_SIZE_D2_REG_OFFSET,
                         DMA_SIZE_D2_SIZE_MASK,
                         DMA_SIZE_D2_SIZE_OFFSET,
-                        dma_cb.channels[channel].peri
+                        dma_subsys_per[channel].peri
                       );
     }
 
-    write_register( dma_cb.channels[channel].trans->size_b,
+    write_register( dma_subsys_per[channel].trans->size_b,
                     DMA_SIZE_D1_REG_OFFSET,
                     DMA_SIZE_D1_SIZE_MASK,
                     DMA_SIZE_D1_SIZE_OFFSET,
-                    dma_cb.channels[channel].peri
+                    dma_subsys_per[channel].peri
     ); 
     /*
      * If the end event was set to wait for the interrupt, the dma_launch
@@ -1063,7 +1112,7 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans)
 
     
     while(    p_trans->end == DMA_TRANS_END_INTR_WAIT
-          && ( dma_cb.channels[channel].intrFlag != 0x0 ) ) {
+          && ( dma_subsys_per[channel].intrFlag != 0x0 ) ) {
             wait_for_interrupt();
     }
 
@@ -1073,23 +1122,23 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans)
 __attribute__((optimize("O0"))) uint32_t dma_is_ready(uint8_t channel)
 {
     /* The transaction READY bit is read from the status register*/
-    uint32_t ret = ( dma_cb.channels[channel].peri->STATUS & (1<<DMA_STATUS_READY_BIT) );
+    uint32_t ret = ( dma_subsys_per[channel].peri->STATUS & (1<<DMA_STATUS_READY_BIT) );
     return ret;
 }
 /* @ToDo: Reconsider this decision.
  * In case a return wants to be forced in case of an error, there are 2
  * alternatives:
  *    1) Consider any value != 0 to be a valid 1 using a LOGIC AND:
- *  return ( 1 && dma_cb.channels[channel].peri->DONE );
+ *  return ( 1 && dma_subsys_per[channel].peri->DONE );
  *    2) Consider only the LSB == 1 to be a valid 1 using a BITWISE AND.
- *  return ( 1 &  dma_cb.channels[channel].peri->DONE );
+ *  return ( 1 &  dma_subsys_per[channel].peri->DONE );
  * This would be fixed if the DONE register was a 1 bit field.
  */
 
 
 uint32_t dma_get_window_count(uint8_t channel)
 {
-    return dma_cb.channels[channel].peri->WINDOW_COUNT;
+    return dma_subsys_per[channel].peri->WINDOW_COUNT;
 }
 
 
@@ -1099,7 +1148,7 @@ void dma_stop_circular(uint8_t channel)
      * The DMA finishes the current transaction before and does not start
      * a new one.
      */
-    dma_cb.channels[channel].peri->MODE = DMA_TRANS_MODE_SINGLE;
+    dma_subsys_per[channel].peri->MODE = DMA_TRANS_MODE_SINGLE;
 }
 
 
@@ -1415,7 +1464,6 @@ static inline void write_register( uint32_t  p_val,
 
 }
 
-
 static inline uint32_t get_increment_b_1D( dma_target_t * p_tgt,
                                            uint8_t        channel)
 {
@@ -1427,7 +1475,7 @@ static inline uint32_t get_increment_b_1D( dma_target_t * p_tgt,
          * If the transaction increment has been overriden (due to
          * misalignments), then that value is used (it's always set to 1).
          */
-        inc_b = dma_cb.channels[channel].trans->inc_b;
+        inc_b = dma_subsys_per[channel].trans->inc_b;
 
         /*
         * Otherwise, the target-specific increment is used transformed into
@@ -1435,7 +1483,7 @@ static inline uint32_t get_increment_b_1D( dma_target_t * p_tgt,
         */
         if( inc_b == 0 )
         {
-            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( dma_cb.channels[channel].trans->type );
+            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( dma_subsys_per[channel].trans->type );
             inc_b = ( p_tgt->inc_du * dataSize_b );
         }
     }
@@ -1453,7 +1501,7 @@ static inline uint32_t get_increment_b_2D( dma_target_t * p_tgt,
          * If the transaction increment has been overriden (due to
          * misalignments), then that value is used (it's always set to 1).
          */
-        inc_b = dma_cb.channels[channel].trans->inc_b;
+        inc_b = dma_subsys_per[channel].trans->inc_b;
 
         /*
         * Otherwise, the target-specific increment is used transformed into
@@ -1461,7 +1509,7 @@ static inline uint32_t get_increment_b_2D( dma_target_t * p_tgt,
         */
         if( inc_b == 0 )
         {
-            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( dma_cb.channels[channel].trans->type );
+            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( dma_subsys_per[channel].trans->type );
             inc_b = ( p_tgt->inc_d2_du * dataSize_b );
         }
     }
