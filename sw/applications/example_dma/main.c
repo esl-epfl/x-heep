@@ -19,10 +19,10 @@
 #define TEST_WINDOW
 #define TEST_ADDRESS_MODE_EXTERNAL_DEVICE
 
-#define TEST_DATA_SIZE      16
-#define TEST_DATA_LARGE     1024
-#define TRANSACTIONS_N      3       // Only possible to perform one transaction at a time, others should be blocked
-#define TEST_WINDOW_SIZE_DU 1024    // if put at <=71 the isr is too slow to react to the interrupt
+#define TEST_DATA_SIZE 16
+#define TEST_DATA_LARGE 1024
+#define TRANSACTIONS_N 3         // Only possible to perform one transaction at a time, others should be blocked
+#define TEST_WINDOW_SIZE_DU 1024 // if put at <=71 the isr is too slow to react to the interrupt
 
 #if TEST_DATA_LARGE < 2 * TEST_DATA_SIZE
 #errors("TEST_DATA_LARGE must be at least 2*TEST_DATA_SIZE")
@@ -43,9 +43,9 @@
 // UTILITIES
 
 #define type2name(dma_type)                                                                   \
-    dma_type == DMA_DATA_TYPE_BYTE ? "8-bit"    : dma_type == DMA_DATA_TYPE_HALF_WORD ? "16-bit" \
-                                                : dma_type == DMA_DATA_TYPE_WORD      ? "32-bit" \
-                                                : "TYPE NOT VALID"
+    dma_type == DMA_DATA_TYPE_BYTE ? "8-bit" : dma_type == DMA_DATA_TYPE_HALF_WORD ? "16-bit" \
+                                           : dma_type == DMA_DATA_TYPE_WORD        ? "32-bit" \
+                                                                                   : "TYPE NOT VALID"
 
 dma_data_type_t C_type_2_dma_type(int C_type)
 {
@@ -116,12 +116,12 @@ dma_data_type_t C_type_2_dma_type(int C_type)
     }
 
 #define INIT_TEST(signed, data_size, dma_src_type, dma_dst_type) \
-    tgt_src.ptr = src;                                           \
+    tgt_src.ptr = (uint8_t *)src;                                \
     tgt_src.inc_du = 1;                                          \
     tgt_src.size_du = data_size;                                 \
     tgt_src.trig = DMA_TRIG_MEMORY;                              \
     tgt_src.type = dma_src_type;                                 \
-    tgt_dst.ptr = dst;                                           \
+    tgt_dst.ptr = (uint8_t *)dst;                                \
     tgt_dst.inc_du = 1;                                          \
     tgt_dst.size_du = data_size;                                 \
     tgt_dst.trig = DMA_TRIG_MEMORY;                              \
@@ -136,16 +136,16 @@ dma_data_type_t C_type_2_dma_type(int C_type)
     trans.sign_ext = signed;                                     \
     trans.end = DMA_TRANS_END_INTR;
 
-#define TEST(C_src_type, C_dst_type, test_size, sign_extend)                                           \
+#define TEST(C_src_type, C_dst_type, test_size, sign_extend)                                                         \
     PRINT_TEST(sign_extend, test_size, C_type_2_dma_type(sizeof(C_src_type)), C_type_2_dma_type(sizeof(C_dst_type))) \
-    DEFINE_DATA(test_size, C_src_type, C_dst_type, sign_extend)                                        \
+    DEFINE_DATA(test_size, C_src_type, C_dst_type, sign_extend)                                                      \
     INIT_TEST(sign_extend, test_size, C_type_2_dma_type(sizeof(C_src_type)), C_type_2_dma_type(sizeof(C_dst_type)))  \
-    RUN_DMA                                                                                            \
-    WAIT_DMA                                                                                           \
-    CHECK_RESULTS(test_size)                                                                           \
+    RUN_DMA                                                                                                          \
+    WAIT_DMA                                                                                                         \
+    CHECK_RESULTS(test_size)                                                                                         \
     PRINTF("\n\r")
 
-#define TEST_SINGLE                                \
+#define TEST_SINGLE                                  \
     {                                                \
         TEST(uint8_t, uint8_t, TEST_DATA_SIZE, 0);   \
         errors += errors;                            \
@@ -239,7 +239,7 @@ int main(int argc, char *argv[])
     dma_target_t tgt_src;
     dma_target_t tgt_dst;
     dma_target_t tgt_addr = {
-        .ptr = test_addr_4B_PTR,
+        .ptr = (uint8_t *)test_addr_4B_PTR,
         .inc_du = 1,
         .size_du = TEST_DATA_SIZE,
         .trig = DMA_TRIG_MEMORY,
@@ -257,13 +257,13 @@ int main(int argc, char *argv[])
 #endif // TEST_SINGLE_MODE
 
     // Initialize the DMA for the next tests
-    tgt_src.ptr = test_data_4B;
+    tgt_src.ptr = (uint8_t *)test_data_4B;
     tgt_src.inc_du = 1;
     tgt_src.size_du = TEST_DATA_SIZE;
     tgt_src.trig = DMA_TRIG_MEMORY;
     tgt_src.type = DMA_DATA_TYPE_WORD;
 
-    tgt_dst.ptr = copied_data_4B;
+    tgt_dst.ptr = (uint8_t *)copied_data_4B;
     tgt_dst.inc_du = 1;
     tgt_dst.size_du = TEST_DATA_LARGE;
     tgt_dst.trig = DMA_TRIG_MEMORY;
@@ -288,7 +288,7 @@ int main(int argc, char *argv[])
     // Prepare the data
     for (int i = 0; i < TEST_DATA_SIZE; i++)
     {
-        test_addr_4B_PTR[i] = &copied_data_4B[i * 2];
+        test_addr_4B_PTR[i] = (uint32_t)&copied_data_4B[i * 2];
     }
 
     trans.mode = DMA_TRANS_MODE_ADDRESS;
@@ -392,7 +392,7 @@ int main(int argc, char *argv[])
         test_data_large[i] = i;
     }
 
-    tgt_src.ptr = test_data_large;
+    tgt_src.ptr = (uint8_t *)test_data_large;
     tgt_src.size_du = TEST_DATA_LARGE;
     tgt_dst.size_du = TEST_DATA_LARGE;
 
@@ -470,7 +470,7 @@ int main(int argc, char *argv[])
         copied_data_4B[i] = 0;
     }
 
-    tgt_src.ptr = test_data_large;
+    tgt_src.ptr = (uint8_t *)test_data_large;
     tgt_src.size_du = TEST_DATA_LARGE;
 
     tgt_src.type = DMA_DATA_TYPE_WORD;

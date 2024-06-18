@@ -60,14 +60,14 @@ void dma_copy_32b(uint32_t *dst, uint32_t *src, uint32_t size)
     dma_config_flags_t res;
 
     dma_target_t tgt_src = {
-        .ptr = src,
+        .ptr = (uint8_t *)src,
         .inc_du = 1,
         .size_du = size,
         .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_WORD,
     };
     dma_target_t tgt_dst = {
-        .ptr = dst,
+        .ptr = (uint8_t *)dst,
         .inc_du = 1,
         .size_du = size,
         .trig = DMA_TRIG_MEMORY,
@@ -99,8 +99,8 @@ void dma_copy_32b(uint32_t *dst, uint32_t *src, uint32_t size)
     /*
      * SET THE POINTERS
      */
-    peri->SRC_PTR = trans.src->ptr;
-    peri->DST_PTR = trans.dst->ptr;
+    peri->SRC_PTR = (uint32_t)trans.src->ptr;
+    peri->DST_PTR = (uint32_t)trans.dst->ptr;
 
     /*
      * SET THE INCREMENTS
@@ -161,8 +161,8 @@ void dma_fill(uint32_t *dst, uint32_t *value, uint32_t size)
     /*
      * SET THE POINTERS
      */
-    peri->SRC_PTR = value;
-    peri->DST_PTR = dst;
+    peri->SRC_PTR = (uint32_t)value;
+    peri->DST_PTR = (uint32_t)dst;
 
     /*
      * SET THE INCREMENTS
@@ -223,8 +223,8 @@ void dma_copy_16_32(uint32_t *dst, uint16_t *src, uint32_t size)
     /*
      * SET THE POINTERS
      */
-    peri->SRC_PTR = src;
-    peri->DST_PTR = dst;
+    peri->SRC_PTR = (uint32_t)src;
+    peri->DST_PTR = (uint32_t)dst;
 
     /*
      * SET THE INCREMENTS
@@ -276,7 +276,6 @@ void dma_copy_16_32(uint32_t *dst, uint16_t *src, uint32_t size)
     return;
 }
 
-
 // Copy data from source to destination using DMA peripheral
 void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size)
 {
@@ -284,14 +283,14 @@ void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size)
     dma_config_flags_t res;
 
     dma_target_t tgt_src = {
-        .ptr = src,
+        .ptr = (uint8_t *)src,
         .inc_du = 1,
         .size_du = size,
         .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_WORD,
     };
     dma_target_t tgt_addr = {
-        .ptr = dst_addr,
+        .ptr = (uint8_t *)dst_addr,
         .inc_du = 1,
         .size_du = size,
         .trig = DMA_TRIG_MEMORY,
@@ -320,8 +319,8 @@ void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size)
     /*
      * SET THE POINTERS
      */
-    peri->SRC_PTR = trans.src->ptr;
-    peri->ADDR_PTR = trans.src_addr->ptr;
+    peri->SRC_PTR = (uint32_t)trans.src->ptr;
+    peri->ADDR_PTR = (uint32_t)trans.src_addr->ptr;
 
     /*
      * SET THE INCREMENTS
