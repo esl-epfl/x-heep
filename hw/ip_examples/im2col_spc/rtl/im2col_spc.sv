@@ -83,7 +83,7 @@ module im2col_spc
   logic im2col_param_done;
   logic [NUM_CH_SPC-1:0] dma_if_channels;
   logic [(NUM_CH_SPC == 1) ? 0 : ($clog2(NUM_CH_SPC) - 1):0] dma_free_channel;
- 
+
   logic dma_if_load;
   logic dma_if_loaded;
   logic dma_if_load_continue;
@@ -399,9 +399,9 @@ module im2col_spc
           end
 
           /* im_c update */
-          if (im_c_counter == reg2hw.fh.q * reg2hw.fw.q) begin
+          if (im_c_counter == reg2hw.fh.q * reg2hw.fw.q - 1) begin
             im_c_counter <= '0;
-            im_c <= '0;
+            im_c <= im_c + 1;
           end else begin
             im_c_counter <= im_c_counter + 1;
           end
@@ -660,7 +660,7 @@ module im2col_spc
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_DATATYPE_OFFSET;
-            im2col2aopx_req_o.wdata <= {30'h0, reg2hw.data_type.q} & 32'h3; // Mask
+            im2col2aopx_req_o.wdata <= {30'h0, reg2hw.data_type.q} & 32'h3;  // Mask
           end else if (dma_if_load_rvalid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
@@ -840,7 +840,7 @@ module im2col_spc
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_INC_DST_D1_OFFSET;
-            im2col2aopx_req_o.wdata <= (4 >> reg2hw.data_type.q)  & 32'h3f; // Mask;
+            im2col2aopx_req_o.wdata <= (4 >> reg2hw.data_type.q) & 32'h3f;  // Mask;
           end else if (dma_if_load_rvalid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
@@ -860,7 +860,7 @@ module im2col_spc
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_INC_DST_D2_OFFSET;
-            im2col2aopx_req_o.wdata <= (4 >> reg2hw.data_type.q) & 32'h7fffff; // Mask
+            im2col2aopx_req_o.wdata <= (4 >> reg2hw.data_type.q) & 32'h7fffff;  // Mask
           end else if (dma_if_load_rvalid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
@@ -950,7 +950,7 @@ module im2col_spc
         dma_free_channel <= '0;
         for (int i = 0; i < NUM_CH_SPC; i = i + 1) begin
           if (dma_if_channels[i] == 1'b0) begin
-            dma_free_channel   <= i[(NUM_CH_SPC == 1) ? 0 : ($clog2(NUM_CH_SPC) - 1):0];
+            dma_free_channel   <= i[(NUM_CH_SPC==1)?0 : ($clog2(NUM_CH_SPC)-1):0];
             dma_if_channels[i] <= 1'b1;
             break;
           end

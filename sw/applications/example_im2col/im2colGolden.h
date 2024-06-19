@@ -14,21 +14,21 @@
 #include <stdint.h>
 
 /* Parameters */
-#define IW 6
-#define IH 6
-#define CH 1
+#define IW 10
+#define IH 10
+#define CH 3
 #define FW 2
 #define FH 2
-#define BATCH 1
-#define STRIDE_D1 2
-#define STRIDE_D2 3
-#define TOP_PAD 4
-#define BOTTOM_PAD 1
+#define BATCH 3
+#define STRIDE_D1 1
+#define STRIDE_D2 1
+#define TOP_PAD 2
+#define BOTTOM_PAD 2
 #define LEFT_PAD 2
-#define RIGHT_PAD 3
-extern const uint32_t input_image_nchw[36];
-extern const uint32_t golden_im2col_nchw[80];
-extern const uint32_t input_image_nhwc[36];
-extern const uint32_t golden_im2col_nhwc[80];
+#define RIGHT_PAD 2
+extern const uint32_t input_image_nchw[900];
+extern const uint32_t golden_im2col_nchw[6084];
+extern const uint32_t input_image_nhwc[900];
+extern const uint32_t golden_im2col_nhwc[6084];
 
 #endif

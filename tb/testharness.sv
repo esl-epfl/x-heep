@@ -496,7 +496,7 @@ module testharness #(
       );
 
       im2col_spc #(
-          .NUM_CH_SPC(1)
+          .NUM_CH_SPC(2)
       ) im2col_spc_i (
           .clk_i,
           .rst_ni,

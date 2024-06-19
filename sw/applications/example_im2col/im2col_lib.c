@@ -93,6 +93,12 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     /* Implementation of im2col algorithm using the CPU */
     if (test_id == 0)
     {
+        #if TIMING
+            CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+            CSR_WRITE(CSR_REG_MCYCLE, 0);
+            CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+        #endif
+
         #if TIMING  
         CSR_READ(CSR_REG_MCYCLE, &cycles_A);
         #endif
@@ -365,6 +371,12 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
 
         uint32_t* ptr;
 
+        #if TIMING
+        CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+        CSR_WRITE(CSR_REG_MCYCLE, 0);
+        CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+        #endif
+
         #if TIMING  
         CSR_READ(CSR_REG_MCYCLE, &cycles_A);
         #endif
@@ -392,10 +404,6 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 
                 PRINTF_DEB("\n\rim_row: %d, im_col: %d", im_row, im_col);
                 PRINTF_DEB("\n\rw_offset: %d, h_offset: %d\n\r", w_offset, h_offset);
-                
-                #if TIMING
-                CSR_READ(CSR_REG_MCYCLE, &cycles_A);
-                #endif
 
                 /* Computing the number of zeros on the left */
 
@@ -475,10 +483,6 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 size_transfer = N_PATCHES_W - n_zeros_left - n_zeros_right;
                 size_transfer_d2 = N_PATCHES_H - n_zeros_top - n_zeros_bottom;
 
-                #if TIMING
-                CSR_READ(CSR_REG_MCYCLE, &cycles_A);
-                #endif
-
                 PRINTF_DEB("\n\rn_zeros_left: %d, n_zeros_right: %d, n_zeros_top: %d, n_zeros_bottom: %d", n_zeros_left, n_zeros_right, n_zeros_top, n_zeros_bottom);
                 PRINTF_DEB("\n\rsize_transfer: %d, size_transfer_d2: %d\n\r", size_transfer, size_transfer_d2);
     
@@ -487,8 +491,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 src_inc_d2 = (STRIDE_D2 * IW - (size_transfer - 1 + (STRIDE_D1 - 1) * (size_transfer - 1)));
 
                 PRINTF_DEB("\n\rindex: %d, src_inc_d2: %d", index, src_inc_d2);
-                //PRINTF("%d %d %d %d %d\n\r ", src_inc_d2, n_zeros_top, n_zeros_bottom, fh_minus_h_offset, tmp_pad);
-
+                
                 input_image_ptr = &input_image_nchw[0] + index;
                 PRINTF_DEB("\n\rsrc_ptr: %x dst_ptr: %x\n\r", input_image_ptr, output_data_ptr);
                 tgt_src.ptr = input_image_ptr;
@@ -508,11 +511,6 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                 trans.pad_bottom_du = n_zeros_bottom;
                 
                 dma_run(&trans);
-
-                #if TIMING
-                CSR_READ(CSR_REG_MCYCLE, &cycles_B);
-                avg_patch += cycles_B - cycles_A;
-                #endif
 
                 output_data_ptr += N_PATCHES_H * N_PATCHES_W;
 
@@ -584,6 +582,11 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         uint32_t* input_image_ptr = &input_image_nchw[0];
         uint32_t* output_data_ptr = &output_data[0];
         
+        #if TIMING
+        CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+        CSR_WRITE(CSR_REG_MCYCLE, 0);
+        CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+        #endif
         #if TIMING  
         CSR_READ(CSR_REG_MCYCLE, &cycles_A);
         #endif
