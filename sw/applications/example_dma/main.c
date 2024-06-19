@@ -121,11 +121,13 @@ dma_data_type_t C_type_2_dma_type(int C_type)
     tgt_src.size_du = data_size;                                 \
     tgt_src.trig = DMA_TRIG_MEMORY;                              \
     tgt_src.type = dma_src_type;                                 \
+    tgt_src.env = NULL;                                          \
     tgt_dst.ptr = (uint8_t *)dst;                                \
     tgt_dst.inc_du = 1;                                          \
     tgt_dst.size_du = data_size;                                 \
     tgt_dst.trig = DMA_TRIG_MEMORY;                              \
     tgt_dst.type = dma_dst_type;                                 \
+    tgt_dst.env = NULL;                                          \
     trans.src = &tgt_src;                                        \
     trans.dst = &tgt_dst;                                        \
     trans.src_addr = &tgt_addr;                                  \
@@ -224,6 +226,8 @@ uint8_t dma_window_ratio_warning_threshold()
 
 int main(int argc, char *argv[])
 {
+
+    // asm volatile ("ebreak");
 
     static uint32_t test_data_4B[TEST_DATA_SIZE] __attribute__((aligned(4))) = {
         0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef, 0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa, 0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98};
