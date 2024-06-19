@@ -38,10 +38,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "dma_structs.h"    // Generated
 #include "dma_regs.h"       // Generated
 

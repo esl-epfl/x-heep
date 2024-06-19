@@ -34,7 +34,6 @@ extern "C" {
 #include "error.h"
 #include "x-heep.h"
 #include <stdio.h>
-//#include <signal.h>
 
 #undef errno
 extern int errno;

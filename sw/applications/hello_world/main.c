@@ -18,17 +18,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-/*
+
 int main(int argc, char *argv[])
 {
     /* write something to stdout */
-//    printf("hello world!\n");
- //   return EXIT_SUCCESS;
-//}
-#include "test.h"
-int main(int argc, char *argv[])
-{
-    /* write something to stdout */
-    printf("hello world! %u\n",test());
+    printf("hello world!\n");
     return EXIT_SUCCESS;
 }

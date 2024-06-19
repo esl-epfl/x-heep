@@ -15,6 +15,10 @@
 #include "core_v_mini_mcu.h"
 #include "csr.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /******************************/
 /* ---- GLOBAL VARIABLES ---- */
 /******************************/
@@ -60,18 +64,18 @@ void dma_copy_32b(uint32_t *dst, uint32_t *src, uint32_t size)
     dma_config_flags_t res;
 
     dma_target_t tgt_src = {
-        .ptr = src,
+        .ptr = (uint8_t *) src,
         .inc_du = 1,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_WORD,
+        .trig = DMA_TRIG_MEMORY,   
     };
     dma_target_t tgt_dst = {
-        .ptr = dst,
+        .ptr = (uint8_t *)dst,
         .inc_du = 1,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_WORD,
+        .trig = DMA_TRIG_MEMORY,    
     };
 
     dma_trans_t trans = {
@@ -284,17 +288,17 @@ void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size)
     dma_config_flags_t res;
 
     dma_target_t tgt_src = {
-        .ptr = src,
+        .ptr = (uint8_t*)src,
         .inc_du = 1,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
         .type = DMA_DATA_TYPE_WORD,
+        .trig = DMA_TRIG_MEMORY    
     };
     dma_target_t tgt_addr = {
-        .ptr = dst_addr,
+        .ptr = (uint8_t*)dst_addr,
         .inc_du = 1,
         .size_du = size,
-        .trig = DMA_TRIG_MEMORY,
+        .trig = DMA_TRIG_MEMORY
     };
 
     dma_trans_t trans = {
@@ -303,7 +307,7 @@ void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size)
         .src_addr = &tgt_addr,
         .mode = DMA_TRANS_MODE_ADDRESS,
         .win_du = 0,
-        .end = DMA_TRANS_END_INTR,
+        .end = DMA_TRANS_END_INTR
     };
 
 #ifdef USE_HEEP_DMA_HAL
@@ -421,8 +425,8 @@ int dma_copy(const uint8_t *dst, const uint8_t *src, const size_t bytes, const d
         .ptr = src,
         .inc_du = 1,
         .size_du = num_du,
-        .trig = DMA_TRIG_MEMORY,
         .type = dma_type,
+        .trig = DMA_TRIG_MEMORY
     };
 
     // Destination pointer
@@ -487,3 +491,7 @@ void dma_sdk_intr_handler_trans_done()
 {
     dma_sdk_intr_flag = 1;
 }
+
+#ifdef __cplusplus
+}
+#endif

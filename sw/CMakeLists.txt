@@ -158,8 +158,6 @@ if( app_found EQUAL 0 )
 
   # Make a list of the .c source files that need to be linked
   FILE(GLOB_RECURSE c_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
-  # Make a list of the .cpp source files that need to be linked
-  FILE(GLOB_RECURSE cpp_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.cpp)
   # Make a list of the .s source files that need to be linked
   FILE(GLOB_RECURSE s_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.s)
   # Make a list of the .S source files that need to be linked
@@ -184,29 +182,10 @@ if( app_found EQUAL 0 )
     endif()
 
     ENDFOREACH()
-
-SET(cpp_dir_list "")
-FOREACH(file_path IN LISTS new_list)
-  SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
-  if(${file_path} MATCHES "${ROOT_PROJECT}device/")
-    if(NOT ${file_path} MATCHES "\\.S$")
-      SET(add 1)
-    endif()
-  elseif( ( ${file_path} MATCHES "${ROOT_PROJECT}/applications/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES "${ROOT_PROJECT}applications/${PROJECT}/.*${MAINFILE}\." ) AND ( NOT  ${file_path} MATCHES "exclude" ) )
-    SET(add 1)
   endif()
-
-  if( add EQUAL 1 ) # If the file path matched one of the criteria, add it to the list
-    SET(cpp_dir_list ${cpp_dir_list} "${file_path}\
-    ")
-    string(REPLACE ";" "" cpp_dir_list ${cpp_dir_list})
-  endif()
-
-  ENDFOREACH()
-endif()
-
+  
 LIST(REMOVE_DUPLICATES c_dir_list)
-LIST(REMOVE_DUPLICATES cpp_dir_list)
+
 
 #######################################################################
 #      DETERMINE IF APP IS EXTERNAL
@@ -304,8 +283,7 @@ message( "${Magenta}Target: ${TARGET}${ColourReset}")
 SET(LINKED_FILES    "${LIB_CRT_P} \
                      ${LIB_VCTR_P} \
                      ${LIB_CRT_EXT_P} \
-                     ${c_dir_list} \
-                     ${cpp_dir_list}")
+                     ${c_dir_list}") 
 
 message( "${Magenta}Linked files: ${LINKED_FILES}${ColourReset}")
 
