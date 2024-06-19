@@ -318,6 +318,7 @@ module dma #(
   logic                              right_ex_to_left_ex;
   logic                              right_dn_to_right_ex;
   logic                              right_dn_to_idle;
+  logic                              right_ex_to_idle;
   logic                              right_ex_to_bottom_ex;
   logic                              bottom_ex_to_idle;
 
@@ -408,7 +409,7 @@ module dma #(
   assign dma_read_ch0_req_o.addr = data_in_addr;
   assign dma_read_ch0_req_o.wdata = 32'h0;
 
-  assign data_in_gnt = dma_read_ch0_resp_i.gnt || (data_in_gnt_virt & pad_fifo_on);
+  assign data_in_gnt = dma_read_ch0_resp_i.gnt || (data_in_gnt_virt & pad_fifo_on & ~fifo_alm_full & ~fifo_full);
   assign data_in_rvalid = dma_read_ch0_resp_i.rvalid || (data_in_rvalid_virt & pad_fifo_on);
   assign data_in_rdata = dma_read_ch0_resp_i.rdata;
 
@@ -520,6 +521,10 @@ module dma #(
   assign right_dn_to_idle = {|reg2hw.pad_bottom.q == 1'b0 && |dma_src_cnt_d2 == 1'b0};
   assign bottom_ex_to_idle = {
     dma_src_cnt_d1 == {14'h0, dma_cnt_du} && dma_src_cnt_d2 == {14'h0, dma_cnt_du}
+  };
+
+  assign right_ex_to_idle = {
+    |reg2hw.pad_bottom.q == 1'b0 && |dma_src_cnt_d2 == 1'b0 
   };
 
   assign write_address = address_mode ? fifo_addr_output : write_ptr_reg;
@@ -695,6 +700,9 @@ module dma #(
       if (dma_start == 1'b1) begin
         dma_src_cnt_d1 <= {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q};
         dma_src_cnt_d2 <= {1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_top.q} + {11'h0, reg2hw.pad_bottom.q};
+      end else if (dma_done == 1'b1) begin
+        dma_src_cnt_d1 <= '0;
+        dma_src_cnt_d2 <= '0;
       end else if (data_in_gnt == 1'b1) begin
         if (dma_conf_1d == 1'b1) begin
           // 1D case
@@ -905,7 +913,7 @@ module dma #(
         pad_state_x <= LEFT_PAD_EXEC;
       end else begin
         pad_state_x <= pad_state_d;
-        if (data_in_rvalid == 1'b1) begin
+        if (data_in_rvalid == 1'b1 || (pad_state_x == PAD_IDLE && dma_done == 1'b1)) begin
           pad_state_q <= pad_state_x;
         end
       end
@@ -1036,6 +1044,8 @@ module dma #(
           pad_state_d = LEFT_PAD_EXEC;
         end else if (right_ex_to_bottom_ex) begin
           pad_state_d = BOTTOM_PAD_EXEC;
+        end else if (right_ex_to_idle) begin
+          pad_state_d = PAD_IDLE;
         end
       end
       RIGHT_PAD_DONE: begin

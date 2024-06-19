@@ -973,8 +973,8 @@ module im2col_spc
     if (~rst_ni) begin
       im2col_spc_ifr <= '0;
     end else if (reg2hw.interrupt_en.q == 1'b1) begin
-      // Enter here only if the im2col_fsms_done interrupt is enabled
-      if (im2col_fsms_done == 1'b1) begin
+      // Enter here only if the im2col_done interrupt is enabled
+      if (im2col_done == 1'b1) begin
         im2col_spc_ifr <= 1'b1;
       end else if (reg2hw.spc_ifr.re == 1'b1) begin
         // If the IFR bit is read, we must clear the transaction_ifr
