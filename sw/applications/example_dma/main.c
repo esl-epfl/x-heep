@@ -74,6 +74,7 @@ dma_data_type_t C_type_2_dma_type(int C_type)
     }
 
 #define RUN_DMA                                                                               \
+    trans.flags = 0x0;                                                                        \
     res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY); \
     PRINTF("tran: %u \t%s\n\r", res, res == DMA_CONFIG_OK ? "Ok!" : "Error!");                \
     res = dma_load_transaction(&trans);                                                       \
@@ -118,12 +119,14 @@ dma_data_type_t C_type_2_dma_type(int C_type)
 #define INIT_TEST(signed, data_size, dma_src_type, dma_dst_type) \
     tgt_src.ptr = (uint8_t *)src;                                \
     tgt_src.inc_du = 1;                                          \
+    tgt_src.inc_d2_du = 0;                                       \
     tgt_src.size_du = data_size;                                 \
     tgt_src.trig = DMA_TRIG_MEMORY;                              \
     tgt_src.type = dma_src_type;                                 \
     tgt_src.env = NULL;                                          \
     tgt_dst.ptr = (uint8_t *)dst;                                \
     tgt_dst.inc_du = 1;                                          \
+    tgt_dst.inc_d2_du = 0;                                       \
     tgt_dst.size_du = data_size;                                 \
     tgt_dst.trig = DMA_TRIG_MEMORY;                              \
     tgt_dst.type = dma_dst_type;                                 \
@@ -136,7 +139,8 @@ dma_data_type_t C_type_2_dma_type(int C_type)
     trans.mode = DMA_TRANS_MODE_SINGLE;                          \
     trans.win_du = 0;                                            \
     trans.sign_ext = signed;                                     \
-    trans.end = DMA_TRANS_END_INTR;
+    trans.end = DMA_TRANS_END_INTR;                              \
+    trans.dim = DMA_DIM_CONF_1D;
 
 #define TEST(C_src_type, C_dst_type, test_size, sign_extend)                                                         \
     PRINT_TEST(sign_extend, test_size, C_type_2_dma_type(sizeof(C_src_type)), C_type_2_dma_type(sizeof(C_dst_type))) \
