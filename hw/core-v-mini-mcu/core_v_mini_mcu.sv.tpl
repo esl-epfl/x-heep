@@ -56,7 +56,8 @@ ${pad.core_v_mini_mcu_interface}
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
-    output logic      [EXT_HARTS_RND-1:0] ext_debug_req_o,
+    output logic  [EXT_HARTS_RND-1:0] ext_debug_req_o,
+    output logic  ext_debug_reset_no,
 
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
 
@@ -70,6 +71,7 @@ ${pad.core_v_mini_mcu_interface}
     input  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_ni,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_no,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
+    output logic ext_cpu_subsystem_rst_no,
     output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_no,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_no,
 
@@ -463,6 +465,9 @@ ${pad.core_v_mini_mcu_interface}
       end
     end
   end
+
+  assign ext_cpu_subsystem_rst_no = cpu_subsystem_rst_n;
+  assign ext_debug_reset_no = debug_reset_n;
 
   assign pdm2pcm_pdm_o = 0;
   assign pdm2pcm_pdm_oe_o = 0;

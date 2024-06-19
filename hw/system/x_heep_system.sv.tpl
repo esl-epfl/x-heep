@@ -74,6 +74,8 @@ ${pad.x_heep_system_interface}
 
 
   logic [EXT_HARTS_RND-1:0] ext_debug_req;
+  logic ext_cpu_subsystem_rst_n;
+  logic ext_debug_reset_n;
 
   // PM signals
   logic cpu_subsystem_powergate_switch_n;
@@ -139,6 +141,7 @@ ${pad.core_v_mini_mcu_bonding}
     .ext_peripheral_slave_req_o,
     .ext_peripheral_slave_resp_i,
     .ext_debug_req_o(ext_debug_req),
+    .ext_debug_reset_no(ext_debug_reset_n),
     .cpu_subsystem_powergate_switch_no(cpu_subsystem_powergate_switch_n),
     .cpu_subsystem_powergate_switch_ack_ni(cpu_subsystem_powergate_switch_ack_n),
     .peripheral_subsystem_powergate_switch_no(peripheral_subsystem_powergate_switch_n),
@@ -149,6 +152,7 @@ ${pad.core_v_mini_mcu_bonding}
     .external_subsystem_powergate_switch_ack_ni,
     .external_subsystem_powergate_iso_no,
     .external_subsystem_rst_no,
+    .ext_cpu_subsystem_rst_no(ext_cpu_subsystem_rst_n),
     .external_ram_banks_set_retentive_no,
     .external_subsystem_clkgate_en_no,
     .exit_value_o,
