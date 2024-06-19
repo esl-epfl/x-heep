@@ -529,7 +529,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     if (length % 4 != 0) {
         uint32_t last_word = 0;
 
-        spi_read_word(&spi, &last_word);
+        spi_read_word((spi_host_t *)&spi, &last_word);
     #ifdef __cplusplus
         memcpy(static_cast<uint8_t*>(data) + length - (length % 4), &last_word, length % 4);
     #else
@@ -848,7 +848,7 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
     if (length % 4 != 0) {
         uint32_t last_word = 0;
       
-        spi_read_word(&spi, &last_word);
+        spi_read_word((spi_host_t *)&spi, &last_word);
 
     #ifdef __cplusplus
         memcpy(static_cast<uint8_t*>(data) + length - (length % 4), &last_word, length % 4);
