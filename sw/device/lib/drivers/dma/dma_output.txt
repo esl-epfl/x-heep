@@ -142,6 +142,326 @@ Time: 0 - PAD_LEFT: 0
 
 Time: 0 - PAD_RIGHT: 0
 
+Time: 0 - PAD_TOP: 0
+
+Time: 0 - PAD_BOTTOM: 0
+
+Time: 0 - PAD_LEFT: 0
+
+Time: 0 - PAD_RIGHT: 0
+
+Time: 0 - SRC_PTR: 52068
+
+Time: 0 - DST_PTR: 52964
+
+Time: 0 - DIM_INV: 0
+
+Time: 0 - SRC_PTR_INC_D1: 4
+
+Time: 0 - SRC_PTR_INC_D2: 8
+
+Time: 0 - DST_PTR_INC_D1: 4
+
+Time: 0 - DST_PTR_INC_D2: 4
+
+Time: 0 - MODE: 0
+
+Time: 0 - DIM_CONFIG: 1
+
+Time: 0 - DIM_CONFIG: 1
+
+Time: 0 - RX_TRIGGER_SLOT: 0
+
+Time: 0 - TX_TRIGGER_SLOT: 0
+
+Time: 0 - DATA_TYPE: 0
+
+Time: 0 - SIZE_D2: 16
+
+Time: 0 - SIZE_D1: 16
+
+Time: 0 - DMA_START
+
+Time: 0 - DMA_DONE
+
+Time: 0 - PAD_TOP: 0
+
+Time: 0 - PAD_BOTTOM: 0
+
+Time: 0 - PAD_LEFT: 0
+
+Time: 0 - PAD_RIGHT: 0
+
+Time: 0 - SRC_PTR: 52072
+
+Time: 0 - DST_PTR: 53028
+
+Time: 0 - DIM_INV: 0
+
+Time: 0 - SRC_PTR_INC_D1: 4
+
+Time: 0 - SRC_PTR_INC_D2: 8
+
+Time: 0 - DST_PTR_INC_D1: 4
+
+Time: 0 - DST_PTR_INC_D2: 4
+
+Time: 0 - MODE: 0
+
+Time: 0 - DIM_CONFIG: 1
+
+Time: 0 - DIM_CONFIG: 1
+
+Time: 0 - RX_TRIGGER_SLOT: 0
+
+Time: 0 - TX_TRIGGER_SLOT: 0
+
+Time: 0 - DATA_TYPE: 0
+
+Time: 0 - SIZE_D2: 16
+
+Time: 0 - SIZE_D1: 16
+
+Time: 0 - DMA_START
+
+Time: 0 - DMA_DONE
+
+Time: 0 - PAD_TOP: 0
+
+Time: 0 - PAD_BOTTOM: 0
+
+Time: 0 - PAD_LEFT: 0
+
+Time: 0 - PAD_RIGHT: 0
+
+Time: 0 - SRC_PTR: 52088
+
+Time: 0 - DST_PTR: 53092
+
+Time: 0 - DIM_INV: 0
+
+Time: 0 - SRC_PTR_INC_D1: 4
+
+Time: 0 - SRC_PTR_INC_D2: 8
+
+Time: 0 - DST_PTR_INC_D1: 4
+
+Time: 0 - DST_PTR_INC_D2: 4
+
+Time: 0 - MODE: 0
+
+Time: 0 - DIM_CONFIG: 1
+
+Time: 0 - DIM_CONFIG: 1
+
+Time: 0 - RX_TRIGGER_SLOT: 0
+
+Time: 0 - TX_TRIGGER_SLOT: 0
+
+Time: 0 - DATA_TYPE: 0
+
+Time: 0 - SIZE_D2: 16
+
+Time: 0 - SIZE_D1: 16
+
+Time: 0 - DMA_START
+
+Time: 0 - DMA_DONE
+
+Time: 0 - PAD_TOP: 0
+
+Time: 0 - PAD_BOTTOM: 0
+
+Time: 0 - PAD_LEFT: 0
+
+Time: 0 - PAD_RIGHT: 0
+
+Time: 0 - SRC_PTR: 52092
+
+Time: 0 - DST_PTR: 53156
+
+Time: 0 - DIM_INV: 0
+
+Time: 0 - SRC_PTR_INC_D1: 4
+
+Time: 0 - SRC_PTR_INC_D2: 8
+
+Time: 0 - DST_PTR_INC_D1: 4
+
+Time: 0 - DST_PTR_INC_D2: 4
+
+Time: 0 - MODE: 0
+
+Time: 0 - DIM_CONFIG: 1
+
+Time: 0 - DIM_CONFIG: 1
+
+Time: 0 - RX_TRIGGER_SLOT: 0
+
+Time: 0 - TX_TRIGGER_SLOT: 0
+
+Time: 0 - DATA_TYPE: 0
+
+Time: 0 - SIZE_D2: 16
+
+Time: 0 - SIZE_D1: 16
+
+Time: 0 - DMA_START
+
+Time: 0 - DMA_DONE
+
+Time: 0 - SRC_PTR: 0
+
+Time: 0 - DST_PTR: 0
+
+Time: 0 - SIZE_D1: 0
+
+Time: 0 - SIZE_D2: 0
+
+Time: 0 - SRC_PTR_INC_D1: 0
+
+Time: 0 - SRC_PTR_INC_D2: 0
+
+Time: 0 - DST_PTR_INC_D1: 0
+
+Time: 0 - DST_PTR_INC_D2: 0
+
+Time: 0 - DIM_CONFIG: 0
+
+Time: 0 - DIM_CONFIG: 0
+
+Time: 0 - DIM_INV: 0
+
+Time: 0 - RX_TRIGGER_SLOT: 0
+
+Time: 0 - TX_TRIGGER_SLOT: 0
+
+Time: 0 - DATA_TYPE: 0
+
+Time: 0 - MODE: 0
+
+Time: 0 - PAD_TOP: 0
+
+Time: 0 - PAD_BOTTOM: 0
+
+Time: 0 - PAD_LEFT: 0
+
+Time: 0 - PAD_RIGHT: 0
+
+Time: 0 - SRC_PTR: 0
+
+Time: 0 - DST_PTR: 0
+
+Time: 0 - SIZE_D1: 0
+
+Time: 0 - SIZE_D2: 0
+
+Time: 0 - SRC_PTR_INC_D1: 0
+
+Time: 0 - SRC_PTR_INC_D2: 0
+
+Time: 0 - DST_PTR_INC_D1: 0
+
+Time: 0 - DST_PTR_INC_D2: 0
+
+Time: 0 - DIM_CONFIG: 0
+
+Time: 0 - DIM_CONFIG: 0
+
+Time: 0 - DIM_INV: 0
+
+Time: 0 - RX_TRIGGER_SLOT: 0
+
+Time: 0 - TX_TRIGGER_SLOT: 0
+
+Time: 0 - DATA_TYPE: 0
+
+Time: 0 - MODE: 0
+
+Time: 0 - PAD_TOP: 0
+
+Time: 0 - PAD_BOTTOM: 0
+
+Time: 0 - PAD_LEFT: 0
+
+Time: 0 - PAD_RIGHT: 0
+
+Time: 0 - SRC_PTR: 0
+
+Time: 0 - DST_PTR: 0
+
+Time: 0 - SIZE_D1: 0
+
+Time: 0 - SIZE_D2: 0
+
+Time: 0 - SRC_PTR_INC_D1: 0
+
+Time: 0 - SRC_PTR_INC_D2: 0
+
+Time: 0 - DST_PTR_INC_D1: 0
+
+Time: 0 - DST_PTR_INC_D2: 0
+
+Time: 0 - DIM_CONFIG: 0
+
+Time: 0 - DIM_CONFIG: 0
+
+Time: 0 - DIM_INV: 0
+
+Time: 0 - RX_TRIGGER_SLOT: 0
+
+Time: 0 - TX_TRIGGER_SLOT: 0
+
+Time: 0 - DATA_TYPE: 0
+
+Time: 0 - MODE: 0
+
+Time: 0 - PAD_TOP: 0
+
+Time: 0 - PAD_BOTTOM: 0
+
+Time: 0 - PAD_LEFT: 0
+
+Time: 0 - PAD_RIGHT: 0
+
+Time: 0 - SRC_PTR: 0
+
+Time: 0 - DST_PTR: 0
+
+Time: 0 - SIZE_D1: 0
+
+Time: 0 - SIZE_D2: 0
+
+Time: 0 - SRC_PTR_INC_D1: 0
+
+Time: 0 - SRC_PTR_INC_D2: 0
+
+Time: 0 - DST_PTR_INC_D1: 0
+
+Time: 0 - DST_PTR_INC_D2: 0
+
+Time: 0 - DIM_CONFIG: 0
+
+Time: 0 - DIM_CONFIG: 0
+
+Time: 0 - DIM_INV: 0
+
+Time: 0 - RX_TRIGGER_SLOT: 0
+
+Time: 0 - TX_TRIGGER_SLOT: 0
+
+Time: 0 - DATA_TYPE: 0
+
+Time: 0 - MODE: 0
+
+Time: 0 - PAD_TOP: 0
+
+Time: 0 - PAD_BOTTOM: 0
+
+Time: 0 - PAD_LEFT: 0
+
+Time: 0 - PAD_RIGHT: 0
+
 Time: 0 - DIM_CONFIG: 1
 
 Time: 0 - DIM_CONFIG: 1
@@ -152,29 +472,29 @@ Time: 0 - DIM_CONFIG: 1
 
 Time: 0 - DATA_TYPE: 0
 
-Time: 0 - PAD_TOP: 8
+Time: 0 - PAD_TOP: 0
 
-Time: 0 - PAD_BOTTOM: 4
+Time: 0 - PAD_BOTTOM: 0
 
-Time: 0 - PAD_LEFT: 8
+Time: 0 - PAD_LEFT: 0
 
-Time: 0 - PAD_RIGHT: 4
+Time: 0 - PAD_RIGHT: 0
 
-Time: 0 - SRC_PTR: 68036
+Time: 0 - SRC_PTR: 52068
 
-Time: 0 - DST_PTR: 71232
+Time: 0 - DST_PTR: 52964
 
 Time: 0 - SRC_PTR_INC_D1: 4
 
-Time: 0 - SRC_PTR_INC_D2: 4
+Time: 0 - SRC_PTR_INC_D2: 8
 
 Time: 0 - DST_PTR_INC_D1: 4
 
 Time: 0 - DST_PTR_INC_D2: 4
 
-Time: 0 - SIZE_D2: 40
+Time: 0 - SIZE_D2: 16
 
-Time: 0 - SIZE_D1: 40
+Time: 0 - SIZE_D1: 16
 
 Time: 0 - DMA_START
 
@@ -184,693 +504,95 @@ Time: 0 - DIM_CONFIG: 1
 
 Time: 0 - DATA_TYPE: 0
 
-Time: 0 - PAD_TOP: 8
+Time: 0 - PAD_TOP: 0
 
-Time: 0 - PAD_BOTTOM: 4
+Time: 0 - PAD_BOTTOM: 0
 
-Time: 0 - PAD_LEFT: 8
+Time: 0 - PAD_LEFT: 0
 
-Time: 0 - PAD_RIGHT: 4
+Time: 0 - PAD_RIGHT: 0
 
-Time: 0 - SRC_PTR: 69236
+Time: 0 - SRC_PTR: 52072
 
-Time: 0 - DST_PTR: 71908
+Time: 0 - DST_PTR: 53028
 
 Time: 0 - SRC_PTR_INC_D1: 4
 
-Time: 0 - SRC_PTR_INC_D2: 4
+Time: 0 - SRC_PTR_INC_D2: 8
+
+Time: 0 - DST_PTR_INC_D1: 4
+
+Time: 0 - DMA_DONE
+
+Time: 0 - DST_PTR_INC_D2: 4
+
+Time: 0 - SIZE_D2: 16
+
+Time: 0 - SIZE_D1: 16
+
+Time: 0 - DMA_START
+
+Time: 0 - PAD_TOP: 0
+
+Time: 0 - PAD_BOTTOM: 0
+
+Time: 0 - PAD_LEFT: 0
+
+Time: 0 - PAD_RIGHT: 0
+
+Time: 0 - SRC_PTR: 52088
+
+Time: 0 - DST_PTR: 53092
+
+Time: 0 - SRC_PTR_INC_D1: 4
+
+Time: 0 - SRC_PTR_INC_D2: 8
 
 Time: 0 - DST_PTR_INC_D1: 4
 
 Time: 0 - DST_PTR_INC_D2: 4
 
-Time: 0 - SIZE_D2: 40
+Time: 0 - SIZE_D2: 16
 
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
+Time: 0 - SIZE_D1: 16
 
 Time: 0 - DMA_DONE
 
-Time: 0 - PAD_TOP: 8
+Time: 0 - DMA_START
 
-Time: 0 - PAD_TOP: 8
+Time: 0 - DIM_CONFIG: 1
 
-Time: 0 - PAD_BOTTOM: 4
+Time: 0 - DIM_CONFIG: 1
 
-Time: 0 - PAD_LEFT: 4
+Time: 0 - DATA_TYPE: 0
 
-Time: 0 - PAD_RIGHT: 8
+Time: 0 - PAD_TOP: 0
 
-Time: 0 - SRC_PTR: 68036
+Time: 0 - PAD_BOTTOM: 0
 
-Time: 0 - DST_PTR: 72584
+Time: 0 - PAD_LEFT: 0
+
+Time: 0 - PAD_RIGHT: 0
+
+Time: 0 - SRC_PTR: 52092
+
+Time: 0 - DST_PTR: 53156
 
 Time: 0 - SRC_PTR_INC_D1: 4
 
-Time: 0 - SRC_PTR_INC_D2: 4
+Time: 0 - SRC_PTR_INC_D2: 8
 
 Time: 0 - DST_PTR_INC_D1: 4
 
 Time: 0 - DST_PTR_INC_D2: 4
 
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
 Time: 0 - DMA_DONE
 
-Time: 0 - PAD_TOP: 8
+Time: 0 - SIZE_D2: 16
 
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_BOTTOM: 4
-
-Time: 0 - PAD_LEFT: 4
-
-Time: 0 - PAD_RIGHT: 8
-
-Time: 0 - SRC_PTR: 69236
-
-Time: 0 - DST_PTR: 73260
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
+Time: 0 - SIZE_D1: 16
 
 Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_BOTTOM: 8
-
-Time: 0 - PAD_LEFT: 8
-
-Time: 0 - PAD_RIGHT: 4
-
-Time: 0 - SRC_PTR: 68036
-
-Time: 0 - DST_PTR: 73936
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_BOTTOM: 8
-
-Time: 0 - PAD_LEFT: 8
-
-Time: 0 - PAD_RIGHT: 4
-
-Time: 0 - SRC_PTR: 69236
-
-Time: 0 - DST_PTR: 74612
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_BOTTOM: 8
-
-Time: 0 - PAD_LEFT: 4
-
-Time: 0 - PAD_RIGHT: 8
-
-Time: 0 - SRC_PTR: 68036
-
-Time: 0 - DST_PTR: 75288
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_BOTTOM: 8
-
-Time: 0 - PAD_LEFT: 4
-
-Time: 0 - PAD_RIGHT: 8
-
-Time: 0 - SRC_PTR: 69236
-
-Time: 0 - DST_PTR: 75964
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_BOTTOM: 4
-
-Time: 0 - PAD_LEFT: 8
-
-Time: 0 - PAD_RIGHT: 4
-
-Time: 0 - SRC_PTR: 68436
-
-Time: 0 - DST_PTR: 76640
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_DONE
-
-Time: 0 - DMA_START
-
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_BOTTOM: 4
-
-Time: 0 - PAD_LEFT: 8
-
-Time: 0 - PAD_RIGHT: 4
-
-Time: 0 - SRC_PTR: 69636
-
-Time: 0 - DST_PTR: 77316
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_BOTTOM: 4
-
-Time: 0 - PAD_LEFT: 4
-
-Time: 0 - PAD_RIGHT: 8
-
-Time: 0 - SRC_PTR: 68436
-
-Time: 0 - DST_PTR: 77992
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_BOTTOM: 4
-
-Time: 0 - PAD_LEFT: 4
-
-Time: 0 - PAD_RIGHT: 8
-
-Time: 0 - SRC_PTR: 69636
-
-Time: 0 - DST_PTR: 78668
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_BOTTOM: 8
-
-Time: 0 - PAD_LEFT: 8
-
-Time: 0 - PAD_RIGHT: 4
-
-Time: 0 - SRC_PTR: 68436
-
-Time: 0 - DST_PTR: 79344
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_BOTTOM: 8
-
-Time: 0 - PAD_LEFT: 8
-
-Time: 0 - PAD_RIGHT: 4
-
-Time: 0 - SRC_PTR: 69636
-
-Time: 0 - DST_PTR: 80020
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_BOTTOM: 8
-
-Time: 0 - PAD_LEFT: 4
-
-Time: 0 - PAD_RIGHT: 8
-
-Time: 0 - SRC_PTR: 68436
-
-Time: 0 - DST_PTR: 80696
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_BOTTOM: 8
-
-Time: 0 - PAD_LEFT: 4
-
-Time: 0 - PAD_RIGHT: 8
-
-Time: 0 - SRC_PTR: 69636
-
-Time: 0 - DST_PTR: 81372
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_BOTTOM: 4
-
-Time: 0 - PAD_LEFT: 8
-
-Time: 0 - PAD_RIGHT: 4
-
-Time: 0 - SRC_PTR: 68836
-
-Time: 0 - DST_PTR: 82048
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_BOTTOM: 4
-
-Time: 0 - PAD_LEFT: 8
-
-Time: 0 - PAD_RIGHT: 4
-
-Time: 0 - SRC_PTR: 70036
-
-Time: 0 - DST_PTR: 82724
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_BOTTOM: 4
-
-Time: 0 - PAD_LEFT: 4
-
-Time: 0 - PAD_RIGHT: 8
-
-Time: 0 - SRC_PTR: 68836
-
-Time: 0 - DST_PTR: 83400
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_TOP: 8
-
-Time: 0 - PAD_BOTTOM: 4
-
-Time: 0 - PAD_LEFT: 4
-
-Time: 0 - PAD_RIGHT: 8
-
-Time: 0 - SRC_PTR: 70036
-
-Time: 0 - DST_PTR: 84076
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_BOTTOM: 8
-
-Time: 0 - PAD_LEFT: 8
-
-Time: 0 - PAD_RIGHT: 4
-
-Time: 0 - SRC_PTR: 68836
-
-Time: 0 - DST_PTR: 84752
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_BOTTOM: 8
-
-Time: 0 - PAD_LEFT: 8
-
-Time: 0 - PAD_RIGHT: 4
-
-Time: 0 - SRC_PTR: 70036
-
-Time: 0 - DST_PTR: 85428
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_BOTTOM: 8
-
-Time: 0 - PAD_LEFT: 4
-
-Time: 0 - PAD_RIGHT: 8
-
-Time: 0 - SRC_PTR: 68836
-
-Time: 0 - DST_PTR: 86104
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_TOP: 4
-
-Time: 0 - PAD_BOTTOM: 8
-
-Time: 0 - PAD_LEFT: 4
-
-Time: 0 - PAD_RIGHT: 8
-
-Time: 0 - SRC_PTR: 70036
-
-Time: 0 - DST_PTR: 86780
-
-Time: 0 - SRC_PTR_INC_D1: 4
-
-Time: 0 - SRC_PTR_INC_D2: 4
-
-Time: 0 - DST_PTR_INC_D1: 4
-
-Time: 0 - DST_PTR_INC_D2: 4
-
-Time: 0 - SIZE_D2: 40
-
-Time: 0 - SIZE_D1: 40
-
-Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
 
 Time: 0 - DMA_DONE
 

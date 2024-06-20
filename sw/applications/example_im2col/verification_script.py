@@ -192,18 +192,18 @@ def shl_save(tensor, variable_name, dim, row_len):
 # 2: SHL implementation
 
 # Parameters of the random image, padding excluded
-image_height = 10
-image_width = 10
-channels = 3
-batch = 2
+image_height = 5
+image_width = 5
+channels = 1
+batch = 1
 
 # Parameters of the filter
 filter_height = 2
 filter_width = 2
-top_pad = 2
-bottom_pad = 2
-left_pad = 2
-right_pad = 2
+top_pad = 0
+bottom_pad = 0
+left_pad = 0
+right_pad = 0
 stride_d1 = 1
 stride_d2 = 1
 

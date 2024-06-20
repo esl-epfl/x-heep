@@ -13,7 +13,8 @@
 module im2col_spc
   import obi_pkg::*;
   import reg_pkg::*;
-#() (
+#(
+) (
     input logic clk_i,
     input logic rst_ni,
 

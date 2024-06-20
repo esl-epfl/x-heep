@@ -24,7 +24,7 @@ unsigned int cycles;
 int main()
 {
     /* Testing NCHW format */
-    for (int i=3; i<4; i++)
+    for (int i=0; i<4; i++)
     {
         if (i != 1)
         {
