@@ -495,9 +495,7 @@ module testharness #(
           .acc_write_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER3_IDX])
       );
 
-      im2col_spc #(
-          .NUM_CH_SPC(2)
-      ) im2col_spc_i (
+      im2col_spc im2col_spc_i (
           .clk_i,
           .rst_ni,
 

@@ -233,6 +233,15 @@
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for operation done interrupt" }
       ]
+    },
+    { name:    "NUM_SPC_CH",
+      desc:    '''Number of DMA channels that the SPC can access''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:        1,
+      fields: [
+        { bits: "15:0", name: "NUM", desc: "Number of DMA channels" }
+      ]
     }
    ]
 }

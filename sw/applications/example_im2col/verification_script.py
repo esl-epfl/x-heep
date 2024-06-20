@@ -195,7 +195,7 @@ def shl_save(tensor, variable_name, dim, row_len):
 image_height = 10
 image_width = 10
 channels = 3
-batch = 3
+batch = 2
 
 # Parameters of the filter
 filter_height = 2

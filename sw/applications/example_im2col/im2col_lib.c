@@ -593,6 +593,13 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         
         dma_init(NULL);
 
+        /* Write the number of DMA channels the SPC has access to */
+        write_register( SPC_CH_NUM,
+                        IM2COL_SPC_NUM_SPC_CH_REG_OFFSET,
+                        IM2COL_SPC_NUM_SPC_CH_NUM_MASK,
+                        IM2COL_SPC_NUM_SPC_CH_NUM_OFFSET,
+                        IM2COL_SPC_BASE_ADDR );
+
         /* Write the source */
         write_register( input_image_ptr,
                         IM2COL_SPC_SRC_PTR_REG_OFFSET,
