@@ -14,7 +14,9 @@
 #include <stddef.h> // for size_t
 
 #include "dma.h"
-
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
 /********************************/
 /* ---- EXPORTED VARIABLES ---- */
 /********************************/
@@ -78,5 +80,8 @@ void dma_copy_16_32(uint32_t *dst, uint16_t *src, uint32_t size);
  * 
  */
 void dma_sdk_intr_handler_trans_done();
-
+#ifdef __cplusplus
+}
+#endif  // __cplusplus
 #endif /* DMA_UTIL_H_ */
+

@@ -2,6 +2,11 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
+
+
 #include "mmio.h"
 
 #include <stdalign.h>
@@ -158,3 +163,8 @@ extern void mmio_region_nonatomic_set_bit32(mmio_region_t base,
 extern void mmio_region_write_only_set_bit32(mmio_region_t base,
                                              ptrdiff_t offset,
                                              uint32_t bit_index);
+
+
+#ifdef __cplusplus
+}
+#endif  // __cplusplus

@@ -31,6 +31,11 @@
 /**                                                                        **/
 /****************************************************************************/
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif // __cplusplus
+
 #include "dma.h"
 
 /* To manage addresses. */
@@ -46,11 +51,10 @@
 /*                        DEFINITIONS AND MACROS                            */
 /**                                                                        **/
 /****************************************************************************/
-
  /**
- * Static DMA ASSERT.
- */
-#define DMA_STATIC_ASSERT(expr, msg)// _Static_assert(!expr, msg);
+  * Static DMA ASSERT.
+  */
+#define DMA_STATIC_ASSERT(expr, msg) // _Static_assert(!expr, msg);
 
 /**
  * Returns the mask to enable/disable DMA interrupts.
@@ -75,7 +79,7 @@
 /**
  * Selection offset to be used as index for when a register is written from
  * the beginning.
-*/
+ */
 #define DMA_SELECTION_OFFSET_START 0
 
 /**
@@ -88,13 +92,11 @@
  */
 #define DMA_DEFAULT_TRANS_TO_WIND_SIZE_RATIO_THRESHOLD 4
 
-
 /****************************************************************************/
 /**                                                                        **/
 /*                        TYPEDEFS AND STRUCTURES                           */
 /**                                                                        **/
 /****************************************************************************/
-
 /**
  * Interrupts must be enabled in the INTERRUPT register of the DMA.
  * Only one at a time. In case more than one is interrupt is to be triggered,
@@ -103,8 +105,8 @@
  */
 typedef enum
 {
-    INTR_EN_NONE        = 0x0, /*!< No interrupts should be triggered. */
-    INTR_EN_TRANS_DONE  = 0x1, /*!< The TRANS_DONE interrupt is a fast
+    INTR_EN_NONE = 0x0,        /*!< No interrupts should be triggered. */
+    INTR_EN_TRANS_DONE = 0x1,  /*!< The TRANS_DONE interrupt is a fast
     interrupt that is triggered once the whole transaction has finished. */
     INTR_EN_WINDOW_DONE = 0x2, /*!< The WINDOW_DONE interrupt is a PLIC
     interrupt that is triggered every given number of bytes (set in the
@@ -208,7 +210,6 @@ static inline void write_register(  uint32_t p_val,
                                     uint32_t p_mask,
                                     uint8_t  p_sel );
 
-
 /**
  * @brief Analyzes a target to determine the size of its D1 increment (in bytes).
  * @param p_tgt A pointer to the target to analyze.
@@ -288,7 +289,7 @@ void fic_irq_dma(void)
      */
     dma_sdk_intr_handler_trans_done();
 }
-
+    
 void dma_init( dma *peri )
 {
     /*
@@ -324,27 +325,27 @@ void dma_init( dma *peri )
     dma_cb.peri->DIM_INV        = 0;
 }
 
-dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
-                                                dma_en_realign_t   p_enRealign,
-                                                dma_perf_checks_t  p_check )
+dma_config_flags_t dma_validate_transaction(dma_trans_t *p_trans,
+                                            dma_en_realign_t p_enRealign,
+                                            dma_perf_checks_t p_check)
 {
     /*
-    * SANITY CHECKS
-    */
+     * SANITY CHECKS
+     */
 
     /* Data type is not necessary. If something is provided anyways it should
      be valid.*/
-    DMA_STATIC_ASSERT( p_trans->type   < DMA_DATA_TYPE__size,
-                       "Data type not valid");
+    DMA_STATIC_ASSERT(p_trans->type < DMA_DATA_TYPE__size,
+                        "Data type not valid");
     /* Transaction mode should be a valid mode. */
-    DMA_STATIC_ASSERT( p_trans->mode   < DMA_TRANS_MODE__size,
-                       "Transaction mode not valid");
+    DMA_STATIC_ASSERT(p_trans->mode < DMA_TRANS_MODE__size,
+                        "Transaction mode not valid");
     /* The end event should be a valid end event. */
-    DMA_STATIC_ASSERT( p_trans->end    < DMA_TRANS_END__size,
-                       "End event not valid");
+    DMA_STATIC_ASSERT(p_trans->end < DMA_TRANS_END__size,
+                        "End event not valid");
     /* The alignment permission should be a valid permission. */
-    DMA_STATIC_ASSERT( p_enRealign     < DMA_ENABLE_REALIGN__size,
-                       "Alignment not valid");
+    DMA_STATIC_ASSERT(p_enRealign < DMA_ENABLE_REALIGN__size,
+                        "Alignment not valid");
     /* The checks request should be a valid request. */
     DMA_STATIC_ASSERT( p_check         < DMA_PERFORM_CHECKS__size,
                        "Check request not valid");
@@ -366,19 +367,19 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
      * A successful target validation has to be done before loading it to the
      * DMA.
      */
-    uint8_t errorSrc = validate_target( p_trans->src );
-    uint8_t errorDst = validate_target( p_trans->dst );
+    uint8_t errorSrc = validate_target(p_trans->src);
+    uint8_t errorDst = validate_target(p_trans->dst);
 
     /*
      * If there are any errors or warnings in the valdiation of the targets,
      * they are added to the transaction flags, adding the source/destination
      * identifying flags as well.
      */
-    p_trans->flags |= errorSrc ? (errorSrc | DMA_CONFIG_SRC ) : DMA_CONFIG_OK;
-    p_trans->flags |= errorDst ? (errorDst | DMA_CONFIG_SRC ) : DMA_CONFIG_OK;
+    p_trans->flags |= errorSrc ? (errorSrc | DMA_CONFIG_SRC) : DMA_CONFIG_OK;
+    p_trans->flags |= errorDst ? (errorDst | DMA_CONFIG_SRC) : DMA_CONFIG_OK;
 
     /* If a critical error was detected, no further action is performed. */
-    if( p_trans->flags & DMA_CONFIG_CRITICAL_ERROR )
+    if (p_trans->flags & DMA_CONFIG_CRITICAL_ERROR)
     {
         return p_trans->flags;
     }
@@ -431,10 +432,9 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
      * inconsistency is probably a result of an error (likely wrong target
      * selection).
      */
-    if( p_check )
+    if (p_check)
     {
-        if(     p_trans->src->trig != DMA_TRIG_MEMORY
-            &&  p_trans->dst->trig != DMA_TRIG_MEMORY )
+        if (p_trans->src->trig != DMA_TRIG_MEMORY && p_trans->dst->trig != DMA_TRIG_MEMORY)
         {
             p_trans->flags |= DMA_CONFIG_INCOMPATIBLE;
             p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
@@ -454,11 +454,9 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
      * This issue is less likely to happen with a properly set Memory-to-peripheral
      * configuration, so circular mode is allowed.
      */
-    if( p_check )
+    if( p_check  )
     {
-        if(    p_trans->src->trig == DMA_TRIG_MEMORY
-            && p_trans->dst->trig == DMA_TRIG_MEMORY
-            && p_trans->mode      == DMA_TRANS_MODE_CIRCULAR )
+        if (p_trans->src->trig == DMA_TRIG_MEMORY && p_trans->dst->trig == DMA_TRIG_MEMORY && p_trans->mode == DMA_TRANS_MODE_CIRCULAR)
         {
             p_trans->flags |= DMA_CONFIG_INCOMPATIBLE;
             p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
@@ -503,26 +501,26 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
         uint8_t misalignment = 0;
         uint8_t dstMisalignment = 0;
 
-        if( p_trans->src->trig == DMA_TRIG_MEMORY )
+        if (p_trans->src->trig == DMA_TRIG_MEMORY)
         {
             misalignment = get_misalignment_b( p_trans->src->ptr, p_trans->src_type );
         }
 
-        if( p_trans->dst->trig == DMA_TRIG_MEMORY )
+        if (p_trans->dst->trig == DMA_TRIG_MEMORY)
         {
             dstMisalignment = get_misalignment_b( p_trans->dst->ptr, p_trans->dst_type );
         }
 
-        p_trans->flags  |= ( misalignment ? DMA_CONFIG_SRC : DMA_CONFIG_OK );
-        p_trans->flags  |= ( dstMisalignment ? DMA_CONFIG_DST : DMA_CONFIG_OK );
+        p_trans->flags |= (misalignment ? DMA_CONFIG_SRC : DMA_CONFIG_OK);
+        p_trans->flags |= (dstMisalignment ? DMA_CONFIG_DST : DMA_CONFIG_OK);
 
         /* Only the largest misalignment is preserved.*/
-        if( misalignment < dstMisalignment )
+        if (misalignment < dstMisalignment)
         {
             misalignment = dstMisalignment;
         }
 
-        if( misalignment != 0 )
+        if (misalignment != 0)
         {
             /*
              * Misalignment flags will only be stored in the transaction, as
@@ -537,7 +535,7 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
              * No further operations are done to prevent corrupting information
              * that could be useful for debugging purposes.
              */
-            if( !p_enRealign)
+            if (!p_enRealign)
             {
                 return p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
             }
@@ -596,8 +594,9 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
              * If realignment is allowed and there are no discontinuities,
              * a more granular data type is used according to the detected
              * misalignment in order to overcome it.
-             */
-            p_trans->dst_type += misalignment;
+             */ 
+            p_trans->dst_type = p_trans->dst_type + misalignment;
+
             /*
              * Source and destination increment should now be of the size
              * of the data.
@@ -651,7 +650,7 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
          * No further operations are done to prevent corrupting information
          * that could be useful for debugging purposes.
          */
-        uint8_t isEnv = (p_trans->dst->env != NULL);
+        uint8_t isEnv = ( p_trans->dst->env != NULL );
 
         if(isEnv) {
             uint8_t isOutb = is_region_outbound_1D(
@@ -683,7 +682,7 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
          * this would not cause any error, the transaction is rejected because
          * it is likely a mistake.
          */
-        if( p_trans->win_du > p_trans->size_b )
+        if ( p_trans->win_du > p_trans->size_b )
         {
             p_trans->flags |= DMA_CONFIG_WINDOW_SIZE;
             p_trans->flags |= DMA_CONFIG_CRITICAL_ERROR;
@@ -702,13 +701,10 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
          */
         uint32_t threshold = dma_window_ratio_warning_threshold();
         uint32_t ratio = p_trans->size_b / p_trans->win_du;
-        if(     p_trans->win_du
-            &&  threshold
-            &&  ( ratio > threshold) )
+        if (p_trans->win_du && threshold && (ratio > threshold))
         {
             p_trans->flags |= DMA_CONFIG_WINDOW_SIZE;
         }
-
     }
 
     return p_trans->flags;
@@ -725,7 +721,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * A successful transaction creation has to be done before loading it to
      * the DMA.
      */
-    if( p_trans->flags & DMA_CONFIG_CRITICAL_ERROR )
+    if (p_trans->flags & DMA_CONFIG_CRITICAL_ERROR)
     {
         dma_cb.trans = NULL;
         return DMA_CONFIG_CRITICAL_ERROR;
@@ -742,7 +738,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * until it has ended.
      * Transactions can still be validated in the meantime.
      */
-    if( !dma_is_ready() )
+    if (!dma_is_ready())
     {
         return DMA_CONFIG_TRANS_OVERRIDE;
     }
@@ -760,9 +756,9 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      * fast DMA interrupt.
      */
     dma_cb.peri->INTERRUPT_EN = INTR_EN_NONE;
-    CSR_CLEAR_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK );
+    CSR_CLEAR_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK);
 
-    if( dma_cb.trans->end != DMA_TRANS_END_POLLING )
+    if (dma_cb.trans->end != DMA_TRANS_END_POLLING)
     {
         /* Enable global interrupt. */
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8 );
@@ -777,7 +773,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
                     );
 
         /* Only if a window is used should the window interrupt be set. */
-        if( p_trans->win_du > 0 )
+        if (p_trans->win_du > 0)
         {
             write_register(  
                         0x1,
@@ -832,7 +828,7 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
      */
     dma_cb.peri->SRC_PTR = (uint32_t)dma_cb.trans->src->ptr;
 
-    if(dma_cb.trans->mode != DMA_TRANS_MODE_ADDRESS)
+    if (dma_cb.trans->mode != DMA_TRANS_MODE_ADDRESS)
     {
         /*
         Write to the destination pointers only if we are not in address mode,
@@ -907,9 +903,9 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
     /* The window size is set to the transaction size if it was set to 0 in
     order to disable the functionality (it will never be triggered). */
 
-    dma_cb.peri->WINDOW_SIZE =   dma_cb.trans->win_du
-                            ? dma_cb.trans->win_du
-                            : dma_cb.trans->size_b;
+    dma_cb.peri->WINDOW_SIZE = dma_cb.trans->win_du
+                                    ? dma_cb.trans->win_du
+                                    : dma_cb.trans->size_b;
 
     /* 
      * SET THE DIMENSIONALITY
@@ -931,15 +927,15 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans )
     /*
      * SET TRIGGER SLOTS AND DATA TYPE
      */
-    write_register(  dma_cb.trans->src->trig,
+    write_register(dma_cb.trans->src->trig,
                     DMA_SLOT_REG_OFFSET,
                     DMA_SLOT_RX_TRIGGER_SLOT_MASK,
-                    DMA_SLOT_RX_TRIGGER_SLOT_OFFSET );
+                    DMA_SLOT_RX_TRIGGER_SLOT_OFFSET);
 
-    write_register(  dma_cb.trans->dst->trig,
+    write_register(dma_cb.trans->dst->trig,
                     DMA_SLOT_REG_OFFSET,
                     DMA_SLOT_TX_TRIGGER_SLOT_MASK,
-                    DMA_SLOT_TX_TRIGGER_SLOT_OFFSET );
+                    DMA_SLOT_TX_TRIGGER_SLOT_OFFSET);
 
     write_register(  dma_cb.trans->dst_type,
                     DMA_DST_DATA_TYPE_REG_OFFSET,
@@ -961,8 +957,7 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans)
      * If the loaded trans was NULL'd, then this the transaction is never
      * launched.
      */
-    if(     ( p_trans == NULL )
-        ||  ( dma_cb.trans != p_trans ) ) // @ToDo: Check per-element.
+    if ((p_trans == NULL) || (dma_cb.trans != p_trans)) // @ToDo: Check per-element.
     {
         return DMA_CONFIG_CRITICAL_ERROR;
     }
@@ -978,7 +973,7 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans)
      * until it has ended.
      * Transactions can still be validated in the meantime.
      */
-    if( !dma_is_ready() )
+    if (!dma_is_ready())
     {
         return DMA_CONFIG_TRANS_OVERRIDE;
     }
@@ -1016,13 +1011,13 @@ dma_config_flags_t dma_launch( dma_trans_t *p_trans)
             wait_for_interrupt();
     }
 
-    return DMA_CONFIG_OK;
+        return DMA_CONFIG_OK;
 }
 
 __attribute__((optimize("O0"))) uint32_t dma_is_ready(void)
 {
     /* The transaction READY bit is read from the status register*/
-    uint32_t ret = ( dma_cb.peri->STATUS & (1<<DMA_STATUS_READY_BIT) );
+    uint32_t ret = (dma_cb.peri->STATUS & (1 << DMA_STATUS_READY_BIT));
     return ret;
 }
 /* @ToDo: Reconsider this decision.
@@ -1063,6 +1058,7 @@ __attribute__((weak, optimize("O0"))) void dma_sdk_intr_handler_trans_done()
      */
 }
 
+
 __attribute__((weak, optimize("O0"))) void dma_intr_handler_window_done()
 {
     /*
@@ -1092,7 +1088,7 @@ __attribute__((weak, optimize("O0"))) uint8_t dma_window_ratio_warning_threshold
 /**                                                                        **/
 /****************************************************************************/
 
-dma_config_flags_t validate_target( dma_target_t *p_tgt )
+dma_config_flags_t validate_target(dma_target_t *p_tgt)
 {
     /* Flags variable to pass encountered errors. */
     dma_config_flags_t flags = DMA_CONFIG_OK;
@@ -1124,7 +1120,7 @@ dma_config_flags_t validate_target( dma_target_t *p_tgt )
      * boundaries.
      * This check is only performed if an environment was set.
      */
-    if( p_tgt->env != NULL )
+    if ( p_tgt->env != NULL )
     {
         /* Check if the environment was properly formed.*/
         flags |= validate_environment( p_tgt->env );
@@ -1133,7 +1129,7 @@ dma_config_flags_t validate_target( dma_target_t *p_tgt )
          * the environment.
          * This is only analyzed if a size was defined.
          */
-        if( p_tgt->size_du != 0 )
+        if (p_tgt->size_du != 0)
         {
             uint8_t isOutb = is_region_outbound_1D(  p_tgt->ptr,
                                           p_tgt->env->end,
@@ -1164,23 +1160,23 @@ dma_config_flags_t validate_target( dma_target_t *p_tgt )
         /* Check if the target starts before the environment starts. */
         uint8_t beforeEnv = ( p_tgt->ptr < p_tgt->env->start );
         /* Check if the target starts after the environment ends. */
-        uint8_t afterEnv  = ( p_tgt->ptr > p_tgt->env->end );
-        if( beforeEnv || afterEnv )
+        uint8_t afterEnv = ( p_tgt->ptr > p_tgt->env->end );
+        if ( beforeEnv || afterEnv )
         {
             flags |= DMA_CONFIG_OUTBOUNDS;
         }
     }
 
     /*
-    * If there is a trigger, there should not be environments
-    * nor increments (or it is an incompatible peripheral).
-    * Otherwise, an increment is needed (or it is an incompatible
-    * memory region).
-    */
+     * If there is a trigger, there should not be environments
+     * nor increments (or it is an incompatible peripheral).
+     * Otherwise, an increment is needed (or it is an incompatible
+     * memory region).
+     */
 
-    if( p_tgt->trig == DMA_TRIG_MEMORY ){ /* If it is a memory region. */
+    if ( p_tgt->trig == DMA_TRIG_MEMORY ){ /* If it is a memory region. */
         /* It should have an increment. */
-        if( ( p_tgt->inc_du == 0 ) ){
+        if ( ( p_tgt->inc_du == 0 ) ){
             flags |= DMA_CONFIG_INCOMPATIBLE;
         }
     }
@@ -1207,7 +1203,7 @@ dma_config_flags_t validate_environment( dma_env_t *p_env )
     /*
      * SANITY CHECKS
      */
-    if( (uint8_t*)p_env->end < (uint8_t*)p_env->start )
+    if ((uint8_t *)p_env->end < (uint8_t *)p_env->start )
     {
         return DMA_CONFIG_INCOMPATIBLE;
     }
@@ -1340,10 +1336,10 @@ static inline uint8_t is_region_outbound_2D(   uint8_t  *p_start,
 
 /* @ToDo: Consider changing the "mask" parameter for a bitfield definition
 (see dma_regs.h) */
-static inline void write_register( uint32_t  p_val,
-                                  uint32_t  p_offset,
-                                  uint32_t  p_mask,
-                                  uint8_t   p_sel )
+static inline void write_register(  uint32_t p_val,
+                                    uint32_t p_offset,
+                                    uint32_t p_mask,
+                                    uint8_t p_sel )
 {
     /*
      * The index is computed to avoid needing to access the structure
@@ -1354,13 +1350,12 @@ static inline void write_register( uint32_t  p_val,
      * An intermediate variable "value" is used to prevent writing twice into
      * the register.
      */
-    uint32_t value  =  (( uint32_t * ) dma_cb.peri ) [ index ];
-    value           &= ~( p_mask << p_sel );
-    value           |= (p_val & p_mask) << p_sel;
-    (( uint32_t * ) dma_cb.peri ) [ index ] = value;
+    uint32_t value = ( (uint32_t *)dma_cb.peri )[index];
+    value &= ~( p_mask << p_sel );
+    value |= ( p_val & p_mask ) << p_sel;
+    ( (uint32_t *)dma_cb.peri )[index] = value;
 
-// @ToDo: mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_SLOT_REG_OFFSET), (tx_slot_mask << DMA_SLOT_TX_TRIGGER_SLOT_OFFSET) + rx_slot_mask)
-
+    // @ToDo: mmio_region_write32(dma->base_addr, (ptrdiff_t)(DMA_SLOT_REG_OFFSET), (tx_slot_mask << DMA_SLOT_TX_TRIGGER_SLOT_OFFSET) + rx_slot_mask)
 }
 
 
@@ -1392,7 +1387,7 @@ static inline uint32_t get_increment_b_2D( dma_target_t * p_tgt )
 {
     uint32_t inc_b = 0;
     /* If the target uses a trigger, the increment remains 0. */
-    if(  p_tgt->trig  == DMA_TRIG_MEMORY )
+    if ( p_tgt->trig == DMA_TRIG_MEMORY )
     {
         /*
          * If the transaction increment has been overriden (due to
@@ -1401,10 +1396,10 @@ static inline uint32_t get_increment_b_2D( dma_target_t * p_tgt )
         inc_b = dma_cb.trans->inc_b;
 
         /*
-        * Otherwise, the target-specific increment is used transformed into
-        * bytes).
-        */
-        if( inc_b == 0 )
+         * Otherwise, the target-specific increment is used transformed into
+         * bytes).
+         */
+        if ( inc_b == 0 )
         {
             uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( p_tgt->type );
             inc_b = ( p_tgt->inc_d2_du * dataSize_b );
@@ -1412,6 +1407,11 @@ static inline uint32_t get_increment_b_2D( dma_target_t * p_tgt )
     }
     return inc_b;
 }
+
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 /****************************************************************************/
 /**                                                                        **/

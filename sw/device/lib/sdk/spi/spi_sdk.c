@@ -756,12 +756,12 @@ spi_codes_e spi_set_slave(spi_t* spi)
     // Build the HAL configopts to be set based on our slave
     spi_configopts_t config = {
         .clkdiv   = clk_div,
-        .cpha     = bitfield_read(spi->slave.data_mode, BIT_MASK_1, DATA_MODE_CPHA_OFFS),
-        .cpol     = bitfield_read(spi->slave.data_mode, BIT_MASK_1, DATA_MODE_CPOL_OFFS),
         .csnidle  = spi->slave.csn_idle,
-        .csnlead  = spi->slave.csn_lead,
         .csntrail = spi->slave.csn_trail,
-        .fullcyc  = spi->slave.full_cycle
+        .csnlead  = spi->slave.csn_lead,
+        .fullcyc  = spi->slave.full_cycle,
+        .cpha     = bitfield_read(spi->slave.data_mode, BIT_MASK_1, DATA_MODE_CPHA_OFFS),
+        .cpol     = bitfield_read(spi->slave.data_mode, BIT_MASK_1, DATA_MODE_CPOL_OFFS)
     };
     // Set the configopts
     spi_return_flags_e config_error = spi_set_configopts(peripherals[spi->idx].instance, 
@@ -945,10 +945,10 @@ void spi_issue_next_seg(spi_peripheral_t* peri)
     peri->scnt++;
     // Construct our word command to be passed to HAL
     uint32_t cmd_reg = spi_create_command((spi_command_t) {
-        .direction = bitfield_read(seg.mode, DIR_SPD_MASK, DIR_INDEX),
-        .speed     = bitfield_read(seg.mode, DIR_SPD_MASK, SPD_INDEX),
+        .len       = seg.len - 1, // -1 because of SPI Host IP specifications
         .csaat     = peri->txn.seglen == peri->scnt ? false : true,
-        .len       = seg.len - 1 // -1 because of SPI Host IP specifications
+        .speed     = bitfield_read(seg.mode, DIR_SPD_MASK, SPD_INDEX),
+        .direction = bitfield_read(seg.mode, DIR_SPD_MASK, DIR_INDEX),
     });
     // Since all checks were already made we do not need to check the result of function
     spi_set_command(peri->instance, cmd_reg);

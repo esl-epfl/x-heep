@@ -31,7 +31,9 @@
 /*                             MODULES USED                                 */
 /**                                                                        **/
 /****************************************************************************/
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "spi_host.h"
 
 #include "bitfield.h"
@@ -479,7 +481,9 @@ spi_return_flags_e spi_acknowledge_event(spi_host_t* spi) {
                                              SPI_HOST_INTR_STATE_SPI_EVENT_BIT, true);
     return SPI_FLAG_OK;
 }
-
+#ifdef __cplusplus
+}
+#endif
 /****************************************************************************/
 /**                                                                        **/
 /*                                 EOF                                      */

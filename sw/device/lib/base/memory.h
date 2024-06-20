@@ -107,7 +107,7 @@ inline void write_32(uint32_t value, void *ptr) {
  * @param len the number of bytes to copy.
  * @return the value of `dest`.
  */
-void *memcpy(void *restrict dest, const void *restrict src, size_t len);
+void *memcpy(void *__restrict dest, const void *__restrict src, size_t len);
 
 /**
  * Set a region of memory to a particular byte value.

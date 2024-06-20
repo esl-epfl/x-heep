@@ -2,6 +2,10 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
+
 #include "memory.h"
 
 extern uint32_t read_32(const void *);
@@ -18,7 +22,7 @@ extern void write_32(uint32_t, void *);
 // built for host-side software.
 
 #if !defined(HOST_BUILD)
-void *memcpy(void *restrict dest, const void *restrict src, size_t len) {
+void *memcpy(void *__restrict dest, const void *__restrict src, size_t len) {
   uint8_t *dest8 = (uint8_t *)dest;
   uint8_t *src8 = (uint8_t *)src;
   for (size_t i = 0; i < len; ++i) {
@@ -84,3 +88,9 @@ void *memrchr(const void *ptr, int value, size_t len) {
   }
   return NULL;
 }
+
+
+
+#ifdef __cplusplus
+}
+#endif  // __cplusplus

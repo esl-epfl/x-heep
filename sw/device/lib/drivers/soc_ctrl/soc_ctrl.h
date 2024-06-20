@@ -21,7 +21,7 @@ extern "C" {
  * Initialization parameters for SOC CTRL.
  *
  */
-typedef struct soc_ctrl {
+typedef struct /*soc_ctrl*/ {
   /**
    * The base address for the soc_ctrl hardware registers.
    */
