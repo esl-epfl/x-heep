@@ -231,7 +231,6 @@ uint8_t dma_window_ratio_warning_threshold()
 int main(int argc, char *argv[])
 {
 
-    // asm volatile ("ebreak");
 
     static uint32_t test_data_4B[TEST_DATA_SIZE] __attribute__((aligned(4))) = {
         0x76543210, 0xfedcba98, 0x579a6f90, 0x657d5bee, 0x758ee41f, 0x01234567, 0xfedbca98, 0x89abcdef, 0x679852fe, 0xff8252bb, 0x763b4521, 0x6875adaa, 0x09ac65bb, 0x666ba334, 0x55446677, 0x65ffba98};
@@ -337,12 +336,12 @@ int main(int argc, char *argv[])
 #pragma message("this application should not be ran in a system integrating x-heep as in the external \
     slave can be plugged something else than a slow memory as in our testbench")
 
-    uint32_t *ext_test_addr_4B_PTR = EXT_SLAVE_START_ADDRESS;
+    uint32_t *ext_test_addr_4B_PTR = (uint32_t *)EXT_SLAVE_START_ADDRESS;
     uint32_t *ext_copied_data_4B;
 
     ext_copied_data_4B = &ext_test_addr_4B_PTR[TEST_DATA_SIZE + 1];
 
-    tgt_addr.ptr = ext_test_addr_4B_PTR;
+    tgt_addr.ptr = (uint8_t *) ext_test_addr_4B_PTR;
     trans.src_addr = &tgt_addr;
 
     PRINTF("\n\n\r=====================================\n\n\r");
@@ -352,7 +351,7 @@ int main(int argc, char *argv[])
     // Prepare the data
     for (int i = 0; i < TEST_DATA_SIZE; i++)
     {
-        ext_test_addr_4B_PTR[i] = &ext_copied_data_4B[i * 2];
+        ext_test_addr_4B_PTR[i] = (uint32_t) &ext_copied_data_4B[i * 2];
     }
 
     trans.mode = DMA_TRANS_MODE_ADDRESS;
