@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import tensorflow as tf
 
 #######################################################################################################
-def torch_im2col_ncwh(input_tensor, kernel_size, stride_d1=1, stride_d2=1, top_pad=0, bottom_pad=0, left_pad=0, right_pad=0, dilation=1):
+def torch_im2col_ncwh(input_tensor, kernel_size, stride_d1=1, stride_d2=1, top_pad=1, bottom_pad=1, left_pad=1, right_pad=1, dilation=1):
     """
     Applies the im2col operation to an input tensor using PyTorch's unfold method, supporting both NCHW and NHWC formats.
 
@@ -63,7 +63,7 @@ def tf_im2col_nhwc(input_tensor, kernel_size, stride, padding, dilation=1):
     patches_reshaped = tf.reshape(patches, [-1, patch_dim])
     return patches_reshaped
 
-def shl_im2col_nhwc(input_tensor, kernel_size, stride, top_pad=0, bottom_pad=0, left_pad=0, right_pad=0):  
+def shl_im2col_nhwc(input_tensor, kernel_size, stride, top_pad=1, bottom_pad=1, left_pad=1, right_pad=1):  
     # Get the dimensions of the input tensor
     batch_size, height, width, channels = input_tensor.shape
     input_tensor = input_tensor.flatten()
@@ -192,18 +192,18 @@ def shl_save(tensor, variable_name, dim, row_len):
 # 2: SHL implementation
 
 # Parameters of the random image, padding excluded
-image_height = 5
-image_width = 5
+image_height = 10
+image_width = 10
 channels = 1
 batch = 1
 
 # Parameters of the filter
 filter_height = 2
 filter_width = 2
-top_pad = 0
-bottom_pad = 0
-left_pad = 0
-right_pad = 0
+top_pad = 1
+bottom_pad = 1
+left_pad = 1
+right_pad = 1
 stride_d1 = 1
 stride_d2 = 1
 

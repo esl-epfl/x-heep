@@ -1,6 +1,15 @@
 im2col_cpu:
+['B: 1, C: 1, H: 10, W: 10, FH: 2, FW: 2, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 829']
+['B: 1, C: 1, H: 10, W: 10, FH: 2, FW: 2, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 829']
+['B: 1, C: 1, H: 10, W: 10, FH: 2, FW: 2, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 829']
 
 im2col_dma_2d_C:
+['B: 1, C: 1, H: 10, W: 10, FH: 2, FW: 2, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 6454']
+['B: 1, C: 1, H: 10, W: 10, FH: 2, FW: 2, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 6454']
+['B: 1, C: 1, H: 10, W: 10, FH: 2, FW: 2, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 6454']
 
 im2col_spc:
+['B: 1, C: 1, H: 10, W: 10, FH: 2, FW: 2, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 1497']
+['B: 1, C: 1, H: 10, W: 10, FH: 2, FW: 2, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 1229']
+['B: 1, C: 1, H: 10, W: 10, FH: 2, FW: 2, PT: 1, PB: 1, PL: 1, PR: 1, S1: 1, S2: 1, cycles: 1233']
 
