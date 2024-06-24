@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
-import tensorflow as tf
 
 #######################################################################################################
 def torch_im2col_ncwh(input_tensor, kernel_size, stride_d1=1, stride_d2=1, top_pad=1, bottom_pad=1, left_pad=1, right_pad=1, dilation=1):
@@ -43,25 +42,6 @@ def torch_im2col_ncwh(input_tensor, kernel_size, stride_d1=1, stride_d2=1, top_p
     # For NHWC, the channel size is now at the last position
     channel_dim = padded_input.size(1)
     return unfolded.contiguous().view(-1, channel_dim * kernel_size[0] * kernel_size[1]).t()
-
-def tf_im2col_nhwc(input_tensor, kernel_size, stride, padding, dilation=1):
-    if padding != 0:
-        paddings = [[0, 0], [padding[0], padding[1]], [padding[2], padding[3]], [0, 0]]
-        input_tensor = tf.pad(input_tensor, paddings, "CONSTANT")
-
-    patches = tf.image.extract_patches(
-        images=input_tensor,
-        sizes=[1, kernel_size[0], kernel_size[1], 1],
-        strides=[1, stride[0], stride[1], 1],
-        rates=[1, 1, 1, 1],
-        padding='VALID'  # Use 'VALID' since we're manually adding padding
-    )
-    
-    # Reshape extracted patches
-    batch_size, height, width, channels = input_tensor.shape
-    patch_dim = kernel_size[0] * kernel_size[1] * channels
-    patches_reshaped = tf.reshape(patches, [-1, patch_dim])
-    return patches_reshaped
 
 def shl_im2col_nhwc(input_tensor, kernel_size, stride, top_pad=1, bottom_pad=1, left_pad=1, right_pad=1):  
     # Get the dimensions of the input tensor
@@ -126,34 +106,6 @@ def torch_save(tensor, variable_name, dim, row_len):
     # Write to the file
     f.write(c_code)
 
-def tf_save(tensor, variable_name, dim, row_len):
-    """
-    Saves a tensor to a C file as a statically defined array.
-    
-    Parameters:
-    - tensor: A NumPy array containing the tensor data.
-    - variable_name: The name of the array variable in the generated C code.
-    - filename: The name of the file to save the array to.
-    """
-    # Convert the tensor to a numpy array if it's not already one
-    if not isinstance(tensor, np.ndarray):
-        tensor = np.array(tensor)
-    
-    # Open the file for writing
-    f.write("const uint32_t %s[%d] = {\n" % (variable_name, dim))
-        
-    # Iterate over the tensor data and write each element to the file
-    for i, value in enumerate(np.nditer(tensor)):
-        f.write(" %d" % value)
-        if i < tensor.size - 1:
-             if i % row_len == 0:
-                  f.write(",\n")
-             else:
-                  f.write(",")
-        
-    # Close the array definition
-    f.write("\n};\n")
-
 def shl_save(tensor, variable_name, dim, row_len):
     """
     Saves a tensor to a C file as a statically defined array.
@@ -194,8 +146,8 @@ def shl_save(tensor, variable_name, dim, row_len):
 # Parameters of the random image, padding excluded
 image_height = 10
 image_width = 10
-channels = 1
-batch = 1
+channels = 3
+batch = 3
 
 # Parameters of the filter
 filter_height = 2

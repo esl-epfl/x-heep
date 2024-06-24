@@ -1,12 +1,33 @@
 import subprocess
 import re
 import matplotlib.pyplot as plt
+import pandas as pd
+
+def parse_data(data):
+    results = []
+    for item in data:
+        # Split each item by ', ' to get key-value pairs
+        pairs = item.split(', ')
+        # Create a dictionary from the pairs
+        result_dict = {}
+        for pair in pairs:
+            key, value = pair.split(': ')
+            # Convert value to integer
+            result_dict[key] = int(value)
+        results.append(result_dict)
+    return results
+
+# Function to add loop_size field
+def add_loop_size(data):
+    for entry in data:
+        entry['loop_size'] = entry['C'] * entry['B'] * entry['H'] * entry['W']
+    return data
 
 num_channels_dma = 4
 
-batch_max = 2
+batch_max = 4
 
-channels_max = 2
+channels_max = 4
 
 im_h_max = 11
 
@@ -137,7 +158,7 @@ for i in range(1, num_channels_dma):
                                                         file.write(new_content)
 
                                                     # Run the verification script
-                                                    subprocess.run(verification_script_com, shell=True, text=False)
+                                                    subprocess.run(verification_script_com, shell=True, text=True)
                                                     result = subprocess.run(app_compile_run_com, shell=True, capture_output=True, text=True)
                                                     
                                                     pattern = re.compile(r'im2col NCHW test (\d+) executed')
@@ -194,3 +215,37 @@ with open('im2col_data.txt', 'w') as file:
     for value in im2col_spc_array:
         file.write(f"{value}\n")
     file.write("\n")
+
+# Elaborate the data
+
+parsed_1ch_CPU = parse_data(im2col_cpu_array[0])
+parsed_1ch_DMA = parse_data(im2col_dma_2d_C_array[0])
+parsed_1ch_spc = parse_data(im2col_spc_array[0])
+parsed_2ch_spc = parse_data(im2col_spc_array[1])
+parsed_3ch_spc = parse_data(im2col_spc_array[2])
+
+add_loop_size(parsed_1ch_CPU)
+add_loop_size(parsed_1ch_DMA)
+add_loop_size(parsed_1ch_spc)
+add_loop_size(parsed_2ch_spc)
+add_loop_size(parsed_3ch_spc)
+
+df_1ch_CPU = pd.DataFrame(parsed_1ch_CPU)
+df_1ch_DMA = pd.DataFrame(parsed_1ch_DMA)
+df_1ch_spc = pd.DataFrame(parsed_1ch_spc)
+df_2ch_spc = pd.DataFrame(parsed_2ch_spc)
+df_3ch_spc = pd.DataFrame(parsed_3ch_spc)
+
+# Plot the data
+plt.figure(figsize=(10, 6))
+plt.scatter(df_1ch_CPU['loop_size'], df_1ch_CPU['cycles'], color='blue')
+plt.scatter(df_1ch_DMA['loop_size'], df_1ch_DMA['cycles'], color='red')
+plt.scatter(df_1ch_spc['loop_size'], df_1ch_spc['cycles'], color='green')
+plt.scatter(df_2ch_spc['loop_size'], df_2ch_spc['cycles'], color='orange')
+plt.scatter(df_3ch_spc['loop_size'], df_3ch_spc['cycles'], color='purple')
+plt.title('Loop Size vs Cycles')
+plt.xlabel('Loop Size')
+plt.ylabel('Cycles')
+plt.grid(True)
+plt.show()
+
