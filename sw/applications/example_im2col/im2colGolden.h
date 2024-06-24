@@ -16,7 +16,7 @@
 /* Parameters */
 #define IW 10
 #define IH 10
-#define CH 3
+#define CH 2
 #define FW 2
 #define FH 2
 #define BATCH 3
@@ -26,9 +26,9 @@
 #define BOTTOM_PAD 1
 #define LEFT_PAD 1
 #define RIGHT_PAD 1
-extern const uint32_t input_image_nchw[900];
-extern const uint32_t golden_im2col_nchw[4356];
-extern const uint32_t input_image_nhwc[900];
-extern const uint32_t golden_im2col_nhwc[4356];
+extern const uint32_t input_image_nchw[600];
+extern const uint32_t golden_im2col_nchw[2904];
+extern const uint32_t input_image_nhwc[600];
+extern const uint32_t golden_im2col_nhwc[2904];
 
 #endif
