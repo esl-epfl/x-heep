@@ -196,6 +196,7 @@ typedef void * rt_pointerT;
 /*SRA*/
 #define x_heep_sra2(x,y) (shortV){((signed short)(x)[0]>>(signed short)(y)[0]), ((signed short)(x)[1]>>(signed short)(y)[1])}
 #define x_heep_sra4(x,y) (v4s) {((signed char)(x)[0]>>(signed char)(y)[0]), ((signed char)(x)[1]>>(signed char)(y)[1]), ((signed char)(x)[2]>>(signed char)(y)[2]), ((signed char)(x)[3]>>(signed char)(y)[3])}
+ /*sll2*/
+ #define x_heep_sll2(x,y)	(v2s){(x)[0]<<(y)[0], (x)[1]<<(y)[1]}
  
-
 #endif

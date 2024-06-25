@@ -5,9 +5,9 @@
 * $Revision: 	V.1.4.5
 *    
 * Project: 	    CMSIS DSP Library    
-* Title:		arm_sin_q15.c    
+* Title:	    arm_pid_reset_q31.c    
 *    
-* Description:	Fast sine calculation for Q15 values.   
+* Description:	Q31 PID Control reset function   
 *    
 * Target Processor: Cortex-M4/Cortex-M3/Cortex-M0
 *  
@@ -35,57 +35,34 @@
 * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE. 
+* POSSIBILITY OF SUCH DAMAGE.    
 
- Modifications 2017  Mostafa Saleh       (Ported to RISC-V PULPino)
+ Modifications 2017  Mostafa Saleh       (Ported to RISC-V PULPino)  
  Modifications 2024  ESL
-* -------------------------------------------------------------------- */
+* ------------------------------------------------------------------- */
 
 #include "riscv_math.h"
-#include "riscv_common_tables.h"
-
-/**    
- * @ingroup groupFastMath    
- */
 
  /**    
- * @addtogroup sin    
+ * @addtogroup PID    
  * @{    
  */
 
-/**   
- * @brief Fast approximation to the trigonometric sine function for Q15 data.   
- * @param[in] x Scaled input value in radians.   
- * @return  sin(x).   
- *   
- * The Q15 input value is in the range [0 +0.9999] and is mapped to a radian value in the range [0 2*pi).
- */
-
-q15_t riscv_sin_q15(
-  q15_t x)
+/**    
+* @brief  Reset function for the Q31 PID Control.   
+* @param[in] *S	Instance pointer of PID control data structure.   
+* @return none.    
+* \par Description:   
+* The function resets the state buffer to zeros.    
+*/
+void riscv_pid_reset_q31(
+  riscv_pid_instance_q31 * S)
 {
-  q15_t sinVal;                                  /* Temporary variables for input, output */
-  int32_t index;                                 /* Index variables */
-  q15_t a, b;                                    /* Four nearest output values */
-  q15_t fract;                                   /* Temporary values for fractional values */
 
-  /* Calculate the nearest index */
-  index = (uint32_t)x >> FAST_MATH_Q15_SHIFT;
-
-  /* Calculation of fractional value */
-  fract = (x - (index << FAST_MATH_Q15_SHIFT)) << 9;
-
-  /* Read two nearest values of input value from the sin table */
-  a = sinTable_q15[index];
-  b = sinTable_q15[index+1];
-
-  /* Linear interpolation process */
-  sinVal = (q31_t)(0x8000-fract)*a >> 16;
-  sinVal = (q15_t)((((q31_t)sinVal << 16) + ((q31_t)fract*b)) >> 16);
-
-  return sinVal << 1;
+  /* Clear the state buffer.  The size will be always 3 samples */
+  memset(S->state, 0, 3u * sizeof(q31_t));
 }
 
 /**    
- * @} end of sin group    
+ * @} end of PID group    
  */
