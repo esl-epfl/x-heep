@@ -54,7 +54,7 @@ static inline void write_register(uint32_t p_val,
 #endif
 
 // Copy data from source to destination using DMA peripheral
-void dma_copy_32b(uint32_t *dst, uint32_t *src, uint32_t size)
+void dma_copy_32b(uint32_t *dst, uint32_t *src, uint32_t size, uint8_t channel)
 {
 
     dma_config_flags_t res;
@@ -89,7 +89,7 @@ void dma_copy_32b(uint32_t *dst, uint32_t *src, uint32_t size)
     res = dma_launch(&trans);
 #else
 
-    dma *peri = dma_peri;
+    dma *peri = dma_peri(channel);
 
     uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE(trans.src->type);
     trans.size_b = trans.src->size_du * dataSize_b;
@@ -137,12 +137,12 @@ void dma_copy_32b(uint32_t *dst, uint32_t *src, uint32_t size)
 
 #endif
 
-    while (!dma_is_ready())
+    while (!dma_is_ready(channel))
     {
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if (dma_is_ready() == 0)
+        if (dma_is_ready(channel) == 0)
         {
             wait_for_interrupt();
             // from here we wake up even if we did not jump to the ISR
@@ -153,10 +153,10 @@ void dma_copy_32b(uint32_t *dst, uint32_t *src, uint32_t size)
     return;
 }
 
-void dma_fill(uint32_t *dst, uint32_t *value, uint32_t size)
+void dma_fill(uint32_t *dst, uint32_t *value, uint32_t size, uint8_t channel)
 {
 
-    dma *peri = dma_peri;
+    dma *peri = dma_peri(channel);
 
     /*
      * SET THE POINTERS
@@ -197,12 +197,12 @@ void dma_fill(uint32_t *dst, uint32_t *value, uint32_t size)
     /* Load the size and start the transaction. */
     peri->SIZE_D1 = size * sizeof(uint32_t);
 
-    while (!dma_is_ready())
+    while (!dma_is_ready(channel))
     {
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if (dma_is_ready() == 0)
+        if (dma_is_ready(channel) == 0)
         {
             wait_for_interrupt();
             // from here we wake up even if we did not jump to the ISR
@@ -213,10 +213,10 @@ void dma_fill(uint32_t *dst, uint32_t *value, uint32_t size)
     return;
 }
 
-void dma_copy_16_32(uint32_t *dst, uint16_t *src, uint32_t size)
+void dma_copy_16_32(uint32_t *dst, uint16_t *src, uint32_t size, uint8_t channel)
 {
 
-    dma *peri = dma_peri;
+    dma *peri = dma_peri(channel);
 
     uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE(DMA_DATA_TYPE_WORD);
 
@@ -237,7 +237,7 @@ void dma_copy_16_32(uint32_t *dst, uint16_t *src, uint32_t size)
                    peri);
 
     write_register(4,
-                   DMA_SRC_PTR_INC_D1_REG_OFFSET,
+                   DMA_DST_PTR_INC_D1_REG_OFFSET,
                    DMA_DST_PTR_INC_D1_INC_MASK,
                    DMA_DST_PTR_INC_D1_INC_OFFSET,
                    peri);
@@ -260,12 +260,12 @@ void dma_copy_16_32(uint32_t *dst, uint16_t *src, uint32_t size)
 
     // #endif
 
-    while (!dma_is_ready())
+    while (!dma_is_ready(channel))
     {
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if (dma_is_ready() == 0)
+        if (dma_is_ready(channel) == 0)
         {
             wait_for_interrupt();
             // from here we wake up even if we did not jump to the ISR
@@ -278,7 +278,7 @@ void dma_copy_16_32(uint32_t *dst, uint16_t *src, uint32_t size)
 
 
 // Copy data from source to destination using DMA peripheral
-void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size)
+void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size, uint8_t channel)
 {
 
     dma_config_flags_t res;
@@ -310,7 +310,7 @@ void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size)
     /** TO BE DONE */
 #else
 
-    dma *peri = dma_peri;
+    dma *peri = dma_peri(channel);
 
     uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE(trans.src->type);
     trans.size_b = trans.src->size_du * dataSize_b;
@@ -352,12 +352,12 @@ void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size)
 
 #endif
 
-    while (!dma_is_ready())
+    while (!dma_is_ready(channel))
     {
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if (dma_is_ready() == 0)
+        if (dma_is_ready(channel) == 0)
         {
             wait_for_interrupt();
             // from here we wake up even if we did not jump to the ISR
@@ -369,7 +369,7 @@ void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size)
 }
 
 // Copy data from source to destination using DMA peripheral
-int dma_copy(const uint8_t *dst, const uint8_t *src, const size_t bytes, const dma_data_type_t type)
+int dma_copy(const uint8_t *dst, const uint8_t *src, const size_t bytes, const dma_data_type_t type, uint8_t channel)
 {
     // Number of words
     size_t num_du = bytes >> 2;
@@ -460,12 +460,12 @@ int dma_copy(const uint8_t *dst, const uint8_t *src, const size_t bytes, const d
     }
 
     // Wait for DMA transfer to finish
-    while (!dma_is_ready())
+    while (!dma_is_ready(channel))
     {
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if (dma_is_ready() == 0)
+        if (dma_is_ready(channel) == 0)
         {
             wait_for_interrupt();
             // from here we wake up even if we did not jump to the ISR

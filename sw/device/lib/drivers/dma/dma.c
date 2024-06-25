@@ -892,13 +892,13 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
         p_trans->size_d2_b = DMA_DATA_TYPE_2_SIZE( p_trans->dst_type );
         p_trans->src->inc_d2_du = DMA_DATA_TYPE_2_SIZE( p_trans->dst_type );
         
-        write_register( dma_subsys_per[channel].trans->pad_left_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+        write_register( dma_subsys_per[channel].trans->pad_left_du * DMA_DATA_TYPE_2_SIZE( p_trans->src_type ),
                         DMA_PAD_LEFT_REG_OFFSET,
                         DMA_PAD_LEFT_PAD_MASK,
                         DMA_PAD_LEFT_PAD_OFFSET,
                         dma_subsys_per[channel].peri);
 
-        write_register( dma_subsys_per[channel].trans->pad_right_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+        write_register( dma_subsys_per[channel].trans->pad_right_du * DMA_DATA_TYPE_2_SIZE( p_trans->src_type ),
                         DMA_PAD_RIGHT_REG_OFFSET,
                         DMA_PAD_RIGHT_PAD_MASK,
                         DMA_PAD_RIGHT_PAD_OFFSET,
@@ -906,25 +906,25 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
     }
     else if (p_trans->dim == DMA_DIM_CONF_2D)
     {
-        write_register( dma_subsys_per[channel].trans->pad_top_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+        write_register( dma_subsys_per[channel].trans->pad_top_du * DMA_DATA_TYPE_2_SIZE( p_trans->src_type ),
                         DMA_PAD_TOP_REG_OFFSET,
                         DMA_PAD_TOP_PAD_MASK,
                         DMA_PAD_TOP_PAD_OFFSET,
                         dma_subsys_per[channel].peri);
 
-        write_register( dma_subsys_per[channel].trans->pad_bottom_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+        write_register( dma_subsys_per[channel].trans->pad_bottom_du * DMA_DATA_TYPE_2_SIZE( p_trans->src_type ),
                         DMA_PAD_BOTTOM_REG_OFFSET,
                         DMA_PAD_BOTTOM_PAD_MASK,
                         DMA_PAD_BOTTOM_PAD_OFFSET,
                         dma_subsys_per[channel].peri);
 
-        write_register( dma_subsys_per[channel].trans->pad_left_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+        write_register( dma_subsys_per[channel].trans->pad_left_du * DMA_DATA_TYPE_2_SIZE( p_trans->src_type ),
                         DMA_PAD_LEFT_REG_OFFSET,
                         DMA_PAD_LEFT_PAD_MASK,
                         DMA_PAD_LEFT_PAD_OFFSET,
                         dma_subsys_per[channel].peri);
 
-        write_register( dma_subsys_per[channel].trans->pad_right_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
+        write_register( dma_subsys_per[channel].trans->pad_right_du * DMA_DATA_TYPE_2_SIZE( p_trans->src_type ),
                         DMA_PAD_RIGHT_REG_OFFSET,
                         DMA_PAD_RIGHT_PAD_MASK,
                         DMA_PAD_RIGHT_PAD_OFFSET,
@@ -1032,19 +1032,21 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
     /*
      * SET THE SIGN EXTENSION BIT
      */
-    write_register( dma_cb.trans->sign_ext,
+    write_register( dma_subsys_per[channel].trans->sign_ext,
                     DMA_SIGN_EXT_REG_OFFSET,
                     0x1 << DMA_SIGN_EXT_SIGNED_BIT,
-                    DMA_SIGN_EXT_SIGNED_BIT );
+                    DMA_SIGN_EXT_SIGNED_BIT,
+                    dma_subsys_per[channel].peri  );
 
 
     /*
      * SET THE SIGN EXTENSION BIT
      */
-    write_register( dma_cb.trans->sign_ext,
+    write_register( dma_subsys_per[channel].trans->sign_ext,
                     DMA_SIGN_EXT_REG_OFFSET,
                     0x1 << DMA_SIGN_EXT_SIGNED_BIT,
-                    DMA_SIGN_EXT_SIGNED_BIT );
+                    DMA_SIGN_EXT_SIGNED_BIT,
+                    dma_subsys_per[channel].peri  );
 
 
     /*
@@ -1065,9 +1067,10 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
     write_register(  dma_subsys_per[channel].trans->dst_type,
                     DMA_DST_DATA_TYPE_REG_OFFSET,
                     DMA_DST_DATA_TYPE_DATA_TYPE_MASK,
-                    DMA_SELECTION_OFFSET_START );
+                    DMA_SELECTION_OFFSET_START,
+                    dma_subsys_per[channel].peri  );
     
-    write_register(  dma_cb.trans->src_type,
+    write_register(  dma_subsys_per[channel].trans->src_type,
                     DMA_SRC_DATA_TYPE_REG_OFFSET,
                     DMA_SRC_DATA_TYPE_DATA_TYPE_MASK,
                     DMA_SELECTION_OFFSET_START,
@@ -1509,7 +1512,7 @@ static inline uint32_t get_increment_b_1D( dma_target_t * p_tgt,
         */
         if( inc_b == 0 )
         {
-            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( dma_subsys_per[channel].trans->type );
+            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( p_tgt->type );
             inc_b = ( p_tgt->inc_du * dataSize_b );
         }
     }
@@ -1535,7 +1538,7 @@ static inline uint32_t get_increment_b_2D( dma_target_t * p_tgt,
         */
         if( inc_b == 0 )
         {
-            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( dma_subsys_per[channel].trans->type );
+            uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE( p_tgt->type );
             inc_b = ( p_tgt->inc_d2_du * dataSize_b );
         }
     }

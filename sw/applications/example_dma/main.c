@@ -63,10 +63,10 @@ dma_data_type_t C_type_2_dma_type(int C_type)
 }
 
 #define WAIT_DMA                              \
-    while (!dma_is_ready())                   \
+    while (!dma_is_ready(0))                   \
     {                                         \
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8); \
-        if (dma_is_ready() == 0)              \
+        if (dma_is_ready(0) == 0)              \
         {                                     \
             wait_for_interrupt();             \
         }                                     \
@@ -106,7 +106,7 @@ dma_data_type_t C_type_2_dma_type(int C_type)
     {                                                                                       \
         if (src[i] != dst[i])                                                               \
         {                                                                                   \
-            PRINTF("[%d] Expected: %x Got : %x\n", i, src[i], dst[i]);                      \
+            PRINTF("[%d] Expected: %x Got : %x\n\r", i, src[i], dst[i]);                      \
             errors++;                                                                       \
         }                                                                                   \
     }                                                                                       \
@@ -207,7 +207,7 @@ int32_t errors = 0;
 int8_t cycles = 0;
 
 // INTERRUPT HANDLERS
-void dma_intr_handler_trans_done(void)
+void dma_intr_handler_trans_done(uint8_t channel)
 {
     cycles++;
 }
@@ -218,9 +218,6 @@ int32_t window_intr_flag;
 
 void dma_intr_handler_window_done(uint8_t channel) {
     window_intr_flag ++;
-void dma_intr_handler_window_done(void)
-{
-    window_intr_flag++;
 }
 
 uint8_t dma_window_ratio_warning_threshold()
@@ -426,8 +423,7 @@ int main(int argc, char *argv[])
     {
         while (cycles < consecutive_trans)
         {
-            while (!dma_is_ready())
-                ;
+            while (!dma_is_ready(0));
             cycles++;
         }
     }
@@ -492,16 +488,15 @@ int main(int argc, char *argv[])
 
     if (trans.end == DMA_TRANS_END_POLLING)
     { // There will be no interrupts whatsoever!
-        while (!dma_is_ready())
-            ;
+        while (!dma_is_ready(0));
         PRINTF("?\n\r");
     }
     else
     {
-        while (!dma_is_ready())
+        while (!dma_is_ready(0))
         {
             wait_for_interrupt();
-            PRINTF("i\n\r");
+            PRINTF("i\n\r");//@ToDo: is this a debugging?
         }
     }
 

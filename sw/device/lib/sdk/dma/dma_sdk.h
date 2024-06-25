@@ -31,8 +31,9 @@ extern volatile uint8_t dma_sdk_intr_flag;
  * @param dst Destination address
  * @param src Source address
  * @param size Number of words (not bytes) to copy
+ * @param channel DMA channel to use
  */
-void dma_copy_32b(uint32_t *dst, uint32_t *src, uint32_t size);
+void dma_copy_32b(uint32_t *dst, uint32_t *src, uint32_t size, uint8_t channel);
 
 /**
  * @brief Copy data from source address to explicit destination addresses
@@ -40,8 +41,9 @@ void dma_copy_32b(uint32_t *dst, uint32_t *src, uint32_t size);
  * @param dst_addr Array of destination addresses
  * @param src Source address
  * @param bytes Number of words (not bytes) to copy
+ * @param channel DMA channel to use
  */
-void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size);
+void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size, uint8_t channel);
 
 /**
  * @brief Copy data from source address to destination address
@@ -50,9 +52,10 @@ void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size);
  * @param src Source address
  * @param bytes Number of bytes to copy
  * @param type Data type (DMA_DATA_TYPE_WORD, DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_BYTE)
+ * @param channel DMA channel to use
  * @return int 0 if success, -1 if error
  */
-int dma_copy(const uint8_t *dst, const uint8_t *src, const size_t bytes, const dma_data_type_t type);
+int dma_copy(const uint8_t *dst, const uint8_t *src, const size_t bytes, const dma_data_type_t type, uint8_t channel);
 
 /**
  * @brief Fill a memory region with a 32-bit value
@@ -60,9 +63,10 @@ int dma_copy(const uint8_t *dst, const uint8_t *src, const size_t bytes, const d
  * @param dst Destination address
  * @param value Pointer to the value to fill the memory with
  * @param size Number of words (not bytes) to fill
+ * @param channel DMA channel to use
  * @return int 0 if success, -1 if error
  */
-void dma_fill(uint32_t *dst, uint32_t *value, uint32_t size);
+void dma_fill(uint32_t *dst, uint32_t *value, uint32_t size, uint8_t channel);
 
 /**
  * @brief Copy data from source address to destination address (16-bit aligned) [BROKEN until siigned DMA works]
@@ -70,7 +74,14 @@ void dma_fill(uint32_t *dst, uint32_t *value, uint32_t size);
  * @param dst Destination address (32-bit aligned)
  * @param src Source address (16-bit aligned)
  * @param size Number of bytes to copy
+ * @param channel DMA channel to use
  */
-void dma_copy_16_32(uint32_t *dst, uint16_t *src, uint32_t size);
+void dma_copy_16_32(uint32_t *dst, uint16_t *src, uint32_t size, uint8_t channel);
+
+/**
+ * @brief DMA interrupt handler (overrides the weak one from dma.c)
+ * 
+ */
+void dma_sdk_intr_handler_trans_done(uint8_t channel);
 
 #endif /* DMA_UTIL_H_ */
