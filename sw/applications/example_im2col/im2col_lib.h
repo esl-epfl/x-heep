@@ -37,7 +37,7 @@
 
 /* Defines how many channels of the DMA are available to the SPC, depending on HW specifications */
 //@ToDo: see what include in the open source version
-#define SPC_CH_NUM 2 
+#define SPC_CH_NUM 3 
 
 /* Base address of the im2col SPC */
 #define IM2COL_SPC_BASE_ADDR EXT_PERIPHERAL_START_ADDRESS + 0x4000
@@ -96,6 +96,8 @@
 
 #define OW_NHWC (FW * FH * CH * BATCH)
 #define OH_NHWC (N_PATCHES_W) * (N_PATCHES_H)
+
+#define START_ID 3
 
 // Computations for 2D DMA
 #define SRC_INC_D2 (STRIDE_D2 * IW - (FW - 1 + (STRIDE_D1 - 1) * (FW - 1)))

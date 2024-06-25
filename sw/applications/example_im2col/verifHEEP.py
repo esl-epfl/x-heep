@@ -69,6 +69,7 @@ ver_patterns = {
 }
 
 im2col_lib_pattern = re.compile(r'#define SPC_CH_NUM \d+')
+im2col_lib_pattern_cpu_done = re.compile(r'#define START_ID \d+')
 
 im2col_cpu_array = []
 im2col_dma_2d_C_array = []
@@ -88,6 +89,7 @@ def modify_parameters(file_path, modifications, patterns):
     with open(file_path, 'w') as file:
         file.write(content)
 
+cpu_done = 0
 
 for i in range(1, num_channels_dma):
     print("Number of channels used by SPC", i)
@@ -152,7 +154,9 @@ for i in range(1, num_channels_dma):
 
                                                     # Replace the matched pattern with the new value
                                                     new_content = im2col_lib_pattern.sub(f'#define SPC_CH_NUM {i}', content)
-
+                                                    if cpu_done == 1:
+                                                        new_content = im2col_lib_pattern_cpu_done.sub(f'#define START_ID 3', new_content)
+                                                    
                                                     # Write the modified content back to the file
                                                     with open(imcol_lib_dir, 'w') as file:
                                                         file.write(new_content)
@@ -201,6 +205,8 @@ for i in range(1, num_channels_dma):
     im2col_cpu_array.append(im2col_cpu)
     im2col_dma_2d_C_array.append(im2col_dma_2d_C)
     im2col_spc_array.append(im2col_spc)
+
+    cpu_done = 1
 
 with open('im2col_data.txt', 'w') as file:
     file.write("im2col_cpu:\n")

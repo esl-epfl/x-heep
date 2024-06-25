@@ -146,8 +146,8 @@ def shl_save(tensor, variable_name, dim, row_len):
 # Parameters of the random image, padding excluded
 image_height = 10
 image_width = 10
-channels = 1
-batch = 1
+channels = 3
+batch = 3
 
 # Parameters of the filter
 filter_height = 2
