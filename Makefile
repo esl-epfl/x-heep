@@ -68,7 +68,7 @@ FLASHREAD_BYTES ?= 256
 
 
 #binary to store in flash memory
-FLASHWRITE_FILE = $(mkfile_path)/sw/build/main.hex
+FLASHWRITE_FILE ?= $(mkfile_path)/sw/build/main.hex
 
 #max address in the hex file, used to program the flash
 ifeq ($(wildcard $(FLASHWRITE_FILE)),)

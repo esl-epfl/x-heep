@@ -395,7 +395,9 @@ void dma_init( dma *dma_peri )
         dma_subsys_per[i].peri->DIM_CONFIG     = 0;
         dma_subsys_per[i].peri->DIM_INV        = 0;
         dma_subsys_per[i].peri->SLOT           = 0;
-        dma_subsys_per[i].peri->DATA_TYPE      = 0;
+        dma_subsys_per[i].peri->SRC_DATA_TYPE  = 0;
+        dma_subsys_per[i].peri->DST_DATA_TYPE  = 0;
+        dma_subsys_per[i].peri->SIGN_EXT       = 0;
         dma_subsys_per[i].peri->MODE           = 0;
         dma_subsys_per[i].peri->WINDOW_SIZE    = 0;
         dma_subsys_per[i].peri->PAD_TOP        = 0;
@@ -558,12 +560,12 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
 
     /* The copy size of the source (in data units -of the source-) is
     transformed to bytes, to be used as default size.*/
-    uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE(p_trans->src->type);
+    uint8_t dataSize_b = DMA_DATA_TYPE_2_SIZE(p_trans->dst->type);
     p_trans->size_b = p_trans->src->size_du * dataSize_b;
     p_trans->size_d2_b = p_trans->src->size_d2_du * dataSize_b;
 
-    /* By default, the source defines the data type.*/
-    p_trans->type = p_trans->src->type;
+    p_trans->src_type = p_trans->src->type;
+    p_trans->dst_type = p_trans->dst->type;
 
     /*
      * By default, the transaction increment is set to 0 and, if required,
@@ -588,12 +590,12 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
 
         if( p_trans->src->trig == DMA_TRIG_MEMORY )
         {
-            misalignment = get_misalignment_b( p_trans->src->ptr, p_trans->type );
+            misalignment = get_misalignment_b( p_trans->src->ptr, p_trans->src_type );
         }
 
         if( p_trans->dst->trig == DMA_TRIG_MEMORY )
         {
-            dstMisalignment = get_misalignment_b( p_trans->dst->ptr, p_trans->type );
+            dstMisalignment = get_misalignment_b( p_trans->dst->ptr, p_trans->dst_type );
         }
 
         p_trans->flags  |= ( misalignment ? DMA_CONFIG_SRC : DMA_CONFIG_OK );
@@ -680,14 +682,14 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
              * a more granular data type is used according to the detected
              * misalignment in order to overcome it.
              */
-            p_trans->type += misalignment;
+            p_trans->dst_type += misalignment;
             /*
              * Source and destination increment should now be of the size
              * of the data.
              * As increments are given in bytes, in both cases should be the
              * size of a data unit.
              */
-            p_trans->inc_b = DMA_DATA_TYPE_2_SIZE( p_trans->type );
+            p_trans->inc_b = DMA_DATA_TYPE_2_SIZE( p_trans->dst_type );
             /* The copy size does not change, as it is already stored in bytes.*/
         }
 
@@ -740,7 +742,7 @@ dma_config_flags_t dma_validate_transaction(    dma_trans_t        *p_trans,
             uint8_t isOutb = is_region_outbound_1D(
                                         p_trans->dst->ptr,
                                         p_trans->dst->env->end,
-                                        p_trans->type,
+                                        p_trans->dst_type,
                                         p_trans->src->size_du,
                                         p_trans->dst->inc_du );
             if( isOutb )
@@ -887,8 +889,8 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
     if (p_trans->dim == DMA_DIM_CONF_1D && (p_trans->pad_left_du != 0 || p_trans->pad_right_du != 0))
     {
         p_trans->dim = DMA_DIM_CONF_2D;
-        p_trans->size_d2_b = DMA_DATA_TYPE_2_SIZE( p_trans->type );
-        p_trans->src->inc_d2_du = DMA_DATA_TYPE_2_SIZE( p_trans->type );
+        p_trans->size_d2_b = DMA_DATA_TYPE_2_SIZE( p_trans->dst_type );
+        p_trans->src->inc_d2_du = DMA_DATA_TYPE_2_SIZE( p_trans->dst_type );
         
         write_register( dma_subsys_per[channel].trans->pad_left_du * DMA_DATA_TYPE_2_SIZE( p_trans->type ),
                         DMA_PAD_LEFT_REG_OFFSET,
@@ -1028,6 +1030,24 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
                     dma_subsys_per[channel].peri );
 
     /*
+     * SET THE SIGN EXTENSION BIT
+     */
+    write_register( dma_cb.trans->sign_ext,
+                    DMA_SIGN_EXT_REG_OFFSET,
+                    0x1 << DMA_SIGN_EXT_SIGNED_BIT,
+                    DMA_SIGN_EXT_SIGNED_BIT );
+
+
+    /*
+     * SET THE SIGN EXTENSION BIT
+     */
+    write_register( dma_cb.trans->sign_ext,
+                    DMA_SIGN_EXT_REG_OFFSET,
+                    0x1 << DMA_SIGN_EXT_SIGNED_BIT,
+                    DMA_SIGN_EXT_SIGNED_BIT );
+
+
+    /*
      * SET TRIGGER SLOTS AND DATA TYPE
      */
     write_register(  dma_subsys_per[channel].trans->src->trig,
@@ -1042,9 +1062,14 @@ dma_config_flags_t dma_load_transaction( dma_trans_t *p_trans)
                     DMA_SLOT_TX_TRIGGER_SLOT_OFFSET,
                     dma_subsys_per[channel].peri );
 
-    write_register(  dma_subsys_per[channel].trans->type,
-                    DMA_DATA_TYPE_REG_OFFSET,
-                    DMA_DATA_TYPE_DATA_TYPE_MASK,
+    write_register(  dma_subsys_per[channel].trans->dst_type,
+                    DMA_DST_DATA_TYPE_REG_OFFSET,
+                    DMA_DST_DATA_TYPE_DATA_TYPE_MASK,
+                    DMA_SELECTION_OFFSET_START );
+    
+    write_register(  dma_cb.trans->src_type,
+                    DMA_SRC_DATA_TYPE_REG_OFFSET,
+                    DMA_SRC_DATA_TYPE_DATA_TYPE_MASK,
                     DMA_SELECTION_OFFSET_START,
                     dma_subsys_per[channel].peri );
 
@@ -1211,7 +1236,7 @@ dma_config_flags_t validate_target( dma_target_t *p_tgt )
     /* The size can be 0 or 1 if the target is involved in a 1D padded transaction */
     DMA_STATIC_ASSERT( p_tgt->size_d2_du >= 0 && p_tgt->size_du  < 65536  , "Size d2 not valid");
     /* The data type must be a valid type */
-    DMA_STATIC_ASSERT( p_tgt->type     < DMA_DATA_TYPE__size , "Type not valid");
+    DMA_STATIC_ASSERT( p_tgt->type     < DMA_DATA_TYPE__size , "Source type not valid");
     /* The trigger must be among the valid trigger values. */
     DMA_STATIC_ASSERT( p_tgt->trig     < DMA_TRIG__size , "Trigger not valid");
     

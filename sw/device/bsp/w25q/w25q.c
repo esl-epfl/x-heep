@@ -46,6 +46,8 @@
 
 /* To get TX and RX FIFO depth */
 #include "spi_host_regs.h"
+/* To get SPI functions */
+#include "spi_host.h"
 
 /* To get the target of the compilation (sim or pynq) */
 #include "x-heep.h"
@@ -210,7 +212,7 @@ static int32_t MIN(int32_t a, int32_t b) {
 /**
  * @brief SPI structure.
 */
-spi_host_t __attribute__((section(".xheep_init_data_crt0"))) spi; //this variable is also used by the crt0, thus keep it in this section
+spi_host_t* __attribute__((section(".xheep_init_data_crt0"))) spi; //this variable is also used by the crt0, thus keep it in this section
 
 /**
  * @brief Static vector used in the erase_and_write function.
@@ -231,11 +233,11 @@ uint8_t sector_data[FLASH_SECTOR_SIZE];
 
 void w25q128jw_init_crt0() {
     //make sure spi variable is into the xheep_init_data_crt0 section
-    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
+    spi = spi_flash;
     return;
 }
 
-w25q_error_codes_t w25q128jw_init(spi_host_t spi_host) {
+w25q_error_codes_t w25q128jw_init(spi_host_t* spi_host) {
     /*
      * Check if memory mapped SPI is enabled. Current version of the bsp
      * does not support memory mapped SPI.
@@ -253,16 +255,16 @@ w25q_error_codes_t w25q128jw_init(spi_host_t spi_host) {
     #endif // USE_SPI_FLASH
 
     // Enable SPI host device
-    spi_set_enable(&spi, true);
+    spi_set_enable(spi, true);
 
     // Enable SPI output
-    spi_output_enable(&spi, true);
+    spi_output_enable(spi, true);
 
     // Configure SPI<->Flash connection on CSID 0
     configure_spi();
 
     // Set CSID
-    spi_set_csid(&spi, 0);
+    spi_set_csid(spi, 0);
 
     // Power up flash
     flash_power_up();
@@ -320,29 +322,29 @@ w25q_error_codes_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t l
     // Address + Read command
     uint32_t read_byte_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_RD);
     // Load command to TX FIFO
-    spi_write_word(&spi, read_byte_cmd);
-    spi_wait_for_ready(&spi);
+    spi_write_word(spi, read_byte_cmd);
+    spi_wait_for_ready(spi);
 
     // Set up segment parameters -> send command and address
     const uint32_t cmd_read_1 = spi_create_command((spi_command_t){
         .len        = 3,                 // 4 Bytes
         .csaat      = true,              // Command not finished
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
     // Load segment parameters to COMMAND register
-    spi_set_command(&spi, cmd_read_1);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_read_1);
+    spi_wait_for_ready(spi);
 
     // Set up segment parameters -> read length bytes
     const uint32_t cmd_read_2 = spi_create_command((spi_command_t){
         .len        = length-1,          // len bytes
         .csaat      = false,             // End command
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirRxOnly      // Read only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_RX_ONLY      // Read only
     });
-    spi_set_command(&spi, cmd_read_2);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_read_2);
+    spi_wait_for_ready(spi);
 
     /*
      * Set RX watermark to length. The watermark is in words.
@@ -359,20 +361,20 @@ w25q_error_codes_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t l
     uint32_t *data_32bit = (uint32_t *)data;
     while (flag) {
         if (length >= SPI_HOST_PARAM_RX_DEPTH) {
-            spi_set_rx_watermark(&spi, SPI_HOST_PARAM_RX_DEPTH>>2);
+            spi_set_rx_watermark(spi, SPI_HOST_PARAM_RX_DEPTH>>2);
             length -= SPI_HOST_PARAM_RX_DEPTH;
             to_read += SPI_HOST_PARAM_RX_DEPTH;
         }
         else {
-            spi_set_rx_watermark(&spi, (length%4==0 ? length>>2 : (length>>2)+1));
+            spi_set_rx_watermark(spi, (length%4==0 ? length>>2 : (length>>2)+1));
             to_read += length;
             flag = 0;
         }
         // Wait till SPI RX FIFO is full (or I read all the data)
-        spi_wait_for_rx_watermark(&spi);
+        spi_wait_for_rx_watermark(spi);
         // Read data from SPI RX FIFO
         for (int i = i_start; i < to_read>>2; i++) {
-            spi_read_word(&spi, &data_32bit[i]); // Writes a full word
+            spi_read_word(spi, &data_32bit[i]); // Writes a full word
         }
         // Update the starting index
         i_start += SPI_HOST_PARAM_RX_DEPTH>>2;
@@ -380,7 +382,7 @@ w25q_error_codes_t w25q128jw_read_standard(uint32_t addr, void* data, uint32_t l
     // Take into account the extra bytes (if any)
     if (length_original % 4 != 0) {
         uint32_t last_word = 0;
-        spi_read_word(&spi, &last_word);
+        spi_read_word(spi, &last_word);
         memcpy(&data_32bit[length_original>>2], &last_word, length%4);
     }
 
@@ -444,7 +446,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
      * SET UP DMA
     */
     // SPI and SPI_FLASH are the same IP so same register map
-    uint32_t *fifo_ptr_rx = spi.base_addr.base + SPI_HOST_RXDATA_REG_OFFSET;
+    uint32_t *fifo_ptr_rx = (uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET;
 
     // Init DMA, the integrated DMA is used (peri == NULL)
     if(!no_wait_dma)    dma_init(NULL);
@@ -493,29 +495,29 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     // Address + Read command
     uint32_t read_byte_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_RD);
     // Load command to TX FIFO
-    spi_write_word(&spi, read_byte_cmd);
-    spi_wait_for_ready(&spi);
+    spi_write_word(spi, read_byte_cmd);
+    spi_wait_for_ready(spi);
 
     // Set up segment parameters -> send command and address
     const uint32_t cmd_read_1 = spi_create_command((spi_command_t){
         .len        = 3,                 // 4 Bytes
         .csaat      = true,              // Command not finished
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
     // Load segment parameters to COMMAND register
-    spi_set_command(&spi, cmd_read_1);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_read_1);
+    spi_wait_for_ready(spi);
 
     // Set up segment parameters -> read length bytes
     const uint32_t cmd_read_2 = spi_create_command((spi_command_t){
         .len        = length-1,          // len bytes
         .csaat      = false,             // End command
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirRxOnly      // Read only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_RX_ONLY      // Read only
     });
-    spi_set_command(&spi, cmd_read_2);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_read_2);
+    spi_wait_for_ready(spi);
 
     // Wait for DMA to finish transaction
     if(!no_wait_dma) (!dma_is_ready(0));
@@ -523,7 +525,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     // Take into account the extra bytes (if any)
     if (length % 4 != 0) {
         uint32_t last_word = 0;
-        spi_read_word(&spi, &last_word);
+        spi_read_word(spi, &last_word);
         memcpy(&data[length - length%4], &last_word, length%4);
     }
 
@@ -583,30 +585,30 @@ w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t lengt
 
     // Send quad read command at standard speed
     uint32_t cmd_read_quadIO = FC_RDQIO;
-    spi_write_word(&spi, cmd_read_quadIO);
+    spi_write_word(spi, cmd_read_quadIO);
     const uint32_t cmd_read = spi_create_command((spi_command_t){
         .len        = 0,                 // 1 Byte
         .csaat      = true,              // Command not finished
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
-    spi_set_command(&spi, cmd_read);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_read);
+    spi_wait_for_ready(spi);
 
     /*
      * Send address at quad speed.
      * Last byte is Fxh (here FFh) required by W25Q128JW
     */
     uint32_t read_byte_cmd = (REVERT_24b_ADDR(addr) | (0xFF << 24));
-    spi_write_word(&spi, read_byte_cmd);
+    spi_write_word(spi, read_byte_cmd);
     const uint32_t cmd_address = spi_create_command((spi_command_t){
         .len        = 3,                // 3 Byte
         .csaat      = true,             // Command not finished
-        .speed      = kSpiSpeedQuad,    // Quad speed
-        .direction  = kSpiDirTxOnly     // Write only
+        .speed      = SPI_SPEED_QUAD,    // Quad speed
+        .direction  = SPI_DIR_TX_ONLY     // Write only
     });
-    spi_set_command(&spi, cmd_address);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_address);
+    spi_wait_for_ready(spi);
 
     // Quad read requires dummy clocks
     const uint32_t dummy_clocks_cmd = spi_create_command((spi_command_t){
@@ -616,21 +618,21 @@ w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t lengt
         .len        = DUMMY_CLOCKS_SIM-1,
         #endif
         .csaat      = true,            // Command not finished
-        .speed      = kSpiSpeedQuad,   // Quad speed
-        .direction  = kSpiDirDummy     // Dummy
+        .speed      = SPI_SPEED_QUAD,   // Quad speed
+        .direction  = SPI_DIR_DUMMY     // Dummy
     });
-    spi_set_command(&spi, dummy_clocks_cmd);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, dummy_clocks_cmd);
+    spi_wait_for_ready(spi);
 
     // Read back the requested data at quad speed
     const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
         .len        = length-1,        // 32 Byte
         .csaat      = false,           // End command
-        .speed      = kSpiSpeedQuad,   // Quad speed
-        .direction  = kSpiDirRxOnly    // Read only
+        .speed      = SPI_SPEED_QUAD,   // Quad speed
+        .direction  = SPI_DIR_RX_ONLY    // Read only
     });
-    spi_set_command(&spi, cmd_read_rx);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_read_rx);
+    spi_wait_for_ready(spi);
 
     /* COMMAND FINISHED */
 
@@ -649,20 +651,20 @@ w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t lengt
     uint32_t *data_32bit = (uint32_t *)data;
     while (flag) {
         if (length >= SPI_HOST_PARAM_RX_DEPTH) {
-            spi_set_rx_watermark(&spi, SPI_HOST_PARAM_RX_DEPTH>>2);
+            spi_set_rx_watermark(spi, SPI_HOST_PARAM_RX_DEPTH>>2);
             length -= SPI_HOST_PARAM_RX_DEPTH;
             to_read += SPI_HOST_PARAM_RX_DEPTH;
         }
         else {
-            spi_set_rx_watermark(&spi, (length%4==0 ? length>>2 : (length>>2)+1));
+            spi_set_rx_watermark(spi, (length%4==0 ? length>>2 : (length>>2)+1));
             to_read += length;
             flag = 0;
         }
         // Wait till SPI RX FIFO is full (or I read all the data)
-        spi_wait_for_rx_watermark(&spi);
+        spi_wait_for_rx_watermark(spi);
         // Read data from SPI RX FIFO
         for (int i = i_start; i < to_read>>2; i++) {
-            spi_read_word(&spi, &data_32bit[i]); // Writes a full word
+            spi_read_word(spi, &data_32bit[i]); // Writes a full word
         }
         // Update the starting index
         i_start += SPI_HOST_PARAM_RX_DEPTH>>2;
@@ -670,7 +672,7 @@ w25q_error_codes_t w25q128jw_read_quad(uint32_t addr, void *data, uint32_t lengt
     // Take into account the extra bytes (if any)
     if (length_original%4 != 0) {
         uint32_t last_word = 0;
-        spi_read_word(&spi, &last_word);
+        spi_read_word(spi, &last_word);
         memcpy(&data_32bit[length_original>>2], &last_word, length%4);
     }
 
@@ -731,30 +733,30 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
 
     // Send quad read command at standard speed
     uint32_t cmd_read_quadIO = FC_RDQIO;
-    spi_write_word(&spi, cmd_read_quadIO);
+    spi_write_word(spi, cmd_read_quadIO);
     const uint32_t cmd_read = spi_create_command((spi_command_t){
         .len        = 0,                 // 1 Byte
         .csaat      = true,              // Command not finished
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
-    spi_set_command(&spi, cmd_read);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_read);
+    spi_wait_for_ready(spi);
 
     /*
      * Send address at quad speed.
      * Last byte is Fxh (here FFh) required by W25Q128JW
     */
     uint32_t read_byte_cmd = (REVERT_24b_ADDR(addr) | (0xFF << 24));
-    spi_write_word(&spi, read_byte_cmd);
+    spi_write_word(spi, read_byte_cmd);
     const uint32_t cmd_address = spi_create_command((spi_command_t){
         .len        = 3,                // 3 Byte
         .csaat      = true,             // Command not finished
-        .speed      = kSpiSpeedQuad,    // Quad speed
-        .direction  = kSpiDirTxOnly     // Write only
+        .speed      = SPI_SPEED_QUAD,    // Quad speed
+        .direction  = SPI_DIR_TX_ONLY     // Write only
     });
-    spi_set_command(&spi, cmd_address);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_address);
+    spi_wait_for_ready(spi);
 
     // Quad read requires dummy clocks
     const uint32_t dummy_clocks_cmd = spi_create_command((spi_command_t){
@@ -764,21 +766,21 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
         .len        = DUMMY_CLOCKS_SIM-1, // SPI flash simulation model needs 8 dummy cycles
         #endif
         .csaat      = true,              // Command not finished
-        .speed      = kSpiSpeedQuad,     // Quad speed
-        .direction  = kSpiDirDummy       // Dummy
+        .speed      = SPI_SPEED_QUAD,     // Quad speed
+        .direction  = SPI_DIR_DUMMY       // Dummy
     });
-    spi_set_command(&spi, dummy_clocks_cmd);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, dummy_clocks_cmd);
+    spi_wait_for_ready(spi);
 
     // Read back the requested data at quad speed
     const uint32_t cmd_read_rx = spi_create_command((spi_command_t){
         .len        = length-1,        // length bytes
         .csaat      = false,           // End command
-        .speed      = kSpiSpeedQuad,   // Quad speed
-        .direction  = kSpiDirRxOnly    // Read only
+        .speed      = SPI_SPEED_QUAD,   // Quad speed
+        .direction  = SPI_DIR_RX_ONLY    // Read only
     });
-    spi_set_command(&spi, cmd_read_rx);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_read_rx);
+    spi_wait_for_ready(spi);
 
     /* COMMAND FINISHED */
 
@@ -786,7 +788,7 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
      * SET UP DMA
     */
     // SPI and SPI_FLASH are the same IP so same register map
-    uint32_t *fifo_ptr_rx = spi.base_addr.base + SPI_HOST_RXDATA_REG_OFFSET;
+    uint32_t *fifo_ptr_rx = (uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET;
 
     // Init DMA, the integrated DMA is used (peri == NULL)
     dma_init(NULL);
@@ -837,7 +839,7 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
     // Take into account the extra bytes (if any)
     if (length % 4 != 0) {
         uint32_t last_word = 0;
-        spi_read_word(&spi, &last_word);
+        spi_read_word(spi, &last_word);
         memcpy(&data[length - length%4], &last_word, length%4);
     }
 
@@ -902,16 +904,16 @@ w25q_error_codes_t w25q128jw_4k_erase(uint32_t addr) {
 
     // Build and send erase command
     uint32_t erase_4k_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_SE);
-    spi_write_word(&spi, erase_4k_cmd);
-    spi_wait_for_ready(&spi);
+    spi_write_word(spi, erase_4k_cmd);
+    spi_wait_for_ready(spi);
     const uint32_t cmd_erase = spi_create_command((spi_command_t){
         .len        = 3,                 // 4 Bytes
         .csaat      = false,             // End command
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
-    spi_set_command(&spi, cmd_erase);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_erase);
+    spi_wait_for_ready(spi);
 
     // Wait for the erase operation to be finished
     flash_wait();
@@ -929,16 +931,16 @@ w25q_error_codes_t w25q128jw_32k_erase(uint32_t addr) {
 
     // Build and send erase command
     uint32_t erase_32k_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_BE32);
-    spi_write_word(&spi, erase_32k_cmd);
-    spi_wait_for_ready(&spi);
+    spi_write_word(spi, erase_32k_cmd);
+    spi_wait_for_ready(spi);
     const uint32_t cmd_erase = spi_create_command((spi_command_t){
         .len        = 3,                 // 4 Bytes
         .csaat      = false,             // End command
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
-    spi_set_command(&spi, cmd_erase);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_erase);
+    spi_wait_for_ready(spi);
 
     // Wait for the erase operation to be finished
     flash_wait();
@@ -956,16 +958,16 @@ w25q_error_codes_t w25q128jw_64k_erase(uint32_t addr) {
 
     // Build and send erase command
     uint32_t erase_64k_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | FC_BE64);
-    spi_write_word(&spi, erase_64k_cmd);
-    spi_wait_for_ready(&spi);
+    spi_write_word(spi, erase_64k_cmd);
+    spi_wait_for_ready(spi);
     const uint32_t cmd_erase = spi_create_command((spi_command_t){
         .len        = 3,                 // 4 Bytes
         .csaat      = false,             // End command
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
-    spi_set_command(&spi, cmd_erase);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_erase);
+    spi_wait_for_ready(spi);
 
     // Wait for the erase operation to be finished
     flash_wait();
@@ -979,16 +981,16 @@ void w25q128jw_chip_erase(void) {
     flash_write_enable();
 
     // Build and send erase command
-    spi_write_word(&spi, FC_CE);
-    spi_wait_for_ready(&spi);
+    spi_write_word(spi, FC_CE);
+    spi_wait_for_ready(spi);
     const uint32_t cmd_erase = spi_create_command((spi_command_t){
         .len        = 0,                 // 1 Bytes
         .csaat      = false,             // End command
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
-    spi_set_command(&spi, cmd_erase);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_erase);
+    spi_wait_for_ready(spi);
 
     // Wait for the erase operation to be finished
     flash_wait();
@@ -1015,15 +1017,15 @@ void w25q128jw_reset_force(void) {
 
 void w25q128jw_power_down(void) {
     // Build and send power down command
-    spi_write_word(&spi, FC_PD);
+    spi_write_word(spi, FC_PD);
     const uint32_t cmd_power_down = spi_create_command((spi_command_t){
         .len        = 0,                 // 1 Byte
         .csaat      = false,             // End command
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
-    spi_set_command(&spi, cmd_power_down);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_power_down);
+    spi_wait_for_ready(spi);
 }
 
 
@@ -1034,50 +1036,50 @@ void w25q128jw_power_down(void) {
 /****************************************************************************/
 
 static void flash_power_up(void) {
-    spi_write_word(&spi, FC_RPD);
-    spi_wait_for_ready(&spi);
+    spi_write_word(spi, FC_RPD);
+    spi_wait_for_ready(spi);
     const uint32_t cmd_powerup = spi_create_command((spi_command_t){
         .len        = 0,                 // 1 Byte
         .csaat      = false,             // End command
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
-    spi_set_command(&spi, cmd_powerup);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_powerup);
+    spi_wait_for_ready(spi);
 }
 
 static w25q_error_codes_t set_QE_bit(void) {
-    spi_set_rx_watermark(&spi,1);
+    spi_set_rx_watermark(spi,1);
 
     // Read Status Register 2
     const uint32_t reg2_read_cmd = FC_RSR2;
-    spi_write_word(&spi, reg2_read_cmd);
+    spi_write_word(spi, reg2_read_cmd);
 
     const uint32_t reg2_read_1 = spi_create_command((spi_command_t){
         .len        = 0,                 // 1 Byte
         .csaat      = true,              // Command not finished
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
-    spi_set_command(&spi, reg2_read_1);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, reg2_read_1);
+    spi_wait_for_ready(spi);
 
     const uint32_t reg2_read_2 = spi_create_command((spi_command_t){
         .len        = 0,                 // 1 Byte
         .csaat      = false,             // End command
-        .speed      = kSpiSpeedStandard, // Standard speed
-        .direction  = kSpiDirRxOnly      // Read only
+        .speed      = SPI_SPEED_STANDARD, // Standard speed
+        .direction  = SPI_DIR_RX_ONLY      // Read only
     });
-    spi_set_command(&spi, reg2_read_2);
-    spi_wait_for_ready(&spi);
-    spi_wait_for_rx_watermark(&spi);
+    spi_set_command(spi, reg2_read_2);
+    spi_wait_for_ready(spi);
+    spi_wait_for_rx_watermark(spi);
 
     /*
      * the partial word will be zero-padded and inserted into the RX FIFO once the segment is completed
      * The actual register is 8 bit, but the SPI host gives a full word
     */
     uint32_t reg2_data;
-    spi_read_word(&spi, &reg2_data);
+    spi_read_word(spi, &reg2_data);
 
     // Set bit in position 1 (QE bit), leaving the others unchanged
     reg2_data |= 0x2;
@@ -1087,42 +1089,42 @@ static w25q_error_codes_t set_QE_bit(void) {
 
     // Write Status Register 2 (set QE bit)
     const uint32_t reg2_write_cmd = FC_WSR2;
-    spi_write_word(&spi, reg2_write_cmd);
+    spi_write_word(spi, reg2_write_cmd);
 
     const uint32_t reg2_write_1 = spi_create_command((spi_command_t){
         .len        = 0,                 // 1 Byte
         .csaat      = true,              // Command not finished
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
-    spi_set_command(&spi, reg2_write_1);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, reg2_write_1);
+    spi_wait_for_ready(spi);
 
     // Load data to TX FIFO
-    spi_write_word(&spi, reg2_data);
+    spi_write_word(spi, reg2_data);
 
     // Create command segment
     const uint32_t reg2_write_2 = spi_create_command((spi_command_t){
         .len        = 0,                 // 1 Byte
         .csaat      = false,             // End command
-        .speed      = kSpiSpeedStandard, // Standard speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Standard speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
-    spi_set_command(&spi, reg2_write_2);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, reg2_write_2);
+    spi_wait_for_ready(spi);
 
     // Wait flash to complete write routine
     flash_wait();
 
     // Read back Status Register 2
-    spi_write_word(&spi, reg2_read_cmd);
-    spi_set_command(&spi, reg2_read_1);
-    spi_wait_for_ready(&spi);
-    spi_set_command(&spi, reg2_read_2);
-    spi_wait_for_ready(&spi);
-    spi_wait_for_rx_watermark(&spi);
+    spi_write_word(spi, reg2_read_cmd);
+    spi_set_command(spi, reg2_read_1);
+    spi_wait_for_ready(spi);
+    spi_set_command(spi, reg2_read_2);
+    spi_wait_for_ready(spi);
+    spi_wait_for_rx_watermark(spi);
     uint32_t reg2_data_check = 0x00;
-    spi_read_word(&spi, &reg2_data_check);
+    spi_read_word(spi, &reg2_data_check);
 
     // Check if the QE bit is set
     if ((reg2_data_check & 0x2) == 0) return FLASH_ERROR;
@@ -1148,60 +1150,60 @@ static void configure_spi(void) {
         .cpha       = 0,
         .cpol       = 0
     });
-    spi_set_configopts(&spi, 0, chip_cfg);
+    spi_set_configopts(spi, 0, chip_cfg);
 }
 
 static void flash_wait(void) {
-    spi_set_rx_watermark(&spi,1);
+    spi_set_rx_watermark(spi,1);
     bool flash_busy = true;
     uint8_t flash_resp[4] = {0xff,0xff,0xff,0xff};
 
     while(flash_busy){
         uint32_t flash_cmd = FC_RSR1; // [CMD] Read status register 1
-        spi_write_word(&spi, flash_cmd); // Push TX buffer
+        spi_write_word(spi, flash_cmd); // Push TX buffer
         uint32_t spi_status_cmd = spi_create_command((spi_command_t){
             .len        = 0,
             .csaat      = true,
-            .speed      = kSpiSpeedStandard,
-            .direction  = kSpiDirTxOnly
+            .speed      = SPI_SPEED_STANDARD,
+            .direction  = SPI_DIR_TX_ONLY
         });
         uint32_t spi_status_read_cmd = spi_create_command((spi_command_t){
             .len        = 0,
             .csaat      = false,
-            .speed      = kSpiSpeedStandard,
-            .direction  = kSpiDirRxOnly
+            .speed      = SPI_SPEED_STANDARD,
+            .direction  = SPI_DIR_RX_ONLY
         });
-        spi_set_command(&spi, spi_status_cmd);
-        spi_wait_for_ready(&spi);
-        spi_set_command(&spi, spi_status_read_cmd);
-        spi_wait_for_ready(&spi);
-        spi_wait_for_rx_watermark(&spi);
-        spi_read_word(&spi, (uint32_t *)flash_resp);
+        spi_set_command(spi, spi_status_cmd);
+        spi_wait_for_ready(spi);
+        spi_set_command(spi, spi_status_read_cmd);
+        spi_wait_for_ready(spi);
+        spi_wait_for_rx_watermark(spi);
+        spi_read_word(spi, (uint32_t *)flash_resp);
         if ((flash_resp[0] & 0x01) == 0) flash_busy = false;
     }
 }
 
 static void flash_reset(void) {
-    spi_write_word(&spi, FC_ERESET);
-    spi_write_word(&spi, FC_RESET);
-    spi_wait_for_ready(&spi);
+    spi_write_word(spi, FC_ERESET);
+    spi_write_word(spi, FC_RESET);
+    spi_wait_for_ready(spi);
 
     const uint32_t cmd_reset_enable = spi_create_command((spi_command_t){
         .len        = 0,                 // 1 Byte
         .csaat      = false,             // End command
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
-    spi_set_command(&spi, cmd_reset_enable);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_reset_enable);
+    spi_wait_for_ready(spi);
     const uint32_t cmd_reset = spi_create_command((spi_command_t){
         .len        = 0,                 // 1 Byte
         .csaat      = false,             // End command
-        .speed      = kSpiSpeedStandard, // Single speed
-        .direction  = kSpiDirTxOnly      // Write only
+        .speed      = SPI_SPEED_STANDARD, // Single speed
+        .direction  = SPI_DIR_TX_ONLY      // Write only
     });
-    spi_set_command(&spi, cmd_reset);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_reset);
+    spi_wait_for_ready(spi);
 }
 
 w25q_error_codes_t erase_and_write(uint32_t addr, uint8_t *data, uint32_t length) {
@@ -1300,15 +1302,15 @@ static w25q_error_codes_t page_write(uint32_t addr, uint8_t *data, uint32_t leng
      * The command is picked based on the quad flag.
     */
     const uint32_t write_byte_cmd = ((REVERT_24b_ADDR(addr & 0x00ffffff) << 8) | (quad ? FC_PPQ : FC_PP));
-    spi_write_word(&spi, write_byte_cmd);
+    spi_write_word(spi, write_byte_cmd);
     const uint32_t cmd_write = spi_create_command((spi_command_t){
         .len        = 3,
         .csaat      = true,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
+        .speed      = SPI_SPEED_STANDARD,
+        .direction  = SPI_DIR_TX_ONLY
     });
-    spi_set_command(&spi, cmd_write);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_write);
+    spi_wait_for_ready(spi);
 
     /*
      * Place data in TX FIFO
@@ -1320,14 +1322,14 @@ static w25q_error_codes_t page_write(uint32_t addr, uint8_t *data, uint32_t leng
     } else {
         uint32_t *data_32bit = (uint32_t *)data;
         for (int i = 0; i < length>>2; i++) {
-            spi_wait_for_tx_not_full(&spi);
-            spi_write_word(&spi, data_32bit[i]);
+            spi_wait_for_tx_not_full(spi);
+            spi_write_word(spi, data_32bit[i]);
         }
         if (length % 4 != 0) {
             uint32_t last_word = 0;
             memcpy(&last_word, &data[length - length % 4], length % 4);
-            spi_wait_for_tx_not_full(&spi);
-            spi_write_word(&spi, last_word);
+            spi_wait_for_tx_not_full(spi);
+            spi_write_word(spi, last_word);
         }
     }
 
@@ -1338,11 +1340,11 @@ static w25q_error_codes_t page_write(uint32_t addr, uint8_t *data, uint32_t leng
     const uint32_t cmd_write_2 = spi_create_command((spi_command_t){
         .len        = length-1,
         .csaat      = false,
-        .speed      = quad ? kSpiSpeedQuad : kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
+        .speed      = quad ? SPI_SPEED_QUAD : SPI_SPEED_STANDARD,
+        .direction  = SPI_DIR_TX_ONLY
     });
-    spi_set_command(&spi, cmd_write_2);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_write_2);
+    spi_wait_for_ready(spi);
 
     // Wait for flash to be ready again (FPGA only)
     #ifndef TARGET_SIM
@@ -1352,7 +1354,7 @@ static w25q_error_codes_t page_write(uint32_t addr, uint8_t *data, uint32_t leng
 
 static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
     // SPI and SPI_FLASH are the same IP so same register map
-    uint32_t *fifo_ptr_tx = spi.base_addr.base + SPI_HOST_TXDATA_REG_OFFSET;
+    uint32_t *fifo_ptr_tx = (uintptr_t)spi + SPI_HOST_TXDATA_REG_OFFSET;
 
     // Init DMA, the integrated DMA is used (peri == NULL)
     dma_init(NULL);
@@ -1409,22 +1411,22 @@ static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
     if (length % 4 != 0) {
         uint32_t last_word = 0;
         memcpy(&last_word, &data[length - length % 4], length % 4);
-        spi_wait_for_tx_not_full(&spi);
-        spi_write_word(&spi, last_word);
+        spi_wait_for_tx_not_full(spi);
+        spi_write_word(spi, last_word);
     }
     return FLASH_OK;
 }
 
 static void flash_write_enable(void) {
-    spi_write_word(&spi, FC_WE);
+    spi_write_word(spi, FC_WE);
     const uint32_t cmd_write_en = spi_create_command((spi_command_t){
         .len        = 0,
         .csaat      = false,
-        .speed      = kSpiSpeedStandard,
-        .direction  = kSpiDirTxOnly
+        .speed      = SPI_SPEED_STANDARD,
+        .direction  = SPI_DIR_TX_ONLY
     });
-    spi_set_command(&spi, cmd_write_en);
-    spi_wait_for_ready(&spi);
+    spi_set_command(spi, cmd_write_en);
+    spi_wait_for_ready(spi);
 }
 
 static w25q_error_codes_t w25q128jw_sanity_checks(uint32_t addr, uint8_t *data, uint32_t length) {

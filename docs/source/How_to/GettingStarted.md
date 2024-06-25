@@ -2,7 +2,29 @@
 
 ## Docker setup
 
+A docker image containing all the required software dependancies is available on [github-packages](https://github.com/orgs/esl-epfl/packages/container/package/x-heep-toolchain).
 
+It is only required to install docker and pull the image.
+
+```bash
+docker pull ghcr.io/esl-epfl/x-heep-toolchain:latest
+```
+
+Assuming that X-HEEP has been cloned to `X-HEEP-DIR=\absolute\path\to\x-HEEP\folder`, it is possible to directly run the docker mounting `X-HEEP-DIR` to the path `\workspace\x-heep` in the docker.
+
+```bash
+docker run -it -v ${X-HEEP-DIR}:/workspace/x-heep ghcr.io/esl-epfl/x-heep-toolchain
+```
+
+:warning: Take care to indicate the absolute path to the local clone of X-HEEP, otherwise docker will not be able to properly mount the local folder in the container.
+
+All the command listed in the README can be execute in the docker container, except for:
+
+- Simulation with Questasim and VCS, synthesis with Design Compiler (licenses are required to use these tools, so they are not installed in the container)
+
+- OpenRoad flow is not installed in the container, so it is not possible to run the related make commands
+
+- Synthesis with Vivado could be possible, but currently is untested
 
 ## Manual setup
 
