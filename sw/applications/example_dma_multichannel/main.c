@@ -318,10 +318,16 @@ int main()
                         dma_peri(i) );
 
         /* Data type configuration */
-        write_register( DMA_DATA_TYPE,
-                        DMA_DATA_TYPE_REG_OFFSET,
-                        DMA_DATA_TYPE_DATA_TYPE_MASK,
-                        DMA_DATA_TYPE_DATA_TYPE_OFFSET,
+        write_register(  DMA_DATA_TYPE,
+                        DMA_DST_DATA_TYPE_REG_OFFSET,
+                        DMA_DST_DATA_TYPE_DATA_TYPE_MASK,
+                        DMA_DST_DATA_TYPE_DATA_TYPE_OFFSET,
+                        dma_peri(i)  );
+    
+        write_register(  DMA_DATA_TYPE,
+                        DMA_SRC_DATA_TYPE_REG_OFFSET,
+                        DMA_SRC_DATA_TYPE_DATA_TYPE_MASK,
+                        DMA_SRC_DATA_TYPE_DATA_TYPE_OFFSET,
                         dma_peri(i) );
 
         /* Set the source strides */
@@ -1107,11 +1113,11 @@ int main()
     }
 
     /* Pick the correct spi device based on simulation type */
-    spi_host_t spi;
+    spi_host_t *spi;
     #ifndef USE_SPI_FLASH
-    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
+    spi = spi_host1;
     #else
-    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
+    spi = spi_flash;
     #endif
 
     /* Init SPI host and SPI<->Flash bridge parameters */

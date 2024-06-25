@@ -37,8 +37,8 @@ int main(){
 
     static uint32_t value = CONST_VALUE;
 
-    dma_fill( &source, &value, SOURCE_BUFFER_SIZE_32b );
-    dma_copy_32b( &destin, &source, SOURCE_BUFFER_SIZE_32b );
+    dma_fill( &source, &value, SOURCE_BUFFER_SIZE_32b, 0);
+    dma_copy_32b( &destin, &source, SOURCE_BUFFER_SIZE_32b, 0);
 
     uint32_t i;
     uint32_t errors = 0;
