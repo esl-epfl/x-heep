@@ -3,7 +3,8 @@
  * Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
  * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
  *
- * Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
+ * Author: Tommaso Terzano <tommaso.terzano@epfl.ch> 
+ *                         <tommaso.terzano@gmail.com>
  *  
  * Info: DMA subsystem, it instantiates 1 to 8 DMA channels and manages the data transfers.
  */

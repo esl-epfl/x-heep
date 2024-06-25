@@ -4,6 +4,7 @@
     SPDX-License-Identifier: Apache-2.0
 
     Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
+                            <tommaso.terzano@gmail.com>
 
     Info: im2col_lib.c describes functions used to calculate im2col and verify it using 
     the golden result in im2colGolden.c.
@@ -770,94 +771,94 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     return 0;
 }
 
-int im2col_nhwc_int32(uint8_t test_id, unsigned int *cycles) 
-{
-    /* Implementation of the nhwc im2col algorithm using the DMA 2D feature */
+// int im2col_nhwc_int32(uint8_t test_id, unsigned int *cycles) 
+// {
+//     /* Implementation of the nhwc im2col algorithm using the DMA 2D feature */
 
-    /* Iterate over each row of the output matrix. */
-    int size_transfer = 0;
-    int im_row = 0;
-    int im_col = 0;
-    int w_offset = 0;  
-    int h_offset = 0; 
-    int im_c = 0; 
-    int col_index = 0;
-    unsigned int cycles_A = 0;
-    unsigned int cycles_B = 0;
+//     /* Iterate over each row of the output matrix. */
+//     int size_transfer = 0;
+//     int im_row = 0;
+//     int im_col = 0;
+//     int w_offset = 0;  
+//     int h_offset = 0; 
+//     int im_c = 0; 
+//     int col_index = 0;
+//     unsigned int cycles_A = 0;
+//     unsigned int cycles_B = 0;
 
-    #if TIMING
-        CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-        CSR_WRITE(CSR_REG_MCYCLE, 0);
-        CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
-    #endif
+//     #if TIMING
+//         CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+//         CSR_WRITE(CSR_REG_MCYCLE, 0);
+//         CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
+//     #endif
 
-    if (test_id == 0)
-    {
-        /* Calculate the heigth of the output matrix */
+//     if (test_id == 0)
+//     {
+//         /* Calculate the heigth of the output matrix */
 
-        #if TIMING  
-        CSR_READ(CSR_REG_MCYCLE, &cycles_A);
-        #endif
+//         #if TIMING  
+//         CSR_READ(CSR_REG_MCYCLE, &cycles_A);
+//         #endif
 
-        /* Iterate over each row of the output matrix. */
-        for (int b = 0; b < BATCH; ++b) {
-            /* Iterate over each BATCH. */
-            for (int h = 0; h < N_PATCHES_H; ++h) {
-                /* Iterate over each patch on the IW of the input matrix. */
-                for (int w = 0; w < N_PATCHES_W; ++w) {
-                    /* Iterate over each patch on the heigth in the output matrix. */
-                    for (int c = 0; c < CH_COL; ++c) {
-                        /* Calculate offsets within the kernel window. */
-                        /* These are used to move the filter around the input image */
+//         /* Iterate over each row of the output matrix. */
+//         for (int b = 0; b < BATCH; ++b) {
+//             /* Iterate over each BATCH. */
+//             for (int h = 0; h < N_PATCHES_H; ++h) {
+//                 /* Iterate over each patch on the IW of the input matrix. */
+//                 for (int w = 0; w < N_PATCHES_W; ++w) {
+//                     /* Iterate over each patch on the heigth in the output matrix. */
+//                     for (int c = 0; c < CH_COL; ++c) {
+//                         /* Calculate offsets within the kernel window. */
+//                         /* These are used to move the filter around the input image */
 
-                        w_offset = c % FW;  
-                        h_offset = (c / FW) % FH;
-                        im_c = c / (FH * FW); /* Gets the CH on which the im2col is being performed depending on the row of the output image (c) */
+//                         w_offset = c % FW;  
+//                         h_offset = (c / FW) % FH;
+//                         im_c = c / (FH * FW); /* Gets the CH on which the im2col is being performed depending on the row of the output image (c) */
                         
-                        /* Calculate the row and column indices in the original input image, applying the stride and offset. */
-                        im_row = h_offset + h * STRIDES - PAD;
-                        im_col = w_offset + w * STRIDES - PAD;
+//                         /* Calculate the row and column indices in the original input image, applying the stride and offset. */
+//                         im_row = h_offset + h * STRIDE_D2 - TOP_PAD;
+//                         im_col = w_offset + w * STRIDE_D1 - LEFT_PAD;
 
-                        /* Calculate the index in the flattened output array where this value should be stored. */
-                        col_index = ((b * N_PATCHES_H + h) * N_PATCHES_W + w) * CH_COL + c; 
+//                         /* Calculate the index in the flattened output array where this value should be stored. */
+//                         col_index = ((b * N_PATCHES_H + h) * N_PATCHES_W + w) * CH_COL + c; 
 
-                        /* If the calculated indices are outside the bounds of the input image, set the output to 0 (padding effect).
-                        /* Otherwise, fetch the value from the input image and store it in the output array. */
-                        if (im_row < 0 || im_col < 0 || im_row >= IH || im_col >= IW) {
-                            output_data[col_index] = 0;
-                        } else {
-                            output_data[col_index] = input_image_nhwc[get_index(IH, IW, CH, b, im_row, im_col, im_c)];
-                        }                    
-                    }
-                }
-            }
-        }
-        #if TIMING  
-        CSR_READ(CSR_REG_MCYCLE, &cycles_B);
-        *cycles = (cycles_B - cycles_A);
-        #endif
-    } 
+//                         /* If the calculated indices are outside the bounds of the input image, set the output to 0 (padding effect).
+//                         /* Otherwise, fetch the value from the input image and store it in the output array. */
+//                         if (im_row < 0 || im_col < 0 || im_row >= IH || im_col >= IW) {
+//                             output_data[col_index] = 0;
+//                         } else {
+//                             output_data[col_index] = input_image_nhwc[get_index(IH, IW, CH, b, im_row, im_col, im_c)];
+//                         }                    
+//                     }
+//                 }
+//             }
+//         }
+//         #if TIMING  
+//         CSR_READ(CSR_REG_MCYCLE, &cycles_B);
+//         *cycles = (cycles_B - cycles_A);
+//         #endif
+//     } 
 
-    else if (test_id == 2)
-    {
+//     else if (test_id == 2)
+//     {
 
-    }
+//     }
 
-    #if DEBUG
-    PRINTF("Final output matrix:\n\r\n\r");
-    for (int i=0; i<OH_NHWC; i++)
-    {
-        for (int j=0; j<OW_NHWC; j++)
-        {
-            PRINTF("%d ", output_data[i*OW_NHWC + j]);
-        }
-        PRINTF("\n\r");
-    }
-    #endif
+//     #if DEBUG
+//     PRINTF("Final output matrix:\n\r\n\r");
+//     for (int i=0; i<OH_NHWC; i++)
+//     {
+//         for (int j=0; j<OW_NHWC; j++)
+//         {
+//             PRINTF("%d ", output_data[i*OW_NHWC + j]);
+//         }
+//         PRINTF("\n\r");
+//     }
+//     #endif
 
-    /* Return a 0 to indicate a success */
-    return 0;
-}
+//     /* Return a 0 to indicate a success */
+//     return 0;
+// }
 
 
 int get_index(int dim1, int dim2, int dim3, int index0, int index1, int index2,

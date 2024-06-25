@@ -4,6 +4,7 @@
     SPDX-License-Identifier: Apache-2.0
 
     Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
+ *                         <tommaso.terzano@gmail.com>
     
     Info: Header file of im2col_lib.c, containing the function prototypes, parameters macros and the configuration of prints and performance analysis.
 */
@@ -36,7 +37,7 @@
 
 /* Defines how many channels of the DMA are available to the SPC, depending on HW specifications */
 //@ToDo: see what include in the open source version
-#define SPC_CH_NUM 3 
+#define SPC_CH_NUM 2 
 
 /* Base address of the im2col SPC */
 #define IM2COL_SPC_BASE_ADDR EXT_PERIPHERAL_START_ADDRESS + 0x4000
@@ -100,7 +101,7 @@
 #define SRC_INC_D2 (STRIDE_D2 * IW - (FW - 1 + (STRIDE_D1 - 1) * (FW - 1)))
 
 int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles);
-int im2col_nhwc_int32(uint8_t test_id, unsigned int *cycles);
+//int im2col_nhwc_int32(uint8_t test_id, unsigned int *cycles);
 
 int get_index(int dim1, int dim2, int dim3, int index0, int index1, int index2, int index3);
                 

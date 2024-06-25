@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
  *
  * Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
+ *                         <tommaso.terzano@gmail.com>
  *  
  * Info: This module defines the interface structure for the DMA registers.
  */

@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
+ *                         <tommaso.terzano@gmail.com>
  *  
  *  Info: This is the driver library of the im2col SPC (Smart Peripheral Controller). 
  *        It defines functions and structures to easly define, verify and launch the im2col SPC.

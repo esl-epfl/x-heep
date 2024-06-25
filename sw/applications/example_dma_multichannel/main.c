@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
+ *                         <tommaso.terzano@gmail.com>
  *  
  *  Info: Example application of matrix manipulation by exploiting the multichannel feature of the DMA subsystem.
  *        This code is capable of testing the following features:

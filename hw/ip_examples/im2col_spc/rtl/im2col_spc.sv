@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
  *
  * Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
+ *                         <tommaso.terzano@gmail.com>
  *  
  * Info: Im2col accelerator implemented as a Smart Peripheral Controller. It accesses the DMA CH0 to perform
  *       the matrix manipulation operation known as "image to column" (im2col), which enables efficient

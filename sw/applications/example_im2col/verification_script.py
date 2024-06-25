@@ -146,8 +146,8 @@ def shl_save(tensor, variable_name, dim, row_len):
 # Parameters of the random image, padding excluded
 image_height = 10
 image_width = 10
-channels = 2
-batch = 3
+channels = 1
+batch = 1
 
 # Parameters of the filter
 filter_height = 2
@@ -180,6 +180,7 @@ with open('im2colGolden.h', 'w') as f:
     f.write("/*\n   Copyright EPFL contributors.\n  Licensed under the Apache License, Version 2.0, see LICENSE for details.\n")
     f.write("  SPDX-License-Identifier: Apache-2.0\n\n")
     f.write("  Author: Tommaso Terzano <tommaso.terzano@epfl.ch>\n\n")
+    f.write("                          <tommaso.terzano@gmail.com>\n\n")
     f.write("  Info: Header file of im2colGolden, contains activations parameters and the prototypes of both input tensors and golden output.\n*/\n\n")
     f.write('#ifndef IMAGE_AND_COL_H\n')
     f.write('#define IMAGE_AND_COL_H\n\n')
@@ -211,6 +212,7 @@ with open('im2colGolden.c', 'w') as f:
     f.write("/*\n   Copyright EPFL contributors.\n  Licensed under the Apache License, Version 2.0, see LICENSE for details.\n")
     f.write("  SPDX-License-Identifier: Apache-2.0\n\n")
     f.write("  Author: Tommaso Terzano <tommaso.terzano@epfl.ch>\n\n")
+    f.write("                          <tommaso.terzano@gmail.com>\n\n")
     f.write("  Info: Contains randomly generated input activations and the golden result of the im2col algorithm, computed with either Pytorch or Tensorflow,\n  depending on the format.\n*/\n\n")
 
     f.write('#include "im2colGolden.h"\n\n')

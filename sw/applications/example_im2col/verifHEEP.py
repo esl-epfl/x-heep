@@ -164,6 +164,7 @@ for i in range(1, num_channels_dma):
                                                     pattern = re.compile(r'im2col NCHW test (\d+) executed')
                                                     pattern_2 = re.compile(r'Total number of cycles: \[(\d+)\]')
                                                     err_pattern = re.compile(r'ERROR')
+                                                    err_pattern_small = re.compile(r'error')
                                                     #print(result.stdout)
 
                                                     # Array to store the cycles for each test
@@ -178,12 +179,13 @@ for i in range(1, num_channels_dma):
                                                         match = pattern.search(line)
                                                         match_2 = pattern_2.search(line)
                                                         err_match = err_pattern.search(line)
+                                                        err_match_small = err_pattern_small.search(line)
                                                         if match:
                                                             test_number = match.group(1)
                                                         elif match_2:
                                                             cycle_count = match_2.group(1)
                                                             cycles.append((test_number, cycle_count))
-                                                        elif err_match:
+                                                        elif err_match or err_match_small:
                                                             print("ERROR FOUND")
                                                             break
                                                     

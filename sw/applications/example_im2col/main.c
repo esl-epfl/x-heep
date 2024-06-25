@@ -4,6 +4,7 @@
     SPDX-License-Identifier: Apache-2.0
 
     Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
+                            <tommaso.terzano@gmail.com>
     
     Info: Example application of im2col algorithm with configurable format, verification and performance analysis.
 */
