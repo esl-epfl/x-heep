@@ -10,14 +10,28 @@ module axi2obi #(
 ) (
 
     // RISC-V interface ports
-    input  logic                             gnt_i,
-    input  logic                             rvalid_i,
-    output logic                             we_o,
-    output logic [                      3:0] be_o,
-    output logic [C_S00_AXI_ADDR_WIDTH -1:0] addr_o,
-    output logic [C_S00_AXI_DATA_WIDTH -1:0] wdata_o,   //output logic [WordSize-1:0] wdata_i,
-    input  logic [C_S00_AXI_DATA_WIDTH -1:0] rdata_i,
-    output logic                             req_o,
+    input logic gnt_i,  // granted that serial link can access the bus 
+    //input  logic                             rvalid_i,
+    //output logic                             we_o,
+    //output logic [                      3:0] be_o,
+    //output logic [C_S00_AXI_ADDR_WIDTH -1:0] addr_o,
+    //output logic [C_S00_AXI_DATA_WIDTH -1:0] wdata_o,   //output logic [WordSize-1:0] wdata_i,
+    //input  logic [C_S00_AXI_DATA_WIDTH -1:0] rdata_i,
+    //output logic                             req_o,
+
+
+    // Clock and Reset
+    //input logic                           clk_i,
+    //input logic                           rst_ni,
+
+    input  logic                            data_req_i,
+    output logic                            data_gnt_o,
+    output logic                            data_rvalid_o,
+    input  logic [C_S00_AXI_ADDR_WIDTH-1:0] data_addr_i,
+    input  logic                            data_we_i,
+    input  logic [                     3:0] data_be_i,
+    output logic [                    31:0] data_rdata_o,
+    input  logic [                    31:0] data_wdata_i,
 
 
     // Ports of Axi Slave Bus Interface S00_AXI
@@ -66,12 +80,12 @@ module axi2obi #(
 );
   enum logic [2:0] {
     IDLE,
-    READ1,
-    READ2,
-    READ3,
-    WRITE1,
-    WRITE2,
-    WRITE3
+    WRITE_REQ_SL,
+    WRITE_REQ_BUFFER,     // address phase OBI
+    WRITE_REQ_HANDSHAKE,  // data phase OBI
+    READ_REQ_SL,
+    READ_REQ_BUFFER,      // address phase OBI
+    READ_REQ_HANDSHAKE    // data phase OBI
   }
       CS, NS;
 
@@ -84,35 +98,42 @@ module axi2obi #(
   logic [C_S00_AXI_DATA_WIDTH-1:0] curr_rdata;
   logic [C_S00_AXI_DATA_WIDTH-1:0] next_rdata;
 
+
+
+
+
+
+
+
   assign s00_axi_rresp = '0;
   assign s00_axi_bresp = '0;
 
   //(clk) begin
   always @(posedge s00_axi_aclk or negedge s00_axi_aresetn) begin : FSM_SEQ
     if (!s00_axi_aresetn) begin
-        CS <= IDLE;
+      CS <= IDLE;
     end else begin
-        CS <= NS;
+      CS <= NS;
     end
-end
+  end
 
 
   //always @(clk) begin
-  always @(posedge s00_axi_aclk) begin
+  always @(posedge s00_axi_aclk or negedge s00_axi_aresetn) begin
     if (!s00_axi_aresetn) begin
-      assign curr_addr = '0;
-      assign curr_wdata = '0;
-      assign curr_rdata = '0;
+      curr_addr  = '0;
+      curr_wdata = '0;
+      curr_rdata = '0;
     end else begin
-      assign curr_addr = next_addr;
-      assign curr_wdata = next_wdata;
-      assign curr_rdata = next_rdata;
+      curr_addr  = next_addr;
+      curr_wdata = next_wdata;
+      curr_rdata = next_rdata;
     end
-
   end
+
   //end
-  assign addr_o = curr_addr;
-  assign wdata_o = curr_wdata;
+  //assign addr_o = curr_addr;
+
   assign s00_axi_rdata = curr_rdata;
 
   always_comb begin
@@ -121,9 +142,11 @@ end
     next_wdata = curr_wdata;
     next_rdata = curr_rdata;
 
-    we_o = '0;
-    be_o = '0;
-    req_o = '0;
+    //we_o = '0;
+    //be_o = '0;
+    //req_o = '0;
+    data_gnt_o = '0;
+    data_rvalid_o = '0;
 
     s00_axi_arready = '0;
     s00_axi_rvalid = '0;
@@ -135,85 +158,60 @@ end
       // wait for a request to come in from the serial link
       IDLE: begin
         if (s00_axi_arvalid) begin
-          assign NS = READ1;
-          assign next_addr = s00_axi_araddr;
-          assign s00_axi_arready = '1;
-        end else if (s00_axi_awvalid == '1 & s00_axi_wvalid == '1) begin
-          assign next_addr = s00_axi_awaddr;
-          assign next_wdata = s00_axi_wdata;
-          assign s00_axi_awready = '1;
-          assign s00_axi_wready = '1;
-          assign NS = WRITE1;
+          NS = READ_REQ_SL;
+          next_addr = s00_axi_araddr;
+          s00_axi_arready = '1;
+          data_gnt_o = '1;
+        end else if (s00_axi_awvalid == '1 && s00_axi_wvalid == '0) begin
+          next_addr = s00_axi_awaddr;
+          s00_axi_awready = '1;
+          NS = WRITE_REQ_SL;
         end else begin
-          assign NS = IDLE;
+          NS = IDLE;
         end
       end
-      READ1: begin
-        req_o = '1;
-        we_o  = '0;
-        be_o  = '1;
-        if (gnt_i) begin
-          assign NS = READ2;
-        end else begin
-          assign NS = READ1;
-        end
+      WRITE_REQ_SL: begin
+        if (s00_axi_wvalid == '1) begin
+          NS = WRITE_REQ_HANDSHAKE;
+          next_rdata = s00_axi_wdata;
 
-      end
-      READ2: begin
-        req_o = '0;
-        we_o  = '0;
-        be_o  = '1;
 
-        if (rvalid_i) begin
-          assign next_rdata = rdata_i;
-          assign NS = READ3;
-        end else begin
-          assign NS = READ2;
         end
       end
-      READ3: begin
+      WRITE_REQ_HANDSHAKE: begin
+        if (s00_axi_wvalid == '1 && data_req_i == '1) begin
+          NS = WRITE_REQ_BUFFER;
+          data_gnt_o = '1;
+        end
+      end
+      WRITE_REQ_BUFFER: begin
+        if (s00_axi_wvalid == '1 && data_we_i == '0) begin
+          data_rvalid_o = '1;
+          s00_axi_wready = '1;
+          data_rdata_o = curr_rdata;
+          NS = IDLE;
+        end
+      end
+      READ_REQ_SL: begin
+        //if (data_req_i == '1 && data_we_i == '1) begin //&& data_req_i == '1 && data_we_i == '1 in  case we have OBI request
+
+        NS = READ_REQ_BUFFER;
+        next_rdata = 00000001;
         s00_axi_rvalid = '1;
-
-        if (s00_axi_rready) begin
-          assign NS = IDLE;
-        end else begin
-          assign NS = READ3;
-        end
+        //end
       end
-      WRITE1: begin
-        req_o = '1;
-        we_o  = '1;
-        be_o  = '1;
+      READ_REQ_BUFFER: begin
+        //if (data_req_i == '1 && data_we_i == '1) begin //&& data_req_i == '1 && data_we_i == '1 in  case we have OBI request
 
-        if (gnt_i) begin
-          assign NS = WRITE2;
-        end else begin
-          assign NS = WRITE1;
-        end
+        NS = IDLE;
+        next_rdata = 00000001;
+        s00_axi_rvalid = '1;
+        //end
       end
-      WRITE2: begin
-        req_o = '0;
-        we_o  = '1;
-        be_o  = '1;
-
-        if (rvalid_i) begin
-          assign NS = WRITE3;
-        end else begin
-          assign NS = WRITE2;
-        end
-      end
-      WRITE3: begin
-        assign s00_axi_bvalid = '1;
-        if (s00_axi_bready) begin  //if(s00_axi_bready='1')
-          assign NS = IDLE;
-        end else begin
-          assign NS = WRITE3;
-        end
-      end
-
 
     endcase
   end
+
 
 
 endmodule

@@ -213,7 +213,6 @@ module testharness #(
       .gpio_14_io(gpio[14]),
       .gpio_15_io(gpio[15]),
       .gpio_16_io(gpio[16]),
-      .gpio_17_io(gpio[17]),
       .spi_flash_sck_io(spi_flash_sck),
       .spi_flash_cs_0_io(spi_flash_csb[0]),
       .spi_flash_cs_1_io(spi_flash_csb[1]),
@@ -597,13 +596,13 @@ module testharness #(
 
 
       obi_req_t sl_obi2axi_req;
-      assign sl_obi2axi_req = ext_master_req[testharness_pkg::EXT_MASTER4_IDX];//ext_master_req[testharness_pkg::SL_EXT_IDX];
+      assign sl_obi2axi_req = ext_master_req[testharness_pkg::EXT_MASTER4_IDX];//ext_master_req[testharness_pkg::EXT_MASTER4_IDX];
       obi_resp_t sl_obi2axi_resp;
-      assign sl_obi2axi_resp = ext_master_resp[testharness_pkg::EXT_MASTER4_IDX];//ext_master_resp[testharness_pkg::SL_EXT_IDX];
+      assign next_master_resp[testharness_pkg::EXT_MASTER4_IDX] = sl_obi2axi_resp ;//ext_master_resp[testharness_pkg::EXT_MASTER4_IDX];
       obi_req_t sl_axi2obi_req;
-      assign sl_axi2obi_req = ext_master_req[testharness_pkg::SL_EXT_IDX];//ext_master_req[testharness_pkg::EXT_MASTER4_IDX];
+      assign sl_axi2obi_req =ext_slave_req[testharness_pkg::SL_EXT_IDX];// ext_master_req[testharness_pkg::SL_EXT_IDX];
       obi_resp_t sl_axi2obi_resp;
-      assign sl_axi2obi_resp = ext_master_resp[testharness_pkg::SL_EXT_IDX];//ext_master_resp[testharness_pkg::EXT_MASTER4_IDX];
+      assign ext_slave_resp[testharness_pkg::SL_EXT_IDX]=sl_axi2obi_resp ;// ext_master_resp[testharness_pkg::SL_EXT_IDX];
       core_v_mini_mcu_pkg::axi_req_t axi_in_req_i, axi_out_req_o;
       core_v_mini_mcu_pkg::axi_resp_t axi_in_rsp_o, axi_out_rsp_i;
       //serial_link_single_channel_reg_pkg::reg_req_t cfg_req_ext;
@@ -706,14 +705,26 @@ module testharness #(
       //.C_S00_AXI_DATA_WIDTH(AXI_DATA_WIDTH),
       //.C_S00_AXI_ADDR_WIDTH(AXI_ADDR_WIDTH)
       ) axi2obi_bridge_virtual_r_obi_i (
-          .gnt_i(sl_axi2obi_resp.gnt),
-          .rvalid_i(sl_axi2obi_resp.rvalid),
-          .we_o(sl_axi2obi_req.we),
-          .be_o(sl_axi2obi_req.be),
-          .addr_o(sl_axi2obi_req),
-          .wdata_o(sl_axi2obi_req.wdata),
-          .rdata_i(sl_axi2obi_resp.rdata),
-          .req_o(sl_axi2obi_req.req),
+          //.gnt_ sp.gnt),
+          .gnt_i('1),
+          //.rvalid_i(sl_axi2obi_resp.rvalid),
+          //.we_o(sl_axi2obi_req.we),
+          //.be_o(sl_axi2obi_req.be),
+          //.addr_o(sl_axi2obi_req),
+          //.wdata_o(sl_axi2obi_req.wdata),
+          //.rdata_i(sl_axi2obi_resp.rdata),
+          //.req_o(sl_axi2obi_req.req),
+
+
+          .data_req_i(sl_axi2obi_req.req),
+          .data_gnt_o(sl_axi2obi_resp.gnt),
+          .data_rvalid_o(sl_axi2obi_resp.rvalid),
+          .data_addr_i(sl_axi2obi_req.addr),
+          .data_we_i(sl_axi2obi_req.we),
+          .data_be_i(sl_axi2obi_req.be),
+          .data_rdata_o(sl_axi2obi_resp.rdata),
+          .data_wdata_i(sl_axi2obi_req.wdata),
+
 
           .s00_axi_aclk(clk_i),
           .s00_axi_aresetn(rst_ni),

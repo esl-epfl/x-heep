@@ -133,8 +133,7 @@ import serial_link_pkg::*;
 
 
 
-  localparam int MaxAxiChannelBits = 83;//serial_link_pkg::find_max_channel(AxiChannels);//83
-  // 53 numero magico, in realta esce dal valore di wdata_t di axi. Guarda serial_link_network
+  localparam int MaxAxiChannelBits = 83;//serial_link_pkg::find_max_channel(AxiChannels);// axi_aw
 
   // The payload that is converted into an AXI stream consists of
   // 1) AXI Beat
@@ -157,9 +156,9 @@ import serial_link_pkg::*;
   localparam int StreamDataBytes = ($bits(payload_t) + 7) / 8;
   localparam int CheckBitsVerilogFunction_Payload = $bits(payload_t);
   localparam int CheckBitsVerilogFunction_B = $bits(b_chan_t);
-  localparam int CheckBitsVerilogFunction_AW = $bits(aw_chan_t);
+  localparam int CheckBitsVerilogFunction_AW = $bits(aw_chan_t); //83
   localparam int CheckBitsVerilogFunction_W = $bits(w_chan_t);
-  localparam int CheckBitsVerilogFunction_AR = $bits(ar_chan_t);
+  localparam int CheckBitsVerilogFunction_AR = $bits(ar_chan_t); //77
   localparam int CheckBitsVerilogFunction_R = $bits(r_chan_t);
 
   // Typdefs for Axi Stream interface

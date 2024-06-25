@@ -611,7 +611,8 @@ ${pad.core_v_mini_mcu_interface}
     .r_resp_i(axi_out_rsp_i.r.resp),
     .r_last_i(axi_out_rsp_i.r.last),
     .r_user_i(axi_out_rsp_i.r.user), //.r_user_i('0),
-    .r_valid_i(axi_out_rsp_i.r_valid),
+    //.r_valid_i(axi_out_rsp_i.r_valid),
+    .r_valid_i('1),
     .r_ready_o(axi_out_req_o.r_ready)
     //.r_size
   );
@@ -629,14 +630,31 @@ ${pad.core_v_mini_mcu_interface}
     //.C_S00_AXI_DATA_WIDTH(AXI_DATA_WIDTH),
     //.C_S00_AXI_ADDR_WIDTH(AXI_ADDR_WIDTH)
   ) axi2obi_bridge_virtual_r_obi_i (
-    .gnt_i(axi_sl_m_resp.gnt),
-    .rvalid_i(axi_sl_m_resp.rvalid),
-    .we_o(axi_sl_m_req.we),
-    .be_o(axi_sl_m_req.be),
-    .addr_o(axi_sl_m_req),
-    .wdata_o(axi_sl_m_req.wdata),
-    .rdata_i(axi_sl_m_resp.rdata),
-    .req_o(axi_sl_m_req.req),
+    //.gnt_i(axi_sl_m_resp.gnt),
+    .gnt_i('1),
+    //.rvalid_i(axi_sl_m_resp.rvalid),
+    //.we_o(axi_sl_m_req.we),
+    //.be_o(axi_sl_m_req.be),
+    //.addr_o(axi_sl_m_req),
+    //.wdata_o(axi_sl_m_req.wdata),
+    //.rdata_i(axi_sl_m_resp.rdata),
+    //.req_o(axi_sl_m_req.req),
+
+
+          .data_req_i(axi_sl_m_req.req),
+          .data_gnt_o(axi_sl_m_resp.gnt),
+          .data_rvalid_o(axi_sl_m_resp.rvalid),
+          .data_addr_i(axi_sl_m_req.addr),
+          .data_we_i(axi_sl_m_req.we),
+          .data_be_i(axi_sl_m_req.be),
+          .data_rdata_o(axi_sl_m_resp.rdata),
+          .data_wdata_i(axi_sl_m_req.wdata),
+
+
+
+
+
+
 
     .s00_axi_aclk(clk_i),
     .s00_axi_aresetn(rst_ni),

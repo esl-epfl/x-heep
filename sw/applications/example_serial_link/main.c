@@ -4,6 +4,12 @@
 #include "x-heep.h"
 #include "core_v_mini_mcu.h"
 #include "serial_link_single_channel_regs.h"
+#include "csr.h"
+
+
+int32_t NUM_TO_CHECK = 9;
+int32_t NUM_TO_BE_CHECKED;
+void WRITE_SL(void);
 
 int main(int argc, char *argv[])
 {
@@ -17,15 +23,9 @@ int main(int argc, char *argv[])
     *addr_p_reg = (*addr_p_reg)| 0x00000001; // clock enable
      //printf("addr_p %x\n", *addr_p_reg);
     
-    //*addr_p_reg = (*addr_p_reg)| 0x00000010; // rst on
-     *addr_p_reg = (*addr_p_reg)& 0x11111101; // rst on
-     //printf("addr_p %x\n", *addr_p_reg);
- *addr_p_reg = (*addr_p_reg)| 0x00000002; // rst oFF
-     //printf("addr_p %x\n", *addr_p_reg);
-
-    //*addr_p_reg = (*addr_p_reg) & 0xFFFFFFFD; // rst on (clear the second bit)
-    //*addr_p_reg = (*addr_p_reg) | 0x00000002; // rst off (set the second bit)
-
+    *addr_p_reg = (*addr_p_reg)& 0x11111101; // rst on
+    *addr_p_reg = (*addr_p_reg)| 0x00000002; // rst oFF
+    
 
     //int32_t *addr_p_reg_flow_ctrl =(int32_t *)(SERIAL_LINK_START_ADDRESS  + SERIAL_LINK_SINGLE_CHANNEL_FLOW_CONTROL_FIFO_CLEAR_REG_OFFSET); //0x04000000 
     //*addr_p_reg_flow_ctrl = (*addr_p_reg_flow_ctrl)& 0x00000001; //0x11111110;
@@ -94,11 +94,11 @@ int main(int argc, char *argv[])
 
     /*  REG CONFIG                   */
     /*  CTRL register                */
-    int32_t *addr_p_reg_ext =(int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x04000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); //0x04000000 
+    volatile int32_t *addr_p_reg_ext =(int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x04000 + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET); //0x04000000 
     *addr_p_reg_ext = (*addr_p_reg_ext)| 0x00000001; // ctrl clock enable external
-   
-    *addr_p_reg_ext = (*addr_p_reg_ext)& 0x11111101; // rst off
-    *addr_p_reg_ext = (*addr_p_reg_ext)| 0x00000010; // rst on
+
+    *addr_p_reg_ext = (*addr_p_reg_ext)& 0x11111101; // rst on
+    *addr_p_reg_ext = (*addr_p_reg_ext)| 0x00000002; // rst oFF
 
 
     //int32_t *addr_p_reg_flow_ctrl_ext =(int32_t *)(EXT_PERIPHERAL_START_ADDRESS + 0x04000  + SERIAL_LINK_SINGLE_CHANNEL_FLOW_CONTROL_FIFO_CLEAR_REG_OFFSET); //0x04000000 
@@ -125,18 +125,24 @@ int main(int argc, char *argv[])
 
 
     /* WRITING TO Internal SL */
-    printf("start writing to internal serial link!\n");
-    int32_t num_to_check = 9;
-    int32_t *addr_p = 0x50000040; // bus serial link from hjson
-    *addr_p = num_to_check;
-    printf("reading %d  to %p \n",*addr_p, addr_p);
+    //printf("start writing to internal serial link!\n");
+    unsigned int cycles1,cycles2;
+    CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
 
-   
+    CSR_WRITE(CSR_REG_MCYCLE, 0);
+
+    WRITE_SL();
+
+    CSR_READ(CSR_REG_MCYCLE, &cycles1);
+    //printf("first write finished with  %d cycles\n\r", cycles1);
+  
+    READ_SL();
+    //printf("cheack if we can read %d  to %p \n",*addr_p, addr_p);
 
     /* WRITING TO external SL */
     //printf("start writing to external serial link!\n");
     //int32_t num_to_check_external =10;
-    //int32_t *addr_p_external =EXT_SLAVE_START_ADDRESS + 0x10000; 
+    //int32_t *addr_p_external =EXT_SLAVE_START_ADDRESS + 0x10000;
     //*addr_p_external = num_to_check_external;
 
     //int32_t *addr_p_reg_ISOLATE_OUT =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
@@ -144,16 +150,31 @@ int main(int argc, char *argv[])
     
     //printf("addr_p = %p -> %x\n", addr_p, *addr_p);
     /* READING FROM SL EXT */
-    //int32_t *addr_p_ext = EXT_PERIPHERAL_START_ADDRESS + 0x04000; 
+     // ext bus serial link from mcu_cfg.hjson + testharness pkg master
     
-    //printf("addr_p_ext = %p -> %x\n", addr_p_external, *addr_p_external);
+    //printf("addr_p_ext = %p -> %d\n", addr_p_external, *addr_p_external);
 
-    //if (*addr_p_reg_ext == *addr_p){
-        printf("success!\n");
-    //} else {
-
-        printf(" go go power ranger, make it work\n");
-   // }
+    
+    printf("DONE\n");
     
     return EXIT_SUCCESS;
 }
+
+void __attribute__ ((optimize("00"))) WRITE_SL(void){
+    volatile int32_t *addr_p = 0x50000040; // bus serial link from mcu_cfg.hjson
+    *addr_p = NUM_TO_CHECK;
+    //*addr_p = 28;
+    //*addr_p = 47;
+    //*addr_p = 5;
+    //*addr_p = 3;
+    //printf("writing %d  to %p \n",*addr_p, addr_p);
+}
+
+
+void __attribute__ ((optimize("00"))) READ_SL(void){
+    volatile int32_t *addr_p_external = 0xF0010000;// bus serial link from mcu_cfg.hjson
+    //NUM_TO_BE_CHECKED= *addr_p_external ;
+    printf("addr_p_ext = %p -> %d\n", addr_p_external, *addr_p_external);
+}
+
+
