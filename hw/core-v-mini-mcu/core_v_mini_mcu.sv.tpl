@@ -641,23 +641,16 @@ ${pad.core_v_mini_mcu_interface}
     //.req_o(axi_sl_m_req.req),
 
 
-   //       .data_req_i(axi_sl_m_req.req),
-   //       .data_gnt_o(axi_sl_m_resp.gnt),
-   //       .data_rvalid_o(axi_sl_m_resp.rvalid),
-   //       .data_addr_i(axi_sl_m_req.addr),
-   //       .data_we_i(axi_sl_m_req.we),
-   //       .data_be_i(axi_sl_m_req.be),
-   //       .data_rdata_o(axi_sl_m_resp.rdata),
-   //       .data_wdata_i(axi_sl_m_req.wdata),
+          .data_req_i(axi_sl_m_req.req),
+          .data_gnt_o(axi_sl_m_resp.gnt),
+          .data_rvalid_o(axi_sl_m_resp.rvalid),
+          .data_addr_i(axi_sl_m_req.addr),
+          .data_we_i(axi_sl_m_req.we),
+          .data_be_i(axi_sl_m_req.be),
+          .data_rdata_o(axi_sl_m_resp.rdata),
+          .data_wdata_i(axi_sl_m_req.wdata),
 
-    .data_req_i(axi_sl_slave_req.req),
-    .data_gnt_o(axi_sl_slave_resp.gnt),
-    .data_rvalid_o(axi_sl_slave_resp.rvalid),
-    .data_addr_i(axi_sl_slave_req.addr),
-    .data_we_i(axi_sl_slave_req.we),
-    .data_be_i(axi_sl_slave_req.be),
-    .data_rdata_o(axi_sl_slave_resp.rdata),
-    .data_wdata_i(axi_sl_slave_req.wdata),
+
 
 
 

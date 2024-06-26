@@ -83,7 +83,7 @@ uint8_t gpio_intr_flag = 0;
 
 void handler_1()
 {
-    PRINTF("handler 1\n");
+    printf("handler 1\n");
     gpio_intr_flag = 1;
 }
 
