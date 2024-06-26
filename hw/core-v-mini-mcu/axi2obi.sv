@@ -147,7 +147,7 @@ module axi2obi #(
     //req_o = '0;
     data_gnt_o = '0;
     data_rvalid_o = '0;
-
+    data_rdata_o = '0;
     s00_axi_arready = '0;
     s00_axi_rvalid = '0;
     s00_axi_awready = '0;
@@ -176,12 +176,17 @@ module axi2obi #(
           next_rdata = s00_axi_wdata;
 
 
+
+        end else begin
+          NS = WRITE_REQ_SL;
         end
       end
       WRITE_REQ_HANDSHAKE: begin
         if (s00_axi_wvalid == '1 && data_req_i == '1) begin
           NS = WRITE_REQ_BUFFER;
           data_gnt_o = '1;
+        end else begin
+          NS = WRITE_REQ_HANDSHAKE;
         end
       end
       WRITE_REQ_BUFFER: begin
@@ -190,6 +195,8 @@ module axi2obi #(
           s00_axi_wready = '1;
           data_rdata_o = curr_rdata;
           NS = IDLE;
+        end else begin
+          NS = WRITE_REQ_BUFFER;
         end
       end
       READ_REQ_SL: begin
