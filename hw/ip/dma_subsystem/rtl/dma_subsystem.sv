@@ -23,14 +23,14 @@ module dma_subsystem #(
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
-    output obi_req_t  dma_read_ch0_req_o,
-    input  obi_resp_t dma_read_ch0_resp_i,
+    output obi_req_t  dma_read_req_o [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    input  obi_resp_t dma_read_resp_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
 
-    output obi_req_t  dma_write_ch0_req_o,
-    input  obi_resp_t dma_write_ch0_resp_i,
+    output obi_req_t  dma_write_req_o [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    input  obi_resp_t dma_write_resp_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
 
-    output obi_req_t  dma_addr_ch0_req_o,
-    input  obi_resp_t dma_addr_ch0_resp_i,
+    output obi_req_t  dma_addr_req_o [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    input  obi_resp_t dma_addr_resp_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
 
     input logic [SLOT_NUM-1:0] trigger_slot_i,
 
@@ -84,12 +84,12 @@ module dma_subsystem #(
           .rst_ni,
           .reg_req_i(submodules_req[i]),
           .reg_rsp_o(submodules_rsp[i]),
-          .dma_read_ch0_req_o(xbar_read_req[i]),
-          .dma_read_ch0_resp_i(xbar_read_resp[i]),
-          .dma_write_ch0_req_o(xbar_write_req[i]),
-          .dma_write_ch0_resp_i(xbar_write_resp[i]),
-          .dma_addr_ch0_req_o(xbar_address_req[i]),
-          .dma_addr_ch0_resp_i(xbar_address_resp[i]),
+          .dma_read_req_o(xbar_read_req[i]),
+          .dma_read_resp_i(xbar_read_resp[i]),
+          .dma_write_req_o(xbar_write_req[i]),
+          .dma_write_resp_i(xbar_write_resp[i]),
+          .dma_addr_req_o(xbar_address_req[i]),
+          .dma_addr_resp_i(xbar_address_resp[i]),
           .trigger_slot_i(trigger_slot_i),
           .dma_done_intr_o(dma_trans_done[i]),
           .dma_window_intr_o(dma_window_done[i]),
@@ -100,44 +100,86 @@ module dma_subsystem #(
 
 
   generate
-    if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : xbar_varlat_n_to_one_gen
+    if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin : xbar_varlat_gen
 
       /* Register interface routing signals */
       logic [core_v_mini_mcu_pkg::DMA_CH_PORT_SEL_WIDTH-1:0] submodules_select;
 
-      /* Read, write & address mode operations xbar*/
-      xbar_varlat_n_to_one #(
-          .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
-      ) xbar_read_i (
-          .clk_i        (clk_i),
-          .rst_ni       (rst_ni),
-          .master_req_i (xbar_read_req),
-          .master_resp_o(xbar_read_resp),
-          .slave_req_o  (dma_read_ch0_req_o),
-          .slave_resp_i (dma_read_ch0_resp_i)
-      );
+      if (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS > 1) begin : xbar_varlat_n_to_m_gen
 
-      xbar_varlat_n_to_one #(
-          .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
-      ) xbar_write_i (
-          .clk_i        (clk_i),
-          .rst_ni       (rst_ni),
-          .master_req_i (xbar_write_req),
-          .master_resp_o(xbar_write_resp),
-          .slave_req_o  (dma_write_ch0_req_o),
-          .slave_resp_i (dma_write_ch0_resp_i)
-      );
+        /* Read, write & address mode operations xbar*/
+        xbar_varlat_n_to_m #(
+            .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM),
+            .XBAR_MSLAVE (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
+        ) xbar_read_i (
+            .clk_i        (clk_i),
+            .rst_ni       (rst_ni),
+            .master_req_i (xbar_read_req),
+            .master_resp_o(xbar_read_resp),
+            .slave_req_o  (dma_read_req_o),
+            .slave_resp_i (dma_read_resp_i)
+        );
 
-      xbar_varlat_n_to_one #(
-          .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
-      ) xbar_address_i (
-          .clk_i        (clk_i),
-          .rst_ni       (rst_ni),
-          .master_req_i (xbar_address_req),
-          .master_resp_o(xbar_address_resp),
-          .slave_req_o  (dma_addr_ch0_req_o),
-          .slave_resp_i (dma_addr_ch0_resp_i)
-      );
+        xbar_varlat_n_to_m #(
+            .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM),
+            .XBAR_MSLAVE (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
+        ) xbar_write_i (
+            .clk_i        (clk_i),
+            .rst_ni       (rst_ni),
+            .master_req_i (xbar_write_req),
+            .master_resp_o(xbar_write_resp),
+            .slave_req_o  (dma_write_req_o),
+            .slave_resp_i (dma_write_resp_i)
+        );
+
+        xbar_varlat_n_to_m #(
+            .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM),
+            .XBAR_MSLAVE (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
+        ) xbar_address_i (
+            .clk_i        (clk_i),
+            .rst_ni       (rst_ni),
+            .master_req_i (xbar_address_req),
+            .master_resp_o(xbar_address_resp),
+            .slave_req_o  (dma_addr_req_o),
+            .slave_resp_i (dma_addr_resp_i)
+        );
+
+      end else begin
+
+        /* Read, write & address mode operations xbar*/
+        xbar_varlat_n_to_one #(
+            .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
+        ) xbar_read_i (
+            .clk_i        (clk_i),
+            .rst_ni       (rst_ni),
+            .master_req_i (xbar_read_req),
+            .master_resp_o(xbar_read_resp),
+            .slave_req_o  (dma_read_req_o[0]),
+            .slave_resp_i (dma_read_resp_i[0])
+        );
+
+        xbar_varlat_n_to_one #(
+            .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
+        ) xbar_write_i (
+            .clk_i        (clk_i),
+            .rst_ni       (rst_ni),
+            .master_req_i (xbar_write_req),
+            .master_resp_o(xbar_write_resp),
+            .slave_req_o  (dma_write_req_o[0]),
+            .slave_resp_i (dma_write_resp_i[0])
+        );
+
+        xbar_varlat_n_to_one #(
+            .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)
+        ) xbar_address_i (
+            .clk_i        (clk_i),
+            .rst_ni       (rst_ni),
+            .master_req_i (xbar_address_req),
+            .master_resp_o(xbar_address_resp),
+            .slave_req_o  (dma_addr_req_o[0]),
+            .slave_resp_i (dma_addr_resp_i[0])
+        );
+      end
 
       /* Internal address decoder */
       addr_decode #(
@@ -173,12 +215,12 @@ module dma_subsystem #(
     end else begin
 
       /* Bus ports routing in the case of a single DMA */
-      assign dma_read_ch0_req_o = xbar_read_req[0];
-      assign xbar_read_resp[0] = dma_read_ch0_resp_i;
-      assign dma_write_ch0_req_o = xbar_write_req[0];
-      assign xbar_write_resp[0] = dma_write_ch0_resp_i;
-      assign dma_addr_ch0_req_o = xbar_address_req[0];
-      assign xbar_address_resp[0] = dma_addr_ch0_resp_i;
+      assign dma_read_req_o[0] = xbar_read_req[0];
+      assign xbar_read_resp[0] = dma_read_resp_i[0];
+      assign dma_write_req_o[0] = xbar_write_req[0];
+      assign xbar_write_resp[0] = dma_write_resp_i[0];
+      assign dma_addr_req_o[0] = xbar_address_req[0];
+      assign xbar_address_resp[0] = dma_addr_resp_i[0];
       assign submodules_req[0] = reg_req_i;
       assign reg_rsp_o = submodules_rsp[0];
     end

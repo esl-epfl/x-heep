@@ -37,11 +37,11 @@ package core_v_mini_mcu_pkg;
   localparam logic [31:0] CORE_INSTR_IDX = 0;
   localparam logic [31:0] CORE_DATA_IDX = 1;
   localparam logic [31:0] DEBUG_MASTER_IDX = 2;
-  localparam logic [31:0] DMA_READ_CH0_IDX = 3;
-  localparam logic [31:0] DMA_WRITE_CH0_IDX = 4;
-  localparam logic [31:0] DMA_ADDR_CH0_IDX = 5;
+  localparam logic [31:0] DMA_READ_P0_IDX = 3;
+  localparam logic [31:0] DMA_WRITE_P0_IDX = 4;
+  localparam logic [31:0] DMA_ADDR_P0_IDX = 5;
 
-  localparam SYSTEM_XBAR_NMASTER = 6;
+  localparam SYSTEM_XBAR_NMASTER = ${3 + int(num_dma_master_ports)*3};
 
   // Internal slave memory map and index
   // -----------------------------------
@@ -140,6 +140,13 @@ package core_v_mini_mcu_pkg;
   localparam AO_SPC_NUM = ${ao_peripherals_num_spc};
   localparam DMA_CH_NUM = ${dma_ch_count};
   localparam DMA_CH_SIZE = 32'h${dma_ch_size};
+  localparam DMA_NUM_MASTER_PORTS = ${num_dma_master_ports};
+
+  localparam addr_map_rule_t [AO_PERIPHERALS-1:0] DMA_MASTER_PORTS_ADDR_RULES = '{
+% for i range(num_dma_master_ports):
+      '{ idx: DMA_MASTER_${i}_IDX, start_addr: ${peripheral.upper()}_START_ADDRESS, end_addr: ${peripheral.upper()}_END_ADDRESS }${"," if not loop.last else ""}
+% endfor
+  };
   
 % for peripheral, addr in ao_peripherals.items():
   localparam logic [31:0] ${peripheral.upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${addr["offset"]};

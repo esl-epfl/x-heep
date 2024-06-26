@@ -37,14 +37,14 @@ module system_bus
     input  obi_req_t  debug_master_req_i,
     output obi_resp_t debug_master_resp_o,
 
-    input  obi_req_t  dma_read_ch0_req_i,
-    output obi_resp_t dma_read_ch0_resp_o,
+    input  obi_req_t  dma_read_req_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    output obi_resp_t dma_read_resp_o[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
 
-    input  obi_req_t  dma_write_ch0_req_i,
-    output obi_resp_t dma_write_ch0_resp_o,
+    input  obi_req_t  dma_write_req_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    output obi_resp_t dma_write_resp_o[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
 
-    input  obi_req_t  dma_addr_ch0_req_i,
-    output obi_resp_t dma_addr_ch0_resp_o,
+    input  obi_req_t  dma_addr_req_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    output obi_resp_t dma_addr_resp_o[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
 
     // External master ports
     input  obi_req_t  [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_req_i,
@@ -76,14 +76,14 @@ module system_bus
     output obi_req_t  ext_debug_master_req_o,
     input  obi_resp_t ext_debug_master_resp_i,
 
-    output obi_req_t  ext_dma_read_ch0_req_o,
-    input  obi_resp_t ext_dma_read_ch0_resp_i,
+    output obi_req_t  ext_dma_read_req_o,
+    input  obi_resp_t ext_dma_read_resp_i,
 
-    output obi_req_t  ext_dma_write_ch0_req_o,
-    input  obi_resp_t ext_dma_write_ch0_resp_i,
+    output obi_req_t  ext_dma_write_req_o,
+    input  obi_resp_t ext_dma_write_resp_i,
 
-    output obi_req_t  ext_dma_addr_ch0_req_o,
-    input  obi_resp_t ext_dma_addr_ch0_resp_i
+    output obi_req_t  ext_dma_addr_req_o,
+    input  obi_resp_t ext_dma_addr_resp_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -119,9 +119,14 @@ module system_bus
   assign int_master_req[core_v_mini_mcu_pkg::CORE_INSTR_IDX] = core_instr_req_i;
   assign int_master_req[core_v_mini_mcu_pkg::CORE_DATA_IDX] = core_data_req_i;
   assign int_master_req[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX] = debug_master_req_i;
-  assign int_master_req[core_v_mini_mcu_pkg::DMA_READ_CH0_IDX] = dma_read_ch0_req_i;
-  assign int_master_req[core_v_mini_mcu_pkg::DMA_WRITE_CH0_IDX] = dma_write_ch0_req_i;
-  assign int_master_req[core_v_mini_mcu_pkg::DMA_ADDR_CH0_IDX] = dma_addr_ch0_req_i;
+
+  generate
+    for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++) begin : gen_dma_master_req_map
+      assign int_master_req[core_v_mini_mcu_pkg::DMA_READ_P0_IDX+i] = dma_read_req_i[i];
+      assign int_master_req[core_v_mini_mcu_pkg::DMA_WRITE_P0_IDX+i] = dma_write_req_i[i];
+      assign int_master_req[core_v_mini_mcu_pkg::DMA_ADDR_P0_IDX+i] = dma_addr_req_i[i];
+    end
+  endgenerate
 
   // Internal + external master requests
   generate
@@ -142,10 +147,15 @@ module system_bus
   assign core_instr_resp_o = int_master_resp[core_v_mini_mcu_pkg::CORE_INSTR_IDX];
   assign core_data_resp_o = int_master_resp[core_v_mini_mcu_pkg::CORE_DATA_IDX];
   assign debug_master_resp_o = int_master_resp[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX];
-  assign dma_read_ch0_resp_o = int_master_resp[core_v_mini_mcu_pkg::DMA_READ_CH0_IDX];
-  assign dma_write_ch0_resp_o = int_master_resp[core_v_mini_mcu_pkg::DMA_WRITE_CH0_IDX];
-  assign dma_addr_ch0_resp_o = int_master_resp[core_v_mini_mcu_pkg::DMA_ADDR_CH0_IDX];
 
+  generate
+    for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++) begin : gen_dma_master_req_map
+      assign dma_read_resp_o[i] = int_master_resp[core_v_mini_mcu_pkg::DMA_READ_P0_IDX+i];
+      assign dma_write_resp_o[i] = int_master_resp[core_v_mini_mcu_pkg::DMA_WRITE_P0_IDX+i];
+      assign dma_addr_resp_o[i] = int_master_resp[core_v_mini_mcu_pkg::DMA_ADDR_P0_IDX+i];
+    end
+  endgenerate
+  
   // External master responses
   if (EXT_XBAR_NMASTER == 0) begin
     assign ext_xbar_master_resp_o = '0;
@@ -169,9 +179,9 @@ module system_bus
   assign ext_core_instr_req_o = demux_xbar_req[CORE_INSTR_IDX][DEMUX_XBAR_EXT_SLAVE_IDX];
   assign ext_core_data_req_o = demux_xbar_req[CORE_DATA_IDX][DEMUX_XBAR_EXT_SLAVE_IDX];
   assign ext_debug_master_req_o = demux_xbar_req[DEBUG_MASTER_IDX][DEMUX_XBAR_EXT_SLAVE_IDX];
-  assign ext_dma_read_ch0_req_o = demux_xbar_req[DMA_READ_CH0_IDX][DEMUX_XBAR_EXT_SLAVE_IDX];
-  assign ext_dma_write_ch0_req_o = demux_xbar_req[DMA_WRITE_CH0_IDX][DEMUX_XBAR_EXT_SLAVE_IDX];
-  assign ext_dma_addr_ch0_req_o = demux_xbar_req[DMA_ADDR_CH0_IDX][DEMUX_XBAR_EXT_SLAVE_IDX];
+  assign ext_dma_read_req_o = demux_xbar_req[DMA_READ_P0_IDX][DEMUX_XBAR_EXT_SLAVE_IDX];
+  assign ext_dma_write_req_o = demux_xbar_req[DMA_WRITE_P0_IDX][DEMUX_XBAR_EXT_SLAVE_IDX];
+  assign ext_dma_addr_req_o = demux_xbar_req[DMA_ADDR_P0_IDX][DEMUX_XBAR_EXT_SLAVE_IDX];
 
   // Internal slave responses
   assign int_slave_resp[core_v_mini_mcu_pkg::ERROR_IDX] = error_slave_resp;
@@ -187,9 +197,9 @@ module system_bus
   assign demux_xbar_resp[CORE_INSTR_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_core_instr_resp_i;
   assign demux_xbar_resp[CORE_DATA_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_core_data_resp_i;
   assign demux_xbar_resp[DEBUG_MASTER_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_debug_master_resp_i;
-  assign demux_xbar_resp[DMA_READ_CH0_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_dma_read_ch0_resp_i;
-  assign demux_xbar_resp[DMA_WRITE_CH0_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_dma_write_ch0_resp_i;
-  assign demux_xbar_resp[DMA_ADDR_CH0_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_dma_addr_ch0_resp_i;
+  assign demux_xbar_resp[DMA_READ_P0_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_dma_read_resp_i;
+  assign demux_xbar_resp[DMA_WRITE_P0_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_dma_write_resp_i;
+  assign demux_xbar_resp[DMA_ADDR_P0_IDX][DEMUX_XBAR_EXT_SLAVE_IDX] = ext_dma_addr_resp_i;
 
 `ifndef SYNTHESIS
   always_ff @(posedge clk_i, negedge rst_ni) begin : check_out_of_bound

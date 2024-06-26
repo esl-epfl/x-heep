@@ -512,6 +512,12 @@ def main():
     dma_ch_size = ao_peripherals["dma"]["ch_length"]
     ao_peripherals_num_spc = string2int(obj['ao_peripherals']['num_spc'])
 
+    # Number of master ports for the dma subsystem
+    num_dma_master_ports = ao_peripherals["dma"]["num_master_ports"]
+
+    if int(num_dma_master_ports, 16) > int(dma_ch_count, 16) or int(num_dma_master_ports, 16) == 0:
+        exit("Number of DMA master ports has to be between 0 and " + str(dma_ch_count) + ", excluded")
+
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
         exit("peripheral start address must be greater than 0x10000")
@@ -830,6 +836,7 @@ def main():
         "ao_peripherals_count"             : ao_peripherals_count,
         "dma_ch_count"                     : dma_ch_count,
         "dma_ch_size"                      : dma_ch_size,
+        "num_dma_master_ports"             : num_dma_master_ports,
         "ao_peripherals_num_spc"           : ao_peripherals_num_spc,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
