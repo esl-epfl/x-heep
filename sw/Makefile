@@ -42,6 +42,7 @@ SOURCE 	 ?= $(".")
 
 # riscv toolchain install path
 RISCV                      ?= ~/.riscv
+#RISCV                      = /home/burdina/tools/riscv
 RISCV_EXE_PREFIX           = $(RISCV)/bin/${COMPILER_PREFIX}elf-
 RISCV_GDB_PATH             = $(RISCV_EXE_PREFIX)gdb
 
