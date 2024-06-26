@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     REG_CONFIG();
     AXI_ISOLATE();
 
-    EXTERNAL_BUS_SL_CONFIG();
+    //EXTERNAL_BUS_SL_CONFIG();
     
     unsigned int cycles1,cycles2;
     CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     CSR_READ(CSR_REG_MCYCLE, &cycles1);
     //printf("first write finished with  %d cycles\n\r", cycles1);
   
-    READ_SL();
+    //READ_SL();
     //printf("cheack if we can read %d  to %p \n",*addr_p, addr_p);
 
     /* WRITING TO external SL */
@@ -82,7 +82,7 @@ void __attribute__ ((optimize("00"))) WRITE_SL(void){
     volatile int32_t *addr_p = 0x50000040;
     gpio_write(GPIO_TOGGLE_WRITE, true); // bus serial link from mcu_cfg.hjson
     *addr_p = NUM_TO_CHECK;
-
+    gpio_write(GPIO_TOGGLE_WRITE, false);
    //printf("asd\n");     
     
     //*addr_p = NUM_TO_CHECK;
@@ -96,8 +96,18 @@ void __attribute__ ((optimize("00"))) WRITE_SL(void){
 
 void __attribute__ ((optimize("00"))) READ_SL(void){
     volatile int32_t *addr_p_external = 0xF0010000;// bus serial link from mcu_cfg.hjson
+    gpio_result_t gpio_res;
+    gpio_cfg_t pin_cfg = {
+        .pin = GPIO_TOGGLE_READ,
+        .mode = GpioModeIn
+    };
+    gpio_res = gpio_config (pin_cfg);
+
+
+
     //NUM_TO_BE_CHECKED= *addr_p_external ;
     printf("addr_p_ext = %p -> %d\n", addr_p_external, *addr_p_external);
+
 }
 
 void __attribute__ ((optimize("00"))) REG_CONFIG(void){
