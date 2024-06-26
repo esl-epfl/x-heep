@@ -151,14 +151,14 @@ module core2axi
               end
             end
           end else begin
-            ar_valid_o = 1'b1;
+            //ar_valid_o = 1'b1;
 
-            if (ar_ready_i) begin
-              granted = 1'b1;
-              NS = READ_WAIT;
-            end else begin
+            //if (ar_ready_i) begin
+            //  granted = 1'b1;
+            //  NS = READ_WAIT;
+            //end else begin
               NS = IDLE;
-            end
+            //end
           end
         end else begin
           NS = IDLE;
