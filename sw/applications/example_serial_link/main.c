@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "core_v_mini_mcu.h"
 
 #include "x-heep.h"
 #include "core_v_mini_mcu.h"
@@ -10,6 +11,17 @@
 #include "pad_control_regs.h"
 #include "rv_plic_regs.h"
 #include "rv_plic.h"
+#include <limits.h>
+#include "ams_regs.h"
+#include "mmio.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include "csr.h"
+#include "hart.h"
+#include "handler.h"
+#include "core_v_mini_mcu.h"
+#include "power_manager.h"
+#include "x-heep.h"
 
 #define GPIO_TOGGLE_WRITE 1
 #define GPIO_TOGGLE_READ 8 // BCS IT HAS TO BE INTERRUPT
@@ -21,12 +33,16 @@ int32_t NUM_TO_BE_CHECKED;
 plic_result_t plic_res;
 uint8_t gpio_intr_flag = 0;
 uint32_t trigger_count = 0;
-uint8_t gpio_intr_flag = 0;
 
 
 
 
 void WRITE_SL(void);
+void handler_1()
+{
+    printf("handler 1\n");
+    gpio_intr_flag = 1;
+}
 
 int main(int argc, char *argv[])
 {
@@ -51,6 +67,79 @@ int main(int argc, char *argv[])
     // ext bus serial link from mcu_cfg.hjson + testharness pkg master
 
     // printf("addr_p_ext = %p -> %d\n", addr_p_external, *addr_p_external);
+
+
+
+
+ volatile int32_t *addr_p_external = 0xF0010000; // ext bus serial link from mcu_cfg.hjson
+    //volatile int32_t *addr_p_external = 0x50000040; // for testing purposes with commented core2axi part
+
+
+    pad_control_t pad_control;
+    pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
+    plic_Init();
+    plic_irq_set_priority(GPIO_INTR, 1);
+    plic_irq_set_enabled(GPIO_INTR, kPlicToggleEnabled);    // Enable interrupt on processor side
+    // Enable global interrupt for machine-level interrupts
+    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    // Set mie.MEIE bit to one to enable machine-level external interrupts
+    const uint32_t mask = 1 << 11;
+    CSR_SET_BITS(CSR_REG_MIE, mask);
+    
+    
+    
+    gpio_result_t gpio_res;
+    gpio_cfg_t cfg_in = {
+        .pin = GPIO_TOGGLE_READ,
+        .mode = GpioModeIn,
+        .en_input_sampling = true,
+        .en_intr = true,
+        .intr_type = GpioIntrEdgeRising};
+    gpio_res = gpio_config(cfg_in);
+
+    gpio_assign_irq_handler(GPIO_INTR, &handler_1);
+    while(1){
+        gpio_intr_flag = 0;
+        printf("Waiting for a trigger on GPIO %d\n\r", GPIO_TOGGLE_READ);
+        while(gpio_intr_flag == 0) {
+            // disable_interrupts
+            // this does not prevent waking up the core as this is controlled by the MIP register
+            CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+            if ( gpio_intr_flag == 0 ) {
+                    //wait_for_interrupt();
+                    //from here we wake up even if we did not jump to the ISR
+                }
+            CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+        }
+    }
+    // NUM_TO_BE_CHECKED= *addr_p_external ;
+    printf("addr_p_ext = %p -> %d\n", addr_p_external, *addr_p_external);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     printf("DONE\n");
 
@@ -81,58 +170,12 @@ void __attribute__((optimize("00"))) WRITE_SL(void)
     // printf("writing %d  to %p \n",*addr_p, addr_p);
 }
 
-void handler_1()
-{
-    printf("handler 1\n");
-    gpio_intr_flag = 1;
-}
+
 
 void __attribute__((optimize("00"))) READ_SL(void)
 {
-    volatile int32_t *addr_p_external = 0xF0010000; // ext bus serial link from mcu_cfg.hjson
-    //volatile int32_t *addr_p_external = 0x50000040; // for testing purposes with commented core2axi part
+   
 
-
-    pad_control_t pad_control;
-    pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
-    plic_Init();
-    plic_irq_set_priority(GPIO_INTR, 1);
-    plic_irq_set_enabled(GPIO_INTR, kPlicToggleEnabled);    // Enable interrupt on processor side
-    // Enable global interrupt for machine-level interrupts
-    CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-    // Set mie.MEIE bit to one to enable machine-level external interrupts
-    const uint32_t mask = 1 << 11;
-    CSR_SET_BITS(CSR_REG_MIE, mask);
-    
-    
-    
-    gpio_result_t gpio_res;
-    gpio_cfg_t cfg_in = {
-        .pin = GPIO_TOGGLE_READ,
-        .mode = GpioModeIn,
-        .en_input_sampling = true,
-        .en_intr = true,
-        .intr_type = GpioIntrEdgeRising};
-    gpio_res = gpio_config(cfg_in);
-
-    gpio_assign_irq_handler(GPIO_INTR, &handler_1);
-    while(1){
-        gpio_intr_flag = 0;
-        PRINTF("Waiting for a trigger on GPIO %d\n\r", GPIO_TOGGLE_READ);
-        while(gpio_intr_flag == 0) {
-            // disable_interrupts
-            // this does not prevent waking up the core as this is controlled by the MIP register
-            CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-            if ( gpio_intr_flag == 0 ) {
-                    wait_for_interrupt();
-                    //from here we wake up even if we did not jump to the ISR
-                }
-            CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
-        }
-    }
-    // NUM_TO_BE_CHECKED= *addr_p_external ;
-    printf("addr_p_ext = %p -> %d\n", addr_p_external, *addr_p_external);
-    
 }
 
 void __attribute__((optimize("00"))) REG_CONFIG(void)
