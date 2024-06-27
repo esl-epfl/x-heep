@@ -296,6 +296,8 @@ int main(int argc, char *argv[])
     #pragma message ( "the memory test can only run if MEMORY_BANKS > 2" )
 #endif
 
+#if EXTERNAL_DOMAINS > 0
+
     // ------------ External SUBSYSTEM  ------------
     PRINTF("Testing External Domain Subsystems...\n\r");
 
@@ -310,7 +312,7 @@ int main(int argc, char *argv[])
 
     PRINTF("External Clock Gating Test Successefull\n\r");
 
-    // ------------ power gating ------------
+    // ------------ power gating domain 0 ------------
     if (power_gate_counters_init(&power_manager_counters, 30, 30, 30, 30, 30, 30, 0, 0) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
@@ -335,7 +337,7 @@ int main(int argc, char *argv[])
 
     PRINTF("External Power Gating Test Successefull\n\r");
 
-    // ------------ set retentive ------------
+    // ------------ set retentive domain 0------------
    if (power_gate_counters_init(&power_manager_counters, 0, 0, 0, 0, 0, 0, 30, 30) != kPowerManagerOk_e)
     {
         PRINTF("Error: power manager fail. Check the reset and powergate counters value\n\r");
@@ -357,7 +359,9 @@ int main(int argc, char *argv[])
     }
 
     PRINTF("External Set Retentive Test Successefull\n\r");
-
+#else
+    #pragma message ( "the external domain test can only run if EXTERNAL_DOMAINS > 0" )
+#endif
     return EXIT_SUCCESS;
 
 }
