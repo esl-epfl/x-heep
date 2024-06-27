@@ -608,6 +608,11 @@ module core_v_mini_mcu
       .clk_gate_en_ni(memory_subsystem_clkgate_en_n),
       .ram_req_i(ram_slave_req),
       .ram_resp_o(ram_slave_resp),
+      /*
+        the memory_subsystem_banks_powergate_switch_no gets wired both internally
+        and externally to support both macros that have and do not have SLEEP capabilities integrated in the macros
+      */
+      .pwrgate_ni(memory_subsystem_banks_powergate_switch_no),
       .set_retentive_ni(memory_subsystem_banks_set_retentive_n)
   );
 
