@@ -514,10 +514,15 @@ def main():
 
     # Number of master ports for the dma subsystem
     num_dma_master_ports = ao_peripherals["dma"]["num_master_ports"]
-
     if int(num_dma_master_ports, 16) > int(dma_ch_count, 16) or int(num_dma_master_ports, 16) == 0:
         exit("Number of DMA master ports has to be between 0 and " + str(dma_ch_count) + ", excluded")
 
+    # Number of masters for each slave of the DMA NtoM xbar
+    num_dma_xbar_channels_per_master_port = ao_peripherals["dma"]["num_channels_per_master_port"]
+    if int(num_dma_xbar_channels_per_master_port, 16) >= int(dma_ch_count, 16) or int(num_dma_xbar_channels_per_master_port, 16) == 0:
+        exit("Number of DMA channels per system bus master ports has to be between 0 and " + str(dma_ch_count) + ", excluded")
+
+    
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
         exit("peripheral start address must be greater than 0x10000")
@@ -837,6 +842,7 @@ def main():
         "dma_ch_count"                     : dma_ch_count,
         "dma_ch_size"                      : dma_ch_size,
         "num_dma_master_ports"             : num_dma_master_ports,
+        "num_dma_xbar_channels_per_master_port" : num_dma_xbar_channels_per_master_port,
         "ao_peripherals_num_spc"           : ao_peripherals_num_spc,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,

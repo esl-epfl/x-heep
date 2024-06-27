@@ -388,13 +388,11 @@ Time: 0 - DST_PTR_INC_D2: 4
 
 Time: 0 - SIZE_D2: 40
 
+Time: 0 - DMA_DONE
+
 Time: 0 - SIZE_D1: 40
 
 Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 0
 
 Time: 0 - PAD_TOP: 0
 
@@ -480,9 +478,9 @@ Time: 0 - SIZE_D2: 40
 
 Time: 0 - SIZE_D1: 40
 
-Time: 0 - DMA_DONE
-
 Time: 0 - DMA_START
+
+Time: 0 - DMA_DONE
 
 Time: 0 - PAD_TOP: 0
 
@@ -520,6 +518,8 @@ Time: 0 - PAD_TOP: 4
 
 Time: 0 - PAD_BOTTOM: 0
 
+Time: 0 - DMA_DONE
+
 Time: 0 - PAD_LEFT: 4
 
 Time: 0 - PAD_RIGHT: 0
@@ -541,10 +541,6 @@ Time: 0 - SIZE_D2: 40
 Time: 0 - SIZE_D1: 40
 
 Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 4
 
 Time: 0 - PAD_TOP: 4
 
@@ -978,6 +974,8 @@ Time: 0 - SRC_PTR: 70036
 
 Time: 0 - DST_PTR: 86700
 
+Time: 0 - DMA_DONE
+
 Time: 0 - SRC_PTR_INC_D1: 4
 
 Time: 0 - SRC_PTR_INC_D2: 4
@@ -991,10 +989,6 @@ Time: 0 - SIZE_D2: 40
 Time: 0 - SIZE_D1: 40
 
 Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 4
 
 Time: 0 - PAD_TOP: 4
 
@@ -1160,6 +1154,8 @@ Time: 0 - DST_PTR: 89604
 
 Time: 0 - SRC_PTR_INC_D1: 4
 
+Time: 0 - DMA_DONE
+
 Time: 0 - SRC_PTR_INC_D2: 4
 
 Time: 0 - DST_PTR_INC_D1: 4
@@ -1171,10 +1167,6 @@ Time: 0 - SIZE_D2: 40
 Time: 0 - SIZE_D1: 40
 
 Time: 0 - DMA_START
-
-Time: 0 - DMA_DONE
-
-Time: 0 - PAD_TOP: 0
 
 Time: 0 - PAD_TOP: 0
 

@@ -77,23 +77,26 @@ module xbar_varlat_n_to_m #(
   // address. Decoding errors are not handled: if the address does not match
   // any of the specified rules, the default slave index is selected.
 
-  // Address decoder
-  // ---------------
-  addr_decode #(
-      .NoIndices(XBAR_MSLAVE),
-      .NoRules  (NUM_RULES),
-      .addr_t   (logic [31:0]),
-      .rule_t   (addr_map_rule_pkg::addr_map_rule_t),
-      .Napot    (1'b0)
-  ) u_addr_decode (
-      .addr_i          (master_req_i.addr),
-      .addr_map_i      (addr_map_i),
-      .idx_o           (slave_idx),
-      .dec_valid_o     (),                   // unused
-      .dec_error_o     (),                   // unused
-      .en_default_idx_i(1'b1),
-      .default_idx_i   (default_idx_i)
-  );
+  /* Generate address decoders. Each master request has to be decoded in order to select the correct */
+  generate
+    for (genvar i = 0; i < XBAR_NMASTER; i++) begin : gen_addr_decoders
+      addr_decode #(
+          .NoIndices(XBAR_MSLAVE),
+          .NoRules  (NUM_RULES),
+          .addr_t   (logic [31:0]),
+          .rule_t   (addr_map_rule_pkg::addr_map_rule_t),
+          .Napot    (1'b0)
+      ) u_addr_decode (
+          .addr_i          (master_req_i.addr),
+          .addr_map_i      (addr_map_i),
+          .idx_o           (slave_idx),
+          .dec_valid_o     (),                   // unused
+          .dec_error_o     (),                   // unused
+          .en_default_idx_i(1'b1),
+          .default_idx_i   (default_idx_i)
+      );
+    end
+  endgenerate
 
   // 1-to-N crossbar
   // ---------------

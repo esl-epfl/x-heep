@@ -44,6 +44,7 @@
             ch_length:    0x100,
             num_channels:   0x4,
             num_master_ports: 0x2,
+            num_channels_per_master_port: 0x2,
             path:    "./hw/ip/dma/data/dma.hjson"
         },
         power_manager: {

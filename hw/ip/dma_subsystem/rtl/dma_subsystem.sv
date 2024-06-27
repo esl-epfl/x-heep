@@ -105,45 +105,47 @@ module dma_subsystem #(
       /* Register interface routing signals */
       logic [core_v_mini_mcu_pkg::DMA_CH_PORT_SEL_WIDTH-1:0] submodules_select;
 
-      if (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS > 1) begin : xbar_varlat_n_to_m_gen
+      if (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS > 1) begin
 
         /* Read, write & address mode operations xbar*/
-        xbar_varlat_n_to_m #(
+        dma_NtoM_xbar #(
             .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM),
-            .XBAR_MSLAVE (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
+            .XBAR_MSLAVE(core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS),
+            .NUM_MASTERS_PER_XBAR(core_v_mini_mcu_pkg::DMA_XBAR_NUM_MASTERS_PER_SLAVE)
         ) xbar_read_i (
-            .clk_i        (clk_i),
-            .rst_ni       (rst_ni),
-            .master_req_i (xbar_read_req),
+            .clk_i(clk_i),
+            .rst_ni(rst_ni),
+            .master_req_i(xbar_read_req),
             .master_resp_o(xbar_read_resp),
-            .slave_req_o  (dma_read_req_o),
-            .slave_resp_i (dma_read_resp_i)
+            .slave_req_o(dma_read_req_o),
+            .slave_resp_i(dma_read_resp_i)
         );
 
-        xbar_varlat_n_to_m #(
+        dma_NtoM_xbar #(
             .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM),
-            .XBAR_MSLAVE (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
+            .XBAR_MSLAVE(core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS),
+            .NUM_MASTERS_PER_XBAR(core_v_mini_mcu_pkg::DMA_XBAR_NUM_MASTERS_PER_SLAVE)
         ) xbar_write_i (
-            .clk_i        (clk_i),
-            .rst_ni       (rst_ni),
-            .master_req_i (xbar_write_req),
+            .clk_i(clk_i),
+            .rst_ni(rst_ni),
+            .master_req_i(xbar_write_req),
             .master_resp_o(xbar_write_resp),
-            .slave_req_o  (dma_write_req_o),
-            .slave_resp_i (dma_write_resp_i)
+            .slave_req_o(dma_write_req_o),
+            .slave_resp_i(dma_write_resp_i)
         );
 
-        xbar_varlat_n_to_m #(
+        dma_NtoM_xbar #(
             .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM),
-            .XBAR_MSLAVE (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
+            .XBAR_MSLAVE(core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS),
+            .NUM_MASTERS_PER_XBAR(core_v_mini_mcu_pkg::DMA_XBAR_NUM_MASTERS_PER_SLAVE)
         ) xbar_address_i (
-            .clk_i        (clk_i),
-            .rst_ni       (rst_ni),
-            .master_req_i (xbar_address_req),
+            .clk_i(clk_i),
+            .rst_ni(rst_ni),
+            .master_req_i(xbar_address_req),
             .master_resp_o(xbar_address_resp),
-            .slave_req_o  (dma_addr_req_o),
-            .slave_resp_i (dma_addr_resp_i)
+            .slave_req_o(dma_addr_req_o),
+            .slave_resp_i(dma_addr_resp_i)
         );
-
       end else begin
 
         /* Read, write & address mode operations xbar*/

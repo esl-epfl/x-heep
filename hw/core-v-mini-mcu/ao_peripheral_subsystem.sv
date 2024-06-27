@@ -74,12 +74,12 @@ module ao_peripheral_subsystem
     output logic rv_timer_1_intr_o,
 
     // DMA
-    output obi_req_t  dma_read_req_o,
-    input  obi_resp_t dma_read_resp_i,
-    output obi_req_t  dma_write_req_o,
-    input  obi_resp_t dma_write_resp_i,
-    output obi_req_t  dma_addr_req_o,
-    input  obi_resp_t dma_addr_resp_i,
+    output obi_req_t  dma_read_req_o   [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    input  obi_resp_t dma_read_resp_i  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    output obi_req_t  dma_write_req_o  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    input  obi_resp_t dma_write_resp_i [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    output obi_req_t  dma_addr_req_o   [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    input  obi_resp_t dma_addr_resp_i  [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
     output logic      dma_done_intr_o,
     output logic      dma_window_intr_o,
 

@@ -29,12 +29,12 @@ module x_heep_system
     input  obi_resp_t ext_core_data_resp_i,
     output obi_req_t  ext_debug_master_req_o,
     input  obi_resp_t ext_debug_master_resp_i,
-    output obi_req_t  ext_dma_read_req_o,
-    input  obi_resp_t ext_dma_read_resp_i,
-    output obi_req_t  ext_dma_write_req_o,
-    input  obi_resp_t ext_dma_write_resp_i,
-    output obi_req_t  ext_dma_addr_req_o,
-    input  obi_resp_t ext_dma_addr_resp_i,
+    output obi_req_t  ext_dma_read_req_o[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    input  obi_resp_t ext_dma_read_resp_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    output obi_req_t  ext_dma_write_req_o[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    input  obi_resp_t ext_dma_write_resp_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    output obi_req_t  ext_dma_addr_req_o[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
+    input  obi_resp_t ext_dma_addr_resp_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
 
     % if int(ao_peripherals_num_spc) > 0:
     input obi_req_t ext_ao_peripheral_req_i[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
