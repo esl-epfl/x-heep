@@ -5,6 +5,7 @@
 module debug_subsystem
   import obi_pkg::*;
 #(
+    parameter NRHARTS = 1,
     parameter JTAG_IDCODE = 32'h10001c05
 ) (
     input logic clk_i,
@@ -17,7 +18,7 @@ module debug_subsystem
     output logic jtag_tdo_o,
 
     output logic debug_ndmreset_no,
-    output logic debug_core_req_o,
+    output logic [NRHARTS-1:0] debug_core_req_o,
 
     input  obi_req_t  debug_slave_req_i,
     output obi_resp_t debug_slave_resp_o,
@@ -28,14 +29,20 @@ module debug_subsystem
 
   import dm::*;
 
-  localparam dm::hartinfo_t hartinfo = '{
-      zero1: '0,
-      nscratch: 2,  // Debug module needs at least two scratch regs
-      zero0: '0,
-      dataaccess: 1'b1,  // data registers are memory mapped in the debugger
-      datasize: dm::DataCount,
-      dataaddr: dm::DataAddr
-  };
+  logic [NRHARTS-1:0]    unavailable;
+  dm::hartinfo_t [NRHARTS-1:0] hartinfo;
+
+  always @(*) begin
+    for (int i = 0; i < NRHARTS; i++) begin
+      hartinfo[i].zero1 = '0;
+      hartinfo[i].nscratch = 2;  // Debug module needs at least two scratch regs
+      hartinfo[i].zero0 = '0;
+      hartinfo[i].dataaccess = 1'b1;  // data registers are memory mapped in the debugger
+      hartinfo[i].datasize = dm::DataCount;
+      hartinfo[i].dataaddr = dm::DataAddr;
+      unavailable[i] = ~(1'b1);
+    end
+  end
 
   dm::dmi_req_t  dmi_req;
   logic          dmi_req_valid;
@@ -68,14 +75,16 @@ module debug_subsystem
       .tdo_oe_o        ()
   );
 
-  dm_obi_top dm_obi_top_i (
+  dm_obi_top #(
+      .NrHarts(NRHARTS)
+  ) dm_obi_top_i (
       .clk_i        (clk_i),
       .rst_ni       (rst_ni),
       .testmode_i   (1'b0),
       .ndmreset_o   (ndmreset),
       .dmactive_o   (),
       .debug_req_o  (debug_core_req_o),
-      .unavailable_i(~(1'b1)),
+      .unavailable_i(unavailable),
       .hartinfo_i   (hartinfo),
 
       .slave_req_i   (debug_slave_req_i.req),
