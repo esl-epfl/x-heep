@@ -302,18 +302,15 @@ module core_v_mini_mcu
 
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
 
-    output logic cpu_subsystem_powergate_switch_no,
-    input logic cpu_subsystem_powergate_switch_ack_ni,
-    output logic peripheral_subsystem_powergate_switch_no,
-    input logic peripheral_subsystem_powergate_switch_ack_ni,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_no,
-    input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_ni,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_no,
-    input logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_ni,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_no,
+    //power manager exposed to top level
+    output power_manager_out_t cpu_subsystem_pwr_ctrl_o,
+    output power_manager_out_t peripheral_subsystem_pwr_ctrl_o,
+    output power_manager_out_t memory_subsystem_pwr_ctrl_o[core_v_mini_mcu_pkg::NUM_BANKS-1:0],
+    output power_manager_out_t external_subsystem_pwr_ctrl_o[EXT_DOMAINS_RND-1:0],
+    input power_manager_in_t cpu_subsystem_pwr_ctrl_i,
+    input power_manager_in_t peripheral_subsystem_pwr_ctrl_i,
+    input power_manager_in_t memory_subsystem_pwr_ctrl_i[core_v_mini_mcu_pkg::NUM_BANKS-1:0],
+    input power_manager_in_t external_subsystem_pwr_ctrl_i[EXT_DOMAINS_RND-1:0],
 
     output logic [31:0] exit_value_o,
 
@@ -391,17 +388,21 @@ module core_v_mini_mcu
   logic [31:0] intr;
   logic [14:0] fast_intr;
 
-  // Power manager
-  logic cpu_subsystem_powergate_iso_n;
+  // RTL Power manager signals
   logic cpu_subsystem_rst_n;
-  logic peripheral_subsystem_powergate_iso_n;
   logic peripheral_subsystem_rst_n;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_n;
-
-  // Clock gating signals
   logic peripheral_subsystem_clkgate_en_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_clkgate_en_n;
+
+  assign cpu_subsystem_rst_n                       = cpu_subsystem_pwr_ctrl_o.rst_n;
+  assign peripheral_subsystem_rst_n                = peripheral_subsystem_pwr_ctrl_o.rst_n;
+  assign peripheral_subsystem_clkgate_en_n         = peripheral_subsystem_pwr_ctrl_o.clkgate_en_n;
+
+  assign memory_subsystem_banks_set_retentive_n[0] = memory_subsystem_pwr_ctrl_o[0].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[0]          = memory_subsystem_pwr_ctrl_o[0].clkgate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[1] = memory_subsystem_pwr_ctrl_o[1].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[1]          = memory_subsystem_pwr_ctrl_o[1].clkgate_en_n;
 
   // DMA
   logic dma_done_intr;
@@ -574,26 +575,14 @@ module core_v_mini_mcu
       .intr_i(intr),
       .intr_vector_ext_i,
       .core_sleep_i(core_sleep),
-      .cpu_subsystem_powergate_switch_no,
-      .cpu_subsystem_powergate_switch_ack_ni,
-      .cpu_subsystem_powergate_iso_no(cpu_subsystem_powergate_iso_n),
-      .cpu_subsystem_rst_no(cpu_subsystem_rst_n),
-      .peripheral_subsystem_powergate_switch_no,
-      .peripheral_subsystem_powergate_switch_ack_ni,
-      .peripheral_subsystem_powergate_iso_no(peripheral_subsystem_powergate_iso_n),
-      .peripheral_subsystem_rst_no(peripheral_subsystem_rst_n),
-      .memory_subsystem_banks_powergate_switch_no,
-      .memory_subsystem_banks_powergate_switch_ack_ni,
-      .memory_subsystem_banks_powergate_iso_no(memory_subsystem_banks_powergate_iso_n),
-      .memory_subsystem_banks_set_retentive_no(memory_subsystem_banks_set_retentive_n),
-      .external_subsystem_powergate_switch_no,
-      .external_subsystem_powergate_switch_ack_ni,
-      .external_subsystem_powergate_iso_no,
-      .external_subsystem_rst_no,
-      .external_ram_banks_set_retentive_no,
-      .peripheral_subsystem_clkgate_en_no(peripheral_subsystem_clkgate_en_n),
-      .memory_subsystem_clkgate_en_no(memory_subsystem_clkgate_en_n),
-      .external_subsystem_clkgate_en_no,
+      .cpu_subsystem_pwr_ctrl_o,
+      .peripheral_subsystem_pwr_ctrl_o,
+      .memory_subsystem_pwr_ctrl_o,
+      .external_subsystem_pwr_ctrl_o,
+      .cpu_subsystem_pwr_ctrl_i,
+      .peripheral_subsystem_pwr_ctrl_i,
+      .memory_subsystem_pwr_ctrl_i,
+      .external_subsystem_pwr_ctrl_i,
       .rv_timer_0_intr_o(rv_timer_intr[0]),
       .rv_timer_1_intr_o(rv_timer_intr[1]),
       .dma_read_ch0_req_o(dma_read_ch0_req),

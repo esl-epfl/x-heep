@@ -56,6 +56,8 @@ ${pad.core_v_mini_mcu_interface}
 
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
 
+    //power manager exposed to top level
+    //signals are unrolled to easy EDA tools
     output logic cpu_subsystem_powergate_switch_no,
     input  logic cpu_subsystem_powergate_switch_ack_ni,
     output logic peripheral_subsystem_powergate_switch_no,
@@ -145,17 +147,61 @@ ${pad.core_v_mini_mcu_interface}
   logic [31:0] intr;
   logic [14:0] fast_intr;
 
-  // Power manager
-  logic cpu_subsystem_powergate_iso_n;
-  logic cpu_subsystem_rst_n;
-  logic peripheral_subsystem_powergate_iso_n;
-  logic peripheral_subsystem_rst_n;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_n;
-  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_n;
+  //Power manager signals
+  power_manager_out_t cpu_subsystem_pwr_ctrl_out;
+  power_manager_out_t peripheral_subsystem_pwr_ctrl_out;
+  power_manager_out_t memory_subsystem_pwr_ctrl_out[core_v_mini_mcu_pkg::NUM_BANKS-1:0];
+  power_manager_out_t external_subsystem_pwr_ctrl_out[EXT_DOMAINS_RND-1:0];
 
-   // Clock gating signals
-   logic peripheral_subsystem_clkgate_en_n;
-   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0]memory_subsystem_clkgate_en_n;
+  power_manager_in_t  cpu_subsystem_pwr_ctrl_in;
+  power_manager_in_t  peripheral_subsystem_pwr_ctrl_in;
+  power_manager_in_t  memory_subsystem_pwr_ctrl_in[core_v_mini_mcu_pkg::NUM_BANKS-1:0];
+  power_manager_in_t  external_subsystem_pwr_ctrl_in[EXT_DOMAINS_RND-1:0];
+
+  logic cpu_subsystem_rst_n;
+  logic cpu_subsystem_powergate_iso_n;
+
+  logic peripheral_subsystem_rst_n;
+  logic peripheral_subsystem_powergate_iso_n;
+  logic peripheral_subsystem_clkgate_en_n;
+
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_n;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_n;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_clkgate_en_n;
+
+  //pwrgate exposed outside for UPF sim flow and switch cells
+  assign cpu_subsystem_powergate_switch_no    = cpu_subsystem_pwr_ctrl_out.pwrgate_en_n;
+  assign cpu_subsystem_pwr_ctrl_in.pwrgate_ack_n = cpu_subsystem_powergate_switch_ack_ni;
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign cpu_subsystem_powergate_iso_n                 = cpu_subsystem_pwr_ctrl_o.isogate_en_n;
+  assign cpu_subsystem_rst_n                  = cpu_subsystem_pwr_ctrl_out.rst_n;
+
+  //pwrgate exposed both outside for UPF sim flow
+  assign peripheral_subsystem_powergate_switch_no = peripheral_subsystem_pwr_ctrl_out.pwrgate_en_n;
+  assign peripheral_subsystem_pwr_ctrl_in.pwrgate_ack_n  = peripheral_subsystem_powergate_switch_ack_ni;
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign peripheral_subsystem_powergate_iso_n = peripheral_subsystem_pwr_ctrl_o.isogate_en_n;
+  assign peripheral_subsystem_rst_n           = peripheral_subsystem_pwr_ctrl_out.rst_n;
+  assign peripheral_subsystem_clkgate_en_n    = peripheral_subsystem_pwr_ctrl_out.clkgate_en_n;
+
+% for bank in xheep.iter_ram_banks():
+  //pwrgate exposed both outside and inside to deal with memories with embedded SLEEP mode or external PWR cells
+  assign memory_subsystem_banks_powergate_switch_no[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[${bank.name()}].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_ni[${bank.name()}];
+  //isogate exposed outside for UPF sim flow and switch cells
+  assign memory_subsystem_banks_powergate_iso_n[${bank.name()}] = memory_subsystem_pwr_ctrl_o[${bank.name()}].isogate_en_n;
+  assign memory_subsystem_banks_set_retentive_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].retentive_en_n;
+  assign memory_subsystem_clkgate_en_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].clkgate_en_n;
+% endfor
+
+  for (genvar i = 0; i < EXT_DOMAINS_RND; i = i + 1) begin
+    assign external_subsystem_powergate_switch_no[i]        = external_subsystem_pwr_ctrl_out[i].pwrgate_en_n;
+    assign external_subsystem_powergate_iso_no[i] = external_subsystem_pwr_ctrl_out[i].isogate_en_n;
+    assign external_subsystem_rst_no[i] = external_subsystem_pwr_ctrl_out[i].rst_n;
+    assign external_ram_banks_set_retentive_no[i]           = external_subsystem_pwr_ctrl_out[i].retentive_en_n;
+    assign external_subsystem_clkgate_en_no[i] = external_subsystem_pwr_ctrl_out[i].clkgate_en_n;
+    assign external_subsystem_pwr_ctrl_in[i].pwrgate_ack_n = external_subsystem_powergate_switch_ack_ni;
+  end
 
   // DMA
   logic dma_done_intr;
@@ -326,26 +372,14 @@ ${pad.core_v_mini_mcu_interface}
       .intr_i(intr),
       .intr_vector_ext_i,
       .core_sleep_i(core_sleep),
-      .cpu_subsystem_powergate_switch_no,
-      .cpu_subsystem_powergate_switch_ack_ni,
-      .cpu_subsystem_powergate_iso_no(cpu_subsystem_powergate_iso_n),
-      .cpu_subsystem_rst_no(cpu_subsystem_rst_n),
-      .peripheral_subsystem_powergate_switch_no,
-      .peripheral_subsystem_powergate_switch_ack_ni,
-      .peripheral_subsystem_powergate_iso_no(peripheral_subsystem_powergate_iso_n),
-      .peripheral_subsystem_rst_no(peripheral_subsystem_rst_n),
-      .memory_subsystem_banks_powergate_switch_no,
-      .memory_subsystem_banks_powergate_switch_ack_ni,
-      .memory_subsystem_banks_powergate_iso_no(memory_subsystem_banks_powergate_iso_n),
-      .memory_subsystem_banks_set_retentive_no(memory_subsystem_banks_set_retentive_n),
-      .external_subsystem_powergate_switch_no,
-      .external_subsystem_powergate_switch_ack_ni,
-      .external_subsystem_powergate_iso_no,
-      .external_subsystem_rst_no,
-      .external_ram_banks_set_retentive_no,
-      .peripheral_subsystem_clkgate_en_no(peripheral_subsystem_clkgate_en_n),
-      .memory_subsystem_clkgate_en_no(memory_subsystem_clkgate_en_n),
-      .external_subsystem_clkgate_en_no,
+      .cpu_subsystem_pwr_ctrl_o(cpu_subsystem_pwr_ctrl_out),
+      .peripheral_subsystem_pwr_ctrl_o(peripheral_subsystem_pwr_ctrl_out),
+      .memory_subsystem_pwr_ctrl_o(memory_subsystem_pwr_ctrl_out),
+      .external_subsystem_pwr_ctrl_o(external_subsystem_pwr_ctrl_out),
+      .cpu_subsystem_pwr_ctrl_i(cpu_subsystem_pwr_ctrl_in),
+      .peripheral_subsystem_pwr_ctrl_i(peripheral_subsystem_pwr_ctrl_in),
+      .memory_subsystem_pwr_ctrl_i(memory_subsystem_pwr_ctrl_in),
+      .external_subsystem_pwr_ctrl_i(external_subsystem_pwr_ctrl_in),
       .rv_timer_0_intr_o(rv_timer_intr[0]),
       .rv_timer_1_intr_o(rv_timer_intr[1]),
       .dma_read_ch0_req_o(dma_read_ch0_req),

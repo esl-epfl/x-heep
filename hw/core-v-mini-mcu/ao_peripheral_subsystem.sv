@@ -5,6 +5,7 @@
 module ao_peripheral_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
+  import power_manager_pkg::*;
 #(
     //do not touch these parameters
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
@@ -45,28 +46,16 @@ module ao_peripheral_subsystem
     input logic [31:0] intr_i,
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
     input logic core_sleep_i,
-    output logic cpu_subsystem_powergate_switch_no,
-    input logic cpu_subsystem_powergate_switch_ack_ni,
-    output logic cpu_subsystem_powergate_iso_no,
-    output logic cpu_subsystem_rst_no,
-    output logic peripheral_subsystem_powergate_switch_no,
-    input logic peripheral_subsystem_powergate_switch_ack_ni,
-    output logic peripheral_subsystem_powergate_iso_no,
-    output logic peripheral_subsystem_rst_no,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_no,
-    input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_ni,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_no,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_no,
-    input logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_ni,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_no,
 
-    // Clock gating signals
-    output logic peripheral_subsystem_clkgate_en_no,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_clkgate_en_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_no,
+    output power_manager_out_t cpu_subsystem_pwr_ctrl_o,
+    output power_manager_out_t peripheral_subsystem_pwr_ctrl_o,
+    output power_manager_out_t memory_subsystem_pwr_ctrl_o[core_v_mini_mcu_pkg::NUM_BANKS-1:0],
+    output power_manager_out_t external_subsystem_pwr_ctrl_o[EXT_DOMAINS_RND-1:0],
+
+    input power_manager_in_t cpu_subsystem_pwr_ctrl_i,
+    input power_manager_in_t peripheral_subsystem_pwr_ctrl_i,
+    input power_manager_in_t memory_subsystem_pwr_ctrl_i[core_v_mini_mcu_pkg::NUM_BANKS-1:0],
+    input power_manager_in_t external_subsystem_pwr_ctrl_i[EXT_DOMAINS_RND-1:0],
 
     // RV TIMER
     output logic rv_timer_0_intr_o,
@@ -287,26 +276,14 @@ module ao_peripheral_subsystem
       .intr_i,
       .ext_irq_i(intr_vector_ext_i),
       .core_sleep_i,
-      .cpu_subsystem_powergate_switch_no,
-      .cpu_subsystem_powergate_switch_ack_ni,
-      .cpu_subsystem_powergate_iso_no,
-      .cpu_subsystem_rst_no,
-      .peripheral_subsystem_powergate_switch_no,
-      .peripheral_subsystem_powergate_switch_ack_ni,
-      .peripheral_subsystem_powergate_iso_no,
-      .peripheral_subsystem_rst_no,
-      .memory_subsystem_banks_powergate_switch_no,
-      .memory_subsystem_banks_powergate_switch_ack_ni,
-      .memory_subsystem_banks_powergate_iso_no,
-      .memory_subsystem_banks_set_retentive_no,
-      .external_subsystem_powergate_switch_no,
-      .external_subsystem_powergate_switch_ack_ni,
-      .external_subsystem_powergate_iso_no,
-      .external_subsystem_rst_no,
-      .external_ram_banks_set_retentive_no,
-      .peripheral_subsystem_clkgate_en_no,
-      .memory_subsystem_clkgate_en_no,
-      .external_subsystem_clkgate_en_no
+      .cpu_subsystem_pwr_ctrl_o,
+      .peripheral_subsystem_pwr_ctrl_o,
+      .memory_subsystem_pwr_ctrl_o,
+      .external_subsystem_pwr_ctrl_o,
+      .cpu_subsystem_pwr_ctrl_i,
+      .peripheral_subsystem_pwr_ctrl_i,
+      .memory_subsystem_pwr_ctrl_i,
+      .external_subsystem_pwr_ctrl_i
   );
 
   reg_to_tlul #(
