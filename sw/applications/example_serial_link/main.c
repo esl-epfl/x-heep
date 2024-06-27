@@ -22,6 +22,7 @@
 #include "core_v_mini_mcu.h"
 #include "power_manager.h"
 #include "x-heep.h"
+#include "timer_util.h"
 
 #define GPIO_TOGGLE_WRITE 1
 #define GPIO_TOGGLE_READ 8 // BCS IT HAS TO BE INTERRUPT
@@ -42,6 +43,7 @@ void handler_1()
 {
     printf("handler 1\n");
     gpio_intr_flag = 1;
+    hw_timer_start();
 }
 
 int main(int argc, char *argv[])
@@ -71,9 +73,11 @@ int main(int argc, char *argv[])
 
 
 
- volatile int32_t *addr_p_external = 0xF0010000; // ext bus serial link from mcu_cfg.hjson
-    //volatile int32_t *addr_p_external = 0x50000040; // for testing purposes with commented core2axi part
+ //volatile int32_t *addr_p_external = 0xF0010000; // ext bus serial link from mcu_cfg.hjson
+    volatile int32_t *addr_p_external = 0x50000040; // for testing purposes with commented core2axi part
 
+    hw_timer_init();
+    
 
     pad_control_t pad_control;
     pad_control.base_addr = mmio_region_from_addr((uintptr_t)PAD_CONTROL_START_ADDRESS);
@@ -111,9 +115,17 @@ int main(int argc, char *argv[])
                 }
             CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
         }
+
     }
     // NUM_TO_BE_CHECKED= *addr_p_external ;
+    uint32_t time=0;
+    while(1){
+    if (*addr_p_external ==NUM_TO_CHECK){
+        time = hw_timer_stop();
+        break;
+    }}
     printf("addr_p_ext = %p -> %d\n", addr_p_external, *addr_p_external);
+    printf("timing-> %d\n", time);
 
 
 
