@@ -122,39 +122,28 @@ module power_manager import power_manager_pkg::*; #(
   assign peripheral_subsystem_pwr_ctrl_o.isogate_en_n = peripheral_subsystem_powergate_iso_n;
   assign peripheral_subsystem_pwr_ctrl_o.rst_n = peripheral_subsystem_rst_n;
   assign peripheral_subsystem_pwr_ctrl_o.retentive_en_n = 1'b1; //unused
+  assign peripheral_subsystem_pwr_ctrl_o.clkgate_en_n = ~reg2hw.periph_clk_gate.q;
 
 % for bank in xheep.iter_ram_banks():
   assign memory_subsystem_pwr_ctrl_o[${bank.name()}].pwrgate_en_n = memory_subsystem_banks_powergate_switch_n[${bank.name()}];
   assign memory_subsystem_pwr_ctrl_o[${bank.name()}].isogate_en_n = memory_subsystem_banks_powergate_iso_n[${bank.name()}];
   assign memory_subsystem_pwr_ctrl_o[${bank.name()}].rst_n = 1'b1;
+  assign memory_subsystem_pwr_ctrl_o[${bank.name()}].clkgate_en_n = ~reg2hw.ram_${bank.name()}_clk_gate.q;
 % endfor
-
 
 % if external_domains != 0:
 % for ext in range(external_domains):
     assign external_subsystem_pwr_ctrl_o[${ext}].pwrgate_en_n = external_subsystem_powergate_switch_n[${ext}];
     assign external_subsystem_pwr_ctrl_o[${ext}].isogate_en_n = external_subsystem_powergate_iso_n[${ext}];
     assign external_subsystem_pwr_ctrl_o[${ext}].rst_n = external_subsystem_rst_n[${ext}];
-% endfor
-% else:
-    assign external_subsystem_pwr_ctrl_o[0].clkgate_en_n = 1'b1;
-    assign external_subsystem_pwr_ctrl_o[0].isogate_en_n = 1'b1;
-    assign external_subsystem_pwr_ctrl_o[0].rst_n = 1'b1;
-% endif
-
-  // --------------------------------------------------------------------------------------
-  // CLK_GATING
-  // --------------------------------------------------------------------------------------
-
-    assign peripheral_subsystem_pwr_ctrl_o.clkgate_en_n = ~reg2hw.periph_clk_gate.q;
-
-% for bank in xheep.iter_ram_banks():
-    assign memory_subsystem_pwr_ctrl_o[${bank.name()}].clkgate_en_n = ~reg2hw.ram_${bank.name()}_clk_gate.q;
-% endfor
-
-% for ext in range(external_domains):
     assign external_subsystem_pwr_ctrl_o[${ext}].clkgate_en_n = ~reg2hw.external_${ext}_clk_gate.q;
 % endfor
+% else:
+    assign external_subsystem_pwr_ctrl_o[0].pwrgate_en_n = 1'b1;
+    assign external_subsystem_pwr_ctrl_o[0].isogate_en_n = 1'b1;
+    assign external_subsystem_pwr_ctrl_o[0].rst_n = 1'b1;
+    assign external_subsystem_pwr_ctrl_o[0].clkgate_en_n = 1'b1;
+% endif
 
   // --------------------------------------------------------------------------------------
   // CPU_SUBSYSTEM DOMAIN
