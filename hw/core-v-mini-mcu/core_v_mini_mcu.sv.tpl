@@ -79,6 +79,7 @@ ${pad.core_v_mini_mcu_interface}
 
   import core_v_mini_mcu_pkg::*;
   import cv32e40p_apu_core_pkg::*;
+  import power_manager_pkg::*;
 
   localparam NUM_BYTES = core_v_mini_mcu_pkg::MEM_SIZE;
   localparam DM_HALTADDRESS = core_v_mini_mcu_pkg::DEBUG_START_ADDRESS + 32'h00000800; //debug rom code (section .text in linker) starts at 0x800
@@ -173,14 +174,14 @@ ${pad.core_v_mini_mcu_interface}
   assign cpu_subsystem_powergate_switch_no    = cpu_subsystem_pwr_ctrl_out.pwrgate_en_n;
   assign cpu_subsystem_pwr_ctrl_in.pwrgate_ack_n = cpu_subsystem_powergate_switch_ack_ni;
   //isogate exposed outside for UPF sim flow and switch cells
-  assign cpu_subsystem_powergate_iso_n                 = cpu_subsystem_pwr_ctrl_o.isogate_en_n;
+  assign cpu_subsystem_powergate_iso_n                 = cpu_subsystem_pwr_ctrl_out.isogate_en_n;
   assign cpu_subsystem_rst_n                  = cpu_subsystem_pwr_ctrl_out.rst_n;
 
   //pwrgate exposed both outside for UPF sim flow
   assign peripheral_subsystem_powergate_switch_no = peripheral_subsystem_pwr_ctrl_out.pwrgate_en_n;
   assign peripheral_subsystem_pwr_ctrl_in.pwrgate_ack_n  = peripheral_subsystem_powergate_switch_ack_ni;
   //isogate exposed outside for UPF sim flow and switch cells
-  assign peripheral_subsystem_powergate_iso_n = peripheral_subsystem_pwr_ctrl_o.isogate_en_n;
+  assign peripheral_subsystem_powergate_iso_n = peripheral_subsystem_pwr_ctrl_out.isogate_en_n;
   assign peripheral_subsystem_rst_n           = peripheral_subsystem_pwr_ctrl_out.rst_n;
   assign peripheral_subsystem_clkgate_en_n    = peripheral_subsystem_pwr_ctrl_out.clkgate_en_n;
 
@@ -189,7 +190,7 @@ ${pad.core_v_mini_mcu_interface}
   assign memory_subsystem_banks_powergate_switch_no[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].pwrgate_en_n;
   assign memory_subsystem_pwr_ctrl_in[${bank.name()}].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_ni[${bank.name()}];
   //isogate exposed outside for UPF sim flow and switch cells
-  assign memory_subsystem_banks_powergate_iso_n[${bank.name()}] = memory_subsystem_pwr_ctrl_o[${bank.name()}].isogate_en_n;
+  assign memory_subsystem_banks_powergate_iso_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].isogate_en_n;
   assign memory_subsystem_banks_set_retentive_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].retentive_en_n;
   assign memory_subsystem_clkgate_en_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].clkgate_en_n;
 % endfor
