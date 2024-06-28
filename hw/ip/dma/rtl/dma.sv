@@ -807,6 +807,8 @@ module dma #(
 
         default: pad_fifo_on = 1'b0;
       endcase
+    end else begin
+      pad_fifo_on = 1'b0;
     end
   end
 
