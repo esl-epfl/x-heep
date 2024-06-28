@@ -85,7 +85,7 @@ package im2col_spc_reg_pkg;
     logic re;
   } im2col_spc_reg2hw_spc_ifr_reg_t;
 
-  typedef struct packed {logic [15:0] q;} im2col_spc_reg2hw_num_spc_ch_reg_t;
+  typedef struct packed {logic [31:0] q;} im2col_spc_reg2hw_spc_ch_mask_reg_t;
 
   typedef struct packed {logic d;} im2col_spc_hw2reg_status_reg_t;
 
@@ -93,31 +93,31 @@ package im2col_spc_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    im2col_spc_reg2hw_src_ptr_reg_t src_ptr;  // [563:532]
-    im2col_spc_reg2hw_dst_ptr_reg_t dst_ptr;  // [531:500]
-    im2col_spc_reg2hw_iw_reg_t iw;  // [499:468]
-    im2col_spc_reg2hw_ih_reg_t ih;  // [467:436]
-    im2col_spc_reg2hw_fw_reg_t fw;  // [435:404]
-    im2col_spc_reg2hw_fh_reg_t fh;  // [403:372]
-    im2col_spc_reg2hw_batch_reg_t batch;  // [371:340]
-    im2col_spc_reg2hw_num_ch_reg_t num_ch;  // [339:307]
-    im2col_spc_reg2hw_ch_col_reg_t ch_col;  // [306:275]
-    im2col_spc_reg2hw_n_patches_w_reg_t n_patches_w;  // [274:243]
-    im2col_spc_reg2hw_n_patches_h_reg_t n_patches_h;  // [242:211]
-    im2col_spc_reg2hw_adpt_pad_right_reg_t adpt_pad_right;  // [210:179]
-    im2col_spc_reg2hw_adpt_pad_bottom_reg_t adpt_pad_bottom;  // [178:147]
-    im2col_spc_reg2hw_strides_d1_reg_t strides_d1;  // [146:115]
-    im2col_spc_reg2hw_strides_d2_reg_t strides_d2;  // [114:83]
-    im2col_spc_reg2hw_status_reg_t status;  // [82:81]
-    im2col_spc_reg2hw_slot_reg_t slot;  // [80:49]
-    im2col_spc_reg2hw_data_type_reg_t data_type;  // [48:47]
-    im2col_spc_reg2hw_pad_top_reg_t pad_top;  // [46:40]
-    im2col_spc_reg2hw_pad_bottom_reg_t pad_bottom;  // [39:33]
-    im2col_spc_reg2hw_pad_right_reg_t pad_right;  // [32:26]
-    im2col_spc_reg2hw_pad_left_reg_t pad_left;  // [25:19]
-    im2col_spc_reg2hw_interrupt_en_reg_t interrupt_en;  // [18:18]
-    im2col_spc_reg2hw_spc_ifr_reg_t spc_ifr;  // [17:16]
-    im2col_spc_reg2hw_num_spc_ch_reg_t num_spc_ch;  // [15:0]
+    im2col_spc_reg2hw_src_ptr_reg_t src_ptr;  // [579:548]
+    im2col_spc_reg2hw_dst_ptr_reg_t dst_ptr;  // [547:516]
+    im2col_spc_reg2hw_iw_reg_t iw;  // [515:484]
+    im2col_spc_reg2hw_ih_reg_t ih;  // [483:452]
+    im2col_spc_reg2hw_fw_reg_t fw;  // [451:420]
+    im2col_spc_reg2hw_fh_reg_t fh;  // [419:388]
+    im2col_spc_reg2hw_batch_reg_t batch;  // [387:356]
+    im2col_spc_reg2hw_num_ch_reg_t num_ch;  // [355:323]
+    im2col_spc_reg2hw_ch_col_reg_t ch_col;  // [322:291]
+    im2col_spc_reg2hw_n_patches_w_reg_t n_patches_w;  // [290:259]
+    im2col_spc_reg2hw_n_patches_h_reg_t n_patches_h;  // [258:227]
+    im2col_spc_reg2hw_adpt_pad_right_reg_t adpt_pad_right;  // [226:195]
+    im2col_spc_reg2hw_adpt_pad_bottom_reg_t adpt_pad_bottom;  // [194:163]
+    im2col_spc_reg2hw_strides_d1_reg_t strides_d1;  // [162:131]
+    im2col_spc_reg2hw_strides_d2_reg_t strides_d2;  // [130:99]
+    im2col_spc_reg2hw_status_reg_t status;  // [98:97]
+    im2col_spc_reg2hw_slot_reg_t slot;  // [96:65]
+    im2col_spc_reg2hw_data_type_reg_t data_type;  // [64:63]
+    im2col_spc_reg2hw_pad_top_reg_t pad_top;  // [62:56]
+    im2col_spc_reg2hw_pad_bottom_reg_t pad_bottom;  // [55:49]
+    im2col_spc_reg2hw_pad_right_reg_t pad_right;  // [48:42]
+    im2col_spc_reg2hw_pad_left_reg_t pad_left;  // [41:35]
+    im2col_spc_reg2hw_interrupt_en_reg_t interrupt_en;  // [34:34]
+    im2col_spc_reg2hw_spc_ifr_reg_t spc_ifr;  // [33:32]
+    im2col_spc_reg2hw_spc_ch_mask_reg_t spc_ch_mask;  // [31:0]
   } im2col_spc_reg2hw_t;
 
   // HW -> register type
@@ -151,7 +151,7 @@ package im2col_spc_reg_pkg;
   parameter logic [BlockAw-1:0] IM2COL_SPC_PAD_LEFT_OFFSET = 7'h54;
   parameter logic [BlockAw-1:0] IM2COL_SPC_INTERRUPT_EN_OFFSET = 7'h58;
   parameter logic [BlockAw-1:0] IM2COL_SPC_SPC_IFR_OFFSET = 7'h5c;
-  parameter logic [BlockAw-1:0] IM2COL_SPC_NUM_SPC_CH_OFFSET = 7'h60;
+  parameter logic [BlockAw-1:0] IM2COL_SPC_SPC_CH_MASK_OFFSET = 7'h60;
 
   // Reset values for hwext registers and their fields
   parameter logic [0:0] IM2COL_SPC_STATUS_RESVAL = 1'h1;
@@ -185,7 +185,7 @@ package im2col_spc_reg_pkg;
     IM2COL_SPC_PAD_LEFT,
     IM2COL_SPC_INTERRUPT_EN,
     IM2COL_SPC_SPC_IFR,
-    IM2COL_SPC_NUM_SPC_CH
+    IM2COL_SPC_SPC_CH_MASK
   } im2col_spc_id_e;
 
   // Register width information to check illegal writes
@@ -214,7 +214,7 @@ package im2col_spc_reg_pkg;
       4'b0001,  // index[21] IM2COL_SPC_PAD_LEFT
       4'b0001,  // index[22] IM2COL_SPC_INTERRUPT_EN
       4'b0001,  // index[23] IM2COL_SPC_SPC_IFR
-      4'b0011  // index[24] IM2COL_SPC_NUM_SPC_CH
+      4'b1111  // index[24] IM2COL_SPC_SPC_CH_MASK
   };
 
 endpackage

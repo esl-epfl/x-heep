@@ -150,9 +150,9 @@ void im2col_spc_init(void)
 
   /* Write the number of DMA channels the SPC has access to */
   write_register( 0,
-                  IM2COL_SPC_NUM_SPC_CH_REG_OFFSET,
-                  IM2COL_SPC_NUM_SPC_CH_NUM_MASK,
-                  IM2COL_SPC_NUM_SPC_CH_NUM_OFFSET);
+                  IM2COL_SPC_SPC_CH_MASK_REG_OFFSET,
+                  0xffffffff,
+                  0);
 
   /* Write the source */
   write_register( 0,
@@ -509,9 +509,9 @@ im2col_spc_config_flags_t im2col_spc_run(im2col_spc_trans_t *spc_trans)
 
   /* Write the number of DMA channels the SPC has access to */
   write_register( spc_trans->num_ch,
-                  IM2COL_SPC_NUM_SPC_CH_REG_OFFSET,
-                  IM2COL_SPC_NUM_SPC_CH_NUM_MASK,
-                  IM2COL_SPC_NUM_SPC_CH_NUM_OFFSET);
+                  IM2COL_SPC_SPC_CH_MASK_REG_OFFSET,
+                  0xffffffff,
+                  0);
 
   /* Write the source */
   write_register( spc_trans->src_ptr,

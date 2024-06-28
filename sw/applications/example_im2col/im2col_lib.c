@@ -578,7 +578,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     }
 
     /* Implementation of im2col algorithm using the dedicated Smart Peripheral Controller */
-    else if (test_id == 3 && DMA_CH_NUM > SPC_CH_NUM)
+    else if (test_id == 3)
     {
         uint32_t* input_image_ptr = &input_image_nchw[0];
         uint32_t* output_data_ptr = &output_data[0];
@@ -595,10 +595,10 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         dma_init(NULL);
 
         /* Write the number of DMA channels the SPC has access to */
-        write_register( SPC_CH_NUM,
-                        IM2COL_SPC_NUM_SPC_CH_REG_OFFSET,
-                        IM2COL_SPC_NUM_SPC_CH_NUM_MASK,
-                        IM2COL_SPC_NUM_SPC_CH_NUM_OFFSET,
+        write_register( SPC_CH_MASK,
+                        IM2COL_SPC_SPC_CH_MASK_REG_OFFSET,
+                        0xffffffff,
+                        0,
                         IM2COL_SPC_BASE_ADDR );
 
         /* Write the source */

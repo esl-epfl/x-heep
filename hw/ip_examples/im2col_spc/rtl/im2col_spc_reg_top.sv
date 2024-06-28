@@ -141,9 +141,9 @@ module im2col_spc_reg_top #(
   logic interrupt_en_we;
   logic spc_ifr_qs;
   logic spc_ifr_re;
-  logic [15:0] num_spc_ch_qs;
-  logic [15:0] num_spc_ch_wd;
-  logic num_spc_ch_we;
+  logic [31:0] spc_ch_mask_qs;
+  logic [31:0] spc_ch_mask_wd;
+  logic spc_ch_mask_we;
 
   // Register instances
   // R[src_ptr]: V(False)
@@ -799,19 +799,19 @@ module im2col_spc_reg_top #(
   );
 
 
-  // R[num_spc_ch]: V(False)
+  // R[spc_ch_mask]: V(False)
 
   prim_subreg #(
-      .DW      (16),
+      .DW      (32),
       .SWACCESS("RW"),
-      .RESVAL  (16'h1)
-  ) u_num_spc_ch (
+      .RESVAL  (32'h1)
+  ) u_spc_ch_mask (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(num_spc_ch_we),
-      .wd(num_spc_ch_wd),
+      .we(spc_ch_mask_we),
+      .wd(spc_ch_mask_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -819,10 +819,10 @@ module im2col_spc_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.num_spc_ch.q),
+      .q (reg2hw.spc_ch_mask.q),
 
       // to register interface (read)
-      .qs(num_spc_ch_qs)
+      .qs(spc_ch_mask_qs)
   );
 
 
@@ -855,7 +855,7 @@ module im2col_spc_reg_top #(
     addr_hit[21] = (reg_addr == IM2COL_SPC_PAD_LEFT_OFFSET);
     addr_hit[22] = (reg_addr == IM2COL_SPC_INTERRUPT_EN_OFFSET);
     addr_hit[23] = (reg_addr == IM2COL_SPC_SPC_IFR_OFFSET);
-    addr_hit[24] = (reg_addr == IM2COL_SPC_NUM_SPC_CH_OFFSET);
+    addr_hit[24] = (reg_addr == IM2COL_SPC_SPC_CH_MASK_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -963,8 +963,8 @@ module im2col_spc_reg_top #(
 
   assign spc_ifr_re = addr_hit[23] & reg_re & !reg_error;
 
-  assign num_spc_ch_we = addr_hit[24] & reg_we & !reg_error;
-  assign num_spc_ch_wd = reg_wdata[15:0];
+  assign spc_ch_mask_we = addr_hit[24] & reg_we & !reg_error;
+  assign spc_ch_mask_wd = reg_wdata[31:0];
 
   // Read data return
   always_comb begin
@@ -1068,7 +1068,7 @@ module im2col_spc_reg_top #(
       end
 
       addr_hit[24]: begin
-        reg_rdata_next[15:0] = num_spc_ch_qs;
+        reg_rdata_next[31:0] = spc_ch_mask_qs;
       end
 
       default: begin

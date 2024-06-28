@@ -68,12 +68,42 @@ ver_patterns = {
     'stride_d2': r'(stride_d2\s*=\s*)\d+'
 }
 
-im2col_lib_pattern = re.compile(r'#define SPC_CH_NUM \d+')
+im2col_lib_pattern = re.compile(r'#define SPC_CH_MASK \d+')
 im2col_lib_pattern_cpu_done = re.compile(r'#define START_ID \d+')
 
 im2col_cpu_array = []
 im2col_dma_2d_C_array = []
 im2col_spc_array = []
+
+def generate_mask(num_masters, num_slaves, max_masters_per_slave, num_channels):
+    # Initialize the mask with all zeros
+    mask = [0] * num_masters
+
+    # Calculate the number of crossbars needed
+    crossbars = []
+    master_index = 0
+    for _ in range(num_slaves):
+        if master_index >= num_masters:
+            break
+        end_index = min(master_index + max_masters_per_slave, num_masters)
+        crossbars.append(list(range(master_index, end_index)))
+        master_index = end_index
+
+    # Generate the mask for the specified number of channels
+    used_channels = set()
+    crossbar_index = 0
+
+    while len(used_channels) < num_channels:
+        for cb in crossbars:
+            if len(used_channels) >= num_channels:
+                break
+            for master in cb:
+                if master not in used_channels:
+                    used_channels.add(master)
+                    mask[master] = 1
+                    break
+
+    return ''.join(map(str, mask))
 
 def modify_parameters(file_path, modifications, patterns):
     # Read the contents of the file
@@ -151,9 +181,11 @@ for i in range(1, num_channels_dma):
                                                     modify_parameters(ver_script_dir, ver_modifications, patterns=ver_patterns)
                                                     with open(imcol_lib_dir, 'r') as file:
                                                         content = file.read()
+                                                    
+                                                    mask = generate_mask(4, 2, 2, i)
 
                                                     # Replace the matched pattern with the new value
-                                                    new_content = im2col_lib_pattern.sub(f'#define SPC_CH_NUM {i}', content)
+                                                    new_content = im2col_lib_pattern.sub(f'#define SPC_CH_MASK 0b{mask}', content)
                                                     if cpu_done == 1:
                                                         new_content = im2col_lib_pattern_cpu_done.sub(f'#define START_ID 3', new_content)
                                                     

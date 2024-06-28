@@ -84,6 +84,7 @@ module im2col_spc
   logic [DMA_CH_NUM-1:0] dma_ch_first_write;
   logic [(DMA_CH_NUM == 1) ? 0 : ($clog2(DMA_CH_NUM) - 1):0] dma_free_channel;
   logic [(DMA_CH_NUM == 1) ? 0 : ($clog2(DMA_CH_NUM) - 1):0] dma_trans_free_channel;
+  logic [31:0] dma_ch_en_mask;
 
   logic dma_if_load;
   logic dma_if_loaded;
@@ -347,7 +348,7 @@ module im2col_spc
           /* Right zeros computation */
           if (fw_min_w_offset >= reg2hw.pad_right.q || reg2hw.adpt_pad_right.q == 0) begin
             n_zeros_right <= 0;
-          end else if ((reg2hw.adpt_pad_right.q - fw_min_w_offset) % reg2hw.strides_d1.q == 1'0) begin
+          end else if ((reg2hw.adpt_pad_right.q - fw_min_w_offset) % reg2hw.strides_d1.q == 0) begin
             n_zeros_right <= (reg2hw.adpt_pad_right.q - fw_min_w_offset) / reg2hw.strides_d1.q;
           end else begin
             n_zeros_right <= (reg2hw.adpt_pad_right.q - fw_min_w_offset) / reg2hw.strides_d1.q + 1;
@@ -935,8 +936,8 @@ module im2col_spc
   /* Free channel finder */
   always_comb begin : proc_comb_free_channel
     dma_free_channel = 0;
-    for (int i = 0; i < reg2hw.num_spc_ch.q; i = i + 1) begin
-      if (dma_if_channels[i] == 1'b0) begin
+    for (int i = 0; i < 32; i = i + 1) begin
+      if (dma_if_channels[i] == 1'b0 && dma_ch_en_mask[i] == 1'b1) begin
         dma_free_channel = i[(DMA_CH_NUM==1)?0 : ($clog2(DMA_CH_NUM)-1):0];
         break;
       end
@@ -947,20 +948,20 @@ module im2col_spc
   always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_control_unit
     if (!rst_ni) begin
       dma_trans_free_channel <= 0;
-      for (int i = 0; i < reg2hw.num_spc_ch.q; i = i + 1) begin
+      for (int i = 0; i < 32; i = i + 1) begin
         dma_if_channels[i] <= 1'b0;
         dma_ch_first_write[i] <= 1'b0;
       end
     end else begin
       /* Reset the first write flags when the im2col spc is done */
       if (im2col_fsms_done == 1'b1) begin
-        for (int i = 0; i < reg2hw.num_spc_ch.q; i = i + 1) begin
+        for (int i = 0; i < 32; i = i + 1) begin
           dma_ch_first_write[i] <= 1'b0;
         end
       end
 
       /* If an occupied channel asserts a done signal, free it up */
-      for (int i = 0; i < reg2hw.num_spc_ch.q; i = i + 1) begin
+      for (int i = 0; i < 32; i = i + 1) begin
         if (dma_if_channels[i] == 1'b1 && dma_done_i[i] == 1'b1) begin
           dma_if_channels[i] <= 1'b0;
         end
@@ -990,7 +991,7 @@ module im2col_spc
   /* Channels full flag logic */
   always_comb begin : proc_comb_channels_full
     dma_channels_full = 1'b1;
-    for (int i = 0; i < reg2hw.num_spc_ch.q; i = i + 1) begin
+    for (int i = 0; i < 32; i = i + 1) begin
       if (dma_if_channels[i] == 1'b0) begin
         dma_channels_full = 1'b0;
         break;
@@ -1077,5 +1078,8 @@ module im2col_spc
   /* Interrupt management */
   assign hw2reg.spc_ifr.d = im2col_spc_ifr;
   assign im2col_spc_done_int_o = im2col_spc_ifr;
+
+  /* DMA channels mask register */
+  assign dma_ch_en_mask = reg2hw.spc_ch_mask.q;
 
 endmodule

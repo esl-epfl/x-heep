@@ -123,12 +123,8 @@ extern "C" {
 #define IM2COL_SPC_SPC_IFR_REG_OFFSET 0x5c
 #define IM2COL_SPC_SPC_IFR_FLAG_BIT 0
 
-// Number of DMA channels that the SPC can access
-#define IM2COL_SPC_NUM_SPC_CH_REG_OFFSET 0x60
-#define IM2COL_SPC_NUM_SPC_CH_NUM_MASK 0xffff
-#define IM2COL_SPC_NUM_SPC_CH_NUM_OFFSET 0
-#define IM2COL_SPC_NUM_SPC_CH_NUM_FIELD \
-  ((bitfield_field32_t) { .mask = IM2COL_SPC_NUM_SPC_CH_NUM_MASK, .index = IM2COL_SPC_NUM_SPC_CH_NUM_OFFSET })
+// Mask that defines which DMA channels the SPC can access
+#define IM2COL_SPC_SPC_CH_MASK_REG_OFFSET 0x60
 
 #ifdef __cplusplus
 }  // extern "C"
