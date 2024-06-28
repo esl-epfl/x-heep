@@ -563,7 +563,7 @@ module power_manager import power_manager_pkg::*; #(
       .switch_ack_i (1'b1),
 
       // switch on and off signal, 1 means on
-      .switch_onoff_signal_o(external_subsystem_pwr_ctrl_o.retentive_en_n[${ext}])
+      .switch_onoff_signal_o(external_subsystem_pwr_ctrl_o[${ext}].retentive_en_n)
   );
 
 % endfor
