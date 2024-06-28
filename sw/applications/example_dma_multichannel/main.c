@@ -1053,7 +1053,7 @@ int main()
 
     #endif
 
-    #if defined(TEST_ID_3) && (TARGET_SIM == 0 || defined(TARGET_QUESTASIM))
+    #if defined(TEST_ID_3) && (TARGET_SIM == 0 || defined(TARGET_QUESTASIM)) && DMA_CH_NUM > 1
 
     /* Testing SPI2RAM & RAM2RAM operations on 2 channels */
 
