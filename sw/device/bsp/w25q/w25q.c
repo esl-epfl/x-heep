@@ -520,7 +520,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     spi_wait_for_ready(spi);
 
     // Wait for DMA to finish transaction
-    if(!no_wait_dma) (!dma_is_ready(0));
+    if(!no_wait_dma) while(!dma_is_ready(0));
 
     // Take into account the extra bytes (if any)
     if (length % 4 != 0) {
