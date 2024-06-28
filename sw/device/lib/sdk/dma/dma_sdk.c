@@ -371,6 +371,9 @@ void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size)
 // Copy data from source to destination using DMA peripheral
 int dma_copy(const uint8_t *dst, const uint8_t *src, const size_t bytes, const dma_data_type_t type)
 {
+
+    dma *peri = dma_peri;
+
     // Number of words
     size_t num_du = bytes >> 2;
 
