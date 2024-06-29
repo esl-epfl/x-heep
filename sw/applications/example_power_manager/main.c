@@ -48,7 +48,7 @@ static power_manager_t power_manager;
 #endif
 
 #define TEST_WORD
-//this data has to be big to allow the CPU to power gate - TODO, try with e40p and NtoM
+//this data has to be big to allow the CPU to power gate
 #define TEST_DATA_SIZE 500
 
 // Source and destination addresses have to be aligned on a 4 bytes address
