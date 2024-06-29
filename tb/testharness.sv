@@ -153,6 +153,7 @@ module testharness #(
     $display("%t: the parameter X_EXT is %x", $time, X_EXT);
     $display("%t: the parameter ZFINX is %x", $time, ZFINX);
     $display("%t: the parameter JTAG_DPI is %x", $time, JTAG_DPI);
+    $display("%t: the parameter EXT_DOMAINS is %x", $time, core_v_mini_mcu_pkg::EXTERNAL_DOMAINS);
     $display("%t: the parameter USE_EXTERNAL_DEVICE_EXAMPLE is %x", $time,
              USE_EXTERNAL_DEVICE_EXAMPLE);
     $display("%t: the parameter CLK_FREQUENCY is %d KHz", $time, CLK_FREQUENCY);
