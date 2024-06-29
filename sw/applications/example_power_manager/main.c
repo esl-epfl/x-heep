@@ -17,7 +17,7 @@
 #include "pad_control.h"
 #include "pad_control_regs.h"
 #include "x-heep.h"
-
+#include "dma.h"
 
 #ifndef RV_PLIC_IS_INCLUDED
   #error ( "This app does NOT work as the RV_PLIC peripheral is not included" )
@@ -46,6 +46,21 @@ static power_manager_t power_manager;
     #define GPIO_TB_IN  31
     #define GPIO_INTR  GPIO_INTR_31
 #endif
+
+#define TEST_WORD
+//this data has to be big to allow the CPU to power gate - TODO, try with e40p and NtoM
+#define TEST_DATA_SIZE 500
+
+// Source and destination addresses have to be aligned on a 4 bytes address
+uint32_t test_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
+uint32_t copied_data_4B[TEST_DATA_SIZE] __attribute__ ((aligned (4))) = { 0 };
+
+uint8_t gpio_intr_flag = 0;
+
+void gpio_handler_in()
+{
+    gpio_intr_flag = 1;
+}
 
 int main(int argc, char *argv[])
 {
@@ -156,9 +171,80 @@ int main(int argc, char *argv[])
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
 
+    // Power-gate and wake-up due to DMA
+
+    //prepare data
+    for(int i=0; i<TEST_DATA_SIZE;i++){
+        test_data_4B[i] = i;
+    }
+
+    dma_init(NULL);
+    dma_config_flags_t res;
+    dma_target_t tgt_src;
+    dma_target_t tgt_dst;
+    dma_target_t tgt_addr = {
+        .ptr = NULL,
+        .inc_du = 1,
+        .size_du = 0,
+        .trig = DMA_TRIG_MEMORY,
+    };
+    dma_trans_t trans;
+
+    // Initialize the DMA for the next tests
+    tgt_src.ptr = (uint8_t *)test_data_4B;
+    tgt_src.inc_du = 1;
+    tgt_src.size_du = TEST_DATA_SIZE;
+    tgt_src.trig = DMA_TRIG_MEMORY;
+    tgt_src.type = DMA_DATA_TYPE_WORD;
+
+    tgt_dst.ptr = (uint8_t *)copied_data_4B;
+    tgt_dst.inc_du = 1;
+    tgt_dst.size_du = TEST_DATA_SIZE;
+    tgt_dst.trig = DMA_TRIG_MEMORY;
+    tgt_dst.type = DMA_DATA_TYPE_WORD;
+
+    trans.src = &tgt_src;
+    trans.dst = &tgt_dst;
+    trans.src_addr = &tgt_addr;
+    trans.src_type = DMA_DATA_TYPE_WORD;
+    trans.dst_type = DMA_DATA_TYPE_WORD;
+    trans.mode = DMA_TRANS_MODE_SINGLE;
+    trans.win_du = 0;
+    trans.sign_ext = 0;
+    trans.end = DMA_TRANS_END_INTR;
+
+    trans.flags = 0x0;                                                                        
+    res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
+    res = dma_load_transaction(&trans);
+    res = dma_launch(&trans);
+
+    while (!dma_is_ready())                   
+    {                                         
+        CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
+        if (dma_is_ready() == 0)
+        {             
+                if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_counters) != kPowerManagerOk_e)
+                {
+                    PRINTF("Error: power manager fail.\n\r");
+                    return EXIT_FAILURE;
+                }
+        }
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+    }
+
+    for(int i=0; i<TEST_DATA_SIZE; i++) {
+        if (copied_data_4B[i] != test_data_4B[i]) {
+            PRINTF("ERROR COPY [%d]: %08x != %08x : %04x != %04x\n", i, &copied_data_4B[i], &test_data_4B[i], copied_data_4B[i], test_data_4B[i]);
+            return -1;
+        }
+    }
+
 #ifndef TARGET_PYNQ_Z2
-    // Power-gate and wake-up due to plic
-	bool state = false;
+    // Power-gate and wake-up due to plic GPIO
+
+    gpio_assign_irq_handler( GPIO_INTR_31, &gpio_handler_in );
+	
+    bool state = false;
     plic_irq_set_priority(GPIO_INTR_31, 1);
     plic_irq_set_enabled(GPIO_INTR_31, kPlicToggleEnabled);
 
