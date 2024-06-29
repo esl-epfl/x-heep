@@ -266,6 +266,12 @@ int main(int argc, char *argv[])
 
     uint32_t intr_num;
     plic_irq_complete(&intr_num);
+
+    if(gpio_intr_flag == 0){
+        PRINTF("Error: GPIO interrupt not detected\n\r");
+        return EXIT_FAILURE;
+    }
+
 #endif
 
     /* write something to stdout */
