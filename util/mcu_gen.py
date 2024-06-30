@@ -4,7 +4,8 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-#Simplified version of occamygen.py https://github.com/pulp-platform/snitch/blob/master/util/occamygen.py
+# Simplified version of occamygen.py https://github.com/pulp-platform/snitch/blob/master/util/occamygen.py
+# This script generates some templated (.tpl) X-HEEP files according to the desired configuration
 
 import argparse
 import hjson
@@ -12,12 +13,8 @@ import pathlib
 import sys
 import re
 import logging
-from subprocess import run
-import csv
 from jsonref import JsonRef
 from mako.template import Template
-import collections
-from math import log2
 import x_heep_gen.load_config
 from x_heep_gen.system import BusType
 
@@ -298,6 +295,222 @@ def write_template(tpl_path, outdir, outfile, **kwargs):
         else:
             raise FileNotFoundError
 
+
+def get_pads_target_info(pads_target):
+    """
+    Get the pads target information from the targets in the pad configuration file.
+
+    If any of the fields is not present in the target, it is set to None.
+
+    :param pads_target: The target dictionary from the pad configuration file.
+    :return: A dictionary with the target information.
+    """
+
+    try:
+        target_type = pads_target['type'].strip(',')
+    except KeyError:
+        target_type = None
+
+    try:
+        target_package = pads_target['package'].strip(',')
+    except KeyError:
+        target_package = None
+
+    try:
+        target_vendor = pads_target['vendor'].strip(',')
+    except KeyError:
+        target_vendor = None
+
+    try:
+        target_node = pads_target['node'].strip(',')
+    except KeyError:
+        target_node = None
+
+    try:
+        target_mapping = pads_target['mapping']
+    except KeyError:
+        target_mapping = None
+
+    try:
+        target_part = pads_target['part'].strip(',')
+    except KeyError:
+        target_part = None
+
+    try:
+        target_additional_constraints = pads_target['additional_constraints'].strip(',')
+    except KeyError:
+        target_additional_constraints = None
+
+    return {
+        'type': target_type,
+        'package': target_package,
+        'vendor': target_vendor,
+        'node': target_node,
+        'mapping': target_mapping,
+        'part': target_part,
+        'additional_constraints': target_additional_constraints
+    }
+
+
+def get_pad_mapping(pads_target_info, pad_name):
+    """
+    Get the mapping (top, right...) of a pad from an asic target.
+
+    :param pads_target_info: The target information dictionary.
+    :param pad_name: The name of the pad.
+    :return: The mapping of the pad, or None.
+    """
+    if pads_target_info != None:
+        try:
+            if pads_target_info["type"] == "asic":
+                for side, pads in pads_target_info["mapping"].items():
+                    if pad_name in pads.keys():
+                        return side
+        except KeyError:
+            return None
+    return None
+
+
+def _write_pad_io_format(pad_data):
+    parameters = []
+    try:
+        instance = pad_data['instance'].strip(',')
+        if instance != '':
+            parameters.append("inst name=\"{}\"".format(instance))
+    except KeyError:
+        pass
+
+    try:
+        cell = pad_data['cell'].strip(',')
+        if cell != '':
+            parameters.append("cell=\"{}\"".format(cell))
+    except KeyError:
+        pass
+
+    try:
+        parameters.append(pad_data['extra_parameters'].strip(','))
+    except KeyError:
+        pass
+
+    parameters.append("place_status=placed")
+
+    try:
+        comment = pad_data['comment'].strip(',')
+        if comment != '':
+            comment = "# {}".format(comment)
+    except KeyError:
+        comment = ''
+
+    return "      ( {} ) {}".format(" ".join(parameters), comment)
+
+
+def _write_bondpad_io_format(pad_data):
+    try:
+        has_bond_pad = pad_data['bond_pad']
+    except KeyError:
+        has_bond_pad = False
+
+    if has_bond_pad:
+        try:
+            bondpad_extra_parameters = pad_data['bondpad_extra_parameters'].strip(',')
+            if bondpad_extra_parameters != '':
+                extra = "{} ".format(bondpad_extra_parameters)
+            else:
+                extra = ""
+        except KeyError:
+            extra = ""
+
+        return "      ( inst name=\"u_padring/{}_bondpad\" cell=PAD_CELL {})".format(pad_data['pin_name'], extra)
+    else:
+        return("      # no bondpad for {}".format(pad_data['pin_name']))
+
+
+def get_pads_io_format(pads_target_info):
+    """
+    Get the pads io format from an asic target.
+
+    The returned dictionary contains the mapping_pads and
+    mapping_bondpads as keys and a string with the (bond)pads io format
+    as value. The data of each (bond)pad is separated by a new line.
+
+    :param pads_target_info: The target information dictionary.
+    :return: A dictionary with the (bond)pads io format, or None if
+        there is no target info or the type of the target is not asic.
+    """
+    if pads_target_info != None:
+        try:
+            if pads_target_info["type"] == "asic":
+                sides = {}
+                # Get the side (top, right...) and the pads for each side
+                for side, pads in pads_target_info["mapping"].items():
+                    # For each side, pad_rows and bondpad_rows contain a list with the
+                    # data of each pad ordered by layout_pin_number.
+                    pad_rows = []
+                    bondpad_rows = []
+                    data = [pad_data for _, pad_data in pads.items()]
+                    data.sort(key=lambda x: x['layout_pin_number'])
+                    for pad_data in data:
+                        # Add the data of this pad to the lists
+                        pad_rows.append(_write_pad_io_format(pad_data))
+                        bondpad_rows.append(_write_bondpad_io_format(pad_data))
+                    # Add the pads of this side to the dictionaries, writing the data from each pad in a separate line
+                    sides["{}_pads".format(side)] = "\n".join(pad_rows)
+                    sides["{}_bondpads".format(side)] = "\n".join(bondpad_rows)
+                return sides
+        except KeyError:
+            return None
+    return None
+
+
+def get_pads_io_kwargs(pads_target_info):
+    """
+    Get the kwargs for the pads io configuration.
+
+    :param pads_target_info: The target information dictionary.
+    :return: A list of the pads io kwargs.
+    """
+    top_pads = None
+    right_pads = None
+    bottom_pads = None
+    left_pads = None
+    top_bondpads = None
+    right_bondpads = None
+    bottom_bondpads = None
+    left_bondpads = None
+
+    pads_io = get_pads_io_format(pads_target_info)
+
+    if pads_io != None:
+        pads_io_keys = pads_io.keys()
+        if "top_pads" in pads_io_keys:
+            top_pads = pads_io["top_pads"]
+        if "right_pads" in pads_io_keys:
+            right_pads = pads_io["right_pads"]
+        if "bottom_pads" in pads_io_keys:
+            bottom_pads = pads_io["bottom_pads"]
+        if "left_pads" in pads_io_keys:
+            left_pads = pads_io["left_pads"]
+        if "top_bondpads" in pads_io_keys:
+            top_bondpads = pads_io["top_bondpads"]
+        if "right_bondpads" in pads_io_keys:
+            right_bondpads = pads_io["right_bondpads"]
+        if "bottom_bondpads" in pads_io_keys:
+            bottom_bondpads = pads_io["bottom_bondpads"]
+        if "left_bondpads" in pads_io_keys:
+            left_bondpads = pads_io["left_bondpads"]
+
+    return (
+        top_pads,
+        right_pads,
+        bottom_pads,
+        left_pads,
+        top_bondpads,
+        right_bondpads,
+        bottom_bondpads,
+        left_bondpads,
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(prog="mcugen")
     parser.add_argument("--cfg_peripherals",
@@ -306,7 +519,7 @@ def main():
                         type=argparse.FileType('r'),
                         required=True,
                         help="A configuration file")
-    
+
     parser.add_argument("--config",
                         metavar="file",
                         type=str,
@@ -364,6 +577,13 @@ def main():
                         default="1",
                         help="Number of external domains")
 
+    parser.add_argument("--pads_target",
+                        metavar="Has to match any of the ones in the pad configuration file",
+                        nargs='?',
+                        default='',
+                        const='',
+                        help="Target for the pads")
+
     parser.add_argument("--pkg-sv",
                         metavar="PKG_SV",
                         help="Name of top-level package file (output)")
@@ -371,7 +591,6 @@ def main():
     parser.add_argument("--tpl-sv",
                         metavar="TPL_SV",
                         help="Name of SystemVerilog template for your module (output)")
-
 
     parser.add_argument("--header-c",
                         metavar="HEADER_C",
@@ -449,11 +668,7 @@ def main():
     if  external_domains > 32:
         exit("external_domains must be less than 32 instead of " + str(external_domains))
 
-
-
     xheep = x_heep_gen.load_config.load_cfg_file(pathlib.PurePath(str(args.config)), config_override)
-
-
 
     debug_start_address = string2int(obj['debug']['address'])
     if int(debug_start_address, 16) < int('10000', 16):
@@ -466,7 +681,6 @@ def main():
         exit("always on peripheral start address must be greater than 0x10000")
 
     ao_peripheral_size_address = string2int(obj['ao_peripherals']['length'])
-
 
     def extract_peripherals(peripherals):
         result = {}
@@ -482,7 +696,6 @@ def main():
 
         return result
 
-
     def discard_path(peripherals):
         new = {}
         for k,v in peripherals.items():
@@ -497,14 +710,13 @@ def main():
         for name, info in peripherals.items():
             if isinstance(info, dict):
                 for k, v in info.items():
-                   if k in ("is_included"):
-                    if v in ("yes"):
-                        len_ep += 1
+                    if k in ("is_included"):
+                        if v in ("yes"):
+                            len_ep += 1
         return len_ep
 
     ao_peripherals = extract_peripherals(discard_path(obj['ao_peripherals']))
     ao_peripherals_count = len(ao_peripherals)
-
 
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
@@ -523,10 +735,8 @@ def main():
     stack_size  = string2int(obj['linker_script']['stack_size'])
     heap_size  = string2int(obj['linker_script']['heap_size'])
 
-
     if ((int(stack_size,16) + int(heap_size,16)) > xheep.ram_size_address()):
         exit("The stack and heap section must fit in the RAM size, instead they takes " + str(stack_size + heap_size))
-
 
     plic_used_n_interrupts = len(obj['interrupts']['list'])
     plit_n_interrupts = obj['interrupts']['number']
@@ -537,8 +747,23 @@ def main():
         **ext_int_list
     }
 
+    ###############
+    # PADs kwargs #
+    ###############
 
     pads = obj_pad['pads']
+
+    # Read the target configuration of the pads
+    pads_target_name = args.pads_target
+    if pads_target_name != '':
+        try:
+            pads_target = obj_pad['targets'][pads_target_name]
+        except KeyError:
+            raise SystemExit("Target " + pads_target_name + " not found in the pad configuration file")
+
+        pads_target_info = get_pads_target_info(pads_target)
+    else:
+        pads_target_info = None
 
     try:
         pads_attributes = obj_pad['attributes']
@@ -546,6 +771,18 @@ def main():
     except KeyError:
         pads_attributes = None
         pads_attributes_bits = "-1:0"
+
+    # Configure the PADs io file
+    (
+        top_pads,
+        right_pads,
+        bottom_pads,
+        left_pads,
+        top_bondpads,
+        right_bondpads,
+        bottom_bondpads,
+        left_bondpads,
+    ) = get_pads_io_kwargs(pads_target_info)
 
     # Read HJSON description of External Pads
     if args.external_pads != None:
@@ -586,11 +823,8 @@ def main():
             pad_active = pads[key]['active']
         except KeyError:
             pad_active = 'high'
-        
-        try:
-            pad_mapping = pads[key]['mapping'].strip(',')
-        except KeyError:
-            pad_mapping = None
+
+        pad_mapping = get_pad_mapping(pads_target_info, pad_name)
 
         try:
             pad_mux_list_hjson = pads[key]['mux']
@@ -800,8 +1034,7 @@ def main():
     max_total_pad_mux_bitlengh = -1
     for pad in pad_muxed_list:
         if (len(pad.pad_mux_list)-1).bit_length() > max_total_pad_mux_bitlengh:
-          max_total_pad_mux_bitlengh = (len(pad.pad_mux_list)-1).bit_length()
-
+            max_total_pad_mux_bitlengh = (len(pad.pad_mux_list)-1).bit_length()
 
     total_pad = pad_index_counter + external_pad_index_counter
 
@@ -845,6 +1078,14 @@ def main():
         "total_pad_muxed"                  : total_pad_muxed,
         "max_total_pad_mux_bitlengh"       : max_total_pad_mux_bitlengh,
         "pads_attributes"                  : pads_attributes,
+        "top_pads"                         : top_pads,
+        "right_pads"                       : right_pads,
+        "bottom_pads"                      : bottom_pads,
+        "left_pads"                        : left_pads,
+        "top_bondpads"                     : top_bondpads,
+        "right_bondpads"                   : right_bondpads,
+        "bottom_bondpads"                  : bottom_bondpads,
+        "left_bondpads"                    : left_bondpads,
     }
 
     ###########

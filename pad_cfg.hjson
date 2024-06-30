@@ -10,12 +10,38 @@
 //    num: <number> (mandatory) - the number of pads of this type
 //    type: <input|output|inout> (mandatory) - the type of the pad
 //    num_offset: <number> (optional) - the offset to the first pad of this type (default 0)
-//    mapping: <top|right|bottom|left> (optional) - the mapping of the pad in the design. Useful for ASICs (default top)
 //    active: <low|high> (optional) - the active level of the pad (default high)
 //    driven_manually: <True|False> (optional) - the pad is driven manually (default False)
 //    mux: <dict> (optional) - the muxing options for the pad
 //    skip_declaration: <True|False> (optional) - skip the declaration of the pad in the top level (default False)
 //    keep_internal: <True|False> (optional) - keep the pad internal to the design (default False)
+//
+// The targets contains the list of all of the possible targets of the design.
+// These can be used to define target information and the mapping of the pads in the design.
+// Each target is defined by its name and can have the following attributes:
+//    type: <asic|fpga> (mandatory) - the type of the target
+//    package: <string> (optional) - the package of the target (default None)
+//    vendor: <string> (optional) - the vendor of the target (default None)
+//    node: <string> (optional) - the node of the asic target (default None)
+//    mapping: <dict> (optional) - the mapping of the pads in the design
+//    part: <string> (optional) - the part of the FPGA target (default None)
+//    additional_constraints: <dict> (optional) - additional constraints for the target (default None)
+//
+// The pads in the mapping of the targets are defined by their name,
+// which has to match the name of the pad in the pads list.
+// Each pad can have the following attributes:
+//    cell: <string> (optional) - the cell of the pad. Either cell or type have to be specified
+//    pin_name: <string> (mandatory) - the name of the pin
+//    instance: <string> (optional) - the instance of the pads (default "")
+//    layout_pin_number: <number> (mandatory) - the layout pin number
+//    package_pin_number: <number> (optional) - the package pin number (default -1)
+//    bond_pad: <True|False> (optional) - the pad has a bond pad (default False)
+//    extra_parameters: <string> (optional) - additional parameters for the pad (default "")
+//    bondpad_extra_parameters: <string> (optional) - additional parameters for the bond pad (default "")
+//    comment: <string> (optional) - a comment for the pad (default "")
+//    orientation: <R0|R90|R180|R270> (optional) - the orientation of the pad (default R0)
+//    pin: <string> (optional) - the FPGA pin of the pad (default "")
+//    IO_std: <string> (optional) - the FPGA IO standard of the pad (default "")
 // 
 // Add this field at the same level of pads (not inside) if you want to define PADs attributes
 //    attributes: {
@@ -274,6 +300,82 @@
                 gpio_30: {
                     type: inout
                 },
+            }
+        }
+    }
+
+    targets: {
+        tsmc_65nm: {
+            type: asic,
+            package: pkgname,
+            vendor: tsmc,
+            node: 65nm,
+            mapping: {
+                top: {
+                    clk: {
+                        cell: "",
+                        pin_name: "clk_i",
+                        instance: "",
+                        layout_pin_number: -1,
+                        package_pin_number: -1,
+                        bond_pad: true,
+                        extra_parameters: "",
+                        bondpad_extra_parameters: "",
+                        comment: "test"
+                    }
+                    boot_select: {
+                        layout_pin_number: 5,
+                        pin_name: "boot_select_i",
+                        bond_pad: true,
+                        instance: "pad_ring_i/pad_boot_select_i/pad_input_i",
+                    }
+                },
+                top_right: {
+                    corner_tr: {
+                        cell: corner_cell_name,
+                        pin_name: "CUT",
+                        orientation: R0,
+                        layout_pin_number: -1,
+                    }
+                },
+                right: {
+                    rst: {
+                        cell: "",
+                        pin_name: "rst_ni",
+                        layout_pin_number: -1,
+                    }
+                },
+                bottom_right: {
+
+                },
+                bottom: {
+
+                },
+                bottom_left: {
+
+                },
+                left: {
+
+                },
+                top_left: {
+
+                }
+            }
+        }
+
+        pynq-z2: {
+            type: fpga,
+            vendor: xilinx,
+            part: xc7z020clg400-1,
+            mapping: {
+                clk: {
+                    pin: A1,
+                    IO_std: LVCMOS33
+                },
+                // TBD
+            },
+            additional_constraints: {
+
             }
         }
     }
