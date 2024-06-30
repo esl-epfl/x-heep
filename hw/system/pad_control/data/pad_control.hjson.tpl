@@ -26,7 +26,7 @@
 % for pad in total_pad_list:
     { name:     "PAD_ATTRIBUTE_${pad.name.upper()}",
       desc:     "${pad.name} Attributes (Pull Up En, Pull Down En, etc. It is technology specific.",
-      resval:   "0x00"
+      resval:   "${pads_attributes['resval']}"
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
