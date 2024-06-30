@@ -37,7 +37,8 @@
 * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.  
 
- Modifications 2017  Mostafa Saleh       (Ported to RISC-V PULPino)
+ Modifications 2017  Mostafa Saleh       (Ported to RISC-V PULPino) 
+ Modifications 2024  ESL   
 * ---------------------------------------------------------------------------- */
 
 #include "riscv_math.h"
@@ -109,7 +110,10 @@ void riscv_float_to_q7(
     /* C = A * 128 */
     /* convert from float to q7 and then store the results in the destination buffer */
 #if defined (USE_DSP_RISCV)
-    *pDst++ = (q7_t) x_heep_clip((q31_t) (*pIn++ * 128.0f), 7);
+    int precision=7;
+    q31_t x =(q31_t) (*pIn++ * 128.0f);
+    q7_t a =(q7_t)((x)<(-(1<<(precision)))?(-(1<<(precision))):(((x)>((1<<(precision))-1))?((1<<(precision))-1):(x)));
+    *pDst++ = a;
 #else
     *pDst++ = (q7_t) __SSAT((q31_t) (*pIn++ * 128.0f), 8);
 #endif

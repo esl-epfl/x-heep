@@ -70,7 +70,7 @@ typedef void * rt_pointerT;
 						((unsigned char)(x)[3]<(unsigned char)(y)[3])?(unsigned char)(x)[3]:(unsigned char)(y)[3]})
 
 /* Clip */
-#define x_heep_clip(x, precision)	((x)<(-(1<<(precision)))?(-(1<<(precision))):(((x)>((1<<(precision))-1))?((1<<(precision))-1):(x)))
+#define x_heep_clip(x, precision) ((x)<(-(1<<(precision)))?(-(1<<(precision))):(((x)>((1<<(precision))-1))?((1<<(precision))-1):(x)))
 #define x_heep_clipu(x, precision)	((x)<0)?0:(((x)>((1<<(precision))-1))?((1<<(precision))-1):(x))
 
 /* Abs */

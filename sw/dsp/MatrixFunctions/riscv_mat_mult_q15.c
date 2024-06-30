@@ -37,11 +37,13 @@
 * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE. 
 
- Modifications 2017  Mostafa Saleh       (Ported to RISC-V PULPino)    
+ Modifications 2017  Mostafa Saleh       (Ported to RISC-V PULPino) 
+ Modifications 2024  ESL   
 * -------------------------------------------------------------------- */
 
 #include "riscv_math.h"
 #include "x_heep_emul.h"
+
 /**    
  * @ingroup groupMatrix    
  */
@@ -88,7 +90,7 @@ riscv_status riscv_mat_mult_q15(
 
   #if defined (USE_DSP_RISCV)
 
-
+    
     q15_t *pSrcBT = pState;                        /* input data matrix pointer for transpose */
     q15_t *pInA = pSrcA->pData;                    /* input data matrix pointer A of Q15 type */
     q15_t *pInB = pSrcB->pData;                    /* input data matrix pointer B of Q15 type */

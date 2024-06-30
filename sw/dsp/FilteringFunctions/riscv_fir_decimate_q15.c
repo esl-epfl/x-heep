@@ -38,6 +38,7 @@
 * POSSIBILITY OF SUCH DAMAGE. 
 
  Modifications 2017  Mostafa Saleh       (Ported to RISC-V PULPino)  
+ Modifications 2024  ESL
 * -------------------------------------------------------------------- */
 
 #include "riscv_math.h"
@@ -79,7 +80,6 @@ void riscv_fir_decimate_q15(
   q15_t * pDst,
   uint32_t blockSize)
 {
-
 #if defined (USE_DSP_RISCV)
   q15_t *pState = S->pState;                     /* State pointer */
   q15_t *pCoeffs = S->pCoeffs;                   /* Coefficient pointer */

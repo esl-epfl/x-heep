@@ -38,6 +38,7 @@
 * POSSIBILITY OF SUCH DAMAGE.  
 
  Modifications 2017  Mostafa Saleh       (Ported to RISC-V PULPino)
+ Modifications 2024  ESL
 * -------------------------------------------------------------------- */
 
 
@@ -256,7 +257,7 @@ riscv_status riscv_mat_cmplx_mult_q15(
         }
 
         /* Saturate and store the result in the destination buffer */
-        *px++ = (q15_t) (x_heep_clip(sumReal >> 15, 15));
+        *px++ = (q15_t) (x_heep_clip(sumReal >> 15,15));
         *px++ = (q15_t) (x_heep_clip(sumImag >> 15,15));
         /* Decrement the column loop counter */
         col--;

@@ -488,7 +488,7 @@ typedef unsigned char  v4u __attribute__((vector_size (4)));
       uint32_t  x = tempVal;
       uint32_t y  = out;
       uint32_t out1;
-      out1 = (q31_t)clip_q63_to_q31( ((q63_t)x * y) >> 30);
+      out1 = (q31_t)clip_q63_to_q31(((q63_t)x * y) >> 30);
       tempo= (q63_t)((uint64_t)x * y) >> 30;
       if(tempo > 2147483647) out1 = 0x7FFFFFFF;
       else if (tempo < -2147483648) out1 = 0x80000000;

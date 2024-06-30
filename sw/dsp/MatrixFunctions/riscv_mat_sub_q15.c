@@ -38,6 +38,7 @@
 * POSSIBILITY OF SUCH DAMAGE.    
 
  Modifications 2017  Mostafa Saleh       (Ported to RISC-V PULPino)
+ Modifications 2024  ESL
 * -------------------------------------------------------------------- */
 
 #include "riscv_math.h"
@@ -105,7 +106,10 @@ riscv_status riscv_mat_sub_q15(
       /* C(m,n) = A(m,n) - B(m,n) */
       /* Subtract and then store the results in the destination buffer. */
 #if defined (USE_DSP_RISCV)
-      *pOut++ =(q15_t)x_heep_clip((*pInA++ - *pInB++),15);
+        int precision=15;
+      float32_t x=(*pInA++ - *pInB++);
+      q15_t a=(q15_t)((x)<(-(1<<(precision)))?(-(1<<(precision))):(((x)>((1<<(precision))-1))?((1<<(precision))-1):(x)));
+      *pOut++ = a;
 #else
       *pOut++ = (q15_t) __SSAT(((q31_t) * pInA++ - *pInB++), 16);
 #endif

@@ -39,6 +39,7 @@
 * POSSIBILITY OF SUCH DAMAGE.  
 
  Modifications 2017  Mostafa Saleh       (Ported to RISC-V PULPino) 
+ Modifications 2024  ESL
 * -------------------------------------------------------------------- */
 
 #include "riscv_math.h"

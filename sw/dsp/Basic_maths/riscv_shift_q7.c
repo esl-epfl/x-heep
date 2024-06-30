@@ -68,7 +68,7 @@
  * <b>Scaling and Overflow Behavior:</b>        
  * \par        
  * The function uses saturating arithmetic.        
- * Results outside of the allowable Q7 range [0x8 0x7F] will be saturated.        
+ * Results outside of the allowable Q7 range [0x80 0x7F] will be saturated.        
  */
 
 void riscv_shift_q7(

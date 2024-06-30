@@ -38,6 +38,7 @@
 * POSSIBILITY OF SUCH DAMAGE.    
 
  Modifications 2017  Mostafa Saleh       (Ported to RISC-V PULPino)
+ Modifications 2024  ESL   
 * ---------------------------------------------------------------------------- */
 
 #include "riscv_math.h"
@@ -110,7 +111,10 @@ void riscv_float_to_q15(
     /* C = A * 32768 */
     /* convert from float to q15 and then store the results in the destination buffer */
 #if defined (USE_DSP_RISCV)
-    *pDst++ = (q15_t) x_heep_clip((q31_t) (*pIn++ * 32768.0f),15);
+    int precision=15;
+    q31_t x =(q31_t) (*pIn++ * 32768.0f);
+    q15_t a =(q15_t)((x)<(-(1<<(precision)))?(-(1<<(precision))):(((x)>((1<<(precision))-1))?((1<<(precision))-1):(x)));
+    *pDst++ = a;
 #else
     *pDst++ = (q15_t) __SSAT((q31_t) (*pIn++ * 32768.0f), 16);
 #endif

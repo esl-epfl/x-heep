@@ -101,8 +101,9 @@ void riscv_rms_q15(
     /* Decrement the loop counter */
     blkCnt--;
   }
-  riscv_sqrt_q15(x_heep_clip((sum / (q63_t)blockSize) >> 15,15), pResult);
+  riscv_sqrt_q15(x_heep_clip((sum / (q63_t)blockSize) >> 15,16), pResult);
 #else
+
   /* Loop over blockSize number of values */
   blkCnt = blockSize;
 
