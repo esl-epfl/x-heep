@@ -20,6 +20,7 @@
 // Add this field at the same level of pads (not inside) if you want to define PADs attributes
 //    attributes: {
 //        bits: 7:0
+//        resval: 0x3
 //    },
 
 {
