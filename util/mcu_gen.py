@@ -42,7 +42,7 @@ class Pad:
 
     mapping = ''
     if self.pad_mapping is not None:
-        mapping = ', .SIDE(' + mapping_dict[self.pad_mapping] + ')'
+        mapping = ',\n.SIDE(' + mapping_dict[self.pad_mapping] + ')'
 
     self.interface = '    inout wire ' + self.name + '_io,\n'
 
@@ -50,7 +50,11 @@ class Pad:
         self.pad_ring_io_interface = '    inout wire ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    output logic ' + self.signal_name + 'o,'
         self.pad_ring_instance = \
-            'pad_cell_input #(.PADATTR('+ str(self.attribute_bits) +')' + mapping + ') ' + self.cell_name + ' ( \n' + \
+            'pad_cell_input #(\n' + \
+            '.PADATTR('+ str(self.attribute_bits) +'),\n' + \
+            '.EXTRA_INPUTS('+ str(self.extra_inputs_bits) +'),\n' + \
+            '.EXTRA_OUTPUTS('+ str(self.extra_outputs_bits) +')' + \
+            mapping + ') ' + self.cell_name +  '( \n' + \
             '   .pad_in_i(1\'b0),\n' + \
             '   .pad_oe_i(1\'b0),\n' + \
             '   .pad_out_o(' + self.signal_name + 'o),\n' + \
@@ -59,7 +63,11 @@ class Pad:
         self.pad_ring_io_interface = '    inout wire ' + self.io_interface + ','
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'i,'
         self.pad_ring_instance = \
-            'pad_cell_output #(.PADATTR('+ str(self.attribute_bits) +')' + mapping + ') ' + self.cell_name + ' ( \n' + \
+            'pad_cell_output #(\n' + \
+            '.PADATTR('+ str(self.attribute_bits) +'),\n' + \
+            '.EXTRA_INPUTS('+ str(self.extra_inputs_bits) +'),\n' + \
+            '.EXTRA_OUTPUTS('+ str(self.extra_outputs_bits) +')' + \
+            mapping + ') ' + self.cell_name +  '( \n' + \
             '   .pad_in_i(' + self.signal_name + 'i),\n' + \
             '   .pad_oe_i(1\'b1),\n' + \
             '   .pad_out_o(),\n' + \
@@ -70,21 +78,40 @@ class Pad:
         self.pad_ring_ctrl_interface += '    output logic ' + self.signal_name + 'o,\n'
         self.pad_ring_ctrl_interface += '    input logic ' + self.signal_name + 'oe_i,'
         self.pad_ring_instance = \
-            'pad_cell_inout #(.PADATTR('+ str(self.attribute_bits) +')' + mapping + ') ' + self.cell_name + ' ( \n' + \
+            'pad_cell_inout #(\n' + \
+            '.PADATTR('+ str(self.attribute_bits) +'),\n' + \
+            '.EXTRA_INPUTS('+ str(self.extra_inputs_bits) +'),\n' + \
+            '.EXTRA_OUTPUTS('+ str(self.extra_outputs_bits) +')' + \
+            mapping + ') ' + self.cell_name +  '( \n' + \
             '   .pad_in_i(' + self.signal_name + 'i),\n' + \
             '   .pad_oe_i(' + self.signal_name + 'oe_i),\n' + \
             '   .pad_out_o(' + self.signal_name + 'o),\n' + \
             '   .pad_io(' + self.signal_name + 'io),\n'
 
     if self.pad_type == 'input' or self.pad_type == 'output' or self.pad_type == 'inout':
+
         if self.has_attribute:
             self.pad_ring_instance += \
-                '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + '])\n' + \
-                ');\n\n'
+                '   .pad_attributes_i(pad_attributes_i[core_v_mini_mcu_pkg::' + self.localparam + ']),\n'
         else:
             self.pad_ring_instance += \
-                '   .pad_attributes_i(\'0)' + \
-                ');\n\n'
+                '   .pad_attributes_i(\'0),\n'
+
+        if self.has_extra_inputs:
+            self.pad_ring_instance += \
+                '   .pad_extra_inputs_i(pad_extra_inputs_i[core_v_mini_mcu_pkg::' + self.localparam + ']),\n'
+        else:
+            self.pad_ring_instance += \
+                '   .pad_extra_inputs_i(\'0),\n'
+
+        if self.has_extra_outputs:
+            self.pad_ring_instance += \
+                '   .pad_extra_outputs_o(pad_extra_outputs_o[core_v_mini_mcu_pkg::' + self.localparam + '])\n'
+        else:
+            self.pad_ring_instance += \
+                '   .pad_extra_outputs_o()\n'
+
+        self.pad_ring_instance += ');\n\n'
 
 
   def create_core_v_mini_mcu_ctrl(self):
@@ -209,7 +236,8 @@ class Pad:
         self.pad_ring_bonding_bonding += '    .' + self.signal_name + 'oe_i(' + oe_internal_signals + '),'
         self.x_heep_system_interface += '    inout wire ' + self.signal_name + 'io,'
 
-  def __init__(self, name, cell_name, pad_type, pad_mapping, index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, has_attribute, attribute_bits):
+  def __init__(self, name, cell_name, pad_type, pad_mapping, index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, has_attribute, attribute_bits, \
+               has_extra_inputs, extra_inputs_bits, has_extra_outputs, extra_outputs_bits):
 
     self.name = name
     self.cell_name = cell_name
@@ -228,6 +256,12 @@ class Pad:
 
     self.has_attribute = has_attribute
     self.attribute_bits = int(attribute_bits.split(":")[0]) - int(attribute_bits.split(":")[1]) + 1
+
+    self.has_extra_inputs = has_extra_inputs
+    self.extra_inputs_bits = int(extra_inputs_bits.split(":")[0]) - int(extra_inputs_bits.split(":")[1]) + 1
+
+    self.has_extra_outputs = has_extra_outputs
+    self.extra_outputs_bits = int(extra_outputs_bits.split(":")[0]) - int(extra_outputs_bits.split(":")[1]) + 1
 
     self.signal_name_drive = []
     self.pad_type_drive    = []
@@ -547,6 +581,20 @@ def main():
         pads_attributes = None
         pads_attributes_bits = "-1:0"
 
+    try:
+        pads_extra_inputs = obj_pad['extra_inputs']
+        pads_extra_inputs_bits = pads_extra_inputs['bits']
+    except KeyError:
+        pads_extra_inputs = None
+        pads_extra_inputs_bits = "-1:0"
+
+    try:
+        pads_extra_outputs = obj_pad['extra_outputs']
+        pads_extra_outputs_bits = pads_extra_outputs['bits']
+    except KeyError:
+        pads_extra_outputs = None
+        pads_extra_outputs_bits = "-1:0"
+
     # Read HJSON description of External Pads
     if args.external_pads != None:
         with args.external_pads as file_external_pads:
@@ -646,13 +694,16 @@ def main():
             except KeyError:
                 pad_skip_declaration_mux = False
 
-            p = Pad(pad_mux, '', pads[key]['mux'][pad_mux]['type'], pad_mapping, 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [], pads_attributes!=None, pads_attributes_bits)
+            p = Pad(pad_mux, '', pads[key]['mux'][pad_mux]['type'], pad_mapping, 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [], \
+                        pads_attributes!=None, pads_attributes_bits, pads_extra_inputs != None, pads_extra_inputs_bits, pads_extra_outputs != None, pads_extra_outputs_bits)
+            
             pad_mux_list.append(p)
 
         if pad_num > 1:
             for p in range(pad_num):
                 pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
-                pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_mapping, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits)
+                pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_mapping, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, \
+                        pads_attributes!=None, pads_attributes_bits, pads_extra_inputs != None, pads_extra_inputs_bits, pads_extra_outputs != None, pads_extra_outputs_bits)
                 if not pad_keep_internal:
                     pad_obj.create_pad_ring()
                 pad_obj.create_core_v_mini_mcu_ctrl()
@@ -671,7 +722,9 @@ def main():
 
         else:
             pad_cell_name = "pad_" + key + "_i"
-            pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_mapping, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits)
+            pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_mapping, pad_index_counter, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, \
+                        pads_attributes!=None, pads_attributes_bits, pads_extra_inputs != None, pads_extra_inputs_bits, pads_extra_outputs != None, pads_extra_outputs_bits)
+
             if not pad_keep_internal:
                 pad_obj.create_pad_ring()
             pad_obj.create_core_v_mini_mcu_ctrl()
@@ -757,13 +810,16 @@ def main():
                 except KeyError:
                     pad_skip_declaration_mux = False
 
-                p = Pad(pad_mux, '', external_pads[key]['mux'][pad_mux]['type'], pad_mapping, 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [], pads_attributes!=None, pads_attributes_bits)
+                p = Pad(pad_mux, '', external_pads[key]['mux'][pad_mux]['type'], pad_mapping, 0, pad_active_mux, pad_driven_manually_mux, pad_skip_declaration_mux, [], \
+                        pads_attributes!=None, pads_attributes_bits, pads_extra_inputs != None, pads_extra_inputs_bits, pads_extra_outputs != None, pads_extra_outputs_bits)
                 pad_mux_list.append(p)
 
             if pad_num > 1:
                 for p in range(pad_num):
                     pad_cell_name = "pad_" + key + "_" + str(p+pad_offset) + "_i"
-                    pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_mapping, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits)
+                    pad_obj = Pad(pad_name + "_" + str(p+pad_offset), pad_cell_name, pad_type, pad_mapping, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, \
+                                  pads_attributes!=None, pads_attributes_bits, pads_extra_inputs != None, pads_extra_inputs_bits, pads_extra_outputs != None, pads_extra_outputs_bits)
+
                     pad_obj.create_pad_ring()
                     pad_obj.create_pad_ring_bonding()
                     pad_obj.create_internal_signals()
@@ -779,7 +835,8 @@ def main():
 
             else:
                 pad_cell_name = "pad_" + key + "_i"
-                pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_mapping, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, pads_attributes!=None, pads_attributes_bits)
+                pad_obj = Pad(pad_name, pad_cell_name, pad_type, pad_mapping, external_pad_index, pad_active, pad_driven_manually, pad_skip_declaration, pad_mux_list, \
+                        pads_attributes!=None, pads_attributes_bits, pads_extra_inputs != None, pads_extra_inputs_bits, pads_extra_outputs != None, pads_extra_outputs_bits)
                 pad_obj.create_pad_ring()
                 pad_obj.create_pad_ring_bonding()
                 pad_obj.create_internal_signals()
@@ -845,6 +902,8 @@ def main():
         "total_pad_muxed"                  : total_pad_muxed,
         "max_total_pad_mux_bitlengh"       : max_total_pad_mux_bitlengh,
         "pads_attributes"                  : pads_attributes,
+        "pads_extra_inputs"                : pads_extra_inputs,
+        "pads_extra_outputs"               : pads_extra_outputs,
     }
 
     ###########
