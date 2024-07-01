@@ -23,7 +23,7 @@ def add_loop_size(data):
         entry['loop_size'] = entry['C'] * entry['B'] * entry['H'] * entry['W']
     return data
 
-num_channels_dma = 4
+num_channels_dma = 5
 
 batch_max = 4
 
@@ -68,7 +68,7 @@ ver_patterns = {
     'stride_d2': r'(stride_d2\s*=\s*)\d+'
 }
 
-im2col_lib_pattern = re.compile(r'#define SPC_CH_MASK \d+')
+im2col_lib_pattern = re.compile(r'#define SPC_CH_MASK 0b\d+')
 im2col_lib_pattern_cpu_done = re.compile(r'#define START_ID \d+')
 
 im2col_cpu_array = []
@@ -88,6 +88,11 @@ def generate_mask(num_masters, num_slaves, max_masters_per_slave, num_channels):
         end_index = min(master_index + max_masters_per_slave, num_masters)
         crossbars.append(list(range(master_index, end_index)))
         master_index = end_index
+
+    # Reverse the crossbars to start allocation from the rightmost master
+    crossbars.reverse()
+    for cb in crossbars:
+        cb.reverse()
 
     # Generate the mask for the specified number of channels
     used_channels = set()
@@ -119,49 +124,55 @@ def modify_parameters(file_path, modifications, patterns):
     with open(file_path, 'w') as file:
         file.write(content)
 
-cpu_done = 0
+cpu_done = 1
 
-for i in range(1, num_channels_dma):
+for i in range(4, num_channels_dma):
     print("Number of channels used by SPC", i)
     im2col_cpu = []
     im2col_dma_2d_C = []
     im2col_spc = []
 
     for j in range(1, batch_max):
-        print("Batch size: ", j)
 
         for k in range(1, channels_max):
-            print("Number of input channels: ", k)
 
             for l in range(10, im_h_max):
-                print("Image height: ", l)
 
                 for m in range(10, im_w_max):
-                    print("Image width: ", m)
 
                     for n in range(2, ker_h_max):
-                        print("Kernel height: ", n)
 
                         for o in range(2, ker_w_max):
-                            print("Kernel width: ", o)
 
                             for p in range(1, pad_top_max):
-                                print("Pad top: ", p)
 
                                 for q in range(1, pad_bottom_max):
-                                    print("Pad bottom: ", q)
 
                                     for r in range(1, pad_left_max):
-                                        print("Pad left: ", r)
 
                                         for s in range(1, pad_right_max):
-                                            print("Pad right: ", s)
 
                                             for t in range(1, stride_d1_max):
-                                                print("Stride d1: ", t)
 
                                                 for u in range(1, stride_d2_max):
+                                                    print("Batch size: ", j)
+                                                    print("Number of input channels: ", k)
+                                                    print("Image height: ", l)
+                                                    print("Image width: ", m)
+                                                    print("Kernel height: ", n)
+                                                    print("Kernel width: ", o)
+                                                    print("Pad top: ", p)
+                                                    print("Pad bottom: ", q)
+                                                    print("Pad left: ", r)
+                                                    print("Pad right: ", s)
+                                                    print("Stride d1: ", t)
                                                     print("Stride d2: ", u)
+
+
+                                                    print("_______________________\n\n")
+                                                    progress = (u + t*stride_d1_max + s*stride_d2_max*stride_d1_max + r*pad_right_max*stride_d2_max*stride_d1_max + q*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max + p*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max + o*pad_top_max*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max + n*ker_w_max*pad_top_max*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max + m*ker_h_max*ker_w_max*pad_top_max*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max + l*im_w_max*ker_h_max*ker_w_max*pad_top_max*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max + k*im_h_max*im_w_max*ker_h_max*ker_w_max*pad_top_max*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max + j*channels_max*im_h_max*im_w_max*ker_h_max*ker_w_max*pad_top_max*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max + i*batch_max*channels_max*im_h_max*im_w_max*ker_h_max*ker_w_max*pad_top_max*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max)/(batch_max*channels_max*im_h_max*im_w_max*ker_h_max*ker_w_max*pad_top_max*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max*num_channels_dma) * 100 
+                                                    print("", progress, "%")
+                                                    print("_______________________\n")
                                                     
                                                     ver_modifications = {
                                                         'image_height': l,
