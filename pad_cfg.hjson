@@ -17,10 +17,16 @@
 //    skip_declaration: <True|False> (optional) - skip the declaration of the pad in the top level (default False)
 //    keep_internal: <True|False> (optional) - keep the pad internal to the design (default False)
 // 
-// Add this field at the same level of pads (not inside) if you want to define PADs attributes
+// Add these fields at the same level of pads (not inside) if you want to define PADs attributes, extra inputs, and extra outputs
 //    attributes: {
 //        bits: 7:0
 //        resval: 0x3
+//    },
+//    extra_inputs: {
+//        bits: 5:0
+//    },
+//    extra_outputs: {
+//        bits: 2:0
 //    },
 
 {

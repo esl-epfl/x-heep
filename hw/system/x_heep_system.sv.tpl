@@ -165,10 +165,12 @@ ${pad.core_v_mini_mcu_bonding}
 ${pad.pad_ring_bonding_bonding}
 % endfor
 % if pads_attributes != None:
-    .pad_attributes_i(pad_attributes)
+    .pad_attributes_i(pad_attributes),
 % else:
-    .pad_attributes_i('0)
+    .pad_attributes_i('0),
 % endif
+    .pad_extra_inputs_i('0),
+    .pad_extra_outputs_o()
   );
 
 ${pad_constant_driver_assign}
