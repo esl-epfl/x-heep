@@ -40,9 +40,35 @@ module dma_subsystem #(
     output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o
 );
 
+  /*_________________________________________________________________________________________________________________________________ */
+
+  /* Imports and parameters */
 
   import obi_pkg::*;
   import reg_pkg::*;
+
+  /* 
+   * It's possible to define individually the sizes of each DMA channel's FIFOs.
+   * For example, a FIFO_CH_ARRAY like this {L, M, M, S} means that CH0 will be small,
+   * CH1 and CH2 will be medium and CH3 will be large.
+   *
+   * This is useful in applications that require different bandwidths for different channels.
+   * To enable this functionality, decomment EN_SET_FIFO_CH_SIZE and set the desired sizes.
+   */
+
+  `define EN_SET_FIFO_CH_SIZE;
+
+  `ifdef EN_SET_FIFO_CH_SIZE 
+
+  localparam int unsigned LARGE_FIFO_CH_SIZE = 8;
+  localparam int unsigned MEDIUM_FIFO_CH_SIZE = 4;
+  localparam int unsigned SMALL_FIFO_CH_SIZE = 2;
+
+  typedef enum {L, M, S} fifo_ch_size_t;
+
+  localparam fifo_ch_size_t FIFO_CH_ARRAY [core_v_mini_mcu_pkg::DMA_CH_NUM] = '{L, M, M, S};
+
+  `endif
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -73,12 +99,23 @@ module dma_subsystem #(
   /* DMA modules */
   generate
     for (genvar i = 0; i < core_v_mini_mcu_pkg::DMA_CH_NUM; i++) begin : dma_i_gen
+
+      /* FIFO size assignment */
+      localparam int fifo_size = 
+      `ifdef EN_SET_FIFO_CH_SIZE
+        (FIFO_CH_ARRAY[i] == L) ? LARGE_FIFO_CH_SIZE :
+        ((FIFO_CH_ARRAY[i] == M) ? MEDIUM_FIFO_CH_SIZE : SMALL_FIFO_CH_SIZE);
+      `else
+        4;
+      `endif
+
       dma #(
           .reg_req_t (reg_pkg::reg_req_t),
           .reg_rsp_t (reg_pkg::reg_rsp_t),
           .obi_req_t (obi_pkg::obi_req_t),
           .obi_resp_t(obi_pkg::obi_resp_t),
-          .SLOT_NUM  (SLOT_NUM)
+          .SLOT_NUM  (SLOT_NUM),
+          .FIFO_DEPTH (fifo_size)
       ) dma_i (
           .clk_i,
           .rst_ni,

@@ -40,7 +40,7 @@ int main()
             if (errors != 0)
             {
                 PRINTF("TEST %d FAILED: %d errors\n\r", i, errors);
-                return 1;
+                return EXIT_FAILURE;
             } 
             else
             {
@@ -72,5 +72,5 @@ int main()
     //     }
     // }
 
-    return 0;
+    return EXIT_SUCCESS;
 }
