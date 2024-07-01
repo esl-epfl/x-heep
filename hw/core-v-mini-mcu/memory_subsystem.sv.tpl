@@ -19,6 +19,8 @@ module memory_subsystem
     input  obi_req_t  [NUM_BANKS-1:0] ram_req_i,
     output obi_resp_t [NUM_BANKS-1:0] ram_resp_o,
 
+    // power manager signals that goes to the ASIC macros
+    input logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] pwrgate_ni,
     input logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] set_retentive_ni
 );
 
@@ -71,6 +73,7 @@ module memory_subsystem
       .addr_i(ram_req_addr_${i}),
       .wdata_i(ram_req_i[${i}].wdata),
       .be_i(ram_req_i[${i}].be),
+      .pwrgate_ni(pwrgate_ni[${i}]),
       .set_retentive_ni(set_retentive_ni[${i}]),
       .rdata_o(ram_resp_o[${i}].rdata)
   );
