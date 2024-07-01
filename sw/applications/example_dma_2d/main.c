@@ -161,7 +161,7 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
-    tgt_src.ptr = test_data;
+    tgt_src.ptr = (uint8_t *) test_data;
     tgt_src.inc_du = SRC_INC_D1;
     tgt_src.inc_d2_du = SRC_INC_D2;
     tgt_src.size_du = SIZE_EXTR_D1;
@@ -169,7 +169,7 @@ int main()
     tgt_src.trig = DMA_TRIG_MEMORY;
     tgt_src.type = DMA_DATA_TYPE;
     
-    tgt_dst.ptr = copied_data_2D_DMA;
+    tgt_dst.ptr = (uint8_t *)  copied_data_2D_DMA;
     tgt_dst.inc_du = DST_INC_D1;
     tgt_dst.inc_d2_du = DST_INC_D2;
     tgt_dst.size_du = OUT_D1_PAD_STRIDE;
@@ -347,7 +347,7 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
-    tgt_src.ptr            = &test_data[0];
+    tgt_src.ptr            = (uint8_t *) test_data;
     tgt_src.inc_du         = SRC_INC_TRSP_D1;
     tgt_src.inc_d2_du      = SRC_INC_TRSP_D2;
     tgt_src.size_du        = SIZE_EXTR_D1;
@@ -355,7 +355,7 @@ int main()
     tgt_src.trig           = DMA_TRIG_MEMORY;
     tgt_src.type           = DMA_DATA_TYPE;
 
-    tgt_dst.ptr            = &copied_data_2D_DMA[0];
+    tgt_dst.ptr            = (uint8_t *) copied_data_2D_DMA;
     tgt_dst.inc_du         = DST_INC_D1;
     tgt_dst.inc_d2_du      = DST_INC_D2;
     tgt_dst.trig           = DMA_TRIG_MEMORY;
@@ -526,7 +526,7 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
-    tgt_src.ptr            = &test_data[0];
+    tgt_src.ptr            = (uint8_t *) test_data;
     tgt_src.inc_du         = SRC_INC_D1;
     tgt_src.size_du        = SIZE_EXTR_D1;
     tgt_src.inc_d2_du      = 0;
@@ -534,7 +534,7 @@ int main()
     tgt_src.trig           = DMA_TRIG_MEMORY;
     tgt_src.type           = DMA_DATA_TYPE;
 
-    tgt_dst.ptr            = copied_data_1D_DMA;
+    tgt_dst.ptr            = (uint8_t *) copied_data_1D_DMA;
     tgt_dst.inc_du         = DST_INC_D1;
     tgt_dst.inc_d2_du      = 0;
     tgt_dst.trig           = DMA_TRIG_MEMORY;
@@ -702,8 +702,8 @@ int main()
     CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK);
 
     /* Pointer set up */
-    peri->SRC_PTR = &test_data[0];
-    peri->DST_PTR = copied_data_2D_DMA;
+    peri->SRC_PTR = (uint32_t) (test_data);
+    peri->DST_PTR = (uint32_t) (copied_data_2D_DMA);
 
     /* Dimensionality configuration */
     write_register( 0x1,

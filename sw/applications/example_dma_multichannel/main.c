@@ -565,7 +565,7 @@ int main()
 
     dma_init(NULL);
 
-    tgt_src.ptr            = &test_data[0];
+    tgt_src.ptr            = (uint8_t *) test_data;
     tgt_src.inc_du         = SRC_INC_D1;
     tgt_src.inc_d2_du      = SRC_INC_D2;
     tgt_src.size_du        = SIZE_EXTR_D1;
@@ -575,7 +575,7 @@ int main()
 
     for (int c=0; c<DMA_CH_NUM; c++)
     { 
-        tgt_dst[c].ptr            = copied_data_2D_DMA[c];
+        tgt_dst[c].ptr            = (uint8_t *) copied_data_2D_DMA[c];
         tgt_dst[c].inc_du         = DST_INC_D1;
         tgt_dst[c].inc_d2_du      = DST_INC_D2;
         tgt_dst[c].trig           = DMA_TRIG_MEMORY;
@@ -776,7 +776,7 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
-    tgt_src.ptr            = &test_data[0];
+    tgt_src.ptr            = (uint8_t *) test_data;
     tgt_src.inc_du         = SRC_INC_D1;
     tgt_src.inc_d2_du      = SRC_INC_D2;
     tgt_src.size_du        = SIZE_EXTR_D1;
@@ -784,7 +784,7 @@ int main()
     tgt_src.trig           = DMA_TRIG_MEMORY;
     tgt_src.type           = DMA_DATA_TYPE;
 
-    tgt_src_trsp.ptr            = &test_data[0];
+    tgt_src_trsp.ptr            = (uint8_t *) test_data;
     tgt_src_trsp.inc_du         = SRC_INC_TRSP_D1;
     tgt_src_trsp.inc_d2_du      = SRC_INC_TRSP_D2;
     tgt_src_trsp.size_du        = SIZE_EXTR_D1;
@@ -799,7 +799,7 @@ int main()
 
     for (int c=0; c<DMA_CH_NUM; c++)
     { 
-        tgt_dst[c].ptr            = copied_data_2D_DMA[c];
+        tgt_dst[c].ptr            = (uint8_t *) copied_data_2D_DMA[c];
         tgt_dst[c].inc_du         = DST_INC_D1;
         tgt_dst[c].inc_d2_du      = DST_INC_D2;
         tgt_dst[c].trig           = DMA_TRIG_MEMORY;
@@ -1078,7 +1078,7 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
-    tgt_src.ptr            = &test_data[0];
+    tgt_src.ptr            = (uint8_t *) test_data;
     tgt_src.inc_du         = SRC_INC_D1;
     tgt_src.inc_d2_du      = SRC_INC_D2;
     tgt_src.size_du        = SIZE_EXTR_D1;
@@ -1086,7 +1086,7 @@ int main()
     tgt_src.trig           = DMA_TRIG_MEMORY;
     tgt_src.type           = DMA_DATA_TYPE;
 
-    tgt_dst[1].ptr            = copied_data_2D_DMA[1];
+    tgt_dst[1].ptr            = (uint8_t *) copied_data_2D_DMA[1];
     tgt_dst[1].inc_du         = DST_INC_D1;
     tgt_dst[1].inc_d2_du      = DST_INC_D2;
     tgt_dst[1].trig           = DMA_TRIG_MEMORY;
