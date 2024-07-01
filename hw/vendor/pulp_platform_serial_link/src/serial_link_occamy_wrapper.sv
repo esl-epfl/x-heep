@@ -16,8 +16,8 @@ module serial_link_occamy_wrapper #(
   parameter type b_chan_t   = logic,
   parameter type cfg_req_t  = logic,
   parameter type cfg_rsp_t  = logic,
-  parameter int NumChannels = 1,
-  parameter int NumLanes = 4,
+  //parameter int NumChannels = 1,
+  parameter int NumLanes = 8,
   parameter int MaxClkDiv = 32
 ) (
   input  logic                      clk_i,

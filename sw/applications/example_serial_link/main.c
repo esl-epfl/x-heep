@@ -4,6 +4,7 @@
 #include "x-heep.h"
 #include "core_v_mini_mcu.h"
 #include "serial_link_single_channel_regs.h"
+#include "serial_link_regs.h"
 #include "csr.h"
 
 
@@ -29,10 +30,11 @@ int main(int argc, char *argv[])
 
     WRITE_SL();
 
-    CSR_READ(CSR_REG_MCYCLE, &cycles1);
-    //printf("first write finished with  %d cycles\n\r", cycles1);
+    
   
     READ_SL();
+    CSR_READ(CSR_REG_MCYCLE, &cycles1);
+    printf("first write finished with  %d cycles\n\r", cycles1);
     //printf("cheack if we can read %d  to %p \n",*addr_p, addr_p);
 
     /* WRITING TO external SL */
@@ -82,7 +84,12 @@ void __attribute__ ((optimize("00"))) WRITE_SL(void){
 void __attribute__ ((optimize("00"))) READ_SL(void){
     volatile int32_t *addr_p_external = 0xF0010000;// bus serial link from mcu_cfg.hjson
     //NUM_TO_BE_CHECKED= *addr_p_external ;
-    printf("addr_p_ext = %p -> %d\n", addr_p_external, *addr_p_external);
+    while(1){
+    if (*addr_p_external ==NUM_TO_CHECK){
+        
+        break;
+    }}
+    //printf("addr_p_ext = %p -> %d\n", addr_p_external, *addr_p_external);
 }
 
 void __attribute__ ((optimize("00"))) REG_CONFIG(void){

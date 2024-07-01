@@ -14,7 +14,7 @@ module core_v_mini_mcu
 #(
     // serial link parameters
     parameter int NumChannels = 1,
-    parameter int NumLanes = 4,
+    parameter int NumLanes = 8,
     parameter int MaxClkDiv = 32,
 
     parameter COREV_PULP = 0,

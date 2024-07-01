@@ -128,8 +128,8 @@ module testharness #(
   logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_n;
 
   //serial link check ddr
-  logic [3:0] ddr_i_xheep;  // check NumLanes parameter 
-  logic [3:0] ddr_o_xheep;
+  logic [7:0] ddr_i_xheep;  // check NumLanes parameter 
+  logic [7:0] ddr_o_xheep;
   logic clk_sl_int2ext;
   logic clk_sl_ext2int;
 
@@ -605,8 +605,6 @@ module testharness #(
       assign ext_slave_resp[testharness_pkg::SL_EXT_IDX]=sl_axi2obi_resp ;// ext_master_resp[testharness_pkg::SL_EXT_IDX];
       core_v_mini_mcu_pkg::axi_req_t axi_in_req_i, axi_out_req_o;
       core_v_mini_mcu_pkg::axi_resp_t axi_in_rsp_o, axi_out_rsp_i;
-      //serial_link_single_channel_reg_pkg::reg_req_t cfg_req_ext;
-      //serial_link_single_channel_reg_pkg::reg_rsp_t cfg_rsp_ext;
 
       reg_req_t cfg_req_ext;
       assign cfg_req_ext = ext_periph_slv_req[testharness_pkg::SL_REG_IDX];
