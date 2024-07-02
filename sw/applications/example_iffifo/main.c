@@ -44,16 +44,16 @@ int32_t to_fifo  [6]   __attribute__ ((aligned (4)))  = { 1, 2, 3, 4, 5, 6 };
 int32_t from_fifo[4]   __attribute__ ((aligned (4)))  = { 0, 0, 0, 0 };
 
 int8_t dma_intr_flag = 0;
-void dma_intr_handler_trans_done()
+void dma_intr_handler_trans_done(uint8_t channel)
 {
   dma_intr_flag = 1;
 }
 
 void protected_wait_for_dma_interrupt(void)
 {
-  while(!dma_is_ready()) {
+  while(!dma_is_ready(0)) {
     CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-    if (!dma_is_ready()) {
+    if (!dma_is_ready(0)) {
         wait_for_interrupt();
     }
     CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);

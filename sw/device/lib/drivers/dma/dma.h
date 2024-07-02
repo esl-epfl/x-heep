@@ -70,6 +70,34 @@
 
 #define DMA_INT_TR_START     0x0
 
+/* 
+ * For multichannel configurations, a priority mechanism can be set up to allow the interrupt handler 
+ * to prioritize a set of channels.
+ * 
+ * In order to enable this feature, the user must define DMA_HP_INTR_INDEX.
+ * 
+ * When an interrupt is raised, the handler will loop through the channels. If the channel that
+ * raised the interrupt is part of the high priority channels (index <= DMA_HP_INTR_INDEX), 
+ * it will call the actual handler and exit the loop. 
+ * It this way, low index channels will always be serviced first.
+ * 
+ * However, this feature could cause low priority channels to never be serviced if the high priority
+ * interrupts are raised at a faster frequency.
+ * In order to avoid this, the user can define DMA_NUM_HP_INTR (uint16_t).
+ * This macro puts a limit to the number of consecutive interrupts raised by high priority channels 
+ * that can trigger a "return".
+ * If N = DMA_NUM_HP_INTR interrupts are raised by high priority channels, the N+1 interrupt will be
+ * serviced and then no "return" will be triggered, thus allowing the handler's loop to continue and 
+ * low priority channels to be serviced, if necessary.
+ * 
+ * The priority mechanism is applied to both transaction done and window done interrupts, if enabled.
+ * Separate counters are used for each type of interrupt.
+ */
+
+//#define DMA_HP_INTR_INDEX 0
+//#define DMA_NUM_HP_INTR 5
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -342,7 +370,7 @@ typedef struct
     the targets. */
     uint8_t             sign_ext;   /*!< Whether to sign extend the data. */
     dma_trans_mode_t    mode;   /*!< The copy mode to use. */
-    uint8_t                dim_inv; /*!< If the D1 and D2 dimensions are inverted, i.e. perform transposition. */
+    uint8_t             dim_inv; /*!< If the D1 and D2 dimensions are inverted, i.e. perform transposition. */
     uint32_t            win_du;  /*!< The amount of data units every which the
     WINDOW_DONE flag is raised and its corresponding interrupt triggered. It
     can be set to 0 to disable this functionality. */
@@ -350,6 +378,7 @@ typedef struct
     is launched. */
     dma_config_flags_t  flags;  /*!< A mask with possible issues aroused from
     the creation of the transaction. */
+    uint8_t             channel; /*!< The channel to use. */
 } dma_trans_t;
 
 /****************************************************************************/
@@ -367,22 +396,22 @@ typedef struct
 /**
  * @brief Attends the plic interrupt.
  */
-void handler_irq_dma( uint32_t id );
+__attribute__((optimize("O0"))) void handler_irq_dma( uint32_t id );
 
 /**
  * @brief This is a non-weak implementation of the function declared in
  * fast_intr_ctrl.c
  */
-void fic_irq_dma(void);
+__attribute__((optimize("O0"))) void fic_irq_dma(void);
 
 /**
  *@brief Takes all DMA configurations to a state where no accidental
  * transaction can be performed.
  * It can be called anytime to reset the DMA control block.
- * @param peri Pointer to a register address following the dma structure. By
+ * @param dma_peri Pointer to a register address following the dma structure. By
  * default (peri == NULL), the integrated DMA will be used.
  */
-void dma_init( dma *peri );
+void dma_init( dma *dma_peri);
 
 /**
  * @brief Creates a transaction that can be loaded into the DMA.
@@ -413,7 +442,7 @@ dma_config_flags_t dma_validate_transaction(  dma_trans_t       *p_trans,
  * the result from inside target structure as an error could have appeared
  * before the creation of the structure.
  */
-dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans );
+dma_config_flags_t dma_load_transaction( dma_trans_t* p_trans);
 
 /**
  * @brief Launches the loaded transaction.
@@ -434,41 +463,45 @@ dma_config_flags_t dma_launch( dma_trans_t* p_trans);
  * running or a new transaction was launched.
  * Be careful when calling this function if interrupts were chosen as the end
  * event.
+ * @param channel The channel to read from.
  * @return Whether the DMA is working or not. It starts returning 0 as soon as
  * the dma_launch function has returned.
  * @retval 0 - DMA is working.
  * @retval 1 - DMA has finished the transmission. DMA is idle.
  */
-uint32_t dma_is_ready(void);
+uint32_t dma_is_ready(uint8_t channel);
 
 /**
  * @brief Get the number of windows that have already been written. Resets on
  * the start of each transaction.
+ * @param channel The channel to read from.
  * @return The number of windows that have been written from this transaction.
  */
-uint32_t dma_get_window_count(void);
+uint32_t dma_get_window_count(uint8_t channel);
 
 /**
  * @brief Prevent the DMA from relaunching the transaction automatically after
  * finishing the current one. It does not affect the currently running
  * transaction. It has no effect if the DMA is operating in SINGLE
  * transaction mode.
+ * @param channel The channel to stop.
  */
-void dma_stop_circular(void);
+void dma_stop_circular(uint8_t channel);
+
+/**
+* @brief DMA interrupt handler.
+* `dma.c` provides a weak definition of this symbol, which can be overridden
+* at link-time by providing an additional non-weak definition.
+* @param channel The channel that triggered the interrupt.
+*/
+void dma_intr_handler_trans_done(uint8_t channel);
 
 /**
 * @brief DMA interrupt handler.
 * `dma.c` provides a weak definition of this symbol, which can be overridden
 * at link-time by providing an additional non-weak definition.
 */
-void dma_intr_handler_trans_done(void);
-
-/**
-* @brief DMA interrupt handler.
-* `dma.c` provides a weak definition of this symbol, which can be overridden
-* at link-time by providing an additional non-weak definition.
-*/
-void dma_intr_handler_window_done(void);
+void dma_intr_handler_window_done(uint8_t channel);
 
 /**
  * @brief This weak implementation allows the user to override the threshold

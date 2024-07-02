@@ -104,7 +104,7 @@ void handler_irq_i2s(uint32_t id) {
 }
 
 #ifdef USE_DMA
-void dma_intr_handler_trans_done(void)
+void dma_intr_handler_trans_done(uint8_t channel)
 {
     dma_intr_flag = 1;
 }

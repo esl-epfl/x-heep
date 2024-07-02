@@ -233,7 +233,7 @@ uint32_t test_read_dma(uint32_t *test_buffer, uint32_t len) {
     uint32_t *test_buffer_flash = test_buffer;
 
     // Read from flash memory at the same address
-    w25q_error_codes_t status = w25q128jw_read_standard_dma(test_buffer_flash, flash_data, len);
+    w25q_error_codes_t status = w25q128jw_read_standard_dma(test_buffer_flash, flash_data, len, 0, 0);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
 
     // Check if what we read is correct (i.e. flash_data == test_buffer)

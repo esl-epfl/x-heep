@@ -283,6 +283,28 @@
         { bits: "0", name: "TRANSACTION_DONE", desc: "Enables transaction done interrupt" }
         { bits: "1", name: "WINDOW_DONE", desc: "Enables window done interrupt" }
       ]
+    },
+    { name:    "TRANSACTION_IFR",
+      desc:    '''Interrupt Flag Register for transactions''',
+      swaccess: "ro",
+      hwaccess: "hrw",
+      hwext:    "true",
+      hwre:     "true", // latched signal of software write pulse
+      resval:        0,
+      fields: [
+        { bits: "0", name: "FLAG", desc: "Set for transaction done interrupt" }
+      ]
+    },
+    { name:    "WINDOW_IFR",
+      desc:    '''Interrupt Flag Register for windows''',
+      swaccess: "ro",
+      hwaccess: "hrw",
+      hwext:    "true",
+      hwre:     "true", // latched signal of software write pulse
+      resval:        0,
+      fields: [
+        { bits: "0", name: "FLAG", desc: "Set for window done interrupt" }
+      ]
     }
    ]
 }

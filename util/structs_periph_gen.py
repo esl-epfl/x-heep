@@ -1,6 +1,9 @@
 import hjson
 import structs_gen
 
+# Path to the dma file
+dma_file_path = "./sw/device/lib/drivers/dma/dma_structs.h" 
+
 # Path to the header_structs template
 template_path = "./sw/device/lib/drivers/template.tpl"
 
@@ -40,6 +43,26 @@ def scan_peripherals(json_list):
                 add_peripheral(p, json_list[p]["path"])
 
 
+def format_dma_channels(file_path, new_string):
+    
+    try:
+        # Read the contents of the file
+        with open(file_path, 'r') as file:
+            content = file.read()
+        
+        # Replace 'DMA_START_ADDRESS' with 'new_address'
+        updated_content = content.replace('#define dma_peri ((volatile dma *) DMA_START_ADDRESS)', new_string)
+        
+        # Write the updated content back to the file
+        with open(file_path, 'w') as file:
+            file.write(updated_content)
+        
+        print("DMA channel has been successfully updated.")
+        
+    except FileNotFoundError:
+        print(f"The file {file_path} does not exist.")
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
 
     # for i in range(len(JSON_FILES)):
     #     print("{}\n{}\n{}\n\n\n".format(PERIPHERAL_NAMES[i], JSON_FILES[i], OUTPUT_FILES[i]))
@@ -65,3 +88,6 @@ if __name__ == "__main__":
                                 "--json_filename", JSON_FILES[i], 
                                 "--output_filename", OUTPUT_FILES[i]]
                             )
+    
+    new_string = "#define dma_peri(channel) ((volatile dma *) (DMA_START_ADDRESS + DMA_CH_SIZE * channel))"
+    format_dma_channels(dma_file_path, new_string)

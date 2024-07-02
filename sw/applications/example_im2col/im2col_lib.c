@@ -196,11 +196,11 @@ void dma_run(dma_trans_t * trans)
     res = dma_load_transaction(trans);
     res = dma_launch(trans);
 
-    while( ! dma_is_ready()) {
+    while( ! dma_is_ready(0)) {
         // disable_interrupts
         // this does not prevent waking up the core as this is controlled by the MIP register
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if ( dma_is_ready() == 0 ) {
+        if ( dma_is_ready(0) == 0 ) {
             wait_for_interrupt();
             //from here we wake up even if we did not jump to the ISR
         }
