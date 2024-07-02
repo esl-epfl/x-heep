@@ -134,13 +134,13 @@ dma_data_type_t C_type_2_dma_type(int C_type)
     trans.src = &tgt_src;                                        \
     trans.dst = &tgt_dst;                                        \
     trans.src_addr = &tgt_addr;                                  \
-    trans.src_type = dma_dst_type;                               \
+    trans.src_type = dma_src_type;                               \
     trans.dst_type = dma_dst_type;                               \
     trans.mode = DMA_TRANS_MODE_SINGLE;                          \
     trans.win_du = 0;                                            \
     trans.sign_ext = signed;                                     \
     trans.end = DMA_TRANS_END_INTR;                              \
-    trans.dim = DMA_DIM_CONF_1D;
+    trans.dim = DMA_DIM_CONF_1D;                                 \
 
 #define TEST(C_src_type, C_dst_type, test_size, sign_extend)                                                         \
     PRINT_TEST(sign_extend, test_size, C_type_2_dma_type(sizeof(C_src_type)), C_type_2_dma_type(sizeof(C_dst_type))) \
