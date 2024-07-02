@@ -30,24 +30,52 @@ extern "C" {
 
 // Filter width
 #define IM2COL_SPC_FW_REG_OFFSET 0x10
+#define IM2COL_SPC_FW_SIZE_MASK 0xff
+#define IM2COL_SPC_FW_SIZE_OFFSET 0
+#define IM2COL_SPC_FW_SIZE_FIELD \
+  ((bitfield_field32_t) { .mask = IM2COL_SPC_FW_SIZE_MASK, .index = IM2COL_SPC_FW_SIZE_OFFSET })
 
 // Filter heigth
 #define IM2COL_SPC_FH_REG_OFFSET 0x14
+#define IM2COL_SPC_FH_SIZE_MASK 0xff
+#define IM2COL_SPC_FH_SIZE_OFFSET 0
+#define IM2COL_SPC_FH_SIZE_FIELD \
+  ((bitfield_field32_t) { .mask = IM2COL_SPC_FH_SIZE_MASK, .index = IM2COL_SPC_FH_SIZE_OFFSET })
 
 // Batch number
 #define IM2COL_SPC_BATCH_REG_OFFSET 0x18
+#define IM2COL_SPC_BATCH_SIZE_MASK 0xff
+#define IM2COL_SPC_BATCH_SIZE_OFFSET 0
+#define IM2COL_SPC_BATCH_SIZE_FIELD \
+  ((bitfield_field32_t) { .mask = IM2COL_SPC_BATCH_SIZE_MASK, .index = IM2COL_SPC_BATCH_SIZE_OFFSET })
 
 // Number of channels. When written, the im2col will start executing
 #define IM2COL_SPC_NUM_CH_REG_OFFSET 0x1c
+#define IM2COL_SPC_NUM_CH_NUM_MASK 0xff
+#define IM2COL_SPC_NUM_CH_NUM_OFFSET 0
+#define IM2COL_SPC_NUM_CH_NUM_FIELD \
+  ((bitfield_field32_t) { .mask = IM2COL_SPC_NUM_CH_NUM_MASK, .index = IM2COL_SPC_NUM_CH_NUM_OFFSET })
 
 // Number of iterations to perform
 #define IM2COL_SPC_CH_COL_REG_OFFSET 0x20
+#define IM2COL_SPC_CH_COL_NUM_MASK 0xffff
+#define IM2COL_SPC_CH_COL_NUM_OFFSET 0
+#define IM2COL_SPC_CH_COL_NUM_FIELD \
+  ((bitfield_field32_t) { .mask = IM2COL_SPC_CH_COL_NUM_MASK, .index = IM2COL_SPC_CH_COL_NUM_OFFSET })
 
 // Number of patches along W
 #define IM2COL_SPC_N_PATCHES_W_REG_OFFSET 0x24
+#define IM2COL_SPC_N_PATCHES_W_NUM_MASK 0xffff
+#define IM2COL_SPC_N_PATCHES_W_NUM_OFFSET 0
+#define IM2COL_SPC_N_PATCHES_W_NUM_FIELD \
+  ((bitfield_field32_t) { .mask = IM2COL_SPC_N_PATCHES_W_NUM_MASK, .index = IM2COL_SPC_N_PATCHES_W_NUM_OFFSET })
 
 // Number of patches along H
 #define IM2COL_SPC_N_PATCHES_H_REG_OFFSET 0x28
+#define IM2COL_SPC_N_PATCHES_H_NUM_MASK 0xffff
+#define IM2COL_SPC_N_PATCHES_H_NUM_OFFSET 0
+#define IM2COL_SPC_N_PATCHES_H_NUM_FIELD \
+  ((bitfield_field32_t) { .mask = IM2COL_SPC_N_PATCHES_H_NUM_MASK, .index = IM2COL_SPC_N_PATCHES_H_NUM_OFFSET })
 
 // Adapted right padded region
 #define IM2COL_SPC_ADPT_PAD_RIGHT_REG_OFFSET 0x2c

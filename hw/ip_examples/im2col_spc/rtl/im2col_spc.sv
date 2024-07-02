@@ -6,9 +6,10 @@
  * Author: Tommaso Terzano <tommaso.terzano@epfl.ch>
  *                         <tommaso.terzano@gmail.com>
  *  
- * Info: Im2col accelerator implemented as a Smart Peripheral Controller. It accesses the DMA CH0 to perform
- *       the matrix manipulation operation known as "image to column" (im2col), which enables efficient
- *       CNN inference by transforming the input tensor to use the GEMM library.
+ * Info: Im2col accelerator implemented as a Smart Peripheral Controller. 
+ *       It accesses the DMA channels to perform the matrix manipulation operation known as 
+ *       "image to column" (im2col), which enables efficient CNN inference by transforming 
+ *       the input tensor to use the GEMM library.
  */
 
 module im2col_spc
@@ -114,8 +115,8 @@ module im2col_spc
   logic [31:0] index;
   logic [31:0] h_offset_counter;
   logic [31:0] im_c_counter;
-  logic [31:0] ch_col_counter;
-  logic [31:0] batch_counter;
+  logic [15:0] ch_col_counter;
+  logic [7:0] batch_counter;
   logic [31:0] input_data_ptr;
   logic [31:0] output_data_ptr;
   logic [31:0] source_inc_d2;
@@ -315,9 +316,9 @@ module im2col_spc
         end
 
         F_MIN_OFFSET_COMP: begin
-          fw_min_w_offset <= reg2hw.fw.q - 1 - w_offset;  // fw_minus_w_offset = FW - 1 - w_offset;
-          fh_min_h_offset <= reg2hw.fh.q - 1 - h_offset;  // fh_minus_h_offset = FH - 1 - h_offset;
-          batch_counter   <= '0;  // Reset the batch counter before starting a new batch
+          fw_min_w_offset <= {24'h0, reg2hw.fw.q} - 1 - w_offset;  // fw_minus_w_offset = FW - 1 - w_offset;
+          fh_min_h_offset <= {24'h0, reg2hw.fh.q} - 1 - h_offset;  // fh_minus_h_offset = FH - 1 - h_offset;
+          batch_counter <= '0;  // Reset the batch counter before starting a new batch
         end
 
         IM_COORD_COMP: begin
@@ -365,9 +366,9 @@ module im2col_spc
         end
 
         DMA_RUN_PARAM_COMP_1: begin
-          size_transfer_1d <= reg2hw.n_patches_w.q - n_zeros_left - n_zeros_right;
-          size_transfer_2d <= reg2hw.n_patches_h.q - n_zeros_top - n_zeros_bottom;
-          index <= ((batch_counter * reg2hw.num_ch.q + im_c) * reg2hw.ih.q + (im_row + n_zeros_top * reg2hw.strides_d2.q)) * reg2hw.iw.q + im_col + n_zeros_left * reg2hw.strides_d1.q;
+          size_transfer_1d <= {16'h0, reg2hw.n_patches_w.q} - n_zeros_left - n_zeros_right;
+          size_transfer_2d <= {16'h0, reg2hw.n_patches_h.q} - n_zeros_top - n_zeros_bottom;
+          index <= (({24'h0, batch_counter} * {24'h0, reg2hw.num_ch.q} + im_c) * reg2hw.ih.q + (im_row + n_zeros_top * reg2hw.strides_d2.q)) * reg2hw.iw.q + im_col + n_zeros_left * reg2hw.strides_d1.q;
         end
 
         DMA_RUN_PARAM_COMP_2: begin
@@ -376,22 +377,22 @@ module im2col_spc
         end
 
         OUT_PTR_UPDATE: begin
-          output_data_ptr <= output_data_ptr + (reg2hw.n_patches_h.q * reg2hw.n_patches_w.q) * 4;
-          batch_counter   <= batch_counter + 1;
+          output_data_ptr <= output_data_ptr + ({16'h0, reg2hw.n_patches_h.q} * {16'h0, reg2hw.n_patches_w.q} ) * 4;
+          batch_counter <= batch_counter + 1;
         end
 
         IM_OFFSET_UPDATE: begin
           /* w_offset update */
-          if (w_offset == reg2hw.fw.q - 1) begin
+          if (w_offset == {24'h0, reg2hw.fw.q} - 1) begin
             w_offset <= '0;
           end else begin
             w_offset <= w_offset + 1;
           end
 
           /* h_offset update */
-          if (h_offset_counter == reg2hw.fw.q - 1) begin
+          if (h_offset_counter == {24'h0, reg2hw.fw.q} - 1) begin
             h_offset_counter <= '0;
-            if (h_offset == reg2hw.fh.q - 1) begin
+            if (h_offset == {24'h0, reg2hw.fh.q} - 1) begin
               h_offset <= '0;
             end else begin
               h_offset <= h_offset + 1;
@@ -401,7 +402,7 @@ module im2col_spc
           end
 
           /* im_c update */
-          if (im_c_counter == reg2hw.fh.q * reg2hw.fw.q - 1) begin
+          if (im_c_counter == {24'h0, reg2hw.fh.q} * {24'h0, reg2hw.fw.q} - 1) begin
             im_c_counter <= '0;
             im_c <= im_c + 1;
           end else begin

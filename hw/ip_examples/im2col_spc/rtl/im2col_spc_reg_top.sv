@@ -80,26 +80,26 @@ module im2col_spc_reg_top #(
   logic [31:0] ih_qs;
   logic [31:0] ih_wd;
   logic ih_we;
-  logic [31:0] fw_qs;
-  logic [31:0] fw_wd;
+  logic [7:0] fw_qs;
+  logic [7:0] fw_wd;
   logic fw_we;
-  logic [31:0] fh_qs;
-  logic [31:0] fh_wd;
+  logic [7:0] fh_qs;
+  logic [7:0] fh_wd;
   logic fh_we;
-  logic [31:0] batch_qs;
-  logic [31:0] batch_wd;
+  logic [7:0] batch_qs;
+  logic [7:0] batch_wd;
   logic batch_we;
-  logic [31:0] num_ch_qs;
-  logic [31:0] num_ch_wd;
+  logic [7:0] num_ch_qs;
+  logic [7:0] num_ch_wd;
   logic num_ch_we;
-  logic [31:0] ch_col_qs;
-  logic [31:0] ch_col_wd;
+  logic [15:0] ch_col_qs;
+  logic [15:0] ch_col_wd;
   logic ch_col_we;
-  logic [31:0] n_patches_w_qs;
-  logic [31:0] n_patches_w_wd;
+  logic [15:0] n_patches_w_qs;
+  logic [15:0] n_patches_w_wd;
   logic n_patches_w_we;
-  logic [31:0] n_patches_h_qs;
-  logic [31:0] n_patches_h_wd;
+  logic [15:0] n_patches_h_qs;
+  logic [15:0] n_patches_h_wd;
   logic n_patches_h_we;
   logic [31:0] adpt_pad_right_qs;
   logic [31:0] adpt_pad_right_wd;
@@ -257,9 +257,9 @@ module im2col_spc_reg_top #(
   // R[fw]: V(False)
 
   prim_subreg #(
-      .DW      (32),
+      .DW      (8),
       .SWACCESS("RW"),
-      .RESVAL  (32'h0)
+      .RESVAL  (8'h0)
   ) u_fw (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -284,9 +284,9 @@ module im2col_spc_reg_top #(
   // R[fh]: V(False)
 
   prim_subreg #(
-      .DW      (32),
+      .DW      (8),
       .SWACCESS("RW"),
-      .RESVAL  (32'h0)
+      .RESVAL  (8'h0)
   ) u_fh (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -311,9 +311,9 @@ module im2col_spc_reg_top #(
   // R[batch]: V(False)
 
   prim_subreg #(
-      .DW      (32),
+      .DW      (8),
       .SWACCESS("RW"),
-      .RESVAL  (32'h0)
+      .RESVAL  (8'h0)
   ) u_batch (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -338,9 +338,9 @@ module im2col_spc_reg_top #(
   // R[num_ch]: V(False)
 
   prim_subreg #(
-      .DW      (32),
+      .DW      (8),
       .SWACCESS("RW"),
-      .RESVAL  (32'h0)
+      .RESVAL  (8'h0)
   ) u_num_ch (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -365,9 +365,9 @@ module im2col_spc_reg_top #(
   // R[ch_col]: V(False)
 
   prim_subreg #(
-      .DW      (32),
+      .DW      (16),
       .SWACCESS("RW"),
-      .RESVAL  (32'h0)
+      .RESVAL  (16'h0)
   ) u_ch_col (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -392,9 +392,9 @@ module im2col_spc_reg_top #(
   // R[n_patches_w]: V(False)
 
   prim_subreg #(
-      .DW      (32),
+      .DW      (16),
       .SWACCESS("RW"),
-      .RESVAL  (32'h0)
+      .RESVAL  (16'h0)
   ) u_n_patches_w (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -419,9 +419,9 @@ module im2col_spc_reg_top #(
   // R[n_patches_h]: V(False)
 
   prim_subreg #(
-      .DW      (32),
+      .DW      (16),
       .SWACCESS("RW"),
-      .RESVAL  (32'h0)
+      .RESVAL  (16'h0)
   ) u_n_patches_h (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -903,25 +903,25 @@ module im2col_spc_reg_top #(
   assign ih_wd = reg_wdata[31:0];
 
   assign fw_we = addr_hit[4] & reg_we & !reg_error;
-  assign fw_wd = reg_wdata[31:0];
+  assign fw_wd = reg_wdata[7:0];
 
   assign fh_we = addr_hit[5] & reg_we & !reg_error;
-  assign fh_wd = reg_wdata[31:0];
+  assign fh_wd = reg_wdata[7:0];
 
   assign batch_we = addr_hit[6] & reg_we & !reg_error;
-  assign batch_wd = reg_wdata[31:0];
+  assign batch_wd = reg_wdata[7:0];
 
   assign num_ch_we = addr_hit[7] & reg_we & !reg_error;
-  assign num_ch_wd = reg_wdata[31:0];
+  assign num_ch_wd = reg_wdata[7:0];
 
   assign ch_col_we = addr_hit[8] & reg_we & !reg_error;
-  assign ch_col_wd = reg_wdata[31:0];
+  assign ch_col_wd = reg_wdata[15:0];
 
   assign n_patches_w_we = addr_hit[9] & reg_we & !reg_error;
-  assign n_patches_w_wd = reg_wdata[31:0];
+  assign n_patches_w_wd = reg_wdata[15:0];
 
   assign n_patches_h_we = addr_hit[10] & reg_we & !reg_error;
-  assign n_patches_h_wd = reg_wdata[31:0];
+  assign n_patches_h_wd = reg_wdata[15:0];
 
   assign adpt_pad_right_we = addr_hit[11] & reg_we & !reg_error;
   assign adpt_pad_right_wd = reg_wdata[31:0];
@@ -987,31 +987,31 @@ module im2col_spc_reg_top #(
       end
 
       addr_hit[4]: begin
-        reg_rdata_next[31:0] = fw_qs;
+        reg_rdata_next[7:0] = fw_qs;
       end
 
       addr_hit[5]: begin
-        reg_rdata_next[31:0] = fh_qs;
+        reg_rdata_next[7:0] = fh_qs;
       end
 
       addr_hit[6]: begin
-        reg_rdata_next[31:0] = batch_qs;
+        reg_rdata_next[7:0] = batch_qs;
       end
 
       addr_hit[7]: begin
-        reg_rdata_next[31:0] = num_ch_qs;
+        reg_rdata_next[7:0] = num_ch_qs;
       end
 
       addr_hit[8]: begin
-        reg_rdata_next[31:0] = ch_col_qs;
+        reg_rdata_next[15:0] = ch_col_qs;
       end
 
       addr_hit[9]: begin
-        reg_rdata_next[31:0] = n_patches_w_qs;
+        reg_rdata_next[15:0] = n_patches_w_qs;
       end
 
       addr_hit[10]: begin
-        reg_rdata_next[31:0] = n_patches_h_qs;
+        reg_rdata_next[15:0] = n_patches_h_qs;
       end
 
       addr_hit[11]: begin

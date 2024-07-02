@@ -21,22 +21,22 @@ package im2col_spc_reg_pkg;
 
   typedef struct packed {logic [31:0] q;} im2col_spc_reg2hw_ih_reg_t;
 
-  typedef struct packed {logic [31:0] q;} im2col_spc_reg2hw_fw_reg_t;
+  typedef struct packed {logic [7:0] q;} im2col_spc_reg2hw_fw_reg_t;
 
-  typedef struct packed {logic [31:0] q;} im2col_spc_reg2hw_fh_reg_t;
+  typedef struct packed {logic [7:0] q;} im2col_spc_reg2hw_fh_reg_t;
 
-  typedef struct packed {logic [31:0] q;} im2col_spc_reg2hw_batch_reg_t;
+  typedef struct packed {logic [7:0] q;} im2col_spc_reg2hw_batch_reg_t;
 
   typedef struct packed {
-    logic [31:0] q;
-    logic        qe;
+    logic [7:0] q;
+    logic       qe;
   } im2col_spc_reg2hw_num_ch_reg_t;
 
-  typedef struct packed {logic [31:0] q;} im2col_spc_reg2hw_ch_col_reg_t;
+  typedef struct packed {logic [15:0] q;} im2col_spc_reg2hw_ch_col_reg_t;
 
-  typedef struct packed {logic [31:0] q;} im2col_spc_reg2hw_n_patches_w_reg_t;
+  typedef struct packed {logic [15:0] q;} im2col_spc_reg2hw_n_patches_w_reg_t;
 
-  typedef struct packed {logic [31:0] q;} im2col_spc_reg2hw_n_patches_h_reg_t;
+  typedef struct packed {logic [15:0] q;} im2col_spc_reg2hw_n_patches_h_reg_t;
 
   typedef struct packed {logic [31:0] q;} im2col_spc_reg2hw_adpt_pad_right_reg_t;
 
@@ -93,17 +93,17 @@ package im2col_spc_reg_pkg;
 
   // Register -> HW type
   typedef struct packed {
-    im2col_spc_reg2hw_src_ptr_reg_t src_ptr;  // [579:548]
-    im2col_spc_reg2hw_dst_ptr_reg_t dst_ptr;  // [547:516]
-    im2col_spc_reg2hw_iw_reg_t iw;  // [515:484]
-    im2col_spc_reg2hw_ih_reg_t ih;  // [483:452]
-    im2col_spc_reg2hw_fw_reg_t fw;  // [451:420]
-    im2col_spc_reg2hw_fh_reg_t fh;  // [419:388]
-    im2col_spc_reg2hw_batch_reg_t batch;  // [387:356]
-    im2col_spc_reg2hw_num_ch_reg_t num_ch;  // [355:323]
-    im2col_spc_reg2hw_ch_col_reg_t ch_col;  // [322:291]
-    im2col_spc_reg2hw_n_patches_w_reg_t n_patches_w;  // [290:259]
-    im2col_spc_reg2hw_n_patches_h_reg_t n_patches_h;  // [258:227]
+    im2col_spc_reg2hw_src_ptr_reg_t src_ptr;  // [435:404]
+    im2col_spc_reg2hw_dst_ptr_reg_t dst_ptr;  // [403:372]
+    im2col_spc_reg2hw_iw_reg_t iw;  // [371:340]
+    im2col_spc_reg2hw_ih_reg_t ih;  // [339:308]
+    im2col_spc_reg2hw_fw_reg_t fw;  // [307:300]
+    im2col_spc_reg2hw_fh_reg_t fh;  // [299:292]
+    im2col_spc_reg2hw_batch_reg_t batch;  // [291:284]
+    im2col_spc_reg2hw_num_ch_reg_t num_ch;  // [283:275]
+    im2col_spc_reg2hw_ch_col_reg_t ch_col;  // [274:259]
+    im2col_spc_reg2hw_n_patches_w_reg_t n_patches_w;  // [258:243]
+    im2col_spc_reg2hw_n_patches_h_reg_t n_patches_h;  // [242:227]
     im2col_spc_reg2hw_adpt_pad_right_reg_t adpt_pad_right;  // [226:195]
     im2col_spc_reg2hw_adpt_pad_bottom_reg_t adpt_pad_bottom;  // [194:163]
     im2col_spc_reg2hw_strides_d1_reg_t strides_d1;  // [162:131]
@@ -194,13 +194,13 @@ package im2col_spc_reg_pkg;
       4'b1111,  // index[ 1] IM2COL_SPC_DST_PTR
       4'b1111,  // index[ 2] IM2COL_SPC_IW
       4'b1111,  // index[ 3] IM2COL_SPC_IH
-      4'b1111,  // index[ 4] IM2COL_SPC_FW
-      4'b1111,  // index[ 5] IM2COL_SPC_FH
-      4'b1111,  // index[ 6] IM2COL_SPC_BATCH
-      4'b1111,  // index[ 7] IM2COL_SPC_NUM_CH
-      4'b1111,  // index[ 8] IM2COL_SPC_CH_COL
-      4'b1111,  // index[ 9] IM2COL_SPC_N_PATCHES_W
-      4'b1111,  // index[10] IM2COL_SPC_N_PATCHES_H
+      4'b0001,  // index[ 4] IM2COL_SPC_FW
+      4'b0001,  // index[ 5] IM2COL_SPC_FH
+      4'b0001,  // index[ 6] IM2COL_SPC_BATCH
+      4'b0001,  // index[ 7] IM2COL_SPC_NUM_CH
+      4'b0011,  // index[ 8] IM2COL_SPC_CH_COL
+      4'b0011,  // index[ 9] IM2COL_SPC_N_PATCHES_W
+      4'b0011,  // index[10] IM2COL_SPC_N_PATCHES_H
       4'b1111,  // index[11] IM2COL_SPC_ADPT_PAD_RIGHT
       4'b1111,  // index[12] IM2COL_SPC_ADPT_PAD_BOTTOM
       4'b1111,  // index[13] IM2COL_SPC_STRIDES_D1

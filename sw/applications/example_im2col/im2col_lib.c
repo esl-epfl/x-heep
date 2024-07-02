@@ -625,14 +625,14 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         /* Write the filter dimensions */
         write_register( FW,
                         IM2COL_SPC_FW_REG_OFFSET,
-                        0xffffffff,
-                        0,
+                        IM2COL_SPC_FW_SIZE_MASK,
+                        IM2COL_SPC_FW_SIZE_OFFSET,
                         IM2COL_SPC_BASE_ADDR );
         
         write_register( FH,
                         IM2COL_SPC_FH_REG_OFFSET,
-                        0xffffffff,
-                        0,
+                        IM2COL_SPC_FH_SIZE_MASK,
+                        IM2COL_SPC_FH_SIZE_OFFSET,
                         IM2COL_SPC_BASE_ADDR );
 
         /* Write the image dimensions */

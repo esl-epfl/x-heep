@@ -46,7 +46,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "SIZE", desc: "Filter width" }
+        { bits: "7:0", name: "SIZE", desc: "Filter width" }
       ]
     },
     { name:     "FH",
@@ -54,7 +54,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "SIZE", desc: "Filter heigth" }
+        { bits: "7:0", name: "SIZE", desc: "Filter heigth" }
       ]
     },
     { name:     "BATCH",
@@ -62,7 +62,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "SIZE", desc: "Batch size" }
+        { bits: "7:0", name: "SIZE", desc: "Batch size" }
       ]
     },
     { name:     "NUM_CH",
@@ -71,7 +71,7 @@
       hwaccess: "hro",
       hwqe:     "true",
       fields: [
-        { bits: "31:0", name: "NUM", desc: "Number of channels" }
+        { bits: "7:0", name: "NUM", desc: "Number of channels" }
       ]
     },
     { name:     "CH_COL",
@@ -79,7 +79,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "NUM", desc: "Number of iterations" }
+        { bits: "15:0", name: "NUM", desc: "Number of iterations" }
       ]
     },
     { name:     "N_PATCHES_W",
@@ -87,7 +87,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "NUM", desc: "Number of patches" }
+        { bits: "15:0", name: "NUM", desc: "Number of patches" }
       ]
     },
     { name:     "N_PATCHES_H",
@@ -95,7 +95,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "NUM", desc: "Number of patches" }
+        { bits: "15:0", name: "NUM", desc: "Number of patches" }
       ]
     },
     { name:     "ADPT_PAD_RIGHT",

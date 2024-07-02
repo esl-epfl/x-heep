@@ -139,22 +139,6 @@
         }
       ]
     },
-    { name:     "SPC_SLOT",
-      desc:     '''The DMA will wait for the signal 
-                   connected to the selected spc_slots to be high''',
-      swaccess: "rw",
-      hwaccess: "hro",
-      hwqe:     "true", // enable `qe` latched signal of software write pulse
-      resval:   0,
-      fields: [
-        { bits: "3:0", name: "RX_TRIGGER_SLOT",
-          desc: "Slot selection mask"
-        },
-        { bits: "7:4", name: "TX_TRIGGER_SLOT",
-          desc: "Slot selection mask"
-        }
-      ]
-    },
     { name:     "DATA_TYPE",
       desc:     '''Width/type of the data to transfer''',
       swaccess: "rw",
@@ -304,6 +288,22 @@
       resval:        0,
       fields: [
         { bits: "0", name: "FLAG", desc: "Set for window done interrupt" }
+      ]
+    },
+    { name:     "SPC_SLOT",
+      desc:     '''The DMA will wait for the signal 
+                   connected to the selected spc_slots to be high''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      hwqe:     "true", // enable `qe` latched signal of software write pulse
+      resval:   0,
+      fields: [
+        { bits: "3:0", name: "RX_TRIGGER_SLOT",
+          desc: "Slot selection mask"
+        },
+        { bits: "7:4", name: "TX_TRIGGER_SLOT",
+          desc: "Slot selection mask"
+        }
       ]
     }
    ]
