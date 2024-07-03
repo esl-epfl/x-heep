@@ -16,12 +16,35 @@
  * Author: Robert Balas <balasr@iis.ee.ethz.ch>
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 
-int main(int argc, char *argv[])
+
+extern "C" {
+    #include <stdio.h>
+    #include <stdlib.h>
+}
+
+#include "MyClass.hpp"
+#include "core_v_mini_mcu.h"
+#include "x-heep.h"
+
+#if TARGET_SIM && PRINTF_IN_SIM
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#elif PRINTF_IN_FPGA && !TARGET_SIM
+#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
+int main()
 {
-    /* write something to stdout */
-    printf("hello world!\n");
-    return EXIT_SUCCESS;
+    MyClass myObject(10); // Create an object with initial value 10
+    myObject.printValue(); // Print the initial value
+
+    myObject.setValue(20); // Change the value to 20
+    myObject.printValue(); // Print the updated value
+
+    int value = myObject.getValue(); // Get the value
+    printf("Retrieved Value: %d\n\r" ,value); // Print the retrieved value
+
+    return value == 20*5 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
