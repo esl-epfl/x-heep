@@ -12,30 +12,19 @@ LONG_R="${RED}==================================================================
 LONG_W="${WHITE}================================================================================${RESET}"
 
 # Error vars are not defined if there is problem!
-APPS=$(\ls sw/applications/) &&\
-
-# Convert APPS to an array (assuming bash shell)
-APPS_ARRAY=($APPS)
+APPS_GCC=$(\ls sw/applications/) &&\
 
 # Applications that should only be compiled with GCC
-ONLY_GCC=("example_cpp")
+ONLY_GCC="example_cpp"
 
-# Initialize APPS_GCC with the contents of APPS
-APPS_GCC=("${APPS_ARRAY[@]}")
+# Initialize APPS_CLANG with the same content as APPS_GCC
+APPS_CLANG="$APPS_GCC"
 
-# Initialize APPS_CLANG by filtering out ONLY_GCC
-APPS_CLANG=()
-for item in "${APPS_ARRAY[@]}"; do
-    # Check if item is not in ONLY_GCC
-    if [[ ! " ${ONLY_GCC[@]} " =~ " ${item} " ]]; then
-        APPS_CLANG+=("$item")
-    fi
+# Loop through ONLY_GCC to filter out the specified applications from APPS_CLANG
+for app in $ONLY_GCC; do
+    # Remove the app from APPS_CLANG
+    APPS_CLANG=${APPS_CLANG//$app/}
 done
-
-
-
-
-
 
 declare -i FAILURES=0 &&\
 FAILED='' &&\
@@ -48,7 +37,7 @@ echo -e "----> CLANG"
 echo -e $APPS_CLANG | tr " " "\n" 
 echo -e ${LONG_W}
 
-if [ -z "$APPS" ]; then
+if [ -z "$APPS_GCC" ]; then
         echo -e ${LONG_R}
         echo -e "${RED}No apps found${RESET}"
         echo -e ${LONG_R}
