@@ -13,6 +13,30 @@ LONG_W="${WHITE}================================================================
 
 # Error vars are not defined if there is problem!
 APPS=$(\ls sw/applications/) &&\
+
+# Convert APPS to an array (assuming bash shell)
+APPS_ARRAY=($APPS)
+
+# Applications that should only be compiled with GCC
+ONLY_GCC=("example_cpp")
+
+# Initialize APPS_GCC with the contents of APPS
+APPS_GCC=("${APPS_ARRAY[@]}")
+
+# Initialize APPS_CLANG by filtering out ONLY_GCC
+APPS_CLANG=()
+for item in "${APPS_ARRAY[@]}"; do
+    # Check if item is not in ONLY_GCC
+    if [[ ! " ${ONLY_GCC[@]} " =~ " ${item} " ]]; then
+        APPS_CLANG+=("$item")
+    fi
+done
+
+
+
+
+
+
 declare -i FAILURES=0 &&\
 FAILED='' &&\
 
@@ -28,7 +52,7 @@ if [ -z "$APPS" ]; then
         exit 2
 fi
 
-for APP in $APPS
+for APP in $APPS_GCC
 do 
 	
 	# Build the app with GCC
@@ -44,7 +68,10 @@ do
 		FAILURES=$(( FAILURES + 1 ))
 		FAILED="$FAILED(gcc)\t$APP "  
 	fi
-	
+done
+
+for APP in $APPS_CLANG
+do 
 	# Build the app with Clang
 	make app-clean
 	if make app PROJECT=$APP COMPILER=clang ; then
@@ -58,7 +85,6 @@ do
 		FAILURES=$(( FAILURES + 1 ))
 		FAILED="$FAILED(clang)\t$APP "  
 	fi
-	
 done
 
 
