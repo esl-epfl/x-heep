@@ -59,8 +59,8 @@
  *     
  */
 
-//#define TEST_ID_0
-//#define TEST_ID_1
+#define TEST_ID_0
+#define TEST_ID_1
 #define TEST_ID_2
 #define TEST_ID_3
 

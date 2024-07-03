@@ -227,6 +227,8 @@ uint8_t dma_window_ratio_warning_threshold()
 
 #endif // TEST_WINDOW
 
+dma_trans_t trans;
+
 int main(int argc, char *argv[])
 {
 
@@ -250,7 +252,6 @@ int main(int argc, char *argv[])
         .size_du = TEST_DATA_SIZE,
         .trig = DMA_TRIG_MEMORY,
     };
-    dma_trans_t trans;
 
 #ifdef TEST_SINGLE_MODE
 
