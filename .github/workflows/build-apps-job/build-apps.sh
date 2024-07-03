@@ -42,7 +42,10 @@ FAILED='' &&\
 
 echo -e ${LONG_W}
 echo -e "Will try building the following apps:${RESET}"
-echo -e $APPS | tr " " "\n" 
+echo -e "----> GCC" 
+echo -e $APPS_GCC | tr " " "\n" 
+echo -e "----> CLANG" 
+echo -e $APPS_CLANG | tr " " "\n" 
 echo -e ${LONG_W}
 
 if [ -z "$APPS" ]; then
