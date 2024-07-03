@@ -124,7 +124,9 @@ FILE(GLOB_RECURSE c_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
 FILE(GLOB_RECURSE s_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.s)
 # Make a list of the .S source files that need to be linked
 FILE(GLOB_RECURSE S_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.S)
-SET(new_list ${c_files} ${s_files} ${S_files})
+# Make a list of the .cpp source files that need to be linked
+FILE(GLOB_RECURSE cpp_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.cpp)
+SET(new_list ${c_files} ${s_files} ${S_files} ${cpp_files})
 
 SET( c_dir_list "" )
 SET( app_found 0 )
@@ -162,7 +164,9 @@ if( app_found EQUAL 0 )
   FILE(GLOB_RECURSE s_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.s)
   # Make a list of the .S source files that need to be linked
   FILE(GLOB_RECURSE S_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.S)
-  SET(new_list ${c_files} ${s_files} ${S_files})
+  # Make a list of the .cpp source files that need to be linked
+  FILE(GLOB_RECURSE cpp_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.cpp)
+  SET(new_list ${c_files} ${s_files} ${S_files} ${cpp_files})
 
   SET(c_dir_list "")
   FOREACH(file_path IN LISTS new_list)
