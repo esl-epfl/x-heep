@@ -119,7 +119,7 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "SIZE", desc: "Stride size" }
+        { bits: "7:0", name: "SIZE", desc: "Stride size" }
       ]
     },
     { name:     "STRIDES_D2",
@@ -127,10 +127,9 @@
       swaccess: "rw",
       hwaccess: "hro",
       fields: [
-        { bits: "31:0", name: "SIZE", desc: "Stride size" }
+        { bits: "7:0", name: "SIZE", desc: "Stride size" }
       ]
     },
-    
     { name:     "STATUS",
       desc:     '''Status bit is set to one when the im2col SPC is ready''',
       swaccess: "ro",

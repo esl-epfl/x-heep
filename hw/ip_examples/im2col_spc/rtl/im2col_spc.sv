@@ -99,8 +99,8 @@ module im2col_spc
   im2col_spc_hw2reg_t hw2reg;
 
   /* Parameters computation signals */
-  logic [31:0] w_offset;
-  logic [31:0] h_offset;
+  logic [15:0] w_offset;
+  logic [15:0] h_offset;
   logic [31:0] im_c;
   logic [31:0] im_row;
   logic [31:0] im_col;
@@ -316,63 +316,63 @@ module im2col_spc
         end
 
         F_MIN_OFFSET_COMP: begin
-          fw_min_w_offset <= {24'h0, reg2hw.fw.q} - 1 - w_offset;  // fw_minus_w_offset = FW - 1 - w_offset;
-          fh_min_h_offset <= {24'h0, reg2hw.fh.q} - 1 - h_offset;  // fh_minus_h_offset = FH - 1 - h_offset;
+          fw_min_w_offset <= {24'h0, reg2hw.fw.q} - 1 - {16'h0, w_offset};  // fw_minus_w_offset = FW - 1 - w_offset;
+          fh_min_h_offset <= {24'h0, reg2hw.fh.q} - 1 - {16'h0, h_offset};  // fh_minus_h_offset = FH - 1 - h_offset;
           batch_counter <= '0;  // Reset the batch counter before starting a new batch
         end
 
         IM_COORD_COMP: begin
-          im_row <= h_offset - {26'h0, reg2hw.pad_top.q};  // im_row = h_offset - TOP_PAD;
-          im_col <= w_offset - {26'h0, reg2hw.pad_left.q};  // im_col = w_offset - LEFT_PAD;
+          im_row <= {16'h0, h_offset} - {26'h0, reg2hw.pad_top.q};  // im_row = h_offset - TOP_PAD;
+          im_col <= {16'h0, w_offset} - {26'h0, reg2hw.pad_left.q};  // im_col = w_offset - LEFT_PAD;
         end
 
         N_ZEROS_COMP: begin
 
           /* Left zeros computation */
-          if (w_offset >= reg2hw.pad_left.q) begin
+          if (w_offset >= {10'h0, reg2hw.pad_left.q}) begin
             n_zeros_left <= 0;
-          end else if (({26'h0, reg2hw.pad_left.q} - w_offset) % reg2hw.strides_d1.q == 0) begin
-            n_zeros_left <= ({26'h0, reg2hw.pad_left.q} - w_offset) / reg2hw.strides_d1.q; // n_zeros_left = LEFT_PAD - w_offset;
+          end else if (({26'h0, reg2hw.pad_left.q} - {16'h0, w_offset}) % {24'h0, reg2hw.strides_d1.q} == 0) begin
+            n_zeros_left <= ({26'h0, reg2hw.pad_left.q} - {16'h0, w_offset}) / {24'h0, reg2hw.strides_d1.q}; // n_zeros_left = LEFT_PAD - w_offset;
           end else begin
-            n_zeros_left <= ({26'h0, reg2hw.pad_left.q} - w_offset) / reg2hw.strides_d1.q + 1;
+            n_zeros_left <= ({26'h0, reg2hw.pad_left.q} - {16'h0, w_offset}) / {24'h0, reg2hw.strides_d1.q} + 1;
           end
 
           /* Top zeros computation */
-          if (h_offset >= reg2hw.pad_top.q) begin
+          if (h_offset >= {10'h0, reg2hw.pad_top.q}) begin
             n_zeros_top <= 0;
-          end else if (({26'h0, reg2hw.pad_top.q} - h_offset) % reg2hw.strides_d2.q == 0) begin
-            n_zeros_top <= ({26'h0, reg2hw.pad_top.q} - h_offset) / reg2hw.strides_d2.q; // n_zeros_top = TOP_PAD - h_offset;
+          end else if (({26'h0, reg2hw.pad_top.q} - {16'h0, h_offset}) % {24'h0, reg2hw.strides_d2.q} == 0) begin
+            n_zeros_top <= ({26'h0, reg2hw.pad_top.q} - {16'h0, h_offset}) / {24'h0, reg2hw.strides_d2.q}; // n_zeros_top = TOP_PAD - h_offset;
           end else begin
-            n_zeros_top <= ({26'h0, reg2hw.pad_top.q} - h_offset) / reg2hw.strides_d2.q + 1;
+            n_zeros_top <= ({26'h0, reg2hw.pad_top.q} - {16'h0, h_offset}) / {24'h0, reg2hw.strides_d2.q} + 1;
           end
 
           /* Right zeros computation */
           if (fw_min_w_offset >= reg2hw.pad_right.q || reg2hw.adpt_pad_right.q == 0) begin
             n_zeros_right <= 0;
-          end else if ((reg2hw.adpt_pad_right.q - fw_min_w_offset) % reg2hw.strides_d1.q == 0) begin
-            n_zeros_right <= (reg2hw.adpt_pad_right.q - fw_min_w_offset) / reg2hw.strides_d1.q;
+          end else if ((reg2hw.adpt_pad_right.q - fw_min_w_offset) % {24'h0, reg2hw.strides_d1.q} == 0) begin
+            n_zeros_right <= (reg2hw.adpt_pad_right.q - fw_min_w_offset) / {24'h0, reg2hw.strides_d1.q};
           end else begin
-            n_zeros_right <= (reg2hw.adpt_pad_right.q - fw_min_w_offset) / reg2hw.strides_d1.q + 1;
+            n_zeros_right <= (reg2hw.adpt_pad_right.q - fw_min_w_offset) / {24'h0, reg2hw.strides_d1.q} + 1;
           end
 
           /* Bottom zeros computation */
           if (fh_min_h_offset >= reg2hw.pad_bottom.q || reg2hw.adpt_pad_bottom.q == 0) begin
             n_zeros_bottom <= 0;
-          end else if ((reg2hw.adpt_pad_bottom.q - fh_min_h_offset) % reg2hw.strides_d2.q == 0) begin
-            n_zeros_bottom <= (reg2hw.adpt_pad_bottom.q - fh_min_h_offset) / reg2hw.strides_d2.q;
+          end else if ((reg2hw.adpt_pad_bottom.q - fh_min_h_offset) % {24'h0, reg2hw.strides_d2.q} == 0) begin
+            n_zeros_bottom <= (reg2hw.adpt_pad_bottom.q - fh_min_h_offset) / {24'h0, reg2hw.strides_d2.q};
           end else begin
-            n_zeros_bottom <= (reg2hw.adpt_pad_bottom.q - fh_min_h_offset) / reg2hw.strides_d2.q + 1;
+            n_zeros_bottom <= (reg2hw.adpt_pad_bottom.q - fh_min_h_offset) / {24'h0, reg2hw.strides_d2.q} + 1;
           end
         end
 
         DMA_RUN_PARAM_COMP_1: begin
           size_transfer_1d <= {16'h0, reg2hw.n_patches_w.q} - n_zeros_left - n_zeros_right;
           size_transfer_2d <= {16'h0, reg2hw.n_patches_h.q} - n_zeros_top - n_zeros_bottom;
-          index <= (({24'h0, batch_counter} * {24'h0, reg2hw.num_ch.q} + im_c) * reg2hw.ih.q + (im_row + n_zeros_top * reg2hw.strides_d2.q)) * reg2hw.iw.q + im_col + n_zeros_left * reg2hw.strides_d1.q;
+          index <= (({24'h0, batch_counter} * {24'h0, reg2hw.num_ch.q} + im_c) * reg2hw.ih.q + (im_row + n_zeros_top * {24'h0, reg2hw.strides_d2.q})) * reg2hw.iw.q + im_col + n_zeros_left * {24'h0, reg2hw.strides_d1.q};
         end
 
         DMA_RUN_PARAM_COMP_2: begin
-          source_inc_d2 <= ((reg2hw.strides_d2.q * reg2hw.iw.q) - (size_transfer_1d - 1 + (reg2hw.strides_d1.q- 1) * (size_transfer_1d - 1)));
+          source_inc_d2 <= (({24'h0, reg2hw.strides_d2.q} * reg2hw.iw.q) - (size_transfer_1d - 1 + ({24'h0, reg2hw.strides_d1.q}- 1) * (size_transfer_1d - 1)));
           input_data_ptr <= reg2hw.src_ptr.q + index * 4;
         end
 
@@ -383,7 +383,7 @@ module im2col_spc
 
         IM_OFFSET_UPDATE: begin
           /* w_offset update */
-          if (w_offset == {24'h0, reg2hw.fw.q} - 1) begin
+          if (w_offset == {8'h0, reg2hw.fw.q} - 1) begin
             w_offset <= '0;
           end else begin
             w_offset <= w_offset + 1;
@@ -392,7 +392,7 @@ module im2col_spc
           /* h_offset update */
           if (h_offset_counter == {24'h0, reg2hw.fw.q} - 1) begin
             h_offset_counter <= '0;
-            if (h_offset == {24'h0, reg2hw.fh.q} - 1) begin
+            if (h_offset == {8'h0, reg2hw.fh.q} - 1) begin
               h_offset <= '0;
             end else begin
               h_offset <= h_offset + 1;
@@ -807,7 +807,7 @@ module im2col_spc
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_INC_SRC_D1_OFFSET;
-            im2col2aopx_req_o.wdata <= reg2hw.strides_d1.q * (4 >> reg2hw.data_type.q) & 32'h3f; // Mask;
+            im2col2aopx_req_o.wdata <= {24'h0, reg2hw.strides_d1.q} * (4 >> reg2hw.data_type.q) & 32'h3f; // Mask;
           end else if (dma_if_load_rvalid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;

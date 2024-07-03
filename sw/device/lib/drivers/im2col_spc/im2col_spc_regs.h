@@ -85,9 +85,17 @@ extern "C" {
 
 // Strides along D1, set to 1 for no stride
 #define IM2COL_SPC_STRIDES_D1_REG_OFFSET 0x34
+#define IM2COL_SPC_STRIDES_D1_SIZE_MASK 0xff
+#define IM2COL_SPC_STRIDES_D1_SIZE_OFFSET 0
+#define IM2COL_SPC_STRIDES_D1_SIZE_FIELD \
+  ((bitfield_field32_t) { .mask = IM2COL_SPC_STRIDES_D1_SIZE_MASK, .index = IM2COL_SPC_STRIDES_D1_SIZE_OFFSET })
 
 // Strides along D2, set to 1 for no stride
 #define IM2COL_SPC_STRIDES_D2_REG_OFFSET 0x38
+#define IM2COL_SPC_STRIDES_D2_SIZE_MASK 0xff
+#define IM2COL_SPC_STRIDES_D2_SIZE_OFFSET 0
+#define IM2COL_SPC_STRIDES_D2_SIZE_FIELD \
+  ((bitfield_field32_t) { .mask = IM2COL_SPC_STRIDES_D2_SIZE_MASK, .index = IM2COL_SPC_STRIDES_D2_SIZE_OFFSET })
 
 // Status bit is set to one when the im2col SPC is ready
 #define IM2COL_SPC_STATUS_REG_OFFSET 0x3c
