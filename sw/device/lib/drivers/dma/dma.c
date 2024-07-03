@@ -287,7 +287,7 @@ void fic_irq_dma(void)
      * Call the weak implementation provided in this module,
      * or the non-weak implementation.
      */
-    dma_sdk_intr_handler_trans_done();
+    dma_intr_handler_trans_done();
 }
     
 void dma_init( dma *peri )
@@ -1047,13 +1047,13 @@ void dma_stop_circular()
 }
 
 
-__attribute__((weak, optimize("O0"))) void dma_sdk_intr_handler_trans_done()
+__attribute__((weak, optimize("O0"))) void dma_intr_handler_trans_done()
 {
     /*
      * The DMA transaction has finished!
      * This is a weak implementation.
      * Create your own function called
-     * void dma_sdk_intr_handler_trans_done()
+     * void dma_intr_handler_trans_done()
      * to override this one.
      */
 }

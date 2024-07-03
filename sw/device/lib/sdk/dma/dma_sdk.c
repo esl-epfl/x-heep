@@ -103,8 +103,8 @@ void dma_copy_32b(uint32_t *dst, uint32_t *src, uint32_t size)
     /*
      * SET THE POINTERS
      */
-    peri->SRC_PTR = trans.src->ptr;
-    peri->DST_PTR = trans.dst->ptr;
+    peri->SRC_PTR = (uint32_t) trans.src->ptr;
+    peri->DST_PTR = (uint32_t) trans.dst->ptr;
 
     /*
      * SET THE INCREMENTS
@@ -165,8 +165,8 @@ void dma_fill(uint32_t *dst, uint32_t *value, uint32_t size)
     /*
      * SET THE POINTERS
      */
-    peri->SRC_PTR = value;
-    peri->DST_PTR = dst;
+    peri->SRC_PTR = (uint32_t) value;
+    peri->DST_PTR = (uint32_t) dst;
 
     /*
      * SET THE INCREMENTS
@@ -227,8 +227,8 @@ void dma_copy_16_32(uint32_t *dst, uint16_t *src, uint32_t size)
     /*
      * SET THE POINTERS
      */
-    peri->SRC_PTR = src;
-    peri->DST_PTR = dst;
+    peri->SRC_PTR = (uint32_t) src;
+    peri->DST_PTR = (uint32_t) dst;
 
     /*
      * SET THE INCREMENTS
@@ -324,8 +324,8 @@ void dma_copy_to_addr_32b(uint32_t *dst_addr, uint32_t *src, uint32_t size)
     /*
      * SET THE POINTERS
      */
-    peri->SRC_PTR = trans.src->ptr;
-    peri->ADDR_PTR = trans.src_addr->ptr;
+    peri->SRC_PTR = (uint32_t) trans.src->ptr;
+    peri->ADDR_PTR = (uint32_t) trans.src_addr->ptr;
 
     /*
      * SET THE INCREMENTS
@@ -422,7 +422,7 @@ int dma_copy(const uint8_t *dst, const uint8_t *src, const size_t bytes, const d
 
     // Source pointer
     dma_target_t tgt_src = {
-        .ptr = src,
+        .ptr = (uint8_t *) src,
         .inc_du = 1,
         .size_du = num_du,
         .type = dma_type,
@@ -431,7 +431,7 @@ int dma_copy(const uint8_t *dst, const uint8_t *src, const size_t bytes, const d
 
     // Destination pointer
     dma_target_t tgt_dst = {
-        .ptr = dst,
+        .ptr = (uint8_t *) dst,
         .inc_du = 1,
         .trig = DMA_TRIG_MEMORY,
     };
@@ -484,12 +484,6 @@ int dma_copy(const uint8_t *dst, const uint8_t *src, const size_t bytes, const d
     }
 
     return 0;
-}
-
-// DMA interrupt handler
-void dma_sdk_intr_handler_trans_done()
-{
-    dma_sdk_intr_flag = 1;
 }
 
 #ifdef __cplusplus

@@ -75,11 +75,6 @@ void dma_fill(uint32_t *dst, uint32_t *value, uint32_t size);
  */
 void dma_copy_16_32(uint32_t *dst, uint16_t *src, uint32_t size);
 
-/**
- * @brief DMA interrupt handler (overrides the weak one from dma.c)
- * 
- */
-void dma_sdk_intr_handler_trans_done();
 #ifdef __cplusplus
 }
 #endif  // __cplusplus

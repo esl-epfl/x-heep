@@ -10,6 +10,8 @@
     rev: "358f90110220adf7a083f8b65d157e836d706236",
   },
 
+  patch_dir: "patches/pulp_platform_riscv_dbg",
+
   exclude_from_upstream: [
     "ci",
     "tb",
