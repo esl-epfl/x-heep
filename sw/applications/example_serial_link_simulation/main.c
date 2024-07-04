@@ -15,7 +15,8 @@ void WRITE_SL(void);
 int main(int argc, char *argv[])
 {
 
-    
+    volatile int32_t *addr_p = 0x50000040;
+    volatile int32_t *addr_p_external = 0xF0010000;
 
 
     REG_CONFIG();
@@ -26,33 +27,17 @@ int main(int argc, char *argv[])
     unsigned int cycles1,cycles2;
     CSR_CLEAR_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
 
+    *addr_p = NUM_TO_CHECK;
     CSR_WRITE(CSR_REG_MCYCLE, 0);
-
-    WRITE_SL();
-
+    while(1){
+    if (*addr_p_external ==NUM_TO_CHECK){
+        CSR_READ(CSR_REG_MCYCLE, &cycles1);
+        
+        break;
+        }
+    }
     
-  
-    READ_SL();
-    CSR_READ(CSR_REG_MCYCLE, &cycles1);
     printf("first write finished with  %d cycles\n\r", cycles1);
-    //printf("cheack if we can read %d  to %p \n",*addr_p, addr_p);
-
-    /* WRITING TO external SL */
-    //printf("start writing to external serial link!\n");
-    //int32_t num_to_check_external =10;
-    //int32_t *addr_p_external =EXT_SLAVE_START_ADDRESS + 0x10000;
-    //*addr_p_external = num_to_check_external;
-
-    //int32_t *addr_p_reg_ISOLATE_OUT =(int32_t *)(SERIAL_LINK_START_ADDRESS + SERIAL_LINK_SINGLE_CHANNEL_CTRL_REG_OFFSET);
-    //*addr_p_reg_ISOLATE_OUT = (*addr_p_reg_ISOLATE_OUT)& (0 << 9); // axi_out_isolate
-    
-    //printf("addr_p = %p -> %x\n", addr_p, *addr_p);
-    /* READING FROM SL EXT */
-     // ext bus serial link from mcu_cfg.hjson + testharness pkg master
-    
-    //printf("addr_p_ext = %p -> %d\n", addr_p_external, *addr_p_external);
-
-    
     printf("DONE\n");
     
     return EXIT_SUCCESS;
@@ -70,7 +55,7 @@ void __attribute__ ((optimize("00"))) WRITE_SL(void){
     volatile int32_t *addr_p = 0x50000040;
     *addr_p = NUM_TO_CHECK;
 
-   //printf("asd\n");     
+    //printf("asd\n");     
     
     //*addr_p = NUM_TO_CHECK;
     //*addr_p = 28;

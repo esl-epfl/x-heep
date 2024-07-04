@@ -18,7 +18,7 @@ module serial_link_occamy_wrapper #(
   parameter type cfg_rsp_t  = logic,
   parameter int NumChannels = 1,
    //parameter int NumChannels = 2,
-  parameter int NumLanes = 8,
+  parameter int NumLanes = 4,//8,
   parameter int MaxClkDiv = 32
 ) (
   input  logic                      clk_i,
@@ -45,6 +45,9 @@ module serial_link_occamy_wrapper #(
   logic clk_ena;
   logic reset_n;
 
+  axi_req_t                  fast_sl_req_i;
+  axi_rsp_t                  fast_sl_rsp_i;
+
   //axi_req_t axi_in_req, axi_out_req;
   //axi_rsp_t axi_in_rsp, axi_out_rsp;
 
@@ -64,6 +67,34 @@ module serial_link_occamy_wrapper #(
     .clk_sel_i (testmode_i),
     .clk_o (rst_serial_link_n)
   );
+
+  axi_cdc #(
+      .axi_req_t        ( axi_req_t   ),
+      .axi_resp_t        ( axi_rsp_t   ),
+      .aw_chan_t        ( aw_chan_t   ),
+      .w_chan_t         ( w_chan_t    ),
+      .b_chan_t         ( b_chan_t    ),
+      .ar_chan_t        ( ar_chan_t   ),
+      .r_chan_t         ( r_chan_t    )
+  /// Depth of the FIFO crossing the clock domain, given as 2**LOG_DEPTH.
+  //parameter int unsigned  LogDepth  = 1
+)axi_cdc_i (
+  // slave side - clocked by `src_clk_i`
+  .src_clk_i(clk_i),
+  .src_rst_ni(rst_ni),
+  .src_req_i(axi_in_req_i),
+  .src_resp_o(axi_in_rsp_o),
+  // master side - clocked by `dst_clk_i`
+  .dst_clk_i(clk_i),
+  .dst_rst_ni(rst_ni),
+  .dst_req_o(fast_sl_req_i),
+  .dst_resp_i(fast_sl_rsp_i)
+);
+
+
+
+
+
 
   //logic [1:0] isolated, isolate;
 
@@ -109,6 +140,10 @@ module serial_link_occamy_wrapper #(
     .isolated_o   ( isolated[1]   )
   ); */
 
+
+
+
+
   if (NumChannels > 1) begin : gen_multi_channel_serial_link
     serial_link #(
       .axi_req_t        ( axi_req_t   ),
@@ -141,7 +176,7 @@ module serial_link_occamy_wrapper #(
       .rst_reg_ni     ( rst_reg_ni        ),
       .testmode_i     ( 1'b0              ),
       .axi_in_req_i   ( axi_in_req_i      ),
-      .axi_in_rsp_o   ( axi_in_rsp_o      ),
+      .axi_in_rsp_o   ( fast_sl_rsp_i),//axi_in_rsp_o      ),
       .axi_out_req_o  ( axi_out_req_o     ),
       .axi_out_rsp_i  ( axi_out_rsp_i     ),
       .cfg_req_i      ( cfg_req_i         ),
@@ -189,7 +224,7 @@ module serial_link_occamy_wrapper #(
       .rst_reg_ni     ( rst_reg_ni        ),
       .testmode_i     ( 1'b0              ),
       .axi_in_req_i   ( axi_in_req_i      ),
-      .axi_in_rsp_o   ( axi_in_rsp_o      ),
+      .axi_in_rsp_o   ( fast_sl_rsp_i),//axi_in_rsp_o      ),
       .axi_out_req_o  ( axi_out_req_o     ),
       .axi_out_rsp_i  ( axi_out_rsp_i     ),
       .cfg_req_i      ( cfg_req_i         ),

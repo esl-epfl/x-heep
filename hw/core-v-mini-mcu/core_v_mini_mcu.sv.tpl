@@ -14,7 +14,7 @@ module core_v_mini_mcu
 #(
     // serial link parameters
     parameter int NumChannels = 1,
-    parameter int NumLanes = 8,
+    parameter int NumLanes = 4,//8,
     parameter int MaxClkDiv = 32,
 
     parameter COREV_PULP = 0,
@@ -97,6 +97,10 @@ ${pad.core_v_mini_mcu_interface}
     //output logic [NumChannels-1:0]    ddr_rcv_clk_o,
     //input  logic [NumChannels-1:0][NumLanes-1:0] ddr_i,
     //output logic [NumChannels-1:0][NumLanes-1:0] ddr_o
+
+    //input  logic                    fast_clock,
+
+
     input  logic [NumLanes-1:0]     ddr_i,
     input  logic [NumChannels-1:0]  ddr_rcv_clk_i,
     output logic [NumLanes-1:0]     ddr_o,
@@ -163,8 +167,8 @@ ${pad.core_v_mini_mcu_interface}
 
 
     
-    core_v_mini_mcu_pkg::axi_req_t  axi_in_req_i,  axi_out_req_o;
-    core_v_mini_mcu_pkg::axi_resp_t  axi_in_rsp_o,  axi_out_rsp_i;
+    core_v_mini_mcu_pkg::axi_req_t  axi_in_req_i,  axi_out_req_o, fast_sl_req_i;
+    core_v_mini_mcu_pkg::axi_resp_t  axi_in_rsp_o,  axi_out_rsp_i, fast_sl_rsp_i;
     reg_req_t cfg_req_sl;
     reg_rsp_t cfg_rsp_sl;
 
@@ -286,6 +290,16 @@ ${pad.core_v_mini_mcu_interface}
     rv_timer_intr[2],
     rv_timer_intr[1]
   };
+
+    // logic slow_clock;
+    // clock_divider_simple#(
+    // )clock_divider_simple_i(
+    //    .clk(clk_i),
+    //    .rst_n(rst_ni),
+    //    .clk_out(slow_clock)
+    // );
+
+
 
   cpu_subsystem #(
       .BOOT_ADDR(BOOT_ADDR),
@@ -616,11 +630,26 @@ ${pad.core_v_mini_mcu_interface}
     .r_ready_o(axi_out_req_o.r_ready)
     //.r_size
   );
+
+
+
+
+
+
+
+
+
+
+
 % else:
 
 % endif
 % endif
 % endfor
+
+
+
+
 
 // AXI2CORE(OBI)
 % for peripheral in peripherals.items():
@@ -641,14 +670,14 @@ ${pad.core_v_mini_mcu_interface}
     //.req_o(axi_sl_m_req.req),
 
 
-          .data_req_i(axi_sl_m_req.req),
-          .data_gnt_o(axi_sl_m_resp.gnt),
-          .data_rvalid_o(axi_sl_m_resp.rvalid),
-          .data_addr_i(axi_sl_m_req.addr),
-          .data_we_i(axi_sl_m_req.we),
-          .data_be_i(axi_sl_m_req.be),
-          .data_rdata_o(axi_sl_m_resp.rdata),
-          .data_wdata_i(axi_sl_m_req.wdata),
+    .data_req_i(axi_sl_m_req.req),
+    .data_gnt_o(axi_sl_m_resp.gnt),
+    .data_rvalid_o(axi_sl_m_resp.rvalid),
+    .data_addr_i(axi_sl_m_req.addr),
+    .data_we_i(axi_sl_m_req.we),
+    .data_be_i(axi_sl_m_req.be),
+    .data_rdata_o(axi_sl_m_resp.rdata),
+    .data_wdata_i(axi_sl_m_req.wdata),
 
     //.data_req_i(axi_sl_slave_req.req),
     //.data_gnt_o(axi_sl_slave_resp.gnt),
@@ -720,8 +749,8 @@ ${pad.core_v_mini_mcu_interface}
 
     .testmode_i('0),
    
-    .axi_in_req_i(axi_out_req_o),
-    .axi_in_rsp_o(axi_out_rsp_i),
+    .axi_in_req_i(fast_sl_req_i),
+    .axi_in_rsp_o(fast_sl_rsp_i),
 
     
     .axi_out_req_o(axi_in_req_i), //axi_in_req_i

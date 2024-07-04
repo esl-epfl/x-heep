@@ -128,8 +128,9 @@ module testharness #(
   logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_n;
 
   //serial link check ddr
-  logic [7:0] ddr_i_xheep;  // check NumLanes parameter 
-  logic [7:0] ddr_o_xheep;
+  import serial_link_pkg::*;
+  logic [NumLanes-1:0] ddr_i_xheep;  // check NumLanes parameter 
+  logic [NumLanes-1:0] ddr_o_xheep;
   logic clk_sl_int2ext;
   logic clk_sl_ext2int;
 
@@ -775,7 +776,6 @@ module testharness #(
           .rst_reg_ni(rst_ni),  //intended for SW reset purposes
 
           .testmode_i  ('0),
-          //from x-heep to outside
           .axi_in_req_i(axi_out_req_o),
           .axi_in_rsp_o(axi_out_rsp_i),
 
@@ -787,15 +787,9 @@ module testharness #(
           .cfg_rsp_o(cfg_rsp_ext),
 
 
-          //from x-heep to outside
-          //.ddr_rcv_clk_i(clk_i),    //Source-synchronous input clock to sample data. One clock per channel   
           .ddr_i(ddr_o_xheep),  //Double-Data-Rate (DDR) input data
           .ddr_rcv_clk_i(clk_sl_int2ext),
           .ddr_rcv_clk_o(clk_sl_ext2int),
-          //.ddr_rcv_clk_i(clk_i),
-          //.ddr_rcv_clk_o(),
-          //from outside to x-heep
-          //Source-synchronous output clock which is forwarded together with the data. One clock per channel
           .ddr_o(ddr_i_xheep)  //Double-Data-Rate (DDR) output data
       );
 

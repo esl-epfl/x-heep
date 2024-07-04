@@ -85,7 +85,8 @@ module axi2obi #(
     WRITE_REQ_HANDSHAKE,  // data phase OBI
     READ_REQ_SL,
     READ_REQ_BUFFER,      // address phase OBI
-    READ_REQ_HANDSHAKE    // data phase OBI
+    READ_REQ_HANDSHAKE,
+    READ_REQ              // data phase OBI
   }
       CS, NS;
 
@@ -162,6 +163,13 @@ module axi2obi #(
           next_addr = s00_axi_araddr;
           s00_axi_arready = '1;
           data_gnt_o = '1;
+        end else if (data_req_i == '1) begin
+          NS = READ_REQ;
+          next_addr = s00_axi_araddr;
+          s00_axi_arready = '1;
+          data_gnt_o = '1;
+          next_rdata = '0;
+
         end else if (s00_axi_awvalid == '1 && s00_axi_wvalid == '0) begin
           next_addr = s00_axi_awaddr;
           s00_axi_awready = '1;
@@ -213,6 +221,14 @@ module axi2obi #(
         NS = IDLE;
         next_rdata = 00000001;
         s00_axi_rvalid = '1;
+        //end
+      end
+      READ_REQ: begin
+        //if (data_req_i == '1 && data_we_i == '1) begin //&& data_req_i == '1 && data_we_i == '1 in  case we have OBI request
+
+        NS = IDLE;
+        data_rvalid_o = '1;
+        data_rdata_o = curr_rdata;
         //end
       end
 

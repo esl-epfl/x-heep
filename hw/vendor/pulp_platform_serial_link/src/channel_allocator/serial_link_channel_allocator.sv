@@ -8,7 +8,7 @@ module serial_link_channel_allocator
  import serial_link_pkg::*;
  #(
   parameter type phy_data_t = serial_link_pkg::phy_data_t,
-  parameter int          NumChannels = 1,
+  parameter int          NumChannels = 2,
   parameter int unsigned FlushCounterWidth = 8, // Number of bits for the
                                 // internal counter for the auto-flush feature.
                                 // 8 bits should be sufficient in most circumstances
