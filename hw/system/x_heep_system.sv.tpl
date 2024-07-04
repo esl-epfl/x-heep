@@ -94,6 +94,15 @@ ${pad.x_heep_system_interface}
  % if total_pad_muxed > 0:
   logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${max_total_pad_mux_bitlengh-1}:0] pad_muxes;
 % endif
+% if pads_attributes != None:
+  /* verilator lint_off UNUSED */
+  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${pads_extra_inputs['bits']}] pad_extra_inputs;
+% endif
+% if pads_attributes != None:
+  /* verilator lint_off UNUSED */
+  logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${pads_extra_outputs['bits']}] pad_extra_outputs;
+% endif
+
 
   logic rst_ngen;
 
@@ -169,8 +178,16 @@ ${pad.pad_ring_bonding_bonding}
 % else:
     .pad_attributes_i('0),
 % endif
+% if pads_extra_inputs != None:
+    .pad_extra_inputs_i(pad_extra_inputs),
+% else:
     .pad_extra_inputs_i('0),
+% endif
+% if pads_extra_outputs != None:
+    .pad_extra_outputs_o(pad_extra_outputs)
+% else:
     .pad_extra_outputs_o()
+% endif
   );
 
 ${pad_constant_driver_assign}

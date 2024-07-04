@@ -27,10 +27,10 @@ ${external_pad.pad_ring_ctrl_interface}
     input logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][0:0] pad_extra_inputs_i,
 % endif
 % if pads_extra_outputs != None:
-    input logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${pads_extra_outputs['bits']}] pad_extra_outputs_o
+    output logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][${pads_extra_outputs['bits']}] pad_extra_outputs_o
 % else:
    /* verilator lint_off UNUSED */
-    input logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][0:0] pad_extra_outputs_o
+    output logic [core_v_mini_mcu_pkg::NUM_PAD-1:0][0:0] pad_extra_outputs_o
 % endif
 
 );
