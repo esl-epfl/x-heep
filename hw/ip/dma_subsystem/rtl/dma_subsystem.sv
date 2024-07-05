@@ -142,13 +142,12 @@ module dma_subsystem #(
       /* Register interface routing signals */
       logic [core_v_mini_mcu_pkg::DMA_CH_PORT_SEL_WIDTH-1:0] submodules_select;
 
-      if (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS > 1) begin
+      if (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS > 1 && core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS != core_v_mini_mcu_pkg::DMA_CH_NUM) begin : xbar_n_to_m_gen
 
         /* Read, write & address mode operations xbar*/
         dma_NtoM_xbar #(
             .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM),
-            .XBAR_MSLAVE(core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS),
-            .NUM_MASTERS_PER_XBAR(core_v_mini_mcu_pkg::DMA_XBAR_NUM_MASTERS_PER_SLAVE)
+            .XBAR_MSLAVE(core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
         ) xbar_read_i (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
@@ -160,8 +159,7 @@ module dma_subsystem #(
 
         dma_NtoM_xbar #(
             .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM),
-            .XBAR_MSLAVE(core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS),
-            .NUM_MASTERS_PER_XBAR(core_v_mini_mcu_pkg::DMA_XBAR_NUM_MASTERS_PER_SLAVE)
+            .XBAR_MSLAVE(core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
         ) xbar_write_i (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
@@ -173,8 +171,7 @@ module dma_subsystem #(
 
         dma_NtoM_xbar #(
             .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM),
-            .XBAR_MSLAVE(core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS),
-            .NUM_MASTERS_PER_XBAR(core_v_mini_mcu_pkg::DMA_XBAR_NUM_MASTERS_PER_SLAVE)
+            .XBAR_MSLAVE(core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS)
         ) xbar_address_i (
             .clk_i(clk_i),
             .rst_ni(rst_ni),
@@ -183,8 +180,17 @@ module dma_subsystem #(
             .slave_req_o(dma_addr_req_o),
             .slave_resp_i(dma_addr_resp_i)
         );
-      end else begin
+      end else if (core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS > 1 && core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS == core_v_mini_mcu_pkg::DMA_CH_NUM) begin : xbar_n_to_n_gen
+        for (genvar i = 0 ; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++) begin
+          assign dma_read_req_o[i] = xbar_read_req[i];
+          assign xbar_read_resp[i] = dma_read_resp_i[i];
+          assign dma_write_req_o[i] = xbar_write_req[i];
+          assign xbar_write_resp[i] = dma_write_resp_i[i];
+          assign dma_addr_req_o[i] = xbar_address_req[i];
+          assign xbar_address_resp[i] = dma_addr_resp_i[i];
+        end
 
+      end else begin : xbar_n_to_1_gen
         /* Read, write & address mode operations xbar*/
         xbar_varlat_n_to_one #(
             .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_CH_NUM)

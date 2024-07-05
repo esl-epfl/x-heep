@@ -141,7 +141,7 @@ package core_v_mini_mcu_pkg;
   localparam DMA_CH_NUM = ${dma_ch_count};
   localparam DMA_CH_SIZE = 32'h${dma_ch_size};
   localparam DMA_NUM_MASTER_PORTS = ${num_dma_master_ports};
-  localparam DMA_XBAR_NUM_MASTERS_PER_SLAVE = ${num_dma_xbar_channels_per_master_port};
+  localparam int DMA_XBAR_MASTERS [DMA_NUM_MASTER_PORTS-1:0] = '{${dma_xbar_masters_array[::-1]}};
   
 % for peripheral, addr in ao_peripherals.items():
   localparam logic [31:0] ${peripheral.upper()}_START_ADDRESS = AO_PERIPHERAL_START_ADDRESS + 32'h${addr["offset"]};

@@ -20,8 +20,7 @@
 
 module dma_NtoM_xbar #(
     parameter int unsigned XBAR_NMASTER = 4,
-    parameter int unsigned XBAR_MSLAVE = 2,
-    parameter int unsigned NUM_MASTERS_PER_XBAR = 2
+    parameter int unsigned XBAR_MSLAVE  = 2
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -37,20 +36,40 @@ module dma_NtoM_xbar #(
   import obi_pkg::*;
   import core_v_mini_mcu_pkg::*;
 
+  initial begin
+    $display("Elemento 0 di DMA_XBAR_MASTERS: %0d", DMA_XBAR_MASTERS[0]);
+    $display("Elemento 1 di DMA_XBAR_MASTERS: %0d", DMA_XBAR_MASTERS[1]);
+    $display("Elemento 2 di DMA_XBAR_MASTERS: %0d", DMA_XBAR_MASTERS[2]);
+  end
+  // Generazione delle istanze xbar_varlat_n_to_one
   generate
-    for (genvar i = 0; i < XBAR_MSLAVE; i++) begin : gen_xbar
+    xbar_varlat_n_to_one #(
+        .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0])
+    ) xbar_i (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .master_req_i(master_req_i[core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0]-1:0]),
+        .master_resp_o(master_resp_o[core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0]-1:0]),
+        .slave_req_o(slave_req_o[0]),
+        .slave_resp_i(slave_resp_i[0])
+    );
 
-      localparam int NUM_MASTERS = (XBAR_NMASTER > (i+1) * NUM_MASTERS_PER_XBAR) ? NUM_MASTERS_PER_XBAR : (XBAR_NMASTER - i * NUM_MASTERS_PER_XBAR);
-      xbar_varlat_n_to_one #(
-          .XBAR_NMASTER(NUM_MASTERS)
-      ) xbar_i (
-          .clk_i(clk_i),
-          .rst_ni(rst_ni),
-          .master_req_i(master_req_i[i*NUM_MASTERS_PER_XBAR+:NUM_MASTERS]),
-          .master_resp_o(master_resp_o[i*NUM_MASTERS_PER_XBAR+:NUM_MASTERS]),
-          .slave_req_o(slave_req_o[i]),
-          .slave_resp_i(slave_resp_i[i])
-      );
+    for (genvar i = 1; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++) begin : gen_xbar
+      if (core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i] == 1) begin
+        assign slave_req_o[i] = master_req_i[i+core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0]-1];
+        assign master_resp_o[i+core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0]-1] = slave_resp_i[i];
+      end else begin
+        xbar_varlat_n_to_one #(
+            .XBAR_NMASTER(core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i])
+        ) xbar_i (
+            .clk_i(clk_i),
+            .rst_ni(rst_ni),
+            .master_req_i(master_req_i[core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i] + core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i-1]-1:core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i-1]]),
+            .master_resp_o(master_resp_o[core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i] + core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i-1]-1:core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i-1]]),
+            .slave_req_o(slave_req_o[i]),
+            .slave_resp_i(slave_resp_i[i])
+        );
+      end
     end
   endgenerate
 

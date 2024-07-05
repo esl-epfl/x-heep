@@ -20,6 +20,7 @@ import collections
 from math import log2
 import x_heep_gen.load_config
 from x_heep_gen.system import BusType
+import math
 
 class Pad:
 
@@ -522,7 +523,35 @@ def main():
     if int(num_dma_xbar_channels_per_master_port, 16) >= int(dma_ch_count, 16) or int(num_dma_xbar_channels_per_master_port, 16) == 0:
         exit("Number of DMA channels per system bus master ports has to be between 0 and " + str(dma_ch_count) + ", excluded")
 
-    
+    if (int(num_dma_master_ports) > 1):
+        # Calcolo di full_masters_xbars
+        temp_full_masters_xbars = math.floor(int(dma_ch_count) / int(num_dma_xbar_channels_per_master_port))
+        if temp_full_masters_xbars < int(num_dma_master_ports) and temp_full_masters_xbars * int(num_dma_xbar_channels_per_master_port) == int(dma_ch_count):
+            full_masters_xbars = temp_full_masters_xbars - 1
+        else:
+            full_masters_xbars = temp_full_masters_xbars
+        last = int(num_dma_xbar_channels_per_master_port) * full_masters_xbars
+
+        # Inizializzazione dell'array
+        array_xbar_gen = [0] * int(num_dma_master_ports)
+
+        # Popolamento dell'array
+        for i in range(int(num_dma_master_ports)):
+            if i < full_masters_xbars:
+                array_xbar_gen[i] = int(num_dma_xbar_channels_per_master_port)
+            else:
+                array_xbar_gen[i] = min(int(dma_ch_count) - last, int(dma_ch_count) - last - (int(num_dma_master_ports) - i - 1))
+                last = last + array_xbar_gen[i]
+
+        if (sum(array_xbar_gen) != int(dma_ch_count) or 0 in array_xbar_gen):
+            exit("Error in the DMA xbar generation: wrong parameters")
+        
+        dma_xbar_array = ", ".join(map(str, array_xbar_gen))
+    else:
+        if (int(num_dma_xbar_channels_per_master_port) != int(dma_ch_count)):
+            exit("With 1 master port, the number of DMA channels per master port has to be equal to the number of DMA channels")
+        dma_xbar_array = "default: 0"
+
     peripheral_start_address = string2int(obj['peripherals']['address'])
     if int(peripheral_start_address, 16) < int('10000', 16):
         exit("peripheral start address must be greater than 0x10000")
@@ -844,6 +873,7 @@ def main():
         "num_dma_master_ports"             : num_dma_master_ports,
         "num_dma_xbar_channels_per_master_port" : num_dma_xbar_channels_per_master_port,
         "ao_peripherals_num_spc"           : ao_peripherals_num_spc,
+        "dma_xbar_masters_array"           : dma_xbar_array,
         "peripheral_start_address"         : peripheral_start_address,
         "peripheral_size_address"          : peripheral_size_address,
         "peripherals"                      : peripherals,

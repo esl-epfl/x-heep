@@ -23,6 +23,10 @@ def add_loop_size(data):
         entry['loop_size'] = entry['C'] * entry['B'] * entry['H'] * entry['W']
     return data
 
+num_masters = 4
+num_slaves = 3
+max_masters_per_slave = 2
+
 num_channels_dma = 5
 
 batch_max = 4
@@ -96,7 +100,6 @@ def generate_mask(num_masters, num_slaves, max_masters_per_slave, num_channels):
 
     # Generate the mask for the specified number of channels
     used_channels = set()
-    crossbar_index = 0
 
     while len(used_channels) < num_channels:
         for cb in crossbars:
@@ -193,7 +196,7 @@ for i in range(4, num_channels_dma):
                                                     with open(imcol_lib_dir, 'r') as file:
                                                         content = file.read()
                                                     
-                                                    mask = generate_mask(4, 2, 2, i)
+                                                    mask = generate_mask(num_masters, num_slaves, max_masters_per_slave, i)
 
                                                     # Replace the matched pattern with the new value
                                                     new_content = im2col_lib_pattern.sub(f'#define SPC_CH_MASK 0b{mask}', content)

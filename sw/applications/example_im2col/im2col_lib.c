@@ -651,21 +651,21 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         /* Write the CH_COL */
         write_register( CH_COL,
                         IM2COL_SPC_CH_COL_REG_OFFSET,
-                        0xffffffff,
-                        0,
+                        IM2COL_SPC_CH_COL_NUM_MASK,
+                        IM2COL_SPC_CH_COL_NUM_OFFSET,
                         IM2COL_SPC_BASE_ADDR );
         
         /* Write n_patches */
         write_register( N_PATCHES_W,
                         IM2COL_SPC_N_PATCHES_W_REG_OFFSET,
-                        0xffffffff,
-                        0,
+                        IM2COL_SPC_N_PATCHES_W_NUM_MASK,
+                        IM2COL_SPC_N_PATCHES_W_NUM_OFFSET,
                         IM2COL_SPC_BASE_ADDR );
         
         write_register( N_PATCHES_H,
                         IM2COL_SPC_N_PATCHES_H_REG_OFFSET,
-                        0xffffffff,
-                        0,
+                        IM2COL_SPC_N_PATCHES_H_NUM_MASK,
+                        IM2COL_SPC_N_PATCHES_H_NUM_OFFSET,
                         IM2COL_SPC_BASE_ADDR );
 
         /* Write the padding */
@@ -699,21 +699,21 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
          */
         write_register( STRIDE_D1,
                         IM2COL_SPC_STRIDES_D1_REG_OFFSET,
-                        0xffffffff,
-                        0,
+                        IM2COL_SPC_STRIDES_D1_SIZE_MASK,
+                        IM2COL_SPC_STRIDES_D1_SIZE_OFFSET,
                         IM2COL_SPC_BASE_ADDR );
         
         write_register( STRIDE_D2,
                         IM2COL_SPC_STRIDES_D2_REG_OFFSET,
-                        0xffffffff,
-                        0,
+                        IM2COL_SPC_STRIDES_D2_SIZE_MASK,
+                        IM2COL_SPC_STRIDES_D2_SIZE_OFFSET,
                         IM2COL_SPC_BASE_ADDR );
 
         /* Write the batch size */
         write_register( BATCH,
                         IM2COL_SPC_BATCH_REG_OFFSET,
-                        0xffffffff,
-                        0,
+                        IM2COL_SPC_BATCH_SIZE_MASK,
+                        IM2COL_SPC_BATCH_SIZE_OFFSET,
                         IM2COL_SPC_BASE_ADDR );
         
         /* Write the adapted pad regions */
@@ -739,12 +739,13 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         /* Write the number of channels to start the process */
         write_register( CH,
                         IM2COL_SPC_NUM_CH_REG_OFFSET,
-                        0xffffffff,
-                        0,
+                        IM2COL_SPC_NUM_CH_NUM_MASK,
+                        IM2COL_SPC_NUM_CH_NUM_OFFSET,
                         IM2COL_SPC_BASE_ADDR );
         
-        while ( * (volatile uint32_t * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_STATUS_REG_OFFSET) == 0)
+        while ( * (volatile uint32_t * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_SPC_IFR_REG_OFFSET) == 0)
         {
+            PRINTF("%d\n", * (volatile uint32_t * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_SPC_IFR_REG_OFFSET));
             /* Wait for the SPC to finish */
         }
 
