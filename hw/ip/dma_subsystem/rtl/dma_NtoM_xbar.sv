@@ -54,7 +54,7 @@ module dma_NtoM_xbar #(
         .slave_resp_i(slave_resp_i[0])
     );
 
-    for (genvar i = 1; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++) begin : gen_xbar
+    for (genvar i = 1; i < XBAR_MSLAVE; i++) begin : gen_xbar
       if (core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[i] == 1) begin
         assign slave_req_o[i] = master_req_i[i+core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0]-1];
         assign master_resp_o[i+core_v_mini_mcu_pkg::DMA_XBAR_MASTERS[0]-1] = slave_resp_i[i];

@@ -61,6 +61,12 @@ module im2col_spc
 
   /* Signals declaration */
 
+  /* General status signal */
+  enum {
+    READY,
+    BUSY
+  } im2col_status;
+
   /* Control Unit signals */
   logic im2col_start;
   logic im2col_fsms_done;
@@ -86,7 +92,6 @@ module im2col_spc
   logic [(DMA_CH_NUM == 1) ? 0 : ($clog2(DMA_CH_NUM) - 1):0] dma_free_channel;
   logic [(DMA_CH_NUM == 1) ? 0 : ($clog2(DMA_CH_NUM) - 1):0] dma_trans_free_channel;
   logic [31:0] dma_ch_en_mask;
-
   logic dma_if_load;
   logic dma_if_loaded;
   logic dma_if_load_continue;
@@ -139,6 +144,7 @@ module im2col_spc
       param_state_q, param_state_d;
 
   enum {
+    READY_IF_CU,
     IDLE_IF_CU,
     GET_TRANSACTION,
     LOAD_TRANSACTION
@@ -208,6 +214,19 @@ module im2col_spc
   /*_________________________________________________________________________________________________________________________________ */
 
   /* FSMs instantiation */
+
+  /* General status */
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_im2col_status
+    if (!rst_ni) begin
+      im2col_status <= READY;
+    end else begin
+      if (im2col_done == 1'b1) begin
+        im2col_status <= READY;
+      end else if (im2col_start == 1'b1) begin
+        im2col_status <= BUSY;
+      end
+    end
+  end
 
   /* Parameter computation state transition FSM */
   always_comb begin : proc_comb_param_state_fsm
@@ -1048,7 +1067,7 @@ module im2col_spc
     end else begin
       if (im2col_fsms_done == 1'b1 && |dma_if_channels == 1'b0) begin
         im2col_done <= 1'b1;
-      end else if (im2col_start == 1'b1) begin
+      end else begin
         im2col_done <= 1'b0;
       end
     end
@@ -1074,7 +1093,7 @@ module im2col_spc
 
   /* Transaction loading process */
   assign dma_if_load_rvalid = aopx2im2col_resp_i.rvalid && dma_if_load;
-  assign hw2reg.status.d = im2col_done;
+  assign hw2reg.status.d = im2col_status;
 
   /* Interrupt management */
   assign hw2reg.spc_ifr.d = im2col_spc_ifr;

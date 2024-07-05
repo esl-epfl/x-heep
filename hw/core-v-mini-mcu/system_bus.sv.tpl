@@ -120,7 +120,7 @@ module system_bus
   assign int_master_req[core_v_mini_mcu_pkg::CORE_DATA_IDX] = core_data_req_i;
   assign int_master_req[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX] = debug_master_req_i;
 
-  % for i in range(int(num_dma_xbar_channels_per_master_port)):
+  % for i in range(int(num_dma_master_ports)):
   assign int_master_req[${3+i*3}]  = dma_read_req_i[${i}];
   assign int_master_req[${4+i*3}] = dma_write_req_i[${i}];
   assign int_master_req[${5+i*3}]  = dma_addr_req_i[${i}];
@@ -146,7 +146,7 @@ module system_bus
   assign core_data_resp_o = int_master_resp[core_v_mini_mcu_pkg::CORE_DATA_IDX];
   assign debug_master_resp_o = int_master_resp[core_v_mini_mcu_pkg::DEBUG_MASTER_IDX];
 
-  % for i in range(int(num_dma_xbar_channels_per_master_port)):
+  % for i in range(int(num_dma_master_ports)):
   assign dma_read_resp_o[${i}] = int_master_resp[${3+i*3}];
   assign dma_write_resp_o[${i}] = int_master_resp[${4+i*3}];
   assign dma_addr_resp_o[${i}] = int_master_resp[${5+i*3}];

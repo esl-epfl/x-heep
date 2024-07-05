@@ -745,7 +745,6 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         
         while ( * (volatile uint32_t * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_SPC_IFR_REG_OFFSET) == 0)
         {
-            PRINTF("%d\n", * (volatile uint32_t * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_SPC_IFR_REG_OFFSET));
             /* Wait for the SPC to finish */
         }
 
