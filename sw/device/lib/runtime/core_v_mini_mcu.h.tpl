@@ -9,8 +9,8 @@
 extern "C" {
 #endif  // __cplusplus
 
-#define MEMORY_BANKS ${ram_numbanks}
-% if ram_numbanks_il > 0:
+#define MEMORY_BANKS ${xheep.ram_numbanks()}
+% if xheep.has_il_ram():
 #define HAS_MEMORY_BANKS_IL
 % endif
 
@@ -29,6 +29,7 @@ extern "C" {
 #define ${name.upper()}_START_ADDRESS (AO_PERIPHERAL_START_ADDRESS + 0x${peripheral['offset']})
 #define ${name.upper()}_SIZE 0x${peripheral['length']}
 #define ${name.upper()}_END_ADDRESS (${name.upper()}_START_ADDRESS + ${name.upper()}_SIZE)
+#define ${name.upper()}_IDX ${loop.index}
 
 %endfor
 
@@ -41,6 +42,7 @@ extern "C" {
 #define ${name.upper()}_START_ADDRESS (PERIPHERAL_START_ADDRESS + 0x${peripheral['offset']})
 #define ${name.upper()}_SIZE 0x${peripheral['length']}
 #define ${name.upper()}_END_ADDRESS (${name.upper()}_START_ADDRESS + ${name.upper()}_SIZE)
+#define ${name.upper()}_IDX ${loop.index + len(ao_peripherals.items())}
 % if "yes" in peripheral['is_included']:
 #define ${name.upper()}_IS_INCLUDED
 

@@ -24,6 +24,7 @@ module cve2_cs_registers #(
   parameter cve2_pkg::rv32m_e RV32M             = cve2_pkg::RV32MFast,
   parameter cve2_pkg::rv32b_e RV32B             = cve2_pkg::RV32BNone
 ) (
+
   // Clock and Reset
   input  logic                 clk_i,
   input  logic                 rst_ni,
@@ -103,7 +104,7 @@ module cve2_cs_registers #(
   input  logic                 div_wait_i                   // core waiting for divide
 );
 
-  import cve2_pkg::*;
+import cve2_pkg::*;
 
   localparam int unsigned RV32BEnabled = (RV32B == RV32BNone) ? 0 : 1;
   localparam int unsigned RV32MEnabled = (RV32M == RV32MNone) ? 0 : 1;
@@ -1444,7 +1445,83 @@ module cve2_cs_registers #(
   // CPU control register //
   //////////////////////////
 
-  // Removed
+`ifdef RVFI
+    logic [63:0] mstatus_extended_read;
+    logic [63:0] mstatus_extended_write;
+
+    assign  mstatus_extended_read[CSR_MSTATUS_MIE_BIT]                              = mstatus_q.mie;
+    assign  mstatus_extended_read[CSR_MSTATUS_MPIE_BIT]                             = mstatus_q.mpie;
+    assign  mstatus_extended_read[CSR_MSTATUS_MPP_BIT_HIGH:CSR_MSTATUS_MPP_BIT_LOW] = mstatus_q.mpp;
+    assign  mstatus_extended_read[CSR_MSTATUS_MPRV_BIT]                             = mstatus_q.mprv;
+    assign  mstatus_extended_read[CSR_MSTATUS_TW_BIT]                               = mstatus_q.tw;
+
+    assign  mstatus_extended_write[CSR_MSTATUS_MIE_BIT]                              = mstatus_d.mie;
+    assign  mstatus_extended_write[CSR_MSTATUS_MPIE_BIT]                             = mstatus_d.mpie;
+    assign  mstatus_extended_write[CSR_MSTATUS_MPP_BIT_HIGH:CSR_MSTATUS_MPP_BIT_LOW] = mstatus_d.mpp;
+    assign  mstatus_extended_write[CSR_MSTATUS_MPRV_BIT]                             = mstatus_d.mprv;
+    assign  mstatus_extended_write[CSR_MSTATUS_TW_BIT]                               = mstatus_d.tw;
+
+    wire [63:0] rvfi_csr_bypass;
+
+    assign rvfi_csr_bypass = csr_save_cause_i;
+
+    bit [63:0] rvfi_csr_addr;
+    bit [63:0] rvfi_csr_rdata;
+    bit [63:0] rvfi_csr_wdata;
+    bit [63:0] rvfi_csr_rmask;
+    bit [63:0] rvfi_csr_wmask;
+    wire [63:0] rvfi_csr_wmask_q;
+    wire [63:0] rvfi_csr_rmask_q;
+    assign rvfi_csr_if.rvfi_csr_addr =  rvfi_csr_addr;
+    assign rvfi_csr_if.rvfi_csr_rdata = rvfi_csr_rdata;
+    assign rvfi_csr_if.rvfi_csr_wdata = rvfi_csr_wdata;
+    assign rvfi_csr_if.rvfi_csr_rmask = rvfi_csr_rmask;
+    assign rvfi_csr_if.rvfi_csr_wmask = rvfi_csr_wmask;
+    assign rvfi_csr_rmask_q =  ((~csr_wr & csr_op_en_i & ~illegal_csr_insn_o)) ? -1 : 0;
+    assign rvfi_csr_wmask_q =   ((csr_wr & csr_op_en_i & ~illegal_csr_insn_o)) ? -1 : 0;
+    always @(posedge clknrst_if.clk) begin
+        rvfi_csr_addr  = csr_addr_i;
+        rvfi_csr_rdata = csr_rdata_int;
+        rvfi_csr_wdata = csr_wdata_int;
+        rvfi_csr_rmask = (rvfi_csr_rmask_q);
+        rvfi_csr_wmask = (rvfi_csr_wmask_q);
+    end
+
+`define RVFI_CONNECT(CSR_ADDR, CSR_NAME, CSR_RDATA, CSR_WDATA, CSR_RMASK, CSR_WMASK) \
+    bit [63:0] rvfi_``CSR_NAME``_csr_rdata;\
+    bit [63:0] rvfi_``CSR_NAME``_csr_wdata;\
+    bit [63:0] rvfi_``CSR_NAME``_csr_rmask;\
+    bit [63:0] rvfi_``CSR_NAME``_csr_wmask;\
+    wire [63:0] rvfi_``CSR_NAME``_csr_wmask_q; \
+    wire [63:0] rvfi_``CSR_NAME``_csr_rmask_q; \
+    assign rvfi_csr_if.rvfi_named_csr_rdata[CSR_ADDR] = (!rvfi_csr_bypass) ? rvfi_``CSR_NAME``_csr_rdata : ``CSR_RDATA``; \
+    assign rvfi_csr_if.rvfi_named_csr_wdata[CSR_ADDR] = (!rvfi_csr_bypass) ? rvfi_``CSR_NAME``_csr_wdata : ``CSR_WDATA``; \
+    assign rvfi_csr_if.rvfi_named_csr_rmask[CSR_ADDR] = (!rvfi_csr_bypass) ? rvfi_``CSR_NAME``_csr_rmask : rvfi_``CSR_NAME``_csr_rmask_q; \
+    assign rvfi_csr_if.rvfi_named_csr_wmask[CSR_ADDR] = (!rvfi_csr_bypass) ? rvfi_``CSR_NAME``_csr_wmask : rvfi_``CSR_NAME``_csr_wmask_q; \
+    assign rvfi_``CSR_NAME``_csr_rmask_q =  ((~csr_wr & csr_op_en_i & ~illegal_csr_insn_o & (csr_addr_i == CSR_ADDR)) CSR_RMASK) ? -1 : 0; \
+    assign rvfi_``CSR_NAME``_csr_wmask_q =   ((csr_wr & csr_op_en_i & ~illegal_csr_insn_o & (csr_addr_i == CSR_ADDR)) CSR_WMASK) ? -1 : 0; \
+    always @(posedge clknrst_if.clk) begin \
+        rvfi_``CSR_NAME``_csr_rdata = ``CSR_RDATA``; \
+        rvfi_``CSR_NAME``_csr_wdata = ``CSR_WDATA``; \
+        rvfi_``CSR_NAME``_csr_rmask = (rvfi_``CSR_NAME``_csr_rmask_q); \
+        rvfi_``CSR_NAME``_csr_wmask = (rvfi_``CSR_NAME``_csr_wmask_q); \
+    end
+
+   `RVFI_CONNECT( CSR_MSTATUS,          mstatus                     ,  mstatus_extended_read  , mstatus_extended_write , , || mstatus_en)
+   `RVFI_CONNECT( CSR_MIE,              mie                         ,  mie_q                  , mie_d                  , , || mie_en    )
+   `RVFI_CONNECT( CSR_MIP,              mip                         ,  mip                    , csr_wdata_i            , , )
+   `RVFI_CONNECT( CSR_MISA,             misa                        ,  MISA_VALUE             , csr_wdata_i            , ,              )
+   `RVFI_CONNECT( CSR_MTVEC,            mtvec                       ,  mtvec_q                , mtvec_d                , , || mtvec_en  )
+   `RVFI_CONNECT( CSR_MEPC,             mepc                        ,  mepc_q                 , mepc_d                 , , || mepc_en   )
+   `RVFI_CONNECT( CSR_MCAUSE,           mcause                      ,  mcause_q               , mcause_d               , , || mcause_en )
+   `RVFI_CONNECT( CSR_MTVAL,            mtval                       ,  mtval_q                , mtval_d                , , || mtval_en  )
+   `RVFI_CONNECT( CSR_MSTATUSH,         mstatush                    ,  'h0                    , csr_wdata_i            , , )
+   `RVFI_CONNECT( CSR_DCSR,             dcsr                        ,  dcsr_q                 , dcsr_d                 , , || dcsr_en)
+   `RVFI_CONNECT( CSR_DPC,              dpc                         ,  depc_q                 , depc_d                 , , || depc_en)
+   `RVFI_CONNECT( CSR_DSCRATCH0,        dscratch0                   ,  dscratch0_q            , csr_wdata_i            , , || dscratch0_en)
+   `RVFI_CONNECT( CSR_DSCRATCH1,        dscratch1                   ,  dscratch1_q            , csr_wdata_i            , , || dscratch1_en)
+
+`endif
 
   ////////////////
   // Assertions //

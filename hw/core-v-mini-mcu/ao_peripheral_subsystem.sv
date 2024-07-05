@@ -5,6 +5,7 @@
 module ao_peripheral_subsystem
   import obi_pkg::*;
   import reg_pkg::*;
+  import power_manager_pkg::*;
 #(
     //do not touch these parameters
     parameter EXT_DOMAINS_RND = core_v_mini_mcu_pkg::EXTERNAL_DOMAINS == 0 ? 1 : core_v_mini_mcu_pkg::EXTERNAL_DOMAINS,
@@ -36,42 +37,25 @@ module ao_peripheral_subsystem
     input  logic [                        3:0] spi_flash_sd_i,
 
     // OpenTitan SPI interface to external spi slaves
-    output logic                               spi_sck_o,
-    output logic                               spi_sck_en_o,
-    output logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_o,
-    output logic [spi_host_reg_pkg::NumCS-1:0] spi_csb_en_o,
-    output logic [                        3:0] spi_sd_o,
-    output logic [                        3:0] spi_sd_en_o,
-    input  logic [                        3:0] spi_sd_i,
-    output logic                               spi_intr_event_o,
-    output logic                               spi_flash_intr_event_o,
+    input logic spi_rx_valid_i,
+    input logic spi_tx_ready_i,
+
+    output logic spi_flash_intr_event_o,
 
     // POWER MANAGER
     input logic [31:0] intr_i,
     input logic [NEXT_INT_RND-1:0] intr_vector_ext_i,
     input logic core_sleep_i,
-    output logic cpu_subsystem_powergate_switch_no,
-    input logic cpu_subsystem_powergate_switch_ack_ni,
-    output logic cpu_subsystem_powergate_iso_no,
-    output logic cpu_subsystem_rst_no,
-    output logic peripheral_subsystem_powergate_switch_no,
-    input logic peripheral_subsystem_powergate_switch_ack_ni,
-    output logic peripheral_subsystem_powergate_iso_no,
-    output logic peripheral_subsystem_rst_no,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_no,
-    input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_ni,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_no,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_no,
-    input logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_ni,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_rst_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_ram_banks_set_retentive_no,
 
-    // Clock gating signals
-    output logic peripheral_subsystem_clkgate_en_no,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_clkgate_en_no,
-    output logic [EXT_DOMAINS_RND-1:0] external_subsystem_clkgate_en_no,
+    output power_manager_out_t cpu_subsystem_pwr_ctrl_o,
+    output power_manager_out_t peripheral_subsystem_pwr_ctrl_o,
+    output power_manager_out_t memory_subsystem_pwr_ctrl_o[core_v_mini_mcu_pkg::NUM_BANKS-1:0],
+    output power_manager_out_t external_subsystem_pwr_ctrl_o[EXT_DOMAINS_RND-1:0],
+
+    input power_manager_in_t cpu_subsystem_pwr_ctrl_i,
+    input power_manager_in_t peripheral_subsystem_pwr_ctrl_i,
+    input power_manager_in_t memory_subsystem_pwr_ctrl_i[core_v_mini_mcu_pkg::NUM_BANKS-1:0],
+    input power_manager_in_t external_subsystem_pwr_ctrl_i[EXT_DOMAINS_RND-1:0],
 
     // RV TIMER
     output logic rv_timer_0_intr_o,
@@ -144,8 +128,6 @@ module ao_peripheral_subsystem
 
   logic use_spimemio;
 
-  logic spi_rx_valid;
-  logic spi_tx_ready;
   logic spi_flash_rx_valid;
   logic spi_flash_tx_ready;
 
@@ -283,31 +265,6 @@ module ao_peripheral_subsystem
       .spi_flash_tx_ready_o(spi_flash_tx_ready)
   );
 
-  spi_host #(
-      .reg_req_t(reg_pkg::reg_req_t),
-      .reg_rsp_t(reg_pkg::reg_rsp_t)
-  ) spi_host_dma_i (
-      .clk_i,
-      .rst_ni,
-      .reg_req_i(ao_peripheral_slv_req[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
-      .reg_rsp_o(ao_peripheral_slv_rsp[core_v_mini_mcu_pkg::SPI_HOST_IDX]),
-      .alert_rx_i(),
-      .alert_tx_o(),
-      .passthrough_i(spi_device_pkg::PASSTHROUGH_REQ_DEFAULT),
-      .passthrough_o(),
-      .cio_sck_o(spi_sck_o),
-      .cio_sck_en_o(spi_sck_en_o),
-      .cio_csb_o(spi_csb_o),
-      .cio_csb_en_o(spi_csb_en_o),
-      .cio_sd_o(spi_sd_o),
-      .cio_sd_en_o(spi_sd_en_o),
-      .cio_sd_i(spi_sd_i),
-      .rx_valid_o(spi_rx_valid),
-      .tx_ready_o(spi_tx_ready),
-      .intr_error_o(),
-      .intr_spi_event_o(spi_intr_event_o)
-  );
-
   power_manager #(
       .reg_req_t(reg_pkg::reg_req_t),
       .reg_rsp_t(reg_pkg::reg_rsp_t)
@@ -319,26 +276,14 @@ module ao_peripheral_subsystem
       .intr_i,
       .ext_irq_i(intr_vector_ext_i),
       .core_sleep_i,
-      .cpu_subsystem_powergate_switch_no,
-      .cpu_subsystem_powergate_switch_ack_ni,
-      .cpu_subsystem_powergate_iso_no,
-      .cpu_subsystem_rst_no,
-      .peripheral_subsystem_powergate_switch_no,
-      .peripheral_subsystem_powergate_switch_ack_ni,
-      .peripheral_subsystem_powergate_iso_no,
-      .peripheral_subsystem_rst_no,
-      .memory_subsystem_banks_powergate_switch_no,
-      .memory_subsystem_banks_powergate_switch_ack_ni,
-      .memory_subsystem_banks_powergate_iso_no,
-      .memory_subsystem_banks_set_retentive_no,
-      .external_subsystem_powergate_switch_no,
-      .external_subsystem_powergate_switch_ack_ni,
-      .external_subsystem_powergate_iso_no,
-      .external_subsystem_rst_no,
-      .external_ram_banks_set_retentive_no,
-      .peripheral_subsystem_clkgate_en_no,
-      .memory_subsystem_clkgate_en_no,
-      .external_subsystem_clkgate_en_no
+      .cpu_subsystem_pwr_ctrl_o,
+      .peripheral_subsystem_pwr_ctrl_o,
+      .memory_subsystem_pwr_ctrl_o,
+      .external_subsystem_pwr_ctrl_o,
+      .cpu_subsystem_pwr_ctrl_i,
+      .peripheral_subsystem_pwr_ctrl_i,
+      .memory_subsystem_pwr_ctrl_i,
+      .external_subsystem_pwr_ctrl_i
   );
 
   reg_to_tlul #(
@@ -369,8 +314,8 @@ module ao_peripheral_subsystem
 
   parameter DMA_TRIGGER_SLOT_NUM = 7;
   logic [DMA_TRIGGER_SLOT_NUM-1:0] dma_trigger_slots;
-  assign dma_trigger_slots[0] = spi_rx_valid;
-  assign dma_trigger_slots[1] = spi_tx_ready;
+  assign dma_trigger_slots[0] = spi_rx_valid_i;
+  assign dma_trigger_slots[1] = spi_tx_ready_i;
   assign dma_trigger_slots[2] = spi_flash_rx_valid;
   assign dma_trigger_slots[3] = spi_flash_tx_ready;
   assign dma_trigger_slots[4] = i2s_rx_valid_i;

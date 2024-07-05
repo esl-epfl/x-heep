@@ -20,13 +20,13 @@
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
-#elif TARGET_PYNQ_Z2 && PRINTF_IN_FPGA
+#elif PRINTF_IN_FPGA && !TARGET_SIM
     #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
 #else
     #define PRINTF(...)
 #endif
 
-#ifdef TARGET_PYNQ_Z2
+#if defined(TARGET_PYNQ_Z2) || defined(TARGET_ZCU104) || defined(TARGET_NEXYS_A7_100T)
     #define USE_SPI_FLASH
 #endif
 
@@ -147,11 +147,11 @@ int main(int argc, char *argv[]) {
     PRINTF("BSP read test\n", LENGTH);
 
     // Pick the correct spi device based on simulation type
-    spi_host_t spi;
+    spi_host_t* spi;
     #ifndef USE_SPI_FLASH
-    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
+    spi = spi_host1;
     #else
-    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
+    spi = spi_flash;
     #endif
 
     // Define status variable

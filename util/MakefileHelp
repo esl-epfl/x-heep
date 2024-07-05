@@ -1,8 +1,7 @@
 #!/bin/bash
-
-FILE=Makefile
 RULE_COLOR="$(tput setaf 6)"
 SECTION_COLOR="$(tput setaf 3)"
+SSECTION_COLOR="$(tput setaf 5)"
 VARIABLE_COLOR="$(tput setaf 2)"
 VALUE_COLOR="$(tput setaf 1)"
 CLEAR_STYLE="$(tput sgr0)"
@@ -17,13 +16,14 @@ echo ""
 
 TARGET_REGEX="^[a-zA-Z0-9%_\/%-]+:"
 SECTION_REGEX="^##\s*@section\s*(.*)$"
+SSECTION_REGEX="^##\s*@subsection\s*(.*)$"
 DOCBLOCK_REGEX="^##\s*(.*)$"
 PARAM_REGEX="@param\s+([a-zA-Z_]+)(=([^\s]+))?\s*(.*$)?"
 
 COMMENT=""
 PARAMS=""
 PARAMS_DOC=""
-cat $FILE | while read line
+cat $FILE_FOR_HELP | while read line
 do
     # do something with $line here
     if [[ ! -z $line ]]
@@ -31,7 +31,11 @@ do
         if [[ $line =~ $SECTION_REGEX ]]
         then
             SECTION_NAME=$(echo $line | sed -e "s/^##\s*@section\s*\(.*\)$/\1/g")
-            echo "$SECTION_COLOR$SECTION_NAME$CLEAR_STYLE:"
+            echo "$SECTION_COLOR$SECTION_NAME:$CLEAR_STYLE"
+        elif [[ $line =~ $SSECTION_REGEX ]]
+        then
+            SECTION_NAME=$(echo $line | sed -e "s/^##\s*@subsection\s*\(.*\)$/\1/g")
+            echo "$SSECTION_COLOR  $SECTION_NAME:$CLEAR_STYLE"
         elif [[ $line =~ $TARGET_REGEX ]]
         then
             # if there is no comment for this target, we don't display it in the docs to keep private targets hidden

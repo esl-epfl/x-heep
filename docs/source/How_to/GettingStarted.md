@@ -1,6 +1,34 @@
-# get started
+# Get started
 
-## 1. OS requirements
+## Docker setup
+
+A docker image containing all the required software dependancies is available on [github-packages](https://github.com/orgs/esl-epfl/packages/container/package/x-heep-toolchain).
+
+It is only required to install docker and pull the image.
+
+```bash
+docker pull ghcr.io/esl-epfl/x-heep-toolchain:latest
+```
+
+Assuming that X-HEEP has been cloned to `X-HEEP-DIR=\absolute\path\to\x-HEEP\folder`, it is possible to directly run the docker mounting `X-HEEP-DIR` to the path `\workspace\x-heep` in the docker.
+
+```bash
+docker run -it -v ${X-HEEP-DIR}:/workspace/x-heep ghcr.io/esl-epfl/x-heep-toolchain
+```
+
+:warning: Take care to indicate the absolute path to the local clone of X-HEEP, otherwise docker will not be able to properly mount the local folder in the container.
+
+All the command listed in the README can be execute in the docker container, except for:
+
+- Simulation with Questasim and VCS, synthesis with Design Compiler (licenses are required to use these tools, so they are not installed in the container)
+
+- OpenRoad flow is not installed in the container, so it is not possible to run the related make commands
+
+- Synthesis with Vivado could be possible, but currently is untested
+
+## Manual setup
+
+### 1. OS requirements
 
 To use `X-HEEP`, first make sure you have the following apt packages, or install them as:
 
@@ -10,16 +38,14 @@ sudo apt install lcov libelf1 libelf-dev libftdi1-2 libftdi1-dev libncurses5 lib
 
 In general, have a look at the [Install required software](https://opentitan.org/guides/getting_started/index.html) section of the OpenTitan documentation.
 
-It has been tested only on `Ubuntu 20`, and we know it does NOT WORK on `Ubuntu 22`.
-
-## 2. Python
+### 2. Python
 
 
 We rely on either (a) `miniconda`, or (b) `virtual environment` enviroment.
 
 Choose between `2.a` or `2.b` to setup your enviroment.
 
-### 2.a Miniconda
+#### 2.a Miniconda
 
 Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html#linux-installers) python 3.8 version as described in the link,
 and create the Conda enviroment:
@@ -35,7 +61,7 @@ conda activate core-v-mini-mcu
 ```
 
 
-### 2.b Virtual Environment
+#### 2.b Virtual Environment
 
 Install the python virtual environment just as:
 
@@ -49,7 +75,7 @@ You need to do it only the first time, then just activate the environment everyt
 source .venv/bin/activate
 ```
 
-## 3. Install the RISC-V Compiler:
+### 3. Install the RISC-V Compiler:
 
 ```
 git clone --branch 2022.01.17 --recursive https://github.com/riscv/riscv-gnu-toolchain
@@ -75,7 +101,7 @@ cmake -G "Unix Makefiles" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Releas
 cmake --build . --target install
 ```
 
-## 4. Install Verilator:
+### 4. Install Verilator:
 
 ```
 export VERILATOR_VERSION=4.210
@@ -104,18 +130,18 @@ sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
 sudo apt-get install -y gtkwave
 ```
 
-## Files are formatted with Verible
+### Files are formatted with Verible
 
 We use version v0.0-1824-ga3b5bedf
 
-See: [Install Verible](https://opentitan.org/guides/getting_started/index.html#step-6a-install-verible-optional)
+See: [Install Verible](https://opentitan.org/guides/getting_started/index.html#step-7a-install-verible-optional)
 
 To format your RTL code type:
 
 ```
 make verible
 ```
-## Compilation Flow and Package Manager
+### Compilation Flow and Package Manager
 
 We use [FuseSoC](https://github.com/olofk/fusesoc) for all the tools we use.
 

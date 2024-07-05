@@ -10,6 +10,7 @@ Here you can find a list of `X-HEEP` based open-source examples. If you want to 
 
 * [CGRA-X-HEEP](https://github.com/esl-epfl/cgra_x_heep): A CGRA loosely coupled with X-HEEP.
 * [F-HEEP](https://github.com/davidmallasen/F-HEEP): System integrating [fpu_ss](https://github.com/pulp-platform/fpu_ss) into X-HEEP via the eXtension interface and cv32e40x.
+* [KALIPSO](https://github.com/vlsi-lab/ntt_intt_kyber) and [KRONOS](https://github.com/vlsi-lab/keccak_integration/tree/keccak_xheep): Loosely-coupled, post-quantum cryptography accelerators for NTT/INTT and Keccak hash function integrated into X-HEEP.
 
 
 In addition, the `X-HEEP` testbench has been extended with a `DMA`, dummy `PERIPHERALs` (including the `FLASH`), and a CORE-V-XIF compatible co-processor
@@ -304,7 +305,7 @@ To do so, it MUST include the `external.mk` AFTER all your custom rules.
 <details>
     <summary>Example of BASE/Makefile</summary>
 
-```
+```Makefile
 MAKE     = make
 .PHONY: test
 test:
@@ -326,11 +327,68 @@ include $(XHEEP_MAKE)
 * The `app` rule will perform actions before calling `X-HEEP` Makefile's `app` rule. In this case, the project and where the source files are to be extracted from is being specified. The `SOURCE=.` argument will set `X-HEEP`'s own `sw/` folder as the directory from which to fetch source files. This is an example of building inner sources from an external directory.
 * The `verilator-sim` rule will override the `X-HEEP` Makefile's one.
 * Any other target will be passed straight to `X-HEEP`'s Makefile. For example
-```
+```sh
 make mcu-gen CPU=cv32e40x
 ```
 </details>
 
+
+### Excluding files from compilation
+If you have files that need to be excluded from the gcc compilation flow, you can add them to a directory containing the keyword `exclude`, and/or rename the file to include the keyword `exclude`. 
+In the following example, the files marked with ✅ will be compiled, and the ones marked with ❌ will not.  
+
+    BASE
+    ├── sw
+    │   ├── applications
+    │   │   └── your_app
+    │   │       ├── ✅ main.c      
+    │   │       ├── ✅ your_app.c
+    │   │       ├──    your_app.h
+    │   │       ├── ❌ my_kernel_exclude.c
+    │   │       ├──    my_kernel.h
+    │   │       └── exclude_files
+    │   │           └── ❌ kernel_asm.S
+
+
+
+### Makefile help
+If you want that the commands `make` or `make help` show the help for your external Makefile, add the following lines before the first `include` directive or target.
+
+<details>
+    <summary>Addition to print the target's help</summary>
+
+```Makefile
+# HEEP_DIR might already be defined, you may want to move it to the top
+export HEEP_DIR = hw/vendor/esl_epfl_x_heep/
+
+# Get the path of this Makefile to pass to the Makefile help generator
+MKFILE_PATH = $(shell dirname "$(realpath $(firstword $(MAKEFILE_LIST)))")
+export FILE_FOR_HELP = $(MKFILE_PATH)/Makefile
+
+
+## Call the help generator. Calling simply
+## $ make
+## or
+## $ make help
+## Will print the help of this project.
+## With the parameter WHICH you can select to print
+## either the help of X-HEEP (WHICH=xheep)
+## or both this project's and X-HEEP's (WHICH=all)
+help:
+ifndef WHICH
+	${HEEP_DIR}/util/MakefileHelp
+else ifeq ($(filter $(WHICH),xheep x-heep),)
+	${HEEP_DIR}/util/MakefileHelp
+	$(MAKE) -C $(HEEP_DIR) help
+else
+	$(MAKE) -C $(HEEP_DIR) help
+endif
+```
+
+</details>
+
+> Remeber to add double hashes `##` on any comment you want printed on the help.
+> Use `## @section SectionName` to divide the documentation in sections
 
 ### Different use cases
 If you plan to vendorize `X-HEEP` in a different directory than the one proposed, just update in your `BASE/Makefile`:

@@ -118,15 +118,23 @@ SET(INCLUDE_FOLDERS "-I ${RISCV}/${COMPILER_PREFIX}elf/include \
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Preliminary list of source files inside the source path
 
-# Make a list of the source files that need to be linked
-FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
+# Make a list of the .c source files that need to be linked
+FILE(GLOB_RECURSE c_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
+# Make a list of the .s source files that need to be linked
+FILE(GLOB_RECURSE s_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.s)
+# Make a list of the .S source files that need to be linked
+FILE(GLOB_RECURSE S_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.S)
+SET(new_list ${c_files} ${s_files} ${S_files})
+
 SET( c_dir_list "" )
 SET( app_found 0 )
 FOREACH(file_path IN LISTS new_list)
   SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
   if(${file_path} MATCHES "${SOURCE_PATH}device/")
-    SET(add 1)
-  elseif( ${file_path} MATCHES "${SOURCE_PATH}external/" )
+    if(NOT ${file_path} MATCHES "\\.S$")
+      SET(add 1)
+    endif()
+  elseif( (${file_path} MATCHES "${SOURCE_PATH}external/") AND ( NOT  ${file_path} MATCHES "exclude" ) )
     SET(add 1)
   elseif( ${file_path} MATCHES "${SOURCE_PATH}applications/${PROJECT}/.*${MAINFILE}\." ) # look for main.*
     SET(app_found 1)
@@ -134,7 +142,7 @@ FOREACH(file_path IN LISTS new_list)
     SET(add 1)
   endif()
 
-  if( add EQUAL 1 ) # If the file path mathced one of the criterion, add it to the list
+  if( add EQUAL 1 ) # If the file path matched one of the criteria, add it to the list
     SET(c_dir_list ${c_dir_list} "${file_path}\
     ")
     string(REPLACE ";" "" c_dir_list ${c_dir_list})
@@ -148,18 +156,26 @@ ENDFOREACH()
 if( app_found EQUAL 0 )
   SET(SOURCE_PATH ${ROOT_PROJECT})
 
-  # Make a list of the source files that need to be linked
-  FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
+  # Make a list of the .c source files that need to be linked
+  FILE(GLOB_RECURSE c_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
+  # Make a list of the .s source files that need to be linked
+  FILE(GLOB_RECURSE s_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.s)
+  # Make a list of the .S source files that need to be linked
+  FILE(GLOB_RECURSE S_files FOLLOW_SYMLINKS ${SOURCE_PATH}*.S)
+  SET(new_list ${c_files} ${s_files} ${S_files})
+
   SET(c_dir_list "")
   FOREACH(file_path IN LISTS new_list)
     SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
     if(${file_path} MATCHES "${ROOT_PROJECT}device/")
-      SET(add 1)
-    elseif( ( ${file_path} MATCHES "${ROOT_PROJECT}/applications/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES "${ROOT_PROJECT}applications/${PROJECT}/.*${MAINFILE}\." ) )
+      if(NOT ${file_path} MATCHES "\\.S$")
+        SET(add 1)
+      endif()
+    elseif( ( ${file_path} MATCHES "${ROOT_PROJECT}/applications/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES "${ROOT_PROJECT}applications/${PROJECT}/.*${MAINFILE}\." ) AND ( NOT  ${file_path} MATCHES "exclude" ) )
       SET(add 1)
     endif()
 
-    if( add EQUAL 1 ) # If the file path mathced one of the criterion, add it to the list
+    if( add EQUAL 1 ) # If the file path matched one of the criteria, add it to the list
       SET(c_dir_list ${c_dir_list} "${file_path}\
       ")
       string(REPLACE ";" "" c_dir_list ${c_dir_list})
@@ -328,7 +344,6 @@ set(CMAKE_C_FLAGS ${COMPILER_LINKER_FLAGS})
 
 if (${COMPILER} MATCHES "clang")
      set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=riscv32 \
-                                          -mabi=ilp32 \
                                           --gcc-toolchain=${RISCV} \
                                           --sysroot=${RISCV}/${COMPILER_PREFIX}elf \
                                           -static \

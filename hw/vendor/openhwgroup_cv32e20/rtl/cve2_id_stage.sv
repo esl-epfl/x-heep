@@ -755,6 +755,7 @@ module cve2_id_stage #(
   // Signal which instructions to count as retired in minstret, all traps along with ebrk and
   // ecall instructions are not counted.
   assign instr_perf_count_id_o = ~ebrk_insn & ~ecall_insn_dec & ~illegal_insn_dec &
+      ~(dret_insn_dec & ~debug_mode_o) &
       ~illegal_csr_insn_i & ~instr_fetch_err_i;
 
   // An instruction is ready to move to the writeback

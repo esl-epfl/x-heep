@@ -1,11 +1,11 @@
-#  debug
+#  Debug
 
 ## Prerequisite
 
 1. Install the required linux tools:
 
 ```
-sudo apt install pkg-config libftdi1-2 libusb-1.0-4
+sudo apt install pkg-config libftdi1-2
 ```
 
 You need at least gcc>10, so in case you do not have it:
@@ -42,7 +42,7 @@ The remote bitbang server is simplemented in the folder ./hw/vendor/pulp_platfor
 
 ### Verilator (C++ only)
 
-To simulate your application with Questasim using the remote_bitbang server, you need to compile you system adding the `JTAG DPI` functions:
+To simulate your application with Verilator using the remote_bitbang server, you need to compile you system adding the `JTAG DPI` functions:
 
 ```
 make verilator-sim FUSESOC_PARAM="--JTAG_DPI=1"
