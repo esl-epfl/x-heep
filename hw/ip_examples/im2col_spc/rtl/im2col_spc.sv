@@ -1093,7 +1093,7 @@ module im2col_spc
 
   /* Transaction loading process */
   assign dma_if_load_rvalid = aopx2im2col_resp_i.rvalid && dma_if_load;
-  assign hw2reg.status.d = im2col_status;
+  assign hw2reg.status.d = im2col_status == READY;
 
   /* Interrupt management */
   assign hw2reg.spc_ifr.d = im2col_spc_ifr;

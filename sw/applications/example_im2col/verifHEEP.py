@@ -49,9 +49,9 @@ pad_right_max = 2
 stride_d1_max = 2
 stride_d2_max = 2
 
-ver_script_dir = "/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/applications/example_im2col/verification_script.py"
+ver_script_dir = "/workspace/x-heep/sw/applications/example_im2col/verification_script.py"
 
-imcol_lib_dir = "/home/ubuntu/Desktop/Xheep/Source/x-heep/sw/applications/example_im2col/im2col_lib.h"
+imcol_lib_dir = "/workspace/x-heep/sw/applications/example_im2col/im2col_lib.h"
 
 verification_script_com = "python verification_script.py"
 
@@ -128,8 +128,9 @@ def modify_parameters(file_path, modifications, patterns):
         file.write(content)
 
 cpu_done = 1
+iteration = 0
 
-for i in range(4, num_channels_dma):
+for i in range(1, num_channels_dma):
     print("Number of channels used by SPC", i)
     im2col_cpu = []
     im2col_dma_2d_C = []
@@ -173,8 +174,11 @@ for i in range(4, num_channels_dma):
 
 
                                                     print("_______________________\n\n")
-                                                    progress = (u + t*stride_d1_max + s*stride_d2_max*stride_d1_max + r*pad_right_max*stride_d2_max*stride_d1_max + q*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max + p*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max + o*pad_top_max*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max + n*ker_w_max*pad_top_max*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max + m*ker_h_max*ker_w_max*pad_top_max*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max + l*im_w_max*ker_h_max*ker_w_max*pad_top_max*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max + k*im_h_max*im_w_max*ker_h_max*ker_w_max*pad_top_max*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max + j*channels_max*im_h_max*im_w_max*ker_h_max*ker_w_max*pad_top_max*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max + i*batch_max*channels_max*im_h_max*im_w_max*ker_h_max*ker_w_max*pad_top_max*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max)/(batch_max*channels_max*im_h_max*im_w_max*ker_h_max*ker_w_max*pad_top_max*pad_bottom_max*pad_left_max*pad_right_max*stride_d2_max*stride_d1_max*num_channels_dma) * 100 
-                                                    print("", progress, "%")
+                                                    iteration += 1
+                                                    progress = (iteration)/((stride_d2_max - 1) * (stride_d1_max - 1) * (pad_right_max - 1) * (pad_left_max - 1) * (pad_bottom_max - 1) * (pad_top_max - 1) * (ker_w_max - 1) * (ker_h_max - 1) * (im_w_max - 9) * (im_h_max - 9) * (channels_max - 1) * (batch_max - 1) * (num_channels_dma - 4)) * 100
+                                                    
+                                                    print("Progress: {:.2f}%".format(progress))
+
                                                     print("_______________________\n")
                                                     
                                                     ver_modifications = {
@@ -220,7 +224,7 @@ for i in range(4, num_channels_dma):
                                                     # Array to store the cycles for each test
                                                     cycles = []
 
-                                                    file_path = "/home/ubuntu/Desktop/Xheep/Source/x-heep/build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator/uart0.log"
+                                                    file_path = "/workspace/x-heep/build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator/uart0.log"
 
                                                     # Filter and extract the data
                                                     test_number = None
@@ -248,9 +252,11 @@ for i in range(4, num_channels_dma):
                                                             im2col_dma_2d_C.append(string)
                                                         elif int(test) == 3:
                                                             im2col_spc.append(string)
-    im2col_cpu_array.append(im2col_cpu)
-    im2col_dma_2d_C_array.append(im2col_dma_2d_C)
-    im2col_spc_array.append(im2col_spc)
+    if (cpu_done):
+        im2col_cpu_array.append(im2col_cpu)
+        im2col_dma_2d_C_array.append(im2col_dma_2d_C)
+        im2col_spc_array.append(im2col_spc)
+        print(im2col_cpu)
 
     cpu_done = 1
 
@@ -270,36 +276,4 @@ with open('im2col_data.txt', 'w') as file:
         file.write(f"{value}\n")
     file.write("\n")
 
-# Elaborate the data
-
-parsed_1ch_CPU = parse_data(im2col_cpu_array[0])
-parsed_1ch_DMA = parse_data(im2col_dma_2d_C_array[0])
-parsed_1ch_spc = parse_data(im2col_spc_array[0])
-parsed_2ch_spc = parse_data(im2col_spc_array[1])
-parsed_3ch_spc = parse_data(im2col_spc_array[2])
-
-add_loop_size(parsed_1ch_CPU)
-add_loop_size(parsed_1ch_DMA)
-add_loop_size(parsed_1ch_spc)
-add_loop_size(parsed_2ch_spc)
-add_loop_size(parsed_3ch_spc)
-
-df_1ch_CPU = pd.DataFrame(parsed_1ch_CPU)
-df_1ch_DMA = pd.DataFrame(parsed_1ch_DMA)
-df_1ch_spc = pd.DataFrame(parsed_1ch_spc)
-df_2ch_spc = pd.DataFrame(parsed_2ch_spc)
-df_3ch_spc = pd.DataFrame(parsed_3ch_spc)
-
-# Plot the data
-plt.figure(figsize=(10, 6))
-plt.scatter(df_1ch_CPU['loop_size'], df_1ch_CPU['cycles'], color='blue')
-plt.scatter(df_1ch_DMA['loop_size'], df_1ch_DMA['cycles'], color='red')
-plt.scatter(df_1ch_spc['loop_size'], df_1ch_spc['cycles'], color='green')
-plt.scatter(df_2ch_spc['loop_size'], df_2ch_spc['cycles'], color='orange')
-plt.scatter(df_3ch_spc['loop_size'], df_3ch_spc['cycles'], color='purple')
-plt.title('Loop Size vs Cycles')
-plt.xlabel('Loop Size')
-plt.ylabel('Cycles')
-plt.grid(True)
-plt.show()
-
+print("Data acquired!\n")

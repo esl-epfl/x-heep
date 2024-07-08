@@ -23,6 +23,11 @@
 #include "rv_plic.h"
 #include "csr.h"
 
+#include "mmio.h"
+#include "handler.h"
+#include "hart.h"
+#include "fast_intr_ctrl.h"
+
 /* 
     Choose between several HW configurations:
     - 0: Only CPU
@@ -104,6 +109,8 @@
 
 int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles);
 //int im2col_nhwc_int32(uint8_t test_id, unsigned int *cycles);
+
+__attribute__((weak, optimize("00"))) void handler_irq_im2col_spc(void);
 
 int get_index(int dim1, int dim2, int dim3, int index0, int index1, int index2, int index3);
                 

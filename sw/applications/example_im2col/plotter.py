@@ -79,7 +79,7 @@ df_3ch_spc = pd.DataFrame(parsed_3ch_spc)
 df_4ch_spc = pd.DataFrame(parsed_4ch_spc)
 
 # Plot the data
-plt.figure(0)
+plt.figure(0, figsize=(12, 8))
 
 # Scatter plots
 plt.scatter(df_1ch_CPU['loop_size'], df_1ch_CPU['cycles'], color='blue', label='1ch CPU', alpha=1)
@@ -87,6 +87,7 @@ plt.scatter(df_1ch_DMA['loop_size'], df_1ch_DMA['cycles'], color='red', label='1
 plt.scatter(df_1ch_spc['loop_size'], df_1ch_spc['cycles'], color='green', label='1ch SPC', alpha=1)
 plt.scatter(df_2ch_spc['loop_size'], df_2ch_spc['cycles'], color='orange', label='2ch SPC', alpha=1)
 plt.scatter(df_3ch_spc['loop_size'], df_3ch_spc['cycles'], color='purple', label='3ch SPC', alpha=1)
+plt.scatter(df_4ch_spc['loop_size'], df_4ch_spc['cycles'], color='cyan', label='4ch SPC', alpha=1)
 
 # Trendline plots
 p_cpu = np.polyfit(df_1ch_CPU['loop_size'],df_1ch_CPU['cycles'],  1)
@@ -112,7 +113,7 @@ plt.plot(df_1ch_DMA['loop_size'], trendline_dma, color='red', linestyle='-', alp
 plt.plot(df_1ch_spc['loop_size'], trendline_spc, color='green', linestyle='-', alpha=0.6)
 plt.plot(df_2ch_spc['loop_size'], trendline_spc_2ch, color='orange', linestyle='-', alpha=0.6)
 plt.plot(df_3ch_spc['loop_size'], trendline_spc_3ch, color='purple', linestyle='-', alpha=0.6)
-plt.plot(df_4ch_spc['loop_size'], trendline_spc_4ch, color='black', linestyle='-', alpha=0.6)
+plt.plot(df_4ch_spc['loop_size'], trendline_spc_4ch, color='cyan', linestyle='-', alpha=0.6)
 
 
 # Title and labels
@@ -123,6 +124,9 @@ plt.grid(True)
 
 # Legend
 plt.legend()
+
+# Save plot
+plt.savefig('/workspace/x-heep/plot.png')  
 
 # Show plot
 plt.show()

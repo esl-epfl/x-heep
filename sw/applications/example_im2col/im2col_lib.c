@@ -17,6 +17,7 @@
 #include "im2col_lib.h"
 
 int output_data[OH_NCHW*OW_NCHW];
+char im2col_done = 0;
 
 /* Function used to simplify register operations */
 static inline volatile void write_register( uint32_t  p_val,
@@ -35,6 +36,14 @@ static inline volatile void write_register( uint32_t  p_val,
     value           |= (p_val & p_mask) << p_sel;
     *addr = value;
 };
+
+void handler_irq_im2col_spc( void )
+{
+  im2col_done = 1;
+  * (volatile uint32_t * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_SPC_IFR_REG_OFFSET);
+  PRINTF("Im2col SPC done\n\r");
+  return;
+}
 
 int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
 {
@@ -582,6 +591,12 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
     {
         uint32_t* input_image_ptr = &input_image_nchw[0];
         uint32_t* output_data_ptr = &output_data[0];
+
+        if(plic_Init()) {return EXIT_FAILURE;};
+        if(plic_irq_set_priority(EXT_INTR_2, 1)) {return EXIT_FAILURE;};
+        if(plic_irq_set_enabled(EXT_INTR_2, kPlicToggleEnabled)) {return EXIT_FAILURE;};
+        
+        plic_assign_external_irq_handler(EXT_INTR_2, &handler_irq_im2col_spc);
         
         #if TIMING
         CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
@@ -743,8 +758,14 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                         IM2COL_SPC_NUM_CH_NUM_OFFSET,
                         IM2COL_SPC_BASE_ADDR );
         
-        while ( * (volatile uint32_t * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_SPC_IFR_REG_OFFSET) == 0)
+        // while ( * (volatile uint32_t * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_SPC_IFR_REG_OFFSET) == 0)
+        // {
+        //     /* Wait for the SPC to finish */
+        // }
+
+        while(im2col_done == 0)
         {
+            printf("Waiting for the SPC to finish\n");
             /* Wait for the SPC to finish */
         }
 

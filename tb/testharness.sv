@@ -89,6 +89,9 @@ module testharness #(
   logic iffifo_in_ready, iffifo_out_valid;
   logic iffifo_int_o;
 
+  // Im2col SPC interrupt signal
+  logic im2col_spc_done_int_o;
+
   // External xbar master/slave and peripheral ports
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_req;
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] heep_slave_req;
@@ -149,6 +152,7 @@ module testharness #(
     // Re-assign the interrupt lines used here
     intr_vector_ext[0] = memcopy_intr;
     intr_vector_ext[1] = iffifo_int_o;
+    intr_vector_ext[2] = im2col_spc_done_int_o;
   end
 
   //log parameters
@@ -495,6 +499,8 @@ module testharness #(
           .acc_write_ch0_resp_i(ext_master_resp[testharness_pkg::EXT_MASTER3_IDX])
       );
 
+
+      // Im2col SPC peripheral
       im2col_spc im2col_spc_i (
           .clk_i,
           .rst_ni,
@@ -506,7 +512,7 @@ module testharness #(
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::IM2COL_SPC_IDX]),
 
           .dma_done_i(dma_busy),
-          .im2col_spc_done_int_o()
+          .im2col_spc_done_int_o(im2col_spc_done_int_o)
       );
 
       // AMS external peripheral
@@ -654,6 +660,7 @@ module testharness #(
       assign memcopy_intr = '0;
       assign iffifo_int_o = '0;
       assign periph_slave_rsp = '0;
+      assign im2col_spc_done_int_o = '0;
 
     end
   endgenerate
