@@ -56,7 +56,7 @@ module dma_subsystem #(
    * To enable this functionality, decomment EN_SET_FIFO_CH_SIZE and set the desired sizes.
    */
 
-  `define EN_SET_FIFO_CH_SIZE;
+  //`define EN_SET_FIFO_CH_SIZE;
 
   `ifdef EN_SET_FIFO_CH_SIZE 
 
