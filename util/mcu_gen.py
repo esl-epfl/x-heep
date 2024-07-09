@@ -520,7 +520,7 @@ def main():
 
     # Number of masters for each slave of the DMA NtoM xbar
     num_dma_xbar_channels_per_master_port = ao_peripherals["dma"]["num_channels_per_master_port"]
-    if int(num_dma_xbar_channels_per_master_port, 16) >= int(dma_ch_count, 16) or int(num_dma_xbar_channels_per_master_port, 16) == 0:
+    if (int(num_dma_xbar_channels_per_master_port, 16) >= int(dma_ch_count, 16) and int(dma_ch_count, 16) != 1) or int(num_dma_xbar_channels_per_master_port, 16) == 0:
         exit("Number of DMA channels per system bus master ports has to be between 0 and " + str(dma_ch_count) + ", excluded")
 
     if (int(num_dma_master_ports) > 1):
