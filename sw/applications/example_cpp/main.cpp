@@ -44,7 +44,7 @@ int main()
     myObject.printValue(); // Print the updated value
 
     int value = myObject.getValue(); // Get the value
-    printf("Retrieved Value: %d\n\r" ,value); // Print the retrieved value
+    PRINTF("Retrieved Value: %d\n\r" ,value); // Print the retrieved value
 
     return value == 20*5 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

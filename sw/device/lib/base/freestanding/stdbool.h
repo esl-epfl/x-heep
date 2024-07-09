@@ -13,7 +13,7 @@
  * S4p6. This header is specified in detail in S7.18 of the same.
  */
 #ifndef __cplusplus
-#define _Bool int
+#define _Bool char
 
 #define bool _Bool
 #define true 1
