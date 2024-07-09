@@ -43,7 +43,15 @@ void handler_irq_im2col_spc( void )
 
   /* Read the IFR to lower the interrupt flag */
   int ifr_status = * (volatile uint32_t * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_SPC_IFR_REG_OFFSET);
-  return;
+}
+
+/* Used to wait for the SPC interrupt handler to end */
+__attribute__ ((optimize("00"))) void waiting_for_spc_irq( void )
+{
+  while (im2col_done == 0)
+  {
+    asm volatile ("nop");
+  }
 }
 
 int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
@@ -778,10 +786,7 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                         IM2COL_SPC_NUM_CH_NUM_OFFSET,
                         IM2COL_SPC_BASE_ADDR );
 
-        while(im2col_done == 0)
-        {
-            /* Wait for the SPC to finish */
-        }
+        waiting_for_spc_irq();
 
         #if TIMING  
         CSR_READ(CSR_REG_MCYCLE, &cycles_B);

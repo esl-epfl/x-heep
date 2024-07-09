@@ -1,7 +1,5 @@
 import subprocess
 import re
-import matplotlib.pyplot as plt
-import pandas as pd
 
 def parse_data(data):
     results = []
@@ -49,9 +47,9 @@ pad_right_max = 2
 stride_d1_max = 2
 stride_d2_max = 2
 
-ver_script_dir = "/workspace/x-heep/sw/applications/example_im2col/verification_script.py"
+ver_script_dir = "verification_script.py"
 
-imcol_lib_dir = "/workspace/x-heep/sw/applications/example_im2col/im2col_lib.h"
+imcol_lib_dir = "im2col_lib.h"
 
 verification_script_com = "python verification_script.py"
 
@@ -74,6 +72,7 @@ ver_patterns = {
 
 im2col_lib_pattern = re.compile(r'#define SPC_CH_MASK 0b\d+')
 im2col_lib_pattern_cpu_done = re.compile(r'#define START_ID \d+')
+im2col_lib_pattern_test = re.compile(r'#define TEST_EN \d+')
 
 im2col_cpu_array = []
 im2col_dma_2d_C_array = []
@@ -127,11 +126,13 @@ def modify_parameters(file_path, modifications, patterns):
     with open(file_path, 'w') as file:
         file.write(content)
 
-cpu_done = 1
+cpu_done = 0
 iteration = 0
 
 for i in range(1, num_channels_dma):
-    print("Number of channels used by SPC", i)
+    print("_______________________\n\r")
+    print("Number of channels used by SPC\n\r", i)
+    print("_______________________\n\n\r")
     im2col_cpu = []
     im2col_dma_2d_C = []
     im2col_spc = []
@@ -171,15 +172,6 @@ for i in range(1, num_channels_dma):
                                                     print("Pad right: ", s)
                                                     print("Stride d1: ", t)
                                                     print("Stride d2: ", u)
-
-
-                                                    print("_______________________\n\n")
-                                                    iteration += 1
-                                                    progress = (iteration)/((stride_d2_max - 1) * (stride_d1_max - 1) * (pad_right_max - 1) * (pad_left_max - 1) * (pad_bottom_max - 1) * (pad_top_max - 1) * (ker_w_max - 1) * (ker_h_max - 1) * (im_w_max - 9) * (im_h_max - 9) * (channels_max - 1) * (batch_max - 1) * (num_channels_dma - 4)) * 100
-                                                    
-                                                    print("Progress: {:.2f}%".format(progress))
-
-                                                    print("_______________________\n")
                                                     
                                                     ver_modifications = {
                                                         'image_height': l,
@@ -201,12 +193,26 @@ for i in range(1, num_channels_dma):
                                                         content = file.read()
                                                     
                                                     mask = generate_mask(num_masters, num_slaves, max_masters_per_slave, i)
+                                                    print("Mask: ", mask)
+                                                    print("CPU done: ", cpu_done)
+                                                    
+                                                    print("_______________________\n\n")
+                                                    iteration += 1
+                                                    progress = (iteration)/((stride_d2_max - 1) * (stride_d1_max - 1) * (pad_right_max - 1) * (pad_left_max - 1) * (pad_bottom_max - 1) * (pad_top_max - 1) * (ker_w_max - 1) * (ker_h_max - 1) * (im_w_max - 9) * (im_h_max - 9) * (channels_max - 1) * (batch_max - 1) * (num_channels_dma - 4)) * 100
+                                                    
+                                                    print("Progress: {:.2f}%".format(progress))
+
+                                                    print("_______________________\n")
 
                                                     # Replace the matched pattern with the new value
                                                     new_content = im2col_lib_pattern.sub(f'#define SPC_CH_MASK 0b{mask}', content)
+                                                    
+                                                    new_content = im2col_lib_pattern_test.sub(f'#define TEST_EN 1', new_content)
+                                                    
                                                     if cpu_done == 1:
                                                         new_content = im2col_lib_pattern_cpu_done.sub(f'#define START_ID 3', new_content)
-                                                    
+                                                    else:
+                                                        new_content = im2col_lib_pattern_cpu_done.sub(f'#define START_ID 0', new_content)
                                                     # Write the modified content back to the file
                                                     with open(imcol_lib_dir, 'w') as file:
                                                         file.write(new_content)
@@ -215,8 +221,8 @@ for i in range(1, num_channels_dma):
                                                     subprocess.run(verification_script_com, shell=True, text=True)
                                                     result = subprocess.run(app_compile_run_com, shell=True, capture_output=True, text=True)
                                                     
-                                                    pattern = re.compile(r'im2col NCHW test (\d+) executed')
-                                                    pattern_2 = re.compile(r'Total number of cycles: \[(\d+)\]')
+                                                    pattern = re.compile(r'ID:(\d+)')
+                                                    pattern_2 = re.compile(r'c:(\d+)')
                                                     err_pattern = re.compile(r'ERROR')
                                                     err_pattern_small = re.compile(r'error')
                                                     #print(result.stdout)
@@ -224,7 +230,7 @@ for i in range(1, num_channels_dma):
                                                     # Array to store the cycles for each test
                                                     cycles = []
 
-                                                    file_path = "/workspace/x-heep/build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator/uart0.log"
+                                                    file_path = "../../../build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator/uart0.log"
 
                                                     # Filter and extract the data
                                                     test_number = None
@@ -242,7 +248,7 @@ for i in range(1, num_channels_dma):
                                                         elif err_match or err_match_small:
                                                             print("ERROR FOUND")
                                                             break
-                                                    
+                                                        
                                                     for test, cycle in cycles:
                                                         string = f"CH_SPC: {i}, B: {j}, C: {k}, H: {l}, W: {m}, FH: {n}, FW: {o}, PT: {p}, PB: {q}, PL: {r}, PR: {s}, S1: {t}, S2: {u}, cycles: {cycle}"
                                                         
@@ -257,7 +263,6 @@ for i in range(1, num_channels_dma):
         im2col_dma_2d_C_array.append(im2col_dma_2d_C)
         im2col_spc_array.append(im2col_spc)
         print(im2col_cpu)
-
     cpu_done = 1
 
 with open('im2col_data.txt', 'w') as file:
