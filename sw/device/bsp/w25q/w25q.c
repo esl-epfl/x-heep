@@ -446,7 +446,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
      * SET UP DMA
     */
     // SPI and SPI_FLASH are the same IP so same register map
-    uint32_t *fifo_ptr_rx = (uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET;
+    uint32_t *fifo_ptr_rx = (uint32_t *)((uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET);
 
     // Init DMA, the integrated DMA is used (peri == NULL)
     dma_init(NULL);
@@ -787,7 +787,7 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
      * SET UP DMA
     */
     // SPI and SPI_FLASH are the same IP so same register map
-    uint32_t *fifo_ptr_rx = (uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET;
+    uint32_t *fifo_ptr_rx = (uint32_t *)((uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET);
 
     // Init DMA, the integrated DMA is used (peri == NULL)
     dma_init(NULL);
@@ -1353,7 +1353,7 @@ static w25q_error_codes_t page_write(uint32_t addr, uint8_t *data, uint32_t leng
 
 static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
     // SPI and SPI_FLASH are the same IP so same register map
-    uint32_t *fifo_ptr_tx = (uintptr_t)spi + SPI_HOST_TXDATA_REG_OFFSET;
+    uint32_t *fifo_ptr_tx = (uint32_t *)((uintptr_t)spi + SPI_HOST_TXDATA_REG_OFFSET);
 
     // Init DMA, the integrated DMA is used (peri == NULL)
     dma_init(NULL);
