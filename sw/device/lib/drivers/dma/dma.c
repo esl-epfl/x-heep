@@ -386,6 +386,7 @@ void dma_init( dma *dma_peri )
         /* Clear all values in the DMA registers. */
         dma_subsys_per[i].peri->SRC_PTR        = 0;
         dma_subsys_per[i].peri->DST_PTR        = 0;
+        dma_subsys_per[i].peri->ADDR_PTR       = 0;
         dma_subsys_per[i].peri->SIZE_D1        = 0;
         dma_subsys_per[i].peri->SIZE_D2        = 0;
         dma_subsys_per[i].peri->SRC_PTR_INC_D1 = 0;
@@ -404,7 +405,6 @@ void dma_init( dma *dma_peri )
         dma_subsys_per[i].peri->PAD_BOTTOM     = 0;
         dma_subsys_per[i].peri->PAD_LEFT       = 0;
         dma_subsys_per[i].peri->PAD_RIGHT      = 0;
-        dma_subsys_per[i].peri->DIM_INV        = 0;
         dma_subsys_per[i].peri->INTERRUPT_EN   = 0;
     }
 }
