@@ -40,8 +40,9 @@ static inline volatile void write_register( uint32_t  p_val,
 void handler_irq_im2col_spc( void )
 {
   im2col_done = 1;
-  * (volatile uint32_t * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_SPC_IFR_REG_OFFSET);
-  PRINTF("Im2col SPC done\n\r");
+
+  /* Read the IFR to lower the interrupt flag */
+  int ifr_status = * (volatile uint32_t * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_SPC_IFR_REG_OFFSET);
   return;
 }
 
@@ -592,11 +593,30 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
         uint32_t* input_image_ptr = &input_image_nchw[0];
         uint32_t* output_data_ptr = &output_data[0];
 
-        if(plic_Init()) {return EXIT_FAILURE;};
-        if(plic_irq_set_priority(EXT_INTR_2, 1)) {return EXIT_FAILURE;};
-        if(plic_irq_set_enabled(EXT_INTR_2, kPlicToggleEnabled)) {return EXIT_FAILURE;};
+        /* Initializing PLIC */
+        if(plic_Init()) 
+        {
+            return EXIT_FAILURE;
+        };
+
+        if(plic_irq_set_priority(EXT_INTR_2, 1)) 
+        {
+            return EXIT_FAILURE;
+        };
+
+        if(plic_irq_set_enabled(EXT_INTR_2, kPlicToggleEnabled)) 
+        {
+            return EXIT_FAILURE;
+        };
         
         plic_assign_external_irq_handler(EXT_INTR_2, &handler_irq_im2col_spc);
+        
+        /* Enable global interrupt for machine-level interrupts */
+        CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
+
+        /* Set mie.MEIE bit to one to enable machine-level external interrupts */
+        const uint32_t mask = 1 << 11;
+        CSR_SET_BITS(CSR_REG_MIE, mask);
         
         #if TIMING
         CSR_SET_BITS(CSR_REG_MCOUNTINHIBIT, 0x1);
@@ -757,15 +777,9 @@ int im2col_nchw_int32(uint8_t test_id, unsigned int *cycles)
                         IM2COL_SPC_NUM_CH_NUM_MASK,
                         IM2COL_SPC_NUM_CH_NUM_OFFSET,
                         IM2COL_SPC_BASE_ADDR );
-        
-        // while ( * (volatile uint32_t * )(IM2COL_SPC_BASE_ADDR + IM2COL_SPC_SPC_IFR_REG_OFFSET) == 0)
-        // {
-        //     /* Wait for the SPC to finish */
-        // }
 
         while(im2col_done == 0)
         {
-            printf("Waiting for the SPC to finish\n");
             /* Wait for the SPC to finish */
         }
 

@@ -1039,10 +1039,10 @@ module im2col_spc
     if (!rst_ni) begin
       im2col_param_done <= 1'b0;
     end else begin
-      if (ch_col_counter == (reg2hw.ch_col.q - 1) && batch_counter == reg2hw.batch.q) begin
-        im2col_param_done <= 1'b1;
-      end else if (im2col_start == 1'b1) begin
+      if (im2col_done == 1'b1) begin
         im2col_param_done <= 1'b0;
+      end else if (ch_col_counter == (reg2hw.ch_col.q - 1) && batch_counter == reg2hw.batch.q) begin
+        im2col_param_done <= 1'b1;
       end
     end
   end
@@ -1052,10 +1052,10 @@ module im2col_spc
     if (!rst_ni) begin
       im2col_fsms_done <= 1'b0;
     end else begin
-      if (dma_if_cu_load_d == DONE && im2col_param_done == 1'b1 && fifo_usage == 1) begin
-        im2col_fsms_done <= 1'b1;
-      end else if (im2col_start == 1'b1) begin
+      if (im2col_done == 1'b1) begin
         im2col_fsms_done <= 1'b0;
+      end else if (dma_if_cu_load_d == DONE && im2col_param_done == 1'b1 && fifo_usage == 1) begin
+        im2col_fsms_done <= 1'b1;
       end
     end
   end
