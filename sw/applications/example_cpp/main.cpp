@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 ETH Zurich
+ * Copyright 2024 EPFL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Author: Robert Balas <balasr@iis.ee.ethz.ch>
+ * Author: Juan Sapriza <juan.sapriza@epfl.ch>
  */
 
 
