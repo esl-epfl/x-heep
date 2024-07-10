@@ -348,7 +348,7 @@ if [ $DEBUG -eq 0 ];	 then
 	echo -e "${WHITE}Building simulation model $SIM_MODEL_CMD ${RESET}"
 	echo -e ${LONG_W}
 
-	if ["$OPT" == "1" ] && ["$SIMULATOR" == "questasim" ] then
+	if ["$OPT" == "1" ] && ["$SIMULATOR" == "questasim" ]; then
 		# Perform optimization
 		SIM_MODEL_CMD=${SIM_MODEL_CMD}"-opt"
 		echo -e ${LONG_W}
