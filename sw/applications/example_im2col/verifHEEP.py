@@ -26,33 +26,33 @@ num_slaves = 3
 max_masters_per_slave = 2
 
 num_channels_dma = 5
-num_channels_dma_min = 4
+num_channels_dma_min = 1
 
-batch_max = 4
+batch_max = 6
 batch_min = 1
 
 channels_max = 4
 channels_min = 1
 
-im_h_max = 11
+im_h_max = 15
 im_h_min = 10
 
 im_w_max = 11
 im_w_min = 10
 
-ker_h_max = 3
+ker_h_max = 4
 ker_h_min = 2
 
-ker_w_max = 3
+ker_w_max = 4
 ker_w_min = 2
 
-pad_top_max = 2
+pad_top_max = 3
 pad_top_min = 1
-pad_bottom_max = 2
+pad_bottom_max = 3
 pad_bottom_min = 1
-pad_left_max = 2
+pad_left_max = 3
 pad_left_min = 1
-pad_right_max = 2
+pad_right_max = 3
 pad_right_min = 1
 
 stride_d1_max = 2
