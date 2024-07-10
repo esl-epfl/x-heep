@@ -346,7 +346,8 @@ module core_v_mini_mcu
     input  logic [   NumLanes-1:0] ddr_i,
     input  logic [NumChannels-1:0] ddr_rcv_clk_i,
     output logic [   NumLanes-1:0] ddr_o,
-    output logic [NumChannels-1:0] ddr_rcv_clk_o
+    output logic [NumChannels-1:0] ddr_rcv_clk_o,
+    input  logic                   fast_clock
 
     //  output obi_req_t obi_req_obi2axi,
     //  input obi_resp_t obi_resp_obi2axi
@@ -953,15 +954,17 @@ module core_v_mini_mcu
       //.NumLanes(1)
   ) serial_link_occamy_wrapper_i (
       .clk_i     (clk_i),
+      .fast_clock,
       .rst_ni    (rst_ni),
       .clk_reg_i (clk_i),   //intended for clock gating purposes
       .rst_reg_ni(rst_ni),  //intended for SW reset purposes
 
       .testmode_i('0),
 
-      .axi_in_req_i(fast_sl_req_i),
-      .axi_in_rsp_o(fast_sl_rsp_i),
-
+      //.axi_in_req_i(fast_sl_req_i),
+      //.axi_in_rsp_o(fast_sl_rsp_i),
+      .axi_in_req_i(axi_out_req_o),
+      .axi_in_rsp_o(axi_out_rsp_i),
 
       .axi_out_req_o(axi_in_req_i),  //axi_in_req_i
       .axi_out_rsp_i(axi_in_rsp_o),

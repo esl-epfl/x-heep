@@ -30,7 +30,7 @@ module axi_cdc #(
   parameter type axi_req_t  = logic, // encapsulates request channels
   parameter type axi_resp_t = logic, // encapsulates request channels
   /// Depth of the FIFO crossing the clock domain, given as 2**LOG_DEPTH.
-  parameter int unsigned  LogDepth  = 1
+  parameter int unsigned  LogDepth  = 2
 ) (
   // slave side - clocked by `src_clk_i`
   input  logic      src_clk_i,
@@ -125,11 +125,11 @@ endmodule
 // interface wrapper
 module axi_cdc_intf #(
   parameter int unsigned AXI_ID_WIDTH   = 0,
-  parameter int unsigned AXI_ADDR_WIDTH = 0,
-  parameter int unsigned AXI_DATA_WIDTH = 0,
+  parameter int unsigned AXI_ADDR_WIDTH = 32,
+  parameter int unsigned AXI_DATA_WIDTH = 32,
   parameter int unsigned AXI_USER_WIDTH = 0,
   /// Depth of the FIFO crossing the clock domain, given as 2**LOG_DEPTH.
-  parameter int unsigned LOG_DEPTH = 1
+  parameter int unsigned LOG_DEPTH = 2
 ) (
    // slave side - clocked by `src_clk_i`
   input  logic      src_clk_i,
@@ -186,10 +186,10 @@ module axi_cdc_intf #(
 endmodule
 
 module axi_lite_cdc_intf #(
-  parameter int unsigned AXI_ADDR_WIDTH = 0,
-  parameter int unsigned AXI_DATA_WIDTH = 0,
+  parameter int unsigned AXI_ADDR_WIDTH = 32,
+  parameter int unsigned AXI_DATA_WIDTH = 32,
   /// Depth of the FIFO crossing the clock domain, given as 2**LOG_DEPTH.
-  parameter int unsigned LOG_DEPTH = 1
+  parameter int unsigned LOG_DEPTH = 2
 ) (
    // slave side - clocked by `src_clk_i`
   input  logic      src_clk_i,

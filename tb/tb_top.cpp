@@ -13,10 +13,18 @@
 #include "XHEEP_CmdLineOptions.hh"
 
 vluint64_t sim_time = 0;
+vluint64_t DIVISION_FACTOR = 0; 
 
 void runCycles(unsigned int ncycles, Vtestharness *dut, VerilatedFstC *m_trace){
+  vluint64_t counter_slower_clock = 0;
   for(unsigned int i = 0; i < ncycles; i++) {
-    dut->clk_i ^= 1;
+    if (counter_slower_clock == DIVISION_FACTOR){
+          counter_slower_clock =0;
+          dut->clk_i ^= 1;
+    } else {
+      counter_slower_clock ++;
+    }
+    dut->fast_clock ^= 1;
     dut->eval();
     m_trace->dump(sim_time);
     sim_time++;
@@ -70,6 +78,7 @@ int main (int argc, char * argv[])
   }
 
   dut->clk_i                = 0;
+  dut->fast_clock           = 0;
   dut->rst_ni               = 1;
   dut->jtag_tck_i           = 0;
   dut->jtag_tms_i           = 0;
@@ -96,10 +105,10 @@ int main (int argc, char * argv[])
   //dont need to exit from boot loop if using OpenOCD or Boot from Flash
   if(use_openocd==false || boot_sel == 1) {
     dut->tb_loadHEX(firmware.c_str());
-    runCycles(1, dut, m_trace);
+    runCycles(5, dut, m_trace);
     dut->tb_set_exit_loop();
     std::cout<<"Set Exit Loop"<< std::endl;
-    runCycles(1, dut, m_trace);
+    runCycles(5, dut, m_trace);
     std::cout<<"Memory Loaded"<< std::endl;
   } else {
     std::cout<<"Waiting for GDB"<< std::endl;

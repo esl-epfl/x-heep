@@ -1,4 +1,6 @@
-module clock_divider_simple (
+module clock_divider_simple #(
+    parameter int unsigned DIVISION_FACTOR = 1
+) (
     input  logic clk,
     input  logic rst_n,
     output logic clk_out

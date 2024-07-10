@@ -26,14 +26,15 @@ module x_heep_system
     % if peripheral[0] in ("obi2axi"):
     % if peripheral[1]['is_included'] in ("yes"):
 
-    //input  logic [NumChannels-1:0]    ddr_rcv_clk_i,  // adapt for multi channel
-    //output logic [NumChannels-1:0]    ddr_rcv_clk_o,
-    //input  logic [NumChannels-1:0][NumLanes-1:0] ddr_i,
-    //output logic [NumChannels-1:0][NumLanes-1:0] ddr_o
-    input  logic [NumLanes-1:0] ddr_i,
-    output logic [NumLanes-1:0] ddr_o,
-    input  logic [NumChannels-1:0]    ddr_rcv_clk_i,  // adapt for multi channel
-    output logic [NumChannels-1:0]    ddr_rcv_clk_o,
+    //input  logic [NumChannels-1:0]                ddr_rcv_clk_i,  // adapt for multi channel
+    //output logic [NumChannels-1:0]                ddr_rcv_clk_o,
+    //input  logic [NumChannels-1:0][NumLanes-1:0]  ddr_i,
+    //output logic [NumChannels-1:0][NumLanes-1:0]  ddr_o
+    input  logic [NumLanes-1:0]                     ddr_i,
+    output logic [NumLanes-1:0]                     ddr_o,
+    input  logic [NumChannels-1:0]                  ddr_rcv_clk_i,  // adapt for multi channel
+    output logic [NumChannels-1:0]                  ddr_rcv_clk_o,
+    input  logic                                    fast_clock,
 
       //output obi_req_t obi_req_obi2axi,
       //input obi_resp_t obi_resp_obi2axi,
@@ -173,7 +174,8 @@ ${pad.core_v_mini_mcu_bonding}
     .ddr_i,
     .ddr_rcv_clk_i,
     .ddr_o,
-    .ddr_rcv_clk_o
+    .ddr_rcv_clk_o,
+    .fast_clock
   );
 
   pad_ring pad_ring_i (

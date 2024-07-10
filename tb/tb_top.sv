@@ -189,6 +189,24 @@ module tb_top #(
   assign boot_sel_w = boot_sel;
   assign execute_from_flash_w = execute_from_flash;
 
+
+
+  // --  --  --  --  --  -- //
+  logic clk_out, clk_out1;
+  clock_divider_simple #() clock_divider_simple_i (
+      .clk,
+      .rst_n(rst_n_w),
+      .clk_out1
+  );
+
+
+
+
+
+
+
+
+
   // wrapper for riscv, the memory system and stdout peripheral
   testharness #(
       .COREV_PULP                 (COREV_PULP),
@@ -199,7 +217,8 @@ module tb_top #(
       .USE_EXTERNAL_DEVICE_EXAMPLE(USE_EXTERNAL_DEVICE_EXAMPLE),
       .CLK_FREQUENCY              (CLK_FREQUENCY_KHz)
   ) testharness_i (
-      .clk_i               (clk_w),
+      .clk_i               (clk),
+      .fast_clock          (clk_out),
       .rst_ni              (rst_n_w),
       .boot_select_i       (boot_sel_w),
       .execute_from_flash_i(execute_from_flash_w),

@@ -36,7 +36,30 @@ int main(int argc, char *argv[])
         break;
         }
     }
-    
+    *addr_p = 8;
+     while(1){
+    if (*addr_p_external ==8){
+        //CSR_READ(CSR_REG_MCYCLE, &cycles1);
+        
+        break;
+        }
+    }
+    *addr_p = 100;
+         while(1){
+    if (*addr_p_external ==100){
+        //CSR_READ(CSR_REG_MCYCLE, &cycles1);
+        
+        break;
+        }
+    }
+    *addr_p = 9950;
+             while(1){
+    if (*addr_p_external ==9950){
+        //CSR_READ(CSR_REG_MCYCLE, &cycles1);
+        
+        break;
+        }
+    }
     printf("first write finished with  %d cycles\n\r", cycles1);
     printf("DONE\n");
     

@@ -15,8 +15,9 @@ module testharness #(
     parameter USE_EXTERNAL_DEVICE_EXAMPLE = 1,
     parameter CLK_FREQUENCY               = 'd100_000  //KHz
 ) (
-    inout wire clk_i,
-    inout wire rst_ni,
+    inout wire  clk_i,
+    input logic fast_clock,
+    inout wire  rst_ni,
 
     inout wire boot_select_i,
     inout wire execute_from_flash_i,
@@ -277,7 +278,8 @@ module testharness #(
       .ddr_i(ddr_i_xheep),
       .ddr_o(ddr_o_xheep),
       .ddr_rcv_clk_i(clk_sl_ext2int),
-      .ddr_rcv_clk_o(clk_sl_int2ext)
+      .ddr_rcv_clk_o(clk_sl_int2ext),
+      .fast_clock
   );
 
   // Testbench external bus
@@ -771,6 +773,7 @@ module testharness #(
           //.NumLanes(1)
       ) serial_link_occamy_wrapper_i (
           .clk_i     (clk_i),
+          .fast_clock,
           .rst_ni    (rst_ni),
           .clk_reg_i (clk_i),   //intended for clock gating purposes
           .rst_reg_ni(rst_ni),  //intended for SW reset purposes
