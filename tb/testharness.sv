@@ -94,8 +94,10 @@ module testharness #(
 
   assign ext_dma_slot_tx[0] = iffifo_in_ready;
   assign ext_dma_slot_rx[0] = iffifo_out_valid;
-  assign ext_dma_slot_tx[core_v_mini_mcu_pkg::DMA_CH_NUM-1:1] = '0;
-  assign ext_dma_slot_rx[core_v_mini_mcu_pkg::DMA_CH_NUM-1:1] = '0;
+  if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin
+    assign ext_dma_slot_tx[core_v_mini_mcu_pkg::DMA_CH_NUM-1:1] = '0;
+    assign ext_dma_slot_rx[core_v_mini_mcu_pkg::DMA_CH_NUM-1:1] = '0;
+  end
 
   // External xbar master/slave and peripheral ports
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_req;
