@@ -88,6 +88,13 @@ module testharness #(
   logic iffifo_in_ready, iffifo_out_valid;
   logic iffifo_int_o;
 
+  // External DMA slots
+  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx = '0;
+  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx = '0;
+
+  assign ext_dma_slot_tx[0] = iffifo_in_ready;
+  assign ext_dma_slot_rx[0] = iffifo_out_valid;
+
   // External xbar master/slave and peripheral ports
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_req;
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] heep_slave_req;
@@ -262,8 +269,9 @@ module testharness #(
       .external_subsystem_rst_no(external_subsystem_rst_n),
       .external_ram_banks_set_retentive_no(external_ram_banks_set_retentive_n),
       .external_subsystem_clkgate_en_no(external_subsystem_clkgate_en_n),
-      .ext_dma_slot_tx_i(iffifo_in_ready),
-      .ext_dma_slot_rx_i(iffifo_out_valid)
+      .ext_dma_slot_tx_i(ext_dma_slot_tx),
+      .ext_dma_slot_rx_i(ext_dma_slot_rx),
+      .dma_stop_i('0)
   );
 
   // Testbench external bus
@@ -457,6 +465,7 @@ module testharness #(
       ) dma_i (
           .clk_i,
           .rst_ni,
+          .dma_stop_i('0),
           .reg_req_i(ext_periph_slv_req[testharness_pkg::MEMCOPY_CTRL_IDX]),
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::MEMCOPY_CTRL_IDX]),
           .dma_read_ch0_req_o(ext_master_req[testharness_pkg::EXT_MASTER0_IDX]),

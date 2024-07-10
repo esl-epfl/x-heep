@@ -17,6 +17,8 @@ module dma #(
     input logic clk_i,
     input logic rst_ni,
 
+    input logic dma_stop_i,
+
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
@@ -1029,35 +1031,39 @@ module dma #(
       // Read one word
       DMA_READ_FSM_ON: begin
         // If all input data read exit
-        if (dma_conf_1d == 1'b1) begin
-          // 1D DMA case
-          if (|dma_src_cnt_d1 == 1'b0) begin
-            dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
-          end else begin
-            dma_read_fsm_n_state = DMA_READ_FSM_ON;
-            // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
-            if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
-              data_in_req  = 1'b1;
-              data_in_we   = 1'b0;
-              data_in_be   = 4'b1111;  // always read all bytes
-              data_in_addr = read_ptr_reg;
+        if (dma_stop_i == 1'b0) begin
+          if (dma_conf_1d == 1'b1) begin
+            // 1D DMA case
+            if (|dma_src_cnt_d1 == 1'b0) begin
+              dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
+            end else begin
+              dma_read_fsm_n_state = DMA_READ_FSM_ON;
+              // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
+              if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
+                data_in_req  = 1'b1;
+                data_in_we   = 1'b0;
+                data_in_be   = 4'b1111;  // always read all bytes
+                data_in_addr = read_ptr_reg;
+              end
+            end
+          end else if (dma_conf_2d == 1'b1) begin
+            // 2D DMA case: exit only if both 1d and 2d counters are at 0
+            if (dma_src_cnt_d1 == {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q} && |dma_src_cnt_d2 == 1'b0) begin
+              dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
+            end else begin
+              // The read operation is the same in both cases
+              dma_read_fsm_n_state = DMA_READ_FSM_ON;
+              // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
+              if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
+                data_in_req  = 1'b1;
+                data_in_we   = 1'b0;
+                data_in_be   = 4'b1111;  // always read all bytes
+                data_in_addr = read_ptr_reg;
+              end
             end
           end
-        end else if (dma_conf_2d == 1'b1) begin
-          // 2D DMA case: exit only if both 1d and 2d counters are at 0
-          if (dma_src_cnt_d1 == {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q} && |dma_src_cnt_d2 == 1'b0) begin
-            dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
-          end else begin
-            // The read operation is the same in both cases
-            dma_read_fsm_n_state = DMA_READ_FSM_ON;
-            // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
-            if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
-              data_in_req  = 1'b1;
-              data_in_we   = 1'b0;
-              data_in_be   = 4'b1111;  // always read all bytes
-              data_in_addr = read_ptr_reg;
-            end
-          end
+        end else begin
+          dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
         end
       end
     endcase
