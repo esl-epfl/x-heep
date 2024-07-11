@@ -110,7 +110,7 @@ create_power_switch switch_PD_MEM_BANK_${bank.name()} <%text>\</%text>
     -input_supply_port  {sw_in     VDD} <%text>\</%text>
     -output_supply_port {sw_out    VDD_MEM_BANK_${bank.name()}} <%text>\</%text>
     -control_port       {sw_ctrl   memory_subsystem_banks_powergate_switch_n[${bank.name()}]} <%text>\</%text>
-    -ack_port           {sw_ack    memory_subsystem_banks_powergate_switch_ack_n[${bank.name()}]} <%text>\</%text>
+    -ack_port           {sw_ack    memory_subsystem_i.ram${bank.name()}_i.pwrgate_ack_no} <%text>\</%text>
     -on_state           {on_state  sw_in {sw_ctrl}} <%text>\</%text>
     -off_state          {off_state {!sw_ctrl}}
 
