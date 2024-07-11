@@ -81,8 +81,8 @@ ${pad.core_v_mini_mcu_interface}
 
     output logic [31:0] exit_value_o,
 
-    input logic ext_dma_slot_tx_i,
-    input logic ext_dma_slot_rx_i
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i
 );
 
   import core_v_mini_mcu_pkg::*;
