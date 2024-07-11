@@ -126,7 +126,7 @@ plt.grid(True)
 plt.legend()
 
 # Save plot
-plt.savefig('/workspace/x-heep/plot.png')  
+plt.savefig('plot.png')  
 
 # Show plot
 plt.show()

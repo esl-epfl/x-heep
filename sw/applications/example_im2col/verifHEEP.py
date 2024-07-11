@@ -26,26 +26,39 @@ num_slaves = 3
 max_masters_per_slave = 2
 
 num_channels_dma = 5
+num_channels_dma_min = 1
 
-batch_max = 4
+batch_max = 6
+batch_min = 1
 
 channels_max = 4
+channels_min = 1
 
-im_h_max = 11
+im_h_max = 15
+im_h_min = 10
 
 im_w_max = 11
+im_w_min = 10
 
-ker_h_max = 3
+ker_h_max = 4
+ker_h_min = 2
 
-ker_w_max = 3
+ker_w_max = 4
+ker_w_min = 2
 
-pad_top_max = 2
-pad_bottom_max = 2
-pad_left_max = 2
-pad_right_max = 2
+pad_top_max = 3
+pad_top_min = 1
+pad_bottom_max = 3
+pad_bottom_min = 1
+pad_left_max = 3
+pad_left_min = 1
+pad_right_max = 3
+pad_right_min = 1
 
 stride_d1_max = 2
+stride_d1_min = 1
 stride_d2_max = 2
+stride_d2_min = 1
 
 ver_script_dir = "verification_script.py"
 
@@ -129,7 +142,7 @@ def modify_parameters(file_path, modifications, patterns):
 cpu_done = 0
 iteration = 0
 
-for i in range(1, num_channels_dma):
+for i in range(num_channels_dma_min, num_channels_dma):
     print("_______________________\n\r")
     print("Number of channels used by SPC\n\r", i)
     print("_______________________\n\n\r")
@@ -137,29 +150,29 @@ for i in range(1, num_channels_dma):
     im2col_dma_2d_C = []
     im2col_spc = []
 
-    for j in range(1, batch_max):
+    for j in range(batch_min, batch_max):
 
-        for k in range(1, channels_max):
+        for k in range(channels_min, channels_max):
 
-            for l in range(10, im_h_max):
+            for l in range(im_h_min, im_h_max):
 
-                for m in range(10, im_w_max):
+                for m in range(im_w_min, im_w_max):
 
-                    for n in range(2, ker_h_max):
+                    for n in range(ker_h_min, ker_h_max):
 
-                        for o in range(2, ker_w_max):
+                        for o in range(ker_w_min, ker_w_max):
 
-                            for p in range(1, pad_top_max):
+                            for p in range(pad_top_min, pad_top_max):
 
-                                for q in range(1, pad_bottom_max):
+                                for q in range(pad_bottom_min, pad_bottom_max):
 
-                                    for r in range(1, pad_left_max):
+                                    for r in range(pad_left_min, pad_left_max):
 
-                                        for s in range(1, pad_right_max):
+                                        for s in range(pad_right_min, pad_right_max):
 
-                                            for t in range(1, stride_d1_max):
+                                            for t in range(stride_d1_min, stride_d1_max):
 
-                                                for u in range(1, stride_d2_max):
+                                                for u in range(stride_d2_min, stride_d2_max):
                                                     print("Batch size: ", j)
                                                     print("Number of input channels: ", k)
                                                     print("Image height: ", l)
@@ -198,7 +211,7 @@ for i in range(1, num_channels_dma):
                                                     
                                                     print("_______________________\n\n")
                                                     iteration += 1
-                                                    progress = (iteration)/((stride_d2_max - 1) * (stride_d1_max - 1) * (pad_right_max - 1) * (pad_left_max - 1) * (pad_bottom_max - 1) * (pad_top_max - 1) * (ker_w_max - 1) * (ker_h_max - 1) * (im_w_max - 9) * (im_h_max - 9) * (channels_max - 1) * (batch_max - 1) * (num_channels_dma - 4)) * 100
+                                                    progress = (iteration)/((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) * (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) * (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) * (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) * (im_w_max - im_w_min) * (im_h_max - im_h_min) * (channels_max - channels_min) * (batch_max - batch_min) * (num_channels_dma - num_channels_dma_min)) * 100
                                                     
                                                     print("Progress: {:.2f}%".format(progress))
 
@@ -248,7 +261,9 @@ for i in range(1, num_channels_dma):
                                                         elif err_match or err_match_small:
                                                             print("ERROR FOUND")
                                                             break
-                                                        
+                                                    
+                                                    print(cycles)
+
                                                     for test, cycle in cycles:
                                                         string = f"CH_SPC: {i}, B: {j}, C: {k}, H: {l}, W: {m}, FH: {n}, FW: {o}, PT: {p}, PB: {q}, PL: {r}, PR: {s}, S1: {t}, S2: {u}, cycles: {cycle}"
                                                         
@@ -258,11 +273,11 @@ for i in range(1, num_channels_dma):
                                                             im2col_dma_2d_C.append(string)
                                                         elif int(test) == 3:
                                                             im2col_spc.append(string)
-    if (cpu_done):
+    if (not cpu_done):
         im2col_cpu_array.append(im2col_cpu)
         im2col_dma_2d_C_array.append(im2col_dma_2d_C)
-        im2col_spc_array.append(im2col_spc)
-        print(im2col_cpu)
+    im2col_spc_array.append(im2col_spc)
+    print(im2col_cpu)
     cpu_done = 1
 
 with open('im2col_data.txt', 'w') as file:

@@ -472,7 +472,7 @@ module im2col_spc
       LOAD_TRANSACTION: begin
         dma_if_load = 1'b1;
         if (dma_if_loaded == 1'b1) begin
-          if (im2col_fsms_done == 1'b0) begin
+          if (im2col_fsms_done == 1'b0 && dma_channels_full == 1'b0) begin
             dma_if_cu_q = GET_TRANSACTION;
           end else begin
             dma_if_cu_q = IDLE_IF_CU;
