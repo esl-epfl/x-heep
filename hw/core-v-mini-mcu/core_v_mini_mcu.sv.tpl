@@ -67,8 +67,6 @@ ${pad.core_v_mini_mcu_interface}
     input  logic cpu_subsystem_powergate_switch_ack_ni,
     output logic peripheral_subsystem_powergate_switch_no,
     input  logic peripheral_subsystem_powergate_switch_ack_ni,
-    output logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_no,
-    input  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_ni,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_no,
     input  logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_switch_ack_ni,
     output logic [EXT_DOMAINS_RND-1:0] external_subsystem_powergate_iso_no,
@@ -173,6 +171,8 @@ ${pad.core_v_mini_mcu_interface}
   logic peripheral_subsystem_powergate_iso_n;
   logic peripheral_subsystem_clkgate_en_n;
 
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_n;
+  logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_switch_ack_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_set_retentive_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_banks_powergate_iso_n;
   logic [core_v_mini_mcu_pkg::NUM_BANKS-1:0] memory_subsystem_clkgate_en_n;
@@ -193,9 +193,8 @@ ${pad.core_v_mini_mcu_interface}
   assign peripheral_subsystem_clkgate_en_n    = peripheral_subsystem_pwr_ctrl_out.clkgate_en_n;
 
 % for bank in xheep.iter_ram_banks():
-  //pwrgate exposed both outside and inside to deal with memories with embedded SLEEP mode or external PWR cells
-  assign memory_subsystem_banks_powergate_switch_no[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].pwrgate_en_n;
-  assign memory_subsystem_pwr_ctrl_in[${bank.name()}].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_ni[${bank.name()}];
+  assign memory_subsystem_banks_powergate_switch_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].pwrgate_en_n;
+  assign memory_subsystem_pwr_ctrl_in[${bank.name()}].pwrgate_ack_n = memory_subsystem_banks_powergate_switch_ack_n[${bank.name()}];
   //isogate exposed outside for UPF sim flow and switch cells
   assign memory_subsystem_banks_powergate_iso_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].isogate_en_n;
   assign memory_subsystem_banks_set_retentive_n[${bank.name()}] = memory_subsystem_pwr_ctrl_out[${bank.name()}].retentive_en_n;
@@ -357,11 +356,8 @@ ${pad.core_v_mini_mcu_interface}
       .clk_gate_en_ni(memory_subsystem_clkgate_en_n),
       .ram_req_i(ram_slave_req),
       .ram_resp_o(ram_slave_resp),
-      /*
-        the memory_subsystem_banks_powergate_switch_no gets wired both internally
-        and externally to support both macros that have and do not have SLEEP capabilities integrated in the macros
-      */
-      .pwrgate_ni(memory_subsystem_banks_powergate_switch_no),
+      .pwrgate_ni(memory_subsystem_banks_powergate_switch_n),
+      .pwrgate_ack_no(memory_subsystem_banks_powergate_switch_ack_n),
       .set_retentive_ni(memory_subsystem_banks_set_retentive_n)
   );
 
