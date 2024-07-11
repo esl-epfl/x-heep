@@ -20,8 +20,8 @@ module im2col_spc
     input logic clk_i,
     input logic rst_ni,
 
-    input  obi_resp_t aopx2im2col_resp_i,
-    output obi_req_t  im2col2aopx_req_o,
+    input  reg_rsp_t aopx2im2col_resp_i,
+    output reg_req_t im2col2aopx_req_o,
 
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
@@ -96,7 +96,7 @@ module im2col_spc
   logic dma_if_loaded;
   logic dma_if_load_continue;
   logic dma_if_load_req;
-  logic dma_if_load_rvalid;
+  logic dma_if_load_valid;
   logic dma_channels_full;
 
   /* Regtool signals */
@@ -652,7 +652,7 @@ module im2col_spc
       unique case (dma_if_cu_load_d)
         IDLE_IF_LOAD: begin
           dma_if_loaded <= 1'b0;
-          im2col2aopx_req_o.req <= 1'b0;
+          im2col2aopx_req_o.valid <= 1'b0;
           dma_if_load_req <= 1'b0;
         end
 
@@ -660,19 +660,19 @@ module im2col_spc
           if (dma_if_load_req == 1'b0) begin
             dma_if_load_continue <= 0;
             dma_if_load_req <= 1'b1;
-            im2col2aopx_req_o.req <= 1'b1;
-            im2col2aopx_req_o.we <= 1'b1;
-            im2col2aopx_req_o.be <= 4'b1111;
+            im2col2aopx_req_o.valid <= 1'b1;
+            im2col2aopx_req_o.write <= 1'b1;
+            im2col2aopx_req_o.wstrb <= 4'b1111;
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_DIMENSIONALITY_OFFSET;
             im2col2aopx_req_o.wdata <= 32'h1;
-          end else if (dma_if_load_rvalid == 1'b1) begin
+          end else if (dma_if_load_valid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
           end else begin
-            dma_if_load_continue  <= 0;
-            im2col2aopx_req_o.req <= 1'b0;
+            dma_if_load_continue <= 0;
+            im2col2aopx_req_o.valid <= 1'b0;
           end
         end
 
@@ -680,19 +680,19 @@ module im2col_spc
           if (dma_if_load_req == 1'b0) begin
             dma_if_load_continue <= 0;
             dma_if_load_req <= 1'b1;
-            im2col2aopx_req_o.req <= 1'b1;
-            im2col2aopx_req_o.we <= 1'b1;
-            im2col2aopx_req_o.be <= 4'b1111;
+            im2col2aopx_req_o.valid <= 1'b1;
+            im2col2aopx_req_o.write <= 1'b1;
+            im2col2aopx_req_o.wstrb <= 4'b1111;
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_DATATYPE_OFFSET;
             im2col2aopx_req_o.wdata <= {30'h0, reg2hw.data_type.q} & 32'h3;  // Mask
-          end else if (dma_if_load_rvalid == 1'b1) begin
+          end else if (dma_if_load_valid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
           end else begin
-            dma_if_load_continue  <= 0;
-            im2col2aopx_req_o.req <= 1'b0;
+            dma_if_load_continue <= 0;
+            im2col2aopx_req_o.valid <= 1'b0;
           end
         end
 
@@ -700,19 +700,19 @@ module im2col_spc
           if (dma_if_load_req == 1'b0) begin
             dma_if_load_continue <= 0;
             dma_if_load_req <= 1'b1;
-            im2col2aopx_req_o.req <= 1'b1;
-            im2col2aopx_req_o.we <= 1'b1;
-            im2col2aopx_req_o.be <= 4'b1111;
+            im2col2aopx_req_o.valid <= 1'b1;
+            im2col2aopx_req_o.write <= 1'b1;
+            im2col2aopx_req_o.wstrb <= 4'b1111;
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_TOP_PAD_OFFSET;
             im2col2aopx_req_o.wdata <= fifo_output.n_zeros_top * (4 >> reg2hw.data_type.q) & 32'h3f; // Mask
-          end else if (dma_if_load_rvalid == 1'b1) begin
+          end else if (dma_if_load_valid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
           end else begin
-            dma_if_load_continue  <= 0;
-            im2col2aopx_req_o.req <= 1'b0;
+            dma_if_load_continue <= 0;
+            im2col2aopx_req_o.valid <= 1'b0;
           end
         end
 
@@ -720,19 +720,19 @@ module im2col_spc
           if (dma_if_load_req == 1'b0) begin
             dma_if_load_continue <= 0;
             dma_if_load_req <= 1'b1;
-            im2col2aopx_req_o.req <= 1'b1;
-            im2col2aopx_req_o.we <= 1'b1;
-            im2col2aopx_req_o.be <= 4'b1111;
+            im2col2aopx_req_o.valid <= 1'b1;
+            im2col2aopx_req_o.write <= 1'b1;
+            im2col2aopx_req_o.wstrb <= 4'b1111;
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_BOTTOM_PAD_OFFSET;
             im2col2aopx_req_o.wdata <= fifo_output.n_zeros_bottom * (4 >> reg2hw.data_type.q) & 32'h3f; // Mask
-          end else if (dma_if_load_rvalid == 1'b1) begin
+          end else if (dma_if_load_valid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
           end else begin
-            dma_if_load_continue  <= 0;
-            im2col2aopx_req_o.req <= 1'b0;
+            dma_if_load_continue <= 0;
+            im2col2aopx_req_o.valid <= 1'b0;
           end
         end
 
@@ -740,19 +740,19 @@ module im2col_spc
           if (dma_if_load_req == 1'b0) begin
             dma_if_load_continue <= 0;
             dma_if_load_req <= 1'b1;
-            im2col2aopx_req_o.req <= 1'b1;
-            im2col2aopx_req_o.we <= 1'b1;
-            im2col2aopx_req_o.be <= 4'b1111;
+            im2col2aopx_req_o.valid <= 1'b1;
+            im2col2aopx_req_o.write <= 1'b1;
+            im2col2aopx_req_o.wstrb <= 4'b1111;
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_LEFT_PAD_OFFSET;
             im2col2aopx_req_o.wdata <= fifo_output.n_zeros_left * (4 >> reg2hw.data_type.q) & 32'h3f; // Mask
-          end else if (dma_if_load_rvalid == 1'b1) begin
+          end else if (dma_if_load_valid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
           end else begin
-            dma_if_load_continue  <= 0;
-            im2col2aopx_req_o.req <= 1'b0;
+            dma_if_load_continue <= 0;
+            im2col2aopx_req_o.valid <= 1'b0;
           end
         end
 
@@ -760,19 +760,19 @@ module im2col_spc
           if (dma_if_load_req == 1'b0) begin
             dma_if_load_continue <= 0;
             dma_if_load_req <= 1'b1;
-            im2col2aopx_req_o.req <= 1'b1;
-            im2col2aopx_req_o.we <= 1'b1;
-            im2col2aopx_req_o.be <= 4'b1111;
+            im2col2aopx_req_o.valid <= 1'b1;
+            im2col2aopx_req_o.write <= 1'b1;
+            im2col2aopx_req_o.wstrb <= 4'b1111;
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_RIGHT_PAD_OFFSET;
             im2col2aopx_req_o.wdata <= fifo_output.n_zeros_right * (4 >> reg2hw.data_type.q) & 32'h3f; // Mask
-          end else if (dma_if_load_rvalid == 1'b1) begin
+          end else if (dma_if_load_valid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
           end else begin
-            dma_if_load_continue  <= 0;
-            im2col2aopx_req_o.req <= 1'b0;
+            dma_if_load_continue <= 0;
+            im2col2aopx_req_o.valid <= 1'b0;
           end
         end
 
@@ -780,19 +780,19 @@ module im2col_spc
           if (dma_if_load_req == 1'b0) begin
             dma_if_load_continue <= 0;
             dma_if_load_req <= 1'b1;
-            im2col2aopx_req_o.req <= 1'b1;
-            im2col2aopx_req_o.we <= 1'b1;
-            im2col2aopx_req_o.be <= 4'b1111;
+            im2col2aopx_req_o.valid <= 1'b1;
+            im2col2aopx_req_o.write <= 1'b1;
+            im2col2aopx_req_o.wstrb <= 4'b1111;
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_SRC_PTR_OFFSET;
             im2col2aopx_req_o.wdata <= fifo_output.input_ptr;
-          end else if (dma_if_load_rvalid == 1'b1) begin
+          end else if (dma_if_load_valid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
           end else begin
-            dma_if_load_continue  <= 0;
-            im2col2aopx_req_o.req <= 1'b0;
+            dma_if_load_continue <= 0;
+            im2col2aopx_req_o.valid <= 1'b0;
           end
         end
 
@@ -800,19 +800,19 @@ module im2col_spc
           if (dma_if_load_req == 1'b0) begin
             dma_if_load_continue <= 0;
             dma_if_load_req <= 1'b1;
-            im2col2aopx_req_o.req <= 1'b1;
-            im2col2aopx_req_o.we <= 1'b1;
-            im2col2aopx_req_o.be <= 4'b1111;
+            im2col2aopx_req_o.valid <= 1'b1;
+            im2col2aopx_req_o.write <= 1'b1;
+            im2col2aopx_req_o.wstrb <= 4'b1111;
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_DST_PTR_OFFSET;
             im2col2aopx_req_o.wdata <= fifo_output.output_ptr;
-          end else if (dma_if_load_rvalid == 1'b1) begin
+          end else if (dma_if_load_valid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
           end else begin
-            dma_if_load_continue  <= 0;
-            im2col2aopx_req_o.req <= 1'b0;
+            dma_if_load_continue <= 0;
+            im2col2aopx_req_o.valid <= 1'b0;
           end
         end
 
@@ -820,19 +820,19 @@ module im2col_spc
           if (dma_if_load_req == 1'b0) begin
             dma_if_load_continue <= 0;
             dma_if_load_req <= 1'b1;
-            im2col2aopx_req_o.req <= 1'b1;
-            im2col2aopx_req_o.we <= 1'b1;
-            im2col2aopx_req_o.be <= 4'b1111;
+            im2col2aopx_req_o.valid <= 1'b1;
+            im2col2aopx_req_o.write <= 1'b1;
+            im2col2aopx_req_o.wstrb <= 4'b1111;
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_INC_SRC_D1_OFFSET;
             im2col2aopx_req_o.wdata <= {24'h0, reg2hw.strides_d1.q} * (4 >> reg2hw.data_type.q) & 32'h3f; // Mask;
-          end else if (dma_if_load_rvalid == 1'b1) begin
+          end else if (dma_if_load_valid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
           end else begin
-            dma_if_load_continue  <= 0;
-            im2col2aopx_req_o.req <= 1'b0;
+            dma_if_load_continue <= 0;
+            im2col2aopx_req_o.valid <= 1'b0;
           end
         end
 
@@ -840,19 +840,19 @@ module im2col_spc
           if (dma_if_load_req == 1'b0) begin
             dma_if_load_continue <= 0;
             dma_if_load_req <= 1'b1;
-            im2col2aopx_req_o.req <= 1'b1;
-            im2col2aopx_req_o.we <= 1'b1;
-            im2col2aopx_req_o.be <= 4'b1111;
+            im2col2aopx_req_o.valid <= 1'b1;
+            im2col2aopx_req_o.write <= 1'b1;
+            im2col2aopx_req_o.wstrb <= 4'b1111;
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_INC_SRC_D2_OFFSET;
             im2col2aopx_req_o.wdata <= fifo_output.in_inc_d2 * (4 >> reg2hw.data_type.q) & 32'h7fffff; // Mask
-          end else if (dma_if_load_rvalid == 1'b1) begin
+          end else if (dma_if_load_valid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
           end else begin
-            dma_if_load_continue  <= 0;
-            im2col2aopx_req_o.req <= 1'b0;
+            dma_if_load_continue <= 0;
+            im2col2aopx_req_o.valid <= 1'b0;
           end
         end
 
@@ -860,19 +860,19 @@ module im2col_spc
           if (dma_if_load_req == 1'b0) begin
             dma_if_load_continue <= 0;
             dma_if_load_req <= 1'b1;
-            im2col2aopx_req_o.req <= 1'b1;
-            im2col2aopx_req_o.we <= 1'b1;
-            im2col2aopx_req_o.be <= 4'b1111;
+            im2col2aopx_req_o.valid <= 1'b1;
+            im2col2aopx_req_o.write <= 1'b1;
+            im2col2aopx_req_o.wstrb <= 4'b1111;
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_INC_DST_D1_OFFSET;
             im2col2aopx_req_o.wdata <= (4 >> reg2hw.data_type.q) & 32'h3f;  // Mask;
-          end else if (dma_if_load_rvalid == 1'b1) begin
+          end else if (dma_if_load_valid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
           end else begin
-            dma_if_load_continue  <= 0;
-            im2col2aopx_req_o.req <= 1'b0;
+            dma_if_load_continue <= 0;
+            im2col2aopx_req_o.valid <= 1'b0;
           end
         end
 
@@ -880,19 +880,19 @@ module im2col_spc
           if (dma_if_load_req == 1'b0) begin
             dma_if_load_continue <= 0;
             dma_if_load_req <= 1'b1;
-            im2col2aopx_req_o.req <= 1'b1;
-            im2col2aopx_req_o.we <= 1'b1;
-            im2col2aopx_req_o.be <= 4'b1111;
+            im2col2aopx_req_o.valid <= 1'b1;
+            im2col2aopx_req_o.write <= 1'b1;
+            im2col2aopx_req_o.wstrb <= 4'b1111;
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_INC_DST_D2_OFFSET;
             im2col2aopx_req_o.wdata <= (4 >> reg2hw.data_type.q) & 32'h7fffff;  // Mask
-          end else if (dma_if_load_rvalid == 1'b1) begin
+          end else if (dma_if_load_valid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
           end else begin
-            dma_if_load_continue  <= 0;
-            im2col2aopx_req_o.req <= 1'b0;
+            dma_if_load_continue <= 0;
+            im2col2aopx_req_o.valid <= 1'b0;
           end
         end
 
@@ -900,19 +900,19 @@ module im2col_spc
           if (dma_if_load_req == 1'b0) begin
             dma_if_load_continue <= 0;
             dma_if_load_req <= 1'b1;
-            im2col2aopx_req_o.req <= 1'b1;
-            im2col2aopx_req_o.we <= 1'b1;
-            im2col2aopx_req_o.be <= 4'b1111;
+            im2col2aopx_req_o.valid <= 1'b1;
+            im2col2aopx_req_o.write <= 1'b1;
+            im2col2aopx_req_o.wstrb <= 4'b1111;
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_SIZE_D2_OFFSET;
             im2col2aopx_req_o.wdata <= fifo_output.size_du_d2 * (4 >> reg2hw.data_type.q) & 32'hffff; // Mask
-          end else if (dma_if_load_rvalid == 1'b1) begin
+          end else if (dma_if_load_valid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
           end else begin
-            dma_if_load_continue  <= 0;
-            im2col2aopx_req_o.req <= 1'b0;
+            dma_if_load_continue <= 0;
+            im2col2aopx_req_o.valid <= 1'b0;
           end
         end
 
@@ -920,19 +920,19 @@ module im2col_spc
           if (dma_if_load_req == 1'b0) begin
             dma_if_load_continue <= 0;
             dma_if_load_req <= 1'b1;
-            im2col2aopx_req_o.req <= 1'b1;
-            im2col2aopx_req_o.we <= 1'b1;
-            im2col2aopx_req_o.be <= 4'b1111;
+            im2col2aopx_req_o.valid <= 1'b1;
+            im2col2aopx_req_o.write <= 1'b1;
+            im2col2aopx_req_o.wstrb <= 4'b1111;
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
                                     DMA_SIZE_D1_OFFSET;
             im2col2aopx_req_o.wdata <= fifo_output.size_du_d1 * (4 >> reg2hw.data_type.q) & 32'hffff; // Mask
-          end else if (dma_if_load_rvalid == 1'b1) begin
+          end else if (dma_if_load_valid == 1'b1) begin
             dma_if_load_continue <= 1'b1;
             dma_if_load_req <= 1'b0;
           end else begin
-            dma_if_load_continue  <= 0;
-            im2col2aopx_req_o.req <= 1'b0;
+            dma_if_load_continue <= 0;
+            im2col2aopx_req_o.valid <= 1'b0;
           end
         end
 
@@ -1092,7 +1092,7 @@ module im2col_spc
   assign fifo_input.size_du_d2 = size_transfer_2d;
 
   /* Transaction loading process */
-  assign dma_if_load_rvalid = aopx2im2col_resp_i.rvalid && dma_if_load;
+  assign dma_if_load_valid = aopx2im2col_resp_i.ready && dma_if_load;
   assign hw2reg.status.d = im2col_status == READY;
 
   /* Interrupt management */

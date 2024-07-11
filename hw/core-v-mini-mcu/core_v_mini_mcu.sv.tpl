@@ -38,8 +38,8 @@ ${pad.core_v_mini_mcu_interface}
     output obi_resp_t [EXT_XBAR_NMASTER_RND-1:0] ext_xbar_master_resp_o,
 
 % if int(ao_peripherals_num_spc) > 0:
-    input obi_req_t ext_ao_peripheral_slave_req_i[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
-    output obi_resp_t ext_ao_peripheral_slave_resp_o[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
+    input reg_req_t ext_ao_peripheral_slave_req_i[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
+    output reg_rsp_t ext_ao_peripheral_slave_resp_o[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
 % endif
 
     // External slave ports
@@ -196,22 +196,6 @@ ${pad.core_v_mini_mcu_interface}
   // I2s
   logic i2s_rx_valid;
 
-  // AO Peripheral Subsystem
-  obi_req_t bus2ao_req[core_v_mini_mcu_pkg::AO_SPC_NUM:0];
-  obi_resp_t ao2bus_resp[core_v_mini_mcu_pkg::AO_SPC_NUM:0];
-
-  assign bus2ao_req[0] = ao_peripheral_slave_req;
-  assign ao_peripheral_slave_resp = ao2bus_resp[0];
-
-  % if int(ao_peripherals_num_spc) > 0:
-  generate
-    for (genvar i = 1; i < core_v_mini_mcu_pkg::AO_SPC_NUM + 1; i++) begin
-      assign bus2ao_req[i] = ext_ao_peripheral_slave_req_i[i-1];
-      assign ext_ao_peripheral_slave_resp_o[i-1] = ao2bus_resp[i];
-    end
-  endgenerate
-  % endif
-
   assign intr = {
     1'b0, irq_fast, 4'b0, irq_external, 3'b0, rv_timer_intr[0], 3'b0, irq_software, 3'b0
   };
@@ -332,8 +316,15 @@ ${pad.core_v_mini_mcu_interface}
   ao_peripheral_subsystem ao_peripheral_subsystem_i (
       .clk_i,
       .rst_ni(rst_ni && debug_reset_n),
-      .bus2ao_req_i(bus2ao_req[core_v_mini_mcu_pkg::AO_SPC_NUM:0]),
-      .ao2bus_resp_o(ao2bus_resp[core_v_mini_mcu_pkg::AO_SPC_NUM:0]),
+      .bus2ao_req_i(ao_peripheral_slave_req),
+      .ao2bus_resp_o(ao_peripheral_slave_resp),
+      % if int(ao_peripherals_num_spc) > 0:
+      .spc2ao_req_i(ext_ao_peripheral_slave_req_i),
+      .ao2spc_resp_o(ext_ao_peripheral_slave_resp_o),
+      % else:
+      .spc2ao_req_i(),
+      .ao2spc_resp_o(),
+      % endif
       .boot_select_i,
       .execute_from_flash_i,
       .exit_valid_o,

@@ -14,8 +14,11 @@ module ao_peripheral_subsystem
     input logic clk_i,
     input logic rst_ni,
 
-    input  obi_req_t  bus2ao_req_i [core_v_mini_mcu_pkg::AO_SPC_NUM:0],
-    output obi_resp_t ao2bus_resp_o[core_v_mini_mcu_pkg::AO_SPC_NUM:0],
+    input  reg_req_t bus2ao_req_i,
+    output reg_rsp_t ao2bus_resp_o,
+
+    input  reg_req_t spc2ao_req_i [core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
+    output reg_rsp_t ao2spc_resp_o[core_v_mini_mcu_pkg::AO_SPC_NUM-1:0],
 
     // SOC CTRL
     input  logic        boot_select_i,
@@ -125,8 +128,6 @@ module ao_peripheral_subsystem
 
   import core_v_mini_mcu_pkg::*;
   import tlul_pkg::*;
-  import rv_plic_reg_pkg::*;
-
   /*_________________________________________________________________________________________________________________________________ */
 
   /* Signals declaration */
@@ -160,9 +161,11 @@ module ao_peripheral_subsystem
   parameter DMA_TRIGGER_SLOT_NUM = 7;
   logic [DMA_TRIGGER_SLOT_NUM-1:0] dma_trigger_slots;
 
+  obi_pkg::obi_req_t busfifo2regconv_req;
+  obi_pkg::obi_resp_t regconv2busfifo_resp;
 
-  obi_pkg::obi_req_t perfifo2per_req;
-  obi_pkg::obi_resp_t per2perfifo_resp;
+  reg_req_t perconv2regdemux_req;
+  reg_rsp_t regdemux2perconv_resp;
 
   /*_________________________________________________________________________________________________________________________________ */
 
@@ -188,50 +191,15 @@ module ao_peripheral_subsystem
 
   /* Module instantiation */
 
-  /* SPC crossbar & FIFOs */
-  generate
-    if (core_v_mini_mcu_pkg::AO_SPC_NUM > 0) begin
-      obi_pkg::obi_req_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] busfifo2xbar_req;
-      obi_pkg::obi_resp_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] xbar2busfifo_resp;
-      obi_pkg::obi_req_t xbar2perfifo_req;
-      obi_pkg::obi_resp_t perfifo2xbar_resp;
-
-      for (genvar i = 0; i < core_v_mini_mcu_pkg::AO_SPC_NUM + 1; i++) begin : obi_fifo_gen
-        obi_fifo obi_fifo_i (
-            .clk_i,
-            .rst_ni,
-            .producer_req_i (bus2ao_req_i[i]),
-            .producer_resp_o(ao2bus_resp_o[i]),
-            .consumer_req_o (busfifo2xbar_req[i]),
-            .consumer_resp_i(xbar2busfifo_resp[i])
-        );
-      end
-
-      xbar_varlat_n_to_one #(
-          .XBAR_NMASTER(core_v_mini_mcu_pkg::AO_SPC_NUM + 1)
-      ) xbar_reg_i (
-          .clk_i        (clk_i),
-          .rst_ni       (rst_ni),
-          .master_req_i (busfifo2xbar_req),
-          .master_resp_o(xbar2busfifo_resp),
-          .slave_req_o  (xbar2perfifo_req),
-          .slave_resp_i (perfifo2xbar_resp)
-      );
-
-      obi_fifo obi_fifo_i (
-          .clk_i,
-          .rst_ni,
-          .producer_req_i (xbar2perfifo_req),
-          .producer_resp_o(perfifo2xbar_resp),
-          .consumer_req_o (perfifo2per_req),
-          .consumer_resp_i(per2perfifo_resp)
-      );
-
-    end else begin
-      assign perfifo2per_req  = bus2ao_req_i[0];
-      assign ao2bus_resp_o[0] = per2perfifo_resp;
-    end
-  endgenerate
+  /* System bus to AO OBI FIFO */
+  obi_fifo obi_fifo_i (
+      .clk_i,
+      .rst_ni,
+      .producer_req_i (bus2ao_req_i),
+      .producer_resp_o(ao2bus_resp_o),
+      .consumer_req_o (busfifo2regconv_req),
+      .consumer_resp_i(regconv2busfifo_resp)
+  );
 
   /* Peripheral to register interface converter*/
   periph_to_reg #(
@@ -241,20 +209,56 @@ module ao_peripheral_subsystem
   ) periph_to_reg_i (
       .clk_i,
       .rst_ni,
-      .req_i(perfifo2per_req.req),
-      .add_i(perfifo2per_req.addr),
-      .wen_i(~perfifo2per_req.we),
-      .wdata_i(perfifo2per_req.wdata),
-      .be_i(perfifo2per_req.be),
+      .req_i(busfifo2regconv_req.req),
+      .add_i(busfifo2regconv_req.addr),
+      .wen_i(~busfifo2regconv_req.we),
+      .wdata_i(busfifo2regconv_req.wdata),
+      .be_i(busfifo2regconv_req.be),
       .id_i('0),
-      .gnt_o(per2perfifo_resp.gnt),
-      .r_rdata_o(per2perfifo_resp.rdata),
+      .gnt_o(regconv2busfifo_resp.gnt),
+      .r_rdata_o(regconv2busfifo_resp.rdata),
       .r_opc_o(),
       .r_id_o(),
-      .r_valid_o(per2perfifo_resp.rvalid),
+      .r_valid_o(regconv2busfifo_resp.rvalid),
       .reg_req_o(peripheral_req),
       .reg_rsp_i(peripheral_rsp)
   );
+
+  /* SPC crossbar & FIFOs */
+  generate
+    if (core_v_mini_mcu_pkg::AO_SPC_NUM > 0) begin
+      /* Assign the bus port to the first input port of the AOPB */
+      reg_req_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] packet_req;
+      reg_rsp_t [core_v_mini_mcu_pkg::AO_SPC_NUM:0] packet_rsp;
+
+      assign packet_req[0]  = peripheral_req;
+      assign peripheral_rsp = packet_rsp[0];
+
+      for (genvar i = 0; i < core_v_mini_mcu_pkg::AO_SPC_NUM; i++) begin : gen_spc
+        assign packet_req[i+1]  = spc2ao_req_i[i];
+        assign ao2spc_resp_o[i] = packet_rsp[i+1];
+      end
+
+      reg_mux #(
+          .NoPorts(core_v_mini_mcu_pkg::AO_SPC_NUM + 1),
+          .req_t  (reg_pkg::reg_req_t),
+          .rsp_t  (reg_pkg::reg_rsp_t),
+          .AW     (32),
+          .DW     (32)
+      ) reg_mux_i (
+          .clk_i,
+          .rst_ni,
+          .in_req_i (packet_req),
+          .in_rsp_o (packet_rsp),
+          .out_req_o(perconv2regdemux_req),
+          .out_rsp_i(regdemux2perconv_resp)
+      );
+
+    end else begin
+      assign perconv2regdemux_req = peripheral_req;
+      assign peripheral_rsp = regdemux2perconv_resp;
+    end
+  endgenerate
 
   /* Address decoder for the peripheral registers */
   addr_decode #(
@@ -263,7 +267,7 @@ module ao_peripheral_subsystem
       .addr_t(logic [31:0]),
       .rule_t(addr_map_rule_pkg::addr_map_rule_t)
   ) i_addr_decode_soc_regbus_periph_xbar (
-      .addr_i(peripheral_req.addr),
+      .addr_i(perconv2regdemux_req.addr),
       .addr_map_i(core_v_mini_mcu_pkg::AO_PERIPHERALS_ADDR_RULES),
       .idx_o(peripheral_select),
       .dec_valid_o(),
@@ -281,8 +285,8 @@ module ao_peripheral_subsystem
       .clk_i,
       .rst_ni,
       .in_select_i(peripheral_select),
-      .in_req_i(peripheral_req),
-      .in_rsp_o(peripheral_rsp),
+      .in_req_i(perconv2regdemux_req),
+      .in_rsp_o(regdemux2perconv_resp),
       .out_req_o(ao_peripheral_slv_req),
       .out_rsp_i(ao_peripheral_slv_rsp)
   );
