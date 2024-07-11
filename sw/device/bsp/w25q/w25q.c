@@ -580,9 +580,8 @@ w25q_error_codes_t w25q128jw_read_standard_dma_async(uint32_t addr, void *data, 
     static dma_trans_t trans = {
         .src = &tgt_src,
         .dst = &tgt_dst,
-        .end = DMA_TRANS_END_POLLING,
+        .end = DMA_TRANS_END_INTR, //so that you can wait for interrupt
     };
-
     // Validate, load and launch DMA transaction
     dma_config_flags_t res;
     res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
@@ -616,7 +615,8 @@ w25q_error_codes_t w25q128jw_read_standard_dma_async(uint32_t addr, void *data, 
     spi_set_command(spi, cmd_read_2);
     spi_wait_for_ready(spi);
 
-    // Wait for DMA to finish transaction outside this function
+    // Wait for DMA to finish transaction outside this function, the DMA generates also an interrupt
+    // However, you need to enable the interrupt in the INT controllers, and CPU
 
     return FLASH_OK;
 }

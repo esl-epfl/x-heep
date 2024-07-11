@@ -196,12 +196,16 @@ int main(int argc, char *argv[])
     tgt_src.size_du = TEST_DATA_SIZE;
     tgt_src.trig = DMA_TRIG_MEMORY;
     tgt_src.type = DMA_DATA_TYPE_WORD;
+    tgt_src.env = NULL;
+    tgt_src.inc_d2_du = 0;
 
     tgt_dst.ptr = (uint8_t *)copied_data_4B;
     tgt_dst.inc_du = 1;
     tgt_dst.size_du = TEST_DATA_SIZE;
     tgt_dst.trig = DMA_TRIG_MEMORY;
     tgt_dst.type = DMA_DATA_TYPE_WORD;
+    tgt_dst.env = NULL;
+    tgt_dst.inc_d2_du = 0;
 
     trans.src = &tgt_src;
     trans.dst = &tgt_dst;
@@ -212,17 +216,22 @@ int main(int argc, char *argv[])
     trans.win_du = 0;
     trans.sign_ext = 0;
     trans.end = DMA_TRANS_END_INTR;
+    trans.dim = DMA_DIM_CONF_1D;
+    trans.pad_top_du = 0;
+    trans.pad_bottom_du = 0;
+    trans.pad_left_du = 0;
+    trans.pad_right_du = 0;
 
-    trans.flags = 0x0;                                                                        
+    trans.flags = 0x0;
     res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY);
     res = dma_load_transaction(&trans);
     res = dma_launch(&trans);
 
-    while (!dma_is_ready())                   
-    {                                         
+    while (!dma_is_ready())
+    {
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
         if (dma_is_ready() == 0)
-        {             
+        {
                 if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_counters) != kPowerManagerOk_e)
                 {
                     PRINTF("Error: power manager fail.\n\r");
@@ -243,7 +252,7 @@ int main(int argc, char *argv[])
     // Power-gate and wake-up due to plic GPIO
 
     gpio_assign_irq_handler( GPIO_INTR_31, &gpio_handler_in );
-	
+
     bool state = false;
     plic_irq_set_priority(GPIO_INTR_31, 1);
     plic_irq_set_enabled(GPIO_INTR_31, kPlicToggleEnabled);

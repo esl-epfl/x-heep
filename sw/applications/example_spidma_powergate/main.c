@@ -152,18 +152,23 @@ int main(int argc, char *argv[])
     // Init SPI host and SPI<->Flash bridge parameters
     if (w25q128jw_init(spi) != FLASH_OK) return EXIT_FAILURE;
 
+
+#ifndef ON_CHIP
+    uint32_t *test_buffer_flash = flash_only_buffer;
+#else
     uint32_t *test_buffer_flash = heep_get_flash_address_offset(flash_only_buffer);
+#endif
 
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_standard_dma_async(test_buffer_flash, on_chip_buffer, FLASH_ONLY_BYTES);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
 
     //wait for the DMA to finish in DEEP SLEEP mode
-    while (!dma_is_ready())                   
-    {                                         
+    while (!dma_is_ready())
+    {
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
         if (dma_is_ready() == 0)
-        {             
+        {
                 if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_counters) != kPowerManagerOk_e)
                 {
                     PRINTF("Error: power manager fail.\n\r");
