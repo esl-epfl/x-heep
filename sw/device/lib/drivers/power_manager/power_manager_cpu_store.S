@@ -6,73 +6,74 @@
 #include "power_manager_regs.h"  // Generated.
 
 # power_manager_cpu.S
-# This function stores the CPU context, goes to (deep) sleep with WFI, and once awakon restore the context
-.global power_manager_cpu_store # Rende la funzione visibile al linker
+# This function stores the CPU context, goes to (deep) sleep with WFI
+.global power_manager_cpu_store # make the function visible to the linker
 .type power_manager_cpu_store, @function
 
 power_manager_cpu_store:
 
     // write POWER_GATE_CORE[0] = 1
-    la a0, POWER_MANAGER_START_ADDRESS
-    li  a1, 1
-    sw  a1, POWER_MANAGER_POWER_GATE_CORE_REG_OFFSET(a0)
+    la t0, POWER_MANAGER_START_ADDRESS
+    li  t1, 1
+    sw  t1, POWER_MANAGER_POWER_GATE_CORE_REG_OFFSET(t0)
 
-    // write registers
-    la a0, __power_manager_start
-    sw x1,  0(a0)
-    sw x2,  4(a0)
-    sw x3,  8(a0)
-    sw x4,  12(a0)
-    sw x5,  16(a0)
-    sw x6,  20(a0)
-    sw x7,  24(a0)
-    sw x8,  28(a0)
-    sw x9,  32(a0)
-    sw x10, 36(a0)
-    sw x11, 40(a0)
-    sw x12, 44(a0)
-    sw x13, 48(a0)
-    sw x14, 52(a0)
-    sw x15, 56(a0)
-    sw x16, 60(a0)
-    sw x17, 64(a0)
-    sw x18, 68(a0)
-    sw x19, 72(a0)
-    sw x20, 76(a0)
-    sw x21, 80(a0)
-    sw x22, 88(a0)
-    sw x23, 92(a0)
-    sw x24, 96(a0)
-    sw x25, 100(a0)
-    sw x26, 104(a0)
-    sw x27, 108(a0)
-    sw x28, 112(a0)
-    sw x29, 116(a0)
-    sw x30, 120(a0)
-    sw x31, 124(a0)
+    // save context
+    la t0, __power_manager_start
+    sw x1,  0(t0)
+    sw x2,  4(t0)
+    sw x3,  8(t0)
+    sw x4,  12(t0)
+    sw x5,  16(t0)
+    sw x6,  20(t0)
+    sw x7,  24(t0)
+    sw x8,  28(t0)
+    sw x9,  32(t0)
+    sw x10, 36(t0)
+    sw x11, 40(t0)
+    sw x12, 44(t0)
+    sw x13, 48(t0)
+    sw x14, 52(t0)
+    sw x15, 56(t0)
+    sw x16, 60(t0)
+    sw x17, 64(t0)
+    sw x18, 68(t0)
+    sw x19, 72(t0)
+    sw x20, 76(t0)
+    sw x21, 80(t0)
+    sw x22, 88(t0)
+    sw x23, 92(t0)
+    sw x24, 96(t0)
+    sw x25, 100(t0)
+    sw x26, 104(t0)
+    sw x27, 108(t0)
+    sw x28, 112(t0)
+    sw x29, 116(t0)
+    sw x30, 120(t0)
+    sw x31, 124(t0)
     //csr
-    csrr a1, mstatus
-    sw a1, 128(a0)
-    csrr a1, mie
-    sw a1, 132(a0)
-    csrr a1, mtvec
-    sw a1, 136(a0)
-    csrr a1, mscratch
-    sw a1, 140(a0)
-    csrr a1, mepc
-    sw a1, 144(a0)
-    csrr a1, mcause
-    sw a1, 148(a0)
-    csrr a1, mtval
-    sw a1, 152(a0)
-    csrr a1, mcycle
-    sw a1, 156(a0)
-    csrr a1, minstret
-    sw a1, 160(a0)
+    csrr t1, mstatus
+    sw t1, 128(t0)
+    csrr t1, mie
+    sw t1, 132(t0)
+    csrr t1, mtvec
+    sw t1, 136(t0)
+    csrr t1, mscratch
+    sw t1, 140(t0)
+    csrr t1, mepc
+    sw t1, 144(t0)
+    csrr t1, mcause
+    sw t1, 148(t0)
+    csrr t1, mtval
+    sw t1, 152(t0)
+    csrr t1, mcycle
+    sw t1, 156(t0)
+    csrr t1, minstret
+    sw t1, 160(t0)
 
-    la a0, POWER_MANAGER_START_ADDRESS
-    la a1, power_manager_cpu_restore
-    sw a1, POWER_MANAGER_RESTORE_ADDRESS_REG_OFFSET(a0)
+    la t0, POWER_MANAGER_START_ADDRESS
+    //save return address to restore
+    la t1, power_manager_cpu_restore
+    sw t1, POWER_MANAGER_RESTORE_ADDRESS_REG_OFFSET(a0)
 
     // wait for interrupt
     wfi
