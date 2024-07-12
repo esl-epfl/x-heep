@@ -1078,6 +1078,8 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
+    dma_init(NULL);
+
     tgt_src.ptr            = (uint8_t *) test_data;
     tgt_src.inc_du         = SRC_INC_D1;
     tgt_src.inc_d2_du      = SRC_INC_D2;
@@ -1153,13 +1155,13 @@ int main()
     #endif
 
     /* Wait for CH1 to end */
-    while(!dma_is_ready(0)) {
+    while(!dma_is_ready(1)) {
         #if !EN_PERF
         /* Disable_interrupts */
         /* This does not prevent waking up the core as this is controlled by the MIP register */
         
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if ( dma_is_ready(0) == 0 ) {
+        if ( dma_is_ready(1) == 0 ) {
             wait_for_interrupt();
             /* From here the core wakes up even if we did not jump to the ISR */
         }
