@@ -1,5 +1,6 @@
 import subprocess
 import re
+import time
 
 def parse_data(data):
     results = []
@@ -28,23 +29,23 @@ max_masters_per_slave = 2
 num_channels_dma = 5
 num_channels_dma_min = 1
 
-batch_max = 6
+batch_max = 4
 batch_min = 1
 
 channels_max = 4
 channels_min = 1
 
-im_h_max = 15
+im_h_max = 13
 im_h_min = 10
 
-im_w_max = 11
+im_w_max = 13
 im_w_min = 10
 
-ker_h_max = 4
-ker_h_min = 2
+ker_h_max = 5
+ker_h_min = 3
 
-ker_w_max = 4
-ker_w_min = 2
+ker_w_max = 5
+ker_w_min = 3
 
 pad_top_max = 3
 pad_top_min = 1
@@ -141,6 +142,8 @@ def modify_parameters(file_path, modifications, patterns):
 
 cpu_done = 0
 iteration = 0
+execution_times = []
+start_loop_time = time.time()
 
 for i in range(num_channels_dma_min, num_channels_dma):
     print("_______________________\n\r")
@@ -173,6 +176,8 @@ for i in range(num_channels_dma_min, num_channels_dma):
                                             for t in range(stride_d1_min, stride_d1_max):
 
                                                 for u in range(stride_d2_min, stride_d2_max):
+                                                    start_time = time.time()
+
                                                     print("Batch size: ", j)
                                                     print("Number of input channels: ", k)
                                                     print("Image height: ", l)
@@ -214,8 +219,6 @@ for i in range(num_channels_dma_min, num_channels_dma):
                                                     progress = (iteration)/((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) * (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) * (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) * (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) * (im_w_max - im_w_min) * (im_h_max - im_h_min) * (channels_max - channels_min) * (batch_max - batch_min) * (num_channels_dma - num_channels_dma_min)) * 100
                                                     
                                                     print("Progress: {:.2f}%".format(progress))
-
-                                                    print("_______________________\n")
 
                                                     # Replace the matched pattern with the new value
                                                     new_content = im2col_lib_pattern.sub(f'#define SPC_CH_MASK 0b{mask}', content)
@@ -273,6 +276,22 @@ for i in range(num_channels_dma_min, num_channels_dma):
                                                             im2col_dma_2d_C.append(string)
                                                         elif int(test) == 3:
                                                             im2col_spc.append(string)
+                                                    
+                                                    end_time = time.time()
+                                                    cycle_time = end_time - start_time
+                                                    execution_times.append(cycle_time)
+                                                    average_time = sum(execution_times) / len(execution_times)
+                                                    total_time_elapsed = time.time() - start_loop_time
+                                                    total_estimated_time = total_time_elapsed / progress * 100
+                                                    estimated_remaining_time = total_estimated_time - total_time_elapsed
+                                                    hours, remainder = divmod(estimated_remaining_time, 3600)
+                                                    minutes, seconds = divmod(remainder, 60)
+
+                                                    print(f"Cycle time: {cycle_time:.2f}s")
+                                                    print(f"Average time: {average_time:.2f}s")
+                                                    print(f"Remaining time: {hours}h:{minutes}m:{seconds:.2f}s")
+
+                                                    print("_______________________\n")
     if (not cpu_done):
         im2col_cpu_array.append(im2col_cpu)
         im2col_dma_2d_C_array.append(im2col_dma_2d_C)
