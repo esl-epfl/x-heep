@@ -17,6 +17,6 @@ jobs:
           conda activate core-v-mini-mcu
           make clean-all
           sed 's/is_included: "no",/is_included: "yes",/' -i mcu_cfg.hjson
-          sed 's/num_channels:   0x1,/num_channels:   0x4,/' -i mcu_cfg.hjson
+          sed 's/num_channels:   0x1$/num_channels:   0x4/' -i mcu_cfg.hjson
           make mcu-gen MEMORY_BANKS=6
           python3 .github/workflows/sim-apps-job/test_apps.py

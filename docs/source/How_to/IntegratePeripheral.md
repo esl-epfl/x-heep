@@ -153,14 +153,14 @@ II. The module must be instantiated in the peripheral subsystem:
      - hw/ip/<peripheral>/<peripheral>.vlt
 ```
 
-8. The MCU configuration (mcu_cfg.json) must be adapted:
+8. The MCU configuration (mcu_cfg.hjson) must be adapted:
 
 ```diff
     peripherals: {
       <...>
 +        <peripheral>: {
-+            offset:  0x00060000,
-+            length:  0x00010000,
++            offset:  0x00060000
++            length:  0x00010000
 +        },
     },
 ```
