@@ -35,7 +35,7 @@ module dma_subsystem #(
     input logic [GLOBAL_SLOT_NUM-1:0] global_trigger_slot_i,
     input logic [EXT_SLOT_NUM-1:0] ext_trigger_slot_i,
 
-    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_stop_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
 
     output dma_done_intr_o,
     output dma_window_intr_o
@@ -83,7 +83,7 @@ module dma_subsystem #(
       ) dma_i (
           .clk_i,
           .rst_ni,
-          .dma_stop_i(dma_stop_i[i]),
+          .ext_dma_stop_i(ext_dma_stop_i[i]),
           .reg_req_i(submodules_req[i]),
           .reg_rsp_o(submodules_rsp[i]),
           .dma_read_ch0_req_o(xbar_read_req[i]),

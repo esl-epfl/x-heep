@@ -17,7 +17,7 @@ module dma #(
     input logic clk_i,
     input logic rst_ni,
 
-    input logic dma_stop_i,
+    input logic ext_dma_stop_i,
 
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
@@ -1031,7 +1031,7 @@ module dma #(
       // Read one word
       DMA_READ_FSM_ON: begin
         // If all input data read exit
-        if (dma_stop_i == 1'b0) begin
+        if (ext_dma_stop_i == 1'b0) begin
           if (dma_conf_1d == 1'b1) begin
             // 1D DMA case
             if (|dma_src_cnt_d1 == 1'b0) begin

@@ -275,7 +275,7 @@ module testharness #(
       .external_subsystem_clkgate_en_no(external_subsystem_clkgate_en_n),
       .ext_dma_slot_tx_i(ext_dma_slot_tx),
       .ext_dma_slot_rx_i(ext_dma_slot_rx),
-      .dma_stop_i('0)
+      .ext_dma_stop_i('0)
   );
 
   // Testbench external bus
@@ -469,7 +469,7 @@ module testharness #(
       ) dma_i (
           .clk_i,
           .rst_ni,
-          .dma_stop_i('0),
+          .ext_dma_stop_i('0),
           .reg_req_i(ext_periph_slv_req[testharness_pkg::MEMCOPY_CTRL_IDX]),
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::MEMCOPY_CTRL_IDX]),
           .dma_read_ch0_req_o(ext_master_req[testharness_pkg::EXT_MASTER0_IDX]),
