@@ -17,6 +17,8 @@ module dma #(
     input logic clk_i,
     input logic rst_ni,
 
+    input logic ext_dma_stop_i,
+
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
@@ -143,6 +145,14 @@ module dma #(
   logic                              data_in_gnt_virt_n;
   logic                              data_in_gnt_virt_n_n;
 
+  /* Interrupt Flag Register signals */
+  logic                              transaction_ifr;
+  logic                              dma_done_intr_n;
+  logic                              dma_done_intr;
+  logic                              window_ifr;
+  logic                              dma_window_intr;
+  logic                              dma_window_intr_n;
+
   /* FIFO signals */
   logic                              fifo_flush;
   logic                              fifo_full;
@@ -244,8 +254,13 @@ module dma #(
   assign data_out_rvalid = dma_write_ch0_resp_i.rvalid;
   assign data_out_rdata = dma_write_ch0_resp_i.rdata;
 
-  assign dma_done_intr_o = dma_done & reg2hw.interrupt_en.transaction_done.q;
-  assign dma_window_intr_o = dma_window_event & reg2hw.interrupt_en.window_done.q;
+  assign dma_done_intr = transaction_ifr;
+  assign dma_window_intr = window_ifr;
+
+  assign dma_done_intr_o = dma_done_intr_n;
+  assign hw2reg.transaction_ifr.d = transaction_ifr;
+  assign dma_window_intr_o = dma_window_intr_n;
+  assign hw2reg.window_ifr.d = window_ifr;
 
   assign dst_data_type = dma_data_type_t'(reg2hw.dst_data_type.q);
   assign src_data_type = dma_data_type_t'(reg2hw.src_data_type.q);
@@ -282,11 +297,11 @@ module dma #(
   };
   assign idle_to_right_ex = {
     |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b1 
-                      && dma_src_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + {14'h0, dma_cnt_du}) && dma_start == 1'b1
+                      && dma_src_cnt_d1 == ({11'h0, reg2hw.pad_right.q} + {14'h0, dma_cnt_du})
   };
   assign idle_to_bottom_ex = {
     |reg2hw.pad_top.q == 1'b0 && |reg2hw.pad_left.q == 1'b0 && |reg2hw.pad_right.q == 1'b0 && |reg2hw.pad_bottom.q == 1'b1 
-                      && dma_src_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && dma_start == 1'b1
+                      && dma_src_cnt_d2 == ({11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du})
   };
   assign top_ex_to_top_dn = {
     dma_src_cnt_d2 == ({1'h0, reg2hw.size_d2.q} + {11'h0, reg2hw.pad_bottom.q} + {14'h0, dma_cnt_du}) && dma_src_cnt_d1 == ({14'h0, dma_cnt_du}) && |reg2hw.pad_left.q == 1'b0
@@ -815,6 +830,14 @@ module dma #(
   // Pad counter flag logic
   always_comb begin : proc_pad_cnt_on
     case (pad_state_q)
+      PAD_IDLE: begin
+        if (idle_to_right_ex || idle_to_bottom_ex || idle_to_left_ex || idle_to_top_ex) begin
+          pad_cnt_on = 1'b1;
+        end else begin
+          pad_cnt_on = pad_fifo_on;
+        end
+      end
+
       TOP_PAD_DONE: begin
         if (top_dn_to_right_ex) begin
           pad_cnt_on = 1'b1;
@@ -934,6 +957,54 @@ module dma #(
     endcase
   end
 
+  /* Transaction IFR update */
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_transaction_ifr
+    if (~rst_ni) begin
+      transaction_ifr <= '0;
+    end else if (reg2hw.interrupt_en.transaction_done.q == 1'b1) begin
+      // Enter here only if the transaction_done interrupt is enabled
+      if (dma_done == 1'b1) begin
+        transaction_ifr <= 1'b1;
+      end else if (reg2hw.transaction_ifr.re == 1'b1) begin
+        // If the IFR bit is read, we must clear the transaction_ifr
+        transaction_ifr <= 1'b0;
+      end
+    end
+  end
+
+  /* Delayed transaction interrupt signals */
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_intr
+    if (~rst_ni) begin
+      dma_done_intr_n <= '0;
+    end else begin
+      dma_done_intr_n <= dma_done_intr;
+    end
+  end
+
+  /* Window IFR update */
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_window_ifr
+    if (~rst_ni) begin
+      window_ifr <= '0;
+    end else if (reg2hw.interrupt_en.window_done.q == 1'b1) begin
+      // Enter here only if the window_done interrupt is enabled
+      if (dma_window_event == 1'b1) begin
+        window_ifr <= 1'b1;
+      end else if (reg2hw.window_ifr.re == 1'b1) begin
+        // If the IFR bit is read, we must clear the window_ifr
+        window_ifr <= 1'b0;
+      end
+    end
+  end
+
+  /* Delayed window interrupt signals */
+  always_ff @(posedge clk_i, negedge rst_ni) begin : proc_ff_window_intr
+    if (~rst_ni) begin
+      dma_window_intr_n <= '0;
+    end else begin
+      dma_window_intr_n <= dma_window_intr;
+    end
+  end
+
   // Read master FSM
   always_comb begin : proc_dma_read_fsm_logic
 
@@ -960,35 +1031,39 @@ module dma #(
       // Read one word
       DMA_READ_FSM_ON: begin
         // If all input data read exit
-        if (dma_conf_1d == 1'b1) begin
-          // 1D DMA case
-          if (|dma_src_cnt_d1 == 1'b0) begin
-            dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
-          end else begin
-            dma_read_fsm_n_state = DMA_READ_FSM_ON;
-            // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
-            if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
-              data_in_req  = 1'b1;
-              data_in_we   = 1'b0;
-              data_in_be   = 4'b1111;  // always read all bytes
-              data_in_addr = read_ptr_reg;
+        if (ext_dma_stop_i == 1'b0) begin
+          if (dma_conf_1d == 1'b1) begin
+            // 1D DMA case
+            if (|dma_src_cnt_d1 == 1'b0) begin
+              dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
+            end else begin
+              dma_read_fsm_n_state = DMA_READ_FSM_ON;
+              // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
+              if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
+                data_in_req  = 1'b1;
+                data_in_we   = 1'b0;
+                data_in_be   = 4'b1111;  // always read all bytes
+                data_in_addr = read_ptr_reg;
+              end
+            end
+          end else if (dma_conf_2d == 1'b1) begin
+            // 2D DMA case: exit only if both 1d and 2d counters are at 0
+            if (dma_src_cnt_d1 == {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q} && |dma_src_cnt_d2 == 1'b0) begin
+              dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
+            end else begin
+              // The read operation is the same in both cases
+              dma_read_fsm_n_state = DMA_READ_FSM_ON;
+              // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
+              if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
+                data_in_req  = 1'b1;
+                data_in_we   = 1'b0;
+                data_in_be   = 4'b1111;  // always read all bytes
+                data_in_addr = read_ptr_reg;
+              end
             end
           end
-        end else if (dma_conf_2d == 1'b1) begin
-          // 2D DMA case: exit only if both 1d and 2d counters are at 0
-          if (dma_src_cnt_d1 == {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q} && |dma_src_cnt_d2 == 1'b0) begin
-            dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
-          end else begin
-            // The read operation is the same in both cases
-            dma_read_fsm_n_state = DMA_READ_FSM_ON;
-            // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
-            if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
-              data_in_req  = 1'b1;
-              data_in_we   = 1'b0;
-              data_in_be   = 4'b1111;  // always read all bytes
-              data_in_addr = read_ptr_reg;
-            end
-          end
+        end else begin
+          dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
         end
       end
     endcase

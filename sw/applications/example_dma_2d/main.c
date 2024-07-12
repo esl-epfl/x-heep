@@ -99,7 +99,7 @@ dma_input_data_type copied_data_1D_CPU[OUT_DIM_2D];
 
 dma_config_flags_t res_valid, res_load, res_launch;
 
-dma *peri = dma_peri;
+dma *peri = dma_peri(0);
 
 dma_target_t tgt_src;
 dma_target_t tgt_dst;
@@ -161,7 +161,7 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
-    tgt_src.ptr = test_data;
+    tgt_src.ptr = (uint8_t *) test_data;
     tgt_src.inc_du = SRC_INC_D1;
     tgt_src.inc_d2_du = SRC_INC_D2;
     tgt_src.size_du = SIZE_EXTR_D1;
@@ -169,7 +169,7 @@ int main()
     tgt_src.trig = DMA_TRIG_MEMORY;
     tgt_src.type = DMA_DATA_TYPE;
     
-    tgt_dst.ptr = copied_data_2D_DMA;
+    tgt_dst.ptr = (uint8_t *)  copied_data_2D_DMA;
     tgt_dst.inc_du = DST_INC_D1;
     tgt_dst.inc_d2_du = DST_INC_D2;
     tgt_dst.size_du = OUT_D1_PAD_STRIDE;
@@ -206,13 +206,13 @@ int main()
     PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     #endif
 
-    while( ! dma_is_ready()) {
+    while( ! dma_is_ready(0)) {
         #if !EN_PERF
         /* Disable_interrupts */
         /* This does not prevent waking up the core as this is controlled by the MIP register */
         
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if ( dma_is_ready() == 0 ) {
+        if ( dma_is_ready(0) == 0 ) {
             wait_for_interrupt();
             /* From here the core wakes up even if we did not jump to the ISR */
         }
@@ -347,7 +347,7 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
-    tgt_src.ptr            = &test_data[0];
+    tgt_src.ptr            = (uint8_t *) test_data;
     tgt_src.inc_du         = SRC_INC_TRSP_D1;
     tgt_src.inc_d2_du      = SRC_INC_TRSP_D2;
     tgt_src.size_du        = SIZE_EXTR_D1;
@@ -355,7 +355,7 @@ int main()
     tgt_src.trig           = DMA_TRIG_MEMORY;
     tgt_src.type           = DMA_DATA_TYPE;
 
-    tgt_dst.ptr            = &copied_data_2D_DMA[0];
+    tgt_dst.ptr            = (uint8_t *) copied_data_2D_DMA;
     tgt_dst.inc_du         = DST_INC_D1;
     tgt_dst.inc_d2_du      = DST_INC_D2;
     tgt_dst.trig           = DMA_TRIG_MEMORY;
@@ -390,13 +390,13 @@ int main()
     PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     #endif
 
-    while( ! dma_is_ready()) {
+    while( ! dma_is_ready(0)) {
         #if !EN_PERF
         /* Disable_interrupts */
         /* This does not prevent waking up the core as this is controlled by the MIP register */
         
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if ( dma_is_ready() == 0 ) {
+        if ( dma_is_ready(0) == 0 ) {
             wait_for_interrupt();
             /* From here the core wakes up even if we did not jump to the ISR */
         }
@@ -526,7 +526,7 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
-    tgt_src.ptr            = &test_data[0];
+    tgt_src.ptr            = (uint8_t *) test_data;
     tgt_src.inc_du         = SRC_INC_D1;
     tgt_src.size_du        = SIZE_EXTR_D1;
     tgt_src.inc_d2_du      = 0;
@@ -534,7 +534,7 @@ int main()
     tgt_src.trig           = DMA_TRIG_MEMORY;
     tgt_src.type           = DMA_DATA_TYPE;
 
-    tgt_dst.ptr            = copied_data_1D_DMA;
+    tgt_dst.ptr            = (uint8_t *) copied_data_1D_DMA;
     tgt_dst.inc_du         = DST_INC_D1;
     tgt_dst.inc_d2_du      = 0;
     tgt_dst.trig           = DMA_TRIG_MEMORY;
@@ -569,12 +569,12 @@ int main()
     PRINTF("laun: %u \t%s\n\r", res_launch, res_launch == DMA_CONFIG_OK ?  "Ok!" : "Error!");
     #endif
 
-    while( ! dma_is_ready()) {
+    while( ! dma_is_ready(0)) {
         #if !EN_PERF
         /* Disable_interrupts */
         
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if ( dma_is_ready() == 0 ) {
+        if ( dma_is_ready(0) == 0 ) {
             wait_for_interrupt();
         }
         CSR_SET_BITS(CSR_REG_MSTATUS, 0x8);
@@ -702,8 +702,8 @@ int main()
     CSR_SET_BITS(CSR_REG_MIE, DMA_CSR_REG_MIE_MASK);
 
     /* Pointer set up */
-    peri->SRC_PTR = &test_data[0];
-    peri->DST_PTR = copied_data_2D_DMA;
+    peri->SRC_PTR = (uint32_t) (test_data);
+    peri->DST_PTR = (uint32_t) (copied_data_2D_DMA);
 
     /* Dimensionality configuration */
     write_register( 0x1,
@@ -795,13 +795,13 @@ int main()
                     DMA_SIZE_D1_SIZE_OFFSET,
                     peri );
 
-    while( ! dma_is_ready()) {
+    while( ! dma_is_ready(0)) {
         #if !EN_PERF
         /* Disable_interrupts */
         /* This does not prevent waking up the core as this is controlled by the MIP register */
         
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if ( dma_is_ready() == 0 ) {
+        if ( dma_is_ready(0) == 0 ) {
             wait_for_interrupt();
             /* From here the core wakes up even if we did not jump to the ISR */
         }
