@@ -86,9 +86,9 @@ ${pad.core_v_mini_mcu_interface}
 
     output logic [31:0] exit_value_o,
 
-    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
-    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i
     // External SPC interface
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i,
     output logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] dma_done_o
 );
 
@@ -446,7 +446,7 @@ ${pad.core_v_mini_mcu_interface}
       .ext_peripheral_slave_resp_i,
       .ext_dma_slot_tx_i,
       .ext_dma_slot_rx_i,
-      .ext_dma_stop_i
+      .ext_dma_stop_i,
       .dma_done_o
   );
 

@@ -3,6 +3,8 @@ import re
 import time
 import serial
 import pexpect
+import threading
+import queue
 
 # Configura la porta seriale
 ser = serial.Serial(
@@ -18,19 +20,18 @@ openocd_proc = subprocess.Popen(openocd_cmd)
 # Attendi che OpenOCD si avvii completamente
 time.sleep(2)
 
-def LaunchGdb():
-  # Step 2: Avvia GDB in un altro processo
-  gdb_cmd = ['$RISCV/bin/riscv32-unknown-elf-gdb', './sw/build/main.elf']
-  gdb = pexpect.spawn(' '.join(gdb_cmd))
+# Step 2: Avvia GDB in un altro processo
+gdb_cmd = ['$RISCV/bin/riscv32-unknown-elf-gdb', './sw/build/main.elf']
+gdb = pexpect.spawn(' '.join(gdb_cmd))
 
-  # Imposta il file di log per vedere l'output
-  gdb.logfile = open('gdb_log.txt', 'wb')
+# Coda per memorizzare le linee lette dalla porta seriale
+serial_queue = queue.Queue()
 
-  # Step 3: Invia comandi a GDB
-  gdb.expect('(gdb)')
-  gdb.sendline('target remote localhost:3333')
+gdb.expect('(gdb)')
+gdb.sendline('target remote localhost:3333')
+gdb.expect('(gdb)')
 
-  gdb.expect('(gdb)')
+def RunGdb():
   gdb.sendline('load')
 
   gdb.expect('(gdb)')
@@ -47,6 +48,7 @@ def LaunchGdb():
     openocd_proc.terminate()
     exit(1)
 
+def StopGdb():
   gdb.sendcontrol('c')
 
   # Chiudi il processo GDB
@@ -58,16 +60,19 @@ def LaunchGdb():
   # Termina il processo OpenOCD
   openocd_proc.terminate()
 
-def SerialReceiver():
+def SerialReceiver(serial_queue):
   try:
       received = False
+      lines = []
       while not received:
           # Leggi una riga di dati dalla porta seriale
           line = ser.readline().decode('utf-8').rstrip()
+          serial_queue.put(line)
           if line:
               print(f"Ricevuto: {line}")
               if line == "END":
                 received = True
+                return
   except KeyboardInterrupt:
       print("Interruzione da tastiera. Chiudo la porta seriale.")
   finally:
@@ -138,7 +143,7 @@ imcol_lib_dir = "im2col_lib.h"
 
 verification_script_com = "python verification_script.py"
 
-app_compile_run_com = " cd ../../../ ; make app PROJECT=example_im2col LINKER=flash_load TARGET=pynq_z2 ; make flash-prog "
+app_compile_run_com = " cd ../../../ ; make app PROJECT=example_im2col TARGET=pynq_z2 "
 
 ver_patterns = {
     'image_height': r'(image_height\s*=\s*)\d+',
@@ -308,31 +313,42 @@ for i in range(num_channels_dma_min, num_channels_dma):
                                                     subprocess.run(verification_script_com, shell=True, text=True)
                                                     result = subprocess.run(app_compile_run_com, shell=True, capture_output=True, text=True)
                                                     
+                                                    # Crea e avvia i thread per GDB e la lettura seriale
+                                                    gdb_thread = threading.Thread(target=RunGdb)
+                                                    serial_thread = threading.Thread(target=SerialReceiver, args=(serial_queue,))
+
+                                                    gdb_thread.start()
+                                                    serial_thread.start()
+
+                                                    # Aspetta che entrambi i thread terminino
+                                                    gdb_thread.join()
+                                                    serial_thread.join()
+
+                                                    # Recupera tutte le linee lette dalla porta seriale
+                                                    lines = []
+                                                    while not serial_queue.empty():
+                                                        lines.append(serial_queue.get())
+
                                                     pattern = re.compile(r'ID:(\d+)')
                                                     pattern_2 = re.compile(r'c:(\d+)')
                                                     err_pattern = re.compile(r'ERROR')
-                                                    err_pattern_small = re.compile(r'error')
-                                                    #print(result.stdout)
+                                                    err_pattern = re.compile(r'ERROR', re.IGNORECASE)
 
-                                                    # Array to store the cycles for each test
+                                                    # Array per memorizzare i cicli per ogni test
                                                     cycles = []
 
-                                                    file_path = "../../../build/openhwgroup.org_systems_core-v-mini-mcu_0/sim-verilator/uart0.log"
-
-                                                    # Filter and extract the data
+                                                    # Filtra ed estrae i dati
                                                     test_number = None
-                                                    with open(file_path, 'r') as file:
-                                                      for line in file:
+                                                    for line in lines:
                                                         match = pattern.search(line)
                                                         match_2 = pattern_2.search(line)
                                                         err_match = err_pattern.search(line)
-                                                        err_match_small = err_pattern_small.search(line)
                                                         if match:
                                                             test_number = match.group(1)
                                                         elif match_2:
                                                             cycle_count = match_2.group(1)
                                                             cycles.append((test_number, cycle_count))
-                                                        elif err_match or err_match_small:
+                                                        elif err_match:
                                                             print("ERROR FOUND")
                                                             break
                                                     
@@ -369,6 +385,8 @@ for i in range(num_channels_dma_min, num_channels_dma):
     im2col_spc_array.append(im2col_spc)
     print(im2col_cpu)
     cpu_done = 1
+
+StopGdb()
 
 with open('im2col_data.txt', 'w') as file:
     file.write("im2col_cpu:\n")

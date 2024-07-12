@@ -118,7 +118,7 @@ module dma_subsystem #(
           .reg_rsp_t (reg_pkg::reg_rsp_t),
           .obi_req_t (obi_pkg::obi_req_t),
           .obi_resp_t(obi_pkg::obi_resp_t),
-          .SLOT_NUM  (GLOBAL_SLOT_NUM + 2)
+          .SLOT_NUM  (GLOBAL_SLOT_NUM + 2),
           .FIFO_DEPTH (fifo_size)
       ) dma_i (
           .clk_i,
@@ -126,12 +126,12 @@ module dma_subsystem #(
           .ext_dma_stop_i(ext_dma_stop_i[i]),
           .reg_req_i(submodules_req[i]),
           .reg_rsp_o(submodules_rsp[i]),
-          .dma_read_ch0_req_o(xbar_read_req[i]),
-          .dma_read_ch0_resp_i(xbar_read_resp[i]),
-          .dma_write_ch0_req_o(xbar_write_req[i]),
-          .dma_write_ch0_resp_i(xbar_write_resp[i]),
-          .dma_addr_ch0_req_o(xbar_address_req[i]),
-          .dma_addr_ch0_resp_i(xbar_address_resp[i]),
+          .dma_read_req_o(xbar_read_req[i]),
+          .dma_read_resp_i(xbar_read_resp[i]),
+          .dma_write_req_o(xbar_write_req[i]),
+          .dma_write_resp_i(xbar_write_resp[i]),
+          .dma_addr_req_o(xbar_address_req[i]),
+          .dma_addr_resp_i(xbar_address_resp[i]),
           .trigger_slot_i({
             ext_trigger_slot_i[2*i+1], ext_trigger_slot_i[2*i], global_trigger_slot_i
           }),

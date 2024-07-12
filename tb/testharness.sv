@@ -287,7 +287,7 @@ module testharness #(
       .external_subsystem_clkgate_en_no(external_subsystem_clkgate_en_n),
       .ext_dma_slot_tx_i(ext_dma_slot_tx),
       .ext_dma_slot_rx_i(ext_dma_slot_rx),
-      .ext_dma_stop_i('0)
+      .ext_dma_stop_i('0),
       .dma_done_o(dma_busy)
   );
 
