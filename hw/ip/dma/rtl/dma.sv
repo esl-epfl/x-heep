@@ -19,6 +19,8 @@ module dma #(
     input logic clk_i,
     input logic rst_ni,
 
+    input logic ext_dma_stop_i,
+
     input  reg_req_t reg_req_i,
     output reg_rsp_t reg_rsp_o,
 
@@ -92,6 +94,9 @@ module dma #(
   logic                              data_out_rvalid;
   logic        [               31:0] data_out_rdata;
 
+  /* Sign extension signals */
+  logic                              sign_extend;
+
   /* 2D signals */
 
   /* Dimensionality configuration */
@@ -162,22 +167,30 @@ module dma #(
   logic                              fifo_addr_full;
   logic fifo_addr_empty, fifo_addr_empty_check;
 
-  logic        wait_for_rx;
-  logic        wait_for_tx;
+  logic wait_for_rx;
+  logic wait_for_tx;
 
-  logic [ 1:0] data_type;
+  typedef enum logic [1:0] {
+    DMA_DATA_TYPE_WORD,
+    DMA_DATA_TYPE_HALF_WORD,
+    DMA_DATA_TYPE_BYTE,
+    DMA_DATA_TYPE_BYTE_
+  } dma_data_type_t;
 
-  logic [31:0] fifo_input;
-  logic [31:0] fifo_addr_input;
-  logic [31:0] fifo_output;
-  logic [31:0] fifo_addr_output;
+  dma_data_type_t        dst_data_type;
+  dma_data_type_t        src_data_type;
 
-  logic [ 3:0] byte_enable_out;
+  logic           [31:0] fifo_input;
+  logic           [31:0] fifo_addr_input;
+  logic           [31:0] fifo_output;
+  logic           [31:0] fifo_addr_output;
 
-  logic        circular_mode;
-  logic        address_mode;
+  logic           [ 3:0] byte_enable_out;
 
-  logic        dma_start_pending;
+  logic                  circular_mode;
+  logic                  address_mode;
+
+  logic                  dma_start_pending;
 
   enum {
     DMA_READY,
@@ -256,7 +269,8 @@ module dma #(
   assign dma_window_intr_o = dma_window_intr_n;
   assign hw2reg.window_ifr.d = window_ifr;
 
-  assign data_type = reg2hw.data_type.q;
+  assign dst_data_type = dma_data_type_t'(reg2hw.dst_data_type.q);
+  assign src_data_type = dma_data_type_t'(reg2hw.src_data_type.q);
 
   assign hw2reg.status.ready.d = (dma_state_q == DMA_READY);
 
@@ -277,6 +291,10 @@ module dma #(
   assign dma_src_d1_inc = reg2hw.src_ptr_inc_d1.q;
   assign dma_dst_d2_inc = reg2hw.dst_ptr_inc_d2.q;
   assign dma_dst_d1_inc = reg2hw.dst_ptr_inc_d1.q;
+
+  /* Sign extend flag */
+
+  assign sign_extend = reg2hw.sign_ext.q & ( (src_data_type[1] & ~dst_data_type[1]) | ((src_data_type[1] == dst_data_type[1]) & (src_data_type[0] & ~dst_data_type[0])));
 
   /* Padding FSM conditions assignments */
   assign idle_to_top_ex = {|reg2hw.pad_top.q == 1'b1 && dma_start == 1'b1};
@@ -578,18 +596,18 @@ module dma #(
   end
 
   always_comb begin
-    case (data_type)
-      2'b00: dma_cnt_du = 3'h4;
-      2'b01: dma_cnt_du = 3'h2;
-      2'b10, 2'b11: dma_cnt_du = 3'h1;
+    case (dst_data_type)
+      DMA_DATA_TYPE_WORD: dma_cnt_du = 3'h4;
+      DMA_DATA_TYPE_HALF_WORD: dma_cnt_du = 3'h2;
+      DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_BYTE_: dma_cnt_du = 3'h1;
     endcase
   end
 
   always_comb begin : proc_byte_enable_out
-    case (data_type)  // Data type 00 Word, 01 Half word, 11,10 byte
-      2'b00: byte_enable_out = 4'b1111;  // Writing a word (32 bits)
+    case (dst_data_type)  // Data type 00 Word, 01 Half word, 11,10 byte
+      DMA_DATA_TYPE_WORD: byte_enable_out = 4'b1111;  // Writing a word (32 bits)
 
-      2'b01: begin  // Writing a half-word (16 bits)
+      DMA_DATA_TYPE_HALF_WORD: begin  // Writing a half-word (16 bits)
         case (write_address[1])
           1'b0: byte_enable_out = 4'b0011;
           1'b1: byte_enable_out = 4'b1100;
@@ -597,7 +615,7 @@ module dma #(
         ;  // case(write_address[1:0])
       end
 
-      2'b10, 2'b11: begin  // Writing a byte (8 bits)
+      DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_BYTE_: begin  // Writing a byte (8 bits)
         case (write_address[1:0])
           2'b00: byte_enable_out = 4'b0001;
           2'b01: byte_enable_out = 4'b0010;
@@ -607,7 +625,7 @@ module dma #(
         ;  // case(write_address[1:0])
       end
     endcase
-    ;  // case (data_type)
+    ;  // case (dst_data_type)
   end
 
   // Output data shift
@@ -619,18 +637,92 @@ module dma #(
     data_out_wdata[31:24] = fifo_output[31:24];
 
     case (write_address[1:0])
-      2'b00: ;
-
-      2'b01: data_out_wdata[15:8] = fifo_output[7:0];
-
-      2'b10: begin
+      2'b00: begin
+        if (sign_extend) begin
+          case ({
+            src_data_type, dst_data_type
+          })
+            {DMA_DATA_TYPE_WORD, DMA_DATA_TYPE_WORD} : ;
+            {
+              DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_WORD
+            } :
+            data_out_wdata[31:16] = {16{fifo_output[15]}};
+            {
+              DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_WORD
+            }, {
+              DMA_DATA_TYPE_BYTE_, DMA_DATA_TYPE_WORD
+            } :
+            data_out_wdata[31:8] = {24{fifo_output[7]}};
+            {DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_HALF_WORD} : ;
+            {
+              DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_HALF_WORD
+            }, {
+              DMA_DATA_TYPE_BYTE_, DMA_DATA_TYPE_HALF_WORD
+            } :
+            data_out_wdata[15:8] = {8{fifo_output[7]}};
+            default: ;
+          endcase
+        end else begin
+          case ({
+            src_data_type, dst_data_type
+          })
+            {DMA_DATA_TYPE_WORD, DMA_DATA_TYPE_WORD} : ;
+            {DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_WORD} : data_out_wdata[31:16] = 16'b0;
+            {
+              DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_WORD
+            }, {
+              DMA_DATA_TYPE_BYTE_, DMA_DATA_TYPE_WORD
+            } :
+            data_out_wdata[31:8] = 24'b0;
+            {DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_HALF_WORD} : ;
+            {
+              DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_HALF_WORD
+            }, {
+              DMA_DATA_TYPE_BYTE_, DMA_DATA_TYPE_HALF_WORD
+            } :
+            data_out_wdata[15:8] = 8'b0;
+            default: ;
+          endcase
+        end
+      end
+      2'b01: data_out_wdata[15:8] = fifo_output[7:0];  // Writing a byte, no need for sign extension
+      2'b10: begin  // Writing a half-word or a byte
         data_out_wdata[23:16] = fifo_output[7:0];
         data_out_wdata[31:24] = fifo_output[15:8];
-      end
 
-      2'b11: data_out_wdata[31:24] = fifo_output[7:0];
+        if (sign_extend) begin
+          case ({
+            src_data_type, dst_data_type
+          })
+            {DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_HALF_WORD} : ;
+            {
+              DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_HALF_WORD
+            }, {
+              DMA_DATA_TYPE_BYTE_, DMA_DATA_TYPE_HALF_WORD
+            } :
+            data_out_wdata[31:24] = {8{fifo_output[7]}};
+            default: ;
+          endcase
+        end else begin
+          case ({
+            src_data_type, dst_data_type
+          })
+            {DMA_DATA_TYPE_HALF_WORD, DMA_DATA_TYPE_HALF_WORD} : ;
+            {
+              DMA_DATA_TYPE_BYTE, DMA_DATA_TYPE_HALF_WORD
+            }, {
+              DMA_DATA_TYPE_BYTE_, DMA_DATA_TYPE_HALF_WORD
+            } :
+            data_out_wdata[31:24] = 8'b0;
+            default: ;
+          endcase
+        end
+      end
+      2'b11:
+      data_out_wdata[31:24] = fifo_output[7:0];  // Writing a byte, no need for sign extension
     endcase
   end
+
 
   assign fifo_addr_input = data_addr_in_rdata;  //never misaligned, always 32b
 
@@ -952,35 +1044,39 @@ module dma #(
       // Read one word
       DMA_READ_FSM_ON: begin
         // If all input data read exit
-        if (dma_conf_1d == 1'b1) begin
-          // 1D DMA case
-          if (|dma_src_cnt_d1 == 1'b0) begin
-            dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
-          end else begin
-            dma_read_fsm_n_state = DMA_READ_FSM_ON;
-            // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
-            if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
-              data_in_req  = 1'b1;
-              data_in_we   = 1'b0;
-              data_in_be   = 4'b1111;  // always read all bytes
-              data_in_addr = read_ptr_reg;
+        if (ext_dma_stop_i == 1'b0) begin
+          if (dma_conf_1d == 1'b1) begin
+            // 1D DMA case
+            if (|dma_src_cnt_d1 == 1'b0) begin
+              dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
+            end else begin
+              dma_read_fsm_n_state = DMA_READ_FSM_ON;
+              // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
+              if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
+                data_in_req  = 1'b1;
+                data_in_we   = 1'b0;
+                data_in_be   = 4'b1111;  // always read all bytes
+                data_in_addr = read_ptr_reg;
+              end
+            end
+          end else if (dma_conf_2d == 1'b1) begin
+            // 2D DMA case: exit only if both 1d and 2d counters are at 0
+            if (dma_src_cnt_d1 == {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q} && |dma_src_cnt_d2 == 1'b0) begin
+              dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
+            end else begin
+              // The read operation is the same in both cases
+              dma_read_fsm_n_state = DMA_READ_FSM_ON;
+              // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
+              if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
+                data_in_req  = 1'b1;
+                data_in_we   = 1'b0;
+                data_in_be   = 4'b1111;  // always read all bytes
+                data_in_addr = read_ptr_reg;
+              end
             end
           end
-        end else if (dma_conf_2d == 1'b1) begin
-          // 2D DMA case: exit only if both 1d and 2d counters are at 0
-          if (dma_src_cnt_d1 == {1'h0, reg2hw.size_d1.q} + {11'h0, reg2hw.pad_left.q} + {11'h0, reg2hw.pad_right.q} && |dma_src_cnt_d2 == 1'b0) begin
-            dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
-          end else begin
-            // The read operation is the same in both cases
-            dma_read_fsm_n_state = DMA_READ_FSM_ON;
-            // Wait if fifo is full, almost full (last data), or if the SPI RX does not have valid data (only in SPI mode 1).
-            if (fifo_full == 1'b0 && fifo_alm_full == 1'b0 && wait_for_rx == 1'b0) begin
-              data_in_req  = 1'b1;
-              data_in_we   = 1'b0;
-              data_in_be   = 4'b1111;  // always read all bytes
-              data_in_addr = read_ptr_reg;
-            end
-          end
+        end else begin
+          dma_read_fsm_n_state = DMA_READ_FSM_IDLE;
         end
       end
     endcase

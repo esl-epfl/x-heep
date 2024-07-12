@@ -1,18 +1,10 @@
-## Run on FPGA
-
-Follow the [Debug](./Debug.md) guide to debug core-v-mini-mcu.
-
-## Execute From Flash
-
-Follow the [ExecuteFromFlash](./ExecuteFromFlash.md) guide to execute code directly from the FLASH with modelsim, FPGA, or ASIC.
-
-## Emulation on Xilinx FPGAs
+# Run on FPGA
 
 This project offers two different X-HEEP implementetions on Xilinx FPGAs, called Standalone and FEMU.
 
-### Standalone
+## Standalone
 
-#### Set-up
+### Set-up
 In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the FPGA, and its input/output are connected to the available headers on the FPGA board.
 
 Two FPGA boards are supported: the Xilinx Pynq-z2 and Nexys-A7-100t.
@@ -30,7 +22,7 @@ Two FPGA boards are supported: the Xilinx Pynq-z2 and Nexys-A7-100t.
 * Follow the [instructions for Linux](https://docs.amd.com/api/khub/documents/6EIhov6ruoilhq8zq7bXBA/content?Ft-Calling-App=ft%2Fturnkey-portal&Ft-Calling-App-Version=4.3.26#G4.262534)
 * Restart your PC
 
-#### Running
+### Running
 
 To build and program the bitstream for your FPGA with vivado, type:
 
@@ -70,10 +62,8 @@ or
 make vivado-fpga-pgm FPGA_BOARD=nexys-a7-100t
 ```
 
-To run SW, follow the [Debug](./Debug.md) guide
-to load the binaries with the HS2 cable over JTAG,
-or follow the [ExecuteFromFlash](./ExecuteFromFlash.md)
-guide if you have a FLASH attached to the FPGA.
+To run SW, follow the [Debug](./Debug.md) guide to load the binaries with the HS2 cable over JTAG,
+or follow the [ExecuteFromFlash](./ExecuteFromFlash.md) guide if you have a FLASH attached to the FPGA.
 
 Do not forget that the `pynq-z2` board requires you to have the ethernet cable attached to the board while running.
 
@@ -84,7 +74,7 @@ To look at the output of your printf, run in another terminal:
 `picocom -b 9600 -r -l --imap lfcrlf /dev/ttyUSB2`
 Please be sure to use the right `ttyUSB` number (you can discover it with `dmesg --time-format iso | grep FTDI` for example).
 
-### FPGA EMUlation Platform (FEMU)
+## FPGA EMUlation Platform (FEMU)
 
 In this version, the X-HEEP architecture is implemented on the programmable logic (PL) side of the Xilinx Zynq-7020 chip on the Pynq-Z2 board and Linux is run on the ARM-based processing system (PS) side of the same chip.
 

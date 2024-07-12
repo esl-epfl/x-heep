@@ -15,7 +15,8 @@ module dma_subsystem #(
     parameter type reg_rsp_t = logic,
     parameter type obi_req_t = logic,
     parameter type obi_resp_t = logic,
-    parameter int unsigned SLOT_NUM = 0
+    parameter int unsigned GLOBAL_SLOT_NUM = 0,
+    parameter int unsigned EXT_SLOT_NUM = 0
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -32,7 +33,10 @@ module dma_subsystem #(
     output obi_req_t  dma_addr_req_o [core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
     input  obi_resp_t dma_addr_resp_i[core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS-1:0],
 
-    input logic [SLOT_NUM-1:0] trigger_slot_i,
+    input logic [GLOBAL_SLOT_NUM-1:0] global_trigger_slot_i,
+    input logic [EXT_SLOT_NUM-1:0] ext_trigger_slot_i,
+
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
 
     output dma_done_intr_o,
     output dma_window_intr_o,
@@ -114,20 +118,23 @@ module dma_subsystem #(
           .reg_rsp_t (reg_pkg::reg_rsp_t),
           .obi_req_t (obi_pkg::obi_req_t),
           .obi_resp_t(obi_pkg::obi_resp_t),
-          .SLOT_NUM  (SLOT_NUM),
+          .SLOT_NUM  (GLOBAL_SLOT_NUM + 2)
           .FIFO_DEPTH (fifo_size)
       ) dma_i (
           .clk_i,
           .rst_ni,
+          .ext_dma_stop_i(ext_dma_stop_i[i]),
           .reg_req_i(submodules_req[i]),
           .reg_rsp_o(submodules_rsp[i]),
-          .dma_read_req_o(xbar_read_req[i]),
-          .dma_read_resp_i(xbar_read_resp[i]),
-          .dma_write_req_o(xbar_write_req[i]),
-          .dma_write_resp_i(xbar_write_resp[i]),
-          .dma_addr_req_o(xbar_address_req[i]),
-          .dma_addr_resp_i(xbar_address_resp[i]),
-          .trigger_slot_i(trigger_slot_i),
+          .dma_read_ch0_req_o(xbar_read_req[i]),
+          .dma_read_ch0_resp_i(xbar_read_resp[i]),
+          .dma_write_ch0_req_o(xbar_write_req[i]),
+          .dma_write_ch0_resp_i(xbar_write_resp[i]),
+          .dma_addr_ch0_req_o(xbar_address_req[i]),
+          .dma_addr_ch0_resp_i(xbar_address_resp[i]),
+          .trigger_slot_i({
+            ext_trigger_slot_i[2*i+1], ext_trigger_slot_i[2*i], global_trigger_slot_i
+          }),
           .dma_done_intr_o(dma_trans_done[i]),
           .dma_window_intr_o(dma_window_done[i]),
           .dma_done_o(dma_done_o[i])

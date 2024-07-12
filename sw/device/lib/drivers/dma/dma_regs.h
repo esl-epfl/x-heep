@@ -84,19 +84,35 @@ extern "C" {
 #define DMA_SLOT_TX_TRIGGER_SLOT_FIELD \
   ((bitfield_field32_t) { .mask = DMA_SLOT_TX_TRIGGER_SLOT_MASK, .index = DMA_SLOT_TX_TRIGGER_SLOT_OFFSET })
 
-// Width/type of the data to transfer
-#define DMA_DATA_TYPE_REG_OFFSET 0x2c
-#define DMA_DATA_TYPE_DATA_TYPE_MASK 0x3
-#define DMA_DATA_TYPE_DATA_TYPE_OFFSET 0
-#define DMA_DATA_TYPE_DATA_TYPE_FIELD \
-  ((bitfield_field32_t) { .mask = DMA_DATA_TYPE_DATA_TYPE_MASK, .index = DMA_DATA_TYPE_DATA_TYPE_OFFSET })
-#define DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD 0x0
-#define DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_16BIT_WORD 0x1
-#define DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD 0x2
-#define DMA_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD_2 0x3
+// Width/type of the source data to transfer
+#define DMA_SRC_DATA_TYPE_REG_OFFSET 0x2c
+#define DMA_SRC_DATA_TYPE_DATA_TYPE_MASK 0x3
+#define DMA_SRC_DATA_TYPE_DATA_TYPE_OFFSET 0
+#define DMA_SRC_DATA_TYPE_DATA_TYPE_FIELD \
+  ((bitfield_field32_t) { .mask = DMA_SRC_DATA_TYPE_DATA_TYPE_MASK, .index = DMA_SRC_DATA_TYPE_DATA_TYPE_OFFSET })
+#define DMA_SRC_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD 0x0
+#define DMA_SRC_DATA_TYPE_DATA_TYPE_VALUE_DMA_16BIT_WORD 0x1
+#define DMA_SRC_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD 0x2
+#define DMA_SRC_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD_2 0x3
+
+// Width/type of the destination data to transfer
+#define DMA_DST_DATA_TYPE_REG_OFFSET 0x30
+#define DMA_DST_DATA_TYPE_DATA_TYPE_MASK 0x3
+#define DMA_DST_DATA_TYPE_DATA_TYPE_OFFSET 0
+#define DMA_DST_DATA_TYPE_DATA_TYPE_FIELD \
+  ((bitfield_field32_t) { .mask = DMA_DST_DATA_TYPE_DATA_TYPE_MASK, .index = DMA_DST_DATA_TYPE_DATA_TYPE_OFFSET })
+#define DMA_DST_DATA_TYPE_DATA_TYPE_VALUE_DMA_32BIT_WORD 0x0
+#define DMA_DST_DATA_TYPE_DATA_TYPE_VALUE_DMA_16BIT_WORD 0x1
+#define DMA_DST_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD 0x2
+#define DMA_DST_DATA_TYPE_DATA_TYPE_VALUE_DMA_8BIT_WORD_2 0x3
+
+// Is the data to be sign extended? (Checked only if the dst data type is
+// wider than the src data type)
+#define DMA_SIGN_EXT_REG_OFFSET 0x34
+#define DMA_SIGN_EXT_SIGNED_BIT 0
 
 // Set the operational mode of the DMA
-#define DMA_MODE_REG_OFFSET 0x30
+#define DMA_MODE_REG_OFFSET 0x38
 #define DMA_MODE_MODE_MASK 0x3
 #define DMA_MODE_MODE_OFFSET 0
 #define DMA_MODE_MODE_FIELD \
@@ -106,66 +122,66 @@ extern "C" {
 #define DMA_MODE_MODE_VALUE_ADDRESS_MODE 0x2
 
 // Set the dimensionality of the DMA
-#define DMA_DIM_CONFIG_REG_OFFSET 0x34
+#define DMA_DIM_CONFIG_REG_OFFSET 0x3c
 #define DMA_DIM_CONFIG_DMA_DIM_BIT 0
 
 // DMA dimensionality inversion selector
-#define DMA_DIM_INV_REG_OFFSET 0x38
+#define DMA_DIM_INV_REG_OFFSET 0x40
 #define DMA_DIM_INV_SEL_BIT 0
 
 // Set the top padding
-#define DMA_PAD_TOP_REG_OFFSET 0x3c
+#define DMA_PAD_TOP_REG_OFFSET 0x44
 #define DMA_PAD_TOP_PAD_MASK 0x3f
 #define DMA_PAD_TOP_PAD_OFFSET 0
 #define DMA_PAD_TOP_PAD_FIELD \
   ((bitfield_field32_t) { .mask = DMA_PAD_TOP_PAD_MASK, .index = DMA_PAD_TOP_PAD_OFFSET })
 
 // Set the bottom padding
-#define DMA_PAD_BOTTOM_REG_OFFSET 0x40
+#define DMA_PAD_BOTTOM_REG_OFFSET 0x48
 #define DMA_PAD_BOTTOM_PAD_MASK 0x3f
 #define DMA_PAD_BOTTOM_PAD_OFFSET 0
 #define DMA_PAD_BOTTOM_PAD_FIELD \
   ((bitfield_field32_t) { .mask = DMA_PAD_BOTTOM_PAD_MASK, .index = DMA_PAD_BOTTOM_PAD_OFFSET })
 
 // Set the right padding
-#define DMA_PAD_RIGHT_REG_OFFSET 0x44
+#define DMA_PAD_RIGHT_REG_OFFSET 0x4c
 #define DMA_PAD_RIGHT_PAD_MASK 0x3f
 #define DMA_PAD_RIGHT_PAD_OFFSET 0
 #define DMA_PAD_RIGHT_PAD_FIELD \
   ((bitfield_field32_t) { .mask = DMA_PAD_RIGHT_PAD_MASK, .index = DMA_PAD_RIGHT_PAD_OFFSET })
 
 // Set the left padding
-#define DMA_PAD_LEFT_REG_OFFSET 0x48
+#define DMA_PAD_LEFT_REG_OFFSET 0x50
 #define DMA_PAD_LEFT_PAD_MASK 0x3f
 #define DMA_PAD_LEFT_PAD_OFFSET 0
 #define DMA_PAD_LEFT_PAD_FIELD \
   ((bitfield_field32_t) { .mask = DMA_PAD_LEFT_PAD_MASK, .index = DMA_PAD_LEFT_PAD_OFFSET })
 
 // Will trigger a every "WINDOW_SIZE" writes
-#define DMA_WINDOW_SIZE_REG_OFFSET 0x4c
+#define DMA_WINDOW_SIZE_REG_OFFSET 0x54
 #define DMA_WINDOW_SIZE_WINDOW_SIZE_MASK 0x1fff
 #define DMA_WINDOW_SIZE_WINDOW_SIZE_OFFSET 0
 #define DMA_WINDOW_SIZE_WINDOW_SIZE_FIELD \
   ((bitfield_field32_t) { .mask = DMA_WINDOW_SIZE_WINDOW_SIZE_MASK, .index = DMA_WINDOW_SIZE_WINDOW_SIZE_OFFSET })
 
 // Number of times the end of the window was reached since the beginning.
-#define DMA_WINDOW_COUNT_REG_OFFSET 0x50
+#define DMA_WINDOW_COUNT_REG_OFFSET 0x58
 #define DMA_WINDOW_COUNT_WINDOW_COUNT_MASK 0xff
 #define DMA_WINDOW_COUNT_WINDOW_COUNT_OFFSET 0
 #define DMA_WINDOW_COUNT_WINDOW_COUNT_FIELD \
   ((bitfield_field32_t) { .mask = DMA_WINDOW_COUNT_WINDOW_COUNT_MASK, .index = DMA_WINDOW_COUNT_WINDOW_COUNT_OFFSET })
 
 // Interrupt Enable Register
-#define DMA_INTERRUPT_EN_REG_OFFSET 0x54
+#define DMA_INTERRUPT_EN_REG_OFFSET 0x5c
 #define DMA_INTERRUPT_EN_TRANSACTION_DONE_BIT 0
 #define DMA_INTERRUPT_EN_WINDOW_DONE_BIT 1
 
 // Interrupt Flag Register for transactions
-#define DMA_TRANSACTION_IFR_REG_OFFSET 0x58
+#define DMA_TRANSACTION_IFR_REG_OFFSET 0x60
 #define DMA_TRANSACTION_IFR_FLAG_BIT 0
 
 // Interrupt Flag Register for windows
-#define DMA_WINDOW_IFR_REG_OFFSET 0x5c
+#define DMA_WINDOW_IFR_REG_OFFSET 0x64
 #define DMA_WINDOW_IFR_FLAG_BIT 0
 
 // The DMA will wait for the signal

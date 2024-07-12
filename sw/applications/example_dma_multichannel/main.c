@@ -319,10 +319,16 @@ int main()
                         dma_peri(i) );
 
         /* Data type configuration */
-        write_register( DMA_DATA_TYPE,
-                        DMA_DATA_TYPE_REG_OFFSET,
-                        DMA_DATA_TYPE_DATA_TYPE_MASK,
-                        DMA_DATA_TYPE_DATA_TYPE_OFFSET,
+        write_register(  DMA_DATA_TYPE,
+                        DMA_DST_DATA_TYPE_REG_OFFSET,
+                        DMA_DST_DATA_TYPE_DATA_TYPE_MASK,
+                        DMA_DST_DATA_TYPE_DATA_TYPE_OFFSET,
+                        dma_peri(i)  );
+    
+        write_register(  DMA_DATA_TYPE,
+                        DMA_SRC_DATA_TYPE_REG_OFFSET,
+                        DMA_SRC_DATA_TYPE_DATA_TYPE_MASK,
+                        DMA_SRC_DATA_TYPE_DATA_TYPE_OFFSET,
                         dma_peri(i) );
 
         /* Set the source strides */
@@ -560,7 +566,7 @@ int main()
 
     dma_init(NULL);
 
-    tgt_src.ptr            = &test_data[0];
+    tgt_src.ptr            = (uint8_t *) test_data;
     tgt_src.inc_du         = SRC_INC_D1;
     tgt_src.inc_d2_du      = SRC_INC_D2;
     tgt_src.size_du        = SIZE_EXTR_D1;
@@ -570,7 +576,7 @@ int main()
 
     for (int c=0; c<DMA_CH_NUM; c++)
     { 
-        tgt_dst[c].ptr            = copied_data_2D_DMA[c];
+        tgt_dst[c].ptr            = (uint8_t *) copied_data_2D_DMA[c];
         tgt_dst[c].inc_du         = DST_INC_D1;
         tgt_dst[c].inc_d2_du      = DST_INC_D2;
         tgt_dst[c].trig           = DMA_TRIG_MEMORY;
@@ -771,7 +777,7 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
-    tgt_src.ptr            = &test_data[0];
+    tgt_src.ptr            = (uint8_t *) test_data;
     tgt_src.inc_du         = SRC_INC_D1;
     tgt_src.inc_d2_du      = SRC_INC_D2;
     tgt_src.size_du        = SIZE_EXTR_D1;
@@ -779,7 +785,7 @@ int main()
     tgt_src.trig           = DMA_TRIG_MEMORY;
     tgt_src.type           = DMA_DATA_TYPE;
 
-    tgt_src_trsp.ptr            = &test_data[0];
+    tgt_src_trsp.ptr            = (uint8_t *) test_data;
     tgt_src_trsp.inc_du         = SRC_INC_TRSP_D1;
     tgt_src_trsp.inc_d2_du      = SRC_INC_TRSP_D2;
     tgt_src_trsp.size_du        = SIZE_EXTR_D1;
@@ -794,7 +800,7 @@ int main()
 
     for (int c=0; c<DMA_CH_NUM; c++)
     { 
-        tgt_dst[c].ptr            = copied_data_2D_DMA[c];
+        tgt_dst[c].ptr            = (uint8_t *) copied_data_2D_DMA[c];
         tgt_dst[c].inc_du         = DST_INC_D1;
         tgt_dst[c].inc_d2_du      = DST_INC_D2;
         tgt_dst[c].trig           = DMA_TRIG_MEMORY;
@@ -1007,6 +1013,7 @@ int main()
 
                 left_pad_cnt = 0;
             }
+            flag = 0;
         }
     }
     
@@ -1048,7 +1055,7 @@ int main()
 
     #endif
 
-    #if defined(TEST_ID_3) && (TARGET_SIM == 0 || defined(TARGET_QUESTASIM))
+    #if defined(TEST_ID_3) && (TARGET_SIM == 0 || defined(TARGET_QUESTASIM)) && DMA_CH_NUM > 1
 
     /* Testing SPI2RAM & RAM2RAM operations on 2 channels */
 
@@ -1072,7 +1079,9 @@ int main()
     CSR_WRITE(CSR_REG_MCYCLE, 0);
     #endif
 
-    tgt_src.ptr            = &test_data[0];
+    dma_init(NULL);
+
+    tgt_src.ptr            = (uint8_t *) test_data;
     tgt_src.inc_du         = SRC_INC_D1;
     tgt_src.inc_d2_du      = SRC_INC_D2;
     tgt_src.size_du        = SIZE_EXTR_D1;
@@ -1080,7 +1089,7 @@ int main()
     tgt_src.trig           = DMA_TRIG_MEMORY;
     tgt_src.type           = DMA_DATA_TYPE;
 
-    tgt_dst[1].ptr            = copied_data_2D_DMA[1];
+    tgt_dst[1].ptr            = (uint8_t *) copied_data_2D_DMA[1];
     tgt_dst[1].inc_du         = DST_INC_D1;
     tgt_dst[1].inc_d2_du      = DST_INC_D2;
     tgt_dst[1].trig           = DMA_TRIG_MEMORY;
@@ -1108,11 +1117,11 @@ int main()
     }
 
     /* Pick the correct spi device based on simulation type */
-    spi_host_t spi;
+    spi_host_t *spi;
     #ifndef USE_SPI_FLASH
-    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_HOST_START_ADDRESS);
+    spi = spi_host1;
     #else
-    spi.base_addr = mmio_region_from_addr((uintptr_t)SPI_FLASH_START_ADDRESS);
+    spi = spi_flash;
     #endif
 
     /* Init SPI host and SPI<->Flash bridge parameters */
@@ -1147,13 +1156,13 @@ int main()
     #endif
 
     /* Wait for CH1 to end */
-    while(!dma_is_ready(0)) {
+    while(!dma_is_ready(1)) {
         #if !EN_PERF
         /* Disable_interrupts */
         /* This does not prevent waking up the core as this is controlled by the MIP register */
         
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if ( dma_is_ready(0) == 0 ) {
+        if ( dma_is_ready(1) == 0 ) {
             wait_for_interrupt();
             /* From here the core wakes up even if we did not jump to the ISR */
         }

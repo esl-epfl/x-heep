@@ -92,6 +92,17 @@ module testharness #(
   // Im2col SPC interrupt signal
   logic im2col_spc_done_int_o;
 
+  // External DMA slots
+  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx;
+  logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx;
+
+  assign ext_dma_slot_tx[0] = iffifo_in_ready;
+  assign ext_dma_slot_rx[0] = iffifo_out_valid;
+  if (core_v_mini_mcu_pkg::DMA_CH_NUM > 1) begin
+    assign ext_dma_slot_tx[core_v_mini_mcu_pkg::DMA_CH_NUM-1:1] = '0;
+    assign ext_dma_slot_rx[core_v_mini_mcu_pkg::DMA_CH_NUM-1:1] = '0;
+  end
+
   // External xbar master/slave and peripheral ports
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] ext_master_req;
   obi_req_t [EXT_XBAR_NMASTER_RND-1:0] heep_slave_req;
@@ -163,6 +174,7 @@ module testharness #(
     $display("%t: the parameter X_EXT is %x", $time, X_EXT);
     $display("%t: the parameter ZFINX is %x", $time, ZFINX);
     $display("%t: the parameter JTAG_DPI is %x", $time, JTAG_DPI);
+    $display("%t: the parameter EXT_DOMAINS is %x", $time, core_v_mini_mcu_pkg::EXTERNAL_DOMAINS);
     $display("%t: the parameter USE_EXTERNAL_DEVICE_EXAMPLE is %x", $time,
              USE_EXTERNAL_DEVICE_EXAMPLE);
     $display("%t: the parameter CLK_FREQUENCY is %d KHz", $time, CLK_FREQUENCY);
@@ -273,8 +285,9 @@ module testharness #(
       .external_subsystem_rst_no(external_subsystem_rst_n),
       .external_ram_banks_set_retentive_no(external_ram_banks_set_retentive_n),
       .external_subsystem_clkgate_en_no(external_subsystem_clkgate_en_n),
-      .ext_dma_slot_tx_i(iffifo_in_ready),
-      .ext_dma_slot_rx_i(iffifo_out_valid),
+      .ext_dma_slot_tx_i(ext_dma_slot_tx),
+      .ext_dma_slot_rx_i(ext_dma_slot_rx),
+      .ext_dma_stop_i('0)
       .dma_done_o(dma_busy)
   );
 
@@ -469,6 +482,7 @@ module testharness #(
       ) dma_i (
           .clk_i,
           .rst_ni,
+          .ext_dma_stop_i('0),
           .reg_req_i(ext_periph_slv_req[testharness_pkg::MEMCOPY_CTRL_IDX]),
           .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::MEMCOPY_CTRL_IDX]),
           .dma_read_req_o(ext_master_req[testharness_pkg::EXT_MASTER0_IDX]),

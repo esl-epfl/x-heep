@@ -139,8 +139,8 @@
         }
       ]
     },
-    { name:     "DATA_TYPE",
-      desc:     '''Width/type of the data to transfer''',
+    { name:     "SRC_DATA_TYPE",
+      desc:     '''Width/type of the source data to transfer''',
       swaccess: "rw",
       hwaccess: "hro",
       hwqe:     "true", // enable `qe` latched signal of software write pulse
@@ -153,6 +153,39 @@
             { value: "1", name: "DMA_16BIT_WORD", desc: "Transfers 16 bits"},
             { value: "2", name: "DMA_8BIT_WORD" , desc: "Transfers  8 bits"},
             { value: "3", name: "DMA_8BIT_WORD_2",desc: "Transfers  8 bits"},
+          ]
+        }
+      ]
+    },
+    { name:     "DST_DATA_TYPE",
+      desc:     '''Width/type of the destination data to transfer''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   0,
+      fields: [
+        { bits: "1:0", name: "DATA_TYPE", 
+          desc: "Data type",
+          enum: [
+            { value: "0", name: "DMA_32BIT_WORD", desc: "Transfers 32 bits"},
+            { value: "1", name: "DMA_16BIT_WORD", desc: "Transfers 16 bits"},
+            { value: "2", name: "DMA_8BIT_WORD" , desc: "Transfers  8 bits"},
+            { value: "3", name: "DMA_8BIT_WORD_2",desc: "Transfers  8 bits"},
+          ]
+        }
+      ]
+    },
+    {
+      name:     "SIGN_EXT",
+      desc:     '''Is the data to be sign extended? (Checked only if the dst data type is wider than the src data type)''',
+      swaccess: "rw",
+      hwaccess: "hro",
+      resval:   0,
+      fields: [
+        { bits: "0", name: "SIGNED", 
+          desc: "Extend the sign to the destination data",
+          enum: [
+            { value: "0", name: "NO_EXTEND", desc: "Does not extend the sign"},
+            { value: "1", name: "EXTEND", desc: "Extends the sign"},
           ]
         }
       ]

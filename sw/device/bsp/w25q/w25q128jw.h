@@ -192,7 +192,7 @@ void w25q128jw_init_crt0();
  *
  * @return FLASH_OK if the flash is correctly initialized, @ref error_codes otherwise.
 */
-w25q_error_codes_t w25q128jw_init(spi_host_t spi_host);
+w25q_error_codes_t w25q128jw_init(spi_host_t* spi_host);
 
 /**
  * @brief Read from flash.
