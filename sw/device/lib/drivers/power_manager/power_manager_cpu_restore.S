@@ -25,6 +25,9 @@ power_manager_cpu_restore:
     // write RESTORE_ADDRESS[31:0] = 0
     sw x0, POWER_MANAGER_RESTORE_ADDRESS_REG_OFFSET(t0)
 
+    // restore gp as it is gonna be used to calculate the address of __power_manager_start
+    lw  gp, POWER_MANAGER_GLOBAL_POINTER_REG_OFFSET(t0)
+
     // write CORE_REG_Xn[31:0] = Xn
     la t0, __power_manager_start
     //one of the following load is gonna overwrite t0, but t0 was already stored before to the right value

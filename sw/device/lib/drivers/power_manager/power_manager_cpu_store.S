@@ -17,6 +17,10 @@ power_manager_cpu_store:
     li  t1, 1
     sw  t1, POWER_MANAGER_POWER_GATE_CORE_REG_OFFSET(t0)
 
+    // save the global pointer, _power_manager_start is the start of the power_manager section and saved in the gp reg
+    // when returning from deep sleep, the gp register is used to restore the context, thus saving it in an always on register
+    sw  gp, POWER_MANAGER_GLOBAL_POINTER_REG_OFFSET(t0)
+
     // save context
     la t0, __power_manager_start
     sw x1,  0(t0)
