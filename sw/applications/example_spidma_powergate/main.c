@@ -152,13 +152,7 @@ int main(int argc, char *argv[])
     // Init SPI host and SPI<->Flash bridge parameters
     if (w25q128jw_init(spi) != FLASH_OK) return EXIT_FAILURE;
 
-
-#ifndef ON_CHIP
-    uint32_t *test_buffer_flash = flash_only_buffer;
-#else
     uint32_t *test_buffer_flash = heep_get_flash_address_offset(flash_only_buffer);
-#endif
-
     // Read from flash memory at the same address
     w25q_error_codes_t status = w25q128jw_read_standard_dma_async(test_buffer_flash, on_chip_buffer, FLASH_ONLY_BYTES);
     if (status != FLASH_OK) exit(EXIT_FAILURE);
