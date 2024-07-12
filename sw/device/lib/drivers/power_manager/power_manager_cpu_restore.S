@@ -30,6 +30,8 @@ power_manager_cpu_restore:
 
     // write CORE_REG_Xn[31:0] = Xn
     la t0, __power_manager_start
+    // restore context, this part could be optimized
+
     //one of the following load is gonna overwrite t0, but t0 was already stored before to the right value
     lw x1,  0(t0)
     lw x2,  4(t0)
