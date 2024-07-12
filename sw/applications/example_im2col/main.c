@@ -40,7 +40,7 @@ int main()
             #if TEST_EN == 0
                 PRINTF_TIM("Total number of cycles: [%d]\n\r", cycles);
             #else
-                PRINTF_TIM("c:%d\n\r", cycles);
+                PRINTF_TIM("c:%d\n\rEND\n\r", cycles);
             #endif
 
             errors = verify(NCHW_FORMAT);

@@ -85,9 +85,9 @@ module ext_bus #(
     for (
         genvar i = 0; i < core_v_mini_mcu_pkg::DMA_NUM_MASTER_PORTS; i++
     ) begin : gen_dma_master_req_map
-      assign master_req[core_v_mini_mcu_pkg::DMA_READ_P0_IDX+i]  = heep_dma_read_req_i[i];
-      assign master_req[core_v_mini_mcu_pkg::DMA_WRITE_P0_IDX+i] = heep_dma_write_req_i[i];
-      assign master_req[core_v_mini_mcu_pkg::DMA_ADDR_P0_IDX+i]  = heep_dma_addr_req_i[i];
+      assign master_req[core_v_mini_mcu_pkg::DMA_READ_P0_IDX+i*3]  = heep_dma_read_req_i[i];
+      assign master_req[core_v_mini_mcu_pkg::DMA_WRITE_P0_IDX+i*3] = heep_dma_write_req_i[i];
+      assign master_req[core_v_mini_mcu_pkg::DMA_ADDR_P0_IDX+i*3]  = heep_dma_addr_req_i[i];
     end
   endgenerate
 
