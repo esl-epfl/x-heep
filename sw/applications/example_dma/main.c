@@ -63,10 +63,10 @@ dma_data_type_t C_type_2_dma_type(int C_type)
 }
 
 #define WAIT_DMA                              \
-    while (!dma_is_ready())                   \
+    while (!dma_is_ready(0))                   \
     {                                         \
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8); \
-        if (dma_is_ready() == 0)              \
+        if (dma_is_ready(0) == 0)              \
         {                                     \
             wait_for_interrupt();             \
         }                                     \
@@ -106,7 +106,7 @@ dma_data_type_t C_type_2_dma_type(int C_type)
     {                                                                                       \
         if (src[i] != dst[i])                                                               \
         {                                                                                   \
-            PRINTF("[%d] Expected: %x Got : %x\n", i, src[i], dst[i]);                      \
+            PRINTF("[%d] Expected: %x Got : %x\n\r", i, src[i], dst[i]);                      \
             errors++;                                                                       \
         }                                                                                   \
     }                                                                                       \
@@ -134,13 +134,13 @@ dma_data_type_t C_type_2_dma_type(int C_type)
     trans.src = &tgt_src;                                        \
     trans.dst = &tgt_dst;                                        \
     trans.src_addr = &tgt_addr;                                  \
-    trans.src_type = dma_dst_type;                               \
+    trans.src_type = dma_src_type;                               \
     trans.dst_type = dma_dst_type;                               \
     trans.mode = DMA_TRANS_MODE_SINGLE;                          \
     trans.win_du = 0;                                            \
     trans.sign_ext = signed;                                     \
     trans.end = DMA_TRANS_END_INTR;                              \
-    trans.dim = DMA_DIM_CONF_1D;
+    trans.dim = DMA_DIM_CONF_1D;                                 \
 
 #define TEST(C_src_type, C_dst_type, test_size, sign_extend)                                                         \
     PRINT_TEST(sign_extend, test_size, C_type_2_dma_type(sizeof(C_src_type)), C_type_2_dma_type(sizeof(C_dst_type))) \
@@ -207,7 +207,7 @@ int32_t errors = 0;
 int8_t cycles = 0;
 
 // INTERRUPT HANDLERS
-void dma_intr_handler_trans_done(void)
+void dma_intr_handler_trans_done(uint8_t channel)
 {
     cycles++;
 }
@@ -216,9 +216,8 @@ void dma_intr_handler_trans_done(void)
 
 int32_t window_intr_flag;
 
-void dma_intr_handler_window_done(void)
-{
-    window_intr_flag++;
+void dma_intr_handler_window_done(uint8_t channel) {
+    window_intr_flag ++;
 }
 
 uint8_t dma_window_ratio_warning_threshold()
@@ -227,6 +226,8 @@ uint8_t dma_window_ratio_warning_threshold()
 }
 
 #endif // TEST_WINDOW
+
+dma_trans_t trans;
 
 int main(int argc, char *argv[])
 {
@@ -251,7 +252,6 @@ int main(int argc, char *argv[])
         .size_du = TEST_DATA_SIZE,
         .trig = DMA_TRIG_MEMORY,
     };
-    dma_trans_t trans;
 
 #ifdef TEST_SINGLE_MODE
 
@@ -424,8 +424,7 @@ int main(int argc, char *argv[])
     {
         while (cycles < consecutive_trans)
         {
-            while (!dma_is_ready())
-                ;
+            while (!dma_is_ready(0));
             cycles++;
         }
     }
@@ -490,16 +489,15 @@ int main(int argc, char *argv[])
 
     if (trans.end == DMA_TRANS_END_POLLING)
     { // There will be no interrupts whatsoever!
-        while (!dma_is_ready())
-            ;
+        while (!dma_is_ready(0));
         PRINTF("?\n\r");
     }
     else
     {
-        while (!dma_is_ready())
+        while (!dma_is_ready(0))
         {
             wait_for_interrupt();
-            PRINTF("i\n\r");
+            PRINTF("i\n\r");//@ToDo: is this a debugging?
         }
     }
 

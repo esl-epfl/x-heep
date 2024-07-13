@@ -53,6 +53,8 @@ ${pad.core_v_mini_mcu_interface}
     output obi_req_t  ext_dma_addr_ch0_req_o,
     input  obi_resp_t ext_dma_addr_ch0_resp_i,
 
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_stop_i,
+
     output reg_req_t ext_peripheral_slave_req_o,
     input  reg_rsp_t ext_peripheral_slave_resp_i,
 
@@ -77,8 +79,8 @@ ${pad.core_v_mini_mcu_interface}
 
     output logic [31:0] exit_value_o,
 
-    input logic ext_dma_slot_tx_i,
-    input logic ext_dma_slot_rx_i
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_tx_i,
+    input logic [core_v_mini_mcu_pkg::DMA_CH_NUM-1:0] ext_dma_slot_rx_i
 );
 
   import core_v_mini_mcu_pkg::*;
@@ -425,7 +427,8 @@ ${pad.core_v_mini_mcu_interface}
       .ext_peripheral_slave_req_o,
       .ext_peripheral_slave_resp_i,
       .ext_dma_slot_tx_i,
-      .ext_dma_slot_rx_i
+      .ext_dma_slot_rx_i,
+      .ext_dma_stop_i
   );
 
   peripheral_subsystem peripheral_subsystem_i (

@@ -289,7 +289,7 @@ w25q_error_codes_t w25q128jw_read(uint32_t addr, void *data, uint32_t length) {
         if (status != FLASH_OK) return status;
     } else {
         // Wait DMA to be free
-        while(!dma_is_ready());
+        while(!dma_is_ready(0));
         status = w25q128jw_read_quad_dma(addr, data, length);
         if (status != FLASH_OK) return status;
     }
@@ -308,7 +308,7 @@ w25q_error_codes_t w25q128jw_write(uint32_t addr, void *data, uint32_t length, u
         status = erase_and_write(addr, data, length);
     } else {
         // Wait DMA to be free
-        while(!dma_is_ready());
+        while(!dma_is_ready(0));
         status = w25q128jw_write_quad_dma(addr, data, length);
     }
 
@@ -436,9 +436,11 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard(uint32_t addr, void* data,
 
 }
 
-w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length) {
+
+w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32_t length, uint8_t no_wait_dma, uint8_t no_sanity_checks) {
+
     // Sanity checks
-    if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
+    if (!no_sanity_checks)  if (w25q128jw_sanity_checks(addr, data, length) != FLASH_OK) return FLASH_ERROR;
 
     /*
      * SET UP DMA
@@ -447,7 +449,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     uint32_t *fifo_ptr_rx = (uint32_t *)((uintptr_t)spi + SPI_HOST_RXDATA_REG_OFFSET);
 
     // Init DMA, the integrated DMA is used (peri == NULL)
-    dma_init(NULL);
+    if(!no_wait_dma)    dma_init(NULL);
 
     // The DMA will wait for the SPI HOST/FLASH RX FIFO valid signal
     #ifndef USE_SPI_FLASH
@@ -484,6 +486,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     };
 
     // Validate, load and launch DMA transaction
+
     dma_config_flags_t res;
     res = dma_validate_transaction(&trans, DMA_ENABLE_REALIGN, DMA_PERFORM_CHECKS_INTEGRITY );
     res = dma_load_transaction(&trans);
@@ -517,7 +520,7 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
     spi_wait_for_ready(spi);
 
     // Wait for DMA to finish transaction
-    while(!dma_is_ready());
+    if(!no_wait_dma) while(!dma_is_ready(0));
 
     // Take into account the extra bytes (if any)
     if (length % 4 != 0) {
@@ -528,7 +531,6 @@ w25q_error_codes_t w25q128jw_read_standard_dma(uint32_t addr, void *data, uint32
 
     return FLASH_OK;
 }
-
 w25q_error_codes_t w25q128jw_read_standard_dma_async(uint32_t addr, void *data, uint32_t length) {
 
     // Sanity checks
@@ -640,7 +642,7 @@ w25q_error_codes_t w25q128jw_erase_and_write_standard_dma(uint32_t addr, void* d
         uint32_t sector_start_addr = current_addr & 0xfffff000;
 
         // Read the full sector and save it into RAM
-        status = w25q128jw_read_standard_dma(sector_start_addr, sector_data, FLASH_SECTOR_SIZE);
+        status = w25q128jw_read_standard_dma(sector_start_addr, sector_data, FLASH_SECTOR_SIZE, 0, 0);
         if (status != FLASH_OK) return FLASH_ERROR;
 
         // Erase the sector (no need to do so in simulation)
@@ -924,7 +926,7 @@ w25q_error_codes_t w25q128jw_read_quad_dma(uint32_t addr, void *data, uint32_t l
     res = dma_launch(&trans);
 
     // Wait for DMA to finish transaction
-    while(!dma_is_ready());
+    while(!dma_is_ready(0));
 
     // Take into account the extra bytes (if any)
     if (length % 4 != 0) {
@@ -1495,7 +1497,7 @@ static w25q_error_codes_t dma_send_toflash(uint8_t *data, uint32_t length) {
     if (res != DMA_CONFIG_OK) return FLASH_ERROR_DMA;
 
     // Wait for DMA to finish transaction
-    while(!dma_is_ready());
+    while(!dma_is_ready(0));
 
     // Take into account the extra bytes (if any)
     if (length % 4 != 0) {

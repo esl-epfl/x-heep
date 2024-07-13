@@ -227,11 +227,11 @@ int main(int argc, char *argv[])
     res = dma_load_transaction(&trans);
     res = dma_launch(&trans);
 
-    while (!dma_is_ready())
+    while (!dma_is_ready(0))
     {
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
-        if (dma_is_ready() == 0)
-        {
+        if (dma_is_ready(0) == 0)
+        {             
                 if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_counters) != kPowerManagerOk_e)
                 {
                     PRINTF("Error: power manager fail.\n\r");

@@ -10,4 +10,10 @@ package addr_map_rule_pkg;
     logic [31:0] end_addr;
   } addr_map_rule_t;
 
+  typedef struct packed {
+    logic [7:0] idx;
+    logic [7:0] start_addr;
+    logic [7:0] end_addr;
+  } addr_map_rule_8bit_t;
+
 endpackage
