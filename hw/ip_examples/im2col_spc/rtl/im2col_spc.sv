@@ -39,7 +39,7 @@ module im2col_spc
   /* Parameter definition */
 
   /* DMA register offsets */
-  localparam DMA_DIMENSIONALITY_OFFSET = 32'h34;
+  localparam DMA_DIMENSIONALITY_OFFSET = 32'h3C;
   localparam DMA_SRC_PTR_OFFSET = 32'h0;
   localparam DMA_DST_PTR_OFFSET = 32'h4;
   localparam DMA_INC_SRC_D1_OFFSET = 32'h18;
@@ -48,11 +48,12 @@ module im2col_spc
   localparam DMA_INC_DST_D2_OFFSET = 32'h24;
   localparam DMA_SIZE_D2_OFFSET = 32'h10;
   localparam DMA_SIZE_D1_OFFSET = 32'hC;
-  localparam DMA_DATATYPE_OFFSET = 32'h2C;
-  localparam DMA_TOP_PAD_OFFSET = 32'h3C;
-  localparam DMA_BOTTOM_PAD_OFFSET = 32'h40;
-  localparam DMA_RIGHT_PAD_OFFSET = 32'h44;
-  localparam DMA_LEFT_PAD_OFFSET = 32'h48;
+  localparam DMA_SRC_DATATYPE_OFFSET = 32'h2C;
+  localparam DMA_DST_DATATYPE_OFFSET = 32'h30;
+  localparam DMA_TOP_PAD_OFFSET = 32'h44;
+  localparam DMA_BOTTOM_PAD_OFFSET = 32'h48;
+  localparam DMA_RIGHT_PAD_OFFSET = 32'h4C;
+  localparam DMA_LEFT_PAD_OFFSET = 32'h50;
 
   /* FIFO dimension */
   localparam FIFO_DEPTH = 4;
@@ -154,7 +155,8 @@ module im2col_spc
   enum {
     IDLE_IF_LOAD,
     WRITE_DIMENSIONALITY,
-    WRITE_DATATYPE,
+    WRITE_SRC_DATATYPE,
+    WRITE_DST_DATATYPE,
     WRITE_TOP_PAD,
     WRITE_BOTTOM_PAD,
     WRITE_LEFT_PAD,
@@ -512,7 +514,7 @@ module im2col_spc
       WRITE_DIMENSIONALITY: begin
         fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
-          dma_if_cu_load_q = WRITE_DATATYPE;
+          dma_if_cu_load_q = WRITE_SRC_DATATYPE;
         end else if (dma_if_cu_d == IDLE_IF_CU) begin
           dma_if_cu_load_q = IDLE_IF_LOAD;
         end else begin
@@ -520,12 +522,21 @@ module im2col_spc
         end
       end
 
-      WRITE_DATATYPE: begin
+      WRITE_SRC_DATATYPE: begin
+        fifo_pop = 1'b0;
+        if (dma_if_load_continue == 1'b1) begin
+          dma_if_cu_load_q = WRITE_DST_DATATYPE;
+        end else begin
+          dma_if_cu_load_q = WRITE_SRC_DATATYPE;
+        end
+      end
+
+      WRITE_DST_DATATYPE: begin
         fifo_pop = 1'b0;
         if (dma_if_load_continue == 1'b1) begin
           dma_if_cu_load_q = WRITE_TOP_PAD;
         end else begin
-          dma_if_cu_load_q = WRITE_DATATYPE;
+          dma_if_cu_load_q = WRITE_DST_DATATYPE;
         end
       end
 
@@ -676,7 +687,7 @@ module im2col_spc
           end
         end
 
-        WRITE_DATATYPE: begin
+        WRITE_SRC_DATATYPE: begin
           if (dma_if_load_req == 1'b0) begin
             dma_if_load_continue <= 0;
             dma_if_load_req <= 1'b1;
@@ -685,7 +696,27 @@ module im2col_spc
             im2col2aopx_req_o.wstrb <= 4'b1111;
             im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
                                     dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
-                                    DMA_DATATYPE_OFFSET;
+                                    DMA_SRC_DATATYPE_OFFSET;
+            im2col2aopx_req_o.wdata <= {30'h0, reg2hw.data_type.q} & 32'h3;  // Mask
+          end else if (dma_if_load_valid == 1'b1) begin
+            dma_if_load_continue <= 1'b1;
+            dma_if_load_req <= 1'b0;
+          end else begin
+            dma_if_load_continue <= 0;
+            im2col2aopx_req_o.valid <= 1'b0;
+          end
+        end
+
+        WRITE_DST_DATATYPE: begin
+          if (dma_if_load_req == 1'b0) begin
+            dma_if_load_continue <= 0;
+            dma_if_load_req <= 1'b1;
+            im2col2aopx_req_o.valid <= 1'b1;
+            im2col2aopx_req_o.write <= 1'b1;
+            im2col2aopx_req_o.wstrb <= 4'b1111;
+            im2col2aopx_req_o.addr <= core_v_mini_mcu_pkg::DMA_START_ADDRESS + 
+                                    dma_trans_free_channel * core_v_mini_mcu_pkg::DMA_CH_SIZE + 
+                                    DMA_DST_DATATYPE_OFFSET;
             im2col2aopx_req_o.wdata <= {30'h0, reg2hw.data_type.q} & 32'h3;  // Mask
           end else if (dma_if_load_valid == 1'b1) begin
             dma_if_load_continue <= 1'b1;

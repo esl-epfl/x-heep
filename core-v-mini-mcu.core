@@ -101,6 +101,7 @@ filesets:
     - openhwgroup.org:systems:core-v-mini-mcu-fpga
     files:
     - hw/fpga/xilinx_core_v_mini_mcu_wrapper.sv
+    - hw/ip_examples/im2col_spc/rtl/im2col_spc.sv
     file_type: systemVerilogSource
 
   ip-asic:

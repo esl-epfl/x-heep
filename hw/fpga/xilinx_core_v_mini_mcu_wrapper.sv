@@ -70,7 +70,7 @@ module xilinx_core_v_mini_mcu_wrapper
   import testharness_pkg::*;
   import addr_map_rule_pkg::*;
   import core_v_mini_mcu_pkg::*;
-  
+
   wire                               clk_gen;
   logic [                      31:0] exit_value;
   wire                               rst_n;

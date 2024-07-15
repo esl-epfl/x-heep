@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 
 #######################################################################################################
-def torch_im2col_ncwh(input_tensor, kernel_size, stride_d1=1, stride_d2=1, top_pad=1, bottom_pad=1, left_pad=2, right_pad=1, dilation=1):
+def torch_im2col_ncwh(input_tensor, kernel_size, stride_d1=1, stride_d2=1, top_pad=1, bottom_pad=1, left_pad=1, right_pad=1, dilation=1):
     """
     Applies the im2col operation to an input tensor using PyTorch's unfold method, supporting both NCHW and NHWC formats.
 
@@ -43,7 +43,7 @@ def torch_im2col_ncwh(input_tensor, kernel_size, stride_d1=1, stride_d2=1, top_p
     channel_dim = padded_input.size(1)
     return unfolded.contiguous().view(-1, channel_dim * kernel_size[0] * kernel_size[1]).t()
 
-def shl_im2col_nhwc(input_tensor, kernel_size, stride, top_pad=1, bottom_pad=1, left_pad=2, right_pad=1):  
+def shl_im2col_nhwc(input_tensor, kernel_size, stride, top_pad=1, bottom_pad=1, left_pad=1, right_pad=1):  
     # Get the dimensions of the input tensor
     batch_size, height, width, channels = input_tensor.shape
     input_tensor = input_tensor.flatten()
@@ -154,7 +154,7 @@ filter_height = 3
 filter_width = 3
 top_pad = 1
 bottom_pad = 1
-left_pad = 2
+left_pad = 1
 right_pad = 1
 stride_d1 = 1
 stride_d2 = 1

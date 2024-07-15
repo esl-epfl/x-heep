@@ -1,6 +1,7 @@
 import subprocess
 import re
 import time
+from tqdm import tqdm
 
 def parse_data(data):
     results = []
@@ -88,6 +89,16 @@ im2col_lib_pattern = re.compile(r'#define SPC_CH_MASK 0b\d+')
 im2col_lib_pattern_cpu_done = re.compile(r'#define START_ID \d+')
 im2col_lib_pattern_test = re.compile(r'#define TEST_EN \d+')
 
+total_iterations = ((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) *
+                    (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) *
+                    (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) *
+                    (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) *
+                    (im_w_max - im_w_min) * (im_h_max - im_h_min) *
+                    (channels_max - channels_min) * (batch_max - batch_min) *
+                    (num_channels_dma - num_channels_dma_min))
+
+progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter")
+
 im2col_cpu_array = []
 im2col_dma_2d_C_array = []
 im2col_spc_array = []
@@ -141,14 +152,11 @@ def modify_parameters(file_path, modifications, patterns):
         file.write(content)
 
 cpu_done = 0
-iteration = 0
+iteration = 1
 execution_times = []
 start_loop_time = time.time()
 
 for i in range(num_channels_dma_min, num_channels_dma):
-    print("_______________________\n\r")
-    print("Number of channels used by SPC\n\r", i)
-    print("_______________________\n\n\r")
     im2col_cpu = []
     im2col_dma_2d_C = []
     im2col_spc = []
@@ -178,18 +186,9 @@ for i in range(num_channels_dma_min, num_channels_dma):
                                                 for u in range(stride_d2_min, stride_d2_max):
                                                     start_time = time.time()
 
-                                                    print("Batch size: ", j)
-                                                    print("Number of input channels: ", k)
-                                                    print("Image height: ", l)
-                                                    print("Image width: ", m)
-                                                    print("Kernel height: ", n)
-                                                    print("Kernel width: ", o)
-                                                    print("Pad top: ", p)
-                                                    print("Pad bottom: ", q)
-                                                    print("Pad left: ", r)
-                                                    print("Pad right: ", s)
-                                                    print("Stride d1: ", t)
-                                                    print("Stride d2: ", u)
+                                                    tqdm.write(f"\n\n\rSPC channels: {i}\n\rBatch size: {j}\n\rInput channels: {k}\n\rImage height: {l}\n\rImage width: {m}"
+                                                          f"\n\rKernel height: {n}\n\rKernel width: {o}\n\rPad top: {p}\n\rPad bottom: {q}\n\r"
+                                                          f"Pad left: {r}\n\rPad right: {s}\n\rStride d1: {t}\n\rStride d2: {u}", end="")
                                                     
                                                     ver_modifications = {
                                                         'image_height': l,
@@ -211,15 +210,9 @@ for i in range(num_channels_dma_min, num_channels_dma):
                                                         content = file.read()
                                                     
                                                     mask = generate_mask(num_masters, num_slaves, max_masters_per_slave, i)
-                                                    print("Mask: ", mask)
-                                                    print("CPU done: ", cpu_done)
-                                                    
-                                                    print("_______________________\n\n")
-                                                    iteration += 1
-                                                    progress = (iteration)/((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) * (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) * (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) * (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) * (im_w_max - im_w_min) * (im_h_max - im_h_min) * (channels_max - channels_min) * (batch_max - batch_min) * (num_channels_dma - num_channels_dma_min)) * 100
-                                                    
-                                                    print("Progress: {:.2f}%".format(progress))
 
+                                                    progress = (iteration)/((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) * (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) * (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) * (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) * (im_w_max - im_w_min) * (im_h_max - im_h_min) * (channels_max - channels_min) * (batch_max - batch_min) * (num_channels_dma - num_channels_dma_min)) * 100
+                                                                                                        
                                                     # Replace the matched pattern with the new value
                                                     new_content = im2col_lib_pattern.sub(f'#define SPC_CH_MASK 0b{mask}', content)
                                                     
@@ -237,10 +230,8 @@ for i in range(num_channels_dma_min, num_channels_dma):
                                                     subprocess.run(verification_script_com, shell=True, text=True)
                                                     result = subprocess.run(app_compile_run_com, shell=True, capture_output=True, text=True)
                                                     
-                                                    pattern = re.compile(r'ID:(\d+)')
-                                                    pattern_2 = re.compile(r'c:(\d+)')
+                                                    pattern = re.compile(r'(\d+):(\d+):(\d+)')
                                                     err_pattern = re.compile(r'ERROR')
-                                                    err_pattern_small = re.compile(r'error')
                                                     #print(result.stdout)
 
                                                     # Array to store the cycles for each test
@@ -253,19 +244,15 @@ for i in range(num_channels_dma_min, num_channels_dma):
                                                     with open(file_path, 'r') as file:
                                                       for line in file:
                                                         match = pattern.search(line)
-                                                        match_2 = pattern_2.search(line)
                                                         err_match = err_pattern.search(line)
-                                                        err_match_small = err_pattern_small.search(line)
                                                         if match:
                                                             test_number = match.group(1)
-                                                        elif match_2:
-                                                            cycle_count = match_2.group(1)
+                                                            cycle_count = match.group(2)
                                                             cycles.append((test_number, cycle_count))
-                                                        elif err_match or err_match_small:
+                                                            print(f"Test {test_number} completed in {cycle_count} cycles")
+                                                        elif err_match:
                                                             print("ERROR FOUND")
                                                             break
-                                                    
-                                                    print(cycles)
 
                                                     for test, cycle in cycles:
                                                         string = f"CH_SPC: {i}, B: {j}, C: {k}, H: {l}, W: {m}, FH: {n}, FW: {o}, PT: {p}, PB: {q}, PL: {r}, PR: {s}, S1: {t}, S2: {u}, cycles: {cycle}"
@@ -287,17 +274,19 @@ for i in range(num_channels_dma_min, num_channels_dma):
                                                     hours, remainder = divmod(estimated_remaining_time, 3600)
                                                     minutes, seconds = divmod(remainder, 60)
 
-                                                    print(f"Cycle time: {cycle_time:.2f}s")
-                                                    print(f"Average time: {average_time:.2f}s")
-                                                    print(f"Remaining time: {hours}h:{minutes}m:{seconds:.2f}s")
-
-                                                    print("_______________________\n")
+                                                    tqdm.write(f"\rRemaining time: {hours}h:{minutes}m:{seconds:.2f}s")
+                                                    iteration += 1
+                                                    progress_bar.update(1)
+                                                    
+                                                    
     if (not cpu_done):
         im2col_cpu_array.append(im2col_cpu)
         im2col_dma_2d_C_array.append(im2col_dma_2d_C)
     im2col_spc_array.append(im2col_spc)
     print(im2col_cpu)
     cpu_done = 1
+
+progress_bar.close()
 
 with open('im2col_data.txt', 'w') as file:
     file.write("im2col_cpu:\n")

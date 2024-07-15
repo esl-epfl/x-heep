@@ -6,6 +6,7 @@ import pexpect
 import threading
 import queue
 import verifheep_lib
+from tqdm import tqdm
 
 def parse_data(data):
     results = []
@@ -155,6 +156,17 @@ im2colVer = verifheep_lib.VerifHeep("pynq-z2", "../../../")
 im2colVer.serialBegin("/dev/ttyUSB2", 9600)
 im2colVer.setUpDeb()
 
+total_iterations = ((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) *
+                    (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) *
+                    (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) *
+                    (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) *
+                    (im_w_max - im_w_min) * (im_h_max - im_h_min) *
+                    (channels_max - channels_min) * (batch_max - batch_min) *
+                    (num_channels_dma - num_channels_dma_min))
+
+progress_bar = tqdm(total=total_iterations, desc="Overall Progress", ncols=100, unit=" iter")
+
+
 for i in range(num_channels_dma_min, num_channels_dma):
     print("_______________________\n\r")
     print("Number of channels used by SPC\n\r", i)
@@ -189,18 +201,10 @@ for i in range(num_channels_dma_min, num_channels_dma):
                                                     
                                                     im2colVer.chronoStart()
 
-                                                    print("Batch size: ", j)
-                                                    print("Number of input channels: ", k)
-                                                    print("Image height: ", l)
-                                                    print("Image width: ", m)
-                                                    print("Kernel height: ", n)
-                                                    print("Kernel width: ", o)
-                                                    print("Pad top: ", p)
-                                                    print("Pad bottom: ", q)
-                                                    print("Pad left: ", r)
-                                                    print("Pad right: ", s)
-                                                    print("Stride d1: ", t)
-                                                    print("Stride d2: ", u)
+                                                    print(f"\rBatch size: {j}\n\rInput channels: {k}\n\r Image height: {l}\n\Image width: {m}"
+                                                          f"\n\rKernel height: {n}\n\rKernel width: {o}\n\rPad top: {p}\n\rPad bottom: {q}\n\r"
+                                                          f"Pad left: {r}\n\rPad right: {s}\n\rStride d1: {t}\n\rStride d2: {u}", end="")
+
                                                     
                                                     ver_modifications = {
                                                         'image_height': l,
@@ -222,15 +226,10 @@ for i in range(num_channels_dma_min, num_channels_dma):
                                                         content = file.read()
                                                     
                                                     mask = generate_mask(num_masters, num_slaves, max_masters_per_slave, i)
-                                                    print("Mask: ", mask)
-                                                    print("CPU done: ", cpu_done)
-                                                    
-                                                    print("_______________________\n\n")
+                                                  
                                                     iteration += 1
-                                                    progress = (iteration)/((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) * (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) * (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) * (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) * (im_w_max - im_w_min) * (im_h_max - im_h_min) * (channels_max - channels_min) * (batch_max - batch_min) * (num_channels_dma - num_channels_dma_min)) * 100
+                                                    progress_bar.update(1)
                                                     
-                                                    print("Progress: {:.2f}%".format(progress))
-
                                                     # Replace the matched pattern with the new value
                                                     new_content = im2col_lib_pattern.sub(f'#define SPC_CH_MASK 0b{mask}', content)
                                                     
@@ -263,9 +262,8 @@ for i in range(num_channels_dma_min, num_channels_dma):
                                                     im2colVer.chronoStop()
                                                     time_rem = im2colVer.chronoExecutionEst(((stride_d2_max - stride_d2_min) * (stride_d1_max - stride_d1_min) * (pad_right_max - pad_right_min) * (pad_left_max - pad_left_min) * (pad_bottom_max - pad_bottom_min) * (pad_top_max - pad_top_min) * (ker_w_max - ker_w_min) * (ker_h_max - ker_h_min) * (im_w_max - im_w_min) * (im_h_max - im_h_min) * (channels_max - channels_min) * (batch_max - batch_min) * (num_channels_dma - num_channels_dma_min)))
 
-                                                    print(f"Remaining time: {time_rem["hours"]}h:{time_rem["minutes"]}m:{time_rem["seconds"]:.2f}s")
+                                                    print(f"\rRemaining time: {time_rem["hours"]}h:{time_rem["minutes"]}m:{time_rem["seconds"]:.2f}s")
 
-                                                    print("_______________________\n")
     if (not cpu_done):
         im2col_cpu_array.append(im2col_cpu)
         im2col_dma_2d_C_array.append(im2col_dma_2d_C)
@@ -274,6 +272,7 @@ for i in range(num_channels_dma_min, num_channels_dma):
     cpu_done = 1
 
 im2colVer.stopAll()
+progress_bar.close()
 
 with open('im2col_data.txt', 'w') as file:
     file.write("im2col_cpu:\n")
