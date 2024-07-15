@@ -5,7 +5,7 @@
 // File: example_dma_sdk.c
 // Author: Juan Sapriza
 // Date: 15/07/2024
-// Description: Example application to test the Timer SDK. Will count the time to execute a short loop.
+// Description: Example application to test the Timer SDK. Will count the time to execute a few short tasks.
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -15,7 +15,7 @@
 
 /* By default, printfs are activated for FPGA and disabled for simulation. */
 #define PRINTF_IN_FPGA  1
-#define PRINTF_IN_SIM   1
+#define PRINTF_IN_SIM   0
 
 #if TARGET_SIM && PRINTF_IN_SIM
         #define PRINTF(fmt, ...)    printf(fmt, ## __VA_ARGS__)
