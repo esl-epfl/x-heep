@@ -217,6 +217,8 @@ int main(int argc, char *argv[])
     trans.sign_ext = 0;
     trans.end = DMA_TRANS_END_INTR;
     trans.dim = DMA_DIM_CONF_1D;
+    trans.dim_inv = 0;
+    trans.channel = 0;
     trans.pad_top_du = 0;
     trans.pad_bottom_du = 0;
     trans.pad_left_du = 0;
@@ -231,7 +233,7 @@ int main(int argc, char *argv[])
     {
         CSR_CLEAR_BITS(CSR_REG_MSTATUS, 0x8);
         if (dma_is_ready(0) == 0)
-        {             
+        {
                 if (power_gate_core(&power_manager, kDma_pm_e, &power_manager_counters) != kPowerManagerOk_e)
                 {
                     PRINTF("Error: power manager fail.\n\r");
